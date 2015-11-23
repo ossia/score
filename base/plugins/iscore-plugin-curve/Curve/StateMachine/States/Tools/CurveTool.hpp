@@ -34,7 +34,7 @@ class CurveTool : public GraphicsSceneToolBase<Curve::Point>
 
             switch(pressedItem->type())
             {
-                case QGraphicsItem::UserType + 10:
+                case CurvePointView::static_type():
                 {
                     auto pt = safe_cast<const CurvePointView*>(pressedItem);
                     if(pt->contains(pt->mapFromScene(scenePoint)))
@@ -42,7 +42,7 @@ class CurveTool : public GraphicsSceneToolBase<Curve::Point>
                     break;
                 }
 
-                case QGraphicsItem::UserType + 11:
+                case CurveSegmentView::static_type():
                 {
                     auto segt = safe_cast<const CurveSegmentView*>(pressedItem);
                     if(segt->contains(segt->mapFromScene(scenePoint)))

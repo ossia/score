@@ -17,8 +17,10 @@ class CurveSegmentView final : public QGraphicsObject
 
         const Id<CurveSegmentModel>& id() const;
 
-        int type() const override
+        static constexpr int static_type()
         { return QGraphicsItem::UserType + 11; }
+        int type() const override
+        { return static_type(); }
 
 
         QRectF boundingRect() const override;

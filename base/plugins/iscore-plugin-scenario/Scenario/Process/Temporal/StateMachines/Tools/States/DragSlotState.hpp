@@ -20,8 +20,6 @@
 #include <QFinalState>
 #include <QGraphicsScene>
 
-
-class BaseStateMachine;
 class QGraphicsScene;
 namespace Scenario
 {

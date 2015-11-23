@@ -14,8 +14,10 @@ class EventView final : public QGraphicsObject
         EventView(EventPresenter& presenter, QGraphicsObject* parent);
         virtual ~EventView() = default;
 
-        int type() const override
+        static constexpr int static_type()
         { return QGraphicsItem::UserType + 1; }
+        int type() const override
+        { return static_type(); }
 
         const EventPresenter& presenter() const
         { return m_presenter; }

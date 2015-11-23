@@ -127,6 +127,16 @@ void ToolPalette::on_cancel()
     }
 }
 
+void ToolPalette::activate(Tool)
+{
+
+}
+
+void ToolPalette::desactivate(Tool)
+{
+
+}
+
 Point ToolPalette::ScenePointToCurvePoint(const QPointF& point)
 {
     return {point.x() / m_presenter.view().boundingRect().width(),

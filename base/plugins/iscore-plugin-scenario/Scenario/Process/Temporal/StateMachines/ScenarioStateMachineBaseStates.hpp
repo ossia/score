@@ -9,7 +9,6 @@
 #include <QAbstractTransition>
 #include <QPointF>
 
-class ScenarioModel;
 class EventModel;
 class TimeNodeModel;
 class ConstraintModel;
@@ -23,7 +22,7 @@ template<typename Scenario_T>
 class StateBase : public QState
 {
     public:
-        StateBase(const Path<ScenarioModel>& scenar, QState* parent):
+        StateBase(const Path<Scenario_T>& scenar, QState* parent):
             QState{parent},
             m_scenarioPath{scenar}
         { }

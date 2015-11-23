@@ -12,8 +12,10 @@ class TriggerView final : public QGraphicsObject
                    const QStyleOptionGraphicsItem *option,
                    QWidget *widget) override;
 
-        int type() const override
+        static constexpr int static_type()
         { return QGraphicsItem::UserType + 7; }
+        int type() const override
+        { return static_type(); }
 
     signals:
         void pressed();

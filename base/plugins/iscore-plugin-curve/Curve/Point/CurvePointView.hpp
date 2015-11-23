@@ -19,8 +19,10 @@ class CurvePointView final : public QGraphicsObject
         const CurvePointModel& model() const;
         const Id<CurvePointModel>& id() const;
 
-        int type() const override
+        static constexpr int static_type()
         { return QGraphicsItem::UserType + 10; }
+        int type() const override
+        { return static_type(); }
 
         QRectF boundingRect() const override;
         void paint(QPainter *painter,

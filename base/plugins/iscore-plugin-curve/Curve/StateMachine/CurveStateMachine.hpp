@@ -40,6 +40,9 @@ class ToolPalette final : public GraphicsSceneToolPalette
         void on_released(QPointF);
         void on_cancel();
 
+        void activate(Curve::Tool);
+        void desactivate(Curve::Tool);
+
     private:
         Curve::Point ScenePointToCurvePoint(const QPointF& point);
 

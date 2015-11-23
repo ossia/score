@@ -25,7 +25,7 @@ MoveSlotTool::MoveSlotTool(const ToolPalette& sm):
     m_sm{sm}
 {
     /// 1. Set the scenario in the correct state with regards to this tool.
-    /// (done in start () / stop () )
+    /// (done in activate() / desactivate() )
 
     /// 2. Setup the sub-state machine.
     m_waitState = new QState{&m_localSM};
@@ -58,15 +58,19 @@ MoveSlotTool::MoveSlotTool(const ToolPalette& sm):
 void MoveSlotTool::on_pressed(QPointF scenePoint)
 {
     auto item = m_sm.scene().itemAt(scenePoint, QTransform());
-    if(auto overlay = dynamic_cast<SlotOverlay*>(item))
+    if(!item)
+        return;
+
+    switch(item->type())
     {
-        m_localSM.postEvent(new ClickOnSlotOverlay_Event{
-                                overlay->slotView().presenter.model()});
-    }
-    else if(auto handle = dynamic_cast<SlotHandle*>(item))
-    {
-        m_localSM.postEvent(new ClickOnSlotHandle_Event{
-                                handle->slotView().presenter.model()});
+        case SlotOverlay::static_type():
+            m_localSM.postEvent(new ClickOnSlotOverlay_Event{
+                                    static_cast<SlotOverlay*>(item)->slotView().presenter.model()});
+            break;
+        case SlotHandle::static_type():
+            m_localSM.postEvent(new ClickOnSlotHandle_Event{
+                                    static_cast<SlotHandle*>(item)->slotView().presenter.model()});
+            break;
     }
 }
 
@@ -85,11 +89,8 @@ void MoveSlotTool::on_cancel()
     ISCORE_TODO;
 }
 
-void MoveSlotTool::start()
+void MoveSlotTool::activate()
 {
-    if(!m_localSM.isRunning())
-        m_localSM.start();
-
     for(const auto& constraint : m_sm.presenter().constraints())
     {
         if(!constraint.rack()) continue;
@@ -97,16 +98,12 @@ void MoveSlotTool::start()
     }
 }
 
-void MoveSlotTool::stop()
+void MoveSlotTool::desactivate()
 {
-    if(m_localSM.isRunning())
-        m_localSM.stop();
-
     for(const auto& constraint : m_sm.presenter().constraints())
     {
         if(!constraint.rack()) continue;
         constraint.rack()->setEnabledSlotState();
     }
 }
-
 }

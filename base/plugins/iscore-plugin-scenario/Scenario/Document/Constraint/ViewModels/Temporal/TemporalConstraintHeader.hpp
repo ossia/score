@@ -18,8 +18,10 @@ class TemporalConstraintHeader final : public ConstraintHeader
                    QWidget *widget) override;
 
 
-        int type() const override
+        static constexpr int static_type()
         { return QGraphicsItem::UserType + 6; }
+        int type() const override
+        { return static_type(); }
     signals:
         void doubleClicked();
 

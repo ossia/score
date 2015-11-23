@@ -49,9 +49,12 @@ class ToolPalette final : public GraphicsSceneToolPalette
         void on_released(QPointF);
         void on_cancel();
 
+        void activate(Scenario::Tool);
+        void desactivate(Scenario::Tool);
+
     private:
         Scenario::Point ScenePointToScenarioPoint(QPointF point);
-        void changeTool(Scenario::Tool);
+
         TemporalScenarioPresenter& m_presenter;
         const ScenarioModel& m_model;
         LayerContext& m_context;

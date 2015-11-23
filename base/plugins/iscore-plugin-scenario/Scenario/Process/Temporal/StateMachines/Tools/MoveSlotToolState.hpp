@@ -22,9 +22,8 @@ class MoveSlotTool
 
         void on_cancel();
 
-        // TODO refactor this with ToolState
-        void start();
-        void stop();
+        void activate();
+        void desactivate();
 
     private:
         QState* m_waitState{};

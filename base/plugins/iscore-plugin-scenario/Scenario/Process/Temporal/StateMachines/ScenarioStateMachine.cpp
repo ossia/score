@@ -114,6 +114,18 @@ void ToolPalette::on_cancel()
     }
 }
 
+void ToolPalette::activate(Tool t)
+{
+    if(t == Scenario::Tool::MoveSlot)
+        m_moveSlotTool.activate();
+}
+
+void ToolPalette::desactivate(Tool t)
+{
+    if(t == Scenario::Tool::MoveSlot)
+        m_moveSlotTool.desactivate();
+}
+
 Scenario::Point ToolPalette::ScenePointToScenarioPoint(QPointF point)
 {
     return ConvertToScenarioPoint(

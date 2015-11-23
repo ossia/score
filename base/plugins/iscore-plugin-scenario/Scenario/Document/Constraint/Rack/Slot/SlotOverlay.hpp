@@ -7,6 +7,11 @@ class SlotOverlay final : public QGraphicsItem
     public:
         SlotOverlay(SlotView* parent);
 
+        static constexpr int static_type()
+        { return QGraphicsItem::UserType + 8; }
+        int type() const override
+        { return static_type(); }
+
         const SlotView& slotView() const
         { return m_slotView; }
 

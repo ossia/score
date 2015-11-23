@@ -31,6 +31,7 @@
 #include <Scenario/Document/Constraint/ViewModels/ConstraintPresenter.hpp>
 #include <Scenario/Document/Constraint/ViewModels/ConstraintViewModel.hpp>
 
+#include <Scenario/Document/Constraint/ViewModels/Temporal/TemporalConstraintHeader.hpp>
 
 
 namespace iscore
@@ -144,23 +145,23 @@ class ToolBase : public GraphicsSceneToolBase<Scenario::Point>
             // The itemToXXXId methods check that we are in the correct scenario, too.
             switch(item->type())
             {
-                case QGraphicsItem::UserType + 1:
+                case EventView::static_type():
                     tryFun(ev_fun, itemToEventId(item));
                     break;
 
-                case QGraphicsItem::UserType + 2:
+                case ConstraintView::static_type():
                     tryFun(cst_fun, itemToConstraintId(item));
                     break;
 
-                case QGraphicsItem::UserType + 3:
+                case TimeNodeView::static_type():
                     tryFun(tn_fun, itemToTimeNodeId(item));
                     break;
 
-                case QGraphicsItem::UserType + 4:
+                case StateView::static_type():
                     tryFun (st_fun, itemToStateId(item));
                     break;
 
-                case QGraphicsItem::UserType + 5: // Slot handle
+                case SlotHandle::static_type(): // Slot handle
                 {
                     auto slot = itemToSlotFromHandle(item);
                     if(slot)
@@ -174,7 +175,7 @@ class ToolBase : public GraphicsSceneToolBase<Scenario::Point>
                     break;
                 }
 
-                case QGraphicsItem::UserType + 6: // Constraint header
+                case TemporalConstraintHeader::static_type(): // Constraint header
                 {
                     tryFun(cst_fun, itemToConstraintId(item->parentItem()));
                     break;

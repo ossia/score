@@ -11,8 +11,10 @@ class StateView final : public QGraphicsObject
         StateView(StatePresenter &presenter, QGraphicsItem *parent = 0);
         virtual ~StateView() = default;
 
-        int type() const override
+        static constexpr int static_type()
         { return QGraphicsItem::UserType + 4; }
+        int type() const override
+        { return static_type(); }
 
         const StatePresenter& presenter() const
         { return m_presenter; }

@@ -10,7 +10,8 @@ class ToolPaletteInputDispatcher : public QObject
                 ToolPalette_T& palette,
                 Context_T& context):
             m_palette{palette},
-            m_context{context}
+            m_context{context},
+            m_currentTool{palette.editionSettings().tool()}
         {
             using EditionSettings_T = std::remove_reference_t<decltype(palette.editionSettings())>;
             con(palette.editionSettings(), &EditionSettings_T::toolChanged,
@@ -23,10 +24,14 @@ class ToolPaletteInputDispatcher : public QObject
                 this, &ToolPaletteInputDispatcher::on_released);
             con(input, &Input_T::escPressed,
                 this, &ToolPaletteInputDispatcher::on_cancel);
+
         }
 
         void on_toolChanged(Tool_T t)
         {
+            m_palette.desactivate(m_currentTool);
+            m_palette.activate(t);
+            m_currentTool = t;
             if(m_running)
             {
                 m_palette.on_cancel();
@@ -66,4 +71,5 @@ class ToolPaletteInputDispatcher : public QObject
         Context_T& m_context;
         QPointF m_currentPoint;
         bool m_running = false;
+        Tool_T m_currentTool;
 };

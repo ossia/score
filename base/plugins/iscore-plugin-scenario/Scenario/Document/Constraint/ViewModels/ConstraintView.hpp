@@ -17,8 +17,10 @@ class ConstraintView : public QGraphicsObject
                                QGraphicsItem* parent);
         virtual ~ConstraintView();
 
-        int type() const final override
+        static constexpr int static_type()
         { return QGraphicsItem::UserType + 2; }
+        int type() const final override
+        { return static_type(); }
 
         const ConstraintPresenter& presenter() const
         { return m_presenter;}
