@@ -1,6 +1,5 @@
 #include "AutomationInspectorWidget.hpp"
 #include "Automation/AutomationModel.hpp"
-#include <Inspector/InspectorSectionWidget.hpp>
 #include "Automation/Commands/ChangeAddress.hpp"
 #include "Automation/Commands/SetCurveMin.hpp"
 #include "Automation/Commands/SetCurveMax.hpp"

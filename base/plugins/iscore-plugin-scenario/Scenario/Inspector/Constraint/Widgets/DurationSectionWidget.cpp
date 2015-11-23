@@ -33,7 +33,7 @@ using namespace iscore;
 DurationSectionWidget::DurationSectionWidget(
         const Scenario::EditionSettings& set,
         ConstraintInspectorWidget* parent):
-    InspectorSectionWidget {"Durations", parent},
+    InspectorSectionWidget {"Durations", false, parent},
     m_model {parent->model()},
     m_parent {parent}, // TODO parent should have a cref to commandStack ?
     m_dispatcher{parent->commandDispatcher()->stack()},

@@ -40,6 +40,15 @@ void StateInspectorWidget::updateDisplayedValues()
 
     auto scenar = m_model.parentScenario();
     auto event = m_model.eventId();
+
+    // State setup
+    m_stateSection = new InspectorSectionWidget{"States", false, this};
+    auto tv = new MessageTreeView{m_model,
+                                m_stateSection};
+
+    m_stateSection->addContent(tv);
+    m_properties.push_back(m_stateSection);
+
     if(event)
     {
         auto btn = SelectionButton::make(
@@ -80,14 +89,6 @@ void StateInspectorWidget::updateDisplayedValues()
             this,   &StateInspectorWidget::splitEvent);
 
     m_properties.push_back(widget);
-
-    // State setup
-    m_stateSection = new InspectorSectionWidget{"States", this};
-    auto tv = new MessageTreeView{m_model,
-                                m_stateSection};
-
-    m_stateSection->addContent(tv);
-    m_properties.push_back(m_stateSection);
 
     updateAreaLayout(m_properties);
 }
