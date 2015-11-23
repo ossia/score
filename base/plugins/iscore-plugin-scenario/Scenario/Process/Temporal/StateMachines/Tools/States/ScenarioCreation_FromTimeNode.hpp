@@ -60,7 +60,7 @@ class Creation_FromTimeNode final : public CreationState<Scenario_T, ToolPalette
 
                 // Pressed -> ...
                 auto t_pressed_moving_nothing =
-                        make_transition<MoveOnNothing_Transition>(
+                        make_transition<MoveOnNothing_Transition<Scenario_T>>(
                             pressed, move_nothing, *this);
 
                 QObject::connect(t_pressed_moving_nothing, &QAbstractTransition::triggered,
@@ -73,7 +73,7 @@ class Creation_FromTimeNode final : public CreationState<Scenario_T, ToolPalette
 
                 /// MoveOnNothing -> ...
                 // MoveOnNothing -> MoveOnNothing.
-                make_transition<MoveOnNothing_Transition>(move_nothing, move_nothing, *this);
+                make_transition<MoveOnNothing_Transition<Scenario_T>>(move_nothing, move_nothing, *this);
 
                 // MoveOnNothing -> MoveOnState.
                 this->add_transition(move_nothing, move_state,
@@ -133,7 +133,7 @@ class Creation_FromTimeNode final : public CreationState<Scenario_T, ToolPalette
                                [&] () { this->rollback(); ISCORE_TODO; });
 
                 // MoveOnEvent -> MoveOnEvent
-                make_transition<MoveOnEvent_Transition>(move_event, move_event, *this);
+                make_transition<MoveOnEvent_Transition<Scenario_T>>(move_event, move_event, *this);
 
                 // MoveOnEvent -> MoveOnTimeNode
                 this->add_transition(move_event, move_timenode,
@@ -172,7 +172,7 @@ class Creation_FromTimeNode final : public CreationState<Scenario_T, ToolPalette
                 });
 
                 // MoveOnTimeNode -> MoveOnTimeNode
-                make_transition<MoveOnTimeNode_Transition>(move_timenode , move_timenode , *this);
+                make_transition<MoveOnTimeNode_Transition<Scenario_T>>(move_timenode , move_timenode , *this);
 
 
 

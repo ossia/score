@@ -35,14 +35,11 @@ class StrongQState : public QState
 
 namespace Scenario
 {
-
-class ToolPalette;
-
-
-class CreationStateBase : public StateBase
+template<typename Scenario_T>
+class CreationStateBase : public StateBase<Scenario_T>
 {
     public:
-        using StateBase::StateBase;
+        using StateBase<Scenario_T>::StateBase;
 
         QVector<Id<StateModel>> createdStates;
         QVector<Id<EventModel>> createdEvents;
@@ -60,7 +57,7 @@ class CreationStateBase : public StateBase
 
 // Here to prevent pollution of the CreationState header with the command dispatcher
 template<typename Scenario_T, typename ToolPalette_T>
-class CreationState : public CreationStateBase
+class CreationState : public CreationStateBase<Scenario_T>
 {
     public:
         CreationState(
@@ -68,7 +65,7 @@ class CreationState : public CreationStateBase
                 iscore::CommandStack& stack,
                 const Path<Scenario_T>& scenarioPath,
                 QState* parent):
-            CreationStateBase{scenarioPath, parent},
+            CreationStateBase<Scenario_T>{scenarioPath, parent},
             m_parentSM{sm},
             m_dispatcher{stack}
         {
@@ -79,53 +76,53 @@ class CreationState : public CreationStateBase
         void createToState_base(const Id<StateModel>& originalState)
         {
             // make sure the hovered corresponding timenode dont have a date prior to original state date
-            if(getDate(m_parentSM.model(), originalState) < getDate(m_parentSM.model(), hoveredState) )
+            if(getDate(m_parentSM.model(), originalState) < getDate(m_parentSM.model(), this->hoveredState) )
             {
                 auto cmd = new Scenario::Command::CreateConstraint{
-                        Path<Scenario_T>{m_scenarioPath},
+                        Path<Scenario_T>{this->m_scenarioPath},
                         originalState,
-                        hoveredState};
+                        this->hoveredState};
 
                 m_dispatcher.submitCommand(cmd);
 
-                createdConstraints.append(cmd->createdConstraint());
+                this->createdConstraints.append(cmd->createdConstraint());
             }//else do nothing
         }
 
         void createToEvent_base(const Id<StateModel> & originalState)
         {
             // make sure the hovered corresponding timenode dont have a date prior to original state date
-            if(getDate(m_parentSM.model(), originalState) < getDate(m_parentSM.model(), hoveredEvent) )
+            if(getDate(m_parentSM.model(), originalState) < getDate(m_parentSM.model(), this->hoveredEvent) )
             {
                 auto cmd = new Scenario::Command::CreateConstraint_State{
-                        Path<Scenario_T>{m_scenarioPath},
+                        Path<Scenario_T>{this->m_scenarioPath},
                         originalState,
-                        hoveredEvent,
-                        currentPoint.y};
+                        this->hoveredEvent,
+                        this->currentPoint.y};
 
                 m_dispatcher.submitCommand(cmd);
 
-                createdConstraints.append(cmd->createdConstraint());
-                createdStates.append(cmd->createdState());
+                this->createdConstraints.append(cmd->createdConstraint());
+                this->createdStates.append(cmd->createdState());
             }//else do nothing
         }
 
         void createToTimeNode_base(const Id<StateModel> & originalState)
         {
             // make sure the hovered corresponding timenode dont have a date prior to original state date
-            if(getDate(m_parentSM.model(), originalState) < getDate(m_parentSM.model(), hoveredTimeNode) )
+            if(getDate(m_parentSM.model(), originalState) < getDate(m_parentSM.model(), this->hoveredTimeNode) )
             {
                 auto cmd = new Scenario::Command::CreateConstraint_State_Event{
-                        m_scenarioPath,
+                        this->m_scenarioPath,
                         originalState,
-                        hoveredTimeNode,
-                        currentPoint.y};
+                        this->hoveredTimeNode,
+                        this->currentPoint.y};
 
                 m_dispatcher.submitCommand(cmd);
 
-                createdStates.append(cmd->createdState());
-                createdEvents.append(cmd->createdEvent());
-                createdConstraints.append(cmd->createdConstraint());
+                this->createdStates.append(cmd->createdState());
+                this->createdEvents.append(cmd->createdEvent());
+                this->createdConstraints.append(cmd->createdConstraint());
             }
         }
 
@@ -134,38 +131,38 @@ class CreationState : public CreationStateBase
             auto create = [&] (auto cmd) {
                 m_dispatcher.submitCommand(cmd);
 
-                createdStates.append(cmd->createdState());
-                createdEvents.append(cmd->createdEvent());
-                createdTimeNodes.append(cmd->createdTimeNode());
-                createdConstraints.append(cmd->createdConstraint());
+                this->createdStates.append(cmd->createdState());
+                this->createdEvents.append(cmd->createdEvent());
+                this->createdTimeNodes.append(cmd->createdTimeNode());
+                this->createdConstraints.append(cmd->createdConstraint());
             };
 
             if(!m_parentSM.editionSettings().sequence())
             {
                 create(new Scenario::Command::CreateConstraint_State_Event_TimeNode{
-                           m_scenarioPath,
+                           this->m_scenarioPath,
                            originalState, // Put there in createInitialState
-                           currentPoint.date,
-                           currentPoint.y});
+                           this->currentPoint.date,
+                           this->currentPoint.y});
             }
             else
             {
                 create(new Scenario::Command::CreateSequence{
-                           m_scenarioPath,
+                           this->m_scenarioPath,
                            originalState, // Put there in createInitialState
-                           currentPoint.date,
-                           currentPoint.y});
+                           this->currentPoint.date,
+                           this->currentPoint.y});
             }
         }
 
         void makeSnapshot()
         {
-            if(createdStates.empty())
+            if(this->createdStates.empty())
                 return;
 
-            if(!createdConstraints.empty())
+            if(!this->createdConstraints.empty())
             {
-                const auto& cst = m_parentSM.model().constraints.at(createdConstraints.last());
+                const auto& cst = m_parentSM.model().constraints.at(this->createdConstraints.last());
                 if(!cst.processes.empty())
                 {
                     // In case of the presence of a sequence, we
@@ -182,7 +179,7 @@ class CreationState : public CreationStateBase
                 return;
 
             m_dispatcher.submitCommand(new AddMessagesToState{
-                                           m_parentSM.model().states.at(createdStates.last()).messages(),
+                                           m_parentSM.model().states.at(this->createdStates.last()).messages(),
                                            messages});
         }
 
@@ -190,15 +187,18 @@ class CreationState : public CreationStateBase
         template<typename DestinationState, typename Function>
         void add_transition(QState* from, DestinationState* to, Function&& fun)
         {
-            using transition_type = Transition_T<DestinationState::value()>;
+            using transition_type = Transition_T<Scenario_T, DestinationState::value()>;
             auto trans = iscore::make_transition<transition_type>(from, to, *this);
             trans->setObjectName(QString::number(DestinationState::value()));
-            connect(trans,
-                    &transition_type::triggered,
-                    this, fun);
+            QObject::connect(trans, &transition_type::triggered,
+                             this, fun);
         }
 
-        void rollback() { m_dispatcher.rollback<ScenarioRollbackStrategy>(); clearCreatedIds(); }
+        void rollback()
+        {
+            m_dispatcher.template rollback<ScenarioRollbackStrategy>();
+            this->clearCreatedIds();
+        }
 
         const ToolPalette_T& m_parentSM;
         MultiOngoingCommandDispatcher m_dispatcher;

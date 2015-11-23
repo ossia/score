@@ -3,41 +3,65 @@
 
 namespace Scenario
 {
-template<>
-class Transition_T<ScenarioElement::Event +  iscore::Modifier::Click_tag::value> final :
-        public MatchedTransition<PositionedWithId_ScenarioEvent<EventModel, ScenarioElement::Event +  iscore::Modifier::Click_tag::value>>
+template<typename Scenario_T>
+class Transition_T<Scenario_T, ClickOnEvent> final :
+        public MatchedTransition<Scenario_T, ClickOnEvent_Event>
 {
     public:
-        using MatchedTransition::MatchedTransition;
+        using MatchedTransition<Scenario_T, ClickOnEvent_Event>::MatchedTransition;
 
     protected:
-        void onTransition(QEvent * ev) override;
+        void onTransition(QEvent * ev) override
+        {
+            auto qev = static_cast<ClickOnEvent_Event*>(ev);
+            this->state().clear();
+
+            this->state().clickedEvent = qev->id;
+            this->state().currentPoint = qev->point;
+        }
+
 };
-using ClickOnEvent_Transition = Transition_T<ScenarioElement::Event +  iscore::Modifier::Click_tag::value>;
+template<typename Scenario_T>
+using ClickOnEvent_Transition = Transition_T<Scenario_T, ClickOnEvent>;
 
 
-template<>
-class Transition_T<ScenarioElement::Event +  iscore::Modifier::Move_tag::value> final :
-        public MatchedTransition<PositionedWithId_ScenarioEvent<EventModel, ScenarioElement::Event +  iscore::Modifier::Move_tag::value>>
+template<typename Scenario_T>
+class Transition_T<Scenario_T, MoveOnEvent> final :
+        public MatchedTransition<Scenario_T, MoveOnEvent_Event>
 {
     public:
-        using MatchedTransition::MatchedTransition;
+        using MatchedTransition<Scenario_T, MoveOnEvent_Event>::MatchedTransition;
 
     protected:
-        void onTransition(QEvent * ev) override;
+        void onTransition(QEvent * ev) override
+        {
+            auto qev = static_cast<MoveOnEvent_Event*>(ev);
+
+            this->state().hoveredEvent = qev->id;
+            this->state().currentPoint = qev->point;
+        }
+
 };
-using MoveOnEvent_Transition = Transition_T<ScenarioElement::Event +  iscore::Modifier::Move_tag::value>;
+template<typename Scenario_T>
+using MoveOnEvent_Transition = Transition_T<Scenario_T, MoveOnEvent>;
 
 
-template<>
-class Transition_T<ScenarioElement::Event +  iscore::Modifier::Release_tag::value> final :
-        public MatchedTransition<PositionedWithId_ScenarioEvent<EventModel, ScenarioElement::Event +  iscore::Modifier::Release_tag::value>>
+template<typename Scenario_T>
+class Transition_T<Scenario_T, ReleaseOnEvent> final :
+        public MatchedTransition<Scenario_T, ReleaseOnEvent_Event>
 {
     public:
-        using MatchedTransition::MatchedTransition;
+        using MatchedTransition<Scenario_T, ReleaseOnEvent_Event>::MatchedTransition;
 
     protected:
-        void onTransition(QEvent * ev) override;
+        void onTransition(QEvent * ev) override
+        {
+            auto qev = static_cast<ReleaseOnEvent_Event*>(ev);
+
+            this->state().hoveredEvent = qev->id;
+            this->state().currentPoint = qev->point;
+        }
 };
-using ReleaseOnEvent_Transition = Transition_T<ScenarioElement::Event +  iscore::Modifier::Release_tag::value>;
+template<typename Scenario_T>
+using ReleaseOnEvent_Transition = Transition_T<Scenario_T, ReleaseOnEvent>;
 }

@@ -48,7 +48,7 @@ class CreationTool final : public ToolBase<ToolPalette_T>
                     scenarioPath,
                     this->m_parentSM.commandStack(), nullptr};
 
-            iscore::make_transition<ClickOnNothing_Transition>(m_waitState, m_createFromNothingState, *m_createFromNothingState);
+            iscore::make_transition<ClickOnNothing_Transition<Scenario_T>>(m_waitState, m_createFromNothingState, *m_createFromNothingState);
             m_createFromNothingState->addTransition(m_createFromNothingState, SIGNAL(finished()), m_waitState);
 
             this->localSM().addState(m_createFromNothingState);
@@ -60,7 +60,7 @@ class CreationTool final : public ToolBase<ToolPalette_T>
                     scenarioPath,
                     this->m_parentSM.commandStack(), nullptr};
 
-            iscore::make_transition<ClickOnEvent_Transition>(m_waitState, m_createFromEventState, *m_createFromEventState);
+            iscore::make_transition<ClickOnEvent_Transition<Scenario_T>>(m_waitState, m_createFromEventState, *m_createFromEventState);
             m_createFromEventState->addTransition(m_createFromEventState, SIGNAL(finished()), m_waitState);
 
             this->localSM().addState(m_createFromEventState);
@@ -72,7 +72,7 @@ class CreationTool final : public ToolBase<ToolPalette_T>
                     scenarioPath,
                     this->m_parentSM.commandStack(), nullptr};
 
-            iscore::make_transition<ClickOnTimeNode_Transition>(m_waitState,
+            iscore::make_transition<ClickOnTimeNode_Transition<Scenario_T>>(m_waitState,
                                                                 m_createFromTimeNodeState,
                                                                 *m_createFromTimeNodeState);
             m_createFromTimeNodeState->addTransition(m_createFromTimeNodeState, SIGNAL(finished()), m_waitState);
@@ -86,7 +86,7 @@ class CreationTool final : public ToolBase<ToolPalette_T>
                     scenarioPath,
                     this->m_parentSM.commandStack(), nullptr};
 
-            iscore::make_transition<ClickOnState_Transition>(m_waitState,
+            iscore::make_transition<ClickOnState_Transition<Scenario_T>>(m_waitState,
                                                              m_createFromStateState,
                                                              *m_createFromStateState);
 

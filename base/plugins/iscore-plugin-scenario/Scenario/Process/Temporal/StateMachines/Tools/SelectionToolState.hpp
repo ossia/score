@@ -43,7 +43,7 @@ class SelectionAndMoveTool final : public ToolBase<ToolPalette_T>
                         this->m_parentSM.locker(),
                         nullptr};
 
-            make_transition<ClickOnConstraint_Transition>(m_state,
+            make_transition<ClickOnConstraint_Transition<Scenario_T>>(m_state,
                                                           m_moveConstraint,
                                                           *m_moveConstraint);
             m_moveConstraint->addTransition(m_moveConstraint,
@@ -61,11 +61,11 @@ class SelectionAndMoveTool final : public ToolBase<ToolPalette_T>
                         this->m_parentSM.locker(),
                         nullptr};
 
-            make_transition<ClickOnState_Transition>(m_state,
+            make_transition<ClickOnState_Transition<Scenario_T>>(m_state,
                                                      m_moveEvent,
                                                      *m_moveEvent);
 
-            make_transition<ClickOnEvent_Transition>(m_state,
+            make_transition<ClickOnEvent_Transition<Scenario_T>>(m_state,
                                                      m_moveEvent,
                                                      *m_moveEvent);
             m_moveEvent->addTransition(m_moveEvent,
@@ -83,7 +83,7 @@ class SelectionAndMoveTool final : public ToolBase<ToolPalette_T>
                         this->m_parentSM.locker(),
                         nullptr};
 
-            make_transition<ClickOnTimeNode_Transition>(m_state,
+            make_transition<ClickOnTimeNode_Transition<Scenario_T>>(m_state,
                                                         m_moveTimeNode,
                                                         *m_moveTimeNode);
             m_moveTimeNode->addTransition(m_moveTimeNode,

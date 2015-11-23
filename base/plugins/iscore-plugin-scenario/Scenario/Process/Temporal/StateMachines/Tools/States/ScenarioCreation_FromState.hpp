@@ -58,12 +58,12 @@ class Creation_FromState final : public CreationState<Scenario_T, ToolPalette_T>
                 make_transition<ReleaseOnAnything_Transition>(mainState, released);
 
                 // Pressed -> ...
-                make_transition<MoveOnNothing_Transition>(pressed, move_state, *this);
-                make_transition<MoveOnNothing_Transition>(pressed, move_nothing, *this);
+                make_transition<MoveOnNothing_Transition<Scenario_T>>(pressed, move_state, *this);
+                make_transition<MoveOnNothing_Transition<Scenario_T>>(pressed, move_nothing, *this);
 
                 /// MoveOnNothing -> ...
                 // MoveOnNothing -> MoveOnNothing.
-                make_transition<MoveOnNothing_Transition>(move_nothing, move_nothing, *this);
+                make_transition<MoveOnNothing_Transition<Scenario_T>>(move_nothing, move_nothing, *this);
 
                 // MoveOnNothing -> MoveOnState.
                 this->add_transition(move_nothing, move_state,
@@ -110,7 +110,7 @@ class Creation_FromState final : public CreationState<Scenario_T, ToolPalette_T>
                 });
 
                 // MoveOnEvent -> MoveOnEvent
-                make_transition<MoveOnEvent_Transition>(move_event, move_event, *this);
+                make_transition<MoveOnEvent_Transition<Scenario_T>>(move_event, move_event, *this);
 
                 // MoveOnEvent -> MoveOnTimeNode
                 this->add_transition(move_event, move_timenode,
@@ -131,7 +131,7 @@ class Creation_FromState final : public CreationState<Scenario_T, ToolPalette_T>
                                [&] () { this->rollback(); createToEvent(); });
 
                 // MoveOnTimeNode -> MoveOnTimeNode
-                make_transition<MoveOnTimeNode_Transition>(move_timenode , move_timenode , *this);
+                make_transition<MoveOnTimeNode_Transition<Scenario_T>>(move_timenode , move_timenode , *this);
 
 
 

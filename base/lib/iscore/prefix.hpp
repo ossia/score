@@ -196,4 +196,15 @@
 
 #include <iscore/tools/ModelPath.hpp>
 #include <iscore/tools/IdentifiedObjectMap.hpp>
+
+#include <iscore/tools/TreeNode.hpp>
+#include <iscore/tools/VariantBasedNode.hpp>
+#include <iscore/tools/TreePath.hpp>
+
+#include <iscore/plugins/customfactory/FactoryFamily.hpp>
+#include <iscore/plugins/customfactory/FactoryInterface.hpp>
+#include <iscore/plugins/customfactory/FactoryMap.hpp>
+
+#include <iscore/selection/Selection.hpp>
+#include <iscore/selection/SelectionDispatcher.hpp>
 #endif

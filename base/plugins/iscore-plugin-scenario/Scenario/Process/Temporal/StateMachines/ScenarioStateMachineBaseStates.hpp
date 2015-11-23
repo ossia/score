@@ -19,6 +19,7 @@ class SlotModel;
 namespace Scenario
 {
 // OPTIMIZEME this when we have all the tools
+template<typename Scenario_T>
 class StateBase : public QState
 {
     public:
@@ -50,7 +51,7 @@ class StateBase : public QState
         Scenario::Point currentPoint;
 
     protected:
-        Path<ScenarioModel> m_scenarioPath;
+        Path<Scenario_T> m_scenarioPath;
 };
 
 class SlotState : public QState
