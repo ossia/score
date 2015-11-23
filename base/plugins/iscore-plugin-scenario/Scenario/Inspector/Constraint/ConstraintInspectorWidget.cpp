@@ -262,7 +262,7 @@ void ConstraintInspectorWidget::updateDisplayedValues()
     {
         auto scenario = m_model.parentScenario();
         auto& tn = scenario->timeNode(m_model.endTimeNode());
-        m_triggerLine->updateExpression(tn.trigger()->expression().toString() );
+        m_triggerLine->updateExpression(tn.trigger()->expression());
     }
 
 }

@@ -8,8 +8,8 @@ class StateModel;
 class MetadataWidget;
 struct Message;
 class TriggerInspectorWidget;
+class SimpleExpressionEditorWidget;
 
-#include <Scenario/Inspector/ExpressionValidator.hpp>
 #include <QLineEdit>
 
 
@@ -43,13 +43,13 @@ class EventInspectorWidget final : public InspectorWidgetBase
         std::vector<QWidget*> m_states;
 
         QLabel* m_date {};
-        QLineEdit* m_conditionLineEdit{};
         QLineEdit* m_stateLineEdit{};
         QWidget* m_statesWidget{};
         const EventModel& m_model;
 
         MetadataWidget* m_metadata {};
 
-        ExpressionValidator<iscore::Condition> m_validator;
         TriggerInspectorWidget* m_triggerWidg{};
+
+        SimpleExpressionEditorWidget* m_exprEditor{};
 };

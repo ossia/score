@@ -111,7 +111,7 @@ void TimeNodeInspectorWidget::updateDisplayedValues()
         });
     }
 
-    m_trigwidg->updateExpression(m_model.trigger()->expression().toString());
+    m_trigwidg->updateExpression(m_model.trigger()->expression());
 }
 
 void TimeNodeInspectorWidget::on_splitTimeNodeClicked()

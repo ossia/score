@@ -2,6 +2,8 @@
 
 #include <QWidget>
 #include <Scenario/Inspector/ExpressionValidator.hpp>
+#include <Scenario/Inspector/Expression/SimpleExpressionEditorWidget.hpp>
+
 #include <Inspector/InspectorWidgetBase.hpp>
 #include <Scenario/Document/TimeNode/TimeNodeModel.hpp>
 
@@ -22,15 +24,15 @@ class TriggerInspectorWidget final : public QWidget
         void on_triggerActiveChanged();
         void HideRmButton();
 
-        void updateExpression(QString);
+        void updateExpression(iscore::Trigger);
 
     private:
         const TimeNodeModel& m_model;
 
         InspectorWidgetBase* m_parent;
 
-        QLineEdit* m_triggerLineEdit{};
         QPushButton* m_addTrigBtn{};
         QPushButton* m_rmTrigBtn{};
-        ExpressionValidator<iscore::Trigger> m_validator;
+
+        SimpleExpressionEditorWidget* m_exprEditor{};
 };

@@ -15,6 +15,7 @@
 #include <Scenario/Inspector/SelectionButton.hpp>
 #include <Scenario/Inspector/State/StateInspectorWidget.hpp>
 #include <Scenario/Inspector/TimeNode/TriggerInspectorWidget.hpp>
+#include <Scenario/Inspector/Expression/SimpleExpressionEditorWidget.hpp>
 
 #include <Explorer/Explorer/DeviceExplorerModel.hpp>
 #include <Explorer/Widgets/DeviceCompleter.hpp>
@@ -100,18 +101,14 @@ EventInspectorWidget::EventInspectorWidget(
     m_properties.push_back(new Separator {this});
 
     // Condition
-    m_conditionLineEdit = new QLineEdit{this};
-    m_conditionLineEdit->setValidator(&m_validator);
-
-    connect(m_conditionLineEdit, &QLineEdit::editingFinished,
+    m_exprEditor = new SimpleExpressionEditorWidget{this};
+    connect(m_exprEditor, &SimpleExpressionEditorWidget::editingFinished,
             this, &EventInspectorWidget::on_conditionChanged);
     con(m_model, &EventModel::conditionChanged,
-        this, [this] (const iscore::Condition& c) {
-        m_conditionLineEdit->setText(c.toString());
-    });
+        m_exprEditor, &SimpleExpressionEditorWidget::setExpression);
 
     m_properties.push_back(new QLabel{tr("Condition")});
-    m_properties.push_back(m_conditionLineEdit);
+    m_properties.push_back(m_exprEditor);
 
     // State
     m_properties.push_back(new Separator {this});
@@ -184,9 +181,9 @@ void EventInspectorWidget::updateDisplayedValues()
         addState(scenar->state(state));
     }
 
-    m_conditionLineEdit->setText(m_model.condition().toString());
+    m_exprEditor->setExpression(m_model.condition());
     auto& tn = m_model.parentScenario()->timeNode(m_model.timeNode());
-    m_triggerWidg->updateExpression(tn.trigger()->expression().toString());
+    m_triggerWidg->updateExpression(tn.trigger()->expression());
 }
 
 
@@ -195,11 +192,11 @@ using namespace Scenario;
 
 void EventInspectorWidget::on_conditionChanged()
 {
-    auto cond = m_validator.get();
+    auto cond = m_exprEditor->expression();
 
-    if(*cond != m_model.condition())
+    if(cond != m_model.condition())
     {
-        auto cmd = new Scenario::Command::SetCondition{path(m_model), std::move(*cond)};
+        auto cmd = new Scenario::Command::SetCondition{path(m_model), std::move(cond)};
         emit commandDispatcher()->submitCommand(cmd);
     }
 }
