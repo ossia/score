@@ -16,7 +16,7 @@ class ScenarioToolPaletteFactory : public iscore::FactoryInterfaceBase
                  const ConstraintModel& constraint) const = 0;
 
         virtual std::unique_ptr<GraphicsSceneToolPalette> make(
-                 const BaseElementPresenter& pres,
+                 BaseElementPresenter& pres,
                  const ConstraintModel& constraint) = 0;
 };
 
@@ -43,7 +43,7 @@ class ScenarioToolPaletteFactoryList final : public iscore::FactoryListInterface
       }
 
       auto make(
-              const BaseElementPresenter& pres,
+              BaseElementPresenter& pres,
               const ConstraintModel& constraint) const
       {
           auto it = find_if(m_list, [&] (auto elt) { return elt->matches(constraint); });

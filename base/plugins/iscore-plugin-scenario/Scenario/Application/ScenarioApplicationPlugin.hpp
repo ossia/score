@@ -55,6 +55,8 @@ class ScenarioApplicationPlugin final : public iscore::GUIApplicationContextPlug
         Scenario::EditionSettings& editionSettings()
         { return m_editionSettings; }
 
+        ProcessFocusManager* processFocusManager() const;
+
     signals:
         void keyPressed(int);
         void keyReleased(int);
@@ -83,7 +85,6 @@ class ScenarioApplicationPlugin final : public iscore::GUIApplicationContextPlug
         QAction *m_selectAll{};
         QAction *m_deselectAll{};
 
-        ProcessFocusManager* processFocusManager() const;
         void on_presenterFocused(LayerPresenter* lm);
         void on_presenterDefocused(LayerPresenter* lm);
 };

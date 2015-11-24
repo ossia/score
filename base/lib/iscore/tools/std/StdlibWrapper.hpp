@@ -114,3 +114,17 @@ class IndirectContainer : Container<T*, U>
         auto cend() const
         { return boost::make_indirect_iterator(ctnr_t::cend()); }
 };
+
+
+
+// http://stackoverflow.com/a/26902803/1495627
+template<class F, class...Ts, std::size_t...Is>
+void for_each_in_tuple(const std::tuple<Ts...> & tuple, F func, std::index_sequence<Is...>){
+    using expander = int[];
+    (void)expander { 0, ((void)func(std::get<Is>(tuple)), 0)... };
+}
+
+template<class F, class...Ts>
+void for_each_in_tuple(const std::tuple<Ts...> & tuple, F func){
+    for_each_in_tuple(tuple, func, std::make_index_sequence<sizeof...(Ts)>());
+}

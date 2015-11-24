@@ -19,7 +19,7 @@ LayerPresenter* ProcessFocusManager::focusedPresenter() const
 }
 
 
-void ProcessFocusManager::setFocusedPresenter(LayerPresenter* p)
+void ProcessFocusManager::focus(LayerPresenter* p)
 {
     if(p == m_currentPresenter)
         return;
@@ -49,6 +49,11 @@ void ProcessFocusManager::setFocusedPresenter(LayerPresenter* p)
         m_currentViewModel = nullptr;
         m_currentModel = nullptr;
     }
+}
+
+void ProcessFocusManager::focus(BaseElementPresenter*)
+{
+    focusNothing();
 }
 
 

@@ -32,9 +32,8 @@ class FullViewConstraintPresenter final : public ConstraintPresenter
         FullViewConstraintPresenter(const FullViewConstraintViewModel& viewModel,
                                     QGraphicsItem* parentobject,
                                     QObject* parent);
-        virtual ~FullViewConstraintPresenter();
 
-        void on_pressed(const QPointF &);
+        virtual ~FullViewConstraintPresenter();
 
     signals:
         void objectSelected(ObjectPath);

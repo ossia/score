@@ -4,6 +4,7 @@
 #include <Process/LayerPresenter.hpp>
 #include <QPointer>
 
+class BaseElementPresenter;
 // Keeps the focused elements in memory for use by the scenario application plugin.
 // Note : focus should not be lost when switching documents. Hence, this
 // should more be part of the per-document part.
@@ -17,7 +18,8 @@ class ProcessFocusManager final : public QObject
         LayerPresenter* focusedPresenter() const;
 
     public slots:
-        void setFocusedPresenter(LayerPresenter*);
+        void focus(LayerPresenter*);
+        void focus(BaseElementPresenter*);
 
         void focusNothing();
 

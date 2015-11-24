@@ -24,9 +24,6 @@ FullViewConstraintPresenter::FullViewConstraintPresenter(
                          parent},
     m_selectionDispatcher{iscore::IDocument::documentFromObject(cstr_model.model())->selectionStack()}
 {
-    connect(this, &ConstraintPresenter::pressed,
-            this, &FullViewConstraintPresenter::on_pressed);
-
     // Update the address bar
     auto addressBar = static_cast<FullViewConstraintHeader*>(m_header)->bar();
     addressBar->setTargetObject(iscore::IDocument::unsafe_path(cstr_model.model()));
@@ -47,9 +44,4 @@ FullViewConstraintPresenter::~FullViewConstraintPresenter()
 
         ::view(this)->deleteLater();
     }
-}
-
-void FullViewConstraintPresenter::on_pressed(const QPointF&)
-{
-    m_selectionDispatcher.setAndCommit({&this->model()});
 }

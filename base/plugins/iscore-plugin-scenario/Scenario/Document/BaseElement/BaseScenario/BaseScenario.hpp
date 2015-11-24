@@ -25,9 +25,5 @@ class BaseScenario final : public IdentifiedObject<BaseScenario>, public BaseSce
             vis.writeTo(*this);
         }
 
-        Selection selectedChildren() const
-        {
-            ISCORE_TODO;
-            return {};
-        }
+        Selection selectedChildren() const;
 };

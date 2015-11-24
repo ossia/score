@@ -140,7 +140,7 @@ void ConstraintPresenter::on_defaultDurationChanged(const TimeValue& val)
 
     if(rack())
     {
-        rack()->setWidth(m_view->defaultWidth() - 20);
+        rack()->setWidth(m_view->defaultWidth());
     }
 }
 

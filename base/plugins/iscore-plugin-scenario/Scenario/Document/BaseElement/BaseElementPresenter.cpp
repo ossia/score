@@ -71,7 +71,7 @@ BaseElementPresenter::BaseElementPresenter(DocumentPresenter* parent_presenter,
     connect(this, &BaseElementPresenter::requestDisplayedConstraintChange,
             &model(), &BaseElementModel::setDisplayedConstraint);
     connect(m_scenarioPresenter, &DisplayedElementsPresenter::requestFocusedPresenterChange,
-            &model().focusManager(), &ProcessFocusManager::setFocusedPresenter);
+            &model().focusManager(), static_cast<void (ProcessFocusManager::*)(LayerPresenter*)>(&ProcessFocusManager::focus));
 
     con(model(), &BaseElementModel::focusMe,
         this,    [&] () { view().view().setFocus(); });
@@ -125,7 +125,6 @@ void BaseElementPresenter::on_displayedConstraintChanged()
     auto& cst = displayedConstraint();
     // Setup of the state machine.
     auto& ctx = iscore::IDocument::documentContext(model());
-
     auto fact = ctx.app.components.factory<ScenarioToolPaletteFactoryList>();
     m_stateMachine = fact.make(*this, cst);
     m_scenarioPresenter->on_displayedConstraintChanged(cst);

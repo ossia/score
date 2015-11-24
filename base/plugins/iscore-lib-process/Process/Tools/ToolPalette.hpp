@@ -6,7 +6,7 @@ class ToolPaletteInputDispatcher : public QObject
 {
     public:
         ToolPaletteInputDispatcher(
-                Input_T& input,
+                const Input_T& input,
                 ToolPalette_T& palette,
                 Context_T& context):
             m_palette{palette},
@@ -24,7 +24,6 @@ class ToolPaletteInputDispatcher : public QObject
                 this, &ToolPaletteInputDispatcher::on_released);
             con(input, &Input_T::escPressed,
                 this, &ToolPaletteInputDispatcher::on_cancel);
-
         }
 
         void on_toolChanged(Tool_T t)

@@ -9,7 +9,7 @@
 #include <Scenario/Document/Constraint/ConstraintModel.hpp>
 #include <Scenario/Process/ScenarioModel.hpp>
 std::unique_ptr<GraphicsSceneToolPalette> BaseScenarioToolPaletteFactory::make(
-        const BaseElementPresenter& pres,
+        BaseElementPresenter& pres,
         const ConstraintModel& constraint)
 {
     return std::make_unique<BaseScenarioToolPalette>(pres);

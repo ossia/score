@@ -8,6 +8,6 @@ class BaseScenarioToolPaletteFactory final : public ScenarioToolPaletteFactory
                 const ConstraintModel& constraint) const override;
 
         std::unique_ptr<GraphicsSceneToolPalette> make(
-                const BaseElementPresenter& pres,
+                BaseElementPresenter& pres,
                 const ConstraintModel& constraint) override;
 };

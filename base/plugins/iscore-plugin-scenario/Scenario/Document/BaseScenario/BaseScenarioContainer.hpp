@@ -64,6 +64,9 @@ class BaseScenarioContainer : public ScenarioInterface
 
         ConstraintModel* m_constraint{};
 
+        auto elements() const
+        { return std::make_tuple(m_startNode, m_endNode, m_startEvent, m_endEvent, m_startState, m_endState, m_constraint); }
+
     private:
         QObject* m_parent{}; // Parent for the constraints, timenodes, etc.
         // If inheriting, m_parent should be this.

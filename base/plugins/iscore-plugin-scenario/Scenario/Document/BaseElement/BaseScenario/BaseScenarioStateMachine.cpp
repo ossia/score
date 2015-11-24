@@ -18,58 +18,15 @@ Scenario::Point BaseScenarioToolPalette::ScenePointToScenarioPoint(QPointF point
 // We need two tool palettes : one for the case where we're viewing a basescenario,
 // and one for the case where we're in a sub-scenario.
 BaseScenarioToolPalette::BaseScenarioToolPalette(
-        const BaseElementPresenter& pres):
+        BaseElementPresenter& pres):
     GraphicsSceneToolPalette{pres.view().scene()},
     m_presenter{pres},
-    m_slotTool{iscore::IDocument::commandStack(m_presenter.model()),
-               *this},
-    m_state{*this}
+    m_context{iscore::IDocument::documentContext(m_presenter.model()), m_presenter},
+    m_state{*this},
+    m_inputDisp{m_presenter, *this, m_context}
 {
-
-    con(m_presenter, &BaseElementPresenter::pressed,
-        this, [=] (QPointF point)
-    {
-        scenePoint = point;
-        m_state.on_pressed(point, ScenePointToScenarioPoint(m_presenter.view().baseItem()->mapFromScene(point)));
-    });
-
-    con(m_presenter, &BaseElementPresenter::moved,
-        this, [=] (QPointF point)
-    {
-        scenePoint = point;
-        m_state.on_moved(point, ScenePointToScenarioPoint(m_presenter.view().baseItem()->mapFromScene(point)));
-    });
-
-    con(m_presenter, &BaseElementPresenter::released,
-        this, [=] (QPointF point)
-    {
-        scenePoint = point;
-        m_state.on_released(point, ScenePointToScenarioPoint(m_presenter.view().baseItem()->mapFromScene(point)));
-    });
-
-/*
-    con(m_presenter, &BaseElementPresenter::pressed,
-        this, [=] (QPointF point)
-    {
-        scenePoint = point;
-        m_slotTool.on_pressed(point);
-    });
-
-    con(m_presenter, &BaseElementPresenter::moved,
-        this, [=] (QPointF point)
-    {
-        scenePoint = point;
-        m_slotTool.on_moved();
-    });
-
-    con(m_presenter, &BaseElementPresenter::released,
-        this, [=] (QPointF point)
-    {
-        scenePoint = point;
-        m_slotTool.on_released();
-    });
     // TODO cancel
-*/
+
 }
 
 BaseGraphicsObject& BaseScenarioToolPalette::view() const
@@ -87,12 +44,45 @@ const BaseScenario& BaseScenarioToolPalette::model() const
     return m_presenter.model().baseScenario();
 }
 
-const iscore::DocumentContext& BaseScenarioToolPalette::context() const
+const BaseElementContext& BaseScenarioToolPalette::context() const
 {
-    return iscore::IDocument::documentContext(m_presenter.model());
+    return m_context;
 }
 
 const Scenario::EditionSettings&BaseScenarioToolPalette::editionSettings() const
 {
-    return context().app.components.applicationPlugin<ScenarioApplicationPlugin>().editionSettings(); // OPTIMIZEME
+    return m_context.app.components.applicationPlugin<ScenarioApplicationPlugin>().editionSettings(); // OPTIMIZEME
+}
+
+void BaseScenarioToolPalette::activate(Scenario::Tool)
+{
+
+}
+
+void BaseScenarioToolPalette::desactivate(Scenario::Tool)
+{
+
+}
+
+void BaseScenarioToolPalette::on_pressed(QPointF point)
+{
+    scenePoint = point;
+    m_state.on_pressed(point, ScenePointToScenarioPoint(m_presenter.view().baseItem()->mapFromScene(point)));
+}
+
+void BaseScenarioToolPalette::on_moved(QPointF point)
+{
+    scenePoint = point;
+    m_state.on_moved(point, ScenePointToScenarioPoint(m_presenter.view().baseItem()->mapFromScene(point)));
+}
+
+void BaseScenarioToolPalette::on_released(QPointF point)
+{
+    scenePoint = point;
+    m_state.on_released(point, ScenePointToScenarioPoint(m_presenter.view().baseItem()->mapFromScene(point)));
+}
+
+void BaseScenarioToolPalette::on_cancel()
+{
+    m_state.on_cancel();
 }

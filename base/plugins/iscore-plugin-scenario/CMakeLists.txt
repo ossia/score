@@ -155,6 +155,7 @@ set(SRCS ${SRCS}
 "${CMAKE_CURRENT_SOURCE_DIR}/Scenario/Document/BaseElement/BaseScenario/BaseScenarioStateMachine.cpp"
 "${CMAKE_CURRENT_SOURCE_DIR}/Scenario/Document/BaseElement/BaseScenario/StateMachine/BaseMoveSlot.cpp"
 "${CMAKE_CURRENT_SOURCE_DIR}/Scenario/Document/BaseElement/BaseScenario/BaseScenario.cpp"
+"${CMAKE_CURRENT_SOURCE_DIR}/Scenario/Document/BaseElement/BaseScenario/BaseElementContext.cpp"
 "${CMAKE_CURRENT_SOURCE_DIR}/Scenario/Document/BaseElement/DisplayedElements/DisplayedElementsModel.cpp"
 "${CMAKE_CURRENT_SOURCE_DIR}/Scenario/Document/BaseElement/DisplayedElements/DisplayedElementsPresenter.cpp"
 "${CMAKE_CURRENT_SOURCE_DIR}/Scenario/Document/BaseElement/ProcessFocusManager.cpp"

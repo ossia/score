@@ -22,7 +22,6 @@ class ConstraintModel;
 class TimeRulerPresenter;
 class LocalTimeRulerPresenter;
 
-
 /**
  * @brief The BaseElementPresenter class
  *
@@ -54,6 +53,7 @@ class BaseElementPresenter final : public iscore::DocumentDelegatePresenterInter
         void pressed(const QPointF&);
         void moved(const QPointF&);
         void released(const QPointF&);
+        void escPressed();
 
         void requestDisplayedConstraintChange(const ConstraintModel&);
 

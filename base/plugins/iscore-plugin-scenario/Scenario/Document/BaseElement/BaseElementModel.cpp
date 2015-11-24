@@ -47,7 +47,7 @@ BaseElementModel::BaseElementModel(QObject* parent) :
 
     // Help for the FocusDispatcher.
     connect(this, &BaseElementModel::setFocusedPresenter,
-            &m_focusManager, &ProcessFocusManager::setFocusedPresenter);
+            &m_focusManager, static_cast<void (ProcessFocusManager::*)(LayerPresenter*)>(&ProcessFocusManager::focus));
 
     con(m_focusManager, &ProcessFocusManager::sig_defocusedViewModel,
             this, &BaseElementModel::on_viewModelDefocused);
