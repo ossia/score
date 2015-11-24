@@ -115,11 +115,23 @@ set(SRCS
 
 if(TARGET iscore_plugin_mapping)
     set(SRCS ${SRCS}
-        "${CMAKE_CURRENT_SOURCE_DIR}/DocumentPlugin/OSSIAMappingElement.cpp")
+        "${CMAKE_CURRENT_SOURCE_DIR}/DocumentPlugin/OSSIAMappingElement.cpp"
+        "${CMAKE_CURRENT_SOURCE_DIR}/RecreateOnPlayDocumentPlugin/MappingElement.cpp"
+)
     set(HDRS ${HDRS}
-        "${CMAKE_CURRENT_SOURCE_DIR}/DocumentPlugin/OSSIAMappingElement.hpp")
+        "${CMAKE_CURRENT_SOURCE_DIR}/DocumentPlugin/OSSIAMappingElement.hpp"
+        "${CMAKE_CURRENT_SOURCE_DIR}/RecreateOnPlayDocumentPlugin/MappingElement.hpp"
+)
 endif()
 
+if(TARGET iscore_plugin_loop)
+    set(SRCS ${SRCS}
+        "${CMAKE_CURRENT_SOURCE_DIR}/RecreateOnPlayDocumentPlugin/LoopElement.cpp"
+)
+    set(HDRS ${HDRS}
+        "${CMAKE_CURRENT_SOURCE_DIR}/RecreateOnPlayDocumentPlugin/LoopElement.hpp"
+)
+endif()
 
 add_library(${PROJECT_NAME} ${SRCS} ${HDRS})
 target_link_libraries(${PROJECT_NAME}
@@ -129,6 +141,9 @@ target_link_libraries(${PROJECT_NAME}
 
 if(TARGET iscore_plugin_mapping)
     target_link_libraries(${PROJECT_NAME} iscore_plugin_mapping)
+endif()
+if(TARGET iscore_plugin_loop)
+    target_link_libraries(${PROJECT_NAME} iscore_plugin_loop)
 endif()
 
 setup_iscore_plugin(${PROJECT_NAME})

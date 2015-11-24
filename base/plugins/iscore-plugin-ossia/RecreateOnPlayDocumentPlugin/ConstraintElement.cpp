@@ -1,6 +1,7 @@
 #include "ConstraintElement.hpp"
 #include "AutomationElement.hpp"
 #include "ScenarioElement.hpp"
+#include "LoopElement.hpp"
 #include <iscore2OSSIA.hpp>
 #include <OSSIA2iscore.hpp>
 
@@ -13,7 +14,7 @@
 #include <API/Headers/Editor/TimeConstraint.h>
 #include <API/Headers/Editor/TimeProcess.h>
 #include <Editor/TimeNode.h>
-
+#include <Scenario/Document/BaseElement/BaseScenario/BaseScenario.hpp>
 #include <boost/range/algorithm.hpp>
 
 #include <sstream>
@@ -33,7 +34,9 @@ ConstraintElement::ConstraintElement(
     m_iscore_constraint{iscore_cst},
     m_ossia_constraint{ossia_cst}
 {
-    if(dynamic_cast<ScenarioModel*>(iscore_cst.parent()))
+    // BaseScenario needs a special callback.
+    if(dynamic_cast<ScenarioModel*>(iscore_cst.parent())
+    || dynamic_cast<Loop::ProcessModel*>(iscore_cst.parent()))
     {
         ossia_cst->setCallback([&] (
                                const OSSIA::TimeValue& position,
@@ -118,6 +121,12 @@ void ConstraintElement::on_processAdded(
     else if(auto mapping = dynamic_cast<MappingModel*>(proc))
     {
         plug = new MappingElement{*this, *mapping, proc};
+    }
+#endif
+#if defined(ISCORE_PLUGIN_LOOP)
+    else if(auto process = dynamic_cast<Loop::ProcessModel*>(proc))
+    {
+        plug = new LoopElement{*this, *process, proc};
     }
 #endif
     else if(auto generic = dynamic_cast<OSSIAProcessModel*>(proc))
