@@ -16,12 +16,6 @@ class TemporalConstraintHeader final : public ConstraintHeader
         void paint(QPainter *painter,
                    const QStyleOptionGraphicsItem *option,
                    QWidget *widget) override;
-
-
-        static constexpr int static_type()
-        { return QGraphicsItem::UserType + 6; }
-        int type() const override
-        { return static_type(); }
     signals:
         void doubleClicked();
 

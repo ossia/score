@@ -44,9 +44,9 @@ class MoveConstraintState final : public StateBase<Scenario_T>
                             pressed, moving , *this);
                 QObject::connect(t_pressed, &QAbstractTransition::triggered, [&] ()
                 {
-                    auto& scenar = this->m_scenarioPath.find();
-                    m_constraintInitialStartDate= scenar.constraint(this->clickedConstraint).startDate();
-                    m_constraintInitialClickDate = this->currentPoint.date;
+                    auto& cst = this->m_scenarioPath.find().constraint(this->clickedConstraint);
+                    m_constraintInitialPoint = {cst.startDate(), cst.heightPercentage()};
+                    m_initialClick = this->currentPoint;
                 });
 
                 iscore::make_transition<ReleaseOnAnything_Transition>(
@@ -61,8 +61,8 @@ class MoveConstraintState final : public StateBase<Scenario_T>
                     this->m_dispatcher.submitCommand(
                                 Path<Scenario_T>{this->m_scenarioPath},
                                 this->clickedConstraint,
-                                m_constraintInitialStartDate + (this->currentPoint.date - m_constraintInitialClickDate),
-                                this->currentPoint.y);
+                                m_constraintInitialPoint.date + (this->currentPoint.date - m_initialClick.date),
+                                m_constraintInitialPoint.y + (this->currentPoint.y - m_initialClick.y));
                 });
 
                 QObject::connect(released, &QState::entered, [&] ()
@@ -85,8 +85,8 @@ class MoveConstraintState final : public StateBase<Scenario_T>
     SingleOngoingCommandDispatcher<MoveConstraintCommand_T> m_dispatcher;
 
     private:
-        TimeValue m_constraintInitialClickDate;
-        TimeValue m_constraintInitialStartDate;
+        Scenario::Point m_initialClick{};
+        Scenario::Point m_constraintInitialPoint{};
 };
 
 template<

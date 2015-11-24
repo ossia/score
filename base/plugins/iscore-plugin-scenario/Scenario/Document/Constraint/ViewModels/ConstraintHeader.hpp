@@ -14,6 +14,11 @@ class ConstraintHeader : public QGraphicsObject
 
         using QGraphicsObject::QGraphicsObject;
 
+        static constexpr int static_type()
+        { return QGraphicsItem::UserType + 6; }
+        int type() const override
+        { return static_type(); }
+
         void setConstraintView(ConstraintView* view)
         {
             m_view = view;

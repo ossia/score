@@ -27,6 +27,10 @@ DisplayedElementsPresenter::DisplayedElementsPresenter(BaseElementPresenter *par
 
 void DisplayedElementsPresenter::on_displayedConstraintChanged(const ConstraintModel& m)
 {
+    for(auto& con : m_connections)
+        QObject::disconnect(con);
+
+    m_connections.clear();
     delete m_constraintPresenter;
     delete m_startStatePresenter;
     delete m_endStatePresenter;
@@ -72,73 +76,31 @@ void DisplayedElementsPresenter::on_displayedConstraintChanged(const ConstraintM
         m_endNodePresenter = new TimeNodePresenter{endNode, m_parent->view().baseItem(), this};
     }
 
-    con(m_constraintPresenter->model().duration, &ConstraintDurations::defaultDurationChanged,
-        this, &DisplayedElementsPresenter::on_displayedConstraintDurationChanged);
-
-    // Manage the selection
-    // The full view constraint presenter does not need it.
-    /*
-    connect(m_startStatePresenter, &StatePresenter::pressed, this, [&] (const QPointF&)
-           {
-        m_parent->m_selectionDispatcher.setAndCommit({&m_startStatePresenter->model()});
-    });
-    connect(m_endStatePresenter, &StatePresenter::pressed, this, [&] (const QPointF&)
-           {
-        m_parent->m_selectionDispatcher.setAndCommit({&m_endStatePresenter->model()});
-    });*/
-
-    connect(m_constraintPresenter,	&FullViewConstraintPresenter::askUpdate,
-            m_parent,               &BaseElementPresenter::on_askUpdate);
-    connect(m_constraintPresenter, &FullViewConstraintPresenter::heightChanged,
+    m_connections.push_back(con(m_constraintPresenter->model().duration, &ConstraintDurations::defaultDurationChanged,
+        this, &DisplayedElementsPresenter::on_displayedConstraintDurationChanged));
+    m_connections.push_back(connect(m_constraintPresenter, &FullViewConstraintPresenter::askUpdate,
+            m_parent,              &BaseElementPresenter::on_askUpdate));
+    m_connections.push_back(connect(m_constraintPresenter, &FullViewConstraintPresenter::heightChanged,
             this, [&] () {
         on_displayedConstraintHeightChanged(m_constraintPresenter->view()->height());
+    }));
+
+    auto elements = std::make_tuple(
+                m_constraintPresenter,
+                m_startStatePresenter,
+                m_endStatePresenter,
+                m_startEventPresenter,
+                m_endEventPresenter,
+                m_startNodePresenter,
+                m_endNodePresenter);
+
+    for_each_in_tuple(elements, [&] (auto elt) {
+        using elt_t = std::remove_reference_t<decltype(*elt)>;
+        m_connections.push_back(connect(elt, &elt_t::pressed,  m_parent, &BaseElementPresenter::pressed));
+        m_connections.push_back(connect(elt, &elt_t::moved,    m_parent, &BaseElementPresenter::moved));
+        m_connections.push_back(connect(elt, &elt_t::released, m_parent, &BaseElementPresenter::released));
     });
 
-    connect(m_constraintPresenter, &FullViewConstraintPresenter::pressed,
-            m_parent, &BaseElementPresenter::pressed);
-    connect(m_constraintPresenter, &FullViewConstraintPresenter::moved,
-            m_parent, &BaseElementPresenter::moved);
-    connect(m_constraintPresenter, &FullViewConstraintPresenter::released,
-            m_parent, &BaseElementPresenter::released);
-
-    connect(m_startStatePresenter, &StatePresenter::pressed,
-            m_parent, &BaseElementPresenter::pressed);
-    connect(m_startStatePresenter, &StatePresenter::moved,
-            m_parent, &BaseElementPresenter::moved);
-    connect(m_startStatePresenter, &StatePresenter::released,
-            m_parent, &BaseElementPresenter::released);
-    connect(m_endStatePresenter, &StatePresenter::pressed,
-            m_parent, &BaseElementPresenter::pressed);
-    connect(m_endStatePresenter, &StatePresenter::moved,
-            m_parent, &BaseElementPresenter::moved);
-    connect(m_endStatePresenter, &StatePresenter::released,
-            m_parent, &BaseElementPresenter::released);
-
-    connect(m_startEventPresenter, &EventPresenter::pressed,
-            m_parent, &BaseElementPresenter::pressed);
-    connect(m_startEventPresenter, &EventPresenter::moved,
-            m_parent, &BaseElementPresenter::moved);
-    connect(m_startEventPresenter, &EventPresenter::released,
-            m_parent, &BaseElementPresenter::released);
-    connect(m_endEventPresenter, &EventPresenter::pressed,
-            m_parent, &BaseElementPresenter::pressed);
-    connect(m_endEventPresenter, &EventPresenter::moved,
-            m_parent, &BaseElementPresenter::moved);
-    connect(m_endEventPresenter, &EventPresenter::released,
-            m_parent, &BaseElementPresenter::released);
-
-    connect(m_startNodePresenter, &TimeNodePresenter::pressed,
-            m_parent, &BaseElementPresenter::pressed);
-    connect(m_startNodePresenter, &TimeNodePresenter::moved,
-            m_parent, &BaseElementPresenter::moved);
-    connect(m_startNodePresenter, &TimeNodePresenter::released,
-            m_parent, &BaseElementPresenter::released);
-    connect(m_endNodePresenter, &TimeNodePresenter::pressed,
-            m_parent, &BaseElementPresenter::pressed);
-    connect(m_endNodePresenter, &TimeNodePresenter::moved,
-            m_parent, &BaseElementPresenter::moved);
-    connect(m_endNodePresenter, &TimeNodePresenter::released,
-            m_parent, &BaseElementPresenter::released);
     showConstraint();
 
     on_zoomRatioChanged(m_constraintPresenter->zoomRatio());
@@ -211,7 +173,7 @@ void DisplayedElementsPresenter::on_zoomRatioChanged(ZoomRatio r)
 
 void DisplayedElementsPresenter::on_displayedConstraintDurationChanged(TimeValue t)
 {
-    updateLength(t.toPixels(m_constraintPresenter->model().fullView()->zoom()));
+    updateLength(t.toPixels(m_parent->zoomRatio()));
 }
 
 void DisplayedElementsPresenter::on_displayedConstraintHeightChanged(double size)

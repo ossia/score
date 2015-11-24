@@ -49,7 +49,7 @@ const BaseElementContext& BaseScenarioToolPalette::context() const
     return m_context;
 }
 
-const Scenario::EditionSettings&BaseScenarioToolPalette::editionSettings() const
+const Scenario::EditionSettings& BaseScenarioToolPalette::editionSettings() const
 {
     return m_context.app.components.applicationPlugin<ScenarioApplicationPlugin>().editionSettings(); // OPTIMIZEME
 }

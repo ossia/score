@@ -175,7 +175,7 @@ class ToolBase : public GraphicsSceneToolBase<Scenario::Point>
                     break;
                 }
 
-                case TemporalConstraintHeader::static_type(): // Constraint header
+                case ConstraintHeader::static_type(): // Constraint header
                 {
                     tryFun(cst_fun, itemToConstraintId(item->parentItem()));
                     break;

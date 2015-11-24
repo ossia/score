@@ -1,11 +1,13 @@
 #include "FullViewStateMachine.hpp"
 
-#include <Scenario/Document/BaseElement/DisplayedElements/DisplayedElementsPresenter.hpp>
-#include <Scenario/Application/ScenarioApplicationPlugin.hpp>
+#include <Scenario/Document/BaseElement/BaseElementModel.hpp>
 #include <Scenario/Document/BaseElement/BaseElementPresenter.hpp>
 #include <Scenario/Document/BaseElement/DisplayedElements/DisplayedElementsModel.hpp>
 #include <Scenario/Document/BaseElement/DisplayedElements/DisplayedElementsPresenter.hpp>
+
+#include <Scenario/Application/ScenarioApplicationPlugin.hpp>
 #include <Scenario/Process/Temporal/StateMachines/ScenarioPoint.hpp>
+
 #include <core/application/ApplicationContext.hpp>
 #include <core/document/Document.hpp>
 
@@ -17,36 +19,17 @@ Scenario::Point FullViewToolPalette::ScenePointToScenarioPoint(QPointF point)
 FullViewToolPalette::FullViewToolPalette(
         const iscore::DocumentContext& ctx,
         const DisplayedElementsModel& model,
-        const BaseElementPresenter& pres,
+        BaseElementPresenter& pres,
         BaseGraphicsObject& view):
     GraphicsSceneToolPalette{*view.scene()},
-    m_context{ctx},
     m_model{model},
     m_presenter{pres},
+    m_context{iscore::IDocument::documentContext(m_presenter.model()), m_presenter},
     m_view{view},
     m_editionSettings{m_context.app.components.applicationPlugin<ScenarioApplicationPlugin>().editionSettings()},
-    m_state{*this}
+    m_state{*this},
+    m_inputDisp{m_presenter, *this, m_context}
 {
-     con(m_presenter, &BaseElementPresenter::pressed,
-         this, [=] (QPointF point)
-     {
-         scenePoint = point;
-         m_state.on_pressed(point, ScenePointToScenarioPoint(m_view.mapFromScene(point)));
-     });
-
-     con(m_presenter, &BaseElementPresenter::moved,
-         this, [=] (QPointF point)
-     {
-         scenePoint = point;
-         m_state.on_moved(point, ScenePointToScenarioPoint(m_view.mapFromScene(point)));
-     });
-
-     con(m_presenter, &BaseElementPresenter::released,
-         this, [=] (QPointF point)
-     {
-         scenePoint = point;
-         m_state.on_released(point, ScenePointToScenarioPoint(m_view.mapFromScene(point)));
-     });
 }
 
 BaseGraphicsObject& FullViewToolPalette::view() const
@@ -64,7 +47,7 @@ const ScenarioModel& FullViewToolPalette::model() const
     return *safe_cast<ScenarioModel*>(m_model.displayedConstraint().parentScenario());
 }
 
-const iscore::DocumentContext& FullViewToolPalette::context() const
+const BaseElementContext& FullViewToolPalette::context() const
 {
     return m_context;
 }
@@ -72,4 +55,38 @@ const iscore::DocumentContext& FullViewToolPalette::context() const
 const Scenario::EditionSettings&FullViewToolPalette::editionSettings() const
 {
     return m_editionSettings;
+}
+
+
+void FullViewToolPalette::activate(Scenario::Tool)
+{
+
+}
+
+void FullViewToolPalette::desactivate(Scenario::Tool)
+{
+
+}
+
+void FullViewToolPalette::on_pressed(QPointF point)
+{
+    scenePoint = point;
+    m_state.on_pressed(point, ScenePointToScenarioPoint(m_view.mapFromScene(point)));
+}
+
+void FullViewToolPalette::on_moved(QPointF point)
+{
+    scenePoint = point;
+    m_state.on_moved(point, ScenePointToScenarioPoint(m_view.mapFromScene(point)));
+}
+
+void FullViewToolPalette::on_released(QPointF point)
+{
+    scenePoint = point;
+    m_state.on_released(point, ScenePointToScenarioPoint(m_view.mapFromScene(point)));
+}
+
+void FullViewToolPalette::on_cancel()
+{
+    m_state.on_cancel();
 }

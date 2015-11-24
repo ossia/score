@@ -14,6 +14,7 @@ class TimeNodeModel;
 class TimeNodePresenter;
 class LayerPresenter;
 class BaseElementPresenter;
+class BaseGraphicsObject;
 
 // Contains the elements that are shown (not necessarily the ones in
 // BaseScenarioModel)
@@ -77,5 +78,7 @@ class DisplayedElementsPresenter final : public QObject
         EventPresenter* m_endEventPresenter{};
         TimeNodePresenter* m_startNodePresenter{};
         TimeNodePresenter* m_endNodePresenter{};
+
+        std::vector<QMetaObject::Connection> m_connections;
 
 };

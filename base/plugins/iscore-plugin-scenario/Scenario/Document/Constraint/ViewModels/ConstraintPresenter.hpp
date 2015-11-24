@@ -50,9 +50,9 @@ class ConstraintPresenter : public NamedObject
         const Id<ConstraintModel>& id() const;
 
     signals:
-        void pressed(const QPointF&);
-        void moved(const QPointF&);
-        void released(const QPointF&);
+        void pressed(QPointF);
+        void moved(QPointF);
+        void released(QPointF);
 
         void askUpdate();
         void heightChanged(); // The vertical size

@@ -1,12 +1,13 @@
 #pragma once
-#include <iscore/statemachine/BaseStateMachine.hpp>
-#include <Scenario/Document/BaseElement/BaseScenario/StateMachine/BaseMoveSlot.hpp>
 #include <Scenario/Application/ScenarioEditionSettings.hpp>
 #include <Scenario/Application/ScenarioApplicationPlugin.hpp>
 
-#include <Scenario/Document/BaseElement/BaseScenario/BaseScenario_StateWrappers.hpp>
-#include <Process/Tools/ToolPalette.hpp>
 #include <Scenario/Document/BaseElement/BaseScenario/BaseElementContext.hpp>
+#include <Scenario/Document/BaseElement/BaseScenario/BaseScenario_StateWrappers.hpp>
+
+#include <Process/Tools/ToolPalette.hpp>
+
+#include <iscore/statemachine/BaseStateMachine.hpp>
 
 class DisplayedElementsPresenter;
 class DisplayedElementsModel;
@@ -32,7 +33,6 @@ class BaseScenarioToolPalette final : public GraphicsSceneToolPalette
         const Scenario::EditionSettings& editionSettings() const;
 
         void activate(Scenario::Tool);
-
         void desactivate(Scenario::Tool);
 
         void on_pressed(QPointF);
@@ -61,7 +61,5 @@ class BaseScenarioToolPalette final : public GraphicsSceneToolPalette
                BaseElementContext,
                BaseElementPresenter
             > m_inputDisp;
-
-
 };
 

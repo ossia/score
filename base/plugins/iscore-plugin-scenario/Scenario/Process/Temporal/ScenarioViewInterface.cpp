@@ -58,8 +58,9 @@ void ScenarioViewInterface::on_constraintMoved(const TemporalConstraintPresenter
     cstr_view.setDefaultWidth(cstr_model.duration.defaultDuration().toPixels(msPerPixel));
     cstr_view.setMinWidth(cstr_model.duration.minDuration().toPixels(msPerPixel));
     cstr_view.setMaxWidth(cstr_model.duration.maxDuration().isInfinite(),
-                            cstr_model.duration.maxDuration().isInfinite()? -1 :
-                                                                   cstr_model.duration.maxDuration().toPixels(msPerPixel));
+                          cstr_model.duration.maxDuration().isInfinite()
+                            ? -1
+                            : cstr_model.duration.maxDuration().toPixels(msPerPixel));
 
     m_presenter.m_view->update();
 }

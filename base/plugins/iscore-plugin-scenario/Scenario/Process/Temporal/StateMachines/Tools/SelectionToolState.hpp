@@ -94,6 +94,7 @@ class SelectionAndMoveTool final : public ToolBase<ToolPalette_T>
                 m_nothingPressed = true;
             });
         }
+
         void on_moved(QPointF scene, Scenario::Point sp)
         {
             // TODO same on creation tool
@@ -126,6 +127,7 @@ class SelectionAndMoveTool final : public ToolBase<ToolPalette_T>
 
             this->m_prev = t;
         }
+
         void on_released(QPointF scene, Scenario::Point sp)
         {
             if(m_nothingPressed)
