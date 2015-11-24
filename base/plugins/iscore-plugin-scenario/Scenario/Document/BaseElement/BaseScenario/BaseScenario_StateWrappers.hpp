@@ -31,7 +31,7 @@ class MoveEventInBaseScenario_StateWrapper
         {
             /// Event
             auto moveEvent =
-                    new Scenario::MoveEventState<MoveBaseEvent, Scenario_T, ToolPalette_T>{
+                    new Scenario::MoveEventState<MoveBaseEvent<Scenario_T>, Scenario_T, ToolPalette_T>{
                         palette,
                         palette.model(),
                         palette.context().commandStack,
@@ -62,7 +62,7 @@ class MoveTimeNodeInBaseScenario_StateWrapper
         {
             /// TimeNode
             auto moveTimeNode =
-                    new Scenario::MoveTimeNodeState<MoveBaseEvent, Scenario_T, ToolPalette_T>{
+                    new Scenario::MoveTimeNodeState<MoveBaseEvent<Scenario_T>, Scenario_T, ToolPalette_T>{
                 palette,
                         palette.model(),
                         palette.context().commandStack,

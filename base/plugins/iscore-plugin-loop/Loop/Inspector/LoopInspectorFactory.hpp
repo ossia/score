@@ -2,7 +2,17 @@
 #include <QObject>
 #include <Inspector/InspectorWidgetFactoryInterface.hpp>
 #include <Loop/LoopProcessMetadata.hpp>
+#include <Scenario/Inspector/Constraint/ConstraintInspectorDelegateFactory.hpp>
 
+class LoopConstraintInspectorDelegateFactory : public ConstraintInspectorDelegateFactory
+{
+    public:
+        virtual ~LoopConstraintInspectorDelegateFactory();
+
+        std::unique_ptr<ConstraintInspectorDelegate> make(const ConstraintModel& constraint) override;
+
+        bool matches(const ConstraintModel& constraint) const override;
+};
 
 class LoopInspectorFactory final : public InspectorWidgetFactory
 {

@@ -16,16 +16,21 @@ iscore_plugin_loop::iscore_plugin_loop() :
 
 std::vector<iscore::FactoryInterfaceBase*> iscore_plugin_loop::factories(
         const iscore::ApplicationContext& ctx,
-        const iscore::FactoryBaseKey& factoryName) const
+        const iscore::FactoryBaseKey& key) const
 {
-    if(factoryName == ProcessFactory::staticFactoryKey())
+    if(key == ProcessFactory::staticFactoryKey())
     {
         return {new LoopProcessFactory};
     }
 
-    if(factoryName == InspectorWidgetFactory::staticFactoryKey())
+    if(key == InspectorWidgetFactory::staticFactoryKey())
     {
         return {new LoopInspectorFactory};
+    }
+
+    if(key == ConstraintInspectorDelegateFactory::staticFactoryKey())
+    {
+        return { new LoopConstraintInspectorDelegateFactory };
     }
 
     return {};

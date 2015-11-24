@@ -87,7 +87,7 @@ void BaseConstraintInspectorDelegate::on_defaultDurationChanged(
         ExpandMode expandmode) const
 {
     auto& scenario = *safe_cast<BaseScenario*>(m_model.parent());
-    dispatcher.submitCommand<MoveBaseEvent>(
+    dispatcher.submitCommand<MoveBaseEvent<BaseScenario>>(
                 scenario,
                 scenario.endEvent().id(),
                 val,
