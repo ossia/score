@@ -180,3 +180,6 @@ std::vector<typename T::layer_type*> layers(const T& processModel)
 
 Process* parentProcess(QObject* obj);
 const Process* parentProcess(const QObject* obj);
+
+template<typename T>
+QString NameInUndo();

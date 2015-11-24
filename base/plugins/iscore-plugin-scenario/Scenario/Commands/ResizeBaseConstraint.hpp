@@ -24,8 +24,6 @@ namespace Command
 template<typename SimpleScenario_T>
 class MoveBaseEvent final : public iscore::SerializableCommand
 {
-        // ISCORE_COMMAND_DECL(ScenarioCommandFactoryName(), MoveBaseEvent, "Move base event")
-
     private:
         template<typename ScaleFun>
         static void updateDuration(
@@ -52,7 +50,7 @@ class MoveBaseEvent final : public iscore::SerializableCommand
         const CommandFactoryKey& key() const override
         { return static_key(); }
         QString description() const override
-        { return QObject::tr("Move a %1 event").arg(SimpleScenario_T::prettyName()); }
+        { return QObject::tr("Move a %1 event").arg(NameInUndo<SimpleScenario_T>()); }
         static const CommandFactoryKey& static_key()
         {
             static const QByteArray name = QString{"MoveBaseEvent_%1"}.arg(SimpleScenario_T::staticMetaObject.className()).toUtf8();

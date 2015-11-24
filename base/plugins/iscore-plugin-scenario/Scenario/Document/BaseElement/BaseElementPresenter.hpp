@@ -8,6 +8,7 @@
 #include <iscore/tools/ModelPath.hpp>
 #include <iscore/statemachine/BaseStateMachine.hpp>
 
+#include <memory>
 #include <QSize>
 #include <QRectF>
 class ProgressBar;

@@ -68,3 +68,4 @@ class LoopProcessModel final : public Process, public BaseScenarioContainer
         LayerModel* cloneLayer_impl(const Id<LayerModel>& newId, const LayerModel& source, QObject* parent) override;
 
 };
+

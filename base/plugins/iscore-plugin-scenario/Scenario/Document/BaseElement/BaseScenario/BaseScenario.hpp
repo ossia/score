@@ -26,9 +26,4 @@ class BaseScenario final : public IdentifiedObject<BaseScenario>, public BaseSce
         }
 
         Selection selectedChildren() const;
-        static QString prettyName()
-        {
-            // For use in undo-redo menu
-            return "BaseScenario";
-        }
 };

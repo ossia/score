@@ -24,3 +24,9 @@ Selection BaseScenario::selectedChildren() const
     });
     return s;
 }
+
+template<>
+QString NameInUndo<BaseScenario>()
+{
+    return "BaseScenario";
+}

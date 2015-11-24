@@ -1,7 +1,7 @@
 #include "LoopInspectorFactory.hpp"
 #include "LoopInspectorWidget.hpp"
 #include <Loop/LoopProcessModel.hpp>
-
+#include <Loop/Commands/MoveLoopEvent.hpp>
 #include <Scenario/Process/ScenarioModel.hpp>
 #include <Scenario/Document/Constraint/ConstraintModel.hpp>
 #include <Scenario/Inspector/Constraint/ConstraintInspectorDelegateFactory.hpp>
@@ -57,14 +57,12 @@ void LoopConstraintInspectorDelegate::on_defaultDurationChanged(
         const TimeValue& val,
         ExpandMode expandmode) const
 {
-    /*
-    auto Loop = m_model.parentLoop();
-    dispatcher.submitCommand<MoveEventMeta>(
-            *safe_cast<LoopModel*>(m_model.parent()),
-            Loop->state(m_model.endState()).eventId(),
+    auto loop = m_model.parentScenario();
+    dispatcher.submitCommand<MoveBaseEvent<LoopProcessModel>>(
+            *safe_cast<LoopProcessModel*>(m_model.parent()),
+            loop->state(m_model.endState()).eventId(),
             m_model.startDate() + val,
             expandmode);
-            */
 }
 
 

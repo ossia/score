@@ -189,3 +189,8 @@ void Visitor<Writer<JSONObject>>::writeTo(LoopProcessModel& proc)
     proc.pluginModelList = new iscore::ElementPluginModelList{elementPluginDeserializer, &proc};
 }
 
+template<>
+QString NameInUndo<LoopProcessModel>()
+{
+    return "Loop";
+}
