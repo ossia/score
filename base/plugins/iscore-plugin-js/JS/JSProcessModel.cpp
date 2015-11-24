@@ -92,12 +92,12 @@ void JSProcessModel::reset()
 {
 }
 
-ProcessStateDataInterface* JSProcessModel::startState() const
+ProcessStateDataInterface* JSProcessModel::startStateData() const
 {
     return nullptr;
 }
 
-ProcessStateDataInterface* JSProcessModel::endState() const
+ProcessStateDataInterface* JSProcessModel::endStateData() const
 {
     return nullptr;
 }

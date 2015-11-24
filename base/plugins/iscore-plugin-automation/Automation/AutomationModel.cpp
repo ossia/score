@@ -177,12 +177,12 @@ void AutomationModel::setCurve_impl()
 }
 
 
-AutomationState* AutomationModel::startState() const
+AutomationState* AutomationModel::startStateData() const
 {
     return m_startState;
 }
 
-AutomationState* AutomationModel::endState() const
+AutomationState* AutomationModel::endStateData() const
 {
     return m_endState;
 }

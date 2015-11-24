@@ -67,17 +67,17 @@ void DisplayedElementsModel::setDisplayedConstraint(const ConstraintModel& const
     }
 }
 
-const ConstraintModel &DisplayedElementsModel::displayedConstraint() const
+const ConstraintModel &DisplayedElementsModel::constraint() const
 {
     return *m_constraint;
 }
 
-const TimeNodeModel &DisplayedElementsModel::startNode() const
+const TimeNodeModel &DisplayedElementsModel::startTimeNode() const
 {
     return *m_startNode;
 }
 
-const TimeNodeModel &DisplayedElementsModel::endNode() const
+const TimeNodeModel &DisplayedElementsModel::endTimeNode() const
 {
     return *m_endNode;
 }

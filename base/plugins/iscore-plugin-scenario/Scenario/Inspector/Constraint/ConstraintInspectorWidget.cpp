@@ -312,14 +312,14 @@ void ConstraintInspectorWidget::displaySharedProcess(const Process& process)
     stateLayout->setContentsMargins(0, 0, 0, 0);
     stateWidget->setLayout(stateLayout);
 
-    if(auto start = process.startState())
+    if(auto start = process.startStateData())
     {
         auto startWidg = m_widgetList.makeInspectorWidget(
                              start->stateName(), *start, newProc);
         stateLayout->addRow(tr("Start state"), startWidg);
     }
 
-    if(auto end = process.endState())
+    if(auto end = process.endStateData())
     {
         auto endWidg = m_widgetList.makeInspectorWidget(
                            end->stateName(), *end, newProc);

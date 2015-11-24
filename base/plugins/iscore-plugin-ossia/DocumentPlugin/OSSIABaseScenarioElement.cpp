@@ -43,7 +43,7 @@ OSSIABaseScenarioElement::OSSIABaseScenarioElement(
     (*main_start_event_it)->addState(main_start_state);
     (*main_end_event_it)->addState(main_end_state);
 
-    OSSIA::TimeValue main_duration(iscore::convert::time(element.baseConstraint().duration.defaultDuration()));
+    OSSIA::TimeValue main_duration(iscore::convert::time(element.constraint().duration.defaultDuration()));
 
     // TODO PlayDuration of base constraint.
     // TODO PlayDuration of FullView
@@ -67,7 +67,7 @@ OSSIABaseScenarioElement::OSSIABaseScenarioElement(
     m_ossia_startState = new OSSIAStateElement{element.startState(), main_start_state, m_deviceList, this};
     m_ossia_endState = new OSSIAStateElement{element.endState(), main_end_state, m_deviceList, this};
 
-    m_ossia_constraint = new OSSIAConstraintElement{main_constraint, element.baseConstraint(), this};
+    m_ossia_constraint = new OSSIAConstraintElement{main_constraint, element.constraint(), this};
 }
 
 OSSIAConstraintElement *OSSIABaseScenarioElement::baseConstraint() const

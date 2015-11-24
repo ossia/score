@@ -90,7 +90,7 @@ BaseElementPresenter::BaseElementPresenter(DocumentPresenter* parent_presenter,
 
 const ConstraintModel& BaseElementPresenter::displayedConstraint() const
 {
-    return model().displayedElements.displayedConstraint();
+    return model().displayedElements.constraint();
 }
 
 void BaseElementPresenter::on_askUpdate()

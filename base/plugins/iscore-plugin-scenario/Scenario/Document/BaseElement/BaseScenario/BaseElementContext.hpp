@@ -12,7 +12,7 @@ class BaseElementContext : public iscore::DocumentContext
                 ProcessFocusManager& d);
 
         BaseElementContext(
-                iscore::DocumentContext& doc,
+                const iscore::DocumentContext& doc,
                 BaseElementPresenter& pres);
 
         BaseElementPresenter& layerPresenter;

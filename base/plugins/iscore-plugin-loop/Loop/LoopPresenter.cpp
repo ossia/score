@@ -14,31 +14,60 @@
 #include <iscore/widgets/GraphicsItem.hpp>
 
 
-
 LoopPresenter::LoopPresenter(
         iscore::DocumentContext& context,
         const LoopLayer& layer,
         LoopView* view,
         QObject* parent):
     LayerPresenter{"LoopPresenter", parent},
+    BaseScenarioPresenter<Loop::ProcessModel, TemporalConstraintPresenter>{layer.model()},
     m_layer{layer},
     m_view{view},
-    m_viewUpdater{*this}
+    m_viewUpdater{*this},
+    m_focusDispatcher{context.document},
+    m_context{context, *this, m_focusDispatcher},
+    m_palette{m_layer.model(), *this, m_context, *m_view}
 {
-    m_constraint = new TemporalConstraintPresenter{
+    m_constraintPresenter = new TemporalConstraintPresenter{
             layer.constraint(), view, this};
-    m_startState = new StatePresenter{
+    m_startStatePresenter = new StatePresenter{
             layer.model().BaseScenarioContainer::startState(), m_view, this};
-    m_endState = new StatePresenter{
+    m_endStatePresenter = new StatePresenter{
             layer.model().BaseScenarioContainer::endState(), m_view, this};
-    m_startEvent= new EventPresenter{
+    m_startEventPresenter = new EventPresenter{
             layer.model().startEvent(), m_view, this};
-    m_endEvent = new EventPresenter{
+    m_endEventPresenter = new EventPresenter{
             layer.model().endEvent(), m_view, this};
-    m_startNode = new TimeNodePresenter{
+    m_startNodePresenter = new TimeNodePresenter{
             layer.model().startTimeNode(), m_view, this};
-    m_endNode = new TimeNodePresenter{
+    m_endNodePresenter = new TimeNodePresenter{
             layer.model().endTimeNode(), m_view, this};
+
+
+    auto elements = std::make_tuple(
+                m_constraintPresenter,
+                m_startStatePresenter,
+                m_endStatePresenter,
+                m_startEventPresenter,
+                m_endEventPresenter,
+                m_startNodePresenter,
+                m_endNodePresenter);
+
+    for_each_in_tuple(elements, [&] (auto elt) {
+        using elt_t = std::remove_reference_t<decltype(*elt)>;
+        connect(elt, &elt_t::pressed,  this, &LoopPresenter::pressed);
+        connect(elt, &elt_t::moved,    this, &LoopPresenter::moved);
+        connect(elt, &elt_t::released, this, &LoopPresenter::released);
+    });
+
+    con(m_endEventPresenter->model(), &EventModel::extentChanged,
+        this, [=] (const VerticalExtent&) { m_viewUpdater.updateEvent(*m_endEventPresenter); });
+    con(m_endEventPresenter->model(), &EventModel::dateChanged,
+            this, [=] (const TimeValue&) { m_viewUpdater.updateEvent(*m_endEventPresenter); });
+    con(m_endNodePresenter->model(), &TimeNodeModel::extentChanged,
+        this, [=] (const VerticalExtent&) { m_viewUpdater.updateTimeNode(*m_endNodePresenter); });
+    con(m_endNodePresenter->model(), &TimeNodeModel::dateChanged,
+        this, [=] (const TimeValue&) { m_viewUpdater.updateTimeNode(*m_endNodePresenter); });
 }
 
 LoopPresenter::~LoopPresenter()
@@ -71,7 +100,7 @@ void LoopPresenter::putBehind()
 void LoopPresenter::on_zoomRatioChanged(ZoomRatio val)
 {
     m_zoomRatio = val;
-    m_constraint->on_zoomRatioChanged(m_zoomRatio);
+    m_constraintPresenter->on_zoomRatioChanged(m_zoomRatio);
 }
 
 void LoopPresenter::parentGeometryChanged()
@@ -92,11 +121,11 @@ const Id<Process>&LoopPresenter::modelId() const
 
 void LoopPresenter::updateAllElements()
 {
-    m_viewUpdater.updateConstraint(*m_constraint);
-    m_viewUpdater.updateEvent(*m_startEvent);
-    m_viewUpdater.updateEvent(*m_endEvent);
-    m_viewUpdater.updateTimeNode(*m_startNode);
-    m_viewUpdater.updateTimeNode(*m_endNode);
+    m_viewUpdater.updateConstraint(*m_constraintPresenter);
+    m_viewUpdater.updateEvent(*m_startEventPresenter);
+    m_viewUpdater.updateEvent(*m_endEventPresenter);
+    m_viewUpdater.updateTimeNode(*m_startNodePresenter);
+    m_viewUpdater.updateTimeNode(*m_endNodePresenter);
 }
 
 void LoopPresenter::fillContextMenu(QMenu*, const QPoint& pos, const QPointF& scenepos) const

@@ -31,11 +31,10 @@ class MoveBaseEvent final : public iscore::SerializableCommand
                 const TimeValue& newDuration,
                 ScaleFun&& scaleMethod)
         {
-            auto& timeNode = scenar.endTimeNode();
-            timeNode.setDate(newDuration);
-            scenar.endEvent().setDate(timeNode.date());
+            scenar.endEvent().setDate(newDuration);
+            scenar.endTimeNode().setDate(newDuration);
 
-            auto& constraint = scenar.baseConstraint();
+            auto& constraint = scenar.constraint();
             ConstraintDurations::Algorithms::setDurationInBounds(constraint, newDuration);
             for(auto& process : constraint.processes)
             {
@@ -70,7 +69,7 @@ class MoveBaseEvent final : public iscore::SerializableCommand
             m_mode{mode}
         {
             auto& scenar = m_path.find();
-            const auto& constraint = scenar.baseConstraint();
+            const auto& constraint = scenar.constraint();
             m_oldDate = constraint.duration.defaultDuration();
 
             // Save the constraint data
@@ -106,10 +105,10 @@ class MoveBaseEvent final : public iscore::SerializableCommand
             // during this command.
 
             // 1. Clear the constraint
-            ClearConstraint clearCmd{scenar.baseConstraint()};
+            ClearConstraint clearCmd{scenar.constraint()};
             clearCmd.redo();
 
-            auto& constraint = scenar.baseConstraint();
+            auto& constraint = scenar.constraint();
             // 2. Restore the rackes & processes.
 
             // TODO if possible refactor this with ReplaceConstraintContent and ConstraintModel::clone

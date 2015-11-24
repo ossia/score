@@ -71,12 +71,12 @@ void DummyModel::reset()
 {
 }
 
-ProcessStateDataInterface* DummyModel::startState() const
+ProcessStateDataInterface* DummyModel::startStateData() const
 {
     return &m_startState;
 }
 
-ProcessStateDataInterface* DummyModel::endState() const
+ProcessStateDataInterface* DummyModel::endStateData() const
 {
     return &m_endState;
 }

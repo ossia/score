@@ -134,7 +134,7 @@ StateModel& BaseScenarioContainer::state(
             : *m_endState;
 }
 
-ConstraintModel& BaseScenarioContainer::baseConstraint() const
+ConstraintModel& BaseScenarioContainer::constraint() const
 {
     return *m_constraint;
 }

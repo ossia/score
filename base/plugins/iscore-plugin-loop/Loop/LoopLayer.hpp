@@ -5,7 +5,9 @@
 
 class TemporalConstraintViewModel;
 
-class LoopProcessModel;
+namespace Loop{
+    class ProcessModel;
+}
 class LoopLayer final : public LayerModel
 {
         ISCORE_METADATA("LoopLayer")
@@ -16,14 +18,14 @@ class LoopLayer final : public LayerModel
         Q_OBJECT
     public:
         LoopLayer(
-                LoopProcessModel& model,
+                Loop::ProcessModel& model,
                 const Id<LayerModel>& id,
                 QObject* parent);
 
         // Copy
         LoopLayer(
                 const LoopLayer& source,
-                LoopProcessModel& model,
+                Loop::ProcessModel& model,
                 const Id<LayerModel>& id,
                 QObject* parent);
 
@@ -31,7 +33,7 @@ class LoopLayer final : public LayerModel
         template<typename Impl>
         LoopLayer(
                 Deserializer<Impl>& vis,
-                LoopProcessModel& model,
+                Loop::ProcessModel& model,
                 QObject* parent) :
             LayerModel {vis, model, parent}
         {
@@ -41,7 +43,7 @@ class LoopLayer final : public LayerModel
         LayerModelPanelProxy* make_panelProxy(QObject* parent) const override;
         void serialize(const VisitorVariant&) const override;
 
-        const LoopProcessModel& model() const;
+        const Loop::ProcessModel& model() const;
 
         const TemporalConstraintViewModel& constraint() const
         {

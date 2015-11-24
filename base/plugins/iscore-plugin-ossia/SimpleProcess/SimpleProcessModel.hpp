@@ -54,8 +54,8 @@ class SimpleProcessModel final : public OSSIAProcessModel
         void stopExecution() override;
         void reset() override;
 
-        ProcessStateDataInterface* startState() const override;
-        ProcessStateDataInterface* endState() const override;
+        ProcessStateDataInterface* startStateData() const override;
+        ProcessStateDataInterface* endStateData() const override;
 
         Selection selectableChildren() const override;
         Selection selectedChildren() const override;

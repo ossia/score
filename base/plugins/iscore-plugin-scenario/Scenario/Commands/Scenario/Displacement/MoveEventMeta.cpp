@@ -23,7 +23,6 @@ void MoveEventMeta::undo() const
 
 void MoveEventMeta::redo() const
 {
-
     m_moveEventImplementation->redo();
 }
 

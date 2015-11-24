@@ -30,7 +30,7 @@ class LoopProcessFactory final : public ProcessFactory
                 const Id<Process>& id,
                 QObject* parent) override
         {
-            return new LoopProcessModel{duration, id, parent};
+            return new Loop::ProcessModel{duration, id, parent};
         }
 
         QByteArray makeStaticLayerConstructionData() const override
@@ -41,7 +41,7 @@ class LoopProcessFactory final : public ProcessFactory
         Process* loadModel(const VisitorVariant& vis, QObject* parent) override
         {
             return deserialize_dyn(vis, [&] (auto&& deserializer)
-            { return new LoopProcessModel{deserializer, parent};});
+            { return new Loop::ProcessModel{deserializer, parent};});
         }
 
         LayerPresenter* makeLayerPresenter(

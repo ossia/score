@@ -62,7 +62,7 @@ void StateModel::init()
 
 const ScenarioInterface* StateModel::parentScenario() const
 {
-    return dynamic_cast<ScenarioInterface*>(parent());
+    return dynamic_cast<ScenarioInterface*>(parent()); // TODO why not safe cast
 }
 
 double StateModel::heightPercentage() const
@@ -85,7 +85,7 @@ void StateModel::statesUpdated_slt()
 #include "ItemModel/MessageItemModelAlgorithms.hpp"
 void StateModel::on_previousProcessAdded(const Process& proc)
 {
-    ProcessStateDataInterface* state = proc.endState();
+    ProcessStateDataInterface* state = proc.endStateData();
     if(!state)
         return;
 
@@ -116,7 +116,7 @@ void StateModel::on_previousProcessAdded(const Process& proc)
 
 void StateModel::on_previousProcessRemoved(const Process& proc)
 {
-    ProcessStateDataInterface* state = proc.endState();
+    ProcessStateDataInterface* state = proc.endStateData();
     if(!state)
         return;
 
@@ -129,7 +129,7 @@ void StateModel::on_previousProcessRemoved(const Process& proc)
 
 void StateModel::on_nextProcessAdded(const Process& proc)
 {
-    ProcessStateDataInterface* state = proc.startState();
+    ProcessStateDataInterface* state = proc.startStateData();
     if(!state)
         return;
 
@@ -157,7 +157,7 @@ void StateModel::on_nextProcessAdded(const Process& proc)
 
 void StateModel::on_nextProcessRemoved(const Process& proc)
 {
-    ProcessStateDataInterface* state = proc.startState();
+    ProcessStateDataInterface* state = proc.startStateData();
     if(!state)
         return;
 

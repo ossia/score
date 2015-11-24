@@ -257,13 +257,13 @@ void ScenarioModel::setSelection(const Selection& s) const
     });
 }
 
-ProcessStateDataInterface* ScenarioModel::startState() const
+ProcessStateDataInterface* ScenarioModel::startStateData() const
 {
     ISCORE_TODO;
     return nullptr;
 }
 
-ProcessStateDataInterface* ScenarioModel::endState() const
+ProcessStateDataInterface* ScenarioModel::endStateData() const
 {
     ISCORE_TODO;
     return nullptr;

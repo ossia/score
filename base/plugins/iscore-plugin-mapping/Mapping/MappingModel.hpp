@@ -67,8 +67,8 @@ class MappingModel : public CurveProcessModel
         void serialize(const VisitorVariant& vis) const override;
 
         /// States
-        ProcessStateDataInterface* startState() const override;
-        ProcessStateDataInterface* endState() const override;
+        ProcessStateDataInterface* startStateData() const override;
+        ProcessStateDataInterface* endStateData() const override;
 
 
         //// MappingModel specifics ////

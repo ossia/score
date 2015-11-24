@@ -37,13 +37,13 @@ BaseElementModel::BaseElementModel(QObject* parent) :
         parent},
     m_baseScenario{new BaseScenario{Id<BaseScenario>{0}, this}}
 {
-    m_baseScenario->baseConstraint().duration.setRigid(false);
-    ConstraintDurations::Algorithms::changeAllDurations(m_baseScenario->baseConstraint(), std::chrono::minutes{3});
-    m_baseScenario->endEvent().setDate(m_baseScenario->baseConstraint().duration.defaultDuration());
-    m_baseScenario->endTimeNode().setDate(m_baseScenario->baseConstraint().duration.defaultDuration());
-    m_baseScenario->baseConstraint().setObjectName("BaseConstraintModel");
+    m_baseScenario->constraint().duration.setRigid(false);
+    ConstraintDurations::Algorithms::changeAllDurations(m_baseScenario->constraint(), std::chrono::minutes{3});
+    m_baseScenario->endEvent().setDate(m_baseScenario->constraint().duration.defaultDuration());
+    m_baseScenario->endTimeNode().setDate(m_baseScenario->constraint().duration.defaultDuration());
+    m_baseScenario->constraint().setObjectName("BaseConstraintModel");
 
-    initializeNewDocument(m_baseScenario->baseConstraint().fullView());
+    initializeNewDocument(m_baseScenario->constraint().fullView());
 
     // Help for the FocusDispatcher.
     connect(this, &BaseElementModel::setFocusedPresenter,
@@ -61,13 +61,13 @@ void BaseElementModel::initializeNewDocument(const FullViewConstraintViewModel *
     const auto& constraint_model = viewmodel->model();
 
     AddOnlyProcessToConstraint cmd1{
-        iscore::IDocument::path(m_baseScenario->baseConstraint()),
+        iscore::IDocument::path(m_baseScenario->constraint()),
         ScenarioProcessMetadata::factoryKey()
     };
     cmd1.redo();
 
     AddRackToConstraint cmd2 {
-        iscore::IDocument::path(m_baseScenario->baseConstraint())
+        iscore::IDocument::path(m_baseScenario->constraint())
     };
     cmd2.redo();
     auto& rack = *constraint_model.racks.begin();
@@ -78,28 +78,28 @@ void BaseElementModel::initializeNewDocument(const FullViewConstraintViewModel *
     cmd3.redo();
 
     AddSlotToRack cmd4 {
-        iscore::IDocument::path(*m_baseScenario->baseConstraint().racks.begin()),
+        iscore::IDocument::path(*m_baseScenario->constraint().racks.begin()),
     };
     cmd4.redo();
 
     ResizeSlotVertically cmd5
     {
-        iscore::IDocument::path(*m_baseScenario->baseConstraint().racks.begin()->slotmodels.begin()),
+        iscore::IDocument::path(*m_baseScenario->constraint().racks.begin()->slotmodels.begin()),
         1500
     };
     cmd5.redo();
 
     AddLayerModelToSlot cmd6
     {
-        iscore::IDocument::path(*m_baseScenario->baseConstraint().racks.begin()->slotmodels.begin()),
-        iscore::IDocument::path(*m_baseScenario->baseConstraint().processes.begin())
+        iscore::IDocument::path(*m_baseScenario->constraint().racks.begin()->slotmodels.begin()),
+        iscore::IDocument::path(*m_baseScenario->constraint().processes.begin())
     };
     cmd6.redo();
 }
 
 ConstraintModel& BaseElementModel::baseConstraint() const
 {
-    return m_baseScenario->baseConstraint();
+    return m_baseScenario->constraint();
 }
 
 static void updateSlotFocus(const LayerModel* lm, bool b)
@@ -166,9 +166,9 @@ void BaseElementModel::setNewSelection(const Selection& s)
                         s.end(),
                         [&] (const QObject* obj)
     {
-        return obj == &displayedElements.displayedConstraint()
-            || obj == &displayedElements.startNode()
-            || obj == &displayedElements.endNode()
+        return obj == &displayedElements.constraint()
+            || obj == &displayedElements.startTimeNode()
+            || obj == &displayedElements.endTimeNode()
             || obj == &displayedElements.startEvent()
             || obj == &displayedElements.endEvent()
             || obj == &displayedElements.startState()
@@ -206,7 +206,7 @@ void BaseElementModel::setNewSelection(const Selection& s)
 
 void BaseElementModel::setDisplayedConstraint(const ConstraintModel& constraint)
 {
-    if(&constraint == &displayedElements.displayedConstraint())
+    if(&constraint == &displayedElements.constraint())
         return;
 
     displayedElements.setDisplayedConstraint(constraint);
@@ -214,11 +214,11 @@ void BaseElementModel::setDisplayedConstraint(const ConstraintModel& constraint)
     m_focusManager.focusNothing();
 
     disconnect(m_constraintConnection);
-    if(&constraint != &m_baseScenario->baseConstraint())
+    if(&constraint != &m_baseScenario->constraint())
     {
         m_constraintConnection =
                 connect(constraint.fullView(), &QObject::destroyed,
-                        this, [&] () { setDisplayedConstraint(m_baseScenario->baseConstraint()); });
+                        this, [&] () { setDisplayedConstraint(m_baseScenario->constraint()); });
     }
 
     emit displayedConstraintChanged();

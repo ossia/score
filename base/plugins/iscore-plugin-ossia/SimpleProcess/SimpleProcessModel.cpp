@@ -68,12 +68,12 @@ void SimpleProcessModel::reset()
 {
 }
 
-ProcessStateDataInterface* SimpleProcessModel::startState() const
+ProcessStateDataInterface* SimpleProcessModel::startStateData() const
 {
     return nullptr;
 }
 
-ProcessStateDataInterface* SimpleProcessModel::endState() const
+ProcessStateDataInterface* SimpleProcessModel::endStateData() const
 {
     return nullptr;
 }

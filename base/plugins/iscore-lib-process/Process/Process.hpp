@@ -118,8 +118,8 @@ class Process: public IdentifiedObject<Process>
         virtual void reset() = 0;
 
         /// States. The process has ownership.
-        virtual ProcessStateDataInterface* startState() const = 0;
-        virtual ProcessStateDataInterface* endState() const = 0;
+        virtual ProcessStateDataInterface* startStateData() const = 0;
+        virtual ProcessStateDataInterface* endStateData() const = 0;
 
         /// Selection
         virtual Selection selectableChildren() const = 0;

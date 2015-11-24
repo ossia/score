@@ -19,7 +19,7 @@
 #include <QApplication>
 
 LoopInspectorWidget::LoopInspectorWidget(
-        const LoopProcessModel& LoopModel,
+        const Loop::ProcessModel& LoopModel,
         iscore::Document& doc,
         QWidget* parent) :
     InspectorWidgetBase {LoopModel, doc, parent},

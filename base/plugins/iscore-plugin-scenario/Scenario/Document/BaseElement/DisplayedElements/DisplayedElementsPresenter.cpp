@@ -3,24 +3,14 @@
 #include <Scenario/Document/BaseElement/BaseElementModel.hpp>
 #include <Scenario/Document/BaseElement/BaseElementPresenter.hpp>
 #include <Scenario/Document/BaseElement/BaseElementView.hpp>
-#include <Scenario/Document/Constraint/ConstraintModel.hpp>
-#include <Scenario/Document/Event/EventPresenter.hpp>
-#include <Scenario/Document/Event/EventView.hpp>
-#include <Scenario/Document/TimeNode/TimeNodePresenter.hpp>
-#include <Scenario/Document/TimeNode/TimeNodeView.hpp>
-#include <Scenario/Document/Constraint/ViewModels/FullView/FullViewConstraintViewModel.hpp>
-#include <Scenario/Document/Constraint/ViewModels/FullView/FullViewConstraintPresenter.hpp>
-#include <Scenario/Document/Constraint/ViewModels/FullView/FullViewConstraintView.hpp>
-
 #include <Scenario/Document/Constraint/Rack/RackPresenter.hpp>
-
-#include <Scenario/Document/State/StatePresenter.hpp>
 
 #include <Scenario/Process/ScenarioModel.hpp>
 
 DisplayedElementsPresenter::DisplayedElementsPresenter(BaseElementPresenter *parent):
     QObject{parent},
-    m_parent{parent}
+    BaseScenarioPresenter<DisplayedElementsModel, FullViewConstraintPresenter>{parent->model().displayedElements},
+    m_model{parent}
 {
 
 }
@@ -41,21 +31,21 @@ void DisplayedElementsPresenter::on_displayedConstraintChanged(const ConstraintM
 
     m_constraintPresenter = new FullViewConstraintPresenter {
             *m.fullView(),
-            m_parent->view().baseItem(),
-            m_parent};
+            m_model->view().baseItem(),
+            m_model};
 
     // Create states / events
     // TODO this needs to be virtual instead and call ScenarioInterface...
     if(auto bs = dynamic_cast<BaseScenario*>(m.parent()))
     {
-        m_startStatePresenter = new StatePresenter{bs->startState(), m_parent->view().baseItem(), this};
-        m_endStatePresenter = new StatePresenter{bs->endState(), m_parent->view().baseItem(), this};
+        m_startStatePresenter = new StatePresenter{bs->startState(), m_model->view().baseItem(), this};
+        m_endStatePresenter = new StatePresenter{bs->endState(), m_model->view().baseItem(), this};
 
-        m_startEventPresenter = new EventPresenter{bs->startEvent(), m_parent->view().baseItem(), this};
-        m_endEventPresenter = new EventPresenter{bs->endEvent(), m_parent->view().baseItem(), this};
+        m_startEventPresenter = new EventPresenter{bs->startEvent(), m_model->view().baseItem(), this};
+        m_endEventPresenter = new EventPresenter{bs->endEvent(), m_model->view().baseItem(), this};
 
-        m_startNodePresenter = new TimeNodePresenter{bs->startTimeNode(), m_parent->view().baseItem(), this};
-        m_endNodePresenter = new TimeNodePresenter{bs->endTimeNode(), m_parent->view().baseItem(), this};
+        m_startNodePresenter = new TimeNodePresenter{bs->startTimeNode(), m_model->view().baseItem(), this};
+        m_endNodePresenter = new TimeNodePresenter{bs->endTimeNode(), m_model->view().baseItem(), this};
 
     }
     else if(auto sm = dynamic_cast<ScenarioModel*>(m.parent()))
@@ -66,20 +56,20 @@ void DisplayedElementsPresenter::on_displayedConstraintChanged(const ConstraintM
         const auto& endEvent = sm->events.at(endState.eventId());
         const auto& startNode = sm->timeNodes.at(startEvent.timeNode());
         const auto& endNode = sm->timeNodes.at(endEvent.timeNode());
-        m_startStatePresenter = new StatePresenter{startState, m_parent->view().baseItem(), this};
-        m_endStatePresenter = new StatePresenter{endState, m_parent->view().baseItem(), this};
+        m_startStatePresenter = new StatePresenter{startState, m_model->view().baseItem(), this};
+        m_endStatePresenter = new StatePresenter{endState, m_model->view().baseItem(), this};
 
-        m_startEventPresenter = new EventPresenter{startEvent, m_parent->view().baseItem(), this};
-        m_endEventPresenter = new EventPresenter{endEvent, m_parent->view().baseItem(), this};
+        m_startEventPresenter = new EventPresenter{startEvent, m_model->view().baseItem(), this};
+        m_endEventPresenter = new EventPresenter{endEvent, m_model->view().baseItem(), this};
 
-        m_startNodePresenter = new TimeNodePresenter{startNode, m_parent->view().baseItem(), this};
-        m_endNodePresenter = new TimeNodePresenter{endNode, m_parent->view().baseItem(), this};
+        m_startNodePresenter = new TimeNodePresenter{startNode, m_model->view().baseItem(), this};
+        m_endNodePresenter = new TimeNodePresenter{endNode, m_model->view().baseItem(), this};
     }
 
     m_connections.push_back(con(m_constraintPresenter->model().duration, &ConstraintDurations::defaultDurationChanged,
         this, &DisplayedElementsPresenter::on_displayedConstraintDurationChanged));
     m_connections.push_back(connect(m_constraintPresenter, &FullViewConstraintPresenter::askUpdate,
-            m_parent,              &BaseElementPresenter::on_askUpdate));
+            m_model,              &BaseElementPresenter::on_askUpdate));
     m_connections.push_back(connect(m_constraintPresenter, &FullViewConstraintPresenter::heightChanged,
             this, [&] () {
         on_displayedConstraintHeightChanged(m_constraintPresenter->view()->height());
@@ -96,9 +86,9 @@ void DisplayedElementsPresenter::on_displayedConstraintChanged(const ConstraintM
 
     for_each_in_tuple(elements, [&] (auto elt) {
         using elt_t = std::remove_reference_t<decltype(*elt)>;
-        m_connections.push_back(connect(elt, &elt_t::pressed,  m_parent, &BaseElementPresenter::pressed));
-        m_connections.push_back(connect(elt, &elt_t::moved,    m_parent, &BaseElementPresenter::moved));
-        m_connections.push_back(connect(elt, &elt_t::released, m_parent, &BaseElementPresenter::released));
+        m_connections.push_back(connect(elt, &elt_t::pressed,  m_model, &BaseElementPresenter::pressed));
+        m_connections.push_back(connect(elt, &elt_t::moved,    m_model, &BaseElementPresenter::moved));
+        m_connections.push_back(connect(elt, &elt_t::released, m_model, &BaseElementPresenter::released));
     });
 
     showConstraint();
@@ -121,49 +111,6 @@ void DisplayedElementsPresenter::showConstraint()
     }
 }
 
-const EventPresenter& DisplayedElementsPresenter::event(const Id<EventModel>& id) const
-{
-    const auto& de = m_parent->model().displayedElements;
-    if(id == de.startEvent().id())
-        return *m_startEventPresenter;
-    else if(id == de.endEvent().id())
-        return *m_endEventPresenter;
-    ISCORE_ABORT;
-}
-
-const TimeNodePresenter& DisplayedElementsPresenter::timeNode(const Id<TimeNodeModel>& id) const
-{
-    const auto& de = m_parent->model().displayedElements;
-    if(id == de.startNode().id())
-        return *m_startNodePresenter;
-    else if(id == de.endNode().id())
-        return *m_endNodePresenter;
-    ISCORE_ABORT;
-}
-
-const FullViewConstraintPresenter& DisplayedElementsPresenter::constraint(const Id<ConstraintModel>& id) const
-{
-    const auto& de = m_parent->model().displayedElements;
-    if(id == de.displayedConstraint().id())
-        return *m_constraintPresenter;
-    ISCORE_ABORT;
-}
-
-const StatePresenter& DisplayedElementsPresenter::state(const Id<StateModel>& id) const
-{
-    const auto& de = m_parent->model().displayedElements;
-    if(id == de.startState().id())
-        return *m_startStatePresenter;
-    else if(id == de.endState().id())
-        return *m_endStatePresenter;
-    ISCORE_ABORT;
-}
-
-const TimeNodeModel&DisplayedElementsPresenter::startTimeNode() const
-{
-    return m_startNodePresenter->model();
-}
-
 void DisplayedElementsPresenter::on_zoomRatioChanged(ZoomRatio r)
 {
     updateLength(m_constraintPresenter->abstractConstraintViewModel().model().duration.defaultDuration().toPixels(r));
@@ -173,12 +120,12 @@ void DisplayedElementsPresenter::on_zoomRatioChanged(ZoomRatio r)
 
 void DisplayedElementsPresenter::on_displayedConstraintDurationChanged(TimeValue t)
 {
-    updateLength(t.toPixels(m_parent->zoomRatio()));
+    updateLength(t.toPixels(m_model->zoomRatio()));
 }
 
 void DisplayedElementsPresenter::on_displayedConstraintHeightChanged(double size)
 {
-    m_parent->updateRect(
+    m_model->updateRect(
     {
         0,
         0,

@@ -6,24 +6,26 @@
 #include <Loop/LoopProcessMetadata.hpp>
 #include <Scenario/Document/BaseScenario/BaseScenarioContainer.hpp>
 
-class LoopProcessModel final : public Process, public BaseScenarioContainer
+namespace Loop
 {
-        ISCORE_SERIALIZE_FRIENDS(LoopProcessModel, DataStream)
-        ISCORE_SERIALIZE_FRIENDS(LoopProcessModel, JSONObject)
+class ProcessModel final : public Process, public BaseScenarioContainer
+{
+        ISCORE_SERIALIZE_FRIENDS(Loop::ProcessModel, DataStream)
+        ISCORE_SERIALIZE_FRIENDS(Loop::ProcessModel, JSONObject)
 
     public:
-        explicit LoopProcessModel(
+        explicit ProcessModel(
                 const TimeValue& duration,
                 const Id<Process>& id,
                 QObject* parent);
 
-        explicit LoopProcessModel(
-                const LoopProcessModel& source,
+        explicit ProcessModel(
+                const ProcessModel& source,
                 const Id<Process>& id,
                 QObject* parent);
 
         template<typename Impl>
-        explicit LoopProcessModel(
+        explicit ProcessModel(
                 Deserializer<Impl>& vis,
                 QObject* parent) :
             Process{vis, parent},
@@ -33,7 +35,7 @@ class LoopProcessModel final : public Process, public BaseScenarioContainer
         }
 
         // Process interface
-        LoopProcessModel* clone(
+        ProcessModel* clone(
                 const Id<Process>& newId,
                 QObject* newParent) const override;
 
@@ -53,8 +55,8 @@ class LoopProcessModel final : public Process, public BaseScenarioContainer
         void stopExecution() override;
         void reset() override;
 
-        ProcessStateDataInterface* startState() const override;
-        ProcessStateDataInterface* endState() const override;
+        ProcessStateDataInterface* startStateData() const override;
+        ProcessStateDataInterface* endStateData() const override;
 
         Selection selectableChildren() const override;
         Selection selectedChildren() const override;
@@ -68,4 +70,4 @@ class LoopProcessModel final : public Process, public BaseScenarioContainer
         LayerModel* cloneLayer_impl(const Id<LayerModel>& newId, const LayerModel& source, QObject* parent) override;
 
 };
-
+}

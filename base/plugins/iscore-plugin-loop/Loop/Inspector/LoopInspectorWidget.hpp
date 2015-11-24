@@ -5,7 +5,10 @@
 namespace iscore{
 struct Address;
 }
-class LoopProcessModel;
+namespace Loop
+{
+class ProcessModel;
+}
 class DynamicProcessList;
 
 class LoopInspectorWidget final : public InspectorWidgetBase
@@ -13,7 +16,7 @@ class LoopInspectorWidget final : public InspectorWidgetBase
         Q_OBJECT
     public:
         explicit LoopInspectorWidget(
-                const LoopProcessModel& object,
+                const Loop::ProcessModel& object,
                 iscore::Document& doc,
                 QWidget* parent);
 
@@ -21,5 +24,5 @@ class LoopInspectorWidget final : public InspectorWidgetBase
         void createViewInNewSlot(QString);
 
     private:
-        const LoopProcessModel& m_model;
+        const Loop::ProcessModel& m_model;
 };

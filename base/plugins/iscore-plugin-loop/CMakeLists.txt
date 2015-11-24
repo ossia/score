@@ -18,6 +18,7 @@ set(SRCS
 "${CMAKE_CURRENT_SOURCE_DIR}/Loop/LoopView.cpp"
 "${CMAKE_CURRENT_SOURCE_DIR}/Loop/LoopViewUpdater.cpp"
 "${CMAKE_CURRENT_SOURCE_DIR}/Loop/LoopProcessMetadata.cpp"
+"${CMAKE_CURRENT_SOURCE_DIR}/Loop/Palette/LoopToolPalette.cpp"
 
 "${CMAKE_CURRENT_SOURCE_DIR}/Loop/Commands/LoopCommandFactory.cpp"
 

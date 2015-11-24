@@ -106,12 +106,12 @@ LayerModel* MappingModel::cloneLayer_impl(
 }
 
 
-ProcessStateDataInterface* MappingModel::startState() const
+ProcessStateDataInterface* MappingModel::startStateData() const
 {
     return nullptr;
 }
 
-ProcessStateDataInterface* MappingModel::endState() const
+ProcessStateDataInterface* MappingModel::endStateData() const
 {
     return nullptr;
 }

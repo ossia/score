@@ -58,8 +58,8 @@ void LoopConstraintInspectorDelegate::on_defaultDurationChanged(
         ExpandMode expandmode) const
 {
     auto loop = m_model.parentScenario();
-    dispatcher.submitCommand<MoveBaseEvent<LoopProcessModel>>(
-            *safe_cast<LoopProcessModel*>(m_model.parent()),
+    dispatcher.submitCommand<MoveBaseEvent<Loop::ProcessModel>>(
+            *safe_cast<Loop::ProcessModel*>(m_model.parent()),
             loop->state(m_model.endState()).eventId(),
             m_model.startDate() + val,
             expandmode);
@@ -83,7 +83,7 @@ std::unique_ptr<ConstraintInspectorDelegate> LoopConstraintInspectorDelegateFact
 bool LoopConstraintInspectorDelegateFactory::matches(
         const ConstraintModel& constraint) const
 {
-    return dynamic_cast<LoopProcessModel*>(constraint.parent());
+    return dynamic_cast<Loop::ProcessModel*>(constraint.parent());
 }
 
 
@@ -110,7 +110,7 @@ InspectorWidgetBase* LoopInspectorFactory::makeWidget(
     auto& processFact = appContext.components.factory<DynamicProcessList>();
     auto& constraintWidgetFactory = appContext.components.factory<ConstraintInspectorDelegateFactoryList>();
 
-    auto& constraint = static_cast<const LoopProcessModel&>(sourceElement).baseConstraint();
+    auto& constraint = static_cast<const Loop::ProcessModel&>(sourceElement).constraint();
 
     auto delegate = constraintWidgetFactory.make(constraint);
     if(!delegate)

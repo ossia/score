@@ -7,7 +7,9 @@
 #include <core/document/DocumentModel.hpp>
 #include <core/document/Document.hpp>
 
-LoopProcessModel::LoopProcessModel(
+namespace Loop
+{
+ProcessModel::ProcessModel(
         const TimeValue& duration,
         const Id<Process>& id,
         QObject* parent):
@@ -20,14 +22,13 @@ LoopProcessModel::LoopProcessModel(
 
     BaseScenarioContainer::init();
 
-    baseConstraint().duration.setRigid(false);
-    ConstraintDurations::Algorithms::changeAllDurations(baseConstraint(), duration);
+    ConstraintDurations::Algorithms::changeAllDurations(constraint(), duration);
     endEvent().setDate(duration);
     endTimeNode().setDate(duration);
 
-    baseConstraint().setHeightPercentage(0.05);
-    baseConstraint().metadata.setName("Loop pattern");
-    baseConstraint().metadata.setColor(Qt::yellow);
+    constraint().setHeightPercentage(0.05);
+    constraint().metadata.setName("Loop pattern");
+    constraint().metadata.setColor(Qt::yellow);
     BaseScenarioContainer::startState().setHeightPercentage(0.05);
     BaseScenarioContainer::endState().setHeightPercentage(0.05);
     BaseScenarioContainer::startEvent().setExtent({0.02, 0.2});
@@ -36,8 +37,8 @@ LoopProcessModel::LoopProcessModel(
     BaseScenarioContainer::endTimeNode().setExtent({0, 1});
 }
 
-LoopProcessModel::LoopProcessModel(
-        const LoopProcessModel& source,
+ProcessModel::ProcessModel(
+        const ProcessModel& source,
         const Id<Process>& id,
         QObject* parent):
     Process{source.duration(), id, LoopProcessMetadata::processObjectName(), parent},
@@ -48,80 +49,80 @@ LoopProcessModel::LoopProcessModel(
                       this};
 }
 
-LoopProcessModel* LoopProcessModel::clone(
+ProcessModel* ProcessModel::clone(
         const Id<Process>& newId,
         QObject* newParent) const
 {
-    return new LoopProcessModel{*this, newId, newParent};
+    return new ProcessModel{*this, newId, newParent};
 }
 
-QString LoopProcessModel::prettyName() const
+QString ProcessModel::prettyName() const
 {
     return "Loop Process";
 }
 
-QByteArray LoopProcessModel::makeLayerConstructionData() const
+QByteArray ProcessModel::makeLayerConstructionData() const
 {
     return {};
 }
 
-void LoopProcessModel::setDurationAndScale(const TimeValue& newDuration)
+void ProcessModel::setDurationAndScale(const TimeValue& newDuration)
 {
     setDuration(newDuration);
 }
 
-void LoopProcessModel::setDurationAndGrow(const TimeValue& newDuration)
+void ProcessModel::setDurationAndGrow(const TimeValue& newDuration)
 {
     setDuration(newDuration);
 }
 
-void LoopProcessModel::setDurationAndShrink(const TimeValue& newDuration)
+void ProcessModel::setDurationAndShrink(const TimeValue& newDuration)
 {
     setDuration(newDuration);
 }
 
-void LoopProcessModel::startExecution()
+void ProcessModel::startExecution()
 {
 }
 
-void LoopProcessModel::stopExecution()
+void ProcessModel::stopExecution()
 {
 }
 
-void LoopProcessModel::reset()
+void ProcessModel::reset()
 {
 }
 
-ProcessStateDataInterface* LoopProcessModel::startState() const
+ProcessStateDataInterface* ProcessModel::startStateData() const
 {
     return nullptr;
 }
 
-ProcessStateDataInterface* LoopProcessModel::endState() const
+ProcessStateDataInterface* ProcessModel::endStateData() const
 {
     return nullptr;
 }
 
-Selection LoopProcessModel::selectableChildren() const
+Selection ProcessModel::selectableChildren() const
 {
     return {};
 }
 
-Selection LoopProcessModel::selectedChildren() const
+Selection ProcessModel::selectedChildren() const
 {
     return {};
 }
 
-void LoopProcessModel::setSelection(const Selection&) const
+void ProcessModel::setSelection(const Selection&) const
 {
 }
 
-void LoopProcessModel::serialize(const VisitorVariant& s) const
+void ProcessModel::serialize(const VisitorVariant& s) const
 {
     serialize_dyn(s, *this);
 }
 
-LayerModel* LoopProcessModel::makeLayer_impl(
+LayerModel* ProcessModel::makeLayer_impl(
         const Id<LayerModel>& viewModelId,
         const QByteArray& constructionData,
         QObject* parent)
@@ -129,7 +130,7 @@ LayerModel* LoopProcessModel::makeLayer_impl(
     return new LoopLayer{*this, viewModelId, parent};
 }
 
-LayerModel* LoopProcessModel::loadLayer_impl(
+LayerModel* ProcessModel::loadLayer_impl(
         const VisitorVariant& vis,
         QObject* parent)
 {
@@ -142,7 +143,7 @@ LayerModel* LoopProcessModel::loadLayer_impl(
     });
 }
 
-LayerModel* LoopProcessModel::cloneLayer_impl(
+LayerModel* ProcessModel::cloneLayer_impl(
         const Id<LayerModel>& newId,
         const LayerModel& source,
         QObject* parent)
@@ -152,9 +153,12 @@ LayerModel* LoopProcessModel::cloneLayer_impl(
 
 
 
+}
+
+
 // MOVEME
 template<>
-void Visitor<Reader<DataStream>>::readFrom(const LoopProcessModel& proc)
+void Visitor<Reader<DataStream>>::readFrom(const Loop::ProcessModel& proc)
 {
     readFrom(static_cast<const BaseScenarioContainer&>(proc));
 
@@ -164,7 +168,7 @@ void Visitor<Reader<DataStream>>::readFrom(const LoopProcessModel& proc)
 }
 
 template<>
-void Visitor<Writer<DataStream>>::writeTo(LoopProcessModel& proc)
+void Visitor<Writer<DataStream>>::writeTo(Loop::ProcessModel& proc)
 {
     writeTo(static_cast<BaseScenarioContainer&>(proc));
 
@@ -173,7 +177,7 @@ void Visitor<Writer<DataStream>>::writeTo(LoopProcessModel& proc)
 }
 
 template<>
-void Visitor<Reader<JSONObject>>::readFrom(const LoopProcessModel& proc)
+void Visitor<Reader<JSONObject>>::readFrom(const Loop::ProcessModel& proc)
 {
     readFrom(static_cast<const BaseScenarioContainer&>(proc));
 
@@ -181,16 +185,15 @@ void Visitor<Reader<JSONObject>>::readFrom(const LoopProcessModel& proc)
 }
 
 template<>
-void Visitor<Writer<JSONObject>>::writeTo(LoopProcessModel& proc)
+void Visitor<Writer<JSONObject>>::writeTo(Loop::ProcessModel& proc)
 {
     writeTo(static_cast<BaseScenarioContainer&>(proc));
 
     Deserializer<JSONValue> elementPluginDeserializer(m_obj["PluginsMetadata"]);
     proc.pluginModelList = new iscore::ElementPluginModelList{elementPluginDeserializer, &proc};
 }
-
 template<>
-QString NameInUndo<LoopProcessModel>()
+QString NameInUndo<Loop::ProcessModel>()
 {
     return "Loop";
 }

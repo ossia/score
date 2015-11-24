@@ -41,7 +41,7 @@ class BaseScenarioContainer : public ScenarioInterface
         StateModel &state(
                 const Id<StateModel> &id) const final override;
 
-        ConstraintModel& baseConstraint() const;
+        ConstraintModel& constraint() const;
 
         TimeNodeModel& startTimeNode() const final override;
         TimeNodeModel& endTimeNode() const final override;

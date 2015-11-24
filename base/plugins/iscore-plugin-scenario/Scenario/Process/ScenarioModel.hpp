@@ -79,8 +79,8 @@ class ScenarioModel final : public Process, public ScenarioInterface
         Selection selectedChildren() const override;
         void setSelection(const Selection& s) const override;
 
-        ProcessStateDataInterface* startState() const override;
-        ProcessStateDataInterface* endState() const override;
+        ProcessStateDataInterface* startStateData() const override;
+        ProcessStateDataInterface* endStateData() const override;
 
         //// ScenarioModel specifics ////
 

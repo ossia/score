@@ -1,3 +1,4 @@
+
 #include "LoopLayer.hpp"
 #include <Loop/LoopPanelProxy.hpp>
 #include <Loop/LoopProcessModel.hpp>
@@ -7,26 +8,26 @@
 
 constexpr const char LoopLayer::className[];
 LoopLayer::LoopLayer(
-        LoopProcessModel& model,
+        Loop::ProcessModel& model,
         const Id<LayerModel>& id,
         QObject* parent) :
     LayerModel {id, LoopLayer::staticMetaObject.className(), model, parent}
 {
-    m_constraint = model.baseConstraint().makeConstraintViewModel<TemporalConstraintViewModel>(
+    m_constraint = model.constraint().makeConstraintViewModel<TemporalConstraintViewModel>(
                 Id<ConstraintViewModel>{0},
                 this);
 }
 
 LoopLayer::LoopLayer(
         const LoopLayer& source,
-        LoopProcessModel& model,
+        Loop::ProcessModel& model,
         const Id<LayerModel>& id,
         QObject* parent) :
     LayerModel {id, LoopLayer::staticMetaObject.className(), model, parent}
 {
     m_constraint = source.m_constraint->clone(
                 source.constraint().id(),
-                model.baseConstraint(),
+                model.constraint(),
                 this);
 }
 
@@ -37,9 +38,9 @@ LayerModelPanelProxy* LoopLayer::make_panelProxy(
 }
 
 
-const LoopProcessModel& LoopLayer::model() const
+const Loop::ProcessModel& LoopLayer::model() const
 {
-    return static_cast<const LoopProcessModel&>(processModel());
+    return static_cast<const Loop::ProcessModel&>(processModel());
 }
 
 
@@ -68,7 +69,7 @@ void Visitor<Writer<DataStream>>::writeTo(LoopLayer& lm)
     // we know the constraint but we have to advance the stream
     Id<ConstraintModel> constraint_model_id;
     m_stream >> constraint_model_id;
-    auto& constraint = lm.model().baseConstraint();
+    auto& constraint = lm.model().constraint();
 
     // Make it
     auto viewmodel =  new TemporalConstraintViewModel{
@@ -99,7 +100,7 @@ void Visitor<Writer<JSONObject>>::writeTo(LoopLayer& lm)
 
     // Deserialize the required identifier
     // We don't need to read the constraint id
-    auto& constraint = lm.model().baseConstraint();
+    auto& constraint = lm.model().constraint();
 
     // Make it
     auto viewmodel = new TemporalConstraintViewModel{

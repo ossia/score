@@ -27,13 +27,13 @@ void LoopViewUpdater::updateEvent(const EventPresenter& event)
                           event.model().extent().top() * h});
 
     // We also have to move all the relevant states
-    if(&event == m_presenter.m_startEvent)
+    if(&event == m_presenter.m_startEventPresenter)
     {
-        updateState(*m_presenter.m_startState);
+        updateState(*m_presenter.m_startStatePresenter);
     }
-    else if(&event == m_presenter.m_endEvent)
+    else if(&event == m_presenter.m_endEventPresenter)
     {
-        updateState(*m_presenter.m_endState);
+        updateState(*m_presenter.m_endStatePresenter);
     }
 
     m_presenter.m_view->update();
@@ -86,13 +86,13 @@ void LoopViewUpdater::updateState(const StatePresenter& state)
 {
     auto rect = m_presenter.m_view->boundingRect();
 
-    if(&state == m_presenter.m_startState)
+    if(&state == m_presenter.m_startStatePresenter)
     {
         const auto& ev = m_presenter.m_layer.model().startEvent();
         state.view()->setPos({ev.date().msec() / m_presenter.m_zoomRatio,
                               rect.height() * state.model().heightPercentage()});
     }
-    else if(&state == m_presenter.m_endState)
+    else if(&state == m_presenter.m_endStatePresenter)
     {
         const auto& ev = m_presenter.m_layer.model().endEvent();
         state.view()->setPos({ev.date().msec() / m_presenter.m_zoomRatio,

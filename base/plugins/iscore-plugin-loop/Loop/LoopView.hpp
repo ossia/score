@@ -16,6 +16,11 @@ class LoopView final : public LayerView
 
         }
 
+        void setSelectionArea(QRectF)
+        {
+
+        }
+
     protected:
         void paint_impl(QPainter*) const override;
 };

@@ -24,7 +24,7 @@ FullViewToolPalette::FullViewToolPalette(
     GraphicsSceneToolPalette{*view.scene()},
     m_model{model},
     m_presenter{pres},
-    m_context{iscore::IDocument::documentContext(m_presenter.model()), m_presenter},
+    m_context{ctx, m_presenter},
     m_view{view},
     m_editionSettings{m_context.app.components.applicationPlugin<ScenarioApplicationPlugin>().editionSettings()},
     m_state{*this},
@@ -44,7 +44,7 @@ const DisplayedElementsPresenter& FullViewToolPalette::presenter() const
 
 const ScenarioModel& FullViewToolPalette::model() const
 {
-    return *safe_cast<ScenarioModel*>(m_model.displayedConstraint().parentScenario());
+    return *safe_cast<ScenarioModel*>(m_model.constraint().parentScenario());
 }
 
 const BaseElementContext& FullViewToolPalette::context() const

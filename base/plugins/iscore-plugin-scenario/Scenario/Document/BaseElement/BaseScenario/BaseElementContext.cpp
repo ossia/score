@@ -13,7 +13,7 @@ BaseElementContext::BaseElementContext(
 }
 
 BaseElementContext::BaseElementContext(
-        iscore::DocumentContext& doc,
+        const iscore::DocumentContext& doc,
         BaseElementPresenter& pres):
     BaseElementContext{
         doc.document,

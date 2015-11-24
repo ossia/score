@@ -190,7 +190,7 @@ TemporalAutomatas::ApplicationPlugin::ApplicationPlugin(iscore::Application& app
 
         TAVisitor v;
 
-        v.visit(base.baseScenario().baseConstraint());
+        v.visit(base.baseScenario().constraint());
     } );
 }
 

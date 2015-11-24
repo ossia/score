@@ -67,8 +67,8 @@ class AutomationModel final : public CurveProcessModel
         void serialize(const VisitorVariant& vis) const override;
 
         /// States
-        AutomationState* startState() const override;
-        AutomationState* endState() const override;
+        AutomationState* startStateData() const override;
+        AutomationState* endStateData() const override;
 
         //// AutomationModel specifics ////
         iscore::Address address() const;
