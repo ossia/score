@@ -114,7 +114,6 @@ void StateInspectorWidget::splitEvent()
         {
             auto cmd = new Scenario::Command::SplitEvent{
                         *scenar,
-                        selectionDispatcher(),
                         m_model.eventId(),
                         {m_model.id()}};
 
