@@ -86,15 +86,18 @@ void StateInspectorWidget::updateDisplayedValues()
     }
 
     auto scenarModel = dynamic_cast<const ScenarioModel*>(m_model.parentScenario());
-    auto& parentEvent = scenarModel->events.at(m_model.eventId());
-
-    if(parentEvent.states().size() > 1)
+    if(scenarModel)
     {
-        auto newEvBtn = new QPushButton{"Split"};
-        lay->addWidget(newEvBtn);
+        auto& parentEvent = scenarModel->events.at(m_model.eventId());
 
-        connect(newEvBtn, &QPushButton::pressed,
-                this,   &StateInspectorWidget::splitEvent);
+        if(parentEvent.states().size() > 1)
+        {
+            auto newEvBtn = new QPushButton{"Split"};
+            lay->addWidget(newEvBtn);
+
+            connect(newEvBtn, &QPushButton::pressed,
+                    this,   &StateInspectorWidget::splitEvent);
+        }
     }
 
     m_properties.push_back(widget);
