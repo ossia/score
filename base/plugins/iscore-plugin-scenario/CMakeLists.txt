@@ -280,6 +280,7 @@ if(TARGET iscore_lib_inspector)
 "${CMAKE_CURRENT_SOURCE_DIR}/Scenario/Inspector/TimeNode/TimeNodeInspectorFactory.cpp"
 "${CMAKE_CURRENT_SOURCE_DIR}/Scenario/Inspector/TimeNode/TimeNodeInspectorWidget.cpp"
 "${CMAKE_CURRENT_SOURCE_DIR}/Scenario/Inspector/TimeNode/TriggerInspectorWidget.cpp"
+"${CMAKE_CURRENT_SOURCE_DIR}/Scenario/Inspector/Expression/ExpressionEditorWidget.cpp"
 "${CMAKE_CURRENT_SOURCE_DIR}/Scenario/Inspector/Expression/SimpleExpressionEditorWidget.cpp"
     )
 

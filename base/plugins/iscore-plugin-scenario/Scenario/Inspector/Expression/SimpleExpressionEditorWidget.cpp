@@ -2,6 +2,7 @@
 
 #include <QLineEdit>
 #include <QLabel>
+#include <QPushButton>
 #include <QComboBox>
 #include <QHBoxLayout>
 #include <QVBoxLayout>
@@ -23,15 +24,19 @@ SimpleExpressionEditorWidget::SimpleExpressionEditorWidget(QWidget* parent):
     hLay->setContentsMargins(0,0,0,0);
     hLay->setSpacing(1);
 
+    auto addBtn = new QPushButton{"+", secondMember};
     m_ok = new QLabel{"/!\\ ", secondMember};
     m_operator = new QComboBox{secondMember};
     m_value = new QLineEdit{secondMember};
 
+    hLay->addWidget(addBtn);
     hLay->addWidget(m_ok);
     hLay->addWidget(m_operator);
     hLay->addWidget(m_value);
     hLay->addWidget(new QWidget{secondMember});
 
+    connect(addBtn, &QPushButton::clicked,
+            this, &SimpleExpressionEditorWidget::composeExpression);
     connect(m_address, &QLineEdit::editingFinished,
             this, &SimpleExpressionEditorWidget::on_editFinished);
     connect(m_value, &QLineEdit::editingFinished,
@@ -84,7 +89,6 @@ void SimpleExpressionEditorWidget::setExpression(iscore::Expression e)
 
 void SimpleExpressionEditorWidget::on_editFinished()
 {
-
     int i = 1;
     QString expr = currentExpr();
     m_ok->setVisible(m_validator.validate(expr, i) != QValidator::State::Acceptable );
