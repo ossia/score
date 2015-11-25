@@ -56,6 +56,8 @@ class Process: public IdentifiedObject<Process>
         // A user-friendly text to show to the users
         virtual QString prettyName() const = 0;
 
+        static QString description() {return "Process";}
+
         //// View models interface
         // For deterministic operation in a command,
         // we have to generate some data (like ids...) before making a new view model.

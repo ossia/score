@@ -1,5 +1,6 @@
 #pragma once
 #include <Process/LayerModel.hpp>
+#include <Process/ModelMetadata.hpp>
 #include <iscore/tools/IdentifiedObjectMap.hpp>
 #include <iscore/serialization/DataStreamVisitor.hpp>
 #include <iscore/serialization/JSONVisitor.hpp>
@@ -31,6 +32,7 @@ class SlotModel final : public IdentifiedObject<SlotModel>
                    NOTIFY focusChanged)
 
     public:
+        ModelMetadata metadata;
         SlotModel(const Id<SlotModel>& id,
                   RackModel* parent);
 
@@ -43,6 +45,8 @@ class SlotModel final : public IdentifiedObject<SlotModel>
         RackModel& rack() const;
 
         static void copyViewModelsInSameConstraint(const SlotModel&, SlotModel&);
+        static QString description()
+        { return QObject::tr("Slot"); }
 
         template<typename Impl>
         SlotModel(Deserializer<Impl>& vis, QObject* parent) :

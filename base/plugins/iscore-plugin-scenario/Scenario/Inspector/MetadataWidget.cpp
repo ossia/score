@@ -54,7 +54,7 @@ MetadataWidget::MetadataWidget(
 
     // comments
     m_comments = new CommentEdit{metadata->comment(), this};
-    InspectorSectionWidget* comments = new InspectorSectionWidget("Comments");
+    auto comments = new InspectorSectionWidget("Comments", false, this);
     comments->addContent(m_comments);
     comments->expand(); // todo à enlever par la suite
 

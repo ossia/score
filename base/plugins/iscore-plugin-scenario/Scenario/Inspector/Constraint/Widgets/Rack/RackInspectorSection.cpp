@@ -8,6 +8,7 @@
 #include <Scenario/Document/Constraint/ConstraintModel.hpp>
 
 #include <Scenario/Commands/Constraint/Rack/AddSlotToRack.hpp>
+#include <Scenario/Commands/Metadata/ChangeElementName.hpp>
 
 #include <QFrame>
 #include <QPushButton>
@@ -18,7 +19,7 @@ RackInspectorSection::RackInspectorSection(
         const QString& name,
         const RackModel& rack,
         ConstraintInspectorWidget* parentConstraint) :
-    InspectorSectionWidget {name, parentConstraint},
+    InspectorSectionWidget {name, false, parentConstraint},
     m_parent{parentConstraint},
     m_model {rack}
 {
@@ -29,7 +30,7 @@ RackInspectorSection::RackInspectorSection(
     addContent(framewidg);
 
     // Slots
-    m_slotSection = new InspectorSectionWidget{"Slots", this};  // TODO Make a custom widget.
+    m_slotSection = new InspectorSectionWidget{"Slots", false, this};  // TODO Make a custom widget.
     m_slotSection->setObjectName("Slots");
 
     con(m_model.slotmodels, &NotifyingMap<SlotModel>::added,
@@ -57,6 +58,9 @@ RackInspectorSection::RackInspectorSection(
         emit m_parent->commandDispatcher()->submitCommand(cmd);
     });
     lay->addWidget(deleteButton);
+
+    connect(this, &InspectorSectionWidget::nameChanged,
+        this, &RackInspectorSection::ask_changeName);
 }
 
 void RackInspectorSection::createSlot()
@@ -66,10 +70,19 @@ void RackInspectorSection::createSlot()
     emit m_parent->commandDispatcher()->submitCommand(cmd);
 }
 
+void RackInspectorSection::ask_changeName(QString newName)
+{
+    if(newName != m_model.metadata.name())
+    {
+        auto cmd = new ChangeElementName<RackModel>{m_model, newName};
+        emit m_parent->commandDispatcher()->submitCommand(cmd);
+    }
+}
+
 void RackInspectorSection::addSlotInspectorSection(const SlotModel& slot)
 {
     SlotInspectorSection* newSlot = new SlotInspectorSection {
-                                    QString{"Slot.%1"} .arg(*slot.id().val()),
+                                    slot.metadata.name(),
                                     slot,
                                     this};
 

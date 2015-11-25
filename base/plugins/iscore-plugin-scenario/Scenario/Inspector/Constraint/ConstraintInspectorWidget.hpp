@@ -54,6 +54,8 @@ class ConstraintInspectorWidget final : public InspectorWidgetBase
         void displaySharedProcess(const Process&);
         void setupRack(const RackModel&);
 
+        void ask_processNameChanged(const Process& p, QString s);
+
     private:
         void on_processCreated(const Process&);
         void on_processRemoved(const Process&);

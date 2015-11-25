@@ -48,7 +48,7 @@ const ProcessFactoryKey& ScenarioFactory::key_impl() const
 
 QString ScenarioFactory::prettyName() const
 {
-    return ScenarioProcessMetadata::factoryPrettyName();
+    return ScenarioProcessMetadata::factorydescription();
 }
 
 Process* ScenarioFactory::makeModel(

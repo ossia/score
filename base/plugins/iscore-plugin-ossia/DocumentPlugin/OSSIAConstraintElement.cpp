@@ -42,7 +42,7 @@ OSSIAConstraintElement::OSSIAConstraintElement(
     // Setup updates
     con(iscore_cst.duration, &ConstraintDurations::defaultDurationChanged, this,
             [=] (const TimeValue& t) {
-        ossia_cst->setDuration(iscore::convert::time(t));
+        ossia_cst->setDurationNominal(iscore::convert::time(t));
     });
     con(iscore_cst.duration, &ConstraintDurations::minDurationChanged, this,
             [=] (const TimeValue& t) {

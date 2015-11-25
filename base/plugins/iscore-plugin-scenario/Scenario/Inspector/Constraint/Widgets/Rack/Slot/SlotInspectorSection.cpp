@@ -12,6 +12,7 @@
 
 #include <Scenario/Commands/Constraint/Rack/RemoveSlotFromRack.hpp>
 #include <Scenario/Commands/Constraint/Rack/Slot/RemoveLayerModelFromSlot.hpp>
+#include <Scenario/Commands/Metadata/ChangeElementName.hpp>
 
 #include <Scenario/ViewCommands/PutLayerModelToFront.hpp>
 
@@ -23,7 +24,7 @@ SlotInspectorSection::SlotInspectorSection(
         const QString& name,
         const SlotModel& slot,
         RackInspectorSection* parentRack) :
-    InspectorSectionWidget {name, parentRack},
+    InspectorSectionWidget {name, false, parentRack},
     m_model {slot},
     m_parent{parentRack->constraintInspector()}
 {
@@ -36,7 +37,7 @@ SlotInspectorSection::SlotInspectorSection(
     addContent(framewidg);
 
     // View model list
-    m_lmSection = new InspectorSectionWidget{"Process View Models", this};
+    m_lmSection = new InspectorSectionWidget{"Process View Models", false, this};
     m_lmSection->setObjectName("LayerModels");
 
     con(m_model.layers, &NotifyingMap<LayerModel>::added,
@@ -64,6 +65,9 @@ SlotInspectorSection::SlotInspectorSection(
     });
 
     lay->addWidget(deleteButton);
+
+    connect(this, &InspectorSectionWidget::nameChanged,
+            this, &SlotInspectorSection::ask_changeName);
 }
 
 void SlotInspectorSection::createLayerModel(
@@ -142,4 +146,14 @@ void SlotInspectorSection::on_layerModelRemoved(const LayerModel& removed)
 const SlotModel&SlotInspectorSection::model() const
 {
     return m_model;
+}
+
+void SlotInspectorSection::ask_changeName(QString newName)
+{
+
+    if(newName != m_model.metadata.name())
+    {
+        auto cmd = new ChangeElementName<SlotModel>{m_model, newName};
+        emit m_parent->commandDispatcher()->submitCommand(cmd);
+    }
 }

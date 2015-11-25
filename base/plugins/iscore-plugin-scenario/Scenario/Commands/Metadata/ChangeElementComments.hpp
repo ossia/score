@@ -29,7 +29,7 @@ namespace Scenario
                 }
                 QString description() const override
                 {
-                    return QObject::tr("Change %1 comments").arg(T::prettyName());
+                    return QObject::tr("Change %1 comments").arg(T::description());
                 }
 
                 ChangeElementComments() = default;

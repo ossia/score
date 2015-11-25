@@ -55,6 +55,7 @@ auto getStrongId(const std::vector<Document*>& v)
 void Presenter::setupMenus()
 {
     ////// File //////
+    //// New
     auto newAct = m_menubar.addActionIntoToplevelMenu(
                 ToplevelMenuElement::FileMenu,
                 FileMenuElement::New,
@@ -101,6 +102,15 @@ void Presenter::setupMenus()
     m_menubar.addSeparatorIntoToplevelMenu(ToplevelMenuElement::FileMenu,
                                            FileMenuElement::Separator_Quit);
 
+
+    auto closeAct = m_menubar.addActionIntoToplevelMenu(
+                ToplevelMenuElement::FileMenu,
+                FileMenuElement::Close,
+                [this]() {
+        if(auto doc = m_docManager.currentDocument())
+            m_docManager.closeDocument(*doc);
+    });
+    closeAct->setShortcut(QKeySequence::Close);
 
     m_menubar.addActionIntoToplevelMenu(ToplevelMenuElement::FileMenu,
                                         FileMenuElement::Quit,

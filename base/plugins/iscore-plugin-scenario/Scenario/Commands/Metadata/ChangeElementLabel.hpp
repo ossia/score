@@ -29,7 +29,7 @@ namespace Scenario
                 }
                 QString description() const override
                 {
-                    return QObject::tr("Change %1 label").arg(T::prettyName());
+                    return QObject::tr("Change %1 label").arg(T::description());
                 }
 
                 ChangeElementLabel() = default;

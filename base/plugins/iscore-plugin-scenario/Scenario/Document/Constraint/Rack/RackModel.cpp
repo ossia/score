@@ -9,6 +9,7 @@ RackModel::RackModel(const Id<RackModel>& id, QObject* parent) :
     IdentifiedObject<RackModel> {id, className, parent}
 {
     initConnections();
+    metadata.setName(QString{"Rack.%1"} .arg(*id.val()));
 }
 
 RackModel::RackModel(const RackModel& source,

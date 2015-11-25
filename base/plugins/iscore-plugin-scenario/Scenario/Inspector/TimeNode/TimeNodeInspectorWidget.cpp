@@ -47,7 +47,7 @@ TimeNodeInspectorWidget::TimeNodeInspectorWidget(
 
 
     // Events ids list
-    m_eventList = new InspectorSectionWidget{"Events", this};
+    m_eventList = new InspectorSectionWidget{"Events", false, this};
 
     m_properties.push_back(dateWid);
     m_properties.push_back(new QLabel{tr("Trigger")});
@@ -62,7 +62,7 @@ TimeNodeInspectorWidget::TimeNodeInspectorWidget(
 
     // metadata
     m_metadata = new MetadataWidget{&m_model.metadata, commandDispatcher(), &m_model, this};
-    m_metadata->setType(TimeNodeModel::prettyName());
+    m_metadata->setType(TimeNodeModel::description());
 
     m_metadata->setupConnections(m_model);
 
@@ -111,7 +111,7 @@ void TimeNodeInspectorWidget::updateDisplayedValues()
         });
     }
 
-    m_trigwidg->updateExpression(m_model.trigger()->expression().toString());
+    m_trigwidg->updateExpression(m_model.trigger()->expression());
 }
 
 void TimeNodeInspectorWidget::on_splitTimeNodeClicked()

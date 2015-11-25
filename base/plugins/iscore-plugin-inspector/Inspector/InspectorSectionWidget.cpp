@@ -5,7 +5,7 @@
 #include <QToolButton>
 #include <QPushButton>
 #include <iscore/widgets/MarginLess.hpp>
-InspectorSectionWidget::InspectorSectionWidget(QWidget* parent) :
+InspectorSectionWidget::InspectorSectionWidget(bool editable, QWidget* parent) :
     QWidget(parent)
 {
     // HEADER : arrow button and name
@@ -22,8 +22,19 @@ InspectorSectionWidget::InspectorSectionWidget(QWidget* parent) :
     auto buttontitle_lay = new iscore::MarginLess<QVBoxLayout>;
     m_buttonTitle->setLayout(buttontitle_lay);
 
+    m_sectionTitle = new QLineEdit{tr("Section Name")};
+    connect(m_sectionTitle, &QLineEdit::editingFinished,
+            this, [=] ()
+    {
+        emit nameChanged(m_sectionTitle->text());
+    });
+
     titleLayout->addWidget(m_btn);
-    titleLayout->addWidget(m_buttonTitle);
+    if(editable)
+        titleLayout->addWidget(m_sectionTitle);
+    else
+        titleLayout->addWidget(m_buttonTitle);
+
     title->setLayout(titleLayout);
 
     // CONTENT
@@ -51,8 +62,8 @@ InspectorSectionWidget::InspectorSectionWidget(QWidget* parent) :
     renameSection("Section Name");
 }
 
-InspectorSectionWidget::InspectorSectionWidget(QString name, QWidget* parent) :
-    InspectorSectionWidget(parent)
+InspectorSectionWidget::InspectorSectionWidget(QString name, bool editable, QWidget* parent) :
+    InspectorSectionWidget(editable, parent)
 {
     renameSection(name);
     setObjectName(name);
@@ -80,7 +91,7 @@ void InspectorSectionWidget::expand()
 
 void InspectorSectionWidget::renameSection(QString newName)
 {
-//	_sectionTitle->setText (newName);
+    m_sectionTitle->setText(newName);
     m_buttonTitle->setText(newName);
 }
 
@@ -106,4 +117,9 @@ void InspectorSectionWidget::removeAll()
 
         delete item;
     }
+}
+
+QWidget* InspectorSectionWidget::titleWidget()
+{
+    return m_buttonTitle;
 }
