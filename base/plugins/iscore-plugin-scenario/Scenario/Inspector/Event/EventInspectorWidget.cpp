@@ -15,7 +15,7 @@
 #include <Scenario/Inspector/SelectionButton.hpp>
 #include <Scenario/Inspector/State/StateInspectorWidget.hpp>
 #include <Scenario/Inspector/TimeNode/TriggerInspectorWidget.hpp>
-#include <Scenario/Inspector/Expression/SimpleExpressionEditorWidget.hpp>
+#include <Scenario/Inspector/Expression/ExpressionEditorWidget.hpp>
 
 #include <Explorer/Explorer/DeviceExplorerModel.hpp>
 #include <Explorer/Widgets/DeviceCompleter.hpp>
@@ -101,11 +101,11 @@ EventInspectorWidget::EventInspectorWidget(
     m_properties.push_back(new Separator {this});
 
     // Condition
-    m_exprEditor = new SimpleExpressionEditorWidget{this};
-    connect(m_exprEditor, &SimpleExpressionEditorWidget::editingFinished,
+    m_exprEditor = new ExpressionEditorWidget{this};
+    connect(m_exprEditor, &ExpressionEditorWidget::editingFinished,
             this, &EventInspectorWidget::on_conditionChanged);
     con(m_model, &EventModel::conditionChanged,
-        m_exprEditor, &SimpleExpressionEditorWidget::setExpression);
+        m_exprEditor, &ExpressionEditorWidget::setExpression);
 
     m_properties.push_back(new QLabel{tr("Condition")});
     m_properties.push_back(m_exprEditor);

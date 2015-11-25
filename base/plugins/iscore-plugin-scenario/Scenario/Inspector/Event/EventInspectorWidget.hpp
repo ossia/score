@@ -8,7 +8,7 @@ class StateModel;
 class MetadataWidget;
 struct Message;
 class TriggerInspectorWidget;
-class SimpleExpressionEditorWidget;
+class ExpressionEditorWidget;
 
 #include <QLineEdit>
 
@@ -51,5 +51,5 @@ class EventInspectorWidget final : public InspectorWidgetBase
 
         TriggerInspectorWidget* m_triggerWidg{};
 
-        SimpleExpressionEditorWidget* m_exprEditor{};
+        ExpressionEditorWidget* m_exprEditor{};
 };
