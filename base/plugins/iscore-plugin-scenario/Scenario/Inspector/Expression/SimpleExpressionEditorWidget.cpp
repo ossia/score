@@ -4,6 +4,7 @@
 #include <QLabel>
 #include <QPushButton>
 #include <QComboBox>
+#include <QToolButton>
 #include <QHBoxLayout>
 #include <QVBoxLayout>
 #include <State/Expression.hpp>
@@ -141,11 +142,6 @@ void SimpleExpressionEditorWidget::on_editFinished()
 void SimpleExpressionEditorWidget::on_operatorChanged(int i)
 {
     m_value->setEnabled(i != 0);
-}
-
-void SimpleExpressionEditorWidget::focusOutEvent(QEvent ev)
-{
-    emit editingFinished();
 }
 
 QString SimpleExpressionEditorWidget::currentRelation()
