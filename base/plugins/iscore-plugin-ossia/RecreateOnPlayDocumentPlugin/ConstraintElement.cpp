@@ -129,7 +129,7 @@ void ConstraintElement::on_processAdded(
         plug = new LoopElement{*this, *process, proc};
     }
 #endif
-    else if(auto generic = dynamic_cast<OSSIAProcessModel*>(proc))
+    else if(auto generic = dynamic_cast<RecreateOnPlay::OSSIAProcessModel*>(proc))
     {
         plug = new ProcessModelElement{*this, *generic, proc};
     }

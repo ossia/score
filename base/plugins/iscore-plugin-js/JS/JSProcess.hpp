@@ -31,7 +31,6 @@ class JSProcess final : public TimeProcessWithConstraint
         QJSEngine m_engine;
         QJSValue m_tickFun;
 
-        std::shared_ptr<OSSIA::TimeConstraint> m_constraint;
         std::shared_ptr<OSSIA::State> m_start;
         std::shared_ptr<OSSIA::State> m_end;
 };

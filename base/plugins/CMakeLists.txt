@@ -16,6 +16,7 @@ add_subdirectory(iscore-plugin-scenario)
 add_subdirectory(iscore-plugin-loop)
 add_subdirectory(iscore-plugin-ossia)
 add_subdirectory(iscore-plugin-cohesion)
+add_subdirectory(iscore-plugin-audio)
 
 add_subdirectory(iscore-plugin-network)
 add_subdirectory(iscore-plugin-js)
