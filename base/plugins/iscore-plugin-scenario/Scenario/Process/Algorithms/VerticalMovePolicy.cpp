@@ -37,7 +37,6 @@ void updateTimeNodeExtent(const Id<TimeNodeModel>& id, ScenarioModel &s)
     }
 
     tn.setExtent({min, max});
-    // TODO what happens if no event on timenode / no state on event??
 }
 
 void updateConstraintVerticalPos(double y, const Id<ConstraintModel> &id, ScenarioModel &s)
