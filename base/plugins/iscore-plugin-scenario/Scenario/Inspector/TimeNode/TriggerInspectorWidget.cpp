@@ -9,14 +9,21 @@
 #include <Scenario/Commands/TimeNode/AddTrigger.hpp>
 #include <Scenario/Commands/TimeNode/RemoveTrigger.hpp>
 
+#include <core/document/Document.hpp>
+#include <core/document/DocumentContext.hpp>
+#include <core/application/ApplicationContext.hpp>
+#include <core/application/ApplicationComponents.hpp>
+
 using namespace Scenario::Command;
 
 TriggerInspectorWidget::TriggerInspectorWidget(
+        const TriggerCommandFactoryList& fact,
         const TimeNodeModel& object,
         InspectorWidgetBase* parent):
     QWidget{parent},
-     m_model {object},
-     m_parent{parent}
+    m_triggerCommandFactory{fact},
+    m_model {object},
+    m_parent{parent}
 {
     auto triglay = new QHBoxLayout{this};
 
@@ -61,8 +68,9 @@ void TriggerInspectorWidget::createTrigger()
     m_rmTrigBtn->setVisible(true);
     m_addTrigBtn->setVisible(false);
 
-    auto cmd = new Scenario::Command::AddTrigger<Scenario::ScenarioModel>{m_model};
-    m_parent->commandDispatcher()->submitCommand(cmd);
+    auto cmd = m_triggerCommandFactory.make_addTriggerCommand(m_model);
+    if(cmd)
+        m_parent->commandDispatcher()->submitCommand(cmd);
 }
 
 void TriggerInspectorWidget::removeTrigger()
@@ -71,8 +79,9 @@ void TriggerInspectorWidget::removeTrigger()
     m_rmTrigBtn->setVisible(false);
     m_addTrigBtn->setVisible(true);
 
-    auto cmd = new Scenario::Command::RemoveTrigger<Scenario::ScenarioModel>{m_model};
-    m_parent->commandDispatcher()->submitCommand(cmd);
+    auto cmd = m_triggerCommandFactory.make_removeTriggerCommand(m_model);
+    if(cmd)
+        m_parent->commandDispatcher()->submitCommand(cmd);
 }
 
 void TriggerInspectorWidget::on_triggerActiveChanged()
@@ -88,7 +97,7 @@ void TriggerInspectorWidget::HideRmButton()
     m_rmTrigBtn->setVisible(false);
 }
 
-void TriggerInspectorWidget::updateExpression(iscore::Trigger expr)
+void TriggerInspectorWidget::updateExpression(const iscore::Trigger& expr)
 {
     m_exprEditor->setExpression(expr);
 }

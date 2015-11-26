@@ -11,7 +11,13 @@
 #include <Scenario/Inspector/Event/EventWidgets/EventShortcut.hpp>
 #include <Scenario/Inspector/TimeNode/TriggerInspectorWidget.hpp>
 
+#include <Scenario/Commands/TimeNode/TriggerCommandFactory/TriggerCommandFactoryList.hpp>
 #include <Scenario/Commands/TimeNode/SplitTimeNode.hpp>
+
+#include <core/document/Document.hpp>
+#include <core/document/DocumentContext.hpp>
+#include <core/application/ApplicationContext.hpp>
+#include <core/application/ApplicationComponents.hpp>
 
 #include <QLabel>
 #include <QLineEdit>
@@ -43,7 +49,9 @@ TimeNodeInspectorWidget::TimeNodeInspectorWidget(
     dateLay->addWidget(m_date);
 
     // Trigger
-    m_trigwidg = new TriggerInspectorWidget{m_model, this};
+    m_trigwidg = new TriggerInspectorWidget{
+                 doc.context().app.components.factory<TriggerCommandFactoryList>(),
+                 m_model, this};
 
 
     // Events ids list

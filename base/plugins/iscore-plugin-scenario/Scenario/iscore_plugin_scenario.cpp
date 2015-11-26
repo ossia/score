@@ -8,6 +8,10 @@
 #include <Scenario/Document/BaseElement/FullViewStateMachines/FullViewToolPaletteFactory.hpp>
 #include <Scenario/Document/BaseElement/FullViewStateMachines/FullViewStateMachineFactory.hpp>
 
+#include <Scenario/Commands/TimeNode/TriggerCommandFactory/TriggerCommandFactoryList.hpp>
+#include <Scenario/Commands/TimeNode/TriggerCommandFactory/ScenarioTriggerCommandFactory.hpp>
+#include <Scenario/Commands/TimeNode/TriggerCommandFactory/BaseScenarioTriggerCommandFactory.hpp>
+
 #include <State/Message.hpp>
 #include <Scenario/Application/Menus/ScenarioCommonContextMenuFactory.hpp>
 
@@ -74,7 +78,8 @@ std::vector<iscore::FactoryListInterface*> iscore_plugin_scenario::factoryFamili
             new MoveEventList,
             new ScenarioContextMenuPluginList,
             new ConstraintInspectorDelegateFactoryList,
-            new ScenarioToolPaletteFactoryList};
+            new ScenarioToolPaletteFactoryList,
+            new TriggerCommandFactoryList};
 }
 
 std::vector<iscore::FactoryInterfaceBase*> iscore_plugin_scenario::factories(
@@ -124,6 +129,14 @@ std::vector<iscore::FactoryInterfaceBase*> iscore_plugin_scenario::factories(
         return {
             new BaseScenarioToolPaletteFactory,
             new FullViewToolPaletteFactory
+        };
+    }
+
+    if(key == TriggerCommandFactory::staticFactoryKey())
+    {
+        return {
+            new ScenarioTriggerCommandFactory,
+            new BaseScenarioTriggerCommandFactory
         };
     }
 

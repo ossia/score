@@ -30,3 +30,14 @@ QString NameInUndo<BaseScenario>()
 {
     return "BaseScenario";
 }
+
+const QVector<Id<ConstraintModel> > constraintsBeforeTimeNode(
+        const BaseScenario& scen,
+        const Id<TimeNodeModel>& timeNodeId)
+{
+    if(timeNodeId == scen.endTimeNode().id())
+    {
+        return {scen.constraint().id()};
+    }
+    return {};
+}

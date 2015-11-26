@@ -63,7 +63,7 @@ class RemoveTrigger final : public iscore::SerializableCommand
 
             for (const auto& cstrId : constraintsBeforeTimeNode(*scenar, tn.id()))
             {
-                m_cmds.emplace_back(scenar->constraints.at(cstrId), true);
+                m_cmds.emplace_back(scenar->constraint(cstrId), true);
                 m_cmds.back().redo();
             }
         }
@@ -103,5 +103,7 @@ class RemoveTrigger final : public iscore::SerializableCommand
 }
 
 #include <Scenario/Process/ScenarioModel.hpp>
-
 ISCORE_COMMAND_DECL_T(Scenario::Command::RemoveTrigger<Scenario::ScenarioModel>)
+
+#include <Scenario/Document/BaseElement/BaseScenario/BaseScenario.hpp>
+ISCORE_COMMAND_DECL_T(Scenario::Command::RemoveTrigger<BaseScenario>)

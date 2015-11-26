@@ -67,7 +67,7 @@ class AddTrigger final : public iscore::SerializableCommand
 
             for (const auto& cstrId : constraintsBeforeTimeNode(*scenar, tn.id()))
             {
-                m_cmds.emplace_back(scenar->constraints.at(cstrId), false);
+                m_cmds.emplace_back(scenar->constraint(cstrId), false);
                 m_cmds.back().redo();
             }
         }
@@ -108,5 +108,7 @@ class AddTrigger final : public iscore::SerializableCommand
 }
 
 #include <Scenario/Process/ScenarioModel.hpp>
-
 ISCORE_COMMAND_DECL_T(Scenario::Command::AddTrigger<Scenario::ScenarioModel>)
+
+#include <Scenario/Document/BaseElement/BaseScenario/BaseScenario.hpp>
+ISCORE_COMMAND_DECL_T(Scenario::Command::AddTrigger<BaseScenario>)

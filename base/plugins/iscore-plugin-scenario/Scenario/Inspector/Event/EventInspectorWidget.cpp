@@ -27,6 +27,8 @@
 #include <QFormLayout>
 
 #include <Scenario/Process/ScenarioModel.hpp>
+#include <Scenario/Commands/TimeNode/TriggerCommandFactory/TriggerCommandFactoryList.hpp>
+#include <core/application/ApplicationComponents.hpp>
 
 #include <iscore/widgets/MarginLess.hpp>
 #include <core/document/Document.hpp>
@@ -89,7 +91,10 @@ EventInspectorWidget::EventInspectorWidget(
 
     // Trigger
     auto& tn = m_model.parentScenario()->timeNode(m_model.timeNode());
-    m_triggerWidg = new TriggerInspectorWidget{tn, this};
+    m_triggerWidg = new TriggerInspectorWidget{
+                    doc.context().app.components.factory<TriggerCommandFactoryList>(),
+                    tn,
+                    this};
     m_properties.push_back(new QLabel{tr("Trigger")});
     m_properties.push_back(m_triggerWidg);
 

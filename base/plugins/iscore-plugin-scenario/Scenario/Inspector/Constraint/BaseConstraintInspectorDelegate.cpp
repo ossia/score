@@ -7,6 +7,10 @@
 #include <Scenario/Document/BaseElement/BaseScenario/BaseScenario.hpp>
 #include <Scenario/Commands/Scenario/Displacement/MoveEventMeta.hpp>
 #include <Scenario/Commands/ResizeBaseConstraint.hpp>
+#include <core/application/ApplicationContext.hpp>
+#include <core/application/ApplicationComponents.hpp>
+#include <core/application/Application.hpp>
+#include <Scenario/Commands/TimeNode/TriggerCommandFactory/TriggerCommandFactoryList.hpp>
 #include <QLabel>
 
 ScenarioConstraintInspectorDelegate::ScenarioConstraintInspectorDelegate(
@@ -62,9 +66,13 @@ void BaseConstraintInspectorDelegate::addWidgets_pre(
         std::list<QWidget*>& widgets,
         ConstraintInspectorWidget* parent)
 {
+    iscore::ApplicationContext ctx{iscore::Application::instance()};
     auto scenario = m_model.parentScenario();
     auto& tn = scenario->timeNode(m_model.endTimeNode());
-    m_triggerLine = new TriggerInspectorWidget{tn, parent};
+    m_triggerLine = new TriggerInspectorWidget{
+                    ctx.components.factory<TriggerCommandFactoryList>(),
+                    tn,
+                    parent};
     m_triggerLine->HideRmButton();
     widgets.push_back(new QLabel(QObject::tr("Trigger")));
     widgets.push_back(m_triggerLine);
@@ -74,9 +82,13 @@ void BaseConstraintInspectorDelegate::addWidgets_post(
         std::list<QWidget*>& widgets,
         ConstraintInspectorWidget* parent)
 {
+    iscore::ApplicationContext ctx{iscore::Application::instance()};
     auto scenario = m_model.parentScenario();
     auto& tn = scenario->timeNode(m_model.endTimeNode());
-    auto trWidg = new TriggerInspectorWidget{tn, parent};
+    auto trWidg = new TriggerInspectorWidget{
+                  ctx.components.factory<TriggerCommandFactoryList>(),
+                  tn,
+                  parent};
     trWidg->HideRmButton();
     widgets.push_back(trWidg);
 }

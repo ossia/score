@@ -21,7 +21,6 @@ RecreateOnPlay::LoopElement::LoopElement(
     m_iscore_loop{element},
     m_deviceList{iscore::IDocument::documentFromObject(element)->model().pluginModel<DeviceDocumentPlugin>()->list()}
 {
-
     OSSIA::TimeValue main_duration(iscore::convert::time(element.constraint().duration.defaultDuration()));
 
     m_ossia_loop = OSSIA::Loop::create(main_duration,

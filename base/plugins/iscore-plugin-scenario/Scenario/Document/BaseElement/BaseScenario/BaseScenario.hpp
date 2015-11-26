@@ -27,3 +27,8 @@ class BaseScenario final : public IdentifiedObject<BaseScenario>, public BaseSce
 
         Selection selectedChildren() const;
 };
+
+const QVector<Id<ConstraintModel>> constraintsBeforeTimeNode(
+        const BaseScenario&,
+        const Id<TimeNodeModel>& timeNodeId);
+

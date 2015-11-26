@@ -26,15 +26,16 @@ ProcessModel::ProcessModel(
     endEvent().setDate(duration);
     endTimeNode().setDate(duration);
 
-    constraint().setHeightPercentage(0.1);
+    const double height = 0.15;
+    constraint().setHeightPercentage(height);
     constraint().metadata.setName("Loop pattern");
     constraint().metadata.setColor(Qt::yellow);
-    BaseScenarioContainer::startState().setHeightPercentage(0.1);
-    BaseScenarioContainer::endState().setHeightPercentage(0.1);
-    BaseScenarioContainer::startEvent().setExtent({0.02, 0.2});
-    BaseScenarioContainer::endEvent().setExtent({0.02, 0.2});
-    BaseScenarioContainer::startTimeNode().setExtent({0, 1});
-    BaseScenarioContainer::endTimeNode().setExtent({0, 1});
+    BaseScenarioContainer::startState().setHeightPercentage(height);
+    BaseScenarioContainer::endState().setHeightPercentage(height);
+    BaseScenarioContainer::startEvent().setExtent({height, 0.2});
+    BaseScenarioContainer::endEvent().setExtent({height, 0.2});
+    BaseScenarioContainer::startTimeNode().setExtent({height, 1});
+    BaseScenarioContainer::endTimeNode().setExtent({height, 1});
 }
 
 ProcessModel::ProcessModel(
@@ -171,6 +172,17 @@ LayerModel* ProcessModel::cloneLayer_impl(
         QObject* parent)
 {
     return new LoopLayer{safe_cast<const LoopLayer&>(source), *this, newId, parent};
+}
+
+const QVector<Id<ConstraintModel> > constraintsBeforeTimeNode(
+        const ProcessModel& scen,
+        const Id<TimeNodeModel>& timeNodeId)
+{
+    if(timeNodeId == scen.endTimeNode().id())
+    {
+        return {scen.constraint().id()};
+    }
+    return {};
 }
 
 

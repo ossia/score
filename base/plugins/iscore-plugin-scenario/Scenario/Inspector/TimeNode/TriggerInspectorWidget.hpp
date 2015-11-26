@@ -6,7 +6,7 @@
 
 #include <Inspector/InspectorWidgetBase.hpp>
 #include <Scenario/Document/TimeNode/TimeNodeModel.hpp>
-
+#include <Scenario/Commands/TimeNode/TriggerCommandFactory/TriggerCommandFactoryList.hpp>
 class QLineEdit;
 class QPushButton;
 
@@ -14,10 +14,10 @@ class TriggerInspectorWidget final : public QWidget
 {
     public:
         TriggerInspectorWidget(
+                const TriggerCommandFactoryList& fact,
                 const TimeNodeModel& object,
                 InspectorWidgetBase* parent);
 
-    public slots:
         void on_triggerChanged();
 
         void createTrigger();
@@ -26,9 +26,10 @@ class TriggerInspectorWidget final : public QWidget
         void on_triggerActiveChanged();
         void HideRmButton();
 
-        void updateExpression(iscore::Trigger);
+        void updateExpression(const iscore::Trigger&);
 
     private:
+        const TriggerCommandFactoryList& m_triggerCommandFactory;
         const TimeNodeModel& m_model;
 
         InspectorWidgetBase* m_parent;

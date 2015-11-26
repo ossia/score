@@ -18,6 +18,7 @@ OSSIATimeNodeElement::OSSIATimeNodeElement(
     connect(m_iscore_node.trigger(), &TriggerModel::triggered,
             this, [&] () {
         try {
+            qDebug("triggerin'");
         m_ossia_node->trigger();
         }
         catch(...)

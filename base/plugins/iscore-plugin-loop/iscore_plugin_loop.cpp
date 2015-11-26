@@ -6,6 +6,7 @@
 #include <Loop/Inspector/LoopInspectorFactory.hpp>
 
 #include <Loop/Commands/LoopCommandFactory.hpp>
+#include <Loop/Inspector/LoopTriggerCommandFactory.hpp>
 
 #include <iscore_plugin_loop_commands_files.hpp>
 
@@ -43,6 +44,13 @@ std::vector<iscore::FactoryInterfaceBase*> iscore_plugin_loop::factories(
     if(key == ConstraintInspectorDelegateFactory::staticFactoryKey())
     {
         return { new LoopConstraintInspectorDelegateFactory };
+    }
+
+    if(key == TriggerCommandFactory::staticFactoryKey())
+    {
+        return {
+            new LoopTriggerCommandFactory
+        };
     }
 
     return {};
