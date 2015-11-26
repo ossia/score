@@ -11,7 +11,7 @@
 #include <iscore_plugin_loop_commands_files.hpp>
 
 
-#if defined(ISCORE_STATIC_PLUGINS) && defined(ISCORE_COMPILER_IS_AppleClang)
+//#if defined(ISCORE_STATIC_PLUGINS) && defined(ISCORE_COMPILER_IS_AppleClang)
 #include <iscore/tools/NotifyingMap_impl.hpp>
 #include <Scenario/Document/Constraint/Rack/RackModel.hpp>
 #include <Process/Process.hpp>
@@ -20,7 +20,7 @@ void ignore_template_instantiations_iscore_plugin_loop()
     NotifyingMapInstantiations_T<RackModel>();
     NotifyingMapInstantiations_T<Process>();
 }
-#endif
+//#endif
 
 iscore_plugin_loop::iscore_plugin_loop() :
     QObject {}

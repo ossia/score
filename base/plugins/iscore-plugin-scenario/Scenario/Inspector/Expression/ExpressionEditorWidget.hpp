@@ -4,6 +4,7 @@
 #include <Scenario/Inspector/ExpressionValidator.hpp>
 
 class QComboBox;
+class QVBoxLayout;
 class QLabel;
 class SimpleExpressionEditorWidget;
 
@@ -32,7 +33,7 @@ class ExpressionEditorWidget : public QWidget
     private:
     QVector<SimpleExpressionEditorWidget*> m_relations;
 
-    QVector<QComboBox*> m_operators{};
+    QVBoxLayout* m_mainLayout{};
 
     ExpressionValidator<iscore::Expression> m_validator;
 };
