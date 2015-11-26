@@ -7,7 +7,7 @@
 
 
 class StateModel;
-class ScenarioModel;
+namespace Scenario { class ScenarioModel; }
 
 /*
  * Used on creation mode, when mouse is pressed and is moving.
@@ -23,7 +23,7 @@ namespace Scenario
             ISCORE_COMMAND_DECL(ScenarioCommandFactoryName(), MoveNewState, "Move a new state")
             public:
             MoveNewState(
-                Path<ScenarioModel>&& scenarioPath,
+                Path<Scenario::ScenarioModel>&& scenarioPath,
                 const Id<StateModel>& stateId,
                 const double y);
 
@@ -31,14 +31,14 @@ namespace Scenario
               void redo() const override;
 
               void update(
-                      const Path<ScenarioModel>&,
+                      const Path<Scenario::ScenarioModel>&,
                       const Id<StateModel>&,
                       const double y)
               {
                   m_y = y;
               }
 
-              const Path<ScenarioModel>& path() const
+              const Path<Scenario::ScenarioModel>& path() const
               { return m_path; }
 
             protected:
@@ -46,7 +46,7 @@ namespace Scenario
               void deserializeImpl(DataStreamOutput&) override;
 
             private:
-              Path<ScenarioModel> m_path;
+              Path<Scenario::ScenarioModel> m_path;
               Id<StateModel> m_stateId;
               double m_y{}, m_oldy{};
         };

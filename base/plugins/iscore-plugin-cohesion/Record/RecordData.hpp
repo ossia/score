@@ -11,7 +11,7 @@ class AddOnlyProcessToConstraint;
 
 class CurveModel;
 class PointArrayCurveSegmentModel;
-class ScenarioModel;
+namespace Scenario { class ScenarioModel; }
 class DeviceExplorerModel;
 
 struct RecordData

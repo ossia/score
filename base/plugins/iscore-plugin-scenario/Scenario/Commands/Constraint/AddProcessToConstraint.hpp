@@ -333,7 +333,7 @@ inline iscore::SerializableCommand* make_AddProcessToConstraint(
         const ConstraintModel& constraint,
         const ProcessFactoryKey& process)
 {
-    auto notBaseConstraint = dynamic_cast<ScenarioModel*>(constraint.parent());
+    auto notBaseConstraint = dynamic_cast<Scenario::ScenarioModel*>(constraint.parent());
     auto noRackes = constraint.racks.empty() && notBaseConstraint;
 
     iscore::SerializableCommand* cmd{};

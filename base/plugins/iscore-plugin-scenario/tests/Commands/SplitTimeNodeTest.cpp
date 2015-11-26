@@ -18,7 +18,7 @@ class SplitTimeNodeTest: public QObject
     private slots:
         void SplitTest()
         {
-            ScenarioModel* scenar = new ScenarioModel(std::chrono::seconds(15), Id<ProcessModel> {0}, qApp);
+            Scenario::ScenarioModel* scenar = new ScenarioModel(std::chrono::seconds(15), Id<ProcessModel> {0}, qApp);
 
             EventData data {};
             data.dDate.setMSecs(10);

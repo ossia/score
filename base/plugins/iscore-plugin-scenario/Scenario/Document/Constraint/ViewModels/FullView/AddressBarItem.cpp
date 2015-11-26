@@ -35,7 +35,7 @@ void AddressBarItem::setTargetObject(ObjectPath && path)
 
         name[j] = (cstr->metadata.name());
 
-        auto scenar = dynamic_cast<ScenarioModel*>(cstr->parentScenario());
+        auto scenar = dynamic_cast<Scenario::ScenarioModel*>(cstr->parentScenario());
         if(scenar != 0)
         cstr = dynamic_cast<ConstraintModel*>(scenar->parent());
     }

@@ -61,7 +61,7 @@ void TriggerInspectorWidget::createTrigger()
     m_rmTrigBtn->setVisible(true);
     m_addTrigBtn->setVisible(false);
 
-    auto cmd = new Scenario::Command::AddTrigger{m_model};
+    auto cmd = new Scenario::Command::AddTrigger<Scenario::ScenarioModel>{m_model};
     m_parent->commandDispatcher()->submitCommand(cmd);
 }
 
@@ -71,7 +71,7 @@ void TriggerInspectorWidget::removeTrigger()
     m_rmTrigBtn->setVisible(false);
     m_addTrigBtn->setVisible(true);
 
-    auto cmd = new Scenario::Command::RemoveTrigger{m_model};
+    auto cmd = new Scenario::Command::RemoveTrigger<Scenario::ScenarioModel>{m_model};
     m_parent->commandDispatcher()->submitCommand(cmd);
 }
 

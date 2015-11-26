@@ -8,7 +8,7 @@
 #include <Scenario/Tools/RandomNameProvider.hpp>
 using namespace Scenario::Command;
 CreateConstraint_State_Event_TimeNode::CreateConstraint_State_Event_TimeNode(
-        const ScenarioModel& scenario,
+        const Scenario::ScenarioModel& scenario,
         const Id<StateModel>& startState,
         const TimeValue& date,
         double endStateY):
@@ -24,7 +24,7 @@ CreateConstraint_State_Event_TimeNode::CreateConstraint_State_Event_TimeNode(
 }
 
 CreateConstraint_State_Event_TimeNode::CreateConstraint_State_Event_TimeNode(
-        const Path<ScenarioModel>& scenarioPath,
+        const Path<Scenario::ScenarioModel>& scenarioPath,
         const Id<StateModel> &startState,
         const TimeValue &date,
         double endStateY):

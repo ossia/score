@@ -4,7 +4,7 @@
 
 void ScenarioCreate<TimeNodeModel>::undo(
         const Id<TimeNodeModel>& id,
-        ScenarioModel& s)
+        Scenario::ScenarioModel& s)
 {
     s.timeNodes.remove(id);
 }
@@ -13,7 +13,7 @@ TimeNodeModel& ScenarioCreate<TimeNodeModel>::redo(
         const Id<TimeNodeModel>& id,
         const VerticalExtent& extent,
         const TimeValue& date,
-        ScenarioModel& s)
+        Scenario::ScenarioModel& s)
 {
     auto timeNode = new TimeNodeModel{id, extent, date, &s};
     s.timeNodes.add(timeNode);
@@ -23,7 +23,7 @@ TimeNodeModel& ScenarioCreate<TimeNodeModel>::redo(
 
 void ScenarioCreate<EventModel>::undo(
         const Id<EventModel>& id,
-        ScenarioModel& s)
+        Scenario::ScenarioModel& s)
 {
     auto& ev = s.event(id);
     s.timeNode(ev.timeNode()).removeEvent(id);
@@ -34,7 +34,7 @@ EventModel& ScenarioCreate<EventModel>::redo(
         const Id<EventModel>& id,
         TimeNodeModel& timenode,
         const VerticalExtent& extent,
-        ScenarioModel& s)
+        Scenario::ScenarioModel& s)
 {
     auto ev = new EventModel{id, timenode.id(), extent, timenode.date(), &s};
 
@@ -47,7 +47,7 @@ EventModel& ScenarioCreate<EventModel>::redo(
 
 void ScenarioCreate<StateModel>::undo(
         const Id<StateModel> &id,
-        ScenarioModel &s)
+        Scenario::ScenarioModel& s)
 {
     auto& state = s.state(id);
     auto& ev = s.event(state.eventId());
@@ -61,7 +61,7 @@ StateModel &ScenarioCreate<StateModel>::redo(
         const Id<StateModel> &id,
         EventModel &ev,
         double y,
-        ScenarioModel &s)
+        Scenario::ScenarioModel& s)
 {
     auto state = new StateModel{
             id,
@@ -77,7 +77,7 @@ StateModel &ScenarioCreate<StateModel>::redo(
 
 void ScenarioCreate<ConstraintModel>::undo(
         const Id<ConstraintModel>& id,
-        ScenarioModel& s)
+        Scenario::ScenarioModel& s)
 {
     auto& cst = s.constraints.at(id);
 
@@ -96,7 +96,7 @@ ConstraintModel& ScenarioCreate<ConstraintModel>::redo(
         StateModel& sst,
         StateModel& est,
         double ypos,
-        ScenarioModel& s)
+        Scenario::ScenarioModel& s)
 {
     auto constraint = new ConstraintModel {
                       id,

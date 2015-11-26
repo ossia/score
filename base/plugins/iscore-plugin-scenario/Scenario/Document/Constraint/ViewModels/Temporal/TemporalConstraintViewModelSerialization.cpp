@@ -17,7 +17,7 @@ void Visitor<Reader<JSONObject>>::readFrom(const TemporalConstraintViewModel& co
 
 SerializedConstraintViewModels serializeConstraintViewModels(
         const ConstraintModel& constraint,
-        const ScenarioModel& scenario)
+        const Scenario::ScenarioModel& scenario)
 {
     SerializedConstraintViewModels map;
     // The other constraint view models are in their respective scenario view models
@@ -47,7 +47,7 @@ SerializedConstraintViewModels serializeConstraintViewModels(
 
 void deserializeConstraintViewModels(
         const SerializedConstraintViewModels& vms,
-        const ScenarioModel& scenar)
+        const Scenario::ScenarioModel& scenar)
 {
     using namespace std;
     for(auto& viewModel : layers(scenar))

@@ -10,7 +10,7 @@ using namespace Scenario::Command;
 
 
 MoveConstraint::MoveConstraint(
-        Path<ScenarioModel>&& scenarioPath,
+        Path<Scenario::ScenarioModel>&& scenarioPath,
         const Id<ConstraintModel>& id,
         const TimeValue& date,
         double height) :
@@ -24,7 +24,7 @@ MoveConstraint::MoveConstraint(
     m_oldHeight = cst.heightPercentage();
 }
 
-void MoveConstraint::update(const Path<ScenarioModel>& path,
+void MoveConstraint::update(const Path<Scenario::ScenarioModel>& path,
                             const Id<ConstraintModel>&,
                             const TimeValue& date,
                             double height)

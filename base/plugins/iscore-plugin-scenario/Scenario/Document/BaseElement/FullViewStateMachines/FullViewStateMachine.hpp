@@ -13,7 +13,7 @@ class BaseElementPresenter;
 class BaseGraphicsObject;
 class DisplayedElementsPresenter;
 class DisplayedElementsModel;
-class ScenarioModel;
+namespace Scenario { class ScenarioModel; }
 
 // RENAME FILE
 class FullViewToolPalette final : public GraphicsSceneToolPalette
@@ -27,7 +27,7 @@ class FullViewToolPalette final : public GraphicsSceneToolPalette
 
         BaseGraphicsObject& view() const;
         const DisplayedElementsPresenter& presenter() const;
-        const ScenarioModel& model() const;
+        const Scenario::ScenarioModel& model() const;
         const BaseElementContext& context() const;
         const Scenario::EditionSettings& editionSettings() const;
 
@@ -48,7 +48,7 @@ class FullViewToolPalette final : public GraphicsSceneToolPalette
         const Scenario::EditionSettings& m_editionSettings;
 
         Scenario::SelectionAndMoveTool<
-            ScenarioModel,
+            Scenario::ScenarioModel,
             FullViewToolPalette,
             BaseGraphicsObject,
             Scenario::MoveConstraintInScenario_StateWrapper,

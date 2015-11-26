@@ -14,7 +14,7 @@ ToolPalette::ToolPalette(
         TemporalScenarioPresenter& presenter):
     GraphicsSceneToolPalette{*presenter.view().scene()},
     m_presenter{presenter},
-    m_model{static_cast<const ScenarioModel&>(m_presenter.m_layer.processModel())},
+    m_model{static_cast<const Scenario::ScenarioModel&>(m_presenter.m_layer.processModel())},
     m_context{lay},
     m_createTool{*this},
     m_selectTool{*this},

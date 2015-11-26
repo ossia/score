@@ -5,7 +5,7 @@
 #include <Scenario/Process/Algorithms/StandardDisplacementPolicy.hpp>
 
 class QString;
-class ScenarioModel;
+namespace Scenario { class ScenarioModel; }
 class TimeNodeModel;
 struct ElementsProperties;
 
@@ -15,16 +15,16 @@ public:
 
     GoodOldDisplacementPolicy() = default;
 
-    GoodOldDisplacementPolicy(ScenarioModel& scenario, const QVector<Id<TimeNodeModel>>& draggedElements){}
+    GoodOldDisplacementPolicy(Scenario::ScenarioModel& scenario, const QVector<Id<TimeNodeModel>>& draggedElements){}
 
     static void computeDisplacement(
-            ScenarioModel& scenario,
+            Scenario::ScenarioModel& scenario,
             const QVector<Id<TimeNodeModel>>& draggedElements,
             const TimeValue& deltaTime,
             ElementsProperties& elementsProperties);
 
     static void getRelatedTimeNodes(
-            ScenarioModel& scenario,
+            Scenario::ScenarioModel& scenario,
             const Id<TimeNodeModel>& firstTimeNodeMovedId,
             std::vector<Id<TimeNodeModel> >& translatedTimeNodes);
 

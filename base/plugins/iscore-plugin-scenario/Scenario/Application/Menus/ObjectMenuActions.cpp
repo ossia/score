@@ -397,7 +397,7 @@ void ObjectMenuActions::addTriggerToTimeNode()
     if(selectedTimeNodes.isEmpty())
         return;
 
-    auto cmd = new Scenario::Command::AddTrigger{**selectedTimeNodes.begin()};
+    auto cmd = new Scenario::Command::AddTrigger<Scenario::ScenarioModel>{**selectedTimeNodes.begin()};
     emit dispatcher().submitCommand(cmd);
 }
 
@@ -407,7 +407,7 @@ void ObjectMenuActions::removeTriggerFromTimeNode()
     if(selectedTimeNodes.isEmpty())
         return;
 
-    auto cmd = new Scenario::Command::RemoveTrigger{**selectedTimeNodes.begin()};
+    auto cmd = new Scenario::Command::RemoveTrigger<Scenario::ScenarioModel>{**selectedTimeNodes.begin()};
     emit dispatcher().submitCommand(cmd);
 }
 

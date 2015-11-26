@@ -6,7 +6,7 @@
 
 class EventModel;
 class StateModel;
-class ScenarioModel;
+namespace Scenario { class ScenarioModel; }
 
 namespace Scenario
 {
@@ -18,7 +18,7 @@ namespace Scenario
             public:
 
             SplitEvent(
-                const Path<ScenarioModel>& scenario,
+                const Path<Scenario::ScenarioModel>& scenario,
                 const Id<EventModel>& event,
                 const QVector<Id<StateModel>>& movingstates);
 
@@ -30,7 +30,7 @@ namespace Scenario
             void deserializeImpl(DataStreamOutput&) override;
 
             private:
-            Path<ScenarioModel> m_scenarioPath;
+            Path<Scenario::ScenarioModel> m_scenarioPath;
 
             Id<EventModel> m_originalEvent;
             Id<EventModel> m_newEvent;

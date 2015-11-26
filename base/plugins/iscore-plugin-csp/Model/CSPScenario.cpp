@@ -7,7 +7,7 @@
 #include <kiwi/kiwi.h>
 #include <QtAlgorithms>
 
-CSPScenario::CSPScenario(const ScenarioModel& scenario, QObject *parent)
+CSPScenario::CSPScenario(const Scenario::ScenarioModel& scenario, QObject *parent)
     :QObject::QObject(parent), m_scenario(&scenario)
 {
     this->setObjectName("CSPScenario");

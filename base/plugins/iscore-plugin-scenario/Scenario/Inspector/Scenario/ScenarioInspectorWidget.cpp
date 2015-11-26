@@ -8,7 +8,7 @@
 #include <QPushButton>
 
 ScenarioInspectorWidget::ScenarioInspectorWidget(
-        const ScenarioModel& object,
+        const Scenario::ScenarioModel& object,
         iscore::Document& doc,
         QWidget* parent) :
     InspectorWidgetBase {object, doc, parent},

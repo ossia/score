@@ -37,7 +37,7 @@ void InterpolateStates(const QList<const ConstraintModel*>& selected_constraints
     // For each constraint, interpolate between the states in its start event and end event.
 
     // They should all be in the same scenario so we can select the first.
-    ScenarioModel* scenar = dynamic_cast<ScenarioModel*>(
+    Scenario::ScenarioModel* scenar = dynamic_cast<Scenario::ScenarioModel*>(
                                 selected_constraints.first()->parent());
 
     auto& devPlugin = *iscore::IDocument::documentFromObject(*scenar)->model().pluginModel<DeviceDocumentPlugin>();

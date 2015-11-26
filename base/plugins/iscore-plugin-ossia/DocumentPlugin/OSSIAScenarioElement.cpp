@@ -16,7 +16,7 @@
 
 OSSIAScenarioElement::OSSIAScenarioElement(
         OSSIAConstraintElement& parentConstraint,
-        ScenarioModel& element,
+        Scenario::ScenarioModel& element,
         QObject* parent):
     OSSIAProcessElement{parentConstraint, parent},
     m_iscore_scenario{element},

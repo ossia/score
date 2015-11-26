@@ -43,9 +43,8 @@ class MoveBaseEvent final : public iscore::SerializableCommand
         }
 
     public:
-
         const CommandParentFactoryKey& parentKey() const override
-        { return ScenarioCommandFactoryName(); }
+        { return CommandFactoryName<SimpleScenario_T>(); }
         const CommandFactoryKey& key() const override
         { return static_key(); }
         QString description() const override

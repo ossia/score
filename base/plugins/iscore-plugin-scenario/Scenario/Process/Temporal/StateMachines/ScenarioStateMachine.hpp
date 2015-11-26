@@ -18,7 +18,7 @@
 
 class TemporalScenarioPresenter;
 class TemporalScenarioView;
-class ScenarioModel;
+namespace Scenario { class ScenarioModel; }
 class QGraphicsScene;
 
 namespace iscore
@@ -42,7 +42,7 @@ class ToolPalette final : public GraphicsSceneToolPalette
         const LayerContext& context() const
         { return m_context; }
 
-        const ScenarioModel& model() const
+        const Scenario::ScenarioModel& model() const
         { return m_model; }
         TemporalScenarioView& view() const;
 
@@ -63,7 +63,7 @@ class ToolPalette final : public GraphicsSceneToolPalette
         Scenario::Point ScenePointToScenarioPoint(QPointF point);
 
         TemporalScenarioPresenter& m_presenter;
-        const ScenarioModel& m_model;
+        const Scenario::ScenarioModel& m_model;
         LayerContext& m_context;
 
         CreationTool<ScenarioModel, Scenario::ToolPalette> m_createTool;

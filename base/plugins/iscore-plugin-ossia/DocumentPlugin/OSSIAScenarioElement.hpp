@@ -15,7 +15,7 @@
 class EventModel;
 class ConstraintModel;
 class TimeNodeModel;
-class ScenarioModel;
+namespace Scenario { class ScenarioModel; }
 class DeviceList;
 class OSSIAConstraintElement;
 
@@ -32,7 +32,7 @@ class OSSIAScenarioElement final : public OSSIAProcessElement
     public:
         OSSIAScenarioElement(
                 OSSIAConstraintElement& parentConstraint,
-                ScenarioModel& element,
+                Scenario::ScenarioModel& element,
                 QObject* parent);
 
         std::shared_ptr<OSSIA::TimeProcess> OSSIAProcess() const override;
@@ -79,7 +79,7 @@ class OSSIAScenarioElement final : public OSSIAProcessElement
         std::map<Id<TimeNodeModel>, OSSIATimeNodeElement*> m_ossia_timenodes;
         std::map<Id<EventModel>, OSSIAEventElement*> m_ossia_timeevents;
         std::shared_ptr<OSSIA::Scenario> m_ossia_scenario;
-        ScenarioModel& m_iscore_scenario;
+        Scenario::ScenarioModel& m_iscore_scenario;
 
         IdContainer<ConstraintModel> m_executingConstraints;
 

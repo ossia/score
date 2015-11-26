@@ -16,18 +16,18 @@ class CreateSequence final : public iscore::SerializableCommand
     public:
 
         CreateSequence(
-            const ScenarioModel& scenario,
+            const Scenario::ScenarioModel& scenario,
             const Id<StateModel>& startState,
             const TimeValue& date,
             double endStateY);
 
         CreateSequence(
-            const Path<ScenarioModel>& scenarioPath,
+            const Path<Scenario::ScenarioModel>& scenarioPath,
             const Id<StateModel>& startState,
             const TimeValue& date,
             double endStateY);
 
-        const Path<ScenarioModel>& scenarioPath() const
+        const Path<Scenario::ScenarioModel>& scenarioPath() const
         { return m_command.scenarioPath(); }
 
         const Id<ConstraintModel>& createdConstraint() const

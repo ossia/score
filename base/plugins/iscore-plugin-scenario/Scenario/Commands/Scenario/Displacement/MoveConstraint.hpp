@@ -8,7 +8,7 @@
 #include <Process/TimeValue.hpp>
 
 class ConstraintModel;
-class ScenarioModel;
+namespace Scenario { class ScenarioModel; }
 
 /*
  * Command for vertical move so it does'nt have to resize anything on time axis
@@ -24,12 +24,12 @@ namespace Scenario
 #include <tests/helpers/FriendDeclaration.hpp>
             public:
                 MoveConstraint(
-                        Path<ScenarioModel>&& scenarioPath,
+                        Path<Scenario::ScenarioModel>&& scenarioPath,
                     const Id<ConstraintModel>& id,
                     const TimeValue& date,
                     double y);
 
-                void update(const Path<ScenarioModel>&,
+                void update(const Path<Scenario::ScenarioModel>&,
                             const Id<ConstraintModel>& ,
                             const TimeValue& date,
                             double height);
@@ -42,7 +42,7 @@ namespace Scenario
                 void deserializeImpl(DataStreamOutput&) override;
 
             private:
-                Path<ScenarioModel> m_path;
+                Path<Scenario::ScenarioModel> m_path;
                 Id<ConstraintModel> m_constraint;
                 double m_oldHeight{},
                        m_newHeight{};

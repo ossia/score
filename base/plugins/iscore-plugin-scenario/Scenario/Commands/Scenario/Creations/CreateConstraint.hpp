@@ -10,7 +10,7 @@ class ConstraintViewModel;
 class ConstraintModel;
 class LayerModel;
 class StateModel;
-class ScenarioModel;
+namespace Scenario { class ScenarioModel; }
 
 #include <tests/helpers/ForwardDeclaration.hpp>
 namespace Scenario
@@ -29,12 +29,12 @@ namespace Scenario
 #include <tests/helpers/FriendDeclaration.hpp>
             public:
                 CreateConstraint(
-                    Path<ScenarioModel>&& scenarioPath,
+                    Path<Scenario::ScenarioModel>&& scenarioPath,
                     const Id<StateModel>& startState,
                     const Id<StateModel>& endState);
                 CreateConstraint& operator= (CreateConstraint &&) = default;
 
-                const Path<ScenarioModel>& scenarioPath() const
+                const Path<Scenario::ScenarioModel>& scenarioPath() const
                 { return m_path; }
 
                 void undo() const override;
@@ -48,7 +48,7 @@ namespace Scenario
                 void deserializeImpl(DataStreamOutput&) override;
 
             private:
-                Path<ScenarioModel> m_path;
+                Path<Scenario::ScenarioModel> m_path;
                 QString m_createdName;
 
                 Id<ConstraintModel> m_createdConstraintId {};

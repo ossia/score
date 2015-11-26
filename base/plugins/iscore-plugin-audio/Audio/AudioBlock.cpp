@@ -15,6 +15,11 @@ void AudioBlock::start()
     m_engine.addHandle(this);
 }
 
+void AudioBlock::stop()
+{
+    m_engine.removeHandle(this);
+}
+
 FaustAudioBlock::FaustAudioBlock(
         const QString& script,
         std::vector<float> audio,

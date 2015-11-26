@@ -2,7 +2,7 @@
 #include <Scenario/Commands/ScenarioCommandFactory.hpp>
 #include <iscore/command/SerializableCommand.hpp>
 #include "CreateConstraint.hpp"
-class ScenarioModel;
+namespace Scenario { class ScenarioModel; }
 namespace Scenario
 {
 namespace Command
@@ -13,18 +13,18 @@ class CreateConstraint_State final : public iscore::SerializableCommand
         public:
 
           CreateConstraint_State(
-            const ScenarioModel& scenario,
+            const Scenario::ScenarioModel& scenario,
             const Id<StateModel>& startState,
             const Id<EventModel>& endEvent,
             double endStateY);
 
         CreateConstraint_State(
-          const Path<ScenarioModel>& scenario,
+          const Path<Scenario::ScenarioModel>& scenario,
           const Id<StateModel>& startState,
           const Id<EventModel>& endEvent,
           double endStateY);
 
-        const Path<ScenarioModel>& scenarioPath() const
+        const Path<Scenario::ScenarioModel>& scenarioPath() const
         { return m_command.scenarioPath(); }
 
         const double& endStateY() const

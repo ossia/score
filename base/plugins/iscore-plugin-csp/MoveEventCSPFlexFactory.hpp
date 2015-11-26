@@ -9,7 +9,7 @@ class MoveEventCSPFlexFactory : public MoveEventFactoryInterface
         // MoveEventFactory interface
     public:
         SerializableMoveEvent* make(
-                Path<ScenarioModel> &&scenarioPath,
+                Path<Scenario::ScenarioModel> &&scenarioPath,
                 const Id<EventModel> &eventId,
                 const TimeValue &newDate,
                 ExpandMode mode) override;

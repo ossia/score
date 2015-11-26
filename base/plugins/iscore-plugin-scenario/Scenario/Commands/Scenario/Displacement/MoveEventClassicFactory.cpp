@@ -3,7 +3,7 @@
 #include <Scenario/Commands/Scenario/Displacement/MoveEvent.hpp>
 
 SerializableMoveEvent* MoveEventClassicFactory::make(
-        Path<ScenarioModel>&& scenarioPath,
+        Path<Scenario::ScenarioModel>&& scenarioPath,
         const Id<EventModel>& eventId,
         const TimeValue& newDate,
         ExpandMode mode)

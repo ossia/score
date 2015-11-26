@@ -20,7 +20,7 @@ class RemoveConstraintTest: public QObject
         void removeFirstConstraintTest()
         {
             // create scenar and 1 event
-            ScenarioModel* scenar = new ScenarioModel(std::chrono::seconds(15), Id<ProcessModel> {0}, qApp);
+            Scenario::ScenarioModel* scenar = new ScenarioModel(std::chrono::seconds(15), Id<ProcessModel> {0}, qApp);
 
             EventData data {};
             data.dDate.setMSecs(10);
@@ -67,7 +67,7 @@ class RemoveConstraintTest: public QObject
         void removeAnyConstraintTest()
         {
             // create scenar and 2 events
-            ScenarioModel* scenar = new ScenarioModel(std::chrono::seconds(15), Id<ProcessModel> {0}, qApp);
+            Scenario::ScenarioModel* scenar = new ScenarioModel(std::chrono::seconds(15), Id<ProcessModel> {0}, qApp);
 
             EventData data {};
             data.dDate.setMSecs(10);

@@ -24,7 +24,7 @@ class ScenarioFindConstraintVisitor
     public:
         std::vector<ConstraintModel*> constraints;
 
-        void visit(ScenarioModel& s)
+        void visit(Scenario::ScenarioModel& s)
         {
             constraints.reserve(constraints.size() + s.constraints.size());
             for(auto& constraint : s.constraints)
@@ -38,7 +38,7 @@ class ScenarioFindConstraintVisitor
         {
             for(auto& proc : c.processes)
             {
-                if(auto scenario = dynamic_cast<ScenarioModel*>(&proc))
+                if(auto scenario = dynamic_cast<Scenario::ScenarioModel*>(&proc))
                 {
                     visit(*scenario);
                 }
@@ -56,14 +56,14 @@ class ScenarioFindEventVisitor
         {
             for(auto& proc : c.processes)
             {
-                if(auto scenario = dynamic_cast<ScenarioModel*>(&proc))
+                if(auto scenario = dynamic_cast<Scenario::ScenarioModel*>(&proc))
                 {
                     visit(*scenario);
                 }
             }
         }
 
-        void visit(ScenarioModel& s)
+        void visit(Scenario::ScenarioModel& s)
         {
             events.reserve(events.size() + s.events.size());
             for(auto& event : s.events)

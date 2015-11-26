@@ -7,6 +7,8 @@
 #include <boost/range/algorithm.hpp>
 #include <iscore/tools/SettableIdentifierGeneration.hpp>
 
+namespace Scenario
+{
 ScenarioModel::ScenarioModel(const TimeValue& duration,
                              const Id<Process>& id,
                              QObject* parent) :
@@ -27,7 +29,7 @@ ScenarioModel::ScenarioModel(const TimeValue& duration,
     metadata.setName(QString("Scenario.%1").arg(*this->id().val()));
 }
 
-ScenarioModel::ScenarioModel(const ScenarioModel& source,
+ScenarioModel::ScenarioModel(const Scenario::ScenarioModel& source,
                              const Id<Process>& id,
                              QObject* parent) :
     Process {source, id, ScenarioProcessMetadata::processObjectName(), parent},
@@ -49,7 +51,7 @@ ScenarioModel::ScenarioModel(const ScenarioModel& source,
     metadata.setName(QString("Scenario.%1").arg(*this->id().val()));
 }
 
-ScenarioModel* ScenarioModel::clone(
+Scenario::ScenarioModel* ScenarioModel::clone(
         const Id<Process>& newId,
         QObject* newParent) const
 {
@@ -269,24 +271,6 @@ ProcessStateDataInterface* ScenarioModel::endStateData() const
     return nullptr;
 }
 
-const QVector<Id<ConstraintModel> > ScenarioModel::constraintsBeforeTimeNode(const Id<TimeNodeModel>& timeNodeId) const
-{
-    QVector<Id<ConstraintModel>> cstrs;
-    auto& tn = timeNode(timeNodeId);
-    for(auto& ev : tn.events())
-    {
-        auto& evM = event(ev);
-        for (auto& st : evM.states())
-        {
-            auto& stM = state(st);
-            if(stM.previousConstraint())
-                cstrs.push_back(stM.previousConstraint());
-        }
-    }
-    return cstrs;
-}
-
-
 void ScenarioModel::makeLayer_impl(AbstractScenarioLayerModel* scen)
 {
     // There is no ConstraintCreated connection to the layer,
@@ -317,7 +301,29 @@ void ScenarioModel::makeLayer_impl(AbstractScenarioLayerModel* scen)
             scen, &AbstractScenarioLayerModel::constraintMoved);
 }
 
-const StateModel* furthestSelectedState(const ScenarioModel& scenar)
+
+const QVector<Id<ConstraintModel> > constraintsBeforeTimeNode(
+        const Scenario::ScenarioModel& scenar,
+        const Id<TimeNodeModel>& timeNodeId)
+{
+    QVector<Id<ConstraintModel>> cstrs;
+    const auto& tn = scenar.timeNodes.at(timeNodeId);
+    for(const auto& ev : tn.events())
+    {
+        const auto& evM = scenar.events.at(ev);
+        for (const auto& st : evM.states())
+        {
+            const auto& stM = scenar.states.at(st);
+            if(stM.previousConstraint())
+                cstrs.push_back(stM.previousConstraint());
+        }
+    }
+
+    return cstrs;
+}
+}
+
+const StateModel* furthestSelectedState(const Scenario::ScenarioModel& scenar)
 {
     const StateModel* furthest_state{};
     {
@@ -380,7 +386,7 @@ const StateModel* furthestSelectedState(const ScenarioModel& scenar)
     return nullptr;
 }
 
-const StateModel* furthestSelectedStateWithoutFollowingConstraint(const ScenarioModel& scenar)
+const StateModel* furthestSelectedStateWithoutFollowingConstraint(const Scenario::ScenarioModel& scenar)
 {
     const StateModel* furthest_state{};
     {

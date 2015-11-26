@@ -61,11 +61,11 @@ loadConstraintViewModel(Deserializer<JSONObject>& deserializer,
 
 SerializedConstraintViewModels serializeConstraintViewModels(
         const ConstraintModel& constraint,
-        const ScenarioModel& scenario);
+        const Scenario::ScenarioModel& scenario);
 
 // Save all the constraint view models
 // Load a group of constraint view models
 
 void deserializeConstraintViewModels(
         const SerializedConstraintViewModels& vms,
-        const ScenarioModel& scenar);
+        const Scenario::ScenarioModel& scenar);

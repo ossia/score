@@ -14,7 +14,7 @@ namespace Scenario
                 ISCORE_COMMAND_DECL(ScenarioCommandFactoryName(), AddStateWithData, "Drop a new state in an event")
             public:
                 AddStateWithData(
-                         const ScenarioModel& scenario,
+                         const Scenario::ScenarioModel& scenario,
                          const Id<EventModel>& ev,
                          double ypos,
                          iscore::MessageList&& stateData)

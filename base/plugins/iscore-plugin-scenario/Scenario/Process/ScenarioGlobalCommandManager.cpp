@@ -12,7 +12,7 @@
 
 using namespace Scenario::Command;
 using namespace iscore::IDocument; // for ::path
-void Scenario::clearContentFromSelection(const ScenarioModel &scenario, iscore::CommandStack& stack)
+void Scenario::clearContentFromSelection(const Scenario::ScenarioModel& scenario, iscore::CommandStack& stack)
 {
     // 1. Select items
     auto constraintsToRemove = selectedElements(scenario.constraints);
@@ -35,7 +35,7 @@ void Scenario::clearContentFromSelection(const ScenarioModel &scenario, iscore::
     cleaner.commit();
 }
 
-void Scenario::removeSelection(const ScenarioModel &scenario, iscore::CommandStack& stack)
+void Scenario::removeSelection(const Scenario::ScenarioModel& scenario, iscore::CommandStack& stack)
 {
     Selection sel = scenario.selectedChildren();
 

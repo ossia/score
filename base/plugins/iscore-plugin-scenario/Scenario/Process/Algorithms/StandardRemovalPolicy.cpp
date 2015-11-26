@@ -4,7 +4,7 @@
 #include <Scenario/Document/TimeNode/TimeNodeModel.hpp>
 
 static void removeEventFromTimeNode(
-        ScenarioModel& scenario,
+        Scenario::ScenarioModel& scenario,
         const Id<EventModel>& eventId)
 {
     // We have to make a copy else the iterator explodes.
@@ -27,7 +27,7 @@ static void removeEventFromTimeNode(
 
 
 void StandardRemovalPolicy::removeConstraint(
-        ScenarioModel& scenario,
+        Scenario::ScenarioModel& scenario,
         const Id<ConstraintModel>& constraintId)
 {
     auto cstr_it = scenario.constraints.find(constraintId);
@@ -50,7 +50,7 @@ void StandardRemovalPolicy::removeConstraint(
 
 
 void StandardRemovalPolicy::removeState(
-        ScenarioModel& scenario,
+        Scenario::ScenarioModel& scenario,
         StateModel& state)
 {
     if(state.previousConstraint())
@@ -69,7 +69,7 @@ void StandardRemovalPolicy::removeState(
 }
 
 void StandardRemovalPolicy::removeEventStatesAndConstraints(
-        ScenarioModel& scenario,
+        Scenario::ScenarioModel& scenario,
         const Id<EventModel>& eventId)
 {
     auto& ev = scenario.event(eventId);

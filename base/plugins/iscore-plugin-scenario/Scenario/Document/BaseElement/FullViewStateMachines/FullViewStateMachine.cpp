@@ -42,9 +42,9 @@ const DisplayedElementsPresenter& FullViewToolPalette::presenter() const
     return m_presenter.presenters();
 }
 
-const ScenarioModel& FullViewToolPalette::model() const
+const Scenario::ScenarioModel& FullViewToolPalette::model() const
 {
-    return *safe_cast<ScenarioModel*>(m_model.constraint().parentScenario());
+    return *safe_cast<Scenario::ScenarioModel*>(m_model.constraint().parentScenario());
 }
 
 const BaseElementContext& FullViewToolPalette::context() const

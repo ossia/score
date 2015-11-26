@@ -3,7 +3,7 @@
 #include <QMap>
 #include <QPointer>
 #include "Scenario/Process/AbstractScenarioLayerModel.hpp"
-class ScenarioModel;
+namespace Scenario { class ScenarioModel; }
 class RackModel;
 class TemporalConstraintViewModel;
 class TemporalScenarioPresenter;
@@ -18,25 +18,25 @@ class TemporalScenarioLayerModel final : public AbstractScenarioLayerModel
 {
         Q_OBJECT
     public:
-        using model_type = ScenarioModel;
+        using model_type = Scenario::ScenarioModel;
         using constraint_layer_type = TemporalConstraintViewModel;
 
         TemporalScenarioLayerModel(const Id<LayerModel>& id,
                               const QMap<Id<ConstraintModel>,
                               Id<ConstraintViewModel>>& constraintIds,
-                              ScenarioModel& model,
+                              Scenario::ScenarioModel& model,
                               QObject* parent);
 
         // Copy
         TemporalScenarioLayerModel(const TemporalScenarioLayerModel& source,
                               const Id<LayerModel>& id,
-                              ScenarioModel& model,
+                              Scenario::ScenarioModel& model,
                               QObject* parent);
 
         // Load
         template<typename Impl>
         TemporalScenarioLayerModel(Deserializer<Impl>& vis,
-                              ScenarioModel& model,
+                              Scenario::ScenarioModel& model,
                               QObject* parent) :
             AbstractScenarioLayerModel {vis, model, parent}
         {

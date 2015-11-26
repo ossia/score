@@ -2,7 +2,7 @@
 
 void
 GoodOldDisplacementPolicy::computeDisplacement(
-        ScenarioModel& scenario,
+        Scenario::ScenarioModel& scenario,
         const QVector<Id<TimeNodeModel>>& draggedElements,
         const TimeValue& deltaTime,
         ElementsProperties& elementsProperties)
@@ -108,7 +108,7 @@ GoodOldDisplacementPolicy::computeDisplacement(
 }
 
 void GoodOldDisplacementPolicy::getRelatedTimeNodes(
-        ScenarioModel& scenario,
+        Scenario::ScenarioModel& scenario,
         const Id<TimeNodeModel>& firstTimeNodeMovedId,
         std::vector<Id<TimeNodeModel> >& translatedTimeNodes)
 {

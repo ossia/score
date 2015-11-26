@@ -35,7 +35,7 @@ ConstraintElement::ConstraintElement(
     m_ossia_constraint{ossia_cst}
 {
     // BaseScenario needs a special callback.
-    if(dynamic_cast<ScenarioModel*>(iscore_cst.parent())
+    if(dynamic_cast<Scenario::ScenarioModel*>(iscore_cst.parent())
     || dynamic_cast<Loop::ProcessModel*>(iscore_cst.parent()))
     {
         ossia_cst->setCallback([&] (
@@ -109,7 +109,7 @@ void ConstraintElement::on_processAdded(
     // gives correct const / non_const access ?
     auto proc = const_cast<Process*>(&iscore_proc);
     ProcessElement* plug{};
-    if(auto scenar = dynamic_cast<ScenarioModel*>(proc))
+    if(auto scenar = dynamic_cast<Scenario::ScenarioModel*>(proc))
     {
         plug = new ScenarioElement{*this, *scenar, proc};
     }

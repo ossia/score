@@ -10,7 +10,7 @@
 using namespace iscore;
 using namespace Scenario::Command;
 
-RemoveSelection::RemoveSelection(Path<ScenarioModel>&& scenarioPath, Selection sel):
+RemoveSelection::RemoveSelection(Path<Scenario::ScenarioModel>&& scenarioPath, Selection sel):
     m_path {std::move(scenarioPath) }
 {
     auto& scenar = m_path.find();

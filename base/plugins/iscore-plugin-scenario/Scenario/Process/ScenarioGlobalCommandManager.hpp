@@ -1,11 +1,11 @@
 #pragma once
 #include <core/command/CommandStack.hpp>
-class ScenarioModel;
+namespace Scenario { class ScenarioModel; }
 class BaseScenario;
 namespace Scenario
 {
-void removeSelection(const ScenarioModel&, iscore::CommandStack&);
-void clearContentFromSelection(const ScenarioModel&, iscore::CommandStack&);
+void removeSelection(const Scenario::ScenarioModel&, iscore::CommandStack&);
+void clearContentFromSelection(const Scenario::ScenarioModel&, iscore::CommandStack&);
 void removeSelection(const BaseScenario&, iscore::CommandStack&);
 void clearContentFromSelection(const BaseScenario&, iscore::CommandStack&);
 }

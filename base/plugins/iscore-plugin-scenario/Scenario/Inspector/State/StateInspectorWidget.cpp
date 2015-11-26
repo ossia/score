@@ -85,7 +85,7 @@ void StateInspectorWidget::updateDisplayedValues()
         lay->addWidget(btn);
     }
 
-    auto scenarModel = dynamic_cast<const ScenarioModel*>(m_model.parentScenario());
+    auto scenarModel = dynamic_cast<const Scenario::ScenarioModel*>(m_model.parentScenario());
     if(scenarModel)
     {
         auto& parentEvent = scenarModel->events.at(m_model.eventId());
@@ -109,7 +109,7 @@ using namespace Scenario;
 
 void StateInspectorWidget::splitEvent()
 {
-    auto scenar = dynamic_cast<const ScenarioModel*>(m_model.parentScenario());
+    auto scenar = dynamic_cast<const Scenario::ScenarioModel*>(m_model.parentScenario());
     if (scenar)
     {
         auto& parentEvent = scenar->events.at(m_model.eventId());

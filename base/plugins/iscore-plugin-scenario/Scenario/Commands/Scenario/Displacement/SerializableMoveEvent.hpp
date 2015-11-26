@@ -7,7 +7,7 @@
 #include <Process/TimeValue.hpp>
 
 class EventModel;
-class ScenarioModel;
+namespace Scenario { class ScenarioModel; }
 
 class SerializableMoveEvent : public iscore::SerializableCommand
 {
@@ -15,13 +15,13 @@ public:
     virtual
     void
     update(
-            const Path<ScenarioModel>& scenarioPath,
+            const Path<Scenario::ScenarioModel>& scenarioPath,
             const Id<EventModel>& eventId,
             const TimeValue& newDate,
             ExpandMode mode) = 0;
 
     virtual
     const
-    Path<ScenarioModel>&
+    Path<Scenario::ScenarioModel>&
     path() const = 0;
 };

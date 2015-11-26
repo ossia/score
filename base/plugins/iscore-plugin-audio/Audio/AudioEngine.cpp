@@ -22,7 +22,7 @@ void AudioEngine::play()
                 {
                     for(int i = 0; i < params.bufferSize; i++)
                     {
-                        out[i] += data[i] * 0.1;
+                        out[i] += data[i] * 0.2;
                     }
                 }
 

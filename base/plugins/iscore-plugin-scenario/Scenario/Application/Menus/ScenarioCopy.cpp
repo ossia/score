@@ -20,7 +20,7 @@ static auto arrayToJson(Selected_T &&selected)
     return array;
 }
 
-QJsonObject copySelectedScenarioElements(const ScenarioModel& sm)
+QJsonObject copySelectedScenarioElements(const Scenario::ScenarioModel& sm)
 {
     auto selectedConstraints = selectedElements(sm.constraints);
     auto selectedEvents = selectedElements(sm.events);

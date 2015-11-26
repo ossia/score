@@ -30,7 +30,7 @@ TemporalScenarioPresenter::TemporalScenarioPresenter(
     m_context{context, *this, m_focusDispatcher},
     m_sm{m_context, *this}
 {
-    const ScenarioModel& scenario = model(m_layer);
+    const Scenario::ScenarioModel& scenario = model(m_layer);
     /////// Setup of existing data
     // For each constraint & event, display' em
     for(const auto& state_model : scenario.states)
@@ -85,10 +85,10 @@ TemporalScenarioPresenter::TemporalScenarioPresenter(
     connect(m_view, &TemporalScenarioView::dropReceived,
             this,   &TemporalScenarioPresenter::handleDrop);
 
-    con(model(m_layer), &ScenarioModel::locked,
-            m_view,             &TemporalScenarioView::lock);
-    con(model(m_layer), &ScenarioModel::unlocked,
-            m_view,             &TemporalScenarioView::unlock);
+    con(model(m_layer), &Scenario::ScenarioModel::locked,
+            m_view,     &TemporalScenarioView::lock);
+    con(model(m_layer), &Scenario::ScenarioModel::unlocked,
+            m_view,     &TemporalScenarioView::unlock);
 
     connect(&layerModel().processModel(), &Process::execution,
             this, [&] (bool b) {
@@ -363,7 +363,7 @@ void TemporalScenarioPresenter::handleDrop(const QPointF &pos, const QMimeData *
                     new  Scenario::Command::CreateStateMacro,
                     m_context.commandStack);
 
-        const ScenarioModel& scenar = ::model(m_layer);
+        const Scenario::ScenarioModel& scenar = ::model(m_layer);
         Id<StateModel> createdState;
         auto t = TimeValue::fromMsecs(pos.x() * zoomRatio());
         auto y = pos.y() / (m_view->boundingRect().size().height() + 150);

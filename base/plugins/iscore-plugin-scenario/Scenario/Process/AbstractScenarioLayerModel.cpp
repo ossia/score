@@ -78,7 +78,7 @@ ConstraintViewModel& AbstractScenarioLayerModel::constraint(
 
 void createConstraintViewModels(const ConstraintViewModelIdMap& idMap,
                                 const Id<ConstraintModel>& constraintId,
-                                const ScenarioModel& scenario)
+                                const Scenario::ScenarioModel& scenario)
 {
     // Creation of all the constraint view models
     for(auto& viewModel : layers(scenario))
@@ -99,7 +99,7 @@ void createConstraintViewModels(const ConstraintViewModelIdMap& idMap,
 
 std::vector<ConstraintViewModel*> getConstraintViewModels(
         const Id<ConstraintModel>& constraintId,
-        const ScenarioModel& scenario)
+        const Scenario::ScenarioModel& scenario)
 {
     const auto& lays = layers(scenario);
 

@@ -4,7 +4,7 @@
 #include <core/application/ApplicationComponents.hpp>
 
 MoveEventOnCreationMeta::MoveEventOnCreationMeta(
-        Path<ScenarioModel>&& scenarioPath,
+        Path<Scenario::ScenarioModel>&& scenarioPath,
         const Id<EventModel>& eventId,
         const TimeValue& newDate,
         ExpandMode mode)
@@ -27,7 +27,7 @@ void MoveEventOnCreationMeta::redo() const
     m_moveEventImplementation->redo();
 }
 
-const Path<ScenarioModel>&MoveEventOnCreationMeta::path() const
+const Path<Scenario::ScenarioModel>&MoveEventOnCreationMeta::path() const
 {
     return m_moveEventImplementation->path();
 }
@@ -50,7 +50,7 @@ void MoveEventOnCreationMeta::deserializeImpl(DataStreamOutput& qDataStream)
     m_moveEventImplementation->deserialize(cmdData);
 }
 
-void MoveEventOnCreationMeta::update(const Path<ScenarioModel>& scenarioPath,
+void MoveEventOnCreationMeta::update(const Path<Scenario::ScenarioModel>& scenarioPath,
                            const Id<EventModel>& eventId,
                            const TimeValue& newDate,
                            ExpandMode mode)

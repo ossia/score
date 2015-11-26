@@ -54,7 +54,7 @@ void DisplayedElementsModel::setDisplayedConstraint(const ConstraintModel& const
         m_startState = &parent_base->startState();
         m_endState = &parent_base->endState();
     }
-    else if(auto parent_scenario = dynamic_cast<ScenarioModel*>(m_constraint->parent()))
+    else if(auto parent_scenario = dynamic_cast<Scenario::ScenarioModel*>(m_constraint->parent()))
     {
         m_startState = &parent_scenario->states.at(m_constraint->startState());
         m_endState = &parent_scenario->states.at(m_constraint->endState());

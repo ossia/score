@@ -38,5 +38,5 @@ std::unique_ptr<ConstraintInspectorDelegate> ScenarioConstraintInspectorDelegate
 bool ScenarioConstraintInspectorDelegateFactory::matches(
         const ConstraintModel& constraint) const
 {
-    return dynamic_cast<ScenarioModel*>(constraint.parent());
+    return dynamic_cast<Scenario::ScenarioModel*>(constraint.parent());
 }

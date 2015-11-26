@@ -3,7 +3,7 @@
 #include <Scenario/Process/ScenarioModel.hpp>
 
 Scenario::Command::MoveNewState::MoveNewState(
-        Path<ScenarioModel>&& scenarioPath,
+        Path<Scenario::ScenarioModel>&& scenarioPath,
         const Id<StateModel>& stateId,
         const double y):
     m_path(std::move(scenarioPath)),

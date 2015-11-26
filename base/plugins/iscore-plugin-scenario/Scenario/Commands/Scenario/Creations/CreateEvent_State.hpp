@@ -12,15 +12,15 @@ class CreateEvent_State final : public iscore::SerializableCommand
         public:
 
           CreateEvent_State(
-            const ScenarioModel& scenario,
+            const Scenario::ScenarioModel& scenario,
             const Id<TimeNodeModel>& timeNode,
             double stateY);
         CreateEvent_State(
-          const Path<ScenarioModel>& scenario,
+          const Path<Scenario::ScenarioModel>& scenario,
           const Id<TimeNodeModel>& timeNode,
           double stateY);
 
-        const Path<ScenarioModel>& scenarioPath() const
+        const Path<Scenario::ScenarioModel>& scenarioPath() const
         { return m_command.scenarioPath(); }
 
         const Id<StateModel>& createdState() const

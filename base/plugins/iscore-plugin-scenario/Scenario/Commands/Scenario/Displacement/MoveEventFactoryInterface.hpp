@@ -15,7 +15,7 @@ class MoveEventTag{};
 using MoveEventFactoryKey = StringKey<MoveEventTag>;
 Q_DECLARE_METATYPE(MoveEventFactoryKey)
 
-class ScenarioModel;
+namespace Scenario { class ScenarioModel; }
 class EventModel;
 
 
@@ -26,7 +26,7 @@ public:
             enum Strategy{ MOVING, CREATION, EXTRA };
 
     virtual SerializableMoveEvent* make(
-            Path<ScenarioModel>&& scenarioPath,
+            Path<Scenario::ScenarioModel>&& scenarioPath,
             const Id<EventModel>& eventId,
             const TimeValue& newDate,
             ExpandMode mode) = 0;

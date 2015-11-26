@@ -8,7 +8,7 @@
 
 using namespace Scenario::Command;
 CreateConstraint_State_Event::CreateConstraint_State_Event(
-        const ScenarioModel &scenario,
+        const Scenario::ScenarioModel& scenario,
         const Id<StateModel>& startState,
         const Id<TimeNodeModel>& endTimeNode,
         double endStateY):
@@ -24,7 +24,7 @@ CreateConstraint_State_Event::CreateConstraint_State_Event(
 }
 
 CreateConstraint_State_Event::CreateConstraint_State_Event(
-        const Path<ScenarioModel> &scenarioPath,
+        const Path<Scenario::ScenarioModel> &scenarioPath,
         const Id<StateModel> &startState,
         const Id<TimeNodeModel> &endTimeNode,
         double endStateY):

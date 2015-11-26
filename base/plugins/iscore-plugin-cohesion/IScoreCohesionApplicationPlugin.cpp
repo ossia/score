@@ -81,7 +81,7 @@ std::vector<iscore::OrderedToolbar> IScoreCohesionApplicationPlugin::makeToolbar
     return std::vector<iscore::OrderedToolbar>{iscore::OrderedToolbar(2, bar)};
 }
 
-void IScoreCohesionApplicationPlugin::record(ScenarioModel& scenar, Scenario::Point pt)
+void IScoreCohesionApplicationPlugin::record(Scenario::ScenarioModel& scenar, Scenario::Point pt)
 {
     m_recManager = std::make_unique<RecordManager>();
     m_recManager->recordInNewBox(scenar, pt);

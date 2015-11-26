@@ -114,6 +114,7 @@ void EventView::setStatus(ExecutionStatus s)
 
 void EventView::setSelected(bool selected)
 {
+    qDebug("bleh");
     m_selected = selected;
     update();
 }

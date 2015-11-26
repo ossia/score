@@ -12,18 +12,18 @@ class CreateConstraint_State_Event final : public iscore::SerializableCommand
         public:
 
           CreateConstraint_State_Event(
-            const ScenarioModel& scenario,
+            const Scenario::ScenarioModel& scenario,
             const Id<StateModel>& startState,
             const Id<TimeNodeModel>& endTimeNode,
             double endStateY);
 
         CreateConstraint_State_Event(
-          const Path<ScenarioModel>& scenario,
+          const Path<Scenario::ScenarioModel>& scenario,
           const Id<StateModel>& startState,
           const Id<TimeNodeModel>& endTimeNode,
           double endStateY);
 
-        const Path<ScenarioModel>& scenarioPath() const
+        const Path<Scenario::ScenarioModel>& scenarioPath() const
         { return m_command.scenarioPath(); }
 
         const double& endStateY() const

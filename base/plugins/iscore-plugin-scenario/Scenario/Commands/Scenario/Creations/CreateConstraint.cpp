@@ -15,7 +15,7 @@ using namespace iscore;
 using namespace Scenario::Command;
 
 CreateConstraint::CreateConstraint(
-        Path<ScenarioModel>&& scenarioPath,
+        Path<Scenario::ScenarioModel>&& scenarioPath,
         const Id<StateModel>& startState,
         const Id<StateModel>& endState) :
     m_path {std::move(scenarioPath) },

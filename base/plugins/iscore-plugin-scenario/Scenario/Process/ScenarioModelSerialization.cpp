@@ -5,7 +5,7 @@
 #include "ScenarioFactory.hpp"
 
 template<>
-void Visitor<Reader<DataStream>>::readFrom(const ScenarioModel& scenario)
+void Visitor<Reader<DataStream>>::readFrom(const Scenario::ScenarioModel& scenario)
 {
     readFrom(*scenario.pluginModelList);
 
@@ -56,7 +56,7 @@ void Visitor<Reader<DataStream>>::readFrom(const ScenarioModel& scenario)
 }
 
 template<>
-void Visitor<Writer<DataStream>>::writeTo(ScenarioModel& scenario)
+void Visitor<Writer<DataStream>>::writeTo(Scenario::ScenarioModel& scenario)
 {
     scenario.pluginModelList = new iscore::ElementPluginModelList{*this, &scenario};
 
@@ -115,7 +115,7 @@ void Visitor<Writer<DataStream>>::writeTo(ScenarioModel& scenario)
 
 
 template<>
-void Visitor<Reader<JSONObject>>::readFrom(const ScenarioModel& scenario)
+void Visitor<Reader<JSONObject>>::readFrom(const Scenario::ScenarioModel& scenario)
 {
     m_obj["PluginsMetadata"] = toJsonValue(*scenario.pluginModelList);
     m_obj["Metadata"] = toJsonObject(scenario.metadata);
@@ -132,7 +132,7 @@ void Visitor<Reader<JSONObject>>::readFrom(const ScenarioModel& scenario)
 }
 
 template<>
-void Visitor<Writer<JSONObject>>::writeTo(ScenarioModel& scenario)
+void Visitor<Writer<JSONObject>>::writeTo(Scenario::ScenarioModel& scenario)
 {
     Deserializer<JSONValue> elementPluginDeserializer(m_obj["PluginsMetadata"]);
     scenario.pluginModelList = new iscore::ElementPluginModelList{elementPluginDeserializer, &scenario};
@@ -181,7 +181,7 @@ void Visitor<Writer<JSONObject>>::writeTo(ScenarioModel& scenario)
 }
 
 
-void ScenarioModel::serialize(const VisitorVariant& vis) const
+void Scenario::ScenarioModel::serialize(const VisitorVariant& vis) const
 {
     serialize_dyn(vis, *this);
 }
@@ -191,10 +191,10 @@ Process* ScenarioFactory::loadModel(
         QObject* parent)
 {
     return deserialize_dyn(vis, [&] (auto&& deserializer)
-    { return new ScenarioModel{deserializer, parent};});
+    { return new Scenario::ScenarioModel{deserializer, parent};});
 }
 
-LayerModel* ScenarioModel::loadLayer_impl(
+LayerModel* Scenario::ScenarioModel::loadLayer_impl(
         const VisitorVariant& vis,
         QObject* parent)
 {

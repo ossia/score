@@ -56,7 +56,7 @@ Process* ScenarioFactory::makeModel(
         const Id<Process>& id,
         QObject* parent)
 {
-    return new ScenarioModel {duration, id, parent};
+    return new Scenario::ScenarioModel {duration, id, parent};
 }
 
 QByteArray ScenarioFactory::makeStaticLayerConstructionData() const

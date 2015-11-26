@@ -11,7 +11,7 @@
 using namespace iscore;
 using namespace Scenario::Command;
 
-MergeTimeNodes::MergeTimeNodes( Path<ScenarioModel> &&path,
+MergeTimeNodes::MergeTimeNodes( Path<Scenario::ScenarioModel> &&path,
                                 Id<TimeNodeModel> aimedTimeNode,
                                 Id<TimeNodeModel> movingTimeNode):
     m_path {std::move(path) },

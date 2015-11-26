@@ -10,7 +10,7 @@ class MoveEventMeta final : public SerializableMoveEvent
 public:
 
     MoveEventMeta(
-            Path<ScenarioModel>&& scenarioPath,
+            Path<Scenario::ScenarioModel>&& scenarioPath,
             const Id<EventModel>& eventId,
             const TimeValue& newDate,
             ExpandMode mode);
@@ -18,7 +18,7 @@ public:
     void undo() const override;
     void redo() const override;
 
-    const Path<ScenarioModel>& path() const override;
+    const Path<Scenario::ScenarioModel>& path() const override;
 
     // SerializableCommand interface
 protected:
@@ -30,5 +30,5 @@ private:
 
     // SerializableMoveEvent interface
 public:
-    void update(const Path<ScenarioModel>& scenarioPath, const Id<EventModel>& eventId, const TimeValue& newDate, ExpandMode mode) override;
+    void update(const Path<Scenario::ScenarioModel>& scenarioPath, const Id<EventModel>& eventId, const TimeValue& newDate, ExpandMode mode) override;
 };

@@ -48,7 +48,7 @@ void DisplayedElementsPresenter::on_displayedConstraintChanged(const ConstraintM
         m_endNodePresenter = new TimeNodePresenter{bs->endTimeNode(), m_model->view().baseItem(), this};
 
     }
-    else if(auto sm = dynamic_cast<ScenarioModel*>(m.parent()))
+    else if(auto sm = dynamic_cast<Scenario::ScenarioModel*>(m.parent()))
     {
         const auto& startState = sm->states.at(m.startState());
         const auto& endState = sm->states.at(m.endState());

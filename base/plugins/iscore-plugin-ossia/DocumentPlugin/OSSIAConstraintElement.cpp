@@ -65,7 +65,7 @@ OSSIAConstraintElement::OSSIAConstraintElement(
         }
     });
 
-    if(dynamic_cast<ScenarioModel*>(iscore_cst.parent()))
+    if(dynamic_cast<Scenario::ScenarioModel*>(iscore_cst.parent()))
     {
         ossia_cst->setCallback([&] (
                                const OSSIA::TimeValue& position,
@@ -154,7 +154,7 @@ void OSSIAConstraintElement::on_processAdded(
     // gives correct const / non_const access ?
     auto proc = const_cast<Process*>(&iscore_proc);
     OSSIAProcessElement* plug{};
-    if(auto scenar = dynamic_cast<ScenarioModel*>(proc))
+    if(auto scenar = dynamic_cast<Scenario::ScenarioModel*>(proc))
     {
         plug = new OSSIAScenarioElement{*this, *scenar, proc};
     }

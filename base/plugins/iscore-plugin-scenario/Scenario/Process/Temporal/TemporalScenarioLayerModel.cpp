@@ -13,7 +13,7 @@
 TemporalScenarioLayerModel::TemporalScenarioLayerModel(
         const Id<LayerModel>& viewModelId,
         const QMap<Id<ConstraintModel>, Id<ConstraintViewModel> >& constraintIds,
-        ScenarioModel& model,
+        Scenario::ScenarioModel& model,
         QObject* parent) :
     AbstractScenarioLayerModel {viewModelId,
                               "TemporalScenarioLayer",
@@ -29,7 +29,7 @@ TemporalScenarioLayerModel::TemporalScenarioLayerModel(
 TemporalScenarioLayerModel::TemporalScenarioLayerModel(
         const TemporalScenarioLayerModel& source,
         const Id<LayerModel>& id,
-        ScenarioModel& newScenario,
+        Scenario::ScenarioModel& newScenario,
         QObject* parent) :
     AbstractScenarioLayerModel {source,
                               id,

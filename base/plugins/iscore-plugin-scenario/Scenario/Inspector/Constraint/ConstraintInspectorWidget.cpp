@@ -91,7 +91,7 @@ ConstraintInspectorWidget::ConstraintInspectorWidget(
     m_properties.push_back(setAsDisplayedConstraint);
 
     // Events
-    if(auto scenario = qobject_cast<ScenarioModel*>(m_model.parent()))
+    if(auto scenario = qobject_cast<Scenario::ScenarioModel*>(m_model.parent()))
     {
         m_properties.push_back(makeStatesWidget(scenario));
     }
@@ -386,7 +386,7 @@ void ConstraintInspectorWidget::ask_processNameChanged(const Process& p, QString
     }
 }
 
-QWidget* ConstraintInspectorWidget::makeStatesWidget(ScenarioModel* scenar)
+QWidget* ConstraintInspectorWidget::makeStatesWidget(Scenario::ScenarioModel* scenar)
 {
     QWidget* eventWid = new QWidget{this};
     QFormLayout* eventLay = new QFormLayout {eventWid};

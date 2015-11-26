@@ -9,7 +9,7 @@ class TemporalConstraintViewModel;
 class ConstraintViewModel;
 class RackModel;
 class SlotModel;
-class ScenarioModel;
+namespace Scenario { class ScenarioModel; }
 class Process;
 class TriggerInspectorWidget;
 class InspectorWidgetList;
@@ -66,7 +66,7 @@ class ConstraintInspectorWidget final : public InspectorWidgetBase
         void on_constraintViewModelCreated(const ConstraintViewModel&);
         void on_constraintViewModelRemoved(const QObject*);
 
-        QWidget* makeStatesWidget(ScenarioModel*);
+        QWidget* makeStatesWidget(Scenario::ScenarioModel*);
 
         const InspectorWidgetList& m_widgetList;
         const DynamicProcessList& m_processList;

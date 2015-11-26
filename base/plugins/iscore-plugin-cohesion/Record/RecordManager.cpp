@@ -93,7 +93,7 @@ void RecordManager::stopRecording()
     m_explorer->deviceModel().resumeListening(m_savedListening);
 }
 
-void RecordManager::recordInNewBox(ScenarioModel& scenar, Scenario::Point pt)
+void RecordManager::recordInNewBox(Scenario::ScenarioModel& scenar, Scenario::Point pt)
 {
     auto& doc = *iscore::IDocument::documentFromObject(scenar);
     //// Device tree management ////
@@ -270,7 +270,7 @@ void RecordManager::recordInNewBox(ScenarioModel& scenar, Scenario::Point pt)
         // Move end event by the current duration.
         int msecs = std::chrono::duration_cast<std::chrono::milliseconds>(current_time_pt - start_time_pt).count();
         cmd_move->update(
-                    Path<ScenarioModel>{},
+                    Path<Scenario::ScenarioModel>{},
                     Id<ConstraintModel>{},
                     cmd_end->createdEvent(),
                     pt.date + TimeValue::fromMsecs(msecs),

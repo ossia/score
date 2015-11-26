@@ -5,7 +5,7 @@
 
 #include <iscore/tools/ModelPath.hpp>
 
-class ScenarioModel;
+namespace Scenario { class ScenarioModel; }
 class EventModel;
 class TimeNodeModel;
 
@@ -17,7 +17,7 @@ namespace Scenario
         {
                 ISCORE_COMMAND_DECL(ScenarioCommandFactoryName(), MergeTimeNodes, "Merge timenodes")
             public:
-                MergeTimeNodes(Path<ScenarioModel>&& path, Id<TimeNodeModel> aimedTimeNode, Id<TimeNodeModel> movingTimeNode);
+                MergeTimeNodes(Path<Scenario::ScenarioModel>&& path, Id<TimeNodeModel> aimedTimeNode, Id<TimeNodeModel> movingTimeNode);
                 void undo() const override;
                 void redo() const override;
 
@@ -26,7 +26,7 @@ namespace Scenario
                 void deserializeImpl(DataStreamOutput&) override;
 
             private:
-                Path<ScenarioModel> m_path;
+                Path<Scenario::ScenarioModel> m_path;
 
                 Id<TimeNodeModel> m_aimedTimeNodeId;
                 Id<TimeNodeModel> m_movingTimeNodeId;

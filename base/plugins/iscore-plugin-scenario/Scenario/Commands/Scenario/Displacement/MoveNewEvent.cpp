@@ -8,7 +8,7 @@ using namespace iscore;
 using namespace Scenario::Command;
 
 MoveNewEvent::MoveNewEvent(
-        Path<ScenarioModel>&& scenarioPath,
+        Path<Scenario::ScenarioModel>&& scenarioPath,
         const Id<ConstraintModel>& constraintId,
         const Id<EventModel>& eventId,
         const TimeValue& date,
@@ -16,7 +16,7 @@ MoveNewEvent::MoveNewEvent(
         bool yLocked) :
     m_path {std::move(scenarioPath)},
     m_constraintId {constraintId},
-    m_cmd{Path<ScenarioModel>{m_path}, eventId, date, ExpandMode::Scale},
+    m_cmd{Path<Scenario::ScenarioModel>{m_path}, eventId, date, ExpandMode::Scale},
     m_y{y},
     m_yLocked{yLocked}
 {
@@ -24,7 +24,7 @@ MoveNewEvent::MoveNewEvent(
 }
 
 MoveNewEvent::MoveNewEvent(
-        Path<ScenarioModel>&& scenarioPath,
+        Path<Scenario::ScenarioModel>&& scenarioPath,
         const Id<ConstraintModel>& constraintId,
         const Id<EventModel>& eventId,
         const TimeValue& date,

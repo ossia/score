@@ -22,7 +22,7 @@ class MoveConstraintTest: public QObject
 
         void MoveCommandTest()
         {
-            ScenarioModel* scenar = new ScenarioModel(std::chrono::seconds(15), Id<ProcessModel> {0}, qApp);
+            Scenario::ScenarioModel* scenar = new ScenarioModel(std::chrono::seconds(15), Id<ProcessModel> {0}, qApp);
 
             auto int_0_id = getStrongId(scenar->constraints());
             auto ev_0_id = getStrongId(scenar->events());

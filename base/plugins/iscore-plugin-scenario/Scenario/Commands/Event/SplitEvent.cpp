@@ -13,7 +13,7 @@
 using namespace Scenario::Command;
 
 
-SplitEvent::SplitEvent(const Path<ScenarioModel> &scenario,
+SplitEvent::SplitEvent(const Path<Scenario::ScenarioModel> &scenario,
                        const Id<EventModel> &event,
                        const QVector<Id<StateModel>> &movingstates):
     m_scenarioPath{scenario},

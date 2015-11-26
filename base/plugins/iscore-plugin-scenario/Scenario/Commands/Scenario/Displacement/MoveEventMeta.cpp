@@ -4,7 +4,7 @@
 #include "MoveEventFactoryInterface.hpp"
 
 MoveEventMeta::MoveEventMeta(
-        Path<ScenarioModel>&& scenarioPath,
+        Path<Scenario::ScenarioModel>&& scenarioPath,
         const Id<EventModel>& eventId,
         const TimeValue& newDate,
         ExpandMode mode)
@@ -26,7 +26,7 @@ void MoveEventMeta::redo() const
     m_moveEventImplementation->redo();
 }
 
-const Path<ScenarioModel>&MoveEventMeta::path() const
+const Path<Scenario::ScenarioModel>&MoveEventMeta::path() const
 {
     return m_moveEventImplementation->path();
 }
@@ -49,7 +49,7 @@ void MoveEventMeta::deserializeImpl(DataStreamOutput& qDataStream)
     m_moveEventImplementation->deserialize(cmdData);
 }
 
-void MoveEventMeta::update(const Path<ScenarioModel>& scenarioPath,
+void MoveEventMeta::update(const Path<Scenario::ScenarioModel>& scenarioPath,
                            const Id<EventModel>& eventId,
                            const TimeValue& newDate,
                            ExpandMode mode)

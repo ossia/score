@@ -2,7 +2,7 @@
 
 #include <Scenario/Process/ScenarioModel.hpp>
 
-void updateEventExtent(const Id<EventModel> &id, ScenarioModel &s)
+void updateEventExtent(const Id<EventModel> &id, Scenario::ScenarioModel& s)
 {
     auto& ev = s.event(id);
     double min = std::numeric_limits<double>::max();
@@ -22,7 +22,7 @@ void updateEventExtent(const Id<EventModel> &id, ScenarioModel &s)
 }
 
 
-void updateTimeNodeExtent(const Id<TimeNodeModel>& id, ScenarioModel &s)
+void updateTimeNodeExtent(const Id<TimeNodeModel>& id, Scenario::ScenarioModel& s)
 {
     auto& tn = s.timeNodes.at(id);
     double min = std::numeric_limits<double>::max();
@@ -39,7 +39,7 @@ void updateTimeNodeExtent(const Id<TimeNodeModel>& id, ScenarioModel &s)
     tn.setExtent({min, max});
 }
 
-void updateConstraintVerticalPos(double y, const Id<ConstraintModel> &id, ScenarioModel &s)
+void updateConstraintVerticalPos(double y, const Id<ConstraintModel> &id, Scenario::ScenarioModel& s)
 {
     auto& cst = s.constraints.at(id);
 

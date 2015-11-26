@@ -20,7 +20,7 @@ namespace RecreateOnPlay
 {
 ScenarioElement::ScenarioElement(
         ConstraintElement& parentConstraint,
-        ScenarioModel& element,
+        Scenario::ScenarioModel& element,
         QObject* parent):
     ProcessElement{parentConstraint, parent},
     m_iscore_scenario{element},

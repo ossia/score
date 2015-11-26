@@ -7,6 +7,9 @@ using CommandFactoryKey = StringKey<CommandTag>;
 class CommandParentTag{};
 using CommandParentFactoryKey = StringKey<CommandParentTag>;
 
+template<typename T>
+const CommandParentFactoryKey& CommandFactoryName();
+
 /**
  * This macro is used to specify the common metadata of commands :
  *  - factory name (e.g. "ScenarioApplicationPlugin")

@@ -18,7 +18,7 @@ class DistributedScenario : public ProcessModel
     private:
         std::unordered_map<Id<EventModel>, Id<Group>> m_eventMap;
         std::unordered_map<Id<ConstraintModel>, Id<Group>> m_eventMap;
-        ScenarioModel* m_model{};
+        Scenario::ScenarioModel* m_model{};
 
     public:
         ProcessModel*clone(Id<ProcessModel> newId, QObject* newParent)

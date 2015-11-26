@@ -17,7 +17,7 @@ class TimeNodeModel;
 class ConstraintModel;
 class ConstraintViewModel;
 class RackModel;
-class ScenarioModel;
+namespace Scenario { class ScenarioModel; }
 struct ElementsProperties;
 
 #include <tests/helpers/ForwardDeclaration.hpp>
@@ -64,7 +64,7 @@ class MoveEvent final : public SerializableMoveEvent
                  * @param mode
                  */
         MoveEvent(
-                Path<ScenarioModel>&& scenarioPath,
+                Path<Scenario::ScenarioModel>&& scenarioPath,
                 const Id<EventModel>& eventId,
                 const TimeValue& newDate,
                 ExpandMode mode)
@@ -88,7 +88,7 @@ class MoveEvent final : public SerializableMoveEvent
         }
 
         void update(
-                const Path<ScenarioModel>& scenarioPath,
+                const Path<Scenario::ScenarioModel>& scenarioPath,
                 const Id<EventModel>& eventId,
                 const TimeValue& newDate,
                 ExpandMode mode) override
@@ -134,7 +134,7 @@ class MoveEvent final : public SerializableMoveEvent
             updateEventExtent(m_eventId, scenario);
         }
 
-        const Path<ScenarioModel>& path() const override
+        const Path<Scenario::ScenarioModel>& path() const override
         { return m_path; }
 
     protected:
@@ -162,7 +162,7 @@ class MoveEvent final : public SerializableMoveEvent
 
     private:
         ElementsProperties m_savedElementsProperties;
-        Path<ScenarioModel> m_path;
+        Path<Scenario::ScenarioModel> m_path;
 
         ExpandMode m_mode{ExpandMode::Scale};
         DisplacementPolicy m_displacementPolicy;

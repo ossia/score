@@ -2,7 +2,7 @@
 #include <iscore/plugins/application/GUIApplicationContextPlugin.hpp>
 #include <Scenario/Process/Temporal/StateMachines/ScenarioPoint.hpp>
 class RecordManager;
-class ScenarioModel;
+namespace Scenario { class ScenarioModel; }
 class IScoreCohesionApplicationPlugin final : public iscore::GUIApplicationContextPlugin
 {
     public:
@@ -10,7 +10,7 @@ class IScoreCohesionApplicationPlugin final : public iscore::GUIApplicationConte
         void populateMenus(iscore::MenubarManager*) override;
         std::vector<iscore::OrderedToolbar> makeToolbars() override;
 
-        void record(ScenarioModel&, Scenario::Point pt);
+        void record(Scenario::ScenarioModel&, Scenario::Point pt);
         void stopRecord();
 
     private:

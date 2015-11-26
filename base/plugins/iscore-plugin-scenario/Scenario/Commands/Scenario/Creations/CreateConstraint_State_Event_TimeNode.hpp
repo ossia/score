@@ -13,18 +13,18 @@ class CreateConstraint_State_Event_TimeNode final : public iscore::SerializableC
         public:
 
           CreateConstraint_State_Event_TimeNode(
-            const ScenarioModel& scenario,
+            const Scenario::ScenarioModel& scenario,
             const Id<StateModel>& startState,
             const TimeValue& date,
             double endStateY);
 
         CreateConstraint_State_Event_TimeNode(
-          const Path<ScenarioModel>& scenario,
+          const Path<Scenario::ScenarioModel>& scenario,
           const Id<StateModel>& startState,
           const TimeValue& date,
           double endStateY);
 
-        const Path<ScenarioModel>& scenarioPath() const
+        const Path<Scenario::ScenarioModel>& scenarioPath() const
         { return m_command.scenarioPath(); }
 
         const Id<ConstraintModel>& createdConstraint() const

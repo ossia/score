@@ -18,6 +18,9 @@ std::shared_ptr<OSSIA::StateElement> Audio::Process::state(const OSSIA::TimeValu
     if(double(t) == 0)
         if(m_block)
             m_block->start();
+    if(double(t) >= 0.99)
+        if(m_block)
+            m_block->stop();
 
     return {};
 }

@@ -12,7 +12,7 @@
 using namespace Scenario::Command;
 
 CreateSequence::CreateSequence(
-        const ScenarioModel& scenario,
+        const Scenario::ScenarioModel& scenario,
         const Id<StateModel>& startState,
         const TimeValue& date,
         double endStateY):
@@ -88,7 +88,7 @@ CreateSequence::CreateSequence(
     // Then, if there are correct messages we can actually do our interpolation.
     if(!matchingMessages.empty())
     {
-        auto constraint = Path<ScenarioModel>{scenario}.extend(ConstraintModel::className, m_command.createdConstraint());
+        auto constraint = Path<Scenario::ScenarioModel>{scenario}.extend(ConstraintModel::className, m_command.createdConstraint());
 
         {
             InterpolateMacro interpolateMacro{Path<ConstraintModel>{constraint}};
@@ -134,7 +134,7 @@ CreateSequence::CreateSequence(
 }
 
 CreateSequence::CreateSequence(
-        const Path<ScenarioModel>& scenarioPath,
+        const Path<Scenario::ScenarioModel>& scenarioPath,
         const Id<StateModel>& startState,
         const TimeValue& date,
         double endStateY):

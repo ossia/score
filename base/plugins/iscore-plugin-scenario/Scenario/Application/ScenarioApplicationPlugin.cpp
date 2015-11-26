@@ -380,9 +380,9 @@ void ScenarioApplicationPlugin::initColors()
     }
 }
 
-const ScenarioModel* ScenarioApplicationPlugin::focusedScenarioModel() const
+const Scenario::ScenarioModel* ScenarioApplicationPlugin::focusedScenarioModel() const
 {
-    return dynamic_cast<const ScenarioModel*>(processFocusManager()->focusedModel());
+    return dynamic_cast<const Scenario::ScenarioModel*>(processFocusManager()->focusedModel());
 }
 
 TemporalScenarioPresenter* ScenarioApplicationPlugin::focusedPresenter() const

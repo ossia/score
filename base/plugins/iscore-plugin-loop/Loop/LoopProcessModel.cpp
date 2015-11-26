@@ -26,11 +26,11 @@ ProcessModel::ProcessModel(
     endEvent().setDate(duration);
     endTimeNode().setDate(duration);
 
-    constraint().setHeightPercentage(0.05);
+    constraint().setHeightPercentage(0.1);
     constraint().metadata.setName("Loop pattern");
     constraint().metadata.setColor(Qt::yellow);
-    BaseScenarioContainer::startState().setHeightPercentage(0.05);
-    BaseScenarioContainer::endState().setHeightPercentage(0.05);
+    BaseScenarioContainer::startState().setHeightPercentage(0.1);
+    BaseScenarioContainer::endState().setHeightPercentage(0.1);
     BaseScenarioContainer::startEvent().setExtent({0.02, 0.2});
     BaseScenarioContainer::endEvent().setExtent({0.02, 0.2});
     BaseScenarioContainer::startTimeNode().setExtent({0, 1});
@@ -103,18 +103,40 @@ ProcessStateDataInterface* ProcessModel::endStateData() const
     return nullptr;
 }
 
+template<typename Tuple>
+Selection toSelection(const Tuple& tpl)
+{
+    Selection s;
+    for_each_in_tuple(tpl, [&] (auto elt) { s.append(elt); });
+    return s;
+}
+
 Selection ProcessModel::selectableChildren() const
 {
-    return {};
+    Selection s;
+
+    for_each_in_tuple(elements(), [&] (auto elt) { s.append(elt); });
+
+    return s;
 }
 
 Selection ProcessModel::selectedChildren() const
 {
-    return {};
+    Selection s;
+
+    for_each_in_tuple(elements(), [&] (auto elt) {
+        if(elt->selection.get())
+            s.append(elt);
+    });
+
+    return s;
 }
 
-void ProcessModel::setSelection(const Selection&) const
+void ProcessModel::setSelection(const Selection& s) const
 {
+    for_each_in_tuple(elements(), [&] (auto elt) {
+        elt->selection.set(s.contains(elt)); // OPTIMIZEME
+    });
 }
 
 void ProcessModel::serialize(const VisitorVariant& s) const

@@ -61,7 +61,7 @@ ScenarioPasteElements::ScenarioPasteElements(
     // We assign new ids WRT the elements of the scenario - these ids can
     // be easily mapped.
     const auto& tsModel = m_ts.find();
-    const ScenarioModel& scenario = ::model(tsModel);
+    const Scenario::ScenarioModel& scenario = ::model(tsModel);
 
     // TODO the elements are child of the document
     // because else the State cannot be constructed properly
@@ -338,7 +338,7 @@ ScenarioPasteElements::ScenarioPasteElements(
 void ScenarioPasteElements::undo() const
 {
     auto& tsModel = m_ts.find();
-    ScenarioModel& scenario = ::model(tsModel);
+    Scenario::ScenarioModel& scenario = ::model(tsModel);
 
     for(const auto& elt : m_ids_timenodes)
     {
@@ -361,7 +361,7 @@ void ScenarioPasteElements::undo() const
 void ScenarioPasteElements::redo() const
 {
     auto& tsModel = m_ts.find();
-    ScenarioModel& scenario = ::model(tsModel);
+    Scenario::ScenarioModel& scenario = ::model(tsModel);
 
     std::vector<TimeNodeModel*> addedTimeNodes;
     addedTimeNodes.reserve(m_json_timenodes.size());

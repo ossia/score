@@ -20,6 +20,7 @@ class AudioBlock
         virtual std::vector<float> data(int size, int buffer, int offset) const = 0;
 
         void start();
+        void stop();
 
         int currentBuffer = 0;
         int offset = 0; // Offset in samples between the playing audio and the buffer.

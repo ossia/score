@@ -4,7 +4,7 @@
 #include <iscore/tools/ModelPath.hpp>
 #include <iscore/tools/SettableIdentifier.hpp>
 #include <iscore/serialization/DataStreamVisitor.hpp>
-class ScenarioModel;
+namespace Scenario { class ScenarioModel; }
 class ConstraintViewModel;
 class ConstraintModel;
 class TimeNodeModel;
@@ -16,7 +16,7 @@ class AbstractScenarioLayerModel : public LayerModel
 {
         Q_OBJECT
     public:
-        using model_type = ScenarioModel;
+        using model_type = Scenario::ScenarioModel;
 
         virtual void makeConstraintViewModel(
                 const Id<ConstraintModel>& constraintModelId,
@@ -119,9 +119,9 @@ QVector<typename T::constraint_layer_type*> constraintsViewModels(const T& scena
 
 void createConstraintViewModels(const ConstraintViewModelIdMap& idMap,
                                 const Id<ConstraintModel>& constraint,
-                                const ScenarioModel& scenario);
+                                const Scenario::ScenarioModel& scenario);
 
 // Note : the view models can also be more easily accessed using the viewModels methods of ConstraintModel
 std::vector<ConstraintViewModel*> getConstraintViewModels(
         const Id<ConstraintModel>& constraintId,
-        const ScenarioModel& scenario);
+        const Scenario::ScenarioModel& scenario);

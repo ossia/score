@@ -120,7 +120,7 @@ struct TAVisitor
             }
         }
 
-        void visit(const ScenarioModel& s)
+        void visit(const Scenario::ScenarioModel& s)
         {
             qDebug() << space() << "Visiting scenario" << s.id();
             depth++;
@@ -166,7 +166,7 @@ struct TAVisitor
                 {
                     visit(*autom);
                 }
-                else if(auto scenario = dynamic_cast<const ScenarioModel*>(&process))
+                else if(auto scenario = dynamic_cast<const Scenario::ScenarioModel*>(&process))
                 {
                     visit(*scenario);
                 }

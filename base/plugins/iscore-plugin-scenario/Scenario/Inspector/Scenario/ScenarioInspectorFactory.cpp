@@ -10,7 +10,7 @@ InspectorWidgetBase* ScenarioInspectorFactory::makeWidget(
         QWidget* parent)
 {
     return new ScenarioInspectorWidget{
-        static_cast<const ScenarioModel&>(sourceElement),
+        static_cast<const Scenario::ScenarioModel&>(sourceElement),
                 doc,
                 parent};
 }

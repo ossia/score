@@ -10,7 +10,7 @@
 #include <Scenario/Application/ScenarioEditionSettings.hpp>
 #include "Menus/ContextMenuDispatcher.hpp"
 class QActionGroup;
-class ScenarioModel;
+namespace Scenario { class ScenarioModel; }
 class SlotPresenter;
 class TemporalScenarioPresenter;
 
@@ -47,7 +47,7 @@ class ScenarioApplicationPlugin final : public iscore::GUIApplicationContextPlug
         QVector<ScenarioActions*>& pluginActions()
         { return m_pluginActions; }
 
-        const ScenarioModel* focusedScenarioModel() const;
+        const Scenario::ScenarioModel* focusedScenarioModel() const;
         TemporalScenarioPresenter* focusedPresenter() const;
 
         void reinit_tools();
@@ -61,7 +61,7 @@ class ScenarioApplicationPlugin final : public iscore::GUIApplicationContextPlug
         void keyPressed(int);
         void keyReleased(int);
 
-        void startRecording(ScenarioModel&, Scenario::Point);
+        void startRecording(Scenario::ScenarioModel&, Scenario::Point);
         void stopRecording();
 
     protected:

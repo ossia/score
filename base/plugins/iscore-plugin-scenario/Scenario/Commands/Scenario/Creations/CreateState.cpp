@@ -7,7 +7,7 @@
 
 #include <Scenario/Process/ScenarioModel.hpp>
 using namespace Scenario::Command;
-CreateState::CreateState(const ScenarioModel &scenario, const Id<EventModel> &event, double stateY) :
+CreateState::CreateState(const Scenario::ScenarioModel& scenario, const Id<EventModel> &event, double stateY) :
     m_path {scenario},
     m_newState{getStrongId(scenario.states)},
     m_event{event},
@@ -17,7 +17,7 @@ CreateState::CreateState(const ScenarioModel &scenario, const Id<EventModel> &ev
 }
 
 CreateState::CreateState(
-        const Path<ScenarioModel> &scenarioPath,
+        const Path<Scenario::ScenarioModel> &scenarioPath,
         const Id<EventModel> &event,
         double stateY):
     CreateState{scenarioPath.find(), event, stateY}

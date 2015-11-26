@@ -8,7 +8,7 @@
 
 using namespace Scenario::Command;
 CreateEvent_State::CreateEvent_State(
-        const ScenarioModel& scenario,
+        const Scenario::ScenarioModel& scenario,
         const Id<TimeNodeModel>& timeNode,
         double stateY):
     m_newEvent{getStrongId(scenario.events)},
@@ -22,7 +22,7 @@ CreateEvent_State::CreateEvent_State(
 }
 
 CreateEvent_State::CreateEvent_State(
-        const Path<ScenarioModel>& scenario,
+        const Path<Scenario::ScenarioModel>& scenario,
         const Id<TimeNodeModel> &timeNode,
         double stateY):
     CreateEvent_State{scenario.find(),

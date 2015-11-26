@@ -38,7 +38,7 @@ void ScenarioConstraintInspectorDelegate::on_defaultDurationChanged(
 {
     auto scenario = m_model.parentScenario();
     dispatcher.submitCommand<MoveEventMeta>(
-            *safe_cast<ScenarioModel*>(m_model.parent()),
+            *safe_cast<Scenario::ScenarioModel*>(m_model.parent()),
             scenario->state(m_model.endState()).eventId(),
             m_model.startDate() + val,
             expandmode);

@@ -2,13 +2,13 @@
 
 #include <Inspector/InspectorWidgetBase.hpp>
 
-class ScenarioModel;
+namespace Scenario { class ScenarioModel; }
 class ScenarioInspectorWidget final : public InspectorWidgetBase
 {
         Q_OBJECT
     public:
         explicit ScenarioInspectorWidget(
-                const ScenarioModel& object,
+                const Scenario::ScenarioModel& object,
                 iscore::Document& doc,
                 QWidget* parent);
 
@@ -16,5 +16,5 @@ class ScenarioInspectorWidget final : public InspectorWidgetBase
         void createViewInNewSlot(QString); // TODO make a ProcessInspectorWidget
 
     private:
-        const ScenarioModel& m_model;
+        const Scenario::ScenarioModel& m_model;
 };

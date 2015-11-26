@@ -21,7 +21,7 @@ namespace Scenario
         {
                 ISCORE_COMMAND_DECL(ScenarioCommandFactoryName(), RemoveSelection, "Remove selected elements")
             public:
-                RemoveSelection(Path<ScenarioModel>&& scenarioPath, Selection sel);
+                RemoveSelection(Path<Scenario::ScenarioModel>&& scenarioPath, Selection sel);
 
                 void undo() const override;
                 void redo() const override;
@@ -31,7 +31,7 @@ namespace Scenario
                 void deserializeImpl(DataStreamOutput&) override;
 
             private:
-                Path<ScenarioModel> m_path;
+                Path<Scenario::ScenarioModel> m_path;
 
                 // For timenodes that may be removed when there is only a single event
                 QVector<QPair<Id<TimeNodeModel>, QByteArray>> m_maybeRemovedTimeNodes;
