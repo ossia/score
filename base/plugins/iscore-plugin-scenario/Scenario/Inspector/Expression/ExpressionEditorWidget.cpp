@@ -16,8 +16,6 @@ ExpressionEditorWidget::ExpressionEditorWidget(QWidget *parent) :
 iscore::Expression ExpressionEditorWidget::expression()
 {
     auto e = *iscore::parse(currentExpr());
-    qDebug() << currentExpr();
-    qDebug() << e.toString();
     return e;
 }
 
@@ -29,15 +27,17 @@ void ExpressionEditorWidget::setExpression(iscore::Expression e)
     }
     m_relations.clear();
     auto es = e.toString();
+    m_expression = es;
     if(!es.isEmpty())
     {
         auto ORmembers = es.split("or");
         for(auto m : ORmembers)
         {
+            qDebug() << m;
             auto ANDmembers = m.split("and");
             for(auto n : ANDmembers)
             {
-                qDebug() << n;
+                qDebug() << "n " << n;
                 if(n.isEmpty())
                     break;
                 addNewRelation();
@@ -46,7 +46,7 @@ void ExpressionEditorWidget::setExpression(iscore::Expression e)
             }
             m_relations.back()->setOperator(iscore::BinaryOperator::Or);
         }
-        m_relations.back()->setOperator(0);
+        m_relations.back()->setOperator(iscore::BinaryOperator::None);
     }
     if(m_relations.size() == 0)
         addNewRelation(); //if no expression in model, add a void one
@@ -54,10 +54,14 @@ void ExpressionEditorWidget::setExpression(iscore::Expression e)
 
 void ExpressionEditorWidget::on_editFinished()
 {
+    if (m_expression == currentExpr())
+        return;
 
+    m_expression = currentExpr();
+    emit editingFinished();
 }
 
-QString ExpressionEditorWidget::currentExpr() //TODO : why not use Expression instead ?
+QString ExpressionEditorWidget::currentExpr()
 {
     QString expr;
     for(auto r : m_relations)
@@ -66,6 +70,10 @@ QString ExpressionEditorWidget::currentExpr() //TODO : why not use Expression in
         expr += " ";
         expr += r->currentOperator();
         expr += " ";
+    }
+    while(expr.endsWith(" "))
+    {
+        expr.remove(expr.size()-1, 1);
     }
     return expr;
 }
@@ -78,7 +86,7 @@ void ExpressionEditorWidget::addNewRelation()
     m_mainLayout->addWidget(relationEditor);
 
     connect(relationEditor, &SimpleExpressionEditorWidget::editingFinished,
-        this, &ExpressionEditorWidget::editingFinished);
+        this, &ExpressionEditorWidget::on_editFinished);
     connect(relationEditor, &SimpleExpressionEditorWidget::addRelation,
             this, &ExpressionEditorWidget::addNewRelation);
 

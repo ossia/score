@@ -14,27 +14,29 @@ class ExpressionEditorWidget : public QWidget
     public:
         explicit ExpressionEditorWidget(QWidget *parent = 0);
 
-    iscore::Expression expression();
+        iscore::Expression expression();
 
     public slots:
-    void setExpression(iscore::Expression e);
+        void setExpression(iscore::Expression e);
 
     signals:
-    void editingFinished();
+        void editingFinished();
 
     private slots:
-    void on_editFinished();
+        void on_editFinished();
 //	void on_operatorChanged(int i);
 // TODO on_modelChanged()
 
-    QString currentExpr();
-    void addNewRelation();
+        QString currentExpr();
+        void addNewRelation();
 
     private:
-    QVector<SimpleExpressionEditorWidget*> m_relations;
+        QVector<SimpleExpressionEditorWidget*> m_relations;
 
-    QVBoxLayout* m_mainLayout{};
+        QVBoxLayout* m_mainLayout{};
 
-    ExpressionValidator<iscore::Expression> m_validator;
+        ExpressionValidator<iscore::Expression> m_validator;
+
+        QString m_expression{};
 };
 

@@ -19,7 +19,7 @@ class SimpleExpressionEditorWidget : public QWidget
     public slots:
         void setExpression(iscore::Expression e);
         void setOperator(iscore::BinaryOperator o);
-        void setOperator(int);
+        void setOperator(iscore::UnaryOperator u);
 
         QString currentRelation();
         QString currentOperator();
@@ -36,12 +36,14 @@ class SimpleExpressionEditorWidget : public QWidget
     private:
 
         QLabel* m_ok{};
-        QLineEdit* m_address{};
-        QLineEdit * m_value{};
 
+        QLineEdit* m_address{};
         QComboBox* m_comparator{};
-        QComboBox* m_operator{};
+        QLineEdit * m_value{};
+        QComboBox* m_binOperator{};
 
         ExpressionValidator<iscore::Expression> m_validator;
+        QString m_relation{};
+        QString m_op{};
 };
 
