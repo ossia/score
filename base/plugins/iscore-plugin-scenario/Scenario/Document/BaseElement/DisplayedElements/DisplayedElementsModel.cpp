@@ -5,6 +5,56 @@
 
 #include <Scenario/Document/BaseElement/BaseScenario/BaseScenario.hpp>
 #include <Scenario/Process/ScenarioModel.hpp>
+
+#include <iscore/plugins/customfactory/FactoryInterface.hpp>
+
+struct DisplayedElementsContainer {
+    QPointer<const ConstraintModel> constraint{};
+    QPointer<const StateModel> startState{};
+    QPointer<const StateModel> endState{};
+    QPointer<const EventModel> startEvent{};
+    QPointer<const EventModel> endEvent{};
+    QPointer<const TimeNodeModel> startNode{};
+    QPointer<const TimeNodeModel> endNode{};
+};
+
+
+class DisplayedElementsProvider : public iscore::FactoryInterfaceBase
+{
+    public:
+        virtual bool matches(const ConstraintModel& cst) const = 0;
+        virtual DisplayedElementsContainer make(const ConstraintModel& cst) const = 0;
+};
+
+class ScenarioDisplayedElementsProvider : public DisplayedElementsProvider
+{
+    public:
+        bool matches(const ConstraintModel& cst) const override
+        {
+            return dynamic_cast<Scenario::ScenarioModel*>(cst.parentScenario());
+        }
+
+        virtual DisplayedElementsContainer make(const ConstraintModel& cst) const override
+        {
+            if(auto parent_scenario = dynamic_cast<Scenario::ScenarioModel*>(cst.parentScenario()))
+            {
+                auto sst = &parent_scenario->states.at(cst.startState());
+                auto est = &parent_scenario->states.at(cst.endState());
+                auto sev = &parent_scenario->events.at(sst->eventId());
+                auto eev = &parent_scenario->events.at(est->eventId());
+                return {
+                    &cst, sst, est, sev, eev,
+                    &parent_scenario->timeNodes.at(sev->timeNode()),
+                    &parent_scenario->timeNodes.at(eev->timeNode())
+                };
+
+            }
+
+            return {};
+        }
+
+};
+
 void DisplayedElementsModel::setSelection(const Selection & s)
 {
     for_each_in_tuple(elements(), [&] (auto elt) {
