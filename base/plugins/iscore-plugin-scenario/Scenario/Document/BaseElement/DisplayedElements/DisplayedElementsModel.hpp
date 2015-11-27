@@ -26,6 +26,18 @@ class DisplayedElementsModel
         const StateModel& endState() const;
 
     private:
+        auto elements() const
+        {
+            return std::make_tuple(
+                        m_startNode,
+                        m_endNode,
+                        m_startEvent,
+                        m_endEvent,
+                        m_startState,
+                        m_endState,
+                        m_constraint);
+        }
+
         QPointer<const TimeNodeModel> m_startNode{};
         QPointer<const TimeNodeModel> m_endNode{};
 

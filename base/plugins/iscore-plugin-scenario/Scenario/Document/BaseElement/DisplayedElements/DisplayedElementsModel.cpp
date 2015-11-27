@@ -7,37 +7,9 @@
 #include <Scenario/Process/ScenarioModel.hpp>
 void DisplayedElementsModel::setSelection(const Selection & s)
 {
-    bool startev{}, endev{}, starttn{}, endtn{}, startst{}, endst{}, cst{};
-    for(const auto& elt : s)
-    {
-        ISCORE_ASSERT(elt);
-
-        if(elt == m_startEvent)
-            startev = true;
-        else if(elt == m_endEvent)
-            endev = true;
-        else if(elt == m_startNode)
-            starttn = true;
-        else if(elt == m_endNode)
-            endtn = true;
-        else if(elt == m_startState)
-            startst = true;
-        else if(elt == m_endState)
-            endst = true;
-        else if(elt == m_constraint)
-            cst = true;
-    }
-
-    if(m_startEvent) m_startEvent->selection.set(startev);
-    if(m_endEvent) m_endEvent->selection.set(endev);
-
-    if(m_startState) m_startState->selection.set(starttn);
-    if(m_endState) m_endState->selection.set(endtn);
-
-    if(m_startNode) m_startState->selection.set(startst);
-    if(m_endNode) m_endState->selection.set(endst);
-
-    if(m_constraint) m_endState->selection.set(cst);
+    for_each_in_tuple(elements(), [&] (auto elt) {
+        elt->selection.set(s.contains(elt.data())); // OPTIMIZEME
+    });
  }
 
 void DisplayedElementsModel::setDisplayedConstraint(const ConstraintModel& constraint)

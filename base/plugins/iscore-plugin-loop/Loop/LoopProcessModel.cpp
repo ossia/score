@@ -104,14 +104,6 @@ ProcessStateDataInterface* ProcessModel::endStateData() const
     return nullptr;
 }
 
-template<typename Tuple>
-Selection toSelection(const Tuple& tpl)
-{
-    Selection s;
-    for_each_in_tuple(tpl, [&] (auto elt) { s.append(elt); });
-    return s;
-}
-
 Selection ProcessModel::selectableChildren() const
 {
     Selection s;
