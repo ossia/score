@@ -28,7 +28,7 @@ find_package(Qt5 5.3 REQUIRED COMPONENTS Core Widgets Gui Network Xml Svg Test Q
 set(3RDPARTY_FOLDER "${CMAKE_CURRENT_SOURCE_DIR}/3rdparty/")
 set(ISCORE_ROOT_BINARY_DIR "${CMAKE_CURRENT_BINARY_DIR}")
 include_directories("${ISCORE_ROOT_BINARY_DIR}")
-include_directories("${3RDPARTY_FOLDER}/variant/include")
+include_directories(SYSTEM "${3RDPARTY_FOLDER}/variant/include")
 add_subdirectory("${3RDPARTY_FOLDER}/QProgressIndicator")
 add_subdirectory("${3RDPARTY_FOLDER}/QRecentFilesMenu")
 
