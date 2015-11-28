@@ -32,7 +32,7 @@ class TestStatesMinMax: public IscoreTestBase
 
             // We add a constraint
             using namespace Scenario::Command;
-            auto& scenar = static_cast<ScenarioModel&>(*getBaseElementModel().baseConstraint().processes.begin());
+            auto& scenar = static_cast<ScenarioModel&>(*getScenarioDocumentModel().baseConstraint().processes.begin());
             auto newStateCmd = new CreateState(scenar, scenar.startEvent().id(), 0);
             redo(newStateCmd);
 
@@ -94,7 +94,7 @@ class TestStatesMinMax: public IscoreTestBase
 
             // We add a constraint
             using namespace Scenario::Command;
-            auto& scenar = static_cast<ScenarioModel&>(*getBaseElementModel().baseConstraint().processes.begin());
+            auto& scenar = static_cast<ScenarioModel&>(*getScenarioDocumentModel().baseConstraint().processes.begin());
             auto newStateCmd = new CreateState(scenar, scenar.startEvent().id(), 0);
             redo(newStateCmd);
 

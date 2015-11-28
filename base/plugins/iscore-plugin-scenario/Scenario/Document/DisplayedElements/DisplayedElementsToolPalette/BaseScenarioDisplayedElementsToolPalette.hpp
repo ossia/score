@@ -2,8 +2,8 @@
 #include <Scenario/Application/ScenarioEditionSettings.hpp>
 #include <Scenario/Application/ScenarioApplicationPlugin.hpp>
 
-#include <Scenario/Document/BaseElement/BaseScenario/BaseElementContext.hpp>
-#include <Scenario/Document/BaseElement/BaseScenario/BaseScenario_StateWrappers.hpp>
+#include <Scenario/Document/BaseScenario/BaseElementContext.hpp>
+#include <Scenario/Document/DisplayedElements/DisplayedElementsToolPalette/BaseScenarioDisplayedElements_StateWrappers.hpp>
 
 #include <Process/Tools/ToolPalette.hpp>
 
@@ -11,7 +11,7 @@
 
 class DisplayedElementsPresenter;
 class DisplayedElementsModel;
-class BaseElementPresenter;
+class ScenarioDocumentPresenter;
 class ConstraintModel;
 
 // TODO MoveMe to statemachine folder
@@ -21,10 +21,10 @@ class BaseGraphicsObject;
 class QGraphicsItem;
 class ProcessFocusManager;
 
-class BaseScenarioToolPalette final : public GraphicsSceneToolPalette
+class BaseScenarioDisplayedElementsToolPalette final : public GraphicsSceneToolPalette
 {
     public:
-        BaseScenarioToolPalette(BaseElementPresenter& pres);
+        BaseScenarioDisplayedElementsToolPalette(ScenarioDocumentPresenter& pres);
 
         BaseGraphicsObject& view() const;
         const DisplayedElementsPresenter& presenter() const;
@@ -44,11 +44,11 @@ class BaseScenarioToolPalette final : public GraphicsSceneToolPalette
     private:
         Scenario::Point ScenePointToScenarioPoint(QPointF point);
 
-        BaseElementPresenter& m_presenter;
+        ScenarioDocumentPresenter& m_presenter;
         BaseElementContext m_context;
         Scenario::SelectionAndMoveTool<
                 BaseScenario,
-                BaseScenarioToolPalette,
+                BaseScenarioDisplayedElementsToolPalette,
                 BaseGraphicsObject,
                 MoveConstraintInBaseScenario_StateWrapper,
                 MoveEventInBaseScenario_StateWrapper,
@@ -57,9 +57,9 @@ class BaseScenarioToolPalette final : public GraphicsSceneToolPalette
 
         ToolPaletteInputDispatcher<
                Scenario::Tool,
-               BaseScenarioToolPalette,
+               BaseScenarioDisplayedElementsToolPalette,
                BaseElementContext,
-               BaseElementPresenter
+               ScenarioDocumentPresenter
             > m_inputDisp;
 };
 

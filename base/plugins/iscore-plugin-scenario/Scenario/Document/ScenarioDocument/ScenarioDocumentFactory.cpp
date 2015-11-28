@@ -1,8 +1,8 @@
-#include "ScenarioDocument.hpp"
+#include "ScenarioDocumentFactory.hpp"
 
-#include <Scenario/Document/BaseElement/BaseElementModel.hpp>
-#include <Scenario/Document/BaseElement/BaseElementPresenter.hpp>
-#include <Scenario/Document/BaseElement/BaseElementView.hpp>
+#include <Scenario/Document/ScenarioDocument/ScenarioDocumentModel.hpp>
+#include <Scenario/Document/ScenarioDocument/ScenarioDocumentPresenter.hpp>
+#include <Scenario/Document/ScenarioDocument/ScenarioDocumentView.hpp>
 
 #include <core/document/DocumentModel.hpp>
 #include <core/document/DocumentView.hpp>
@@ -13,7 +13,7 @@ ScenarioDocument::makeView(
         const iscore::ApplicationContext& ctx,
         iscore::DocumentView* parent)
 {
-    return new BaseElementView {ctx, parent};
+    return new ScenarioDocumentView {ctx, parent};
 }
 
 iscore::DocumentDelegatePresenterInterface*
@@ -22,13 +22,13 @@ ScenarioDocument::makePresenter(
         const iscore::DocumentDelegateModelInterface& model,
         iscore::DocumentDelegateViewInterface& view)
 {
-    return new BaseElementPresenter {parent_presenter, model, view};
+    return new ScenarioDocumentPresenter {parent_presenter, model, view};
 }
 
 iscore::DocumentDelegateModelInterface*
 ScenarioDocument::makeModel(iscore::DocumentModel* parent)
 {
-    return new BaseElementModel {parent};
+    return new ScenarioDocumentModel {parent};
 }
 
 iscore::DocumentDelegateModelInterface* ScenarioDocument::loadModel(
@@ -37,5 +37,5 @@ iscore::DocumentDelegateModelInterface* ScenarioDocument::loadModel(
 {
 
     return deserialize_dyn(vis, [&] (auto&& deserializer)
-    { return new BaseElementModel{deserializer, parent};});
+    { return new ScenarioDocumentModel{deserializer, parent};});
 }

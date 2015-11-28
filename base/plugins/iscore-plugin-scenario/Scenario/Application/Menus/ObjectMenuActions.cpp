@@ -4,8 +4,8 @@
 #include <Scenario/Process/ScenarioGlobalCommandManager.hpp>
 #include <Scenario/Process/Temporal/TemporalScenarioPresenter.hpp>
 
-#include <Scenario/Document/BaseElement/BaseElementModel.hpp>
-#include <Scenario/Document/BaseElement/BaseElementPresenter.hpp>
+#include <Scenario/Document/ScenarioDocument/ScenarioDocumentModel.hpp>
+#include <Scenario/Document/ScenarioDocument/ScenarioDocumentPresenter.hpp>
 #include <Scenario/Process/Temporal/TemporalScenarioView.hpp>
 
 #include <Scenario/Commands/Constraint/ReplaceConstraintContent.hpp>
@@ -299,7 +299,7 @@ QJsonObject ObjectMenuActions::copySelectedElementsToJson()
     else
     {
         // Full-view copy
-        auto& bem = iscore::IDocument::modelDelegate<BaseElementModel>(*m_parent->currentDocument());
+        auto& bem = iscore::IDocument::modelDelegate<ScenarioDocumentModel>(*m_parent->currentDocument());
         if(bem.baseConstraint().selection.get())
         {
             return copyBaseConstraint(bem.baseConstraint());

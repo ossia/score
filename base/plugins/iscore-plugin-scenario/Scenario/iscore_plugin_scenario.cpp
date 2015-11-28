@@ -4,9 +4,9 @@
 #include <Scenario/Process/ScenarioFactory.hpp>
 #include <Scenario/Panel/ProcessPanelFactory.hpp>
 
-#include <Scenario/Document/BaseElement/FullViewStateMachines/BaseScenarioToolPaletteFactory.hpp>
-#include <Scenario/Document/BaseElement/FullViewStateMachines/FullViewToolPaletteFactory.hpp>
-#include <Scenario/Document/BaseElement/FullViewStateMachines/FullViewStateMachineFactory.hpp>
+#include <Scenario/Document/DisplayedElements/DisplayedElementsToolPalette/BaseScenarioDisplayedElementsToolPaletteFactory.hpp>
+#include <Scenario/Document/DisplayedElements/DisplayedElementsToolPalette/ScenarioDisplayedElementsToolPaletteFactory.hpp>
+#include <Scenario/Document/DisplayedElements/DisplayedElementsToolPalette/DisplayedElementsToolPaletteFactoryList.hpp>
 
 #include <Scenario/Document/DisplayedElements/DisplayedElementsProviderList.hpp>
 #include <Scenario/Document/DisplayedElements/ScenarioDisplayedElementsProvider.hpp>
@@ -22,7 +22,7 @@
 #include <Scenario/Commands/Scenario/Displacement/MoveEventFactoryInterface.hpp>
 #include <Scenario/Commands/Scenario/Displacement/MoveEventClassicFactory.hpp>
 #include <core/application/Application.hpp>
-#include <Scenario/Document/BaseElement/ScenarioDocument.hpp>
+#include <Scenario/Document/ScenarioDocument/ScenarioDocumentFactory.hpp>
 
 #if defined(ISCORE_LIB_INSPECTOR)
 #include <Scenario/Inspector/Constraint/ConstraintInspectorFactory.hpp>
@@ -82,7 +82,7 @@ std::vector<iscore::FactoryListInterface*> iscore_plugin_scenario::factoryFamili
             new MoveEventList,
             new ScenarioContextMenuPluginList,
             new ConstraintInspectorDelegateFactoryList,
-            new ScenarioToolPaletteFactoryList,
+            new DisplayedElementsToolPaletteFactoryList,
             new TriggerCommandFactoryList,
             new DisplayedElementsProviderList};
 }
@@ -129,11 +129,11 @@ std::vector<iscore::FactoryInterfaceBase*> iscore_plugin_scenario::factories(
     }
 #endif
 
-    if(key == ScenarioToolPaletteFactory::staticFactoryKey())
+    if(key == DisplayedElementsToolPaletteFactory::staticFactoryKey())
     {
         return {
-            new BaseScenarioToolPaletteFactory,
-            new FullViewToolPaletteFactory
+            new BaseScenarioDisplayedElementsToolPaletteFactory,
+            new ScenarioDisplayedElementsToolPaletteFactory
         };
     }
 

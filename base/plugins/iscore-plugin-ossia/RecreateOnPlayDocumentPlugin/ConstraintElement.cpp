@@ -14,7 +14,7 @@
 #include <API/Headers/Editor/TimeConstraint.h>
 #include <API/Headers/Editor/TimeProcess.h>
 #include <Editor/TimeNode.h>
-#include <Scenario/Document/BaseElement/BaseScenario/BaseScenario.hpp>
+#include <Scenario/Document/BaseScenario/BaseScenario.hpp>
 #include <boost/range/algorithm.hpp>
 
 #include <sstream>

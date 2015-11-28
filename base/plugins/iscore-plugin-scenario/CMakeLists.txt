@@ -35,15 +35,15 @@ file(GLOB_RECURSE HDRS
     "${CMAKE_CURRENT_SOURCE_DIR}/Scenario/Tools/*.hpp"
 )
 
-list(REMOVE_ITEM HDRS "${CMAKE_CURRENT_SOURCE_DIR}/Scenario/Document/BaseElement/WebSocketView.hpp")
+list(REMOVE_ITEM HDRS "${CMAKE_CURRENT_SOURCE_DIR}/Scenario/Document/ScenarioDocument/WebSocketView.hpp")
 qt5_add_resources(QRCS "${CMAKE_CURRENT_SOURCE_DIR}/Scenario/resources/ScenarioResources.qrc")
 
 if(ISCORE_WEBSOCKETS)
 set(SRCS
-"${CMAKE_CURRENT_SOURCE_DIR}/Scenario/Document/BaseElement/WebSocketView.cpp"
+"${CMAKE_CURRENT_SOURCE_DIR}/Scenario/Document/ScenarioDocument/WebSocketView.cpp"
 )
 set(HDRS ${HDRS}
-"${CMAKE_CURRENT_SOURCE_DIR}/Scenario/Document/BaseElement/WebSocketView.hpp"
+"${CMAKE_CURRENT_SOURCE_DIR}/Scenario/Document/ScenarioDocument/WebSocketView.hpp"
 )
 endif()
 set(SRCS ${SRCS}
@@ -65,8 +65,8 @@ set(SRCS ${SRCS}
 "${CMAKE_CURRENT_SOURCE_DIR}/Scenario/Process/Temporal/TemporalScenarioLayerSerialization.cpp"
 "${CMAKE_CURRENT_SOURCE_DIR}/Scenario/Process/ScenarioModelSerialization.cpp"
 "${CMAKE_CURRENT_SOURCE_DIR}/Scenario/Document/BaseScenario/BaseScenarioContainerSerialization.cpp"
-"${CMAKE_CURRENT_SOURCE_DIR}/Scenario/Document/BaseElement/BaseScenario/BaseScenarioSerialization.cpp"
-"${CMAKE_CURRENT_SOURCE_DIR}/Scenario/Document/BaseElement/BaseElementModelSerialization.cpp"
+"${CMAKE_CURRENT_SOURCE_DIR}/Scenario/Document/BaseScenario/BaseScenarioSerialization.cpp"
+"${CMAKE_CURRENT_SOURCE_DIR}/Scenario/Document/ScenarioDocument/ScenarioDocumentModelSerialization.cpp"
 
 
 "${CMAKE_CURRENT_SOURCE_DIR}/Scenario/Process/Temporal/StateMachines/Tools/ScenarioRollbackStrategy.cpp"
@@ -155,32 +155,33 @@ set(SRCS ${SRCS}
 "${CMAKE_CURRENT_SOURCE_DIR}/Scenario/DialogWidget/AddProcessDialog.cpp"
 "${CMAKE_CURRENT_SOURCE_DIR}/Scenario/DialogWidget/MessageTreeView.cpp"
 
-"${CMAKE_CURRENT_SOURCE_DIR}/Scenario/Document/BaseElement/BaseScenario/BaseScenarioStateMachine.cpp"
-"${CMAKE_CURRENT_SOURCE_DIR}/Scenario/Document/BaseElement/BaseScenario/StateMachine/BaseMoveSlot.cpp"
-"${CMAKE_CURRENT_SOURCE_DIR}/Scenario/Document/BaseElement/BaseScenario/BaseScenario.cpp"
-"${CMAKE_CURRENT_SOURCE_DIR}/Scenario/Document/BaseElement/BaseScenario/BaseElementContext.cpp"
-"${CMAKE_CURRENT_SOURCE_DIR}/Scenario/Document/BaseElement/DisplayedElements/DisplayedElementsModel.cpp"
-"${CMAKE_CURRENT_SOURCE_DIR}/Scenario/Document/BaseElement/DisplayedElements/DisplayedElementsPresenter.cpp"
-"${CMAKE_CURRENT_SOURCE_DIR}/Scenario/Document/BaseElement/ProcessFocusManager.cpp"
-"${CMAKE_CURRENT_SOURCE_DIR}/Scenario/Document/BaseElement/ZoomPolicy.cpp"
-"${CMAKE_CURRENT_SOURCE_DIR}/Scenario/Document/BaseElement/ScenarioDocument.cpp"
-"${CMAKE_CURRENT_SOURCE_DIR}/Scenario/Document/BaseElement/Widgets/DoubleSlider.cpp"
-"${CMAKE_CURRENT_SOURCE_DIR}/Scenario/Document/BaseElement/Widgets/ProgressBar.cpp"
-"${CMAKE_CURRENT_SOURCE_DIR}/Scenario/Document/BaseElement/Widgets/SceneGraduations.cpp"
-"${CMAKE_CURRENT_SOURCE_DIR}/Scenario/Document/BaseElement/Widgets/ScenarioBaseGraphicsView.cpp"
-"${CMAKE_CURRENT_SOURCE_DIR}/Scenario/Document/BaseElement/BaseElementModel.cpp"
-"${CMAKE_CURRENT_SOURCE_DIR}/Scenario/Document/BaseElement/BaseElementPresenter.cpp"
-"${CMAKE_CURRENT_SOURCE_DIR}/Scenario/Document/BaseElement/BaseElementView.cpp"
-"${CMAKE_CURRENT_SOURCE_DIR}/Scenario/Document/BaseElement/FullViewStateMachines/FullViewStateMachineFactory.cpp"
-"${CMAKE_CURRENT_SOURCE_DIR}/Scenario/Document/BaseElement/FullViewStateMachines/FullViewStateMachine.cpp"
-"${CMAKE_CURRENT_SOURCE_DIR}/Scenario/Document/BaseElement/FullViewStateMachines/FullViewToolPaletteFactory.cpp"
-"${CMAKE_CURRENT_SOURCE_DIR}/Scenario/Document/BaseElement/FullViewStateMachines/BaseScenarioToolPaletteFactory.cpp"
+"${CMAKE_CURRENT_SOURCE_DIR}/Scenario/Document/BaseScenario/BaseScenario.cpp"
+"${CMAKE_CURRENT_SOURCE_DIR}/Scenario/Document/BaseScenario/BaseElementContext.cpp"
 
+"${CMAKE_CURRENT_SOURCE_DIR}/Scenario/Document/ScenarioDocument/ProcessFocusManager.cpp"
+"${CMAKE_CURRENT_SOURCE_DIR}/Scenario/Document/ScenarioDocument/ZoomPolicy.cpp"
+"${CMAKE_CURRENT_SOURCE_DIR}/Scenario/Document/ScenarioDocument/Widgets/DoubleSlider.cpp"
+"${CMAKE_CURRENT_SOURCE_DIR}/Scenario/Document/ScenarioDocument/Widgets/ProgressBar.cpp"
+"${CMAKE_CURRENT_SOURCE_DIR}/Scenario/Document/ScenarioDocument/Widgets/SceneGraduations.cpp"
+"${CMAKE_CURRENT_SOURCE_DIR}/Scenario/Document/ScenarioDocument/Widgets/ScenarioBaseGraphicsView.cpp"
+"${CMAKE_CURRENT_SOURCE_DIR}/Scenario/Document/ScenarioDocument/ScenarioDocumentFactory.cpp"
+"${CMAKE_CURRENT_SOURCE_DIR}/Scenario/Document/ScenarioDocument/ScenarioDocumentModel.cpp"
+"${CMAKE_CURRENT_SOURCE_DIR}/Scenario/Document/ScenarioDocument/ScenarioDocumentPresenter.cpp"
+"${CMAKE_CURRENT_SOURCE_DIR}/Scenario/Document/ScenarioDocument/ScenarioDocumentView.cpp"
+
+"${CMAKE_CURRENT_SOURCE_DIR}/Scenario/Document/DisplayedElements/DisplayedElementsModel.cpp"
+"${CMAKE_CURRENT_SOURCE_DIR}/Scenario/Document/DisplayedElements/DisplayedElementsPresenter.cpp"
 "${CMAKE_CURRENT_SOURCE_DIR}/Scenario/Document/DisplayedElements/DisplayedElementsContainer.cpp"
 "${CMAKE_CURRENT_SOURCE_DIR}/Scenario/Document/DisplayedElements/DisplayedElementsProvider.cpp"
 "${CMAKE_CURRENT_SOURCE_DIR}/Scenario/Document/DisplayedElements/DisplayedElementsProviderList.cpp"
 "${CMAKE_CURRENT_SOURCE_DIR}/Scenario/Document/DisplayedElements/ScenarioDisplayedElementsProvider.cpp"
 "${CMAKE_CURRENT_SOURCE_DIR}/Scenario/Document/DisplayedElements/BaseScenarioDisplayedElementsProvider.cpp"
+
+"${CMAKE_CURRENT_SOURCE_DIR}/Scenario/Document/DisplayedElements/DisplayedElementsToolPalette/DisplayedElementsToolPaletteFactory.cpp"
+"${CMAKE_CURRENT_SOURCE_DIR}/Scenario/Document/DisplayedElements/DisplayedElementsToolPalette/BaseScenarioDisplayedElementsToolPalette.cpp"
+"${CMAKE_CURRENT_SOURCE_DIR}/Scenario/Document/DisplayedElements/DisplayedElementsToolPalette/BaseScenarioDisplayedElementsToolPaletteFactory.cpp"
+"${CMAKE_CURRENT_SOURCE_DIR}/Scenario/Document/DisplayedElements/DisplayedElementsToolPalette/ScenarioDisplayedElementsToolPalette.cpp"
+"${CMAKE_CURRENT_SOURCE_DIR}/Scenario/Document/DisplayedElements/DisplayedElementsToolPalette/ScenarioDisplayedElementsToolPaletteFactory.cpp"
 
 "${CMAKE_CURRENT_SOURCE_DIR}/Scenario/Document/Constraint/Rack/RackView.cpp"
 "${CMAKE_CURRENT_SOURCE_DIR}/Scenario/Document/BaseScenario/BaseScenarioContainer.cpp"

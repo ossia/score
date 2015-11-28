@@ -4,7 +4,7 @@
 #include <Scenario/Process/ScenarioInterface.hpp>
 #include <Scenario/Inspector/TimeNode/TriggerInspectorWidget.hpp>
 #include <Scenario/Inspector/Constraint/ConstraintInspectorWidget.hpp>
-#include <Scenario/Document/BaseElement/BaseScenario/BaseScenario.hpp>
+#include <Scenario/Document/BaseScenario/BaseScenario.hpp>
 #include <Scenario/Commands/Scenario/Displacement/MoveEventMeta.hpp>
 #include <Scenario/Commands/ResizeBaseConstraint.hpp>
 #include <core/application/ApplicationContext.hpp>

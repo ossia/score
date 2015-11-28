@@ -4,8 +4,8 @@
 #include <Process/TimeValue.hpp>
 #include <iscore/tools/std/StdlibWrapper.hpp>
 
-#include <Scenario/Document/BaseElement/BaseScenario/BaseScenarioPresenter.hpp>
-#include <Scenario/Document/BaseElement/DisplayedElements/DisplayedElementsModel.hpp>
+#include <Scenario/Document/BaseScenario/BaseScenarioPresenter.hpp>
+#include <Scenario/Document/DisplayedElements/DisplayedElementsModel.hpp>
 #include <Scenario/Document/Constraint/ViewModels/FullView/FullViewConstraintPresenter.hpp>
 
 class ConstraintModel;
@@ -16,7 +16,7 @@ class EventPresenter;
 class TimeNodeModel;
 class TimeNodePresenter;
 class LayerPresenter;
-class BaseElementPresenter;
+class ScenarioDocumentPresenter;
 class BaseGraphicsObject;
 
 // Contains the elements that are shown (not necessarily the ones in
@@ -27,7 +27,7 @@ class DisplayedElementsPresenter final :
 {
         Q_OBJECT
     public:
-        DisplayedElementsPresenter(BaseElementPresenter* parent);
+        DisplayedElementsPresenter(ScenarioDocumentPresenter* parent);
         using BaseScenarioPresenter<DisplayedElementsModel, FullViewConstraintPresenter>::event;
 
         void on_displayedConstraintChanged(const ConstraintModel &m);
@@ -45,7 +45,7 @@ class DisplayedElementsPresenter final :
     private:
         void updateLength(double);
 
-        BaseElementPresenter* m_model{};
+        ScenarioDocumentPresenter* m_model{};
 
         std::vector<QMetaObject::Connection> m_connections;
 };

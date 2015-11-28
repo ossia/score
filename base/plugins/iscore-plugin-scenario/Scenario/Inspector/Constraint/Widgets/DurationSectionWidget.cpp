@@ -13,7 +13,7 @@
 #include <Scenario/Process/ScenarioInterface.hpp>
 #include <Scenario/Process/ScenarioModel.hpp>
 
-#include <Scenario/Document/BaseElement/BaseScenario/BaseScenario.hpp>
+#include <Scenario/Document/BaseScenario/BaseScenario.hpp>
 #include <Scenario/Document/Constraint/ViewModels/FullView/FullViewConstraintViewModel.hpp>
 
 #include <iscore/document/DocumentInterface.hpp>

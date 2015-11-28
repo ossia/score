@@ -11,7 +11,7 @@
 #include <Scenario/Document/State/StateModel.hpp>
 #include <Scenario/Document/State/StatePresenter.hpp>
 
-#include <Scenario/Document/BaseElement/BaseScenario/BaseScenarioPresenter.hpp>
+#include <Scenario/Document/BaseScenario/BaseScenarioPresenter.hpp>
 #include <Process/LayerPresenter.hpp>
 
 #include <core/document/DocumentContext.hpp>

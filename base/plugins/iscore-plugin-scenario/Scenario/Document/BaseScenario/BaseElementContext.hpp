@@ -1,6 +1,6 @@
 #pragma once
 #include <core/document/DocumentContext.hpp>
-class BaseElementPresenter;
+class ScenarioDocumentPresenter;
 class ProcessFocusManager;
 
 class BaseElementContext : public iscore::DocumentContext
@@ -8,13 +8,13 @@ class BaseElementContext : public iscore::DocumentContext
     public:
         BaseElementContext(
                 iscore::Document& doc,
-                BaseElementPresenter& pres,
+                ScenarioDocumentPresenter& pres,
                 ProcessFocusManager& d);
 
         BaseElementContext(
                 const iscore::DocumentContext& doc,
-                BaseElementPresenter& pres);
+                ScenarioDocumentPresenter& pres);
 
-        BaseElementPresenter& layerPresenter;
+        ScenarioDocumentPresenter& layerPresenter;
         ProcessFocusManager& focusDispatcher;
 };

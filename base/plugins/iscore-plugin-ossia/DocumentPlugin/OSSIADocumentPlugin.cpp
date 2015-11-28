@@ -6,10 +6,10 @@
 #include "OSSIABaseScenarioElement.hpp"
 #include "OSSIAScenarioElement.hpp"
 
-#include <Scenario/Document/BaseElement/BaseScenario/BaseScenario.hpp>
+#include <Scenario/Document/BaseScenario/BaseScenario.hpp>
 #include <core/document/DocumentModel.hpp>
 #include <core/document/Document.hpp>
-#include <Scenario/Document/BaseElement/BaseElementModel.hpp>
+#include <Scenario/Document/ScenarioDocument/ScenarioDocumentModel.hpp>
 
 
 OSSIADocumentPlugin::OSSIADocumentPlugin(iscore::Document& doc, QObject* parent):
@@ -20,7 +20,7 @@ OSSIADocumentPlugin::OSSIADocumentPlugin(iscore::Document& doc, QObject* parent)
 
 void OSSIADocumentPlugin::reload(iscore::DocumentModel &doc)
 {
-    auto& baseElement = static_cast<BaseElementModel&>(doc.modelDelegate()).baseScenario();
+    auto& baseElement = static_cast<ScenarioDocumentModel&>(doc.modelDelegate()).baseScenario();
     m_base = new OSSIABaseScenarioElement{baseElement, this};
 }
 

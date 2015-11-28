@@ -1,5 +1,5 @@
 #include "BaseScenarioTriggerCommandFactory.hpp"
-#include <Scenario/Document/BaseElement/BaseScenario/BaseScenario.hpp>
+#include <Scenario/Document/BaseScenario/BaseScenario.hpp>
 #include <Scenario/Document/TimeNode/TimeNodeModel.hpp>
 #include <Scenario/Commands/TimeNode/AddTrigger.hpp>
 #include <Scenario/Commands/TimeNode/RemoveTrigger.hpp>

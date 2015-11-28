@@ -3,7 +3,7 @@
 #include <Process/ExpandMode.hpp>
 #include <Scenario/Commands/ScenarioCommandFactory.hpp>
 
-#include <Scenario/Document/BaseElement/BaseScenario/BaseScenario.hpp>
+#include <Scenario/Document/BaseScenario/BaseScenario.hpp>
 #include <Scenario/Document/Event/EventModel.hpp>
 #include <Scenario/Document/TimeNode/TimeNodeModel.hpp>
 #include <Scenario/Process/Algorithms/StandardDisplacementPolicy.hpp>

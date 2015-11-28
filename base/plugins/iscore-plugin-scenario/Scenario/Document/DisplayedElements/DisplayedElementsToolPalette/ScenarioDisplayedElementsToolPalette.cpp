@@ -1,9 +1,9 @@
-#include "FullViewStateMachine.hpp"
+#include "ScenarioDisplayedElementsToolPalette.hpp"
 
-#include <Scenario/Document/BaseElement/BaseElementModel.hpp>
-#include <Scenario/Document/BaseElement/BaseElementPresenter.hpp>
-#include <Scenario/Document/BaseElement/DisplayedElements/DisplayedElementsModel.hpp>
-#include <Scenario/Document/BaseElement/DisplayedElements/DisplayedElementsPresenter.hpp>
+#include <Scenario/Document/ScenarioDocument/ScenarioDocumentModel.hpp>
+#include <Scenario/Document/ScenarioDocument/ScenarioDocumentPresenter.hpp>
+#include <Scenario/Document/DisplayedElements/DisplayedElementsModel.hpp>
+#include <Scenario/Document/DisplayedElements/DisplayedElementsPresenter.hpp>
 
 #include <Scenario/Application/ScenarioApplicationPlugin.hpp>
 #include <Scenario/Process/Temporal/StateMachines/ScenarioPoint.hpp>
@@ -11,15 +11,15 @@
 #include <core/application/ApplicationContext.hpp>
 #include <core/document/Document.hpp>
 
-Scenario::Point FullViewToolPalette::ScenePointToScenarioPoint(QPointF point)
+Scenario::Point ScenarioDisplayedElementsToolPalette::ScenePointToScenarioPoint(QPointF point)
 {
     return {TimeValue::fromMsecs(point.x() * m_presenter.zoomRatio()) + m_presenter.presenters().startTimeNode().date(), 0};
 }
 
-FullViewToolPalette::FullViewToolPalette(
+ScenarioDisplayedElementsToolPalette::ScenarioDisplayedElementsToolPalette(
         const iscore::DocumentContext& ctx,
         const DisplayedElementsModel& model,
-        BaseElementPresenter& pres,
+        ScenarioDocumentPresenter& pres,
         BaseGraphicsObject& view):
     GraphicsSceneToolPalette{*view.scene()},
     m_model{model},
@@ -32,61 +32,61 @@ FullViewToolPalette::FullViewToolPalette(
 {
 }
 
-BaseGraphicsObject& FullViewToolPalette::view() const
+BaseGraphicsObject& ScenarioDisplayedElementsToolPalette::view() const
 {
     return m_view;
 }
 
-const DisplayedElementsPresenter& FullViewToolPalette::presenter() const
+const DisplayedElementsPresenter& ScenarioDisplayedElementsToolPalette::presenter() const
 {
     return m_presenter.presenters();
 }
 
-const Scenario::ScenarioModel& FullViewToolPalette::model() const
+const Scenario::ScenarioModel& ScenarioDisplayedElementsToolPalette::model() const
 {
     return *safe_cast<Scenario::ScenarioModel*>(m_model.constraint().parentScenario());
 }
 
-const BaseElementContext& FullViewToolPalette::context() const
+const BaseElementContext& ScenarioDisplayedElementsToolPalette::context() const
 {
     return m_context;
 }
 
-const Scenario::EditionSettings&FullViewToolPalette::editionSettings() const
+const Scenario::EditionSettings& ScenarioDisplayedElementsToolPalette::editionSettings() const
 {
     return m_editionSettings;
 }
 
 
-void FullViewToolPalette::activate(Scenario::Tool)
+void ScenarioDisplayedElementsToolPalette::activate(Scenario::Tool)
 {
 
 }
 
-void FullViewToolPalette::desactivate(Scenario::Tool)
+void ScenarioDisplayedElementsToolPalette::desactivate(Scenario::Tool)
 {
 
 }
 
-void FullViewToolPalette::on_pressed(QPointF point)
+void ScenarioDisplayedElementsToolPalette::on_pressed(QPointF point)
 {
     scenePoint = point;
     m_state.on_pressed(point, ScenePointToScenarioPoint(m_view.mapFromScene(point)));
 }
 
-void FullViewToolPalette::on_moved(QPointF point)
+void ScenarioDisplayedElementsToolPalette::on_moved(QPointF point)
 {
     scenePoint = point;
     m_state.on_moved(point, ScenePointToScenarioPoint(m_view.mapFromScene(point)));
 }
 
-void FullViewToolPalette::on_released(QPointF point)
+void ScenarioDisplayedElementsToolPalette::on_released(QPointF point)
 {
     scenePoint = point;
     m_state.on_released(point, ScenePointToScenarioPoint(m_view.mapFromScene(point)));
 }
 
-void FullViewToolPalette::on_cancel()
+void ScenarioDisplayedElementsToolPalette::on_cancel()
 {
     m_state.on_cancel();
 }

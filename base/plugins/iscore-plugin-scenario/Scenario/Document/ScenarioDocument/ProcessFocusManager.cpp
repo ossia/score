@@ -51,7 +51,7 @@ void ProcessFocusManager::focus(LayerPresenter* p)
     }
 }
 
-void ProcessFocusManager::focus(BaseElementPresenter*)
+void ProcessFocusManager::focus(ScenarioDocumentPresenter*)
 {
     focusNothing();
 }

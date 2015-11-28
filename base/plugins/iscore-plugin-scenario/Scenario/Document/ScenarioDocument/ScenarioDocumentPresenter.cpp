@@ -1,11 +1,11 @@
-#include "BaseElementPresenter.hpp"
+#include "ScenarioDocumentPresenter.hpp"
 
 #include <Scenario/Document/Constraint/ViewModels/FullView/FullViewConstraintViewModel.hpp>
 #include <Scenario/Document/Constraint/ViewModels/FullView/FullViewConstraintPresenter.hpp>
 #include <Scenario/Document/Constraint/ViewModels/FullView/FullViewConstraintView.hpp>
-#include <Scenario/Document/BaseElement/BaseElementModel.hpp>
-#include <Scenario/Document/BaseElement/BaseElementView.hpp>
-#include <Scenario/Document/BaseElement/Widgets/DoubleSlider.hpp>
+#include <Scenario/Document/ScenarioDocument/ScenarioDocumentModel.hpp>
+#include <Scenario/Document/ScenarioDocument/ScenarioDocumentView.hpp>
+#include <Scenario/Document/ScenarioDocument/Widgets/DoubleSlider.hpp>
 #include <Scenario/Document/TimeRuler/MainTimeRuler/TimeRulerPresenter.hpp>
 #include <Scenario/Document/TimeRuler/MainTimeRuler/TimeRulerView.hpp>
 #include <Scenario/Document/TimeRuler/LocalTimeRuler/LocalTimeRulerPresenter.hpp>
@@ -20,9 +20,9 @@
 #include <core/document/Document.hpp>
 #include <QApplication>
 
-#include <Scenario/Document/BaseElement/FullViewStateMachines/FullViewStateMachineFactory.hpp>
+#include <Scenario/Document/DisplayedElements/DisplayedElementsToolPalette/DisplayedElementsToolPaletteFactory.hpp>
 #include <Scenario/Process/Temporal/StateMachines/ScenarioStateMachine.hpp>
-#include "BaseScenario/BaseScenarioStateMachine.hpp"
+#include <Scenario/Document/DisplayedElements/DisplayedElementsToolPalette/DisplayedElementsToolPaletteFactoryList.hpp>
 
 #include <core/application/ApplicationContext.hpp>
 #include <Scenario/Application/ScenarioApplicationPlugin.hpp>
@@ -30,26 +30,26 @@
 
 using namespace iscore;
 
-const BaseElementModel& BaseElementPresenter::model() const
+const ScenarioDocumentModel& ScenarioDocumentPresenter::model() const
 {
-    return static_cast<const BaseElementModel&>(m_model);
+    return static_cast<const ScenarioDocumentModel&>(m_model);
 }
 
-ZoomRatio BaseElementPresenter::zoomRatio() const
+ZoomRatio ScenarioDocumentPresenter::zoomRatio() const
 {
     return m_zoomRatio;
 }
 
-BaseElementView& BaseElementPresenter::view() const
+ScenarioDocumentView& ScenarioDocumentPresenter::view() const
 {
-    return safe_cast<BaseElementView&>(m_view);
+    return safe_cast<ScenarioDocumentView&>(m_view);
 }
 
-BaseElementPresenter::BaseElementPresenter(DocumentPresenter* parent_presenter,
+ScenarioDocumentPresenter::ScenarioDocumentPresenter(DocumentPresenter* parent_presenter,
                                            const DocumentDelegateModelInterface& delegate_model,
                                            DocumentDelegateViewInterface& delegate_view) :
     DocumentDelegatePresenterInterface {parent_presenter,
-                                        "BaseElementPresenter",
+                                        "ScenarioDocumentPresenter",
                                         delegate_model,
                                         delegate_view},
     m_scenarioPresenter{new DisplayedElementsPresenter{this}},
@@ -58,22 +58,22 @@ BaseElementPresenter::BaseElementPresenter(DocumentPresenter* parent_presenter,
 {
     // Setup the connections
     con((m_selectionDispatcher.stack()), &SelectionStack::currentSelectionChanged,
-        this,                            &BaseElementPresenter::on_newSelection);
-    con(view(), &BaseElementView::horizontalZoomChanged,
-        this,   &BaseElementPresenter::on_zoomSliderChanged);
+        this,                            &ScenarioDocumentPresenter::on_newSelection);
+    con(view(), &ScenarioDocumentView::horizontalZoomChanged,
+        this,   &ScenarioDocumentPresenter::on_zoomSliderChanged);
     con(view().view(), &ScenarioBaseGraphicsView::sizeChanged,
-        this,          &BaseElementPresenter::on_viewSizeChanged);
+        this,          &ScenarioDocumentPresenter::on_viewSizeChanged);
     con(view().view(), &ScenarioBaseGraphicsView::zoom,
-        this,          &BaseElementPresenter::on_zoomOnWheelEvent);
-    con(view(), &BaseElementView::horizontalPositionChanged,
-        this,   &BaseElementPresenter::on_horizontalPositionChanged);
+        this,          &ScenarioDocumentPresenter::on_zoomOnWheelEvent);
+    con(view(), &ScenarioDocumentView::horizontalPositionChanged,
+        this,   &ScenarioDocumentPresenter::on_horizontalPositionChanged);
 
-    connect(this, &BaseElementPresenter::requestDisplayedConstraintChange,
-            &model(), &BaseElementModel::setDisplayedConstraint);
+    connect(this, &ScenarioDocumentPresenter::requestDisplayedConstraintChange,
+            &model(), &ScenarioDocumentModel::setDisplayedConstraint);
     connect(m_scenarioPresenter, &DisplayedElementsPresenter::requestFocusedPresenterChange,
             &model().focusManager(), static_cast<void (ProcessFocusManager::*)(LayerPresenter*)>(&ProcessFocusManager::focus));
 
-    con(model(), &BaseElementModel::focusMe,
+    con(model(), &ScenarioDocumentModel::focusMe,
         this,    [&] () { view().view().setFocus(); });
 
     connect(m_mainTimeRuler->view(), &TimeRulerView::drag,
@@ -82,23 +82,23 @@ BaseElementPresenter::BaseElementPresenter(DocumentPresenter* parent_presenter,
     });
 
     // Show our constraint
-    con(model(), &BaseElementModel::displayedConstraintChanged,
-        this, &BaseElementPresenter::on_displayedConstraintChanged);
+    con(model(), &ScenarioDocumentModel::displayedConstraintChanged,
+        this, &ScenarioDocumentPresenter::on_displayedConstraintChanged);
 
     emit requestDisplayedConstraintChange(model().baseConstraint());
 }
 
-const ConstraintModel& BaseElementPresenter::displayedConstraint() const
+const ConstraintModel& ScenarioDocumentPresenter::displayedConstraint() const
 {
     return model().displayedElements.constraint();
 }
 
-void BaseElementPresenter::on_askUpdate()
+void ScenarioDocumentPresenter::on_askUpdate()
 {
     view().update();
 }
 
-void BaseElementPresenter::selectAll()
+void ScenarioDocumentPresenter::selectAll()
 {
     auto processmodel = model().focusManager().focusedModel();
     if(processmodel)
@@ -107,12 +107,12 @@ void BaseElementPresenter::selectAll()
     }
 }
 
-void BaseElementPresenter::deselectAll()
+void ScenarioDocumentPresenter::deselectAll()
 {
     m_selectionDispatcher.setAndCommit(Selection{});
 }
 
-void BaseElementPresenter::setDisplayedObject(const ObjectPath &path)
+void ScenarioDocumentPresenter::setDisplayedObject(const ObjectPath &path)
 {
     if(path.vec().back().objectName().contains("ConstraintModel")) // Constraint & BaseConstraint
     {
@@ -120,16 +120,16 @@ void BaseElementPresenter::setDisplayedObject(const ObjectPath &path)
     }
 }
 
-void BaseElementPresenter::on_displayedConstraintChanged()
+void ScenarioDocumentPresenter::on_displayedConstraintChanged()
 {
     auto& cst = displayedConstraint();
     // Setup of the state machine.
     auto& ctx = iscore::IDocument::documentContext(model());
-    auto fact = ctx.app.components.factory<ScenarioToolPaletteFactoryList>();
+    auto fact = ctx.app.components.factory<DisplayedElementsToolPaletteFactoryList>();
     m_stateMachine = fact.make(*this, cst);
     m_scenarioPresenter->on_displayedConstraintChanged(cst);
     connect(m_scenarioPresenter->constraintPresenter(), &FullViewConstraintPresenter::objectSelected,
-            this, &BaseElementPresenter::setDisplayedObject);
+            this, &ScenarioDocumentPresenter::setDisplayedObject);
 
     // Set a new zoom ratio, such that the displayed constraint takes the whole screen.
 
@@ -146,7 +146,7 @@ void BaseElementPresenter::on_displayedConstraintChanged()
     on_askUpdate();
 }
 
-void BaseElementPresenter::setMillisPerPixel(ZoomRatio newRatio)
+void ScenarioDocumentPresenter::setMillisPerPixel(ZoomRatio newRatio)
 {
     m_zoomRatio = newRatio;
 
@@ -154,11 +154,11 @@ void BaseElementPresenter::setMillisPerPixel(ZoomRatio newRatio)
     m_scenarioPresenter->on_zoomRatioChanged(m_zoomRatio);
 }
 
-void BaseElementPresenter::on_newSelection(const Selection& sel)
+void ScenarioDocumentPresenter::on_newSelection(const Selection& sel)
 {
 }
 
-void BaseElementPresenter::on_zoomSliderChanged(double sliderPos)
+void ScenarioDocumentPresenter::on_zoomSliderChanged(double sliderPos)
 {
     auto newMillisPerPix = ZoomPolicy::sliderPosToZoomRatio(
                                sliderPos,
@@ -169,7 +169,7 @@ void BaseElementPresenter::on_zoomSliderChanged(double sliderPos)
     updateZoom(newMillisPerPix, QPointF(0,0));
 }
 
-void BaseElementPresenter::on_zoomOnWheelEvent(QPoint zoom, QPointF center)
+void ScenarioDocumentPresenter::on_zoomOnWheelEvent(QPoint zoom, QPointF center)
 {
     // convert the mouse displacement into a fake slider move
 
@@ -194,7 +194,7 @@ void BaseElementPresenter::on_zoomOnWheelEvent(QPoint zoom, QPointF center)
 
 }
 
-void BaseElementPresenter::on_viewSizeChanged(const QSize &s)
+void ScenarioDocumentPresenter::on_viewSizeChanged(const QSize &s)
 {
     auto zoom = ZoomPolicy::sliderPosToZoomRatio(
                     view().zoomSlider()->value(),
@@ -205,7 +205,7 @@ void BaseElementPresenter::on_viewSizeChanged(const QSize &s)
     updateZoom(zoom, {0,0});
 }
 
-void BaseElementPresenter::on_horizontalPositionChanged(int dx)
+void ScenarioDocumentPresenter::on_horizontalPositionChanged(int dx)
 {
     QRect viewport_rect = view().view().viewport()->rect() ;
     QRectF visible_scene_rect = view().view().mapToScene(viewport_rect).boundingRect();
@@ -213,12 +213,12 @@ void BaseElementPresenter::on_horizontalPositionChanged(int dx)
     m_mainTimeRuler->setStartPoint(TimeValue::fromMsecs(visible_scene_rect.x() * m_zoomRatio));
 }
 
-void BaseElementPresenter::updateRect(const QRectF& rect)
+void ScenarioDocumentPresenter::updateRect(const QRectF& rect)
 {
     view().view().setSceneRect(rect);
 }
 
-void BaseElementPresenter::updateZoom(ZoomRatio newZoom, QPointF focus)
+void ScenarioDocumentPresenter::updateZoom(ZoomRatio newZoom, QPointF focus)
 {
     auto w = view().view().viewport()->width();
     auto h = view().view().viewport()->height();

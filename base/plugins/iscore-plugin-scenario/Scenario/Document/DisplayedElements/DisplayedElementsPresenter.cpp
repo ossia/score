@@ -1,13 +1,13 @@
 #include "DisplayedElementsPresenter.hpp"
-#include <Scenario/Document/BaseElement/BaseScenario/BaseScenario.hpp>
-#include <Scenario/Document/BaseElement/BaseElementModel.hpp>
-#include <Scenario/Document/BaseElement/BaseElementPresenter.hpp>
-#include <Scenario/Document/BaseElement/BaseElementView.hpp>
+#include <Scenario/Document/BaseScenario/BaseScenario.hpp>
+#include <Scenario/Document/ScenarioDocument/ScenarioDocumentModel.hpp>
+#include <Scenario/Document/ScenarioDocument/ScenarioDocumentPresenter.hpp>
+#include <Scenario/Document/ScenarioDocument/ScenarioDocumentView.hpp>
 #include <Scenario/Document/Constraint/Rack/RackPresenter.hpp>
 
 #include <Scenario/Process/ScenarioModel.hpp>
 
-DisplayedElementsPresenter::DisplayedElementsPresenter(BaseElementPresenter *parent):
+DisplayedElementsPresenter::DisplayedElementsPresenter(ScenarioDocumentPresenter *parent):
     QObject{parent},
     BaseScenarioPresenter<DisplayedElementsModel, FullViewConstraintPresenter>{parent->model().displayedElements},
     m_model{parent}
@@ -69,7 +69,7 @@ void DisplayedElementsPresenter::on_displayedConstraintChanged(const ConstraintM
     m_connections.push_back(con(m_constraintPresenter->model().duration, &ConstraintDurations::defaultDurationChanged,
         this, &DisplayedElementsPresenter::on_displayedConstraintDurationChanged));
     m_connections.push_back(connect(m_constraintPresenter, &FullViewConstraintPresenter::askUpdate,
-            m_model,              &BaseElementPresenter::on_askUpdate));
+            m_model,              &ScenarioDocumentPresenter::on_askUpdate));
     m_connections.push_back(connect(m_constraintPresenter, &FullViewConstraintPresenter::heightChanged,
             this, [&] () {
         on_displayedConstraintHeightChanged(m_constraintPresenter->view()->height());
@@ -86,9 +86,9 @@ void DisplayedElementsPresenter::on_displayedConstraintChanged(const ConstraintM
 
     for_each_in_tuple(elements, [&] (auto elt) {
         using elt_t = std::remove_reference_t<decltype(*elt)>;
-        m_connections.push_back(connect(elt, &elt_t::pressed,  m_model, &BaseElementPresenter::pressed));
-        m_connections.push_back(connect(elt, &elt_t::moved,    m_model, &BaseElementPresenter::moved));
-        m_connections.push_back(connect(elt, &elt_t::released, m_model, &BaseElementPresenter::released));
+        m_connections.push_back(connect(elt, &elt_t::pressed,  m_model, &ScenarioDocumentPresenter::pressed));
+        m_connections.push_back(connect(elt, &elt_t::moved,    m_model, &ScenarioDocumentPresenter::moved));
+        m_connections.push_back(connect(elt, &elt_t::released, m_model, &ScenarioDocumentPresenter::released));
     });
 
     showConstraint();

@@ -23,7 +23,7 @@
 
 #include <Scenario/Inspector/MetadataWidget.hpp>
 #include <Inspector/InspectorWidgetList.hpp>
-#include <Scenario/Document/BaseElement/BaseElementModel.hpp>
+#include <Scenario/Document/ScenarioDocument/ScenarioDocumentModel.hpp>
 #include <Scenario/Process/ScenarioModel.hpp>
 #include <Scenario/Inspector/Constraint/ConstraintInspectorDelegate.hpp>
 #include <Scenario/Inspector/TimeNode/TriggerInspectorWidget.hpp>
@@ -83,7 +83,7 @@ ConstraintInspectorWidget::ConstraintInspectorWidget(
     QPushButton* setAsDisplayedConstraint = new QPushButton {tr("Full view"), this};
     connect(setAsDisplayedConstraint, &QPushButton::clicked,
             this, [this] {
-        auto& base = get<BaseElementModel> (*documentFromObject(m_model));
+        auto& base = get<ScenarioDocumentModel> (*documentFromObject(m_model));
 
         base.setDisplayedConstraint(model());
     });

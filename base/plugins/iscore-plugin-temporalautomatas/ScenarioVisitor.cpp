@@ -7,11 +7,11 @@
 #include <Scenario/Document/State/StateModel.hpp>
 
 #include <Scenario/Process/ScenarioModel.hpp>
-#include <Scenario/Document/BaseElement/BaseElementModel.hpp>
+#include <Scenario/Document/ScenarioDocument/ScenarioDocumentModel.hpp>
 #include <Scenario/Document/TimeNode/Trigger/TriggerModel.hpp>
 
-#include <Scenario/Document/BaseElement/BaseElementModel.hpp>
-#include <Scenario/Document/BaseElement/BaseScenario/BaseScenario.hpp>
+#include <Scenario/Document/ScenarioDocument/ScenarioDocumentModel.hpp>
+#include <Scenario/Document/BaseScenario/BaseScenario.hpp>
 
 #include <Automation/AutomationModel.hpp>
 #include <Curve/CurveModel.hpp>
@@ -186,7 +186,7 @@ TemporalAutomatas::ApplicationPlugin::ApplicationPlugin(iscore::Application& app
         auto doc = currentDocument();
         if(!doc)
             return;
-        BaseElementModel& base = iscore::IDocument::get<BaseElementModel>(*doc);
+        ScenarioDocumentModel& base = iscore::IDocument::get<ScenarioDocumentModel>(*doc);
 
         TAVisitor v;
 

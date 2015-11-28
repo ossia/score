@@ -1,4 +1,4 @@
-#include "BaseElementView.hpp"
+#include "ScenarioDocumentView.hpp"
 
 #include <QLabel>
 #include <QGridLayout>
@@ -23,7 +23,7 @@
 #include <QSvgGenerator>
 #include <QMimeData>
 #include <QClipboard>
-BaseElementView::BaseElementView(
+ScenarioDocumentView::ScenarioDocumentView(
         const iscore::ApplicationContext& ctx,
         QObject* parent) :
     iscore::DocumentDelegateViewInterface {parent},
@@ -111,7 +111,7 @@ BaseElementView::BaseElementView(
     m_zoomSlider = new DoubleSlider{transportWidget};
 
     connect(m_zoomSlider, &DoubleSlider::valueChanged,
-            this,         &BaseElementView::horizontalZoomChanged);
+            this,         &ScenarioDocumentView::horizontalZoomChanged);
 
     transportLayout->addWidget(new QLabel{tr("Zoom") }, 0, 1);
     transportLayout->addWidget(m_zoomSlider, 0, 2);
@@ -133,19 +133,19 @@ BaseElementView::BaseElementView(
     lay->setSpacing(1);
 
     connect(m_view, &ScenarioBaseGraphicsView::scrolled,
-            this,   &BaseElementView::horizontalPositionChanged);
+            this,   &ScenarioDocumentView::horizontalPositionChanged);
 }
 
-QWidget* BaseElementView::getWidget()
+QWidget* ScenarioDocumentView::getWidget()
 {
     return m_widget;
 }
 
-void BaseElementView::update()
+void ScenarioDocumentView::update()
 {
     m_scene->update();
 }
 
-void BaseElementView::newLocalTimeRuler()
+void ScenarioDocumentView::newLocalTimeRuler()
 {
 }

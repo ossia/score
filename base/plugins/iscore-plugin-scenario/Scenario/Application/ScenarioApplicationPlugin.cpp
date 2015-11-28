@@ -1,6 +1,6 @@
 #include "ScenarioApplicationPlugin.hpp"
-#include <Scenario/Document/BaseElement/BaseElementModel.hpp>
-#include <Scenario/Document/BaseElement/BaseElementPresenter.hpp>
+#include <Scenario/Document/ScenarioDocument/ScenarioDocumentModel.hpp>
+#include <Scenario/Document/ScenarioDocument/ScenarioDocumentPresenter.hpp>
 #include <Scenario/Document/Constraint/ConstraintModel.hpp>
 #include <Scenario/Process/ScenarioModel.hpp>
 #include <QJsonDocument>
@@ -17,7 +17,7 @@
 #include <core/document/DocumentView.hpp>
 #include <core/application/Application.hpp>
 #include <iscore/plugins/documentdelegate/DocumentDelegateViewInterface.hpp>
-#include <Scenario/Document/BaseElement/BaseElementView.hpp>
+#include <Scenario/Document/ScenarioDocument/ScenarioDocumentView.hpp>
 #include "Menus/TransportActions.hpp"
 
 // This part is somewhat similar to what moc does
@@ -99,7 +99,7 @@ void ScenarioApplicationPlugin::populateMenus(iscore::MenubarManager *menu)
     connect(m_selectAll, &QAction::triggered,
             [this]()
     {
-        auto &pres = IDocument::presenterDelegate<BaseElementPresenter>(*currentDocument());
+        auto &pres = IDocument::presenterDelegate<ScenarioDocumentPresenter>(*currentDocument());
         pres.selectAll();
     });
 
@@ -114,7 +114,7 @@ void ScenarioApplicationPlugin::populateMenus(iscore::MenubarManager *menu)
     connect(m_deselectAll, &QAction::triggered,
             [this]()
     {
-        auto &pres = IDocument::presenterDelegate<BaseElementPresenter>(*currentDocument());
+        auto &pres = IDocument::presenterDelegate<ScenarioDocumentPresenter>(*currentDocument());
         pres.deselectAll();
     });
 
@@ -271,7 +271,7 @@ void ScenarioApplicationPlugin::on_documentChanged(
         {
             // We focus by default the first process of the constraint in full view we're in
             // TODO this snippet is useful, put it somewhere in some Toolkit file.
-            auto& pres = IDocument::presenterDelegate<BaseElementPresenter>(*newdoc);
+            auto& pres = IDocument::presenterDelegate<ScenarioDocumentPresenter>(*newdoc);
             auto& cst = pres.displayedConstraint();
             if(!cst.processes.empty())
             {
@@ -302,7 +302,7 @@ void ScenarioApplicationPlugin::on_documentChanged(
         }
 
         // Finally we focus the View widget.
-        auto bev = dynamic_cast<BaseElementView*>(&newdoc->view().viewDelegate());
+        auto bev = dynamic_cast<ScenarioDocumentView*>(&newdoc->view().viewDelegate());
         if(bev)
             bev->view().setFocus();
     }
@@ -413,7 +413,7 @@ ProcessFocusManager* ScenarioApplicationPlugin::processFocusManager() const
 {
     if(auto doc = currentDocument())
     {
-        auto bem = dynamic_cast<BaseElementModel*>(&doc->model().modelDelegate());
+        auto bem = dynamic_cast<ScenarioDocumentModel*>(&doc->model().modelDelegate());
         if(bem)
         {
             return &bem->focusManager();

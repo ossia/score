@@ -1,7 +1,7 @@
 #include <Model/CSPScenario.hpp>
 #include <Model/CSPTimeNode.hpp>
 #include <Model/CSPTimeRelation.hpp>
-#include <Scenario/Document/BaseElement/BaseScenario/BaseScenario.hpp>
+#include <Scenario/Document/BaseScenario/BaseScenario.hpp>
 #include <Scenario/Process/ScenarioModel.hpp>
 #include <Scenario/Process/ScenarioInterface.hpp>
 #include <kiwi/kiwi.h>

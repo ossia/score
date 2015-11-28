@@ -2,8 +2,8 @@
 
 #include <Scenario/Document/Constraint/ConstraintModel.hpp>
 #include <Scenario/Process/ScenarioModel.hpp>
-#include <Scenario/Document/BaseElement/BaseScenario/BaseScenario.hpp>
-#include <Scenario/Document/BaseElement/BaseElementModel.hpp>
+#include <Scenario/Document/BaseScenario/BaseScenario.hpp>
+#include <Scenario/Document/ScenarioDocument/ScenarioDocumentModel.hpp>
 
 FullViewConstraintViewModel::FullViewConstraintViewModel(
         const Id<ConstraintViewModel>& id,
@@ -59,7 +59,7 @@ void FullViewConstraintViewModel::setCenter(const QPointF& value)
 bool FullViewConstraintViewModel::isActive()
 {
     auto& ctx = iscore::IDocument::documentContext(model());
-    auto& baseElt = iscore::IDocument::get<BaseElementModel>(ctx.document);
+    auto& baseElt = iscore::IDocument::get<ScenarioDocumentModel>(ctx.document);
 
     return (this->model().id() == baseElt.displayedElements.constraint().id());
 }

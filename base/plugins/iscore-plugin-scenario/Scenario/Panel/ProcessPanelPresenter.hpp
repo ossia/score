@@ -4,7 +4,7 @@
 #include "ProcessPanelGraphicsProxy.hpp"
 
 #include <Process/ZoomHelper.hpp>
-class BaseElementModel;
+class ScenarioDocumentModel;
 class LayerView;
 class LayerPresenter;
 class LayerModel;

@@ -1,7 +1,7 @@
 #include "BaseConstraintInspectorDelegateFactory.hpp"
 #include "BaseConstraintInspectorDelegate.hpp"
 #include <Scenario/Document/Constraint/ConstraintModel.hpp>
-#include <Scenario/Document/BaseElement/BaseScenario/BaseScenario.hpp>
+#include <Scenario/Document/BaseScenario/BaseScenario.hpp>
 #include <Scenario/Process/ScenarioModel.hpp>
 
 BaseConstraintInspectorDelegateFactory::~BaseConstraintInspectorDelegateFactory()

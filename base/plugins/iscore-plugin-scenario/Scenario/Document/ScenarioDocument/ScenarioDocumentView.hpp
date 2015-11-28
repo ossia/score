@@ -15,15 +15,15 @@ namespace iscore
 {
 struct ApplicationContext;
 }
-class BaseElementView final : public iscore::DocumentDelegateViewInterface
+class ScenarioDocumentView final : public iscore::DocumentDelegateViewInterface
 {
         Q_OBJECT
 
     public:
-        BaseElementView(
+        ScenarioDocumentView(
                 const iscore::ApplicationContext& ctx,
                 QObject* parent);
-        virtual ~BaseElementView() = default;
+        virtual ~ScenarioDocumentView() = default;
 
         QWidget* getWidget() override;
 

@@ -2,7 +2,7 @@
 #include <iscore/plugins/application/GUIApplicationContextPlugin.hpp>
 #include <Process/ProcessList.hpp>
 #include "Menus/Plugin/ScenarioContextMenuPluginList.hpp"
-#include <Scenario/Document/BaseElement/ProcessFocusManager.hpp>
+#include <Scenario/Document/ScenarioDocument/ProcessFocusManager.hpp>
 
 #include <Scenario/Commands/Scenario/Displacement/MoveEventList.hpp>
 

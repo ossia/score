@@ -13,7 +13,7 @@
 
 #include <iscore/serialization/VisitorCommon.hpp>
 #include <Scenario/Process/ScenarioModel.hpp>
-#include <Scenario/Document/BaseElement/BaseElementModel.hpp>
+#include <Scenario/Document/ScenarioDocument/ScenarioDocumentModel.hpp>
 #include <core/document/Document.hpp>
 #include <core/document/DocumentModel.hpp>
 
@@ -92,7 +92,7 @@ NetworkDocumentPlugin::NetworkDocumentPlugin(iscore_plugin_networkPolicy *policy
     groupManager()->addGroup(baseGroup);
 
     // Create it for each constraint / event.
-    BaseElementModel* bem = safe_cast<BaseElementModel*>(&doc.model().modelDelegate());
+    ScenarioDocumentModel* bem = safe_cast<ScenarioDocumentModel*>(&doc.model().modelDelegate());
     {
         ScenarioFindConstraintVisitor v;
         v.visit(bem->baseConstraint());// TODO this doesn't match baseconstraint

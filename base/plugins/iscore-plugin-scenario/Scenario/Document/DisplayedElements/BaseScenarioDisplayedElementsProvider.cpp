@@ -1,5 +1,5 @@
 #include "BaseScenarioDisplayedElementsProvider.hpp"
-#include <Scenario/Document/BaseElement/BaseScenario/BaseScenario.hpp>
+#include <Scenario/Document/BaseScenario/BaseScenario.hpp>
 #include <Scenario/Document/Constraint/ConstraintModel.hpp>
 bool BaseScenarioDisplayedElementsProvider::matches(
         const ConstraintModel& cst) const

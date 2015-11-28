@@ -8,9 +8,9 @@
 #include "BaseScenarioElement.hpp"
 #include "ScenarioElement.hpp"
 
-#include <Scenario/Document/BaseElement/BaseScenario/BaseScenario.hpp>
+#include <Scenario/Document/BaseScenario/BaseScenario.hpp>
 #include <Scenario/Process/ScenarioModel.hpp>
-#include <Scenario/Document/BaseElement/BaseElementModel.hpp>
+#include <Scenario/Document/ScenarioDocument/ScenarioDocumentModel.hpp>
 #include <Automation/AutomationModel.hpp>
 #include <iscore/document/DocumentInterface.hpp>
 #include <core/document/DocumentModel.hpp>
@@ -26,7 +26,7 @@ DocumentPlugin::DocumentPlugin(iscore::Document& doc, QObject* parent):
 
 void DocumentPlugin::reload(iscore::DocumentModel &doc)
 {
-    auto& baseElement = static_cast<BaseElementModel&>(doc.modelDelegate()).baseScenario();
+    auto& baseElement = static_cast<ScenarioDocumentModel&>(doc.modelDelegate()).baseScenario();
     m_base = new BaseScenarioElement{baseElement, this};
 }
 

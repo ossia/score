@@ -2,34 +2,34 @@
 #include <iscore/plugins/documentdelegate/DocumentDelegateModelInterface.hpp>
 #include <iscore/tools/ModelPath.hpp>
 #include <iscore/selection/SelectionStack.hpp>
-#include "ProcessFocusManager.hpp"
-#include "DisplayedElements/DisplayedElementsModel.hpp"
 #include <iscore/serialization/DataStreamVisitor.hpp>
 #include <iscore/serialization/JSONVisitor.hpp>
 #include <QPointer>
+#include <Scenario/Document/ScenarioDocument/ProcessFocusManager.hpp>
+#include <Scenario/Document/DisplayedElements/DisplayedElementsModel.hpp>
 class BaseScenario;
-class BaseElementPresenter;
+class ScenarioDocumentPresenter;
 class FullViewConstraintViewModel;
 class Process;
 class LayerModel;
 class ConstraintModel;
 
-class BaseElementModel final : public iscore::DocumentDelegateModelInterface
+class ScenarioDocumentModel final : public iscore::DocumentDelegateModelInterface
 {
         Q_OBJECT
-        ISCORE_SERIALIZE_FRIENDS(BaseElementModel, DataStream)
-        ISCORE_SERIALIZE_FRIENDS(BaseElementModel, JSONObject)
+        ISCORE_SERIALIZE_FRIENDS(ScenarioDocumentModel, DataStream)
+        ISCORE_SERIALIZE_FRIENDS(ScenarioDocumentModel, JSONObject)
     public:
-        BaseElementModel(QObject* parent);
+        ScenarioDocumentModel(QObject* parent);
 
         template<typename Impl>
-        BaseElementModel(Deserializer<Impl>& vis, QObject* parent) :
+        ScenarioDocumentModel(Deserializer<Impl>& vis, QObject* parent) :
             iscore::DocumentDelegateModelInterface {vis, parent}
         {
             vis.writeTo(*this);
         }
 
-        virtual ~BaseElementModel() = default;
+        virtual ~ScenarioDocumentModel() = default;
 
         BaseScenario& baseScenario() const
         { return *m_baseScenario; }

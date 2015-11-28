@@ -1,6 +1,6 @@
 #pragma once
 #include <Process/TimeValue.hpp>
-#include <Scenario/Document/BaseElement/DisplayedElements/DisplayedElementsPresenter.hpp>
+#include <Scenario/Document/DisplayedElements/DisplayedElementsPresenter.hpp>
 
 #include <iscore/plugins/documentdelegate/DocumentDelegatePresenterInterface.hpp>
 #include <iscore/tools/NamedObject.hpp>
@@ -17,34 +17,34 @@ namespace iscore
     class SelectionDispatcher;
 }
 
-class BaseElementModel;
-class BaseElementView;
+class ScenarioDocumentModel;
+class ScenarioDocumentView;
 class ConstraintModel;
 class TimeRulerPresenter;
 class LocalTimeRulerPresenter;
 
 /**
- * @brief The BaseElementPresenter class
+ * @brief The ScenarioDocumentPresenter class
  *
  * A bit special because we connect it to the presenter of the content model
  * inside the constraint model of the base element model.
  */
-class BaseElementPresenter final : public iscore::DocumentDelegatePresenterInterface
+class ScenarioDocumentPresenter final : public iscore::DocumentDelegatePresenterInterface
 {
         Q_OBJECT
     friend class DisplayedElementsPresenter;
     public:
-        BaseElementPresenter(iscore::DocumentPresenter* parent_presenter,
+        ScenarioDocumentPresenter(iscore::DocumentPresenter* parent_presenter,
                              const iscore::DocumentDelegateModelInterface& model,
                              iscore::DocumentDelegateViewInterface& view);
-        virtual ~BaseElementPresenter() = default;
+        virtual ~ScenarioDocumentPresenter() = default;
 
         const ConstraintModel& displayedConstraint() const;
         const DisplayedElementsPresenter& presenters() const
         { return *m_scenarioPresenter; }
 
-        const BaseElementModel& model() const;
-        BaseElementView& view() const;
+        const ScenarioDocumentModel& model() const;
+        ScenarioDocumentView& view() const;
 
         // The height in pixels of the displayed constraint with its rack.
         //double height() const;

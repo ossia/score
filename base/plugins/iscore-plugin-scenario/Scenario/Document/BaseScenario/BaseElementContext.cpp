@@ -1,9 +1,9 @@
 #include "BaseElementContext.hpp"
-#include <Scenario/Document/BaseElement/BaseElementModel.hpp>
-#include <Scenario/Document/BaseElement/BaseElementPresenter.hpp>
+#include <Scenario/Document/ScenarioDocument/ScenarioDocumentModel.hpp>
+#include <Scenario/Document/ScenarioDocument/ScenarioDocumentPresenter.hpp>
 BaseElementContext::BaseElementContext(
         iscore::Document& doc,
-        BaseElementPresenter& pres,
+        ScenarioDocumentPresenter& pres,
         ProcessFocusManager& d):
     iscore::DocumentContext{doc},
     layerPresenter{pres},
@@ -14,11 +14,11 @@ BaseElementContext::BaseElementContext(
 
 BaseElementContext::BaseElementContext(
         const iscore::DocumentContext& doc,
-        BaseElementPresenter& pres):
+        ScenarioDocumentPresenter& pres):
     BaseElementContext{
         doc.document,
         pres,
-        const_cast<BaseElementModel&>(pres.model()).focusManager()}
+        const_cast<ScenarioDocumentModel&>(pres.model()).focusManager()}
 {
 
 }

@@ -5,7 +5,7 @@
 #include <API/Headers/Editor/TimeNode.h>
 
 #include <Scenario/Process/ScenarioModel.hpp>
-#include <Scenario/Document/BaseElement/BaseScenario/BaseScenario.hpp>
+#include <Scenario/Document/BaseScenario/BaseScenario.hpp>
 #include <Explorer/DocumentPlugin/DeviceDocumentPlugin.hpp>
 
 #include <iscore2OSSIA.hpp>

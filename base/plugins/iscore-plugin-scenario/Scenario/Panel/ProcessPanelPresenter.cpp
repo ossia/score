@@ -3,12 +3,12 @@
 #include "ProcessPanelModel.hpp"
 
 #include <QApplication>
-#include <Scenario/Document/BaseElement/BaseElementModel.hpp>
+#include <Scenario/Document/ScenarioDocument/ScenarioDocumentModel.hpp>
 
 #include <Process/LayerModelPanelProxy.hpp>
 #include <Process/LayerView.hpp>
 
-#include <Scenario/Document/BaseElement/Widgets/ScenarioBaseGraphicsView.hpp>
+#include <Scenario/Document/ScenarioDocument/Widgets/ScenarioBaseGraphicsView.hpp>
 
 #include "ProcessPanelId.hpp"
 
@@ -37,7 +37,7 @@ void ProcessPanelPresenter::on_modelChanged()
         return;
     }
 
-    auto bem = iscore::IDocument::try_get<BaseElementModel>(*iscore::IDocument::documentFromObject(model()));
+    auto bem = iscore::IDocument::try_get<ScenarioDocumentModel>(*iscore::IDocument::documentFromObject(model()));
 
     if(!bem)
         return;

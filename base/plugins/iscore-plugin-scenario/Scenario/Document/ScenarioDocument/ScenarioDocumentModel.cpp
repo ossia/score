@@ -1,5 +1,5 @@
-#include "BaseElementModel.hpp"
-#include "BaseScenario/BaseScenario.hpp"
+#include "ScenarioDocumentModel.hpp"
+#include <Scenario/Document/BaseScenario/BaseScenario.hpp>
 
 #include "Scenario/Document/Constraint/ConstraintModel.hpp"
 #include "Scenario/Document/Event/EventModel.hpp"
@@ -31,10 +31,10 @@ using namespace Scenario;
 
 #include <Scenario/Document/DisplayedElements/DisplayedElementsProviderList.hpp>
 
-BaseElementModel::BaseElementModel(QObject* parent) :
+ScenarioDocumentModel::ScenarioDocumentModel(QObject* parent) :
     iscore::DocumentDelegateModelInterface {
         Id<iscore::DocumentDelegateModelInterface>(iscore::id_generator::getFirstId()),
-        "BaseElementModel",
+        "ScenarioDocumentModel",
         parent},
     m_baseScenario{new BaseScenario{Id<BaseScenario>{0}, this}}
 {
@@ -47,16 +47,16 @@ BaseElementModel::BaseElementModel(QObject* parent) :
     initializeNewDocument(m_baseScenario->constraint().fullView());
 
     // Help for the FocusDispatcher.
-    connect(this, &BaseElementModel::setFocusedPresenter,
+    connect(this, &ScenarioDocumentModel::setFocusedPresenter,
             &m_focusManager, static_cast<void (ProcessFocusManager::*)(LayerPresenter*)>(&ProcessFocusManager::focus));
 
     con(m_focusManager, &ProcessFocusManager::sig_defocusedViewModel,
-            this, &BaseElementModel::on_viewModelDefocused);
+            this, &ScenarioDocumentModel::on_viewModelDefocused);
     con(m_focusManager, &ProcessFocusManager::sig_focusedViewModel,
-            this, &BaseElementModel::on_viewModelFocused);
+            this, &ScenarioDocumentModel::on_viewModelFocused);
 }
 
-void BaseElementModel::initializeNewDocument(const FullViewConstraintViewModel *viewmodel)
+void ScenarioDocumentModel::initializeNewDocument(const FullViewConstraintViewModel *viewmodel)
 {
     using namespace Scenario::Command;
     const auto& constraint_model = viewmodel->model();
@@ -98,7 +98,7 @@ void BaseElementModel::initializeNewDocument(const FullViewConstraintViewModel *
     cmd6.redo();
 }
 
-ConstraintModel& BaseElementModel::baseConstraint() const
+ConstraintModel& ScenarioDocumentModel::baseConstraint() const
 {
     return m_baseScenario->constraint();
 }
@@ -114,7 +114,7 @@ static void updateSlotFocus(const LayerModel* lm, bool b)
     }
 }
 
-void BaseElementModel::on_viewModelDefocused(const LayerModel* vm)
+void ScenarioDocumentModel::on_viewModelDefocused(const LayerModel* vm)
 {
     // Disable the focus on previously focused view model
     updateSlotFocus(vm, false);
@@ -124,7 +124,7 @@ void BaseElementModel::on_viewModelDefocused(const LayerModel* vm)
     iscore::IDocument::documentFromObject(*this)->selectionStack().clear();
 }
 
-void BaseElementModel::on_viewModelFocused(const LayerModel* process)
+void ScenarioDocumentModel::on_viewModelFocused(const LayerModel* process)
 {
     // Enable focus on the new viewmodel
     updateSlotFocus(process, true);
@@ -147,7 +147,7 @@ void BaseElementModel::on_viewModelFocused(const LayerModel* process)
 }
 
 // TODO candidate for ProcessSelectionManager.
-void BaseElementModel::setNewSelection(const Selection& s)
+void ScenarioDocumentModel::setNewSelection(const Selection& s)
 {
     auto process = m_focusManager.focusedModel();
 
@@ -205,7 +205,7 @@ void BaseElementModel::setNewSelection(const Selection& s)
     emit focusMe();
 }
 
-void BaseElementModel::setDisplayedConstraint(const ConstraintModel& constraint)
+void ScenarioDocumentModel::setDisplayedConstraint(const ConstraintModel& constraint)
 {
     if(&constraint == &displayedElements.constraint())
         return;

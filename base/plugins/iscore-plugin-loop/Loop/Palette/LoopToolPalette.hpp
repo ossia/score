@@ -1,9 +1,9 @@
 #pragma once
 #include <Scenario/Application/ScenarioEditionSettings.hpp>
-#include <Scenario/Document/BaseElement/Widgets/GraphicsProxyObject.hpp>
-#include <Scenario/Document/BaseElement/BaseScenario/BaseElementContext.hpp>
+#include <Scenario/Document/ScenarioDocument/Widgets/GraphicsProxyObject.hpp>
+#include <Scenario/Document/BaseScenario/BaseElementContext.hpp>
 #include <Scenario/Process/Temporal/StateMachines/Tools/SelectionToolState.hpp>
-#include <Scenario/Document/BaseElement/BaseScenario/BaseScenario_StateWrappers.hpp>
+#include <Scenario/Document/DisplayedElements/DisplayedElementsToolPalette/BaseScenarioDisplayedElements_StateWrappers.hpp>
 
 #include <Process/Tools/ToolPalette.hpp>
 
@@ -17,7 +17,7 @@
 
 #include <Loop/LoopLayer.hpp>
 #include <Loop/LoopView.hpp>
-class BaseElementPresenter;
+class ScenarioDocumentPresenter;
 class BaseGraphicsObject;
 class DisplayedElementsPresenter;
 class DisplayedElementsModel;

@@ -6,7 +6,7 @@
 #include <Scenario/Document/Constraint/ViewModels/Temporal/TemporalConstraintView.hpp>
 #include <Scenario/Commands/Constraint/AddProcessToConstraint.hpp>
 #include <iscore/document/DocumentInterface.hpp>
-#include <Scenario/Document/BaseElement/BaseElementModel.hpp>
+#include <Scenario/Document/ScenarioDocument/ScenarioDocumentModel.hpp>
 
 #include "TemporalConstraintHeader.hpp"
 #include <QGraphicsScene>
@@ -55,7 +55,7 @@ TemporalConstraintPresenter::TemporalConstraintPresenter(
     connect(static_cast<TemporalConstraintHeader*>(m_header), &TemporalConstraintHeader::doubleClicked,
             this, [this] () {
         using namespace iscore::IDocument;
-        auto& base = get<BaseElementModel> (*documentFromObject(m_viewModel.model()));
+        auto& base = get<ScenarioDocumentModel> (*documentFromObject(m_viewModel.model()));
 
         base.setDisplayedConstraint(m_viewModel.model());
     });

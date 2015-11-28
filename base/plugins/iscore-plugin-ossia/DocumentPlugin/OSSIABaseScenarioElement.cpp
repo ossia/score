@@ -6,7 +6,7 @@
 #include <API/Headers/Editor/TimeEvent.h>
 #include <API/Headers/Editor/TimeNode.h>
 
-#include <Scenario/Document/BaseElement/BaseScenario/BaseScenario.hpp>
+#include <Scenario/Document/BaseScenario/BaseScenario.hpp>
 #include "iscore2OSSIA.hpp"
 #include <OSSIA2iscore.hpp>
 #include <iscore/document/DocumentInterface.hpp>
