@@ -8,6 +8,10 @@
 #include <Scenario/Document/BaseElement/FullViewStateMachines/FullViewToolPaletteFactory.hpp>
 #include <Scenario/Document/BaseElement/FullViewStateMachines/FullViewStateMachineFactory.hpp>
 
+#include <Scenario/Document/DisplayedElements/DisplayedElementsProviderList.hpp>
+#include <Scenario/Document/DisplayedElements/ScenarioDisplayedElementsProvider.hpp>
+#include <Scenario/Document/DisplayedElements/BaseScenarioDisplayedElementsProvider.hpp>
+
 #include <Scenario/Commands/TimeNode/TriggerCommandFactory/TriggerCommandFactoryList.hpp>
 #include <Scenario/Commands/TimeNode/TriggerCommandFactory/ScenarioTriggerCommandFactory.hpp>
 #include <Scenario/Commands/TimeNode/TriggerCommandFactory/BaseScenarioTriggerCommandFactory.hpp>
@@ -79,7 +83,8 @@ std::vector<iscore::FactoryListInterface*> iscore_plugin_scenario::factoryFamili
             new ScenarioContextMenuPluginList,
             new ConstraintInspectorDelegateFactoryList,
             new ScenarioToolPaletteFactoryList,
-            new TriggerCommandFactoryList};
+            new TriggerCommandFactoryList,
+            new DisplayedElementsProviderList};
 }
 
 std::vector<iscore::FactoryInterfaceBase*> iscore_plugin_scenario::factories(
@@ -140,6 +145,13 @@ std::vector<iscore::FactoryInterfaceBase*> iscore_plugin_scenario::factories(
         };
     }
 
+    if(key == DisplayedElementsProvider::staticFactoryKey())
+    {
+        return {
+            new ScenarioDisplayedElementsProvider,
+            new BaseScenarioDisplayedElementsProvider
+        };
+    }
     return {};
 }
 

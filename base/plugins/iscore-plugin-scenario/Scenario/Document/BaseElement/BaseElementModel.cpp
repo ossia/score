@@ -29,6 +29,7 @@ using namespace Scenario;
 #include <Scenario/Application/ScenarioApplicationPlugin.hpp>
 #include <iscore/tools/SettableIdentifierGeneration.hpp>
 
+#include <Scenario/Document/DisplayedElements/DisplayedElementsProviderList.hpp>
 
 BaseElementModel::BaseElementModel(QObject* parent) :
     iscore::DocumentDelegateModelInterface {
@@ -209,7 +210,8 @@ void BaseElementModel::setDisplayedConstraint(const ConstraintModel& constraint)
     if(&constraint == &displayedElements.constraint())
         return;
 
-    displayedElements.setDisplayedConstraint(constraint);
+    auto& provider = iscore::IDocument::documentContext(*this).app.components.factory<DisplayedElementsProviderList>();
+    displayedElements.setDisplayedElements(provider.make(constraint));
 
     m_focusManager.focusNothing();
 

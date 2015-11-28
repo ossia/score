@@ -1,7 +1,6 @@
 #pragma once
-#include <QObject>
-#include <QPointer>
 #include <iscore/selection/Selection.hpp>
+#include <Scenario/Document/DisplayedElements/DisplayedElementsContainer.hpp>
 
 class ConstraintModel;
 class TimeNodeModel;
@@ -12,8 +11,7 @@ class DisplayedElementsModel
     public:
         void setSelection(const Selection&);
 
-        // Will set all the other
-        void setDisplayedConstraint(const ConstraintModel& cst);
+        void setDisplayedElements(DisplayedElementsContainer&&);
         const ConstraintModel& constraint() const;
 
         const TimeNodeModel& startTimeNode() const;
@@ -29,23 +27,14 @@ class DisplayedElementsModel
         auto elements() const
         {
             return std::make_tuple(
-                        m_startNode,
-                        m_endNode,
-                        m_startEvent,
-                        m_endEvent,
-                        m_startState,
-                        m_endState,
-                        m_constraint);
+                        m_elements.startNode,
+                        m_elements.endNode,
+                        m_elements.startEvent,
+                        m_elements.endEvent,
+                        m_elements.startState,
+                        m_elements.endState,
+                        m_elements.constraint);
         }
 
-        QPointer<const TimeNodeModel> m_startNode{};
-        QPointer<const TimeNodeModel> m_endNode{};
-
-        QPointer<const EventModel> m_startEvent{};
-        QPointer<const EventModel> m_endEvent{};
-
-        QPointer<const StateModel> m_startState{};
-        QPointer<const StateModel> m_endState{};
-
-        QPointer<const ConstraintModel> m_constraint{};
+        DisplayedElementsContainer m_elements;
 };

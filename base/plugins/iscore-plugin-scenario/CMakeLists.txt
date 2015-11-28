@@ -175,6 +175,13 @@ set(SRCS ${SRCS}
 "${CMAKE_CURRENT_SOURCE_DIR}/Scenario/Document/BaseElement/FullViewStateMachines/FullViewStateMachine.cpp"
 "${CMAKE_CURRENT_SOURCE_DIR}/Scenario/Document/BaseElement/FullViewStateMachines/FullViewToolPaletteFactory.cpp"
 "${CMAKE_CURRENT_SOURCE_DIR}/Scenario/Document/BaseElement/FullViewStateMachines/BaseScenarioToolPaletteFactory.cpp"
+
+"${CMAKE_CURRENT_SOURCE_DIR}/Scenario/Document/DisplayedElements/DisplayedElementsContainer.cpp"
+"${CMAKE_CURRENT_SOURCE_DIR}/Scenario/Document/DisplayedElements/DisplayedElementsProvider.cpp"
+"${CMAKE_CURRENT_SOURCE_DIR}/Scenario/Document/DisplayedElements/DisplayedElementsProviderList.cpp"
+"${CMAKE_CURRENT_SOURCE_DIR}/Scenario/Document/DisplayedElements/ScenarioDisplayedElementsProvider.cpp"
+"${CMAKE_CURRENT_SOURCE_DIR}/Scenario/Document/DisplayedElements/BaseScenarioDisplayedElementsProvider.cpp"
+
 "${CMAKE_CURRENT_SOURCE_DIR}/Scenario/Document/Constraint/Rack/RackView.cpp"
 "${CMAKE_CURRENT_SOURCE_DIR}/Scenario/Document/BaseScenario/BaseScenarioContainer.cpp"
 "${CMAKE_CURRENT_SOURCE_DIR}/Scenario/Document/Constraint/Rack/Slot/SlotPresenter.cpp"
