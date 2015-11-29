@@ -39,20 +39,22 @@ OSSIAConstraintElement::OSSIAConstraintElement(
         this, &OSSIAConstraintElement::on_loopingChanged);
 
     // Setup updates
+    con(iscore_cst.duration, &ConstraintDurations::minDurationChanged, this,
+        [=] (const TimeValue& t) {
+            try {
+                ossia_cst->setDurationMin(iscore::convert::time(t));
+            }
+            catch(std::runtime_error& e)
+            {
+                qWarning() << e.what();
+            }
+        });
+    
     con(iscore_cst.duration, &ConstraintDurations::defaultDurationChanged, this,
             [=] (const TimeValue& t) {
         ossia_cst->setDurationNominal(iscore::convert::time(t));
     });
-    con(iscore_cst.duration, &ConstraintDurations::minDurationChanged, this,
-            [=] (const TimeValue& t) {
-        try {
-            ossia_cst->setDurationMin(iscore::convert::time(t));
-        }
-        catch(std::runtime_error& e)
-        {
-            qWarning() << e.what();
-        }
-    });
+
     con(iscore_cst.duration, &ConstraintDurations::maxDurationChanged, this,
             [=] (const TimeValue& t) {
         try {
