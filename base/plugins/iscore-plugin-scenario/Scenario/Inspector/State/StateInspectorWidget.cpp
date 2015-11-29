@@ -41,7 +41,7 @@ void StateInspectorWidget::updateDisplayedValues()
     // State id
     //lay->addRow("Id", new QLabel{QString::number(m_model.id().val().get())});
 
-    auto scenar = m_model.parentScenario();
+    auto scenar = safe_cast<ScenarioInterface*>(m_model.parent());
     auto event = m_model.eventId();
 
     // State setup
@@ -85,7 +85,7 @@ void StateInspectorWidget::updateDisplayedValues()
         lay->addWidget(btn);
     }
 
-    auto scenarModel = dynamic_cast<const Scenario::ScenarioModel*>(m_model.parentScenario());
+    auto scenarModel = dynamic_cast<const Scenario::ScenarioModel*>(m_model.parent());
     if(scenarModel)
     {
         auto& parentEvent = scenarModel->events.at(m_model.eventId());
@@ -109,7 +109,7 @@ using namespace Scenario;
 
 void StateInspectorWidget::splitEvent()
 {
-    auto scenar = dynamic_cast<const Scenario::ScenarioModel*>(m_model.parentScenario());
+    auto scenar = dynamic_cast<const Scenario::ScenarioModel*>(m_model.parent());
     if (scenar)
     {
         auto& parentEvent = scenar->events.at(m_model.eventId());

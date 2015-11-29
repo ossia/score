@@ -85,13 +85,6 @@ ConstraintModel::ConstraintModel(
     m_fullViewModel = source.fullView()->clone(source.fullView()->id(), *this, this);
 }
 
-ScenarioInterface* ConstraintModel::parentScenario() const
-{
-    return dynamic_cast<ScenarioInterface*>(parent());
-}
-
-
-
 void ConstraintModel::setupConstraintViewModel(ConstraintViewModel* viewmodel)
 {
     con(racks, &NotifyingMap<RackModel>::removed,

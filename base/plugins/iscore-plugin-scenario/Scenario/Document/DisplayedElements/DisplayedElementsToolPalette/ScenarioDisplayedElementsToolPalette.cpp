@@ -23,7 +23,7 @@ ScenarioDisplayedElementsToolPalette::ScenarioDisplayedElementsToolPalette(
         BaseGraphicsObject& view):
     GraphicsSceneToolPalette{*view.scene()},
     m_model{model},
-    m_scenarioModel{*safe_cast<Scenario::ScenarioModel*>(m_model.constraint().parentScenario())},
+    m_scenarioModel{*safe_cast<Scenario::ScenarioModel*>(m_model.constraint().parent())},
     m_presenter{pres},
     m_context{ctx, m_presenter},
     m_view{view},

@@ -25,8 +25,6 @@ BaseScenarioDisplayedElementsToolPalette::BaseScenarioDisplayedElementsToolPalet
     m_state{*this},
     m_inputDisp{m_presenter, *this, m_context}
 {
-    // TODO cancel
-
 }
 
 BaseGraphicsObject& BaseScenarioDisplayedElementsToolPalette::view() const

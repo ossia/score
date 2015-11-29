@@ -2,6 +2,7 @@
 
 #include "StateView.hpp"
 
+#include "ItemModel/MessageItemModelAlgorithms.hpp"
 #include <Scenario/Document/Constraint/ViewModels/ConstraintView.hpp>
 #include <Scenario/Document/Event/EventModel.hpp>
 
@@ -60,11 +61,6 @@ void StateModel::init()
     }
 }
 
-const ScenarioInterface* StateModel::parentScenario() const
-{
-    return dynamic_cast<ScenarioInterface*>(parent()); // TODO why not safe cast
-}
-
 double StateModel::heightPercentage() const
 {
     return m_heightPercentage;
@@ -82,7 +78,7 @@ void StateModel::statesUpdated_slt()
 {
     emit sig_statesUpdated();
 }
-#include "ItemModel/MessageItemModelAlgorithms.hpp"
+
 void StateModel::on_previousProcessAdded(const Process& proc)
 {
     ProcessStateDataInterface* state = proc.endStateData();
@@ -208,9 +204,7 @@ void StateModel::setNextConstraint(const Id<ConstraintModel> & id)
     if(!m_nextConstraint)
         return;
 
-    auto scenar = parentScenario();
-    if(!scenar)
-        return;
+    auto scenar = safe_cast<ScenarioInterface*>(parent());
 
     // The constraints might not be present in a scenario
     // for instance when restoring removed elements.
@@ -250,9 +244,7 @@ void StateModel::setPreviousConstraint(const Id<ConstraintModel> & id)
     if(!m_previousConstraint)
         return;
 
-    auto scenar = parentScenario();
-    if(!scenar)
-        return;
+    auto scenar = safe_cast<ScenarioInterface*>(parent());
 
     auto cstr = scenar->findConstraint(m_previousConstraint);
     if(cstr)

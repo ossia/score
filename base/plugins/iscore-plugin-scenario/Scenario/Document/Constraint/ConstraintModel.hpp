@@ -91,9 +91,6 @@ class ConstraintModel final : public IdentifiedObject<ConstraintModel>
             return viewmodel;
         }
 
-        // If the constraint is in a scenario, then returns the scenario
-        ScenarioInterface* parentScenario() const;
-
         // Note : the Constraint does not have ownership (it's generally the Slot)
         void setupConstraintViewModel(ConstraintViewModel* viewmodel);
 

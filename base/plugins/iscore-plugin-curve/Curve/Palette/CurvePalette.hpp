@@ -1,7 +1,6 @@
 #pragma once
 #include <Curve/Palette/Tools/MoveTool.hpp>
 #include <Curve/Palette/Tools/SmartTool.hpp>
-#include <Curve/Palette/CurvePaletteData.hpp>
 #include <Curve/Palette/CurvePoint.hpp>
 #include <Curve/Palette/CurveEditionSettings.hpp>
 

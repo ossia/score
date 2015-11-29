@@ -51,8 +51,6 @@ class StateModel final : public IdentifiedObject<StateModel>
             init();
         }
 
-        const ScenarioInterface* parentScenario() const;
-
         double heightPercentage() const;
 
         MessageItemModel &messages() const;

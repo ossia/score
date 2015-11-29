@@ -63,9 +63,8 @@ void RecordManager::stopRecording()
             double newval = iscore::convert::value<double>(node.get<iscore::AddressSettings>().value);
 
             const auto& proc_data = records.at(addr);
-            proc_data.segment.addPoint(msecs, newval);
+            segt.addPoint(msecs, newval);
 
-            segt.addPoint(0, newval); // TODO why????
             static_cast<AutomationModel*>(proc_data.curveModel.parent())->setDuration(TimeValue::fromMsecs(msecs));
         }
 
