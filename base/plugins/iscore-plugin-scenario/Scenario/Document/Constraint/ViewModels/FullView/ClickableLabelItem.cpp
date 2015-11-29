@@ -2,6 +2,7 @@
 #include <QFont>
 #include <qnamespace.h>
 #include <algorithm>
+#include <QBrush>
 
 #include "ClickableLabelItem.hpp"
 

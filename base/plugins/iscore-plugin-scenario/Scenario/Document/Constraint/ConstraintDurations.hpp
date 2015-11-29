@@ -3,6 +3,9 @@
 #include <QObject>
 #include <chrono>
 
+#include <iscore/serialization/DataStreamVisitor.hpp>
+#include <iscore/serialization/JSONVisitor.hpp>
+
 class ConstraintModel;
 class DataStream;
 class JSONObject;

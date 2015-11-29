@@ -1,4 +1,10 @@
 #pragma once
+#include <boost/multi_index_container.hpp>
+#include <boost/multi_index/ordered_index.hpp>
+#include <boost/multi_index/hashed_index.hpp>
+#include <boost/multi_index/member.hpp>
+#include <boost/multi_index/mem_fun.hpp>
+
 #include <Curve/Palette/CurvePoint.hpp>
 #include <iscore/tools/IdentifiedObject.hpp>
 #include <Curve/Segment/CurveSegmentFactoryKey.hpp>
@@ -99,12 +105,6 @@ inline bool operator<=(const CurveSegmentData& lhs, const CurveSegmentData& rhs)
 
 Q_DECLARE_METATYPE(CurveSegmentData)
 
-
-#include <boost/multi_index_container.hpp>
-#include <boost/multi_index/ordered_index.hpp>
-#include <boost/multi_index/hashed_index.hpp>
-#include <boost/multi_index/member.hpp>
-#include <boost/multi_index/mem_fun.hpp>
 
 // We don't want crashes on invalid ids search
 class CurveDataHash

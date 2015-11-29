@@ -1,6 +1,7 @@
 #pragma once
 #include <QByteArray>
 #include <QString>
+#include <QMetaType>
 
 class QDataStream;
 class Session;

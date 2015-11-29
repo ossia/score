@@ -4,7 +4,7 @@
 #include "PutLayerModelToFront.hpp"
 #include <iscore/tools/ModelPath.hpp>
 
-template <typename tag, typename impl> class id_base_t;
+#include <iscore/tools/SettableIdentifier.hpp>
 
 PutLayerModelToFront::PutLayerModelToFront(
         Path<SlotModel>&& slotPath,

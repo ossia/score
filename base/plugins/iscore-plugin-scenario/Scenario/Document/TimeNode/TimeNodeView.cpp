@@ -11,6 +11,7 @@
 #include <Scenario/Document/VerticalExtent.hpp>
 #include "TimeNodePresenter.hpp"
 #include "TimeNodeView.hpp"
+#include <QCursor>
 
 class QStyleOptionGraphicsItem;
 class QWidget;

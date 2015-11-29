@@ -2,6 +2,7 @@
 #include <qnamespace.h>
 #include <QPainter>
 #include <QPoint>
+#include <QCursor>
 
 #include "SlotHandle.hpp"
 #include "SlotView.hpp"

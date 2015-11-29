@@ -7,7 +7,7 @@
 #include "NetworkSettingsView.hpp"
 #include <iscore/command/Command.hpp>
 #include <iscore/plugins/settingsdelegate/SettingsDelegatePresenterInterface.hpp>
-
+#include <iscore/tools/Todo.hpp>
 namespace iscore {
 class SettingsDelegateModelInterface;
 class SettingsDelegateViewInterface;

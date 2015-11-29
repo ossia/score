@@ -1,7 +1,6 @@
 #include <Inspector/InspectorWidgetList.hpp>
-#include <boost/multi_index/detail/hash_index_iterator.hpp>
 #include <boost/operators.hpp>
-#include <QBoxLayout>
+#include <QVBoxLayout>
 #include <QPointer>
 #include <QTabWidget>
 #include <algorithm>

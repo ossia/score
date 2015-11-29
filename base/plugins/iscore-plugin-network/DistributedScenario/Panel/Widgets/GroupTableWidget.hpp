@@ -8,7 +8,7 @@ class GroupManager;
 class GroupTableCheckbox;
 class QTableWidget;
 class Session;
-template <typename tag, typename impl> class id_base_t;
+#include <iscore/tools/SettableIdentifier.hpp>
 
 class GroupTableWidget : public QWidget
 {

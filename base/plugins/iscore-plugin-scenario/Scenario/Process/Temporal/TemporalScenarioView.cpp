@@ -6,6 +6,8 @@
 #include <qnamespace.h>
 #include <QPainter>
 #include <QPen>
+#include <QCursor>
+#include <QKeyEvent>
 
 #include <Process/LayerView.hpp>
 #include "TemporalScenarioView.hpp"

@@ -17,7 +17,7 @@ class LayerModel;
 class Process;
 class ProcessStateDataInterface;
 class QObject;
-template <typename tag, typename impl> class id_base_t;
+#include <iscore/tools/SettableIdentifier.hpp>
 
 
 std::shared_ptr<JSProcess> JSProcessModel::makeProcess() const

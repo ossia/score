@@ -2,6 +2,10 @@
 #include <Process/ProcessContext.hpp>
 #include <chrono>
 #include <QTimer>
+#include <QPointF>
+#include <QScreen>
+#include <QDebug>
+#include <QApplication>
 template<typename Tool_T, typename ToolPalette_T, typename Context_T, typename Input_T>
 class ToolPaletteInputDispatcher : public QObject
 {
@@ -14,6 +18,11 @@ class ToolPaletteInputDispatcher : public QObject
             m_context{context},
             m_currentTool{palette.editionSettings().tool()}
         {
+            auto screens = QApplication::screens();
+            if(!screens.empty())
+            {
+                m_frameTime = 1000000. / screens.front()->refreshRate();
+            }
             using EditionSettings_T = std::remove_reference_t<decltype(palette.editionSettings())>;
             con(palette.editionSettings(), &EditionSettings_T::toolChanged,
                 this, &ToolPaletteInputDispatcher::on_toolChanged);
@@ -55,10 +64,10 @@ class ToolPaletteInputDispatcher : public QObject
         {
             using namespace std::literals::chrono_literals;
             auto t = std::chrono::steady_clock::now();
-            if(t - m_prev < 8ms)
+            if(t - m_prev < std::chrono::microseconds((int64_t)m_frameTime))
             {
                 m_elapsedPoint = p;
-                m_elapsedTimer.start(8);
+                m_elapsedTimer.start(m_frameTime / 1000.);
                 // TODO here put a timer at refresh time ms to trigger the last step if we stop moving.
                 return;
             }
@@ -102,4 +111,6 @@ class ToolPaletteInputDispatcher : public QObject
         std::chrono::steady_clock::time_point m_prev;
         QTimer m_elapsedTimer;
         QPointF m_elapsedPoint;
+
+        qreal m_frameTime{16666}; // In microseconds
 };

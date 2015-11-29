@@ -9,7 +9,7 @@
 class LayerModel;
 class ProcessStateDataInterface;
 class QObject;
-template <typename tag, typename impl> class id_base_t;
+#include <iscore/tools/SettableIdentifier.hpp>
 
 
 DummyModel::DummyModel(

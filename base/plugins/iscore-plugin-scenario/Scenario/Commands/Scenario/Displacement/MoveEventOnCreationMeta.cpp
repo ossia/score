@@ -14,7 +14,7 @@ class EventModel;
 namespace Scenario {
 class ScenarioModel;
 }  // namespace Scenario
-template <typename tag, typename impl> class id_base_t;
+#include <iscore/tools/SettableIdentifier.hpp>
 
 MoveEventOnCreationMeta::MoveEventOnCreationMeta(
         Path<Scenario::ScenarioModel>&& scenarioPath,

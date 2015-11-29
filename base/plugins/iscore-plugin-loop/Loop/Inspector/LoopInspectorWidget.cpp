@@ -2,6 +2,7 @@
 
 #include <Inspector/InspectorWidgetBase.hpp>
 #include "LoopInspectorWidget.hpp"
+#include <QVBoxLayout>
 
 class QVBoxLayout;
 class QWidget;

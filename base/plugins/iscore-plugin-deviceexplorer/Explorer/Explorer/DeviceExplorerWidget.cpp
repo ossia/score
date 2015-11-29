@@ -22,6 +22,7 @@
 #include <QLineEdit>
 #include <QList>
 #include <QMenu>
+#include <QContextMenuEvent>
 #include <qnamespace.h>
 
 #include <QPair>

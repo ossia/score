@@ -12,7 +12,7 @@ class ScenarioModel;
 struct VerticalExtent;
 template<typename T>
 class ScenarioCreate;
-template <typename tag, typename impl> class id_base_t;
+#include <iscore/tools/SettableIdentifier.hpp>
 
 template<>
 class ScenarioCreate<TimeNodeModel>

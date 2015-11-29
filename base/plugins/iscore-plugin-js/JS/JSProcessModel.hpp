@@ -18,7 +18,7 @@ class Process;
 class ProcessStateDataInterface;
 class QObject;
 class TimeProcessWithConstraint;
-template <typename tag, typename impl> class id_base_t;
+#include <iscore/tools/SettableIdentifier.hpp>
 
 class JSProcessModel final : public OSSIAProcessModel
 {

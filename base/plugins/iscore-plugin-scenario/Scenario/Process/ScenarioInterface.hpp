@@ -3,7 +3,7 @@ class ConstraintModel;
 class EventModel;
 class StateModel;
 class TimeNodeModel;
-template <typename tag, typename impl> class id_base_t;
+#include <iscore/tools/SettableIdentifier.hpp>
 
 class ScenarioInterface
 {

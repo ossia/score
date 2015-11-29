@@ -8,7 +8,7 @@ class LayerModel;
 class Process;
 class RackInspectorSection;
 class SlotModel;
-template <typename tag, typename impl> class id_base_t;
+#include <iscore/tools/SettableIdentifier.hpp>
 
 // Contains a single rack which can contain multiple slots and a Add Slot button.
 class SlotInspectorSection final : public InspectorSectionWidget

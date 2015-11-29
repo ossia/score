@@ -13,12 +13,12 @@
 
 bool LoopTriggerCommandFactory::matches(const TimeNodeModel& tn) const
 {
-  return dynamic_cast<Loop::ProcessModel*>(tn.parentScenario());
+  return dynamic_cast<Loop::ProcessModel*>(tn.parent());
 }
 
 iscore::SerializableCommand* LoopTriggerCommandFactory::make_addTriggerCommand(const TimeNodeModel& tn) const
 {
-  if(dynamic_cast<Loop::ProcessModel*>(tn.parentScenario()))
+  if(dynamic_cast<Loop::ProcessModel*>(tn.parent()))
   {
     return new Scenario::Command::AddTrigger<Loop::ProcessModel>(tn);
   }
@@ -27,7 +27,7 @@ iscore::SerializableCommand* LoopTriggerCommandFactory::make_addTriggerCommand(c
 
 iscore::SerializableCommand* LoopTriggerCommandFactory::make_removeTriggerCommand(const TimeNodeModel& tn) const
 {
-  if(dynamic_cast<Loop::ProcessModel*>(tn.parentScenario()))
+  if(dynamic_cast<Loop::ProcessModel*>(tn.parent()))
   {
     return new Scenario::Command::RemoveTrigger<Loop::ProcessModel>(tn);
   }

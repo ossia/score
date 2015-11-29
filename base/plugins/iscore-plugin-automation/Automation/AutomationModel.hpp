@@ -15,7 +15,7 @@ class JSONObject;
 class LayerModel;
 class Process;
 class QObject;
-template <typename tag, typename impl> class id_base_t;
+#include <iscore/tools/SettableIdentifier.hpp>
 
 class AutomationModel final : public CurveProcessModel
 {

@@ -1,15 +1,11 @@
 #pragma once
-
-
-
 #include <QColor>
 #include <qnamespace.h>
 #include <QObject>
 #include <QString>
 
-class DataStream;
-class JSONObject;
-
+#include <iscore/serialization/DataStreamVisitor.hpp>
+#include <iscore/serialization/JSONVisitor.hpp>
 /**
  * @brief The ModelMetadata class
  */

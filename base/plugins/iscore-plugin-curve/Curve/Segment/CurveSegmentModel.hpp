@@ -12,8 +12,9 @@
 #include <iscore/serialization/VisitorInterface.hpp>
 #include <iscore/tools/SettableIdentifier.hpp>
 
-class DataStream;
-class JSONObject;
+#include <iscore/serialization/DataStreamVisitor.hpp>
+#include <iscore/serialization/JSONVisitor.hpp>
+
 class QObject;
 class PowerCurveSegmentModel;
 

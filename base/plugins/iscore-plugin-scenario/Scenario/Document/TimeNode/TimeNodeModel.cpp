@@ -54,9 +54,8 @@ void TimeNodeModel::addEvent(const Id<EventModel>& eventId)
     m_events.push_back(eventId);
     emit newEvent(eventId);
 
-    auto scenar = parentScenario();
-    if(!scenar)
-        return;
+    auto scenar = dynamic_cast<ScenarioInterface*>(parent());
+    ISCORE_ASSERT(scenar);
 
     auto& theEvent = scenar->event(eventId);
     theEvent.changeTimeNode(this->id());

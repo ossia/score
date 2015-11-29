@@ -115,7 +115,8 @@ void TimeNodeInspectorWidget::updateDisplayedValues()
 
     for(const auto& event : m_model.events())
     {
-        auto scenar = m_model.parentScenario();
+        auto scenar = dynamic_cast<ScenarioInterface*>(m_model.parent());
+        ISCORE_ASSERT(scenar);
         EventModel* evModel = &scenar->event(event);
 
         auto eventWid = new EventShortCut(QString::number((*event.val())));

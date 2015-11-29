@@ -7,6 +7,7 @@
 #include "JSInspectorWidget.hpp"
 #include <iscore/command/Dispatchers/CommandDispatcher.hpp>
 #include <iscore/tools/ModelPath.hpp>
+#include <QVBoxLayout>
 
 class QVBoxLayout;
 class QWidget;

@@ -5,6 +5,8 @@
 #include <QVector>
 
 #include <iscore/tools/SettableIdentifier.hpp>
+#include <iscore/serialization/DataStreamVisitor.hpp>
+#include <iscore/serialization/JSONVisitor.hpp>
 
 class Client;
 class DataStream;

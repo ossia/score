@@ -25,7 +25,7 @@ namespace OSSIA {
 class StateElement;
 class TimeProcess;
 }  // namespace OSSIA
-template <typename tag, typename impl> class id_base_t;
+#include <iscore/tools/SettableIdentifier.hpp>
 
 RecreateOnPlay::LoopElement::LoopElement(
         RecreateOnPlay::ConstraintElement& parentConstraint,

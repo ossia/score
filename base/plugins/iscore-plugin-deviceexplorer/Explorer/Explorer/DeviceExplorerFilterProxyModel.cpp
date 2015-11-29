@@ -1,7 +1,7 @@
 #include <QAbstractItemModel>
 #include <QString>
 #include <QVariant>
-
+#include <iscore/tools/Todo.hpp>
 #include "DeviceExplorerFilterProxyModel.hpp"
 
 class QObject;

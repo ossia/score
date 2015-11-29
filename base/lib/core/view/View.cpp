@@ -16,6 +16,7 @@
 #include <QTabBar>
 #include <QTabWidget>
 #include <QWidget>
+#include <QCloseEvent>
 #include <algorithm>
 #include <iterator>
 #include <set>

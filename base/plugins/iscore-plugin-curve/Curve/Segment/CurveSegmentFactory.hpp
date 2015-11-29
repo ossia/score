@@ -9,7 +9,7 @@ class CurveSegmentModel;
 class QObject;
 struct CurveSegmentData;
 struct VisitorVariant;
-template <typename tag, typename impl> class id_base_t;
+#include <iscore/tools/SettableIdentifier.hpp>
 
 class CurveSegmentFactory : public iscore::GenericFactoryInterface<CurveSegmentFactoryKey>
 {

@@ -48,6 +48,7 @@ J'ai apporté quelques modifications en plus.
 #include <QScopedPointer>
 #include <QString>
 #include <QVariant>
+#include <QMouseEvent>
 
 #include <Device/QMenuView/qmenuview.h>
 #include "qmenuview_p.h"

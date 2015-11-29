@@ -11,7 +11,7 @@ class DynamicProcessList;
 class QObject;
 class SlotModel;
 class SlotView;
-template <typename tag, typename impl> class id_base_t;
+#include <iscore/tools/SettableIdentifier.hpp>
 
 namespace iscore
 {

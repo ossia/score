@@ -8,7 +8,7 @@ class QMimeData;
 class QObject;
 class StateModel;
 class StateView;
-template <typename tag, typename impl> class id_base_t;
+#include <iscore/tools/SettableIdentifier.hpp>
 
 class StatePresenter final : public NamedObject
 {

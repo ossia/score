@@ -5,6 +5,8 @@
 #include <qnamespace.h>
 #include <QPainter>
 #include <QPainterPath>
+#include <QWheelEvent>
+#include <QKeyEvent>
 
 #include "ScenarioBaseGraphicsView.hpp"
 

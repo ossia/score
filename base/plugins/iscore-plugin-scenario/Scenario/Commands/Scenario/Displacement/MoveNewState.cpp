@@ -9,7 +9,7 @@
 #include <iscore/tools/ModelPath.hpp>
 #include <iscore/tools/ModelPathSerialization.hpp>
 
-template <typename tag, typename impl> class id_base_t;
+#include <iscore/tools/SettableIdentifier.hpp>
 
 Scenario::Command::MoveNewState::MoveNewState(
         Path<Scenario::ScenarioModel>&& scenarioPath,

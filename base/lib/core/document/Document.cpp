@@ -22,7 +22,7 @@ class Selection;
 namespace iscore {
 class Application;
 }  // namespace iscore
-template <typename tag, typename impl> class id_base_t;
+#include <iscore/tools/SettableIdentifier.hpp>
 
 using namespace iscore;
 

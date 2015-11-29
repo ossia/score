@@ -13,7 +13,7 @@ class Process;
 class QGraphicsItem;
 class QObject;
 struct VisitorVariant;
-template <typename tag, typename impl> class id_base_t;
+#include <iscore/tools/SettableIdentifier.hpp>
 
 namespace Scenario
 {

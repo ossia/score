@@ -3,7 +3,7 @@
 #include <State/Message.hpp>
 
 class Process;
-template <typename tag, typename impl> class id_base_t;
+#include <iscore/tools/SettableIdentifier.hpp>
 
 // An enum that says if a process is before or after the state.
 enum class ProcessPosition {

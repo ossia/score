@@ -19,6 +19,7 @@
 #include <QString>
 #include <QStringList>
 #include <QStyleFactory>
+#include <QFileInfo>
 
 using namespace iscore;
 #include <iscore/tools/SettableIdentifierGeneration.hpp>

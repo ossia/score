@@ -11,6 +11,8 @@
 #include <QKeySequence>
 #include <QList>
 #include <QMenu>
+#include <QResizeEvent>
+#include <QContextMenuEvent>
 #include <qnamespace.h>
 
 #include <QSet>

@@ -6,6 +6,7 @@
 #include <qnamespace.h>
 #include <QPainter>
 #include <QPen>
+#include <QCursor>
 
 #include "CurvePointModel.hpp"
 #include "CurvePointView.hpp"
@@ -13,7 +14,7 @@
 
 class QStyleOptionGraphicsItem;
 class QWidget;
-template <typename tag, typename impl> class id_base_t;
+#include <iscore/tools/SettableIdentifier.hpp>
 
 static const qreal radius = 2.5;
 CurvePointView::CurvePointView(

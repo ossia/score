@@ -5,7 +5,7 @@ class Group;
 class GroupManager;
 class GroupMetadata;
 class QComboBox;
-template <typename tag, typename impl> class id_base_t;
+#include <iscore/tools/SettableIdentifier.hpp>
 
 class GroupMetadataWidget : public QWidget
 {

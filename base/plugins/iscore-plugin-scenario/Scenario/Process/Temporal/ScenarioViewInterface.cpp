@@ -28,7 +28,7 @@
 #include "TemporalScenarioPresenter.hpp"
 #include <iscore/tools/IdentifiedObjectMap.hpp>
 
-template <typename tag, typename impl> class id_base_t;
+#include <iscore/tools/SettableIdentifier.hpp>
 
 ScenarioViewInterface::ScenarioViewInterface(const TemporalScenarioPresenter& presenter) :
     m_presenter{presenter}

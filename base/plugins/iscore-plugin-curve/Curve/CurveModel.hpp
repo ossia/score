@@ -13,7 +13,7 @@ class DataStream;
 class JSONObject;
 class QObject;
 struct CurveSegmentData;
-template <typename tag, typename impl> class id_base_t;
+#include <iscore/tools/SettableIdentifier.hpp>
 
 class CurveModel final : public IdentifiedObject<CurveModel>
 {

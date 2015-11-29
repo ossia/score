@@ -13,6 +13,7 @@
 #include <Process/ModelMetadata.hpp>
 #include <Scenario/Document/Event/ExecutionStatus.hpp>
 #include <Scenario/Document/VerticalExtent.hpp>
+#include <QCursor>
 
 class QStyleOptionGraphicsItem;
 class QWidget;

@@ -6,7 +6,7 @@ class StatePresenter;
 class TemporalConstraintPresenter;
 class TemporalScenarioPresenter;
 class TimeNodePresenter;
-template <typename tag, typename impl> class id_base_t;
+#include <iscore/tools/SettableIdentifier.hpp>
 
 class ScenarioViewInterface
 {

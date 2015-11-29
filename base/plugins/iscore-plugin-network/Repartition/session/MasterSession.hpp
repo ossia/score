@@ -10,7 +10,7 @@ class QTcpSocket;
 class RemoteClient;
 class RemoteClientBuilder;
 struct NetworkMessage;
-template <typename tag, typename impl> class id_base_t;
+#include <iscore/tools/SettableIdentifier.hpp>
 
 namespace iscore {
 class Document;

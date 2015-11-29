@@ -10,7 +10,7 @@
 #include <iscore/tools/Todo.hpp>
 
 class QObject;
-template <typename tag, typename impl> class id_base_t;
+#include <iscore/tools/SettableIdentifier.hpp>
 
 TimeNodePresenter::TimeNodePresenter(const TimeNodeModel& model,
                                      QGraphicsObject *parentview,

@@ -6,6 +6,8 @@
 #include <core/application/Application.hpp>
 #include <iscore/plugins/application/GUIApplicationContextPlugin.hpp>
 #include <Scenario/Application/ScenarioApplicationPlugin.hpp>
+#include <core/application/ApplicationComponents.hpp>
+#include <QAction>
 
 std::pair<const CommandParentFactoryKey, CommandGeneratorMap> iscore_plugin_audio::make_commands()
 {

@@ -5,6 +5,7 @@
 #include <qnamespace.h>
 #include <QPainter>
 #include <QPen>
+#include <QCursor>
 
 #include "FullViewConstraintPresenter.hpp"
 #include "FullViewConstraintView.hpp"

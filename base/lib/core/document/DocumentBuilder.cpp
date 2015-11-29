@@ -15,7 +15,7 @@
 #include <core/application/ApplicationComponents.hpp>
 #include <iscore/serialization/DataStreamVisitor.hpp>
 
-template <typename tag, typename impl> class id_base_t;
+#include <iscore/tools/SettableIdentifier.hpp>
 
 using namespace iscore;
 

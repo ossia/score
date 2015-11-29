@@ -3,6 +3,7 @@
 #include <QGraphicsSceneEvent>
 #include <qnamespace.h>
 #include <QPainter>
+#include <QKeyEvent>
 
 #include "CurveView.hpp"
 

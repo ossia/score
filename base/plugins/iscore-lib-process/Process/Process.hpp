@@ -10,16 +10,16 @@
 
 #include "ModelMetadata.hpp"
 #include <iscore/serialization/VisitorInterface.hpp>
+#include <iscore/serialization/DataStreamVisitor.hpp>
+#include <iscore/serialization/JSONVisitor.hpp>
 
-class DataStream;
-class JSONObject;
 class LayerModel;
 class ProcessStateDataInterface;
 class QObject;
 namespace iscore {
 class ElementPluginModelList;
 }  // namespace iscore
-template <typename tag, typename impl> class id_base_t;
+#include <iscore/tools/SettableIdentifier.hpp>
 
 /**
  * @brief The Process class

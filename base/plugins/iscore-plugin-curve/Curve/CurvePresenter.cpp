@@ -1,3 +1,5 @@
+#include <Curve/Commands/UpdateCurve.hpp>
+
 #include <boost/core/explicit_operator_bool.hpp>
 #include <boost/multi_index/detail/hash_index_iterator.hpp>
 #include <boost/multi_index/hashed_index.hpp>
@@ -19,7 +21,6 @@
 #include <utility>
 #include <vector>
 
-#include <Curve/Commands/UpdateCurve.hpp>
 #include <Curve/Palette/CurveEditionSettings.hpp>
 #include <Curve/Palette/CurvePoint.hpp>
 #include <Curve/Point/CurvePointModel.hpp>

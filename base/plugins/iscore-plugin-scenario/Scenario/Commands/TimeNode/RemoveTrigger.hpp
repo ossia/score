@@ -59,7 +59,7 @@ class RemoveTrigger final : public iscore::SerializableCommand
             auto& tn = m_path.find();
             tn.trigger()->setActive(false);
 
-            auto scenar = safe_cast<Scenario_T*>(tn.parentScenario());
+            auto scenar = safe_cast<Scenario_T*>(tn.parent());
 
             for (const auto& cstrId : constraintsBeforeTimeNode(*scenar, tn.id()))
             {

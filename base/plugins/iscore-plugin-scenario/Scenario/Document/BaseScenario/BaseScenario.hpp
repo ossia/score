@@ -12,7 +12,7 @@ class DataStream;
 class JSONObject;
 class QObject;
 class TimeNodeModel;
-template <typename tag, typename impl> class id_base_t;
+#include <iscore/tools/SettableIdentifier.hpp>
 
 class BaseScenario final : public IdentifiedObject<BaseScenario>, public BaseScenarioContainer
 {

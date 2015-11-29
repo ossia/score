@@ -8,6 +8,7 @@
 #include <QRegExp>
 #include <QString>
 #include <QValidator>
+#include <QKeyEvent>
 
 #include "IpWidget.hpp"
 

@@ -3,12 +3,13 @@
 
 #include <iscore/serialization/VisitorInterface.hpp>
 
-class DataStream;
-class JSONObject;
+#include <iscore/serialization/DataStreamVisitor.hpp>
+#include <iscore/serialization/JSONVisitor.hpp>
+
 class LayerModelPanelProxy;
 class QObject;
 class TemporalConstraintViewModel;
-template <typename tag, typename impl> class id_base_t;
+#include <iscore/tools/SettableIdentifier.hpp>
 
 namespace Loop{
     class ProcessModel;

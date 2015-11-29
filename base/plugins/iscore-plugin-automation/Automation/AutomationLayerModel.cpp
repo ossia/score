@@ -7,7 +7,7 @@
 
 class LayerModelPanelProxy;
 class QObject;
-template <typename tag, typename impl> class id_base_t;
+#include <iscore/tools/SettableIdentifier.hpp>
 
 // TODO refactor with mapping ?
 constexpr const char AutomationLayerModel::className[];

@@ -21,7 +21,7 @@
 #include <iscore/tools/NotifyingMap.hpp>
 #include <iscore/tools/Todo.hpp>
 
-template <typename tag, typename impl> class id_base_t;
+#include <iscore/tools/SettableIdentifier.hpp>
 
 static const constexpr int slotSpacing = 0;
 

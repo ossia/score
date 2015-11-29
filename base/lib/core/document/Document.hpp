@@ -14,7 +14,7 @@ class QWidget;
 namespace iscore {
 class DocumentBackupManager;
 }  // namespace iscore
-template <typename tag, typename impl> class id_base_t;
+#include <iscore/tools/SettableIdentifier.hpp>
 
 namespace iscore
 {

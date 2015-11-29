@@ -14,7 +14,7 @@ class LayerModel;
 class Process;
 class SlotModel;
 template <typename Object> class Path;
-template <typename tag, typename impl> class id_base_t;
+#include <iscore/tools/SettableIdentifier.hpp>
 
 class CreateCurveFromStates final : public iscore::SerializableCommand
 {

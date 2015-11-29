@@ -5,6 +5,7 @@
 #include <boost/multi_index/identity_fwd.hpp>
 #include <boost/multi_index/indexed_by.hpp>
 #include <boost/multi_index_container.hpp>
+#include <boost/multi_index/mem_fun.hpp>
 #include <iscore/selection/SelectionDispatcher.hpp>
 #include <QList>
 #include <QWidget>
@@ -15,11 +16,6 @@ class IdentifiedObjectAbstract;
 class InspectorWidgetList;
 class QTabWidget;
 class QVBoxLayout;
-namespace boost {
-namespace multi_index {
-template <class Class, typename Type, Type (Class::*PtrToMemberFunction)() const> struct const_mem_fun;
-}  // namespace multi_index
-}  // namespace boost
 namespace iscore {
 class SelectionStack;
 }  // namespace iscore

@@ -5,6 +5,7 @@
 #include <core/document/DocumentModel.hpp>
 #include <Audio/AudioBlock.hpp>
 #include <Audio/AudioDocumentPlugin.hpp>
+#include <iscore/plugins/documentdelegate/plugin/ElementPluginModelList.hpp>
 #include <sndfile.hh>
 #include <libwatermark/mathutils/math_util.h>
 

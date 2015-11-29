@@ -1,5 +1,6 @@
 #include <QLabel>
 #include <list>
+#include <QVBoxLayout>
 
 #include <Automation/State/AutomationState.hpp>
 #include "AutomationStateInspector.hpp"
@@ -8,7 +9,6 @@
 #include <State/Message.hpp>
 #include <iscore/tools/Todo.hpp>
 
-class QVBoxLayout;
 class QWidget;
 namespace iscore {
 class Document;

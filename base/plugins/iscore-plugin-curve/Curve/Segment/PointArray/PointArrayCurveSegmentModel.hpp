@@ -14,7 +14,7 @@
 class LinearCurveSegmentModel;
 class QObject;
 struct CurveSegmentData;
-template <typename tag, typename impl> class id_base_t;
+#include <iscore/tools/SettableIdentifier.hpp>
 
 struct PointArrayCurveSegmentData
 {

@@ -5,6 +5,9 @@
 
 #include <iscore/plugins/documentdelegate/plugin/ElementPluginModel.hpp>
 
+#include <iscore/serialization/DataStreamVisitor.hpp>
+#include <iscore/serialization/JSONVisitor.hpp>
+
 class DataStream;
 class GroupManager;
 class GroupMetadata;
