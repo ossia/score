@@ -27,7 +27,7 @@ class iscore_plugin_js final:
         virtual ~iscore_plugin_js() = default;
 
         // Process & inspector
-        std::vector<iscore::FactoryInterfaceBase*> factories(
+        std::vector<std::unique_ptr<iscore::FactoryInterfaceBase>> factories(
                 const iscore::ApplicationContext& ctx,
                 const iscore::FactoryBaseKey& factoryName) const override;
 

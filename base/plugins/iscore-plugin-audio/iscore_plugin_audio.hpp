@@ -28,7 +28,7 @@ class iscore_plugin_audio final:
                 iscore::Application& app) override;
 
         // Process & inspector
-        std::vector<iscore::FactoryInterfaceBase*> factories(
+        std::vector<std::unique_ptr<iscore::FactoryInterfaceBase>> factories(
                 const iscore::ApplicationContext& ctx,
                 const iscore::FactoryBaseKey& factoryName) const override;
 

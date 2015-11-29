@@ -30,8 +30,8 @@ class ApplicationRegistrar : public QObject
         void registerDocumentDelegate(DocumentDelegateFactoryInterface*);
         void registerCommands(std::unordered_map<CommandParentFactoryKey, CommandGeneratorMap>&& cmds);
         void registerCommands(std::pair<CommandParentFactoryKey, CommandGeneratorMap>&& cmds);
-        void registerFactories(std::unordered_map<iscore::FactoryBaseKey, FactoryListInterface*>&& cmds);
-        void registerFactory(FactoryListInterface* cmds);
+        void registerFactories(std::unordered_map<iscore::FactoryBaseKey,std::unique_ptr<FactoryListInterface>>&& cmds);
+        void registerFactory(std::unique_ptr<FactoryListInterface> cmds);
         void registerSettings(SettingsDelegateFactoryInterface*);
 
         auto& components() const

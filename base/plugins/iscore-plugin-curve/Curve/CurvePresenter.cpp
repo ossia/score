@@ -260,8 +260,8 @@ void CurvePresenter::fillContextMenu(
     {
         auto act = typeMenu->addAction(seg.second->prettyName());
         connect(act, &QAction::triggered,
-                this, [=] () {
-            updateSegmentsType(seg.first);
+                this, [this,key=seg.first] () {
+            updateSegmentsType(key);
         });
     }
 

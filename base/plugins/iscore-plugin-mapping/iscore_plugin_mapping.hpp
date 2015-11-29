@@ -27,7 +27,7 @@ class iscore_plugin_mapping:
         virtual ~iscore_plugin_mapping() = default;
 
         // Process & inspector
-        std::vector<iscore::FactoryInterfaceBase*> factories(
+        std::vector<std::unique_ptr<iscore::FactoryInterfaceBase>> factories(
                 const iscore::ApplicationContext& ctx,
                 const iscore::FactoryBaseKey& factoryName) const override;
 

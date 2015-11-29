@@ -9,6 +9,7 @@
 #include <vector>
 
 #include <iscore/command/SerializableCommand.hpp>
+#include <iscore/plugins/customfactory/FactoryFamily.hpp>
 #include <iscore/plugins/customfactory/FactoryInterface.hpp>
 #include <iscore/plugins/customfactory/StringFactoryKey.hpp>
 
@@ -26,7 +27,7 @@ struct ApplicationComponentsData
 
         std::vector<GUIApplicationContextPlugin*> appPlugins;
         std::vector<DocumentDelegateFactoryInterface*> availableDocuments;
-        std::unordered_map<iscore::FactoryBaseKey, FactoryListInterface*> factories;
+        std::unordered_map<iscore::FactoryBaseKey, std::unique_ptr<FactoryListInterface>> factories;
         std::unordered_map<CommandParentFactoryKey, CommandGeneratorMap> commands;
 
         // TODO instead put the factory as a member function?
@@ -85,7 +86,7 @@ class ApplicationComponents
             auto it = m_data.factories.find(T::staticFactoryKey());
             if(it != m_data.factories.end())
             {
-                return *safe_cast<T*>(it->second);
+                return *safe_cast<T*>(it->second.get());
             }
 
             ISCORE_ABORT;

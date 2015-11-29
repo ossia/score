@@ -35,19 +35,21 @@ iscore_plugin_mapping::iscore_plugin_mapping() :
 {
 }
 
-std::vector<iscore::FactoryInterfaceBase*> iscore_plugin_mapping::factories(
+std::vector<std::unique_ptr<iscore::FactoryInterfaceBase>> iscore_plugin_mapping::factories(
         const iscore::ApplicationContext& ctx,
         const iscore::FactoryBaseKey& factoryName) const
 {
     if(factoryName == ProcessFactory::staticFactoryKey())
     {
-        return {new MappingFactory};
+        return make_ptr_vector<iscore::FactoryInterfaceBase,
+                MappingFactory>();
     }
 
 #if defined(ISCORE_LIB_INSPECTOR)
     if(factoryName == InspectorWidgetFactory::staticFactoryKey())
     {
-        return {new MappingInspectorFactory};
+        return make_ptr_vector<iscore::FactoryInterfaceBase,
+                MappingInspectorFactory>();
     }
 #endif
     return {};
@@ -57,10 +59,10 @@ std::pair<const CommandParentFactoryKey, CommandGeneratorMap> iscore_plugin_mapp
 {
     std::pair<const CommandParentFactoryKey, CommandGeneratorMap> cmds{MappingCommandFactoryName(), CommandGeneratorMap{}};
 
-    using Types = iscore::commands::TypeList<
+    using Types = TypeList<
 #include <iscore_plugin_mapping_commands.hpp>
       >;
-    iscore::commands::ForEach<Types>(iscore::commands::FactoryInserter{cmds.second});
+    for_each_type<Types>(iscore::commands::FactoryInserter{cmds.second});
 
     return cmds;
 }

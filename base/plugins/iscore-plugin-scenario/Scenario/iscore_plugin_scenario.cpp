@@ -97,7 +97,7 @@ std::vector<iscore::PanelFactory*> iscore_plugin_scenario::panels()
     };
 }
 
-std::vector<iscore::FactoryListInterface*> iscore_plugin_scenario::factoryFamilies()
+std::vector<std::unique_ptr<iscore::FactoryListInterface>> iscore_plugin_scenario::factoryFamilies()
 {
     return {new DynamicProcessList,
             new MoveEventList,
@@ -108,7 +108,7 @@ std::vector<iscore::FactoryListInterface*> iscore_plugin_scenario::factoryFamili
             new DisplayedElementsProviderList};
 }
 
-std::vector<iscore::FactoryInterfaceBase*> iscore_plugin_scenario::factories(
+std::vector<std::unique_ptr<iscore::FactoryInterfaceBase>> iscore_plugin_scenario::factories(
         const iscore::ApplicationContext& ctx,
         const iscore::FactoryBaseKey& key) const
 {

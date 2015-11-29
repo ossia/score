@@ -31,10 +31,10 @@ std::pair<const CommandParentFactoryKey, CommandGeneratorMap> iscore_plugin_cohe
 {
     std::pair<const CommandParentFactoryKey, CommandGeneratorMap> cmds{IScoreCohesionCommandFactoryName(), CommandGeneratorMap{}};
 
-    using Types = iscore::commands::TypeList<
+    using Types = TypeList<
 #include <iscore_plugin_cohesion_commands.hpp>
       >;
-    iscore::commands::ForEach<Types>(iscore::commands::FactoryInserter{cmds.second});
+    for_each_type<Types>(iscore::commands::FactoryInserter{cmds.second});
 
     return cmds;
 }

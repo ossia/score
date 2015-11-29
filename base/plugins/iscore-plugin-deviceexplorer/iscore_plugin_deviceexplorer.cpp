@@ -30,9 +30,9 @@ std::vector<PanelFactory*> iscore_plugin_deviceexplorer::panels()
 
 
 
-std::vector<iscore::FactoryListInterface*> iscore_plugin_deviceexplorer::factoryFamilies()
+std::vector<std::unique_ptr<iscore::FactoryListInterface>> iscore_plugin_deviceexplorer::factoryFamilies()
 {
-    return {new DynamicProtocolList};
+    return make_ptr_vector<FactoryListInterface, DynamicProtocolList>();
 
 }
 
@@ -48,10 +48,10 @@ std::pair<const CommandParentFactoryKey, CommandGeneratorMap> iscore_plugin_devi
     using namespace DeviceExplorer::Command;
     std::pair<const CommandParentFactoryKey, CommandGeneratorMap> cmds{DeviceExplorerCommandFactoryName(), CommandGeneratorMap{}};
 
-    using Types = iscore::commands::TypeList<
+    using Types = TypeList<
     #include <iscore_plugin_deviceexplorer_commands.hpp>
     >;
-    iscore::commands::ForEach<Types>(iscore::commands::FactoryInserter{cmds.second});
+    for_each_type<Types>(iscore::commands::FactoryInserter{cmds.second});
 
     return cmds;
 }

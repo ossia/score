@@ -34,12 +34,12 @@ class iscore_plugin_curve final :
         virtual ~iscore_plugin_curve() = default;
 
         // Process & inspector
-        std::vector<iscore::FactoryInterfaceBase*> factories(
+        std::vector<std::unique_ptr<iscore::FactoryInterfaceBase>> factories(
                 const iscore::ApplicationContext& ctx,
                 const iscore::FactoryBaseKey& factoryName) const override;
 
         // Curve segment factory family
-        std::vector<iscore::FactoryListInterface*> factoryFamilies() override;
+        std::vector<std::unique_ptr<iscore::FactoryListInterface>> factoryFamilies() override;
 
         // CommandFactory_QtInterface interface
         std::pair<const CommandParentFactoryKey, CommandGeneratorMap> make_commands() override;

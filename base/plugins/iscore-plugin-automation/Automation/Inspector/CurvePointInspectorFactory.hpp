@@ -22,7 +22,7 @@ class CurvePointInspectorFactory final : public InspectorWidgetFactory
     virtual InspectorWidgetBase* makeWidget(
         const QObject& sourceElement,
         iscore::Document& doc,
-        QWidget* parent) override;
+        QWidget* parent) const override;
 
     virtual const QList<QString>& key_impl() const override;
 };

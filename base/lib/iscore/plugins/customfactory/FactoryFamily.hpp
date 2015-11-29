@@ -1,5 +1,6 @@
 #pragma once
 #include <iscore/plugins/customfactory/FactoryInterface.hpp>
+#include <iscore/tools/ForEachType.hpp>
 #include <QMetaType>
 
 
@@ -21,9 +22,35 @@ class FactoryListInterface
 
         // This function is called whenever a new factory interface
         // is added to this family.
-        virtual void insert(iscore::FactoryInterfaceBase*) = 0;
+        virtual void insert(std::unique_ptr<iscore::FactoryInterfaceBase>) = 0;
 };
 }
+
+template<typename Base_T,
+         typename... Args>
+struct GenericFactoryInserter
+{
+        std::vector<std::unique_ptr<Base_T>> vec;
+        GenericFactoryInserter()
+        {
+            vec.reserve(sizeof...(Args));
+            for_each_type<TypeList<Args...>>(*this);
+        }
+
+        template<typename TheClass>
+        void visit()
+        {
+            vec.emplace_back(std::make_unique<TheClass>());
+        }
+};
+
+template<typename... Args>
+auto make_ptr_vector()
+{
+    return GenericFactoryInserter<Args...>{}.vec;
+}
+
+
 
 #define ISCORE_FACTORY_LIST_DECL(FactoryType) \
   private: \
@@ -36,10 +63,10 @@ class FactoryListInterface
     iscore::FactoryBaseKey name() const final override { \
         return FactoryType::staticFactoryKey(); \
     } \
-    void insert(iscore::FactoryInterfaceBase* e) final override \
+    void insert(std::unique_ptr<iscore::FactoryInterfaceBase> e) final override \
     { \
-        if(auto pf = dynamic_cast<FactoryType*>(e)) \
-            m_list.inscribe(pf); \
+        if(auto pf = dynamic_unique_ptr_cast<FactoryType>(std::move(e))) \
+            m_list.inscribe(std::move(pf)); \
     } \
     const auto& list() const \
     { return m_list; }\

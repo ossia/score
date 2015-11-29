@@ -75,14 +75,14 @@ void ApplicationRegistrar::registerCommands(
 }
 
 void ApplicationRegistrar::registerFactories(
-        std::unordered_map<iscore::FactoryBaseKey, FactoryListInterface*>&& facts)
+        std::unordered_map<iscore::FactoryBaseKey, std::unique_ptr<FactoryListInterface>>&& facts)
 {
     m_components.factories = std::move(facts);
 }
 
-void ApplicationRegistrar::registerFactory(FactoryListInterface* cmds)
+void ApplicationRegistrar::registerFactory(std::unique_ptr<FactoryListInterface> cmds)
 {
-    m_components.factories.insert(std::make_pair(cmds->name(), cmds));
+    m_components.factories.insert(std::make_pair(cmds->name(), std::move(cmds)));
 }
 
 void ApplicationRegistrar::registerSettings(SettingsDelegateFactoryInterface* set)

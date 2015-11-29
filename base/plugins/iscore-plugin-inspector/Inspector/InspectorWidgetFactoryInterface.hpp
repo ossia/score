@@ -40,7 +40,7 @@ class InspectorWidgetFactory : public iscore::GenericFactoryInterface<QList<QStr
         virtual InspectorWidgetBase* makeWidget(
                 const QObject& sourceElement,
                 iscore::Document& doc,
-                QWidget* parent) = 0;
+                QWidget* parent) const = 0;
 
-        bool matches(const QString& objectName);
+        bool matches(const QString& objectName) const;
 };

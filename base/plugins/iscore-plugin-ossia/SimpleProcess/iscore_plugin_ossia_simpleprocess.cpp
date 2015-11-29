@@ -15,7 +15,7 @@ iscore_plugin_ossia_simpleprocess::~iscore_plugin_ossia_simpleprocess()
 }
 
 
-std::vector<iscore::FactoryInterfaceBase*> iscore_plugin_ossia_simpleprocess::factories(
+std::vector<std::unique_ptr<iscore::FactoryInterfaceBase>> iscore_plugin_ossia_simpleprocess::factories(
         const iscore::ApplicationContext&,
         const iscore::FactoryBaseKey& factoryName) const
 {

@@ -16,7 +16,7 @@ class Document;
 InspectorWidgetBase* AutomationInspectorFactory::makeWidget(
         const QObject& sourceElement,
         iscore::Document& doc,
-        QWidget* parent)
+        QWidget* parent) const
 {
     return new AutomationInspectorWidget{
                 safe_cast<const AutomationModel&>(sourceElement),

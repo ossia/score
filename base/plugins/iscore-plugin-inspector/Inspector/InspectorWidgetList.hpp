@@ -25,10 +25,10 @@ class InspectorWidgetList final : public iscore::FactoryListInterface
         iscore::FactoryBaseKey name() const final override {
             return InspectorWidgetFactory::staticFactoryKey();
         }
-        void insert(iscore::FactoryInterfaceBase* e) final override
+        void insert(std::unique_ptr<iscore::FactoryInterfaceBase> e) final override
         {
-            if(auto pf = dynamic_cast<InspectorWidgetFactory*>(e))
-                m_list.push_back(pf);
+            if(auto pf = dynamic_unique_ptr_cast<InspectorWidgetFactory>(std::move(e)))
+                m_list.emplace_back(std::move(pf));
         }
         const auto& list() const
         { return m_list; }
@@ -39,5 +39,5 @@ class InspectorWidgetList final : public iscore::FactoryListInterface
                 QWidget* parent) const;
 
     private:
-        std::vector<InspectorWidgetFactory*> m_list;
+        OwningVector<InspectorWidgetFactory> m_list;
 };

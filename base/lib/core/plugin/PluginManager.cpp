@@ -135,10 +135,9 @@ void PluginLoader::reloadPlugins(iscore::ApplicationRegistrar& registrar)
 
         if(facfam_interface)
         {
-            auto other = facfam_interface->factoryFamilies();
-            for(auto elt : other)
+            for(auto&& elt : facfam_interface->factoryFamilies())
             {
-                registrar.registerFactory(elt);
+                registrar.registerFactory(std::move(elt));
             }
         }
     }
@@ -199,12 +198,11 @@ void PluginLoader::reloadPlugins(iscore::ApplicationRegistrar& registrar)
         auto factories_plugin = qobject_cast<FactoryInterface_QtInterface*> (plugin);
         if(factories_plugin)
         {
-            for(auto factory_family : registrar.components().factories)
+            for(auto& factory_family : registrar.components().factories)
             {
-                auto new_factories = factories_plugin->factories(c, factory_family.first);
-                for(auto new_factory : new_factories)
+                for(auto&& new_factory : factories_plugin->factories(c, factory_family.first))
                 {
-                    factory_family.second->insert(new_factory);
+                    factory_family.second->insert(std::move(new_factory));
                 }
             }
         }

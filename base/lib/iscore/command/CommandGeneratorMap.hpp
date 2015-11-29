@@ -56,56 +56,10 @@ class GenericCommandFactory : public CommandFactory
  */
 using CommandGeneratorMap = std::unordered_map<CommandFactoryKey, std::unique_ptr<CommandFactory>>;
 
-
-// Courtesy of Daniel J-H
-// https://gist.github.com/daniel-j-h
 namespace iscore
 {
 namespace commands
 {
-template <typename... Args> struct TypeList { };
-
-namespace detail {
-
-// Forward declare, in order to pattern match via specialization
-template <typename ...> struct TypeVisitor;
-
-// Pattern match to extract the TypeLists types into Args
-template <template <typename ...> class Sequence, typename... Args>
-struct TypeVisitor<Sequence<Args...>> {
-
-  template <typename F>
-  static constexpr void visit(const F& f) {
-    // Start recursive visitation for each type
-    do_visit<F, Args...>(f);
-  }
-
-  // Allow empty sequence
-  template <typename F>
-  static constexpr void do_visit(const F& f) { }
-
-  // Base case: one type, invoke functor
-  template <typename F, typename Head>
-  static constexpr void do_visit(const F& f) {
-    f.template visit<Head>();
-  }
-
-  // At least [Head, Next], Tail... can be empty
-  template <typename F, typename Head, typename Next, typename... Tail>
-  static constexpr void do_visit(const F& f) {
-    // visit head and recurse visitation on rest
-    do_visit<F, Head>(f), do_visit<F, Next, Tail...>(f);
-  }
-
-};
-} // End Detail
-// Invokes the functor with every type, this code generation is done at compile time
-template <typename Sequence, typename F>
-constexpr void ForEach(const F& f)
-{
-    detail::TypeVisitor<Sequence>::template visit<F>(f);
-}
-
 
 struct FactoryInserter
 {

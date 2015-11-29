@@ -13,11 +13,11 @@ InspectorWidgetBase* InspectorWidgetList::makeInspectorWidget(
         QWidget* parent) const
 {
     auto& doc = *iscore::IDocument::documentFromObject(model);
-    for(InspectorWidgetFactory* factory : m_list)
+    for(const auto& factory : m_list)
     {
-        if(factory->matches(name))
+        if(factory.matches(name))
         {
-            auto widg = factory->makeWidget(model, doc, parent);
+            auto widg = factory.makeWidget(model, doc, parent);
             if(widg)
                 return widg;
             break;

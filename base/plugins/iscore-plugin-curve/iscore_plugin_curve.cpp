@@ -25,17 +25,19 @@ iscore_plugin_curve::iscore_plugin_curve() :
 {
 }
 
-std::vector<iscore::FactoryInterfaceBase*> iscore_plugin_curve::factories(
+std::vector<std::unique_ptr<iscore::FactoryInterfaceBase>> iscore_plugin_curve::factories(
         const iscore::ApplicationContext& ctx,
         const iscore::FactoryBaseKey& factoryName) const
 {
     if(factoryName == CurveSegmentFactory::staticFactoryKey())
     {
         // TODO make matching factories for OSSIA.
-        return {new LinearCurveSegmentFactory,
-                new PowerCurveSegmentFactory/*,
+        return make_ptr_vector<iscore::FactoryInterfaceBase,
+                LinearCurveSegmentFactory,
+                PowerCurveSegmentFactory>();
+        /*,
                 new GammaCurveSegmentFactory,
-                new SinCurveSegmentFactory*/};
+                new SinCurveSegmentFactory*/
     }
 
     return {};
@@ -43,19 +45,20 @@ std::vector<iscore::FactoryInterfaceBase*> iscore_plugin_curve::factories(
 
 
 
-std::vector<iscore::FactoryListInterface*> iscore_plugin_curve::factoryFamilies()
+std::vector<std::unique_ptr<iscore::FactoryListInterface>> iscore_plugin_curve::factoryFamilies()
 {
-    return {new DynamicCurveSegmentList};
+    return make_ptr_vector<iscore::FactoryListInterface,
+            DynamicCurveSegmentList>();
 }
 
 std::pair<const CommandParentFactoryKey, CommandGeneratorMap> iscore_plugin_curve::make_commands()
 {
     std::pair<const CommandParentFactoryKey, CommandGeneratorMap> cmds{CurveCommandFactoryName(), CommandGeneratorMap{}};
 
-    using Types = iscore::commands::TypeList<
+    using Types = TypeList<
 #include <iscore_plugin_curve_commands.hpp>
       >;
-    iscore::commands::ForEach<Types>(iscore::commands::FactoryInserter{cmds.second});
+    for_each_type<Types>(iscore::commands::FactoryInserter{cmds.second});
 
     return cmds;
 }

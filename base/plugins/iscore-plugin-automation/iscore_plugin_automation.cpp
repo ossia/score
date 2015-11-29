@@ -33,21 +33,23 @@ iscore_plugin_automation::iscore_plugin_automation() :
 {
 }
 
-std::vector<iscore::FactoryInterfaceBase*> iscore_plugin_automation::factories(
+std::vector<std::unique_ptr<iscore::FactoryInterfaceBase>> iscore_plugin_automation::factories(
         const iscore::ApplicationContext& ctx,
         const iscore::FactoryBaseKey& factoryName) const
 {
     if(factoryName == ProcessFactory::staticFactoryKey())
     {
-        return {new AutomationFactory};
+        return make_ptr_vector<iscore::FactoryInterfaceBase,
+                AutomationFactory>();
     }
 
 #if defined(ISCORE_LIB_INSPECTOR)
     if(factoryName == InspectorWidgetFactory::staticFactoryKey())
     {
-        return {new AutomationInspectorFactory,
-                new AutomationStateInspectorFactory,
-                new CurvePointInspectorFactory};
+        return make_ptr_vector<iscore::FactoryInterfaceBase,
+                AutomationInspectorFactory,
+                AutomationStateInspectorFactory,
+                CurvePointInspectorFactory>();
     }
 #endif
     return {};
@@ -57,10 +59,10 @@ std::pair<const CommandParentFactoryKey, CommandGeneratorMap> iscore_plugin_auto
 {
     std::pair<const CommandParentFactoryKey, CommandGeneratorMap> cmds{AutomationCommandFactoryName(), CommandGeneratorMap{}};
 
-    using Types = iscore::commands::TypeList<
+    using Types = TypeList<
 #include <iscore_plugin_automation_commands.hpp>
       >;
-    iscore::commands::ForEach<Types>(iscore::commands::FactoryInserter{cmds.second});
+    for_each_type<Types>(iscore::commands::FactoryInserter{cmds.second});
 
     return cmds;
 }

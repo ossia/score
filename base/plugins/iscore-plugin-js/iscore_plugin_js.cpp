@@ -14,7 +14,7 @@ iscore_plugin_js::iscore_plugin_js() :
 {
 }
 
-std::vector<iscore::FactoryInterfaceBase*> iscore_plugin_js::factories(
+std::vector<std::unique_ptr<iscore::FactoryInterfaceBase>> iscore_plugin_js::factories(
         const iscore::ApplicationContext& ctx,
         const iscore::FactoryBaseKey& factoryName) const
 {
@@ -35,10 +35,10 @@ std::pair<const CommandParentFactoryKey, CommandGeneratorMap> iscore_plugin_js::
 {
     std::pair<const CommandParentFactoryKey, CommandGeneratorMap> cmds{JSCommandFactoryName(), CommandGeneratorMap{}};
 
-    using Types = iscore::commands::TypeList<
+    using Types = TypeList<
 #include <iscore_plugin_js_commands.hpp>
       >;
-    iscore::commands::ForEach<Types>(iscore::commands::FactoryInserter{cmds.second});
+    for_each_type<Types>(iscore::commands::FactoryInserter{cmds.second});
 
 
     return cmds;

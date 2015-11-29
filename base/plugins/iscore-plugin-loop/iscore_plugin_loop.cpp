@@ -32,7 +32,7 @@ iscore_plugin_loop::iscore_plugin_loop() :
 {
 }
 
-std::vector<iscore::FactoryInterfaceBase*> iscore_plugin_loop::factories(
+std::vector<std::unique_ptr<iscore::FactoryInterfaceBase>> iscore_plugin_loop::factories(
         const iscore::ApplicationContext& ctx,
         const iscore::FactoryBaseKey& key) const
 {
@@ -65,10 +65,10 @@ std::pair<const CommandParentFactoryKey, CommandGeneratorMap> iscore_plugin_loop
 {
     std::pair<const CommandParentFactoryKey, CommandGeneratorMap> cmds{LoopCommandFactoryName(), CommandGeneratorMap{}};
 
-    using Types = iscore::commands::TypeList<
+    using Types = TypeList<
 #include <iscore_plugin_loop_commands.hpp>
       >;
-    iscore::commands::ForEach<Types>(iscore::commands::FactoryInserter{cmds.second});
+    for_each_type<Types>(iscore::commands::FactoryInserter{cmds.second});
 
 
     return cmds;

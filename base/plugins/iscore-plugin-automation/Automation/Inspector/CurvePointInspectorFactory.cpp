@@ -13,7 +13,7 @@ class Document;
 InspectorWidgetBase* CurvePointInspectorFactory::makeWidget(
         const QObject& sourceElement,
         iscore::Document& doc,
-        QWidget* parent)
+        QWidget* parent) const
 {
     return new CurvePointInspectorWidget{
         safe_cast<const CurvePointModel&>(sourceElement),

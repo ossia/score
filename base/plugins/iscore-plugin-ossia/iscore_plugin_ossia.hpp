@@ -36,7 +36,7 @@ class iscore_plugin_ossia final :
                 iscore::Application& app) override;
 
         // Contains the OSC, MIDI, Minuit factories
-        std::vector<iscore::FactoryInterfaceBase*> factories(
+        std::vector<std::unique_ptr<iscore::FactoryInterfaceBase>> factories(
                 const iscore::ApplicationContext&,
                 const iscore::FactoryBaseKey& factoryName) const override;
 

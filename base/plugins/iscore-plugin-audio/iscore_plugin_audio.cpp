@@ -14,7 +14,7 @@ std::pair<const CommandParentFactoryKey, CommandGeneratorMap> iscore_plugin_audi
     return {};
 }
 
-std::vector<iscore::FactoryInterfaceBase*> iscore_plugin_audio::factories(
+std::vector<std::unique_ptr<iscore::FactoryInterfaceBase>> iscore_plugin_audio::factories(
         const iscore::ApplicationContext& ctx,
         const iscore::FactoryBaseKey& factoryName) const
 {

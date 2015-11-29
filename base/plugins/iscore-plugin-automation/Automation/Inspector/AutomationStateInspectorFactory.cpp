@@ -20,7 +20,7 @@ AutomationStateInspectorFactory::AutomationStateInspectorFactory() :
 InspectorWidgetBase* AutomationStateInspectorFactory::makeWidget(
         const QObject& sourceElement,
         iscore::Document& doc,
-        QWidget* parent)
+        QWidget* parent) const
 {
     return new AutomationStateInspector{
                 safe_cast<const AutomationState&>(sourceElement),

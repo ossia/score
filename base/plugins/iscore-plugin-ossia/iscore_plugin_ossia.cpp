@@ -26,7 +26,7 @@ iscore::GUIApplicationContextPlugin* iscore_plugin_ossia::make_applicationPlugin
 
 
 
-std::vector<iscore::FactoryInterfaceBase*> iscore_plugin_ossia::factories(
+std::vector<std::unique_ptr<iscore::FactoryInterfaceBase>> iscore_plugin_ossia::factories(
         const iscore::ApplicationContext&,
         const iscore::FactoryBaseKey& factoryName) const
 {
