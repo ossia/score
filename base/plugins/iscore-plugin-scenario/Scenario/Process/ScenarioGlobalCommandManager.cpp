@@ -5,17 +5,17 @@
 #include <boost/optional/optional.hpp>
 #include <iscore/command/Dispatchers/CommandDispatcher.hpp>
 #include <iscore/command/Dispatchers/MacroCommandDispatcher.hpp>
-#include <qdebug.h>
+#include <QDebug>
 #include <algorithm>
 
 #include "Scenario/Document/Constraint/ConstraintModel.hpp"
 #include "Scenario/Document/State/StateModel.hpp"
 #include "Scenario/Process/ScenarioModel.hpp"
 #include "ScenarioGlobalCommandManager.hpp"
-#include "iscore/selection/Selection.hpp"
-#include "iscore/tools/IdentifiedObject.hpp"
-#include "iscore/tools/NotifyingMap.hpp"
-#include "iscore/tools/utilsCPP11.hpp"
+#include <iscore/selection/Selection.hpp>
+#include <iscore/tools/IdentifiedObject.hpp>
+#include <iscore/tools/NotifyingMap.hpp>
+#include <iscore/tools/utilsCPP11.hpp>
 
 namespace iscore {
 class CommandStack;

@@ -1,12 +1,12 @@
 #include <boost/core/explicit_operator_bool.hpp>
-#include <qdebug.h>
+#include <QDebug>
 #include <algorithm>
 
 #include "MergeTimeNodes.hpp"
 #include "Scenario/Process/ScenarioModel.hpp"
-#include "iscore/serialization/DataStreamVisitor.hpp"
-#include "iscore/tools/ModelPath.hpp"
-#include "iscore/tools/ModelPathSerialization.hpp"
+#include <iscore/serialization/DataStreamVisitor.hpp>
+#include <iscore/tools/ModelPath.hpp>
+#include <iscore/tools/ModelPathSerialization.hpp>
 
 using namespace iscore;
 using namespace Scenario::Command;

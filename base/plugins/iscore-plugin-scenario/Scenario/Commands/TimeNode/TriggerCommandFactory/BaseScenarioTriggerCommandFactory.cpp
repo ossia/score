@@ -2,14 +2,14 @@
 #include <Scenario/Commands/TimeNode/RemoveTrigger.hpp>
 #include <Scenario/Document/BaseScenario/BaseScenario.hpp>
 #include <Scenario/Document/TimeNode/TimeNodeModel.hpp>
-#include <qbytearray.h>
+#include <QByteArray>
 
 #include "BaseScenarioTriggerCommandFactory.hpp"
 #include "Scenario/Process/ScenarioInterface.hpp"
-#include "iscore/command/SerializableCommand.hpp"
-#include "iscore/serialization/DataStreamVisitor.hpp"
-#include "iscore/tools/ModelPath.hpp"
-#include "iscore/tools/ModelPathSerialization.hpp"
+#include <iscore/command/SerializableCommand.hpp>
+#include <iscore/serialization/DataStreamVisitor.hpp>
+#include <iscore/tools/ModelPath.hpp>
+#include <iscore/tools/ModelPathSerialization.hpp>
 
 bool BaseScenarioTriggerCommandFactory::matches(
         const TimeNodeModel& tn) const

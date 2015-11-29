@@ -3,17 +3,17 @@
 #include <core/presenter/Presenter.hpp>
 #include <core/view/View.hpp>
 #include <iscore/plugins/application/GUIApplicationContextPlugin.hpp>
-#include <qbytearray.h>
-#include <qmessagebox.h>
-#include <qobject.h>
-#include <qobjectdefs.h>
-#include <qstring.h>
-#include <qvariant.h>
+#include <QByteArray>
+#include <QMessageBox>
+#include <QObject>
+
+#include <QString>
+#include <QVariant>
 #include <stdexcept>
 
 #include "DocumentBuilder.hpp"
-#include "core/application/ApplicationComponents.hpp"
-#include "iscore/serialization/DataStreamVisitor.hpp"
+#include <core/application/ApplicationComponents.hpp>
+#include <iscore/serialization/DataStreamVisitor.hpp>
 
 template <typename tag, typename impl> class id_base_t;
 

@@ -13,33 +13,33 @@
 #include <core/document/Document.hpp>
 #include <core/document/DocumentModel.hpp>
 #include <iscore/widgets/MarginLess.hpp>
-#include <qboxlayout.h>
-#include <qcolor.h>
-#include <qdebug.h>
-#include <qformlayout.h>
-#include <qlabel.h>
-#include <qlayout.h>
-#include <qobjectdefs.h>
-#include <qstring.h>
-#include <qwidget.h>
+#include <QBoxLayout>
+#include <QColor>
+#include <QDebug>
+#include <QFormLayout>
+#include <QLabel>
+#include <QLayout>
+
+#include <QString>
+#include <QWidget>
 #include <algorithm>
 
 #include "EventInspectorWidget.hpp"
 #include "Inspector/InspectorWidgetBase.hpp"
-#include "Process/TimeValue.hpp"
+#include <Process/TimeValue.hpp>
 #include "Scenario/Process/ScenarioInterface.hpp"
-#include "State/Expression.hpp"
-#include "core/application/ApplicationContext.hpp"
-#include "core/document/DocumentContext.hpp"
-#include "iscore/command/Dispatchers/CommandDispatcher.hpp"
-#include "iscore/plugins/customfactory/StringFactoryKey.hpp"
-#include "iscore/plugins/documentdelegate/plugin/DocumentDelegatePluginModel.hpp"
-#include "iscore/plugins/documentdelegate/plugin/ElementPluginModelList.hpp"
-#include "iscore/serialization/DataStreamVisitor.hpp"
-#include "iscore/tools/IdentifiedObject.hpp"
-#include "iscore/tools/ModelPathSerialization.hpp"
-#include "iscore/tools/SettableIdentifier.hpp"
-#include "iscore/tools/Todo.hpp"
+#include <State/Expression.hpp>
+#include <core/application/ApplicationContext.hpp>
+#include <core/document/DocumentContext.hpp>
+#include <iscore/command/Dispatchers/CommandDispatcher.hpp>
+#include <iscore/plugins/customfactory/StringFactoryKey.hpp>
+#include <iscore/plugins/documentdelegate/plugin/DocumentDelegatePluginModel.hpp>
+#include <iscore/plugins/documentdelegate/plugin/ElementPluginModelList.hpp>
+#include <iscore/serialization/DataStreamVisitor.hpp>
+#include <iscore/tools/IdentifiedObject.hpp>
+#include <iscore/tools/ModelPathSerialization.hpp>
+#include <iscore/tools/SettableIdentifier.hpp>
+#include <iscore/tools/Todo.hpp>
 
 EventInspectorWidget::EventInspectorWidget(
         const EventModel& object,

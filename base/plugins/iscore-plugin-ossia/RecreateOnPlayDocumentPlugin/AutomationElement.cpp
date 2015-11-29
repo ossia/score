@@ -3,14 +3,14 @@
 #include <Explorer/DocumentPlugin/DeviceDocumentPlugin.hpp>
 #include <core/document/Document.hpp>
 #include <core/document/DocumentModel.hpp>
-#include <qdebug.h>
-#include <qstring.h>
+#include <QDebug>
+#include <QString>
 #include <algorithm>
 #include <vector>
 
 #include "AutomationElement.hpp"
-#include "Curve/CurveModel.hpp"
-#include "Curve/Segment/CurveSegmentData.hpp"
+#include <Curve/CurveModel.hpp>
+#include <Curve/Segment/CurveSegmentData.hpp>
 #include "Device/Protocol/DeviceInterface.hpp"
 #include "Device/Protocol/DeviceList.hpp"
 #include "Device/Protocol/DeviceSettings.hpp"
@@ -21,9 +21,9 @@
 #include "Network/Node.h"
 #include "Protocols/OSSIADevice.hpp"
 #include "RecreateOnPlayDocumentPlugin/ProcessElement.hpp"
-#include "State/Address.hpp"
-#include "iscore/document/DocumentInterface.hpp"
-#include "iscore/plugins/customfactory/StringFactoryKey.hpp"
+#include <State/Address.hpp>
+#include <iscore/document/DocumentInterface.hpp>
+#include <iscore/plugins/customfactory/StringFactoryKey.hpp>
 #include "iscore2OSSIA.hpp"
 
 class Process;

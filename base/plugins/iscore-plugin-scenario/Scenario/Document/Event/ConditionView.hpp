@@ -1,8 +1,8 @@
 #pragma once
 
-#include <qgraphicsitem.h>
-#include <qpainterpath.h>
-#include <qrect.h>
+#include <QGraphicsItem>
+#include <QPainterPath>
+#include <QRect>
 
 class QPainter;
 class QStyleOptionGraphicsItem;

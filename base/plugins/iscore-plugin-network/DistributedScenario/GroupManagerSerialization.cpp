@@ -1,9 +1,9 @@
 #include <boost/core/explicit_operator_bool.hpp>
 #include <iscore/serialization/DataStreamVisitor.hpp>
 #include <iscore/serialization/JSONVisitor.hpp>
-#include <qjsonarray.h>
-#include <qjsonobject.h>
-#include <qjsonvalue.h>
+#include <QJsonArray>
+#include <QJsonObject>
+#include <QJsonValue>
 #include <sys/types.h>
 #include <algorithm>
 #include <vector>

@@ -8,7 +8,7 @@
 #include "Device/Address/Domain.hpp"
 #include "Device/Address/IOType.hpp"
 #include "Device/Node/DeviceNode.hpp"
-#include "State/Value.hpp"
+#include <State/Value.hpp>
 
 namespace OSSIA {
 class Domain;

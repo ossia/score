@@ -1,8 +1,8 @@
 #pragma once
 #include <ProcessModel/TimeProcessWithConstraint.hpp>
-#include <qjsengine.h>
-#include <qjsvalue.h>
-#include <qstring.h>
+#include <QJSEngine>
+#include <QJSValue>
+#include <QString>
 #include <memory>
 
 #include "Editor/TimeValue.h"

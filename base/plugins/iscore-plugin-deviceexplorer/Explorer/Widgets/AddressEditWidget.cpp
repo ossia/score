@@ -1,12 +1,12 @@
 #include <State/Widgets/AddressLineEdit.hpp>
 #include <iscore/widgets/MarginLess.hpp>
-#include <qboxlayout.h>
-#include <qlineedit.h>
+#include <QBoxLayout>
+#include <QLineEdit>
 
 #include "AddressEditWidget.hpp"
 #include "DeviceCompleter.hpp"
 #include "DeviceExplorerMenuButton.hpp"
-#include "State/Address.hpp"
+#include <State/Address.hpp>
 
 AddressEditWidget::AddressEditWidget(DeviceExplorerModel* model, QWidget* parent):
     QWidget{parent}

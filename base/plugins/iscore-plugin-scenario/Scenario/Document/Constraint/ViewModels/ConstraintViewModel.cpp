@@ -2,7 +2,7 @@
 #include <boost/core/explicit_operator_bool.hpp>
 
 #include "ConstraintViewModel.hpp"
-#include "iscore/tools/IdentifiedObject.hpp"
+#include <iscore/tools/IdentifiedObject.hpp>
 
 class QObject;
 

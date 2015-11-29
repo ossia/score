@@ -1,12 +1,12 @@
 #include <iscore/serialization/VisitorCommon.hpp>
-#include <qdebug.h>
-#include <qpoint.h>
+#include <QDebug>
+#include <QPoint>
 #include <cmath>
 #include <cstddef>
 #include <vector>
 
-#include "Curve/Palette/CurvePoint.hpp"
-#include "Curve/Segment/CurveSegmentData.hpp"
+#include <Curve/Palette/CurvePoint.hpp>
+#include <Curve/Segment/CurveSegmentData.hpp>
 #include "GammaCurveSegmentModel.hpp"
 
 class QObject;

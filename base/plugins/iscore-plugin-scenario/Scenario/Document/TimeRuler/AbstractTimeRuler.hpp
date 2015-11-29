@@ -1,10 +1,10 @@
 #pragma once
 
 #include <Process/TimeValue.hpp>
-#include <qobject.h>
-#include <qpair.h>
-#include <qpoint.h>
-#include <qvector.h>
+#include <QObject>
+#include <QPair>
+#include <QPoint>
+#include <QVector>
 
 class AbstractTimeRulerView;
 

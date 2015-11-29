@@ -1,15 +1,15 @@
 #include <Curve/CurveStyle.hpp>
-#include <qgraphicssceneevent.h>
-#include <qpainter.h>
-#include <qpen.h>
+#include <QGraphicsSceneEvent>
+#include <QPainter>
+#include <QPen>
 #include <cstddef>
 #include <vector>
 
-#include "Curve/Palette/CurvePoint.hpp"
+#include <Curve/Palette/CurvePoint.hpp>
 #include "CurveSegmentModel.hpp"
 #include "CurveSegmentView.hpp"
-#include "iscore/selection/Selectable.hpp"
-#include "iscore/tools/Todo.hpp"
+#include <iscore/selection/Selectable.hpp>
+#include <iscore/tools/Todo.hpp>
 
 class QStyleOptionGraphicsItem;
 class QWidget;

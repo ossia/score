@@ -1,11 +1,11 @@
 #pragma once
 #include <iscore/command/SerializableCommand.hpp>
-#include <qbytearray.h>
+#include <QByteArray>
 #include <memory>
 #include <unordered_map>
 #include <utility>
 
-#include "iscore/plugins/customfactory/StringFactoryKey.hpp"
+#include <iscore/plugins/customfactory/StringFactoryKey.hpp>
 /**
  * This file contains utility classes to instantiate commands
  * when they are received from the network.

@@ -1,6 +1,6 @@
 #pragma once
 #include <Scenario/Document/Constraint/ViewModels/ConstraintHeader.hpp>
-#include <qrect.h>
+#include <QRect>
 
 class AddressBarItem;
 class QGraphicsItem;

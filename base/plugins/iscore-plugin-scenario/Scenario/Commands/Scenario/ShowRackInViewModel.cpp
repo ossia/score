@@ -4,8 +4,8 @@
 #include <algorithm>
 
 #include "ShowRackInViewModel.hpp"
-#include "iscore/tools/ModelPath.hpp"
-#include "iscore/tools/ModelPathSerialization.hpp"
+#include <iscore/tools/ModelPath.hpp>
+#include <iscore/tools/ModelPathSerialization.hpp>
 
 using namespace iscore;
 using namespace Scenario::Command;

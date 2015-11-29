@@ -1,12 +1,12 @@
 #include <Process/Style/ScenarioStyle.hpp>
-#include <qcolor.h>
+#include <QColor>
 #include <qnamespace.h>
-#include <qpainter.h>
-#include <qpen.h>
-#include <qpoint.h>
-#include <qpolygon.h>
-#include <qsize.h>
-#include <qvector.h>
+#include <QPainter>
+#include <QPen>
+#include <QPoint>
+#include <QPolygon>
+#include <QSize>
+#include <QVector>
 
 #include "ConditionView.hpp"
 

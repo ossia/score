@@ -1,5 +1,5 @@
 #include <Scenario/Document/Event/EventModel.hpp>
-#include <qstring.h>
+#include <QString>
 
 #include "EventInspectorFactory.hpp"
 #include "EventInspectorWidget.hpp"

@@ -1,16 +1,16 @@
 #include <iscore/serialization/DataStreamVisitor.hpp>
 #include <iscore/serialization/JSONVisitor.hpp>
-#include <qjsonobject.h>
-#include <qjsonvalue.h>
+#include <QJsonObject>
+#include <QJsonValue>
 #include <algorithm>
 
 #include "AutomationLayerModel.hpp"
 #include "AutomationModel.hpp"
-#include "Curve/CurveModel.hpp"
-#include "State/Address.hpp"
-#include "iscore/plugins/documentdelegate/plugin/ElementPluginModelList.hpp"
-#include "iscore/serialization/JSONValueVisitor.hpp"
-#include "iscore/serialization/VisitorCommon.hpp"
+#include <Curve/CurveModel.hpp>
+#include <State/Address.hpp>
+#include <iscore/plugins/documentdelegate/plugin/ElementPluginModelList.hpp>
+#include <iscore/serialization/JSONValueVisitor.hpp>
+#include <iscore/serialization/VisitorCommon.hpp>
 
 class LayerModel;
 class QObject;

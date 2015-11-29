@@ -1,14 +1,14 @@
 #pragma once
 #include <core/application/ApplicationContext.hpp>
 #include <iscore/serialization/VisitorInterface.hpp>
-#include <qbytearray.h>
-#include <qdatastream.h>
+#include <QByteArray>
+#include <QDataStream>
 #include <sys/types.h>
 #include <stdexcept>
 #include <type_traits>
 
-#include "iscore/tools/NamedObject.hpp"
-#include "iscore/tools/SettableIdentifier.hpp"
+#include <iscore/tools/NamedObject.hpp>
+#include <iscore/tools/SettableIdentifier.hpp>
 
 class QIODevice;
 class QStringList;

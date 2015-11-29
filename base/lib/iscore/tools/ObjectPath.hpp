@@ -1,9 +1,8 @@
 #pragma once
 #include <iscore/tools/ObjectIdentifier.hpp>
-#include <qglobal.h>
-#include <qhash.h>
-#include <qpointer.h>
-#include <qstring.h>
+#include <QHash>
+#include <QPointer>
+#include <QString>
 #include <algorithm>
 #include <initializer_list>
 #include <type_traits>

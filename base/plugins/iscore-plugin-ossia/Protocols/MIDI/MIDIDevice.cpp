@@ -1,6 +1,6 @@
 #include <API/Headers/Network/Device.h>
 #include <API/Headers/Network/Protocol/MIDI.h>
-#include <qstring.h>
+#include <QString>
 #include <memory>
 
 #include "Device/Protocol/DeviceSettings.hpp"

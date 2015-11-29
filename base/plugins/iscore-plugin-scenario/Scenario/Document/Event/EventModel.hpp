@@ -9,8 +9,8 @@
 #include <iscore/selection/Selectable.hpp>
 #include <iscore/tools/IdentifiedObject.hpp>
 #include <iscore/tools/SettableIdentifier.hpp>
-#include <qstring.h>
-#include <qvector.h>
+#include <QString>
+#include <QVector>
 
 class DataStream;
 class JSONObject;

@@ -1,17 +1,17 @@
 #pragma once
 #include <Device/ItemModels/NodeBasedItemModel.hpp>
-#include <qabstractitemmodel.h>
-#include <qlist.h>
+#include <QAbstractItemModel>
+#include <QList>
 #include <qnamespace.h>
-#include <qpair.h>
-#include <qstack.h>
-#include <qstring.h>
-#include <qstringlist.h>
-#include <qvariant.h>
+#include <QPair>
+#include <QStack>
+#include <QString>
+#include <QStringList>
+#include <QVariant>
 
 #include "Device/Node/DeviceNode.hpp"
-#include "State/Message.hpp"
-#include "State/Value.hpp"
+#include <State/Message.hpp>
+#include <State/Value.hpp>
 
 class QMimeData;
 class QObject;

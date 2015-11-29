@@ -2,15 +2,15 @@
 #include <Process/TimeValue.hpp>
 #include <State/Message.hpp>
 #include <eggs/variant/variant.hpp>
-#include <qchar.h>
-#include <qjsengine.h>
-#include <qjsvalue.h>
-#include <qjsvalueiterator.h>
-#include <qobject.h>
-#include <qstring.h>
+#include <QChar>
+#include <QJSEngine>
+#include <QJSValue>
+#include <QJSValueIterator>
+#include <QObject>
+#include <QString>
 
-#include "State/Address.hpp"
-#include "State/Value.hpp"
+#include <State/Address.hpp>
+#include <State/Value.hpp>
 
 
 namespace iscore

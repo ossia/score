@@ -1,7 +1,7 @@
 #pragma once
-#include <qstring.h>
+#include <QString>
 
-#include "State/Value.hpp"
+#include <State/Value.hpp>
 #include "ValueWidget.hpp"
 
 class QLineEdit;

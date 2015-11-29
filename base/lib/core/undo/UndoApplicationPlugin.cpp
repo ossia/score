@@ -1,14 +1,14 @@
-#include <qkeysequence.h>
-#include <qstring.h>
-#include <qtoolbar.h>
+#include <QKeySequence>
+#include <QString>
+#include <QToolBar>
 
 #include "UndoApplicationPlugin.hpp"
-#include "core/command/CommandStack.hpp"
-#include "core/document/Document.hpp"
-#include "core/presenter/MenubarManager.hpp"
-#include "iscore/menu/MenuInterface.hpp"
-#include "iscore/plugins/application/GUIApplicationContextPlugin.hpp"
-#include "iscore/widgets/OrderedToolbar.hpp"
+#include <core/command/CommandStack.hpp>
+#include <core/document/Document.hpp>
+#include <core/presenter/MenubarManager.hpp>
+#include <iscore/menu/MenuInterface.hpp>
+#include <iscore/plugins/application/GUIApplicationContextPlugin.hpp>
+#include <iscore/widgets/OrderedToolbar.hpp>
 
 class QObject;
 namespace iscore {

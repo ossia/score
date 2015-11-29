@@ -10,20 +10,20 @@ class QWidget;
 #include "ModelTest/modeltest.h"
 #endif
 
-#include <qabstractitemview.h>
-#include <qabstractproxymodel.h>
-#include <qaction.h>
-#include <qbytearray.h>
-#include <qfile.h>
-#include <qheaderview.h>
-#include <qiodevice.h>
-#include <qmenu.h>
+#include <QAbstractItemView>
+#include <QAbstractProxyModel>
+#include <QAction>
+#include <QByteArray>
+#include <QFile>
+#include <QHeaderView>
+#include <QIODevice>
+#include <QMenu>
 #include <qnamespace.h>
-#include <qobject.h>
-#include <qsettings.h>
-#include <qstring.h>
+#include <QObject>
+#include <QSettings>
+#include <QString>
 #include <qtypetraits.h>
-#include <qvariant.h>
+#include <QVariant>
 #include <iostream> //DEBUG
 
 namespace
@@ -41,7 +41,7 @@ DeviceExplorerView::DeviceExplorerView(QWidget* parent)
 
     setSelectionBehavior(QAbstractItemView::SelectRows);
     setSelectionMode(QAbstractItemView::ExtendedSelection);
-    //cf http://qt-project.org/doc/qt-5/qabstractitemview.html#SelectionBehavior-enum
+    //cf http://qt-project.org/doc/qt-5/QAbstractItemViewtml#SelectionBehavior-enum
 
 
     header()->setContextMenuPolicy(Qt::CustomContextMenu);  //header will emit the signal customContextMenuRequested()

@@ -3,7 +3,7 @@
 #include <core/settings/SettingsPresenter.hpp>
 #include <core/settings/SettingsView.hpp>
 
-#include "iscore/plugins/settingsdelegate/SettingsDelegateFactoryInterface.hpp"
+#include <iscore/plugins/settingsdelegate/SettingsDelegateFactoryInterface.hpp>
 
 using namespace iscore;
 

@@ -1,14 +1,14 @@
-#include <qapplication.h>
-#include <qdebug.h>
-#include <qlistview.h>
-#include <qstandarditemmodel.h>
-#include <qstyle.h>
+#include <QApplication>
+#include <QDebug>
+#include <QListView>
+#include <QStandardItemModel>
+#include <QStyle>
 
 #include "PluginSettingsModel.hpp"
 #include "PluginSettingsPresenter.hpp"
 #include "PluginSettingsView.hpp"
-#include "iscore/command/Command.hpp"
-#include "iscore/plugins/settingsdelegate/SettingsDelegatePresenterInterface.hpp"
+#include <iscore/command/Command.hpp>
+#include <iscore/plugins/settingsdelegate/SettingsDelegatePresenterInterface.hpp>
 #include "settings_impl/commands/BlacklistCommand.hpp"
 
 namespace iscore {

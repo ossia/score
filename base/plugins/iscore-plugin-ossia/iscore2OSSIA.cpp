@@ -11,12 +11,12 @@
 #include <boost/optional/optional.hpp>
 #include <boost/range/algorithm/find_if.hpp>
 #include <eggs/variant/variant.hpp>
-#include <qbytearray.h>
-#include <qchar.h>
-#include <qdebug.h>
-#include <qlist.h>
-#include <qmap.h>
-#include <qstring.h>
+#include <QByteArray>
+#include <QChar>
+#include <QDebug>
+#include <QList>
+#include <QMap>
+#include <QString>
 #include <algorithm>
 #include <exception>
 #include <string>
@@ -33,11 +33,11 @@
 #include "Network/Device.h"
 #include "Network/Node.h"
 #include "Protocols/OSSIADevice.hpp"
-#include "State/Address.hpp"
-#include "State/Expression.hpp"
-#include "State/Message.hpp"
-#include "State/Relation.hpp"
-#include "iscore/tools/InvisibleRootNode.hpp"
+#include <State/Address.hpp>
+#include <State/Expression.hpp>
+#include <State/Message.hpp>
+#include <State/Relation.hpp>
+#include <iscore/tools/InvisibleRootNode.hpp>
 #include "iscore2OSSIA.hpp"
 
 

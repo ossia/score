@@ -1,9 +1,9 @@
 #include <iscore/tools/SettableIdentifierGeneration.hpp>
-#include <qbytearray.h>
-#include <qfile.h>
-#include <qflags.h>
-#include <qiodevice.h>
-#include <qstringlist.h>
+#include <QByteArray>
+#include <QFile>
+#include <QFlags>
+#include <QIODevice>
+#include <QStringList>
 #include <stdlib.h>
 
 #include "RandomNameProvider.hpp"

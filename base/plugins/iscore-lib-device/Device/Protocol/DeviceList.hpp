@@ -1,6 +1,6 @@
 #pragma once
 #include <Device/Protocol/DeviceInterface.hpp>
-#include <qstring.h>
+#include <QString>
 #include <algorithm>
 #include <vector>
 

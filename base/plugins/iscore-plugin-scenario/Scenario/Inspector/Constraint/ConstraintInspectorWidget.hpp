@@ -2,16 +2,16 @@
 
 #include <Inspector/InspectorWidgetBase.hpp>
 #include <Scenario/Inspector/Constraint/ConstraintInspectorDelegate.hpp>
-#include <qobjectdefs.h>
-#include <qstring.h>
-#include <qvector.h>
+
+#include <QString>
+#include <QVector>
 #include <list>
 #include <memory>
 #include <unordered_map>
 #include <vector>
 
-#include "Process/ProcessFactoryKey.hpp"
-#include "iscore/tools/SettableIdentifier.hpp"
+#include <Process/ProcessFactoryKey.hpp>
+#include <iscore/tools/SettableIdentifier.hpp>
 
 class ConstraintModel;
 class ConstraintViewModel;

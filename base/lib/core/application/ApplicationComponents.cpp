@@ -3,7 +3,7 @@
 #include <iscore/tools/exceptions/MissingCommand.hpp>
 
 #include "ApplicationComponents.hpp"
-#include "iscore/command/CommandGeneratorMap.hpp"
+#include <iscore/command/CommandGeneratorMap.hpp>
 
 namespace iscore
 {

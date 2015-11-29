@@ -3,9 +3,9 @@
 #include <iscore/serialization/JSONVisitor.hpp>
 #include <boost/optional/optional.hpp>
 #include <eggs/variant.hpp>
-#include <qchar.h>
-#include <qlist.h>
-#include <qstring.h>
+#include <QChar>
+#include <QList>
+#include <QString>
 #include <algorithm>
 #include <vector>
 

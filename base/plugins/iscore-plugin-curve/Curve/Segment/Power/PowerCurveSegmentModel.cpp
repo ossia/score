@@ -1,12 +1,12 @@
 #include <ext/alloc_traits.h>
 #include <iscore/serialization/VisitorCommon.hpp>
-#include <qpoint.h>
+#include <QPoint>
 #include <cmath>
 #include <cstddef>
 #include <vector>
 
-#include "Curve/Palette/CurvePoint.hpp"
-#include "Curve/Segment/CurveSegmentData.hpp"
+#include <Curve/Palette/CurvePoint.hpp>
+#include <Curve/Segment/CurveSegmentData.hpp>
 #include "PowerCurveSegmentModel.hpp"
 
 class QObject;

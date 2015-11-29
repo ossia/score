@@ -2,7 +2,7 @@
 #include <core/document/DocumentContext.hpp>
 #include <iscore/plugins/documentdelegate/plugin/ElementPluginModel.hpp>
 #include <iscore/tools/NamedObject.hpp>
-#include <qstring.h>
+#include <QString>
 #include <vector>
 
 class QObject;

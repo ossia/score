@@ -1,5 +1,5 @@
-#include <qobject.h>
-#include <qobjectdefs.h>
+#include <QObject>
+
 
 #include "Device/Protocol/DeviceSettings.hpp"
 #include "MinuitDevice.hpp"

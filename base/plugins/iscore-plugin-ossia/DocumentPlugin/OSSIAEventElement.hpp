@@ -1,6 +1,6 @@
 #pragma once
 #include <State/Expression.hpp>
-#include <qobject.h>
+#include <QObject>
 #include <memory>
 
 class DeviceList;

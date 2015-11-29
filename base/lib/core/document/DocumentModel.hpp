@@ -1,11 +1,11 @@
 #pragma once
 #include <iscore/selection/Selection.hpp>
 #include <iscore/tools/IdentifiedObject.hpp>
-#include <qbytearray.h>
-#include <qjsonobject.h>
-#include <qobjectdefs.h>
-#include <qstring.h>
-#include <qvariant.h>
+#include <QByteArray>
+#include <QJsonObject>
+
+#include <QString>
+#include <QVariant>
 #include <algorithm>
 #include <iterator>
 #include <vector>

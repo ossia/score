@@ -3,11 +3,11 @@
 #include <Device/Protocol/DeviceSettings.hpp>
 #include <State/Address.hpp>
 #include <boost/optional/optional.hpp>
-#include <qobject.h>
-#include <qstring.h>
+#include <QObject>
+#include <QString>
 #include <vector>
 
-#include "State/Value.hpp"
+#include <State/Value.hpp>
 
 namespace iscore {
 struct FullAddressSettings;

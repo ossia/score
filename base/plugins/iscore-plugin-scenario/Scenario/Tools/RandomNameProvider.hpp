@@ -1,5 +1,5 @@
 #pragma once
-#include <qstring.h>
+#include <QString>
 
 class RandomNameProvider
 {

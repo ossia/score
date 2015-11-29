@@ -1,7 +1,7 @@
 #pragma once
 #include <Device/Protocol/ProtocolFactoryInterface.hpp>
-#include <qstring.h>
-#include <qvariant.h>
+#include <QString>
+#include <QVariant>
 
 #include "Device/Protocol/ProtocolFactoryKey.hpp"
 

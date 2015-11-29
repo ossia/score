@@ -1,6 +1,6 @@
 #include "LoopLayer.hpp"
 #include "LoopPanelProxy.hpp"
-#include "Process/LayerModelPanelProxy.hpp"
+#include <Process/LayerModelPanelProxy.hpp>
 
 class QObject;
 

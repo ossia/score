@@ -1,6 +1,6 @@
 #pragma once
 #include <iscore/selection/Selection.hpp>
-#include <qwidget.h>
+#include <QWidget>
 
 namespace iscore{
     class SelectionStack;

@@ -1,4 +1,4 @@
-#include "Process/ExpandMode.hpp"
+#include <Process/ExpandMode.hpp>
 #include "Scenario/Palette/Tool.hpp"
 #include "ScenarioEditionSettings.hpp"
 

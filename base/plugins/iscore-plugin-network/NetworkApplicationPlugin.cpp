@@ -2,12 +2,12 @@
 #include <core/application/Application.hpp>
 #include <core/document/Document.hpp>
 #include <core/document/DocumentModel.hpp>
-#include <qaction.h>
-#include <qapplication.h>
-#include <qdebug.h>
+#include <QAction>
+#include <QApplication>
+#include <QDebug>
 #include <qnamespace.h>
-#include <qobjectdefs.h>
-#include <qpair.h>
+
+#include <QPair>
 #include <algorithm>
 #include <vector>
 
@@ -16,15 +16,15 @@
 #include "DocumentPlugins/NetworkMasterDocumentPlugin.hpp"
 #include "NetworkApplicationPlugin.hpp"
 #include "Repartition/session/ClientSessionBuilder.hpp"
-#include "core/application/ApplicationComponents.hpp"
-#include "core/application/ApplicationContext.hpp"
-#include "core/command/CommandStack.hpp"
-#include "core/presenter/DocumentManager.hpp"
-#include "core/presenter/MenubarManager.hpp"
-#include "core/presenter/Presenter.hpp"
-#include "iscore/menu/MenuInterface.hpp"
-#include "iscore/plugins/application/GUIApplicationContextPlugin.hpp"
-#include "iscore/tools/SettableIdentifier.hpp"
+#include <core/application/ApplicationComponents.hpp>
+#include <core/application/ApplicationContext.hpp>
+#include <core/command/CommandStack.hpp>
+#include <core/presenter/DocumentManager.hpp>
+#include <core/presenter/MenubarManager.hpp>
+#include <core/presenter/Presenter.hpp>
+#include <iscore/menu/MenuInterface.hpp>
+#include <iscore/plugins/application/GUIApplicationContextPlugin.hpp>
+#include <iscore/tools/SettableIdentifier.hpp>
 #include "session/../client/LocalClient.hpp"
 #include "session/MasterSession.hpp"
 

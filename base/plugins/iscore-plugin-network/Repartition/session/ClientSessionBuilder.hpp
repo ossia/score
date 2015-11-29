@@ -2,11 +2,11 @@
 #include <boost/optional/optional.hpp>
 #include <iscore/command/SerializableCommand.hpp>
 #include <iscore/tools/SettableIdentifier.hpp>
-#include <qbytearray.h>
-#include <qlist.h>
-#include <qobject.h>
-#include <qpair.h>
-#include <qstring.h>
+#include <QByteArray>
+#include <QList>
+#include <QObject>
+#include <QPair>
+#include <QString>
 
 class Client;
 class ClientSession;

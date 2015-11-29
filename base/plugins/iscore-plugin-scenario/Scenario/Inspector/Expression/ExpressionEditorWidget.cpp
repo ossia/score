@@ -1,8 +1,8 @@
 #include <boost/optional/optional.hpp>
-#include <qboxlayout.h>
-#include <qdebug.h>
-#include <qglobal.h>
-#include <qstringlist.h>
+#include <QBoxLayout>
+#include <QDebug>
+#include <QtGlobal>
+#include <QStringList>
 
 #include "ExpressionEditorWidget.hpp"
 #include "Scenario/Inspector/Expression/SimpleExpressionEditorWidget.hpp"

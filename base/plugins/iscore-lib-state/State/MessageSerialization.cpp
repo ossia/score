@@ -1,14 +1,14 @@
 #include <iscore/serialization/DataStreamVisitor.hpp>
 #include <iscore/serialization/JSONVisitor.hpp>
-#include <qdatastream.h>
-#include <qglobal.h>
-#include <qjsonarray.h>
-#include <qjsonobject.h>
-#include <qjsonvalue.h>
+#include <QDataStream>
+#include <QtGlobal>
+#include <QJsonArray>
+#include <QJsonObject>
+#include <QJsonValue>
 
 #include "Message.hpp"
-#include "State/Address.hpp"
-#include "State/Value.hpp"
+#include <State/Address.hpp>
+#include <State/Value.hpp>
 #include "ValueConversion.hpp"
 #include "ValueSerialization.hpp"
 

@@ -1,6 +1,6 @@
 #pragma once
 #include <iscore/plugins/customfactory/FactoryInterface.hpp>
-#include <qmetatype.h>
+#include <QMetaType>
 
 
 namespace iscore

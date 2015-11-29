@@ -2,14 +2,14 @@
 #include <Loop/LoopProcessMetadata.hpp>
 #include <Process/Process.hpp>
 #include <Scenario/Document/BaseScenario/BaseScenarioContainer.hpp>
-#include <qbytearray.h>
-#include <qstring.h>
-#include <qvector.h>
+#include <QByteArray>
+#include <QString>
+#include <QVector>
 
-#include "Process/ProcessFactoryKey.hpp"
-#include "Process/TimeValue.hpp"
-#include "iscore/selection/Selection.hpp"
-#include "iscore/serialization/VisitorInterface.hpp"
+#include <Process/ProcessFactoryKey.hpp>
+#include <Process/TimeValue.hpp>
+#include <iscore/selection/Selection.hpp>
+#include <iscore/serialization/VisitorInterface.hpp>
 
 class ConstraintModel;
 class DataStream;

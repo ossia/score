@@ -2,8 +2,8 @@
 #include <Process/ProcessFactoryKey.hpp>
 #include <Process/TimeValue.hpp>
 #include <iscore/plugins/customfactory/FactoryInterface.hpp>
-#include <qbytearray.h>
-#include <qstring.h>
+#include <QByteArray>
+#include <QString>
 
 class LayerModel;
 class LayerPresenter;

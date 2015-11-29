@@ -11,10 +11,10 @@
 #include "CreateState.hpp"
 #include "Scenario/Document/Event/EventModel.hpp"
 #include "Scenario/Document/State/StateModel.hpp"
-#include "iscore/serialization/DataStreamVisitor.hpp"
-#include "iscore/tools/ModelPath.hpp"
-#include "iscore/tools/ModelPathSerialization.hpp"
-#include "iscore/tools/NotifyingMap.hpp"
+#include <iscore/serialization/DataStreamVisitor.hpp>
+#include <iscore/tools/ModelPath.hpp>
+#include <iscore/tools/ModelPathSerialization.hpp>
+#include <iscore/tools/NotifyingMap.hpp>
 
 using namespace Scenario::Command;
 CreateState::CreateState(const Scenario::ScenarioModel& scenario, const Id<EventModel> &event, double stateY) :

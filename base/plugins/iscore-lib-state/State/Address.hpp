@@ -1,10 +1,10 @@
 #pragma once
 
 
-#include <qhash.h>
-#include <qlist.h>
-#include <qstring.h>
-#include <qstringlist.h>
+#include <QHash>
+#include <QList>
+#include <QString>
+#include <QStringList>
 #include <cstddef>
 #include <string>
 #include <unordered_map>

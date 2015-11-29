@@ -1,7 +1,7 @@
 #include <boost/optional/optional.hpp>
-#include <qbytearray.h>
-#include <qmap.h>
-#include <qpair.h>
+#include <QByteArray>
+#include <QMap>
+#include <QPair>
 
 #include "GoodOldDisplacementPolicy.hpp"
 #include "Scenario/Document/Constraint/ConstraintDurations.hpp"
@@ -12,10 +12,10 @@
 #include "Scenario/Document/TimeNode/TimeNodeModel.hpp"
 #include "Scenario/Process/ScenarioModel.hpp"
 #include "Scenario/Tools/dataStructures.hpp"
-#include "iscore/serialization/DataStreamVisitor.hpp"
-#include "iscore/tools/ModelPath.hpp"
-#include "iscore/tools/NotifyingMap.hpp"
-#include "iscore/tools/SettableIdentifier.hpp"
+#include <iscore/serialization/DataStreamVisitor.hpp>
+#include <iscore/tools/ModelPath.hpp>
+#include <iscore/tools/NotifyingMap.hpp>
+#include <iscore/tools/SettableIdentifier.hpp>
 
 class RackModel;
 template <typename T> class Reader;

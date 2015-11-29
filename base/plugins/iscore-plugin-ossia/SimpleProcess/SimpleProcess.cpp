@@ -1,7 +1,7 @@
 #include <OSSIA2iscore.hpp>
-#include <qdebug.h>
+#include <QDebug>
 
-#include "Process/TimeValue.hpp"
+#include <Process/TimeValue.hpp>
 #include "SimpleProcess.hpp"
 
 namespace OSSIA {

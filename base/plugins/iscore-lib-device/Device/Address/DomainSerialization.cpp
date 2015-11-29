@@ -1,13 +1,13 @@
 #include <State/ValueConversion.hpp>
 #include <State/ValueSerialization.hpp>
 #include <iscore/serialization/DataStreamVisitor.hpp>
-#include <qdatastream.h>
-#include <qglobal.h>
-#include <qjsonarray.h>
-#include <qjsonvalue.h>
+#include <QDataStream>
+#include <QtGlobal>
+#include <QJsonArray>
+#include <QJsonValue>
 
 #include "DomainSerialization.hpp"
-#include "State/Value.hpp"
+#include <State/Value.hpp>
 
 template <typename T> class Reader;
 template <typename T> class Writer;

@@ -3,7 +3,7 @@
 #include <Explorer/Commands/DeviceExplorerCommandFactory.hpp>
 #include <iscore/command/SerializableCommand.hpp>
 #include <iscore/tools/ModelPath.hpp>
-#include <qstring.h>
+#include <QString>
 
 class DataStreamInput;
 class DataStreamOutput;

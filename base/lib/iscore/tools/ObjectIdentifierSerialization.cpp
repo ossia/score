@@ -1,12 +1,12 @@
 #include <boost/optional/optional.hpp>
-#include <qjsonobject.h>
-#include <qjsonvalue.h>
-#include <qstring.h>
+#include <QJsonObject>
+#include <QJsonValue>
+#include <QString>
 #include <sys/types.h>
 
 #include "ObjectIdentifier.hpp"
-#include "iscore/serialization/DataStreamVisitor.hpp"
-#include "iscore/serialization/JSONVisitor.hpp"
+#include <iscore/serialization/DataStreamVisitor.hpp>
+#include <iscore/serialization/JSONVisitor.hpp>
 
 template <typename T> class Reader;
 template <typename T> class Writer;

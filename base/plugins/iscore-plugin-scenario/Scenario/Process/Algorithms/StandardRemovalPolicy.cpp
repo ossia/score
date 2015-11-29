@@ -6,15 +6,15 @@
 #include <boost/iterator/iterator_facade.hpp>
 #include <boost/multi_index/detail/hash_index_iterator.hpp>
 #include <boost/optional/optional.hpp>
-#include <qdebug.h>
-#include <qvector.h>
+#include <QDebug>
+#include <QVector>
 
 #include "Scenario/Document/Constraint/ConstraintModel.hpp"
 #include "Scenario/Document/Event/EventModel.hpp"
 #include "Scenario/Document/State/StateModel.hpp"
 #include "StandardRemovalPolicy.hpp"
-#include "iscore/tools/NotifyingMap.hpp"
-#include "iscore/tools/SettableIdentifier.hpp"
+#include <iscore/tools/NotifyingMap.hpp>
+#include <iscore/tools/SettableIdentifier.hpp>
 
 static void removeEventFromTimeNode(
         Scenario::ScenarioModel& scenario,

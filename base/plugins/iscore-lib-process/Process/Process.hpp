@@ -4,12 +4,12 @@
 #include <Process/TimeValue.hpp>
 #include <iscore/selection/Selection.hpp>
 #include <iscore/tools/IdentifiedObject.hpp>
-#include <qbytearray.h>
-#include <qstring.h>
+#include <QByteArray>
+#include <QString>
 #include <vector>
 
 #include "ModelMetadata.hpp"
-#include "iscore/serialization/VisitorInterface.hpp"
+#include <iscore/serialization/VisitorInterface.hpp>
 
 class DataStream;
 class JSONObject;

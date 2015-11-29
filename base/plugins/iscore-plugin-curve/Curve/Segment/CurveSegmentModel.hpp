@@ -4,13 +4,13 @@
 #include <boost/optional/optional.hpp>
 #include <iscore/selection/Selectable.hpp>
 #include <iscore/tools/IdentifiedObject.hpp>
-#include <qpoint.h>
-#include <qvariant.h>
+#include <QPoint>
+#include <QVariant>
 #include <vector>
 
-#include "Curve/Segment/CurveSegmentFactoryKey.hpp"
-#include "iscore/serialization/VisitorInterface.hpp"
-#include "iscore/tools/SettableIdentifier.hpp"
+#include <Curve/Segment/CurveSegmentFactoryKey.hpp>
+#include <iscore/serialization/VisitorInterface.hpp>
+#include <iscore/tools/SettableIdentifier.hpp>
 
 class DataStream;
 class JSONObject;

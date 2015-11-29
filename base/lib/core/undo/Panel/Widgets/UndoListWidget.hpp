@@ -1,6 +1,6 @@
 #pragma once
 
-#include <qlistwidget.h>
+#include <QListWidget>
 
 namespace iscore
 {

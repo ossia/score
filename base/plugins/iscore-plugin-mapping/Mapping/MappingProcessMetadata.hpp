@@ -1,6 +1,6 @@
 #pragma once
 #include <Process/ProcessFactoryKey.hpp>
-#include <qstring.h>
+#include <QString>
 
 struct MappingProcessMetadata
 {

@@ -2,10 +2,10 @@
 
 #include <Scenario/Commands/Scenario/Displacement/SerializableMoveEvent.hpp>
 
-#include "Process/ExpandMode.hpp"
-#include "Process/TimeValue.hpp"
+#include <Process/ExpandMode.hpp>
+#include <Process/TimeValue.hpp>
 #include "Scenario/Commands/ScenarioCommandFactory.hpp"
-#include "iscore/tools/ModelPath.hpp"
+#include <iscore/tools/ModelPath.hpp>
 
 class DataStreamInput;
 class DataStreamOutput;

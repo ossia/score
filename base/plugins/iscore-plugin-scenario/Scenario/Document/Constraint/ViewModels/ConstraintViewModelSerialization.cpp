@@ -1,13 +1,13 @@
 #include <boost/core/explicit_operator_bool.hpp>
-#include <qjsonvalue.h>
+#include <QJsonValue>
 #include <algorithm>
 
 #include "ConstraintViewModel.hpp"
 #include "ConstraintViewModelSerialization.hpp"
 #include "Scenario/Document/Constraint/ConstraintModel.hpp"
-#include "iscore/serialization/DataStreamVisitor.hpp"
-#include "iscore/serialization/JSONValueVisitor.hpp"
-#include "iscore/serialization/JSONVisitor.hpp"
+#include <iscore/serialization/DataStreamVisitor.hpp>
+#include <iscore/serialization/JSONValueVisitor.hpp>
+#include <iscore/serialization/JSONVisitor.hpp>
 
 class RackModel;
 template <typename T> class Reader;

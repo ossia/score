@@ -1,7 +1,7 @@
 #pragma once
 #include <Process/LayerView.hpp>
-#include <qpoint.h>
-#include <qrect.h>
+#include <QPoint>
+#include <QRect>
 
 class QGraphicsItem;
 class QGraphicsSceneContextMenuEvent;

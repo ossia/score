@@ -1,7 +1,7 @@
 #pragma once
 #include <iscore/tools/NamedObject.hpp>
 #include <iscore/tools/SettableIdentifier.hpp>
-#include <qpoint.h>
+#include <QPoint>
 #include <sys/types.h>
 
 class EventModel;

@@ -1,14 +1,14 @@
 #include <Process/Style/ProcessFonts.hpp>
 #include <Scenario/Document/TimeRuler/AbstractTimeRuler.hpp>
-#include <qbrush.h>
-#include <qgraphicssceneevent.h>
+#include <QBrush>
+#include <QGraphicsSceneEvent>
 #include <qnamespace.h>
-#include <qpainter.h>
-#include <qpen.h>
+#include <QPainter>
+#include <QPen>
 #include <cmath>
 
 #include "AbstractTimeRulerView.hpp"
-#include "Process/TimeValue.hpp"
+#include <Process/TimeValue.hpp>
 
 class QStyleOptionGraphicsItem;
 class QWidget;

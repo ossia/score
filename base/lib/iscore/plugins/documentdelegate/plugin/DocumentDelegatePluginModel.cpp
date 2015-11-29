@@ -1,5 +1,5 @@
 #include "DocumentDelegatePluginModel.hpp"
-#include "iscore/tools/NamedObject.hpp"
+#include <iscore/tools/NamedObject.hpp>
 
 class QObject;
 namespace iscore {

@@ -1,8 +1,8 @@
 #pragma once
 #include <iscore/plugins/application/GUIApplicationContextPlugin.hpp>
-#include <qstring.h>
+#include <QString>
 
-#include "iscore/plugins/documentdelegate/plugin/DocumentDelegatePluginModel.hpp"
+#include <iscore/plugins/documentdelegate/plugin/DocumentDelegatePluginModel.hpp>
 
 class ClientSession;
 class ClientSessionBuilder;

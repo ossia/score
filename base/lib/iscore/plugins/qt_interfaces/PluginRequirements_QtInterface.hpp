@@ -1,6 +1,6 @@
 #pragma once
 
-#include <qstringlist.h>
+#include <QStringList>
 
 namespace iscore
 {

@@ -1,5 +1,5 @@
 #pragma once
-#include <qstring.h>
+#include <QString>
 #include <map>
 
 // TODO faire un script qui génère ça automatiquement

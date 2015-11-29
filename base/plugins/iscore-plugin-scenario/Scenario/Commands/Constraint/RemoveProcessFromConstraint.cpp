@@ -7,20 +7,20 @@
 #include <boost/core/explicit_operator_bool.hpp>
 #include <core/application/ApplicationComponents.hpp>
 #include <ext/alloc_traits.h>
-#include <qdatastream.h>
-#include <qglobal.h>
+#include <QDataStream>
+#include <QtGlobal>
 #include <algorithm>
 #include <vector>
 
-#include "Process/ProcessList.hpp"
+#include <Process/ProcessList.hpp>
 #include "RemoveProcessFromConstraint.hpp"
-#include "core/application/ApplicationContext.hpp"
-#include "iscore/plugins/customfactory/StringFactoryKey.hpp"
-#include "iscore/serialization/DataStreamVisitor.hpp"
-#include "iscore/tools/ModelPath.hpp"
-#include "iscore/tools/ModelPathSerialization.hpp"
-#include "iscore/tools/NotifyingMap.hpp"
-#include "iscore/tools/ObjectPath.hpp"
+#include <core/application/ApplicationContext.hpp>
+#include <iscore/plugins/customfactory/StringFactoryKey.hpp>
+#include <iscore/serialization/DataStreamVisitor.hpp>
+#include <iscore/tools/ModelPath.hpp>
+#include <iscore/tools/ModelPathSerialization.hpp>
+#include <iscore/tools/NotifyingMap.hpp>
+#include <iscore/tools/ObjectPath.hpp>
 
 using namespace iscore;
 using namespace Scenario::Command;

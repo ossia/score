@@ -3,7 +3,7 @@
 
 #include "DistributedScenario/Commands/DistributedScenarioCommandFactory.hpp"
 #include "DistributedScenario/Panel/GroupPanelFactory.hpp"
-#include "iscore/plugins/qt_interfaces/GUIApplicationContextPlugin_QtInterface.hpp"
+#include <iscore/plugins/qt_interfaces/GUIApplicationContextPlugin_QtInterface.hpp>
 #include <iscore_plugin_network_commands_files.hpp>
 
 namespace iscore {

@@ -2,7 +2,7 @@
 
 #include <Process/LayerModel.hpp>
 
-#include "iscore/serialization/VisitorInterface.hpp"
+#include <iscore/serialization/VisitorInterface.hpp>
 
 class AutomationModel;
 class LayerModelPanelProxy;

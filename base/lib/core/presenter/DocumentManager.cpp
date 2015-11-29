@@ -5,27 +5,27 @@
 #include <core/view/View.hpp>
 #include <iscore/plugins/application/GUIApplicationContextPlugin.hpp>
 #include <iscore/plugins/panel/PanelPresenter.hpp>
-#include <qbytearray.h>
-#include <qfile.h>
-#include <qfiledialog.h>
-#include <qflags.h>
-#include <qiodevice.h>
-#include <qjsondocument.h>
-#include <qmessagebox.h>
-#include <qobjectdefs.h>
-#include <qsavefile.h>
-#include <qsettings.h>
-#include <qstringlist.h>
-#include <qvariant.h>
+#include <QByteArray>
+#include <QFile>
+#include <QFileDialog>
+#include <QFlags>
+#include <QIODevice>
+#include <QJsonDocument>
+#include <QMessageBox>
+
+#include <QSaveFile>
+#include <QSettings>
+#include <QStringList>
+#include <QVariant>
 #include <utility>
 
 #include "DocumentManager.hpp"
 #include "QRecentFilesMenu.h"
-#include "core/application/ApplicationComponents.hpp"
-#include "core/command/CommandStack.hpp"
-#include "core/document/Document.hpp"
-#include "iscore/tools/SettableIdentifier.hpp"
-#include "iscore/tools/std/StdlibWrapper.hpp"
+#include <core/application/ApplicationComponents.hpp>
+#include <core/command/CommandStack.hpp>
+#include <core/document/Document.hpp>
+#include <iscore/tools/SettableIdentifier.hpp>
+#include <iscore/tools/std/StdlibWrapper.hpp>
 
 namespace iscore
 {

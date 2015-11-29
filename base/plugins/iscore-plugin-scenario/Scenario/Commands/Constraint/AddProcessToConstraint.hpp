@@ -15,23 +15,23 @@
 #include <iscore/command/SerializableCommand.hpp>
 #include <iscore/tools/ModelPath.hpp>
 #include <iscore/tools/SettableIdentifierGeneration.hpp>
-#include <qbytearray.h>
-#include <qobject.h>
-#include <qobjectdefs.h>
-#include <qstring.h>
+#include <QByteArray>
+#include <QObject>
+
+#include <QString>
 #include <vector>
 
-#include "Process/LayerModel.hpp"
-#include "Process/ProcessFactoryKey.hpp"
-#include "core/application/ApplicationContext.hpp"
-#include "core/application/ApplicationComponents.hpp"
-#include "iscore/plugins/customfactory/FactoryFamily.hpp"
-#include "iscore/plugins/customfactory/FactoryMap.hpp"
-#include "iscore/plugins/customfactory/StringFactoryKey.hpp"
-#include "iscore/serialization/DataStreamVisitor.hpp"
-#include "iscore/tools/ModelPathSerialization.hpp"
-#include "iscore/tools/NotifyingMap.hpp"
-#include "iscore/tools/SettableIdentifier.hpp"
+#include <Process/LayerModel.hpp>
+#include <Process/ProcessFactoryKey.hpp>
+#include <core/application/ApplicationContext.hpp>
+#include <core/application/ApplicationComponents.hpp>
+#include <iscore/plugins/customfactory/FactoryFamily.hpp>
+#include <iscore/plugins/customfactory/FactoryMap.hpp>
+#include <iscore/plugins/customfactory/StringFactoryKey.hpp>
+#include <iscore/serialization/DataStreamVisitor.hpp>
+#include <iscore/tools/ModelPathSerialization.hpp>
+#include <iscore/tools/NotifyingMap.hpp>
+#include <iscore/tools/SettableIdentifier.hpp>
 
 namespace Scenario
 {

@@ -1,11 +1,11 @@
 #pragma once
 
-#include <qmap.h>
+#include <QMap>
 
 #include "Scenario/Document/Constraint/ViewModels/Temporal/TemporalConstraintViewModel.hpp"
 #include "Scenario/Process/AbstractScenarioLayerModel.hpp"
 #include "Scenario/Process/ScenarioModel.hpp"
-#include "iscore/serialization/VisitorInterface.hpp"
+#include <iscore/serialization/VisitorInterface.hpp>
 
 class ConstraintModel;
 class ConstraintViewModel;

@@ -1,17 +1,17 @@
 #include <Scenario/Process/Temporal/TemporalScenarioLayerModel.hpp>
 #include <boost/core/explicit_operator_bool.hpp>
 #include <iscore/tools/SettableIdentifierGeneration.hpp>
-#include <qdatastream.h>
-#include <qdebug.h>
-#include <qglobal.h>
-#include <qiodevice.h>
-#include <qmap.h>
+#include <QDataStream>
+#include <QDebug>
+#include <QtGlobal>
+#include <QIODevice>
+#include <QMap>
 #include <vector>
 
 #include "Algorithms/StandardCreationPolicy.hpp"
-#include "Process/ModelMetadata.hpp"
-#include "Process/Process.hpp"
-#include "Process/TimeValue.hpp"
+#include <Process/ModelMetadata.hpp>
+#include <Process/Process.hpp>
+#include <Process/TimeValue.hpp>
 #include "Scenario/Document/Constraint/ConstraintDurations.hpp"
 #include "Scenario/Document/Constraint/ConstraintModel.hpp"
 #include "Scenario/Document/Event/EventModel.hpp"
@@ -19,12 +19,12 @@
 #include "Scenario/Document/TimeNode/TimeNodeModel.hpp"
 #include "Scenario/Process/ScenarioProcessMetadata.hpp"
 #include "ScenarioModel.hpp"
-#include "iscore/document/DocumentInterface.hpp"
-#include "iscore/plugins/documentdelegate/plugin/ElementPluginModelList.hpp"
-#include "iscore/selection/Selectable.hpp"
-#include "iscore/serialization/DataStreamVisitor.hpp"
-#include "iscore/tools/NotifyingMap.hpp"
-#include "iscore/tools/Todo.hpp"
+#include <iscore/document/DocumentInterface.hpp>
+#include <iscore/plugins/documentdelegate/plugin/ElementPluginModelList.hpp>
+#include <iscore/selection/Selectable.hpp>
+#include <iscore/serialization/DataStreamVisitor.hpp>
+#include <iscore/tools/NotifyingMap.hpp>
+#include <iscore/tools/Todo.hpp>
 
 class LayerModel;
 class ProcessStateDataInterface;

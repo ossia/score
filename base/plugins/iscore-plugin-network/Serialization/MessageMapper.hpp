@@ -1,7 +1,7 @@
 #pragma once
-#include <qlist.h>
-#include <qmap.h>
-#include <qstring.h>
+#include <QList>
+#include <QMap>
+#include <QString>
 #include <functional>
 
 struct NetworkMessage;

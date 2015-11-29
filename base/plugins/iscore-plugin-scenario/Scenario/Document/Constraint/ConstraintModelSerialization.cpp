@@ -6,23 +6,23 @@
 #include <boost/core/explicit_operator_bool.hpp>
 #include <boost/optional/optional.hpp>
 #include <core/application/ApplicationComponents.hpp>
-#include <qjsonarray.h>
-#include <qjsonobject.h>
-#include <qjsonvalue.h>
+#include <QJsonArray>
+#include <QJsonObject>
+#include <QJsonValue>
 #include <sys/types.h>
 #include <algorithm>
 
-#include "Process/ModelMetadata.hpp"
-#include "Process/ProcessList.hpp"
-#include "Process/TimeValue.hpp"
-#include "core/application/ApplicationContext.hpp"
-#include "iscore/plugins/customfactory/StringFactoryKey.hpp"
-#include "iscore/plugins/documentdelegate/plugin/ElementPluginModelList.hpp"
-#include "iscore/serialization/DataStreamVisitor.hpp"
-#include "iscore/serialization/JSONValueVisitor.hpp"
-#include "iscore/serialization/JSONVisitor.hpp"
-#include "iscore/tools/NotifyingMap.hpp"
-#include "iscore/tools/SettableIdentifier.hpp"
+#include <Process/ModelMetadata.hpp>
+#include <Process/ProcessList.hpp>
+#include <Process/TimeValue.hpp>
+#include <core/application/ApplicationContext.hpp>
+#include <iscore/plugins/customfactory/StringFactoryKey.hpp>
+#include <iscore/plugins/documentdelegate/plugin/ElementPluginModelList.hpp>
+#include <iscore/serialization/DataStreamVisitor.hpp>
+#include <iscore/serialization/JSONValueVisitor.hpp>
+#include <iscore/serialization/JSONVisitor.hpp>
+#include <iscore/tools/NotifyingMap.hpp>
+#include <iscore/tools/SettableIdentifier.hpp>
 
 class StateModel;
 template <typename T> class IdentifiedObject;

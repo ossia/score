@@ -4,17 +4,17 @@
 #include <Scenario/Process/Temporal/TemporalScenarioView.hpp>
 #include <boost/core/explicit_operator_bool.hpp>
 #include <boost/optional/optional.hpp>
-#include <qdatastream.h>
-#include <qiodevice.h>
-#include <qmap.h>
+#include <QDataStream>
+#include <QIODevice>
+#include <QMap>
 
-#include "Process/LayerModel.hpp"
-#include "Process/Process.hpp"
+#include <Process/LayerModel.hpp>
+#include <Process/Process.hpp>
 #include "Scenario/Process/ScenarioProcessMetadata.hpp"
 #include "ScenarioFactory.hpp"
-#include "iscore/document/DocumentInterface.hpp"
-#include "iscore/serialization/DataStreamVisitor.hpp"
-#include "iscore/tools/SettableIdentifier.hpp"
+#include <iscore/document/DocumentInterface.hpp>
+#include <iscore/serialization/DataStreamVisitor.hpp>
+#include <iscore/tools/SettableIdentifier.hpp>
 
 class ConstraintModel;
 class ConstraintViewModel;

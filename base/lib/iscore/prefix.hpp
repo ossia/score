@@ -174,7 +174,6 @@
 #include <utility>
 #include <vector>
 
-
 #include <eggs/variant.hpp>
 
 #include <boost/multi_index/mem_fun.hpp>

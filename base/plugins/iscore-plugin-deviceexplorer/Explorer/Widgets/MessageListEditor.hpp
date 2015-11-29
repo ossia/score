@@ -1,6 +1,6 @@
 #pragma once
 #include <State/Message.hpp>
-#include <qdialog.h>
+#include <QDialog>
 
 class DeviceExplorerModel;
 class QGridLayout;

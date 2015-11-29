@@ -1,5 +1,5 @@
 #include <core/application/Application.hpp>
-#include <qiodevice.h>
+#include <QIODevice>
 
 #include "DataStreamVisitor.hpp"
 

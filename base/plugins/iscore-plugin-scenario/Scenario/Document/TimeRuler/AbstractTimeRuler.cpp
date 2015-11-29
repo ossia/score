@@ -1,9 +1,9 @@
-#include <qstring.h>
+#include <QString>
 #include <chrono>
 
 #include "AbstractTimeRuler.hpp"
 #include "AbstractTimeRulerView.hpp"
-#include "Process/TimeValue.hpp"
+#include <Process/TimeValue.hpp>
 
 AbstractTimeRuler::AbstractTimeRuler(AbstractTimeRulerView* view, QObject* parent) :
     QObject{parent},

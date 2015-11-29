@@ -1,6 +1,6 @@
 #include "ConstraintDurations.hpp"
 #include "ConstraintModel.hpp"
-#include "Process/TimeValue.hpp"
+#include <Process/TimeValue.hpp>
 #include "Scenario/Document/ModelConsistency.hpp"
 
 #define TIME_TOLERANCE_MSEC 0.5

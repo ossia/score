@@ -1,10 +1,10 @@
 #pragma once
 #include <Process/State/MessageNode.hpp>
 #include <iscore/tools/TreeNodeItemModel.hpp>
-#include <qabstractitemmodel.h>
+#include <QAbstractItemModel>
 #include <qnamespace.h>
-#include <qstringlist.h>
-#include <qvariant.h>
+#include <QStringList>
+#include <QVariant>
 
 class QMimeData;
 class QObject;

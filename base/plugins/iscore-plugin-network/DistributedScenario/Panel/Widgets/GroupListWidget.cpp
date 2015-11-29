@@ -1,13 +1,13 @@
 #include <boost/optional/optional.hpp>
-#include <qboxlayout.h>
-#include <qlayout.h>
+#include <QBoxLayout>
+#include <QLayout>
 #include <algorithm>
 #include <iterator>
 
 #include "DistributedScenario/GroupManager.hpp"
 #include "GroupListWidget.hpp"
 #include "GroupWidget.hpp"
-#include "iscore/tools/SettableIdentifier.hpp"
+#include <iscore/tools/SettableIdentifier.hpp>
 
 GroupListWidget::GroupListWidget(const GroupManager* mgr, QWidget* parent):
     QWidget{parent},

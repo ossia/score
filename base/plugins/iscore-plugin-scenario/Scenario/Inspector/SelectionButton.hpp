@@ -1,7 +1,7 @@
 #pragma once
 #include <iscore/selection/Selection.hpp>
-#include <qstring.h>
-#include <qwidget.h>
+#include <QString>
+#include <QWidget>
 
 class QPushButton;
 

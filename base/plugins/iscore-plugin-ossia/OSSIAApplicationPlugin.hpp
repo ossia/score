@@ -2,10 +2,10 @@
 #include <Explorer/DocumentPlugin/ListeningState.hpp>
 #include <Process/TimeValue.hpp>
 #include <iscore/plugins/application/GUIApplicationContextPlugin.hpp>
-#include <qstring.h>
+#include <QString>
 #include <memory>
 
-#include "iscore/plugins/documentdelegate/plugin/DocumentDelegatePluginModel.hpp"
+#include <iscore/plugins/documentdelegate/plugin/DocumentDelegatePluginModel.hpp>
 
 namespace iscore {
 class Application;

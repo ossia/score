@@ -1,15 +1,15 @@
 #include <boost/core/explicit_operator_bool.hpp>
 #include <iscore/tools/Clamp.hpp>
 
-#include "Curve/CurveModel.hpp"
-#include "Curve/CurvePresenter.hpp"
-#include "Curve/Palette/CurvePaletteBaseStates.hpp"
-#include "Curve/Palette/CurvePoint.hpp"
-#include "Curve/Segment/CurveSegmentModel.hpp"
+#include <Curve/CurveModel.hpp>
+#include <Curve/CurvePresenter.hpp>
+#include <Curve/Palette/CurvePaletteBaseStates.hpp>
+#include <Curve/Palette/CurvePoint.hpp>
+#include <Curve/Segment/CurveSegmentModel.hpp>
 #include "SetSegmentParametersCommandObject.hpp"
-#include "iscore/command/Dispatchers/SingleOngoingCommandDispatcher.hpp"
-#include "iscore/tools/IdentifiedObjectMap.hpp"
-#include "iscore/tools/ModelPath.hpp"
+#include <iscore/command/Dispatchers/SingleOngoingCommandDispatcher.hpp>
+#include <iscore/tools/IdentifiedObjectMap.hpp>
+#include <iscore/tools/ModelPath.hpp>
 
 namespace iscore {
 class CommandStack;

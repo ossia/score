@@ -2,8 +2,8 @@
 
 
 
-#include <qpoint.h>
-#include <qstatemachine.h>
+#include <QPoint>
+#include <QStateMachine>
 
 class QState;
 

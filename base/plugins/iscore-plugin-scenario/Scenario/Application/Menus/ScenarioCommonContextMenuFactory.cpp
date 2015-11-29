@@ -4,7 +4,7 @@
 
 #include "Scenario/Application/Menus/Plugin/ScenarioActionsFactory.hpp"
 #include "ScenarioCommonContextMenuFactory.hpp"
-#include "iscore/menu/MenuInterface.hpp"
+#include <iscore/menu/MenuInterface.hpp>
 
 class ScenarioActions;
 class ScenarioApplicationPlugin;

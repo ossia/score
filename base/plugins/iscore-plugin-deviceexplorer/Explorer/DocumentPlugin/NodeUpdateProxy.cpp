@@ -2,8 +2,8 @@
 #include <Explorer/Explorer/DeviceExplorerModel.hpp>
 #include <boost/core/explicit_operator_bool.hpp>
 #include <boost/optional/optional.hpp>
-#include <qdebug.h>
-#include <qstringlist.h>
+#include <QDebug>
+#include <QStringList>
 #include <algorithm>
 #include <vector>
 
@@ -13,8 +13,8 @@
 #include "Device/Protocol/DeviceSettings.hpp"
 #include "DeviceDocumentPlugin.hpp"
 #include "NodeUpdateProxy.hpp"
-#include "State/Address.hpp"
-#include "iscore/tools/TreeNode.hpp"
+#include <State/Address.hpp>
+#include <iscore/tools/TreeNode.hpp>
 
 NodeUpdateProxy::NodeUpdateProxy(DeviceDocumentPlugin& root):
     devModel{root}

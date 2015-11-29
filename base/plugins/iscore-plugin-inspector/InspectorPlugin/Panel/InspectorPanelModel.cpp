@@ -1,7 +1,7 @@
 #include <core/document/DocumentModel.hpp>
 
 #include "InspectorPanelModel.hpp"
-#include "iscore/plugins/panel/PanelModel.hpp"
+#include <iscore/plugins/panel/PanelModel.hpp>
 #include "InspectorPanelId.hpp"
 
 InspectorPanelModel::InspectorPanelModel(iscore::DocumentModel* parent) :

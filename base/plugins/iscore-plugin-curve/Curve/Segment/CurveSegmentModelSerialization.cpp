@@ -1,28 +1,28 @@
 #include <boost/core/explicit_operator_bool.hpp>
 #include <core/application/ApplicationComponents.hpp>
 #include <iscore/tools/std/StdlibWrapper.hpp>
-#include <qjsonobject.h>
-#include <qjsonvalue.h>
-#include <qpoint.h>
-#include <qvariant.h>
+#include <QJsonObject>
+#include <QJsonValue>
+#include <QPoint>
+#include <QVariant>
 #include <algorithm>
 #include <vector>
 
-#include "Curve/Palette/CurvePoint.hpp"
-#include "Curve/Segment/CurveSegmentData.hpp"
-#include "Curve/Segment/CurveSegmentFactory.hpp"
-#include "Curve/Segment/CurveSegmentFactoryKey.hpp"
+#include <Curve/Palette/CurvePoint.hpp>
+#include <Curve/Segment/CurveSegmentData.hpp>
+#include <Curve/Segment/CurveSegmentFactory.hpp>
+#include <Curve/Segment/CurveSegmentFactoryKey.hpp>
 #include "CurveSegmentList.hpp"
 #include "CurveSegmentModel.hpp"
 #include "CurveSegmentModelSerialization.hpp"
-#include "core/application/ApplicationContext.hpp"
-#include "iscore/plugins/customfactory/FactoryFamily.hpp"
-#include "iscore/plugins/customfactory/FactoryMap.hpp"
-#include "iscore/plugins/customfactory/StringFactoryKey.hpp"
-#include "iscore/serialization/DataStreamVisitor.hpp"
-#include "iscore/serialization/JSONValueVisitor.hpp"
-#include "iscore/serialization/JSONVisitor.hpp"
-#include "iscore/tools/SettableIdentifier.hpp"
+#include <core/application/ApplicationContext.hpp>
+#include <iscore/plugins/customfactory/FactoryFamily.hpp>
+#include <iscore/plugins/customfactory/FactoryMap.hpp>
+#include <iscore/plugins/customfactory/StringFactoryKey.hpp>
+#include <iscore/serialization/DataStreamVisitor.hpp>
+#include <iscore/serialization/JSONValueVisitor.hpp>
+#include <iscore/serialization/JSONVisitor.hpp>
+#include <iscore/tools/SettableIdentifier.hpp>
 
 class QObject;
 template <typename T> class IdentifiedObject;

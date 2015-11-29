@@ -3,11 +3,11 @@
 #include <boost/optional/optional.hpp>
 #include <iscore/command/SerializableCommand.hpp>
 #include <iscore/tools/ModelPath.hpp>
-#include <qbytearray.h>
-#include <qmap.h>
-#include <qvector.h>
+#include <QByteArray>
+#include <QMap>
+#include <QVector>
 
-#include "iscore/tools/SettableIdentifier.hpp"
+#include <iscore/tools/SettableIdentifier.hpp>
 
 class ConstraintModel;
 class ConstraintViewModel;

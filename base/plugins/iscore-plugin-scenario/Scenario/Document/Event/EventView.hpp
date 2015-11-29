@@ -1,11 +1,11 @@
 #pragma once
 #include <Scenario/Document/VerticalExtent.hpp>
-#include <qcolor.h>
-#include <qglobal.h>
-#include <qgraphicsitem.h>
-#include <qpoint.h>
-#include <qrect.h>
-#include <qstring.h>
+#include <QColor>
+#include <QtGlobal>
+#include <QGraphicsItem>
+#include <QPoint>
+#include <QRect>
+#include <QString>
 
 #include "ExecutionStatus.hpp"
 

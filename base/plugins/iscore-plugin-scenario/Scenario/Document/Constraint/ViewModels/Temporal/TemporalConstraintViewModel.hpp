@@ -1,6 +1,6 @@
 #pragma once
 #include <Scenario/Document/Constraint/ViewModels/ConstraintViewModel.hpp>
-#include <qstring.h>
+#include <QString>
 
 class ConstraintModel;
 class QObject;

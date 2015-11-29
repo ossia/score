@@ -2,21 +2,21 @@
 #include <core/application/ApplicationComponents.hpp>
 #include <core/document/Document.hpp>
 #include <core/view/View.hpp>
-#include <qboxlayout.h>
-#include <qlayout.h>
+#include <QBoxLayout>
+#include <QLayout>
 #include <qnamespace.h>
-#include <qobject.h>
-#include <qwidget.h>
+#include <QObject>
+#include <QWidget>
 
 #include "Implementation/InspectorPanel.hpp"
 #include "Implementation/SelectionStackWidget.hpp"
 #include "InspectorPanelView.hpp"
-#include "core/application/ApplicationContext.hpp"
-#include "core/document/DocumentContext.hpp"
-#include "iscore/plugins/customfactory/StringFactoryKey.hpp"
-#include "iscore/plugins/panel/PanelView.hpp"
-#include "iscore/selection/Selection.hpp"
-#include "iscore/selection/SelectionStack.hpp"
+#include <core/application/ApplicationContext.hpp>
+#include <core/document/DocumentContext.hpp>
+#include <iscore/plugins/customfactory/StringFactoryKey.hpp>
+#include <iscore/plugins/panel/PanelView.hpp>
+#include <iscore/selection/Selection.hpp>
+#include <iscore/selection/SelectionStack.hpp>
 
 static const iscore::DefaultPanelStatus status{true, Qt::RightDockWidgetArea, 10, QObject::tr("Inspector")};
 

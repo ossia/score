@@ -2,10 +2,10 @@
 
 #include <Scenario/Inspector/ExpressionValidator.hpp>
 #include <boost/core/explicit_operator_bool.hpp>
-#include <qstring.h>
-#include <qwidget.h>
+#include <QString>
+#include <QWidget>
 
-#include "State/Expression.hpp"
+#include <State/Expression.hpp>
 
 class QComboBox;
 class QLabel;

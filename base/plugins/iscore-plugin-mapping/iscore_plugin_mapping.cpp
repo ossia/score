@@ -7,10 +7,10 @@
 #include <unordered_map>
 
 #include "Inspector/InspectorWidgetFactoryInterface.hpp"
-#include "Mapping/Commands/MappingCommandFactory.hpp"
-#include "Mapping/MappingProcessMetadata.hpp"
-#include "Process/ProcessFactory.hpp"
-#include "iscore/plugins/customfactory/StringFactoryKey.hpp"
+#include <Mapping/Commands/MappingCommandFactory.hpp>
+#include <Mapping/MappingProcessMetadata.hpp>
+#include <Process/ProcessFactory.hpp>
+#include <iscore/plugins/customfactory/StringFactoryKey.hpp>
 #include "iscore_plugin_mapping.hpp"
 
 #include <Curve/Process/CurveProcessFactory.hpp>
@@ -25,7 +25,7 @@ DEFINE_CURVE_PROCESS_FACTORY(
 
 
 #if defined(ISCORE_LIB_INSPECTOR)
-#include "Mapping/Inspector/MappingInspectorFactory.hpp"
+#include <Mapping/Inspector/MappingInspectorFactory.hpp>
 #endif
 
 #include <iscore_plugin_mapping_commands_files.hpp>

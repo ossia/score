@@ -1,8 +1,8 @@
 #include <core/command/CommandStack.hpp>
-#include <qalgorithms.h>
-#include <qvector.h>
+#include <QtAlgorithms>
+#include <QVector>
 
-#include "iscore/command/SerializableCommand.hpp"
+#include <iscore/command/SerializableCommand.hpp>
 
 using namespace iscore;
 

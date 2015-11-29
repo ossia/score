@@ -1,7 +1,7 @@
-#include <qboxlayout.h>
-#include <qlabel.h>
-#include <qstring.h>
-#include <qtoolbutton.h>
+#include <QBoxLayout>
+#include <QLabel>
+#include <QString>
+#include <QToolButton>
 
 #include "AddSlotWidget.hpp"
 #include "RackInspectorSection.hpp"

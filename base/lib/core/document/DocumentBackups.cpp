@@ -1,15 +1,15 @@
 #include <core/application/OpenDocumentsFile.hpp>
-#include <qapplication.h>
-#include <qbytearray.h>
-#include <qfile.h>
-#include <qiodevice.h>
-#include <qmap.h>
-#include <qmessagebox.h>
-#include <qobject.h>
-#include <qobjectdefs.h>
-#include <qsettings.h>
-#include <qstring.h>
-#include <qvariant.h>
+#include <QApplication>
+#include <QByteArray>
+#include <QFile>
+#include <QIODevice>
+#include <QMap>
+#include <QMessageBox>
+#include <QObject>
+
+#include <QSettings>
+#include <QString>
+#include <QVariant>
 
 #include "DocumentBackups.hpp"
 

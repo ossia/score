@@ -1,7 +1,7 @@
 #include <Explorer/DeviceExplorerPanelFactory.hpp>
 
 #include "Explorer/Commands/DeviceExplorerCommandFactory.hpp"
-#include "iscore/plugins/qt_interfaces/PanelFactoryInterface_QtInterface.hpp"
+#include <iscore/plugins/qt_interfaces/PanelFactoryInterface_QtInterface.hpp>
 #include <iscore_plugin_deviceexplorer_commands_files.hpp>
 #include "iscore_plugin_deviceexplorer.hpp"
 

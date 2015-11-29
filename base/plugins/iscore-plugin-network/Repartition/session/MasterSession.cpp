@@ -4,8 +4,8 @@
 
 #include "MasterSession.hpp"
 #include "Serialization/NetworkMessage.hpp"
-#include "iscore/tools/SettableIdentifier.hpp"
-#include "iscore/tools/Todo.hpp"
+#include <iscore/tools/SettableIdentifier.hpp>
+#include <iscore/tools/Todo.hpp>
 #include "session/../client/LocalClient.hpp"
 #include "session/../client/RemoteClient.hpp"
 #include "session/RemoteClientBuilder.hpp"

@@ -5,14 +5,14 @@
 #include <Scenario/Document/State/StateModel.hpp>
 #include <boost/optional/optional.hpp>
 #include <iscore/document/DocumentInterface.hpp>
-#include <qstring.h>
+#include <QString>
 #include <tuple>
 
 #include "BaseScenario.hpp"
 #include "Scenario/Document/BaseScenario/BaseScenarioContainer.hpp"
-#include "iscore/selection/Selection.hpp"
-#include "iscore/tools/SettableIdentifier.hpp"
-#include "iscore/tools/std/StdlibWrapper.hpp"
+#include <iscore/selection/Selection.hpp>
+#include <iscore/tools/SettableIdentifier.hpp>
+#include <iscore/tools/std/StdlibWrapper.hpp>
 
 class QObject;
 

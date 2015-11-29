@@ -12,16 +12,16 @@
 #include <iscore/tools/SettableIdentifierGeneration.hpp>
 #include <algorithm>
 
-#include "Curve/Segment/CurveSegmentData.hpp"
+#include <Curve/Segment/CurveSegmentData.hpp>
 #include "CurveModel.hpp"
-#include "core/application/ApplicationContext.hpp"
-#include "iscore/plugins/customfactory/StringFactoryKey.hpp"
-#include "iscore/selection/Selectable.hpp"
-#include "iscore/selection/Selection.hpp"
-#include "iscore/tools/IdentifiedObject.hpp"
-#include "iscore/tools/IdentifiedObjectMap.hpp"
-#include "iscore/tools/SettableIdentifier.hpp"
-#include "iscore/tools/std/StdlibWrapper.hpp"
+#include <core/application/ApplicationContext.hpp>
+#include <iscore/plugins/customfactory/StringFactoryKey.hpp>
+#include <iscore/selection/Selectable.hpp>
+#include <iscore/selection/Selection.hpp>
+#include <iscore/tools/IdentifiedObject.hpp>
+#include <iscore/tools/IdentifiedObjectMap.hpp>
+#include <iscore/tools/SettableIdentifier.hpp>
+#include <iscore/tools/std/StdlibWrapper.hpp>
 
 class QObject;
 

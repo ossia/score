@@ -1,9 +1,9 @@
-#include <qabstractstate.h>
-#include <qabstracttransition.h>
+#include <QAbstractState>
+#include <QAbstractTransition>
 #include <qcoreevent.h>
-#include <qfinalstate.h>
-#include <qgraphicsitem.h>
-#include <qkeyeventtransition.h>
+#include <QFinalState>
+#include <QGraphicsItem>
+#include <QKeyEventTransition>
 #include <qnamespace.h>
 
 #include "CommonSelectionState.hpp"

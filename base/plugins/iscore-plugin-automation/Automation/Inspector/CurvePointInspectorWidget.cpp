@@ -2,19 +2,19 @@
 #include <Curve/Commands/MovePoint.hpp>
 #include <Curve/CurveModel.hpp>
 #include <Curve/Point/CurvePointModel.hpp>
-#include <qboxlayout.h>
-#include <qlabel.h>
-#include <qobject.h>
-#include <qspinbox.h>
-#include <qwidget.h>
+#include <QBoxLayout>
+#include <QLabel>
+#include <QObject>
+#include <QSpinBox>
+#include <QWidget>
 #include <list>
 
-#include "Curve/Palette/CurvePoint.hpp"
+#include <Curve/Palette/CurvePoint.hpp>
 #include "CurvePointInspectorWidget.hpp"
 #include "Inspector/InspectorWidgetBase.hpp"
-#include "Process/TimeValue.hpp"
-#include "iscore/command/Dispatchers/CommandDispatcher.hpp"
-#include "iscore/command/Dispatchers/OngoingCommandDispatcher.hpp"
+#include <Process/TimeValue.hpp>
+#include <iscore/command/Dispatchers/CommandDispatcher.hpp>
+#include <iscore/command/Dispatchers/OngoingCommandDispatcher.hpp>
 
 namespace iscore {
 class Document;

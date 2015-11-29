@@ -1,9 +1,9 @@
 #pragma once
 
 #include <iscore/plugins/application/GUIApplicationContextPlugin.hpp>
-#include <qaction.h>
-#include <qlist.h>
-#include <qobjectdefs.h>
+#include <QAction>
+#include <QList>
+
 #include <vector>
 
 class QObject;

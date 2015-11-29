@@ -2,8 +2,8 @@
 #include <algorithm>
 
 #include "SetLooping.hpp"
-#include "iscore/serialization/DataStreamVisitor.hpp"
-#include "iscore/tools/ModelPathSerialization.hpp"
+#include <iscore/serialization/DataStreamVisitor.hpp>
+#include <iscore/tools/ModelPathSerialization.hpp>
 
 SetLooping::SetLooping(Path<ConstraintModel>&& constraintPath, bool looping) :
     m_path {std::move(constraintPath)},

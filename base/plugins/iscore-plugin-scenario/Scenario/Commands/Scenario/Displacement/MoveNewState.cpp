@@ -5,9 +5,9 @@
 
 #include "MoveNewState.hpp"
 #include "Scenario/Document/State/StateModel.hpp"
-#include "iscore/serialization/DataStreamVisitor.hpp"
-#include "iscore/tools/ModelPath.hpp"
-#include "iscore/tools/ModelPathSerialization.hpp"
+#include <iscore/serialization/DataStreamVisitor.hpp>
+#include <iscore/tools/ModelPath.hpp>
+#include <iscore/tools/ModelPathSerialization.hpp>
 
 template <typename tag, typename impl> class id_base_t;
 

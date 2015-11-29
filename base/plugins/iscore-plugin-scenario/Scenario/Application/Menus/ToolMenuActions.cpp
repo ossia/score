@@ -1,20 +1,20 @@
 #include <Scenario/Application/ScenarioApplicationPlugin.hpp>
 #include <iscore/menu/MenuInterface.hpp>
-#include <qaction.h>
-#include <qactiongroup.h>
-#include <qmenu.h>
+#include <QAction>
+#include <QActionGroup>
+#include <QMenu>
 #include <qnamespace.h>
-#include <qobjectdefs.h>
-#include <qstring.h>
-#include <qtoolbar.h>
-#include <qvariant.h>
 
-#include "Process/ExpandMode.hpp"
+#include <QString>
+#include <QToolBar>
+#include <QVariant>
+
+#include <Process/ExpandMode.hpp>
 #include "Scenario/Application/Menus/ScenarioActions.hpp"
 #include "Scenario/Application/ScenarioEditionSettings.hpp"
 #include "Scenario/Palette/Tool.hpp"
 #include "ToolMenuActions.hpp"
-#include "core/presenter/MenubarManager.hpp"
+#include <core/presenter/MenubarManager.hpp>
 
 class QObject;
 class TemporalScenarioPresenter;

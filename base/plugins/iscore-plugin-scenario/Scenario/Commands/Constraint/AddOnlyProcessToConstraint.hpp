@@ -3,9 +3,9 @@
 #include <boost/optional/optional.hpp>
 #include <iscore/command/SerializableCommand.hpp>
 
-#include "Process/ProcessFactoryKey.hpp"
-#include "iscore/tools/ModelPath.hpp"
-#include "iscore/tools/SettableIdentifier.hpp"
+#include <Process/ProcessFactoryKey.hpp>
+#include <iscore/tools/ModelPath.hpp>
+#include <iscore/tools/SettableIdentifier.hpp>
 
 class ConstraintModel;
 class DataStreamInput;

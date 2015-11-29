@@ -7,12 +7,12 @@
 #include <iscore/command/Dispatchers/CommandDispatcher.hpp>
 #include <iscore/selection/SelectionDispatcher.hpp>
 #include <iscore/tools/IdentifiedObjectMap.hpp>
-#include <qobject.h>
-#include <qpoint.h>
-#include <qrect.h>
+#include <QObject>
+#include <QPoint>
+#include <QRect>
 
-#include "Curve/Segment/CurveSegmentFactoryKey.hpp"
-#include "core/document/DocumentContext.hpp"
+#include <Curve/Segment/CurveSegmentFactoryKey.hpp>
+#include <core/document/DocumentContext.hpp>
 
 class DynamicCurveSegmentList;
 namespace Curve {

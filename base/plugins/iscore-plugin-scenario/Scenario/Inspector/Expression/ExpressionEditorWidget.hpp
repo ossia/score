@@ -1,11 +1,11 @@
 #pragma once
 #include <Scenario/Inspector/ExpressionValidator.hpp>
 #include <boost/core/explicit_operator_bool.hpp>
-#include <qstring.h>
-#include <qvector.h>
-#include <qwidget.h>
+#include <QString>
+#include <QVector>
+#include <QWidget>
 
-#include "State/Expression.hpp"
+#include <State/Expression.hpp>
 
 class QVBoxLayout;
 class SimpleExpressionEditorWidget;

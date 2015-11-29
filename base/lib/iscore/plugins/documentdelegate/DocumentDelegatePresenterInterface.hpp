@@ -1,6 +1,6 @@
 #pragma once
 #include <iscore/tools/NamedObject.hpp>
-#include <qstring.h>
+#include <QString>
 
 namespace iscore
 {

@@ -7,7 +7,7 @@
 #include <core/document/Document.hpp>
 #include <core/document/DocumentModel.hpp>
 #include <iscore/document/DocumentInterface.hpp>
-#include <qdebug.h>
+#include <QDebug>
 #include <algorithm>
 #include <utility>
 #include <vector>
@@ -26,10 +26,10 @@
 #include "Scenario/Document/State/StateModel.hpp"
 #include "Scenario/Document/TimeNode/TimeNodeModel.hpp"
 #include "Scenario/Process/ScenarioModel.hpp"
-#include "iscore/tools/IdentifiedObjectMap.hpp"
-#include "iscore/tools/NotifyingMap.hpp"
-#include "iscore/tools/SettableIdentifier.hpp"
-#include "iscore/tools/Todo.hpp"
+#include <iscore/tools/IdentifiedObjectMap.hpp>
+#include <iscore/tools/NotifyingMap.hpp>
+#include <iscore/tools/SettableIdentifier.hpp>
+#include <iscore/tools/Todo.hpp>
 #include "iscore2OSSIA.hpp"
 
 class Process;

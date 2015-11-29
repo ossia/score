@@ -1,8 +1,8 @@
 #include <Device/QMenuView/qmenuview.h>
 #include <Explorer/Explorer/DeviceExplorerModel.hpp>
-#include <qgridlayout.h>
-#include <qlayout.h>
-#include <qpushbutton.h>
+#include <QGridLayout>
+#include <QLayout>
+#include <QPushButton>
 
 #include "Device/Node/DeviceNode.hpp"
 #include "DeviceExplorerMenuButton.hpp"

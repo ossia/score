@@ -1,11 +1,11 @@
 #pragma once
 #include <core/presenter/Action.hpp>
 #include <iscore/menu/MenuInterface.hpp>
-#include <qaction.h>
-#include <qlist.h>
-#include <qmenu.h>
-#include <qobject.h>
-#include <qstring.h>
+#include <QAction>
+#include <QList>
+#include <QMenu>
+#include <QObject>
+#include <QString>
 #include <algorithm>
 #include <map>
 #include <type_traits>

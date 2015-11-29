@@ -1,5 +1,5 @@
 #include "ProcessPanelModel.hpp"
-#include "iscore/plugins/panel/PanelModel.hpp"
+#include <iscore/plugins/panel/PanelModel.hpp>
 #include "ProcessPanelId.hpp"
 
 class QObject;

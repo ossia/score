@@ -1,5 +1,5 @@
 #include "DummyLayerPanelProxy.hpp"
-#include "Process/LayerModelPanelProxy.hpp"
+#include <Process/LayerModelPanelProxy.hpp>
 
 class LayerModel;
 class QObject;

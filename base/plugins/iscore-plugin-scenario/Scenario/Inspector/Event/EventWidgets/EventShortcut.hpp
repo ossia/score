@@ -1,6 +1,6 @@
 #pragma once
-#include <qstring.h>
-#include <qwidget.h>
+#include <QString>
+#include <QWidget>
 
 class QCheckBox;
 class QPushButton;

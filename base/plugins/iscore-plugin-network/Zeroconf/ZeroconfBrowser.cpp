@@ -1,20 +1,20 @@
 #include <dnssd/remoteservice.h>
 #include <dnssd/servicebrowser.h>
 #include <dnssd/servicemodel.h>
-#include <qabstractitemmodel.h>
-#include <qabstractitemview.h>
-#include <qaction.h>
-#include <qdebug.h>
-#include <qdialog.h>
-#include <qdialogbuttonbox.h>
-#include <qflags.h>
-#include <qgridlayout.h>
-#include <qhostaddress.h>
-#include <qhostinfo.h>
-#include <qlist.h>
-#include <qlistview.h>
-#include <qobjectdefs.h>
-#include <qvariant.h>
+#include <QAbstractItemModel>
+#include <QAbstractItemView>
+#include <QAction>
+#include <QDebug>
+#include <QDialog>
+#include <QDialogButtonBox>
+#include <QFlags>
+#include <QGridLayout>
+#include <QHostAddress>
+#include <QHostInfo>
+#include <QList>
+#include <QListView>
+
+#include <QVariant>
 
 #include "ZeroconfBrowser.hpp"
 

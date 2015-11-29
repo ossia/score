@@ -1,22 +1,22 @@
 #include <boost/core/explicit_operator_bool.hpp>
 #include <iscore/serialization/DataStreamVisitor.hpp>
 #include <iscore/serialization/JSONVisitor.hpp>
-#include <qdatastream.h>
-#include <qglobal.h>
-#include <qjsonarray.h>
-#include <qjsonobject.h>
-#include <qjsonvalue.h>
+#include <QDataStream>
+#include <QtGlobal>
+#include <QJsonArray>
+#include <QJsonObject>
+#include <QJsonValue>
 #include <algorithm>
 
-#include "Process/ModelMetadata.hpp"
-#include "Process/TimeValue.hpp"
+#include <Process/ModelMetadata.hpp>
+#include <Process/TimeValue.hpp>
 #include "Scenario/Document/Event/EventModel.hpp"
 #include "Scenario/Document/VerticalExtent.hpp"
-#include "State/Expression.hpp"
-#include "iscore/plugins/documentdelegate/plugin/ElementPluginModelList.hpp"
-#include "iscore/serialization/JSONValueVisitor.hpp"
-#include "iscore/tools/SettableIdentifier.hpp"
-#include "iscore/tools/TreeNode.hpp"
+#include <State/Expression.hpp>
+#include <iscore/plugins/documentdelegate/plugin/ElementPluginModelList.hpp>
+#include <iscore/serialization/JSONValueVisitor.hpp>
+#include <iscore/tools/SettableIdentifier.hpp>
+#include <iscore/tools/TreeNode.hpp>
 
 class TimeNodeModel;
 template <typename T> class IdentifiedObject;

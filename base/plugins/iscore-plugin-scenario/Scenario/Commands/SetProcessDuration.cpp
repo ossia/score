@@ -1,10 +1,10 @@
 #include <Process/Process.hpp>
 #include <algorithm>
 
-#include "Process/TimeValue.hpp"
+#include <Process/TimeValue.hpp>
 #include "SetProcessDuration.hpp"
-#include "iscore/serialization/DataStreamVisitor.hpp"
-#include "iscore/tools/ModelPathSerialization.hpp"
+#include <iscore/serialization/DataStreamVisitor.hpp>
+#include <iscore/tools/ModelPathSerialization.hpp>
 
 SetProcessDuration::SetProcessDuration(Path<Process>&& path, const TimeValue& newVal) :
     m_path {std::move(path)},

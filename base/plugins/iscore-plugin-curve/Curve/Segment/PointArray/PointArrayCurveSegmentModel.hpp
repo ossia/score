@@ -1,15 +1,15 @@
 #pragma once
 #include <boost/container/flat_map.hpp>
-#include <qpoint.h>
-#include <qvariant.h>
-#include <qvector.h>
+#include <QPoint>
+#include <QVariant>
+#include <QVector>
 #include <memory>
 #include <utility>
 #include <vector>
 
-#include "Curve/Segment/CurveSegmentFactoryKey.hpp"
-#include "Curve/Segment/CurveSegmentModel.hpp"
-#include "iscore/serialization/VisitorInterface.hpp"
+#include <Curve/Segment/CurveSegmentFactoryKey.hpp>
+#include <Curve/Segment/CurveSegmentModel.hpp>
+#include <iscore/serialization/VisitorInterface.hpp>
 
 class LinearCurveSegmentModel;
 class QObject;

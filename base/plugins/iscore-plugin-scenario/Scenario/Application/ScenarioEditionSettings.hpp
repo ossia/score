@@ -1,7 +1,7 @@
 #pragma once
 #include <Process/ExpandMode.hpp>
 #include <Scenario/Palette/Tool.hpp>
-#include <qobject.h>
+#include <QObject>
 
 namespace Scenario
 {

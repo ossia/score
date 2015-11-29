@@ -1,9 +1,9 @@
 #pragma once
-#include <qgraphicsitem.h>
-#include <qlist.h>
-#include <qrect.h>
+#include <QGraphicsItem>
+#include <QList>
+#include <QRect>
 
-#include "iscore/tools/ObjectPath.hpp"
+#include <iscore/tools/ObjectPath.hpp>
 
 class ClickableLabelItem;
 class QPainter;

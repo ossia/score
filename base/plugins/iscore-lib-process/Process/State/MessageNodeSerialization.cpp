@@ -1,22 +1,22 @@
 #include <boost/core/explicit_operator_bool.hpp>
 #include <iscore/serialization/VisitorCommon.hpp>
-#include <qdatastream.h>
-#include <qglobal.h>
-#include <qjsonarray.h>
-#include <qjsonobject.h>
-#include <qjsonvalue.h>
-#include <qstring.h>
-#include <qvector.h>
+#include <QDataStream>
+#include <QtGlobal>
+#include <QJsonArray>
+#include <QJsonObject>
+#include <QJsonValue>
+#include <QString>
+#include <QVector>
 #include <algorithm>
 #include <array>
 #include <cstddef>
 
 #include "MessageNode.hpp"
-#include "State/Value.hpp"
-#include "iscore/serialization/DataStreamVisitor.hpp"
-#include "iscore/serialization/JSONValueVisitor.hpp"
-#include "iscore/serialization/JSONVisitor.hpp"
-#include "iscore/tools/SettableIdentifier.hpp"
+#include <State/Value.hpp>
+#include <iscore/serialization/DataStreamVisitor.hpp>
+#include <iscore/serialization/JSONValueVisitor.hpp>
+#include <iscore/serialization/JSONVisitor.hpp>
+#include <iscore/tools/SettableIdentifier.hpp>
 
 class Process;
 namespace boost {

@@ -1,8 +1,8 @@
-#include <qobject.h>
-#include <qobjectdefs.h>
+#include <QObject>
+
 
 #include "LoopProcessMetadata.hpp"
-#include "Process/ProcessFactoryKey.hpp"
+#include <Process/ProcessFactoryKey.hpp>
 
 const ProcessFactoryKey&LoopProcessMetadata::factoryKey()
 {

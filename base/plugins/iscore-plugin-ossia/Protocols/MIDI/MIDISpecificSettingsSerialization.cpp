@@ -1,11 +1,11 @@
 #include <iscore/serialization/DataStreamVisitor.hpp>
 #include <iscore/serialization/JSONVisitor.hpp>
-#include <qjsonobject.h>
-#include <qjsonvalue.h>
-#include <qstring.h>
+#include <QJsonObject>
+#include <QJsonValue>
+#include <QString>
 
 #include "MIDISpecificSettings.hpp"
-#include "iscore/serialization/JSONValueVisitor.hpp"
+#include <iscore/serialization/JSONValueVisitor.hpp>
 
 template <typename T> class Reader;
 template <typename T> class Writer;

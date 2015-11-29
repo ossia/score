@@ -1,8 +1,8 @@
 #pragma once
 #include <Scenario/Document/Constraint/ViewModels/ConstraintHeader.hpp>
-#include <qgraphicsitem.h>
+#include <QGraphicsItem>
 #include <qnamespace.h>
-#include <qrect.h>
+#include <QRect>
 
 class QGraphicsSceneMouseEvent;
 class QPainter;

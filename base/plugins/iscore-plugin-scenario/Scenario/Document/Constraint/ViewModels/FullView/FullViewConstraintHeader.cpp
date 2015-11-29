@@ -1,7 +1,7 @@
-#include <qgraphicsscene.h>
-#include <qgraphicsview.h>
-#include <qlist.h>
-#include <qpoint.h>
+#include <QGraphicsScene>
+#include <QGraphicsView>
+#include <QList>
+#include <QPoint>
 #include <cmath>
 
 #include "AddressBarItem.hpp"

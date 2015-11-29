@@ -1,6 +1,6 @@
 
-#include "iscore/serialization/DataStreamVisitor.hpp"
-#include "iscore/serialization/JSONVisitor.hpp"
+#include <iscore/serialization/DataStreamVisitor.hpp>
+#include <iscore/serialization/JSONVisitor.hpp>
 
 class DummyLayerModel;
 template <typename T> class Reader;

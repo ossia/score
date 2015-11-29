@@ -1,9 +1,9 @@
 #pragma once
 #include <Scenario/Commands/Scenario/Displacement/MoveEventFactoryInterface.hpp>
 #include <iscore/plugins/customfactory/FactoryFamily.hpp>
-#include <qvector.h>
+#include <QVector>
 
-#include "iscore/plugins/customfactory/FactoryInterface.hpp"
+#include <iscore/plugins/customfactory/FactoryInterface.hpp>
 
 
 class MoveEventList final : public iscore::FactoryListInterface

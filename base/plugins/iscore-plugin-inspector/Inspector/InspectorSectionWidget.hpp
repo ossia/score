@@ -1,7 +1,7 @@
 #pragma once
 
-#include <qstring.h>
-#include <qwidget.h>
+#include <QString>
+#include <QWidget>
 
 class QLineEdit;
 class QPushButton;

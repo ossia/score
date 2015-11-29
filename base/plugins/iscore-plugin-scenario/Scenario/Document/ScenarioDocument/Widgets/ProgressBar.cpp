@@ -1,4 +1,4 @@
-#include <qpainter.h>
+#include <QPainter>
 
 #include "ProgressBar.hpp"
 

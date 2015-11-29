@@ -8,8 +8,8 @@
 #include <vector>
 
 #include "DuplicateRack.hpp"
-#include "iscore/serialization/DataStreamVisitor.hpp"
-#include "iscore/tools/NotifyingMap.hpp"
+#include <iscore/serialization/DataStreamVisitor.hpp>
+#include <iscore/tools/NotifyingMap.hpp>
 
 using namespace iscore;
 using namespace Scenario::Command;

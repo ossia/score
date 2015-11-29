@@ -1,12 +1,12 @@
 #pragma once
-#include <qcolor.h>
-#include <qdatetime.h>
-#include <qglobal.h>
-#include <qgraphicsitem.h>
-#include <qmap.h>
-#include <qpainterpath.h>
-#include <qpoint.h>
-#include <qstring.h>
+#include <QColor>
+#include <QDateTime>
+#include <QtGlobal>
+#include <QGraphicsItem>
+#include <QMap>
+#include <QPainterPath>
+#include <QPoint>
+#include <QString>
 
 class AbstractTimeRuler;
 class QGraphicsSceneMouseEvent;

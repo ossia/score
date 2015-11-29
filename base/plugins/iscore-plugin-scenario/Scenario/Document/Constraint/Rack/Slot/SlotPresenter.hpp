@@ -1,11 +1,11 @@
 #pragma once
 #include <Process/ZoomHelper.hpp>
 #include <iscore/tools/NamedObject.hpp>
-#include <qpoint.h>
+#include <QPoint>
 #include <utility>
 #include <vector>
 
-#include "core/document/DocumentContext.hpp"
+#include <core/document/DocumentContext.hpp>
 
 class DynamicProcessList;
 class QObject;

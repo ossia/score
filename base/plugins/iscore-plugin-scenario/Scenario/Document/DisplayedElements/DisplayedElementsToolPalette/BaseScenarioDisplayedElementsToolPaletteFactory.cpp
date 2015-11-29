@@ -1,10 +1,10 @@
 #include <Scenario/Document/BaseScenario/BaseScenario.hpp>
 #include <Scenario/Document/Constraint/ConstraintModel.hpp>
-#include <qobject.h>
+#include <QObject>
 
 #include "BaseScenarioDisplayedElementsToolPalette.hpp"
 #include "BaseScenarioDisplayedElementsToolPaletteFactory.hpp"
-#include "iscore/statemachine/GraphicsSceneToolPalette.hpp"
+#include <iscore/statemachine/GraphicsSceneToolPalette.hpp>
 
 class ScenarioDocumentPresenter;
 

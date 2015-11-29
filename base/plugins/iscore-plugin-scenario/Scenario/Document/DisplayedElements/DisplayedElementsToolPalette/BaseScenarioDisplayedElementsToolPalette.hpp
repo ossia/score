@@ -2,7 +2,7 @@
 #include <Process/Tools/ToolPalette.hpp>
 #include <Scenario/Document/BaseScenario/BaseElementContext.hpp>
 #include <iscore/statemachine/GraphicsSceneToolPalette.hpp>
-#include <qpoint.h>
+#include <QPoint>
 
 #include "Scenario/Palette/ScenarioPoint.hpp"
 #include "Scenario/Palette/Tool.hpp"

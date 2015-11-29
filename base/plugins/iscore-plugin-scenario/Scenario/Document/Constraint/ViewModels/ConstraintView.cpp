@@ -1,5 +1,5 @@
-#include <qglobal.h>
-#include <qgraphicssceneevent.h>
+#include <QtGlobal>
+#include <QGraphicsSceneEvent>
 
 #include "ConstraintPresenter.hpp"
 #include "ConstraintView.hpp"

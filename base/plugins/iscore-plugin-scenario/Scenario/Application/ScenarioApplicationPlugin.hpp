@@ -1,8 +1,8 @@
 #pragma once
 #include <Scenario/Application/ScenarioEditionSettings.hpp>
 #include <iscore/plugins/application/GUIApplicationContextPlugin.hpp>
-#include <qobjectdefs.h>
-#include <qvector.h>
+
+#include <QVector>
 #include <vector>
 #include <Scenario/Palette/ScenarioPoint.hpp>
 

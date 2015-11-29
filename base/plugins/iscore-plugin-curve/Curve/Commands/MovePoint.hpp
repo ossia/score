@@ -4,8 +4,8 @@
 #include <iscore/command/SerializableCommand.hpp>
 #include <iscore/tools/ModelPath.hpp>
 
-#include "Curve/Palette/CurvePoint.hpp"
-#include "iscore/tools/SettableIdentifier.hpp"
+#include <Curve/Palette/CurvePoint.hpp>
+#include <iscore/tools/SettableIdentifier.hpp>
 
 class CurveModel;
 class CurvePointModel;

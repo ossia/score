@@ -1,10 +1,10 @@
 #pragma once
 #include <Scenario/Application/Menus/ScenarioActions.hpp>
-#include <qlist.h>
-#include <qpoint.h>
+#include <QList>
+#include <QPoint>
 
-#include "iscore/menu/MenuInterface.hpp"
-#include "iscore/selection/Selection.hpp"
+#include <iscore/menu/MenuInterface.hpp>
+#include <iscore/selection/Selection.hpp>
 
 class QAction;
 class QMenu;

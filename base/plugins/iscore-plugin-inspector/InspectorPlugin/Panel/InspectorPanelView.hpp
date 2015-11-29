@@ -1,8 +1,8 @@
 #pragma once
 #include <iscore/plugins/panel/PanelView.hpp>
 #include <iscore/selection/Selection.hpp>
-#include <qobjectdefs.h>
-#include <qstring.h>
+
+#include <QString>
 
 class QWidget;
 

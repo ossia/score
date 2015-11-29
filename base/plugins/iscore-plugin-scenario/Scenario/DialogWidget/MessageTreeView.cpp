@@ -3,26 +3,26 @@
 #include <Scenario/Document/State/StateModel.hpp>
 #include <iscore/command/Dispatchers/CommandDispatcher.hpp>
 #include <iscore/document/DocumentInterface.hpp>
-#include <qabstractitemview.h>
-#include <qaction.h>
-#include <qevent.h>
-#include <qflags.h>
-#include <qheaderview.h>
-#include <qkeysequence.h>
-#include <qlist.h>
-#include <qmenu.h>
+#include <QAbstractItemView>
+#include <QAction>
+#include <QEvent>
+#include <QFlags>
+#include <QHeaderView>
+#include <QKeySequence>
+#include <QList>
+#include <QMenu>
 #include <qnamespace.h>
-#include <qobjectdefs.h>
-#include <qset.h>
-#include <qstring.h>
+
+#include <QSet>
+#include <QString>
 
 #include "Device/Node/DeviceNode.hpp"
 #include "MessageTreeView.hpp"
-#include "Process/State/MessageNode.hpp"
-#include "core/document/DocumentContext.hpp"
-#include "iscore/tools/ModelPath.hpp"
-#include "iscore/tools/Todo.hpp"
-#include "iscore/tools/TreeNode.hpp"
+#include <Process/State/MessageNode.hpp>
+#include <core/document/DocumentContext.hpp>
+#include <iscore/tools/ModelPath.hpp>
+#include <iscore/tools/Todo.hpp>
+#include <iscore/tools/TreeNode.hpp>
 
 class QWidget;
 

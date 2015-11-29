@@ -2,18 +2,18 @@
 #include <boost/optional/optional.hpp>
 #include <iscore/serialization/DataStreamVisitor.hpp>
 #include <iscore/serialization/JSONVisitor.hpp>
-#include <qdatastream.h>
-#include <qglobal.h>
-#include <qjsonarray.h>
-#include <qjsonobject.h>
-#include <qjsonvalue.h>
-#include <qlist.h>
+#include <QDataStream>
+#include <QtGlobal>
+#include <QJsonArray>
+#include <QJsonObject>
+#include <QJsonValue>
+#include <QList>
 #include <sys/types.h>
 
 #include "RackModel.hpp"
 #include "Slot/SlotModel.hpp"
-#include "iscore/tools/NotifyingMap.hpp"
-#include "iscore/tools/SettableIdentifier.hpp"
+#include <iscore/tools/NotifyingMap.hpp>
+#include <iscore/tools/SettableIdentifier.hpp>
 
 template <typename T> class Reader;
 template <typename T> class Writer;

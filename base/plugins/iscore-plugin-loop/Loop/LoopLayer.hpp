@@ -1,7 +1,7 @@
 #pragma once
 #include <Process/LayerModel.hpp>
 
-#include "iscore/serialization/VisitorInterface.hpp"
+#include <iscore/serialization/VisitorInterface.hpp>
 
 class DataStream;
 class JSONObject;

@@ -2,8 +2,8 @@
 
 #include "DocumentPlugins/NetworkDocumentPlugin.hpp"
 #include "GroupPanelModel.hpp"
-#include "iscore/plugins/documentdelegate/plugin/DocumentDelegatePluginModel.hpp"
-#include "iscore/plugins/panel/PanelModel.hpp"
+#include <iscore/plugins/documentdelegate/plugin/DocumentDelegatePluginModel.hpp>
+#include <iscore/plugins/panel/PanelModel.hpp>
 #include "GroupPanelId.hpp"
 
 GroupPanelModel::GroupPanelModel(iscore::DocumentModel *model):

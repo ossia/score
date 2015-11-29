@@ -6,7 +6,7 @@
 #include <vector>
 
 #include "Segment/CurveSegmentModel.hpp"
-#include "iscore/serialization/VisitorInterface.hpp"
+#include <iscore/serialization/VisitorInterface.hpp>
 
 class CurvePointModel;
 class DataStream;

@@ -4,10 +4,10 @@
 #include <boost/optional/optional.hpp>
 #include <iscore/command/SerializableCommand.hpp>
 #include <iscore/tools/ModelPath.hpp>
-#include <qstring.h>
-#include <qvector.h>
+#include <QString>
+#include <QVector>
 
-#include "iscore/tools/SettableIdentifier.hpp"
+#include <iscore/tools/SettableIdentifier.hpp>
 
 class DataStreamInput;
 class DataStreamOutput;

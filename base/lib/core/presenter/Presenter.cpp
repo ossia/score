@@ -3,14 +3,14 @@
 #include <core/view/View.hpp>
 #include <iscore/plugins/application/GUIApplicationContextPlugin.hpp>
 #include <iscore/tools/SettableIdentifierGeneration.hpp>
-#include <qaction.h>
-#include <qkeysequence.h>
-#include <qmenu.h>
-#include <qmessagebox.h>
+#include <QAction>
+#include <QKeySequence>
+#include <QMenu>
+#include <QMessageBox>
 #include <qnamespace.h>
-#include <qobject.h>
-#include <qobjectdefs.h>
-#include <qstring.h>
+#include <QObject>
+
+#include <QString>
 #include <sys/types.h>
 #include <algorithm>
 #include <cstdint>
@@ -20,17 +20,17 @@
 
 #include <core/document/Document.hpp>
 #include "QRecentFilesMenu.h"
-#include "core/application/ApplicationComponents.hpp"
-#include "core/presenter/DocumentManager.hpp"
-#include "core/presenter/MenubarManager.hpp"
-#include "core/presenter/Presenter.hpp"
-#include "core/settings/Settings.hpp"
-#include "core/settings/SettingsView.hpp"
-#include "iscore/menu/MenuInterface.hpp"
-#include "iscore/plugins/customfactory/StringFactoryKey.hpp"
-#include "iscore/tools/NamedObject.hpp"
-#include "iscore/tools/SettableIdentifier.hpp"
-#include "iscore/widgets/OrderedToolbar.hpp"
+#include <core/application/ApplicationComponents.hpp>
+#include <core/presenter/DocumentManager.hpp>
+#include <core/presenter/MenubarManager.hpp>
+#include <core/presenter/Presenter.hpp>
+#include <core/settings/Settings.hpp>
+#include <core/settings/SettingsView.hpp>
+#include <iscore/menu/MenuInterface.hpp>
+#include <iscore/plugins/customfactory/StringFactoryKey.hpp>
+#include <iscore/tools/NamedObject.hpp>
+#include <iscore/tools/SettableIdentifier.hpp>
+#include <iscore/widgets/OrderedToolbar.hpp>
 #include "iscore_git_info.hpp"
 
 namespace iscore {

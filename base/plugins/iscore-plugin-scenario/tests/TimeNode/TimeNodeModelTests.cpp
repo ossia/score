@@ -5,7 +5,7 @@
 #include <Scenario/Process/ScenarioModel.hpp>
 #include <Process/TimeValue.hpp>
 
-#include "iscore/tools/ModelPath.hpp"
+#include <iscore/tools/ModelPath.hpp>
 
 #include <chrono>
 

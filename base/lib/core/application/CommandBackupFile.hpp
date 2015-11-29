@@ -1,11 +1,11 @@
 #pragma once
 #include <iscore/command/SerializableCommand.hpp>
-#include <qbytearray.h>
-#include <qobject.h>
-#include <qpair.h>
-#include <qstack.h>
-#include <qstring.h>
-#include <qtemporaryfile.h>
+#include <QByteArray>
+#include <QObject>
+#include <QPair>
+#include <QStack>
+#include <QString>
+#include <QTemporaryFile>
 
 namespace iscore
 {

@@ -4,10 +4,10 @@
 #include <iscore/locking/ObjectLocker.hpp>
 #include <iscore/selection/SelectionStack.hpp>
 #include <iscore/tools/NamedObject.hpp>
-#include <qbytearray.h>
-#include <qjsonobject.h>
-#include <qstring.h>
-#include <qvariant.h>
+#include <QByteArray>
+#include <QJsonObject>
+#include <QString>
+#include <QVariant>
 
 class QObject;
 class QWidget;

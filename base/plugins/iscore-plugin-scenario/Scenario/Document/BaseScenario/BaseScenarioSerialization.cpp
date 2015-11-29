@@ -1,12 +1,12 @@
 #include <boost/core/explicit_operator_bool.hpp>
 #include <iscore/serialization/DataStreamVisitor.hpp>
 #include <iscore/serialization/JSONVisitor.hpp>
-#include <qjsonobject.h>
-#include <qjsonvalue.h>
+#include <QJsonObject>
+#include <QJsonValue>
 
 #include "BaseScenario.hpp"
-#include "iscore/plugins/documentdelegate/plugin/ElementPluginModelList.hpp"
-#include "iscore/serialization/JSONValueVisitor.hpp"
+#include <iscore/plugins/documentdelegate/plugin/ElementPluginModelList.hpp>
+#include <iscore/serialization/JSONValueVisitor.hpp>
 
 class BaseScenarioContainer;
 template <typename T> class Reader;

@@ -3,17 +3,17 @@
 #include <Scenario/Document/Constraint/ViewModels/Temporal/TemporalConstraintViewModel.hpp>
 #include <Scenario/Document/ScenarioDocument/ScenarioDocumentModel.hpp>
 #include <iscore/document/DocumentInterface.hpp>
-#include <qgraphicsscene.h>
-#include <qlist.h>
+#include <QGraphicsScene>
+#include <QList>
 
-#include "Process/ModelMetadata.hpp"
+#include <Process/ModelMetadata.hpp>
 #include "Scenario/Document/Constraint/ViewModels/ConstraintHeader.hpp"
 #include "Scenario/Document/Constraint/ViewModels/ConstraintPresenter.hpp"
 #include "Scenario/Document/Constraint/ViewModels/ConstraintViewModel.hpp"
 #include "TemporalConstraintHeader.hpp"
 #include "TemporalConstraintPresenter.hpp"
-#include "iscore/selection/Selectable.hpp"
-#include "iscore/tools/Todo.hpp"
+#include <iscore/selection/Selectable.hpp>
+#include <iscore/tools/Todo.hpp>
 
 class QColor;
 class QObject;

@@ -1,6 +1,6 @@
-#include <qabstractitemmodel.h>
-#include <qstring.h>
-#include <qvariant.h>
+#include <QAbstractItemModel>
+#include <QString>
+#include <QVariant>
 
 #include "DeviceExplorerFilterProxyModel.hpp"
 

@@ -1,12 +1,12 @@
-#include <qcolor.h>
-#include <qjsonarray.h>
-#include <qjsonobject.h>
-#include <qjsonvalue.h>
-#include <qstring.h>
+#include <QColor>
+#include <QJsonArray>
+#include <QJsonObject>
+#include <QJsonValue>
+#include <QString>
 
 #include "ModelMetadata.hpp"
-#include "iscore/serialization/DataStreamVisitor.hpp"
-#include "iscore/serialization/JSONVisitor.hpp"
+#include <iscore/serialization/DataStreamVisitor.hpp>
+#include <iscore/serialization/JSONVisitor.hpp>
 
 template <typename T> class Reader;
 template <typename T> class Writer;

@@ -1,9 +1,9 @@
-#include <qdebug.h>
-#include <qhostaddress.h>
-#include <qlist.h>
-#include <qnetworkinterface.h>
-#include <qstring.h>
-#include <qtcpserver.h>
+#include <QDebug>
+#include <QHostAddress>
+#include <QList>
+#include <QNetworkInterface>
+#include <QString>
+#include <QTcpServer>
 
 #include "NetworkServer.hpp"
 

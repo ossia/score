@@ -2,11 +2,11 @@
 #include <Scenario/Commands/ScenarioCommandFactory.hpp>
 #include <iscore/command/SerializableCommand.hpp>
 #include <iscore/tools/ModelPath.hpp>
-#include <qmap.h>
+#include <QMap>
 
-#include "Process/State/MessageNode.hpp"
-#include "State/Message.hpp"
-#include "iscore/tools/SettableIdentifier.hpp"
+#include <Process/State/MessageNode.hpp>
+#include <State/Message.hpp>
+#include <iscore/tools/SettableIdentifier.hpp>
 
 class DataStreamInput;
 class DataStreamOutput;

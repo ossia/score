@@ -2,12 +2,12 @@
 
 #include <Curve/Process/CurveProcessModel.hpp>
 #include <State/Address.hpp>
-#include <qbytearray.h>
-#include <qstring.h>
+#include <QByteArray>
+#include <QString>
 
-#include "Process/ProcessFactoryKey.hpp"
-#include "Process/TimeValue.hpp"
-#include "iscore/serialization/VisitorInterface.hpp"
+#include <Process/ProcessFactoryKey.hpp>
+#include <Process/TimeValue.hpp>
+#include <iscore/serialization/VisitorInterface.hpp>
 
 class DataStream;
 class JSONObject;

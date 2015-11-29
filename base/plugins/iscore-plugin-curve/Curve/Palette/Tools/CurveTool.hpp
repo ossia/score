@@ -2,10 +2,10 @@
 #include <Curve/Point/CurvePointView.hpp>
 #include <Curve/Segment/CurveSegmentView.hpp>
 #include <iscore/statemachine/GraphicsSceneTool.hpp>
-#include <qgraphicsitem.h>
-#include <qpoint.h>
+#include <QGraphicsItem>
+#include <QPoint>
 
-#include "Curve/Palette/CurvePoint.hpp"
+#include <Curve/Palette/CurvePoint.hpp>
 
 namespace Curve
 {

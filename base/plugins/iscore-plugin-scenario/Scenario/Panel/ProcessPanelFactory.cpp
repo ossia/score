@@ -1,14 +1,14 @@
 #include <core/document/DocumentModel.hpp>
 #include <core/view/View.hpp>
 
-#include "Process/ProcessList.hpp"
+#include <Process/ProcessList.hpp>
 #include "ProcessPanelFactory.hpp"
 #include "ProcessPanelModel.hpp"
 #include "ProcessPanelPresenter.hpp"
 #include "ProcessPanelView.hpp"
-#include "core/application/ApplicationComponents.hpp"
-#include "core/presenter/Presenter.hpp"
-#include "iscore/plugins/customfactory/StringFactoryKey.hpp"
+#include <core/application/ApplicationComponents.hpp>
+#include <core/presenter/Presenter.hpp>
+#include <iscore/plugins/customfactory/StringFactoryKey.hpp>
 #include "ProcessPanelId.hpp"
 
 int ProcessPanelFactory::panelId() const

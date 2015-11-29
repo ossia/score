@@ -1,5 +1,5 @@
 #include <Scenario/Document/TimeNode/TimeNodeModel.hpp>
-#include <qstring.h>
+#include <QString>
 
 #include "TimeNodeInspectorFactory.hpp"
 #include "TimeNodeInspectorWidget.hpp"

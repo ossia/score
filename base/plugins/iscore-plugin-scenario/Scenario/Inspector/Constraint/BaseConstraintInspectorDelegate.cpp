@@ -11,22 +11,22 @@
 #include <core/application/Application.hpp>
 #include <core/application/ApplicationComponents.hpp>
 #include <core/application/ApplicationContext.hpp>
-#include <qbytearray.h>
-#include <qdatastream.h>
-#include <qglobal.h>
-#include <qlabel.h>
-#include <qobject.h>
-#include <qobjectdefs.h>
-#include <qstring.h>
+#include <QByteArray>
+#include <QDataStream>
+#include <QtGlobal>
+#include <QLabel>
+#include <QObject>
+
+#include <QString>
 
 #include "BaseConstraintInspectorDelegate.hpp"
 #include "Scenario/Document/Event/EventModel.hpp"
 #include "Scenario/Document/TimeNode/TimeNodeModel.hpp"
 #include "Scenario/Inspector/Constraint/ConstraintInspectorDelegate.hpp"
-#include "iscore/command/Dispatchers/OngoingCommandDispatcher.hpp"
-#include "iscore/plugins/customfactory/StringFactoryKey.hpp"
-#include "iscore/serialization/DataStreamVisitor.hpp"
-#include "iscore/tools/ModelPathSerialization.hpp"
+#include <iscore/command/Dispatchers/OngoingCommandDispatcher.hpp>
+#include <iscore/plugins/customfactory/StringFactoryKey.hpp>
+#include <iscore/serialization/DataStreamVisitor.hpp>
+#include <iscore/tools/ModelPathSerialization.hpp>
 
 class QWidget;
 

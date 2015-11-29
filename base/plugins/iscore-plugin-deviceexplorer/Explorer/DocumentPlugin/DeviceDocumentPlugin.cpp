@@ -2,13 +2,13 @@
 #include <Device/Protocol/ProtocolList.hpp>
 #include <core/application/ApplicationComponents.hpp>
 #include <ext/alloc_traits.h>
-#include <qapplication.h>
-#include <qjsonarray.h>
-#include <qjsonobject.h>
-#include <qmessagebox.h>
-#include <qobject.h>
-#include <qobjectdefs.h>
-#include <qstring.h>
+#include <QApplication>
+#include <QJsonArray>
+#include <QJsonObject>
+#include <QMessageBox>
+#include <QObject>
+
+#include <QString>
 #include <algorithm>
 #include <stdexcept>
 #include <vector>
@@ -20,15 +20,15 @@
 #include "DeviceDocumentPlugin.hpp"
 #include "Explorer/DocumentPlugin/ListeningState.hpp"
 #include "Explorer/DocumentPlugin/NodeUpdateProxy.hpp"
-#include "State/Address.hpp"
-#include "core/application/ApplicationContext.hpp"
-#include "core/document/DocumentContext.hpp"
-#include "iscore/plugins/customfactory/FactoryFamily.hpp"
-#include "iscore/plugins/customfactory/FactoryMap.hpp"
-#include "iscore/plugins/customfactory/StringFactoryKey.hpp"
-#include "iscore/plugins/documentdelegate/plugin/DocumentDelegatePluginModel.hpp"
-#include "iscore/serialization/VisitorCommon.hpp"
-#include "iscore/tools/TreeNode.hpp"
+#include <State/Address.hpp>
+#include <core/application/ApplicationContext.hpp>
+#include <core/document/DocumentContext.hpp>
+#include <iscore/plugins/customfactory/FactoryFamily.hpp>
+#include <iscore/plugins/customfactory/FactoryMap.hpp>
+#include <iscore/plugins/customfactory/StringFactoryKey.hpp>
+#include <iscore/plugins/documentdelegate/plugin/DocumentDelegatePluginModel.hpp>
+#include <iscore/serialization/VisitorCommon.hpp>
+#include <iscore/tools/TreeNode.hpp>
 
 namespace iscore {
 class Document;

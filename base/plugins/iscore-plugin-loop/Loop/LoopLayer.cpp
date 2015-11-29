@@ -4,11 +4,11 @@
 #include <Scenario/Document/Constraint/ConstraintModel.hpp>
 #include <Scenario/Document/Constraint/ViewModels/Temporal/TemporalConstraintViewModel.hpp>
 #include <boost/optional/optional.hpp>
-#include <qobjectdefs.h>
+
 
 #include "LoopLayer.hpp"
-#include "Process/LayerModel.hpp"
-#include "iscore/tools/SettableIdentifier.hpp"
+#include <Process/LayerModel.hpp>
+#include <iscore/tools/SettableIdentifier.hpp>
 
 class ConstraintViewModel;
 class LayerModelPanelProxy;

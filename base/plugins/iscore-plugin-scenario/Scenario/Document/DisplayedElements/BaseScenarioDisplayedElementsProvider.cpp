@@ -1,6 +1,6 @@
 #include <Scenario/Document/BaseScenario/BaseScenario.hpp>
 #include <Scenario/Document/Constraint/ConstraintModel.hpp>
-#include <qobject.h>
+#include <QObject>
 
 #include "BaseScenarioDisplayedElementsProvider.hpp"
 

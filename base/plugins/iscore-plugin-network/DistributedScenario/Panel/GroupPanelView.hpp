@@ -1,7 +1,7 @@
 #pragma once
 #include <iscore/plugins/panel/PanelView.hpp>
-#include <qobjectdefs.h>
-#include <qstring.h>
+
+#include <QString>
 
 class GroupManager;
 class QObject;

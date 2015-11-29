@@ -5,21 +5,21 @@
 #include <State/Widgets/Values/NumericValueWidget.hpp>
 #include <State/Widgets/Values/StringValueWidget.hpp>
 #include <eggs/variant/variant.hpp>
-#include <qchar.h>
-#include <qcombobox.h>
-#include <qdebug.h>
-#include <qdialogbuttonbox.h>
-#include <qflags.h>
-#include <qformlayout.h>
-#include <qlayoutitem.h>
-#include <qobjectdefs.h>
-#include <qstring.h>
+#include <QChar>
+#include <QComboBox>
+#include <QDebug>
+#include <QDialogButtonBox>
+#include <QFlags>
+#include <QFormLayout>
+#include <QLayoutItem>
+
+#include <QString>
 
 #include "AddressEditWidget.hpp"
 #include "Explorer/Widgets/ValueWrapper.hpp"
 #include "MessageEditDialog.hpp"
-#include "State/Value.hpp"
-#include "State/Widgets/Values/ValueWidget.hpp"
+#include <State/Value.hpp>
+#include <State/Widgets/Values/ValueWidget.hpp>
 
 class QWidget;
 

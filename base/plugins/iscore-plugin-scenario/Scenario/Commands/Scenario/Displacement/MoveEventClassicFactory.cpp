@@ -3,13 +3,13 @@
 #include <Scenario/Process/Algorithms/GoodOldDisplacementPolicy.hpp>
 #include <boost/core/explicit_operator_bool.hpp>
 #include <boost/optional/optional.hpp>
-#include <qstring.h>
+#include <QString>
 #include <algorithm>
 
 #include "Scenario/Commands/Scenario/Displacement/MoveEventFactoryInterface.hpp"
-#include "iscore/serialization/DataStreamVisitor.hpp"
-#include "iscore/tools/ModelPath.hpp"
-#include "iscore/tools/ModelPathSerialization.hpp"
+#include <iscore/serialization/DataStreamVisitor.hpp>
+#include <iscore/tools/ModelPath.hpp>
+#include <iscore/tools/ModelPathSerialization.hpp>
 
 class EventModel;
 class SerializableMoveEvent;

@@ -1,7 +1,7 @@
 #pragma once
-#include <qbytearray.h>
-#include <qobject.h>
-#include <qtemporaryfile.h>
+#include <QByteArray>
+#include <QObject>
+#include <QTemporaryFile>
 
 namespace iscore
 {

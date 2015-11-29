@@ -2,7 +2,7 @@
 #include <Scenario/Document/TimeNode/TimeNodeModel.hpp>
 #include <Scenario/Document/TimeNode/Trigger/TriggerModel.hpp>
 #include <iscore2OSSIA.hpp>
-#include <qdebug.h>
+#include <QDebug>
 #include <exception>
 
 #include "Editor/Expression.h"

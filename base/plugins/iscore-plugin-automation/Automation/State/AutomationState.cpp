@@ -3,18 +3,18 @@
 #include <boost/multi_index/detail/hash_index_iterator.hpp>
 #include <algorithm>
 
-#include "Automation/AutomationModel.hpp"
+#include <Automation/AutomationModel.hpp>
 #include "AutomationState.hpp"
-#include "Curve/CurveModel.hpp"
-#include "Curve/Palette/CurvePoint.hpp"
-#include "Curve/Segment/CurveSegmentModel.hpp"
-#include "Process/State/ProcessStateDataInterface.hpp"
-#include "State/Address.hpp"
-#include "State/Message.hpp"
-#include "State/Value.hpp"
-#include "State/ValueConversion.hpp"
-#include "iscore/tools/IdentifiedObjectMap.hpp"
-#include "iscore/tools/Todo.hpp"
+#include <Curve/CurveModel.hpp>
+#include <Curve/Palette/CurvePoint.hpp>
+#include <Curve/Segment/CurveSegmentModel.hpp>
+#include <Process/State/ProcessStateDataInterface.hpp>
+#include <State/Address.hpp>
+#include <State/Message.hpp>
+#include <State/Value.hpp>
+#include <State/ValueConversion.hpp>
+#include <iscore/tools/IdentifiedObjectMap.hpp>
+#include <iscore/tools/Todo.hpp>
 
 class QObject;
 

@@ -1,19 +1,19 @@
-#include <qpoint.h>
-#include <qvariant.h>
+#include <QPoint>
+#include <QVariant>
 #include <algorithm>
 
 #include "CreatePointCommandObject.hpp"
-#include "Curve/Commands/UpdateCurve.hpp"
-#include "Curve/CurveModel.hpp"
-#include "Curve/CurvePresenter.hpp"
-#include "Curve/Palette/CurvePaletteBaseStates.hpp"
-#include "Curve/Palette/CurvePoint.hpp"
-#include "Curve/Point/CurvePointModel.hpp"
-#include "Curve/Segment/CurveSegmentData.hpp"
-#include "Curve/Segment/CurveSegmentFactoryKey.hpp"
-#include "Curve/Segment/Power/PowerCurveSegmentModel.hpp"
-#include "iscore/command/Dispatchers/SingleOngoingCommandDispatcher.hpp"
-#include "iscore/tools/SettableIdentifier.hpp"
+#include <Curve/Commands/UpdateCurve.hpp>
+#include <Curve/CurveModel.hpp>
+#include <Curve/CurvePresenter.hpp>
+#include <Curve/Palette/CurvePaletteBaseStates.hpp>
+#include <Curve/Palette/CurvePoint.hpp>
+#include <Curve/Point/CurvePointModel.hpp>
+#include <Curve/Segment/CurveSegmentData.hpp>
+#include <Curve/Segment/CurveSegmentFactoryKey.hpp>
+#include <Curve/Segment/Power/PowerCurveSegmentModel.hpp>
+#include <iscore/command/Dispatchers/SingleOngoingCommandDispatcher.hpp>
+#include <iscore/tools/SettableIdentifier.hpp>
 
 namespace iscore {
 class CommandStack;

@@ -1,6 +1,6 @@
 #pragma once
 
-#include <qcolor.h>
+#include <QColor>
 #include <qnamespace.h>
 
 struct ScenarioStyle

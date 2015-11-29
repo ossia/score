@@ -1,5 +1,5 @@
-#include <qobject.h>
-#include <qpainter.h>
+#include <QObject>
+#include <QPainter>
 #include <algorithm>
 
 #include "ScenarioBaseGraphicsView.hpp"

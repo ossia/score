@@ -2,7 +2,7 @@
 
 #include "DummyLayerModel.hpp"
 #include "DummyLayerPanelProxy.hpp"
-#include "Process/LayerModel.hpp"
+#include <Process/LayerModel.hpp>
 
 class LayerModelPanelProxy;
 class Process;

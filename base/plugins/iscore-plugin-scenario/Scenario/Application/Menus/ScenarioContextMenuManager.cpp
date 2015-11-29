@@ -23,23 +23,23 @@
 #include <boost/optional/optional.hpp>
 #include <iscore/command/Dispatchers/CommandDispatcher.hpp>
 #include <iscore/command/Dispatchers/MacroCommandDispatcher.hpp>
-#include <qaction.h>
-#include <qapplication.h>
-#include <qmenu.h>
-#include <qobjectdefs.h>
-#include <qpoint.h>
-#include <qstring.h>
+#include <QAction>
+#include <QApplication>
+#include <QMenu>
+
+#include <QPoint>
+#include <QString>
 #include <algorithm>
 
-#include "Process/ProcessList.hpp"
+#include <Process/ProcessList.hpp>
 #include "ScenarioContextMenuManager.hpp"
-#include "core/application/ApplicationComponents.hpp"
-#include "core/application/ApplicationContext.hpp"
-#include "core/document/DocumentContext.hpp"
-#include "iscore/document/DocumentInterface.hpp"
-#include "iscore/plugins/customfactory/StringFactoryKey.hpp"
-#include "iscore/tools/NotifyingMap.hpp"
-#include "iscore/tools/SettableIdentifier.hpp"
+#include <core/application/ApplicationComponents.hpp>
+#include <core/application/ApplicationContext.hpp>
+#include <core/document/DocumentContext.hpp>
+#include <iscore/document/DocumentInterface.hpp>
+#include <iscore/plugins/customfactory/StringFactoryKey.hpp>
+#include <iscore/tools/NotifyingMap.hpp>
+#include <iscore/tools/SettableIdentifier.hpp>
 
 void ScenarioContextMenuManager::createSlotContextMenu(
         const iscore::DocumentContext& ctx,

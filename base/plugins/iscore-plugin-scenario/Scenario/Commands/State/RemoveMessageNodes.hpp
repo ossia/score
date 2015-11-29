@@ -2,9 +2,9 @@
 #include <Scenario/Commands/ScenarioCommandFactory.hpp>
 #include <iscore/command/SerializableCommand.hpp>
 #include <iscore/tools/ModelPath.hpp>
-#include <qlist.h>
+#include <QList>
 
-#include "Process/State/MessageNode.hpp"
+#include <Process/State/MessageNode.hpp>
 
 class DataStreamInput;
 class DataStreamOutput;

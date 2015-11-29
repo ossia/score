@@ -1,4 +1,4 @@
-#include "Process/TimeValue.hpp"
+#include <Process/TimeValue.hpp>
 #include "Scenario/Document/TimeRuler/AbstractTimeRuler.hpp"
 #include "TimeRulerPresenter.hpp"
 #include "TimeRulerView.hpp"

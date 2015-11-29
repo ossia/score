@@ -1,10 +1,10 @@
 #pragma once
 #include "CurvePaletteBaseEvents.hpp"
 #include "CurvePaletteBaseStates.hpp"
-#include "Curve/Point/CurvePointView.hpp"
-#include "Curve/Point/CurvePointModel.hpp"
-#include "Curve/Segment/CurveSegmentView.hpp"
-#include "Curve/Segment/CurveSegmentModel.hpp"
+#include <Curve/Point/CurvePointView.hpp>
+#include <Curve/Point/CurvePointModel.hpp>
+#include <Curve/Segment/CurveSegmentView.hpp>
+#include <Curve/Segment/CurveSegmentModel.hpp>
 
 namespace Curve
 {

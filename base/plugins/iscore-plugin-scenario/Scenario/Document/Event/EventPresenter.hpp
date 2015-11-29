@@ -1,8 +1,8 @@
 #pragma once
 #include <iscore/command/Dispatchers/CommandDispatcher.hpp>
 #include <iscore/tools/NamedObject.hpp>
-#include <qpoint.h>
-#include <qstring.h>
+#include <QPoint>
+#include <QString>
 
 class EventModel;
 class EventView;

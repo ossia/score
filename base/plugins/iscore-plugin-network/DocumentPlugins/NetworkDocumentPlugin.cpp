@@ -4,22 +4,22 @@
 #include <core/document/Document.hpp>
 #include <core/document/DocumentModel.hpp>
 #include <iscore/serialization/VisitorCommon.hpp>
-#include <qobjectdefs.h>
-#include <qstring.h>
+
+#include <QString>
 
 #include "DistributedScenario/Group.hpp"
 #include "DistributedScenario/GroupManager.hpp"
 #include "DistributedScenario/GroupMetadata.hpp"
 #include "DistributedScenario/GroupMetadataWidget.hpp"
 #include "NetworkDocumentPlugin.hpp"
-#include "Process/Process.hpp"
+#include <Process/Process.hpp>
 #include "Repartition/session/Session.hpp"
 #include "Scenario/Document/Constraint/ConstraintModel.hpp"
 #include "Scenario/Document/Event/EventModel.hpp"
-#include "iscore/plugins/documentdelegate/plugin/DocumentDelegatePluginModel.hpp"
-#include "iscore/plugins/documentdelegate/plugin/ElementPluginModelList.hpp"
-#include "iscore/tools/NotifyingMap.hpp"
-#include "iscore/tools/SettableIdentifier.hpp"
+#include <iscore/plugins/documentdelegate/plugin/DocumentDelegatePluginModel.hpp>
+#include <iscore/plugins/documentdelegate/plugin/ElementPluginModelList.hpp>
+#include <iscore/tools/NotifyingMap.hpp>
+#include <iscore/tools/SettableIdentifier.hpp>
 #include "session/../client/LocalClient.hpp"
 
 class QWidget;

@@ -1,8 +1,8 @@
 #pragma once
 
-#include <qabstractitemmodel.h>
-#include <qlist.h>
-#include <qtreeview.h>
+#include <QAbstractItemModel>
+#include <QList>
+#include <QTreeView>
 
 class DeviceExplorerFilterProxyModel;
 class DeviceExplorerModel;

@@ -2,10 +2,10 @@
 #include <core/document/DocumentView.hpp>
 #include <iscore/plugins/documentdelegate/DocumentDelegateFactoryInterface.hpp>
 #include <iscore/plugins/documentdelegate/DocumentDelegateViewInterface.hpp>
-#include <qgridlayout.h>
-#include <qlayout.h>
+#include <QGridLayout>
+#include <QLayout>
 
-#include "core/document/DocumentContext.hpp"
+#include <core/document/DocumentContext.hpp>
 
 using namespace iscore;
 

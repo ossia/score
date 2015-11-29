@@ -1,6 +1,6 @@
-#include "Curve/Palette/CurvePalette.hpp"
+#include <Curve/Palette/CurvePalette.hpp>
 #include "CurveTool.hpp"
-#include "iscore/statemachine/GraphicsSceneTool.hpp"
+#include <iscore/statemachine/GraphicsSceneTool.hpp>
 
 namespace Curve
 {

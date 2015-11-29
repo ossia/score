@@ -1,10 +1,10 @@
 #pragma once
 #include <Inspector/InspectorWidgetFactoryInterface.hpp>
 #include <iscore/plugins/customfactory/FactoryFamily.hpp>
-#include <qstring.h>
+#include <QString>
 #include <vector>
 
-#include "iscore/plugins/customfactory/FactoryInterface.hpp"
+#include <iscore/plugins/customfactory/FactoryInterface.hpp>
 
 class IdentifiedObjectAbstract;
 class QWidget;

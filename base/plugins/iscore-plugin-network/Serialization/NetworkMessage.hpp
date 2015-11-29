@@ -1,6 +1,6 @@
 #pragma once
-#include <qbytearray.h>
-#include <qstring.h>
+#include <QByteArray>
+#include <QString>
 
 class QDataStream;
 class Session;

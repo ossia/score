@@ -1,7 +1,7 @@
 #pragma once
 #include <iscore/plugins/panel/PanelModel.hpp>
 
-#include "iscore/selection/Selection.hpp"
+#include <iscore/selection/Selection.hpp>
 
 class QObject;
 

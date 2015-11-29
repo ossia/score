@@ -2,7 +2,7 @@
 #include <qnamespace.h>
 
 #include "ClientSession.hpp"
-#include "iscore/tools/SettableIdentifier.hpp"
+#include <iscore/tools/SettableIdentifier.hpp>
 #include "session/../client/RemoteClient.hpp"
 #include "session/Session.hpp"
 

@@ -3,11 +3,11 @@
 #include <boost/optional/optional.hpp>
 
 #include "FullViewConstraintViewModel.hpp"
-#include "Process/ZoomHelper.hpp"
+#include <Process/ZoomHelper.hpp>
 #include "Scenario/Document/Constraint/ViewModels/ConstraintViewModel.hpp"
 #include "Scenario/Document/DisplayedElements/DisplayedElementsModel.hpp"
-#include "iscore/document/DocumentInterface.hpp"
-#include "iscore/tools/SettableIdentifier.hpp"
+#include <iscore/document/DocumentInterface.hpp>
+#include <iscore/tools/SettableIdentifier.hpp>
 
 class QObject;
 

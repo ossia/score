@@ -1,4 +1,4 @@
-#include <qbytearray.h>
+#include <QByteArray>
 #include <algorithm>
 
 #include "Add/LoadDevice.hpp"
@@ -6,9 +6,9 @@
 #include "Device/Node/DeviceNode.hpp"
 #include "Remove.hpp"
 #include "Remove/RemoveAddress.hpp"
-#include "iscore/command/SerializableCommand.hpp"
-#include "iscore/serialization/DataStreamVisitor.hpp"
-#include "iscore/tools/ModelPath.hpp"
+#include <iscore/command/SerializableCommand.hpp>
+#include <iscore/serialization/DataStreamVisitor.hpp>
+#include <iscore/tools/ModelPath.hpp>
 
 class DeviceDocumentPlugin;
 

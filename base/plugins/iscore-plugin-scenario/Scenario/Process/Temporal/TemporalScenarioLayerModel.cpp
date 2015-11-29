@@ -2,13 +2,13 @@
 #include <Scenario/Document/Constraint/ViewModels/Temporal/TemporalConstraintViewModel.hpp>
 #include <Scenario/Process/ScenarioModel.hpp>
 #include <boost/optional/optional.hpp>
-#include <qvector.h>
+#include <QVector>
 
-#include "Process/LayerModel.hpp"
+#include <Process/LayerModel.hpp>
 #include "TemporalScenarioLayerModel.hpp"
 #include "TemporalScenarioPanelProxy.hpp"
-#include "iscore/tools/NotifyingMap.hpp"
-#include "iscore/tools/SettableIdentifier.hpp"
+#include <iscore/tools/NotifyingMap.hpp>
+#include <iscore/tools/SettableIdentifier.hpp>
 
 class ConstraintViewModel;
 class LayerModelPanelProxy;

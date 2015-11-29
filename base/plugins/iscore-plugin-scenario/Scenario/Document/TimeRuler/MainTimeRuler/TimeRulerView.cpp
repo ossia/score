@@ -1,5 +1,5 @@
 #include <Process/Style/ScenarioStyle.hpp>
-#include <qcolor.h>
+#include <QColor>
 
 #include "Scenario/Document/TimeRuler/AbstractTimeRulerView.hpp"
 #include "TimeRulerView.hpp"

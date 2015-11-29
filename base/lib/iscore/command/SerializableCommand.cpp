@@ -1,9 +1,9 @@
 #include <iscore/command/SerializableCommand.hpp>
-#include <qdatastream.h>
-#include <qglobal.h>
-#include <qiodevice.h>
+#include <QDataStream>
+#include <QtGlobal>
+#include <QIODevice>
 
-#include "iscore/serialization/DataStreamVisitor.hpp"
+#include <iscore/serialization/DataStreamVisitor.hpp>
 
 using namespace iscore;
 

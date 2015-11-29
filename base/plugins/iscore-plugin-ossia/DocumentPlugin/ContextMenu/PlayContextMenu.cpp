@@ -4,14 +4,14 @@
 #include <Scenario/Process/Temporal/TemporalScenarioPresenter.hpp>
 #include <Scenario/Process/Temporal/TemporalScenarioView.hpp>
 #include <boost/optional/optional.hpp>
-#include <qaction.h>
-#include <qlist.h>
-#include <qmenu.h>
+#include <QAction>
+#include <QList>
+#include <QMenu>
 #include <qnamespace.h>
-#include <qobjectdefs.h>
-#include <qrect.h>
-#include <qstring.h>
-#include <qvariant.h>
+
+#include <QRect>
+#include <QString>
+#include <QVariant>
 #include <algorithm>
 #include <map>
 #include <memory>
@@ -22,15 +22,15 @@
 #include "DocumentPlugin/OSSIAStateElement.hpp"
 #include "Editor/TimeEvent.h"
 #include "PlayContextMenu.hpp"
-#include "Process/LayerModel.hpp"
-#include "Process/TimeValue.hpp"
+#include <Process/LayerModel.hpp>
+#include <Process/TimeValue.hpp>
 #include "Scenario/Application/ScenarioApplicationPlugin.hpp"
 #include "Scenario/Application/ScenarioRecordInitData.hpp"
 #include "Scenario/Document/Constraint/ConstraintModel.hpp"
 #include "Scenario/Document/Event/EventModel.hpp"
 #include "Scenario/Palette/ScenarioPoint.hpp"
-#include "iscore/menu/MenuInterface.hpp"
-#include "iscore/tools/NotifyingMap.hpp"
+#include <iscore/menu/MenuInterface.hpp>
+#include <iscore/tools/NotifyingMap.hpp>
 
 namespace iscore {
 class MenubarManager;

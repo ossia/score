@@ -1,6 +1,6 @@
 #pragma once
-#include <qobject.h>
-#include <qpoint.h>
+#include <QObject>
+#include <QPoint>
 
 class QGraphicsScene;
 

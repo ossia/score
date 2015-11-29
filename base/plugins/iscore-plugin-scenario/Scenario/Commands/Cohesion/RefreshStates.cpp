@@ -8,15 +8,15 @@
 #include <vector>
 
 #include "Explorer/DocumentPlugin/NodeUpdateProxy.hpp"
-#include "Process/State/MessageNode.hpp"
+#include <Process/State/MessageNode.hpp>
 #include "RefreshStates.hpp"
 #include "RefreshStatesMacro.hpp"
 #include "Scenario/Document/State/ItemModel/MessageItemModel.hpp"
 #include "Scenario/Document/State/StateModel.hpp"
-#include "State/Message.hpp"
-#include "State/Value.hpp"
-#include "iscore/command/Dispatchers/CommandDispatcher.hpp"
-#include "iscore/selection/SelectionStack.hpp"
+#include <State/Message.hpp>
+#include <State/Value.hpp>
+#include <iscore/command/Dispatchers/CommandDispatcher.hpp>
+#include <iscore/selection/SelectionStack.hpp>
 
 void RefreshStates(iscore::Document* doc)
 {

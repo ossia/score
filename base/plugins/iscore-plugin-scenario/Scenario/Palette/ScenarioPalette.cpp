@@ -3,8 +3,8 @@
 #include <Scenario/Process/Temporal/TemporalScenarioView.hpp>
 #include <boost/core/explicit_operator_bool.hpp>
 #include <boost/optional/optional.hpp>
-#include <qapplication.h>
-#include <qrect.h>
+#include <QApplication>
+#include <QRect>
 #include <algorithm>
 #include <vector>
 
@@ -16,10 +16,10 @@
 #include "Scenario/Palette/Tools/States/ScenarioMoveStatesWrapper.hpp"
 #include "Scenario/Process/ScenarioModel.hpp"
 #include "ScenarioPalette.hpp"
-#include "iscore/command/SerializableCommand.hpp"
-#include "iscore/plugins/customfactory/StringFactoryKey.hpp"
-#include "iscore/statemachine/GraphicsSceneToolPalette.hpp"
-#include "iscore/tools/SettableIdentifier.hpp"
+#include <iscore/command/SerializableCommand.hpp>
+#include <iscore/plugins/customfactory/StringFactoryKey.hpp>
+#include <iscore/statemachine/GraphicsSceneToolPalette.hpp>
+#include <iscore/tools/SettableIdentifier.hpp>
 #include <Scenario/Document/State/ItemModel/MessageItemModel.hpp>
 
 namespace Scenario

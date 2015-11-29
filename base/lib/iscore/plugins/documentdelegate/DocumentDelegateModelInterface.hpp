@@ -1,7 +1,7 @@
 #pragma once
 #include <iscore/tools/IdentifiedObject.hpp>
 
-#include "iscore/selection/Selection.hpp"
+#include <iscore/selection/Selection.hpp>
 
 struct VisitorVariant;
 

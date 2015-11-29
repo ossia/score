@@ -3,11 +3,11 @@
 #include <Scenario/Document/TimeNode/Trigger/TriggerPresenter.hpp>
 #include <iscore/widgets/GraphicsItem.hpp>
 
-#include "Process/ModelMetadata.hpp"
+#include <Process/ModelMetadata.hpp>
 #include "TimeNodePresenter.hpp"
-#include "iscore/selection/Selectable.hpp"
-#include "iscore/tools/NamedObject.hpp"
-#include "iscore/tools/Todo.hpp"
+#include <iscore/selection/Selectable.hpp>
+#include <iscore/tools/NamedObject.hpp>
+#include <iscore/tools/Todo.hpp>
 
 class QObject;
 template <typename tag, typename impl> class id_base_t;

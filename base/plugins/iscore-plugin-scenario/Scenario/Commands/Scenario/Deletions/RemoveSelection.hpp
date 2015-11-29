@@ -4,12 +4,12 @@
 #include <iscore/command/SerializableCommand.hpp>
 #include <iscore/tools/ModelPath.hpp>
 #include <iscore/tools/SettableIdentifier.hpp>
-#include <qbytearray.h>
-#include <qpair.h>
-#include <qvector.h>
+#include <QByteArray>
+#include <QPair>
+#include <QVector>
 
 #include "Scenario/Document/Constraint/ViewModels/ConstraintViewModelIdMap.hpp"
-#include "iscore/selection/Selection.hpp"
+#include <iscore/selection/Selection.hpp>
 
 class ConstraintModel;
 class DataStreamInput;

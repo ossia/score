@@ -2,12 +2,12 @@
 #include <Process/State/MessageNode.hpp>
 #include <State/Message.hpp>
 #include <boost/optional/optional.hpp>
-#include <qstring.h>
+#include <QString>
 #include <vector>
 
-#include "State/Address.hpp"
-#include "iscore/tools/IdentifiedObject.hpp"
-#include "iscore/tools/SettableIdentifier.hpp"
+#include <State/Address.hpp>
+#include <iscore/tools/IdentifiedObject.hpp>
+#include <iscore/tools/SettableIdentifier.hpp>
 
 class Process;
 class QObject;

@@ -5,13 +5,13 @@
 #include <core/application/ApplicationComponents.hpp>
 #include <core/application/ApplicationContext.hpp>
 #include <core/document/Document.hpp>
-#include <qstring.h>
+#include <QString>
 
 #include "ConstraintInspectorFactory.hpp"
 #include "ConstraintInspectorWidget.hpp"
 #include "Scenario/Inspector/Constraint/ConstraintInspectorDelegate.hpp"
-#include "core/document/DocumentContext.hpp"
-#include "iscore/plugins/customfactory/StringFactoryKey.hpp"
+#include <core/document/DocumentContext.hpp>
+#include <iscore/plugins/customfactory/StringFactoryKey.hpp>
 
 class InspectorWidgetBase;
 class QObject;

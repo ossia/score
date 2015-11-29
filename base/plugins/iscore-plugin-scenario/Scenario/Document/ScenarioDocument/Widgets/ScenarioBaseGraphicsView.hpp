@@ -1,8 +1,8 @@
 #pragma once
 
 
-#include <qgraphicsview.h>
-#include <qpoint.h>
+#include <QGraphicsView>
+#include <QPoint>
 
 class QFocusEvent;
 class QGraphicsScene;

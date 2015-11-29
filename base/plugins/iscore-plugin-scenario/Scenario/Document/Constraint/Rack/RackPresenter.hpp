@@ -3,8 +3,8 @@
 #include <Process/ZoomHelper.hpp>
 #include <iscore/tools/IdentifiedObjectMap.hpp>
 #include <iscore/tools/NamedObject.hpp>
-#include <qglobal.h>
-#include <qpoint.h>
+#include <QtGlobal>
+#include <QPoint>
 
 #include "Slot/SlotModel.hpp"
 #include "Slot/SlotPresenter.hpp"

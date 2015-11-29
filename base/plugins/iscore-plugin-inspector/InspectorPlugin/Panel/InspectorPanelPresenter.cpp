@@ -1,9 +1,9 @@
 #include "InspectorPanelModel.hpp"
 #include "InspectorPanelPresenter.hpp"
 #include "InspectorPanelView.hpp"
-#include "iscore/document/DocumentInterface.hpp"
-#include "iscore/plugins/panel/PanelModel.hpp"
-#include "iscore/plugins/panel/PanelPresenter.hpp"
+#include <iscore/document/DocumentInterface.hpp>
+#include <iscore/plugins/panel/PanelModel.hpp>
+#include <iscore/plugins/panel/PanelPresenter.hpp>
 #include "InspectorPanelId.hpp"
 
 namespace iscore {

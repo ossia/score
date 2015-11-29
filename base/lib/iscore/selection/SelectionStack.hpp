@@ -1,7 +1,7 @@
 #pragma once
 #include <iscore/selection/Selection.hpp>
-#include <qobject.h>
-#include <qstack.h>
+#include <QObject>
+#include <QStack>
 
 class IdentifiedObjectAbstract;
 

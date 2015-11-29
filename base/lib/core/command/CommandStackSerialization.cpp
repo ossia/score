@@ -1,16 +1,16 @@
 #include <iscore/serialization/DataStreamVisitor.hpp>
-#include <qbytearray.h>
-#include <qdatastream.h>
-#include <qglobal.h>
-#include <qlist.h>
-#include <qpair.h>
-#include <qstack.h>
+#include <QByteArray>
+#include <QDataStream>
+#include <QtGlobal>
+#include <QList>
+#include <QPair>
+#include <QStack>
 
 #include "CommandStack.hpp"
-#include "core/application/ApplicationComponents.hpp"
-#include "core/application/ApplicationContext.hpp"
-#include "iscore/command/SerializableCommand.hpp"
-#include "iscore/plugins/customfactory/StringFactoryKey.hpp"
+#include <core/application/ApplicationComponents.hpp>
+#include <core/application/ApplicationContext.hpp>
+#include <iscore/command/SerializableCommand.hpp>
+#include <iscore/plugins/customfactory/StringFactoryKey.hpp>
 
 template <typename T> class Reader;
 template <typename T> class Writer;

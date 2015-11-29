@@ -1,10 +1,10 @@
 #pragma once
 #include <boost/optional/optional.hpp>
-#include <qvariant.h>
+#include <QVariant>
 
-#include "Curve/Segment/CurveSegmentFactoryKey.hpp"
-#include "Curve/Segment/CurveSegmentModel.hpp"
-#include "iscore/serialization/VisitorInterface.hpp"
+#include <Curve/Segment/CurveSegmentFactoryKey.hpp>
+#include <Curve/Segment/CurveSegmentModel.hpp>
+#include <iscore/serialization/VisitorInterface.hpp>
 
 class QObject;
 struct CurveSegmentData;

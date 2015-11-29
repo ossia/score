@@ -1,12 +1,12 @@
 #pragma once
 
 #include <iscore/command/Dispatchers/CommandDispatcher.hpp>
-#include <qabstractitemmodel.h>
-#include <qwidget.h>
+#include <QAbstractItemModel>
+#include <QWidget>
 #include <memory>
 
 #include "Device/Node/DeviceNode.hpp"
-#include "iscore/tools/TreePath.hpp"
+#include <iscore/tools/TreePath.hpp>
 
 class DeviceEditDialog;
 class DeviceExplorerFilterProxyModel;

@@ -2,8 +2,8 @@
 
 #include "MessageEditDialog.hpp"
 #include "MessageWidget.hpp"
-#include "State/Address.hpp"
-#include "State/Value.hpp"
+#include <State/Address.hpp>
+#include <State/Value.hpp>
 
 class QWidget;
 

@@ -4,8 +4,8 @@
 #include "DistributedScenario/Group.hpp"
 #include "DistributedScenario/GroupManager.hpp"
 #include "RemoveClientFromGroup.hpp"
-#include "iscore/serialization/DataStreamVisitor.hpp"
-#include "iscore/tools/ObjectPath.hpp"
+#include <iscore/serialization/DataStreamVisitor.hpp>
+#include <iscore/tools/ObjectPath.hpp>
 
 
 RemoveClientFromGroup::RemoveClientFromGroup(ObjectPath&& groupMgrPath, Id<Client> client, Id<Group> group):

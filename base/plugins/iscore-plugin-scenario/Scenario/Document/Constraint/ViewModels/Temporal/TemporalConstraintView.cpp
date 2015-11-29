@@ -1,12 +1,12 @@
 #include <Process/Style/ProcessFonts.hpp>
 #include <Process/Style/ScenarioStyle.hpp>
-#include <qbrush.h>
-#include <qfont.h>
-#include <qgraphicsitem.h>
+#include <QBrush>
+#include <QFont>
+#include <QGraphicsItem>
 #include <qnamespace.h>
-#include <qpainter.h>
-#include <qpainterpath.h>
-#include <qpen.h>
+#include <QPainter>
+#include <QPainterPath>
+#include <QPen>
 
 #include "Scenario/Document/Constraint/ViewModels/ConstraintPresenter.hpp"
 #include "Scenario/Document/Constraint/ViewModels/ConstraintView.hpp"

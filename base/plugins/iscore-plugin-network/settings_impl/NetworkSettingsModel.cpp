@@ -1,8 +1,8 @@
-#include <qsettings.h>
-#include <qvariant.h>
+#include <QSettings>
+#include <QVariant>
 
 #include "NetworkSettingsModel.hpp"
-#include "iscore/plugins/settingsdelegate/SettingsDelegateModelInterface.hpp"
+#include <iscore/plugins/settingsdelegate/SettingsDelegateModelInterface.hpp>
 
 using namespace iscore;
 

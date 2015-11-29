@@ -1,9 +1,9 @@
 #include <ext/alloc_traits.h>
 #include <iscore/serialization/VisitorCommon.hpp>
-#include <qpoint.h>
+#include <QPoint>
 #include <vector>
 
-#include "Curve/Palette/CurvePoint.hpp"
+#include <Curve/Palette/CurvePoint.hpp>
 #include "LinearCurveSegmentModel.hpp"
 
 class QObject;

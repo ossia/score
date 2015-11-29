@@ -2,16 +2,16 @@
 #include <boost/optional/optional.hpp>
 #include <iscore/serialization/DataStreamVisitor.hpp>
 #include <iscore/serialization/JSONVisitor.hpp>
-#include <qjsonarray.h>
-#include <qjsonobject.h>
-#include <qjsonvalue.h>
-#include <qlist.h>
+#include <QJsonArray>
+#include <QJsonObject>
+#include <QJsonValue>
+#include <QList>
 #include <algorithm>
 
 #include "DocumentPlugins/NetworkDocumentPlugin.hpp"
 #include "PlaceholderNetworkPolicy.hpp"
-#include "iscore/serialization/JSONValueVisitor.hpp"
-#include "iscore/tools/SettableIdentifier.hpp"
+#include <iscore/serialization/JSONValueVisitor.hpp>
+#include <iscore/tools/SettableIdentifier.hpp>
 #include "session/../client/LocalClient.hpp"
 #include "session/../client/RemoteClient.hpp"
 #include "session/Session.hpp"

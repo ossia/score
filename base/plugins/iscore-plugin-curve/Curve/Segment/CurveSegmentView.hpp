@@ -1,8 +1,8 @@
 #pragma once
-#include <qgraphicsitem.h>
-#include <qpainterpath.h>
-#include <qpoint.h>
-#include <qrect.h>
+#include <QGraphicsItem>
+#include <QPainterPath>
+#include <QPoint>
+#include <QRect>
 
 class CurveSegmentModel;
 class QGraphicsSceneContextMenuEvent;

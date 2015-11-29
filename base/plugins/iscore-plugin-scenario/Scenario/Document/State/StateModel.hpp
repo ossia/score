@@ -5,12 +5,12 @@
 #include <iscore/selection/Selectable.hpp>
 #include <iscore/tools/IdentifiedObject.hpp>
 #include <iscore/tools/SettableIdentifier.hpp>
-#include <qobjectdefs.h>
+
 #include <set>
 #include <vector>
 
-#include "iscore/serialization/VisitorInterface.hpp"
-#include "iscore/tools/Todo.hpp"
+#include <iscore/serialization/VisitorInterface.hpp>
+#include <iscore/tools/Todo.hpp>
 
 class ConstraintModel;
 class DataStream;

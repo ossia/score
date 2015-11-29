@@ -3,18 +3,18 @@
 #include <iscore/document/DocumentInterface.hpp>
 #include <iscore/serialization/DataStreamVisitor.hpp>
 #include <iscore/serialization/JSONVisitor.hpp>
-#include <qjsonarray.h>
-#include <qjsonobject.h>
-#include <qjsonvalue.h>
+#include <QJsonArray>
+#include <QJsonObject>
+#include <QJsonValue>
 #include <algorithm>
 
-#include "Process/ModelMetadata.hpp"
-#include "Process/State/MessageNode.hpp"
+#include <Process/ModelMetadata.hpp>
+#include <Process/State/MessageNode.hpp>
 #include "Scenario/Document/State/ItemModel/MessageItemModel.hpp"
-#include "iscore/serialization/JSONValueVisitor.hpp"
-#include "iscore/tools/SettableIdentifier.hpp"
-#include "iscore/tools/Todo.hpp"
-#include "iscore/tools/TreeNode.hpp"
+#include <iscore/serialization/JSONValueVisitor.hpp>
+#include <iscore/tools/SettableIdentifier.hpp>
+#include <iscore/tools/Todo.hpp>
+#include <iscore/tools/TreeNode.hpp>
 
 class ConstraintModel;
 class EventModel;

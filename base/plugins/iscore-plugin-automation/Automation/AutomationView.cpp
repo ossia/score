@@ -1,13 +1,13 @@
 #include <Process/Style/ProcessFonts.hpp>
-#include <qflags.h>
-#include <qfont.h>
-#include <qgraphicsitem.h>
+#include <QFlags>
+#include <QFont>
+#include <QGraphicsItem>
 #include <qnamespace.h>
-#include <qpainter.h>
-#include <qrect.h>
+#include <QPainter>
+#include <QRect>
 
 #include "AutomationView.hpp"
-#include "Process/LayerView.hpp"
+#include <Process/LayerView.hpp>
 
 AutomationView::AutomationView(QGraphicsItem* parent) :
     LayerView {parent}

@@ -1,6 +1,6 @@
 #include <Device/Node/DeviceNode.hpp>
-#include <qobject.h>
-#include <qstring.h>
+#include <QObject>
+#include <QString>
 #include <algorithm>
 #include <QtTest/QtTest>
 
@@ -167,5 +167,5 @@ QTEST_MAIN(NodeTest)
 #include "Device/Protocol/DeviceSettings.hpp"
 #include "Device/Protocol/ProtocolFactoryKey.hpp"
 #include "NodeTest.moc"
-#include "iscore/tools/TreeNode.hpp"
+#include <iscore/tools/TreeNode.hpp>
 

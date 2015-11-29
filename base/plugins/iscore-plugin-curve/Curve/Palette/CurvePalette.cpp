@@ -1,15 +1,15 @@
-#include <qapplication.h>
-#include <qrect.h>
+#include <QApplication>
+#include <QRect>
 
-#include "Curve/CurvePresenter.hpp"
-#include "Curve/CurveView.hpp"
-#include "Curve/Palette/CurveEditionSettings.hpp"
-#include "Curve/Palette/CurvePoint.hpp"
-#include "Curve/Palette/Tools/MoveTool.hpp"
-#include "Curve/Palette/Tools/SmartTool.hpp"
+#include <Curve/CurvePresenter.hpp>
+#include <Curve/CurveView.hpp>
+#include <Curve/Palette/CurveEditionSettings.hpp>
+#include <Curve/Palette/CurvePoint.hpp>
+#include <Curve/Palette/Tools/MoveTool.hpp>
+#include <Curve/Palette/Tools/SmartTool.hpp>
 #include "CurvePalette.hpp"
-#include "Process/ProcessContext.hpp"
-#include "iscore/statemachine/GraphicsSceneToolPalette.hpp"
+#include <Process/ProcessContext.hpp>
+#include <iscore/statemachine/GraphicsSceneToolPalette.hpp>
 
 namespace iscore {
 class CommandStack;

@@ -1,10 +1,10 @@
 #pragma once
 
 #include <iscore/command/Dispatchers/CommandDispatcher.hpp>
-#include <qcolor.h>
+#include <QColor>
 #include <qnamespace.h>
-#include <qstring.h>
-#include <qwidget.h>
+#include <QString>
+#include <QWidget>
 #include <list>
 #include <memory>
 

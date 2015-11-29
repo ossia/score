@@ -1,9 +1,9 @@
 #pragma once
 #include <Process/LayerPresenter.hpp>
-#include <qpoint.h>
+#include <QPoint>
 
-#include "Process/ZoomHelper.hpp"
-#include "iscore/tools/SettableIdentifier.hpp"
+#include <Process/ZoomHelper.hpp>
+#include <iscore/tools/SettableIdentifier.hpp>
 
 class DummyLayerView;
 class LayerModel;

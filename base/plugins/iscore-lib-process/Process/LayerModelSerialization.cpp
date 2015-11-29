@@ -1,13 +1,13 @@
 #include <Process/LayerModel.hpp>
 #include <Process/Process.hpp>
 #include <boost/core/explicit_operator_bool.hpp>
-#include <qjsonobject.h>
-#include <qjsonvalue.h>
+#include <QJsonObject>
+#include <QJsonValue>
 
-#include "iscore/serialization/DataStreamVisitor.hpp"
-#include "iscore/serialization/JSONValueVisitor.hpp"
-#include "iscore/serialization/JSONVisitor.hpp"
-#include "iscore/tools/SettableIdentifier.hpp"
+#include <iscore/serialization/DataStreamVisitor.hpp>
+#include <iscore/serialization/JSONValueVisitor.hpp>
+#include <iscore/serialization/JSONVisitor.hpp>
+#include <iscore/tools/SettableIdentifier.hpp>
 
 template <typename T> class Reader;
 template <typename model> class IdentifiedObject;

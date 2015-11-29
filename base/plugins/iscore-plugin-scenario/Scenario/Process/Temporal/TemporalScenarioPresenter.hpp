@@ -7,10 +7,10 @@
 #include <Scenario/Process/Temporal/ScenarioViewInterface.hpp>
 #include <boost/optional/optional.hpp>
 #include <iscore/tools/IdentifiedObjectMap.hpp>
-#include <qobject.h>
-#include <qpoint.h>
+#include <QObject>
+#include <QPoint>
 
-#include "Process/ZoomHelper.hpp"
+#include <Process/ZoomHelper.hpp>
 #include "Scenario/Document/Constraint/ConstraintModel.hpp"
 #include "Scenario/Document/Event/EventModel.hpp"
 #include "Scenario/Document/Event/EventPresenter.hpp"
@@ -18,7 +18,7 @@
 #include "Scenario/Document/State/StatePresenter.hpp"
 #include "Scenario/Document/TimeNode/TimeNodeModel.hpp"
 #include "Scenario/Document/TimeNode/TimeNodePresenter.hpp"
-#include "iscore/tools/SettableIdentifier.hpp"
+#include <iscore/tools/SettableIdentifier.hpp>
 
 class Process;
 class QEvent;

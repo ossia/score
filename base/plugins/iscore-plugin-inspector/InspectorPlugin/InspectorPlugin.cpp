@@ -1,6 +1,6 @@
 #include "InspectorPlugin.hpp"
 #include "Panel/InspectorPanelFactory.hpp"
-#include "iscore/plugins/qt_interfaces/PanelFactoryInterface_QtInterface.hpp"
+#include <iscore/plugins/qt_interfaces/PanelFactoryInterface_QtInterface.hpp>
 
 namespace iscore {
 class FactoryListInterface;

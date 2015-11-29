@@ -1,10 +1,10 @@
 #pragma once
 #include <Process/State/ProcessStateDataInterface.hpp>
-#include <qstring.h>
+#include <QString>
 #include <vector>
 
-#include "Process/State/MessageNode.hpp"
-#include "State/Message.hpp"
+#include <Process/State/MessageNode.hpp>
+#include <State/Message.hpp>
 
 class Process;
 class QObject;

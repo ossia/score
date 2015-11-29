@@ -1,8 +1,8 @@
 #pragma once
 
-#include <qwidget.h>
+#include <QWidget>
 
-#include "Process/ProcessFactoryKey.hpp"
+#include <Process/ProcessFactoryKey.hpp>
 
 class DynamicProcessList;
 

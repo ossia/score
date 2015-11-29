@@ -2,7 +2,7 @@
 #include <algorithm>
 
 #include "PutLayerModelToFront.hpp"
-#include "iscore/tools/ModelPath.hpp"
+#include <iscore/tools/ModelPath.hpp>
 
 template <typename tag, typename impl> class id_base_t;
 

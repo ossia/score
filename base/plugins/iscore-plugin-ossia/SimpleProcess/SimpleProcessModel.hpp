@@ -1,14 +1,14 @@
 #pragma once
 #include <ProcessModel/OSSIAProcessModel.hpp>
-#include <qbytearray.h>
-#include <qstring.h>
+#include <QByteArray>
+#include <QString>
 #include <memory>
 
-#include "Process/ProcessFactoryKey.hpp"
-#include "Process/TimeValue.hpp"
+#include <Process/ProcessFactoryKey.hpp>
+#include <Process/TimeValue.hpp>
 #include "SimpleProcess/SimpleProcess.hpp"
-#include "iscore/selection/Selection.hpp"
-#include "iscore/serialization/VisitorInterface.hpp"
+#include <iscore/selection/Selection.hpp>
+#include <iscore/serialization/VisitorInterface.hpp>
 
 class DataStream;
 class JSONObject;

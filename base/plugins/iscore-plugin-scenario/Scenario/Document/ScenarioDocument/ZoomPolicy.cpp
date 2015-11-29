@@ -1,6 +1,6 @@
 #include <algorithm>
 
-#include "Process/ZoomHelper.hpp"
+#include <Process/ZoomHelper.hpp>
 #include "ZoomPolicy.hpp"
 
 ZoomRatio ZoomPolicy::sliderPosToZoomRatio(double sliderPos, double cstrMaxTime, int cstrMaxWidth)

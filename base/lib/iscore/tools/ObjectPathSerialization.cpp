@@ -1,11 +1,11 @@
 #include <iscore/tools/std/StdlibWrapper.hpp>
-#include <qjsonarray.h>
-#include <qjsonobject.h>
-#include <qjsonvalue.h>
+#include <QJsonArray>
+#include <QJsonObject>
+#include <QJsonValue>
 
 #include "ObjectPath.hpp"
-#include "iscore/serialization/DataStreamVisitor.hpp"
-#include "iscore/serialization/JSONVisitor.hpp"
+#include <iscore/serialization/DataStreamVisitor.hpp>
+#include <iscore/serialization/JSONVisitor.hpp>
 
 template <typename T> class Reader;
 template <typename T> class Writer;

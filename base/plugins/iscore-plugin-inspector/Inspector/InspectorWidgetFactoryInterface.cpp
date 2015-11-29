@@ -1,4 +1,4 @@
-#include <qlist.h>
+#include <QList>
 
 #include "InspectorWidgetFactoryInterface.hpp"
 

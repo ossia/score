@@ -8,11 +8,11 @@
 #include <Process/State/MessageNode.hpp>
 #include <Process/TimeValue.hpp>
 #include <State/Expression.hpp>
-#include <qstringlist.h>
+#include <QStringList>
 #include <memory>
 
-#include "Curve/Segment/CurveSegmentFactoryKey.hpp"
-#include "State/Value.hpp"
+#include <Curve/Segment/CurveSegmentFactoryKey.hpp>
+#include <State/Value.hpp>
 
 class DeviceList;
 namespace OSSIA {

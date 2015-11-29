@@ -6,12 +6,12 @@
 #include <iterator>
 
 #include "AbstractScenarioLayerModel.hpp"
-#include "Process/Process.hpp"
+#include <Process/Process.hpp>
 #include "Scenario/Document/Constraint/ViewModels/ConstraintViewModelIdMap.hpp"
-#include "iscore/tools/IdentifiedObject.hpp"
-#include "iscore/tools/ObjectPath.hpp"
-#include "iscore/tools/SettableIdentifier.hpp"
-#include "iscore/tools/utilsCPP11.hpp"
+#include <iscore/tools/IdentifiedObject.hpp>
+#include <iscore/tools/ObjectPath.hpp>
+#include <iscore/tools/SettableIdentifier.hpp>
+#include <iscore/tools/utilsCPP11.hpp>
 
 ConstraintViewModel& AbstractScenarioLayerModel::constraint(
         const Id<ConstraintViewModel>& id) const

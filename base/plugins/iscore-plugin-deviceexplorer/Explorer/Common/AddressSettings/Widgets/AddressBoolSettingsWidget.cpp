@@ -1,13 +1,13 @@
 #include <State/ValueConversion.hpp>
-#include <qcombobox.h>
-#include <qformlayout.h>
-#include <qobjectdefs.h>
-#include <qstring.h>
-#include <qvariant.h>
+#include <QComboBox>
+#include <QFormLayout>
+
+#include <QString>
+#include <QVariant>
 
 #include "AddressBoolSettingsWidget.hpp"
 #include "Explorer/Common/AddressSettings/Widgets/AddressSettingsWidget.hpp"
-#include "State/Value.hpp"
+#include <State/Value.hpp>
 
 class QWidget;
 

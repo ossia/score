@@ -2,8 +2,8 @@
 #include <Process/TimeValue.hpp>
 #include <Process/ZoomHelper.hpp>
 #include <Scenario/Document/BaseScenario/BaseScenarioPresenter.hpp>
-#include <qobject.h>
-#include <qobjectdefs.h>
+#include <QObject>
+
 #include <vector>
 
 class BaseGraphicsObject;

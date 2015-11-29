@@ -1,9 +1,9 @@
 #pragma once
 #include <iscore/plugins/documentdelegate/plugin/DocumentDelegatePluginModel.hpp>
-#include <qobject.h>
+#include <QObject>
 #include <vector>
 
-#include "iscore/plugins/documentdelegate/plugin/ElementPluginModel.hpp"
+#include <iscore/plugins/documentdelegate/plugin/ElementPluginModel.hpp>
 
 class DataStream;
 class GroupManager;

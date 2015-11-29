@@ -1,17 +1,17 @@
-#include <qboxlayout.h>
-#include <qcolordialog.h>
-#include <qformlayout.h>
-#include <qicon.h>
-#include <qlabel.h>
-#include <qlineedit.h>
-#include <qpushbutton.h>
-#include <qsize.h>
+#include <QBoxLayout>
+#include <QColorDialog>
+#include <QFormLayout>
+#include <QIcon>
+#include <QLabel>
+#include <QLineEdit>
+#include <QPushButton>
+#include <QSize>
 #include <Process//ModelMetadata.hpp>
 
 #include "CommentEdit.hpp"
 #include "Inspector/InspectorSectionWidget.hpp"
 #include "MetadataWidget.hpp"
-#include "iscore/command/Dispatchers/CommandDispatcher.hpp"
+#include <iscore/command/Dispatchers/CommandDispatcher.hpp>
 
 class QObject;
 

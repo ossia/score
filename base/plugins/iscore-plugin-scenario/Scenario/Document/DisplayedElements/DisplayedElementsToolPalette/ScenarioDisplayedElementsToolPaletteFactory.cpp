@@ -4,11 +4,11 @@
 #include <Scenario/Document/ScenarioDocument/ScenarioDocumentPresenter.hpp>
 #include <Scenario/Document/ScenarioDocument/ScenarioDocumentView.hpp>
 #include <Scenario/Process/ScenarioModel.hpp>
-#include <qobject.h>
+#include <QObject>
 
 #include "ScenarioDisplayedElementsToolPaletteFactory.hpp"
-#include "iscore/document/DocumentInterface.hpp"
-#include "iscore/statemachine/GraphicsSceneToolPalette.hpp"
+#include <iscore/document/DocumentInterface.hpp>
+#include <iscore/statemachine/GraphicsSceneToolPalette.hpp>
 
 std::unique_ptr<GraphicsSceneToolPalette> ScenarioDisplayedElementsToolPaletteFactory::make(
         ScenarioDocumentPresenter& pres,

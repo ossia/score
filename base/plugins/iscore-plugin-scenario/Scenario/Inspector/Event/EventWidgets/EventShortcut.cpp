@@ -1,6 +1,6 @@
-#include <qboxlayout.h>
-#include <qcheckbox.h>
-#include <qpushbutton.h>
+#include <QBoxLayout>
+#include <QCheckBox>
+#include <QPushButton>
 
 #include "EventShortcut.hpp"
 

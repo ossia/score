@@ -5,7 +5,7 @@
 #include <iscore/command/SerializableCommand.hpp>
 #include <iscore/tools/ModelPath.hpp>
 #include <iscore/tools/SettableIdentifier.hpp>
-#include <qstring.h>
+#include <QString>
 
 class ConstraintModel;
 class ConstraintViewModel;

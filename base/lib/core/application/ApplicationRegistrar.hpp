@@ -1,11 +1,11 @@
 #pragma once
 #include <iscore/command/CommandGeneratorMap.hpp>
-#include <qobject.h>
+#include <QObject>
 #include <unordered_map>
 #include <utility>
 
-#include "iscore/command/SerializableCommand.hpp"
-#include "iscore/plugins/customfactory/FactoryInterface.hpp"
+#include <iscore/command/SerializableCommand.hpp>
+#include <iscore/plugins/customfactory/FactoryInterface.hpp>
 
 namespace iscore {
 class Application;

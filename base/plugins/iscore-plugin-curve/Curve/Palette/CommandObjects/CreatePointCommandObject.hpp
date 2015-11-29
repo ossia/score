@@ -1,7 +1,7 @@
 #pragma once
 #include <vector>
 
-#include "Curve/Palette/CommandObjects/CurveCommandObjectBase.hpp"
+#include <Curve/Palette/CommandObjects/CurveCommandObjectBase.hpp>
 
 class CurvePresenter;
 namespace iscore {

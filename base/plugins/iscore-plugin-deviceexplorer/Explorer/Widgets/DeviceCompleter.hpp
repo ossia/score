@@ -1,7 +1,7 @@
 #pragma once
-#include <qcompleter.h>
-#include <qstring.h>
-#include <qstringlist.h>
+#include <QCompleter>
+#include <QString>
+#include <QStringList>
 
 class DeviceExplorerModel;
 class QModelIndex;

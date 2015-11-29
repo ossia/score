@@ -1,4 +1,4 @@
-#include <qdebug.h>
+#include <QDebug>
 
 #include "MessageMapper.hpp"
 #include "Serialization/NetworkMessage.hpp"

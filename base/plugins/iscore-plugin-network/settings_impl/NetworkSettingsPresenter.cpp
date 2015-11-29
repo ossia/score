@@ -1,12 +1,12 @@
-#include <qapplication.h>
-#include <qdebug.h>
-#include <qstyle.h>
+#include <QApplication>
+#include <QDebug>
+#include <QStyle>
 
 #include "NetworkSettingsModel.hpp"
 #include "NetworkSettingsPresenter.hpp"
 #include "NetworkSettingsView.hpp"
-#include "iscore/command/Command.hpp"
-#include "iscore/plugins/settingsdelegate/SettingsDelegatePresenterInterface.hpp"
+#include <iscore/command/Command.hpp>
+#include <iscore/plugins/settingsdelegate/SettingsDelegatePresenterInterface.hpp>
 
 namespace iscore {
 class SettingsDelegateModelInterface;

@@ -3,15 +3,15 @@
 #include <Process/ModelMetadata.hpp>
 #include <boost/optional/optional.hpp>
 #include <iscore/tools/NotifyingMap.hpp>
-#include <qglobal.h>
-#include <qobject.h>
-#include <qobjectdefs.h>
-#include <qstring.h>
+#include <QtGlobal>
+#include <QObject>
+
+#include <QString>
 #include <functional>
 
-#include "iscore/serialization/VisitorInterface.hpp"
-#include "iscore/tools/IdentifiedObject.hpp"
-#include "iscore/tools/SettableIdentifier.hpp"
+#include <iscore/serialization/VisitorInterface.hpp>
+#include <iscore/tools/IdentifiedObject.hpp>
+#include <iscore/tools/SettableIdentifier.hpp>
 
 class ConstraintModel;
 class DataStream;

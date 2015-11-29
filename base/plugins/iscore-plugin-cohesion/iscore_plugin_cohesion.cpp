@@ -1,4 +1,4 @@
-#include <qstring.h>
+#include <QString>
 #include <unordered_map>
 
 #include "Commands/IScoreCohesionCommandFactory.hpp"

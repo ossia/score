@@ -2,20 +2,20 @@
 #include <core/application/ApplicationComponents.hpp>
 #include <iscore/serialization/DataStreamVisitor.hpp>
 #include <iscore/serialization/JSONVisitor.hpp>
-#include <qdebug.h>
-#include <qjsonobject.h>
-#include <qjsonvalue.h>
-#include <qstring.h>
-#include <qvariant.h>
+#include <QDebug>
+#include <QJsonObject>
+#include <QJsonValue>
+#include <QString>
+#include <QVariant>
 
 #include "Device/Protocol/ProtocolFactoryKey.hpp"
 #include "DeviceSettings.hpp"
 #include "ProtocolFactoryInterface.hpp"
-#include "core/application/ApplicationContext.hpp"
-#include "iscore/plugins/customfactory/FactoryFamily.hpp"
-#include "iscore/plugins/customfactory/FactoryMap.hpp"
-#include "iscore/plugins/customfactory/StringFactoryKey.hpp"
-#include "iscore/serialization/JSONValueVisitor.hpp"
+#include <core/application/ApplicationContext.hpp>
+#include <iscore/plugins/customfactory/FactoryFamily.hpp>
+#include <iscore/plugins/customfactory/FactoryMap.hpp>
+#include <iscore/plugins/customfactory/StringFactoryKey.hpp>
+#include <iscore/serialization/JSONValueVisitor.hpp>
 
 template <typename T> class Reader;
 template <typename T> class Writer;

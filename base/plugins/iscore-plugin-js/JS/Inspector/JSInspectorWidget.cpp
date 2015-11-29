@@ -1,12 +1,12 @@
 #include <JS/JSProcessModel.hpp>
-#include <qplaintextedit.h>
+#include <QPlainTextEdit>
 #include <algorithm>
 
 #include "Inspector/InspectorWidgetBase.hpp"
 #include "JS/Commands/EditScript.hpp"
 #include "JSInspectorWidget.hpp"
-#include "iscore/command/Dispatchers/CommandDispatcher.hpp"
-#include "iscore/tools/ModelPath.hpp"
+#include <iscore/command/Dispatchers/CommandDispatcher.hpp>
+#include <iscore/tools/ModelPath.hpp>
 
 class QVBoxLayout;
 class QWidget;

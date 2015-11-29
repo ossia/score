@@ -1,15 +1,15 @@
 #include <iscore/widgets/ClearLayout.hpp>
-#include <qdialogbuttonbox.h>
-#include <qflags.h>
-#include <qgridlayout.h>
-#include <qobjectdefs.h>
-#include <qpushbutton.h>
-#include <qstring.h>
+#include <QDialogButtonBox>
+#include <QFlags>
+#include <QGridLayout>
+
+#include <QPushButton>
+#include <QString>
 
 #include "MessageEditDialog.hpp"
 #include "MessageListEditor.hpp"
 #include "MessageWidget.hpp"
-#include "State/Message.hpp"
+#include <State/Message.hpp>
 
 class QWidget;
 

@@ -1,8 +1,8 @@
 #pragma once
 
 #include <iscore/command/SerializableCommand.hpp>
-#include <qmap.h>
-#include <qstring.h>
+#include <QMap>
+#include <QString>
 
 class DataStreamInput;
 class DataStreamOutput;

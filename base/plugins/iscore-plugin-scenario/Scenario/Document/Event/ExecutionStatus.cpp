@@ -1,5 +1,5 @@
 #include <Process/Style/ScenarioStyle.hpp>
-#include <qcolor.h>
+#include <QColor>
 #include <qnamespace.h>
 
 #include "ExecutionStatus.hpp"

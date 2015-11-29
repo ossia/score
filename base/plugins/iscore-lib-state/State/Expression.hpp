@@ -4,12 +4,12 @@
 #include <eggs/variant/variant.hpp>
 #include <ext/alloc_traits.h>
 #include <iscore/tools/VariantBasedNode.hpp>
-#include <qstring.h>
+#include <QString>
 #include <algorithm>
 #include <cstddef>
 #include <vector>
 
-#include "iscore/tools/InvisibleRootNode.hpp"
+#include <iscore/tools/InvisibleRootNode.hpp>
 
 class DataStream;
 class JSONObject;

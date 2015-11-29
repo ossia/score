@@ -4,16 +4,16 @@
 #include <Scenario/Document/TimeNode/TimeNodeModel.hpp>
 #include <Scenario/Process/ScenarioModel.hpp>
 #include <boost/optional/optional.hpp>
-#include <qjsonarray.h>
-#include <qjsonvalue.h>
-#include <qlist.h>
+#include <QJsonArray>
+#include <QJsonValue>
+#include <QList>
 #include <algorithm>
 #include <vector>
 
 #include "ScenarioCopy.hpp"
-#include "iscore/serialization/VisitorCommon.hpp"
-#include "iscore/tools/NotifyingMap.hpp"
-#include "iscore/tools/SettableIdentifier.hpp"
+#include <iscore/serialization/VisitorCommon.hpp>
+#include <iscore/tools/NotifyingMap.hpp>
+#include <iscore/tools/SettableIdentifier.hpp>
 
 class JSONObject;
 

@@ -2,14 +2,14 @@
 #include <JS/JSProcess.hpp>
 #include <JS/JSProcessMetadata.hpp>
 #include <ProcessModel/OSSIAProcessModel.hpp>
-#include <qbytearray.h>
-#include <qstring.h>
+#include <QByteArray>
+#include <QString>
 #include <memory>
 
-#include "Process/ProcessFactoryKey.hpp"
-#include "Process/TimeValue.hpp"
-#include "iscore/selection/Selection.hpp"
-#include "iscore/serialization/VisitorInterface.hpp"
+#include <Process/ProcessFactoryKey.hpp>
+#include <Process/TimeValue.hpp>
+#include <iscore/selection/Selection.hpp>
+#include <iscore/serialization/VisitorInterface.hpp>
 
 class DataStream;
 class JSONObject;

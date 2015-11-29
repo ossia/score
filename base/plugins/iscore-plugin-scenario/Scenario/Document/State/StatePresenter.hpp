@@ -1,7 +1,7 @@
 #pragma once
 #include <iscore/command/Dispatchers/CommandDispatcher.hpp>
 #include <iscore/tools/NamedObject.hpp>
-#include <qpoint.h>
+#include <QPoint>
 
 class QGraphicsItem;
 class QMimeData;

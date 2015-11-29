@@ -2,12 +2,12 @@
 #include <Process/TimeValue.hpp>
 #include <boost/optional/optional.hpp>
 #include <iscore/command/SerializableCommand.hpp>
-#include <qstring.h>
+#include <QString>
 
 #include "CreateConstraint_State_Event.hpp"
 #include "Scenario/Commands/ScenarioCommandFactory.hpp"
-#include "iscore/tools/ModelPath.hpp"
-#include "iscore/tools/SettableIdentifier.hpp"
+#include <iscore/tools/ModelPath.hpp>
+#include <iscore/tools/SettableIdentifier.hpp>
 
 class ConstraintModel;
 class DataStreamInput;

@@ -6,19 +6,19 @@
 #include <core/undo/Panel/UndoPanelFactory.hpp>
 #include <core/undo/UndoApplicationPlugin.hpp>
 #include <core/view/View.hpp>
-#include <qbytearray.h>
-#include <qcoreapplication.h>
-#include <qfile.h>
-#include <qfont.h>
-#include <qfontdatabase.h>
-#include <qiodevice.h>
-#include <qmetatype.h>
+#include <QByteArray>
+#include <QCoreApplication>
+#include <QFile>
+#include <QFont>
+#include <QFontDatabase>
+#include <QIODevice>
+#include <QMetaType>
 #include <qnamespace.h>
-#include <qpixmap.h>
-#include <qsplashscreen.h>
-#include <qstring.h>
-#include <qstringlist.h>
-#include <qstylefactory.h>
+#include <QPixmap>
+#include <QSplashScreen>
+#include <QString>
+#include <QStringList>
+#include <QStyleFactory>
 
 using namespace iscore;
 #include <iscore/tools/SettableIdentifierGeneration.hpp>
@@ -26,16 +26,16 @@ using namespace iscore;
 #include <vector>
 
 #include "SafeQApplication.hpp"
-#include "core/application/ApplicationComponents.hpp"
-#include "core/application/ApplicationSettings.hpp"
-#include "core/plugin/PluginManager.hpp"
-#include "core/presenter/DocumentManager.hpp"
-#include "core/settings/Settings.hpp"
-#include "iscore/selection/Selection.hpp"
-#include "iscore/tools/NamedObject.hpp"
-#include "iscore/tools/ObjectIdentifier.hpp"
-#include "iscore/tools/SettableIdentifier.hpp"
-#include "iscore/widgets/OrderedToolbar.hpp"
+#include <core/application/ApplicationComponents.hpp>
+#include <core/application/ApplicationSettings.hpp>
+#include <core/plugin/PluginManager.hpp>
+#include <core/presenter/DocumentManager.hpp>
+#include <core/settings/Settings.hpp>
+#include <iscore/selection/Selection.hpp>
+#include <iscore/tools/NamedObject.hpp>
+#include <iscore/tools/ObjectIdentifier.hpp>
+#include <iscore/tools/SettableIdentifier.hpp>
+#include <iscore/widgets/OrderedToolbar.hpp>
 #include "iscore_git_info.hpp"
 
 namespace iscore {

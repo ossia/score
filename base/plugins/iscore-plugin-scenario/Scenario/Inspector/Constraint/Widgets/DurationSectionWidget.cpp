@@ -4,27 +4,27 @@
 #include <Scenario/Document/Constraint/ViewModels/FullView/FullViewConstraintViewModel.hpp>
 #include <Scenario/Inspector/Constraint/ConstraintInspectorWidget.hpp>
 #include <boost/optional/optional.hpp>
-#include <qcheckbox.h>
-#include <qdatetime.h>
-#include <qgridlayout.h>
-#include <qlabel.h>
+#include <QCheckBox>
+#include <QDateTime>
+#include <QGridLayout>
+#include <QLabel>
 #include <qnamespace.h>
-#include <qstring.h>
-#include <qwidget.h>
+#include <QString>
+#include <QWidget>
 #include <chrono>
 
 #include "DurationSectionWidget.hpp"
 #include "Inspector/InspectorSectionWidget.hpp"
-#include "Process/TimeValue.hpp"
+#include <Process/TimeValue.hpp>
 #include "Scenario/Application/ScenarioEditionSettings.hpp"
 #include "Scenario/Document/Constraint/ConstraintDurations.hpp"
 #include "Scenario/Inspector/Constraint/ConstraintInspectorDelegate.hpp"
-#include "iscore/command/Dispatchers/CommandDispatcher.hpp"
-#include "iscore/command/Dispatchers/OngoingCommandDispatcher.hpp"
-#include "iscore/tools/ModelPath.hpp"
-#include "iscore/tools/SettableIdentifier.hpp"
-#include "iscore/tools/Todo.hpp"
-#include "iscore/widgets/SpinBoxes.hpp"
+#include <iscore/command/Dispatchers/CommandDispatcher.hpp>
+#include <iscore/command/Dispatchers/OngoingCommandDispatcher.hpp>
+#include <iscore/tools/ModelPath.hpp>
+#include <iscore/tools/SettableIdentifier.hpp>
+#include <iscore/tools/Todo.hpp>
+#include <iscore/widgets/SpinBoxes.hpp>
 #include <iscore/tools/ModelPathSerialization.hpp>
 
 using namespace iscore;

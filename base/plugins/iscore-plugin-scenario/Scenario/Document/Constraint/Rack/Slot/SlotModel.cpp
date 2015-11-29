@@ -9,10 +9,10 @@
 #include <algorithm>
 #include <iterator>
 
-#include "Process/ModelMetadata.hpp"
+#include <Process/ModelMetadata.hpp>
 #include "SlotModel.hpp"
-#include "iscore/tools/NotifyingMap.hpp"
-#include "iscore/tools/Todo.hpp"
+#include <iscore/tools/NotifyingMap.hpp>
+#include <iscore/tools/Todo.hpp>
 
 constexpr const char SlotModel::className[];
 

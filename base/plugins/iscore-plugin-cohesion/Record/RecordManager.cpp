@@ -13,25 +13,25 @@
 #include <boost/optional/optional.hpp>
 #include <core/document/Document.hpp>
 #include <ext/alloc_traits.h>
-#include <qapplication.h>
+#include <QApplication>
 #include <qnamespace.h>
-#include <qstring.h>
+#include <QString>
 #include <algorithm>
 #include <type_traits>
 #include <utility>
 
-#include "Automation/AutomationProcessMetadata.hpp"
+#include <Automation/AutomationProcessMetadata.hpp>
 #include "Commands/Record.hpp"
-#include "Curve/CurveModel.hpp"
+#include <Curve/CurveModel.hpp>
 #include "Device/Address/AddressSettings.hpp"
 #include "Device/Address/IOType.hpp"
 #include "Device/Node/DeviceNode.hpp"
 #include "Device/Protocol/DeviceInterface.hpp"
 #include "Device/Protocol/DeviceList.hpp"
 #include "Explorer/DocumentPlugin/ListeningState.hpp"
-#include "Process/ExpandMode.hpp"
-#include "Process/Process.hpp"
-#include "Process/TimeValue.hpp"
+#include <Process/ExpandMode.hpp>
+#include <Process/Process.hpp>
+#include <Process/TimeValue.hpp>
 #include "Record/RecordData.hpp"
 #include "RecordManager.hpp"
 #include "Scenario/Commands/Constraint/Rack/Slot/AddLayerModelToSlot.hpp"
@@ -40,14 +40,14 @@
 #include "Scenario/Document/Constraint/Rack/Slot/SlotModel.hpp"
 #include "Scenario/Palette/ScenarioPoint.hpp"
 #include "Scenario/Process/ScenarioModel.hpp"
-#include "State/Value.hpp"
-#include "State/ValueConversion.hpp"
-#include "iscore/command/Dispatchers/MacroCommandDispatcher.hpp"
-#include "iscore/document/DocumentInterface.hpp"
-#include "iscore/tools/ModelPath.hpp"
-#include "iscore/tools/NotifyingMap.hpp"
-#include "iscore/tools/SettableIdentifier.hpp"
-#include "iscore/tools/TreeNode.hpp"
+#include <State/Value.hpp>
+#include <State/ValueConversion.hpp>
+#include <iscore/command/Dispatchers/MacroCommandDispatcher.hpp>
+#include <iscore/document/DocumentInterface.hpp>
+#include <iscore/tools/ModelPath.hpp>
+#include <iscore/tools/NotifyingMap.hpp>
+#include <iscore/tools/SettableIdentifier.hpp>
+#include <iscore/tools/TreeNode.hpp>
 
 class CurveSegmentModel;
 

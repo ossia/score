@@ -1,5 +1,5 @@
 #include <core/application/Application.hpp>
-#include <qjsonobject.h>
+#include <QJsonObject>
 #include <algorithm>
 
 #include "JSONVisitor.hpp"

@@ -1,8 +1,8 @@
 #pragma once
 #include <iscore/tools/IdentifiedObject.hpp>
-#include <qstring.h>
+#include <QString>
 
-#include "iscore/serialization/VisitorInterface.hpp"
+#include <iscore/serialization/VisitorInterface.hpp>
 
 class LayerModelPanelProxy;
 class Process;

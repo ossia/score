@@ -1,7 +1,7 @@
 #pragma once
 
 #include <iscore/plugins/customfactory/FactoryInterface.hpp>
-#include <qstring.h>
+#include <QString>
 
 class InspectorWidgetBase;
 class QObject;

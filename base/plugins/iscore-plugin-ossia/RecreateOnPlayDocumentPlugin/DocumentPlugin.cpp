@@ -3,7 +3,7 @@
 
 #include "BaseScenarioElement.hpp"
 #include "DocumentPlugin.hpp"
-#include "iscore/plugins/documentdelegate/plugin/DocumentDelegatePluginModel.hpp"
+#include <iscore/plugins/documentdelegate/plugin/DocumentDelegatePluginModel.hpp>
 
 class QObject;
 namespace iscore {

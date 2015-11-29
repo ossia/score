@@ -1,5 +1,5 @@
-#include <qobject.h>
-#include <qobjectdefs.h>
+#include <QObject>
+
 
 #include "AddressSettingsFactory.hpp"
 #include "Device/Address/AddressSettings.hpp"

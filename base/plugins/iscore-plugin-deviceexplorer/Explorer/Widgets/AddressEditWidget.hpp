@@ -1,6 +1,6 @@
 #pragma once
 #include <State/Address.hpp>
-#include <qwidget.h>
+#include <QWidget>
 
 class AddressLineEdit;
 class DeviceExplorerModel;

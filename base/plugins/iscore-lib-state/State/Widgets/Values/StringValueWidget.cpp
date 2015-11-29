@@ -1,8 +1,8 @@
 #include <iscore/widgets/MarginLess.hpp>
-#include <qgridlayout.h>
-#include <qlineedit.h>
+#include <QGridLayout>
+#include <QLineEdit>
 
-#include "State/Widgets/Values/ValueWidget.hpp"
+#include <State/Widgets/Values/ValueWidget.hpp>
 #include "StringValueWidget.hpp"
 
 class QWidget;

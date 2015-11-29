@@ -1,13 +1,13 @@
-#include <qboxlayout.h>
+#include <QBoxLayout>
 #include <qcoreevent.h>
-#include <qevent.h>
-#include <qfont.h>
-#include <qlabel.h>
-#include <qlineedit.h>
+#include <QEvent>
+#include <QFont>
+#include <QLabel>
+#include <QLineEdit>
 #include <qnamespace.h>
-#include <qregexp.h>
-#include <qstring.h>
-#include <qvalidator.h>
+#include <QRegExp>
+#include <QString>
+#include <QValidator>
 
 #include "IpWidget.hpp"
 

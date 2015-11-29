@@ -1,17 +1,17 @@
 #include <Process/State/ProcessStateDataInterface.hpp>
 #include <iscore/document/DocumentInterface.hpp>
-#include <qabstractitemmodel.h>
-#include <qobject.h>
+#include <QAbstractItemModel>
+#include <QObject>
 #include <algorithm>
 
 #include "ItemModel/MessageItemModelAlgorithms.hpp"
-#include "Process/Process.hpp"
+#include <Process/Process.hpp>
 #include "Scenario/Document/Event/ExecutionStatus.hpp"
 #include "Scenario/Document/State/ItemModel/MessageItemModel.hpp"
-#include "State/Message.hpp"
+#include <State/Message.hpp>
 #include "StateModel.hpp"
-#include "iscore/tools/IdentifiedObject.hpp"
-#include "iscore/tools/SettableIdentifier.hpp"
+#include <iscore/tools/IdentifiedObject.hpp>
+#include <iscore/tools/SettableIdentifier.hpp>
 #include <Scenario/Process/ScenarioInterface.hpp>
 #include <Scenario/Document/Constraint/ConstraintModel.hpp>
 

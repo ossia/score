@@ -2,15 +2,15 @@
 #include <boost/optional/optional.hpp>
 #include <iscore/command/Dispatchers/SingleOngoingCommandDispatcher.hpp>
 #include <iscore/tools/SettableIdentifierGeneration.hpp>
-#include <qbytearray.h>
-#include <qpoint.h>
-#include <qvector.h>
+#include <QByteArray>
+#include <QPoint>
+#include <QVector>
 #include <algorithm>
 #include <vector>
 
-#include "Curve/Segment/CurveSegmentData.hpp"
-#include "iscore/tools/ModelPath.hpp"
-#include "iscore/tools/SettableIdentifier.hpp"
+#include <Curve/Segment/CurveSegmentData.hpp>
+#include <iscore/tools/ModelPath.hpp>
+#include <iscore/tools/SettableIdentifier.hpp>
 
 class CurveModel;
 class CurvePresenter;

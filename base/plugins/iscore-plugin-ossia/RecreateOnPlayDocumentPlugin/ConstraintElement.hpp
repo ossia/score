@@ -2,7 +2,7 @@
 #include <Editor/TimeValue.h>
 #include <Process/TimeValue.hpp>
 #include <iscore/tools/SettableIdentifier.hpp>
-#include <qobject.h>
+#include <QObject>
 #include <map>
 #include <memory>
 

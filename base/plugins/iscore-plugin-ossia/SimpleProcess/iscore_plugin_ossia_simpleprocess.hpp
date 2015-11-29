@@ -1,10 +1,10 @@
 #pragma once
 #include <iscore/plugins/qt_interfaces/FactoryInterface_QtInterface.hpp>
-#include <qobject.h>
+#include <QObject>
 #include <vector>
 
-#include "core/application/ApplicationContext.hpp"
-#include "iscore/plugins/customfactory/FactoryInterface.hpp"
+#include <core/application/ApplicationContext.hpp>
+#include <iscore/plugins/customfactory/FactoryInterface.hpp>
 
 class iscore_plugin_ossia_simpleprocess:
         public QObject,

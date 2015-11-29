@@ -1,9 +1,9 @@
 #include <Scenario/Document/Constraint/Rack/Slot/SlotModel.hpp>
 
 #include "ResizeSlotVertically.hpp"
-#include "iscore/serialization/DataStreamVisitor.hpp"
-#include "iscore/tools/ModelPath.hpp"
-#include "iscore/tools/ModelPathSerialization.hpp"
+#include <iscore/serialization/DataStreamVisitor.hpp>
+#include <iscore/tools/ModelPath.hpp>
+#include <iscore/tools/ModelPathSerialization.hpp>
 
 using namespace iscore;
 using namespace Scenario::Command;

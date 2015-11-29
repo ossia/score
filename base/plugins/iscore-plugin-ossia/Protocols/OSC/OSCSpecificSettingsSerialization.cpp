@@ -1,8 +1,8 @@
 #include <iscore/serialization/DataStreamVisitor.hpp>
 #include <iscore/serialization/JSONVisitor.hpp>
-#include <qjsonobject.h>
-#include <qjsonvalue.h>
-#include <qstring.h>
+#include <QJsonObject>
+#include <QJsonValue>
+#include <QString>
 
 #include "OSCSpecificSettings.hpp"
 

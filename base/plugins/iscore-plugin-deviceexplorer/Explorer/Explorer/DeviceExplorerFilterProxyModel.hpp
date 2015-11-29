@@ -1,6 +1,6 @@
 #pragma once
 
-#include <qsortfilterproxymodel.h>
+#include <QSortFilterProxyModel>
 
 class QModelIndex;
 class QObject;

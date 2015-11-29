@@ -1,4 +1,4 @@
-#include <qgraphicssvgitem.h>
+#include <QGraphicsSvgItem>
 
 #include "TriggerView.hpp"
 

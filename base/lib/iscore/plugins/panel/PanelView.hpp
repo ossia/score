@@ -1,8 +1,8 @@
 #pragma once
 
 #include <qnamespace.h>
-#include <qobject.h>
-#include <qstring.h>
+#include <QObject>
+#include <QString>
 
 class QWidget;
 

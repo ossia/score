@@ -10,29 +10,29 @@
 #include <Explorer/Commands/UpdateAddresses.hpp>
 #include <boost/core/explicit_operator_bool.hpp>
 #include <boost/optional/optional.hpp>
-#include <qabstractproxymodel.h>
-#include <qaction.h>
-#include <qboxlayout.h>
-#include <qcombobox.h>
-#include <qdialog.h>
-#include <qevent.h>
-#include <qgridlayout.h>
-#include <qicon.h>
-#include <qkeysequence.h>
-#include <qlineedit.h>
-#include <qlist.h>
-#include <qmenu.h>
+#include <QAbstractProxyModel>
+#include <QAction>
+#include <QBoxLayout>
+#include <QComboBox>
+#include <QDialog>
+#include <QEvent>
+#include <QGridLayout>
+#include <QIcon>
+#include <QKeySequence>
+#include <QLineEdit>
+#include <QList>
+#include <QMenu>
 #include <qnamespace.h>
-#include <qobjectdefs.h>
-#include <qpair.h>
-#include <qpushbutton.h>
-#include <qregexp.h>
-#include <qset.h>
-#include <qsize.h>
-#include <qstackedlayout.h>
-#include <qstring.h>
-#include <qstringlist.h>
-#include <qtreeview.h>
+
+#include <QPair>
+#include <QPushButton>
+#include <QRegExp>
+#include <QSet>
+#include <QSize>
+#include <QStackedLayout>
+#include <QString>
+#include <QStringList>
+#include <QTreeView>
 #include <algorithm>
 #include <stdexcept>
 
@@ -47,15 +47,15 @@
 #include "Explorer/DocumentPlugin/DeviceDocumentPlugin.hpp"
 #include "Explorer/Explorer/DeviceExplorerModel.hpp"
 #include "QProgressIndicator.h"
-#include "State/Address.hpp"
-#include "State/Value.hpp"
+#include <State/Address.hpp>
+#include <State/Value.hpp>
 #include "Widgets/AddressEditDialog.hpp"
 #include "Widgets/DeviceEditDialog.hpp"
-#include "iscore/command/Dispatchers/CommandDispatcher.hpp"
-#include "iscore/tools/IdentifiedObject.hpp"
-#include "iscore/tools/InvisibleRootNode.hpp"
-#include "iscore/tools/ModelPath.hpp"
-#include "iscore/tools/TreeNode.hpp"
+#include <iscore/command/Dispatchers/CommandDispatcher.hpp>
+#include <iscore/tools/IdentifiedObject.hpp>
+#include <iscore/tools/InvisibleRootNode.hpp>
+#include <iscore/tools/ModelPath.hpp>
+#include <iscore/tools/TreeNode.hpp>
 
 class DynamicProtocolList;
 
@@ -733,7 +733,7 @@ DeviceExplorerWidget::filterChanged()
     Qt::CaseSensitivity cs = Qt::CaseSensitive;
 
     QRegExp::PatternSyntax syntax = QRegExp::WildcardUnix; //RegExp; //Wildcard; //WildcardUnix; //?
-    //See http://qt-project.org/doc/qt-5/qregexp.html#PatternSyntax-enum
+    //See http://qt-project.org/doc/qt-5/QRegExptml#PatternSyntax-enum
 
     QRegExp regExp(pattern, cs, syntax);
 

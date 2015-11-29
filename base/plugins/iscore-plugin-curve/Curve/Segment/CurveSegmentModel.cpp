@@ -1,7 +1,7 @@
-#include "Curve/Palette/CurvePoint.hpp"
-#include "Curve/Segment/CurveSegmentData.hpp"
+#include <Curve/Palette/CurvePoint.hpp>
+#include <Curve/Segment/CurveSegmentData.hpp>
 #include "CurveSegmentModel.hpp"
-#include "iscore/tools/IdentifiedObject.hpp"
+#include <iscore/tools/IdentifiedObject.hpp>
 
 class QObject;
 

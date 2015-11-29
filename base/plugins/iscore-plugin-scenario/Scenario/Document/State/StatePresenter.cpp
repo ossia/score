@@ -1,23 +1,23 @@
 #include <State/MessageListSerialization.hpp>
 #include <iscore/document/DocumentInterface.hpp>
 #include <iscore/widgets/GraphicsItem.hpp>
-#include <qmimedata.h>
-#include <qstringlist.h>
+#include <QMimeData>
+#include <QStringList>
 
-#include "Process/ModelMetadata.hpp"
+#include <Process/ModelMetadata.hpp>
 #include "Scenario/Commands/State/AddMessagesToState.hpp"
 #include "Scenario/Document/Event/ExecutionStatus.hpp"
 #include "Scenario/Document/State/ItemModel/MessageItemModel.hpp"
-#include "State/Message.hpp"
+#include <State/Message.hpp>
 #include "StateModel.hpp"
 #include "StatePresenter.hpp"
 #include "StateView.hpp"
-#include "iscore/command/Dispatchers/CommandDispatcher.hpp"
-#include "iscore/selection/Selectable.hpp"
-#include "iscore/serialization/MimeVisitor.hpp"
-#include "iscore/tools/IdentifiedObject.hpp"
-#include "iscore/tools/NamedObject.hpp"
-#include "iscore/tools/Todo.hpp"
+#include <iscore/command/Dispatchers/CommandDispatcher.hpp>
+#include <iscore/selection/Selectable.hpp>
+#include <iscore/serialization/MimeVisitor.hpp>
+#include <iscore/tools/IdentifiedObject.hpp>
+#include <iscore/tools/NamedObject.hpp>
+#include <iscore/tools/Todo.hpp>
 
 class QObject;
 template <typename tag, typename impl> class id_base_t;

@@ -1,7 +1,7 @@
 #pragma once
-#include <qpoint.h>
+#include <QPoint>
 
-#include "Curve/Palette/CurvePoint.hpp"
+#include <Curve/Palette/CurvePoint.hpp>
 #include "CurveTool.hpp"
 
 namespace Curve {

@@ -7,9 +7,9 @@ This file is used to define simple data structure to simplify the code when need
 #include <Process/TimeValue.hpp>
 #include <iscore/tools/ModelPath.hpp>
 #include <iscore/tools/SettableIdentifier.hpp>
-#include <qbytearray.h>
-#include <qmap.h>
-#include <qpair.h>
+#include <QByteArray>
+#include <QMap>
+#include <QPair>
 
 class ConstraintModel;
 class ConstraintViewModel;

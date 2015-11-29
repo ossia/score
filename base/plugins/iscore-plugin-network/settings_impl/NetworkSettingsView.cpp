@@ -1,9 +1,9 @@
-#include <qgridlayout.h>
-#include <qlabel.h>
+#include <QGridLayout>
+#include <QLabel>
 
 #include "NetworkSettingsPresenter.hpp"
 #include "NetworkSettingsView.hpp"
-#include "iscore/plugins/settingsdelegate/SettingsDelegateViewInterface.hpp"
+#include <iscore/plugins/settingsdelegate/SettingsDelegateViewInterface.hpp>
 
 class QObject;
 

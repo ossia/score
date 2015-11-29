@@ -1,9 +1,9 @@
 #pragma once
 #include <Scenario/Document/VerticalExtent.hpp>
-#include <qcolor.h>
-#include <qgraphicsitem.h>
-#include <qpoint.h>
-#include <qrect.h>
+#include <QColor>
+#include <QGraphicsItem>
+#include <QPoint>
+#include <QRect>
 
 class QGraphicsSceneMouseEvent;
 class QPainter;

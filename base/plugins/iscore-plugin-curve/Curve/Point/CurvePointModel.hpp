@@ -3,8 +3,8 @@
 #include <iscore/selection/Selectable.hpp>
 #include <iscore/tools/IdentifiedObject.hpp>
 
-#include "Curve/Palette/CurvePoint.hpp"
-#include "iscore/tools/SettableIdentifier.hpp"
+#include <Curve/Palette/CurvePoint.hpp>
+#include <iscore/tools/SettableIdentifier.hpp>
 
 class CurveSegmentModel;
 class QObject;

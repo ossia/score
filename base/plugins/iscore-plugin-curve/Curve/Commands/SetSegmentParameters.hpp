@@ -3,10 +3,10 @@
 #include <boost/optional/optional.hpp>
 #include <iscore/command/SerializableCommand.hpp>
 #include <iscore/tools/ModelPath.hpp>
-#include <qmap.h>
-#include <qpair.h>
+#include <QMap>
+#include <QPair>
 
-#include "iscore/tools/SettableIdentifier.hpp"
+#include <iscore/tools/SettableIdentifier.hpp>
 
 class CurveModel;
 class CurveSegmentModel;

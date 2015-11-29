@@ -3,7 +3,7 @@
 #include <iscore/plugins/documentdelegate/DocumentDelegateFactoryInterface.hpp>
 
 #include "DocumentPresenter.hpp"
-#include "iscore/tools/NamedObject.hpp"
+#include <iscore/tools/NamedObject.hpp>
 
 class QObject;
 

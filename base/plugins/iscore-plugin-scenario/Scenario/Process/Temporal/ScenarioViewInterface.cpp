@@ -2,12 +2,12 @@
 #include <boost/iterator/indirect_iterator.hpp>
 #include <boost/iterator/iterator_facade.hpp>
 #include <boost/multi_index/detail/hash_index_iterator.hpp>
-#include <qglobal.h>
-#include <qpoint.h>
-#include <qrect.h>
+#include <QtGlobal>
+#include <QPoint>
+#include <QRect>
 
-#include "Process/LayerModel.hpp"
-#include "Process/TimeValue.hpp"
+#include <Process/LayerModel.hpp>
+#include <Process/TimeValue.hpp>
 #include "Scenario/Document/Constraint/ConstraintDurations.hpp"
 #include "Scenario/Document/Constraint/ConstraintModel.hpp"
 #include "Scenario/Document/Constraint/ViewModels/ConstraintPresenter.hpp"
@@ -26,7 +26,7 @@
 #include "Scenario/Process/Temporal/TemporalScenarioView.hpp"
 #include "ScenarioViewInterface.hpp"
 #include "TemporalScenarioPresenter.hpp"
-#include "iscore/tools/IdentifiedObjectMap.hpp"
+#include <iscore/tools/IdentifiedObjectMap.hpp>
 
 template <typename tag, typename impl> class id_base_t;
 

@@ -1,5 +1,5 @@
 #include <Process/Style/ScenarioStyle.hpp>
-#include <qpainter.h>
+#include <QPainter>
 
 #include "ProcessPanelGraphicsProxy.hpp"
 

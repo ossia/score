@@ -1,11 +1,11 @@
 #include <iscore/widgets/MarginLess.hpp>
-#include <qboxlayout.h>
-#include <qlayoutitem.h>
-#include <qlineedit.h>
+#include <QBoxLayout>
+#include <QLayoutItem>
+#include <QLineEdit>
 #include <qnamespace.h>
-#include <qobjectdefs.h>
-#include <qpushbutton.h>
-#include <qtoolbutton.h>
+
+#include <QPushButton>
+#include <QToolButton>
 
 #include "InspectorSectionWidget.hpp"
 

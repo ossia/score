@@ -1,7 +1,7 @@
 #pragma once
 #include <boost/optional/optional.hpp>
 #include <iscore/tools/SettableIdentifier.hpp>
-#include <qtablewidget.h>
+#include <QTableWidget>
 
 class Client;
 

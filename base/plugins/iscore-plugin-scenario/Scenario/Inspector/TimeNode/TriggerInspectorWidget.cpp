@@ -1,7 +1,7 @@
 #include <Scenario/Commands/TimeNode/SetTrigger.hpp>
 #include <Scenario/Document/TimeNode/Trigger/TriggerModel.hpp>
-#include <qboxlayout.h>
-#include <qpushbutton.h>
+#include <QBoxLayout>
+#include <QPushButton>
 #include <algorithm>
 
 #include "Inspector/InspectorWidgetBase.hpp"
@@ -9,8 +9,8 @@
 #include "Scenario/Document/TimeNode/TimeNodeModel.hpp"
 #include "Scenario/Inspector/Expression/SimpleExpressionEditorWidget.hpp"
 #include "TriggerInspectorWidget.hpp"
-#include "iscore/command/Dispatchers/CommandDispatcher.hpp"
-#include "iscore/tools/ModelPath.hpp"
+#include <iscore/command/Dispatchers/CommandDispatcher.hpp>
+#include <iscore/tools/ModelPath.hpp>
 
 using namespace Scenario::Command;
 

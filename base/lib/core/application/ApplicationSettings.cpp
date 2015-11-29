@@ -1,12 +1,12 @@
-#include <qapplication.h>
-#include <qcommandlineoption.h>
-#include <qcommandlineparser.h>
-#include <qcoreapplication.h>
-#include <qfile.h>
-#include <qlist.h>
-#include <qobject.h>
-#include <qobjectdefs.h>
-#include <qstring.h>
+#include <QApplication>
+#include <QCommandLineOption>
+#include <QCommandLineParser>
+#include <QCoreApplication>
+#include <QFile>
+#include <QList>
+#include <QObject>
+
+#include <QString>
 
 #include "ApplicationSettings.hpp"
 

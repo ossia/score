@@ -1,5 +1,5 @@
 #pragma once
-#include "Curve/Segment/CurveSegmentData.hpp"
+#include <Curve/Segment/CurveSegmentData.hpp>
 #include "CurveCommandObjectBase.hpp"
 
 class CurvePresenter;

@@ -1,5 +1,5 @@
 #pragma once
-#include "iscore/serialization/VisitorInterface.hpp"
+#include <iscore/serialization/VisitorInterface.hpp>
 
 class DynamicProcessList;
 class Process;

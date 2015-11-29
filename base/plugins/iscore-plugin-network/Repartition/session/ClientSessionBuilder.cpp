@@ -1,15 +1,15 @@
 #include <iscore/serialization/DataStreamVisitor.hpp>
-#include <qdatastream.h>
-#include <qiodevice.h>
+#include <QDataStream>
+#include <QIODevice>
 #include <sys/types.h>
 
 #include "ClientSession.hpp"
 #include "ClientSessionBuilder.hpp"
 #include "Serialization/NetworkMessage.hpp"
 #include "Serialization/NetworkSocket.hpp"
-#include "iscore/command/SerializableCommand.hpp"
-#include "iscore/plugins/customfactory/StringFactoryKey.hpp"
-#include "iscore/tools/SettableIdentifier.hpp"
+#include <iscore/command/SerializableCommand.hpp>
+#include <iscore/plugins/customfactory/StringFactoryKey.hpp>
+#include <iscore/tools/SettableIdentifier.hpp>
 #include "session/../client/LocalClient.hpp"
 #include "session/../client/RemoteClient.hpp"
 

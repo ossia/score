@@ -1,14 +1,14 @@
 #include <core/document/Document.hpp>
 #include <core/document/DocumentModel.hpp>
 #include <iscore/document/DocumentInterface.hpp>
-#include <qalgorithms.h>
+#include <QtAlgorithms>
 #include <algorithm>
 #include <iterator>
 
 #include "ElementPluginModelList.hpp"
-#include "iscore/plugins/documentdelegate/plugin/DocumentDelegatePluginModel.hpp"
-#include "iscore/plugins/documentdelegate/plugin/ElementPluginModel.hpp"
-#include "iscore/tools/std/StdlibWrapper.hpp"
+#include <iscore/plugins/documentdelegate/plugin/DocumentDelegatePluginModel.hpp>
+#include <iscore/plugins/documentdelegate/plugin/ElementPluginModel.hpp>
+#include <iscore/tools/std/StdlibWrapper.hpp>
 
 class QObject;
 

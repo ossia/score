@@ -1,6 +1,6 @@
-#include <qchar.h>
-#include <qdebug.h>
-#include <qstring.h>
+#include <QChar>
+#include <QDebug>
+#include <QString>
 #include <algorithm>
 #include <memory>
 #include <vector>
@@ -10,7 +10,7 @@
 #include "Network/Address.h"
 #include "Network/Node.h"
 #include "OSSIA2iscore.hpp"
-#include "iscore/tools/TreeNode.hpp"
+#include <iscore/tools/TreeNode.hpp>
 
 namespace OSSIA
 {

@@ -1,11 +1,11 @@
 #include <iscore/widgets/MarginLess.hpp>
-#include <qcombobox.h>
-#include <qgridlayout.h>
-#include <qobjectdefs.h>
-#include <qstring.h>
+#include <QComboBox>
+#include <QGridLayout>
+
+#include <QString>
 
 #include "BoolValueWidget.hpp"
-#include "State/Widgets/Values/ValueWidget.hpp"
+#include <State/Widgets/Values/ValueWidget.hpp>
 
 class QWidget;
 

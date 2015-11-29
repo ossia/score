@@ -1,8 +1,8 @@
 #pragma once
 #include <iscore/plugins/customfactory/FactoryInterface.hpp>
-#include <qlist.h>
+#include <QList>
 
-#include "iscore/plugins/customfactory/StringFactoryKey.hpp"
+#include <iscore/plugins/customfactory/StringFactoryKey.hpp>
 
 class ScenarioActions;
 class ScenarioApplicationPlugin;

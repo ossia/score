@@ -1,6 +1,6 @@
 #pragma once
 #include <Device/Node/DeviceNode.hpp>
-#include <qvariant.h>
+#include <QVariant>
 
 class DeviceInterface;
 

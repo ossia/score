@@ -1,6 +1,6 @@
-#include <qboxlayout.h>
-#include <qframe.h>
-#include <qlayout.h>
+#include <QBoxLayout>
+#include <QFrame>
+#include <QLayout>
 
 #include "Separator.hpp"
 

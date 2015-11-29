@@ -1,8 +1,8 @@
 #pragma once
 
 #include <Device/Protocol/DeviceSettings.hpp>
-#include <qstring.h>
-#include <qwidget.h>
+#include <QString>
+#include <QWidget>
 
 class ProtocolSettingsWidget : public QWidget
 {

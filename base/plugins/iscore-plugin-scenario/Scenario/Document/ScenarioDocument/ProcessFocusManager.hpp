@@ -1,6 +1,6 @@
 #pragma once
-#include <qobject.h>
-#include <qpointer.h>
+#include <QObject>
+#include <QPointer>
 
 class LayerModel;
 class LayerPresenter;

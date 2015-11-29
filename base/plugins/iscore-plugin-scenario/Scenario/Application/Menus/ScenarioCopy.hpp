@@ -1,5 +1,5 @@
 #pragma once
-#include <qjsonobject.h>
+#include <QJsonObject>
 
 class ConstraintModel;
 namespace Scenario {

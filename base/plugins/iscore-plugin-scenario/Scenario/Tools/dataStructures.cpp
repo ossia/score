@@ -1,10 +1,10 @@
 #include <boost/core/explicit_operator_bool.hpp>
 #include <iscore/serialization/DataStreamVisitor.hpp>
 #include <iscore/tools/ModelPathSerialization.hpp>
-#include <qdatastream.h>
+#include <QDataStream>
 
 #include "dataStructures.hpp"
-#include "iscore/tools/SettableIdentifier.hpp"
+#include <iscore/tools/SettableIdentifier.hpp>
 
 template <typename T> class Reader;
 template <typename T> class Writer;

@@ -2,8 +2,8 @@
 #include <Process/TimeValue.hpp>
 #include <Process/ZoomHelper.hpp>
 #include <iscore/tools/NamedObject.hpp>
-#include <qpoint.h>
-#include <qstring.h>
+#include <QPoint>
+#include <QString>
 
 class ConstraintHeader;
 class ConstraintModel;

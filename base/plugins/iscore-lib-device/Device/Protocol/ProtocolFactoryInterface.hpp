@@ -1,8 +1,8 @@
 #pragma once
 #include <iscore/plugins/customfactory/FactoryInterface.hpp>
 #include <iscore/serialization/VisitorCommon.hpp>
-#include <qstring.h>
-#include <qvariant.h>
+#include <QString>
+#include <QVariant>
 
 #include "Device/Protocol/ProtocolFactoryKey.hpp"
 

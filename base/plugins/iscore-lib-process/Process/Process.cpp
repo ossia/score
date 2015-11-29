@@ -1,15 +1,15 @@
-#include <qobject.h>
+#include <QObject>
 #include <algorithm>
 #include <stdexcept>
 
 #include "LayerModel.hpp"
 #include "Process.hpp"
-#include "Process/ExpandMode.hpp"
-#include "Process/ModelMetadata.hpp"
-#include "Process/TimeValue.hpp"
-#include "iscore/tools/IdentifiedObject.hpp"
-#include "iscore/tools/SettableIdentifier.hpp"
-#include "iscore/tools/std/StdlibWrapper.hpp"
+#include <Process/ExpandMode.hpp>
+#include <Process/ModelMetadata.hpp>
+#include <Process/TimeValue.hpp>
+#include <iscore/tools/IdentifiedObject.hpp>
+#include <iscore/tools/SettableIdentifier.hpp>
+#include <iscore/tools/std/StdlibWrapper.hpp>
 
 Process::Process(
         const TimeValue& duration,

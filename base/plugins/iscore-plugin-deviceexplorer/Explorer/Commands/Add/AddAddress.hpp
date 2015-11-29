@@ -5,7 +5,7 @@
 #include <iscore/tools/ModelPath.hpp>
 
 #include "Device/Address/AddressSettings.hpp"
-#include "iscore/tools/TreePath.hpp"
+#include <iscore/tools/TreePath.hpp>
 
 class DataStreamInput;
 class DataStreamOutput;

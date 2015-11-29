@@ -1,21 +1,21 @@
 #include <Serialization/MessageMapper.hpp>
 #include <boost/optional/optional.hpp>
 #include <core/document/DocumentContext.hpp>
-#include <qbytearray.h>
-#include <qdatastream.h>
+#include <QByteArray>
+#include <QDataStream>
 #include <algorithm>
 
 #include "NetworkMasterDocumentPlugin.hpp"
 #include "Serialization/NetworkMessage.hpp"
-#include "core/application/ApplicationComponents.hpp"
-#include "core/application/ApplicationContext.hpp"
-#include "core/command/CommandStack.hpp"
-#include "iscore/command/SerializableCommand.hpp"
-#include "iscore/locking/ObjectLocker.hpp"
-#include "iscore/plugins/customfactory/StringFactoryKey.hpp"
-#include "iscore/serialization/DataStreamVisitor.hpp"
-#include "iscore/tools/SettableIdentifier.hpp"
-#include "iscore/tools/Todo.hpp"
+#include <core/application/ApplicationComponents.hpp>
+#include <core/application/ApplicationContext.hpp>
+#include <core/command/CommandStack.hpp>
+#include <iscore/command/SerializableCommand.hpp>
+#include <iscore/locking/ObjectLocker.hpp>
+#include <iscore/plugins/customfactory/StringFactoryKey.hpp>
+#include <iscore/serialization/DataStreamVisitor.hpp>
+#include <iscore/tools/SettableIdentifier.hpp>
+#include <iscore/tools/Todo.hpp>
 #include "session/MasterSession.hpp"
 
 class Client;

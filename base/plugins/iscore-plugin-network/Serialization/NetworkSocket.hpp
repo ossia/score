@@ -1,6 +1,6 @@
 #pragma once
-#include <qobject.h>
-#include <qstring.h>
+#include <QObject>
+#include <QString>
 #include "NetworkMessage.hpp"
 class QTcpSocket;
 

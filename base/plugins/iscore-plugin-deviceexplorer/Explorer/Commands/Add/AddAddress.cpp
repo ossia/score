@@ -1,14 +1,14 @@
 #include <Explorer/DocumentPlugin/DeviceDocumentPlugin.hpp>
-#include <qdatastream.h>
-#include <qglobal.h>
+#include <QDataStream>
+#include <QtGlobal>
 
 #include "AddAddress.hpp"
 #include "Device/Node/DeviceNode.hpp"
 #include "Explorer/DocumentPlugin/NodeUpdateProxy.hpp"
-#include "iscore/serialization/DataStreamVisitor.hpp"
-#include "iscore/tools/ModelPath.hpp"
-#include "iscore/tools/ModelPathSerialization.hpp"
-#include "iscore/tools/TreeNode.hpp"
+#include <iscore/serialization/DataStreamVisitor.hpp>
+#include <iscore/tools/ModelPath.hpp>
+#include <iscore/tools/ModelPathSerialization.hpp>
+#include <iscore/tools/TreeNode.hpp>
 
 using namespace DeviceExplorer::Command;
 

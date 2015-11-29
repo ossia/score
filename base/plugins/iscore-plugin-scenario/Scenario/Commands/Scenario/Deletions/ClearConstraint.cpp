@@ -5,19 +5,19 @@
 #include <Scenario/Document/Constraint/ViewModels/ConstraintViewModel.hpp>
 #include <boost/core/explicit_operator_bool.hpp>
 #include <core/application/ApplicationComponents.hpp>
-#include <qdatastream.h>
-#include <qglobal.h>
+#include <QDataStream>
+#include <QtGlobal>
 #include <algorithm>
 
 #include "ClearConstraint.hpp"
-#include "Process/Process.hpp"
-#include "core/application/ApplicationContext.hpp"
-#include "iscore/plugins/customfactory/StringFactoryKey.hpp"
-#include "iscore/serialization/DataStreamVisitor.hpp"
-#include "iscore/tools/IdentifiedObject.hpp"
-#include "iscore/tools/ModelPath.hpp"
-#include "iscore/tools/ModelPathSerialization.hpp"
-#include "iscore/tools/NotifyingMap.hpp"
+#include <Process/Process.hpp>
+#include <core/application/ApplicationContext.hpp>
+#include <iscore/plugins/customfactory/StringFactoryKey.hpp>
+#include <iscore/serialization/DataStreamVisitor.hpp>
+#include <iscore/tools/IdentifiedObject.hpp>
+#include <iscore/tools/ModelPath.hpp>
+#include <iscore/tools/ModelPathSerialization.hpp>
+#include <iscore/tools/NotifyingMap.hpp>
 
 using namespace iscore;
 using namespace Scenario::Command;

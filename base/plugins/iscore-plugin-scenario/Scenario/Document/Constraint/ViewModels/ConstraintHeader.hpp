@@ -1,6 +1,6 @@
 #pragma once
-#include <qgraphicsitem.h>
-#include <qstring.h>
+#include <QGraphicsItem>
+#include <QString>
 
 class ConstraintView;
 class QGraphicsSceneMouseEvent;

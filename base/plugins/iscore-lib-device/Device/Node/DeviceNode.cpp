@@ -1,16 +1,16 @@
 #include <eggs/variant/variant.hpp>
-#include <qbytearray.h>
-#include <qdebug.h>
+#include <QByteArray>
+#include <QDebug>
 #include <vector>
 
 #include "Device/Address/AddressSettings.hpp"
 #include "Device/Address/IOType.hpp"
 #include "Device/Protocol/DeviceSettings.hpp"
 #include "DeviceNode.hpp"
-#include "State/Message.hpp"
-#include "State/Value.hpp"
-#include "iscore/tools/Todo.hpp"
-#include "iscore/tools/TreeNode.hpp"
+#include <State/Message.hpp>
+#include <State/Value.hpp>
+#include <iscore/tools/Todo.hpp>
+#include <iscore/tools/TreeNode.hpp>
 
 namespace iscore
 {

@@ -2,8 +2,8 @@
 
 #include <Scenario/Commands/Scenario/Displacement/MoveEventFactoryInterface.hpp>
 
-#include "Process/ExpandMode.hpp"
-#include "Process/TimeValue.hpp"
+#include <Process/ExpandMode.hpp>
+#include <Process/TimeValue.hpp>
 
 class EventModel;
 class SerializableMoveEvent;

@@ -1,7 +1,7 @@
 #include <iscore/serialization/DataStreamVisitor.hpp>
 #include <iscore/serialization/JSONVisitor.hpp>
-#include <qjsonobject.h>
-#include <qjsonvalue.h>
+#include <QJsonObject>
+#include <QJsonValue>
 
 #include "GammaCurveSegmentModel.hpp"
 

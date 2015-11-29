@@ -32,10 +32,10 @@ bool validate(const iscore::Expression& expr)
 #include <boost/spirit/home/support/common_terminals.hpp>
 #include <boost/variant/detail/apply_visitor_unary.hpp>
 #include <eggs/variant/variant.hpp>
-#include <qdebug.h>
-#include <qobject.h>
-#include <qstring.h>
-#include <qstringlist.h>
+#include <QDebug>
+#include <QObject>
+#include <QString>
+#include <QStringList>
 #include <QtTest/QtTest>
 using namespace iscore;
 #include <State/ExpressionParser.cpp>
@@ -329,7 +329,7 @@ class ExpressionParsingTests: public QObject
 
 QTEST_APPLESS_MAIN(ExpressionParsingTests)
 #include "ExpressionParsingTests.moc"
-#include "State/Address.hpp"
-#include "State/Relation.hpp"
-#include "State/Value.hpp"
+#include <State/Address.hpp>
+#include <State/Relation.hpp>
+#include <State/Value.hpp>
 

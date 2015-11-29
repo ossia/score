@@ -1,8 +1,8 @@
 #pragma once
 
-#include <qwidget.h>
+#include <QWidget>
 
-#include "State/Expression.hpp"
+#include <State/Expression.hpp>
 
 class InspectorWidgetBase;
 class QPushButton;

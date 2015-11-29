@@ -5,12 +5,12 @@
 #include <iscore/tools/VariantBasedNode.hpp>
 #include <Device/Address/AddressSettings.hpp>
 #include <Device/Protocol/DeviceSettings.hpp>
-#include <qlist.h>
-#include <qstring.h>
-#include <qstringlist.h>
+#include <QList>
+#include <QString>
+#include <QStringList>
 #include <algorithm>
 
-#include "State/Address.hpp"
+#include <State/Address.hpp>
 
 class DataStream;
 class JSONObject;

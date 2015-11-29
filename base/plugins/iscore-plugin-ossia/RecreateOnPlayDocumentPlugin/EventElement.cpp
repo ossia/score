@@ -1,7 +1,7 @@
 #include <API/Headers/Editor/TimeEvent.h>
 #include <Scenario/Document/Event/EventModel.hpp>
 #include <iscore2OSSIA.hpp>
-#include <qdebug.h>
+#include <QDebug>
 #include <exception>
 
 #include "Editor/Expression.h"

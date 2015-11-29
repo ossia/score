@@ -1,7 +1,7 @@
 #pragma once
-#include <qgraphicsitem.h>
-#include <qrect.h>
-#include <qsize.h>
+#include <QGraphicsItem>
+#include <QRect>
+#include <QSize>
 
 class LayerModel;
 class ProcessPanelPresenter;

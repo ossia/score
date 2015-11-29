@@ -1,5 +1,5 @@
 #include "LoopCommandFactory.hpp"
-#include "iscore/command/SerializableCommand.hpp"
+#include <iscore/command/SerializableCommand.hpp>
 
 const CommandParentFactoryKey& LoopCommandFactoryName() {
     static const CommandParentFactoryKey key{"Loop"};

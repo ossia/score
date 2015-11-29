@@ -1,9 +1,9 @@
 #pragma once
-#include <qglobal.h>
-#include <qgraphicsitem.h>
-#include <qpoint.h>
-#include <qrect.h>
-#include <qstring.h>
+#include <QtGlobal>
+#include <QGraphicsItem>
+#include <QPoint>
+#include <QRect>
+#include <QString>
 
 class QGraphicsSceneContextMenuEvent;
 class QPainter;

@@ -1,10 +1,10 @@
 #pragma once
 #include <boost/optional/optional.hpp>
 #include <iscore/tools/IdentifiedObject.hpp>
-#include <qstring.h>
-#include <qvector.h>
+#include <QString>
+#include <QVector>
 
-#include "iscore/tools/SettableIdentifier.hpp"
+#include <iscore/tools/SettableIdentifier.hpp>
 
 class Client;
 class DataStream;

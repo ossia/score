@@ -3,24 +3,24 @@
 #include <Scenario/Document/Constraint/ConstraintModel.hpp>
 #include <Scenario/Inspector/Constraint/ConstraintInspectorWidget.hpp>
 #include <boost/optional/optional.hpp>
-#include <qboxlayout.h>
-#include <qframe.h>
-#include <qpushbutton.h>
+#include <QBoxLayout>
+#include <QFrame>
+#include <QPushButton>
 
 #include "AddSlotWidget.hpp"
 #include "Inspector/InspectorSectionWidget.hpp"
-#include "Process/ModelMetadata.hpp"
+#include <Process/ModelMetadata.hpp>
 #include "RackInspectorSection.hpp"
 #include "Scenario/Document/Constraint/Rack/RackModel.hpp"
 #include "Scenario/Document/Constraint/Rack/Slot/SlotModel.hpp"
 #include "Slot/SlotInspectorSection.hpp"
-#include "iscore/command/Dispatchers/CommandDispatcher.hpp"
-#include "iscore/serialization/DataStreamVisitor.hpp"
-#include "iscore/tools/ModelPath.hpp"
-#include "iscore/tools/ModelPathSerialization.hpp"
-#include "iscore/tools/NotifyingMap.hpp"
-#include "iscore/tools/SettableIdentifier.hpp"
-#include "iscore/tools/Todo.hpp"
+#include <iscore/command/Dispatchers/CommandDispatcher.hpp>
+#include <iscore/serialization/DataStreamVisitor.hpp>
+#include <iscore/tools/ModelPath.hpp>
+#include <iscore/tools/ModelPathSerialization.hpp>
+#include <iscore/tools/NotifyingMap.hpp>
+#include <iscore/tools/SettableIdentifier.hpp>
+#include <iscore/tools/Todo.hpp>
 
 using namespace Scenario::Command;
 #include <Scenario/Commands/Constraint/RemoveRackFromConstraint.hpp>

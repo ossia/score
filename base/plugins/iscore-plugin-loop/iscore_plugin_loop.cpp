@@ -7,16 +7,16 @@
 #include <boost/optional/optional.hpp>
 //#if defined(ISCORE_STATIC_PLUGINS) && defined(ISCORE_COMPILER_IS_AppleClang)
 #include <iscore/tools/NotifyingMap_impl.hpp>
-#include <qobjectdefs.h>
+
 #include <string.h>
 #include <unordered_map>
 
 #include "Inspector/InspectorWidgetFactoryInterface.hpp"
-#include "Process/ProcessFactory.hpp"
+#include <Process/ProcessFactory.hpp>
 #include "Scenario/Commands/TimeNode/TriggerCommandFactory/TriggerCommandFactory.hpp"
 #include "Scenario/Inspector/Constraint/ConstraintInspectorDelegateFactory.hpp"
-#include "iscore/plugins/customfactory/StringFactoryKey.hpp"
-#include "iscore/tools/SettableIdentifier.hpp"
+#include <iscore/plugins/customfactory/StringFactoryKey.hpp>
+#include <iscore/tools/SettableIdentifier.hpp>
 #include "iscore_plugin_loop.hpp"
 #include <iscore_plugin_loop_commands_files.hpp>
 

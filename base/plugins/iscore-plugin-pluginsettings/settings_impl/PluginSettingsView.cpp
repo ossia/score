@@ -1,8 +1,8 @@
-#include <qgridlayout.h>
+#include <QGridLayout>
 
 #include "PluginSettingsPresenter.hpp"
 #include "PluginSettingsView.hpp"
-#include "iscore/plugins/settingsdelegate/SettingsDelegateViewInterface.hpp"
+#include <iscore/plugins/settingsdelegate/SettingsDelegateViewInterface.hpp>
 
 class QObject;
 

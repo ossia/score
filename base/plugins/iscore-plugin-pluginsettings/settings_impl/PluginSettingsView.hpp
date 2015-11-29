@@ -1,7 +1,7 @@
 #pragma once
 #include <iscore/plugins/settingsdelegate/SettingsDelegateViewInterface.hpp>
-#include <qlistview.h>
-#include <qwidget.h>
+#include <QListView>
+#include <QWidget>
 
 class PluginSettingsPresenter;
 class QObject;

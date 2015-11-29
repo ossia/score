@@ -1,13 +1,13 @@
 #pragma once
 #include <DummyProcess/DummyState.hpp>
 #include <Process/Process.hpp>
-#include <qbytearray.h>
-#include <qstring.h>
+#include <QByteArray>
+#include <QString>
 
-#include "Process/ProcessFactoryKey.hpp"
-#include "Process/TimeValue.hpp"
-#include "iscore/selection/Selection.hpp"
-#include "iscore/serialization/VisitorInterface.hpp"
+#include <Process/ProcessFactoryKey.hpp>
+#include <Process/TimeValue.hpp>
+#include <iscore/selection/Selection.hpp>
+#include <iscore/serialization/VisitorInterface.hpp>
 
 class DataStream;
 class JSONObject;

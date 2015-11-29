@@ -1,7 +1,7 @@
 #pragma once
 #include <Device/Node/DeviceNode.hpp>
-#include <qobject.h>
-#include <qstring.h>
+#include <QObject>
+#include <QString>
 
 class DeviceInterface;
 

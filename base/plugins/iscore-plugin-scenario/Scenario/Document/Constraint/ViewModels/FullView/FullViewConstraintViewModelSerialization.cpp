@@ -1,12 +1,12 @@
-#include <qjsonarray.h>
-#include <qjsonobject.h>
-#include <qjsonvalue.h>
-#include <qpoint.h>
+#include <QJsonArray>
+#include <QJsonObject>
+#include <QJsonValue>
+#include <QPoint>
 
 #include "FullViewConstraintViewModel.hpp"
-#include "iscore/serialization/DataStreamVisitor.hpp"
-#include "iscore/serialization/JSONValueVisitor.hpp"
-#include "iscore/serialization/JSONVisitor.hpp"
+#include <iscore/serialization/DataStreamVisitor.hpp>
+#include <iscore/serialization/JSONValueVisitor.hpp>
+#include <iscore/serialization/JSONVisitor.hpp>
 
 class ConstraintViewModel;
 template <typename T> class Reader;

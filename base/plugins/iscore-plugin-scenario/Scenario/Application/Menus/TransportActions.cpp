@@ -1,14 +1,14 @@
 #include <Scenario/Application/ScenarioApplicationPlugin.hpp>
-#include <qaction.h>
+#include <QAction>
 #include <qnamespace.h>
-#include <qobjectdefs.h>
-#include <qstring.h>
-#include <qtoolbar.h>
+
+#include <QString>
+#include <QToolBar>
 
 #include "Scenario/Application/Menus/ScenarioActions.hpp"
 #include "TransportActions.hpp"
-#include "core/presenter/MenubarManager.hpp"
-#include "iscore/menu/MenuInterface.hpp"
+#include <core/presenter/MenubarManager.hpp>
+#include <iscore/menu/MenuInterface.hpp>
 
 class QMenu;
 class TemporalScenarioPresenter;

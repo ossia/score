@@ -1,9 +1,9 @@
 #pragma once
 #include <boost/optional/optional.hpp>
 #include <iscore/tools/IdentifiedObject.hpp>
-#include <qstring.h>
+#include <QString>
 
-#include "iscore/tools/SettableIdentifier.hpp"
+#include <iscore/tools/SettableIdentifier.hpp>
 
 class ConstraintModel;
 class QObject;

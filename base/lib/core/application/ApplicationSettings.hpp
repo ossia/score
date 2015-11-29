@@ -1,5 +1,5 @@
 #pragma once
-#include <qstringlist.h>
+#include <QStringList>
 
 struct ApplicationSettings
 {

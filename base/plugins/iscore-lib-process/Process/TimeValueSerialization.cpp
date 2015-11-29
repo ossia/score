@@ -1,9 +1,9 @@
 #include <Process/TimeValue.hpp>
 #include <iscore/serialization/DataStreamVisitor.hpp>
-#include <qjsonvalue.h>
-#include <qstring.h>
+#include <QJsonValue>
+#include <QString>
 
-#include "iscore/serialization/JSONValueVisitor.hpp"
+#include <iscore/serialization/JSONValueVisitor.hpp>
 
 template <typename T> class Reader;
 template <typename T> class Writer;

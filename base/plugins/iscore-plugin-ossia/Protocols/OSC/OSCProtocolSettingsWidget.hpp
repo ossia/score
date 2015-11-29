@@ -1,7 +1,7 @@
 #pragma once
 
 #include <Device/Protocol/ProtocolSettingsWidget.hpp>
-#include <qstring.h>
+#include <QString>
 
 #include "Device/Protocol/DeviceSettings.hpp"
 

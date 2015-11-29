@@ -1,10 +1,10 @@
 #include <Process/Style/ScenarioStyle.hpp>
-#include <qcolor.h>
-#include <qglobal.h>
-#include <qgraphicsitem.h>
+#include <QColor>
+#include <QtGlobal>
+#include <QGraphicsItem>
 #include <qnamespace.h>
-#include <qpainter.h>
-#include <qpen.h>
+#include <QPainter>
+#include <QPen>
 
 #include "FullViewConstraintPresenter.hpp"
 #include "FullViewConstraintView.hpp"

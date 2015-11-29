@@ -1,7 +1,7 @@
 #pragma once
 #include <core/document/DocumentBuilder.hpp>
-#include <qobject.h>
-#include <qstring.h>
+#include <QObject>
+#include <QString>
 #include <algorithm>
 #include <vector>
 

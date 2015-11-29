@@ -1,16 +1,16 @@
 #include <eggs/variant/variant.hpp>
-#include <qjsonarray.h>
-#include <qlist.h>
-#include <qlocale.h>
-#include <qmetatype.h>
-#include <qobject.h>
-#include <qobjectdefs.h>
-#include <qstringlist.h>
+#include <QJsonArray>
+#include <QList>
+#include <QLocale>
+#include <QMetaType>
+#include <QObject>
+
+#include <QStringList>
 #include <algorithm>
 #include <array>
 #include <iterator>
 
-#include "State/Value.hpp"
+#include <State/Value.hpp>
 #include "ValueConversion.hpp"
 
 namespace iscore

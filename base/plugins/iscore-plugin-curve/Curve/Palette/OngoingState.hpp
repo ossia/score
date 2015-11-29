@@ -2,8 +2,8 @@
 #include <QState>
 #include <QFinalState>
 #include <iscore/statemachine/StateMachineUtils.hpp>
-#include "Curve/Palette/CurvePaletteBaseTransitions.hpp"
-#include "Curve/Palette/CurvePoint.hpp"
+#include <Curve/Palette/CurvePaletteBaseTransitions.hpp>
+#include <Curve/Palette/CurvePoint.hpp>
 
 
 namespace Curve

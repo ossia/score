@@ -1,5 +1,5 @@
 #include <Scenario/Process/ScenarioModel.hpp>
-#include <qobject.h>
+#include <QObject>
 
 #include "Scenario/Document/Constraint/ConstraintModel.hpp"
 #include "Scenario/Inspector/Constraint/ConstraintInspectorDelegate.hpp"

@@ -3,13 +3,13 @@
 #include <Loop/Palette/LoopToolPalette.hpp>
 #include <Process/LayerPresenter.hpp>
 #include <Scenario/Document/BaseScenario/BaseScenarioPresenter.hpp>
-#include <qdebug.h>
-#include <qpoint.h>
+#include <QDebug>
+#include <QPoint>
 
-#include "Process/Focus/FocusDispatcher.hpp"
-#include "Process/ProcessContext.hpp"
-#include "Process/ZoomHelper.hpp"
-#include "iscore/tools/SettableIdentifier.hpp"
+#include <Process/Focus/FocusDispatcher.hpp>
+#include <Process/ProcessContext.hpp>
+#include <Process/ZoomHelper.hpp>
+#include <iscore/tools/SettableIdentifier.hpp>
 
 class LayerModel;
 class Process;

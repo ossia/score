@@ -2,10 +2,10 @@
 
 
 
-#include <qcolor.h>
+#include <QColor>
 #include <qnamespace.h>
-#include <qobject.h>
-#include <qstring.h>
+#include <QObject>
+#include <QString>
 
 class DataStream;
 class JSONObject;

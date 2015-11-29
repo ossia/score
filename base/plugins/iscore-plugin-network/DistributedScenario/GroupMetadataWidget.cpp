@@ -1,13 +1,13 @@
 #include <boost/optional/optional.hpp>
 #include <iscore/command/Dispatchers/CommandDispatcher.hpp>
 #include <iscore/document/DocumentInterface.hpp>
-#include <qboxlayout.h>
-#include <qcombobox.h>
-#include <qlabel.h>
-#include <qlayout.h>
-#include <qobjectdefs.h>
-#include <qstring.h>
-#include <qvariant.h>
+#include <QBoxLayout>
+#include <QComboBox>
+#include <QLabel>
+#include <QLayout>
+
+#include <QString>
+#include <QVariant>
 #include <vector>
 
 #include "Commands/ChangeGroup.hpp"
@@ -15,8 +15,8 @@
 #include "GroupManager.hpp"
 #include "GroupMetadata.hpp"
 #include "GroupMetadataWidget.hpp"
-#include "iscore/tools/SettableIdentifier.hpp"
-#include "iscore/tools/Todo.hpp"
+#include <iscore/tools/SettableIdentifier.hpp>
+#include <iscore/tools/Todo.hpp>
 
 
 Q_DECLARE_METATYPE(Id<Group>)

@@ -2,9 +2,9 @@
 #include <Process/State/MessageNode.hpp>
 #include <Scenario/Commands/ScenarioCommandFactory.hpp>
 #include <iscore/command/SerializableCommand.hpp>
-#include <qjsonobject.h>
+#include <QJsonObject>
 
-#include "iscore/tools/ModelPath.hpp"
+#include <iscore/tools/ModelPath.hpp>
 
 class DataStreamInput;
 class DataStreamOutput;

@@ -1,6 +1,6 @@
 #pragma once
 #include <core/application/ApplicationContext.hpp>
-#include <qglobal.h>
+#include <QtGlobal>
 #include <chrono>
 
 namespace iscore

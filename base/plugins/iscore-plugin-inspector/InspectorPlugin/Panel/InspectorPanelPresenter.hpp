@@ -1,7 +1,7 @@
 #pragma once
 
 #include <iscore/plugins/panel/PanelPresenter.hpp>
-#include <qobjectdefs.h>
+
 
 namespace iscore {
 class PanelView;

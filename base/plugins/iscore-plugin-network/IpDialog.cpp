@@ -1,10 +1,10 @@
-#include <qboxlayout.h>
-#include <qdialogbuttonbox.h>
-#include <qflags.h>
-#include <qlayout.h>
-#include <qlineedit.h>
-#include <qspinbox.h>
-#include <qwidget.h>
+#include <QBoxLayout>
+#include <QDialogButtonBox>
+#include <QFlags>
+#include <QLayout>
+#include <QLineEdit>
+#include <QSpinBox>
+#include <QWidget>
 #include <array>
 
 #include "IpDialog.hpp"

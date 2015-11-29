@@ -5,12 +5,12 @@
 #include <Scenario/Document/Constraint/ViewModels/Temporal/TemporalConstraintView.hpp>
 #include <Scenario/Document/Event/EventView.hpp>
 #include <Scenario/Document/TimeNode/TimeNodeView.hpp>
-#include <qglobal.h>
-#include <qpoint.h>
-#include <qrect.h>
+#include <QtGlobal>
+#include <QPoint>
+#include <QRect>
 
 #include "LoopViewUpdater.hpp"
-#include "Process/TimeValue.hpp"
+#include <Process/TimeValue.hpp>
 #include "Scenario/Document/Constraint/ConstraintDurations.hpp"
 #include "Scenario/Document/Constraint/ConstraintModel.hpp"
 #include "Scenario/Document/Constraint/ViewModels/ConstraintPresenter.hpp"

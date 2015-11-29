@@ -1,10 +1,10 @@
 #pragma once
 #include <State/Value.hpp>
-#include <qchar.h>
-#include <qdebug.h>
-#include <qjsonvalue.h>
-#include <qstring.h>
-#include <qvariant.h>
+#include <QChar>
+#include <QDebug>
+#include <QJsonValue>
+#include <QString>
+#include <QVariant>
 
 class QStringList;
 

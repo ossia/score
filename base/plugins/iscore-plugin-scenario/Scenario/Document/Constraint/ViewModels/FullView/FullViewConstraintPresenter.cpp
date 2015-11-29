@@ -3,8 +3,8 @@
 #include <Scenario/Document/Constraint/ViewModels/FullView/FullViewConstraintViewModel.hpp>
 #include <core/document/Document.hpp>
 #include <iscore/document/DocumentInterface.hpp>
-#include <qgraphicsscene.h>
-#include <qlist.h>
+#include <QGraphicsScene>
+#include <QList>
 
 #include "AddressBarItem.hpp"
 #include "FullViewConstraintHeader.hpp"

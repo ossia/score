@@ -1,6 +1,6 @@
 #pragma once
-#include <qgraphicsitem.h>
-#include <qrect.h>
+#include <QGraphicsItem>
+#include <QRect>
 
 class QGraphicsSceneMouseEvent;
 class QGraphicsSvgItem;

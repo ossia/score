@@ -4,20 +4,20 @@
 #include <Scenario/Document/Constraint/ViewModels/FullView/FullViewConstraintViewModel.hpp>
 #include <Scenario/Inspector/Constraint/ConstraintInspectorWidget.hpp>
 #include <boost/optional/optional.hpp>
-#include <qboxlayout.h>
-#include <qgridlayout.h>
-#include <qlabel.h>
-#include <qlayout.h>
-#include <qlist.h>
-#include <qobject.h>
-#include <qobjectdefs.h>
-#include <qstring.h>
-#include <qstringlist.h>
-#include <qtoolbutton.h>
+#include <QBoxLayout>
+#include <QGridLayout>
+#include <QLabel>
+#include <QLayout>
+#include <QList>
+#include <QObject>
+
+#include <QString>
+#include <QStringList>
+#include <QToolButton>
 
 #include "LambdaFriendlyQComboBox.hpp"
 #include "RackWidget.hpp"
-#include "iscore/tools/SettableIdentifier.hpp"
+#include <iscore/tools/SettableIdentifier.hpp>
 
 const QString RackWidget::hiddenText{ QObject::tr("Hide")};
 

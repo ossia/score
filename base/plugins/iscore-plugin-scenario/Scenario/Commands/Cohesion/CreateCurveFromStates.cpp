@@ -8,23 +8,23 @@
 #include <core/application/ApplicationComponents.hpp>
 #include <ext/alloc_traits.h>
 #include <iscore/tools/SettableIdentifierGeneration.hpp>
-#include <qbytearray.h>
+#include <QByteArray>
 
-#include "Automation/AutomationProcessMetadata.hpp"
+#include <Automation/AutomationProcessMetadata.hpp>
 #include "CreateCurveFromStates.hpp"
-#include "Curve/Segment/CurveSegmentModel.hpp"
-#include "Process/Process.hpp"
-#include "Process/ProcessFactory.hpp"
+#include <Curve/Segment/CurveSegmentModel.hpp>
+#include <Process/Process.hpp>
+#include <Process/ProcessFactory.hpp>
 #include "Scenario/Commands/Constraint/AddOnlyProcessToConstraint.hpp"
 #include "Scenario/Commands/Constraint/Rack/Slot/AddLayerModelToSlot.hpp"
-#include "core/application/ApplicationContext.hpp"
-#include "iscore/plugins/customfactory/FactoryFamily.hpp"
-#include "iscore/plugins/customfactory/FactoryMap.hpp"
-#include "iscore/plugins/customfactory/StringFactoryKey.hpp"
-#include "iscore/serialization/DataStreamVisitor.hpp"
-#include "iscore/tools/ModelPath.hpp"
-#include "iscore/tools/NotifyingMap.hpp"
-#include "iscore/tools/SettableIdentifier.hpp"
+#include <core/application/ApplicationContext.hpp>
+#include <iscore/plugins/customfactory/FactoryFamily.hpp>
+#include <iscore/plugins/customfactory/FactoryMap.hpp>
+#include <iscore/plugins/customfactory/StringFactoryKey.hpp>
+#include <iscore/serialization/DataStreamVisitor.hpp>
+#include <iscore/tools/ModelPath.hpp>
+#include <iscore/tools/NotifyingMap.hpp>
+#include <iscore/tools/SettableIdentifier.hpp>
 
 class LayerModel;
 class SlotModel;

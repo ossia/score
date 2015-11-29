@@ -1,5 +1,5 @@
 #include <Scenario/Document/State/StateModel.hpp>
-#include <qstring.h>
+#include <QString>
 
 #include "StateInspectorFactory.hpp"
 #include "StateInspectorWidget.hpp"

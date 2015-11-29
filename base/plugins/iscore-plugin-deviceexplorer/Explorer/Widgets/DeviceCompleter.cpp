@@ -1,13 +1,13 @@
 #include <Device/Node/DeviceNode.hpp>
 #include <Explorer/Explorer/DeviceExplorerModel.hpp>
-#include <qabstractitemmodel.h>
-#include <qchar.h>
+#include <QAbstractItemModel>
+#include <QChar>
 #include <qnamespace.h>
-#include <qvariant.h>
+#include <QVariant>
 
 #include "Device/Protocol/DeviceSettings.hpp"
 #include "DeviceCompleter.hpp"
-#include "iscore/tools/TreeNode.hpp"
+#include <iscore/tools/TreeNode.hpp>
 
 class QObject;
 

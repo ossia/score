@@ -5,9 +5,9 @@
 #include <Scenario/Palette/Tools/MoveSlotToolState.hpp>
 #include <Scenario/Palette/Tools/SmartTool.hpp>
 #include <iscore/statemachine/GraphicsSceneToolPalette.hpp>
-#include <qpoint.h>
+#include <QPoint>
 
-#include "Process/ProcessContext.hpp"
+#include <Process/ProcessContext.hpp>
 #include "Scenario/Palette/ScenarioPoint.hpp"
 
 class TemporalScenarioPresenter;

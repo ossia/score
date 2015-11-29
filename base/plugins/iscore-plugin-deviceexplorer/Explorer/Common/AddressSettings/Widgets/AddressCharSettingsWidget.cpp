@@ -1,13 +1,13 @@
-#include <qchar.h>
-#include <qformlayout.h>
-#include <qlineedit.h>
-#include <qobjectdefs.h>
-#include <qstring.h>
+#include <QChar>
+#include <QFormLayout>
+#include <QLineEdit>
+
+#include <QString>
 
 #include "AddressCharSettingsWidget.hpp"
 #include "Explorer/Common/AddressSettings/Widgets/AddressSettingsWidget.hpp"
-#include "State/Value.hpp"
-#include "State/ValueConversion.hpp"
+#include <State/Value.hpp>
+#include <State/ValueConversion.hpp>
 
 class QWidget;
 

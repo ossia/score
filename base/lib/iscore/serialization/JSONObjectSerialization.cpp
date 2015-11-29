@@ -1,7 +1,7 @@
 #include <iscore/serialization/DataStreamVisitor.hpp>
-#include <qbytearray.h>
-#include <qjsondocument.h>
-#include <qjsonobject.h>
+#include <QByteArray>
+#include <QJsonDocument>
+#include <QJsonObject>
 
 template <typename T> class Reader;
 template <typename T> class Writer;

@@ -3,8 +3,8 @@
 #include <boost/optional/optional.hpp>
 #include <iscore/command/SerializableCommand.hpp>
 
-#include "iscore/tools/ObjectPath.hpp"
-#include "iscore/tools/SettableIdentifier.hpp"
+#include <iscore/tools/ObjectPath.hpp>
+#include <iscore/tools/SettableIdentifier.hpp>
 
 class DataStreamInput;
 class DataStreamOutput;

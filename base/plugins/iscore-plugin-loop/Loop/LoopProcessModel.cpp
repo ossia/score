@@ -9,16 +9,16 @@
 
 #include "Loop/LoopProcessMetadata.hpp"
 #include "LoopProcessModel.hpp"
-#include "Process/ModelMetadata.hpp"
-#include "Process/Process.hpp"
+#include <Process/ModelMetadata.hpp>
+#include <Process/Process.hpp>
 #include "Scenario/Document/BaseScenario/BaseScenarioContainer.hpp"
 #include "Scenario/Document/Constraint/ConstraintDurations.hpp"
 #include "Scenario/Document/State/StateModel.hpp"
-#include "iscore/document/DocumentInterface.hpp"
-#include "iscore/plugins/documentdelegate/plugin/ElementPluginModelList.hpp"
-#include "iscore/serialization/VisitorCommon.hpp"
-#include "iscore/tools/SettableIdentifier.hpp"
-#include "iscore/tools/std/StdlibWrapper.hpp"
+#include <iscore/document/DocumentInterface.hpp>
+#include <iscore/plugins/documentdelegate/plugin/ElementPluginModelList.hpp>
+#include <iscore/serialization/VisitorCommon.hpp>
+#include <iscore/tools/SettableIdentifier.hpp>
+#include <iscore/tools/std/StdlibWrapper.hpp>
 
 class LayerModel;
 class ProcessStateDataInterface;

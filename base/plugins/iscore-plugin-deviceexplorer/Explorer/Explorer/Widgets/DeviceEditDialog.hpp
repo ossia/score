@@ -1,8 +1,8 @@
 #pragma once
 
-#include <qdialog.h>
-#include <qlist.h>
-#include <qstring.h>
+#include <QDialog>
+#include <QList>
+#include <QString>
 
 #include "Device/Protocol/DeviceSettings.hpp"
 

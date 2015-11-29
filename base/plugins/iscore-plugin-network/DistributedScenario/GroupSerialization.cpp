@@ -1,16 +1,16 @@
 #include <boost/core/explicit_operator_bool.hpp>
 #include <iscore/serialization/DataStreamVisitor.hpp>
 #include <iscore/serialization/JSONVisitor.hpp>
-#include <qdatastream.h>
-#include <qglobal.h>
-#include <qjsonarray.h>
-#include <qjsonobject.h>
-#include <qjsonvalue.h>
-#include <qstring.h>
+#include <QDataStream>
+#include <QtGlobal>
+#include <QJsonArray>
+#include <QJsonObject>
+#include <QJsonValue>
+#include <QString>
 #include <algorithm>
 
 #include "Group.hpp"
-#include "iscore/serialization/JSONValueVisitor.hpp"
+#include <iscore/serialization/JSONValueVisitor.hpp>
 
 template <typename T> class IdentifiedObject;
 template <typename T> class Reader;

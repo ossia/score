@@ -12,8 +12,8 @@
 #include <core/document/DocumentModel.hpp>
 #include <iscore/document/DocumentInterface.hpp>
 #include <iscore/tools/SettableIdentifierGeneration.hpp>
-#include <qobject.h>
-#include <qstring.h>
+#include <QObject>
+#include <QString>
 #include <algorithm>
 #include <iterator>
 #include <utility>
@@ -22,22 +22,22 @@
 #include "Device/Address/Domain.hpp"
 #include "Device/Node/DeviceNode.hpp"
 #include "InterpolateStates.hpp"
-#include "Process/LayerModel.hpp"
-#include "Process/Process.hpp"
-#include "Process/State/MessageNode.hpp"
+#include <Process/LayerModel.hpp>
+#include <Process/Process.hpp>
+#include <Process/State/MessageNode.hpp>
 #include "Scenario/Document/Constraint/Rack/Slot/SlotModel.hpp"
 #include "Scenario/Document/State/ItemModel/MessageItemModel.hpp"
 #include "Scenario/Document/State/StateModel.hpp"
-#include "State/Address.hpp"
-#include "State/Message.hpp"
-#include "State/Value.hpp"
-#include "State/ValueConversion.hpp"
-#include "iscore/command/Dispatchers/CommandDispatcher.hpp"
-#include "iscore/selection/SelectionStack.hpp"
-#include "iscore/tools/ModelPath.hpp"
-#include "iscore/tools/NotifyingMap.hpp"
-#include "iscore/tools/SettableIdentifier.hpp"
-#include "iscore/tools/TreeNode.hpp"
+#include <State/Address.hpp>
+#include <State/Message.hpp>
+#include <State/Value.hpp>
+#include <State/ValueConversion.hpp>
+#include <iscore/command/Dispatchers/CommandDispatcher.hpp>
+#include <iscore/selection/SelectionStack.hpp>
+#include <iscore/tools/ModelPath.hpp>
+#include <iscore/tools/NotifyingMap.hpp>
+#include <iscore/tools/SettableIdentifier.hpp>
+#include <iscore/tools/TreeNode.hpp>
 
 void InterpolateStates(iscore::Document* doc)
 {

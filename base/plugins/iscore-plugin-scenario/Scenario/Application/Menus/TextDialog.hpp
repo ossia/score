@@ -1,7 +1,7 @@
 #pragma once
 
-#include <qdialog.h>
-#include <qstring.h>
+#include <QDialog>
+#include <QString>
 
 class QWidget;
 

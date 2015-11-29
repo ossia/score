@@ -1,4 +1,4 @@
-#include <qstring.h>
+#include <QString>
 
 #include "CurvePointInspectorFactory.hpp"
 #include "CurvePointInspectorWidget.hpp"

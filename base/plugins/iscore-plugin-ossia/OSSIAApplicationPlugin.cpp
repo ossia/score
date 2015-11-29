@@ -6,21 +6,21 @@
 #include <RecreateOnPlayDocumentPlugin/BaseScenarioElement.hpp>
 #include <RecreateOnPlayDocumentPlugin/DocumentPlugin.hpp>
 #include <Scenario/Application/ScenarioApplicationPlugin.hpp>
-#include <qaction.h>
-#include <qvariant.h>
-#include <qvector.h>
+#include <QAction>
+#include <QVariant>
+#include <QVector>
 
 #include "Editor/Value.h"
 #include "Explorer/DocumentPlugin/ListeningState.hpp"
 #include "Network/Address.h"
 #include "Network/Node.h"
 #include "OSSIAApplicationPlugin.hpp"
-#include "Process/TimeValue.hpp"
+#include <Process/TimeValue.hpp>
 #include "RecreateOnPlayDocumentPlugin/ConstraintElement.hpp"
-#include "core/application/ApplicationComponents.hpp"
-#include "core/application/ApplicationContext.hpp"
-#include "iscore/plugins/application/GUIApplicationContextPlugin.hpp"
-#include "iscore/tools/Todo.hpp"
+#include <core/application/ApplicationComponents.hpp>
+#include <core/application/ApplicationContext.hpp>
+#include <iscore/plugins/application/GUIApplicationContextPlugin.hpp>
+#include <iscore/tools/Todo.hpp>
 
 namespace iscore {
 class MenubarManager;

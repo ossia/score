@@ -5,10 +5,10 @@
 #include <iscore/serialization/JSONVisitor.hpp>
 #include <iscore/tools/VariantSerialization.hpp>
 #include <iscore/tools/std/StdlibWrapper.hpp>
-#include <qchar.h>
-#include <qjsonobject.h>
-#include <qjsonvalue.h>
-#include <qstring.h>
+#include <QChar>
+#include <QJsonObject>
+#include <QJsonValue>
+#include <QString>
 
 #include "Value.hpp"
 

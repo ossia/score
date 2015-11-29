@@ -1,9 +1,9 @@
 #pragma once
 #include <boost/optional/optional.hpp>
 #include <iscore/command/Dispatchers/SingleOngoingCommandDispatcher.hpp>
-#include <qpoint.h>
+#include <QPoint>
 
-#include "Curve/Commands/SetSegmentParameters.hpp"
+#include <Curve/Commands/SetSegmentParameters.hpp>
 
 class CurvePresenter;
 namespace Curve {

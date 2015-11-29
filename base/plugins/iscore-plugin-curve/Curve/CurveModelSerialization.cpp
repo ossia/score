@@ -4,15 +4,15 @@
 #include <core/application/ApplicationComponents.hpp>
 #include <iscore/serialization/DataStreamVisitor.hpp>
 #include <iscore/serialization/JSONVisitor.hpp>
-#include <qjsonarray.h>
-#include <qjsonobject.h>
-#include <qjsonvalue.h>
+#include <QJsonArray>
+#include <QJsonObject>
+#include <QJsonValue>
 #include <sys/types.h>
 
 #include "CurveModel.hpp"
-#include "core/application/ApplicationContext.hpp"
-#include "iscore/plugins/customfactory/StringFactoryKey.hpp"
-#include "iscore/tools/IdentifiedObjectMap.hpp"
+#include <core/application/ApplicationContext.hpp>
+#include <iscore/plugins/customfactory/StringFactoryKey.hpp>
+#include <iscore/tools/IdentifiedObjectMap.hpp>
 
 template <typename T> class Reader;
 template <typename T> class Writer;

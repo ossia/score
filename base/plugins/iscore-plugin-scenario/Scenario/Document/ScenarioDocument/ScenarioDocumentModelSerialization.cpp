@@ -1,13 +1,13 @@
 #include <Scenario/Document/BaseScenario/BaseScenario.hpp>
 #include <boost/core/explicit_operator_bool.hpp>
 #include <iscore/serialization/VisitorCommon.hpp>
-#include <qjsonobject.h>
-#include <qjsonvalue.h>
+#include <QJsonObject>
+#include <QJsonValue>
 #include <algorithm>
 
 #include "ScenarioDocumentModel.hpp"
-#include "iscore/serialization/DataStreamVisitor.hpp"
-#include "iscore/serialization/JSONVisitor.hpp"
+#include <iscore/serialization/DataStreamVisitor.hpp>
+#include <iscore/serialization/JSONVisitor.hpp>
 
 namespace iscore {
 class DocumentDelegateModelInterface;

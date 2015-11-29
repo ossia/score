@@ -1,5 +1,5 @@
 #include <Scenario/Process/ScenarioModel.hpp>
-#include <qstring.h>
+#include <QString>
 
 #include "Scenario/Process/ScenarioProcessMetadata.hpp"
 #include "ScenarioInspectorFactory.hpp"

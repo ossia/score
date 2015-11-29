@@ -1,8 +1,8 @@
-#include <qobject.h>
-#include <qobjectdefs.h>
+#include <QObject>
+
 
 #include "JSProcessMetadata.hpp"
-#include "Process/ProcessFactoryKey.hpp"
+#include <Process/ProcessFactoryKey.hpp>
 
 const ProcessFactoryKey&JSProcessMetadata::factoryKey()
 {

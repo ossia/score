@@ -2,7 +2,7 @@
 #include <iscore/tools/IdentifiedObject.hpp>
 #include <vector>
 
-#include "iscore/tools/SettableIdentifier.hpp"
+#include <iscore/tools/SettableIdentifier.hpp>
 
 class Group;
 class QObject;

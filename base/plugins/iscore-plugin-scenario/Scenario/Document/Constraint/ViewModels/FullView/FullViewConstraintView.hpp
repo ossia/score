@@ -1,6 +1,6 @@
 #pragma once
 #include <Scenario/Document/Constraint/ViewModels/ConstraintView.hpp>
-#include <qrect.h>
+#include <QRect>
 
 class FullViewConstraintPresenter;
 class QGraphicsItem;

@@ -10,11 +10,11 @@
 #include <vector>
 
 #include "ApplicationRegistrar.hpp"
-#include "core/document/Document.hpp"
-#include "core/presenter/DocumentManager.hpp"
-#include "iscore/command/CommandGeneratorMap.hpp"
-#include "iscore/plugins/customfactory/FactoryFamily.hpp"
-#include "iscore/plugins/customfactory/StringFactoryKey.hpp"
+#include <core/document/Document.hpp>
+#include <core/presenter/DocumentManager.hpp>
+#include <iscore/command/CommandGeneratorMap.hpp>
+#include <iscore/plugins/customfactory/FactoryFamily.hpp>
+#include <iscore/plugins/customfactory/StringFactoryKey.hpp>
 
 namespace iscore
 {

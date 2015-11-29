@@ -1,13 +1,13 @@
 #pragma once
-#include <qjsonobject.h>
-#include <qlist.h>
-#include <qpoint.h>
+#include <QJsonObject>
+#include <QList>
+#include <QPoint>
 
-#include "Process/ProcessFactoryKey.hpp"
+#include <Process/ProcessFactoryKey.hpp>
 #include "ScenarioActions.hpp"
-#include "iscore/command/Dispatchers/CommandDispatcher.hpp"
-#include "iscore/menu/MenuInterface.hpp"
-#include "iscore/selection/Selection.hpp"
+#include <iscore/command/Dispatchers/CommandDispatcher.hpp>
+#include <iscore/menu/MenuInterface.hpp>
+#include <iscore/selection/Selection.hpp>
 
 class AddProcessDialog;
 class QAction;

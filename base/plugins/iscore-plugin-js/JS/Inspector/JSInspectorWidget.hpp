@@ -1,7 +1,7 @@
 #pragma once
 
 #include <Inspector/InspectorWidgetBase.hpp>
-#include <qstring.h>
+#include <QString>
 
 class JSProcessModel;
 class QPlainTextEdit;

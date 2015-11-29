@@ -1,12 +1,12 @@
 #include <iscore/tools/IdentifiedObjectAbstract.hpp>
-#include <qlist.h>
+#include <QList>
 #include <qnamespace.h>
-#include <qpointer.h>
-#include <qvector.h>
+#include <QPointer>
+#include <QVector>
 #include <algorithm>
 
 #include "SelectionStack.hpp"
-#include "iscore/selection/Selection.hpp"
+#include <iscore/selection/Selection.hpp>
 
 using namespace iscore;
 

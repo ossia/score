@@ -1,5 +1,5 @@
-#include <qgridlayout.h>
-#include <qlayout.h>
+#include <QGridLayout>
+#include <QLayout>
 
 #include "LambdaFriendlyQComboBox.hpp"
 

@@ -5,23 +5,23 @@
 #include <State/MessageListSerialization.hpp>
 #include <iscore/document/DocumentInterface.hpp>
 #include <iscore/widgets/GraphicsItem.hpp>
-#include <qgraphicsitem.h>
-#include <qmimedata.h>
-#include <qrect.h>
-#include <qsize.h>
-#include <qstringlist.h>
+#include <QGraphicsItem>
+#include <QMimeData>
+#include <QRect>
+#include <QSize>
+#include <QStringList>
 #include <algorithm>
 
 #include "EventPresenter.hpp"
-#include "Process/ModelMetadata.hpp"
+#include <Process/ModelMetadata.hpp>
 #include "Scenario/Process/ScenarioInterface.hpp"
-#include "State/Expression.hpp"
-#include "State/Message.hpp"
-#include "iscore/command/Dispatchers/CommandDispatcher.hpp"
-#include "iscore/selection/Selectable.hpp"
-#include "iscore/serialization/MimeVisitor.hpp"
-#include "iscore/tools/NamedObject.hpp"
-#include "iscore/tools/Todo.hpp"
+#include <State/Expression.hpp>
+#include <State/Message.hpp>
+#include <iscore/command/Dispatchers/CommandDispatcher.hpp>
+#include <iscore/selection/Selectable.hpp>
+#include <iscore/serialization/MimeVisitor.hpp>
+#include <iscore/tools/NamedObject.hpp>
+#include <iscore/tools/Todo.hpp>
 
 class QObject;
 template <typename tag, typename impl> class id_base_t;

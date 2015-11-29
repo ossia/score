@@ -7,21 +7,21 @@
 #include <boost/core/explicit_operator_bool.hpp>
 #include <boost/optional/optional.hpp>
 #include <iscore/widgets/MarginLess.hpp>
-#include <qalgorithms.h>
-#include <qformlayout.h>
-#include <qobject.h>
-#include <qpushbutton.h>
-#include <qstring.h>
-#include <qvector.h>
-#include <qwidget.h>
+#include <QtAlgorithms>
+#include <QFormLayout>
+#include <QObject>
+#include <QPushButton>
+#include <QString>
+#include <QVector>
+#include <QWidget>
 #include <algorithm>
 
 #include "Inspector/InspectorWidgetBase.hpp"
 #include "StateInspectorWidget.hpp"
-#include "iscore/command/Dispatchers/CommandDispatcher.hpp"
-#include "iscore/tools/ModelPath.hpp"
-#include "iscore/tools/NotifyingMap.hpp"
-#include "iscore/tools/SettableIdentifier.hpp"
+#include <iscore/command/Dispatchers/CommandDispatcher.hpp>
+#include <iscore/tools/ModelPath.hpp>
+#include <iscore/tools/NotifyingMap.hpp>
+#include <iscore/tools/SettableIdentifier.hpp>
 #include <Scenario/Inspector/SelectionButton.hpp>
 
 namespace iscore {

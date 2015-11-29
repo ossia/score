@@ -1,15 +1,15 @@
 #include <iscore/plugins/documentdelegate/plugin/ElementPluginModelSerialization.hpp>
-#include <qjsonarray.h>
-#include <qjsonobject.h>
-#include <qjsonvalue.h>
+#include <QJsonArray>
+#include <QJsonObject>
+#include <QJsonValue>
 #include <sys/types.h>
 #include <vector>
 
 #include "ElementPluginModelList.hpp"
-#include "iscore/plugins/documentdelegate/plugin/ElementPluginModel.hpp"
-#include "iscore/serialization/DataStreamVisitor.hpp"
-#include "iscore/serialization/JSONValueVisitor.hpp"
-#include "iscore/serialization/JSONVisitor.hpp"
+#include <iscore/plugins/documentdelegate/plugin/ElementPluginModel.hpp>
+#include <iscore/serialization/DataStreamVisitor.hpp>
+#include <iscore/serialization/JSONValueVisitor.hpp>
+#include <iscore/serialization/JSONVisitor.hpp>
 
 template <typename T> class Reader;
 template <typename T> class Writer;

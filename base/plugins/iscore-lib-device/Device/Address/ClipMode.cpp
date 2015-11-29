@@ -1,7 +1,7 @@
-#include <qmap.h>
-#include <qobject.h>
-#include <qobjectdefs.h>
-#include <qstring.h>
+#include <QMap>
+#include <QObject>
+
+#include <QString>
 
 #include "ClipMode.hpp"
 

@@ -1,7 +1,7 @@
 #pragma once
 #include <iscore/tools/ObjectPath.hpp>
-#include <qbytearray.h>
-#include <qobject.h>
+#include <QByteArray>
+#include <QObject>
 #include <vector>
 
 namespace iscore

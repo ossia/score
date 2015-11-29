@@ -5,7 +5,7 @@
 #include "Scenario/Inspector/Constraint/ConstraintInspectorDelegate.hpp"
 #include "Scenario/Process/ScenarioModel.hpp"
 #include "ScenarioConstraintInspectorDelegate.hpp"
-#include "iscore/command/Dispatchers/OngoingCommandDispatcher.hpp"
+#include <iscore/command/Dispatchers/OngoingCommandDispatcher.hpp>
 
 class ConstraintInspectorWidget;
 class QWidget;

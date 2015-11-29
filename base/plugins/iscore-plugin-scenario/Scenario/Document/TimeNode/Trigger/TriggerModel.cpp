@@ -1,6 +1,6 @@
-#include "State/Expression.hpp"
+#include <State/Expression.hpp>
 #include "TriggerModel.hpp"
-#include "iscore/tools/IdentifiedObject.hpp"
+#include <iscore/tools/IdentifiedObject.hpp>
 
 class QObject;
 template <typename tag, typename impl> class id_base_t;

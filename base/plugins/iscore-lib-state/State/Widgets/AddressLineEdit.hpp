@@ -1,5 +1,5 @@
 #pragma once
-#include <qlineedit.h>
+#include <QLineEdit>
 
 #include "AddressValidator.hpp"
 

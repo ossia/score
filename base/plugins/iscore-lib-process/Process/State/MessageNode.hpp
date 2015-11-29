@@ -3,17 +3,17 @@
 #include <boost/core/explicit_operator_bool.hpp>
 #include <boost/optional/optional.hpp>
 #include <iscore/tools/TreeNode.hpp>
-#include <qstring.h>
-#include <qstringlist.h>
-#include <qvector.h>
+#include <QString>
+#include <QStringList>
+#include <QVector>
 #include <algorithm>
 #include <array>
 
-#include "State/Address.hpp"
-#include "State/Value.hpp"
-#include "State/ValueConversion.hpp"
-#include "iscore/serialization/JSONVisitor.hpp"
-#include "iscore/tools/SettableIdentifier.hpp"
+#include <State/Address.hpp>
+#include <State/Value.hpp>
+#include <State/ValueConversion.hpp>
+#include <iscore/serialization/JSONVisitor.hpp>
+#include <iscore/tools/SettableIdentifier.hpp>
 
 class Process;
 

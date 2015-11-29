@@ -1,10 +1,10 @@
 #pragma once
-#include <qcolor.h>
-#include <qgraphicsitem.h>
-#include <qpainterpath.h>
-#include <qpen.h>
-#include <qrect.h>
-#include <qsize.h>
+#include <QColor>
+#include <QGraphicsItem>
+#include <QPainterPath>
+#include <QPen>
+#include <QRect>
+#include <QSize>
 
 class QPainter;
 class QStyleOptionGraphicsItem;

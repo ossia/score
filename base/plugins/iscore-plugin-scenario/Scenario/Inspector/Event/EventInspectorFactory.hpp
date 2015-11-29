@@ -1,6 +1,6 @@
 #pragma once
 #include <Inspector/InspectorWidgetFactoryInterface.hpp>
-#include <qlist.h>
+#include <QList>
 
 class InspectorWidgetBase;
 class QObject;

@@ -1,5 +1,5 @@
 #include <Process/Style/ProcessFonts.hpp>
-#include <qfont.h>
+#include <QFont>
 #include <qnamespace.h>
 #include <algorithm>
 

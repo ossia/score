@@ -1,7 +1,7 @@
 #pragma once
 
-#include <qjsonobject.h>
-#include <qstring.h>
+#include <QJsonObject>
+#include <QString>
 
 #include "Device/Address/Domain.hpp"
 

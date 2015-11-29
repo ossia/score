@@ -1,10 +1,10 @@
 #include <Process/Style/ScenarioStyle.hpp>
-#include <qevent.h>
-#include <qflags.h>
-#include <qgraphicsscene.h>
+#include <QEvent>
+#include <QFlags>
+#include <QGraphicsScene>
 #include <qnamespace.h>
-#include <qpainter.h>
-#include <qpainterpath.h>
+#include <QPainter>
+#include <QPainterPath>
 
 #include "ScenarioBaseGraphicsView.hpp"
 

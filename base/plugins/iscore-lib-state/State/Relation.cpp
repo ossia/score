@@ -1,5 +1,5 @@
 #include <State/ValueConversion.hpp>
-#include <qmap.h>
+#include <QMap>
 
 #include "Relation.hpp"
 

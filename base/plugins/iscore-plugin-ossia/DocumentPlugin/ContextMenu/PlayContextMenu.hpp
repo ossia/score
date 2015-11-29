@@ -1,8 +1,8 @@
 #pragma once
-#include <qpoint.h>
+#include <QPoint>
 
 #include "Scenario/Application/Menus/ScenarioActions.hpp"
-#include "iscore/selection/Selection.hpp"
+#include <iscore/selection/Selection.hpp>
 
 class QAction;
 class QMenu;

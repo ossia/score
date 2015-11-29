@@ -2,10 +2,10 @@
 #include <Scenario/Document/BaseScenario/BaseScenarioContainer.hpp>
 #include <iscore/plugins/documentdelegate/plugin/ElementPluginModelList.hpp>
 #include <iscore/selection/Selection.hpp>
-#include <qvector.h>
+#include <QVector>
 
-#include "iscore/serialization/VisitorInterface.hpp"
-#include "iscore/tools/IdentifiedObject.hpp"
+#include <iscore/serialization/VisitorInterface.hpp>
+#include <iscore/tools/IdentifiedObject.hpp>
 
 class ConstraintModel;
 class DataStream;

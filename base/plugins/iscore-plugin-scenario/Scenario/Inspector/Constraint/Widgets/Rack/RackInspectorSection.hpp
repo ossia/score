@@ -1,7 +1,7 @@
 #pragma once
 #include <Inspector/InspectorSectionWidget.hpp>
 #include <iscore/tools/SettableIdentifier.hpp>
-#include <qstring.h>
+#include <QString>
 #include <unordered_map>
 
 class AddSlotWidget;

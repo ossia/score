@@ -1,6 +1,6 @@
 #include <Network/Node.h>
-#include <qdebug.h>
-#include <qstringlist.h>
+#include <QDebug>
+#include <QStringList>
 #include <algorithm>
 #include <list>
 
@@ -11,8 +11,8 @@
 #include "Network/Device.h"
 #include "OSSIA2iscore.hpp"
 #include "OSSIADevice.hpp"
-#include "State/Message.hpp"
-#include "State/Value.hpp"
+#include <State/Message.hpp>
+#include <State/Value.hpp>
 #include "iscore2OSSIA.hpp"
 
 namespace OSSIA {

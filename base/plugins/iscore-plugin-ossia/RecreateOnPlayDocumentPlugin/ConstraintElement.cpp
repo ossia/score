@@ -13,13 +13,13 @@
 #include "Editor/TimeValue.h"
 #include "Loop/LoopProcessModel.hpp"
 #include "LoopElement.hpp"
-#include "Process/Process.hpp"
-#include "Process/TimeValue.hpp"
+#include <Process/Process.hpp>
+#include <Process/TimeValue.hpp>
 #include "RecreateOnPlayDocumentPlugin/ProcessElement.hpp"
 #include "RecreateOnPlayDocumentPlugin/ProcessWrapper.hpp"
 #include "Scenario/Document/Constraint/ConstraintDurations.hpp"
 #include "ScenarioElement.hpp"
-#include "iscore/tools/SettableIdentifier.hpp"
+#include <iscore/tools/SettableIdentifier.hpp>
 
 #if defined(ISCORE_PLUGIN_MAPPING)
 #include <Mapping/MappingModel.hpp>

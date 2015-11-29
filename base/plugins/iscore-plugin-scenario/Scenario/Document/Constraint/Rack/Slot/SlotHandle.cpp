@@ -1,7 +1,7 @@
 #include <Process/Style/ScenarioStyle.hpp>
 #include <qnamespace.h>
-#include <qpainter.h>
-#include <qpoint.h>
+#include <QPainter>
+#include <QPoint>
 
 #include "SlotHandle.hpp"
 #include "SlotView.hpp"

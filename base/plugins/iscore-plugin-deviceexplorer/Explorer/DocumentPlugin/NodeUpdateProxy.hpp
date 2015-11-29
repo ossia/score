@@ -1,8 +1,8 @@
 #pragma once
 #include <Device/Node/DeviceNode.hpp>
-#include <qstring.h>
+#include <QString>
 
-#include "State/Value.hpp"
+#include <State/Value.hpp>
 
 class DeviceDocumentPlugin;
 class DeviceExplorerModel;

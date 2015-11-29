@@ -2,13 +2,13 @@
 #include <Scenario/Document/Event/EventModel.hpp>
 #include <Scenario/Document/State/StateModel.hpp>
 #include <Scenario/Document/TimeNode/TimeNodeModel.hpp>
-#include <qpointer.h>
+#include <QPointer>
 #include <algorithm>
 
 #include "DisplayedElementsModel.hpp"
 #include "Scenario/Document/DisplayedElements/DisplayedElementsContainer.hpp"
-#include "iscore/selection/Selection.hpp"
-#include "iscore/tools/std/StdlibWrapper.hpp"
+#include <iscore/selection/Selection.hpp>
+#include <iscore/tools/std/StdlibWrapper.hpp>
 
 void DisplayedElementsModel::setSelection(
         const Selection & s)

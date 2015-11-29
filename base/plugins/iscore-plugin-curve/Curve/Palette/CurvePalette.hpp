@@ -5,7 +5,7 @@
 #include <Curve/Palette/Tools/SmartTool.hpp>
 #include <Process/Tools/ToolPalette.hpp>
 #include <iscore/statemachine/GraphicsSceneToolPalette.hpp>
-#include <qpoint.h>
+#include <QPoint>
 
 class CurveModel;
 class CurvePresenter;

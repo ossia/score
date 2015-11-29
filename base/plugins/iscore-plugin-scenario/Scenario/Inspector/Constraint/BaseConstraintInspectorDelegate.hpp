@@ -2,8 +2,8 @@
 #include <Scenario/Inspector/Constraint/ConstraintInspectorDelegate.hpp>
 #include <list>
 
-#include "Process/ExpandMode.hpp"
-#include "Process/TimeValue.hpp"
+#include <Process/ExpandMode.hpp>
+#include <Process/TimeValue.hpp>
 
 class ConstraintInspectorWidget;
 class ConstraintModel;

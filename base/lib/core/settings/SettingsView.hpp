@@ -1,10 +1,10 @@
 #pragma once
-#include <qboxlayout.h>
-#include <qdialog.h>
-#include <qdialogbuttonbox.h>
-#include <qflags.h>
-#include <qlistwidget.h>
-#include <qstackedwidget.h>
+#include <QBoxLayout>
+#include <QDialog>
+#include <QDialogButtonBox>
+#include <QFlags>
+#include <QListWidget>
+#include <QStackedWidget>
 #include <set>
 
 class QWidget;

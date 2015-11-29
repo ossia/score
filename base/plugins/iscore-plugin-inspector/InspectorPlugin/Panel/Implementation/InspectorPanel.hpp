@@ -6,10 +6,10 @@
 #include <boost/multi_index/indexed_by.hpp>
 #include <boost/multi_index_container.hpp>
 #include <iscore/selection/SelectionDispatcher.hpp>
-#include <qlist.h>
-#include <qwidget.h>
+#include <QList>
+#include <QWidget>
 
-#include "iscore/selection/Selection.hpp"
+#include <iscore/selection/Selection.hpp>
 
 class IdentifiedObjectAbstract;
 class InspectorWidgetList;

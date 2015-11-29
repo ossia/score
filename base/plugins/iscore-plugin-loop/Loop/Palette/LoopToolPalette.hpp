@@ -3,7 +3,7 @@
 #include <Scenario/Palette/ScenarioPoint.hpp>
 #include <Scenario/Palette/Tools/SmartTool.hpp>
 #include <iscore/statemachine/GraphicsSceneToolPalette.hpp>
-#include <qpoint.h>
+#include <QPoint>
 
 #include "Scenario/Palette/Tool.hpp"
 

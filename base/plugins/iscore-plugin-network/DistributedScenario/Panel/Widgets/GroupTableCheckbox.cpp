@@ -1,5 +1,5 @@
-#include <qboxlayout.h>
-#include <qcheckbox.h>
+#include <QBoxLayout>
+#include <QCheckBox>
 #include <qnamespace.h>
 
 #include "GroupTableCheckbox.hpp"

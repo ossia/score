@@ -1,5 +1,5 @@
 #pragma once
-#include <qlist.h>
+#include <QList>
 
 #include "Scenario/Application/Menus/Plugin/ScenarioActionsFactory.hpp"
 

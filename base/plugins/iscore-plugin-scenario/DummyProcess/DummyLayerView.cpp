@@ -1,10 +1,10 @@
 #include <Process/Style/ProcessFonts.hpp>
-#include <qfont.h>
+#include <QFont>
 #include <qnamespace.h>
-#include <qpainter.h>
+#include <QPainter>
 
 #include "DummyLayerView.hpp"
-#include "Process/LayerView.hpp"
+#include <Process/LayerView.hpp>
 
 class QGraphicsItem;
 

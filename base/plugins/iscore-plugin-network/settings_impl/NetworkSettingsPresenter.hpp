@@ -1,8 +1,8 @@
 #pragma once
 #include <iscore/plugins/settingsdelegate/SettingsDelegatePresenterInterface.hpp>
-#include <qicon.h>
-#include <qobjectdefs.h>
-#include <qstring.h>
+#include <QIcon>
+
+#include <QString>
 
 class ClientNameChangedCommand;
 class ClientPortChangedCommand;

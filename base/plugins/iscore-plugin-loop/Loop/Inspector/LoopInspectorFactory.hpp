@@ -2,8 +2,8 @@
 #include <Inspector/InspectorWidgetFactoryInterface.hpp>
 #include <Loop/LoopProcessMetadata.hpp>
 #include <Scenario/Inspector/Constraint/ConstraintInspectorDelegateFactory.hpp>
-#include <qlist.h>
-#include <qstring.h>
+#include <QList>
+#include <QString>
 #include <memory>
 
 class ConstraintInspectorDelegate;

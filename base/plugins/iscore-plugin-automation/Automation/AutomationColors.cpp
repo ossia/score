@@ -1,14 +1,14 @@
-#include <qbytearray.h>
-#include <qcolor.h>
-#include <qfile.h>
-#include <qiodevice.h>
-#include <qjsonarray.h>
-#include <qjsondocument.h>
-#include <qjsonobject.h>
-#include <qjsonvalue.h>
+#include <QByteArray>
+#include <QColor>
+#include <QFile>
+#include <QIODevice>
+#include <QJsonArray>
+#include <QJsonDocument>
+#include <QJsonObject>
+#include <QJsonValue>
 
 #include "AutomationColors.hpp"
-#include "Curve/CurveStyle.hpp"
+#include <Curve/CurveStyle.hpp>
 
 class QString;
 

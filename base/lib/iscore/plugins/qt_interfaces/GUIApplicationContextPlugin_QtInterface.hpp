@@ -23,7 +23,7 @@ Q_DECLARE_INTERFACE(iscore::GUIApplicationContextPlugin_QtInterface, GUIApplicat
 #include <iscore/command/CommandGeneratorMap.hpp>
 #include <utility>
 
-#include "iscore/command/SerializableCommand.hpp"
+#include <iscore/command/SerializableCommand.hpp>
 
 namespace iscore
 {

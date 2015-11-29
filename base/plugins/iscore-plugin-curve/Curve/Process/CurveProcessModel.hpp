@@ -2,10 +2,10 @@
 #include <Curve/CurveModel.hpp>
 #include <Curve/Point/CurvePointModel.hpp>
 #include <Process/Process.hpp>
-#include <qstring.h>
+#include <QString>
 
-#include "Curve/Segment/CurveSegmentModel.hpp"
-#include "iscore/selection/Selection.hpp"
+#include <Curve/Segment/CurveSegmentModel.hpp>
+#include <iscore/selection/Selection.hpp>
 
 class CurveProcessModel : public Process
 {

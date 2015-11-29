@@ -6,7 +6,7 @@
 
 #include "CreateConstraint_State_Event_TimeNode.hpp"
 #include "Scenario/Commands/ScenarioCommandFactory.hpp"
-#include "iscore/tools/ModelPath.hpp"
+#include <iscore/tools/ModelPath.hpp>
 
 class ConstraintModel;
 class DataStreamInput;

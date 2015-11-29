@@ -13,8 +13,8 @@
 #include <boost/iterator/iterator_facade.hpp>
 #include <boost/optional/optional.hpp>
 #include <iscore/document/DocumentInterface.hpp>
-#include <qlist.h>
-#include <qobject.h>
+#include <QList>
+#include <QObject>
 
 #include "Scenario/Document/Constraint/ConstraintDurations.hpp"
 #include "Scenario/Document/Constraint/ConstraintModel.hpp"
@@ -26,16 +26,16 @@
 #include "Scenario/Document/State/StateModel.hpp"
 #include "Scenario/Document/TimeNode/TimeNodeModel.hpp"
 #include "ScenarioDocumentModel.hpp"
-#include "core/application/ApplicationComponents.hpp"
-#include "core/application/ApplicationContext.hpp"
-#include "core/document/DocumentContext.hpp"
-#include "iscore/plugins/customfactory/StringFactoryKey.hpp"
-#include "iscore/plugins/documentdelegate/DocumentDelegateModelInterface.hpp"
-#include "iscore/selection/SelectionStack.hpp"
-#include "iscore/tools/IdentifiedObject.hpp"
-#include "iscore/tools/NotifyingMap.hpp"
-#include "iscore/tools/SettableIdentifier.hpp"
-#include "iscore/tools/Todo.hpp"
+#include <core/application/ApplicationComponents.hpp>
+#include <core/application/ApplicationContext.hpp>
+#include <core/document/DocumentContext.hpp>
+#include <iscore/plugins/customfactory/StringFactoryKey.hpp>
+#include <iscore/plugins/documentdelegate/DocumentDelegateModelInterface.hpp>
+#include <iscore/selection/SelectionStack.hpp>
+#include <iscore/tools/IdentifiedObject.hpp>
+#include <iscore/tools/NotifyingMap.hpp>
+#include <iscore/tools/SettableIdentifier.hpp>
+#include <iscore/tools/Todo.hpp>
 
 class LayerPresenter;
 

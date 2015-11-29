@@ -1,5 +1,5 @@
 #pragma once
-#include <qframe.h>
+#include <QFrame>
 #include <array>
 
 class QEvent;

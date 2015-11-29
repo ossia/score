@@ -1,8 +1,8 @@
 #pragma once
-#include <qbrush.h>
-#include <qgraphicsitem.h>
+#include <QBrush>
+#include <QGraphicsItem>
 #include <qnamespace.h>
-#include <qpen.h>
+#include <QPen>
 
 class ConstraintPresenter;
 class QGraphicsSceneMouseEvent;

@@ -7,7 +7,7 @@
 #include <Scenario/Document/TimeNode/TimeNodeModel.hpp>
 #include <Scenario/Document/Event/EventData.hpp>
 #include <Scenario/Process/ScenarioModel.hpp>
-#include "iscore/document/DocumentInterface.hpp"
+#include <iscore/document/DocumentInterface.hpp>
 
 using namespace iscore;
 using namespace Scenario::Command;

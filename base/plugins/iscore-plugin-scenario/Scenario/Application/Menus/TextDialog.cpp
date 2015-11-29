@@ -1,7 +1,7 @@
-#include <qdialogbuttonbox.h>
-#include <qgridlayout.h>
-#include <qlayout.h>
-#include <qtextedit.h>
+#include <QDialogButtonBox>
+#include <QGridLayout>
+#include <QLayout>
+#include <QTextEdit>
 
 #include "TextDialog.hpp"
 

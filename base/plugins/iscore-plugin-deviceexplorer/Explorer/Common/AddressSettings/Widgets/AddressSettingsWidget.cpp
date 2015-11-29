@@ -1,14 +1,14 @@
-#include <qboxlayout.h>
-#include <qcombobox.h>
-#include <qformlayout.h>
-#include <qinputdialog.h>
-#include <qlineedit.h>
-#include <qmap.h>
-#include <qobjectdefs.h>
-#include <qpushbutton.h>
-#include <qstring.h>
-#include <qstringlist.h>
-#include <qvariant.h>
+#include <QBoxLayout>
+#include <QComboBox>
+#include <QFormLayout>
+#include <QInputDialog>
+#include <QLineEdit>
+#include <QMap>
+
+#include <QPushButton>
+#include <QString>
+#include <QStringList>
+#include <QVariant>
 
 #include "AddressSettingsWidget.hpp"
 #include "Device/Address/AddressSettings.hpp"

@@ -2,11 +2,11 @@
 #include <Scenario/Document/DisplayedElements/DisplayedElementsModel.hpp>
 #include <Scenario/Document/ScenarioDocument/ProcessFocusManager.hpp>
 #include <iscore/plugins/documentdelegate/DocumentDelegateModelInterface.hpp>
-#include <qobjectdefs.h>
-#include <qpointer.h>
 
-#include "iscore/selection/Selection.hpp"
-#include "iscore/serialization/VisitorInterface.hpp"
+#include <QPointer>
+
+#include <iscore/selection/Selection.hpp>
+#include <iscore/serialization/VisitorInterface.hpp>
 
 class BaseScenario;
 class ConstraintModel;

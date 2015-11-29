@@ -1,10 +1,10 @@
 #pragma once
 #include <iscore/tools/NamedObject.hpp>
 #include <qnamespace.h>
-#include <qstring.h>
+#include <QString>
 #include <vector>
 
-#include "core/application/ApplicationContext.hpp"
+#include <core/application/ApplicationContext.hpp>
 
 class QAction;
 class QObject;

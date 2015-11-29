@@ -1,12 +1,12 @@
 #include <Explorer/Widgets/AddressFragmentLineEdit.hpp>
-#include <qfiledialog.h>
-#include <qgridlayout.h>
-#include <qlabel.h>
-#include <qlineedit.h>
-#include <qobjectdefs.h>
-#include <qpushbutton.h>
-#include <qspinbox.h>
-#include <qvariant.h>
+#include <QFileDialog>
+#include <QGridLayout>
+#include <QLabel>
+#include <QLineEdit>
+
+#include <QPushButton>
+#include <QSpinBox>
+#include <QVariant>
 
 #include "Device/Protocol/ProtocolSettingsWidget.hpp"
 #include "OSCProtocolSettingsWidget.hpp"

@@ -2,8 +2,8 @@
 #include <Curve/Segment/CurveSegmentFactoryKey.hpp>
 #include <iscore/plugins/customfactory/FactoryInterface.hpp>
 #include <iscore/serialization/VisitorCommon.hpp>
-#include <qstring.h>
-#include <qvariant.h>
+#include <QString>
+#include <QVariant>
 
 class CurveSegmentModel;
 class QObject;

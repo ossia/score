@@ -1,13 +1,13 @@
-#include <qcolor.h>
-#include <qevent.h>
-#include <qflags.h>
-#include <qgraphicsitem.h>
-#include <qgraphicssceneevent.h>
+#include <QColor>
+#include <QEvent>
+#include <QFlags>
+#include <QGraphicsItem>
+#include <QGraphicsSceneEvent>
 #include <qnamespace.h>
-#include <qpainter.h>
-#include <qpen.h>
+#include <QPainter>
+#include <QPen>
 
-#include "Process/LayerView.hpp"
+#include <Process/LayerView.hpp>
 #include "TemporalScenarioView.hpp"
 
 TemporalScenarioView::TemporalScenarioView(QGraphicsItem* parent) :

@@ -1,5 +1,5 @@
 #pragma once
-#include <qwidget.h>
+#include <QWidget>
 
 class Group;
 class GroupManager;

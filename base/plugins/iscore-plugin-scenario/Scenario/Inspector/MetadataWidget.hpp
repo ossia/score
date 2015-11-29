@@ -5,12 +5,12 @@
 #include <Scenario/Commands/Metadata/ChangeElementLabel.hpp>
 #include <Scenario/Commands/Metadata/ChangeElementName.hpp>
 #include <iscore/command/Dispatchers/CommandDispatcher.hpp>
-#include <qcolor.h>
-#include <qpixmap.h>
-#include <qstring.h>
-#include <qwidget.h>
+#include <QColor>
+#include <QPixmap>
+#include <QString>
+#include <QWidget>
 
-#include "iscore/tools/IdentifiedObject.hpp"
+#include <iscore/tools/IdentifiedObject.hpp>
 
 class CommentEdit;
 class ModelMetadata;

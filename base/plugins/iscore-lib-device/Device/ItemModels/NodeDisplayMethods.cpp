@@ -1,6 +1,6 @@
 #include <Device/Protocol/DeviceInterface.hpp>
-#include <qbrush.h>
-#include <qfont.h>
+#include <QBrush>
+#include <QFont>
 #include <qnamespace.h>
 
 #include "Device/Address/AddressSettings.hpp"
@@ -9,8 +9,8 @@
 #include "Device/Node/DeviceNode.hpp"
 #include "Device/Protocol/DeviceSettings.hpp"
 #include "NodeDisplayMethods.hpp"
-#include "State/Value.hpp"
-#include "State/ValueConversion.hpp"
+#include <State/Value.hpp>
+#include <State/ValueConversion.hpp>
 
 namespace DeviceExplorer
 {

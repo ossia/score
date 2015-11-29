@@ -2,13 +2,13 @@
 #include <iscore/plugins/qt_interfaces/FactoryFamily_QtInterface.hpp>
 #include <iscore/plugins/qt_interfaces/GUIApplicationContextPlugin_QtInterface.hpp>
 #include <iscore/plugins/qt_interfaces/PanelFactoryInterface_QtInterface.hpp>
-#include <qobject.h>
+#include <QObject>
 #include <utility>
 #include <vector>
 
-#include "iscore/command/CommandGeneratorMap.hpp"
-#include "iscore/command/SerializableCommand.hpp"
-#include "iscore/plugins/application/GUIApplicationContextPlugin.hpp"
+#include <iscore/command/CommandGeneratorMap.hpp>
+#include <iscore/command/SerializableCommand.hpp>
+#include <iscore/plugins/application/GUIApplicationContextPlugin.hpp>
 
 namespace iscore {
 class Application;

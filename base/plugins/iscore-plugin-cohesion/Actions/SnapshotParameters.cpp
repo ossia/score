@@ -6,19 +6,19 @@
 #include <core/document/Document.hpp>
 #include <core/document/DocumentModel.hpp>
 #include <iscore/command/Dispatchers/MacroCommandDispatcher.hpp>
-#include <qlist.h>
-#include <qpointer.h>
+#include <QList>
+#include <QPointer>
 #include <algorithm>
 #include <vector>
 
 #include "Explorer/DocumentPlugin/NodeUpdateProxy.hpp"
 #include "Scenario/Document/State/ItemModel/MessageItemModel.hpp"
 #include "SnapshotParameters.hpp"
-#include "State/Message.hpp"
-#include "iscore/selection/Selectable.hpp"
-#include "iscore/selection/SelectionStack.hpp"
-#include "iscore/tools/IdentifiedObjectAbstract.hpp"
-#include "iscore/tools/ModelPath.hpp"
+#include <State/Message.hpp>
+#include <iscore/selection/Selectable.hpp>
+#include <iscore/selection/SelectionStack.hpp>
+#include <iscore/tools/IdentifiedObjectAbstract.hpp>
+#include <iscore/tools/ModelPath.hpp>
 
 void SnapshotParametersInStates(iscore::Document& doc)
 {

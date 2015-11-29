@@ -2,11 +2,11 @@
 #include <algorithm>
 
 #include "SetCondition.hpp"
-#include "State/Expression.hpp"
-#include "iscore/serialization/DataStreamVisitor.hpp"
-#include "iscore/tools/ModelPath.hpp"
-#include "iscore/tools/ModelPathSerialization.hpp"
-#include "iscore/tools/TreeNode.hpp"
+#include <State/Expression.hpp>
+#include <iscore/serialization/DataStreamVisitor.hpp>
+#include <iscore/tools/ModelPath.hpp>
+#include <iscore/tools/ModelPathSerialization.hpp>
+#include <iscore/tools/TreeNode.hpp>
 
 using namespace iscore;
 using namespace Scenario::Command;

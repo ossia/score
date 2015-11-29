@@ -1,5 +1,5 @@
 #include "PanelPresenter.hpp"
-#include "core/presenter/Presenter.hpp"
+#include <core/presenter/Presenter.hpp>
 
 using namespace iscore;
 

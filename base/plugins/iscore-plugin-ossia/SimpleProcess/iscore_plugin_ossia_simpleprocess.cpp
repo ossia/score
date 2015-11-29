@@ -1,6 +1,6 @@
-#include "Process/ProcessFactory.hpp"
+#include <Process/ProcessFactory.hpp>
 #include "SimpleProcessFactory.hpp"
-#include "iscore/plugins/customfactory/StringFactoryKey.hpp"
+#include <iscore/plugins/customfactory/StringFactoryKey.hpp>
 #include "iscore_plugin_ossia_simpleprocess.hpp"
 
 iscore_plugin_ossia_simpleprocess::iscore_plugin_ossia_simpleprocess() :

@@ -1,7 +1,7 @@
 #include <iscore/widgets/MarginLess.hpp>
-#include <qgridlayout.h>
+#include <QGridLayout>
 #include <qnamespace.h>
-#include <qslider.h>
+#include <QSlider>
 #include <limits>
 
 #include "DoubleSlider.hpp"

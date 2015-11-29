@@ -1,7 +1,7 @@
 #pragma once
 #include <iscore/plugins/qt_interfaces/FactoryFamily_QtInterface.hpp>
 #include <iscore/plugins/qt_interfaces/PanelFactoryInterface_QtInterface.hpp>
-#include <qobject.h>
+#include <QObject>
 #include <vector>
 
 namespace iscore {

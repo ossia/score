@@ -1,7 +1,7 @@
 #include <iscore/serialization/DataStreamVisitor.hpp>
 
 #include "PropertyCommand.hpp"
-#include "iscore/tools/ObjectPath.hpp"
+#include <iscore/tools/ObjectPath.hpp>
 
 iscore::PropertyCommand::~PropertyCommand()
 {

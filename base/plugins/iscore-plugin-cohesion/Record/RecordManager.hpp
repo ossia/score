@@ -1,15 +1,15 @@
 #pragma once
 #include <Explorer/DocumentPlugin/ListeningState.hpp>
 #include <iscore/command/Dispatchers/MacroCommandDispatcher.hpp>
-#include <qobject.h>
-#include <qobjectdefs.h>
-#include <qtimer.h>
+#include <QObject>
+
+#include <QTimer>
 #include <chrono>
 #include <memory>
 #include <unordered_map>
 #include <vector>
 #include "RecordData.hpp"
-#include "State/Address.hpp"
+#include <State/Address.hpp>
 
 class DeviceExplorerModel;
 namespace RedoStrategy {

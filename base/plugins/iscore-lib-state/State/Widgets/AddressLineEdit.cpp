@@ -1,8 +1,8 @@
-#include <qstring.h>
-#include <qvalidator.h>
+#include <QString>
+#include <QValidator>
 
 #include "AddressLineEdit.hpp"
-#include "State/Widgets/AddressValidator.hpp"
+#include <State/Widgets/AddressValidator.hpp>
 
 class QWidget;
 

@@ -5,7 +5,7 @@
 #include <boost/iterator/iterator_facade.hpp>
 #include <boost/multi_index/detail/hash_index_iterator.hpp>
 #include <iscore/tools/SettableIdentifierGeneration.hpp>
-#include <qbytearray.h>
+#include <QByteArray>
 #include <algorithm>
 #include <vector>
 
@@ -13,8 +13,8 @@
 #include "Scenario/Commands/Scenario/Creations/CreateConstraint.hpp"
 #include "Scenario/Document/Event/EventModel.hpp"
 #include "Scenario/Document/State/StateModel.hpp"
-#include "iscore/serialization/DataStreamVisitor.hpp"
-#include "iscore/tools/NotifyingMap.hpp"
+#include <iscore/serialization/DataStreamVisitor.hpp>
+#include <iscore/tools/NotifyingMap.hpp>
 
 using namespace Scenario::Command;
 CreateConstraint_State::CreateConstraint_State(

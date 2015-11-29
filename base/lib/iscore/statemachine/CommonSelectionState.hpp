@@ -1,7 +1,7 @@
 #pragma once
 #include <iscore/selection/SelectionDispatcher.hpp>
 #include <iscore/statemachine/StateMachineTools.hpp>
-#include <qstate.h>
+#include <QState>
 
 class QGraphicsObject;
 

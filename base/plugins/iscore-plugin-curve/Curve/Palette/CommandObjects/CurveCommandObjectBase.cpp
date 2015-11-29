@@ -1,11 +1,11 @@
-#include "Curve/Commands/UpdateCurve.hpp"
-#include "Curve/CurveModel.hpp"
-#include "Curve/CurvePresenter.hpp"
-#include "Curve/Palette/CurveEditionSettings.hpp"
-#include "Curve/Palette/CurvePaletteBaseStates.hpp"
-#include "Curve/Palette/CurvePoint.hpp"
+#include <Curve/Commands/UpdateCurve.hpp>
+#include <Curve/CurveModel.hpp>
+#include <Curve/CurvePresenter.hpp>
+#include <Curve/Palette/CurveEditionSettings.hpp>
+#include <Curve/Palette/CurvePaletteBaseStates.hpp>
+#include <Curve/Palette/CurvePoint.hpp>
 #include "CurveCommandObjectBase.hpp"
-#include "iscore/command/Dispatchers/SingleOngoingCommandDispatcher.hpp"
+#include <iscore/command/Dispatchers/SingleOngoingCommandDispatcher.hpp>
 
 namespace iscore {
 class CommandStack;

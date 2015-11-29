@@ -2,7 +2,7 @@
 
 
 
-#include <qobject.h>
+#include <QObject>
 
 class ModelConsistency final : public QObject
 {

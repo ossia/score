@@ -1,15 +1,15 @@
 #pragma once
 #include <Serialization/NetworkMessage.hpp>
-#include <qdatastream.h>
-#include <qiodevice.h>
-#include <qlist.h>
-#include <qstring.h>
+#include <QDataStream>
+#include <QIODevice>
+#include <QList>
+#include <QString>
 #include <algorithm>
 
 #include "../client/LocalClient.hpp"
 #include "../client/RemoteClient.hpp"
-#include "iscore/tools/IdentifiedObject.hpp"
-#include "iscore/tools/SettableIdentifier.hpp"
+#include <iscore/tools/IdentifiedObject.hpp>
+#include <iscore/tools/SettableIdentifier.hpp>
 
 class MessageMapper;
 class MessageValidator;

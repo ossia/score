@@ -1,8 +1,8 @@
-#include <qevent.h>
-#include <qflags.h>
-#include <qgraphicssceneevent.h>
+#include <QEvent>
+#include <QFlags>
+#include <QGraphicsSceneEvent>
 #include <qnamespace.h>
-#include <qpainter.h>
+#include <QPainter>
 
 #include "CurveView.hpp"
 

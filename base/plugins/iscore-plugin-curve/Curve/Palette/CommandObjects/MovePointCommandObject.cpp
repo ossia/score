@@ -3,21 +3,21 @@
 #include <boost/multi_index/hashed_index.hpp>
 #include <boost/operators.hpp>
 #include <boost/optional/optional.hpp>
-#include <qpoint.h>
+#include <QPoint>
 #include <algorithm>
 #include <vector>
 
-#include "Curve/Commands/UpdateCurve.hpp"
-#include "Curve/CurveModel.hpp"
-#include "Curve/CurvePresenter.hpp"
-#include "Curve/Palette/CommandObjects/CurveCommandObjectBase.hpp"
-#include "Curve/Palette/CurveEditionSettings.hpp"
-#include "Curve/Palette/CurvePaletteBaseStates.hpp"
-#include "Curve/Palette/CurvePoint.hpp"
-#include "Curve/Point/CurvePointModel.hpp"
+#include <Curve/Commands/UpdateCurve.hpp>
+#include <Curve/CurveModel.hpp>
+#include <Curve/CurvePresenter.hpp>
+#include <Curve/Palette/CommandObjects/CurveCommandObjectBase.hpp>
+#include <Curve/Palette/CurveEditionSettings.hpp>
+#include <Curve/Palette/CurvePaletteBaseStates.hpp>
+#include <Curve/Palette/CurvePoint.hpp>
+#include <Curve/Point/CurvePointModel.hpp>
 #include "MovePointCommandObject.hpp"
-#include "iscore/command/Dispatchers/SingleOngoingCommandDispatcher.hpp"
-#include "iscore/tools/SettableIdentifier.hpp"
+#include <iscore/command/Dispatchers/SingleOngoingCommandDispatcher.hpp>
+#include <iscore/tools/SettableIdentifier.hpp>
 
 class CurveSegmentModel;
 namespace iscore {

@@ -1,8 +1,8 @@
 #pragma once
 #include <iscore/plugins/qt_interfaces/GUIApplicationContextPlugin_QtInterface.hpp>
-#include <qobject.h>
+#include <QObject>
 
-#include "iscore/plugins/application/GUIApplicationContextPlugin.hpp"
+#include <iscore/plugins/application/GUIApplicationContextPlugin.hpp>
 
 namespace iscore {
 class Application;

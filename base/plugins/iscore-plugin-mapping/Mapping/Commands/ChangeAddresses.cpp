@@ -1,20 +1,20 @@
 #include <Device/Node/DeviceNode.hpp>
 #include <Explorer/Explorer/DeviceExplorerModel.hpp>
 #include <Mapping/MappingModel.hpp>
-#include <qstring.h>
-#include <qstringlist.h>
+#include <QString>
+#include <QStringList>
 #include <algorithm>
 
 #include "ChangeAddresses.hpp"
 #include "Device/Address/AddressSettings.hpp"
 #include "Device/Address/Domain.hpp"
-#include "State/Address.hpp"
-#include "State/Value.hpp"
-#include "State/ValueConversion.hpp"
-#include "iscore/serialization/DataStreamVisitor.hpp"
-#include "iscore/tools/ModelPath.hpp"
-#include "iscore/tools/ModelPathSerialization.hpp"
-#include "iscore/tools/TreeNode.hpp"
+#include <State/Address.hpp>
+#include <State/Value.hpp>
+#include <State/ValueConversion.hpp>
+#include <iscore/serialization/DataStreamVisitor.hpp>
+#include <iscore/tools/ModelPath.hpp>
+#include <iscore/tools/ModelPathSerialization.hpp>
+#include <iscore/tools/TreeNode.hpp>
 
 // TODO try to template this to reuse it with ChangeAddress / ChangeTargetAddress
 // TODO why not use AddressSettings directly on Automations / Mapping ? It would simplify...

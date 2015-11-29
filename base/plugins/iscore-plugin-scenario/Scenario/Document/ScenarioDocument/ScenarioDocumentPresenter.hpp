@@ -1,12 +1,12 @@
 #pragma once
 #include <iscore/plugins/documentdelegate/DocumentDelegatePresenterInterface.hpp>
 #include <iscore/selection/SelectionDispatcher.hpp>
-#include <qpoint.h>
-#include <qrect.h>
+#include <QPoint>
+#include <QRect>
 #include <memory>
 
-#include "Process/ZoomHelper.hpp"
-#include "iscore/selection/Selection.hpp"
+#include <Process/ZoomHelper.hpp>
+#include <iscore/selection/Selection.hpp>
 
 class DisplayedElementsPresenter;
 class GraphicsSceneToolPalette;

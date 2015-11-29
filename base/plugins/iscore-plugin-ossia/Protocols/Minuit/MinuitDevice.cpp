@@ -1,6 +1,6 @@
 #include <API/Headers/Network/Device.h>
-#include <qstring.h>
-#include <qvariant.h>
+#include <QString>
+#include <QVariant>
 #include <memory>
 
 #include "Device/Protocol/DeviceSettings.hpp"

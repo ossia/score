@@ -1,14 +1,14 @@
 #include <Process/Style/ProcessFonts.hpp>
 #include <Process/Style/ScenarioStyle.hpp>
-#include <qbrush.h>
-#include <qfont.h>
-#include <qfontmetrics.h>
-#include <qgraphicsscene.h>
-#include <qgraphicsview.h>
-#include <qlist.h>
-#include <qpainter.h>
-#include <qpen.h>
-#include <qpoint.h>
+#include <QBrush>
+#include <QFont>
+#include <QFontMetrics>
+#include <QGraphicsScene>
+#include <QGraphicsView>
+#include <QList>
+#include <QPainter>
+#include <QPen>
+#include <QPoint>
 #include <algorithm>
 #include <cmath>
 

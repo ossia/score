@@ -4,7 +4,7 @@
 #include "DummyLayerModel.hpp"
 #include "DummyModel.hpp"
 #include "DummyState.hpp"
-#include "Process/Process.hpp"
+#include <Process/Process.hpp>
 
 class LayerModel;
 class ProcessStateDataInterface;

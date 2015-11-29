@@ -3,7 +3,7 @@
 #include <iscore/tools/Todo.hpp>
 
 #include "CommandBackupFile.hpp"
-#include "iscore/command/SerializableCommand.hpp"
+#include <iscore/command/SerializableCommand.hpp>
 
 using namespace iscore;
 CommandBackupFile::CommandBackupFile(const iscore::CommandStack &stack, QObject *parent):

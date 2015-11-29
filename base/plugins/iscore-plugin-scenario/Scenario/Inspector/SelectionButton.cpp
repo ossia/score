@@ -1,12 +1,12 @@
 #include <iscore/selection/SelectionDispatcher.hpp>
 #include <iscore/widgets/MarginLess.hpp>
-#include <qboxlayout.h>
-#include <qicon.h>
-#include <qobjectdefs.h>
-#include <qpushbutton.h>
+#include <QBoxLayout>
+#include <QIcon>
+
+#include <QPushButton>
 
 #include "SelectionButton.hpp"
-#include "iscore/selection/Selection.hpp"
+#include <iscore/selection/Selection.hpp>
 
 SelectionButton::SelectionButton(
         const QString &text,

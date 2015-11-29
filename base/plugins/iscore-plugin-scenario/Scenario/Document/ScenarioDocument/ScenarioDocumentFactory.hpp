@@ -1,10 +1,10 @@
 #pragma once
 #include <iscore/plugins/documentdelegate/DocumentDelegateFactoryInterface.hpp>
 
-#include "core/application/ApplicationContext.hpp"
-#include "iscore/plugins/documentdelegate/DocumentDelegateModelInterface.hpp"
-#include "iscore/plugins/documentdelegate/DocumentDelegatePresenterInterface.hpp"
-#include "iscore/plugins/documentdelegate/DocumentDelegateViewInterface.hpp"
+#include <core/application/ApplicationContext.hpp>
+#include <iscore/plugins/documentdelegate/DocumentDelegateModelInterface.hpp>
+#include <iscore/plugins/documentdelegate/DocumentDelegatePresenterInterface.hpp>
+#include <iscore/plugins/documentdelegate/DocumentDelegateViewInterface.hpp>
 
 namespace iscore {
 class DocumentModel;

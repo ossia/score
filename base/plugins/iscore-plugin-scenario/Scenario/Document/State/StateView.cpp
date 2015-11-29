@@ -1,9 +1,9 @@
 #include <Process/Style/ScenarioStyle.hpp>
-#include <qbrush.h>
-#include <qgraphicssceneevent.h>
+#include <QBrush>
+#include <QGraphicsSceneEvent>
 #include <qnamespace.h>
-#include <qpainter.h>
-#include <qpen.h>
+#include <QPainter>
+#include <QPen>
 
 #include "StatePresenter.hpp"
 #include "StateView.hpp"

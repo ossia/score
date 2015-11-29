@@ -1,19 +1,19 @@
 #include <Process/Style/ScenarioStyle.hpp>
 #include <iscore/document/DocumentInterface.hpp>
-#include <qobject.h>
-#include <qobjectdefs.h>
-#include <qpoint.h>
+#include <QObject>
+
+#include <QPoint>
 
 #include "EventModel.hpp"
-#include "Process/ModelMetadata.hpp"
-#include "Process/TimeValue.hpp"
+#include <Process/ModelMetadata.hpp>
+#include <Process/TimeValue.hpp>
 #include "Scenario/Document/Event/ExecutionStatus.hpp"
 #include "Scenario/Document/State/StateModel.hpp"
 #include "Scenario/Document/VerticalExtent.hpp"
 #include "Scenario/Process/ScenarioInterface.hpp"
-#include "State/Expression.hpp"
-#include "iscore/tools/IdentifiedObject.hpp"
-#include "iscore/tools/SettableIdentifier.hpp"
+#include <State/Expression.hpp>
+#include <iscore/tools/IdentifiedObject.hpp>
+#include <iscore/tools/SettableIdentifier.hpp>
 
 EventModel::EventModel(
         const Id<EventModel>& id,

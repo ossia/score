@@ -1,8 +1,8 @@
 #pragma once
 #include <Process/ZoomHelper.hpp>
 #include <Scenario/Document/Constraint/ViewModels/ConstraintViewModel.hpp>
-#include <qpoint.h>
-#include <qstring.h>
+#include <QPoint>
+#include <QString>
 
 class ConstraintModel;
 class QObject;

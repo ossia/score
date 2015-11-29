@@ -1,8 +1,8 @@
 #pragma once
 
-#include <qgraphicsitem.h>
-#include <qpoint.h>
-#include <qrect.h>
+#include <QGraphicsItem>
+#include <QPoint>
+#include <QRect>
 
 class QGraphicsSceneContextMenuEvent;
 class QGraphicsSceneMouseEvent;

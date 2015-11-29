@@ -1,6 +1,6 @@
 #pragma once
 #include <Process/LayerView.hpp>
-#include <qstring.h>
+#include <QString>
 
 class QGraphicsItem;
 class QPainter;

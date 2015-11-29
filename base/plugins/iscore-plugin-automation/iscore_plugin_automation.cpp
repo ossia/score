@@ -5,17 +5,17 @@
 #include <Automation/AutomationView.hpp>
 #include <unordered_map>
 
-#include "Automation/AutomationProcessMetadata.hpp"
-#include "Automation/Commands/AutomationCommandFactory.hpp"
+#include <Automation/AutomationProcessMetadata.hpp>
+#include <Automation/Commands/AutomationCommandFactory.hpp>
 #include "Inspector/InspectorWidgetFactoryInterface.hpp"
-#include "Process/ProcessFactory.hpp"
-#include "iscore/plugins/customfactory/StringFactoryKey.hpp"
+#include <Process/ProcessFactory.hpp>
+#include <iscore/plugins/customfactory/StringFactoryKey.hpp>
 #include "iscore_plugin_automation.hpp"
 
 #if defined(ISCORE_LIB_INSPECTOR)
-#include "Automation/Inspector/AutomationInspectorFactory.hpp"
-#include "Automation/Inspector/AutomationStateInspectorFactory.hpp"
-#include "Automation/Inspector/CurvePointInspectorFactory.hpp"
+#include <Automation/Inspector/AutomationInspectorFactory.hpp>
+#include <Automation/Inspector/AutomationStateInspectorFactory.hpp>
+#include <Automation/Inspector/CurvePointInspectorFactory.hpp>
 #endif
 #include <iscore_plugin_automation_commands_files.hpp>
 #include <Curve/Process/CurveProcessFactory.hpp>

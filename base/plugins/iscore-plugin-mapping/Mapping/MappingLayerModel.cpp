@@ -1,7 +1,7 @@
 #include "MappingLayerModel.hpp"
 #include "MappingModel.hpp"
 #include "MappingPanelProxy.hpp"
-#include "Process/LayerModel.hpp"
+#include <Process/LayerModel.hpp>
 
 class LayerModelPanelProxy;
 class QObject;

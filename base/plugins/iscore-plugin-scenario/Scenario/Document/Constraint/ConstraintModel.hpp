@@ -8,14 +8,14 @@
 #include <boost/optional/optional.hpp>
 #include <iscore/plugins/documentdelegate/plugin/ElementPluginModelList.hpp>
 #include <iscore/selection/Selectable.hpp>
-#include <qobject.h>
-#include <qobjectdefs.h>
-#include <qstring.h>
-#include <qvector.h>
+#include <QObject>
 
-#include "iscore/tools/IdentifiedObject.hpp"
-#include "iscore/tools/NotifyingMap.hpp"
-#include "iscore/tools/SettableIdentifier.hpp"
+#include <QString>
+#include <QVector>
+
+#include <iscore/tools/IdentifiedObject.hpp>
+#include <iscore/tools/NotifyingMap.hpp>
+#include <iscore/tools/SettableIdentifier.hpp>
 
 class DataStream;
 class JSONObject;

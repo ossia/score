@@ -1,7 +1,7 @@
 #pragma once
 
 #include <Device/Address/AddressSettings.hpp>
-#include <qwidget.h>
+#include <QWidget>
 
 class QComboBox;
 class QFormLayout;

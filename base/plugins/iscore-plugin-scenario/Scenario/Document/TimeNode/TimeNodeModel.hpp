@@ -7,10 +7,10 @@
 #include <iscore/selection/Selectable.hpp>
 #include <iscore/tools/IdentifiedObject.hpp>
 #include <iscore/tools/SettableIdentifier.hpp>
-#include <qobject.h>
-#include <qobjectdefs.h>
-#include <qstring.h>
-#include <qvector.h>
+#include <QObject>
+
+#include <QString>
+#include <QVector>
 #include <chrono>
 
 class DataStream;

@@ -1,9 +1,9 @@
 #pragma once
 #include <iscore/menu/MenuInterface.hpp>
 #include <iscore/selection/Selection.hpp>
-#include <qlist.h>
-#include <qobject.h>
-#include <qpoint.h>
+#include <QList>
+#include <QObject>
+#include <QPoint>
 
 class QAction;
 class QMenu;

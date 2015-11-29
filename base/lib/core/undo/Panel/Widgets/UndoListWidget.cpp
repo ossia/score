@@ -1,8 +1,8 @@
 #include <core/command/CommandStack.hpp>
-#include <qitemselectionmodel.h>
+#include <QItemSelectionModel>
 
 #include "UndoListWidget.hpp"
-#include "iscore/command/SerializableCommand.hpp"
+#include <iscore/command/SerializableCommand.hpp>
 
 using namespace iscore;
 

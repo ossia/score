@@ -1,12 +1,12 @@
 #pragma once
 #include <Process/LayerModel.hpp>
 #include <Scenario/Document/Constraint/ViewModels/ConstraintViewModelIdMap.hpp>
-#include <qstring.h>
-#include <qvector.h>
+#include <QString>
+#include <QVector>
 #include <vector>
 
 #include "Scenario/Process/ScenarioModel.hpp"
-#include "iscore/serialization/VisitorInterface.hpp"
+#include <iscore/serialization/VisitorInterface.hpp>
 
 class ConstraintModel;
 class ConstraintViewModel;

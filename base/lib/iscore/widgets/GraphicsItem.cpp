@@ -1,5 +1,5 @@
-#include <qgraphicsitem.h>
-#include <qgraphicsscene.h>
+#include <QGraphicsItem>
+#include <QGraphicsScene>
 
 #include "GraphicsItem.hpp"
 

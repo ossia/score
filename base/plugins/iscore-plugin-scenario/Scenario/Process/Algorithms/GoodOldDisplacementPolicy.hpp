@@ -1,12 +1,12 @@
 #pragma once
 
 #include <Scenario/Process/Algorithms/StandardDisplacementPolicy.hpp>
-#include <qstring.h>
-#include <qvector.h>
+#include <QString>
+#include <QVector>
 #include <algorithm>
 #include <vector>
 
-#include "Process/TimeValue.hpp"
+#include <Process/TimeValue.hpp>
 
 class TimeNodeModel;
 namespace Scenario {

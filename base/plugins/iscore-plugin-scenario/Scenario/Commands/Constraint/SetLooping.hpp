@@ -2,7 +2,7 @@
 #include <Scenario/Commands/ScenarioCommandFactory.hpp>
 #include <iscore/command/SerializableCommand.hpp>
 
-#include "iscore/tools/ModelPath.hpp"
+#include <iscore/tools/ModelPath.hpp>
 
 class ConstraintModel;
 class DataStreamInput;

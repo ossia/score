@@ -1,17 +1,17 @@
 #include <Explorer/DocumentPlugin/DeviceDocumentPlugin.hpp>
-#include <qdatastream.h>
-#include <qglobal.h>
+#include <QDataStream>
+#include <QtGlobal>
 #include <algorithm>
 
 #include "Device/Address/AddressSettings.hpp"
 #include "Device/Node/DeviceNode.hpp"
 #include "Explorer/DocumentPlugin/NodeUpdateProxy.hpp"
 #include "RemoveAddress.hpp"
-#include "iscore/serialization/DataStreamVisitor.hpp"
-#include "iscore/tools/ModelPath.hpp"
-#include "iscore/tools/ModelPathSerialization.hpp"
-#include "iscore/tools/TreeNode.hpp"
-#include "iscore/tools/TreePath.hpp"
+#include <iscore/serialization/DataStreamVisitor.hpp>
+#include <iscore/tools/ModelPath.hpp>
+#include <iscore/tools/ModelPathSerialization.hpp>
+#include <iscore/tools/TreeNode.hpp>
+#include <iscore/tools/TreePath.hpp>
 
 RemoveAddress::RemoveAddress(
         Path<DeviceDocumentPlugin>&& device_tree,

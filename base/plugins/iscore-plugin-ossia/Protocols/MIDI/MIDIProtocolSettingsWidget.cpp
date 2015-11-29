@@ -1,10 +1,10 @@
-#include <qcombobox.h>
-#include <qgridlayout.h>
-#include <qlabel.h>
-#include <qobjectdefs.h>
-#include <qradiobutton.h>
-#include <qstring.h>
-#include <qvariant.h>
+#include <QComboBox>
+#include <QGridLayout>
+#include <QLabel>
+
+#include <QRadioButton>
+#include <QString>
+#include <QVariant>
 
 #include "Device/Protocol/ProtocolSettingsWidget.hpp"
 #include "MIDIProtocolSettingsWidget.hpp"

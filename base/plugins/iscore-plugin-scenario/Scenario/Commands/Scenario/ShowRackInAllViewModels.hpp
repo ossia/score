@@ -2,10 +2,10 @@
 #include <Scenario/Commands/ScenarioCommandFactory.hpp>
 #include <boost/optional/optional.hpp>
 #include <iscore/command/SerializableCommand.hpp>
-#include <qmap.h>
+#include <QMap>
 
-#include "iscore/tools/ModelPath.hpp"
-#include "iscore/tools/SettableIdentifier.hpp"
+#include <iscore/tools/ModelPath.hpp>
+#include <iscore/tools/SettableIdentifier.hpp>
 
 class ConstraintModel;
 class ConstraintViewModel;

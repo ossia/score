@@ -1,11 +1,11 @@
 #include <Explorer/Widgets/AddressFragmentLineEdit.hpp>
-#include <qgridlayout.h>
-#include <qlabel.h>
-#include <qlineedit.h>
-#include <qobjectdefs.h>
-#include <qspinbox.h>
-#include <qstring.h>
-#include <qvariant.h>
+#include <QGridLayout>
+#include <QLabel>
+#include <QLineEdit>
+
+#include <QSpinBox>
+#include <QString>
+#include <QVariant>
 
 #include "Device/Protocol/ProtocolSettingsWidget.hpp"
 #include "MinuitProtocolSettingsWidget.hpp"

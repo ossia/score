@@ -1,7 +1,7 @@
 #pragma once
 #include <iscore/command/Dispatchers/CommandDispatcher.hpp>
 #include <iscore/tools/ObjectPath.hpp>
-#include <qwidget.h>
+#include <QWidget>
 
 class Client;
 class GroupManager;

@@ -1,12 +1,12 @@
 #include <core/document/Document.hpp>
 #include <core/document/DocumentModel.hpp>
 #include <core/document/DocumentPresenter.hpp>
-#include <qobject.h>
-#include <qstring.h>
+#include <QObject>
+#include <QString>
 #include <stdexcept>
 
 #include "DocumentInterface.hpp"
-#include "iscore/tools/ObjectPath.hpp"
+#include <iscore/tools/ObjectPath.hpp>
 
 iscore::Document* iscore::IDocument::documentFromObject(const QObject* obj)
 {

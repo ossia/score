@@ -2,22 +2,22 @@
 #include <Explorer/Common/AddressSettings/Widgets/AddressSettingsWidget.hpp>
 #include <Explorer/Widgets/AddressFragmentLineEdit.hpp>
 #include <State/ValueConversion.hpp>
-#include <qcombobox.h>
-#include <qdebug.h>
-#include <qdialogbuttonbox.h>
-#include <qflags.h>
-#include <qformlayout.h>
-#include <qlineedit.h>
+#include <QComboBox>
+#include <QDebug>
+#include <QDialogButtonBox>
+#include <QFlags>
+#include <QFormLayout>
+#include <QLineEdit>
 #include <qnamespace.h>
-#include <qobjectdefs.h>
-#include <qstring.h>
+
+#include <QString>
 
 #include "AddressEditDialog.hpp"
 #include "Device/Address/AddressSettings.hpp"
 #include "Device/Address/Domain.hpp"
 #include "Device/Address/IOType.hpp"
 #include "Explorer/Widgets/ValueWrapper.hpp"
-#include "State/Value.hpp"
+#include <State/Value.hpp>
 
 class QWidget;
 

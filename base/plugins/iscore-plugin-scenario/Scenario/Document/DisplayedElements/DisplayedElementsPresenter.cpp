@@ -11,8 +11,8 @@
 #include <type_traits>
 
 #include "DisplayedElementsPresenter.hpp"
-#include "Process/TimeValue.hpp"
-#include "Process/ZoomHelper.hpp"
+#include <Process/TimeValue.hpp>
+#include <Process/ZoomHelper.hpp>
 #include "Scenario/Document/BaseScenario/BaseScenarioPresenter.hpp"
 #include "Scenario/Document/Constraint/ConstraintDurations.hpp"
 #include "Scenario/Document/Constraint/ConstraintModel.hpp"
@@ -31,11 +31,11 @@
 #include "Scenario/Document/TimeNode/TimeNodeModel.hpp"
 #include "Scenario/Document/TimeNode/TimeNodePresenter.hpp"
 #include "Scenario/Document/TimeNode/TimeNodeView.hpp"
-#include "iscore/tools/IdentifiedObjectMap.hpp"
-#include "iscore/tools/NotifyingMap.hpp"
-#include "iscore/tools/SettableIdentifier.hpp"
-#include "iscore/tools/Todo.hpp"
-#include "iscore/tools/std/StdlibWrapper.hpp"
+#include <iscore/tools/IdentifiedObjectMap.hpp>
+#include <iscore/tools/NotifyingMap.hpp>
+#include <iscore/tools/SettableIdentifier.hpp>
+#include <iscore/tools/Todo.hpp>
+#include <iscore/tools/std/StdlibWrapper.hpp>
 
 class DisplayedElementsModel;
 

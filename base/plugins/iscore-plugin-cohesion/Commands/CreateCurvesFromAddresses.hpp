@@ -4,7 +4,7 @@
 #include <iscore/command/CommandData.hpp>
 #include <iscore/command/SerializableCommand.hpp>
 #include <iscore/tools/ModelPath.hpp>
-#include <qlist.h>
+#include <QList>
 #include <vector>
 
 class ConstraintModel;

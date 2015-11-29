@@ -1,8 +1,8 @@
 #pragma once
 #include <Curve/Palette/Tools/CurveTool.hpp>
-#include <qpoint.h>
+#include <QPoint>
 
-#include "Curve/Palette/CurvePoint.hpp"
+#include <Curve/Palette/CurvePoint.hpp>
 
 namespace Curve
 {

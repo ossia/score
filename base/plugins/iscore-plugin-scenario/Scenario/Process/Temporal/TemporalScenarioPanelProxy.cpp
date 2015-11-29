@@ -1,4 +1,4 @@
-#include "Process/LayerModelPanelProxy.hpp"
+#include <Process/LayerModelPanelProxy.hpp>
 #include "Scenario/Process/Temporal/TemporalScenarioLayerModel.hpp"
 #include "TemporalScenarioPanelProxy.hpp"
 

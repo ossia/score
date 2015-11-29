@@ -1,9 +1,9 @@
 #include <boost/core/explicit_operator_bool.hpp>
 #include <boost/none_t.hpp>
 #include <boost/optional/optional.hpp>
-#include <qjsonarray.h>
-#include <qjsonvalue.h>
-#include <qpoint.h>
+#include <QJsonArray>
+#include <QJsonValue>
+#include <QPoint>
 
 #include "DataStreamVisitor.hpp"
 #include "JSONValueVisitor.hpp"

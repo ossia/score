@@ -1,12 +1,12 @@
 #include <State/Expression.hpp>
 #include <boost/optional/optional.hpp>
-#include <qboxlayout.h>
-#include <qcombobox.h>
-#include <qlabel.h>
-#include <qlineedit.h>
-#include <qpushbutton.h>
-#include <qstringlist.h>
-#include <qtoolbutton.h>
+#include <QBoxLayout>
+#include <QComboBox>
+#include <QLabel>
+#include <QLineEdit>
+#include <QPushButton>
+#include <QStringList>
+#include <QToolButton>
 
 #include "Scenario/Inspector/ExpressionValidator.hpp"
 #include "SimpleExpressionEditorWidget.hpp"

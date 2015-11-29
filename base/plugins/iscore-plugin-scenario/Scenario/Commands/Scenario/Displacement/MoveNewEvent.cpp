@@ -1,13 +1,13 @@
 #include <Scenario/Process/Algorithms/VerticalMovePolicy.hpp>
 #include <Scenario/Process/ScenarioModel.hpp>
 #include <boost/core/explicit_operator_bool.hpp>
-#include <qbytearray.h>
+#include <QByteArray>
 #include <algorithm>
 
 #include "MoveNewEvent.hpp"
 #include "Scenario/Commands/Scenario/Displacement/MoveEventOnCreationMeta.hpp"
-#include "iscore/serialization/DataStreamVisitor.hpp"
-#include "iscore/tools/ModelPathSerialization.hpp"
+#include <iscore/serialization/DataStreamVisitor.hpp>
+#include <iscore/tools/ModelPathSerialization.hpp>
 
 
 using namespace iscore;

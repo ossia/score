@@ -1,10 +1,10 @@
 #include <iscore/widgets/MarginLess.hpp>
-#include <qgridlayout.h>
-#include <qlineedit.h>
-#include <qstring.h>
+#include <QGridLayout>
+#include <QLineEdit>
+#include <QString>
 
 #include "CharValueWidget.hpp"
-#include "State/Widgets/Values/ValueWidget.hpp"
+#include <State/Widgets/Values/ValueWidget.hpp>
 
 class QWidget;
 

@@ -1,8 +1,8 @@
 #pragma once
 
-#include <qmainwindow.h>
-#include <qpair.h>
-#include <qstring.h>
+#include <QMainWindow>
+#include <QPair>
+#include <QString>
 #include <vector>
 #include <core/presenter/Action.hpp>
 

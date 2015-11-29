@@ -1,19 +1,19 @@
 #include <boost/concept/usage.hpp>
 #include <boost/core/explicit_operator_bool.hpp>
 #include <boost/range/algorithm/find_if.hpp>
-#include <qobject.h>
-#include <qobjectdefs.h>
-#include <qstring.h>
+#include <QObject>
+
+#include <QString>
 #include <vector>
 
 #include "ChangeGroup.hpp"
 #include "DistributedScenario/GroupMetadata.hpp"
 #include "Scenario/Document/Constraint/ConstraintModel.hpp"
 #include "Scenario/Document/Event/EventModel.hpp"
-#include "iscore/plugins/documentdelegate/plugin/ElementPluginModel.hpp"
-#include "iscore/plugins/documentdelegate/plugin/ElementPluginModelList.hpp"
-#include "iscore/serialization/DataStreamVisitor.hpp"
-#include "iscore/tools/ObjectPath.hpp"
+#include <iscore/plugins/documentdelegate/plugin/ElementPluginModel.hpp>
+#include <iscore/plugins/documentdelegate/plugin/ElementPluginModelList.hpp>
+#include <iscore/serialization/DataStreamVisitor.hpp>
+#include <iscore/tools/ObjectPath.hpp>
 
 class Group;
 

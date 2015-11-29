@@ -1,16 +1,16 @@
 #include <Process/Style/ScenarioStyle.hpp>
-#include <qbrush.h>
-#include <qgraphicssceneevent.h>
+#include <QBrush>
+#include <QGraphicsSceneEvent>
 #include <qnamespace.h>
-#include <qpainter.h>
-#include <qpen.h>
+#include <QPainter>
+#include <QPen>
 #include <algorithm>
 
 #include "ConditionView.hpp"
 #include "EventModel.hpp"
 #include "EventPresenter.hpp"
 #include "EventView.hpp"
-#include "Process/ModelMetadata.hpp"
+#include <Process/ModelMetadata.hpp>
 #include "Scenario/Document/Event/ExecutionStatus.hpp"
 #include "Scenario/Document/VerticalExtent.hpp"
 

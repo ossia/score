@@ -3,11 +3,11 @@
 #include <Scenario/Process/Temporal/TemporalScenarioPresenter.hpp>
 #include <boost/optional/optional.hpp>
 #include <iscore/widgets/GraphicsItem.hpp>
-#include <qobject.h>
-#include <qrect.h>
+#include <QObject>
+#include <QRect>
 
-#include "Process/TimeValue.hpp"
-#include "Process/ZoomHelper.hpp"
+#include <Process/TimeValue.hpp>
+#include <Process/ZoomHelper.hpp>
 #include "RackPresenter.hpp"
 #include "Scenario/Application/ScenarioEditionSettings.hpp"
 #include "Scenario/Document/Constraint/ConstraintDurations.hpp"
@@ -15,11 +15,11 @@
 #include "Scenario/Document/Constraint/Rack/Slot/SlotModel.hpp"
 #include "Scenario/Document/Constraint/Rack/Slot/SlotPresenter.hpp"
 #include "Scenario/Palette/Tool.hpp"
-#include "iscore/document/DocumentInterface.hpp"
-#include "iscore/tools/IdentifiedObjectMap.hpp"
-#include "iscore/tools/NamedObject.hpp"
-#include "iscore/tools/NotifyingMap.hpp"
-#include "iscore/tools/Todo.hpp"
+#include <iscore/document/DocumentInterface.hpp>
+#include <iscore/tools/IdentifiedObjectMap.hpp>
+#include <iscore/tools/NamedObject.hpp>
+#include <iscore/tools/NotifyingMap.hpp>
+#include <iscore/tools/Todo.hpp>
 
 template <typename tag, typename impl> class id_base_t;
 

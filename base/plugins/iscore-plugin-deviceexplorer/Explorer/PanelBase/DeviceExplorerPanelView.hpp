@@ -1,8 +1,8 @@
 #pragma once
 #include <core/application/ApplicationContext.hpp>
 #include <iscore/plugins/panel/PanelView.hpp>
-#include <qobjectdefs.h>
-#include <qstring.h>
+
+#include <QString>
 
 class QWidget;
 

@@ -1,6 +1,6 @@
 #pragma once
 #include <iscore/tools/SettableIdentifier.hpp>
-#include <qwidget.h>
+#include <QWidget>
 
 class Group;
 

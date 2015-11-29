@@ -5,14 +5,14 @@
 #include <iscore/serialization/VisitorInterface.hpp>
 #include <iscore/tools/NotifyingMap.hpp>
 #include <iscore/tools/SettableIdentifier.hpp>
-#include <qlist.h>
-#include <qobject.h>
-#include <qobjectdefs.h>
-#include <qstring.h>
+#include <QList>
+#include <QObject>
+
+#include <QString>
 #include <functional>
 
 #include "Slot/SlotModel.hpp"
-#include "iscore/tools/IdentifiedObject.hpp"
+#include <iscore/tools/IdentifiedObject.hpp>
 
 class ConstraintModel;
 class Process;

@@ -1,8 +1,8 @@
 #pragma once
-#include <qcolor.h>
-#include <qglobal.h>
-#include <qgraphicsitem.h>
-#include <qrect.h>
+#include <QColor>
+#include <QtGlobal>
+#include <QGraphicsItem>
+#include <QRect>
 
 class QGraphicsSceneDragDropEvent;
 class QGraphicsSceneMouseEvent;

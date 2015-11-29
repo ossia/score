@@ -2,7 +2,7 @@
 #include <Device/Protocol/DeviceInterface.hpp>
 #include <Network/Address.h>
 #include <boost/optional/optional.hpp>
-#include <qstring.h>
+#include <QString>
 #include <memory>
 #include <unordered_map>
 #include <utility>
@@ -10,7 +10,7 @@
 
 #include "Device/Node/DeviceNode.hpp"
 #include "Misc/CallbackContainer.h"
-#include "State/Address.hpp"
+#include <State/Address.hpp>
 
 namespace iscore {
 struct DeviceSettings;

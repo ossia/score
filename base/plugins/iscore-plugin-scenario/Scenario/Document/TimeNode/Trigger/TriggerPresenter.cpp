@@ -1,9 +1,9 @@
-#include <qgraphicsitem.h>
+#include <QGraphicsItem>
 
 #include "TriggerModel.hpp"
 #include "TriggerPresenter.hpp"
 #include "TriggerView.hpp"
-#include "iscore/tools/Todo.hpp"
+#include <iscore/tools/Todo.hpp>
 
 TriggerPresenter::TriggerPresenter(
         const TriggerModel& model,

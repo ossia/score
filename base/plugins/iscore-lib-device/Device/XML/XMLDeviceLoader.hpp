@@ -1,6 +1,6 @@
 #pragma once
 #include <Device/Node/DeviceNode.hpp>
-#include <qstring.h>
+#include <QString>
 
 // Will load a device in a Jamoma-format XML file into the node.
 // The node has to be the device node.

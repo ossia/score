@@ -1,6 +1,6 @@
 #include <Process/Style/ScenarioStyle.hpp>
-#include <qcolor.h>
-#include <qstring.h>
+#include <QColor>
+#include <QString>
 
 #include "LocalTimeRulerView.hpp"
 #include "Scenario/Document/TimeRuler/AbstractTimeRulerView.hpp"

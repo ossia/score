@@ -1,10 +1,10 @@
 #pragma once
 #include <Scenario/Document/Constraint/ViewModels/ConstraintView.hpp>
-#include <qcolor.h>
-#include <qglobal.h>
-#include <qpoint.h>
-#include <qrect.h>
-#include <qstring.h>
+#include <QColor>
+#include <QtGlobal>
+#include <QPoint>
+#include <QRect>
+#include <QString>
 
 class QGraphicsObject;
 class QGraphicsSceneHoverEvent;

@@ -1,9 +1,9 @@
 #pragma once
 #include <iscore/plugins/settingsdelegate/SettingsDelegateViewInterface.hpp>
-#include <qlineedit.h>
-#include <qspinbox.h>
-#include <qstring.h>
-#include <qwidget.h>
+#include <QLineEdit>
+#include <QSpinBox>
+#include <QString>
+#include <QWidget>
 
 class NetworkSettingsPresenter;
 class QObject;

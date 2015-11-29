@@ -1,7 +1,7 @@
-#include <qapplication.h>
-#include <qlayout.h>
-#include <qlayoutitem.h>
-#include <qwidget.h>
+#include <QApplication>
+#include <QLayout>
+#include <QLayoutItem>
+#include <QWidget>
 
 #include "ClearLayout.hpp"
 

@@ -1,6 +1,4 @@
-#include <qobject.h>
-#include <qobjectdefs.h>
-
+#include <QObject>
 #include "MenuInterface.hpp"
 
 using namespace iscore;

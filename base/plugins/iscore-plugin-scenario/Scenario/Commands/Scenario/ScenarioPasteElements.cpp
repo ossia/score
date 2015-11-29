@@ -11,33 +11,33 @@
 #include <core/document/Document.hpp>
 #include <iscore/tools/Clamp.hpp>
 #include <iscore/tools/SettableIdentifierGeneration.hpp>
-#include <qdatastream.h>
-#include <qglobal.h>
-#include <qhash.h>
-#include <qjsonarray.h>
-#include <qjsonvalue.h>
+#include <QDataStream>
+#include <QtGlobal>
+#include <QHash>
+#include <QJsonArray>
+#include <QJsonValue>
 #include <algorithm>
 #include <cstddef>
 #include <iterator>
 #include <limits>
 #include <vector>
 
-#include "Process/LayerModel.hpp"
-#include "Process/Process.hpp"
-#include "Process/TimeValue.hpp"
+#include <Process/LayerModel.hpp>
+#include <Process/Process.hpp>
+#include <Process/TimeValue.hpp>
 #include "Scenario/Document/Constraint/Rack/RackModel.hpp"
 #include "Scenario/Document/Constraint/ViewModels/ConstraintViewModel.hpp"
 #include "Scenario/Document/Constraint/ViewModels/ConstraintViewModelIdMap.hpp"
 #include "Scenario/Palette/ScenarioPoint.hpp"
 #include "Scenario/Process/AbstractScenarioLayerModel.hpp"
 #include "ScenarioPasteElements.hpp"
-#include "iscore/document/DocumentInterface.hpp"
-#include "iscore/serialization/DataStreamVisitor.hpp"
-#include "iscore/serialization/JSONVisitor.hpp"
-#include "iscore/serialization/VisitorCommon.hpp"
-#include "iscore/tools/ModelPathSerialization.hpp"
-#include "iscore/tools/NotifyingMap.hpp"
-#include "iscore/tools/ObjectPath.hpp"
+#include <iscore/document/DocumentInterface.hpp>
+#include <iscore/serialization/DataStreamVisitor.hpp>
+#include <iscore/serialization/JSONVisitor.hpp>
+#include <iscore/serialization/VisitorCommon.hpp>
+#include <iscore/tools/ModelPathSerialization.hpp>
+#include <iscore/tools/NotifyingMap.hpp>
+#include <iscore/tools/ObjectPath.hpp>
 
 // Needed for copy since we want to generate IDs that are neither
 // in the scenario in which we are copying into, nor in the elements

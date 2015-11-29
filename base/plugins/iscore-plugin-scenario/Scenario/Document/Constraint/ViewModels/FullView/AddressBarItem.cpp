@@ -1,18 +1,18 @@
 #include <Scenario/Document/Constraint/ConstraintModel.hpp>
 #include <Scenario/Process/ScenarioModel.hpp>
 #include <ext/alloc_traits.h>
-#include <qalgorithms.h>
-#include <qmap.h>
-#include <qobject.h>
-#include <qstring.h>
+#include <QtAlgorithms>
+#include <QMap>
+#include <QObject>
+#include <QString>
 #include <algorithm>
 #include <cstddef>
 #include <vector>
 
 #include "AddressBarItem.hpp"
 #include "ClickableLabelItem.hpp"
-#include "Process/ModelMetadata.hpp"
-#include "iscore/tools/ObjectIdentifier.hpp"
+#include <Process/ModelMetadata.hpp>
+#include <iscore/tools/ObjectIdentifier.hpp>
 
 class QPainter;
 class QStyleOptionGraphicsItem;

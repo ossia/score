@@ -4,8 +4,8 @@
 
 #include "Inspector/InspectorWidgetFactoryInterface.hpp"
 #include "JS/Commands/JSCommandFactory.hpp"
-#include "Process/ProcessFactory.hpp"
-#include "iscore/plugins/customfactory/StringFactoryKey.hpp"
+#include <Process/ProcessFactory.hpp>
+#include <iscore/plugins/customfactory/StringFactoryKey.hpp>
 #include "iscore_plugin_js.hpp"
 #include <iscore_plugin_js_commands_files.hpp>
 

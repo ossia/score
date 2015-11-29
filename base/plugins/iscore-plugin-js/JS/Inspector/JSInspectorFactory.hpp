@@ -1,8 +1,8 @@
 #pragma once
 #include <Inspector/InspectorWidgetFactoryInterface.hpp>
 #include <JS/JSProcessMetadata.hpp>
-#include <qlist.h>
-#include <qstring.h>
+#include <QList>
+#include <QString>
 
 class InspectorWidgetBase;
 class QObject;

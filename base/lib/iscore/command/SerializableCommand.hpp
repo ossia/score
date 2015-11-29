@@ -1,8 +1,8 @@
 #pragma once
 #include <iscore/command/Command.hpp>
 #include <iscore/plugins/customfactory/StringFactoryKey.hpp>
-#include <qbytearray.h>
-#include <qstring.h>
+#include <QByteArray>
+#include <QString>
 
 class DataStreamInput;
 class DataStreamOutput;

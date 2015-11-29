@@ -1,6 +1,6 @@
 #pragma once
-#include <qlist.h>
-#include <qwidget.h>
+#include <QList>
+#include <QWidget>
 
 class Group;
 class GroupManager;

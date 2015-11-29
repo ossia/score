@@ -1,9 +1,9 @@
-#include <qstring.h>
+#include <QString>
 
-#include "Automation/AutomationProcessMetadata.hpp"
+#include <Automation/AutomationProcessMetadata.hpp>
 #include "AutomationInspectorFactory.hpp"
 #include "AutomationInspectorWidget.hpp"
-#include "Automation/AutomationModel.hpp"
+#include <Automation/AutomationModel.hpp>
 class InspectorWidgetBase;
 class QObject;
 class QWidget;

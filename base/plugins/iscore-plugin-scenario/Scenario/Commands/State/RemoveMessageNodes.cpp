@@ -3,10 +3,10 @@
 
 #include "RemoveMessageNodes.hpp"
 #include "Scenario/Document/State/ItemModel/MessageItemModel.hpp"
-#include "iscore/serialization/DataStreamVisitor.hpp"
-#include "iscore/tools/ModelPath.hpp"
-#include "iscore/tools/ModelPathSerialization.hpp"
-#include "iscore/tools/TreeNode.hpp"
+#include <iscore/serialization/DataStreamVisitor.hpp>
+#include <iscore/tools/ModelPath.hpp>
+#include <iscore/tools/ModelPathSerialization.hpp>
+#include <iscore/tools/TreeNode.hpp>
 
 RemoveMessageNodes::RemoveMessageNodes(
         Path<MessageItemModel>&& device_tree,

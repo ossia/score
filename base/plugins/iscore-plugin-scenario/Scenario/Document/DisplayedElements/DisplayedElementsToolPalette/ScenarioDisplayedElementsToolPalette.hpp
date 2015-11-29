@@ -3,11 +3,11 @@
 #include <Scenario/Document/BaseScenario/BaseElementContext.hpp>
 #include <Scenario/Palette/Tools/SmartTool.hpp>
 #include <iscore/statemachine/GraphicsSceneToolPalette.hpp>
-#include <qpoint.h>
+#include <QPoint>
 
 #include "Scenario/Palette/ScenarioPoint.hpp"
 #include "Scenario/Palette/Tool.hpp"
-#include "core/document/DocumentContext.hpp"
+#include <core/document/DocumentContext.hpp>
 
 class BaseGraphicsObject;
 class DisplayedElementsModel;

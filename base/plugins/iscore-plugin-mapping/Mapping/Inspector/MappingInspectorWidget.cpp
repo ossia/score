@@ -6,26 +6,26 @@
 #include <core/document/DocumentModel.hpp>
 #include <iscore/document/DocumentInterface.hpp>
 #include <iscore/widgets/SpinBoxes.hpp>
-#include <qabstractspinbox.h>
-#include <qboxlayout.h>
-#include <qformlayout.h>
-#include <qlabel.h>
-#include <qobjectdefs.h>
-#include <qpushbutton.h>
-#include <qspinbox.h>
-#include <qstringlist.h>
-#include <qwidget.h>
+#include <QAbstractSpinBox>
+#include <QBoxLayout>
+#include <QFormLayout>
+#include <QLabel>
+
+#include <QPushButton>
+#include <QSpinBox>
+#include <QStringList>
+#include <QWidget>
 #include <algorithm>
 #include <list>
 #include <vector>
 
 #include "Inspector/InspectorWidgetBase.hpp"
-#include "Mapping/MappingModel.hpp"
+#include <Mapping/MappingModel.hpp>
 #include "MappingInspectorWidget.hpp"
-#include "State/Address.hpp"
-#include "iscore/command/Dispatchers/CommandDispatcher.hpp"
-#include "iscore/tools/ModelPath.hpp"
-#include "iscore/tools/Todo.hpp"
+#include <State/Address.hpp>
+#include <iscore/command/Dispatchers/CommandDispatcher.hpp>
+#include <iscore/tools/ModelPath.hpp>
+#include <iscore/tools/Todo.hpp>
 
 MappingInspectorWidget::MappingInspectorWidget(
         const MappingModel& MappingModel,

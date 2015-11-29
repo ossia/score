@@ -1,10 +1,10 @@
 #pragma once
 #include <iscore/command/SerializableCommand.hpp>
 #include <iscore/tools/ObjectPath.hpp>
-#include <qbytearray.h>
-#include <qobject.h>
-#include <qstring.h>
-#include <qvariant.h>
+#include <QByteArray>
+#include <QObject>
+#include <QString>
+#include <QVariant>
 
 class DataStreamInput;
 class DataStreamOutput;

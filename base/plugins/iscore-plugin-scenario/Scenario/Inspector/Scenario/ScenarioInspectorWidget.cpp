@@ -1,7 +1,7 @@
 #include <Scenario/Process/ScenarioModel.hpp>
-#include <qboxlayout.h>
-#include <qobjectdefs.h>
-#include <qpushbutton.h>
+#include <QBoxLayout>
+
+#include <QPushButton>
 #include <list>
 
 #include "Inspector/InspectorWidgetBase.hpp"

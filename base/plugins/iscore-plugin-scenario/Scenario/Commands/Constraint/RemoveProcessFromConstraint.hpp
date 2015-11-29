@@ -3,11 +3,11 @@
 #include <boost/optional/optional.hpp>
 #include <iscore/command/SerializableCommand.hpp>
 #include <iscore/tools/ModelPath.hpp>
-#include <qbytearray.h>
-#include <qpair.h>
-#include <qvector.h>
+#include <QByteArray>
+#include <QPair>
+#include <QVector>
 
-#include "iscore/tools/SettableIdentifier.hpp"
+#include <iscore/tools/SettableIdentifier.hpp>
 
 class ConstraintModel;
 class DataStreamInput;

@@ -3,10 +3,10 @@
 #include <Scenario/Palette/Tools/States/ResizeSlotState.hpp>
 #include <Scenario/Process/Temporal/TemporalScenarioPresenter.hpp>
 #include <boost/optional/optional.hpp>
-#include <qgraphicsitem.h>
-#include <qgraphicsscene.h>
-#include <qstate.h>
-#include <qtransform.h>
+#include <QGraphicsItem>
+#include <QGraphicsScene>
+#include <QState>
+#include <QTransform>
 #include <algorithm>
 
 #include "MoveSlotToolState.hpp"
@@ -19,8 +19,8 @@
 #include "Scenario/Palette/ScenarioPalette.hpp"
 #include "Scenario/Palette/ScenarioPaletteBaseEvents.hpp"
 #include "Scenario/Palette/Transitions/SlotTransitions.hpp"
-#include "iscore/statemachine/StateMachineUtils.hpp"
-#include "iscore/tools/SettableIdentifier.hpp"
+#include <iscore/statemachine/StateMachineUtils.hpp>
+#include <iscore/tools/SettableIdentifier.hpp>
 
 namespace Scenario
 {

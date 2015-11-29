@@ -2,14 +2,14 @@
 #include <Loop/LoopProcessModel.hpp>
 #include <Loop/LoopView.hpp>
 #include <iscore/widgets/GraphicsItem.hpp>
-#include <qgraphicsitem.h>
+#include <QGraphicsItem>
 #include <tuple>
 #include <type_traits>
 
 #include "Loop/LoopViewUpdater.hpp"
 #include "LoopPresenter.hpp"
-#include "Process/LayerPresenter.hpp"
-#include "Process/TimeValue.hpp"
+#include <Process/LayerPresenter.hpp>
+#include <Process/TimeValue.hpp>
 #include "Scenario/Document/BaseScenario/BaseScenarioContainer.hpp"
 #include "Scenario/Document/BaseScenario/BaseScenarioPresenter.hpp"
 #include "Scenario/Document/Constraint/ViewModels/Temporal/TemporalConstraintPresenter.hpp"
@@ -18,9 +18,9 @@
 #include "Scenario/Document/State/StatePresenter.hpp"
 #include "Scenario/Document/TimeNode/TimeNodeModel.hpp"
 #include "Scenario/Document/TimeNode/TimeNodePresenter.hpp"
-#include "core/document/DocumentContext.hpp"
-#include "iscore/tools/Todo.hpp"
-#include "iscore/tools/std/StdlibWrapper.hpp"
+#include <core/document/DocumentContext.hpp>
+#include <iscore/tools/Todo.hpp>
+#include <iscore/tools/std/StdlibWrapper.hpp>
 
 class LayerModel;
 class Process;

@@ -1,12 +1,12 @@
 #pragma once
 
 #include <iscore/plugins/panel/PanelFactory.hpp>
-#include <qstring.h>
+#include <QString>
 
-#include "core/application/ApplicationContext.hpp"
-#include "iscore/plugins/panel/PanelModel.hpp"
-#include "iscore/plugins/panel/PanelPresenter.hpp"
-#include "iscore/plugins/panel/PanelView.hpp"
+#include <core/application/ApplicationContext.hpp>
+#include <iscore/plugins/panel/PanelModel.hpp>
+#include <iscore/plugins/panel/PanelPresenter.hpp>
+#include <iscore/plugins/panel/PanelView.hpp>
 
 namespace iscore {
 class DocumentModel;

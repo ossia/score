@@ -3,10 +3,10 @@
 #include <Explorer/Commands/DeviceExplorerCommandFactory.hpp>
 #include <iscore/command/SerializableCommand.hpp>
 #include <iscore/tools/ModelPath.hpp>
-#include <qlist.h>
-#include <qpair.h>
+#include <QList>
+#include <QPair>
 
-#include "State/Value.hpp"
+#include <State/Value.hpp>
 
 class DataStreamInput;
 class DataStreamOutput;

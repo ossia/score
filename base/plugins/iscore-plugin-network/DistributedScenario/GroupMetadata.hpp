@@ -1,11 +1,11 @@
 #pragma once
 #include <boost/optional/optional.hpp>
-#include <qobject.h>
-#include <qobjectdefs.h>
-#include <qstring.h>
+#include <QObject>
 
-#include "iscore/plugins/documentdelegate/plugin/ElementPluginModel.hpp"
-#include "iscore/tools/SettableIdentifier.hpp"
+#include <QString>
+
+#include <iscore/plugins/documentdelegate/plugin/ElementPluginModel.hpp>
+#include <iscore/tools/SettableIdentifier.hpp>
 
 class Group;
 struct VisitorVariant;

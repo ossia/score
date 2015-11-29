@@ -1,7 +1,7 @@
 #include "GroupPanelModel.hpp"
 #include "GroupPanelPresenter.hpp"
 #include "GroupPanelView.hpp"
-#include "iscore/plugins/panel/PanelPresenter.hpp"
+#include <iscore/plugins/panel/PanelPresenter.hpp>
 #include "GroupPanelId.hpp"
 
 namespace iscore {

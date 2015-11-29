@@ -1,11 +1,11 @@
 #include <iscore/plugins/panel/PanelModel.hpp>
-#include <qobject.h>
+#include <QObject>
 
 #include "UndoPresenter.hpp"
 #include "UndoPanelId.hpp"
 #include "UndoView.hpp"
-#include "core/document/Document.hpp"
-#include "iscore/plugins/panel/PanelPresenter.hpp"
+#include <core/document/Document.hpp>
+#include <iscore/plugins/panel/PanelPresenter.hpp>
 
 namespace iscore {
 class PanelView;

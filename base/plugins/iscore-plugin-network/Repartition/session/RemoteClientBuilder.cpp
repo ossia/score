@@ -1,20 +1,20 @@
 #include <Serialization/NetworkSocket.hpp>
 #include <core/document/Document.hpp>
 #include <iscore/tools/SettableIdentifierGeneration.hpp>
-#include <qbytearray.h>
-#include <qdatastream.h>
-#include <qiodevice.h>
-#include <qlist.h>
-#include <qpair.h>
+#include <QByteArray>
+#include <QDataStream>
+#include <QIODevice>
+#include <QList>
+#include <QPair>
 #include <sys/types.h>
 
 #include "MasterSession.hpp"
 #include "RemoteClientBuilder.hpp"
 #include "Serialization/NetworkMessage.hpp"
-#include "core/command/CommandStack.hpp"
-#include "iscore/command/SerializableCommand.hpp"
-#include "iscore/plugins/customfactory/StringFactoryKey.hpp"
-#include "iscore/serialization/DataStreamVisitor.hpp"
+#include <core/command/CommandStack.hpp>
+#include <iscore/command/SerializableCommand.hpp>
+#include <iscore/plugins/customfactory/StringFactoryKey.hpp>
+#include <iscore/serialization/DataStreamVisitor.hpp>
 #include "session/../client/LocalClient.hpp"
 #include "session/../client/RemoteClient.hpp"
 

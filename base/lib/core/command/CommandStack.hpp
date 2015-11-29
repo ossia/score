@@ -1,9 +1,9 @@
 #pragma once
 #include <iscore/command/SerializableCommand.hpp>
-#include <qobject.h>
-#include <qobjectdefs.h>
-#include <qstack.h>
-#include <qstring.h>
+#include <QObject>
+
+#include <QStack>
+#include <QString>
 
 class DataStream;
 

@@ -5,8 +5,8 @@
 #include <boost/optional/optional.hpp>
 
 #include "BaseScenarioContainer.hpp"
-#include "Process/TimeValue.hpp"
-#include "iscore/tools/SettableIdentifier.hpp"
+#include <Process/TimeValue.hpp>
+#include <iscore/tools/SettableIdentifier.hpp>
 
 class ConstraintViewModel;
 

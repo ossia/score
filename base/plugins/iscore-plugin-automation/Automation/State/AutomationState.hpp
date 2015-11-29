@@ -2,10 +2,10 @@
 
 #include <Process/State/ProcessStateDataInterface.hpp>
 #include <State/Message.hpp>
-#include <qstring.h>
+#include <QString>
 #include <vector>
 
-#include "Process/State/MessageNode.hpp"
+#include <Process/State/MessageNode.hpp>
 
 class AutomationModel;
 class QObject;

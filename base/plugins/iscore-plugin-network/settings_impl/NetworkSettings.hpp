@@ -1,9 +1,9 @@
 #pragma once
 #include <iscore/plugins/settingsdelegate/SettingsDelegateFactoryInterface.hpp>
 
-#include "iscore/plugins/settingsdelegate/SettingsDelegateModelInterface.hpp"
-#include "iscore/plugins/settingsdelegate/SettingsDelegatePresenterInterface.hpp"
-#include "iscore/plugins/settingsdelegate/SettingsDelegateViewInterface.hpp"
+#include <iscore/plugins/settingsdelegate/SettingsDelegateModelInterface.hpp>
+#include <iscore/plugins/settingsdelegate/SettingsDelegatePresenterInterface.hpp>
+#include <iscore/plugins/settingsdelegate/SettingsDelegateViewInterface.hpp>
 
 namespace iscore {
 class SettingsPresenter;

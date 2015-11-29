@@ -1,15 +1,15 @@
 #include <Process/Process.hpp>
 #include <Scenario/Document/Constraint/ConstraintModel.hpp>
 #include <boost/optional/optional.hpp>
-#include <qjsonobject.h>
+#include <QJsonObject>
 #include <algorithm>
 
 #include "LayerModelLoader.hpp"
-#include "iscore/serialization/DataStreamVisitor.hpp"
-#include "iscore/serialization/JSONValueVisitor.hpp"
-#include "iscore/serialization/JSONVisitor.hpp"
-#include "iscore/tools/NotifyingMap.hpp"
-#include "iscore/tools/SettableIdentifier.hpp"
+#include <iscore/serialization/DataStreamVisitor.hpp>
+#include <iscore/serialization/JSONValueVisitor.hpp>
+#include <iscore/serialization/JSONVisitor.hpp>
+#include <iscore/tools/NotifyingMap.hpp>
+#include <iscore/tools/SettableIdentifier.hpp>
 
 template <typename VisitorType> class Visitor;
 

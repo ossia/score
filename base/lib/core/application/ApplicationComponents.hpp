@@ -1,16 +1,16 @@
 #pragma once
 #include <iscore/command/CommandData.hpp>
 #include <iscore/command/CommandGeneratorMap.hpp>
-#include <qbytearray.h>
+#include <QByteArray>
 #include <algorithm>
 #include <iterator>
 #include <unordered_map>
 #include <utility>
 #include <vector>
 
-#include "iscore/command/SerializableCommand.hpp"
-#include "iscore/plugins/customfactory/FactoryInterface.hpp"
-#include "iscore/plugins/customfactory/StringFactoryKey.hpp"
+#include <iscore/command/SerializableCommand.hpp>
+#include <iscore/plugins/customfactory/FactoryInterface.hpp>
+#include <iscore/plugins/customfactory/StringFactoryKey.hpp>
 
 namespace iscore
 {

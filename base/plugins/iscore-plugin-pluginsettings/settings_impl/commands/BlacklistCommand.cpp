@@ -1,7 +1,7 @@
-#include <qdebug.h>
+#include <QDebug>
 
 #include "BlacklistCommand.hpp"
-#include "iscore/command/SerializableCommand.hpp"
+#include <iscore/command/SerializableCommand.hpp>
 
 class DataStreamInput;
 class DataStreamOutput;

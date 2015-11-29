@@ -4,8 +4,8 @@
 #include "AddClientToGroup.hpp"
 #include "DistributedScenario/Group.hpp"
 #include "DistributedScenario/GroupManager.hpp"
-#include "iscore/serialization/DataStreamVisitor.hpp"
-#include "iscore/tools/ObjectPath.hpp"
+#include <iscore/serialization/DataStreamVisitor.hpp>
+#include <iscore/tools/ObjectPath.hpp>
 
 
 AddClientToGroup::AddClientToGroup(ObjectPath&& groupMgrPath,

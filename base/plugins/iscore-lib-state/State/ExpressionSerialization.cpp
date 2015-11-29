@@ -1,12 +1,12 @@
 #include <iscore/serialization/DataStreamVisitor.hpp>
 #include <iscore/serialization/JSONVisitor.hpp>
 #include <iscore/tools/VariantSerialization.hpp>
-#include <qjsonobject.h>
-#include <qjsonvalue.h>
+#include <QJsonObject>
+#include <QJsonValue>
 
 #include "Expression.hpp"
 #include "Relation.hpp"
-#include "iscore/serialization/JSONValueVisitor.hpp"
+#include <iscore/serialization/JSONValueVisitor.hpp>
 
 namespace iscore {
 struct Address;

@@ -1,5 +1,5 @@
 #include <core/application/Application.hpp>
-#include <qapplication.h>
+#include <QApplication>
 #include <qnamespace.h>
 
 #if defined(ISCORE_STATIC_PLUGINS)

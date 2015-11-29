@@ -9,20 +9,20 @@
 #include <iscore/plugins/qt_interfaces/GUIApplicationContextPlugin_QtInterface.hpp>
 #include <iscore/plugins/qt_interfaces/PanelFactoryInterface_QtInterface.hpp>
 #include <iscore/plugins/qt_interfaces/SettingsDelegateFactoryInterface_QtInterface.hpp>
-#include <qcoreapplication.h>
-#include <qdebug.h>
-#include <qdir.h>
-#include <qobjectdefs.h>
-#include <qpluginloader.h>
-#include <qsettings.h>
-#include <qvariant.h>
+#include <QCoreApplication>
+#include <QDebug>
+#include <QDir>
+
+#include <QPluginLoader>
+#include <QSettings>
+#include <QVariant>
 #include <unordered_map>
 #include <utility>
 
 #include "PluginDependencyGraph.hpp"
-#include "core/application/ApplicationContext.hpp"
-#include "iscore/plugins/customfactory/FactoryFamily.hpp"
-#include "iscore/plugins/customfactory/StringFactoryKey.hpp"
+#include <core/application/ApplicationContext.hpp>
+#include <iscore/plugins/customfactory/FactoryFamily.hpp>
+#include <iscore/plugins/customfactory/StringFactoryKey.hpp>
 
 using namespace iscore;
 

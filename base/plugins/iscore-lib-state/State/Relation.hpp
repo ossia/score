@@ -1,7 +1,7 @@
 #pragma once
 
 #include <eggs/variant/variant.hpp>
-#include <qstring.h>
+#include <QString>
 #include <State/Address.hpp>
 #include <State/Value.hpp>
 

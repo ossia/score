@@ -1,6 +1,6 @@
 #pragma once
 #include <iscore/command/Dispatchers/CommandDispatcher.hpp>
-#include <qtreeview.h>
+#include <QTreeView>
 
 class MessageItemModel;
 class QAction;

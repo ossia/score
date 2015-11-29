@@ -7,8 +7,8 @@
 #include <Scenario/Commands/Scenario/Creations/CreateState.hpp>
 
 #include "ScenarioRollbackStrategy.hpp"
-#include "iscore/command/SerializableCommand.hpp"
-#include "iscore/plugins/customfactory/StringFactoryKey.hpp"
+#include <iscore/command/SerializableCommand.hpp>
+#include <iscore/plugins/customfactory/StringFactoryKey.hpp>
 
 
 void ScenarioRollbackStrategy::rollback(const std::vector<iscore::SerializableCommand *> &cmds)

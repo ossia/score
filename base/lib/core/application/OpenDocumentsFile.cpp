@@ -1,6 +1,6 @@
-#include <qfile.h>
-#include <qstandardpaths.h>
-#include <qstringlist.h>
+#include <QFile>
+#include <QStandardPaths>
+#include <QStringList>
 
 #include "OpenDocumentsFile.hpp"
 

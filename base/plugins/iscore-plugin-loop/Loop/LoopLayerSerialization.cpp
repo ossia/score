@@ -1,16 +1,16 @@
 #include <Scenario/Document/Constraint/ViewModels/Temporal/TemporalConstraintViewModel.hpp>
 #include <boost/optional/optional.hpp>
-#include <qjsonobject.h>
-#include <qjsonvalue.h>
+#include <QJsonObject>
+#include <QJsonValue>
 #include <algorithm>
 
 #include "LoopLayer.hpp"
 #include "LoopProcessModel.hpp"
 #include "Scenario/Document/Constraint/ConstraintModel.hpp"
-#include "iscore/serialization/DataStreamVisitor.hpp"
-#include "iscore/serialization/JSONVisitor.hpp"
-#include "iscore/serialization/VisitorCommon.hpp"
-#include "iscore/tools/SettableIdentifier.hpp"
+#include <iscore/serialization/DataStreamVisitor.hpp>
+#include <iscore/serialization/JSONVisitor.hpp>
+#include <iscore/serialization/VisitorCommon.hpp>
+#include <iscore/tools/SettableIdentifier.hpp>
 
 struct VisitorVariant;
 template <typename T> class Reader;

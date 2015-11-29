@@ -1,5 +1,5 @@
 #pragma once
-#include "State/Value.hpp"
+#include <State/Value.hpp>
 #include "ValueWidget.hpp"
 
 class QComboBox;

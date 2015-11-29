@@ -1,4 +1,4 @@
-#include <qglobal.h>
+#include <QtGlobal>
 
 #include "RackView.hpp"
 

@@ -1,7 +1,7 @@
 #pragma once
 #include <Device/Address/AddressSettings.hpp>
 #include <Explorer/Widgets/ValueWrapper.hpp>
-#include <qdialog.h>
+#include <QDialog>
 
 class AddressSettingsWidget;
 class QComboBox;

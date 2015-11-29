@@ -38,16 +38,16 @@ qmenuview.h qmenuview.cpp, qmenuview_p.h.
 J'ai apporté quelques modifications en plus.
 */
 
-#include <qabstractitemmodel.h>
-#include <qaction.h>
-#include <qevent.h>
-#include <qicon.h>
-#include <qmenu.h>
+#include <QAbstractItemModel>
+#include <QAction>
+#include <QEvent>
+#include <QIcon>
+#include <QMenu>
 #include <qnamespace.h>
-#include <qobject.h>
-#include <qscopedpointer.h>
-#include <qstring.h>
-#include <qvariant.h>
+#include <QObject>
+#include <QScopedPointer>
+#include <QString>
+#include <QVariant>
 
 #include "Device/QMenuView/qmenuview.h"
 #include "qmenuview_p.h"

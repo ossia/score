@@ -1,5 +1,5 @@
 #include "PanelModel.hpp"
-#include "iscore/selection/Selection.hpp"
+#include <iscore/selection/Selection.hpp>
 
 using namespace iscore;
 

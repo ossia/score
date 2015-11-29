@@ -1,6 +1,6 @@
 #include <Process/Style/ScenarioStyle.hpp>
-#include <qgraphicssceneevent.h>
-#include <qpainter.h>
+#include <QGraphicsSceneEvent>
+#include <QPainter>
 
 #include "SlotOverlay.hpp"
 #include "SlotPresenter.hpp"

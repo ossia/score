@@ -12,14 +12,14 @@
 #include <core/document/Document.hpp>
 #include <ext/alloc_traits.h>
 #include <iscore/document/DocumentInterface.hpp>
-#include <qglobal.h>
-#include <qpolygon.h>
-#include <qsize.h>
-#include <qstring.h>
-#include <qwidget.h>
+#include <QtGlobal>
+#include <QPolygon>
+#include <QSize>
+#include <QString>
+#include <QWidget>
 
-#include "Process/LayerPresenter.hpp"
-#include "Process/TimeValue.hpp"
+#include <Process/LayerPresenter.hpp>
+#include <Process/TimeValue.hpp>
 #include "Scenario/Document/Constraint/ConstraintDurations.hpp"
 #include "Scenario/Document/DisplayedElements/DisplayedElementsModel.hpp"
 #include "Scenario/Document/DisplayedElements/DisplayedElementsPresenter.hpp"
@@ -27,16 +27,16 @@
 #include "Scenario/Document/ScenarioDocument/Widgets/ScenarioBaseGraphicsView.hpp"
 #include "ScenarioDocumentPresenter.hpp"
 #include "ZoomPolicy.hpp"
-#include "core/application/ApplicationComponents.hpp"
-#include "core/document/DocumentContext.hpp"
-#include "iscore/plugins/customfactory/StringFactoryKey.hpp"
-#include "iscore/plugins/documentdelegate/DocumentDelegatePresenterInterface.hpp"
-#include "iscore/selection/SelectionDispatcher.hpp"
-#include "iscore/selection/SelectionStack.hpp"
-#include "iscore/statemachine/GraphicsSceneToolPalette.hpp"
-#include "iscore/tools/ObjectIdentifier.hpp"
-#include "iscore/tools/ObjectPath.hpp"
-#include "iscore/tools/Todo.hpp"
+#include <core/application/ApplicationComponents.hpp>
+#include <core/document/DocumentContext.hpp>
+#include <iscore/plugins/customfactory/StringFactoryKey.hpp>
+#include <iscore/plugins/documentdelegate/DocumentDelegatePresenterInterface.hpp>
+#include <iscore/selection/SelectionDispatcher.hpp>
+#include <iscore/selection/SelectionStack.hpp>
+#include <iscore/statemachine/GraphicsSceneToolPalette.hpp>
+#include <iscore/tools/ObjectIdentifier.hpp>
+#include <iscore/tools/ObjectPath.hpp>
+#include <iscore/tools/Todo.hpp>
 
 namespace iscore {
 class DocumentDelegateModelInterface;

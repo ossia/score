@@ -1,9 +1,9 @@
 #pragma once
 #include <boost/optional/optional.hpp>
-#include <qobject.h>
-#include <qstring.h>
+#include <QObject>
+#include <QString>
 
-#include "iscore/tools/SettableIdentifier.hpp"
+#include <iscore/tools/SettableIdentifier.hpp>
 
 class Client;
 class MasterSession;

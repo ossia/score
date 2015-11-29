@@ -5,12 +5,12 @@
 #include <boost/iterator/indirect_iterator.hpp>
 #include <boost/iterator/iterator_facade.hpp>
 #include <boost/multi_index/detail/hash_index_iterator.hpp>
-#include <qdatastream.h>
-#include <qglobal.h>
-#include <qlist.h>
-#include <qpointer.h>
-#include <qset.h>
-#include <qstring.h>
+#include <QDataStream>
+#include <QtGlobal>
+#include <QList>
+#include <QPointer>
+#include <QSet>
+#include <QString>
 #include <algorithm>
 #include <iterator>
 
@@ -19,14 +19,14 @@
 #include "Scenario/Document/Constraint/ViewModels/ConstraintViewModelSerialization.hpp"
 #include "Scenario/Document/State/StateModel.hpp"
 #include "Scenario/Process/ScenarioModel.hpp"
-#include "iscore/serialization/DataStreamVisitor.hpp"
-#include "iscore/tools/IdentifiedObject.hpp"
-#include "iscore/tools/IdentifiedObjectAbstract.hpp"
-#include "iscore/tools/IdentifiedObjectMap.hpp"
-#include "iscore/tools/ModelPath.hpp"
-#include "iscore/tools/ModelPathSerialization.hpp"
-#include "iscore/tools/NotifyingMap.hpp"
-#include "iscore/tools/SettableIdentifier.hpp"
+#include <iscore/serialization/DataStreamVisitor.hpp>
+#include <iscore/tools/IdentifiedObject.hpp>
+#include <iscore/tools/IdentifiedObjectAbstract.hpp>
+#include <iscore/tools/IdentifiedObjectMap.hpp>
+#include <iscore/tools/ModelPath.hpp>
+#include <iscore/tools/ModelPathSerialization.hpp>
+#include <iscore/tools/NotifyingMap.hpp>
+#include <iscore/tools/SettableIdentifier.hpp>
 
 using namespace iscore;
 using namespace Scenario::Command;

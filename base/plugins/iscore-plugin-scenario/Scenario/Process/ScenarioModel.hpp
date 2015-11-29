@@ -12,18 +12,18 @@
 #include <boost/optional/optional.hpp>
 #include <iscore/tools/IdentifiedObjectMap.hpp>
 #include <iscore/tools/NotifyingMap.hpp>
-#include <qbytearray.h>
-#include <qlist.h>
-#include <qobject.h>
-#include <qpointer.h>
-#include <qstring.h>
-#include <qvector.h>
+#include <QByteArray>
+#include <QList>
+#include <QObject>
+#include <QPointer>
+#include <QString>
+#include <QVector>
 
-#include "Process/ProcessFactoryKey.hpp"
+#include <Process/ProcessFactoryKey.hpp>
 #include "Scenario/Process/AbstractScenarioLayerModel.hpp"
-#include "iscore/selection/Selection.hpp"
-#include "iscore/serialization/VisitorInterface.hpp"
-#include "iscore/tools/SettableIdentifier.hpp"
+#include <iscore/selection/Selection.hpp>
+#include <iscore/serialization/VisitorInterface.hpp>
+#include <iscore/tools/SettableIdentifier.hpp>
 
 class DataStream;
 class JSONObject;

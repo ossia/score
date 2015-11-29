@@ -1,11 +1,11 @@
 #include <unordered_map>
 
-#include "Curve/Commands/CurveCommandFactory.hpp"
-#include "Curve/Segment/CurveSegmentFactory.hpp"
-#include "Curve/Segment/CurveSegmentList.hpp"
-#include "Curve/Segment/Linear/LinearCurveSegmentModel.hpp"
-#include "Curve/Segment/Power/PowerCurveSegmentModel.hpp"
-#include "iscore/plugins/customfactory/StringFactoryKey.hpp"
+#include <Curve/Commands/CurveCommandFactory.hpp>
+#include <Curve/Segment/CurveSegmentFactory.hpp>
+#include <Curve/Segment/CurveSegmentList.hpp>
+#include <Curve/Segment/Linear/LinearCurveSegmentModel.hpp>
+#include <Curve/Segment/Power/PowerCurveSegmentModel.hpp>
+#include <iscore/plugins/customfactory/StringFactoryKey.hpp>
 #include "iscore_plugin_curve.hpp"
 #include <iscore_plugin_curve_commands_files.hpp>
 

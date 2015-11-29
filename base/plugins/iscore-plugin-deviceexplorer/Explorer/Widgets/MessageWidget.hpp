@@ -1,6 +1,6 @@
 #pragma once
 
-#include <qpushbutton.h>
+#include <QPushButton>
 
 class QWidget;
 

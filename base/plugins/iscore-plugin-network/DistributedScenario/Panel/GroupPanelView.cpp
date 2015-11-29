@@ -1,21 +1,21 @@
 #include <iscore/document/DocumentInterface.hpp>
-#include <qboxlayout.h>
-#include <qinputdialog.h>
-#include <qlabel.h>
-#include <qlayout.h>
-#include <qlineedit.h>
+#include <QBoxLayout>
+#include <QInputDialog>
+#include <QLabel>
+#include <QLayout>
+#include <QLineEdit>
 #include <qnamespace.h>
-#include <qobject.h>
-#include <qpushbutton.h>
-#include <qwidget.h>
+#include <QObject>
+#include <QPushButton>
+#include <QWidget>
 
 #include "DistributedScenario/Commands/CreateGroup.hpp"
 #include "GroupPanelView.hpp"
 #include "Widgets/GroupListWidget.hpp"
 #include "Widgets/GroupTableWidget.hpp"
-#include "iscore/command/Dispatchers/CommandDispatcher.hpp"
-#include "iscore/plugins/panel/PanelView.hpp"
-#include "iscore/tools/ObjectPath.hpp"
+#include <iscore/command/Dispatchers/CommandDispatcher.hpp>
+#include <iscore/plugins/panel/PanelView.hpp>
+#include <iscore/tools/ObjectPath.hpp>
 
 static const iscore::DefaultPanelStatus status{false, Qt::RightDockWidgetArea, 1, QObject::tr("Groups")};
 const iscore::DefaultPanelStatus &GroupPanelView::defaultPanelStatus() const

@@ -2,7 +2,7 @@
 #include <core/application/ApplicationSettings.hpp>
 #include <core/plugin/PluginManager.hpp>
 #include <iscore/tools/NamedObject.hpp>
-#include <qapplication.h>
+#include <QApplication>
 #include <memory>
 
 namespace iscore {

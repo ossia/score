@@ -5,7 +5,7 @@
 #include <memory>
 #include <vector>
 
-#include "iscore/plugins/customfactory/FactoryInterface.hpp"
+#include <iscore/plugins/customfactory/FactoryInterface.hpp>
 
 class ConstraintModel;
 

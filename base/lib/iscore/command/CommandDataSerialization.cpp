@@ -1,8 +1,8 @@
 #include <iscore/serialization/DataStreamVisitor.hpp>
-#include <qbytearray.h>
+#include <QByteArray>
 
 #include "CommandData.hpp"
-#include "iscore/plugins/customfactory/StringFactoryKey.hpp"
+#include <iscore/plugins/customfactory/StringFactoryKey.hpp>
 
 template <typename T> class Reader;
 template <typename T> class Writer;

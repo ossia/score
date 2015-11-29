@@ -1,6 +1,6 @@
 #pragma once
 #include <Inspector/InspectorSectionWidget.hpp>
-#include <qstring.h>
+#include <QString>
 
 class AddLayerModelWidget;
 class ConstraintInspectorWidget;

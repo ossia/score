@@ -3,15 +3,15 @@
 #include <boost/optional/optional.hpp>
 #include <iscore/document/DocumentInterface.hpp>
 
-#include "Curve/Process/CurveProcessModel.hpp"
-#include "Curve/Segment/CurveSegmentModel.hpp"
-#include "Mapping/MappingProcessMetadata.hpp"
+#include <Curve/Process/CurveProcessModel.hpp>
+#include <Curve/Segment/CurveSegmentModel.hpp>
+#include <Mapping/MappingProcessMetadata.hpp>
 #include "MappingLayerModel.hpp"
 #include "MappingModel.hpp"
-#include "Process/ModelMetadata.hpp"
-#include "State/Address.hpp"
-#include "iscore/plugins/documentdelegate/plugin/ElementPluginModelList.hpp"
-#include "iscore/tools/SettableIdentifier.hpp"
+#include <Process/ModelMetadata.hpp>
+#include <State/Address.hpp>
+#include <iscore/plugins/documentdelegate/plugin/ElementPluginModelList.hpp>
+#include <iscore/tools/SettableIdentifier.hpp>
 
 class LayerModel;
 class Process;

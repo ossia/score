@@ -15,26 +15,26 @@
 #include <Scenario/Process/ScenarioFactory.hpp>
 #include <Scenario/iscore_plugin_scenario.hpp>
 #include <State/Message.hpp>
-#include <qmetatype.h>
-#include <qstring.h>
+#include <QMetaType>
+#include <QString>
 
 #include "Inspector/InspectorWidgetFactoryInterface.hpp"
-#include "Process/ProcessFactory.hpp"
-#include "Process/ProcessList.hpp"
-#include "Process/TimeValue.hpp"
+#include <Process/ProcessFactory.hpp>
+#include <Process/ProcessList.hpp>
+#include <Process/TimeValue.hpp>
 #include "Scenario/Application/Menus/Plugin/ScenarioActionsFactory.hpp"
 #include "Scenario/Application/Menus/Plugin/ScenarioContextMenuPluginList.hpp"
 #include "Scenario/Commands/Scenario/Displacement/MoveEventList.hpp"
 #include "Scenario/Commands/TimeNode/TriggerCommandFactory/TriggerCommandFactory.hpp"
 #include "Scenario/Document/DisplayedElements/DisplayedElementsProvider.hpp"
 #include "Scenario/Document/DisplayedElements/DisplayedElementsToolPalette/DisplayedElementsToolPaletteFactory.hpp"
-#include "State/Value.hpp"
-#include "core/application/ApplicationComponents.hpp"
-#include "iscore/plugins/customfactory/StringFactoryKey.hpp"
-#include "iscore/plugins/qt_interfaces/DocumentDelegateFactoryInterface_QtInterface.hpp"
-#include "iscore/plugins/qt_interfaces/FactoryFamily_QtInterface.hpp"
-#include "iscore/plugins/qt_interfaces/FactoryInterface_QtInterface.hpp"
-#include "iscore/plugins/qt_interfaces/GUIApplicationContextPlugin_QtInterface.hpp"
+#include <State/Value.hpp>
+#include <core/application/ApplicationComponents.hpp>
+#include <iscore/plugins/customfactory/StringFactoryKey.hpp>
+#include <iscore/plugins/qt_interfaces/DocumentDelegateFactoryInterface_QtInterface.hpp>
+#include <iscore/plugins/qt_interfaces/FactoryFamily_QtInterface.hpp>
+#include <iscore/plugins/qt_interfaces/FactoryInterface_QtInterface.hpp>
+#include <iscore/plugins/qt_interfaces/GUIApplicationContextPlugin_QtInterface.hpp>
 
 namespace iscore {
 class Application;

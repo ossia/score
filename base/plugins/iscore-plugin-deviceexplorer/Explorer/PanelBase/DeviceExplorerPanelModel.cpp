@@ -4,7 +4,7 @@
 #include <core/document/DocumentModel.hpp>
 
 #include "DeviceExplorerPanelModel.hpp"
-#include "iscore/plugins/panel/PanelModel.hpp"
+#include <iscore/plugins/panel/PanelModel.hpp>
 
 DeviceExplorerPanelModel::DeviceExplorerPanelModel(iscore::DocumentModel* parent) :
     iscore::PanelModel {"DeviceExplorerPanelModel", parent},

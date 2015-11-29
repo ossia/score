@@ -2,11 +2,11 @@
 #include <Curve/CurveModel.hpp>
 #include <algorithm>
 
-#include "Curve/Segment/CurveSegmentData.hpp"
+#include <Curve/Segment/CurveSegmentData.hpp>
 #include "InitAutomation.hpp"
-#include "iscore/serialization/DataStreamVisitor.hpp"
-#include "iscore/tools/ModelPath.hpp"
-#include "iscore/tools/ModelPathSerialization.hpp"
+#include <iscore/serialization/DataStreamVisitor.hpp>
+#include <iscore/tools/ModelPath.hpp>
+#include <iscore/tools/ModelPathSerialization.hpp>
 
 namespace iscore {
 struct Address;

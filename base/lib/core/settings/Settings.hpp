@@ -1,7 +1,7 @@
 #pragma once
 
 
-#include <qobject.h>
+#include <QObject>
 
 namespace iscore {
 class SettingsDelegateFactoryInterface;

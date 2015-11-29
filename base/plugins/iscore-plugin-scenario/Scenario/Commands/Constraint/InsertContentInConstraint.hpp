@@ -3,10 +3,10 @@
 #include <Scenario/Commands/ScenarioCommandFactory.hpp>
 #include <iscore/command/SerializableCommand.hpp>
 #include <iscore/tools/ModelPath.hpp>
-#include <qjsonobject.h>
-#include <qmap.h>
+#include <QJsonObject>
+#include <QMap>
 
-#include "iscore/tools/SettableIdentifier.hpp"
+#include <iscore/tools/SettableIdentifier.hpp>
 
 class ConstraintModel;
 class DataStreamInput;

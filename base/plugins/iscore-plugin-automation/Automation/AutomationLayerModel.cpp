@@ -1,9 +1,9 @@
-#include <qobjectdefs.h>
+
 
 #include "AutomationLayerModel.hpp"
 #include "AutomationModel.hpp"
 #include "AutomationPanelProxy.hpp"
-#include "Process/LayerModel.hpp"
+#include <Process/LayerModel.hpp>
 
 class LayerModelPanelProxy;
 class QObject;

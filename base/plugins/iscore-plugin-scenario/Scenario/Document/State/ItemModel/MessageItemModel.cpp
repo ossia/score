@@ -2,25 +2,25 @@
 #include <State/MessageListSerialization.hpp>
 #include <boost/core/explicit_operator_bool.hpp>
 #include <boost/optional/optional.hpp>
-#include <qflags.h>
-#include <qjsondocument.h>
-#include <qmap.h>
-#include <qmimedata.h>
-#include <qobject.h>
-#include <qobjectdefs.h>
-#include <qstring.h>
+#include <QFlags>
+#include <QJsonDocument>
+#include <QMap>
+#include <QMimeData>
+#include <QObject>
+
+#include <QString>
 #include <algorithm>
 
 #include "MessageItemModel.hpp"
-#include "Process/State/MessageNode.hpp"
-#include "State/Message.hpp"
-#include "State/StateMimeTypes.hpp"
-#include "State/ValueConversion.hpp"
-#include "iscore/command/Dispatchers/CommandDispatcher.hpp"
-#include "iscore/serialization/JSONVisitor.hpp"
-#include "iscore/tools/ModelPath.hpp"
-#include "iscore/tools/TreeNode.hpp"
-#include "iscore/tools/TreeNodeItemModel.hpp"
+#include <Process/State/MessageNode.hpp>
+#include <State/Message.hpp>
+#include <State/StateMimeTypes.hpp>
+#include <State/ValueConversion.hpp>
+#include <iscore/command/Dispatchers/CommandDispatcher.hpp>
+#include <iscore/serialization/JSONVisitor.hpp>
+#include <iscore/tools/ModelPath.hpp>
+#include <iscore/tools/TreeNode.hpp>
+#include <iscore/tools/TreeNodeItemModel.hpp>
 
 class StateModel;
 namespace iscore {

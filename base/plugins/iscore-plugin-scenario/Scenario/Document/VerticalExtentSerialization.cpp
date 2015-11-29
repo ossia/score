@@ -1,6 +1,6 @@
 #include <iscore/serialization/DataStreamVisitor.hpp>
 #include <iscore/serialization/JSONValueVisitor.hpp>
-#include <qpoint.h>
+#include <QPoint>
 
 #include "VerticalExtent.hpp"
 

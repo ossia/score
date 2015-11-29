@@ -1,9 +1,9 @@
 #pragma once
 #include <JS/Commands/JSCommandFactory.hpp>
 #include <iscore/command/SerializableCommand.hpp>
-#include <qstring.h>
+#include <QString>
 
-#include "iscore/tools/ModelPath.hpp"
+#include <iscore/tools/ModelPath.hpp>
 
 class DataStreamInput;
 class DataStreamOutput;

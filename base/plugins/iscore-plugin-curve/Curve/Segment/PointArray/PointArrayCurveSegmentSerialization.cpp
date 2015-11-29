@@ -1,6 +1,6 @@
 #include <iscore/serialization/DataStreamVisitor.hpp>
 #include <iscore/serialization/JSONVisitor.hpp>
-#include <qdebug.h>
+#include <QDebug>
 
 class PointArrayCurveSegmentModel;
 struct PointArrayCurveSegmentData;

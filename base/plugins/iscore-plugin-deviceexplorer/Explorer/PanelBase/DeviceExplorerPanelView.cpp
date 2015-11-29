@@ -2,13 +2,13 @@
 #include <Explorer/Explorer/DeviceExplorerWidget.hpp>
 #include <core/view/View.hpp>
 #include <qnamespace.h>
-#include <qobject.h>
+#include <QObject>
 
 #include "DeviceExplorerPanelView.hpp"
-#include "core/application/ApplicationComponents.hpp"
-#include "core/application/ApplicationContext.hpp"
-#include "iscore/plugins/customfactory/StringFactoryKey.hpp"
-#include "iscore/plugins/panel/PanelView.hpp"
+#include <core/application/ApplicationComponents.hpp>
+#include <core/application/ApplicationContext.hpp>
+#include <iscore/plugins/customfactory/StringFactoryKey.hpp>
+#include <iscore/plugins/panel/PanelView.hpp>
 
 class QWidget;
 

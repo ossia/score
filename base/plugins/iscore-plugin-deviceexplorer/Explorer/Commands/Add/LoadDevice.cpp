@@ -5,10 +5,10 @@
 #include "Device/Protocol/DeviceSettings.hpp"
 #include "Explorer/DocumentPlugin/NodeUpdateProxy.hpp"
 #include "LoadDevice.hpp"
-#include "iscore/serialization/DataStreamVisitor.hpp"
-#include "iscore/tools/ModelPath.hpp"
-#include "iscore/tools/ModelPathSerialization.hpp"
-#include "iscore/tools/TreeNode.hpp"
+#include <iscore/serialization/DataStreamVisitor.hpp>
+#include <iscore/tools/ModelPath.hpp>
+#include <iscore/tools/ModelPathSerialization.hpp>
+#include <iscore/tools/TreeNode.hpp>
 
 LoadDevice::LoadDevice(
         Path<DeviceDocumentPlugin>&& device_tree,

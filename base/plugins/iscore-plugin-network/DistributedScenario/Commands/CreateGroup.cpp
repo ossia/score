@@ -5,8 +5,8 @@
 #include "CreateGroup.hpp"
 #include "DistributedScenario/Group.hpp"
 #include "DistributedScenario/GroupManager.hpp"
-#include "iscore/serialization/DataStreamVisitor.hpp"
-#include "iscore/tools/ObjectPath.hpp"
+#include <iscore/serialization/DataStreamVisitor.hpp>
+#include <iscore/tools/ObjectPath.hpp>
 
 
 CreateGroup::CreateGroup(ObjectPath&& groupMgrPath, QString groupName):

@@ -2,7 +2,7 @@
 #include <Scenario/Document/ScenarioDocument/ScenarioDocumentPresenter.hpp>
 
 #include "BaseElementContext.hpp"
-#include "core/document/DocumentContext.hpp"
+#include <core/document/DocumentContext.hpp>
 
 namespace iscore {
 class Document;

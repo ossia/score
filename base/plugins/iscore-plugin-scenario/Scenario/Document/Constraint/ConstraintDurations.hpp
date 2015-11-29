@@ -1,6 +1,6 @@
 #pragma once
 #include <Process/TimeValue.hpp>
-#include <qobject.h>
+#include <QObject>
 #include <chrono>
 
 class ConstraintModel;
