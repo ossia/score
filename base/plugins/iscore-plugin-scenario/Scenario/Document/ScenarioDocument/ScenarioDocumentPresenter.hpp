@@ -6,7 +6,7 @@
 #include <iscore/tools/NamedObject.hpp>
 #include <iscore/selection/SelectionDispatcher.hpp>
 #include <iscore/tools/ModelPath.hpp>
-#include <iscore/statemachine/BaseStateMachine.hpp>
+#include <iscore/statemachine/GraphicsSceneToolPalette.hpp>
 
 #include <memory>
 #include <QSize>

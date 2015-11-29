@@ -11,6 +11,7 @@
 #include <core/application/ApplicationComponents.hpp>
 #include <core/application/Application.hpp>
 #include <Scenario/Commands/TimeNode/TriggerCommandFactory/TriggerCommandFactoryList.hpp>
+#include <Scenario/Process/Algorithms/Accessors.hpp>
 #include <QLabel>
 
 BaseConstraintInspectorDelegate::BaseConstraintInspectorDelegate(
@@ -21,8 +22,8 @@ BaseConstraintInspectorDelegate::BaseConstraintInspectorDelegate(
 
 void BaseConstraintInspectorDelegate::updateElements()
 {
-    auto scenario = m_model.parentScenario();
-    auto& tn = scenario->timeNode(m_model.endTimeNode());
+    auto& scenario = *safe_cast<BaseScenario*>(m_model.parent());
+    auto& tn = endTimeNode(m_model, scenario);
     m_triggerLine->updateExpression(tn.trigger()->expression());
 }
 
@@ -31,8 +32,8 @@ void BaseConstraintInspectorDelegate::addWidgets_pre(
         ConstraintInspectorWidget* parent)
 {
     iscore::ApplicationContext ctx{iscore::Application::instance()};
-    auto scenario = m_model.parentScenario();
-    auto& tn = scenario->timeNode(m_model.endTimeNode());
+    auto& scenario = *safe_cast<BaseScenario*>(m_model.parent());
+    auto& tn = endTimeNode(m_model, scenario);
     m_triggerLine = new TriggerInspectorWidget{
                     ctx.components.factory<TriggerCommandFactoryList>(),
                     tn,
@@ -47,8 +48,9 @@ void BaseConstraintInspectorDelegate::addWidgets_post(
         ConstraintInspectorWidget* parent)
 {
     iscore::ApplicationContext ctx{iscore::Application::instance()};
-    auto scenario = m_model.parentScenario();
-    auto& tn = scenario->timeNode(m_model.endTimeNode());
+    auto& scenario = *safe_cast<BaseScenario*>(m_model.parent());
+    auto& tn = endTimeNode(m_model, scenario);
+
     auto trWidg = new TriggerInspectorWidget{
                   ctx.components.factory<TriggerCommandFactoryList>(),
                   tn,

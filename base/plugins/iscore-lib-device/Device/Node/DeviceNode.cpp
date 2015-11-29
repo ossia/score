@@ -179,7 +179,6 @@ void merge(
     }
 }
 
-// TODO why doesn't this take a reference ?
 iscore::Node merge(
         iscore::Node base,
         const iscore::MessageList& other)

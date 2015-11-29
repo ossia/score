@@ -23,13 +23,13 @@ add_subdirectory(DummyProcess)
 
 ### Scenario plugin ###
 file(GLOB_RECURSE HDRS
-    "${CMAKE_CURRENT_SOURCE_DIR}/Scenario/Commands/*.hpp"
     "${CMAKE_CURRENT_SOURCE_DIR}/Scenario/Application/*.hpp"
+    "${CMAKE_CURRENT_SOURCE_DIR}/Scenario/Commands/*.hpp"
     "${CMAKE_CURRENT_SOURCE_DIR}/Scenario/DialogWidget/*.hpp"
     "${CMAKE_CURRENT_SOURCE_DIR}/Scenario/Document/*.hpp"
+    "${CMAKE_CURRENT_SOURCE_DIR}/Scenario/Palette/*.hpp"
     "${CMAKE_CURRENT_SOURCE_DIR}/Scenario/Panel/*.hpp"
     "${CMAKE_CURRENT_SOURCE_DIR}/Scenario/Process/*.hpp"
-    "${CMAKE_CURRENT_SOURCE_DIR}/Scenario/ProcessInterfaceSerialization/*.hpp"
     "${CMAKE_CURRENT_SOURCE_DIR}/Scenario/ViewCommands/*.hpp"
     "${CMAKE_CURRENT_SOURCE_DIR}/Scenario/iscore_plugin_scenario.hpp"
     "${CMAKE_CURRENT_SOURCE_DIR}/Scenario/Tools/*.hpp"
@@ -127,9 +127,7 @@ set(SRCS ${SRCS}
 "${CMAKE_CURRENT_SOURCE_DIR}/Scenario/Commands/TimeNode/TriggerCommandFactory/TriggerCommandFactory.cpp"
 "${CMAKE_CURRENT_SOURCE_DIR}/Scenario/Commands/TimeNode/TriggerCommandFactory/ScenarioTriggerCommandFactory.cpp"
 "${CMAKE_CURRENT_SOURCE_DIR}/Scenario/Commands/TimeNode/TriggerCommandFactory/BaseScenarioTriggerCommandFactory.cpp"
-"${CMAKE_CURRENT_SOURCE_DIR}/Scenario/Commands/TimeNode/AddTrigger.cpp"
 "${CMAKE_CURRENT_SOURCE_DIR}/Scenario/Commands/TimeNode/MergeTimeNodes.cpp"
-"${CMAKE_CURRENT_SOURCE_DIR}/Scenario/Commands/TimeNode/RemoveTrigger.cpp"
 "${CMAKE_CURRENT_SOURCE_DIR}/Scenario/Commands/TimeNode/SplitTimeNode.cpp"
 "${CMAKE_CURRENT_SOURCE_DIR}/Scenario/Commands/TimeNode/SetTrigger.cpp"
 "${CMAKE_CURRENT_SOURCE_DIR}/Scenario/Commands/CommandNames.cpp"
@@ -170,9 +168,7 @@ set(SRCS ${SRCS}
 
 "${CMAKE_CURRENT_SOURCE_DIR}/Scenario/Document/DisplayedElements/DisplayedElementsModel.cpp"
 "${CMAKE_CURRENT_SOURCE_DIR}/Scenario/Document/DisplayedElements/DisplayedElementsPresenter.cpp"
-"${CMAKE_CURRENT_SOURCE_DIR}/Scenario/Document/DisplayedElements/DisplayedElementsContainer.cpp"
 "${CMAKE_CURRENT_SOURCE_DIR}/Scenario/Document/DisplayedElements/DisplayedElementsProvider.cpp"
-"${CMAKE_CURRENT_SOURCE_DIR}/Scenario/Document/DisplayedElements/DisplayedElementsProviderList.cpp"
 "${CMAKE_CURRENT_SOURCE_DIR}/Scenario/Document/DisplayedElements/ScenarioDisplayedElementsProvider.cpp"
 "${CMAKE_CURRENT_SOURCE_DIR}/Scenario/Document/DisplayedElements/BaseScenarioDisplayedElementsProvider.cpp"
 

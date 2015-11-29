@@ -72,7 +72,7 @@ void MoveSlotTool::on_released()
 
 void MoveSlotTool::on_cancel()
 {
-    ISCORE_TODO;
+    m_localSM.postEvent(new iscore::Cancel_Event);
 }
 
 void MoveSlotTool::activate()

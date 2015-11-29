@@ -6,7 +6,7 @@
 #include <Curve/Palette/CurveEditionSettings.hpp>
 
 #include <Process/Focus/FocusDispatcher.hpp>
-#include <iscore/statemachine/BaseStateMachine.hpp>
+#include <iscore/statemachine/GraphicsSceneToolPalette.hpp>
 #include <iscore/locking/ObjectLocker.hpp>
 
 #include <core/command/CommandStack.hpp>

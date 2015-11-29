@@ -5,8 +5,7 @@
 #include <iscore/statemachine/StateMachineTools.hpp>
 #include <iscore/statemachine/StateMachineUtils.hpp>
 #include <core/document/Document.hpp>
-#include <QSignalTransition>
-#include <QActionGroup>
+#include <QApplication>
 
 namespace Curve
 {
@@ -111,20 +110,12 @@ void ToolPalette::on_released(QPointF point)
 
 void ToolPalette::on_cancel()
 {
-    switch(editionSettings().tool())
-    {
-        case Curve::Tool::Create:
-            m_createTool.on_cancel();
-            break;
-        case Curve::Tool::Select:
-            m_selectTool.on_cancel();
-            break;
-        case Curve::Tool::SetSegment:
-            m_setSegmentTool.on_cancel();
-            break;
-        default:
-            break;
-    }
+    m_createTool.on_cancel();
+    QApplication::processEvents();
+    m_selectTool.on_cancel();
+    QApplication::processEvents();
+    m_setSegmentTool.on_cancel();
+    QApplication::processEvents();
 }
 
 void ToolPalette::activate(Tool)

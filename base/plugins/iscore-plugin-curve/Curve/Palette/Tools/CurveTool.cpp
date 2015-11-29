@@ -7,7 +7,7 @@
 namespace Curve
 {
 CurveTool::CurveTool(const Curve::ToolPalette& csm):
-    GraphicsSceneToolBase<Curve::Point>{csm.scene()},
+    GraphicsSceneTool<Curve::Point>{csm.scene()},
     m_parentSM{csm}
 {
 }

@@ -57,10 +57,10 @@ void LoopConstraintInspectorDelegate::on_defaultDurationChanged(
         const TimeValue& val,
         ExpandMode expandmode) const
 {
-    auto loop = m_model.parentScenario();
+    auto& loop = *safe_cast<Loop::ProcessModel*>(m_model.parent());
     dispatcher.submitCommand<MoveBaseEvent<Loop::ProcessModel>>(
-            *safe_cast<Loop::ProcessModel*>(m_model.parent()),
-            loop->state(m_model.endState()).eventId(),
+            loop,
+            loop.state(m_model.endState()).eventId(),
             m_model.startDate() + val,
             expandmode);
 }

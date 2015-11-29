@@ -160,15 +160,6 @@ void ConstraintModel::setStartState(const Id<StateModel>& e)
     m_startState = e;
 }
 
-const Id<TimeNodeModel> &ConstraintModel::startTimeNode() const
-{
-    return parentScenario()->timeNode(
-                parentScenario()->event(
-                    parentScenario()->state(startState()
-                                            ).eventId()
-                    ).timeNode()).id();
-}
-
 const Id<StateModel> &ConstraintModel::endState() const
 {
     return m_endState;
@@ -177,15 +168,6 @@ const Id<StateModel> &ConstraintModel::endState() const
 void ConstraintModel::setEndState(const Id<StateModel> &endState)
 {
     m_endState = endState;
-}
-
-const Id<TimeNodeModel> &ConstraintModel::endTimeNode() const
-{
-    return parentScenario()->timeNode(
-                parentScenario()->event(
-                    parentScenario()->state(endState()
-                                            ).eventId()
-                    ).timeNode()).id();
 }
 
 const TimeValue& ConstraintModel::startDate() const
@@ -253,4 +235,21 @@ void ConstraintModel::setHeightPercentage(double arg)
         m_heightPercentage = arg;
         emit heightPercentageChanged(arg);
     }
+}
+
+const TimeNodeModel& startTimeNode(const ConstraintModel& cst)
+{
+    auto scenario = safe_cast<ScenarioInterface*>(cst.parent());
+    return scenario->timeNode(
+                scenario->event(
+                    scenario->state(cst.startState()).eventId()).timeNode());
+
+}
+
+const TimeNodeModel& endTimeNode(const ConstraintModel& cst)
+{
+    auto scenario = safe_cast<ScenarioInterface*>(cst.parent());
+    return scenario->timeNode(
+                scenario->event(
+                    scenario->state(cst.endState()).eventId()).timeNode());
 }

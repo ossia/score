@@ -4,13 +4,13 @@
 #include <Curve/Point/CurvePointModel.hpp>
 #include <Curve/Point/CurvePointView.hpp>
 
-#include <iscore/statemachine/ToolState.hpp>
+#include <iscore/statemachine/GraphicsSceneTool.hpp>
 #include <QGraphicsItem>
 #include <chrono>
 namespace Curve
 {
 class ToolPalette;
-class CurveTool : public GraphicsSceneToolBase<Curve::Point>
+class CurveTool : public GraphicsSceneTool<Curve::Point>
 {
     public:
         CurveTool(const Curve::ToolPalette&);

@@ -7,7 +7,7 @@
 
 #include <Process/Tools/ToolPalette.hpp>
 
-#include <iscore/statemachine/BaseStateMachine.hpp>
+#include <iscore/statemachine/GraphicsSceneToolPalette.hpp>
 
 #include <Scenario/Application/ScenarioApplicationPlugin.hpp>
 #include <Scenario/Palette/ScenarioPoint.hpp>

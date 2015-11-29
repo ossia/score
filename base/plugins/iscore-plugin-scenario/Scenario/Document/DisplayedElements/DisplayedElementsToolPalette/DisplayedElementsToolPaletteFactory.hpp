@@ -1,7 +1,7 @@
 #pragma once
 #include <memory>
 
-#include <iscore/statemachine/BaseStateMachine.hpp>
+#include <iscore/statemachine/GraphicsSceneToolPalette.hpp>
 #include <iscore/plugins/customfactory/FactoryInterface.hpp>
 #include <iscore/tools/std/StdlibWrapper.hpp>
 

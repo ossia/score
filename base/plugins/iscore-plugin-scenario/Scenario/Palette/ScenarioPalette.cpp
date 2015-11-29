@@ -93,20 +93,12 @@ void ToolPalette::on_released(QPointF point)
 
 void ToolPalette::on_cancel()
 {
-    switch(editionSettings().tool())
-    {
-        case Scenario::Tool::Create:
-            m_createTool.on_cancel();
-            break;
-        case Scenario::Tool::Select:
-            m_selectTool.on_cancel();
-            break;
-        case Scenario::Tool::MoveSlot:
-            m_moveSlotTool.on_cancel();
-            break;
-        default:
-            break;
-    }
+    m_createTool.on_cancel();
+    QApplication::processEvents();
+    m_selectTool.on_cancel();
+    QApplication::processEvents();
+    m_moveSlotTool.on_cancel();
+    QApplication::processEvents();
 }
 
 void ToolPalette::activate(Tool t)

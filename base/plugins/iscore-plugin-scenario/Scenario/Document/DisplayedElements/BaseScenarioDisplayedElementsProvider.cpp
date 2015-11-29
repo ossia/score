@@ -4,13 +4,13 @@
 bool BaseScenarioDisplayedElementsProvider::matches(
         const ConstraintModel& cst) const
 {
-    return dynamic_cast<BaseScenario*>(cst.parentScenario());
+    return dynamic_cast<BaseScenario*>(cst.parent());
 }
 
 DisplayedElementsContainer BaseScenarioDisplayedElementsProvider::make(
         const ConstraintModel& cst) const
 {
-    if(auto parent_base = dynamic_cast<BaseScenario*>(cst.parentScenario()))
+    if(auto parent_base = dynamic_cast<BaseScenario*>(cst.parent()))
     {
         return DisplayedElementsContainer{
             cst,

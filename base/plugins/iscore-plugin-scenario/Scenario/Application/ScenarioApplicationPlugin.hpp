@@ -7,6 +7,7 @@
 #include <Scenario/Commands/Scenario/Displacement/MoveEventList.hpp>
 
 #include <Scenario/Palette/ScenarioPoint.hpp>
+#include <Scenario/Application/ScenarioRecordInitData.hpp>
 #include <Scenario/Application/ScenarioEditionSettings.hpp>
 #include "Menus/ScenarioContextMenuManager.hpp"
 class QActionGroup;
@@ -18,20 +19,6 @@ class ObjectMenuActions;
 class ToolMenuActions;
 class ScenarioActions;
 
-// TODO Moveme
-struct ScenarioRecordInitData
-{
-        ScenarioRecordInitData() {}
-        ScenarioRecordInitData(const LayerPresenter* lp, QPointF p):
-            presenter{lp},
-            point{p}
-        {
-        }
-
-        const LayerPresenter* presenter{};
-        QPointF point;
-};
-Q_DECLARE_METATYPE(ScenarioRecordInitData)
 
 class ScenarioApplicationPlugin final : public iscore::GUIApplicationContextPlugin
 {

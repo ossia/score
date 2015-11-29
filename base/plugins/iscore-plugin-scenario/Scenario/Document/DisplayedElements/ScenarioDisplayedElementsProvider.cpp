@@ -5,13 +5,13 @@
 bool ScenarioDisplayedElementsProvider::matches(
         const ConstraintModel& cst) const
 {
-    return dynamic_cast<Scenario::ScenarioModel*>(cst.parentScenario());
+    return dynamic_cast<Scenario::ScenarioModel*>(cst.parent());
 }
 
 DisplayedElementsContainer ScenarioDisplayedElementsProvider::make(
         const ConstraintModel& cst) const
 {
-    if(auto parent_scenario = dynamic_cast<Scenario::ScenarioModel*>(cst.parentScenario()))
+    if(auto parent_scenario = dynamic_cast<Scenario::ScenarioModel*>(cst.parent()))
     {
         const auto& sst = parent_scenario->states.at(cst.startState());
         const auto& est = parent_scenario->states.at(cst.endState());

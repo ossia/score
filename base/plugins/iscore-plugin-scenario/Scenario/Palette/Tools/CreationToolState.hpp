@@ -207,13 +207,14 @@ class CreationTool final : public ToolBase<ToolPalette_T>
         {
             if(isStateActive(m_createFromEventState))
                 return m_createFromEventState;
-            if(isStateActive(m_createFromNothingState))
+            else if(isStateActive(m_createFromNothingState))
                 return m_createFromNothingState;
-            if(isStateActive(m_createFromStateState))
+            else if(isStateActive(m_createFromStateState))
                 return m_createFromStateState;
-            if(isStateActive(m_createFromTimeNodeState))
+            else if(isStateActive(m_createFromTimeNodeState))
                 return m_createFromTimeNodeState;
-            return nullptr;
+            else
+                return nullptr;
         }
 
         template<typename StateFun,

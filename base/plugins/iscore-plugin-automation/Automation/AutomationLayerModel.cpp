@@ -7,7 +7,7 @@ constexpr const char AutomationLayerModel::className[];
 AutomationLayerModel::AutomationLayerModel(AutomationModel& model,
                                          const Id<LayerModel>& id,
                                          QObject* parent) :
-    LayerModel {id, AutomationLayerModel::staticMetaObject.className(), model, parent}
+    LayerModel {id, AutomationLayerModel::className, model, parent}
 {
 
 }

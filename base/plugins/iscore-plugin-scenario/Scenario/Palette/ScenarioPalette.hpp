@@ -12,7 +12,7 @@
 #include <Process/ExpandMode.hpp>
 #include <Process/Tools/ToolPalette.hpp>
 
-#include <iscore/statemachine/BaseStateMachine.hpp>
+#include <iscore/statemachine/GraphicsSceneToolPalette.hpp>
 #include <QStateMachine>
 #include <QPointF>
 

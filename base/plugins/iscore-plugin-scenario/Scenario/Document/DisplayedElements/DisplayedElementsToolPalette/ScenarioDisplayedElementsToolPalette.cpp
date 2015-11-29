@@ -23,6 +23,7 @@ ScenarioDisplayedElementsToolPalette::ScenarioDisplayedElementsToolPalette(
         BaseGraphicsObject& view):
     GraphicsSceneToolPalette{*view.scene()},
     m_model{model},
+    m_scenarioModel{*safe_cast<Scenario::ScenarioModel*>(m_model.constraint().parentScenario())},
     m_presenter{pres},
     m_context{ctx, m_presenter},
     m_view{view},
@@ -44,7 +45,7 @@ const DisplayedElementsPresenter& ScenarioDisplayedElementsToolPalette::presente
 
 const Scenario::ScenarioModel& ScenarioDisplayedElementsToolPalette::model() const
 {
-    return *safe_cast<Scenario::ScenarioModel*>(m_model.constraint().parentScenario());
+    return m_scenarioModel;
 }
 
 const BaseElementContext& ScenarioDisplayedElementsToolPalette::context() const

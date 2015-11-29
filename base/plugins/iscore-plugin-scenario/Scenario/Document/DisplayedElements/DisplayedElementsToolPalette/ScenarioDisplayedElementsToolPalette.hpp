@@ -7,7 +7,7 @@
 
 #include <Process/Tools/ToolPalette.hpp>
 
-#include <iscore/statemachine/BaseStateMachine.hpp>
+#include <iscore/statemachine/GraphicsSceneToolPalette.hpp>
 
 class ScenarioDocumentPresenter;
 class BaseGraphicsObject;
@@ -41,6 +41,7 @@ class ScenarioDisplayedElementsToolPalette final : public GraphicsSceneToolPalet
     private:
         Scenario::Point ScenePointToScenarioPoint(QPointF point);
         const DisplayedElementsModel& m_model;
+        const Scenario::ScenarioModel& m_scenarioModel;
         ScenarioDocumentPresenter& m_presenter;
         BaseElementContext m_context;
         BaseGraphicsObject& m_view;
