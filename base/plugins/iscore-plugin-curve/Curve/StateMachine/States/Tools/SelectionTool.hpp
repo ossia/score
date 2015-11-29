@@ -20,8 +20,6 @@ class SelectionAndMoveTool final : public Curve::CurveTool
         Curve::SelectionState* m_state{};
         Curve::OngoingState* m_moveState{};
 
-        std::chrono::steady_clock::time_point m_prev;
-
         bool m_nothingPressed = false;
 };
 }

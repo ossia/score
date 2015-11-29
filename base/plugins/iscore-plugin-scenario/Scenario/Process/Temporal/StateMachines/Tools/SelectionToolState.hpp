@@ -60,7 +60,6 @@ class SelectionAndMoveTool final : public ToolBase<ToolPalette_T>
         void on_pressed(QPointF scene, Scenario::Point sp)
         {
             using namespace std;
-            this->m_prev = std::chrono::steady_clock::now();
 
             this->mapTopItem(this->itemUnderMouse(scene),
                        [&] (const Id<StateModel>& id) // State
@@ -97,13 +96,6 @@ class SelectionAndMoveTool final : public ToolBase<ToolPalette_T>
 
         void on_moved(QPointF scene, Scenario::Point sp)
         {
-            // TODO same on creation tool
-            auto t = std::chrono::steady_clock::now();
-            if(std::chrono::duration_cast<std::chrono::milliseconds>(t - this->m_prev).count() < 16)
-            {
-                return;
-            }
-
             if (m_nothingPressed)
             {
                 this->localSM().postEvent(new Move_Event);
@@ -124,8 +116,6 @@ class SelectionAndMoveTool final : public ToolBase<ToolPalette_T>
                 [&] ()
                 { this->localSM().postEvent(new MoveOnNothing_Event{sp});});
             }
-
-            this->m_prev = t;
         }
 
         void on_released(QPointF scene, Scenario::Point sp)

@@ -187,7 +187,5 @@ class ToolBase : public GraphicsSceneToolBase<Scenario::Point>
         }
 
         const ToolPalette_T& m_parentSM;
-
-        std::chrono::steady_clock::time_point m_prev;
 };
 }

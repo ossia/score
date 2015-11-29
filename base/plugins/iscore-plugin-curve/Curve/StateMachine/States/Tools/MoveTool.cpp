@@ -18,7 +18,6 @@ EditionToolForCreate::EditionToolForCreate(Curve::ToolPalette& sm):
 
 void EditionToolForCreate::on_pressed(QPointF scenePoint, Curve::Point curvePoint)
 {
-    m_prev = std::chrono::steady_clock::now();
     mapTopItem(scenePoint, itemUnderMouse(scenePoint),
                [&] (const CurvePointView* point)
     {
@@ -36,13 +35,6 @@ void EditionToolForCreate::on_pressed(QPointF scenePoint, Curve::Point curvePoin
 
 void EditionToolForCreate::on_moved(QPointF scenePoint, Curve::Point curvePoint)
 {
-    auto t = std::chrono::steady_clock::now();
-    if(std::chrono::duration_cast<std::chrono::milliseconds>(t - m_prev).count() < 16)
-    {
-        // TODO here put a timer at 16 ms to trigger the last step if we stop moving.
-        return;
-    }
-
     mapTopItem(scenePoint, itemUnderMouse(scenePoint),
                [&] (const CurvePointView* point)
     {
@@ -56,8 +48,6 @@ void EditionToolForCreate::on_moved(QPointF scenePoint, Curve::Point curvePoint)
     {
         localSM().postEvent(new MoveOnNothing_Event(curvePoint, nullptr));
     });
-
-    m_prev = t;
 }
 
 void EditionToolForCreate::on_released(QPointF scenePoint, Curve::Point curvePoint)

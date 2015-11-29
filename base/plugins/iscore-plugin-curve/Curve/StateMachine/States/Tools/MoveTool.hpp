@@ -13,9 +13,6 @@ class EditionToolForCreate : public CurveTool
         void on_pressed(QPointF, Curve::Point);
         void on_moved(QPointF, Curve::Point);
         void on_released(QPointF, Curve::Point);
-
-    private:
-        std::chrono::steady_clock::time_point m_prev;
 };
 
 class CreateTool final : public Curve::EditionToolForCreate

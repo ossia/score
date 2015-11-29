@@ -1,6 +1,7 @@
 #pragma once
 #include <Process/ProcessContext.hpp>
-
+#include <chrono>
+#include <QTimer>
 template<typename Tool_T, typename ToolPalette_T, typename Context_T, typename Input_T>
 class ToolPaletteInputDispatcher : public QObject
 {
@@ -24,6 +25,8 @@ class ToolPaletteInputDispatcher : public QObject
                 this, &ToolPaletteInputDispatcher::on_released);
             con(input, &Input_T::escPressed,
                 this, &ToolPaletteInputDispatcher::on_cancel);
+            con(m_elapsedTimer, &QTimer::timeout,
+                this, &ToolPaletteInputDispatcher::on_moved_from_timer);
         }
 
         void on_toolChanged(Tool_T t)
@@ -34,6 +37,7 @@ class ToolPaletteInputDispatcher : public QObject
             if(m_running)
             {
                 m_palette.on_cancel();
+                m_prev = std::chrono::steady_clock::now();
                 m_palette.on_pressed(m_currentPoint);
             }
         }
@@ -42,21 +46,44 @@ class ToolPaletteInputDispatcher : public QObject
         {
             m_context.focusDispatcher.focus(&m_context.layerPresenter);
             m_currentPoint = p;
+            m_prev = std::chrono::steady_clock::now();
             m_palette.on_pressed(p);
             m_running = true;
         }
 
         void on_moved(QPointF p)
         {
+            using namespace std::literals::chrono_literals;
+            auto t = std::chrono::steady_clock::now();
+            if(t - m_prev < 8ms)
+            {
+                m_elapsedPoint = p;
+                m_elapsedTimer.start(8);
+                // TODO here put a timer at refresh time ms to trigger the last step if we stop moving.
+                return;
+            }
             m_currentPoint = p;
             m_palette.on_moved(p);
+            m_prev = t;
         }
+
+        void on_moved_from_timer()
+        {
+            if(m_running)
+            {
+                m_prev = std::chrono::steady_clock::now();
+                m_currentPoint = m_elapsedPoint;
+                m_palette.on_moved(m_elapsedPoint);
+            }
+        }
+
 
         void on_released(QPointF p)
         {
+            m_running = false;
+            m_elapsedTimer.stop();
             m_currentPoint = p;
             m_palette.on_released(p);
-            m_running = false;
         }
 
         void on_cancel()
@@ -71,4 +98,8 @@ class ToolPaletteInputDispatcher : public QObject
         QPointF m_currentPoint;
         bool m_running = false;
         Tool_T m_currentTool;
+
+        std::chrono::steady_clock::time_point m_prev;
+        QTimer m_elapsedTimer;
+        QPointF m_elapsedPoint;
 };

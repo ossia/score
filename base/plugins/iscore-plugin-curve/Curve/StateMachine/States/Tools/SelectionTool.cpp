@@ -139,7 +139,6 @@ SelectionAndMoveTool::SelectionAndMoveTool(Curve::ToolPalette& sm):
 
 void SelectionAndMoveTool::on_pressed(QPointF scenePoint, Curve::Point curvePoint)
 {
-    m_prev = std::chrono::steady_clock::now();
     mapTopItem(scenePoint, itemUnderMouse(scenePoint),
                [&] (const CurvePointView* point)
     {
@@ -160,12 +159,6 @@ void SelectionAndMoveTool::on_pressed(QPointF scenePoint, Curve::Point curvePoin
 
 void SelectionAndMoveTool::on_moved(QPointF scenePoint, Curve::Point curvePoint)
 {
-    auto t = std::chrono::steady_clock::now();
-    if(std::chrono::duration_cast<std::chrono::milliseconds>(t - m_prev).count() < 16)
-    {
- //       return;
-    }
-
     if (m_nothingPressed)
     {
         localSM().postEvent(new iscore::Move_Event);
@@ -186,7 +179,6 @@ void SelectionAndMoveTool::on_moved(QPointF scenePoint, Curve::Point curvePoint)
             localSM().postEvent(new MoveOnNothing_Event(curvePoint, nullptr));
         });
     }
-    m_prev = t;
 }
 
 void SelectionAndMoveTool::on_released(QPointF scenePoint, Curve::Point curvePoint)
