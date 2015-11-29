@@ -56,10 +56,6 @@ class TimeNodeModel final : public IdentifiedObject<TimeNodeModel>
                 const Id<TimeNodeModel>& id,
                 QObject* parent);
 
-
-        // Utility
-        ScenarioInterface* parentScenario() const;
-
         // Data of the TimeNode
         const VerticalExtent& extent() const;
         void setExtent(const VerticalExtent &extent);

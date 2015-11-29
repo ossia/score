@@ -51,6 +51,9 @@ EventInspectorWidget::EventInspectorWidget(
     setObjectName("EventInspectorWidget");
     setParent(parent);
 
+    auto scenar = dynamic_cast<ScenarioInterface*>(m_model.parent());
+    ISCORE_ASSERT(scenar);
+
     con(m_model, &EventModel::statesChanged,
             this,    &EventInspectorWidget::updateDisplayedValues);
     con(m_model, &EventModel::dateChanged,
@@ -74,7 +77,6 @@ EventInspectorWidget::EventInspectorWidget(
     auto timeNode = m_model.timeNode();
     if(timeNode)
     {
-        auto scenar = m_model.parentScenario();
         auto tnBtn = SelectionButton::make(
                     tr("Parent TimeNode"),
                     &scenar->timeNode(timeNode),
@@ -97,7 +99,7 @@ EventInspectorWidget::EventInspectorWidget(
     m_properties.push_back(infoWidg);
 
     // Trigger
-    auto& tn = m_model.parentScenario()->timeNode(m_model.timeNode());
+    auto& tn = scenar->timeNode(m_model.timeNode());
     m_triggerWidg = new TriggerInspectorWidget{
                     doc.context().app.components.factory<TriggerCommandFactoryList>(),
                     tn,
@@ -183,14 +185,15 @@ void EventInspectorWidget::updateDisplayedValues()
 
     m_date->setText(m_model.date().toString());
 
-    const auto& scenar = m_model.parentScenario();
+    auto scenar = dynamic_cast<ScenarioInterface*>(m_model.parent());
+    ISCORE_ASSERT(scenar);
     for(const auto& state : m_model.states())
     {
         addState(scenar->state(state));
     }
 
     m_exprEditor->setExpression(m_model.condition());
-    auto& tn = m_model.parentScenario()->timeNode(m_model.timeNode());
+    auto& tn = scenar->timeNode(m_model.timeNode());
     m_triggerWidg->updateExpression(tn.trigger()->expression());
 }
 

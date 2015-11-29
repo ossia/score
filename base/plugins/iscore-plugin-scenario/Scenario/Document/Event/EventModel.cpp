@@ -86,7 +86,9 @@ void EventModel::setStatus(ExecutionStatus status)
     m_status = status;
     emit statusChanged(status);
 
-    auto scenar = parentScenario();
+    auto scenar = dynamic_cast<ScenarioInterface*>(parent());
+    ISCORE_ASSERT(scenar);
+
     for(auto& state : m_states)
     {
         scenar->state(state).setStatus(status);
@@ -112,11 +114,6 @@ void EventModel::reset()
 // TODO Maybe remove the need for this by passing to the scenario instead ?
 QString EventModel::description()
 { return QObject::tr("Event"); }
-
-ScenarioInterface* EventModel::parentScenario() const
-{
-    return dynamic_cast<ScenarioInterface*>(parent());
-}
 
 void EventModel::addState(const Id<StateModel> &ds)
 {

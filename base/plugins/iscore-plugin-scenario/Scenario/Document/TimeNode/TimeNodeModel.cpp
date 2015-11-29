@@ -44,11 +44,6 @@ TimeNodeModel::TimeNodeModel(
     m_trigger->setActive(source.trigger()->active());
 }
 
-ScenarioInterface* TimeNodeModel::parentScenario() const
-{
-    return dynamic_cast<ScenarioInterface*>(parent());
-}
-
 void TimeNodeModel::addEvent(const Id<EventModel>& eventId)
 {
     m_events.push_back(eventId);

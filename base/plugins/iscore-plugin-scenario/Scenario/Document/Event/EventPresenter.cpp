@@ -92,7 +92,7 @@ void EventPresenter::triggerSetted(QString trig)
 void EventPresenter::handleDrop(const QPointF& pos, const QMimeData *mime)
 {
     // We don't want to create a new state in BaseScenario
-    auto scenar = dynamic_cast<Scenario::ScenarioModel*>(m_model.parentScenario());
+    auto scenar = dynamic_cast<Scenario::ScenarioModel*>(m_model.parent());
     // todo Maybe the drop should be handled by the scenario presenter ?? or not
 
     // If the mime data has states in it we can handle it.

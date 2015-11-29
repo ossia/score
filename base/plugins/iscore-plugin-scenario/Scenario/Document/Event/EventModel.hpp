@@ -39,8 +39,6 @@ class EventModel final : public IdentifiedObject<EventModel>
 
         static QString description();
 
-        ScenarioInterface* parentScenario() const;
-
         /** The class **/
         EventModel(const Id<EventModel>&,
                    const Id<TimeNodeModel>& timenode,
