@@ -6,7 +6,7 @@
 #include <Scenario/Document/DisplayedElements/DisplayedElementsPresenter.hpp>
 
 #include <Scenario/Application/ScenarioApplicationPlugin.hpp>
-#include <Scenario/Process/Temporal/StateMachines/ScenarioPoint.hpp>
+#include <Scenario/Palette/ScenarioPoint.hpp>
 
 #include <core/application/ApplicationContext.hpp>
 #include <core/document/Document.hpp>

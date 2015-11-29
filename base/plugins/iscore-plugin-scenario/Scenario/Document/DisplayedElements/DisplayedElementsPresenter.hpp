@@ -30,6 +30,8 @@ class DisplayedElementsPresenter final :
         DisplayedElementsPresenter(ScenarioDocumentPresenter* parent);
         using BaseScenarioPresenter<DisplayedElementsModel, FullViewConstraintPresenter>::event;
 
+        BaseGraphicsObject& view() const;
+
         void on_displayedConstraintChanged(const ConstraintModel &m);
         void showConstraint();
 

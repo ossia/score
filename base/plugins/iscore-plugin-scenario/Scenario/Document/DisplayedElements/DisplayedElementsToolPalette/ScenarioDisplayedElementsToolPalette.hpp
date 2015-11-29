@@ -2,8 +2,8 @@
 #include <Scenario/Application/ScenarioEditionSettings.hpp>
 #include <Scenario/Document/ScenarioDocument/Widgets/GraphicsProxyObject.hpp>
 #include <Scenario/Document/BaseScenario/BaseElementContext.hpp>
-#include <Scenario/Process/Temporal/StateMachines/Tools/SmartTool.hpp>
-#include <Scenario/Process/Temporal/StateMachines/Tools/States/ScenarioMoveStatesWrapper.hpp>
+#include <Scenario/Palette/Tools/SmartTool.hpp>
+#include <Scenario/Palette/Tools/States/ScenarioMoveStatesWrapper.hpp>
 
 #include <Process/Tools/ToolPalette.hpp>
 

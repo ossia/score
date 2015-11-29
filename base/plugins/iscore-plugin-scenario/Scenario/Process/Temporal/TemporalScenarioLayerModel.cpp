@@ -6,7 +6,7 @@
 #include <Scenario/Document/Constraint/ViewModels/Temporal/TemporalConstraintViewModel.hpp>
 
 #include <Process/LayerModelPanelProxy.hpp>
-#include <Scenario/Process/Temporal/StateMachines/ScenarioStateMachine.hpp>
+#include <Scenario/Palette/ScenarioPalette.hpp>
 #include "TemporalScenarioPresenter.hpp"
 #include "TemporalScenarioPanelProxy.hpp"
 

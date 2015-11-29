@@ -49,6 +49,8 @@ class LoopPresenter :
                 QObject* parent);
 
         ~LoopPresenter();
+        LoopView& view() const
+        { return *m_view; }
 
         using  BaseScenarioPresenter<Loop::ProcessModel, TemporalConstraintPresenter>::event;
 

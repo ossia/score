@@ -3,7 +3,7 @@
 #include <iscore/serialization/DataStreamVisitor.hpp>
 #include <iscore/serialization/JSONVisitor.hpp>
 #include <iscore/selection/Selectable.hpp>
-#include <Curve/StateMachine/CurvePoint.hpp>
+#include <Curve/Palette/CurvePoint.hpp>
 #include <Curve/Segment/CurveSegmentData.hpp>
 
 class CurveModel;

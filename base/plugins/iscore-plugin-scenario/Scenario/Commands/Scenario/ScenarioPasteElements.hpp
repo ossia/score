@@ -1,7 +1,7 @@
 #pragma once
 #include <iscore/command/SerializableCommand.hpp>
 #include <Scenario/Commands/ScenarioCommandFactory.hpp>
-#include <Scenario/Process/Temporal/StateMachines/ScenarioPoint.hpp>
+#include <Scenario/Palette/ScenarioPoint.hpp>
 
 #include <Scenario/Document/Constraint/ViewModels/ConstraintViewModelIdMap.hpp>
 class TemporalScenarioLayerModel;

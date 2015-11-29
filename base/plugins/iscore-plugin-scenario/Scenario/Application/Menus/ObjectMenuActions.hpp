@@ -1,5 +1,5 @@
 #pragma once
-#include <Scenario/Process/Temporal/StateMachines/ScenarioPoint.hpp>
+#include <Scenario/Palette/ScenarioPoint.hpp>
 #include "ScenarioActions.hpp"
 
 #include <Scenario/DialogWidget/AddProcessDialog.hpp>

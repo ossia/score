@@ -3,7 +3,7 @@
 #include <Curve/CurveModel.hpp>
 #include <Curve/CurvePresenter.hpp>
 #include <Curve/CurveView.hpp>
-#include <Curve/StateMachine/CurveStateMachine.hpp>
+#include <Curve/Palette/CurvePalette.hpp>
 
 #include <Process/LayerPresenter.hpp>
 #include <Process/Focus/FocusDispatcher.hpp>

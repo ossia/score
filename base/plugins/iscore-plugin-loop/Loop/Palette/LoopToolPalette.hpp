@@ -2,7 +2,7 @@
 #include <Scenario/Application/ScenarioEditionSettings.hpp>
 #include <Scenario/Document/ScenarioDocument/Widgets/GraphicsProxyObject.hpp>
 #include <Scenario/Document/BaseScenario/BaseElementContext.hpp>
-#include <Scenario/Process/Temporal/StateMachines/Tools/SmartTool.hpp>
+#include <Scenario/Palette/Tools/SmartTool.hpp>
 #include <Scenario/Document/DisplayedElements/DisplayedElementsToolPalette/BaseScenarioDisplayedElements_StateWrappers.hpp>
 
 #include <Process/Tools/ToolPalette.hpp>
@@ -10,7 +10,7 @@
 #include <iscore/statemachine/BaseStateMachine.hpp>
 
 #include <Scenario/Application/ScenarioApplicationPlugin.hpp>
-#include <Scenario/Process/Temporal/StateMachines/ScenarioPoint.hpp>
+#include <Scenario/Palette/ScenarioPoint.hpp>
 
 #include <core/application/ApplicationContext.hpp>
 #include <core/document/Document.hpp>

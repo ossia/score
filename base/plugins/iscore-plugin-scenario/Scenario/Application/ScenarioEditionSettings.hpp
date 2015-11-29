@@ -1,6 +1,6 @@
 #pragma once
 #include <QObject>
-#include <Scenario/Process/Temporal/StateMachines/Tool.hpp>
+#include <Scenario/Palette/Tool.hpp>
 #include <Process/ExpandMode.hpp>
 
 namespace Scenario

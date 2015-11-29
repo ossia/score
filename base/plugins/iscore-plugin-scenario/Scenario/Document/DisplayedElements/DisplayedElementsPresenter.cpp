@@ -15,6 +15,11 @@ DisplayedElementsPresenter::DisplayedElementsPresenter(ScenarioDocumentPresenter
 
 }
 
+BaseGraphicsObject&DisplayedElementsPresenter::view() const
+{
+    return *m_model->view().baseItem();
+}
+
 void DisplayedElementsPresenter::on_displayedConstraintChanged(const ConstraintModel& m)
 {
     for(auto& con : m_connections)

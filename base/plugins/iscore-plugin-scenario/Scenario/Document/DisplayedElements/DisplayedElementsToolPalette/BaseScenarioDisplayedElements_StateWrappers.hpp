@@ -1,12 +1,12 @@
 #pragma once
 #include <Scenario/Commands/MoveBaseEvent.hpp>
 #include <Scenario/Document/BaseScenario/BaseScenario.hpp>
-#include <Scenario/Process/Temporal/StateMachines/Tools/States/MoveStates.hpp>
-#include <Scenario/Process/Temporal/StateMachines/Tools/SmartTool.hpp>
-#include <Scenario/Process/Temporal/StateMachines/Transitions/ConstraintTransitions.hpp>
-#include <Scenario/Process/Temporal/StateMachines/Transitions/EventTransitions.hpp>
-#include <Scenario/Process/Temporal/StateMachines/Transitions/StateTransitions.hpp>
-#include <Scenario/Process/Temporal/StateMachines/Transitions/TimeNodeTransitions.hpp>
+#include <Scenario/Palette/Tools/States/MoveStates.hpp>
+#include <Scenario/Palette/Tools/SmartTool.hpp>
+#include <Scenario/Palette/Transitions/ConstraintTransitions.hpp>
+#include <Scenario/Palette/Transitions/EventTransitions.hpp>
+#include <Scenario/Palette/Transitions/StateTransitions.hpp>
+#include <Scenario/Palette/Transitions/TimeNodeTransitions.hpp>
 
 
 class MoveConstraintInBaseScenario_StateWrapper

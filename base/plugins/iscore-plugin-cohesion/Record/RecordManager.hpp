@@ -2,7 +2,7 @@
 #include "RecordData.hpp"
 
 #include <Explorer/DocumentPlugin/ListeningState.hpp>
-#include <Scenario/Process/Temporal/StateMachines/ScenarioPoint.hpp>
+#include <Scenario/Palette/ScenarioPoint.hpp>
 
 #include <iscore/command/Dispatchers/MacroCommandDispatcher.hpp>
 #include <unordered_map>

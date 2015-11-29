@@ -69,7 +69,7 @@ set(SRCS ${SRCS}
 "${CMAKE_CURRENT_SOURCE_DIR}/Scenario/Document/ScenarioDocument/ScenarioDocumentModelSerialization.cpp"
 
 
-"${CMAKE_CURRENT_SOURCE_DIR}/Scenario/Process/Temporal/StateMachines/Tools/ScenarioRollbackStrategy.cpp"
+"${CMAKE_CURRENT_SOURCE_DIR}/Scenario/Palette/Tools/ScenarioRollbackStrategy.cpp"
 "${CMAKE_CURRENT_SOURCE_DIR}/Scenario/Commands/Constraint/SetLooping.cpp"
 "${CMAKE_CURRENT_SOURCE_DIR}/Scenario/Commands/Constraint/Rack/Slot/AddLayerModelToSlot.cpp"
 "${CMAKE_CURRENT_SOURCE_DIR}/Scenario/Commands/Constraint/Rack/Slot/RemoveLayerModelFromSlot.cpp"
@@ -243,10 +243,10 @@ set(SRCS ${SRCS}
 "${CMAKE_CURRENT_SOURCE_DIR}/Scenario/Process/Algorithms/VerticalMovePolicy.cpp"
 "${CMAKE_CURRENT_SOURCE_DIR}/Scenario/Process/ScenarioFactory.cpp"
 
-"${CMAKE_CURRENT_SOURCE_DIR}/Scenario/Process/Temporal/StateMachines/Tools/States/ScenarioSelectionState.cpp"
-"${CMAKE_CURRENT_SOURCE_DIR}/Scenario/Process/Temporal/StateMachines/Tools/MoveSlotToolState.cpp"
-"${CMAKE_CURRENT_SOURCE_DIR}/Scenario/Process/Temporal/StateMachines/Transitions/SlotTransitions.cpp"
-"${CMAKE_CURRENT_SOURCE_DIR}/Scenario/Process/Temporal/StateMachines/ScenarioStateMachine.cpp"
+"${CMAKE_CURRENT_SOURCE_DIR}/Scenario/Palette/Tools/States/ScenarioSelectionState.cpp"
+"${CMAKE_CURRENT_SOURCE_DIR}/Scenario/Palette/Tools/MoveSlotToolState.cpp"
+"${CMAKE_CURRENT_SOURCE_DIR}/Scenario/Palette/Transitions/SlotTransitions.cpp"
+"${CMAKE_CURRENT_SOURCE_DIR}/Scenario/Palette/ScenarioPalette.cpp"
 "${CMAKE_CURRENT_SOURCE_DIR}/Scenario/Process/Temporal/TemporalScenarioView.cpp"
 "${CMAKE_CURRENT_SOURCE_DIR}/Scenario/Process/Temporal/TemporalScenarioLayerModel.cpp"
 "${CMAKE_CURRENT_SOURCE_DIR}/Scenario/Process/Temporal/ScenarioViewInterface.cpp"

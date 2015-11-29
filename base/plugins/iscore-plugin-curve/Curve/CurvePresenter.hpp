@@ -5,8 +5,8 @@
 
 #include <Curve/Point/CurvePointView.hpp>
 #include <Curve/Segment/CurveSegmentView.hpp>
-#include <Curve/StateMachine/CurveEditionSettings.hpp>
-#include <Curve/StateMachine/CurveStateMachine.hpp>
+#include <Curve/Palette/CurveEditionSettings.hpp>
+#include <Curve/Palette/CurvePalette.hpp>
 
 #include <iscore/command/Dispatchers/CommandDispatcher.hpp>
 #include <iscore/selection/SelectionDispatcher.hpp>

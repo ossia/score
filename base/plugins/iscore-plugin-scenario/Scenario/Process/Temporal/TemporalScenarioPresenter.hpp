@@ -1,6 +1,6 @@
 #pragma once
 #include <Scenario/Document/Constraint/ViewModels/Temporal/TemporalConstraintPresenter.hpp>
-#include <Scenario/Process/Temporal/StateMachines/ScenarioStateMachine.hpp>
+#include <Scenario/Palette/ScenarioPalette.hpp>
 
 #include <Process/LayerPresenter.hpp>
 #include <Process/ProcessContext.hpp>

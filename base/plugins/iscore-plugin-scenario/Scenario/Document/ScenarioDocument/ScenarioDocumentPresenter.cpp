@@ -21,7 +21,7 @@
 #include <QApplication>
 
 #include <Scenario/Document/DisplayedElements/DisplayedElementsToolPalette/DisplayedElementsToolPaletteFactory.hpp>
-#include <Scenario/Process/Temporal/StateMachines/ScenarioStateMachine.hpp>
+#include <Scenario/Palette/ScenarioPalette.hpp>
 #include <Scenario/Document/DisplayedElements/DisplayedElementsToolPalette/DisplayedElementsToolPaletteFactoryList.hpp>
 
 #include <core/application/ApplicationContext.hpp>

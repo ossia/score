@@ -6,7 +6,7 @@
 
 #include <Scenario/Commands/Scenario/Displacement/MoveEventList.hpp>
 
-#include <Scenario/Process/Temporal/StateMachines/ScenarioPoint.hpp>
+#include <Scenario/Palette/ScenarioPoint.hpp>
 #include <Scenario/Application/ScenarioEditionSettings.hpp>
 #include "Menus/ScenarioContextMenuManager.hpp"
 class QActionGroup;

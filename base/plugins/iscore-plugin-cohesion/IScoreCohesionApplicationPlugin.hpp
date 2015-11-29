@@ -1,6 +1,6 @@
 #pragma once
 #include <iscore/plugins/application/GUIApplicationContextPlugin.hpp>
-#include <Scenario/Process/Temporal/StateMachines/ScenarioPoint.hpp>
+#include <Scenario/Palette/ScenarioPoint.hpp>
 class RecordManager;
 namespace Scenario { class ScenarioModel; }
 class IScoreCohesionApplicationPlugin final : public iscore::GUIApplicationContextPlugin

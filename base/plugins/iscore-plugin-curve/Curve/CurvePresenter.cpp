@@ -2,9 +2,9 @@
 #include "CurveModel.hpp"
 #include "CurveView.hpp"
 #include "Curve/Segment/CurveSegmentList.hpp"
-#include "Curve/StateMachine/OngoingState.hpp"
+#include "Curve/Palette/OngoingState.hpp"
 
-#include "Curve/StateMachine/CommandObjects/MovePointCommandObject.hpp"
+#include "Curve/Palette/CommandObjects/MovePointCommandObject.hpp"
 #include <iscore/widgets/GraphicsItem.hpp>
 #include <core/document/Document.hpp>
 #include <core/application/ApplicationComponents.hpp>

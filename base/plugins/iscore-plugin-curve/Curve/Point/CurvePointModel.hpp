@@ -1,7 +1,7 @@
 #pragma once
 #include <iscore/tools/IdentifiedObject.hpp>
 #include <iscore/selection/Selectable.hpp>
-#include "Curve/StateMachine/CurvePoint.hpp"
+#include "Curve/Palette/CurvePoint.hpp"
 
 class CurveSegmentModel;
 

@@ -1,5 +1,5 @@
 #pragma once
-#include <Curve/StateMachine/CurvePoint.hpp>
+#include <Curve/Palette/CurvePoint.hpp>
 #include <iscore/tools/IdentifiedObject.hpp>
 #include <Curve/Segment/CurveSegmentFactoryKey.hpp>
 class CurveSegmentModel;
