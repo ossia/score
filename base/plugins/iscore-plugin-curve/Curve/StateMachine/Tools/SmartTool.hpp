@@ -7,10 +7,10 @@ namespace Curve
 {
 class OngoingState;
 class SelectionState;
-class SelectionAndMoveTool final : public Curve::CurveTool
+class SmartTool final : public Curve::CurveTool
 {
     public:
-        explicit SelectionAndMoveTool(Curve::ToolPalette& sm);
+        explicit SmartTool(Curve::ToolPalette& sm);
 
         void on_pressed(QPointF scene, Curve::Point sp);
         void on_moved(QPointF scene, Curve::Point sp);

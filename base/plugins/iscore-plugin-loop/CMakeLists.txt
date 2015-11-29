@@ -11,6 +11,7 @@ file(GLOB_RECURSE HDRS
     "${CMAKE_CURRENT_SOURCE_DIR}/*.hpp"
 )
 set(SRCS
+    "${CMAKE_CURRENT_SOURCE_DIR}/Loop/LoopLayerSerialization.cpp"
     "${CMAKE_CURRENT_SOURCE_DIR}/Loop/LoopProcessModelSerialization.cpp"
 "${CMAKE_CURRENT_SOURCE_DIR}/Loop/LoopLayer.cpp"
 "${CMAKE_CURRENT_SOURCE_DIR}/Loop/LoopPanelProxy.cpp"

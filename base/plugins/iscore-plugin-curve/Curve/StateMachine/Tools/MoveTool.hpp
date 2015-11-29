@@ -1,5 +1,5 @@
 #pragma once
-#include <Curve/StateMachine/States/Tools/CurveTool.hpp>
+#include <Curve/StateMachine/Tools/CurveTool.hpp>
 namespace Curve
 {
 class ToolPalette;

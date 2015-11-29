@@ -1,6 +1,6 @@
 #pragma once
-#include <Curve/StateMachine/States/Tools/MoveTool.hpp>
-#include <Curve/StateMachine/States/Tools/SelectionTool.hpp>
+#include <Curve/StateMachine/Tools/MoveTool.hpp>
+#include <Curve/StateMachine/Tools/SmartTool.hpp>
 #include <Curve/StateMachine/CurveStateMachineData.hpp>
 #include <Curve/StateMachine/CurvePoint.hpp>
 #include <Curve/StateMachine/CurveEditionSettings.hpp>
@@ -51,7 +51,7 @@ class ToolPalette final : public GraphicsSceneToolPalette
         iscore::CommandStack& m_stack;
         iscore::ObjectLocker& m_locker;
 
-        SelectionAndMoveTool m_selectTool;
+        SmartTool m_selectTool;
         CreateTool m_createTool;
         SetSegmentTool m_setSegmentTool;
 

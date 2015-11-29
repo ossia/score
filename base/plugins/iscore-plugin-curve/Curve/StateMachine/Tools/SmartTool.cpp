@@ -1,5 +1,4 @@
-#include "SelectionTool.hpp"
-#include <iscore/statemachine/CommonSelectionState.hpp>
+#include "SmartTool.hpp"
 #include <Curve/StateMachine/CurveStateMachine.hpp>
 
 #include <Curve/CurveModel.hpp>
@@ -8,6 +7,7 @@
 
 #include <Curve/StateMachine/OngoingState.hpp>
 #include <Curve/StateMachine/CommandObjects/MovePointCommandObject.hpp>
+#include <Curve/StateMachine/States/SelectionState.hpp>
 
 #include <iscore/selection/SelectionStack.hpp>
 
@@ -15,98 +15,7 @@
 
 namespace Curve
 {
-// TODO MOVEME
-class SelectionState : public CommonSelectionState
-{
-    private:
-        QPointF m_initialPoint;
-        QPointF m_movePoint;
-
-        const Curve::ToolPalette& m_parentSM;
-        CurveView& m_view;
-
-    public:
-        SelectionState(
-                iscore::SelectionStack& stack,
-                const Curve::ToolPalette& parentSM,
-                CurveView& view,
-                QState* parent):
-            CommonSelectionState{stack, &view, parent},
-            m_parentSM{parentSM},
-            m_view{view}
-        {
-        }
-
-        const QPointF& initialPoint() const
-        { return m_initialPoint; }
-        const QPointF& movePoint() const
-        { return m_movePoint; }
-
-        void on_pressAreaSelection() override
-        {
-            m_initialPoint = m_parentSM.scenePoint;
-        }
-
-        void on_moveAreaSelection() override
-        {
-            m_movePoint = m_parentSM.scenePoint;
-            auto rect = QRectF{m_view.mapFromScene(m_initialPoint),
-                               m_view.mapFromScene(m_movePoint)}.normalized();
-
-            m_view.setSelectionArea(rect);
-            setSelectionArea(rect);
-        }
-
-        void on_releaseAreaSelection() override
-        {
-            m_view.setSelectionArea(QRectF{});
-        }
-
-        void on_deselect() override
-        {
-            dispatcher.setAndCommit(Selection{});
-            m_view.setSelectionArea(QRectF{});
-        }
-
-        void on_delete() override
-        {
-            m_parentSM.presenter().removeSelection();
-        }
-
-        void on_deleteContent() override
-        {
-            m_parentSM.presenter().removeSelection();
-        }
-
-    private:
-        void setSelectionArea(QRectF scene_area)
-        {
-            using namespace std;
-            Selection sel;
-
-            for(const auto& point : m_parentSM.presenter().points())
-            {
-                if(point.shape().translated(point.pos()).intersects(scene_area))
-                {
-                    sel.append(&point.model());
-                }
-            }
-
-            for(const auto& segment : m_parentSM.presenter().segments())
-            {
-                if(segment.shape().translated(segment.pos()).intersects(scene_area))
-                {
-                    sel.append(&segment.model());
-                }
-            }
-
-            dispatcher.setAndCommit(filterSelections(sel,
-                                                     m_parentSM.model().selectedChildren(),
-                                                     multiSelection()));
-        }
-};
-
-SelectionAndMoveTool::SelectionAndMoveTool(Curve::ToolPalette& sm):
+SmartTool::SmartTool(Curve::ToolPalette& sm):
     CurveTool{sm}
 {
     m_state = new Curve::SelectionState{
@@ -137,7 +46,7 @@ SelectionAndMoveTool::SelectionAndMoveTool(Curve::ToolPalette& sm):
     localSM().start();
 }
 
-void SelectionAndMoveTool::on_pressed(QPointF scenePoint, Curve::Point curvePoint)
+void SmartTool::on_pressed(QPointF scenePoint, Curve::Point curvePoint)
 {
     mapTopItem(scenePoint, itemUnderMouse(scenePoint),
                [&] (const CurvePointView* point)
@@ -157,7 +66,7 @@ void SelectionAndMoveTool::on_pressed(QPointF scenePoint, Curve::Point curvePoin
     });
 }
 
-void SelectionAndMoveTool::on_moved(QPointF scenePoint, Curve::Point curvePoint)
+void SmartTool::on_moved(QPointF scenePoint, Curve::Point curvePoint)
 {
     if (m_nothingPressed)
     {
@@ -181,7 +90,7 @@ void SelectionAndMoveTool::on_moved(QPointF scenePoint, Curve::Point curvePoint)
     }
 }
 
-void SelectionAndMoveTool::on_released(QPointF scenePoint, Curve::Point curvePoint)
+void SmartTool::on_released(QPointF scenePoint, Curve::Point curvePoint)
 {
     if(m_nothingPressed)
     {
