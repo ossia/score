@@ -1,6 +1,6 @@
 #include <QString>
 #include <unordered_map>
-
+#include <iscore/tools/ForEachType.hpp>
 #include "Commands/IScoreCohesionCommandFactory.hpp"
 #include "IScoreCohesionApplicationPlugin.hpp"
 #include "iscore_plugin_cohesion.hpp"

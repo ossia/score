@@ -99,13 +99,14 @@ std::vector<iscore::PanelFactory*> iscore_plugin_scenario::panels()
 
 std::vector<std::unique_ptr<iscore::FactoryListInterface>> iscore_plugin_scenario::factoryFamilies()
 {
-    return {new DynamicProcessList,
-            new MoveEventList,
-            new ScenarioContextMenuPluginList,
-            new ConstraintInspectorDelegateFactoryList,
-            new DisplayedElementsToolPaletteFactoryList,
-            new TriggerCommandFactoryList,
-            new DisplayedElementsProviderList};
+    return make_ptr_vector<iscore::FactoryListInterface,
+            DynamicProcessList,
+            MoveEventList,
+            ScenarioContextMenuPluginList,
+            ConstraintInspectorDelegateFactoryList,
+            DisplayedElementsToolPaletteFactoryList,
+            TriggerCommandFactoryList,
+            DisplayedElementsProviderList>();
 }
 
 std::vector<std::unique_ptr<iscore::FactoryInterfaceBase>> iscore_plugin_scenario::factories(
@@ -115,7 +116,9 @@ std::vector<std::unique_ptr<iscore::FactoryInterfaceBase>> iscore_plugin_scenari
     if(key == ProcessFactory::staticFactoryKey())
     {
         auto& appPlugin = ctx.components.applicationPlugin<ScenarioApplicationPlugin>();
-        return {new ScenarioFactory{appPlugin.editionSettings()}};
+        std::vector<std::unique_ptr<iscore::FactoryInterfaceBase>> vec;
+        vec.emplace_back(new ScenarioFactory{appPlugin.editionSettings()});
+        return vec;
     }
 
     if(key == ScenarioActionsFactory::staticFactoryKey())
@@ -127,51 +130,53 @@ std::vector<std::unique_ptr<iscore::FactoryInterfaceBase>> iscore_plugin_scenari
 
     if(key == MoveEventClassicFactory::staticFactoryKey())
     {
-        return {new MoveEventClassicFactory};
+        return make_ptr_vector<iscore::FactoryInterfaceBase,
+                MoveEventClassicFactory>();
     }
 
 #if defined(ISCORE_LIB_INSPECTOR)
     if(key == InspectorWidgetFactory::staticFactoryKey())
     {
-        return {
-            new ConstraintInspectorFactory,
-            new StateInspectorFactory,
-            new EventInspectorFactory,
-            new ScenarioInspectorFactory,
-            new TimeNodeInspectorFactory
-        };
+        return make_ptr_vector<iscore::FactoryInterfaceBase,
+            ConstraintInspectorFactory,
+            StateInspectorFactory,
+            EventInspectorFactory,
+            ScenarioInspectorFactory,
+            TimeNodeInspectorFactory
+        >();
     }
 
     if(key == ConstraintInspectorDelegateFactory::staticFactoryKey())
     {
-        return {
-            new ScenarioConstraintInspectorDelegateFactory,
-            new BaseConstraintInspectorDelegateFactory };
+        return make_ptr_vector<iscore::FactoryInterfaceBase,
+            ScenarioConstraintInspectorDelegateFactory,
+            BaseConstraintInspectorDelegateFactory
+                >();
     }
 #endif
 
     if(key == DisplayedElementsToolPaletteFactory::staticFactoryKey())
     {
-        return {
-            new BaseScenarioDisplayedElementsToolPaletteFactory,
-            new ScenarioDisplayedElementsToolPaletteFactory
-        };
+    return make_ptr_vector<iscore::FactoryInterfaceBase,
+            BaseScenarioDisplayedElementsToolPaletteFactory,
+            ScenarioDisplayedElementsToolPaletteFactory
+            >();
     }
 
     if(key == TriggerCommandFactory::staticFactoryKey())
     {
-        return {
-            new ScenarioTriggerCommandFactory,
-            new BaseScenarioTriggerCommandFactory
-        };
+    return make_ptr_vector<iscore::FactoryInterfaceBase,
+            ScenarioTriggerCommandFactory,
+            BaseScenarioTriggerCommandFactory
+            >();
     }
 
     if(key == DisplayedElementsProvider::staticFactoryKey())
     {
-        return {
-            new ScenarioDisplayedElementsProvider,
-            new BaseScenarioDisplayedElementsProvider
-        };
+    return make_ptr_vector<iscore::FactoryInterfaceBase,
+            ScenarioDisplayedElementsProvider,
+            BaseScenarioDisplayedElementsProvider
+            >();
     }
     return {};
 }

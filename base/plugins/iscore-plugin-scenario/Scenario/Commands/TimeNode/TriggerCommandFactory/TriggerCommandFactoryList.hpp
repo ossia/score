@@ -15,10 +15,10 @@ class TriggerCommandFactoryList final : public iscore::FactoryListInterface
           return TriggerCommandFactory::staticFactoryKey();
       }
 
-      void insert(iscore::FactoryInterfaceBase* e) final override
+      void insert(std::unique_ptr<iscore::FactoryInterfaceBase> e) final override
       {
-          if(auto pf = dynamic_cast<TriggerCommandFactory*>(e))
-              m_list.push_back(pf);
+          if(auto pf = dynamic_unique_ptr_cast<TriggerCommandFactory>(std::move(e)))
+              m_list.emplace_back(std::move(pf));
       }
 
       const auto& list() const
@@ -28,19 +28,19 @@ class TriggerCommandFactoryList final : public iscore::FactoryListInterface
 
       auto make_addTriggerCommand(const TimeNodeModel& tn) const
       {
-          auto it = find_if(m_list, [&] (auto elt) { return elt->matches(tn); });
+          auto it = find_if(m_list, [&] (const auto& elt) { return elt->matches(tn); });
           return (it != m_list.end())
                   ? (*it)->make_addTriggerCommand(tn)
                   : nullptr;
       }
       auto make_removeTriggerCommand(const TimeNodeModel& tn) const
       {
-          auto it = find_if(m_list, [&] (auto elt) { return elt->matches(tn); });
+          auto it = find_if(m_list, [&] (const auto& elt) { return elt->matches(tn); });
           return (it != m_list.end())
                   ? (*it)->make_removeTriggerCommand(tn)
                   : nullptr;
       }
 
     private:
-      std::vector<TriggerCommandFactory*> m_list;
+      std::vector<std::unique_ptr<TriggerCommandFactory>> m_list;
 };

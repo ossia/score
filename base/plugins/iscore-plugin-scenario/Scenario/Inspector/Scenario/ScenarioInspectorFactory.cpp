@@ -17,7 +17,7 @@ class Document;
 InspectorWidgetBase* ScenarioInspectorFactory::makeWidget(
         const QObject& sourceElement,
         iscore::Document& doc,
-        QWidget* parent)
+        QWidget* parent) const
 {
     return new ScenarioInspectorWidget{
         static_cast<const Scenario::ScenarioModel&>(sourceElement),

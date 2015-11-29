@@ -34,7 +34,7 @@ class LoopInspectorFactory final : public InspectorWidgetFactory
         InspectorWidgetBase* makeWidget(
                 const QObject& sourceElement,
                 iscore::Document& doc,
-                QWidget* parent) override;
+                QWidget* parent) const override;
 
         const QList<QString>& key_impl() const override
         {

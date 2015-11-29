@@ -14,7 +14,7 @@ class Document;
 InspectorWidgetBase* EventInspectorFactory::makeWidget(
         const QObject& sourceElement,
         iscore::Document& doc,
-        QWidget* parentWidget)
+        QWidget* parentWidget) const
 {
     return new EventInspectorWidget{
         static_cast<const EventModel&>(sourceElement),

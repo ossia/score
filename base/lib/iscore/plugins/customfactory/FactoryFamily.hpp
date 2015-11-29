@@ -15,6 +15,9 @@ namespace iscore
 class FactoryListInterface
 {
     public:
+        FactoryListInterface() = default;
+        FactoryListInterface(const FactoryListInterface&) = delete;
+        FactoryListInterface& operator=(const FactoryListInterface&) = delete;
         virtual ~FactoryListInterface();
 
         // Example : InspectorWidgetFactory

@@ -16,7 +16,7 @@ class Document;
 InspectorWidgetBase* TimeNodeInspectorFactory::makeWidget(
         const QObject& sourceElement,
         iscore::Document& doc,
-        QWidget* parent)
+        QWidget* parent) const
 {
     auto& timeNode = static_cast<const TimeNodeModel&>(sourceElement);
     return new TimeNodeInspectorWidget{timeNode, doc, parent};

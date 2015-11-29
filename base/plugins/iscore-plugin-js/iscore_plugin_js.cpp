@@ -8,6 +8,7 @@
 #include <iscore/plugins/customfactory/StringFactoryKey.hpp>
 #include "iscore_plugin_js.hpp"
 #include <iscore_plugin_js_commands_files.hpp>
+#include <iscore/plugins/customfactory/FactoryFamily.hpp>
 
 iscore_plugin_js::iscore_plugin_js() :
     QObject {}
@@ -20,12 +21,14 @@ std::vector<std::unique_ptr<iscore::FactoryInterfaceBase>> iscore_plugin_js::fac
 {
     if(factoryName == ProcessFactory::staticFactoryKey())
     {
-        return {new JSProcessFactory};
+        return make_ptr_vector<iscore::FactoryInterfaceBase,
+                JSProcessFactory>();
     }
 
     if(factoryName == InspectorWidgetFactory::staticFactoryKey())
     {
-        return {new JSInspectorFactory};
+        return make_ptr_vector<iscore::FactoryInterfaceBase,
+                JSInspectorFactory>();
     }
 
     return {};

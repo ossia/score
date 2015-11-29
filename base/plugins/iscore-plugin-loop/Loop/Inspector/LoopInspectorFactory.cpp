@@ -121,7 +121,7 @@ LoopInspectorFactory::~LoopInspectorFactory()
 InspectorWidgetBase* LoopInspectorFactory::makeWidget(
         const QObject& sourceElement,
         iscore::Document& doc,
-        QWidget* parent)
+        QWidget* parent) const
 {
     auto& appContext = doc.context().app;
     auto& widgetFact = appContext.components.factory<InspectorWidgetList>();

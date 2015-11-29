@@ -5,6 +5,7 @@
 class DisplayedElementsToolPaletteFactoryList final : public iscore::FactoryListInterface
 {
     public:
+
       static const iscore::FactoryBaseKey& staticFactoryKey() {
           return DisplayedElementsToolPaletteFactory::staticFactoryKey();
       }
@@ -13,10 +14,10 @@ class DisplayedElementsToolPaletteFactoryList final : public iscore::FactoryList
           return DisplayedElementsToolPaletteFactory::staticFactoryKey();
       }
 
-      void insert(iscore::FactoryInterfaceBase* e) final override
+      void insert(std::unique_ptr<iscore::FactoryInterfaceBase> e) final override
       {
-          if(auto pf = dynamic_cast<DisplayedElementsToolPaletteFactory*>(e))
-              m_list.push_back(pf);
+          if(auto pf = dynamic_unique_ptr_cast<DisplayedElementsToolPaletteFactory>(std::move(e)))
+              m_list.emplace_back(std::move(pf));
       }
 
       const auto& list() const
@@ -28,12 +29,12 @@ class DisplayedElementsToolPaletteFactoryList final : public iscore::FactoryList
               ScenarioDocumentPresenter& pres,
               const ConstraintModel& constraint) const
       {
-          auto it = find_if(m_list, [&] (auto elt) { return elt->matches(constraint); });
+          auto it = find_if(m_list, [&] (const auto& elt) { return elt->matches(constraint); });
           return (it != m_list.end())
                   ? (*it)->make(pres, constraint)
                   : nullptr;
       }
 
     private:
-      std::vector<DisplayedElementsToolPaletteFactory*> m_list;
+      std::vector<std::unique_ptr<DisplayedElementsToolPaletteFactory>> m_list;
 };

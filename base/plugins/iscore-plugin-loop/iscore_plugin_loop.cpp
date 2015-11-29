@@ -19,7 +19,6 @@
 #include <iscore/tools/SettableIdentifier.hpp>
 #include "iscore_plugin_loop.hpp"
 #include <iscore_plugin_loop_commands_files.hpp>
-
 void ignore_template_instantiations_iscore_plugin_loop()
 {
     NotifyingMapInstantiations_T<RackModel>();
@@ -38,24 +37,27 @@ std::vector<std::unique_ptr<iscore::FactoryInterfaceBase>> iscore_plugin_loop::f
 {
     if(key == ProcessFactory::staticFactoryKey())
     {
-        return {new LoopProcessFactory};
+        return make_ptr_vector<iscore::FactoryInterfaceBase,
+            LoopProcessFactory>();
     }
 
     if(key == InspectorWidgetFactory::staticFactoryKey())
     {
-        return {new LoopInspectorFactory};
+        return make_ptr_vector<iscore::FactoryInterfaceBase,
+                LoopInspectorFactory>();
     }
 
     if(key == ConstraintInspectorDelegateFactory::staticFactoryKey())
     {
-        return { new LoopConstraintInspectorDelegateFactory };
+        return make_ptr_vector<iscore::FactoryInterfaceBase,
+                LoopConstraintInspectorDelegateFactory>();
     }
 
     if(key == TriggerCommandFactory::staticFactoryKey())
     {
-        return {
-            new LoopTriggerCommandFactory
-        };
+        return make_ptr_vector<iscore::FactoryInterfaceBase,
+            LoopTriggerCommandFactory
+        >();
     }
 
     return {};

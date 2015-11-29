@@ -14,7 +14,7 @@ class Document;
 InspectorWidgetBase* StateInspectorFactory::makeWidget(
         const QObject& sourceElement,
         iscore::Document& doc,
-        QWidget* parentWidget)
+        QWidget* parentWidget) const
 {
     return new StateInspectorWidget{
         static_cast<const StateModel&>(sourceElement),

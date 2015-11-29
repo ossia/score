@@ -8,6 +8,7 @@
 #include <Scenario/Application/Menus/Plugin/ScenarioActionsFactory.hpp>
 #include <iscore/plugins/customfactory/StringFactoryKey.hpp>
 #include "iscore_plugin_ossia.hpp"
+#include <iscore/plugins/customfactory/FactoryFamily.hpp>
 
 namespace iscore {
 class Application;
@@ -32,14 +33,15 @@ std::vector<std::unique_ptr<iscore::FactoryInterfaceBase>> iscore_plugin_ossia::
 {
     if(factoryName == ProtocolFactory::staticFactoryKey())
     {
-        return {//new MIDIProtocolFactory,
-                new MinuitProtocolFactory,
-                new OSCProtocolFactory};
+        return make_ptr_vector<iscore::FactoryInterfaceBase,
+                MinuitProtocolFactory,
+                OSCProtocolFactory>();
     }
 
     if(factoryName == ScenarioActionsFactory::staticFactoryKey())
     {
-        return {new PlayContextMenuFactory};
+        return make_ptr_vector<iscore::FactoryInterfaceBase,
+                PlayContextMenuFactory>();
     }
 
     return {};

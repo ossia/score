@@ -27,7 +27,7 @@ JSInspectorFactory::~JSInspectorFactory()
 InspectorWidgetBase* JSInspectorFactory::makeWidget(
         const QObject& sourceElement,
         iscore::Document& doc,
-        QWidget* parent)
+        QWidget* parent) const
 {
     return new JSInspectorWidget{
                 safe_cast<const JSProcessModel&>(sourceElement),

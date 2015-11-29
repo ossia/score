@@ -1,6 +1,7 @@
 #include <NetworkApplicationPlugin.hpp>
 #include <iscore_plugin_network.hpp>
 
+#include <iscore/tools/ForEachType.hpp>
 #include "DistributedScenario/Commands/DistributedScenarioCommandFactory.hpp"
 #include "DistributedScenario/Panel/GroupPanelFactory.hpp"
 #include <iscore/plugins/qt_interfaces/GUIApplicationContextPlugin_QtInterface.hpp>
