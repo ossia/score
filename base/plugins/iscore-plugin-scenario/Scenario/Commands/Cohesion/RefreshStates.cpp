@@ -1,4 +1,4 @@
-#include "UpdateStates.hpp"
+#include "RefreshStates.hpp"
 
 #include <Scenario/Process/ScenarioModel.hpp>
 
@@ -11,7 +11,7 @@
 #include <core/document/DocumentModel.hpp>
 #include <Explorer/DocumentPlugin/DeviceDocumentPlugin.hpp>
 #include <Explorer/Explorer/DeviceExplorerModel.hpp>
-#include <Scenario/Commands/State/UpdateState.hpp>
+#include <Scenario/Commands/State/AddMessagesToState.hpp>
 #include "RefreshStatesMacro.hpp"
 
 void RefreshStates(iscore::Document* doc)

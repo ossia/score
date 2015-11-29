@@ -8,7 +8,7 @@
 #include <Scenario/Process/Temporal/StateMachines/Tools/States/ResizeSlotState.hpp>
 
 #include <Scenario/Process/Temporal/StateMachines/Transitions/SlotTransitions.hpp>
-// TODO rename file.
+
 namespace Scenario
 {
 class ToolPalette;
@@ -21,10 +21,10 @@ template<
         typename MoveEventWrapper_T,
         typename MoveTimeNodeWrapper_T
         >
-class SelectionAndMoveTool final : public ToolBase<ToolPalette_T>
+class SmartTool final : public ToolBase<ToolPalette_T>
 {
     public:
-        SelectionAndMoveTool(ToolPalette_T& sm):
+        SmartTool(ToolPalette_T& sm):
             ToolBase<ToolPalette_T>{sm}
         {
             m_state = new SelectionState<ToolPalette_T, View_T>{

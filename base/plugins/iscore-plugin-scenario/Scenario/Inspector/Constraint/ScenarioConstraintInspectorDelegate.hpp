@@ -1,12 +1,10 @@
 #pragma once
 #include <Scenario/Inspector/Constraint/ConstraintInspectorDelegate.hpp>
 
-class TriggerInspectorWidget;
-
-class BaseConstraintInspectorDelegate final : public ConstraintInspectorDelegate
+class ScenarioConstraintInspectorDelegate final : public ConstraintInspectorDelegate
 {
     public:
-        BaseConstraintInspectorDelegate(const ConstraintModel& cst);
+        ScenarioConstraintInspectorDelegate(const ConstraintModel& cst);
 
         void updateElements() override;
         void addWidgets_pre(std::list<QWidget*>& widgets, ConstraintInspectorWidget* parent) override;
@@ -16,7 +14,4 @@ class BaseConstraintInspectorDelegate final : public ConstraintInspectorDelegate
                 OngoingCommandDispatcher& dispatcher,
                 const TimeValue& val,
                 ExpandMode) const override;
-
-    private:
-        TriggerInspectorWidget* m_triggerLine{};
 };

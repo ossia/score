@@ -3,7 +3,7 @@
 #include <iscore/command/Dispatchers/CommandDispatcher.hpp>
 
 #include <Scenario/Commands/Scenario/Deletions/ClearConstraint.hpp>
-#include <Scenario/Commands/Scenario/Deletions/ClearEvent.hpp>
+#include <Scenario/Commands/Scenario/Deletions/ClearState.hpp>
 
 #include <Scenario/Commands/ClearSelection.hpp>
 #include <Scenario/Document/Event/EventModel.hpp>

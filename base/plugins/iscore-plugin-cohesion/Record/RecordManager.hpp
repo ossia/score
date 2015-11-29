@@ -1,7 +1,7 @@
 #pragma once
 #include "RecordData.hpp"
 
-#include <Explorer/DocumentPlugin/DeviceDocumentPlugin.hpp>
+#include <Explorer/DocumentPlugin/ListeningState.hpp>
 #include <Scenario/Process/Temporal/StateMachines/ScenarioPoint.hpp>
 
 #include <iscore/command/Dispatchers/MacroCommandDispatcher.hpp>

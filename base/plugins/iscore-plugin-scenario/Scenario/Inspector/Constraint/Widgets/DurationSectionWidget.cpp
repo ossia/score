@@ -7,7 +7,7 @@
 #include <Scenario/Commands/Scenario/Displacement/MoveEventMeta.hpp>
 #include <Scenario/Commands/Constraint/SetMinDuration.hpp>
 #include <Scenario/Commands/Constraint/SetMaxDuration.hpp>
-#include <Scenario/Commands/ResizeBaseConstraint.hpp>
+#include <Scenario/Commands/MoveBaseEvent.hpp>
 #include <Scenario/Commands/Constraint/SetRigidity.hpp>
 
 #include <Scenario/Process/ScenarioInterface.hpp>

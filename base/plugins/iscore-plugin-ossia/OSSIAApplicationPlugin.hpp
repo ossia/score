@@ -1,6 +1,6 @@
 #pragma once
 #include <iscore/plugins/application/GUIApplicationContextPlugin.hpp>
-#include <Explorer/DocumentPlugin/DeviceDocumentPlugin.hpp>
+#include <Explorer/DocumentPlugin/ListeningState.hpp>
 
 #include <Process/TimeValue.hpp>
 

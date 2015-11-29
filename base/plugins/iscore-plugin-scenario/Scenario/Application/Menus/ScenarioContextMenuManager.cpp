@@ -1,4 +1,4 @@
-#include "ContextMenuDispatcher.hpp"
+#include "ScenarioContextMenuManager.hpp"
 #include <Scenario/Application/ScenarioApplicationPlugin.hpp>
 #include <Scenario/Document/Constraint/Rack/Slot/SlotPresenter.hpp>
 #include <Scenario/Document/Constraint/Rack/Slot/SlotModel.hpp>

@@ -1,10 +1,10 @@
 #pragma once
 #include <Scenario/Inspector/Constraint/ConstraintInspectorDelegateFactory.hpp>
 
-class BaseConstraintInspectorDelegateFactory : public ConstraintInspectorDelegateFactory
+class ScenarioConstraintInspectorDelegateFactory : public ConstraintInspectorDelegateFactory
 {
     public:
-        virtual ~BaseConstraintInspectorDelegateFactory();
+        virtual ~ScenarioConstraintInspectorDelegateFactory();
 
         std::unique_ptr<ConstraintInspectorDelegate> make(const ConstraintModel& constraint) override;
 

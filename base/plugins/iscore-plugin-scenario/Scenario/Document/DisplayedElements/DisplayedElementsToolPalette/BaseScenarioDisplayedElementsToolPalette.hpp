@@ -13,9 +13,6 @@ class DisplayedElementsPresenter;
 class DisplayedElementsModel;
 class ScenarioDocumentPresenter;
 class ConstraintModel;
-
-// TODO MoveMe to statemachine folder
-// TODO rename me
 class BaseScenario;
 class BaseGraphicsObject;
 class QGraphicsItem;
@@ -46,7 +43,7 @@ class BaseScenarioDisplayedElementsToolPalette final : public GraphicsSceneToolP
 
         ScenarioDocumentPresenter& m_presenter;
         BaseElementContext m_context;
-        Scenario::SelectionAndMoveTool<
+        Scenario::SmartTool<
                 BaseScenario,
                 BaseScenarioDisplayedElementsToolPalette,
                 BaseGraphicsObject,

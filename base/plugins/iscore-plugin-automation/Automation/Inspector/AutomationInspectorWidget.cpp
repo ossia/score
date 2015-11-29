@@ -1,8 +1,8 @@
 #include "AutomationInspectorWidget.hpp"
 #include "Automation/AutomationModel.hpp"
 #include "Automation/Commands/ChangeAddress.hpp"
-#include "Automation/Commands/SetCurveMin.hpp"
-#include "Automation/Commands/SetCurveMax.hpp"
+#include "Automation/Commands/SetAutomationMin.hpp"
+#include "Automation/Commands/SetAutomationMax.hpp"
 
 #include <Explorer/Widgets/DeviceCompleter.hpp>
 #include <Explorer/Widgets/DeviceExplorerMenuButton.hpp>

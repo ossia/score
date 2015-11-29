@@ -1,8 +1,8 @@
 #pragma once
-#include <Scenario/Commands/ResizeBaseConstraint.hpp>
+#include <Scenario/Commands/MoveBaseEvent.hpp>
 #include <Scenario/Document/BaseScenario/BaseScenario.hpp>
 #include <Scenario/Process/Temporal/StateMachines/Tools/States/MoveStates.hpp>
-#include <Scenario/Process/Temporal/StateMachines/Tools/SelectionToolState.hpp>
+#include <Scenario/Process/Temporal/StateMachines/Tools/SmartTool.hpp>
 #include <Scenario/Process/Temporal/StateMachines/Transitions/ConstraintTransitions.hpp>
 #include <Scenario/Process/Temporal/StateMachines/Transitions/EventTransitions.hpp>
 #include <Scenario/Process/Temporal/StateMachines/Transitions/StateTransitions.hpp>

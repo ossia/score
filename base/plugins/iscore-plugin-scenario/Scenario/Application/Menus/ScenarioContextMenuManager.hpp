@@ -13,7 +13,6 @@ namespace iscore
 struct DocumentContext;
 }
 
-// TODO rename file
 class ScenarioContextMenuManager final : public QObject
 {
     public:

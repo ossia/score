@@ -82,7 +82,7 @@ set(SRCS ${SRCS}
 "${CMAKE_CURRENT_SOURCE_DIR}/Scenario/Commands/Constraint/AddProcessToConstraint.cpp"
 "${CMAKE_CURRENT_SOURCE_DIR}/Scenario/Commands/Constraint/AddOnlyProcessToConstraint.cpp"
 "${CMAKE_CURRENT_SOURCE_DIR}/Scenario/Commands/Constraint/AddLayerInNewSlot.cpp"
-"${CMAKE_CURRENT_SOURCE_DIR}/Scenario/Commands/Constraint/ReplaceConstraintContent.cpp"
+"${CMAKE_CURRENT_SOURCE_DIR}/Scenario/Commands/Constraint/InsertContentInConstraint.cpp"
 "${CMAKE_CURRENT_SOURCE_DIR}/Scenario/Commands/Constraint/DuplicateRack.cpp"
 "${CMAKE_CURRENT_SOURCE_DIR}/Scenario/Commands/Constraint/RemoveRackFromConstraint.cpp"
 "${CMAKE_CURRENT_SOURCE_DIR}/Scenario/Commands/Constraint/RemoveProcessFromConstraint.cpp"
@@ -101,7 +101,7 @@ set(SRCS ${SRCS}
 "${CMAKE_CURRENT_SOURCE_DIR}/Scenario/Commands/Scenario/Creations/CreateSequence.cpp"
 
 "${CMAKE_CURRENT_SOURCE_DIR}/Scenario/Commands/Scenario/Deletions/ClearConstraint.cpp"
-"${CMAKE_CURRENT_SOURCE_DIR}/Scenario/Commands/Scenario/Deletions/ClearEvent.cpp"
+"${CMAKE_CURRENT_SOURCE_DIR}/Scenario/Commands/Scenario/Deletions/ClearState.cpp"
 "${CMAKE_CURRENT_SOURCE_DIR}/Scenario/Commands/Scenario/Deletions/RemoveSelection.cpp"
 "${CMAKE_CURRENT_SOURCE_DIR}/Scenario/Commands/Scenario/Displacement/MoveConstraint.cpp"
 "${CMAKE_CURRENT_SOURCE_DIR}/Scenario/Commands/Scenario/Displacement/MoveEventClassicFactory.cpp"
@@ -118,10 +118,10 @@ set(SRCS ${SRCS}
 
 "${CMAKE_CURRENT_SOURCE_DIR}/Scenario/Commands/Cohesion/CreateCurveFromStates.cpp"
 "${CMAKE_CURRENT_SOURCE_DIR}/Scenario/Commands/Cohesion/InterpolateStates.cpp"
-"${CMAKE_CURRENT_SOURCE_DIR}/Scenario/Commands/Cohesion/UpdateStates.cpp"
+"${CMAKE_CURRENT_SOURCE_DIR}/Scenario/Commands/Cohesion/RefreshStates.cpp"
 
 "${CMAKE_CURRENT_SOURCE_DIR}/Scenario/Commands/State/RemoveMessageNodes.cpp"
-"${CMAKE_CURRENT_SOURCE_DIR}/Scenario/Commands/State/UpdateState.cpp"
+"${CMAKE_CURRENT_SOURCE_DIR}/Scenario/Commands/State/AddMessagesToState.cpp"
 "${CMAKE_CURRENT_SOURCE_DIR}/Scenario/Commands/State/InsertContentInState.cpp"
 
 "${CMAKE_CURRENT_SOURCE_DIR}/Scenario/Commands/TimeNode/TriggerCommandFactory/TriggerCommandFactory.cpp"
@@ -133,7 +133,6 @@ set(SRCS ${SRCS}
 "${CMAKE_CURRENT_SOURCE_DIR}/Scenario/Commands/TimeNode/SplitTimeNode.cpp"
 "${CMAKE_CURRENT_SOURCE_DIR}/Scenario/Commands/TimeNode/SetTrigger.cpp"
 "${CMAKE_CURRENT_SOURCE_DIR}/Scenario/Commands/CommandNames.cpp"
-"${CMAKE_CURRENT_SOURCE_DIR}/Scenario/Commands/ResizeBaseConstraint.cpp"
 "${CMAKE_CURRENT_SOURCE_DIR}/Scenario/Commands/SetProcessDuration.cpp"
 
 "${CMAKE_CURRENT_SOURCE_DIR}/Scenario/Commands/ScenarioCommandFactory.cpp"
@@ -148,7 +147,7 @@ set(SRCS ${SRCS}
 "${CMAKE_CURRENT_SOURCE_DIR}/Scenario/Application/Menus/TransportActions.cpp"
 "${CMAKE_CURRENT_SOURCE_DIR}/Scenario/Application/Menus/TextDialog.cpp"
 "${CMAKE_CURRENT_SOURCE_DIR}/Scenario/Application/Menus/ScenarioCommonContextMenuFactory.cpp"
-"${CMAKE_CURRENT_SOURCE_DIR}/Scenario/Application/Menus/ContextMenuDispatcher.cpp"
+"${CMAKE_CURRENT_SOURCE_DIR}/Scenario/Application/Menus/ScenarioContextMenuManager.cpp"
 "${CMAKE_CURRENT_SOURCE_DIR}/Scenario/Application/ScenarioApplicationPlugin.cpp"
 "${CMAKE_CURRENT_SOURCE_DIR}/Scenario/Application/ScenarioEditionSettings.cpp"
 
@@ -270,6 +269,7 @@ if(TARGET iscore_lib_inspector)
 "${CMAKE_CURRENT_SOURCE_DIR}/Scenario/Inspector/Constraint/ConstraintInspectorFactory.cpp"
 "${CMAKE_CURRENT_SOURCE_DIR}/Scenario/Inspector/Constraint/ConstraintInspectorDelegateFactory.cpp"
 "${CMAKE_CURRENT_SOURCE_DIR}/Scenario/Inspector/Constraint/BaseConstraintInspectorDelegateFactory.cpp"
+"${CMAKE_CURRENT_SOURCE_DIR}/Scenario/Inspector/Constraint/ScenarioConstraintInspectorDelegateFactory.cpp"
 "${CMAKE_CURRENT_SOURCE_DIR}/Scenario/Inspector/Constraint/Widgets/Rack/AddSlotWidget.cpp"
 "${CMAKE_CURRENT_SOURCE_DIR}/Scenario/Inspector/Constraint/Widgets/Rack/Slot/AddLayerModelWidget.cpp"
 "${CMAKE_CURRENT_SOURCE_DIR}/Scenario/Inspector/Constraint/Widgets/Rack/Slot/SlotInspectorSection.cpp"
@@ -280,6 +280,7 @@ if(TARGET iscore_lib_inspector)
 "${CMAKE_CURRENT_SOURCE_DIR}/Scenario/Inspector/Constraint/ConstraintInspectorWidget.cpp"
 "${CMAKE_CURRENT_SOURCE_DIR}/Scenario/Inspector/Constraint/ConstraintInspectorDelegate.cpp"
 "${CMAKE_CURRENT_SOURCE_DIR}/Scenario/Inspector/Constraint/BaseConstraintInspectorDelegate.cpp"
+"${CMAKE_CURRENT_SOURCE_DIR}/Scenario/Inspector/Constraint/ScenarioConstraintInspectorDelegate.cpp"
 "${CMAKE_CURRENT_SOURCE_DIR}/Scenario/Inspector/State/StateInspectorFactory.cpp"
 "${CMAKE_CURRENT_SOURCE_DIR}/Scenario/Inspector/State/StateInspectorWidget.cpp"
 "${CMAKE_CURRENT_SOURCE_DIR}/Scenario/Inspector/Event/EventInspectorFactory.cpp"

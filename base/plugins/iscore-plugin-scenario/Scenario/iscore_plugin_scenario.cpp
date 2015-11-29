@@ -28,6 +28,7 @@
 #include <Scenario/Inspector/Constraint/ConstraintInspectorFactory.hpp>
 #include <Scenario/Inspector/Constraint/ConstraintInspectorDelegateFactory.hpp>
 #include <Scenario/Inspector/Constraint/BaseConstraintInspectorDelegateFactory.hpp>
+#include <Scenario/Inspector/Constraint/ScenarioConstraintInspectorDelegateFactory.hpp>
 #include <Scenario/Inspector/Event/EventInspectorFactory.hpp>
 #include <Scenario/Inspector/Scenario/ScenarioInspectorFactory.hpp>
 #include <Scenario/Inspector/TimeNode/TimeNodeInspectorFactory.hpp>

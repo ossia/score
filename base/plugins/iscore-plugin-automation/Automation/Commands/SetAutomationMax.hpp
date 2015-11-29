@@ -2,7 +2,6 @@
 #include <Automation/Commands/AutomationCommandFactory.hpp>
 #include <iscore/command/PropertyCommand.hpp>
 
-// TODO RENAMEME
 class AutomationModel;
 class SetAutomationMax final : public iscore::PropertyCommand
 {

@@ -12,17 +12,16 @@ DisplayedElementsContainer BaseScenarioDisplayedElementsProvider::make(
 {
     if(auto parent_base = dynamic_cast<BaseScenario*>(cst.parentScenario()))
     {
-        return {
-            &cst,
-                    &parent_base->startState(),
-                    &parent_base->endState(),
+        return DisplayedElementsContainer{
+            cst,
+            parent_base->startState(),
+            parent_base->endState(),
 
-                    &parent_base->startEvent(),
-                    &parent_base->endEvent(),
+            parent_base->startEvent(),
+            parent_base->endEvent(),
 
-                    &parent_base->startTimeNode(),
-                    &parent_base->endTimeNode()
-
+            parent_base->startTimeNode(),
+            parent_base->endTimeNode()
         };
     }
 

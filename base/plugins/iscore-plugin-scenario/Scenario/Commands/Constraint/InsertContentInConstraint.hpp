@@ -13,7 +13,6 @@ namespace Scenario
 {
     namespace Command
     {
-    // TODO Rename file
         class InsertContentInConstraint final : public iscore::SerializableCommand
         {
                 ISCORE_COMMAND_DECL(ScenarioCommandFactoryName(), InsertContentInConstraint, "Insert content in a constraint")

@@ -1,4 +1,4 @@
-#include "ClearEvent.hpp"
+#include "ClearState.hpp"
 
 #include <Scenario/Document/State/StateModel.hpp>
 

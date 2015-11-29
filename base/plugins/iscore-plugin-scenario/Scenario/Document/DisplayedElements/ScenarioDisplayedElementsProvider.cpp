@@ -17,10 +17,14 @@ DisplayedElementsContainer ScenarioDisplayedElementsProvider::make(
         const auto& est = parent_scenario->states.at(cst.endState());
         const auto& sev = parent_scenario->events.at(sst.eventId());
         const auto& eev = parent_scenario->events.at(est.eventId());
-        return {
-            &cst, &sst, &est, &sev, &eev,
-                    &parent_scenario->timeNodes.at(sev.timeNode()),
-                    &parent_scenario->timeNodes.at(eev.timeNode())
+        return DisplayedElementsContainer{
+            cst,
+            sst,
+            est,
+            sev,
+            eev,
+            parent_scenario->timeNodes.at(sev.timeNode()),
+            parent_scenario->timeNodes.at(eev.timeNode())
         };
     }
 

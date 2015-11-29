@@ -8,14 +8,14 @@
 #include <Scenario/Document/ScenarioDocument/ScenarioDocumentPresenter.hpp>
 #include <Scenario/Process/Temporal/TemporalScenarioView.hpp>
 
-#include <Scenario/Commands/Constraint/ReplaceConstraintContent.hpp>
+#include <Scenario/Commands/Constraint/InsertContentInConstraint.hpp>
 #include <Scenario/Commands/Constraint/AddProcessToConstraint.hpp>
 #include <Scenario/Commands/TimeNode/AddTrigger.hpp>
 #include <Scenario/Commands/TimeNode/RemoveTrigger.hpp>
 
 #include <Scenario/Application/ScenarioApplicationPlugin.hpp>
 #include <Scenario/Commands/Cohesion/InterpolateStates.hpp>
-#include <Scenario/Commands/Cohesion/UpdateStates.hpp>
+#include <Scenario/Commands/Cohesion/RefreshStates.hpp>
 #include <Scenario/Commands/Scenario/ScenarioPasteContent.hpp>
 #include <Scenario/Commands/Scenario/ScenarioPasteElements.hpp>
 #include <Scenario/Commands/Scenario/HideRackInViewModel.hpp>

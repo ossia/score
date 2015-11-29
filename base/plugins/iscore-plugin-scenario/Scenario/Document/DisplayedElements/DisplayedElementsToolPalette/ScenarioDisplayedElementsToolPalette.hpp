@@ -2,7 +2,7 @@
 #include <Scenario/Application/ScenarioEditionSettings.hpp>
 #include <Scenario/Document/ScenarioDocument/Widgets/GraphicsProxyObject.hpp>
 #include <Scenario/Document/BaseScenario/BaseElementContext.hpp>
-#include <Scenario/Process/Temporal/StateMachines/Tools/SelectionToolState.hpp>
+#include <Scenario/Process/Temporal/StateMachines/Tools/SmartTool.hpp>
 #include <Scenario/Process/Temporal/StateMachines/Tools/States/ScenarioMoveStatesWrapper.hpp>
 
 #include <Process/Tools/ToolPalette.hpp>
@@ -15,7 +15,6 @@ class DisplayedElementsPresenter;
 class DisplayedElementsModel;
 namespace Scenario { class ScenarioModel; }
 
-// RENAMEME
 class ScenarioDisplayedElementsToolPalette final : public GraphicsSceneToolPalette
 {
     public:
@@ -47,7 +46,7 @@ class ScenarioDisplayedElementsToolPalette final : public GraphicsSceneToolPalet
         BaseGraphicsObject& m_view;
         const Scenario::EditionSettings& m_editionSettings;
 
-        Scenario::SelectionAndMoveTool<
+        Scenario::SmartTool<
             Scenario::ScenarioModel,
             ScenarioDisplayedElementsToolPalette,
             BaseGraphicsObject,

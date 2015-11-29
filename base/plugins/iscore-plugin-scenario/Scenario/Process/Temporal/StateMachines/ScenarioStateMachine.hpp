@@ -4,7 +4,7 @@
 #include <Scenario/Application/ScenarioEditionSettings.hpp>
 
 #include <Scenario/Process/Temporal/StateMachines/Tools/CreationToolState.hpp>
-#include <Scenario/Process/Temporal/StateMachines/Tools/SelectionToolState.hpp>
+#include <Scenario/Process/Temporal/StateMachines/Tools/SmartTool.hpp>
 #include <Scenario/Process/Temporal/StateMachines/Tools/MoveSlotToolState.hpp>
 
 #include <Scenario/Process/Temporal/StateMachines/Tools/States/ScenarioMoveStatesWrapper.hpp>
@@ -67,7 +67,7 @@ class ToolPalette final : public GraphicsSceneToolPalette
         LayerContext& m_context;
 
         CreationTool<ScenarioModel, Scenario::ToolPalette> m_createTool;
-        SelectionAndMoveTool<
+        SmartTool<
             ScenarioModel,
             Scenario::ToolPalette,
             TemporalScenarioView,

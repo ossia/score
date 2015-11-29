@@ -2,7 +2,7 @@
 #include <Scenario/Application/ScenarioEditionSettings.hpp>
 #include <Scenario/Document/ScenarioDocument/Widgets/GraphicsProxyObject.hpp>
 #include <Scenario/Document/BaseScenario/BaseElementContext.hpp>
-#include <Scenario/Process/Temporal/StateMachines/Tools/SelectionToolState.hpp>
+#include <Scenario/Process/Temporal/StateMachines/Tools/SmartTool.hpp>
 #include <Scenario/Document/DisplayedElements/DisplayedElementsToolPalette/BaseScenarioDisplayedElements_StateWrappers.hpp>
 
 #include <Process/Tools/ToolPalette.hpp>
@@ -29,7 +29,6 @@ namespace Loop
 {
 class ProcessModel;
 }
-// RENAME FILE
 class LoopToolPalette final : public GraphicsSceneToolPalette
 {
     public:
@@ -62,7 +61,7 @@ class LoopToolPalette final : public GraphicsSceneToolPalette
         LoopView& m_view;
         const Scenario::EditionSettings& m_editionSettings;
 
-        Scenario::SelectionAndMoveTool<
+        Scenario::SmartTool<
             Loop::ProcessModel,
             LoopToolPalette,
             LoopView,

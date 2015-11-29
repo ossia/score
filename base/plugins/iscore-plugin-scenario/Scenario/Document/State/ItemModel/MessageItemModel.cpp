@@ -3,7 +3,7 @@
 #include <State/MessageListSerialization.hpp>
 #include <iscore/document/DocumentInterface.hpp>
 
-#include <Scenario/Commands/State/UpdateState.hpp>
+#include <Scenario/Commands/State/AddMessagesToState.hpp>
 using namespace iscore;
 MessageItemModel::MessageItemModel(
         CommandStack& stack,

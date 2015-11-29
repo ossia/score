@@ -12,7 +12,6 @@
 #include <iscore/tools/SettableIdentifier.hpp>
 #include <iscore/tools/ModelPath.hpp>
 
-// TODO rename file
 /*
  * Command to change a constraint duration by moving event. Vertical move is not allowed.
  */

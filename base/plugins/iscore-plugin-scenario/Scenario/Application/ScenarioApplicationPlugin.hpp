@@ -8,7 +8,7 @@
 
 #include <Scenario/Process/Temporal/StateMachines/ScenarioPoint.hpp>
 #include <Scenario/Application/ScenarioEditionSettings.hpp>
-#include "Menus/ContextMenuDispatcher.hpp"
+#include "Menus/ScenarioContextMenuManager.hpp"
 class QActionGroup;
 namespace Scenario { class ScenarioModel; }
 class SlotPresenter;

@@ -1,8 +1,7 @@
 #include "SnapshotParameters.hpp"
 
-#include <Commands/CreateStatesFromParametersInEvents.hpp>
-
-#include <Scenario/Commands/State/UpdateState.hpp>
+#include <Commands/SnapshotStatesMacro.hpp>
+#include <Scenario/Commands/State/AddMessagesToState.hpp>
 #include <Scenario/Document/State/StateModel.hpp>
 #include <Explorer/Explorer/DeviceExplorerModel.hpp>
 #include <Explorer/DocumentPlugin/DeviceDocumentPlugin.hpp>

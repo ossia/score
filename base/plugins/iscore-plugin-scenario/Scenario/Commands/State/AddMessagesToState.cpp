@@ -1,4 +1,4 @@
-#include "UpdateState.hpp"
+#include "AddMessagesToState.hpp"
 #include <Scenario/Document/State/StateModel.hpp>
 #include <iscore/serialization/VisitorCommon.hpp>
 #include <Process/State/ProcessStateDataInterface.hpp>

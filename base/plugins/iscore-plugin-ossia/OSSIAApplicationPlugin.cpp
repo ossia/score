@@ -22,6 +22,7 @@
 #include <TTModular.h>
 #endif
 #include <DocumentPlugin/ContextMenu/PlayContextMenu.hpp>
+#include <Explorer/DocumentPlugin/DeviceDocumentPlugin.hpp>
 
 #include <iscore/document/DocumentInterface.hpp>
 #include <core/document/DocumentModel.hpp>

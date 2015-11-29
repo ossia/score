@@ -58,21 +58,6 @@ void CreateCurvesFromAddresses::redo() const
     }
 }
 
-// MOVEME
-template<>
-void Visitor<Reader<DataStream>>::readFrom(const CommandData& d)
-{
-    m_stream << d.parentKey << d.commandKey << d.data;
-    insertDelimiter();
-}
-
-template<>
-void Visitor<Writer<DataStream>>::writeTo(CommandData& d)
-{
-    m_stream >> d.parentKey >> d.commandKey >> d.data;
-    checkDelimiter();
-}
-
 void CreateCurvesFromAddresses::serializeImpl(DataStreamInput& s) const
 {
     s << m_path << m_addresses;

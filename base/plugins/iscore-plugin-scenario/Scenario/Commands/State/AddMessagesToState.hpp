@@ -6,7 +6,6 @@
 #include <Device/Node/DeviceNode.hpp>
 #include <Scenario/Document/State/ItemModel/MessageItemModel.hpp>
 
-// TODO rename file
 class AddMessagesToState final : public iscore::SerializableCommand
 {
         ISCORE_COMMAND_DECL(ScenarioCommandFactoryName(), AddMessagesToState, "Add messages to state")

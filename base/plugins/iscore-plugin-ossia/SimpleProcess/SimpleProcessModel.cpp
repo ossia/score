@@ -127,7 +127,6 @@ LayerModel* SimpleProcessModel::cloneLayer_impl(
 }
 
 
-// MOVEME
 template<>
 void Visitor<Reader<DataStream>>::readFrom(const SimpleProcessModel& proc)
 {
