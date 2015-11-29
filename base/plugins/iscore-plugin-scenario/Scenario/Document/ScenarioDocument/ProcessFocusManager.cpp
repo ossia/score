@@ -1,3 +1,6 @@
+#include "Process/LayerModel.hpp"
+#include "Process/LayerPresenter.hpp"
+#include "Process/Process.hpp"
 #include "ProcessFocusManager.hpp"
 
 

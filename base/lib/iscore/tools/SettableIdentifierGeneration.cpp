@@ -1,6 +1,9 @@
+#include <cstdint>
+#include <limits>
+#include <random>
+
 #include "SettableIdentifierGeneration.hpp"
 
-#include <random>
 namespace iscore
 {
 #ifdef ISCORE_VALGRIND_IDS

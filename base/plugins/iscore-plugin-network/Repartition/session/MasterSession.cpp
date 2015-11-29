@@ -1,7 +1,19 @@
+#include <boost/optional/optional.hpp>
+#include <dnssd/publicservice.h>
+#include <qnamespace.h>
+
 #include "MasterSession.hpp"
-#ifdef USE_ZEROCONF
-#include <KF5/KDNSSD/DNSSD/PublicService>
-#endif
+#include "Serialization/NetworkMessage.hpp"
+#include "iscore/tools/SettableIdentifier.hpp"
+#include "iscore/tools/Todo.hpp"
+#include "session/../client/LocalClient.hpp"
+#include "session/../client/RemoteClient.hpp"
+#include "session/RemoteClientBuilder.hpp"
+#include "session/Session.hpp"
+
+class Client;
+class QObject;
+class QTcpSocket;
 
 MasterSession::MasterSession(iscore::Document* doc, LocalClient* theclient, Id<Session> id, QObject* parent):
     Session{theclient, id, parent},

@@ -1,20 +1,30 @@
 #pragma once
-#include <iscore/tools/NamedObject.hpp>
-#include <iscore/selection/SelectionStack.hpp>
-#include <iscore/locking/ObjectLocker.hpp>
 #include <core/command/CommandStack.hpp>
 #include <core/document/DocumentContext.hpp>
+#include <iscore/locking/ObjectLocker.hpp>
+#include <iscore/selection/SelectionStack.hpp>
+#include <iscore/tools/NamedObject.hpp>
+#include <qbytearray.h>
+#include <qjsonobject.h>
+#include <qstring.h>
+#include <qvariant.h>
 
-#include <core/document/DocumentBackupManager.hpp>
+class QObject;
+class QWidget;
+namespace iscore {
+class DocumentBackupManager;
+}  // namespace iscore
+template <typename tag, typename impl> class id_base_t;
 
 namespace iscore
 {
+class DocumentDelegateFactoryInterface;
 class DocumentModel;
 class DocumentPresenter;
 class DocumentView;
-class DocumentDelegateFactoryInterface;
 class PanelFactory;
 class PanelPresenter;
+
 /**
      * @brief The Document class is the central part of the software.
      *

@@ -1,25 +1,28 @@
+#include <boost/concept/usage.hpp>
+#include <boost/range/algorithm/find_if.hpp>
+#include <core/application/ApplicationComponents.hpp>
+#include <core/application/ApplicationRegistrar.hpp>
 #include <core/plugin/PluginManager.hpp>
-#include <core/application/Application.hpp>
-
-#include <iscore/plugins/qt_interfaces/FactoryInterface_QtInterface.hpp>
 #include <iscore/plugins/qt_interfaces/DocumentDelegateFactoryInterface_QtInterface.hpp>
 #include <iscore/plugins/qt_interfaces/FactoryFamily_QtInterface.hpp>
-#include <iscore/plugins/qt_interfaces/PanelFactoryInterface_QtInterface.hpp>
+#include <iscore/plugins/qt_interfaces/FactoryInterface_QtInterface.hpp>
 #include <iscore/plugins/qt_interfaces/GUIApplicationContextPlugin_QtInterface.hpp>
-#include <iscore/plugins/qt_interfaces/PluginRequirements_QtInterface.hpp>
+#include <iscore/plugins/qt_interfaces/PanelFactoryInterface_QtInterface.hpp>
 #include <iscore/plugins/qt_interfaces/SettingsDelegateFactoryInterface_QtInterface.hpp>
+#include <qcoreapplication.h>
+#include <qdebug.h>
+#include <qdir.h>
+#include <qobjectdefs.h>
+#include <qpluginloader.h>
+#include <qsettings.h>
+#include <qvariant.h>
+#include <unordered_map>
+#include <utility>
 
-#include <iscore/plugins/customfactory/FactoryInterface.hpp>
-#include <iscore/plugins/application/GUIApplicationContextPlugin.hpp>
-#include <iscore/plugins/documentdelegate/DocumentDelegateFactoryInterface.hpp>
-
-#include <core/application/ApplicationRegistrar.hpp>
-#include <core/application/ApplicationComponents.hpp>
-#include <QDir>
-#include <QSettings>
-#include <QPluginLoader>
 #include "PluginDependencyGraph.hpp"
-#include <boost/range/algorithm.hpp>
+#include "core/application/ApplicationContext.hpp"
+#include "iscore/plugins/customfactory/FactoryFamily.hpp"
+#include "iscore/plugins/customfactory/StringFactoryKey.hpp"
 
 using namespace iscore;
 

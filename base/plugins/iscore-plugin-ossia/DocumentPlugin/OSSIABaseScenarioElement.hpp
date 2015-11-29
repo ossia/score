@@ -1,22 +1,16 @@
 #pragma once
 
-#include <iscore/plugins/documentdelegate/plugin/ElementPluginModel.hpp>
-#include <iscore/tools/SettableIdentifier.hpp>
-#include <memory>
+#include <qobject.h>
 
-#include "OSSIAConstraintElement.hpp"
-#include "OSSIATimeNodeElement.hpp"
-#include "OSSIAEventElement.hpp"
-#include "OSSIAStateElement.hpp"
-
-class EventModel;
-class ConstraintModel;
-class TimeNodeModel;
 class BaseScenario;
+class DeviceList;
+class OSSIAConstraintElement;
+class OSSIAEventElement;
+class OSSIAStateElement;
+class OSSIATimeNodeElement;
+
 namespace OSSIA
 {
-    class Scenario;
-    class TimeProcess;
 }
 
 class OSSIABaseScenarioElement final : public QObject

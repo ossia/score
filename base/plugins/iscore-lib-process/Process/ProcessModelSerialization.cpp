@@ -1,5 +1,23 @@
-#include "ProcessModelSerialization.hpp"
 #include <Process/Process.hpp>
+#include <boost/core/explicit_operator_bool.hpp>
+#include <qjsonobject.h>
+#include <qjsonvalue.h>
+
+#include "Process/ModelMetadata.hpp"
+#include "Process/ProcessFactory.hpp"
+#include "Process/ProcessFactoryKey.hpp"
+#include "Process/ProcessList.hpp"
+#include "Process/TimeValue.hpp"
+#include "ProcessModelSerialization.hpp"
+#include "iscore/plugins/customfactory/FactoryFamily.hpp"
+#include "iscore/plugins/customfactory/FactoryMap.hpp"
+#include "iscore/plugins/customfactory/StringFactoryKey.hpp"
+#include "iscore/serialization/DataStreamVisitor.hpp"
+#include "iscore/serialization/JSONValueVisitor.hpp"
+#include "iscore/serialization/JSONVisitor.hpp"
+
+class QObject;
+template <typename model> class IdentifiedObject;
 
 
 template<>

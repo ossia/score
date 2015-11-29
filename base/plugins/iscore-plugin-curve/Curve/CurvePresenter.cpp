@@ -1,17 +1,52 @@
-#include "CurvePresenter.hpp"
-#include "CurveModel.hpp"
-#include "CurveView.hpp"
-#include "Curve/Segment/CurveSegmentList.hpp"
-#include "Curve/Palette/OngoingState.hpp"
-
-#include "Curve/Palette/CommandObjects/MovePointCommandObject.hpp"
-#include <iscore/widgets/GraphicsItem.hpp>
-#include <core/document/Document.hpp>
+#include <boost/core/explicit_operator_bool.hpp>
+#include <boost/multi_index/detail/hash_index_iterator.hpp>
+#include <boost/multi_index/hashed_index.hpp>
+#include <boost/operators.hpp>
+#include <boost/optional/optional.hpp>
 #include <core/application/ApplicationComponents.hpp>
+#include <iscore/widgets/GraphicsItem.hpp>
+#include <qaction.h>
+#include <qactiongroup.h>
+#include <qalgorithms.h>
+#include <qmenu.h>
+#include <qnamespace.h>
+#include <qobjectdefs.h>
+#include <qpointer.h>
+#include <qset.h>
+#include <qsize.h>
+#include <qstring.h>
+#include <qvariant.h>
+#include <utility>
+#include <vector>
 
-#include <QActionGroup>
-#include <QKeyEvent>
-#include <QMenu>
+#include "Curve/Commands/UpdateCurve.hpp"
+#include "Curve/Palette/CurveEditionSettings.hpp"
+#include "Curve/Palette/CurvePoint.hpp"
+#include "Curve/Point/CurvePointModel.hpp"
+#include "Curve/Point/CurvePointView.hpp"
+#include "Curve/Segment/CurveSegmentData.hpp"
+#include "Curve/Segment/CurveSegmentFactory.hpp"
+#include "Curve/Segment/CurveSegmentList.hpp"
+#include "Curve/Segment/CurveSegmentModel.hpp"
+#include "Curve/Segment/CurveSegmentView.hpp"
+#include "CurveModel.hpp"
+#include "CurvePresenter.hpp"
+#include "CurveView.hpp"
+#include "core/application/ApplicationContext.hpp"
+#include "iscore/command/Dispatchers/CommandDispatcher.hpp"
+#include "iscore/plugins/customfactory/FactoryFamily.hpp"
+#include "iscore/plugins/customfactory/FactoryMap.hpp"
+#include "iscore/plugins/customfactory/StringFactoryKey.hpp"
+#include "iscore/selection/Selectable.hpp"
+#include "iscore/tools/IdentifiedObject.hpp"
+#include "iscore/tools/IdentifiedObjectAbstract.hpp"
+#include "iscore/tools/IdentifiedObjectMap.hpp"
+#include "iscore/tools/SettableIdentifier.hpp"
+#include "iscore/tools/Todo.hpp"
+
+namespace Curve {
+struct Style;
+}  // namespace Curve
 
 static QPointF myscale(QPointF first, QSizeF second)
 {

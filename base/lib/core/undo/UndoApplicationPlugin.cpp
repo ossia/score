@@ -1,5 +1,19 @@
+#include <qkeysequence.h>
+#include <qstring.h>
+#include <qtoolbar.h>
+
 #include "UndoApplicationPlugin.hpp"
-#include <core/document/DocumentPresenter.hpp>
+#include "core/command/CommandStack.hpp"
+#include "core/document/Document.hpp"
+#include "core/presenter/MenubarManager.hpp"
+#include "iscore/menu/MenuInterface.hpp"
+#include "iscore/plugins/application/GUIApplicationContextPlugin.hpp"
+#include "iscore/widgets/OrderedToolbar.hpp"
+
+class QObject;
+namespace iscore {
+class Application;
+}  // namespace iscore
 
 iscore::UndoApplicationPlugin::UndoApplicationPlugin(iscore::Application& app, QObject* parent):
     iscore::GUIApplicationContextPlugin{app, "UndoApplicationPlugin", parent}

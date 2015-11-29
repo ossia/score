@@ -1,27 +1,34 @@
 #pragma once
-#include <Device/Protocol/DeviceInterface.hpp>
-#include <API/Headers/Network/Protocol.h>
-#include <API/Headers/Network/Device.h>
-#include <API/Headers/Network/Address.h>
-#include <API/Headers/Editor/Value.h>
-#include <API/Headers/Editor/Domain.h>
-#include <API/Headers/Editor/State.h>
-#include <API/Headers/Editor/Message.h>
-
-#include <API/Headers/Editor/TimeValue.h>
-#include <Process/TimeValue.hpp>
-#include <State/Message.hpp>
-#include <State/Expression.hpp>
-
+#include <API/Headers/Editor/Curve.h>
 #include <API/Headers/Editor/CurveSegment/CurveSegmentLinear.h>
 #include <API/Headers/Editor/CurveSegment/CurveSegmentPower.h>
-#include <API/Headers/Editor/Curve.h>
-
+#include <API/Headers/Editor/TimeValue.h>
 #include <Curve/Segment/Linear/LinearCurveSegmentModel.hpp>
 #include <Curve/Segment/Power/PowerCurveSegmentModel.hpp>
-
-#include <Device/Protocol/DeviceList.hpp>
 #include <Process/State/MessageNode.hpp>
+#include <Process/TimeValue.hpp>
+#include <State/Expression.hpp>
+#include <qstringlist.h>
+#include <memory>
+
+#include "Curve/Segment/CurveSegmentFactoryKey.hpp"
+#include "State/Value.hpp"
+
+class DeviceList;
+namespace OSSIA {
+class Address;
+class Device;
+class Expression;
+class Message;
+class Node;
+class State;
+class Value;
+}  // namespace OSSIA
+namespace iscore {
+struct FullAddressSettings;
+struct Message;
+}  // namespace iscore
+
 namespace iscore
 {
 namespace convert

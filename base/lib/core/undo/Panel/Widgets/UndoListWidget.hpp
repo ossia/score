@@ -1,9 +1,11 @@
 #pragma once
-#include <QListWidget>
+
+#include <qlistwidget.h>
 
 namespace iscore
 {
 class CommandStack;
+
 class UndoListWidget final : public QListWidget
 {
         Q_OBJECT

@@ -1,6 +1,11 @@
+#include <qdebug.h>
+#include <qhostaddress.h>
+#include <qlist.h>
+#include <qnetworkinterface.h>
+#include <qstring.h>
+#include <qtcpserver.h>
+
 #include "NetworkServer.hpp"
-#include <QNetworkInterface>
-#include <QTcpServer>
 
 
 NetworkServer::NetworkServer(int port, QObject* parent):

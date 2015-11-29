@@ -1,8 +1,20 @@
 #include <iscore/serialization/DataStreamVisitor.hpp>
 #include <iscore/serialization/JSONVisitor.hpp>
+#include <qdatastream.h>
+#include <qglobal.h>
+#include <qjsonarray.h>
+#include <qjsonobject.h>
+#include <qjsonvalue.h>
+
 #include "Message.hpp"
-#include "ValueSerialization.hpp"
+#include "State/Address.hpp"
+#include "State/Value.hpp"
 #include "ValueConversion.hpp"
+#include "ValueSerialization.hpp"
+
+template <typename T> class Reader;
+template <typename T> class Writer;
+
 using namespace iscore;
 template<>
 void Visitor<Reader<DataStream>>::readFrom(const Message& mess)

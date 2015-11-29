@@ -1,3 +1,5 @@
+#include <qlist.h>
+
 #include "InspectorWidgetFactoryInterface.hpp"
 
 InspectorWidgetFactory::~InspectorWidgetFactory()

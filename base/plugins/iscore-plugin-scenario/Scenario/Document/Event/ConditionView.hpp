@@ -1,5 +1,12 @@
 #pragma once
-#include <QGraphicsItem>
+
+#include <qgraphicsitem.h>
+#include <qpainterpath.h>
+#include <qrect.h>
+
+class QPainter;
+class QStyleOptionGraphicsItem;
+class QWidget;
 
 class ConditionView final : public QGraphicsItem
 {

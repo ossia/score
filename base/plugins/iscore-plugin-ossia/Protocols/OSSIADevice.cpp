@@ -1,9 +1,24 @@
-#include "OSSIADevice.hpp"
-#include <boost/range/algorithm.hpp>
 #include <Network/Node.h>
+#include <qdebug.h>
+#include <qstringlist.h>
+#include <algorithm>
+#include <list>
 
-#include "iscore2OSSIA.hpp"
+#include "Device/Address/AddressSettings.hpp"
+#include "Device/Address/IOType.hpp"
+#include "Device/Protocol/DeviceSettings.hpp"
+#include "Network/Address.h"
+#include "Network/Device.h"
 #include "OSSIA2iscore.hpp"
+#include "OSSIADevice.hpp"
+#include "State/Message.hpp"
+#include "State/Value.hpp"
+#include "iscore2OSSIA.hpp"
+
+namespace OSSIA {
+class Value;
+}  // namespace OSSIA
+
 using namespace iscore::convert;
 using namespace OSSIA::convert;
 

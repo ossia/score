@@ -1,13 +1,17 @@
-#include "MessageListEditor.hpp"
+#include <iscore/widgets/ClearLayout.hpp>
+#include <qdialogbuttonbox.h>
+#include <qflags.h>
+#include <qgridlayout.h>
+#include <qobjectdefs.h>
+#include <qpushbutton.h>
+#include <qstring.h>
 
 #include "MessageEditDialog.hpp"
+#include "MessageListEditor.hpp"
 #include "MessageWidget.hpp"
+#include "State/Message.hpp"
 
-#include <iscore/widgets/ClearLayout.hpp>
-
-#include <QDialogButtonBox>
-#include <QGridLayout>
-#include <QPushButton>
+class QWidget;
 
 MessageListEditor::MessageListEditor(
         const iscore::MessageList& m,

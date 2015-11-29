@@ -1,5 +1,8 @@
-#include "ExecutionStatus.hpp"
 #include <Process/Style/ScenarioStyle.hpp>
+#include <qcolor.h>
+#include <qnamespace.h>
+
+#include "ExecutionStatus.hpp"
 
 const QColor& eventStatusColor(ExecutionStatus e)
 {

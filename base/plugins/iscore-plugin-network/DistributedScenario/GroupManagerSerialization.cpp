@@ -1,7 +1,19 @@
-#include "GroupManager.hpp"
-#include "Group.hpp"
+#include <boost/core/explicit_operator_bool.hpp>
 #include <iscore/serialization/DataStreamVisitor.hpp>
 #include <iscore/serialization/JSONVisitor.hpp>
+#include <qjsonarray.h>
+#include <qjsonobject.h>
+#include <qjsonvalue.h>
+#include <sys/types.h>
+#include <algorithm>
+#include <vector>
+
+#include "Group.hpp"
+#include "GroupManager.hpp"
+
+template <typename T> class Reader;
+template <typename T> class Writer;
+template <typename model> class IdentifiedObject;
 
 
 template<>

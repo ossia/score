@@ -1,5 +1,12 @@
 #pragma once
-#include <QGraphicsObject>
+
+#include <qglobal.h>
+#include <qgraphicsitem.h>
+#include <qrect.h>
+
+class QPainter;
+class QStyleOptionGraphicsItem;
+class QWidget;
 
 class ProgressBar final : public QGraphicsObject
 {

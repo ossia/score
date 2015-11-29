@@ -1,12 +1,27 @@
 #pragma once
-#include "RecordData.hpp"
-
 #include <Explorer/DocumentPlugin/ListeningState.hpp>
-#include <Scenario/Palette/ScenarioPoint.hpp>
-
 #include <iscore/command/Dispatchers/MacroCommandDispatcher.hpp>
+#include <qobject.h>
+#include <qobjectdefs.h>
+#include <qtimer.h>
+#include <chrono>
+#include <memory>
 #include <unordered_map>
-#include <QTimer>
+#include <vector>
+#include "RecordData.hpp"
+#include "State/Address.hpp"
+
+class DeviceExplorerModel;
+namespace RedoStrategy {
+struct Quiet;
+}  // namespace RedoStrategy
+namespace Scenario {
+class ScenarioModel;
+struct Point;
+}  // namespace Scenario
+namespace SendStrategy {
+struct UndoRedo;
+}  // namespace SendStrategy
 
 using RecordCommandDispatcher = GenericMacroCommandDispatcher<
     RedoStrategy::Quiet,

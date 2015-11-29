@@ -1,9 +1,15 @@
 #include <Device/Node/DeviceNode.hpp>
-#include <Device/Protocol/ProtocolFactoryInterface.hpp>
-
 #include <iscore/serialization/DataStreamVisitor.hpp>
 #include <iscore/serialization/JSONVisitor.hpp>
 #include <iscore/tools/VariantSerialization.hpp>
+
+namespace iscore {
+struct AddressSettings;
+struct DeviceSettings;
+}  // namespace iscore
+template <typename T> class Reader;
+template <typename T> class TypeToName;
+template <typename T> class Writer;
 
 // Move me
 using namespace iscore;

@@ -1,15 +1,11 @@
 #pragma once
-#include <QWidget>
-#include <QMetaObject>
-
-#include <QMap>
-
-class QComboBox;
+#include <qwidget.h>
 
 class ConstraintInspectorWidget;
 class ConstraintModel;
 class ConstraintViewModel;
 class LambdaFriendlyQComboBox;
+class QString;
 
 class RackWidget final : public QWidget
 {

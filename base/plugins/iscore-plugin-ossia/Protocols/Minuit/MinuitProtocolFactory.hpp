@@ -1,5 +1,16 @@
 #pragma once
 #include <Device/Protocol/ProtocolFactoryInterface.hpp>
+#include <qstring.h>
+#include <qvariant.h>
+
+#include "Device/Protocol/ProtocolFactoryKey.hpp"
+
+class DeviceInterface;
+class ProtocolSettingsWidget;
+namespace iscore {
+struct DeviceSettings;
+}  // namespace iscore
+struct VisitorVariant;
 
 class MinuitProtocolFactory : public ProtocolFactory
 {

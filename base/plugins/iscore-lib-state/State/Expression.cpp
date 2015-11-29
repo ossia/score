@@ -1,6 +1,7 @@
-#include "Expression.hpp"
-#include <algorithm>
+#include <qmap.h>
 
+#include "Expression.hpp"
+#include "State/Relation.hpp"
 
 QString ExprData::toString() const
 {

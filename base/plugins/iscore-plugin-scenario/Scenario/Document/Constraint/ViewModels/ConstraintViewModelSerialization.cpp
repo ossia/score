@@ -1,6 +1,18 @@
-#include "ConstraintViewModelSerialization.hpp"
+#include <boost/core/explicit_operator_bool.hpp>
+#include <qjsonvalue.h>
+#include <algorithm>
+
 #include "ConstraintViewModel.hpp"
-#include <Scenario/Document/Constraint/Rack/Slot/SlotModel.hpp>
+#include "ConstraintViewModelSerialization.hpp"
+#include "Scenario/Document/Constraint/ConstraintModel.hpp"
+#include "iscore/serialization/DataStreamVisitor.hpp"
+#include "iscore/serialization/JSONValueVisitor.hpp"
+#include "iscore/serialization/JSONVisitor.hpp"
+
+class RackModel;
+template <typename T> class Reader;
+template <typename T> class Writer;
+template <typename model> class IdentifiedObject;
 
 template<>
 void Visitor<Reader<DataStream>>::readFrom(const ConstraintViewModel& cvm)

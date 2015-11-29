@@ -1,5 +1,17 @@
+#include <qdatastream.h>
+#include <qglobal.h>
+#include <qnamespace.h>
+#include <algorithm>
+
+#include "Device/Address/AddressSettings.hpp"
+#include "Device/Node/DeviceNode.hpp"
+#include "Explorer/Explorer/DeviceExplorerModel.hpp"
 #include "UpdateAddresses.hpp"
-#include <Explorer/DocumentPlugin/DeviceDocumentPlugin.hpp>
+#include "iscore/serialization/DataStreamVisitor.hpp"
+#include "iscore/tools/ModelPath.hpp"
+#include "iscore/tools/ModelPathSerialization.hpp"
+#include "iscore/tools/TreeNode.hpp"
+#include "iscore/tools/TreePath.hpp"
 
 using namespace DeviceExplorer::Command;
 using namespace iscore;

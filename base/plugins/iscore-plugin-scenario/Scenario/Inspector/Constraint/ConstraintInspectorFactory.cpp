@@ -1,13 +1,21 @@
+#include <Inspector/InspectorWidgetList.hpp>
+#include <Process/ProcessList.hpp>
+#include <Scenario/Document/Constraint/ConstraintModel.hpp>
+#include <Scenario/Inspector/Constraint/ConstraintInspectorDelegateFactory.hpp>
+#include <core/application/ApplicationComponents.hpp>
+#include <core/application/ApplicationContext.hpp>
+#include <core/document/Document.hpp>
+#include <qstring.h>
+
 #include "ConstraintInspectorFactory.hpp"
 #include "ConstraintInspectorWidget.hpp"
+#include "Scenario/Inspector/Constraint/ConstraintInspectorDelegate.hpp"
+#include "core/document/DocumentContext.hpp"
+#include "iscore/plugins/customfactory/StringFactoryKey.hpp"
 
-#include <Scenario/Document/Constraint/ConstraintModel.hpp>
-#include <core/document/Document.hpp>
-#include <core/application/ApplicationContext.hpp>
-#include <core/application/ApplicationComponents.hpp>
-#include <Process/ProcessList.hpp>
-#include <Inspector/InspectorWidgetList.hpp>
-#include <Scenario/Inspector/Constraint/ConstraintInspectorDelegateFactory.hpp>
+class InspectorWidgetBase;
+class QObject;
+class QWidget;
 
 InspectorWidgetBase* ConstraintInspectorFactory::makeWidget(
         const QObject& sourceElement,

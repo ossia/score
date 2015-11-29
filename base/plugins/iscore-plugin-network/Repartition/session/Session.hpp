@@ -1,11 +1,19 @@
 #pragma once
+#include <Serialization/NetworkMessage.hpp>
+#include <qdatastream.h>
+#include <qiodevice.h>
+#include <qlist.h>
+#include <qstring.h>
+#include <algorithm>
+
 #include "../client/LocalClient.hpp"
 #include "../client/RemoteClient.hpp"
-#include <Serialization/NetworkMessage.hpp>
+#include "iscore/tools/IdentifiedObject.hpp"
+#include "iscore/tools/SettableIdentifier.hpp"
 
-class MasterSession;
 class MessageMapper;
 class MessageValidator;
+class QObject;
 
 class Session : public IdentifiedObject<Session>
 {

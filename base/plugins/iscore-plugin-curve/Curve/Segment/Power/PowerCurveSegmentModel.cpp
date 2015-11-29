@@ -1,6 +1,16 @@
-#include "PowerCurveSegmentModel.hpp"
+#include <ext/alloc_traits.h>
 #include <iscore/serialization/VisitorCommon.hpp>
+#include <qpoint.h>
 #include <cmath>
+#include <cstddef>
+#include <vector>
+
+#include "Curve/Palette/CurvePoint.hpp"
+#include "Curve/Segment/CurveSegmentData.hpp"
+#include "PowerCurveSegmentModel.hpp"
+
+class QObject;
+template <typename tag, typename impl> class id_base_t;
 
 PowerCurveSegmentModel::PowerCurveSegmentModel(
         const CurveSegmentData& dat,

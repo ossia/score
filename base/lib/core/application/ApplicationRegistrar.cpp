@@ -1,13 +1,21 @@
-#include "ApplicationRegistrar.hpp"
-#include <iscore/plugins/application/GUIApplicationContextPlugin.hpp>
-#include <iscore/plugins/panel/PanelFactory.hpp>
-#include <iscore/plugins/panel/PanelPresenter.hpp>
-#include <core/presenter/Presenter.hpp>
 #include <core/application/Application.hpp>
-#include <core/view/View.hpp>
 #include <core/application/ApplicationComponents.hpp>
 #include <core/application/ApplicationContext.hpp>
+#include <core/presenter/Presenter.hpp>
 #include <core/settings/Settings.hpp>
+#include <core/view/View.hpp>
+#include <iscore/plugins/application/GUIApplicationContextPlugin.hpp>
+#include <iscore/plugins/panel/PanelFactory.hpp>
+#include <type_traits>
+#include <vector>
+
+#include "ApplicationRegistrar.hpp"
+#include "core/document/Document.hpp"
+#include "core/presenter/DocumentManager.hpp"
+#include "iscore/command/CommandGeneratorMap.hpp"
+#include "iscore/plugins/customfactory/FactoryFamily.hpp"
+#include "iscore/plugins/customfactory/StringFactoryKey.hpp"
+
 namespace iscore
 {
 

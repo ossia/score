@@ -1,7 +1,8 @@
 #pragma once
-#include <QWidget>
+#include <qwidget.h>
 
 class RackInspectorSection;
+
 class AddSlotWidget final : public QWidget
 {
         Q_OBJECT

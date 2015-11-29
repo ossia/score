@@ -1,12 +1,30 @@
-#include "InsertContentInConstraint.hpp"
-
+#include <Process/LayerModel.hpp>
+#include <Process/Process.hpp>
 #include <Scenario/Document/Constraint/ConstraintModel.hpp>
 #include <Scenario/Document/Constraint/Rack/RackModel.hpp>
 #include <Scenario/Document/Constraint/Rack/Slot/SlotModel.hpp>
-#include <Process/Process.hpp>
-#include <Process/LayerModel.hpp>
+#include <boost/core/explicit_operator_bool.hpp>
+#include <boost/iterator/indirect_iterator.hpp>
+#include <boost/iterator/iterator_facade.hpp>
+#include <boost/multi_index/detail/hash_index_iterator.hpp>
 #include <iscore/tools/SettableIdentifierGeneration.hpp>
-#include <QJsonDocument>
+#include <qdatastream.h>
+#include <qglobal.h>
+#include <algorithm>
+#include <functional>
+#include <iterator>
+#include <map>
+#include <utility>
+#include <vector>
+
+#include "InsertContentInConstraint.hpp"
+#include "Process/ExpandMode.hpp"
+#include "Scenario/Document/Constraint/ConstraintDurations.hpp"
+#include "iscore/serialization/DataStreamVisitor.hpp"
+#include "iscore/serialization/JSONVisitor.hpp"
+#include "iscore/tools/ModelPath.hpp"
+#include "iscore/tools/ModelPathSerialization.hpp"
+#include "iscore/tools/NotifyingMap.hpp"
 
 using namespace iscore;
 using namespace Scenario::Command;

@@ -1,19 +1,26 @@
-#include "BaseScenarioElement.hpp"
-
 #include <API/Headers/Editor/TimeConstraint.h>
 #include <API/Headers/Editor/TimeEvent.h>
 #include <API/Headers/Editor/TimeNode.h>
-
-#include <Scenario/Process/ScenarioModel.hpp>
-#include <Scenario/Document/BaseScenario/BaseScenario.hpp>
 #include <Explorer/DocumentPlugin/DeviceDocumentPlugin.hpp>
-
-#include <iscore2OSSIA.hpp>
-#include <OSSIA2iscore.hpp>
-
-#include <iscore/document/DocumentInterface.hpp>
+#include <Scenario/Document/BaseScenario/BaseScenario.hpp>
 #include <core/document/Document.hpp>
 #include <core/document/DocumentModel.hpp>
+#include <iscore/document/DocumentInterface.hpp>
+#include <iscore2OSSIA.hpp>
+#include <algorithm>
+#include <memory>
+#include <vector>
+
+#include "BaseScenarioElement.hpp"
+#include "Editor/State.h"
+#include "Editor/StateElement.h"
+#include "Editor/TimeValue.h"
+#include "RecreateOnPlayDocumentPlugin/ConstraintElement.hpp"
+#include "RecreateOnPlayDocumentPlugin/EventElement.hpp"
+#include "RecreateOnPlayDocumentPlugin/StateElement.hpp"
+#include "RecreateOnPlayDocumentPlugin/TimeNodeElement.hpp"
+#include "Scenario/Document/Constraint/ConstraintDurations.hpp"
+#include "Scenario/Document/Constraint/ConstraintModel.hpp"
 
 
 namespace RecreateOnPlay

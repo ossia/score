@@ -1,23 +1,19 @@
 #pragma once
 #include <memory>
 
-class Process;
-
 namespace OSSIA
 {
 class Loop;
-class TimeConstraint;
-class TimeValue;
-class StateElement;
 class Scenario;
+class TimeConstraint;
 class TimeNode;
 class TimeProcess;
+class TimeValue;
 }
 
 namespace RecreateOnPlay
 {
 
-class ProcessElement;
 class LoopingProcessWrapper
 {
     public:

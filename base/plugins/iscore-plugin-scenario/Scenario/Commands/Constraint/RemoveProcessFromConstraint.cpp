@@ -1,17 +1,26 @@
-#include "RemoveProcessFromConstraint.hpp"
-
+#include <Process/Process.hpp>
+#include <Process/ProcessModelSerialization.hpp>
 #include <Scenario/Document/Constraint/ConstraintModel.hpp>
+#include <Scenario/Document/Constraint/LayerModelLoader.hpp>
 #include <Scenario/Document/Constraint/Rack/RackModel.hpp>
 #include <Scenario/Document/Constraint/Rack/Slot/SlotModel.hpp>
-
-
-#include <Process/Process.hpp>
-#include <Process/LayerModel.hpp>
-#include <Process/ProcessModelSerialization.hpp>
-#include <Scenario/Document/Constraint/LayerModelLoader.hpp>
-
-#include <iscore/document/DocumentInterface.hpp>
+#include <boost/core/explicit_operator_bool.hpp>
 #include <core/application/ApplicationComponents.hpp>
+#include <ext/alloc_traits.h>
+#include <qdatastream.h>
+#include <qglobal.h>
+#include <algorithm>
+#include <vector>
+
+#include "Process/ProcessList.hpp"
+#include "RemoveProcessFromConstraint.hpp"
+#include "core/application/ApplicationContext.hpp"
+#include "iscore/plugins/customfactory/StringFactoryKey.hpp"
+#include "iscore/serialization/DataStreamVisitor.hpp"
+#include "iscore/tools/ModelPath.hpp"
+#include "iscore/tools/ModelPathSerialization.hpp"
+#include "iscore/tools/NotifyingMap.hpp"
+#include "iscore/tools/ObjectPath.hpp"
 
 using namespace iscore;
 using namespace Scenario::Command;

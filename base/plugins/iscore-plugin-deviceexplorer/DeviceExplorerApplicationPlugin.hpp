@@ -1,5 +1,14 @@
 #pragma once
 #include <iscore/plugins/application/GUIApplicationContextPlugin.hpp>
+#include <qstring.h>
+
+#include "iscore/plugins/documentdelegate/plugin/DocumentDelegatePluginModel.hpp"
+
+namespace iscore {
+class Application;
+class Document;
+}  // namespace iscore
+struct VisitorVariant;
 
 class DeviceExplorerApplicationPlugin final : public iscore::GUIApplicationContextPlugin
 {

@@ -1,9 +1,26 @@
-#include "MoveSlotToolState.hpp"
-
-#include <Scenario/Palette/Tools/States/ResizeSlotState.hpp>
-#include <Scenario/Palette/Tools/States/DragSlotState.hpp>
 #include <Scenario/Document/Constraint/Rack/RackPresenter.hpp>
+#include <Scenario/Palette/Tools/States/DragSlotState.hpp>
+#include <Scenario/Palette/Tools/States/ResizeSlotState.hpp>
 #include <Scenario/Process/Temporal/TemporalScenarioPresenter.hpp>
+#include <boost/optional/optional.hpp>
+#include <qgraphicsitem.h>
+#include <qgraphicsscene.h>
+#include <qstate.h>
+#include <qtransform.h>
+#include <algorithm>
+
+#include "MoveSlotToolState.hpp"
+#include "Scenario/Document/Constraint/Rack/Slot/SlotHandle.hpp"
+#include "Scenario/Document/Constraint/Rack/Slot/SlotModel.hpp"
+#include "Scenario/Document/Constraint/Rack/Slot/SlotOverlay.hpp"
+#include "Scenario/Document/Constraint/Rack/Slot/SlotPresenter.hpp"
+#include "Scenario/Document/Constraint/Rack/Slot/SlotView.hpp"
+#include "Scenario/Document/Constraint/ViewModels/Temporal/TemporalConstraintPresenter.hpp"
+#include "Scenario/Palette/ScenarioPalette.hpp"
+#include "Scenario/Palette/ScenarioPaletteBaseEvents.hpp"
+#include "Scenario/Palette/Transitions/SlotTransitions.hpp"
+#include "iscore/statemachine/StateMachineUtils.hpp"
+#include "iscore/tools/SettableIdentifier.hpp"
 
 namespace Scenario
 {

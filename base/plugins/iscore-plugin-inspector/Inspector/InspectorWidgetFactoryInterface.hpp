@@ -1,10 +1,12 @@
 #pragma once
 
 #include <iscore/plugins/customfactory/FactoryInterface.hpp>
-#include <QList>
+#include <qstring.h>
+
+class InspectorWidgetBase;
 class QObject;
 class QWidget;
-class InspectorWidgetBase;
+template <typename T> class QList;
 
 namespace iscore
 {

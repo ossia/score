@@ -1,5 +1,7 @@
 #include "Value.hpp"
 
+class QDebug;
+
 bool iscore::Value::operator==(const iscore::Value& m) const
 {
     return val == m.val;

@@ -1,12 +1,20 @@
 #pragma once
-#include <Scenario/Commands/ScenarioCommandFactory.hpp>
 #include <Scenario/Commands/Constraint/AddOnlyProcessToConstraint.hpp>
 #include <Scenario/Commands/Constraint/Rack/Slot/AddLayerModelToSlot.hpp>
-#include <iscore/command/SerializableCommand.hpp>
-#include <iscore/tools/ModelPath.hpp>
+#include <Scenario/Commands/ScenarioCommandFactory.hpp>
 #include <State/Address.hpp>
+#include <iscore/command/SerializableCommand.hpp>
+#include <utility>
+#include <vector>
 
 class ConstraintModel;
+class DataStreamInput;
+class DataStreamOutput;
+class LayerModel;
+class Process;
+class SlotModel;
+template <typename Object> class Path;
+template <typename tag, typename impl> class id_base_t;
 
 class CreateCurveFromStates final : public iscore::SerializableCommand
 {

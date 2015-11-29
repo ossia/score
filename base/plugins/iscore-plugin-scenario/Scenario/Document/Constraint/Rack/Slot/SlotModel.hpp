@@ -1,17 +1,23 @@
 #pragma once
 #include <Process/LayerModel.hpp>
 #include <Process/ModelMetadata.hpp>
-#include <iscore/tools/IdentifiedObjectMap.hpp>
-#include <iscore/serialization/DataStreamVisitor.hpp>
-#include <iscore/serialization/JSONVisitor.hpp>
+#include <boost/optional/optional.hpp>
 #include <iscore/tools/NotifyingMap.hpp>
-#include <vector>
+#include <qglobal.h>
+#include <qobject.h>
+#include <qobjectdefs.h>
+#include <qstring.h>
+#include <functional>
 
-class RackModel;
+#include "iscore/serialization/VisitorInterface.hpp"
+#include "iscore/tools/IdentifiedObject.hpp"
+#include "iscore/tools/SettableIdentifier.hpp"
+
 class ConstraintModel;
-
+class DataStream;
+class JSONObject;
 class Process;
-class LayerModel;
+class RackModel;
 
 // Note : the SlotModel is assumed to be in a Rack, itself in a Constraint.
 class SlotModel final : public IdentifiedObject<SlotModel>

@@ -1,6 +1,8 @@
 #pragma once
-#include <QObject>
-#include <iscore/serialization/VisitorInterface.hpp>
+
+#include <qobject.h>
+
+struct VisitorVariant;
 
 namespace iscore
 {

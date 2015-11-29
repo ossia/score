@@ -1,7 +1,11 @@
-#include "RemoveClientFromGroup.hpp"
+#include <boost/core/explicit_operator_bool.hpp>
+#include <algorithm>
 
 #include "DistributedScenario/Group.hpp"
 #include "DistributedScenario/GroupManager.hpp"
+#include "RemoveClientFromGroup.hpp"
+#include "iscore/serialization/DataStreamVisitor.hpp"
+#include "iscore/tools/ObjectPath.hpp"
 
 
 RemoveClientFromGroup::RemoveClientFromGroup(ObjectPath&& groupMgrPath, Id<Client> client, Id<Group> group):

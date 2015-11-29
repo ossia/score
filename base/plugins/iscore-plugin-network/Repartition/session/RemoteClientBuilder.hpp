@@ -1,12 +1,17 @@
 #pragma once
-#include <QObject>
-#include <Serialization/NetworkMessage.hpp>
-#include <iscore/tools/IdentifiedObject.hpp>
-#include "../client/Client.hpp"
-class NetworkSocket;
-class RemoteClient;
+#include <boost/optional/optional.hpp>
+#include <qobject.h>
+#include <qstring.h>
+
+#include "iscore/tools/SettableIdentifier.hpp"
+
+class Client;
 class MasterSession;
+class NetworkSocket;
 class QTcpSocket;
+class RemoteClient;
+struct NetworkMessage;
+
 class RemoteClientBuilder : public QObject
 {
         Q_OBJECT

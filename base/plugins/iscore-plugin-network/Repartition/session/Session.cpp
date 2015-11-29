@@ -1,7 +1,12 @@
-#include "Session.hpp"
-
 #include <Serialization/MessageMapper.hpp>
 #include <Serialization/MessageValidator.hpp>
+#include <boost/optional/optional.hpp>
+
+#include "Serialization/NetworkMessage.hpp"
+#include "Session.hpp"
+#include "session/../client/LocalClient.hpp"
+
+class QObject;
 
 Session::Session(LocalClient* client, Id<Session> id, QObject* parent):
     IdentifiedObject<Session>{id, "Session", parent},

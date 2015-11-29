@@ -1,8 +1,10 @@
-#include "BaseConstraintInspectorDelegateFactory.hpp"
-#include "BaseConstraintInspectorDelegate.hpp"
-#include <Scenario/Document/Constraint/ConstraintModel.hpp>
 #include <Scenario/Document/BaseScenario/BaseScenario.hpp>
-#include <Scenario/Process/ScenarioModel.hpp>
+#include <Scenario/Document/Constraint/ConstraintModel.hpp>
+#include <qobject.h>
+
+#include "BaseConstraintInspectorDelegate.hpp"
+#include "BaseConstraintInspectorDelegateFactory.hpp"
+#include "Scenario/Inspector/Constraint/ConstraintInspectorDelegate.hpp"
 
 BaseConstraintInspectorDelegateFactory::~BaseConstraintInspectorDelegateFactory()
 {

@@ -1,10 +1,16 @@
-#include "PluginSettingsModel.hpp"
-#include <QDebug>
-#include <QSettings>
-#include <QApplication>
 #include <core/plugin/PluginManager.hpp>
-#include "PluginSettingsPresenter.hpp"
+#include <qapplication.h>
+#include <qdebug.h>
+#include <qnamespace.h>
+#include <qset.h>
+#include <qsettings.h>
+#include <qstandarditemmodel.h>
+#include <qstringlist.h>
+#include <qvariant.h>
+
+#include "PluginSettingsModel.hpp"
 #include "commands/BlacklistCommand.hpp"
+#include "iscore/plugins/settingsdelegate/SettingsDelegateModelInterface.hpp"
 
 using namespace iscore;
 

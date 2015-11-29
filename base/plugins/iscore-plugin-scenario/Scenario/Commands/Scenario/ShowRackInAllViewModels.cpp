@@ -1,6 +1,13 @@
-#include "ShowRackInAllViewModels.hpp"
 #include <Scenario/Document/Constraint/ConstraintModel.hpp>
 #include <Scenario/Document/Constraint/ViewModels/ConstraintViewModel.hpp>
+#include <boost/core/explicit_operator_bool.hpp>
+#include <qdatastream.h>
+#include <qglobal.h>
+#include <algorithm>
+
+#include "ShowRackInAllViewModels.hpp"
+#include "iscore/serialization/DataStreamVisitor.hpp"
+#include "iscore/tools/ModelPathSerialization.hpp"
 
 ShowRackInAllViewModels::ShowRackInAllViewModels(
         Path<ConstraintModel>&& constraint_path,

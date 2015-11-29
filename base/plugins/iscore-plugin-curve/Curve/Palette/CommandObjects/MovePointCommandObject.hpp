@@ -1,5 +1,11 @@
 #pragma once
+#include "Curve/Segment/CurveSegmentData.hpp"
 #include "CurveCommandObjectBase.hpp"
+
+class CurvePresenter;
+namespace iscore {
+class CommandStack;
+}  // namespace iscore
 
 class MovePointCommandObject final : public CurveCommandObjectBase
 {

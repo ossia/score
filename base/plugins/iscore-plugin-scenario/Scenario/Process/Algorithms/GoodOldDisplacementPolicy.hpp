@@ -1,13 +1,19 @@
 #pragma once
 
-#include <QVector>
-#include <iscore/tools/SettableIdentifier.hpp>
 #include <Scenario/Process/Algorithms/StandardDisplacementPolicy.hpp>
+#include <qstring.h>
+#include <qvector.h>
+#include <algorithm>
+#include <vector>
 
-class QString;
-namespace Scenario { class ScenarioModel; }
+#include "Process/TimeValue.hpp"
+
 class TimeNodeModel;
+namespace Scenario {
+class ScenarioModel;
+}  // namespace Scenario
 struct ElementsProperties;
+template <typename tag, typename impl> class id_base_t;
 
 class GoodOldDisplacementPolicy
 {

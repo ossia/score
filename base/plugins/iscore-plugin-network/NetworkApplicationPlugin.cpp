@@ -1,22 +1,43 @@
-#include "NetworkApplicationPlugin.hpp"
-#include <core/document/DocumentPresenter.hpp>
-#include <core/document/DocumentModel.hpp>
-
-#include "DocumentPlugins/NetworkClientDocumentPlugin.hpp"
-#include "DocumentPlugins/NetworkMasterDocumentPlugin.hpp"
-
-#include "Repartition/session/ClientSessionBuilder.hpp"
-#include <iscore/document/DocumentInterface.hpp>
+#include <boost/optional/optional.hpp>
+#include <core/application/Application.hpp>
 #include <core/document/Document.hpp>
 #include <core/document/DocumentModel.hpp>
-#include <core/application/Application.hpp>
+#include <qaction.h>
+#include <qapplication.h>
+#include <qdebug.h>
+#include <qnamespace.h>
+#include <qobjectdefs.h>
+#include <qpair.h>
+#include <algorithm>
+#include <vector>
+
+#include "DocumentPlugins/NetworkClientDocumentPlugin.hpp"
+#include "DocumentPlugins/NetworkDocumentPlugin.hpp"
+#include "DocumentPlugins/NetworkMasterDocumentPlugin.hpp"
+#include "NetworkApplicationPlugin.hpp"
+#include "Repartition/session/ClientSessionBuilder.hpp"
+#include "core/application/ApplicationComponents.hpp"
+#include "core/application/ApplicationContext.hpp"
+#include "core/command/CommandStack.hpp"
+#include "core/presenter/DocumentManager.hpp"
+#include "core/presenter/MenubarManager.hpp"
+#include "core/presenter/Presenter.hpp"
+#include "iscore/menu/MenuInterface.hpp"
+#include "iscore/plugins/application/GUIApplicationContextPlugin.hpp"
+#include "iscore/tools/SettableIdentifier.hpp"
+#include "session/../client/LocalClient.hpp"
+#include "session/MasterSession.hpp"
 
 #ifdef USE_ZEROCONF
 #include "Zeroconf/ZeroconfBrowser.hpp"
 #endif
 
 #include "IpDialog.hpp"
-#include <QApplication>
+
+class Client;
+class Session;
+struct VisitorVariant;
+
 using namespace iscore;
 
 NetworkApplicationPlugin::NetworkApplicationPlugin(iscore::Application& app) :

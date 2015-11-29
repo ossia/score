@@ -1,9 +1,7 @@
-#include "BasicProcessWrapper.hpp"
-
 #include <Editor/TimeConstraint.h>
-#include <Editor/TimeProcess.h>
 
-#include <algorithm>
+#include "BasicProcessWrapper.hpp"
+#include "Editor/TimeValue.h"
 
 namespace RecreateOnPlay
 {

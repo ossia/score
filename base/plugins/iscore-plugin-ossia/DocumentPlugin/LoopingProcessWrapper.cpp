@@ -1,14 +1,12 @@
-#include "LoopingProcessWrapper.hpp"
-#include <Editor/Scenario.h>
 #include <Editor/Loop.h>
-#include <Editor/TimeEvent.h>
-#include <Editor/TimeNode.h>
+#include <Editor/Scenario.h>
 #include <Editor/TimeConstraint.h>
+#include <Editor/TimeNode.h>
 #include <algorithm>
+#include <vector>
 
-#include "OSSIA2iscore.hpp"
-
-#include <QDebug>
+#include "Editor/TimeValue.h"
+#include "LoopingProcessWrapper.hpp"
 
 static void loopingConstraintCallback(const OSSIA::TimeValue&,
                                const OSSIA::TimeValue& t,

@@ -3,6 +3,12 @@
 #include <Inspector/InspectorWidgetBase.hpp>
 
 class AutomationState;
+class QLabel;
+class QWidget;
+namespace iscore {
+class Document;
+}  // namespace iscore
+
 class AutomationStateInspector final : public InspectorWidgetBase
 {
         Q_OBJECT

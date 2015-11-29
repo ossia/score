@@ -1,5 +1,20 @@
 #pragma once
 #include <Process/ProcessFactory.hpp>
+#include <qbytearray.h>
+#include <qstring.h>
+
+#include "Process/ProcessFactoryKey.hpp"
+#include "Process/TimeValue.hpp"
+
+class LayerModel;
+class LayerPresenter;
+class LayerView;
+class Process;
+class QGraphicsItem;
+class QObject;
+struct VisitorVariant;
+template <typename tag, typename impl> class id_base_t;
+
 namespace Scenario
 {
 class EditionSettings;

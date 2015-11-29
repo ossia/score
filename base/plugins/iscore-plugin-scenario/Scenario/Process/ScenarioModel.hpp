@@ -1,35 +1,41 @@
 #pragma once
+#include <Process/Process.hpp>
+#include <Process/TimeValue.hpp>
 #include <Scenario/Document/Constraint/ConstraintModel.hpp>
 #include <Scenario/Document/Event/EventModel.hpp>
-#include <Scenario/Document/TimeNode/TimeNodeModel.hpp>
 #include <Scenario/Document/State/StateModel.hpp>
+#include <Scenario/Document/TimeNode/TimeNodeModel.hpp>
 #include <Scenario/Process/ScenarioInterface.hpp>
-#include <Scenario/Process/ScenarioProcessMetadata.hpp>
-
-#include <Process/Process.hpp>
+#include <boost/iterator/indirect_iterator.hpp>
+#include <boost/iterator/iterator_facade.hpp>
+#include <boost/multi_index/detail/hash_index_iterator.hpp>
+#include <boost/optional/optional.hpp>
 #include <iscore/tools/IdentifiedObjectMap.hpp>
-
-#include <iscore/serialization/DataStreamVisitor.hpp>
-#include <iscore/serialization/JSONVisitor.hpp>
-
-#include <Process/TimeValue.hpp>
-
 #include <iscore/tools/NotifyingMap.hpp>
+#include <qbytearray.h>
+#include <qlist.h>
+#include <qobject.h>
+#include <qpointer.h>
+#include <qstring.h>
+#include <qvector.h>
 
-#include <iterator>
+#include "Process/ProcessFactoryKey.hpp"
+#include "Scenario/Process/AbstractScenarioLayerModel.hpp"
+#include "iscore/selection/Selection.hpp"
+#include "iscore/serialization/VisitorInterface.hpp"
+#include "iscore/tools/SettableIdentifier.hpp"
+
+class DataStream;
+class JSONObject;
+class LayerModel;
+class ProcessStateDataInterface;
+class QEvent;
+class ScenarioFactory;
 
 namespace OSSIA
 {
-    class Scenario;
 }
-class TimeNodeModel;
-class ConstraintModel;
-class EventModel;
-class AbstractScenarioLayerModel;
-class ConstraintViewModel;
 
-class OSSIAScenarioImpl;
-class ScenarioFactory;
 /**
  * @brief The ScenarioModel class
  *
@@ -226,7 +232,6 @@ class ScenarioModel final : public Process, public ScenarioInterface
         // that goes to the startEvent and add a new state
 };
 }
-#include <iterator>
 // TODO this ought to go in Selection.hpp ?
 template<typename Vector>
 QList<const typename Vector::value_type*> selectedElements(const Vector& in)

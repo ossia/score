@@ -1,7 +1,14 @@
 #pragma once
-#include <QObject>
 #include <iscore/plugins/qt_interfaces/FactoryInterface_QtInterface.hpp>
 #include <iscore/plugins/qt_interfaces/GUIApplicationContextPlugin_QtInterface.hpp>
+#include <qobject.h>
+#include <utility>
+#include <vector>
+
+#include "core/application/ApplicationContext.hpp"
+#include "iscore/command/CommandGeneratorMap.hpp"
+#include "iscore/command/SerializableCommand.hpp"
+#include "iscore/plugins/customfactory/FactoryInterface.hpp"
 
 class iscore_plugin_mapping:
         public QObject,

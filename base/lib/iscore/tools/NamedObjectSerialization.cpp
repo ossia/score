@@ -1,6 +1,13 @@
+#include <qjsonobject.h>
+#include <qjsonvalue.h>
+#include <qstring.h>
+
+#include "NamedObject.hpp"
 #include "iscore/serialization/DataStreamVisitor.hpp"
 #include "iscore/serialization/JSONVisitor.hpp"
-#include "NamedObject.hpp"
+
+template <typename T> class Reader;
+template <typename T> class Writer;
 
 template<>
 void Visitor<Reader<DataStream>>::readFrom(const NamedObject& namedObject)

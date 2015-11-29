@@ -1,15 +1,28 @@
-#include "LoopViewUpdater.hpp"
-#include <Loop/LoopPresenter.hpp>
-#include <Loop/LoopView.hpp>
 #include <Loop/LoopLayer.hpp>
+#include <Loop/LoopPresenter.hpp>
 #include <Loop/LoopProcessModel.hpp>
-
+#include <Loop/LoopView.hpp>
 #include <Scenario/Document/Constraint/ViewModels/Temporal/TemporalConstraintView.hpp>
-#include <Scenario/Document/Constraint/ViewModels/Temporal/TemporalConstraintViewModel.hpp>
-
 #include <Scenario/Document/Event/EventView.hpp>
-
 #include <Scenario/Document/TimeNode/TimeNodeView.hpp>
+#include <qglobal.h>
+#include <qpoint.h>
+#include <qrect.h>
+
+#include "LoopViewUpdater.hpp"
+#include "Process/TimeValue.hpp"
+#include "Scenario/Document/Constraint/ConstraintDurations.hpp"
+#include "Scenario/Document/Constraint/ConstraintModel.hpp"
+#include "Scenario/Document/Constraint/ViewModels/ConstraintPresenter.hpp"
+#include "Scenario/Document/Constraint/ViewModels/Temporal/TemporalConstraintPresenter.hpp"
+#include "Scenario/Document/Event/EventModel.hpp"
+#include "Scenario/Document/Event/EventPresenter.hpp"
+#include "Scenario/Document/State/StateModel.hpp"
+#include "Scenario/Document/State/StatePresenter.hpp"
+#include "Scenario/Document/State/StateView.hpp"
+#include "Scenario/Document/TimeNode/TimeNodeModel.hpp"
+#include "Scenario/Document/TimeNode/TimeNodePresenter.hpp"
+#include "Scenario/Document/VerticalExtent.hpp"
 
 LoopViewUpdater::LoopViewUpdater(LoopPresenter& presenter):
     m_presenter{presenter}

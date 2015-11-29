@@ -1,13 +1,13 @@
+#include <Process/Style/ScenarioStyle.hpp>
+#include <qgraphicssceneevent.h>
+#include <qpainter.h>
+
 #include "SlotOverlay.hpp"
 #include "SlotPresenter.hpp"
 #include "SlotView.hpp"
-#include "SlotHandle.hpp"
 
-#include <QCursor>
-#include <QPainter>
-#include <QGraphicsSceneMouseEvent>
-
-#include <Process/Style/ScenarioStyle.hpp>
+class QStyleOptionGraphicsItem;
+class QWidget;
 
 SlotOverlay::SlotOverlay(SlotView *parent):
     QGraphicsItem{parent},

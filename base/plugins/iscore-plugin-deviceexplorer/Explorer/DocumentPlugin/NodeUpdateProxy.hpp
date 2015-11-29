@@ -1,13 +1,19 @@
 #pragma once
-#include <QString>
 #include <Device/Node/DeviceNode.hpp>
-class DeviceExplorerModel;
+#include <qstring.h>
+
+#include "State/Value.hpp"
+
 class DeviceDocumentPlugin;
+class DeviceExplorerModel;
+namespace iscore {
+struct Address;
+}  // namespace iscore
 
 namespace iscore
 {
-struct DeviceSettings;
 struct AddressSettings;
+struct DeviceSettings;
 }
 /**
  * @brief The NodeUpdateProxy class

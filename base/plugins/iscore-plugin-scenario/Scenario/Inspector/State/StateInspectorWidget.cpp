@@ -1,20 +1,33 @@
-#include "StateInspectorWidget.hpp"
-#include <Scenario/Document/State/StateModel.hpp>
-#include <Scenario/Document/Event/EventModel.hpp>
-#include <Scenario/Process/ScenarioModel.hpp>
-#include <Scenario/Commands/Event/SplitEvent.hpp>
-#include <Scenario/Inspector/SelectionButton.hpp>
-#include <Scenario/DialogWidget/MessageTreeView.hpp>
-
 #include <Inspector/InspectorSectionWidget.hpp>
-#include <core/document/Document.hpp>
-#include <Explorer/Explorer/DeviceExplorerModel.hpp>
+#include <Scenario/Commands/Event/SplitEvent.hpp>
+#include <Scenario/DialogWidget/MessageTreeView.hpp>
+#include <Scenario/Document/Event/EventModel.hpp>
+#include <Scenario/Document/State/StateModel.hpp>
+#include <Scenario/Process/ScenarioModel.hpp>
+#include <boost/core/explicit_operator_bool.hpp>
+#include <boost/optional/optional.hpp>
 #include <iscore/widgets/MarginLess.hpp>
-#include <iscore/document/DocumentInterface.hpp>
+#include <qalgorithms.h>
+#include <qformlayout.h>
+#include <qobject.h>
+#include <qpushbutton.h>
+#include <qstring.h>
+#include <qvector.h>
+#include <qwidget.h>
+#include <algorithm>
 
-#include <QPushButton>
-#include <QFormLayout>
-#include <QLabel>
+#include "Inspector/InspectorWidgetBase.hpp"
+#include "StateInspectorWidget.hpp"
+#include "iscore/command/Dispatchers/CommandDispatcher.hpp"
+#include "iscore/tools/ModelPath.hpp"
+#include "iscore/tools/NotifyingMap.hpp"
+#include "iscore/tools/SettableIdentifier.hpp"
+#include <Scenario/Inspector/SelectionButton.hpp>
+
+namespace iscore {
+class Document;
+}  // namespace iscore
+
 StateInspectorWidget::StateInspectorWidget(
         const StateModel& object,
         iscore::Document& doc,
@@ -41,7 +54,9 @@ void StateInspectorWidget::updateDisplayedValues()
     // State id
     //lay->addRow("Id", new QLabel{QString::number(m_model.id().val().get())});
 
-    auto scenar = safe_cast<ScenarioInterface*>(m_model.parent());
+    auto scenar = dynamic_cast<ScenarioInterface*>(m_model.parent());
+    ISCORE_ASSERT(scenar);
+
     auto event = m_model.eventId();
 
     // State setup

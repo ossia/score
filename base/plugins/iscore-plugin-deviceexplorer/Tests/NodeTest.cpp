@@ -1,7 +1,9 @@
-#include <QtTest/QtTest>
-#include <iscore/serialization/DataStreamVisitor.hpp>
-#include <iscore/serialization/JSONVisitor.hpp>
 #include <Device/Node/DeviceNode.hpp>
+#include <qobject.h>
+#include <qstring.h>
+#include <algorithm>
+#include <QtTest/QtTest>
+
 class NodeTest: public QObject
 {
         Q_OBJECT
@@ -161,5 +163,9 @@ class NodeTest: public QObject
 };
 
 QTEST_MAIN(NodeTest)
+#include "Device/Address/AddressSettings.hpp"
+#include "Device/Protocol/DeviceSettings.hpp"
+#include "Device/Protocol/ProtocolFactoryKey.hpp"
 #include "NodeTest.moc"
+#include "iscore/tools/TreeNode.hpp"
 

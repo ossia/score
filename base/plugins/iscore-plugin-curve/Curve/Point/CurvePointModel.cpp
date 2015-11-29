@@ -1,4 +1,7 @@
 #include "CurvePointModel.hpp"
+#include "iscore/tools/IdentifiedObject.hpp"
+
+class QObject;
 
 CurvePointModel::CurvePointModel(const Id<CurvePointModel>& id, QObject* parent):
     IdentifiedObject<CurvePointModel>{id, "CurvePointModel", parent}

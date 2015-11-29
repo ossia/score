@@ -1,6 +1,21 @@
-#include "ScenarioDocumentModel.hpp"
 #include <Scenario/Document/BaseScenario/BaseScenario.hpp>
+#include <boost/core/explicit_operator_bool.hpp>
 #include <iscore/serialization/VisitorCommon.hpp>
+#include <qjsonobject.h>
+#include <qjsonvalue.h>
+#include <algorithm>
+
+#include "ScenarioDocumentModel.hpp"
+#include "iscore/serialization/DataStreamVisitor.hpp"
+#include "iscore/serialization/JSONVisitor.hpp"
+
+namespace iscore {
+class DocumentDelegateModelInterface;
+}  // namespace iscore
+struct VisitorVariant;
+template <typename T> class Reader;
+template <typename T> class Writer;
+template <typename model> class IdentifiedObject;
 
 template<>
 void Visitor<Reader<DataStream>>::readFrom(const ScenarioDocumentModel& obj)

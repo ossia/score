@@ -1,38 +1,58 @@
-#include <Scenario/iscore_plugin_scenario.hpp>
-#include <Scenario/Document/Event/ExecutionStatus.hpp>
 #include <Scenario/Application/ScenarioApplicationPlugin.hpp>
-#include <Scenario/Process/ScenarioFactory.hpp>
-#include <Scenario/Panel/ProcessPanelFactory.hpp>
-
-#include <Scenario/Document/DisplayedElements/DisplayedElementsToolPalette/BaseScenarioDisplayedElementsToolPaletteFactory.hpp>
-#include <Scenario/Document/DisplayedElements/DisplayedElementsToolPalette/ScenarioDisplayedElementsToolPaletteFactory.hpp>
-#include <Scenario/Document/DisplayedElements/DisplayedElementsToolPalette/DisplayedElementsToolPaletteFactoryList.hpp>
-
-#include <Scenario/Document/DisplayedElements/DisplayedElementsProviderList.hpp>
-#include <Scenario/Document/DisplayedElements/ScenarioDisplayedElementsProvider.hpp>
-#include <Scenario/Document/DisplayedElements/BaseScenarioDisplayedElementsProvider.hpp>
-
-#include <Scenario/Commands/TimeNode/TriggerCommandFactory/TriggerCommandFactoryList.hpp>
-#include <Scenario/Commands/TimeNode/TriggerCommandFactory/ScenarioTriggerCommandFactory.hpp>
-#include <Scenario/Commands/TimeNode/TriggerCommandFactory/BaseScenarioTriggerCommandFactory.hpp>
-
-#include <State/Message.hpp>
-#include <Scenario/Application/Menus/ScenarioCommonContextMenuFactory.hpp>
-
-#include <Scenario/Commands/Scenario/Displacement/MoveEventFactoryInterface.hpp>
 #include <Scenario/Commands/Scenario/Displacement/MoveEventClassicFactory.hpp>
-#include <core/application/Application.hpp>
+#include <Scenario/Commands/TimeNode/TriggerCommandFactory/BaseScenarioTriggerCommandFactory.hpp>
+#include <Scenario/Commands/TimeNode/TriggerCommandFactory/ScenarioTriggerCommandFactory.hpp>
+#include <Scenario/Commands/TimeNode/TriggerCommandFactory/TriggerCommandFactoryList.hpp>
+#include <Scenario/Document/DisplayedElements/BaseScenarioDisplayedElementsProvider.hpp>
+#include <Scenario/Document/DisplayedElements/DisplayedElementsProviderList.hpp>
+#include <Scenario/Document/DisplayedElements/DisplayedElementsToolPalette/BaseScenarioDisplayedElementsToolPaletteFactory.hpp>
+#include <Scenario/Document/DisplayedElements/DisplayedElementsToolPalette/DisplayedElementsToolPaletteFactoryList.hpp>
+#include <Scenario/Document/DisplayedElements/DisplayedElementsToolPalette/ScenarioDisplayedElementsToolPaletteFactory.hpp>
+#include <Scenario/Document/DisplayedElements/ScenarioDisplayedElementsProvider.hpp>
+#include <Scenario/Document/Event/ExecutionStatus.hpp>
 #include <Scenario/Document/ScenarioDocument/ScenarioDocumentFactory.hpp>
+#include <Scenario/Panel/ProcessPanelFactory.hpp>
+#include <Scenario/Process/ScenarioFactory.hpp>
+#include <Scenario/iscore_plugin_scenario.hpp>
+#include <State/Message.hpp>
+#include <qmetatype.h>
+#include <qstring.h>
+
+#include "Inspector/InspectorWidgetFactoryInterface.hpp"
+#include "Process/ProcessFactory.hpp"
+#include "Process/ProcessList.hpp"
+#include "Process/TimeValue.hpp"
+#include "Scenario/Application/Menus/Plugin/ScenarioActionsFactory.hpp"
+#include "Scenario/Application/Menus/Plugin/ScenarioContextMenuPluginList.hpp"
+#include "Scenario/Commands/Scenario/Displacement/MoveEventList.hpp"
+#include "Scenario/Commands/TimeNode/TriggerCommandFactory/TriggerCommandFactory.hpp"
+#include "Scenario/Document/DisplayedElements/DisplayedElementsProvider.hpp"
+#include "Scenario/Document/DisplayedElements/DisplayedElementsToolPalette/DisplayedElementsToolPaletteFactory.hpp"
+#include "State/Value.hpp"
+#include "core/application/ApplicationComponents.hpp"
+#include "iscore/plugins/customfactory/StringFactoryKey.hpp"
+#include "iscore/plugins/qt_interfaces/DocumentDelegateFactoryInterface_QtInterface.hpp"
+#include "iscore/plugins/qt_interfaces/FactoryFamily_QtInterface.hpp"
+#include "iscore/plugins/qt_interfaces/FactoryInterface_QtInterface.hpp"
+#include "iscore/plugins/qt_interfaces/GUIApplicationContextPlugin_QtInterface.hpp"
+
+namespace iscore {
+class Application;
+class DocumentDelegateFactoryInterface;
+class FactoryListInterface;
+class PanelFactory;
+struct Address;
+}  // namespace iscore
 
 #if defined(ISCORE_LIB_INSPECTOR)
-#include <Scenario/Inspector/Constraint/ConstraintInspectorFactory.hpp>
-#include <Scenario/Inspector/Constraint/ConstraintInspectorDelegateFactory.hpp>
 #include <Scenario/Inspector/Constraint/BaseConstraintInspectorDelegateFactory.hpp>
+#include <Scenario/Inspector/Constraint/ConstraintInspectorDelegateFactory.hpp>
+#include <Scenario/Inspector/Constraint/ConstraintInspectorFactory.hpp>
 #include <Scenario/Inspector/Constraint/ScenarioConstraintInspectorDelegateFactory.hpp>
 #include <Scenario/Inspector/Event/EventInspectorFactory.hpp>
 #include <Scenario/Inspector/Scenario/ScenarioInspectorFactory.hpp>
-#include <Scenario/Inspector/TimeNode/TimeNodeInspectorFactory.hpp>
 #include <Scenario/Inspector/State/StateInspectorFactory.hpp>
+#include <Scenario/Inspector/TimeNode/TimeNodeInspectorFactory.hpp>
 #endif
 
 iscore_plugin_scenario::iscore_plugin_scenario() :

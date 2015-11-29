@@ -1,13 +1,18 @@
-#include "MoveTool.hpp"
-#include "Curve/CurveModel.hpp"
-#include "Curve/Palette/OngoingState.hpp"
-#include "Curve/Palette/CommandObjects/MovePointCommandObject.hpp"
+#include <Curve/Palette/CurvePalette.hpp>
+#include <boost/optional/optional.hpp>
 #include <iscore/statemachine/StateMachineUtils.hpp>
-#include <iscore/document/DocumentInterface.hpp>
-#include <QSignalTransition>
+#include <qstate.h>
+#include <qstatemachine.h>
+
 #include "Curve/Palette/CommandObjects/CreatePointCommandObject.hpp"
 #include "Curve/Palette/CommandObjects/SetSegmentParametersCommandObject.hpp"
-#include <Curve/Palette/CurvePalette.hpp>
+#include "Curve/Palette/CurvePaletteBaseEvents.hpp"
+#include "Curve/Palette/CurvePaletteBaseTransitions.hpp"
+#include "Curve/Palette/OngoingState.hpp"
+#include "Curve/Palette/Tools/CurveTool.hpp"
+#include "Curve/Point/CurvePointView.hpp"
+#include "Curve/Segment/CurveSegmentView.hpp"
+#include "MoveTool.hpp"
 
 namespace Curve
 {

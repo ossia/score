@@ -1,11 +1,26 @@
 #pragma once
-#include <QVector>
-#include <QPointF>
-#include "Curve/Palette/CurvePaletteBaseStates.hpp"
+#include <boost/optional/optional.hpp>
 #include <iscore/command/Dispatchers/SingleOngoingCommandDispatcher.hpp>
-#include "Curve/Commands/UpdateCurve.hpp"
 #include <iscore/tools/SettableIdentifierGeneration.hpp>
+#include <qbytearray.h>
+#include <qpoint.h>
+#include <qvector.h>
+#include <algorithm>
+#include <vector>
+
+#include "Curve/Segment/CurveSegmentData.hpp"
+#include "iscore/tools/ModelPath.hpp"
+#include "iscore/tools/SettableIdentifier.hpp"
+
+class CurveModel;
 class CurvePresenter;
+class UpdateCurve;
+namespace Curve {
+class StateBase;
+}  // namespace Curve
+namespace iscore {
+class CommandStack;
+}  // namespace iscore
 
 /*
 concept CommandObject
@@ -24,6 +39,7 @@ concept CommandObject
 // RemovePoint -> which segment do we merge ? At the left or at the right ?
 // A point(view) has pointers to one or both of its curve segments.
 class CurveSegmentModel;
+
 class CurveCommandObjectBase
 {
     public:

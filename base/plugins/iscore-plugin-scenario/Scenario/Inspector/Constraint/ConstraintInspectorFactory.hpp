@@ -1,6 +1,14 @@
 #pragma once
-#include <QObject>
 #include <Inspector/InspectorWidgetFactoryInterface.hpp>
+#include <qlist.h>
+
+class InspectorWidgetBase;
+class QObject;
+class QString;
+class QWidget;
+namespace iscore {
+class Document;
+}  // namespace iscore
 
 
 class ConstraintInspectorFactory final : public InspectorWidgetFactory

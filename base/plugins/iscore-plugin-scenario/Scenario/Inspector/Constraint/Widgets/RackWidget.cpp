@@ -1,17 +1,23 @@
-#include "RackWidget.hpp"
-
-#include <Scenario/Inspector/Constraint/ConstraintInspectorWidget.hpp>
-
 #include <Scenario/Document/Constraint/ConstraintModel.hpp>
 #include <Scenario/Document/Constraint/Rack/RackModel.hpp>
 #include <Scenario/Document/Constraint/ViewModels/ConstraintViewModel.hpp>
 #include <Scenario/Document/Constraint/ViewModels/FullView/FullViewConstraintViewModel.hpp>
+#include <Scenario/Inspector/Constraint/ConstraintInspectorWidget.hpp>
+#include <boost/optional/optional.hpp>
+#include <qboxlayout.h>
+#include <qgridlayout.h>
+#include <qlabel.h>
+#include <qlayout.h>
+#include <qlist.h>
+#include <qobject.h>
+#include <qobjectdefs.h>
+#include <qstring.h>
+#include <qstringlist.h>
+#include <qtoolbutton.h>
 
 #include "LambdaFriendlyQComboBox.hpp"
-#include <QtWidgets/QGridLayout>
-#include <QtWidgets/QToolButton>
-#include <QtWidgets/QLabel>
-#include <QtWidgets/QInputDialog>
+#include "RackWidget.hpp"
+#include "iscore/tools/SettableIdentifier.hpp"
 
 const QString RackWidget::hiddenText{ QObject::tr("Hide")};
 

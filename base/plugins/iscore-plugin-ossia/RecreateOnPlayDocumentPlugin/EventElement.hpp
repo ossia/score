@@ -1,9 +1,10 @@
 #pragma once
-#include <iscore/plugins/documentdelegate/plugin/ElementPluginModel.hpp>
-#include <State/Expression.hpp>
+#include <qobject.h>
 #include <memory>
+
 class DeviceList;
 class EventModel;
+
 namespace OSSIA
 {
     class TimeEvent;

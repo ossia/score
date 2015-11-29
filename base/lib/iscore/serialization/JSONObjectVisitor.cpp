@@ -1,5 +1,12 @@
-#include "JSONVisitor.hpp"
 #include <core/application/Application.hpp>
+#include <qjsonobject.h>
+#include <algorithm>
+
+#include "JSONVisitor.hpp"
+
+template <typename T> class Reader;
+template <typename T> class Writer;
+
 Visitor<Reader<JSONObject>>::Visitor():
     context{iscore::Application::instance()}
 {

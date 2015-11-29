@@ -1,4 +1,16 @@
+#include <qchar.h>
+#include <qdebug.h>
+#include <qstring.h>
+#include <algorithm>
+#include <memory>
+#include <vector>
+
+#include "Editor/Domain.h"
+#include "Editor/Value.h"
+#include "Network/Address.h"
+#include "Network/Node.h"
 #include "OSSIA2iscore.hpp"
+#include "iscore/tools/TreeNode.hpp"
 
 namespace OSSIA
 {

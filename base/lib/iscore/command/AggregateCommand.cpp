@@ -1,8 +1,18 @@
-#include "AggregateCommand.hpp"
-#include <core/application/ApplicationComponents.hpp>
-#include <iscore/tools/std/StdlibWrapper.hpp>
-#include <QApplication>
+#include <boost/concept/usage.hpp>
 #include <boost/range/adaptor/reversed.hpp>
+#include <core/application/ApplicationComponents.hpp>
+#include <qbytearray.h>
+#include <qdatastream.h>
+#include <qglobal.h>
+#include <qlist.h>
+#include <qpair.h>
+
+#include "AggregateCommand.hpp"
+#include "core/application/ApplicationContext.hpp"
+#include "iscore/command/SerializableCommand.hpp"
+#include "iscore/plugins/customfactory/StringFactoryKey.hpp"
+#include "iscore/serialization/DataStreamVisitor.hpp"
+
 using namespace iscore;
 
 AggregateCommand::~AggregateCommand()

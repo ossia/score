@@ -1,7 +1,17 @@
-#include "LayerModelLoader.hpp"
 #include <Process/Process.hpp>
-#include <Process/LayerModel.hpp>
 #include <Scenario/Document/Constraint/ConstraintModel.hpp>
+#include <boost/optional/optional.hpp>
+#include <qjsonobject.h>
+#include <algorithm>
+
+#include "LayerModelLoader.hpp"
+#include "iscore/serialization/DataStreamVisitor.hpp"
+#include "iscore/serialization/JSONValueVisitor.hpp"
+#include "iscore/serialization/JSONVisitor.hpp"
+#include "iscore/tools/NotifyingMap.hpp"
+#include "iscore/tools/SettableIdentifier.hpp"
+
+template <typename VisitorType> class Visitor;
 
 template<>
 LayerModel* createLayerModel(Deserializer<DataStream>& deserializer,

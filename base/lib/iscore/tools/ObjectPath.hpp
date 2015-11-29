@@ -1,7 +1,15 @@
 #pragma once
 #include <iscore/tools/ObjectIdentifier.hpp>
+#include <qglobal.h>
+#include <qhash.h>
+#include <qpointer.h>
+#include <qstring.h>
+#include <algorithm>
+#include <initializer_list>
+#include <type_traits>
 #include <vector>
-#include <QPointer>
+
+class QObject;
 
 /**
  * @brief The ObjectPath class

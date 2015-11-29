@@ -1,8 +1,12 @@
 #pragma once
 #include <Scenario/Document/Constraint/ViewModels/ConstraintView.hpp>
+#include <qrect.h>
 
-class FullViewConstraintViewModel;
 class FullViewConstraintPresenter;
+class QGraphicsItem;
+class QPainter;
+class QStyleOptionGraphicsItem;
+class QWidget;
 
 class FullViewConstraintView final : public ConstraintView
 {

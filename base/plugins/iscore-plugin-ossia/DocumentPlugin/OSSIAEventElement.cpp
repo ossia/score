@@ -1,8 +1,12 @@
-#include "OSSIAEventElement.hpp"
-#include "iscore2OSSIA.hpp"
-
-#include <Scenario/Document/Event/EventModel.hpp>
 #include <API/Headers/Editor/TimeEvent.h>
+#include <Scenario/Document/Event/EventModel.hpp>
+#include <qdebug.h>
+#include <exception>
+
+#include "Editor/Expression.h"
+#include "OSSIAEventElement.hpp"
+#include "State/Expression.hpp"
+#include "iscore2OSSIA.hpp"
 
 OSSIAEventElement::OSSIAEventElement(
         std::shared_ptr<OSSIA::TimeEvent> event,

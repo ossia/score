@@ -2,7 +2,13 @@
 
 #include <Process/LayerModel.hpp>
 
+#include "iscore/serialization/VisitorInterface.hpp"
+
 class AutomationModel;
+class LayerModelPanelProxy;
+class QObject;
+template <typename tag, typename impl> class id_base_t;
+
 class AutomationLayerModel final : public LayerModel
 {
         ISCORE_METADATA("AutomationLayerModel")

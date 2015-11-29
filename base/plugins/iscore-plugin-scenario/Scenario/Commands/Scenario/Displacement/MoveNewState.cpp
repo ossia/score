@@ -1,6 +1,15 @@
-#include "MoveNewState.hpp"
 #include <Scenario/Process/Algorithms/VerticalMovePolicy.hpp>
 #include <Scenario/Process/ScenarioModel.hpp>
+#include <boost/core/explicit_operator_bool.hpp>
+#include <algorithm>
+
+#include "MoveNewState.hpp"
+#include "Scenario/Document/State/StateModel.hpp"
+#include "iscore/serialization/DataStreamVisitor.hpp"
+#include "iscore/tools/ModelPath.hpp"
+#include "iscore/tools/ModelPathSerialization.hpp"
+
+template <typename tag, typename impl> class id_base_t;
 
 Scenario::Command::MoveNewState::MoveNewState(
         Path<Scenario::ScenarioModel>&& scenarioPath,

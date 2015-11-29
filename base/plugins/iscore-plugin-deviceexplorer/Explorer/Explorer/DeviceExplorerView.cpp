@@ -1,18 +1,29 @@
+#include "DeviceExplorerFilterProxyModel.hpp"
+#include "DeviceExplorerModel.hpp"
 #include "DeviceExplorerView.hpp"
 
-#include <QAction>
-#include <QHeaderView>
-#include <QMenu>
-#include <QSettings>
-#include <QFile>
-
-#include "DeviceExplorerModel.hpp"
-#include "DeviceExplorerFilterProxyModel.hpp"
+class QItemSelection;
+class QPoint;
+class QWidget;
 
 #ifdef MODEL_TEST
 #include "ModelTest/modeltest.h"
 #endif
 
+#include <qabstractitemview.h>
+#include <qabstractproxymodel.h>
+#include <qaction.h>
+#include <qbytearray.h>
+#include <qfile.h>
+#include <qheaderview.h>
+#include <qiodevice.h>
+#include <qmenu.h>
+#include <qnamespace.h>
+#include <qobject.h>
+#include <qsettings.h>
+#include <qstring.h>
+#include <qtypetraits.h>
+#include <qvariant.h>
 #include <iostream> //DEBUG
 
 namespace

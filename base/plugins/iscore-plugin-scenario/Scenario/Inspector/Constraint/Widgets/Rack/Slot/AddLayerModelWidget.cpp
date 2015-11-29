@@ -1,15 +1,26 @@
-#include "AddLayerModelWidget.hpp"
-
-#include "SlotInspectorSection.hpp"
+#include <Process/LayerModel.hpp>
+#include <Process/Process.hpp>
 #include <Scenario/Document/Constraint/ConstraintModel.hpp>
 #include <Scenario/Document/Constraint/Rack/Slot/SlotModel.hpp>
-#include <Process/Process.hpp>
-#include <Process/LayerModel.hpp>
+#include <boost/iterator/indirect_iterator.hpp>
+#include <boost/iterator/iterator_facade.hpp>
+#include <boost/multi_index/detail/hash_index_iterator.hpp>
+#include <boost/optional/optional.hpp>
+#include <qboxlayout.h>
+#include <qinputdialog.h>
+#include <qlabel.h>
+#include <qlist.h>
+#include <qobject.h>
+#include <qobjectdefs.h>
+#include <qstring.h>
+#include <qstringlist.h>
+#include <qtoolbutton.h>
+#include <algorithm>
 
-#include <QtWidgets/QHBoxLayout>
-#include <QtWidgets/QToolButton>
-#include <QtWidgets/QLabel>
-#include <QtWidgets/QInputDialog>
+#include "AddLayerModelWidget.hpp"
+#include "SlotInspectorSection.hpp"
+#include "iscore/tools/NotifyingMap.hpp"
+#include "iscore/tools/SettableIdentifier.hpp"
 
 AddLayerModelWidget::AddLayerModelWidget(SlotInspectorSection* parentSlot) :
     QWidget {parentSlot}

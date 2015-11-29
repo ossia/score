@@ -1,7 +1,12 @@
 #pragma once
-#include <QTemporaryFile>
-#include <QStack>
 #include <iscore/command/SerializableCommand.hpp>
+#include <qbytearray.h>
+#include <qobject.h>
+#include <qpair.h>
+#include <qstack.h>
+#include <qstring.h>
+#include <qtemporaryfile.h>
+
 namespace iscore
 {
     class CommandStack;

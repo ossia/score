@@ -1,9 +1,18 @@
-#include "RemoveRackFromConstraint.hpp"
-
 #include <Scenario/Document/Constraint/ConstraintModel.hpp>
 #include <Scenario/Document/Constraint/Rack/RackModel.hpp>
-
 #include <Scenario/Document/Constraint/ViewModels/ConstraintViewModel.hpp>
+#include <boost/core/explicit_operator_bool.hpp>
+#include <qdatastream.h>
+#include <qglobal.h>
+#include <type_traits>
+#include <utility>
+
+#include "RemoveRackFromConstraint.hpp"
+#include "iscore/serialization/DataStreamVisitor.hpp"
+#include "iscore/tools/ModelPath.hpp"
+#include "iscore/tools/ModelPathSerialization.hpp"
+#include "iscore/tools/NotifyingMap.hpp"
+#include "iscore/tools/ObjectIdentifier.hpp"
 
 using namespace iscore;
 using namespace Scenario::Command;

@@ -1,6 +1,11 @@
-#include "VerticalExtent.hpp"
 #include <iscore/serialization/DataStreamVisitor.hpp>
 #include <iscore/serialization/JSONValueVisitor.hpp>
+#include <qpoint.h>
+
+#include "VerticalExtent.hpp"
+
+template <typename T> class Reader;
+template <typename T> class Writer;
 
 template<>
 void Visitor<Reader<DataStream>>::readFrom(const VerticalExtent& ve)

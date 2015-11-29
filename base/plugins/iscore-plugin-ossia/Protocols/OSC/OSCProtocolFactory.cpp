@@ -1,6 +1,15 @@
-#include "OSCProtocolFactory.hpp"
+#include <qobject.h>
+#include <qobjectdefs.h>
+
+#include "Device/Protocol/DeviceSettings.hpp"
 #include "OSCDevice.hpp"
+#include "OSCProtocolFactory.hpp"
 #include "OSCProtocolSettingsWidget.hpp"
+#include "Protocols/OSC/OSCSpecificSettings.hpp"
+
+class DeviceInterface;
+class ProtocolSettingsWidget;
+struct VisitorVariant;
 
 QString OSCProtocolFactory::prettyName() const
 {

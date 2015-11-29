@@ -1,7 +1,12 @@
-#include "SceneGraduations.hpp"
+#include <qobject.h>
+#include <qpainter.h>
+#include <algorithm>
+
 #include "ScenarioBaseGraphicsView.hpp"
-#include <QObject>
-#include <QDebug>
+#include "SceneGraduations.hpp"
+
+class QStyleOptionGraphicsItem;
+class QWidget;
 
 void SceneGraduations::setSize(const QSizeF& s)
 {

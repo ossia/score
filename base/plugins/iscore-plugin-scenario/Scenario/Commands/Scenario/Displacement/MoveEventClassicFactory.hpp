@@ -2,6 +2,17 @@
 
 #include <Scenario/Commands/Scenario/Displacement/MoveEventFactoryInterface.hpp>
 
+#include "Process/ExpandMode.hpp"
+#include "Process/TimeValue.hpp"
+
+class EventModel;
+class SerializableMoveEvent;
+namespace Scenario {
+class ScenarioModel;
+}  // namespace Scenario
+template <typename Object> class Path;
+template <typename tag, typename impl> class id_base_t;
+
 class MoveEventClassicFactory final : public MoveEventFactoryInterface
 {
     // MoveEventFactory interface

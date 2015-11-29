@@ -1,8 +1,6 @@
-#include "CurveTool.hpp"
 #include "Curve/Palette/CurvePalette.hpp"
-
-#include "Curve/CurveModel.hpp"
-#include "Curve/Palette/OngoingState.hpp"
+#include "CurveTool.hpp"
+#include "iscore/statemachine/GraphicsSceneTool.hpp"
 
 namespace Curve
 {

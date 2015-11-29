@@ -1,17 +1,18 @@
 #pragma once
-#include <iscore/tools/SettableIdentifier.hpp>
 #include <Process/TimeValue.hpp>
 
-namespace Scenario { class ScenarioModel; }
-class EventModel;
 class ConstraintModel;
 class ConstraintViewModel;
-class TimeNodeModel;
+class EventModel;
 class StateModel;
+class TimeNodeModel;
+namespace Scenario {
+class ScenarioModel;
+}  // namespace Scenario
 struct VerticalExtent;
-
 template<typename T>
 class ScenarioCreate;
+template <typename tag, typename impl> class id_base_t;
 
 template<>
 class ScenarioCreate<TimeNodeModel>

@@ -1,7 +1,10 @@
 #pragma once
-#include <QDataStream>
+#include <qbytearray.h>
+#include <qstring.h>
 
+class QDataStream;
 class Session;
+
 struct NetworkMessage
 {
         friend QDataStream& operator<<(QDataStream& s, const NetworkMessage& m);

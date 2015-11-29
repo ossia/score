@@ -1,6 +1,18 @@
-#include "ConditionView.hpp"
-#include <QPainter>
 #include <Process/Style/ScenarioStyle.hpp>
+#include <qcolor.h>
+#include <qnamespace.h>
+#include <qpainter.h>
+#include <qpen.h>
+#include <qpoint.h>
+#include <qpolygon.h>
+#include <qsize.h>
+#include <qvector.h>
+
+#include "ConditionView.hpp"
+
+class QStyleOptionGraphicsItem;
+class QWidget;
+
 ConditionView::ConditionView(QGraphicsItem *parent):
     QGraphicsItem{parent},
     m_currentState{State::Waiting}

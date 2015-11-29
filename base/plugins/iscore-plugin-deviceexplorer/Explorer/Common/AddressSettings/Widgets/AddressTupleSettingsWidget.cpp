@@ -1,4 +1,8 @@
 #include "AddressTupleSettingsWidget.hpp"
+#include "Explorer/Common/AddressSettings/Widgets/AddressSettingsWidget.hpp"
+
+class QWidget;
+
 AddressTupleSettingsWidget::AddressTupleSettingsWidget(QWidget* parent)
     : AddressSettingsWidget(parent)
 {

@@ -1,11 +1,17 @@
 #pragma once
-#include <iscore/plugins/panel/PanelView.hpp>
 #include <core/application/ApplicationContext.hpp>
+#include <iscore/plugins/panel/PanelView.hpp>
+#include <qobjectdefs.h>
+#include <qstring.h>
+
+class QWidget;
+
 namespace iscore
 {
     class View;
 }
 class DeviceExplorerWidget;
+
 class DeviceExplorerPanelView final : public iscore::PanelView
 {
         friend class DeviceExplorerPanelPresenter;

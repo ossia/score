@@ -1,18 +1,30 @@
-#include "MessageTreeView.hpp"
-
-#include <Scenario/Document/State/StateModel.hpp>
-#include <Explorer/Widgets/MessageListEditor.hpp>
-#include <iscore/document/DocumentInterface.hpp>
-#include <Scenario/Document/State/ItemModel/MessageItemModel.hpp>
-#include <core/document/Document.hpp>
-
 #include <Scenario/Commands/State/RemoveMessageNodes.hpp>
-#include <QContextMenuEvent>
-#include <QHeaderView>
-#include <QMenu>
+#include <Scenario/Document/State/ItemModel/MessageItemModel.hpp>
+#include <Scenario/Document/State/StateModel.hpp>
 #include <iscore/command/Dispatchers/CommandDispatcher.hpp>
-#include <QAction>
-#include <QResizeEvent>
+#include <iscore/document/DocumentInterface.hpp>
+#include <qabstractitemview.h>
+#include <qaction.h>
+#include <qevent.h>
+#include <qflags.h>
+#include <qheaderview.h>
+#include <qkeysequence.h>
+#include <qlist.h>
+#include <qmenu.h>
+#include <qnamespace.h>
+#include <qobjectdefs.h>
+#include <qset.h>
+#include <qstring.h>
+
+#include "Device/Node/DeviceNode.hpp"
+#include "MessageTreeView.hpp"
+#include "Process/State/MessageNode.hpp"
+#include "core/document/DocumentContext.hpp"
+#include "iscore/tools/ModelPath.hpp"
+#include "iscore/tools/Todo.hpp"
+#include "iscore/tools/TreeNode.hpp"
+
+class QWidget;
 
 MessageTreeView::MessageTreeView(
         const StateModel& model,

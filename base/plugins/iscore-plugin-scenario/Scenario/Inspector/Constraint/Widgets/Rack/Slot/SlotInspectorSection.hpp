@@ -1,14 +1,14 @@
 #pragma once
 #include <Inspector/InspectorSectionWidget.hpp>
-#include <iscore/tools/SettableIdentifier.hpp>
+#include <qstring.h>
 
-class RackModel;
-class SlotModel;
+class AddLayerModelWidget;
 class ConstraintInspectorWidget;
 class LayerModel;
-class AddLayerModelWidget;
-class RackInspectorSection;
 class Process;
+class RackInspectorSection;
+class SlotModel;
+template <typename tag, typename impl> class id_base_t;
 
 // Contains a single rack which can contain multiple slots and a Add Slot button.
 class SlotInspectorSection final : public InspectorSectionWidget

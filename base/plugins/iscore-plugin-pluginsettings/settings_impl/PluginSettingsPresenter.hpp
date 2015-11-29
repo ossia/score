@@ -1,10 +1,19 @@
 #pragma once
-#include <QObject>
 #include <iscore/plugins/settingsdelegate/SettingsDelegatePresenterInterface.hpp>
+#include <qicon.h>
+#include <qobjectdefs.h>
+#include <qstring.h>
 
+class BlacklistCommand;
 class PluginSettingsModel;
 class PluginSettingsView;
-class BlacklistCommand;
+namespace iscore {
+class Command;
+class SettingsDelegateModelInterface;
+class SettingsDelegateViewInterface;
+class SettingsPresenter;
+}  // namespace iscore
+
 class PluginSettingsPresenter : public iscore::SettingsDelegatePresenterInterface
 {
         Q_OBJECT

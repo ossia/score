@@ -1,5 +1,23 @@
-#include "SimpleProcessModel.hpp"
 #include <DummyProcess/DummyLayerModel.hpp>
+#include <qjsonobject.h>
+#include <qjsonvalue.h>
+#include <algorithm>
+
+#include "ProcessModel/OSSIAProcessModel.hpp"
+#include "SimpleProcess.hpp"
+#include "SimpleProcessModel.hpp"
+#include "iscore/document/DocumentInterface.hpp"
+#include "iscore/plugins/documentdelegate/plugin/ElementPluginModelList.hpp"
+#include "iscore/serialization/DataStreamVisitor.hpp"
+#include "iscore/serialization/JSONValueVisitor.hpp"
+#include "iscore/serialization/JSONVisitor.hpp"
+#include "iscore/serialization/VisitorCommon.hpp"
+
+class LayerModel;
+class Process;
+class ProcessStateDataInterface;
+class QObject;
+template <typename tag, typename impl> class id_base_t;
 
 SimpleProcessModel::SimpleProcessModel(
         const TimeValue& duration,

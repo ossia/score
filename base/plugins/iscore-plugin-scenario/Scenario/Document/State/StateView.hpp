@@ -1,7 +1,15 @@
 #pragma once
-#include <QGraphicsObject>
+#include <qcolor.h>
+#include <qglobal.h>
+#include <qgraphicsitem.h>
+#include <qrect.h>
 
+class QGraphicsSceneDragDropEvent;
+class QGraphicsSceneMouseEvent;
 class QMimeData;
+class QPainter;
+class QStyleOptionGraphicsItem;
+class QWidget;
 class StatePresenter;
 
 class StateView final : public QGraphicsObject

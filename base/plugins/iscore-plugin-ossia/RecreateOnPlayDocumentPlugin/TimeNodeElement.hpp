@@ -1,9 +1,10 @@
 #pragma once
-#include <iscore/plugins/documentdelegate/plugin/ElementPluginModel.hpp>
-
+#include <qobject.h>
 #include <memory>
-class TimeNodeModel;
+
 class DeviceList;
+class TimeNodeModel;
+
 namespace OSSIA
 {
     class TimeNode;

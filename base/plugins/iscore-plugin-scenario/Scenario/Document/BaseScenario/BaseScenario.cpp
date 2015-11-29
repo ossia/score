@@ -1,9 +1,20 @@
-#include "BaseScenario.hpp"
-#include <iscore/document/DocumentInterface.hpp>
-#include <Scenario/Document/TimeNode/Trigger/TriggerModel.hpp>
-#include <Scenario/Document/TimeNode/TimeNodeModel.hpp>
-#include <Scenario/Document/Event/EventModel.hpp>
 #include <Scenario/Document/Constraint/ConstraintModel.hpp>
+#include <Scenario/Document/TimeNode/TimeNodeModel.hpp>
+#include <Scenario/Document/TimeNode/Trigger/TriggerModel.hpp>
+#include <Scenario/Document/Event/EventModel.hpp>
+#include <Scenario/Document/State/StateModel.hpp>
+#include <boost/optional/optional.hpp>
+#include <iscore/document/DocumentInterface.hpp>
+#include <qstring.h>
+#include <tuple>
+
+#include "BaseScenario.hpp"
+#include "Scenario/Document/BaseScenario/BaseScenarioContainer.hpp"
+#include "iscore/selection/Selection.hpp"
+#include "iscore/tools/SettableIdentifier.hpp"
+#include "iscore/tools/std/StdlibWrapper.hpp"
+
+class QObject;
 
 BaseScenario::BaseScenario(const Id<BaseScenario>& id, QObject* parent):
     IdentifiedObject<BaseScenario>{id, "BaseScenario", parent},

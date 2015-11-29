@@ -1,10 +1,14 @@
+#include <iscore/widgets/MarginLess.hpp>
+#include <qboxlayout.h>
+#include <qlayoutitem.h>
+#include <qlineedit.h>
+#include <qnamespace.h>
+#include <qobjectdefs.h>
+#include <qpushbutton.h>
+#include <qtoolbutton.h>
+
 #include "InspectorSectionWidget.hpp"
 
-#include <QLayout>
-#include <QLineEdit>
-#include <QToolButton>
-#include <QPushButton>
-#include <iscore/widgets/MarginLess.hpp>
 InspectorSectionWidget::InspectorSectionWidget(bool editable, QWidget* parent) :
     QWidget(parent)
 {

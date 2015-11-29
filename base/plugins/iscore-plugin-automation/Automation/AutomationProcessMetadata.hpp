@@ -1,5 +1,6 @@
 #pragma once
 #include <Process/ProcessFactoryKey.hpp>
+#include <qstring.h>
 
 struct AutomationProcessMetadata
 {

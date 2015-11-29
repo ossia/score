@@ -1,10 +1,19 @@
-#include "CurveSegmentView.hpp"
-#include "CurveSegmentModel.hpp"
-#include <QGraphicsSceneContextMenuEvent>
-#include <QPainter>
 #include <Curve/CurveStyle.hpp>
+#include <qgraphicssceneevent.h>
+#include <qpainter.h>
+#include <qpen.h>
+#include <cstddef>
+#include <vector>
 
-#include <QCursor>
+#include "Curve/Palette/CurvePoint.hpp"
+#include "CurveSegmentModel.hpp"
+#include "CurveSegmentView.hpp"
+#include "iscore/selection/Selectable.hpp"
+#include "iscore/tools/Todo.hpp"
+
+class QStyleOptionGraphicsItem;
+class QWidget;
+template <typename tag, typename impl> class id_base_t;
 
 static const QPainterPathStroker CurveSegmentStroker{
     [] () {

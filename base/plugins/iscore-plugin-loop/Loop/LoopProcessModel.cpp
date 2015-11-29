@@ -1,11 +1,28 @@
-#include "LoopProcessModel.hpp"
 #include <Loop/LoopLayer.hpp>
 #include <Scenario/Document/Constraint/ConstraintModel.hpp>
 #include <Scenario/Document/Event/EventModel.hpp>
 #include <Scenario/Document/TimeNode/TimeNodeModel.hpp>
+#include <boost/optional/optional.hpp>
+#include <qnamespace.h>
+#include <algorithm>
+#include <tuple>
 
-#include <core/document/DocumentModel.hpp>
-#include <core/document/Document.hpp>
+#include "Loop/LoopProcessMetadata.hpp"
+#include "LoopProcessModel.hpp"
+#include "Process/ModelMetadata.hpp"
+#include "Process/Process.hpp"
+#include "Scenario/Document/BaseScenario/BaseScenarioContainer.hpp"
+#include "Scenario/Document/Constraint/ConstraintDurations.hpp"
+#include "Scenario/Document/State/StateModel.hpp"
+#include "iscore/document/DocumentInterface.hpp"
+#include "iscore/plugins/documentdelegate/plugin/ElementPluginModelList.hpp"
+#include "iscore/serialization/VisitorCommon.hpp"
+#include "iscore/tools/SettableIdentifier.hpp"
+#include "iscore/tools/std/StdlibWrapper.hpp"
+
+class LayerModel;
+class ProcessStateDataInterface;
+class QObject;
 
 namespace Loop
 {

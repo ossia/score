@@ -1,19 +1,26 @@
-#include <core/view/View.hpp>
-#include <iscore/menu/MenuInterface.hpp>
-#include <QDockWidget>
-#include <QGridLayout>
-#include <QDesktopWidget>
-
-#include <core/application/Application.hpp>
 #include <core/document/Document.hpp>
 #include <core/document/DocumentModel.hpp>
 #include <core/document/DocumentView.hpp>
-
-#include <iscore/plugins/panel/PanelView.hpp>
-#include <iscore/plugins/panel/PanelPresenter.hpp>
-
-#include <QCloseEvent>
 #include <core/presenter/Presenter.hpp>
+#include <core/view/View.hpp>
+#include <iscore/menu/MenuInterface.hpp>
+#include <iscore/plugins/panel/PanelView.hpp>
+#include <qaction.h>
+#include <qcoreevent.h>
+#include <qdesktopwidget.h>
+#include <qdockwidget.h>
+#include <qevent.h>
+#include <qflags.h>
+#include <qnamespace.h>
+#include <qrect.h>
+#include <qtabbar.h>
+#include <qtabwidget.h>
+#include <qwidget.h>
+#include <algorithm>
+#include <iterator>
+#include <set>
+
+class QObject;
 
 using namespace iscore;
 
@@ -155,7 +162,6 @@ void View::on_fileNameChanged(DocumentView* d, const QString& newName)
     }
 }
 
-#include <QEvent>
 void View::changeEvent(QEvent* ev)
 {
     if(ev->type() == QEvent::ActivationChange)

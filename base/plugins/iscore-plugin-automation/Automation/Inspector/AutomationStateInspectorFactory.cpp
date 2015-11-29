@@ -1,6 +1,15 @@
-#include "AutomationStateInspectorFactory.hpp"
+#include <qstring.h>
+
 #include "AutomationStateInspector.hpp"
-#include <Automation/State/AutomationState.hpp>
+#include "AutomationStateInspectorFactory.hpp"
+#include "Inspector/InspectorWidgetFactoryInterface.hpp"
+#include "Automation/State/AutomationState.hpp"
+class InspectorWidgetBase;
+class QObject;
+class QWidget;
+namespace iscore {
+class Document;
+}  // namespace iscore
 
 AutomationStateInspectorFactory::AutomationStateInspectorFactory() :
     InspectorWidgetFactory {}

@@ -1,14 +1,19 @@
 #pragma once
 
 #include <Inspector/InspectorWidgetBase.hpp>
+#include <list>
+#include <vector>
 
-#include <Scenario/Inspector/ExpressionValidator.hpp>
-class TimeNodeModel;
-
-class QFormLayout;
-class MetadataWidget;
 class EventShortCut;
+class InspectorSectionWidget;
+class MetadataWidget;
+class QLabel;
+class QWidget;
+class TimeNodeModel;
 class TriggerInspectorWidget;
+namespace iscore {
+class Document;
+}  // namespace iscore
 
 /*!
  * \brief The TimeNodeInspectorWidget class

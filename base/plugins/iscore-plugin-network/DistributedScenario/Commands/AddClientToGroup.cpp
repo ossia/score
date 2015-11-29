@@ -1,7 +1,11 @@
-#include "AddClientToGroup.hpp"
+#include <boost/core/explicit_operator_bool.hpp>
+#include <algorithm>
 
+#include "AddClientToGroup.hpp"
 #include "DistributedScenario/Group.hpp"
 #include "DistributedScenario/GroupManager.hpp"
+#include "iscore/serialization/DataStreamVisitor.hpp"
+#include "iscore/tools/ObjectPath.hpp"
 
 
 AddClientToGroup::AddClientToGroup(ObjectPath&& groupMgrPath,

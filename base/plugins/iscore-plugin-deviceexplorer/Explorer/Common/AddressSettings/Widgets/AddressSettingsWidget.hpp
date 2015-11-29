@@ -1,16 +1,9 @@
 #pragma once
 
-#include <QWidget>
-#include <QList>
-#include <QString>
 #include <Device/Address/AddressSettings.hpp>
+#include <qwidget.h>
 
-namespace iscore{
-struct AddressSettings;
-}
 class QComboBox;
-class QLineEdit;
-class QSpinBox;
 class QFormLayout;
 
 class AddressSettingsWidget : public QWidget

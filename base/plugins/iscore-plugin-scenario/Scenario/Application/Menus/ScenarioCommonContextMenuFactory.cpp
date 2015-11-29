@@ -1,8 +1,13 @@
-#include "ScenarioCommonContextMenuFactory.hpp"
-
 #include <Scenario/Application/Menus/ObjectMenuActions.hpp>
 #include <Scenario/Application/Menus/ToolMenuActions.hpp>
 #include <Scenario/Application/Menus/TransportActions.hpp>
+
+#include "Scenario/Application/Menus/Plugin/ScenarioActionsFactory.hpp"
+#include "ScenarioCommonContextMenuFactory.hpp"
+#include "iscore/menu/MenuInterface.hpp"
+
+class ScenarioActions;
+class ScenarioApplicationPlugin;
 
 
 QList<ScenarioActions *> ScenarioCommonActionsFactory::make(ScenarioApplicationPlugin *ctrl)

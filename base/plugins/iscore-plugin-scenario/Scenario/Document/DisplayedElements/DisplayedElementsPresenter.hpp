@@ -1,23 +1,17 @@
 #pragma once
-#include <iscore/tools/NamedObject.hpp>
-#include <Process/ZoomHelper.hpp>
 #include <Process/TimeValue.hpp>
-#include <iscore/tools/std/StdlibWrapper.hpp>
-
+#include <Process/ZoomHelper.hpp>
 #include <Scenario/Document/BaseScenario/BaseScenarioPresenter.hpp>
-#include <Scenario/Document/DisplayedElements/DisplayedElementsModel.hpp>
-#include <Scenario/Document/Constraint/ViewModels/FullView/FullViewConstraintPresenter.hpp>
+#include <qobject.h>
+#include <qobjectdefs.h>
+#include <vector>
 
+class BaseGraphicsObject;
 class ConstraintModel;
-class StateModel;
-class StatePresenter;
-class EventModel;
-class EventPresenter;
-class TimeNodeModel;
-class TimeNodePresenter;
+class DisplayedElementsModel;
+class FullViewConstraintPresenter;
 class LayerPresenter;
 class ScenarioDocumentPresenter;
-class BaseGraphicsObject;
 
 // Contains the elements that are shown (not necessarily the ones in
 // BaseScenarioModel)

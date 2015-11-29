@@ -1,15 +1,20 @@
 #pragma once
-#include <iscore/plugins/customfactory/FactoryFamily.hpp>
-#include <iscore/plugins/customfactory/FactoryMap.hpp>
 #include <Inspector/InspectorWidgetFactoryInterface.hpp>
+#include <iscore/plugins/customfactory/FactoryFamily.hpp>
+#include <qstring.h>
 #include <vector>
+
+#include "iscore/plugins/customfactory/FactoryInterface.hpp"
+
+class IdentifiedObjectAbstract;
+class QWidget;
+
 namespace iscore
 {
-class FactoryInterfaceBase;
 }
 
 class InspectorWidgetBase;
-class InspectorWidgetFactory;
+
 class InspectorWidgetList final : public iscore::FactoryListInterface
 {
     public:

@@ -1,9 +1,13 @@
 #pragma once
-#include <QDockWidget>
+
+#include <qnamespace.h>
+#include <qobject.h>
+#include <qstring.h>
+
+class QWidget;
 
 namespace iscore
 {
-    class PanelPresenter;
     struct DefaultPanelStatus
     {
             DefaultPanelStatus(bool isShown, Qt::DockWidgetArea d, int prio, QString name):

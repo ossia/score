@@ -1,10 +1,10 @@
+#include <qdebug.h>
+#include <algorithm>
+
 #include "ClearState.hpp"
-
-#include <Scenario/Document/State/StateModel.hpp>
-
-#include <Scenario/Process/ScenarioModel.hpp>
-
-#include <iscore/serialization/VisitorCommon.hpp>
+#include "iscore/serialization/DataStreamVisitor.hpp"
+#include "iscore/tools/ModelPath.hpp"
+#include "iscore/tools/ModelPathSerialization.hpp"
 
 
 using namespace iscore;

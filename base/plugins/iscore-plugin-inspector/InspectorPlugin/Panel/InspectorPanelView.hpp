@@ -1,13 +1,19 @@
 #pragma once
 #include <iscore/plugins/panel/PanelView.hpp>
 #include <iscore/selection/Selection.hpp>
+#include <qobjectdefs.h>
+#include <qstring.h>
+
+class QWidget;
+
 namespace iscore
 {
     class Document;
     class View;
 }
-class SelectionStackWidget;
 class InspectorPanel;
+class SelectionStackWidget;
+
 class InspectorPanelView : public iscore::PanelView
 {
         Q_OBJECT

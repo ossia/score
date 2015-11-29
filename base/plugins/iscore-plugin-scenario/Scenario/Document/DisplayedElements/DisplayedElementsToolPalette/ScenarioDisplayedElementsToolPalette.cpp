@@ -1,15 +1,30 @@
-#include "ScenarioDisplayedElementsToolPalette.hpp"
-
-#include <Scenario/Document/ScenarioDocument/ScenarioDocumentModel.hpp>
-#include <Scenario/Document/ScenarioDocument/ScenarioDocumentPresenter.hpp>
+#include <Scenario/Application/ScenarioApplicationPlugin.hpp>
 #include <Scenario/Document/DisplayedElements/DisplayedElementsModel.hpp>
 #include <Scenario/Document/DisplayedElements/DisplayedElementsPresenter.hpp>
-
-#include <Scenario/Application/ScenarioApplicationPlugin.hpp>
+#include <Scenario/Document/ScenarioDocument/ScenarioDocumentPresenter.hpp>
 #include <Scenario/Palette/ScenarioPoint.hpp>
-
+#include <boost/core/explicit_operator_bool.hpp>
+#include <boost/optional/optional.hpp>
 #include <core/application/ApplicationContext.hpp>
-#include <core/document/Document.hpp>
+#include <algorithm>
+
+#include "Process/TimeValue.hpp"
+#include "Scenario/Document/BaseScenario/BaseElementContext.hpp"
+#include "Scenario/Document/Constraint/ConstraintModel.hpp"
+#include "Scenario/Document/ScenarioDocument/Widgets/GraphicsProxyObject.hpp"
+#include "Scenario/Document/TimeNode/TimeNodeModel.hpp"
+#include "Scenario/Palette/Tools/SmartTool.hpp"
+#include "Scenario/Palette/Tools/States/ScenarioMoveStatesWrapper.hpp"
+#include "Scenario/Process/ScenarioModel.hpp"
+#include "ScenarioDisplayedElementsToolPalette.hpp"
+#include "core/application/ApplicationComponents.hpp"
+#include "iscore/statemachine/GraphicsSceneToolPalette.hpp"
+#include "iscore/tools/SettableIdentifier.hpp"
+#include <Scenario/Document/ScenarioDocument/ProcessFocusManager.hpp>
+
+namespace Scenario {
+class EditionSettings;
+}  // namespace Scenario
 
 Scenario::Point ScenarioDisplayedElementsToolPalette::ScenePointToScenarioPoint(QPointF point)
 {

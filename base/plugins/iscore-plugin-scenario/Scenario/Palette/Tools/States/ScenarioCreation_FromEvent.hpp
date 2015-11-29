@@ -61,14 +61,14 @@ class Creation_FromEvent final : public CreationState<Scenario_T, ToolPalette_T>
                 released->addTransition(finalState);
 
                 // Release
-                make_transition<ReleaseOnAnything_Transition>(mainState, released);
+                iscore::make_transition<ReleaseOnAnything_Transition>(mainState, released);
 
                 // Pressed -> ...
-                make_transition<MoveOnNothing_Transition<Scenario_T>>(pressed, move_nothing, *this);
+                iscore::make_transition<MoveOnNothing_Transition<Scenario_T>>(pressed, move_nothing, *this);
 
                 /// MoveOnNothing -> ...
                 // MoveOnNothing -> MoveOnNothing.
-                make_transition<MoveOnNothing_Transition<Scenario_T>>(move_nothing, move_nothing, *this);
+                iscore::make_transition<MoveOnNothing_Transition<Scenario_T>>(move_nothing, move_nothing, *this);
 
                 // MoveOnNothing -> MoveOnState.
                 this->add_transition(move_nothing, move_state,
@@ -110,7 +110,7 @@ class Creation_FromEvent final : public CreationState<Scenario_T, ToolPalette_T>
                                [&] () { this->rollback(); createToState(); });
 
                 // MoveOnEvent -> MoveOnEvent
-                make_transition<MoveOnEvent_Transition<Scenario_T>>(move_event, move_event, *this);
+                iscore::make_transition<MoveOnEvent_Transition<Scenario_T>>(move_event, move_event, *this);
 
                 // MoveOnEvent -> MoveOnTimeNode
                 this->add_transition(move_event, move_timenode,
@@ -131,7 +131,7 @@ class Creation_FromEvent final : public CreationState<Scenario_T, ToolPalette_T>
                                [&] () { this->rollback(); createToEvent(); });
 
                 // MoveOnTimeNode -> MoveOnTimeNode
-                make_transition<MoveOnTimeNode_Transition<Scenario_T>>(move_timenode , move_timenode , *this);
+                iscore::make_transition<MoveOnTimeNode_Transition<Scenario_T>>(move_timenode , move_timenode , *this);
 
                 // What happens in each state.
                 QObject::connect(pressed, &QState::entered,
@@ -198,7 +198,7 @@ class Creation_FromEvent final : public CreationState<Scenario_T, ToolPalette_T>
 
             QState* rollbackState = new QState{this};
             rollbackState->setObjectName("Rollback");
-            make_transition<Cancel_Transition>(mainState, rollbackState);
+            iscore::make_transition<iscore::Cancel_Transition>(mainState, rollbackState);
             rollbackState->addTransition(finalState);
             QObject::connect(rollbackState, &QState::entered, [&] ()
             {
@@ -211,7 +211,7 @@ class Creation_FromEvent final : public CreationState<Scenario_T, ToolPalette_T>
     private:
         void createInitialState()
         {
-            auto cmd = new CreateState{
+            auto cmd = new Scenario::Command::CreateState{
                     this->m_scenarioPath,
                     this->clickedEvent,
                     this->currentPoint.y};

@@ -1,6 +1,10 @@
 #pragma once
 #include "Protocols/OSSIADevice.hpp"
-#include "MIDISpecificSettings.hpp"
+
+namespace iscore {
+struct DeviceSettings;
+}  // namespace iscore
+
 class MIDIDevice final : public OSSIADevice
 {
     public:

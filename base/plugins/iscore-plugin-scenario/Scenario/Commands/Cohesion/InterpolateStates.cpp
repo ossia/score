@@ -1,22 +1,43 @@
-#include "InterpolateStates.hpp"
-
+#include <Automation/AutomationModel.hpp>
+#include <Device/Address/AddressSettings.hpp>
+#include <Explorer/DocumentPlugin/DeviceDocumentPlugin.hpp>
 #include <Scenario/Commands/Cohesion/CreateCurveFromStates.hpp>
 #include <Scenario/Commands/Cohesion/InterpolateMacro.hpp>
-
-#include <Automation/AutomationModel.hpp>
 #include <Scenario/Document/Constraint/ConstraintModel.hpp>
 #include <Scenario/Process/ScenarioModel.hpp>
-
-#include <iscore/command/Dispatchers/MacroCommandDispatcher.hpp>
-#include <iscore/tools/SettableIdentifierGeneration.hpp>
-
-#include <core/document/Document.hpp>
-#include <Device/Address/AddressSettings.hpp>
-
-#include <iscore/document/DocumentInterface.hpp>
+#include <boost/iterator/indirect_iterator.hpp>
+#include <boost/iterator/iterator_facade.hpp>
+#include <boost/multi_index/detail/hash_index_iterator.hpp>
 #include <core/document/Document.hpp>
 #include <core/document/DocumentModel.hpp>
-#include <Explorer/DocumentPlugin/DeviceDocumentPlugin.hpp>
+#include <iscore/document/DocumentInterface.hpp>
+#include <iscore/tools/SettableIdentifierGeneration.hpp>
+#include <qobject.h>
+#include <qstring.h>
+#include <algorithm>
+#include <iterator>
+#include <utility>
+#include <vector>
+
+#include "Device/Address/Domain.hpp"
+#include "Device/Node/DeviceNode.hpp"
+#include "InterpolateStates.hpp"
+#include "Process/LayerModel.hpp"
+#include "Process/Process.hpp"
+#include "Process/State/MessageNode.hpp"
+#include "Scenario/Document/Constraint/Rack/Slot/SlotModel.hpp"
+#include "Scenario/Document/State/ItemModel/MessageItemModel.hpp"
+#include "Scenario/Document/State/StateModel.hpp"
+#include "State/Address.hpp"
+#include "State/Message.hpp"
+#include "State/Value.hpp"
+#include "State/ValueConversion.hpp"
+#include "iscore/command/Dispatchers/CommandDispatcher.hpp"
+#include "iscore/selection/SelectionStack.hpp"
+#include "iscore/tools/ModelPath.hpp"
+#include "iscore/tools/NotifyingMap.hpp"
+#include "iscore/tools/SettableIdentifier.hpp"
+#include "iscore/tools/TreeNode.hpp"
 
 void InterpolateStates(iscore::Document* doc)
 {

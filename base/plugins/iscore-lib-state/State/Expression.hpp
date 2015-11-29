@@ -1,9 +1,20 @@
 #pragma once
 #include <State/Relation.hpp>
-#include <iscore/tools/TreeNode.hpp>
+#include <boost/optional/optional.hpp>
+#include <eggs/variant/variant.hpp>
+#include <ext/alloc_traits.h>
 #include <iscore/tools/VariantBasedNode.hpp>
-#include <boost/optional.hpp>
-#include <boost/iterator/indirect_iterator.hpp>
+#include <qstring.h>
+#include <algorithm>
+#include <cstddef>
+#include <vector>
+
+#include "iscore/tools/InvisibleRootNode.hpp"
+
+class DataStream;
+class JSONObject;
+template <typename DataType> class TreeNode;
+
 namespace iscore
 {
 enum class BinaryOperator {

@@ -1,11 +1,13 @@
 #pragma once
-#include <iscore/selection/Selection.hpp>
 #include <Scenario/Document/DisplayedElements/DisplayedElementsContainer.hpp>
+#include <iscore/selection/Selection.hpp>
+#include <tuple>
 
 class ConstraintModel;
-class TimeNodeModel;
 class EventModel;
 class StateModel;
+class TimeNodeModel;
+
 class DisplayedElementsModel
 {
     public:

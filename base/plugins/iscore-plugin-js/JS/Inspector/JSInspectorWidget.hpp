@@ -1,11 +1,14 @@
 #pragma once
 
 #include <Inspector/InspectorWidgetBase.hpp>
-#include <QPlainTextEdit>
-namespace iscore{
-struct Address;
-}
+#include <qstring.h>
+
 class JSProcessModel;
+class QPlainTextEdit;
+class QWidget;
+namespace iscore {
+class Document;
+}  // namespace iscore
 
 class JSInspectorWidget final : public InspectorWidgetBase
 {

@@ -1,8 +1,17 @@
 #pragma once
-#include <RecreateOnPlayDocumentPlugin/ProcessElement.hpp>
-#include <State/Address.hpp>
-#include <QPointer>
 #include <API/Headers/Editor/Value.h>
+#include <RecreateOnPlayDocumentPlugin/ProcessElement.hpp>
+#include <memory>
+
+class Process;
+class QObject;
+namespace OSSIA {
+class TimeProcess;
+}  // namespace OSSIA
+namespace RecreateOnPlay {
+class ConstraintElement;
+}  // namespace RecreateOnPlay
+
 namespace OSSIA
 {
     class Automation;
@@ -11,7 +20,6 @@ namespace OSSIA
 
 class AutomationModel;
 class DeviceList;
-class OSSIAConstraintElement;
 
 
 

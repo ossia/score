@@ -1,7 +1,8 @@
 #pragma once
-#include <QWidget>
+#include <qwidget.h>
 
 class SlotInspectorSection;
+
 class AddLayerModelWidget final : public QWidget
 {
         Q_OBJECT

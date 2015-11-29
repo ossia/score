@@ -1,7 +1,13 @@
-#include "OSCDevice.hpp"
 #include <API/Headers/Network/Device.h>
-#include <iscore2OSSIA.hpp>
-#include <OSSIA2iscore.hpp>
+#include <qdebug.h>
+#include <qstring.h>
+#include <qvariant.h>
+#include <memory>
+
+#include "Device/Protocol/DeviceSettings.hpp"
+#include "Network/Protocol/OSC.h"
+#include "OSCDevice.hpp"
+#include "Protocols/OSC/OSCSpecificSettings.hpp"
 
 OSCDevice::OSCDevice(const iscore::DeviceSettings &settings):
     OSSIADevice{settings}

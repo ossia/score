@@ -1,9 +1,19 @@
 #pragma once
 #include <ProcessModel/TimeProcessWithConstraint.hpp>
-#include <State/Value.hpp>
-#include <QJSEngine>
+#include <qjsengine.h>
+#include <qjsvalue.h>
+#include <qstring.h>
+#include <memory>
+
+#include "Editor/TimeValue.h"
+
 class DeviceDocumentPlugin;
 class DeviceList;
+namespace OSSIA {
+class State;
+class StateElement;
+}  // namespace OSSIA
+
 class JSProcess final : public TimeProcessWithConstraint
 {
     public:

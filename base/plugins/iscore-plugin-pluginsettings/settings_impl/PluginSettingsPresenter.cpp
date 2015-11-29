@@ -1,9 +1,21 @@
-#include "PluginSettingsPresenter.hpp"
-#include "PluginSettingsModel.hpp"
-#include "PluginSettingsView.hpp"
+#include <qapplication.h>
+#include <qdebug.h>
+#include <qlistview.h>
+#include <qstandarditemmodel.h>
+#include <qstyle.h>
 
-#include "commands/BlacklistCommand.hpp"
-#include <iscore/tools/Todo.hpp>
+#include "PluginSettingsModel.hpp"
+#include "PluginSettingsPresenter.hpp"
+#include "PluginSettingsView.hpp"
+#include "iscore/command/Command.hpp"
+#include "iscore/plugins/settingsdelegate/SettingsDelegatePresenterInterface.hpp"
+#include "settings_impl/commands/BlacklistCommand.hpp"
+
+namespace iscore {
+class SettingsDelegateModelInterface;
+class SettingsDelegateViewInterface;
+class SettingsPresenter;
+}  // namespace iscore
 
 using namespace iscore;
 
@@ -70,7 +82,6 @@ void PluginSettingsPresenter::setBlacklistCommand(BlacklistCommand* cmd)
     */
 }
 
-#include <QApplication>
 QIcon PluginSettingsPresenter::settingsIcon()
 {
     return QApplication::style()->standardIcon(QStyle::SP_CommandLink);

@@ -1,6 +1,16 @@
-#include "MinuitProtocolFactory.hpp"
+#include <qobject.h>
+#include <qobjectdefs.h>
+
+#include "Device/Protocol/DeviceSettings.hpp"
 #include "MinuitDevice.hpp"
+#include "MinuitProtocolFactory.hpp"
 #include "MinuitProtocolSettingsWidget.hpp"
+#include "Protocols/Minuit/MinuitSpecificSettings.hpp"
+
+class DeviceInterface;
+class ProtocolSettingsWidget;
+struct VisitorVariant;
+
 QString MinuitProtocolFactory::prettyName() const
 {
     return QObject::tr("Minuit");

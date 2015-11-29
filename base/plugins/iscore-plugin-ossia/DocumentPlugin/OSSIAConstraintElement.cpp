@@ -1,25 +1,33 @@
-#include "OSSIAConstraintElement.hpp"
-#include "OSSIAAutomationElement.hpp"
-#include "OSSIAScenarioElement.hpp"
-#include "iscore2OSSIA.hpp"
-#include "OSSIA2iscore.hpp"
-
+#include <API/Headers/Editor/TimeConstraint.h>
+#include <Automation/AutomationModel.hpp>
 #include <ProcessModel/OSSIAProcessModel.hpp>
 #include <ProcessModel/OSSIAProcessModelElement.hpp>
-#include <Automation/AutomationModel.hpp>
 #include <Scenario/Document/Constraint/ConstraintModel.hpp>
 #include <Scenario/Process/ScenarioModel.hpp>
+#include <qdebug.h>
+#include <qnamespace.h>
+#include <stdexcept>
+#include <utility>
 
-#include <API/Headers/Editor/TimeConstraint.h>
-#include <API/Headers/Editor/TimeProcess.h>
-#include <Editor/TimeNode.h>
-
-#include <boost/range/algorithm.hpp>
-
-#include <sstream>
+#include "DocumentPlugin/LoopingProcessWrapper.hpp"
+#include "DocumentPlugin/OSSIAProcessElement.hpp"
+#include "DocumentPlugin/ProcessWrapper.hpp"
+#include "Editor/TimeValue.h"
+#include "OSSIA2iscore.hpp"
+#include "OSSIAAutomationElement.hpp"
+#include "OSSIAConstraintElement.hpp"
+#include "OSSIAScenarioElement.hpp"
+#include "Process/Process.hpp"
+#include "Process/TimeValue.hpp"
+#include "Scenario/Document/Constraint/ConstraintDurations.hpp"
+#include "iscore/tools/NotifyingMap.hpp"
+#include "iscore/tools/SettableIdentifier.hpp"
+#include "iscore/tools/Todo.hpp"
+#include "iscore2OSSIA.hpp"
 
 #if defined(ISCORE_PLUGIN_MAPPING)
 #include <Mapping/MappingModel.hpp>
+
 #include "OSSIAMappingElement.hpp"
 #endif
 

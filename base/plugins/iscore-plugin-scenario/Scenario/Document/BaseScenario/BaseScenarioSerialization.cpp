@@ -1,6 +1,17 @@
+#include <boost/core/explicit_operator_bool.hpp>
 #include <iscore/serialization/DataStreamVisitor.hpp>
 #include <iscore/serialization/JSONVisitor.hpp>
+#include <qjsonobject.h>
+#include <qjsonvalue.h>
+
 #include "BaseScenario.hpp"
+#include "iscore/plugins/documentdelegate/plugin/ElementPluginModelList.hpp"
+#include "iscore/serialization/JSONValueVisitor.hpp"
+
+class BaseScenarioContainer;
+template <typename T> class Reader;
+template <typename T> class Writer;
+template <typename model> class IdentifiedObject;
 
 template<> void Visitor<Reader<DataStream>>::readFrom(const BaseScenario& base_scenario)
 {

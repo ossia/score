@@ -1,8 +1,10 @@
 #pragma once
-#include <QList>
-#include <QString>
-#include <QMap>
+#include <qlist.h>
+#include <qmap.h>
+#include <qstring.h>
+
 class AddressSettingsWidget;
+
 class AddressSettingsWidgetFactoryMethod
 {
     public:

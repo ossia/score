@@ -1,7 +1,8 @@
 #pragma once
-#include <QWidget>
+#include <qwidget.h>
 
 class QCheckBox;
+
 class GroupTableCheckbox : public QWidget
 {
         Q_OBJECT

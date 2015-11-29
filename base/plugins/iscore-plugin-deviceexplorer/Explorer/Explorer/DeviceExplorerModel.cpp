@@ -1,32 +1,55 @@
-#include "DeviceExplorerModel.hpp"
-#include "DeviceExplorerView.hpp"
-
+#include <Device/ItemModels/NodeDisplayMethods.hpp>
+#include <Device/Node/DeviceNode.hpp>
+#include <Device/Protocol/ProtocolFactoryInterface.hpp>
+#include <Device/Protocol/ProtocolList.hpp>
 #include <Explorer/Commands/Add/LoadDevice.hpp>
 #include <Explorer/Commands/Update/UpdateAddressSettings.hpp>
-
-#include "Widgets/DeviceEditDialog.hpp" // TODO why here??!!
-
-#include "DeviceExplorerMimeTypes.hpp"
-#include <Device/Node/NodeListMimeSerialization.hpp>
 #include <Explorer/DocumentPlugin/DeviceDocumentPlugin.hpp>
-#include <Device/Protocol/ProtocolFactoryInterface.hpp>
-
-#include <Device/Node/DeviceNode.hpp>
-#include <Device/Protocol/ProtocolList.hpp>
 #include <core/application/ApplicationComponents.hpp>
-#include <Device/ItemModels/NodeDisplayMethods.hpp>
-
-#include <iscore/document/DocumentInterface.hpp>
-#include <core/document/Document.hpp>
 #include <core/command/CommandStack.hpp>
-
-#include <State/StateMimeTypes.hpp>
-#include <State/MessageListSerialization.hpp>
-
-#include <QAbstractProxyModel>
-#include <QApplication>
-#include <QJsonDocument>
+#include <core/document/Document.hpp>
+#include <iscore/document/DocumentInterface.hpp>
+#include <qabstractproxymodel.h>
+#include <qapplication.h>
+#include <qdebug.h>
+#include <qflags.h>
+#include <qjsondocument.h>
+#include <qmap.h>
+#include <qmimedata.h>
+#include <qobject.h>
+#include <qobjectdefs.h>
+#include <qset.h>
+#include <qtreeview.h>
+#include <qtypetraits.h>
+#include <qvector.h>
+#include <algorithm>
 #include <iostream>
+#include <iterator>
+#include <string>
+#include <vector>
+
+#include "Device/Address/AddressSettings.hpp"
+#include "Device/ItemModels/NodeBasedItemModel.hpp"
+#include "Device/Protocol/DeviceList.hpp"
+#include "Device/Protocol/DeviceSettings.hpp"
+#include "Device/Protocol/ProtocolFactoryKey.hpp"
+#include "DeviceExplorerMimeTypes.hpp"
+#include "DeviceExplorerModel.hpp"
+#include "DeviceExplorerView.hpp"
+#include "Explorer/DocumentPlugin/NodeUpdateProxy.hpp"
+#include "State/ValueConversion.hpp"
+#include "Widgets/DeviceEditDialog.hpp" // TODO why here??!!
+#include "core/application/ApplicationContext.hpp"
+#include "core/document/DocumentContext.hpp"
+#include "iscore/plugins/customfactory/FactoryFamily.hpp"
+#include "iscore/plugins/customfactory/FactoryMap.hpp"
+#include "iscore/plugins/customfactory/StringFactoryKey.hpp"
+#include "iscore/serialization/JSONVisitor.hpp"
+#include "iscore/serialization/MimeVisitor.hpp"
+#include "iscore/tools/ModelPath.hpp"
+#include "iscore/tools/TreeNode.hpp"
+#include <State/MessageListSerialization.hpp>
+#include <Device/Node/NodeListMimeSerialization.hpp>
 
 using namespace DeviceExplorer::Command;
 using namespace iscore;
@@ -695,7 +718,6 @@ QList<iscore::Node*> DeviceExplorerModel::uniqueSelectedNodes(const QModelIndexL
 
     return filterUniqueParents(nodes);
 }
-#include <thread>
 //method called when a drag is initiated
 QMimeData*
 DeviceExplorerModel::mimeData(const QModelIndexList& indexes) const
@@ -944,8 +966,8 @@ MessageList getSelectionSnapshot(DeviceExplorerModel& model)
 }
 
 
-#include <core/document/DocumentModel.hpp>
 #include <Explorer/PanelBase/DeviceExplorerPanelModel.hpp>
+#include <core/document/DocumentModel.hpp>
 
 DeviceExplorerModel* try_deviceExplorerFromObject(const QObject& obj)
 {

@@ -1,19 +1,31 @@
-#include "EventPresenter.hpp"
-
+#include <Scenario/Commands/Event/State/AddStateWithData.hpp>
 #include <Scenario/Document/Event/EventModel.hpp>
 #include <Scenario/Document/Event/EventView.hpp>
-
-#include <Scenario/Commands/Event/State/AddStateWithData.hpp>
 #include <Scenario/Process/ScenarioModel.hpp>
-#include <iscore/document/DocumentInterface.hpp>
-#include <core/document/Document.hpp>
-#include <State/StateMimeTypes.hpp>
 #include <State/MessageListSerialization.hpp>
-
+#include <iscore/document/DocumentInterface.hpp>
 #include <iscore/widgets/GraphicsItem.hpp>
-#include <QMimeData>
-#include <QJsonDocument>
-#include <QGraphicsScene>
+#include <qgraphicsitem.h>
+#include <qmimedata.h>
+#include <qrect.h>
+#include <qsize.h>
+#include <qstringlist.h>
+#include <algorithm>
+
+#include "EventPresenter.hpp"
+#include "Process/ModelMetadata.hpp"
+#include "Scenario/Process/ScenarioInterface.hpp"
+#include "State/Expression.hpp"
+#include "State/Message.hpp"
+#include "iscore/command/Dispatchers/CommandDispatcher.hpp"
+#include "iscore/selection/Selectable.hpp"
+#include "iscore/serialization/MimeVisitor.hpp"
+#include "iscore/tools/NamedObject.hpp"
+#include "iscore/tools/Todo.hpp"
+
+class QObject;
+template <typename tag, typename impl> class id_base_t;
+
 EventPresenter::EventPresenter(const EventModel& model,
                                QGraphicsObject* parentview,
                                QObject* parent) :

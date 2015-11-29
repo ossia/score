@@ -1,9 +1,16 @@
 #pragma once
-#include <QGraphicsObject>
-#include <QMouseEvent>
 #include <Scenario/Document/VerticalExtent.hpp>
+#include <qcolor.h>
+#include <qgraphicsitem.h>
+#include <qpoint.h>
+#include <qrect.h>
 
+class QGraphicsSceneMouseEvent;
+class QPainter;
+class QStyleOptionGraphicsItem;
+class QWidget;
 class TimeNodePresenter;
+
 class TimeNodeView final : public QGraphicsObject
 {
         Q_OBJECT

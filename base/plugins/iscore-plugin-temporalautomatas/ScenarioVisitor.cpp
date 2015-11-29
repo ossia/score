@@ -1,23 +1,34 @@
-#include "ScenarioVisitor.hpp"
-#include <iscore/menu/MenuInterface.hpp>
-
-#include <Scenario/Document/Constraint/ConstraintModel.hpp>
-#include <Scenario/Document/Event/EventModel.hpp>
-#include <Scenario/Document/TimeNode/TimeNodeModel.hpp>
-#include <Scenario/Document/State/StateModel.hpp>
-
-#include <Scenario/Process/ScenarioModel.hpp>
-#include <Scenario/Document/ScenarioDocument/ScenarioDocumentModel.hpp>
-#include <Scenario/Document/TimeNode/Trigger/TriggerModel.hpp>
-
-#include <Scenario/Document/ScenarioDocument/ScenarioDocumentModel.hpp>
-#include <Scenario/Document/BaseScenario/BaseScenario.hpp>
-
 #include <Automation/AutomationModel.hpp>
 #include <Curve/CurveModel.hpp>
-#include <Curve/Segment/CurveSegmentModel.hpp>
-
+#include <Scenario/Document/BaseScenario/BaseScenario.hpp>
+#include <Scenario/Document/Constraint/ConstraintModel.hpp>
+#include <Scenario/Document/Event/EventModel.hpp>
+#include <Scenario/Document/ScenarioDocument/ScenarioDocumentModel.hpp>
+#include <Scenario/Document/State/StateModel.hpp>
+#include <Scenario/Document/TimeNode/TimeNodeModel.hpp>
+#include <Scenario/Document/TimeNode/Trigger/TriggerModel.hpp>
+#include <Scenario/Process/ScenarioModel.hpp>
+#include <boost/core/explicit_operator_bool.hpp>
 #include <core/application/Application.hpp>
+#include <iscore/menu/MenuInterface.hpp>
+#include <qaction.h>
+#include <qchar.h>
+#include <qdebug.h>
+#include <qobjectdefs.h>
+#include <qstring.h>
+
+#include "Curve/Segment/CurveSegmentData.hpp"
+#include "Process/Process.hpp"
+#include "Process/State/MessageNode.hpp"
+#include "Scenario/Document/Constraint/ConstraintDurations.hpp"
+#include "Scenario/Document/State/ItemModel/MessageItemModel.hpp"
+#include "ScenarioVisitor.hpp"
+#include "State/Message.hpp"
+#include "State/Value.hpp"
+#include "core/presenter/MenubarManager.hpp"
+#include "iscore/document/DocumentInterface.hpp"
+#include "iscore/plugins/application/GUIApplicationContextPlugin.hpp"
+#include "iscore/tools/SettableIdentifier.hpp"
 
 struct TAVisitor
 {

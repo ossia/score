@@ -1,6 +1,10 @@
-#include "ScenarioConstraintInspectorDelegateFactory.hpp"
-#include "ScenarioConstraintInspectorDelegate.hpp"
 #include <Scenario/Process/ScenarioModel.hpp>
+#include <qobject.h>
+
+#include "Scenario/Document/Constraint/ConstraintModel.hpp"
+#include "Scenario/Inspector/Constraint/ConstraintInspectorDelegate.hpp"
+#include "ScenarioConstraintInspectorDelegate.hpp"
+#include "ScenarioConstraintInspectorDelegateFactory.hpp"
 
 ScenarioConstraintInspectorDelegateFactory::~ScenarioConstraintInspectorDelegateFactory()
 {

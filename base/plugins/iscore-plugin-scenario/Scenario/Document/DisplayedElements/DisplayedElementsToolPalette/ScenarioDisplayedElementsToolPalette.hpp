@@ -1,19 +1,25 @@
 #pragma once
-#include <Scenario/Application/ScenarioEditionSettings.hpp>
-#include <Scenario/Document/ScenarioDocument/Widgets/GraphicsProxyObject.hpp>
+#include <Process/Tools/ToolPalette.hpp>
 #include <Scenario/Document/BaseScenario/BaseElementContext.hpp>
 #include <Scenario/Palette/Tools/SmartTool.hpp>
-#include <Scenario/Palette/Tools/States/ScenarioMoveStatesWrapper.hpp>
-
-#include <Process/Tools/ToolPalette.hpp>
-
 #include <iscore/statemachine/GraphicsSceneToolPalette.hpp>
+#include <qpoint.h>
 
-class ScenarioDocumentPresenter;
+#include "Scenario/Palette/ScenarioPoint.hpp"
+#include "Scenario/Palette/Tool.hpp"
+#include "core/document/DocumentContext.hpp"
+
 class BaseGraphicsObject;
-class DisplayedElementsPresenter;
 class DisplayedElementsModel;
-namespace Scenario { class ScenarioModel; }
+class DisplayedElementsPresenter;
+class ScenarioDocumentPresenter;
+namespace Scenario {
+class EditionSettings;
+class MoveConstraintInScenario_StateWrapper;
+class MoveEventInScenario_StateWrapper;
+class MoveTimeNodeInScenario_StateWrapper;
+class ScenarioModel;
+}  // namespace Scenario
 
 class ScenarioDisplayedElementsToolPalette final : public GraphicsSceneToolPalette
 {

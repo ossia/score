@@ -1,10 +1,10 @@
 #pragma once
 #include <QObject>
-
 namespace iscore
 {
     class Application;
     class GUIApplicationContextPlugin;
+
     class GUIApplicationContextPlugin_QtInterface
     {
         public:
@@ -20,9 +20,11 @@ namespace iscore
 Q_DECLARE_INTERFACE(iscore::GUIApplicationContextPlugin_QtInterface, GUIApplicationContextPlugin_QtInterface_iid)
 
 
-// TODO moveme
-#include <QObject>
 #include <iscore/command/CommandGeneratorMap.hpp>
+#include <utility>
+
+#include "iscore/command/SerializableCommand.hpp"
+
 namespace iscore
 {
 class CommandFactory_QtInterface

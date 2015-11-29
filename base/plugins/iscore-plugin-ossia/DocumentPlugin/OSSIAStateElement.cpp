@@ -1,8 +1,10 @@
-#include "OSSIAStateElement.hpp"
-#include <iscore/tools/Todo.hpp>
-#include "iscore2OSSIA.hpp"
 #include <Scenario/Document/State/StateModel.hpp>
-#include "Explorer/DocumentPlugin/DeviceDocumentPlugin.hpp"
+#include <vector>
+
+#include "Editor/State.h"
+#include "OSSIAStateElement.hpp"
+#include "Scenario/Document/State/ItemModel/MessageItemModel.hpp"
+#include "iscore2OSSIA.hpp"
 
 OSSIAStateElement::OSSIAStateElement(
         const StateModel &element,

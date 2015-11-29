@@ -1,7 +1,12 @@
 #pragma once
-#include <core/command/CommandStack.hpp>
-namespace Scenario { class ScenarioModel; }
 class BaseScenario;
+namespace Scenario {
+class ScenarioModel;
+}  // namespace Scenario
+namespace iscore {
+class CommandStack;
+}  // namespace iscore
+
 namespace Scenario
 {
 void removeSelection(const Scenario::ScenarioModel&, iscore::CommandStack&);

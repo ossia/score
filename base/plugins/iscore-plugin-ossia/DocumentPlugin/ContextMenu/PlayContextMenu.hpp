@@ -1,5 +1,17 @@
 #pragma once
+#include <qpoint.h>
+
 #include "Scenario/Application/Menus/ScenarioActions.hpp"
+#include "iscore/selection/Selection.hpp"
+
+class QAction;
+class QMenu;
+class ScenarioApplicationPlugin;
+class TemporalScenarioPresenter;
+namespace iscore {
+class MenubarManager;
+}  // namespace iscore
+
 class PlayContextMenu final : public ScenarioActions
 {
     public:

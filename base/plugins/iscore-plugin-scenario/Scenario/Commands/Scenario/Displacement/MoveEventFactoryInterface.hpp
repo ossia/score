@@ -1,22 +1,22 @@
 #pragma once
 
-#include <iscore/plugins/customfactory/FactoryInterface.hpp>
-//#include <iscore/command/SerializableCommand.hpp>
-#include <Scenario/Commands/Scenario/Displacement/SerializableMoveEvent.hpp>
-
-#include <iscore/tools/SettableIdentifier.hpp>
-#include <iscore/tools/ModelPath.hpp>
-#include <Process/TimeValue.hpp>
 #include <Process/ExpandMode.hpp>
-
+#include <Process/TimeValue.hpp>
+#include <iscore/plugins/customfactory/FactoryInterface.hpp>
 #include <iscore/plugins/customfactory/StringFactoryKey.hpp>
+
+class SerializableMoveEvent;
+template <typename Object> class Path;
+template <typename tag, typename impl> class id_base_t;
 
 class MoveEventTag{};
 using MoveEventFactoryKey = StringKey<MoveEventTag>;
 Q_DECLARE_METATYPE(MoveEventFactoryKey)
 
-namespace Scenario { class ScenarioModel; }
 class EventModel;
+namespace Scenario {
+class ScenarioModel;
+}  // namespace Scenario
 
 
 class MoveEventFactoryInterface : public iscore::GenericFactoryInterface<MoveEventFactoryKey>

@@ -1,7 +1,13 @@
-#include "UpdateAddressSettings.hpp"
-
 #include <Explorer/DocumentPlugin/DeviceDocumentPlugin.hpp>
-#include <boost/range/algorithm/find_if.hpp>
+
+#include "Device/Address/AddressSettings.hpp"
+#include "Device/Node/DeviceNode.hpp"
+#include "Explorer/DocumentPlugin/NodeUpdateProxy.hpp"
+#include "UpdateAddressSettings.hpp"
+#include "iscore/serialization/DataStreamVisitor.hpp"
+#include "iscore/tools/ModelPath.hpp"
+#include "iscore/tools/ModelPathSerialization.hpp"
+#include "iscore/tools/TreeNode.hpp"
 
 using namespace iscore;
 using namespace DeviceExplorer::Command;

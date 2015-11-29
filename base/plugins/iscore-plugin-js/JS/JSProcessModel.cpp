@@ -1,8 +1,23 @@
-#include "JSProcessModel.hpp"
 #include <DummyProcess/DummyLayerModel.hpp>
-#include <core/document/Document.hpp>
 #include <Explorer/DocumentPlugin/DeviceDocumentPlugin.hpp>
+#include <core/document/Document.hpp>
 #include <core/document/DocumentModel.hpp>
+#include <algorithm>
+#include <vector>
+
+#include "JS/JSProcess.hpp"
+#include "JS/JSProcessMetadata.hpp"
+#include "JSProcessModel.hpp"
+#include "ProcessModel/OSSIAProcessModel.hpp"
+#include "iscore/document/DocumentInterface.hpp"
+#include "iscore/plugins/documentdelegate/plugin/ElementPluginModelList.hpp"
+#include "iscore/serialization/VisitorCommon.hpp"
+
+class LayerModel;
+class Process;
+class ProcessStateDataInterface;
+class QObject;
+template <typename tag, typename impl> class id_base_t;
 
 
 std::shared_ptr<JSProcess> JSProcessModel::makeProcess() const

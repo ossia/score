@@ -1,11 +1,15 @@
-#include "OSCProtocolSettingsWidget.hpp"
 #include <Explorer/Widgets/AddressFragmentLineEdit.hpp>
+#include <qfiledialog.h>
+#include <qgridlayout.h>
+#include <qlabel.h>
+#include <qlineedit.h>
+#include <qobjectdefs.h>
+#include <qpushbutton.h>
+#include <qspinbox.h>
+#include <qvariant.h>
 
-#include <QFileDialog>
-#include <QGridLayout>
-#include <QLabel>
-#include <QPushButton>
-#include <QSpinBox>
+#include "Device/Protocol/ProtocolSettingsWidget.hpp"
+#include "OSCProtocolSettingsWidget.hpp"
 
 
 OSCProtocolSettingsWidget::OSCProtocolSettingsWidget(QWidget* parent)
@@ -70,6 +74,9 @@ OSCProtocolSettingsWidget::setDefaults()
 }
 
 #include "OSCSpecificSettings.hpp"
+
+class QWidget;
+
 iscore::DeviceSettings OSCProtocolSettingsWidget::getSettings() const
 {
     iscore::DeviceSettings s;

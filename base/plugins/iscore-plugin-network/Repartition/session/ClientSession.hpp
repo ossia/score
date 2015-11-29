@@ -1,6 +1,11 @@
 #pragma once
 #include "Session.hpp"
 
+class LocalClient;
+class QObject;
+class RemoteClient;
+template <typename tag, typename impl> class id_base_t;
+
 class ClientSession : public Session
 {
     public:

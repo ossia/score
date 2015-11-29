@@ -2,6 +2,12 @@
 #include <Scenario/Inspector/Constraint/ConstraintInspectorDelegate.hpp>
 #include <iscore/plugins/customfactory/FactoryFamily.hpp>
 #include <iscore/tools/std/StdlibWrapper.hpp>
+#include <memory>
+#include <vector>
+
+#include "iscore/plugins/customfactory/FactoryInterface.hpp"
+
+class ConstraintModel;
 
 class ConstraintInspectorDelegateFactory : public iscore::FactoryInterfaceBase
 {

@@ -1,14 +1,11 @@
-#include "LoopingProcessWrapper.hpp"
-#include <Editor/Scenario.h>
 #include <Editor/Loop.h>
-#include <Editor/TimeEvent.h>
-#include <Editor/TimeNode.h>
+#include <Editor/Scenario.h>
 #include <Editor/TimeConstraint.h>
-#include <algorithm>
+#include <Editor/TimeNode.h>
+#include <vector>
 
-#include "OSSIA2iscore.hpp"
-
-#include <QDebug>
+#include "Editor/TimeValue.h"
+#include "LoopingProcessWrapper.hpp"
 
 namespace RecreateOnPlay
 {

@@ -1,6 +1,12 @@
 #pragma once
-#include <QGraphicsItem>
+#include <qgraphicsitem.h>
+#include <qrect.h>
+
+class QGraphicsSceneMouseEvent;
 class QGraphicsSvgItem;
+class QPainter;
+class QStyleOptionGraphicsItem;
+class QWidget;
 
 class TriggerView final : public QGraphicsObject
 {

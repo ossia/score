@@ -1,11 +1,19 @@
-#include "CurvePointView.hpp"
-#include <QPainter>
-#include <iscore/selection/Selectable.hpp>
-#include <iscore/widgets/ClearLayout.hpp>
-#include "CurvePointModel.hpp"
 #include <Curve/CurveStyle.hpp>
-#include <QGraphicsSceneContextMenuEvent>
-#include <QCursor>
+#include <iscore/selection/Selectable.hpp>
+#include <qcolor.h>
+#include <qglobal.h>
+#include <qgraphicssceneevent.h>
+#include <qnamespace.h>
+#include <qpainter.h>
+#include <qpen.h>
+
+#include "CurvePointModel.hpp"
+#include "CurvePointView.hpp"
+#include "iscore/tools/Todo.hpp"
+
+class QStyleOptionGraphicsItem;
+class QWidget;
+template <typename tag, typename impl> class id_base_t;
 
 static const qreal radius = 2.5;
 CurvePointView::CurvePointView(

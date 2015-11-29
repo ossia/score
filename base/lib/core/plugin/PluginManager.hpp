@@ -1,20 +1,15 @@
 #pragma once
-#include <iscore/tools/NamedObject.hpp>
-#include <QMap>
 
-#include <iscore/plugins/customfactory/FactoryFamily.hpp>
-#include <iscore/plugins/panel/PanelFactory.hpp>
-#include <iscore/command/CommandGeneratorMap.hpp>
+
+#include <qobject.h>
+#include <qstring.h>
+#include <qstringlist.h>
+#include <vector>
 
 namespace iscore
 {
-class FactoryInterfaceBase;
 class Application;
 class ApplicationRegistrar;
-class GUIApplicationContextPlugin;
-class PanelFactory;
-class DocumentDelegateFactoryInterface;
-class SettingsDelegateFactoryInterface;
 
 
 /**

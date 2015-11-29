@@ -1,18 +1,24 @@
-#include "iscore_plugin_curve.hpp"
+#include <unordered_map>
 
+#include "Curve/Commands/CurveCommandFactory.hpp"
+#include "Curve/Segment/CurveSegmentFactory.hpp"
 #include "Curve/Segment/CurveSegmentList.hpp"
-
-#include "Curve/Segment/Power/PowerCurveSegmentModel.hpp"
 #include "Curve/Segment/Linear/LinearCurveSegmentModel.hpp"
-#include "Curve/Segment/Sin/SinCurveSegmentModel.hpp"
-#include "Curve/Segment/Gamma/GammaCurveSegmentModel.hpp"
+#include "Curve/Segment/Power/PowerCurveSegmentModel.hpp"
+#include "iscore/plugins/customfactory/StringFactoryKey.hpp"
+#include "iscore_plugin_curve.hpp"
+#include <iscore_plugin_curve_commands_files.hpp>
+
+class GammaCurveSegmentModel;
+class SinCurveSegmentModel;
+namespace iscore {
+class FactoryListInterface;
+}  // namespace iscore
 
 DEFINE_CURVE_SEGMENT_FACTORY(LinearCurveSegmentFactory, "Linear", LinearCurveSegmentModel)
 DEFINE_CURVE_SEGMENT_FACTORY(PowerCurveSegmentFactory, "Power", PowerCurveSegmentModel)
 DEFINE_CURVE_SEGMENT_FACTORY(SinCurveSegmentFactory, "Sin", SinCurveSegmentModel)
 DEFINE_CURVE_SEGMENT_FACTORY(GammaCurveSegmentFactory, "Gamma", GammaCurveSegmentModel)
-
-#include <iscore_plugin_curve_commands_files.hpp>
 
 iscore_plugin_curve::iscore_plugin_curve() :
     QObject {}
@@ -47,7 +53,7 @@ std::pair<const CommandParentFactoryKey, CommandGeneratorMap> iscore_plugin_curv
     std::pair<const CommandParentFactoryKey, CommandGeneratorMap> cmds{CurveCommandFactoryName(), CommandGeneratorMap{}};
 
     using Types = iscore::commands::TypeList<
-  #include <iscore_plugin_curve_commands.hpp>
+#include <iscore_plugin_curve_commands.hpp>
       >;
     iscore::commands::ForEach<Types>(iscore::commands::FactoryInserter{cmds.second});
 

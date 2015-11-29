@@ -1,22 +1,23 @@
 #pragma once
-#include <Scenario/Application/ScenarioEditionSettings.hpp>
-#include <Scenario/Application/ScenarioApplicationPlugin.hpp>
-
-#include <Scenario/Document/BaseScenario/BaseElementContext.hpp>
-#include <Scenario/Document/DisplayedElements/DisplayedElementsToolPalette/BaseScenarioDisplayedElements_StateWrappers.hpp>
-
 #include <Process/Tools/ToolPalette.hpp>
-
+#include <Scenario/Document/BaseScenario/BaseElementContext.hpp>
 #include <iscore/statemachine/GraphicsSceneToolPalette.hpp>
+#include <qpoint.h>
 
-class DisplayedElementsPresenter;
-class DisplayedElementsModel;
-class ScenarioDocumentPresenter;
-class ConstraintModel;
-class BaseScenario;
+#include "Scenario/Palette/ScenarioPoint.hpp"
+#include "Scenario/Palette/Tool.hpp"
+#include "Scenario/Palette/Tools/SmartTool.hpp"
+
 class BaseGraphicsObject;
-class QGraphicsItem;
-class ProcessFocusManager;
+class BaseScenario;
+class DisplayedElementsPresenter;
+class MoveConstraintInBaseScenario_StateWrapper;
+class MoveEventInBaseScenario_StateWrapper;
+class MoveTimeNodeInBaseScenario_StateWrapper;
+class ScenarioDocumentPresenter;
+namespace Scenario {
+class EditionSettings;
+}  // namespace Scenario
 
 class BaseScenarioDisplayedElementsToolPalette final : public GraphicsSceneToolPalette
 {

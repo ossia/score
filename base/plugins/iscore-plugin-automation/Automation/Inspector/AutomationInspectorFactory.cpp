@@ -1,6 +1,15 @@
+#include <qstring.h>
+
+#include "Automation/AutomationProcessMetadata.hpp"
 #include "AutomationInspectorFactory.hpp"
 #include "AutomationInspectorWidget.hpp"
-#include <Automation/AutomationModel.hpp>
+#include "Automation/AutomationModel.hpp"
+class InspectorWidgetBase;
+class QObject;
+class QWidget;
+namespace iscore {
+class Document;
+}  // namespace iscore
 
 //using namespace iscore;
 

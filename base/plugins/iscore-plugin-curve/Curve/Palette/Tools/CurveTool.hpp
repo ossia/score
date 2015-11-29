@@ -1,15 +1,16 @@
 #pragma once
-#include <Curve/Segment/CurveSegmentModel.hpp>
-#include <Curve/Segment/CurveSegmentView.hpp>
-#include <Curve/Point/CurvePointModel.hpp>
 #include <Curve/Point/CurvePointView.hpp>
-
+#include <Curve/Segment/CurveSegmentView.hpp>
 #include <iscore/statemachine/GraphicsSceneTool.hpp>
-#include <QGraphicsItem>
-#include <chrono>
+#include <qgraphicsitem.h>
+#include <qpoint.h>
+
+#include "Curve/Palette/CurvePoint.hpp"
+
 namespace Curve
 {
 class ToolPalette;
+
 class CurveTool : public GraphicsSceneTool<Curve::Point>
 {
     public:

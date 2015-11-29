@@ -1,11 +1,13 @@
 #pragma once
-#include <QWidget>
 #include <iscore/selection/Selection.hpp>
+#include <qwidget.h>
+
 namespace iscore{
     class SelectionStack;
 }
 
 class QToolButton;
+
 class SelectionStackWidget : public QWidget
 {
     public:

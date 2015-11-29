@@ -1,6 +1,9 @@
 #pragma once
 
-#include <QSortFilterProxyModel>
+#include <qsortfilterproxymodel.h>
+
+class QModelIndex;
+class QObject;
 
 class DeviceExplorerFilterProxyModel final : public QSortFilterProxyModel
 {

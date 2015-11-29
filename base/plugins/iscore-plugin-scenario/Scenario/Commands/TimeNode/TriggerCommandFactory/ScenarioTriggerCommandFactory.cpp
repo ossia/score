@@ -1,8 +1,15 @@
-#include "ScenarioTriggerCommandFactory.hpp"
-#include <Scenario/Process/ScenarioModel.hpp>
-#include <Scenario/Document/TimeNode/TimeNodeModel.hpp>
 #include <Scenario/Commands/TimeNode/AddTrigger.hpp>
 #include <Scenario/Commands/TimeNode/RemoveTrigger.hpp>
+#include <Scenario/Document/TimeNode/TimeNodeModel.hpp>
+#include <Scenario/Process/ScenarioModel.hpp>
+#include <qbytearray.h>
+
+#include "Scenario/Process/ScenarioInterface.hpp"
+#include "ScenarioTriggerCommandFactory.hpp"
+#include "iscore/command/SerializableCommand.hpp"
+#include "iscore/serialization/DataStreamVisitor.hpp"
+#include "iscore/tools/ModelPath.hpp"
+#include "iscore/tools/ModelPathSerialization.hpp"
 
 bool ScenarioTriggerCommandFactory::matches(const TimeNodeModel& tn) const
 {

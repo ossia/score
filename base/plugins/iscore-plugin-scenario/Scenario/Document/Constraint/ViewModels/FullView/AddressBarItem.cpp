@@ -1,12 +1,22 @@
-#include "AddressBarItem.hpp"
-#include "ClickableLabelItem.hpp"
-
-#include <QGraphicsLayout>
-#include <QPainter>
-
 #include <Scenario/Document/Constraint/ConstraintModel.hpp>
 #include <Scenario/Process/ScenarioModel.hpp>
-#include <Scenario/Process/ScenarioInterface.hpp>
+#include <ext/alloc_traits.h>
+#include <qalgorithms.h>
+#include <qmap.h>
+#include <qobject.h>
+#include <qstring.h>
+#include <algorithm>
+#include <cstddef>
+#include <vector>
+
+#include "AddressBarItem.hpp"
+#include "ClickableLabelItem.hpp"
+#include "Process/ModelMetadata.hpp"
+#include "iscore/tools/ObjectIdentifier.hpp"
+
+class QPainter;
+class QStyleOptionGraphicsItem;
+class QWidget;
 
 AddressBarItem::AddressBarItem(QGraphicsItem *parent):
     QGraphicsObject{parent}

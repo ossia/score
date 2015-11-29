@@ -1,14 +1,18 @@
-#include "TemporalScenarioLayerModel.hpp"
-
-#include <Scenario/Document/Constraint/Rack/Slot/SlotModel.hpp>
 #include <Scenario/Document/Constraint/ConstraintModel.hpp>
-#include <Scenario/Process/ScenarioModel.hpp>
 #include <Scenario/Document/Constraint/ViewModels/Temporal/TemporalConstraintViewModel.hpp>
+#include <Scenario/Process/ScenarioModel.hpp>
+#include <boost/optional/optional.hpp>
+#include <qvector.h>
 
-#include <Process/LayerModelPanelProxy.hpp>
-#include <Scenario/Palette/ScenarioPalette.hpp>
-#include "TemporalScenarioPresenter.hpp"
+#include "Process/LayerModel.hpp"
+#include "TemporalScenarioLayerModel.hpp"
 #include "TemporalScenarioPanelProxy.hpp"
+#include "iscore/tools/NotifyingMap.hpp"
+#include "iscore/tools/SettableIdentifier.hpp"
+
+class ConstraintViewModel;
+class LayerModelPanelProxy;
+class QObject;
 
 TemporalScenarioLayerModel::TemporalScenarioLayerModel(
         const Id<LayerModel>& viewModelId,

@@ -1,10 +1,18 @@
+#include <core/application/OpenDocumentsFile.hpp>
+#include <qapplication.h>
+#include <qbytearray.h>
+#include <qfile.h>
+#include <qiodevice.h>
+#include <qmap.h>
+#include <qmessagebox.h>
+#include <qobject.h>
+#include <qobjectdefs.h>
+#include <qsettings.h>
+#include <qstring.h>
+#include <qvariant.h>
+
 #include "DocumentBackups.hpp"
 
-#include <core/application/OpenDocumentsFile.hpp>
-#include <QMessageBox>
-#include <QFile>
-#include <QSettings>
-#include <QApplication>
 bool iscore::DocumentBackups::canRestoreDocuments()
 {
     // Try to reload if there was a crash

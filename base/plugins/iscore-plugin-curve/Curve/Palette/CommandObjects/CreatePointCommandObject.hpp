@@ -1,5 +1,13 @@
 #pragma once
+#include <vector>
+
 #include "Curve/Palette/CommandObjects/CurveCommandObjectBase.hpp"
+
+class CurvePresenter;
+namespace iscore {
+class CommandStack;
+}  // namespace iscore
+struct CurveSegmentData;
 
 class CreatePointCommandObject final : public CurveCommandObjectBase
 {

@@ -1,14 +1,15 @@
 #pragma once
-#include <iscore/tools/SettableIdentifier.hpp>
-class QVariant;
 class QByteArray;
+class QVariant;
+template <typename tag, typename impl> class id_base_t;
+
 namespace iscore
 {
-class Presenter;
 class Document;
-class DocumentDelegateFactoryInterface;
 class DocumentBackupManager;
+class DocumentDelegateFactoryInterface;
 class DocumentModel;
+class Presenter;
 
 /**
  * @brief The DocumentBuilder class

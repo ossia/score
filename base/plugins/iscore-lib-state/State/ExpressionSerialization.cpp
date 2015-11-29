@@ -1,9 +1,20 @@
-#include "Expression.hpp"
 #include <iscore/serialization/DataStreamVisitor.hpp>
 #include <iscore/serialization/JSONVisitor.hpp>
 #include <iscore/tools/VariantSerialization.hpp>
+#include <qjsonobject.h>
+#include <qjsonvalue.h>
 
+#include "Expression.hpp"
 #include "Relation.hpp"
+#include "iscore/serialization/JSONValueVisitor.hpp"
+
+namespace iscore {
+struct Address;
+struct Value;
+}  // namespace iscore
+template <typename T> class Reader;
+template <typename T> class TypeToName;
+template <typename T> class Writer;
 
 template<>
 void Visitor<Reader<DataStream>>::readFrom(const iscore::Relation& rel)

@@ -1,25 +1,22 @@
 #pragma once
 
-#include <Curve/Process/CurveProcessModel.hpp>
-#include <iscore/serialization/DataStreamVisitor.hpp>
-#include <iscore/serialization/JSONVisitor.hpp>
-
 #include <Automation/State/AutomationState.hpp>
-#include <Automation/AutomationProcessMetadata.hpp>
+#include <Curve/Process/CurveProcessModel.hpp>
 #include <State/Address.hpp>
+#include <qbytearray.h>
+#include <qstring.h>
 
-/**
- * @brief The AutomationModel class
- *
- * Points are in relative coordinates :
- *	x is between  0 and 1,
- *  y is between -1 and 1.
- *
- * The duration is the time between x=0 and x=1.
- *
- */
-class CurveModel;
-class AutomationState;
+#include "Process/ProcessFactoryKey.hpp"
+#include "Process/TimeValue.hpp"
+#include "iscore/serialization/VisitorInterface.hpp"
+
+class DataStream;
+class JSONObject;
+class LayerModel;
+class Process;
+class QObject;
+template <typename tag, typename impl> class id_base_t;
+
 class AutomationModel final : public CurveProcessModel
 {
         ISCORE_SERIALIZE_FRIENDS(AutomationModel, DataStream)

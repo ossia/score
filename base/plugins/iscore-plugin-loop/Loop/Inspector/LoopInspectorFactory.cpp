@@ -1,18 +1,36 @@
-#include "LoopInspectorFactory.hpp"
-#include "LoopInspectorWidget.hpp"
+#include <Inspector/InspectorWidgetList.hpp>
 #include <Loop/LoopProcessModel.hpp>
-#include <Loop/Commands/MoveLoopEvent.hpp>
-#include <Scenario/Process/ScenarioModel.hpp>
+#include <Process/ProcessList.hpp>
 #include <Scenario/Document/Constraint/ConstraintModel.hpp>
 #include <Scenario/Inspector/Constraint/ConstraintInspectorDelegateFactory.hpp>
 #include <Scenario/Inspector/Constraint/ConstraintInspectorWidget.hpp>
-
-#include <Inspector/InspectorWidgetList.hpp>
-
-#include <Process/ProcessList.hpp>
-
-#include <core/document/Document.hpp>
+#include <boost/core/explicit_operator_bool.hpp>
+#include <boost/optional/optional.hpp>
 #include <core/application/ApplicationComponents.hpp>
+#include <core/document/Document.hpp>
+#include <qbytearray.h>
+#include <qdatastream.h>
+#include <qglobal.h>
+#include <qobject.h>
+#include <algorithm>
+#include <list>
+
+#include "Inspector/InspectorWidgetFactoryInterface.hpp"
+#include "LoopInspectorFactory.hpp"
+#include "Process/ExpandMode.hpp"
+#include "Process/TimeValue.hpp"
+#include "Scenario/Commands/MoveBaseEvent.hpp"
+#include "Scenario/Document/State/StateModel.hpp"
+#include "Scenario/Inspector/Constraint/ConstraintInspectorDelegate.hpp"
+#include "core/application/ApplicationContext.hpp"
+#include "core/document/DocumentContext.hpp"
+#include "iscore/command/Dispatchers/OngoingCommandDispatcher.hpp"
+#include "iscore/plugins/customfactory/StringFactoryKey.hpp"
+#include "iscore/serialization/DataStreamVisitor.hpp"
+#include "iscore/tools/ModelPathSerialization.hpp"
+
+class InspectorWidgetBase;
+class QWidget;
 
 class LoopConstraintInspectorDelegate final : public ConstraintInspectorDelegate
 {

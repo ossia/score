@@ -1,13 +1,24 @@
-#include "TemporalConstraintHeader.hpp"
-#include <iscore/document/DocumentInterface.hpp>
-#include <QFont>
-#include <QPainter>
-#include <QGraphicsView>
-#include <QGraphicsScene>
-#include <QApplication>
 #include <Process/Style/ProcessFonts.hpp>
 #include <Process/Style/ScenarioStyle.hpp>
+#include <qbrush.h>
+#include <qfont.h>
+#include <qfontmetrics.h>
+#include <qgraphicsscene.h>
+#include <qgraphicsview.h>
+#include <qlist.h>
+#include <qpainter.h>
+#include <qpen.h>
+#include <qpoint.h>
+#include <algorithm>
 #include <cmath>
+
+#include "Scenario/Document/Constraint/ViewModels/ConstraintHeader.hpp"
+#include "TemporalConstraintHeader.hpp"
+
+class QGraphicsSceneMouseEvent;
+class QStyleOptionGraphicsItem;
+class QWidget;
+
 QRectF TemporalConstraintHeader::boundingRect() const
 {
     return {0, 0, m_width, ConstraintHeader::headerHeight()};

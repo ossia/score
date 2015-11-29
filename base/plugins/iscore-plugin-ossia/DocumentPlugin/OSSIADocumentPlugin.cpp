@@ -1,15 +1,14 @@
-#include "OSSIADocumentPlugin.hpp"
-#include "OSSIAAutomationElement.hpp"
-
-#include "OSSIAEventElement.hpp"
+#include <Scenario/Document/ScenarioDocument/ScenarioDocumentModel.hpp>
+#include <core/document/DocumentModel.hpp>
 
 #include "OSSIABaseScenarioElement.hpp"
-#include "OSSIAScenarioElement.hpp"
+#include "OSSIADocumentPlugin.hpp"
+#include "iscore/plugins/documentdelegate/plugin/DocumentDelegatePluginModel.hpp"
 
-#include <Scenario/Document/BaseScenario/BaseScenario.hpp>
-#include <core/document/DocumentModel.hpp>
-#include <core/document/Document.hpp>
-#include <Scenario/Document/ScenarioDocument/ScenarioDocumentModel.hpp>
+class QObject;
+namespace iscore {
+class Document;
+}  // namespace iscore
 
 
 OSSIADocumentPlugin::OSSIADocumentPlugin(iscore::Document& doc, QObject* parent):

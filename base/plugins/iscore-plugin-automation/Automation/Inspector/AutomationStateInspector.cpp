@@ -1,7 +1,18 @@
-#include "AutomationStateInspector.hpp"
+#include <qlabel.h>
+#include <list>
+
 #include "Automation/State/AutomationState.hpp"
-#include <QLabel>
-#include <QHBoxLayout>
+#include "AutomationStateInspector.hpp"
+#include "Inspector/InspectorWidgetBase.hpp"
+#include "Process/State/ProcessStateDataInterface.hpp"
+#include "State/Message.hpp"
+#include "iscore/tools/Todo.hpp"
+
+class QVBoxLayout;
+class QWidget;
+namespace iscore {
+class Document;
+}  // namespace iscore
 
 AutomationStateInspector::AutomationStateInspector(
         const AutomationState& object,

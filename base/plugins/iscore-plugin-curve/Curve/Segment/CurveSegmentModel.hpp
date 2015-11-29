@@ -1,13 +1,21 @@
 #pragma once
-#include <iscore/tools/IdentifiedObject.hpp>
-#include <iscore/serialization/DataStreamVisitor.hpp>
-#include <iscore/serialization/JSONVisitor.hpp>
-#include <iscore/selection/Selectable.hpp>
 #include <Curve/Palette/CurvePoint.hpp>
 #include <Curve/Segment/CurveSegmentData.hpp>
+#include <boost/optional/optional.hpp>
+#include <iscore/selection/Selectable.hpp>
+#include <iscore/tools/IdentifiedObject.hpp>
+#include <qpoint.h>
+#include <qvariant.h>
+#include <vector>
 
-class CurveModel;
+#include "Curve/Segment/CurveSegmentFactoryKey.hpp"
+#include "iscore/serialization/VisitorInterface.hpp"
+#include "iscore/tools/SettableIdentifier.hpp"
 
+class DataStream;
+class JSONObject;
+class QObject;
+class PowerCurveSegmentModel;
 
 // Gives the data.
 class CurveSegmentModel : public IdentifiedObject<CurveSegmentModel>
@@ -103,6 +111,4 @@ class CurveSegmentModel : public IdentifiedObject<CurveSegmentModel>
 };
 
 
-class LinearCurveSegmentModel;
-class PowerCurveSegmentModel;
 using DefaultCurveSegmentModel = PowerCurveSegmentModel;

@@ -1,19 +1,17 @@
 #pragma once
 #include <Scenario/Document/Constraint/ViewModels/ConstraintPresenter.hpp>
-
-class FullViewConstraintViewModel;
-class FullViewConstraintView;
-class RackPresenter;
-class RackModel;
-class QGraphicsItem;
 #include <iscore/selection/SelectionDispatcher.hpp>
-#include <iscore/tools/ModelPath.hpp>
+
+#include "Scenario/Document/Constraint/ViewModels/FullView/FullViewConstraintView.hpp"
+#include "Scenario/Document/Constraint/ViewModels/FullView/FullViewConstraintViewModel.hpp"
+
+class ObjectPath;
+class QGraphicsItem;
+class QObject;
 
 namespace iscore
 {
-    class SerializableCommand;
 }
-class LayerPresenter;
 
 /**
  * @brief The FullViewConstraintPresenter class

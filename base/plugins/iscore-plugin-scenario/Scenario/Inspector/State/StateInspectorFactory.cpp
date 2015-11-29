@@ -1,7 +1,15 @@
+#include <Scenario/Document/State/StateModel.hpp>
+#include <qstring.h>
+
 #include "StateInspectorFactory.hpp"
 #include "StateInspectorWidget.hpp"
 
-#include <Scenario/Document/State/StateModel.hpp>
+class InspectorWidgetBase;
+class QObject;
+class QWidget;
+namespace iscore {
+class Document;
+}  // namespace iscore
 
 InspectorWidgetBase* StateInspectorFactory::makeWidget(
         const QObject& sourceElement,

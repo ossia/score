@@ -1,10 +1,14 @@
+#include <core/view/View.hpp>
+#include "UndoPanelId.hpp"
+#include "UndoModel.hpp"
 #include "UndoPanelFactory.hpp"
 #include "UndoPresenter.hpp"
-#include "UndoModel.hpp"
 #include "UndoView.hpp"
-#include "UndoPanelId.hpp"
 
-#include <core/view/View.hpp>
+namespace iscore {
+class DocumentModel;
+class Presenter;
+}  // namespace iscore
 
 int UndoPanelFactory::panelId() const
 {

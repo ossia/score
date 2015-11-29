@@ -1,8 +1,11 @@
-#include "EventElement.hpp"
-#include <iscore2OSSIA.hpp>
-
-#include <Scenario/Document/Event/EventModel.hpp>
 #include <API/Headers/Editor/TimeEvent.h>
+#include <Scenario/Document/Event/EventModel.hpp>
+#include <iscore2OSSIA.hpp>
+#include <qdebug.h>
+#include <exception>
+
+#include "Editor/Expression.h"
+#include "EventElement.hpp"
 
 namespace RecreateOnPlay
 {

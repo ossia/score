@@ -1,7 +1,12 @@
+#include <qdebug.h>
+
 #include "BlacklistCommand.hpp"
-#include <QSettings>
+#include "iscore/command/SerializableCommand.hpp"
+
+class DataStreamInput;
+class DataStreamOutput;
+
 using namespace iscore;
-#include <QDebug>
 
 BlacklistCommand::BlacklistCommand(QString name, bool value) :
 m_blacklistedState {{name, value}}

@@ -1,6 +1,18 @@
 #pragma once
 #include <iscore/plugins/documentdelegate/DocumentDelegateFactoryInterface.hpp>
 
+#include "core/application/ApplicationContext.hpp"
+#include "iscore/plugins/documentdelegate/DocumentDelegateModelInterface.hpp"
+#include "iscore/plugins/documentdelegate/DocumentDelegatePresenterInterface.hpp"
+#include "iscore/plugins/documentdelegate/DocumentDelegateViewInterface.hpp"
+
+namespace iscore {
+class DocumentModel;
+class DocumentPresenter;
+class DocumentView;
+}  // namespace iscore
+struct VisitorVariant;
+
 // TODO ScenarioDocumentFactory instead?
 class ScenarioDocument final : public iscore::DocumentDelegateFactoryInterface
 {

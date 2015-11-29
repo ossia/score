@@ -40,10 +40,14 @@ J'ai apporté quelques modifications en plus.
 
 #pragma once
 
-#include <QMenu>
-#include <QAbstractItemModel>
+#include <qabstractitemmodel.h>
+#include <qmenu.h>
+#include <qscopedpointer.h>
+#include <qstring.h>
 
 class QMenuViewPrivate;
+class QMouseEvent;
+class QWidget;
 
 class ClickableMenu : public QMenu
 {

@@ -1,7 +1,14 @@
 #pragma once
-#include <QGraphicsItem>
+#include <qglobal.h>
+#include <qgraphicsitem.h>
+#include <qrect.h>
+
+class QGraphicsSceneMouseEvent;
+class QPainter;
+class QStyleOptionGraphicsItem;
+class QWidget;
 class SlotView;
-class SlotHandle;
+
 class SlotOverlay final : public QGraphicsItem
 {
     public:

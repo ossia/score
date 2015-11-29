@@ -1,10 +1,11 @@
 #pragma once
 
 #include "AddressSettingsWidget.hpp"
+#include "Device/Address/AddressSettings.hpp"
 
-class QComboBox;
 class QLineEdit;
-class QSpinBox;
+class QWidget;
+
 class AddressStringSettingsWidget final : public AddressSettingsWidget
 {
     public:

@@ -1,14 +1,16 @@
 #pragma once
-#include <iscore/tools/NamedObject.hpp>
-#include <iscore/tools/SettableIdentifier.hpp>
 #include <iscore/command/Dispatchers/CommandDispatcher.hpp>
+#include <iscore/tools/NamedObject.hpp>
+#include <qpoint.h>
+#include <qstring.h>
 
-class QGraphicsObject;
 class EventModel;
 class EventView;
-class TemporalScenarioPresenter;
+class QGraphicsObject;
 class QMimeData;
-class ConstraintModel;
+class QObject;
+template <typename tag, typename impl> class id_base_t;
+
 class EventPresenter final : public NamedObject
 {
         Q_OBJECT

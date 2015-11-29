@@ -4,15 +4,17 @@
 This file is used to define simple data structure to simplify the code when needed
 */
 
-#include <QVector>
-#include <iscore/tools/SettableIdentifier.hpp>
 #include <Process/TimeValue.hpp>
 #include <iscore/tools/ModelPath.hpp>
-#include <Scenario/Document/Constraint/ViewModels/ConstraintViewModel.hpp>
-#include <Scenario/Document/Constraint/Rack/RackModel.hpp>
+#include <iscore/tools/SettableIdentifier.hpp>
+#include <qbytearray.h>
+#include <qmap.h>
+#include <qpair.h>
 
-class TimeNodeModel;
 class ConstraintModel;
+class ConstraintViewModel;
+class RackModel;
+class TimeNodeModel;
 
 struct TimenodeProperties {
     TimeValue oldDate;

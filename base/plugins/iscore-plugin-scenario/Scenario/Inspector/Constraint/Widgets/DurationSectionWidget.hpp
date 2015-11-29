@@ -1,17 +1,20 @@
 #pragma once
 #include <Inspector/InspectorSectionWidget.hpp>
 #include <Process/TimeValue.hpp>
-#include <Scenario/Application/ScenarioEditionSettings.hpp>
-
 #include <iscore/command/Dispatchers/OngoingCommandDispatcher.hpp>
-#include <iscore/widgets/SpinBoxes.hpp>
-class QLabel;
-class ConstraintModel;
+
+class ConstraintInspectorDelegate;
 class ConstraintInspectorWidget;
+class ConstraintModel;
 class QCheckBox;
 class QGridLayout;
-class QHBoxLayout;
-class ConstraintInspectorDelegate;
+class QLabel;
+namespace Scenario {
+class EditionSettings;
+}  // namespace Scenario
+namespace iscore {
+class TimeSpinBox;
+}  // namespace iscore
 
 class DurationSectionWidget final : public InspectorSectionWidget
 {

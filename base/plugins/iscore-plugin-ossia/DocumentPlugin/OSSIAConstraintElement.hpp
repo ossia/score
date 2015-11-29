@@ -1,23 +1,21 @@
 #pragma once
-#include <iscore/plugins/documentdelegate/plugin/ElementPluginModel.hpp>
-#include <iscore/tools/SettableIdentifier.hpp>
-#include "ProcessWrapper.hpp"
-#include <memory>
-#include <Process/TimeValue.hpp>
 #include <Editor/TimeValue.h>
+#include <Process/TimeValue.hpp>
+#include <iscore/tools/SettableIdentifier.hpp>
+#include <qobject.h>
+#include <map>
+#include <memory>
 
+#include "ProcessWrapper.hpp"
 
 class ConstraintModel;
 class Process;
-class OSSIAProcessElement;
+
 namespace OSSIA
 {
 class Loop;
-class TimeConstraint;
 class StateElement;
-class Scenario;
-class TimeNode;
-class TimeProcess;
+class TimeConstraint;
 }
 
 class OSSIAConstraintElement final : public QObject

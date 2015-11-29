@@ -1,40 +1,65 @@
-#include "ObjectMenuActions.hpp"
-
-#include <core/document/DocumentModel.hpp>
-#include <Scenario/Process/ScenarioGlobalCommandManager.hpp>
-#include <Scenario/Process/Temporal/TemporalScenarioPresenter.hpp>
-
-#include <Scenario/Document/ScenarioDocument/ScenarioDocumentModel.hpp>
-#include <Scenario/Document/ScenarioDocument/ScenarioDocumentPresenter.hpp>
-#include <Scenario/Process/Temporal/TemporalScenarioView.hpp>
-
-#include <Scenario/Commands/Constraint/InsertContentInConstraint.hpp>
-#include <Scenario/Commands/Constraint/AddProcessToConstraint.hpp>
-#include <Scenario/Commands/TimeNode/AddTrigger.hpp>
-#include <Scenario/Commands/TimeNode/RemoveTrigger.hpp>
-
 #include <Scenario/Application/ScenarioApplicationPlugin.hpp>
 #include <Scenario/Commands/Cohesion/InterpolateStates.hpp>
 #include <Scenario/Commands/Cohesion/RefreshStates.hpp>
+#include <Scenario/Commands/Constraint/AddProcessToConstraint.hpp>
+#include <Scenario/Commands/Constraint/InsertContentInConstraint.hpp>
+#include <Scenario/Commands/Scenario/HideRackInViewModel.hpp>
 #include <Scenario/Commands/Scenario/ScenarioPasteContent.hpp>
 #include <Scenario/Commands/Scenario/ScenarioPasteElements.hpp>
-#include <Scenario/Commands/Scenario/HideRackInViewModel.hpp>
 #include <Scenario/Commands/State/InsertContentInState.hpp>
-#include <iscore/command/Dispatchers/MacroCommandDispatcher.hpp>
-
-#include "ScenarioCopy.hpp"
+#include <Scenario/Commands/TimeNode/AddTrigger.hpp>
+#include <Scenario/Commands/TimeNode/RemoveTrigger.hpp>
+#include <Scenario/Document/ScenarioDocument/ScenarioDocumentModel.hpp>
+#include <Scenario/Process/ScenarioGlobalCommandManager.hpp>
 #include <Scenario/Process/Temporal/TemporalScenarioLayerModel.hpp>
+#include <Scenario/Process/Temporal/TemporalScenarioPresenter.hpp>
+#include <Scenario/Process/Temporal/TemporalScenarioView.hpp>
+#include <boost/optional/optional.hpp>
+#include <iscore/command/Dispatchers/MacroCommandDispatcher.hpp>
+#include <qaction.h>
+#include <qapplication.h>
+#include <qbytearray.h>
+#include <qclipboard.h>
+#include <qjsonarray.h>
+#include <qjsondocument.h>
+#include <qjsonvalue.h>
+#include <qkeysequence.h>
+#include <qmenu.h>
+#include <qnamespace.h>
+#include <qobject.h>
+#include <qobjectdefs.h>
+#include <qrect.h>
+#include <qstring.h>
+#include <qtoolbar.h>
+#include <algorithm>
 
-#include <QJsonDocument>
-#include <QApplication>
-#include <QClipboard>
-
-#include <QTextEdit>
-#include <QGridLayout>
-#include <QDialogButtonBox>
-#include <QTextBlock>
-#include <QDialog>
+#include "ObjectMenuActions.hpp"
+#include "Process/LayerModel.hpp"
+#include "Process/ProcessList.hpp"
+#include "Scenario/Application/Menus/ScenarioActions.hpp"
+#include "Scenario/Application/ScenarioEditionSettings.hpp"
+#include "Scenario/Commands/Scenario/ShowRackInViewModel.hpp"
+#include "Scenario/DialogWidget/AddProcessDialog.hpp"
+#include "Scenario/Document/Constraint/ConstraintModel.hpp"
+#include "Scenario/Document/Constraint/Rack/RackModel.hpp"
+#include "Scenario/Document/Event/EventModel.hpp"
+#include "Scenario/Document/State/StateModel.hpp"
+#include "Scenario/Document/TimeNode/TimeNodeModel.hpp"
+#include "Scenario/Palette/ScenarioPoint.hpp"
+#include "Scenario/Process/ScenarioModel.hpp"
+#include "ScenarioCopy.hpp"
 #include "TextDialog.hpp"
+#include "core/application/ApplicationComponents.hpp"
+#include "core/application/ApplicationContext.hpp"
+#include "core/document/Document.hpp"
+#include "core/presenter/MenubarManager.hpp"
+#include "iscore/document/DocumentInterface.hpp"
+#include "iscore/plugins/customfactory/StringFactoryKey.hpp"
+#include "iscore/selection/Selectable.hpp"
+#include "iscore/serialization/DataStreamVisitor.hpp"
+#include "iscore/tools/ModelPath.hpp"
+#include "iscore/tools/ModelPathSerialization.hpp"
+#include "iscore/tools/NotifyingMap.hpp"
 
 ObjectMenuActions::ObjectMenuActions(
         iscore::ToplevelMenuElement menuElt,

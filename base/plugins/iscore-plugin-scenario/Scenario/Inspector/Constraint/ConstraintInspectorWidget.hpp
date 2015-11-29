@@ -1,23 +1,36 @@
 #pragma once
 
 #include <Inspector/InspectorWidgetBase.hpp>
-#include <Process/ProcessFactory.hpp>
-#include <unordered_map>
 #include <Scenario/Inspector/Constraint/ConstraintInspectorDelegate.hpp>
+#include <qobjectdefs.h>
+#include <qstring.h>
+#include <qvector.h>
+#include <list>
+#include <memory>
+#include <unordered_map>
+#include <vector>
+
+#include "Process/ProcessFactoryKey.hpp"
+#include "iscore/tools/SettableIdentifier.hpp"
+
 class ConstraintModel;
-class TemporalConstraintViewModel;
 class ConstraintViewModel;
-class RackModel;
-class SlotModel;
-namespace Scenario { class ScenarioModel; }
-class Process;
-class TriggerInspectorWidget;
-class InspectorWidgetList;
 class DynamicProcessList;
-class RackWidget;
-class RackInspectorSection;
-class QFormLayout;
+class InspectorSectionWidget;
+class InspectorWidgetList;
 class MetadataWidget;
+class Process;
+class QObject;
+class QWidget;
+class RackInspectorSection;
+class RackModel;
+class RackWidget;
+namespace Scenario {
+class ScenarioModel;
+}  // namespace Scenario
+namespace iscore {
+class Document;
+}  // namespace iscore
 
 /*!
  * \brief The ConstraintInspectorWidget class

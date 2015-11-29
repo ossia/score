@@ -1,7 +1,17 @@
 #pragma once
+#include <qlist.h>
+
 #include "Session.hpp"
 
-#include "RemoteClientBuilder.hpp"
+class Client;
+class LocalClient;
+class QObject;
+class QTcpSocket;
+class RemoteClient;
+class RemoteClientBuilder;
+struct NetworkMessage;
+template <typename tag, typename impl> class id_base_t;
+
 namespace iscore {
 class Document;
 }

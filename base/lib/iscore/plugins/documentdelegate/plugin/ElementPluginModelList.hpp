@@ -1,10 +1,14 @@
 #pragma once
 #include <iscore/plugins/documentdelegate/plugin/ElementPluginModel.hpp>
-#include <iscore/plugins/documentdelegate/plugin/DocumentDelegatePluginModel.hpp>
+#include <type_traits>
+#include <vector>
+
+class QObject;
 
 namespace iscore
 {
     class Document;
+
     // The owner of the elements is the class that contains the ElementPluginModelList.
     class ElementPluginModelList
     {

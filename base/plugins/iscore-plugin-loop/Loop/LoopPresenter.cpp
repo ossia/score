@@ -1,17 +1,32 @@
-#include "LoopPresenter.hpp"
-#include <Loop/LoopProcessModel.hpp>
 #include <Loop/LoopLayer.hpp>
+#include <Loop/LoopProcessModel.hpp>
 #include <Loop/LoopView.hpp>
-
-#include <Scenario/Document/Constraint/ViewModels/Temporal/TemporalConstraintView.hpp>
-#include <Scenario/Document/Constraint/ViewModels/Temporal/TemporalConstraintViewModel.hpp>
-
-#include <Scenario/Document/Event/EventView.hpp>
-
-#include <Scenario/Document/TimeNode/TimeNodeView.hpp>
-
-
 #include <iscore/widgets/GraphicsItem.hpp>
+#include <qgraphicsitem.h>
+#include <tuple>
+#include <type_traits>
+
+#include "Loop/LoopViewUpdater.hpp"
+#include "LoopPresenter.hpp"
+#include "Process/LayerPresenter.hpp"
+#include "Process/TimeValue.hpp"
+#include "Scenario/Document/BaseScenario/BaseScenarioContainer.hpp"
+#include "Scenario/Document/BaseScenario/BaseScenarioPresenter.hpp"
+#include "Scenario/Document/Constraint/ViewModels/Temporal/TemporalConstraintPresenter.hpp"
+#include "Scenario/Document/Event/EventModel.hpp"
+#include "Scenario/Document/Event/EventPresenter.hpp"
+#include "Scenario/Document/State/StatePresenter.hpp"
+#include "Scenario/Document/TimeNode/TimeNodeModel.hpp"
+#include "Scenario/Document/TimeNode/TimeNodePresenter.hpp"
+#include "core/document/DocumentContext.hpp"
+#include "iscore/tools/Todo.hpp"
+#include "iscore/tools/std/StdlibWrapper.hpp"
+
+class LayerModel;
+class Process;
+class QMenu;
+class QObject;
+struct VerticalExtent;
 
 
 LoopPresenter::LoopPresenter(

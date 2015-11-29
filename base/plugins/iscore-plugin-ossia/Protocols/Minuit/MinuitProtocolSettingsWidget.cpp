@@ -1,10 +1,17 @@
+#include <Explorer/Widgets/AddressFragmentLineEdit.hpp>
+#include <qgridlayout.h>
+#include <qlabel.h>
+#include <qlineedit.h>
+#include <qobjectdefs.h>
+#include <qspinbox.h>
+#include <qstring.h>
+#include <qvariant.h>
+
+#include "Device/Protocol/ProtocolSettingsWidget.hpp"
 #include "MinuitProtocolSettingsWidget.hpp"
 #include "MinuitSpecificSettings.hpp"
-#include <Explorer/Widgets/AddressFragmentLineEdit.hpp>
 
-#include <QGridLayout>
-#include <QLabel>
-#include <QSpinBox>
+class QWidget;
 
 MinuitProtocolSettingsWidget::MinuitProtocolSettingsWidget(QWidget* parent)
     : ProtocolSettingsWidget(parent)

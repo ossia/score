@@ -1,6 +1,8 @@
-#include "ZoomPolicy.hpp"
 #include <algorithm>
-#include <QDebug>
+
+#include "Process/ZoomHelper.hpp"
+#include "ZoomPolicy.hpp"
+
 ZoomRatio ZoomPolicy::sliderPosToZoomRatio(double sliderPos, double cstrMaxTime, int cstrMaxWidth)
 {
     // sliderPos is in [0;1] : 0 is zoom max, 1 zoom min.

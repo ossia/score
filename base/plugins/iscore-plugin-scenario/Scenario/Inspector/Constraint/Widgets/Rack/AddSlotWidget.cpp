@@ -1,11 +1,10 @@
+#include <qboxlayout.h>
+#include <qlabel.h>
+#include <qstring.h>
+#include <qtoolbutton.h>
+
 #include "AddSlotWidget.hpp"
-
 #include "RackInspectorSection.hpp"
-
-#include <QtWidgets/QHBoxLayout>
-#include <QtWidgets/QToolButton>
-#include <QtWidgets/QLabel>
-#include <QtWidgets/QInputDialog>
 
 AddSlotWidget::AddSlotWidget(RackInspectorSection* parent) :
     QWidget {parent}

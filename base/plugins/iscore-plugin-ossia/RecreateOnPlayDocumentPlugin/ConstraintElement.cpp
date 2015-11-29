@@ -1,26 +1,29 @@
-#include "ConstraintElement.hpp"
-#include "AutomationElement.hpp"
-#include "ScenarioElement.hpp"
-#include "LoopElement.hpp"
-#include <iscore2OSSIA.hpp>
+#include <API/Headers/Editor/TimeConstraint.h>
+#include <Automation/AutomationModel.hpp>
 #include <OSSIA2iscore.hpp>
-
 #include <RecreateOnPlayDocumentPlugin/ProcessModel/ProcessModel.hpp>
 #include <RecreateOnPlayDocumentPlugin/ProcessModel/ProcessModelElement.hpp>
-#include <Automation/AutomationModel.hpp>
 #include <Scenario/Document/Constraint/ConstraintModel.hpp>
 #include <Scenario/Process/ScenarioModel.hpp>
+#include <iscore2OSSIA.hpp>
+#include <utility>
 
-#include <API/Headers/Editor/TimeConstraint.h>
-#include <API/Headers/Editor/TimeProcess.h>
-#include <Editor/TimeNode.h>
-#include <Scenario/Document/BaseScenario/BaseScenario.hpp>
-#include <boost/range/algorithm.hpp>
-
-#include <sstream>
+#include "AutomationElement.hpp"
+#include "ConstraintElement.hpp"
+#include "Editor/TimeValue.h"
+#include "Loop/LoopProcessModel.hpp"
+#include "LoopElement.hpp"
+#include "Process/Process.hpp"
+#include "Process/TimeValue.hpp"
+#include "RecreateOnPlayDocumentPlugin/ProcessElement.hpp"
+#include "RecreateOnPlayDocumentPlugin/ProcessWrapper.hpp"
+#include "Scenario/Document/Constraint/ConstraintDurations.hpp"
+#include "ScenarioElement.hpp"
+#include "iscore/tools/SettableIdentifier.hpp"
 
 #if defined(ISCORE_PLUGIN_MAPPING)
 #include <Mapping/MappingModel.hpp>
+
 #include "OSSIAMappingElement.hpp"
 #endif
 

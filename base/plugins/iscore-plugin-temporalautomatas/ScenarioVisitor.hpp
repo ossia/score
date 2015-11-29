@@ -1,6 +1,12 @@
 #pragma once
 #include <iscore/plugins/application/GUIApplicationContextPlugin.hpp>
-#include <QAction>
+
+class QAction;
+namespace iscore {
+class Application;
+class MenubarManager;
+}  // namespace iscore
+
 namespace TemporalAutomatas
 {
 class ApplicationPlugin : public iscore::GUIApplicationContextPlugin

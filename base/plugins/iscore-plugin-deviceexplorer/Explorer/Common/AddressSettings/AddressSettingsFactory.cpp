@@ -1,12 +1,15 @@
-#include "AddressSettingsFactory.hpp"
+#include <qobject.h>
+#include <qobjectdefs.h>
 
+#include "AddressSettingsFactory.hpp"
+#include "Device/Address/AddressSettings.hpp"
+#include "Widgets/AddressBoolSettingsWidget.hpp"
+#include "Widgets/AddressCharSettingsWidget.hpp"
+#include "Widgets/AddressNoneSettingsWidget.hpp"
 //value types
 #include "Widgets/AddressNumericSettingsWidget.hpp"
 #include "Widgets/AddressStringSettingsWidget.hpp"
-#include "Widgets/AddressCharSettingsWidget.hpp"
 #include "Widgets/AddressTupleSettingsWidget.hpp"
-#include "Widgets/AddressBoolSettingsWidget.hpp"
-#include "Widgets/AddressNoneSettingsWidget.hpp"
 
 
 using AddressIntSettingsWidget = AddressNumericSettingsWidget<int>;

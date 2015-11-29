@@ -1,6 +1,13 @@
+#include <qobjectdefs.h>
+
 #include "AutomationLayerModel.hpp"
 #include "AutomationModel.hpp"
 #include "AutomationPanelProxy.hpp"
+#include "Process/LayerModel.hpp"
+
+class LayerModelPanelProxy;
+class QObject;
+template <typename tag, typename impl> class id_base_t;
 
 // TODO refactor with mapping ?
 constexpr const char AutomationLayerModel::className[];

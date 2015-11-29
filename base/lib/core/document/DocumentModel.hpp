@@ -1,14 +1,26 @@
 #pragma once
-#include <iscore/tools/IdentifiedObject.hpp>
 #include <iscore/selection/Selection.hpp>
+#include <iscore/tools/IdentifiedObject.hpp>
+#include <qbytearray.h>
+#include <qjsonobject.h>
+#include <qobjectdefs.h>
+#include <qstring.h>
+#include <qvariant.h>
+#include <algorithm>
+#include <iterator>
+#include <vector>
+
+class QObject;
+template <typename tag, typename impl> class id_base_t;
 
 namespace iscore
 {
-struct ApplicationContext;
 class DocumentDelegateFactoryInterface;
 class DocumentDelegateModelInterface;
 class DocumentDelegatePluginModel;
 class PanelModel;
+struct ApplicationContext;
+
 /**
      * @brief The DocumentModel class
      *

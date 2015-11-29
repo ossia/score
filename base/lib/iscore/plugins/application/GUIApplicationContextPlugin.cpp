@@ -1,5 +1,19 @@
-#include "GUIApplicationContextPlugin.hpp"
 #include <core/application/Application.hpp>
+#include <qapplication.h>
+
+#include "GUIApplicationContextPlugin.hpp"
+#include "core/presenter/DocumentManager.hpp"
+#include "core/presenter/Presenter.hpp"
+#include <core/document/Document.hpp>
+#include "iscore/tools/NamedObject.hpp"
+#include "iscore/widgets/OrderedToolbar.hpp"
+
+class QAction;
+class QObject;
+namespace iscore {
+class Document;
+}  // namespace iscore
+struct VisitorVariant;
 
 using namespace iscore;
 

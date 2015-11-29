@@ -1,7 +1,9 @@
 #pragma once
 #include "Protocols/OSSIADevice.hpp"
-#include "OSCSpecificSettings.hpp"
-#include <API/Headers/Network/Protocol/OSC.h>
+
+namespace iscore {
+struct DeviceSettings;
+}  // namespace iscore
 
 class OSCDevice final : public OSSIADevice
 {

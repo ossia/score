@@ -1,5 +1,9 @@
 #pragma once
 #include <Process/LayerView.hpp>
+#include <qrect.h>
+
+class QGraphicsItem;
+class QPainter;
 
 
 class LoopView final : public LayerView

@@ -2,6 +2,8 @@
 #include <Scenario/Document/DisplayedElements/DisplayedElementsContainer.hpp>
 #include <iscore/plugins/customfactory/FactoryInterface.hpp>
 
+class ConstraintModel;
+
 class DisplayedElementsProvider : public iscore::FactoryInterfaceBase
 {
         ISCORE_FACTORY_DECL("DisplayedElementsProvider")

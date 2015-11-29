@@ -1,15 +1,22 @@
 #pragma once
-#include <vector>
-#include <unordered_map>
-#include <iscore/command/CommandGeneratorMap.hpp>
 #include <iscore/command/CommandData.hpp>
-#include <iscore/plugins/customfactory/FactoryFamily.hpp>
+#include <iscore/command/CommandGeneratorMap.hpp>
+#include <qbytearray.h>
+#include <algorithm>
+#include <iterator>
+#include <unordered_map>
+#include <utility>
+#include <vector>
+
+#include "iscore/command/SerializableCommand.hpp"
+#include "iscore/plugins/customfactory/FactoryInterface.hpp"
+#include "iscore/plugins/customfactory/StringFactoryKey.hpp"
 
 namespace iscore
 {
 class DocumentDelegateFactoryInterface;
-class GUIApplicationContextPlugin;
 class FactoryListInterface;
+class GUIApplicationContextPlugin;
 class PanelFactory;
 class PanelPresenter;
 

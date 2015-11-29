@@ -1,15 +1,39 @@
-#include "AutomationElement.hpp"
-
 #include <API/Headers/Editor/Automation.h>
-#include <API/Headers/Editor/Message.h>
 #include <Automation/AutomationModel.hpp>
-#include "iscore2OSSIA.hpp"
-
+#include <Explorer/DocumentPlugin/DeviceDocumentPlugin.hpp>
 #include <core/document/Document.hpp>
 #include <core/document/DocumentModel.hpp>
-#include <Explorer/DocumentPlugin/DeviceDocumentPlugin.hpp>
+#include <qdebug.h>
+#include <qstring.h>
+#include <algorithm>
+#include <vector>
+
+#include "AutomationElement.hpp"
+#include "Curve/CurveModel.hpp"
+#include "Curve/Segment/CurveSegmentData.hpp"
+#include "Device/Protocol/DeviceInterface.hpp"
+#include "Device/Protocol/DeviceList.hpp"
+#include "Device/Protocol/DeviceSettings.hpp"
+#include "Editor/Curve.h"
+#include "Editor/CurveSegment.h"
+#include "Editor/Value.h"
+#include "Network/Address.h"
+#include "Network/Node.h"
 #include "Protocols/OSSIADevice.hpp"
-#include "ConstraintElement.hpp"
+#include "RecreateOnPlayDocumentPlugin/ProcessElement.hpp"
+#include "State/Address.hpp"
+#include "iscore/document/DocumentInterface.hpp"
+#include "iscore/plugins/customfactory/StringFactoryKey.hpp"
+#include "iscore2OSSIA.hpp"
+
+class Process;
+class QObject;
+namespace OSSIA {
+class TimeProcess;
+}  // namespace OSSIA
+namespace RecreateOnPlay {
+class ConstraintElement;
+}  // namespace RecreateOnPlay
 
 
 

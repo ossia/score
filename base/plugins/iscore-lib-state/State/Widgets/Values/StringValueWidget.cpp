@@ -1,7 +1,11 @@
-#include "StringValueWidget.hpp"
 #include <iscore/widgets/MarginLess.hpp>
-#include <QLineEdit>
-#include <QGridLayout>
+#include <qgridlayout.h>
+#include <qlineedit.h>
+
+#include "State/Widgets/Values/ValueWidget.hpp"
+#include "StringValueWidget.hpp"
+
+class QWidget;
 
 StringValueWidget::StringValueWidget(const QString &value, QWidget *parent)
     : ValueWidget{parent}

@@ -1,12 +1,15 @@
 #include "DeviceExplorerPanelFactory.hpp"
-#include <core/document/DocumentPresenter.hpp>
-
 #include "PanelBase/DeviceExplorerPanelModel.hpp"
 #include "PanelBase/DeviceExplorerPanelPresenter.hpp"
 #include "PanelBase/DeviceExplorerPanelView.hpp"
 #include "PanelBase/DeviceExplorerPanelId.hpp"
 
-#include <core/application/Application.hpp>
+namespace iscore {
+class DocumentModel;
+class Presenter;
+class View;
+}  // namespace iscore
+
 using namespace iscore;
 
 

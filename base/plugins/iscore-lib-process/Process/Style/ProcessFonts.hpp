@@ -1,5 +1,6 @@
 #pragma once
-#include <QFont>
+
+#include <qfont.h>
 
 namespace ProcessFonts
 {

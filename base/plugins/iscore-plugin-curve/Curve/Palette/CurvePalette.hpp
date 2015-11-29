@@ -1,21 +1,20 @@
 #pragma once
+#include <Curve/Palette/CurveEditionSettings.hpp>
+#include <Curve/Palette/CurvePoint.hpp>
 #include <Curve/Palette/Tools/MoveTool.hpp>
 #include <Curve/Palette/Tools/SmartTool.hpp>
-#include <Curve/Palette/CurvePoint.hpp>
-#include <Curve/Palette/CurveEditionSettings.hpp>
-
-#include <Process/Focus/FocusDispatcher.hpp>
-#include <iscore/statemachine/GraphicsSceneToolPalette.hpp>
-#include <iscore/locking/ObjectLocker.hpp>
-
-#include <core/command/CommandStack.hpp>
 #include <Process/Tools/ToolPalette.hpp>
+#include <iscore/statemachine/GraphicsSceneToolPalette.hpp>
+#include <qpoint.h>
 
-class CurvePresenter;
-class QGraphicsScene;
 class CurveModel;
+class CurvePresenter;
 class CurveView;
-class FocusDispatcher;
+namespace iscore {
+class CommandStack;
+class ObjectLocker;
+}  // namespace iscore
+struct LayerContext;
 
 
 namespace Curve

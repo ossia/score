@@ -1,6 +1,11 @@
 #pragma once
 #include <iscore/command/Command.hpp>
 #include <iscore/plugins/customfactory/StringFactoryKey.hpp>
+#include <qbytearray.h>
+#include <qstring.h>
+
+class DataStreamInput;
+class DataStreamOutput;
 
 class CommandTag{};
 using CommandFactoryKey = StringKey<CommandTag>;

@@ -1,11 +1,11 @@
 #pragma once
-#include <QObject>
-#include <vector>
 #include <iscore/plugins/customfactory/FactoryInterface.hpp>
+#include <vector>
 
 namespace iscore
 {
 struct ApplicationContext;
+
 // Reimplement in plug-in if the plug-in offers an IMPLEMENTATION of an abstract type offered in another plug-in.
 // Example : the Scenario plug-in provides inspector widget factories implementations for Interval and event
 class FactoryInterface_QtInterface

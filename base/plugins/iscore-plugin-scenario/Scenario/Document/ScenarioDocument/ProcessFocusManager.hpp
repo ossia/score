@@ -1,10 +1,12 @@
 #pragma once
-#include <Process/Process.hpp>
-#include <Process/LayerModel.hpp>
-#include <Process/LayerPresenter.hpp>
-#include <QPointer>
+#include <qobject.h>
+#include <qpointer.h>
 
+class LayerModel;
+class LayerPresenter;
+class Process;
 class ScenarioDocumentPresenter;
+
 // Keeps the focused elements in memory for use by the scenario application plugin.
 // Note : focus should not be lost when switching documents. Hence, this
 // should more be part of the per-document part.

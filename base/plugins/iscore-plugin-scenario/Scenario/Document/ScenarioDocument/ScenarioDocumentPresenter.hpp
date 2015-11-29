@@ -1,27 +1,31 @@
 #pragma once
-#include <Process/TimeValue.hpp>
-#include <Scenario/Document/DisplayedElements/DisplayedElementsPresenter.hpp>
-
 #include <iscore/plugins/documentdelegate/DocumentDelegatePresenterInterface.hpp>
-#include <iscore/tools/NamedObject.hpp>
 #include <iscore/selection/SelectionDispatcher.hpp>
-#include <iscore/tools/ModelPath.hpp>
-#include <iscore/statemachine/GraphicsSceneToolPalette.hpp>
-
+#include <qpoint.h>
+#include <qrect.h>
 #include <memory>
-#include <QSize>
-#include <QRectF>
-class ProgressBar;
+
+#include "Process/ZoomHelper.hpp"
+#include "iscore/selection/Selection.hpp"
+
+class DisplayedElementsPresenter;
+class GraphicsSceneToolPalette;
+class ObjectPath;
+class QSize;
+namespace iscore {
+class DocumentDelegateModelInterface;
+class DocumentDelegateViewInterface;
+class DocumentPresenter;
+}  // namespace iscore
+
 namespace iscore
 {
-    class SelectionDispatcher;
 }
 
+class ConstraintModel;
 class ScenarioDocumentModel;
 class ScenarioDocumentView;
-class ConstraintModel;
 class TimeRulerPresenter;
-class LocalTimeRulerPresenter;
 
 /**
  * @brief The ScenarioDocumentPresenter class

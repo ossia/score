@@ -1,5 +1,10 @@
+#include <qabstractitemmodel.h>
+#include <qstring.h>
+#include <qvariant.h>
+
 #include "DeviceExplorerFilterProxyModel.hpp"
-#include <iscore/tools/Todo.hpp>
+
+class QObject;
 
 DeviceExplorerFilterProxyModel::DeviceExplorerFilterProxyModel(QObject* parent)
     : QSortFilterProxyModel(parent),

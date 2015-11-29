@@ -1,10 +1,13 @@
 #pragma once
-#include <QTemporaryFile>
-#include <core/application/CommandBackupFile.hpp>
+#include <qbytearray.h>
+#include <qobject.h>
+#include <qtemporaryfile.h>
+
 namespace iscore
 {
 class CommandBackupFile;
 class Document;
+
 /**
  * @brief The DocumentBackupManager class
  *

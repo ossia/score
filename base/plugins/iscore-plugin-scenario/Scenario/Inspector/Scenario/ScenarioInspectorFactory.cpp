@@ -1,6 +1,16 @@
+#include <Scenario/Process/ScenarioModel.hpp>
+#include <qstring.h>
+
+#include "Scenario/Process/ScenarioProcessMetadata.hpp"
 #include "ScenarioInspectorFactory.hpp"
 #include "ScenarioInspectorWidget.hpp"
-#include <Scenario/Process/ScenarioModel.hpp>
+
+class InspectorWidgetBase;
+class QObject;
+class QWidget;
+namespace iscore {
+class Document;
+}  // namespace iscore
 
 //using namespace iscore;
 

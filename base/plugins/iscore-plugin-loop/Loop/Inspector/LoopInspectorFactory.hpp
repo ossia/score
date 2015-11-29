@@ -1,8 +1,19 @@
 #pragma once
-#include <QObject>
 #include <Inspector/InspectorWidgetFactoryInterface.hpp>
 #include <Loop/LoopProcessMetadata.hpp>
 #include <Scenario/Inspector/Constraint/ConstraintInspectorDelegateFactory.hpp>
+#include <qlist.h>
+#include <qstring.h>
+#include <memory>
+
+class ConstraintInspectorDelegate;
+class ConstraintModel;
+class InspectorWidgetBase;
+class QObject;
+class QWidget;
+namespace iscore {
+class Document;
+}  // namespace iscore
 
 class LoopConstraintInspectorDelegateFactory : public ConstraintInspectorDelegateFactory
 {

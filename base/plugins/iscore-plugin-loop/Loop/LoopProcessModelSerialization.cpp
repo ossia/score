@@ -1,4 +1,15 @@
+#include <qjsonobject.h>
+#include <qjsonvalue.h>
+
 #include "LoopProcessModel.hpp"
+#include "iscore/plugins/documentdelegate/plugin/ElementPluginModelList.hpp"
+#include "iscore/serialization/DataStreamVisitor.hpp"
+#include "iscore/serialization/JSONValueVisitor.hpp"
+#include "iscore/serialization/JSONVisitor.hpp"
+
+class BaseScenarioContainer;
+template <typename T> class Reader;
+template <typename T> class Writer;
 
 template<>
 void Visitor<Reader<DataStream>>::readFrom(const Loop::ProcessModel& proc)

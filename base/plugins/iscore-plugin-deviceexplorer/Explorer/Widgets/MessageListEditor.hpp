@@ -1,9 +1,10 @@
 #pragma once
-#include <QDialog>
 #include <State/Message.hpp>
+#include <qdialog.h>
 
 class DeviceExplorerModel;
 class QGridLayout;
+class QWidget;
 
 /**
  * @brief The MessageListEditor class

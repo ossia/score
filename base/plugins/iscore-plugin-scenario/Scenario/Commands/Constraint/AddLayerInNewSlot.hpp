@@ -1,16 +1,19 @@
 #pragma once
 #include <Scenario/Commands/ScenarioCommandFactory.hpp>
+#include <boost/optional/optional.hpp>
 #include <iscore/command/SerializableCommand.hpp>
 #include <iscore/tools/ModelPath.hpp>
+#include <qbytearray.h>
 
-#include <QString>
+#include "iscore/tools/SettableIdentifier.hpp"
 
-#include <tests/helpers/ForwardDeclaration.hpp>
+class ConstraintModel;
+class DataStreamInput;
+class DataStreamOutput;
+class LayerModel;
 class Process;
 class RackModel;
 class SlotModel;
-class LayerModel;
-class ConstraintModel;
 
 namespace Scenario
 {
@@ -22,7 +25,6 @@ namespace Scenario
         class AddLayerInNewSlot final : public iscore::SerializableCommand
         {
                 ISCORE_COMMAND_DECL(ScenarioCommandFactoryName(), AddLayerInNewSlot, "Add a new layer")
-#include <tests/helpers/FriendDeclaration.hpp>
             public:
                 AddLayerInNewSlot(
                     Path<ConstraintModel>&& constraintPath,

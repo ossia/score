@@ -1,29 +1,21 @@
 #pragma once
-#include <Scenario/Application/ScenarioEditionSettings.hpp>
-#include <Scenario/Document/ScenarioDocument/Widgets/GraphicsProxyObject.hpp>
-#include <Scenario/Document/BaseScenario/BaseElementContext.hpp>
-#include <Scenario/Palette/Tools/SmartTool.hpp>
-#include <Scenario/Document/DisplayedElements/DisplayedElementsToolPalette/BaseScenarioDisplayedElements_StateWrappers.hpp>
-
 #include <Process/Tools/ToolPalette.hpp>
-
-#include <iscore/statemachine/GraphicsSceneToolPalette.hpp>
-
-#include <Scenario/Application/ScenarioApplicationPlugin.hpp>
 #include <Scenario/Palette/ScenarioPoint.hpp>
+#include <Scenario/Palette/Tools/SmartTool.hpp>
+#include <iscore/statemachine/GraphicsSceneToolPalette.hpp>
+#include <qpoint.h>
 
-#include <core/application/ApplicationContext.hpp>
-#include <core/document/Document.hpp>
-
-#include <Loop/LoopLayer.hpp>
-#include <Loop/LoopView.hpp>
-class ScenarioDocumentPresenter;
-class BaseGraphicsObject;
-class DisplayedElementsPresenter;
-class DisplayedElementsModel;
+#include "Scenario/Palette/Tool.hpp"
 
 class LoopPresenter;
 class LoopView;
+class MoveConstraintInBaseScenario_StateWrapper;
+class MoveEventInBaseScenario_StateWrapper;
+class MoveTimeNodeInBaseScenario_StateWrapper;
+namespace Scenario {
+class EditionSettings;
+}  // namespace Scenario
+struct LayerContext;
 
 namespace Loop
 {

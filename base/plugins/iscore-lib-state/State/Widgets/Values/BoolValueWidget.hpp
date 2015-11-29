@@ -1,7 +1,10 @@
 #pragma once
+#include "State/Value.hpp"
 #include "ValueWidget.hpp"
 
 class QComboBox;
+class QWidget;
+
 class BoolValueWidget : public ValueWidget
 {
     public:

@@ -1,19 +1,53 @@
-#include "TemporalScenarioPresenter.hpp"
-
+#include <Scenario/Commands/Scenario/Creations/CreateStateMacro.hpp>
+#include <Scenario/Commands/Scenario/Creations/CreateTimeNode_Event_State.hpp>
+#include <Scenario/Document/Constraint/ViewModels/Temporal/TemporalConstraintViewModel.hpp>
 #include <Scenario/Process/Temporal/TemporalScenarioLayerModel.hpp>
 #include <Scenario/Process/Temporal/TemporalScenarioView.hpp>
-
-#include <Scenario/Document/Constraint/ViewModels/Temporal/TemporalConstraintViewModel.hpp>
-#include <Scenario/Document/Constraint/ViewModels/Temporal/TemporalConstraintView.hpp>
-#include <Scenario/Document/Constraint/Rack/RackPresenter.hpp>
-
-#include <Scenario/Commands/Scenario/Creations/CreateTimeNode_Event_State.hpp>
-#include <Scenario/Commands/Scenario/Creations/CreateStateMacro.hpp>
-#include <Scenario/Application/ScenarioApplicationPlugin.hpp>
-
 #include <State/MessageListSerialization.hpp>
-#include <iscore/widgets/GraphicsItem.hpp>
+#include <boost/core/explicit_operator_bool.hpp>
+#include <boost/iterator/indirect_iterator.hpp>
+#include <boost/iterator/iterator_facade.hpp>
+#include <boost/multi_index/detail/hash_index_iterator.hpp>
+#include <boost/multi_index/hashed_index.hpp>
+#include <boost/operators.hpp>
 #include <iscore/command/Dispatchers/MacroCommandDispatcher.hpp>
+#include <iscore/widgets/GraphicsItem.hpp>
+#include <qgraphicsitem.h>
+#include <qmimedata.h>
+#include <qrect.h>
+#include <qsize.h>
+#include <qstringlist.h>
+
+#include "Process/LayerModel.hpp"
+#include "Process/LayerPresenter.hpp"
+#include "Process/Process.hpp"
+#include "Process/ProcessContext.hpp"
+#include "Process/TimeValue.hpp"
+#include "Scenario/Application/Menus/ScenarioContextMenuManager.hpp"
+#include "Scenario/Application/ScenarioEditionSettings.hpp"
+#include "Scenario/Commands/Scenario/Creations/CreateState.hpp"
+#include "Scenario/Commands/State/AddMessagesToState.hpp"
+#include "Scenario/Document/Constraint/ViewModels/ConstraintPresenter.hpp"
+#include "Scenario/Document/Constraint/ViewModels/ConstraintViewModel.hpp"
+#include "Scenario/Document/Constraint/ViewModels/Temporal/TemporalConstraintPresenter.hpp"
+#include "Scenario/Palette/Tool.hpp"
+#include "Scenario/Process/AbstractScenarioLayerModel.hpp"
+#include "Scenario/Process/ScenarioModel.hpp"
+#include "Scenario/Process/Temporal/ScenarioViewInterface.hpp"
+#include "State/Message.hpp"
+#include "TemporalScenarioPresenter.hpp"
+#include "core/document/DocumentContext.hpp"
+#include "iscore/document/DocumentInterface.hpp"
+#include "iscore/serialization/MimeVisitor.hpp"
+#include "iscore/tools/IdentifiedObject.hpp"
+#include "iscore/tools/IdentifiedObjectMap.hpp"
+#include "iscore/tools/ModelPath.hpp"
+#include "iscore/tools/NotifyingMap.hpp"
+#include "iscore/tools/Todo.hpp"
+
+class MessageItemModel;
+class QMenu;
+struct VerticalExtent;
 
 TemporalScenarioPresenter::TemporalScenarioPresenter(
         iscore::DocumentContext& context,
@@ -351,6 +385,8 @@ void TemporalScenarioPresenter::updateAllElements()
 }
 
 #include <Scenario/Commands/Scenario/Creations/CreateConstraint_State_Event_TimeNode.hpp>
+#include <algorithm>
+
 void TemporalScenarioPresenter::handleDrop(const QPointF &pos, const QMimeData *mime)
 {
     // If the mime data has states in it we can handle it.

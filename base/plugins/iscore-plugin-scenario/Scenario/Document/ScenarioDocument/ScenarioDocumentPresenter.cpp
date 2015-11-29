@@ -1,32 +1,48 @@
-#include "ScenarioDocumentPresenter.hpp"
-
-#include <Scenario/Document/Constraint/ViewModels/FullView/FullViewConstraintViewModel.hpp>
+#include <Process/Process.hpp>
+#include <Scenario/Document/Constraint/ConstraintModel.hpp>
 #include <Scenario/Document/Constraint/ViewModels/FullView/FullViewConstraintPresenter.hpp>
-#include <Scenario/Document/Constraint/ViewModels/FullView/FullViewConstraintView.hpp>
+#include <Scenario/Document/Constraint/ViewModels/FullView/FullViewConstraintViewModel.hpp>
+#include <Scenario/Document/DisplayedElements/DisplayedElementsToolPalette/DisplayedElementsToolPaletteFactoryList.hpp>
 #include <Scenario/Document/ScenarioDocument/ScenarioDocumentModel.hpp>
 #include <Scenario/Document/ScenarioDocument/ScenarioDocumentView.hpp>
 #include <Scenario/Document/ScenarioDocument/Widgets/DoubleSlider.hpp>
 #include <Scenario/Document/TimeRuler/MainTimeRuler/TimeRulerPresenter.hpp>
 #include <Scenario/Document/TimeRuler/MainTimeRuler/TimeRulerView.hpp>
-#include <Scenario/Document/TimeRuler/LocalTimeRuler/LocalTimeRulerPresenter.hpp>
-#include "Widgets/ProgressBar.hpp"
-
-#include <Process/LayerModel.hpp>
-
-#include <Scenario/Document/Constraint/ConstraintModel.hpp>
-
-#include <Process/Process.hpp>
-#include <iscore/document/DocumentInterface.hpp>
-#include <core/document/Document.hpp>
-#include <QApplication>
-
-#include <Scenario/Document/DisplayedElements/DisplayedElementsToolPalette/DisplayedElementsToolPaletteFactory.hpp>
-#include <Scenario/Palette/ScenarioPalette.hpp>
-#include <Scenario/Document/DisplayedElements/DisplayedElementsToolPalette/DisplayedElementsToolPaletteFactoryList.hpp>
-
 #include <core/application/ApplicationContext.hpp>
-#include <Scenario/Application/ScenarioApplicationPlugin.hpp>
+#include <core/document/Document.hpp>
+#include <ext/alloc_traits.h>
+#include <iscore/document/DocumentInterface.hpp>
+#include <qglobal.h>
+#include <qpolygon.h>
+#include <qsize.h>
+#include <qstring.h>
+#include <qwidget.h>
+
+#include "Process/LayerPresenter.hpp"
+#include "Process/TimeValue.hpp"
+#include "Scenario/Document/Constraint/ConstraintDurations.hpp"
+#include "Scenario/Document/DisplayedElements/DisplayedElementsModel.hpp"
+#include "Scenario/Document/DisplayedElements/DisplayedElementsPresenter.hpp"
+#include "Scenario/Document/ScenarioDocument/ProcessFocusManager.hpp"
+#include "Scenario/Document/ScenarioDocument/Widgets/ScenarioBaseGraphicsView.hpp"
+#include "ScenarioDocumentPresenter.hpp"
 #include "ZoomPolicy.hpp"
+#include "core/application/ApplicationComponents.hpp"
+#include "core/document/DocumentContext.hpp"
+#include "iscore/plugins/customfactory/StringFactoryKey.hpp"
+#include "iscore/plugins/documentdelegate/DocumentDelegatePresenterInterface.hpp"
+#include "iscore/selection/SelectionDispatcher.hpp"
+#include "iscore/selection/SelectionStack.hpp"
+#include "iscore/statemachine/GraphicsSceneToolPalette.hpp"
+#include "iscore/tools/ObjectIdentifier.hpp"
+#include "iscore/tools/ObjectPath.hpp"
+#include "iscore/tools/Todo.hpp"
+
+namespace iscore {
+class DocumentDelegateModelInterface;
+class DocumentDelegateViewInterface;
+class DocumentPresenter;
+}  // namespace iscore
 
 using namespace iscore;
 

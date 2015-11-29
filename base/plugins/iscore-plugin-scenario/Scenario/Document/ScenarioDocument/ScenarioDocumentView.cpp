@@ -1,17 +1,39 @@
+#include <Scenario/Application/Menus/TransportActions.hpp>
+#include <Scenario/Application/ScenarioApplicationPlugin.hpp>
+#include <Scenario/Document/TimeRuler/MainTimeRuler/TimeRulerView.hpp>
+#include <qaction.h>
+#include <qapplication.h>
+#include <qboxlayout.h>
+#include <qbrush.h>
+#include <qbuffer.h>
+#include <qclipboard.h>
+#include <qflags.h>
+#include <qgraphicsscene.h>
+#include <qgraphicsview.h>
+#include <qgridlayout.h>
+#include <qlabel.h>
+#include <qmimedata.h>
+#include <qnamespace.h>
+#include <qobjectdefs.h>
+#include <qpainter.h>
+#include <qrect.h>
+#include <qsize.h>
+#include <qstring.h>
+#include <qstylefactory.h>
+#include <qsvggenerator.h>
+#include <qtoolbar.h>
+#include <qwidget.h>
+
+#include "Scenario/Application/Menus/ScenarioActions.hpp"
+#include "Scenario/Document/ScenarioDocument/Widgets/ScenarioBaseGraphicsView.hpp"
 #include "ScenarioDocumentView.hpp"
-
-#include <QLabel>
-#include <QGridLayout>
-
 #include "Widgets/DoubleSlider.hpp"
 #include "Widgets/GraphicsProxyObject.hpp"
-#include <Scenario/Document/TimeRuler/MainTimeRuler/TimeRulerView.hpp>
-#include <Scenario/Document/TimeRuler/LocalTimeRuler/LocalTimeRulerView.hpp>
+#include "core/application/ApplicationComponents.hpp"
+#include "core/application/ApplicationContext.hpp"
+#include "iscore/plugins/documentdelegate/DocumentDelegateViewInterface.hpp"
 
-#include <Scenario/Application/ScenarioApplicationPlugin.hpp>
-#include <Scenario/Application/Menus/TransportActions.hpp>
-
-#include <QStyleFactory>
+class QObject;
 #if defined(ISCORE_OPENGL)
 #include <QGLWidget>
 #endif
@@ -19,10 +41,7 @@
 #include "WebSocketView.hpp"
 #endif
 #include <Process/Style/ScenarioStyle.hpp>
-#include <core/application/Application.hpp>
-#include <QSvgGenerator>
-#include <QMimeData>
-#include <QClipboard>
+
 ScenarioDocumentView::ScenarioDocumentView(
         const iscore::ApplicationContext& ctx,
         QObject* parent) :

@@ -1,8 +1,13 @@
+#include <Process/Style/ScenarioStyle.hpp>
+#include <qnamespace.h>
+#include <qpainter.h>
+#include <qpoint.h>
+
 #include "SlotHandle.hpp"
 #include "SlotView.hpp"
-#include <QCursor>
-#include <QPainter>
-#include <Process/Style/ScenarioStyle.hpp>
+
+class QStyleOptionGraphicsItem;
+class QWidget;
 
 SlotHandle::SlotHandle(const SlotView &slotView, QGraphicsItem *parent):
     QGraphicsItem{parent},

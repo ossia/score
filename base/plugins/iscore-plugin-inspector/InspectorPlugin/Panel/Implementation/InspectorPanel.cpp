@@ -1,8 +1,19 @@
-#include "InspectorPanel.hpp"
-#include <Inspector/InspectorSectionWidget.hpp>
 #include <Inspector/InspectorWidgetList.hpp>
+#include <boost/multi_index/detail/hash_index_iterator.hpp>
+#include <boost/operators.hpp>
+#include <qboxlayout.h>
+#include <qpointer.h>
+#include <qtabwidget.h>
+#include <algorithm>
 
-#include <QTabWidget>
+#include "Inspector/InspectorWidgetBase.hpp"
+#include "InspectorPanel.hpp"
+#include "iscore/selection/SelectionDispatcher.hpp"
+#include "iscore/tools/IdentifiedObjectAbstract.hpp"
+
+namespace iscore {
+class SelectionStack;
+}  // namespace iscore
 
 InspectorPanel::InspectorPanel(
         const InspectorWidgetList& list,

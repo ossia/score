@@ -1,7 +1,6 @@
 #pragma once
 #include <iscore/plugins/settingsdelegate/SettingsDelegateModelInterface.hpp>
-#include <QString>
-#include <QObject>
+#include <qstring.h>
 
 namespace iscore
 {

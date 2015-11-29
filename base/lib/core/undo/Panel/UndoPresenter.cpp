@@ -1,9 +1,16 @@
-#include "UndoPresenter.hpp"
-#include "UndoView.hpp"
-#include "UndoPanelId.hpp"
 #include <iscore/plugins/panel/PanelModel.hpp>
-#include <core/document/DocumentPresenter.hpp>
-#include <core/document/DocumentModel.hpp>
+#include <qobject.h>
+
+#include "UndoPresenter.hpp"
+#include "UndoPanelId.hpp"
+#include "UndoView.hpp"
+#include "core/document/Document.hpp"
+#include "iscore/plugins/panel/PanelPresenter.hpp"
+
+namespace iscore {
+class PanelView;
+class Presenter;
+}  // namespace iscore
 
 UndoPresenter::UndoPresenter(
         iscore::Presenter* parent_presenter,

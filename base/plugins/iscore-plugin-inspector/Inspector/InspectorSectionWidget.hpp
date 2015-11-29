@@ -1,15 +1,15 @@
 #pragma once
 
-#include <QWidget>
-class QVBoxLayout;
+#include <qstring.h>
+#include <qwidget.h>
+
 class QLineEdit;
-class QToolButton;
 class QPushButton;
-class QScrollArea;
+class QToolButton;
+class QVBoxLayout;
 
 namespace iscore
 {
-    class SerializableCommand;
 }
 /** @brief InspectorSectionWidget is widget that can fold or unfold his content.
  *

@@ -1,10 +1,16 @@
-#include "TimeNodeModel.hpp"
+#include <Process/Style/ScenarioStyle.hpp>
 #include <Scenario/Document/Event/EventModel.hpp>
 #include <Scenario/Document/TimeNode/Trigger/TriggerModel.hpp>
+#include <qglobal.h>
 
-#include <Scenario/Process/ScenarioModel.hpp>
-
-#include <Process/Style/ScenarioStyle.hpp>
+#include "Process/ModelMetadata.hpp"
+#include "Process/TimeValue.hpp"
+#include "Scenario/Document/VerticalExtent.hpp"
+#include "Scenario/Process/ScenarioInterface.hpp"
+#include "TimeNodeModel.hpp"
+#include "iscore/document/DocumentInterface.hpp"
+#include "iscore/tools/IdentifiedObject.hpp"
+#include "iscore/tools/SettableIdentifier.hpp"
 
 TimeNodeModel::TimeNodeModel(
         const Id<TimeNodeModel>& id,

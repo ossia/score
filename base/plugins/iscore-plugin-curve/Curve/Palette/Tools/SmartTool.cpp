@@ -1,17 +1,25 @@
-#include "SmartTool.hpp"
-#include <Curve/Palette/CurvePalette.hpp>
-
 #include <Curve/CurveModel.hpp>
 #include <Curve/CurvePresenter.hpp>
-#include <Curve/CurveView.hpp>
-
-#include <Curve/Palette/OngoingState.hpp>
 #include <Curve/Palette/CommandObjects/MovePointCommandObject.hpp>
+#include <Curve/Palette/CurvePalette.hpp>
+#include <Curve/Palette/OngoingState.hpp>
 #include <Curve/Palette/States/SelectionState.hpp>
-
-#include <iscore/selection/SelectionStack.hpp>
-
+#include <boost/optional/optional.hpp>
 #include <core/document/Document.hpp>
+#include <qstatemachine.h>
+
+#include "Curve/Palette/CurvePaletteBaseEvents.hpp"
+#include "Curve/Palette/CurvePaletteBaseTransitions.hpp"
+#include "Curve/Palette/Tools/CurveTool.hpp"
+#include "Curve/Point/CurvePointModel.hpp"
+#include "Curve/Point/CurvePointView.hpp"
+#include "Curve/Segment/CurveSegmentModel.hpp"
+#include "Curve/Segment/CurveSegmentView.hpp"
+#include "SmartTool.hpp"
+#include "iscore/document/DocumentInterface.hpp"
+#include "iscore/selection/Selection.hpp"
+#include "iscore/selection/SelectionDispatcher.hpp"
+#include "iscore/statemachine/StateMachineUtils.hpp"
 
 namespace Curve
 {

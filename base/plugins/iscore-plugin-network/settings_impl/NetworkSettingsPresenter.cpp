@@ -1,12 +1,18 @@
-#include "NetworkSettingsPresenter.hpp"
+#include <qapplication.h>
+#include <qdebug.h>
+#include <qstyle.h>
+
 #include "NetworkSettingsModel.hpp"
+#include "NetworkSettingsPresenter.hpp"
 #include "NetworkSettingsView.hpp"
+#include "iscore/command/Command.hpp"
+#include "iscore/plugins/settingsdelegate/SettingsDelegatePresenterInterface.hpp"
 
-#include <core/settings/SettingsPresenter.hpp>
-
-#include "commands/ClientPortChangedCommand.hpp"
-#include "commands/MasterPortChangedCommand.hpp"
-#include "commands/ClientNameChangedCommand.hpp"
+namespace iscore {
+class SettingsDelegateModelInterface;
+class SettingsDelegateViewInterface;
+class SettingsPresenter;
+}  // namespace iscore
 
 using namespace iscore;
 
@@ -155,8 +161,6 @@ NetworkSettingsView* NetworkSettingsPresenter::view()
     return static_cast<NetworkSettingsView*>(m_view);
 }
 
-#include <QApplication>
-#include <QStyle>
 QIcon NetworkSettingsPresenter::settingsIcon()
 {
     return QApplication::style()->standardIcon(QStyle::SP_DriveNetIcon);

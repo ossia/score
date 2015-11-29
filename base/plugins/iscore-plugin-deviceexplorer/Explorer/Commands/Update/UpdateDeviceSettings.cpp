@@ -1,7 +1,15 @@
-#include "UpdateDeviceSettings.hpp"
-
 #include <Explorer/DocumentPlugin/DeviceDocumentPlugin.hpp>
-#include <boost/range/algorithm/find_if.hpp>
+#include <algorithm>
+#include <vector>
+
+#include "Device/Node/DeviceNode.hpp"
+#include "Device/Protocol/DeviceSettings.hpp"
+#include "Explorer/DocumentPlugin/NodeUpdateProxy.hpp"
+#include "UpdateDeviceSettings.hpp"
+#include "iscore/serialization/DataStreamVisitor.hpp"
+#include "iscore/tools/ModelPath.hpp"
+#include "iscore/tools/ModelPathSerialization.hpp"
+#include "iscore/tools/TreeNode.hpp"
 
 using namespace iscore;
 using namespace DeviceExplorer::Command;

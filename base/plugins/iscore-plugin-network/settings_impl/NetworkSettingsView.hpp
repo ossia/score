@@ -1,11 +1,13 @@
 #pragma once
-#include <QWidget>
-#include <QLineEdit>
 #include <iscore/plugins/settingsdelegate/SettingsDelegateViewInterface.hpp>
-#include <iscore/command/Command.hpp>
-#include <QSpinBox>
+#include <qlineedit.h>
+#include <qspinbox.h>
+#include <qstring.h>
+#include <qwidget.h>
 
 class NetworkSettingsPresenter;
+class QObject;
+
 class NetworkSettingsView : public iscore::SettingsDelegateViewInterface
 {
         Q_OBJECT

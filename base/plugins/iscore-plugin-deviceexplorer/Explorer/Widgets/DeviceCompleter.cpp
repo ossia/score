@@ -1,8 +1,15 @@
-#include "DeviceCompleter.hpp"
-#include <Explorer/Explorer/DeviceExplorerModel.hpp>
 #include <Device/Node/DeviceNode.hpp>
-#include <QStringList>
-#include <QApplication>
+#include <Explorer/Explorer/DeviceExplorerModel.hpp>
+#include <qabstractitemmodel.h>
+#include <qchar.h>
+#include <qnamespace.h>
+#include <qvariant.h>
+
+#include "Device/Protocol/DeviceSettings.hpp"
+#include "DeviceCompleter.hpp"
+#include "iscore/tools/TreeNode.hpp"
+
+class QObject;
 
 DeviceCompleter::DeviceCompleter(DeviceExplorerModel* treemodel,
                                  QObject* parent) :

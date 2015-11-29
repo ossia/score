@@ -1,9 +1,14 @@
 #include "InspectorPlugin.hpp"
-
 #include "Panel/InspectorPanelFactory.hpp"
+#include "iscore/plugins/qt_interfaces/PanelFactoryInterface_QtInterface.hpp"
+
+namespace iscore {
+class FactoryListInterface;
+class PanelFactory;
+}  // namespace iscore
+
 using namespace iscore;
 
-#include <Inspector/InspectorWidgetFactoryInterface.hpp>
 #include <Inspector/InspectorWidgetList.hpp>
 
 iscore_plugin_inspector::iscore_plugin_inspector() :

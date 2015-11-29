@@ -11,6 +11,7 @@
 #include <iscore/command/SerializableCommand.hpp>
 #include <iscore/tools/SettableIdentifier.hpp>
 #include <iscore/tools/ModelPath.hpp>
+#include <iscore/tools/ModelPathSerialization.hpp>
 
 /*
  * Command to change a constraint duration by moving event. Vertical move is not allowed.

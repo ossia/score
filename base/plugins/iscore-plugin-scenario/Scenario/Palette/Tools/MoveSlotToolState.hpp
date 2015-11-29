@@ -1,16 +1,16 @@
 #pragma once
-#include <iscore/command/Dispatchers/SingleOngoingCommandDispatcher.hpp>
-#include <iscore/command/Dispatchers/CommandDispatcher.hpp>
 
-#include <QState>
-#include <QStateMachine>
-#include <QPointF>
 
-class SlotModel;
+
+#include <qpoint.h>
+#include <qstatemachine.h>
+
+class QState;
 
 namespace Scenario
 {
 class ToolPalette;
+
 class MoveSlotTool
 {
     public:

@@ -1,5 +1,10 @@
+#include <qpainter.h>
+
 #include "ProgressBar.hpp"
-#include <QPainter>
+
+class QStyleOptionGraphicsItem;
+class QWidget;
+
 QRectF ProgressBar::boundingRect() const
 {
     return {0, 0, 2, m_height};

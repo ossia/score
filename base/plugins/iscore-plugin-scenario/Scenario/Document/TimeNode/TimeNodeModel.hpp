@@ -1,18 +1,24 @@
 #pragma once
-#include <iscore/tools/IdentifiedObject.hpp>
-#include <iscore/tools/SettableIdentifier.hpp>
-#include <Scenario/Document/VerticalExtent.hpp>
 #include <Process/ModelMetadata.hpp>
 #include <Process/TimeValue.hpp>
-
-#include <iscore/serialization/DataStreamVisitor.hpp>
-#include <iscore/serialization/JSONVisitor.hpp>
-#include <iscore/selection/Selectable.hpp>
-
+#include <Scenario/Document/VerticalExtent.hpp>
+#include <boost/optional/optional.hpp>
 #include <iscore/plugins/documentdelegate/plugin/ElementPluginModelList.hpp>
+#include <iscore/selection/Selectable.hpp>
+#include <iscore/tools/IdentifiedObject.hpp>
+#include <iscore/tools/SettableIdentifier.hpp>
+#include <qobject.h>
+#include <qobjectdefs.h>
+#include <qstring.h>
+#include <qvector.h>
+#include <chrono>
+
+class DataStream;
 class EventModel;
-class TriggerModel;
+class JSONObject;
 class ScenarioInterface;
+class TriggerModel;
+
 class TimeNodeModel final : public IdentifiedObject<TimeNodeModel>
 {
         Q_OBJECT

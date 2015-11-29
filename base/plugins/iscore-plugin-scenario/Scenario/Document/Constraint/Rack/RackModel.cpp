@@ -1,6 +1,10 @@
+#include "Process/ModelMetadata.hpp"
 #include "RackModel.hpp"
-
-#include <Scenario/Document/Constraint/ConstraintModel.hpp>
+#include "Scenario/Document/Constraint/ConstraintModel.hpp"
+#include "Scenario/Document/Constraint/Rack/Slot/SlotModel.hpp"
+#include "iscore/tools/NotifyingMap.hpp"
+#include "iscore/tools/SettableIdentifier.hpp"
+#include "iscore/tools/Todo.hpp"
 
 constexpr const char RackModel::className[];
 

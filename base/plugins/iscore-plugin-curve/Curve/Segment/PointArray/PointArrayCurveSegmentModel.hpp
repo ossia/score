@@ -1,9 +1,20 @@
 #pragma once
-#include <memory>
 #include <boost/container/flat_map.hpp>
+#include <qpoint.h>
+#include <qvariant.h>
+#include <qvector.h>
+#include <memory>
+#include <utility>
+#include <vector>
 
+#include "Curve/Segment/CurveSegmentFactoryKey.hpp"
 #include "Curve/Segment/CurveSegmentModel.hpp"
-#include "Curve/Segment/Linear/LinearCurveSegmentModel.hpp"
+#include "iscore/serialization/VisitorInterface.hpp"
+
+class LinearCurveSegmentModel;
+class QObject;
+struct CurveSegmentData;
+template <typename tag, typename impl> class id_base_t;
 
 struct PointArrayCurveSegmentData
 {

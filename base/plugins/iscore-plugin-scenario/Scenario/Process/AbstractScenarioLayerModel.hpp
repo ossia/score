@@ -1,16 +1,25 @@
 #pragma once
-#include <Scenario/Document/Constraint/ViewModels/ConstraintViewModelIdMap.hpp>
 #include <Process/LayerModel.hpp>
-#include <iscore/tools/ModelPath.hpp>
-#include <iscore/tools/SettableIdentifier.hpp>
-#include <iscore/serialization/DataStreamVisitor.hpp>
-namespace Scenario { class ScenarioModel; }
-class ConstraintViewModel;
-class ConstraintModel;
-class TimeNodeModel;
-class StateModel;
+#include <Scenario/Document/Constraint/ViewModels/ConstraintViewModelIdMap.hpp>
+#include <qstring.h>
+#include <qvector.h>
+#include <vector>
 
+#include "Scenario/Process/ScenarioModel.hpp"
+#include "iscore/serialization/VisitorInterface.hpp"
+
+class ConstraintModel;
+class ConstraintViewModel;
 class EventModel;
+class Process;
+class QObject;
+class StateModel;
+class TimeNodeModel;
+namespace Scenario
+{
+class ScenarioModel;
+}
+template <typename tag, typename impl> class id_base_t;
 
 class AbstractScenarioLayerModel : public LayerModel
 {

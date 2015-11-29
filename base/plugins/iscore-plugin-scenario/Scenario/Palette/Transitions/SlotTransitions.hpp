@@ -1,5 +1,12 @@
 #pragma once
-#include <Scenario/Palette/ScenarioPaletteBaseTransitions.hpp>
+
+#include "Scenario/Palette/ScenarioPaletteBaseEvents.hpp"
+#include "iscore/statemachine/StateMachineUtils.hpp"
+
+class QEvent;
+namespace Scenario {
+class SlotState;
+}  // namespace Scenario
 
 namespace Scenario
 {

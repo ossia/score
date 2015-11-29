@@ -1,7 +1,15 @@
+#include <Scenario/Document/Event/EventModel.hpp>
+#include <qstring.h>
+
 #include "EventInspectorFactory.hpp"
 #include "EventInspectorWidget.hpp"
 
-#include <Scenario/Document/Event/EventModel.hpp>
+class InspectorWidgetBase;
+class QObject;
+class QWidget;
+namespace iscore {
+class Document;
+}  // namespace iscore
 
 InspectorWidgetBase* EventInspectorFactory::makeWidget(
         const QObject& sourceElement,

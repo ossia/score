@@ -1,7 +1,15 @@
+#include <Scenario/Document/TimeNode/TimeNodeModel.hpp>
+#include <qstring.h>
+
 #include "TimeNodeInspectorFactory.hpp"
 #include "TimeNodeInspectorWidget.hpp"
 
-#include <Scenario/Document/TimeNode/TimeNodeModel.hpp>
+class InspectorWidgetBase;
+class QObject;
+class QWidget;
+namespace iscore {
+class Document;
+}  // namespace iscore
 
 //using namespace iscore;
 

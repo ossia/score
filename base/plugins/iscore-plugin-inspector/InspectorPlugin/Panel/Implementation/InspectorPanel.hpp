@@ -1,20 +1,28 @@
 #pragma once
 
-#include <QWidget>
-#include <iscore/selection/SelectionStack.hpp>
-#include <iscore/selection/SelectionDispatcher.hpp>
-
-#include <boost/multi_index_container.hpp>
-#include <boost/multi_index/hashed_index.hpp>
-#include <boost/multi_index/mem_fun.hpp>
 #include <Inspector/InspectorWidgetBase.hpp>
+#include <boost/multi_index/hashed_index.hpp>
+#include <boost/multi_index/identity_fwd.hpp>
+#include <boost/multi_index/indexed_by.hpp>
+#include <boost/multi_index_container.hpp>
+#include <iscore/selection/SelectionDispatcher.hpp>
+#include <qlist.h>
+#include <qwidget.h>
 
+#include "iscore/selection/Selection.hpp"
 
-class SelectionStackWidget;
-class QVBoxLayout;
-class InspectorWidgetBase;
-class QTabWidget;
+class IdentifiedObjectAbstract;
 class InspectorWidgetList;
+class QTabWidget;
+class QVBoxLayout;
+namespace boost {
+namespace multi_index {
+template <class Class, typename Type, Type (Class::*PtrToMemberFunction)() const> struct const_mem_fun;
+}  // namespace multi_index
+}  // namespace boost
+namespace iscore {
+class SelectionStack;
+}  // namespace iscore
 
 namespace bmi = boost::multi_index;
 using InspectorWidgetMap = bmi::multi_index_container<
@@ -31,11 +39,9 @@ using InspectorWidgetMap = bmi::multi_index_container<
 >;
 namespace iscore
 {
-    class SerializableCommand;
 }
 namespace Ui
 {
-    class InspectorPanel;
 }
 
 /*!

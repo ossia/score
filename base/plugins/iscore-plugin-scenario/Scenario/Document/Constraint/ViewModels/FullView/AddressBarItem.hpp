@@ -1,9 +1,15 @@
 #pragma once
-#include <QGraphicsObject>
-#include <QList>
-#include <iscore/tools/ModelPath.hpp>
+#include <qgraphicsitem.h>
+#include <qlist.h>
+#include <qrect.h>
+
+#include "iscore/tools/ObjectPath.hpp"
 
 class ClickableLabelItem;
+class QPainter;
+class QStyleOptionGraphicsItem;
+class QWidget;
+
 class AddressBarItem final : public QGraphicsObject
 {
         Q_OBJECT

@@ -1,9 +1,21 @@
-#include "ScenarioCopy.hpp"
-#include <Scenario/Process/ScenarioModel.hpp>
 #include <Scenario/Document/Constraint/ConstraintModel.hpp>
-#include <Scenario/Document/State/StateModel.hpp>
 #include <Scenario/Document/Event/EventModel.hpp>
+#include <Scenario/Document/State/StateModel.hpp>
 #include <Scenario/Document/TimeNode/TimeNodeModel.hpp>
+#include <Scenario/Process/ScenarioModel.hpp>
+#include <boost/optional/optional.hpp>
+#include <qjsonarray.h>
+#include <qjsonvalue.h>
+#include <qlist.h>
+#include <algorithm>
+#include <vector>
+
+#include "ScenarioCopy.hpp"
+#include "iscore/serialization/VisitorCommon.hpp"
+#include "iscore/tools/NotifyingMap.hpp"
+#include "iscore/tools/SettableIdentifier.hpp"
+
+class JSONObject;
 
 template<typename Selected_T>
 static auto arrayToJson(Selected_T &&selected)

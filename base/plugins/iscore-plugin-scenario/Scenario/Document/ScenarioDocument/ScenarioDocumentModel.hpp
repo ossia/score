@@ -1,18 +1,21 @@
 #pragma once
-#include <iscore/plugins/documentdelegate/DocumentDelegateModelInterface.hpp>
-#include <iscore/tools/ModelPath.hpp>
-#include <iscore/selection/SelectionStack.hpp>
-#include <iscore/serialization/DataStreamVisitor.hpp>
-#include <iscore/serialization/JSONVisitor.hpp>
-#include <QPointer>
-#include <Scenario/Document/ScenarioDocument/ProcessFocusManager.hpp>
 #include <Scenario/Document/DisplayedElements/DisplayedElementsModel.hpp>
+#include <Scenario/Document/ScenarioDocument/ProcessFocusManager.hpp>
+#include <iscore/plugins/documentdelegate/DocumentDelegateModelInterface.hpp>
+#include <qobjectdefs.h>
+#include <qpointer.h>
+
+#include "iscore/selection/Selection.hpp"
+#include "iscore/serialization/VisitorInterface.hpp"
+
 class BaseScenario;
-class ScenarioDocumentPresenter;
-class FullViewConstraintViewModel;
-class Process;
-class LayerModel;
 class ConstraintModel;
+class DataStream;
+class FullViewConstraintViewModel;
+class JSONObject;
+class LayerModel;
+class LayerPresenter;
+class QObject;
 
 class ScenarioDocumentModel final : public iscore::DocumentDelegateModelInterface
 {

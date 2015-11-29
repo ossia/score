@@ -1,12 +1,9 @@
-#include <QTest>
 #include <State/Message.hpp>
-#include <iscore/serialization/DataStreamVisitor.hpp>
-#include <iscore/serialization/JSONVisitor.hpp>
 #include <iscore/serialization/VisitorCommon.hpp>
+#include <QtTest/QtTest>
+#include <qmetatype.h>
+#include <qobject.h>
 
-namespace iscore {
-    class State;
-}
 using namespace iscore;
 class SerializationTest: public QObject
 {
@@ -41,3 +38,8 @@ class SerializationTest: public QObject
 
 QTEST_APPLESS_MAIN(SerializationTest)
 #include "SerializationTest.moc"
+#include "State/Address.hpp"
+#include "State/Value.hpp"
+
+class DataStream;
+class JSONObject;

@@ -1,20 +1,25 @@
-#include "iscore_plugin_loop.hpp"
-
-#include <Loop/LoopProcessModel.hpp>
-#include <Loop/LoopProcessFactory.hpp>
-
-#include <Loop/Inspector/LoopInspectorFactory.hpp>
-
 #include <Loop/Commands/LoopCommandFactory.hpp>
+#include <Loop/Inspector/LoopInspectorFactory.hpp>
 #include <Loop/Inspector/LoopTriggerCommandFactory.hpp>
-
-#include <iscore_plugin_loop_commands_files.hpp>
-
-
+#include <Loop/LoopProcessFactory.hpp>
+#include <Process/Process.hpp>
+#include <Scenario/Document/Constraint/Rack/RackModel.hpp>
+#include <boost/optional/optional.hpp>
 //#if defined(ISCORE_STATIC_PLUGINS) && defined(ISCORE_COMPILER_IS_AppleClang)
 #include <iscore/tools/NotifyingMap_impl.hpp>
-#include <Scenario/Document/Constraint/Rack/RackModel.hpp>
-#include <Process/Process.hpp>
+#include <qobjectdefs.h>
+#include <string.h>
+#include <unordered_map>
+
+#include "Inspector/InspectorWidgetFactoryInterface.hpp"
+#include "Process/ProcessFactory.hpp"
+#include "Scenario/Commands/TimeNode/TriggerCommandFactory/TriggerCommandFactory.hpp"
+#include "Scenario/Inspector/Constraint/ConstraintInspectorDelegateFactory.hpp"
+#include "iscore/plugins/customfactory/StringFactoryKey.hpp"
+#include "iscore/tools/SettableIdentifier.hpp"
+#include "iscore_plugin_loop.hpp"
+#include <iscore_plugin_loop_commands_files.hpp>
+
 void ignore_template_instantiations_iscore_plugin_loop()
 {
     NotifyingMapInstantiations_T<RackModel>();
@@ -61,7 +66,7 @@ std::pair<const CommandParentFactoryKey, CommandGeneratorMap> iscore_plugin_loop
     std::pair<const CommandParentFactoryKey, CommandGeneratorMap> cmds{LoopCommandFactoryName(), CommandGeneratorMap{}};
 
     using Types = iscore::commands::TypeList<
-  #include <iscore_plugin_loop_commands.hpp>
+#include <iscore_plugin_loop_commands.hpp>
       >;
     iscore::commands::ForEach<Types>(iscore::commands::FactoryInserter{cmds.second});
 

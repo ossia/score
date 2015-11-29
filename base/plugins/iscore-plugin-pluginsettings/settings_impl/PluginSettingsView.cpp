@@ -1,12 +1,11 @@
-#include "PluginSettingsView.hpp"
-#include <QGridLayout>
+#include <qgridlayout.h>
+
 #include "PluginSettingsPresenter.hpp"
-#include "PluginSettingsModel.hpp"
-/*#include "commands/ClientPortChangedCommand.hpp"
-#include "commands/MasterPortChangedCommand.hpp"
-#include "commands/ClientNameChangedCommand.hpp"
-*/
-#include <QApplication>
+#include "PluginSettingsView.hpp"
+#include "iscore/plugins/settingsdelegate/SettingsDelegateViewInterface.hpp"
+
+class QObject;
+
 using namespace iscore;
 
 PluginSettingsView::PluginSettingsView(QObject* parent) :

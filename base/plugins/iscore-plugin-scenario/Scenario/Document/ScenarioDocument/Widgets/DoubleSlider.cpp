@@ -1,8 +1,10 @@
-#include "DoubleSlider.hpp"
-#include <QSlider>
-#include <numeric>
 #include <iscore/widgets/MarginLess.hpp>
-#include <QGridLayout>
+#include <qgridlayout.h>
+#include <qnamespace.h>
+#include <qslider.h>
+#include <limits>
+
+#include "DoubleSlider.hpp"
 
 static const constexpr double max = std::numeric_limits<int>::max() / 16384;
 

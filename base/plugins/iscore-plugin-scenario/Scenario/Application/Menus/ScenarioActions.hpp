@@ -1,14 +1,19 @@
 #pragma once
-#include <iscore/selection/Selection.hpp>
 #include <iscore/menu/MenuInterface.hpp>
-#include <core/presenter/MenubarManager.hpp>
-#include <Process/LayerPresenter.hpp>
-
-#include <QToolBar>
+#include <iscore/selection/Selection.hpp>
+#include <qlist.h>
+#include <qobject.h>
+#include <qpoint.h>
 
 class QAction;
+class QMenu;
+class QToolBar;
 class ScenarioApplicationPlugin;
 class TemporalScenarioPresenter;
+namespace iscore {
+class MenubarManager;
+}  // namespace iscore
+
 class ScenarioActions : public QObject
 {
         Q_OBJECT

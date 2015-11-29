@@ -1,5 +1,9 @@
 #pragma once
 #include <Process/LayerView.hpp>
+#include <qstring.h>
+
+class QGraphicsItem;
+class QPainter;
 
 class DummyLayerView final : public LayerView
 {

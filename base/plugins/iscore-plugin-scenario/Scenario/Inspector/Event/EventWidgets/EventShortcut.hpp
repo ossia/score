@@ -1,8 +1,9 @@
 #pragma once
-#include <QWidget>
+#include <qstring.h>
+#include <qwidget.h>
 
-class QPushButton;
 class QCheckBox;
+class QPushButton;
 
 // TODO refactor with SelectableButton
 class EventShortCut final : public QWidget

@@ -1,7 +1,19 @@
 #pragma once
 
 #include <Scenario/Commands/Scenario/Displacement/SerializableMoveEvent.hpp>
-#include <Scenario/Commands/Scenario/Displacement/MoveEvent.hpp>
+
+#include "Process/ExpandMode.hpp"
+#include "Process/TimeValue.hpp"
+#include "Scenario/Commands/ScenarioCommandFactory.hpp"
+#include "iscore/tools/ModelPath.hpp"
+
+class DataStreamInput;
+class DataStreamOutput;
+class EventModel;
+namespace Scenario {
+class ScenarioModel;
+}  // namespace Scenario
+template <typename tag, typename impl> class id_base_t;
 
 class MoveEventMeta final : public SerializableMoveEvent
 {

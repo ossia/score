@@ -1,20 +1,40 @@
-#include "PlayContextMenu.hpp"
-#include "Scenario/Application/ScenarioApplicationPlugin.hpp"
-#include "DocumentPlugin/OSSIAStateElement.hpp"
-#include <Scenario/Process/ScenarioModel.hpp>
-#include <Scenario/Document/State/StateModel.hpp>
-#include "DocumentPlugin/OSSIAScenarioElement.hpp"
-#include <DocumentPlugin/OSSIABaseScenarioElement.hpp>
-#include <iscore/document/DocumentInterface.hpp>
-#include <core/document/Document.hpp>
 #include <API/Headers/Editor/State.h>
-#include <API/Headers/Editor/TimeConstraint.h>
-#include <Editor/TimeNode.h>
-#include <core/document/DocumentModel.hpp>
-#include "DocumentPlugin/OSSIADocumentPlugin.hpp"
+#include <Scenario/Document/State/StateModel.hpp>
+#include <Scenario/Process/ScenarioModel.hpp>
 #include <Scenario/Process/Temporal/TemporalScenarioPresenter.hpp>
 #include <Scenario/Process/Temporal/TemporalScenarioView.hpp>
-#include <iscore2OSSIA.hpp>
+#include <boost/optional/optional.hpp>
+#include <qaction.h>
+#include <qlist.h>
+#include <qmenu.h>
+#include <qnamespace.h>
+#include <qobjectdefs.h>
+#include <qrect.h>
+#include <qstring.h>
+#include <qvariant.h>
+#include <algorithm>
+#include <map>
+#include <memory>
+
+#include "DocumentPlugin/OSSIAConstraintElement.hpp"
+#include "DocumentPlugin/OSSIAEventElement.hpp"
+#include "DocumentPlugin/OSSIAScenarioElement.hpp"
+#include "DocumentPlugin/OSSIAStateElement.hpp"
+#include "Editor/TimeEvent.h"
+#include "PlayContextMenu.hpp"
+#include "Process/LayerModel.hpp"
+#include "Process/TimeValue.hpp"
+#include "Scenario/Application/ScenarioApplicationPlugin.hpp"
+#include "Scenario/Application/ScenarioRecordInitData.hpp"
+#include "Scenario/Document/Constraint/ConstraintModel.hpp"
+#include "Scenario/Document/Event/EventModel.hpp"
+#include "Scenario/Palette/ScenarioPoint.hpp"
+#include "iscore/menu/MenuInterface.hpp"
+#include "iscore/tools/NotifyingMap.hpp"
+
+namespace iscore {
+class MenubarManager;
+}  // namespace iscore
 
 PlayContextMenu::PlayContextMenu(ScenarioApplicationPlugin *parent):
     ScenarioActions(iscore::ToplevelMenuElement::AboutMenu, parent)

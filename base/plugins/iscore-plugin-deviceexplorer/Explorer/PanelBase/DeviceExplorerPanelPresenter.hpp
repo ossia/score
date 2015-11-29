@@ -1,6 +1,11 @@
 #pragma once
 #include <iscore/plugins/panel/PanelPresenter.hpp>
 
+namespace iscore {
+class PanelView;
+class Presenter;
+}  // namespace iscore
+
 class DeviceExplorerPanelPresenter final : public iscore::PanelPresenter
 {
     public:

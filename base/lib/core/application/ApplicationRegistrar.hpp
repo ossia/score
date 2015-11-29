@@ -1,19 +1,24 @@
 #pragma once
-#include <vector>
-#include <unordered_map>
 #include <iscore/command/CommandGeneratorMap.hpp>
-#include <iscore/plugins/customfactory/FactoryFamily.hpp>
+#include <qobject.h>
+#include <unordered_map>
+#include <utility>
+
+#include "iscore/command/SerializableCommand.hpp"
+#include "iscore/plugins/customfactory/FactoryInterface.hpp"
+
+namespace iscore {
+class Application;
+}  // namespace iscore
 
 namespace iscore
 {
 class DocumentDelegateFactoryInterface;
+class FactoryListInterface;
 class GUIApplicationContextPlugin;
 class PanelFactory;
-class FactoryListInterface;
-class PanelPresenter;
-class Presenter;
-struct ApplicationComponentsData;
 class SettingsDelegateFactoryInterface;
+struct ApplicationComponentsData;
 
 class ApplicationRegistrar : public QObject
 {

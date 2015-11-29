@@ -1,13 +1,17 @@
 #pragma once
 
 #include <Scenario/Commands/ScenarioCommandFactory.hpp>
+#include <boost/optional/optional.hpp>
 #include <iscore/command/SerializableCommand.hpp>
-#include <iscore/tools/SettableIdentifier.hpp>
 #include <iscore/tools/ModelPath.hpp>
+#include <iscore/tools/SettableIdentifier.hpp>
 
-
+class DataStreamInput;
+class DataStreamOutput;
 class StateModel;
-namespace Scenario { class ScenarioModel; }
+namespace Scenario {
+class ScenarioModel;
+}  // namespace Scenario
 
 /*
  * Used on creation mode, when mouse is pressed and is moving.

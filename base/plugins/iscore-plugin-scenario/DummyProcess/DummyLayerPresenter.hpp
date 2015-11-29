@@ -1,7 +1,16 @@
 #pragma once
 #include <Process/LayerPresenter.hpp>
+#include <qpoint.h>
+
+#include "Process/ZoomHelper.hpp"
+#include "iscore/tools/SettableIdentifier.hpp"
 
 class DummyLayerView;
+class LayerModel;
+class Process;
+class QMenu;
+class QObject;
+
 class DummyLayerPresenter final : public LayerPresenter
 {
     public:

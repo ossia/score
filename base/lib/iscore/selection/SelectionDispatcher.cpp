@@ -1,5 +1,6 @@
 #include "SelectionDispatcher.hpp"
 #include "SelectionStack.hpp"
+#include "iscore/selection/Selection.hpp"
 
 using namespace iscore;
 

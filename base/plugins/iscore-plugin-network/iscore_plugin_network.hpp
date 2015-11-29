@@ -2,9 +2,18 @@
 
 #include <iscore/plugins/qt_interfaces/GUIApplicationContextPlugin_QtInterface.hpp>
 #include <iscore/plugins/qt_interfaces/PanelFactoryInterface_QtInterface.hpp>
-#include <iscore/plugins/qt_interfaces/SettingsDelegateFactoryInterface_QtInterface.hpp>
-#include <QObject>
-class NetworkSettings;
+#include <qobject.h>
+#include <utility>
+#include <vector>
+
+#include "iscore/command/CommandGeneratorMap.hpp"
+#include "iscore/command/SerializableCommand.hpp"
+#include "iscore/plugins/application/GUIApplicationContextPlugin.hpp"
+
+namespace iscore {
+class Application;
+class PanelFactory;
+}  // namespace iscore
 
 class iscore_plugin_network :
         public QObject,

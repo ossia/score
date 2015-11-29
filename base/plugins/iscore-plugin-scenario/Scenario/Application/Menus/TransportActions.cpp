@@ -1,7 +1,17 @@
-#include "TransportActions.hpp"
-
-#include "iscore/menu/MenuInterface.hpp"
 #include <Scenario/Application/ScenarioApplicationPlugin.hpp>
+#include <qaction.h>
+#include <qnamespace.h>
+#include <qobjectdefs.h>
+#include <qstring.h>
+#include <qtoolbar.h>
+
+#include "Scenario/Application/Menus/ScenarioActions.hpp"
+#include "TransportActions.hpp"
+#include "core/presenter/MenubarManager.hpp"
+#include "iscore/menu/MenuInterface.hpp"
+
+class QMenu;
+class TemporalScenarioPresenter;
 
 TransportActions::TransportActions(
         iscore::ToplevelMenuElement menuElt,

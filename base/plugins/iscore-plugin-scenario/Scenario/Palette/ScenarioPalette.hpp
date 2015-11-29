@@ -1,31 +1,29 @@
 #pragma once
-#include <Scenario/Palette/Tool.hpp>
-#include <Scenario/Palette/ScenarioPaletteBaseEvents.hpp>
-#include <Scenario/Application/ScenarioEditionSettings.hpp>
-
-#include <Scenario/Palette/Tools/CreationToolState.hpp>
-#include <Scenario/Palette/Tools/SmartTool.hpp>
-#include <Scenario/Palette/Tools/MoveSlotToolState.hpp>
-
-#include <Scenario/Palette/Tools/States/ScenarioMoveStatesWrapper.hpp>
-
-#include <Process/ExpandMode.hpp>
 #include <Process/Tools/ToolPalette.hpp>
-
+#include <Scenario/Palette/Tool.hpp>
+#include <Scenario/Palette/Tools/CreationToolState.hpp>
+#include <Scenario/Palette/Tools/MoveSlotToolState.hpp>
+#include <Scenario/Palette/Tools/SmartTool.hpp>
 #include <iscore/statemachine/GraphicsSceneToolPalette.hpp>
-#include <QStateMachine>
-#include <QPointF>
+#include <qpoint.h>
+
+#include "Process/ProcessContext.hpp"
+#include "Scenario/Palette/ScenarioPoint.hpp"
 
 class TemporalScenarioPresenter;
 class TemporalScenarioView;
-namespace Scenario { class ScenarioModel; }
-class QGraphicsScene;
+namespace Scenario {
+class EditionSettings;
+class MoveConstraintInScenario_StateWrapper;
+class MoveEventInScenario_StateWrapper;
+class MoveTimeNodeInScenario_StateWrapper;
+class ScenarioModel;
+}  // namespace Scenario
 
 namespace iscore
 {
     class CommandStack;
     class ObjectLocker;
-    class Document;
 }
 
 namespace Scenario

@@ -1,8 +1,9 @@
 #pragma once
-#include <QStateMachine>
-#include <QPointF>
+#include <qobject.h>
+#include <qpoint.h>
 
 class QGraphicsScene;
+
 class GraphicsSceneToolPalette : public QObject
 {
     public:

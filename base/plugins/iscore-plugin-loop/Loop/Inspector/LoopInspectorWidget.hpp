@@ -1,15 +1,17 @@
 #pragma once
 
 #include <Inspector/InspectorWidgetBase.hpp>
-#include <QPlainTextEdit>
-namespace iscore{
-struct Address;
-}
+#include <qstring.h>
+
+class QWidget;
+namespace iscore {
+class Document;
+}  // namespace iscore
+
 namespace Loop
 {
 class ProcessModel;
 }
-class DynamicProcessList;
 
 class LoopInspectorWidget final : public InspectorWidgetBase
 {

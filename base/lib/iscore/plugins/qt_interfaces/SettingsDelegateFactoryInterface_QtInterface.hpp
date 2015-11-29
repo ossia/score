@@ -1,9 +1,9 @@
 #pragma once
-#include <QObject>
 
 namespace iscore
 {
     class SettingsDelegateFactoryInterface;
+
     // A plug-in can also offer global settings for everything it provides.
     class SettingsDelegateFactoryInterface_QtInterface
     {

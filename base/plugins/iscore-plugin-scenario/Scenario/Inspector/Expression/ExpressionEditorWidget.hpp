@@ -1,11 +1,13 @@
 #pragma once
-#include <QWidget>
-
 #include <Scenario/Inspector/ExpressionValidator.hpp>
+#include <boost/core/explicit_operator_bool.hpp>
+#include <qstring.h>
+#include <qvector.h>
+#include <qwidget.h>
 
-class QComboBox;
+#include "State/Expression.hpp"
+
 class QVBoxLayout;
-class QLabel;
 class SimpleExpressionEditorWidget;
 
 class ExpressionEditorWidget : public QWidget

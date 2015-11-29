@@ -1,6 +1,28 @@
-#include "MovePointCommandObject.hpp"
-#include "Curve/CurvePresenter.hpp"
+#include <boost/core/explicit_operator_bool.hpp>
+#include <boost/multi_index/detail/hash_index_iterator.hpp>
+#include <boost/multi_index/hashed_index.hpp>
+#include <boost/operators.hpp>
+#include <boost/optional/optional.hpp>
+#include <qpoint.h>
+#include <algorithm>
+#include <vector>
+
+#include "Curve/Commands/UpdateCurve.hpp"
 #include "Curve/CurveModel.hpp"
+#include "Curve/CurvePresenter.hpp"
+#include "Curve/Palette/CommandObjects/CurveCommandObjectBase.hpp"
+#include "Curve/Palette/CurveEditionSettings.hpp"
+#include "Curve/Palette/CurvePaletteBaseStates.hpp"
+#include "Curve/Palette/CurvePoint.hpp"
+#include "Curve/Point/CurvePointModel.hpp"
+#include "MovePointCommandObject.hpp"
+#include "iscore/command/Dispatchers/SingleOngoingCommandDispatcher.hpp"
+#include "iscore/tools/SettableIdentifier.hpp"
+
+class CurveSegmentModel;
+namespace iscore {
+class CommandStack;
+}  // namespace iscore
 
 MovePointCommandObject::MovePointCommandObject(
         CurvePresenter* presenter,

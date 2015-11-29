@@ -1,7 +1,7 @@
-#include "JSAPIWrapper.hpp"
-#include <Device/Protocol/DeviceList.hpp>
-#include <Device/Protocol/DeviceInterface.hpp>
 #include <Explorer/DocumentPlugin/DeviceDocumentPlugin.hpp>
+
+#include "Explorer/DocumentPlugin/NodeUpdateProxy.hpp"
+#include "JSAPIWrapper.hpp"
 
 QJSValue JSAPIWrapper::value(QJSValue address)
 {

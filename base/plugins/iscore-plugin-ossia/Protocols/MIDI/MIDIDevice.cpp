@@ -1,6 +1,11 @@
-#include "MIDIDevice.hpp"
-#include <API/Headers/Network/Protocol/MIDI.h>
 #include <API/Headers/Network/Device.h>
+#include <API/Headers/Network/Protocol/MIDI.h>
+#include <qstring.h>
+#include <memory>
+
+#include "Device/Protocol/DeviceSettings.hpp"
+#include "MIDIDevice.hpp"
+
 MIDIDevice::MIDIDevice(const iscore::DeviceSettings &settings):
     OSSIADevice{settings}
 {

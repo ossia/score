@@ -1,14 +1,18 @@
 #pragma once
+#include <Process/TimeValue.hpp>
 #include <Scenario/Commands/ScenarioCommandFactory.hpp>
+#include <boost/optional/optional.hpp>
 #include <iscore/command/SerializableCommand.hpp>
 #include <iscore/tools/ModelPath.hpp>
 
-#include <Process/ExpandMode.hpp>
-#include <tests/helpers/ForwardDeclaration.hpp>
-#include <Process/TimeValue.hpp>
+#include "iscore/tools/SettableIdentifier.hpp"
 
 class ConstraintModel;
-namespace Scenario { class ScenarioModel; }
+class DataStreamInput;
+class DataStreamOutput;
+namespace Scenario {
+class ScenarioModel;
+}  // namespace Scenario
 
 /*
  * Command for vertical move so it does'nt have to resize anything on time axis
@@ -21,7 +25,6 @@ namespace Scenario
         class MoveConstraint final : public iscore::SerializableCommand
         {
                 ISCORE_COMMAND_DECL(ScenarioCommandFactoryName(), MoveConstraint, "Move a constraint")
-#include <tests/helpers/FriendDeclaration.hpp>
             public:
                 MoveConstraint(
                         Path<Scenario::ScenarioModel>&& scenarioPath,

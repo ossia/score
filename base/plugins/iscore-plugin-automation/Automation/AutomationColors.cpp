@@ -1,8 +1,16 @@
+#include <qbytearray.h>
+#include <qcolor.h>
+#include <qfile.h>
+#include <qiodevice.h>
+#include <qjsonarray.h>
+#include <qjsondocument.h>
+#include <qjsonobject.h>
+#include <qjsonvalue.h>
+
 #include "AutomationColors.hpp"
-#include <QJsonDocument>
-#include <QJsonObject>
-#include <QJsonArray>
-#include <QFile>
+#include "Curve/CurveStyle.hpp"
+
+class QString;
 
 AutomationColors::AutomationColors()
 {

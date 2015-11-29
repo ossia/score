@@ -1,9 +1,21 @@
-#include "ChangeAddress.hpp"
 #include <Device/Node/DeviceNode.hpp>
-#include <iscore/document/DocumentInterface.hpp>
-#include <core/document/Document.hpp>
 #include <Explorer/Explorer/DeviceExplorerModel.hpp>
+#include <qstring.h>
+#include <qstringlist.h>
+#include <algorithm>
+
 #include "Automation/AutomationModel.hpp"
+#include "ChangeAddress.hpp"
+#include "Device/Address/AddressSettings.hpp"
+#include "Device/Address/Domain.hpp"
+#include "State/Address.hpp"
+#include "State/Value.hpp"
+#include "State/ValueConversion.hpp"
+#include "iscore/serialization/DataStreamVisitor.hpp"
+#include "iscore/tools/ModelPath.hpp"
+#include "iscore/tools/ModelPathSerialization.hpp"
+#include "iscore/tools/TreeNode.hpp"
+
 ChangeAddress::ChangeAddress(
         Path<AutomationModel> &&path,
         const iscore::Address &newval):

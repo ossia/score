@@ -1,14 +1,28 @@
-#include "BaseScenarioDisplayedElementsToolPalette.hpp"
+#include <Scenario/Application/ScenarioApplicationPlugin.hpp>
 #include <Scenario/Document/ScenarioDocument/ScenarioDocumentModel.hpp>
 #include <Scenario/Document/ScenarioDocument/ScenarioDocumentPresenter.hpp>
 #include <Scenario/Document/ScenarioDocument/ScenarioDocumentView.hpp>
-
-#include <Scenario/Application/ScenarioApplicationPlugin.hpp>
-
-#include <iscore/statemachine/StateMachineUtils.hpp>
-#include <iscore/document/DocumentInterface.hpp>
+#include <boost/core/explicit_operator_bool.hpp>
+#include <boost/optional/optional.hpp>
 #include <core/application/ApplicationContext.hpp>
-#include <core/document/Document.hpp>
+#include <iscore/document/DocumentInterface.hpp>
+#include <algorithm>
+
+#include <Scenario/Document/DisplayedElements/DisplayedElementsPresenter.hpp>
+#include <Scenario/Document/ScenarioDocument/ProcessFocusManager.hpp>
+#include "BaseScenarioDisplayedElementsToolPalette.hpp"
+#include "Process/TimeValue.hpp"
+#include "Scenario/Document/BaseScenario/BaseElementContext.hpp"
+#include "Scenario/Document/BaseScenario/BaseScenario.hpp"
+#include "Scenario/Document/DisplayedElements/DisplayedElementsToolPalette/BaseScenarioDisplayedElements_StateWrappers.hpp"
+#include "Scenario/Document/ScenarioDocument/Widgets/GraphicsProxyObject.hpp"
+#include "core/application/ApplicationComponents.hpp"
+#include "iscore/statemachine/GraphicsSceneToolPalette.hpp"
+#include "iscore/tools/SettableIdentifier.hpp"
+
+namespace Scenario {
+class EditionSettings;
+}  // namespace Scenario
 
 Scenario::Point BaseScenarioDisplayedElementsToolPalette::ScenePointToScenarioPoint(QPointF point)
 {

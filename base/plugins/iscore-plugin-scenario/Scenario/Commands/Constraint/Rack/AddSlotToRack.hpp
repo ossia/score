@@ -1,11 +1,16 @@
 #pragma once
 #include <Scenario/Commands/ScenarioCommandFactory.hpp>
+#include <boost/optional/optional.hpp>
 #include <iscore/command/SerializableCommand.hpp>
 #include <iscore/tools/ModelPath.hpp>
 
-#include <tests/helpers/ForwardDeclaration.hpp>
-class SlotModel;
+#include "iscore/tools/SettableIdentifier.hpp"
+
+class DataStreamInput;
+class DataStreamOutput;
 class RackModel;
+class SlotModel;
+
 namespace Scenario
 {
     namespace Command
@@ -18,7 +23,6 @@ namespace Scenario
         class AddSlotToRack final : public iscore::SerializableCommand
         {
                 ISCORE_COMMAND_DECL(ScenarioCommandFactoryName(), AddSlotToRack, "Create a slot")
-#include <tests/helpers/FriendDeclaration.hpp>
             public:
                 AddSlotToRack(Path<RackModel>&& rackPath);
 

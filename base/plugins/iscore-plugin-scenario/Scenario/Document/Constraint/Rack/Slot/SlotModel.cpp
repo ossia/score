@@ -1,10 +1,18 @@
-#include "SlotModel.hpp"
-
+#include <Process/LayerModel.hpp>
+#include <Process/Process.hpp>
 #include <Scenario/Document/Constraint/ConstraintModel.hpp>
 #include <Scenario/Document/Constraint/Rack/RackModel.hpp>
+#include <boost/core/explicit_operator_bool.hpp>
+#include <boost/iterator/indirect_iterator.hpp>
+#include <boost/iterator/iterator_facade.hpp>
+#include <boost/multi_index/detail/hash_index_iterator.hpp>
+#include <algorithm>
+#include <iterator>
 
-#include <Process/Process.hpp>
-#include <Process/LayerModel.hpp>
+#include "Process/ModelMetadata.hpp"
+#include "SlotModel.hpp"
+#include "iscore/tools/NotifyingMap.hpp"
+#include "iscore/tools/Todo.hpp"
 
 constexpr const char SlotModel::className[];
 

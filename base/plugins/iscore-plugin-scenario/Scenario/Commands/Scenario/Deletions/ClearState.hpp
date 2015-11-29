@@ -1,9 +1,13 @@
 #pragma once
 #include <Scenario/Commands/ScenarioCommandFactory.hpp>
 #include <iscore/command/SerializableCommand.hpp>
-
 #include <iscore/tools/ModelPath.hpp>
+#include <qbytearray.h>
+
+class DataStreamInput;
+class DataStreamOutput;
 class StateModel;
+
 namespace Scenario
 {
     namespace Command

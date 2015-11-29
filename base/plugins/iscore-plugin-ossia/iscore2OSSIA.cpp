@@ -1,20 +1,44 @@
-#include "iscore2OSSIA.hpp"
-
-#include <Process/State/MessageNode.hpp>
-#include <boost/mpl/pair.hpp>
-#include <boost/mpl/map.hpp>
-#include <boost/mpl/int.hpp>
-#include <boost/mpl/at.hpp>
-#include <boost/range/algorithm.hpp>
-
-#include <Misc/CallbackContainer.h>
 #include <Editor/Expression.h>
 #include <Editor/ExpressionAtom.h>
 #include <Editor/ExpressionComposition.h>
 #include <Editor/ExpressionNot.h>
+#include <Process/State/MessageNode.hpp>
+#include <boost/concept/usage.hpp>
+#include <boost/core/explicit_operator_bool.hpp>
+#include <boost/mpl/at.hpp>
+#include <boost/mpl/map.hpp>
+#include <boost/mpl/pair.hpp>
+#include <boost/optional/optional.hpp>
+#include <boost/range/algorithm/find_if.hpp>
+#include <eggs/variant/variant.hpp>
+#include <qbytearray.h>
+#include <qchar.h>
+#include <qdebug.h>
+#include <qlist.h>
+#include <qmap.h>
+#include <qstring.h>
+#include <algorithm>
+#include <exception>
+#include <string>
+#include <vector>
 
+#include "Device/Address/AddressSettings.hpp"
+#include "Device/Address/IOType.hpp"
+#include "Device/Protocol/DeviceInterface.hpp"
+#include "Device/Protocol/DeviceList.hpp"
+#include "Editor/Message.h"
+#include "Editor/State.h"
+#include "Editor/Value.h"
+#include "Network/Address.h"
+#include "Network/Device.h"
+#include "Network/Node.h"
 #include "Protocols/OSSIADevice.hpp"
-#include <QMap>
+#include "State/Address.hpp"
+#include "State/Expression.hpp"
+#include "State/Message.hpp"
+#include "State/Relation.hpp"
+#include "iscore/tools/InvisibleRootNode.hpp"
+#include "iscore2OSSIA.hpp"
 
 
 class NodeNotFoundException : public std::exception

@@ -1,9 +1,12 @@
 #pragma once
 #include <Curve/Palette/Tools/CurveTool.hpp>
+#include <qpoint.h>
+
+#include "Curve/Palette/CurvePoint.hpp"
+
 namespace Curve
 {
 class ToolPalette;
-class OngoingState;
 
 class EditionToolForCreate : public CurveTool
 {

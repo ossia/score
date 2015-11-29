@@ -1,16 +1,34 @@
+#include <Process/LayerModelPanelProxy.hpp>
+#include <Scenario/Document/ScenarioDocument/ScenarioDocumentModel.hpp>
+#include <Scenario/Document/ScenarioDocument/Widgets/ScenarioBaseGraphicsView.hpp>
+#include <qgraphicsscene.h>
+#include <qobject.h>
+#include <qsize.h>
+#include <algorithm>
+
+#include "Process/LayerModel.hpp"
+#include "Process/LayerPresenter.hpp"
+#include "Process/Process.hpp"
+#include "Process/ProcessFactory.hpp"
+#include "Process/ProcessList.hpp"
+#include "Process/TimeValue.hpp"
+#include "Process/ZoomHelper.hpp"
 #include "ProcessPanelPresenter.hpp"
 #include "ProcessPanelView.hpp"
-#include "ProcessPanelModel.hpp"
-
-#include <QApplication>
-#include <Scenario/Document/ScenarioDocument/ScenarioDocumentModel.hpp>
-
-#include <Process/LayerModelPanelProxy.hpp>
-#include <Process/LayerView.hpp>
-
-#include <Scenario/Document/ScenarioDocument/Widgets/ScenarioBaseGraphicsView.hpp>
+#include "Scenario/Document/ScenarioDocument/ProcessFocusManager.hpp"
+#include "Scenario/Panel/ProcessPanelGraphicsProxy.hpp"
+#include "iscore/document/DocumentInterface.hpp"
+#include "iscore/plugins/customfactory/FactoryFamily.hpp"
+#include "iscore/plugins/customfactory/FactoryMap.hpp"
+#include "iscore/plugins/panel/PanelModel.hpp"
+#include "iscore/plugins/panel/PanelPresenter.hpp"
+#include "iscore/tools/Todo.hpp"
 
 #include "ProcessPanelId.hpp"
+namespace iscore {
+class PanelView;
+class Presenter;
+}  // namespace iscore
 
 ProcessPanelPresenter::ProcessPanelPresenter(
         const DynamicProcessList& plist,

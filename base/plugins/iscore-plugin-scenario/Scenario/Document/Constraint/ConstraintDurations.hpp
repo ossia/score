@@ -1,9 +1,12 @@
 #pragma once
 #include <Process/TimeValue.hpp>
-#include <iscore/serialization/DataStreamVisitor.hpp>
-#include <iscore/serialization/JSONVisitor.hpp>
+#include <qobject.h>
+#include <chrono>
 
 class ConstraintModel;
+class DataStream;
+class JSONObject;
+
 // A container class to separate management of the duration of a constraint.
 class ConstraintDurations final : public QObject
 {

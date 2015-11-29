@@ -1,7 +1,15 @@
-#include "Client.hpp"
-
+#include <boost/core/explicit_operator_bool.hpp>
 #include <iscore/serialization/DataStreamVisitor.hpp>
 #include <iscore/serialization/JSONVisitor.hpp>
+#include <qjsonobject.h>
+#include <qjsonvalue.h>
+#include <qstring.h>
+
+#include "Client.hpp"
+
+template <typename T> class Reader;
+template <typename T> class Writer;
+template <typename model> class IdentifiedObject;
 
 template<>
 void Visitor<Reader<DataStream>>::readFrom(const Client& elt)

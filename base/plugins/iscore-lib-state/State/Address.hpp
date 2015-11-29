@@ -1,9 +1,15 @@
 #pragma once
-#include <QStringList>
-#include <QMetaType>
 
-// For qRegisterDataStreamOperators...
-#include <iscore/serialization/DataStreamVisitor.hpp>
+
+#include <qhash.h>
+#include <qlist.h>
+#include <qstring.h>
+#include <qstringlist.h>
+#include <cstddef>
+#include <string>
+#include <unordered_map>
+#include <QMetaType>
+#include <QMetaObject>
 
 namespace iscore
 {

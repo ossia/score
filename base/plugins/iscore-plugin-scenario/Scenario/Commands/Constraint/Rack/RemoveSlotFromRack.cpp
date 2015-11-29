@@ -1,7 +1,15 @@
-#include "RemoveSlotFromRack.hpp"
-
 #include <Scenario/Document/Constraint/Rack/RackModel.hpp>
 #include <Scenario/Document/Constraint/Rack/Slot/SlotModel.hpp>
+#include <boost/core/explicit_operator_bool.hpp>
+#include <type_traits>
+#include <utility>
+
+#include "RemoveSlotFromRack.hpp"
+#include "iscore/serialization/DataStreamVisitor.hpp"
+#include "iscore/tools/ModelPath.hpp"
+#include "iscore/tools/ModelPathSerialization.hpp"
+#include "iscore/tools/NotifyingMap.hpp"
+#include "iscore/tools/ObjectIdentifier.hpp"
 
 using namespace iscore;
 using namespace Scenario::Command;

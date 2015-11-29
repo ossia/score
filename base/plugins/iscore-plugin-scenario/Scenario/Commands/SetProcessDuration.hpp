@@ -1,9 +1,14 @@
 #pragma once
-#include <iscore/command/SerializableCommand.hpp>
 #include <Process/TimeValue.hpp>
 #include <Scenario/Commands/ScenarioCommandFactory.hpp>
+#include <iscore/command/SerializableCommand.hpp>
 
+#include "iscore/tools/ModelPath.hpp"
+
+class DataStreamInput;
+class DataStreamOutput;
 class Process;
+
 class SetProcessDuration final : public iscore::SerializableCommand
 {
         ISCORE_COMMAND_DECL(ScenarioCommandFactoryName(), SetProcessDuration, "Change a process duration")

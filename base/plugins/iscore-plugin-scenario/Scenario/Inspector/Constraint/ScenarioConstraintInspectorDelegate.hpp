@@ -1,5 +1,14 @@
 #pragma once
 #include <Scenario/Inspector/Constraint/ConstraintInspectorDelegate.hpp>
+#include <list>
+
+#include "Process/ExpandMode.hpp"
+#include "Process/TimeValue.hpp"
+
+class ConstraintInspectorWidget;
+class ConstraintModel;
+class OngoingCommandDispatcher;
+class QWidget;
 
 class ScenarioConstraintInspectorDelegate final : public ConstraintInspectorDelegate
 {

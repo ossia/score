@@ -1,16 +1,30 @@
 #pragma once
-#include <Loop/LoopProcessModel.hpp>
-#include <Editor/Loop.h>
-#include <RecreateOnPlayDocumentPlugin/StateElement.hpp>
-#include <RecreateOnPlayDocumentPlugin/EventElement.hpp>
-#include <RecreateOnPlayDocumentPlugin/TimeNodeElement.hpp>
-#include <RecreateOnPlayDocumentPlugin/ConstraintElement.hpp>
 #include <RecreateOnPlayDocumentPlugin/ProcessElement.hpp>
+#include <memory>
+
+class ConstraintModel;
+class DeviceList;
+class Process;
+class QObject;
+namespace Loop {
+class ProcessModel;
+}  // namespace Loop
+namespace OSSIA {
+class Loop;
+class TimeProcess;
+}  // namespace OSSIA
+namespace RecreateOnPlay {
+class EventElement;
+class StateElement;
+class TimeNodeElement;
+}  // namespace RecreateOnPlay
+template <typename tag, typename impl> class id_base_t;
 
 
 namespace RecreateOnPlay
 {
 class ConstraintElement;
+
 // TODO see if this can be used for the base scenario model too.
 class LoopElement final : public ProcessElement
 {

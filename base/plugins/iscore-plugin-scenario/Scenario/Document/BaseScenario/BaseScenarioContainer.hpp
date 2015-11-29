@@ -1,7 +1,15 @@
 #pragma once
-#include <iscore/serialization/DataStreamVisitor.hpp>
-#include <iscore/serialization/JSONVisitor.hpp>
 #include <Scenario/Process/ScenarioInterface.hpp>
+#include <tuple>
+
+class ConstraintModel;
+class DataStream;
+class EventModel;
+class JSONObject;
+class QObject;
+class StateModel;
+class TimeNodeModel;
+template <typename tag, typename impl> class id_base_t;
 
 class BaseScenarioContainer : public ScenarioInterface
 {

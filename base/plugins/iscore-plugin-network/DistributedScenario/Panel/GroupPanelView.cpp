@@ -1,16 +1,21 @@
-#include "GroupPanelView.hpp"
+#include <iscore/document/DocumentInterface.hpp>
+#include <qboxlayout.h>
+#include <qinputdialog.h>
+#include <qlabel.h>
+#include <qlayout.h>
+#include <qlineedit.h>
+#include <qnamespace.h>
+#include <qobject.h>
+#include <qpushbutton.h>
+#include <qwidget.h>
 
+#include "DistributedScenario/Commands/CreateGroup.hpp"
+#include "GroupPanelView.hpp"
 #include "Widgets/GroupListWidget.hpp"
 #include "Widgets/GroupTableWidget.hpp"
-#include "DistributedScenario/Group.hpp"
-#include "DistributedScenario/Commands/CreateGroup.hpp"
-
-#include <iscore/document/DocumentInterface.hpp>
-#include <core/document/Document.hpp>
-
-#include <QVBoxLayout>
-#include <QPushButton>
-#include <QInputDialog>
+#include "iscore/command/Dispatchers/CommandDispatcher.hpp"
+#include "iscore/plugins/panel/PanelView.hpp"
+#include "iscore/tools/ObjectPath.hpp"
 
 static const iscore::DefaultPanelStatus status{false, Qt::RightDockWidgetArea, 1, QObject::tr("Groups")};
 const iscore::DefaultPanelStatus &GroupPanelView::defaultPanelStatus() const
@@ -31,9 +36,9 @@ QWidget*GroupPanelView::getWidget()
     return m_widget;
 }
 
-#include "Repartition/session/Session.hpp"
 #include "DistributedScenario/GroupManager.hpp"
-#include <QLabel>
+#include "Repartition/session/Session.hpp"
+
 void GroupPanelView::setView(const GroupManager* mgr,
                              const Session* session)
 {

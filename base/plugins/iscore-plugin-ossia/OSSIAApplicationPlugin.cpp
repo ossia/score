@@ -1,33 +1,42 @@
-#include "OSSIAApplicationPlugin.hpp"
-
-#include <RecreateOnPlayDocumentPlugin/DocumentPlugin.hpp>
-#include <RecreateOnPlayDocumentPlugin/BaseScenarioElement.hpp>
-
-#include <Explorer/Explorer/DeviceExplorerModel.hpp>
-#include <Scenario/Application/ScenarioApplicationPlugin.hpp>
-
+#include <API/Headers/Editor/TimeConstraint.h>
 #include <API/Headers/Network/Device.h>
 #include <API/Headers/Network/Protocol/Local.h>
-
-#include <API/Headers/Editor/TimeEvent.h>
-#include <API/Headers/Editor/TimeConstraint.h>
-#include <API/Headers/Editor/TimeProcess.h>
-#include <API/Headers/Editor/ExpressionNot.h>
-#include <API/Headers/Editor/ExpressionAtom.h>
-#include <API/Headers/Editor/ExpressionComposition.h>
-
+#include <Explorer/Explorer/DeviceExplorerModel.hpp>
 #include <Network/Protocol/OSC.h>
+#include <RecreateOnPlayDocumentPlugin/BaseScenarioElement.hpp>
+#include <RecreateOnPlayDocumentPlugin/DocumentPlugin.hpp>
+#include <Scenario/Application/ScenarioApplicationPlugin.hpp>
+#include <qaction.h>
+#include <qvariant.h>
+#include <qvector.h>
+
+#include "Editor/Value.h"
+#include "Explorer/DocumentPlugin/ListeningState.hpp"
+#include "Network/Address.h"
+#include "Network/Node.h"
+#include "OSSIAApplicationPlugin.hpp"
+#include "Process/TimeValue.hpp"
+#include "RecreateOnPlayDocumentPlugin/ConstraintElement.hpp"
+#include "core/application/ApplicationComponents.hpp"
+#include "core/application/ApplicationContext.hpp"
+#include "iscore/plugins/application/GUIApplicationContextPlugin.hpp"
+#include "iscore/tools/Todo.hpp"
+
+namespace iscore {
+class MenubarManager;
+}  // namespace iscore
+struct VisitorVariant;
 #if defined(__APPLE__) && defined(ISCORE_DEPLOYMENT_BUILD)
 #include <TTFoundationAPI.h>
 #include <TTModular.h>
 #endif
 #include <DocumentPlugin/ContextMenu/PlayContextMenu.hpp>
 #include <Explorer/DocumentPlugin/DeviceDocumentPlugin.hpp>
-
-#include <iscore/document/DocumentInterface.hpp>
-#include <core/document/DocumentModel.hpp>
-#include <core/document/Document.hpp>
 #include <core/application/Application.hpp>
+#include <core/document/Document.hpp>
+#include <core/document/DocumentModel.hpp>
+#include <algorithm>
+#include <vector>
 
 OSSIAApplicationPlugin::OSSIAApplicationPlugin(iscore::Application& app):
     iscore::GUIApplicationContextPlugin {app, "OSSIAApplicationPlugin", nullptr}

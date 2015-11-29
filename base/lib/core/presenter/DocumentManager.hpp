@@ -1,6 +1,14 @@
 #pragma once
 #include <core/document/DocumentBuilder.hpp>
-#include <QRecentFilesMenu.h>
+#include <qobject.h>
+#include <qstring.h>
+#include <algorithm>
+#include <vector>
+
+class QRecentFilesMenu;
+namespace iscore {
+class Document;
+}  // namespace iscore
 
 namespace iscore
 {

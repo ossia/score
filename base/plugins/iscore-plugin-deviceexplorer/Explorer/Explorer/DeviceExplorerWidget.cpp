@@ -1,44 +1,63 @@
-#include "DeviceExplorerWidget.hpp"
-
-#include <QAction>
-#include <QBoxLayout>
-#include <QComboBox>
-#include <QContextMenuEvent>
-#include <QMenu>
-#include <QPushButton>
-#include <QLineEdit>
-
-#include "Widgets/AddressEditDialog.hpp"
-#include "Widgets/DeviceEditDialog.hpp"
-
-#include "DeviceExplorerFilterProxyModel.hpp"
-#include "DeviceExplorerView.hpp"
-
-#include <iscore/document/DocumentInterface.hpp>
-#include <core/document/Document.hpp>
-
-
-#include <Explorer/Commands/Add/AddDevice.hpp>
-#include <Explorer/Commands/RemoveNodes.hpp>
-#include <Explorer/Commands/Add/LoadDevice.hpp>
+#include <Device/XML/XMLDeviceLoader.hpp>
 #include <Explorer/Commands/Add/AddAddress.hpp>
+#include <Explorer/Commands/Add/AddDevice.hpp>
+#include <Explorer/Commands/Add/LoadDevice.hpp>
 #include <Explorer/Commands/Remove.hpp>
-
-#include "ExplorationWorker.hpp"
+#include <Explorer/Commands/RemoveNodes.hpp>
 #include <Explorer/Commands/ReplaceDevice.hpp>
-#include <Explorer/Commands/UpdateAddresses.hpp>
 #include <Explorer/Commands/Update/UpdateAddressSettings.hpp>
 #include <Explorer/Commands/Update/UpdateDeviceSettings.hpp>
-#include "Explorer/DocumentPlugin/DeviceDocumentPlugin.hpp"
-#include <Device/XML/XMLDeviceLoader.hpp>
+#include <Explorer/Commands/UpdateAddresses.hpp>
+#include <boost/core/explicit_operator_bool.hpp>
+#include <boost/optional/optional.hpp>
+#include <qabstractproxymodel.h>
+#include <qaction.h>
+#include <qboxlayout.h>
+#include <qcombobox.h>
+#include <qdialog.h>
+#include <qevent.h>
+#include <qgridlayout.h>
+#include <qicon.h>
+#include <qkeysequence.h>
+#include <qlineedit.h>
+#include <qlist.h>
+#include <qmenu.h>
+#include <qnamespace.h>
+#include <qobjectdefs.h>
+#include <qpair.h>
+#include <qpushbutton.h>
+#include <qregexp.h>
+#include <qset.h>
+#include <qsize.h>
+#include <qstackedlayout.h>
+#include <qstring.h>
+#include <qstringlist.h>
+#include <qtreeview.h>
+#include <algorithm>
+#include <stdexcept>
+
+#include "Device/Address/AddressSettings.hpp"
+#include "Device/Protocol/DeviceInterface.hpp"
+#include "Device/Protocol/DeviceList.hpp"
+#include "Device/Protocol/DeviceSettings.hpp"
+#include "DeviceExplorerFilterProxyModel.hpp"
+#include "DeviceExplorerView.hpp"
+#include "DeviceExplorerWidget.hpp"
 #include "ExplorationWorkerWrapper.hpp"
-#include <Device/Protocol/ProtocolFactoryInterface.hpp>
-#include <QMessageBox>
+#include "Explorer/DocumentPlugin/DeviceDocumentPlugin.hpp"
+#include "Explorer/Explorer/DeviceExplorerModel.hpp"
+#include "QProgressIndicator.h"
+#include "State/Address.hpp"
+#include "State/Value.hpp"
+#include "Widgets/AddressEditDialog.hpp"
+#include "Widgets/DeviceEditDialog.hpp"
+#include "iscore/command/Dispatchers/CommandDispatcher.hpp"
+#include "iscore/tools/IdentifiedObject.hpp"
+#include "iscore/tools/InvisibleRootNode.hpp"
+#include "iscore/tools/ModelPath.hpp"
+#include "iscore/tools/TreeNode.hpp"
 
-#include <QProgressIndicator>
-
-
-#include <QApplication>
+class DynamicProtocolList;
 
 
 

@@ -1,4 +1,8 @@
 #include "LayerModel.hpp"
+#include "iscore/tools/IdentifiedObject.hpp"
+
+class QObject;
+template <typename tag, typename impl> class id_base_t;
 
 LayerModel::~LayerModel()
 {

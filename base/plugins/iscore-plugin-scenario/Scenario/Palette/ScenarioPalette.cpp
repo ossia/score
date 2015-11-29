@@ -1,11 +1,26 @@
-#include "ScenarioPalette.hpp"
 #include <Scenario/Process/Temporal/TemporalScenarioLayerModel.hpp>
 #include <Scenario/Process/Temporal/TemporalScenarioPresenter.hpp>
 #include <Scenario/Process/Temporal/TemporalScenarioView.hpp>
+#include <boost/core/explicit_operator_bool.hpp>
+#include <boost/optional/optional.hpp>
+#include <qapplication.h>
+#include <qrect.h>
+#include <algorithm>
+#include <vector>
 
-
-#include <Scenario/Application/ScenarioApplicationPlugin.hpp>
-#include <core/application/Application.hpp>
+#include "Scenario/Application/ScenarioEditionSettings.hpp"
+#include "Scenario/Palette/Tool.hpp"
+#include "Scenario/Palette/Tools/CreationToolState.hpp"
+#include "Scenario/Palette/Tools/MoveSlotToolState.hpp"
+#include "Scenario/Palette/Tools/SmartTool.hpp"
+#include "Scenario/Palette/Tools/States/ScenarioMoveStatesWrapper.hpp"
+#include "Scenario/Process/ScenarioModel.hpp"
+#include "ScenarioPalette.hpp"
+#include "iscore/command/SerializableCommand.hpp"
+#include "iscore/plugins/customfactory/StringFactoryKey.hpp"
+#include "iscore/statemachine/GraphicsSceneToolPalette.hpp"
+#include "iscore/tools/SettableIdentifier.hpp"
+#include <Scenario/Document/State/ItemModel/MessageItemModel.hpp>
 
 namespace Scenario
 {

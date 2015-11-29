@@ -1,7 +1,12 @@
+#include <qabstractstate.h>
+#include <qabstracttransition.h>
+#include <qcoreevent.h>
+#include <qfinalstate.h>
+#include <qgraphicsitem.h>
+#include <qkeyeventtransition.h>
+#include <qnamespace.h>
+
 #include "CommonSelectionState.hpp"
-#include <QKeyEventTransition>
-#include <QGraphicsObject>
-#include <QFinalState>
 #include "StateMachineUtils.hpp"
 
 CommonSelectionState::CommonSelectionState(

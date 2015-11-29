@@ -1,5 +1,10 @@
 #pragma once
-#include <iscore/plugins/customfactory/FactoryFamily.hpp>
+
+#include <vector>
+
+namespace iscore {
+class FactoryListInterface;
+}  // namespace iscore
 
 namespace iscore
 {

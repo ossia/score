@@ -1,8 +1,18 @@
-#include "AddMessagesToState.hpp"
-#include <Scenario/Document/State/StateModel.hpp>
-#include <iscore/serialization/VisitorCommon.hpp>
 #include <Process/State/ProcessStateDataInterface.hpp>
 #include <Scenario/Document/State/ItemModel/MessageItemModelAlgorithms.hpp>
+#include <Scenario/Document/State/StateModel.hpp>
+#include <boost/core/explicit_operator_bool.hpp>
+#include <qdatastream.h>
+#include <qglobal.h>
+#include <algorithm>
+
+#include "AddMessagesToState.hpp"
+#include "Process/Process.hpp"
+#include "Scenario/Document/State/ItemModel/MessageItemModel.hpp"
+#include "iscore/serialization/DataStreamVisitor.hpp"
+#include "iscore/tools/ModelPath.hpp"
+#include "iscore/tools/ModelPathSerialization.hpp"
+#include "iscore/tools/TreeNode.hpp"
 
 AddMessagesToState::AddMessagesToState(
         Path<MessageItemModel> &&device_tree,

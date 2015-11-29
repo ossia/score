@@ -1,7 +1,13 @@
 #pragma once
-#include <iscore/plugins/qt_interfaces/PanelFactoryInterface_QtInterface.hpp>
-#include <iscore/plugins/qt_interfaces/FactoryInterface_QtInterface.hpp>
 #include <iscore/plugins/qt_interfaces/FactoryFamily_QtInterface.hpp>
+#include <iscore/plugins/qt_interfaces/PanelFactoryInterface_QtInterface.hpp>
+#include <qobject.h>
+#include <vector>
+
+namespace iscore {
+class FactoryListInterface;
+class PanelFactory;
+}  // namespace iscore
 
 class iscore_plugin_inspector :
     public QObject,

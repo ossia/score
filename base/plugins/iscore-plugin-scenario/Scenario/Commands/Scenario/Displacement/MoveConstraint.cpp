@@ -1,9 +1,15 @@
-#include "MoveConstraint.hpp"
-
-#include <Scenario/Process/ScenarioModel.hpp>
 #include <Scenario/Document/Constraint/ConstraintModel.hpp>
-
 #include <Scenario/Process/Algorithms/VerticalMovePolicy.hpp>
+#include <Scenario/Process/ScenarioModel.hpp>
+#include <boost/core/explicit_operator_bool.hpp>
+#include <algorithm>
+
+#include "MoveConstraint.hpp"
+#include "Process/TimeValue.hpp"
+#include "iscore/serialization/DataStreamVisitor.hpp"
+#include "iscore/tools/ModelPath.hpp"
+#include "iscore/tools/ModelPathSerialization.hpp"
+#include "iscore/tools/NotifyingMap.hpp"
 
 using namespace iscore;
 using namespace Scenario::Command;

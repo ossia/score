@@ -1,7 +1,10 @@
 #pragma once
-#include <QWidget>
 #include <iscore/selection/Selection.hpp>
+#include <qstring.h>
+#include <qwidget.h>
+
 class QPushButton;
+
 namespace iscore {
 class SelectionDispatcher;
 }

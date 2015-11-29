@@ -1,9 +1,12 @@
 #pragma once
 
-class QRadioButton;
-class QComboBox;
-
 #include <Device/Protocol/ProtocolSettingsWidget.hpp>
+
+#include "Device/Protocol/DeviceSettings.hpp"
+
+class QComboBox;
+class QRadioButton;
+class QWidget;
 
 class MIDIProtocolSettingsWidget : public ProtocolSettingsWidget
 {

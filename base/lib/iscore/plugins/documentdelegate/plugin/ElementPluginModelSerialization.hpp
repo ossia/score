@@ -1,6 +1,8 @@
 #pragma once
-#include <iscore/serialization/DataStreamVisitor.hpp>
-#include <iscore/serialization/JSONVisitor.hpp>
+#include "iscore/serialization/VisitorInterface.hpp"
+
+class QObject;
+
 namespace iscore{
 class ElementPluginModel;
 }

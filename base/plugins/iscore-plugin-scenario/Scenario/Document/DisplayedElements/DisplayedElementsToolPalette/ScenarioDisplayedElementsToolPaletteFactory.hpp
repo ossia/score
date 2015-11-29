@@ -1,5 +1,10 @@
 #pragma once
 #include <Scenario/Document/DisplayedElements/DisplayedElementsToolPalette/DisplayedElementsToolPaletteFactory.hpp>
+#include <memory>
+
+class ConstraintModel;
+class GraphicsSceneToolPalette;
+class ScenarioDocumentPresenter;
 
 class ScenarioDisplayedElementsToolPaletteFactory final : public DisplayedElementsToolPaletteFactory
 {

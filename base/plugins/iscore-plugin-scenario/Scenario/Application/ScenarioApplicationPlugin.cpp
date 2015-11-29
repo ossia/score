@@ -1,28 +1,71 @@
-#include "ScenarioApplicationPlugin.hpp"
+#include <Process/Style/ScenarioStyle.hpp>
+#include <Scenario/Document/Constraint/ConstraintModel.hpp>
+#include <Scenario/Document/Constraint/Rack/RackPresenter.hpp>
+#include <Scenario/Document/Constraint/ViewModels/FullView/FullViewConstraintPresenter.hpp>
 #include <Scenario/Document/ScenarioDocument/ScenarioDocumentModel.hpp>
 #include <Scenario/Document/ScenarioDocument/ScenarioDocumentPresenter.hpp>
-#include <Scenario/Document/Constraint/ConstraintModel.hpp>
-#include <Scenario/Process/ScenarioModel.hpp>
-#include <QJsonDocument>
-#include <Scenario/Process/Temporal/TemporalScenarioPresenter.hpp>
-
-#include "Menus/ToolMenuActions.hpp"
-
-#include <Process/Style/ScenarioStyle.hpp>
-#include <QFileDialog>
-#include <QApplication>
-
-#include <Scenario/Document/Constraint/ViewModels/FullView/FullViewConstraintPresenter.hpp>
-#include <Scenario/Document/Constraint/Rack/RackPresenter.hpp>
-#include <core/document/DocumentView.hpp>
-#include <core/application/Application.hpp>
-#include <iscore/plugins/documentdelegate/DocumentDelegateViewInterface.hpp>
 #include <Scenario/Document/ScenarioDocument/ScenarioDocumentView.hpp>
-#include "Menus/TransportActions.hpp"
-
+#include <Scenario/Process/ScenarioModel.hpp>
+#include <Scenario/Process/Temporal/TemporalScenarioPresenter.hpp>
+#include <boost/optional/optional.hpp>
+#include <core/document/DocumentView.hpp>
+#include <ext/alloc_traits.h>
+#include <iscore/plugins/documentdelegate/DocumentDelegateViewInterface.hpp>
 // This part is somewhat similar to what moc does
 // with moc_.. stuff generation.
 #include <iscore/tools/NotifyingMap_impl.hpp>
+#include <qaction.h>
+#include <qbytearray.h>
+#include <qcolor.h>
+#include <qfile.h>
+#include <qiodevice.h>
+#include <qjsonarray.h>
+#include <qjsondocument.h>
+#include <qjsonobject.h>
+#include <qjsonvalue.h>
+#include <qkeysequence.h>
+#include <qlist.h>
+#include <qmenu.h>
+#include <qnamespace.h>
+#include <qstring.h>
+#include <qtoolbar.h>
+#include <string.h>
+
+#include "Menus/TransportActions.hpp"
+#include "Process/LayerModel.hpp"
+#include "Process/LayerPresenter.hpp"
+#include "Process/Process.hpp"
+#include "Scenario/Application/Menus/ScenarioActions.hpp"
+#include "Scenario/Application/Menus/ScenarioContextMenuManager.hpp"
+#include "Scenario/Application/ScenarioEditionSettings.hpp"
+#include "Scenario/Document/Constraint/Rack/RackModel.hpp"
+#include "Scenario/Document/Constraint/Rack/Slot/SlotModel.hpp"
+#include "Scenario/Document/Constraint/Rack/Slot/SlotPresenter.hpp"
+#include "Scenario/Document/DisplayedElements/DisplayedElementsPresenter.hpp"
+#include "Scenario/Document/Event/EventModel.hpp"
+#include "Scenario/Document/ScenarioDocument/ProcessFocusManager.hpp"
+#include "Scenario/Document/ScenarioDocument/Widgets/ScenarioBaseGraphicsView.hpp"
+#include "Scenario/Document/State/StateModel.hpp"
+#include "Scenario/Document/TimeNode/TimeNodeModel.hpp"
+#include "Scenario/Palette/Tool.hpp"
+#include "ScenarioApplicationPlugin.hpp"
+#include "core/document/Document.hpp"
+#include "core/document/DocumentModel.hpp"
+#include "core/presenter/MenubarManager.hpp"
+#include "iscore/document/DocumentInterface.hpp"
+#include "iscore/menu/MenuInterface.hpp"
+#include "iscore/plugins/application/GUIApplicationContextPlugin.hpp"
+#include "iscore/plugins/documentdelegate/DocumentDelegateModelInterface.hpp"
+#include "iscore/tools/IdentifiedObjectMap.hpp"
+#include "iscore/tools/NotifyingMap.hpp"
+#include "iscore/tools/SettableIdentifier.hpp"
+#include "iscore/widgets/OrderedToolbar.hpp"
+
+class QPoint;
+class QPointF;
+namespace iscore {
+class Application;
+}  // namespace iscore
 
 template void NotifyingMap<LayerModel>::add(LayerModel*);
 template void NotifyingMap<SlotModel>::add(SlotModel*);
@@ -64,8 +107,8 @@ void ignore_template_instantiations_Scenario()
 }
 
 using namespace iscore;
-#include <State/Expression.hpp>
 #include <Scenario/Application/Menus/ScenarioCommonContextMenuFactory.hpp>
+#include <algorithm>
 
 void test_parse_expr_full();
 ScenarioApplicationPlugin::ScenarioApplicationPlugin(iscore::Application& app) :

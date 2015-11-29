@@ -1,16 +1,11 @@
-#include "MessageWidget.hpp"
+#include <State/Message.hpp>
 
 #include "MessageEditDialog.hpp"
+#include "MessageWidget.hpp"
+#include "State/Address.hpp"
+#include "State/Value.hpp"
 
-#include <State/Message.hpp>
-#include <Explorer/Widgets/AddressEditWidget.hpp>
-#include <iscore/widgets/MarginLess.hpp>
-
-#include <QDialog>
-#include <QLabel>
-#include <QFormLayout>
-#include <QComboBox>
-#include <QDialogButtonBox>
+class QWidget;
 
 MessageWidget::MessageWidget(
         iscore::Message& mess,

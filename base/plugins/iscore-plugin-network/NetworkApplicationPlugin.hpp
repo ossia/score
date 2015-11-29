@@ -1,11 +1,21 @@
 #pragma once
 #include <iscore/plugins/application/GUIApplicationContextPlugin.hpp>
+#include <qstring.h>
 
-class ClientSessionBuilder;
+#include "iscore/plugins/documentdelegate/plugin/DocumentDelegatePluginModel.hpp"
+
 class ClientSession;
+class ClientSessionBuilder;
+namespace iscore {
+class Application;
+class Document;
+class MenubarManager;
+class Presenter;
+}  // namespace iscore
+struct VisitorVariant;
+
 namespace iscore
 {
-class DocumentDelegatePluginModel;
 }
 
 #ifdef USE_ZEROCONF

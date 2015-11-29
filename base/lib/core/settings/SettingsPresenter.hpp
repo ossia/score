@@ -1,16 +1,16 @@
 #pragma once
+#include <qobject.h>
 #include <set>
-#include <memory>
-#include <queue>
-#include <iscore/plugins/settingsdelegate/SettingsDelegateFactoryInterface.hpp>
-#include <iscore/command/Command.hpp>
-#include <iscore/tools/Todo.hpp>
-#include <QDebug>
+
+namespace iscore {
+class SettingsDelegatePresenterInterface;
+}  // namespace iscore
 
 namespace iscore
 {
     class SettingsModel;
     class SettingsView;
+
     class SettingsPresenter final : public QObject
     {
             Q_OBJECT

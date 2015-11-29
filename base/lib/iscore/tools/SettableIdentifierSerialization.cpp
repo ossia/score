@@ -1,7 +1,16 @@
+#include <boost/core/explicit_operator_bool.hpp>
+#include <boost/none_t.hpp>
+#include <boost/optional/optional.hpp>
 #include <iscore/serialization/DataStreamVisitor.hpp>
-#include <iscore/serialization/JSONVisitor.hpp>
 #include <iscore/serialization/JSONValueVisitor.hpp>
-#include "SettableIdentifier.hpp"
+#include <iscore/serialization/JSONVisitor.hpp>
+#include <qjsonobject.h>
+#include <qjsonvalue.h>
+#include <qstring.h>
+#include <sys/types.h>
+
+template <typename T> class Reader;
+template <typename T> class Writer;
 
 // TODO refactor with OptionalValue serialization.
 template<>

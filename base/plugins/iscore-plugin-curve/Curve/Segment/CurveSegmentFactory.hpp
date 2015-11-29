@@ -1,13 +1,15 @@
 #pragma once
-#include <QString>
-#include <iscore/plugins/customfactory/FactoryInterface.hpp>
 #include <Curve/Segment/CurveSegmentFactoryKey.hpp>
-
-#include <iscore/tools/SettableIdentifier.hpp>
+#include <iscore/plugins/customfactory/FactoryInterface.hpp>
 #include <iscore/serialization/VisitorCommon.hpp>
-#include <Curve/Segment/CurveSegmentData.hpp>
+#include <qstring.h>
+#include <qvariant.h>
 
 class CurveSegmentModel;
+class QObject;
+struct CurveSegmentData;
+struct VisitorVariant;
+template <typename tag, typename impl> class id_base_t;
 
 class CurveSegmentFactory : public iscore::GenericFactoryInterface<CurveSegmentFactoryKey>
 {

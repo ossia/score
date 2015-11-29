@@ -5,6 +5,10 @@
 
 class CurvePointModel;
 class QDoubleSpinBox;
+class QWidget;
+namespace iscore {
+class Document;
+}  // namespace iscore
 
 class CurvePointInspectorWidget final : public InspectorWidgetBase
 {

@@ -1,14 +1,19 @@
 #pragma once
+#include <Process/ExpandMode.hpp>
 #include <Scenario/Commands/ScenarioCommandFactory.hpp>
 #include <iscore/command/SerializableCommand.hpp>
 #include <iscore/tools/ModelPath.hpp>
-#include <QJsonObject>
-#include <tests/helpers/ForwardDeclaration.hpp>
-#include <Process/ExpandMode.hpp>
+#include <qjsonobject.h>
+#include <qmap.h>
 
+#include "iscore/tools/SettableIdentifier.hpp"
+
+class ConstraintModel;
+class DataStreamInput;
+class DataStreamOutput;
 class Process;
 class RackModel;
-class ConstraintModel;
+
 namespace Scenario
 {
     namespace Command
@@ -16,7 +21,6 @@ namespace Scenario
         class InsertContentInConstraint final : public iscore::SerializableCommand
         {
                 ISCORE_COMMAND_DECL(ScenarioCommandFactoryName(), InsertContentInConstraint, "Insert content in a constraint")
-#include <tests/helpers/FriendDeclaration.hpp>
             public:
                 InsertContentInConstraint(
                     QJsonObject&& sourceConstraint,

@@ -1,5 +1,6 @@
 #pragma once
-#include <QString>
+#include <qstring.h>
+
 class RandomNameProvider
 {
     public:

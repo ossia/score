@@ -1,18 +1,22 @@
-#include "RefreshStates.hpp"
-
+#include <Explorer/DocumentPlugin/DeviceDocumentPlugin.hpp>
+#include <Scenario/Commands/State/AddMessagesToState.hpp>
 #include <Scenario/Process/ScenarioModel.hpp>
-
-#include <iscore/command/Dispatchers/MacroCommandDispatcher.hpp>
-
-#include <core/document/Document.hpp>
-
-#include <iscore/document/DocumentInterface.hpp>
 #include <core/document/Document.hpp>
 #include <core/document/DocumentModel.hpp>
-#include <Explorer/DocumentPlugin/DeviceDocumentPlugin.hpp>
-#include <Explorer/Explorer/DeviceExplorerModel.hpp>
-#include <Scenario/Commands/State/AddMessagesToState.hpp>
+#include <iscore/document/DocumentInterface.hpp>
+#include <algorithm>
+#include <vector>
+
+#include "Explorer/DocumentPlugin/NodeUpdateProxy.hpp"
+#include "Process/State/MessageNode.hpp"
+#include "RefreshStates.hpp"
 #include "RefreshStatesMacro.hpp"
+#include "Scenario/Document/State/ItemModel/MessageItemModel.hpp"
+#include "Scenario/Document/State/StateModel.hpp"
+#include "State/Message.hpp"
+#include "State/Value.hpp"
+#include "iscore/command/Dispatchers/CommandDispatcher.hpp"
+#include "iscore/selection/SelectionStack.hpp"
 
 void RefreshStates(iscore::Document* doc)
 {

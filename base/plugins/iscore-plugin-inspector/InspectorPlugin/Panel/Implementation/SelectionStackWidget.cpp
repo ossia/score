@@ -1,8 +1,11 @@
-#include "SelectionStackWidget.hpp"
 #include <iscore/selection/SelectionStack.hpp>
 #include <iscore/tools/Todo.hpp>
-#include <QToolButton>
-#include <QHBoxLayout>
+#include <qboxlayout.h>
+#include <qnamespace.h>
+#include <qtoolbutton.h>
+
+#include "SelectionStackWidget.hpp"
+#include "iscore/selection/Selection.hpp"
 
 SelectionStackWidget::SelectionStackWidget(
         iscore::SelectionStack& s,

@@ -1,4 +1,8 @@
 #include "DummyLayerPanelProxy.hpp"
+#include "Process/LayerModelPanelProxy.hpp"
+
+class LayerModel;
+class QObject;
 
 DummyLayerPanelProxy::DummyLayerPanelProxy(
         const LayerModel& vm,

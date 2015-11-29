@@ -1,18 +1,18 @@
 #pragma once
 #include <core/application/ApplicationSettings.hpp>
 #include <core/plugin/PluginManager.hpp>
-#include <core/settings/Settings.hpp>
 #include <iscore/tools/NamedObject.hpp>
-
-#include <vector>
+#include <qapplication.h>
 #include <memory>
-#include <QApplication>
+
+namespace iscore {
+class Settings;
+}  // namespace iscore
 
 namespace iscore
 {
     class Presenter;
     class View;
-    class ChildEventFilter;
 
     /**
      * @brief Application

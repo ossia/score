@@ -1,29 +1,40 @@
-#include "TimeNodeInspectorWidget.hpp"
-
-#include <Scenario/Document/TimeNode/TimeNodeModel.hpp>
-#include <Scenario/Document/Event/EventModel.hpp>
-#include <Scenario/Document/TimeNode/Trigger/TriggerModel.hpp>
-
-#include <Scenario/Process/ScenarioModel.hpp>
-
 #include <Inspector/InspectorSectionWidget.hpp>
-#include <Scenario/Inspector/MetadataWidget.hpp>
-#include <Scenario/Inspector/Event/EventWidgets/EventShortcut.hpp>
-#include <Scenario/Inspector/TimeNode/TriggerInspectorWidget.hpp>
-
-#include <Scenario/Commands/TimeNode/TriggerCommandFactory/TriggerCommandFactoryList.hpp>
 #include <Scenario/Commands/TimeNode/SplitTimeNode.hpp>
-
+#include <Scenario/Commands/TimeNode/TriggerCommandFactory/TriggerCommandFactoryList.hpp>
+#include <Scenario/Document/Event/EventModel.hpp>
+#include <Scenario/Document/TimeNode/TimeNodeModel.hpp>
+#include <Scenario/Document/TimeNode/Trigger/TriggerModel.hpp>
+#include <Scenario/Inspector/Event/EventWidgets/EventShortcut.hpp>
+#include <Scenario/Inspector/MetadataWidget.hpp>
+#include <Scenario/Inspector/TimeNode/TriggerInspectorWidget.hpp>
+#include <boost/optional/optional.hpp>
+#include <core/application/ApplicationComponents.hpp>
+#include <core/application/ApplicationContext.hpp>
 #include <core/document/Document.hpp>
 #include <core/document/DocumentContext.hpp>
-#include <core/application/ApplicationContext.hpp>
-#include <core/application/ApplicationComponents.hpp>
+#include <qboxlayout.h>
+#include <qcolor.h>
+#include <qlabel.h>
+#include <qobjectdefs.h>
+#include <qpushbutton.h>
+#include <qstring.h>
+#include <qvector.h>
+#include <qwidget.h>
+#include <algorithm>
 
-#include <QLabel>
-#include <QLineEdit>
-#include <QLayout>
-#include <QPushButton>
-#include <QCompleter>
+#include "Inspector/InspectorWidgetBase.hpp"
+#include "Process/TimeValue.hpp"
+#include "Scenario/Process/ScenarioInterface.hpp"
+#include "TimeNodeInspectorWidget.hpp"
+#include "iscore/command/Dispatchers/CommandDispatcher.hpp"
+#include "iscore/plugins/customfactory/StringFactoryKey.hpp"
+#include "iscore/selection/Selection.hpp"
+#include "iscore/selection/SelectionDispatcher.hpp"
+#include "iscore/serialization/DataStreamVisitor.hpp"
+#include "iscore/tools/ModelPath.hpp"
+#include "iscore/tools/ModelPathSerialization.hpp"
+#include "iscore/tools/SettableIdentifier.hpp"
+#include "iscore/tools/Todo.hpp"
 
 using namespace Scenario::Command;
 

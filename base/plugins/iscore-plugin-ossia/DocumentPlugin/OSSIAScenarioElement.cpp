@@ -1,18 +1,42 @@
-#include "OSSIAScenarioElement.hpp"
-
 #include <API/Headers/Editor/Scenario.h>
 #include <API/Headers/Editor/TimeConstraint.h>
 #include <API/Headers/Editor/TimeEvent.h>
 #include <API/Headers/Editor/TimeNode.h>
-
-#include "iscore2OSSIA.hpp"
-#include "OSSIA2iscore.hpp"
-
-#include <iscore/document/DocumentInterface.hpp>
+#include <Explorer/DocumentPlugin/DeviceDocumentPlugin.hpp>
+#include <boost/core/explicit_operator_bool.hpp>
 #include <core/document/Document.hpp>
 #include <core/document/DocumentModel.hpp>
-#include <API/Toolkit/DebugVisitor.h>
-#include <Explorer/DocumentPlugin/DeviceDocumentPlugin.hpp>
+#include <iscore/document/DocumentInterface.hpp>
+#include <qdebug.h>
+#include <algorithm>
+#include <utility>
+#include <vector>
+
+#include "DocumentPlugin/OSSIAConstraintElement.hpp"
+#include "DocumentPlugin/OSSIAEventElement.hpp"
+#include "DocumentPlugin/OSSIAProcessElement.hpp"
+#include "DocumentPlugin/OSSIAStateElement.hpp"
+#include "DocumentPlugin/OSSIATimeNodeElement.hpp"
+#include "Editor/State.h"
+#include "Editor/TimeValue.h"
+#include "OSSIAScenarioElement.hpp"
+#include "Scenario/Document/Constraint/ConstraintDurations.hpp"
+#include "Scenario/Document/Event/EventModel.hpp"
+#include "Scenario/Document/Event/ExecutionStatus.hpp"
+#include "Scenario/Document/State/StateModel.hpp"
+#include "Scenario/Document/TimeNode/TimeNodeModel.hpp"
+#include "Scenario/Process/ScenarioModel.hpp"
+#include "iscore/tools/IdentifiedObjectMap.hpp"
+#include "iscore/tools/NotifyingMap.hpp"
+#include "iscore/tools/SettableIdentifier.hpp"
+#include "iscore/tools/Todo.hpp"
+#include "iscore2OSSIA.hpp"
+
+class Process;
+class QObject;
+namespace OSSIA {
+class TimeProcess;
+}  // namespace OSSIA
 
 OSSIAScenarioElement::OSSIAScenarioElement(
         OSSIAConstraintElement& parentConstraint,

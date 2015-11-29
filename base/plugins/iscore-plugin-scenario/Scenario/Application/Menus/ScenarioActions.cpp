@@ -1,5 +1,8 @@
-#include "ScenarioActions.hpp"
 #include <Scenario/Application/ScenarioApplicationPlugin.hpp>
+
+#include "ScenarioActions.hpp"
+#include "iscore/menu/MenuInterface.hpp"
+
 ScenarioActions::ScenarioActions(iscore::ToplevelMenuElement menuElt, ScenarioApplicationPlugin *parent) :
     QObject(parent),
     m_parent{parent},

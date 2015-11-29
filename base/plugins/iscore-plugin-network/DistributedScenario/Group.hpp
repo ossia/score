@@ -1,8 +1,15 @@
 #pragma once
-#include <QString>
+#include <boost/optional/optional.hpp>
 #include <iscore/tools/IdentifiedObject.hpp>
-#include "Repartition/client/Client.hpp"
-#include "GroupMetadata.hpp"
+#include <qstring.h>
+#include <qvector.h>
+
+#include "iscore/tools/SettableIdentifier.hpp"
+
+class Client;
+class DataStream;
+class JSONObject;
+class QObject;
 
 
 // Groups : registered in the session

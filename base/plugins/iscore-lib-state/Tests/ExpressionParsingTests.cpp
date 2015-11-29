@@ -24,9 +24,26 @@ bool validate(const iscore::Expression& expr)
 }
 */
 #include <State/Expression.hpp>
+#include <boost/proto/operators.hpp>
+#include <boost/spirit/home/qi/detail/parse_auto.hpp>
+#include <boost/spirit/home/qi/operator/expect.hpp>
+#include <boost/spirit/home/qi/parse.hpp>
+#include <boost/spirit/home/qi/parse_attr.hpp>
+#include <boost/spirit/home/support/common_terminals.hpp>
+#include <boost/variant/detail/apply_visitor_unary.hpp>
+#include <eggs/variant/variant.hpp>
+#include <qdebug.h>
+#include <qobject.h>
+#include <qstring.h>
+#include <qstringlist.h>
+#include <QtTest/QtTest>
 using namespace iscore;
 #include <State/ExpressionParser.cpp>
 #include <State/ValueConversion.hpp>
+#include <iterator>
+#include <list>
+#include <string>
+#include <vector>
 
 
 /*
@@ -159,8 +176,6 @@ QDebug operator<<(QDebug dbg, const iscore::Expression& v)
 }
 
 
-
-#include <QTest>
 
 using namespace iscore;
 class ExpressionParsingTests: public QObject
@@ -314,4 +329,7 @@ class ExpressionParsingTests: public QObject
 
 QTEST_APPLESS_MAIN(ExpressionParsingTests)
 #include "ExpressionParsingTests.moc"
+#include "State/Address.hpp"
+#include "State/Relation.hpp"
+#include "State/Value.hpp"
 

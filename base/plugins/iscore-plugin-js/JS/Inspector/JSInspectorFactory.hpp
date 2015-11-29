@@ -1,7 +1,15 @@
 #pragma once
-#include <QObject>
 #include <Inspector/InspectorWidgetFactoryInterface.hpp>
 #include <JS/JSProcessMetadata.hpp>
+#include <qlist.h>
+#include <qstring.h>
+
+class InspectorWidgetBase;
+class QObject;
+class QWidget;
+namespace iscore {
+class Document;
+}  // namespace iscore
 
 
 class JSInspectorFactory final : public InspectorWidgetFactory

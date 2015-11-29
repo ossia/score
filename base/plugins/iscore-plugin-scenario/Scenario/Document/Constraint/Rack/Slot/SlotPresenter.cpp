@@ -1,24 +1,37 @@
-#include "SlotPresenter.hpp"
-
+#include <Process/LayerModel.hpp>
+#include <Process/LayerPresenter.hpp>
+#include <Process/LayerView.hpp>
+#include <Process/Process.hpp>
+#include <Process/ProcessFactory.hpp>
+#include <Process/ProcessList.hpp>
+#include <Scenario/Document/Constraint/ConstraintModel.hpp>
+#include <Scenario/Document/Constraint/Rack/RackView.hpp>
 #include <Scenario/Document/Constraint/Rack/Slot/SlotModel.hpp>
 #include <Scenario/Document/Constraint/Rack/Slot/SlotView.hpp>
-#include <Scenario/Document/Constraint/ConstraintModel.hpp>
-#include <Scenario/Commands/Constraint/Rack/Slot/ResizeSlotVertically.hpp>
-#include <Scenario/Application/ScenarioApplicationPlugin.hpp>
-
-#include <Process/ProcessList.hpp>
-#include <Process/LayerPresenter.hpp>
-#include <Process/LayerModel.hpp>
-#include <Process/LayerView.hpp>
-#include <Process/ProcessFactory.hpp>
-#include <Process/Process.hpp>
-
-#include <Scenario/Document/Constraint/Rack/RackView.hpp>
-#include "SlotHandle.hpp"
+#include <boost/optional/optional.hpp>
+#include <ext/alloc_traits.h>
 #include <iscore/widgets/GraphicsItem.hpp>
-#include <QGraphicsScene>
+#include <qmenu.h>
+#include <algorithm>
 
-using namespace Scenario;
+#include "Process/TimeValue.hpp"
+#include "Process/ZoomHelper.hpp"
+#include "Scenario/Application/Menus/ScenarioContextMenuManager.hpp"
+#include "SlotHandle.hpp"
+#include "SlotPresenter.hpp"
+#include "core/application/ApplicationComponents.hpp"
+#include "core/application/ApplicationContext.hpp"
+#include "iscore/plugins/customfactory/FactoryFamily.hpp"
+#include "iscore/plugins/customfactory/FactoryMap.hpp"
+#include "iscore/plugins/customfactory/StringFactoryKey.hpp"
+#include "iscore/tools/NamedObject.hpp"
+#include "iscore/tools/NotifyingMap.hpp"
+#include "iscore/tools/SettableIdentifier.hpp"
+#include "iscore/tools/Todo.hpp"
+#include "iscore/tools/utilsCPP11.hpp"
+
+class QObject;
+
 
 SlotPresenter::SlotPresenter(
         const iscore::DocumentContext& doc,

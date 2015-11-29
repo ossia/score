@@ -1,14 +1,17 @@
-#include "FullViewConstraintView.hpp"
-#include "FullViewConstraintViewModel.hpp"
-#include "FullViewConstraintPresenter.hpp"
-
-#include <QPainter>
-#include <QGraphicsScene>
-#include <QGraphicsSceneMouseEvent>
-#include <QCursor>
-
-#include <QApplication>
 #include <Process/Style/ScenarioStyle.hpp>
+#include <qcolor.h>
+#include <qglobal.h>
+#include <qgraphicsitem.h>
+#include <qnamespace.h>
+#include <qpainter.h>
+#include <qpen.h>
+
+#include "FullViewConstraintPresenter.hpp"
+#include "FullViewConstraintView.hpp"
+#include "Scenario/Document/Constraint/ViewModels/ConstraintView.hpp"
+
+class QStyleOptionGraphicsItem;
+class QWidget;
 
 FullViewConstraintView::FullViewConstraintView(FullViewConstraintPresenter& presenter,
                                                QGraphicsItem *parent) :

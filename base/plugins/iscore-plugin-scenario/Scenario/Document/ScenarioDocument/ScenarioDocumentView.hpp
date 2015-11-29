@@ -1,16 +1,15 @@
 #pragma once
-#include <iscore/tools/NamedObject.hpp>
 #include <iscore/plugins/documentdelegate/DocumentDelegateViewInterface.hpp>
-#include "Widgets/ScenarioBaseGraphicsView.hpp"
-#include "Widgets/GraphicsProxyObject.hpp"
-class QSlider;
+
+class BaseGraphicsObject;
+class DoubleSlider;
 class QGraphicsScene;
 class QGraphicsView;
-class TemporalConstraintView;
-class DoubleSlider;
+class QObject;
+class QWidget;
+class ScenarioBaseGraphicsView;
 class TimeRulerView;
-class LocalTimeRulerView;
-class TimeRuler2;
+
 namespace iscore
 {
 struct ApplicationContext;

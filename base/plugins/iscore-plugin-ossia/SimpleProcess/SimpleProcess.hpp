@@ -1,5 +1,14 @@
 #pragma once
 #include <ProcessModel/TimeProcessWithConstraint.hpp>
+#include <memory>
+
+#include "Editor/State.h"
+#include "Editor/TimeValue.h"
+
+namespace OSSIA {
+class StateElement;
+class TimeConstraint;
+}  // namespace OSSIA
 
 class SimpleProcess : public TimeProcessWithConstraint
 {

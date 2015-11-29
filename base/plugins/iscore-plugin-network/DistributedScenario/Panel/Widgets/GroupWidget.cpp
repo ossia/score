@@ -1,8 +1,14 @@
-#include "GroupWidget.hpp"
 #include <DistributedScenario/Group.hpp>
-#include <QHBoxLayout>
-#include <QPushButton>
-#include <QLabel>
+#include <boost/optional/optional.hpp>
+#include <qboxlayout.h>
+#include <qlabel.h>
+#include <qobject.h>
+#include <qobjectdefs.h>
+#include <qpushbutton.h>
+#include <qstring.h>
+
+#include "GroupWidget.hpp"
+#include "iscore/tools/SettableIdentifier.hpp"
 
 GroupWidget::GroupWidget(Group* group, QWidget* parent):
     QWidget{parent},

@@ -1,9 +1,13 @@
 #pragma once
 #include <Scenario/Commands/ScenarioCommandFactory.hpp>
+#include <State/Expression.hpp>
 #include <iscore/command/SerializableCommand.hpp>
 #include <iscore/tools/ModelPath.hpp>
-#include <State/Expression.hpp>
+
+class DataStreamInput;
+class DataStreamOutput;
 class EventModel;
+
 namespace Scenario
 {
     namespace Command

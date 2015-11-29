@@ -1,8 +1,8 @@
-#include "EventShortcut.hpp"
+#include <qboxlayout.h>
+#include <qcheckbox.h>
+#include <qpushbutton.h>
 
-#include <QPushButton>
-#include <QCheckBox>
-#include <QHBoxLayout>
+#include "EventShortcut.hpp"
 
 
 EventShortCut::EventShortCut(QString eventId, QWidget* parent) :

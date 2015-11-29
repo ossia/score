@@ -1,6 +1,11 @@
-#include "UpdateCurve.hpp"
+#include <algorithm>
+
 #include "Curve/CurveModel.hpp"
-#include "Curve/Segment/CurveSegmentModelSerialization.hpp"
+#include "Curve/Segment/CurveSegmentData.hpp"
+#include "UpdateCurve.hpp"
+#include "iscore/serialization/DataStreamVisitor.hpp"
+#include "iscore/tools/ModelPath.hpp"
+#include "iscore/tools/ModelPathSerialization.hpp"
 
 UpdateCurve::UpdateCurve(
         Path<CurveModel>&& model,

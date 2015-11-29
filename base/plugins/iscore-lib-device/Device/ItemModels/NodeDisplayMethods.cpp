@@ -1,7 +1,17 @@
-#include "NodeDisplayMethods.hpp"
 #include <Device/Protocol/DeviceInterface.hpp>
-#include <QFont>
-#include <QBrush>
+#include <qbrush.h>
+#include <qfont.h>
+#include <qnamespace.h>
+
+#include "Device/Address/AddressSettings.hpp"
+#include "Device/Address/Domain.hpp"
+#include "Device/Address/IOType.hpp"
+#include "Device/Node/DeviceNode.hpp"
+#include "Device/Protocol/DeviceSettings.hpp"
+#include "NodeDisplayMethods.hpp"
+#include "State/Value.hpp"
+#include "State/ValueConversion.hpp"
+
 namespace DeviceExplorer
 {
 // TODO boost::visitor ?

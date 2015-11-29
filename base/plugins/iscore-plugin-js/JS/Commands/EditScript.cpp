@@ -1,5 +1,9 @@
-#include "EditScript.hpp"
 #include <JS/JSProcessModel.hpp>
+#include <algorithm>
+
+#include "EditScript.hpp"
+#include "iscore/serialization/DataStreamVisitor.hpp"
+#include "iscore/tools/ModelPathSerialization.hpp"
 
 EditScript::EditScript(
     Path<JSProcessModel>&& model,

@@ -1,13 +1,20 @@
 #pragma once
 #include <Scenario/Commands/ScenarioCommandFactory.hpp>
+#include <boost/optional/optional.hpp>
 #include <iscore/command/SerializableCommand.hpp>
-
 #include <iscore/tools/ModelPath.hpp>
-#include <QMap>
-#include <tuple>
-class ConstraintViewModel;
-class RackModel;
+#include <qbytearray.h>
+#include <qmap.h>
+#include <qvector.h>
+
+#include "iscore/tools/SettableIdentifier.hpp"
+
 class ConstraintModel;
+class ConstraintViewModel;
+class DataStreamInput;
+class DataStreamOutput;
+class RackModel;
+
 namespace Scenario
 {
     namespace Command

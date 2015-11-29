@@ -1,18 +1,26 @@
-#include "OSSIABaseScenarioElement.hpp"
-
-#include <Scenario/Process/ScenarioModel.hpp>
-
 #include <API/Headers/Editor/TimeConstraint.h>
 #include <API/Headers/Editor/TimeEvent.h>
 #include <API/Headers/Editor/TimeNode.h>
-
 #include <Scenario/Document/BaseScenario/BaseScenario.hpp>
-#include "iscore2OSSIA.hpp"
-#include <OSSIA2iscore.hpp>
-#include <iscore/document/DocumentInterface.hpp>
 #include <core/document/Document.hpp>
 #include <core/document/DocumentModel.hpp>
+#include <iscore/document/DocumentInterface.hpp>
+#include <algorithm>
+#include <memory>
+#include <vector>
+
+#include "DocumentPlugin/OSSIAConstraintElement.hpp"
+#include "DocumentPlugin/OSSIAEventElement.hpp"
+#include "DocumentPlugin/OSSIAStateElement.hpp"
+#include "DocumentPlugin/OSSIATimeNodeElement.hpp"
+#include "Editor/State.h"
+#include "Editor/StateElement.h"
+#include "Editor/TimeValue.h"
 #include "Explorer/DocumentPlugin/DeviceDocumentPlugin.hpp"
+#include "OSSIABaseScenarioElement.hpp"
+#include "Scenario/Document/Constraint/ConstraintDurations.hpp"
+#include "Scenario/Document/Constraint/ConstraintModel.hpp"
+#include "iscore2OSSIA.hpp"
 
 static void statusCallback(
         OSSIA::TimeEvent::Status newStatus)

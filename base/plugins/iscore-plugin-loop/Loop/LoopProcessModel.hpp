@@ -1,10 +1,24 @@
 #pragma once
-#include <Process/Process.hpp>
-#include <iscore/serialization/DataStreamVisitor.hpp>
-#include <iscore/serialization/JSONVisitor.hpp>
-#include <iscore/serialization/VisitorCommon.hpp>
 #include <Loop/LoopProcessMetadata.hpp>
+#include <Process/Process.hpp>
 #include <Scenario/Document/BaseScenario/BaseScenarioContainer.hpp>
+#include <qbytearray.h>
+#include <qstring.h>
+#include <qvector.h>
+
+#include "Process/ProcessFactoryKey.hpp"
+#include "Process/TimeValue.hpp"
+#include "iscore/selection/Selection.hpp"
+#include "iscore/serialization/VisitorInterface.hpp"
+
+class ConstraintModel;
+class DataStream;
+class JSONObject;
+class LayerModel;
+class ProcessStateDataInterface;
+class QObject;
+class TimeNodeModel;
+template <typename tag, typename impl> class id_base_t;
 
 namespace Loop
 {

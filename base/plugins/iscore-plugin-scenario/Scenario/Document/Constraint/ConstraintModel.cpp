@@ -1,15 +1,22 @@
-#include "ConstraintModel.hpp"
-
-#include <Scenario/Process/ScenarioModel.hpp>
-#include <Scenario/Document/Constraint/ViewModels/FullView/FullViewConstraintViewModel.hpp>
+#include <Process/LayerModel.hpp>
+#include <Process/Style/ScenarioStyle.hpp>
 #include <Scenario/Document/Constraint/Rack/RackModel.hpp>
 #include <Scenario/Document/Constraint/Rack/Slot/SlotModel.hpp>
-#include <Scenario/Document/Event/EventModel.hpp>
-
-#include <Process/LayerModel.hpp>
-
+#include <Scenario/Document/Constraint/ViewModels/FullView/FullViewConstraintViewModel.hpp>
 #include <iscore/document/DocumentInterface.hpp>
-#include <Process/Style/ScenarioStyle.hpp>
+#include <map>
+#include <utility>
+
+#include "ConstraintModel.hpp"
+#include "Process/ModelMetadata.hpp"
+#include "Process/Process.hpp"
+#include "Process/TimeValue.hpp"
+#include "Scenario/Document/Constraint/ConstraintDurations.hpp"
+#include "Scenario/Document/Constraint/ViewModels/ConstraintViewModel.hpp"
+#include "iscore/tools/Todo.hpp"
+
+class StateModel;
+class TimeNodeModel;
 
 constexpr const char ConstraintModel::className[];
 ConstraintModel::ConstraintModel(
@@ -228,21 +235,4 @@ void ConstraintModel::setHeightPercentage(double arg)
         m_heightPercentage = arg;
         emit heightPercentageChanged(arg);
     }
-}
-
-const TimeNodeModel& startTimeNode(const ConstraintModel& cst)
-{
-    auto scenario = safe_cast<ScenarioInterface*>(cst.parent());
-    return scenario->timeNode(
-                scenario->event(
-                    scenario->state(cst.startState()).eventId()).timeNode());
-
-}
-
-const TimeNodeModel& endTimeNode(const ConstraintModel& cst)
-{
-    auto scenario = safe_cast<ScenarioInterface*>(cst.parent());
-    return scenario->timeNode(
-                scenario->event(
-                    scenario->state(cst.endState()).eventId()).timeNode());
 }

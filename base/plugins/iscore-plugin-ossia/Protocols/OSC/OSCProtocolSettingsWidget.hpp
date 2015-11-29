@@ -1,9 +1,13 @@
 #pragma once
 
+#include <Device/Protocol/ProtocolSettingsWidget.hpp>
+#include <qstring.h>
+
+#include "Device/Protocol/DeviceSettings.hpp"
+
 class QLineEdit;
 class QSpinBox;
-
-#include <Device/Protocol/ProtocolSettingsWidget.hpp>
+class QWidget;
 
 class OSCProtocolSettingsWidget : public ProtocolSettingsWidget
 {

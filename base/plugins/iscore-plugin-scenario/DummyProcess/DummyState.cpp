@@ -1,4 +1,9 @@
 #include "DummyState.hpp"
+#include "Process/State/ProcessStateDataInterface.hpp"
+#include "State/Address.hpp"
+
+class Process;
+class QObject;
 
 DummyState::DummyState(
         Process& model,

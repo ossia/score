@@ -1,38 +1,45 @@
-#include "EventInspectorWidget.hpp"
-
+#include <Inspector/Separator.hpp>
+#include <Scenario/Commands/Event/SetCondition.hpp>
+#include <Scenario/Commands/TimeNode/TriggerCommandFactory/TriggerCommandFactoryList.hpp>
 #include <Scenario/Document/Event/EventModel.hpp>
 #include <Scenario/Document/TimeNode/TimeNodeModel.hpp>
 #include <Scenario/Document/TimeNode/Trigger/TriggerModel.hpp>
-#include <Scenario/Document/Constraint/ConstraintModel.hpp>
-
-#include <Scenario/Commands/Event/SetCondition.hpp>
-
-#include <Inspector/InspectorSectionWidget.hpp>
-#include <Inspector/Separator.hpp>
-#include <Inspector/InspectorWidgetList.hpp>
-
+#include <Scenario/Inspector/Expression/ExpressionEditorWidget.hpp>
 #include <Scenario/Inspector/MetadataWidget.hpp>
 #include <Scenario/Inspector/SelectionButton.hpp>
 #include <Scenario/Inspector/State/StateInspectorWidget.hpp>
 #include <Scenario/Inspector/TimeNode/TriggerInspectorWidget.hpp>
-#include <Scenario/Inspector/Expression/ExpressionEditorWidget.hpp>
-
-#include <Explorer/Explorer/DeviceExplorerModel.hpp>
-#include <Explorer/Widgets/DeviceCompleter.hpp>
-#include <Explorer/Widgets/DeviceExplorerMenuButton.hpp>
-
-#include <QLabel>
-#include <QPushButton>
-#include <QScrollArea>
-#include <QFormLayout>
-
-#include <Scenario/Process/ScenarioModel.hpp>
-#include <Scenario/Commands/TimeNode/TriggerCommandFactory/TriggerCommandFactoryList.hpp>
 #include <core/application/ApplicationComponents.hpp>
-
-#include <iscore/widgets/MarginLess.hpp>
 #include <core/document/Document.hpp>
 #include <core/document/DocumentModel.hpp>
+#include <iscore/widgets/MarginLess.hpp>
+#include <qboxlayout.h>
+#include <qcolor.h>
+#include <qdebug.h>
+#include <qformlayout.h>
+#include <qlabel.h>
+#include <qlayout.h>
+#include <qobjectdefs.h>
+#include <qstring.h>
+#include <qwidget.h>
+#include <algorithm>
+
+#include "EventInspectorWidget.hpp"
+#include "Inspector/InspectorWidgetBase.hpp"
+#include "Process/TimeValue.hpp"
+#include "Scenario/Process/ScenarioInterface.hpp"
+#include "State/Expression.hpp"
+#include "core/application/ApplicationContext.hpp"
+#include "core/document/DocumentContext.hpp"
+#include "iscore/command/Dispatchers/CommandDispatcher.hpp"
+#include "iscore/plugins/customfactory/StringFactoryKey.hpp"
+#include "iscore/plugins/documentdelegate/plugin/DocumentDelegatePluginModel.hpp"
+#include "iscore/plugins/documentdelegate/plugin/ElementPluginModelList.hpp"
+#include "iscore/serialization/DataStreamVisitor.hpp"
+#include "iscore/tools/IdentifiedObject.hpp"
+#include "iscore/tools/ModelPathSerialization.hpp"
+#include "iscore/tools/SettableIdentifier.hpp"
+#include "iscore/tools/Todo.hpp"
 
 EventInspectorWidget::EventInspectorWidget(
         const EventModel& object,

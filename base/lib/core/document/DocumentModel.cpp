@@ -2,8 +2,12 @@
 #include <iscore/plugins/documentdelegate/DocumentDelegateFactoryInterface.hpp>
 #include <iscore/plugins/documentdelegate/DocumentDelegateModelInterface.hpp>
 #include <iscore/plugins/documentdelegate/plugin/DocumentDelegatePluginModel.hpp>
-#include <iscore/plugins/panel/PanelModel.hpp>
-#include <iscore/tools/SettableIdentifierGeneration.hpp>
+
+#include "iscore/selection/Selection.hpp"
+#include "iscore/tools/IdentifiedObject.hpp"
+
+class QObject;
+template <typename tag, typename impl> class id_base_t;
 
 using namespace iscore;
 

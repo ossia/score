@@ -1,18 +1,21 @@
 #pragma once
 #include <Scenario/Commands/ScenarioCommandFactory.hpp>
-#include <iscore/tools/SettableIdentifier.hpp>
+#include <Scenario/Document/Constraint/ViewModels/ConstraintViewModelIdMap.hpp>
+#include <boost/optional/optional.hpp>
 #include <iscore/command/SerializableCommand.hpp>
 #include <iscore/tools/ModelPath.hpp>
-#include <Scenario/Document/Constraint/ViewModels/ConstraintViewModelIdMap.hpp>
+#include <iscore/tools/SettableIdentifier.hpp>
+#include <qstring.h>
 
-class EventModel;
-class ConstraintViewModel;
 class ConstraintModel;
-class LayerModel;
+class ConstraintViewModel;
+class DataStreamInput;
+class DataStreamOutput;
 class StateModel;
-namespace Scenario { class ScenarioModel; }
+namespace Scenario {
+class ScenarioModel;
+}  // namespace Scenario
 
-#include <tests/helpers/ForwardDeclaration.hpp>
 namespace Scenario
 {
     namespace Command
@@ -26,7 +29,6 @@ namespace Scenario
         class CreateConstraint final : public iscore::SerializableCommand
         {
                 ISCORE_COMMAND_DECL(ScenarioCommandFactoryName(), CreateConstraint,"Create a constraint")
-#include <tests/helpers/FriendDeclaration.hpp>
             public:
                 CreateConstraint(
                     Path<Scenario::ScenarioModel>&& scenarioPath,

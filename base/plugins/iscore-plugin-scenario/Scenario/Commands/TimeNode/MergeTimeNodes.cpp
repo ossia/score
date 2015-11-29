@@ -1,12 +1,12 @@
+#include <boost/core/explicit_operator_bool.hpp>
+#include <qdebug.h>
+#include <algorithm>
+
 #include "MergeTimeNodes.hpp"
-
 #include "Scenario/Process/ScenarioModel.hpp"
-#include <Scenario/Process/Algorithms/StandardDisplacementPolicy.hpp>
-
-#include <Scenario/Document/TimeNode/TimeNodeModel.hpp>
-#include <Scenario/Document/Event/EventModel.hpp>
-#include <Scenario/Process/Algorithms/StandardRemovalPolicy.hpp>
-#include <Scenario/Process/Algorithms/StandardCreationPolicy.hpp>
+#include "iscore/serialization/DataStreamVisitor.hpp"
+#include "iscore/tools/ModelPath.hpp"
+#include "iscore/tools/ModelPathSerialization.hpp"
 
 using namespace iscore;
 using namespace Scenario::Command;

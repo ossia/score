@@ -1,6 +1,9 @@
 #pragma once
-#include <QLineEdit>
+#include <qlineedit.h>
+
 #include "AddressValidator.hpp"
+
+class QWidget;
 
 /**
  * @brief The AddressLineEdit class

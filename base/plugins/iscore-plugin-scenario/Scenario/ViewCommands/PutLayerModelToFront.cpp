@@ -1,5 +1,10 @@
-#include "PutLayerModelToFront.hpp"
 #include <Scenario/Document/Constraint/Rack/Slot/SlotModel.hpp>
+#include <algorithm>
+
+#include "PutLayerModelToFront.hpp"
+#include "iscore/tools/ModelPath.hpp"
+
+template <typename tag, typename impl> class id_base_t;
 
 PutLayerModelToFront::PutLayerModelToFront(
         Path<SlotModel>&& slotPath,

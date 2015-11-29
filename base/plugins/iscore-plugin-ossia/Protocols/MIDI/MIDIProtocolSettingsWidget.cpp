@@ -1,10 +1,16 @@
+#include <qcombobox.h>
+#include <qgridlayout.h>
+#include <qlabel.h>
+#include <qobjectdefs.h>
+#include <qradiobutton.h>
+#include <qstring.h>
+#include <qvariant.h>
+
+#include "Device/Protocol/ProtocolSettingsWidget.hpp"
 #include "MIDIProtocolSettingsWidget.hpp"
 #include "MIDISpecificSettings.hpp"
 
-#include <QComboBox>
-#include <QGridLayout>
-#include <QLabel>
-#include <QRadioButton>
+class QWidget;
 
 MIDIProtocolSettingsWidget::MIDIProtocolSettingsWidget(QWidget* parent)
     : ProtocolSettingsWidget(parent)

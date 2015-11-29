@@ -1,8 +1,24 @@
 #pragma once
-#include <iscore/command/SerializableCommand.hpp>
-#include "CreateConstraint_State_Event.hpp"
 #include <Process/TimeValue.hpp>
+#include <boost/optional/optional.hpp>
+#include <iscore/command/SerializableCommand.hpp>
+#include <qstring.h>
+
+#include "CreateConstraint_State_Event.hpp"
+#include "Scenario/Commands/ScenarioCommandFactory.hpp"
+#include "iscore/tools/ModelPath.hpp"
+#include "iscore/tools/SettableIdentifier.hpp"
+
+class ConstraintModel;
+class DataStreamInput;
+class DataStreamOutput;
+class EventModel;
+class StateModel;
 class TimeNodeModel;
+namespace Scenario {
+class ScenarioModel;
+}  // namespace Scenario
+
 namespace Scenario
 {
 namespace Command

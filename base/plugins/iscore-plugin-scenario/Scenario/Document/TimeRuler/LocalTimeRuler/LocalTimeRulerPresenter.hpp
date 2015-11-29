@@ -1,9 +1,10 @@
 #pragma once
 
-#include <Scenario/Document/TimeRuler/AbstractTimeRuler.hpp>
-#include <Scenario/Document/TimeRuler/LocalTimeRuler/LocalTimeRulerView.hpp>
-
 #include <Process/TimeValue.hpp>
+#include <Scenario/Document/TimeRuler/AbstractTimeRuler.hpp>
+
+class LocalTimeRulerView;
+class QObject;
 
 //TODO : total refactor => unused now
 

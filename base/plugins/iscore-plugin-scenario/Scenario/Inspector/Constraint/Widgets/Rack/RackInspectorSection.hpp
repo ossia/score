@@ -1,12 +1,14 @@
 #pragma once
 #include <Inspector/InspectorSectionWidget.hpp>
 #include <iscore/tools/SettableIdentifier.hpp>
+#include <qstring.h>
 #include <unordered_map>
-class RackModel;
-class SlotModel;
+
 class AddSlotWidget;
 class ConstraintInspectorWidget;
+class RackModel;
 class SlotInspectorSection;
+class SlotModel;
 
 // Contains a single rack which can contain multiple slots and a Add Slot button.
 class RackInspectorSection final : public InspectorSectionWidget

@@ -1,7 +1,10 @@
 #pragma once
-#include <State/Message.hpp>
 #include <Process/State/MessageNode.hpp>
+#include <State/Message.hpp>
+
 class Process;
+template <typename tag, typename impl> class id_base_t;
+
 // An enum that says if a process is before or after the state.
 enum class ProcessPosition {
     Previous, Following

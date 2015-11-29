@@ -1,10 +1,16 @@
 #pragma once
 #include <DistributedScenario/Commands/DistributedScenarioCommandFactory.hpp>
+#include <boost/optional/optional.hpp>
 #include <iscore/command/SerializableCommand.hpp>
 #include <iscore/tools/ObjectPath.hpp>
-#include <iscore/tools/IdentifiedObject.hpp>
+#include <qstring.h>
 
+#include "iscore/tools/SettableIdentifier.hpp"
+
+class DataStreamInput;
+class DataStreamOutput;
 class Group;
+
 class CreateGroup : public iscore::SerializableCommand
 {
         ISCORE_COMMAND_DECL(DistributedScenarioCommandFactoryName(), CreateGroup, "CreateGroup")

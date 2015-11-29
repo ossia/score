@@ -1,7 +1,12 @@
-#include "UndoView.hpp"
+#include <qboxlayout.h>
+#include <qlayout.h>
+#include <qnamespace.h>
+#include <qobject.h>
+#include <qwidget.h>
 
-#include <QVBoxLayout>
+#include "UndoView.hpp"
 #include "Widgets/UndoListWidget.hpp"
+#include "iscore/plugins/panel/PanelView.hpp"
 
 static const iscore::DefaultPanelStatus status{true, Qt::LeftDockWidgetArea, 1, QObject::tr("History")};
 

@@ -1,9 +1,11 @@
 #pragma once
-#include <iscore/tools/SettableIdentifier.hpp>
-class TimeNodeModel;
-class EventModel;
-namespace Scenario { class ScenarioModel; }
 class ConstraintModel;
+class EventModel;
+class TimeNodeModel;
+namespace Scenario {
+class ScenarioModel;
+}  // namespace Scenario
+template <typename tag, typename impl> class id_base_t;
 
 void updateTimeNodeExtent(
         const Id<TimeNodeModel>& id,

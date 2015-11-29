@@ -1,12 +1,27 @@
 #pragma once
 #include <Device/Protocol/DeviceInterface.hpp>
 #include <Network/Address.h>
+#include <boost/optional/optional.hpp>
+#include <qstring.h>
+#include <memory>
 #include <unordered_map>
+#include <utility>
+#include <vector>
+
+#include "Device/Node/DeviceNode.hpp"
+#include "Misc/CallbackContainer.h"
+#include "State/Address.hpp"
+
+namespace iscore {
+struct DeviceSettings;
+struct FullAddressSettings;
+struct Message;
+struct Value;
+}  // namespace iscore
+
 namespace OSSIA
 {
     class Device;
-    class Domain;
-    class Node;
 }
 
 class OSSIADevice : public DeviceInterface

@@ -1,8 +1,14 @@
 #pragma once
+#include <boost/optional/optional.hpp>
 #include <iscore/tools/IdentifiedObject.hpp>
+#include <qstring.h>
+
+#include "iscore/tools/SettableIdentifier.hpp"
 
 class ConstraintModel;
+class QObject;
 class RackModel;
+
 class ConstraintViewModel : public IdentifiedObject<ConstraintViewModel>
 {
         Q_OBJECT

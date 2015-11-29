@@ -1,8 +1,9 @@
 #pragma once
-#include <QObject>
+#include <qobject.h>
+
+class QGraphicsObject;
 class TriggerModel;
 class TriggerView;
-class QGraphicsObject;
 
 class TriggerPresenter final : public QObject
 {

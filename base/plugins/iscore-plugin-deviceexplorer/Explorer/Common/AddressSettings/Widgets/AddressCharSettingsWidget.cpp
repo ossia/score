@@ -1,6 +1,15 @@
+#include <qchar.h>
+#include <qformlayout.h>
+#include <qlineedit.h>
+#include <qobjectdefs.h>
+#include <qstring.h>
+
 #include "AddressCharSettingsWidget.hpp"
-#include <QLineEdit>
-#include <QFormLayout>
+#include "Explorer/Common/AddressSettings/Widgets/AddressSettingsWidget.hpp"
+#include "State/Value.hpp"
+#include "State/ValueConversion.hpp"
+
+class QWidget;
 
 AddressCharSettingsWidget::AddressCharSettingsWidget(QWidget* parent)
     : AddressSettingsWidget(parent)

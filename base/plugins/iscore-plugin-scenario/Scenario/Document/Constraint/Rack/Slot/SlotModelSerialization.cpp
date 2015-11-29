@@ -1,5 +1,24 @@
-#include "SlotModel.hpp"
 #include <Scenario/Document/Constraint/LayerModelLoader.hpp>
+#include <boost/core/explicit_operator_bool.hpp>
+#include <boost/optional/optional.hpp>
+#include <qglobal.h>
+#include <qjsonarray.h>
+#include <qjsonobject.h>
+#include <qjsonvalue.h>
+#include <sys/types.h>
+#include <algorithm>
+
+#include "SlotModel.hpp"
+#include "iscore/serialization/DataStreamVisitor.hpp"
+#include "iscore/serialization/JSONValueVisitor.hpp"
+#include "iscore/serialization/JSONVisitor.hpp"
+#include "iscore/tools/NotifyingMap.hpp"
+#include "iscore/tools/SettableIdentifier.hpp"
+
+class LayerModel;
+template <typename T> class Reader;
+template <typename T> class Writer;
+template <typename model> class IdentifiedObject;
 
 template<> void Visitor<Reader<DataStream>>::readFrom(const SlotModel& slot)
 {

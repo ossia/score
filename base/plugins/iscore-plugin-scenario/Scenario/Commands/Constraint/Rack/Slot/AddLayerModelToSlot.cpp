@@ -1,12 +1,18 @@
-#include "AddLayerModelToSlot.hpp"
-
-#include <Scenario/Document/Constraint/Rack/Slot/SlotModel.hpp>
 #include <Process/Process.hpp>
-#include <Process/LayerModel.hpp>
-#include <Scenario/Document/Constraint/LayerModelLoader.hpp>
+#include <Scenario/Document/Constraint/Rack/Slot/SlotModel.hpp>
+#include <boost/core/explicit_operator_bool.hpp>
+#include <boost/iterator/iterator_facade.hpp>
+#include <boost/multi_index/detail/hash_index_iterator.hpp>
 #include <iscore/tools/SettableIdentifierGeneration.hpp>
-#include <Process/ProcessFactory.hpp>
-#include <Process/ProcessList.hpp>
+#include <algorithm>
+#include <vector>
+
+#include "AddLayerModelToSlot.hpp"
+#include "iscore/serialization/DataStreamVisitor.hpp"
+#include "iscore/tools/ModelPath.hpp"
+#include "iscore/tools/ModelPathSerialization.hpp"
+#include "iscore/tools/NotifyingMap.hpp"
+
 using namespace iscore;
 using namespace Scenario::Command;
 

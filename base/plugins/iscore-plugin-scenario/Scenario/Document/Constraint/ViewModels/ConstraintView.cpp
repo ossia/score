@@ -1,8 +1,8 @@
-#include "ConstraintView.hpp"
-#include "ConstraintPresenter.hpp"
-#include <Scenario/Document/State/StateView.hpp>
+#include <qglobal.h>
+#include <qgraphicssceneevent.h>
 
-#include <QGraphicsSceneMouseEvent>
+#include "ConstraintPresenter.hpp"
+#include "ConstraintView.hpp"
 
 ConstraintView::ConstraintView(
         ConstraintPresenter& presenter,

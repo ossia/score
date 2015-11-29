@@ -1,14 +1,21 @@
-#include "EventView.hpp"
-
-#include <QPainter>
-#include <QGraphicsScene>
-#include <QCursor>
-#include <QMimeData>
-#include <QGraphicsSceneMouseEvent>
-#include "EventPresenter.hpp"
-#include "EventModel.hpp"
-#include "ConditionView.hpp"
 #include <Process/Style/ScenarioStyle.hpp>
+#include <qbrush.h>
+#include <qgraphicssceneevent.h>
+#include <qnamespace.h>
+#include <qpainter.h>
+#include <qpen.h>
+#include <algorithm>
+
+#include "ConditionView.hpp"
+#include "EventModel.hpp"
+#include "EventPresenter.hpp"
+#include "EventView.hpp"
+#include "Process/ModelMetadata.hpp"
+#include "Scenario/Document/Event/ExecutionStatus.hpp"
+#include "Scenario/Document/VerticalExtent.hpp"
+
+class QStyleOptionGraphicsItem;
+class QWidget;
 
 EventView::EventView(EventPresenter& presenter,
                      QGraphicsObject* parent) :

@@ -1,13 +1,18 @@
-#include "ScenarioDocumentFactory.hpp"
-
 #include <Scenario/Document/ScenarioDocument/ScenarioDocumentModel.hpp>
 #include <Scenario/Document/ScenarioDocument/ScenarioDocumentPresenter.hpp>
 #include <Scenario/Document/ScenarioDocument/ScenarioDocumentView.hpp>
-
 #include <core/document/DocumentModel.hpp>
 #include <core/document/DocumentView.hpp>
-
 #include <iscore/serialization/VisitorCommon.hpp>
+#include <algorithm>
+
+#include "ScenarioDocumentFactory.hpp"
+
+namespace iscore {
+class DocumentPresenter;
+}  // namespace iscore
+struct VisitorVariant;
+
 iscore::DocumentDelegateViewInterface*
 ScenarioDocument::makeView(
         const iscore::ApplicationContext& ctx,

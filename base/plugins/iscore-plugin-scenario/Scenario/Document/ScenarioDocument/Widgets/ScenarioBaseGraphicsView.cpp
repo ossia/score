@@ -1,6 +1,13 @@
-#include "ScenarioBaseGraphicsView.hpp"
-#include <QDebug>
 #include <Process/Style/ScenarioStyle.hpp>
+#include <qevent.h>
+#include <qflags.h>
+#include <qgraphicsscene.h>
+#include <qnamespace.h>
+#include <qpainter.h>
+#include <qpainterpath.h>
+
+#include "ScenarioBaseGraphicsView.hpp"
+
 ScenarioBaseGraphicsView::ScenarioBaseGraphicsView(QGraphicsScene* parent):
     QGraphicsView{parent}
 {

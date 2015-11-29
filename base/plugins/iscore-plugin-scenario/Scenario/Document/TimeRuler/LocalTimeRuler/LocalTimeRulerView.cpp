@@ -1,7 +1,9 @@
-#include "LocalTimeRulerView.hpp"
-
-#include <QApplication>
 #include <Process/Style/ScenarioStyle.hpp>
+#include <qcolor.h>
+#include <qstring.h>
+
+#include "LocalTimeRulerView.hpp"
+#include "Scenario/Document/TimeRuler/AbstractTimeRulerView.hpp"
 
 LocalTimeRulerView::LocalTimeRulerView():
     AbstractTimeRulerView()

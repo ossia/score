@@ -1,8 +1,15 @@
 #pragma once
-#include "OSSIAProcessElement.hpp"
-#include <State/Address.hpp>
-#include <QPointer>
 #include <API/Headers/Editor/Value.h>
+#include <memory>
+
+#include "OSSIAProcessElement.hpp"
+
+class Process;
+class QObject;
+namespace OSSIA {
+class TimeProcess;
+}  // namespace OSSIA
+
 namespace OSSIA
 {
     class Automation;

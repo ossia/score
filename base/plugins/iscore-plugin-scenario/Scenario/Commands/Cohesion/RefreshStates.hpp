@@ -1,9 +1,10 @@
 #pragma once
-#include <QList>
+#include <qlist.h>
+
 namespace iscore
 {
-class Document;
 class CommandStack;
+class Document;
 }
 class StateModel;
 

@@ -1,9 +1,11 @@
 #pragma once
 #include <iscore/plugins/settingsdelegate/SettingsDelegateViewInterface.hpp>
-#include <iscore/command/Command.hpp>
-#include <QListView>
+#include <qlistview.h>
+#include <qwidget.h>
 
 class PluginSettingsPresenter;
+class QObject;
+
 class PluginSettingsView : public iscore::SettingsDelegateViewInterface
 {
         Q_OBJECT

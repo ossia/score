@@ -1,22 +1,18 @@
 #pragma once
 
-#include <iscore/plugins/documentdelegate/plugin/ElementPluginModel.hpp>
-#include <iscore/tools/SettableIdentifier.hpp>
-#include <memory>
+#include <qobject.h>
 
-#include "ConstraintElement.hpp"
-#include "TimeNodeElement.hpp"
-#include "EventElement.hpp"
-#include "StateElement.hpp"
-
-class EventModel;
-class ConstraintModel;
-class TimeNodeModel;
 class BaseScenario;
+class DeviceList;
+namespace RecreateOnPlay {
+class ConstraintElement;
+class EventElement;
+class StateElement;
+class TimeNodeElement;
+}  // namespace RecreateOnPlay
+
 namespace OSSIA
 {
-    class Scenario;
-    class TimeProcess;
 }
 
 

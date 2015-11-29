@@ -1,6 +1,15 @@
+#include <boost/core/explicit_operator_bool.hpp>
+#include <boost/none_t.hpp>
+#include <boost/optional/optional.hpp>
+#include <qjsonarray.h>
+#include <qjsonvalue.h>
+#include <qpoint.h>
+
 #include "DataStreamVisitor.hpp"
 #include "JSONValueVisitor.hpp"
-#include <QPointF>
+
+template <typename T> class Reader;
+template <typename T> class Writer;
 
 template<>
 void Visitor<Reader<JSONValue>>::readFrom(const QPointF& pt)

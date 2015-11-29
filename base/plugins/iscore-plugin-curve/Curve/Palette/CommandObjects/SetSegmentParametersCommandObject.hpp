@@ -1,10 +1,17 @@
 #pragma once
-#include <QVector>
-#include <QPointF>
-#include "Curve/Palette/CurvePaletteBaseStates.hpp"
-#include "Curve/Commands/SetSegmentParameters.hpp"
+#include <boost/optional/optional.hpp>
 #include <iscore/command/Dispatchers/SingleOngoingCommandDispatcher.hpp>
+#include <qpoint.h>
+
+#include "Curve/Commands/SetSegmentParameters.hpp"
+
 class CurvePresenter;
+namespace Curve {
+class StateBase;
+}  // namespace Curve
+namespace iscore {
+class CommandStack;
+}  // namespace iscore
 
 class SetSegmentParametersCommandObject
 {

@@ -1,9 +1,14 @@
 #pragma once
 #include <Process/LayerModel.hpp>
-#include <iscore/serialization/DataStreamVisitor.hpp>
-#include <iscore/serialization/JSONVisitor.hpp>
 
+#include "iscore/serialization/VisitorInterface.hpp"
+
+class DataStream;
+class JSONObject;
+class LayerModelPanelProxy;
+class QObject;
 class TemporalConstraintViewModel;
+template <typename tag, typename impl> class id_base_t;
 
 namespace Loop{
     class ProcessModel;

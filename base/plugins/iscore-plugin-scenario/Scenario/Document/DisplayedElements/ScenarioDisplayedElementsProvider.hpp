@@ -1,6 +1,10 @@
 #pragma once
 #include <Scenario/Document/DisplayedElements/DisplayedElementsProvider.hpp>
 
+#include "Scenario/Document/DisplayedElements/DisplayedElementsContainer.hpp"
+
+class ConstraintModel;
+
 class ScenarioDisplayedElementsProvider final : public DisplayedElementsProvider
 {
     public:

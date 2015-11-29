@@ -1,6 +1,13 @@
 #pragma once
-#include <iscore/tools/TreeNodeItemModel.hpp>
 #include <Device/Node/DeviceNode.hpp>
+#include <iscore/tools/TreeNodeItemModel.hpp>
+#include <qabstractitemmodel.h>
+#include <vector>
+
+#include "Device/Address/AddressSettings.hpp"
+#include "Device/Protocol/DeviceSettings.hpp"
+#include "iscore/tools/InvisibleRootNode.hpp"
+#include "iscore/tools/TreeNode.hpp"
 
 class NodeBasedItemModel : public TreeNodeBasedItemModel<iscore::Node>
 {

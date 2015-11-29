@@ -1,11 +1,11 @@
 #pragma once
-#include <QWidget>
-#include <iscore/tools/SettableIdentifier.hpp>
-class QLabel;
-class QComboBox;
-class GroupMetadata;
+#include <qwidget.h>
+
 class Group;
 class GroupManager;
+class GroupMetadata;
+class QComboBox;
+template <typename tag, typename impl> class id_base_t;
 
 class GroupMetadataWidget : public QWidget
 {

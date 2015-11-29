@@ -1,5 +1,6 @@
 #pragma once
-#include <QStringList>
+#include <qstringlist.h>
+
 struct ApplicationSettings
 {
         bool tryToRestore = true;

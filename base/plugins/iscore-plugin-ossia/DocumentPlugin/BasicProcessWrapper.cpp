@@ -1,9 +1,9 @@
-#include "BasicProcessWrapper.hpp"
-
 #include <Editor/TimeConstraint.h>
-#include <Editor/TimeProcess.h>
-
 #include <algorithm>
+#include <vector>
+
+#include "BasicProcessWrapper.hpp"
+#include "Editor/TimeValue.h"
 
 BasicProcessWrapper::BasicProcessWrapper(
         const std::shared_ptr<OSSIA::TimeConstraint>& cst,

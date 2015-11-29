@@ -1,5 +1,13 @@
-#include "LinearCurveSegmentModel.hpp"
+#include <ext/alloc_traits.h>
 #include <iscore/serialization/VisitorCommon.hpp>
+#include <qpoint.h>
+#include <vector>
+
+#include "Curve/Palette/CurvePoint.hpp"
+#include "LinearCurveSegmentModel.hpp"
+
+class QObject;
+template <typename tag, typename impl> class id_base_t;
 
 CurveSegmentModel* LinearCurveSegmentModel::clone(
         const Id<CurveSegmentModel>& id,

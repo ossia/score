@@ -1,4 +1,12 @@
+#include <qabstractsocket.h>
+#include <qbytearray.h>
+#include <qdatastream.h>
+#include <qdebug.h>
+#include <qiodevice.h>
+#include <qtcpsocket.h>
+
 #include "NetworkSocket.hpp"
+#include "Serialization/NetworkMessage.hpp"
 
 NetworkSocket::NetworkSocket(QTcpSocket* sock,
                              QObject* parent):

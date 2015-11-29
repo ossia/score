@@ -1,23 +1,28 @@
 #pragma once
-#include <Scenario/Document/Event/EventModel.hpp>
-#include <Scenario/Document/Event/EventPresenter.hpp>
-
-#include <Scenario/Document/TimeNode/TimeNodeModel.hpp>
-#include <Scenario/Document/TimeNode/TimeNodePresenter.hpp>
-
-#include <Scenario/Document/Constraint/ConstraintModel.hpp>
-#include <Scenario/Document/Constraint/ViewModels/Temporal/TemporalConstraintPresenter.hpp>
-
-#include <Scenario/Document/State/StateModel.hpp>
-#include <Scenario/Document/State/StatePresenter.hpp>
-
-#include <Scenario/Document/BaseScenario/BaseScenarioPresenter.hpp>
-#include <Process/LayerPresenter.hpp>
-
-#include <core/document/DocumentContext.hpp>
 #include <Loop/LoopViewUpdater.hpp>
-#include <Loop/LoopProcessModel.hpp>
 #include <Loop/Palette/LoopToolPalette.hpp>
+#include <Process/LayerPresenter.hpp>
+#include <Scenario/Document/BaseScenario/BaseScenarioPresenter.hpp>
+#include <qdebug.h>
+#include <qpoint.h>
+
+#include "Process/Focus/FocusDispatcher.hpp"
+#include "Process/ProcessContext.hpp"
+#include "Process/ZoomHelper.hpp"
+#include "iscore/tools/SettableIdentifier.hpp"
+
+class LayerModel;
+class Process;
+class QMenu;
+class QObject;
+class TemporalConstraintPresenter;
+namespace Loop {
+class ProcessModel;
+}  // namespace Loop
+namespace iscore {
+class CommandStack;
+struct DocumentContext;
+}  // namespace iscore
 
 
 namespace Loop
@@ -35,6 +40,7 @@ inline void clearContentFromSelection(const Loop::ProcessModel& model, iscore::C
 
 class LoopLayer;
 class LoopView;
+
 class LoopPresenter :
         public LayerPresenter,
         public BaseScenarioPresenter<Loop::ProcessModel, TemporalConstraintPresenter>

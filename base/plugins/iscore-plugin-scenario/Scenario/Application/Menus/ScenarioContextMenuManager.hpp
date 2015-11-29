@@ -1,13 +1,13 @@
 #pragma once
-#include <QObject>
+#include <qobject.h>
 
-class SlotPresenter;
+class LayerPresenter;
+class QMenu;
 class QPoint;
 class QPointF;
-class LayerPresenter;
-class ScenarioApplicationPlugin;
+class SlotPresenter;
 class TemporalScenarioPresenter;
-class QMenu;
+
 namespace iscore
 {
 struct DocumentContext;

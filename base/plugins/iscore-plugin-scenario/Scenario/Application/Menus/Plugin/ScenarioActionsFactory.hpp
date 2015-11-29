@@ -1,10 +1,11 @@
 #pragma once
 #include <iscore/plugins/customfactory/FactoryInterface.hpp>
-#include <iscore/plugins/customfactory/FactoryFamily.hpp>
-#include <QList>
+#include <qlist.h>
 
-class ScenarioApplicationPlugin;
+#include "iscore/plugins/customfactory/StringFactoryKey.hpp"
+
 class ScenarioActions;
+class ScenarioApplicationPlugin;
 
 class ScenarioActionsTag{};
 using ScenarioActionsFactoryKey = StringKey<ScenarioActionsTag>;

@@ -1,37 +1,32 @@
 #pragma once
+#include <Process/ModelMetadata.hpp>
+#include <Process/Process.hpp>
+#include <Process/TimeValue.hpp>
 #include <Scenario/Document/Constraint/ConstraintDurations.hpp>
 #include <Scenario/Document/Constraint/Rack/RackModel.hpp>
-#include <Process/Process.hpp>
-
-#include <Process/ModelMetadata.hpp>
 #include <Scenario/Document/ModelConsistency.hpp>
-#include <Scenario/Document/State/StateModel.hpp>
-#include <Scenario/Document/TimeNode/TimeNodeModel.hpp>
-#include <Scenario/Document/Event/EventModel.hpp>
-
-#include <iscore/tools/IdentifiedObjectMap.hpp>
-#include <iscore/serialization/VisitorInterface.hpp>
-#include <Process/TimeValue.hpp>
-
-#include <iscore/selection/Selectable.hpp>
-
+#include <boost/optional/optional.hpp>
 #include <iscore/plugins/documentdelegate/plugin/ElementPluginModelList.hpp>
-#include <QColor>
-#include <vector>
+#include <iscore/selection/Selectable.hpp>
+#include <qobject.h>
+#include <qobjectdefs.h>
+#include <qstring.h>
+#include <qvector.h>
+
+#include "iscore/tools/IdentifiedObject.hpp"
+#include "iscore/tools/NotifyingMap.hpp"
+#include "iscore/tools/SettableIdentifier.hpp"
+
+class DataStream;
+class JSONObject;
+class StateModel;
 
 namespace OSSIA
 {
-    class TimeRack;
 }
 
-class Process;
 class ConstraintViewModel;
 class FullViewConstraintViewModel;
-
-class RackModel;
-class EventModel;
-class TimeRack;
-class ScenarioInterface;
 
 class ConstraintModel final : public IdentifiedObject<ConstraintModel>
 {

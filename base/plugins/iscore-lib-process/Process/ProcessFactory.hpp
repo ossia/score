@@ -1,18 +1,18 @@
 #pragma once
-#include <QStringList>
-#include <QObject>
-#include <QByteArray>
-#include <iscore/plugins/customfactory/FactoryInterface.hpp>
-#include <iscore/serialization/VisitorInterface.hpp>
-#include <iscore/tools/SettableIdentifier.hpp>
 #include <Process/ProcessFactoryKey.hpp>
-
 #include <Process/TimeValue.hpp>
+#include <iscore/plugins/customfactory/FactoryInterface.hpp>
+#include <qbytearray.h>
+#include <qstring.h>
+
 class LayerModel;
-class Process;
-class LayerView;
 class LayerPresenter;
+class LayerView;
+class Process;
 class QGraphicsItem;
+class QObject;
+struct VisitorVariant;
+template <typename tag, typename impl> class id_base_t;
 
 
 /**

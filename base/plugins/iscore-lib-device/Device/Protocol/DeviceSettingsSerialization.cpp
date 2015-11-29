@@ -1,10 +1,25 @@
+#include <Device/Protocol/ProtocolList.hpp>
+#include <core/application/ApplicationComponents.hpp>
 #include <iscore/serialization/DataStreamVisitor.hpp>
 #include <iscore/serialization/JSONVisitor.hpp>
-#include <iscore/tools/std/StdlibWrapper.hpp>
-#include "ProtocolFactoryInterface.hpp"
+#include <qdebug.h>
+#include <qjsonobject.h>
+#include <qjsonvalue.h>
+#include <qstring.h>
+#include <qvariant.h>
+
+#include "Device/Protocol/ProtocolFactoryKey.hpp"
 #include "DeviceSettings.hpp"
-#include <core/application/ApplicationComponents.hpp>
-#include <Device/Protocol/ProtocolList.hpp>
+#include "ProtocolFactoryInterface.hpp"
+#include "core/application/ApplicationContext.hpp"
+#include "iscore/plugins/customfactory/FactoryFamily.hpp"
+#include "iscore/plugins/customfactory/FactoryMap.hpp"
+#include "iscore/plugins/customfactory/StringFactoryKey.hpp"
+#include "iscore/serialization/JSONValueVisitor.hpp"
+
+template <typename T> class Reader;
+template <typename T> class Writer;
+
 template<>
 void Visitor<Reader<DataStream>>::readFrom(const iscore::DeviceSettings& n)
 {

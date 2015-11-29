@@ -1,8 +1,14 @@
+#include <qboxlayout.h>
+#include <qdialogbuttonbox.h>
+#include <qflags.h>
+#include <qlayout.h>
+#include <qlineedit.h>
+#include <qspinbox.h>
+#include <qwidget.h>
+#include <array>
+
 #include "IpDialog.hpp"
 #include "IpWidget.hpp"
-#include <QDialog>
-#include <QDialogButtonBox>
-#include <QSpinBox>
 
 IpDialog::IpDialog(QWidget *parent)
 {

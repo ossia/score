@@ -1,8 +1,14 @@
-#include "DocumentBackupManager.hpp"
-#include "Document.hpp"
-
 #include <core/application/OpenDocumentsFile.hpp>
-#include <QSettings>
+#include <qfile.h>
+#include <qmap.h>
+#include <qsettings.h>
+#include <qstringlist.h>
+#include <qvariant.h>
+
+#include "Document.hpp"
+#include "DocumentBackupManager.hpp"
+#include "core/application/CommandBackupFile.hpp"
+
 iscore::DocumentBackupManager::DocumentBackupManager(iscore::Document& doc):
     QObject{&doc}
 {

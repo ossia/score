@@ -1,5 +1,15 @@
 #pragma once
-#include <QGraphicsItem>
+
+#include <qgraphicsitem.h>
+#include <qpoint.h>
+#include <qrect.h>
+
+class QGraphicsSceneContextMenuEvent;
+class QGraphicsSceneMouseEvent;
+class QKeyEvent;
+class QPainter;
+class QStyleOptionGraphicsItem;
+class QWidget;
 
 class CurveView final : public QGraphicsObject
 {

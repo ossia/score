@@ -1,5 +1,7 @@
 #pragma once
-#include <iscore/command/Dispatchers/SingleOngoingCommandDispatcher.hpp>
+namespace iscore {
+class CommandStack;
+}  // namespace iscore
 // To simplify :
 // Take the current state of the curve
 // Compute the state we have to be in

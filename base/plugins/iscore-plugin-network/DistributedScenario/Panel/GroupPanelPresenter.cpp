@@ -1,7 +1,13 @@
-#include "GroupPanelPresenter.hpp"
 #include "GroupPanelModel.hpp"
+#include "GroupPanelPresenter.hpp"
 #include "GroupPanelView.hpp"
+#include "iscore/plugins/panel/PanelPresenter.hpp"
 #include "GroupPanelId.hpp"
+
+namespace iscore {
+class PanelView;
+class Presenter;
+}  // namespace iscore
 
 GroupPanelPresenter::GroupPanelPresenter(
         iscore::Presenter* parent_presenter,

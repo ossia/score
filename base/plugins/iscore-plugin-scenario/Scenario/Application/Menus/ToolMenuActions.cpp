@@ -1,10 +1,23 @@
-#include "ToolMenuActions.hpp"
-
-#include <iscore/menu/MenuInterface.hpp>
-#include <Scenario/Process/Temporal/TemporalScenarioPresenter.hpp>
 #include <Scenario/Application/ScenarioApplicationPlugin.hpp>
+#include <iscore/menu/MenuInterface.hpp>
+#include <qaction.h>
+#include <qactiongroup.h>
+#include <qmenu.h>
+#include <qnamespace.h>
+#include <qobjectdefs.h>
+#include <qstring.h>
+#include <qtoolbar.h>
+#include <qvariant.h>
 
-#include <QKeyEvent>
+#include "Process/ExpandMode.hpp"
+#include "Scenario/Application/Menus/ScenarioActions.hpp"
+#include "Scenario/Application/ScenarioEditionSettings.hpp"
+#include "Scenario/Palette/Tool.hpp"
+#include "ToolMenuActions.hpp"
+#include "core/presenter/MenubarManager.hpp"
+
+class QObject;
+class TemporalScenarioPresenter;
 
 template<typename Data>
 QAction* makeToolbarAction(const QString& name,

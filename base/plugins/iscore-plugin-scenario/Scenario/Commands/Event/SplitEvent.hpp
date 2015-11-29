@@ -1,12 +1,21 @@
 #pragma once
 
 #include <Scenario/Commands/ScenarioCommandFactory.hpp>
+#include <boost/optional/optional.hpp>
 #include <iscore/command/SerializableCommand.hpp>
 #include <iscore/tools/ModelPath.hpp>
+#include <qstring.h>
+#include <qvector.h>
 
+#include "iscore/tools/SettableIdentifier.hpp"
+
+class DataStreamInput;
+class DataStreamOutput;
 class EventModel;
 class StateModel;
-namespace Scenario { class ScenarioModel; }
+namespace Scenario {
+class ScenarioModel;
+}  // namespace Scenario
 
 namespace Scenario
 {

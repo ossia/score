@@ -1,11 +1,15 @@
 #pragma once
 #include <iscore/plugins/panel/PanelView.hpp>
+#include <qobjectdefs.h>
+#include <qstring.h>
+
 class GroupManager;
+class QObject;
+class QWidget;
 class Session;
 
 namespace iscore
 {
-    class View;
 }
 
 class GroupPanelView : public iscore::PanelView

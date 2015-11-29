@@ -1,14 +1,23 @@
 #pragma once
 #include <iscore/tools/NamedObject.hpp>
-#include <core/presenter/Presenter.hpp>
-#include <iscore/widgets/OrderedToolbar.hpp>
-class QToolBar;
+#include <qnamespace.h>
+#include <qstring.h>
+#include <vector>
+
+#include "core/application/ApplicationContext.hpp"
+
+class QAction;
+class QObject;
+namespace iscore {
+class Document;
+struct OrderedToolbar;
+}  // namespace iscore
+struct VisitorVariant;
 
 namespace iscore
 {
-    class DocumentDelegatePluginModel;
-    class SerializableCommand;
     class Application;
+    class DocumentDelegatePluginModel;
     class MenubarManager;
 
     /**

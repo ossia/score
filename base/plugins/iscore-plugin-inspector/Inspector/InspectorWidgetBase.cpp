@@ -1,11 +1,12 @@
-#include "InspectorSectionWidget.hpp"
-#include "InspectorWidgetBase.hpp"
-#include <iscore/document/DocumentInterface.hpp>
 #include <core/document/Document.hpp>
+#include <qboxlayout.h>
+#include <qlayoutitem.h>
+#include <qscrollarea.h>
 
-#include <QLineEdit>
-#include <QTextEdit>
-#include <QScrollArea>
+#include "InspectorWidgetBase.hpp"
+#include "iscore/command/Dispatchers/CommandDispatcher.hpp"
+#include "iscore/selection/SelectionDispatcher.hpp"
+#include "iscore/tools/IdentifiedObjectAbstract.hpp"
 
 InspectorWidgetBase::InspectorWidgetBase(
         const IdentifiedObjectAbstract& inspectedObj,

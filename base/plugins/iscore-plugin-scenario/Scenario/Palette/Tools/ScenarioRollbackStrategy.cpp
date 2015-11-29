@@ -1,12 +1,14 @@
-#include "ScenarioRollbackStrategy.hpp"
-
-#include <Scenario/Commands/Scenario/Creations/CreateState.hpp>
-#include <Scenario/Commands/Scenario/Creations/CreateEvent_State.hpp>
 #include <Scenario/Commands/Scenario/Creations/CreateConstraint.hpp>
 #include <Scenario/Commands/Scenario/Creations/CreateConstraint_State.hpp>
 #include <Scenario/Commands/Scenario/Creations/CreateConstraint_State_Event.hpp>
 #include <Scenario/Commands/Scenario/Creations/CreateConstraint_State_Event_TimeNode.hpp>
+#include <Scenario/Commands/Scenario/Creations/CreateEvent_State.hpp>
 #include <Scenario/Commands/Scenario/Creations/CreateSequence.hpp>
+#include <Scenario/Commands/Scenario/Creations/CreateState.hpp>
+
+#include "ScenarioRollbackStrategy.hpp"
+#include "iscore/command/SerializableCommand.hpp"
+#include "iscore/plugins/customfactory/StringFactoryKey.hpp"
 
 
 void ScenarioRollbackStrategy::rollback(const std::vector<iscore::SerializableCommand *> &cmds)

@@ -2,9 +2,16 @@
 #include <Scenario/Commands/ScenarioCommandFactory.hpp>
 #include <iscore/command/SerializableCommand.hpp>
 #include <iscore/tools/ModelPath.hpp>
+#include <qmap.h>
 
-#include <Device/Node/DeviceNode.hpp>
-#include <Scenario/Document/State/ItemModel/MessageItemModel.hpp>
+#include "Process/State/MessageNode.hpp"
+#include "State/Message.hpp"
+#include "iscore/tools/SettableIdentifier.hpp"
+
+class DataStreamInput;
+class DataStreamOutput;
+class MessageItemModel;
+class Process;
 
 class AddMessagesToState final : public iscore::SerializableCommand
 {

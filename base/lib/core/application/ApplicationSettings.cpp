@@ -1,9 +1,14 @@
-#include "ApplicationSettings.hpp"
+#include <qapplication.h>
+#include <qcommandlineoption.h>
+#include <qcommandlineparser.h>
+#include <qcoreapplication.h>
+#include <qfile.h>
+#include <qlist.h>
+#include <qobject.h>
+#include <qobjectdefs.h>
+#include <qstring.h>
 
-#include <QCommandLineParser>
-#include <QCommandLineOption>
-#include <QFile>
-#include <QApplication>
+#include "ApplicationSettings.hpp"
 
 void ApplicationSettings::parse()
 {

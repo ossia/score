@@ -1,7 +1,10 @@
 #pragma once
-#include <QList>
-#include <QDebug>
 #include <Device/Protocol/DeviceInterface.hpp>
+#include <qstring.h>
+#include <algorithm>
+#include <vector>
+
+#include "Device/Protocol/DeviceSettings.hpp"
 
 class DeviceList
 {

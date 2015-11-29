@@ -1,10 +1,23 @@
-#include "AddOnlyProcessToConstraint.hpp"
-#include <Scenario/Document/Constraint/ConstraintModel.hpp>
-#include <core/application/ApplicationComponents.hpp>
-#include <Process/ProcessList.hpp>
 #include <Process/ProcessFactory.hpp>
+#include <Process/ProcessList.hpp>
+#include <Scenario/Document/Constraint/ConstraintModel.hpp>
+#include <boost/core/explicit_operator_bool.hpp>
+#include <boost/iterator/iterator_facade.hpp>
+#include <boost/multi_index/detail/hash_index_iterator.hpp>
+#include <core/application/ApplicationComponents.hpp>
 #include <iscore/tools/SettableIdentifierGeneration.hpp>
-#include <iscore/tools/std/StdlibWrapper.hpp>
+#include <algorithm>
+#include <vector>
+
+#include "AddOnlyProcessToConstraint.hpp"
+#include "Scenario/Document/Constraint/ConstraintDurations.hpp"
+#include "core/application/ApplicationContext.hpp"
+#include "iscore/plugins/customfactory/FactoryFamily.hpp"
+#include "iscore/plugins/customfactory/FactoryMap.hpp"
+#include "iscore/plugins/customfactory/StringFactoryKey.hpp"
+#include "iscore/serialization/DataStreamVisitor.hpp"
+#include "iscore/tools/ModelPathSerialization.hpp"
+#include "iscore/tools/NotifyingMap.hpp"
 
 AddOnlyProcessToConstraint::AddOnlyProcessToConstraint(
         Path<ConstraintModel>&& constraintPath,

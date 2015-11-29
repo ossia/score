@@ -1,6 +1,12 @@
-#include "PowerCurveSegmentModel.hpp"
 #include <iscore/serialization/DataStreamVisitor.hpp>
 #include <iscore/serialization/JSONVisitor.hpp>
+#include <qjsonobject.h>
+#include <qjsonvalue.h>
+
+#include "PowerCurveSegmentModel.hpp"
+
+template <typename T> class Reader;
+template <typename T> class Writer;
 
 template<>
 void Visitor<Reader<DataStream>>::readFrom(const PowerCurveSegmentModel& segmt)

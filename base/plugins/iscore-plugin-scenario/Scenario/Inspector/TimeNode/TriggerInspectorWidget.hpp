@@ -1,14 +1,14 @@
 #pragma once
 
-#include <QWidget>
-#include <Scenario/Inspector/ExpressionValidator.hpp>
-#include <Scenario/Inspector/Expression/SimpleExpressionEditorWidget.hpp>
+#include <qwidget.h>
 
-#include <Inspector/InspectorWidgetBase.hpp>
-#include <Scenario/Document/TimeNode/TimeNodeModel.hpp>
-#include <Scenario/Commands/TimeNode/TriggerCommandFactory/TriggerCommandFactoryList.hpp>
-class QLineEdit;
+#include "State/Expression.hpp"
+
+class InspectorWidgetBase;
 class QPushButton;
+class SimpleExpressionEditorWidget;
+class TimeNodeModel;
+class TriggerCommandFactoryList;
 
 class TriggerInspectorWidget final : public QWidget
 {

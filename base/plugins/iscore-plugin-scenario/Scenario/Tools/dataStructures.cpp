@@ -1,9 +1,14 @@
-#include "dataStructures.hpp"
-#include <QVector>
-
+#include <boost/core/explicit_operator_bool.hpp>
 #include <iscore/serialization/DataStreamVisitor.hpp>
-#include <iscore/serialization/JSONVisitor.hpp>
 #include <iscore/tools/ModelPathSerialization.hpp>
+#include <qdatastream.h>
+
+#include "dataStructures.hpp"
+#include "iscore/tools/SettableIdentifier.hpp"
+
+template <typename T> class Reader;
+template <typename T> class Writer;
+
 template<>
 void Visitor<Reader<DataStream>>::readFrom(const TimenodeProperties& timenodeProperties)
 {

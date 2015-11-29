@@ -1,11 +1,43 @@
-#include "DisplayedElementsPresenter.hpp"
 #include <Scenario/Document/BaseScenario/BaseScenario.hpp>
+#include <Scenario/Document/Constraint/Rack/RackPresenter.hpp>
 #include <Scenario/Document/ScenarioDocument/ScenarioDocumentModel.hpp>
 #include <Scenario/Document/ScenarioDocument/ScenarioDocumentPresenter.hpp>
 #include <Scenario/Document/ScenarioDocument/ScenarioDocumentView.hpp>
-#include <Scenario/Document/Constraint/Rack/RackPresenter.hpp>
-
 #include <Scenario/Process/ScenarioModel.hpp>
+#include <boost/iterator/iterator_facade.hpp>
+#include <boost/optional/optional.hpp>
+#include <ext/alloc_traits.h>
+#include <tuple>
+#include <type_traits>
+
+#include "DisplayedElementsPresenter.hpp"
+#include "Process/TimeValue.hpp"
+#include "Process/ZoomHelper.hpp"
+#include "Scenario/Document/BaseScenario/BaseScenarioPresenter.hpp"
+#include "Scenario/Document/Constraint/ConstraintDurations.hpp"
+#include "Scenario/Document/Constraint/ConstraintModel.hpp"
+#include "Scenario/Document/Constraint/Rack/Slot/SlotPresenter.hpp"
+#include "Scenario/Document/Constraint/ViewModels/ConstraintView.hpp"
+#include "Scenario/Document/Constraint/ViewModels/ConstraintViewModel.hpp"
+#include "Scenario/Document/Constraint/ViewModels/FullView/FullViewConstraintPresenter.hpp"
+#include "Scenario/Document/Constraint/ViewModels/FullView/FullViewConstraintViewModel.hpp"
+#include "Scenario/Document/Event/EventModel.hpp"
+#include "Scenario/Document/Event/EventPresenter.hpp"
+#include "Scenario/Document/Event/EventView.hpp"
+#include "Scenario/Document/ScenarioDocument/Widgets/GraphicsProxyObject.hpp"
+#include "Scenario/Document/State/StateModel.hpp"
+#include "Scenario/Document/State/StatePresenter.hpp"
+#include "Scenario/Document/State/StateView.hpp"
+#include "Scenario/Document/TimeNode/TimeNodeModel.hpp"
+#include "Scenario/Document/TimeNode/TimeNodePresenter.hpp"
+#include "Scenario/Document/TimeNode/TimeNodeView.hpp"
+#include "iscore/tools/IdentifiedObjectMap.hpp"
+#include "iscore/tools/NotifyingMap.hpp"
+#include "iscore/tools/SettableIdentifier.hpp"
+#include "iscore/tools/Todo.hpp"
+#include "iscore/tools/std/StdlibWrapper.hpp"
+
+class DisplayedElementsModel;
 
 DisplayedElementsPresenter::DisplayedElementsPresenter(ScenarioDocumentPresenter *parent):
     QObject{parent},

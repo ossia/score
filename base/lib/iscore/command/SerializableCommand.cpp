@@ -1,4 +1,10 @@
 #include <iscore/command/SerializableCommand.hpp>
+#include <qdatastream.h>
+#include <qglobal.h>
+#include <qiodevice.h>
+
+#include "iscore/serialization/DataStreamVisitor.hpp"
+
 using namespace iscore;
 
 SerializableCommand::~SerializableCommand()

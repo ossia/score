@@ -1,9 +1,10 @@
 #pragma once
-#include <iscore/tools/IdentifiedObject.hpp>
-#include <iscore/tools/SettableIdentifier.hpp>
 #include <Scenario/Document/Event/ExecutionStatus.hpp>
-
 #include <State/Expression.hpp>
+#include <iscore/tools/IdentifiedObject.hpp>
+
+class QObject;
+template <typename tag, typename impl> class id_base_t;
 
 using namespace iscore;
 

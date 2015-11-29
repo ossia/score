@@ -1,34 +1,45 @@
 #pragma once
-#include <Scenario/Document/Constraint/ViewModels/Temporal/TemporalConstraintPresenter.hpp>
-#include <Scenario/Palette/ScenarioPalette.hpp>
-
+#include <Process/Focus/FocusDispatcher.hpp>
 #include <Process/LayerPresenter.hpp>
 #include <Process/ProcessContext.hpp>
-#include <Process/Focus/FocusDispatcher.hpp>
-#include <core/document/DocumentContext.hpp>
-#include <iscore/tools/IdentifiedObjectMap.hpp>
-
-#include <Scenario/Application/ScenarioEditionSettings.hpp>
+#include <Scenario/Document/Constraint/ViewModels/Temporal/TemporalConstraintPresenter.hpp>
+#include <Scenario/Palette/ScenarioPalette.hpp>
 #include <Scenario/Process/Temporal/ScenarioViewInterface.hpp>
+#include <boost/optional/optional.hpp>
+#include <iscore/tools/IdentifiedObjectMap.hpp>
+#include <qobject.h>
+#include <qpoint.h>
+
+#include "Process/ZoomHelper.hpp"
+#include "Scenario/Document/Constraint/ConstraintModel.hpp"
+#include "Scenario/Document/Event/EventModel.hpp"
+#include "Scenario/Document/Event/EventPresenter.hpp"
+#include "Scenario/Document/State/StateModel.hpp"
+#include "Scenario/Document/State/StatePresenter.hpp"
+#include "Scenario/Document/TimeNode/TimeNodeModel.hpp"
+#include "Scenario/Document/TimeNode/TimeNodePresenter.hpp"
+#include "iscore/tools/SettableIdentifier.hpp"
+
+class Process;
+class QEvent;
+class QMenu;
+class QMimeData;
+namespace Scenario {
+class EditionSettings;
+}  // namespace Scenario
+namespace iscore {
+struct DocumentContext;
+}  // namespace iscore
 
 namespace iscore
 {
-    class SerializableCommand;
 }
+class ConstraintViewModel;
 class LayerModel;
 class LayerView;
-
-class ConstraintViewModel;
 class TemporalConstraintViewModel;
-class TemporalConstraintPresenter;
-
 class TemporalScenarioLayerModel;
 class TemporalScenarioView;
-class TimeNodeModel;
-class TimeNodePresenter;
-class ConstraintModel;
-class ScenarioSelectionManager;
-class SelectionDispatcher;
 
 class TemporalScenarioPresenter final : public LayerPresenter
 {

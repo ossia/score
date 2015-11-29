@@ -1,6 +1,21 @@
-#include <QApplication>
-#include <iscore/tools/IdentifiedObject.hpp>
+#include <boost/core/explicit_operator_bool.hpp>
+#include <boost/optional/optional.hpp>
+#include <ext/alloc_traits.h>
 #include <iscore/tools/ObjectPath.hpp>
+#include <qapplication.h>
+#include <qbytearray.h>
+#include <qdebug.h>
+#include <qlist.h>
+#include <qnamespace.h>
+#include <qobject.h>
+#include <sys/types.h>
+#include <iterator>
+#include <stdexcept>
+#include <typeinfo>
+
+#include "iscore/tools/IdentifiedObjectAbstract.hpp"
+#include "iscore/tools/NamedObject.hpp"
+#include "iscore/tools/ObjectIdentifier.hpp"
 
 ObjectPath ObjectPath::pathBetweenObjects(
         const QObject* const parent_obj,

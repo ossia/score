@@ -1,5 +1,8 @@
+#include <qdebug.h>
+
 #include "MessageMapper.hpp"
-#include <QDebug>
+#include "Serialization/NetworkMessage.hpp"
+
 void MessageMapper::addHandler(QString addr, std::function<void(NetworkMessage)> fun)
 {
     m_handlers[addr] = fun;

@@ -1,7 +1,12 @@
-#include "CharValueWidget.hpp"
 #include <iscore/widgets/MarginLess.hpp>
-#include <QLineEdit>
-#include <QGridLayout>
+#include <qgridlayout.h>
+#include <qlineedit.h>
+#include <qstring.h>
+
+#include "CharValueWidget.hpp"
+#include "State/Widgets/Values/ValueWidget.hpp"
+
+class QWidget;
 
 CharValueWidget::CharValueWidget(QChar value, QWidget *parent)
     : ValueWidget{parent}

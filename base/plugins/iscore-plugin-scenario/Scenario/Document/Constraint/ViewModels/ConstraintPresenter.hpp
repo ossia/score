@@ -1,24 +1,22 @@
 #pragma once
-#include <iscore/tools/SettableIdentifier.hpp>
-#include <iscore/tools/NamedObject.hpp>
-#include <iscore/selection/Selection.hpp>
-#include <vector>
-
 #include <Process/TimeValue.hpp>
 #include <Process/ZoomHelper.hpp>
+#include <iscore/tools/NamedObject.hpp>
+#include <qpoint.h>
+#include <qstring.h>
 
-class ConstraintViewModel;
-class ConstraintView;
-class RackPresenter;
-class RackModel;
-class ConstraintModel;
-class Process;
 class ConstraintHeader;
+class ConstraintModel;
+class ConstraintView;
+class ConstraintViewModel;
+class QObject;
+class RackModel;
+class RackPresenter;
+template <typename tag, typename impl> class id_base_t;
+
 namespace iscore
 {
-    class SerializableCommand;
 }
-class LayerPresenter;
 
 class ConstraintPresenter : public NamedObject
 {

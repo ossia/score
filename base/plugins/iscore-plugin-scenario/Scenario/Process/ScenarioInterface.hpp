@@ -1,9 +1,9 @@
 #pragma once
-#include <iscore/tools/SettableIdentifier.hpp>
 class ConstraintModel;
 class EventModel;
-class TimeNodeModel;
 class StateModel;
+class TimeNodeModel;
+template <typename tag, typename impl> class id_base_t;
 
 class ScenarioInterface
 {

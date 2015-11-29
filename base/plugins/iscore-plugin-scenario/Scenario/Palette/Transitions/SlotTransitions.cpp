@@ -1,4 +1,11 @@
+#include <algorithm>
+
+#include "Scenario/Palette/ScenarioPaletteBaseStates.hpp"
 #include "SlotTransitions.hpp"
+#include "iscore/tools/ModelPath.hpp"
+
+class QEvent;
+
 namespace Scenario
 {
 ClickOnSlotOverlay_Transition::ClickOnSlotOverlay_Transition(

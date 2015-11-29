@@ -1,13 +1,28 @@
 #pragma once
-#include <QObject>
 #include <iscore/plugins/qt_interfaces/DocumentDelegateFactoryInterface_QtInterface.hpp>
-#include <iscore/plugins/qt_interfaces/GUIApplicationContextPlugin_QtInterface.hpp>
-#include <iscore/plugins/qt_interfaces/PanelFactoryInterface_QtInterface.hpp>
 #include <iscore/plugins/qt_interfaces/FactoryFamily_QtInterface.hpp>
 #include <iscore/plugins/qt_interfaces/FactoryInterface_QtInterface.hpp>
+#include <iscore/plugins/qt_interfaces/GUIApplicationContextPlugin_QtInterface.hpp>
+#include <iscore/plugins/qt_interfaces/PanelFactoryInterface_QtInterface.hpp>
 #include <iscore/plugins/qt_interfaces/PluginRequirements_QtInterface.hpp>
+#include <qobject.h>
+#include <qstringlist.h>
+#include <utility>
+#include <vector>
 
-class ScenarioApplicationPlugin;
+#include "core/application/ApplicationContext.hpp"
+#include "iscore/command/CommandGeneratorMap.hpp"
+#include "iscore/command/SerializableCommand.hpp"
+#include "iscore/plugins/application/GUIApplicationContextPlugin.hpp"
+#include "iscore/plugins/customfactory/FactoryInterface.hpp"
+
+namespace iscore {
+class Application;
+class DocumentDelegateFactoryInterface;
+class FactoryListInterface;
+class PanelFactory;
+}  // namespace iscore
+
 class iscore_plugin_scenario final :
         public QObject,
         public iscore::GUIApplicationContextPlugin_QtInterface,

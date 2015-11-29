@@ -1,18 +1,16 @@
-#include "TriggerInspectorWidget.hpp"
-
-#include <Scenario/Document/TimeNode/Trigger/TriggerModel.hpp>
-
-#include <QLineEdit>
-#include <QPushButton>
-
 #include <Scenario/Commands/TimeNode/SetTrigger.hpp>
-#include <Scenario/Commands/TimeNode/AddTrigger.hpp>
-#include <Scenario/Commands/TimeNode/RemoveTrigger.hpp>
+#include <Scenario/Document/TimeNode/Trigger/TriggerModel.hpp>
+#include <qboxlayout.h>
+#include <qpushbutton.h>
+#include <algorithm>
 
-#include <core/document/Document.hpp>
-#include <core/document/DocumentContext.hpp>
-#include <core/application/ApplicationContext.hpp>
-#include <core/application/ApplicationComponents.hpp>
+#include "Inspector/InspectorWidgetBase.hpp"
+#include "Scenario/Commands/TimeNode/TriggerCommandFactory/TriggerCommandFactoryList.hpp"
+#include "Scenario/Document/TimeNode/TimeNodeModel.hpp"
+#include "Scenario/Inspector/Expression/SimpleExpressionEditorWidget.hpp"
+#include "TriggerInspectorWidget.hpp"
+#include "iscore/command/Dispatchers/CommandDispatcher.hpp"
+#include "iscore/tools/ModelPath.hpp"
 
 using namespace Scenario::Command;
 

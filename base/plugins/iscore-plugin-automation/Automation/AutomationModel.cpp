@@ -1,15 +1,27 @@
-#include "AutomationModel.hpp"
-#include "AutomationLayerModel.hpp"
-#include "State/AutomationState.hpp"
-
-#include "Curve/CurveModel.hpp"
-#include "Curve/Segment/Linear/LinearCurveSegmentModel.hpp"
-#include "Curve/Segment/Power/PowerCurveSegmentModel.hpp"
-#include "Curve/Point/CurvePointModel.hpp"
-
+#include <boost/optional/optional.hpp>
 #include <iscore/document/DocumentInterface.hpp>
+#include <qdebug.h>
+#include <qpoint.h>
 
-#include "Curve/Segment/PointArray/PointArrayCurveSegmentModel.hpp"
+#include "Automation/AutomationProcessMetadata.hpp"
+#include "AutomationLayerModel.hpp"
+#include "AutomationModel.hpp"
+#include "Curve/CurveModel.hpp"
+#include "Curve/Palette/CurvePoint.hpp"
+#include "Curve/Process/CurveProcessModel.hpp"
+#include "Curve/Segment/CurveSegmentModel.hpp"
+#include "Curve/Segment/Power/PowerCurveSegmentModel.hpp"
+#include "Process/ModelMetadata.hpp"
+#include "State/Address.hpp"
+#include "State/AutomationState.hpp"
+#include "iscore/plugins/documentdelegate/plugin/ElementPluginModelList.hpp"
+#include "iscore/tools/IdentifiedObjectMap.hpp"
+#include "iscore/tools/SettableIdentifier.hpp"
+
+class LayerModel;
+class Process;
+class QObject;
+
 AutomationModel::AutomationModel(
         const TimeValue& duration,
         const Id<Process>& id,

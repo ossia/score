@@ -1,4 +1,6 @@
 #include <core/application/Application.hpp>
+#include <qapplication.h>
+#include <qnamespace.h>
 
 #if defined(ISCORE_STATIC_PLUGINS)
   #include <iscore_static_plugins.hpp>
@@ -7,6 +9,7 @@
 #if defined(ISCORE_STATIC_QT)
   #if defined(__linux__)
     #include <QtPlugin>
+
     Q_IMPORT_PLUGIN (QXcbIntegrationPlugin)
   #endif
 #endif

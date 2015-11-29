@@ -1,13 +1,12 @@
-#include "BaseScenarioDisplayedElementsToolPaletteFactory.hpp"
-#include "BaseScenarioDisplayedElementsToolPalette.hpp"
-
-#include <Scenario/Document/ScenarioDocument/ScenarioDocumentModel.hpp>
-#include <Scenario/Document/ScenarioDocument/ScenarioDocumentPresenter.hpp>
-#include <Scenario/Document/ScenarioDocument/ScenarioDocumentView.hpp>
-
 #include <Scenario/Document/BaseScenario/BaseScenario.hpp>
 #include <Scenario/Document/Constraint/ConstraintModel.hpp>
-#include <Scenario/Process/ScenarioModel.hpp>
+#include <qobject.h>
+
+#include "BaseScenarioDisplayedElementsToolPalette.hpp"
+#include "BaseScenarioDisplayedElementsToolPaletteFactory.hpp"
+#include "iscore/statemachine/GraphicsSceneToolPalette.hpp"
+
+class ScenarioDocumentPresenter;
 
 std::unique_ptr<GraphicsSceneToolPalette> BaseScenarioDisplayedElementsToolPaletteFactory::make(
         ScenarioDocumentPresenter& pres,

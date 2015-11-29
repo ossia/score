@@ -1,18 +1,14 @@
 #pragma once
 #include <memory>
 
-class Process;
-class OSSIAProcessElement;
-
 namespace OSSIA
 {
 class Loop;
-class TimeConstraint;
-class TimeValue;
-class StateElement;
 class Scenario;
+class TimeConstraint;
 class TimeNode;
 class TimeProcess;
+class TimeValue;
 }
 
 

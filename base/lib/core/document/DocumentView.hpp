@@ -1,12 +1,13 @@
 #pragma once
-#include <QWidget>
+
+#include <qwidget.h>
 
 namespace iscore
 {
-    class DocumentDelegateViewInterface;
-    class DocumentDelegateFactoryInterface;
-    class PanelView;
     class Document;
+    class DocumentDelegateFactoryInterface;
+    class DocumentDelegateViewInterface;
+    class PanelView;
 
     /**
      * @brief The DocumentView class shows a document.

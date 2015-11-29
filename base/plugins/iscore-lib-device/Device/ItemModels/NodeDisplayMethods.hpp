@@ -1,6 +1,9 @@
 #pragma once
 #include <Device/Node/DeviceNode.hpp>
+#include <qvariant.h>
+
 class DeviceInterface;
+
 /**
  * These functions allow to display
  * the informations in iscore::Node's

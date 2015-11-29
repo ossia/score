@@ -1,6 +1,9 @@
-#include "BaseScenarioDisplayedElementsProvider.hpp"
 #include <Scenario/Document/BaseScenario/BaseScenario.hpp>
 #include <Scenario/Document/Constraint/ConstraintModel.hpp>
+#include <qobject.h>
+
+#include "BaseScenarioDisplayedElementsProvider.hpp"
+
 bool BaseScenarioDisplayedElementsProvider::matches(
         const ConstraintModel& cst) const
 {

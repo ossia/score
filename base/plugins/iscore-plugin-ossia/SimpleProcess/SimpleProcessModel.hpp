@@ -1,9 +1,23 @@
 #pragma once
 #include <ProcessModel/OSSIAProcessModel.hpp>
-#include <iscore/serialization/DataStreamVisitor.hpp>
-#include <iscore/serialization/JSONVisitor.hpp>
-#include <iscore/serialization/VisitorCommon.hpp>
+#include <qbytearray.h>
+#include <qstring.h>
+#include <memory>
+
+#include "Process/ProcessFactoryKey.hpp"
+#include "Process/TimeValue.hpp"
 #include "SimpleProcess/SimpleProcess.hpp"
+#include "iscore/selection/Selection.hpp"
+#include "iscore/serialization/VisitorInterface.hpp"
+
+class DataStream;
+class JSONObject;
+class LayerModel;
+class Process;
+class ProcessStateDataInterface;
+class QObject;
+class TimeProcessWithConstraint;
+template <typename tag, typename impl> class id_base_t;
 
 
 class SimpleProcessModel final : public OSSIAProcessModel

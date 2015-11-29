@@ -1,12 +1,17 @@
 #pragma once
-#include <QGraphicsView>
-#include <QResizeEvent>
 
-#include <QPainter>
-#include <QApplication>
-#include <QGraphicsItem>
-#include <QDebug>
-#include "SceneGraduations.hpp"
+
+#include <qgraphicsview.h>
+#include <qpoint.h>
+
+class QFocusEvent;
+class QGraphicsScene;
+class QKeyEvent;
+class QPainterPath;
+class QResizeEvent;
+class QSize;
+class QWheelEvent;
+class SceneGraduations;
 
 class ScenarioBaseGraphicsView final : public QGraphicsView
 {

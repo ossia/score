@@ -1,12 +1,11 @@
-#include "InspectorWidgetList.hpp"
-#include "InspectorWidgetBase.hpp"
-
 #include <iscore/document/DocumentInterface.hpp>
-#include <core/document/Document.hpp>
 
-#include <QApplication>
-#include <core/application/Application.hpp>
-#include <core/presenter/Presenter.hpp>
+#include "Inspector/InspectorWidgetFactoryInterface.hpp"
+#include "InspectorWidgetBase.hpp"
+#include "InspectorWidgetList.hpp"
+#include "iscore/tools/IdentifiedObjectAbstract.hpp"
+
+class QWidget;
 
 InspectorWidgetBase* InspectorWidgetList::makeInspectorWidget(
         const QString& name,

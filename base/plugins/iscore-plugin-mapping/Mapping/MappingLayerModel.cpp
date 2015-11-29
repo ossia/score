@@ -1,6 +1,11 @@
 #include "MappingLayerModel.hpp"
 #include "MappingModel.hpp"
 #include "MappingPanelProxy.hpp"
+#include "Process/LayerModel.hpp"
+
+class LayerModelPanelProxy;
+class QObject;
+template <typename tag, typename impl> class id_base_t;
 
 constexpr const char MappingLayerModel::className[];
 MappingLayerModel::MappingLayerModel(

@@ -1,18 +1,26 @@
 #pragma once
-#include <QMainWindow>
-#include <QDebug>
-#include <QMenuBar>
-#include <set>
 
+#include <qmainwindow.h>
+#include <qpair.h>
+#include <qstring.h>
+#include <vector>
 #include <core/presenter/Action.hpp>
-#include <iscore/tools/SettableIdentifier.hpp>
+
+class QCloseEvent;
+class QDockWidget;
+class QEvent;
+class QObject;
+class QTabWidget;
+
+template <typename tag, typename impl> class id_base_t;
+
 namespace iscore
 {
-    class PanelView;
-    class Presenter;
-    class Document;
     class DocumentModel;
     class DocumentView;
+    class PanelView;
+    class Presenter;
+
     /**
      * @brief The View class
      *

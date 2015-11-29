@@ -1,4 +1,8 @@
+#include "Scenario/Document/Constraint/ViewModels/ConstraintViewModel.hpp"
 #include "TemporalConstraintViewModel.hpp"
+
+class QObject;
+template <typename tag, typename impl> class id_base_t;
 
 TemporalConstraintViewModel::TemporalConstraintViewModel(
         const Id<ConstraintViewModel>& id,

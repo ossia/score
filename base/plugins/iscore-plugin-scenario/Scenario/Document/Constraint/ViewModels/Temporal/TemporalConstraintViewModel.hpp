@@ -1,8 +1,10 @@
 #pragma once
 #include <Scenario/Document/Constraint/ViewModels/ConstraintViewModel.hpp>
-
+#include <qstring.h>
 
 class ConstraintModel;
+class QObject;
+template <typename tag, typename impl> class id_base_t;
 
 /**
  * @brief The TemporalConstraintViewModel class

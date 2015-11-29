@@ -1,5 +1,14 @@
 #pragma once
+#include <boost/optional/optional.hpp>
+#include <qvariant.h>
+
+#include "Curve/Segment/CurveSegmentFactoryKey.hpp"
 #include "Curve/Segment/CurveSegmentModel.hpp"
+#include "iscore/serialization/VisitorInterface.hpp"
+
+class QObject;
+struct CurveSegmentData;
+template <typename tag, typename impl> class id_base_t;
 
 struct PowerCurveSegmentData
 {

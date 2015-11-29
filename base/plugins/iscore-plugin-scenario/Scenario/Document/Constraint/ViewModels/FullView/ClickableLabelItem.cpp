@@ -1,7 +1,12 @@
-#include "ClickableLabelItem.hpp"
 #include <Process/Style/ProcessFonts.hpp>
-#include <Scenario/Document/Constraint/ViewModels/ConstraintHeader.hpp>
-#include <QBrush>
+#include <qfont.h>
+#include <qnamespace.h>
+#include <algorithm>
+
+#include "ClickableLabelItem.hpp"
+
+class QGraphicsSceneHoverEvent;
+class QGraphicsSceneMouseEvent;
 
 SeparatorItem::SeparatorItem(QGraphicsItem *parent):
     QGraphicsSimpleTextItem{"/", parent}

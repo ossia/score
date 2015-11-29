@@ -1,7 +1,16 @@
 #pragma once
-#include <QGraphicsItem>
-#include <QPen>
+#include <qcolor.h>
+#include <qgraphicsitem.h>
+#include <qpainterpath.h>
+#include <qpen.h>
+#include <qrect.h>
+#include <qsize.h>
+
+class QPainter;
+class QStyleOptionGraphicsItem;
+class QWidget;
 class ScenarioBaseGraphicsView;
+
 class SceneGraduations final : public QGraphicsItem
 {
     private:

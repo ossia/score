@@ -1,13 +1,20 @@
 #pragma once
-#include <Device/Protocol/DeviceInterface.hpp>
-#include <API/Headers/Network/Protocol.h>
-#include <API/Headers/Network/Device.h>
-#include <API/Headers/Network/Address.h>
-#include <API/Headers/Editor/Value.h>
-#include <API/Headers/Editor/Domain.h>
-
 #include <API/Headers/Editor/TimeValue.h>
+#include <API/Headers/Network/Address.h>
 #include <Process/TimeValue.hpp>
+
+#include "Device/Address/AddressSettings.hpp"
+#include "Device/Address/ClipMode.hpp"
+#include "Device/Address/Domain.hpp"
+#include "Device/Address/IOType.hpp"
+#include "Device/Node/DeviceNode.hpp"
+#include "State/Value.hpp"
+
+namespace OSSIA {
+class Domain;
+class Node;
+class Value;
+}  // namespace OSSIA
 
 // Utility functions to convert from one node to another.
 namespace OSSIA

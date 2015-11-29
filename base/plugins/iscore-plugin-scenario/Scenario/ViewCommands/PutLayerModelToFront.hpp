@@ -1,8 +1,9 @@
 #pragma once
-#include <iscore/tools/SettableIdentifier.hpp>
 #include <iscore/tools/ModelPath.hpp>
+
 class LayerModel;
 class SlotModel;
+template <typename tag, typename impl> class id_base_t;
 
 class PutLayerModelToFront
 {

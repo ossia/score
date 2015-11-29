@@ -1,17 +1,31 @@
-#include "LoopElement.hpp"
-#include <iscore/document/DocumentInterface.hpp>
-#include <Explorer/DocumentPlugin/DeviceDocumentPlugin.hpp>
-
-#include <Scenario/Document/Constraint/ConstraintModel.hpp>
-#include <API/Headers/Editor/TimeConstraint.h>
 #include <API/Headers/Editor/TimeEvent.h>
 #include <API/Headers/Editor/TimeNode.h>
-#include <API/Headers/Editor/State.h>
-
+#include <Explorer/DocumentPlugin/DeviceDocumentPlugin.hpp>
+#include <Scenario/Document/Constraint/ConstraintModel.hpp>
 #include <core/document/Document.hpp>
 #include <core/document/DocumentModel.hpp>
+#include <iscore/document/DocumentInterface.hpp>
 #include <iscore2OSSIA.hpp>
-#include <OSSIA2iscore.hpp>
+#include <algorithm>
+#include <vector>
+
+#include "Editor/Loop.h"
+#include "Editor/TimeValue.h"
+#include "Loop/LoopProcessModel.hpp"
+#include "LoopElement.hpp"
+#include "RecreateOnPlayDocumentPlugin/ConstraintElement.hpp"
+#include "RecreateOnPlayDocumentPlugin/EventElement.hpp"
+#include "RecreateOnPlayDocumentPlugin/ProcessElement.hpp"
+#include "RecreateOnPlayDocumentPlugin/TimeNodeElement.hpp"
+#include "Scenario/Document/Constraint/ConstraintDurations.hpp"
+
+class Process;
+class QObject;
+namespace OSSIA {
+class StateElement;
+class TimeProcess;
+}  // namespace OSSIA
+template <typename tag, typename impl> class id_base_t;
 
 RecreateOnPlay::LoopElement::LoopElement(
         RecreateOnPlay::ConstraintElement& parentConstraint,

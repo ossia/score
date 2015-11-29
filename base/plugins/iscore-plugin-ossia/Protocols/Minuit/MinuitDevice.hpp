@@ -1,11 +1,12 @@
 #pragma once
 #include "Protocols/OSSIADevice.hpp"
-#include "MinuitSpecificSettings.hpp"
-#include <API/Headers/Network/Protocol/Minuit.h>
-#include <QThread>
+
+namespace iscore {
+struct DeviceSettings;
+}  // namespace iscore
+
 namespace OSSIA
 {
-class Device;
 }
 class MinuitDevice final : public OSSIADevice
 {

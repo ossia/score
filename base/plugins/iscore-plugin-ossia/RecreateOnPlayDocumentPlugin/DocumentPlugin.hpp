@@ -1,5 +1,11 @@
 #pragma once
 #include <iscore/plugins/documentdelegate/plugin/DocumentDelegatePluginModel.hpp>
+
+class QObject;
+namespace iscore {
+class Document;
+}  // namespace iscore
+
 namespace iscore
 {
 class DocumentModel;
@@ -9,6 +15,7 @@ namespace RecreateOnPlay
 {
 
 class BaseScenarioElement;
+
 class DocumentPlugin final : public iscore::DocumentDelegatePluginModel
 {
     public:

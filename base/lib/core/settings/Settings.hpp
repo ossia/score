@@ -1,11 +1,14 @@
 #pragma once
-#include <memory>
-#include <iscore/plugins/settingsdelegate/SettingsDelegateFactoryInterface.hpp>
-#include <set>
 
-#include <core/settings/SettingsModel.hpp>
-#include <core/settings/SettingsPresenter.hpp>
-#include <core/settings/SettingsView.hpp>
+
+#include <qobject.h>
+
+namespace iscore {
+class SettingsDelegateFactoryInterface;
+class SettingsModel;
+class SettingsPresenter;
+class SettingsView;
+}  // namespace iscore
 
 namespace iscore
 {

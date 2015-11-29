@@ -1,8 +1,14 @@
 #pragma once
-#include <QGraphicsObject>
-#include <QBrush>
-#include <Process/LayerModel.hpp>
+#include <qgraphicsitem.h>
+#include <qrect.h>
+#include <qsize.h>
+
+class LayerModel;
 class ProcessPanelPresenter;
+class QPainter;
+class QStyleOptionGraphicsItem;
+class QWidget;
+
 class ProcessPanelGraphicsProxy final : public QGraphicsObject
 {
         QSizeF m_size;

@@ -1,10 +1,18 @@
 #pragma once
 #include <Scenario/Document/BaseScenario/BaseScenarioContainer.hpp>
-
-#include <iscore/serialization/DataStreamVisitor.hpp>
-#include <iscore/serialization/JSONVisitor.hpp>
-#include <iscore/selection/Selection.hpp>
 #include <iscore/plugins/documentdelegate/plugin/ElementPluginModelList.hpp>
+#include <iscore/selection/Selection.hpp>
+#include <qvector.h>
+
+#include "iscore/serialization/VisitorInterface.hpp"
+#include "iscore/tools/IdentifiedObject.hpp"
+
+class ConstraintModel;
+class DataStream;
+class JSONObject;
+class QObject;
+class TimeNodeModel;
+template <typename tag, typename impl> class id_base_t;
 
 class BaseScenario final : public IdentifiedObject<BaseScenario>, public BaseScenarioContainer
 {

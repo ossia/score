@@ -1,7 +1,7 @@
 #pragma once
 
 #include <Scenario/Document/TimeRuler/AbstractTimeRulerView.hpp>
-#include <Process/TimeValue.hpp>
+#include <qrect.h>
 
 
 class TimeRulerView final : public AbstractTimeRulerView

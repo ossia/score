@@ -1,36 +1,45 @@
-#include "ScenarioContextMenuManager.hpp"
-#include <Scenario/Application/ScenarioApplicationPlugin.hpp>
-#include <Scenario/Document/Constraint/Rack/Slot/SlotPresenter.hpp>
-#include <Scenario/Document/Constraint/Rack/Slot/SlotModel.hpp>
-#include <Scenario/Document/Constraint/Rack/RackModel.hpp>
-#include <Scenario/Document/Constraint/Rack/RackPresenter.hpp>
-#include <Scenario/Document/Constraint/ConstraintModel.hpp>
-#include <Process/LayerPresenter.hpp>
 #include <Process/LayerModel.hpp>
+#include <Process/LayerPresenter.hpp>
 #include <Process/Process.hpp>
-
-#include <Scenario/Commands/Constraint/Rack/RemoveSlotFromRack.hpp>
-#include <Scenario/Commands/Constraint/Rack/Slot/AddLayerModelToSlot.hpp>
-#include <Scenario/Commands/Constraint/Rack/AddSlotToRack.hpp>
-#include <Scenario/Commands/Constraint/AddProcessToConstraint.hpp>
+#include <Scenario/Application/Menus/ScenarioActions.hpp>
+#include <Scenario/Application/ScenarioApplicationPlugin.hpp>
+#include <Scenario/Commands/Constraint/AddLayerInNewSlot.hpp>
 #include <Scenario/Commands/Constraint/AddOnlyProcessToConstraint.hpp>
 #include <Scenario/Commands/Constraint/CreateProcessInExistingSlot.hpp>
 #include <Scenario/Commands/Constraint/CreateProcessInNewSlot.hpp>
-#include <Scenario/Commands/Constraint/AddLayerInNewSlot.hpp>
-
+#include <Scenario/Commands/Constraint/Rack/AddSlotToRack.hpp>
+#include <Scenario/Commands/Constraint/Rack/RemoveSlotFromRack.hpp>
+#include <Scenario/Commands/Constraint/Rack/Slot/AddLayerModelToSlot.hpp>
 #include <Scenario/DialogWidget/AddProcessDialog.hpp>
-
+#include <Scenario/Document/Constraint/ConstraintModel.hpp>
+#include <Scenario/Document/Constraint/Rack/RackModel.hpp>
+#include <Scenario/Document/Constraint/Rack/Slot/SlotModel.hpp>
+#include <Scenario/Document/Constraint/Rack/Slot/SlotPresenter.hpp>
+#include <Scenario/Process/Temporal/TemporalScenarioPresenter.hpp>
+#include <Scenario/ViewCommands/PutLayerModelToFront.hpp>
+#include <boost/iterator/indirect_iterator.hpp>
+#include <boost/iterator/iterator_facade.hpp>
+#include <boost/multi_index/detail/hash_index_iterator.hpp>
+#include <boost/optional/optional.hpp>
 #include <iscore/command/Dispatchers/CommandDispatcher.hpp>
 #include <iscore/command/Dispatchers/MacroCommandDispatcher.hpp>
+#include <qaction.h>
+#include <qapplication.h>
+#include <qmenu.h>
+#include <qobjectdefs.h>
+#include <qpoint.h>
+#include <qstring.h>
+#include <algorithm>
 
-#include <core/document/Document.hpp>
-#include <Scenario/ViewCommands/PutLayerModelToFront.hpp>
-
-#include <Scenario/Process/Temporal/TemporalScenarioPresenter.hpp>
-#include <Scenario/Application/Menus/ScenarioActions.hpp>
-#include <QApplication>
-
-#include <QMenu>
+#include "Process/ProcessList.hpp"
+#include "ScenarioContextMenuManager.hpp"
+#include "core/application/ApplicationComponents.hpp"
+#include "core/application/ApplicationContext.hpp"
+#include "core/document/DocumentContext.hpp"
+#include "iscore/document/DocumentInterface.hpp"
+#include "iscore/plugins/customfactory/StringFactoryKey.hpp"
+#include "iscore/tools/NotifyingMap.hpp"
+#include "iscore/tools/SettableIdentifier.hpp"
 
 void ScenarioContextMenuManager::createSlotContextMenu(
         const iscore::DocumentContext& ctx,

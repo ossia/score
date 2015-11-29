@@ -1,8 +1,19 @@
-#include "CommandStack.hpp"
 #include <iscore/serialization/DataStreamVisitor.hpp>
+#include <qbytearray.h>
+#include <qdatastream.h>
+#include <qglobal.h>
+#include <qlist.h>
+#include <qpair.h>
+#include <qstack.h>
 
-#include <iscore/tools/std/StdlibWrapper.hpp>
-#include <core/presenter/Presenter.hpp>
+#include "CommandStack.hpp"
+#include "core/application/ApplicationComponents.hpp"
+#include "core/application/ApplicationContext.hpp"
+#include "iscore/command/SerializableCommand.hpp"
+#include "iscore/plugins/customfactory/StringFactoryKey.hpp"
+
+template <typename T> class Reader;
+template <typename T> class Writer;
 
 using namespace iscore;
 template<>

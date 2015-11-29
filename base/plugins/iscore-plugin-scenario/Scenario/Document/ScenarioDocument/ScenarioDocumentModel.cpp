@@ -1,35 +1,52 @@
-#include "ScenarioDocumentModel.hpp"
-#include <Scenario/Document/BaseScenario/BaseScenario.hpp>
-
-#include "Scenario/Document/Constraint/ConstraintModel.hpp"
-#include "Scenario/Document/Event/EventModel.hpp"
-#include "Scenario/Document/TimeNode/TimeNodeModel.hpp"
-#include "Scenario/Document/Constraint/ViewModels/FullView/FullViewConstraintViewModel.hpp"
-
-#include <iscore/document/DocumentInterface.hpp>
-
+#include <Process/LayerModel.hpp>
+#include <Process/Process.hpp>
 #include <Scenario/Commands/Constraint/AddOnlyProcessToConstraint.hpp>
 #include <Scenario/Commands/Constraint/AddRackToConstraint.hpp>
 #include <Scenario/Commands/Constraint/Rack/AddSlotToRack.hpp>
-#include <Scenario/Commands/Constraint/Rack/Slot/ResizeSlotVertically.hpp>
 #include <Scenario/Commands/Constraint/Rack/Slot/AddLayerModelToSlot.hpp>
+#include <Scenario/Commands/Constraint/Rack/Slot/ResizeSlotVertically.hpp>
 #include <Scenario/Commands/Scenario/ShowRackInViewModel.hpp>
-
+#include <Scenario/Document/BaseScenario/BaseScenario.hpp>
 #include <Scenario/Document/Constraint/Rack/RackModel.hpp>
 #include <Scenario/Document/Constraint/Rack/Slot/SlotModel.hpp>
 #include <Scenario/Process/ScenarioProcessMetadata.hpp>
-#include <Process/Process.hpp>
-#include <Process/LayerModel.hpp>
+#include <boost/iterator/iterator_facade.hpp>
+#include <boost/optional/optional.hpp>
+#include <iscore/document/DocumentInterface.hpp>
+#include <qlist.h>
+#include <qobject.h>
 
-#include <QApplication>
+#include "Scenario/Document/Constraint/ConstraintDurations.hpp"
+#include "Scenario/Document/Constraint/ConstraintModel.hpp"
+#include "Scenario/Document/Constraint/ViewModels/ConstraintViewModel.hpp"
+#include "Scenario/Document/Constraint/ViewModels/FullView/FullViewConstraintViewModel.hpp"
+#include "Scenario/Document/DisplayedElements/DisplayedElementsModel.hpp"
+#include "Scenario/Document/Event/EventModel.hpp"
+#include "Scenario/Document/ScenarioDocument/ProcessFocusManager.hpp"
+#include "Scenario/Document/State/StateModel.hpp"
+#include "Scenario/Document/TimeNode/TimeNodeModel.hpp"
+#include "ScenarioDocumentModel.hpp"
+#include "core/application/ApplicationComponents.hpp"
+#include "core/application/ApplicationContext.hpp"
+#include "core/document/DocumentContext.hpp"
+#include "iscore/plugins/customfactory/StringFactoryKey.hpp"
+#include "iscore/plugins/documentdelegate/DocumentDelegateModelInterface.hpp"
+#include "iscore/selection/SelectionStack.hpp"
+#include "iscore/tools/IdentifiedObject.hpp"
+#include "iscore/tools/NotifyingMap.hpp"
+#include "iscore/tools/SettableIdentifier.hpp"
+#include "iscore/tools/Todo.hpp"
+
+class LayerPresenter;
+
 using namespace Scenario;
 
-#include <core/document/Document.hpp>
-#include <iscore/selection/SelectionDispatcher.hpp>
-#include <Scenario/Application/ScenarioApplicationPlugin.hpp>
-#include <iscore/tools/SettableIdentifierGeneration.hpp>
-
 #include <Scenario/Document/DisplayedElements/DisplayedElementsProviderList.hpp>
+#include <core/document/Document.hpp>
+#include <iscore/tools/SettableIdentifierGeneration.hpp>
+#include <Process/LayerPresenter.hpp>
+#include <algorithm>
+#include <chrono>
 
 ScenarioDocumentModel::ScenarioDocumentModel(QObject* parent) :
     iscore::DocumentDelegateModelInterface {

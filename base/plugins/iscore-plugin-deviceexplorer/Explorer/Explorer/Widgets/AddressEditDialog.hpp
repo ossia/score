@@ -1,14 +1,14 @@
 #pragma once
-#include <QDialog>
-#include <QList>
-#include <QString>
 #include <Device/Address/AddressSettings.hpp>
 #include <Explorer/Widgets/ValueWrapper.hpp>
+#include <qdialog.h>
 
+class AddressSettingsWidget;
 class QComboBox;
 class QFormLayout;
 class QLineEdit;
-class AddressSettingsWidget;
+class QWidget;
+
 class AddressEditDialog final : public QDialog
 {
         Q_OBJECT

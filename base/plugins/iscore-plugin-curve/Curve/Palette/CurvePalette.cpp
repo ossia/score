@@ -1,11 +1,20 @@
-#include "CurvePalette.hpp"
-#include "Curve/CurveModel.hpp"
+#include <qapplication.h>
+#include <qrect.h>
+
 #include "Curve/CurvePresenter.hpp"
 #include "Curve/CurveView.hpp"
-#include <iscore/statemachine/StateMachineTools.hpp>
-#include <iscore/statemachine/StateMachineUtils.hpp>
-#include <core/document/Document.hpp>
-#include <QApplication>
+#include "Curve/Palette/CurveEditionSettings.hpp"
+#include "Curve/Palette/CurvePoint.hpp"
+#include "Curve/Palette/Tools/MoveTool.hpp"
+#include "Curve/Palette/Tools/SmartTool.hpp"
+#include "CurvePalette.hpp"
+#include "Process/ProcessContext.hpp"
+#include "iscore/statemachine/GraphicsSceneToolPalette.hpp"
+
+namespace iscore {
+class CommandStack;
+class ObjectLocker;
+}  // namespace iscore
 
 namespace Curve
 {

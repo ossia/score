@@ -1,7 +1,12 @@
 #pragma once
+#include <Repartition/session/ClientSession.hpp>
+
 #include "NetworkDocumentPlugin.hpp"
 
-#include <Repartition/session/ClientSession.hpp>
+namespace iscore {
+class Document;
+}  // namespace iscore
+
 class ClientNetworkPolicy : public iscore_plugin_networkPolicy
 {
     public:

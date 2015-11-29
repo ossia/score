@@ -1,6 +1,16 @@
-#include "MIDIProtocolFactory.hpp"
+#include <qobject.h>
+#include <qobjectdefs.h>
+
+#include "Device/Protocol/DeviceSettings.hpp"
 #include "MIDIDevice.hpp"
+#include "MIDIProtocolFactory.hpp"
 #include "MIDIProtocolSettingsWidget.hpp"
+#include "Protocols/MIDI/MIDISpecificSettings.hpp"
+
+class DeviceInterface;
+class ProtocolSettingsWidget;
+struct VisitorVariant;
+
 QString MIDIProtocolFactory::prettyName() const
 {
     return QObject::tr("MIDI");

@@ -1,13 +1,15 @@
 #pragma once
-#include <Device/Protocol/DeviceList.hpp>
 #include <Device/Node/DeviceNode.hpp>
+#include <Device/Protocol/DeviceList.hpp>
 #include <Explorer/DocumentPlugin/ListeningState.hpp>
 #include <Explorer/DocumentPlugin/NodeUpdateProxy.hpp>
-
-#include <core/document/DocumentContext.hpp>
-
 #include <iscore/plugins/documentdelegate/plugin/DocumentDelegatePluginModel.hpp>
-#include <iscore/serialization/VisitorCommon.hpp>
+
+class QObject;
+namespace iscore {
+class Document;
+}  // namespace iscore
+struct VisitorVariant;
 
 class DeviceDocumentPlugin final : public iscore::DocumentDelegatePluginModel
 {

@@ -1,15 +1,19 @@
+#include <Mapping/MappingColors.hpp>
+#include <Mapping/MappingLayerModel.hpp>
+#include <Mapping/MappingModel.hpp>
+#include <Mapping/MappingPresenter.hpp>
+#include <Mapping/MappingView.hpp>
+
+#include <unordered_map>
+
+#include "Inspector/InspectorWidgetFactoryInterface.hpp"
+#include "Mapping/Commands/MappingCommandFactory.hpp"
+#include "Mapping/MappingProcessMetadata.hpp"
+#include "Process/ProcessFactory.hpp"
+#include "iscore/plugins/customfactory/StringFactoryKey.hpp"
 #include "iscore_plugin_mapping.hpp"
 
 #include <Curve/Process/CurveProcessFactory.hpp>
-
-#include <Mapping/MappingColors.hpp>
-#include <Mapping/MappingModel.hpp>
-#include <Mapping/MappingView.hpp>
-#include <Mapping/MappingLayerModel.hpp>
-#include <Mapping/MappingPresenter.hpp>
-
-#include <iscore_plugin_mapping_commands_files.hpp>
-
 DEFINE_CURVE_PROCESS_FACTORY(
         MappingFactory,
         MappingProcessMetadata,
@@ -24,6 +28,7 @@ DEFINE_CURVE_PROCESS_FACTORY(
 #include "Mapping/Inspector/MappingInspectorFactory.hpp"
 #endif
 
+#include <iscore_plugin_mapping_commands_files.hpp>
 
 iscore_plugin_mapping::iscore_plugin_mapping() :
     QObject {}
@@ -53,7 +58,7 @@ std::pair<const CommandParentFactoryKey, CommandGeneratorMap> iscore_plugin_mapp
     std::pair<const CommandParentFactoryKey, CommandGeneratorMap> cmds{MappingCommandFactoryName(), CommandGeneratorMap{}};
 
     using Types = iscore::commands::TypeList<
-  #include <iscore_plugin_mapping_commands.hpp>
+#include <iscore_plugin_mapping_commands.hpp>
       >;
     iscore::commands::ForEach<Types>(iscore::commands::FactoryInserter{cmds.second});
 

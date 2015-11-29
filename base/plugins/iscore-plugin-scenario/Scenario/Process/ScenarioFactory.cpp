@@ -1,9 +1,27 @@
-#include "ScenarioFactory.hpp"
-
 #include <Scenario/Process/ScenarioModel.hpp>
-#include <Scenario/Process/Temporal/TemporalScenarioView.hpp>
 #include <Scenario/Process/Temporal/TemporalScenarioLayerModel.hpp>
 #include <Scenario/Process/Temporal/TemporalScenarioPresenter.hpp>
+#include <Scenario/Process/Temporal/TemporalScenarioView.hpp>
+#include <boost/core/explicit_operator_bool.hpp>
+#include <boost/optional/optional.hpp>
+#include <qdatastream.h>
+#include <qiodevice.h>
+#include <qmap.h>
+
+#include "Process/LayerModel.hpp"
+#include "Process/Process.hpp"
+#include "Scenario/Process/ScenarioProcessMetadata.hpp"
+#include "ScenarioFactory.hpp"
+#include "iscore/document/DocumentInterface.hpp"
+#include "iscore/serialization/DataStreamVisitor.hpp"
+#include "iscore/tools/SettableIdentifier.hpp"
+
+class ConstraintModel;
+class ConstraintViewModel;
+class LayerPresenter;
+class LayerView;
+class QGraphicsItem;
+class QObject;
 
 ScenarioFactory::ScenarioFactory(Scenario::EditionSettings& e):
     m_editionSettings{e}

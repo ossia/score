@@ -1,6 +1,8 @@
 #pragma once
-#include <QObject>
+#include <qobject.h>
+
 class LayerPresenter;
+
 namespace iscore
 {
     class Document;

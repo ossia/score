@@ -1,11 +1,12 @@
 #pragma once
 #include <iscore/tools/NamedObject.hpp>
+#include <qstring.h>
 
 namespace iscore
 {
-    class DocumentPresenter;
     class DocumentDelegateModelInterface;
     class DocumentDelegateViewInterface;
+    class DocumentPresenter;
 
     class DocumentDelegatePresenterInterface : public NamedObject
     {

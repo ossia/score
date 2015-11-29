@@ -1,18 +1,34 @@
-#include "BaseConstraintInspectorDelegate.hpp"
+#include <Scenario/Commands/MoveBaseEvent.hpp>
+#include <Scenario/Commands/TimeNode/TriggerCommandFactory/TriggerCommandFactoryList.hpp>
+#include <Scenario/Document/BaseScenario/BaseScenario.hpp>
 #include <Scenario/Document/Constraint/ConstraintModel.hpp>
 #include <Scenario/Document/TimeNode/Trigger/TriggerModel.hpp>
-#include <Scenario/Process/ScenarioInterface.hpp>
-#include <Scenario/Inspector/TimeNode/TriggerInspectorWidget.hpp>
 #include <Scenario/Inspector/Constraint/ConstraintInspectorWidget.hpp>
-#include <Scenario/Document/BaseScenario/BaseScenario.hpp>
-#include <Scenario/Commands/Scenario/Displacement/MoveEventMeta.hpp>
-#include <Scenario/Commands/MoveBaseEvent.hpp>
-#include <core/application/ApplicationContext.hpp>
-#include <core/application/ApplicationComponents.hpp>
-#include <core/application/Application.hpp>
-#include <Scenario/Commands/TimeNode/TriggerCommandFactory/TriggerCommandFactoryList.hpp>
+#include <Scenario/Inspector/TimeNode/TriggerInspectorWidget.hpp>
 #include <Scenario/Process/Algorithms/Accessors.hpp>
-#include <QLabel>
+#include <boost/core/explicit_operator_bool.hpp>
+#include <boost/optional/optional.hpp>
+#include <core/application/Application.hpp>
+#include <core/application/ApplicationComponents.hpp>
+#include <core/application/ApplicationContext.hpp>
+#include <qbytearray.h>
+#include <qdatastream.h>
+#include <qglobal.h>
+#include <qlabel.h>
+#include <qobject.h>
+#include <qobjectdefs.h>
+#include <qstring.h>
+
+#include "BaseConstraintInspectorDelegate.hpp"
+#include "Scenario/Document/Event/EventModel.hpp"
+#include "Scenario/Document/TimeNode/TimeNodeModel.hpp"
+#include "Scenario/Inspector/Constraint/ConstraintInspectorDelegate.hpp"
+#include "iscore/command/Dispatchers/OngoingCommandDispatcher.hpp"
+#include "iscore/plugins/customfactory/StringFactoryKey.hpp"
+#include "iscore/serialization/DataStreamVisitor.hpp"
+#include "iscore/tools/ModelPathSerialization.hpp"
+
+class QWidget;
 
 BaseConstraintInspectorDelegate::BaseConstraintInspectorDelegate(
         const ConstraintModel& cst):

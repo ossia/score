@@ -1,4 +1,19 @@
+#include <qboxlayout.h>
+#include <qcoreevent.h>
+#include <qevent.h>
+#include <qfont.h>
+#include <qlabel.h>
+#include <qlineedit.h>
+#include <qnamespace.h>
+#include <qregexp.h>
+#include <qstring.h>
+#include <qvalidator.h>
+
 #include "IpWidget.hpp"
+
+class QObject;
+class QWidget;
+
 IpWidget::IpWidget(QWidget *parent) : QFrame(parent)
 {
     setFrameShape( QFrame::StyledPanel );

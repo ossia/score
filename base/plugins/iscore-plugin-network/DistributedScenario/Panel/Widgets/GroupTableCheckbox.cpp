@@ -1,7 +1,8 @@
-#include "GroupTableCheckbox.hpp"
+#include <qboxlayout.h>
+#include <qcheckbox.h>
+#include <qnamespace.h>
 
-#include <QCheckBox>
-#include <QHBoxLayout>
+#include "GroupTableCheckbox.hpp"
 
 GroupTableCheckbox::GroupTableCheckbox()
 {

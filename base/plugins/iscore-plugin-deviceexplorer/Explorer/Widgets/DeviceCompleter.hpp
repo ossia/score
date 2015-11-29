@@ -1,6 +1,11 @@
 #pragma once
-#include <QCompleter>
+#include <qcompleter.h>
+#include <qstring.h>
+#include <qstringlist.h>
+
 class DeviceExplorerModel;
+class QModelIndex;
+class QObject;
 
 /**
  * @brief The DeviceCompleter class

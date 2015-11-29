@@ -1,12 +1,11 @@
 #pragma once
-#include <memory>
-
-#include <iscore/statemachine/GraphicsSceneToolPalette.hpp>
 #include <iscore/plugins/customfactory/FactoryInterface.hpp>
-#include <iscore/tools/std/StdlibWrapper.hpp>
+#include <iscore/statemachine/GraphicsSceneToolPalette.hpp>
+#include <memory>
 
 class ConstraintModel;
 class ScenarioDocumentPresenter;
+
 class DisplayedElementsToolPaletteFactory : public iscore::FactoryInterfaceBase
 {
          ISCORE_FACTORY_DECL("DisplayedElementsToolPaletteFactory")

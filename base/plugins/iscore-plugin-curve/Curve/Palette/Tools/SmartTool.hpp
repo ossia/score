@@ -1,12 +1,18 @@
 #pragma once
-#include <iscore/selection/SelectionDispatcher.hpp>
+#include <qpoint.h>
+
+#include "Curve/Palette/CurvePoint.hpp"
 #include "CurveTool.hpp"
-class QState;
+
+namespace Curve {
+class ToolPalette;
+}  // namespace Curve
 
 namespace Curve
 {
 class OngoingState;
 class SelectionState;
+
 class SmartTool final : public Curve::CurveTool
 {
     public:

@@ -1,33 +1,41 @@
 #pragma once
-#include <iscore/tools/SettableIdentifier.hpp>
+#include <Editor/TimeEvent.h>
+#include <boost/optional/optional.hpp>
 #include <iscore/tools/IdentifiedObjectMap.hpp>
+#include <iscore/tools/SettableIdentifier.hpp>
+#include <map>
 #include <memory>
 
-#include <Scenario/Process/ScenarioModel.hpp>
-
 #include "ProcessElement.hpp"
-#include "ConstraintElement.hpp"
-#include "TimeNodeElement.hpp"
-#include "StateElement.hpp"
-#include "EventElement.hpp"
-#include <Editor/TimeEvent.h>
-#include <QPointer>
-class EventModel;
-class ConstraintModel;
-class TimeNodeModel;
-namespace Scenario { class ScenarioModel; }
+#include "Scenario/Document/Constraint/ConstraintModel.hpp"
+
 class DeviceList;
+class EventModel;
+class Process;
+class QObject;
+class StateModel;
+class TimeNodeModel;
+namespace OSSIA {
+class TimeProcess;
+}  // namespace OSSIA
+namespace RecreateOnPlay {
+class EventElement;
+class StateElement;
+class TimeNodeElement;
+}  // namespace RecreateOnPlay
+namespace Scenario {
+class ScenarioModel;
+}  // namespace Scenario
 
 namespace OSSIA
 {
-    class StateElement;
     class Scenario;
-    class TimeValue;
 }
 
 namespace RecreateOnPlay
 {
 class ConstraintElement;
+
 // TODO see if this can be used for the base scenario model too.
 class ScenarioElement final : public ProcessElement
 {

@@ -1,8 +1,12 @@
 #pragma once
 
 #include <iscore/command/SerializableCommand.hpp>
-#include <QMap>
-#include <QString>
+#include <qmap.h>
+#include <qstring.h>
+
+class DataStreamInput;
+class DataStreamOutput;
+
 class BlacklistCommand : public iscore::SerializableCommand
 {
         // QUndoCommand interface

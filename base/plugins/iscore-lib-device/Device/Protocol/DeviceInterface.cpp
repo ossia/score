@@ -1,4 +1,10 @@
+#include "Device/Address/AddressSettings.hpp"
+#include "Device/Node/DeviceNode.hpp"
 #include "DeviceInterface.hpp"
+
+namespace iscore {
+struct DeviceSettings;
+}  // namespace iscore
 
 
 DeviceInterface::DeviceInterface(const iscore::DeviceSettings &s):

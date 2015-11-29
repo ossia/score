@@ -1,9 +1,12 @@
 #pragma once
+#include <Device/Protocol/DeviceSettings.hpp>
 #include <Explorer/Commands/DeviceExplorerCommandFactory.hpp>
 #include <iscore/command/SerializableCommand.hpp>
 #include <iscore/tools/ModelPath.hpp>
-#include <Device/Protocol/DeviceSettings.hpp>
+#include <qstring.h>
 
+class DataStreamInput;
+class DataStreamOutput;
 class DeviceDocumentPlugin;
 
 namespace DeviceExplorer

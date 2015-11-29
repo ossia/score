@@ -1,20 +1,14 @@
-#include "DocumentPlugin.hpp"
-#include "AutomationElement.hpp"
-
-#include "ConstraintElement.hpp"
-#include "EventElement.hpp"
-#include "TimeNodeElement.hpp"
+#include <Scenario/Document/ScenarioDocument/ScenarioDocumentModel.hpp>
+#include <core/document/DocumentModel.hpp>
 
 #include "BaseScenarioElement.hpp"
-#include "ScenarioElement.hpp"
+#include "DocumentPlugin.hpp"
+#include "iscore/plugins/documentdelegate/plugin/DocumentDelegatePluginModel.hpp"
 
-#include <Scenario/Document/BaseScenario/BaseScenario.hpp>
-#include <Scenario/Process/ScenarioModel.hpp>
-#include <Scenario/Document/ScenarioDocument/ScenarioDocumentModel.hpp>
-#include <Automation/AutomationModel.hpp>
-#include <iscore/document/DocumentInterface.hpp>
-#include <core/document/DocumentModel.hpp>
-#include <core/document/Document.hpp>
+class QObject;
+namespace iscore {
+class Document;
+}  // namespace iscore
 
 
 namespace RecreateOnPlay

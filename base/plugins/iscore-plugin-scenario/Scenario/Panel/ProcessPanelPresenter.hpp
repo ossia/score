@@ -1,13 +1,18 @@
 #pragma once
-#include <iscore/plugins/panel/PanelPresenter.hpp>
-#include <Process/ProcessList.hpp>
-#include "ProcessPanelGraphicsProxy.hpp"
-
 #include <Process/ZoomHelper.hpp>
-class ScenarioDocumentModel;
-class LayerView;
-class LayerPresenter;
+#include <iscore/plugins/panel/PanelPresenter.hpp>
+
+class DynamicProcessList;
 class LayerModel;
+class LayerPresenter;
+class LayerView;
+class ProcessPanelGraphicsProxy;
+class QSize;
+namespace iscore {
+class PanelView;
+class Presenter;
+}  // namespace iscore
+
 class ProcessPanelPresenter final : public iscore::PanelPresenter
 {
         Q_OBJECT

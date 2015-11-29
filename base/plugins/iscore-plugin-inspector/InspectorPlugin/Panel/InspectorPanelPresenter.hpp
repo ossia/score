@@ -1,6 +1,12 @@
 #pragma once
 
 #include <iscore/plugins/panel/PanelPresenter.hpp>
+#include <qobjectdefs.h>
+
+namespace iscore {
+class PanelView;
+class Presenter;
+}  // namespace iscore
 
 class InspectorPanelPresenter : public iscore::PanelPresenter
 {

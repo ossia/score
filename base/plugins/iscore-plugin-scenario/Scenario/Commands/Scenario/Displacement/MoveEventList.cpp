@@ -1,4 +1,9 @@
+#include <qiterator.h>
+#include <stdexcept>
+
 #include "MoveEventList.hpp"
+#include "Scenario/Commands/Scenario/Displacement/MoveEventFactoryInterface.hpp"
+
 MoveEventFactoryInterface* MoveEventList::get(MoveEventFactoryInterface::Strategy strategy) const
 {
     QVectorIterator<MoveEventFactoryInterface*> factoriesIterator(m_list);

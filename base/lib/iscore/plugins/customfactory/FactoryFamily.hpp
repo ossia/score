@@ -1,12 +1,10 @@
 #pragma once
-#include <QObject>
-#include <functional>
 #include <iscore/plugins/customfactory/FactoryInterface.hpp>
+#include <qmetatype.h>
 
 
 namespace iscore
 {
-class FactoryInterfaceBase;
 
 /**
      * @brief The FactoryFamily class

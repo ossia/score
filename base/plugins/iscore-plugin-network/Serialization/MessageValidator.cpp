@@ -1,5 +1,11 @@
-#include "MessageValidator.hpp"
+#include <qlist.h>
+
 #include "../Repartition/session/Session.hpp"
+#include "MessageValidator.hpp"
+#include "Serialization/MessageMapper.hpp"
+#include "Serialization/NetworkMessage.hpp"
+#include "iscore/tools/SettableIdentifier.hpp"
+
 MessageValidator::MessageValidator(Session& s, MessageMapper& map):
     m_session{s},
     m_mapper{map}

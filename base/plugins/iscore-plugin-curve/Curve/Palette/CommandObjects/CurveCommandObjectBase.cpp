@@ -1,12 +1,15 @@
-#include "CurveCommandObjectBase.hpp"
-#include "Curve/CurvePresenter.hpp"
+#include "Curve/Commands/UpdateCurve.hpp"
 #include "Curve/CurveModel.hpp"
-#include "Curve/Segment/CurveSegmentModel.hpp"
-#include "Curve/Point/CurvePointModel.hpp"
-#include "Curve/Segment/CurveSegmentModelSerialization.hpp"
+#include "Curve/CurvePresenter.hpp"
+#include "Curve/Palette/CurveEditionSettings.hpp"
+#include "Curve/Palette/CurvePaletteBaseStates.hpp"
+#include "Curve/Palette/CurvePoint.hpp"
+#include "CurveCommandObjectBase.hpp"
+#include "iscore/command/Dispatchers/SingleOngoingCommandDispatcher.hpp"
 
-#include <iscore/serialization/DataStreamVisitor.hpp>
-#include <iscore/document/DocumentInterface.hpp>
+namespace iscore {
+class CommandStack;
+}  // namespace iscore
 
 CurveCommandObjectBase::CurveCommandObjectBase(
         CurvePresenter* pres,

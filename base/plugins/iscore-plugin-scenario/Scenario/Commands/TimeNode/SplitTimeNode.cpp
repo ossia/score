@@ -1,15 +1,23 @@
-#include "SplitTimeNode.hpp"
-
-#include "Scenario/Process/ScenarioModel.hpp"
-#include <iscore/tools/SettableIdentifierGeneration.hpp>
-
 #include <Scenario/Document/TimeNode/TimeNodeModel.hpp>
 #include <Scenario/Process/Algorithms/StandardCreationPolicy.hpp>
-#include <Scenario/Document/Event/EventModel.hpp>
-#include <Scenario/Process/Algorithms/StandardRemovalPolicy.hpp>
-
-#include <iscore/tools/SettableIdentifierGeneration.hpp>
 #include <Scenario/Process/Algorithms/VerticalMovePolicy.hpp>
+#include <boost/core/explicit_operator_bool.hpp>
+#include <boost/iterator/iterator_facade.hpp>
+#include <boost/multi_index/detail/hash_index_iterator.hpp>
+#include <iscore/tools/SettableIdentifierGeneration.hpp>
+#include <qdatastream.h>
+#include <qglobal.h>
+#include <algorithm>
+#include <vector>
+
+#include "Scenario/Document/VerticalExtent.hpp"
+#include "Scenario/Process/ScenarioModel.hpp"
+#include "SplitTimeNode.hpp"
+#include "iscore/serialization/DataStreamVisitor.hpp"
+#include "iscore/tools/ModelPath.hpp"
+#include "iscore/tools/ModelPathSerialization.hpp"
+#include "iscore/tools/NotifyingMap.hpp"
+
 using namespace iscore;
 using namespace Scenario::Command;
 

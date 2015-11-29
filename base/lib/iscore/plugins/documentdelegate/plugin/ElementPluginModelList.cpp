@@ -1,8 +1,16 @@
-#include "ElementPluginModelList.hpp"
-
-#include <iscore/document/DocumentInterface.hpp>
 #include <core/document/Document.hpp>
 #include <core/document/DocumentModel.hpp>
+#include <iscore/document/DocumentInterface.hpp>
+#include <qalgorithms.h>
+#include <algorithm>
+#include <iterator>
+
+#include "ElementPluginModelList.hpp"
+#include "iscore/plugins/documentdelegate/plugin/DocumentDelegatePluginModel.hpp"
+#include "iscore/plugins/documentdelegate/plugin/ElementPluginModel.hpp"
+#include "iscore/tools/std/StdlibWrapper.hpp"
+
+class QObject;
 
 iscore::ElementPluginModelList::ElementPluginModelList(
         iscore::Document* doc,

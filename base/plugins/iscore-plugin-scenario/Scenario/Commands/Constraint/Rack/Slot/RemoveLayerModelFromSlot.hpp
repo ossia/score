@@ -1,10 +1,17 @@
 #pragma once
 #include <Scenario/Commands/ScenarioCommandFactory.hpp>
+#include <boost/optional/optional.hpp>
 #include <iscore/command/SerializableCommand.hpp>
 #include <iscore/tools/ModelPath.hpp>
+#include <qbytearray.h>
 
+#include "iscore/tools/SettableIdentifier.hpp"
+
+class DataStreamInput;
+class DataStreamOutput;
 class LayerModel;
 class SlotModel;
+
 namespace Scenario
 {
     namespace Command

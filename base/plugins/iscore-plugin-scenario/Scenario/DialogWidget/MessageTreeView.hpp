@@ -1,10 +1,14 @@
 #pragma once
-#include <QTreeView>
 #include <iscore/command/Dispatchers/CommandDispatcher.hpp>
+#include <qtreeview.h>
 
-class StateModel;
-class DeviceExplorerModel;
 class MessageItemModel;
+class QAction;
+class QContextMenuEvent;
+class QResizeEvent;
+class QWidget;
+class StateModel;
+
 class MessageTreeView final : public QTreeView
 {
     public:

@@ -1,5 +1,10 @@
 #pragma once
+#include <qlist.h>
+
 #include "Plugin/ScenarioActionsFactory.hpp"
+
+class ScenarioActions;
+class ScenarioApplicationPlugin;
 
 class ScenarioCommonActionsFactory final : public ScenarioActionsFactory
 {

@@ -1,9 +1,10 @@
 #pragma once
-#include <QObject>
+#include <qobject.h>
 #include <memory>
-#include <unordered_map>
-class StateModel;
+
 class DeviceList;
+class StateModel;
+
 namespace OSSIA
 {
     class State;

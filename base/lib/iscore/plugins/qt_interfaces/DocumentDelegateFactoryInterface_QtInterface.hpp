@@ -1,9 +1,11 @@
 #pragma once
-#include <QObject>
+
+#include <vector>
 
 namespace iscore
 {
     class DocumentDelegateFactoryInterface;
+
     class DocumentDelegateFactoryInterface_QtInterface
     {
         public:

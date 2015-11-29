@@ -1,10 +1,33 @@
-#include <Scenario/Document/Constraint/ConstraintModel.hpp>
 #include <Process/Process.hpp>
 #include <Process/ProcessModelSerialization.hpp>
-#include <core/application/ApplicationComponents.hpp>
+#include <Scenario/Document/Constraint/ConstraintModel.hpp>
 #include <Scenario/Document/Constraint/Rack/RackModel.hpp>
 #include <Scenario/Document/Constraint/ViewModels/FullView/FullViewConstraintViewModel.hpp>
-#include <iscore/plugins/documentdelegate/plugin/ElementPluginModelSerialization.hpp>
+#include <boost/core/explicit_operator_bool.hpp>
+#include <boost/optional/optional.hpp>
+#include <core/application/ApplicationComponents.hpp>
+#include <qjsonarray.h>
+#include <qjsonobject.h>
+#include <qjsonvalue.h>
+#include <sys/types.h>
+#include <algorithm>
+
+#include "Process/ModelMetadata.hpp"
+#include "Process/ProcessList.hpp"
+#include "Process/TimeValue.hpp"
+#include "core/application/ApplicationContext.hpp"
+#include "iscore/plugins/customfactory/StringFactoryKey.hpp"
+#include "iscore/plugins/documentdelegate/plugin/ElementPluginModelList.hpp"
+#include "iscore/serialization/DataStreamVisitor.hpp"
+#include "iscore/serialization/JSONValueVisitor.hpp"
+#include "iscore/serialization/JSONVisitor.hpp"
+#include "iscore/tools/NotifyingMap.hpp"
+#include "iscore/tools/SettableIdentifier.hpp"
+
+class StateModel;
+template <typename T> class IdentifiedObject;
+template <typename T> class Reader;
+template <typename T> class Writer;
 
 // Note : comment gérer le cas d'un process shared model qui ne sait se sérializer qu'en binaire, dans du json?
 // Faire passer l'info en base64 ?

@@ -1,7 +1,12 @@
 #pragma once
-#include <QJsonValue>
-#include <QVariant>
 #include <State/Value.hpp>
+#include <qchar.h>
+#include <qdebug.h>
+#include <qjsonvalue.h>
+#include <qstring.h>
+#include <qvariant.h>
+
+class QStringList;
 
 namespace iscore
 {

@@ -1,12 +1,12 @@
-#include "MinuitDevice.hpp"
-#include <API/Headers/Network/Node.h>
 #include <API/Headers/Network/Device.h>
-#include <API/Headers/Editor/Value.h>
+#include <qstring.h>
+#include <qvariant.h>
+#include <memory>
 
-#include "iscore2OSSIA.hpp"
-#include "OSSIA2iscore.hpp"
-using namespace iscore::convert;
-using namespace OSSIA::convert;
+#include "Device/Protocol/DeviceSettings.hpp"
+#include "MinuitDevice.hpp"
+#include "Network/Protocol/Minuit.h"
+#include "Protocols/Minuit/MinuitSpecificSettings.hpp"
 
 MinuitDevice::MinuitDevice(const iscore::DeviceSettings &settings):
     OSSIADevice{settings}

@@ -1,5 +1,6 @@
 #pragma once
-#include <QWidget>
+#include <qwidget.h>
+
 class Separator : public QWidget
 {
     public:

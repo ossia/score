@@ -1,10 +1,15 @@
 #pragma once
-#include <QObject>
 #include <iscore/plugins/qt_interfaces/GUIApplicationContextPlugin_QtInterface.hpp>
+#include <qobject.h>
+
+#include "iscore/plugins/application/GUIApplicationContextPlugin.hpp"
+
+namespace iscore {
+class Application;
+}  // namespace iscore
 
 namespace TemporalAutomatas
 {
-class ApplicationPlugin;
 }
 class iscore_plugin_temporalautomatas final:
         public QObject,

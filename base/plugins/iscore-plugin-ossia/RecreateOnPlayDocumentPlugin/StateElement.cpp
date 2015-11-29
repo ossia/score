@@ -1,10 +1,9 @@
+#include <Scenario/Document/State/StateModel.hpp>
+#include <iscore2OSSIA.hpp>
+
+#include "Scenario/Document/State/ItemModel/MessageItemModel.hpp"
 #include "StateElement.hpp"
 
-#include <Scenario/Document/State/StateModel.hpp>
-#include <Explorer/DocumentPlugin/DeviceDocumentPlugin.hpp>
-
-#include <iscore2OSSIA.hpp>
-#include <iscore/tools/Todo.hpp>
 namespace RecreateOnPlay
 {
 StateElement::StateElement(

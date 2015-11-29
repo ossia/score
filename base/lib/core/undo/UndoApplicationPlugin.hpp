@@ -1,6 +1,18 @@
 #pragma once
 
 #include <iscore/plugins/application/GUIApplicationContextPlugin.hpp>
+#include <qaction.h>
+#include <qlist.h>
+#include <qobjectdefs.h>
+#include <vector>
+
+class QObject;
+namespace iscore {
+class Application;
+class Document;
+class MenubarManager;
+struct OrderedToolbar;
+}  // namespace iscore
 
 namespace iscore
 {
