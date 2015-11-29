@@ -6,7 +6,7 @@
 
 #include "LoopLayer.hpp"
 #include "LoopProcessModel.hpp"
-#include "Scenario/Document/Constraint/ConstraintModel.hpp"
+#include <Scenario/Document/Constraint/ConstraintModel.hpp>
 #include <iscore/serialization/DataStreamVisitor.hpp>
 #include <iscore/serialization/JSONVisitor.hpp>
 #include <iscore/serialization/VisitorCommon.hpp>

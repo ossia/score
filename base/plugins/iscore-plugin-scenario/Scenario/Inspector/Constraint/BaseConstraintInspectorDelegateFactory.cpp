@@ -4,7 +4,7 @@
 
 #include "BaseConstraintInspectorDelegate.hpp"
 #include "BaseConstraintInspectorDelegateFactory.hpp"
-#include "Scenario/Inspector/Constraint/ConstraintInspectorDelegate.hpp"
+#include <Scenario/Inspector/Constraint/ConstraintInspectorDelegate.hpp>
 
 BaseConstraintInspectorDelegateFactory::~BaseConstraintInspectorDelegateFactory()
 {

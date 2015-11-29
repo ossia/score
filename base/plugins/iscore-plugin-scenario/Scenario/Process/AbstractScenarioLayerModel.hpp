@@ -5,7 +5,7 @@
 #include <QVector>
 #include <vector>
 
-#include "Scenario/Process/ScenarioModel.hpp"
+#include <Scenario/Process/ScenarioModel.hpp>
 #include <iscore/serialization/VisitorInterface.hpp>
 
 class ConstraintModel;

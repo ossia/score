@@ -16,15 +16,15 @@
 #include <QList>
 #include <QObject>
 
-#include "Scenario/Document/Constraint/ConstraintDurations.hpp"
-#include "Scenario/Document/Constraint/ConstraintModel.hpp"
-#include "Scenario/Document/Constraint/ViewModels/ConstraintViewModel.hpp"
-#include "Scenario/Document/Constraint/ViewModels/FullView/FullViewConstraintViewModel.hpp"
-#include "Scenario/Document/DisplayedElements/DisplayedElementsModel.hpp"
-#include "Scenario/Document/Event/EventModel.hpp"
-#include "Scenario/Document/ScenarioDocument/ProcessFocusManager.hpp"
-#include "Scenario/Document/State/StateModel.hpp"
-#include "Scenario/Document/TimeNode/TimeNodeModel.hpp"
+#include <Scenario/Document/Constraint/ConstraintDurations.hpp>
+#include <Scenario/Document/Constraint/ConstraintModel.hpp>
+#include <Scenario/Document/Constraint/ViewModels/ConstraintViewModel.hpp>
+#include <Scenario/Document/Constraint/ViewModels/FullView/FullViewConstraintViewModel.hpp>
+#include <Scenario/Document/DisplayedElements/DisplayedElementsModel.hpp>
+#include <Scenario/Document/Event/EventModel.hpp>
+#include <Scenario/Document/ScenarioDocument/ProcessFocusManager.hpp>
+#include <Scenario/Document/State/StateModel.hpp>
+#include <Scenario/Document/TimeNode/TimeNodeModel.hpp>
 #include "ScenarioDocumentModel.hpp"
 #include <core/application/ApplicationComponents.hpp>
 #include <core/application/ApplicationContext.hpp>

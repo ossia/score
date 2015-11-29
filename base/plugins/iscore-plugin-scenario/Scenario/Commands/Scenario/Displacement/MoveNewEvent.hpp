@@ -5,7 +5,7 @@
 #include "MoveEventOnCreationMeta.hpp"
 #include <Process/ExpandMode.hpp>
 #include <Process/TimeValue.hpp>
-#include "Scenario/Commands/ScenarioCommandFactory.hpp"
+#include <Scenario/Commands/ScenarioCommandFactory.hpp>
 #include <iscore/command/SerializableCommand.hpp>
 #include <iscore/tools/ModelPath.hpp>
 #include <iscore/tools/SettableIdentifier.hpp>

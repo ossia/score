@@ -1,8 +1,8 @@
 #include "LocalTimeRulerPresenter.hpp"
 #include <Process/TimeValue.hpp>
-#include "Scenario/Document/TimeRuler/AbstractTimeRuler.hpp"
-#include "Scenario/Document/TimeRuler/AbstractTimeRulerView.hpp"
-#include "Scenario/Document/TimeRuler/LocalTimeRuler/LocalTimeRulerView.hpp"
+#include <Scenario/Document/TimeRuler/AbstractTimeRuler.hpp>
+#include <Scenario/Document/TimeRuler/AbstractTimeRulerView.hpp>
+#include <Scenario/Document/TimeRuler/LocalTimeRuler/LocalTimeRulerView.hpp>
 
 class QObject;
 

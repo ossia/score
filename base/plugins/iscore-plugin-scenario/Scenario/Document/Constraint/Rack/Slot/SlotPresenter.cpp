@@ -16,7 +16,7 @@
 
 #include <Process/TimeValue.hpp>
 #include <Process/ZoomHelper.hpp>
-#include "Scenario/Application/Menus/ScenarioContextMenuManager.hpp"
+#include <Scenario/Application/Menus/ScenarioContextMenuManager.hpp>
 #include "SlotHandle.hpp"
 #include "SlotPresenter.hpp"
 #include <core/application/ApplicationComponents.hpp>

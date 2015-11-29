@@ -11,9 +11,9 @@
 #include <vector>
 
 #include <Process/ModelMetadata.hpp>
-#include "Scenario/Document/Event/EventModel.hpp"
-#include "Scenario/Document/State/StateModel.hpp"
-#include "Scenario/Document/TimeNode/TimeNodeModel.hpp"
+#include <Scenario/Document/Event/EventModel.hpp>
+#include <Scenario/Document/State/StateModel.hpp>
+#include <Scenario/Document/TimeNode/TimeNodeModel.hpp>
 #include "SplitEvent.hpp"
 #include <iscore/serialization/DataStreamVisitor.hpp>
 #include <iscore/tools/ModelPath.hpp>

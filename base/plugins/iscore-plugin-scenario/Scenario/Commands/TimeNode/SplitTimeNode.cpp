@@ -10,8 +10,8 @@
 #include <algorithm>
 #include <vector>
 
-#include "Scenario/Document/VerticalExtent.hpp"
-#include "Scenario/Process/ScenarioModel.hpp"
+#include <Scenario/Document/VerticalExtent.hpp>
+#include <Scenario/Process/ScenarioModel.hpp>
 #include "SplitTimeNode.hpp"
 #include <iscore/serialization/DataStreamVisitor.hpp>
 #include <iscore/tools/ModelPath.hpp>

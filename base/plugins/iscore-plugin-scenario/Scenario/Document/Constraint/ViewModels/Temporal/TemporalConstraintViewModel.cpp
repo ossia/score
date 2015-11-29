@@ -1,4 +1,4 @@
-#include "Scenario/Document/Constraint/ViewModels/ConstraintViewModel.hpp"
+#include <Scenario/Document/Constraint/ViewModels/ConstraintViewModel.hpp>
 #include "TemporalConstraintViewModel.hpp"
 
 class QObject;

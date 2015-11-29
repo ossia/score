@@ -11,8 +11,8 @@
 #include <algorithm>
 #include <vector>
 
-#include "Explorer/DocumentPlugin/NodeUpdateProxy.hpp"
-#include "Scenario/Document/State/ItemModel/MessageItemModel.hpp"
+#include <Explorer/DocumentPlugin/NodeUpdateProxy.hpp>
+#include <Scenario/Document/State/ItemModel/MessageItemModel.hpp>
 #include "SnapshotParameters.hpp"
 #include <State/Message.hpp>
 #include <iscore/selection/Selectable.hpp>

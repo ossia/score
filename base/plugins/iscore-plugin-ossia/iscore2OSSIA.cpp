@@ -22,10 +22,10 @@
 #include <string>
 #include <vector>
 
-#include "Device/Address/AddressSettings.hpp"
-#include "Device/Address/IOType.hpp"
-#include "Device/Protocol/DeviceInterface.hpp"
-#include "Device/Protocol/DeviceList.hpp"
+#include <Device/Address/AddressSettings.hpp>
+#include <Device/Address/IOType.hpp>
+#include <Device/Protocol/DeviceInterface.hpp>
+#include <Device/Protocol/DeviceList.hpp>
 #include "Editor/Message.h"
 #include "Editor/State.h"
 #include "Editor/Value.h"

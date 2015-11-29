@@ -7,7 +7,7 @@
 #include <QString>
 #include <QVariant>
 
-#include "Device/Protocol/ProtocolSettingsWidget.hpp"
+#include <Device/Protocol/ProtocolSettingsWidget.hpp>
 #include "MinuitProtocolSettingsWidget.hpp"
 #include "MinuitSpecificSettings.hpp"
 

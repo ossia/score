@@ -8,11 +8,11 @@
 #include <stdexcept>
 
 #include <Process/Process.hpp>
-#include "Scenario/Document/Constraint/ConstraintModel.hpp"
-#include "Scenario/Document/Constraint/ViewModels/ConstraintViewModel.hpp"
-#include "Scenario/Document/Constraint/ViewModels/ConstraintViewModelIdMap.hpp"
-#include "Scenario/Process/AbstractScenarioLayerModel.hpp"
-#include "Scenario/Process/ScenarioModel.hpp"
+#include <Scenario/Document/Constraint/ConstraintModel.hpp>
+#include <Scenario/Document/Constraint/ViewModels/ConstraintViewModel.hpp>
+#include <Scenario/Document/Constraint/ViewModels/ConstraintViewModelIdMap.hpp>
+#include <Scenario/Process/AbstractScenarioLayerModel.hpp>
+#include <Scenario/Process/ScenarioModel.hpp>
 #include "TemporalConstraintViewModel.hpp"
 #include <iscore/serialization/DataStreamVisitor.hpp>
 #include <iscore/serialization/JSONVisitor.hpp>

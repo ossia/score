@@ -1,7 +1,7 @@
 #pragma once
 #include <QList>
 
-#include "Scenario/Application/Menus/Plugin/ScenarioActionsFactory.hpp"
+#include <Scenario/Application/Menus/Plugin/ScenarioActionsFactory.hpp>
 
 class ScenarioActions;
 class ScenarioApplicationPlugin;

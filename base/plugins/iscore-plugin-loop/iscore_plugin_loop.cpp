@@ -11,10 +11,10 @@
 #include <string.h>
 #include <unordered_map>
 
-#include "Inspector/InspectorWidgetFactoryInterface.hpp"
+#include <Inspector/InspectorWidgetFactoryInterface.hpp>
 #include <Process/ProcessFactory.hpp>
-#include "Scenario/Commands/TimeNode/TriggerCommandFactory/TriggerCommandFactory.hpp"
-#include "Scenario/Inspector/Constraint/ConstraintInspectorDelegateFactory.hpp"
+#include <Scenario/Commands/TimeNode/TriggerCommandFactory/TriggerCommandFactory.hpp>
+#include <Scenario/Inspector/Constraint/ConstraintInspectorDelegateFactory.hpp>
 #include <iscore/plugins/customfactory/StringFactoryKey.hpp>
 #include <iscore/tools/SettableIdentifier.hpp>
 #include "iscore_plugin_loop.hpp"

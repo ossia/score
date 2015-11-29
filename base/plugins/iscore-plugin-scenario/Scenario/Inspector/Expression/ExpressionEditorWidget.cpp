@@ -5,7 +5,7 @@
 #include <QStringList>
 
 #include "ExpressionEditorWidget.hpp"
-#include "Scenario/Inspector/Expression/SimpleExpressionEditorWidget.hpp"
+#include <Scenario/Inspector/Expression/SimpleExpressionEditorWidget.hpp>
 
 ExpressionEditorWidget::ExpressionEditorWidget(QWidget *parent) :
     QWidget(parent)

@@ -3,9 +3,9 @@
 #include <algorithm>
 #include <vector>
 
-#include "Device/Node/DeviceNode.hpp"
-#include "Device/Protocol/DeviceSettings.hpp"
-#include "Explorer/Explorer/DeviceExplorerModel.hpp"
+#include <Device/Node/DeviceNode.hpp>
+#include <Device/Protocol/DeviceSettings.hpp>
+#include <Explorer/Explorer/DeviceExplorerModel.hpp>
 #include "ReplaceDevice.hpp"
 #include <iscore/serialization/DataStreamVisitor.hpp>
 #include <iscore/tools/ModelPath.hpp>

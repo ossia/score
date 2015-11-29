@@ -8,7 +8,7 @@
 #include <QStringList>
 #include <QToolButton>
 
-#include "Scenario/Inspector/ExpressionValidator.hpp"
+#include <Scenario/Inspector/ExpressionValidator.hpp>
 #include "SimpleExpressionEditorWidget.hpp"
 
 SimpleExpressionEditorWidget::SimpleExpressionEditorWidget(QWidget* parent):

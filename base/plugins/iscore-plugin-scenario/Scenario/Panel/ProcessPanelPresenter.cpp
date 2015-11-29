@@ -15,8 +15,8 @@
 #include <Process/ZoomHelper.hpp>
 #include "ProcessPanelPresenter.hpp"
 #include "ProcessPanelView.hpp"
-#include "Scenario/Document/ScenarioDocument/ProcessFocusManager.hpp"
-#include "Scenario/Panel/ProcessPanelGraphicsProxy.hpp"
+#include <Scenario/Document/ScenarioDocument/ProcessFocusManager.hpp>
+#include <Scenario/Panel/ProcessPanelGraphicsProxy.hpp>
 #include <iscore/document/DocumentInterface.hpp>
 #include <iscore/plugins/customfactory/FactoryFamily.hpp>
 #include <iscore/plugins/customfactory/FactoryMap.hpp>

@@ -11,8 +11,8 @@
 #include "CreateConstraint_State_Event_TimeNode.hpp"
 #include <Process/ModelMetadata.hpp>
 #include <Process/TimeValue.hpp>
-#include "Scenario/Commands/Scenario/Creations/CreateConstraint_State_Event.hpp"
-#include "Scenario/Document/TimeNode/TimeNodeModel.hpp"
+#include <Scenario/Commands/Scenario/Creations/CreateConstraint_State_Event.hpp>
+#include <Scenario/Document/TimeNode/TimeNodeModel.hpp>
 #include <iscore/serialization/DataStreamVisitor.hpp>
 #include <iscore/tools/NotifyingMap.hpp>
 

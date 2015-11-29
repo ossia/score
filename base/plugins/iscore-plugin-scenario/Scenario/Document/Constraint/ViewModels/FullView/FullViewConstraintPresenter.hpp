@@ -2,8 +2,8 @@
 #include <Scenario/Document/Constraint/ViewModels/ConstraintPresenter.hpp>
 #include <iscore/selection/SelectionDispatcher.hpp>
 
-#include "Scenario/Document/Constraint/ViewModels/FullView/FullViewConstraintView.hpp"
-#include "Scenario/Document/Constraint/ViewModels/FullView/FullViewConstraintViewModel.hpp"
+#include <Scenario/Document/Constraint/ViewModels/FullView/FullViewConstraintView.hpp>
+#include <Scenario/Document/Constraint/ViewModels/FullView/FullViewConstraintViewModel.hpp>
 
 class ObjectPath;
 class QGraphicsItem;

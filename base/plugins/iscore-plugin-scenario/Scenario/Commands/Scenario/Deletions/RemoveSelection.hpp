@@ -8,7 +8,7 @@
 #include <QPair>
 #include <QVector>
 
-#include "Scenario/Document/Constraint/ViewModels/ConstraintViewModelIdMap.hpp"
+#include <Scenario/Document/Constraint/ViewModels/ConstraintViewModelIdMap.hpp>
 #include <iscore/selection/Selection.hpp>
 
 class ConstraintModel;

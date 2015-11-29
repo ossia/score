@@ -6,7 +6,7 @@
 
 #include "InsertContentInState.hpp"
 #include <Process/State/MessageNode.hpp>
-#include "Scenario/Document/State/ItemModel/MessageItemModel.hpp"
+#include <Scenario/Document/State/ItemModel/MessageItemModel.hpp>
 #include <iscore/serialization/DataStreamVisitor.hpp>
 #include <iscore/serialization/VisitorCommon.hpp>
 #include <iscore/tools/ModelPathSerialization.hpp>

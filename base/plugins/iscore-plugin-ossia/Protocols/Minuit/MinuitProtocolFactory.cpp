@@ -1,7 +1,7 @@
 #include <QObject>
 
 
-#include "Device/Protocol/DeviceSettings.hpp"
+#include <Device/Protocol/DeviceSettings.hpp>
 #include "MinuitDevice.hpp"
 #include "MinuitProtocolFactory.hpp"
 #include "MinuitProtocolSettingsWidget.hpp"

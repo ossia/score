@@ -7,9 +7,9 @@
 #include <QList>
 
 #include <Process/ModelMetadata.hpp>
-#include "Scenario/Document/Constraint/ViewModels/ConstraintHeader.hpp"
-#include "Scenario/Document/Constraint/ViewModels/ConstraintPresenter.hpp"
-#include "Scenario/Document/Constraint/ViewModels/ConstraintViewModel.hpp"
+#include <Scenario/Document/Constraint/ViewModels/ConstraintHeader.hpp>
+#include <Scenario/Document/Constraint/ViewModels/ConstraintPresenter.hpp>
+#include <Scenario/Document/Constraint/ViewModels/ConstraintViewModel.hpp>
 #include "TemporalConstraintHeader.hpp"
 #include "TemporalConstraintPresenter.hpp"
 #include <iscore/selection/Selectable.hpp>

@@ -19,7 +19,7 @@
 #include <list>
 #include <vector>
 
-#include "Inspector/InspectorWidgetBase.hpp"
+#include <Inspector/InspectorWidgetBase.hpp>
 #include <Mapping/MappingModel.hpp>
 #include "MappingInspectorWidget.hpp"
 #include <State/Address.hpp>

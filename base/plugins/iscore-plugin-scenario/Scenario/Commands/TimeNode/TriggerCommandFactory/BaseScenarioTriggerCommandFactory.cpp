@@ -5,7 +5,7 @@
 #include <QByteArray>
 
 #include "BaseScenarioTriggerCommandFactory.hpp"
-#include "Scenario/Process/ScenarioInterface.hpp"
+#include <Scenario/Process/ScenarioInterface.hpp>
 #include <iscore/command/SerializableCommand.hpp>
 #include <iscore/serialization/DataStreamVisitor.hpp>
 #include <iscore/tools/ModelPath.hpp>

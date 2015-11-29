@@ -2,7 +2,7 @@
 #include <unordered_map>
 #include <utility>
 
-#include "Scenario/Commands/ScenarioCommandFactory.hpp"
+#include <Scenario/Commands/ScenarioCommandFactory.hpp>
 #include <iscore_plugin_scenario_commands_files.hpp>
 #include <iscore/command/CommandGeneratorMap.hpp>
 #include <iscore/command/SerializableCommand.hpp>

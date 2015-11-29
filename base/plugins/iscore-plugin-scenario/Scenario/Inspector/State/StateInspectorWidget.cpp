@@ -16,7 +16,7 @@
 #include <QWidget>
 #include <algorithm>
 
-#include "Inspector/InspectorWidgetBase.hpp"
+#include <Inspector/InspectorWidgetBase.hpp>
 #include "StateInspectorWidget.hpp"
 #include <iscore/command/Dispatchers/CommandDispatcher.hpp>
 #include <iscore/tools/ModelPath.hpp>

@@ -8,7 +8,7 @@
 #include <utility>
 #include <vector>
 
-#include "Device/Node/DeviceNode.hpp"
+#include <Device/Node/DeviceNode.hpp>
 #include "Misc/CallbackContainer.h"
 #include <State/Address.hpp>
 

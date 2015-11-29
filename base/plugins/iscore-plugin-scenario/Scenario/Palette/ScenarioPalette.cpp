@@ -8,13 +8,13 @@
 #include <algorithm>
 #include <vector>
 
-#include "Scenario/Application/ScenarioEditionSettings.hpp"
-#include "Scenario/Palette/Tool.hpp"
-#include "Scenario/Palette/Tools/CreationToolState.hpp"
-#include "Scenario/Palette/Tools/MoveSlotToolState.hpp"
-#include "Scenario/Palette/Tools/SmartTool.hpp"
-#include "Scenario/Palette/Tools/States/ScenarioMoveStatesWrapper.hpp"
-#include "Scenario/Process/ScenarioModel.hpp"
+#include <Scenario/Application/ScenarioEditionSettings.hpp>
+#include <Scenario/Palette/Tool.hpp>
+#include <Scenario/Palette/Tools/CreationToolState.hpp>
+#include <Scenario/Palette/Tools/MoveSlotToolState.hpp>
+#include <Scenario/Palette/Tools/SmartTool.hpp>
+#include <Scenario/Palette/Tools/States/ScenarioMoveStatesWrapper.hpp>
+#include <Scenario/Process/ScenarioModel.hpp>
 #include "ScenarioPalette.hpp"
 #include <iscore/command/SerializableCommand.hpp>
 #include <iscore/plugins/customfactory/StringFactoryKey.hpp>

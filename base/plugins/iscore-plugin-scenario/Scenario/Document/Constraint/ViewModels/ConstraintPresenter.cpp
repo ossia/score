@@ -10,9 +10,9 @@
 #include "ConstraintViewModel.hpp"
 #include <Process/TimeValue.hpp>
 #include <Process/ZoomHelper.hpp>
-#include "Scenario/Document/Constraint/ConstraintDurations.hpp"
-#include "Scenario/Document/Constraint/Rack/RackModel.hpp"
-#include "Scenario/Document/ModelConsistency.hpp"
+#include <Scenario/Document/Constraint/ConstraintDurations.hpp>
+#include <Scenario/Document/Constraint/Rack/RackModel.hpp>
+#include <Scenario/Document/ModelConsistency.hpp>
 #include <iscore/selection/Selectable.hpp>
 #include <iscore/tools/NamedObject.hpp>
 #include <iscore/tools/NotifyingMap.hpp>

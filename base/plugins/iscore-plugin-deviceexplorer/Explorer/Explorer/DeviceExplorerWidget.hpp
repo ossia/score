@@ -5,7 +5,7 @@
 #include <QWidget>
 #include <memory>
 
-#include "Device/Node/DeviceNode.hpp"
+#include <Device/Node/DeviceNode.hpp>
 #include <iscore/tools/TreePath.hpp>
 
 class DeviceEditDialog;

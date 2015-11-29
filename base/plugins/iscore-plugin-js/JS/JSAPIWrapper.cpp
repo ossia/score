@@ -1,6 +1,6 @@
 #include <Explorer/DocumentPlugin/DeviceDocumentPlugin.hpp>
 
-#include "Explorer/DocumentPlugin/NodeUpdateProxy.hpp"
+#include <Explorer/DocumentPlugin/NodeUpdateProxy.hpp>
 #include "JSAPIWrapper.hpp"
 
 QJSValue JSAPIWrapper::value(QJSValue address)

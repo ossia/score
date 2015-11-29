@@ -5,7 +5,7 @@
 
 #include "MoveEventFactoryInterface.hpp"
 #include "MoveEventOnCreationMeta.hpp"
-#include "Scenario/Commands/Scenario/Displacement/SerializableMoveEvent.hpp"
+#include <Scenario/Commands/Scenario/Displacement/SerializableMoveEvent.hpp>
 #include <core/application/ApplicationContext.hpp>
 #include <iscore/plugins/customfactory/StringFactoryKey.hpp>
 #include <iscore/serialization/DataStreamVisitor.hpp>

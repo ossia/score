@@ -1,5 +1,5 @@
 #include <Process/ExpandMode.hpp>
-#include "Scenario/Palette/Tool.hpp"
+#include <Scenario/Palette/Tool.hpp>
 #include "ScenarioEditionSettings.hpp"
 
 ExpandMode Scenario::EditionSettings::expandMode() const

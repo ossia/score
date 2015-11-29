@@ -2,7 +2,7 @@
 
 
 #include "AddressSettingsFactory.hpp"
-#include "Device/Address/AddressSettings.hpp"
+#include <Device/Address/AddressSettings.hpp>
 #include "Widgets/AddressBoolSettingsWidget.hpp"
 #include "Widgets/AddressCharSettingsWidget.hpp"
 #include "Widgets/AddressNoneSettingsWidget.hpp"

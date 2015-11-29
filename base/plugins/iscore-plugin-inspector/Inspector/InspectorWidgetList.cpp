@@ -1,6 +1,6 @@
 #include <iscore/document/DocumentInterface.hpp>
 
-#include "Inspector/InspectorWidgetFactoryInterface.hpp"
+#include <Inspector/InspectorWidgetFactoryInterface.hpp>
 #include "InspectorWidgetBase.hpp"
 #include "InspectorWidgetList.hpp"
 #include <iscore/tools/IdentifiedObjectAbstract.hpp>

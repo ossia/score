@@ -2,8 +2,8 @@
 #include <algorithm>
 
 #include "Add/LoadDevice.hpp"
-#include "Device/Address/AddressSettings.hpp"
-#include "Device/Node/DeviceNode.hpp"
+#include <Device/Address/AddressSettings.hpp>
+#include <Device/Node/DeviceNode.hpp>
 #include "Remove.hpp"
 #include "Remove/RemoveAddress.hpp"
 #include <iscore/command/SerializableCommand.hpp>

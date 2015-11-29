@@ -17,7 +17,7 @@
 #include "RecreateOnPlayDocumentPlugin/EventElement.hpp"
 #include "RecreateOnPlayDocumentPlugin/ProcessElement.hpp"
 #include "RecreateOnPlayDocumentPlugin/TimeNodeElement.hpp"
-#include "Scenario/Document/Constraint/ConstraintDurations.hpp"
+#include <Scenario/Document/Constraint/ConstraintDurations.hpp>
 
 class Process;
 class QObject;

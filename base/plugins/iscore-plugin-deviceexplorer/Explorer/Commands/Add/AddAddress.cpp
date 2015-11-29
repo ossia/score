@@ -3,8 +3,8 @@
 #include <QtGlobal>
 
 #include "AddAddress.hpp"
-#include "Device/Node/DeviceNode.hpp"
-#include "Explorer/DocumentPlugin/NodeUpdateProxy.hpp"
+#include <Device/Node/DeviceNode.hpp>
+#include <Explorer/DocumentPlugin/NodeUpdateProxy.hpp>
 #include <iscore/serialization/DataStreamVisitor.hpp>
 #include <iscore/tools/ModelPath.hpp>
 #include <iscore/tools/ModelPathSerialization.hpp>

@@ -5,7 +5,7 @@
 #include <QString>
 #include <QToolBar>
 
-#include "Scenario/Application/Menus/ScenarioActions.hpp"
+#include <Scenario/Application/Menus/ScenarioActions.hpp>
 #include "TransportActions.hpp"
 #include <core/presenter/MenubarManager.hpp>
 #include <iscore/menu/MenuInterface.hpp>

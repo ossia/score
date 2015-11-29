@@ -9,7 +9,7 @@
 #include "AddressBarItem.hpp"
 #include "FullViewConstraintHeader.hpp"
 #include "FullViewConstraintPresenter.hpp"
-#include "Scenario/Document/Constraint/ViewModels/ConstraintPresenter.hpp"
+#include <Scenario/Document/Constraint/ViewModels/ConstraintPresenter.hpp>
 
 class QObject;
 

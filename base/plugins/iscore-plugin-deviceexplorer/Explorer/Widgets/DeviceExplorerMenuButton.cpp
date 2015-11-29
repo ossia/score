@@ -4,7 +4,7 @@
 #include <QLayout>
 #include <QPushButton>
 
-#include "Device/Node/DeviceNode.hpp"
+#include <Device/Node/DeviceNode.hpp>
 #include "DeviceExplorerMenuButton.hpp"
 
 class QAbstractItemModel;

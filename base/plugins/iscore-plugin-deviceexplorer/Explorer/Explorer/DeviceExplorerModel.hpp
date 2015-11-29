@@ -9,7 +9,7 @@
 #include <QStringList>
 #include <QVariant>
 
-#include "Device/Node/DeviceNode.hpp"
+#include <Device/Node/DeviceNode.hpp>
 #include <State/Message.hpp>
 #include <State/Value.hpp>
 

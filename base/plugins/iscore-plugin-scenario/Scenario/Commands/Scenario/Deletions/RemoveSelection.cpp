@@ -15,10 +15,10 @@
 #include <iterator>
 
 #include "RemoveSelection.hpp"
-#include "Scenario/Document/Constraint/ConstraintModel.hpp"
-#include "Scenario/Document/Constraint/ViewModels/ConstraintViewModelSerialization.hpp"
-#include "Scenario/Document/State/StateModel.hpp"
-#include "Scenario/Process/ScenarioModel.hpp"
+#include <Scenario/Document/Constraint/ConstraintModel.hpp>
+#include <Scenario/Document/Constraint/ViewModels/ConstraintViewModelSerialization.hpp>
+#include <Scenario/Document/State/StateModel.hpp>
+#include <Scenario/Process/ScenarioModel.hpp>
 #include <iscore/serialization/DataStreamVisitor.hpp>
 #include <iscore/tools/IdentifiedObject.hpp>
 #include <iscore/tools/IdentifiedObjectAbstract.hpp>

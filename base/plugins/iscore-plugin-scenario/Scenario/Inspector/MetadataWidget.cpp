@@ -9,7 +9,7 @@
 #include <Process//ModelMetadata.hpp>
 
 #include "CommentEdit.hpp"
-#include "Inspector/InspectorSectionWidget.hpp"
+#include <Inspector/InspectorSectionWidget.hpp>
 #include "MetadataWidget.hpp"
 #include <iscore/command/Dispatchers/CommandDispatcher.hpp>
 

@@ -1,7 +1,7 @@
 #include <Scenario/Document/State/StateModel.hpp>
 #include <iscore2OSSIA.hpp>
 
-#include "Scenario/Document/State/ItemModel/MessageItemModel.hpp"
+#include <Scenario/Document/State/ItemModel/MessageItemModel.hpp>
 #include "StateElement.hpp"
 
 namespace RecreateOnPlay

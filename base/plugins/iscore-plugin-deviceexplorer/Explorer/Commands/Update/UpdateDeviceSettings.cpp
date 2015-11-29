@@ -2,9 +2,9 @@
 #include <algorithm>
 #include <vector>
 
-#include "Device/Node/DeviceNode.hpp"
-#include "Device/Protocol/DeviceSettings.hpp"
-#include "Explorer/DocumentPlugin/NodeUpdateProxy.hpp"
+#include <Device/Node/DeviceNode.hpp>
+#include <Device/Protocol/DeviceSettings.hpp>
+#include <Explorer/DocumentPlugin/NodeUpdateProxy.hpp>
 #include "UpdateDeviceSettings.hpp"
 #include <iscore/serialization/DataStreamVisitor.hpp>
 #include <iscore/tools/ModelPath.hpp>

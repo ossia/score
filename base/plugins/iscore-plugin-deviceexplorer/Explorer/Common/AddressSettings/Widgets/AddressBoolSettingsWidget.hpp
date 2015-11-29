@@ -1,6 +1,6 @@
 #pragma once
 #include "AddressSettingsWidget.hpp"
-#include "Device/Address/AddressSettings.hpp"
+#include <Device/Address/AddressSettings.hpp>
 
 class QComboBox;
 class QWidget;

@@ -3,9 +3,9 @@
 #include <boost/optional/optional.hpp>
 #include <QObject>
 
-#include "Scenario/Document/Event/EventModel.hpp"
-#include "Scenario/Document/State/StateModel.hpp"
-#include "Scenario/Document/TimeNode/TimeNodeModel.hpp"
+#include <Scenario/Document/Event/EventModel.hpp>
+#include <Scenario/Document/State/StateModel.hpp>
+#include <Scenario/Document/TimeNode/TimeNodeModel.hpp>
 #include "ScenarioDisplayedElementsProvider.hpp"
 #include <iscore/tools/NotifyingMap.hpp>
 #include <iscore/tools/SettableIdentifier.hpp>

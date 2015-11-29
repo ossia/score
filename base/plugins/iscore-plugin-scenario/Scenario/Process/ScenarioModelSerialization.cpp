@@ -12,8 +12,8 @@
 #include <algorithm>
 
 #include <Process/ModelMetadata.hpp>
-#include "Scenario/Document/State/StateModel.hpp"
-#include "Scenario/Document/TimeNode/TimeNodeModel.hpp"
+#include <Scenario/Document/State/StateModel.hpp>
+#include <Scenario/Document/TimeNode/TimeNodeModel.hpp>
 #include "ScenarioFactory.hpp"
 #include <iscore/plugins/documentdelegate/plugin/ElementPluginModelList.hpp>
 #include <iscore/serialization/DataStreamVisitor.hpp>

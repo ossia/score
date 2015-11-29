@@ -4,7 +4,7 @@
 #include <QVariant>
 #include <memory>
 
-#include "Device/Protocol/DeviceSettings.hpp"
+#include <Device/Protocol/DeviceSettings.hpp>
 #include "Network/Protocol/OSC.h"
 #include "OSCDevice.hpp"
 #include "Protocols/OSC/OSCSpecificSettings.hpp"

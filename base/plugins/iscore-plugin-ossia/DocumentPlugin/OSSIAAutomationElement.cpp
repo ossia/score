@@ -10,9 +10,9 @@
 
 #include <Curve/CurveModel.hpp>
 #include <Curve/Segment/CurveSegmentData.hpp>
-#include "Device/Protocol/DeviceInterface.hpp"
-#include "Device/Protocol/DeviceList.hpp"
-#include "Device/Protocol/DeviceSettings.hpp"
+#include <Device/Protocol/DeviceInterface.hpp>
+#include <Device/Protocol/DeviceList.hpp>
+#include <Device/Protocol/DeviceSettings.hpp>
 #include "DocumentPlugin/OSSIAProcessElement.hpp"
 #include "Editor/Curve.h"
 #include "Editor/CurveSegment.h"

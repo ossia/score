@@ -24,11 +24,11 @@
 #include "PlayContextMenu.hpp"
 #include <Process/LayerModel.hpp>
 #include <Process/TimeValue.hpp>
-#include "Scenario/Application/ScenarioApplicationPlugin.hpp"
-#include "Scenario/Application/ScenarioRecordInitData.hpp"
-#include "Scenario/Document/Constraint/ConstraintModel.hpp"
-#include "Scenario/Document/Event/EventModel.hpp"
-#include "Scenario/Palette/ScenarioPoint.hpp"
+#include <Scenario/Application/ScenarioApplicationPlugin.hpp>
+#include <Scenario/Application/ScenarioRecordInitData.hpp>
+#include <Scenario/Document/Constraint/ConstraintModel.hpp>
+#include <Scenario/Document/Event/EventModel.hpp>
+#include <Scenario/Palette/ScenarioPoint.hpp>
 #include <iscore/menu/MenuInterface.hpp>
 #include <iscore/tools/NotifyingMap.hpp>
 

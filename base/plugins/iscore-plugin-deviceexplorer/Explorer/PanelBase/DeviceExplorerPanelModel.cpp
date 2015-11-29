@@ -1,6 +1,6 @@
 #include <Explorer/DocumentPlugin/DeviceDocumentPlugin.hpp>
 #include <Explorer/Explorer/DeviceExplorerModel.hpp>
-#include "Explorer/PanelBase/DeviceExplorerPanelId.hpp"
+#include <Explorer/PanelBase/DeviceExplorerPanelId.hpp>
 #include <core/document/DocumentModel.hpp>
 
 #include "DeviceExplorerPanelModel.hpp"

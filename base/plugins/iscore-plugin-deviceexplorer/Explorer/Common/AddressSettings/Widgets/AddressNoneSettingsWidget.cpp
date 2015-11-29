@@ -1,5 +1,5 @@
 #include "AddressNoneSettingsWidget.hpp"
-#include "Explorer/Common/AddressSettings/Widgets/AddressSettingsWidget.hpp"
+#include <Explorer/Common/AddressSettings/Widgets/AddressSettingsWidget.hpp>
 
 class QWidget;
 

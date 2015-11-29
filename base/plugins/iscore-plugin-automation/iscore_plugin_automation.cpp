@@ -7,7 +7,7 @@
 
 #include <Automation/AutomationProcessMetadata.hpp>
 #include <Automation/Commands/AutomationCommandFactory.hpp>
-#include "Inspector/InspectorWidgetFactoryInterface.hpp"
+#include <Inspector/InspectorWidgetFactoryInterface.hpp>
 #include <Process/ProcessFactory.hpp>
 #include <iscore/plugins/customfactory/StringFactoryKey.hpp>
 #include "iscore_plugin_automation.hpp"

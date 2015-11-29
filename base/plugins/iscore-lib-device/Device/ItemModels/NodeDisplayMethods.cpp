@@ -3,11 +3,11 @@
 #include <QFont>
 #include <qnamespace.h>
 
-#include "Device/Address/AddressSettings.hpp"
-#include "Device/Address/Domain.hpp"
-#include "Device/Address/IOType.hpp"
-#include "Device/Node/DeviceNode.hpp"
-#include "Device/Protocol/DeviceSettings.hpp"
+#include <Device/Address/AddressSettings.hpp>
+#include <Device/Address/Domain.hpp>
+#include <Device/Address/IOType.hpp>
+#include <Device/Node/DeviceNode.hpp>
+#include <Device/Protocol/DeviceSettings.hpp>
 #include "NodeDisplayMethods.hpp"
 #include <State/Value.hpp>
 #include <State/ValueConversion.hpp>

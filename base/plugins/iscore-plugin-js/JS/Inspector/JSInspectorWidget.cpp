@@ -2,7 +2,7 @@
 #include <QPlainTextEdit>
 #include <algorithm>
 
-#include "Inspector/InspectorWidgetBase.hpp"
+#include <Inspector/InspectorWidgetBase.hpp>
 #include "JS/Commands/EditScript.hpp"
 #include "JSInspectorWidget.hpp"
 #include <iscore/command/Dispatchers/CommandDispatcher.hpp>

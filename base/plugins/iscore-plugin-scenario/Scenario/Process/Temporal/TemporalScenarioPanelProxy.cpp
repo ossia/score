@@ -1,5 +1,5 @@
 #include <Process/LayerModelPanelProxy.hpp>
-#include "Scenario/Process/Temporal/TemporalScenarioLayerModel.hpp"
+#include <Scenario/Process/Temporal/TemporalScenarioLayerModel.hpp>
 #include "TemporalScenarioPanelProxy.hpp"
 
 class QObject;

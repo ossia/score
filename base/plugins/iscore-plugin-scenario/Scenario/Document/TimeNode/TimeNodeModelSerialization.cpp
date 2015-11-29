@@ -9,7 +9,7 @@
 
 #include <Process/ModelMetadata.hpp>
 #include <Process/TimeValue.hpp>
-#include "Scenario/Document/VerticalExtent.hpp"
+#include <Scenario/Document/VerticalExtent.hpp>
 #include <State/Expression.hpp>
 #include "TimeNodeModel.hpp"
 #include "Trigger/TriggerModel.hpp"

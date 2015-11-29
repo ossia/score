@@ -22,9 +22,9 @@
 #include <QWidget>
 #include <algorithm>
 
-#include "Inspector/InspectorWidgetBase.hpp"
+#include <Inspector/InspectorWidgetBase.hpp>
 #include <Process/TimeValue.hpp>
-#include "Scenario/Process/ScenarioInterface.hpp"
+#include <Scenario/Process/ScenarioInterface.hpp>
 #include "TimeNodeInspectorWidget.hpp"
 #include <iscore/command/Dispatchers/CommandDispatcher.hpp>
 #include <iscore/plugins/customfactory/StringFactoryKey.hpp>

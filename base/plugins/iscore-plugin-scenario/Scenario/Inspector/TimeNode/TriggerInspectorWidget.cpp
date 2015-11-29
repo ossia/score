@@ -4,10 +4,10 @@
 #include <QPushButton>
 #include <algorithm>
 
-#include "Inspector/InspectorWidgetBase.hpp"
-#include "Scenario/Commands/TimeNode/TriggerCommandFactory/TriggerCommandFactoryList.hpp"
-#include "Scenario/Document/TimeNode/TimeNodeModel.hpp"
-#include "Scenario/Inspector/Expression/SimpleExpressionEditorWidget.hpp"
+#include <Inspector/InspectorWidgetBase.hpp>
+#include <Scenario/Commands/TimeNode/TriggerCommandFactory/TriggerCommandFactoryList.hpp>
+#include <Scenario/Document/TimeNode/TimeNodeModel.hpp>
+#include <Scenario/Inspector/Expression/SimpleExpressionEditorWidget.hpp>
 #include "TriggerInspectorWidget.hpp"
 #include <iscore/command/Dispatchers/CommandDispatcher.hpp>
 #include <iscore/tools/ModelPath.hpp>

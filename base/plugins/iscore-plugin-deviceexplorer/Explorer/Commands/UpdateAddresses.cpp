@@ -3,9 +3,9 @@
 #include <qnamespace.h>
 #include <algorithm>
 
-#include "Device/Address/AddressSettings.hpp"
-#include "Device/Node/DeviceNode.hpp"
-#include "Explorer/Explorer/DeviceExplorerModel.hpp"
+#include <Device/Address/AddressSettings.hpp>
+#include <Device/Node/DeviceNode.hpp>
+#include <Explorer/Explorer/DeviceExplorerModel.hpp>
 #include "UpdateAddresses.hpp"
 #include <iscore/serialization/DataStreamVisitor.hpp>
 #include <iscore/tools/ModelPath.hpp>

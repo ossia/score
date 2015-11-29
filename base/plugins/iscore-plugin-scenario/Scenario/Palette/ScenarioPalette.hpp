@@ -8,7 +8,7 @@
 #include <QPoint>
 
 #include <Process/ProcessContext.hpp>
-#include "Scenario/Palette/ScenarioPoint.hpp"
+#include <Scenario/Palette/ScenarioPoint.hpp>
 
 class TemporalScenarioPresenter;
 class TemporalScenarioView;

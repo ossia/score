@@ -20,8 +20,8 @@
 #include <Curve/Segment/CurveSegmentData.hpp>
 #include <Process/Process.hpp>
 #include <Process/State/MessageNode.hpp>
-#include "Scenario/Document/Constraint/ConstraintDurations.hpp"
-#include "Scenario/Document/State/ItemModel/MessageItemModel.hpp"
+#include <Scenario/Document/Constraint/ConstraintDurations.hpp>
+#include <Scenario/Document/State/ItemModel/MessageItemModel.hpp>
 #include "ScenarioVisitor.hpp"
 #include <State/Message.hpp>
 #include <State/Value.hpp>

@@ -1,6 +1,6 @@
 #pragma once
 
-#include "Scenario/Palette/ScenarioPaletteBaseEvents.hpp"
+#include <Scenario/Palette/ScenarioPaletteBaseEvents.hpp>
 #include <iscore/statemachine/StateMachineUtils.hpp>
 
 class QEvent;

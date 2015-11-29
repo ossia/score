@@ -3,7 +3,7 @@
 #include <QVariant>
 #include <memory>
 
-#include "Device/Protocol/DeviceSettings.hpp"
+#include <Device/Protocol/DeviceSettings.hpp>
 #include "MinuitDevice.hpp"
 #include "Network/Protocol/Minuit.h"
 #include "Protocols/Minuit/MinuitSpecificSettings.hpp"

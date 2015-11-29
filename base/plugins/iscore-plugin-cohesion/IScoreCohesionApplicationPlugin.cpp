@@ -10,7 +10,7 @@
 #include "Actions/SnapshotParameters.hpp"
 #include "IScoreCohesionApplicationPlugin.hpp"
 #include "Record/RecordManager.hpp"
-#include "Scenario/Palette/ScenarioPoint.hpp"
+#include <Scenario/Palette/ScenarioPoint.hpp>
 #include <core/application/ApplicationComponents.hpp>
 #include <core/application/ApplicationContext.hpp>
 #include <core/presenter/MenubarManager.hpp>

@@ -8,8 +8,8 @@
 #include <QPainterPath>
 #include <QPen>
 
-#include "Scenario/Document/Constraint/ViewModels/ConstraintPresenter.hpp"
-#include "Scenario/Document/Constraint/ViewModels/ConstraintView.hpp"
+#include <Scenario/Document/Constraint/ViewModels/ConstraintPresenter.hpp>
+#include <Scenario/Document/Constraint/ViewModels/ConstraintView.hpp>
 #include "TemporalConstraintPresenter.hpp"
 #include "TemporalConstraintView.hpp"
 

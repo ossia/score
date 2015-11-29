@@ -1,7 +1,7 @@
 #include <Explorer/DocumentPlugin/DeviceDocumentPlugin.hpp>
 
 #include "AddDevice.hpp"
-#include "Explorer/DocumentPlugin/NodeUpdateProxy.hpp"
+#include <Explorer/DocumentPlugin/NodeUpdateProxy.hpp>
 #include <iscore/serialization/DataStreamVisitor.hpp>
 #include <iscore/tools/ModelPath.hpp>
 #include <iscore/tools/ModelPathSerialization.hpp>

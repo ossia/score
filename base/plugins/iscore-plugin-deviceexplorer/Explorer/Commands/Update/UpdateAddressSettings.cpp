@@ -1,8 +1,8 @@
 #include <Explorer/DocumentPlugin/DeviceDocumentPlugin.hpp>
 
-#include "Device/Address/AddressSettings.hpp"
-#include "Device/Node/DeviceNode.hpp"
-#include "Explorer/DocumentPlugin/NodeUpdateProxy.hpp"
+#include <Device/Address/AddressSettings.hpp>
+#include <Device/Node/DeviceNode.hpp>
+#include <Explorer/DocumentPlugin/NodeUpdateProxy.hpp>
 #include "UpdateAddressSettings.hpp"
 #include <iscore/serialization/DataStreamVisitor.hpp>
 #include <iscore/tools/ModelPath.hpp>

@@ -2,10 +2,10 @@
 #include <Protocols/OSC/OSCProtocolFactory.hpp>
 #include <QString>
 
-#include "Device/Protocol/ProtocolFactoryInterface.hpp"
+#include <Device/Protocol/ProtocolFactoryInterface.hpp>
 #include "DocumentPlugin/ContextMenu/PlayContextMenuFactory.hpp"
 #include "OSSIAApplicationPlugin.hpp"
-#include "Scenario/Application/Menus/Plugin/ScenarioActionsFactory.hpp"
+#include <Scenario/Application/Menus/Plugin/ScenarioActionsFactory.hpp>
 #include <iscore/plugins/customfactory/StringFactoryKey.hpp>
 #include "iscore_plugin_ossia.hpp"
 

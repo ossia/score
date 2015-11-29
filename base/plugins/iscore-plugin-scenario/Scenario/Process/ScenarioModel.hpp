@@ -20,7 +20,7 @@
 #include <QVector>
 
 #include <Process/ProcessFactoryKey.hpp>
-#include "Scenario/Process/AbstractScenarioLayerModel.hpp"
+#include <Scenario/Process/AbstractScenarioLayerModel.hpp>
 #include <iscore/selection/Selection.hpp>
 #include <iscore/serialization/VisitorInterface.hpp>
 #include <iscore/tools/SettableIdentifier.hpp>

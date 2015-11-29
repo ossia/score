@@ -15,13 +15,13 @@
 #include <algorithm>
 #include <list>
 
-#include "Inspector/InspectorWidgetFactoryInterface.hpp"
+#include <Inspector/InspectorWidgetFactoryInterface.hpp>
 #include "LoopInspectorFactory.hpp"
 #include <Process/ExpandMode.hpp>
 #include <Process/TimeValue.hpp>
-#include "Scenario/Commands/MoveBaseEvent.hpp"
-#include "Scenario/Document/State/StateModel.hpp"
-#include "Scenario/Inspector/Constraint/ConstraintInspectorDelegate.hpp"
+#include <Scenario/Commands/MoveBaseEvent.hpp>
+#include <Scenario/Document/State/StateModel.hpp>
+#include <Scenario/Inspector/Constraint/ConstraintInspectorDelegate.hpp>
 #include <core/application/ApplicationContext.hpp>
 #include <core/document/DocumentContext.hpp>
 #include <iscore/command/Dispatchers/OngoingCommandDispatcher.hpp>

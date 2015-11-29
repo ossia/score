@@ -14,7 +14,7 @@
 
 #include "EventPresenter.hpp"
 #include <Process/ModelMetadata.hpp>
-#include "Scenario/Process/ScenarioInterface.hpp"
+#include <Scenario/Process/ScenarioInterface.hpp>
 #include <State/Expression.hpp>
 #include <State/Message.hpp>
 #include <iscore/command/Dispatchers/CommandDispatcher.hpp>

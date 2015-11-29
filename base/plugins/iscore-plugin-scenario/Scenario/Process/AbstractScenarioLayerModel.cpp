@@ -7,7 +7,7 @@
 
 #include "AbstractScenarioLayerModel.hpp"
 #include <Process/Process.hpp>
-#include "Scenario/Document/Constraint/ViewModels/ConstraintViewModelIdMap.hpp"
+#include <Scenario/Document/Constraint/ViewModels/ConstraintViewModelIdMap.hpp>
 #include <iscore/tools/IdentifiedObject.hpp>
 #include <iscore/tools/ObjectPath.hpp>
 #include <iscore/tools/SettableIdentifier.hpp>

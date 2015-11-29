@@ -16,7 +16,7 @@
 #include <QString>
 
 #include "AddressEditWidget.hpp"
-#include "Explorer/Widgets/ValueWrapper.hpp"
+#include <Explorer/Widgets/ValueWrapper.hpp>
 #include "MessageEditDialog.hpp"
 #include <State/Value.hpp>
 #include <State/Widgets/Values/ValueWidget.hpp>

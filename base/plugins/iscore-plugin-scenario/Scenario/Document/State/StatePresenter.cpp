@@ -5,9 +5,9 @@
 #include <QStringList>
 
 #include <Process/ModelMetadata.hpp>
-#include "Scenario/Commands/State/AddMessagesToState.hpp"
-#include "Scenario/Document/Event/ExecutionStatus.hpp"
-#include "Scenario/Document/State/ItemModel/MessageItemModel.hpp"
+#include <Scenario/Commands/State/AddMessagesToState.hpp>
+#include <Scenario/Document/Event/ExecutionStatus.hpp>
+#include <Scenario/Document/State/ItemModel/MessageItemModel.hpp>
 #include <State/Message.hpp>
 #include "StateModel.hpp"
 #include "StatePresenter.hpp"

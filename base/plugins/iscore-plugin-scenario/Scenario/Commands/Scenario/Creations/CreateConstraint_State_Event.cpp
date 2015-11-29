@@ -10,8 +10,8 @@
 
 #include "CreateConstraint_State_Event.hpp"
 #include <Process/ModelMetadata.hpp>
-#include "Scenario/Commands/Scenario/Creations/CreateConstraint_State.hpp"
-#include "Scenario/Document/Event/EventModel.hpp"
+#include <Scenario/Commands/Scenario/Creations/CreateConstraint_State.hpp>
+#include <Scenario/Document/Event/EventModel.hpp>
 #include <iscore/serialization/DataStreamVisitor.hpp>
 #include <iscore/tools/NotifyingMap.hpp>
 

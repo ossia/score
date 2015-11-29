@@ -3,9 +3,9 @@
 #include <QDebug>
 #include <vector>
 
-#include "Device/Address/AddressSettings.hpp"
-#include "Device/Address/IOType.hpp"
-#include "Device/Protocol/DeviceSettings.hpp"
+#include <Device/Address/AddressSettings.hpp>
+#include <Device/Address/IOType.hpp>
+#include <Device/Protocol/DeviceSettings.hpp>
 #include "DeviceNode.hpp"
 #include <State/Message.hpp>
 #include <State/Value.hpp>

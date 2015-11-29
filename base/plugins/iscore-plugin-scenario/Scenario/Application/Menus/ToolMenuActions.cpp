@@ -10,9 +10,9 @@
 #include <QVariant>
 
 #include <Process/ExpandMode.hpp>
-#include "Scenario/Application/Menus/ScenarioActions.hpp"
-#include "Scenario/Application/ScenarioEditionSettings.hpp"
-#include "Scenario/Palette/Tool.hpp"
+#include <Scenario/Application/Menus/ScenarioActions.hpp>
+#include <Scenario/Application/ScenarioEditionSettings.hpp>
+#include <Scenario/Palette/Tool.hpp>
 #include "ToolMenuActions.hpp"
 #include <core/presenter/MenubarManager.hpp>
 

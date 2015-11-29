@@ -19,7 +19,7 @@
 #include <Automation/Commands/SetAutomationMax.hpp>
 #include <Automation/Commands/SetAutomationMin.hpp>
 #include "AutomationInspectorWidget.hpp"
-#include "Inspector/InspectorWidgetBase.hpp"
+#include <Inspector/InspectorWidgetBase.hpp>
 #include <State/Address.hpp>
 #include <iscore/command/Dispatchers/CommandDispatcher.hpp>
 #include <iscore/document/DocumentInterface.hpp>

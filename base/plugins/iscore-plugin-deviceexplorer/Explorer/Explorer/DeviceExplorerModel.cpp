@@ -28,15 +28,15 @@
 #include <string>
 #include <vector>
 
-#include "Device/Address/AddressSettings.hpp"
-#include "Device/ItemModels/NodeBasedItemModel.hpp"
-#include "Device/Protocol/DeviceList.hpp"
-#include "Device/Protocol/DeviceSettings.hpp"
-#include "Device/Protocol/ProtocolFactoryKey.hpp"
+#include <Device/Address/AddressSettings.hpp>
+#include <Device/ItemModels/NodeBasedItemModel.hpp>
+#include <Device/Protocol/DeviceList.hpp>
+#include <Device/Protocol/DeviceSettings.hpp>
+#include <Device/Protocol/ProtocolFactoryKey.hpp>
 #include "DeviceExplorerMimeTypes.hpp"
 #include "DeviceExplorerModel.hpp"
 #include "DeviceExplorerView.hpp"
-#include "Explorer/DocumentPlugin/NodeUpdateProxy.hpp"
+#include <Explorer/DocumentPlugin/NodeUpdateProxy.hpp>
 #include <State/ValueConversion.hpp>
 #include "Widgets/DeviceEditDialog.hpp" // TODO why here??!!
 #include <core/application/ApplicationContext.hpp>

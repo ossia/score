@@ -1,8 +1,8 @@
 #pragma once
 #include <Scenario/Document/Constraint/ViewModels/ConstraintPresenter.hpp>
 
-#include "Scenario/Document/Constraint/ViewModels/Temporal/TemporalConstraintView.hpp"
-#include "Scenario/Document/Constraint/ViewModels/Temporal/TemporalConstraintViewModel.hpp"
+#include <Scenario/Document/Constraint/ViewModels/Temporal/TemporalConstraintView.hpp>
+#include <Scenario/Document/Constraint/ViewModels/Temporal/TemporalConstraintViewModel.hpp>
 
 class QGraphicsObject;
 class QObject;

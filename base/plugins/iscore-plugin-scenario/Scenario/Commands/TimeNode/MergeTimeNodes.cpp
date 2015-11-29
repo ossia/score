@@ -3,7 +3,7 @@
 #include <algorithm>
 
 #include "MergeTimeNodes.hpp"
-#include "Scenario/Process/ScenarioModel.hpp"
+#include <Scenario/Process/ScenarioModel.hpp>
 #include <iscore/serialization/DataStreamVisitor.hpp>
 #include <iscore/tools/ModelPath.hpp>
 #include <iscore/tools/ModelPathSerialization.hpp>

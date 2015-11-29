@@ -19,7 +19,7 @@
 
 #include "InsertContentInConstraint.hpp"
 #include <Process/ExpandMode.hpp>
-#include "Scenario/Document/Constraint/ConstraintDurations.hpp"
+#include <Scenario/Document/Constraint/ConstraintDurations.hpp>
 #include <iscore/serialization/DataStreamVisitor.hpp>
 #include <iscore/serialization/JSONVisitor.hpp>
 #include <iscore/tools/ModelPath.hpp>

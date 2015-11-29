@@ -25,9 +25,9 @@
 #include <algorithm>
 
 #include "EventInspectorWidget.hpp"
-#include "Inspector/InspectorWidgetBase.hpp"
+#include <Inspector/InspectorWidgetBase.hpp>
 #include <Process/TimeValue.hpp>
-#include "Scenario/Process/ScenarioInterface.hpp"
+#include <Scenario/Process/ScenarioInterface.hpp>
 #include <State/Expression.hpp>
 #include <core/application/ApplicationContext.hpp>
 #include <core/document/DocumentContext.hpp>

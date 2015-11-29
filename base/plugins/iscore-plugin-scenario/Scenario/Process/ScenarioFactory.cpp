@@ -10,7 +10,7 @@
 
 #include <Process/LayerModel.hpp>
 #include <Process/Process.hpp>
-#include "Scenario/Process/ScenarioProcessMetadata.hpp"
+#include <Scenario/Process/ScenarioProcessMetadata.hpp>
 #include "ScenarioFactory.hpp"
 #include <iscore/document/DocumentInterface.hpp>
 #include <iscore/serialization/DataStreamVisitor.hpp>

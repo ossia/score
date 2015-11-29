@@ -11,9 +11,9 @@
 #include <QVariant>
 
 #include "AddressSettingsWidget.hpp"
-#include "Device/Address/AddressSettings.hpp"
-#include "Device/Address/ClipMode.hpp"
-#include "Device/Address/IOType.hpp"
+#include <Device/Address/AddressSettings.hpp>
+#include <Device/Address/ClipMode.hpp>
+#include <Device/Address/IOType.hpp>
 
 AddressSettingsWidget::AddressSettingsWidget(QWidget *parent) :
     QWidget(parent),

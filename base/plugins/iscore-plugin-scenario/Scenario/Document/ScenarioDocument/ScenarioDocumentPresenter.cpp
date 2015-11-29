@@ -20,11 +20,11 @@
 
 #include <Process/LayerPresenter.hpp>
 #include <Process/TimeValue.hpp>
-#include "Scenario/Document/Constraint/ConstraintDurations.hpp"
-#include "Scenario/Document/DisplayedElements/DisplayedElementsModel.hpp"
-#include "Scenario/Document/DisplayedElements/DisplayedElementsPresenter.hpp"
-#include "Scenario/Document/ScenarioDocument/ProcessFocusManager.hpp"
-#include "Scenario/Document/ScenarioDocument/Widgets/ScenarioBaseGraphicsView.hpp"
+#include <Scenario/Document/Constraint/ConstraintDurations.hpp>
+#include <Scenario/Document/DisplayedElements/DisplayedElementsModel.hpp>
+#include <Scenario/Document/DisplayedElements/DisplayedElementsPresenter.hpp>
+#include <Scenario/Document/ScenarioDocument/ProcessFocusManager.hpp>
+#include <Scenario/Document/ScenarioDocument/Widgets/ScenarioBaseGraphicsView.hpp>
 #include "ScenarioDocumentPresenter.hpp"
 #include "ZoomPolicy.hpp"
 #include <core/application/ApplicationComponents.hpp>

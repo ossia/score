@@ -11,9 +11,9 @@
 #include <QWidget>
 #include <utility>
 
-#include "Device/Protocol/ProtocolFactoryKey.hpp"
-#include "Device/Protocol/ProtocolList.hpp"
-#include "Device/Protocol/ProtocolSettingsWidget.hpp"
+#include <Device/Protocol/ProtocolFactoryKey.hpp>
+#include <Device/Protocol/ProtocolList.hpp>
+#include <Device/Protocol/ProtocolSettingsWidget.hpp>
 #include "DeviceEditDialog.hpp"
 #include <iscore/plugins/customfactory/FactoryFamily.hpp>
 #include <iscore/plugins/customfactory/FactoryMap.hpp>

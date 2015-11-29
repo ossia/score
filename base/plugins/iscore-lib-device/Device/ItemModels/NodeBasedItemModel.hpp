@@ -4,8 +4,8 @@
 #include <QAbstractItemModel>
 #include <vector>
 
-#include "Device/Address/AddressSettings.hpp"
-#include "Device/Protocol/DeviceSettings.hpp"
+#include <Device/Address/AddressSettings.hpp>
+#include <Device/Protocol/DeviceSettings.hpp>
 #include <iscore/tools/InvisibleRootNode.hpp>
 #include <iscore/tools/TreeNode.hpp>
 

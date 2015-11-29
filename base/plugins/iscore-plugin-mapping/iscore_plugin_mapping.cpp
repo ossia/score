@@ -6,7 +6,7 @@
 
 #include <unordered_map>
 
-#include "Inspector/InspectorWidgetFactoryInterface.hpp"
+#include <Inspector/InspectorWidgetFactoryInterface.hpp>
 #include <Mapping/Commands/MappingCommandFactory.hpp>
 #include <Mapping/MappingProcessMetadata.hpp>
 #include <Process/ProcessFactory.hpp>

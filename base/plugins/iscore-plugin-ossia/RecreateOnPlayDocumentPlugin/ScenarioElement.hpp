@@ -7,7 +7,7 @@
 #include <memory>
 
 #include "ProcessElement.hpp"
-#include "Scenario/Document/Constraint/ConstraintModel.hpp"
+#include <Scenario/Document/Constraint/ConstraintModel.hpp>
 
 class DeviceList;
 class EventModel;

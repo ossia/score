@@ -11,8 +11,8 @@
 #include "EventPresenter.hpp"
 #include "EventView.hpp"
 #include <Process/ModelMetadata.hpp>
-#include "Scenario/Document/Event/ExecutionStatus.hpp"
-#include "Scenario/Document/VerticalExtent.hpp"
+#include <Scenario/Document/Event/ExecutionStatus.hpp>
+#include <Scenario/Document/VerticalExtent.hpp>
 
 class QStyleOptionGraphicsItem;
 class QWidget;

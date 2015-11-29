@@ -7,10 +7,10 @@
 #include "EventModel.hpp"
 #include <Process/ModelMetadata.hpp>
 #include <Process/TimeValue.hpp>
-#include "Scenario/Document/Event/ExecutionStatus.hpp"
-#include "Scenario/Document/State/StateModel.hpp"
-#include "Scenario/Document/VerticalExtent.hpp"
-#include "Scenario/Process/ScenarioInterface.hpp"
+#include <Scenario/Document/Event/ExecutionStatus.hpp>
+#include <Scenario/Document/State/StateModel.hpp>
+#include <Scenario/Document/VerticalExtent.hpp>
+#include <Scenario/Process/ScenarioInterface.hpp>
 #include <State/Expression.hpp>
 #include <iscore/tools/IdentifiedObject.hpp>
 #include <iscore/tools/SettableIdentifier.hpp>

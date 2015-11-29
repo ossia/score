@@ -4,7 +4,7 @@
 
 #include <Process/ExpandMode.hpp>
 #include <Process/TimeValue.hpp>
-#include "Scenario/Commands/ScenarioCommandFactory.hpp"
+#include <Scenario/Commands/ScenarioCommandFactory.hpp>
 #include <iscore/tools/ModelPath.hpp>
 
 class DataStreamInput;

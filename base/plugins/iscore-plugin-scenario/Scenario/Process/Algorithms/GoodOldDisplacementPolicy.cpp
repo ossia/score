@@ -4,14 +4,14 @@
 #include <QPair>
 
 #include "GoodOldDisplacementPolicy.hpp"
-#include "Scenario/Document/Constraint/ConstraintDurations.hpp"
-#include "Scenario/Document/Constraint/ConstraintModel.hpp"
-#include "Scenario/Document/Constraint/ViewModels/ConstraintViewModel.hpp"
-#include "Scenario/Document/Event/EventModel.hpp"
-#include "Scenario/Document/State/StateModel.hpp"
-#include "Scenario/Document/TimeNode/TimeNodeModel.hpp"
-#include "Scenario/Process/ScenarioModel.hpp"
-#include "Scenario/Tools/dataStructures.hpp"
+#include <Scenario/Document/Constraint/ConstraintDurations.hpp>
+#include <Scenario/Document/Constraint/ConstraintModel.hpp>
+#include <Scenario/Document/Constraint/ViewModels/ConstraintViewModel.hpp>
+#include <Scenario/Document/Event/EventModel.hpp>
+#include <Scenario/Document/State/StateModel.hpp>
+#include <Scenario/Document/TimeNode/TimeNodeModel.hpp>
+#include <Scenario/Process/ScenarioModel.hpp>
+#include <Scenario/Tools/dataStructures.hpp>
 #include <iscore/serialization/DataStreamVisitor.hpp>
 #include <iscore/tools/ModelPath.hpp>
 #include <iscore/tools/NotifyingMap.hpp>

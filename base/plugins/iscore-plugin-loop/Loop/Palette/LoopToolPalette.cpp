@@ -8,10 +8,10 @@
 #include "LoopToolPalette.hpp"
 #include <Process/ProcessContext.hpp>
 #include <Process/TimeValue.hpp>
-#include "Scenario/Application/ScenarioApplicationPlugin.hpp"
-#include "Scenario/Document/DisplayedElements/DisplayedElementsToolPalette/BaseScenarioDisplayedElements_StateWrappers.hpp"
-#include "Scenario/Palette/ScenarioPoint.hpp"
-#include "Scenario/Palette/Tools/SmartTool.hpp"
+#include <Scenario/Application/ScenarioApplicationPlugin.hpp>
+#include <Scenario/Document/DisplayedElements/DisplayedElementsToolPalette/BaseScenarioDisplayedElements_StateWrappers.hpp>
+#include <Scenario/Palette/ScenarioPoint.hpp>
+#include <Scenario/Palette/Tools/SmartTool.hpp>
 #include <core/application/ApplicationComponents.hpp>
 #include <core/application/ApplicationContext.hpp>
 #include <iscore/statemachine/GraphicsSceneToolPalette.hpp>

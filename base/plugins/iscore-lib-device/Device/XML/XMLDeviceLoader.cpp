@@ -4,10 +4,10 @@
 #include <QFile>
 #include <QIODevice>
 
-#include "Device/Address/AddressSettings.hpp"
-#include "Device/Address/ClipMode.hpp"
-#include "Device/Address/Domain.hpp"
-#include "Device/Address/IOType.hpp"
+#include <Device/Address/AddressSettings.hpp>
+#include <Device/Address/ClipMode.hpp>
+#include <Device/Address/Domain.hpp>
+#include <Device/Address/IOType.hpp>
 #include <State/Value.hpp>
 #include "XMLDeviceLoader.hpp"
 

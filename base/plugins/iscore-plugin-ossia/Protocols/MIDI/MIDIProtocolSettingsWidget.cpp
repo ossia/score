@@ -6,7 +6,7 @@
 #include <QString>
 #include <QVariant>
 
-#include "Device/Protocol/ProtocolSettingsWidget.hpp"
+#include <Device/Protocol/ProtocolSettingsWidget.hpp>
 #include "MIDIProtocolSettingsWidget.hpp"
 #include "MIDISpecificSettings.hpp"
 

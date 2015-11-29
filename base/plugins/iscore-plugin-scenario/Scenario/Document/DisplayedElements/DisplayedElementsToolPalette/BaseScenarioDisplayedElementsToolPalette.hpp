@@ -4,9 +4,9 @@
 #include <iscore/statemachine/GraphicsSceneToolPalette.hpp>
 #include <QPoint>
 
-#include "Scenario/Palette/ScenarioPoint.hpp"
-#include "Scenario/Palette/Tool.hpp"
-#include "Scenario/Palette/Tools/SmartTool.hpp"
+#include <Scenario/Palette/ScenarioPoint.hpp>
+#include <Scenario/Palette/Tool.hpp>
+#include <Scenario/Palette/Tools/SmartTool.hpp>
 
 class BaseGraphicsObject;
 class BaseScenario;

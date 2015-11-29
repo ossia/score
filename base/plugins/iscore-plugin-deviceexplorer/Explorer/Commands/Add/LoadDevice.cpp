@@ -1,9 +1,9 @@
 #include <Explorer/DocumentPlugin/DeviceDocumentPlugin.hpp>
 #include <algorithm>
 
-#include "Device/Node/DeviceNode.hpp"
-#include "Device/Protocol/DeviceSettings.hpp"
-#include "Explorer/DocumentPlugin/NodeUpdateProxy.hpp"
+#include <Device/Node/DeviceNode.hpp>
+#include <Device/Protocol/DeviceSettings.hpp>
+#include <Explorer/DocumentPlugin/NodeUpdateProxy.hpp>
 #include "LoadDevice.hpp"
 #include <iscore/serialization/DataStreamVisitor.hpp>
 #include <iscore/tools/ModelPath.hpp>

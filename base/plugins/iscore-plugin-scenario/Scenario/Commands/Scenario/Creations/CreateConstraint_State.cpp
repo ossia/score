@@ -10,9 +10,9 @@
 #include <vector>
 
 #include "CreateConstraint_State.hpp"
-#include "Scenario/Commands/Scenario/Creations/CreateConstraint.hpp"
-#include "Scenario/Document/Event/EventModel.hpp"
-#include "Scenario/Document/State/StateModel.hpp"
+#include <Scenario/Commands/Scenario/Creations/CreateConstraint.hpp>
+#include <Scenario/Document/Event/EventModel.hpp>
+#include <Scenario/Document/State/StateModel.hpp>
 #include <iscore/serialization/DataStreamVisitor.hpp>
 #include <iscore/tools/NotifyingMap.hpp>
 

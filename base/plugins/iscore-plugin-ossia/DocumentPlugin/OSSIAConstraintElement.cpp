@@ -19,7 +19,7 @@
 #include "OSSIAScenarioElement.hpp"
 #include <Process/Process.hpp>
 #include <Process/TimeValue.hpp>
-#include "Scenario/Document/Constraint/ConstraintDurations.hpp"
+#include <Scenario/Document/Constraint/ConstraintDurations.hpp>
 #include <iscore/tools/NotifyingMap.hpp>
 #include <iscore/tools/SettableIdentifier.hpp>
 #include <iscore/tools/Todo.hpp>

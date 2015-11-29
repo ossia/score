@@ -7,12 +7,12 @@
 #include <algorithm>
 #include <vector>
 
-#include "Explorer/DocumentPlugin/NodeUpdateProxy.hpp"
+#include <Explorer/DocumentPlugin/NodeUpdateProxy.hpp>
 #include <Process/State/MessageNode.hpp>
 #include "RefreshStates.hpp"
 #include "RefreshStatesMacro.hpp"
-#include "Scenario/Document/State/ItemModel/MessageItemModel.hpp"
-#include "Scenario/Document/State/StateModel.hpp"
+#include <Scenario/Document/State/ItemModel/MessageItemModel.hpp>
+#include <Scenario/Document/State/StateModel.hpp>
 #include <State/Message.hpp>
 #include <State/Value.hpp>
 #include <iscore/command/Dispatchers/CommandDispatcher.hpp>

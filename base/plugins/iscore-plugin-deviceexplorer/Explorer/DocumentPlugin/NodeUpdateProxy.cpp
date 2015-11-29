@@ -7,10 +7,10 @@
 #include <algorithm>
 #include <vector>
 
-#include "Device/Node/DeviceNode.hpp"
-#include "Device/Protocol/DeviceInterface.hpp"
-#include "Device/Protocol/DeviceList.hpp"
-#include "Device/Protocol/DeviceSettings.hpp"
+#include <Device/Node/DeviceNode.hpp>
+#include <Device/Protocol/DeviceInterface.hpp>
+#include <Device/Protocol/DeviceList.hpp>
+#include <Device/Protocol/DeviceSettings.hpp>
 #include "DeviceDocumentPlugin.hpp"
 #include "NodeUpdateProxy.hpp"
 #include <State/Address.hpp>

@@ -6,7 +6,7 @@
 #include <algorithm>
 
 #include "DisplayedElementsModel.hpp"
-#include "Scenario/Document/DisplayedElements/DisplayedElementsContainer.hpp"
+#include <Scenario/Document/DisplayedElements/DisplayedElementsContainer.hpp>
 #include <iscore/selection/Selection.hpp>
 #include <iscore/tools/std/StdlibWrapper.hpp>
 

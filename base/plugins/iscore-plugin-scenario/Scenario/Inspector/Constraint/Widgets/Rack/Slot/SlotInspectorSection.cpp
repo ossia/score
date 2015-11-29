@@ -16,11 +16,11 @@
 #include <QPushButton>
 #include <algorithm>
 
-#include "Inspector/InspectorSectionWidget.hpp"
+#include <Inspector/InspectorSectionWidget.hpp>
 #include <Process/LayerModel.hpp>
 #include <Process/ModelMetadata.hpp>
 #include <Process/Process.hpp>
-#include "Scenario/Document/Constraint/Rack/Slot/SlotModel.hpp"
+#include <Scenario/Document/Constraint/Rack/Slot/SlotModel.hpp>
 #include "SlotInspectorSection.hpp"
 #include <iscore/command/Dispatchers/CommandDispatcher.hpp>
 #include <iscore/serialization/DataStreamVisitor.hpp>

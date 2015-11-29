@@ -10,8 +10,8 @@
 
 #include "CreateEvent_State.hpp"
 #include <Process/ModelMetadata.hpp>
-#include "Scenario/Commands/Scenario/Creations/CreateState.hpp"
-#include "Scenario/Document/Event/EventModel.hpp"
+#include <Scenario/Commands/Scenario/Creations/CreateState.hpp>
+#include <Scenario/Document/Event/EventModel.hpp>
 #include <iscore/serialization/DataStreamVisitor.hpp>
 #include <iscore/tools/NotifyingMap.hpp>
 

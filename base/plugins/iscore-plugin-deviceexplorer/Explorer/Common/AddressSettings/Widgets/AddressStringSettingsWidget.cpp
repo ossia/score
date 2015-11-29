@@ -4,7 +4,7 @@
 #include <QString>
 
 #include "AddressStringSettingsWidget.hpp"
-#include "Explorer/Common/AddressSettings/Widgets/AddressSettingsWidget.hpp"
+#include <Explorer/Common/AddressSettings/Widgets/AddressSettingsWidget.hpp>
 #include <State/Value.hpp>
 #include <State/ValueConversion.hpp>
 

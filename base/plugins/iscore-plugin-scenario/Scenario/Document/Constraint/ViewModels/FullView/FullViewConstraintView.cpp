@@ -8,7 +8,7 @@
 
 #include "FullViewConstraintPresenter.hpp"
 #include "FullViewConstraintView.hpp"
-#include "Scenario/Document/Constraint/ViewModels/ConstraintView.hpp"
+#include <Scenario/Document/Constraint/ViewModels/ConstraintView.hpp>
 
 class QStyleOptionGraphicsItem;
 class QWidget;

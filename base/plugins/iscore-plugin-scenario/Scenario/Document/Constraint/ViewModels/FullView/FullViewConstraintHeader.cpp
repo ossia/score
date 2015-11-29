@@ -6,7 +6,7 @@
 
 #include "AddressBarItem.hpp"
 #include "FullViewConstraintHeader.hpp"
-#include "Scenario/Document/Constraint/ViewModels/ConstraintHeader.hpp"
+#include <Scenario/Document/Constraint/ViewModels/ConstraintHeader.hpp>
 
 class QGraphicsItem;
 class QPainter;

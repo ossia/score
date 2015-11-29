@@ -14,8 +14,8 @@
 #include "NetworkDocumentPlugin.hpp"
 #include <Process/Process.hpp>
 #include "Repartition/session/Session.hpp"
-#include "Scenario/Document/Constraint/ConstraintModel.hpp"
-#include "Scenario/Document/Event/EventModel.hpp"
+#include <Scenario/Document/Constraint/ConstraintModel.hpp>
+#include <Scenario/Document/Event/EventModel.hpp>
 #include <iscore/plugins/documentdelegate/plugin/DocumentDelegatePluginModel.hpp>
 #include <iscore/plugins/documentdelegate/plugin/ElementPluginModelList.hpp>
 #include <iscore/tools/NotifyingMap.hpp>

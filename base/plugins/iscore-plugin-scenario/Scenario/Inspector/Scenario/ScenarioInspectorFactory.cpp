@@ -1,7 +1,7 @@
 #include <Scenario/Process/ScenarioModel.hpp>
 #include <QString>
 
-#include "Scenario/Process/ScenarioProcessMetadata.hpp"
+#include <Scenario/Process/ScenarioProcessMetadata.hpp>
 #include "ScenarioInspectorFactory.hpp"
 #include "ScenarioInspectorWidget.hpp"
 

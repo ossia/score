@@ -1,7 +1,7 @@
 #include <QObject>
 
 
-#include "Device/Protocol/DeviceSettings.hpp"
+#include <Device/Protocol/DeviceSettings.hpp>
 #include "OSCDevice.hpp"
 #include "OSCProtocolFactory.hpp"
 #include "OSCProtocolSettingsWidget.hpp"

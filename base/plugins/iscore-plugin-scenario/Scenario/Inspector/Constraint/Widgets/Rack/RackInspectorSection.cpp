@@ -8,11 +8,11 @@
 #include <QPushButton>
 
 #include "AddSlotWidget.hpp"
-#include "Inspector/InspectorSectionWidget.hpp"
+#include <Inspector/InspectorSectionWidget.hpp>
 #include <Process/ModelMetadata.hpp>
 #include "RackInspectorSection.hpp"
-#include "Scenario/Document/Constraint/Rack/RackModel.hpp"
-#include "Scenario/Document/Constraint/Rack/Slot/SlotModel.hpp"
+#include <Scenario/Document/Constraint/Rack/RackModel.hpp>
+#include <Scenario/Document/Constraint/Rack/Slot/SlotModel.hpp>
 #include "Slot/SlotInspectorSection.hpp"
 #include <iscore/command/Dispatchers/CommandDispatcher.hpp>
 #include <iscore/serialization/DataStreamVisitor.hpp>

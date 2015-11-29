@@ -9,7 +9,7 @@
 
 #include "ConstraintInspectorFactory.hpp"
 #include "ConstraintInspectorWidget.hpp"
-#include "Scenario/Inspector/Constraint/ConstraintInspectorDelegate.hpp"
+#include <Scenario/Inspector/Constraint/ConstraintInspectorDelegate.hpp>
 #include <core/document/DocumentContext.hpp>
 #include <iscore/plugins/customfactory/StringFactoryKey.hpp>
 

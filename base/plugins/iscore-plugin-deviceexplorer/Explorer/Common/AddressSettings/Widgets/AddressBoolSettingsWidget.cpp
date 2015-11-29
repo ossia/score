@@ -6,7 +6,7 @@
 #include <QVariant>
 
 #include "AddressBoolSettingsWidget.hpp"
-#include "Explorer/Common/AddressSettings/Widgets/AddressSettingsWidget.hpp"
+#include <Explorer/Common/AddressSettings/Widgets/AddressSettingsWidget.hpp>
 #include <State/Value.hpp>
 
 class QWidget;

@@ -6,8 +6,8 @@
 
 #include <Automation/AutomationModel.hpp>
 #include "ChangeAddress.hpp"
-#include "Device/Address/AddressSettings.hpp"
-#include "Device/Address/Domain.hpp"
+#include <Device/Address/AddressSettings.hpp>
+#include <Device/Address/Domain.hpp>
 #include <State/Address.hpp>
 #include <State/Value.hpp>
 #include <State/ValueConversion.hpp>

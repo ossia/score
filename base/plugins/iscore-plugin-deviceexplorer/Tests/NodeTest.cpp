@@ -163,9 +163,9 @@ class NodeTest: public QObject
 };
 
 QTEST_MAIN(NodeTest)
-#include "Device/Address/AddressSettings.hpp"
-#include "Device/Protocol/DeviceSettings.hpp"
-#include "Device/Protocol/ProtocolFactoryKey.hpp"
+#include <Device/Address/AddressSettings.hpp>
+#include <Device/Protocol/DeviceSettings.hpp>
+#include <Device/Protocol/ProtocolFactoryKey.hpp>
 #include "NodeTest.moc"
 #include <iscore/tools/TreeNode.hpp>
 

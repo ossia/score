@@ -8,8 +8,8 @@
 
 #include "ChangeGroup.hpp"
 #include "DistributedScenario/GroupMetadata.hpp"
-#include "Scenario/Document/Constraint/ConstraintModel.hpp"
-#include "Scenario/Document/Event/EventModel.hpp"
+#include <Scenario/Document/Constraint/ConstraintModel.hpp>
+#include <Scenario/Document/Event/EventModel.hpp>
 #include <iscore/plugins/documentdelegate/plugin/ElementPluginModel.hpp>
 #include <iscore/plugins/documentdelegate/plugin/ElementPluginModelList.hpp>
 #include <iscore/serialization/DataStreamVisitor.hpp>

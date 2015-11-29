@@ -8,9 +8,9 @@
 #include <QDebug>
 #include <algorithm>
 
-#include "Scenario/Document/Constraint/ConstraintModel.hpp"
-#include "Scenario/Document/State/StateModel.hpp"
-#include "Scenario/Process/ScenarioModel.hpp"
+#include <Scenario/Document/Constraint/ConstraintModel.hpp>
+#include <Scenario/Document/State/StateModel.hpp>
+#include <Scenario/Process/ScenarioModel.hpp>
 #include "ScenarioGlobalCommandManager.hpp"
 #include <iscore/selection/Selection.hpp>
 #include <iscore/tools/IdentifiedObject.hpp>

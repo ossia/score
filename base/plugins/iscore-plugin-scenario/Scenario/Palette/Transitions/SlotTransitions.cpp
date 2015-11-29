@@ -1,6 +1,6 @@
 #include <algorithm>
 
-#include "Scenario/Palette/ScenarioPaletteBaseStates.hpp"
+#include <Scenario/Palette/ScenarioPaletteBaseStates.hpp>
 #include "SlotTransitions.hpp"
 #include <iscore/tools/ModelPath.hpp>
 

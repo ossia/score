@@ -1,7 +1,7 @@
 #pragma once
 #include <QPoint>
 
-#include "Scenario/Application/Menus/ScenarioActions.hpp"
+#include <Scenario/Application/Menus/ScenarioActions.hpp>
 #include <iscore/selection/Selection.hpp>
 
 class QAction;

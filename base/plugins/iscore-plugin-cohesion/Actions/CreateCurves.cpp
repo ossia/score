@@ -8,7 +8,7 @@
 #include <QPointer>
 
 #include "CreateCurves.hpp"
-#include "Device/Node/DeviceNode.hpp"
+#include <Device/Node/DeviceNode.hpp>
 #include <State/Address.hpp>
 #include <iscore/selection/Selectable.hpp>
 #include <iscore/selection/SelectionStack.hpp>

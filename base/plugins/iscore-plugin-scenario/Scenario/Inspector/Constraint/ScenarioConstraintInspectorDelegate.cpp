@@ -1,9 +1,9 @@
 #include <Scenario/Commands/Scenario/Displacement/MoveEventMeta.hpp>
 
-#include "Scenario/Document/Constraint/ConstraintModel.hpp"
-#include "Scenario/Document/State/StateModel.hpp"
-#include "Scenario/Inspector/Constraint/ConstraintInspectorDelegate.hpp"
-#include "Scenario/Process/ScenarioModel.hpp"
+#include <Scenario/Document/Constraint/ConstraintModel.hpp>
+#include <Scenario/Document/State/StateModel.hpp>
+#include <Scenario/Inspector/Constraint/ConstraintInspectorDelegate.hpp>
+#include <Scenario/Process/ScenarioModel.hpp>
 #include "ScenarioConstraintInspectorDelegate.hpp"
 #include <iscore/command/Dispatchers/OngoingCommandDispatcher.hpp>
 

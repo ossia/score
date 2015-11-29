@@ -16,7 +16,7 @@
 #include <QSet>
 #include <QString>
 
-#include "Device/Node/DeviceNode.hpp"
+#include <Device/Node/DeviceNode.hpp>
 #include "MessageTreeView.hpp"
 #include <Process/State/MessageNode.hpp>
 #include <core/document/DocumentContext.hpp>

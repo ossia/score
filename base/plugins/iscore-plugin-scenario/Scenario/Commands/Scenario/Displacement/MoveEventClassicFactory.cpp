@@ -6,7 +6,7 @@
 #include <QString>
 #include <algorithm>
 
-#include "Scenario/Commands/Scenario/Displacement/MoveEventFactoryInterface.hpp"
+#include <Scenario/Commands/Scenario/Displacement/MoveEventFactoryInterface.hpp>
 #include <iscore/serialization/DataStreamVisitor.hpp>
 #include <iscore/tools/ModelPath.hpp>
 #include <iscore/tools/ModelPathSerialization.hpp>

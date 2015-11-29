@@ -9,7 +9,7 @@
 #include <tuple>
 
 #include "BaseScenario.hpp"
-#include "Scenario/Document/BaseScenario/BaseScenarioContainer.hpp"
+#include <Scenario/Document/BaseScenario/BaseScenarioContainer.hpp>
 #include <iscore/selection/Selection.hpp>
 #include <iscore/tools/SettableIdentifier.hpp>
 #include <iscore/tools/std/StdlibWrapper.hpp>

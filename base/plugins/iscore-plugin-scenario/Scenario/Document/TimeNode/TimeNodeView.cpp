@@ -7,8 +7,8 @@
 #include <algorithm>
 
 #include <Process/ModelMetadata.hpp>
-#include "Scenario/Document/TimeNode/TimeNodeModel.hpp"
-#include "Scenario/Document/VerticalExtent.hpp"
+#include <Scenario/Document/TimeNode/TimeNodeModel.hpp>
+#include <Scenario/Document/VerticalExtent.hpp>
 #include "TimeNodePresenter.hpp"
 #include "TimeNodeView.hpp"
 

@@ -1,4 +1,4 @@
-#include "Inspector/InspectorWidgetFactoryInterface.hpp"
+#include <Inspector/InspectorWidgetFactoryInterface.hpp>
 #include "JSInspectorFactory.hpp"
 #include "JS/JSProcessModel.hpp"
 #include "JSInspectorWidget.hpp"

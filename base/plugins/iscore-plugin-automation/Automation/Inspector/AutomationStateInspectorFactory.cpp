@@ -2,7 +2,7 @@
 
 #include "AutomationStateInspector.hpp"
 #include "AutomationStateInspectorFactory.hpp"
-#include "Inspector/InspectorWidgetFactoryInterface.hpp"
+#include <Inspector/InspectorWidgetFactoryInterface.hpp>
 #include <Automation/State/AutomationState.hpp>
 class InspectorWidgetBase;
 class QObject;

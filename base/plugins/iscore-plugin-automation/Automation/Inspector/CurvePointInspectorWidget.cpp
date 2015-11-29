@@ -11,7 +11,7 @@
 
 #include <Curve/Palette/CurvePoint.hpp>
 #include "CurvePointInspectorWidget.hpp"
-#include "Inspector/InspectorWidgetBase.hpp"
+#include <Inspector/InspectorWidgetBase.hpp>
 #include <Process/TimeValue.hpp>
 #include <iscore/command/Dispatchers/CommandDispatcher.hpp>
 #include <iscore/command/Dispatchers/OngoingCommandDispatcher.hpp>

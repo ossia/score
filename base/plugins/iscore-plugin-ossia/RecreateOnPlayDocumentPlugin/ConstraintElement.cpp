@@ -17,7 +17,7 @@
 #include <Process/TimeValue.hpp>
 #include "RecreateOnPlayDocumentPlugin/ProcessElement.hpp"
 #include "RecreateOnPlayDocumentPlugin/ProcessWrapper.hpp"
-#include "Scenario/Document/Constraint/ConstraintDurations.hpp"
+#include <Scenario/Document/Constraint/ConstraintDurations.hpp>
 #include "ScenarioElement.hpp"
 #include <iscore/tools/SettableIdentifier.hpp>
 

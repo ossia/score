@@ -24,8 +24,8 @@
 #include <QToolBar>
 #include <QWidget>
 
-#include "Scenario/Application/Menus/ScenarioActions.hpp"
-#include "Scenario/Document/ScenarioDocument/Widgets/ScenarioBaseGraphicsView.hpp"
+#include <Scenario/Application/Menus/ScenarioActions.hpp>
+#include <Scenario/Document/ScenarioDocument/Widgets/ScenarioBaseGraphicsView.hpp>
 #include "ScenarioDocumentView.hpp"
 #include "Widgets/DoubleSlider.hpp"
 #include "Widgets/GraphicsProxyObject.hpp"

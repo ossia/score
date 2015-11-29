@@ -20,9 +20,9 @@
 #include <QString>
 
 #include "BaseConstraintInspectorDelegate.hpp"
-#include "Scenario/Document/Event/EventModel.hpp"
-#include "Scenario/Document/TimeNode/TimeNodeModel.hpp"
-#include "Scenario/Inspector/Constraint/ConstraintInspectorDelegate.hpp"
+#include <Scenario/Document/Event/EventModel.hpp>
+#include <Scenario/Document/TimeNode/TimeNodeModel.hpp>
+#include <Scenario/Inspector/Constraint/ConstraintInspectorDelegate.hpp>
 #include <iscore/command/Dispatchers/OngoingCommandDispatcher.hpp>
 #include <iscore/plugins/customfactory/StringFactoryKey.hpp>
 #include <iscore/serialization/DataStreamVisitor.hpp>

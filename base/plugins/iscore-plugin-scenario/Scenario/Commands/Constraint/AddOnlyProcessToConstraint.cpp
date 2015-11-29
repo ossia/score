@@ -10,7 +10,7 @@
 #include <vector>
 
 #include "AddOnlyProcessToConstraint.hpp"
-#include "Scenario/Document/Constraint/ConstraintDurations.hpp"
+#include <Scenario/Document/Constraint/ConstraintDurations.hpp>
 #include <core/application/ApplicationContext.hpp>
 #include <iscore/plugins/customfactory/FactoryFamily.hpp>
 #include <iscore/plugins/customfactory/FactoryMap.hpp>

@@ -2,7 +2,7 @@
 #include <Scenario/Application/Menus/ToolMenuActions.hpp>
 #include <Scenario/Application/Menus/TransportActions.hpp>
 
-#include "Scenario/Application/Menus/Plugin/ScenarioActionsFactory.hpp"
+#include <Scenario/Application/Menus/Plugin/ScenarioActionsFactory.hpp>
 #include "ScenarioCommonContextMenuFactory.hpp"
 #include <iscore/menu/MenuInterface.hpp>
 

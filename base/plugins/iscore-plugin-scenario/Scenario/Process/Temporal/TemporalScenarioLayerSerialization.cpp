@@ -5,7 +5,7 @@
 #include <QVector>
 #include <algorithm>
 
-#include "Scenario/Process/AbstractScenarioLayerModel.hpp"
+#include <Scenario/Process/AbstractScenarioLayerModel.hpp>
 #include "TemporalScenarioLayerModel.hpp"
 #include <iscore/serialization/DataStreamVisitor.hpp>
 #include <iscore/serialization/JSONVisitor.hpp>

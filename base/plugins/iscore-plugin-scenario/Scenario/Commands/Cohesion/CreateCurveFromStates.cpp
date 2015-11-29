@@ -15,8 +15,8 @@
 #include <Curve/Segment/CurveSegmentModel.hpp>
 #include <Process/Process.hpp>
 #include <Process/ProcessFactory.hpp>
-#include "Scenario/Commands/Constraint/AddOnlyProcessToConstraint.hpp"
-#include "Scenario/Commands/Constraint/Rack/Slot/AddLayerModelToSlot.hpp"
+#include <Scenario/Commands/Constraint/AddOnlyProcessToConstraint.hpp>
+#include <Scenario/Commands/Constraint/Rack/Slot/AddLayerModelToSlot.hpp>
 #include <core/application/ApplicationContext.hpp>
 #include <iscore/plugins/customfactory/FactoryFamily.hpp>
 #include <iscore/plugins/customfactory/FactoryMap.hpp>

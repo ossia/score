@@ -2,7 +2,7 @@
 
 #include <Device/Protocol/ProtocolSettingsWidget.hpp>
 
-#include "Device/Protocol/DeviceSettings.hpp"
+#include <Device/Protocol/DeviceSettings.hpp>
 
 class QLineEdit;
 class QSpinBox;

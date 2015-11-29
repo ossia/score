@@ -12,7 +12,7 @@
 #include <algorithm>
 #include <cmath>
 
-#include "Scenario/Document/Constraint/ViewModels/ConstraintHeader.hpp"
+#include <Scenario/Document/Constraint/ViewModels/ConstraintHeader.hpp>
 #include "TemporalConstraintHeader.hpp"
 
 class QGraphicsSceneMouseEvent;

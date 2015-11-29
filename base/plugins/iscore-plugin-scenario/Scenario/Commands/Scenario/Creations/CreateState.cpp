@@ -9,8 +9,8 @@
 #include <vector>
 
 #include "CreateState.hpp"
-#include "Scenario/Document/Event/EventModel.hpp"
-#include "Scenario/Document/State/StateModel.hpp"
+#include <Scenario/Document/Event/EventModel.hpp>
+#include <Scenario/Document/State/StateModel.hpp>
 #include <iscore/serialization/DataStreamVisitor.hpp>
 #include <iscore/tools/ModelPath.hpp>
 #include <iscore/tools/ModelPathSerialization.hpp>

@@ -5,7 +5,7 @@
 #include <iscore/statemachine/GraphicsSceneToolPalette.hpp>
 #include <QPoint>
 
-#include "Scenario/Palette/Tool.hpp"
+#include <Scenario/Palette/Tool.hpp>
 
 class LoopPresenter;
 class LoopView;

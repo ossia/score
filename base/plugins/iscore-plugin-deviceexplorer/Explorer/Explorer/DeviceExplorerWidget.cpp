@@ -36,16 +36,16 @@
 #include <algorithm>
 #include <stdexcept>
 
-#include "Device/Address/AddressSettings.hpp"
-#include "Device/Protocol/DeviceInterface.hpp"
-#include "Device/Protocol/DeviceList.hpp"
-#include "Device/Protocol/DeviceSettings.hpp"
+#include <Device/Address/AddressSettings.hpp>
+#include <Device/Protocol/DeviceInterface.hpp>
+#include <Device/Protocol/DeviceList.hpp>
+#include <Device/Protocol/DeviceSettings.hpp>
 #include "DeviceExplorerFilterProxyModel.hpp"
 #include "DeviceExplorerView.hpp"
 #include "DeviceExplorerWidget.hpp"
 #include "ExplorationWorkerWrapper.hpp"
-#include "Explorer/DocumentPlugin/DeviceDocumentPlugin.hpp"
-#include "Explorer/Explorer/DeviceExplorerModel.hpp"
+#include <Explorer/DocumentPlugin/DeviceDocumentPlugin.hpp>
+#include <Explorer/Explorer/DeviceExplorerModel.hpp>
 #include "QProgressIndicator.h"
 #include <State/Address.hpp>
 #include <State/Value.hpp>

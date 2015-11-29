@@ -4,7 +4,7 @@
 
 #include "ConstraintViewModel.hpp"
 #include "ConstraintViewModelSerialization.hpp"
-#include "Scenario/Document/Constraint/ConstraintModel.hpp"
+#include <Scenario/Document/Constraint/ConstraintModel.hpp>
 #include <iscore/serialization/DataStreamVisitor.hpp>
 #include <iscore/serialization/JSONValueVisitor.hpp>
 #include <iscore/serialization/JSONVisitor.hpp>

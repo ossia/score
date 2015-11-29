@@ -3,7 +3,7 @@
 
 #include <Automation/State/AutomationState.hpp>
 #include "AutomationStateInspector.hpp"
-#include "Inspector/InspectorWidgetBase.hpp"
+#include <Inspector/InspectorWidgetBase.hpp>
 #include <Process/State/ProcessStateDataInterface.hpp>
 #include <State/Message.hpp>
 #include <iscore/tools/Todo.hpp>

@@ -3,7 +3,7 @@
 #include <Device/Protocol/ProtocolSettingsWidget.hpp>
 #include <QString>
 
-#include "Device/Protocol/DeviceSettings.hpp"
+#include <Device/Protocol/DeviceSettings.hpp>
 
 class QLineEdit;
 class QSpinBox;

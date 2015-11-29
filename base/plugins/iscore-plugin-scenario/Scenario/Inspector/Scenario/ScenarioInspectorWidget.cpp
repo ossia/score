@@ -4,7 +4,7 @@
 #include <QPushButton>
 #include <list>
 
-#include "Inspector/InspectorWidgetBase.hpp"
+#include <Inspector/InspectorWidgetBase.hpp>
 #include "ScenarioInspectorWidget.hpp"
 
 class QWidget;

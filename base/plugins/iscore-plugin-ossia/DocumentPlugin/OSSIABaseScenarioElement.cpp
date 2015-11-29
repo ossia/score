@@ -16,10 +16,10 @@
 #include "Editor/State.h"
 #include "Editor/StateElement.h"
 #include "Editor/TimeValue.h"
-#include "Explorer/DocumentPlugin/DeviceDocumentPlugin.hpp"
+#include <Explorer/DocumentPlugin/DeviceDocumentPlugin.hpp>
 #include "OSSIABaseScenarioElement.hpp"
-#include "Scenario/Document/Constraint/ConstraintDurations.hpp"
-#include "Scenario/Document/Constraint/ConstraintModel.hpp"
+#include <Scenario/Document/Constraint/ConstraintDurations.hpp>
+#include <Scenario/Document/Constraint/ConstraintModel.hpp>
 #include "iscore2OSSIA.hpp"
 
 static void statusCallback(

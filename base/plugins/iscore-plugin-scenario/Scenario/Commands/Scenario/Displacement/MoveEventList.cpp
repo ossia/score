@@ -2,7 +2,7 @@
 #include <stdexcept>
 
 #include "MoveEventList.hpp"
-#include "Scenario/Commands/Scenario/Displacement/MoveEventFactoryInterface.hpp"
+#include <Scenario/Commands/Scenario/Displacement/MoveEventFactoryInterface.hpp>
 
 MoveEventFactoryInterface* MoveEventList::get(MoveEventFactoryInterface::Strategy strategy) const
 {

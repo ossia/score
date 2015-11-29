@@ -14,11 +14,11 @@
 #include <chrono>
 
 #include "DurationSectionWidget.hpp"
-#include "Inspector/InspectorSectionWidget.hpp"
+#include <Inspector/InspectorSectionWidget.hpp>
 #include <Process/TimeValue.hpp>
-#include "Scenario/Application/ScenarioEditionSettings.hpp"
-#include "Scenario/Document/Constraint/ConstraintDurations.hpp"
-#include "Scenario/Inspector/Constraint/ConstraintInspectorDelegate.hpp"
+#include <Scenario/Application/ScenarioEditionSettings.hpp>
+#include <Scenario/Document/Constraint/ConstraintDurations.hpp>
+#include <Scenario/Inspector/Constraint/ConstraintInspectorDelegate.hpp>
 #include <iscore/command/Dispatchers/CommandDispatcher.hpp>
 #include <iscore/command/Dispatchers/OngoingCommandDispatcher.hpp>
 #include <iscore/tools/ModelPath.hpp>

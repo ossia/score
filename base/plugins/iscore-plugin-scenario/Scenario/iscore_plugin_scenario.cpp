@@ -18,16 +18,16 @@
 #include <QMetaType>
 #include <QString>
 
-#include "Inspector/InspectorWidgetFactoryInterface.hpp"
+#include <Inspector/InspectorWidgetFactoryInterface.hpp>
 #include <Process/ProcessFactory.hpp>
 #include <Process/ProcessList.hpp>
 #include <Process/TimeValue.hpp>
-#include "Scenario/Application/Menus/Plugin/ScenarioActionsFactory.hpp"
-#include "Scenario/Application/Menus/Plugin/ScenarioContextMenuPluginList.hpp"
-#include "Scenario/Commands/Scenario/Displacement/MoveEventList.hpp"
-#include "Scenario/Commands/TimeNode/TriggerCommandFactory/TriggerCommandFactory.hpp"
-#include "Scenario/Document/DisplayedElements/DisplayedElementsProvider.hpp"
-#include "Scenario/Document/DisplayedElements/DisplayedElementsToolPalette/DisplayedElementsToolPaletteFactory.hpp"
+#include <Scenario/Application/Menus/Plugin/ScenarioActionsFactory.hpp>
+#include <Scenario/Application/Menus/Plugin/ScenarioContextMenuPluginList.hpp>
+#include <Scenario/Commands/Scenario/Displacement/MoveEventList.hpp>
+#include <Scenario/Commands/TimeNode/TriggerCommandFactory/TriggerCommandFactory.hpp>
+#include <Scenario/Document/DisplayedElements/DisplayedElementsProvider.hpp>
+#include <Scenario/Document/DisplayedElements/DisplayedElementsToolPalette/DisplayedElementsToolPaletteFactory.hpp>
 #include <State/Value.hpp>
 #include <core/application/ApplicationComponents.hpp>
 #include <iscore/plugins/customfactory/StringFactoryKey.hpp>

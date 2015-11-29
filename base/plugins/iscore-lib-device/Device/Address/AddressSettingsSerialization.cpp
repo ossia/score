@@ -10,9 +10,9 @@
 #include <QStringList>
 
 #include "AddressSettings.hpp"
-#include "Device/Address/ClipMode.hpp"
-#include "Device/Address/Domain.hpp"
-#include "Device/Address/IOType.hpp"
+#include <Device/Address/ClipMode.hpp>
+#include <Device/Address/Domain.hpp>
+#include <Device/Address/IOType.hpp>
 #include "DomainSerialization.hpp"
 #include <State/Value.hpp>
 

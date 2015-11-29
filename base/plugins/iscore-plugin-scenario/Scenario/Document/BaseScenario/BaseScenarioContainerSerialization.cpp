@@ -6,7 +6,7 @@
 #include <algorithm>
 
 #include "BaseScenarioContainer.hpp"
-#include "Scenario/Document/State/StateModel.hpp"
+#include <Scenario/Document/State/StateModel.hpp>
 #include <iscore/serialization/DataStreamVisitor.hpp>
 #include <iscore/serialization/JSONVisitor.hpp>
 

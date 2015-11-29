@@ -6,7 +6,7 @@
 #include <QTabWidget>
 #include <algorithm>
 
-#include "Inspector/InspectorWidgetBase.hpp"
+#include <Inspector/InspectorWidgetBase.hpp>
 #include "InspectorPanel.hpp"
 #include <iscore/selection/SelectionDispatcher.hpp>
 #include <iscore/tools/IdentifiedObjectAbstract.hpp>

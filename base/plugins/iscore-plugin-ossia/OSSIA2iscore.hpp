@@ -3,11 +3,11 @@
 #include <API/Headers/Network/Address.h>
 #include <Process/TimeValue.hpp>
 
-#include "Device/Address/AddressSettings.hpp"
-#include "Device/Address/ClipMode.hpp"
-#include "Device/Address/Domain.hpp"
-#include "Device/Address/IOType.hpp"
-#include "Device/Node/DeviceNode.hpp"
+#include <Device/Address/AddressSettings.hpp>
+#include <Device/Address/ClipMode.hpp>
+#include <Device/Address/Domain.hpp>
+#include <Device/Address/IOType.hpp>
+#include <Device/Node/DeviceNode.hpp>
 #include <State/Value.hpp>
 
 namespace OSSIA {

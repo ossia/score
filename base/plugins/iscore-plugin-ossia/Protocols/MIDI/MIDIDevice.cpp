@@ -3,7 +3,7 @@
 #include <QString>
 #include <memory>
 
-#include "Device/Protocol/DeviceSettings.hpp"
+#include <Device/Protocol/DeviceSettings.hpp>
 #include "MIDIDevice.hpp"
 
 MIDIDevice::MIDIDevice(const iscore::DeviceSettings &settings):

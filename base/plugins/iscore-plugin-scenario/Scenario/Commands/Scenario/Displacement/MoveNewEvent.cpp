@@ -5,7 +5,7 @@
 #include <algorithm>
 
 #include "MoveNewEvent.hpp"
-#include "Scenario/Commands/Scenario/Displacement/MoveEventOnCreationMeta.hpp"
+#include <Scenario/Commands/Scenario/Displacement/MoveEventOnCreationMeta.hpp>
 #include <iscore/serialization/DataStreamVisitor.hpp>
 #include <iscore/tools/ModelPathSerialization.hpp>
 

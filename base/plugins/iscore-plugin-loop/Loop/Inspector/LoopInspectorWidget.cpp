@@ -1,6 +1,6 @@
 #include <Loop/LoopProcessModel.hpp>
 
-#include "Inspector/InspectorWidgetBase.hpp"
+#include <Inspector/InspectorWidgetBase.hpp>
 #include "LoopInspectorWidget.hpp"
 
 class QVBoxLayout;

@@ -8,7 +8,7 @@
 
 #include "AddMessagesToState.hpp"
 #include <Process/Process.hpp>
-#include "Scenario/Document/State/ItemModel/MessageItemModel.hpp"
+#include <Scenario/Document/State/ItemModel/MessageItemModel.hpp>
 #include <iscore/serialization/DataStreamVisitor.hpp>
 #include <iscore/tools/ModelPath.hpp>
 #include <iscore/tools/ModelPathSerialization.hpp>

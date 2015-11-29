@@ -4,7 +4,7 @@
 #include <QList>
 #include <QString>
 
-#include "Device/Protocol/DeviceSettings.hpp"
+#include <Device/Protocol/DeviceSettings.hpp>
 
 class DynamicProtocolList;
 class ProtocolSettingsWidget;

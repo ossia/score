@@ -1,7 +1,7 @@
 #include <QObject>
 
 
-#include "Device/Protocol/DeviceSettings.hpp"
+#include <Device/Protocol/DeviceSettings.hpp>
 #include "MIDIDevice.hpp"
 #include "MIDIProtocolFactory.hpp"
 #include "MIDIProtocolSettingsWidget.hpp"

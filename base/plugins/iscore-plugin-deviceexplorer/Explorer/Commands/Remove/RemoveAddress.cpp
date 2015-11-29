@@ -3,9 +3,9 @@
 #include <QtGlobal>
 #include <algorithm>
 
-#include "Device/Address/AddressSettings.hpp"
-#include "Device/Node/DeviceNode.hpp"
-#include "Explorer/DocumentPlugin/NodeUpdateProxy.hpp"
+#include <Device/Address/AddressSettings.hpp>
+#include <Device/Node/DeviceNode.hpp>
+#include <Explorer/DocumentPlugin/NodeUpdateProxy.hpp>
 #include "RemoveAddress.hpp"
 #include <iscore/serialization/DataStreamVisitor.hpp>
 #include <iscore/tools/ModelPath.hpp>

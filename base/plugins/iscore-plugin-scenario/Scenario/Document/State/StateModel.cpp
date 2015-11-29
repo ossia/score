@@ -6,8 +6,8 @@
 
 #include "ItemModel/MessageItemModelAlgorithms.hpp"
 #include <Process/Process.hpp>
-#include "Scenario/Document/Event/ExecutionStatus.hpp"
-#include "Scenario/Document/State/ItemModel/MessageItemModel.hpp"
+#include <Scenario/Document/Event/ExecutionStatus.hpp>
+#include <Scenario/Document/State/ItemModel/MessageItemModel.hpp>
 #include <State/Message.hpp>
 #include "StateModel.hpp"
 #include <iscore/tools/IdentifiedObject.hpp>

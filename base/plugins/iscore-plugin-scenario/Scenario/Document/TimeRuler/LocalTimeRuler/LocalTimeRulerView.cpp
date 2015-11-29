@@ -3,7 +3,7 @@
 #include <QString>
 
 #include "LocalTimeRulerView.hpp"
-#include "Scenario/Document/TimeRuler/AbstractTimeRulerView.hpp"
+#include <Scenario/Document/TimeRuler/AbstractTimeRulerView.hpp>
 
 LocalTimeRulerView::LocalTimeRulerView():
     AbstractTimeRulerView()

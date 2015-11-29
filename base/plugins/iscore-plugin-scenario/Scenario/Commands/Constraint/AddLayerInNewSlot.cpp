@@ -10,7 +10,7 @@
 #include <vector>
 
 #include "AddLayerInNewSlot.hpp"
-#include "Scenario/Document/Constraint/ViewModels/ConstraintViewModel.hpp"
+#include <Scenario/Document/Constraint/ViewModels/ConstraintViewModel.hpp>
 #include <iscore/serialization/DataStreamVisitor.hpp>
 #include <iscore/tools/ModelPath.hpp>
 #include <iscore/tools/ModelPathSerialization.hpp>

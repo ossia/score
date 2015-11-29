@@ -10,8 +10,8 @@
 
 #include <Process/ModelMetadata.hpp>
 #include <Process/TimeValue.hpp>
-#include "Scenario/Document/Event/EventModel.hpp"
-#include "Scenario/Document/VerticalExtent.hpp"
+#include <Scenario/Document/Event/EventModel.hpp>
+#include <Scenario/Document/VerticalExtent.hpp>
 #include <State/Expression.hpp>
 #include <iscore/plugins/documentdelegate/plugin/ElementPluginModelList.hpp>
 #include <iscore/serialization/JSONValueVisitor.hpp>

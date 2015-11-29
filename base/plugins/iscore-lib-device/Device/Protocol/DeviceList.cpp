@@ -1,4 +1,4 @@
-#include "Device/Protocol/DeviceInterface.hpp"
+#include <Device/Protocol/DeviceInterface.hpp>
 #include "DeviceList.hpp"
 
 template<typename TheList>

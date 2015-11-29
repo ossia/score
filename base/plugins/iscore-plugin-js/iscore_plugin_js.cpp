@@ -2,7 +2,7 @@
 #include <JS/JSProcessFactory.hpp>
 #include <unordered_map>
 
-#include "Inspector/InspectorWidgetFactoryInterface.hpp"
+#include <Inspector/InspectorWidgetFactoryInterface.hpp>
 #include "JS/Commands/JSCommandFactory.hpp"
 #include <Process/ProcessFactory.hpp>
 #include <iscore/plugins/customfactory/StringFactoryKey.hpp>

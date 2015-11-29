@@ -3,7 +3,7 @@
 
 #include "Editor/State.h"
 #include "OSSIAStateElement.hpp"
-#include "Scenario/Document/State/ItemModel/MessageItemModel.hpp"
+#include <Scenario/Document/State/ItemModel/MessageItemModel.hpp>
 #include "iscore2OSSIA.hpp"
 
 OSSIAStateElement::OSSIAStateElement(

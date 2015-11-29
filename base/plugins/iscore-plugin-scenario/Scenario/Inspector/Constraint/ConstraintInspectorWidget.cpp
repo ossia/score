@@ -37,13 +37,13 @@
 #include <utility>
 
 #include "ConstraintInspectorWidget.hpp"
-#include "Inspector/InspectorSectionWidget.hpp"
-#include "Inspector/InspectorWidgetBase.hpp"
+#include <Inspector/InspectorSectionWidget.hpp>
+#include <Inspector/InspectorWidgetBase.hpp>
 #include <Process/ModelMetadata.hpp>
 #include <Process/TimeValue.hpp>
-#include "Scenario/Commands/Metadata/ChangeElementName.hpp"
-#include "Scenario/Document/Constraint/ViewModels/ConstraintViewModel.hpp"
-#include "Scenario/Document/State/StateModel.hpp"
+#include <Scenario/Commands/Metadata/ChangeElementName.hpp>
+#include <Scenario/Document/Constraint/ViewModels/ConstraintViewModel.hpp>
+#include <Scenario/Document/State/StateModel.hpp>
 #include "Widgets/DurationSectionWidget.hpp"
 #include "Widgets/Rack/RackInspectorSection.hpp"
 #include "Widgets/RackWidget.hpp"

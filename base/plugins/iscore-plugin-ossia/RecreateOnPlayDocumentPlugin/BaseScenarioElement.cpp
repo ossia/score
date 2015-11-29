@@ -19,8 +19,8 @@
 #include "RecreateOnPlayDocumentPlugin/EventElement.hpp"
 #include "RecreateOnPlayDocumentPlugin/StateElement.hpp"
 #include "RecreateOnPlayDocumentPlugin/TimeNodeElement.hpp"
-#include "Scenario/Document/Constraint/ConstraintDurations.hpp"
-#include "Scenario/Document/Constraint/ConstraintModel.hpp"
+#include <Scenario/Document/Constraint/ConstraintDurations.hpp>
+#include <Scenario/Document/Constraint/ConstraintModel.hpp>
 
 
 namespace RecreateOnPlay

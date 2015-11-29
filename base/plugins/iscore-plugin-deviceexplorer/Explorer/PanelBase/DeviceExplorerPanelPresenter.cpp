@@ -8,7 +8,7 @@
 #include <iscore/document/DocumentInterface.hpp>
 #include <iscore/plugins/panel/PanelModel.hpp>
 #include <iscore/plugins/panel/PanelPresenter.hpp>
-#include "Explorer/PanelBase/DeviceExplorerPanelId.hpp"
+#include <Explorer/PanelBase/DeviceExplorerPanelId.hpp>
 
 namespace iscore {
 class PanelView;

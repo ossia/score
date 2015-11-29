@@ -8,7 +8,7 @@
 #include <QString>
 #include <QVariant>
 
-#include "Device/Protocol/ProtocolFactoryKey.hpp"
+#include <Device/Protocol/ProtocolFactoryKey.hpp>
 #include "DeviceSettings.hpp"
 #include "ProtocolFactoryInterface.hpp"
 #include <core/application/ApplicationContext.hpp>

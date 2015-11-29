@@ -4,7 +4,7 @@
 #include <QString>
 #include <QVariant>
 
-#include "Device/Protocol/ProtocolFactoryKey.hpp"
+#include <Device/Protocol/ProtocolFactoryKey.hpp>
 
 class DeviceInterface;
 class ProtocolSettingsWidget;

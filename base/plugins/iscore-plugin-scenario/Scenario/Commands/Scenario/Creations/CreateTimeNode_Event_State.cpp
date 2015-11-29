@@ -9,8 +9,8 @@
 
 #include "CreateTimeNode_Event_State.hpp"
 #include <Process/TimeValue.hpp>
-#include "Scenario/Commands/Scenario/Creations/CreateEvent_State.hpp"
-#include "Scenario/Document/TimeNode/TimeNodeModel.hpp"
+#include <Scenario/Commands/Scenario/Creations/CreateEvent_State.hpp>
+#include <Scenario/Document/TimeNode/TimeNodeModel.hpp>
 #include <iscore/serialization/DataStreamVisitor.hpp>
 #include <iscore/tools/NotifyingMap.hpp>
 

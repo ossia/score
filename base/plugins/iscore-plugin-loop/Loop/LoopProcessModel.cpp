@@ -11,9 +11,9 @@
 #include "LoopProcessModel.hpp"
 #include <Process/ModelMetadata.hpp>
 #include <Process/Process.hpp>
-#include "Scenario/Document/BaseScenario/BaseScenarioContainer.hpp"
-#include "Scenario/Document/Constraint/ConstraintDurations.hpp"
-#include "Scenario/Document/State/StateModel.hpp"
+#include <Scenario/Document/BaseScenario/BaseScenarioContainer.hpp>
+#include <Scenario/Document/Constraint/ConstraintDurations.hpp>
+#include <Scenario/Document/State/StateModel.hpp>
 #include <iscore/document/DocumentInterface.hpp>
 #include <iscore/plugins/documentdelegate/plugin/ElementPluginModelList.hpp>
 #include <iscore/serialization/VisitorCommon.hpp>

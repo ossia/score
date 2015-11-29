@@ -4,7 +4,7 @@
 #include <iscore/command/SerializableCommand.hpp>
 #include <iscore/tools/ModelPath.hpp>
 
-#include "Device/Address/AddressSettings.hpp"
+#include <Device/Address/AddressSettings.hpp>
 #include <iscore/tools/TreePath.hpp>
 
 class DataStreamInput;

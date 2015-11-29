@@ -4,7 +4,7 @@
 #include <algorithm>
 #include <vector>
 
-#include "Device/Protocol/DeviceSettings.hpp"
+#include <Device/Protocol/DeviceSettings.hpp>
 
 class DeviceList
 {

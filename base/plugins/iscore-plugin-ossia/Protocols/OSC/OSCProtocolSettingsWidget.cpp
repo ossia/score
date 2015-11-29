@@ -8,7 +8,7 @@
 #include <QSpinBox>
 #include <QVariant>
 
-#include "Device/Protocol/ProtocolSettingsWidget.hpp"
+#include <Device/Protocol/ProtocolSettingsWidget.hpp>
 #include "OSCProtocolSettingsWidget.hpp"
 
 

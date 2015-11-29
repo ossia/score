@@ -4,9 +4,9 @@
 #include <algorithm>
 #include <list>
 
-#include "Device/Address/AddressSettings.hpp"
-#include "Device/Address/IOType.hpp"
-#include "Device/Protocol/DeviceSettings.hpp"
+#include <Device/Address/AddressSettings.hpp>
+#include <Device/Address/IOType.hpp>
+#include <Device/Protocol/DeviceSettings.hpp>
 #include "Network/Address.h"
 #include "Network/Device.h"
 #include "OSSIA2iscore.hpp"

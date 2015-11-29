@@ -1,8 +1,8 @@
 #include <Scenario/Process/ScenarioModel.hpp>
 #include <QObject>
 
-#include "Scenario/Document/Constraint/ConstraintModel.hpp"
-#include "Scenario/Inspector/Constraint/ConstraintInspectorDelegate.hpp"
+#include <Scenario/Document/Constraint/ConstraintModel.hpp>
+#include <Scenario/Inspector/Constraint/ConstraintInspectorDelegate.hpp>
 #include "ScenarioConstraintInspectorDelegate.hpp"
 #include "ScenarioConstraintInspectorDelegateFactory.hpp"
 

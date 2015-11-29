@@ -49,7 +49,7 @@ J'ai apporté quelques modifications en plus.
 #include <QString>
 #include <QVariant>
 
-#include "Device/QMenuView/qmenuview.h"
+#include <Device/QMenuView/qmenuview.h>
 #include "qmenuview_p.h"
 
 class QWidget;

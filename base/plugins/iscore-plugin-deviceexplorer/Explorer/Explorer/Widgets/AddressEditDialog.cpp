@@ -13,10 +13,10 @@
 #include <QString>
 
 #include "AddressEditDialog.hpp"
-#include "Device/Address/AddressSettings.hpp"
-#include "Device/Address/Domain.hpp"
-#include "Device/Address/IOType.hpp"
-#include "Explorer/Widgets/ValueWrapper.hpp"
+#include <Device/Address/AddressSettings.hpp>
+#include <Device/Address/Domain.hpp>
+#include <Device/Address/IOType.hpp>
+#include <Explorer/Widgets/ValueWrapper.hpp>
 #include <State/Value.hpp>
 
 class QWidget;
