@@ -93,53 +93,22 @@ void NetworkApplicationPlugin::populateMenus(MenubarManager* menu)
 
 void NetworkApplicationPlugin::setupClientConnection(QString ip, int port)
 {
-    m_sessionBuilder = new ClientSessionBuilder{
-                       ip,
-                       port};
+    m_sessionBuilder = std::make_unique<ClientSessionBuilder>(
+                iscore::Application::instance(),
+                ip,
+                port);
 
-    connect(m_sessionBuilder, &ClientSessionBuilder::sessionReady,
-            this, &NetworkApplicationPlugin::on_sessionBuilt, Qt::QueuedConnection);
+    connect(m_sessionBuilder.get(), &ClientSessionBuilder::sessionReady,
+            this, [&] () {
+        m_sessionBuilder.reset();
+    });
+    connect(m_sessionBuilder.get(), &ClientSessionBuilder::sessionFailed,
+            this, [&] () {
+        m_sessionBuilder.reset();
+    });
 
     m_sessionBuilder->initiateConnection();
 }
-
-void NetworkApplicationPlugin::on_sessionBuilt(
-        ClientSessionBuilder* sessionBuilder,
-        ClientSession* builtSession)
-{
-    // The SessionBuilder should have a saved document and saved command list.
-    // However there is a difference with what happens when there is a crash :
-    // Here the document is sent as it is in its current state. The CommandList only serves
-    // in case somebody does undo, so that the computer who joined later can still
-    // undo, too.
-
-    auto doc = context().app.presenter().documentManager().loadDocument(
-                   m_sessionBuilder->documentData(),
-                   context().components.availableDocuments().front());
-
-    if(!doc)
-    {
-        qDebug() << "Invalid document received";
-    }
-
-    // TODO use same mechanism than in presenter instead (CommandBackupFile).
-    auto np = static_cast<NetworkDocumentPlugin*>(doc->model().pluginModel<NetworkDocumentPlugin>());
-    for(const auto& elt : m_sessionBuilder->commandStackData())
-    {
-        auto cmd = context().components.instantiateUndoCommand(elt.first.first,
-                                                       elt.first.second,
-                                                       elt.second);
-
-        // What should happen for the device explorer ? Should the other computers
-        // recreate it ?
-        doc->commandStack().pushQuiet(cmd);
-    }
-    np->setPolicy(new ClientNetworkPolicy{builtSession, doc});
-
-
-    delete sessionBuilder;
-}
-
 
 DocumentDelegatePluginModel *NetworkApplicationPlugin::loadDocumentPlugin(const QString &name,
                                                                 const VisitorVariant &var,

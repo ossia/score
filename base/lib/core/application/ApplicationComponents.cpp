@@ -26,26 +26,23 @@ ApplicationComponentsData::~ApplicationComponentsData()
     }
 }
 
-iscore::SerializableCommand* ApplicationComponents::instantiateUndoCommand(
-        const CommandParentFactoryKey& parent_name,
-        const CommandFactoryKey& name,
-        const QByteArray& data) const
+SerializableCommand*ApplicationComponents::instantiateUndoCommand(const CommandData& cmd) const
 {
-    auto it = m_data.commands.find(parent_name);
+    auto it = m_data.commands.find(cmd.parentKey);
     if(it != m_data.commands.end())
     {
-        auto it2 = it->second.find(name);
+        auto it2 = it->second.find(cmd.commandKey);
         if(it2 != it->second.end())
         {
-            return (*it2->second)(data);
+            return (*it2->second)(cmd.data);
         }
     }
 
 #if defined(ISCORE_DEBUG)
     qDebug() << "ALERT: Command"
-             << parent_name
+             << cmd.parentKey
              << "::"
-             << name
+             << cmd.commandKey
              << "could not be instantiated.";
     ISCORE_ABORT;
 #else

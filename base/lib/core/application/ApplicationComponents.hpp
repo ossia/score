@@ -64,6 +64,7 @@ class ApplicationComponents
             ISCORE_ABORT;
             throw;
         }
+
         const auto& panelPresenters() const
         { return m_data.panelPresenters; }
         auto panelFactories() const
@@ -102,15 +103,7 @@ class ApplicationComponents
          * Ownership of the command is transferred to the caller, and he must delete it.
          */
         iscore::SerializableCommand*
-        instantiateUndoCommand(const CommandParentFactoryKey& parent_name,
-                               const CommandFactoryKey& name,
-                               const QByteArray& data) const;
-
-        iscore::SerializableCommand*
-        instantiateUndoCommand(const CommandData& cmd) const
-        {
-            return instantiateUndoCommand(cmd.parentKey, cmd.commandKey, cmd.data);
-        }
+        instantiateUndoCommand(const CommandData& cmd) const;
 
     private:
         const iscore::ApplicationComponentsData& m_data;

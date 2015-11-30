@@ -9,10 +9,11 @@ class RemoteClient;
 class ClientSession : public Session
 {
     public:
-        ClientSession(RemoteClient* master,
-                      LocalClient* client,
-                      Id<Session> id,
-                      QObject* parent = nullptr);
+        ClientSession(
+                RemoteClient* master,
+                LocalClient* client,
+                Id<Session> id,
+                QObject* parent = nullptr);
 
         RemoteClient* master() const
         {

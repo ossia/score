@@ -22,6 +22,7 @@ namespace iscore
             ISCORE_SERIALIZE_FRIENDS(CommandStack, DataStream)
 
             friend class CommandBackupFile;
+            friend struct CommandStackBackup;
         public:
             explicit CommandStack(QObject* parent = nullptr);
             ~CommandStack();
@@ -81,6 +82,9 @@ namespace iscore
                 return currentIndex() == m_savedIndex;
             }
 
+            auto& undoable() { return m_undoable; }
+            auto& redoable() { return m_redoable; }
+
         signals:
             /**
              * @brief push_start Is emitted when a command was pushed on the stack
@@ -99,6 +103,8 @@ namespace iscore
              */
             void localRedo();
 
+            void localIndexChanged(int);
+
             void canUndoChanged(bool);
             void canRedoChanged(bool);
 
@@ -116,6 +122,7 @@ namespace iscore
 
         public slots:
             void setIndex(int index);
+            void setIndexQuiet(int index);
 
             // These ones do not send signals
             void undoQuiet();
@@ -157,9 +164,7 @@ namespace iscore
                 emit localRedo();
             }
 
-        private:
-            void setSavedIndex(int index);
-
+        public:
             template<typename Callable>
             /**
              * @brief updateStack Updates the undo / redo stack
@@ -194,6 +199,9 @@ namespace iscore
                 emit indexChanged(m_undoable.size() - 1);
                 emit stackChanged();
             }
+
+        private:
+            void setSavedIndex(int index);
 
             QStack<iscore::SerializableCommand*> m_undoable;
             QStack<iscore::SerializableCommand*> m_redoable;

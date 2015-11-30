@@ -38,44 +38,27 @@ void AggregateCommand::redo() const
 
 void AggregateCommand::serializeImpl(DataStreamInput& s) const
 {
-    // Meta-data : {{parent name, command name}, command data}
-    QList<
-            QPair<
-                QPair<
-            CommandParentFactoryKey,
-            CommandFactoryKey
-                >,
-                QByteArray
-            >
-    > serializedCommands;
+    std::vector<CommandData> serializedCommands;
+    serializedCommands.reserve(m_cmds.size());
 
     for(auto& cmd : m_cmds)
     {
-        serializedCommands.push_back({{cmd->parentKey(), cmd->key() }, cmd->serialize()});
+        serializedCommands.emplace_back(*cmd);
     }
 
-    s << serializedCommands;
+    Visitor<Reader<DataStream>> reader{s.stream().device()};
+    readFrom_vector_obj_impl(reader, serializedCommands);
 }
 
 void AggregateCommand::deserializeImpl(DataStreamOutput& s)
 {
-    QList<
-            QPair<
-                QPair<
-                    CommandParentFactoryKey,
-                    CommandFactoryKey
-                >,
-                QByteArray
-            >
-    > serializedCommands;
-    s >> serializedCommands;
+    std::vector<CommandData> serializedCommands;
+    Visitor<Writer<DataStream>> writer{s.stream().device()};
+    writeTo_vector_obj_impl(writer, serializedCommands);
 
-    for(auto& cmd_pack : serializedCommands)
+    for(const auto& cmd_pack : serializedCommands)
     {
-        auto cmd = context.components.instantiateUndoCommand(
-                       cmd_pack.first.first,
-                       cmd_pack.first.second,
-                       cmd_pack.second);
+        auto cmd = context.components.instantiateUndoCommand(cmd_pack);
         m_cmds.push_back(cmd);
     }
 }

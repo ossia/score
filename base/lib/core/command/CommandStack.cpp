@@ -29,7 +29,7 @@ const SerializableCommand* CommandStack::command(int index) const
 }
 
 
-void CommandStack::setIndex(int index)
+void CommandStack::setIndexQuiet(int index)
 {
     while(index >= 0 && currentIndex() != index)
     {
@@ -40,6 +40,15 @@ void CommandStack::setIndex(int index)
     }
 
     emit sig_indexChanged();
+}
+
+void CommandStack::setIndex(int index)
+{
+    if(index != currentIndex())
+    {
+        setIndexQuiet(index);
+        emit localIndexChanged(index);
+    }
 }
 
 void CommandStack::undoQuiet()

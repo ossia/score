@@ -6,7 +6,7 @@ namespace iscore
 struct CommandData
 {
         CommandData() = default;
-        explicit CommandData(iscore::SerializableCommand& cmd):
+        explicit CommandData(const iscore::SerializableCommand& cmd):
             parentKey{cmd.parentKey()},
             commandKey{cmd.key()},
             data{cmd.serialize()}

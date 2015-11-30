@@ -13,6 +13,7 @@ namespace Scenario
 {
 class ToolPalette;
 
+// TODO Generic smart tool with variadic...
 template<
         typename Scenario_T,
         typename ToolPalette_T,

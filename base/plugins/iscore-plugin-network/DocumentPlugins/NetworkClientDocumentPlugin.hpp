@@ -7,6 +7,7 @@ namespace iscore {
 class Document;
 }  // namespace iscore
 
+// MOVEME
 class ClientNetworkPolicy : public iscore_plugin_networkPolicy
 {
     public:

@@ -12,7 +12,7 @@ void readFrom_vector_obj_impl(
         Visitor<Reader<DataStream>>& reader,
         const std::vector<T>& vec)
 {
-    reader.m_stream << (int)vec.size();
+    reader.m_stream << (int32_t)vec.size();
     for(const auto& elt : vec)
         reader.readFrom(elt);
 
@@ -24,7 +24,7 @@ void writeTo_vector_obj_impl(
         Visitor<Writer<DataStream>>& writer,
         std::vector<T>& vec)
 {
-    int n = 0;
+    int32_t n = 0;
     writer.m_stream >> n;
 
     vec.clear();

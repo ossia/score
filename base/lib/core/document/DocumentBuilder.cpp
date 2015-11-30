@@ -12,8 +12,10 @@
 #include <stdexcept>
 
 #include "DocumentBuilder.hpp"
+#include <core/application/Application.hpp>
 #include <core/application/ApplicationComponents.hpp>
 #include <iscore/serialization/DataStreamVisitor.hpp>
+#include <core/command/CommandStackSerialization.hpp>
 
 #include <iscore/tools/SettableIdentifier.hpp>
 
@@ -104,7 +106,12 @@ Document* DocumentBuilder::restoreDocument(
                 [&] (iscore::Document* doc) {
         // We restore the pre-crash command stack.
         Deserializer<DataStream> writer(cmdData);
-        writer.writeTo(doc->commandStack());
+        loadCommandStack(
+                    m_presenter.applicationComponents(),
+                    writer,
+                    doc->commandStack(),
+                    [] (auto cmd) { cmd->redo(); }
+        );
     },
                 [&] (iscore::Document*) { return docData; }
 );

@@ -1,11 +1,9 @@
 #pragma once
 #include <iscore/statemachine/CommonSelectionState.hpp>
 
-#include <Scenario/Process/Temporal/TemporalScenarioView.hpp>
 #include <Scenario/Process/ScenarioGlobalCommandManager.hpp>
 
 #include <QPointF>
-class TemporalScenarioView;
 
 namespace Scenario
 {

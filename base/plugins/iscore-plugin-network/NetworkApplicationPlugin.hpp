@@ -3,6 +3,7 @@
 #include <QString>
 
 #include <iscore/plugins/documentdelegate/plugin/DocumentDelegatePluginModel.hpp>
+#include <memory>
 
 class ClientSession;
 class ClientSessionBuilder;
@@ -32,9 +33,6 @@ class NetworkApplicationPlugin : public QObject, public iscore::GUIApplicationCo
 
     public slots:
         void setupClientConnection(QString ip, int port);
-        void on_sessionBuilt(
-                ClientSessionBuilder* sessionBuilder,
-                ClientSession* builtSession);
 
     private:
         virtual iscore::DocumentDelegatePluginModel* loadDocumentPlugin(
@@ -43,7 +41,7 @@ class NetworkApplicationPlugin : public QObject, public iscore::GUIApplicationCo
                 iscore::Document* parent) override;
 
         iscore::Presenter* m_presenter {};
-        ClientSessionBuilder* m_sessionBuilder{};
+        std::unique_ptr<ClientSessionBuilder> m_sessionBuilder;
 
 #ifdef USE_ZEROCONF
         ZeroconfBrowser* m_zeroconfBrowser{};

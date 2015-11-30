@@ -15,7 +15,6 @@
 #include <Scenario/Document/Constraint/Rack/Slot/SlotOverlay.hpp>
 #include <Scenario/Document/Constraint/Rack/Slot/SlotPresenter.hpp>
 #include <Scenario/Document/Constraint/Rack/Slot/SlotView.hpp>
-#include <Scenario/Document/Constraint/ViewModels/Temporal/TemporalConstraintPresenter.hpp>
 #include <Scenario/Palette/ScenarioPalette.hpp>
 #include <Scenario/Palette/ScenarioPaletteBaseEvents.hpp>
 #include <Scenario/Palette/Transitions/SlotTransitions.hpp>

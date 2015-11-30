@@ -31,7 +31,7 @@
 #include <Scenario/Document/Constraint/ViewModels/ConstraintPresenter.hpp>
 #include <Scenario/Document/Constraint/ViewModels/ConstraintViewModel.hpp>
 
-#include <Scenario/Document/Constraint/ViewModels/Temporal/TemporalConstraintHeader.hpp>
+#include <Scenario/Document/Constraint/ViewModels/ConstraintHeader.hpp>
 
 
 namespace iscore

@@ -31,19 +31,21 @@ MasterNetworkPolicy::MasterNetworkPolicy(MasterSession* s,
             this, [=] (iscore::SerializableCommand* cmd)
     {
         m_session->broadcast(
-                    m_session->makeMessage("/command",
-                                           cmd->parentKey(),
-                                           cmd->key(),
-                                           cmd->serialize()));
+                    m_session->makeMessage("/command/new",iscore::CommandData{*cmd}));
     });
 
     // Undo-redo
     con(c.commandStack, &iscore::CommandStack::localUndo,
             this, [&] ()
-    { m_session->broadcast(m_session->makeMessage("/undo")); });
+    { m_session->broadcast(m_session->makeMessage("/command/undo")); });
     con(c.commandStack, &iscore::CommandStack::localRedo,
             this, [&] ()
-    { m_session->broadcast(m_session->makeMessage("/redo")); });
+    { m_session->broadcast(m_session->makeMessage("/command/redo")); });
+    con(c.commandStack, &iscore::CommandStack::localIndexChanged,
+            this, [&] (int32_t idx)
+    {
+        m_session->broadcast(m_session->makeMessage("/command/index", idx));
+    });
 
     // Lock - unlock
     con(c.objectLocker, &iscore::ObjectLocker::lock,
@@ -57,32 +59,40 @@ MasterNetworkPolicy::MasterNetworkPolicy(MasterSession* s,
     /////////////////////////////////////////////////////////////////////////////
     /// From a client to the master and the other clients
     /////////////////////////////////////////////////////////////////////////////
-    s->mapper().addHandler("/command", [&] (NetworkMessage m)
+    s->mapper().addHandler("/command/new", [&] (NetworkMessage m)
     {
-        CommandParentFactoryKey parentName;
-        CommandFactoryKey name;
-        QByteArray data;
-        QDataStream stream{m.data};
-        stream >> parentName >> name >> data;
+        iscore::CommandData cmd;
+        Visitor<Writer<DataStream>> writer{m.data};
+        writer.writeTo(cmd);
 
         c.commandStack.redoAndPushQuiet(
-                    c.app.components.instantiateUndoCommand(parentName, name, data));
+                    c.app.components.instantiateUndoCommand(cmd));
 
 
         m_session->transmit(Id<Client>(m.clientId), m);
     });
 
     // Undo-redo
-    s->mapper().addHandler("/undo", [&] (NetworkMessage m)
+    s->mapper().addHandler("/command/undo", [&] (NetworkMessage m)
     {
         c.commandStack.undoQuiet();
         m_session->transmit(Id<Client>(m.clientId), m);
     });
-    s->mapper().addHandler("/redo", [&] (NetworkMessage m)
+    s->mapper().addHandler("/command/redo", [&] (NetworkMessage m)
     {
         c.commandStack.redoQuiet();
         m_session->transmit(Id<Client>(m.clientId), m);
     });
+
+    s->mapper().addHandler("/command/index", [&] (NetworkMessage m)
+    {
+        QDataStream stream{m.data};
+        int32_t idx;
+        stream >> idx;
+        c.commandStack.setIndexQuiet(idx);
+        m_session->transmit(Id<Client>(m.clientId), m);
+    });
+
 
     // Lock-unlock
     s->mapper().addHandler("/lock", [&] (NetworkMessage m)
