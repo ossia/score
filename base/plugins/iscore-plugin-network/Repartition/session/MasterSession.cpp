@@ -1,5 +1,9 @@
 #include <boost/optional/optional.hpp>
-//#include <dnssd/publicservice.h>
+
+#ifdef USE_ZEROCONF
+#include <KF5/KDNSSD/DNSSD/PublicService>
+#endif
+
 #include <qnamespace.h>
 
 #include "MasterSession.hpp"
