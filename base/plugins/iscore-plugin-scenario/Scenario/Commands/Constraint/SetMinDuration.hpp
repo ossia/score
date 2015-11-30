@@ -22,36 +22,40 @@ class SetMinDuration final : public iscore::SerializableCommand
         ISCORE_COMMAND_DECL(ScenarioCommandFactoryName(), SetMinDuration, "Set constraint minimum")
     public:
 
-        SetMinDuration(Path<ConstraintModel>&& path, const TimeValue& newval):
+        SetMinDuration(Path<ConstraintModel>&& path, const TimeValue& newval, bool isMinNull):
         m_path{std::move(path)},
         m_oldVal{m_path.find().duration.minDuration()},
-        m_newVal{newval}
+        m_newVal{newval},
+        m_oldMinNull{m_path.find().duration.isMinNul()},
+        m_newMinNull{isMinNull}
         {
         }
 
-        void update(const Path<ConstraintModel>&, const TimeValue &newval)
+        void update(const Path<ConstraintModel>&, const TimeValue &newval, bool isMinNull)
         {
             m_newVal = newval;
         }
 
         void undo() const override
         {
+            m_path.find().duration.setMinNull(m_oldMinNull);
             m_path.find().duration.setMinDuration(m_oldVal);
         }
 
         void redo() const override
         {
+            m_path.find().duration.setMinNull(m_newMinNull);
             m_path.find().duration.setMinDuration(m_newVal);
         }
 
     protected:
         void serializeImpl(DataStreamInput& s) const override
         {
-            s << m_path << m_oldVal << m_newVal;
+            s << m_path << m_oldVal << m_newVal << m_newMinNull;
         }
         void deserializeImpl(DataStreamOutput& s) override
         {
-            s >> m_path >> m_oldVal >> m_newVal;
+            s >> m_path >> m_oldVal >> m_newVal >> m_oldMinNull;
         }
 
     private:
@@ -59,6 +63,7 @@ class SetMinDuration final : public iscore::SerializableCommand
 
         TimeValue m_oldVal;
         TimeValue m_newVal;
+        bool m_oldMinNull, m_newMinNull;
 };
 
 }

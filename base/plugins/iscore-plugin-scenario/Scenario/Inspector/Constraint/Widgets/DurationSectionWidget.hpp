@@ -37,6 +37,8 @@ class DurationSectionWidget final : public InspectorSectionWidget
         void on_modelMinDurationChanged(const TimeValue& dur);
         void on_modelMaxDurationChanged(const TimeValue& dur);
         void on_modelRigidityChanged(bool b);
+        void on_modelMinNullChanged(bool b);
+        void on_modelMaxInfiniteChanged(bool b);
         void on_durationsChanged();
 
         void on_minNonNullToggled(bool val);
@@ -50,6 +52,8 @@ class DurationSectionWidget final : public InspectorSectionWidget
 
         QLabel* m_maxLab{};
         QLabel* m_minLab{};
+        QLabel* m_maxInfinity{};
+        QLabel* m_minNull{};
 
         iscore::TimeSpinBox* m_minSpin{};
         iscore::TimeSpinBox* m_valueSpin{};
