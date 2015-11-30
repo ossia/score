@@ -25,7 +25,7 @@ class TriggerModel final : public IdentifiedObject<TriggerModel>
 
         // Note : this is for API -> UI communication.
         // To trigger by hand we have the triggered() signal.
-        ExecutionStatusProperty executionStatus; // TODO serialize me
+        ExecutionStatusProperty executionStatus; // TODO serialize me ?
 
     signals:
         void triggerChanged(const iscore::Trigger&);

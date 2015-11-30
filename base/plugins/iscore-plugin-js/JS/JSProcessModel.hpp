@@ -1,7 +1,7 @@
 #pragma once
 #include <JS/JSProcess.hpp>
 #include <JS/JSProcessMetadata.hpp>
-#include <ProcessModel/OSSIAProcessModel.hpp>
+#include <OSSIA/ProcessModel/OSSIAProcessModel.hpp>
 #include <QByteArray>
 #include <QString>
 #include <memory>

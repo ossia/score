@@ -9,7 +9,9 @@ class MenubarManager;
 
 namespace TemporalAutomatas
 {
-class ApplicationPlugin : public iscore::GUIApplicationContextPlugin
+class ApplicationPlugin :
+        public QObject,
+        public iscore::GUIApplicationContextPlugin
 {
     public:
         ApplicationPlugin(iscore::Application& app);

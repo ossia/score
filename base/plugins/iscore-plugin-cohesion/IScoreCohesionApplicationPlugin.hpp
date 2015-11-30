@@ -16,7 +16,9 @@ class MenubarManager;
 struct OrderedToolbar;
 }  // namespace iscore
 
-class IScoreCohesionApplicationPlugin final : public iscore::GUIApplicationContextPlugin
+class IScoreCohesionApplicationPlugin final :
+        public QObject,
+        public iscore::GUIApplicationContextPlugin
 {
     public:
         IScoreCohesionApplicationPlugin(iscore::Application& app);

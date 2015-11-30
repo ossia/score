@@ -1,12 +1,12 @@
 #include <Explorer/DocumentPlugin/DeviceDocumentPlugin.hpp>
-#include <OSSIA2iscore.hpp>
+#include <OSSIA/OSSIA2iscore.hpp>
+#include <OSSIA/iscore2OSSIA.hpp>
 #include <vector>
 
 #include "Editor/Message.h"
 #include "Editor/State.h"
 #include "JSAPIWrapper.hpp"
 #include "JSProcess.hpp"
-#include "iscore2OSSIA.hpp"
 
 namespace OSSIA {
 class StateElement;

@@ -31,8 +31,6 @@ ApplicationRegistrar::ApplicationRegistrar(
 void ApplicationRegistrar::registerApplicationContextPlugin(
         GUIApplicationContextPlugin* ctrl)
 {
-    ctrl->setParent(&m_app.presenter()); // TODO replace by some ApplicationContext...
-
     // GUI Presenter stuff...
     ctrl->populateMenus(&m_app.presenter().menuBar());
     auto toolbars = ctrl->makeToolbars();

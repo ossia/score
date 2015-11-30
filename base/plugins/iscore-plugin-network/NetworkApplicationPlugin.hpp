@@ -22,7 +22,7 @@ namespace iscore
 class ZeroconfBrowser;
 #endif
 
-class NetworkApplicationPlugin : public iscore::GUIApplicationContextPlugin
+class NetworkApplicationPlugin : public QObject, public iscore::GUIApplicationContextPlugin
 {
         Q_OBJECT
 

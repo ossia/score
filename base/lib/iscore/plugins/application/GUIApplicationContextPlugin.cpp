@@ -21,7 +21,6 @@ using namespace iscore;
 GUIApplicationContextPlugin::GUIApplicationContextPlugin(iscore::Application& app,
                                                const QString& name,
                                                QObject* parent):
-    NamedObject{name, parent},
     m_appContext{app}
 {
 

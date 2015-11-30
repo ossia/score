@@ -1,4 +1,4 @@
-#include <OSSIA2iscore.hpp>
+#include <OSSIA/OSSIA2iscore.hpp>
 #include <QDebug>
 
 #include <Process/TimeValue.hpp>

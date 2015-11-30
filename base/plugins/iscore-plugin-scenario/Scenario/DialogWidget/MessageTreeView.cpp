@@ -32,7 +32,7 @@ MessageTreeView::MessageTreeView(
         const StateModel& model,
         QWidget* parent):
     QTreeView{parent},
-    m_model{model}, // TODO sorry o lord for I have sinned
+    m_model{model},
     m_dispatcher{iscore::IDocument::commandStack(model)}
 {
     setAllColumnsShowFocus(true);
