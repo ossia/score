@@ -103,12 +103,14 @@ void EventView::setExtent(const VerticalExtent& extent)
 {
     prepareGeometryChange();
     m_extent = extent;
+    m_conditionItem->changeHeight(extent.bottom() - extent.top());
     this->update();
 }
 
 void EventView::setExtent(VerticalExtent &&extent)
 {
     prepareGeometryChange();
+    m_conditionItem->changeHeight(extent.bottom() - extent.top());
     m_extent = std::move(extent);
     this->update();
 }
