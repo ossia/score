@@ -18,11 +18,11 @@ ConstraintDurations &ConstraintDurations::operator=(const ConstraintDurations &o
 
 void ConstraintDurations::checkConsistency()
 {
-  m_model.consistency.setWarning(m_minDuration.msec() < 0 - TIME_TOLERANCE_MSEC ||
-                                 (isRigid() && m_minDuration != m_maxDuration) ); // a voir
+  m_model.consistency.setWarning(minDuration().msec() < 0 - TIME_TOLERANCE_MSEC ||
+                                 (isRigid() && minDuration() != maxDuration()) ); // a voir
 
-  m_model.consistency.setValid(m_minDuration - TimeValue::fromMsecs(TIME_TOLERANCE_MSEC) <= m_defaultDuration &&
-                               m_maxDuration + TimeValue::fromMsecs(TIME_TOLERANCE_MSEC) >= m_defaultDuration &&
+  m_model.consistency.setValid(minDuration() - TimeValue::fromMsecs(TIME_TOLERANCE_MSEC) <= m_defaultDuration &&
+                               maxDuration() + TimeValue::fromMsecs(TIME_TOLERANCE_MSEC) >= m_defaultDuration &&
                                m_defaultDuration.msec() + TIME_TOLERANCE_MSEC > 0);
 
 }
@@ -39,22 +39,22 @@ void ConstraintDurations::setDefaultDuration(const TimeValue& arg)
 
 void ConstraintDurations::setMinDuration(const TimeValue& arg)
 {
-    if(m_minDuration != arg)
+    if(m_minDuration != arg && !m_isMinNull)
     {
         m_minDuration = arg;
         emit minDurationChanged(arg);
+        checkConsistency();
     }
-    checkConsistency();
 }
 
 void ConstraintDurations::setMaxDuration(const TimeValue& arg)
 {
-    if(m_maxDuration != arg)
+    if(m_maxDuration != arg && !m_isMaxInfinite)
     {
         m_maxDuration = arg;
         emit maxDurationChanged(arg);
+        checkConsistency();
     }
-    checkConsistency();
 }
 
 void ConstraintDurations::setPlayPercentage(double arg)
@@ -73,6 +73,26 @@ void ConstraintDurations::setRigid(bool arg)
 
     m_rigidity = arg;
     emit rigidityChanged(arg);
+}
+
+void ConstraintDurations::setMinNull(bool isMinNull)
+{
+    if (m_isMinNull == isMinNull)
+        return;
+
+    m_isMinNull = isMinNull;
+    emit minNullChanged(isMinNull);
+    emit minDurationChanged(minDuration());
+}
+
+void ConstraintDurations::setMaxInfinite(bool isMaxInfinite)
+{
+    if (m_isMaxInfinite == isMaxInfinite)
+        return;
+
+    m_isMaxInfinite = isMaxInfinite;
+    emit maxInfiniteChanged(isMaxInfinite);
+    emit maxDurationChanged(maxDuration());
 }
 
 

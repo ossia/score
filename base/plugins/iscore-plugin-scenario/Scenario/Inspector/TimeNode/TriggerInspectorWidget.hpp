@@ -6,7 +6,7 @@
 
 class InspectorWidgetBase;
 class QPushButton;
-class SimpleExpressionEditorWidget;
+class ExpressionEditorWidget;
 class TimeNodeModel;
 class TriggerCommandFactoryList;
 
@@ -37,5 +37,5 @@ class TriggerInspectorWidget final : public QWidget
         QPushButton* m_addTrigBtn{};
         QPushButton* m_rmTrigBtn{};
 
-        SimpleExpressionEditorWidget* m_exprEditor{};
+        ExpressionEditorWidget* m_exprEditor{};
 };

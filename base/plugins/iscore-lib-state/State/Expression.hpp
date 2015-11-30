@@ -18,10 +18,10 @@ template <typename DataType> class TreeNode;
 namespace iscore
 {
 enum class BinaryOperator {
-    And, Or, Xor
+    And, Or, Xor, None
 };
 enum class UnaryOperator {
-    Not
+    Not, None
 };
 
 struct ExprData : public VariantBasedNode<Relation, BinaryOperator, UnaryOperator>

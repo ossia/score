@@ -15,22 +15,24 @@ class SimpleExpressionEditorWidget : public QWidget
 {
 	Q_OBJECT
     public:
-        SimpleExpressionEditorWidget(QWidget* parent = 0);
+        SimpleExpressionEditorWidget(int index, QWidget* parent = 0);
 
         iscore::Expression expression();
         iscore::BinaryOperator binOperator();
 
+        int id;
+
     public slots:
         void setExpression(iscore::Expression e);
         void setOperator(iscore::BinaryOperator o);
-        void setOperator(int);
+        void setOperator(iscore::UnaryOperator u);
 
         QString currentRelation();
         QString currentOperator();
     signals:
         void editingFinished();
         void addRelation();
-        void removeRelation();
+        void removeRelation(int index);
 
     private slots:
         void on_editFinished();
@@ -40,12 +42,14 @@ class SimpleExpressionEditorWidget : public QWidget
     private:
 
         QLabel* m_ok{};
-        QLineEdit* m_address{};
-        QLineEdit * m_value{};
 
+        QLineEdit* m_address{};
         QComboBox* m_comparator{};
-        QComboBox* m_operator{};
+        QLineEdit * m_value{};
+        QComboBox* m_binOperator{};
 
         ExpressionValidator<iscore::Expression> m_validator;
+        QString m_relation{};
+        QString m_op{};
 };
 
