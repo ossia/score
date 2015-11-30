@@ -1,15 +1,23 @@
 #pragma once
-#include <vector>
-#include <unordered_map>
-#include <iscore/command/CommandGeneratorMap.hpp>
 #include <iscore/command/CommandData.hpp>
+#include <iscore/command/CommandGeneratorMap.hpp>
+#include <QByteArray>
+#include <algorithm>
+#include <iterator>
+#include <unordered_map>
+#include <utility>
+#include <vector>
+
+#include <iscore/command/SerializableCommand.hpp>
 #include <iscore/plugins/customfactory/FactoryFamily.hpp>
+#include <iscore/plugins/customfactory/FactoryInterface.hpp>
+#include <iscore/plugins/customfactory/StringFactoryKey.hpp>
 
 namespace iscore
 {
 class DocumentDelegateFactoryInterface;
-class GUIApplicationContextPlugin;
 class FactoryListInterface;
+class GUIApplicationContextPlugin;
 class PanelFactory;
 class PanelPresenter;
 
@@ -19,7 +27,7 @@ struct ApplicationComponentsData
 
         std::vector<GUIApplicationContextPlugin*> appPlugins;
         std::vector<DocumentDelegateFactoryInterface*> availableDocuments;
-        std::unordered_map<iscore::FactoryBaseKey, FactoryListInterface*> factories;
+        std::unordered_map<iscore::FactoryBaseKey, std::unique_ptr<FactoryListInterface>> factories;
         std::unordered_map<CommandParentFactoryKey, CommandGeneratorMap> commands;
 
         // TODO instead put the factory as a member function?
@@ -78,7 +86,7 @@ class ApplicationComponents
             auto it = m_data.factories.find(T::staticFactoryKey());
             if(it != m_data.factories.end())
             {
-                return *safe_cast<T*>(it->second);
+                return *safe_cast<T*>(it->second.get());
             }
 
             ISCORE_ABORT;

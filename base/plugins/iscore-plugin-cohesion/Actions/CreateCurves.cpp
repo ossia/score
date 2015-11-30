@@ -1,14 +1,18 @@
-#include "CreateCurves.hpp"
-
 #include <Commands/CreateCurvesFromAddresses.hpp>
 #include <Commands/CreateCurvesFromAddressesInConstraints.hpp>
-
-#include <Scenario/Document/Constraint/ConstraintModel.hpp>
 #include <Explorer/Explorer/DeviceExplorerModel.hpp>
-
-#include <iscore/command/Dispatchers/MacroCommandDispatcher.hpp>
-
+#include <Scenario/Document/Constraint/ConstraintModel.hpp>
 #include <core/document/Document.hpp>
+#include <iscore/command/Dispatchers/MacroCommandDispatcher.hpp>
+#include <QList>
+#include <QPointer>
+
+#include "CreateCurves.hpp"
+#include <Device/Node/DeviceNode.hpp>
+#include <State/Address.hpp>
+#include <iscore/selection/Selectable.hpp>
+#include <iscore/selection/SelectionStack.hpp>
+#include <iscore/tools/IdentifiedObjectAbstract.hpp>
 
 void CreateCurves(iscore::Document& doc)
 {

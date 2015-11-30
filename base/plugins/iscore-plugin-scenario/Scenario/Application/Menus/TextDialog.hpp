@@ -1,5 +1,9 @@
 #pragma once
+
 #include <QDialog>
+#include <QString>
+
+class QWidget;
 
 // Has a big selectable text area.
 class TextDialog final : public QDialog

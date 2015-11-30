@@ -1,15 +1,19 @@
-#include "DeviceExplorerPanelPresenter.hpp"
-
-#include "DeviceExplorerPanelView.hpp"
-#include "DeviceExplorerPanelModel.hpp"
-
 #include <Explorer/Explorer/DeviceExplorerModel.hpp>
 #include <Explorer/Explorer/DeviceExplorerWidget.hpp>
-#include <Explorer/DocumentPlugin/DeviceDocumentPlugin.hpp>
 
-#include "DeviceExplorerPanelId.hpp"
+#include "DeviceExplorerPanelModel.hpp"
+#include "DeviceExplorerPanelPresenter.hpp"
+#include "DeviceExplorerPanelView.hpp"
+#include <core/document/Document.hpp>
+#include <iscore/document/DocumentInterface.hpp>
+#include <iscore/plugins/panel/PanelModel.hpp>
+#include <iscore/plugins/panel/PanelPresenter.hpp>
+#include <Explorer/PanelBase/DeviceExplorerPanelId.hpp>
 
-#include <core/document/DocumentModel.hpp>
+namespace iscore {
+class PanelView;
+class Presenter;
+}  // namespace iscore
 
 DeviceExplorerPanelPresenter::DeviceExplorerPanelPresenter(iscore::Presenter* parent,
                                                            iscore::PanelView* view) :

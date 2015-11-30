@@ -1,10 +1,12 @@
 #pragma once
 
 #include <iscore/plugins/customfactory/FactoryInterface.hpp>
-#include <QList>
+#include <QString>
+
+class InspectorWidgetBase;
 class QObject;
 class QWidget;
-class InspectorWidgetBase;
+template <typename T> class QList;
 
 namespace iscore
 {
@@ -38,7 +40,7 @@ class InspectorWidgetFactory : public iscore::GenericFactoryInterface<QList<QStr
         virtual InspectorWidgetBase* makeWidget(
                 const QObject& sourceElement,
                 iscore::Document& doc,
-                QWidget* parent) = 0;
+                QWidget* parent) const = 0;
 
-        bool matches(const QString& objectName);
+        bool matches(const QString& objectName) const;
 };

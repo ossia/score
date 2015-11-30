@@ -1,4 +1,7 @@
 #pragma once
+#include <QObject>
+#include <vector>
+#include <memory>
 #include <iscore/plugins/customfactory/FactoryFamily.hpp>
 
 namespace iscore
@@ -10,7 +13,7 @@ namespace iscore
     {
         public:
             virtual ~FactoryList_QtInterface();
-            virtual std::vector<FactoryListInterface*> factoryFamilies() = 0;
+            virtual std::vector<std::unique_ptr<FactoryListInterface>> factoryFamilies() = 0;
     };
 }
 

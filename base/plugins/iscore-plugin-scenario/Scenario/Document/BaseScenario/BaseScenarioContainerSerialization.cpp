@@ -1,7 +1,17 @@
-#include "BaseScenarioContainer.hpp"
 #include <Scenario/Document/Constraint/ConstraintModel.hpp>
 #include <Scenario/Document/Event/EventModel.hpp>
 #include <Scenario/Document/TimeNode/TimeNodeModel.hpp>
+#include <QJsonObject>
+#include <QJsonValue>
+#include <algorithm>
+
+#include "BaseScenarioContainer.hpp"
+#include <Scenario/Document/State/StateModel.hpp>
+#include <iscore/serialization/DataStreamVisitor.hpp>
+#include <iscore/serialization/JSONVisitor.hpp>
+
+template <typename T> class Reader;
+template <typename T> class Writer;
 
 
 template<> void Visitor<Reader<DataStream>>::readFrom(const BaseScenarioContainer& base_scenario)

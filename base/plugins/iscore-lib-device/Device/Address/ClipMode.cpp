@@ -1,5 +1,10 @@
-#include "ClipMode.hpp"
+#include <QMap>
 #include <QObject>
+
+#include <QString>
+
+#include "ClipMode.hpp"
+
 using namespace iscore;
 
 static const QMap<ClipMode, QString> clipmodemap{

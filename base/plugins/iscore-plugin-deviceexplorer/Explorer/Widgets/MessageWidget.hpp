@@ -1,7 +1,8 @@
 #pragma once
+
 #include <QPushButton>
-#include <iscore/command/Dispatchers/CommandDispatcher.hpp>
-#include <State/Message.hpp>
+
+class QWidget;
 
 namespace iscore
 {
@@ -9,6 +10,7 @@ struct Message;
 }
 
 class DeviceExplorerModel;
+
 /**
  * @brief The MessageWidget class
  *

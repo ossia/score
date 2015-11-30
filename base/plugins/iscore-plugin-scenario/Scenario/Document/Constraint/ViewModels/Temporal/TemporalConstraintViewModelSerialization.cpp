@@ -1,7 +1,26 @@
-#include "TemporalConstraintViewModel.hpp"
-#include <Scenario/Process/Temporal/TemporalScenarioLayerModel.hpp>
-
 #include <Scenario/Document/Constraint/ViewModels/ConstraintViewModelSerialization.hpp>
+#include <Scenario/Process/Temporal/TemporalScenarioLayerModel.hpp>
+#include <QByteArray>
+#include <QDebug>
+#include <QPair>
+#include <algorithm>
+#include <iterator>
+#include <stdexcept>
+
+#include <Process/Process.hpp>
+#include <Scenario/Document/Constraint/ConstraintModel.hpp>
+#include <Scenario/Document/Constraint/ViewModels/ConstraintViewModel.hpp>
+#include <Scenario/Document/Constraint/ViewModels/ConstraintViewModelIdMap.hpp>
+#include <Scenario/Process/AbstractScenarioLayerModel.hpp>
+#include <Scenario/Process/ScenarioModel.hpp>
+#include "TemporalConstraintViewModel.hpp"
+#include <iscore/serialization/DataStreamVisitor.hpp>
+#include <iscore/serialization/JSONVisitor.hpp>
+#include <iscore/tools/IdentifiedObject.hpp>
+#include <iscore/tools/ModelPath.hpp>
+#include <iscore/tools/ObjectPath.hpp>
+
+template <typename T> class Reader;
 
 template<>
 void Visitor<Reader<DataStream>>::readFrom(const TemporalConstraintViewModel& constraint)

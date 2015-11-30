@@ -1,19 +1,25 @@
-#include "ConstraintPresenter.hpp"
-#include "ConstraintView.hpp"
-#include "ConstraintViewModel.hpp"
-#include "ConstraintHeader.hpp"
-
-#include <Scenario/Document/Event/EventModel.hpp>
 #include <Scenario/Document/Constraint/ConstraintModel.hpp>
 #include <Scenario/Document/Constraint/Rack/RackPresenter.hpp>
 #include <Scenario/Document/Constraint/Rack/RackView.hpp>
-#include <Scenario/Commands/Constraint/AddProcessToConstraint.hpp>
-#include <QGraphicsScene>
-
-#include "Temporal/TemporalConstraintViewModel.hpp"
-#include "FullView/FullViewConstraintViewModel.hpp"
+#include <boost/optional/optional.hpp>
+#include <qnamespace.h>
 
 #include "ConstraintHeader.hpp"
+#include "ConstraintPresenter.hpp"
+#include "ConstraintView.hpp"
+#include "ConstraintViewModel.hpp"
+#include <Process/TimeValue.hpp>
+#include <Process/ZoomHelper.hpp>
+#include <Scenario/Document/Constraint/ConstraintDurations.hpp>
+#include <Scenario/Document/Constraint/Rack/RackModel.hpp>
+#include <Scenario/Document/ModelConsistency.hpp>
+#include <iscore/selection/Selectable.hpp>
+#include <iscore/tools/NamedObject.hpp>
+#include <iscore/tools/NotifyingMap.hpp>
+#include <iscore/tools/SettableIdentifier.hpp>
+#include <iscore/tools/Todo.hpp>
+
+class QObject;
 /**
  * TODO Mettre dans la doc :
  * L'abstract constraint presenter a deux interfaces :

@@ -1,28 +1,71 @@
-#include "ScenarioApplicationPlugin.hpp"
-#include <Scenario/Document/BaseElement/BaseElementModel.hpp>
-#include <Scenario/Document/BaseElement/BaseElementPresenter.hpp>
-#include <Scenario/Document/Constraint/ConstraintModel.hpp>
-#include <Scenario/Process/ScenarioModel.hpp>
-#include <QJsonDocument>
-#include <Scenario/Process/Temporal/TemporalScenarioPresenter.hpp>
-
-#include "Menus/ToolMenuActions.hpp"
-
 #include <Process/Style/ScenarioStyle.hpp>
-#include <QFileDialog>
-#include <QApplication>
-
-#include <Scenario/Document/Constraint/ViewModels/FullView/FullViewConstraintPresenter.hpp>
+#include <Scenario/Document/Constraint/ConstraintModel.hpp>
 #include <Scenario/Document/Constraint/Rack/RackPresenter.hpp>
+#include <Scenario/Document/Constraint/ViewModels/FullView/FullViewConstraintPresenter.hpp>
+#include <Scenario/Document/ScenarioDocument/ScenarioDocumentModel.hpp>
+#include <Scenario/Document/ScenarioDocument/ScenarioDocumentPresenter.hpp>
+#include <Scenario/Document/ScenarioDocument/ScenarioDocumentView.hpp>
+#include <Scenario/Process/ScenarioModel.hpp>
+#include <Scenario/Process/Temporal/TemporalScenarioPresenter.hpp>
+#include <boost/optional/optional.hpp>
 #include <core/document/DocumentView.hpp>
-#include <core/application/Application.hpp>
-#include <iscore/plugins/documentdelegate/DocumentDelegateViewInterface.hpp>
-#include <Scenario/Document/BaseElement/BaseElementView.hpp>
-#include "Menus/TransportActions.hpp"
 
+#include <iscore/plugins/documentdelegate/DocumentDelegateViewInterface.hpp>
 // This part is somewhat similar to what moc does
 // with moc_.. stuff generation.
 #include <iscore/tools/NotifyingMap_impl.hpp>
+#include <QAction>
+#include <QByteArray>
+#include <QColor>
+#include <QFile>
+#include <QIODevice>
+#include <QJsonArray>
+#include <QJsonDocument>
+#include <QJsonObject>
+#include <QJsonValue>
+#include <QKeySequence>
+#include <QList>
+#include <QMenu>
+#include <qnamespace.h>
+#include <QString>
+#include <QToolBar>
+#include <string.h>
+
+#include "Menus/TransportActions.hpp"
+#include <Process/LayerModel.hpp>
+#include <Process/LayerPresenter.hpp>
+#include <Process/Process.hpp>
+#include <Scenario/Application/Menus/ScenarioActions.hpp>
+#include <Scenario/Application/Menus/ScenarioContextMenuManager.hpp>
+#include <Scenario/Application/ScenarioEditionSettings.hpp>
+#include <Scenario/Document/Constraint/Rack/RackModel.hpp>
+#include <Scenario/Document/Constraint/Rack/Slot/SlotModel.hpp>
+#include <Scenario/Document/Constraint/Rack/Slot/SlotPresenter.hpp>
+#include <Scenario/Document/DisplayedElements/DisplayedElementsPresenter.hpp>
+#include <Scenario/Document/Event/EventModel.hpp>
+#include <Scenario/Document/ScenarioDocument/ProcessFocusManager.hpp>
+#include <Scenario/Document/ScenarioDocument/Widgets/ScenarioBaseGraphicsView.hpp>
+#include <Scenario/Document/State/StateModel.hpp>
+#include <Scenario/Document/TimeNode/TimeNodeModel.hpp>
+#include <Scenario/Palette/Tool.hpp>
+#include "ScenarioApplicationPlugin.hpp"
+#include <core/document/Document.hpp>
+#include <core/document/DocumentModel.hpp>
+#include <core/presenter/MenubarManager.hpp>
+#include <iscore/document/DocumentInterface.hpp>
+#include <iscore/menu/MenuInterface.hpp>
+#include <iscore/plugins/application/GUIApplicationContextPlugin.hpp>
+#include <iscore/plugins/documentdelegate/DocumentDelegateModelInterface.hpp>
+#include <iscore/tools/IdentifiedObjectMap.hpp>
+#include <iscore/tools/NotifyingMap.hpp>
+#include <iscore/tools/SettableIdentifier.hpp>
+#include <iscore/widgets/OrderedToolbar.hpp>
+
+class QPoint;
+class QPointF;
+namespace iscore {
+class Application;
+}  // namespace iscore
 
 template void NotifyingMap<LayerModel>::add(LayerModel*);
 template void NotifyingMap<SlotModel>::add(SlotModel*);
@@ -64,15 +107,26 @@ void ignore_template_instantiations_Scenario()
 }
 
 using namespace iscore;
-#include <State/Expression.hpp>
 #include <Scenario/Application/Menus/ScenarioCommonContextMenuFactory.hpp>
+#include <algorithm>
+#include <core/application/Application.hpp>
+#include <core/presenter/Presenter.hpp>
+#include <core/view/View.hpp>
 
 void test_parse_expr_full();
 ScenarioApplicationPlugin::ScenarioApplicationPlugin(iscore::Application& app) :
     GUIApplicationContextPlugin{app, "ScenarioApplicationPlugin", nullptr}
 {
-    connect(this, &ScenarioApplicationPlugin::defocused,
-            this, &ScenarioApplicationPlugin::reinit_tools);
+    connect(qApp, &QApplication::applicationStateChanged,
+            this, [&] (Qt::ApplicationState st) {
+        editionSettings().setDefault();
+    });
+
+    connect(app.presenter().view(), &iscore::View::activeWindowChanged,
+            this, [&] () {
+        editionSettings().setDefault();
+    });
+
 
     // Note : they are constructed here, because
     // they need to be available quickly for other plug-ins,
@@ -99,7 +153,7 @@ void ScenarioApplicationPlugin::populateMenus(iscore::MenubarManager *menu)
     connect(m_selectAll, &QAction::triggered,
             [this]()
     {
-        auto &pres = IDocument::presenterDelegate<BaseElementPresenter>(*currentDocument());
+        auto &pres = IDocument::presenterDelegate<ScenarioDocumentPresenter>(*currentDocument());
         pres.selectAll();
     });
 
@@ -114,7 +168,7 @@ void ScenarioApplicationPlugin::populateMenus(iscore::MenubarManager *menu)
     connect(m_deselectAll, &QAction::triggered,
             [this]()
     {
-        auto &pres = IDocument::presenterDelegate<BaseElementPresenter>(*currentDocument());
+        auto &pres = IDocument::presenterDelegate<ScenarioDocumentPresenter>(*currentDocument());
         pres.deselectAll();
     });
 
@@ -168,18 +222,11 @@ void ScenarioApplicationPlugin::on_presenterDefocused(LayerPresenter* pres)
 {
     // We set the currently focused view model to a "select" state
     // to prevent problems.
-
-    reinit_tools();
+    editionSettings().setDefault();
 
     for(ScenarioActions*& elt : m_pluginActions)
     {
         elt->setEnabled(false);
-    }
-
-    if(dynamic_cast<TemporalScenarioPresenter*>(pres))
-    {
-        // TODO this may not be necessary anymore since this is duplicated in on_focused.
-        editionSettings().setTool(Scenario::Tool::Select);
     }
 
     disconnect(m_contextMenuConnection);
@@ -271,7 +318,7 @@ void ScenarioApplicationPlugin::on_documentChanged(
         {
             // We focus by default the first process of the constraint in full view we're in
             // TODO this snippet is useful, put it somewhere in some Toolkit file.
-            auto& pres = IDocument::presenterDelegate<BaseElementPresenter>(*newdoc);
+            auto& pres = IDocument::presenterDelegate<ScenarioDocumentPresenter>(*newdoc);
             auto& cst = pres.displayedConstraint();
             if(!cst.processes.empty())
             {
@@ -302,7 +349,7 @@ void ScenarioApplicationPlugin::on_documentChanged(
         }
 
         // Finally we focus the View widget.
-        auto bev = dynamic_cast<BaseElementView*>(&newdoc->view().viewDelegate());
+        auto bev = dynamic_cast<ScenarioDocumentView*>(&newdoc->view().viewDelegate());
         if(bev)
             bev->view().setFocus();
     }
@@ -390,13 +437,6 @@ TemporalScenarioPresenter* ScenarioApplicationPlugin::focusedPresenter() const
     return dynamic_cast<TemporalScenarioPresenter*>(processFocusManager()->focusedPresenter());
 }
 
-
-void ScenarioApplicationPlugin::reinit_tools()
-{
-    emit keyReleased(Qt::Key_Control);
-    emit keyReleased(Qt::Key_Shift);
-}
-
 void ScenarioApplicationPlugin::prepareNewDocument()
 {
     for(const auto& action : pluginActions())
@@ -413,7 +453,7 @@ ProcessFocusManager* ScenarioApplicationPlugin::processFocusManager() const
 {
     if(auto doc = currentDocument())
     {
-        auto bem = dynamic_cast<BaseElementModel*>(&doc->model().modelDelegate());
+        auto bem = dynamic_cast<ScenarioDocumentModel*>(&doc->model().modelDelegate());
         if(bem)
         {
             return &bem->focusManager();

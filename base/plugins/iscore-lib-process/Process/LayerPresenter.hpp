@@ -1,14 +1,16 @@
 #pragma once
-#include <iscore/tools/NamedObject.hpp>
-#include <iscore/tools/SettableIdentifier.hpp>
 #include <Process/ZoomHelper.hpp>
+#include <iscore/tools/NamedObject.hpp>
 
-class QMenu;
-class Process;
 class LayerModel;
+class Process;
+class QMenu;
+class QPoint;
+class QPointF;
+#include <iscore/tools/SettableIdentifier.hpp>
+
 namespace iscore
 {
-    class SerializableCommand;
 }
 class LayerPresenter : public NamedObject
 {

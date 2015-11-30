@@ -1,6 +1,8 @@
 #pragma once
 #include <iscore/selection/SelectionDispatcher.hpp>
 #include <iscore/statemachine/StateMachineTools.hpp>
+#include <QState>
+
 class QGraphicsObject;
 
 namespace iscore

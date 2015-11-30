@@ -1,7 +1,13 @@
-#include "MoveNewEvent.hpp"
-
-#include <Scenario/Process/ScenarioModel.hpp>
 #include <Scenario/Process/Algorithms/VerticalMovePolicy.hpp>
+#include <Scenario/Process/ScenarioModel.hpp>
+
+#include <QByteArray>
+#include <algorithm>
+
+#include "MoveNewEvent.hpp"
+#include <Scenario/Commands/Scenario/Displacement/MoveEventOnCreationMeta.hpp>
+#include <iscore/serialization/DataStreamVisitor.hpp>
+#include <iscore/tools/ModelPathSerialization.hpp>
 
 
 using namespace iscore;

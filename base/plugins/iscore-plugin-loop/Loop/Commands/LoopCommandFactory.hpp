@@ -3,7 +3,7 @@
 
 const CommandParentFactoryKey& LoopCommandFactoryName();
 
-namespace Loop { class ProcessModel; }
+namespace Loop
+{ class ProcessModel; }
 template<>
-inline const CommandParentFactoryKey& CommandFactoryName<Loop::ProcessModel>()
-{ return LoopCommandFactoryName(); }
+const CommandParentFactoryKey& CommandFactoryName<Loop::ProcessModel>();

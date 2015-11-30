@@ -1,18 +1,28 @@
 #pragma once
 #include <iscore/plugins/application/GUIApplicationContextPlugin.hpp>
+#include <QString>
 
-class ClientSessionBuilder;
+#include <iscore/plugins/documentdelegate/plugin/DocumentDelegatePluginModel.hpp>
+
 class ClientSession;
+class ClientSessionBuilder;
+namespace iscore {
+class Application;
+class Document;
+class MenubarManager;
+class Presenter;
+}  // namespace iscore
+struct VisitorVariant;
+
 namespace iscore
 {
-class DocumentDelegatePluginModel;
 }
 
 #ifdef USE_ZEROCONF
 class ZeroconfBrowser;
 #endif
 
-class NetworkApplicationPlugin : public iscore::GUIApplicationContextPlugin
+class NetworkApplicationPlugin : public QObject, public iscore::GUIApplicationContextPlugin
 {
         Q_OBJECT
 

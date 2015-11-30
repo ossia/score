@@ -1,5 +1,23 @@
-#include "SimpleProcessModel.hpp"
 #include <DummyProcess/DummyLayerModel.hpp>
+#include <QJsonObject>
+#include <QJsonValue>
+#include <algorithm>
+
+#include <OSSIA/ProcessModel/OSSIAProcessModel.hpp>
+#include "SimpleProcess.hpp"
+#include "SimpleProcessModel.hpp"
+#include <iscore/document/DocumentInterface.hpp>
+#include <iscore/plugins/documentdelegate/plugin/ElementPluginModelList.hpp>
+#include <iscore/serialization/DataStreamVisitor.hpp>
+#include <iscore/serialization/JSONValueVisitor.hpp>
+#include <iscore/serialization/JSONVisitor.hpp>
+#include <iscore/serialization/VisitorCommon.hpp>
+
+class LayerModel;
+class Process;
+class ProcessStateDataInterface;
+class QObject;
+#include <iscore/tools/SettableIdentifier.hpp>
 
 SimpleProcessModel::SimpleProcessModel(
         const TimeValue& duration,
@@ -127,7 +145,6 @@ LayerModel* SimpleProcessModel::cloneLayer_impl(
 }
 
 
-// MOVEME
 template<>
 void Visitor<Reader<DataStream>>::readFrom(const SimpleProcessModel& proc)
 {

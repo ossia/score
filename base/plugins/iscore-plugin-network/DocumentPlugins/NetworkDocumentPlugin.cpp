@@ -1,21 +1,29 @@
-#include "NetworkDocumentPlugin.hpp"
-#include "Repartition/session/Session.hpp"
-#include "DistributedScenario/GroupManager.hpp"
-
-#include "Scenario/Document/Constraint/ConstraintModel.hpp"
-#include "Scenario/Document/Event/EventModel.hpp"
-#include "Scenario/Document/TimeNode/TimeNodeModel.hpp"
-
-#include <core/document/DocumentModel.hpp>
-#include <iscore/plugins/documentdelegate/DocumentDelegateModelInterface.hpp>
-
-#include "DistributedScenario/GroupMetadataWidget.hpp"
-
-#include <iscore/serialization/VisitorCommon.hpp>
+#include <Scenario/Document/ScenarioDocument/ScenarioDocumentModel.hpp>
 #include <Scenario/Process/ScenarioModel.hpp>
-#include <Scenario/Document/BaseElement/BaseElementModel.hpp>
+#include <boost/optional/optional.hpp>
 #include <core/document/Document.hpp>
 #include <core/document/DocumentModel.hpp>
+#include <iscore/serialization/VisitorCommon.hpp>
+
+#include <QString>
+
+#include "DistributedScenario/Group.hpp"
+#include "DistributedScenario/GroupManager.hpp"
+#include "DistributedScenario/GroupMetadata.hpp"
+#include "DistributedScenario/GroupMetadataWidget.hpp"
+#include "NetworkDocumentPlugin.hpp"
+#include <Process/Process.hpp>
+#include "Repartition/session/Session.hpp"
+#include <Scenario/Document/Constraint/ConstraintModel.hpp>
+#include <Scenario/Document/Event/EventModel.hpp>
+#include <iscore/plugins/documentdelegate/plugin/DocumentDelegatePluginModel.hpp>
+#include <iscore/plugins/documentdelegate/plugin/ElementPluginModelList.hpp>
+#include <iscore/tools/NotifyingMap.hpp>
+#include <iscore/tools/SettableIdentifier.hpp>
+#include "session/../client/LocalClient.hpp"
+
+class QWidget;
+struct VisitorVariant;
 
 
 // TODO refactor me
@@ -92,7 +100,7 @@ NetworkDocumentPlugin::NetworkDocumentPlugin(iscore_plugin_networkPolicy *policy
     groupManager()->addGroup(baseGroup);
 
     // Create it for each constraint / event.
-    BaseElementModel* bem = safe_cast<BaseElementModel*>(&doc.model().modelDelegate());
+    ScenarioDocumentModel* bem = safe_cast<ScenarioDocumentModel*>(&doc.model().modelDelegate());
     {
         ScenarioFindConstraintVisitor v;
         v.visit(bem->baseConstraint());// TODO this doesn't match baseconstraint

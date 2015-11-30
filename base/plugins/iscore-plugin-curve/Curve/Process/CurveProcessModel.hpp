@@ -1,7 +1,11 @@
 #pragma once
-#include <Process/Process.hpp>
 #include <Curve/CurveModel.hpp>
 #include <Curve/Point/CurvePointModel.hpp>
+#include <Process/Process.hpp>
+#include <QString>
+
+#include <Curve/Segment/CurveSegmentModel.hpp>
+#include <iscore/selection/Selection.hpp>
 
 class CurveProcessModel : public Process
 {

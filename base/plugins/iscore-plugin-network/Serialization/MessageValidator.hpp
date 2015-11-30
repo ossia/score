@@ -1,7 +1,7 @@
 #pragma once
-#include "MessageMapper.hpp"
-#include "NetworkMessage.hpp"
+class MessageMapper;
 class Session;
+struct NetworkMessage;
 
 class MessageValidator
 {

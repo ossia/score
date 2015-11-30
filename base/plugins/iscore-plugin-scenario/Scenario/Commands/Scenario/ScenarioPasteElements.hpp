@@ -1,14 +1,25 @@
 #pragma once
-#include <iscore/command/SerializableCommand.hpp>
 #include <Scenario/Commands/ScenarioCommandFactory.hpp>
-#include <Scenario/Process/Temporal/StateMachines/ScenarioPoint.hpp>
-
 #include <Scenario/Document/Constraint/ViewModels/ConstraintViewModelIdMap.hpp>
-class TemporalScenarioLayerModel;
+#include <boost/optional/optional.hpp>
+#include <iscore/command/SerializableCommand.hpp>
+#include <QJsonObject>
+#include <QMap>
+#include <QVector>
+
+#include <iscore/tools/ModelPath.hpp>
+#include <iscore/tools/SettableIdentifier.hpp>
+
 class ConstraintModel;
+class DataStreamInput;
+class DataStreamOutput;
 class EventModel;
-class TimeNodeModel;
 class StateModel;
+class TemporalScenarioLayerModel;
+class TimeNodeModel;
+namespace Scenario {
+struct Point;
+}  // namespace Scenario
 
 class ScenarioPasteElements final : public iscore::SerializableCommand
 {

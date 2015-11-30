@@ -1,25 +1,30 @@
-#include "AutomationInspectorWidget.hpp"
-#include "Automation/AutomationModel.hpp"
-#include "Automation/Commands/ChangeAddress.hpp"
-#include "Automation/Commands/SetCurveMin.hpp"
-#include "Automation/Commands/SetCurveMax.hpp"
-
-#include <Explorer/Widgets/DeviceCompleter.hpp>
-#include <Explorer/Widgets/DeviceExplorerMenuButton.hpp>
-#include <Explorer/Widgets/AddressEditWidget.hpp>
-#include <Explorer/Explorer/DeviceExplorerModel.hpp>
 #include <Explorer/PanelBase/DeviceExplorerPanelModel.hpp>
-
-#include <State/Widgets/AddressLineEdit.hpp>
-
+#include <Explorer/Widgets/AddressEditWidget.hpp>
 #include <core/document/Document.hpp>
 #include <core/document/DocumentModel.hpp>
-
 #include <iscore/widgets/SpinBoxes.hpp>
-#include <QPushButton>
+#include <QBoxLayout>
 #include <QFormLayout>
-#include <QMessageBox>
-#include <QApplication>
+
+#include <QPushButton>
+#include <QSpinBox>
+#include <QStringList>
+#include <QWidget>
+#include <algorithm>
+#include <list>
+#include <vector>
+
+#include <Automation/AutomationModel.hpp>
+#include <Automation/Commands/ChangeAddress.hpp>
+#include <Automation/Commands/SetAutomationMax.hpp>
+#include <Automation/Commands/SetAutomationMin.hpp>
+#include "AutomationInspectorWidget.hpp"
+#include <Inspector/InspectorWidgetBase.hpp>
+#include <State/Address.hpp>
+#include <iscore/command/Dispatchers/CommandDispatcher.hpp>
+#include <iscore/document/DocumentInterface.hpp>
+#include <iscore/tools/ModelPath.hpp>
+#include <iscore/tools/Todo.hpp>
 
 AutomationInspectorWidget::AutomationInspectorWidget(
         const AutomationModel& automationModel,

@@ -1,10 +1,16 @@
-#include "JSProcess.hpp"
-#include <OSSIA2iscore.hpp>
-#include <QJSValueIterator>
-
 #include <Explorer/DocumentPlugin/DeviceDocumentPlugin.hpp>
-#include "iscore2OSSIA.hpp"
+#include <OSSIA/OSSIA2iscore.hpp>
+#include <OSSIA/iscore2OSSIA.hpp>
+#include <vector>
+
+#include "Editor/Message.h"
+#include "Editor/State.h"
 #include "JSAPIWrapper.hpp"
+#include "JSProcess.hpp"
+
+namespace OSSIA {
+class StateElement;
+}  // namespace OSSIA
 
 
 

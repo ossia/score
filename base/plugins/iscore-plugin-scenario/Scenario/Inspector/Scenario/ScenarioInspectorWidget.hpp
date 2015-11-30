@@ -1,8 +1,16 @@
 #pragma once
 
 #include <Inspector/InspectorWidgetBase.hpp>
+#include <QString>
 
-namespace Scenario { class ScenarioModel; }
+class QWidget;
+namespace Scenario {
+class ScenarioModel;
+}  // namespace Scenario
+namespace iscore {
+class Document;
+}  // namespace iscore
+
 class ScenarioInspectorWidget final : public InspectorWidgetBase
 {
         Q_OBJECT

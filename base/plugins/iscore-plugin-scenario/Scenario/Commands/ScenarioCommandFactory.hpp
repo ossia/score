@@ -3,13 +3,14 @@
 
 const CommandParentFactoryKey& ScenarioCommandFactoryName();
 
+namespace Scenario {
+class ScenarioModel;
+}  // namespace Scenario
 
-namespace Scenario { class ScenarioModel; }
 template<>
-inline const CommandParentFactoryKey& CommandFactoryName<Scenario::ScenarioModel>()
-{ return ScenarioCommandFactoryName(); }
+const CommandParentFactoryKey& CommandFactoryName<Scenario::ScenarioModel>();
 
 class BaseScenario;
+
 template<>
-inline const CommandParentFactoryKey& CommandFactoryName<BaseScenario>()
-{ return ScenarioCommandFactoryName(); }
+const CommandParentFactoryKey& CommandFactoryName<BaseScenario>();

@@ -1,16 +1,17 @@
 #pragma once
-#include <set>
-#include <memory>
-#include <iscore/plugins/settingsdelegate/SettingsDelegateFactoryInterface.hpp>
-
+#include <QBoxLayout>
 #include <QDialog>
-#include <QWidget>
-#include <QListWidget>
-#include <QVBoxLayout>
-#include <QTabWidget>
-#include <QHBoxLayout>
 #include <QDialogButtonBox>
+#include <QFlags>
+#include <QListWidget>
 #include <QStackedWidget>
+#include <set>
+
+class QWidget;
+namespace iscore {
+class SettingsDelegateViewInterface;
+}  // namespace iscore
+
 namespace iscore
 {
     class SettingsView final : public QDialog

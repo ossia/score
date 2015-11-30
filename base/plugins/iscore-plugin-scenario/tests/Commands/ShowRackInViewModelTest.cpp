@@ -19,7 +19,7 @@
 #include <Process/AbstractScenarioLayerModel.hpp>
 
 #include <Process/ProcessList.hpp>
-#include "iscore/document/DocumentInterface.hpp"
+#include <iscore/document/DocumentInterface.hpp>
 #include <core/command/CommandStack.hpp>
 
 

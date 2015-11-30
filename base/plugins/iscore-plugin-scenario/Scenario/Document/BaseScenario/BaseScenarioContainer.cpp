@@ -1,9 +1,14 @@
-#include "BaseScenarioContainer.hpp"
-
-#include <Scenario/Document/Event/EventModel.hpp>
-#include <Scenario/Document/TimeNode/TimeNodeModel.hpp>
-#include <Scenario/Document/State/StateModel.hpp>
 #include <Scenario/Document/Constraint/ConstraintModel.hpp>
+#include <Scenario/Document/Event/EventModel.hpp>
+#include <Scenario/Document/State/StateModel.hpp>
+#include <Scenario/Document/TimeNode/TimeNodeModel.hpp>
+#include <boost/optional/optional.hpp>
+
+#include "BaseScenarioContainer.hpp"
+#include <Process/TimeValue.hpp>
+#include <iscore/tools/SettableIdentifier.hpp>
+
+class ConstraintViewModel;
 
 BaseScenarioContainer::~BaseScenarioContainer()
 {

@@ -1,11 +1,13 @@
 #pragma once
+#include <Device/Node/DeviceNode.hpp>
 #include <Explorer/Commands/DeviceExplorerCommandFactory.hpp>
 #include <iscore/command/SerializableCommand.hpp>
 #include <iscore/tools/ModelPath.hpp>
-#include <Device/Protocol/DeviceSettings.hpp>
-#include <Device/Node/DeviceNode.hpp>
 
+class DataStreamInput;
+class DataStreamOutput;
 class DeviceDocumentPlugin;
+
 // Note : could also be used for loading from the library
 class LoadDevice final : public iscore::SerializableCommand
 {

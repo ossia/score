@@ -1,23 +1,15 @@
 #pragma once
+#include <Device/Node/DeviceNode.hpp>
+#include <Device/Protocol/DeviceList.hpp>
+#include <Explorer/DocumentPlugin/ListeningState.hpp>
+#include <Explorer/DocumentPlugin/NodeUpdateProxy.hpp>
 #include <iscore/plugins/documentdelegate/plugin/DocumentDelegatePluginModel.hpp>
 
-#include <iscore/serialization/VisitorCommon.hpp>
-#include <Device/Protocol/DeviceList.hpp>
-#include <Device/Node/DeviceNode.hpp>
-#include <core/document/DocumentContext.hpp>
-#include "NodeUpdateProxy.hpp"
-namespace iscore
-{
-    class Document;
-}
-
-// MOVEME
-class ListeningState
-{
-    public:
-        std::vector<std::vector<iscore::Address>> listened;
-};
-
+class QObject;
+namespace iscore {
+class Document;
+}  // namespace iscore
+struct VisitorVariant;
 
 class DeviceDocumentPlugin final : public iscore::DocumentDelegatePluginModel
 {

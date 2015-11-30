@@ -1,17 +1,17 @@
-#include "FullViewConstraintPresenter.hpp"
-#include "FullViewConstraintHeader.hpp"
-
-#include <Scenario/Document/Event/EventModel.hpp>
 #include <Scenario/Document/Constraint/ConstraintModel.hpp>
-#include <Scenario/Document/Constraint/ViewModels/FullView/FullViewConstraintViewModel.hpp>
 #include <Scenario/Document/Constraint/ViewModels/FullView/FullViewConstraintView.hpp>
-#include <Scenario/Commands/Constraint/AddProcessToConstraint.hpp>
+#include <Scenario/Document/Constraint/ViewModels/FullView/FullViewConstraintViewModel.hpp>
+#include <core/document/Document.hpp>
+#include <iscore/document/DocumentInterface.hpp>
+#include <QGraphicsScene>
+#include <QList>
 
 #include "AddressBarItem.hpp"
-#include <iscore/document/DocumentInterface.hpp>
-#include <core/document/Document.hpp>
+#include "FullViewConstraintHeader.hpp"
+#include "FullViewConstraintPresenter.hpp"
+#include <Scenario/Document/Constraint/ViewModels/ConstraintPresenter.hpp>
 
-#include <QGraphicsScene>
+class QObject;
 
 FullViewConstraintPresenter::FullViewConstraintPresenter(
         const FullViewConstraintViewModel& cstr_model,

@@ -1,12 +1,25 @@
 #pragma once
 #include <Scenario/Commands/ScenarioCommandFactory.hpp>
-#include <Scenario/Document/Constraint/ViewModels/ConstraintViewModelSerialization.hpp>
-#include <iscore/tools/SettableIdentifier.hpp>
+#include <boost/optional/optional.hpp>
 #include <iscore/command/SerializableCommand.hpp>
-
 #include <iscore/tools/ModelPath.hpp>
+#include <iscore/tools/SettableIdentifier.hpp>
+#include <QByteArray>
+#include <QPair>
+#include <QVector>
 
+#include <Scenario/Document/Constraint/ViewModels/ConstraintViewModelIdMap.hpp>
+#include <iscore/selection/Selection.hpp>
+
+class ConstraintModel;
+class DataStreamInput;
+class DataStreamOutput;
 class EventModel;
+class StateModel;
+class TimeNodeModel;
+namespace Scenario {
+class ScenarioModel;
+}  // namespace Scenario
 
 namespace Scenario
 {

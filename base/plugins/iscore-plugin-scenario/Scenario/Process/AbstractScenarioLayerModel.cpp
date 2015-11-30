@@ -1,7 +1,18 @@
-#include "AbstractScenarioLayerModel.hpp"
-#include <Scenario/Document/Constraint/ViewModels/ConstraintViewModel.hpp>
 #include <Scenario/Document/Constraint/ConstraintModel.hpp>
+#include <Scenario/Document/Constraint/ViewModels/ConstraintViewModel.hpp>
 #include <Scenario/Process/ScenarioModel.hpp>
+#include <boost/optional/optional.hpp>
+#include <algorithm>
+#include <iterator>
+
+#include "AbstractScenarioLayerModel.hpp"
+#include <Process/Process.hpp>
+#include <Scenario/Document/Constraint/ViewModels/ConstraintViewModelIdMap.hpp>
+#include <iscore/tools/IdentifiedObject.hpp>
+#include <iscore/tools/ObjectPath.hpp>
+#include <iscore/tools/SettableIdentifier.hpp>
+#include <iscore/tools/utilsCPP11.hpp>
+
 ConstraintViewModel& AbstractScenarioLayerModel::constraint(
         const Id<ConstraintViewModel>& id) const
 {

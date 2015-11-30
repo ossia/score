@@ -1,14 +1,14 @@
 #pragma once
-#include <iscore/serialization/VisitorInterface.hpp>
+
 #include <QString>
 
 namespace iscore
 {
-    class PanelPresenter;
+    class DocumentModel;
     class PanelModel;
+    class PanelPresenter;
     class PanelView;
     class Presenter;
-    class DocumentModel;
     class View;
     struct ApplicationContext;
 

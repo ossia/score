@@ -1,6 +1,18 @@
-#include "ValueConversion.hpp"
+#include <eggs/variant/variant.hpp>
 #include <QJsonArray>
+#include <QList>
+#include <QLocale>
+#include <QMetaType>
+#include <QObject>
+
+#include <QStringList>
+#include <algorithm>
 #include <array>
+#include <iterator>
+
+#include <State/Value.hpp>
+#include "ValueConversion.hpp"
+
 namespace iscore
 {
 namespace convert

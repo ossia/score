@@ -1,8 +1,10 @@
 #pragma once
 #include <iscore/command/SerializableCommand.hpp>
-#include <iscore/tools/ObjectPath.hpp>
-#include <vector>
-#include <QPair>
+#include <algorithm>
+#include <list>
+
+class DataStreamInput;
+class DataStreamOutput;
 
 namespace iscore
 {

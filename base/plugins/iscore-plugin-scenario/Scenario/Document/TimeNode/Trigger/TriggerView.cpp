@@ -1,9 +1,11 @@
-#include "TriggerView.hpp"
 #include <QGraphicsSvgItem>
-#include <QSvgRenderer>
-#include <QGraphicsSceneMouseEvent>
-#include <QDebug>
-#include <QPainter>
+
+#include "TriggerView.hpp"
+
+class QGraphicsSceneMouseEvent;
+class QPainter;
+class QStyleOptionGraphicsItem;
+class QWidget;
 
 TriggerView::TriggerView(QGraphicsItem *parent):
     QGraphicsObject{parent}

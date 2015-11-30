@@ -1,6 +1,20 @@
-#include <QApplication>
-#include <iscore/tools/IdentifiedObject.hpp>
+#include <boost/optional/optional.hpp>
+
 #include <iscore/tools/ObjectPath.hpp>
+#include <QApplication>
+#include <QByteArray>
+#include <QDebug>
+#include <QList>
+#include <qnamespace.h>
+#include <QObject>
+#include <sys/types.h>
+#include <iterator>
+#include <stdexcept>
+#include <typeinfo>
+
+#include <iscore/tools/IdentifiedObjectAbstract.hpp>
+#include <iscore/tools/NamedObject.hpp>
+#include <iscore/tools/ObjectIdentifier.hpp>
 
 ObjectPath ObjectPath::pathBetweenObjects(
         const QObject* const parent_obj,

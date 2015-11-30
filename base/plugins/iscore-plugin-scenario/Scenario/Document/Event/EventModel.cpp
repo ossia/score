@@ -1,9 +1,20 @@
-#include "EventModel.hpp"
-#include <Scenario/Document/TimeNode/TimeNodeModel.hpp>
-#include <Scenario/Process/ScenarioModel.hpp>
-
-#include <iscore/document/DocumentInterface.hpp>
 #include <Process/Style/ScenarioStyle.hpp>
+#include <iscore/document/DocumentInterface.hpp>
+#include <QObject>
+
+#include <QPoint>
+
+#include "EventModel.hpp"
+#include <Process/ModelMetadata.hpp>
+#include <Process/TimeValue.hpp>
+#include <Scenario/Document/Event/ExecutionStatus.hpp>
+#include <Scenario/Document/State/StateModel.hpp>
+#include <Scenario/Document/VerticalExtent.hpp>
+#include <Scenario/Process/ScenarioInterface.hpp>
+#include <State/Expression.hpp>
+#include <iscore/tools/IdentifiedObject.hpp>
+#include <iscore/tools/SettableIdentifier.hpp>
+
 EventModel::EventModel(
         const Id<EventModel>& id,
         const Id<TimeNodeModel>& timenode,
@@ -75,7 +86,9 @@ void EventModel::setStatus(ExecutionStatus status)
     m_status = status;
     emit statusChanged(status);
 
-    auto scenar = parentScenario();
+    auto scenar = dynamic_cast<ScenarioInterface*>(parent());
+    ISCORE_ASSERT(scenar);
+
     for(auto& state : m_states)
     {
         scenar->state(state).setStatus(status);
@@ -101,11 +114,6 @@ void EventModel::reset()
 // TODO Maybe remove the need for this by passing to the scenario instead ?
 QString EventModel::description()
 { return QObject::tr("Event"); }
-
-ScenarioInterface* EventModel::parentScenario() const
-{
-    return dynamic_cast<ScenarioInterface*>(parent());
-}
 
 void EventModel::addState(const Id<StateModel> &ds)
 {

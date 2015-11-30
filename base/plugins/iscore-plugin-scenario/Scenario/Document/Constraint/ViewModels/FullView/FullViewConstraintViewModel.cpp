@@ -1,9 +1,15 @@
-#include "FullViewConstraintViewModel.hpp"
-
 #include <Scenario/Document/Constraint/ConstraintModel.hpp>
-#include <Scenario/Process/ScenarioModel.hpp>
-#include <Scenario/Document/BaseElement/BaseScenario/BaseScenario.hpp>
-#include <Scenario/Document/BaseElement/BaseElementModel.hpp>
+#include <Scenario/Document/ScenarioDocument/ScenarioDocumentModel.hpp>
+#include <boost/optional/optional.hpp>
+
+#include "FullViewConstraintViewModel.hpp"
+#include <Process/ZoomHelper.hpp>
+#include <Scenario/Document/Constraint/ViewModels/ConstraintViewModel.hpp>
+#include <Scenario/Document/DisplayedElements/DisplayedElementsModel.hpp>
+#include <iscore/document/DocumentInterface.hpp>
+#include <iscore/tools/SettableIdentifier.hpp>
+
+class QObject;
 
 FullViewConstraintViewModel::FullViewConstraintViewModel(
         const Id<ConstraintViewModel>& id,
@@ -54,12 +60,12 @@ void FullViewConstraintViewModel::setCenter(const QPointF& value)
     m_center = value;
 }
 
-#include <core/document/Document.hpp>
 #include <core/document/DocumentContext.hpp>
+
 bool FullViewConstraintViewModel::isActive()
 {
     auto& ctx = iscore::IDocument::documentContext(model());
-    auto& baseElt = iscore::IDocument::get<BaseElementModel>(ctx.document);
+    auto& baseElt = iscore::IDocument::get<ScenarioDocumentModel>(ctx.document);
 
     return (this->model().id() == baseElt.displayedElements.constraint().id());
 }

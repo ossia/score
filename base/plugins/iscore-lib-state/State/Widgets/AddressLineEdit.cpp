@@ -1,4 +1,10 @@
+#include <QString>
+#include <QValidator>
+
 #include "AddressLineEdit.hpp"
+#include <State/Widgets/AddressValidator.hpp>
+
+class QWidget;
 
 AddressLineEdit::AddressLineEdit(QWidget* parent):
     QLineEdit{parent}

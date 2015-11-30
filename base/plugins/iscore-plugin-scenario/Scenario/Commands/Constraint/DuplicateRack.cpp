@@ -1,9 +1,15 @@
-#include "DuplicateRack.hpp"
-
 #include <Scenario/Document/Constraint/ConstraintModel.hpp>
 #include <Scenario/Document/Constraint/Rack/RackModel.hpp>
 #include <Scenario/Document/Constraint/Rack/Slot/SlotModel.hpp>
+
+#include <boost/iterator/iterator_facade.hpp>
+#include <boost/multi_index/detail/hash_index_iterator.hpp>
 #include <iscore/tools/SettableIdentifierGeneration.hpp>
+#include <vector>
+
+#include "DuplicateRack.hpp"
+#include <iscore/serialization/DataStreamVisitor.hpp>
+#include <iscore/tools/NotifyingMap.hpp>
 
 using namespace iscore;
 using namespace Scenario::Command;

@@ -1,20 +1,24 @@
-#include "iscore_plugin_loop.hpp"
-
-#include <Loop/LoopProcessModel.hpp>
-#include <Loop/LoopProcessFactory.hpp>
-
-#include <Loop/Inspector/LoopInspectorFactory.hpp>
-
 #include <Loop/Commands/LoopCommandFactory.hpp>
+#include <Loop/Inspector/LoopInspectorFactory.hpp>
 #include <Loop/Inspector/LoopTriggerCommandFactory.hpp>
-
-#include <iscore_plugin_loop_commands_files.hpp>
-
-
+#include <Loop/LoopProcessFactory.hpp>
+#include <Process/Process.hpp>
+#include <Scenario/Document/Constraint/Rack/RackModel.hpp>
+#include <boost/optional/optional.hpp>
 //#if defined(ISCORE_STATIC_PLUGINS) && defined(ISCORE_COMPILER_IS_AppleClang)
 #include <iscore/tools/NotifyingMap_impl.hpp>
-#include <Scenario/Document/Constraint/Rack/RackModel.hpp>
-#include <Process/Process.hpp>
+
+#include <string.h>
+#include <unordered_map>
+
+#include <Inspector/InspectorWidgetFactoryInterface.hpp>
+#include <Process/ProcessFactory.hpp>
+#include <Scenario/Commands/TimeNode/TriggerCommandFactory/TriggerCommandFactory.hpp>
+#include <Scenario/Inspector/Constraint/ConstraintInspectorDelegateFactory.hpp>
+#include <iscore/plugins/customfactory/StringFactoryKey.hpp>
+#include <iscore/tools/SettableIdentifier.hpp>
+#include "iscore_plugin_loop.hpp"
+#include <iscore_plugin_loop_commands_files.hpp>
 void ignore_template_instantiations_iscore_plugin_loop()
 {
     NotifyingMapInstantiations_T<RackModel>();
@@ -27,30 +31,33 @@ iscore_plugin_loop::iscore_plugin_loop() :
 {
 }
 
-std::vector<iscore::FactoryInterfaceBase*> iscore_plugin_loop::factories(
+std::vector<std::unique_ptr<iscore::FactoryInterfaceBase>> iscore_plugin_loop::factories(
         const iscore::ApplicationContext& ctx,
         const iscore::FactoryBaseKey& key) const
 {
     if(key == ProcessFactory::staticFactoryKey())
     {
-        return {new LoopProcessFactory};
+        return make_ptr_vector<iscore::FactoryInterfaceBase,
+            LoopProcessFactory>();
     }
 
     if(key == InspectorWidgetFactory::staticFactoryKey())
     {
-        return {new LoopInspectorFactory};
+        return make_ptr_vector<iscore::FactoryInterfaceBase,
+                LoopInspectorFactory>();
     }
 
     if(key == ConstraintInspectorDelegateFactory::staticFactoryKey())
     {
-        return { new LoopConstraintInspectorDelegateFactory };
+        return make_ptr_vector<iscore::FactoryInterfaceBase,
+                LoopConstraintInspectorDelegateFactory>();
     }
 
     if(key == TriggerCommandFactory::staticFactoryKey())
     {
-        return {
-            new LoopTriggerCommandFactory
-        };
+        return make_ptr_vector<iscore::FactoryInterfaceBase,
+            LoopTriggerCommandFactory
+        >();
     }
 
     return {};
@@ -60,10 +67,10 @@ std::pair<const CommandParentFactoryKey, CommandGeneratorMap> iscore_plugin_loop
 {
     std::pair<const CommandParentFactoryKey, CommandGeneratorMap> cmds{LoopCommandFactoryName(), CommandGeneratorMap{}};
 
-    using Types = iscore::commands::TypeList<
-  #include <iscore_plugin_loop_commands.hpp>
+    using Types = TypeList<
+#include <iscore_plugin_loop_commands.hpp>
       >;
-    iscore::commands::ForEach<Types>(iscore::commands::FactoryInserter{cmds.second});
+    for_each_type<Types>(iscore::commands::FactoryInserter{cmds.second});
 
 
     return cmds;

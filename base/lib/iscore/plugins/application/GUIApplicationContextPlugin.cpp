@@ -1,5 +1,19 @@
-#include "GUIApplicationContextPlugin.hpp"
 #include <core/application/Application.hpp>
+#include <QApplication>
+
+#include "GUIApplicationContextPlugin.hpp"
+#include <core/presenter/DocumentManager.hpp>
+#include <core/presenter/Presenter.hpp>
+#include <core/document/Document.hpp>
+#include <iscore/tools/NamedObject.hpp>
+#include <iscore/widgets/OrderedToolbar.hpp>
+
+class QAction;
+class QObject;
+namespace iscore {
+class Document;
+}  // namespace iscore
+struct VisitorVariant;
 
 using namespace iscore;
 
@@ -7,14 +21,8 @@ using namespace iscore;
 GUIApplicationContextPlugin::GUIApplicationContextPlugin(iscore::Application& app,
                                                const QString& name,
                                                QObject* parent):
-    NamedObject{name, parent},
     m_appContext{app}
 {
-    connect(this, &GUIApplicationContextPlugin::documentChanged,
-            this, &GUIApplicationContextPlugin::on_documentChanged);
-
-    connect(qApp, &QApplication::applicationStateChanged,
-            this, &GUIApplicationContextPlugin::on_focusChanged);
 
 }
 
@@ -79,13 +87,4 @@ void GUIApplicationContextPlugin::on_newDocument(iscore::Document* doc)
 void GUIApplicationContextPlugin::on_loadedDocument(iscore::Document *doc)
 {
 
-}
-
-
-void GUIApplicationContextPlugin::on_focusChanged(Qt::ApplicationState st)
-{
-    if(st == Qt::ApplicationActive)
-        emit focused();
-    else
-        emit defocused();
 }

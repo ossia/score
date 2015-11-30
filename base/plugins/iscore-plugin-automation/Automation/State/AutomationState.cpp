@@ -1,10 +1,23 @@
-#include "AutomationState.hpp"
-#include "Automation/AutomationModel.hpp"
-#include "Curve/CurveModel.hpp"
-#include "Curve/Segment/CurveSegmentModel.hpp"
+#include <boost/iterator/indirect_iterator.hpp>
+#include <boost/iterator/iterator_facade.hpp>
+#include <boost/multi_index/detail/hash_index_iterator.hpp>
+#include <algorithm>
 
-#include "Curve/Segment/Linear/LinearCurveSegmentModel.hpp"
-#include "Curve/Segment/Power/PowerCurveSegmentModel.hpp"
+#include <Automation/AutomationModel.hpp>
+#include "AutomationState.hpp"
+#include <Curve/CurveModel.hpp>
+#include <Curve/Palette/CurvePoint.hpp>
+#include <Curve/Segment/CurveSegmentModel.hpp>
+#include <Process/State/ProcessStateDataInterface.hpp>
+#include <State/Address.hpp>
+#include <State/Message.hpp>
+#include <State/Value.hpp>
+#include <State/ValueConversion.hpp>
+#include <iscore/tools/IdentifiedObjectMap.hpp>
+#include <iscore/tools/Todo.hpp>
+
+class QObject;
+
 AutomationState::AutomationState(
         AutomationModel& model,
         double watchedPoint,

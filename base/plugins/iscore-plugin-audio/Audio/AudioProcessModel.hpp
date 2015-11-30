@@ -1,5 +1,5 @@
 #pragma once
-#include <RecreateOnPlayDocumentPlugin/ProcessModel/ProcessModel.hpp>
+#include <DocumentPlugin/ProcessModel/ProcessModel.hpp>
 #include <iscore/serialization/DataStreamVisitor.hpp>
 #include <iscore/serialization/JSONVisitor.hpp>
 #include <iscore/serialization/VisitorCommon.hpp>

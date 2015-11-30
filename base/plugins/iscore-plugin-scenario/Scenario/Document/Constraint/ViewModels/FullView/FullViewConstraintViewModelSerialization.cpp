@@ -1,6 +1,16 @@
-#include "FullViewConstraintViewModel.hpp"
+#include <QJsonArray>
+#include <QJsonObject>
+#include <QJsonValue>
+#include <QPoint>
 
-#include <Scenario/Document/Constraint/ViewModels/ConstraintViewModelSerialization.hpp>
+#include "FullViewConstraintViewModel.hpp"
+#include <iscore/serialization/DataStreamVisitor.hpp>
+#include <iscore/serialization/JSONValueVisitor.hpp>
+#include <iscore/serialization/JSONVisitor.hpp>
+
+class ConstraintViewModel;
+template <typename T> class Reader;
+template <typename T> class Writer;
 
 template<>
 void Visitor<Reader<DataStream>>::readFrom(const FullViewConstraintViewModel& constraint)

@@ -1,12 +1,12 @@
-#include "NetworkSettingsView.hpp"
 #include <QGridLayout>
 #include <QLabel>
+
 #include "NetworkSettingsPresenter.hpp"
-#include "NetworkSettingsModel.hpp"
-#include "commands/ClientPortChangedCommand.hpp"
-#include "commands/MasterPortChangedCommand.hpp"
-#include "commands/ClientNameChangedCommand.hpp"
-#include <QApplication>
+#include "NetworkSettingsView.hpp"
+#include <iscore/plugins/settingsdelegate/SettingsDelegateViewInterface.hpp>
+
+class QObject;
+
 using namespace iscore;
 
 NetworkSettingsView::NetworkSettingsView(QObject* parent) :

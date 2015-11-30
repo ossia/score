@@ -1,7 +1,17 @@
 #pragma once
+#include <QList>
+
 #include "Session.hpp"
 
-#include "RemoteClientBuilder.hpp"
+class Client;
+class LocalClient;
+class QObject;
+class QTcpSocket;
+class RemoteClient;
+class RemoteClientBuilder;
+struct NetworkMessage;
+#include <iscore/tools/SettableIdentifier.hpp>
+
 namespace iscore {
 class Document;
 }

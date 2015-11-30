@@ -1,5 +1,11 @@
 #pragma once
-#include <QGraphicsObject>
+
+#include <QGraphicsItem>
+#include <QRect>
+
+class QPainter;
+class QStyleOptionGraphicsItem;
+class QWidget;
 
 class RackView final : public QGraphicsObject
 {

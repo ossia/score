@@ -1,10 +1,18 @@
-#include "FullViewConstraintHeader.hpp"
-#include "AddressBarItem.hpp"
-
-#include <QPainter>
 #include <QGraphicsScene>
 #include <QGraphicsView>
+#include <QList>
+#include <QPoint>
 #include <cmath>
+
+#include "AddressBarItem.hpp"
+#include "FullViewConstraintHeader.hpp"
+#include <Scenario/Document/Constraint/ViewModels/ConstraintHeader.hpp>
+
+class QGraphicsItem;
+class QPainter;
+class QStyleOptionGraphicsItem;
+class QWidget;
+
 FullViewConstraintHeader::FullViewConstraintHeader(QGraphicsItem * parent):
     ConstraintHeader{parent},
     m_bar{new AddressBarItem(this)}

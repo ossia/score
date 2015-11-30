@@ -1,38 +1,45 @@
-#include "EventInspectorWidget.hpp"
-
+#include <Inspector/Separator.hpp>
+#include <Scenario/Commands/Event/SetCondition.hpp>
+#include <Scenario/Commands/TimeNode/TriggerCommandFactory/TriggerCommandFactoryList.hpp>
 #include <Scenario/Document/Event/EventModel.hpp>
 #include <Scenario/Document/TimeNode/TimeNodeModel.hpp>
 #include <Scenario/Document/TimeNode/Trigger/TriggerModel.hpp>
-#include <Scenario/Document/Constraint/ConstraintModel.hpp>
-
-#include <Scenario/Commands/Event/SetCondition.hpp>
-
-#include <Inspector/InspectorSectionWidget.hpp>
-#include <Inspector/Separator.hpp>
-#include <Inspector/InspectorWidgetList.hpp>
-
+#include <Scenario/Inspector/Expression/ExpressionEditorWidget.hpp>
 #include <Scenario/Inspector/MetadataWidget.hpp>
 #include <Scenario/Inspector/SelectionButton.hpp>
 #include <Scenario/Inspector/State/StateInspectorWidget.hpp>
 #include <Scenario/Inspector/TimeNode/TriggerInspectorWidget.hpp>
-#include <Scenario/Inspector/Expression/ExpressionEditorWidget.hpp>
-
-#include <Explorer/Explorer/DeviceExplorerModel.hpp>
-#include <Explorer/Widgets/DeviceCompleter.hpp>
-#include <Explorer/Widgets/DeviceExplorerMenuButton.hpp>
-
-#include <QLabel>
-#include <QPushButton>
-#include <QScrollArea>
-#include <QFormLayout>
-
-#include <Scenario/Process/ScenarioModel.hpp>
-#include <Scenario/Commands/TimeNode/TriggerCommandFactory/TriggerCommandFactoryList.hpp>
 #include <core/application/ApplicationComponents.hpp>
-
-#include <iscore/widgets/MarginLess.hpp>
 #include <core/document/Document.hpp>
 #include <core/document/DocumentModel.hpp>
+#include <iscore/widgets/MarginLess.hpp>
+#include <QBoxLayout>
+#include <QColor>
+#include <QDebug>
+#include <QFormLayout>
+#include <QLabel>
+#include <QLayout>
+
+#include <QString>
+#include <QWidget>
+#include <algorithm>
+
+#include "EventInspectorWidget.hpp"
+#include <Inspector/InspectorWidgetBase.hpp>
+#include <Process/TimeValue.hpp>
+#include <Scenario/Process/ScenarioInterface.hpp>
+#include <State/Expression.hpp>
+#include <core/application/ApplicationContext.hpp>
+#include <core/document/DocumentContext.hpp>
+#include <iscore/command/Dispatchers/CommandDispatcher.hpp>
+#include <iscore/plugins/customfactory/StringFactoryKey.hpp>
+#include <iscore/plugins/documentdelegate/plugin/DocumentDelegatePluginModel.hpp>
+#include <iscore/plugins/documentdelegate/plugin/ElementPluginModelList.hpp>
+#include <iscore/serialization/DataStreamVisitor.hpp>
+#include <iscore/tools/IdentifiedObject.hpp>
+#include <iscore/tools/ModelPathSerialization.hpp>
+#include <iscore/tools/SettableIdentifier.hpp>
+#include <iscore/tools/Todo.hpp>
 
 EventInspectorWidget::EventInspectorWidget(
         const EventModel& object,
@@ -43,6 +50,9 @@ EventInspectorWidget::EventInspectorWidget(
 {
     setObjectName("EventInspectorWidget");
     setParent(parent);
+
+    auto scenar = dynamic_cast<ScenarioInterface*>(m_model.parent());
+    ISCORE_ASSERT(scenar);
 
     con(m_model, &EventModel::statesChanged,
             this,    &EventInspectorWidget::updateDisplayedValues);
@@ -67,7 +77,6 @@ EventInspectorWidget::EventInspectorWidget(
     auto timeNode = m_model.timeNode();
     if(timeNode)
     {
-        auto scenar = m_model.parentScenario();
         auto tnBtn = SelectionButton::make(
                     tr("Parent TimeNode"),
                     &scenar->timeNode(timeNode),
@@ -90,7 +99,7 @@ EventInspectorWidget::EventInspectorWidget(
     m_properties.push_back(infoWidg);
 
     // Trigger
-    auto& tn = m_model.parentScenario()->timeNode(m_model.timeNode());
+    auto& tn = scenar->timeNode(m_model.timeNode());
     m_triggerWidg = new TriggerInspectorWidget{
                     doc.context().app.components.factory<TriggerCommandFactoryList>(),
                     tn,
@@ -176,14 +185,15 @@ void EventInspectorWidget::updateDisplayedValues()
 
     m_date->setText(m_model.date().toString());
 
-    const auto& scenar = m_model.parentScenario();
+    auto scenar = dynamic_cast<ScenarioInterface*>(m_model.parent());
+    ISCORE_ASSERT(scenar);
     for(const auto& state : m_model.states())
     {
         addState(scenar->state(state));
     }
 
     m_exprEditor->setExpression(m_model.condition());
-    auto& tn = m_model.parentScenario()->timeNode(m_model.timeNode());
+    auto& tn = scenar->timeNode(m_model.timeNode());
     m_triggerWidg->updateExpression(tn.trigger()->expression());
 }
 

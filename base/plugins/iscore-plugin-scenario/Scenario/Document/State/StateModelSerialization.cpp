@@ -1,7 +1,27 @@
+#include <Scenario/Document/State/StateModel.hpp>
+
+#include <iscore/document/DocumentInterface.hpp>
 #include <iscore/serialization/DataStreamVisitor.hpp>
 #include <iscore/serialization/JSONVisitor.hpp>
-#include <Scenario/Document/State/StateModel.hpp>
-#include <iscore/document/DocumentInterface.hpp>
+#include <QJsonArray>
+#include <QJsonObject>
+#include <QJsonValue>
+#include <algorithm>
+
+#include <Process/ModelMetadata.hpp>
+#include <Process/State/MessageNode.hpp>
+#include <Scenario/Document/State/ItemModel/MessageItemModel.hpp>
+#include <iscore/serialization/JSONValueVisitor.hpp>
+#include <iscore/tools/SettableIdentifier.hpp>
+#include <iscore/tools/Todo.hpp>
+#include <iscore/tools/TreeNode.hpp>
+
+class ConstraintModel;
+class EventModel;
+template <typename T> class Reader;
+template <typename T> class Writer;
+template <typename model> class IdentifiedObject;
+
 template<> void Visitor<Reader<DataStream>>::readFrom(const StateModel& s)
 {
     readFrom(static_cast<const IdentifiedObject<StateModel>&>(s));

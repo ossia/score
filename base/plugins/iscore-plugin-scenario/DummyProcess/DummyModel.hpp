@@ -1,9 +1,20 @@
 #pragma once
-#include <Process/Process.hpp>
-#include <iscore/serialization/DataStreamVisitor.hpp>
-#include <iscore/serialization/JSONVisitor.hpp>
-
 #include <DummyProcess/DummyState.hpp>
+#include <Process/Process.hpp>
+#include <QByteArray>
+#include <QString>
+
+#include <Process/ProcessFactoryKey.hpp>
+#include <Process/TimeValue.hpp>
+#include <iscore/selection/Selection.hpp>
+#include <iscore/serialization/VisitorInterface.hpp>
+
+class DataStream;
+class JSONObject;
+class LayerModel;
+class ProcessStateDataInterface;
+class QObject;
+#include <iscore/tools/SettableIdentifier.hpp>
 
 class DummyModel final : public Process
 {

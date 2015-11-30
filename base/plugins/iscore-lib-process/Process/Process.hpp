@@ -1,19 +1,26 @@
 #pragma once
-#include <Process/TimeValue.hpp>
 #include <Process/ExpandMode.hpp>
 #include <Process/ProcessFactoryKey.hpp>
-
-#include <iscore/tools/IdentifiedObject.hpp>
-#include <iscore/plugins/documentdelegate/plugin/ElementPluginModelList.hpp>
+#include <Process/TimeValue.hpp>
 #include <iscore/selection/Selection.hpp>
+#include <iscore/tools/IdentifiedObject.hpp>
+#include <QByteArray>
+#include <QString>
+#include <vector>
+
+#include "ModelMetadata.hpp"
+#include <iscore/serialization/VisitorInterface.hpp>
 #include <iscore/serialization/DataStreamVisitor.hpp>
 #include <iscore/serialization/JSONVisitor.hpp>
-#include "ModelMetadata.hpp"
 
-class DataStream;
-class JSONObject;
-class ProcessStateDataInterface;
 class LayerModel;
+class ProcessStateDataInterface;
+class QObject;
+namespace iscore {
+class ElementPluginModelList;
+}  // namespace iscore
+#include <iscore/tools/SettableIdentifier.hpp>
+
 /**
  * @brief The Process class
  *

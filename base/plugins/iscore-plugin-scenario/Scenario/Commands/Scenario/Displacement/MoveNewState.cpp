@@ -1,6 +1,15 @@
-#include "MoveNewState.hpp"
 #include <Scenario/Process/Algorithms/VerticalMovePolicy.hpp>
 #include <Scenario/Process/ScenarioModel.hpp>
+
+#include <algorithm>
+
+#include "MoveNewState.hpp"
+#include <Scenario/Document/State/StateModel.hpp>
+#include <iscore/serialization/DataStreamVisitor.hpp>
+#include <iscore/tools/ModelPath.hpp>
+#include <iscore/tools/ModelPathSerialization.hpp>
+
+#include <iscore/tools/SettableIdentifier.hpp>
 
 Scenario::Command::MoveNewState::MoveNewState(
         Path<Scenario::ScenarioModel>&& scenarioPath,

@@ -1,7 +1,11 @@
 #include "PluginSettings.hpp"
 #include "PluginSettingsModel.hpp"
-#include "PluginSettingsView.hpp"
 #include "PluginSettingsPresenter.hpp"
+#include "PluginSettingsView.hpp"
+
+namespace iscore {
+class SettingsPresenter;
+}  // namespace iscore
 
 using namespace iscore;
 

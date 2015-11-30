@@ -1,11 +1,19 @@
+#include <OSSIA/Protocols/Minuit/MinuitProtocolFactory.hpp>
+#include <OSSIA/Protocols/OSC/OSCProtocolFactory.hpp>
+#include <QString>
+
+#include <Device/Protocol/ProtocolFactoryInterface.hpp>
+#include <OSSIA/DocumentPlugin/ContextMenu/PlayContextMenuFactory.hpp>
+#include <OSSIA/OSSIAApplicationPlugin.hpp>
+
+#include <Scenario/Application/Menus/Plugin/ScenarioActionsFactory.hpp>
+#include <iscore/plugins/customfactory/StringFactoryKey.hpp>
 #include "iscore_plugin_ossia.hpp"
-#include "OSSIAApplicationPlugin.hpp"
+#include <iscore/plugins/customfactory/FactoryFamily.hpp>
 
-#include <Protocols/MIDI/MIDIProtocolFactory.hpp>
-#include <Protocols/Minuit/MinuitProtocolFactory.hpp>
-#include <Protocols/OSC/OSCProtocolFactory.hpp>
-
-#include "DocumentPlugin/ContextMenu/PlayContextMenuFactory.hpp"
+namespace iscore {
+class Application;
+}  // namespace iscore
 
 iscore_plugin_ossia::iscore_plugin_ossia() :
     QObject {}
@@ -20,20 +28,21 @@ iscore::GUIApplicationContextPlugin* iscore_plugin_ossia::make_applicationPlugin
 
 
 
-std::vector<iscore::FactoryInterfaceBase*> iscore_plugin_ossia::factories(
+std::vector<std::unique_ptr<iscore::FactoryInterfaceBase>> iscore_plugin_ossia::factories(
         const iscore::ApplicationContext&,
         const iscore::FactoryBaseKey& factoryName) const
 {
     if(factoryName == ProtocolFactory::staticFactoryKey())
     {
-        return {//new MIDIProtocolFactory,
-                new MinuitProtocolFactory,
-                new OSCProtocolFactory};
+        return make_ptr_vector<iscore::FactoryInterfaceBase,
+                MinuitProtocolFactory,
+                OSCProtocolFactory>();
     }
 
     if(factoryName == ScenarioActionsFactory::staticFactoryKey())
     {
-        return {new PlayContextMenuFactory};
+        return make_ptr_vector<iscore::FactoryInterfaceBase,
+                PlayContextMenuFactory>();
     }
 
     return {};

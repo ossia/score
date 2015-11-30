@@ -1,23 +1,20 @@
 #pragma once
 
-#include <QWidget>
-#include <iscore/tools/ObjectPath.hpp>
-#include <iscore/selection/SelectionDispatcher.hpp>
 #include <iscore/command/Dispatchers/CommandDispatcher.hpp>
-#include <QVBoxLayout>
-class QLineEdit;
-class QLabel;
-class QTextEdit;
-class QPushButton;
-class InspectorSectionWidget;
-class QScrollArea;
+#include <QColor>
+#include <qnamespace.h>
+#include <QString>
+#include <QWidget>
+#include <list>
+#include <memory>
+
+class IdentifiedObjectAbstract;
+class QVBoxLayout;
 
 namespace iscore
 {
-    class SerializableCommand;
-    class SelectionDispatcher;
-
     class Document;
+    class SelectionDispatcher;
 }
 
 /*!

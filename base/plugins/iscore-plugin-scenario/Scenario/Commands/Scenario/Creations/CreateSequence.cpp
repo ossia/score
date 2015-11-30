@@ -1,14 +1,48 @@
-#include "CreateSequence.hpp"
-
-#include  <Scenario/Process/ScenarioModel.hpp>
 #include <Explorer/DocumentPlugin/DeviceDocumentPlugin.hpp>
+#include <Scenario/Commands/Cohesion/CreateCurveFromStates.hpp>
+#include <Scenario/Document/State/ItemModel/MessageItemModelAlgorithms.hpp>
+#include  <Scenario/Process/ScenarioModel.hpp>
+
+#include <boost/optional/optional.hpp>
 #include <core/document/Document.hpp>
 #include <core/document/DocumentModel.hpp>
-#include <Scenario/Document/State/ItemModel/MessageItemModelAlgorithms.hpp>
-#include <Scenario/Commands/Cohesion/CreateCurveFromStates.hpp>
 #include <iscore/tools/SettableIdentifierGeneration.hpp>
+#include <QByteArray>
+#include <QtGlobal>
+#include <QList>
+#include <QString>
+#include <algorithm>
+#include <iterator>
+#include <list>
+#include <utility>
+#include <vector>
 
-#include <iostream>
+#include "CreateSequence.hpp"
+#include <Device/Address/AddressSettings.hpp>
+#include <Device/Address/Domain.hpp>
+#include <Device/Node/DeviceNode.hpp>
+#include <Explorer/DocumentPlugin/NodeUpdateProxy.hpp>
+#include <Process/State/MessageNode.hpp>
+#include <Process/TimeValue.hpp>
+#include <Scenario/Commands/Cohesion/InterpolateMacro.hpp>
+#include <Scenario/Commands/Scenario/Creations/CreateConstraint_State_Event_TimeNode.hpp>
+#include <Scenario/Document/Constraint/ConstraintModel.hpp>
+#include <Scenario/Document/State/ItemModel/MessageItemModel.hpp>
+#include <Scenario/Document/State/StateModel.hpp>
+#include <State/Address.hpp>
+#include <State/Message.hpp>
+#include <State/Value.hpp>
+#include <State/ValueConversion.hpp>
+#include <iscore/document/DocumentInterface.hpp>
+#include <iscore/serialization/DataStreamVisitor.hpp>
+#include <iscore/tools/SettableIdentifier.hpp>
+#include <iscore/tools/Todo.hpp>
+#include <iscore/tools/TreeNode.hpp>
+
+class LayerModel;
+class Process;
+class SlotModel;
+
 using namespace Scenario::Command;
 
 CreateSequence::CreateSequence(

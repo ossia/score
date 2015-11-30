@@ -1,10 +1,10 @@
 #pragma once
-#include <QObject>
 #include "Selection.hpp"
 
 namespace iscore
 {
 class SelectionStack;
+
 /**
  * @brief The SelectionDispatcher class
  *

@@ -1,11 +1,15 @@
 #pragma once
 
-#include <QWidget>
 #include <Scenario/Inspector/ExpressionValidator.hpp>
 
-class QLineEdit;
+#include <QString>
+#include <QWidget>
+
+#include <State/Expression.hpp>
+
 class QComboBox;
 class QLabel;
+class QLineEdit;
 
 class SimpleExpressionEditorWidget : public QWidget
 {

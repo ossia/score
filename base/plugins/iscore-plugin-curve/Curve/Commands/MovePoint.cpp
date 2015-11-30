@@ -1,5 +1,15 @@
+
+#include <QPoint>
+#include <algorithm>
+
+#include <Curve/CurveModel.hpp>
+#include <Curve/Point/CurvePointModel.hpp>
+#include <Curve/Segment/CurveSegmentModel.hpp>
 #include "MovePoint.hpp"
-#include "Curve/Segment/CurveSegmentModel.hpp"
+#include <iscore/serialization/DataStreamVisitor.hpp>
+#include <iscore/tools/IdentifiedObjectMap.hpp>
+#include <iscore/tools/ModelPath.hpp>
+#include <iscore/tools/ModelPathSerialization.hpp>
 
 
 MovePoint::MovePoint(Path<CurveModel>&& model,

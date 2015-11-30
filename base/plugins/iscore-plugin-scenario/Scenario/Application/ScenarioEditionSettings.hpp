@@ -1,7 +1,7 @@
 #pragma once
-#include <QObject>
-#include <Scenario/Process/Temporal/StateMachines/Tool.hpp>
 #include <Process/ExpandMode.hpp>
+#include <Scenario/Palette/Tool.hpp>
+#include <QObject>
 
 namespace Scenario
 {
@@ -17,6 +17,7 @@ class EditionSettings : public QObject
         bool m_sequence{false};
 
     public:
+
         ExpandMode expandMode() const;
         Scenario::Tool tool() const;
         bool sequence() const;
@@ -24,6 +25,8 @@ class EditionSettings : public QObject
         void setExpandMode(ExpandMode expandMode);
         void setTool(Scenario::Tool tool);
         void setSequence(bool sequence);
+
+        void setDefault();
 
     signals:
         void expandModeChanged(ExpandMode expandMode);

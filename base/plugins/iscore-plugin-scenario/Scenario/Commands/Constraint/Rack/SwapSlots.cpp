@@ -1,5 +1,12 @@
-#include "SwapSlots.hpp"
 #include <Scenario/Document/Constraint/Rack/RackModel.hpp>
+
+#include <algorithm>
+
+#include "SwapSlots.hpp"
+#include <iscore/serialization/DataStreamVisitor.hpp>
+#include <iscore/tools/ModelPath.hpp>
+#include <iscore/tools/ModelPathSerialization.hpp>
+
 using namespace Scenario::Command;
 
 

@@ -1,4 +1,9 @@
+#include <State/Expression.hpp>
 #include "TriggerModel.hpp"
+#include <iscore/tools/IdentifiedObject.hpp>
+
+class QObject;
+#include <iscore/tools/SettableIdentifier.hpp>
 
 constexpr const char TriggerModel::className[];
 TriggerModel::TriggerModel(const Id<TriggerModel>& id, QObject* parent):

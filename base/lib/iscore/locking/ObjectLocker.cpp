@@ -1,4 +1,10 @@
+#include <algorithm>
+
 #include "ObjectLocker.hpp"
+#include <iscore/document/DocumentInterface.hpp>
+#include <iscore/serialization/DataStreamVisitor.hpp>
+#include <iscore/tools/ObjectPath.hpp>
+
 using namespace iscore;
 //// Locking / unlocking ////
 

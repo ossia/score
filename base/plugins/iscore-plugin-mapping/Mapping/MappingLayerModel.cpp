@@ -1,6 +1,11 @@
 #include "MappingLayerModel.hpp"
 #include "MappingModel.hpp"
 #include "MappingPanelProxy.hpp"
+#include <Process/LayerModel.hpp>
+
+class LayerModelPanelProxy;
+class QObject;
+#include <iscore/tools/SettableIdentifier.hpp>
 
 constexpr const char MappingLayerModel::className[];
 MappingLayerModel::MappingLayerModel(

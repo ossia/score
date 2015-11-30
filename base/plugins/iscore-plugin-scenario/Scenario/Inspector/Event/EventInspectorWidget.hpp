@@ -1,16 +1,20 @@
 #pragma once
 
 #include <Inspector/InspectorWidgetBase.hpp>
+#include <list>
+#include <vector>
+
 class EventModel;
-
-class QFormLayout;
-class StateModel;
-class MetadataWidget;
-struct Message;
-class TriggerInspectorWidget;
 class ExpressionEditorWidget;
-
-#include <QLineEdit>
+class MetadataWidget;
+class QLabel;
+class QLineEdit;
+class QWidget;
+class StateModel;
+class TriggerInspectorWidget;
+namespace iscore {
+class Document;
+}  // namespace iscore
 
 
 /*!

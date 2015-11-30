@@ -1,10 +1,16 @@
-#include "TimeNodeModel.hpp"
+#include <Process/Style/ScenarioStyle.hpp>
 #include <Scenario/Document/Event/EventModel.hpp>
 #include <Scenario/Document/TimeNode/Trigger/TriggerModel.hpp>
+#include <QtGlobal>
 
-#include <Scenario/Process/ScenarioModel.hpp>
-
-#include <Process/Style/ScenarioStyle.hpp>
+#include <Process/ModelMetadata.hpp>
+#include <Process/TimeValue.hpp>
+#include <Scenario/Document/VerticalExtent.hpp>
+#include <Scenario/Process/ScenarioInterface.hpp>
+#include "TimeNodeModel.hpp"
+#include <iscore/document/DocumentInterface.hpp>
+#include <iscore/tools/IdentifiedObject.hpp>
+#include <iscore/tools/SettableIdentifier.hpp>
 
 TimeNodeModel::TimeNodeModel(
         const Id<TimeNodeModel>& id,
@@ -38,19 +44,13 @@ TimeNodeModel::TimeNodeModel(
     m_trigger->setActive(source.trigger()->active());
 }
 
-ScenarioInterface* TimeNodeModel::parentScenario() const
-{
-    return dynamic_cast<ScenarioInterface*>(parent());
-}
-
 void TimeNodeModel::addEvent(const Id<EventModel>& eventId)
 {
     m_events.push_back(eventId);
     emit newEvent(eventId);
 
-    auto scenar = parentScenario();
-    if(!scenar)
-        return;
+    auto scenar = dynamic_cast<ScenarioInterface*>(parent());
+    ISCORE_ASSERT(scenar);
 
     auto& theEvent = scenar->event(eventId);
     theEvent.changeTimeNode(this->id());

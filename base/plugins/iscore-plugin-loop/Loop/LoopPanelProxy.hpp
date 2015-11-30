@@ -1,6 +1,8 @@
 #pragma once
-#include <Process/LayerModelPanelProxy.hpp>
 #include <Loop/LoopLayer.hpp>
+#include <Process/LayerModelPanelProxy.hpp>
+
+class QObject;
 
 class LoopPanelProxy final : public LayerModelPanelProxy
 {

@@ -1,4 +1,8 @@
+#include <QObject>
+
+
 #include "AutomationProcessMetadata.hpp"
+#include <Process/ProcessFactoryKey.hpp>
 
 const ProcessFactoryKey& AutomationProcessMetadata::factoryKey()
 {

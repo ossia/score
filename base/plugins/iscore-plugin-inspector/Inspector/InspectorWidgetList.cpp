@@ -1,12 +1,11 @@
-#include "InspectorWidgetList.hpp"
-#include "InspectorWidgetBase.hpp"
-
 #include <iscore/document/DocumentInterface.hpp>
-#include <core/document/Document.hpp>
 
-#include <QApplication>
-#include <core/application/Application.hpp>
-#include <core/presenter/Presenter.hpp>
+#include <Inspector/InspectorWidgetFactoryInterface.hpp>
+#include "InspectorWidgetBase.hpp"
+#include "InspectorWidgetList.hpp"
+#include <iscore/tools/IdentifiedObjectAbstract.hpp>
+
+class QWidget;
 
 InspectorWidgetBase* InspectorWidgetList::makeInspectorWidget(
         const QString& name,
@@ -14,11 +13,11 @@ InspectorWidgetBase* InspectorWidgetList::makeInspectorWidget(
         QWidget* parent) const
 {
     auto& doc = *iscore::IDocument::documentFromObject(model);
-    for(InspectorWidgetFactory* factory : m_list)
+    for(const auto& factory : m_list)
     {
-        if(factory->matches(name))
+        if(factory.matches(name))
         {
-            auto widg = factory->makeWidget(model, doc, parent);
+            auto widg = factory.makeWidget(model, doc, parent);
             if(widg)
                 return widg;
             break;

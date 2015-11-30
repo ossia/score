@@ -1,10 +1,17 @@
-#include "DeviceExplorerPanelView.hpp"
-#include <Explorer/Explorer/DeviceExplorerWidget.hpp>
-
-#include <core/view/View.hpp>
-#include <core/presenter/Presenter.hpp>
 #include <Device/Protocol/ProtocolList.hpp>
-#include <core/application/Application.hpp>
+#include <Explorer/Explorer/DeviceExplorerWidget.hpp>
+#include <core/view/View.hpp>
+#include <qnamespace.h>
+#include <QObject>
+
+#include "DeviceExplorerPanelView.hpp"
+#include <core/application/ApplicationComponents.hpp>
+#include <core/application/ApplicationContext.hpp>
+#include <iscore/plugins/customfactory/StringFactoryKey.hpp>
+#include <iscore/plugins/panel/PanelView.hpp>
+
+class QWidget;
+
 static const iscore::DefaultPanelStatus status{
     true,
     Qt::LeftDockWidgetArea,

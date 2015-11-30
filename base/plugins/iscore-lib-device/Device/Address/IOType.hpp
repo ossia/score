@@ -1,5 +1,7 @@
 #pragma once
-#include <QMap>
+
+class QString;
+template <class Key, class T> class QMap;
 
 namespace iscore {
 enum class IOType : int { Invalid, In, Out, InOut };

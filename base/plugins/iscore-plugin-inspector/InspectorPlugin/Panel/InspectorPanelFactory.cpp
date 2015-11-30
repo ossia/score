@@ -1,8 +1,15 @@
 #include "InspectorPanelFactory.hpp"
-#include "InspectorPanelView.hpp"
 #include "InspectorPanelModel.hpp"
 #include "InspectorPanelPresenter.hpp"
+#include "InspectorPanelView.hpp"
 #include "InspectorPanelId.hpp"
+
+namespace iscore {
+class DocumentModel;
+class Presenter;
+class View;
+}  // namespace iscore
+
 using namespace iscore;
 
 

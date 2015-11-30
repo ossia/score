@@ -2,7 +2,13 @@
 
 #include <Process/LayerModel.hpp>
 
+#include <iscore/serialization/VisitorInterface.hpp>
+
+class LayerModelPanelProxy;
 class MappingModel;
+class QObject;
+#include <iscore/tools/SettableIdentifier.hpp>
+
 class MappingLayerModel : public LayerModel
 {
         ISCORE_METADATA("MappingLayerModel")

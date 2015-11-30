@@ -1,21 +1,45 @@
+
+#include <boost/optional/optional.hpp>
+#include <core/document/DocumentPresenter.hpp>
+#include <core/document/DocumentView.hpp>
+#include <iscore/plugins/application/GUIApplicationContextPlugin.hpp>
+#include <iscore/plugins/documentdelegate/DocumentDelegateFactoryInterface.hpp>
+#include <iscore/plugins/documentdelegate/DocumentDelegateModelInterface.hpp>
+#include <iscore/plugins/documentdelegate/plugin/DocumentDelegatePluginModel.hpp>
+#include <iscore/serialization/JSONVisitor.hpp>
+#include <iscore/tools/SettableIdentifierGeneration.hpp>
+#include <QByteArray>
+#include <QCryptographicHash>
+#include <QDataStream>
+#include <QtGlobal>
+#include <QIODevice>
+#include <QJsonObject>
+#include <QJsonValue>
+#include <QMetaType>
+#include <QPair>
+#include <QString>
+#include <QVariant>
+#include <QVector>
+#include <algorithm>
+#include <iterator>
+#include <stdexcept>
+#include <vector>
+
 #include "Document.hpp"
 #include "DocumentModel.hpp"
+#include <core/application/ApplicationComponents.hpp>
+#include <core/application/ApplicationContext.hpp>
+#include <core/command/CommandStack.hpp>
+#include <core/document/DocumentContext.hpp>
+#include <iscore/serialization/DataStreamVisitor.hpp>
+#include <iscore/serialization/JSONValueVisitor.hpp>
+#include <iscore/tools/IdentifiedObject.hpp>
+#include <iscore/tools/NamedObject.hpp>
+#include <iscore/tools/SettableIdentifier.hpp>
 
-#include <iscore/plugins/documentdelegate/DocumentDelegateModelInterface.hpp>
-#include <iscore/plugins/documentdelegate/DocumentDelegateFactoryInterface.hpp>
-#include <iscore/plugins/documentdelegate/plugin/DocumentDelegatePluginModel.hpp>
+class QObject;
+class QWidget;
 
-#include <iscore/plugins/panel/PanelFactory.hpp>
-
-#include <iscore/plugins/panel/PanelModel.hpp>
-
-#include <core/document/DocumentView.hpp>
-#include <core/document/DocumentPresenter.hpp>
-#include <iscore/plugins/application/GUIApplicationContextPlugin.hpp>
-
-#include <iscore/tools/SettableIdentifierGeneration.hpp>
-#include <iscore/serialization/JSONVisitor.hpp>
-#include <QCryptographicHash>
 using namespace iscore;
 
 

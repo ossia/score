@@ -1,14 +1,23 @@
-#include "NetworkClientDocumentPlugin.hpp"
-
-#include <Repartition/session/MasterSession.hpp>
-#include <Repartition/session/ClientSessionBuilder.hpp>
 #include <Serialization/MessageMapper.hpp>
-
-#include <core/document/DocumentPresenter.hpp>
-#include "NetworkApplicationPlugin.hpp"
-#include "settings_impl/NetworkSettingsModel.hpp"
-#include <core/document/DocumentModel.hpp>
 #include <core/document/DocumentContext.hpp>
+#include <QByteArray>
+#include <QDataStream>
+#include <QDebug>
+#include <algorithm>
+
+#include "NetworkClientDocumentPlugin.hpp"
+#include "Serialization/NetworkMessage.hpp"
+#include <core/application/ApplicationComponents.hpp>
+#include <core/application/ApplicationContext.hpp>
+#include <core/command/CommandStack.hpp>
+#include <core/document/Document.hpp>
+#include <iscore/command/SerializableCommand.hpp>
+#include <iscore/locking/ObjectLocker.hpp>
+#include <iscore/plugins/customfactory/StringFactoryKey.hpp>
+#include <iscore/serialization/DataStreamVisitor.hpp>
+#include <iscore/tools/Todo.hpp>
+#include "session/../client/RemoteClient.hpp"
+#include "session/ClientSession.hpp"
 
 
 ClientNetworkPolicy::ClientNetworkPolicy(

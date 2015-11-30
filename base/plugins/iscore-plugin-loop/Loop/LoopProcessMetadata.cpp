@@ -1,4 +1,9 @@
+#include <QObject>
+
+
 #include "LoopProcessMetadata.hpp"
+#include <Process/ProcessFactoryKey.hpp>
+
 const ProcessFactoryKey&LoopProcessMetadata::factoryKey()
 {
     static const ProcessFactoryKey name{"Loop"};

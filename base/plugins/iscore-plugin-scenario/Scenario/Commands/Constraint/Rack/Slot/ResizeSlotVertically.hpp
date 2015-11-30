@@ -3,8 +3,10 @@
 #include <iscore/command/SerializableCommand.hpp>
 #include <iscore/tools/ModelPath.hpp>
 
-#include <QString>
+class DataStreamInput;
+class DataStreamOutput;
 class SlotModel;
+
 namespace Scenario
 {
     namespace Command

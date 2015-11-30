@@ -1,10 +1,16 @@
 #pragma once
 #include <Commands/IScoreCohesionCommandFactory.hpp>
-#include <iscore/command/SerializableCommand.hpp>
-#include <iscore/tools/ModelPath.hpp>
 #include <State/Address.hpp>
 #include <iscore/command/CommandData.hpp>
+#include <iscore/command/SerializableCommand.hpp>
+#include <iscore/tools/ModelPath.hpp>
+#include <QList>
+#include <vector>
+
 class ConstraintModel;
+class DataStreamInput;
+class DataStreamOutput;
+
 class CreateCurvesFromAddresses final : public iscore::SerializableCommand
 {
         ISCORE_COMMAND_DECL(IScoreCohesionCommandFactoryName(), CreateCurvesFromAddresses, "CreateCurvesFromAddresses")

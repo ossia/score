@@ -1,5 +1,11 @@
-#include "ConstraintViewModel.hpp"
 #include <Scenario/Document/Constraint/Rack/RackModel.hpp>
+
+
+#include "ConstraintViewModel.hpp"
+#include <iscore/tools/IdentifiedObject.hpp>
+
+class QObject;
+
 bool ConstraintViewModel::isRackShown() const
 {
     return bool (m_shownRack.val());

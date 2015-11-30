@@ -1,11 +1,11 @@
 #pragma once
-#include <iscore/tools/SettableIdentifier.hpp>
-
-namespace Scenario { class ScenarioModel; }
-class EventModel;
 class ConstraintModel;
-class TimeNodeModel;
+class EventModel;
 class StateModel;
+namespace Scenario {
+class ScenarioModel;
+}  // namespace Scenario
+#include <iscore/tools/SettableIdentifier.hpp>
 
 namespace StandardRemovalPolicy
 {

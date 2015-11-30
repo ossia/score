@@ -1,4 +1,8 @@
 #include "LayerModel.hpp"
+#include <iscore/tools/IdentifiedObject.hpp>
+
+class QObject;
+#include <iscore/tools/SettableIdentifier.hpp>
 
 LayerModel::~LayerModel()
 {

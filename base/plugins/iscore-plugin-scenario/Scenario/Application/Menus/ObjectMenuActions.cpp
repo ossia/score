@@ -1,40 +1,65 @@
-#include "ObjectMenuActions.hpp"
-
-#include <core/document/DocumentModel.hpp>
-#include <Scenario/Process/ScenarioGlobalCommandManager.hpp>
-#include <Scenario/Process/Temporal/TemporalScenarioPresenter.hpp>
-
-#include <Scenario/Document/BaseElement/BaseElementModel.hpp>
-#include <Scenario/Document/BaseElement/BaseElementPresenter.hpp>
-#include <Scenario/Process/Temporal/TemporalScenarioView.hpp>
-
-#include <Scenario/Commands/Constraint/ReplaceConstraintContent.hpp>
-#include <Scenario/Commands/Constraint/AddProcessToConstraint.hpp>
-#include <Scenario/Commands/TimeNode/AddTrigger.hpp>
-#include <Scenario/Commands/TimeNode/RemoveTrigger.hpp>
-
 #include <Scenario/Application/ScenarioApplicationPlugin.hpp>
 #include <Scenario/Commands/Cohesion/InterpolateStates.hpp>
-#include <Scenario/Commands/Cohesion/UpdateStates.hpp>
+#include <Scenario/Commands/Cohesion/RefreshStates.hpp>
+#include <Scenario/Commands/Constraint/AddProcessToConstraint.hpp>
+#include <Scenario/Commands/Constraint/InsertContentInConstraint.hpp>
+#include <Scenario/Commands/Scenario/HideRackInViewModel.hpp>
 #include <Scenario/Commands/Scenario/ScenarioPasteContent.hpp>
 #include <Scenario/Commands/Scenario/ScenarioPasteElements.hpp>
-#include <Scenario/Commands/Scenario/HideRackInViewModel.hpp>
 #include <Scenario/Commands/State/InsertContentInState.hpp>
-#include <iscore/command/Dispatchers/MacroCommandDispatcher.hpp>
-
-#include "ScenarioCopy.hpp"
+#include <Scenario/Commands/TimeNode/AddTrigger.hpp>
+#include <Scenario/Commands/TimeNode/RemoveTrigger.hpp>
+#include <Scenario/Document/ScenarioDocument/ScenarioDocumentModel.hpp>
+#include <Scenario/Process/ScenarioGlobalCommandManager.hpp>
 #include <Scenario/Process/Temporal/TemporalScenarioLayerModel.hpp>
-
-#include <QJsonDocument>
+#include <Scenario/Process/Temporal/TemporalScenarioPresenter.hpp>
+#include <Scenario/Process/Temporal/TemporalScenarioView.hpp>
+#include <boost/optional/optional.hpp>
+#include <iscore/command/Dispatchers/MacroCommandDispatcher.hpp>
+#include <QAction>
 #include <QApplication>
+#include <QByteArray>
 #include <QClipboard>
+#include <QJsonArray>
+#include <QJsonDocument>
+#include <QJsonValue>
+#include <QKeySequence>
+#include <QMenu>
+#include <qnamespace.h>
+#include <QObject>
 
-#include <QTextEdit>
-#include <QGridLayout>
-#include <QDialogButtonBox>
-#include <QTextBlock>
-#include <QDialog>
+#include <QRect>
+#include <QString>
+#include <QToolBar>
+#include <algorithm>
+
+#include "ObjectMenuActions.hpp"
+#include <Process/LayerModel.hpp>
+#include <Process/ProcessList.hpp>
+#include <Scenario/Application/Menus/ScenarioActions.hpp>
+#include <Scenario/Application/ScenarioEditionSettings.hpp>
+#include <Scenario/Commands/Scenario/ShowRackInViewModel.hpp>
+#include <Scenario/DialogWidget/AddProcessDialog.hpp>
+#include <Scenario/Document/Constraint/ConstraintModel.hpp>
+#include <Scenario/Document/Constraint/Rack/RackModel.hpp>
+#include <Scenario/Document/Event/EventModel.hpp>
+#include <Scenario/Document/State/StateModel.hpp>
+#include <Scenario/Document/TimeNode/TimeNodeModel.hpp>
+#include <Scenario/Palette/ScenarioPoint.hpp>
+#include <Scenario/Process/ScenarioModel.hpp>
+#include "ScenarioCopy.hpp"
 #include "TextDialog.hpp"
+#include <core/application/ApplicationComponents.hpp>
+#include <core/application/ApplicationContext.hpp>
+#include <core/document/Document.hpp>
+#include <core/presenter/MenubarManager.hpp>
+#include <iscore/document/DocumentInterface.hpp>
+#include <iscore/plugins/customfactory/StringFactoryKey.hpp>
+#include <iscore/selection/Selectable.hpp>
+#include <iscore/serialization/DataStreamVisitor.hpp>
+#include <iscore/tools/ModelPath.hpp>
+#include <iscore/tools/ModelPathSerialization.hpp>
+#include <iscore/tools/NotifyingMap.hpp>
 
 ObjectMenuActions::ObjectMenuActions(
         iscore::ToplevelMenuElement menuElt,
@@ -299,7 +324,7 @@ QJsonObject ObjectMenuActions::copySelectedElementsToJson()
     else
     {
         // Full-view copy
-        auto& bem = iscore::IDocument::modelDelegate<BaseElementModel>(*m_parent->currentDocument());
+        auto& bem = iscore::IDocument::modelDelegate<ScenarioDocumentModel>(*m_parent->currentDocument());
         if(bem.baseConstraint().selection.get())
         {
             return copyBaseConstraint(bem.baseConstraint());

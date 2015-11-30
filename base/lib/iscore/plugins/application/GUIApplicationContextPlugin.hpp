@@ -1,14 +1,23 @@
 #pragma once
 #include <iscore/tools/NamedObject.hpp>
-#include <core/presenter/Presenter.hpp>
-#include <iscore/widgets/OrderedToolbar.hpp>
-class QToolBar;
+#include <qnamespace.h>
+#include <QString>
+#include <vector>
+
+#include <core/application/ApplicationContext.hpp>
+
+class QAction;
+class QObject;
+namespace iscore {
+class Document;
+struct OrderedToolbar;
+}  // namespace iscore
+struct VisitorVariant;
 
 namespace iscore
 {
-    class DocumentDelegatePluginModel;
-    class SerializableCommand;
     class Application;
+    class DocumentDelegatePluginModel;
     class MenubarManager;
 
     /**
@@ -21,13 +30,13 @@ namespace iscore
      *
      * It is instatiated exactly once.
      */
-    class GUIApplicationContextPlugin : public NamedObject
+    class GUIApplicationContextPlugin
     {
             // Menus : trouver un moyen pour créer automatiquement si n'existe pas ?
             // Dire chemin : File/Export/SomeCustomExport ?
             // Pb. : traduction ? (ex. : soft traduit & plug pas traduit ?)
             // Fournir menus de base : Fichier Edition Affichage Objet Arrangement Devices Fenêtre Paramètres Aide
-        Q_OBJECT
+
         public:
             GUIApplicationContextPlugin(iscore::Application& presenter,
                                    const QString& name,
@@ -51,17 +60,6 @@ namespace iscore
             virtual void on_loadedDocument(iscore::Document* doc);
             virtual void prepareNewDocument();
 
-            void on_focusChanged(Qt::ApplicationState st);
-
-        signals:
-            void documentChanged(
-                    iscore::Document* olddoc,
-                    iscore::Document* newdoc);
-
-            void defocused();
-            void focused();
-
-        protected:
             virtual void on_documentChanged(
                     iscore::Document* olddoc,
                     iscore::Document* newdoc);

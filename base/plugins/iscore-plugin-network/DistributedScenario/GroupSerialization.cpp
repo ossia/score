@@ -1,6 +1,20 @@
-#include "Group.hpp"
+
 #include <iscore/serialization/DataStreamVisitor.hpp>
 #include <iscore/serialization/JSONVisitor.hpp>
+#include <QDataStream>
+#include <QtGlobal>
+#include <QJsonArray>
+#include <QJsonObject>
+#include <QJsonValue>
+#include <QString>
+#include <algorithm>
+
+#include "Group.hpp"
+#include <iscore/serialization/JSONValueVisitor.hpp>
+
+template <typename T> class IdentifiedObject;
+template <typename T> class Reader;
+template <typename T> class Writer;
 
 
 template<>

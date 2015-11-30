@@ -1,6 +1,12 @@
-#include "PointArrayCurveSegmentModel.hpp"
 #include <iscore/serialization/DataStreamVisitor.hpp>
 #include <iscore/serialization/JSONVisitor.hpp>
+#include <QDebug>
+
+class PointArrayCurveSegmentModel;
+struct PointArrayCurveSegmentData;
+template <typename T> class Reader;
+template <typename T> class Writer;
+
 template<>
 void Visitor<Reader<DataStream>>::readFrom(const PointArrayCurveSegmentModel& segmt)
 {

@@ -1,23 +1,35 @@
-#include "SlotInspectorSection.hpp"
-
-#include <Scenario/Inspector/Constraint/Widgets/Rack/Slot/AddLayerModelWidget.hpp>
-
-#include <Scenario/Inspector/Constraint/ConstraintInspectorWidget.hpp>
-#include <Scenario/Inspector/Constraint/Widgets/Rack/RackInspectorSection.hpp>
-
-#include <Scenario/Document/Constraint/ConstraintModel.hpp>
-
-#include <Scenario/Commands/Constraint/Rack/Slot/AddLayerModelToSlot.hpp>
-
-
 #include <Scenario/Commands/Constraint/Rack/RemoveSlotFromRack.hpp>
+#include <Scenario/Commands/Constraint/Rack/Slot/AddLayerModelToSlot.hpp>
 #include <Scenario/Commands/Constraint/Rack/Slot/RemoveLayerModelFromSlot.hpp>
 #include <Scenario/Commands/Metadata/ChangeElementName.hpp>
-
+#include <Scenario/Document/Constraint/ConstraintModel.hpp>
+#include <Scenario/Inspector/Constraint/ConstraintInspectorWidget.hpp>
+#include <Scenario/Inspector/Constraint/Widgets/Rack/RackInspectorSection.hpp>
+#include <Scenario/Inspector/Constraint/Widgets/Rack/Slot/AddLayerModelWidget.hpp>
 #include <Scenario/ViewCommands/PutLayerModelToFront.hpp>
+#include <boost/optional/optional.hpp>
+#include <QBoxLayout>
+#include <QFrame>
+#include <QGridLayout>
+#include <QLabel>
 
 #include <QPushButton>
-#include <QLabel>
+#include <algorithm>
+
+#include <Inspector/InspectorSectionWidget.hpp>
+#include <Process/LayerModel.hpp>
+#include <Process/ModelMetadata.hpp>
+#include <Process/Process.hpp>
+#include <Scenario/Document/Constraint/Rack/Slot/SlotModel.hpp>
+#include "SlotInspectorSection.hpp"
+#include <iscore/command/Dispatchers/CommandDispatcher.hpp>
+#include <iscore/serialization/DataStreamVisitor.hpp>
+#include <iscore/tools/ModelPath.hpp>
+#include <iscore/tools/ModelPathSerialization.hpp>
+#include <iscore/tools/NotifyingMap.hpp>
+#include <iscore/tools/SettableIdentifier.hpp>
+#include <iscore/tools/Todo.hpp>
+
 using namespace Scenario::Command;
 
 SlotInspectorSection::SlotInspectorSection(

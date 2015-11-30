@@ -1,18 +1,20 @@
 #pragma once
-#include <iscore/tools/NamedObject.hpp>
 #include <iscore/tools/ObjectPath.hpp>
+#include <type_traits>
+#include <vector>
+
+class QObject;
 //#include <iscore/tools/ModelPath.hpp>
 
 namespace iscore
 {
-class Document;
-class DocumentDelegatePresenterInterface;
-class DocumentDelegateModelInterface;
 class CommandStack;
-class SelectionStack;
+class Document;
+class DocumentDelegateModelInterface;
+class DocumentDelegatePresenterInterface;
 class PanelModel;
-class ObjectLocker;
 struct DocumentContext;
+
 namespace IDocument
 {
 /**

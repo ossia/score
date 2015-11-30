@@ -1,44 +1,64 @@
-#include "DeviceExplorerWidget.hpp"
+#include <Device/XML/XMLDeviceLoader.hpp>
+#include <Explorer/Commands/Add/AddAddress.hpp>
+#include <Explorer/Commands/Add/AddDevice.hpp>
+#include <Explorer/Commands/Add/LoadDevice.hpp>
+#include <Explorer/Commands/Remove.hpp>
+#include <Explorer/Commands/RemoveNodes.hpp>
+#include <Explorer/Commands/ReplaceDevice.hpp>
+#include <Explorer/Commands/Update/UpdateAddressSettings.hpp>
+#include <Explorer/Commands/Update/UpdateDeviceSettings.hpp>
+#include <Explorer/Commands/UpdateAddresses.hpp>
 
+#include <boost/optional/optional.hpp>
+#include <QAbstractProxyModel>
 #include <QAction>
 #include <QBoxLayout>
 #include <QComboBox>
-#include <QContextMenuEvent>
-#include <QMenu>
-#include <QPushButton>
+#include <QDialog>
+#include <QEvent>
+#include <QGridLayout>
+#include <QIcon>
+#include <QKeySequence>
 #include <QLineEdit>
+#include <QList>
+#include <QMenu>
+#include <QContextMenuEvent>
+#include <qnamespace.h>
 
-#include "Widgets/AddressEditDialog.hpp"
-#include "Widgets/DeviceEditDialog.hpp"
+#include <QPair>
+#include <QPushButton>
+#include <QRegExp>
+#include <QSet>
+#include <QSize>
+#include <QStackedLayout>
+#include <QString>
+#include <QStringList>
+#include <QTreeView>
+#include <algorithm>
+#include <stdexcept>
 
+#include <Device/Address/AddressSettings.hpp>
+#include <Device/Protocol/DeviceInterface.hpp>
+#include <Device/Protocol/DeviceList.hpp>
+#include <Device/Protocol/DeviceSettings.hpp>
 #include "DeviceExplorerFilterProxyModel.hpp"
 #include "DeviceExplorerView.hpp"
-
-#include <iscore/document/DocumentInterface.hpp>
-#include <core/document/Document.hpp>
-
-
-#include <Explorer/Commands/Add/AddDevice.hpp>
-#include <Explorer/Commands/RemoveNodes.hpp>
-#include <Explorer/Commands/Add/LoadDevice.hpp>
-#include <Explorer/Commands/Add/AddAddress.hpp>
-#include <Explorer/Commands/Remove.hpp>
-
-#include "ExplorationWorker.hpp"
-#include <Explorer/Commands/ReplaceDevice.hpp>
-#include <Explorer/Commands/UpdateAddresses.hpp>
-#include <Explorer/Commands/Update/UpdateAddressSettings.hpp>
-#include <Explorer/Commands/Update/UpdateDeviceSettings.hpp>
-#include "Explorer/DocumentPlugin/DeviceDocumentPlugin.hpp"
-#include <Device/XML/XMLDeviceLoader.hpp>
+#include "DeviceExplorerWidget.hpp"
 #include "ExplorationWorkerWrapper.hpp"
-#include <Device/Protocol/ProtocolFactoryInterface.hpp>
-#include <QMessageBox>
+#include <Explorer/DocumentPlugin/DeviceDocumentPlugin.hpp>
+#include <Explorer/Explorer/DeviceExplorerModel.hpp>
+#include "QProgressIndicator.h"
+#include <State/Address.hpp>
+#include <State/Value.hpp>
+#include "Widgets/AddressEditDialog.hpp"
+#include "Widgets/DeviceEditDialog.hpp"
+#include <iscore/command/Dispatchers/CommandDispatcher.hpp>
+#include <iscore/tools/IdentifiedObject.hpp>
+#include <iscore/tools/InvisibleRootNode.hpp>
+#include <iscore/tools/ModelPath.hpp>
+#include <iscore/tools/TreeNode.hpp>
 
-#include <QProgressIndicator>
-
-
-#include <QApplication>
+class DynamicProtocolList;
 
 
 
@@ -714,7 +734,7 @@ DeviceExplorerWidget::filterChanged()
     Qt::CaseSensitivity cs = Qt::CaseSensitive;
 
     QRegExp::PatternSyntax syntax = QRegExp::WildcardUnix; //RegExp; //Wildcard; //WildcardUnix; //?
-    //See http://qt-project.org/doc/qt-5/qregexp.html#PatternSyntax-enum
+    //See http://qt-project.org/doc/qt-5/QRegExptml#PatternSyntax-enum
 
     QRegExp regExp(pattern, cs, syntax);
 

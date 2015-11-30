@@ -1,7 +1,13 @@
-#include "RandomNameProvider.hpp"
-#include <QFile>
-#include <QVector>
 #include <iscore/tools/SettableIdentifierGeneration.hpp>
+#include <QByteArray>
+#include <QFile>
+#include <QFlags>
+#include <QIODevice>
+#include <QStringList>
+#include <stdlib.h>
+
+#include "RandomNameProvider.hpp"
+
 // Do something better... one day
 static bool vec_init = false;
 

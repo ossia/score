@@ -1,32 +1,31 @@
-#include "DurationSectionWidget.hpp"
-
-#include <Scenario/Inspector/Constraint/ConstraintInspectorWidget.hpp>
-
-#include <Scenario/Document/Constraint/ConstraintModel.hpp>
-
-#include <Scenario/Commands/Scenario/Displacement/MoveEventMeta.hpp>
-#include <Scenario/Commands/Constraint/SetMinDuration.hpp>
 #include <Scenario/Commands/Constraint/SetMaxDuration.hpp>
-#include <Scenario/Commands/ResizeBaseConstraint.hpp>
-#include <Scenario/Commands/Constraint/SetRigidity.hpp>
-
-#include <Scenario/Process/ScenarioInterface.hpp>
-#include <Scenario/Process/ScenarioModel.hpp>
-
-#include <Scenario/Document/BaseElement/BaseScenario/BaseScenario.hpp>
+#include <Scenario/Commands/Constraint/SetMinDuration.hpp>
+#include <Scenario/Document/Constraint/ConstraintModel.hpp>
 #include <Scenario/Document/Constraint/ViewModels/FullView/FullViewConstraintViewModel.hpp>
-
-#include <iscore/document/DocumentInterface.hpp>
-#include <core/document/Document.hpp>
-#include <core/application/Application.hpp>
-#include <core/presenter/Presenter.hpp>
-#include <Scenario/Application/ScenarioApplicationPlugin.hpp>
-
+#include <Scenario/Inspector/Constraint/ConstraintInspectorWidget.hpp>
+#include <boost/optional/optional.hpp>
 #include <QCheckBox>
-#include <QToolButton>
+#include <QDateTime>
+#include <QGridLayout>
 #include <QLabel>
-#include <QFormLayout>
-#include <QTimeEdit>
+#include <qnamespace.h>
+#include <QString>
+#include <QWidget>
+#include <chrono>
+
+#include "DurationSectionWidget.hpp"
+#include <Inspector/InspectorSectionWidget.hpp>
+#include <Process/TimeValue.hpp>
+#include <Scenario/Application/ScenarioEditionSettings.hpp>
+#include <Scenario/Document/Constraint/ConstraintDurations.hpp>
+#include <Scenario/Inspector/Constraint/ConstraintInspectorDelegate.hpp>
+#include <iscore/command/Dispatchers/CommandDispatcher.hpp>
+#include <iscore/command/Dispatchers/OngoingCommandDispatcher.hpp>
+#include <iscore/tools/ModelPath.hpp>
+#include <iscore/tools/SettableIdentifier.hpp>
+#include <iscore/tools/Todo.hpp>
+#include <iscore/widgets/SpinBoxes.hpp>
+#include <iscore/tools/ModelPathSerialization.hpp>
 
 using namespace iscore;
 
@@ -51,10 +50,6 @@ DurationSectionWidget::DurationSectionWidget(
     m_minSpin = new TimeSpinBox{this};
     m_maxSpin = new TimeSpinBox{this};
     m_valueSpin = new TimeSpinBox{this};
-
-    m_minSpin->setEnabled(true);
-    m_maxSpin->setEnabled(true);
-
     m_maxSpin->setTime(m_model.duration.maxDuration().toQTime());
     m_minSpin->setTime(m_model.duration.minDuration().toQTime());
     m_valueSpin->setTime(m_model.duration.defaultDuration().toQTime());
@@ -63,13 +58,14 @@ DurationSectionWidget::DurationSectionWidget(
     // CHECKBOXES
     m_minNonNullBox = new QCheckBox{};
     m_maxFiniteBox = new QCheckBox{};
-    m_minNonNullBox->setChecked(!m_model.duration.minDuration().isZero());
-    m_maxFiniteBox->setChecked(!m_model.duration.maxDuration().isInfinite());
 
-    connect(m_minNonNullBox, &QCheckBox::clicked,
+    m_minNonNullBox->setChecked(!m_model.duration.isMinNul());
+    m_maxFiniteBox->setChecked(!m_model.duration.isMaxInfinite());
+
+    connect(m_minNonNullBox, &QCheckBox::toggled,
             this, &DurationSectionWidget::on_minNonNullToggled);
 
-    connect(m_maxFiniteBox, &QCheckBox::clicked,
+    connect(m_maxFiniteBox, &QCheckBox::toggled,
             this, &DurationSectionWidget::on_maxFiniteToggled);
 
     // CONNECTIONS FROM MODEL
@@ -82,8 +78,16 @@ DurationSectionWidget::DurationSectionWidget(
             this, &DurationSectionWidget::on_modelMaxDurationChanged);
     con(m_model.duration, &ConstraintDurations::rigidityChanged,
             this, &DurationSectionWidget::on_modelRigidityChanged);
+    con(m_model.duration, &ConstraintDurations::minNullChanged,
+            this, &DurationSectionWidget::on_modelMinNullChanged);
+    con(m_model.duration, &ConstraintDurations::maxInfiniteChanged,
+            this, &DurationSectionWidget::on_modelMaxInfiniteChanged);
 
     // DISPLAY
+    m_minNull = new QLabel{tr("Null")};
+    m_minNull->hide();
+    m_maxInfinity = new QLabel{tr("Infinity")};
+    m_maxInfinity->hide();
     auto valLab = new QLabel("Default Duration");
     m_grid->addWidget(valLab, 0,1,1,1);
     m_grid->addWidget(m_valueSpin, 0, 2, 1, 1);
@@ -92,13 +96,13 @@ DurationSectionWidget::DurationSectionWidget(
     m_grid->addWidget(m_minNonNullBox, 1, 0, 1, 1);
     m_grid->addWidget(m_minLab, 1, 1, 1, 1);
     m_grid->addWidget(m_minSpin, 1, 2, 1, 1);
+    m_grid->addWidget(m_minNull, 1, 2, 1, 1);
 
     m_maxLab = new QLabel("Max Duration");
     m_grid->addWidget(m_maxFiniteBox, 2, 0, 1, 1);
     m_grid->addWidget(m_maxLab, 2, 1, 1,1);
     m_grid->addWidget(m_maxSpin, 2, 2, 1, 1);
-
-    //on_modelRigidityChanged(m_model.duration.isRigid());
+    m_grid->addWidget(m_maxInfinity, 2, 2, 1, 1);
 
     connect(m_valueSpin,    &TimeSpinBox::editingFinished,
             this,   &DurationSectionWidget::on_durationsChanged);
@@ -106,7 +110,6 @@ DurationSectionWidget::DurationSectionWidget(
             this,   &DurationSectionWidget::on_durationsChanged);
     connect(m_maxSpin,  &TimeSpinBox::editingFinished,
             this,   &DurationSectionWidget::on_durationsChanged);
-
 
     addContent(widg);
 
@@ -116,8 +119,14 @@ DurationSectionWidget::DurationSectionWidget(
     }
     on_modelRigidityChanged(m_model.duration.isRigid());
 
-    m_min = m_model.duration.defaultDuration() * 0.8;
-    m_max = m_model.duration.defaultDuration() * 1.2;
+    m_min = m_model.duration.minDuration();
+    m_max = m_model.duration.maxDuration();
+
+    m_minNull->setVisible(m_model.duration.isMinNul());
+    m_minSpin->setVisible(!m_model.duration.isMinNul());
+
+    m_maxInfinity->setVisible(m_model.duration.isMaxInfinite());
+    m_maxSpin->setVisible(!m_model.duration.isMaxInfinite());
 }
 
 using namespace Scenario::Command;
@@ -126,14 +135,16 @@ void DurationSectionWidget::minDurationSpinboxChanged(int val)
 {
     m_dispatcher.submitCommand<SetMinDuration>(
                 m_model,
-                TimeValue{std::chrono::milliseconds{val}});
+                TimeValue{std::chrono::milliseconds{val}},
+                m_minNonNullBox->isChecked());
 }
 
 void DurationSectionWidget::maxDurationSpinboxChanged(int val)
 {
     m_dispatcher.submitCommand<SetMaxDuration>(
                 m_model,
-                TimeValue{std::chrono::milliseconds {val}});
+                TimeValue{std::chrono::milliseconds {val}},
+                !m_maxFiniteBox->isChecked());
 }
 
 void DurationSectionWidget::defaultDurationSpinboxChanged(int val)
@@ -155,6 +166,20 @@ void DurationSectionWidget::on_modelRigidityChanged(bool b)
     m_maxLab->setHidden(b);
 }
 
+void DurationSectionWidget::on_modelMinNullChanged(bool b)
+{
+    m_minNull->setVisible(b);
+    m_minNonNullBox->setChecked(!b);
+    m_minSpin->setVisible(!b);
+}
+
+void DurationSectionWidget::on_modelMaxInfiniteChanged(bool b)
+{
+    m_maxInfinity->setVisible(b);
+    m_maxFiniteBox->setChecked(!b);
+    m_maxSpin->setVisible(!b);
+}
+
 void DurationSectionWidget::on_modelDefaultDurationChanged(const TimeValue& dur)
 {
     if (dur.toQTime() == m_valueSpin->time())
@@ -169,33 +194,14 @@ void DurationSectionWidget::on_modelMinDurationChanged(const TimeValue& dur)
         return;
 
     m_minSpin->setTime(dur.toQTime());
-    m_minSpin->setEnabled(!dur.isZero());
-    m_minNonNullBox->setChecked(!dur.isZero());
 }
 
 void DurationSectionWidget::on_modelMaxDurationChanged(const TimeValue& dur)
-{
-    if(dur.isInfinite())
-    {
-        if(m_maxFiniteBox->isChecked())
-        {
-            m_maxFiniteBox->setCheckState(Qt::Unchecked);
-            m_maxSpin->setEnabled(m_maxFiniteBox->isChecked());
-        }
-    }
-    else
-    {
-        if(!m_maxFiniteBox->isChecked())
-        {
-            m_maxFiniteBox->setCheckState(Qt::Checked);
-        }
-        m_maxSpin->setEnabled(m_maxFiniteBox->isChecked());
+{   
+    if (dur.toQTime() == m_maxSpin->time())
+        return;
 
-        if (dur.toQTime() == m_maxSpin->time())
-            return;
-
-        m_maxSpin->setTime(dur.toQTime());
-    }
+    m_maxSpin->setTime(dur.toQTime());
 }
 
 void DurationSectionWidget::on_durationsChanged()
@@ -221,35 +227,32 @@ void DurationSectionWidget::on_durationsChanged()
 
 void DurationSectionWidget::on_minNonNullToggled(bool val)
 {
-    m_minSpin->setEnabled(val);
+    m_minSpin->setVisible(val);
+    m_minNull->setVisible(!val);
 
-    if (!val)
-        m_min = m_model.duration.minDuration();
-
-    TimeValue newTime = !val
-                        ? TimeValue(std::chrono::milliseconds(0))
-                        : m_min ;
+    m_min = !val ? m_model.duration.minDuration() : m_min;
 
     auto cmd = new Scenario::Command::SetMinDuration(
                    m_model,
-                   newTime);
+                   m_min,
+                   !val);
+
+
     m_parent->commandDispatcher()->submitCommand(cmd);
 }
 
 void DurationSectionWidget::on_maxFiniteToggled(bool val)
 {
-    m_maxSpin->setEnabled(val);
+    m_maxSpin->setVisible(val);
+    m_maxInfinity->setVisible(!val);
 
-    if(!val)
-        m_max = m_model.duration.maxDuration();
-
-    TimeValue newTime = !val
-                        ? TimeValue(PositiveInfinity{})
-                        : m_max;
+    m_max = !val ? m_model.duration.maxDuration() : m_max;
 
     auto cmd = new Scenario::Command::SetMaxDuration(
                    m_model,
-                   newTime);
+                   m_max,
+                   !val);
+
 
     m_parent->commandDispatcher()->submitCommand(cmd);
 }

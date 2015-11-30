@@ -1,6 +1,14 @@
+#include <boost/none_t.hpp>
+#include <boost/optional/optional.hpp>
+#include <QJsonArray>
+#include <QJsonValue>
+#include <QPoint>
+
 #include "DataStreamVisitor.hpp"
 #include "JSONValueVisitor.hpp"
-#include <QPointF>
+
+template <typename T> class Reader;
+template <typename T> class Writer;
 
 template<>
 void Visitor<Reader<JSONValue>>::readFrom(const QPointF& pt)

@@ -1,9 +1,11 @@
 #pragma once
+#include <QList>
 #include <QWidget>
-#include <iscore/tools/SettableIdentifier.hpp>
+
 class Group;
-class GroupWidget;
 class GroupManager;
+class GroupWidget;
+#include <iscore/tools/SettableIdentifier.hpp>
 
 class GroupListWidget : public QWidget
 {

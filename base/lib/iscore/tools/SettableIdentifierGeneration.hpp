@@ -1,6 +1,13 @@
 #pragma once
+#include <boost/optional/optional.hpp>
+#include <boost/range/algorithm/find.hpp>
 #include <iscore/tools/SettableIdentifier.hpp>
-#include <boost/range/algorithm.hpp>
+#include <sys/types.h>
+#include <algorithm>
+#include <cstddef>
+#include <iterator>
+#include <type_traits>
+#include <vector>
 
 namespace iscore
 {

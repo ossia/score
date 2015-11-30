@@ -1,9 +1,23 @@
 #include <iscore/serialization/DataStreamVisitor.hpp>
 #include <iscore/serialization/JSONVisitor.hpp>
+#include <QDataStream>
+#include <QtGlobal>
+#include <QJsonArray>
+#include <QJsonObject>
+#include <QJsonValue>
+#include <QMap>
+#include <QString>
+#include <QStringList>
+
 #include "AddressSettings.hpp"
+#include <Device/Address/ClipMode.hpp>
+#include <Device/Address/Domain.hpp>
+#include <Device/Address/IOType.hpp>
 #include "DomainSerialization.hpp"
-#include <State/ValueSerialization.hpp>
-#include <State/ValueConversion.hpp>
+#include <State/Value.hpp>
+
+template <typename T> class Reader;
+template <typename T> class Writer;
 
 
 template<>

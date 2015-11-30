@@ -1,5 +1,8 @@
-#include "DocumentDelegatePresenterInterface.hpp"
 #include <core/document/DocumentPresenter.hpp>
+
+#include "DocumentDelegatePresenterInterface.hpp"
+#include <iscore/tools/NamedObject.hpp>
+
 using namespace iscore;
 
 

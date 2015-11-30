@@ -63,7 +63,7 @@ class AddTrigger final : public iscore::SerializableCommand
             auto& tn = m_path.find();
             tn.trigger()->setActive(true);
 
-            Scenario_T* scenar = safe_cast<Scenario_T*>(tn.parentScenario());
+            Scenario_T* scenar = safe_cast<Scenario_T*>(tn.parent());
 
             for (const auto& cstrId : constraintsBeforeTimeNode(*scenar, tn.id()))
             {
@@ -110,5 +110,5 @@ class AddTrigger final : public iscore::SerializableCommand
 #include <Scenario/Process/ScenarioModel.hpp>
 ISCORE_COMMAND_DECL_T(Scenario::Command::AddTrigger<Scenario::ScenarioModel>)
 
-#include <Scenario/Document/BaseElement/BaseScenario/BaseScenario.hpp>
+#include <Scenario/Document/BaseScenario/BaseScenario.hpp>
 ISCORE_COMMAND_DECL_T(Scenario::Command::AddTrigger<BaseScenario>)

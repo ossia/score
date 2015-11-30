@@ -1,11 +1,23 @@
-#include "CreateConstraint_State_Event_TimeNode.hpp"
-
 #include <Scenario/Process/Algorithms/StandardCreationPolicy.hpp>
 #include <Scenario/Process/ScenarioModel.hpp>
-
-#include <iscore/tools/SettableIdentifierGeneration.hpp>
-
 #include <Scenario/Tools/RandomNameProvider.hpp>
+
+#include <boost/iterator/iterator_facade.hpp>
+#include <boost/multi_index/detail/hash_index_iterator.hpp>
+#include <iscore/tools/SettableIdentifierGeneration.hpp>
+#include <QByteArray>
+#include <vector>
+
+#include "CreateConstraint_State_Event_TimeNode.hpp"
+#include <Process/ModelMetadata.hpp>
+#include <Process/TimeValue.hpp>
+#include <Scenario/Commands/Scenario/Creations/CreateConstraint_State_Event.hpp>
+#include <Scenario/Document/TimeNode/TimeNodeModel.hpp>
+#include <iscore/serialization/DataStreamVisitor.hpp>
+#include <iscore/tools/NotifyingMap.hpp>
+
+class StateModel;
+
 using namespace Scenario::Command;
 CreateConstraint_State_Event_TimeNode::CreateConstraint_State_Event_TimeNode(
         const Scenario::ScenarioModel& scenario,

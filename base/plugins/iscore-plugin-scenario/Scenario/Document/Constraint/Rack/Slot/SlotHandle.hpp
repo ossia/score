@@ -1,7 +1,14 @@
 #pragma once
+#include <QtGlobal>
 #include <QGraphicsItem>
 #include <QPen>
+#include <QRect>
+
+class QPainter;
+class QStyleOptionGraphicsItem;
+class QWidget;
 class SlotView;
+
 class SlotHandle final : public QGraphicsItem
 {
     public:

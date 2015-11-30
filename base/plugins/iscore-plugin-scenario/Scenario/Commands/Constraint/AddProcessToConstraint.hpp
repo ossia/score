@@ -1,40 +1,42 @@
 #pragma once
+#include <Process/Process.hpp>
 #include <Process/ProcessFactory.hpp>
+#include <Process/ProcessList.hpp>
 #include <Scenario/Commands/ScenarioCommandFactory.hpp>
-#include <iscore/command/SerializableCommand.hpp>
-#include <iscore/tools/ModelPath.hpp>
-
-#include "AddLayerInNewSlot.hpp"
-#include "Rack/Slot/AddLayerModelToSlot.hpp"
-
 #include <Scenario/Document/Constraint/ConstraintModel.hpp>
 #include <Scenario/Document/Constraint/Rack/RackModel.hpp>
 #include <Scenario/Document/Constraint/Rack/Slot/SlotModel.hpp>
-
-#include <Process/Process.hpp>
-
-#include <Process/ProcessList.hpp>
-#include <Process/ProcessFactory.hpp>
-
-#include <iscore/document/DocumentInterface.hpp>
-#include <iscore/tools/SettableIdentifierGeneration.hpp>
-#include <iscore/tools/std/StdlibWrapper.hpp>
-#include <core/application/ApplicationComponents.hpp>
 #include <Scenario/Document/Constraint/ViewModels/ConstraintViewModel.hpp>
 #include <Scenario/Process/ScenarioModel.hpp>
 
+#include <boost/iterator/iterator_facade.hpp>
+#include <boost/multi_index/detail/hash_index_iterator.hpp>
+#include <boost/optional/optional.hpp>
+#include <iscore/command/SerializableCommand.hpp>
+#include <iscore/tools/ModelPath.hpp>
+#include <iscore/tools/SettableIdentifierGeneration.hpp>
+#include <QByteArray>
+#include <QObject>
 
-class Process;
-class LayerModel;
-class RackModel;
-class SlotModel;
-class ConstraintModel;
+#include <QString>
+#include <vector>
+
+#include <Process/LayerModel.hpp>
+#include <Process/ProcessFactoryKey.hpp>
+#include <core/application/ApplicationContext.hpp>
+#include <core/application/ApplicationComponents.hpp>
+#include <iscore/plugins/customfactory/FactoryFamily.hpp>
+#include <iscore/plugins/customfactory/FactoryMap.hpp>
+#include <iscore/plugins/customfactory/StringFactoryKey.hpp>
+#include <iscore/serialization/DataStreamVisitor.hpp>
+#include <iscore/tools/ModelPathSerialization.hpp>
+#include <iscore/tools/NotifyingMap.hpp>
+#include <iscore/tools/SettableIdentifier.hpp>
+
 namespace Scenario
 {
 namespace Command
 {
-class AddLayerInNewSlot;
-class AddLayerModelToSlot;
 
 class AddProcessToConstraintBase : public iscore::SerializableCommand
 {

@@ -1,11 +1,24 @@
 #pragma once
-#include <QGraphicsObject>
-#include <QMouseEvent>
-#include <QKeyEvent>
 #include <Scenario/Document/VerticalExtent.hpp>
+#include <QColor>
+#include <QtGlobal>
+#include <QGraphicsItem>
+#include <QPoint>
+#include <QRect>
+#include <QString>
+
 #include "ExecutionStatus.hpp"
-class EventPresenter;
+
 class ConditionView;
+class EventPresenter;
+class QGraphicsSceneDragDropEvent;
+class QGraphicsSceneHoverEvent;
+class QGraphicsSceneMouseEvent;
+class QMimeData;
+class QPainter;
+class QStyleOptionGraphicsItem;
+class QWidget;
+
 class EventView final : public QGraphicsObject
 {
         Q_OBJECT

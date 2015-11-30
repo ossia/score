@@ -1,11 +1,16 @@
 #pragma once
-#include <Mapping/Commands/MappingCommandFactory.hpp>
 #include <Device/Address/AddressSettings.hpp>
-
-#include <iscore/tools/ModelPath.hpp>
+#include <Mapping/Commands/MappingCommandFactory.hpp>
 #include <iscore/command/SerializableCommand.hpp>
+#include <iscore/tools/ModelPath.hpp>
 
+class DataStreamInput;
+class DataStreamOutput;
 class MappingModel;
+namespace iscore {
+struct Address;
+}  // namespace iscore
+
 class ChangeSourceAddress final : public iscore::SerializableCommand
 {
         ISCORE_COMMAND_DECL(MappingCommandFactoryName(), ChangeSourceAddress, "ChangeSourceAddress")

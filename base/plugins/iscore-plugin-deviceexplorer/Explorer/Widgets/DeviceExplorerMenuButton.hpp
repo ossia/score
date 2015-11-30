@@ -1,6 +1,8 @@
 #pragma once
 #include <QWidget>
+
 class DeviceExplorerModel;
+
 namespace iscore{
 struct Address;
 }

@@ -1,5 +1,16 @@
-#include <Process/Process.hpp>
 #include <Process/LayerModel.hpp>
+#include <Process/Process.hpp>
+
+#include <QJsonObject>
+#include <QJsonValue>
+
+#include <iscore/serialization/DataStreamVisitor.hpp>
+#include <iscore/serialization/JSONValueVisitor.hpp>
+#include <iscore/serialization/JSONVisitor.hpp>
+#include <iscore/tools/SettableIdentifier.hpp>
+
+template <typename T> class Reader;
+template <typename model> class IdentifiedObject;
 
 template<>
 void Visitor<Reader<DataStream>>::readFrom(const LayerModel& layerModel)

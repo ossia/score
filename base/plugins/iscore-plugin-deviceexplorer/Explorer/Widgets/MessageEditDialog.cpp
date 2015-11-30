@@ -1,18 +1,27 @@
-#include "MessageEditDialog.hpp"
-
-#include <Explorer/Explorer/DeviceExplorerModel.hpp>
-#include "AddressEditWidget.hpp"
+#include <State/Message.hpp>
 #include <State/ValueConversion.hpp>
+#include <State/Widgets/Values/BoolValueWidget.hpp>
+#include <State/Widgets/Values/CharValueWidget.hpp>
 #include <State/Widgets/Values/NumericValueWidget.hpp>
 #include <State/Widgets/Values/StringValueWidget.hpp>
-#include <State/Widgets/Values/CharValueWidget.hpp>
-#include <State/Widgets/Values/BoolValueWidget.hpp>
-#include <State/ValueConversion.hpp>
-#include <State/Message.hpp>
-
-#include <QDialogButtonBox>
-#include <QFormLayout>
+#include <eggs/variant/variant.hpp>
+#include <QChar>
 #include <QComboBox>
+#include <QDebug>
+#include <QDialogButtonBox>
+#include <QFlags>
+#include <QFormLayout>
+#include <QLayoutItem>
+
+#include <QString>
+
+#include "AddressEditWidget.hpp"
+#include <Explorer/Widgets/ValueWrapper.hpp>
+#include "MessageEditDialog.hpp"
+#include <State/Value.hpp>
+#include <State/Widgets/Values/ValueWidget.hpp>
+
+class QWidget;
 
 MessageEditDialog::MessageEditDialog(const iscore::Message &mess, DeviceExplorerModel *model, QWidget *parent):
     QDialog{parent},

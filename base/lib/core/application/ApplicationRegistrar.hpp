@@ -1,19 +1,24 @@
 #pragma once
-#include <vector>
-#include <unordered_map>
 #include <iscore/command/CommandGeneratorMap.hpp>
-#include <iscore/plugins/customfactory/FactoryFamily.hpp>
+#include <QObject>
+#include <unordered_map>
+#include <utility>
+
+#include <iscore/command/SerializableCommand.hpp>
+#include <iscore/plugins/customfactory/FactoryInterface.hpp>
+
+namespace iscore {
+class Application;
+}  // namespace iscore
 
 namespace iscore
 {
 class DocumentDelegateFactoryInterface;
+class FactoryListInterface;
 class GUIApplicationContextPlugin;
 class PanelFactory;
-class FactoryListInterface;
-class PanelPresenter;
-class Presenter;
-struct ApplicationComponentsData;
 class SettingsDelegateFactoryInterface;
+struct ApplicationComponentsData;
 
 class ApplicationRegistrar : public QObject
 {
@@ -25,8 +30,8 @@ class ApplicationRegistrar : public QObject
         void registerDocumentDelegate(DocumentDelegateFactoryInterface*);
         void registerCommands(std::unordered_map<CommandParentFactoryKey, CommandGeneratorMap>&& cmds);
         void registerCommands(std::pair<CommandParentFactoryKey, CommandGeneratorMap>&& cmds);
-        void registerFactories(std::unordered_map<iscore::FactoryBaseKey, FactoryListInterface*>&& cmds);
-        void registerFactory(FactoryListInterface* cmds);
+        void registerFactories(std::unordered_map<iscore::FactoryBaseKey,std::unique_ptr<FactoryListInterface>>&& cmds);
+        void registerFactory(std::unique_ptr<FactoryListInterface> cmds);
         void registerSettings(SettingsDelegateFactoryInterface*);
 
         auto& components() const

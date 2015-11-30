@@ -1,15 +1,12 @@
 #pragma once
-#include <iscore/tools/SettableIdentifier.hpp>
-#include <QObject>
-
-class TemporalScenarioPresenter;
-class TemporalConstraintPresenter;
-class EventPresenter;
 class ConstraintModel;
 class EventModel;
-class TimeNodeModel;
-class TimeNodePresenter;
+class EventPresenter;
 class StatePresenter;
+class TemporalConstraintPresenter;
+class TemporalScenarioPresenter;
+class TimeNodePresenter;
+#include <iscore/tools/SettableIdentifier.hpp>
 
 class ScenarioViewInterface
 {

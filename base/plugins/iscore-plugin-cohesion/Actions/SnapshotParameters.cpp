@@ -1,16 +1,24 @@
-#include "SnapshotParameters.hpp"
-
-#include <Commands/CreateStatesFromParametersInEvents.hpp>
-
-#include <Scenario/Commands/State/UpdateState.hpp>
-#include <Scenario/Document/State/StateModel.hpp>
-#include <Explorer/Explorer/DeviceExplorerModel.hpp>
+#include <Commands/SnapshotStatesMacro.hpp>
 #include <Explorer/DocumentPlugin/DeviceDocumentPlugin.hpp>
-
-#include <iscore/command/Dispatchers/MacroCommandDispatcher.hpp>
-
+#include <Explorer/Explorer/DeviceExplorerModel.hpp>
+#include <Scenario/Commands/State/AddMessagesToState.hpp>
+#include <Scenario/Document/State/StateModel.hpp>
 #include <core/document/Document.hpp>
 #include <core/document/DocumentModel.hpp>
+#include <iscore/command/Dispatchers/MacroCommandDispatcher.hpp>
+#include <QList>
+#include <QPointer>
+#include <algorithm>
+#include <vector>
+
+#include <Explorer/DocumentPlugin/NodeUpdateProxy.hpp>
+#include <Scenario/Document/State/ItemModel/MessageItemModel.hpp>
+#include "SnapshotParameters.hpp"
+#include <State/Message.hpp>
+#include <iscore/selection/Selectable.hpp>
+#include <iscore/selection/SelectionStack.hpp>
+#include <iscore/tools/IdentifiedObjectAbstract.hpp>
+#include <iscore/tools/ModelPath.hpp>
 
 void SnapshotParametersInStates(iscore::Document& doc)
 {

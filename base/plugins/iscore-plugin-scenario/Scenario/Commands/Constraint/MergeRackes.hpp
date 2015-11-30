@@ -3,7 +3,7 @@
 #include <Scenario/Document/Constraint/Rack/Slot/SlotModel.hpp>
 #include "Rack/MoveSlot.hpp"
 #include "RemoveRackFromConstraint.hpp"
-#include "iscore/document/DocumentInterface.hpp"
+#include <iscore/document/DocumentInterface.hpp>
 namespace Scenario
 {
     namespace Command

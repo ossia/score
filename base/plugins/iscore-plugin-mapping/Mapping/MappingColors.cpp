@@ -1,8 +1,16 @@
-#include "MappingColors.hpp"
+#include <QByteArray>
+#include <QColor>
+#include <QFile>
+#include <QIODevice>
+#include <QJsonArray>
 #include <QJsonDocument>
 #include <QJsonObject>
-#include <QJsonArray>
-#include <QFile>
+#include <QJsonValue>
+
+#include <Curve/CurveStyle.hpp>
+#include "MappingColors.hpp"
+
+class QString;
 
 MappingColors::MappingColors()
 {

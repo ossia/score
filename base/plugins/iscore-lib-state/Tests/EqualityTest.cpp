@@ -1,5 +1,7 @@
-#include <QTest>
 #include <State/Message.hpp>
+#include <QtTest/QtTest>
+#include <QMetaType>
+#include <QObject>
 
 using namespace iscore;
 class EqualityTest: public QObject
@@ -56,3 +58,5 @@ class EqualityTest: public QObject
 
 QTEST_APPLESS_MAIN(EqualityTest)
 #include "EqualityTest.moc"
+#include <State/Address.hpp>
+#include <State/Value.hpp>

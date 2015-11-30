@@ -1,13 +1,12 @@
 #pragma once
-#include <QGraphicsObject>
-#include <QGraphicsProxyWidget>
-#include <QPointF>
+#include <QBrush>
+#include <QGraphicsItem>
+#include <qnamespace.h>
 #include <QPen>
-#include <Process/TimeValue.hpp>
 
-class ConstraintViewModel;
 class ConstraintPresenter;
-class StateView;
+class QGraphicsSceneMouseEvent;
+
 class ConstraintView : public QGraphicsObject
 {
         Q_OBJECT

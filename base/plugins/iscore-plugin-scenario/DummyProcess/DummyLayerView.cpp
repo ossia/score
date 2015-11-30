@@ -1,6 +1,12 @@
-#include "DummyLayerView.hpp"
-#include <QPainter>
 #include <Process/Style/ProcessFonts.hpp>
+#include <QFont>
+#include <qnamespace.h>
+#include <QPainter>
+
+#include "DummyLayerView.hpp"
+#include <Process/LayerView.hpp>
+
+class QGraphicsItem;
 
 DummyLayerView::DummyLayerView(QGraphicsItem* parent):
     LayerView{parent}

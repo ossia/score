@@ -1,8 +1,9 @@
 #pragma once
-#include <iscore/serialization/DataStreamVisitor.hpp>
-#include <iscore/serialization/JSONVisitor.hpp>
-#include <Process/ProcessList.hpp>
+#include <iscore/serialization/VisitorInterface.hpp>
+
+class DynamicProcessList;
 class Process;
+class QObject;
 
 template<typename T>
 Process* createProcess(

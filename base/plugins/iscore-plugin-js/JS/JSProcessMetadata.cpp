@@ -1,4 +1,9 @@
+#include <QObject>
+
+
 #include "JSProcessMetadata.hpp"
+#include <Process/ProcessFactoryKey.hpp>
+
 const ProcessFactoryKey&JSProcessMetadata::factoryKey()
 {
     static const ProcessFactoryKey name{"Javascript"};

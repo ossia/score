@@ -1,9 +1,12 @@
-#include "DocumentInterface.hpp"
 #include <core/document/Document.hpp>
 #include <core/document/DocumentModel.hpp>
 #include <core/document/DocumentPresenter.hpp>
-#include <iscore/plugins/documentdelegate/DocumentDelegateModelInterface.hpp>
-#include <iscore/plugins/panel/PanelModel.hpp>
+#include <QObject>
+#include <QString>
+#include <stdexcept>
+
+#include "DocumentInterface.hpp"
+#include <iscore/tools/ObjectPath.hpp>
 
 iscore::Document* iscore::IDocument::documentFromObject(const QObject* obj)
 {

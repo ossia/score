@@ -1,35 +1,26 @@
 #pragma once
-#include <Scenario/Application/ScenarioEditionSettings.hpp>
-#include <Scenario/Document/BaseElement/Widgets/GraphicsProxyObject.hpp>
-#include <Scenario/Document/BaseElement/BaseScenario/BaseElementContext.hpp>
-#include <Scenario/Process/Temporal/StateMachines/Tools/SelectionToolState.hpp>
-#include <Scenario/Document/BaseElement/BaseScenario/BaseScenario_StateWrappers.hpp>
-
 #include <Process/Tools/ToolPalette.hpp>
+#include <Scenario/Palette/ScenarioPoint.hpp>
+#include <Scenario/Palette/Tools/SmartTool.hpp>
+#include <iscore/statemachine/GraphicsSceneToolPalette.hpp>
+#include <QPoint>
 
-#include <iscore/statemachine/BaseStateMachine.hpp>
-
-#include <Scenario/Application/ScenarioApplicationPlugin.hpp>
-#include <Scenario/Process/Temporal/StateMachines/ScenarioPoint.hpp>
-
-#include <core/application/ApplicationContext.hpp>
-#include <core/document/Document.hpp>
-
-#include <Loop/LoopLayer.hpp>
-#include <Loop/LoopView.hpp>
-class BaseElementPresenter;
-class BaseGraphicsObject;
-class DisplayedElementsPresenter;
-class DisplayedElementsModel;
+#include <Scenario/Palette/Tool.hpp>
 
 class LoopPresenter;
 class LoopView;
+class MoveConstraintInBaseScenario_StateWrapper;
+class MoveEventInBaseScenario_StateWrapper;
+class MoveTimeNodeInBaseScenario_StateWrapper;
+namespace Scenario {
+class EditionSettings;
+}  // namespace Scenario
+struct LayerContext;
 
 namespace Loop
 {
 class ProcessModel;
 }
-// RENAME FILE
 class LoopToolPalette final : public GraphicsSceneToolPalette
 {
     public:
@@ -62,7 +53,7 @@ class LoopToolPalette final : public GraphicsSceneToolPalette
         LoopView& m_view;
         const Scenario::EditionSettings& m_editionSettings;
 
-        Scenario::SelectionAndMoveTool<
+        Scenario::SmartTool<
             Loop::ProcessModel,
             LoopToolPalette,
             LoopView,

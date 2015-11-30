@@ -1,5 +1,12 @@
 #pragma once
-#include <QGraphicsObject>
+
+#include <QtGlobal>
+#include <QGraphicsItem>
+#include <QRect>
+
+class QPainter;
+class QStyleOptionGraphicsItem;
+class QWidget;
 
 class LayerView : public QGraphicsObject
 {

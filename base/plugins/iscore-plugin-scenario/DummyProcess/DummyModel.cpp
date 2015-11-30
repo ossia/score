@@ -1,6 +1,15 @@
-#include "DummyModel.hpp"
-#include "DummyLayerModel.hpp"
 #include <iscore/serialization/VisitorCommon.hpp>
+#include <algorithm>
+
+#include "DummyLayerModel.hpp"
+#include "DummyModel.hpp"
+#include "DummyState.hpp"
+#include <Process/Process.hpp>
+
+class LayerModel;
+class ProcessStateDataInterface;
+class QObject;
+#include <iscore/tools/SettableIdentifier.hpp>
 
 
 DummyModel::DummyModel(

@@ -1,9 +1,14 @@
-#include "CurveView.hpp"
-#include <QGraphicsSceneMouseEvent>
+#include <QEvent>
+#include <QFlags>
+#include <QGraphicsSceneEvent>
+#include <qnamespace.h>
 #include <QPainter>
 #include <QKeyEvent>
-#include <QDebug>
-#include <QCursor>
+
+#include "CurveView.hpp"
+
+class QStyleOptionGraphicsItem;
+class QWidget;
 
 CurveView::CurveView(QGraphicsItem *parent):
     QGraphicsObject{parent}

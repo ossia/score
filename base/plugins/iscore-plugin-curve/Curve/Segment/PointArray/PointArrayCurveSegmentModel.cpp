@@ -1,7 +1,19 @@
-#include "PointArrayCurveSegmentModel.hpp"
 #include <Curve/Segment/Linear/LinearCurveSegmentModel.hpp>
+#include <boost/optional/optional.hpp>
+
 #include <iscore/serialization/VisitorCommon.hpp>
+#include <QDebug>
+#include <cstddef>
+#include <functional>
+#include <iterator>
+
+#include <Curve/Palette/CurvePoint.hpp>
+#include <Curve/Segment/CurveSegmentData.hpp>
+#include "PointArrayCurveSegmentModel.hpp"
+#include <iscore/tools/SettableIdentifier.hpp>
 #include "psimpl.h"
+
+class QObject;
 
 PointArrayCurveSegmentModel::PointArrayCurveSegmentModel(
         const CurveSegmentData& dat,

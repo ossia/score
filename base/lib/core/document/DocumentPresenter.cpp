@@ -1,10 +1,11 @@
-#include "DocumentPresenter.hpp"
-
-#include <iscore/plugins/documentdelegate/DocumentDelegateModelInterface.hpp>
+#include <core/document/DocumentModel.hpp>
+#include <core/document/DocumentView.hpp>
 #include <iscore/plugins/documentdelegate/DocumentDelegateFactoryInterface.hpp>
 
-#include <core/document/DocumentView.hpp>
-#include <core/document/DocumentModel.hpp>
+#include "DocumentPresenter.hpp"
+#include <iscore/tools/NamedObject.hpp>
+
+class QObject;
 
 
 using namespace iscore;

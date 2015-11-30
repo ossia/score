@@ -1,11 +1,13 @@
 #pragma once
+#include <Process/TimeValue.hpp>
 #include <Scenario/Commands/ScenarioCommandFactory.hpp>
 #include <iscore/command/SerializableCommand.hpp>
 #include <iscore/tools/ModelPath.hpp>
 
-#include <tests/helpers/ForwardDeclaration.hpp>
-#include <Process/TimeValue.hpp>
 class ConstraintModel;
+class DataStreamInput;
+class DataStreamOutput;
+
 namespace Scenario
 {
     namespace Command
@@ -18,7 +20,6 @@ namespace Scenario
         class SetRigidity final : public iscore::SerializableCommand
         {
                 ISCORE_COMMAND_DECL(ScenarioCommandFactoryName(), SetRigidity, "Change constraint rigidity")
-#include <tests/helpers/FriendDeclaration.hpp>
 
             public:
                 SetRigidity(

@@ -1,17 +1,24 @@
 #pragma once
-#include <QString>
-#include <QList>
-#include <QJsonObject>
-
 #include <State/Message.hpp>
-
-#include <Device/Protocol/DeviceSettings.hpp>
-#include <Device/Address/AddressSettings.hpp>
-
 #include <iscore/tools/TreeNode.hpp>
-#include <iscore/tools/VariantBasedNode.hpp>
-
 #include <iscore/tools/TreePath.hpp>
+#include <iscore/tools/VariantBasedNode.hpp>
+#include <Device/Address/AddressSettings.hpp>
+#include <Device/Protocol/DeviceSettings.hpp>
+#include <QList>
+#include <QString>
+#include <QStringList>
+#include <algorithm>
+
+#include <State/Address.hpp>
+
+class DataStream;
+class JSONObject;
+namespace iscore {
+struct AddressSettings;
+struct DeviceSettings;
+}  // namespace iscore
+
 namespace iscore
 {
 class DeviceExplorerNode : public VariantBasedNode<

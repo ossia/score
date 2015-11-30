@@ -1,11 +1,15 @@
-#include "GroupPanelFactory.hpp"
+#include <core/view/View.hpp>
 
+#include "GroupPanelFactory.hpp"
 #include "GroupPanelModel.hpp"
 #include "GroupPanelPresenter.hpp"
 #include "GroupPanelView.hpp"
 #include "GroupPanelId.hpp"
 
-#include <core/view/View.hpp>
+namespace iscore {
+class DocumentModel;
+class Presenter;
+}  // namespace iscore
 // TODO review if it is really useful to make the panel view with iscore::View
 
 int GroupPanelFactory::panelId() const

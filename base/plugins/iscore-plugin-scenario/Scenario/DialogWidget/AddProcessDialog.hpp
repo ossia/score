@@ -1,7 +1,10 @@
 #pragma once
+
 #include <QWidget>
-#include <Process/ProcessFactory.hpp>
-#include <Process/ProcessList.hpp>
+
+#include <Process/ProcessFactoryKey.hpp>
+
+class DynamicProcessList;
 
 class AddProcessDialog final : public QWidget
 {

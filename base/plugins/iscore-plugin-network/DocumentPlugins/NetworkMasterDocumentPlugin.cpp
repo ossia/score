@@ -1,12 +1,24 @@
-#include "NetworkMasterDocumentPlugin.hpp"
-
 #include <Serialization/MessageMapper.hpp>
-
-#include <core/document/DocumentModel.hpp>
-#include <core/document/DocumentPresenter.hpp>
+#include <boost/optional/optional.hpp>
 #include <core/document/DocumentContext.hpp>
-#include "NetworkApplicationPlugin.hpp"
-#include "settings_impl/NetworkSettingsModel.hpp"
+#include <QByteArray>
+#include <QDataStream>
+#include <algorithm>
+
+#include "NetworkMasterDocumentPlugin.hpp"
+#include "Serialization/NetworkMessage.hpp"
+#include <core/application/ApplicationComponents.hpp>
+#include <core/application/ApplicationContext.hpp>
+#include <core/command/CommandStack.hpp>
+#include <iscore/command/SerializableCommand.hpp>
+#include <iscore/locking/ObjectLocker.hpp>
+#include <iscore/plugins/customfactory/StringFactoryKey.hpp>
+#include <iscore/serialization/DataStreamVisitor.hpp>
+#include <iscore/tools/SettableIdentifier.hpp>
+#include <iscore/tools/Todo.hpp>
+#include "session/MasterSession.hpp"
+
+class Client;
 
 MasterNetworkPolicy::MasterNetworkPolicy(MasterSession* s,
                                          iscore::DocumentContext& c):

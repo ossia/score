@@ -1,4 +1,10 @@
-#include "DummyLayerModel.hpp"
+
+#include <iscore/serialization/DataStreamVisitor.hpp>
+#include <iscore/serialization/JSONVisitor.hpp>
+
+class DummyLayerModel;
+template <typename T> class Reader;
+template <typename T> class Writer;
 
 template<>
 void Visitor<Reader<DataStream>>::readFrom(const DummyLayerModel& lm)

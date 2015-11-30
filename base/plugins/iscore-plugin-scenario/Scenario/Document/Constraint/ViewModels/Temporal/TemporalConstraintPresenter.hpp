@@ -1,16 +1,16 @@
 #pragma once
 #include <Scenario/Document/Constraint/ViewModels/ConstraintPresenter.hpp>
 
-class TemporalConstraintViewModel;
-class TemporalConstraintView;
+#include <Scenario/Document/Constraint/ViewModels/Temporal/TemporalConstraintView.hpp>
+#include <Scenario/Document/Constraint/ViewModels/Temporal/TemporalConstraintViewModel.hpp>
+
 class QGraphicsObject;
+class QObject;
 
 
 namespace iscore
 {
-    class SerializableCommand;
 }
-class LayerPresenter;
 
 class TemporalConstraintPresenter final : public ConstraintPresenter
 {

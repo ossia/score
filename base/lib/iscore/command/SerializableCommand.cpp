@@ -1,4 +1,10 @@
 #include <iscore/command/SerializableCommand.hpp>
+#include <QDataStream>
+#include <QtGlobal>
+#include <QIODevice>
+
+#include <iscore/serialization/DataStreamVisitor.hpp>
+
 using namespace iscore;
 
 SerializableCommand::~SerializableCommand()

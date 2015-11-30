@@ -1,21 +1,21 @@
 #pragma once
-#include "Slot/SlotPresenter.hpp"
-#include "Slot/SlotModel.hpp"
-
-#include <iscore/tools/NamedObject.hpp>
-#include <iscore/tools/IdentifiedObjectMap.hpp>
 #include <Process/TimeValue.hpp>
 #include <Process/ZoomHelper.hpp>
+#include <iscore/tools/IdentifiedObjectMap.hpp>
+#include <iscore/tools/NamedObject.hpp>
+#include <QtGlobal>
+#include <QPoint>
 
-class Process;
-class SlotPresenter;
+#include "Slot/SlotModel.hpp"
+#include "Slot/SlotPresenter.hpp"
+
+class QObject;
 class RackModel;
 class RackView;
-class SlotModel;
+#include <iscore/tools/SettableIdentifier.hpp>
 
 namespace iscore
 {
-    class SerializableCommand;
 }
 
 class RackPresenter final : public NamedObject

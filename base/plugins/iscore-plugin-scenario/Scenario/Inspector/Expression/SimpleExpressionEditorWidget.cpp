@@ -1,13 +1,15 @@
-#include "SimpleExpressionEditorWidget.hpp"
-
-#include <QLineEdit>
-#include <QLabel>
-#include <QPushButton>
-#include <QComboBox>
-#include <QToolButton>
-#include <QHBoxLayout>
-#include <QVBoxLayout>
 #include <State/Expression.hpp>
+#include <boost/optional/optional.hpp>
+#include <QBoxLayout>
+#include <QComboBox>
+#include <QLabel>
+#include <QLineEdit>
+#include <QPushButton>
+#include <QStringList>
+#include <QToolButton>
+
+#include <Scenario/Inspector/ExpressionValidator.hpp>
+#include "SimpleExpressionEditorWidget.hpp"
 
 SimpleExpressionEditorWidget::SimpleExpressionEditorWidget(QWidget* parent):
     QWidget(parent)

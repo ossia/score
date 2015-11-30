@@ -1,8 +1,15 @@
 #pragma once
-#include <iscore/plugins/qt_interfaces/PanelFactoryInterface_QtInterface.hpp>
-#include <iscore/plugins/qt_interfaces/FactoryInterface_QtInterface.hpp>
 #include <iscore/plugins/qt_interfaces/FactoryFamily_QtInterface.hpp>
+#include <iscore/plugins/qt_interfaces/PanelFactoryInterface_QtInterface.hpp>
+#include <QObject>
+#include <vector>
 
+namespace iscore {
+class FactoryListInterface;
+class PanelFactory;
+}  // namespace iscore
+
+// RENAMEME
 class iscore_plugin_inspector :
     public QObject,
     public iscore::PanelFactory_QtInterface,
@@ -21,5 +28,5 @@ class iscore_plugin_inspector :
         std::vector<iscore::PanelFactory*> panels() override;
 
         // Factory for inspector widgets
-        std::vector<iscore::FactoryListInterface*> factoryFamilies() override;
+        std::vector<std::unique_ptr<iscore::FactoryListInterface>> factoryFamilies() override;
 };

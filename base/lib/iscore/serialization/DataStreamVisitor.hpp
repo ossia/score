@@ -1,9 +1,18 @@
 #pragma once
-#include <QDataStream>
-#include <type_traits>
-#include <iscore/serialization/VisitorInterface.hpp>
-#include <iscore/tools/IdentifiedObject.hpp>
 #include <core/application/ApplicationContext.hpp>
+#include <iscore/serialization/VisitorInterface.hpp>
+#include <QByteArray>
+#include <QDataStream>
+#include <sys/types.h>
+#include <stdexcept>
+#include <type_traits>
+
+#include <iscore/tools/NamedObject.hpp>
+#include <iscore/tools/SettableIdentifier.hpp>
+
+class QIODevice;
+class QStringList;
+template <typename model> class IdentifiedObject;
 
 class DataStreamInput
 {
@@ -55,8 +64,6 @@ class DataStreamOutput
  * Generally, it is used with QByteArrays, but it works with any QIODevice.
  */
 class DataStream;
-template<> class Visitor<Reader<DataStream>>;
-template<> class Visitor<Writer<DataStream>>;
 
 class DataStream
 {
@@ -68,13 +75,12 @@ class DataStream
             return 2;
         }
 };
-
 template<class>
 class TreeNode;
 template<class>
-class TreePath;
-template<class>
 class StringKey;
+template<class>
+class TreePath;
 
 namespace eggs{
 namespace variants {

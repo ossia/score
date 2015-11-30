@@ -1,6 +1,22 @@
-#include "MessageItemModelAlgorithms.hpp"
-#include <Process/State/MessageNode.hpp>
 #include <Device/Node/DeviceNode.hpp>
+#include <Process/State/MessageNode.hpp>
+#include <boost/optional/optional.hpp>
+#include <QtGlobal>
+#include <QList>
+#include <QString>
+#include <QStringList>
+#include <QTypeInfo>
+#include <QVector>
+#include <algorithm>
+#include <vector>
+
+#include "MessageItemModelAlgorithms.hpp"
+#include <State/Address.hpp>
+#include <State/Message.hpp>
+#include <State/Value.hpp>
+#include <iscore/tools/SettableIdentifier.hpp>
+#include <iscore/tools/Todo.hpp>
+#include <iscore/tools/TreeNode.hpp>
 
 bool match(MessageNode& node, const iscore::Message& mess)
 {

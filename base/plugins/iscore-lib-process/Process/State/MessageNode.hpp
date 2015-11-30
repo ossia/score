@@ -1,13 +1,22 @@
 #pragma once
 #include <State/Message.hpp>
-#include <Process/Process.hpp>
+
+#include <boost/optional/optional.hpp>
 #include <iscore/tools/TreeNode.hpp>
+#include <QString>
+#include <QStringList>
 #include <QVector>
-#include <QPointer>
+#include <algorithm>
 #include <array>
 
+#include <State/Address.hpp>
+#include <State/Value.hpp>
+#include <State/ValueConversion.hpp>
+#include <iscore/serialization/JSONVisitor.hpp>
+#include <iscore/tools/SettableIdentifier.hpp>
 
-class StateModel;
+class Process;
+
 struct ProcessStateData
 {
         Id<Process> process;

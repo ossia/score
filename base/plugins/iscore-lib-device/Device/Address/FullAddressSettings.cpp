@@ -1,4 +1,9 @@
+#include <QStringList>
+
 #include "AddressSettings.hpp"
+#include <State/Address.hpp>
+#include <State/Message.hpp>
+#include <State/Value.hpp>
 
 namespace iscore
 {

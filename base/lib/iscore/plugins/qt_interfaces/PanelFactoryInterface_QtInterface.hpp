@@ -1,10 +1,11 @@
 #pragma once
 #include <QObject>
-#include <QStringList>
+#include <vector>
 
 namespace iscore
 {
     class PanelFactory;
+
     class PanelFactory_QtInterface
     {
         public:

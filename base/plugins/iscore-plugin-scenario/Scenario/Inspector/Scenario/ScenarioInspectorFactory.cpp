@@ -1,13 +1,23 @@
+#include <Scenario/Process/ScenarioModel.hpp>
+#include <QString>
+
+#include <Scenario/Process/ScenarioProcessMetadata.hpp>
 #include "ScenarioInspectorFactory.hpp"
 #include "ScenarioInspectorWidget.hpp"
-#include <Scenario/Process/ScenarioModel.hpp>
+
+class InspectorWidgetBase;
+class QObject;
+class QWidget;
+namespace iscore {
+class Document;
+}  // namespace iscore
 
 //using namespace iscore;
 
 InspectorWidgetBase* ScenarioInspectorFactory::makeWidget(
         const QObject& sourceElement,
         iscore::Document& doc,
-        QWidget* parent)
+        QWidget* parent) const
 {
     return new ScenarioInspectorWidget{
         static_cast<const Scenario::ScenarioModel&>(sourceElement),

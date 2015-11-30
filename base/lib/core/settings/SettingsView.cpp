@@ -1,8 +1,9 @@
 #include <core/settings/SettingsView.hpp>
 #include <iscore/plugins/settingsdelegate/SettingsDelegatePresenterInterface.hpp>
 #include <iscore/plugins/settingsdelegate/SettingsDelegateViewInterface.hpp>
-#include <QListWidgetItem>
-#include <QStyle>
+#include <QSize>
+#include <QWidget>
+
 using namespace iscore;
 
 

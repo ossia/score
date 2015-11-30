@@ -1,11 +1,18 @@
 #pragma once
-#include "Slot/SlotModel.hpp"
 #include <Process/ModelMetadata.hpp>
-
 #include <Process/TimeValue.hpp>
+#include <boost/optional/optional.hpp>
+#include <iscore/serialization/VisitorInterface.hpp>
 #include <iscore/tools/NotifyingMap.hpp>
 #include <iscore/tools/SettableIdentifier.hpp>
-#include <iscore/serialization/VisitorInterface.hpp>
+#include <QList>
+#include <QObject>
+
+#include <QString>
+#include <functional>
+
+#include "Slot/SlotModel.hpp"
+#include <iscore/tools/IdentifiedObject.hpp>
 
 class ConstraintModel;
 class Process;

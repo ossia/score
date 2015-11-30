@@ -1,10 +1,24 @@
 #pragma once
-#include <ProcessModel/OSSIAProcessModel.hpp>
-#include <iscore/serialization/DataStreamVisitor.hpp>
-#include <iscore/serialization/JSONVisitor.hpp>
-#include <iscore/serialization/VisitorCommon.hpp>
 #include <JS/JSProcess.hpp>
 #include <JS/JSProcessMetadata.hpp>
+#include <OSSIA/ProcessModel/OSSIAProcessModel.hpp>
+#include <QByteArray>
+#include <QString>
+#include <memory>
+
+#include <Process/ProcessFactoryKey.hpp>
+#include <Process/TimeValue.hpp>
+#include <iscore/selection/Selection.hpp>
+#include <iscore/serialization/VisitorInterface.hpp>
+
+class DataStream;
+class JSONObject;
+class LayerModel;
+class Process;
+class ProcessStateDataInterface;
+class QObject;
+class TimeProcessWithConstraint;
+#include <iscore/tools/SettableIdentifier.hpp>
 
 class JSProcessModel final : public OSSIAProcessModel
 {

@@ -1,11 +1,22 @@
-#include "CurveModel.hpp"
+#include <Curve/Segment/CurveSegmentList.hpp>
+#include <Curve/Segment/CurveSegmentModelSerialization.hpp>
 
+#include <core/application/ApplicationComponents.hpp>
 #include <iscore/serialization/DataStreamVisitor.hpp>
 #include <iscore/serialization/JSONVisitor.hpp>
-#include <Curve/Segment/CurveSegmentModelSerialization.hpp>
-#include <Curve/Point/CurvePointModel.hpp>
-#include <core/application/ApplicationComponents.hpp>
-#include <Curve/Segment/CurveSegmentList.hpp>
+#include <QJsonArray>
+#include <QJsonObject>
+#include <QJsonValue>
+#include <sys/types.h>
+
+#include "CurveModel.hpp"
+#include <core/application/ApplicationContext.hpp>
+#include <iscore/plugins/customfactory/StringFactoryKey.hpp>
+#include <iscore/tools/IdentifiedObjectMap.hpp>
+
+template <typename T> class Reader;
+template <typename T> class Writer;
+template <typename model> class IdentifiedObject;
 
 template<>
 void Visitor<Reader<DataStream>>::readFrom(const CurveModel& curve)

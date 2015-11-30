@@ -1,14 +1,16 @@
 #pragma once
-#include <QObject>
-#include <QAction>
-#include <QMenuBar>
-#include <map>
 #include <core/presenter/Action.hpp>
 #include <iscore/menu/MenuInterface.hpp>
-#include <QDebug>
+#include <QAction>
+#include <QList>
+#include <QMenu>
+#include <QObject>
+#include <QString>
+#include <algorithm>
+#include <map>
+#include <type_traits>
 
 class QMenuBar;
-class QMenu;
 
 namespace iscore
 {

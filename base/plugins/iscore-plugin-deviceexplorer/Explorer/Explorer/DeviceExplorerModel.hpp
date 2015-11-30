@@ -1,17 +1,33 @@
 #pragma once
-#include <iscore/serialization/VisitorInterface.hpp>
 #include <Device/ItemModels/NodeBasedItemModel.hpp>
-
+#include <QAbstractItemModel>
+#include <QList>
+#include <qnamespace.h>
+#include <QPair>
 #include <QStack>
+#include <QString>
+#include <QStringList>
+#include <QVariant>
+
+#include <Device/Node/DeviceNode.hpp>
+#include <State/Message.hpp>
+#include <State/Value.hpp>
+
+class QMimeData;
+class QObject;
+namespace iscore {
+struct DeviceSettings;
+}  // namespace iscore
 
 namespace iscore
 {
     class CommandStack;
 }
 
-class DeviceExplorerView;
 class DeviceDocumentPlugin;
 class DeviceEditDialog;
+class DeviceExplorerView;
+
 namespace iscore {
 struct AddressSettings;
 }

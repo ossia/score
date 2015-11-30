@@ -1,7 +1,12 @@
+#include <Process/LayerModel.hpp>
+#include <Process/Process.hpp>
+
 #include "DummyLayerPresenter.hpp"
 #include "DummyLayerView.hpp"
-#include <Process/Process.hpp>
-#include <Process/LayerModel.hpp>
+#include <Process/LayerPresenter.hpp>
+
+class QMenu;
+class QObject;
 
 
 DummyLayerPresenter::DummyLayerPresenter(

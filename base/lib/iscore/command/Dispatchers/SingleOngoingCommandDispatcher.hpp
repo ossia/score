@@ -3,6 +3,7 @@
 #include <iscore/command/Dispatchers/SendStrategy.hpp>
 
 #include <core/command/CommandStack.hpp>
+#include <memory>
 
 /**
  * @brief The SingleOngoingCommandDispatcher class

@@ -1,9 +1,26 @@
 #pragma once
-#include <Scenario/Process/Temporal/StateMachines/ScenarioPoint.hpp>
-#include "ScenarioActions.hpp"
+#include <QJsonObject>
+#include <QList>
+#include <QPoint>
 
-#include <Scenario/DialogWidget/AddProcessDialog.hpp>
-#include <Scenario/Process/ScenarioModel.hpp>
+#include <Process/ProcessFactoryKey.hpp>
+#include "ScenarioActions.hpp"
+#include <iscore/command/Dispatchers/CommandDispatcher.hpp>
+#include <iscore/menu/MenuInterface.hpp>
+#include <iscore/selection/Selection.hpp>
+
+class AddProcessDialog;
+class QAction;
+class QMenu;
+class QToolBar;
+class ScenarioApplicationPlugin;
+class TemporalScenarioPresenter;
+namespace Scenario {
+struct Point;
+}  // namespace Scenario
+namespace iscore {
+class MenubarManager;
+}  // namespace iscore
 
 class ObjectMenuActions final : public ScenarioActions
 {

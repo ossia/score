@@ -1,10 +1,22 @@
 #pragma once
 
+#include <boost/optional/optional.hpp>
+
 #include "MoveEventOnCreationMeta.hpp"
+#include <Process/ExpandMode.hpp>
+#include <Process/TimeValue.hpp>
+#include <Scenario/Commands/ScenarioCommandFactory.hpp>
+#include <iscore/command/SerializableCommand.hpp>
+#include <iscore/tools/ModelPath.hpp>
+#include <iscore/tools/SettableIdentifier.hpp>
 
-
-class EventModel;
 class ConstraintModel;
+class DataStreamInput;
+class DataStreamOutput;
+class EventModel;
+namespace Scenario {
+class ScenarioModel;
+}  // namespace Scenario
 
 /*
  * Used on creation mode, when mouse is pressed and is moving.

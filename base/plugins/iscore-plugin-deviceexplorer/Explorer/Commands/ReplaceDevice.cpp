@@ -1,4 +1,16 @@
+#include <QAbstractItemModel>
+#include <QString>
+#include <algorithm>
+#include <vector>
+
+#include <Device/Node/DeviceNode.hpp>
+#include <Device/Protocol/DeviceSettings.hpp>
+#include <Explorer/Explorer/DeviceExplorerModel.hpp>
 #include "ReplaceDevice.hpp"
+#include <iscore/serialization/DataStreamVisitor.hpp>
+#include <iscore/tools/ModelPath.hpp>
+#include <iscore/tools/ModelPathSerialization.hpp>
+#include <iscore/tools/TreeNode.hpp>
 
 using namespace DeviceExplorer::Command;
 using namespace iscore;

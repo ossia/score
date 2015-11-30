@@ -1,8 +1,10 @@
 #pragma once
+#include <QList>
+#include <QMap>
 #include <QString>
 #include <functional>
-#include "NetworkMessage.hpp"
-#include <QMap>
+
+struct NetworkMessage;
 
 class MessageMapper
 {

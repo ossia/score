@@ -1,14 +1,14 @@
 #pragma once
-#include <iscore/serialization/VisitorInterface.hpp>
-class QByteArray;
+
+struct VisitorVariant;
 
 namespace iscore
 {
-    class DocumentDelegateViewInterface;
-    class DocumentDelegatePresenterInterface;
     class DocumentDelegateModelInterface;
-    class DocumentPresenter;
+    class DocumentDelegatePresenterInterface;
+    class DocumentDelegateViewInterface;
     class DocumentModel;
+    class DocumentPresenter;
     class DocumentView;
     struct ApplicationContext;
 

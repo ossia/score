@@ -1,13 +1,18 @@
 #pragma once
 #include <Scenario/Commands/ScenarioCommandFactory.hpp>
+#include <boost/optional/optional.hpp>
 #include <iscore/command/SerializableCommand.hpp>
 #include <iscore/tools/ModelPath.hpp>
-#include <Process/ProcessFactoryKey.hpp>
+#include <QByteArray>
 
-#include <tests/helpers/ForwardDeclaration.hpp>
+#include <iscore/tools/SettableIdentifier.hpp>
+
+class DataStreamInput;
+class DataStreamOutput;
 class LayerModel;
 class Process;
 class SlotModel;
+
 namespace Scenario
 {
     namespace Command
@@ -20,7 +25,6 @@ namespace Scenario
         class AddLayerModelToSlot final : public iscore::SerializableCommand
         {
                 ISCORE_COMMAND_DECL(ScenarioCommandFactoryName(), AddLayerModelToSlot, "Add a layer to a slot")
-#include <tests/helpers/FriendDeclaration.hpp>
             public:
                 // Use this constructor when the process already exists
                 AddLayerModelToSlot(

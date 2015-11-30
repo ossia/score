@@ -1,7 +1,20 @@
-#include "MoveEventMeta.hpp"
 #include <Scenario/Commands/Scenario/Displacement/MoveEventList.hpp>
 #include <core/application/ApplicationComponents.hpp>
+#include <QByteArray>
+#include <algorithm>
+
 #include "MoveEventFactoryInterface.hpp"
+#include "MoveEventMeta.hpp"
+#include <Scenario/Commands/Scenario/Displacement/SerializableMoveEvent.hpp>
+#include <core/application/ApplicationContext.hpp>
+#include <iscore/plugins/customfactory/StringFactoryKey.hpp>
+#include <iscore/serialization/DataStreamVisitor.hpp>
+
+class EventModel;
+namespace Scenario {
+class ScenarioModel;
+}  // namespace Scenario
+#include <iscore/tools/SettableIdentifier.hpp>
 
 MoveEventMeta::MoveEventMeta(
         Path<Scenario::ScenarioModel>&& scenarioPath,

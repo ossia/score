@@ -1,8 +1,8 @@
 #pragma once
-#include <QObject>
 #include <iscore/tools/ObjectPath.hpp>
-#include <iscore/document/DocumentInterface.hpp>
-#include <iscore/serialization/DataStreamVisitor.hpp>
+#include <QByteArray>
+#include <QObject>
+#include <vector>
 
 namespace iscore
 {

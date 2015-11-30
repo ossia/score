@@ -1,6 +1,17 @@
-#include "VerticalMovePolicy.hpp"
-
 #include <Scenario/Process/ScenarioModel.hpp>
+
+#include <boost/optional/optional.hpp>
+#include <QSet>
+#include <limits>
+
+#include <Scenario/Document/Constraint/ConstraintModel.hpp>
+#include <Scenario/Document/Event/EventModel.hpp>
+#include <Scenario/Document/State/StateModel.hpp>
+#include <Scenario/Document/TimeNode/TimeNodeModel.hpp>
+#include <Scenario/Document/VerticalExtent.hpp>
+#include "VerticalMovePolicy.hpp"
+#include <iscore/tools/NotifyingMap.hpp>
+#include <iscore/tools/SettableIdentifier.hpp>
 
 void updateEventExtent(const Id<EventModel> &id, Scenario::ScenarioModel& s)
 {

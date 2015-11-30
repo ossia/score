@@ -1,23 +1,25 @@
 #pragma once
 #include <Process/ModelMetadata.hpp>
-
+#include <Scenario/Document/Event/ExecutionStatus.hpp>
+#include <boost/optional/optional.hpp>
+#include <iscore/selection/Selectable.hpp>
 #include <iscore/tools/IdentifiedObject.hpp>
 #include <iscore/tools/SettableIdentifier.hpp>
-#include <iscore/serialization/DataStreamVisitor.hpp>
-#include <iscore/serialization/JSONVisitor.hpp>
-#include <iscore/selection/Selectable.hpp>
 
-#include <Scenario/Document/State/ItemModel/MessageItemModel.hpp>
 #include <set>
-#include "StateView.hpp"
-#include <Scenario/Document/Event/ExecutionStatus.hpp>
+#include <vector>
 
-class ConstraintView;
-class ScenarioInterface;
-class EventModel;
+#include <iscore/serialization/VisitorInterface.hpp>
+#include <iscore/tools/Todo.hpp>
+
 class ConstraintModel;
+class DataStream;
+class EventModel;
+class JSONObject;
+class MessageItemModel;
 class Process;
 class ProcessStateDataInterface;
+class QObject;
 
 // Model for the graphical state in a scenario.
 class StateModel final : public IdentifiedObject<StateModel>
@@ -50,8 +52,6 @@ class StateModel final : public IdentifiedObject<StateModel>
             vis.writeTo(*this);
             init();
         }
-
-        const ScenarioInterface* parentScenario() const;
 
         double heightPercentage() const;
 

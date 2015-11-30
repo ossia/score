@@ -1,11 +1,17 @@
-#include "DeviceExplorerApplicationPlugin.hpp"
-
-#include <iscore/command/CommandGeneratorMap.hpp>
-#include <iscore/command/SerializableCommand.hpp>
-
 #include <Explorer/DocumentPlugin/DeviceDocumentPlugin.hpp>
 #include <core/document/Document.hpp>
 #include <core/document/DocumentModel.hpp>
+
+#include <algorithm>
+#include <vector>
+
+#include "DeviceExplorerApplicationPlugin.hpp"
+#include <iscore/plugins/application/GUIApplicationContextPlugin.hpp>
+
+namespace iscore {
+class Application;
+}  // namespace iscore
+struct VisitorVariant;
 
 DeviceExplorerApplicationPlugin::DeviceExplorerApplicationPlugin(iscore::Application& app) :
     GUIApplicationContextPlugin {app, "DeviceExplorerApplicationPlugin", nullptr}

@@ -1,33 +1,31 @@
 #pragma once
-#include <Curve/Segment/CurveSegmentFactory.hpp>
-#include <Curve/Segment/CurveSegmentModel.hpp>
+#include <Curve/Palette/CurveEditionSettings.hpp>
 #include <Curve/Point/CurvePointModel.hpp>
-
 #include <Curve/Point/CurvePointView.hpp>
+#include <Curve/Segment/CurveSegmentModel.hpp>
 #include <Curve/Segment/CurveSegmentView.hpp>
-#include <Curve/StateMachine/CurveEditionSettings.hpp>
-#include <Curve/StateMachine/CurveStateMachine.hpp>
-
 #include <iscore/command/Dispatchers/CommandDispatcher.hpp>
 #include <iscore/selection/SelectionDispatcher.hpp>
 #include <iscore/tools/IdentifiedObjectMap.hpp>
+#include <QObject>
+#include <QPoint>
+#include <QRect>
 
-#include <QStateMachine>
-#include <QPointF>
-#include <QVector>
+#include <Curve/Segment/CurveSegmentFactoryKey.hpp>
+#include <core/document/DocumentContext.hpp>
 
 class DynamicCurveSegmentList;
+namespace Curve {
+struct Style;
+}  // namespace Curve
+
 namespace Curve
 {
-class ToolPalette;
 }
 class CurveModel;
 class CurveView;
-class CurvePointView;
-class CurveSegmentView;
-class QAction;
-class QMenu;
 class QActionGroup;
+class QMenu;
 
 class CurvePresenter : public QObject
 {

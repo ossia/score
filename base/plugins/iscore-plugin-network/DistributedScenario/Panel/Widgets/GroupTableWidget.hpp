@@ -1,13 +1,15 @@
 #pragma once
-#include <QWidget>
 #include <iscore/command/Dispatchers/CommandDispatcher.hpp>
 #include <iscore/tools/ObjectPath.hpp>
+#include <QWidget>
 
-class QTableWidget;
-class GroupManager;
-class Session;
-class GroupTableCheckbox;
 class Client;
+class GroupManager;
+class GroupTableCheckbox;
+class QTableWidget;
+class Session;
+#include <iscore/tools/SettableIdentifier.hpp>
+
 class GroupTableWidget : public QWidget
 {
     public:

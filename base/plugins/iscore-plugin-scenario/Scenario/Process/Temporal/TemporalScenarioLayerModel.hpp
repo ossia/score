@@ -1,18 +1,21 @@
 #pragma once
 
 #include <QMap>
-#include <QPointer>
-#include "Scenario/Process/AbstractScenarioLayerModel.hpp"
-namespace Scenario { class ScenarioModel; }
-class RackModel;
-class TemporalConstraintViewModel;
-class TemporalScenarioPresenter;
+
+#include <Scenario/Document/Constraint/ViewModels/Temporal/TemporalConstraintViewModel.hpp>
+#include <Scenario/Process/AbstractScenarioLayerModel.hpp>
+#include <Scenario/Process/ScenarioModel.hpp>
+#include <iscore/serialization/VisitorInterface.hpp>
 
 class ConstraintModel;
+class ConstraintViewModel;
+class LayerModel;
+class LayerModelPanelProxy;
+class QObject;
+#include <iscore/tools/SettableIdentifier.hpp>
 
 namespace Scenario
 {
-class ToolPalette;
 }
 class TemporalScenarioLayerModel final : public AbstractScenarioLayerModel
 {

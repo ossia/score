@@ -18,6 +18,7 @@ set(SRCS
 "${CMAKE_CURRENT_SOURCE_DIR}/iscore/tools/ObjectPathSerialization.cpp"
 "${CMAKE_CURRENT_SOURCE_DIR}/iscore/tools/SettableIdentifierSerialization.cpp"
 "${CMAKE_CURRENT_SOURCE_DIR}/iscore/tools/SettableIdentifierGeneration.cpp"
+"${CMAKE_CURRENT_SOURCE_DIR}/iscore/command/CommandDataSerialization.cpp"
 
 "${CMAKE_CURRENT_SOURCE_DIR}/iscore/plugins/customfactory/FactoryInterface.cpp"
 "${CMAKE_CURRENT_SOURCE_DIR}/iscore/plugins/customfactory/FactoryFamily.cpp"
@@ -62,9 +63,8 @@ set(SRCS
 "${CMAKE_CURRENT_SOURCE_DIR}/iscore/tools/ObjectIdentifierSerialization.cpp"
 "${CMAKE_CURRENT_SOURCE_DIR}/iscore/tools/IdentifiedObjectAbstract.cpp"
 "${CMAKE_CURRENT_SOURCE_DIR}/iscore/tools/ObjectPath.cpp"
-"${CMAKE_CURRENT_SOURCE_DIR}/iscore/statemachine/BaseStateMachine.cpp"
+"${CMAKE_CURRENT_SOURCE_DIR}/iscore/statemachine/GraphicsSceneToolPalette.cpp"
 "${CMAKE_CURRENT_SOURCE_DIR}/iscore/statemachine/CommonSelectionState.cpp"
-"${CMAKE_CURRENT_SOURCE_DIR}/iscore/statemachine/ToolState.cpp"
 "${CMAKE_CURRENT_SOURCE_DIR}/iscore/widgets/GraphicsItem.cpp"
 "${CMAKE_CURRENT_SOURCE_DIR}/iscore/widgets/ClearLayout.cpp"
 

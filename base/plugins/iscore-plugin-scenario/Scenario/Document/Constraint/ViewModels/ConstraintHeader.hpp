@@ -1,8 +1,10 @@
 #pragma once
-#include <QGraphicsObject>
-#include <QFont>
+#include <QGraphicsItem>
+#include <QString>
 
 class ConstraintView;
+class QGraphicsSceneMouseEvent;
+
 class ConstraintHeader : public QGraphicsObject
 {
     public:

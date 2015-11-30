@@ -1,6 +1,22 @@
+#include <Scenario/Commands/Scenario/Displacement/MoveEvent.hpp>
 #include <Scenario/Commands/Scenario/Displacement/MoveEventClassicFactory.hpp>
 #include <Scenario/Process/Algorithms/GoodOldDisplacementPolicy.hpp>
-#include <Scenario/Commands/Scenario/Displacement/MoveEvent.hpp>
+
+#include <boost/optional/optional.hpp>
+#include <QString>
+#include <algorithm>
+
+#include <Scenario/Commands/Scenario/Displacement/MoveEventFactoryInterface.hpp>
+#include <iscore/serialization/DataStreamVisitor.hpp>
+#include <iscore/tools/ModelPath.hpp>
+#include <iscore/tools/ModelPathSerialization.hpp>
+
+class EventModel;
+class SerializableMoveEvent;
+namespace Scenario {
+class ScenarioModel;
+}  // namespace Scenario
+#include <iscore/tools/SettableIdentifier.hpp>
 
 SerializableMoveEvent* MoveEventClassicFactory::make(
         Path<Scenario::ScenarioModel>&& scenarioPath,

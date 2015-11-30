@@ -1,5 +1,8 @@
 #include "ConstraintHeader.hpp"
 #include "ConstraintView.hpp"
+
+class QGraphicsSceneMouseEvent;
+
 void ConstraintHeader::setWidth(double width)
 {
     prepareGeometryChange();

@@ -1,6 +1,10 @@
 #pragma once
 #include <iscore/plugins/panel/PanelModel.hpp>
 
+#include <iscore/selection/Selection.hpp>
+
+class QObject;
+
 class ProcessPanelModel final : public iscore::PanelModel
 {
     public:

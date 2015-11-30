@@ -1,5 +1,5 @@
 #pragma once
-#include <RecreateOnPlayDocumentPlugin/ProcessModel/ProcessModelElement.hpp>
+#include <DocumentPlugin/ProcessModel/ProcessModelElement.hpp>
 #include <ProcessModel/TimeProcessWithConstraint.hpp>
 #include <Editor/TimeValue.h>
 #include <Explorer/DocumentPlugin/DeviceDocumentPlugin.hpp>

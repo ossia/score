@@ -1,6 +1,16 @@
-#include "SinCurveSegmentModel.hpp"
 #include <iscore/serialization/VisitorCommon.hpp>
+#include <QDebug>
+#include <QPoint>
 #include <cmath>
+#include <cstddef>
+#include <vector>
+
+#include <Curve/Palette/CurvePoint.hpp>
+#include <Curve/Segment/CurveSegmentData.hpp>
+#include "SinCurveSegmentModel.hpp"
+
+class QObject;
+#include <iscore/tools/SettableIdentifier.hpp>
 
 SinCurveSegmentModel::SinCurveSegmentModel(
         const CurveSegmentData& dat,

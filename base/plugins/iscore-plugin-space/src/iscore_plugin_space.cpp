@@ -19,7 +19,7 @@ iscore::GUIApplicationContextPlugin* iscore_plugin_space::make_applicationplugin
     return new SpaceApplicationPlugin{pres};
 }
 
-std::vector<iscore::FactoryInterfaceBase*> iscore_plugin_space::factories(const iscore::FactoryBaseKey& factoryName) const
+std::vector<std::unique_ptr<iscore::FactoryInterfaceBase>> iscore_plugin_space::factories(const iscore::FactoryBaseKey& factoryName) const
 {
     if(factoryName == ProcessFactory::staticFactoryKey())
     {

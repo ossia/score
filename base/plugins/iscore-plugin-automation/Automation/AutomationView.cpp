@@ -1,8 +1,13 @@
-#include "AutomationView.hpp"
 #include <Process/Style/ProcessFonts.hpp>
+#include <QFlags>
+#include <QFont>
+#include <QGraphicsItem>
+#include <qnamespace.h>
 #include <QPainter>
-#include <QKeyEvent>
-#include <QDebug>
+#include <QRect>
+
+#include "AutomationView.hpp"
+#include <Process/LayerView.hpp>
 
 AutomationView::AutomationView(QGraphicsItem* parent) :
     LayerView {parent}

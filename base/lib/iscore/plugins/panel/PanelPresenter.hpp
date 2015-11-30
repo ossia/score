@@ -1,11 +1,14 @@
 #pragma once
 #include <QObject>
-#include <core/presenter/Presenter.hpp>
+
+namespace iscore {
+class Presenter;
+}  // namespace iscore
+
 namespace iscore
 {
     class PanelModel;
     class PanelView;
-    class SerializableCommand;
 
     class PanelPresenter : public QObject
     {

@@ -1,22 +1,48 @@
+#include <boost/optional/optional.hpp>
 #include <core/application/Application.hpp>
-#include <core/application/OpenDocumentsFile.hpp>
-
 #include <core/application/ApplicationRegistrar.hpp>
+#include <core/document/DocumentBackups.hpp>
 #include <core/presenter/Presenter.hpp>
-#include <core/view/View.hpp>
-
 #include <core/undo/Panel/UndoPanelFactory.hpp>
 #include <core/undo/UndoApplicationPlugin.hpp>
-#include <QSplashScreen>
+#include <core/view/View.hpp>
+#include <QByteArray>
+#include <QCoreApplication>
+#include <QFile>
+#include <QFont>
 #include <QFontDatabase>
-#include <core/document/DocumentBackups.hpp>
-#include "iscore_git_info.hpp"
-using namespace iscore;
-#include <QMessageBox>
-#include <QFileInfo>
+#include <QIODevice>
+#include <QMetaType>
+#include <qnamespace.h>
+#include <QPixmap>
+#include <QSplashScreen>
+#include <QString>
+#include <QStringList>
 #include <QStyleFactory>
+#include <QFileInfo>
+
+using namespace iscore;
 #include <iscore/tools/SettableIdentifierGeneration.hpp>
+#include <algorithm>
+#include <vector>
+
 #include "SafeQApplication.hpp"
+#include <core/application/ApplicationComponents.hpp>
+#include <core/application/ApplicationSettings.hpp>
+#include <core/plugin/PluginManager.hpp>
+#include <core/presenter/DocumentManager.hpp>
+#include <core/settings/Settings.hpp>
+#include <iscore/selection/Selection.hpp>
+#include <iscore/tools/NamedObject.hpp>
+#include <iscore/tools/ObjectIdentifier.hpp>
+#include <iscore/tools/SettableIdentifier.hpp>
+#include <iscore/widgets/OrderedToolbar.hpp>
+#include "iscore_git_info.hpp"
+
+namespace iscore {
+class DocumentModel;
+}  // namespace iscore
+
 static Application* application_instance = nullptr;
 
 

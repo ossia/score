@@ -1,17 +1,43 @@
-#include "ScenarioPasteElements.hpp"
-#include <iscore/tools/SettableIdentifierGeneration.hpp>
+#include <Scenario/Document/Constraint/ConstraintModel.hpp>
 #include <Scenario/Document/Event/EventModel.hpp>
 #include <Scenario/Document/State/StateModel.hpp>
 #include <Scenario/Document/TimeNode/TimeNodeModel.hpp>
-#include <Scenario/Document/Constraint/ConstraintModel.hpp>
-
-#include <Scenario/Document/Constraint/ViewModels/Temporal/TemporalConstraintViewModel.hpp>
+#include <Scenario/Process/Algorithms/VerticalMovePolicy.hpp>
 #include <Scenario/Process/ScenarioModel.hpp>
 #include <Scenario/Process/Temporal/TemporalScenarioLayerModel.hpp>
-#include <core/document/Document.hpp>
-#include <Scenario/Process/Algorithms/VerticalMovePolicy.hpp>
 
+#include <boost/iterator/iterator_facade.hpp>
+#include <boost/multi_index/detail/hash_index_iterator.hpp>
+#include <core/document/Document.hpp>
 #include <iscore/tools/Clamp.hpp>
+#include <iscore/tools/SettableIdentifierGeneration.hpp>
+#include <QDataStream>
+#include <QtGlobal>
+#include <QHash>
+#include <QJsonArray>
+#include <QJsonValue>
+#include <algorithm>
+#include <cstddef>
+#include <iterator>
+#include <limits>
+#include <vector>
+
+#include <Process/LayerModel.hpp>
+#include <Process/Process.hpp>
+#include <Process/TimeValue.hpp>
+#include <Scenario/Document/Constraint/Rack/RackModel.hpp>
+#include <Scenario/Document/Constraint/ViewModels/ConstraintViewModel.hpp>
+#include <Scenario/Document/Constraint/ViewModels/ConstraintViewModelIdMap.hpp>
+#include <Scenario/Palette/ScenarioPoint.hpp>
+#include <Scenario/Process/AbstractScenarioLayerModel.hpp>
+#include "ScenarioPasteElements.hpp"
+#include <iscore/document/DocumentInterface.hpp>
+#include <iscore/serialization/DataStreamVisitor.hpp>
+#include <iscore/serialization/JSONVisitor.hpp>
+#include <iscore/serialization/VisitorCommon.hpp>
+#include <iscore/tools/ModelPathSerialization.hpp>
+#include <iscore/tools/NotifyingMap.hpp>
+#include <iscore/tools/ObjectPath.hpp>
 
 // Needed for copy since we want to generate IDs that are neither
 // in the scenario in which we are copying into, nor in the elements

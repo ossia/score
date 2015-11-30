@@ -1,5 +1,28 @@
+
+#include <boost/optional/optional.hpp>
+#include <QDataStream>
+#include <QtGlobal>
+#include <QJsonArray>
+#include <QJsonObject>
+#include <QJsonValue>
+#include <algorithm>
+
+#include <Process/ModelMetadata.hpp>
+#include <Process/TimeValue.hpp>
+#include <Scenario/Document/VerticalExtent.hpp>
+#include <State/Expression.hpp>
 #include "TimeNodeModel.hpp"
 #include "Trigger/TriggerModel.hpp"
+#include <iscore/plugins/documentdelegate/plugin/ElementPluginModelList.hpp>
+#include <iscore/serialization/DataStreamVisitor.hpp>
+#include <iscore/serialization/JSONValueVisitor.hpp>
+#include <iscore/serialization/JSONVisitor.hpp>
+#include <iscore/tools/SettableIdentifier.hpp>
+#include <iscore/tools/TreeNode.hpp>
+
+template <typename T> class Reader;
+template <typename T> class Writer;
+template <typename model> class IdentifiedObject;
 
 template<>
 void Visitor<Reader<DataStream>>::readFrom(const TimeNodeModel& timenode)

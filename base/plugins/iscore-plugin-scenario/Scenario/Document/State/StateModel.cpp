@@ -1,14 +1,19 @@
-#include "StateModel.hpp"
-
-#include "StateView.hpp"
-
-#include <Scenario/Document/Constraint/ViewModels/ConstraintView.hpp>
-#include <Scenario/Document/Event/EventModel.hpp>
-
-#include <Scenario/Process/ScenarioModel.hpp>
-#include <Scenario/Process/Temporal/TemporalScenarioPresenter.hpp>
 #include <Process/State/ProcessStateDataInterface.hpp>
 #include <iscore/document/DocumentInterface.hpp>
+#include <QAbstractItemModel>
+#include <QObject>
+#include <algorithm>
+
+#include "ItemModel/MessageItemModelAlgorithms.hpp"
+#include <Process/Process.hpp>
+#include <Scenario/Document/Event/ExecutionStatus.hpp>
+#include <Scenario/Document/State/ItemModel/MessageItemModel.hpp>
+#include <State/Message.hpp>
+#include "StateModel.hpp"
+#include <iscore/tools/IdentifiedObject.hpp>
+#include <iscore/tools/SettableIdentifier.hpp>
+#include <Scenario/Process/ScenarioInterface.hpp>
+#include <Scenario/Document/Constraint/ConstraintModel.hpp>
 
 constexpr const char StateModel::className[];
 StateModel::StateModel(
@@ -60,11 +65,6 @@ void StateModel::init()
     }
 }
 
-const ScenarioInterface* StateModel::parentScenario() const
-{
-    return dynamic_cast<ScenarioInterface*>(parent()); // TODO why not safe cast
-}
-
 double StateModel::heightPercentage() const
 {
     return m_heightPercentage;
@@ -82,7 +82,7 @@ void StateModel::statesUpdated_slt()
 {
     emit sig_statesUpdated();
 }
-#include "ItemModel/MessageItemModelAlgorithms.hpp"
+
 void StateModel::on_previousProcessAdded(const Process& proc)
 {
     ProcessStateDataInterface* state = proc.endStateData();
@@ -208,9 +208,8 @@ void StateModel::setNextConstraint(const Id<ConstraintModel> & id)
     if(!m_nextConstraint)
         return;
 
-    auto scenar = parentScenario();
-    if(!scenar)
-        return;
+    auto scenar = dynamic_cast<ScenarioInterface*>(parent());
+    ISCORE_ASSERT(scenar);
 
     // The constraints might not be present in a scenario
     // for instance when restoring removed elements.
@@ -250,9 +249,8 @@ void StateModel::setPreviousConstraint(const Id<ConstraintModel> & id)
     if(!m_previousConstraint)
         return;
 
-    auto scenar = parentScenario();
-    if(!scenar)
-        return;
+    auto scenar = dynamic_cast<ScenarioInterface*>(parent());
+    ISCORE_ASSERT(scenar);
 
     auto cstr = scenar->findConstraint(m_previousConstraint);
     if(cstr)

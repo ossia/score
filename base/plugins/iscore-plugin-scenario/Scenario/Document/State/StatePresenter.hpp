@@ -1,14 +1,14 @@
 #pragma once
-#include <iscore/tools/NamedObject.hpp>
-#include <iscore/tools/SettableIdentifier.hpp>
 #include <iscore/command/Dispatchers/CommandDispatcher.hpp>
+#include <iscore/tools/NamedObject.hpp>
+#include <QPoint>
 
 class QGraphicsItem;
+class QMimeData;
+class QObject;
 class StateModel;
 class StateView;
-class TemporalScenarioPresenter;
-class QMimeData;
-class ConstraintModel;
+#include <iscore/tools/SettableIdentifier.hpp>
 
 class StatePresenter final : public NamedObject
 {

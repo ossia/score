@@ -1,10 +1,11 @@
 #pragma once
-#include <iscore/serialization/DataStreamVisitor.hpp>
 #include <iscore/command/SerializableCommand.hpp>
-
 #include <QObject>
+
 #include <QStack>
-#include <memory>
+#include <QString>
+
+class DataStream;
 
 
 namespace iscore

@@ -1,7 +1,12 @@
-#include "TextDialog.hpp"
-#include <QGridLayout>
-#include <QTextEdit>
 #include <QDialogButtonBox>
+#include <QGridLayout>
+#include <QLayout>
+#include <QTextEdit>
+
+#include "TextDialog.hpp"
+
+class QWidget;
+
 TextDialog::TextDialog(const QString &s, QWidget *parent):
     QDialog{parent}
 {

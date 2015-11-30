@@ -1,5 +1,8 @@
 #include "ProcessPanelModel.hpp"
+#include <iscore/plugins/panel/PanelModel.hpp>
 #include "ProcessPanelId.hpp"
+
+class QObject;
 
 ProcessPanelModel::ProcessPanelModel(QObject* parent):
     iscore::PanelModel{"ProcessPanelModel", parent}

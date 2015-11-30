@@ -1,11 +1,19 @@
 #pragma once
-#include <State/StateMimeTypes.hpp>
-#include <State/Message.hpp>
-#include <iscore/command/Dispatchers/CommandDispatcher.hpp>
-
-#include <iscore/tools/TreeNodeItemModel.hpp>
-#include <QModelIndex>
 #include <Process/State/MessageNode.hpp>
+#include <iscore/tools/TreeNodeItemModel.hpp>
+#include <QAbstractItemModel>
+#include <qnamespace.h>
+#include <QStringList>
+#include <QVariant>
+
+class QMimeData;
+class QObject;
+class StateModel;
+namespace iscore {
+class CommandStack;
+struct Message;
+}  // namespace iscore
+
 /**
  * @brief The MessageItemModel class
  *

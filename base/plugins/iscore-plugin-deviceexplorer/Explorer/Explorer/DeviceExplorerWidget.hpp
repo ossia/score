@@ -1,21 +1,25 @@
 #pragma once
 
-#include <QWidget>
 #include <iscore/command/Dispatchers/CommandDispatcher.hpp>
-#include <Device/Protocol/ProtocolList.hpp>
+#include <QAbstractItemModel>
+#include <QWidget>
+#include <memory>
 
-#include <QStackedLayout>
-#include <QThread>
-#include "DeviceExplorerModel.hpp"
-class QProgressIndicator;
-class DeviceExplorerView;
-class DeviceExplorerModel;
-class DeviceExplorerFilterProxyModel;
+#include <Device/Node/DeviceNode.hpp>
+#include <iscore/tools/TreePath.hpp>
+
 class DeviceEditDialog;
-class AddressEditDialog;
+class DeviceExplorerFilterProxyModel;
+class DeviceExplorerModel;
+class DeviceExplorerView;
+class DynamicProtocolList;
+class QAction;
+class QContextMenuEvent;
+class QProgressIndicator;
+class QStackedLayout;
+
 namespace iscore
 {
-    class CommandStack;
 }
 
 class QComboBox;

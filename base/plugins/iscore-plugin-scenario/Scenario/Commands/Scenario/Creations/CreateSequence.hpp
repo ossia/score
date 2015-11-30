@@ -1,11 +1,24 @@
 #pragma once
-#include <iscore/command/SerializableCommand.hpp>
-#include "CreateConstraint_State_Event_TimeNode.hpp"
-#include <Process/TimeValue.hpp>
 #include <Process/State/MessageNode.hpp>
-
+#include <Process/TimeValue.hpp>
 #include <Scenario/Commands/Cohesion/InterpolateMacro.hpp>
+#include <iscore/command/SerializableCommand.hpp>
+
+#include "CreateConstraint_State_Event_TimeNode.hpp"
+#include <Scenario/Commands/ScenarioCommandFactory.hpp>
+#include <iscore/tools/ModelPath.hpp>
+
+class ConstraintModel;
+class DataStreamInput;
+class DataStreamOutput;
+class EventModel;
+class StateModel;
 class TimeNodeModel;
+namespace Scenario {
+class ScenarioModel;
+}  // namespace Scenario
+#include <iscore/tools/SettableIdentifier.hpp>
+
 namespace Scenario
 {
 namespace Command

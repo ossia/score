@@ -1,12 +1,16 @@
 #pragma once
 #include <Curve/Commands/CurveCommandFactory.hpp>
+#include <boost/optional/optional.hpp>
 #include <iscore/command/SerializableCommand.hpp>
 #include <iscore/tools/ModelPath.hpp>
-#include <Curve/Point/CurvePointModel.hpp>
-#include <Curve/CurveModel.hpp>
 
-class CurveSegmentModel;
+#include <Curve/Palette/CurvePoint.hpp>
+#include <iscore/tools/SettableIdentifier.hpp>
+
+class CurveModel;
 class CurvePointModel;
+class DataStreamInput;
+class DataStreamOutput;
 
 class MovePoint final : public iscore::SerializableCommand
 {

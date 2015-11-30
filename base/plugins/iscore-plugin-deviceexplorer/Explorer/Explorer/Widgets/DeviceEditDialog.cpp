@@ -1,11 +1,24 @@
-#include "DeviceEditDialog.hpp"
-
+#include <Device/Protocol/ProtocolFactoryInterface.hpp>
 #include <QComboBox>
 #include <QDialogButtonBox>
+#include <QFlags>
 #include <QGridLayout>
 #include <QLabel>
+#include <QLayoutItem>
+#include <qnamespace.h>
 
-#include <Device/Protocol/ProtocolFactoryInterface.hpp>
+#include <QVariant>
+#include <QWidget>
+#include <utility>
+
+#include <Device/Protocol/ProtocolFactoryKey.hpp>
+#include <Device/Protocol/ProtocolList.hpp>
+#include <Device/Protocol/ProtocolSettingsWidget.hpp>
+#include "DeviceEditDialog.hpp"
+#include <iscore/plugins/customfactory/FactoryFamily.hpp>
+#include <iscore/plugins/customfactory/FactoryMap.hpp>
+#include <iscore/plugins/customfactory/StringFactoryKey.hpp>
+
 DeviceEditDialog::DeviceEditDialog(
         const DynamicProtocolList& pl,
         QWidget* parent)

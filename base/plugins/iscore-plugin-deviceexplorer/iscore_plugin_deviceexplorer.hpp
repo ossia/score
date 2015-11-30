@@ -1,9 +1,20 @@
 #pragma once
-#include <QObject>
-#include <iscore/plugins/qt_interfaces/PanelFactoryInterface_QtInterface.hpp>
 #include <iscore/plugins/qt_interfaces/FactoryFamily_QtInterface.hpp>
 #include <iscore/plugins/qt_interfaces/GUIApplicationContextPlugin_QtInterface.hpp>
-#include <Device/Protocol/DeviceList.hpp>
+#include <iscore/plugins/qt_interfaces/PanelFactoryInterface_QtInterface.hpp>
+#include <QObject>
+#include <utility>
+#include <vector>
+
+#include <iscore/command/CommandGeneratorMap.hpp>
+#include <iscore/command/SerializableCommand.hpp>
+#include <iscore/plugins/application/GUIApplicationContextPlugin.hpp>
+
+namespace iscore {
+class Application;
+class FactoryListInterface;
+class PanelFactory;
+}  // namespace iscore
 
 class iscore_plugin_deviceexplorer final :
         public QObject,
@@ -27,7 +38,7 @@ class iscore_plugin_deviceexplorer final :
         std::vector<iscore::PanelFactory*> panels() override;
 
         // Factory for protocols
-        std::vector<iscore::FactoryListInterface*> factoryFamilies() override;
+        std::vector<std::unique_ptr<iscore::FactoryListInterface>> factoryFamilies() override;
 
         // application plugin
         iscore::GUIApplicationContextPlugin* make_applicationPlugin(iscore::Application& app) override;

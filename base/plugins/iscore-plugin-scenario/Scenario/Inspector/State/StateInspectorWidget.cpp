@@ -1,20 +1,33 @@
-#include "StateInspectorWidget.hpp"
-#include <Scenario/Document/State/StateModel.hpp>
-#include <Scenario/Document/Event/EventModel.hpp>
-#include <Scenario/Process/ScenarioModel.hpp>
-#include <Scenario/Commands/Event/SplitEvent.hpp>
-#include <Scenario/Inspector/SelectionButton.hpp>
-#include <Scenario/DialogWidget/MessageTreeView.hpp>
-
 #include <Inspector/InspectorSectionWidget.hpp>
-#include <core/document/Document.hpp>
-#include <Explorer/Explorer/DeviceExplorerModel.hpp>
-#include <iscore/widgets/MarginLess.hpp>
-#include <iscore/document/DocumentInterface.hpp>
+#include <Scenario/Commands/Event/SplitEvent.hpp>
+#include <Scenario/DialogWidget/MessageTreeView.hpp>
+#include <Scenario/Document/Event/EventModel.hpp>
+#include <Scenario/Document/State/StateModel.hpp>
+#include <Scenario/Process/ScenarioModel.hpp>
 
-#include <QPushButton>
+#include <boost/optional/optional.hpp>
+#include <iscore/widgets/MarginLess.hpp>
+#include <QtAlgorithms>
 #include <QFormLayout>
-#include <QLabel>
+#include <QObject>
+#include <QPushButton>
+#include <QString>
+#include <QVector>
+#include <QWidget>
+#include <algorithm>
+
+#include <Inspector/InspectorWidgetBase.hpp>
+#include "StateInspectorWidget.hpp"
+#include <iscore/command/Dispatchers/CommandDispatcher.hpp>
+#include <iscore/tools/ModelPath.hpp>
+#include <iscore/tools/NotifyingMap.hpp>
+#include <iscore/tools/SettableIdentifier.hpp>
+#include <Scenario/Inspector/SelectionButton.hpp>
+
+namespace iscore {
+class Document;
+}  // namespace iscore
+
 StateInspectorWidget::StateInspectorWidget(
         const StateModel& object,
         iscore::Document& doc,
@@ -41,7 +54,9 @@ void StateInspectorWidget::updateDisplayedValues()
     // State id
     //lay->addRow("Id", new QLabel{QString::number(m_model.id().val().get())});
 
-    auto scenar = m_model.parentScenario();
+    auto scenar = dynamic_cast<ScenarioInterface*>(m_model.parent());
+    ISCORE_ASSERT(scenar);
+
     auto event = m_model.eventId();
 
     // State setup
@@ -85,7 +100,7 @@ void StateInspectorWidget::updateDisplayedValues()
         lay->addWidget(btn);
     }
 
-    auto scenarModel = dynamic_cast<const Scenario::ScenarioModel*>(m_model.parentScenario());
+    auto scenarModel = dynamic_cast<const Scenario::ScenarioModel*>(m_model.parent());
     if(scenarModel)
     {
         auto& parentEvent = scenarModel->events.at(m_model.eventId());
@@ -109,7 +124,7 @@ using namespace Scenario;
 
 void StateInspectorWidget::splitEvent()
 {
-    auto scenar = dynamic_cast<const Scenario::ScenarioModel*>(m_model.parentScenario());
+    auto scenar = dynamic_cast<const Scenario::ScenarioModel*>(m_model.parent());
     if (scenar)
     {
         auto& parentEvent = scenar->events.at(m_model.eventId());

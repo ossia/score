@@ -1,20 +1,24 @@
 #pragma once
 #include <iscore/plugins/documentdelegate/plugin/DocumentDelegatePluginModel.hpp>
+#include <QObject>
+#include <vector>
 
+#include <iscore/plugins/documentdelegate/plugin/ElementPluginModel.hpp>
 
-#include "DistributedScenario/Group.hpp"
-#include <iscore/serialization/VisitorCommon.hpp>
+#include <iscore/serialization/DataStreamVisitor.hpp>
+#include <iscore/serialization/JSONVisitor.hpp>
 
-class NetworkApplicationPlugin;
-class ClientSession;
-class MasterSession;
-class Session;
+class DataStream;
 class GroupManager;
+class GroupMetadata;
+class JSONObject;
+class QWidget;
+class Session;
+struct VisitorVariant;
 
 namespace iscore
 {
     class Document;
-    class DocumentModel;
 }
 
 class iscore_plugin_networkPolicy : public QObject

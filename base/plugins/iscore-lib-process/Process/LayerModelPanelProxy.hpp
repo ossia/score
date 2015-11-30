@@ -1,6 +1,8 @@
 #pragma once
 #include <QObject>
-#include "LayerModel.hpp"
+
+class LayerModel;
+
 class LayerModelPanelProxy : public QObject
 {
     public:

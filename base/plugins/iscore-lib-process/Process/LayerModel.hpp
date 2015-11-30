@@ -1,8 +1,13 @@
 #pragma once
 #include <iscore/tools/IdentifiedObject.hpp>
+#include <QString>
 
-class Process;
+#include <iscore/serialization/VisitorInterface.hpp>
+
 class LayerModelPanelProxy;
+class Process;
+class QObject;
+#include <iscore/tools/SettableIdentifier.hpp>
 
 /**
  * @brief The LayerModel class

@@ -1,9 +1,19 @@
-#include "ElementPluginModel.hpp"
-#include "ElementPluginModelSerialization.hpp"
-
 #include <core/document/Document.hpp>
 #include <core/document/DocumentModel.hpp>
 #include <iscore/plugins/documentdelegate/plugin/DocumentDelegatePluginModel.hpp>
+#include <QJsonObject>
+#include <QJsonValue>
+#include <algorithm>
+#include <vector>
+
+#include "ElementPluginModel.hpp"
+#include "ElementPluginModelSerialization.hpp"
+#include <iscore/document/DocumentInterface.hpp>
+#include <iscore/serialization/DataStreamVisitor.hpp>
+#include <iscore/serialization/JSONVisitor.hpp>
+#include <iscore/tools/std/StdlibWrapper.hpp>
+
+class QObject;
 
 template<>
 void Visitor<Reader<DataStream>>::readFrom(const iscore::ElementPluginModel& elt)

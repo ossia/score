@@ -1,27 +1,37 @@
-#include "TransportActions.hpp"
-
-#include "iscore/menu/MenuInterface.hpp"
 #include <Scenario/Application/ScenarioApplicationPlugin.hpp>
+#include <QAction>
+#include <qnamespace.h>
+
+#include <QString>
+#include <QToolBar>
+
+#include <Scenario/Application/Menus/ScenarioActions.hpp>
+#include "TransportActions.hpp"
+#include <core/presenter/MenubarManager.hpp>
+#include <iscore/menu/MenuInterface.hpp>
+
+class QMenu;
+class TemporalScenarioPresenter;
 
 TransportActions::TransportActions(
         iscore::ToplevelMenuElement menuElt,
         ScenarioApplicationPlugin* parent) :
     ScenarioActions{menuElt, parent}
 {
-    m_play = new QAction{tr("▶ Play"), parent};
+    m_play = new QAction{tr("▶ Play"), nullptr};
     m_play->setObjectName("Play");
     m_play->setShortcut(Qt::Key_Space);
     m_play->setShortcutContext(Qt::WidgetWithChildrenShortcut);
 
-    m_stop = new QAction{tr("⬛ Stop"), parent};
+    m_stop = new QAction{tr("⬛ Stop"), nullptr};
     m_stop->setObjectName("Stop");
     m_stop->setShortcut(Qt::Key_Return);
     m_stop->setShortcutContext(Qt::WidgetWithChildrenShortcut);
-    m_goToStart = new QAction{tr("⏮ Start"), parent};
+    m_goToStart = new QAction{tr("⏮ Start"), nullptr};
     m_goToStart->setObjectName("Start");
-    m_goToEnd = new QAction{tr("⏭ End"), parent};
+    m_goToEnd = new QAction{tr("⏭ End"), nullptr};
     m_goToEnd->setObjectName("End");
-    m_record = new QAction{tr("⚫ Record"), parent};
+    m_record = new QAction{tr("⚫ Record"), nullptr};
     m_record->setObjectName("Record");
 
     m_play->setCheckable(true);

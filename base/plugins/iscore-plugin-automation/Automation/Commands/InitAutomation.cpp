@@ -1,7 +1,16 @@
-#include "InitAutomation.hpp"
 #include <Automation/AutomationModel.hpp>
 #include <Curve/CurveModel.hpp>
-#include "Curve/Segment/CurveSegmentModelSerialization.hpp"
+#include <algorithm>
+
+#include <Curve/Segment/CurveSegmentData.hpp>
+#include "InitAutomation.hpp"
+#include <iscore/serialization/DataStreamVisitor.hpp>
+#include <iscore/tools/ModelPath.hpp>
+#include <iscore/tools/ModelPathSerialization.hpp>
+
+namespace iscore {
+struct Address;
+}  // namespace iscore
 
 
 InitAutomation::InitAutomation(

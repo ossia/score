@@ -1,24 +1,38 @@
-#include "MessageTreeView.hpp"
-
-#include <Scenario/Document/State/StateModel.hpp>
-#include <Explorer/Widgets/MessageListEditor.hpp>
-#include <iscore/document/DocumentInterface.hpp>
-#include <Scenario/Document/State/ItemModel/MessageItemModel.hpp>
-#include <core/document/Document.hpp>
-
 #include <Scenario/Commands/State/RemoveMessageNodes.hpp>
-#include <QContextMenuEvent>
-#include <QHeaderView>
-#include <QMenu>
+#include <Scenario/Document/State/ItemModel/MessageItemModel.hpp>
+#include <Scenario/Document/State/StateModel.hpp>
 #include <iscore/command/Dispatchers/CommandDispatcher.hpp>
+#include <iscore/document/DocumentInterface.hpp>
+#include <QAbstractItemView>
 #include <QAction>
+#include <QEvent>
+#include <QFlags>
+#include <QHeaderView>
+#include <QKeySequence>
+#include <QList>
+#include <QMenu>
 #include <QResizeEvent>
+#include <QContextMenuEvent>
+#include <qnamespace.h>
+
+#include <QSet>
+#include <QString>
+
+#include <Device/Node/DeviceNode.hpp>
+#include "MessageTreeView.hpp"
+#include <Process/State/MessageNode.hpp>
+#include <core/document/DocumentContext.hpp>
+#include <iscore/tools/ModelPath.hpp>
+#include <iscore/tools/Todo.hpp>
+#include <iscore/tools/TreeNode.hpp>
+
+class QWidget;
 
 MessageTreeView::MessageTreeView(
         const StateModel& model,
         QWidget* parent):
     QTreeView{parent},
-    m_model{model}, // TODO sorry o lord for I have sinned
+    m_model{model},
     m_dispatcher{iscore::IDocument::commandStack(model)}
 {
     setAllColumnsShowFocus(true);

@@ -1,6 +1,18 @@
 #pragma once
 
 #include <iscore/plugins/application/GUIApplicationContextPlugin.hpp>
+#include <QAction>
+#include <QList>
+
+#include <vector>
+
+class QObject;
+namespace iscore {
+class Application;
+class Document;
+class MenubarManager;
+struct OrderedToolbar;
+}  // namespace iscore
 
 namespace iscore
 {
@@ -28,7 +40,7 @@ class UndoApplicationPlugin final : public iscore::GUIApplicationContextPlugin
         // Connections to keep for the running document.
         QList<QMetaObject::Connection> m_connections;
 
-        QAction* m_undoAction{new QAction{this}};
-        QAction* m_redoAction{new QAction{this}};
+        QAction m_undoAction;
+        QAction m_redoAction;
 };
 }

@@ -1,13 +1,18 @@
 #pragma once
 
 #include <Inspector/InspectorWidgetBase.hpp>
+#include <QString>
+
+class QWidget;
+
 namespace iscore{
+class Document;
 struct Address;
 }
+class AddressEditWidget;
 class DeviceExplorerModel;
 class MappingModel;
 class QDoubleSpinBox;
-class AddressEditWidget;
 
 class MappingInspectorWidget : public InspectorWidgetBase
 {

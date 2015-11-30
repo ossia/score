@@ -26,12 +26,9 @@ file(GLOB_RECURSE HDRS "${CMAKE_CURRENT_SOURCE_DIR}/3rdparty/libaudiotool/src/li
 # Files & main target
 set(HDRS ${HDRS}
 "${CMAKE_CURRENT_SOURCE_DIR}/Audio/AudioFactory.hpp"
-"${CMAKE_CURRENT_SOURCE_DIR}/Audio/AudioLayer.hpp"
-"${CMAKE_CURRENT_SOURCE_DIR}/Audio/AudioPresenter.hpp"
 "${CMAKE_CURRENT_SOURCE_DIR}/Audio/AudioProcess.hpp"
 "${CMAKE_CURRENT_SOURCE_DIR}/Audio/AudioProcessMetadata.hpp"
 "${CMAKE_CURRENT_SOURCE_DIR}/Audio/AudioProcessModel.hpp"
-"${CMAKE_CURRENT_SOURCE_DIR}/Audio/AudioView.hpp"
 "${CMAKE_CURRENT_SOURCE_DIR}/Audio/AudioEngine.hpp"
 "${CMAKE_CURRENT_SOURCE_DIR}/Audio/AudioBlock.hpp"
 "${CMAKE_CURRENT_SOURCE_DIR}/Audio/AudioDocumentPlugin.hpp"
@@ -40,12 +37,9 @@ set(HDRS ${HDRS}
 
 set(SRCS
 "${CMAKE_CURRENT_SOURCE_DIR}/Audio/AudioFactory.cpp"
-"${CMAKE_CURRENT_SOURCE_DIR}/Audio/AudioLayer.cpp"
-"${CMAKE_CURRENT_SOURCE_DIR}/Audio/AudioPresenter.cpp"
 "${CMAKE_CURRENT_SOURCE_DIR}/Audio/AudioProcess.cpp"
 "${CMAKE_CURRENT_SOURCE_DIR}/Audio/AudioProcessMetadata.cpp"
 "${CMAKE_CURRENT_SOURCE_DIR}/Audio/AudioProcessModel.cpp"
-"${CMAKE_CURRENT_SOURCE_DIR}/Audio/AudioView.cpp"
 "${CMAKE_CURRENT_SOURCE_DIR}/Audio/AudioEngine.cpp"
 "${CMAKE_CURRENT_SOURCE_DIR}/Audio/AudioBlock.cpp"
 "${CMAKE_CURRENT_SOURCE_DIR}/Audio/AudioDocumentPlugin.cpp"

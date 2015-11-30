@@ -1,11 +1,33 @@
-#include "ScenarioModel.hpp"
-
-#include "Algorithms/StandardCreationPolicy.hpp"
-#include "Algorithms/StandardDisplacementPolicy.hpp"
 #include <Scenario/Process/Temporal/TemporalScenarioLayerModel.hpp>
 
-#include <boost/range/algorithm.hpp>
 #include <iscore/tools/SettableIdentifierGeneration.hpp>
+#include <QDataStream>
+#include <QDebug>
+#include <QtGlobal>
+#include <QIODevice>
+#include <QMap>
+#include <vector>
+
+#include "Algorithms/StandardCreationPolicy.hpp"
+#include <Process/ModelMetadata.hpp>
+#include <Process/Process.hpp>
+#include <Process/TimeValue.hpp>
+#include <Scenario/Document/Constraint/ConstraintDurations.hpp>
+#include <Scenario/Document/Constraint/ConstraintModel.hpp>
+#include <Scenario/Document/Event/EventModel.hpp>
+#include <Scenario/Document/State/StateModel.hpp>
+#include <Scenario/Document/TimeNode/TimeNodeModel.hpp>
+#include <Scenario/Process/ScenarioProcessMetadata.hpp>
+#include "ScenarioModel.hpp"
+#include <iscore/document/DocumentInterface.hpp>
+#include <iscore/plugins/documentdelegate/plugin/ElementPluginModelList.hpp>
+#include <iscore/selection/Selectable.hpp>
+#include <iscore/serialization/DataStreamVisitor.hpp>
+#include <iscore/tools/NotifyingMap.hpp>
+#include <iscore/tools/Todo.hpp>
+
+class LayerModel;
+class ProcessStateDataInterface;
 
 namespace Scenario
 {

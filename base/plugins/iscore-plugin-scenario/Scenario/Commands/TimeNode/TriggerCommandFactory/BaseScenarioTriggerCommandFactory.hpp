@@ -1,6 +1,11 @@
 #pragma once
 #include <Scenario/Commands/TimeNode/TriggerCommandFactory/TriggerCommandFactory.hpp>
 
+class TimeNodeModel;
+namespace iscore {
+class SerializableCommand;
+}  // namespace iscore
+
 class BaseScenarioTriggerCommandFactory : public TriggerCommandFactory
 {
     public:

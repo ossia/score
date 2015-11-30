@@ -1,4 +1,8 @@
+#include <QObject>
+
+
 #include "MappingProcessMetadata.hpp"
+#include <Process/ProcessFactoryKey.hpp>
 
 const ProcessFactoryKey&MappingProcessMetadata::factoryKey()
 {

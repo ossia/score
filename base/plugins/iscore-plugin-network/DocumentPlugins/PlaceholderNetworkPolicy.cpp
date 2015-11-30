@@ -1,7 +1,24 @@
-#include "PlaceholderNetworkPolicy.hpp"
 
+#include <boost/optional/optional.hpp>
 #include <iscore/serialization/DataStreamVisitor.hpp>
 #include <iscore/serialization/JSONVisitor.hpp>
+#include <QJsonArray>
+#include <QJsonObject>
+#include <QJsonValue>
+#include <QList>
+#include <algorithm>
+
+#include "DocumentPlugins/NetworkDocumentPlugin.hpp"
+#include "PlaceholderNetworkPolicy.hpp"
+#include <iscore/serialization/JSONValueVisitor.hpp>
+#include <iscore/tools/SettableIdentifier.hpp>
+#include "session/../client/LocalClient.hpp"
+#include "session/../client/RemoteClient.hpp"
+#include "session/Session.hpp"
+
+class Client;
+template <typename T> class Reader;
+template <typename T> class Writer;
 
 template<>
 void Visitor<Reader<DataStream>>::readFrom(const iscore_plugin_networkPolicy& elt)

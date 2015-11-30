@@ -1,15 +1,19 @@
-#include "MetadataWidget.hpp"
-
-#include <Process//ModelMetadata.hpp>
-#include "Inspector/InspectorSectionWidget.hpp"
-#include "CommentEdit.hpp"
-
-#include <QLabel>
-#include <QPushButton>
-#include <QLineEdit>
-#include <QFormLayout>
-
+#include <QBoxLayout>
 #include <QColorDialog>
+#include <QFormLayout>
+#include <QIcon>
+#include <QLabel>
+#include <QLineEdit>
+#include <QPushButton>
+#include <QSize>
+#include <Process//ModelMetadata.hpp>
+
+#include "CommentEdit.hpp"
+#include <Inspector/InspectorSectionWidget.hpp>
+#include "MetadataWidget.hpp"
+#include <iscore/command/Dispatchers/CommandDispatcher.hpp>
+
+class QObject;
 
 
 MetadataWidget::MetadataWidget(

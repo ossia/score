@@ -1,6 +1,11 @@
 #pragma once
 #include "Session.hpp"
 
+class LocalClient;
+class QObject;
+class RemoteClient;
+#include <iscore/tools/SettableIdentifier.hpp>
+
 class ClientSession : public Session
 {
     public:

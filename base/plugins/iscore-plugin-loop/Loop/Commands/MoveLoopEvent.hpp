@@ -1,5 +1,5 @@
 #pragma once
-#include <Scenario/Commands/ResizeBaseConstraint.hpp>
+#include <Scenario/Commands/MoveBaseEvent.hpp>
 #include <Loop/LoopProcessModel.hpp>
 
 ISCORE_COMMAND_DECL_T(MoveBaseEvent<Loop::ProcessModel>)

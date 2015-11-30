@@ -1,9 +1,13 @@
-#include "BoolValueWidget.hpp"
-
 #include <iscore/widgets/MarginLess.hpp>
-
 #include <QComboBox>
 #include <QGridLayout>
+
+#include <QString>
+
+#include "BoolValueWidget.hpp"
+#include <State/Widgets/Values/ValueWidget.hpp>
+
+class QWidget;
 
 BoolValueWidget::BoolValueWidget(bool value, QWidget *parent)
     : ValueWidget{parent}

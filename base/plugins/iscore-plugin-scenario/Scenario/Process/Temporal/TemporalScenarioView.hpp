@@ -1,11 +1,17 @@
 #pragma once
 #include <Process/LayerView.hpp>
+#include <QPoint>
+#include <QRect>
 
-#include <QAction>
-#include <QEvent>
-
+class QGraphicsItem;
+class QGraphicsSceneContextMenuEvent;
+class QGraphicsSceneDragDropEvent;
+class QGraphicsSceneMouseEvent;
+class QKeyEvent;
 class QMimeData;
+class QPainter;
 class TemporalScenarioPresenter;
+
 class TemporalScenarioView final : public LayerView
 {
         Q_OBJECT

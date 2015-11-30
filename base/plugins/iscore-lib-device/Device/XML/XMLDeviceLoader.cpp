@@ -1,6 +1,15 @@
-#include "XMLDeviceLoader.hpp"
-#include <QtXml/QtXml>
 #include <Device/Node/DeviceNode.hpp>
+#include <QDebug>
+#include <qdom.h>
+#include <QFile>
+#include <QIODevice>
+
+#include <Device/Address/AddressSettings.hpp>
+#include <Device/Address/ClipMode.hpp>
+#include <Device/Address/Domain.hpp>
+#include <Device/Address/IOType.hpp>
+#include <State/Value.hpp>
+#include "XMLDeviceLoader.hpp"
 
 static iscore::Value stringToVal(const QString& str, const QString& type)
 {

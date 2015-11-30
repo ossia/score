@@ -1,22 +1,23 @@
 #pragma once
 
-#include <QWidget>
-#include <iscore/tools/ModelPath.hpp>
-#include <iscore/document/DocumentInterface.hpp>
-
-#include <iscore/command/Dispatchers/CommandDispatcher.hpp>
-
+#include <Scenario/Commands/Metadata/ChangeElementColor.hpp>
+#include <Scenario/Commands/Metadata/ChangeElementComments.hpp>
 #include <Scenario/Commands/Metadata/ChangeElementLabel.hpp>
 #include <Scenario/Commands/Metadata/ChangeElementName.hpp>
-#include <Scenario/Commands/Metadata/ChangeElementComments.hpp>
-#include <Scenario/Commands/Metadata/ChangeElementColor.hpp>
+#include <iscore/command/Dispatchers/CommandDispatcher.hpp>
+#include <QColor>
+#include <QPixmap>
+#include <QString>
+#include <QWidget>
 
-class QVBoxLayout;
-class QLineEdit;
-class QLabel;
+#include <iscore/tools/IdentifiedObject.hpp>
+
 class CommentEdit;
-class QPushButton;
 class ModelMetadata;
+class QLabel;
+class QLineEdit;
+class QObject;
+class QPushButton;
 
 class MetadataWidget final : public QWidget
 {

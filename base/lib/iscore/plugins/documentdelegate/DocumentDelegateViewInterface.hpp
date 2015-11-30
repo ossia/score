@@ -1,8 +1,10 @@
 #pragma once
 #include <QObject>
+
+class QWidget;
+
 namespace iscore
 {
-    class DocumentDelegatePresenterInterface;
     class DocumentDelegateViewInterface : public QObject
     {
         public:

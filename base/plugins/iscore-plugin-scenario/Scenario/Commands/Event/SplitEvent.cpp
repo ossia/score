@@ -1,14 +1,24 @@
-#include "SplitEvent.hpp"
-
-#include <iscore/tools/SettableIdentifierGeneration.hpp>
-#include <Scenario/Tools/RandomNameProvider.hpp>
-
-#include <iscore/document/DocumentInterface.hpp>
-#include <Scenario/Process/Algorithms/StandardCreationPolicy.hpp>
-
-#include <Scenario/Process/ScenarioModel.hpp>
 #include <Scenario/Process/Algorithms/StandardCreationPolicy.hpp>
 #include <Scenario/Process/Algorithms/VerticalMovePolicy.hpp>
+#include <Scenario/Process/ScenarioModel.hpp>
+#include <Scenario/Tools/RandomNameProvider.hpp>
+
+#include <boost/iterator/iterator_facade.hpp>
+#include <boost/multi_index/detail/hash_index_iterator.hpp>
+#include <iscore/tools/SettableIdentifierGeneration.hpp>
+#include <QDataStream>
+#include <QtGlobal>
+#include <vector>
+
+#include <Process/ModelMetadata.hpp>
+#include <Scenario/Document/Event/EventModel.hpp>
+#include <Scenario/Document/State/StateModel.hpp>
+#include <Scenario/Document/TimeNode/TimeNodeModel.hpp>
+#include "SplitEvent.hpp"
+#include <iscore/serialization/DataStreamVisitor.hpp>
+#include <iscore/tools/ModelPath.hpp>
+#include <iscore/tools/ModelPathSerialization.hpp>
+#include <iscore/tools/NotifyingMap.hpp>
 
 using namespace Scenario::Command;
 

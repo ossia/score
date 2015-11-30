@@ -1,24 +1,17 @@
 #pragma once
-#include <core/presenter/MenubarManager.hpp>
-
-#include <set>
-#include <core/document/Document.hpp>
-#include <core/presenter/DocumentManager.hpp>
-
-#include <iscore/tools/NamedObject.hpp>
-#include <iscore/tools/ObjectPath.hpp>
-
-#include <iscore/widgets/OrderedToolbar.hpp>
-#include <iscore/command/CommandGeneratorMap.hpp>
 #include <core/application/ApplicationComponents.hpp>
-#include <unordered_map>
+#include <core/presenter/DocumentManager.hpp>
+#include <core/presenter/MenubarManager.hpp>
+#include <iscore/tools/NamedObject.hpp>
+#include <iscore/widgets/OrderedToolbar.hpp>
+#include <vector>
+
+class QObject;
 
 
 namespace iscore
 {
-    class SerializableCommand;
     class View;
-    class Presenter;
 
 
     /**
@@ -58,7 +51,6 @@ namespace iscore
             { return m_components; }
         private:
             void setupMenus();
-            void on_activeWindowChanged();
             View* m_view {};
 
             DocumentManager m_docManager;

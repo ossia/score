@@ -1,15 +1,21 @@
+#include <Process/Style/ProcessFonts.hpp>
+#include <Process/Style/ScenarioStyle.hpp>
+#include <QBrush>
+#include <QFont>
+#include <QGraphicsItem>
+#include <qnamespace.h>
+#include <QPainter>
+#include <QPainterPath>
+#include <QPen>
+
+#include <Scenario/Document/Constraint/ViewModels/ConstraintPresenter.hpp>
+#include <Scenario/Document/Constraint/ViewModels/ConstraintView.hpp>
+#include "TemporalConstraintPresenter.hpp"
 #include "TemporalConstraintView.hpp"
 
-#include "TemporalConstraintViewModel.hpp"
-#include "TemporalConstraintPresenter.hpp"
-#include "TemporalConstraintHeader.hpp"
-#include <Scenario/Document/Constraint/Rack/RackPresenter.hpp>
-#include <Process/Style/ProcessFonts.hpp>
-#include <QGraphicsScene>
-#include <QGraphicsView>
-#include <QGraphicsSceneMouseEvent>
-#include <QApplication>
-#include <Process/Style/ScenarioStyle.hpp>
+class QGraphicsSceneHoverEvent;
+class QStyleOptionGraphicsItem;
+class QWidget;
 
 TemporalConstraintView::TemporalConstraintView(TemporalConstraintPresenter &presenter,
                                                QGraphicsObject* parent) :

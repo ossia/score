@@ -1,8 +1,25 @@
-#include "RemoteClientBuilder.hpp"
 #include <Serialization/NetworkSocket.hpp>
-#include "MasterSession.hpp"
 #include <core/document/Document.hpp>
 #include <iscore/tools/SettableIdentifierGeneration.hpp>
+#include <QByteArray>
+#include <QDataStream>
+#include <QIODevice>
+#include <QList>
+#include <QPair>
+#include <sys/types.h>
+
+#include "MasterSession.hpp"
+#include "RemoteClientBuilder.hpp"
+#include "Serialization/NetworkMessage.hpp"
+#include <core/command/CommandStack.hpp>
+#include <iscore/command/SerializableCommand.hpp>
+#include <iscore/plugins/customfactory/StringFactoryKey.hpp>
+#include <iscore/serialization/DataStreamVisitor.hpp>
+#include "session/../client/LocalClient.hpp"
+#include "session/../client/RemoteClient.hpp"
+
+class Client;
+
 RemoteClientBuilder::RemoteClientBuilder(MasterSession& session, QTcpSocket* sock):
     m_session{session}
 {

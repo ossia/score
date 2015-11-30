@@ -1,9 +1,12 @@
-#include <core/document/DocumentView.hpp>
-#include <iscore/plugins/documentdelegate/DocumentDelegateViewInterface.hpp>
-#include <iscore/plugins/documentdelegate/DocumentDelegateFactoryInterface.hpp>
 #include <core/document/Document.hpp>
-
+#include <core/document/DocumentView.hpp>
+#include <iscore/plugins/documentdelegate/DocumentDelegateFactoryInterface.hpp>
+#include <iscore/plugins/documentdelegate/DocumentDelegateViewInterface.hpp>
 #include <QGridLayout>
+#include <QLayout>
+
+#include <core/document/DocumentContext.hpp>
+
 using namespace iscore;
 
 DocumentView::DocumentView(DocumentDelegateFactoryInterface* fact,

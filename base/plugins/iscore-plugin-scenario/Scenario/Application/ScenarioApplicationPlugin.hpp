@@ -1,39 +1,30 @@
 #pragma once
-#include <iscore/plugins/application/GUIApplicationContextPlugin.hpp>
-#include <Process/ProcessList.hpp>
-#include "Menus/Plugin/ScenarioContextMenuPluginList.hpp"
-#include <Scenario/Document/BaseElement/ProcessFocusManager.hpp>
-
-#include <Scenario/Commands/Scenario/Displacement/MoveEventList.hpp>
-
-#include <Scenario/Process/Temporal/StateMachines/ScenarioPoint.hpp>
 #include <Scenario/Application/ScenarioEditionSettings.hpp>
-#include "Menus/ContextMenuDispatcher.hpp"
-class QActionGroup;
-namespace Scenario { class ScenarioModel; }
-class SlotPresenter;
-class TemporalScenarioPresenter;
+#include <iscore/plugins/application/GUIApplicationContextPlugin.hpp>
 
+#include <QVector>
+#include <vector>
+#include <Scenario/Palette/ScenarioPoint.hpp>
+
+class LayerPresenter;
 class ObjectMenuActions;
-class ToolMenuActions;
+class ProcessFocusManager;
+class QAction;
 class ScenarioActions;
+class TemporalScenarioPresenter;
+class ToolMenuActions;
+namespace Scenario {
+class ScenarioModel;
+}
+namespace iscore {
+class Application;
+class Document;
+class MenubarManager;
+struct OrderedToolbar;
+}  // namespace iscore
 
-// TODO Moveme
-struct ScenarioRecordInitData
-{
-        ScenarioRecordInitData() {}
-        ScenarioRecordInitData(const LayerPresenter* lp, QPointF p):
-            presenter{lp},
-            point{p}
-        {
-        }
 
-        const LayerPresenter* presenter{};
-        QPointF point;
-};
-Q_DECLARE_METATYPE(ScenarioRecordInitData)
-
-class ScenarioApplicationPlugin final : public iscore::GUIApplicationContextPlugin
+class ScenarioApplicationPlugin final : public QObject, public iscore::GUIApplicationContextPlugin
 {
         Q_OBJECT
         friend class ScenarioContextMenuManager;

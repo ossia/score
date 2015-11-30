@@ -1,6 +1,7 @@
 #pragma once
-#include <QWidget>
 #include <State/Value.hpp>
+#include <QWidget>
+
 /**
  * @brief The ValueWidget class
  *

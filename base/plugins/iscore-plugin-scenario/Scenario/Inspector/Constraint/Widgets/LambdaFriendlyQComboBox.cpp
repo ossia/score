@@ -1,6 +1,8 @@
+#include <QGridLayout>
+#include <QLayout>
+
 #include "LambdaFriendlyQComboBox.hpp"
 
-#include <QGridLayout>
 LambdaFriendlyQComboBox::LambdaFriendlyQComboBox(QWidget* parent):
     QWidget{parent}
 {

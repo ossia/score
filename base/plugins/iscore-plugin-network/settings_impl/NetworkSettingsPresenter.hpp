@@ -1,11 +1,21 @@
 #pragma once
-#include <QObject>
 #include <iscore/plugins/settingsdelegate/SettingsDelegatePresenterInterface.hpp>
+#include <QIcon>
+
+#include <QString>
+
+class ClientNameChangedCommand;
+class ClientPortChangedCommand;
+class MasterPortChangedCommand;
 class NetworkSettingsModel;
 class NetworkSettingsView;
-class MasterPortChangedCommand;
-class ClientPortChangedCommand;
-class ClientNameChangedCommand;
+namespace iscore {
+class Command;
+class SettingsDelegateModelInterface;
+class SettingsDelegateViewInterface;
+class SettingsPresenter;
+}  // namespace iscore
+
 class NetworkSettingsPresenter : public iscore::SettingsDelegatePresenterInterface
 {
         Q_OBJECT

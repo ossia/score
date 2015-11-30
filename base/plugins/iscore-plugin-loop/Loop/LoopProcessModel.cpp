@@ -1,11 +1,28 @@
-#include "LoopProcessModel.hpp"
 #include <Loop/LoopLayer.hpp>
 #include <Scenario/Document/Constraint/ConstraintModel.hpp>
 #include <Scenario/Document/Event/EventModel.hpp>
 #include <Scenario/Document/TimeNode/TimeNodeModel.hpp>
+#include <boost/optional/optional.hpp>
+#include <qnamespace.h>
+#include <algorithm>
+#include <tuple>
 
-#include <core/document/DocumentModel.hpp>
-#include <core/document/Document.hpp>
+#include "Loop/LoopProcessMetadata.hpp"
+#include "LoopProcessModel.hpp"
+#include <Process/ModelMetadata.hpp>
+#include <Process/Process.hpp>
+#include <Scenario/Document/BaseScenario/BaseScenarioContainer.hpp>
+#include <Scenario/Document/Constraint/ConstraintDurations.hpp>
+#include <Scenario/Document/State/StateModel.hpp>
+#include <iscore/document/DocumentInterface.hpp>
+#include <iscore/plugins/documentdelegate/plugin/ElementPluginModelList.hpp>
+#include <iscore/serialization/VisitorCommon.hpp>
+#include <iscore/tools/SettableIdentifier.hpp>
+#include <iscore/tools/std/StdlibWrapper.hpp>
+
+class LayerModel;
+class ProcessStateDataInterface;
+class QObject;
 
 namespace Loop
 {
@@ -104,14 +121,6 @@ ProcessStateDataInterface* ProcessModel::endStateData() const
     return nullptr;
 }
 
-template<typename Tuple>
-Selection toSelection(const Tuple& tpl)
-{
-    Selection s;
-    for_each_in_tuple(tpl, [&] (auto elt) { s.append(elt); });
-    return s;
-}
-
 Selection ProcessModel::selectableChildren() const
 {
     Selection s;
@@ -185,47 +194,8 @@ const QVector<Id<ConstraintModel> > constraintsBeforeTimeNode(
     return {};
 }
 
-
-
 }
 
-
-// MOVEME
-template<>
-void Visitor<Reader<DataStream>>::readFrom(const Loop::ProcessModel& proc)
-{
-    readFrom(static_cast<const BaseScenarioContainer&>(proc));
-
-    readFrom(*proc.pluginModelList);
-
-    insertDelimiter();
-}
-
-template<>
-void Visitor<Writer<DataStream>>::writeTo(Loop::ProcessModel& proc)
-{
-    writeTo(static_cast<BaseScenarioContainer&>(proc));
-
-    proc.pluginModelList = new iscore::ElementPluginModelList{*this, &proc};
-    checkDelimiter();
-}
-
-template<>
-void Visitor<Reader<JSONObject>>::readFrom(const Loop::ProcessModel& proc)
-{
-    readFrom(static_cast<const BaseScenarioContainer&>(proc));
-
-    m_obj["PluginsMetadata"] = toJsonValue(*proc.pluginModelList);
-}
-
-template<>
-void Visitor<Writer<JSONObject>>::writeTo(Loop::ProcessModel& proc)
-{
-    writeTo(static_cast<BaseScenarioContainer&>(proc));
-
-    Deserializer<JSONValue> elementPluginDeserializer(m_obj["PluginsMetadata"]);
-    proc.pluginModelList = new iscore::ElementPluginModelList{elementPluginDeserializer, &proc};
-}
 template<>
 QString NameInUndo<Loop::ProcessModel>()
 {

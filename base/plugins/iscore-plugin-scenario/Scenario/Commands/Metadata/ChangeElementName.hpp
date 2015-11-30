@@ -3,6 +3,7 @@
 #include <iscore/command/SerializableCommand.hpp>
 
 #include <iscore/tools/ModelPath.hpp>
+#include <iscore/tools/ModelPathSerialization.hpp>
 
 namespace Scenario
 {

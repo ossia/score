@@ -1,10 +1,10 @@
+#include <QtGlobal>
+
 #include "RackView.hpp"
 
-#include <iscore/tools/NamedObject.hpp>
-
-#include <QPainter>
-#include <QGraphicsScene>
-#include <QGraphicsSceneMouseEvent>
+class QPainter;
+class QStyleOptionGraphicsItem;
+class QWidget;
 
 RackView::RackView(QGraphicsObject* parent) :
     QGraphicsObject {parent}

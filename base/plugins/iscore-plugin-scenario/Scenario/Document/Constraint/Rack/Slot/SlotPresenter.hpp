@@ -1,18 +1,23 @@
 #pragma once
-#include <iscore/tools/NamedObject.hpp>
-#include <iscore/tools/SettableIdentifier.hpp>
 #include <Process/ZoomHelper.hpp>
-#include <Process/ProcessList.hpp>
+#include <iscore/tools/NamedObject.hpp>
+#include <QPoint>
+#include <utility>
+#include <vector>
 
+#include <core/document/DocumentContext.hpp>
+
+class DynamicProcessList;
+class QObject;
 class SlotModel;
 class SlotView;
+#include <iscore/tools/SettableIdentifier.hpp>
+
 namespace iscore
 {
-    class SerializableCommand;
 }
-class LayerPresenter;
-class Process;
 class LayerModel;
+class LayerPresenter;
 class LayerView;
 class RackView;
 

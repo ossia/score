@@ -1,8 +1,18 @@
 #pragma once
-#include <QObject>
-#include <iscore/plugins/qt_interfaces/GUIApplicationContextPlugin_QtInterface.hpp>
 #include <iscore/plugins/qt_interfaces/FactoryInterface_QtInterface.hpp>
+#include <iscore/plugins/qt_interfaces/GUIApplicationContextPlugin_QtInterface.hpp>
 #include <iscore/plugins/qt_interfaces/PluginRequirements_QtInterface.hpp>
+#include <QObject>
+#include <QStringList>
+#include <vector>
+
+#include <core/application/ApplicationContext.hpp>
+#include <iscore/plugins/application/GUIApplicationContextPlugin.hpp>
+#include <iscore/plugins/customfactory/FactoryInterface.hpp>
+
+namespace iscore {
+class Application;
+}  // namespace iscore
 
 class iscore_plugin_ossia final :
     public QObject,
@@ -26,7 +36,7 @@ class iscore_plugin_ossia final :
                 iscore::Application& app) override;
 
         // Contains the OSC, MIDI, Minuit factories
-        std::vector<iscore::FactoryInterfaceBase*> factories(
+        std::vector<std::unique_ptr<iscore::FactoryInterfaceBase>> factories(
                 const iscore::ApplicationContext&,
                 const iscore::FactoryBaseKey& factoryName) const override;
 

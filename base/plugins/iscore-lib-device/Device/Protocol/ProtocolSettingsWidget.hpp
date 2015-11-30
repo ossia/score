@@ -1,10 +1,8 @@
 #pragma once
 
-#include <QWidget>
-#include <QList>
-#include <QString>
-#include <QVariant>
 #include <Device/Protocol/DeviceSettings.hpp>
+#include <QString>
+#include <QWidget>
 
 class ProtocolSettingsWidget : public QWidget
 {

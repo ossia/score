@@ -1,10 +1,18 @@
 #pragma once
 #include <Curve/Commands/CurveCommandFactory.hpp>
+#include <boost/optional/optional.hpp>
 #include <iscore/command/SerializableCommand.hpp>
 #include <iscore/tools/ModelPath.hpp>
+#include <QMap>
+#include <QPair>
+
+#include <iscore/tools/SettableIdentifier.hpp>
 
 class CurveModel;
 class CurveSegmentModel;
+class DataStreamInput;
+class DataStreamOutput;
+
 using SegmentParameterMap = QMap<Id<CurveSegmentModel>, QPair<double, double>>;
 class SetSegmentParameters final : public iscore::SerializableCommand
 {

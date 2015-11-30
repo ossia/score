@@ -6,19 +6,23 @@
 #include <core/application/Application.hpp>
 #include <iscore/plugins/application/GUIApplicationContextPlugin.hpp>
 #include <Scenario/Application/ScenarioApplicationPlugin.hpp>
+#include <core/application/ApplicationComponents.hpp>
+#include <iscore/plugins/customfactory/FactoryFamily.hpp>
+#include <QAction>
 
 std::pair<const CommandParentFactoryKey, CommandGeneratorMap> iscore_plugin_audio::make_commands()
 {
     return {};
 }
 
-std::vector<iscore::FactoryInterfaceBase*> iscore_plugin_audio::factories(
+std::vector<std::unique_ptr<iscore::FactoryInterfaceBase>> iscore_plugin_audio::factories(
         const iscore::ApplicationContext& ctx,
         const iscore::FactoryBaseKey& factoryName) const
 {
     if(factoryName == ProcessFactory::staticFactoryKey())
     {
-        return {new Audio::ProcessFactory};
+        return make_ptr_vector<iscore::FactoryInterfaceBase,
+                Audio::ProcessFactory>();
     }
     return {};
 }

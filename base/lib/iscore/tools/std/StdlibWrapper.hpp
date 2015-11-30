@@ -1,9 +1,9 @@
 #pragma once
 #include <string>
+#include <memory>
 #include <QDataStream>
 #include <QDebug>
 #include <iscore/serialization/DataStreamVisitor.hpp>
-
 #include <boost/iterator/indirect_iterator.hpp>
 
 // TODO refactor this with objects like is_trivially_serializable<T> { ... } and enable_if...
@@ -116,6 +116,66 @@ class IndirectContainer : Container<T*, U>
 };
 
 
+template<template<class, class> class Container,
+         typename T,
+         typename U = std::allocator<std::unique_ptr<T>>>
+class PtrContainer : Container<std::unique_ptr<T>, U>
+{
+    public:
+        using ctnr_t = Container<std::unique_ptr<T>, U>;
+        using ctnr_t::ctnr_t;
+        using ctnr_t::emplace_back;
+
+        auto begin()
+        { return boost::make_indirect_iterator(ctnr_t::begin()); }
+        auto end()
+        { return boost::make_indirect_iterator(ctnr_t::end()); }
+        auto begin() const
+        { return boost::make_indirect_iterator(ctnr_t::begin()); }
+        auto end() const
+        { return boost::make_indirect_iterator(ctnr_t::end()); }
+        auto cbegin() const
+        { return boost::make_indirect_iterator(ctnr_t::cbegin()); }
+        auto cend() const
+        { return boost::make_indirect_iterator(ctnr_t::cend()); }
+};
+
+template<typename T>
+using OwningVector = PtrContainer<std::vector, T>;
+
+// http://stackoverflow.com/a/21174979/1495627
+template<typename Derived, typename Base, typename Del>
+std::unique_ptr<Derived>
+static_unique_ptr_cast( std::unique_ptr<Base, Del>&& p )
+{
+    return std::unique_ptr<Derived>(static_cast<Derived *>(p.release()));
+}
+
+template<typename Derived, typename Base, typename Del>
+std::unique_ptr<Derived>
+dynamic_unique_ptr_cast( std::unique_ptr<Base, Del>&& p )
+{
+    if(Derived *result = dynamic_cast<Derived *>(p.get())) {
+        p.release();
+        return std::unique_ptr<Derived>(result);
+    }
+    return nullptr;
+}
+
+#ifdef ISCORE_DEBUG
+template<typename T,
+         typename U>
+auto safe_unique_ptr_cast(std::unique_ptr<U> other)
+{
+    auto res = dynamic_unique_ptr_cast<T>(other);
+    ISCORE_ASSERT(res);
+    return res;
+}
+
+#else
+#define safe_unique_ptr_cast static_unique_ptr_cast
+#endif
+
 
 // http://stackoverflow.com/a/26902803/1495627
 template<class F, class...Ts, std::size_t...Is>
@@ -128,3 +188,4 @@ template<class F, class...Ts>
 void for_each_in_tuple(const std::tuple<Ts...> & tuple, F func){
     for_each_in_tuple(tuple, func, std::make_index_sequence<sizeof...(Ts)>());
 }
+

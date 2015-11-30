@@ -1,15 +1,28 @@
-#include <core/application/Application.hpp>
 #include <core/document/Document.hpp>
 #include <core/document/DocumentModel.hpp>
-#include <core/document/DocumentView.hpp>
 #include <core/document/DocumentPresenter.hpp>
-
-#include <iscore/plugins/panel/PanelPresenter.hpp>
+#include <core/document/DocumentView.hpp>
 #include <iscore/plugins/panel/PanelModel.hpp>
+#include <iscore/plugins/panel/PanelPresenter.hpp>
+#include <QObject>
+#include <algorithm>
+#include <iterator>
+#include <vector>
 
-#include <iscore/plugins/documentdelegate/DocumentDelegateFactoryInterface.hpp>
+#include <core/application/Application.hpp>
+#include <core/document/DocumentBackupManager.hpp>
+#include <core/document/DocumentContext.hpp>
+#include <iscore/plugins/panel/PanelFactory.hpp>
+#include <iscore/selection/SelectionStack.hpp>
+#include <iscore/tools/NamedObject.hpp>
+#include <iscore/tools/Todo.hpp>
 
-#include <core/application/OpenDocumentsFile.hpp>
+class QWidget;
+class Selection;
+namespace iscore {
+class Application;
+}  // namespace iscore
+#include <iscore/tools/SettableIdentifier.hpp>
 
 using namespace iscore;
 

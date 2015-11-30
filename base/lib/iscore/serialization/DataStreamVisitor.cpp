@@ -1,5 +1,11 @@
-#include "DataStreamVisitor.hpp"
 #include <core/application/Application.hpp>
+#include <QIODevice>
+
+#include "DataStreamVisitor.hpp"
+
+template <typename T> class Reader;
+template <typename T> class Writer;
+
 Visitor<Reader<DataStream>>::Visitor():
     context{iscore::Application::instance()}
 {

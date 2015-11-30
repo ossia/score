@@ -1,19 +1,21 @@
 #pragma once
-#include <QDialog>
 #include <State/Value.hpp>
-#include "ValueWrapper.hpp"
+#include <QDialog>
+#include <Explorer/Widgets/ValueWrapper.hpp>
 
+class QWidget;
 namespace iscore
 {
 struct Address;
 struct Message;
 }
 
-class DeviceExplorerModel;
 class AddressEditWidget;
-class QFormLayout;
+class DeviceExplorerModel;
 class QComboBox;
+class QFormLayout;
 class ValueWidget;
+
 /**
  * @brief The MessageEditDialog class
  *

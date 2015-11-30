@@ -1,5 +1,30 @@
-#include "MessageNode.hpp"
+
 #include <iscore/serialization/VisitorCommon.hpp>
+#include <QDataStream>
+#include <QtGlobal>
+#include <QJsonArray>
+#include <QJsonObject>
+#include <QJsonValue>
+#include <QString>
+#include <QVector>
+#include <algorithm>
+#include <array>
+#include <cstddef>
+
+#include "MessageNode.hpp"
+#include <State/Value.hpp>
+#include <iscore/serialization/DataStreamVisitor.hpp>
+#include <iscore/serialization/JSONValueVisitor.hpp>
+#include <iscore/serialization/JSONVisitor.hpp>
+#include <iscore/tools/SettableIdentifier.hpp>
+
+class Process;
+namespace boost {
+template <class T> class optional;
+}  // namespace boost
+template <typename T> class Reader;
+template <typename T> class Writer;
+
 template<typename T>
 void toJsonValue(
         QJsonObject& object,

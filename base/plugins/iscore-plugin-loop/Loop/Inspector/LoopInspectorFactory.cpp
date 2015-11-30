@@ -1,18 +1,36 @@
-#include "LoopInspectorFactory.hpp"
-#include "LoopInspectorWidget.hpp"
+#include <Inspector/InspectorWidgetList.hpp>
 #include <Loop/LoopProcessModel.hpp>
-#include <Loop/Commands/MoveLoopEvent.hpp>
-#include <Scenario/Process/ScenarioModel.hpp>
+#include <Process/ProcessList.hpp>
 #include <Scenario/Document/Constraint/ConstraintModel.hpp>
 #include <Scenario/Inspector/Constraint/ConstraintInspectorDelegateFactory.hpp>
 #include <Scenario/Inspector/Constraint/ConstraintInspectorWidget.hpp>
 
-#include <Inspector/InspectorWidgetList.hpp>
-
-#include <Process/ProcessList.hpp>
-
-#include <core/document/Document.hpp>
+#include <boost/optional/optional.hpp>
 #include <core/application/ApplicationComponents.hpp>
+#include <core/document/Document.hpp>
+#include <QByteArray>
+#include <QDataStream>
+#include <QtGlobal>
+#include <QObject>
+#include <algorithm>
+#include <list>
+
+#include <Inspector/InspectorWidgetFactoryInterface.hpp>
+#include "LoopInspectorFactory.hpp"
+#include <Process/ExpandMode.hpp>
+#include <Process/TimeValue.hpp>
+#include <Scenario/Commands/MoveBaseEvent.hpp>
+#include <Scenario/Document/State/StateModel.hpp>
+#include <Scenario/Inspector/Constraint/ConstraintInspectorDelegate.hpp>
+#include <core/application/ApplicationContext.hpp>
+#include <core/document/DocumentContext.hpp>
+#include <iscore/command/Dispatchers/OngoingCommandDispatcher.hpp>
+#include <iscore/plugins/customfactory/StringFactoryKey.hpp>
+#include <iscore/serialization/DataStreamVisitor.hpp>
+#include <iscore/tools/ModelPathSerialization.hpp>
+
+class InspectorWidgetBase;
+class QWidget;
 
 class LoopConstraintInspectorDelegate final : public ConstraintInspectorDelegate
 {
@@ -57,10 +75,10 @@ void LoopConstraintInspectorDelegate::on_defaultDurationChanged(
         const TimeValue& val,
         ExpandMode expandmode) const
 {
-    auto loop = m_model.parentScenario();
+    auto& loop = *safe_cast<Loop::ProcessModel*>(m_model.parent());
     dispatcher.submitCommand<MoveBaseEvent<Loop::ProcessModel>>(
-            *safe_cast<Loop::ProcessModel*>(m_model.parent()),
-            loop->state(m_model.endState()).eventId(),
+            loop,
+            loop.state(m_model.endState()).eventId(),
             m_model.startDate() + val,
             expandmode);
 }
@@ -103,7 +121,7 @@ LoopInspectorFactory::~LoopInspectorFactory()
 InspectorWidgetBase* LoopInspectorFactory::makeWidget(
         const QObject& sourceElement,
         iscore::Document& doc,
-        QWidget* parent)
+        QWidget* parent) const
 {
     auto& appContext = doc.context().app;
     auto& widgetFact = appContext.components.factory<InspectorWidgetList>();

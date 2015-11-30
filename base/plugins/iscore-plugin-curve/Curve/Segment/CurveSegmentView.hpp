@@ -1,7 +1,16 @@
 #pragma once
 #include <QGraphicsItem>
-#include <iscore/tools/SettableIdentifier.hpp>
+#include <QPainterPath>
+#include <QPoint>
+#include <QRect>
+
 class CurveSegmentModel;
+class QGraphicsSceneContextMenuEvent;
+class QPainter;
+class QStyleOptionGraphicsItem;
+class QWidget;
+#include <iscore/tools/SettableIdentifier.hpp>
+
 namespace Curve
 {
 struct Style;

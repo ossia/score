@@ -1,15 +1,25 @@
-#include "IScoreCohesionApplicationPlugin.hpp"
+#include <Scenario/Application/ScenarioApplicationPlugin.hpp>
+#include <iscore/menu/MenuInterface.hpp>
+#include <QAction>
+#include <qnamespace.h>
 
-#include "Record/RecordManager.hpp"
+#include <QString>
+#include <QToolBar>
 
 #include "Actions/CreateCurves.hpp"
 #include "Actions/SnapshotParameters.hpp"
+#include "IScoreCohesionApplicationPlugin.hpp"
+#include "Record/RecordManager.hpp"
+#include <Scenario/Palette/ScenarioPoint.hpp>
+#include <core/application/ApplicationComponents.hpp>
+#include <core/application/ApplicationContext.hpp>
+#include <core/presenter/MenubarManager.hpp>
+#include <iscore/plugins/application/GUIApplicationContextPlugin.hpp>
+#include <iscore/widgets/OrderedToolbar.hpp>
 
-#include <iscore/menu/MenuInterface.hpp>
-#include <Scenario/Application/ScenarioApplicationPlugin.hpp>
-#include <core/application/Application.hpp>
-#include <QApplication>
-#include <QToolBar>
+namespace iscore {
+class Application;
+}  // namespace iscore
 
 IScoreCohesionApplicationPlugin::IScoreCohesionApplicationPlugin(iscore::Application& app) :
     iscore::GUIApplicationContextPlugin {app, "IScoreCohesionApplicationPlugin", nullptr}

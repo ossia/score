@@ -1,6 +1,11 @@
-#include "LinearCurveSegmentModel.hpp"
 #include <iscore/serialization/DataStreamVisitor.hpp>
 #include <iscore/serialization/JSONVisitor.hpp>
+
+class LinearCurveSegmentModel;
+struct LinearCurveSegmentData;
+template <typename T> class Reader;
+template <typename T> class Writer;
+
 template<>
 void Visitor<Reader<DataStream>>::readFrom(const LinearCurveSegmentModel& segmt)
 {

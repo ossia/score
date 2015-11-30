@@ -1,12 +1,19 @@
 #pragma once
-#include <QObject>
-#include <iscore/tools/SettableIdentifier.hpp>
-#include <Serialization/NetworkMessage.hpp>
+#include <boost/optional/optional.hpp>
 #include <iscore/command/SerializableCommand.hpp>
+#include <iscore/tools/SettableIdentifier.hpp>
+#include <QByteArray>
+#include <QList>
+#include <QObject>
+#include <QPair>
+#include <QString>
+
 class Client;
-class Session;
 class ClientSession;
 class NetworkSocket;
+class Session;
+struct NetworkMessage;
+
 class ClientSessionBuilder : public QObject
 {
         Q_OBJECT

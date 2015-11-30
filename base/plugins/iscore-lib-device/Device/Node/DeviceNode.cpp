@@ -1,4 +1,16 @@
+#include <eggs/variant/variant.hpp>
+#include <QByteArray>
+#include <QDebug>
+#include <vector>
+
+#include <Device/Address/AddressSettings.hpp>
+#include <Device/Address/IOType.hpp>
+#include <Device/Protocol/DeviceSettings.hpp>
 #include "DeviceNode.hpp"
+#include <State/Message.hpp>
+#include <State/Value.hpp>
+#include <iscore/tools/Todo.hpp>
+#include <iscore/tools/TreeNode.hpp>
 
 namespace iscore
 {
@@ -179,7 +191,6 @@ void merge(
     }
 }
 
-// TODO why doesn't this take a reference ?
 iscore::Node merge(
         iscore::Node base,
         const iscore::MessageList& other)

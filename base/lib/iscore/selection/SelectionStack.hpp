@@ -1,7 +1,9 @@
 #pragma once
 #include <iscore/selection/Selection.hpp>
+#include <QObject>
 #include <QStack>
-#include <QDebug>
+
+class IdentifiedObjectAbstract;
 
 namespace iscore
 {

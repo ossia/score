@@ -1,9 +1,24 @@
 #pragma once
 #include <iscore/plugins/application/GUIApplicationContextPlugin.hpp>
-#include <Scenario/Process/Temporal/StateMachines/ScenarioPoint.hpp>
-class RecordManager;
-namespace Scenario { class ScenarioModel; }
-class IScoreCohesionApplicationPlugin final : public iscore::GUIApplicationContextPlugin
+#include <memory>
+#include <vector>
+
+#include "Record/RecordManager.hpp"
+
+class QAction;
+namespace Scenario {
+class ScenarioModel;
+struct Point;
+}  // namespace Scenario
+namespace iscore {
+class Application;
+class MenubarManager;
+struct OrderedToolbar;
+}  // namespace iscore
+
+class IScoreCohesionApplicationPlugin final :
+        public QObject,
+        public iscore::GUIApplicationContextPlugin
 {
     public:
         IScoreCohesionApplicationPlugin(iscore::Application& app);

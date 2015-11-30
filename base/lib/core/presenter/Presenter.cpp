@@ -1,16 +1,43 @@
-#include <iscore/plugins/application/GUIApplicationContextPlugin.hpp>
-
+#include <boost/optional/optional.hpp>
 #include <core/application/Application.hpp>
 #include <core/view/View.hpp>
-
-#include <iscore/plugins/panel/PanelView.hpp>
+#include <iscore/plugins/application/GUIApplicationContextPlugin.hpp>
 #include <iscore/tools/SettableIdentifierGeneration.hpp>
-#include <core/document/DocumentPresenter.hpp>
-#include <core/document/DocumentView.hpp>
+#include <QAction>
+#include <QKeySequence>
+#include <QMenu>
+#include <QMenuBar>
+#include <QMessageBox>
+#include <qnamespace.h>
+#include <QObject>
 
+#include <QString>
+#include <sys/types.h>
+#include <algorithm>
+#include <cstdint>
+#include <functional>
+#include <utility>
+#include <vector>
+
+#include <core/document/Document.hpp>
+#include "QRecentFilesMenu.h"
+#include <core/application/ApplicationComponents.hpp>
+#include <core/presenter/DocumentManager.hpp>
+#include <core/presenter/MenubarManager.hpp>
+#include <core/presenter/Presenter.hpp>
+#include <core/settings/Settings.hpp>
+#include <core/settings/SettingsView.hpp>
+#include <iscore/menu/MenuInterface.hpp>
+#include <iscore/plugins/customfactory/StringFactoryKey.hpp>
+#include <iscore/tools/NamedObject.hpp>
+#include <iscore/tools/SettableIdentifier.hpp>
+#include <iscore/widgets/OrderedToolbar.hpp>
 #include "iscore_git_info.hpp"
 
-#include <QMessageBox>
+namespace iscore {
+class Document;
+class DocumentModel;
+}  // namespace iscore
 
 namespace iscore
 {
@@ -30,8 +57,6 @@ Presenter::Presenter(View* view, QObject* arg_parent) :
     setupMenus();
     connect(m_view,		&View::insertActionIntoMenubar,
             &m_menubar, &MenubarManager::insertActionIntoMenubar);
-    connect(m_view, &View::activeWindowChanged,
-            this, &Presenter::on_activeWindowChanged);
 
     m_view->setPresenter(this);
 }
@@ -142,14 +167,6 @@ void Presenter::setupMenus()
                            .arg(ISCORE_CODENAME)
                            + tr("\n\nCommit: \n")
                            + QString(ISCORE_XSTR(GIT_COMMIT))); });
-}
-
-void Presenter::on_activeWindowChanged()
-{
-    for(auto ap : m_components.appPlugins)
-    {
-        ap->on_focusChanged(Qt::ApplicationHidden);
-    }
 }
 
 bool Presenter::exit()

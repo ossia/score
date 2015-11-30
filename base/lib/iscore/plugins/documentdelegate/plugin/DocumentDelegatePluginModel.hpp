@@ -1,8 +1,16 @@
 #pragma once
-#include <iscore/tools/NamedObject.hpp>
-#include <QJsonObject>
-#include <iscore/plugins/documentdelegate/plugin/ElementPluginModel.hpp>
 #include <core/document/DocumentContext.hpp>
+#include <iscore/plugins/documentdelegate/plugin/ElementPluginModel.hpp>
+#include <iscore/tools/NamedObject.hpp>
+#include <QString>
+#include <vector>
+
+class QObject;
+class QWidget;
+namespace iscore {
+class Document;
+}  // namespace iscore
+struct VisitorVariant;
 
 namespace iscore
 {

@@ -1,10 +1,11 @@
+#include <boost/optional/optional.hpp>
+#include <QBoxLayout>
+#include <QDebug>
+#include <QtGlobal>
+#include <QStringList>
+
 #include "ExpressionEditorWidget.hpp"
-
-#include "Scenario/Inspector/Expression/SimpleExpressionEditorWidget.hpp"
-
-#include <QLabel>
-#include <QComboBox>
-#include <QVBoxLayout>
+#include <Scenario/Inspector/Expression/SimpleExpressionEditorWidget.hpp>
 
 ExpressionEditorWidget::ExpressionEditorWidget(QWidget *parent) :
     QWidget(parent)

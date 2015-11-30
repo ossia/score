@@ -1,4 +1,6 @@
+#include <QObject>
 #include "MenuInterface.hpp"
+
 using namespace iscore;
 
 namespace iscore

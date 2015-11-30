@@ -1,6 +1,7 @@
-#include "GraphicsItem.hpp"
-#include <QGraphicsScene>
 #include <QGraphicsItem>
+#include <QGraphicsScene>
+
+#include "GraphicsItem.hpp"
 
 void deleteGraphicsObject(QGraphicsObject* item)
 {

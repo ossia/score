@@ -1,9 +1,15 @@
 #pragma once
 #include <Process/LayerModel.hpp>
+
+#include <iscore/serialization/VisitorInterface.hpp>
+
 #include <iscore/serialization/DataStreamVisitor.hpp>
 #include <iscore/serialization/JSONVisitor.hpp>
 
+class LayerModelPanelProxy;
+class QObject;
 class TemporalConstraintViewModel;
+#include <iscore/tools/SettableIdentifier.hpp>
 
 namespace Loop{
     class ProcessModel;

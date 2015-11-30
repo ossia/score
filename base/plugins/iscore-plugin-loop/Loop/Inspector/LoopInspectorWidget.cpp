@@ -1,22 +1,14 @@
-#include "LoopInspectorWidget.hpp"
 #include <Loop/LoopProcessModel.hpp>
-#include <Inspector/InspectorSectionWidget.hpp>
 
-#include <Scenario/DialogWidget/AddProcessDialog.hpp>
-#include <Scenario/Commands/Constraint/AddProcessToConstraint.hpp>
-
-#include <iscore/document/DocumentInterface.hpp>
-#include <core/document/Document.hpp>
-#include <core/document/DocumentModel.hpp>
-
-#include <iscore/widgets/SpinBoxes.hpp>
+#include <Inspector/InspectorWidgetBase.hpp>
+#include "LoopInspectorWidget.hpp"
 #include <QVBoxLayout>
-#include <QLineEdit>
-#include <QPushButton>
-#include <QFormLayout>
-#include <QDoubleSpinBox>
-#include <QMessageBox>
-#include <QApplication>
+
+class QVBoxLayout;
+class QWidget;
+namespace iscore {
+class Document;
+}  // namespace iscore
 
 LoopInspectorWidget::LoopInspectorWidget(
         const Loop::ProcessModel& LoopModel,

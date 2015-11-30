@@ -1,14 +1,22 @@
-#include "EventView.hpp"
-
-#include <QPainter>
-#include <QGraphicsScene>
-#include <QCursor>
-#include <QMimeData>
-#include <QGraphicsSceneMouseEvent>
-#include "EventPresenter.hpp"
-#include "EventModel.hpp"
-#include "ConditionView.hpp"
 #include <Process/Style/ScenarioStyle.hpp>
+#include <QBrush>
+#include <QGraphicsSceneEvent>
+#include <qnamespace.h>
+#include <QPainter>
+#include <QPen>
+#include <algorithm>
+
+#include "ConditionView.hpp"
+#include "EventModel.hpp"
+#include "EventPresenter.hpp"
+#include "EventView.hpp"
+#include <Process/ModelMetadata.hpp>
+#include <Scenario/Document/Event/ExecutionStatus.hpp>
+#include <Scenario/Document/VerticalExtent.hpp>
+#include <QCursor>
+
+class QStyleOptionGraphicsItem;
+class QWidget;
 
 EventView::EventView(EventPresenter& presenter,
                      QGraphicsObject* parent) :
@@ -95,12 +103,14 @@ void EventView::setExtent(const VerticalExtent& extent)
 {
     prepareGeometryChange();
     m_extent = extent;
+    m_conditionItem->changeHeight(extent.bottom() - extent.top());
     this->update();
 }
 
 void EventView::setExtent(VerticalExtent &&extent)
 {
     prepareGeometryChange();
+    m_conditionItem->changeHeight(extent.bottom() - extent.top());
     m_extent = std::move(extent);
     this->update();
 }

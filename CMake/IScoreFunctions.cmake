@@ -118,7 +118,7 @@ function(iscore_generate_command_list_file TheTarget Headers)
 
     # First look for the ISCORE_COMMAND_DECL(...) ones
     foreach(sourceFile ${Headers})
-        file(STRINGS ${sourceFile} fileContent REGEX "ISCORE_COMMAND_DECL\\(")
+        file(STRINGS "${sourceFile}" fileContent REGEX "ISCORE_COMMAND_DECL\\(")
 
         # If there are matching strings, we add the file to our include list
         list(LENGTH fileContent matchingLines)

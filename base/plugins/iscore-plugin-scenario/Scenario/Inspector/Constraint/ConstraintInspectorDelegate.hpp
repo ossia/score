@@ -1,12 +1,12 @@
 #pragma once
-#include <list>
-#include <iscore/command/Dispatchers/OngoingCommandDispatcher.hpp>
 #include <Process/ExpandMode.hpp>
 #include <Process/TimeValue.hpp>
+#include <list>
 
-class QWidget;
 class ConstraintInspectorWidget;
 class ConstraintModel;
+class OngoingCommandDispatcher;
+class QWidget;
 
 class ConstraintInspectorDelegate
 {

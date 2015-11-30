@@ -1,17 +1,26 @@
-#include "StatePresenter.hpp"
-#include "StateModel.hpp"
-#include "StateView.hpp"
-
-#include <Scenario/Commands/Event/State/AddStateWithData.hpp>
-#include <State/StateMimeTypes.hpp>
 #include <State/MessageListSerialization.hpp>
-
 #include <iscore/document/DocumentInterface.hpp>
 #include <iscore/widgets/GraphicsItem.hpp>
-#include <core/document/Document.hpp>
-#include <QGraphicsScene>
 #include <QMimeData>
-#include <QJsonDocument>
+#include <QStringList>
+
+#include <Process/ModelMetadata.hpp>
+#include <Scenario/Commands/State/AddMessagesToState.hpp>
+#include <Scenario/Document/Event/ExecutionStatus.hpp>
+#include <Scenario/Document/State/ItemModel/MessageItemModel.hpp>
+#include <State/Message.hpp>
+#include "StateModel.hpp"
+#include "StatePresenter.hpp"
+#include "StateView.hpp"
+#include <iscore/command/Dispatchers/CommandDispatcher.hpp>
+#include <iscore/selection/Selectable.hpp>
+#include <iscore/serialization/MimeVisitor.hpp>
+#include <iscore/tools/IdentifiedObject.hpp>
+#include <iscore/tools/NamedObject.hpp>
+#include <iscore/tools/Todo.hpp>
+
+class QObject;
+#include <iscore/tools/SettableIdentifier.hpp>
 
 StatePresenter::StatePresenter(
         const StateModel &model,

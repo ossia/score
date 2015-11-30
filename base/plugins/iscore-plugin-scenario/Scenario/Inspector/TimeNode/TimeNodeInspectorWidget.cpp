@@ -1,29 +1,40 @@
-#include "TimeNodeInspectorWidget.hpp"
-
-#include <Scenario/Document/TimeNode/TimeNodeModel.hpp>
-#include <Scenario/Document/Event/EventModel.hpp>
-#include <Scenario/Document/TimeNode/Trigger/TriggerModel.hpp>
-
-#include <Scenario/Process/ScenarioModel.hpp>
-
 #include <Inspector/InspectorSectionWidget.hpp>
-#include <Scenario/Inspector/MetadataWidget.hpp>
-#include <Scenario/Inspector/Event/EventWidgets/EventShortcut.hpp>
-#include <Scenario/Inspector/TimeNode/TriggerInspectorWidget.hpp>
-
-#include <Scenario/Commands/TimeNode/TriggerCommandFactory/TriggerCommandFactoryList.hpp>
 #include <Scenario/Commands/TimeNode/SplitTimeNode.hpp>
-
+#include <Scenario/Commands/TimeNode/TriggerCommandFactory/TriggerCommandFactoryList.hpp>
+#include <Scenario/Document/Event/EventModel.hpp>
+#include <Scenario/Document/TimeNode/TimeNodeModel.hpp>
+#include <Scenario/Document/TimeNode/Trigger/TriggerModel.hpp>
+#include <Scenario/Inspector/Event/EventWidgets/EventShortcut.hpp>
+#include <Scenario/Inspector/MetadataWidget.hpp>
+#include <Scenario/Inspector/TimeNode/TriggerInspectorWidget.hpp>
+#include <boost/optional/optional.hpp>
+#include <core/application/ApplicationComponents.hpp>
+#include <core/application/ApplicationContext.hpp>
 #include <core/document/Document.hpp>
 #include <core/document/DocumentContext.hpp>
-#include <core/application/ApplicationContext.hpp>
-#include <core/application/ApplicationComponents.hpp>
-
+#include <QBoxLayout>
+#include <QColor>
 #include <QLabel>
-#include <QLineEdit>
-#include <QLayout>
+
 #include <QPushButton>
-#include <QCompleter>
+#include <QString>
+#include <QVector>
+#include <QWidget>
+#include <algorithm>
+
+#include <Inspector/InspectorWidgetBase.hpp>
+#include <Process/TimeValue.hpp>
+#include <Scenario/Process/ScenarioInterface.hpp>
+#include "TimeNodeInspectorWidget.hpp"
+#include <iscore/command/Dispatchers/CommandDispatcher.hpp>
+#include <iscore/plugins/customfactory/StringFactoryKey.hpp>
+#include <iscore/selection/Selection.hpp>
+#include <iscore/selection/SelectionDispatcher.hpp>
+#include <iscore/serialization/DataStreamVisitor.hpp>
+#include <iscore/tools/ModelPath.hpp>
+#include <iscore/tools/ModelPathSerialization.hpp>
+#include <iscore/tools/SettableIdentifier.hpp>
+#include <iscore/tools/Todo.hpp>
 
 using namespace Scenario::Command;
 
@@ -104,7 +115,8 @@ void TimeNodeInspectorWidget::updateDisplayedValues()
 
     for(const auto& event : m_model.events())
     {
-        auto scenar = m_model.parentScenario();
+        auto scenar = dynamic_cast<ScenarioInterface*>(m_model.parent());
+        ISCORE_ASSERT(scenar);
         EventModel* evModel = &scenar->event(event);
 
         auto eventWid = new EventShortCut(QString::number((*event.val())));

@@ -1,15 +1,7 @@
 #pragma once
-#include <QByteArray>
-#include <QDataStream>
-#include <QBuffer>
-#include <chrono>
-#include <string>
-
-#include <numeric>
-
-#include <iscore/serialization/DataStreamVisitor.hpp>
-#include <iscore/tools/ModelPathSerialization.hpp>
 #include <core/application/ApplicationContext.hpp>
+#include <QtGlobal>
+#include <chrono>
 
 namespace iscore
 {

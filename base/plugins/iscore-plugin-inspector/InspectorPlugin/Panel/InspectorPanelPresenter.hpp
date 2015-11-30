@@ -2,6 +2,12 @@
 
 #include <iscore/plugins/panel/PanelPresenter.hpp>
 
+
+namespace iscore {
+class PanelView;
+class Presenter;
+}  // namespace iscore
+
 class InspectorPanelPresenter : public iscore::PanelPresenter
 {
     public:

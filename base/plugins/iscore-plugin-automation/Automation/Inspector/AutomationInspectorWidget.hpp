@@ -1,13 +1,19 @@
 #pragma once
 
 #include <Inspector/InspectorWidgetBase.hpp>
+#include <QString>
+
+class QWidget;
+
 namespace iscore{
+class Document;
 struct Address;
 }
-class DeviceExplorerModel;
-class AutomationModel;
-class QDoubleSpinBox;
 class AddressEditWidget;
+class AutomationModel;
+class DeviceExplorerModel;
+class QDoubleSpinBox;
+
 class AutomationInspectorWidget final : public InspectorWidgetBase
 {
         Q_OBJECT

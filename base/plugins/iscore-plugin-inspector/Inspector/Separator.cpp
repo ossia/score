@@ -1,6 +1,9 @@
-#include "Separator.hpp"
-#include <QVBoxLayout>
+#include <QBoxLayout>
 #include <QFrame>
+#include <QLayout>
+
+#include "Separator.hpp"
+
 Separator::Separator(QWidget *parent) :
     QWidget {parent}
 {

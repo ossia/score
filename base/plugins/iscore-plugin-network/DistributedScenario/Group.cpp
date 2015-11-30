@@ -1,4 +1,11 @@
+#include <algorithm>
+#include <iterator>
+
 #include "Group.hpp"
+#include <iscore/tools/IdentifiedObject.hpp>
+
+class Client;
+class QObject;
 
 
 Group::Group(QString name, Id<Group> id, QObject* parent):

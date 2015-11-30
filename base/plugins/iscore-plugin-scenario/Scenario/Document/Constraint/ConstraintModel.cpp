@@ -1,15 +1,22 @@
-#include "ConstraintModel.hpp"
-
-#include <Scenario/Process/ScenarioModel.hpp>
-#include <Scenario/Document/Constraint/ViewModels/FullView/FullViewConstraintViewModel.hpp>
+#include <Process/LayerModel.hpp>
+#include <Process/Style/ScenarioStyle.hpp>
 #include <Scenario/Document/Constraint/Rack/RackModel.hpp>
 #include <Scenario/Document/Constraint/Rack/Slot/SlotModel.hpp>
-#include <Scenario/Document/Event/EventModel.hpp>
-
-#include <Process/LayerModel.hpp>
-
+#include <Scenario/Document/Constraint/ViewModels/FullView/FullViewConstraintViewModel.hpp>
 #include <iscore/document/DocumentInterface.hpp>
-#include <Process/Style/ScenarioStyle.hpp>
+#include <map>
+#include <utility>
+
+#include "ConstraintModel.hpp"
+#include <Process/ModelMetadata.hpp>
+#include <Process/Process.hpp>
+#include <Process/TimeValue.hpp>
+#include <Scenario/Document/Constraint/ConstraintDurations.hpp>
+#include <Scenario/Document/Constraint/ViewModels/ConstraintViewModel.hpp>
+#include <iscore/tools/Todo.hpp>
+
+class StateModel;
+class TimeNodeModel;
 
 constexpr const char ConstraintModel::className[];
 ConstraintModel::ConstraintModel(
@@ -85,13 +92,6 @@ ConstraintModel::ConstraintModel(
     m_fullViewModel = source.fullView()->clone(source.fullView()->id(), *this, this);
 }
 
-ScenarioInterface* ConstraintModel::parentScenario() const
-{
-    return dynamic_cast<ScenarioInterface*>(parent());
-}
-
-
-
 void ConstraintModel::setupConstraintViewModel(ConstraintViewModel* viewmodel)
 {
     con(racks, &NotifyingMap<RackModel>::removed,
@@ -160,15 +160,6 @@ void ConstraintModel::setStartState(const Id<StateModel>& e)
     m_startState = e;
 }
 
-const Id<TimeNodeModel> &ConstraintModel::startTimeNode() const
-{
-    return parentScenario()->timeNode(
-                parentScenario()->event(
-                    parentScenario()->state(startState()
-                                            ).eventId()
-                    ).timeNode()).id();
-}
-
 const Id<StateModel> &ConstraintModel::endState() const
 {
     return m_endState;
@@ -177,15 +168,6 @@ const Id<StateModel> &ConstraintModel::endState() const
 void ConstraintModel::setEndState(const Id<StateModel> &endState)
 {
     m_endState = endState;
-}
-
-const Id<TimeNodeModel> &ConstraintModel::endTimeNode() const
-{
-    return parentScenario()->timeNode(
-                parentScenario()->event(
-                    parentScenario()->state(endState()
-                                            ).eventId()
-                    ).timeNode()).id();
 }
 
 const TimeValue& ConstraintModel::startDate() const

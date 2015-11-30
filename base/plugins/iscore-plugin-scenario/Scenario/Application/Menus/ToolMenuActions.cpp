@@ -1,10 +1,23 @@
-#include "ToolMenuActions.hpp"
-
-#include <iscore/menu/MenuInterface.hpp>
-#include <Scenario/Process/Temporal/TemporalScenarioPresenter.hpp>
 #include <Scenario/Application/ScenarioApplicationPlugin.hpp>
+#include <iscore/menu/MenuInterface.hpp>
+#include <QAction>
+#include <QActionGroup>
+#include <QMenu>
+#include <qnamespace.h>
 
-#include <QKeyEvent>
+#include <QString>
+#include <QToolBar>
+#include <QVariant>
+
+#include <Process/ExpandMode.hpp>
+#include <Scenario/Application/Menus/ScenarioActions.hpp>
+#include <Scenario/Application/ScenarioEditionSettings.hpp>
+#include <Scenario/Palette/Tool.hpp>
+#include "ToolMenuActions.hpp"
+#include <core/presenter/MenubarManager.hpp>
+
+class QObject;
+class TemporalScenarioPresenter;
 
 template<typename Data>
 QAction* makeToolbarAction(const QString& name,
@@ -119,6 +132,64 @@ ToolMenuActions::ToolMenuActions(
     connect(parent, &ScenarioApplicationPlugin::keyReleased,
             this,   &ToolMenuActions::keyReleased);
 
+    con(parent->editionSettings(), &Scenario::EditionSettings::toolChanged,
+        this, [=] (Scenario::Tool t) {
+        switch(t)
+        {
+            case Scenario::Tool::Create:
+                if(!m_createtool->isChecked())
+                    m_createtool->setChecked(true);
+                break;
+            case Scenario::Tool::MoveSlot:
+                if(!slotmovetool->isChecked())
+                    slotmovetool->setChecked(true);
+                break;
+            case Scenario::Tool::Disabled:
+                break;
+            case Scenario::Tool::Playing:
+                break;
+            case Scenario::Tool::Select:
+                if(!m_selecttool->isChecked())
+                    m_selecttool->setChecked(true);
+                break;
+            default:
+                break;
+        }
+    });
+
+    con(parent->editionSettings(), &Scenario::EditionSettings::sequenceChanged,
+        this, [=] (bool sequence) {
+        if(sequence)
+        {
+            if(!m_shiftAction->isChecked())
+                m_shiftAction->setChecked(true);
+        }
+        else
+        {
+            if(m_shiftAction->isChecked())
+                m_shiftAction->setChecked(false);
+        }
+    });
+
+    con(parent->editionSettings(), &Scenario::EditionSettings::expandModeChanged,
+        this, [=] (ExpandMode mode)
+    {
+        switch(mode)
+        {
+            case ExpandMode::Scale:
+                if(!scale->isChecked())
+                    scale->setChecked(true);
+                break;
+            case ExpandMode::Grow:
+                if(!grow->isChecked())
+                    grow->setChecked(true);
+                break;
+            case ExpandMode::Fixed:
+                if(!fixed->isChecked())
+                    fixed->setChecked(true);
+                break;
+        }
+    });
 }
 
 void ToolMenuActions::fillMenuBar(iscore::MenubarManager *menu)

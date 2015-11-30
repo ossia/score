@@ -1,18 +1,32 @@
-#include "DocumentManager.hpp"
-#include <iscore/plugins/application/GUIApplicationContextPlugin.hpp>
-#include <iscore/plugins/panel/PanelPresenter.hpp>
-
+#include <boost/optional/optional.hpp>
 #include <core/document/DocumentBackups.hpp>
+#include <core/document/DocumentModel.hpp>
 #include <core/presenter/Presenter.hpp>
 #include <core/view/View.hpp>
-#include <core/document/DocumentModel.hpp>
-
-#include <QJsonDocument>
-#include <QJsonObject>
+#include <iscore/plugins/application/GUIApplicationContextPlugin.hpp>
+#include <iscore/plugins/panel/PanelPresenter.hpp>
+#include <QByteArray>
+#include <QFile>
 #include <QFileDialog>
-#include <QSaveFile>
+#include <QFlags>
+#include <QIODevice>
+#include <QJsonDocument>
 #include <QMessageBox>
+
+#include <QSaveFile>
 #include <QSettings>
+#include <QStringList>
+#include <QVariant>
+#include <utility>
+
+#include "DocumentManager.hpp"
+#include "QRecentFilesMenu.h"
+#include <core/application/ApplicationComponents.hpp>
+#include <core/command/CommandStack.hpp>
+#include <core/document/Document.hpp>
+#include <iscore/tools/SettableIdentifier.hpp>
+#include <iscore/tools/std/StdlibWrapper.hpp>
+
 namespace iscore
 {
 DocumentManager::DocumentManager(Presenter& p):
@@ -106,7 +120,7 @@ void DocumentManager::setCurrentDocument(Document* doc)
 
     for(auto& ctrl : m_presenter.applicationComponents().applicationPlugins())
     {
-        emit ctrl->documentChanged(old, m_currentDocument);
+        ctrl->on_documentChanged(old, m_currentDocument);
     }
 
     emit currentDocumentChanged(doc);

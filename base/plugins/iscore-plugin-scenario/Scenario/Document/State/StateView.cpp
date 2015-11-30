@@ -1,11 +1,15 @@
-#include "StateView.hpp"
-#include "StatePresenter.hpp"
-#include <iscore/tools/Todo.hpp>
-#include <QPainter>
-#include <QGraphicsSceneMouseEvent>
-#include <QCursor>
-#include <QDebug>
 #include <Process/Style/ScenarioStyle.hpp>
+#include <QBrush>
+#include <QGraphicsSceneEvent>
+#include <qnamespace.h>
+#include <QPainter>
+#include <QPen>
+
+#include "StatePresenter.hpp"
+#include "StateView.hpp"
+
+class QStyleOptionGraphicsItem;
+class QWidget;
 
 StateView::StateView(StatePresenter& pres, QGraphicsItem* parent) :
     QGraphicsObject(parent),

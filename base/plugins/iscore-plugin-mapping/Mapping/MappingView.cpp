@@ -1,9 +1,13 @@
-#include "MappingView.hpp"
-
 #include <Process/Style/ProcessFonts.hpp>
+#include <QFlags>
+#include <QFont>
+#include <QGraphicsItem>
+#include <qnamespace.h>
 #include <QPainter>
-#include <QKeyEvent>
-#include <QDebug>
+#include <QRect>
+
+#include "MappingView.hpp"
+#include <Process/LayerView.hpp>
 
 MappingView::MappingView(QGraphicsItem* parent) :
     LayerView {parent}

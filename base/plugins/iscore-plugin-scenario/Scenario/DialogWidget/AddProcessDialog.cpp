@@ -1,10 +1,18 @@
-#include "AddProcessDialog.hpp"
-
 #include <Process/ProcessList.hpp>
-
-#include <QtWidgets/QHBoxLayout>
-#include <QtWidgets/QInputDialog>
 #include <QApplication>
+#include <QInputDialog>
+
+#include <QString>
+#include <QStringList>
+#include <algorithm>
+#include <utility>
+#include <vector>
+
+#include "AddProcessDialog.hpp"
+#include <Process/ProcessFactory.hpp>
+#include <iscore/plugins/customfactory/FactoryFamily.hpp>
+#include <iscore/plugins/customfactory/FactoryMap.hpp>
+
 AddProcessDialog::AddProcessDialog(
         const DynamicProcessList& plist,
         QWidget *parent) :

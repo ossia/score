@@ -1,8 +1,23 @@
-#include "JSProcessModel.hpp"
 #include <DummyProcess/DummyLayerModel.hpp>
-#include <core/document/Document.hpp>
 #include <Explorer/DocumentPlugin/DeviceDocumentPlugin.hpp>
+#include <core/document/Document.hpp>
 #include <core/document/DocumentModel.hpp>
+#include <algorithm>
+#include <vector>
+
+#include "JS/JSProcess.hpp"
+#include "JS/JSProcessMetadata.hpp"
+#include "JSProcessModel.hpp"
+#include <OSSIA/ProcessModel/OSSIAProcessModel.hpp>
+#include <iscore/document/DocumentInterface.hpp>
+#include <iscore/plugins/documentdelegate/plugin/ElementPluginModelList.hpp>
+#include <iscore/serialization/VisitorCommon.hpp>
+
+class LayerModel;
+class Process;
+class ProcessStateDataInterface;
+class QObject;
+#include <iscore/tools/SettableIdentifier.hpp>
 
 
 std::shared_ptr<JSProcess> JSProcessModel::makeProcess() const
@@ -148,46 +163,5 @@ LayerModel* JSProcessModel::cloneLayer_impl(
         QObject* parent)
 {
     return new DummyLayerModel{safe_cast<const DummyLayerModel&>(source), *this, newId, parent};
-}
-
-
-
-// MOVEME
-template<>
-void Visitor<Reader<DataStream>>::readFrom(const JSProcessModel& proc)
-{
-    readFrom(*proc.pluginModelList);
-
-    m_stream << proc.m_script;
-
-    insertDelimiter();
-}
-
-template<>
-void Visitor<Writer<DataStream>>::writeTo(JSProcessModel& proc)
-{
-    proc.pluginModelList = new iscore::ElementPluginModelList{*this, &proc};
-
-    QString str;
-    m_stream >> str;
-    proc.setScript(str);
-
-    checkDelimiter();
-}
-
-template<>
-void Visitor<Reader<JSONObject>>::readFrom(const JSProcessModel& proc)
-{
-    m_obj["PluginsMetadata"] = toJsonValue(*proc.pluginModelList);
-    m_obj["Script"] = proc.script();
-}
-
-template<>
-void Visitor<Writer<JSONObject>>::writeTo(JSProcessModel& proc)
-{
-    Deserializer<JSONValue> elementPluginDeserializer(m_obj["PluginsMetadata"]);
-    proc.pluginModelList = new iscore::ElementPluginModelList{elementPluginDeserializer, &proc};
-
-    proc.setScript(m_obj["Script"].toString());
 }
 

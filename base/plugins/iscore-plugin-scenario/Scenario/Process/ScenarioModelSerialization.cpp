@@ -1,8 +1,34 @@
-#include <Scenario/Document/Event/EventModel.hpp>
 #include <Scenario/Document/Constraint/ConstraintModel.hpp>
+#include <Scenario/Document/Event/EventModel.hpp>
 #include <Scenario/Process/ScenarioModel.hpp>
 #include <Scenario/Process/Temporal/TemporalScenarioLayerModel.hpp>
+
+#include <boost/optional/optional.hpp>
+#include <QJsonArray>
+#include <QJsonObject>
+#include <QJsonValue>
+#include <QString>
+#include <sys/types.h>
+#include <algorithm>
+
+#include <Process/ModelMetadata.hpp>
+#include <Scenario/Document/State/StateModel.hpp>
+#include <Scenario/Document/TimeNode/TimeNodeModel.hpp>
 #include "ScenarioFactory.hpp"
+#include <iscore/plugins/documentdelegate/plugin/ElementPluginModelList.hpp>
+#include <iscore/serialization/DataStreamVisitor.hpp>
+#include <iscore/serialization/JSONValueVisitor.hpp>
+#include <iscore/serialization/JSONVisitor.hpp>
+#include <iscore/serialization/VisitorCommon.hpp>
+#include <iscore/tools/NotifyingMap.hpp>
+#include <iscore/tools/SettableIdentifier.hpp>
+
+class LayerModel;
+class Process;
+class QObject;
+struct VisitorVariant;
+template <typename T> class Reader;
+template <typename T> class Writer;
 
 template<>
 void Visitor<Reader<DataStream>>::readFrom(const Scenario::ScenarioModel& scenario)

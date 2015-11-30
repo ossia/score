@@ -1,9 +1,20 @@
+#include <State/ValueConversion.hpp>
+
+#include <boost/none_t.hpp>
 #include <iscore/serialization/DataStreamVisitor.hpp>
 #include <iscore/serialization/JSONVisitor.hpp>
-#include "Value.hpp"
-#include <State/ValueConversion.hpp>
 #include <iscore/tools/VariantSerialization.hpp>
 #include <iscore/tools/std/StdlibWrapper.hpp>
+#include <QChar>
+#include <QJsonObject>
+#include <QJsonValue>
+#include <QString>
+
+#include "Value.hpp"
+
+template <typename T> class Reader;
+template <typename T> class Writer;
+
 using namespace iscore;
 // TODO clean this file
 template<>

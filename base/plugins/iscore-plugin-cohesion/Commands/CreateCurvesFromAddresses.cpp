@@ -1,7 +1,27 @@
+#include <Automation/AutomationModel.hpp>
+#include <boost/optional/optional.hpp>
+#include <QDataStream>
+#include <QtGlobal>
+
+#include <Automation/AutomationProcessMetadata.hpp>
 #include "CreateCurvesFromAddresses.hpp"
+#include <Process/Process.hpp>
+#include <State/Address.hpp>
 #include "base/plugins/iscore-plugin-scenario/Scenario/Commands/Constraint/AddProcessToConstraint.hpp"
 #include "base/plugins/iscore-plugin-scenario/Scenario/Document/Constraint/ConstraintModel.hpp"
-#include <Automation/AutomationModel.hpp>
+#include <core/application/ApplicationComponents.hpp>
+#include <core/application/ApplicationContext.hpp>
+#include <iscore/command/CommandData.hpp>
+#include <iscore/command/SerializableCommand.hpp>
+#include <iscore/serialization/DataStreamVisitor.hpp>
+#include <iscore/tools/ModelPath.hpp>
+#include <iscore/tools/ModelPathSerialization.hpp>
+#include <iscore/tools/NotifyingMap.hpp>
+#include <iscore/tools/SettableIdentifier.hpp>
+#include <iscore/tools/std/StdlibWrapper.hpp>
+
+template <typename T> class Reader;
+template <typename T> class Writer;
 
 using namespace iscore;
 
@@ -56,21 +76,6 @@ void CreateCurvesFromAddresses::redo() const
 
         delete cmd;
     }
-}
-
-// MOVEME
-template<>
-void Visitor<Reader<DataStream>>::readFrom(const CommandData& d)
-{
-    m_stream << d.parentKey << d.commandKey << d.data;
-    insertDelimiter();
-}
-
-template<>
-void Visitor<Writer<DataStream>>::writeTo(CommandData& d)
-{
-    m_stream >> d.parentKey >> d.commandKey >> d.data;
-    checkDelimiter();
 }
 
 void CreateCurvesFromAddresses::serializeImpl(DataStreamInput& s) const

@@ -1,5 +1,11 @@
 #pragma once
 #include <iscore/plugins/panel/PanelView.hpp>
+
+#include <QString>
+
+class QObject;
+class QWidget;
+
 namespace iscore
 {
 class CommandStack;

@@ -1,6 +1,8 @@
-#include "OpenDocumentsFile.hpp"
-#include <QStandardPaths>
 #include <QFile>
+#include <QStandardPaths>
+#include <QStringList>
+
+#include "OpenDocumentsFile.hpp"
 
 static const QString filePath = QStandardPaths::standardLocations(QStandardPaths::TempLocation).first() + "/iscore_open_docs";
 

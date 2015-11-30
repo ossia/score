@@ -1,12 +1,22 @@
-#include "DocumentBuilder.hpp"
-#include <core/presenter/Presenter.hpp>
 #include <core/document/Document.hpp>
 #include <core/document/DocumentBackupManager.hpp>
-#include <iscore/plugins/application/GUIApplicationContextPlugin.hpp>
+#include <core/presenter/Presenter.hpp>
 #include <core/view/View.hpp>
-
+#include <iscore/plugins/application/GUIApplicationContextPlugin.hpp>
 #include <QByteArray>
 #include <QMessageBox>
+#include <QObject>
+
+#include <QString>
+#include <QVariant>
+#include <stdexcept>
+
+#include "DocumentBuilder.hpp"
+#include <core/application/ApplicationComponents.hpp>
+#include <iscore/serialization/DataStreamVisitor.hpp>
+
+#include <iscore/tools/SettableIdentifier.hpp>
+
 using namespace iscore;
 
 DocumentBuilder::DocumentBuilder(iscore::Presenter& pres):

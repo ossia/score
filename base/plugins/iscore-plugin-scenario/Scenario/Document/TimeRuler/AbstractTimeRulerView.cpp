@@ -1,11 +1,17 @@
-#include "AbstractTimeRulerView.hpp"
-
 #include <Process/Style/ProcessFonts.hpp>
-#include <cmath>
-#include <QPainter>
-#include <QGraphicsScene>
-#include <QGraphicsSceneMouseEvent>
 #include <Scenario/Document/TimeRuler/AbstractTimeRuler.hpp>
+#include <QBrush>
+#include <QGraphicsSceneEvent>
+#include <qnamespace.h>
+#include <QPainter>
+#include <QPen>
+#include <cmath>
+
+#include "AbstractTimeRulerView.hpp"
+#include <Process/TimeValue.hpp>
+
+class QStyleOptionGraphicsItem;
+class QWidget;
 
 
 AbstractTimeRulerView::AbstractTimeRulerView() :

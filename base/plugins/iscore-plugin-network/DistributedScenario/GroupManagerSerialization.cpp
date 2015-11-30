@@ -1,7 +1,19 @@
-#include "GroupManager.hpp"
-#include "Group.hpp"
+
 #include <iscore/serialization/DataStreamVisitor.hpp>
 #include <iscore/serialization/JSONVisitor.hpp>
+#include <QJsonArray>
+#include <QJsonObject>
+#include <QJsonValue>
+#include <sys/types.h>
+#include <algorithm>
+#include <vector>
+
+#include "Group.hpp"
+#include "GroupManager.hpp"
+
+template <typename T> class Reader;
+template <typename T> class Writer;
+template <typename model> class IdentifiedObject;
 
 
 template<>

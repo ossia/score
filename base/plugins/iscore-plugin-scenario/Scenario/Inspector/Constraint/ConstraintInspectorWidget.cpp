@@ -1,49 +1,66 @@
-#include "ConstraintInspectorWidget.hpp"
-#include <Scenario/DialogWidget/AddProcessDialog.hpp>
-#include "Widgets/RackWidget.hpp"
-#include "Widgets/DurationSectionWidget.hpp"
-#include "Widgets/Rack/RackInspectorSection.hpp"
-
-#include <Scenario/Commands/SetProcessDuration.hpp>
-#include <Scenario/Commands/Constraint/SetLooping.hpp>
-#include <Scenario/Document/Constraint/ConstraintModel.hpp>
-#include <Scenario/Document/Constraint/ViewModels/Temporal/TemporalConstraintViewModel.hpp>
-#include <Scenario/Document/Constraint/Rack/RackModel.hpp>
-#include <Scenario/Document/Constraint/Rack/Slot/SlotModel.hpp>
-#include <Scenario/Commands/Constraint/AddProcessToConstraint.hpp>
+#include <Inspector/InspectorWidgetList.hpp>
+#include <Inspector/Separator.hpp>
+#include <Process/Process.hpp>
+#include <Process/State/ProcessStateDataInterface.hpp>
+#include <Scenario/Application/ScenarioApplicationPlugin.hpp>
 #include <Scenario/Commands/Constraint/AddLayerInNewSlot.hpp>
+#include <Scenario/Commands/Constraint/AddProcessToConstraint.hpp>
 #include <Scenario/Commands/Constraint/AddRackToConstraint.hpp>
 #include <Scenario/Commands/Constraint/RemoveProcessFromConstraint.hpp>
-#include <Scenario/Document/Event/EventModel.hpp>
-#include <Scenario/Document/TimeNode/TimeNodeModel.hpp>
-#include <Scenario/Document/TimeNode/Trigger/TriggerModel.hpp>
-#include <Scenario/Commands/Scenario/ShowRackInViewModel.hpp>
+#include <Scenario/Commands/Constraint/SetLooping.hpp>
 #include <Scenario/Commands/Scenario/HideRackInViewModel.hpp>
-#include <Process/Process.hpp>
-
-#include <Scenario/Inspector/MetadataWidget.hpp>
-#include <Inspector/InspectorWidgetList.hpp>
-#include <Scenario/Document/BaseElement/BaseElementModel.hpp>
-#include <Scenario/Process/ScenarioModel.hpp>
+#include <Scenario/Commands/Scenario/ShowRackInViewModel.hpp>
+#include <Scenario/Commands/SetProcessDuration.hpp>
+#include <Scenario/DialogWidget/AddProcessDialog.hpp>
+#include <Scenario/Document/Constraint/ConstraintModel.hpp>
+#include <Scenario/Document/Constraint/Rack/RackModel.hpp>
+#include <Scenario/Document/ScenarioDocument/ScenarioDocumentModel.hpp>
 #include <Scenario/Inspector/Constraint/ConstraintInspectorDelegate.hpp>
-#include <Scenario/Inspector/TimeNode/TriggerInspectorWidget.hpp>
-#include <Scenario/Application/ScenarioApplicationPlugin.hpp>
-
+#include <Scenario/Inspector/MetadataWidget.hpp>
+#include <Scenario/Inspector/SelectionButton.hpp>
+#include <Scenario/Process/ScenarioModel.hpp>
+#include <boost/optional/optional.hpp>
+#include <core/document/Document.hpp>
 #include <core/document/DocumentModel.hpp>
 #include <iscore/document/DocumentInterface.hpp>
-#include <core/document/Document.hpp>
-
-#include <Inspector/Separator.hpp>
-#include <Scenario/Inspector/SelectionButton.hpp>
-#include <Process/State/ProcessStateDataInterface.hpp>
-#include <QFrame>
-#include <QLineEdit>
-#include <QLayout>
-#include <QLabel>
-#include <QFormLayout>
-#include <QToolButton>
+#include <QBoxLayout>
 #include <QCheckBox>
+#include <QColor>
+#include <QFormLayout>
+#include <QtGlobal>
+#include <QLabel>
+#include <QObject>
+#include <QPointer>
 #include <QPushButton>
+#include <QToolButton>
+#include <QWidget>
+#include <utility>
+
+#include "ConstraintInspectorWidget.hpp"
+#include <Inspector/InspectorSectionWidget.hpp>
+#include <Inspector/InspectorWidgetBase.hpp>
+#include <Process/ModelMetadata.hpp>
+#include <Process/TimeValue.hpp>
+#include <Scenario/Commands/Metadata/ChangeElementName.hpp>
+#include <Scenario/Document/Constraint/ViewModels/ConstraintViewModel.hpp>
+#include <Scenario/Document/State/StateModel.hpp>
+#include "Widgets/DurationSectionWidget.hpp"
+#include "Widgets/Rack/RackInspectorSection.hpp"
+#include "Widgets/RackWidget.hpp"
+#include <core/application/ApplicationComponents.hpp>
+#include <core/application/ApplicationContext.hpp>
+#include <core/document/DocumentContext.hpp>
+#include <iscore/command/Dispatchers/CommandDispatcher.hpp>
+#include <iscore/plugins/documentdelegate/plugin/DocumentDelegatePluginModel.hpp>
+#include <iscore/plugins/documentdelegate/plugin/ElementPluginModelList.hpp>
+#include <iscore/serialization/DataStreamVisitor.hpp>
+#include <iscore/tools/IdentifiedObject.hpp>
+#include <iscore/tools/ModelPath.hpp>
+#include <iscore/tools/ModelPathSerialization.hpp>
+#include <iscore/tools/NotifyingMap.hpp>
+#include <iscore/tools/Todo.hpp>
+#include <iscore/widgets/SpinBoxes.hpp>
+
 using namespace Scenario::Command;
 using namespace iscore;
 using namespace iscore::IDocument;
@@ -83,7 +100,7 @@ ConstraintInspectorWidget::ConstraintInspectorWidget(
     QPushButton* setAsDisplayedConstraint = new QPushButton {tr("Full view"), this};
     connect(setAsDisplayedConstraint, &QPushButton::clicked,
             this, [this] {
-        auto& base = get<BaseElementModel> (*documentFromObject(m_model));
+        auto& base = get<ScenarioDocumentModel> (*documentFromObject(m_model));
 
         base.setDisplayedConstraint(model());
     });
@@ -285,13 +302,14 @@ void ConstraintInspectorWidget::activeRackChanged(QString rack, ConstraintViewMo
     }
     else
     {
-        bool ok {};
-        auto id = Id<RackModel> (rack.toInt(&ok));
-
-        if(ok)
+        for (auto& r : m_model.racks)
         {
-            auto cmd = new ShowRackInViewModel(*vm, id);
-            emit commandDispatcher()->submitCommand(cmd);
+            if(r.metadata.name() == rack)
+            {
+                auto id = r.id();
+                auto cmd = new ShowRackInViewModel(*vm, id);
+                emit commandDispatcher()->submitCommand(cmd);
+            }
         }
     }
 }

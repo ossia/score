@@ -1,30 +1,31 @@
-#include "MappingInspectorWidget.hpp"
-#include "Mapping/MappingModel.hpp"
-#include <Inspector/InspectorSectionWidget.hpp>
-
-#include <Explorer/Widgets/DeviceCompleter.hpp>
-#include <Explorer/Widgets/DeviceExplorerMenuButton.hpp>
-#include <Explorer/Widgets/AddressEditWidget.hpp>
-#include <Explorer/Explorer/DeviceExplorerModel.hpp>
 #include <Explorer/PanelBase/DeviceExplorerPanelModel.hpp>
-
+#include <Explorer/Widgets/AddressEditWidget.hpp>
 #include <Mapping/Commands/ChangeAddresses.hpp>
 #include <Mapping/Commands/MinMaxCommands.hpp>
-#include <State/Widgets/AddressLineEdit.hpp>
-
-#include <iscore/document/DocumentInterface.hpp>
 #include <core/document/Document.hpp>
 #include <core/document/DocumentModel.hpp>
+#include <iscore/document/DocumentInterface.hpp>
+#include <iscore/widgets/SpinBoxes.hpp>
+#include <QAbstractSpinBox>
+#include <QBoxLayout>
+#include <QFormLayout>
 #include <QLabel>
 
-#include <iscore/widgets/SpinBoxes.hpp>
-#include <QVBoxLayout>
-#include <QLineEdit>
 #include <QPushButton>
-#include <QFormLayout>
-#include <QDoubleSpinBox>
-#include <QMessageBox>
-#include <QApplication>
+#include <QSpinBox>
+#include <QStringList>
+#include <QWidget>
+#include <algorithm>
+#include <list>
+#include <vector>
+
+#include <Inspector/InspectorWidgetBase.hpp>
+#include <Mapping/MappingModel.hpp>
+#include "MappingInspectorWidget.hpp"
+#include <State/Address.hpp>
+#include <iscore/command/Dispatchers/CommandDispatcher.hpp>
+#include <iscore/tools/ModelPath.hpp>
+#include <iscore/tools/Todo.hpp>
 
 MappingInspectorWidget::MappingInspectorWidget(
         const MappingModel& MappingModel,

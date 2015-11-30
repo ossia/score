@@ -1,5 +1,12 @@
-#include "Relation.hpp"
 #include <State/ValueConversion.hpp>
+#include <QMap>
+
+#include "Relation.hpp"
+
+namespace iscore {
+struct Address;
+struct Value;
+}  // namespace iscore
 
 
 QString iscore::Relation::toString() const

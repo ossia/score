@@ -1,5 +1,9 @@
-#include "UndoListWidget.hpp"
 #include <core/command/CommandStack.hpp>
+#include <QItemSelectionModel>
+
+#include "UndoListWidget.hpp"
+#include <iscore/command/SerializableCommand.hpp>
+
 using namespace iscore;
 
 UndoListWidget::UndoListWidget(iscore::CommandStack* s):

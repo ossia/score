@@ -1,5 +1,13 @@
 #pragma once
 #include <Scenario/Document/Constraint/ViewModels/ConstraintHeader.hpp>
+#include <QGraphicsItem>
+#include <qnamespace.h>
+#include <QRect>
+
+class QGraphicsSceneMouseEvent;
+class QPainter;
+class QStyleOptionGraphicsItem;
+class QWidget;
 
 class TemporalConstraintHeader final : public ConstraintHeader
 {

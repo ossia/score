@@ -1,7 +1,6 @@
 #pragma once
-#include <map>
 #include <QString>
-#include <QObject>
+#include <map>
 
 // TODO faire un script qui génère ça automatiquement
 namespace iscore

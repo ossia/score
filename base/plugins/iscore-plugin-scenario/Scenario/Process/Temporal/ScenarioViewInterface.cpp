@@ -1,11 +1,34 @@
-#include "ScenarioViewInterface.hpp"
-
-#include "TemporalScenarioPresenter.hpp"
-#include "Scenario/Process/Temporal/TemporalScenarioLayerModel.hpp"
-#include "Scenario/Process/Temporal/TemporalScenarioView.hpp"
-
 #include <Scenario/Document/Constraint/ViewModels/Temporal/TemporalConstraintView.hpp>
-#include <Scenario/Document/Constraint/ViewModels/Temporal/TemporalConstraintViewModel.hpp>
+#include <boost/iterator/indirect_iterator.hpp>
+#include <boost/iterator/iterator_facade.hpp>
+#include <boost/multi_index/detail/hash_index_iterator.hpp>
+#include <QtGlobal>
+#include <QPoint>
+#include <QRect>
+
+#include <Process/LayerModel.hpp>
+#include <Process/TimeValue.hpp>
+#include <Scenario/Document/Constraint/ConstraintDurations.hpp>
+#include <Scenario/Document/Constraint/ConstraintModel.hpp>
+#include <Scenario/Document/Constraint/ViewModels/ConstraintPresenter.hpp>
+#include <Scenario/Document/Constraint/ViewModels/Temporal/TemporalConstraintPresenter.hpp>
+#include <Scenario/Document/Event/EventModel.hpp>
+#include <Scenario/Document/Event/EventPresenter.hpp>
+#include <Scenario/Document/Event/EventView.hpp>
+#include <Scenario/Document/State/StateModel.hpp>
+#include <Scenario/Document/State/StatePresenter.hpp>
+#include <Scenario/Document/State/StateView.hpp>
+#include <Scenario/Document/TimeNode/TimeNodeModel.hpp>
+#include <Scenario/Document/TimeNode/TimeNodePresenter.hpp>
+#include <Scenario/Document/TimeNode/TimeNodeView.hpp>
+#include <Scenario/Document/VerticalExtent.hpp>
+#include <Scenario/Process/ScenarioModel.hpp>
+#include <Scenario/Process/Temporal/TemporalScenarioView.hpp>
+#include "ScenarioViewInterface.hpp"
+#include "TemporalScenarioPresenter.hpp"
+#include <iscore/tools/IdentifiedObjectMap.hpp>
+
+#include <iscore/tools/SettableIdentifier.hpp>
 
 ScenarioViewInterface::ScenarioViewInterface(const TemporalScenarioPresenter& presenter) :
     m_presenter{presenter}

@@ -1,7 +1,9 @@
 #pragma once
 #include "NetworkDocumentPlugin.hpp"
 
-#include <Repartition/session/Session.hpp>
+class QObject;
+class Session;
+
 class PlaceholderNetworkPolicy : public iscore_plugin_networkPolicy
 {
     public:

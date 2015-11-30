@@ -1,6 +1,10 @@
+#include "ScenarioVisitor.hpp"
 #include "iscore_plugin_temporalautomatas.hpp"
 
-#include "ScenarioVisitor.hpp"
+namespace iscore {
+class Application;
+}  // namespace iscore
+
 iscore_plugin_temporalautomatas::iscore_plugin_temporalautomatas() :
     QObject {}
 {

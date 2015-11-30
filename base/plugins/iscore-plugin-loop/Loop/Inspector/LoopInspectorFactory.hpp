@@ -1,8 +1,19 @@
 #pragma once
-#include <QObject>
 #include <Inspector/InspectorWidgetFactoryInterface.hpp>
 #include <Loop/LoopProcessMetadata.hpp>
 #include <Scenario/Inspector/Constraint/ConstraintInspectorDelegateFactory.hpp>
+#include <QList>
+#include <QString>
+#include <memory>
+
+class ConstraintInspectorDelegate;
+class ConstraintModel;
+class InspectorWidgetBase;
+class QObject;
+class QWidget;
+namespace iscore {
+class Document;
+}  // namespace iscore
 
 class LoopConstraintInspectorDelegateFactory : public ConstraintInspectorDelegateFactory
 {
@@ -23,7 +34,7 @@ class LoopInspectorFactory final : public InspectorWidgetFactory
         InspectorWidgetBase* makeWidget(
                 const QObject& sourceElement,
                 iscore::Document& doc,
-                QWidget* parent) override;
+                QWidget* parent) const override;
 
         const QList<QString>& key_impl() const override
         {
