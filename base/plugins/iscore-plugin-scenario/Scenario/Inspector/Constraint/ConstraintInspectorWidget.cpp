@@ -302,13 +302,14 @@ void ConstraintInspectorWidget::activeRackChanged(QString rack, ConstraintViewMo
     }
     else
     {
-        bool ok {};
-        auto id = Id<RackModel> (rack.toInt(&ok));
-
-        if(ok)
+        for (auto& r : m_model.racks)
         {
-            auto cmd = new ShowRackInViewModel(*vm, id);
-            emit commandDispatcher()->submitCommand(cmd);
+            if(r.metadata.name() == rack)
+            {
+                auto id = r.id();
+                auto cmd = new ShowRackInViewModel(*vm, id);
+                emit commandDispatcher()->submitCommand(cmd);
+            }
         }
     }
 }
