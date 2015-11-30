@@ -27,6 +27,7 @@ void StateView::paint(QPainter *painter, const QStyleOptionGraphicsItem *option,
     QPen statePen = ScenarioStyle::instance().StateOutline;
     statePen.setWidth(2);
     QBrush stateBrush = m_baseColor;
+    QBrush voidState = ScenarioStyle::instance().Background;
     QPen highlightPen = ScenarioStyle::instance().StateSelected;
     highlightPen.setWidth(4);
 
@@ -35,10 +36,10 @@ void StateView::paint(QPainter *painter, const QStyleOptionGraphicsItem *option,
     if(m_selected)
         painter->setPen(highlightPen);
 
-    // qreal radius = m_containMessage ? m_radiusFull : m_radiusVoid;
-
     if(m_containMessage)
         painter->setBrush(stateBrush);
+    else
+        painter->setBrush(voidState);
 
     painter->drawEllipse({0., 0.}, m_radiusFull, m_radiusFull);
 
