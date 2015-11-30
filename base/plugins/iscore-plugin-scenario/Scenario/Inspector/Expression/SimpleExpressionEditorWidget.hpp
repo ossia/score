@@ -15,10 +15,12 @@ class SimpleExpressionEditorWidget : public QWidget
 {
 	Q_OBJECT
     public:
-        SimpleExpressionEditorWidget(QWidget* parent = 0);
+        SimpleExpressionEditorWidget(int index, QWidget* parent = 0);
 
         iscore::Expression expression();
         iscore::BinaryOperator binOperator();
+
+        int id;
 
     public slots:
         void setExpression(iscore::Expression e);
@@ -30,7 +32,7 @@ class SimpleExpressionEditorWidget : public QWidget
     signals:
         void editingFinished();
         void addRelation();
-        void removeRelation();
+        void removeRelation(int index);
 
     private slots:
         void on_editFinished();

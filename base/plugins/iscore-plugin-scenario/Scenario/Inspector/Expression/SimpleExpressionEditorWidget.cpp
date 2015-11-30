@@ -11,7 +11,8 @@
 #include <Scenario/Inspector/ExpressionValidator.hpp>
 #include "SimpleExpressionEditorWidget.hpp"
 
-SimpleExpressionEditorWidget::SimpleExpressionEditorWidget(QWidget* parent):
+SimpleExpressionEditorWidget::SimpleExpressionEditorWidget(int index, QWidget* parent):
+    id{index},
     QWidget(parent)
 {
     auto mainLay = new QVBoxLayout{this};
@@ -53,7 +54,10 @@ SimpleExpressionEditorWidget::SimpleExpressionEditorWidget(QWidget* parent):
     connect(addBtn, &QPushButton::clicked,
             this, &SimpleExpressionEditorWidget::addRelation);
     connect(rmBtn, &QPushButton::clicked,
-            this, &SimpleExpressionEditorWidget::removeRelation);
+            this, [=] ()
+    {
+        emit removeRelation(id);
+    });
 
     /// EDIT FINSHED
     connect(m_address, &QLineEdit::editingFinished,
@@ -163,8 +167,6 @@ void SimpleExpressionEditorWidget::on_editFinished()
     m_ok->setVisible(m_validator.validate(expr, i) != QValidator::State::Acceptable );
     if(m_validator.validate(expr, i) == QValidator::State::Acceptable)
         emit editingFinished();
-
-    qDebug() << "edit finish" ;
 }
 
 void SimpleExpressionEditorWidget::on_operatorChanged(int i)

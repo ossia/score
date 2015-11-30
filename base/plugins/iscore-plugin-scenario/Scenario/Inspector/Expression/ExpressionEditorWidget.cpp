@@ -63,11 +63,9 @@ void ExpressionEditorWidget::setExpression(iscore::Expression e)
         auto ORmembers = es.split("or");
         for(auto m : ORmembers)
         {
-            qDebug() << m;
             auto ANDmembers = m.split("and");
             for(auto n : ANDmembers)
             {
-                qDebug() << "n " << n;
                 if(n.isEmpty())
                     break;
                 addNewRelation();
@@ -110,7 +108,7 @@ QString ExpressionEditorWidget::currentExpr()
 
 void ExpressionEditorWidget::addNewRelation()
 {
-    auto relationEditor = new SimpleExpressionEditorWidget{this};
+    auto relationEditor = new SimpleExpressionEditorWidget{m_relations.size(), this};
     m_relations.push_back(relationEditor);
 
     m_mainLayout->addWidget(relationEditor);
@@ -121,11 +119,17 @@ void ExpressionEditorWidget::addNewRelation()
 */
     connect(relationEditor, &SimpleExpressionEditorWidget::addRelation,
             this, &ExpressionEditorWidget::addNewRelation);
-    //connect()
+    connect(relationEditor, &SimpleExpressionEditorWidget::removeRelation,
+            this, &ExpressionEditorWidget::removeRelation);
 }
 
-void ExpressionEditorWidget::removeRelation()
+void ExpressionEditorWidget::removeRelation(int index)
 {
-
+    for (int i = index; i < m_relations.size(); i++)
+    {
+        m_relations.at(i)->id--;
+    }
+    delete m_relations.at(index);
+    m_relations.removeAt(index);
 }
 
