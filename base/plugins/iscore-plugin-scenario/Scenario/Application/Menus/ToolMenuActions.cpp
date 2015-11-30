@@ -132,6 +132,43 @@ ToolMenuActions::ToolMenuActions(
     connect(parent, &ScenarioApplicationPlugin::keyReleased,
             this,   &ToolMenuActions::keyReleased);
 
+    con(parent->editionSettings(), &Scenario::EditionSettings::toolChanged,
+        this, [=] (Scenario::Tool t) {
+        switch(t)
+        {
+            case Scenario::Tool::Create:
+                if(!m_createtool->isChecked())
+                    m_createtool->setChecked(true);
+                break;
+            case Scenario::Tool::MoveSlot:
+                break;
+            case Scenario::Tool::Disabled:
+                break;
+            case Scenario::Tool::Playing:
+                break;
+            case Scenario::Tool::Select:
+                if(!m_selecttool->isChecked())
+                    m_selecttool->setChecked(true);
+                break;
+            default:
+                break;
+        }
+    });
+
+    con(parent->editionSettings(), &Scenario::EditionSettings::sequenceChanged,
+        this, [=] (bool sequence) {
+        if(sequence)
+        {
+            if(!m_shiftAction->isChecked())
+                m_shiftAction->setChecked(true);
+        }
+        else
+        {
+            if(m_shiftAction->isChecked())
+                m_shiftAction->setChecked(false);
+        }
+    });
+
 }
 
 void ToolMenuActions::fillMenuBar(iscore::MenubarManager *menu)

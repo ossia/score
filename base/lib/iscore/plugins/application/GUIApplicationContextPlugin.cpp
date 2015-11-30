@@ -24,11 +24,6 @@ GUIApplicationContextPlugin::GUIApplicationContextPlugin(iscore::Application& ap
     NamedObject{name, parent},
     m_appContext{app}
 {
-    connect(this, &GUIApplicationContextPlugin::documentChanged,
-            this, &GUIApplicationContextPlugin::on_documentChanged);
-
-    connect(qApp, &QApplication::applicationStateChanged,
-            this, &GUIApplicationContextPlugin::on_focusChanged);
 
 }
 
@@ -93,13 +88,4 @@ void GUIApplicationContextPlugin::on_newDocument(iscore::Document* doc)
 void GUIApplicationContextPlugin::on_loadedDocument(iscore::Document *doc)
 {
 
-}
-
-
-void GUIApplicationContextPlugin::on_focusChanged(Qt::ApplicationState st)
-{
-    if(st == Qt::ApplicationActive)
-        emit focused();
-    else
-        emit defocused();
 }

@@ -40,3 +40,9 @@ void Scenario::EditionSettings::setSequence(bool sequence)
     m_sequence = sequence;
     emit sequenceChanged(sequence);
 }
+
+void Scenario::EditionSettings::setDefault()
+{
+    setTool(Scenario::Tool::Select);
+    setSequence(false);
+}

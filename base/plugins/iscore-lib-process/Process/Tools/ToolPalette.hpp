@@ -67,9 +67,9 @@ class ToolPaletteInputDispatcher : public QObject
             if(t - m_prev < std::chrono::microseconds((int64_t)m_frameTime))
             {
                 m_elapsedPoint = p;
-                m_elapsedTimer.start(m_frameTime / 1000.);
+                //m_elapsedTimer.start(m_frameTime / 1000.);
                 // TODO here put a timer at refresh time ms to trigger the last step if we stop moving.
-                return;
+                //return;
             }
             m_currentPoint = p;
             m_palette.on_moved(p);
@@ -91,14 +91,17 @@ class ToolPaletteInputDispatcher : public QObject
         {
             m_running = false;
             m_elapsedTimer.stop();
+
             m_currentPoint = p;
             m_palette.on_released(p);
         }
 
         void on_cancel()
         {
-            m_palette.on_cancel();
             m_running = false;
+            m_elapsedTimer.stop();
+
+            m_palette.on_cancel();
         }
 
     private:

@@ -120,7 +120,7 @@ void DocumentManager::setCurrentDocument(Document* doc)
 
     for(auto& ctrl : m_presenter.applicationComponents().applicationPlugins())
     {
-        emit ctrl->documentChanged(old, m_currentDocument);
+        ctrl->on_documentChanged(old, m_currentDocument);
     }
 
     emit currentDocumentChanged(doc);

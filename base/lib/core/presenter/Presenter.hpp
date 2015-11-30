@@ -51,7 +51,6 @@ namespace iscore
             { return m_components; }
         private:
             void setupMenus();
-            void on_activeWindowChanged();
             View* m_view {};
 
             DocumentManager m_docManager;

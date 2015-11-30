@@ -60,17 +60,6 @@ namespace iscore
             virtual void on_loadedDocument(iscore::Document* doc);
             virtual void prepareNewDocument();
 
-            void on_focusChanged(Qt::ApplicationState st);
-
-        signals:
-            void documentChanged(
-                    iscore::Document* olddoc,
-                    iscore::Document* newdoc);
-
-            void defocused();
-            void focused();
-
-        protected:
             virtual void on_documentChanged(
                     iscore::Document* olddoc,
                     iscore::Document* newdoc);

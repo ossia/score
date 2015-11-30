@@ -56,8 +56,6 @@ Presenter::Presenter(View* view, QObject* arg_parent) :
     setupMenus();
     connect(m_view,		&View::insertActionIntoMenubar,
             &m_menubar, &MenubarManager::insertActionIntoMenubar);
-    connect(m_view, &View::activeWindowChanged,
-            this, &Presenter::on_activeWindowChanged);
 
     m_view->setPresenter(this);
 }
@@ -168,14 +166,6 @@ void Presenter::setupMenus()
                            .arg(ISCORE_CODENAME)
                            + tr("\n\nCommit: \n")
                            + QString(ISCORE_XSTR(GIT_COMMIT))); });
-}
-
-void Presenter::on_activeWindowChanged()
-{
-    for(auto ap : m_components.appPlugins)
-    {
-        ap->on_focusChanged(Qt::ApplicationHidden);
-    }
 }
 
 bool Presenter::exit()

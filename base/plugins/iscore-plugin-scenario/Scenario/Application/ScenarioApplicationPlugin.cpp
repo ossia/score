@@ -109,13 +109,24 @@ void ignore_template_instantiations_Scenario()
 using namespace iscore;
 #include <Scenario/Application/Menus/ScenarioCommonContextMenuFactory.hpp>
 #include <algorithm>
+#include <core/application/Application.hpp>
+#include <core/presenter/Presenter.hpp>
+#include <core/view/View.hpp>
 
 void test_parse_expr_full();
 ScenarioApplicationPlugin::ScenarioApplicationPlugin(iscore::Application& app) :
     GUIApplicationContextPlugin{app, "ScenarioApplicationPlugin", nullptr}
 {
-    connect(this, &ScenarioApplicationPlugin::defocused,
-            this, &ScenarioApplicationPlugin::reinit_tools);
+    connect(qApp, &QApplication::applicationStateChanged,
+            this, [&] (Qt::ApplicationState st) {
+        editionSettings().setDefault();
+    });
+
+    connect(app.presenter().view(), &iscore::View::activeWindowChanged,
+            this, [&] () {
+        editionSettings().setDefault();
+    });
+
 
     // Note : they are constructed here, because
     // they need to be available quickly for other plug-ins,
@@ -211,18 +222,11 @@ void ScenarioApplicationPlugin::on_presenterDefocused(LayerPresenter* pres)
 {
     // We set the currently focused view model to a "select" state
     // to prevent problems.
-
-    reinit_tools();
+    editionSettings().setDefault();
 
     for(ScenarioActions*& elt : m_pluginActions)
     {
         elt->setEnabled(false);
-    }
-
-    if(dynamic_cast<TemporalScenarioPresenter*>(pres))
-    {
-        // TODO this may not be necessary anymore since this is duplicated in on_focused.
-        editionSettings().setTool(Scenario::Tool::Select);
     }
 
     disconnect(m_contextMenuConnection);
@@ -431,13 +435,6 @@ const Scenario::ScenarioModel* ScenarioApplicationPlugin::focusedScenarioModel()
 TemporalScenarioPresenter* ScenarioApplicationPlugin::focusedPresenter() const
 {
     return dynamic_cast<TemporalScenarioPresenter*>(processFocusManager()->focusedPresenter());
-}
-
-
-void ScenarioApplicationPlugin::reinit_tools()
-{
-    emit keyReleased(Qt::Key_Control);
-    emit keyReleased(Qt::Key_Shift);
 }
 
 void ScenarioApplicationPlugin::prepareNewDocument()
