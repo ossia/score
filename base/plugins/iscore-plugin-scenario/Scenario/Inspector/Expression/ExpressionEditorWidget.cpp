@@ -13,8 +13,13 @@ ExpressionEditorWidget::ExpressionEditorWidget(QWidget *parent) :
 {
     m_mainLayout = new QVBoxLayout{this};
 
+    m_mainLayout->setSpacing(0);
+    m_mainLayout->setContentsMargins(0, 0, 0, 0);
+
     auto btnWidg = new QWidget{this};
     auto btnLay = new QHBoxLayout{btnWidg};
+    btnLay->setSpacing(0);
+    btnLay->setContentsMargins(0, 0, 0, 0);
 
     auto validBtn = new QPushButton{"OK",btnWidg};
     auto cancelBtn = new QPushButton{tr("Cancel"),btnWidg};

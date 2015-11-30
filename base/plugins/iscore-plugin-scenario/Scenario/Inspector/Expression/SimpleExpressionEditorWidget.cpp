@@ -26,7 +26,7 @@ SimpleExpressionEditorWidget::SimpleExpressionEditorWidget(int index, QWidget* p
 
     auto hLay = new QHBoxLayout{secondMember};
     hLay->setContentsMargins(0,0,0,0);
-    hLay->setSpacing(1);
+    hLay->setSpacing(0);
 
     m_ok = new QLabel{"/!\\ ", secondMember};
     m_comparator = new QComboBox{secondMember};
