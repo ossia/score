@@ -79,7 +79,11 @@ inline OSSIA::TimeValue time(const TimeValue& t)
             : OSSIA::TimeValue{t.msec()};
 }
 
-std::shared_ptr<OSSIA::State> state(std::shared_ptr<OSSIA::State> ossia_state,
+std::shared_ptr<OSSIA::State> state(
+        std::shared_ptr<OSSIA::State> ossia_state,
+        const MessageNode& iscore_state,
+        const DeviceList& deviceList);
+std::shared_ptr<OSSIA::State> state(
         const MessageNode& iscore_state,
         const DeviceList& deviceList);
 

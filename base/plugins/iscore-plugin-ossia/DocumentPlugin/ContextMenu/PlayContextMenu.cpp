@@ -16,6 +16,11 @@
 #include <map>
 #include <memory>
 
+#include <RecreateOnPlayDocumentPlugin/StateElement.hpp>
+#include <RecreateOnPlayDocumentPlugin/ConstraintElement.hpp>
+#include <RecreateOnPlayDocumentPlugin/EventElement.hpp>
+#include <RecreateOnPlayDocumentPlugin/ScenarioElement.hpp>
+#include <RecreateOnPlayDocumentPlugin/StateElement.hpp>
 #include "DocumentPlugin/OSSIAConstraintElement.hpp"
 #include "DocumentPlugin/OSSIAEventElement.hpp"
 #include "DocumentPlugin/OSSIAScenarioElement.hpp"
@@ -29,8 +34,11 @@
 #include <Scenario/Document/Constraint/ConstraintModel.hpp>
 #include <Scenario/Document/Event/EventModel.hpp>
 #include <Scenario/Palette/ScenarioPoint.hpp>
+#include <Scenario/Document/State/ItemModel/MessageItemModel.hpp>
+
 #include <iscore/menu/MenuInterface.hpp>
 #include <iscore/tools/NotifyingMap.hpp>
+#include <iscore2OSSIA.hpp>
 
 namespace iscore {
 class MenubarManager;
@@ -45,11 +53,14 @@ PlayContextMenu::PlayContextMenu(ScenarioApplicationPlugin *parent):
     {
         if (auto sm = parent->focusedScenarioModel())
         {
-            auto s_plugin = sm->findChild<OSSIAScenarioElement*>(QString(), Qt::FindDirectChildrenOnly);
+            const auto& ctx = iscore::IDocument::documentContext(*sm);
 
-            for(const auto& state : selectedElements(sm->states))
+            for(const StateModel* state : selectedElements(sm->states))
             {
-                s_plugin->states().at(state->id())->OSSIAState()->launch();
+                auto ossia_state = iscore::convert::state(
+                            state->messages().rootNode(),
+                            ctx.document.model().pluginModel<DeviceDocumentPlugin>()->list());
+                ossia_state->launch();
             }
         }
     });
@@ -58,6 +69,7 @@ PlayContextMenu::PlayContextMenu(ScenarioApplicationPlugin *parent):
     connect(m_playConstraints, &QAction::triggered,
             [=]()
     {
+        /*
         if (auto sm = parent->focusedScenarioModel())
         {
             auto s_plugin = sm->findChild<OSSIAScenarioElement*>(QString(), Qt::FindDirectChildrenOnly);
@@ -67,11 +79,13 @@ PlayContextMenu::PlayContextMenu(ScenarioApplicationPlugin *parent):
                 s_plugin->constraints().at(constraint->id())->play();
             }
         }
+        */
     });
     m_playEvents = new QAction{tr("Play (Events)"), this};
     connect(m_playEvents, &QAction::triggered,
             [=]()
     {
+        /*
         if (auto sm = parent->focusedScenarioModel())
         {
             auto s_plugin = sm->findChild<OSSIAScenarioElement*>(QString(), Qt::FindDirectChildrenOnly);
@@ -81,6 +95,7 @@ PlayContextMenu::PlayContextMenu(ScenarioApplicationPlugin *parent):
                 s_plugin->events().at(ev->id())->OSSIAEvent()->happen();
             }
         }
+        */
     });
 
     m_recordAction = new QAction{tr("Record from here"), this};
