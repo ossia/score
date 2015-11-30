@@ -12,11 +12,33 @@ ExpressionEditorWidget::ExpressionEditorWidget(QWidget *parent) :
     QWidget(parent)
 {
     m_mainLayout = new QVBoxLayout{this};
-    auto validBtn = new QPushButton{"OK",this};
-    m_mainLayout->addWidget(validBtn);
+
+    auto btnWidg = new QWidget{this};
+    auto btnLay = new QHBoxLayout{btnWidg};
+
+    auto validBtn = new QPushButton{"OK",btnWidg};
+    auto cancelBtn = new QPushButton{tr("Cancel"),btnWidg};
+    btnLay->addWidget(validBtn);
+    btnLay->addWidget(cancelBtn);
+
+    m_mainLayout->addWidget(btnWidg);
 
     connect(validBtn, &QPushButton::clicked,
             this, &ExpressionEditorWidget::on_editFinished);
+    connect(cancelBtn, &QPushButton::clicked,
+            this, [&] ()
+    {
+        if(m_expression.isEmpty()) {
+            for(auto& elt : m_relations)
+            {
+                delete elt;
+            }
+            m_relations.clear();
+            addNewRelation();
+        }
+        else
+            setExpression(*iscore::parse(m_expression));
+    });
 
     addNewRelation();
 }
@@ -99,7 +121,11 @@ void ExpressionEditorWidget::addNewRelation()
 */
     connect(relationEditor, &SimpleExpressionEditorWidget::addRelation,
             this, &ExpressionEditorWidget::addNewRelation);
+    //connect()
+}
 
-    //TODO remove relation
+void ExpressionEditorWidget::removeRelation()
+{
+
 }
 

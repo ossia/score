@@ -31,6 +31,7 @@ class ExpressionEditorWidget : public QWidget
 
         QString currentExpr();
         void addNewRelation();
+        void removeRelation();
 
     private:
         QVector<SimpleExpressionEditorWidget*> m_relations;
