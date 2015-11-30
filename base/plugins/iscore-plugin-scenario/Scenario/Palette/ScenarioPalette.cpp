@@ -109,11 +109,8 @@ void ToolPalette::on_released(QPointF point)
 void ToolPalette::on_cancel()
 {
     m_createTool.on_cancel();
-    QApplication::processEvents();
     m_selectTool.on_cancel();
-    QApplication::processEvents();
     m_moveSlotTool.on_cancel();
-    QApplication::processEvents();
 }
 
 void ToolPalette::activate(Tool t)

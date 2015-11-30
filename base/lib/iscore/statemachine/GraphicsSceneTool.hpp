@@ -2,6 +2,7 @@
 #include <QGraphicsScene>
 #include <QGraphicsItem>
 #include <QStateMachine>
+#include <QApplication>
 #include <iscore/statemachine/StateMachineUtils.hpp>
 
 template<typename Coordinates>
@@ -27,6 +28,7 @@ class GraphicsSceneTool
         void on_cancel()
         {
             localSM().postEvent(new iscore::Cancel_Event);
+            QApplication::processEvents();
         }
 
     protected:
