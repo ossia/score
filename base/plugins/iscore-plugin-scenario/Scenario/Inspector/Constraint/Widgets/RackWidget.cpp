@@ -99,9 +99,7 @@ void RackWidget::updateComboBox(LambdaFriendlyQComboBox* combobox, ConstraintVie
 
     for(const auto& rack : m_model.racks)
     {
-        auto id = *rack.id().val();
-        combobox->addItem(QString::number(id)); // TODO should be rack.metadata.name() but somewhere else we assume that name == QString(id) ...
-        // TODO check that
+        combobox->addItem(rack.metadata.name());
         if(vm->shownRack() == rack.id())
         {
             combobox->setCurrentIndex(combobox->count() - 1);
@@ -114,16 +112,16 @@ void RackWidget::updateComboBox(LambdaFriendlyQComboBox* combobox, ConstraintVie
     connect(vm, &ConstraintViewModel::rackHidden,
             combobox, [=] () { combobox->setCurrentIndex(0); });
 
-    /* TODO  we shouldn't show id in combobox anymore. Find something else */
     connect(vm, &ConstraintViewModel::rackShown,
             combobox, [=] (Id<RackModel> id)
     {
         using namespace std;
         auto elts = combobox->elements();
+        auto r = m_model.racks.find(id);
 
         for(int i = 0; i < elts.size(); ++i)
         {
-            if(elts[i] == QString::number(id.val().get()))
+            if(elts[i] == (*r).metadata.name())
             {
                 combobox->setCurrentIndex(i);
                 break;

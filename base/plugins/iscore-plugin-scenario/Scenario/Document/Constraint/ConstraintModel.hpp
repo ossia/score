@@ -121,7 +121,7 @@ class ConstraintModel final : public IdentifiedObject<ConstraintModel>
         // Resets the execution display recursively
         void reset();
 
-        NotifyingMap<RackModel> racks; // No content -> Phantom ?
+        NotifyingMap<RackModel> racks;
         NotifyingMap<Process> processes;
 
         bool looping() const;
