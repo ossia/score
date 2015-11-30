@@ -3,7 +3,7 @@
 #include <QJsonValue>
 #include <algorithm>
 
-#include "ProcessModel/OSSIAProcessModel.hpp"
+#include <OSSIA/ProcessModel/OSSIAProcessModel.hpp>
 #include "SimpleProcess.hpp"
 #include "SimpleProcessModel.hpp"
 #include <iscore/document/DocumentInterface.hpp>

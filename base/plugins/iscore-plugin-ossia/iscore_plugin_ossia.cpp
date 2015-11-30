@@ -1,10 +1,11 @@
-#include <Protocols/Minuit/MinuitProtocolFactory.hpp>
-#include <Protocols/OSC/OSCProtocolFactory.hpp>
+#include <OSSIA/Protocols/Minuit/MinuitProtocolFactory.hpp>
+#include <OSSIA/Protocols/OSC/OSCProtocolFactory.hpp>
 #include <QString>
 
 #include <Device/Protocol/ProtocolFactoryInterface.hpp>
-#include "DocumentPlugin/ContextMenu/PlayContextMenuFactory.hpp"
-#include "OSSIAApplicationPlugin.hpp"
+#include <OSSIA/DocumentPlugin/ContextMenu/PlayContextMenuFactory.hpp>
+#include <OSSIA/OSSIAApplicationPlugin.hpp>
+
 #include <Scenario/Application/Menus/Plugin/ScenarioActionsFactory.hpp>
 #include <iscore/plugins/customfactory/StringFactoryKey.hpp>
 #include "iscore_plugin_ossia.hpp"

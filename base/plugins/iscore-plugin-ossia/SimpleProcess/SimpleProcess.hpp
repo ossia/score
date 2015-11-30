@@ -1,5 +1,5 @@
 #pragma once
-#include <ProcessModel/TimeProcessWithConstraint.hpp>
+#include <OSSIA/ProcessModel/TimeProcessWithConstraint.hpp>
 #include <memory>
 
 #include "Editor/State.h"
