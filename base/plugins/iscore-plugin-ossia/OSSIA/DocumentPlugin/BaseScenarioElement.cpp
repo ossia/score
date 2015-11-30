@@ -15,10 +15,10 @@
 #include "Editor/State.h"
 #include "Editor/StateElement.h"
 #include "Editor/TimeValue.h"
-#include <OSSIA/RecreateOnPlayDocumentPlugin/ConstraintElement.hpp>
-#include <OSSIA/RecreateOnPlayDocumentPlugin/EventElement.hpp>
-#include <OSSIA/RecreateOnPlayDocumentPlugin/StateElement.hpp>
-#include <OSSIA/RecreateOnPlayDocumentPlugin/TimeNodeElement.hpp>
+#include <OSSIA/DocumentPlugin/ConstraintElement.hpp>
+#include <OSSIA/DocumentPlugin/EventElement.hpp>
+#include <OSSIA/DocumentPlugin/StateElement.hpp>
+#include <OSSIA/DocumentPlugin/TimeNodeElement.hpp>
 #include <Scenario/Document/Constraint/ConstraintDurations.hpp>
 #include <Scenario/Document/Constraint/ConstraintModel.hpp>
 

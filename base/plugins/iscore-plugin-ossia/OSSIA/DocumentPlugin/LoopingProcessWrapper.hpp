@@ -11,6 +11,8 @@ class TimeProcess;
 class TimeValue;
 }
 
+namespace RecreateOnPlay
+{
 
 class LoopingProcessWrapper
 {
@@ -19,15 +21,6 @@ class LoopingProcessWrapper
                        const std::shared_ptr<OSSIA::TimeProcess>& ptr,
                        const OSSIA::TimeValue& dur,
                        bool looping);
-
-        ~LoopingProcessWrapper();
-
-        void setDuration(const OSSIA::TimeValue& val);
-
-        void setLooping(bool b);
-
-        void changed(const std::shared_ptr<OSSIA::TimeProcess>&,
-                     const std::shared_ptr<OSSIA::TimeProcess>&);
 
     private:
         std::shared_ptr<OSSIA::TimeProcess> currentProcess() const;
@@ -43,3 +36,4 @@ class LoopingProcessWrapper
         std::shared_ptr<OSSIA::Loop> m_looping_impl;
         bool m_looping = false;
 };
+}

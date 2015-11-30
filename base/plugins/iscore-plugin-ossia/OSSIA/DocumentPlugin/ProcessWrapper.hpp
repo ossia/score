@@ -2,9 +2,11 @@
 #include "BasicProcessWrapper.hpp"
 #include "LoopingProcessWrapper.hpp"
 class Process;
-class OSSIAProcessElement;
 
 
+namespace RecreateOnPlay
+{
+class ProcessElement;
 using ProcessWrapper = LoopingProcessWrapper;
 
 struct OSSIAProcess
@@ -13,13 +15,14 @@ struct OSSIAProcess
         OSSIAProcess(OSSIAProcess&&) = default;
         OSSIAProcess& operator=(OSSIAProcess&&) = default;
 
-        OSSIAProcess(OSSIAProcessElement* e, std::unique_ptr<ProcessWrapper>&& proc):
+        OSSIAProcess(ProcessElement* e, std::unique_ptr<ProcessWrapper>&& proc):
             element(e),
             wrapper(std::move(proc))
         {
 
         }
 
-        OSSIAProcessElement* element{};
+        ProcessElement* element{};
         std::unique_ptr<ProcessWrapper> wrapper;
 };
+}

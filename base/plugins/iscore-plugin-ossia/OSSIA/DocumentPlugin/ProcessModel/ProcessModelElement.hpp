@@ -1,6 +1,6 @@
 #pragma once
-#include <OSSIA/RecreateOnPlayDocumentPlugin/ProcessElement.hpp>
-#include <OSSIA/RecreateOnPlayDocumentPlugin/ConstraintElement.hpp>
+#include <OSSIA/DocumentPlugin/ProcessElement.hpp>
+#include <OSSIA/DocumentPlugin/ConstraintElement.hpp>
 #include "ProcessModel.hpp"
 
 namespace RecreateOnPlay

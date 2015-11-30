@@ -1,6 +1,6 @@
 #pragma once
 #include <API/Headers/Editor/Value.h>
-#include <OSSIA/RecreateOnPlayDocumentPlugin/ProcessElement.hpp>
+#include <OSSIA/DocumentPlugin/ProcessElement.hpp>
 #include <memory>
 
 class Process;

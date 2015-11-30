@@ -3,8 +3,8 @@
 #include <API/Headers/Network/Protocol/Local.h>
 #include <Explorer/Explorer/DeviceExplorerModel.hpp>
 #include <Network/Protocol/OSC.h>
-#include <OSSIA/RecreateOnPlayDocumentPlugin/BaseScenarioElement.hpp>
-#include <OSSIA/RecreateOnPlayDocumentPlugin/DocumentPlugin.hpp>
+#include <OSSIA/DocumentPlugin/BaseScenarioElement.hpp>
+#include <OSSIA/DocumentPlugin/DocumentPlugin.hpp>
 #include <Scenario/Application/ScenarioApplicationPlugin.hpp>
 #include <QAction>
 #include <QVariant>
@@ -16,7 +16,7 @@
 #include "Network/Node.h"
 #include "OSSIAApplicationPlugin.hpp"
 #include <Process/TimeValue.hpp>
-#include <OSSIA/RecreateOnPlayDocumentPlugin/ConstraintElement.hpp>
+#include <OSSIA/DocumentPlugin/ConstraintElement.hpp>
 #include <core/application/ApplicationComponents.hpp>
 #include <core/application/ApplicationContext.hpp>
 #include <iscore/plugins/application/GUIApplicationContextPlugin.hpp>

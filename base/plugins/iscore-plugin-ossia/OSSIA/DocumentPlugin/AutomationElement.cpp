@@ -8,19 +8,19 @@
 #include <algorithm>
 #include <vector>
 
+#include "AutomationElement.hpp"
 #include <Curve/CurveModel.hpp>
 #include <Curve/Segment/CurveSegmentData.hpp>
 #include <Device/Protocol/DeviceInterface.hpp>
 #include <Device/Protocol/DeviceList.hpp>
 #include <Device/Protocol/DeviceSettings.hpp>
-#include "DocumentPlugin/OSSIAProcessElement.hpp"
 #include "Editor/Curve.h"
 #include "Editor/CurveSegment.h"
 #include "Editor/Value.h"
 #include "Network/Address.h"
 #include "Network/Node.h"
-#include "OSSIAAutomationElement.hpp"
 #include <OSSIA/Protocols/OSSIADevice.hpp>
+#include <OSSIA/DocumentPlugin/ProcessElement.hpp>
 #include <State/Address.hpp>
 #include <iscore/document/DocumentInterface.hpp>
 #include <iscore/plugins/customfactory/StringFactoryKey.hpp>
@@ -31,37 +31,37 @@ class QObject;
 namespace OSSIA {
 class TimeProcess;
 }  // namespace OSSIA
+namespace RecreateOnPlay {
+class ConstraintElement;
+}  // namespace RecreateOnPlay
 
-OSSIAAutomationElement::OSSIAAutomationElement(
-        OSSIAConstraintElement& parentConstraint,
+
+
+namespace RecreateOnPlay
+{
+
+AutomationElement::AutomationElement(
+        ConstraintElement& parentConstraint,
         AutomationModel& element,
         QObject *parent):
-    OSSIAProcessElement{parentConstraint, parent},
+    ProcessElement{parentConstraint, parent},
     m_iscore_autom{element},
     m_deviceList{iscore::IDocument::documentFromObject(element)->model().pluginModel<DeviceDocumentPlugin>()->list()}
 {
-    using namespace iscore::convert;
+    recreate();
 }
 
-std::shared_ptr<OSSIA::TimeProcess> OSSIAAutomationElement::OSSIAProcess() const
+std::shared_ptr<OSSIA::TimeProcess> AutomationElement::OSSIAProcess() const
 {
     return m_ossia_autom;
 }
 
-Process& OSSIAAutomationElement::iscoreProcess() const
+Process& AutomationElement::iscoreProcess() const
 {
     return m_iscore_autom;
 }
 
-void OSSIAAutomationElement::clear()
-{
-    m_ossia_curve.reset();
-    auto old_autom = m_ossia_autom;
-    m_ossia_autom = {};
-    emit changed(old_autom, m_ossia_autom);
-}
-
-void OSSIAAutomationElement::recreate()
+void AutomationElement::recreate()
 {
     auto addr = m_iscore_autom.address();
     std::shared_ptr<OSSIA::Automation> new_autom;
@@ -72,7 +72,6 @@ void OSSIAAutomationElement::recreate()
     auto update_fun = [&] (auto new_autom_param) {
         auto old_autom = m_ossia_autom;
         m_ossia_autom = new_autom_param;
-        emit changed(old_autom, new_autom_param);
     };
 
     m_ossia_curve.reset(); // It will be remade after.
@@ -125,7 +124,7 @@ curve_cleanup_label:
 }
 
 template<typename Y_T>
-std::shared_ptr<OSSIA::CurveAbstract> OSSIAAutomationElement::on_curveChanged_impl()
+std::shared_ptr<OSSIA::CurveAbstract> AutomationElement::on_curveChanged_impl()
 {
     using namespace OSSIA;
 
@@ -147,7 +146,7 @@ std::shared_ptr<OSSIA::CurveAbstract> OSSIAAutomationElement::on_curveChanged_im
     }
 }
 
-std::shared_ptr<OSSIA::CurveAbstract> OSSIAAutomationElement::on_curveChanged()
+std::shared_ptr<OSSIA::CurveAbstract> AutomationElement::on_curveChanged()
 {
     m_ossia_curve.reset();
     switch(m_addressType)
@@ -164,4 +163,5 @@ std::shared_ptr<OSSIA::CurveAbstract> OSSIAAutomationElement::on_curveChanged()
     }
 
     return m_ossia_curve;
+}
 }

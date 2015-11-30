@@ -1,8 +1,8 @@
 #include <API/Headers/Editor/TimeConstraint.h>
 #include <Automation/AutomationModel.hpp>
 #include <OSSIA/OSSIA2iscore.hpp>
-#include <OSSIA/RecreateOnPlayDocumentPlugin/ProcessModel/ProcessModel.hpp>
-#include <OSSIA/RecreateOnPlayDocumentPlugin/ProcessModel/ProcessModelElement.hpp>
+#include <OSSIA/DocumentPlugin/ProcessModel/ProcessModel.hpp>
+#include <OSSIA/DocumentPlugin/ProcessModel/ProcessModelElement.hpp>
 #include <Scenario/Document/Constraint/ConstraintModel.hpp>
 #include <Scenario/Process/ScenarioModel.hpp>
 #include <OSSIA/iscore2OSSIA.hpp>
@@ -15,8 +15,8 @@
 #include "LoopElement.hpp"
 #include <Process/Process.hpp>
 #include <Process/TimeValue.hpp>
-#include <OSSIA/RecreateOnPlayDocumentPlugin/ProcessElement.hpp>
-#include <OSSIA/RecreateOnPlayDocumentPlugin/ProcessWrapper.hpp>
+#include <OSSIA/DocumentPlugin/ProcessElement.hpp>
+#include <OSSIA/DocumentPlugin/ProcessWrapper.hpp>
 #include <Scenario/Document/Constraint/ConstraintDurations.hpp>
 #include "ScenarioElement.hpp"
 #include <iscore/tools/SettableIdentifier.hpp>

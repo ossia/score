@@ -1,5 +1,5 @@
 #pragma once
-#include <OSSIA/RecreateOnPlayDocumentPlugin/ProcessElement.hpp>
+#include <OSSIA/DocumentPlugin/ProcessElement.hpp>
 #include <memory>
 
 class ConstraintModel;
