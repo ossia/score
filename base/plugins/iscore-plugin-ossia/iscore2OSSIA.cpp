@@ -424,6 +424,34 @@ std::shared_ptr<OSSIA::State> state(
 }
 
 
+std::shared_ptr<OSSIA::State> state(
+        const MessageNode &iscore_state,
+        const DeviceList& deviceList)
+{
+    auto ossia_state = OSSIA::State::create();
+    auto& elts = ossia_state->stateElements();
+
+    // For all elements where IOType != Invalid,
+    // we add the elements to the state.
+
+    visit_node(iscore_state, [&] (const MessageNode& n) {
+            const auto& val = n.value();
+            if(val)
+            {
+                elts.push_back(
+                            message(
+                                iscore::Message{
+                                    address(n),
+                                    *val},
+                                deviceList
+                                )
+                            );
+            }
+    });
+
+    return ossia_state;
+}
+
 
 
 OSSIA::Value* expressionOperand(

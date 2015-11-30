@@ -21,6 +21,7 @@ iscore_plugin_deviceexplorer::iscore_plugin_deviceexplorer() :
     QObject {},
 iscore::PanelFactory_QtInterface {}
 {
+    QMetaType::registerComparators<ProtocolFactoryKey>();
 }
 
 std::vector<PanelFactory*> iscore_plugin_deviceexplorer::panels()
