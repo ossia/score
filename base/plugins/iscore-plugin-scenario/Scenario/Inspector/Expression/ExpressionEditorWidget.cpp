@@ -3,6 +3,7 @@
 #include <QDebug>
 #include <QtGlobal>
 #include <QStringList>
+#include <QPushButton>
 
 #include "ExpressionEditorWidget.hpp"
 #include <Scenario/Inspector/Expression/SimpleExpressionEditorWidget.hpp>
@@ -11,6 +12,12 @@ ExpressionEditorWidget::ExpressionEditorWidget(QWidget *parent) :
     QWidget(parent)
 {
     m_mainLayout = new QVBoxLayout{this};
+    auto validBtn = new QPushButton{"OK",this};
+    m_mainLayout->addWidget(validBtn);
+
+    connect(validBtn, &QPushButton::clicked,
+            this, &ExpressionEditorWidget::on_editFinished);
+
     addNewRelation();
 }
 
@@ -85,9 +92,11 @@ void ExpressionEditorWidget::addNewRelation()
     m_relations.push_back(relationEditor);
 
     m_mainLayout->addWidget(relationEditor);
-
+/*
+ * TODO : this allow to remove the OK button but it crashes ...
     connect(relationEditor, &SimpleExpressionEditorWidget::editingFinished,
         this, &ExpressionEditorWidget::on_editFinished);
+*/
     connect(relationEditor, &SimpleExpressionEditorWidget::addRelation,
             this, &ExpressionEditorWidget::addNewRelation);
 

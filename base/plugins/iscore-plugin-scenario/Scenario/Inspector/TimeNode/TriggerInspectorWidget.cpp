@@ -7,7 +7,7 @@
 #include <Inspector/InspectorWidgetBase.hpp>
 #include <Scenario/Commands/TimeNode/TriggerCommandFactory/TriggerCommandFactoryList.hpp>
 #include <Scenario/Document/TimeNode/TimeNodeModel.hpp>
-#include <Scenario/Inspector/Expression/SimpleExpressionEditorWidget.hpp>
+#include <Scenario/Inspector/Expression/ExpressionEditorWidget.hpp>
 #include "TriggerInspectorWidget.hpp"
 #include <iscore/command/Dispatchers/CommandDispatcher.hpp>
 #include <iscore/tools/ModelPath.hpp>
@@ -25,11 +25,11 @@ TriggerInspectorWidget::TriggerInspectorWidget(
 {
     auto triglay = new QHBoxLayout{this};
 
-    m_exprEditor = new SimpleExpressionEditorWidget{this};
-    connect(m_exprEditor, &SimpleExpressionEditorWidget::editingFinished,
+    m_exprEditor = new ExpressionEditorWidget{this};
+    connect(m_exprEditor, &ExpressionEditorWidget::editingFinished,
             this, &TriggerInspectorWidget::on_triggerChanged);
     connect(m_model.trigger(), &TriggerModel::triggerChanged,
-            m_exprEditor, &SimpleExpressionEditorWidget::setExpression);
+            m_exprEditor, &ExpressionEditorWidget::setExpression);
 
     m_addTrigBtn = new QPushButton{"Add Trigger"};
     m_rmTrigBtn = new QPushButton{"X"};
