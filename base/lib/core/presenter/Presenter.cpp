@@ -6,6 +6,7 @@
 #include <QAction>
 #include <QKeySequence>
 #include <QMenu>
+#include <QMenuBar>
 #include <QMessageBox>
 #include <qnamespace.h>
 #include <QObject>
