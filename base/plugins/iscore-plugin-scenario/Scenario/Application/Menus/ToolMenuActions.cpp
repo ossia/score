@@ -141,6 +141,8 @@ ToolMenuActions::ToolMenuActions(
                     m_createtool->setChecked(true);
                 break;
             case Scenario::Tool::MoveSlot:
+                if(!slotmovetool->isChecked())
+                    slotmovetool->setChecked(true);
                 break;
             case Scenario::Tool::Disabled:
                 break;
@@ -169,6 +171,25 @@ ToolMenuActions::ToolMenuActions(
         }
     });
 
+    con(parent->editionSettings(), &Scenario::EditionSettings::expandModeChanged,
+        this, [=] (ExpandMode mode)
+    {
+        switch(mode)
+        {
+            case ExpandMode::Scale:
+                if(!scale->isChecked())
+                    scale->setChecked(true);
+                break;
+            case ExpandMode::Grow:
+                if(!grow->isChecked())
+                    grow->setChecked(true);
+                break;
+            case ExpandMode::Fixed:
+                if(!fixed->isChecked())
+                    fixed->setChecked(true);
+                break;
+        }
+    });
 }
 
 void ToolMenuActions::fillMenuBar(iscore::MenubarManager *menu)
