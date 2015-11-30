@@ -30,13 +30,13 @@ namespace iscore
      *
      * It is instatiated exactly once.
      */
-    class GUIApplicationContextPlugin : public NamedObject
+    class GUIApplicationContextPlugin
     {
             // Menus : trouver un moyen pour créer automatiquement si n'existe pas ?
             // Dire chemin : File/Export/SomeCustomExport ?
             // Pb. : traduction ? (ex. : soft traduit & plug pas traduit ?)
             // Fournir menus de base : Fichier Edition Affichage Objet Arrangement Devices Fenêtre Paramètres Aide
-        Q_OBJECT
+
         public:
             GUIApplicationContextPlugin(iscore::Application& presenter,
                                    const QString& name,

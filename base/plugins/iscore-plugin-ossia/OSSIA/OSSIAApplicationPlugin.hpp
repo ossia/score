@@ -27,7 +27,9 @@ class ConstraintElement;
 // One would be the "distributed" policy which provides the
 // same functionalities but for scenario executing on different computers.
 
-class OSSIAApplicationPlugin final : public iscore::GUIApplicationContextPlugin
+class OSSIAApplicationPlugin final :
+        public QObject,
+        public iscore::GUIApplicationContextPlugin
 {
     public:
         OSSIAApplicationPlugin(iscore::Application& app);
