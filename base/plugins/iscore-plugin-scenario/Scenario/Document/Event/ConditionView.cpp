@@ -86,7 +86,7 @@ void ConditionView::changeHeight(qreal newH)
 
     m_Cpath->moveTo(boundingRect().width() / 2., 0);
     m_Cpath->arcTo(rect, 60, 120);
-    m_Cpath->lineTo(0, m_height - m_CHeight/2);
+    m_Cpath->lineTo(0, m_height + m_CHeight/2);
     m_Cpath->arcTo(bottomRect, -180, 120);
     this->update();
 }
