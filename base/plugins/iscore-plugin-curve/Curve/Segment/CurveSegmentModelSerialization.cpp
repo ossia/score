@@ -1,4 +1,4 @@
-#include <boost/core/explicit_operator_bool.hpp>
+
 #include <core/application/ApplicationComponents.hpp>
 #include <iscore/tools/std/StdlibWrapper.hpp>
 #include <QJsonObject>

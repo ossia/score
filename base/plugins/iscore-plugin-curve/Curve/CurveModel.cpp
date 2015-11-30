@@ -2,7 +2,7 @@
 #include <Curve/Segment/CurveSegmentList.hpp>
 #include <Curve/Segment/CurveSegmentModel.hpp>
 #include <Curve/Segment/CurveSegmentModelSerialization.hpp>
-#include <boost/core/explicit_operator_bool.hpp>
+
 #include <boost/iterator/indirect_iterator.hpp>
 #include <boost/iterator/iterator_facade.hpp>
 #include <boost/multi_index/detail/hash_index_iterator.hpp>

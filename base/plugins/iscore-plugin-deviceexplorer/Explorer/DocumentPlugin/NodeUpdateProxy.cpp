@@ -1,6 +1,6 @@
 #include <Device/Address/AddressSettings.hpp>
 #include <Explorer/Explorer/DeviceExplorerModel.hpp>
-#include <boost/core/explicit_operator_bool.hpp>
+
 #include <boost/optional/optional.hpp>
 #include <QDebug>
 #include <QStringList>

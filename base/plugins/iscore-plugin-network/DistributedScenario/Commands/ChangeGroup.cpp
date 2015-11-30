@@ -1,5 +1,5 @@
 #include <boost/concept/usage.hpp>
-#include <boost/core/explicit_operator_bool.hpp>
+
 #include <boost/range/algorithm/find_if.hpp>
 #include <QObject>
 

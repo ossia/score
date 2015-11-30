@@ -1,5 +1,5 @@
 #include <Loop/LoopPresenter.hpp>
-#include <boost/core/explicit_operator_bool.hpp>
+
 #include <boost/optional/optional.hpp>
 #include <algorithm>
 

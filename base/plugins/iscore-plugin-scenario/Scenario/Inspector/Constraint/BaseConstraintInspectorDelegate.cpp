@@ -6,7 +6,7 @@
 #include <Scenario/Inspector/Constraint/ConstraintInspectorWidget.hpp>
 #include <Scenario/Inspector/TimeNode/TriggerInspectorWidget.hpp>
 #include <Scenario/Process/Algorithms/Accessors.hpp>
-#include <boost/core/explicit_operator_bool.hpp>
+
 #include <boost/optional/optional.hpp>
 #include <core/application/Application.hpp>
 #include <core/application/ApplicationComponents.hpp>

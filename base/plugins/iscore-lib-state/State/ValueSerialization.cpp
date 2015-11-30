@@ -1,5 +1,5 @@
 #include <State/ValueConversion.hpp>
-#include <boost/core/explicit_operator_bool.hpp>
+
 #include <boost/none_t.hpp>
 #include <iscore/serialization/DataStreamVisitor.hpp>
 #include <iscore/serialization/JSONVisitor.hpp>

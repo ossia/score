@@ -1,6 +1,6 @@
 #include <Scenario/Document/Constraint/Rack/RackModel.hpp>
 #include <Scenario/Document/Constraint/Rack/Slot/SlotModel.hpp>
-#include <boost/core/explicit_operator_bool.hpp>
+
 #include <type_traits>
 #include <utility>
 

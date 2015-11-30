@@ -1,6 +1,6 @@
 #include <Scenario/Commands/State/AddMessagesToState.hpp>
 #include <State/MessageListSerialization.hpp>
-#include <boost/core/explicit_operator_bool.hpp>
+
 #include <boost/optional/optional.hpp>
 #include <QFlags>
 #include <QJsonDocument>

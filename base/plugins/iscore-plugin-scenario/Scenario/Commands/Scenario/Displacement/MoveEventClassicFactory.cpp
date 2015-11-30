@@ -1,7 +1,7 @@
 #include <Scenario/Commands/Scenario/Displacement/MoveEvent.hpp>
 #include <Scenario/Commands/Scenario/Displacement/MoveEventClassicFactory.hpp>
 #include <Scenario/Process/Algorithms/GoodOldDisplacementPolicy.hpp>
-#include <boost/core/explicit_operator_bool.hpp>
+
 #include <boost/optional/optional.hpp>
 #include <QString>
 #include <algorithm>

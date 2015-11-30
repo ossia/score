@@ -1,7 +1,7 @@
 #pragma once
 
 #include <Scenario/Inspector/ExpressionValidator.hpp>
-#include <boost/core/explicit_operator_bool.hpp>
+
 #include <QString>
 #include <QWidget>
 

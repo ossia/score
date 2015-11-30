@@ -1,7 +1,7 @@
 #include <Process/LayerModel.hpp>
 #include <Scenario/Document/Constraint/LayerModelLoader.hpp>
 #include <Scenario/Document/Constraint/Rack/Slot/SlotModel.hpp>
-#include <boost/core/explicit_operator_bool.hpp>
+
 
 #include "RemoveLayerModelFromSlot.hpp"
 #include <iscore/serialization/DataStreamVisitor.hpp>

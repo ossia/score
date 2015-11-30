@@ -1,5 +1,5 @@
 #include <Scenario/Document/Constraint/ViewModels/ConstraintViewModel.hpp>
-#include <boost/core/explicit_operator_bool.hpp>
+
 #include <iscore/serialization/DataStreamVisitor.hpp>
 #include <algorithm>
 

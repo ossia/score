@@ -1,6 +1,6 @@
 #include <Curve/Segment/CurveSegmentList.hpp>
 #include <Curve/Segment/CurveSegmentModelSerialization.hpp>
-#include <boost/core/explicit_operator_bool.hpp>
+
 #include <core/application/ApplicationComponents.hpp>
 #include <iscore/serialization/DataStreamVisitor.hpp>
 #include <iscore/serialization/JSONVisitor.hpp>

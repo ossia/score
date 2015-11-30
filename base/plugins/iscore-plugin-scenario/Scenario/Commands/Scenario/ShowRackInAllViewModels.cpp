@@ -1,6 +1,6 @@
 #include <Scenario/Document/Constraint/ConstraintModel.hpp>
 #include <Scenario/Document/Constraint/ViewModels/ConstraintViewModel.hpp>
-#include <boost/core/explicit_operator_bool.hpp>
+
 #include <QDataStream>
 #include <QtGlobal>
 #include <algorithm>

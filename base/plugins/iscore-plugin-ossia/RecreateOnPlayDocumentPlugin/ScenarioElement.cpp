@@ -3,7 +3,7 @@
 #include <API/Headers/Editor/TimeEvent.h>
 #include <API/Headers/Editor/TimeNode.h>
 #include <Explorer/DocumentPlugin/DeviceDocumentPlugin.hpp>
-#include <boost/core/explicit_operator_bool.hpp>
+
 #include <core/document/Document.hpp>
 #include <core/document/DocumentModel.hpp>
 #include <iscore/document/DocumentInterface.hpp>

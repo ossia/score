@@ -2,7 +2,7 @@
 #include <Scenario/Document/ScenarioDocument/ScenarioDocumentModel.hpp>
 #include <Scenario/Document/ScenarioDocument/ScenarioDocumentPresenter.hpp>
 #include <Scenario/Document/ScenarioDocument/ScenarioDocumentView.hpp>
-#include <boost/core/explicit_operator_bool.hpp>
+
 #include <boost/optional/optional.hpp>
 #include <core/application/ApplicationContext.hpp>
 #include <iscore/document/DocumentInterface.hpp>

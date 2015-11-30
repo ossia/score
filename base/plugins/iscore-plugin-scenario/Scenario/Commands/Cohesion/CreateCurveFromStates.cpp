@@ -3,7 +3,7 @@
 #include <Curve/Segment/Power/PowerCurveSegmentModel.hpp>
 #include <Process/ProcessList.hpp>
 #include <Scenario/Document/Constraint/ConstraintModel.hpp>
-#include <boost/core/explicit_operator_bool.hpp>
+
 #include <boost/optional/optional.hpp>
 #include <core/application/ApplicationComponents.hpp>
 

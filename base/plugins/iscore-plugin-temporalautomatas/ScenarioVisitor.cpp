@@ -8,7 +8,7 @@
 #include <Scenario/Document/TimeNode/TimeNodeModel.hpp>
 #include <Scenario/Document/TimeNode/Trigger/TriggerModel.hpp>
 #include <Scenario/Process/ScenarioModel.hpp>
-#include <boost/core/explicit_operator_bool.hpp>
+
 #include <core/application/Application.hpp>
 #include <iscore/menu/MenuInterface.hpp>
 #include <QAction>

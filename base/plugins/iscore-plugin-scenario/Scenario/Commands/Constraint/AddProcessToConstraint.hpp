@@ -8,7 +8,7 @@
 #include <Scenario/Document/Constraint/Rack/Slot/SlotModel.hpp>
 #include <Scenario/Document/Constraint/ViewModels/ConstraintViewModel.hpp>
 #include <Scenario/Process/ScenarioModel.hpp>
-#include <boost/core/explicit_operator_bool.hpp>
+
 #include <boost/iterator/iterator_facade.hpp>
 #include <boost/multi_index/detail/hash_index_iterator.hpp>
 #include <boost/optional/optional.hpp>

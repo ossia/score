@@ -1,4 +1,3 @@
-#include <boost/core/explicit_operator_bool.hpp>
 #include <boost/none_t.hpp>
 #include <boost/optional/optional.hpp>
 #include <QJsonArray>

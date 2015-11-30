@@ -4,7 +4,7 @@
 #include <Scenario/Document/Constraint/LayerModelLoader.hpp>
 #include <Scenario/Document/Constraint/Rack/RackModel.hpp>
 #include <Scenario/Document/Constraint/Rack/Slot/SlotModel.hpp>
-#include <boost/core/explicit_operator_bool.hpp>
+
 #include <core/application/ApplicationComponents.hpp>
 
 #include <QDataStream>

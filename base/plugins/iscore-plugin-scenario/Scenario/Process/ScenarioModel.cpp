@@ -1,5 +1,5 @@
 #include <Scenario/Process/Temporal/TemporalScenarioLayerModel.hpp>
-#include <boost/core/explicit_operator_bool.hpp>
+
 #include <iscore/tools/SettableIdentifierGeneration.hpp>
 #include <QDataStream>
 #include <QDebug>

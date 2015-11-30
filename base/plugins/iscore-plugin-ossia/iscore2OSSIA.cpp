@@ -4,7 +4,7 @@
 #include <Editor/ExpressionNot.h>
 #include <Process/State/MessageNode.hpp>
 #include <boost/concept/usage.hpp>
-#include <boost/core/explicit_operator_bool.hpp>
+
 #include <boost/mpl/at.hpp>
 #include <boost/mpl/map.hpp>
 #include <boost/mpl/pair.hpp>

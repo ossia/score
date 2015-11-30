@@ -1,5 +1,5 @@
 #include <Scenario/Document/Constraint/LayerModelLoader.hpp>
-#include <boost/core/explicit_operator_bool.hpp>
+
 #include <boost/optional/optional.hpp>
 #include <QtGlobal>
 #include <QJsonArray>

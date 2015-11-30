@@ -1,4 +1,4 @@
-#include <boost/core/explicit_operator_bool.hpp>
+
 #include <algorithm>
 
 #include "DistributedScenario/Group.hpp"

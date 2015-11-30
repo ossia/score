@@ -1,6 +1,6 @@
 #include <Process/LayerModel.hpp>
 #include <Process/Process.hpp>
-#include <boost/core/explicit_operator_bool.hpp>
+
 #include <QJsonObject>
 #include <QJsonValue>
 

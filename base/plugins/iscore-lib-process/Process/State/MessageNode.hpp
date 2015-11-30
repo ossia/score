@@ -1,6 +1,6 @@
 #pragma once
 #include <State/Message.hpp>
-#include <boost/core/explicit_operator_bool.hpp>
+
 #include <boost/optional/optional.hpp>
 #include <iscore/tools/TreeNode.hpp>
 #include <QString>

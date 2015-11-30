@@ -3,7 +3,7 @@
 #include <Scenario/Document/DisplayedElements/DisplayedElementsPresenter.hpp>
 #include <Scenario/Document/ScenarioDocument/ScenarioDocumentPresenter.hpp>
 #include <Scenario/Palette/ScenarioPoint.hpp>
-#include <boost/core/explicit_operator_bool.hpp>
+
 #include <boost/optional/optional.hpp>
 #include <core/application/ApplicationContext.hpp>
 #include <algorithm>

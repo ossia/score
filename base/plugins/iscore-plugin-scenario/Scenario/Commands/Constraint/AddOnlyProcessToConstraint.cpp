@@ -1,7 +1,7 @@
 #include <Process/ProcessFactory.hpp>
 #include <Process/ProcessList.hpp>
 #include <Scenario/Document/Constraint/ConstraintModel.hpp>
-#include <boost/core/explicit_operator_bool.hpp>
+
 #include <boost/iterator/iterator_facade.hpp>
 #include <boost/multi_index/detail/hash_index_iterator.hpp>
 #include <core/application/ApplicationComponents.hpp>

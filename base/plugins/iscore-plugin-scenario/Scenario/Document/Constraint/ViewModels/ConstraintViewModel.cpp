@@ -1,5 +1,5 @@
 #include <Scenario/Document/Constraint/Rack/RackModel.hpp>
-#include <boost/core/explicit_operator_bool.hpp>
+
 
 #include "ConstraintViewModel.hpp"
 #include <iscore/tools/IdentifiedObject.hpp>

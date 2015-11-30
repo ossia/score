@@ -1,4 +1,4 @@
-#include <boost/core/explicit_operator_bool.hpp>
+
 #include <iscore/serialization/VisitorCommon.hpp>
 #include <QDataStream>
 #include <QtGlobal>

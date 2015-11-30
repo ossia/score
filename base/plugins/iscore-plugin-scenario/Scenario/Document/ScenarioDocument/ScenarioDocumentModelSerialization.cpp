@@ -1,5 +1,5 @@
 #include <Scenario/Document/BaseScenario/BaseScenario.hpp>
-#include <boost/core/explicit_operator_bool.hpp>
+
 #include <iscore/serialization/VisitorCommon.hpp>
 #include <QJsonObject>
 #include <QJsonValue>

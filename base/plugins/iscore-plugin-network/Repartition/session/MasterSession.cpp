@@ -1,5 +1,5 @@
 #include <boost/optional/optional.hpp>
-#include <dnssd/publicservice.h>
+//#include <dnssd/publicservice.h>
 #include <qnamespace.h>
 
 #include "MasterSession.hpp"

@@ -2,7 +2,7 @@
 #include <Scenario/Process/Temporal/TemporalScenarioLayerModel.hpp>
 #include <Scenario/Process/Temporal/TemporalScenarioPresenter.hpp>
 #include <Scenario/Process/Temporal/TemporalScenarioView.hpp>
-#include <boost/core/explicit_operator_bool.hpp>
+
 #include <boost/optional/optional.hpp>
 #include <QDataStream>
 #include <QIODevice>

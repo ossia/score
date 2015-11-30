@@ -4,7 +4,7 @@
 #include <Scenario/Document/Constraint/ConstraintModel.hpp>
 #include <Scenario/Inspector/Constraint/ConstraintInspectorDelegateFactory.hpp>
 #include <Scenario/Inspector/Constraint/ConstraintInspectorWidget.hpp>
-#include <boost/core/explicit_operator_bool.hpp>
+
 #include <boost/optional/optional.hpp>
 #include <core/application/ApplicationComponents.hpp>
 #include <core/document/Document.hpp>

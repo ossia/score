@@ -1,5 +1,5 @@
 #include <Scenario/Document/State/StateModel.hpp>
-#include <boost/core/explicit_operator_bool.hpp>
+
 #include <iscore/document/DocumentInterface.hpp>
 #include <iscore/serialization/DataStreamVisitor.hpp>
 #include <iscore/serialization/JSONVisitor.hpp>

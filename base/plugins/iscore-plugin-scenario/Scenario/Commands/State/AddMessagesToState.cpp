@@ -1,7 +1,7 @@
 #include <Process/State/ProcessStateDataInterface.hpp>
 #include <Scenario/Document/State/ItemModel/MessageItemModelAlgorithms.hpp>
 #include <Scenario/Document/State/StateModel.hpp>
-#include <boost/core/explicit_operator_bool.hpp>
+
 #include <QDataStream>
 #include <QtGlobal>
 #include <algorithm>

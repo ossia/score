@@ -1,4 +1,4 @@
-#include <boost/core/explicit_operator_bool.hpp>
+
 #include <boost/optional/optional.hpp>
 #include <core/document/DocumentPresenter.hpp>
 #include <core/document/DocumentView.hpp>

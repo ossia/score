@@ -1,7 +1,7 @@
 #include <Scenario/Document/Constraint/ConstraintModel.hpp>
 #include <Scenario/Document/Constraint/Rack/RackModel.hpp>
 #include <Scenario/Document/Constraint/ViewModels/ConstraintViewModel.hpp>
-#include <boost/core/explicit_operator_bool.hpp>
+
 #include <QDataStream>
 #include <QtGlobal>
 #include <type_traits>

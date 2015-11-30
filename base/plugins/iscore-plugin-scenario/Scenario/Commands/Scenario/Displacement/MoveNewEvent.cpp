@@ -1,6 +1,6 @@
 #include <Scenario/Process/Algorithms/VerticalMovePolicy.hpp>
 #include <Scenario/Process/ScenarioModel.hpp>
-#include <boost/core/explicit_operator_bool.hpp>
+
 #include <QByteArray>
 #include <algorithm>
 

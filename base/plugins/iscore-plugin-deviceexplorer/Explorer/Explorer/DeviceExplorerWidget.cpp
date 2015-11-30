@@ -8,7 +8,7 @@
 #include <Explorer/Commands/Update/UpdateAddressSettings.hpp>
 #include <Explorer/Commands/Update/UpdateDeviceSettings.hpp>
 #include <Explorer/Commands/UpdateAddresses.hpp>
-#include <boost/core/explicit_operator_bool.hpp>
+
 #include <boost/optional/optional.hpp>
 #include <QAbstractProxyModel>
 #include <QAction>
