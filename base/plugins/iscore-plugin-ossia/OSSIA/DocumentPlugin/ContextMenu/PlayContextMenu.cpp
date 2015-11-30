@@ -55,7 +55,7 @@ PlayContextMenu::PlayContextMenu(ScenarioApplicationPlugin *parent):
             for(const StateModel* state : selectedElements(sm->states))
             {
                 auto ossia_state = iscore::convert::state(
-                            state->messages().rootNode(),
+                            *state,
                             ctx.document.model().pluginModel<DeviceDocumentPlugin>()->list());
                 ossia_state->launch();
             }

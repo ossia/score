@@ -65,10 +65,8 @@ iscore_plugin_scenario::iscore_plugin_scenario() :
     QMetaType::registerComparators<iscore::Value>();
     QMetaType::registerComparators<iscore::Message>();
     QMetaType::registerComparators<iscore::MessageList>();
-    /*
-    qRegisterMetaTypeStreamOperators<iscore::State>();
-    qRegisterMetaTypeStreamOperators<iscore::StateList>();
-    */qRegisterMetaTypeStreamOperators<iscore::Message>();
+
+    qRegisterMetaTypeStreamOperators<iscore::Message>();
     qRegisterMetaTypeStreamOperators<iscore::MessageList>();
     qRegisterMetaTypeStreamOperators<iscore::Address>();
     qRegisterMetaTypeStreamOperators<iscore::Value>();
@@ -81,7 +79,7 @@ iscore_plugin_scenario::iscore_plugin_scenario() :
 // Interfaces implementations :
 std::vector<iscore::DocumentDelegateFactoryInterface*> iscore_plugin_scenario::documents()
 {
-    return {new ScenarioDocument};
+    return {new ScenarioDocumentFactory};
 }
 
 iscore::GUIApplicationContextPlugin* iscore_plugin_scenario::make_applicationPlugin(
@@ -100,7 +98,8 @@ std::vector<iscore::PanelFactory*> iscore_plugin_scenario::panels()
 std::vector<std::unique_ptr<iscore::FactoryListInterface>> iscore_plugin_scenario::factoryFamilies()
 {
     return make_ptr_vector<iscore::FactoryListInterface,
-            DynamicProcessList,
+            ProcessList,
+            StateProcessList,
             MoveEventList,
             ScenarioContextMenuPluginList,
             ConstraintInspectorDelegateFactoryList,

@@ -14,7 +14,7 @@ class DocumentPresenter;
 struct VisitorVariant;
 
 iscore::DocumentDelegateViewInterface*
-ScenarioDocument::makeView(
+ScenarioDocumentFactory::makeView(
         const iscore::ApplicationContext& ctx,
         iscore::DocumentView* parent)
 {
@@ -22,7 +22,7 @@ ScenarioDocument::makeView(
 }
 
 iscore::DocumentDelegatePresenterInterface*
-ScenarioDocument::makePresenter(
+ScenarioDocumentFactory::makePresenter(
         iscore::DocumentPresenter* parent_presenter,
         const iscore::DocumentDelegateModelInterface& model,
         iscore::DocumentDelegateViewInterface& view)
@@ -31,12 +31,12 @@ ScenarioDocument::makePresenter(
 }
 
 iscore::DocumentDelegateModelInterface*
-ScenarioDocument::makeModel(iscore::DocumentModel* parent)
+ScenarioDocumentFactory::makeModel(iscore::DocumentModel* parent)
 {
     return new ScenarioDocumentModel {parent};
 }
 
-iscore::DocumentDelegateModelInterface* ScenarioDocument::loadModel(
+iscore::DocumentDelegateModelInterface* ScenarioDocumentFactory::loadModel(
         const VisitorVariant& vis,
         iscore::DocumentModel* parent)
 {

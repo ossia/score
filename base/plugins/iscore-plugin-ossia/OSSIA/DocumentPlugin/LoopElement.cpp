@@ -11,12 +11,14 @@
 
 #include "Editor/Loop.h"
 #include "Editor/TimeValue.h"
+#include "Editor/State.h"
 #include "Loop/LoopProcessModel.hpp"
 #include "LoopElement.hpp"
 #include <OSSIA/DocumentPlugin/ConstraintElement.hpp>
 #include <OSSIA/DocumentPlugin/EventElement.hpp>
 #include <OSSIA/DocumentPlugin/ProcessElement.hpp>
 #include <OSSIA/DocumentPlugin/TimeNodeElement.hpp>
+#include <OSSIA/DocumentPlugin/StateElement.hpp>
 #include <Scenario/Document/Constraint/ConstraintDurations.hpp>
 
 class Process;
@@ -43,15 +45,34 @@ RecreateOnPlay::LoopElement::LoopElement(
     [] (OSSIA::TimeEvent::Status) {}
     );
 
-    // TODO States
     // TODO also states in BasEelement
     // TODO put graphical settings somewhere.
-    m_ossia_startTimeNode = new TimeNodeElement{m_ossia_loop->getPatternStartTimeNode(), element.startTimeNode(),  m_deviceList, this};
-    m_ossia_endTimeNode = new TimeNodeElement{m_ossia_loop->getPatternEndTimeNode(), element.endTimeNode(), m_deviceList, this};
 
-    m_ossia_startEvent = new EventElement{*m_ossia_loop->getPatternStartTimeNode()->timeEvents().begin(), element.startEvent(), m_deviceList, this};
-    m_ossia_endEvent = new EventElement{*m_ossia_loop->getPatternEndTimeNode()->timeEvents().begin(), element.endEvent(), m_deviceList, this};
+    auto startTN = m_ossia_loop->getPatternStartTimeNode();
+    auto endTN = m_ossia_loop->getPatternEndTimeNode();
+    auto startEV = *startTN->timeEvents().begin();
+    auto endEV = *endTN->timeEvents().begin();
 
+
+    m_ossia_startTimeNode = new TimeNodeElement{startTN, element.startTimeNode(),  m_deviceList, this};
+    m_ossia_endTimeNode = new TimeNodeElement{endTN, element.endTimeNode(), m_deviceList, this};
+
+    m_ossia_startEvent = new EventElement{startEV, element.startEvent(), m_deviceList, this};
+    m_ossia_endEvent = new EventElement{endEV, element.endEvent(), m_deviceList, this};
+
+    m_ossia_startState = new StateElement{
+            element.startState(),
+            iscore::convert::state(element.startState(), m_deviceList),
+            m_deviceList,
+            this};
+    m_ossia_endState = new StateElement{
+            element.endState(),
+            iscore::convert::state(element.endState(), m_deviceList),
+            m_deviceList,
+            this};
+
+    startEV->getState()->stateElements().push_back(m_ossia_startState->OSSIAState());
+    endEV->getState()->stateElements().push_back(m_ossia_endState->OSSIAState());
     m_ossia_constraint = new ConstraintElement{m_ossia_loop->getPatternTimeConstraint(), element.constraint(), this};
 }
 

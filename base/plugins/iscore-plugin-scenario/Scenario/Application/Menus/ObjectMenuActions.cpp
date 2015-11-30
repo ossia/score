@@ -144,7 +144,7 @@ ObjectMenuActions::ObjectMenuActions(
     // ADD PROCESS
 
     auto appContext = parent->context();
-    auto& fact = appContext.components.factory<DynamicProcessList>();
+    auto& fact = appContext.components.factory<ProcessList>();
     m_addProcessDialog = new AddProcessDialog{fact, qApp->activeWindow()};
 
     connect(m_addProcessDialog, &AddProcessDialog::okPressed,

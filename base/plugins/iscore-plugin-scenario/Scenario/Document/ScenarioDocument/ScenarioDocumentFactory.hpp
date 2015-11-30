@@ -13,8 +13,7 @@ class DocumentView;
 }  // namespace iscore
 struct VisitorVariant;
 
-// TODO ScenarioDocumentFactory instead?
-class ScenarioDocument final : public iscore::DocumentDelegateFactoryInterface
+class ScenarioDocumentFactory final : public iscore::DocumentDelegateFactoryInterface
 {
     public:
         iscore::DocumentDelegateViewInterface* makeView(

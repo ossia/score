@@ -15,6 +15,12 @@
 #include <Scenario/Process/ScenarioInterface.hpp>
 #include <Scenario/Document/Constraint/ConstraintModel.hpp>
 
+/*
+#include <Process/ProcessList.hpp>
+#include <core/document/DocumentContext.hpp>
+#include <core/application/ApplicationContext.hpp>
+#include <core/application/ApplicationComponents.hpp>
+*/
 constexpr const char StateModel::className[];
 StateModel::StateModel(
         const Id<StateModel>& id,
@@ -30,6 +36,11 @@ StateModel::StateModel(
                             this}}
 {
     init();
+/*
+    auto ctx = iscore::IDocument::documentContext(*this);
+    auto& fact = *ctx.app.components.factory<StateProcessList>().list().get().begin()->second;
+    stateProcesses.add(fact.make(Id<StateProcess>{123}, this));
+    */
 }
 
 StateModel::StateModel(

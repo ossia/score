@@ -39,6 +39,9 @@
 #include <State/Relation.hpp>
 #include <iscore/tools/InvisibleRootNode.hpp>
 #include <OSSIA/iscore2OSSIA.hpp>
+#include <Scenario/Document/State/StateModel.hpp>
+#include <Scenario/Document/State/ItemModel/MessageItemModel.hpp>
+#include <OSSIA/DocumentPlugin/ProcessModel/ProcessModel.hpp>
 
 
 class NodeNotFoundException : public std::exception
@@ -397,7 +400,7 @@ static void visit_node(
 
 std::shared_ptr<OSSIA::State> state(
         std::shared_ptr<OSSIA::State> ossia_state,
-        const MessageNode &iscore_state,
+        const StateModel& iscore_state,
         const DeviceList& deviceList)
 {
     auto& elts = ossia_state->stateElements();
@@ -405,7 +408,7 @@ std::shared_ptr<OSSIA::State> state(
     // For all elements where IOType != Invalid,
     // we add the elements to the state.
 
-    visit_node(iscore_state, [&] (const MessageNode& n) {
+    visit_node(iscore_state.messages().rootNode(), [&] (const MessageNode& n) {
             const auto& val = n.value();
             if(val)
             {
@@ -419,37 +422,24 @@ std::shared_ptr<OSSIA::State> state(
                             );
             }
     });
+
+    for(const auto& proc : iscore_state.stateProcesses)
+    {
+        if(auto state_proc = dynamic_cast<const RecreateOnPlay::OSSIAStateProcessModel*>(&proc))
+        {
+            elts.push_back(state_proc->state());
+        }
+    }
 
     return ossia_state;
 }
 
 
 std::shared_ptr<OSSIA::State> state(
-        const MessageNode &iscore_state,
+        const StateModel& iscore_state,
         const DeviceList& deviceList)
 {
-    auto ossia_state = OSSIA::State::create();
-    auto& elts = ossia_state->stateElements();
-
-    // For all elements where IOType != Invalid,
-    // we add the elements to the state.
-
-    visit_node(iscore_state, [&] (const MessageNode& n) {
-            const auto& val = n.value();
-            if(val)
-            {
-                elts.push_back(
-                            message(
-                                iscore::Message{
-                                    address(n),
-                                    *val},
-                                deviceList
-                                )
-                            );
-            }
-    });
-
-    return ossia_state;
+    return state(OSSIA::State::create(), iscore_state, deviceList);
 }
 
 

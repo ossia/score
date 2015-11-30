@@ -39,7 +39,7 @@ SlotPresenter::SlotPresenter(
         RackView *view,
         QObject* par) :
     NamedObject {"SlotPresenter", par},
-    m_processList{doc.app.components.factory<DynamicProcessList>()},
+    m_processList{doc.app.components.factory<ProcessList>()},
     m_model {model},
     m_view {new SlotView{*this, view}}
 {

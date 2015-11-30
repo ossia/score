@@ -15,7 +15,7 @@
 
 class ConstraintModel;
 class ConstraintViewModel;
-class DynamicProcessList;
+class ProcessList;
 class InspectorSectionWidget;
 class InspectorWidgetList;
 class MetadataWidget;
@@ -43,7 +43,7 @@ class ConstraintInspectorWidget final : public InspectorWidgetBase
     public:
         explicit ConstraintInspectorWidget(
                 const InspectorWidgetList& list,
-                const DynamicProcessList& pl,
+                const ProcessList& pl,
                 const ConstraintModel& object,
                 std::unique_ptr<ConstraintInspectorDelegate> del,
                 iscore::Document& doc,
@@ -82,7 +82,7 @@ class ConstraintInspectorWidget final : public InspectorWidgetBase
         QWidget* makeStatesWidget(Scenario::ScenarioModel*);
 
         const InspectorWidgetList& m_widgetList;
-        const DynamicProcessList& m_processList;
+        const ProcessList& m_processList;
         const ConstraintModel& m_model;
         QVector<QMetaObject::Connection> m_connections;
 

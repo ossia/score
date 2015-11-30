@@ -85,7 +85,7 @@ class AddProcessToConstraint final : public AddProcessToConstraintBase
                 const ProcessFactoryKey& process) :
             AddProcessToConstraintBase{constraint, process}
         {
-            auto& fact = context.components.factory<DynamicProcessList>();
+            auto& fact = context.components.factory<ProcessList>();
             m_delegate.init(fact, constraint);
         }
 
@@ -99,7 +99,7 @@ class AddProcessToConstraint final : public AddProcessToConstraintBase
         }
         void redo() const override
         {
-            auto& fact = context.components.factory<DynamicProcessList>();
+            auto& fact = context.components.factory<ProcessList>();
             auto& constraint = m_path.find();
 
             // Create process model
@@ -155,7 +155,7 @@ class AddProcessDelegateWhenNoRacks
 
         }
 
-        void init(const DynamicProcessList& fact, const ConstraintModel& constraint)
+        void init(const ProcessList& fact, const ConstraintModel& constraint)
         {
             m_createdRackId = getStrongId(constraint.racks);
             m_createdSlotId = Id<SlotModel>(iscore::id_generator::getFirstId());
@@ -239,7 +239,7 @@ class AddProcessDelegateWhenRacksAndNoBaseConstraint
         {
 
         }
-        void init(const DynamicProcessList& fact, const ConstraintModel& constraint)
+        void init(const ProcessList& fact, const ConstraintModel& constraint)
         {
             ISCORE_ASSERT(!constraint.racks.empty());
             const auto& firstRack = *constraint.racks.begin();
@@ -304,7 +304,7 @@ class AddProcessDelegateWhenRacksAndBaseConstraint
 
         }
 
-        void init(const DynamicProcessList& fact, const ConstraintModel& constraint)
+        void init(const ProcessList& fact, const ConstraintModel& constraint)
         {
             // Base constraint : add in new slot?
         }

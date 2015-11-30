@@ -11,12 +11,20 @@ find_package(Qt5 5.3 REQUIRED COMPONENTS Core Widgets)
 
 set(HDRS
 "${CMAKE_CURRENT_SOURCE_DIR}/iscore_plugin_ossia_simpleprocess.hpp"
+
+"${CMAKE_CURRENT_SOURCE_DIR}/SimpleStateProcess.hpp"
+"${CMAKE_CURRENT_SOURCE_DIR}/SimpleStateProcessFactory.hpp"
+
 "${CMAKE_CURRENT_SOURCE_DIR}/SimpleProcess.hpp"
 "${CMAKE_CURRENT_SOURCE_DIR}/SimpleProcessModel.hpp"
 "${CMAKE_CURRENT_SOURCE_DIR}/SimpleProcessFactory.hpp"
 )
 set(SRCS
 "${CMAKE_CURRENT_SOURCE_DIR}/iscore_plugin_ossia_simpleprocess.cpp"
+
+"${CMAKE_CURRENT_SOURCE_DIR}/SimpleStateProcess.cpp"
+"${CMAKE_CURRENT_SOURCE_DIR}/SimpleStateProcessFactory.cpp"
+
 "${CMAKE_CURRENT_SOURCE_DIR}/SimpleProcess.cpp"
 "${CMAKE_CURRENT_SOURCE_DIR}/SimpleProcessModel.cpp"
 )

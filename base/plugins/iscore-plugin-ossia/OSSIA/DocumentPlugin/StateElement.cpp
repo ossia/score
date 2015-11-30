@@ -18,7 +18,7 @@ StateElement::StateElement(
 {
     iscore::convert::state(
                 m_ossia_state,
-                m_iscore_state.messages().rootNode(),
+                m_iscore_state,
                 m_deviceList);
 }
 

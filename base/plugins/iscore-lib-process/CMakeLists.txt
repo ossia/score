@@ -23,6 +23,8 @@ set(PROCESS_SRCS
 "${CMAKE_CURRENT_SOURCE_DIR}/Process/Focus/FocusDispatcher.cpp"
 "${CMAKE_CURRENT_SOURCE_DIR}/Process/ProcessFactory.cpp"
 "${CMAKE_CURRENT_SOURCE_DIR}/Process/Process.cpp"
+"${CMAKE_CURRENT_SOURCE_DIR}/Process/StateProcess.cpp"
+"${CMAKE_CURRENT_SOURCE_DIR}/Process/StateProcessFactory.cpp"
 "${CMAKE_CURRENT_SOURCE_DIR}/Process/LayerPresenter.cpp"
 "${CMAKE_CURRENT_SOURCE_DIR}/Process/LayerView.cpp"
 "${CMAKE_CURRENT_SOURCE_DIR}/Process/LayerModel.cpp"

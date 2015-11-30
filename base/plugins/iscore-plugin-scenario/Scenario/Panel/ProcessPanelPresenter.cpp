@@ -31,7 +31,7 @@ class Presenter;
 }  // namespace iscore
 
 ProcessPanelPresenter::ProcessPanelPresenter(
-        const DynamicProcessList& plist,
+        const ProcessList& plist,
         iscore::Presenter* parent_presenter,
         iscore::PanelView* view):
     iscore::PanelPresenter{parent_presenter, view},

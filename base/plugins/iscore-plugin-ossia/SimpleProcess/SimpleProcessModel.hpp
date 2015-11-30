@@ -1,5 +1,5 @@
 #pragma once
-#include <OSSIA/ProcessModel/OSSIAProcessModel.hpp>
+#include <OSSIA/DocumentPlugin/ProcessModel/ProcessModel.hpp>
 #include <QByteArray>
 #include <QString>
 #include <memory>
@@ -20,7 +20,7 @@ class TimeProcessWithConstraint;
 #include <iscore/tools/SettableIdentifier.hpp>
 
 
-class SimpleProcessModel final : public OSSIAProcessModel
+class SimpleProcessModel final : public RecreateOnPlay::OSSIAProcessModel
 {
         ISCORE_SERIALIZE_FRIENDS(SimpleProcessModel, DataStream)
         ISCORE_SERIALIZE_FRIENDS(SimpleProcessModel, JSONObject)

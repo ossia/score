@@ -13,7 +13,7 @@
 
 #include <Curve/Segment/CurveSegmentFactoryKey.hpp>
 #include <State/Value.hpp>
-
+class StateModel;
 class DeviceList;
 namespace OSSIA {
 class Address;
@@ -81,10 +81,10 @@ inline OSSIA::TimeValue time(const TimeValue& t)
 
 std::shared_ptr<OSSIA::State> state(
         std::shared_ptr<OSSIA::State> ossia_state,
-        const MessageNode& iscore_state,
+        const StateModel& iscore_state,
         const DeviceList& deviceList);
 std::shared_ptr<OSSIA::State> state(
-        const MessageNode& iscore_state,
+        const StateModel& iscore_state,
         const DeviceList& deviceList);
 
 

@@ -125,7 +125,7 @@ InspectorWidgetBase* LoopInspectorFactory::makeWidget(
 {
     auto& appContext = doc.context().app;
     auto& widgetFact = appContext.components.factory<InspectorWidgetList>();
-    auto& processFact = appContext.components.factory<DynamicProcessList>();
+    auto& processFact = appContext.components.factory<ProcessList>();
     auto& constraintWidgetFactory = appContext.components.factory<ConstraintInspectorDelegateFactoryList>();
 
     auto& constraint = static_cast<const Loop::ProcessModel&>(sourceElement).constraint();

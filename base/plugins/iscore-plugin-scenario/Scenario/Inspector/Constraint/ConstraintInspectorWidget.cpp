@@ -68,7 +68,7 @@ using namespace iscore::IDocument;
 
 ConstraintInspectorWidget::ConstraintInspectorWidget(
         const InspectorWidgetList& widg,
-        const DynamicProcessList& pl,
+        const ProcessList& pl,
         const ConstraintModel& object,
         std::unique_ptr<ConstraintInspectorDelegate> del,
         iscore::Document& doc,

@@ -32,7 +32,7 @@ iscore::PanelPresenter*ProcessPanelFactory::makePresenter(
         iscore::Presenter* parent_presenter,
         iscore::PanelView* view)
 {
-    auto& fact = parent_presenter->applicationComponents().factory<DynamicProcessList>();
+    auto& fact = parent_presenter->applicationComponents().factory<ProcessList>();
     return new ProcessPanelPresenter{fact, parent_presenter, view};
 }
 

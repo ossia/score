@@ -54,7 +54,7 @@ CreateCurveFromStates::CreateCurveFromStates(
 
     m_slotsCmd.reserve(slotList.size());
 
-    auto fact = context.components.factory<DynamicProcessList>().list().get(AutomationProcessMetadata::factoryKey());
+    auto fact = context.components.factory<ProcessList>().list().get(AutomationProcessMetadata::factoryKey());
     ISCORE_ASSERT(fact);
     auto procData = fact->makeStaticLayerConstructionData();
 

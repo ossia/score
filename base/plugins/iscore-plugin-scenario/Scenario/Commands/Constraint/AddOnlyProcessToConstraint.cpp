@@ -51,7 +51,7 @@ void AddOnlyProcessToConstraint::redo() const
     auto& constraint = m_path.find();
 
     // Create process model
-    auto proc = context.components.factory<DynamicProcessList>().list().get(m_processName)
+    auto proc = context.components.factory<ProcessList>().list().get(m_processName)
             ->makeModel(
                 constraint.duration.defaultDuration(), // TODO should maybe be max ?
                 m_createdProcessId,

@@ -1,10 +1,12 @@
 #pragma once
 #include <Process/ModelMetadata.hpp>
+#include <Process/StateProcess.hpp>
 #include <Scenario/Document/Event/ExecutionStatus.hpp>
 #include <boost/optional/optional.hpp>
 #include <iscore/selection/Selectable.hpp>
 #include <iscore/tools/IdentifiedObject.hpp>
 #include <iscore/tools/SettableIdentifier.hpp>
+#include <iscore/tools/NotifyingMap.hpp>
 
 #include <set>
 #include <vector>
@@ -76,6 +78,8 @@ class StateModel final : public IdentifiedObject<StateModel>
         void setStatus(ExecutionStatus);
         ExecutionStatus status() const
         { return m_status; }
+
+        NotifyingMap<StateProcess> stateProcesses;
 
     signals:
         void sig_statesUpdated();

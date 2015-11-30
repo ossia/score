@@ -5,7 +5,6 @@
 
 namespace RecreateOnPlay
 {
-
 class ProcessModelElement : public ProcessElement
 {
     public:
@@ -28,7 +27,6 @@ class ProcessModelElement : public ProcessElement
         {
             return m_process;
         }
-
 
     private:
         OSSIAProcessModel& m_process;

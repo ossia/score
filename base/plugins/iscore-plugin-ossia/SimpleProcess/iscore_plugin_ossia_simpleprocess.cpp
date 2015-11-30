@@ -1,5 +1,6 @@
 #include <Process/ProcessFactory.hpp>
 #include "SimpleProcessFactory.hpp"
+#include "SimpleStateProcessFactory.hpp"
 #include <iscore/plugins/customfactory/StringFactoryKey.hpp>
 #include "iscore_plugin_ossia_simpleprocess.hpp"
 #include <iscore/plugins/customfactory/FactoryFamily.hpp>
@@ -24,6 +25,11 @@ std::vector<std::unique_ptr<iscore::FactoryInterfaceBase>> iscore_plugin_ossia_s
     {
         return make_ptr_vector<iscore::FactoryInterfaceBase,
                 SimpleProcessFactory>();
+    }
+    if(factoryName == StateProcessFactory::staticFactoryKey())
+    {
+        return make_ptr_vector<iscore::FactoryInterfaceBase,
+                SimpleStateProcessFactory>();
     }
 
     return {};

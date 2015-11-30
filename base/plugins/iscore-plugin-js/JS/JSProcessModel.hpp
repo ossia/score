@@ -1,7 +1,7 @@
 #pragma once
 #include <JS/JSProcess.hpp>
 #include <JS/JSProcessMetadata.hpp>
-#include <OSSIA/ProcessModel/OSSIAProcessModel.hpp>
+#include <OSSIA/DocumentPlugin/ProcessModel/ProcessModel.hpp>
 #include <QByteArray>
 #include <QString>
 #include <memory>
@@ -20,7 +20,7 @@ class QObject;
 class TimeProcessWithConstraint;
 #include <iscore/tools/SettableIdentifier.hpp>
 
-class JSProcessModel final : public OSSIAProcessModel
+class JSProcessModel final : public RecreateOnPlay::OSSIAProcessModel
 {
         ISCORE_SERIALIZE_FRIENDS(JSProcessModel, DataStream)
         ISCORE_SERIALIZE_FRIENDS(JSProcessModel, JSONObject)

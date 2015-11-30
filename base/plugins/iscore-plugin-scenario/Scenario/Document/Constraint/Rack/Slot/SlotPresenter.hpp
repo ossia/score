@@ -7,7 +7,7 @@
 
 #include <core/document/DocumentContext.hpp>
 
-class DynamicProcessList;
+class ProcessList;
 class QObject;
 class SlotModel;
 class SlotView;
@@ -92,7 +92,7 @@ class SlotPresenter final : public NamedObject
         void updateProcessShape(const SlotProcessData&);
         void updateProcessesShape();
 
-        const DynamicProcessList& m_processList;
+        const ProcessList& m_processList;
         const SlotModel& m_model;
         SlotView* m_view{};
         std::vector<SlotProcessData> m_processes;
