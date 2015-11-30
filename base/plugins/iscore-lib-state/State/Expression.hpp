@@ -2,7 +2,7 @@
 #include <State/Relation.hpp>
 #include <boost/optional/optional.hpp>
 #include <eggs/variant/variant.hpp>
-#include <ext/alloc_traits.h>
+
 #include <iscore/tools/VariantBasedNode.hpp>
 #include <QString>
 #include <algorithm>

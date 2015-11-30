@@ -9,7 +9,7 @@
 #include <Scenario/Process/Temporal/TemporalScenarioPresenter.hpp>
 #include <boost/optional/optional.hpp>
 #include <core/document/DocumentView.hpp>
-#include <ext/alloc_traits.h>
+
 #include <iscore/plugins/documentdelegate/DocumentDelegateViewInterface.hpp>
 // This part is somewhat similar to what moc does
 // with moc_.. stuff generation.

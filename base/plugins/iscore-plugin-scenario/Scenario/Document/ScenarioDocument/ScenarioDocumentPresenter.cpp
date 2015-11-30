@@ -10,7 +10,7 @@
 #include <Scenario/Document/TimeRuler/MainTimeRuler/TimeRulerView.hpp>
 #include <core/application/ApplicationContext.hpp>
 #include <core/document/Document.hpp>
-#include <ext/alloc_traits.h>
+
 #include <iscore/document/DocumentInterface.hpp>
 #include <QtGlobal>
 #include <QPolygon>

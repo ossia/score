@@ -9,7 +9,7 @@
 #include <Scenario/Document/Constraint/Rack/Slot/SlotModel.hpp>
 #include <Scenario/Document/Constraint/Rack/Slot/SlotView.hpp>
 #include <boost/optional/optional.hpp>
-#include <ext/alloc_traits.h>
+
 #include <iscore/widgets/GraphicsItem.hpp>
 #include <QMenu>
 #include <algorithm>

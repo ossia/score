@@ -1,6 +1,6 @@
 #include <Curve/Segment/Linear/LinearCurveSegmentModel.hpp>
 #include <boost/optional/optional.hpp>
-#include <ext/alloc_traits.h>
+
 #include <iscore/serialization/VisitorCommon.hpp>
 #include <QDebug>
 #include <cstddef>

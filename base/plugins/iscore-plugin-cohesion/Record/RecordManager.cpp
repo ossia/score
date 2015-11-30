@@ -12,7 +12,7 @@
 #include <Scenario/Commands/Scenario/ShowRackInViewModel.hpp>
 #include <boost/optional/optional.hpp>
 #include <core/document/Document.hpp>
-#include <ext/alloc_traits.h>
+
 #include <QApplication>
 #include <qnamespace.h>
 #include <QString>

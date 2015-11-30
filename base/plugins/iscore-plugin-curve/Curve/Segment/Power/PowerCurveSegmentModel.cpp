@@ -1,4 +1,4 @@
-#include <ext/alloc_traits.h>
+
 #include <iscore/serialization/VisitorCommon.hpp>
 #include <QPoint>
 #include <cmath>

@@ -1,6 +1,6 @@
 #include <boost/core/explicit_operator_bool.hpp>
 #include <boost/optional/optional.hpp>
-#include <ext/alloc_traits.h>
+
 #include <iscore/tools/ObjectPath.hpp>
 #include <QApplication>
 #include <QByteArray>

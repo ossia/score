@@ -1,6 +1,6 @@
 #include <Scenario/Document/Constraint/ConstraintModel.hpp>
 #include <Scenario/Process/ScenarioModel.hpp>
-#include <ext/alloc_traits.h>
+
 #include <QtAlgorithms>
 #include <QMap>
 #include <QObject>

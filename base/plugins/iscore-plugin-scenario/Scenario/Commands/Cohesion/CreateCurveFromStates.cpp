@@ -6,7 +6,7 @@
 #include <boost/core/explicit_operator_bool.hpp>
 #include <boost/optional/optional.hpp>
 #include <core/application/ApplicationComponents.hpp>
-#include <ext/alloc_traits.h>
+
 #include <iscore/tools/SettableIdentifierGeneration.hpp>
 #include <QByteArray>
 

@@ -6,7 +6,7 @@
 #include <Scenario/Process/ScenarioModel.hpp>
 #include <boost/iterator/iterator_facade.hpp>
 #include <boost/optional/optional.hpp>
-#include <ext/alloc_traits.h>
+
 #include <tuple>
 #include <type_traits>
 

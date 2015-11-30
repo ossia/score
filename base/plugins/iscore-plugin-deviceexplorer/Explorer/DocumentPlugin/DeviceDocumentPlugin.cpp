@@ -1,7 +1,7 @@
 #include <Device/Protocol/ProtocolFactoryInterface.hpp>
 #include <Device/Protocol/ProtocolList.hpp>
 #include <core/application/ApplicationComponents.hpp>
-#include <ext/alloc_traits.h>
+
 #include <QApplication>
 #include <QJsonArray>
 #include <QJsonObject>
