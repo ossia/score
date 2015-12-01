@@ -5,6 +5,7 @@
 #include <Scenario/Document/Event/EventModel.hpp>
 #include <Scenario/Document/State/StateModel.hpp>
 #include <Scenario/Document/TimeNode/TimeNodeModel.hpp>
+#include <Scenario/Document/CommentBlock/CommentBlockModel.hpp>
 #include <Scenario/Process/ScenarioInterface.hpp>
 #include <boost/iterator/indirect_iterator.hpp>
 #include <boost/iterator/iterator_facade.hpp>
@@ -131,6 +132,10 @@ class ScenarioModel final : public Process, public ScenarioInterface
         {
             return states.at(stId);
         }
+        CommentBlockModel& comment(const Id<CommentBlockModel>& cmtId) const
+        {
+            return comments.at(cmtId);
+        }
 
         TimeNodeModel& startTimeNode() const override
         {
@@ -153,6 +158,7 @@ class ScenarioModel final : public Process, public ScenarioInterface
         NotifyingMap<EventModel> events;
         NotifyingMap<TimeNodeModel> timeNodes;
         NotifyingMap<StateModel> states;
+        NotifyingMap<CommentBlockModel> comments;
 
         IdContainer<ConstraintModel> getConstraints() const
         {
@@ -170,11 +176,16 @@ class ScenarioModel final : public Process, public ScenarioInterface
         {
             return states;
         }
+        IdContainer<CommentBlockModel> getComments() const
+        {
+            return comments;
+        }
 
     signals:
         void stateMoved(const StateModel&);
         void eventMoved(const EventModel&);
         void constraintMoved(const ConstraintModel&);
+        void commentMoved(const CommentBlockModel&);
 
         void locked();
         void unlocked();

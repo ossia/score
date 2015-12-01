@@ -81,7 +81,12 @@ TemporalScenarioPresenter::TemporalScenarioPresenter(
     {
         on_timeNodeCreated(tn_model);
     }
-
+/*
+    for(const auto& cmt_model : scenario.comments)
+    {
+        on_commentBlockCreated(cmt_model);
+    }
+*/
     for(const auto& constraint_view_model : constraintsViewModels(m_layer))
     {
         on_constraintViewModelCreated(*constraint_view_model);
@@ -93,6 +98,8 @@ TemporalScenarioPresenter::TemporalScenarioPresenter(
         this, &TemporalScenarioPresenter::on_stateCreated);
     con(m_layer, &TemporalScenarioLayerModel::stateRemoved,
         this, &TemporalScenarioPresenter::on_stateRemoved);
+
+    // COMMENT
 
     con(m_layer, &TemporalScenarioLayerModel::eventCreated,
         this, &TemporalScenarioPresenter::on_eventCreated);
@@ -358,6 +365,26 @@ void TemporalScenarioPresenter::on_constraintViewModelCreated(const TemporalCons
     connect(cst_pres, &TemporalConstraintPresenter::moved, m_view, &TemporalScenarioView::moved);
     connect(cst_pres, &TemporalConstraintPresenter::released, m_view, &TemporalScenarioView::released);
 }
+
+void TemporalScenarioPresenter::on_commentBlockCreated(const CommentBlockModel& comment_block_model)
+{
+    auto cmt_pres = new CommentBlockPresenter{
+                    comment_block_model,
+                    m_view,
+                    this};
+
+    m_comments.insert(cmt_pres);
+    m_viewInterface.on_commentMoved(*cmt_pres);
+
+    con(comment_block_model, &CommentBlockModel::dateChanged,
+            this, [=] (const TimeValue&) { m_viewInterface.on_commentMoved(*cmt_pres); });
+
+    // For the state machine
+    connect(cmt_pres, &CommentBlockPresenter::pressed, m_view, &TemporalScenarioView::pressed);
+    connect(cmt_pres, &CommentBlockPresenter::moved, m_view, &TemporalScenarioView::moved);
+    connect(cmt_pres, &CommentBlockPresenter::released, m_view, &TemporalScenarioView::released);
+}
+
 
 void TemporalScenarioPresenter::updateAllElements()
 {

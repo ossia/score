@@ -17,6 +17,7 @@
 #include <Scenario/Document/Event/EventModel.hpp>
 #include <Scenario/Document/State/StateModel.hpp>
 #include <Scenario/Document/TimeNode/TimeNodeModel.hpp>
+#include <Scenario/Document/CommentBlock/CommentBlockModel.hpp>
 #include <Scenario/Process/ScenarioProcessMetadata.hpp>
 #include "ScenarioModel.hpp"
 #include <iscore/document/DocumentInterface.hpp>
@@ -154,6 +155,10 @@ void ScenarioModel::setDurationAndScale(const TimeValue& newDuration)
     {
         event.setDate(event.date() * scale);
         emit eventMoved(event);
+    }
+    for(auto& cmt : comments)
+    {
+        cmt.setDate(cmt.date() * scale);
     }
 
     for(auto& constraint : constraints)
@@ -316,11 +321,19 @@ void ScenarioModel::makeLayer_impl(AbstractScenarioLayerModel* scen)
     con(timeNodes, &NotifyingMap<TimeNodeModel>::removed,
         scen, &AbstractScenarioLayerModel::timeNodeRemoved);
 
+    con(comments, &NotifyingMap<CommentBlockModel>::added,
+        scen, &AbstractScenarioLayerModel::commentCreated);
+    con(comments, &NotifyingMap<CommentBlockModel>::removed,
+        scen, &AbstractScenarioLayerModel::commentRemoved);
+
     connect(this, &ScenarioModel::eventMoved,
             scen, &AbstractScenarioLayerModel::eventMoved);
 
     connect(this, &ScenarioModel::constraintMoved,
             scen, &AbstractScenarioLayerModel::constraintMoved);
+
+    connect(this, &ScenarioModel::commentMoved,
+            scen, &AbstractScenarioLayerModel::commentMoved);
 }
 
 

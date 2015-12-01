@@ -55,8 +55,12 @@ class AbstractScenarioLayerModel : public LayerModel
         void timeNodeCreated(const TimeNodeModel&);
         void timeNodeRemoved(const TimeNodeModel&);
 
+        void commentCreated(const CommentBlockModel&);
+        void commentRemoved(const CommentBlockModel&);
+
         void eventMoved(const EventModel&);
         void constraintMoved(const ConstraintModel&);
+        void commentMoved(const CommentBlockModel&);
 
     public slots:
         virtual void on_constraintRemoved(const ConstraintModel&) = 0;

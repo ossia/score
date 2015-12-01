@@ -21,6 +21,9 @@
 #include <Scenario/Document/TimeNode/TimeNodeModel.hpp>
 #include <Scenario/Document/TimeNode/TimeNodePresenter.hpp>
 #include <Scenario/Document/TimeNode/TimeNodeView.hpp>
+#include <Scenario/Document/CommentBlock/CommentBlockModel.hpp>
+#include <Scenario/Document/CommentBlock/CommentBlockView.hpp>
+#include <Scenario/Document/CommentBlock/CommentBlockPresenter.hpp>
 #include <Scenario/Document/VerticalExtent.hpp>
 #include <Scenario/Process/ScenarioModel.hpp>
 #include <Scenario/Process/Temporal/TemporalScenarioView.hpp>
@@ -108,6 +111,13 @@ void ScenarioViewInterface::on_stateMoved(const StatePresenter& state)
                           rect.height() * state.model().heightPercentage()});
 
     m_presenter.m_view->update();
+}
+
+void ScenarioViewInterface::on_commentMoved(const CommentBlockPresenter& comment)
+{
+    auto h = m_presenter.m_view->boundingRect().height();
+    comment.view()->setPos(comment.date().msec() / m_presenter.zoomRatio(),
+                           comment.model().heightPercentage() * h);
 }
 
 template<typename T>

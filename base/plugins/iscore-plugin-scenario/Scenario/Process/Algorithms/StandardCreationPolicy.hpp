@@ -5,6 +5,8 @@ class ConstraintModel;
 class ConstraintViewModel;
 class EventModel;
 class StateModel;
+class CommentBlockModel;
+
 class TimeNodeModel;
 namespace Scenario {
 class ScenarioModel;
@@ -13,6 +15,21 @@ struct VerticalExtent;
 template<typename T>
 class ScenarioCreate;
 #include <iscore/tools/SettableIdentifier.hpp>
+
+template<>
+class ScenarioCreate<CommentBlockModel>
+{
+    public:
+        static void undo(
+                const Id<CommentBlockModel>& id,
+                Scenario::ScenarioModel& s);
+
+        static CommentBlockModel& redo(
+                const Id<CommentBlockModel>& id,
+                const TimeValue& date,
+                double y,
+                Scenario::ScenarioModel& s);
+};
 
 template<>
 class ScenarioCreate<TimeNodeModel>

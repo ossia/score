@@ -18,6 +18,8 @@
 #include <Scenario/Document/State/StatePresenter.hpp>
 #include <Scenario/Document/TimeNode/TimeNodeModel.hpp>
 #include <Scenario/Document/TimeNode/TimeNodePresenter.hpp>
+#include <Scenario/Document/CommentBlock/CommentBlockModel.hpp>
+#include <Scenario/Document/CommentBlock/CommentBlockPresenter.hpp>
 #include <iscore/tools/SettableIdentifier.hpp>
 
 class Process;
@@ -79,6 +81,8 @@ class TemporalScenarioPresenter final : public LayerPresenter
         { return m_constraints.at(id); }
         const auto& state(const Id<StateModel>& id) const
         { return m_states.at(id); }
+        const auto& comment(const Id<CommentBlockModel>& id) const
+        { return m_comments.at(id); }
         const auto& events() const
         { return m_events; }
         const auto& timeNodes() const
@@ -87,6 +91,8 @@ class TemporalScenarioPresenter final : public LayerPresenter
         { return m_constraints; }
         const auto& states() const
         { return m_states; }
+        const auto& comments() const
+        { return m_comments; }
 
         TemporalScenarioView& view() const
         { return *m_view; }
@@ -132,6 +138,8 @@ class TemporalScenarioPresenter final : public LayerPresenter
         void on_constraintViewModelCreated(const TemporalConstraintViewModel&);
         void on_constraintViewModelRemoved(const ConstraintViewModel&);
 
+        void on_commentBlockCreated(const CommentBlockModel&);
+
         void on_askUpdate();
 
     private:
@@ -147,6 +155,7 @@ class TemporalScenarioPresenter final : public LayerPresenter
         IdContainer<EventPresenter, EventModel> m_events;
         IdContainer<TimeNodePresenter, TimeNodeModel> m_timeNodes;
         IdContainer<TemporalConstraintPresenter, ConstraintModel> m_constraints;
+        IdContainer<CommentBlockPresenter, CommentBlockModel> m_comments;
 
         ZoomRatio m_zoomRatio {1};
 

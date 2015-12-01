@@ -47,6 +47,7 @@
 #include <Scenario/Document/ScenarioDocument/Widgets/ScenarioBaseGraphicsView.hpp>
 #include <Scenario/Document/State/StateModel.hpp>
 #include <Scenario/Document/TimeNode/TimeNodeModel.hpp>
+#include <Scenario/Document/CommentBlock/CommentBlockModel.hpp>
 #include <Scenario/Palette/Tool.hpp>
 #include "ScenarioApplicationPlugin.hpp"
 #include <core/document/Document.hpp>
@@ -76,6 +77,7 @@ template void NotifyingMap<ConstraintModel>::add(ConstraintModel*);
 template void NotifyingMap<EventModel>::add(EventModel*);
 template void NotifyingMap<TimeNodeModel>::add(TimeNodeModel*);
 template void NotifyingMap<StateModel>::add(StateModel*);
+template void NotifyingMap<CommentBlockModel>::add(CommentBlockModel*);
 
 template void NotifyingMap<LayerModel>::remove(LayerModel*);
 template void NotifyingMap<SlotModel>::remove(SlotModel*);
@@ -86,6 +88,7 @@ template void NotifyingMap<ConstraintModel>::remove(ConstraintModel*);
 template void NotifyingMap<EventModel>::remove(EventModel*);
 template void NotifyingMap<TimeNodeModel>::remove(TimeNodeModel*);
 template void NotifyingMap<StateModel>::remove(StateModel*);
+template void NotifyingMap<CommentBlockModel>::remove(CommentBlockModel*);
 
 template void NotifyingMap<LayerModel>::remove(const Id<LayerModel>&);
 template void NotifyingMap<SlotModel>::remove(const Id<SlotModel>&);
@@ -96,6 +99,7 @@ template void NotifyingMap<ConstraintModel>::remove(const Id<ConstraintModel>&);
 template void NotifyingMap<EventModel>::remove(const Id<EventModel>&);
 template void NotifyingMap<TimeNodeModel>::remove(const Id<TimeNodeModel>&);
 template void NotifyingMap<StateModel>::remove(const Id<StateModel>&);
+//template void NotifyingMap<CommentBlockModel>::remove(const CommentBlockModel&);
 
 void ignore_template_instantiations_Scenario()
 {
@@ -108,6 +112,7 @@ void ignore_template_instantiations_Scenario()
     NotifyingMapInstantiations_T<EventModel>();
     NotifyingMapInstantiations_T<TimeNodeModel>();
     NotifyingMapInstantiations_T<StateModel>();
+    NotifyingMapInstantiations_T<CommentBlockModel>();
 }
 
 using namespace iscore;
