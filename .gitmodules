@@ -18,4 +18,4 @@
 	url = https://github.com/jcelerier/libaudiotool
 [submodule "3rdparty/nano-signal-slot"]
 	path = 3rdparty/nano-signal-slot
-	url = https://github.com/NoAvailableAlias/nano-signal-slot
+	url = https://github.com/jcelerier/nano-signal-slot
