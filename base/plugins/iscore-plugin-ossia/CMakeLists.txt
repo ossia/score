@@ -29,8 +29,6 @@ set(HDRS
     "${CMAKE_CURRENT_SOURCE_DIR}/OSSIA/Protocols/MIDI/MIDIProtocolSettingsWidget.hpp"
     "${CMAKE_CURRENT_SOURCE_DIR}/OSSIA/Protocols/MIDI/MIDISpecificSettings.hpp"
     "${CMAKE_CURRENT_SOURCE_DIR}/OSSIA/OSSIAApplicationPlugin.hpp"
-    "${CMAKE_CURRENT_SOURCE_DIR}/OSSIA/ProcessModel/OSSIAProcessModel.hpp"
-    "${CMAKE_CURRENT_SOURCE_DIR}/OSSIA/ProcessModel/OSSIAProcessModelElement.hpp"
     "${CMAKE_CURRENT_SOURCE_DIR}/OSSIA/ProcessModel/TimeProcessWithConstraint.hpp"
     "${CMAKE_CURRENT_SOURCE_DIR}/OSSIA/iscore2OSSIA.hpp"
 

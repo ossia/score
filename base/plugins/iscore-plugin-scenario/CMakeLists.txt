@@ -79,7 +79,6 @@ set(SRCS ${SRCS}
 "${CMAKE_CURRENT_SOURCE_DIR}/Scenario/Commands/Constraint/Rack/RemoveSlotFromRack.cpp"
 "${CMAKE_CURRENT_SOURCE_DIR}/Scenario/Commands/Constraint/Rack/SwapSlots.cpp"
 "${CMAKE_CURRENT_SOURCE_DIR}/Scenario/Commands/Constraint/AddRackToConstraint.cpp"
-"${CMAKE_CURRENT_SOURCE_DIR}/Scenario/Commands/Constraint/AddProcessToConstraint.cpp"
 "${CMAKE_CURRENT_SOURCE_DIR}/Scenario/Commands/Constraint/AddOnlyProcessToConstraint.cpp"
 "${CMAKE_CURRENT_SOURCE_DIR}/Scenario/Commands/Constraint/AddLayerInNewSlot.cpp"
 "${CMAKE_CURRENT_SOURCE_DIR}/Scenario/Commands/Constraint/InsertContentInConstraint.cpp"

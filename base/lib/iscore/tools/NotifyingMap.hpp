@@ -13,24 +13,9 @@
  *  - Deletes objects when they are removed ("ownership")
  *  - Sends signals after adding and before deleting.
  *
- * However, the parent of the childs are the parents of the map.
+ * Tthe parent of the childs are the parents of the map.
  * Hence the objects shall not be deleted upon deletion of the map
  * itself, to prevent a double-free.
- *
- * To achieve signals and slots on a QObject, a certain
- * level of hackery is necessary.
- * To use this class, it is necessary to replicate a part
- * of what moc (meta object compiler) does. Since this
- * is templated, it is necessary to instantiate the
- * functions at some point. They can't be put inline in the
- * headers because in this case signals won't work across
- * plug-in boundaries.
- *
- * Hence it is necessary, in a plugin where a NotifyingMap<Blob>
- * is used, to have a file that includes NotifyingMap_impl.hpp
- * and calls NotifyingMapInstantiations_T for NotifyinMap<Blob>.
- *
- * An example can be seen in ScenarioApplicationPlugin.
  *
  */
 template<typename T>

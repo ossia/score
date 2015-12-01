@@ -35,7 +35,6 @@ class MoveEvent final : public SerializableMoveEvent
 {
         // No ISCORE_COMMAND here since it's a template.
 
-        //#include <tests/helpers/FriendDeclaration.hpp>
     public:
         const CommandParentFactoryKey& parentKey() const override
         {

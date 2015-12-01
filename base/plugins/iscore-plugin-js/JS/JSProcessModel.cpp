@@ -7,7 +7,6 @@
 #include "JS/JSProcess.hpp"
 #include "JS/JSProcessMetadata.hpp"
 #include "JSProcessModel.hpp"
-#include <OSSIA/ProcessModel/OSSIAProcessModel.hpp>
 #include <iscore/document/DocumentInterface.hpp>
 #include <iscore/plugins/documentdelegate/plugin/ElementPluginModelList.hpp>
 #include <iscore/serialization/VisitorCommon.hpp>

@@ -13,7 +13,6 @@
 #include <iscore/plugins/documentdelegate/DocumentDelegateViewInterface.hpp>
 // This part is somewhat similar to what moc does
 // with moc_.. stuff generation.
-#include <iscore/tools/NotifyingMap_impl.hpp>
 #include <QAction>
 #include <QByteArray>
 #include <QColor>
