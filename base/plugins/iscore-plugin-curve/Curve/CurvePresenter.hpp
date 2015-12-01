@@ -107,7 +107,6 @@ class CurvePresenter : public QObject
 
         // Required dispatchers
         CommandDispatcher<> m_commandDispatcher;
-        iscore::SelectionDispatcher m_selectionDispatcher;
 
         const Curve::Style& m_style;
 

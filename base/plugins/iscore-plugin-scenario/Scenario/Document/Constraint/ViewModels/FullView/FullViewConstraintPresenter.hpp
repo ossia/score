@@ -35,9 +35,5 @@ class FullViewConstraintPresenter final : public ConstraintPresenter
 
     signals:
         void objectSelected(ObjectPath);
-
-    private:
-        iscore::SelectionDispatcher m_selectionDispatcher;
-
 };
 

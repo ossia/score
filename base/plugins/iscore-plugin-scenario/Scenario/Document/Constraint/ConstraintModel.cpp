@@ -25,7 +25,7 @@ ConstraintModel::ConstraintModel(
         double yPos,
         QObject* parent) :
     IdentifiedObject<ConstraintModel> {id, "ConstraintModel", parent},
-    pluginModelList{iscore::IDocument::documentFromObject(parent), this},
+    pluginModelList{iscore::IDocument::documentContext(*parent), this},
     m_fullViewModel{new FullViewConstraintViewModel{fullViewId, *this, this}}
 {
     initConnections();

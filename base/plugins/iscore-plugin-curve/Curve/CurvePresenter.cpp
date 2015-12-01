@@ -65,7 +65,6 @@ CurvePresenter::CurvePresenter(
     m_model{model},
     m_view{view},
     m_commandDispatcher{context.commandStack},
-    m_selectionDispatcher{context.selectionStack},
     m_style{style}
 {
     // For each segment in the model, create a segment and relevant points in the view.

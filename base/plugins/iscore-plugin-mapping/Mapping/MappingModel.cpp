@@ -24,7 +24,7 @@ MappingModel::MappingModel(
         QObject* parent) :
     CurveProcessModel {duration, id, MappingProcessMetadata::processObjectName(), parent}
 {
-    pluginModelList = new iscore::ElementPluginModelList{iscore::IDocument::documentFromObject(parent), this};
+    pluginModelList = new iscore::ElementPluginModelList{iscore::IDocument::documentContext(*parent), this};
 
     // Named shall be enough ?
     setCurve(new CurveModel{Id<CurveModel>(45345), this});

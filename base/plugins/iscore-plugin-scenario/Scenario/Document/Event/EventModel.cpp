@@ -22,7 +22,7 @@ EventModel::EventModel(
         const TimeValue &date,
         QObject* parent):
     IdentifiedObject<EventModel> {id, "EventModel", parent},
-    pluginModelList{iscore::IDocument::documentFromObject(parent), this},
+    pluginModelList{iscore::IDocument::documentContext(*parent), this},
     m_timeNode{timenode},
     m_extent{extent},
     m_date{date}

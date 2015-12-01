@@ -34,7 +34,7 @@ ProcessModel::ProcessModel(
     BaseScenarioContainer{this}
 {
     pluginModelList = new iscore::ElementPluginModelList{
-                      iscore::IDocument::documentFromObject(parent),
+                      iscore::IDocument::documentContext(*parent),
                       this};
 
     BaseScenarioContainer::init();

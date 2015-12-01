@@ -31,7 +31,7 @@ JSProcessModel::JSProcessModel(
     m_ossia_process{makeProcess()}
 {
     pluginModelList = new iscore::ElementPluginModelList{
-                      iscore::IDocument::documentFromObject(parent),
+                      iscore::IDocument::documentContext(*parent),
                       this};
 
     m_script = "(function(t) { \n"

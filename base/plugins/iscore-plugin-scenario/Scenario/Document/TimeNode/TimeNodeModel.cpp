@@ -18,7 +18,7 @@ TimeNodeModel::TimeNodeModel(
         const TimeValue& date,
         QObject* parent):
     IdentifiedObject<TimeNodeModel> {id, "TimeNodeModel", parent},
-    pluginModelList{iscore::IDocument::documentFromObject(parent), this},
+    pluginModelList{iscore::IDocument::documentContext(*parent), this},
     m_extent{extent},
     m_date{date},
     m_trigger{new TriggerModel{Id<TriggerModel>(0), this} }

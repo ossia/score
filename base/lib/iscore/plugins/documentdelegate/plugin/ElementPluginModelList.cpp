@@ -13,13 +13,13 @@
 class QObject;
 
 iscore::ElementPluginModelList::ElementPluginModelList(
-        iscore::Document* doc,
+        const iscore::DocumentContext& doc,
         QObject *parent):
     m_parent{parent}
 {
     // We initialize the potential plug-ins of this document
     // with this object's metadata if necessary.
-    for(auto& plugin : doc->model().pluginModels())
+    for(auto& plugin : doc.pluginModels())
     {
         for(const auto& plugid : plugin->elementPlugins())
         {

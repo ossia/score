@@ -26,7 +26,7 @@ SimpleProcessModel::SimpleProcessModel(
     m_ossia_process{std::make_shared<SimpleProcess>()}
 {
     pluginModelList = new iscore::ElementPluginModelList{
-                      iscore::IDocument::documentFromObject(parent),
+                      iscore::IDocument::documentContext(*parent),
                       this};
 }
 

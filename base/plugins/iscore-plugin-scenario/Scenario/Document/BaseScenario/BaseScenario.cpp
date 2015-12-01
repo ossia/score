@@ -19,7 +19,7 @@ class QObject;
 BaseScenario::BaseScenario(const Id<BaseScenario>& id, QObject* parent):
     IdentifiedObject<BaseScenario>{id, "BaseScenario", parent},
     BaseScenarioContainer{this},
-    pluginModelList{iscore::IDocument::documentFromObject(parent), this}
+    pluginModelList{iscore::IDocument::documentContext(*parent), this}
 {
     BaseScenarioContainer::init();
 
