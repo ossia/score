@@ -4,6 +4,7 @@
 #include <QWidget>
 #include <QFont>
 #include <QGraphicsSceneMouseEvent>
+#include <QTextCursor>
 
 #include <Scenario/Document/CommentBlock/CommentBlockPresenter.hpp>
 
@@ -18,7 +19,6 @@ CommentBlockView::CommentBlockView(
     this->setAcceptHoverEvents(true);
 
     m_textItem = new QGraphicsTextItem{"Hello dear user !", this};
-    m_textItem->setTextInteractionFlags(Qt::TextEditorInteraction);
     m_textItem->setDefaultTextColor(Qt::white);
 }
 
@@ -46,6 +46,12 @@ QRectF CommentBlockView::boundingRect() const
         return {-1., -1., 2., 2.};
 }
 
+void CommentBlockView::setSelected(bool b)
+{
+    m_selected = b;
+    SetTextInteraction(b);
+}
+
 void CommentBlockView::mousePressEvent(QGraphicsSceneMouseEvent* event)
 {
     if(event->button() == Qt::MouseButton::LeftButton)
@@ -63,7 +69,32 @@ void CommentBlockView::mouseMoveEvent(QGraphicsSceneMouseEvent* event)
 
 void CommentBlockView::mouseReleaseEvent(QGraphicsSceneMouseEvent* event)
 {
-    emit m_presenter.released(event->scenePos() - m_presenter.pressedPoint());
+    emit m_presenter.released(event->scenePos());
     m_presenter.setPressed(false);
+}
+
+void CommentBlockView::mouseDoubleClickEvent(QGraphicsSceneMouseEvent* evt)
+{
+    emit m_presenter.doubleClicked();
+}
+
+void CommentBlockView::SetTextInteraction(bool on, bool selectAll)
+{
+    if(on && m_textItem->textInteractionFlags() == Qt::NoTextInteraction)
+    {
+        m_textItem->setTextInteractionFlags(Qt::TextEditorInteraction);
+        setFocus(Qt::MouseFocusReason);
+        QTextCursor c{};
+        c.setPosition(0);
+        m_textItem->setTextCursor(c);
+    }
+    else if(!on && m_textItem->textInteractionFlags() == Qt::TextEditorInteraction)
+    {
+        m_textItem->setTextInteractionFlags(Qt::NoTextInteraction);
+        QTextCursor c = m_textItem->textCursor();
+        c.clearSelection();
+        m_textItem->setTextCursor(c);
+        clearFocus();
+    }
 }
 

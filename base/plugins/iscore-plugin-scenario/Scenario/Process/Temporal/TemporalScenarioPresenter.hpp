@@ -172,6 +172,7 @@ class TemporalScenarioPresenter final : public LayerPresenter
         OngoingCommandDispatcher m_ongoingDispatcher;
 
         FocusDispatcher m_focusDispatcher;
+        SelectionDispatcher m_selectionDispatcher;
         LayerContext m_context;
         Scenario::ToolPalette m_sm;
 };

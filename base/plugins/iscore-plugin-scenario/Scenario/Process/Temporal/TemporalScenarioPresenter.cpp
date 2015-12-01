@@ -63,6 +63,7 @@ TemporalScenarioPresenter::TemporalScenarioPresenter(
     m_editionSettings{e},
     m_ongoingDispatcher{context.commandStack},
     m_focusDispatcher{context.document},
+    m_selectionDispatcher{context.selectionStack},
     m_context{context, *this, m_focusDispatcher},
     m_sm{m_context, *this}
 {
@@ -392,6 +393,12 @@ void TemporalScenarioPresenter::on_commentBlockCreated(const CommentBlockModel& 
     con(comment_block_model, &CommentBlockModel::heightPercentageChanged,
             this, [=] (double y) { m_viewInterface.on_commentMoved(*cmt_pres);});
 
+    connect(cmt_pres, &CommentBlockPresenter::doubleClicked,
+            this, [&] ()
+    {
+        m_selectionDispatcher.setAndCommit({&comment_block_model});
+    });
+
 
 //    connect(cmt_pres, &CommentBlockPresenter::pressed, m_view, &TemporalScenarioView::pressed);
     connect(cmt_pres, &CommentBlockPresenter::moved,
@@ -409,13 +416,6 @@ void TemporalScenarioPresenter::on_commentBlockCreated(const CommentBlockModel& 
     connect(cmt_pres, &CommentBlockPresenter::released,
             this, [&] (QPointF scenPos)
     {
-        auto& scenarModel = static_cast<Scenario::ScenarioModel&>(this->layerModel().processModel());
-        auto pos = Scenario::ConvertToScenarioPoint(scenPos, m_zoomRatio, m_view->height());
-        m_ongoingDispatcher.submitCommand<MoveCommentBlock>(
-                    scenarModel,
-                    comment_block_model.id(),
-                    pos.date,
-                    pos.y );
         m_ongoingDispatcher.commit();
     });
 }

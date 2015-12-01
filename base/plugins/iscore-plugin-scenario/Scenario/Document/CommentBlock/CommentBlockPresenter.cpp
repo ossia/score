@@ -12,6 +12,8 @@ CommentBlockPresenter::CommentBlockPresenter(
     m_model{model},
     m_view{new CommentBlockView{*this, parentView}}
 {
+    con(m_model.selection, &Selectable::changed,
+            m_view, &CommentBlockView::setSelected);
 
 }
 

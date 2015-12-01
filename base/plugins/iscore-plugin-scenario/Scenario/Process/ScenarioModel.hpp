@@ -227,6 +227,7 @@ class ScenarioModel final : public Process, public ScenarioInterface
             fun(&ScenarioModel::events);
             fun(&ScenarioModel::constraints);
             fun(&ScenarioModel::states);
+            fun(&ScenarioModel::comments);
         }
         ScenarioModel(const Scenario::ScenarioModel& source,
                       const Id<Process>& id,

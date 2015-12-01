@@ -28,14 +28,20 @@ class CommentBlockView final : public QGraphicsObject
         QRectF boundingRect() const override;
 
     public slots:
+        void setSelected(bool b);
 
     protected:
         void mousePressEvent(QGraphicsSceneMouseEvent *event) override;
         void mouseMoveEvent(QGraphicsSceneMouseEvent *event) override;
         void mouseReleaseEvent(QGraphicsSceneMouseEvent *event) override;
+        void mouseDoubleClickEvent(QGraphicsSceneMouseEvent *evt) override;
+
 
     private:
+        void SetTextInteraction(bool on, bool selectAll = false);
+
         CommentBlockPresenter& m_presenter;
 
         QGraphicsTextItem* m_textItem{};
+        bool m_selected{false};
 };

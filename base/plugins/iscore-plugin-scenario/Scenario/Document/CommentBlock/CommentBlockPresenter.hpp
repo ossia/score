@@ -40,6 +40,7 @@ class CommentBlockPresenter final :  public NamedObject
     signals:
         void moved(const QPointF&);
         void released(const QPointF&);
+        void doubleClicked();
 
     public slots:
         void pressed(const QPointF&);

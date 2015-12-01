@@ -3,6 +3,7 @@
 #include <Process/TimeValue.hpp>
 #include <iscore/tools/IdentifiedObject.hpp>
 #include <iscore/tools/SettableIdentifier.hpp>
+#include <iscore/selection/Selectable.hpp>
 #include <iscore/serialization/DataStreamVisitor.hpp>
 #include <iscore/serialization/JSONVisitor.hpp>
 #include <QObject>
@@ -24,10 +25,17 @@ class CommentBlockModel final : public IdentifiedObject<CommentBlockModel>
         { return QObject::tr("Comment Block"); }
 
     public:
+        Selectable selection;
+
         CommentBlockModel(const Id<CommentBlockModel>& id,
                 const TimeValue& date,
                 double yPos,
                 QObject* parent);
+        CommentBlockModel(const CommentBlockModel& source, const Id<CommentBlockModel> &id, QObject *parent):
+            IdentifiedObject<CommentBlockModel>{id, "CommentBlockModel", parent}
+        {
+            qDebug() << "boarf";
+        }
 
         void setDate(const TimeValue& date);
         const TimeValue& date() const;
