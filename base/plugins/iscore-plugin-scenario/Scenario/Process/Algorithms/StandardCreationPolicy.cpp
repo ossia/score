@@ -10,6 +10,7 @@
 #include <Scenario/Document/TimeNode/TimeNodeModel.hpp>
 #include <Scenario/Document/VerticalExtent.hpp>
 #include "StandardCreationPolicy.hpp"
+#include <core/document/DocumentContext.hpp>
 #include <iscore/tools/NotifyingMap.hpp>
 #include <iscore/tools/SettableIdentifier.hpp>
 
@@ -74,10 +75,12 @@ StateModel &ScenarioCreate<StateModel>::redo(
         double y,
         Scenario::ScenarioModel& s)
 {
+    auto& stack = iscore::IDocument::documentContext(s).commandStack;
     auto state = new StateModel{
             id,
             ev.id(),
             y,
+            stack,
             &s};
 
     s.states.add(state);

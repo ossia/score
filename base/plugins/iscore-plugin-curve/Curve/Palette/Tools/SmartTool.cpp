@@ -5,7 +5,6 @@
 #include <Curve/Palette/OngoingState.hpp>
 #include <Curve/Palette/States/SelectionState.hpp>
 #include <boost/optional/optional.hpp>
-#include <core/document/Document.hpp>
 #include <QStateMachine>
 
 #include <Curve/Palette/CurvePaletteBaseEvents.hpp>
@@ -27,7 +26,7 @@ SmartTool::SmartTool(Curve::ToolPalette& sm):
     CurveTool{sm}
 {
     m_state = new Curve::SelectionState{
-            iscore::IDocument::documentFromObject(m_parentSM.model())->selectionStack(),
+            sm.context().selectionStack,
             m_parentSM,
             m_parentSM.presenter().view(),
             &localSM()};

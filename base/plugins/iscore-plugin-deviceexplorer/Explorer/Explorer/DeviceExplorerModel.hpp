@@ -170,3 +170,5 @@ iscore::MessageList getSelectionSnapshot(DeviceExplorerModel& model);
 
 DeviceExplorerModel& deviceExplorerFromObject(const QObject&);
 DeviceExplorerModel* try_deviceExplorerFromObject(const QObject&);
+DeviceExplorerModel* try_deviceExplorerFromContext(const iscore::DocumentContext& ctx);
+DeviceExplorerModel& deviceExplorerFromContext(const iscore::DocumentContext& ctx);

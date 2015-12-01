@@ -64,8 +64,7 @@ template<> void Visitor<Writer<DataStream>>::writeTo(StateModel& s)
     // Message tree
     MessageNode n;
     m_stream >> n;
-    s.m_messageItemModel = new MessageItemModel{
-                           iscore::IDocument::documentContext(s).commandStack, s, &s};
+    s.m_messageItemModel = new MessageItemModel{s.m_stack, s, &s};
     s.messages() = n;
 
     // Processes plugins
@@ -110,8 +109,7 @@ template<> void Visitor<Writer<JSONObject>>::writeTo(StateModel& s)
     s.m_heightPercentage = m_obj["HeightPercentage"].toDouble();
 
     // Message tree
-    s.m_messageItemModel = new MessageItemModel{
-                           iscore::IDocument::documentContext(s).commandStack, s, &s};
+    s.m_messageItemModel = new MessageItemModel{s.m_stack, s, &s};
     s.messages() = fromJsonObject<MessageNode>(m_obj["Messages"].toObject());
 
     // Processes plugins

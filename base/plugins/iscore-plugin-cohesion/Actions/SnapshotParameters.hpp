@@ -2,7 +2,7 @@
 
 namespace iscore
 {
-class Document;
+struct DocumentContext;
 }
 
-void SnapshotParametersInStates(iscore::Document& doc);
+void SnapshotParametersInStates(const iscore::DocumentContext& doc);

@@ -14,6 +14,7 @@
 #include <core/application/ApplicationComponents.hpp>
 #include <core/application/ApplicationContext.hpp>
 #include <core/presenter/MenubarManager.hpp>
+#include <core/document/Document.hpp>
 #include <iscore/plugins/application/GUIApplicationContextPlugin.hpp>
 #include <iscore/widgets/OrderedToolbar.hpp>
 
@@ -55,7 +56,7 @@ IScoreCohesionApplicationPlugin::IScoreCohesionApplicationPlugin(iscore::Applica
     connect(m_snapshot, &QAction::triggered,
             this, [&] () {
         if(auto doc = currentDocument())
-            SnapshotParametersInStates(*doc);
+            SnapshotParametersInStates(doc->context());
     });
 
     m_curves = new QAction {tr("Create Curves"), this};
@@ -65,7 +66,7 @@ IScoreCohesionApplicationPlugin::IScoreCohesionApplicationPlugin(iscore::Applica
     connect(m_curves, &QAction::triggered,
             this, [&] () {
         if(auto doc = currentDocument())
-            CreateCurves(*doc);
+            CreateCurves(doc->context());
     });
 
 }

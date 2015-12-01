@@ -7,7 +7,6 @@
 
 #include <boost/optional/optional.hpp>
 #include <core/application/ApplicationComponents.hpp>
-#include <core/document/Document.hpp>
 #include <QByteArray>
 #include <QDataStream>
 #include <QtGlobal>

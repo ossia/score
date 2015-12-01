@@ -30,6 +30,8 @@ class ToolPalette final : public GraphicsSceneToolPalette
 
         const CurveModel& model() const;
 
+        const LayerContext& context() const
+        { return m_context; }
         iscore::CommandStackFacade& commandStack() const;
         iscore::ObjectLocker& locker() const;
 
@@ -46,6 +48,7 @@ class ToolPalette final : public GraphicsSceneToolPalette
 
         CurvePresenter& m_presenter;
 
+        const LayerContext& m_context;
         iscore::CommandStackFacade& m_stack;
         iscore::ObjectLocker& m_locker;
 

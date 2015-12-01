@@ -25,7 +25,7 @@
 #include <iscore/serialization/DataStreamVisitor.hpp>
 #include <iscore/tools/NotifyingMap.hpp>
 #include <iscore/tools/Todo.hpp>
-
+#include <core/document/DocumentContext.hpp>
 class LayerModel;
 class ProcessStateDataInterface;
 
@@ -65,11 +65,20 @@ ScenarioModel::ScenarioModel(const Scenario::ScenarioModel& source,
     // This almost terrifying piece of code will simply clone
     // all the elements (constraint, etc...) from the source to this class
     // without duplicating code too much.
-    apply([&] (const auto& m) {
+    auto clone = [&] (const auto& m) {
         using the_class = typename remove_qualifs_t<decltype(this->*m)>::value_type;
         for(const auto& elt : source.*m)
             (this->*m).add(new the_class{elt, elt.id(), this});
-    });
+    };
+    clone(&ScenarioModel::timeNodes);
+    clone(&ScenarioModel::events);
+    clone(&ScenarioModel::constraints);
+    // TODO clone comment blocks
+    auto& stack = iscore::IDocument::documentContext(*this).commandStack;
+    for(const auto& elt : source.states)
+    {
+        states.add(new StateModel{elt, elt.id(), stack, this});
+    }
     metadata.setName(QString("Scenario.%1").arg(*this->id().val()));
 }
 

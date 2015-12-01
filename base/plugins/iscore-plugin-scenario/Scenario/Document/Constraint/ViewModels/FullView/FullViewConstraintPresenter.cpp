@@ -1,7 +1,6 @@
 #include <Scenario/Document/Constraint/ConstraintModel.hpp>
 #include <Scenario/Document/Constraint/ViewModels/FullView/FullViewConstraintView.hpp>
 #include <Scenario/Document/Constraint/ViewModels/FullView/FullViewConstraintViewModel.hpp>
-#include <core/document/Document.hpp>
 #include <iscore/document/DocumentInterface.hpp>
 #include <QGraphicsScene>
 #include <QList>

@@ -2,7 +2,6 @@
 #include <Explorer/Widgets/AddressEditWidget.hpp>
 #include <Mapping/Commands/ChangeAddresses.hpp>
 #include <Mapping/Commands/MinMaxCommands.hpp>
-#include <core/document/Document.hpp>
 #include <iscore/document/DocumentInterface.hpp>
 #include <iscore/widgets/SpinBoxes.hpp>
 #include <QAbstractSpinBox>

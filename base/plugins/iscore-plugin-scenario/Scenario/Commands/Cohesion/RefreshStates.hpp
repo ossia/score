@@ -4,10 +4,10 @@
 namespace iscore
 {
 class CommandStackFacade;
-class Document;
+struct DocumentContext;
 }
 class StateModel;
 
-void RefreshStates(iscore::Document* doc);
+void RefreshStates(const iscore::DocumentContext& doc);
 void RefreshStates(const QList<const StateModel*>&,
                    iscore::CommandStackFacade&);

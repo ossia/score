@@ -7,7 +7,6 @@
 #include <Explorer/DocumentPlugin/DeviceDocumentPlugin.hpp>
 #include <core/application/ApplicationComponents.hpp>
 #include <iscore/command/CommandStackFacade.hpp>
-#include <core/document/Document.hpp>
 #include <iscore/document/DocumentInterface.hpp>
 #include <QAbstractProxyModel>
 #include <QApplication>
@@ -979,6 +978,21 @@ DeviceExplorerModel* try_deviceExplorerFromObject(const QObject& obj)
 DeviceExplorerModel& deviceExplorerFromObject(const QObject& obj)
 {
     auto expl = try_deviceExplorerFromObject(obj);
+    ISCORE_ASSERT(expl);
+    return *expl;
+}
+
+DeviceExplorerModel* try_deviceExplorerFromContext(const iscore::DocumentContext& ctx)
+{
+    auto plug = ctx.findPlugin<DeviceDocumentPlugin>();
+    if(plug)
+        return plug->updateProxy.deviceExplorer;
+    return nullptr;
+}
+
+DeviceExplorerModel& deviceExplorerFromContext(const iscore::DocumentContext& ctx)
+{
+    auto expl = try_deviceExplorerFromContext(ctx);
     ISCORE_ASSERT(expl);
     return *expl;
 }

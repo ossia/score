@@ -1,6 +1,5 @@
 #include <Inspector/InspectorWidgetList.hpp>
 #include <core/application/ApplicationComponents.hpp>
-#include <core/document/Document.hpp>
 #include <core/view/View.hpp>
 #include <QBoxLayout>
 #include <QLayout>
@@ -12,6 +11,7 @@
 #include "Implementation/SelectionStackWidget.hpp"
 #include "InspectorPanelView.hpp"
 #include <core/application/ApplicationContext.hpp>
+#include <core/document/Document.hpp>
 #include <core/document/DocumentContext.hpp>
 #include <iscore/plugins/customfactory/StringFactoryKey.hpp>
 #include <iscore/plugins/panel/PanelView.hpp>
@@ -52,12 +52,12 @@ void InspectorPanelView::setCurrentDocument(iscore::Document* doc)
         auto& appContext = doc->context().app;
         auto& fact = appContext.components.factory<InspectorWidgetList>();
         m_stack = new SelectionStackWidget{doc->selectionStack(), m_widget};
-        m_inspectorPanel = new InspectorPanel{fact, doc->selectionStack(), m_widget};
+        m_inspectorPanel = new InspectorPanel{fact, doc->context().selectionStack, m_widget};
 
         m_widget->layout()->addWidget(m_stack);
         m_widget->layout()->addWidget(m_inspectorPanel);
 
-        setNewSelection(doc->selectionStack().currentSelection());
+        setNewSelection(doc->context().selectionStack.currentSelection());
     }
 }
 

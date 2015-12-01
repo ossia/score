@@ -3,7 +3,7 @@
 #include <Explorer/Explorer/DeviceExplorerModel.hpp>
 #include <Scenario/Commands/State/AddMessagesToState.hpp>
 #include <Scenario/Document/State/StateModel.hpp>
-#include <core/document/Document.hpp>
+#include <core/document/DocumentContext.hpp>
 #include <iscore/command/Dispatchers/MacroCommandDispatcher.hpp>
 #include <QList>
 #include <QPointer>
@@ -19,12 +19,12 @@
 #include <iscore/tools/IdentifiedObjectAbstract.hpp>
 #include <iscore/tools/ModelPath.hpp>
 
-void SnapshotParametersInStates(iscore::Document& doc)
+void SnapshotParametersInStates(const iscore::DocumentContext& doc)
 {
     using namespace std;
     // Fetch the selected events
     auto sel = doc.
-            selectionStack().
+            selectionStack.
             currentSelection();
 
     QList<const StateModel*> selected_states;
@@ -36,14 +36,12 @@ void SnapshotParametersInStates(iscore::Document& doc)
     }
 
     // Fetch the selected DeviceExplorer elements
-    auto device_explorer = doc.context().plugin<DeviceDocumentPlugin>().updateProxy.deviceExplorer;
-
-    iscore::MessageList messages = getSelectionSnapshot(*device_explorer);
+    iscore::MessageList messages = getSelectionSnapshot(deviceExplorerFromContext(doc));
     if(messages.empty())
         return;
 
     MacroCommandDispatcher macro{new SnapshotStatesMacro,
-                doc.context().commandStack};
+                doc.commandStack};
     for(auto& state : selected_states)
     {
         auto cmd = new AddMessagesToState{

@@ -166,7 +166,7 @@ ObjectMenuActions::ObjectMenuActions(
     m_interp->setToolTip(tr("Ctrl+K"));
     connect(m_interp, &QAction::triggered,
             this, [&] () {
-        InterpolateStates(m_parent->currentDocument());
+        InterpolateStates(m_parent->currentDocument()->context());
     });
 
 
@@ -176,7 +176,7 @@ ObjectMenuActions::ObjectMenuActions(
     m_updateStates->setToolTip(tr("Ctrl+U"));
     connect(m_updateStates, &QAction::triggered,
             this, [&] () {
-        RefreshStates(m_parent->currentDocument());
+        RefreshStates(m_parent->currentDocument()->context());
     });
 
 

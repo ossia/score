@@ -1,6 +1,5 @@
 #include "AudioProcessModel.hpp"
 #include <DummyProcess/DummyLayerModel.hpp>
-#include <core/document/Document.hpp>
 #include <Explorer/DocumentPlugin/DeviceDocumentPlugin.hpp>
 #include <Audio/AudioBlock.hpp>
 #include <Audio/AudioDocumentPlugin.hpp>
@@ -12,7 +11,7 @@ namespace Audio
 {
 std::shared_ptr<Audio::Process> ProcessModel::makeProcess() const
 {
-    auto& docPlugin = *iscore::IDocument::documentFromObject(*this)->context().plugin<AudioDocumentPlugin>();
+    auto& docPlugin = *iscore::IDocument::documentContext(*this).plugin<AudioDocumentPlugin>();
     auto proc = std::make_shared<Audio::Process>(docPlugin.engine());
 
     return proc;

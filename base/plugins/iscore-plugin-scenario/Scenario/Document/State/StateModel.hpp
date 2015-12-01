@@ -22,7 +22,11 @@ class JSONObject;
 class MessageItemModel;
 class Process;
 class ProcessStateDataInterface;
-class QObject;
+
+namespace iscore
+{
+class CommandStackFacade;
+}
 
 // Model for the graphical state in a scenario.
 class StateModel final : public IdentifiedObject<StateModel>, public Nano::Observer
@@ -39,18 +43,23 @@ class StateModel final : public IdentifiedObject<StateModel>, public Nano::Obser
         StateModel(const Id<StateModel>& id,
                    const Id<EventModel>& eventId,
                    double yPos,
+                   iscore::CommandStackFacade& stack,
                    QObject* parent);
 
         // Copy
         StateModel(const StateModel& source,
                    const Id<StateModel>&,
+                   iscore::CommandStackFacade& stack,
                    QObject* parent);
 
         // Load
         template<typename DeserializerVisitor,
                  enable_if_deserializer<DeserializerVisitor>* = nullptr>
-        StateModel(DeserializerVisitor&& vis, QObject* parent) :
-            IdentifiedObject{vis, parent}
+        StateModel(DeserializerVisitor&& vis,
+                   iscore::CommandStackFacade& stack,
+                   QObject* parent) :
+            IdentifiedObject{vis, parent},
+            m_stack{stack}
         {
             vis.writeTo(*this);
             init();
@@ -98,6 +107,8 @@ class StateModel final : public IdentifiedObject<StateModel>, public Nano::Obser
         void on_nextProcessRemoved(const Process&);
         void on_previousProcessAdded(const Process&);
         void on_previousProcessRemoved(const Process&);
+
+        iscore::CommandStackFacade& m_stack;
 
         std::set<ProcessStateDataInterface*> m_previousProcesses;
         std::set<ProcessStateDataInterface*> m_nextProcesses;

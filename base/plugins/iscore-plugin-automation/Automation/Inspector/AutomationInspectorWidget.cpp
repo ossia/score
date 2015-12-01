@@ -1,6 +1,5 @@
 #include <Explorer/PanelBase/DeviceExplorerPanelModel.hpp>
 #include <Explorer/Widgets/AddressEditWidget.hpp>
-#include <core/document/Document.hpp>
 #include <iscore/widgets/SpinBoxes.hpp>
 #include <QBoxLayout>
 #include <QFormLayout>

@@ -27,12 +27,14 @@ StateModel::StateModel(
         const Id<StateModel>& id,
         const Id<EventModel>& eventId,
         double yPos,
+        iscore::CommandStackFacade& stack,
         QObject *parent):
     IdentifiedObject<StateModel> {id, "StateModel", parent},
+    m_stack{stack},
     m_eventId{eventId},
     m_heightPercentage{yPos},
     m_messageItemModel{new MessageItemModel{
-                            iscore::IDocument::documentContext(*this).commandStack,
+                            stack,
                             *this,
                             this}}
 {
@@ -47,10 +49,21 @@ StateModel::StateModel(
 StateModel::StateModel(
         const StateModel &source,
         const Id<StateModel> &id,
+        iscore::CommandStackFacade& stack,
         QObject *parent):
-    StateModel{id, source.eventId(), source.heightPercentage(), parent}
+    IdentifiedObject<StateModel> {id, "StateModel", parent},
+    m_stack{stack},
+    m_eventId{source.eventId()},
+    m_heightPercentage{source.heightPercentage()},
+    m_messageItemModel{new MessageItemModel{
+                            m_stack,
+                            *this,
+                            this}}
 {
+    // FIXME Source has to be in the same document else it will crash.
+    // FIXME prune the messages from the prev / next processes data and rebuild it.
     messages() = source.messages();
+
     init();
 }
 
@@ -224,20 +237,21 @@ void StateModel::setNextConstraint(const Id<ConstraintModel> & id)
         return;
 
     auto scenar = dynamic_cast<ScenarioInterface*>(parent());
-    ISCORE_ASSERT(scenar);
-
-    // The constraints might not be present in a scenario
-    // for instance when restoring removed elements.
-    auto cstr = scenar->findConstraint(m_nextConstraint);
-    if(cstr)
+    if(scenar)
     {
-        for(const auto& proc : cstr->processes)
+        // The constraints might not be present in a scenario
+        // for instance when restoring removed elements.
+        auto cstr = scenar->findConstraint(m_nextConstraint);
+        if(cstr)
         {
-            on_nextProcessAdded(proc);
-        }
+            for(const auto& proc : cstr->processes)
+            {
+                on_nextProcessAdded(proc);
+            }
 
-        cstr->processes.added.connect<StateModel,&StateModel::on_nextProcessAdded>(this);
-        cstr->processes.removed.connect<StateModel,&StateModel::on_nextProcessRemoved>(this);
+            cstr->processes.added.connect<StateModel,&StateModel::on_nextProcessAdded>(this);
+            cstr->processes.removed.connect<StateModel,&StateModel::on_nextProcessRemoved>(this);
+        }
     }
 }
 
@@ -266,18 +280,19 @@ void StateModel::setPreviousConstraint(const Id<ConstraintModel> & id)
         return;
 
     auto scenar = dynamic_cast<ScenarioInterface*>(parent());
-    ISCORE_ASSERT(scenar);
-
-    auto cstr = scenar->findConstraint(m_previousConstraint);
-    if(cstr)
+    if(scenar)
     {
-        for(const auto& proc : cstr->processes)
+        auto cstr = scenar->findConstraint(m_previousConstraint);
+        if(cstr)
         {
-            on_previousProcessAdded(proc);
-        }
+            for(const auto& proc : cstr->processes)
+            {
+                on_previousProcessAdded(proc);
+            }
 
-        cstr->processes.added.connect<StateModel,&StateModel::on_previousProcessAdded>(this);
-        cstr->processes.removed.connect<StateModel,&StateModel::on_previousProcessRemoved>(this);
+            cstr->processes.added.connect<StateModel,&StateModel::on_previousProcessAdded>(this);
+            cstr->processes.removed.connect<StateModel,&StateModel::on_previousProcessRemoved>(this);
+        }
     }
 }
 

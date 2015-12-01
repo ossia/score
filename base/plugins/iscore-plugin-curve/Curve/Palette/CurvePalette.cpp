@@ -24,6 +24,7 @@ ToolPalette::ToolPalette(
         CurvePresenter& pres):
     GraphicsSceneToolPalette{*pres.view().scene()},
     m_presenter{pres},
+    m_context{f},
     m_stack{f.commandStack},
     m_locker{f.objectLocker},
     m_selectTool{*this},

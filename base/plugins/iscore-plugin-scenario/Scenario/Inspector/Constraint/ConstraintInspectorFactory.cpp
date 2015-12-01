@@ -4,7 +4,6 @@
 #include <Scenario/Inspector/Constraint/ConstraintInspectorDelegateFactory.hpp>
 #include <core/application/ApplicationComponents.hpp>
 #include <core/application/ApplicationContext.hpp>
-#include <core/document/Document.hpp>
 #include <QString>
 
 #include "ConstraintInspectorFactory.hpp"

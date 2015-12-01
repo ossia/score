@@ -8,7 +8,6 @@
 #include <boost/iterator/indirect_iterator.hpp>
 #include <boost/iterator/iterator_facade.hpp>
 #include <boost/multi_index/detail/hash_index_iterator.hpp>
-#include <core/document/Document.hpp>
 #include <iscore/document/DocumentInterface.hpp>
 #include <iscore/tools/SettableIdentifierGeneration.hpp>
 #include <QObject>
@@ -38,17 +37,17 @@
 #include <iscore/tools/SettableIdentifier.hpp>
 #include <iscore/tools/TreeNode.hpp>
 
-void InterpolateStates(iscore::Document* doc)
+void InterpolateStates(const iscore::DocumentContext& doc)
 {
     using namespace std;
 
     // Fetch the selected constraints
-    auto selected_constraints = filterSelectionByType<ConstraintModel>(doc->selectionStack().currentSelection());
+    auto selected_constraints = filterSelectionByType<ConstraintModel>(doc.selectionStack.currentSelection());
 
     if(selected_constraints.empty())
         return;
 
-    InterpolateStates(selected_constraints, doc->context().commandStack);
+    InterpolateStates(selected_constraints, doc.commandStack);
 }
 
 void InterpolateStates(const QList<const ConstraintModel*>& selected_constraints,
@@ -60,7 +59,7 @@ void InterpolateStates(const QList<const ConstraintModel*>& selected_constraints
     Scenario::ScenarioModel* scenar = dynamic_cast<Scenario::ScenarioModel*>(
                                 selected_constraints.first()->parent());
 
-    auto& devPlugin = iscore::IDocument::documentFromObject(*scenar)->context().plugin<DeviceDocumentPlugin>();
+    auto& devPlugin = iscore::IDocument::documentContext(*scenar).plugin<DeviceDocumentPlugin>();
     auto& rootNode = devPlugin.rootNode();
 
     auto big_macro = new GenericInterpolateMacro;

@@ -1,7 +1,6 @@
 #include <API/Headers/Editor/Automation.h>
 #include <Automation/AutomationModel.hpp>
 #include <Explorer/DocumentPlugin/DeviceDocumentPlugin.hpp>
-#include <core/document/Document.hpp>
 #include <QDebug>
 #include <QString>
 #include <algorithm>
@@ -45,7 +44,7 @@ AutomationElement::AutomationElement(
         QObject *parent):
     ProcessElement{parentConstraint, parent},
     m_iscore_autom{element},
-    m_deviceList{iscore::IDocument::documentFromObject(element)->context().plugin<DeviceDocumentPlugin>().list()}
+    m_deviceList{iscore::IDocument::documentContext(element).plugin<DeviceDocumentPlugin>().list()}
 {
     recreate();
 }

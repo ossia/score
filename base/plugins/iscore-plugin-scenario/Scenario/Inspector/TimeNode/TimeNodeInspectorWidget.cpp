@@ -10,7 +10,6 @@
 #include <boost/optional/optional.hpp>
 #include <core/application/ApplicationComponents.hpp>
 #include <core/application/ApplicationContext.hpp>
-#include <core/document/Document.hpp>
 #include <core/document/DocumentContext.hpp>
 #include <QBoxLayout>
 #include <QColor>

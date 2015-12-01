@@ -42,7 +42,6 @@ class LayerPresenter;
 using namespace Scenario;
 
 #include <Scenario/Document/DisplayedElements/DisplayedElementsProviderList.hpp>
-#include <core/document/Document.hpp>
 #include <iscore/tools/SettableIdentifierGeneration.hpp>
 #include <Process/LayerPresenter.hpp>
 #include <algorithm>
@@ -138,7 +137,7 @@ void ScenarioDocumentModel::on_viewModelDefocused(const LayerModel* vm)
 
     // Deselect
     vm->processModel().setSelection({});
-    iscore::IDocument::documentFromObject(*this)->selectionStack().clear();
+    iscore::IDocument::documentContext(*this).selectionStack.clear();
 }
 
 void ScenarioDocumentModel::on_viewModelFocused(const LayerModel* process)
