@@ -2,7 +2,6 @@
 #include <Scenario/Commands/State/AddMessagesToState.hpp>
 #include <Scenario/Process/ScenarioModel.hpp>
 #include <core/document/Document.hpp>
-#include <core/document/DocumentModel.hpp>
 #include <iscore/document/DocumentInterface.hpp>
 #include <algorithm>
 #include <vector>

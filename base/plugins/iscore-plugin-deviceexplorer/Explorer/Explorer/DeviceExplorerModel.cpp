@@ -967,11 +967,13 @@ MessageList getSelectionSnapshot(DeviceExplorerModel& model)
 
 
 #include <Explorer/PanelBase/DeviceExplorerPanelModel.hpp>
-#include <core/document/DocumentModel.hpp>
 
 DeviceExplorerModel* try_deviceExplorerFromObject(const QObject& obj)
 {
-    return iscore::IDocument::documentFromObject(obj)->model().panel<DeviceExplorerPanelModel>()->deviceExplorer();
+    auto plug = iscore::IDocument::documentContext(obj).findPlugin<DeviceDocumentPlugin>();
+    if(plug)
+        return plug->updateProxy.deviceExplorer;
+    return nullptr;
 }
 
 DeviceExplorerModel& deviceExplorerFromObject(const QObject& obj)

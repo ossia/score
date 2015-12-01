@@ -50,8 +50,8 @@
 #include <Scenario/Palette/Tool.hpp>
 #include "ScenarioApplicationPlugin.hpp"
 #include <core/document/Document.hpp>
-#include <core/document/DocumentModel.hpp>
 #include <core/presenter/MenubarManager.hpp>
+#include <core/document/DocumentModel.hpp>
 #include <iscore/document/DocumentInterface.hpp>
 #include <iscore/menu/MenuInterface.hpp>
 #include <iscore/plugins/application/GUIApplicationContextPlugin.hpp>
@@ -433,12 +433,18 @@ void ScenarioApplicationPlugin::initColors()
 
 const Scenario::ScenarioModel* ScenarioApplicationPlugin::focusedScenarioModel() const
 {
-    return dynamic_cast<const Scenario::ScenarioModel*>(processFocusManager()->focusedModel());
+    if(auto focusManager = processFocusManager())
+    {
+        return dynamic_cast<const Scenario::ScenarioModel*>(focusManager->focusedModel());
+    }
 }
 
 TemporalScenarioPresenter* ScenarioApplicationPlugin::focusedPresenter() const
 {
-    return dynamic_cast<TemporalScenarioPresenter*>(processFocusManager()->focusedPresenter());
+    if(auto focusManager = processFocusManager())
+    {
+        return dynamic_cast<TemporalScenarioPresenter*>(focusManager->focusedPresenter());
+    }
 }
 
 void ScenarioApplicationPlugin::prepareNewDocument()

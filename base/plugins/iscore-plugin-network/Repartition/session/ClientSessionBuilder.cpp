@@ -14,7 +14,6 @@
 #include <core/presenter/Presenter.hpp>
 #include <core/presenter/DocumentManager.hpp>
 #include <core/document/Document.hpp>
-#include <core/document/DocumentModel.hpp>
 #include <core/command/CommandStackSerialization.hpp>
 #include "session/../client/LocalClient.hpp"
 #include "session/../client/RemoteClient.hpp"

@@ -11,7 +11,6 @@
 #include <Scenario/Inspector/TimeNode/TriggerInspectorWidget.hpp>
 #include <core/application/ApplicationComponents.hpp>
 #include <core/document/Document.hpp>
-#include <core/document/DocumentModel.hpp>
 #include <iscore/widgets/MarginLess.hpp>
 #include <QBoxLayout>
 #include <QColor>

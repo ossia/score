@@ -1,7 +1,6 @@
 #include <DummyProcess/DummyLayerModel.hpp>
 #include <Explorer/DocumentPlugin/DeviceDocumentPlugin.hpp>
 #include <core/document/Document.hpp>
-#include <core/document/DocumentModel.hpp>
 #include <algorithm>
 #include <vector>
 

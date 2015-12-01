@@ -5,7 +5,6 @@
 
 #include <boost/optional/optional.hpp>
 #include <core/document/Document.hpp>
-#include <core/document/DocumentModel.hpp>
 #include <iscore/tools/SettableIdentifierGeneration.hpp>
 #include <QByteArray>
 #include <QtGlobal>

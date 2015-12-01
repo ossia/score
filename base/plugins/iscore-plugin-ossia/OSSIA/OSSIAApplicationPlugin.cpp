@@ -32,6 +32,7 @@ struct VisitorVariant;
 #endif
 #include <OSSIA/DocumentPlugin/ContextMenu/PlayContextMenu.hpp>
 #include <Explorer/DocumentPlugin/DeviceDocumentPlugin.hpp>
+#include <Scenario/Document/ScenarioDocument/ScenarioDocumentModel.hpp>
 #include <core/application/Application.hpp>
 #include <core/document/Document.hpp>
 #include <core/document/DocumentModel.hpp>
@@ -146,6 +147,9 @@ void OSSIAApplicationPlugin::on_play(bool b, ::TimeValue t)
         auto plugmodel = doc->context().findPlugin<RecreateOnPlay::DocumentPlugin>();
         if(!plugmodel)
             return;
+        auto scenar = dynamic_cast<ScenarioDocumentModel*>(&doc->model().modelDelegate());
+        if(!scenar)
+            return;
 
         if(b)
         {
@@ -156,7 +160,7 @@ void OSSIAApplicationPlugin::on_play(bool b, ::TimeValue t)
             }
             else
             {
-                plugmodel->reload(doc->model());
+                plugmodel->reload(scenar->baseScenario());
 
                 auto& cstr = *plugmodel->baseScenario()->baseConstraint();
 
@@ -174,7 +178,7 @@ void OSSIAApplicationPlugin::on_play(bool b, ::TimeValue t)
         }
         else
         {
-            auto& cstr = *doc->context().plugin<RecreateOnPlay::DocumentPlugin>().baseScenario()->baseConstraint();
+            auto& cstr = *plugmodel->baseScenario()->baseConstraint();
             cstr.OSSIAConstraint()->pause();
         }
     }

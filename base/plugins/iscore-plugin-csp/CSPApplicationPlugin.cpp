@@ -1,6 +1,5 @@
 #include "CSPApplicationPlugin.hpp"
 #include "CSPDocumentPlugin.hpp"
-#include <core/document/DocumentModel.hpp>
 
 #include <Process/Process.hpp>
 #include <Scenario/Document/Constraint/Rack/RackModel.hpp>

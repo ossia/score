@@ -1,12 +1,12 @@
 #include <Explorer/DocumentPlugin/DeviceDocumentPlugin.hpp>
 #include <core/document/Document.hpp>
-#include <core/document/DocumentModel.hpp>
 
 #include <algorithm>
 #include <vector>
 
 #include "DeviceExplorerApplicationPlugin.hpp"
 #include <iscore/plugins/application/GUIApplicationContextPlugin.hpp>
+#include <core/document/DocumentModel.hpp>
 
 namespace iscore {
 class Application;

@@ -9,7 +9,6 @@
 
 #include <iscore/document/DocumentInterface.hpp>
 #include <core/document/Document.hpp>
-#include <core/document/DocumentModel.hpp>
 #include <Explorer/DocumentPlugin/DeviceDocumentPlugin.hpp>
 #include <OSSIA/Protocols/OSSIADevice.hpp>
 #include "OSSIAConstraintElement.hpp"
@@ -20,7 +19,6 @@
 
 #include <Explorer/DocumentPlugin/DeviceDocumentPlugin.hpp>
 #include <core/document/Document.hpp>
-#include <core/document/DocumentModel.hpp>
 #include <OSSIA/iscore2OSSIA.hpp>
 #include <OSSIA/Protocols/OSSIADevice.hpp>
 #include <API/Headers/Editor/Curve.h>

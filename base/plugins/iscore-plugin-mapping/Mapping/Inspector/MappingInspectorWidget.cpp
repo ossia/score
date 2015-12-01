@@ -3,7 +3,6 @@
 #include <Mapping/Commands/ChangeAddresses.hpp>
 #include <Mapping/Commands/MinMaxCommands.hpp>
 #include <core/document/Document.hpp>
-#include <core/document/DocumentModel.hpp>
 #include <iscore/document/DocumentInterface.hpp>
 #include <iscore/widgets/SpinBoxes.hpp>
 #include <QAbstractSpinBox>
@@ -23,6 +22,7 @@
 #include <Mapping/MappingModel.hpp>
 #include "MappingInspectorWidget.hpp"
 #include <State/Address.hpp>
+#include <Explorer/DocumentPlugin/DeviceDocumentPlugin.hpp>
 #include <iscore/command/Dispatchers/CommandDispatcher.hpp>
 #include <iscore/tools/ModelPath.hpp>
 #include <iscore/tools/Todo.hpp>
@@ -42,7 +42,10 @@ MappingInspectorWidget::MappingInspectorWidget(
     // LineEdit
     // If there is a DeviceExplorer in the current document, use it
     // to make a widget.
-    m_explorer = iscore::IDocument::documentFromObject(m_model)->model().panel<DeviceExplorerPanelModel>()->deviceExplorer();
+    auto plug = doc.findPlugin<DeviceDocumentPlugin>();
+    DeviceExplorerModel* explorer{};
+    if(plug)
+        explorer = plug->updateProxy.deviceExplorer;
     {
         // Source
         auto widg = new QWidget;
@@ -53,7 +56,7 @@ MappingInspectorWidget::MappingInspectorWidget(
         vec.push_back(widg);
         vlay->addWidget(new QLabel{tr("Source")});
 
-        m_sourceLineEdit = new AddressEditWidget{m_explorer, this};
+        m_sourceLineEdit = new AddressEditWidget{explorer, this};
 
         m_sourceLineEdit->setAddress(m_model.sourceAddress());
         con(m_model, &MappingModel::sourceAddressChanged,
@@ -101,7 +104,7 @@ MappingInspectorWidget::MappingInspectorWidget(
         vec.push_back(widg);
         vlay->addWidget(new QLabel{tr("Target")});
 
-        m_targetLineEdit = new AddressEditWidget{m_explorer, this};
+        m_targetLineEdit = new AddressEditWidget{explorer, this};
 
         m_targetLineEdit->setAddress(m_model.targetAddress());
         con(m_model, &MappingModel::targetAddressChanged,

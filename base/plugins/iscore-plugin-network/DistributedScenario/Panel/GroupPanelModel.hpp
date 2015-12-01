@@ -23,7 +23,7 @@ class GroupPanelModel : public iscore::PanelModel
         void update();
 
     private:
-        void scanPlugins();
+        void scanPlugins(const iscore::DocumentContext& ctx);
 
         GroupManager* m_currentManager{};
         Session* m_currentSession{};

@@ -2,7 +2,6 @@
 #include <DummyProcess/DummyLayerModel.hpp>
 #include <core/document/Document.hpp>
 #include <Explorer/DocumentPlugin/DeviceDocumentPlugin.hpp>
-#include <core/document/DocumentModel.hpp>
 #include <Audio/AudioBlock.hpp>
 #include <Audio/AudioDocumentPlugin.hpp>
 #include <iscore/plugins/documentdelegate/plugin/ElementPluginModelList.hpp>

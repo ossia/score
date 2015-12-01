@@ -1,7 +1,6 @@
 #include <boost/optional/optional.hpp>
 #include <core/application/Application.hpp>
 #include <core/document/Document.hpp>
-#include <core/document/DocumentModel.hpp>
 #include <QAction>
 #include <QApplication>
 #include <QDebug>
@@ -19,6 +18,7 @@
 #include <core/application/ApplicationComponents.hpp>
 #include <core/application/ApplicationContext.hpp>
 #include <core/command/CommandStack.hpp>
+#include <core/document/DocumentModel.hpp>
 #include <core/presenter/DocumentManager.hpp>
 #include <core/presenter/MenubarManager.hpp>
 #include <core/presenter/Presenter.hpp>

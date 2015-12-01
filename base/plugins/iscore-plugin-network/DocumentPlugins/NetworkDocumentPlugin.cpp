@@ -85,8 +85,9 @@ class ScenarioFindEventVisitor
         }
 };
 
-NetworkDocumentPlugin::NetworkDocumentPlugin(iscore_plugin_networkPolicy *policy,
-                                             iscore::Document& doc):
+NetworkDocumentPlugin::NetworkDocumentPlugin(
+        iscore_plugin_networkPolicy *policy,
+        iscore::Document& doc):
     iscore::DocumentPluginModel{doc, "NetworkDocumentPlugin", &doc.model()},
     m_policy{policy},
     m_groups{new GroupManager{this}}

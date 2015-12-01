@@ -2,7 +2,6 @@
 #include <Automation/AutomationModel.hpp>
 #include <Explorer/DocumentPlugin/DeviceDocumentPlugin.hpp>
 #include <core/document/Document.hpp>
-#include <core/document/DocumentModel.hpp>
 #include <QDebug>
 #include <QString>
 #include <algorithm>

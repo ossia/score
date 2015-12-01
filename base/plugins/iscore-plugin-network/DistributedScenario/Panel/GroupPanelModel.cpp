@@ -1,4 +1,3 @@
-#include <core/document/DocumentModel.hpp>
 
 #include "DocumentPlugins/NetworkDocumentPlugin.hpp"
 #include "GroupPanelModel.hpp"
@@ -6,6 +5,7 @@
 #include <iscore/plugins/panel/PanelModel.hpp>
 #include "GroupPanelId.hpp"
 #include <core/document/Document.hpp>
+#include <core/document/DocumentModel.hpp>
 
 
 GroupPanelModel::GroupPanelModel(
@@ -14,8 +14,12 @@ GroupPanelModel::GroupPanelModel(
     iscore::PanelModel{"GroupPanelModel", parent}
 {
     con(ctx.document.model(), &iscore::DocumentModel::pluginModelsChanged,
-        this, &GroupPanelModel::scanPlugins);
-    scanPlugins();
+        this, [&] () {
+        // Reference to ctx is safe beacause it is non-copyable; there is
+        // a single instance originating from a document and there cannot
+        // be spurious temporaries that might go out of scope.
+        scanPlugins(ctx);
+    });
 }
 
 GroupManager* GroupPanelModel::manager() const
@@ -25,11 +29,10 @@ Session* GroupPanelModel::session() const
 { return m_currentSession; }
 
 
-void GroupPanelModel::scanPlugins()
+void GroupPanelModel::scanPlugins(const iscore::DocumentContext& ctx)
 {
     m_currentManager = nullptr;
-    auto pluginModels = static_cast<iscore::DocumentModel*>(parent())->pluginModels();
-    for(auto& plug : pluginModels)
+    for(auto& plug : ctx.pluginModels())
     {
         if(auto netplug = dynamic_cast<NetworkDocumentPlugin*>(plug))
         {

@@ -1,10 +1,10 @@
 #include <Scenario/Document/ScenarioDocument/ScenarioDocumentModel.hpp>
 #include <Scenario/Document/ScenarioDocument/ScenarioDocumentPresenter.hpp>
 #include <Scenario/Document/ScenarioDocument/ScenarioDocumentView.hpp>
-#include <core/document/DocumentModel.hpp>
 #include <core/document/DocumentView.hpp>
 #include <iscore/serialization/VisitorCommon.hpp>
 #include <algorithm>
+#include <core/document/DocumentModel.hpp>
 
 #include "ScenarioDocumentFactory.hpp"
 

@@ -32,7 +32,6 @@ class AutomationInspectorWidget final : public InspectorWidgetBase
         void on_maxValueChanged();
 
     private:
-        DeviceExplorerModel* m_explorer{};
         AddressEditWidget* m_lineEdit{};
         QDoubleSpinBox* m_minsb{}, *m_maxsb{};
         const AutomationModel& m_model;

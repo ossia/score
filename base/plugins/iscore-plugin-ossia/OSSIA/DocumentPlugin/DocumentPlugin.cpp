@@ -1,9 +1,9 @@
 #include <Scenario/Document/ScenarioDocument/ScenarioDocumentModel.hpp>
-#include <core/document/DocumentModel.hpp>
 
 #include "BaseScenarioElement.hpp"
 #include "DocumentPlugin.hpp"
 #include <iscore/plugins/documentdelegate/plugin/DocumentDelegatePluginModel.hpp>
+#include <core/document/DocumentModel.hpp>
 
 class QObject;
 namespace iscore {
@@ -18,10 +18,10 @@ DocumentPlugin::DocumentPlugin(iscore::Document& doc, QObject* parent):
 {
 }
 
-void DocumentPlugin::reload(iscore::DocumentModel &doc)
+void DocumentPlugin::reload(BaseScenario& doc)
 {
-    auto& baseElement = static_cast<ScenarioDocumentModel&>(doc.modelDelegate()).baseScenario();
-    m_base = new BaseScenarioElement{baseElement, this};
+    // TODO unique_ptr and stop it.
+    m_base = new BaseScenarioElement{doc, this};
 }
 
 void DocumentPlugin::clear()

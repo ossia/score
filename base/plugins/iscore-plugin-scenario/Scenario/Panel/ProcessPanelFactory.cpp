@@ -1,4 +1,3 @@
-#include <core/document/DocumentModel.hpp>
 #include <core/view/View.hpp>
 
 #include <Process/ProcessList.hpp>
