@@ -4,6 +4,7 @@
 #include <QString>
 #include <QVector>
 #include <vector>
+#include <nano_signal_slot.hpp>
 
 #include <Scenario/Process/ScenarioModel.hpp>
 #include <iscore/serialization/VisitorInterface.hpp>
@@ -21,7 +22,7 @@ class ScenarioModel;
 }
 #include <iscore/tools/SettableIdentifier.hpp>
 
-class AbstractScenarioLayerModel : public LayerModel
+class AbstractScenarioLayerModel : public LayerModel, public Nano::Observer
 {
         Q_OBJECT
     public:

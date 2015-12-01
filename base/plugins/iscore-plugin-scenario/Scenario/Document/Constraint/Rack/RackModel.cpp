@@ -71,6 +71,5 @@ void RackModel::swapSlots(const Id<SlotModel>& firstslot,
 
 void RackModel::initConnections()
 {
-    con(slotmodels, &NotifyingMap<SlotModel>::removed,
-        this, &RackModel::on_slotRemoved);
+    slotmodels.removing.connect<RackModel, &RackModel::on_slotRemoved>(this);
 }

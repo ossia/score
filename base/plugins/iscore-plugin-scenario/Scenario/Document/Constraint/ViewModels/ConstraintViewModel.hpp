@@ -2,6 +2,7 @@
 #include <boost/optional/optional.hpp>
 #include <iscore/tools/IdentifiedObject.hpp>
 #include <QString>
+#include <nano_signal_slot.hpp>
 
 #include <iscore/tools/SettableIdentifier.hpp>
 
@@ -9,7 +10,7 @@ class ConstraintModel;
 class QObject;
 class RackModel;
 
-class ConstraintViewModel : public IdentifiedObject<ConstraintViewModel>
+class ConstraintViewModel : public IdentifiedObject<ConstraintViewModel>, public Nano::Observer
 {
         Q_OBJECT
 
@@ -44,12 +45,12 @@ class ConstraintViewModel : public IdentifiedObject<ConstraintViewModel>
         void showRack(const Id<RackModel>& rackId);
 
     signals:
-        void rackRemoved();
+        void lastRackRemoved();
         void rackHidden();
         void rackShown(const Id<RackModel>&);
 
     public slots:
-        virtual void on_rackRemoved(const RackModel&);
+        virtual void on_rackRemoval(const RackModel&);
 
     private:
         // A view model cannot be constructed without a model

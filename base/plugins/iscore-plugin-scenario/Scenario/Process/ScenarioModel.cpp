@@ -298,23 +298,16 @@ void ScenarioModel::makeLayer_impl(AbstractScenarioLayerModel* scen)
     // There is no ConstraintCreated connection to the layer,
     // because the constraints view models are created
     // from the commands, since they require ids too.
-    con(constraints, &NotifyingMap<ConstraintModel>::removed,
-        scen, &AbstractScenarioLayerModel::on_constraintRemoved);
+    constraints.removed.connect<AbstractScenarioLayerModel, &AbstractScenarioLayerModel::on_constraintRemoved>(scen);
 
-    con(states, &NotifyingMap<StateModel>::added,
-        scen, &AbstractScenarioLayerModel::stateCreated);
-    con(states, &NotifyingMap<StateModel>::removed,
-        scen, &AbstractScenarioLayerModel::stateRemoved);
+    states.added.connect<AbstractScenarioLayerModel, &AbstractScenarioLayerModel::stateCreated>(scen);
+    states.removed.connect<AbstractScenarioLayerModel, &AbstractScenarioLayerModel::stateRemoved>(scen);
 
-    con(events, &NotifyingMap<EventModel>::added,
-        scen, &AbstractScenarioLayerModel::eventCreated);
-    con(events, &NotifyingMap<EventModel>::removed,
-        scen, &AbstractScenarioLayerModel::eventRemoved);
+    events.added.connect<AbstractScenarioLayerModel, &AbstractScenarioLayerModel::eventCreated>(scen);
+    events.removed.connect<AbstractScenarioLayerModel, &AbstractScenarioLayerModel::eventRemoved>(scen);
 
-    con(timeNodes, &NotifyingMap<TimeNodeModel>::added,
-        scen, &AbstractScenarioLayerModel::timeNodeCreated);
-    con(timeNodes, &NotifyingMap<TimeNodeModel>::removed,
-        scen, &AbstractScenarioLayerModel::timeNodeRemoved);
+    timeNodes.added.connect<AbstractScenarioLayerModel, &AbstractScenarioLayerModel::timeNodeCreated>(scen);
+    timeNodes.removed.connect<AbstractScenarioLayerModel, &AbstractScenarioLayerModel::timeNodeRemoved>(scen);
 
     connect(this, &ScenarioModel::eventMoved,
             scen, &AbstractScenarioLayerModel::eventMoved);

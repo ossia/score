@@ -5,6 +5,7 @@
 #include <utility>
 #include <vector>
 
+#include <nano_signal_slot.hpp>
 #include <core/document/DocumentContext.hpp>
 
 class ProcessList;
@@ -41,7 +42,7 @@ struct SlotProcessData
         std::vector<ProcessPair> processes;
 };
 
-class SlotPresenter final : public NamedObject
+class SlotPresenter final : public NamedObject, public Nano::Observer
 {
         Q_OBJECT
 
@@ -83,7 +84,7 @@ class SlotPresenter final : public NamedObject
     private:
         // From Model
         void on_layerModelCreated(const LayerModel&);
-        void on_layerModelDeleted(const LayerModel&);
+        void on_layerModelRemoved(const LayerModel&);
         void on_layerModelPutToFront(const LayerModel&);
 
         void on_layerModelCreated_impl(const LayerModel&);

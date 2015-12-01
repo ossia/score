@@ -1,6 +1,7 @@
 #pragma once
 #include <Inspector/InspectorSectionWidget.hpp>
 #include <QString>
+#include <nano_signal_slot.hpp>
 
 class AddLayerModelWidget;
 class ConstraintInspectorWidget;
@@ -11,7 +12,7 @@ class SlotModel;
 #include <iscore/tools/SettableIdentifier.hpp>
 
 // Contains a single rack which can contain multiple slots and a Add Slot button.
-class SlotInspectorSection final : public InspectorSectionWidget
+class SlotInspectorSection final : public InspectorSectionWidget, public Nano::Observer
 {
     public:
         SlotInspectorSection(

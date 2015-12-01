@@ -7,6 +7,7 @@
 #include <iscore/tools/IdentifiedObject.hpp>
 #include <iscore/tools/SettableIdentifier.hpp>
 #include <iscore/tools/NotifyingMap.hpp>
+#include <nano_signal_slot.hpp>
 
 #include <set>
 #include <vector>
@@ -24,7 +25,7 @@ class ProcessStateDataInterface;
 class QObject;
 
 // Model for the graphical state in a scenario.
-class StateModel final : public IdentifiedObject<StateModel>
+class StateModel final : public IdentifiedObject<StateModel>, public Nano::Observer
 {
         Q_OBJECT
         ISCORE_METADATA("StateModel")
@@ -110,7 +111,4 @@ class StateModel final : public IdentifiedObject<StateModel>
 
         ptr<MessageItemModel> m_messageItemModel;
         ExecutionStatus m_status{ExecutionStatus::Editing};
-
-        std::vector<QMetaObject::Connection> m_prevConnections;
-        std::vector<QMetaObject::Connection> m_nextConnections;
 };

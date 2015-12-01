@@ -189,6 +189,18 @@ ConstraintInspectorWidget::ConstraintInspectorWidget(
         }
     }
 
+    // Constraint interface
+    model().processes.added.connect<ConstraintInspectorWidget, &ConstraintInspectorWidget::on_processCreated>(this);
+    model().processes.removed.connect<ConstraintInspectorWidget, &ConstraintInspectorWidget::on_processRemoved>(this);
+    model().racks.added.connect<ConstraintInspectorWidget, &ConstraintInspectorWidget::on_rackCreated>(this);
+    model().racks.removed.connect<ConstraintInspectorWidget, &ConstraintInspectorWidget::on_rackRemoved>(this);
+
+    con(model(), &ConstraintModel::viewModelCreated,
+        this, &ConstraintInspectorWidget::on_constraintViewModelCreated);
+    con(model(), &ConstraintModel::viewModelRemoved,
+        this, &ConstraintInspectorWidget::on_constraintViewModelRemoved);
+
+
     updateDisplayedValues();
 
     m_delegate->addWidgets_post(m_properties, this);
@@ -218,35 +230,6 @@ void ConstraintInspectorWidget::updateDisplayedValues()
     }
 
     m_rackesSectionWidgets.clear();
-
-    // Cleanup the connections
-    for(auto& connection : m_connections)
-    {
-        QObject::disconnect(connection);
-    }
-
-    m_connections.clear();
-
-    // Constraint interface
-    m_connections.push_back(
-                con(model().processes, &NotifyingMap<Process>::added,
-                    this, &ConstraintInspectorWidget::on_processCreated));
-    m_connections.push_back(
-                con(model().processes, &NotifyingMap<Process>::removed,
-                    this, &ConstraintInspectorWidget::on_processRemoved));
-    m_connections.push_back(
-                con(model().racks, &NotifyingMap<RackModel>::added,
-                    this, &ConstraintInspectorWidget::on_rackCreated));
-    m_connections.push_back(
-                con(model().racks, &NotifyingMap<RackModel>::removed,
-                    this, &ConstraintInspectorWidget::on_rackRemoved));
-
-    m_connections.push_back(
-                con(model(), &ConstraintModel::viewModelCreated,
-                    this, &ConstraintInspectorWidget::on_constraintViewModelCreated));
-    m_connections.push_back(
-                con(model(), &ConstraintModel::viewModelRemoved,
-                    this, &ConstraintInspectorWidget::on_constraintViewModelRemoved));
 
     // Processes
     for(const auto& process : model().processes)

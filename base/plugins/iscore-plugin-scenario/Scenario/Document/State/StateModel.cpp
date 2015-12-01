@@ -208,10 +208,13 @@ void StateModel::setNextConstraint(const Id<ConstraintModel> & id)
         updateTreeWithRemovedConstraint(node, ProcessPosition::Following);
         *m_messageItemModel = std::move(node);
 
-        for(auto conn : m_nextConnections)
-            QObject::disconnect(conn);
+        auto cstr = dynamic_cast<ScenarioInterface*>(parent())->findConstraint(m_nextConstraint);
+        if(cstr)
+        {
+            cstr->processes.added.disconnect<StateModel,&StateModel::on_nextProcessAdded>(this);
+            cstr->processes.removed.disconnect<StateModel,&StateModel::on_nextProcessRemoved>(this);
+        }
 
-        m_nextConnections.clear();
         m_nextProcesses.clear();
     }
 
@@ -233,10 +236,8 @@ void StateModel::setNextConstraint(const Id<ConstraintModel> & id)
             on_nextProcessAdded(proc);
         }
 
-        m_nextConnections.push_back(con(cstr->processes, &NotifyingMap<Process>::added,
-            this, &StateModel::on_nextProcessAdded));
-        m_nextConnections.push_back(con(cstr->processes, &NotifyingMap<Process>::removed,
-            this, &StateModel::on_nextProcessRemoved));
+        cstr->processes.added.connect<StateModel,&StateModel::on_nextProcessAdded>(this);
+        cstr->processes.removed.connect<StateModel,&StateModel::on_nextProcessRemoved>(this);
     }
 }
 
@@ -249,10 +250,13 @@ void StateModel::setPreviousConstraint(const Id<ConstraintModel> & id)
         updateTreeWithRemovedConstraint(node, ProcessPosition::Previous);
         *m_messageItemModel = std::move(node);
 
-        for(auto conn : m_prevConnections)
-            QObject::disconnect(conn);
+        auto cstr = dynamic_cast<ScenarioInterface*>(parent())->findConstraint(m_previousConstraint);
+        if(cstr)
+        {
+            cstr->processes.added.disconnect<StateModel,&StateModel::on_previousProcessAdded>(this);
+            cstr->processes.removed.disconnect<StateModel,&StateModel::on_previousProcessRemoved>(this);
+        }
 
-        m_prevConnections.clear();
         m_previousProcesses.clear();
     }
 
@@ -272,10 +276,8 @@ void StateModel::setPreviousConstraint(const Id<ConstraintModel> & id)
             on_previousProcessAdded(proc);
         }
 
-        m_prevConnections.push_back(con(cstr->processes, &NotifyingMap<Process>::added,
-            this, &StateModel::on_previousProcessAdded));
-        m_prevConnections.push_back(con(cstr->processes, &NotifyingMap<Process>::removed,
-            this, &StateModel::on_previousProcessRemoved));
+        cstr->processes.added.connect<StateModel,&StateModel::on_previousProcessAdded>(this);
+        cstr->processes.removed.connect<StateModel,&StateModel::on_previousProcessRemoved>(this);
     }
 }
 

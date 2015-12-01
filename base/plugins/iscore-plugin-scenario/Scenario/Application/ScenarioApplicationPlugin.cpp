@@ -67,49 +67,6 @@ namespace iscore {
 class Application;
 }  // namespace iscore
 
-template void NotifyingMap<LayerModel>::add(LayerModel*);
-template void NotifyingMap<SlotModel>::add(SlotModel*);
-template void NotifyingMap<RackModel>::add(RackModel*);
-template void NotifyingMap<Process>::add(Process*);
-template void NotifyingMap<StateProcess>::add(StateProcess*);
-template void NotifyingMap<ConstraintModel>::add(ConstraintModel*);
-template void NotifyingMap<EventModel>::add(EventModel*);
-template void NotifyingMap<TimeNodeModel>::add(TimeNodeModel*);
-template void NotifyingMap<StateModel>::add(StateModel*);
-
-template void NotifyingMap<LayerModel>::remove(LayerModel*);
-template void NotifyingMap<SlotModel>::remove(SlotModel*);
-template void NotifyingMap<RackModel>::remove(RackModel*);
-template void NotifyingMap<Process>::remove(Process*);
-template void NotifyingMap<StateProcess>::remove(StateProcess*);
-template void NotifyingMap<ConstraintModel>::remove(ConstraintModel*);
-template void NotifyingMap<EventModel>::remove(EventModel*);
-template void NotifyingMap<TimeNodeModel>::remove(TimeNodeModel*);
-template void NotifyingMap<StateModel>::remove(StateModel*);
-
-template void NotifyingMap<LayerModel>::remove(const Id<LayerModel>&);
-template void NotifyingMap<SlotModel>::remove(const Id<SlotModel>&);
-template void NotifyingMap<RackModel>::remove(const Id<RackModel>&);
-template void NotifyingMap<Process>::remove(const Id<Process>&);
-template void NotifyingMap<StateProcess>::remove(const Id<StateProcess>&);
-template void NotifyingMap<ConstraintModel>::remove(const Id<ConstraintModel>&);
-template void NotifyingMap<EventModel>::remove(const Id<EventModel>&);
-template void NotifyingMap<TimeNodeModel>::remove(const Id<TimeNodeModel>&);
-template void NotifyingMap<StateModel>::remove(const Id<StateModel>&);
-
-void ignore_template_instantiations_Scenario()
-{
-    NotifyingMapInstantiations_T<LayerModel>();
-    NotifyingMapInstantiations_T<SlotModel>();
-    NotifyingMapInstantiations_T<RackModel>();
-    NotifyingMapInstantiations_T<Process>();
-    NotifyingMapInstantiations_T<StateProcess>();
-    NotifyingMapInstantiations_T<ConstraintModel>();
-    NotifyingMapInstantiations_T<EventModel>();
-    NotifyingMapInstantiations_T<TimeNodeModel>();
-    NotifyingMapInstantiations_T<StateModel>();
-}
-
 using namespace iscore;
 #include <Scenario/Application/Menus/ScenarioCommonContextMenuFactory.hpp>
 #include <algorithm>
@@ -324,12 +281,15 @@ void ScenarioApplicationPlugin::on_documentChanged(
             // TODO this snippet is useful, put it somewhere in some Toolkit file.
             auto& pres = IDocument::presenterDelegate<ScenarioDocumentPresenter>(*newdoc);
             auto& cst = pres.displayedConstraint();
-            if(!cst.processes.empty())
+            auto cst_pres = pres.presenters().constraintPresenter();
+
+            if(!cst.processes.empty() && cst_pres && cst_pres->rack())
             {
-                const auto& slts = pres.presenters().constraintPresenter()->rack()->getSlots();
+                auto rack = cst_pres->rack();
+                const auto& slts = rack->getSlots();
                 if(!slts.empty())
                 {
-                    const auto& top_slot = pres.presenters().constraintPresenter()->rack()->model().slotsPositions().front();
+                    const auto& top_slot = rack->model().slotsPositions().front();
                     const SlotPresenter& first = slts.at(top_slot);
                     const auto& slot_processes = first.processes();
                     if(!slot_processes.empty())
@@ -437,6 +397,7 @@ const Scenario::ScenarioModel* ScenarioApplicationPlugin::focusedScenarioModel()
     {
         return dynamic_cast<const Scenario::ScenarioModel*>(focusManager->focusedModel());
     }
+    return nullptr;
 }
 
 TemporalScenarioPresenter* ScenarioApplicationPlugin::focusedPresenter() const
@@ -445,6 +406,7 @@ TemporalScenarioPresenter* ScenarioApplicationPlugin::focusedPresenter() const
     {
         return dynamic_cast<TemporalScenarioPresenter*>(focusManager->focusedPresenter());
     }
+    return nullptr;
 }
 
 void ScenarioApplicationPlugin::prepareNewDocument()

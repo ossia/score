@@ -50,10 +50,8 @@ SlotPresenter::SlotPresenter(
         on_layerModelCreated_impl(proc_vm);
     }
 
-    con(m_model.layers, &NotifyingMap<LayerModel>::added,
-        this, &SlotPresenter::on_layerModelCreated);
-    con(m_model.layers, &NotifyingMap<LayerModel>::removed,
-        this, &SlotPresenter::on_layerModelDeleted);
+    m_model.layers.added.connect<SlotPresenter, &SlotPresenter::on_layerModelCreated>(this);
+    m_model.layers.removed.connect<SlotPresenter, &SlotPresenter::on_layerModelRemoved>(this);
 
     con(m_model, &SlotModel::layerModelPutToFront,
         this, &SlotPresenter::on_layerModelPutToFront);
@@ -155,7 +153,7 @@ void SlotPresenter::on_layerModelCreated(
     on_layerModelCreated_impl(layerModel);
 }
 
-void SlotPresenter::on_layerModelDeleted(
+void SlotPresenter::on_layerModelRemoved(
         const LayerModel& layerModel)
 {
     vec_erase_remove_if(m_processes,

@@ -19,11 +19,7 @@
 #include <iscore/tools/SettableIdentifier.hpp>
 #include "iscore_plugin_loop.hpp"
 #include <iscore_plugin_loop_commands_files.hpp>
-void ignore_template_instantiations_iscore_plugin_loop()
-{
-    NotifyingMapInstantiations_T<RackModel>();
-    NotifyingMapInstantiations_T<Process>();
-}
+
 //#endif
 
 iscore_plugin_loop::iscore_plugin_loop() :

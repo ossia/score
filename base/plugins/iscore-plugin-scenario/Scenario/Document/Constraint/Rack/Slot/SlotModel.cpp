@@ -138,10 +138,8 @@ void SlotModel::setFocus(bool arg)
 
 void SlotModel::initConnections()
 {
-    con(layers, &NotifyingMap<LayerModel>::added,
-        this, &SlotModel::on_addLayer);
-    con(layers, &NotifyingMap<LayerModel>::removed,
-        this, &SlotModel::on_removeLayer);
+    layers.added.connect<SlotModel,&SlotModel::on_addLayer>(this);
+    layers.removed.connect<SlotModel,&SlotModel::on_removeLayer>(this);
 }
 
 ConstraintModel& SlotModel::parentConstraint() const

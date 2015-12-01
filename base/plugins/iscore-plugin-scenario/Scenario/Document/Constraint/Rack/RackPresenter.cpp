@@ -41,10 +41,9 @@ RackPresenter::RackPresenter(const RackModel& model,
 
     on_askUpdate();
 
-    con(m_model.slotmodels, &NotifyingMap<SlotModel>::added,
-        this, &RackPresenter::on_slotCreated);
-    con(m_model.slotmodels, &NotifyingMap<SlotModel>::removed,
-        this, &RackPresenter::on_slotRemoved);
+    m_model.slotmodels.added.connect<RackPresenter,&RackPresenter::on_slotCreated>(this);
+    m_model.slotmodels.removed.connect<RackPresenter,&RackPresenter::on_slotRemoved>(this);
+
     con(m_model, &RackModel::slotPositionsChanged,
         this, &RackPresenter::on_slotPositionsChanged);
 
