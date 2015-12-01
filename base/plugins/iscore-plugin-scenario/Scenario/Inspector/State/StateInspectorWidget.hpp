@@ -7,7 +7,7 @@ class InspectorSectionWidget;
 class QWidget;
 class StateModel;
 namespace iscore {
-class Document;
+struct DocumentContext;
 }  // namespace iscore
 
 class StateInspectorWidget final : public InspectorWidgetBase
@@ -16,7 +16,7 @@ class StateInspectorWidget final : public InspectorWidgetBase
     public:
         explicit StateInspectorWidget(
                 const StateModel& object,
-                iscore::Document& doc,
+                const iscore::DocumentContext& context,
                 QWidget* parent);
 
     public slots:

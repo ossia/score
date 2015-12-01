@@ -41,9 +41,9 @@ using namespace Scenario::Command;
 
 TimeNodeInspectorWidget::TimeNodeInspectorWidget(
         const TimeNodeModel& object,
-        iscore::Document& doc,
+        const iscore::DocumentContext& ctx,
         QWidget* parent) :
-    InspectorWidgetBase {object, doc, parent},
+    InspectorWidgetBase {object, ctx, parent},
     m_model {object}
 {
     setObjectName("TimeNodeInspectorWidget");
@@ -61,7 +61,7 @@ TimeNodeInspectorWidget::TimeNodeInspectorWidget(
 
     // Trigger
     m_trigwidg = new TriggerInspectorWidget{
-                 doc.context().app.components.factory<TriggerCommandFactoryList>(),
+                 ctx.app.components.factory<TriggerCommandFactoryList>(),
                  m_model, this};
 
 

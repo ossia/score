@@ -16,7 +16,7 @@ class CurvePointInspectorWidget final : public InspectorWidgetBase
     public:
         explicit CurvePointInspectorWidget(
             const CurvePointModel& model,
-            iscore::Document& doc,
+            const iscore::DocumentContext& context,
             QWidget* parent);
 
     public slots:

@@ -29,7 +29,7 @@
 
 MappingInspectorWidget::MappingInspectorWidget(
         const MappingModel& MappingModel,
-        iscore::Document& doc,
+        const iscore::DocumentContext& doc,
         QWidget* parent) :
     InspectorWidgetBase {MappingModel, doc, parent},
     m_model {MappingModel}

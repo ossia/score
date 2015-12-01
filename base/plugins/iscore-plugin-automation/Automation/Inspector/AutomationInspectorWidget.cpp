@@ -28,7 +28,7 @@
 
 AutomationInspectorWidget::AutomationInspectorWidget(
         const AutomationModel& automationModel,
-        iscore::Document& doc,
+        const iscore::DocumentContext& doc,
         QWidget* parent) :
     InspectorWidgetBase {automationModel, doc, parent},
     m_model {automationModel}

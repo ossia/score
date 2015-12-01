@@ -71,9 +71,9 @@ ConstraintInspectorWidget::ConstraintInspectorWidget(
         const ProcessList& pl,
         const ConstraintModel& object,
         std::unique_ptr<ConstraintInspectorDelegate> del,
-        iscore::Document& doc,
+        const iscore::DocumentContext& ctx,
         QWidget* parent) :
-    InspectorWidgetBase{object, doc, parent},
+    InspectorWidgetBase{object, ctx, parent},
     m_widgetList{widg},
     m_processList{pl},
     m_model{object},
@@ -117,7 +117,6 @@ ConstraintInspectorWidget::ConstraintInspectorWidget(
     m_properties.push_back(new Separator {this});
 
     // Durations
-    auto& ctx = iscore::IDocument::documentContext(object);
     auto& ctrl = ctx.app.components.applicationPlugin<ScenarioApplicationPlugin>();
     m_durationSection = new DurationSectionWidget {ctrl.editionSettings(), *m_delegate, this};
     m_properties.push_back(m_durationSection);
@@ -180,7 +179,7 @@ ConstraintInspectorWidget::ConstraintInspectorWidget(
     // Plugins
     for(auto& plugdata : m_model.pluginModelList.list())
     {
-        for(auto plugin : doc.context().pluginModels())
+        for(auto plugin : ctx.pluginModels())
         {
             auto md = plugin->makeElementPluginWidget(plugdata, this);
             if(md)

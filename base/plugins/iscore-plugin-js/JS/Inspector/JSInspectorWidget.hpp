@@ -16,7 +16,7 @@ class JSInspectorWidget final : public InspectorWidgetBase
     public:
         explicit JSInspectorWidget(
                 const JSProcessModel& object,
-                iscore::Document& doc,
+                const iscore::DocumentContext& context,
                 QWidget* parent);
 
     signals:

@@ -17,7 +17,7 @@ class ScenarioInspectorWidget final : public InspectorWidgetBase
     public:
         explicit ScenarioInspectorWidget(
                 const Scenario::ScenarioModel& object,
-                iscore::Document& doc,
+                const iscore::DocumentContext& context,
                 QWidget* parent);
 
     signals:

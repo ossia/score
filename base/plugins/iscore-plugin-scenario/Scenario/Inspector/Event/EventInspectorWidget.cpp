@@ -43,7 +43,7 @@
 
 EventInspectorWidget::EventInspectorWidget(
         const EventModel& object,
-        iscore::Document& doc,
+        const iscore::DocumentContext& doc,
         QWidget* parent) :
     InspectorWidgetBase {object, doc, parent},
     m_model {object}
@@ -101,7 +101,7 @@ EventInspectorWidget::EventInspectorWidget(
     // Trigger
     auto& tn = scenar->timeNode(m_model.timeNode());
     m_triggerWidg = new TriggerInspectorWidget{
-                    doc.context().app.components.factory<TriggerCommandFactoryList>(),
+                    doc.app.components.factory<TriggerCommandFactoryList>(),
                     tn,
                     this};
     m_properties.push_back(new QLabel{tr("Trigger")});
@@ -135,7 +135,7 @@ EventInspectorWidget::EventInspectorWidget(
     // Plugins (TODO factorize with ConstraintInspectorWidget)
     for(auto& plugdata : m_model.pluginModelList.list())
     {
-        for(auto plugin : doc.context().pluginModels())
+        for(auto plugin : doc.pluginModels())
         {
             auto md = plugin->makeElementPluginWidget(plugdata, this);
             if(md)
@@ -155,7 +155,7 @@ EventInspectorWidget::EventInspectorWidget(
 
 void EventInspectorWidget::addState(const StateModel& state)
 {
-    auto sw = new StateInspectorWidget{state, doc(), this};
+    auto sw = new StateInspectorWidget{state, context(), this};
 
     m_states.push_back(sw);
     m_statesWidget->layout()->addWidget(sw);

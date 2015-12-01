@@ -13,7 +13,7 @@ class Document;
 
 InspectorWidgetBase* EventInspectorFactory::makeWidget(
         const QObject& sourceElement,
-        iscore::Document& doc,
+        const iscore::DocumentContext& doc,
         QWidget* parentWidget) const
 {
     return new EventInspectorWidget{

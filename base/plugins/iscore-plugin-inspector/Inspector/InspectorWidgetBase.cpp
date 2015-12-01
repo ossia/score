@@ -10,13 +10,13 @@
 
 InspectorWidgetBase::InspectorWidgetBase(
         const IdentifiedObjectAbstract& inspectedObj,
-        iscore::Document& doc,
+        const iscore::DocumentContext& ctx,
         QWidget* parent) :
     QWidget(parent),
     m_inspectedObject {inspectedObj},
-    m_document{doc},
-    m_commandDispatcher(new CommandDispatcher<>{m_document.context().commandStack}),
-    m_selectionDispatcher(new iscore::SelectionDispatcher{m_document.context().selectionStack})
+    m_context{ctx},
+    m_commandDispatcher(new CommandDispatcher<>{ctx.commandStack}),
+    m_selectionDispatcher(new iscore::SelectionDispatcher{ctx.selectionStack})
 
 {
     m_layout = new QVBoxLayout;

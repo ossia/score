@@ -10,7 +10,7 @@ template <typename T> class QList;
 
 namespace iscore
 {
-class Document;
+struct DocumentContext;
 }
 
 
@@ -39,7 +39,7 @@ class InspectorWidgetFactory : public iscore::GenericFactoryInterface<QList<QStr
         */
         virtual InspectorWidgetBase* makeWidget(
                 const QObject& sourceElement,
-                iscore::Document& doc,
+                const iscore::DocumentContext& doc,
                 QWidget* parent) const = 0;
 
         bool matches(const QString& objectName) const;

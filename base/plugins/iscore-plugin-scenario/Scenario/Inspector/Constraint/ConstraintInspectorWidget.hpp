@@ -46,7 +46,7 @@ class ConstraintInspectorWidget final : public InspectorWidgetBase
                 const ProcessList& pl,
                 const ConstraintModel& object,
                 std::unique_ptr<ConstraintInspectorDelegate> del,
-                iscore::Document& doc,
+                const iscore::DocumentContext& context,
                 QWidget* parent = 0);
 
         const ConstraintModel& model() const;

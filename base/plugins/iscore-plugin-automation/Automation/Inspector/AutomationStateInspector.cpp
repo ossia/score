@@ -16,7 +16,7 @@ class Document;
 
 AutomationStateInspector::AutomationStateInspector(
         const AutomationState& object,
-        iscore::Document& doc,
+        const iscore::DocumentContext& doc,
         QWidget* parent):
     InspectorWidgetBase{object, doc, parent},
     m_state{object},

@@ -19,10 +19,10 @@ class QWidget;
 
 InspectorWidgetBase* ConstraintInspectorFactory::makeWidget(
         const QObject& sourceElement,
-        iscore::Document& doc,
+        const iscore::DocumentContext& doc,
         QWidget* parent) const
 {
-    auto& appContext = doc.context().app;
+    auto& appContext = doc.app;
     auto& widgetFact = appContext.components.factory<InspectorWidgetList>();
     auto& processFact = appContext.components.factory<ProcessList>();
     auto& constraintWidgetFactory = appContext.components.factory<ConstraintInspectorDelegateFactoryList>();

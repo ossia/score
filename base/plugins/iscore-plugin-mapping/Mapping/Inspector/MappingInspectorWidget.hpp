@@ -20,7 +20,7 @@ class MappingInspectorWidget : public InspectorWidgetBase
     public:
         explicit MappingInspectorWidget(
                 const MappingModel& object,
-                iscore::Document& doc,
+                const iscore::DocumentContext& context,
                 QWidget* parent);
 
     signals:

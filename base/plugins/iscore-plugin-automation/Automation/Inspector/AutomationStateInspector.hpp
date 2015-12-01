@@ -15,7 +15,7 @@ class AutomationStateInspector final : public InspectorWidgetBase
     public:
         explicit AutomationStateInspector(
                 const AutomationState& object,
-                iscore::Document& doc,
+                const iscore::DocumentContext& context,
                 QWidget* parent = 0);
 
         void on_stateChanged();
