@@ -44,7 +44,7 @@ void SnapshotParametersInStates(iscore::Document& doc)
         return;
 
     MacroCommandDispatcher macro{new SnapshotStatesMacro,
-                doc.commandStack()};
+                doc.context().commandStack};
     for(auto& state : selected_states)
     {
         auto cmd = new AddMessagesToState{

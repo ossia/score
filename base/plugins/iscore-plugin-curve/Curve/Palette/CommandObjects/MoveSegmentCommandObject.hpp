@@ -1,6 +1,6 @@
 #pragma once
 namespace iscore {
-class CommandStack;
+class CommandStackFacade;
 }  // namespace iscore
 // To simplify :
 // Take the current state of the curve
@@ -16,7 +16,7 @@ class CommandStack;
 class MoveSegmentCommandObject
 {
     public:
-        explicit MoveSegmentCommandObject(iscore::CommandStack& stack);
+        explicit MoveSegmentCommandObject(iscore::CommandStackFacade& stack);
 
         void press();
 

@@ -18,7 +18,7 @@ struct LayerContext : public iscore::DocumentContext
         }
 
         LayerContext(
-                iscore::DocumentContext& doc,
+                const iscore::DocumentContext& doc,
                 LayerPresenter& pres,
                 FocusDispatcher& d):
             LayerContext{doc.document, pres, d}

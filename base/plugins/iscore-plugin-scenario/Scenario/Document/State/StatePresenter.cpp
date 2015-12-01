@@ -12,6 +12,7 @@
 #include "StateModel.hpp"
 #include "StatePresenter.hpp"
 #include "StateView.hpp"
+#include <core/document/DocumentContext.hpp>
 #include <iscore/command/Dispatchers/CommandDispatcher.hpp>
 #include <iscore/selection/Selectable.hpp>
 #include <iscore/serialization/MimeVisitor.hpp>
@@ -29,7 +30,7 @@ StatePresenter::StatePresenter(
     NamedObject {"StatePresenter", parent},
     m_model {model},
     m_view {new StateView{*this, parentview}},
-    m_dispatcher{iscore::IDocument::commandStack(m_model)}
+    m_dispatcher{iscore::IDocument::documentContext(m_model).commandStack}
 {
     // The scenario catches this :
     con(m_model.selection, &Selectable::changed,

@@ -21,7 +21,7 @@ struct DeviceSettings;
 
 namespace iscore
 {
-    class CommandStack;
+    class CommandStackFacade;
 }
 
 class DeviceDocumentPlugin;
@@ -72,8 +72,8 @@ class DeviceExplorerModel final : public NodeBasedItemModel
         DeviceDocumentPlugin& deviceModel() const;
         QModelIndexList selectedIndexes() const;
 
-        void setCommandQueue(iscore::CommandStack* q);
-        iscore::CommandStack& commandStack() const
+        void setCommandQueue(iscore::CommandStackFacade* q);
+        iscore::CommandStackFacade& commandStack() const
         { return *m_cmdQ; }
 
         // Returns the row (useful for undo)
@@ -159,7 +159,7 @@ class DeviceExplorerModel final : public NodeBasedItemModel
 
         iscore::Node& m_rootNode;
 
-        iscore::CommandStack* m_cmdQ;
+        iscore::CommandStackFacade* m_cmdQ{};
 
         DeviceExplorerView* m_view {};
 };

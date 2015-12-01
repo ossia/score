@@ -6,7 +6,7 @@
 #include "AreaTab.hpp"
 #include "SpaceTab.hpp"
 #include "ComputationsTab.hpp"
-SpaceGuiWindow::SpaceGuiWindow(iscore::CommandStack &stack, const SpaceProcess &space, QWidget* parent) :
+SpaceGuiWindow::SpaceGuiWindow(iscore::CommandStackFacade &stack, const SpaceProcess &space, QWidget* parent) :
     QWidget{parent}
 {
     auto lay = new iscore::MarginLess<QGridLayout>;

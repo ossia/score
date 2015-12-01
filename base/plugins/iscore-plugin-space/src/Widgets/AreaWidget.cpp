@@ -11,7 +11,7 @@
 #include <iscore/widgets/MarginLess.hpp>
 #include <iscore/document/DocumentInterface.hpp>
 
-AreaWidget::AreaWidget(iscore::CommandStack& stack, const SpaceProcess& space, QWidget *parent):
+AreaWidget::AreaWidget(iscore::CommandStackFacade& stack, const SpaceProcess& space, QWidget *parent):
     QWidget{parent},
     m_dispatcher{stack},
     m_space{space}

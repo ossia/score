@@ -12,7 +12,7 @@
 #include <iscore/statemachine/GraphicsSceneToolPalette.hpp>
 
 namespace iscore {
-class CommandStack;
+class CommandStackFacade;
 class ObjectLocker;
 }  // namespace iscore
 
@@ -47,7 +47,7 @@ const CurveModel& ToolPalette::model() const
     return m_presenter.model();
 }
 
-iscore::CommandStack& ToolPalette::commandStack() const
+iscore::CommandStackFacade& ToolPalette::commandStack() const
 {
     return m_stack;
 }

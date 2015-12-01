@@ -1,5 +1,6 @@
 #pragma once
 #include <core/application/ApplicationContext.hpp>
+#include <iscore/command/CommandStackFacade.hpp>
 namespace iscore
 {
 class Document;
@@ -13,7 +14,7 @@ struct DocumentContext
 
         iscore::ApplicationContext app;
         iscore::Document& document;
-        iscore::CommandStack& commandStack;
+        iscore::CommandStackFacade& commandStack;
         iscore::SelectionStack& selectionStack;
         iscore::ObjectLocker& objectLocker;
 };

@@ -5,14 +5,16 @@
 
 class CurvePresenter;
 namespace iscore {
-class CommandStack;
+class CommandStackFacade;
 }  // namespace iscore
 struct CurveSegmentData;
 
 class CreatePointCommandObject final : public CurveCommandObjectBase
 {
     public:
-        CreatePointCommandObject(CurvePresenter* presenter, iscore::CommandStack& stack);
+        CreatePointCommandObject(
+                CurvePresenter* presenter,
+                iscore::CommandStackFacade& stack);
 
         void on_press() override;
 

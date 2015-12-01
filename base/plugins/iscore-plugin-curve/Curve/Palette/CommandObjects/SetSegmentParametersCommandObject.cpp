@@ -12,12 +12,12 @@
 #include <iscore/tools/ModelPath.hpp>
 
 namespace iscore {
-class CommandStack;
+class CommandStackFacade;
 }  // namespace iscore
 
 SetSegmentParametersCommandObject::SetSegmentParametersCommandObject(
         CurvePresenter *pres,
-        iscore::CommandStack & stack):
+        iscore::CommandStackFacade & stack):
     m_presenter{pres},
     m_dispatcher{stack}
 {

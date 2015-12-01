@@ -43,7 +43,7 @@ class ToolPalette final : public GraphicsSceneToolPalette
         const Scenario::ScenarioModel& model() const
         { return m_model; }
 
-        iscore::CommandStack& commandStack() const
+        iscore::CommandStackFacade& commandStack() const
         { return m_context.commandStack; }
         iscore::ObjectLocker& locker() const
         { return m_context.objectLocker; }

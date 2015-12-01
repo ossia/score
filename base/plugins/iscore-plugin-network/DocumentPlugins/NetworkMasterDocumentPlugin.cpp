@@ -16,6 +16,7 @@
 #include <iscore/serialization/DataStreamVisitor.hpp>
 #include <iscore/tools/SettableIdentifier.hpp>
 #include <iscore/tools/Todo.hpp>
+#include <core/document/Document.hpp>
 #include "session/MasterSession.hpp"
 
 class Client;
@@ -24,10 +25,12 @@ MasterNetworkPolicy::MasterNetworkPolicy(MasterSession* s,
                                          iscore::DocumentContext& c):
     m_session{s}
 {
+    auto& stack = c.document.commandStack();
+
     /////////////////////////////////////////////////////////////////////////////
     /// From the master to the clients
     /////////////////////////////////////////////////////////////////////////////
-    con(c.commandStack, &iscore::CommandStack::localCommand,
+    con(stack, &iscore::CommandStack::localCommand,
             this, [=] (iscore::SerializableCommand* cmd)
     {
         m_session->broadcast(
@@ -35,13 +38,13 @@ MasterNetworkPolicy::MasterNetworkPolicy(MasterSession* s,
     });
 
     // Undo-redo
-    con(c.commandStack, &iscore::CommandStack::localUndo,
+    con(stack, &iscore::CommandStack::localUndo,
             this, [&] ()
     { m_session->broadcast(m_session->makeMessage("/command/undo")); });
-    con(c.commandStack, &iscore::CommandStack::localRedo,
+    con(stack, &iscore::CommandStack::localRedo,
             this, [&] ()
     { m_session->broadcast(m_session->makeMessage("/command/redo")); });
-    con(c.commandStack, &iscore::CommandStack::localIndexChanged,
+    con(stack, &iscore::CommandStack::localIndexChanged,
             this, [&] (int32_t idx)
     {
         m_session->broadcast(m_session->makeMessage("/command/index", idx));
@@ -65,7 +68,7 @@ MasterNetworkPolicy::MasterNetworkPolicy(MasterSession* s,
         Visitor<Writer<DataStream>> writer{m.data};
         writer.writeTo(cmd);
 
-        c.commandStack.redoAndPushQuiet(
+        stack.redoAndPushQuiet(
                     c.app.components.instantiateUndoCommand(cmd));
 
 
@@ -75,12 +78,12 @@ MasterNetworkPolicy::MasterNetworkPolicy(MasterSession* s,
     // Undo-redo
     s->mapper().addHandler("/command/undo", [&] (NetworkMessage m)
     {
-        c.commandStack.undoQuiet();
+        stack.undoQuiet();
         m_session->transmit(Id<Client>(m.clientId), m);
     });
     s->mapper().addHandler("/command/redo", [&] (NetworkMessage m)
     {
-        c.commandStack.redoQuiet();
+        stack.redoQuiet();
         m_session->transmit(Id<Client>(m.clientId), m);
     });
 
@@ -89,7 +92,7 @@ MasterNetworkPolicy::MasterNetworkPolicy(MasterSession* s,
         QDataStream stream{m.data};
         int32_t idx;
         stream >> idx;
-        c.commandStack.setIndexQuiet(idx);
+        stack.setIndexQuiet(idx);
         m_session->transmit(Id<Client>(m.clientId), m);
     });
 

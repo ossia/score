@@ -14,7 +14,7 @@ class AutomationPresenter final :
 {
     public:
         AutomationPresenter(
-                iscore::DocumentContext& context,
+                const iscore::DocumentContext& context,
                 const Curve::Style& style,
                 const AutomationLayerModel& layer,
                 AutomationView* view,

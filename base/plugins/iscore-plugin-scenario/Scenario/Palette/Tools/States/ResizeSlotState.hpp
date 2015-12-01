@@ -28,7 +28,7 @@ class ResizeSlotState final : public SlotState
 {
     public:
         ResizeSlotState(
-                iscore::CommandStack& stack,
+                iscore::CommandStackFacade& stack,
                 const ToolPalette_T& sm,
                 QState* parent):
             SlotState{parent},

@@ -10,13 +10,13 @@ namespace Curve {
 class StateBase;
 }  // namespace Curve
 namespace iscore {
-class CommandStack;
+class CommandStackFacade;
 }  // namespace iscore
 
 class SetSegmentParametersCommandObject
 {
     public:
-        SetSegmentParametersCommandObject(CurvePresenter* pres, iscore::CommandStack&);
+        SetSegmentParametersCommandObject(CurvePresenter* pres, iscore::CommandStackFacade&);
 
         void setCurveState(Curve::StateBase* stateBase) { m_state = stateBase; }
 

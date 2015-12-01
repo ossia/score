@@ -8,7 +8,7 @@ class AreaTab : public QWidget
 {
         Q_OBJECT
     public:
-        AreaTab(iscore::CommandStack &stack, const SpaceProcess &space, QWidget* parent);
+        AreaTab(iscore::CommandStackFacade &stack, const SpaceProcess &space, QWidget* parent);
 
     private slots:
         void updateDisplayedArea(int);

@@ -28,7 +28,7 @@ class Creation_FromEvent final : public CreationState<Scenario_T, ToolPalette_T>
         Creation_FromEvent(
                 const ToolPalette_T& stateMachine,
                 const Path<Scenario_T>& scenarioPath,
-                iscore::CommandStack& stack,
+                iscore::CommandStackFacade& stack,
                 QState* parent):
             CreationState<Scenario_T, ToolPalette_T>{stateMachine, stack, std::move(scenarioPath), parent}
         {

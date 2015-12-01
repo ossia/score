@@ -1,33 +1,33 @@
 #pragma once
-#include <core/command/CommandStack.hpp>
+#include <iscore/command/CommandStackFacade.hpp>
 
 namespace SendStrategy
 {
     struct Simple
     {
-        static void send(iscore::CommandStack& cmd,
+        static void send(iscore::CommandStackFacade& stack,
                          iscore::SerializableCommand* other)
         {
-            cmd.redoAndPush(other);
+            stack.redoAndPush(other);
         }
     };
 
     struct Quiet
     {
-        static void send(iscore::CommandStack& cmd,
+        static void send(iscore::CommandStackFacade& stack,
                          iscore::SerializableCommand* other)
         {
-            cmd.push(other);
+            stack.push(other);
         }
     };
 
     struct UndoRedo
     {
-        static void send(iscore::CommandStack& cmd,
+        static void send(iscore::CommandStackFacade& stack,
                          iscore::SerializableCommand* other)
         {
             other->undo();
-            cmd.redoAndPush(other);
+            stack.redoAndPush(other);
         }
     };
 }

@@ -1,10 +1,10 @@
 #include "MoveSegmentCommandObject.hpp"
 
 namespace iscore {
-class CommandStack;
+class CommandStackFacade;
 }  // namespace iscore
 
-MoveSegmentCommandObject::MoveSegmentCommandObject(iscore::CommandStack& stack)
+MoveSegmentCommandObject::MoveSegmentCommandObject(iscore::CommandStackFacade& stack)
     //:
     //m_dispatcher{stack}
 {

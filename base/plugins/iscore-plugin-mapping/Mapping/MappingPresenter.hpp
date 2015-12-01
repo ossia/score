@@ -15,7 +15,7 @@ class MappingPresenter :
 {
     public:
         MappingPresenter(
-                iscore::DocumentContext& context,
+                const iscore::DocumentContext& context,
                 const Curve::Style& style,
                 const MappingLayerModel& layer,
                 MappingView* view,

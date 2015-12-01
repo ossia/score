@@ -10,6 +10,7 @@
 #include <Scenario/Document/State/ItemModel/MessageItemModel.hpp>
 #include <State/Message.hpp>
 #include "StateModel.hpp"
+#include <core/document/DocumentContext.hpp>
 #include <iscore/tools/IdentifiedObject.hpp>
 #include <iscore/tools/SettableIdentifier.hpp>
 #include <Scenario/Process/ScenarioInterface.hpp>
@@ -31,7 +32,7 @@ StateModel::StateModel(
     m_eventId{eventId},
     m_heightPercentage{yPos},
     m_messageItemModel{new MessageItemModel{
-                            iscore::IDocument::commandStack(*this),
+                            iscore::IDocument::documentContext(*this).commandStack,
                             *this,
                             this}}
 {

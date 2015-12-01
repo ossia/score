@@ -30,7 +30,7 @@ struct VerticalExtent;
 
 
 LoopPresenter::LoopPresenter(
-        iscore::DocumentContext& context,
+        const iscore::DocumentContext& context,
         const LoopLayer& layer,
         LoopView* view,
         QObject* parent):

@@ -6,7 +6,7 @@
 #include <Explorer/Commands/Update/UpdateAddressSettings.hpp>
 #include <Explorer/DocumentPlugin/DeviceDocumentPlugin.hpp>
 #include <core/application/ApplicationComponents.hpp>
-#include <core/command/CommandStack.hpp>
+#include <iscore/command/CommandStackFacade.hpp>
 #include <core/document/Document.hpp>
 #include <iscore/document/DocumentInterface.hpp>
 #include <QAbstractProxyModel>
@@ -119,7 +119,7 @@ QModelIndexList DeviceExplorerModel::selectedIndexes() const
 }
 
 void
-DeviceExplorerModel::setCommandQueue(iscore::CommandStack* q)
+DeviceExplorerModel::setCommandQueue(iscore::CommandStackFacade* q)
 {
     m_cmdQ = q;
 }

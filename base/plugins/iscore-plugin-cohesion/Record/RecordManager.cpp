@@ -167,7 +167,7 @@ void RecordManager::recordInNewBox(Scenario::ScenarioModel& scenar, Scenario::Po
     if(recordListening.empty())
         return;
 
-    m_dispatcher = std::make_unique<RecordCommandDispatcher>(new Record, doc.commandStack());
+    m_dispatcher = std::make_unique<RecordCommandDispatcher>(new Record, doc.context().commandStack);
 
     //// Initial commands ////
 

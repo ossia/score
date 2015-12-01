@@ -19,7 +19,7 @@ namespace Curve {
 class StateBase;
 }  // namespace Curve
 namespace iscore {
-class CommandStack;
+class CommandStackFacade;
 }  // namespace iscore
 
 /*
@@ -43,7 +43,7 @@ class CurveSegmentModel;
 class CurveCommandObjectBase
 {
     public:
-        CurveCommandObjectBase(CurvePresenter* pres, iscore::CommandStack&);
+        CurveCommandObjectBase(CurvePresenter* pres, iscore::CommandStackFacade&);
         virtual ~CurveCommandObjectBase();
 
         void setCurveState(Curve::StateBase* stateBase) { m_state = stateBase; }

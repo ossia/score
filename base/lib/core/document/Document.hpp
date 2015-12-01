@@ -35,6 +35,7 @@ class Document final : public NamedObject
 {
         Q_OBJECT
         friend class DocumentBuilder;
+        friend struct DocumentContext;
     public:
         ~Document();
 
@@ -101,6 +102,8 @@ class Document final : public NamedObject
         void init();
 
         CommandStack m_commandStack;
+        CommandStackFacade m_commandStackFacade{m_commandStack};
+
         SelectionStack m_selectionStack;
         ObjectLocker m_objectLocker;
 

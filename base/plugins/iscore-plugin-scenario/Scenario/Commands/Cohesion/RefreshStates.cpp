@@ -26,12 +26,12 @@ void RefreshStates(iscore::Document* doc)
     // TODO this method can also be used in IScoreCohesion's other algorithms.
     auto selected_states = filterSelectionByType<StateModel>(doc->selectionStack().currentSelection());
 
-    RefreshStates(selected_states, doc->commandStack());
+    RefreshStates(selected_states, doc->context().commandStack);
 }
 
 void RefreshStates(
         const QList<const StateModel*>& states,
-        iscore::CommandStack& stack)
+        iscore::CommandStackFacade& stack)
 {
     if(states.empty())
         return;

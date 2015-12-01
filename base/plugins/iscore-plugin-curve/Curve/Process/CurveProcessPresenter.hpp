@@ -29,7 +29,7 @@ class CurveProcessPresenter : public LayerPresenter
 {
     public:
         CurveProcessPresenter(
-                iscore::DocumentContext& context,
+                const iscore::DocumentContext& context,
                 const Curve::Style& style,
                 const LayerModel_T& lm,
                 LayerView_T* view,

@@ -33,7 +33,7 @@ MessageTreeView::MessageTreeView(
         QWidget* parent):
     QTreeView{parent},
     m_model{model},
-    m_dispatcher{iscore::IDocument::commandStack(model)}
+    m_dispatcher{iscore::IDocument::documentContext(model).commandStack}
 {
     setAllColumnsShowFocus(true);
     setSelectionBehavior(QAbstractItemView::SelectRows);

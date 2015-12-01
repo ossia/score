@@ -29,7 +29,7 @@ using namespace iscore;
 DocumentContext::DocumentContext(Document& d):
     app{*safe_cast<iscore::Application*>(d.parent()->parent())},
     document{d},
-    commandStack{d.commandStack()},
+    commandStack{d.m_commandStackFacade},
     selectionStack{d.selectionStack()},
     objectLocker{d.locker()}
 {

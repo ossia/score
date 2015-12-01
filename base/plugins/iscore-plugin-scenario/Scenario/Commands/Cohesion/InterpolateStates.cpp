@@ -49,11 +49,11 @@ void InterpolateStates(iscore::Document* doc)
     if(selected_constraints.empty())
         return;
 
-    InterpolateStates(selected_constraints, doc->commandStack());
+    InterpolateStates(selected_constraints, doc->context().commandStack);
 }
 
 void InterpolateStates(const QList<const ConstraintModel*>& selected_constraints,
-                       iscore::CommandStack& stack)
+                       iscore::CommandStackFacade& stack)
 {
     // For each constraint, interpolate between the states in its start event and end event.
 

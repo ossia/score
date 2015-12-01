@@ -35,7 +35,7 @@ void CreateCurves(iscore::Document& doc)
     auto addresses = device_explorer.selectedIndexes();
 
     MacroCommandDispatcher macro{new CreateCurvesFromAddressesInConstraints,
-                doc.commandStack()};
+                doc.context().commandStack};
     for(auto constraint : selected_constraints)
     {
         QList<iscore::Address> l;

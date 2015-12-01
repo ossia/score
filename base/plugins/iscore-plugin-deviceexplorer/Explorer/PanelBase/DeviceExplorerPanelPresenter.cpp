@@ -29,7 +29,7 @@ void DeviceExplorerPanelPresenter::on_modelChanged()
     {
         auto m = static_cast<DeviceExplorerPanelModel *>(model());
         auto doc = iscore::IDocument::documentFromObject(model());
-        m->m_model->setCommandQueue(&doc->commandStack());
+        m->m_model->setCommandQueue(&doc->context().commandStack);
         v->m_widget->setModel(m->m_model);
     }
     else

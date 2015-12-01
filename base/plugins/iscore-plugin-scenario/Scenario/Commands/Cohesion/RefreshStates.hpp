@@ -3,10 +3,11 @@
 
 namespace iscore
 {
-class CommandStack;
+class CommandStackFacade;
 class Document;
 }
 class StateModel;
 
 void RefreshStates(iscore::Document* doc);
-void RefreshStates(const QList<const StateModel*>&, iscore::CommandStack&);
+void RefreshStates(const QList<const StateModel*>&,
+                   iscore::CommandStackFacade&);

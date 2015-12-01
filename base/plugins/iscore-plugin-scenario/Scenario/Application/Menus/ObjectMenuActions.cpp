@@ -75,7 +75,7 @@ ObjectMenuActions::ObjectMenuActions(
     {
         if (auto sm = m_parent->focusedScenarioModel())
         {
-            Scenario::removeSelection(*sm, m_parent->currentDocument()->commandStack());
+            Scenario::removeSelection(*sm, m_parent->currentDocument()->context().commandStack);
         }
     });
 
@@ -87,7 +87,7 @@ ObjectMenuActions::ObjectMenuActions(
     {
         if (auto sm = m_parent->focusedScenarioModel())
         {
-            Scenario::clearContentFromSelection(*sm, m_parent->currentDocument()->commandStack());
+            Scenario::clearContentFromSelection(*sm, m_parent->currentDocument()->context().commandStack);
         }
     });
 
@@ -235,7 +235,7 @@ void ObjectMenuActions::fillContextMenu(
                 connect(act, &QAction::triggered,
                         this, [&] () {
                     auto cmd = new Scenario::Command::ShowRackInViewModel{vm, rack.id()};
-                    CommandDispatcher<> dispatcher{m_parent->currentDocument()->commandStack()};
+                    CommandDispatcher<> dispatcher{m_parent->currentDocument()->context().commandStack};
                     dispatcher.submitCommand(cmd);
                 });
 
@@ -246,7 +246,7 @@ void ObjectMenuActions::fillContextMenu(
             connect(hideAct, &QAction::triggered,
                     this, [&] () {
                 auto cmd = new Scenario::Command::HideRackInViewModel{vm};
-                CommandDispatcher<> dispatcher{m_parent->currentDocument()->commandStack()};
+                CommandDispatcher<> dispatcher{m_parent->currentDocument()->context().commandStack};
                 dispatcher.submitCommand(cmd);
             });
             rackMenu->addAction(hideAct);
@@ -342,7 +342,7 @@ QJsonObject ObjectMenuActions::cutSelectedElementsToJson()
 
     if (auto sm = m_parent->focusedScenarioModel())
     {
-        Scenario::clearContentFromSelection(*sm, m_parent->currentDocument()->commandStack());
+        Scenario::clearContentFromSelection(*sm, m_parent->currentDocument()->context().commandStack);
     }
 
     return obj;
@@ -438,7 +438,7 @@ void ObjectMenuActions::removeTriggerFromTimeNode()
 
 CommandDispatcher<> ObjectMenuActions::dispatcher()
 {
-    CommandDispatcher<> disp{m_parent->currentDocument()->commandStack()};
+    CommandDispatcher<> disp{m_parent->currentDocument()->context().commandStack};
     return disp;
 }
 

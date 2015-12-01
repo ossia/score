@@ -20,19 +20,19 @@ namespace Loop {
 class ProcessModel;
 }  // namespace Loop
 namespace iscore {
-class CommandStack;
+class CommandStackFacade;
 struct DocumentContext;
 }  // namespace iscore
 
 
 namespace Loop
 {
-inline void removeSelection(const Loop::ProcessModel& model, iscore::CommandStack& )
+inline void removeSelection(const Loop::ProcessModel& model, iscore::CommandStackFacade& )
 {
 
 }
 
-inline void clearContentFromSelection(const Loop::ProcessModel& model, iscore::CommandStack& )
+inline void clearContentFromSelection(const Loop::ProcessModel& model, iscore::CommandStackFacade& )
 {
     ISCORE_TODO;
 }
@@ -49,7 +49,7 @@ class LoopPresenter :
         friend class LoopViewUpdater;
     public:
         LoopPresenter(
-                iscore::DocumentContext& context,
+                const iscore::DocumentContext& context,
                 const LoopLayer&,
                 LoopView* view,
                 QObject* parent);

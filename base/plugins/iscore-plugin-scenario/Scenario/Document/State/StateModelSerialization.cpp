@@ -1,5 +1,6 @@
 #include <Scenario/Document/State/StateModel.hpp>
 
+#include <core/document/DocumentContext.hpp>
 #include <iscore/document/DocumentInterface.hpp>
 #include <iscore/serialization/DataStreamVisitor.hpp>
 #include <iscore/serialization/JSONVisitor.hpp>
@@ -64,7 +65,7 @@ template<> void Visitor<Writer<DataStream>>::writeTo(StateModel& s)
     MessageNode n;
     m_stream >> n;
     s.m_messageItemModel = new MessageItemModel{
-                           iscore::IDocument::commandStack(s), s, &s};
+                           iscore::IDocument::documentContext(s).commandStack, s, &s};
     s.messages() = n;
 
     // Processes plugins
@@ -110,7 +111,7 @@ template<> void Visitor<Writer<JSONObject>>::writeTo(StateModel& s)
 
     // Message tree
     s.m_messageItemModel = new MessageItemModel{
-                           iscore::IDocument::commandStack(s), s, &s};
+                           iscore::IDocument::documentContext(s).commandStack, s, &s};
     s.messages() = fromJsonObject<MessageNode>(m_obj["Messages"].toObject());
 
     // Processes plugins
