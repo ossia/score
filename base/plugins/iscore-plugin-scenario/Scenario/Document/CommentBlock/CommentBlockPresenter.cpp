@@ -30,3 +30,8 @@ const TimeValue&CommentBlockPresenter::date() const
     return model().date();
 }
 
+void CommentBlockPresenter::pressed(const QPointF& pos)
+{
+    m_clickedPoint = pos;
+}
+

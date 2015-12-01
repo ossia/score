@@ -22,6 +22,8 @@
 #include <Scenario/Document/CommentBlock/CommentBlockPresenter.hpp>
 #include <iscore/tools/SettableIdentifier.hpp>
 
+#include <iscore/command/Dispatchers/OngoingCommandDispatcher.hpp>
+
 class Process;
 class QEvent;
 class QMenu;
@@ -166,6 +168,8 @@ class TemporalScenarioPresenter final : public LayerPresenter
         ScenarioViewInterface m_viewInterface;
 
         Scenario::EditionSettings& m_editionSettings;
+
+        OngoingCommandDispatcher m_ongoingDispatcher;
 
         FocusDispatcher m_focusDispatcher;
         LayerContext m_context;

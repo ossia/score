@@ -34,5 +34,9 @@ double CommentBlockModel::heightPercentage() const
 
 void CommentBlockModel::setHeightPercentage(double y)
 {
-    m_yposition = y;
+    if(y != m_yposition)
+    {
+        m_yposition = y;
+        emit heightPercentageChanged(y);
+    }
 }

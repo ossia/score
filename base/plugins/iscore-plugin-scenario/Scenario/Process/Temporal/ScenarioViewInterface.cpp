@@ -118,6 +118,7 @@ void ScenarioViewInterface::on_commentMoved(const CommentBlockPresenter& comment
     auto h = m_presenter.m_view->boundingRect().height();
     comment.view()->setPos(comment.date().msec() / m_presenter.zoomRatio(),
                            comment.model().heightPercentage() * h);
+    m_presenter.m_view->update();
 }
 
 template<typename T>

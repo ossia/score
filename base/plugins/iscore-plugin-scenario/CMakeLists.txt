@@ -113,6 +113,7 @@ set(SRCS ${SRCS}
 "${CMAKE_CURRENT_SOURCE_DIR}/Scenario/Commands/Scenario/Displacement/MoveEventOnCreationMeta.cpp"
 "${CMAKE_CURRENT_SOURCE_DIR}/Scenario/Commands/Scenario/Displacement/MoveNewEvent.cpp"
 "${CMAKE_CURRENT_SOURCE_DIR}/Scenario/Commands/Scenario/Displacement/MoveNewState.cpp"
+"${CMAKE_CURRENT_SOURCE_DIR}/Scenario/Commands/Scenario/Displacement/MoveCommentBlock.cpp"
 "${CMAKE_CURRENT_SOURCE_DIR}/Scenario/Commands/Scenario/HideRackInViewModel.cpp"
 "${CMAKE_CURRENT_SOURCE_DIR}/Scenario/Commands/Scenario/ShowRackInViewModel.cpp"
 "${CMAKE_CURRENT_SOURCE_DIR}/Scenario/Commands/Scenario/ShowRackInAllViewModels.cpp"

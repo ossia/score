@@ -1,5 +1,6 @@
 #include <Scenario/Commands/Scenario/Creations/CreateStateMacro.hpp>
 #include <Scenario/Commands/Scenario/Creations/CreateTimeNode_Event_State.hpp>
+#include <Scenario/Commands/Scenario/Displacement/MoveCommentBlock.hpp>
 #include <Scenario/Document/Constraint/ViewModels/Temporal/TemporalConstraintViewModel.hpp>
 #include <Scenario/Process/Temporal/TemporalScenarioLayerModel.hpp>
 #include <Scenario/Process/Temporal/TemporalScenarioView.hpp>
@@ -60,6 +61,7 @@ TemporalScenarioPresenter::TemporalScenarioPresenter(
     m_view {static_cast<TemporalScenarioView*>(view)},
     m_viewInterface{*this},
     m_editionSettings{e},
+    m_ongoingDispatcher{context.commandStack},
     m_focusDispatcher{context.document},
     m_context{context, *this, m_focusDispatcher},
     m_sm{m_context, *this}
@@ -387,11 +389,35 @@ void TemporalScenarioPresenter::on_commentBlockCreated(const CommentBlockModel& 
 
     con(comment_block_model, &CommentBlockModel::dateChanged,
             this, [=] (const TimeValue&) { m_viewInterface.on_commentMoved(*cmt_pres); });
+    con(comment_block_model, &CommentBlockModel::heightPercentageChanged,
+            this, [=] (double y) { m_viewInterface.on_commentMoved(*cmt_pres);});
 
-    // For the state machine
-    connect(cmt_pres, &CommentBlockPresenter::pressed, m_view, &TemporalScenarioView::pressed);
-    connect(cmt_pres, &CommentBlockPresenter::moved, m_view, &TemporalScenarioView::moved);
-    connect(cmt_pres, &CommentBlockPresenter::released, m_view, &TemporalScenarioView::released);
+
+//    connect(cmt_pres, &CommentBlockPresenter::pressed, m_view, &TemporalScenarioView::pressed);
+    connect(cmt_pres, &CommentBlockPresenter::moved,
+            this, [&] (QPointF scenPos)
+    {
+        auto& scenarModel = static_cast<Scenario::ScenarioModel&>(this->layerModel().processModel());
+        auto pos = Scenario::ConvertToScenarioPoint(scenPos, m_zoomRatio, m_view->height());
+        m_ongoingDispatcher.submitCommand<MoveCommentBlock>(
+                    scenarModel,
+                    comment_block_model.id(),
+                    pos.date,
+                    pos.y );
+
+    });
+    connect(cmt_pres, &CommentBlockPresenter::released,
+            this, [&] (QPointF scenPos)
+    {
+        auto& scenarModel = static_cast<Scenario::ScenarioModel&>(this->layerModel().processModel());
+        auto pos = Scenario::ConvertToScenarioPoint(scenPos, m_zoomRatio, m_view->height());
+        m_ongoingDispatcher.submitCommand<MoveCommentBlock>(
+                    scenarModel,
+                    comment_block_model.id(),
+                    pos.date,
+                    pos.y );
+        m_ongoingDispatcher.commit();
+    });
 }
 
 

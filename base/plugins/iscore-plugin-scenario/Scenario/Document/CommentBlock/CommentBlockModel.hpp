@@ -37,6 +37,7 @@ class CommentBlockModel final : public IdentifiedObject<CommentBlockModel>
 
     signals:
         void dateChanged(const TimeValue&);
+        void heightPercentageChanged(bool);
 
     public slots:
 

@@ -17,8 +17,8 @@ CommentBlockView::CommentBlockView(
     this->setZValue(1);
     this->setAcceptHoverEvents(true);
 
-    m_textItem = new QGraphicsTextItem{"Hello", this};
-    m_textItem->setTextInteractionFlags(Qt::TextEditable);
+    m_textItem = new QGraphicsTextItem{"Hello dear user !", this};
+    m_textItem->setTextInteractionFlags(Qt::TextEditorInteraction);
     m_textItem->setDefaultTextColor(Qt::white);
 }
 
@@ -35,7 +35,13 @@ void CommentBlockView::paint(QPainter* painter,
 QRectF CommentBlockView::boundingRect() const
 {
     if(m_textItem)
-        return m_textItem->boundingRect();
+    {
+        auto rect = m_textItem->boundingRect();
+        rect.translate(-3, -3);
+        rect.setWidth(rect.width() + 6);
+        rect.setHeight(rect.height() + 6);
+        return rect;
+    }
     else
         return {-1., -1., 2., 2.};
 }
@@ -43,16 +49,21 @@ QRectF CommentBlockView::boundingRect() const
 void CommentBlockView::mousePressEvent(QGraphicsSceneMouseEvent* event)
 {
     if(event->button() == Qt::MouseButton::LeftButton)
-        emit m_presenter.pressed(event->scenePos());
+    {
+        //emit m_presenter.pressed(event->scenePos());
+        m_presenter.setPressed(true);
+        m_presenter.pressed(event->scenePos() - this->pos());
+    }
 }
 
 void CommentBlockView::mouseMoveEvent(QGraphicsSceneMouseEvent* event)
 {
-    emit m_presenter.moved(event->scenePos());
+    emit m_presenter.moved(event->scenePos() - m_presenter.pressedPoint());
 }
 
 void CommentBlockView::mouseReleaseEvent(QGraphicsSceneMouseEvent* event)
 {
-    emit m_presenter.released(event->scenePos());
+    emit m_presenter.released(event->scenePos() - m_presenter.pressedPoint());
+    m_presenter.setPressed(false);
 }
 
