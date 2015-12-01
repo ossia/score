@@ -7,6 +7,7 @@ class QPoint;
 class QPointF;
 class SlotPresenter;
 class TemporalScenarioPresenter;
+class QAction;
 
 namespace iscore
 {
@@ -33,4 +34,5 @@ class ScenarioContextMenuManager final : public QObject
                 const QPoint& pos,
                 const QPointF& scenepos,
                 const LayerPresenter& pres);
+
 };

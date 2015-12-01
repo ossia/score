@@ -139,6 +139,7 @@ class TemporalScenarioPresenter final : public LayerPresenter
         void on_constraintViewModelRemoved(const ConstraintViewModel&);
 
         void on_commentBlockCreated(const CommentBlockModel&);
+        void on_commentBlockRemoved(const CommentBlockModel&);
 
         void on_askUpdate();
 

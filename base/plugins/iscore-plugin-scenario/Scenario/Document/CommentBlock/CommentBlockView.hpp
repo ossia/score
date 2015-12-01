@@ -14,7 +14,7 @@ class CommentBlockView final : public QGraphicsObject
         //~TimeNodeView() = default;
 
         static constexpr int static_type()
-        { return QGraphicsItem::UserType + 3; }
+        { return QGraphicsItem::UserType + 42; } // TODO : change 42 by the appropriate number
         int type() const override
         { return static_type(); }
 
@@ -25,8 +25,7 @@ class CommentBlockView final : public QGraphicsObject
                    const QStyleOptionGraphicsItem* option,
                    QWidget* widget) override;
 
-        QRectF boundingRect() const override
-        { return { -1., 1., 2., 2. }; }
+        QRectF boundingRect() const override;
 
     public slots:
 

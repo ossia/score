@@ -10,13 +10,17 @@
 #include <Scenario/Commands/Constraint/Rack/AddSlotToRack.hpp>
 #include <Scenario/Commands/Constraint/Rack/RemoveSlotFromRack.hpp>
 #include <Scenario/Commands/Constraint/Rack/Slot/AddLayerModelToSlot.hpp>
+#include <Scenario/Commands/Scenario/Creations/CreateCommentBlock.hpp>
 #include <Scenario/DialogWidget/AddProcessDialog.hpp>
 #include <Scenario/Document/Constraint/ConstraintModel.hpp>
 #include <Scenario/Document/Constraint/Rack/RackModel.hpp>
 #include <Scenario/Document/Constraint/Rack/Slot/SlotModel.hpp>
 #include <Scenario/Document/Constraint/Rack/Slot/SlotPresenter.hpp>
 #include <Scenario/Process/Temporal/TemporalScenarioPresenter.hpp>
+#include <Scenario/Process/Temporal/TemporalScenarioView.hpp>
 #include <Scenario/ViewCommands/PutLayerModelToFront.hpp>
+#include <Scenario/Process/ScenarioModel.hpp>
+
 #include <boost/iterator/indirect_iterator.hpp>
 #include <boost/iterator/iterator_facade.hpp>
 #include <boost/multi_index/detail/hash_index_iterator.hpp>
@@ -216,4 +220,20 @@ void ScenarioContextMenuManager::createScenarioContextMenu(
     menu.addSeparator();
     menu.addAction(appPlug.m_selectAll);
     menu.addAction(appPlug.m_deselectAll);
+
+    auto createCommentAct = new QAction{"Add a Comment Block", &menu};
+
+    connect(createCommentAct, &QAction::triggered,
+            [&] ()
+    {
+        auto scenPoint = Scenario::ConvertToScenarioPoint(scenepos, pres.zoomRatio(), pres.view().height());
+
+        auto cmd = new Scenario::Command::CreateCommentBlock{
+                   static_cast<Scenario::ScenarioModel&>(pres.layerModel().processModel()),
+                   scenPoint.date,
+                   scenPoint.y};
+        CommandDispatcher<>{ctx.commandStack}.submitCommand(cmd);
+    });
+
+    menu.addAction(createCommentAct);
 }

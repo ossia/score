@@ -2,7 +2,7 @@
 
 #include <QPainter>
 #include <QWidget>
-#include <QGraphicsTextItem>
+#include <QFont>
 #include <QGraphicsSceneMouseEvent>
 
 #include <Scenario/Document/CommentBlock/CommentBlockPresenter.hpp>
@@ -18,13 +18,26 @@ CommentBlockView::CommentBlockView(
     this->setAcceptHoverEvents(true);
 
     m_textItem = new QGraphicsTextItem{"Hello", this};
+    m_textItem->setTextInteractionFlags(Qt::TextEditable);
+    m_textItem->setDefaultTextColor(Qt::white);
 }
 
 void CommentBlockView::paint(QPainter* painter,
                              const QStyleOptionGraphicsItem* option,
                              QWidget* widget)
 {
+    auto p = QPen{Qt::white};
+    p.setWidth(1.);
+    painter->setPen(p);
+    painter->drawRoundedRect(boundingRect(), 5, 5);
+}
 
+QRectF CommentBlockView::boundingRect() const
+{
+    if(m_textItem)
+        return m_textItem->boundingRect();
+    else
+        return {-1., -1., 2., 2.};
 }
 
 void CommentBlockView::mousePressEvent(QGraphicsSceneMouseEvent* event)

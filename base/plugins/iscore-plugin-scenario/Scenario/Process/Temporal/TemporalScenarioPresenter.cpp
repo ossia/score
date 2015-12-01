@@ -99,7 +99,10 @@ TemporalScenarioPresenter::TemporalScenarioPresenter(
     con(m_layer, &TemporalScenarioLayerModel::stateRemoved,
         this, &TemporalScenarioPresenter::on_stateRemoved);
 
-    // COMMENT
+    con(m_layer, &TemporalScenarioLayerModel::commentCreated,
+        this, &TemporalScenarioPresenter::on_commentBlockCreated);
+    con(m_layer, &TemporalScenarioLayerModel::commentRemoved,
+        this, &TemporalScenarioPresenter::on_commentBlockRemoved);
 
     con(m_layer, &TemporalScenarioLayerModel::eventCreated,
         this, &TemporalScenarioPresenter::on_eventCreated);
@@ -257,6 +260,12 @@ void TemporalScenarioPresenter::on_constraintViewModelRemoved(
             break;
         }
     }
+}
+
+void TemporalScenarioPresenter::on_commentBlockRemoved(
+        const CommentBlockModel& cmt)
+{
+    removeElement(m_comments.get(), cmt.id());
 }
 
 /////////////////////////////////////////////////////////////////////
