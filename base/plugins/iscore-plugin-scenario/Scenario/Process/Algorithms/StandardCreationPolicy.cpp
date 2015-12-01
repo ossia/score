@@ -13,6 +13,25 @@
 #include <iscore/tools/NotifyingMap.hpp>
 #include <iscore/tools/SettableIdentifier.hpp>
 
+void ScenarioCreate<CommentBlockModel>::undo(
+        const Id<CommentBlockModel> &id,
+        Scenario::ScenarioModel &s)
+{
+    s.comments.remove(id);
+}
+
+CommentBlockModel& ScenarioCreate<CommentBlockModel>::redo(
+        const Id<CommentBlockModel> &id,
+        const TimeValue &date,
+        double y,
+        Scenario::ScenarioModel &s)
+{
+    auto comment = new CommentBlockModel{id, date, y, &s};
+    s.comments.add(comment);
+
+    return *comment;
+}
+
 void ScenarioCreate<TimeNodeModel>::undo(
         const Id<TimeNodeModel>& id,
         Scenario::ScenarioModel& s)
