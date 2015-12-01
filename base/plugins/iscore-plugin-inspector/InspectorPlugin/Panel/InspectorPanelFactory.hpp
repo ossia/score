@@ -23,5 +23,7 @@ class InspectorPanelFactory : public iscore::PanelFactory
                 iscore::View*) override;
         iscore::PanelPresenter* makePresenter(iscore::Presenter* parent_presenter,
                 iscore::PanelView* view) override;
-        iscore::PanelModel* makeModel(iscore::DocumentModel*) override;
+        iscore::PanelModel* makeModel(
+                const iscore::DocumentContext& ctx,
+                QObject* parent) override;
 };

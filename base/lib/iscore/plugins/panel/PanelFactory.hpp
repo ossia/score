@@ -1,6 +1,7 @@
 #pragma once
 
 #include <QString>
+class QObject;
 
 namespace iscore
 {
@@ -11,6 +12,7 @@ namespace iscore
     class Presenter;
     class View;
     struct ApplicationContext;
+    struct DocumentContext;
 
     /**
      * @brief The PanelFactory class
@@ -33,6 +35,7 @@ namespace iscore
                     PanelView* view) = 0;
 
             virtual PanelModel* makeModel(
-                    DocumentModel* parent) = 0;
+                    const iscore::DocumentContext& ctx,
+                    QObject* parent) = 0;
     };
 }

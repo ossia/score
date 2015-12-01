@@ -135,7 +135,7 @@ EventInspectorWidget::EventInspectorWidget(
     // Plugins (TODO factorize with ConstraintInspectorWidget)
     for(auto& plugdata : m_model.pluginModelList.list())
     {
-        for(iscore::DocumentDelegatePluginModel* plugin : doc.model().pluginModels())
+        for(auto plugin : doc.context().pluginModels())
         {
             auto md = plugin->makeElementPluginWidget(plugdata, this);
             if(md)

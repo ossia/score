@@ -43,7 +43,7 @@ BaseScenarioElement::BaseScenarioElement(
         const BaseScenario& element,
         QObject *parent):
     QObject{parent},
-    m_deviceList{iscore::IDocument::documentFromObject(element)->model().pluginModel<DeviceDocumentPlugin>()->list()}
+    m_deviceList{iscore::IDocument::documentFromObject(element)->context().plugin<DeviceDocumentPlugin>().list()}
 {
     auto main_start_node = OSSIA::TimeNode::create();
     auto main_end_node = OSSIA::TimeNode::create();

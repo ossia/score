@@ -33,7 +33,9 @@ iscore::PanelPresenter *UndoPanelFactory::makePresenter(iscore::Presenter *paren
     return new UndoPresenter{parent_presenter, view};
 }
 
-iscore::PanelModel *UndoPanelFactory::makeModel(iscore::DocumentModel *m)
+iscore::PanelModel *UndoPanelFactory::makeModel(
+        const iscore::DocumentContext& ctx,
+        QObject* parent)
 {
-    return new UndoModel{m};
+    return new UndoModel{parent};
 }

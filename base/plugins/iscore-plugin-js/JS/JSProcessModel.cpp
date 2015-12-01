@@ -22,7 +22,7 @@ class QObject;
 
 std::shared_ptr<JSProcess> JSProcessModel::makeProcess() const
 {
-    return std::make_shared<JSProcess>(*iscore::IDocument::documentFromObject(*this)->model().pluginModel<DeviceDocumentPlugin>());
+    return std::make_shared<JSProcess>(iscore::IDocument::documentFromObject(*this)->context().plugin<DeviceDocumentPlugin>());
 }
 
 JSProcessModel::JSProcessModel(

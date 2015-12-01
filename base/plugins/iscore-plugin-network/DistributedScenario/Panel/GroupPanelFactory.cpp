@@ -35,7 +35,10 @@ iscore::PanelPresenter* GroupPanelFactory::makePresenter(iscore::Presenter* pare
     return new GroupPanelPresenter{parent_presenter, view};
 }
 
-iscore::PanelModel* GroupPanelFactory::makeModel(iscore::DocumentModel* m)
+iscore::PanelModel* GroupPanelFactory::makeModel(
+        const iscore::DocumentContext& ctx,
+        QObject* parent)
 {
-    return new GroupPanelModel{m};
+    return new GroupPanelModel{
+        ctx, parent};
 }

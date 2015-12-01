@@ -21,7 +21,10 @@ class GroupPanelFactory : public iscore::PanelFactory
         iscore::PanelView* makeView(
                 const iscore::ApplicationContext& ctx,
                 iscore::View*) override;
-        iscore::PanelPresenter* makePresenter(iscore::Presenter* parent_presenter,
-                                                               iscore::PanelView* view) override;
-        iscore::PanelModel* makeModel(iscore::DocumentModel*) override;
+        iscore::PanelPresenter* makePresenter(
+                iscore::Presenter* parent_presenter,
+                iscore::PanelView* view) override;
+        iscore::PanelModel* makeModel(
+                const iscore::DocumentContext& ctx,
+                QObject* parent) override;
 };

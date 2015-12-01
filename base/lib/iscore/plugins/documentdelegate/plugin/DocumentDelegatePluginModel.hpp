@@ -14,16 +14,16 @@ struct VisitorVariant;
 
 namespace iscore
 {
-class DocumentDelegatePluginModel : public NamedObject
+class DocumentPluginModel : public NamedObject
 {
         Q_OBJECT
     public:
-        DocumentDelegatePluginModel(
+        DocumentPluginModel(
                 iscore::Document&,
                 const QString& name,
                 QObject* parent);
 
-        virtual ~DocumentDelegatePluginModel();
+        virtual ~DocumentPluginModel();
 
         virtual std::vector<ElementPluginModelType> elementPlugins() const { return {}; }
         virtual ElementPluginModel* makeElementPlugin(

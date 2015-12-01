@@ -46,7 +46,7 @@ AutomationElement::AutomationElement(
         QObject *parent):
     ProcessElement{parentConstraint, parent},
     m_iscore_autom{element},
-    m_deviceList{iscore::IDocument::documentFromObject(element)->model().pluginModel<DeviceDocumentPlugin>()->list()}
+    m_deviceList{iscore::IDocument::documentFromObject(element)->context().plugin<DeviceDocumentPlugin>().list()}
 {
     recreate();
 }

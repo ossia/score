@@ -26,5 +26,6 @@ class ProcessPanelFactory final : public iscore::PanelFactory
                 iscore::Presenter* parent_presenter,
                 iscore::PanelView* view) override;
         iscore::PanelModel*makeModel(
-                iscore::DocumentModel* parent) override;
+                const iscore::DocumentContext&,
+                QObject* parent) override;
 };

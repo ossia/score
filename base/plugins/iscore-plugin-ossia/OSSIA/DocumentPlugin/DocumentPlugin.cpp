@@ -14,7 +14,7 @@ class Document;
 namespace RecreateOnPlay
 {
 DocumentPlugin::DocumentPlugin(iscore::Document& doc, QObject* parent):
-    iscore::DocumentDelegatePluginModel{doc, "OSSIADocumentPlugin", parent}
+    iscore::DocumentPluginModel{doc, "OSSIADocumentPlugin", parent}
 {
 }
 

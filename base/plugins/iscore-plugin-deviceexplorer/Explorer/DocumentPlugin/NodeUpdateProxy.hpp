@@ -34,6 +34,10 @@ class NodeUpdateProxy
         DeviceExplorerModel* deviceExplorer{};
 
         explicit NodeUpdateProxy(DeviceDocumentPlugin& root);
+        NodeUpdateProxy(const NodeUpdateProxy&) = delete;
+        NodeUpdateProxy(NodeUpdateProxy&&) = delete;
+        NodeUpdateProxy& operator=(const NodeUpdateProxy&) = delete;
+        NodeUpdateProxy& operator=(NodeUpdateProxy&&) = delete;
 
         void addDevice(const iscore::DeviceSettings& dev);
         void loadDevice(const iscore::Node& node);

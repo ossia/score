@@ -5,12 +5,16 @@
 #include <iscore/plugins/documentdelegate/plugin/DocumentDelegatePluginModel.hpp>
 #include <iscore/plugins/panel/PanelModel.hpp>
 #include "GroupPanelId.hpp"
+#include <core/document/Document.hpp>
 
-GroupPanelModel::GroupPanelModel(iscore::DocumentModel *model):
-    iscore::PanelModel{"GroupPanelModel", model}
+
+GroupPanelModel::GroupPanelModel(
+        const iscore::DocumentContext& ctx,
+        QObject* parent):
+    iscore::PanelModel{"GroupPanelModel", parent}
 {
-    connect(model, &iscore::DocumentModel::pluginModelsChanged,
-            this, &GroupPanelModel::scanPlugins);
+    con(ctx.document.model(), &iscore::DocumentModel::pluginModelsChanged,
+        this, &GroupPanelModel::scanPlugins);
     scanPlugins();
 }
 

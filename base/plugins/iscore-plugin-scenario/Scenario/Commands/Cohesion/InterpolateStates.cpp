@@ -61,7 +61,7 @@ void InterpolateStates(const QList<const ConstraintModel*>& selected_constraints
     Scenario::ScenarioModel* scenar = dynamic_cast<Scenario::ScenarioModel*>(
                                 selected_constraints.first()->parent());
 
-    auto& devPlugin = *iscore::IDocument::documentFromObject(*scenar)->model().pluginModel<DeviceDocumentPlugin>();
+    auto& devPlugin = iscore::IDocument::documentFromObject(*scenar)->context().plugin<DeviceDocumentPlugin>();
     auto& rootNode = devPlugin.rootNode();
 
     auto big_macro = new GenericInterpolateMacro;

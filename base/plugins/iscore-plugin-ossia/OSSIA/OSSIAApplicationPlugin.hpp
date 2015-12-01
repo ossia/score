@@ -37,7 +37,7 @@ class OSSIAApplicationPlugin final :
 
         void populateMenus(iscore::MenubarManager*) override;
 
-        iscore::DocumentDelegatePluginModel*loadDocumentPlugin(
+        iscore::DocumentPluginModel*loadDocumentPlugin(
                 const QString& name,
                 const VisitorVariant& var,
                 iscore::Document* parent) override;

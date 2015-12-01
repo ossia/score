@@ -6,10 +6,12 @@
 #include "DeviceExplorerPanelModel.hpp"
 #include <iscore/plugins/panel/PanelModel.hpp>
 
-DeviceExplorerPanelModel::DeviceExplorerPanelModel(iscore::DocumentModel* parent) :
+DeviceExplorerPanelModel::DeviceExplorerPanelModel(
+        const iscore::DocumentContext& ctx,
+        QObject* parent) :
     iscore::PanelModel {"DeviceExplorerPanelModel", parent},
     m_model {new DeviceExplorerModel{
-                *parent->pluginModel<DeviceDocumentPlugin>(),
+                ctx.plugin<DeviceDocumentPlugin>(),
                 this}}
 {
 }

@@ -94,7 +94,7 @@ QByteArray Document::saveAsByteArray()
     std::transform(begin(model().pluginModels()),
                    end(model().pluginModels()),
                    std::back_inserter(documentPluginModels),
-                   [] (DocumentDelegatePluginModel* plugin)
+                   [] (DocumentPluginModel* plugin)
     {
         QByteArray arr;
         Serializer<DataStream> s{&arr};

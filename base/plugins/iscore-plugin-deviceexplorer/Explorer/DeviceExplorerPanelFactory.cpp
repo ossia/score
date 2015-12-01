@@ -37,7 +37,9 @@ iscore::PanelPresenter* DeviceExplorerPanelFactory::makePresenter(
     return new DeviceExplorerPanelPresenter {parent_presenter, view};
 }
 
-iscore::PanelModel* DeviceExplorerPanelFactory::makeModel(DocumentModel* parent)
+iscore::PanelModel* DeviceExplorerPanelFactory::makeModel(
+        const iscore::DocumentContext& ctx,
+        QObject* parent)
 {
-    return new DeviceExplorerPanelModel {parent};
+    return new DeviceExplorerPanelModel{ctx, parent};
 }

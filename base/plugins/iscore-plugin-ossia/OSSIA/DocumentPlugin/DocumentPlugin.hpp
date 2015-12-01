@@ -16,7 +16,7 @@ namespace RecreateOnPlay
 
 class BaseScenarioElement;
 
-class DocumentPlugin final : public iscore::DocumentDelegatePluginModel
+class DocumentPlugin final : public iscore::DocumentPluginModel
 {
     public:
         DocumentPlugin(iscore::Document& doc, QObject* parent);

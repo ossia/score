@@ -48,7 +48,7 @@ std::vector<QAction*> GUIApplicationContextPlugin::actions()
 }
 
 
-DocumentDelegatePluginModel*GUIApplicationContextPlugin::loadDocumentPlugin(
+DocumentPluginModel*GUIApplicationContextPlugin::loadDocumentPlugin(
         const QString& name,
         const VisitorVariant& var,
         Document* parent)

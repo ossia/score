@@ -110,7 +110,7 @@ void NetworkApplicationPlugin::setupClientConnection(QString ip, int port)
     m_sessionBuilder->initiateConnection();
 }
 
-DocumentDelegatePluginModel *NetworkApplicationPlugin::loadDocumentPlugin(const QString &name,
+DocumentPluginModel *NetworkApplicationPlugin::loadDocumentPlugin(const QString &name,
                                                                 const VisitorVariant &var,
                                                                 iscore::Document* parent)
 {

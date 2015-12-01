@@ -33,7 +33,7 @@ OSSIAMappingElement::OSSIAMappingElement(
         QObject *parent):
     ProcessElement{parentConstraint, parent},
     m_iscore_mapping{element},
-    m_deviceList{iscore::IDocument::documentFromObject(element)->model().pluginModel<DeviceDocumentPlugin>()->list()}
+    m_deviceList{iscore::IDocument::documentFromObject(element)->context().plugin<DeviceDocumentPlugin>().list()}
 {
     using namespace iscore::convert;
 }

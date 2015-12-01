@@ -37,7 +37,7 @@ void RefreshStates(
         return;
 
     auto doc = iscore::IDocument::documentFromObject(*states.first());
-    auto proxy = doc->model().pluginModel<DeviceDocumentPlugin>()->updateProxy;
+    auto& proxy = doc->context().plugin<DeviceDocumentPlugin>().updateProxy;
 
     auto macro = new RefreshStatesMacro;
 

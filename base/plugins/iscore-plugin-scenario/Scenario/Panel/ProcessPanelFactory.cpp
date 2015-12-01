@@ -36,7 +36,9 @@ iscore::PanelPresenter*ProcessPanelFactory::makePresenter(
     return new ProcessPanelPresenter{fact, parent_presenter, view};
 }
 
-iscore::PanelModel*ProcessPanelFactory::makeModel(iscore::DocumentModel* parent)
+iscore::PanelModel*ProcessPanelFactory::makeModel(
+        const iscore::DocumentContext&,
+        QObject* parent)
 {
     return new ProcessPanelModel{parent};
 }

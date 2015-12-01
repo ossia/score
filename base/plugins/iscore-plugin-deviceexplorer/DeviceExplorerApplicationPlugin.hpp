@@ -15,7 +15,7 @@ class DeviceExplorerApplicationPlugin final : public iscore::GUIApplicationConte
     public:
         DeviceExplorerApplicationPlugin(iscore::Application& app);
 
-        virtual iscore::DocumentDelegatePluginModel* loadDocumentPlugin(
+        virtual iscore::DocumentPluginModel* loadDocumentPlugin(
                 const QString& name,
                 const VisitorVariant& var,
                 iscore::Document *parent) override;

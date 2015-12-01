@@ -35,7 +35,7 @@ RecreateOnPlay::LoopElement::LoopElement(
         QObject* parent):
     ProcessElement{parentConstraint, parent},
     m_iscore_loop{element},
-    m_deviceList{iscore::IDocument::documentFromObject(element)->model().pluginModel<DeviceDocumentPlugin>()->list()}
+    m_deviceList{iscore::IDocument::documentFromObject(element)->context().plugin<DeviceDocumentPlugin>().list()}
 {
     OSSIA::TimeValue main_duration(iscore::convert::time(element.constraint().duration.defaultDuration()));
 

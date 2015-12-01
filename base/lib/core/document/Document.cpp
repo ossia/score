@@ -33,7 +33,11 @@ DocumentContext::DocumentContext(Document& d):
     selectionStack{d.selectionStack()},
     objectLocker{d.locker()}
 {
+}
 
+const std::vector<DocumentPluginModel*>&DocumentContext::pluginModels() const
+{
+    return document.model().pluginModels();
 }
 
 
@@ -114,7 +118,7 @@ const Id<DocumentModel>&Document::id() const
 
 void Document::setupNewPanel(PanelFactory* factory)
 {
-    m_model->addPanel(factory->makeModel(m_model));
+    m_model->addPanel(factory->makeModel(m_context, m_model));
 }
 
 void Document::bindPanelPresenter(PanelPresenter* pres)

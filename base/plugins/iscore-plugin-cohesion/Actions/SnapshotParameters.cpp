@@ -37,7 +37,7 @@ void SnapshotParametersInStates(iscore::Document& doc)
     }
 
     // Fetch the selected DeviceExplorer elements
-    auto device_explorer = doc.model().pluginModel<DeviceDocumentPlugin>()->updateProxy.deviceExplorer;
+    auto device_explorer = doc.context().plugin<DeviceDocumentPlugin>().updateProxy.deviceExplorer;
 
     iscore::MessageList messages = getSelectionSnapshot(*device_explorer);
     if(messages.empty())

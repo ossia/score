@@ -37,7 +37,9 @@ iscore::PanelPresenter* InspectorPanelFactory::makePresenter(
     return new InspectorPanelPresenter {parent_presenter, view};
 }
 
-iscore::PanelModel* InspectorPanelFactory::makeModel(iscore::DocumentModel* parent)
+iscore::PanelModel* InspectorPanelFactory::makeModel(
+        const iscore::DocumentContext& ctx,
+        QObject* parent)
 {
     return new InspectorPanelModel {parent};
 }

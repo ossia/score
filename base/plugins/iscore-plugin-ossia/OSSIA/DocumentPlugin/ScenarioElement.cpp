@@ -45,7 +45,7 @@ ScenarioElement::ScenarioElement(
         QObject* parent):
     ProcessElement{parentConstraint, parent},
     m_iscore_scenario{element},
-    m_deviceList{iscore::IDocument::documentFromObject(element)->model().pluginModel<DeviceDocumentPlugin>()->list()}
+    m_deviceList{iscore::IDocument::documentFromObject(element)->context().plugin<DeviceDocumentPlugin>().list()}
 {
     this->setObjectName("OSSIAScenarioElement");
 

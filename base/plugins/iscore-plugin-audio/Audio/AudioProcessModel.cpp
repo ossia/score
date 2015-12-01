@@ -13,7 +13,7 @@ namespace Audio
 {
 std::shared_ptr<Audio::Process> ProcessModel::makeProcess() const
 {
-    auto& docPlugin = *iscore::IDocument::documentFromObject(*this)->model().pluginModel<AudioDocumentPlugin>();
+    auto& docPlugin = *iscore::IDocument::documentFromObject(*this)->context().plugin<AudioDocumentPlugin>();
     auto proc = std::make_shared<Audio::Process>(docPlugin.engine());
 
     return proc;

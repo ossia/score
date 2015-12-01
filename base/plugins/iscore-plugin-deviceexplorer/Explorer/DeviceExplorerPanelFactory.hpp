@@ -28,5 +28,6 @@ class DeviceExplorerPanelFactory final : public iscore::PanelFactory
                 iscore::PanelView* view) override;
 
         iscore::PanelModel* makeModel(
-                iscore::DocumentModel*) override;
+                const iscore::DocumentContext& ctx,
+                QObject* parent) override;
 };

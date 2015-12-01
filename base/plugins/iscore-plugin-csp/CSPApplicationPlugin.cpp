@@ -38,7 +38,7 @@ CSPApplicationPlugin::on_newDocument(iscore::Document* document)
 void
 CSPApplicationPlugin::on_loadedDocument(iscore::Document* document)
 {
-    if(auto pluginModel = document->model().pluginModel<CSPDocumentPlugin>())
+    if(auto pluginModel = document->context().plugin<CSPDocumentPlugin>())
     {
         pluginModel->reload(document->model());
     }
