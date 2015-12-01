@@ -6,15 +6,15 @@
 #include <boost/iterator/indirect_iterator.hpp>
 #include <boost/iterator/iterator_facade.hpp>
 #include <boost/multi_index/detail/hash_index_iterator.hpp>
-#include <core/application/ApplicationComponents.hpp>
-#include <core/document/DocumentContext.hpp>
+
+#include <iscore/document/DocumentContext.hpp>
 #include <iscore/document/DocumentInterface.hpp>
 #include <iscore/tools/SettableIdentifierGeneration.hpp>
 #include <algorithm>
 
 #include <Curve/Segment/CurveSegmentData.hpp>
 #include "CurveModel.hpp"
-#include <core/application/ApplicationContext.hpp>
+#include <iscore/application/ApplicationContext.hpp>
 #include <iscore/plugins/customfactory/StringFactoryKey.hpp>
 #include <iscore/selection/Selectable.hpp>
 #include <iscore/selection/Selection.hpp>
@@ -22,6 +22,7 @@
 #include <iscore/tools/IdentifiedObjectMap.hpp>
 #include <iscore/tools/SettableIdentifier.hpp>
 #include <iscore/tools/std/StdlibWrapper.hpp>
+#include <iscore/tools/std/Algorithms.hpp>
 
 class QObject;
 

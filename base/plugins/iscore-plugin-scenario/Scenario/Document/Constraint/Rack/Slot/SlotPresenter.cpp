@@ -19,8 +19,8 @@
 #include <Scenario/Application/Menus/ScenarioContextMenuManager.hpp>
 #include "SlotHandle.hpp"
 #include "SlotPresenter.hpp"
-#include <core/application/ApplicationComponents.hpp>
-#include <core/application/ApplicationContext.hpp>
+
+#include <iscore/application/ApplicationContext.hpp>
 #include <iscore/plugins/customfactory/FactoryFamily.hpp>
 #include <iscore/plugins/customfactory/FactoryMap.hpp>
 #include <iscore/plugins/customfactory/StringFactoryKey.hpp>

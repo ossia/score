@@ -12,8 +12,8 @@
 #include "SimpleExpressionEditorWidget.hpp"
 
 SimpleExpressionEditorWidget::SimpleExpressionEditorWidget(int index, QWidget* parent):
-    id{index},
-    QWidget(parent)
+    QWidget(parent),
+    id{index}
 {
     auto mainLay = new QVBoxLayout{this};
     mainLay->setSpacing(1);

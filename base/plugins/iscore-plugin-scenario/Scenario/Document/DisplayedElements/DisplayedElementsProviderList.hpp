@@ -1,6 +1,7 @@
 #pragma once
 #include <Scenario/Document/DisplayedElements/DisplayedElementsProvider.hpp>
 #include <iscore/plugins/customfactory/FactoryFamily.hpp>
+#include <iscore/tools/std/Algorithms.hpp>
 
 class DisplayedElementsProviderList final : public iscore::FactoryListInterface
 {

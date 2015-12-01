@@ -31,10 +31,11 @@ iscore::PanelView* InspectorPanelFactory::makeView(
 }
 
 iscore::PanelPresenter* InspectorPanelFactory::makePresenter(
-    iscore::Presenter* parent_presenter,
-    iscore::PanelView* view)
+        const iscore::ApplicationContext& ctx,
+        iscore::PanelView* view,
+        QObject* parent)
 {
-    return new InspectorPanelPresenter {parent_presenter, view};
+    return new InspectorPanelPresenter {view, parent};
 }
 
 iscore::PanelModel* InspectorPanelFactory::makeModel(

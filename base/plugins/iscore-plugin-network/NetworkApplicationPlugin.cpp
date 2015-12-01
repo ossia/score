@@ -15,13 +15,12 @@
 #include "DocumentPlugins/NetworkMasterDocumentPlugin.hpp"
 #include "NetworkApplicationPlugin.hpp"
 #include "Repartition/session/ClientSessionBuilder.hpp"
-#include <core/application/ApplicationComponents.hpp>
-#include <core/application/ApplicationContext.hpp>
+
+#include <iscore/application/ApplicationContext.hpp>
 #include <core/command/CommandStack.hpp>
 #include <core/document/DocumentModel.hpp>
 #include <core/presenter/DocumentManager.hpp>
 #include <core/presenter/MenubarManager.hpp>
-#include <core/presenter/Presenter.hpp>
 #include <iscore/menu/MenuInterface.hpp>
 #include <iscore/plugins/application/GUIApplicationContextPlugin.hpp>
 #include <iscore/tools/SettableIdentifier.hpp>
@@ -94,7 +93,7 @@ void NetworkApplicationPlugin::populateMenus(MenubarManager* menu)
 void NetworkApplicationPlugin::setupClientConnection(QString ip, int port)
 {
     m_sessionBuilder = std::make_unique<ClientSessionBuilder>(
-                iscore::Application::instance(),
+                iscore::Application::instance().context(),
                 ip,
                 port);
 

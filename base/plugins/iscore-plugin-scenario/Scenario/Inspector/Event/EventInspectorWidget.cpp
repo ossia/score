@@ -9,7 +9,7 @@
 #include <Scenario/Inspector/SelectionButton.hpp>
 #include <Scenario/Inspector/State/StateInspectorWidget.hpp>
 #include <Scenario/Inspector/TimeNode/TriggerInspectorWidget.hpp>
-#include <core/application/ApplicationComponents.hpp>
+
 #include <iscore/widgets/MarginLess.hpp>
 #include <QBoxLayout>
 #include <QColor>
@@ -27,8 +27,8 @@
 #include <Process/TimeValue.hpp>
 #include <Scenario/Process/ScenarioInterface.hpp>
 #include <State/Expression.hpp>
-#include <core/application/ApplicationContext.hpp>
-#include <core/document/DocumentContext.hpp>
+#include <iscore/application/ApplicationContext.hpp>
+#include <iscore/document/DocumentContext.hpp>
 #include <iscore/command/Dispatchers/CommandDispatcher.hpp>
 #include <iscore/plugins/customfactory/StringFactoryKey.hpp>
 #include <iscore/plugins/documentdelegate/plugin/DocumentDelegatePluginModel.hpp>

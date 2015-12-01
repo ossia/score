@@ -17,7 +17,7 @@
 #include "GroupMetadataWidget.hpp"
 #include <iscore/tools/SettableIdentifier.hpp>
 #include <iscore/tools/Todo.hpp>
-#include <core/document/DocumentContext.hpp>
+#include <iscore/document/DocumentContext.hpp>
 
 
 Q_DECLARE_METATYPE(Id<Group>)

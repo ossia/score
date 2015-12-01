@@ -5,7 +5,7 @@
 #include <core/application/Application.hpp>
 #include <iscore/plugins/application/GUIApplicationContextPlugin.hpp>
 #include <Scenario/Application/ScenarioApplicationPlugin.hpp>
-#include <core/application/ApplicationComponents.hpp>
+
 #include <iscore/plugins/customfactory/FactoryFamily.hpp>
 #include <QAction>
 

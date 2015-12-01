@@ -21,7 +21,7 @@
 
 #include <core/document/Document.hpp>
 #include "QRecentFilesMenu.h"
-#include <core/application/ApplicationComponents.hpp>
+#include <iscore/application/ApplicationComponents.hpp>
 #include <core/presenter/DocumentManager.hpp>
 #include <core/presenter/MenubarManager.hpp>
 #include <core/presenter/Presenter.hpp>
@@ -42,12 +42,16 @@ class DocumentModel;
 namespace iscore
 {
 
-Presenter::Presenter(View* view, QObject* arg_parent) :
+Presenter::Presenter(
+        iscore::Application& app,
+        View* view,
+        QObject* arg_parent) :
     NamedObject {"Presenter", arg_parent},
     m_view {view},
     m_docManager{*this},
     m_components{},
     m_components_readonly{m_components},
+    m_context{app, m_components_readonly},
     #ifdef __APPLE__
     m_menubar {new QMenuBar, this}
   #else

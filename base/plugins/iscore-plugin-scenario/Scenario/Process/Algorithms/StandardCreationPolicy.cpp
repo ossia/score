@@ -10,7 +10,7 @@
 #include <Scenario/Document/TimeNode/TimeNodeModel.hpp>
 #include <Scenario/Document/VerticalExtent.hpp>
 #include "StandardCreationPolicy.hpp"
-#include <core/document/DocumentContext.hpp>
+#include <iscore/document/DocumentContext.hpp>
 #include <iscore/tools/NotifyingMap.hpp>
 #include <iscore/tools/SettableIdentifier.hpp>
 

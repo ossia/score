@@ -1,6 +1,6 @@
 #pragma once
 #include <core/command/CommandStack.hpp>
-#include <core/document/DocumentContext.hpp>
+#include <iscore/document/DocumentContext.hpp>
 #include <iscore/locking/ObjectLocker.hpp>
 #include <iscore/selection/SelectionStack.hpp>
 #include <iscore/tools/NamedObject.hpp>

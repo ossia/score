@@ -17,7 +17,7 @@
 #include <Scenario/Process/ScenarioInterface.hpp>
 #include <State/Expression.hpp>
 #include <State/Message.hpp>
-#include <core/document/DocumentContext.hpp>
+#include <iscore/document/DocumentContext.hpp>
 #include <iscore/command/Dispatchers/CommandDispatcher.hpp>
 #include <iscore/selection/Selectable.hpp>
 #include <iscore/serialization/MimeVisitor.hpp>

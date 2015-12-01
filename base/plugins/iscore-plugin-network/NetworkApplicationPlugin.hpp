@@ -40,7 +40,6 @@ class NetworkApplicationPlugin : public QObject, public iscore::GUIApplicationCo
                 const VisitorVariant& var,
                 iscore::Document* parent) override;
 
-        iscore::Presenter* m_presenter {};
         std::unique_ptr<ClientSessionBuilder> m_sessionBuilder;
 
 #ifdef USE_ZEROCONF

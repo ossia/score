@@ -4,14 +4,14 @@
 
 #include <boost/iterator/iterator_facade.hpp>
 #include <boost/multi_index/detail/hash_index_iterator.hpp>
-#include <core/application/ApplicationComponents.hpp>
+
 #include <iscore/tools/SettableIdentifierGeneration.hpp>
 #include <algorithm>
 #include <vector>
 
 #include "AddOnlyProcessToConstraint.hpp"
 #include <Scenario/Document/Constraint/ConstraintDurations.hpp>
-#include <core/application/ApplicationContext.hpp>
+#include <iscore/application/ApplicationContext.hpp>
 #include <iscore/plugins/customfactory/FactoryFamily.hpp>
 #include <iscore/plugins/customfactory/FactoryMap.hpp>
 #include <iscore/plugins/customfactory/StringFactoryKey.hpp>

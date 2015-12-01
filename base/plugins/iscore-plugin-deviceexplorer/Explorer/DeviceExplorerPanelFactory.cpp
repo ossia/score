@@ -31,10 +31,11 @@ iscore::PanelView* DeviceExplorerPanelFactory::makeView(
 }
 
 iscore::PanelPresenter* DeviceExplorerPanelFactory::makePresenter(
-        iscore::Presenter* parent_presenter,
-        iscore::PanelView* view)
+        const iscore::ApplicationContext& ctx,
+        iscore::PanelView* view,
+        QObject* parent)
 {
-    return new DeviceExplorerPanelPresenter {parent_presenter, view};
+    return new DeviceExplorerPanelPresenter {view, parent};
 }
 
 iscore::PanelModel* DeviceExplorerPanelFactory::makeModel(

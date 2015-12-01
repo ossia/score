@@ -14,7 +14,7 @@
 #include <iscore/serialization/VisitorCommon.hpp>
 #include <iscore/tools/NotifyingMap.hpp>
 #include <iscore/tools/SettableIdentifier.hpp>
-#include <core/document/DocumentContext.hpp>
+#include <iscore/document/DocumentContext.hpp>
 
 class JSONObject;
 

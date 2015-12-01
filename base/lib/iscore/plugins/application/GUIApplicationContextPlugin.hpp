@@ -4,7 +4,7 @@
 #include <QString>
 #include <vector>
 
-#include <core/application/ApplicationContext.hpp>
+#include <iscore/application/ApplicationContext.hpp>
 
 class QAction;
 class QObject;

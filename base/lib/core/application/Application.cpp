@@ -27,7 +27,7 @@ using namespace iscore;
 #include <vector>
 
 #include "SafeQApplication.hpp"
-#include <core/application/ApplicationComponents.hpp>
+#include <iscore/application/ApplicationComponents.hpp>
 #include <core/application/ApplicationSettings.hpp>
 #include <core/plugin/PluginManager.hpp>
 #include <core/presenter/DocumentManager.hpp>
@@ -126,6 +126,11 @@ Application::~Application()
     delete m_app;
 }
 
+const ApplicationContext&Application::context() const
+{
+    return m_presenter->applicationContext();
+}
+
 void Application::init()
 {
 #if !defined(ISCORE_DEBUG)
@@ -167,7 +172,7 @@ void Application::init()
 
     // MVP
     m_view = new View{this};
-    m_presenter = new Presenter{m_view, this};
+    m_presenter = new Presenter{*this, m_view, this};
 
     // Plugins
     loadPluginData();
@@ -224,7 +229,9 @@ void Application::loadPluginData()
     // TODO finish to do this properly.
     ApplicationRegistrar registrar{m_presenter->components(), *this};
 
-    m_pluginManager.reloadPlugins(registrar);
+    PluginLoader loader {this};
+    loader.loadPlugins(registrar);
+
     registrar.registerApplicationContextPlugin(new UndoApplicationPlugin{*this, m_presenter});
     registrar.registerPanel(new UndoPanelFactory);
 

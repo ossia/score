@@ -36,7 +36,7 @@
 #include <Scenario/Process/Temporal/ScenarioViewInterface.hpp>
 #include <State/Message.hpp>
 #include "TemporalScenarioPresenter.hpp"
-#include <core/document/DocumentContext.hpp>
+#include <iscore/document/DocumentContext.hpp>
 #include <iscore/document/DocumentInterface.hpp>
 #include <iscore/serialization/MimeVisitor.hpp>
 #include <iscore/tools/IdentifiedObject.hpp>

@@ -3,7 +3,6 @@
 #include "LibraryPanelView.hpp"
 #include "LibraryPanelId.hpp"
 
-#include <core/document/DocumentPresenter.hpp>
 LibraryPanelPresenter::LibraryPanelPresenter(iscore::Presenter* parent,
         iscore::PanelView* view) :
     iscore::PanelPresenter {parent, view}

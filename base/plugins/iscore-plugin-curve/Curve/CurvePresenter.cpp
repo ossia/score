@@ -5,7 +5,7 @@
 #include <boost/multi_index/hashed_index.hpp>
 #include <boost/operators.hpp>
 #include <boost/optional/optional.hpp>
-#include <core/application/ApplicationComponents.hpp>
+
 #include <iscore/widgets/GraphicsItem.hpp>
 #include <QAction>
 #include <QActionGroup>
@@ -33,7 +33,7 @@
 #include "CurveModel.hpp"
 #include "CurvePresenter.hpp"
 #include "CurveView.hpp"
-#include <core/application/ApplicationContext.hpp>
+#include <iscore/application/ApplicationContext.hpp>
 #include <iscore/command/Dispatchers/CommandDispatcher.hpp>
 #include <iscore/plugins/customfactory/FactoryFamily.hpp>
 #include <iscore/plugins/customfactory/FactoryMap.hpp>

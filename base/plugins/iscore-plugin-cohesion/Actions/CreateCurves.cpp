@@ -9,7 +9,7 @@
 #include "CreateCurves.hpp"
 #include <Device/Node/DeviceNode.hpp>
 #include <State/Address.hpp>
-#include <core/document/DocumentContext.hpp>
+#include <iscore/document/DocumentContext.hpp>
 #include <iscore/selection/Selectable.hpp>
 #include <iscore/selection/SelectionStack.hpp>
 #include <iscore/tools/IdentifiedObjectAbstract.hpp>

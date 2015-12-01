@@ -23,8 +23,8 @@
 
 #include <Process/LayerModel.hpp>
 #include <Process/ProcessFactoryKey.hpp>
-#include <core/application/ApplicationContext.hpp>
-#include <core/application/ApplicationComponents.hpp>
+#include <iscore/application/ApplicationContext.hpp>
+
 #include <iscore/plugins/customfactory/FactoryFamily.hpp>
 #include <iscore/plugins/customfactory/FactoryMap.hpp>
 #include <iscore/plugins/customfactory/StringFactoryKey.hpp>

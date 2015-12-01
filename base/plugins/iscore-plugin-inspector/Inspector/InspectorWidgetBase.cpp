@@ -1,7 +1,7 @@
 #include <QBoxLayout>
 #include <QLayoutItem>
 #include <QScrollArea>
-#include <core/document/DocumentContext.hpp>
+#include <iscore/document/DocumentContext.hpp>
 
 #include "InspectorWidgetBase.hpp"
 #include <iscore/command/Dispatchers/CommandDispatcher.hpp>

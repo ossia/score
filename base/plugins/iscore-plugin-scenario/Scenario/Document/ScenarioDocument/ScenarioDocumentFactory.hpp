@@ -1,7 +1,7 @@
 #pragma once
 #include <iscore/plugins/documentdelegate/DocumentDelegateFactoryInterface.hpp>
 
-#include <core/application/ApplicationContext.hpp>
+#include <iscore/application/ApplicationContext.hpp>
 #include <iscore/plugins/documentdelegate/DocumentDelegateModelInterface.hpp>
 #include <iscore/plugins/documentdelegate/DocumentDelegatePresenterInterface.hpp>
 #include <iscore/plugins/documentdelegate/DocumentDelegateViewInterface.hpp>
@@ -18,7 +18,7 @@ class ScenarioDocumentFactory final : public iscore::DocumentDelegateFactoryInte
     public:
         iscore::DocumentDelegateViewInterface* makeView(
                 const iscore::ApplicationContext& ctx,
-                iscore::DocumentView* parent) override;
+                QObject* parent) override;
 
         iscore::DocumentDelegatePresenterInterface* makePresenter(
                 iscore::DocumentPresenter* parent_presenter,

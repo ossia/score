@@ -1,6 +1,7 @@
 #pragma once
 
 struct VisitorVariant;
+class QObject;
 
 namespace iscore
 {
@@ -24,7 +25,7 @@ namespace iscore
 
             virtual DocumentDelegateViewInterface* makeView(
                     const iscore::ApplicationContext& ctx,
-                    DocumentView* parent) = 0;
+                    QObject* parent) = 0;
 
             virtual DocumentDelegatePresenterInterface* makePresenter(
                     DocumentPresenter* parent_presenter,

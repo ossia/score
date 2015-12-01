@@ -34,7 +34,7 @@ SmartTool::SmartTool(Curve::ToolPalette& sm):
     localSM().setInitialState(m_state);
 
     {
-        auto co = new MovePointCommandObject(&sm.presenter(), sm.commandStack());
+        auto co = new MovePointCommandObject(&sm.presenter(), sm.context().commandStack);
         m_moveState = new Curve::OngoingState{*co, nullptr};
 
         m_moveState->setObjectName("MovePointState");

@@ -3,7 +3,7 @@
 #include <QObject>
 #include <vector>
 
-#include <core/application/ApplicationContext.hpp>
+#include <iscore/application/ApplicationContext.hpp>
 #include <iscore/plugins/customfactory/FactoryInterface.hpp>
 
 class iscore_plugin_ossia_simpleprocess:

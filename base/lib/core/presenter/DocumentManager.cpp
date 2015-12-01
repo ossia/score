@@ -21,11 +21,12 @@
 
 #include "DocumentManager.hpp"
 #include "QRecentFilesMenu.h"
-#include <core/application/ApplicationComponents.hpp>
+#include <iscore/application/ApplicationComponents.hpp>
 #include <core/command/CommandStack.hpp>
 #include <core/document/Document.hpp>
 #include <iscore/tools/SettableIdentifier.hpp>
 #include <iscore/tools/std/StdlibWrapper.hpp>
+#include <iscore/tools/std/Algorithms.hpp>
 
 namespace iscore
 {

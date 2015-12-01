@@ -29,7 +29,7 @@
 #include <Scenario/Document/DisplayedElements/DisplayedElementsProvider.hpp>
 #include <Scenario/Document/DisplayedElements/DisplayedElementsToolPalette/DisplayedElementsToolPaletteFactory.hpp>
 #include <State/Value.hpp>
-#include <core/application/ApplicationComponents.hpp>
+
 #include <iscore/plugins/customfactory/StringFactoryKey.hpp>
 #include <iscore/plugins/qt_interfaces/DocumentDelegateFactoryInterface_QtInterface.hpp>
 #include <iscore/plugins/qt_interfaces/FactoryFamily_QtInterface.hpp>

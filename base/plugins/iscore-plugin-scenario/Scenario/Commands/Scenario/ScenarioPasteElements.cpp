@@ -21,7 +21,7 @@
 #include <limits>
 #include <vector>
 
-#include <core/document/DocumentContext.hpp>
+#include <iscore/document/DocumentContext.hpp>
 #include <Process/LayerModel.hpp>
 #include <Process/Process.hpp>
 #include <Process/TimeValue.hpp>

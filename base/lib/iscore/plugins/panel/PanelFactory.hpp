@@ -31,8 +31,9 @@ namespace iscore
                     iscore::View* parent) = 0;
 
             virtual PanelPresenter* makePresenter(
-                    Presenter* parent_presenter,
-                    PanelView* view) = 0;
+                    const iscore::ApplicationContext& ctx,
+                    iscore::PanelView* view,
+                    QObject* parent) = 0;
 
             virtual PanelModel* makeModel(
                     const iscore::DocumentContext& ctx,

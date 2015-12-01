@@ -26,9 +26,9 @@
 #include <Scenario/Document/State/StateModel.hpp>
 #include <Scenario/Document/TimeNode/TimeNodeModel.hpp>
 #include "ScenarioDocumentModel.hpp"
-#include <core/application/ApplicationComponents.hpp>
-#include <core/application/ApplicationContext.hpp>
-#include <core/document/DocumentContext.hpp>
+
+#include <iscore/application/ApplicationContext.hpp>
+#include <iscore/document/DocumentContext.hpp>
 #include <iscore/plugins/customfactory/StringFactoryKey.hpp>
 #include <iscore/plugins/documentdelegate/DocumentDelegateModelInterface.hpp>
 #include <iscore/selection/SelectionStack.hpp>

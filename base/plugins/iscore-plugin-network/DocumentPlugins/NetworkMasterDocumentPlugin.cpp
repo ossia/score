@@ -1,14 +1,14 @@
 #include <Serialization/MessageMapper.hpp>
 #include <boost/optional/optional.hpp>
-#include <core/document/DocumentContext.hpp>
+#include <iscore/document/DocumentContext.hpp>
 #include <QByteArray>
 #include <QDataStream>
 #include <algorithm>
 
 #include "NetworkMasterDocumentPlugin.hpp"
 #include "Serialization/NetworkMessage.hpp"
-#include <core/application/ApplicationComponents.hpp>
-#include <core/application/ApplicationContext.hpp>
+
+#include <iscore/application/ApplicationContext.hpp>
 #include <core/command/CommandStack.hpp>
 #include <iscore/command/SerializableCommand.hpp>
 #include <iscore/locking/ObjectLocker.hpp>

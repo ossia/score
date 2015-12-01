@@ -7,3 +7,12 @@ iscore::ApplicationContext::ApplicationContext(iscore::Application& appli):
 {
 
 }
+
+iscore::ApplicationContext::ApplicationContext(
+        iscore::Application& appli,
+        const ApplicationComponents& comps):
+    app{appli},
+    components{comps}
+{
+
+}

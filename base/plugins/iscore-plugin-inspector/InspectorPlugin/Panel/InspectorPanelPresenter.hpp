@@ -11,8 +11,9 @@ class Presenter;
 class InspectorPanelPresenter : public iscore::PanelPresenter
 {
     public:
-        InspectorPanelPresenter(iscore::Presenter* parent,
-                                iscore::PanelView* view);
+        InspectorPanelPresenter(
+                iscore::PanelView* view,
+                QObject* parent);
 
         int panelId() const override;
 

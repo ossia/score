@@ -27,10 +27,12 @@ iscore::PanelView *UndoPanelFactory::makeView(
     return new UndoView{v};
 }
 
-iscore::PanelPresenter *UndoPanelFactory::makePresenter(iscore::Presenter *parent_presenter,
-                                                                 iscore::PanelView *view)
+iscore::PanelPresenter *UndoPanelFactory::makePresenter(
+        const iscore::ApplicationContext& ctx,
+        iscore::PanelView *view,
+        QObject* parent)
 {
-    return new UndoPresenter{parent_presenter, view};
+    return new UndoPresenter{view, parent};
 }
 
 iscore::PanelModel *UndoPanelFactory::makeModel(

@@ -9,6 +9,7 @@
 #include <Scenario/Document/DisplayedElements/DisplayedElementsContainer.hpp>
 #include <iscore/selection/Selection.hpp>
 #include <iscore/tools/std/StdlibWrapper.hpp>
+#include <iscore/tools/std/Algorithms.hpp>
 
 void DisplayedElementsModel::setSelection(
         const Selection & s)

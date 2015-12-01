@@ -1,5 +1,5 @@
 #include <Inspector/InspectorWidgetList.hpp>
-#include <core/application/ApplicationComponents.hpp>
+
 #include <core/view/View.hpp>
 #include <QBoxLayout>
 #include <QLayout>
@@ -10,9 +10,9 @@
 #include "Implementation/InspectorPanel.hpp"
 #include "Implementation/SelectionStackWidget.hpp"
 #include "InspectorPanelView.hpp"
-#include <core/application/ApplicationContext.hpp>
+#include <iscore/application/ApplicationContext.hpp>
 #include <core/document/Document.hpp>
-#include <core/document/DocumentContext.hpp>
+#include <iscore/document/DocumentContext.hpp>
 #include <iscore/plugins/customfactory/StringFactoryKey.hpp>
 #include <iscore/plugins/panel/PanelView.hpp>
 #include <iscore/selection/Selection.hpp>

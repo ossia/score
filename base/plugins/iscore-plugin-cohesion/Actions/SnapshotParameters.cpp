@@ -3,7 +3,7 @@
 #include <Explorer/Explorer/DeviceExplorerModel.hpp>
 #include <Scenario/Commands/State/AddMessagesToState.hpp>
 #include <Scenario/Document/State/StateModel.hpp>
-#include <core/document/DocumentContext.hpp>
+#include <iscore/document/DocumentContext.hpp>
 #include <iscore/command/Dispatchers/MacroCommandDispatcher.hpp>
 #include <QList>
 #include <QPointer>

@@ -20,7 +20,7 @@
 #include <iscore/command/Dispatchers/CommandDispatcher.hpp>
 #include <iscore/tools/ObjectPath.hpp>
 #include <iscore/tools/SettableIdentifier.hpp>
-#include <core/document/DocumentContext.hpp>
+#include <iscore/document/DocumentContext.hpp>
 #include "session/../client/LocalClient.hpp"
 #include "session/../client/RemoteClient.hpp"
 #include "session/Session.hpp"

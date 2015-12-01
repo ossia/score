@@ -5,7 +5,7 @@
 #include <Scenario/Document/Constraint/ViewModels/FullView/FullViewConstraintViewModel.hpp>
 
 #include <boost/optional/optional.hpp>
-#include <core/application/ApplicationComponents.hpp>
+
 #include <QJsonArray>
 #include <QJsonObject>
 #include <QJsonValue>
@@ -15,7 +15,7 @@
 #include <Process/ModelMetadata.hpp>
 #include <Process/ProcessList.hpp>
 #include <Process/TimeValue.hpp>
-#include <core/application/ApplicationContext.hpp>
+#include <iscore/application/ApplicationContext.hpp>
 #include <iscore/plugins/customfactory/StringFactoryKey.hpp>
 #include <iscore/plugins/documentdelegate/plugin/ElementPluginModelList.hpp>
 #include <iscore/serialization/DataStreamVisitor.hpp>

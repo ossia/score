@@ -10,6 +10,7 @@
 #include <Scenario/Document/Constraint/ViewModels/FullView/FullViewConstraintViewModel.hpp>
 #include <Scenario/Document/Constraint/ViewModels/FullView/FullViewConstraintPresenter.hpp>
 #include <Scenario/Document/Constraint/ViewModels/FullView/FullViewConstraintView.hpp>
+#include <iscore/tools/std/IndirectContainer.hpp>
 
 template<
     typename Model_T,

@@ -1,5 +1,6 @@
 #pragma once
-#include <core/application/ApplicationComponents.hpp>
+#include <iscore/application/ApplicationComponents.hpp>
+#include <iscore/application/ApplicationContext.hpp>
 #include <core/presenter/DocumentManager.hpp>
 #include <core/presenter/MenubarManager.hpp>
 #include <iscore/tools/NamedObject.hpp>
@@ -27,7 +28,10 @@ namespace iscore
     {
             Q_OBJECT
         public:
-            Presenter(iscore::View* view, QObject* parent);
+            Presenter(
+                    iscore::Application& app,
+                    iscore::View* view,
+                    QObject* parent);
 
             // Exit i-score
             bool exit();
@@ -46,6 +50,8 @@ namespace iscore
             { return m_docManager; }
             const ApplicationComponents& applicationComponents()
             { return m_components_readonly; }
+            const ApplicationContext& applicationContext()
+            { return m_context; }
 
             auto& components()
             { return m_components; }
@@ -56,6 +62,7 @@ namespace iscore
             DocumentManager m_docManager;
             ApplicationComponentsData m_components;
             ApplicationComponents m_components_readonly;
+            ApplicationContext m_context;
 
             MenubarManager m_menubar;
 

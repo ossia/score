@@ -12,7 +12,7 @@
 #include <iscore/document/DocumentInterface.hpp>
 #include <iscore/widgets/GraphicsItem.hpp>
 
-#include <core/application/ApplicationComponents.hpp>
+
 #include <Curve/Segment/CurveSegmentList.hpp>
 #include <QGraphicsSceneMouseEvent>
 #include <QGraphicsScene>

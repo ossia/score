@@ -17,8 +17,8 @@
 #include "OSSIAApplicationPlugin.hpp"
 #include <Process/TimeValue.hpp>
 #include <OSSIA/DocumentPlugin/ConstraintElement.hpp>
-#include <core/application/ApplicationComponents.hpp>
-#include <core/application/ApplicationContext.hpp>
+
+#include <iscore/application/ApplicationContext.hpp>
 #include <iscore/plugins/application/GUIApplicationContextPlugin.hpp>
 #include <iscore/tools/Todo.hpp>
 

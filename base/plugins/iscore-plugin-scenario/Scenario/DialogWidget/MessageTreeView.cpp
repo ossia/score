@@ -21,7 +21,7 @@
 #include <Device/Node/DeviceNode.hpp>
 #include "MessageTreeView.hpp"
 #include <Process/State/MessageNode.hpp>
-#include <core/document/DocumentContext.hpp>
+#include <iscore/document/DocumentContext.hpp>
 #include <iscore/tools/ModelPath.hpp>
 #include <iscore/tools/Todo.hpp>
 #include <iscore/tools/TreeNode.hpp>

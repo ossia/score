@@ -24,6 +24,14 @@ ApplicationComponentsData::~ApplicationComponentsData()
     {
         delete elt;
     }
+
+    for(auto& elt : plugins)
+    {
+        if(elt)
+        {
+            elt->deleteLater();
+        }
+    }
 }
 
 SerializableCommand*ApplicationComponents::instantiateUndoCommand(const CommandData& cmd) const

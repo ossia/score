@@ -6,7 +6,7 @@
 #include <vector>
 
 #include <nano_signal_slot.hpp>
-#include <core/document/DocumentContext.hpp>
+#include <iscore/document/DocumentContext.hpp>
 
 class ProcessList;
 class QObject;

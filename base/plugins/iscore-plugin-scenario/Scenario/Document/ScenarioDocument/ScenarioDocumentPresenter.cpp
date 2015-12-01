@@ -8,7 +8,7 @@
 #include <Scenario/Document/ScenarioDocument/Widgets/DoubleSlider.hpp>
 #include <Scenario/Document/TimeRuler/MainTimeRuler/TimeRulerPresenter.hpp>
 #include <Scenario/Document/TimeRuler/MainTimeRuler/TimeRulerView.hpp>
-#include <core/application/ApplicationContext.hpp>
+#include <iscore/application/ApplicationContext.hpp>
 
 #include <iscore/document/DocumentInterface.hpp>
 #include <QtGlobal>
@@ -26,8 +26,7 @@
 #include <Scenario/Document/ScenarioDocument/Widgets/ScenarioBaseGraphicsView.hpp>
 #include "ScenarioDocumentPresenter.hpp"
 #include "ZoomPolicy.hpp"
-#include <core/application/ApplicationComponents.hpp>
-#include <core/document/DocumentContext.hpp>
+#include <iscore/document/DocumentContext.hpp>
 #include <iscore/plugins/customfactory/StringFactoryKey.hpp>
 #include <iscore/plugins/documentdelegate/DocumentDelegatePresenterInterface.hpp>
 #include <iscore/selection/SelectionDispatcher.hpp>

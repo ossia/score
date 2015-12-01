@@ -2,6 +2,8 @@
 #include <core/command/CommandStack.hpp>
 #include <iscore/command/CommandData.hpp>
 #include <iscore/serialization/DataStreamVisitor.hpp>
+#include <iscore/tools/std/StdlibWrapper.hpp>
+#include <iscore/plugins/customfactory/StringFactoryKeySerialization.hpp>
 
 template<typename RedoFun>
 void loadCommandStack(

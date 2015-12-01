@@ -14,8 +14,7 @@ namespace iscore
     {
             Q_OBJECT
         public:
-            PanelPresenter(Presenter* parent_presenter,
-                                    PanelView* view);
+            PanelPresenter(PanelView* view, QObject* parent);
 
             virtual ~PanelPresenter();
 
@@ -28,11 +27,9 @@ namespace iscore
             virtual void on_modelChanged() = 0;
 
             PanelView* view() const;
-            Presenter* presenter() const;
 
         private:
             PanelModel* m_model{};
             PanelView* m_view{};
-            Presenter* m_parentPresenter{};
     };
 }

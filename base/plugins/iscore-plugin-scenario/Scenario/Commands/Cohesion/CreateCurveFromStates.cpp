@@ -5,7 +5,7 @@
 #include <Scenario/Document/Constraint/ConstraintModel.hpp>
 
 #include <boost/optional/optional.hpp>
-#include <core/application/ApplicationComponents.hpp>
+
 
 #include <iscore/tools/SettableIdentifierGeneration.hpp>
 #include <QByteArray>
@@ -17,7 +17,7 @@
 #include <Process/ProcessFactory.hpp>
 #include <Scenario/Commands/Constraint/AddOnlyProcessToConstraint.hpp>
 #include <Scenario/Commands/Constraint/Rack/Slot/AddLayerModelToSlot.hpp>
-#include <core/application/ApplicationContext.hpp>
+#include <iscore/application/ApplicationContext.hpp>
 #include <iscore/plugins/customfactory/FactoryFamily.hpp>
 #include <iscore/plugins/customfactory/FactoryMap.hpp>
 #include <iscore/plugins/customfactory/StringFactoryKey.hpp>

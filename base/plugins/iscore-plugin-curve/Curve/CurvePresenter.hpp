@@ -12,7 +12,7 @@
 #include <QRect>
 
 #include <Curve/Segment/CurveSegmentFactoryKey.hpp>
-#include <core/document/DocumentContext.hpp>
+#include <iscore/document/DocumentContext.hpp>
 
 class DynamicCurveSegmentList;
 namespace Curve {

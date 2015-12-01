@@ -1,5 +1,5 @@
 #pragma once
-#include <core/document/DocumentContext.hpp>
+#include <iscore/document/DocumentContext.hpp>
 #include <Process/Focus/FocusDispatcher.hpp>
 
 class LayerPresenter;

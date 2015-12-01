@@ -11,8 +11,8 @@
 #include "IScoreCohesionApplicationPlugin.hpp"
 #include "Record/RecordManager.hpp"
 #include <Scenario/Palette/ScenarioPoint.hpp>
-#include <core/application/ApplicationComponents.hpp>
-#include <core/application/ApplicationContext.hpp>
+
+#include <iscore/application/ApplicationContext.hpp>
 #include <core/presenter/MenubarManager.hpp>
 #include <core/document/Document.hpp>
 #include <iscore/plugins/application/GUIApplicationContextPlugin.hpp>

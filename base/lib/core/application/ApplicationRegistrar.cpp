@@ -1,6 +1,6 @@
 #include <core/application/Application.hpp>
-#include <core/application/ApplicationComponents.hpp>
-#include <core/application/ApplicationContext.hpp>
+#include <iscore/application/ApplicationComponents.hpp>
+#include <iscore/application/ApplicationContext.hpp>
 #include <core/presenter/Presenter.hpp>
 #include <core/settings/Settings.hpp>
 #include <core/view/View.hpp>
@@ -28,6 +28,14 @@ ApplicationRegistrar::ApplicationRegistrar(
 
 }
 
+void ApplicationRegistrar::registerPlugins(
+        const QStringList& pluginFiles,
+        const std::vector<QObject*>& vec)
+{
+    m_components.pluginFiles = pluginFiles;
+    m_components.plugins = vec;
+}
+
 void ApplicationRegistrar::registerApplicationContextPlugin(
         GUIApplicationContextPlugin* ctrl)
 {
@@ -43,8 +51,8 @@ void ApplicationRegistrar::registerApplicationContextPlugin(
 void ApplicationRegistrar::registerPanel(
         PanelFactory* factory)
 {
-    auto view = factory->makeView(iscore::ApplicationContext(m_app), m_app.presenter().view());
-    auto pres = factory->makePresenter(&m_app.presenter(), view);
+    auto view = factory->makeView(m_app.context(), m_app.presenter().view());
+    auto pres = factory->makePresenter(m_app.context(), view, &m_app.presenter());
 
     m_components.panelPresenters.push_back({pres, factory});
 

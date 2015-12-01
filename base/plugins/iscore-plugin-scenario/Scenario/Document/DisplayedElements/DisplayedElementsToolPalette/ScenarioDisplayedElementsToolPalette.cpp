@@ -5,7 +5,7 @@
 #include <Scenario/Palette/ScenarioPoint.hpp>
 
 #include <boost/optional/optional.hpp>
-#include <core/application/ApplicationContext.hpp>
+#include <iscore/application/ApplicationContext.hpp>
 #include <algorithm>
 
 #include <Process/TimeValue.hpp>
@@ -17,7 +17,7 @@
 #include <Scenario/Palette/Tools/States/ScenarioMoveStatesWrapper.hpp>
 #include <Scenario/Process/ScenarioModel.hpp>
 #include "ScenarioDisplayedElementsToolPalette.hpp"
-#include <core/application/ApplicationComponents.hpp>
+
 #include <iscore/statemachine/GraphicsSceneToolPalette.hpp>
 #include <iscore/tools/SettableIdentifier.hpp>
 #include <Scenario/Document/ScenarioDocument/ProcessFocusManager.hpp>

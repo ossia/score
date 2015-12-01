@@ -16,7 +16,7 @@
 #include <iscore/command/Dispatchers/CommandDispatcher.hpp>
 #include <iscore/plugins/panel/PanelView.hpp>
 #include <iscore/tools/ObjectPath.hpp>
-#include <core/document/DocumentContext.hpp>
+#include <iscore/document/DocumentContext.hpp>
 
 static const iscore::DefaultPanelStatus status{false, Qt::RightDockWidgetArea, 1, QObject::tr("Groups")};
 const iscore::DefaultPanelStatus &GroupPanelView::defaultPanelStatus() const

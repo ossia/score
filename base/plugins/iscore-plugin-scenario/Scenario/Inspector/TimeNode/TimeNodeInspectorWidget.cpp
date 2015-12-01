@@ -8,9 +8,9 @@
 #include <Scenario/Inspector/MetadataWidget.hpp>
 #include <Scenario/Inspector/TimeNode/TriggerInspectorWidget.hpp>
 #include <boost/optional/optional.hpp>
-#include <core/application/ApplicationComponents.hpp>
-#include <core/application/ApplicationContext.hpp>
-#include <core/document/DocumentContext.hpp>
+
+#include <iscore/application/ApplicationContext.hpp>
+#include <iscore/document/DocumentContext.hpp>
 #include <QBoxLayout>
 #include <QColor>
 #include <QLabel>

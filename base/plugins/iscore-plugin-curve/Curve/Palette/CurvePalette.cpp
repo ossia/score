@@ -25,8 +25,6 @@ ToolPalette::ToolPalette(
     GraphicsSceneToolPalette{*pres.view().scene()},
     m_presenter{pres},
     m_context{f},
-    m_stack{f.commandStack},
-    m_locker{f.objectLocker},
     m_selectTool{*this},
     m_createTool{*this},
     m_setSegmentTool{*this},
@@ -46,16 +44,6 @@ Curve::EditionSettings& ToolPalette::editionSettings() const
 const CurveModel& ToolPalette::model() const
 {
     return m_presenter.model();
-}
-
-iscore::CommandStackFacade& ToolPalette::commandStack() const
-{
-    return m_stack;
-}
-
-iscore::ObjectLocker& ToolPalette::locker() const
-{
-    return m_locker;
 }
 
 void ToolPalette::on_pressed(QPointF point)

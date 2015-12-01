@@ -19,8 +19,8 @@ class ProcessPanelPresenter final : public iscore::PanelPresenter
     public:
         ProcessPanelPresenter(
                 const ProcessList& plist,
-                iscore::Presenter* parent_presenter,
-                iscore::PanelView* view);
+                iscore::PanelView* view,
+                QObject* parent);
 
         int panelId() const override;
         void on_modelChanged() override;

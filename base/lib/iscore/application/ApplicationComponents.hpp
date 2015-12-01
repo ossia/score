@@ -1,6 +1,11 @@
 #pragma once
 #include <iscore/command/CommandData.hpp>
 #include <iscore/command/CommandGeneratorMap.hpp>
+#include <iscore/tools/Todo.hpp>
+#include <iscore/plugins/customfactory/FactoryFamily.hpp>
+#include <iscore/plugins/customfactory/FactoryInterface.hpp>
+#include <iscore/plugins/customfactory/StringFactoryKey.hpp>
+
 #include <QByteArray>
 #include <algorithm>
 #include <iterator>
@@ -8,10 +13,6 @@
 #include <utility>
 #include <vector>
 
-#include <iscore/command/SerializableCommand.hpp>
-#include <iscore/plugins/customfactory/FactoryFamily.hpp>
-#include <iscore/plugins/customfactory/FactoryInterface.hpp>
-#include <iscore/plugins/customfactory/StringFactoryKey.hpp>
 
 namespace iscore
 {
@@ -23,8 +24,11 @@ class PanelPresenter;
 
 struct ApplicationComponentsData
 {
+        // TODO Forbid copy, etc... (in ALL types!!)
         ~ApplicationComponentsData();
 
+        QStringList pluginFiles;
+        std::vector<QObject*> plugins;
         std::vector<GUIApplicationContextPlugin*> appPlugins;
         std::vector<DocumentDelegateFactoryInterface*> availableDocuments;
         std::unordered_map<iscore::FactoryBaseKey, std::unique_ptr<FactoryListInterface>> factories;

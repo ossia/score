@@ -10,7 +10,7 @@
 #include <Scenario/Document/State/ItemModel/MessageItemModel.hpp>
 #include <State/Message.hpp>
 #include "StateModel.hpp"
-#include <core/document/DocumentContext.hpp>
+#include <iscore/document/DocumentContext.hpp>
 #include <iscore/tools/IdentifiedObject.hpp>
 #include <iscore/tools/SettableIdentifier.hpp>
 #include <Scenario/Process/ScenarioInterface.hpp>
@@ -18,9 +18,9 @@
 
 /*
 #include <Process/ProcessList.hpp>
-#include <core/document/DocumentContext.hpp>
-#include <core/application/ApplicationContext.hpp>
-#include <core/application/ApplicationComponents.hpp>
+#include <iscore/document/DocumentContext.hpp>
+#include <iscore/application/ApplicationContext.hpp>
+
 */
 constexpr const char StateModel::className[];
 StateModel::StateModel(

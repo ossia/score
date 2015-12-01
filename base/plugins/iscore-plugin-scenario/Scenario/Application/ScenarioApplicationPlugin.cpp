@@ -8,7 +8,6 @@
 #include <Scenario/Process/ScenarioModel.hpp>
 #include <Scenario/Process/Temporal/TemporalScenarioPresenter.hpp>
 #include <boost/optional/optional.hpp>
-#include <core/document/DocumentView.hpp>
 
 #include <iscore/plugins/documentdelegate/DocumentDelegateViewInterface.hpp>
 // This part is somewhat similar to what moc does
@@ -51,6 +50,7 @@
 #include <core/document/Document.hpp>
 #include <core/presenter/MenubarManager.hpp>
 #include <core/document/DocumentModel.hpp>
+#include <core/document/DocumentView.hpp>
 #include <iscore/document/DocumentInterface.hpp>
 #include <iscore/menu/MenuInterface.hpp>
 #include <iscore/plugins/application/GUIApplicationContextPlugin.hpp>

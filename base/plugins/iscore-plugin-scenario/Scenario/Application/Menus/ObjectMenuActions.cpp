@@ -49,8 +49,8 @@
 #include <Scenario/Process/ScenarioModel.hpp>
 #include "ScenarioCopy.hpp"
 #include "TextDialog.hpp"
-#include <core/application/ApplicationComponents.hpp>
-#include <core/application/ApplicationContext.hpp>
+
+#include <iscore/application/ApplicationContext.hpp>
 #include <core/document/Document.hpp>
 #include <core/presenter/MenubarManager.hpp>
 #include <iscore/document/DocumentInterface.hpp>

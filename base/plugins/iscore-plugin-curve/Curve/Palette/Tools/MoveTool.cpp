@@ -78,7 +78,7 @@ SetSegmentTool::SetSegmentTool(Curve::ToolPalette &sm):
 {
     QState* waitState = new QState{&localSM()};
 
-    auto co = new SetSegmentParametersCommandObject(&sm.presenter(), sm.commandStack());
+    auto co = new SetSegmentParametersCommandObject(&sm.presenter(), sm.context().commandStack);
     auto state = new OngoingState(*co, &localSM());
     state->setObjectName("SetSegmentParametersState");
     iscore::make_transition<ClickOnSegment_Transition>(waitState, state, *state);
@@ -97,7 +97,7 @@ CreateTool::CreateTool(Curve::ToolPalette &sm):
     QState* waitState = new QState{&localSM()};
     waitState->setObjectName("WaitState");
 
-    auto co = new CreatePointCommandObject(&sm.presenter(), sm.commandStack());
+    auto co = new CreatePointCommandObject(&sm.presenter(), sm.context().commandStack);
     auto state = new OngoingState(*co, &localSM());
     state->setObjectName("CreatePointFromNothingState");
     iscore::make_transition<ClickOnSegment_Transition>(waitState, state, *state);

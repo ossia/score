@@ -11,7 +11,7 @@
 
 #include <core/application/Application.hpp>
 #include <core/document/DocumentBackupManager.hpp>
-#include <core/document/DocumentContext.hpp>
+#include <iscore/document/DocumentContext.hpp>
 #include <iscore/plugins/panel/PanelFactory.hpp>
 #include <iscore/selection/SelectionStack.hpp>
 #include <iscore/tools/NamedObject.hpp>

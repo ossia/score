@@ -2,14 +2,14 @@
 #include <Process/ProcessList.hpp>
 #include <Scenario/Document/Constraint/ConstraintModel.hpp>
 #include <Scenario/Inspector/Constraint/ConstraintInspectorDelegateFactory.hpp>
-#include <core/application/ApplicationComponents.hpp>
-#include <core/application/ApplicationContext.hpp>
+
+#include <iscore/application/ApplicationContext.hpp>
 #include <QString>
 
 #include "ConstraintInspectorFactory.hpp"
 #include "ConstraintInspectorWidget.hpp"
 #include <Scenario/Inspector/Constraint/ConstraintInspectorDelegate.hpp>
-#include <core/document/DocumentContext.hpp>
+#include <iscore/document/DocumentContext.hpp>
 #include <iscore/plugins/customfactory/StringFactoryKey.hpp>
 
 class InspectorWidgetBase;

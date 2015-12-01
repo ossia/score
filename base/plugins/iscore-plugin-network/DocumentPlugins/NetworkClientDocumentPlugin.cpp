@@ -1,5 +1,5 @@
 #include <Serialization/MessageMapper.hpp>
-#include <core/document/DocumentContext.hpp>
+#include <iscore/document/DocumentContext.hpp>
 #include <QByteArray>
 #include <QDataStream>
 #include <QDebug>
@@ -7,8 +7,8 @@
 #include <iscore/command/CommandData.hpp>
 #include "NetworkClientDocumentPlugin.hpp"
 #include "Serialization/NetworkMessage.hpp"
-#include <core/application/ApplicationComponents.hpp>
-#include <core/application/ApplicationContext.hpp>
+
+#include <iscore/application/ApplicationContext.hpp>
 #include <core/command/CommandStack.hpp>
 #include <core/document/Document.hpp>
 #include <iscore/command/SerializableCommand.hpp>

@@ -15,6 +15,8 @@
 #include <iscore/serialization/DataStreamVisitor.hpp>
 #include <iscore/serialization/JSONValueVisitor.hpp>
 #include <iscore/serialization/JSONVisitor.hpp>
+#include <iscore/plugins/customfactory/StringFactoryKeySerialization.hpp>
+
 
 class QObject;
 template <typename model> class IdentifiedObject;

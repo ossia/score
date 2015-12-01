@@ -1,6 +1,6 @@
 #include <Device/Protocol/ProtocolFactoryInterface.hpp>
 #include <Device/Protocol/ProtocolList.hpp>
-#include <core/application/ApplicationComponents.hpp>
+
 
 #include <QApplication>
 #include <QJsonArray>
@@ -21,8 +21,8 @@
 #include <Explorer/DocumentPlugin/ListeningState.hpp>
 #include <Explorer/DocumentPlugin/NodeUpdateProxy.hpp>
 #include <State/Address.hpp>
-#include <core/application/ApplicationContext.hpp>
-#include <core/document/DocumentContext.hpp>
+#include <iscore/application/ApplicationContext.hpp>
+#include <iscore/document/DocumentContext.hpp>
 #include <iscore/plugins/customfactory/FactoryFamily.hpp>
 #include <iscore/plugins/customfactory/FactoryMap.hpp>
 #include <iscore/plugins/customfactory/StringFactoryKey.hpp>

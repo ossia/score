@@ -1,6 +1,6 @@
 #include <Scenario/Document/State/StateModel.hpp>
 
-#include <core/document/DocumentContext.hpp>
+#include <iscore/document/DocumentContext.hpp>
 #include <iscore/document/DocumentInterface.hpp>
 #include <iscore/serialization/DataStreamVisitor.hpp>
 #include <iscore/serialization/JSONVisitor.hpp>
@@ -14,7 +14,7 @@
 #include <Process/ModelMetadata.hpp>
 #include <Process/State/MessageNode.hpp>
 #include <Scenario/Document/State/ItemModel/MessageItemModel.hpp>
-#include <core/application/ApplicationComponents.hpp>
+
 #include <iscore/serialization/JSONValueVisitor.hpp>
 #include <iscore/tools/SettableIdentifier.hpp>
 #include <iscore/tools/Todo.hpp>

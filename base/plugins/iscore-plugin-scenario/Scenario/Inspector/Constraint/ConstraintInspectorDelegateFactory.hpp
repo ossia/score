@@ -6,6 +6,7 @@
 #include <vector>
 
 #include <iscore/plugins/customfactory/FactoryInterface.hpp>
+#include <iscore/tools/std/Algorithms.hpp>
 
 class ConstraintModel;
 

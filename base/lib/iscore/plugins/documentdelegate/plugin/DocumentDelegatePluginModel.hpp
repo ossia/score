@@ -1,5 +1,5 @@
 #pragma once
-#include <core/document/DocumentContext.hpp>
+#include <iscore/document/DocumentContext.hpp>
 #include <iscore/plugins/documentdelegate/plugin/ElementPluginModel.hpp>
 #include <iscore/tools/NamedObject.hpp>
 #include <QString>

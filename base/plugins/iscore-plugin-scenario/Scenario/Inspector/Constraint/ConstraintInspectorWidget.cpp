@@ -45,9 +45,9 @@
 #include "Widgets/DurationSectionWidget.hpp"
 #include "Widgets/Rack/RackInspectorSection.hpp"
 #include "Widgets/RackWidget.hpp"
-#include <core/application/ApplicationComponents.hpp>
-#include <core/application/ApplicationContext.hpp>
-#include <core/document/DocumentContext.hpp>
+
+#include <iscore/application/ApplicationContext.hpp>
+#include <iscore/document/DocumentContext.hpp>
 #include <iscore/command/Dispatchers/CommandDispatcher.hpp>
 #include <iscore/plugins/documentdelegate/plugin/DocumentDelegatePluginModel.hpp>
 #include <iscore/plugins/documentdelegate/plugin/ElementPluginModelList.hpp>

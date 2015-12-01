@@ -29,8 +29,8 @@
 #include "ScenarioDocumentView.hpp"
 #include "Widgets/DoubleSlider.hpp"
 #include "Widgets/GraphicsProxyObject.hpp"
-#include <core/application/ApplicationComponents.hpp>
-#include <core/application/ApplicationContext.hpp>
+
+#include <iscore/application/ApplicationContext.hpp>
 #include <iscore/plugins/documentdelegate/DocumentDelegateViewInterface.hpp>
 
 class QObject;

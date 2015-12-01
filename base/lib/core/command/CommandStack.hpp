@@ -19,7 +19,6 @@ namespace iscore
     class CommandStack final : public QObject
     {
             Q_OBJECT
-            ISCORE_SERIALIZE_FRIENDS(CommandStack, DataStream)
 
             friend class CommandBackupFile;
             friend struct CommandStackBackup;
@@ -84,6 +83,8 @@ namespace iscore
 
             auto& undoable() { return m_undoable; }
             auto& redoable() { return m_redoable; }
+            auto& undoable() const { return m_undoable; }
+            auto& redoable() const { return m_redoable; }
 
         signals:
             /**

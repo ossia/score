@@ -5,7 +5,8 @@
 #include <vector>
 
 #include <iscore/plugins/customfactory/FactoryInterface.hpp>
-
+#include <iscore/tools/std/Pointer.hpp>
+#include <iscore/tools/std/OwningVector.hpp>
 class IdentifiedObjectAbstract;
 class QWidget;
 

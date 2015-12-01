@@ -7,7 +7,7 @@
 
 #include <Scenario/Palette/ScenarioPoint.hpp>
 #include <Scenario/Palette/Tool.hpp>
-#include <core/document/DocumentContext.hpp>
+#include <iscore/document/DocumentContext.hpp>
 
 class BaseGraphicsObject;
 class DisplayedElementsModel;

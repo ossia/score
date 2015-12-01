@@ -1,6 +1,4 @@
 #pragma once
-
-
 #include <QObject>
 #include <QString>
 #include <QStringList>
@@ -11,34 +9,19 @@ namespace iscore
 class Application;
 class ApplicationRegistrar;
 
-
-/**
-     * @brief The PluginManager class loads and keeps track of the plug-ins.
-     */
-class PluginLoader final : public QObject
+class PluginLoader
 {
-        Q_OBJECT
         friend class iscore::Application;
     public:
         PluginLoader(iscore::Application* app);
-        ~PluginLoader();
 
         /**
-             * @brief reloadPlugins
+             * @brief loadPlugins
              *
              * Reloads all the plug-ins.
              * Note: for now this is unsafe after the first loading.
              */
-        void clearPlugins();
-        void reloadPlugins(iscore::ApplicationRegistrar&);
-
-        /**
-             * @brief pluginsOnSystem
-             * @return All the plugins available on the system
-             *
-             * Even plug-ins that were not loaded will be returned.
-             */
-        QStringList pluginsOnSystem() const;
+        void loadPlugins(iscore::ApplicationRegistrar&);
 
     private:
         iscore::Application* m_app{};
@@ -47,16 +30,12 @@ class PluginLoader final : public QObject
         // Else we can't blacklist / unblacklist plug-ins.
         QStringList m_pluginsOnSystem;
 
-        void loadPlugin(const QString& filename);
-
-
-        // Classify the plug-in element in the correct container.
-        void dispatch(QObject* plugin);
-
+        // QString is set if it's a valid plug-in file,
+        // QObject* is set if the plug-in could be loaded
+        std::pair<QString, QObject*> loadPlugin(
+                const QString& filename,
+                const std::vector<QObject*>& availablePlugins);
 
         QStringList pluginsBlacklist();
-
-        // Here, the plug-ins that are effectively loaded.
-        std::vector<QObject*> m_availablePlugins;
 };
 }

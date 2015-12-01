@@ -6,7 +6,7 @@
 #include <Scenario/Inspector/Constraint/ConstraintInspectorWidget.hpp>
 
 #include <boost/optional/optional.hpp>
-#include <core/application/ApplicationComponents.hpp>
+
 #include <QByteArray>
 #include <QDataStream>
 #include <QtGlobal>
@@ -21,8 +21,8 @@
 #include <Scenario/Commands/MoveBaseEvent.hpp>
 #include <Scenario/Document/State/StateModel.hpp>
 #include <Scenario/Inspector/Constraint/ConstraintInspectorDelegate.hpp>
-#include <core/application/ApplicationContext.hpp>
-#include <core/document/DocumentContext.hpp>
+#include <iscore/application/ApplicationContext.hpp>
+#include <iscore/document/DocumentContext.hpp>
 #include <iscore/command/Dispatchers/OngoingCommandDispatcher.hpp>
 #include <iscore/plugins/customfactory/StringFactoryKey.hpp>
 #include <iscore/serialization/DataStreamVisitor.hpp>
