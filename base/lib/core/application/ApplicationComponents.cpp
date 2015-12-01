@@ -46,7 +46,7 @@ SerializableCommand*ApplicationComponents::instantiateUndoCommand(const CommandD
              << "could not be instantiated.";
     ISCORE_ABORT;
 #else
-    throw MissingCommandException(parent_name, name);
+    throw MissingCommandException(cmd.parentKey, cmd.commandKey);
 #endif
     return nullptr;
 }
