@@ -200,8 +200,9 @@ namespace iscore
                 emit stackChanged();
             }
 
-        private:
             void setSavedIndex(int index);
+
+        private:
 
             QStack<iscore::SerializableCommand*> m_undoable;
             QStack<iscore::SerializableCommand*> m_redoable;
