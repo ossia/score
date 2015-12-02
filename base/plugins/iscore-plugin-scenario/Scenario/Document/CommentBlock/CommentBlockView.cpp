@@ -83,10 +83,7 @@ void CommentBlockView::SetTextInteraction(bool on, bool selectAll)
     if(on && m_textItem->textInteractionFlags() == Qt::NoTextInteraction)
     {
         m_textItem->setTextInteractionFlags(Qt::TextEditorInteraction);
-        setFocus(Qt::MouseFocusReason);
-        QTextCursor c{};
-        c.setPosition(0);
-        m_textItem->setTextCursor(c);
+        m_textItem->setFocus(Qt::MouseFocusReason);
     }
     else if(!on && m_textItem->textInteractionFlags() == Qt::TextEditorInteraction)
     {
