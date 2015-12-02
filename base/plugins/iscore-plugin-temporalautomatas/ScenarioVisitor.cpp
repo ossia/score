@@ -16,7 +16,7 @@
 #include <QDebug>
 
 #include <QString>
-
+#include <sstream>
 #include <Scenario/Process/Algorithms/Accessors.hpp>
 #include <Curve/Segment/CurveSegmentData.hpp>
 #include <Process/Process.hpp>
@@ -184,6 +184,7 @@ struct TAScenario
 }
 struct TAVisitor
 {
+        std::stringstream output;
         int depth = 0;
 
         auto space() const
@@ -335,8 +336,8 @@ struct TAVisitor
             }
             depth--;
 
-            print(ta_scenario.flexibles, std::cerr);
-            print(ta_scenario.points, std::cerr);
+            print(ta_scenario.flexibles, output);
+            print(ta_scenario.points, output);
         }
 
         void visit(const ConstraintModel& c,
@@ -407,10 +408,9 @@ struct TAVisitor
 */
             depth --;
         }
-
-
 };
 
+#include <Scenario/Application/Menus/TextDialog.hpp>
 TemporalAutomatas::ApplicationPlugin::ApplicationPlugin(iscore::Application& app):
     iscore::GUIApplicationContextPlugin(app, "TemporalAutomatasApplicationPlugin", &app)
 {
@@ -424,9 +424,11 @@ TemporalAutomatas::ApplicationPlugin::ApplicationPlugin(iscore::Application& app
         TAVisitor v;
 
         v.visit(static_cast<Scenario::ScenarioModel&>(*base.baseScenario().constraint().processes.begin()));
+
+        TextDialog dial(QString::fromStdString(v.output.str()), qApp->activeWindow());
+        dial.exec();
     } );
 }
-
 
 void TemporalAutomatas::ApplicationPlugin::populateMenus(iscore::MenubarManager* menus)
 {

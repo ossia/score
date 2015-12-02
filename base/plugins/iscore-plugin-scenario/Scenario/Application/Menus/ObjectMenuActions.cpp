@@ -137,9 +137,9 @@ ObjectMenuActions::ObjectMenuActions(
             [this]()
     {
         QJsonDocument doc{copySelectedElementsToJson()};
-        auto s = new TextDialog{doc.toJson(QJsonDocument::Indented), qApp->activeWindow()};
+        TextDialog s{doc.toJson(QJsonDocument::Indented), qApp->activeWindow()};
 
-        s->show();
+        s.exec();
     });
 
     // ADD PROCESS

@@ -4,6 +4,49 @@
 #pragma GCC system_header
 #pragma clang system_header
 
+#include <QSize>
+#include <QComboBox>
+#include <QAbstractItemModel>
+#include <QMenu>
+#include <QFormLayout>
+#include <QGraphicsScene>
+#include <QLayout>
+#include <QPen>
+#include <QPointer>
+#include <QIODevice>
+#include <QFlags>
+#include <QMetaType>
+#include <QPair>
+#include <QAction>
+#include <QLineEdit>
+#include <QPushButton>
+#include <QColor>
+#include <QGridLayout>
+#include <QtTest/QtTest>
+#include <QLabel>
+#include <QApplication>
+#include <QPainter>
+#include <QJsonArray>
+#include <QMap>
+#include <QBoxLayout>
+#include <QRect>
+#include <QGraphicsItem>
+#include <QVector>
+#include <QDataStream>
+#include <QStringList>
+#include <QVariant>
+#include <QWidget>
+#include <QtGlobal>
+#include <QPoint>
+#include <QDebug>
+#include <QJsonValue>
+#include <QJsonObject>
+#include <QList>
+#include <QByteArray>
+#include <QObject>
+#include <QString>
+
+/*
 #include <QAbstractItemModel>
 #include <QAbstractTransition>
 #include <QAction>
@@ -148,27 +191,27 @@
 #include <QVector>
 #include <QWheelEvent>
 #include <QWidget>
-
+*/
 #include <algorithm>
 #include <array>
-#include <chrono>
+//#include <chrono>
 #include <cmath>
-#include <csignal>
+//#include <csignal>
 #include <cstdint>
 #include <exception>
 #include <functional>
-#include <iostream>
+//#include <iostream>
 #include <iterator>
 #include <map>
 #include <memory>
 #include <numeric>
-#include <queue>
-#include <random>
+//#include <queue>
+//#include <random>
 #include <set>
-#include <sstream>
+//#include <sstream>
 #include <stdexcept>
 #include <string>
-#include <thread>
+//#include <thread>
 #include <tuple>
 #include <typeinfo>
 #include <utility>
