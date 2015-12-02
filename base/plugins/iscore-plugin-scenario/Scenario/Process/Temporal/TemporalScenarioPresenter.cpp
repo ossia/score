@@ -1,6 +1,7 @@
 #include <Scenario/Commands/Scenario/Creations/CreateStateMacro.hpp>
 #include <Scenario/Commands/Scenario/Creations/CreateTimeNode_Event_State.hpp>
 #include <Scenario/Commands/Scenario/Displacement/MoveCommentBlock.hpp>
+#include <Scenario/Commands/Comment/SetCommentText.hpp>
 #include <Scenario/Document/Constraint/ViewModels/Temporal/TemporalConstraintViewModel.hpp>
 #include <Scenario/Process/Temporal/TemporalScenarioLayerModel.hpp>
 #include <Scenario/Process/Temporal/TemporalScenarioView.hpp>
@@ -393,6 +394,8 @@ void TemporalScenarioPresenter::on_commentBlockCreated(const CommentBlockModel& 
     con(comment_block_model, &CommentBlockModel::heightPercentageChanged,
             this, [=] (double y) { m_viewInterface.on_commentMoved(*cmt_pres);});
 
+
+    // Selection
     connect(cmt_pres, &CommentBlockPresenter::doubleClicked,
             this, [&] ()
     {
@@ -400,7 +403,7 @@ void TemporalScenarioPresenter::on_commentBlockCreated(const CommentBlockModel& 
     });
 
 
-//    connect(cmt_pres, &CommentBlockPresenter::pressed, m_view, &TemporalScenarioView::pressed);
+    // Commands
     connect(cmt_pres, &CommentBlockPresenter::moved,
             this, [&] (QPointF scenPos)
     {
@@ -411,12 +414,18 @@ void TemporalScenarioPresenter::on_commentBlockCreated(const CommentBlockModel& 
                     comment_block_model.id(),
                     pos.date,
                     pos.y );
-
     });
     connect(cmt_pres, &CommentBlockPresenter::released,
             this, [&] (QPointF scenPos)
     {
         m_ongoingDispatcher.commit();
+    });
+
+    connect(cmt_pres, &CommentBlockPresenter::editFinished,
+            this, [&] (const QString& doc)
+    {
+        CommandDispatcher<> c {m_context.commandStack};
+        c.submitCommand(new SetCommentText{{comment_block_model}, doc}) ;
     });
 }
 

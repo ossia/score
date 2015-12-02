@@ -43,9 +43,13 @@ class CommentBlockModel final : public IdentifiedObject<CommentBlockModel>
         double heightPercentage() const;
         void setHeightPercentage(double y);
 
+        const QString content() const;
+        void setContent(const QString content);
+
     signals:
         void dateChanged(const TimeValue&);
         void heightPercentageChanged(bool);
+        void contentChanged(QString);
 
     public slots:
 
@@ -53,5 +57,5 @@ class CommentBlockModel final : public IdentifiedObject<CommentBlockModel>
         TimeValue m_date{std::chrono::seconds{0}};
         double m_yposition{0};
 
-        QTextDocument* m_content{};
+        QString m_HTMLcontent{"Hello dear user !"};
 };

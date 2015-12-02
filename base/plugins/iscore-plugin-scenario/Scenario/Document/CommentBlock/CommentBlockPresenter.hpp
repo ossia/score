@@ -8,6 +8,7 @@
 class CommentBlockView;
 class CommentBlockModel;
 class QGraphicsObject;
+class QTextDocument;
 
 class CommentBlockPresenter final :  public NamedObject
 {
@@ -41,6 +42,7 @@ class CommentBlockPresenter final :  public NamedObject
         void moved(const QPointF&);
         void released(const QPointF&);
         void doubleClicked();
+        void editFinished(QString);
 
     public slots:
         void pressed(const QPointF&);

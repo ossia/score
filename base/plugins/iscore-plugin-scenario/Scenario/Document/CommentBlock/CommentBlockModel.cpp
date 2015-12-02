@@ -10,7 +10,6 @@ CommentBlockModel::CommentBlockModel(const Id<CommentBlockModel>& id,
     m_date{date},
     m_yposition{yPos}
 {
-    m_content = new QTextDocument{"Hello", this};
 }
 
 void CommentBlockModel::setDate(const TimeValue& date)
@@ -39,4 +38,17 @@ void CommentBlockModel::setHeightPercentage(double y)
         m_yposition = y;
         emit heightPercentageChanged(y);
     }
+}
+
+const QString CommentBlockModel::content() const
+{
+    return m_HTMLcontent;
+}
+
+void CommentBlockModel::setContent(const QString content)
+{
+    if(m_HTMLcontent == content)
+        return;
+    m_HTMLcontent = content;
+    emit contentChanged(m_HTMLcontent);
 }

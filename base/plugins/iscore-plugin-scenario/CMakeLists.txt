@@ -92,6 +92,8 @@ set(SRCS ${SRCS}
 "${CMAKE_CURRENT_SOURCE_DIR}/Scenario/Commands/Event/SetCondition.cpp"
 "${CMAKE_CURRENT_SOURCE_DIR}/Scenario/Commands/Event/SplitEvent.cpp"
 
+"${CMAKE_CURRENT_SOURCE_DIR}/Scenario/Commands/Comment/SetCommentText.cpp"
+
 "${CMAKE_CURRENT_SOURCE_DIR}/Scenario/Commands/Scenario/Creations/CreateState.cpp"
 "${CMAKE_CURRENT_SOURCE_DIR}/Scenario/Commands/Scenario/Creations/CreateEvent_State.cpp"
 "${CMAKE_CURRENT_SOURCE_DIR}/Scenario/Commands/Scenario/Creations/CreateTimeNode_Event_State.cpp"

@@ -29,6 +29,7 @@ class CommentBlockView final : public QGraphicsObject
 
     public slots:
         void setSelected(bool b);
+        void setHtmlContent(QString htmlText);
 
     protected:
         void mousePressEvent(QGraphicsSceneMouseEvent *event) override;

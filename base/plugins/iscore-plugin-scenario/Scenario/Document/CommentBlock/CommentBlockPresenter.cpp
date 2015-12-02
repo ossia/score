@@ -15,6 +15,10 @@ CommentBlockPresenter::CommentBlockPresenter(
     con(m_model.selection, &Selectable::changed,
             m_view, &CommentBlockView::setSelected);
 
+    con(m_model, &CommentBlockModel::contentChanged,
+            m_view, &CommentBlockView::setHtmlContent);
+
+    m_view->setHtmlContent(m_model.content());
 }
 
 CommentBlockPresenter::~CommentBlockPresenter()

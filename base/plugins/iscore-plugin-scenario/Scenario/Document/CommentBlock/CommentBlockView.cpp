@@ -5,6 +5,7 @@
 #include <QFont>
 #include <QGraphicsSceneMouseEvent>
 #include <QTextCursor>
+#include <QTextDocument>
 
 #include <Scenario/Document/CommentBlock/CommentBlockPresenter.hpp>
 
@@ -18,7 +19,7 @@ CommentBlockView::CommentBlockView(
     this->setZValue(1);
     this->setAcceptHoverEvents(true);
 
-    m_textItem = new QGraphicsTextItem{"Hello dear user !", this};
+    m_textItem = new QGraphicsTextItem{"", this};
     m_textItem->setDefaultTextColor(Qt::white);
 }
 
@@ -52,11 +53,15 @@ void CommentBlockView::setSelected(bool b)
     SetTextInteraction(b);
 }
 
+void CommentBlockView::setHtmlContent(QString htmlText)
+{
+    m_textItem->setHtml(htmlText);
+}
+
 void CommentBlockView::mousePressEvent(QGraphicsSceneMouseEvent* event)
 {
     if(event->button() == Qt::MouseButton::LeftButton)
     {
-        //emit m_presenter.pressed(event->scenePos());
         m_presenter.setPressed(true);
         m_presenter.pressed(event->scenePos() - this->pos());
     }
@@ -92,6 +97,7 @@ void CommentBlockView::SetTextInteraction(bool on, bool selectAll)
         c.clearSelection();
         m_textItem->setTextCursor(c);
         clearFocus();
+        emit m_presenter.editFinished(m_textItem->document()->toHtml());
     }
 }
 
