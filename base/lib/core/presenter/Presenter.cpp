@@ -65,22 +65,6 @@ Presenter::Presenter(
     m_view->setPresenter(this);
 }
 
-auto getStrongId(const std::vector<Document*>& v)
-{
-    using namespace std;
-    vector<int32_t> ids(v.size());   // Map reduce
-
-    transform(v.begin(),
-              v.end(),
-              ids.begin(),
-              [](const auto elt)
-    {
-        return * (elt->id().val());
-    });
-
-    return Id<DocumentModel>{iscore::id_generator::getNextId(ids)};
-}
-
 void Presenter::setupMenus()
 {
     ////// File //////
@@ -146,6 +130,18 @@ void Presenter::setupMenus()
                                         [&] () {
         m_view->close();
     });
+
+#ifdef ISCORE_DEBUG
+    m_menubar.addActionIntoToplevelMenu(
+                          ToplevelMenuElement::FileMenu,
+                          FileMenuElement::SaveCommands,
+                          [this] () {m_docManager.saveStack(); });
+    m_menubar.addActionIntoToplevelMenu(
+                        ToplevelMenuElement::FileMenu,
+                        FileMenuElement::LoadCommands,
+                [this] () {m_docManager.loadStack();});
+
+#endif
 
     ////// View //////
     m_menubar.addMenuIntoToplevelMenu(ToplevelMenuElement::ViewMenu,

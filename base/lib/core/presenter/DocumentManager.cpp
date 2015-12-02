@@ -5,6 +5,7 @@
 #include <core/view/View.hpp>
 #include <iscore/plugins/application/GUIApplicationContextPlugin.hpp>
 #include <iscore/plugins/panel/PanelPresenter.hpp>
+#include <iscore/tools/SettableIdentifierGeneration.hpp>
 #include <QByteArray>
 #include <QFile>
 #include <QFileDialog>
@@ -23,6 +24,7 @@
 #include "QRecentFilesMenu.h"
 #include <iscore/application/ApplicationComponents.hpp>
 #include <core/command/CommandStack.hpp>
+#include <core/command/CommandStackSerialization.hpp>
 #include <core/document/Document.hpp>
 #include <iscore/tools/SettableIdentifier.hpp>
 #include <iscore/tools/std/StdlibWrapper.hpp>
@@ -243,6 +245,64 @@ bool DocumentManager::saveDocumentAs(Document& doc)
     return false;
 }
 
+bool DocumentManager::saveStack()
+{
+    QFileDialog d{m_presenter.view(), tr("Save Stack As")};
+    d.setNameFilters({".stack"});
+    d.setConfirmOverwrite(true);
+    d.setFileMode(QFileDialog::AnyFile);
+    d.setAcceptMode(QFileDialog::AcceptSave);
+
+    if(d.exec())
+    {
+        QString savename = d.selectedFiles().first();
+        if(!savename.isEmpty())
+        {
+            if(!savename.contains(".stack"))
+                savename += ".stack";
+
+            QSaveFile f{savename};
+            f.open(QIODevice::WriteOnly);
+
+            f.reset();
+            Serializer<DataStream> ser(&f);
+            ser.readFrom(currentDocument()->id());
+            ser.readFrom(currentDocument()->commandStack());
+            f.commit();
+        }
+        return true;
+    }
+    return false;
+}
+
+bool DocumentManager::loadStack()
+{
+    QString loadname = QFileDialog::getOpenFileName(m_presenter.view(), tr("Open Stack"), QString(), "*.stack");
+    if(!loadname.isEmpty()
+        && (loadname.indexOf(".stack") != -1) )
+    {
+        QFile cmdF{loadname};
+        cmdF.open(QIODevice::ReadOnly);
+        QByteArray cmdArr {cmdF.readAll()};
+        cmdF.close();
+
+        Deserializer<DataStream> writer(cmdArr);
+
+        Id<DocumentModel> id; //getStrongId(documents())
+        writer.writeTo(id);
+
+        newDocument(id,
+                    m_presenter.applicationComponents().availableDocuments().front());
+
+        loadCommandStack(
+                    m_presenter.applicationComponents(),
+                    writer,
+                    currentDocument()->commandStack(),
+                    [] (auto cmd) { cmd->redo(); }
+        );
+    }
+}
+
 Document* DocumentManager::loadFile()
 {
     QString loadname = QFileDialog::getOpenFileName(m_presenter.view(), tr("Open"), QString(), "*.scorebin *.scorejson");
@@ -307,4 +367,20 @@ void DocumentManager::restoreDocuments()
     }
 }
 
+}
+
+Id<iscore::DocumentModel> getStrongId(const std::vector<iscore::Document*>& v)
+{
+    using namespace std;
+    vector<int32_t> ids(v.size());   // Map reduce
+
+    transform(v.begin(),
+              v.end(),
+              ids.begin(),
+              [](const auto elt)
+    {
+        return * (elt->id().val());
+    });
+
+    return Id<iscore::DocumentModel>{iscore::id_generator::getNextId(ids)};
 }

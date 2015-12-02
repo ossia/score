@@ -22,7 +22,6 @@
 #include <QPushButton>
 #include <QColor>
 #include <QGridLayout>
-#include <QtTest/QtTest>
 #include <QLabel>
 #include <QApplication>
 #include <QPainter>

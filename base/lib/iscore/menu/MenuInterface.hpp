@@ -29,7 +29,9 @@ namespace iscore
         Export,
         Separator_Quit,
         Close,
-        Quit
+        Quit,
+        SaveCommands,
+        LoadCommands
     };
 
     enum class EditMenuElement

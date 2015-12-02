@@ -5,6 +5,7 @@
 #include <algorithm>
 #include <vector>
 
+class CommandStack;
 class QRecentFilesMenu;
 namespace iscore {
 class Document;
@@ -66,6 +67,9 @@ class DocumentManager : public QObject
         bool saveDocument(Document&);
         bool saveDocumentAs(Document&);
 
+        bool saveStack();
+        bool loadStack();
+
         Document* loadFile();
         Document* loadFile(const QString& filename);
 
@@ -88,3 +92,5 @@ class DocumentManager : public QObject
 
 };
 }
+
+Id<iscore::DocumentModel> getStrongId(const std::vector<iscore::Document*>& v);
