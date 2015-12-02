@@ -9,8 +9,8 @@
 
 #include <boost/optional/optional.hpp>
 #include <core/application/Application.hpp>
-#include <core/application/ApplicationComponents.hpp>
-#include <core/application/ApplicationContext.hpp>
+
+#include <iscore/application/ApplicationContext.hpp>
 #include <QByteArray>
 #include <QDataStream>
 #include <QtGlobal>

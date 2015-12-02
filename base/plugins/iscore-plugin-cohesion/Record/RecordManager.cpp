@@ -122,11 +122,11 @@ void RecordManager::stopRecording()
 
 void RecordManager::recordInNewBox(Scenario::ScenarioModel& scenar, Scenario::Point pt)
 {
-    auto& doc = *iscore::IDocument::documentFromObject(scenar);
+    auto& doc = iscore::IDocument::documentContext(scenar);
     //// Device tree management ////
 
     // Get all the selected nodes
-    m_explorer = &deviceExplorerFromObject(doc);
+    m_explorer = &deviceExplorerFromContext(doc);
     auto indices = m_explorer->selectedIndexes(); // TODO maybe filterUniqueParents and then recurse on the listening ??
 
     // Disable listening for everything
@@ -167,7 +167,7 @@ void RecordManager::recordInNewBox(Scenario::ScenarioModel& scenar, Scenario::Po
     if(recordListening.empty())
         return;
 
-    m_dispatcher = std::make_unique<RecordCommandDispatcher>(new Record, doc.commandStack());
+    m_dispatcher = std::make_unique<RecordCommandDispatcher>(new Record, doc.commandStack);
 
     //// Initial commands ////
 

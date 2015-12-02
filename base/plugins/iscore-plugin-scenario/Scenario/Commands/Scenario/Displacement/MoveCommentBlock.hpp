@@ -34,12 +34,12 @@ namespace Scenario
                 }
                 // Command interface
 
-                void undo() const;
-                void redo() const;
+                void undo() const override;
+                void redo() const override;
 
             protected:
-                void serializeImpl(DataStreamInput&) const;
-                void deserializeImpl(DataStreamOutput&);
+                void serializeImpl(DataStreamInput&) const override;
+                void deserializeImpl(DataStreamOutput&) override;
 
             private:
                 Path<ScenarioModel> m_path;

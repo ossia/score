@@ -7,10 +7,12 @@
 #include <QStack>
 
 #include "CommandStack.hpp"
-#include <core/application/ApplicationComponents.hpp>
-#include <core/application/ApplicationContext.hpp>
+#include <iscore/application/ApplicationComponents.hpp>
+#include <iscore/application/ApplicationContext.hpp>
 #include <iscore/command/SerializableCommand.hpp>
 #include <iscore/plugins/customfactory/StringFactoryKey.hpp>
+#include <iscore/tools/std/StdlibWrapper.hpp>
+#include <iscore/plugins/customfactory/StringFactoryKeySerialization.hpp>
 
 template <typename T> class Reader;
 template <typename T> class Writer;
@@ -20,13 +22,13 @@ template<>
 void Visitor<Reader<DataStream>>::readFrom(const CommandStack& stack)
 {
     std::vector<CommandData> undoStack, redoStack;
-    for(const auto& cmd : stack.m_undoable)
+    for(const auto& cmd : stack.undoable())
     {
         undoStack.emplace_back(*cmd);
     }
     readFrom_vector_obj_impl(*this, undoStack);
 
-    for(const auto& cmd : stack.m_redoable)
+    for(const auto& cmd : stack.redoable())
     {
         redoStack.emplace_back(*cmd);
     }

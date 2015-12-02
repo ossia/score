@@ -1,5 +1,5 @@
 #pragma once
-#include <core/application/ApplicationContext.hpp>
+#include <iscore/application/ApplicationContext.hpp>
 #include <QtGlobal>
 #include <chrono>
 

@@ -2,6 +2,7 @@
 #include <Process/StateProcessFactoryKey.hpp>
 #include <iscore/plugins/customfactory/FactoryInterface.hpp>
 #include <iscore/tools/SettableIdentifier.hpp>
+#include <iscore/serialization/VisitorCommon.hpp>
 #include <QByteArray>
 #include <QString>
 

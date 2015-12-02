@@ -30,7 +30,7 @@ class Document;
 
 StateInspectorWidget::StateInspectorWidget(
         const StateModel& object,
-        iscore::Document& doc,
+        const iscore::DocumentContext& doc,
         QWidget *parent):
     InspectorWidgetBase {object, doc, parent},
     m_model {object}

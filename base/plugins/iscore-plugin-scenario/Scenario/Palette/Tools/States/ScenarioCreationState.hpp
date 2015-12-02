@@ -14,8 +14,6 @@
 #include <Scenario/Commands/Scenario/Creations/CreateSequence.hpp>
 
 #include <iscore/document/DocumentInterface.hpp>
-#include <core/document/Document.hpp>
-#include <core/document/DocumentModel.hpp>
 #include <Explorer/DocumentPlugin/DeviceDocumentPlugin.hpp>
 #include <Explorer/Explorer/DeviceExplorerModel.hpp>
 #include <Scenario/Commands/State/AddMessagesToState.hpp>
@@ -62,7 +60,7 @@ class CreationState : public CreationStateBase<Scenario_T>
     public:
         CreationState(
                 const ToolPalette_T& sm,
-                iscore::CommandStack& stack,
+                iscore::CommandStackFacade& stack,
                 const Path<Scenario_T>& scenarioPath,
                 QState* parent):
             CreationStateBase<Scenario_T>{scenarioPath, parent},
@@ -171,8 +169,7 @@ class CreationState : public CreationStateBase<Scenario_T>
                 }
             }
 
-            auto& doc = this->m_parentSM.context().document;
-            auto device_explorer = doc.model().template pluginModel<DeviceDocumentPlugin>()->updateProxy.deviceExplorer;
+            auto device_explorer = this->m_parentSM.context().template plugin<DeviceDocumentPlugin>().updateProxy.deviceExplorer;
 
             iscore::MessageList messages = getSelectionSnapshot(*device_explorer);
             if(messages.empty())

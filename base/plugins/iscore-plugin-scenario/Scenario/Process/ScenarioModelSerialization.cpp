@@ -22,6 +22,7 @@
 #include <iscore/serialization/VisitorCommon.hpp>
 #include <iscore/tools/NotifyingMap.hpp>
 #include <iscore/tools/SettableIdentifier.hpp>
+#include <iscore/document/DocumentContext.hpp>
 
 class LayerModel;
 class Process;
@@ -128,9 +129,10 @@ void Visitor<Writer<DataStream>>::writeTo(Scenario::ScenarioModel& scenario)
     int32_t state_count;
     m_stream >> state_count;
 
+    auto& stack = iscore::IDocument::documentContext(scenario).commandStack;
     for(; state_count -- > 0;)
     {
-        auto stmodel = new StateModel {*this, &scenario};
+        auto stmodel = new StateModel {*this, stack, &scenario};
         scenario.states.add(stmodel);
     }
 
@@ -195,10 +197,12 @@ void Visitor<Writer<JSONObject>>::writeTo(Scenario::ScenarioModel& scenario)
         scenario.events.add(evmodel);
     }
 
+    auto& stack = iscore::IDocument::documentContext(scenario).commandStack;
     for(const auto& json_vref : m_obj["States"].toArray())
     {
         auto stmodel = new StateModel {
                        Deserializer<JSONObject>{json_vref.toObject() },
+                       stack,
                        &scenario};
 
         scenario.states.add(stmodel);

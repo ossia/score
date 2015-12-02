@@ -3,7 +3,6 @@
 #include <Explorer/DocumentPlugin/DeviceDocumentPlugin.hpp>
 #include <Scenario/Document/Constraint/ConstraintModel.hpp>
 #include <core/document/Document.hpp>
-#include <core/document/DocumentModel.hpp>
 #include <iscore/document/DocumentInterface.hpp>
 #include <OSSIA/iscore2OSSIA.hpp>
 #include <algorithm>
@@ -35,7 +34,7 @@ RecreateOnPlay::LoopElement::LoopElement(
         QObject* parent):
     ProcessElement{parentConstraint, parent},
     m_iscore_loop{element},
-    m_deviceList{iscore::IDocument::documentFromObject(element)->model().pluginModel<DeviceDocumentPlugin>()->list()}
+    m_deviceList{iscore::IDocument::documentFromObject(element)->context().plugin<DeviceDocumentPlugin>().list()}
 {
     OSSIA::TimeValue main_duration(iscore::convert::time(element.constraint().duration.defaultDuration()));
 

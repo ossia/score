@@ -11,9 +11,10 @@ class PanelView;
 class Presenter;
 }  // namespace iscore
 
-InspectorPanelPresenter::InspectorPanelPresenter(iscore::Presenter* parent,
-        iscore::PanelView* view) :
-    iscore::PanelPresenter {parent, view}
+InspectorPanelPresenter::InspectorPanelPresenter(
+        iscore::PanelView* view,
+        QObject* parent) :
+    iscore::PanelPresenter {view, parent}
 {
 
 }

@@ -12,7 +12,7 @@ InspectorWidgetBase* InspectorWidgetList::makeInspectorWidget(
         const IdentifiedObjectAbstract& model,
         QWidget* parent) const
 {
-    auto& doc = *iscore::IDocument::documentFromObject(model);
+    auto& doc = iscore::IDocument::documentContext(model);
     for(const auto& factory : m_list)
     {
         if(factory.matches(name))

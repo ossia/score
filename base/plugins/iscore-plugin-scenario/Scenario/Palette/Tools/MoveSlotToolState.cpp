@@ -34,7 +34,7 @@ MoveSlotTool::MoveSlotTool(const ToolPalette& sm):
     m_localSM.setInitialState(m_waitState);
     // Two states : one for moving the content of the slot, one for resizing with the handle.
     {
-        auto dragSlot = new DragSlotState<ToolPalette>{m_sm.commandStack(), m_sm, m_sm.scene(), &m_localSM};
+        auto dragSlot = new DragSlotState<ToolPalette>{m_sm.context().commandStack, m_sm, m_sm.scene(), &m_localSM};
         // Enter the state
         iscore::make_transition<ClickOnSlotOverlay_Transition>(
                     m_waitState,
@@ -45,7 +45,7 @@ MoveSlotTool::MoveSlotTool(const ToolPalette& sm):
     }
 
     {
-        auto resizeSlot = new ResizeSlotState<ToolPalette>{m_sm.commandStack(), m_sm, &m_localSM};
+        auto resizeSlot = new ResizeSlotState<ToolPalette>{m_sm.context().commandStack, m_sm, &m_localSM};
         iscore::make_transition<ClickOnSlotHandle_Transition>(
                     m_waitState,
                     resizeSlot,

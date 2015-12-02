@@ -17,6 +17,7 @@
 #include <Scenario/Process/ScenarioInterface.hpp>
 #include <State/Expression.hpp>
 #include <State/Message.hpp>
+#include <iscore/document/DocumentContext.hpp>
 #include <iscore/command/Dispatchers/CommandDispatcher.hpp>
 #include <iscore/selection/Selectable.hpp>
 #include <iscore/serialization/MimeVisitor.hpp>
@@ -32,7 +33,7 @@ EventPresenter::EventPresenter(const EventModel& model,
     NamedObject {"EventPresenter", parent},
     m_model {model},
     m_view {new EventView{*this, parentview}},
-    m_dispatcher{iscore::IDocument::commandStack(m_model)}
+    m_dispatcher{iscore::IDocument::documentContext(m_model).commandStack}
 {
     // The scenario catches this :
     con(m_model.selection, &Selectable::changed,

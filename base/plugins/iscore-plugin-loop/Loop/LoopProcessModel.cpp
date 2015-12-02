@@ -19,6 +19,7 @@
 #include <iscore/serialization/VisitorCommon.hpp>
 #include <iscore/tools/SettableIdentifier.hpp>
 #include <iscore/tools/std/StdlibWrapper.hpp>
+#include <iscore/tools/std/Algorithms.hpp>
 
 class LayerModel;
 class ProcessStateDataInterface;
@@ -34,7 +35,7 @@ ProcessModel::ProcessModel(
     BaseScenarioContainer{this}
 {
     pluginModelList = new iscore::ElementPluginModelList{
-                      iscore::IDocument::documentFromObject(parent),
+                      iscore::IDocument::documentContext(*parent),
                       this};
 
     BaseScenarioContainer::init();

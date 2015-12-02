@@ -1,5 +1,5 @@
 
-#include <core/application/ApplicationComponents.hpp>
+
 #include <iscore/tools/std/StdlibWrapper.hpp>
 #include <QJsonObject>
 #include <QJsonValue>
@@ -15,7 +15,7 @@
 #include "CurveSegmentList.hpp"
 #include "CurveSegmentModel.hpp"
 #include "CurveSegmentModelSerialization.hpp"
-#include <core/application/ApplicationContext.hpp>
+#include <iscore/application/ApplicationContext.hpp>
 #include <iscore/plugins/customfactory/FactoryFamily.hpp>
 #include <iscore/plugins/customfactory/FactoryMap.hpp>
 #include <iscore/plugins/customfactory/StringFactoryKey.hpp>
@@ -23,6 +23,7 @@
 #include <iscore/serialization/JSONValueVisitor.hpp>
 #include <iscore/serialization/JSONVisitor.hpp>
 #include <iscore/tools/SettableIdentifier.hpp>
+#include <iscore/plugins/customfactory/StringFactoryKeySerialization.hpp>
 
 class QObject;
 template <typename T> class IdentifiedObject;

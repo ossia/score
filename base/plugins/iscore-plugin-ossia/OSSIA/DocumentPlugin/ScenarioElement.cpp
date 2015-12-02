@@ -5,7 +5,6 @@
 #include <Explorer/DocumentPlugin/DeviceDocumentPlugin.hpp>
 
 #include <core/document/Document.hpp>
-#include <core/document/DocumentModel.hpp>
 #include <iscore/document/DocumentInterface.hpp>
 #include <OSSIA/iscore2OSSIA.hpp>
 #include <QDebug>
@@ -45,7 +44,7 @@ ScenarioElement::ScenarioElement(
         QObject* parent):
     ProcessElement{parentConstraint, parent},
     m_iscore_scenario{element},
-    m_deviceList{iscore::IDocument::documentFromObject(element)->model().pluginModel<DeviceDocumentPlugin>()->list()}
+    m_deviceList{iscore::IDocument::documentFromObject(element)->context().plugin<DeviceDocumentPlugin>().list()}
 {
     this->setObjectName("OSSIAScenarioElement");
 

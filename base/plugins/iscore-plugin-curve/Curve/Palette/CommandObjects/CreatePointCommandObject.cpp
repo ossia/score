@@ -16,10 +16,12 @@
 #include <iscore/tools/SettableIdentifier.hpp>
 
 namespace iscore {
-class CommandStack;
+class CommandStackFacade;
 }  // namespace iscore
 
-CreatePointCommandObject::CreatePointCommandObject(CurvePresenter *presenter, iscore::CommandStack &stack):
+CreatePointCommandObject::CreatePointCommandObject(
+        CurvePresenter *presenter,
+        iscore::CommandStackFacade& stack):
     CurveCommandObjectBase{presenter, stack}
 {
 }

@@ -4,8 +4,6 @@
 #include  <Scenario/Process/ScenarioModel.hpp>
 
 #include <boost/optional/optional.hpp>
-#include <core/document/Document.hpp>
-#include <core/document/DocumentModel.hpp>
 #include <iscore/tools/SettableIdentifierGeneration.hpp>
 #include <QByteArray>
 #include <QtGlobal>
@@ -66,7 +64,7 @@ CreateSequence::CreateSequence(
     std::transform(startMessages.begin(), startMessages.end(), std::back_inserter(endAddresses),
                    [] (const auto& mess) { return iscore::FullAddressSettings::make(mess); });
 
-    auto& devPlugin = *iscore::IDocument::documentFromObject(scenario)->model().pluginModel<DeviceDocumentPlugin>();
+    auto& devPlugin = iscore::IDocument::documentContext(scenario).plugin<DeviceDocumentPlugin>();
     auto& rootNode = devPlugin.rootNode();
 
     auto it = endAddresses.begin();

@@ -44,11 +44,8 @@ RackInspectorSection::RackInspectorSection(
     m_slotSection = new InspectorSectionWidget{"Slots", false, this};  // TODO Make a custom widget.
     m_slotSection->setObjectName("Slots");
 
-    con(m_model.slotmodels, &NotifyingMap<SlotModel>::added,
-        this, &RackInspectorSection::on_slotCreated);
-
-    con(m_model.slotmodels, &NotifyingMap<SlotModel>::removed,
-        this, &RackInspectorSection::on_slotRemoved);
+    m_model.slotmodels.added.connect<RackInspectorSection, &RackInspectorSection::on_slotCreated>(this);
+    m_model.slotmodels.removed.connect<RackInspectorSection, &RackInspectorSection::on_slotRemoved>(this);
 
     for(const auto& slot : m_model.slotmodels)
     {

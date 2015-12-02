@@ -2,11 +2,10 @@
 #include <Audio/AudioFactory.hpp>
 #include <Audio/AudioDocumentPlugin.hpp>
 #include <core/document/Document.hpp>
-#include <core/document/DocumentModel.hpp>
 #include <core/application/Application.hpp>
 #include <iscore/plugins/application/GUIApplicationContextPlugin.hpp>
 #include <Scenario/Application/ScenarioApplicationPlugin.hpp>
-#include <core/application/ApplicationComponents.hpp>
+
 #include <iscore/plugins/customfactory/FactoryFamily.hpp>
 #include <QAction>
 

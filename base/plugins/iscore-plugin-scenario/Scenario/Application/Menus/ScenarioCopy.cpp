@@ -14,6 +14,7 @@
 #include <iscore/serialization/VisitorCommon.hpp>
 #include <iscore/tools/NotifyingMap.hpp>
 #include <iscore/tools/SettableIdentifier.hpp>
+#include <iscore/document/DocumentContext.hpp>
 
 class JSONObject;
 
@@ -110,9 +111,10 @@ QJsonObject copySelectedScenarioElements(const Scenario::ScenarioModel& sm)
 
     std::vector<StateModel*> copiedStates;
     copiedStates.reserve(selectedStates.size());
+    auto& stack = iscore::IDocument::documentContext(sm).commandStack;
     for(const auto& st : selectedStates)
     {
-        auto clone_st = new StateModel(*st, st->id(), sm.parent());
+        auto clone_st = new StateModel(*st, st->id(), stack, sm.parent());
         auto prev_absent = std::none_of(selectedConstraints.begin(), selectedConstraints.end(), [&] (const ConstraintModel* cst) { return cst->id() == st->previousConstraint(); });
         if(prev_absent)
             clone_st->setPreviousConstraint(Id<ConstraintModel>{});

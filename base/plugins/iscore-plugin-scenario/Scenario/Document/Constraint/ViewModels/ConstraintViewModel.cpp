@@ -1,6 +1,6 @@
 #include <Scenario/Document/Constraint/Rack/RackModel.hpp>
 
-
+#include <Scenario/Document/Constraint/ConstraintModel.hpp>
 #include "ConstraintViewModel.hpp"
 #include <iscore/tools/IdentifiedObject.hpp>
 
@@ -36,12 +36,20 @@ void ConstraintViewModel::showRack(const Id<RackModel>& rackId)
     }
 }
 
-void ConstraintViewModel::on_rackRemoved(const RackModel& rack)
+void ConstraintViewModel::on_rackRemoval(const RackModel& rack)
 {
     if(shownRack() == rack.id())
     {
-        hideRack();
-        emit rackRemoved();
+        // There is only one rack left and it is
+        // being removed
+        if(m_model.racks.size() == 1)
+        {
+            emit lastRackRemoved();
+        }
+        else
+        {
+            hideRack();
+        }
     }
 }
 

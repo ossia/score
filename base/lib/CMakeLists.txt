@@ -27,11 +27,18 @@ set(SRCS
 "${CMAKE_CURRENT_SOURCE_DIR}/iscore/plugins/documentdelegate/plugin/ElementPluginModelListSerialization.cpp"
 "${CMAKE_CURRENT_SOURCE_DIR}/iscore/command/AggregateCommand.cpp"
 "${CMAKE_CURRENT_SOURCE_DIR}/iscore/command/Command.cpp"
+"${CMAKE_CURRENT_SOURCE_DIR}/iscore/command/CommandData.cpp"
 "${CMAKE_CURRENT_SOURCE_DIR}/iscore/command/CommandGeneratorMap.cpp"
 "${CMAKE_CURRENT_SOURCE_DIR}/iscore/command/PropertyCommand.cpp"
 "${CMAKE_CURRENT_SOURCE_DIR}/iscore/command/SerializableCommand.cpp"
+
+"${CMAKE_CURRENT_SOURCE_DIR}/iscore/application/ApplicationContext.cpp"
+"${CMAKE_CURRENT_SOURCE_DIR}/iscore/application/ApplicationComponents.cpp"
+
 "${CMAKE_CURRENT_SOURCE_DIR}/iscore/document/DocumentInterface.cpp"
+
 "${CMAKE_CURRENT_SOURCE_DIR}/iscore/locking/ObjectLocker.cpp"
+
 "${CMAKE_CURRENT_SOURCE_DIR}/iscore/plugins/documentdelegate/DocumentDelegateFactoryInterface.cpp"
 "${CMAKE_CURRENT_SOURCE_DIR}/iscore/plugins/documentdelegate/DocumentDelegateModelInterface.cpp"
 "${CMAKE_CURRENT_SOURCE_DIR}/iscore/plugins/documentdelegate/DocumentDelegateViewInterface.cpp"
@@ -69,8 +76,6 @@ set(SRCS
 "${CMAKE_CURRENT_SOURCE_DIR}/iscore/widgets/ClearLayout.cpp"
 
 "${CMAKE_CURRENT_SOURCE_DIR}/core/application/Application.cpp"
-"${CMAKE_CURRENT_SOURCE_DIR}/core/application/ApplicationContext.cpp"
-"${CMAKE_CURRENT_SOURCE_DIR}/core/application/ApplicationComponents.cpp"
 "${CMAKE_CURRENT_SOURCE_DIR}/core/application/ApplicationRegistrar.cpp"
 "${CMAKE_CURRENT_SOURCE_DIR}/core/application/ApplicationSettings.cpp"
 "${CMAKE_CURRENT_SOURCE_DIR}/core/command/CommandStackSerialization.cpp"

@@ -10,8 +10,9 @@ class Presenter;
 class GroupPanelPresenter : public iscore::PanelPresenter
 {
     public:
-        GroupPanelPresenter(iscore::Presenter* parent_presenter,
-                            iscore::PanelView* view);
+        GroupPanelPresenter(
+                iscore::PanelView* view,
+                QObject* parent);
 
         int panelId() const override;
         void on_modelChanged() override;

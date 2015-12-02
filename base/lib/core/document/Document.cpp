@@ -11,7 +11,7 @@
 
 #include <core/application/Application.hpp>
 #include <core/document/DocumentBackupManager.hpp>
-#include <core/document/DocumentContext.hpp>
+#include <iscore/document/DocumentContext.hpp>
 #include <iscore/plugins/panel/PanelFactory.hpp>
 #include <iscore/selection/SelectionStack.hpp>
 #include <iscore/tools/NamedObject.hpp>
@@ -29,11 +29,15 @@ using namespace iscore;
 DocumentContext::DocumentContext(Document& d):
     app{*safe_cast<iscore::Application*>(d.parent()->parent())},
     document{d},
-    commandStack{d.commandStack()},
+    commandStack{d.m_commandStackFacade},
     selectionStack{d.selectionStack()},
     objectLocker{d.locker()}
 {
+}
 
+const std::vector<DocumentPluginModel*>&DocumentContext::pluginModels() const
+{
+    return document.model().pluginModels();
 }
 
 
@@ -114,7 +118,7 @@ const Id<DocumentModel>&Document::id() const
 
 void Document::setupNewPanel(PanelFactory* factory)
 {
-    m_model->addPanel(factory->makeModel(m_model));
+    m_model->addPanel(factory->makeModel(m_context, m_model));
 }
 
 void Document::bindPanelPresenter(PanelPresenter* pres)

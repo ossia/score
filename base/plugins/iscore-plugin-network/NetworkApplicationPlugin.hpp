@@ -35,12 +35,11 @@ class NetworkApplicationPlugin : public QObject, public iscore::GUIApplicationCo
         void setupClientConnection(QString ip, int port);
 
     private:
-        virtual iscore::DocumentDelegatePluginModel* loadDocumentPlugin(
+        virtual iscore::DocumentPluginModel* loadDocumentPlugin(
                 const QString& name,
                 const VisitorVariant& var,
                 iscore::Document* parent) override;
 
-        iscore::Presenter* m_presenter {};
         std::unique_ptr<ClientSessionBuilder> m_sessionBuilder;
 
 #ifdef USE_ZEROCONF

@@ -14,7 +14,6 @@
 #include <core/presenter/Presenter.hpp>
 #include <core/presenter/DocumentManager.hpp>
 #include <core/document/Document.hpp>
-#include <core/document/DocumentModel.hpp>
 #include <core/command/CommandStackSerialization.hpp>
 #include "session/../client/LocalClient.hpp"
 #include "session/../client/RemoteClient.hpp"
@@ -118,8 +117,8 @@ void ClientSessionBuilder::on_messageReceived(const NetworkMessage& m)
                     doc->commandStack(),
                     [] (auto) { }); // No redo.
 
-        auto np = static_cast<NetworkDocumentPlugin*>(doc->model().pluginModel<NetworkDocumentPlugin>());
-        np->setPolicy(new ClientNetworkPolicy{m_session, doc});
+        auto& np = doc->context().plugin<NetworkDocumentPlugin>();
+        np.setPolicy(new ClientNetworkPolicy{m_session, doc});
 
         emit sessionReady();
     }

@@ -28,7 +28,7 @@ class DragSlotState final : public SlotState
 {
     public:
         DragSlotState(
-                iscore::CommandStack& stack,
+                iscore::CommandStackFacade& stack,
                 const ToolPalette_T& sm,
                 const QGraphicsScene& scene,
                 QState* parent):

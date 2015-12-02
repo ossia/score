@@ -1,4 +1,3 @@
-#include <core/plugin/PluginManager.hpp>
 #include <QApplication>
 #include <QDebug>
 #include <qnamespace.h>
@@ -27,6 +26,8 @@ PluginSettingsModel::PluginSettingsModel() :
     return;
 
 
+/*
+ * // TODO use ApplicationContext
     auto systemlist = qApp->findChild<PluginLoader*> ("PluginManager")->pluginsOnSystem();
     systemlist.sort();
 
@@ -54,6 +55,7 @@ PluginSettingsModel::PluginSettingsModel() :
 
     connect(m_plugins,  &QStandardItemModel::itemChanged,
     this,		&PluginSettingsModel::on_itemChanged);
+    */
 }
 
 

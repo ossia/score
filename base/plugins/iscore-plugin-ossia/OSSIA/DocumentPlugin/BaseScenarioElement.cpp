@@ -3,8 +3,6 @@
 #include <API/Headers/Editor/TimeNode.h>
 #include <Explorer/DocumentPlugin/DeviceDocumentPlugin.hpp>
 #include <Scenario/Document/BaseScenario/BaseScenario.hpp>
-#include <core/document/Document.hpp>
-#include <core/document/DocumentModel.hpp>
 #include <iscore/document/DocumentInterface.hpp>
 #include <OSSIA/iscore2OSSIA.hpp>
 #include <algorithm>
@@ -43,7 +41,7 @@ BaseScenarioElement::BaseScenarioElement(
         const BaseScenario& element,
         QObject *parent):
     QObject{parent},
-    m_deviceList{iscore::IDocument::documentFromObject(element)->model().pluginModel<DeviceDocumentPlugin>()->list()}
+    m_deviceList{iscore::IDocument::documentContext(element).plugin<DeviceDocumentPlugin>().list()}
 {
     auto main_start_node = OSSIA::TimeNode::create();
     auto main_end_node = OSSIA::TimeNode::create();

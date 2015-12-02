@@ -9,8 +9,8 @@
 #include <State/Address.hpp>
 #include "base/plugins/iscore-plugin-scenario/Scenario/Commands/Constraint/AddProcessToConstraint.hpp"
 #include "base/plugins/iscore-plugin-scenario/Scenario/Document/Constraint/ConstraintModel.hpp"
-#include <core/application/ApplicationComponents.hpp>
-#include <core/application/ApplicationContext.hpp>
+
+#include <iscore/application/ApplicationContext.hpp>
 #include <iscore/command/CommandData.hpp>
 #include <iscore/command/SerializableCommand.hpp>
 #include <iscore/serialization/DataStreamVisitor.hpp>
@@ -19,6 +19,7 @@
 #include <iscore/tools/NotifyingMap.hpp>
 #include <iscore/tools/SettableIdentifier.hpp>
 #include <iscore/tools/std/StdlibWrapper.hpp>
+#include <iscore/plugins/customfactory/StringFactoryKeySerialization.hpp>
 
 template <typename T> class Reader;
 template <typename T> class Writer;

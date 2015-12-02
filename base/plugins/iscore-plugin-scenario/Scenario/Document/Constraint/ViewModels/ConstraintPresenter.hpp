@@ -2,6 +2,7 @@
 #include <Process/TimeValue.hpp>
 #include <Process/ZoomHelper.hpp>
 #include <iscore/tools/NamedObject.hpp>
+#include <nano_signal_slot.hpp>
 #include <QPoint>
 #include <QString>
 
@@ -18,7 +19,7 @@ namespace iscore
 {
 }
 
-class ConstraintPresenter : public NamedObject
+class ConstraintPresenter : public NamedObject, public Nano::Observer
 {
         Q_OBJECT
 
@@ -79,6 +80,7 @@ class ConstraintPresenter : public NamedObject
         void updateChildren();
         void createRackPresenter(const RackModel&);
         void clearRackPresenter();
+        void on_rackRemoved(const RackModel&);
 
         ZoomRatio m_zoomRatio {};
         RackPresenter* m_rack {};

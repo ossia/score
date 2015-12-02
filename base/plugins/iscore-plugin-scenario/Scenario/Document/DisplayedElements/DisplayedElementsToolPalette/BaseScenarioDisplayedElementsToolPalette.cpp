@@ -4,7 +4,7 @@
 #include <Scenario/Document/ScenarioDocument/ScenarioDocumentView.hpp>
 
 #include <boost/optional/optional.hpp>
-#include <core/application/ApplicationContext.hpp>
+#include <iscore/application/ApplicationContext.hpp>
 #include <iscore/document/DocumentInterface.hpp>
 #include <algorithm>
 
@@ -16,7 +16,7 @@
 #include <Scenario/Document/BaseScenario/BaseScenario.hpp>
 #include <Scenario/Document/DisplayedElements/DisplayedElementsToolPalette/BaseScenarioDisplayedElements_StateWrappers.hpp>
 #include <Scenario/Document/ScenarioDocument/Widgets/GraphicsProxyObject.hpp>
-#include <core/application/ApplicationComponents.hpp>
+
 #include <iscore/statemachine/GraphicsSceneToolPalette.hpp>
 #include <iscore/tools/SettableIdentifier.hpp>
 

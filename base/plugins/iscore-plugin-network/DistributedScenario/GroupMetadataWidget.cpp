@@ -17,6 +17,7 @@
 #include "GroupMetadataWidget.hpp"
 #include <iscore/tools/SettableIdentifier.hpp>
 #include <iscore/tools/Todo.hpp>
+#include <iscore/document/DocumentContext.hpp>
 
 
 Q_DECLARE_METATYPE(Id<Group>)
@@ -62,7 +63,7 @@ void GroupMetadataWidget::on_indexChanged(int)
     auto data = m_combo->currentData().value<Id<Group>>();
     if(m_object.group() != data)
     {
-        CommandDispatcher<> dispatcher{iscore::IDocument::commandStack(*m_groups)};
+        CommandDispatcher<> dispatcher{iscore::IDocument::documentContext(*m_groups).commandStack};
         dispatcher.submitCommand(
                     new ChangeGroup{
                         iscore::IDocument::unsafe_path(m_object.element()),

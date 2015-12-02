@@ -3,6 +3,7 @@
 #include <Inspector/InspectorWidgetBase.hpp>
 #include <Scenario/Inspector/Constraint/ConstraintInspectorDelegate.hpp>
 
+#include <nano_signal_slot.hpp>
 #include <QString>
 #include <QVector>
 #include <list>
@@ -37,7 +38,7 @@ class Document;
  *
  * Inherits from InspectorWidgetInterface. Manages an inteface for an Constraint (Timerack) element.
  */
-class ConstraintInspectorWidget final : public InspectorWidgetBase
+class ConstraintInspectorWidget final : public InspectorWidgetBase, public Nano::Observer
 {
         Q_OBJECT
     public:
@@ -46,7 +47,7 @@ class ConstraintInspectorWidget final : public InspectorWidgetBase
                 const ProcessList& pl,
                 const ConstraintModel& object,
                 std::unique_ptr<ConstraintInspectorDelegate> del,
-                iscore::Document& doc,
+                const iscore::DocumentContext& context,
                 QWidget* parent = 0);
 
         const ConstraintModel& model() const;
@@ -84,7 +85,6 @@ class ConstraintInspectorWidget final : public InspectorWidgetBase
         const InspectorWidgetList& m_widgetList;
         const ProcessList& m_processList;
         const ConstraintModel& m_model;
-        QVector<QMetaObject::Connection> m_connections;
 
         InspectorSectionWidget* m_eventsSection {};
         InspectorSectionWidget* m_durationSection {};

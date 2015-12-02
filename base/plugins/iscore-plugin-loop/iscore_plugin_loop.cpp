@@ -5,9 +5,6 @@
 #include <Process/Process.hpp>
 #include <Scenario/Document/Constraint/Rack/RackModel.hpp>
 #include <boost/optional/optional.hpp>
-//#if defined(ISCORE_STATIC_PLUGINS) && defined(ISCORE_COMPILER_IS_AppleClang)
-#include <iscore/tools/NotifyingMap_impl.hpp>
-
 #include <string.h>
 #include <unordered_map>
 
@@ -19,12 +16,6 @@
 #include <iscore/tools/SettableIdentifier.hpp>
 #include "iscore_plugin_loop.hpp"
 #include <iscore_plugin_loop_commands_files.hpp>
-void ignore_template_instantiations_iscore_plugin_loop()
-{
-    NotifyingMapInstantiations_T<RackModel>();
-    NotifyingMapInstantiations_T<Process>();
-}
-//#endif
 
 iscore_plugin_loop::iscore_plugin_loop() :
     QObject {}

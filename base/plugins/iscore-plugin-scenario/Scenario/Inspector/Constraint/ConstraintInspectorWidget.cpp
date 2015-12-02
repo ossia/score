@@ -20,8 +20,6 @@
 #include <Scenario/Inspector/SelectionButton.hpp>
 #include <Scenario/Process/ScenarioModel.hpp>
 #include <boost/optional/optional.hpp>
-#include <core/document/Document.hpp>
-#include <core/document/DocumentModel.hpp>
 #include <iscore/document/DocumentInterface.hpp>
 #include <QBoxLayout>
 #include <QCheckBox>
@@ -47,9 +45,9 @@
 #include "Widgets/DurationSectionWidget.hpp"
 #include "Widgets/Rack/RackInspectorSection.hpp"
 #include "Widgets/RackWidget.hpp"
-#include <core/application/ApplicationComponents.hpp>
-#include <core/application/ApplicationContext.hpp>
-#include <core/document/DocumentContext.hpp>
+
+#include <iscore/application/ApplicationContext.hpp>
+#include <iscore/document/DocumentContext.hpp>
 #include <iscore/command/Dispatchers/CommandDispatcher.hpp>
 #include <iscore/plugins/documentdelegate/plugin/DocumentDelegatePluginModel.hpp>
 #include <iscore/plugins/documentdelegate/plugin/ElementPluginModelList.hpp>
@@ -60,6 +58,7 @@
 #include <iscore/tools/NotifyingMap.hpp>
 #include <iscore/tools/Todo.hpp>
 #include <iscore/widgets/SpinBoxes.hpp>
+#include <iscore/plugins/customfactory/StringFactoryKeySerialization.hpp>
 
 using namespace Scenario::Command;
 using namespace iscore;
@@ -71,9 +70,9 @@ ConstraintInspectorWidget::ConstraintInspectorWidget(
         const ProcessList& pl,
         const ConstraintModel& object,
         std::unique_ptr<ConstraintInspectorDelegate> del,
-        iscore::Document& doc,
+        const iscore::DocumentContext& ctx,
         QWidget* parent) :
-    InspectorWidgetBase{object, doc, parent},
+    InspectorWidgetBase{object, ctx, parent},
     m_widgetList{widg},
     m_processList{pl},
     m_model{object},
@@ -117,7 +116,6 @@ ConstraintInspectorWidget::ConstraintInspectorWidget(
     m_properties.push_back(new Separator {this});
 
     // Durations
-    auto& ctx = iscore::IDocument::documentContext(object);
     auto& ctrl = ctx.app.components.applicationPlugin<ScenarioApplicationPlugin>();
     m_durationSection = new DurationSectionWidget {ctrl.editionSettings(), *m_delegate, this};
     m_properties.push_back(m_durationSection);
@@ -180,7 +178,7 @@ ConstraintInspectorWidget::ConstraintInspectorWidget(
     // Plugins
     for(auto& plugdata : m_model.pluginModelList.list())
     {
-        for(iscore::DocumentDelegatePluginModel* plugin : doc.model().pluginModels())
+        for(auto plugin : ctx.pluginModels())
         {
             auto md = plugin->makeElementPluginWidget(plugdata, this);
             if(md)
@@ -190,6 +188,18 @@ ConstraintInspectorWidget::ConstraintInspectorWidget(
             }
         }
     }
+
+    // Constraint interface
+    model().processes.added.connect<ConstraintInspectorWidget, &ConstraintInspectorWidget::on_processCreated>(this);
+    model().processes.removed.connect<ConstraintInspectorWidget, &ConstraintInspectorWidget::on_processRemoved>(this);
+    model().racks.added.connect<ConstraintInspectorWidget, &ConstraintInspectorWidget::on_rackCreated>(this);
+    model().racks.removed.connect<ConstraintInspectorWidget, &ConstraintInspectorWidget::on_rackRemoved>(this);
+
+    con(model(), &ConstraintModel::viewModelCreated,
+        this, &ConstraintInspectorWidget::on_constraintViewModelCreated);
+    con(model(), &ConstraintModel::viewModelRemoved,
+        this, &ConstraintInspectorWidget::on_constraintViewModelRemoved);
+
 
     updateDisplayedValues();
 
@@ -220,35 +230,6 @@ void ConstraintInspectorWidget::updateDisplayedValues()
     }
 
     m_rackesSectionWidgets.clear();
-
-    // Cleanup the connections
-    for(auto& connection : m_connections)
-    {
-        QObject::disconnect(connection);
-    }
-
-    m_connections.clear();
-
-    // Constraint interface
-    m_connections.push_back(
-                con(model().processes, &NotifyingMap<Process>::added,
-                    this, &ConstraintInspectorWidget::on_processCreated));
-    m_connections.push_back(
-                con(model().processes, &NotifyingMap<Process>::removed,
-                    this, &ConstraintInspectorWidget::on_processRemoved));
-    m_connections.push_back(
-                con(model().racks, &NotifyingMap<RackModel>::added,
-                    this, &ConstraintInspectorWidget::on_rackCreated));
-    m_connections.push_back(
-                con(model().racks, &NotifyingMap<RackModel>::removed,
-                    this, &ConstraintInspectorWidget::on_rackRemoved));
-
-    m_connections.push_back(
-                con(model(), &ConstraintModel::viewModelCreated,
-                    this, &ConstraintInspectorWidget::on_constraintViewModelCreated));
-    m_connections.push_back(
-                con(model(), &ConstraintModel::viewModelRemoved,
-                    this, &ConstraintInspectorWidget::on_constraintViewModelRemoved));
 
     // Processes
     for(const auto& process : model().processes)

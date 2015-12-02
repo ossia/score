@@ -5,7 +5,7 @@
 #include <Scenario/Document/Constraint/Rack/RackModel.hpp>
 #include <Scenario/Document/Constraint/Rack/Slot/SlotModel.hpp>
 
-#include <core/application/ApplicationComponents.hpp>
+
 
 #include <QDataStream>
 #include <QtGlobal>
@@ -14,7 +14,7 @@
 
 #include <Process/ProcessList.hpp>
 #include "RemoveProcessFromConstraint.hpp"
-#include <core/application/ApplicationContext.hpp>
+#include <iscore/application/ApplicationContext.hpp>
 #include <iscore/plugins/customfactory/StringFactoryKey.hpp>
 #include <iscore/serialization/DataStreamVisitor.hpp>
 #include <iscore/tools/ModelPath.hpp>

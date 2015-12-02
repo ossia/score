@@ -18,12 +18,14 @@
 #include <iscore/tools/utilsCPP11.hpp>
 
 namespace iscore {
-class CommandStack;
+class CommandStackFacade;
 }  // namespace iscore
 
 using namespace Scenario::Command;
 using namespace iscore::IDocument; // for ::path
-void Scenario::clearContentFromSelection(const Scenario::ScenarioModel& scenario, iscore::CommandStack& stack)
+void Scenario::clearContentFromSelection(
+        const Scenario::ScenarioModel& scenario,
+        iscore::CommandStackFacade& stack)
 {
     // 1. Select items
     auto constraintsToRemove = selectedElements(scenario.constraints);
@@ -46,7 +48,9 @@ void Scenario::clearContentFromSelection(const Scenario::ScenarioModel& scenario
     cleaner.commit();
 }
 
-void Scenario::removeSelection(const Scenario::ScenarioModel& scenario, iscore::CommandStack& stack)
+void Scenario::removeSelection(
+        const Scenario::ScenarioModel& scenario,
+        iscore::CommandStackFacade& stack)
 {
     Selection sel = scenario.selectedChildren();
 
@@ -65,12 +69,16 @@ void Scenario::removeSelection(const Scenario::ScenarioModel& scenario, iscore::
     }
 }
 
-void Scenario::removeSelection(const BaseScenario&, iscore::CommandStack&)
+void Scenario::removeSelection(
+        const BaseScenario&,
+        iscore::CommandStackFacade&)
 {
     // Shall do nothing
 }
 
-void Scenario::clearContentFromSelection(const BaseScenario&, iscore::CommandStack&)
+void Scenario::clearContentFromSelection(
+        const BaseScenario&,
+        iscore::CommandStackFacade&)
 {
     ISCORE_TODO;
 }

@@ -10,7 +10,7 @@ class QMimeData;
 class QObject;
 class StateModel;
 namespace iscore {
-class CommandStack;
+class CommandStackFacade;
 struct Message;
 }  // namespace iscore
 
@@ -36,7 +36,7 @@ class MessageItemModel final : public TreeNodeBasedItemModel<MessageNode>
         };
 
         MessageItemModel(
-                iscore::CommandStack& stack,
+                iscore::CommandStackFacade& stack,
                 const StateModel&,
                 QObject* parent);
         MessageItemModel& operator=(const MessageItemModel&);
@@ -75,5 +75,5 @@ class MessageItemModel final : public TreeNodeBasedItemModel<MessageNode>
     private:
         node_type m_rootNode;
 
-        iscore::CommandStack& m_stack;
+        iscore::CommandStackFacade& m_stack;
 };

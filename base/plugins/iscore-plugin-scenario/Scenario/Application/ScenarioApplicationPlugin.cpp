@@ -8,12 +8,10 @@
 #include <Scenario/Process/ScenarioModel.hpp>
 #include <Scenario/Process/Temporal/TemporalScenarioPresenter.hpp>
 #include <boost/optional/optional.hpp>
-#include <core/document/DocumentView.hpp>
 
 #include <iscore/plugins/documentdelegate/DocumentDelegateViewInterface.hpp>
 // This part is somewhat similar to what moc does
 // with moc_.. stuff generation.
-#include <iscore/tools/NotifyingMap_impl.hpp>
 #include <QAction>
 #include <QByteArray>
 #include <QColor>
@@ -51,8 +49,9 @@
 #include <Scenario/Palette/Tool.hpp>
 #include "ScenarioApplicationPlugin.hpp"
 #include <core/document/Document.hpp>
-#include <core/document/DocumentModel.hpp>
 #include <core/presenter/MenubarManager.hpp>
+#include <core/document/DocumentModel.hpp>
+#include <core/document/DocumentView.hpp>
 #include <iscore/document/DocumentInterface.hpp>
 #include <iscore/menu/MenuInterface.hpp>
 #include <iscore/plugins/application/GUIApplicationContextPlugin.hpp>
@@ -67,53 +66,6 @@ class QPointF;
 namespace iscore {
 class Application;
 }  // namespace iscore
-
-template void NotifyingMap<LayerModel>::add(LayerModel*);
-template void NotifyingMap<SlotModel>::add(SlotModel*);
-template void NotifyingMap<RackModel>::add(RackModel*);
-template void NotifyingMap<Process>::add(Process*);
-template void NotifyingMap<StateProcess>::add(StateProcess*);
-template void NotifyingMap<ConstraintModel>::add(ConstraintModel*);
-template void NotifyingMap<EventModel>::add(EventModel*);
-template void NotifyingMap<TimeNodeModel>::add(TimeNodeModel*);
-template void NotifyingMap<StateModel>::add(StateModel*);
-template void NotifyingMap<CommentBlockModel>::add(CommentBlockModel*);
-
-template void NotifyingMap<LayerModel>::remove(LayerModel*);
-template void NotifyingMap<SlotModel>::remove(SlotModel*);
-template void NotifyingMap<RackModel>::remove(RackModel*);
-template void NotifyingMap<Process>::remove(Process*);
-template void NotifyingMap<StateProcess>::remove(StateProcess*);
-template void NotifyingMap<ConstraintModel>::remove(ConstraintModel*);
-template void NotifyingMap<EventModel>::remove(EventModel*);
-template void NotifyingMap<TimeNodeModel>::remove(TimeNodeModel*);
-template void NotifyingMap<StateModel>::remove(StateModel*);
-template void NotifyingMap<CommentBlockModel>::remove(CommentBlockModel*);
-
-template void NotifyingMap<LayerModel>::remove(const Id<LayerModel>&);
-template void NotifyingMap<SlotModel>::remove(const Id<SlotModel>&);
-template void NotifyingMap<RackModel>::remove(const Id<RackModel>&);
-template void NotifyingMap<Process>::remove(const Id<Process>&);
-template void NotifyingMap<StateProcess>::remove(const Id<StateProcess>&);
-template void NotifyingMap<ConstraintModel>::remove(const Id<ConstraintModel>&);
-template void NotifyingMap<EventModel>::remove(const Id<EventModel>&);
-template void NotifyingMap<TimeNodeModel>::remove(const Id<TimeNodeModel>&);
-template void NotifyingMap<StateModel>::remove(const Id<StateModel>&);
-//template void NotifyingMap<CommentBlockModel>::remove(const CommentBlockModel&);
-
-void ignore_template_instantiations_Scenario()
-{
-    NotifyingMapInstantiations_T<LayerModel>();
-    NotifyingMapInstantiations_T<SlotModel>();
-    NotifyingMapInstantiations_T<RackModel>();
-    NotifyingMapInstantiations_T<Process>();
-    NotifyingMapInstantiations_T<StateProcess>();
-    NotifyingMapInstantiations_T<ConstraintModel>();
-    NotifyingMapInstantiations_T<EventModel>();
-    NotifyingMapInstantiations_T<TimeNodeModel>();
-    NotifyingMapInstantiations_T<StateModel>();
-    NotifyingMapInstantiations_T<CommentBlockModel>();
-}
 
 using namespace iscore;
 #include <Scenario/Application/Menus/ScenarioCommonContextMenuFactory.hpp>
@@ -329,12 +281,15 @@ void ScenarioApplicationPlugin::on_documentChanged(
             // TODO this snippet is useful, put it somewhere in some Toolkit file.
             auto& pres = IDocument::presenterDelegate<ScenarioDocumentPresenter>(*newdoc);
             auto& cst = pres.displayedConstraint();
-            if(!cst.processes.empty())
+            auto cst_pres = pres.presenters().constraintPresenter();
+
+            if(!cst.processes.empty() && cst_pres && cst_pres->rack())
             {
-                const auto& slts = pres.presenters().constraintPresenter()->rack()->getSlots();
+                auto rack = cst_pres->rack();
+                const auto& slts = rack->getSlots();
                 if(!slts.empty())
                 {
-                    const auto& top_slot = pres.presenters().constraintPresenter()->rack()->model().slotsPositions().front();
+                    const auto& top_slot = rack->model().slotsPositions().front();
                     const SlotPresenter& first = slts.at(top_slot);
                     const auto& slot_processes = first.processes();
                     if(!slot_processes.empty())
@@ -438,12 +393,20 @@ void ScenarioApplicationPlugin::initColors()
 
 const Scenario::ScenarioModel* ScenarioApplicationPlugin::focusedScenarioModel() const
 {
-    return dynamic_cast<const Scenario::ScenarioModel*>(processFocusManager()->focusedModel());
+    if(auto focusManager = processFocusManager())
+    {
+        return dynamic_cast<const Scenario::ScenarioModel*>(focusManager->focusedModel());
+    }
+    return nullptr;
 }
 
 TemporalScenarioPresenter* ScenarioApplicationPlugin::focusedPresenter() const
 {
-    return dynamic_cast<TemporalScenarioPresenter*>(processFocusManager()->focusedPresenter());
+    if(auto focusManager = processFocusManager())
+    {
+        return dynamic_cast<TemporalScenarioPresenter*>(focusManager->focusedPresenter());
+    }
+    return nullptr;
 }
 
 void ScenarioApplicationPlugin::prepareNewDocument()

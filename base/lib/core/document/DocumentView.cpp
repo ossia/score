@@ -5,7 +5,7 @@
 #include <QGridLayout>
 #include <QLayout>
 
-#include <core/document/DocumentContext.hpp>
+#include <iscore/document/DocumentContext.hpp>
 
 using namespace iscore;
 

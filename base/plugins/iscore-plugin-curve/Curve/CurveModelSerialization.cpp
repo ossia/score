@@ -1,7 +1,7 @@
 #include <Curve/Segment/CurveSegmentList.hpp>
 #include <Curve/Segment/CurveSegmentModelSerialization.hpp>
 
-#include <core/application/ApplicationComponents.hpp>
+
 #include <iscore/serialization/DataStreamVisitor.hpp>
 #include <iscore/serialization/JSONVisitor.hpp>
 #include <QJsonArray>
@@ -10,7 +10,7 @@
 #include <sys/types.h>
 
 #include "CurveModel.hpp"
-#include <core/application/ApplicationContext.hpp>
+#include <iscore/application/ApplicationContext.hpp>
 #include <iscore/plugins/customfactory/StringFactoryKey.hpp>
 #include <iscore/tools/IdentifiedObjectMap.hpp>
 

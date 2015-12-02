@@ -2,7 +2,7 @@
 #include <iscore/plugins/panel/PanelFactory.hpp>
 #include <QString>
 
-#include <core/application/ApplicationContext.hpp>
+#include <iscore/application/ApplicationContext.hpp>
 #include <iscore/plugins/panel/PanelModel.hpp>
 #include <iscore/plugins/panel/PanelPresenter.hpp>
 #include <iscore/plugins/panel/PanelView.hpp>
@@ -24,9 +24,11 @@ class DeviceExplorerPanelFactory final : public iscore::PanelFactory
                 iscore::View*) override;
 
         iscore::PanelPresenter* makePresenter(
-                iscore::Presenter* parent_presenter,
-                iscore::PanelView* view) override;
+                const iscore::ApplicationContext& ctx,
+                iscore::PanelView* view,
+                QObject* parent) override;
 
         iscore::PanelModel* makeModel(
-                iscore::DocumentModel*) override;
+                const iscore::DocumentContext& ctx,
+                QObject* parent) override;
 };

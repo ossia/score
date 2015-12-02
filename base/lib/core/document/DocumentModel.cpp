@@ -28,7 +28,7 @@ void DocumentModel::addPanel(PanelModel *m)
 
 
 
-void DocumentModel::addPluginModel(DocumentDelegatePluginModel *m)
+void DocumentModel::addPluginModel(DocumentPluginModel *m)
 {
     m->setParent(this);
     m_pluginModels.push_back(m);

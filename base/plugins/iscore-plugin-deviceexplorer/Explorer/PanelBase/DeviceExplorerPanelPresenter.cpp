@@ -4,7 +4,7 @@
 #include "DeviceExplorerPanelModel.hpp"
 #include "DeviceExplorerPanelPresenter.hpp"
 #include "DeviceExplorerPanelView.hpp"
-#include <core/document/Document.hpp>
+#include <iscore/document/DocumentContext.hpp>
 #include <iscore/document/DocumentInterface.hpp>
 #include <iscore/plugins/panel/PanelModel.hpp>
 #include <iscore/plugins/panel/PanelPresenter.hpp>
@@ -15,9 +15,10 @@ class PanelView;
 class Presenter;
 }  // namespace iscore
 
-DeviceExplorerPanelPresenter::DeviceExplorerPanelPresenter(iscore::Presenter* parent,
-                                                           iscore::PanelView* view) :
-    iscore::PanelPresenter {parent, view}
+DeviceExplorerPanelPresenter::DeviceExplorerPanelPresenter(
+        iscore::PanelView* view,
+        QObject* parent) :
+    iscore::PanelPresenter {view, parent}
 {
 
 }
@@ -28,8 +29,8 @@ void DeviceExplorerPanelPresenter::on_modelChanged()
     if(model())
     {
         auto m = static_cast<DeviceExplorerPanelModel *>(model());
-        auto doc = iscore::IDocument::documentFromObject(model());
-        m->m_model->setCommandQueue(&doc->commandStack());
+        auto& doc = iscore::IDocument::documentContext(*model());
+        m->m_model->setCommandQueue(&doc.commandStack);
         v->m_widget->setModel(m->m_model);
     }
     else

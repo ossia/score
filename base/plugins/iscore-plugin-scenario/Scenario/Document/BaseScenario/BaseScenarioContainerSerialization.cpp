@@ -6,6 +6,7 @@
 #include <algorithm>
 
 #include "BaseScenarioContainer.hpp"
+#include <iscore/document/DocumentContext.hpp>
 #include <Scenario/Document/State/StateModel.hpp>
 #include <iscore/serialization/DataStreamVisitor.hpp>
 #include <iscore/serialization/JSONVisitor.hpp>
@@ -38,8 +39,9 @@ template<> void Visitor<Writer<DataStream>>::writeTo(BaseScenarioContainer& base
     base_scenario.m_startEvent = new EventModel{*this, base_scenario.m_parent};
     base_scenario.m_endEvent = new EventModel{*this, base_scenario.m_parent};
 
-    base_scenario.m_startState = new StateModel{*this, base_scenario.m_parent};
-    base_scenario.m_endState = new StateModel{*this, base_scenario.m_parent};
+    auto& stack = iscore::IDocument::documentContext(base_scenario.parent()).commandStack;
+    base_scenario.m_startState = new StateModel{*this, stack, base_scenario.m_parent};
+    base_scenario.m_endState = new StateModel{*this, stack, base_scenario.m_parent};
 }
 
 
@@ -78,10 +80,13 @@ template<> void Visitor<Writer<JSONObject>>::writeTo(BaseScenarioContainer& base
                             Deserializer<JSONObject>{m_obj["EndEvent"].toObject() },
                             base_scenario.m_parent};
 
+    auto& stack = iscore::IDocument::documentContext(base_scenario.parent()).commandStack;
     base_scenario.m_startState = new StateModel{
                                 Deserializer<JSONObject>{m_obj["StartState"].toObject() },
+                                stack,
                                 base_scenario.m_parent};
     base_scenario.m_endState = new StateModel{
                             Deserializer<JSONObject>{m_obj["EndState"].toObject() },
+                            stack,
                             base_scenario.m_parent};
 }

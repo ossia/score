@@ -8,7 +8,7 @@ class AreaSelectionWidget;
 class AreaWidget : public QWidget
 {
     public:
-        AreaWidget(iscore::CommandStack& stack, const SpaceProcess &space, QWidget* parent);
+        AreaWidget(iscore::CommandStackFacade& stack, const SpaceProcess &space, QWidget* parent);
 
         // If null, will add a new area instead.
         void setActiveArea(const AreaModel *);

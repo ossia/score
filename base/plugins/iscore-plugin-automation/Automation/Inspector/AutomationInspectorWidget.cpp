@@ -1,7 +1,5 @@
 #include <Explorer/PanelBase/DeviceExplorerPanelModel.hpp>
 #include <Explorer/Widgets/AddressEditWidget.hpp>
-#include <core/document/Document.hpp>
-#include <core/document/DocumentModel.hpp>
 #include <iscore/widgets/SpinBoxes.hpp>
 #include <QBoxLayout>
 #include <QFormLayout>
@@ -13,7 +11,7 @@
 #include <algorithm>
 #include <list>
 #include <vector>
-
+#include <Explorer/DocumentPlugin/DeviceDocumentPlugin.hpp>
 #include <Automation/AutomationModel.hpp>
 #include <Automation/Commands/ChangeAddress.hpp>
 #include <Automation/Commands/SetAutomationMax.hpp>
@@ -28,7 +26,7 @@
 
 AutomationInspectorWidget::AutomationInspectorWidget(
         const AutomationModel& automationModel,
-        iscore::Document& doc,
+        const iscore::DocumentContext& doc,
         QWidget* parent) :
     InspectorWidgetBase {automationModel, doc, parent},
     m_model {automationModel}
@@ -51,8 +49,11 @@ AutomationInspectorWidget::AutomationInspectorWidget(
     // LineEdit
     // If there is a DeviceExplorer in the current document, use it
     // to make a widget.
-    m_explorer = iscore::IDocument::documentFromObject(m_model)->model().panel<DeviceExplorerPanelModel>()->deviceExplorer();
-    m_lineEdit = new AddressEditWidget{m_explorer, this};
+    auto plug = doc.findPlugin<DeviceDocumentPlugin>();
+    DeviceExplorerModel* explorer{};
+    if(plug)
+        explorer = plug->updateProxy.deviceExplorer;
+    m_lineEdit = new AddressEditWidget{explorer, this};
 
     m_lineEdit->setAddress(m_model.address());
     con(m_model, &AutomationModel::addressChanged,

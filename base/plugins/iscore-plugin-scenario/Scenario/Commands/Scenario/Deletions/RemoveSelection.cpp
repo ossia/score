@@ -27,6 +27,7 @@
 #include <iscore/tools/ModelPathSerialization.hpp>
 #include <iscore/tools/NotifyingMap.hpp>
 #include <iscore/tools/SettableIdentifier.hpp>
+#include <iscore/document/DocumentContext.hpp>
 
 using namespace iscore;
 using namespace Scenario::Command;
@@ -169,6 +170,7 @@ RemoveSelection::RemoveSelection(Path<Scenario::ScenarioModel>&& scenarioPath, S
 void RemoveSelection::undo() const
 {
     auto& scenar = m_path.find();
+    auto& stack = iscore::IDocument::documentContext(scenar).commandStack;
     // First instantiate everything
 
     QList<StateModel*> states;
@@ -178,7 +180,7 @@ void RemoveSelection::undo() const
                    [&] (const auto& data)
     {
         Deserializer<DataStream> s{data.second};
-        return new StateModel{s, &scenar};
+        return new StateModel{s, stack, &scenar};
     });
 
     QList<EventModel*> events;

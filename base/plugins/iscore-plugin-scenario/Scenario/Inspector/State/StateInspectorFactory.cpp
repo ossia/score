@@ -13,7 +13,7 @@ class Document;
 
 InspectorWidgetBase* StateInspectorFactory::makeWidget(
         const QObject& sourceElement,
-        iscore::Document& doc,
+        const iscore::DocumentContext& doc,
         QWidget* parentWidget) const
 {
     return new StateInspectorWidget{

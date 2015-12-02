@@ -25,7 +25,7 @@ class TimeNodeInspectorWidget final : public InspectorWidgetBase
     public:
         explicit TimeNodeInspectorWidget(
                 const TimeNodeModel& object,
-                iscore::Document& doc,
+                const iscore::DocumentContext& context,
                 QWidget* parent);
     signals:
 

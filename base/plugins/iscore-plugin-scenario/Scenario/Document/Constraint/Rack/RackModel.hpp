@@ -7,6 +7,7 @@
 #include <iscore/tools/SettableIdentifier.hpp>
 #include <QList>
 #include <QObject>
+#include <nano_signal_slot.hpp>
 
 #include <QString>
 #include <functional>
@@ -23,7 +24,7 @@ class Process;
  * A Rack is a slot container.
  * A Rack is always found in a Constraint.
  */
-class RackModel final : public IdentifiedObject<RackModel>
+class RackModel final : public IdentifiedObject<RackModel>, public Nano::Observer
 {
         Q_OBJECT
         ISCORE_METADATA("RackModel") // TODO use this everywhere.

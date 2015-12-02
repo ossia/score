@@ -17,7 +17,7 @@ namespace iscore
 {
 class DocumentDelegateFactoryInterface;
 class DocumentDelegateModelInterface;
-class DocumentDelegatePluginModel;
+class DocumentPluginModel;
 class PanelModel;
 struct ApplicationContext;
 
@@ -64,20 +64,8 @@ class DocumentModel final : public IdentifiedObject<DocumentModel>
         }
 
         // Plugin models
-        void addPluginModel(DocumentDelegatePluginModel* m);
-        const std::vector<DocumentDelegatePluginModel*>& pluginModels() { return m_pluginModels; }
-
-        template<typename T>
-        T* pluginModel() const
-        {
-            using namespace std;
-            auto it = find_if(begin(m_pluginModels),
-                              end(m_pluginModels),
-                              [&](DocumentDelegatePluginModel * pm)
-            { return dynamic_cast<T*>(pm); });
-
-            return it != end(m_pluginModels) ? safe_cast<T*>(*it) : nullptr;
-        }
+        void addPluginModel(DocumentPluginModel* m);
+        const std::vector<DocumentPluginModel*>& pluginModels() { return m_pluginModels; }
 
         QString docFileName() const;
         void setDocFileName(const QString &docFileName);
@@ -102,7 +90,7 @@ class DocumentModel final : public IdentifiedObject<DocumentModel>
         QString m_docFileName{tr("Untitled")};
 
         std::vector<PanelModel*> m_panelModels;
-        std::vector<DocumentDelegatePluginModel*> m_pluginModels;
+        std::vector<DocumentPluginModel*> m_pluginModels;
         DocumentDelegateModelInterface* m_model{}; // note : this *has* to be last due to init order
 };
 }

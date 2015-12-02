@@ -10,6 +10,7 @@
 #include <Scenario/Document/State/ItemModel/MessageItemModel.hpp>
 #include <State/Message.hpp>
 #include "StateModel.hpp"
+#include <iscore/document/DocumentContext.hpp>
 #include <iscore/tools/IdentifiedObject.hpp>
 #include <iscore/tools/SettableIdentifier.hpp>
 #include <Scenario/Process/ScenarioInterface.hpp>
@@ -17,21 +18,23 @@
 
 /*
 #include <Process/ProcessList.hpp>
-#include <core/document/DocumentContext.hpp>
-#include <core/application/ApplicationContext.hpp>
-#include <core/application/ApplicationComponents.hpp>
+#include <iscore/document/DocumentContext.hpp>
+#include <iscore/application/ApplicationContext.hpp>
+
 */
 constexpr const char StateModel::className[];
 StateModel::StateModel(
         const Id<StateModel>& id,
         const Id<EventModel>& eventId,
         double yPos,
+        iscore::CommandStackFacade& stack,
         QObject *parent):
     IdentifiedObject<StateModel> {id, "StateModel", parent},
+    m_stack{stack},
     m_eventId{eventId},
     m_heightPercentage{yPos},
     m_messageItemModel{new MessageItemModel{
-                            iscore::IDocument::commandStack(*this),
+                            stack,
                             *this,
                             this}}
 {
@@ -46,10 +49,21 @@ StateModel::StateModel(
 StateModel::StateModel(
         const StateModel &source,
         const Id<StateModel> &id,
+        iscore::CommandStackFacade& stack,
         QObject *parent):
-    StateModel{id, source.eventId(), source.heightPercentage(), parent}
+    IdentifiedObject<StateModel> {id, "StateModel", parent},
+    m_stack{stack},
+    m_eventId{source.eventId()},
+    m_heightPercentage{source.heightPercentage()},
+    m_messageItemModel{new MessageItemModel{
+                            m_stack,
+                            *this,
+                            this}}
 {
+    // FIXME Source has to be in the same document else it will crash.
+    // FIXME prune the messages from the prev / next processes data and rebuild it.
     messages() = source.messages();
+
     init();
 }
 
@@ -207,10 +221,13 @@ void StateModel::setNextConstraint(const Id<ConstraintModel> & id)
         updateTreeWithRemovedConstraint(node, ProcessPosition::Following);
         *m_messageItemModel = std::move(node);
 
-        for(auto conn : m_nextConnections)
-            QObject::disconnect(conn);
+        auto cstr = dynamic_cast<ScenarioInterface*>(parent())->findConstraint(m_nextConstraint);
+        if(cstr)
+        {
+            cstr->processes.added.disconnect<StateModel,&StateModel::on_nextProcessAdded>(this);
+            cstr->processes.removed.disconnect<StateModel,&StateModel::on_nextProcessRemoved>(this);
+        }
 
-        m_nextConnections.clear();
         m_nextProcesses.clear();
     }
 
@@ -220,22 +237,21 @@ void StateModel::setNextConstraint(const Id<ConstraintModel> & id)
         return;
 
     auto scenar = dynamic_cast<ScenarioInterface*>(parent());
-    ISCORE_ASSERT(scenar);
-
-    // The constraints might not be present in a scenario
-    // for instance when restoring removed elements.
-    auto cstr = scenar->findConstraint(m_nextConstraint);
-    if(cstr)
+    if(scenar)
     {
-        for(const auto& proc : cstr->processes)
+        // The constraints might not be present in a scenario
+        // for instance when restoring removed elements.
+        auto cstr = scenar->findConstraint(m_nextConstraint);
+        if(cstr)
         {
-            on_nextProcessAdded(proc);
-        }
+            for(const auto& proc : cstr->processes)
+            {
+                on_nextProcessAdded(proc);
+            }
 
-        m_nextConnections.push_back(con(cstr->processes, &NotifyingMap<Process>::added,
-            this, &StateModel::on_nextProcessAdded));
-        m_nextConnections.push_back(con(cstr->processes, &NotifyingMap<Process>::removed,
-            this, &StateModel::on_nextProcessRemoved));
+            cstr->processes.added.connect<StateModel,&StateModel::on_nextProcessAdded>(this);
+            cstr->processes.removed.connect<StateModel,&StateModel::on_nextProcessRemoved>(this);
+        }
     }
 }
 
@@ -248,10 +264,13 @@ void StateModel::setPreviousConstraint(const Id<ConstraintModel> & id)
         updateTreeWithRemovedConstraint(node, ProcessPosition::Previous);
         *m_messageItemModel = std::move(node);
 
-        for(auto conn : m_prevConnections)
-            QObject::disconnect(conn);
+        auto cstr = dynamic_cast<ScenarioInterface*>(parent())->findConstraint(m_previousConstraint);
+        if(cstr)
+        {
+            cstr->processes.added.disconnect<StateModel,&StateModel::on_previousProcessAdded>(this);
+            cstr->processes.removed.disconnect<StateModel,&StateModel::on_previousProcessRemoved>(this);
+        }
 
-        m_prevConnections.clear();
         m_previousProcesses.clear();
     }
 
@@ -261,20 +280,19 @@ void StateModel::setPreviousConstraint(const Id<ConstraintModel> & id)
         return;
 
     auto scenar = dynamic_cast<ScenarioInterface*>(parent());
-    ISCORE_ASSERT(scenar);
-
-    auto cstr = scenar->findConstraint(m_previousConstraint);
-    if(cstr)
+    if(scenar)
     {
-        for(const auto& proc : cstr->processes)
+        auto cstr = scenar->findConstraint(m_previousConstraint);
+        if(cstr)
         {
-            on_previousProcessAdded(proc);
-        }
+            for(const auto& proc : cstr->processes)
+            {
+                on_previousProcessAdded(proc);
+            }
 
-        m_prevConnections.push_back(con(cstr->processes, &NotifyingMap<Process>::added,
-            this, &StateModel::on_previousProcessAdded));
-        m_prevConnections.push_back(con(cstr->processes, &NotifyingMap<Process>::removed,
-            this, &StateModel::on_previousProcessRemoved));
+            cstr->processes.added.connect<StateModel,&StateModel::on_previousProcessAdded>(this);
+            cstr->processes.removed.connect<StateModel,&StateModel::on_previousProcessRemoved>(this);
+        }
     }
 }
 

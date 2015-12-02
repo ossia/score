@@ -13,7 +13,7 @@ class QVBoxLayout;
 
 namespace iscore
 {
-    class Document;
+    struct DocumentContext;
     class SelectionDispatcher;
 }
 
@@ -34,15 +34,15 @@ class InspectorWidgetBase : public QWidget
          */
         explicit InspectorWidgetBase(
                 const IdentifiedObjectAbstract&inspectedObj,
-                iscore::Document& doc,
+                const iscore::DocumentContext& context,
                 QWidget* parent);
         ~InspectorWidgetBase();
 
         // By default returns the name of the object.
         virtual QString tabName();
 
-        iscore::Document& doc()
-        { return m_document; }
+        const iscore::DocumentContext& context()
+        { return m_context; }
 
         void updateSectionsView(QVBoxLayout* layout, const std::list<QWidget*>& contents);
         void updateAreaLayout(std::list<QWidget*>& contents);
@@ -68,7 +68,7 @@ class InspectorWidgetBase : public QWidget
 
     private:
         const IdentifiedObjectAbstract& m_inspectedObject;
-        iscore::Document& m_document;
+        const iscore::DocumentContext& m_context;
         CommandDispatcher<>* m_commandDispatcher{};
         std::unique_ptr<iscore::SelectionDispatcher> m_selectionDispatcher;
         QVBoxLayout* m_scrollAreaLayout {};

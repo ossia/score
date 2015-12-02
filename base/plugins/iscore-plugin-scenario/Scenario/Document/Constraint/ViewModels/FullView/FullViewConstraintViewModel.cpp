@@ -60,7 +60,7 @@ void FullViewConstraintViewModel::setCenter(const QPointF& value)
     m_center = value;
 }
 
-#include <core/document/DocumentContext.hpp>
+#include <iscore/document/DocumentContext.hpp>
 
 bool FullViewConstraintViewModel::isActive()
 {

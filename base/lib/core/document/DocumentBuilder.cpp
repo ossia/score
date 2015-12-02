@@ -13,7 +13,7 @@
 
 #include "DocumentBuilder.hpp"
 #include <core/application/Application.hpp>
-#include <core/application/ApplicationComponents.hpp>
+#include <iscore/application/ApplicationComponents.hpp>
 #include <iscore/serialization/DataStreamVisitor.hpp>
 #include <core/command/CommandStackSerialization.hpp>
 

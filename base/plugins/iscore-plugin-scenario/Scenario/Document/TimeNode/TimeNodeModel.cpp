@@ -18,7 +18,7 @@ TimeNodeModel::TimeNodeModel(
         const TimeValue& date,
         QObject* parent):
     IdentifiedObject<TimeNodeModel> {id, "TimeNodeModel", parent},
-    pluginModelList{iscore::IDocument::documentFromObject(parent), this},
+    pluginModelList{iscore::IDocument::documentContext(*parent), this},
     m_extent{extent},
     m_date{date},
     m_trigger{new TriggerModel{Id<TriggerModel>(0), this} }
@@ -50,10 +50,13 @@ void TimeNodeModel::addEvent(const Id<EventModel>& eventId)
     emit newEvent(eventId);
 
     auto scenar = dynamic_cast<ScenarioInterface*>(parent());
-    ISCORE_ASSERT(scenar);
-
-    auto& theEvent = scenar->event(eventId);
-    theEvent.changeTimeNode(this->id());
+    if(scenar)
+    {
+        // There may be no scenario when we are cloning without a parent.
+        // TODO this addEvent should be in an outside algorithm.
+        auto& theEvent = scenar->event(eventId);
+        theEvent.changeTimeNode(this->id());
+    }
 }
 
 bool TimeNodeModel::removeEvent(const Id<EventModel>& eventId)

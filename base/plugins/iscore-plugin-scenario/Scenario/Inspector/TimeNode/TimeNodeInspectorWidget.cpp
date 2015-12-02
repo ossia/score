@@ -8,10 +8,9 @@
 #include <Scenario/Inspector/MetadataWidget.hpp>
 #include <Scenario/Inspector/TimeNode/TriggerInspectorWidget.hpp>
 #include <boost/optional/optional.hpp>
-#include <core/application/ApplicationComponents.hpp>
-#include <core/application/ApplicationContext.hpp>
-#include <core/document/Document.hpp>
-#include <core/document/DocumentContext.hpp>
+
+#include <iscore/application/ApplicationContext.hpp>
+#include <iscore/document/DocumentContext.hpp>
 #include <QBoxLayout>
 #include <QColor>
 #include <QLabel>
@@ -41,9 +40,9 @@ using namespace Scenario::Command;
 
 TimeNodeInspectorWidget::TimeNodeInspectorWidget(
         const TimeNodeModel& object,
-        iscore::Document& doc,
+        const iscore::DocumentContext& ctx,
         QWidget* parent) :
-    InspectorWidgetBase {object, doc, parent},
+    InspectorWidgetBase {object, ctx, parent},
     m_model {object}
 {
     setObjectName("TimeNodeInspectorWidget");
@@ -61,7 +60,7 @@ TimeNodeInspectorWidget::TimeNodeInspectorWidget(
 
     // Trigger
     m_trigwidg = new TriggerInspectorWidget{
-                 doc.context().app.components.factory<TriggerCommandFactoryList>(),
+                 ctx.app.components.factory<TriggerCommandFactoryList>(),
                  m_model, this};
 
 

@@ -2,7 +2,7 @@
 #include <iscore/command/Dispatchers/ICommandDispatcher.hpp>
 #include <iscore/command/Dispatchers/SendStrategy.hpp>
 
-#include <core/command/CommandStack.hpp>
+#include <iscore/command/CommandStackFacade.hpp>
 #include <memory>
 
 /**
@@ -16,7 +16,7 @@ template<typename TheCommand>
 class SingleOngoingCommandDispatcher final : public ICommandDispatcher
 {
     public:
-        SingleOngoingCommandDispatcher(iscore::CommandStack& stack):
+        SingleOngoingCommandDispatcher(iscore::CommandStackFacade& stack):
             ICommandDispatcher{stack}
         {
 

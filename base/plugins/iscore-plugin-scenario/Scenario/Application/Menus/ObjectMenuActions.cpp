@@ -49,8 +49,8 @@
 #include <Scenario/Process/ScenarioModel.hpp>
 #include "ScenarioCopy.hpp"
 #include "TextDialog.hpp"
-#include <core/application/ApplicationComponents.hpp>
-#include <core/application/ApplicationContext.hpp>
+
+#include <iscore/application/ApplicationContext.hpp>
 #include <core/document/Document.hpp>
 #include <core/presenter/MenubarManager.hpp>
 #include <iscore/document/DocumentInterface.hpp>
@@ -60,6 +60,7 @@
 #include <iscore/tools/ModelPath.hpp>
 #include <iscore/tools/ModelPathSerialization.hpp>
 #include <iscore/tools/NotifyingMap.hpp>
+#include <iscore/plugins/customfactory/StringFactoryKeySerialization.hpp>
 
 ObjectMenuActions::ObjectMenuActions(
         iscore::ToplevelMenuElement menuElt,
@@ -75,7 +76,7 @@ ObjectMenuActions::ObjectMenuActions(
     {
         if (auto sm = m_parent->focusedScenarioModel())
         {
-            Scenario::removeSelection(*sm, m_parent->currentDocument()->commandStack());
+            Scenario::removeSelection(*sm, m_parent->currentDocument()->context().commandStack);
         }
     });
 
@@ -87,7 +88,7 @@ ObjectMenuActions::ObjectMenuActions(
     {
         if (auto sm = m_parent->focusedScenarioModel())
         {
-            Scenario::clearContentFromSelection(*sm, m_parent->currentDocument()->commandStack());
+            Scenario::clearContentFromSelection(*sm, m_parent->currentDocument()->context().commandStack);
         }
     });
 
@@ -136,9 +137,9 @@ ObjectMenuActions::ObjectMenuActions(
             [this]()
     {
         QJsonDocument doc{copySelectedElementsToJson()};
-        auto s = new TextDialog{doc.toJson(QJsonDocument::Indented), qApp->activeWindow()};
+        TextDialog s{doc.toJson(QJsonDocument::Indented), qApp->activeWindow()};
 
-        s->show();
+        s.exec();
     });
 
     // ADD PROCESS
@@ -166,7 +167,7 @@ ObjectMenuActions::ObjectMenuActions(
     m_interp->setToolTip(tr("Ctrl+K"));
     connect(m_interp, &QAction::triggered,
             this, [&] () {
-        InterpolateStates(m_parent->currentDocument());
+        InterpolateStates(m_parent->currentDocument()->context());
     });
 
 
@@ -176,7 +177,7 @@ ObjectMenuActions::ObjectMenuActions(
     m_updateStates->setToolTip(tr("Ctrl+U"));
     connect(m_updateStates, &QAction::triggered,
             this, [&] () {
-        RefreshStates(m_parent->currentDocument());
+        RefreshStates(m_parent->currentDocument()->context());
     });
 
 
@@ -235,7 +236,7 @@ void ObjectMenuActions::fillContextMenu(
                 connect(act, &QAction::triggered,
                         this, [&] () {
                     auto cmd = new Scenario::Command::ShowRackInViewModel{vm, rack.id()};
-                    CommandDispatcher<> dispatcher{m_parent->currentDocument()->commandStack()};
+                    CommandDispatcher<> dispatcher{m_parent->currentDocument()->context().commandStack};
                     dispatcher.submitCommand(cmd);
                 });
 
@@ -246,7 +247,7 @@ void ObjectMenuActions::fillContextMenu(
             connect(hideAct, &QAction::triggered,
                     this, [&] () {
                 auto cmd = new Scenario::Command::HideRackInViewModel{vm};
-                CommandDispatcher<> dispatcher{m_parent->currentDocument()->commandStack()};
+                CommandDispatcher<> dispatcher{m_parent->currentDocument()->context().commandStack};
                 dispatcher.submitCommand(cmd);
             });
             rackMenu->addAction(hideAct);
@@ -342,7 +343,7 @@ QJsonObject ObjectMenuActions::cutSelectedElementsToJson()
 
     if (auto sm = m_parent->focusedScenarioModel())
     {
-        Scenario::clearContentFromSelection(*sm, m_parent->currentDocument()->commandStack());
+        Scenario::clearContentFromSelection(*sm, m_parent->currentDocument()->context().commandStack);
     }
 
     return obj;
@@ -438,7 +439,7 @@ void ObjectMenuActions::removeTriggerFromTimeNode()
 
 CommandDispatcher<> ObjectMenuActions::dispatcher()
 {
-    CommandDispatcher<> disp{m_parent->currentDocument()->commandStack()};
+    CommandDispatcher<> disp{m_parent->currentDocument()->context().commandStack};
     return disp;
 }
 

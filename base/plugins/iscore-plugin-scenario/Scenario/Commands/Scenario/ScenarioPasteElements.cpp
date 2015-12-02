@@ -8,7 +8,6 @@
 
 #include <boost/iterator/iterator_facade.hpp>
 #include <boost/multi_index/detail/hash_index_iterator.hpp>
-#include <core/document/Document.hpp>
 #include <iscore/tools/Clamp.hpp>
 #include <iscore/tools/SettableIdentifierGeneration.hpp>
 #include <QDataStream>
@@ -22,6 +21,7 @@
 #include <limits>
 #include <vector>
 
+#include <iscore/document/DocumentContext.hpp>
 #include <Process/LayerModel.hpp>
 #include <Process/Process.hpp>
 #include <Process/TimeValue.hpp>
@@ -89,10 +89,7 @@ ScenarioPasteElements::ScenarioPasteElements(
     const auto& tsModel = m_ts.find();
     const Scenario::ScenarioModel& scenario = ::model(tsModel);
 
-    // TODO the elements are child of the document
-    // because else the State cannot be constructed properly
-    // (it calls iscore::IDocument::commandStack...). This is ugly.
-    auto doc = iscore::IDocument::documentFromObject(scenario);
+    auto& stack = iscore::IDocument::documentContext(scenario).commandStack;
 
 
     std::vector<TimeNodeModel*> timenodes;
@@ -106,7 +103,7 @@ ScenarioPasteElements::ScenarioPasteElements(
         constraints.reserve(json_arr.size());
         for(const auto& element : json_arr)
         {
-            constraints.emplace_back(new ConstraintModel{Deserializer<JSONObject>{element.toObject()}, doc});
+            constraints.emplace_back(new ConstraintModel{Deserializer<JSONObject>{element.toObject()}, nullptr});
         }
     }
     {
@@ -114,7 +111,7 @@ ScenarioPasteElements::ScenarioPasteElements(
         timenodes.reserve(json_arr.size());
         for(const auto& element : json_arr)
         {
-            timenodes.emplace_back(new TimeNodeModel{Deserializer<JSONObject>{element.toObject()}, doc});
+            timenodes.emplace_back(new TimeNodeModel{Deserializer<JSONObject>{element.toObject()}, nullptr});
         }
     }
     {
@@ -122,7 +119,7 @@ ScenarioPasteElements::ScenarioPasteElements(
         events.reserve(json_arr.size());
         for(const auto& element : json_arr)
         {
-            events.emplace_back(new EventModel{Deserializer<JSONObject>{element.toObject()}, doc});
+            events.emplace_back(new EventModel{Deserializer<JSONObject>{element.toObject()}, nullptr});
         }
     }
     {
@@ -130,7 +127,7 @@ ScenarioPasteElements::ScenarioPasteElements(
         states.reserve(json_arr.size());
         for(const auto& element : json_arr)
         {
-            states.emplace_back(new StateModel{Deserializer<JSONObject>{element.toObject()}, doc});
+            states.emplace_back(new StateModel{Deserializer<JSONObject>{element.toObject()}, stack, nullptr});
         }
     }
 
@@ -407,9 +404,10 @@ void ScenarioPasteElements::redo() const
         addedEvents.push_back(ev);
     }
 
+    auto& stack = iscore::IDocument::documentContext(scenario).commandStack;
     for(const auto& state : m_json_states)
     {
-        scenario.states.add(new StateModel(Deserializer<JSONObject>{state}, &scenario));
+        scenario.states.add(new StateModel(Deserializer<JSONObject>{state}, stack, &scenario));
     }
 
     for(const auto& constraint : m_json_constraints)

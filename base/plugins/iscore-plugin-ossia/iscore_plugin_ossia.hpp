@@ -6,7 +6,7 @@
 #include <QStringList>
 #include <vector>
 
-#include <core/application/ApplicationContext.hpp>
+#include <iscore/application/ApplicationContext.hpp>
 #include <iscore/plugins/application/GUIApplicationContextPlugin.hpp>
 #include <iscore/plugins/customfactory/FactoryInterface.hpp>
 

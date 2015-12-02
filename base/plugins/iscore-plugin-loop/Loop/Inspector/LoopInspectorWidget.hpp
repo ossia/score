@@ -19,7 +19,7 @@ class LoopInspectorWidget final : public InspectorWidgetBase
     public:
         explicit LoopInspectorWidget(
                 const Loop::ProcessModel& object,
-                iscore::Document& doc,
+                const iscore::DocumentContext& context,
                 QWidget* parent);
 
     signals:

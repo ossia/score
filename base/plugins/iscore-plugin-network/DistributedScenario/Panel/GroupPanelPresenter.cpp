@@ -10,9 +10,9 @@ class Presenter;
 }  // namespace iscore
 
 GroupPanelPresenter::GroupPanelPresenter(
-        iscore::Presenter* parent_presenter,
-        iscore::PanelView* view):
-    iscore::PanelPresenter{parent_presenter, view}
+        iscore::PanelView* view,
+        QObject* parent):
+    iscore::PanelPresenter{view, parent}
 {
 }
 

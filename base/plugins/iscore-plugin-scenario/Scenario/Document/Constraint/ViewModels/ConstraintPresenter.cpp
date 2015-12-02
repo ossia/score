@@ -69,11 +69,13 @@ ConstraintPresenter::ConstraintPresenter(
             this, &ConstraintPresenter::heightPercentageChanged);
 
     con(m_viewModel, &ConstraintViewModel::rackShown,
-            this,         &ConstraintPresenter::on_rackShown);
+            this, &ConstraintPresenter::on_rackShown);
+
     con(m_viewModel, &ConstraintViewModel::rackHidden,
-            this,         &ConstraintPresenter::on_rackHidden);
-    con(m_viewModel, &ConstraintViewModel::rackRemoved,
-            this,         &ConstraintPresenter::on_noRacks);
+        this, &ConstraintPresenter::on_rackHidden);
+
+    con(m_viewModel, &ConstraintViewModel::lastRackRemoved,
+        this, &ConstraintPresenter::on_noRacks);
 
 
     con(m_viewModel.model().consistency, &ModelConsistency::validChanged,
@@ -81,19 +83,11 @@ ConstraintPresenter::ConstraintPresenter(
     con(m_viewModel.model().consistency,   &ModelConsistency::warningChanged,
             m_view, &ConstraintView::setWarning);
 
-    con(m_viewModel.model().racks, &NotifyingMap<RackModel>::removed,
-            this, [&] (const auto&) {
-        if(m_viewModel.model().racks.size() == 0)
-        {
-            this->on_noRacks();
-        }
-    });
-
     if(m_viewModel.isRackShown())
     {
         on_rackShown(m_viewModel.shownRack());
     }
-    else if(!m_viewModel.model().processes.empty())
+    else if(!m_viewModel.model().processes.empty()) // TODO why isn't this when there are racks but hidden ?
     {
         on_rackHidden();
     }
@@ -168,7 +162,7 @@ void ConstraintPresenter::on_playPercentageChanged(double t)
 
 void ConstraintPresenter::updateHeight()
 {
-    if(m_viewModel.isRackShown())
+    if(rack() && m_viewModel.isRackShown())
     {
         m_view->setHeight(rack()->height() + 50);
     }
@@ -206,7 +200,7 @@ const ConstraintModel& ConstraintPresenter::model() const
 
 
 
-ConstraintView*ConstraintPresenter::view() const
+ConstraintView* ConstraintPresenter::view() const
 {
     return m_view;
 }
@@ -222,17 +216,11 @@ void ConstraintPresenter::on_rackShown(const Id<RackModel>& rackId)
 
 void ConstraintPresenter::on_rackHidden()
 {
-    if(model().racks.size() > 0)
-    {
-        clearRackPresenter();
+    ISCORE_ASSERT(model().racks.size() > 0);
+    clearRackPresenter();
 
-        m_header->setState(ConstraintHeader::State::RackHidden);
-        updateHeight();
-    }
-    else
-    {
-        on_noRacks();
-    }
+    m_header->setState(ConstraintHeader::State::RackHidden);
+    updateHeight();
 }
 
 void ConstraintPresenter::on_noRacks()

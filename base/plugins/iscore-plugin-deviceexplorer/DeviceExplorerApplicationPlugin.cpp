@@ -1,12 +1,12 @@
 #include <Explorer/DocumentPlugin/DeviceDocumentPlugin.hpp>
 #include <core/document/Document.hpp>
-#include <core/document/DocumentModel.hpp>
 
 #include <algorithm>
 #include <vector>
 
 #include "DeviceExplorerApplicationPlugin.hpp"
 #include <iscore/plugins/application/GUIApplicationContextPlugin.hpp>
+#include <core/document/DocumentModel.hpp>
 
 namespace iscore {
 class Application;
@@ -24,7 +24,7 @@ void DeviceExplorerApplicationPlugin::on_newDocument(iscore::Document* doc)
     doc->model().addPluginModel(new DeviceDocumentPlugin{*doc, &doc->model()});
 }
 
-iscore::DocumentDelegatePluginModel* DeviceExplorerApplicationPlugin::loadDocumentPlugin(
+iscore::DocumentPluginModel* DeviceExplorerApplicationPlugin::loadDocumentPlugin(
         const QString &name,
         const VisitorVariant &var,
         iscore::Document* doc)
@@ -42,14 +42,14 @@ void DeviceExplorerApplicationPlugin::on_documentChanged(
 {
     if(olddoc)
     {
-        auto doc_plugin = olddoc->model().pluginModel<DeviceDocumentPlugin>();
-        doc_plugin->setConnection(false);
+        auto& doc_plugin = olddoc->context().plugin<DeviceDocumentPlugin>();
+        doc_plugin.setConnection(false);
     }
 
     if(newdoc)
     {
-        auto doc_plugin = newdoc->model().pluginModel<DeviceDocumentPlugin>();
-        doc_plugin->setConnection(true);
+        auto& doc_plugin = newdoc->context().plugin<DeviceDocumentPlugin>();
+        doc_plugin.setConnection(true);
     }
 }
 

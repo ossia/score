@@ -12,7 +12,7 @@
 #include <QRect>
 
 #include <Curve/Segment/CurveSegmentFactoryKey.hpp>
-#include <core/document/DocumentContext.hpp>
+#include <iscore/document/DocumentContext.hpp>
 
 class DynamicCurveSegmentList;
 namespace Curve {
@@ -107,7 +107,6 @@ class CurvePresenter : public QObject
 
         // Required dispatchers
         CommandDispatcher<> m_commandDispatcher;
-        iscore::SelectionDispatcher m_selectionDispatcher;
 
         const Curve::Style& m_style;
 

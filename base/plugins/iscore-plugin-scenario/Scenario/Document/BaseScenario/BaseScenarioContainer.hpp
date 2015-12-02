@@ -26,6 +26,8 @@ class BaseScenarioContainer : public ScenarioInterface
         }
 
         virtual ~BaseScenarioContainer();
+
+        QObject& parent() const { return *m_parent; }
         void init();
 
         ConstraintModel* findConstraint(

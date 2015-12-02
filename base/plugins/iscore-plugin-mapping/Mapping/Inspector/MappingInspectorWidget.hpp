@@ -20,7 +20,7 @@ class MappingInspectorWidget : public InspectorWidgetBase
     public:
         explicit MappingInspectorWidget(
                 const MappingModel& object,
-                iscore::Document& doc,
+                const iscore::DocumentContext& context,
                 QWidget* parent);
 
     signals:
@@ -35,7 +35,6 @@ class MappingInspectorWidget : public InspectorWidgetBase
         void on_targetMinValueChanged();
         void on_targetMaxValueChanged();
     private:
-        DeviceExplorerModel* m_explorer{};
         AddressEditWidget* m_sourceLineEdit{};
         QDoubleSpinBox* m_sourceMin{}, *m_sourceMax{};
 

@@ -9,6 +9,7 @@
 #include <iscore/plugins/documentdelegate/plugin/ElementPluginModelList.hpp>
 #include <iscore/selection/Selectable.hpp>
 #include <QObject>
+#include <nano_signal_slot.hpp>
 
 #include <QString>
 #include <QVector>
@@ -28,7 +29,7 @@ namespace OSSIA
 class ConstraintViewModel;
 class FullViewConstraintViewModel;
 
-class ConstraintModel final : public IdentifiedObject<ConstraintModel>
+class ConstraintModel final : public IdentifiedObject<ConstraintModel>, public Nano::Observer
 {
         Q_OBJECT
         ISCORE_METADATA("ConstraintModel")

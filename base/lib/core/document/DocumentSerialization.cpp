@@ -27,10 +27,10 @@
 
 #include "Document.hpp"
 #include "DocumentModel.hpp"
-#include <core/application/ApplicationComponents.hpp>
-#include <core/application/ApplicationContext.hpp>
+#include <iscore/application/ApplicationComponents.hpp>
+#include <iscore/application/ApplicationContext.hpp>
 #include <core/command/CommandStack.hpp>
-#include <core/document/DocumentContext.hpp>
+#include <iscore/document/DocumentContext.hpp>
 #include <iscore/serialization/DataStreamVisitor.hpp>
 #include <iscore/serialization/JSONValueVisitor.hpp>
 #include <iscore/tools/IdentifiedObject.hpp>
@@ -94,7 +94,7 @@ QByteArray Document::saveAsByteArray()
     std::transform(begin(model().pluginModels()),
                    end(model().pluginModels()),
                    std::back_inserter(documentPluginModels),
-                   [] (DocumentDelegatePluginModel* plugin)
+                   [] (DocumentPluginModel* plugin)
     {
         QByteArray arr;
         Serializer<DataStream> s{&arr};

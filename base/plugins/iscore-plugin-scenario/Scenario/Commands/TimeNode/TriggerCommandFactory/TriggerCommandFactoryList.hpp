@@ -2,6 +2,7 @@
 #include <Scenario/Commands/TimeNode/TriggerCommandFactory/TriggerCommandFactory.hpp>
 #include <iscore/plugins/customfactory/FactoryFamily.hpp>
 #include <iscore/tools/std/StdlibWrapper.hpp>
+#include <iscore/tools/std/Algorithms.hpp>
 
 class TriggerCommandFactoryList final : public iscore::FactoryListInterface
 {

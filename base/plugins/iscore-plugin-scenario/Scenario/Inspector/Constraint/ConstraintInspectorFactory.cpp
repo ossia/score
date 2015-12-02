@@ -2,15 +2,14 @@
 #include <Process/ProcessList.hpp>
 #include <Scenario/Document/Constraint/ConstraintModel.hpp>
 #include <Scenario/Inspector/Constraint/ConstraintInspectorDelegateFactory.hpp>
-#include <core/application/ApplicationComponents.hpp>
-#include <core/application/ApplicationContext.hpp>
-#include <core/document/Document.hpp>
+
+#include <iscore/application/ApplicationContext.hpp>
 #include <QString>
 
 #include "ConstraintInspectorFactory.hpp"
 #include "ConstraintInspectorWidget.hpp"
 #include <Scenario/Inspector/Constraint/ConstraintInspectorDelegate.hpp>
-#include <core/document/DocumentContext.hpp>
+#include <iscore/document/DocumentContext.hpp>
 #include <iscore/plugins/customfactory/StringFactoryKey.hpp>
 
 class InspectorWidgetBase;
@@ -19,10 +18,10 @@ class QWidget;
 
 InspectorWidgetBase* ConstraintInspectorFactory::makeWidget(
         const QObject& sourceElement,
-        iscore::Document& doc,
+        const iscore::DocumentContext& doc,
         QWidget* parent) const
 {
-    auto& appContext = doc.context().app;
+    auto& appContext = doc.app;
     auto& widgetFact = appContext.components.factory<InspectorWidgetList>();
     auto& processFact = appContext.components.factory<ProcessList>();
     auto& constraintWidgetFactory = appContext.components.factory<ConstraintInspectorDelegateFactoryList>();

@@ -7,6 +7,7 @@
 #include <iscore/tools/IdentifiedObject.hpp>
 #include <iscore/tools/SettableIdentifier.hpp>
 #include <iscore/tools/NotifyingMap.hpp>
+#include <nano_signal_slot.hpp>
 
 #include <set>
 #include <vector>
@@ -21,10 +22,14 @@ class JSONObject;
 class MessageItemModel;
 class Process;
 class ProcessStateDataInterface;
-class QObject;
+
+namespace iscore
+{
+class CommandStackFacade;
+}
 
 // Model for the graphical state in a scenario.
-class StateModel final : public IdentifiedObject<StateModel>
+class StateModel final : public IdentifiedObject<StateModel>, public Nano::Observer
 {
         Q_OBJECT
         ISCORE_METADATA("StateModel")
@@ -38,18 +43,23 @@ class StateModel final : public IdentifiedObject<StateModel>
         StateModel(const Id<StateModel>& id,
                    const Id<EventModel>& eventId,
                    double yPos,
+                   iscore::CommandStackFacade& stack,
                    QObject* parent);
 
         // Copy
         StateModel(const StateModel& source,
                    const Id<StateModel>&,
+                   iscore::CommandStackFacade& stack,
                    QObject* parent);
 
         // Load
         template<typename DeserializerVisitor,
                  enable_if_deserializer<DeserializerVisitor>* = nullptr>
-        StateModel(DeserializerVisitor&& vis, QObject* parent) :
-            IdentifiedObject{vis, parent}
+        StateModel(DeserializerVisitor&& vis,
+                   iscore::CommandStackFacade& stack,
+                   QObject* parent) :
+            IdentifiedObject{vis, parent},
+            m_stack{stack}
         {
             vis.writeTo(*this);
             init();
@@ -98,6 +108,8 @@ class StateModel final : public IdentifiedObject<StateModel>
         void on_previousProcessAdded(const Process&);
         void on_previousProcessRemoved(const Process&);
 
+        iscore::CommandStackFacade& m_stack;
+
         std::set<ProcessStateDataInterface*> m_previousProcesses;
         std::set<ProcessStateDataInterface*> m_nextProcesses;
         Id<EventModel> m_eventId;
@@ -110,7 +122,4 @@ class StateModel final : public IdentifiedObject<StateModel>
 
         ptr<MessageItemModel> m_messageItemModel;
         ExecutionStatus m_status{ExecutionStatus::Editing};
-
-        std::vector<QMetaObject::Connection> m_prevConnections;
-        std::vector<QMetaObject::Connection> m_nextConnections;
 };

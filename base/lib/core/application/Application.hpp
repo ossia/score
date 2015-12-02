@@ -1,5 +1,6 @@
 #pragma once
 #include <core/application/ApplicationSettings.hpp>
+#include <iscore/application/ApplicationContext.hpp>
 #include <core/plugin/PluginManager.hpp>
 #include <iscore/tools/NamedObject.hpp>
 #include <QApplication>
@@ -54,6 +55,8 @@ namespace iscore
             Settings* settings() const
             { return m_settings.get(); }
 
+            const ApplicationContext& context() const;
+
         signals:
             void autoplay();
 
@@ -69,11 +72,6 @@ namespace iscore
             View* m_view {};
             Presenter* m_presenter {};
 
-            // Data
-            PluginLoader m_pluginManager {this};
-
             ApplicationSettings m_applicationSettings;
-
-
     };
 }

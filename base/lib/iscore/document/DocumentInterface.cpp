@@ -61,12 +61,6 @@ const std::vector<iscore::PanelModel*>& iscore::IDocument::panels(const iscore::
     return d->model().panels();
 }
 
-
-iscore::CommandStack &iscore::IDocument::commandStack(const QObject &obj)
-{
-    return documentFromObject(obj)->commandStack();
-}
-
 iscore::DocumentContext&iscore::IDocument::documentContext(const QObject& obj)
 {
     return documentFromObject(obj)->context();

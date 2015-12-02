@@ -19,13 +19,13 @@ namespace Scenario
             public:
                 SetCommentText(Path<CommentBlockModel> path, QString newComment);
 
-                void undo() const;
-                void redo() const;
+                void undo() const override;
+                void redo() const override;
 
                 // SerializableCommand interface
             protected:
-                void serializeImpl(DataStreamInput&) const;
-                void deserializeImpl(DataStreamOutput&);
+                void serializeImpl(DataStreamInput&) const override;
+                void deserializeImpl(DataStreamOutput&) override;
 
             private:
                 Path<CommentBlockModel> m_path;

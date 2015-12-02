@@ -5,6 +5,7 @@
 #include <iscore/tools/NotifyingMap.hpp>
 #include <QtGlobal>
 #include <QObject>
+#include <nano_signal_slot.hpp>
 
 #include <QString>
 #include <functional>
@@ -20,7 +21,7 @@ class Process;
 class RackModel;
 
 // Note : the SlotModel is assumed to be in a Rack, itself in a Constraint.
-class SlotModel final : public IdentifiedObject<SlotModel>
+class SlotModel final : public IdentifiedObject<SlotModel>, public Nano::Observer
 {
         Q_OBJECT
         ISCORE_METADATA("SlotModel")

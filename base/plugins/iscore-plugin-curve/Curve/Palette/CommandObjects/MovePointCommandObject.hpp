@@ -4,13 +4,13 @@
 
 class CurvePresenter;
 namespace iscore {
-class CommandStack;
+class CommandStackFacade;
 }  // namespace iscore
 
 class MovePointCommandObject final : public CurveCommandObjectBase
 {
     public:
-        MovePointCommandObject(CurvePresenter* presenter, iscore::CommandStack& stack);
+        MovePointCommandObject(CurvePresenter* presenter, iscore::CommandStackFacade& stack);
 
         void on_press() override;
 

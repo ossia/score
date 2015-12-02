@@ -11,7 +11,7 @@ class CurveModel;
 class CurvePresenter;
 class CurveView;
 namespace iscore {
-class CommandStack;
+class CommandStackFacade;
 class ObjectLocker;
 }  // namespace iscore
 struct LayerContext;
@@ -30,8 +30,8 @@ class ToolPalette final : public GraphicsSceneToolPalette
 
         const CurveModel& model() const;
 
-        iscore::CommandStack& commandStack() const;
-        iscore::ObjectLocker& locker() const;
+        const LayerContext& context() const
+        { return m_context; }
 
         void on_pressed(QPointF);
         void on_moved(QPointF);
@@ -46,8 +46,7 @@ class ToolPalette final : public GraphicsSceneToolPalette
 
         CurvePresenter& m_presenter;
 
-        iscore::CommandStack& m_stack;
-        iscore::ObjectLocker& m_locker;
+        const LayerContext& m_context;
 
         SmartTool m_selectTool;
         CreateTool m_createTool;

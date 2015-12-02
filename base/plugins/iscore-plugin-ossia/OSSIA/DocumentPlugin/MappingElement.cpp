@@ -9,7 +9,6 @@
 
 #include <iscore/document/DocumentInterface.hpp>
 #include <core/document/Document.hpp>
-#include <core/document/DocumentModel.hpp>
 #include <Explorer/DocumentPlugin/DeviceDocumentPlugin.hpp>
 #include <OSSIA/Protocols/OSSIADevice.hpp>
 #include "OSSIAConstraintElement.hpp"
@@ -20,7 +19,6 @@
 
 #include <Explorer/DocumentPlugin/DeviceDocumentPlugin.hpp>
 #include <core/document/Document.hpp>
-#include <core/document/DocumentModel.hpp>
 #include <OSSIA/iscore2OSSIA.hpp>
 #include <OSSIA/Protocols/OSSIADevice.hpp>
 #include <API/Headers/Editor/Curve.h>
@@ -33,7 +31,7 @@ OSSIAMappingElement::OSSIAMappingElement(
         QObject *parent):
     ProcessElement{parentConstraint, parent},
     m_iscore_mapping{element},
-    m_deviceList{iscore::IDocument::documentFromObject(element)->model().pluginModel<DeviceDocumentPlugin>()->list()}
+    m_deviceList{iscore::IDocument::documentFromObject(element)->context().plugin<DeviceDocumentPlugin>().list()}
 {
     using namespace iscore::convert;
 }

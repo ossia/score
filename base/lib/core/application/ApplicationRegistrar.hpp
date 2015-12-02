@@ -24,7 +24,9 @@ class ApplicationRegistrar : public QObject
 {
     public:
         ApplicationRegistrar(ApplicationComponentsData&, iscore::Application&);
+
         // Register data from plugins
+        void registerPlugins(const QStringList&, const std::vector<QObject*>& vec);
         void registerApplicationContextPlugin(GUIApplicationContextPlugin*);
         void registerPanel(PanelFactory*);
         void registerDocumentDelegate(DocumentDelegateFactoryInterface*);

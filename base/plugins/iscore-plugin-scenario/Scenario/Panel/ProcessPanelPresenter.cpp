@@ -32,9 +32,9 @@ class Presenter;
 
 ProcessPanelPresenter::ProcessPanelPresenter(
         const ProcessList& plist,
-        iscore::Presenter* parent_presenter,
-        iscore::PanelView* view):
-    iscore::PanelPresenter{parent_presenter, view},
+        iscore::PanelView* view,
+        QObject* parent):
+    iscore::PanelPresenter{view, parent},
     m_processList{plist}
 {
     auto v = static_cast<ProcessPanelView*>(view);

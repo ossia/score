@@ -6,6 +6,7 @@
 #include <QtGlobal>
 #include <QPoint>
 
+#include <nano_signal_slot.hpp>
 #include "Slot/SlotModel.hpp"
 #include "Slot/SlotPresenter.hpp"
 
@@ -18,7 +19,7 @@ namespace iscore
 {
 }
 
-class RackPresenter final : public NamedObject
+class RackPresenter final : public NamedObject, public Nano::Observer
 {
         Q_OBJECT
 

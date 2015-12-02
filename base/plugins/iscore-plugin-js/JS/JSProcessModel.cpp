@@ -1,14 +1,12 @@
 #include <DummyProcess/DummyLayerModel.hpp>
 #include <Explorer/DocumentPlugin/DeviceDocumentPlugin.hpp>
 #include <core/document/Document.hpp>
-#include <core/document/DocumentModel.hpp>
 #include <algorithm>
 #include <vector>
 
 #include "JS/JSProcess.hpp"
 #include "JS/JSProcessMetadata.hpp"
 #include "JSProcessModel.hpp"
-#include <OSSIA/ProcessModel/OSSIAProcessModel.hpp>
 #include <iscore/document/DocumentInterface.hpp>
 #include <iscore/plugins/documentdelegate/plugin/ElementPluginModelList.hpp>
 #include <iscore/serialization/VisitorCommon.hpp>
@@ -22,7 +20,7 @@ class QObject;
 
 std::shared_ptr<JSProcess> JSProcessModel::makeProcess() const
 {
-    return std::make_shared<JSProcess>(*iscore::IDocument::documentFromObject(*this)->model().pluginModel<DeviceDocumentPlugin>());
+    return std::make_shared<JSProcess>(iscore::IDocument::documentFromObject(*this)->context().plugin<DeviceDocumentPlugin>());
 }
 
 JSProcessModel::JSProcessModel(
@@ -33,7 +31,7 @@ JSProcessModel::JSProcessModel(
     m_ossia_process{makeProcess()}
 {
     pluginModelList = new iscore::ElementPluginModelList{
-                      iscore::IDocument::documentFromObject(parent),
+                      iscore::IDocument::documentContext(*parent),
                       this};
 
     m_script = "(function(t) { \n"

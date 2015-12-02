@@ -43,11 +43,6 @@ class ToolPalette final : public GraphicsSceneToolPalette
         const Scenario::ScenarioModel& model() const
         { return m_model; }
 
-        iscore::CommandStack& commandStack() const
-        { return m_context.commandStack; }
-        iscore::ObjectLocker& locker() const
-        { return m_context.objectLocker; }
-
         void on_pressed(QPointF);
         void on_moved(QPointF);
         void on_released(QPointF);

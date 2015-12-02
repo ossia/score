@@ -111,6 +111,8 @@ void RackWidget::updateComboBox(LambdaFriendlyQComboBox* combobox, ConstraintVie
 
     connect(vm, &ConstraintViewModel::rackHidden,
             combobox, [=] () { combobox->setCurrentIndex(0); });
+    connect(vm, &ConstraintViewModel::lastRackRemoved,
+            combobox, [=] () { combobox->setCurrentIndex(0); });
 
     connect(vm, &ConstraintViewModel::rackShown,
             combobox, [=] (Id<RackModel> id)

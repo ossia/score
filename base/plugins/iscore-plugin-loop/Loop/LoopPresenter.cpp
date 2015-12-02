@@ -18,9 +18,10 @@
 #include <Scenario/Document/State/StatePresenter.hpp>
 #include <Scenario/Document/TimeNode/TimeNodeModel.hpp>
 #include <Scenario/Document/TimeNode/TimeNodePresenter.hpp>
-#include <core/document/DocumentContext.hpp>
+#include <iscore/document/DocumentContext.hpp>
 #include <iscore/tools/Todo.hpp>
 #include <iscore/tools/std/StdlibWrapper.hpp>
+#include <iscore/tools/std/Algorithms.hpp>
 
 class LayerModel;
 class Process;
@@ -30,7 +31,7 @@ struct VerticalExtent;
 
 
 LoopPresenter::LoopPresenter(
-        iscore::DocumentContext& context,
+        const iscore::DocumentContext& context,
         const LoopLayer& layer,
         LoopView* view,
         QObject* parent):

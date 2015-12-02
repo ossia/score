@@ -1,19 +1,11 @@
 #pragma once
 #include <iscore/command/Command.hpp>
-#include <iscore/plugins/customfactory/StringFactoryKey.hpp>
+#include <iscore/command/CommandFactoryKey.hpp>
 #include <QByteArray>
 #include <QString>
 
 class DataStreamInput;
 class DataStreamOutput;
-
-class CommandTag{};
-using CommandFactoryKey = StringKey<CommandTag>;
-class CommandParentTag{};
-using CommandParentFactoryKey = StringKey<CommandParentTag>;
-
-template<typename T>
-const CommandParentFactoryKey& CommandFactoryName();
 
 /**
  * This macro is used to specify the common metadata of commands :

@@ -13,9 +13,9 @@ class Presenter;
 }  // namespace iscore
 
 UndoPresenter::UndoPresenter(
-        iscore::Presenter* parent_presenter,
-        iscore::PanelView* view) :
-    iscore::PanelPresenter{parent_presenter, view}
+        iscore::PanelView* view,
+        QObject* parent) :
+    iscore::PanelPresenter{view, parent}
 {
 }
 

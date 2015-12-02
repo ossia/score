@@ -26,7 +26,7 @@
 #include <iscore/serialization/DataStreamVisitor.hpp>
 #include <iscore/tools/NotifyingMap.hpp>
 #include <iscore/tools/Todo.hpp>
-
+#include <iscore/document/DocumentContext.hpp>
 class LayerModel;
 class ProcessStateDataInterface;
 
@@ -48,7 +48,7 @@ ScenarioModel::ScenarioModel(const TimeValue& duration,
     ScenarioCreate<EventModel>::redo(m_endEventId, end_tn, {0.4, 0.6}, *this);
 
     // At the end because plug-ins depend on the start/end timenode & al being here
-    pluginModelList = new iscore::ElementPluginModelList{iscore::IDocument::documentFromObject(parent), this};
+    pluginModelList = new iscore::ElementPluginModelList{iscore::IDocument::documentContext(*parent), this};
     metadata.setName(QString("Scenario.%1").arg(*this->id().val()));
 }
 
@@ -66,11 +66,20 @@ ScenarioModel::ScenarioModel(const Scenario::ScenarioModel& source,
     // This almost terrifying piece of code will simply clone
     // all the elements (constraint, etc...) from the source to this class
     // without duplicating code too much.
-    apply([&] (const auto& m) {
+    auto clone = [&] (const auto& m) {
         using the_class = typename remove_qualifs_t<decltype(this->*m)>::value_type;
         for(const auto& elt : source.*m)
             (this->*m).add(new the_class{elt, elt.id(), this});
-    });
+    };
+    clone(&ScenarioModel::timeNodes);
+    clone(&ScenarioModel::events);
+    clone(&ScenarioModel::constraints);
+    // TODO clone comment blocks
+    auto& stack = iscore::IDocument::documentContext(*this).commandStack;
+    for(const auto& elt : source.states)
+    {
+        states.add(new StateModel{elt, elt.id(), stack, this});
+    }
     metadata.setName(QString("Scenario.%1").arg(*this->id().val()));
 }
 
@@ -303,28 +312,19 @@ void ScenarioModel::makeLayer_impl(AbstractScenarioLayerModel* scen)
     // There is no ConstraintCreated connection to the layer,
     // because the constraints view models are created
     // from the commands, since they require ids too.
-    con(constraints, &NotifyingMap<ConstraintModel>::removed,
-        scen, &AbstractScenarioLayerModel::on_constraintRemoved);
+    constraints.removed.connect<AbstractScenarioLayerModel, &AbstractScenarioLayerModel::on_constraintRemoved>(scen);
 
-    con(states, &NotifyingMap<StateModel>::added,
-        scen, &AbstractScenarioLayerModel::stateCreated);
-    con(states, &NotifyingMap<StateModel>::removed,
-        scen, &AbstractScenarioLayerModel::stateRemoved);
+    states.added.connect<AbstractScenarioLayerModel, &AbstractScenarioLayerModel::stateCreated>(scen);
+    states.removed.connect<AbstractScenarioLayerModel, &AbstractScenarioLayerModel::stateRemoved>(scen);
 
-    con(events, &NotifyingMap<EventModel>::added,
-        scen, &AbstractScenarioLayerModel::eventCreated);
-    con(events, &NotifyingMap<EventModel>::removed,
-        scen, &AbstractScenarioLayerModel::eventRemoved);
+    events.added.connect<AbstractScenarioLayerModel, &AbstractScenarioLayerModel::eventCreated>(scen);
+    events.removed.connect<AbstractScenarioLayerModel, &AbstractScenarioLayerModel::eventRemoved>(scen);
 
-    con(timeNodes, &NotifyingMap<TimeNodeModel>::added,
-        scen, &AbstractScenarioLayerModel::timeNodeCreated);
-    con(timeNodes, &NotifyingMap<TimeNodeModel>::removed,
-        scen, &AbstractScenarioLayerModel::timeNodeRemoved);
+    timeNodes.added.connect<AbstractScenarioLayerModel, &AbstractScenarioLayerModel::timeNodeCreated>(scen);
+    timeNodes.removed.connect<AbstractScenarioLayerModel, &AbstractScenarioLayerModel::timeNodeRemoved>(scen);
 
-    con(comments, &NotifyingMap<CommentBlockModel>::added,
-        scen, &AbstractScenarioLayerModel::commentCreated);
-    con(comments, &NotifyingMap<CommentBlockModel>::removed,
-        scen, &AbstractScenarioLayerModel::commentRemoved);
+    comments.added.connect<AbstractScenarioLayerModel, &AbstractScenarioLayerModel::commentCreated>(scen);
+    comments.removed.connect<AbstractScenarioLayerModel, &AbstractScenarioLayerModel::commentRemoved>(scen);
 
     connect(this, &ScenarioModel::eventMoved,
             scen, &AbstractScenarioLayerModel::eventMoved);

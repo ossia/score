@@ -26,7 +26,7 @@ JSInspectorFactory::~JSInspectorFactory()
 
 InspectorWidgetBase* JSInspectorFactory::makeWidget(
         const QObject& sourceElement,
-        iscore::Document& doc,
+        const iscore::DocumentContext& doc,
         QWidget* parent) const
 {
     return new JSInspectorWidget{

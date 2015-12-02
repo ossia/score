@@ -8,12 +8,12 @@
 #include <iscore/command/Dispatchers/SingleOngoingCommandDispatcher.hpp>
 
 namespace iscore {
-class CommandStack;
+class CommandStackFacade;
 }  // namespace iscore
 
 CurveCommandObjectBase::CurveCommandObjectBase(
         CurvePresenter* pres,
-        iscore::CommandStack& stack):
+        iscore::CommandStackFacade& stack):
     m_presenter{pres},
     m_dispatcher{stack},
     m_modelPath{m_presenter->model()}

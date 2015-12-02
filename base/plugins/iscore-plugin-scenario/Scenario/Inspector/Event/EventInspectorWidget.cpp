@@ -9,9 +9,7 @@
 #include <Scenario/Inspector/SelectionButton.hpp>
 #include <Scenario/Inspector/State/StateInspectorWidget.hpp>
 #include <Scenario/Inspector/TimeNode/TriggerInspectorWidget.hpp>
-#include <core/application/ApplicationComponents.hpp>
-#include <core/document/Document.hpp>
-#include <core/document/DocumentModel.hpp>
+
 #include <iscore/widgets/MarginLess.hpp>
 #include <QBoxLayout>
 #include <QColor>
@@ -29,8 +27,8 @@
 #include <Process/TimeValue.hpp>
 #include <Scenario/Process/ScenarioInterface.hpp>
 #include <State/Expression.hpp>
-#include <core/application/ApplicationContext.hpp>
-#include <core/document/DocumentContext.hpp>
+#include <iscore/application/ApplicationContext.hpp>
+#include <iscore/document/DocumentContext.hpp>
 #include <iscore/command/Dispatchers/CommandDispatcher.hpp>
 #include <iscore/plugins/customfactory/StringFactoryKey.hpp>
 #include <iscore/plugins/documentdelegate/plugin/DocumentDelegatePluginModel.hpp>
@@ -43,7 +41,7 @@
 
 EventInspectorWidget::EventInspectorWidget(
         const EventModel& object,
-        iscore::Document& doc,
+        const iscore::DocumentContext& doc,
         QWidget* parent) :
     InspectorWidgetBase {object, doc, parent},
     m_model {object}
@@ -101,7 +99,7 @@ EventInspectorWidget::EventInspectorWidget(
     // Trigger
     auto& tn = scenar->timeNode(m_model.timeNode());
     m_triggerWidg = new TriggerInspectorWidget{
-                    doc.context().app.components.factory<TriggerCommandFactoryList>(),
+                    doc.app.components.factory<TriggerCommandFactoryList>(),
                     tn,
                     this};
     m_properties.push_back(new QLabel{tr("Trigger")});
@@ -135,7 +133,7 @@ EventInspectorWidget::EventInspectorWidget(
     // Plugins (TODO factorize with ConstraintInspectorWidget)
     for(auto& plugdata : m_model.pluginModelList.list())
     {
-        for(iscore::DocumentDelegatePluginModel* plugin : doc.model().pluginModels())
+        for(auto plugin : doc.pluginModels())
         {
             auto md = plugin->makeElementPluginWidget(plugdata, this);
             if(md)
@@ -155,7 +153,7 @@ EventInspectorWidget::EventInspectorWidget(
 
 void EventInspectorWidget::addState(const StateModel& state)
 {
-    auto sw = new StateInspectorWidget{state, doc(), this};
+    auto sw = new StateInspectorWidget{state, context(), this};
 
     m_states.push_back(sw);
     m_statesWidget->layout()->addWidget(sw);

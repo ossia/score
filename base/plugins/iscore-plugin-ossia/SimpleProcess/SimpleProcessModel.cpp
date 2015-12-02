@@ -3,7 +3,6 @@
 #include <QJsonValue>
 #include <algorithm>
 
-#include <OSSIA/ProcessModel/OSSIAProcessModel.hpp>
 #include "SimpleProcess.hpp"
 #include "SimpleProcessModel.hpp"
 #include <iscore/document/DocumentInterface.hpp>
@@ -27,7 +26,7 @@ SimpleProcessModel::SimpleProcessModel(
     m_ossia_process{std::make_shared<SimpleProcess>()}
 {
     pluginModelList = new iscore::ElementPluginModelList{
-                      iscore::IDocument::documentFromObject(parent),
+                      iscore::IDocument::documentContext(*parent),
                       this};
 }
 

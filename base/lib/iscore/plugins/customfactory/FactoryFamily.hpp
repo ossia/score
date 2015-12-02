@@ -1,8 +1,8 @@
 #pragma once
 #include <iscore/plugins/customfactory/FactoryInterface.hpp>
 #include <iscore/tools/ForEachType.hpp>
+#include <iscore/tools/std/Pointer.hpp>
 #include <QMetaType>
-
 
 namespace iscore
 {

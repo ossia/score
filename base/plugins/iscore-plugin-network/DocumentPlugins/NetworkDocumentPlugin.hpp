@@ -28,7 +28,7 @@ class iscore_plugin_networkPolicy : public QObject
         virtual Session* session() const = 0;
 };
 
-class NetworkDocumentPlugin : public iscore::DocumentDelegatePluginModel
+class NetworkDocumentPlugin : public iscore::DocumentPluginModel
 {
         Q_OBJECT
 

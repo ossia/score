@@ -52,11 +52,8 @@ SlotInspectorSection::SlotInspectorSection(
     m_lmSection = new InspectorSectionWidget{"Process View Models", false, this};
     m_lmSection->setObjectName("LayerModels");
 
-    con(m_model.layers, &NotifyingMap<LayerModel>::added,
-        this, &SlotInspectorSection::on_layerModelCreated);
-
-    con(m_model.layers, &NotifyingMap<LayerModel>::removed,
-        this, &SlotInspectorSection::on_layerModelRemoved);
+    m_model.layers.added.connect<SlotInspectorSection, &SlotInspectorSection::on_layerModelCreated>(this);
+    m_model.layers.removed.connect<SlotInspectorSection, &SlotInspectorSection::on_layerModelRemoved>(this);
 
     for(const auto& lm : m_model.layers)
     {

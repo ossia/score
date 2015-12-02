@@ -1,5 +1,5 @@
 #include <Device/Protocol/ProtocolList.hpp>
-#include <core/application/ApplicationComponents.hpp>
+
 #include <iscore/serialization/DataStreamVisitor.hpp>
 #include <iscore/serialization/JSONVisitor.hpp>
 #include <QDebug>
@@ -11,11 +11,12 @@
 #include <Device/Protocol/ProtocolFactoryKey.hpp>
 #include "DeviceSettings.hpp"
 #include "ProtocolFactoryInterface.hpp"
-#include <core/application/ApplicationContext.hpp>
+#include <iscore/application/ApplicationContext.hpp>
 #include <iscore/plugins/customfactory/FactoryFamily.hpp>
 #include <iscore/plugins/customfactory/FactoryMap.hpp>
 #include <iscore/plugins/customfactory/StringFactoryKey.hpp>
 #include <iscore/serialization/JSONValueVisitor.hpp>
+#include <iscore/plugins/customfactory/StringFactoryKeySerialization.hpp>
 
 template <typename T> class Reader;
 template <typename T> class Writer;

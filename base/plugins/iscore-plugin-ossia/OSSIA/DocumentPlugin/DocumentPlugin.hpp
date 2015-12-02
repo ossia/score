@@ -10,18 +10,18 @@ namespace iscore
 {
 class DocumentModel;
 }
-
+class BaseScenario;
 namespace RecreateOnPlay
 {
 
 class BaseScenarioElement;
 
-class DocumentPlugin final : public iscore::DocumentDelegatePluginModel
+class DocumentPlugin final : public iscore::DocumentPluginModel
 {
     public:
         DocumentPlugin(iscore::Document& doc, QObject* parent);
 
-        void reload(iscore::DocumentModel& doc);
+        void reload(BaseScenario& doc);
         void clear();
 
         BaseScenarioElement* baseScenario() const;

@@ -12,7 +12,7 @@ class Document;
 
 LoopInspectorWidget::LoopInspectorWidget(
         const Loop::ProcessModel& LoopModel,
-        iscore::Document& doc,
+        const iscore::DocumentContext& doc,
         QWidget* parent) :
     InspectorWidgetBase {LoopModel, doc, parent},
     m_model {LoopModel}

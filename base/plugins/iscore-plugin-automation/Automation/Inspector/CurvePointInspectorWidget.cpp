@@ -23,7 +23,7 @@ class Document;
 
 CurvePointInspectorWidget::CurvePointInspectorWidget(
     const CurvePointModel& model,
-    iscore::Document& doc,
+    const iscore::DocumentContext& doc,
     QWidget* parent):
     InspectorWidgetBase{model, doc, parent},
     m_model{model},

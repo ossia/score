@@ -1,5 +1,6 @@
 #include <Scenario/Document/State/StateModel.hpp>
 
+#include <iscore/document/DocumentContext.hpp>
 #include <iscore/document/DocumentInterface.hpp>
 #include <iscore/serialization/DataStreamVisitor.hpp>
 #include <iscore/serialization/JSONVisitor.hpp>
@@ -13,7 +14,7 @@
 #include <Process/ModelMetadata.hpp>
 #include <Process/State/MessageNode.hpp>
 #include <Scenario/Document/State/ItemModel/MessageItemModel.hpp>
-#include <core/application/ApplicationComponents.hpp>
+
 #include <iscore/serialization/JSONValueVisitor.hpp>
 #include <iscore/tools/SettableIdentifier.hpp>
 #include <iscore/tools/Todo.hpp>
@@ -63,8 +64,7 @@ template<> void Visitor<Writer<DataStream>>::writeTo(StateModel& s)
     // Message tree
     MessageNode n;
     m_stream >> n;
-    s.m_messageItemModel = new MessageItemModel{
-                           iscore::IDocument::commandStack(s), s, &s};
+    s.m_messageItemModel = new MessageItemModel{s.m_stack, s, &s};
     s.messages() = n;
 
     // Processes plugins
@@ -109,8 +109,7 @@ template<> void Visitor<Writer<JSONObject>>::writeTo(StateModel& s)
     s.m_heightPercentage = m_obj["HeightPercentage"].toDouble();
 
     // Message tree
-    s.m_messageItemModel = new MessageItemModel{
-                           iscore::IDocument::commandStack(s), s, &s};
+    s.m_messageItemModel = new MessageItemModel{s.m_stack, s, &s};
     s.messages() = fromJsonObject<MessageNode>(m_obj["Messages"].toObject());
 
     // Processes plugins

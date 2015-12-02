@@ -27,8 +27,6 @@ Document* documentFromObject(const QObject* obj);
 Document* documentFromObject(const QObject& obj);
 DocumentContext& documentContext(const QObject& obj);
 
-iscore::CommandStack& commandStack(const QObject& obj);
-
 /**
  * @brief pathFromDocument
  * @param obj an object in the application hierarchy

@@ -14,7 +14,7 @@ class Document;
 
 ScenarioInspectorWidget::ScenarioInspectorWidget(
         const Scenario::ScenarioModel& object,
-        iscore::Document& doc,
+        const iscore::DocumentContext& doc,
         QWidget* parent) :
     InspectorWidgetBase {object, doc, parent},
     m_model {object}

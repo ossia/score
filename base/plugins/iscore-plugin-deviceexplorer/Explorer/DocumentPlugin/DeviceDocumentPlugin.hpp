@@ -11,7 +11,7 @@ class Document;
 }  // namespace iscore
 struct VisitorVariant;
 
-class DeviceDocumentPlugin final : public iscore::DocumentDelegatePluginModel
+class DeviceDocumentPlugin final : public iscore::DocumentPluginModel
 {
         Q_OBJECT
     public:

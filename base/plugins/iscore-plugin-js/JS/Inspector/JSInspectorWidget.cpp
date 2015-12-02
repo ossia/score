@@ -17,7 +17,7 @@ class Document;
 
 JSInspectorWidget::JSInspectorWidget(
         const JSProcessModel& JSModel,
-        iscore::Document& doc,
+        const iscore::DocumentContext& doc,
         QWidget* parent) :
     InspectorWidgetBase {JSModel, doc, parent},
     m_model {JSModel}

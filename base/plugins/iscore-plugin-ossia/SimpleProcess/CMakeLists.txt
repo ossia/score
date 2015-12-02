@@ -23,7 +23,6 @@ set(SRCS
 "${CMAKE_CURRENT_SOURCE_DIR}/iscore_plugin_ossia_simpleprocess.cpp"
 
 "${CMAKE_CURRENT_SOURCE_DIR}/SimpleStateProcess.cpp"
-"${CMAKE_CURRENT_SOURCE_DIR}/SimpleStateProcessFactory.cpp"
 
 "${CMAKE_CURRENT_SOURCE_DIR}/SimpleProcess.cpp"
 "${CMAKE_CURRENT_SOURCE_DIR}/SimpleProcessModel.cpp"

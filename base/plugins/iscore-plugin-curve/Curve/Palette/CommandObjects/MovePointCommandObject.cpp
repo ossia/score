@@ -22,12 +22,12 @@
 
 class CurveSegmentModel;
 namespace iscore {
-class CommandStack;
+class CommandStackFacade;
 }  // namespace iscore
 
 MovePointCommandObject::MovePointCommandObject(
         CurvePresenter* presenter,
-        iscore::CommandStack& stack):
+        iscore::CommandStackFacade& stack):
     CurveCommandObjectBase{presenter, stack}
 {
 

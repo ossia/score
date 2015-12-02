@@ -6,7 +6,7 @@ namespace iscore {
 class Document;
 }  // namespace iscore
 
-iscore::DocumentDelegatePluginModel::DocumentDelegatePluginModel(
+iscore::DocumentPluginModel::DocumentPluginModel(
         iscore::Document& ctx,
         const QString& name,
         QObject* parent):
@@ -16,7 +16,7 @@ iscore::DocumentDelegatePluginModel::DocumentDelegatePluginModel(
 
 }
 
-iscore::DocumentDelegatePluginModel::~DocumentDelegatePluginModel()
+iscore::DocumentPluginModel::~DocumentPluginModel()
 {
 
 }

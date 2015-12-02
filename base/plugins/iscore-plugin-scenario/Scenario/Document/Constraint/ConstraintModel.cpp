@@ -25,7 +25,7 @@ ConstraintModel::ConstraintModel(
         double yPos,
         QObject* parent) :
     IdentifiedObject<ConstraintModel> {id, "ConstraintModel", parent},
-    pluginModelList{iscore::IDocument::documentFromObject(parent), this},
+    pluginModelList{iscore::IDocument::documentContext(*parent), this},
     m_fullViewModel{new FullViewConstraintViewModel{fullViewId, *this, this}}
 {
     initConnections();
@@ -94,9 +94,9 @@ ConstraintModel::ConstraintModel(
 
 void ConstraintModel::setupConstraintViewModel(ConstraintViewModel* viewmodel)
 {
-    con(racks, &NotifyingMap<RackModel>::removed,
-        viewmodel, &ConstraintViewModel::on_rackRemoved);
+    racks.removing.connect<ConstraintViewModel, &ConstraintViewModel::on_rackRemoval>(viewmodel);
 
+    // TODO why not the one in identifiedobjectabstract
     connect(viewmodel, &QObject::destroyed,
             this, &ConstraintModel::on_destroyedViewModel);
 
@@ -123,14 +123,12 @@ void ConstraintModel::on_destroyedViewModel(QObject* obj)
 
 void ConstraintModel::initConnections()
 {
-    con(racks, &NotifyingMap<RackModel>::added,
-        this, &ConstraintModel::on_rackAdded);
+    racks.added.connect<ConstraintModel, &ConstraintModel::on_rackAdded>(this);
 }
 
 void ConstraintModel::on_rackAdded(const RackModel& rack)
 {
-    con(processes, &NotifyingMap<Process>::removed,
-        &rack, &RackModel::on_deleteSharedProcessModel);
+    processes.removed.connect<RackModel, &RackModel::on_deleteSharedProcessModel>(const_cast<RackModel&>(rack));
     con(duration, &ConstraintDurations::defaultDurationChanged,
         &rack, &RackModel::on_durationChanged);
 }

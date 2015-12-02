@@ -5,9 +5,8 @@
 #include <Explorer/Commands/Add/LoadDevice.hpp>
 #include <Explorer/Commands/Update/UpdateAddressSettings.hpp>
 #include <Explorer/DocumentPlugin/DeviceDocumentPlugin.hpp>
-#include <core/application/ApplicationComponents.hpp>
-#include <core/command/CommandStack.hpp>
-#include <core/document/Document.hpp>
+
+#include <iscore/command/CommandStackFacade.hpp>
 #include <iscore/document/DocumentInterface.hpp>
 #include <QAbstractProxyModel>
 #include <QApplication>
@@ -39,8 +38,8 @@
 #include <Explorer/DocumentPlugin/NodeUpdateProxy.hpp>
 #include <State/ValueConversion.hpp>
 #include "Widgets/DeviceEditDialog.hpp" // TODO why here??!!
-#include <core/application/ApplicationContext.hpp>
-#include <core/document/DocumentContext.hpp>
+#include <iscore/application/ApplicationContext.hpp>
+#include <iscore/document/DocumentContext.hpp>
 #include <iscore/plugins/customfactory/FactoryFamily.hpp>
 #include <iscore/plugins/customfactory/FactoryMap.hpp>
 #include <iscore/plugins/customfactory/StringFactoryKey.hpp>
@@ -119,7 +118,7 @@ QModelIndexList DeviceExplorerModel::selectedIndexes() const
 }
 
 void
-DeviceExplorerModel::setCommandQueue(iscore::CommandStack* q)
+DeviceExplorerModel::setCommandQueue(iscore::CommandStackFacade* q)
 {
     m_cmdQ = q;
 }
@@ -967,16 +966,33 @@ MessageList getSelectionSnapshot(DeviceExplorerModel& model)
 
 
 #include <Explorer/PanelBase/DeviceExplorerPanelModel.hpp>
-#include <core/document/DocumentModel.hpp>
 
 DeviceExplorerModel* try_deviceExplorerFromObject(const QObject& obj)
 {
-    return iscore::IDocument::documentFromObject(obj)->model().panel<DeviceExplorerPanelModel>()->deviceExplorer();
+    auto plug = iscore::IDocument::documentContext(obj).findPlugin<DeviceDocumentPlugin>();
+    if(plug)
+        return plug->updateProxy.deviceExplorer;
+    return nullptr;
 }
 
 DeviceExplorerModel& deviceExplorerFromObject(const QObject& obj)
 {
     auto expl = try_deviceExplorerFromObject(obj);
+    ISCORE_ASSERT(expl);
+    return *expl;
+}
+
+DeviceExplorerModel* try_deviceExplorerFromContext(const iscore::DocumentContext& ctx)
+{
+    auto plug = ctx.findPlugin<DeviceDocumentPlugin>();
+    if(plug)
+        return plug->updateProxy.deviceExplorer;
+    return nullptr;
+}
+
+DeviceExplorerModel& deviceExplorerFromContext(const iscore::DocumentContext& ctx)
+{
+    auto expl = try_deviceExplorerFromContext(ctx);
     ISCORE_ASSERT(expl);
     return *expl;
 }

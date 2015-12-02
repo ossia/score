@@ -1,5 +1,5 @@
 #pragma once
-#include <core/document/DocumentContext.hpp>
+#include <iscore/document/DocumentContext.hpp>
 
 class ProcessFocusManager;
 class ScenarioDocumentPresenter;

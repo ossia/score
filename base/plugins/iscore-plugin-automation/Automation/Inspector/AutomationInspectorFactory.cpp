@@ -15,7 +15,7 @@ class Document;
 
 InspectorWidgetBase* AutomationInspectorFactory::makeWidget(
         const QObject& sourceElement,
-        iscore::Document& doc,
+        const iscore::DocumentContext& doc,
         QWidget* parent) const
 {
     return new AutomationInspectorWidget{
