@@ -12,7 +12,7 @@ case "$TRAVIS_OS_NAME" in
     fi
 
     sudo apt-get update -qq
-    sudo apt-get install -qq g++-5 libboost1.55-dev libavahi-compat-libdnssd-dev libportmidi-dev ninja-build
+    sudo apt-get install -qq g++-5 libboost1.55-dev libavahi-compat-libdnssd-dev libportmidi-dev ninja-build gcovr lcov
 
     if [[ "$STATIC_QT" = "True" ]];
     then

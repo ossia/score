@@ -29,6 +29,7 @@ struct VisitorVariant;
 #if defined(__APPLE__) && defined(ISCORE_DEPLOYMENT_BUILD)
 #include <TTFoundationAPI.h>
 #include <TTModular.h>
+#include <QFileInfo>
 #endif
 #include <OSSIA/DocumentPlugin/ContextMenu/PlayContextMenu.hpp>
 #include <Explorer/DocumentPlugin/DeviceDocumentPlugin.hpp>

@@ -19,6 +19,9 @@ option(ISCORE_BUILD_FOR_PACKAGE_MANAGER "Set FHS-friendly install paths" OFF)
 option(ISCORE_OPENGL "Use OpenGL for rendering" OFF)
 option(ISCORE_IEEE "Use a graphical skin adapted to publication" OFF)
 option(ISCORE_WEBSOCKETS "Run a websocket server in the scenario" OFF)
+
+option(ISCORE_COVERAGE "Enable coverage" OFF)
+
 if(ISCORE_OPENGL)
         add_definitions(-DISCORE_OPENGL)
 endif()
@@ -72,13 +75,20 @@ if(INTEGRATION_TESTING)
 endif()
 
 if(ISCORE_STATIC_PLUGINS)
-    set(BUILD_SHARED_LIBS OFF)
-    add_definitions(-DISCORE_STATIC_PLUGINS)
-    add_definitions(-DQT_STATICPLUGIN)
+  set(BUILD_SHARED_LIBS OFF)
+  add_definitions(-DISCORE_STATIC_PLUGINS)
+  add_definitions(-DQT_STATICPLUGIN)
 else()
-    set(BUILD_SHARED_LIBS ON)
+  set(BUILD_SHARED_LIBS ON)
 endif()
 
+if(ISCORE_COVERAGE)
+  include("${CMAKE_CURRENT_LIST_DIR}/modules/CodeCoverage.cmake")
+  set(CMAKE_BUILD_TYPE "Debug")
+  set(CMAKE_CXX_FLAGS "${CMAKE_CXX_FLAGS} ${CMAKE_CXX_FLAGS_COVERAGE}")
+  set(CMAKE_EXE_LINKER_FLAGS_COVERAGE "${CMAKE_EXE_LINKER_FLAGS} ${CMAKE_EXE_LINKER_FLAGS_COVERAGE}")
+  set(CMAKE_SHARED_LINKER_FLAGS_COVERAGE "${CMAKE_SHARED_LINKER_FLAGS} ${CMAKE_SHARED_LINKER_FLAGS_COVERAGE}")
+endif()
 
 # Note : if building with a Qt installed in e.g. /home/myuser/Qt/ or /Users/Qt or c:\Qt\
 # keep in mind that you have to call CMake with :
