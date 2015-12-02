@@ -2,6 +2,7 @@
 #include <unordered_map>
 #include <utility>
 
+#include <iscore/plugins/customfactory/StringFactoryKeySerialization.hpp>
 #include <Scenario/Commands/ScenarioCommandFactory.hpp>
 #include <iscore_plugin_scenario_commands_files.hpp>
 #include <iscore/command/CommandGeneratorMap.hpp>

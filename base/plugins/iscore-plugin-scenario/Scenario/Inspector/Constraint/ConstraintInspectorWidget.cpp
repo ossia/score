@@ -58,6 +58,7 @@
 #include <iscore/tools/NotifyingMap.hpp>
 #include <iscore/tools/Todo.hpp>
 #include <iscore/widgets/SpinBoxes.hpp>
+#include <iscore/plugins/customfactory/StringFactoryKeySerialization.hpp>
 
 using namespace Scenario::Command;
 using namespace iscore;
