@@ -19,6 +19,7 @@
 #include <iscore/tools/NotifyingMap.hpp>
 #include <iscore/tools/SettableIdentifier.hpp>
 #include <iscore/tools/std/StdlibWrapper.hpp>
+#include <iscore/plugins/customfactory/StringFactoryKeySerialization.hpp>
 
 template <typename T> class Reader;
 template <typename T> class Writer;
