@@ -21,6 +21,9 @@ CommentBlockView::CommentBlockView(
 
     m_textItem = new QGraphicsTextItem{"", this};
     m_textItem->setDefaultTextColor(Qt::white);
+
+    connect(m_textItem->document(), &QTextDocument::contentsChanged,
+            this, [&] () {this->prepareGeometryChange();});
 }
 
 void CommentBlockView::paint(QPainter* painter,
