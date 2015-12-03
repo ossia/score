@@ -49,6 +49,9 @@ QRectF CommentBlockView::boundingRect() const
 
 void CommentBlockView::setSelected(bool b)
 {
+    if(m_selected == b)
+        return;
+
     m_selected = b;
     SetTextInteraction(b);
 }
