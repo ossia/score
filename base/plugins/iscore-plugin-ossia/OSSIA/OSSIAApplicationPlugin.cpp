@@ -30,6 +30,7 @@ struct VisitorVariant;
 #include <TTFoundationAPI.h>
 #include <TTModular.h>
 #include <QFileInfo>
+#include <QDir>
 #endif
 #include <OSSIA/DocumentPlugin/ContextMenu/PlayContextMenu.hpp>
 #include <Explorer/DocumentPlugin/DeviceDocumentPlugin.hpp>
