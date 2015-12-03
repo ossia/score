@@ -93,7 +93,7 @@ void NetworkApplicationPlugin::populateMenus(MenubarManager* menu)
 void NetworkApplicationPlugin::setupClientConnection(QString ip, int port)
 {
     m_sessionBuilder = std::make_unique<ClientSessionBuilder>(
-                m_appContext,
+                context,
                 ip,
                 port);
 

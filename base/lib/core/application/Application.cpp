@@ -173,7 +173,7 @@ void Application::init()
 
     // MVP
     m_view = new View{this};
-    m_presenter = new Presenter{*this, m_view, this};
+    m_presenter = new Presenter{m_applicationSettings, m_view, this};
 
     // Plugins
     loadPluginData();
@@ -193,16 +193,13 @@ void Application::init()
     {
         for(const auto& doc : m_applicationSettings.loadList)
             m_presenter->documentManager().loadFile(doc);
+    }
 
-        if(!m_presenter->documentManager().documents().empty())
+    for(auto plug : context().components.applicationPlugins())
+    {
+        if(plug->handleStartup())
         {
-            if(m_applicationSettings.autoplay)
-            {
-                // TODO find a better way, most likely by allowing plug-ins to have
-                // command line arguments, too. Eww.
-                emit autoplay();
-            }
-            return; // A document was loaded correctly
+            return;
         }
     }
 
@@ -222,11 +219,9 @@ void Application::init()
 
 void Application::loadPluginData()
 {
-    // TODO finish to do this properly.
     ApplicationRegistrar registrar{m_presenter->components(), *this};
 
-    PluginLoader loader {this};
-    loader.loadPlugins(registrar);
+    PluginLoader::loadPlugins(registrar, m_presenter->applicationContext());
 
     registrar.registerApplicationContextPlugin(new UndoApplicationPlugin{context(), m_presenter});
     registrar.registerPanel(new UndoPanelFactory);

@@ -83,12 +83,6 @@ ScenarioApplicationPlugin::ScenarioApplicationPlugin(const iscore::ApplicationCo
         editionSettings().setDefault();
     });
 
-    connect(ctx.app.presenter().view(), &iscore::View::activeWindowChanged,
-            this, [&] () {
-        editionSettings().setDefault();
-    });
-
-
     // Note : they are constructed here, because
     // they need to be available quickly for other plug-ins,
     // not after factory loading.
@@ -317,6 +311,11 @@ void ScenarioApplicationPlugin::on_documentChanged(
         if(bev)
             bev->view().setFocus();
     }
+}
+
+void ScenarioApplicationPlugin::on_activeWindowChanged()
+{
+    editionSettings().setDefault();
 }
 
 void ScenarioApplicationPlugin::initColors()

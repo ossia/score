@@ -37,6 +37,7 @@ struct VisitorVariant;
 #include <Scenario/Document/ScenarioDocument/ScenarioDocumentModel.hpp>
 #include <core/application/Application.hpp>
 #include <core/document/Document.hpp>
+#include <core/presenter/DocumentManager.hpp>
 #include <core/document/DocumentModel.hpp>
 #include <algorithm>
 #include <vector>
@@ -89,9 +90,6 @@ OSSIAApplicationPlugin::OSSIAApplicationPlugin(const iscore::ApplicationContext&
         auto t = playCM->playFromHereAction().data().value<::TimeValue>();
         on_play(true, t);
     });
-
-    con(ctx.app, &iscore::Application::autoplay,
-        this, [&] () { on_play(true); });
 }
 
 OSSIAApplicationPlugin::~OSSIAApplicationPlugin()
@@ -128,6 +126,21 @@ iscore::DocumentPluginModel*OSSIAApplicationPlugin::loadDocumentPlugin(
 {
     // We don't have anything to load; it's easier to just recreate.
     return nullptr;
+}
+
+bool OSSIAApplicationPlugin::handleStartup()
+{
+    if(!context.documents.documents().empty())
+    {
+        if(context.settings.autoplay)
+        {
+            // TODO what happens if we load multiple documents ?
+            on_play(true);
+            return true;
+        }
+    }
+
+    return false;
 }
 
 void OSSIAApplicationPlugin::on_newDocument(iscore::Document* doc)

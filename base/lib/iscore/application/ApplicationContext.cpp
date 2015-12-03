@@ -12,10 +12,10 @@ iscore::ApplicationContext::ApplicationContext(iscore::Application& appli):
 
 
 iscore::ApplicationContext::ApplicationContext(
-        iscore::Application& app,
+        const iscore::ApplicationSettings& app,
         const iscore::ApplicationComponents& c,
         iscore::DocumentManager& d):
-    app{app},
+    settings{app},
     components{c},
     documents{d}
 {

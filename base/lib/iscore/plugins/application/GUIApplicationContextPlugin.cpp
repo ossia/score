@@ -21,7 +21,7 @@ using namespace iscore;
 GUIApplicationContextPlugin::GUIApplicationContextPlugin(const iscore::ApplicationContext& app,
                                                const QString& name,
                                                QObject* parent):
-    m_appContext{app}
+    context{app}
 {
 
 }
@@ -56,14 +56,14 @@ DocumentPluginModel*GUIApplicationContextPlugin::loadDocumentPlugin(
     return nullptr;
 }
 
-const ApplicationContext& GUIApplicationContextPlugin::context() const
-{
-    return m_appContext;
-}
-
 Document*GUIApplicationContextPlugin::currentDocument() const
 {
-    return m_appContext.documents.currentDocument();
+    return context.documents.currentDocument();
+}
+
+bool GUIApplicationContextPlugin::handleStartup()
+{
+    return false;
 }
 
 void GUIApplicationContextPlugin::prepareNewDocument()
@@ -75,6 +75,11 @@ void GUIApplicationContextPlugin::prepareNewDocument()
 void GUIApplicationContextPlugin::on_documentChanged(
         iscore::Document* olddoc,
         iscore::Document* newdoc)
+{
+
+}
+
+void GUIApplicationContextPlugin::on_activeWindowChanged()
 {
 
 }

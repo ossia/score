@@ -45,11 +45,6 @@ static QStringList pluginsDir()
 #endif
 }
 
-PluginLoader::PluginLoader(Application* app):
-    m_app{app}
-{
-}
-
 std::pair<QString, QObject*> PluginLoader::loadPlugin(
         const QString &fileName,
         const std::vector<QObject*>& availablePlugins)
@@ -97,7 +92,9 @@ std::pair<QString, QObject*> PluginLoader::loadPlugin(
     return {};
 }
 
-void PluginLoader::loadPlugins(iscore::ApplicationRegistrar& registrar)
+void PluginLoader::loadPlugins(
+        iscore::ApplicationRegistrar& registrar,
+        const iscore::ApplicationContext& context)
 {
     auto folders = pluginsDir();
 
@@ -168,7 +165,7 @@ void PluginLoader::loadPlugins(iscore::ApplicationRegistrar& registrar)
         auto ctrl_plugin = qobject_cast<GUIApplicationContextPlugin_QtInterface*> (plugin);
         if(ctrl_plugin)
         {
-            auto plug = ctrl_plugin->make_applicationPlugin(m_app->context());
+            auto plug = ctrl_plugin->make_applicationPlugin(context);
             registrar.registerApplicationContextPlugin(plug);
         }
     });
@@ -208,13 +205,12 @@ void PluginLoader::loadPlugins(iscore::ApplicationRegistrar& registrar)
             registrar.registerCommands(commands_plugin->make_commands());
         }
 
-        const ApplicationContext& c = m_app->context();
         auto factories_plugin = qobject_cast<FactoryInterface_QtInterface*> (plugin);
         if(factories_plugin)
         {
             for(auto& factory_family : registrar.components().factories)
             {
-                for(auto&& new_factory : factories_plugin->factories(c, factory_family.first))
+                for(auto&& new_factory : factories_plugin->factories(context, factory_family.first))
                 {
                     factory_family.second->insert(std::move(new_factory));
                 }

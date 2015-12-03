@@ -8,7 +8,6 @@
 
 class QObject;
 namespace iscore {
-class Application;
 class Document;
 class MenubarManager;
 struct OrderedToolbar;

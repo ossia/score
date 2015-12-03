@@ -32,6 +32,8 @@ void ApplicationRegistrar::registerPlugins(
         const QStringList& pluginFiles,
         const std::vector<QObject*>& vec)
 {
+    // We need a list for all the plug-ins present on the system even if we do not load them.
+    // Else we can't blacklist / unblacklist plug-ins.
     m_components.pluginFiles = pluginFiles;
     m_components.plugins = vec;
 }
@@ -44,6 +46,13 @@ void ApplicationRegistrar::registerApplicationContextPlugin(
     auto toolbars = ctrl->makeToolbars();
     auto& currentToolbars = m_app.presenter().toolbars();
     currentToolbars.insert(currentToolbars.end(), toolbars.begin(), toolbars.end());
+
+    connect(m_app.presenter().view(), &iscore::View::activeWindowChanged,
+           [=] () {
+        ctrl->on_activeWindowChanged();
+        // TODO give a context if it is deleted
+
+    });
 
     m_components.appPlugins.push_back(ctrl);
 }

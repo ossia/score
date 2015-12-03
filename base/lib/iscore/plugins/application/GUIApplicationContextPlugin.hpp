@@ -16,7 +16,6 @@ struct VisitorVariant;
 
 namespace iscore
 {
-    class Application;
     class DocumentPluginModel;
     class MenubarManager;
 
@@ -53,8 +52,11 @@ namespace iscore
                     const VisitorVariant& var,
                     iscore::Document *parent);
 
-            const ApplicationContext& context() const;
+            const ApplicationContext& context;
             Document* currentDocument() const;
+
+            // Returns true if the start-up was handled by this plug-in.
+            virtual bool handleStartup();
 
             virtual void on_newDocument(iscore::Document* doc);
             virtual void on_loadedDocument(iscore::Document* doc);
@@ -64,8 +66,7 @@ namespace iscore
                     iscore::Document* olddoc,
                     iscore::Document* newdoc);
 
-        protected:
-            const ApplicationContext& m_appContext;
+            virtual void on_activeWindowChanged();
     };
 
 }

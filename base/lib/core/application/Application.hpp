@@ -53,6 +53,8 @@ namespace iscore
             { return m_settings.get(); }
 
             const ApplicationContext& context() const;
+            const ApplicationSettings& appSettings() const
+            { return m_applicationSettings; }
 
         signals:
             void autoplay();
@@ -72,5 +74,4 @@ namespace iscore
             ApplicationSettings m_applicationSettings;
     };
 
-    const ApplicationContext& AppContext();
 }

@@ -11,11 +11,10 @@
 #include <iscore/widgets/OrderedToolbar.hpp>
 
 class QObject;
-namespace iscore {
-class Application;
-}  // namespace iscore
 
-iscore::UndoApplicationPlugin::UndoApplicationPlugin(const iscore::ApplicationContext& app, QObject* parent):
+iscore::UndoApplicationPlugin::UndoApplicationPlugin(
+        const iscore::ApplicationContext& app,
+        QObject* parent):
     iscore::GUIApplicationContextPlugin{app, "UndoApplicationPlugin", parent},
     m_undoAction{"Undo", nullptr},
     m_redoAction{"Redo", nullptr}

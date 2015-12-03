@@ -1,6 +1,7 @@
 #pragma once
 #include <QStringList>
-
+namespace iscore
+{
 struct ApplicationSettings
 {
         bool tryToRestore = true;
@@ -10,3 +11,4 @@ struct ApplicationSettings
 
         void parse();
 };
+}

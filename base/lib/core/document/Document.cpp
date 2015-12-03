@@ -19,9 +19,6 @@
 
 class QWidget;
 class Selection;
-namespace iscore {
-class Application;
-}  // namespace iscore
 #include <iscore/tools/SettableIdentifier.hpp>
 
 using namespace iscore;

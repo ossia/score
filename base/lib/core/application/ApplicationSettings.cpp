@@ -9,7 +9,8 @@
 #include <QString>
 
 #include "ApplicationSettings.hpp"
-
+namespace iscore
+{
 void ApplicationSettings::parse()
 {
     QCommandLineParser parser;
@@ -38,4 +39,5 @@ void ApplicationSettings::parse()
     {
         loadList.push_back(args[0]);
     }
+}
 }

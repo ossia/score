@@ -4,20 +4,23 @@
 namespace iscore
 {
 class ApplicationComponents;
-class Application;
+class ApplicationSettings;
 class DocumentManager;
 struct ApplicationContext
 {
         explicit ApplicationContext(
-                iscore::Application& app,
+                const iscore::ApplicationSettings&,
                 const ApplicationComponents&,
                 DocumentManager&);
         ApplicationContext(const ApplicationContext&) = delete;
         ApplicationContext(ApplicationContext&&) = delete;
         ApplicationContext& operator=(const ApplicationContext&) = delete;
 
-        iscore::Application& app;
+        const iscore::ApplicationSettings& settings;
         const iscore::ApplicationComponents& components;
         DocumentManager& documents;
 };
+
+// By default this is defined in iscore::Application
+const ApplicationContext& AppContext();
 }

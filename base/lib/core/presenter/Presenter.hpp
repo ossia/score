@@ -14,7 +14,6 @@ namespace iscore
 {
     class View;
 
-
     /**
      * @brief The Presenter class
      *
@@ -29,7 +28,7 @@ namespace iscore
             Q_OBJECT
         public:
             Presenter(
-                    iscore::Application& app,
+                    const iscore::ApplicationSettings& app,
                     iscore::View* view,
                     QObject* parent);
 

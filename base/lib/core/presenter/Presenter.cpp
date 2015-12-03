@@ -43,7 +43,7 @@ namespace iscore
 {
 
 Presenter::Presenter(
-        iscore::Application& app,
+        const iscore::ApplicationSettings& app,
         View* view,
         QObject* arg_parent) :
     NamedObject {"Presenter", arg_parent},
@@ -148,11 +148,12 @@ void Presenter::setupMenus()
                                       ViewMenuElement::Windows);
 
     ////// Settings //////
+    /*
     m_menubar.addActionIntoToplevelMenu(ToplevelMenuElement::SettingsMenu,
                                         SettingsMenuElement::Settings,
                                         std::bind(&SettingsView::exec,
                                                   qobject_cast<Application*> (parent())->settings()->view()));
-
+    */
     ////// About /////
     m_menubar.addActionIntoToplevelMenu(ToplevelMenuElement::AboutMenu,
                                         AboutMenuElement::About, [] () {

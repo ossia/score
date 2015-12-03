@@ -42,6 +42,8 @@ class OSSIAApplicationPlugin final :
                 const VisitorVariant& var,
                 iscore::Document* parent) override;
 
+        bool handleStartup() override;
+
         void on_newDocument(iscore::Document* doc) override;
         void on_loadedDocument(iscore::Document* doc) override;
 

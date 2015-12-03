@@ -6,36 +6,26 @@
 
 namespace iscore
 {
-class Application;
+class ApplicationContext;
 class ApplicationRegistrar;
 
-class PluginLoader
+namespace PluginLoader
 {
-        friend class iscore::Application;
-    public:
-        PluginLoader(iscore::Application* app);
+/**
+ * @brief loadPlugins
+ *
+ * Reloads all the plug-ins.
+ * Note: for now this is unsafe after the first loading.
+ */
+void loadPlugins(iscore::ApplicationRegistrar&,
+                 const iscore::ApplicationContext& context);
 
-        /**
-             * @brief loadPlugins
-             *
-             * Reloads all the plug-ins.
-             * Note: for now this is unsafe after the first loading.
-             */
-        void loadPlugins(iscore::ApplicationRegistrar&);
+// QString is set if it's a valid plug-in file,
+// QObject* is set if the plug-in could be loaded
+std::pair<QString, QObject*> loadPlugin(
+        const QString& filename,
+        const std::vector<QObject*>& availablePlugins);
 
-    private:
-        iscore::Application* m_app{};
-
-        // We need a list for all the plug-ins present on the system even if we do not load them.
-        // Else we can't blacklist / unblacklist plug-ins.
-        QStringList m_pluginsOnSystem;
-
-        // QString is set if it's a valid plug-in file,
-        // QObject* is set if the plug-in could be loaded
-        std::pair<QString, QObject*> loadPlugin(
-                const QString& filename,
-                const std::vector<QObject*>& availablePlugins);
-
-        QStringList pluginsBlacklist();
-};
+QStringList pluginsBlacklist();
+}
 }
