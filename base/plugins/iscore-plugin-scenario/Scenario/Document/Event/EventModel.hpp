@@ -109,5 +109,5 @@ class EventModel final : public IdentifiedObject<EventModel>
         VerticalExtent m_extent;
         TimeValue m_date{TimeValue::zero()};
 
-        ExecutionStatus m_status{ExecutionStatus::Editing};
+        ExecutionStatusProperty m_status{};
 };
