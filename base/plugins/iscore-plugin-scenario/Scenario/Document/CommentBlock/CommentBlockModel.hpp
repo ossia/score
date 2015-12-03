@@ -31,11 +31,17 @@ class CommentBlockModel final : public IdentifiedObject<CommentBlockModel>
                 const TimeValue& date,
                 double yPos,
                 QObject* parent);
-        CommentBlockModel(const CommentBlockModel& source, const Id<CommentBlockModel> &id, QObject *parent):
-            IdentifiedObject<CommentBlockModel>{id, "CommentBlockModel", parent}
+
+        template<typename DeserializerVisitor>
+        CommentBlockModel(DeserializerVisitor&& vis, QObject* parent) :
+            IdentifiedObject{vis, parent}
         {
-            qDebug() << "boarf";
+            vis.writeTo(*this);
         }
+
+        CommentBlockModel(const CommentBlockModel& source,
+                          const Id<CommentBlockModel> &id,
+                          QObject *parent);
 
         void setDate(const TimeValue& date);
         const TimeValue& date() const;

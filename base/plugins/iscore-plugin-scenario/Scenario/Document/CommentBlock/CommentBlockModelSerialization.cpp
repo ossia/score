@@ -21,23 +21,38 @@ template <typename model> class IdentifiedObject;
 template<>
 void Visitor<Reader<DataStream>>::readFrom(const CommentBlockModel& comment)
 {
+    readFrom(static_cast<const IdentifiedObject<CommentBlockModel>&>(comment));
 
+    m_stream << comment.m_date
+             << comment.m_yposition
+             << comment.m_HTMLcontent;
+
+    insertDelimiter();
 }
 
 template<>
 void Visitor<Writer<DataStream>>::writeTo(CommentBlockModel& comment)
 {
-
+    m_stream >> comment.m_date
+             >> comment.m_yposition
+             >> comment.m_HTMLcontent;
+    checkDelimiter();
 }
 
 template<>
 void Visitor<Reader<JSONObject>>::readFrom(const CommentBlockModel& comment)
 {
+    readFrom(static_cast<const IdentifiedObject<CommentBlockModel>&>(comment));
 
+    m_obj["Date"] = toJsonValue(comment.m_date);
+    m_obj["HeightPercentage"] = comment.m_yposition;
+    m_obj["HTMLContent"] = comment.m_HTMLcontent;
 }
 
 template<>
 void Visitor<Writer<JSONObject>>::writeTo(CommentBlockModel& comment)
 {
-
+    comment.m_date = fromJsonValue<TimeValue>(m_obj["Date"]);
+    comment.m_yposition = m_obj["HeightPercentage"].toDouble();
+    comment.m_HTMLcontent = m_obj["HTMLContent"].toString();
 }

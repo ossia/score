@@ -79,6 +79,15 @@ void Visitor<Reader<DataStream>>::readFrom(const Scenario::ScenarioModel& scenar
         readFrom(state);
     }
 
+    // Comments
+    const auto& comments = scenario.comments;
+    m_stream << (int32_t) comments.size();
+
+    for(const auto& cmt : comments)
+    {
+        readFrom(cmt);
+    }
+
     insertDelimiter();
 }
 
@@ -136,6 +145,15 @@ void Visitor<Writer<DataStream>>::writeTo(Scenario::ScenarioModel& scenario)
         scenario.states.add(stmodel);
     }
 
+    int32_t cmt_count;
+    m_stream >> cmt_count;
+
+    for(; cmt_count -- > 0 ;)
+    {
+        auto cmtModel = new CommentBlockModel {*this, &scenario};
+        scenario.comments.add(cmtModel);
+    }
+
     checkDelimiter();
 }
 
@@ -157,6 +175,7 @@ void Visitor<Reader<JSONObject>>::readFrom(const Scenario::ScenarioModel& scenar
     m_obj["Events"] = toJsonArray(scenario.events);
     m_obj["States"] = toJsonArray(scenario.states);
     m_obj["Constraints"] = toJsonArray(scenario.constraints);
+    m_obj["Comments"] = toJsonArray(scenario.comments);
 }
 
 template<>
@@ -195,6 +214,15 @@ void Visitor<Writer<JSONObject>>::writeTo(Scenario::ScenarioModel& scenario)
                        &scenario};
 
         scenario.events.add(evmodel);
+    }
+
+    for(const auto& json_vref : m_obj["Comments"].toArray())
+    {
+        auto cmtmodel = new CommentBlockModel {
+                       Deserializer<JSONObject>{json_vref.toObject() },
+                       &scenario};
+
+        scenario.comments.add(cmtmodel);
     }
 
     auto& stack = iscore::IDocument::documentContext(scenario).commandStack;

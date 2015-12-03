@@ -450,6 +450,10 @@ void TemporalScenarioPresenter::updateAllElements()
     {
         m_viewInterface.on_timeNodeMoved(timenode);
     }
+    for(auto& comment : m_comments)
+    {
+        m_viewInterface.on_commentMoved(comment);
+    }
 /*
     // They are updated by the event.
     for(auto& state : m_states)

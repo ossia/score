@@ -12,6 +12,17 @@ CommentBlockModel::CommentBlockModel(const Id<CommentBlockModel>& id,
 {
 }
 
+CommentBlockModel::CommentBlockModel(const CommentBlockModel& source,
+                                     const Id<CommentBlockModel>& id,
+                                     QObject* parent):
+    IdentifiedObject<CommentBlockModel>{id, "CommentBlockModel", parent}
+{
+    m_date = source.date();
+    m_yposition = source.heightPercentage();
+    m_HTMLcontent = source.content();
+
+}
+
 void CommentBlockModel::setDate(const TimeValue& date)
 {
     if(date != m_date)
