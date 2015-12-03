@@ -27,7 +27,7 @@ class Application;
 using namespace iscore;
 
 DocumentContext::DocumentContext(Document& d):
-    app{*safe_cast<iscore::Application*>(d.parent()->parent())},
+    app{iscore::AppContext()},
     document{d},
     commandStack{d.m_commandStackFacade},
     selectionStack{d.selectionStack()},

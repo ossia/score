@@ -16,6 +16,7 @@
 #include <QPluginLoader>
 #include <QSettings>
 #include <QVariant>
+#include <core/application/Application.hpp>
 #include <unordered_map>
 #include <utility>
 
@@ -167,7 +168,7 @@ void PluginLoader::loadPlugins(iscore::ApplicationRegistrar& registrar)
         auto ctrl_plugin = qobject_cast<GUIApplicationContextPlugin_QtInterface*> (plugin);
         if(ctrl_plugin)
         {
-            auto plug = ctrl_plugin->make_applicationPlugin(*m_app);
+            auto plug = ctrl_plugin->make_applicationPlugin(m_app->context());
             registrar.registerApplicationContextPlugin(plug);
         }
     });
@@ -207,7 +208,7 @@ void PluginLoader::loadPlugins(iscore::ApplicationRegistrar& registrar)
             registrar.registerCommands(commands_plugin->make_commands());
         }
 
-        ApplicationContext c{*m_app};
+        const ApplicationContext& c = m_app->context();
         auto factories_plugin = qobject_cast<FactoryInterface_QtInterface*> (plugin);
         if(factories_plugin)
         {

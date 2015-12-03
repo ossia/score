@@ -163,7 +163,7 @@ class Visitor<Reader<DataStream>> final : public AbstractVisitor
         QDataStream m_stream_impl;
 
     public:
-        iscore::ApplicationContext context;
+        const iscore::ApplicationContext& context;
         DataStreamInput m_stream{m_stream_impl};
 };
 
@@ -261,7 +261,7 @@ class Visitor<Writer<DataStream>> : public AbstractVisitor
         QDataStream m_stream_impl;
 
     public:
-        iscore::ApplicationContext context;
+        const iscore::ApplicationContext& context;
         DataStreamOutput m_stream{m_stream_impl};
 };
 

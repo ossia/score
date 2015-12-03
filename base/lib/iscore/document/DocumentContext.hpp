@@ -17,7 +17,7 @@ struct DocumentContext
         DocumentContext& operator=(const DocumentContext&) = delete;
         DocumentContext& operator=(DocumentContext&&) = delete;
 
-        iscore::ApplicationContext app;
+        const iscore::ApplicationContext& app;
         iscore::Document& document;
         iscore::CommandStackFacade& commandStack;
         iscore::SelectionStack& selectionStack;

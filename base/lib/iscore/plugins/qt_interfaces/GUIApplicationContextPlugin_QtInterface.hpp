@@ -10,7 +10,7 @@ namespace iscore
         public:
             virtual ~GUIApplicationContextPlugin_QtInterface();
 
-            virtual GUIApplicationContextPlugin* make_applicationPlugin(iscore::Application& app) = 0;
+            virtual GUIApplicationContextPlugin* make_applicationPlugin(const iscore::ApplicationContext& app) = 0;
     };
 }
 

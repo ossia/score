@@ -2,7 +2,6 @@
 #include <Audio/AudioFactory.hpp>
 #include <Audio/AudioDocumentPlugin.hpp>
 #include <core/document/Document.hpp>
-#include <core/application/Application.hpp>
 #include <iscore/plugins/application/GUIApplicationContextPlugin.hpp>
 #include <Scenario/Application/ScenarioApplicationPlugin.hpp>
 
@@ -40,7 +39,7 @@ namespace Audio
 class ApplicationPlugin : public iscore::GUIApplicationContextPlugin
 {
     public:
-        ApplicationPlugin(iscore::Application& app):
+        ApplicationPlugin(const iscore::ApplicationContext& app):
             iscore::GUIApplicationContextPlugin{app, "AudioApplicationPlugin", &app}
         {
 
@@ -51,9 +50,7 @@ class ApplicationPlugin : public iscore::GUIApplicationContextPlugin
             auto plug = new AudioDocumentPlugin{*doc, &doc->model()};
             doc->model().addPluginModel(plug);
 
-
-            iscore::ApplicationContext ctx{iscore::Application::instance()};
-            auto& ctrl = ctx.components.applicationPlugin<ScenarioApplicationPlugin>();
+            auto& ctrl = doc->context().app.components.applicationPlugin<ScenarioApplicationPlugin>();
             auto acts = ctrl.actions();
             for(const auto& act : acts)
             {
@@ -73,7 +70,7 @@ class ApplicationPlugin : public iscore::GUIApplicationContextPlugin
 
 };
 }
-iscore::GUIApplicationContextPlugin*iscore_plugin_audio::make_applicationPlugin(iscore::Application& app)
+iscore::GUIApplicationContextPlugin*iscore_plugin_audio::make_applicationPlugin(const iscore::ApplicationContext& app)
 {
     return new Audio::ApplicationPlugin{app};
 }

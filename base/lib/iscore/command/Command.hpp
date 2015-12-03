@@ -30,7 +30,7 @@ namespace iscore
             quint32 timestamp() const;
             void setTimestamp(quint32 stmp);
 
-            iscore::ApplicationContext context;
+            const iscore::ApplicationContext& context;
 
         private:
             //TODO check if this is UTC

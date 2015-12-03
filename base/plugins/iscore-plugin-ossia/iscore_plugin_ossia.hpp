@@ -11,7 +11,7 @@
 #include <iscore/plugins/customfactory/FactoryInterface.hpp>
 
 namespace iscore {
-class Application;
+
 }  // namespace iscore
 
 class iscore_plugin_ossia final :
@@ -33,7 +33,7 @@ class iscore_plugin_ossia final :
         virtual ~iscore_plugin_ossia() = default;
 
         iscore::GUIApplicationContextPlugin* make_applicationPlugin(
-                iscore::Application& app) override;
+                const iscore::ApplicationContext& app) override;
 
         // Contains the OSC, MIDI, Minuit factories
         std::vector<std::unique_ptr<iscore::FactoryInterfaceBase>> factories(

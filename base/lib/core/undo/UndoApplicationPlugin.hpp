@@ -25,7 +25,7 @@ namespace iscore
 class UndoApplicationPlugin final : public iscore::GUIApplicationContextPlugin
 {
     public:
-        UndoApplicationPlugin(iscore::Application& app, QObject* parent);
+        UndoApplicationPlugin(const iscore::ApplicationContext& app, QObject* parent);
         ~UndoApplicationPlugin();
 
         void populateMenus(MenubarManager*) override;

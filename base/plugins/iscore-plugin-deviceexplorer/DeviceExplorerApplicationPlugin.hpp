@@ -5,7 +5,7 @@
 #include <iscore/plugins/documentdelegate/plugin/DocumentDelegatePluginModel.hpp>
 
 namespace iscore {
-class Application;
+
 class Document;
 }  // namespace iscore
 struct VisitorVariant;
@@ -13,7 +13,7 @@ struct VisitorVariant;
 class DeviceExplorerApplicationPlugin final : public iscore::GUIApplicationContextPlugin
 {
     public:
-        DeviceExplorerApplicationPlugin(iscore::Application& app);
+        DeviceExplorerApplicationPlugin(const iscore::ApplicationContext& app);
 
         virtual iscore::DocumentPluginModel* loadDocumentPlugin(
                 const QString& name,

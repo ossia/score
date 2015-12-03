@@ -25,7 +25,7 @@ class iscore_plugin_audio final:
         ~iscore_plugin_audio();
 
         iscore::GUIApplicationContextPlugin* make_applicationPlugin(
-                iscore::Application& app) override;
+                const iscore::ApplicationContext& app) override;
 
         // Process & inspector
         std::vector<std::unique_ptr<iscore::FactoryInterfaceBase>> factories(

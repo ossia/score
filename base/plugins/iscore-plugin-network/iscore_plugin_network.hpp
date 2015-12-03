@@ -11,7 +11,7 @@
 #include <iscore/plugins/application/GUIApplicationContextPlugin.hpp>
 
 namespace iscore {
-class Application;
+
 class PanelFactory;
 }  // namespace iscore
 
@@ -35,7 +35,7 @@ class iscore_plugin_network :
 
         //iscore::SettingsDelegateFactoryInterface* settings_make() override;
 
-        iscore::GUIApplicationContextPlugin* make_applicationPlugin(iscore::Application& app) override;
+        iscore::GUIApplicationContextPlugin* make_applicationPlugin(const iscore::ApplicationContext& app) override;
 
         std::pair<const CommandParentFactoryKey, CommandGeneratorMap> make_commands() override;
 

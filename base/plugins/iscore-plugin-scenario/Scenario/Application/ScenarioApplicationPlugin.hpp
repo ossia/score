@@ -17,7 +17,7 @@ namespace Scenario {
 class ScenarioModel;
 }
 namespace iscore {
-class Application;
+
 class Document;
 class MenubarManager;
 struct OrderedToolbar;
@@ -29,7 +29,7 @@ class ScenarioApplicationPlugin final : public QObject, public iscore::GUIApplic
         Q_OBJECT
         friend class ScenarioContextMenuManager;
     public:
-        ScenarioApplicationPlugin(iscore::Application& app);
+        ScenarioApplicationPlugin(const iscore::ApplicationContext& app);
 
         void populateMenus(iscore::MenubarManager*) override;
         std::vector<iscore::OrderedToolbar> makeToolbars() override;

@@ -41,6 +41,7 @@ using namespace iscore;
 
 namespace iscore {
 class DocumentModel;
+
 }  // namespace iscore
 
 static Application* application_instance = nullptr;
@@ -219,11 +220,6 @@ void Application::init()
     }
 }
 
-Application &Application::instance()
-{
-    return *application_instance;
-}
-
 void Application::loadPluginData()
 {
     // TODO finish to do this properly.
@@ -232,7 +228,7 @@ void Application::loadPluginData()
     PluginLoader loader {this};
     loader.loadPlugins(registrar);
 
-    registrar.registerApplicationContextPlugin(new UndoApplicationPlugin{*this, m_presenter});
+    registrar.registerApplicationContextPlugin(new UndoApplicationPlugin{context(), m_presenter});
     registrar.registerPanel(new UndoPanelFactory);
 
     std::sort(m_presenter->toolbars().begin(), m_presenter->toolbars().end());
@@ -242,3 +238,28 @@ void Application::loadPluginData()
     }
 }
 
+const ApplicationContext& iscore::AppContext()
+{
+    return ::application_instance->context();
+}
+
+/*
+class TestApplication
+{
+    public:
+        TestApplication()
+        {
+
+            m_app = new SafeQApplication{argc, argv};
+            ::application_instance = this;
+        }
+
+
+        // Base stuff.
+        QApplication* m_app;
+
+        // MVP
+        View* m_view {};
+        Presenter* m_presenter {};
+};
+*/

@@ -12,7 +12,7 @@
 #include <iscore/plugins/customfactory/FactoryFamily.hpp>
 
 namespace iscore {
-class Application;
+
 }  // namespace iscore
 
 iscore_plugin_ossia::iscore_plugin_ossia() :
@@ -21,7 +21,7 @@ iscore_plugin_ossia::iscore_plugin_ossia() :
 }
 
 iscore::GUIApplicationContextPlugin* iscore_plugin_ossia::make_applicationPlugin(
-        iscore::Application& app)
+        const iscore::ApplicationContext& app)
 {
     return new OSSIAApplicationPlugin{app};
 }

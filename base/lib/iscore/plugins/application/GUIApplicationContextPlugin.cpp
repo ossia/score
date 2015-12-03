@@ -18,7 +18,7 @@ struct VisitorVariant;
 using namespace iscore;
 
 
-GUIApplicationContextPlugin::GUIApplicationContextPlugin(iscore::Application& app,
+GUIApplicationContextPlugin::GUIApplicationContextPlugin(const iscore::ApplicationContext& app,
                                                const QString& name,
                                                QObject* parent):
     m_appContext{app}
@@ -63,7 +63,7 @@ const ApplicationContext& GUIApplicationContextPlugin::context() const
 
 Document*GUIApplicationContextPlugin::currentDocument() const
 {
-    return m_appContext.app.presenter().documentManager().currentDocument();
+    return m_appContext.documents.currentDocument();
 }
 
 void GUIApplicationContextPlugin::prepareNewDocument()

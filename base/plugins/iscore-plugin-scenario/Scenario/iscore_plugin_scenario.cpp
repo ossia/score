@@ -37,7 +37,7 @@
 #include <iscore/plugins/qt_interfaces/GUIApplicationContextPlugin_QtInterface.hpp>
 
 namespace iscore {
-class Application;
+
 class DocumentDelegateFactoryInterface;
 class FactoryListInterface;
 class PanelFactory;
@@ -83,7 +83,7 @@ std::vector<iscore::DocumentDelegateFactoryInterface*> iscore_plugin_scenario::d
 }
 
 iscore::GUIApplicationContextPlugin* iscore_plugin_scenario::make_applicationPlugin(
-        iscore::Application& app)
+        const iscore::ApplicationContext& app)
 {
     return new ScenarioApplicationPlugin{app};
 }

@@ -39,7 +39,7 @@ struct VisitorVariant;
 
 using namespace iscore;
 
-NetworkApplicationPlugin::NetworkApplicationPlugin(iscore::Application& app) :
+NetworkApplicationPlugin::NetworkApplicationPlugin(const iscore::ApplicationContext& app) :
     GUIApplicationContextPlugin {app, "NetworkApplicationPlugin", nullptr}
 {
 #ifdef USE_ZEROCONF
@@ -93,7 +93,7 @@ void NetworkApplicationPlugin::populateMenus(MenubarManager* menu)
 void NetworkApplicationPlugin::setupClientConnection(QString ip, int port)
 {
     m_sessionBuilder = std::make_unique<ClientSessionBuilder>(
-                iscore::Application::instance().context(),
+                m_appContext,
                 ip,
                 port);
 

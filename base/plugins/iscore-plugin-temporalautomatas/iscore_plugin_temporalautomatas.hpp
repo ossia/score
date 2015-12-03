@@ -5,7 +5,7 @@
 #include <iscore/plugins/application/GUIApplicationContextPlugin.hpp>
 
 namespace iscore {
-class Application;
+
 }  // namespace iscore
 
 namespace TemporalAutomatas

@@ -40,8 +40,8 @@ struct VisitorVariant;
 #include <algorithm>
 #include <vector>
 
-OSSIAApplicationPlugin::OSSIAApplicationPlugin(iscore::Application& app):
-    iscore::GUIApplicationContextPlugin {app, "OSSIAApplicationPlugin", nullptr}
+OSSIAApplicationPlugin::OSSIAApplicationPlugin(const iscore::ApplicationContext& ctx):
+    iscore::GUIApplicationContextPlugin {ctx, "OSSIAApplicationPlugin", nullptr}
 {
 // Here we try to load the extensions first because of buggy behaviour in TTExtensionLoader and API.
 #if defined(__APPLE__) && defined(ISCORE_DEPLOYMENT_BUILD)
@@ -63,7 +63,6 @@ OSSIAApplicationPlugin::OSSIAApplicationPlugin(iscore::Application& app):
     // Another part that, at execution time, creates structures corresponding
     // to the Scenario plug-in with the OSSIA API.
 
-    iscore::ApplicationContext ctx{app};
     auto& ctrl = ctx.components.applicationPlugin<ScenarioApplicationPlugin>();
     auto acts = ctrl.actions();
     for(const auto& act : acts)
@@ -90,7 +89,7 @@ OSSIAApplicationPlugin::OSSIAApplicationPlugin(iscore::Application& app):
         on_play(true, t);
     });
 
-    con(app, &iscore::Application::autoplay,
+    con(ctx.app, &iscore::Application::autoplay,
         this, [&] () { on_play(true); });
 }
 

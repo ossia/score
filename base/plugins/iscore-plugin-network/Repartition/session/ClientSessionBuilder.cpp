@@ -10,7 +10,6 @@
 #include <iscore/command/SerializableCommand.hpp>
 #include <iscore/plugins/customfactory/StringFactoryKey.hpp>
 #include <iscore/tools/SettableIdentifier.hpp>
-#include <core/application/Application.hpp>
 #include <core/presenter/Presenter.hpp>
 #include <core/presenter/DocumentManager.hpp>
 #include <core/document/Document.hpp>
@@ -21,7 +20,7 @@
 #include "DocumentPlugins/NetworkClientDocumentPlugin.hpp"
 
 ClientSessionBuilder::ClientSessionBuilder(
-        iscore::ApplicationContext ctx,
+        const iscore::ApplicationContext& ctx,
         QString ip,
         int port):
     m_context{ctx}
@@ -97,7 +96,7 @@ void ClientSessionBuilder::on_messageReceived(const NetworkMessage& m)
         // in case somebody does undo, so that the computer who joined later can still
         // undo, too.
 
-        iscore::Document* doc = m_context.app.presenter().documentManager().loadDocument(
+        iscore::Document* doc = m_context.documents.loadDocument(
                        m_documentData,
                        m_context.components.availableDocuments().front()); // TODO id instead
 

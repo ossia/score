@@ -38,7 +38,7 @@ namespace iscore
             // Fournir menus de base : Fichier Edition Affichage Objet Arrangement Devices Fenêtre Paramètres Aide
 
         public:
-            GUIApplicationContextPlugin(iscore::Application& presenter,
+            GUIApplicationContextPlugin(const iscore::ApplicationContext& presenter,
                                    const QString& name,
                                    QObject* parent);
 
@@ -64,8 +64,8 @@ namespace iscore
                     iscore::Document* olddoc,
                     iscore::Document* newdoc);
 
-        private:
-            ApplicationContext m_appContext;
+        protected:
+            const ApplicationContext& m_appContext;
     };
 
 }

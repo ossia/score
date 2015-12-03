@@ -64,7 +64,7 @@
 class QPoint;
 class QPointF;
 namespace iscore {
-class Application;
+
 }  // namespace iscore
 
 using namespace iscore;
@@ -75,15 +75,15 @@ using namespace iscore;
 #include <core/view/View.hpp>
 
 void test_parse_expr_full();
-ScenarioApplicationPlugin::ScenarioApplicationPlugin(iscore::Application& app) :
-    GUIApplicationContextPlugin{app, "ScenarioApplicationPlugin", nullptr}
+ScenarioApplicationPlugin::ScenarioApplicationPlugin(const iscore::ApplicationContext& ctx) :
+    GUIApplicationContextPlugin{ctx, "ScenarioApplicationPlugin", nullptr}
 {
     connect(qApp, &QApplication::applicationStateChanged,
             this, [&] (Qt::ApplicationState st) {
         editionSettings().setDefault();
     });
 
-    connect(app.presenter().view(), &iscore::View::activeWindowChanged,
+    connect(ctx.app.presenter().view(), &iscore::View::activeWindowChanged,
             this, [&] () {
         editionSettings().setDefault();
     });

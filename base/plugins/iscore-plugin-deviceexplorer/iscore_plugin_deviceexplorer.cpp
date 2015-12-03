@@ -12,7 +12,7 @@ using namespace iscore;
 #include "DeviceExplorerApplicationPlugin.hpp"
 
 namespace iscore {
-class Application;
+
 class FactoryListInterface;
 class PanelFactory;
 }  // namespace iscore
@@ -38,7 +38,7 @@ std::vector<std::unique_ptr<iscore::FactoryListInterface>> iscore_plugin_devicee
 }
 
 GUIApplicationContextPlugin *iscore_plugin_deviceexplorer::make_applicationPlugin(
-        iscore::Application& app)
+        const iscore::ApplicationContext& app)
 {
     return new DeviceExplorerApplicationPlugin{app};
 }

@@ -3,7 +3,7 @@
 
 class QAction;
 namespace iscore {
-class Application;
+
 class MenubarManager;
 }  // namespace iscore
 
@@ -14,7 +14,7 @@ class ApplicationPlugin :
         public iscore::GUIApplicationContextPlugin
 {
     public:
-        ApplicationPlugin(iscore::Application& app);
+        ApplicationPlugin(const iscore::ApplicationContext& app);
 
         void populateMenus(iscore::MenubarManager*) override;
 

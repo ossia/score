@@ -8,7 +8,7 @@
 #include <iscore/plugins/documentdelegate/plugin/DocumentDelegatePluginModel.hpp>
 
 namespace iscore {
-class Application;
+
 class Document;
 class MenubarManager;
 }  // namespace iscore
@@ -32,7 +32,7 @@ class OSSIAApplicationPlugin final :
         public iscore::GUIApplicationContextPlugin
 {
     public:
-        OSSIAApplicationPlugin(iscore::Application& app);
+        OSSIAApplicationPlugin(const iscore::ApplicationContext& app);
         ~OSSIAApplicationPlugin();
 
         void populateMenus(iscore::MenubarManager*) override;

@@ -8,7 +8,7 @@
 #include <iscore_plugin_network_commands_files.hpp>
 
 namespace iscore {
-class Application;
+
 class PanelFactory;
 }  // namespace iscore
 
@@ -29,7 +29,7 @@ iscore::SettingsDelegateFactoryInterface* iscore_plugin_network::settings_make()
     return new NetworkSettings;
 }
 */
-iscore::GUIApplicationContextPlugin* iscore_plugin_network::make_applicationPlugin(iscore::Application& app)
+iscore::GUIApplicationContextPlugin* iscore_plugin_network::make_applicationPlugin(const iscore::ApplicationContext& app)
 {
     return new NetworkApplicationPlugin{app};
 }

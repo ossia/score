@@ -49,6 +49,7 @@ AutomationInspectorWidget::AutomationInspectorWidget(
     // LineEdit
     // If there is a DeviceExplorer in the current document, use it
     // to make a widget.
+    // TODO instead of doing this, just make an address line edit factory.
     auto plug = doc.findPlugin<DeviceDocumentPlugin>();
     DeviceExplorerModel* explorer{};
     if(plug)

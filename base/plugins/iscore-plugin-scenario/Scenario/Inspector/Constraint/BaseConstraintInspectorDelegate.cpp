@@ -8,7 +8,6 @@
 #include <Scenario/Process/Algorithms/Accessors.hpp>
 
 #include <boost/optional/optional.hpp>
-#include <core/application/Application.hpp>
 
 #include <iscore/application/ApplicationContext.hpp>
 #include <QByteArray>
@@ -27,7 +26,7 @@
 #include <iscore/plugins/customfactory/StringFactoryKey.hpp>
 #include <iscore/serialization/DataStreamVisitor.hpp>
 #include <iscore/tools/ModelPathSerialization.hpp>
-
+#include <iscore/document/DocumentContext.hpp>
 class QWidget;
 
 BaseConstraintInspectorDelegate::BaseConstraintInspectorDelegate(
@@ -47,11 +46,11 @@ void BaseConstraintInspectorDelegate::addWidgets_pre(
         std::list<QWidget*>& widgets,
         ConstraintInspectorWidget* parent)
 {
-    iscore::ApplicationContext ctx{iscore::Application::instance()};
     auto& scenario = *safe_cast<BaseScenario*>(m_model.parent());
+    auto& ctx = iscore::IDocument::documentContext(scenario);
     auto& tn = endTimeNode(m_model, scenario);
     m_triggerLine = new TriggerInspectorWidget{
-                    ctx.components.factory<TriggerCommandFactoryList>(),
+                    ctx.app.components.factory<TriggerCommandFactoryList>(),
                     tn,
                     parent};
     m_triggerLine->HideRmButton();
@@ -63,12 +62,12 @@ void BaseConstraintInspectorDelegate::addWidgets_post(
         std::list<QWidget*>& widgets,
         ConstraintInspectorWidget* parent)
 {
-    iscore::ApplicationContext ctx{iscore::Application::instance()};
     auto& scenario = *safe_cast<BaseScenario*>(m_model.parent());
+    auto& ctx = iscore::IDocument::documentContext(scenario);
     auto& tn = endTimeNode(m_model, scenario);
 
     auto trWidg = new TriggerInspectorWidget{
-                  ctx.components.factory<TriggerCommandFactoryList>(),
+                  ctx.app.components.factory<TriggerCommandFactoryList>(),
                   tn,
                   parent};
     trWidg->HideRmButton();

@@ -11,7 +11,7 @@ class Transition_T<Scenario_T, ClickOnNothing> final :
         using MatchedTransition<Scenario_T, ClickOnNothing_Event>::MatchedTransition;
 
     protected:
-        void onTransition(QEvent *ev)
+        void onTransition(QEvent *ev) override
         {
             auto qev = static_cast<ClickOnNothing_Event*>(ev);
             this->state().clear();
@@ -32,7 +32,7 @@ class Transition_T<Scenario_T, MoveOnNothing> final:
         using MatchedTransition<Scenario_T, MoveOnNothing_Event>::MatchedTransition;
 
     protected:
-        void onTransition(QEvent *ev)
+        void onTransition(QEvent *ev) override
         {
             auto qev = static_cast<MoveOnNothing_Event*>(ev);
 
@@ -51,7 +51,7 @@ class Transition_T<Scenario_T, ReleaseOnNothing> final :
         using MatchedTransition<Scenario_T, ReleaseOnNothing_Event>::MatchedTransition;
 
     protected:
-        void onTransition(QEvent *ev)
+        void onTransition(QEvent *ev) override
         {
             auto qev = static_cast<ReleaseOnNothing_Event*>(ev);
 

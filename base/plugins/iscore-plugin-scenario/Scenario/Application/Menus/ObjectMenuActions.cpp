@@ -144,7 +144,7 @@ ObjectMenuActions::ObjectMenuActions(
 
     // ADD PROCESS
 
-    auto appContext = parent->context();
+    const auto& appContext = parent->context();
     auto& fact = appContext.components.factory<ProcessList>();
     m_addProcessDialog = new AddProcessDialog{fact, qApp->activeWindow()};
 

@@ -300,7 +300,11 @@ bool DocumentManager::loadStack()
                     currentDocument()->commandStack(),
                     [] (auto cmd) { cmd->redo(); }
         );
+
+        return true;
     }
+
+    return false;
 }
 
 Document* DocumentManager::loadFile()

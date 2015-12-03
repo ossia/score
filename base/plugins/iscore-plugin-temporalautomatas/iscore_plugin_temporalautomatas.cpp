@@ -2,7 +2,7 @@
 #include "iscore_plugin_temporalautomatas.hpp"
 
 namespace iscore {
-class Application;
+
 }  // namespace iscore
 
 iscore_plugin_temporalautomatas::iscore_plugin_temporalautomatas() :
@@ -10,7 +10,7 @@ iscore_plugin_temporalautomatas::iscore_plugin_temporalautomatas() :
 {
 }
 
-iscore::GUIApplicationContextPlugin*iscore_plugin_temporalautomatas::make_applicationPlugin(iscore::Application& app)
+iscore::GUIApplicationContextPlugin*iscore_plugin_temporalautomatas::make_applicationPlugin(const iscore::ApplicationContext& app)
 {
     return new TemporalAutomatas::ApplicationPlugin{app};
 }

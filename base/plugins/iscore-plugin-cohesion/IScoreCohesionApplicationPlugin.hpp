@@ -11,7 +11,7 @@ class ScenarioModel;
 struct Point;
 }  // namespace Scenario
 namespace iscore {
-class Application;
+
 class MenubarManager;
 struct OrderedToolbar;
 }  // namespace iscore
@@ -21,7 +21,7 @@ class IScoreCohesionApplicationPlugin final :
         public iscore::GUIApplicationContextPlugin
 {
     public:
-        IScoreCohesionApplicationPlugin(iscore::Application& app);
+        IScoreCohesionApplicationPlugin(const iscore::ApplicationContext& app);
         void populateMenus(iscore::MenubarManager*) override;
         std::vector<iscore::OrderedToolbar> makeToolbars() override;
 

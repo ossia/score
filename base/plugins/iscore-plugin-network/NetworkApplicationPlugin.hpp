@@ -8,7 +8,7 @@
 class ClientSession;
 class ClientSessionBuilder;
 namespace iscore {
-class Application;
+
 class Document;
 class MenubarManager;
 class Presenter;
@@ -28,7 +28,7 @@ class NetworkApplicationPlugin : public QObject, public iscore::GUIApplicationCo
         Q_OBJECT
 
     public:
-        NetworkApplicationPlugin(iscore::Application& app);
+        NetworkApplicationPlugin(const iscore::ApplicationContext& app);
         void populateMenus(iscore::MenubarManager*) override;
 
     public slots:

@@ -19,16 +19,14 @@
 #include <iscore/widgets/OrderedToolbar.hpp>
 
 namespace iscore {
-class Application;
+
 }  // namespace iscore
 
-IScoreCohesionApplicationPlugin::IScoreCohesionApplicationPlugin(iscore::Application& app) :
-    iscore::GUIApplicationContextPlugin {app, "IScoreCohesionApplicationPlugin", nullptr}
+IScoreCohesionApplicationPlugin::IScoreCohesionApplicationPlugin(const iscore::ApplicationContext& ctx) :
+    iscore::GUIApplicationContextPlugin {ctx, "IScoreCohesionApplicationPlugin", nullptr}
 {
     // Since we have declared the dependency, we can assume
     // that ScenarioApplicationPlugin is instantiated already.
-
-    iscore::ApplicationContext ctx{app};
     auto& appPlugin = ctx.components.applicationPlugin<ScenarioApplicationPlugin>();
     connect(&appPlugin, &ScenarioApplicationPlugin::startRecording,
             this, &IScoreCohesionApplicationPlugin::record);

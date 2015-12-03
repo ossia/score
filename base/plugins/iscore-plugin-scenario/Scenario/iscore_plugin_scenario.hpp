@@ -17,7 +17,7 @@
 #include <iscore/plugins/customfactory/FactoryInterface.hpp>
 
 namespace iscore {
-class Application;
+
 class DocumentDelegateFactoryInterface;
 class FactoryListInterface;
 class PanelFactory;
@@ -51,7 +51,7 @@ class iscore_plugin_scenario final :
         std::vector<iscore::DocumentDelegateFactoryInterface*> documents() override;
 
         // Application plugin interface
-        iscore::GUIApplicationContextPlugin* make_applicationPlugin(iscore::Application& app) override;
+        iscore::GUIApplicationContextPlugin* make_applicationPlugin(const iscore::ApplicationContext& app) override;
 
         // NOTE : implementation is in CommandNames.cpp
         std::pair<const CommandParentFactoryKey, CommandGeneratorMap> make_commands() override;

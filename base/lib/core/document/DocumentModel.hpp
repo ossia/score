@@ -36,7 +36,7 @@ class DocumentModel final : public IdentifiedObject<DocumentModel>
                 DocumentDelegateFactoryInterface* fact,
                 QObject* parent);
         DocumentModel(
-                iscore::ApplicationContext& ctx,
+                const iscore::ApplicationContext& ctx,
                 const QVariant &data,
                 DocumentDelegateFactoryInterface* fact,
                 QObject* parent);
@@ -79,11 +79,11 @@ class DocumentModel final : public IdentifiedObject<DocumentModel>
 
     private:
         void loadDocumentAsJson(
-                iscore::ApplicationContext& ctx,
+                const iscore::ApplicationContext& ctx,
                 const QJsonObject&,
                 DocumentDelegateFactoryInterface* fact);
         void loadDocumentAsByteArray(
-                iscore::ApplicationContext& ctx,
+                const iscore::ApplicationContext& ctx,
                 const QByteArray&,
                 DocumentDelegateFactoryInterface* fact);
 

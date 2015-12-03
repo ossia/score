@@ -146,7 +146,7 @@ Document::Document(const QVariant& data,
 }
 
 void DocumentModel::loadDocumentAsByteArray(
-        iscore::ApplicationContext& ctx,
+        const iscore::ApplicationContext& ctx,
         const QByteArray& data,
         DocumentDelegateFactoryInterface* fact)
 {
@@ -197,7 +197,7 @@ void DocumentModel::loadDocumentAsByteArray(
 }
 
 void DocumentModel::loadDocumentAsJson(
-        iscore::ApplicationContext& ctx,
+        const iscore::ApplicationContext& ctx,
         const QJsonObject& json,
         DocumentDelegateFactoryInterface* fact)
 {
@@ -224,7 +224,7 @@ void DocumentModel::loadDocumentAsJson(
 
 // Load document model
 DocumentModel::DocumentModel(
-        iscore::ApplicationContext& ctx,
+        const iscore::ApplicationContext& ctx,
         const QVariant& data,
         DocumentDelegateFactoryInterface* fact,
         QObject* parent) :

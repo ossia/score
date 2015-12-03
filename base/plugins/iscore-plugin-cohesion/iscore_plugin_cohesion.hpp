@@ -10,7 +10,7 @@
 #include <iscore/plugins/application/GUIApplicationContextPlugin.hpp>
 
 namespace iscore {
-class Application;
+
 }  // namespace iscore
 
 /**
@@ -40,7 +40,7 @@ class iscore_plugin_cohesion final :
         ~iscore_plugin_cohesion() = default;
 
         iscore::GUIApplicationContextPlugin* make_applicationPlugin(
-                iscore::Application& app) override;
+                const iscore::ApplicationContext& app) override;
 
         std::pair<const CommandParentFactoryKey, CommandGeneratorMap> make_commands() override;
 

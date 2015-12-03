@@ -9,7 +9,6 @@
 #include <Scenario/Document/TimeNode/Trigger/TriggerModel.hpp>
 #include <Scenario/Process/ScenarioModel.hpp>
 
-#include <core/application/Application.hpp>
 #include <iscore/menu/MenuInterface.hpp>
 #include <QAction>
 #include <QChar>
@@ -411,7 +410,7 @@ struct TAVisitor
 };
 
 #include <Scenario/Application/Menus/TextDialog.hpp>
-TemporalAutomatas::ApplicationPlugin::ApplicationPlugin(iscore::Application& app):
+TemporalAutomatas::ApplicationPlugin::ApplicationPlugin(const iscore::ApplicationContext& app):
     iscore::GUIApplicationContextPlugin(app, "TemporalAutomatasApplicationPlugin", &app)
 {
     m_convert = new QAction{tr("Convert to Temporal Automatas"), nullptr};

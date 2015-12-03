@@ -20,7 +20,7 @@ class ClientSessionBuilder : public QObject
         Q_OBJECT
     public:
         ClientSessionBuilder(
-                iscore::ApplicationContext,
+                const iscore::ApplicationContext&,
                 QString ip,
                 int port);
 
@@ -37,7 +37,7 @@ class ClientSessionBuilder : public QObject
         void sessionFailed();
 
     private:
-        iscore::ApplicationContext m_context;
+        const iscore::ApplicationContext& m_context;
         QString m_clientName{"A Client"};
         Id<Client> m_masterId, m_clientId;
         Id<Session> m_sessionId;

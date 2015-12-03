@@ -5,15 +5,19 @@ namespace iscore
 {
 class ApplicationComponents;
 class Application;
+class DocumentManager;
 struct ApplicationContext
 {
-        explicit ApplicationContext(iscore::Application&);
-        explicit ApplicationContext(iscore::Application&, const ApplicationComponents&);
-        ApplicationContext(const ApplicationContext&) = default;
-        ApplicationContext(ApplicationContext&&) = default;
-        ApplicationContext& operator=(const ApplicationContext&) = default;
+        explicit ApplicationContext(
+                iscore::Application& app,
+                const ApplicationComponents&,
+                DocumentManager&);
+        ApplicationContext(const ApplicationContext&) = delete;
+        ApplicationContext(ApplicationContext&&) = delete;
+        ApplicationContext& operator=(const ApplicationContext&) = delete;
 
         iscore::Application& app;
         const iscore::ApplicationComponents& components;
+        DocumentManager& documents;
 };
 }

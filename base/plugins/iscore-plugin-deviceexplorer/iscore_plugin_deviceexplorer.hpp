@@ -11,7 +11,7 @@
 #include <iscore/plugins/application/GUIApplicationContextPlugin.hpp>
 
 namespace iscore {
-class Application;
+
 class FactoryListInterface;
 class PanelFactory;
 }  // namespace iscore
@@ -41,7 +41,7 @@ class iscore_plugin_deviceexplorer final :
         std::vector<std::unique_ptr<iscore::FactoryListInterface>> factoryFamilies() override;
 
         // application plugin
-        iscore::GUIApplicationContextPlugin* make_applicationPlugin(iscore::Application& app) override;
+        iscore::GUIApplicationContextPlugin* make_applicationPlugin(const iscore::ApplicationContext& app) override;
 
         std::pair<const CommandParentFactoryKey, CommandGeneratorMap> make_commands() override;
 };

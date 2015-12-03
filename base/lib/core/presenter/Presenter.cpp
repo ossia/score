@@ -51,7 +51,7 @@ Presenter::Presenter(
     m_docManager{*this},
     m_components{},
     m_components_readonly{m_components},
-    m_context{app, m_components_readonly},
+    m_context{app, m_components_readonly, m_docManager},
     #ifdef __APPLE__
     m_menubar {new QMenuBar, this}
   #else

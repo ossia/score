@@ -9,11 +9,11 @@
 #include <core/document/DocumentModel.hpp>
 
 namespace iscore {
-class Application;
+
 }  // namespace iscore
 struct VisitorVariant;
 
-DeviceExplorerApplicationPlugin::DeviceExplorerApplicationPlugin(iscore::Application& app) :
+DeviceExplorerApplicationPlugin::DeviceExplorerApplicationPlugin(const iscore::ApplicationContext& app) :
     GUIApplicationContextPlugin {app, "DeviceExplorerApplicationPlugin", nullptr}
 {
 

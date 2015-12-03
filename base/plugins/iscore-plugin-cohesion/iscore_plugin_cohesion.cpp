@@ -7,7 +7,7 @@
 #include <iscore_plugin_cohesion_commands_files.hpp>
 
 namespace iscore {
-class Application;
+
 }  // namespace iscore
 
 
@@ -17,7 +17,7 @@ iscore_plugin_cohesion::iscore_plugin_cohesion() :
 }
 
 iscore::GUIApplicationContextPlugin* iscore_plugin_cohesion::make_applicationPlugin(
-        iscore::Application& app)
+        const iscore::ApplicationContext& app)
 {
     return new IScoreCohesionApplicationPlugin {app};
 }

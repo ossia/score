@@ -27,9 +27,6 @@ namespace iscore
             Q_OBJECT
             friend class ChildEventFilter;
         public:
-            // Returns the direct child of qApp.
-            static Application& instance();
-
             Application(
                     int& argc,
                     char** argv);
@@ -74,4 +71,6 @@ namespace iscore
 
             ApplicationSettings m_applicationSettings;
     };
+
+    const ApplicationContext& AppContext();
 }
