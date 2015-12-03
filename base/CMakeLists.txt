@@ -13,3 +13,7 @@ if(ANDROID)
 else()
     add_subdirectory(app)
 endif()
+
+if(ISCORE_COVERAGE)
+    add_subdirectory(testapp)
+endif()

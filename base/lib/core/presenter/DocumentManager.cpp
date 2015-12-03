@@ -289,15 +289,27 @@ bool DocumentManager::saveStack()
     return false;
 }
 
-bool DocumentManager::loadStack(
+Document* DocumentManager::loadStack(
         const iscore::ApplicationContext& ctx)
 {
     QString loadname = QFileDialog::getOpenFileName(&m_view, tr("Open Stack"), QString(), "*.stack");
     if(!loadname.isEmpty()
         && (loadname.indexOf(".stack") != -1) )
     {
-        QFile cmdF{loadname};
-        cmdF.open(QIODevice::ReadOnly);
+        return loadStack(ctx, loadname);
+    }
+
+    return nullptr;
+}
+
+Document* DocumentManager::loadStack(
+        const ApplicationContext &ctx,
+        const QString& loadname)
+{
+    QFile cmdF{loadname};
+
+    if(cmdF.open(QIODevice::ReadOnly))
+    {
         QByteArray cmdArr {cmdF.readAll()};
         cmdF.close();
 
@@ -306,21 +318,22 @@ bool DocumentManager::loadStack(
         Id<DocumentModel> id; //getStrongId(documents())
         writer.writeTo(id);
 
-        newDocument(ctx,
-                    id,
-                    ctx.components.availableDocuments().front());
+        prepareNewDocument(ctx);
+        auto doc = m_builder.newDocument(ctx,
+                                         id,
+                                         ctx.components.availableDocuments().front());
+        setupDocument(ctx, doc);
 
         loadCommandStack(
                     ctx.components,
                     writer,
-                    currentDocument()->commandStack(),
+                    doc->commandStack(),
                     [] (auto cmd) { cmd->redo(); }
         );
-
-        return true;
+        return doc;
     }
 
-    return false;
+    return nullptr;
 }
 
 Document* DocumentManager::loadFile(

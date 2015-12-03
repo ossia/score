@@ -15,6 +15,13 @@ namespace iscore
     class Presenter;
     class View;
 
+    class ApplicationInterface
+    {
+    public:
+        virtual ~ApplicationInterface();
+        virtual const ApplicationContext& context() const = 0;
+    };
+
     /**
      * @brief Application
      *
@@ -22,7 +29,7 @@ namespace iscore
      * parent of every other object created.
      * It does instantiate the rest of the software (MVP, settings, plugins).
      */
-    class Application final : public NamedObject
+    class Application final : public NamedObject, public ApplicationInterface
     {
             Q_OBJECT
             friend class ChildEventFilter;
@@ -43,21 +50,14 @@ namespace iscore
             int exec()
             { return m_app->exec(); }
 
-            Presenter& presenter() const
-            { return *m_presenter; }
-
-            View* view() const
-            { return m_view; }
-
             Settings* settings() const
             { return m_settings.get(); }
 
-            const ApplicationContext& context() const;
-            const ApplicationSettings& appSettings() const
-            { return m_applicationSettings; }
+            const ApplicationContext& context() const override;
+            void init(); // m_applicationSettings has to be set.
 
         private:
-            void init(); // m_applicationSettings has to be set.
+            void initDocuments();
             void loadPluginData();
 
             // Base stuff.
@@ -71,4 +71,30 @@ namespace iscore
             ApplicationSettings m_applicationSettings;
     };
 
+    void setQApplicationSettings(QApplication& app);
+
+
+    class TestApplication : public NamedObject, public iscore::ApplicationInterface
+    {
+        public:
+            TestApplication(int& argc, char** argv);
+            ~TestApplication();
+            const iscore::ApplicationContext& context() const override;
+
+
+            int exec()
+            { return m_app->exec(); }
+
+            // Base stuff.
+            QApplication* m_app;
+            std::unique_ptr<iscore::Settings> m_settings; // Global settings
+
+            // MVP
+            iscore::View* m_view {};
+            iscore::Presenter* m_presenter {};
+
+            iscore::ApplicationSettings m_applicationSettings;
+    };
 }
+
+

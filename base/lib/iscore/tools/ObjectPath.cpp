@@ -36,6 +36,7 @@ ObjectPath ObjectPath::pathBetweenObjects(
             v.push_back({ptr->objectName(), {}});
     };
 
+    // TODO only do this in debug mode
     QString debug_objectnames;
     // Recursively go through the object and all the parents
     while(current_obj != parent_obj)

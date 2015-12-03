@@ -87,8 +87,11 @@ class DocumentManager : public QObject
         bool saveDocumentAs(Document&);
 
         bool saveStack();
-        bool loadStack(
+        Document* loadStack(
                 const iscore::ApplicationContext& ctx);
+        Document* loadStack(
+                const iscore::ApplicationContext& ctx,
+                const QString&);
 
         Document* loadFile(
                 const iscore::ApplicationContext& ctx);
