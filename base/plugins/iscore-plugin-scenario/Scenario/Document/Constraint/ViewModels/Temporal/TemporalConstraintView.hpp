@@ -1,6 +1,16 @@
 #pragma once
 #include <Scenario/Document/Constraint/ViewModels/ConstraintView.hpp>
-#include <QPainter>
+#include <QColor>
+#include <QtGlobal>
+#include <QPoint>
+#include <QRect>
+#include <QString>
+
+class QGraphicsObject;
+class QGraphicsSceneHoverEvent;
+class QPainter;
+class QStyleOptionGraphicsItem;
+class QWidget;
 class TemporalConstraintPresenter;
 
 class TemporalConstraintView final : public ConstraintView

@@ -1,7 +1,8 @@
 #pragma once
-#include <vector>
 #include <utility>
-#include <QByteArray>
+#include <vector>
+
+class QByteArray;
 
 namespace iscore
 {

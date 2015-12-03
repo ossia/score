@@ -1,6 +1,9 @@
 #pragma once
 #include <Process/LayerModelPanelProxy.hpp>
+
 #include "TemporalScenarioLayerModel.hpp"
+
+class QObject;
 
 class TemporalScenarioPanelProxy final : public LayerModelPanelProxy
 {

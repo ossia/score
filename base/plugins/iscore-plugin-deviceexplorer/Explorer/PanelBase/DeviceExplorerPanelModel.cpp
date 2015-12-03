@@ -1,14 +1,16 @@
-#include "DeviceExplorerPanelModel.hpp"
-
-#include <Explorer/Explorer/DeviceExplorerModel.hpp>
-#include "DeviceExplorerPanelId.hpp"
-#include <core/document/DocumentModel.hpp>
 #include <Explorer/DocumentPlugin/DeviceDocumentPlugin.hpp>
+#include <Explorer/Explorer/DeviceExplorerModel.hpp>
+#include <Explorer/PanelBase/DeviceExplorerPanelId.hpp>
 
-DeviceExplorerPanelModel::DeviceExplorerPanelModel(iscore::DocumentModel* parent) :
+#include "DeviceExplorerPanelModel.hpp"
+#include <iscore/plugins/panel/PanelModel.hpp>
+
+DeviceExplorerPanelModel::DeviceExplorerPanelModel(
+        const iscore::DocumentContext& ctx,
+        QObject* parent) :
     iscore::PanelModel {"DeviceExplorerPanelModel", parent},
     m_model {new DeviceExplorerModel{
-                *parent->findChild<DeviceDocumentPlugin*>("DeviceDocumentPlugin"),
+                ctx.plugin<DeviceDocumentPlugin>(),
                 this}}
 {
 }

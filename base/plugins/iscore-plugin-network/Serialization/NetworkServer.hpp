@@ -1,5 +1,6 @@
 #pragma once
 #include <QObject>
+
 class QTcpServer;
 class QTcpSocket;
 

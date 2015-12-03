@@ -1,13 +1,19 @@
 #pragma once
 #include <Scenario/Commands/ScenarioCommandFactory.hpp>
+#include <boost/optional/optional.hpp>
 #include <iscore/command/SerializableCommand.hpp>
 #include <iscore/tools/ModelPath.hpp>
+#include <QByteArray>
+#include <QMap>
 
-#include <tests/helpers/ForwardDeclaration.hpp>
+#include <iscore/tools/SettableIdentifier.hpp>
 
 class ConstraintModel;
 class ConstraintViewModel;
+class DataStreamInput;
+class DataStreamOutput;
 class RackModel;
+
 namespace Scenario
 {
     namespace Command
@@ -19,8 +25,7 @@ namespace Scenario
          */
         class RemoveRackFromConstraint final : public iscore::SerializableCommand
         {
-                ISCORE_COMMAND_DECL(ScenarioCommandFactoryName(), RemoveRackFromConstraint, "RemoveRackFromConstraint")
-#include <tests/helpers/FriendDeclaration.hpp>
+                ISCORE_COMMAND_DECL(ScenarioCommandFactoryName(), RemoveRackFromConstraint, "Remove a rack")
             public:
                 RemoveRackFromConstraint(
                         Path<RackModel>&& rackPath);

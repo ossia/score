@@ -49,8 +49,8 @@ set(SRCS
 "${CMAKE_CURRENT_SOURCE_DIR}/DocumentPlugins/NetworkMasterDocumentPlugin.cpp"
 "${CMAKE_CURRENT_SOURCE_DIR}/IpDialog.cpp"
 "${CMAKE_CURRENT_SOURCE_DIR}/IpWidget.cpp"
-"${CMAKE_CURRENT_SOURCE_DIR}/NetworkPlugin.cpp"
-"${CMAKE_CURRENT_SOURCE_DIR}/NetworkControl.cpp"
+"${CMAKE_CURRENT_SOURCE_DIR}/iscore_plugin_network.cpp"
+"${CMAKE_CURRENT_SOURCE_DIR}/NetworkApplicationPlugin.cpp"
 "${CMAKE_CURRENT_SOURCE_DIR}/Repartition/session/ClientSession.cpp"
 "${CMAKE_CURRENT_SOURCE_DIR}/Repartition/session/ClientSessionBuilder.cpp"
 "${CMAKE_CURRENT_SOURCE_DIR}/Repartition/session/MasterSession.cpp"
@@ -91,6 +91,7 @@ if(${KF5DNSSD_FOUND})
 endif()
 
 add_library(${PROJECT_NAME} ${SRCS} ${HDRS} ${ZEROCONF_SRCS})
+iscore_generate_command_list_file(${PROJECT_NAME} "${HDRS}")
 
 target_link_libraries(${PROJECT_NAME}
                                     iscore_lib_base

@@ -1,8 +1,26 @@
-#include "RemoteClientBuilder.hpp"
 #include <Serialization/NetworkSocket.hpp>
-#include "MasterSession.hpp"
 #include <core/document/Document.hpp>
 #include <iscore/tools/SettableIdentifierGeneration.hpp>
+#include <QByteArray>
+#include <QDataStream>
+#include <QIODevice>
+#include <QList>
+#include <QPair>
+#include <sys/types.h>
+
+#include "MasterSession.hpp"
+#include "RemoteClientBuilder.hpp"
+#include "Serialization/NetworkMessage.hpp"
+#include <core/command/CommandStack.hpp>
+#include <iscore/command/SerializableCommand.hpp>
+#include <iscore/command/CommandData.hpp>
+#include <iscore/plugins/customfactory/StringFactoryKey.hpp>
+#include <iscore/serialization/DataStreamVisitor.hpp>
+#include "session/../client/LocalClient.hpp"
+#include "session/../client/RemoteClient.hpp"
+
+class Client;
+
 RemoteClientBuilder::RemoteClientBuilder(MasterSession& session, QTcpSocket* sock):
     m_session{session}
 {
@@ -42,18 +60,9 @@ void RemoteClientBuilder::on_messageReceived(const NetworkMessage& m)
         doc.address = "/session/document";
 
         // Data is the serialized command stack, and the document models.
-        auto& cq = m_session.document()->commandStack();
-        QList<QPair <QPair <CommandParentFactoryKey, CommandFactoryKey>, QByteArray> > commandStack; // TODO use a strong SerializedCommandStack for this
-        for(int i = 0; i < cq.size(); i++)
-        {
-            auto cmd = cq.command(i);
-            commandStack.push_back({{cmd->parentKey(), cmd->key()}, cmd->serialize()});
-        }
-
-        // TODO also transmit the position in the command stack (else if somebody undoes and transmits it will crash).
-        // Or use the CommandStackSave file.
-        QDataStream s{&doc.data, QIODevice::WriteOnly};
-        s << commandStack << m_session.document()->saveAsByteArray();
+        Visitor<Reader<DataStream>> vr{&doc.data};
+        vr.m_stream << m_session.document()->saveAsByteArray();
+        vr.readFrom(m_session.document()->commandStack());
 
         m_socket->sendMessage(doc);
 

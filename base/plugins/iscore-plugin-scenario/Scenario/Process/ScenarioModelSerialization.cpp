@@ -1,14 +1,38 @@
-#include <Scenario/Document/Event/EventModel.hpp>
 #include <Scenario/Document/Constraint/ConstraintModel.hpp>
-#include <Scenario/Document/TimeNode/TimeNodeModel.hpp>
+#include <Scenario/Document/Event/EventModel.hpp>
+#include <Scenario/Process/ScenarioModel.hpp>
 #include <Scenario/Process/Temporal/TemporalScenarioLayerModel.hpp>
-#include "ScenarioModel.hpp"
-#include <iscore/serialization/JSONValueVisitor.hpp>
-#include <iscore/serialization/VisitorCommon.hpp>
+
+#include <boost/optional/optional.hpp>
+#include <QJsonArray>
+#include <QJsonObject>
+#include <QJsonValue>
+#include <QString>
+#include <sys/types.h>
+#include <algorithm>
+
+#include <Process/ModelMetadata.hpp>
+#include <Scenario/Document/State/StateModel.hpp>
+#include <Scenario/Document/TimeNode/TimeNodeModel.hpp>
 #include "ScenarioFactory.hpp"
+#include <iscore/plugins/documentdelegate/plugin/ElementPluginModelList.hpp>
+#include <iscore/serialization/DataStreamVisitor.hpp>
+#include <iscore/serialization/JSONValueVisitor.hpp>
+#include <iscore/serialization/JSONVisitor.hpp>
+#include <iscore/serialization/VisitorCommon.hpp>
+#include <iscore/tools/NotifyingMap.hpp>
+#include <iscore/tools/SettableIdentifier.hpp>
+#include <iscore/document/DocumentContext.hpp>
+
+class LayerModel;
+class Process;
+class QObject;
+struct VisitorVariant;
+template <typename T> class Reader;
+template <typename T> class Writer;
 
 template<>
-void Visitor<Reader<DataStream>>::readFrom(const ScenarioModel& scenario)
+void Visitor<Reader<DataStream>>::readFrom(const Scenario::ScenarioModel& scenario)
 {
     readFrom(*scenario.pluginModelList);
 
@@ -55,11 +79,20 @@ void Visitor<Reader<DataStream>>::readFrom(const ScenarioModel& scenario)
         readFrom(state);
     }
 
+    // Comments
+    const auto& comments = scenario.comments;
+    m_stream << (int32_t) comments.size();
+
+    for(const auto& cmt : comments)
+    {
+        readFrom(cmt);
+    }
+
     insertDelimiter();
 }
 
 template<>
-void Visitor<Writer<DataStream>>::writeTo(ScenarioModel& scenario)
+void Visitor<Writer<DataStream>>::writeTo(Scenario::ScenarioModel& scenario)
 {
     scenario.pluginModelList = new iscore::ElementPluginModelList{*this, &scenario};
 
@@ -105,10 +138,20 @@ void Visitor<Writer<DataStream>>::writeTo(ScenarioModel& scenario)
     int32_t state_count;
     m_stream >> state_count;
 
+    auto& stack = iscore::IDocument::documentContext(scenario).commandStack;
     for(; state_count -- > 0;)
     {
-        auto stmodel = new StateModel {*this, &scenario};
+        auto stmodel = new StateModel {*this, stack, &scenario};
         scenario.states.add(stmodel);
+    }
+
+    int32_t cmt_count;
+    m_stream >> cmt_count;
+
+    for(; cmt_count -- > 0 ;)
+    {
+        auto cmtModel = new CommentBlockModel {*this, &scenario};
+        scenario.comments.add(cmtModel);
     }
 
     checkDelimiter();
@@ -118,7 +161,7 @@ void Visitor<Writer<DataStream>>::writeTo(ScenarioModel& scenario)
 
 
 template<>
-void Visitor<Reader<JSONObject>>::readFrom(const ScenarioModel& scenario)
+void Visitor<Reader<JSONObject>>::readFrom(const Scenario::ScenarioModel& scenario)
 {
     m_obj["PluginsMetadata"] = toJsonValue(*scenario.pluginModelList);
     m_obj["Metadata"] = toJsonObject(scenario.metadata);
@@ -132,10 +175,11 @@ void Visitor<Reader<JSONObject>>::readFrom(const ScenarioModel& scenario)
     m_obj["Events"] = toJsonArray(scenario.events);
     m_obj["States"] = toJsonArray(scenario.states);
     m_obj["Constraints"] = toJsonArray(scenario.constraints);
+    m_obj["Comments"] = toJsonArray(scenario.comments);
 }
 
 template<>
-void Visitor<Writer<JSONObject>>::writeTo(ScenarioModel& scenario)
+void Visitor<Writer<JSONObject>>::writeTo(Scenario::ScenarioModel& scenario)
 {
     Deserializer<JSONValue> elementPluginDeserializer(m_obj["PluginsMetadata"]);
     scenario.pluginModelList = new iscore::ElementPluginModelList{elementPluginDeserializer, &scenario};
@@ -172,10 +216,21 @@ void Visitor<Writer<JSONObject>>::writeTo(ScenarioModel& scenario)
         scenario.events.add(evmodel);
     }
 
+    for(const auto& json_vref : m_obj["Comments"].toArray())
+    {
+        auto cmtmodel = new CommentBlockModel {
+                       Deserializer<JSONObject>{json_vref.toObject() },
+                       &scenario};
+
+        scenario.comments.add(cmtmodel);
+    }
+
+    auto& stack = iscore::IDocument::documentContext(scenario).commandStack;
     for(const auto& json_vref : m_obj["States"].toArray())
     {
         auto stmodel = new StateModel {
                        Deserializer<JSONObject>{json_vref.toObject() },
+                       stack,
                        &scenario};
 
         scenario.states.add(stmodel);
@@ -184,7 +239,7 @@ void Visitor<Writer<JSONObject>>::writeTo(ScenarioModel& scenario)
 }
 
 
-void ScenarioModel::serialize(const VisitorVariant& vis) const
+void Scenario::ScenarioModel::serialize(const VisitorVariant& vis) const
 {
     serialize_dyn(vis, *this);
 }
@@ -194,10 +249,10 @@ Process* ScenarioFactory::loadModel(
         QObject* parent)
 {
     return deserialize_dyn(vis, [&] (auto&& deserializer)
-    { return new ScenarioModel{deserializer, parent};});
+    { return new Scenario::ScenarioModel{deserializer, parent};});
 }
 
-LayerModel* ScenarioModel::loadLayer_impl(
+LayerModel* Scenario::ScenarioModel::loadLayer_impl(
         const VisitorVariant& vis,
         QObject* parent)
 {

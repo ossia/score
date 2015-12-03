@@ -1,18 +1,24 @@
 #pragma once
-#include <iscore/tools/NamedObject.hpp>
-#include <iscore/tools/SettableIdentifier.hpp>
 #include <Process/ZoomHelper.hpp>
-#include <Process/ProcessList.hpp>
+#include <iscore/tools/NamedObject.hpp>
+#include <QPoint>
+#include <utility>
+#include <vector>
 
+#include <nano_signal_slot.hpp>
+#include <iscore/document/DocumentContext.hpp>
+
+class ProcessList;
+class QObject;
 class SlotModel;
 class SlotView;
+#include <iscore/tools/SettableIdentifier.hpp>
+
 namespace iscore
 {
-    class SerializableCommand;
 }
-class LayerPresenter;
-class Process;
 class LayerModel;
+class LayerPresenter;
 class LayerView;
 class RackView;
 
@@ -36,7 +42,7 @@ struct SlotProcessData
         std::vector<ProcessPair> processes;
 };
 
-class SlotPresenter final : public NamedObject
+class SlotPresenter final : public NamedObject, public Nano::Observer
 {
         Q_OBJECT
 
@@ -78,7 +84,7 @@ class SlotPresenter final : public NamedObject
     private:
         // From Model
         void on_layerModelCreated(const LayerModel&);
-        void on_layerModelDeleted(const LayerModel&);
+        void on_layerModelRemoved(const LayerModel&);
         void on_layerModelPutToFront(const LayerModel&);
 
         void on_layerModelCreated_impl(const LayerModel&);
@@ -87,7 +93,7 @@ class SlotPresenter final : public NamedObject
         void updateProcessShape(const SlotProcessData&);
         void updateProcessesShape();
 
-        const DynamicProcessList& m_processList;
+        const ProcessList& m_processList;
         const SlotModel& m_model;
         SlotView* m_view{};
         std::vector<SlotProcessData> m_processes;

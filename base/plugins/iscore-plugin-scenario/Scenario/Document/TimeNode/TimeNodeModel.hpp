@@ -1,18 +1,24 @@
 #pragma once
-#include <iscore/tools/IdentifiedObject.hpp>
-#include <iscore/tools/SettableIdentifier.hpp>
-#include <Scenario/Document/VerticalExtent.hpp>
 #include <Process/ModelMetadata.hpp>
 #include <Process/TimeValue.hpp>
-
-#include <iscore/serialization/DataStreamVisitor.hpp>
-#include <iscore/serialization/JSONVisitor.hpp>
-#include <iscore/selection/Selectable.hpp>
-
+#include <Scenario/Document/VerticalExtent.hpp>
+#include <boost/optional/optional.hpp>
 #include <iscore/plugins/documentdelegate/plugin/ElementPluginModelList.hpp>
+#include <iscore/selection/Selectable.hpp>
+#include <iscore/tools/IdentifiedObject.hpp>
+#include <iscore/tools/SettableIdentifier.hpp>
+#include <QObject>
+
+#include <QString>
+#include <QVector>
+#include <chrono>
+
+class DataStream;
 class EventModel;
-class TriggerModel;
+class JSONObject;
 class ScenarioInterface;
+class TriggerModel;
+
 class TimeNodeModel final : public IdentifiedObject<TimeNodeModel>
 {
         Q_OBJECT
@@ -27,7 +33,7 @@ class TimeNodeModel final : public IdentifiedObject<TimeNodeModel>
         ModelMetadata metadata;
         iscore::ElementPluginModelList pluginModelList;
 
-        static QString prettyName()
+        static QString description()
         { return QObject::tr("Time Node"); }
 
 
@@ -49,10 +55,6 @@ class TimeNodeModel final : public IdentifiedObject<TimeNodeModel>
                 const TimeNodeModel& source,
                 const Id<TimeNodeModel>& id,
                 QObject* parent);
-
-
-        // Utility
-        ScenarioInterface* parentScenario() const;
 
         // Data of the TimeNode
         const VerticalExtent& extent() const;

@@ -1,14 +1,22 @@
+#include <Scenario/Document/TimeNode/TimeNodeModel.hpp>
+#include <QString>
+
 #include "TimeNodeInspectorFactory.hpp"
 #include "TimeNodeInspectorWidget.hpp"
 
-#include <Scenario/Document/TimeNode/TimeNodeModel.hpp>
+class InspectorWidgetBase;
+class QObject;
+class QWidget;
+namespace iscore {
+class Document;
+}  // namespace iscore
 
 //using namespace iscore;
 
 InspectorWidgetBase* TimeNodeInspectorFactory::makeWidget(
         const QObject& sourceElement,
-        iscore::Document& doc,
-        QWidget* parent)
+        const iscore::DocumentContext& doc,
+        QWidget* parent) const
 {
     auto& timeNode = static_cast<const TimeNodeModel&>(sourceElement);
     return new TimeNodeInspectorWidget{timeNode, doc, parent};

@@ -1,6 +1,17 @@
 #include <iscore/serialization/DataStreamVisitor.hpp>
 #include <iscore/serialization/JSONVisitor.hpp>
+#include <QDataStream>
+#include <QtGlobal>
+#include <QJsonObject>
+#include <QJsonValue>
+#include <QString>
+#include <QStringList>
+
 #include "Address.hpp"
+
+template <typename T> class Reader;
+template <typename T> class Writer;
+
 template<>
 void Visitor<Reader<DataStream>>::readFrom(const iscore::Address& a)
 {

@@ -1,13 +1,18 @@
 #pragma once
 #include <iscore/plugins/panel/PanelModel.hpp>
-namespace iscore { class DocumentModel; }
+namespace iscore {
+class DocumentModel;
+struct DocumentContext;
+}
 class GroupManager;
 class Session;
 class GroupPanelModel : public iscore::PanelModel
 {
         Q_OBJECT
     public:
-        explicit GroupPanelModel(iscore::DocumentModel* model);
+        explicit GroupPanelModel(
+                const iscore::DocumentContext& ctx,
+                QObject* parent);
 
         int panelId() const override;
 
@@ -18,7 +23,7 @@ class GroupPanelModel : public iscore::PanelModel
         void update();
 
     private:
-        void scanPlugins();
+        void scanPlugins(const iscore::DocumentContext& ctx);
 
         GroupManager* m_currentManager{};
         Session* m_currentSession{};

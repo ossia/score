@@ -14,7 +14,7 @@ class ConstraintModel;
 class TimeNodeModel;
 class EventModel;
 class StateModel;
-class ScenarioModel;
+namespace Scenario { class ScenarioModel; }
 class ScenarioInterface;
 class BaseScenario;
 
@@ -27,7 +27,7 @@ class CSPScenario : public QObject
 public:
     //using QObject::QObject;
 
-    CSPScenario(const ScenarioModel& scenario, QObject *parent);
+    CSPScenario(const Scenario::ScenarioModel& scenario, QObject *parent);
     CSPScenario(const BaseScenario& baseScenario, QObject *parent);
 
     ~CSPScenario();

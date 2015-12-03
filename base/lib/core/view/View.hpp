@@ -1,16 +1,26 @@
 #pragma once
-#include <QMainWindow>
-#include <QDebug>
-#include <QMenuBar>
-#include <set>
 
+#include <QMainWindow>
+#include <QPair>
+#include <QString>
+#include <vector>
 #include <core/presenter/Action.hpp>
+
+class QCloseEvent;
+class QDockWidget;
+class QEvent;
+class QObject;
+class QTabWidget;
+
+#include <iscore/tools/SettableIdentifier.hpp>
+
 namespace iscore
 {
+    class DocumentModel;
+    class DocumentView;
     class PanelView;
     class Presenter;
-    class Document;
-    class DocumentView;
+
     /**
      * @brief The View class
      *
@@ -40,13 +50,17 @@ namespace iscore
              */
             void insertActionIntoMenubar(PositionedMenuAction);
 
-            void activeDocumentChanged(Document*);
-            void closeRequested(Document*);
+            void activeDocumentChanged(const Id<DocumentModel>&);
+            void closeRequested(const Id<DocumentModel>&);
+
+            void activeWindowChanged();
 
         public slots:
             void on_fileNameChanged(DocumentView* d, const QString& newName);
 
         private:
+            void changeEvent(QEvent *) override;
+
             std::vector<QPair<PanelView*, QDockWidget*>> m_leftWidgets;
             std::vector<QPair<PanelView*, QDockWidget*>> m_rightWidgets;
 

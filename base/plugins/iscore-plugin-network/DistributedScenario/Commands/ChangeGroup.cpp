@@ -1,7 +1,22 @@
-#include "ChangeGroup.hpp"
-#include "Scenario/Document/Constraint/ConstraintModel.hpp"
-#include "Scenario/Document/Event/EventModel.hpp"
+#include <boost/concept/usage.hpp>
+
 #include <boost/range/algorithm/find_if.hpp>
+#include <QObject>
+
+#include <QString>
+#include <vector>
+
+#include "ChangeGroup.hpp"
+#include "DistributedScenario/GroupMetadata.hpp"
+#include <Scenario/Document/Constraint/ConstraintModel.hpp>
+#include <Scenario/Document/Event/EventModel.hpp>
+#include <iscore/plugins/documentdelegate/plugin/ElementPluginModel.hpp>
+#include <iscore/plugins/documentdelegate/plugin/ElementPluginModelList.hpp>
+#include <iscore/serialization/DataStreamVisitor.hpp>
+#include <iscore/tools/ObjectPath.hpp>
+
+class Group;
+
 GroupMetadata* getGroupMetadata(QObject* obj)
 {
     using namespace boost::range;

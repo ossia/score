@@ -1,19 +1,21 @@
 #pragma once
-#include <iscore/command/SerializableCommand.hpp>
-#include <QString>
-
-#include <boost/mpl/list.hpp>
-#include <boost/mpl/map.hpp>
-#include <boost/mpl/for_each.hpp>
-
-#include <unordered_map>
+#include <QByteArray>
 #include <memory>
+#include <unordered_map>
+#include <utility>
+
+#include <iscore/command/CommandFactoryKey.hpp>
+
+namespace iscore
+{
+class SerializableCommand;
+}
 /**
  * This file contains utility classes to instantiate commands
  * when they are received from the network.
  *
- * Examples to use it can be seen in the curve plugin's AutomationControl (small)
- * and in ScenarioControl (big).
+ * Examples to use it can be seen in the curve plugin's AutomationApplicationPlugin (small)
+ * and in ScenarioApplicationPlugin (big).
  *
  * It involves putting the list of the command classes in a boost::mpl::list.
  * For each command, a factory will be generated and stored in a map with
@@ -58,22 +60,22 @@ class GenericCommandFactory : public CommandFactory
  */
 using CommandGeneratorMap = std::unordered_map<CommandFactoryKey, std::unique_ptr<CommandFactory>>;
 
-/**
- * @brief The CommandGeneratorMapInserter struct
- *
- * A functor that will instantiate all the command factories when passed to
- * a boost::mpl::for_each.
- */
+namespace iscore
+{
+namespace commands
+{
 
-struct CommandGeneratorMapInserter
+struct FactoryInserter
 {
         CommandGeneratorMap& fact;
-        template< typename TheCommand > void operator()(boost::type<TheCommand>)
+        template< typename TheCommand > void visit() const
         {
             fact.insert(std::pair<const CommandFactoryKey, std::unique_ptr<CommandFactory>>{
                                 TheCommand::static_key(),
                                 std::unique_ptr<CommandFactory>(new GenericCommandFactory<TheCommand>)
-                        }
-            );
+                        });
         }
 };
+
+}
+}

@@ -1,21 +1,29 @@
 #pragma once
-#include <iscore/tools/NamedObject.hpp>
-#include <QJsonObject>
+#include <iscore/document/DocumentContext.hpp>
 #include <iscore/plugins/documentdelegate/plugin/ElementPluginModel.hpp>
-#include <core/document/DocumentContext.hpp>
+#include <iscore/tools/NamedObject.hpp>
+#include <QString>
+#include <vector>
+
+class QObject;
+class QWidget;
+namespace iscore {
+class Document;
+}  // namespace iscore
+struct VisitorVariant;
 
 namespace iscore
 {
-class DocumentDelegatePluginModel : public NamedObject
+class DocumentPluginModel : public NamedObject
 {
         Q_OBJECT
     public:
-        DocumentDelegatePluginModel(
+        DocumentPluginModel(
                 iscore::Document&,
                 const QString& name,
                 QObject* parent);
 
-        virtual ~DocumentDelegatePluginModel();
+        virtual ~DocumentPluginModel();
 
         virtual std::vector<ElementPluginModelType> elementPlugins() const { return {}; }
         virtual ElementPluginModel* makeElementPlugin(

@@ -1,12 +1,17 @@
 #pragma once
 #include <Automation/Commands/AutomationCommandFactory.hpp>
-#include <iscore/tools/ModelPath.hpp>
-#include <iscore/command/SerializableCommand.hpp>
-#include <State/Address.hpp>
 #include <Curve/Segment/CurveSegmentData.hpp>
+#include <State/Address.hpp>
+#include <iscore/command/SerializableCommand.hpp>
+#include <iscore/tools/ModelPath.hpp>
+#include <vector>
+
+class DataStreamInput;
+class DataStreamOutput;
 /** Note : this command is for internal use only, in recording **/
 
 class AutomationModel;
+
 class InitAutomation final : public iscore::SerializableCommand
 {
         ISCORE_COMMAND_DECL(AutomationCommandFactoryName(), InitAutomation, "InitAutomation")

@@ -1,36 +1,42 @@
-#include "SlotInspectorSection.hpp"
-
-#include <Scenario/Inspector/Constraint/Widgets/Rack/Slot/AddLayerModelWidget.hpp>
-
+#include <Scenario/Commands/Constraint/Rack/RemoveSlotFromRack.hpp>
+#include <Scenario/Commands/Constraint/Rack/Slot/AddLayerModelToSlot.hpp>
+#include <Scenario/Commands/Constraint/Rack/Slot/RemoveLayerModelFromSlot.hpp>
+#include <Scenario/Commands/Metadata/ChangeElementName.hpp>
+#include <Scenario/Document/Constraint/ConstraintModel.hpp>
 #include <Scenario/Inspector/Constraint/ConstraintInspectorWidget.hpp>
 #include <Scenario/Inspector/Constraint/Widgets/Rack/RackInspectorSection.hpp>
-
-#include <Scenario/Document/Constraint/ConstraintModel.hpp>
-#include <Scenario/Document/Constraint/Rack/RackModel.hpp>
-#include <Scenario/Document/Constraint/Rack/Slot/SlotModel.hpp>
-
-#include <Scenario/Commands/Constraint/Rack/Slot/AddLayerModelToSlot.hpp>
-
-#include <Process/LayerModel.hpp>
-#include <Process/Process.hpp>
-
-#include <Scenario/Commands/Constraint/Rack/RemoveSlotFromRack.hpp>
-#include <Scenario/Commands/Constraint/Rack/Slot/RemoveLayerModelFromSlot.hpp>
-
+#include <Scenario/Inspector/Constraint/Widgets/Rack/Slot/AddLayerModelWidget.hpp>
 #include <Scenario/ViewCommands/PutLayerModelToFront.hpp>
-
-#include <iscore/document/DocumentInterface.hpp>
-#include <core/document/Document.hpp>
+#include <boost/optional/optional.hpp>
+#include <QBoxLayout>
+#include <QFrame>
+#include <QGridLayout>
+#include <QLabel>
 
 #include <QPushButton>
-#include <QLabel>
+#include <algorithm>
+
+#include <Inspector/InspectorSectionWidget.hpp>
+#include <Process/LayerModel.hpp>
+#include <Process/ModelMetadata.hpp>
+#include <Process/Process.hpp>
+#include <Scenario/Document/Constraint/Rack/Slot/SlotModel.hpp>
+#include "SlotInspectorSection.hpp"
+#include <iscore/command/Dispatchers/CommandDispatcher.hpp>
+#include <iscore/serialization/DataStreamVisitor.hpp>
+#include <iscore/tools/ModelPath.hpp>
+#include <iscore/tools/ModelPathSerialization.hpp>
+#include <iscore/tools/NotifyingMap.hpp>
+#include <iscore/tools/SettableIdentifier.hpp>
+#include <iscore/tools/Todo.hpp>
+
 using namespace Scenario::Command;
 
 SlotInspectorSection::SlotInspectorSection(
         const QString& name,
         const SlotModel& slot,
         RackInspectorSection* parentRack) :
-    InspectorSectionWidget {name, parentRack},
+    InspectorSectionWidget {name, false, parentRack},
     m_model {slot},
     m_parent{parentRack->constraintInspector()}
 {
@@ -43,14 +49,11 @@ SlotInspectorSection::SlotInspectorSection(
     addContent(framewidg);
 
     // View model list
-    m_lmSection = new InspectorSectionWidget{"Process View Models", this};
+    m_lmSection = new InspectorSectionWidget{"Process View Models", false, this};
     m_lmSection->setObjectName("LayerModels");
 
-    con(m_model.layers, &NotifyingMap<LayerModel>::added,
-        this, &SlotInspectorSection::on_layerModelCreated);
-
-    con(m_model.layers, &NotifyingMap<LayerModel>::removed,
-        this, &SlotInspectorSection::on_layerModelRemoved);
+    m_model.layers.added.connect<SlotInspectorSection, &SlotInspectorSection::on_layerModelCreated>(this);
+    m_model.layers.removed.connect<SlotInspectorSection, &SlotInspectorSection::on_layerModelRemoved>(this);
 
     for(const auto& lm : m_model.layers)
     {
@@ -71,6 +74,9 @@ SlotInspectorSection::SlotInspectorSection(
     });
 
     lay->addWidget(deleteButton);
+
+    connect(this, &InspectorSectionWidget::nameChanged,
+            this, &SlotInspectorSection::ask_changeName);
 }
 
 void SlotInspectorSection::createLayerModel(
@@ -149,4 +155,14 @@ void SlotInspectorSection::on_layerModelRemoved(const LayerModel& removed)
 const SlotModel&SlotInspectorSection::model() const
 {
     return m_model;
+}
+
+void SlotInspectorSection::ask_changeName(QString newName)
+{
+
+    if(newName != m_model.metadata.name())
+    {
+        auto cmd = new ChangeElementName<SlotModel>{m_model, newName};
+        emit m_parent->commandDispatcher()->submitCommand(cmd);
+    }
 }

@@ -1,7 +1,6 @@
 #pragma once
-#include <map>
 #include <QString>
-#include <QObject>
+#include <map>
 
 // TODO faire un script qui génère ça automatiquement
 namespace iscore
@@ -29,7 +28,10 @@ namespace iscore
         Separator_Export,
         Export,
         Separator_Quit,
-        Quit
+        Close,
+        Quit,
+        SaveCommands,
+        LoadCommands
     };
 
     enum class EditMenuElement

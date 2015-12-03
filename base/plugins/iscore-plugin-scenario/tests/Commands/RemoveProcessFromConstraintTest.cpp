@@ -40,7 +40,7 @@ class RemoveProcessFromConstraintTest: public QObject
             cmd.redo();
             QVERIFY(int_model2->processes().size() == 1);
 
-            auto s0 = static_cast<ScenarioModel*>(int_model2->processes().front());
+            auto s0 = static_cast<Scenario::ScenarioModel*>(int_model2->processes().front());
 
             auto int_0_id = getStrongId(s0->constraints());
             auto ev_0_id = getStrongId(s0->events());

@@ -1,18 +1,16 @@
 #pragma once
-#include <core/command/CommandStack.hpp>
+class BaseScenario;
+namespace Scenario {
 class ScenarioModel;
-class ScenarioGlobalCommandManager
+}  // namespace Scenario
+namespace iscore {
+class CommandStackFacade;
+}  // namespace iscore
+
+namespace Scenario
 {
-    public:
-        ScenarioGlobalCommandManager(iscore::CommandStack& stack):
-            m_commandStack{stack}
-        {
-
-        }
-
-        void removeSelection(const ScenarioModel &scenario);
-        void clearContentFromSelection(const ScenarioModel &scenario);
-
-    private:
-        iscore::CommandStack& m_commandStack;
-};
+void removeSelection(const Scenario::ScenarioModel&, iscore::CommandStackFacade&);
+void clearContentFromSelection(const Scenario::ScenarioModel&, iscore::CommandStackFacade&);
+void removeSelection(const BaseScenario&, iscore::CommandStackFacade&);
+void clearContentFromSelection(const BaseScenario&, iscore::CommandStackFacade&);
+}

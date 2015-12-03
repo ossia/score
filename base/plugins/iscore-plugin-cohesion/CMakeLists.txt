@@ -17,9 +17,10 @@ set(SRCS
 "${CMAKE_CURRENT_SOURCE_DIR}/Record/RecordManager.cpp"
 
 "${CMAKE_CURRENT_SOURCE_DIR}/iscore_plugin_cohesion.cpp"
-"${CMAKE_CURRENT_SOURCE_DIR}/IScoreCohesionControl.cpp"
+"${CMAKE_CURRENT_SOURCE_DIR}/IScoreCohesionApplicationPlugin.cpp"
 )
 add_library(${PROJECT_NAME} ${SRCS} ${HDRS})
+iscore_generate_command_list_file(${PROJECT_NAME} "${HDRS}")
 target_link_libraries(${PROJECT_NAME}
                         Qt5::Core Qt5::Widgets
                         iscore_lib_base iscore_plugin_scenario iscore_plugin_curve iscore_plugin_automation iscore_plugin_deviceexplorer)

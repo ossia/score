@@ -1,22 +1,45 @@
+
+#include <boost/optional/optional.hpp>
+#include <core/document/DocumentPresenter.hpp>
+#include <core/document/DocumentView.hpp>
+#include <iscore/plugins/application/GUIApplicationContextPlugin.hpp>
+#include <iscore/plugins/documentdelegate/DocumentDelegateFactoryInterface.hpp>
+#include <iscore/plugins/documentdelegate/DocumentDelegateModelInterface.hpp>
+#include <iscore/plugins/documentdelegate/plugin/DocumentDelegatePluginModel.hpp>
+#include <iscore/serialization/JSONVisitor.hpp>
+#include <iscore/tools/SettableIdentifierGeneration.hpp>
+#include <QByteArray>
+#include <QCryptographicHash>
+#include <QDataStream>
+#include <QtGlobal>
+#include <QIODevice>
+#include <QJsonObject>
+#include <QJsonValue>
+#include <QMetaType>
+#include <QPair>
+#include <QString>
+#include <QVariant>
+#include <QVector>
+#include <algorithm>
+#include <iterator>
+#include <stdexcept>
+#include <vector>
+
 #include "Document.hpp"
 #include "DocumentModel.hpp"
-
-#include <iscore/plugins/documentdelegate/DocumentDelegateModelInterface.hpp>
-#include <iscore/plugins/documentdelegate/DocumentDelegateFactoryInterface.hpp>
-#include <iscore/plugins/documentdelegate/plugin/DocumentDelegatePluginModel.hpp>
-
-#include <iscore/plugins/panel/PanelFactory.hpp>
-
-#include <iscore/plugins/panel/PanelModel.hpp>
-
-#include <core/document/DocumentView.hpp>
-#include <core/document/DocumentPresenter.hpp>
-#include <iscore/plugins/plugincontrol/PluginControlInterface.hpp>
-
-#include <iscore/tools/SettableIdentifierGeneration.hpp>
+#include <iscore/application/ApplicationComponents.hpp>
+#include <iscore/application/ApplicationContext.hpp>
+#include <core/command/CommandStack.hpp>
+#include <iscore/document/DocumentContext.hpp>
 #include <iscore/serialization/DataStreamVisitor.hpp>
-#include <iscore/serialization/JSONVisitor.hpp>
-#include <QCryptographicHash>
+#include <iscore/serialization/JSONValueVisitor.hpp>
+#include <iscore/tools/IdentifiedObject.hpp>
+#include <iscore/tools/NamedObject.hpp>
+#include <iscore/tools/SettableIdentifier.hpp>
+
+class QObject;
+class QWidget;
+
 using namespace iscore;
 
 
@@ -25,7 +48,7 @@ QByteArray Document::saveDocumentModelAsByteArray()
     QByteArray arr;
     Serializer<DataStream> s{&arr};
     s.readFrom(model().id());
-    m_model->modelDelegate()->serialize(s.toVariant());
+    m_model->modelDelegate().serialize(s.toVariant());
     return arr;
 }
 
@@ -33,7 +56,7 @@ QJsonObject Document::saveDocumentModelAsJson()
 {
     Serializer<JSONObject> s;
     s.m_obj["DocumentId"] = toJsonValue(model().id());
-    m_model->modelDelegate()->serialize(s.toVariant());
+    m_model->modelDelegate().serialize(s.toVariant());
     return s.m_obj;
 }
 
@@ -71,7 +94,7 @@ QByteArray Document::saveAsByteArray()
     std::transform(begin(model().pluginModels()),
                    end(model().pluginModels()),
                    std::back_inserter(documentPluginModels),
-                   [] (DocumentDelegatePluginModel* plugin)
+                   [] (DocumentPluginModel* plugin)
     {
         QByteArray arr;
         Serializer<DataStream> s{&arr};
@@ -114,16 +137,16 @@ Document::Document(const QVariant& data,
         throw;
     }
 
-    m_view = new DocumentView{factory, this, parentview};
+    m_view = new DocumentView{factory, *this, parentview};
     m_presenter = new DocumentPresenter{factory,
-                    m_model,
-                    m_view,
+                    *m_model,
+                    *m_view,
                     this};
     init();
 }
 
 void DocumentModel::loadDocumentAsByteArray(
-        iscore::ApplicationContext& ctx,
+        const iscore::ApplicationContext& ctx,
         const QByteArray& data,
         DocumentDelegateFactoryInterface* fact)
 {
@@ -152,9 +175,9 @@ void DocumentModel::loadDocumentAsByteArray(
     for(const auto& plugin_raw : documentPluginModels)
     {
         DataStream::Deserializer plug_writer{plugin_raw.second};
-        for(iscore::PluginControlInterface* control : ctx.components.pluginControls())
+        for(iscore::GUIApplicationContextPlugin* appPlug : ctx.components.applicationPlugins())
         {
-            if(auto loaded_plug = control->loadDocumentPlugin(
+            if(auto loaded_plug = appPlug->loadDocumentPlugin(
                         plugin_raw.first,
                         plug_writer.toVariant(),
                         safe_cast<iscore::Document*>(parent())))
@@ -174,7 +197,7 @@ void DocumentModel::loadDocumentAsByteArray(
 }
 
 void DocumentModel::loadDocumentAsJson(
-        iscore::ApplicationContext& ctx,
+        const iscore::ApplicationContext& ctx,
         const QJsonObject& json,
         DocumentDelegateFactoryInterface* fact)
 {
@@ -185,9 +208,9 @@ void DocumentModel::loadDocumentAsJson(
     for(const auto& key : json_plugins.keys())
     {
         JSONObject::Deserializer plug_writer{json_plugins[key].toObject()};
-        for(iscore::PluginControlInterface* control : ctx.components.pluginControls())
+        for(iscore::GUIApplicationContextPlugin* appPlug : ctx.components.applicationPlugins())
         {
-            if(auto loaded_plug = control->loadDocumentPlugin(key, plug_writer.toVariant(), safe_cast<iscore::Document*>(parent())))
+            if(auto loaded_plug = appPlug->loadDocumentPlugin(key, plug_writer.toVariant(), safe_cast<iscore::Document*>(parent())))
             {
                 addPluginModel(loaded_plug);
             }
@@ -201,7 +224,7 @@ void DocumentModel::loadDocumentAsJson(
 
 // Load document model
 DocumentModel::DocumentModel(
-        iscore::ApplicationContext& ctx,
+        const iscore::ApplicationContext& ctx,
         const QVariant& data,
         DocumentDelegateFactoryInterface* fact,
         QObject* parent) :

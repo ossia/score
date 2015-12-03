@@ -1,11 +1,16 @@
 #pragma once
 #include <Automation/Commands/AutomationCommandFactory.hpp>
 #include <Device/Address/AddressSettings.hpp>
-
-#include <iscore/tools/ModelPath.hpp>
 #include <iscore/command/SerializableCommand.hpp>
+#include <iscore/tools/ModelPath.hpp>
 
 class AutomationModel;
+class DataStreamInput;
+class DataStreamOutput;
+namespace iscore {
+struct Address;
+}  // namespace iscore
+
 class ChangeAddress final : public iscore::SerializableCommand
 {
         ISCORE_COMMAND_DECL(AutomationCommandFactoryName(), ChangeAddress, "ChangeAddress")

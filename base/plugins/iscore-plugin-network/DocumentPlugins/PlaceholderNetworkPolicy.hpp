@@ -1,13 +1,15 @@
 #pragma once
 #include "NetworkDocumentPlugin.hpp"
 
-#include <Repartition/session/Session.hpp>
-class PlaceholderNetworkPolicy : public NetworkPluginPolicy
+class QObject;
+class Session;
+
+class PlaceholderNetworkPolicy : public iscore_plugin_networkPolicy
 {
     public:
         template<typename Deserializer>
         PlaceholderNetworkPolicy(Deserializer&& vis, QObject* parent) :
-            NetworkPluginPolicy{parent}
+            iscore_plugin_networkPolicy{parent}
         {
             vis.writeTo(*this);
         }

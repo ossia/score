@@ -15,8 +15,8 @@ class MappingInspectorFactory final : public InspectorWidgetFactory
 
         InspectorWidgetBase* makeWidget(
                 const QObject& sourceElement,
-                iscore::Document& doc,
-                QWidget* parent) override
+                const iscore::DocumentContext& doc,
+                QWidget* parent) const override
         {
             return new MappingInspectorWidget{
                         safe_cast<const MappingModel&>(sourceElement),

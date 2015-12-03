@@ -1,6 +1,11 @@
-#include "SetRigidity.hpp"
-
 #include <Scenario/Document/Constraint/ConstraintModel.hpp>
+
+#include <Process/TimeValue.hpp>
+#include <Scenario/Document/Constraint/ConstraintDurations.hpp>
+#include "SetRigidity.hpp"
+#include <iscore/serialization/DataStreamVisitor.hpp>
+#include <iscore/tools/ModelPath.hpp>
+#include <iscore/tools/ModelPathSerialization.hpp>
 
 using namespace iscore;
 using namespace Scenario::Command;

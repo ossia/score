@@ -1,10 +1,16 @@
-#include "TimeNodeModel.hpp"
+#include <Process/Style/ScenarioStyle.hpp>
 #include <Scenario/Document/Event/EventModel.hpp>
 #include <Scenario/Document/TimeNode/Trigger/TriggerModel.hpp>
+#include <QtGlobal>
 
-#include <Scenario/Process/ScenarioModel.hpp>
-
-#include <Process/Style/ScenarioStyle.hpp>
+#include <Process/ModelMetadata.hpp>
+#include <Process/TimeValue.hpp>
+#include <Scenario/Document/VerticalExtent.hpp>
+#include <Scenario/Process/ScenarioInterface.hpp>
+#include "TimeNodeModel.hpp"
+#include <iscore/document/DocumentInterface.hpp>
+#include <iscore/tools/IdentifiedObject.hpp>
+#include <iscore/tools/SettableIdentifier.hpp>
 
 TimeNodeModel::TimeNodeModel(
         const Id<TimeNodeModel>& id,
@@ -12,7 +18,7 @@ TimeNodeModel::TimeNodeModel(
         const TimeValue& date,
         QObject* parent):
     IdentifiedObject<TimeNodeModel> {id, "TimeNodeModel", parent},
-    pluginModelList{iscore::IDocument::documentFromObject(parent), this},
+    pluginModelList{iscore::IDocument::documentContext(*parent), this},
     m_extent{extent},
     m_date{date},
     m_trigger{new TriggerModel{Id<TriggerModel>(0), this} }
@@ -38,22 +44,19 @@ TimeNodeModel::TimeNodeModel(
     m_trigger->setActive(source.trigger()->active());
 }
 
-ScenarioInterface* TimeNodeModel::parentScenario() const
-{
-    return dynamic_cast<ScenarioInterface*>(parent());
-}
-
 void TimeNodeModel::addEvent(const Id<EventModel>& eventId)
 {
     m_events.push_back(eventId);
     emit newEvent(eventId);
 
-    auto scenar = parentScenario();
-    if(!scenar)
-        return;
-
-    auto& theEvent = scenar->event(eventId);
-    theEvent.changeTimeNode(this->id());
+    auto scenar = dynamic_cast<ScenarioInterface*>(parent());
+    if(scenar)
+    {
+        // There may be no scenario when we are cloning without a parent.
+        // TODO this addEvent should be in an outside algorithm.
+        auto& theEvent = scenar->event(eventId);
+        theEvent.changeTimeNode(this->id());
+    }
 }
 
 bool TimeNodeModel::removeEvent(const Id<EventModel>& eventId)

@@ -1,6 +1,22 @@
-#include "MappingModel.hpp"
-#include "MappingLayerModel.hpp"
 #include <iscore/serialization/VisitorCommon.hpp>
+#include <QJsonObject>
+#include <QJsonValue>
+#include <algorithm>
+
+#include <Curve/CurveModel.hpp>
+#include "MappingLayerModel.hpp"
+#include "MappingModel.hpp"
+#include <State/Address.hpp>
+#include <iscore/plugins/documentdelegate/plugin/ElementPluginModelList.hpp>
+#include <iscore/serialization/DataStreamVisitor.hpp>
+#include <iscore/serialization/JSONValueVisitor.hpp>
+#include <iscore/serialization/JSONVisitor.hpp>
+
+class LayerModel;
+class QObject;
+struct VisitorVariant;
+template <typename T> class Reader;
+template <typename T> class Writer;
 
 template<>
 void Visitor<Reader<DataStream>>::readFrom(const MappingModel& autom)

@@ -1,11 +1,9 @@
 #pragma once
-#include <iscore/tools/NamedObject.hpp>
 #include <iscore/selection/Selection.hpp>
-#include <QJsonObject>
+#include <iscore/tools/NamedObject.hpp>
 
 namespace iscore
 {
-    class PanelPresenter;
     class PanelModel : public NamedObject
     {
             Q_OBJECT

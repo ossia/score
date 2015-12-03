@@ -1,5 +1,10 @@
-#include "IOType.hpp"
+#include <QMap>
 #include <QObject>
+
+#include <QString>
+
+#include "IOType.hpp"
+
 using namespace iscore;
 
 static const QMap<IOType, QString> iotypemap{

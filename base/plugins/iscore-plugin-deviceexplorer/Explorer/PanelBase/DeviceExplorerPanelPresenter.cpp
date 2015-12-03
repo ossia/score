@@ -1,19 +1,24 @@
-#include "DeviceExplorerPanelPresenter.hpp"
-
-#include "DeviceExplorerPanelView.hpp"
-#include "DeviceExplorerPanelModel.hpp"
-
 #include <Explorer/Explorer/DeviceExplorerModel.hpp>
 #include <Explorer/Explorer/DeviceExplorerWidget.hpp>
-#include <Explorer/DocumentPlugin/DeviceDocumentPlugin.hpp>
 
-#include "DeviceExplorerPanelId.hpp"
+#include "DeviceExplorerPanelModel.hpp"
+#include "DeviceExplorerPanelPresenter.hpp"
+#include "DeviceExplorerPanelView.hpp"
+#include <iscore/document/DocumentContext.hpp>
+#include <iscore/document/DocumentInterface.hpp>
+#include <iscore/plugins/panel/PanelModel.hpp>
+#include <iscore/plugins/panel/PanelPresenter.hpp>
+#include <Explorer/PanelBase/DeviceExplorerPanelId.hpp>
 
-#include <core/document/DocumentModel.hpp>
+namespace iscore {
+class PanelView;
 
-DeviceExplorerPanelPresenter::DeviceExplorerPanelPresenter(iscore::Presenter* parent,
-                                                           iscore::PanelView* view) :
-    iscore::PanelPresenter {parent, view}
+}  // namespace iscore
+
+DeviceExplorerPanelPresenter::DeviceExplorerPanelPresenter(
+        iscore::PanelView* view,
+        QObject* parent) :
+    iscore::PanelPresenter {view, parent}
 {
 
 }
@@ -24,8 +29,8 @@ void DeviceExplorerPanelPresenter::on_modelChanged()
     if(model())
     {
         auto m = static_cast<DeviceExplorerPanelModel *>(model());
-        auto doc = iscore::IDocument::documentFromObject(model());
-        m->m_model->setCommandQueue(&doc->commandStack());
+        auto& doc = iscore::IDocument::documentContext(*model());
+        m->m_model->setCommandQueue(&doc.commandStack);
         v->m_widget->setModel(m->m_model);
     }
     else

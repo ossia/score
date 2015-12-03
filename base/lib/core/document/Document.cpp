@@ -1,30 +1,39 @@
-#include <core/application/Application.hpp>
 #include <core/document/Document.hpp>
 #include <core/document/DocumentModel.hpp>
-#include <core/document/DocumentView.hpp>
 #include <core/document/DocumentPresenter.hpp>
-
-#include <iscore/plugins/panel/PanelFactory.hpp>
-#include <iscore/plugins/panel/PanelPresenter.hpp>
+#include <core/document/DocumentView.hpp>
 #include <iscore/plugins/panel/PanelModel.hpp>
+#include <iscore/plugins/panel/PanelPresenter.hpp>
+#include <QObject>
+#include <algorithm>
+#include <iterator>
+#include <vector>
 
-#include <iscore/plugins/documentdelegate/DocumentDelegateFactoryInterface.hpp>
+#include <core/document/DocumentBackupManager.hpp>
+#include <iscore/document/DocumentContext.hpp>
+#include <iscore/plugins/panel/PanelFactory.hpp>
+#include <iscore/selection/SelectionStack.hpp>
+#include <iscore/tools/NamedObject.hpp>
+#include <iscore/tools/Todo.hpp>
 
-#include <core/application/OpenDocumentsFile.hpp>
-#include <QLayout>
-#include <QStandardPaths>
-#include <QSettings>
+class QWidget;
+class Selection;
+#include <iscore/tools/SettableIdentifier.hpp>
 
 using namespace iscore;
 
 DocumentContext::DocumentContext(Document& d):
-    app{*safe_cast<iscore::Application*>(d.parent()->parent())},
+    app{iscore::AppContext()},
     document{d},
-    commandStack{d.commandStack()},
+    commandStack{d.m_commandStackFacade},
     selectionStack{d.selectionStack()},
     objectLocker{d.locker()}
 {
+}
 
+const std::vector<DocumentPluginModel*>&DocumentContext::pluginModels() const
+{
+    return document.model().pluginModels();
 }
 
 
@@ -46,10 +55,10 @@ Document::Document(
     std::allocator<DocumentModel> allocator;
     m_model = allocator.allocate(1);
     allocator.construct(m_model, id, factory, this);
-    m_view = new DocumentView{factory, this, parentview};
+    m_view = new DocumentView{factory, *this, parentview};
     m_presenter = new DocumentPresenter{factory,
-            m_model,
-            m_view,
+            *m_model,
+            *m_view,
             this};
 
     init();
@@ -105,7 +114,7 @@ const Id<DocumentModel>&Document::id() const
 
 void Document::setupNewPanel(PanelFactory* factory)
 {
-    m_model->addPanel(factory->makeModel(m_model));
+    m_model->addPanel(factory->makeModel(m_context, m_model));
 }
 
 void Document::bindPanelPresenter(PanelPresenter* pres)

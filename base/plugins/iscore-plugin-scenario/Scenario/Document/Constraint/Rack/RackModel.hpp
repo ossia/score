@@ -1,10 +1,19 @@
 #pragma once
-#include "Slot/SlotModel.hpp"
 #include <Process/ModelMetadata.hpp>
-
 #include <Process/TimeValue.hpp>
-#include <iscore/tools/NotifyingMap.hpp>
+#include <boost/optional/optional.hpp>
 #include <iscore/serialization/VisitorInterface.hpp>
+#include <iscore/tools/NotifyingMap.hpp>
+#include <iscore/tools/SettableIdentifier.hpp>
+#include <QList>
+#include <QObject>
+#include <nano_signal_slot.hpp>
+
+#include <QString>
+#include <functional>
+
+#include "Slot/SlotModel.hpp"
+#include <iscore/tools/IdentifiedObject.hpp>
 
 class ConstraintModel;
 class Process;
@@ -15,12 +24,13 @@ class Process;
  * A Rack is a slot container.
  * A Rack is always found in a Constraint.
  */
-class RackModel final : public IdentifiedObject<RackModel>
+class RackModel final : public IdentifiedObject<RackModel>, public Nano::Observer
 {
         Q_OBJECT
         ISCORE_METADATA("RackModel") // TODO use this everywhere.
 
     public:
+        ModelMetadata metadata;
         RackModel(const Id<RackModel>& id, QObject* parent);
 
         // Copy
@@ -42,6 +52,9 @@ class RackModel final : public IdentifiedObject<RackModel>
 
         void addSlot(SlotModel* m, int position);
         void addSlot(SlotModel* m);  // No position : at the end
+
+        static QString description()
+        { return QObject::tr("Rack"); }
 
         void swapSlots(const Id<SlotModel>& firstslot,
                        const Id<SlotModel>& secondslot);

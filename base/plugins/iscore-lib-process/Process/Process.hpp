@@ -1,19 +1,26 @@
 #pragma once
-#include <Process/TimeValue.hpp>
 #include <Process/ExpandMode.hpp>
 #include <Process/ProcessFactoryKey.hpp>
-
-#include <iscore/tools/IdentifiedObject.hpp>
-#include <iscore/plugins/documentdelegate/plugin/ElementPluginModelList.hpp>
+#include <Process/TimeValue.hpp>
 #include <iscore/selection/Selection.hpp>
+#include <iscore/tools/IdentifiedObject.hpp>
+#include <QByteArray>
+#include <QString>
+#include <vector>
+
+#include "ModelMetadata.hpp"
+#include <iscore/serialization/VisitorInterface.hpp>
 #include <iscore/serialization/DataStreamVisitor.hpp>
 #include <iscore/serialization/JSONVisitor.hpp>
-#include "ModelMetadata.hpp"
 
-class DataStream;
-class JSONObject;
-class ProcessStateDataInterface;
 class LayerModel;
+class ProcessStateDataInterface;
+class QObject;
+namespace iscore {
+class ElementPluginModelList;
+}  // namespace iscore
+#include <iscore/tools/SettableIdentifier.hpp>
+
 /**
  * @brief The Process class
  *
@@ -55,6 +62,8 @@ class Process: public IdentifiedObject<Process>
 
         // A user-friendly text to show to the users
         virtual QString prettyName() const = 0;
+
+        static QString description() {return "Process";}
 
         //// View models interface
         // For deterministic operation in a command,
@@ -118,8 +127,8 @@ class Process: public IdentifiedObject<Process>
         virtual void reset() = 0;
 
         /// States. The process has ownership.
-        virtual ProcessStateDataInterface* startState() const = 0;
-        virtual ProcessStateDataInterface* endState() const = 0;
+        virtual ProcessStateDataInterface* startStateData() const = 0;
+        virtual ProcessStateDataInterface* endStateData() const = 0;
 
         /// Selection
         virtual Selection selectableChildren() const = 0;
@@ -180,3 +189,6 @@ std::vector<typename T::layer_type*> layers(const T& processModel)
 
 Process* parentProcess(QObject* obj);
 const Process* parentProcess(const QObject* obj);
+
+template<typename T>
+QString NameInUndo();

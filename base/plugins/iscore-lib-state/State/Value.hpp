@@ -1,10 +1,17 @@
 #pragma once
-#include <QVariant>
-#include <iscore/tools/Todo.hpp>
-#include <iscore/serialization/VisitorCommon.hpp>
-#include <boost/optional.hpp>
+#include <iscore/serialization/DataStreamVisitor.hpp>
+#include <iscore/serialization/JSONVisitor.hpp>
+#include <boost/optional/optional.hpp>
 #include <eggs/variant.hpp>
+#include <QChar>
+#include <QList>
+#include <QString>
+#include <algorithm>
+#include <vector>
 
+class DataStream;
+class JSONObject;
+class QDebug;
 
 namespace iscore
 {
@@ -16,6 +23,7 @@ inline bool operator==(impulse_t, impulse_t) { return true; }
 inline bool operator!=(impulse_t, impulse_t) { return false; }
 
 class ValueImpl;
+
 using tuple_t = std::vector<ValueImpl>;
 enum class ValueType { Impulse, Int, Float, Bool, String, Char, Tuple, NoValue };
 

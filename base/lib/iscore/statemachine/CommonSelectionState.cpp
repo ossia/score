@@ -1,10 +1,18 @@
-#include "CommonSelectionState.hpp"
-#include <QKeyEventTransition>
-#include <QGraphicsObject>
+#include <QAbstractState>
+#include <QAbstractTransition>
+#include <qcoreevent.h>
 #include <QFinalState>
+#include <QGraphicsItem>
+#include <QKeyEventTransition>
+#include <qnamespace.h>
+
+#include "CommonSelectionState.hpp"
 #include "StateMachineUtils.hpp"
 
-CommonSelectionState::CommonSelectionState(iscore::SelectionStack &stack, QGraphicsObject *process_view, QState *parent):
+CommonSelectionState::CommonSelectionState(
+        iscore::SelectionStack &stack,
+        QGraphicsObject *process_view,
+        QState *parent):
     QState{parent},
     dispatcher{stack}
 {

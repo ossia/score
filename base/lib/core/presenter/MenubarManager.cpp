@@ -1,5 +1,11 @@
-#include "MenubarManager.hpp"
+#include <QMenuBar>
+#include <QStringList>
 #include <functional>
+#include <utility>
+
+#include "MenubarManager.hpp"
+#include <core/presenter/Action.hpp>
+#include <iscore/menu/MenuInterface.hpp>
 
 using namespace iscore;
 

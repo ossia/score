@@ -1,24 +1,26 @@
-#include "InspectorWidgetList.hpp"
-#include "InspectorWidgetBase.hpp"
-
 #include <iscore/document/DocumentInterface.hpp>
-#include <core/document/Document.hpp>
 
-#include <QApplication>
-#include <core/application/Application.hpp>
-#include <core/presenter/Presenter.hpp>
+#include <Inspector/InspectorWidgetFactoryInterface.hpp>
+#include "InspectorWidgetBase.hpp"
+#include "InspectorWidgetList.hpp"
+#include <iscore/tools/IdentifiedObjectAbstract.hpp>
+
+class QWidget;
 
 InspectorWidgetBase* InspectorWidgetList::makeInspectorWidget(
         const QString& name,
         const IdentifiedObjectAbstract& model,
         QWidget* parent) const
 {
-    auto& doc = *iscore::IDocument::documentFromObject(model);
-    for(InspectorWidgetFactory* factory : m_list)
+    auto& doc = iscore::IDocument::documentContext(model);
+    for(const auto& factory : m_list)
     {
-        if(factory->matches(name))
+        if(factory.matches(name))
         {
-            return factory->makeWidget(model, doc, parent);
+            auto widg = factory.makeWidget(model, doc, parent);
+            if(widg)
+                return widg;
+            break;
         }
     }
 

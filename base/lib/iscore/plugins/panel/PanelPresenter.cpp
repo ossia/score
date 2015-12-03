@@ -1,13 +1,14 @@
 #include "PanelPresenter.hpp"
+#include <core/presenter/Presenter.hpp>
+
 using namespace iscore;
 
 
 PanelPresenter::PanelPresenter(
-        Presenter* parent_presenter,
-        PanelView* view) :
-    QObject {parent_presenter},
-    m_view {view},
-    m_parentPresenter {parent_presenter}
+        PanelView* view,
+        QObject* parent) :
+    QObject {parent},
+    m_view {view}
 {
 
 }
@@ -26,11 +27,6 @@ PanelModel*PanelPresenter::model() const
 PanelView*PanelPresenter::view() const
 {
     return m_view;
-}
-
-Presenter*PanelPresenter::presenter() const
-{
-    return m_parentPresenter;
 }
 
 iscore::PanelPresenter::~PanelPresenter()

@@ -1,16 +1,22 @@
-#include "MoveConstraint.hpp"
-
-#include <Scenario/Process/ScenarioModel.hpp>
 #include <Scenario/Document/Constraint/ConstraintModel.hpp>
-
 #include <Scenario/Process/Algorithms/VerticalMovePolicy.hpp>
+#include <Scenario/Process/ScenarioModel.hpp>
+
+#include <algorithm>
+
+#include "MoveConstraint.hpp"
+#include <Process/TimeValue.hpp>
+#include <iscore/serialization/DataStreamVisitor.hpp>
+#include <iscore/tools/ModelPath.hpp>
+#include <iscore/tools/ModelPathSerialization.hpp>
+#include <iscore/tools/NotifyingMap.hpp>
 
 using namespace iscore;
 using namespace Scenario::Command;
 
 
 MoveConstraint::MoveConstraint(
-        Path<ScenarioModel>&& scenarioPath,
+        Path<Scenario::ScenarioModel>&& scenarioPath,
         const Id<ConstraintModel>& id,
         const TimeValue& date,
         double height) :
@@ -24,7 +30,7 @@ MoveConstraint::MoveConstraint(
     m_oldHeight = cst.heightPercentage();
 }
 
-void MoveConstraint::update(const Path<ScenarioModel>& path,
+void MoveConstraint::update(const Path<Scenario::ScenarioModel>& path,
                             const Id<ConstraintModel>&,
                             const TimeValue& date,
                             double height)

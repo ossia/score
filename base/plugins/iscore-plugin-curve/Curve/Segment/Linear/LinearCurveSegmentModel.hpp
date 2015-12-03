@@ -1,5 +1,13 @@
 #pragma once
-#include "Curve/Segment/CurveSegmentModel.hpp"
+#include <QVariant>
+
+#include <Curve/Segment/CurveSegmentFactoryKey.hpp>
+#include <Curve/Segment/CurveSegmentModel.hpp>
+#include <iscore/serialization/VisitorInterface.hpp>
+
+class QObject;
+#include <iscore/tools/SettableIdentifier.hpp>
+
 struct LinearCurveSegmentData
 {
         static const CurveSegmentFactoryKey& key();

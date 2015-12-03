@@ -3,6 +3,10 @@
 #include <iscore/command/SerializableCommand.hpp>
 #include <QMap>
 #include <QString>
+
+class DataStreamInput;
+class DataStreamOutput;
+
 class BlacklistCommand : public iscore::SerializableCommand
 {
         // QUndoCommand interface

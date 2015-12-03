@@ -1,10 +1,15 @@
-#include "PluginSettingsModel.hpp"
-#include <QDebug>
-#include <QSettings>
 #include <QApplication>
-#include <core/plugin/PluginManager.hpp>
-#include "PluginSettingsPresenter.hpp"
+#include <QDebug>
+#include <qnamespace.h>
+#include <QSet>
+#include <QSettings>
+#include <QStandardItemModel>
+#include <QStringList>
+#include <QVariant>
+
+#include "PluginSettingsModel.hpp"
 #include "commands/BlacklistCommand.hpp"
+#include <iscore/plugins/settingsdelegate/SettingsDelegateModelInterface.hpp>
 
 using namespace iscore;
 
@@ -21,6 +26,8 @@ PluginSettingsModel::PluginSettingsModel() :
     return;
 
 
+/*
+ * // TODO use ApplicationContext
     auto systemlist = qApp->findChild<PluginLoader*> ("PluginManager")->pluginsOnSystem();
     systemlist.sort();
 
@@ -48,6 +55,7 @@ PluginSettingsModel::PluginSettingsModel() :
 
     connect(m_plugins,  &QStandardItemModel::itemChanged,
     this,		&PluginSettingsModel::on_itemChanged);
+    */
 }
 
 

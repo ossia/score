@@ -1,24 +1,37 @@
-#include "SlotPresenter.hpp"
-
+#include <Process/LayerModel.hpp>
+#include <Process/LayerPresenter.hpp>
+#include <Process/LayerView.hpp>
+#include <Process/Process.hpp>
+#include <Process/ProcessFactory.hpp>
+#include <Process/ProcessList.hpp>
+#include <Scenario/Document/Constraint/ConstraintModel.hpp>
+#include <Scenario/Document/Constraint/Rack/RackView.hpp>
 #include <Scenario/Document/Constraint/Rack/Slot/SlotModel.hpp>
 #include <Scenario/Document/Constraint/Rack/Slot/SlotView.hpp>
-#include <Scenario/Document/Constraint/ConstraintModel.hpp>
-#include <Scenario/Commands/Constraint/Rack/Slot/ResizeSlotVertically.hpp>
-#include <Scenario/Control/ScenarioControl.hpp>
+#include <boost/optional/optional.hpp>
 
-#include <Process/ProcessList.hpp>
-#include <Process/LayerPresenter.hpp>
-#include <Process/LayerModel.hpp>
-#include <Process/LayerView.hpp>
-#include <Process/ProcessFactory.hpp>
-#include <Process/Process.hpp>
-
-#include <Scenario/Document/Constraint/Rack/RackView.hpp>
-#include "SlotHandle.hpp"
 #include <iscore/widgets/GraphicsItem.hpp>
-#include <QGraphicsScene>
+#include <QMenu>
+#include <algorithm>
 
-using namespace Scenario;
+#include <Process/TimeValue.hpp>
+#include <Process/ZoomHelper.hpp>
+#include <Scenario/Application/Menus/ScenarioContextMenuManager.hpp>
+#include "SlotHandle.hpp"
+#include "SlotPresenter.hpp"
+
+#include <iscore/application/ApplicationContext.hpp>
+#include <iscore/plugins/customfactory/FactoryFamily.hpp>
+#include <iscore/plugins/customfactory/FactoryMap.hpp>
+#include <iscore/plugins/customfactory/StringFactoryKey.hpp>
+#include <iscore/tools/NamedObject.hpp>
+#include <iscore/tools/NotifyingMap.hpp>
+#include <iscore/tools/SettableIdentifier.hpp>
+#include <iscore/tools/Todo.hpp>
+#include <iscore/tools/utilsCPP11.hpp>
+
+class QObject;
+
 
 SlotPresenter::SlotPresenter(
         const iscore::DocumentContext& doc,
@@ -26,7 +39,7 @@ SlotPresenter::SlotPresenter(
         RackView *view,
         QObject* par) :
     NamedObject {"SlotPresenter", par},
-    m_processList{doc.app.components.factory<DynamicProcessList>()},
+    m_processList{doc.app.components.factory<ProcessList>()},
     m_model {model},
     m_view {new SlotView{*this, view}}
 {
@@ -37,10 +50,8 @@ SlotPresenter::SlotPresenter(
         on_layerModelCreated_impl(proc_vm);
     }
 
-    con(m_model.layers, &NotifyingMap<LayerModel>::added,
-        this, &SlotPresenter::on_layerModelCreated);
-    con(m_model.layers, &NotifyingMap<LayerModel>::removed,
-        this, &SlotPresenter::on_layerModelDeleted);
+    m_model.layers.added.connect<SlotPresenter, &SlotPresenter::on_layerModelCreated>(this);
+    m_model.layers.removed.connect<SlotPresenter, &SlotPresenter::on_layerModelRemoved>(this);
 
     con(m_model, &SlotModel::layerModelPutToFront,
         this, &SlotPresenter::on_layerModelPutToFront);
@@ -142,7 +153,7 @@ void SlotPresenter::on_layerModelCreated(
     on_layerModelCreated_impl(layerModel);
 }
 
-void SlotPresenter::on_layerModelDeleted(
+void SlotPresenter::on_layerModelRemoved(
         const LayerModel& layerModel)
 {
     vec_erase_remove_if(m_processes,

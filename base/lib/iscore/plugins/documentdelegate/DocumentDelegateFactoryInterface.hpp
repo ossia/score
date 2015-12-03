@@ -1,15 +1,17 @@
 #pragma once
-#include <iscore/serialization/VisitorInterface.hpp>
-class QByteArray;
+
+struct VisitorVariant;
+class QObject;
 
 namespace iscore
 {
-    class DocumentDelegateViewInterface;
-    class DocumentDelegatePresenterInterface;
     class DocumentDelegateModelInterface;
-    class DocumentPresenter;
+    class DocumentDelegatePresenterInterface;
+    class DocumentDelegateViewInterface;
     class DocumentModel;
+    class DocumentPresenter;
     class DocumentView;
+    struct ApplicationContext;
 
     /**
      * @brief The DocumentDelegateFactoryInterface class
@@ -20,12 +22,15 @@ namespace iscore
     {
         public:
             virtual ~DocumentDelegateFactoryInterface();
+
             virtual DocumentDelegateViewInterface* makeView(
-                    DocumentView* parent) = 0;
+                    const iscore::ApplicationContext& ctx,
+                    QObject* parent) = 0;
+
             virtual DocumentDelegatePresenterInterface* makePresenter(
                     DocumentPresenter* parent_presenter,
-                    DocumentDelegateModelInterface* model,
-                    DocumentDelegateViewInterface* view) = 0;
+                    const DocumentDelegateModelInterface& model,
+                    DocumentDelegateViewInterface& view) = 0;
 
             virtual DocumentDelegateModelInterface* makeModel(
                     DocumentModel* parent) = 0;

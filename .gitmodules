@@ -13,3 +13,9 @@
 [submodule "3rdparty/QRecentFilesMenu"]
 	path = 3rdparty/QRecentFilesMenu
 	url = https://github.com/jcelerier/QRecentFilesMenu.git
+[submodule "base/plugins/iscore-plugin-audio/3rdparty/libaudiotool"]
+	path = base/plugins/iscore-plugin-audio/3rdparty/libaudiotool
+	url = https://github.com/jcelerier/libaudiotool
+[submodule "3rdparty/nano-signal-slot"]
+	path = 3rdparty/nano-signal-slot
+	url = https://github.com/jcelerier/nano-signal-slot

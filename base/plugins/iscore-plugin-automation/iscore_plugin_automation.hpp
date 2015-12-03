@@ -1,9 +1,15 @@
 #pragma once
-#include <QObject>
 #include <iscore/plugins/qt_interfaces/FactoryInterface_QtInterface.hpp>
-#include <iscore/plugins/qt_interfaces/PluginControlInterface_QtInterface.hpp>
+#include <iscore/plugins/qt_interfaces/GUIApplicationContextPlugin_QtInterface.hpp>
+#include <QObject>
+#include <utility>
+#include <vector>
 
-class AutomationControl;
+#include <iscore/application/ApplicationContext.hpp>
+#include <iscore/command/CommandGeneratorMap.hpp>
+#include <iscore/command/SerializableCommand.hpp>
+#include <iscore/plugins/customfactory/FactoryInterface.hpp>
+
 class iscore_plugin_automation final :
         public QObject,
         public iscore::FactoryInterface_QtInterface,
@@ -21,7 +27,7 @@ class iscore_plugin_automation final :
         virtual ~iscore_plugin_automation() = default;
 
         // Process & inspector
-        std::vector<iscore::FactoryInterfaceBase*> factories(
+        std::vector<std::unique_ptr<iscore::FactoryInterfaceBase>> factories(
                 const iscore::ApplicationContext& ctx,
                 const iscore::FactoryBaseKey& factoryName) const override;
 

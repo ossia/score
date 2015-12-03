@@ -1,12 +1,19 @@
 #pragma once
-#include <QString>
-#include <State/Message.hpp>
-#include <State/Address.hpp>
-#include <Device/Protocol/DeviceSettings.hpp>
-#include <Device/Address/AddressSettings.hpp>
-#include <memory>
-
 #include <Device/Node/DeviceNode.hpp>
+#include <Device/Protocol/DeviceSettings.hpp>
+#include <State/Address.hpp>
+#include <boost/optional/optional.hpp>
+#include <QObject>
+#include <QString>
+#include <vector>
+
+#include <State/Value.hpp>
+
+namespace iscore {
+struct FullAddressSettings;
+struct Message;
+}  // namespace iscore
+
 class DeviceInterface : public QObject
 {
         Q_OBJECT

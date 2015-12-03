@@ -1,7 +1,16 @@
 #pragma once
 #include <QGraphicsItem>
-#include <iscore/tools/SettableIdentifier.hpp>
+#include <QPainterPath>
+#include <QPoint>
+#include <QRect>
+
 class CurveSegmentModel;
+class QGraphicsSceneContextMenuEvent;
+class QPainter;
+class QStyleOptionGraphicsItem;
+class QWidget;
+#include <iscore/tools/SettableIdentifier.hpp>
+
 namespace Curve
 {
 struct Style;
@@ -17,8 +26,10 @@ class CurveSegmentView final : public QGraphicsObject
 
         const Id<CurveSegmentModel>& id() const;
 
-        int type() const override
+        static constexpr int static_type()
         { return QGraphicsItem::UserType + 11; }
+        int type() const override
+        { return static_type(); }
 
 
         QRectF boundingRect() const override;

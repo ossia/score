@@ -1,7 +1,11 @@
-#include "HideRackInViewModel.hpp"
 #include <Scenario/Document/Constraint/ViewModels/ConstraintViewModel.hpp>
-#include <iscore/document/DocumentInterface.hpp>
+
 #include <iscore/serialization/DataStreamVisitor.hpp>
+#include <algorithm>
+
+#include "HideRackInViewModel.hpp"
+#include <iscore/tools/ModelPath.hpp>
+#include <iscore/tools/ModelPathSerialization.hpp>
 
 using namespace iscore;
 using namespace Scenario::Command;

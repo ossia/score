@@ -1,9 +1,15 @@
 #pragma once
 
+#include <QAbstractItemModel>
+#include <QList>
 #include <QTreeView>
 
-class DeviceExplorerModel;
 class DeviceExplorerFilterProxyModel;
+class DeviceExplorerModel;
+class QAction;
+class QItemSelection;
+class QPoint;
+class QWidget;
 
 class DeviceExplorerView final : public QTreeView
 {

@@ -1,12 +1,24 @@
-#include "ZeroconfBrowser.hpp"
+#include <dnssd/remoteservice.h>
+#include <dnssd/servicebrowser.h>
+#include <dnssd/servicemodel.h>
+#include <QAbstractItemModel>
+#include <QAbstractItemView>
 #include <QAction>
-#include <QGridLayout>
-#include <QDialogButtonBox>
-#include <QListView>
-#include <QHostInfo>
+#include <QDebug>
 #include <QDialog>
-#include <KF5/KDNSSD/DNSSD/ServiceBrowser>
-#include <KF5/KDNSSD/DNSSD/ServiceModel>
+#include <QDialogButtonBox>
+#include <QFlags>
+#include <QGridLayout>
+#include <QHostAddress>
+#include <QHostInfo>
+#include <QList>
+#include <QListView>
+
+#include <QVariant>
+
+#include "ZeroconfBrowser.hpp"
+
+class QWidget;
 
 using namespace KDNSSD;
 ZeroconfBrowser::ZeroconfBrowser(

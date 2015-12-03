@@ -1,12 +1,16 @@
 #pragma once
 #include <Scenario/Commands/ScenarioCommandFactory.hpp>
+#include <boost/optional/optional.hpp>
 #include <iscore/command/SerializableCommand.hpp>
 #include <iscore/tools/ModelPath.hpp>
 
+#include <iscore/tools/SettableIdentifier.hpp>
+
 class ConstraintViewModel;
-class ConstraintModel;
+class DataStreamInput;
+class DataStreamOutput;
 class RackModel;
-#include <tests/helpers/ForwardDeclaration.hpp>
+
 namespace Scenario
 {
     namespace Command
@@ -19,7 +23,7 @@ namespace Scenario
          */
         class ShowRackInViewModel final : public iscore::SerializableCommand
         {
-                ISCORE_COMMAND_DECL(ScenarioCommandFactoryName(), ShowRackInViewModel, "ShowRackInViewModel")
+                ISCORE_COMMAND_DECL(ScenarioCommandFactoryName(), ShowRackInViewModel, "Show a rack")
             public:
                 ShowRackInViewModel(
                         Path<ConstraintViewModel>&& constraint_path,

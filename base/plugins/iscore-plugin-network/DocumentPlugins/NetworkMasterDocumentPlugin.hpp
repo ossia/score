@@ -1,13 +1,16 @@
 #pragma once
+#include <Repartition/session/MasterSession.hpp>
+
 #include "NetworkDocumentPlugin.hpp"
 
-#include <Repartition/session/MasterSession.hpp>
+namespace iscore {
+struct DocumentContext;
+}  // namespace iscore
+
 namespace iscore
 {
-    class CommandStack;
-    class ObjectLocker;
 }
-class MasterNetworkPolicy : public NetworkPluginPolicy
+class MasterNetworkPolicy : public iscore_plugin_networkPolicy
 {
     public:
         MasterNetworkPolicy(MasterSession* s,

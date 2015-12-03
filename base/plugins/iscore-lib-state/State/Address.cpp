@@ -1,5 +1,8 @@
+#include <algorithm>
+
 #include "Address.hpp"
-#include <QDataStream>
+#include <iscore/tools/Todo.hpp>
+
 namespace iscore
 {
     bool Address::validateString(const QString &str)

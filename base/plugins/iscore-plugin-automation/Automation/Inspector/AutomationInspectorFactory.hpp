@@ -1,6 +1,14 @@
 #pragma once
-#include <QObject>
 #include <Inspector/InspectorWidgetFactoryInterface.hpp>
+#include <QList>
+
+class InspectorWidgetBase;
+class QObject;
+class QString;
+class QWidget;
+namespace iscore {
+class Document;
+}  // namespace iscore
 
 
 class AutomationInspectorFactory final : public InspectorWidgetFactory
@@ -14,8 +22,8 @@ class AutomationInspectorFactory final : public InspectorWidgetFactory
 
         InspectorWidgetBase* makeWidget(
                 const QObject& sourceElement,
-                iscore::Document& doc,
-                QWidget* parent) override;
+                const iscore::DocumentContext& doc,
+                QWidget* parent) const override;
 
     private:
         const QList<QString>& key_impl() const override;

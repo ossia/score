@@ -1,9 +1,12 @@
 #pragma once
 #include <QObject>
+#include <QString>
 
 class QAction;
 class QDialog;
 class QListView;
+class QWidget;
+
 class ZeroconfBrowser : public QObject
 {
         Q_OBJECT

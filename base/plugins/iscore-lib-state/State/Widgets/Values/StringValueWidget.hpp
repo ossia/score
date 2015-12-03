@@ -1,7 +1,12 @@
 #pragma once
+#include <QString>
+
+#include <State/Value.hpp>
 #include "ValueWidget.hpp"
 
 class QLineEdit;
+class QWidget;
+
 class StringValueWidget : public ValueWidget
 {
     public:

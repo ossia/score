@@ -1,12 +1,22 @@
-#include "AddressBarItem.hpp"
-#include "ClickableLabelItem.hpp"
-
-#include <QGraphicsLayout>
-#include <QPainter>
-
 #include <Scenario/Document/Constraint/ConstraintModel.hpp>
 #include <Scenario/Process/ScenarioModel.hpp>
-#include <Scenario/Process/ScenarioInterface.hpp>
+
+#include <QtAlgorithms>
+#include <QMap>
+#include <QObject>
+#include <QString>
+#include <algorithm>
+#include <cstddef>
+#include <vector>
+
+#include "AddressBarItem.hpp"
+#include "ClickableLabelItem.hpp"
+#include <Process/ModelMetadata.hpp>
+#include <iscore/tools/ObjectIdentifier.hpp>
+
+class QPainter;
+class QStyleOptionGraphicsItem;
+class QWidget;
 
 AddressBarItem::AddressBarItem(QGraphicsItem *parent):
     QGraphicsObject{parent}
@@ -35,9 +45,9 @@ void AddressBarItem::setTargetObject(ObjectPath && path)
 
         name[j] = (cstr->metadata.name());
 
-        auto scenar = dynamic_cast<ScenarioModel*>(cstr->parentScenario());
-        if(scenar != 0)
-        cstr = dynamic_cast<ConstraintModel*>(scenar->parent());
+        auto scenar = dynamic_cast<Scenario::ScenarioModel*>(cstr->parent());
+        if(scenar)
+            cstr = safe_cast<ConstraintModel*>(scenar->parent());
     }
 
 

@@ -1,6 +1,16 @@
-#include "PowerCurveSegmentModel.hpp"
+
 #include <iscore/serialization/VisitorCommon.hpp>
+#include <QPoint>
 #include <cmath>
+#include <cstddef>
+#include <vector>
+
+#include <Curve/Palette/CurvePoint.hpp>
+#include <Curve/Segment/CurveSegmentData.hpp>
+#include "PowerCurveSegmentModel.hpp"
+
+class QObject;
+#include <iscore/tools/SettableIdentifier.hpp>
 
 PowerCurveSegmentModel::PowerCurveSegmentModel(
         const CurveSegmentData& dat,

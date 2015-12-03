@@ -1,13 +1,23 @@
-#include "CreateState.hpp"
-#include <iscore/tools/SettableIdentifierGeneration.hpp>
-
-#include <iscore/document/DocumentInterface.hpp>
 #include <Scenario/Process/Algorithms/StandardCreationPolicy.hpp>
 #include <Scenario/Process/Algorithms/VerticalMovePolicy.hpp>
-
 #include <Scenario/Process/ScenarioModel.hpp>
+
+#include <boost/iterator/iterator_facade.hpp>
+#include <boost/multi_index/detail/hash_index_iterator.hpp>
+#include <iscore/tools/SettableIdentifierGeneration.hpp>
+#include <algorithm>
+#include <vector>
+
+#include "CreateState.hpp"
+#include <Scenario/Document/Event/EventModel.hpp>
+#include <Scenario/Document/State/StateModel.hpp>
+#include <iscore/serialization/DataStreamVisitor.hpp>
+#include <iscore/tools/ModelPath.hpp>
+#include <iscore/tools/ModelPathSerialization.hpp>
+#include <iscore/tools/NotifyingMap.hpp>
+
 using namespace Scenario::Command;
-CreateState::CreateState(const ScenarioModel &scenario, const Id<EventModel> &event, double stateY) :
+CreateState::CreateState(const Scenario::ScenarioModel& scenario, const Id<EventModel> &event, double stateY) :
     m_path {scenario},
     m_newState{getStrongId(scenario.states)},
     m_event{event},
@@ -17,7 +27,7 @@ CreateState::CreateState(const ScenarioModel &scenario, const Id<EventModel> &ev
 }
 
 CreateState::CreateState(
-        const Path<ScenarioModel> &scenarioPath,
+        const Path<Scenario::ScenarioModel> &scenarioPath,
         const Id<EventModel> &event,
         double stateY):
     CreateState{scenarioPath.find(), event, stateY}

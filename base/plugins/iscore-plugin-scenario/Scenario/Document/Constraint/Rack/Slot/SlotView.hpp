@@ -1,9 +1,17 @@
 #pragma once
-#include <QGraphicsObject>
+#include <QtGlobal>
+#include <QGraphicsItem>
+#include <QPoint>
+#include <QRect>
+#include <QString>
 
-class SlotPresenter;
-class SlotOverlay;
+class QGraphicsSceneContextMenuEvent;
+class QPainter;
+class QStyleOptionGraphicsItem;
+class QWidget;
 class SlotHandle;
+class SlotOverlay;
+class SlotPresenter;
 
 class SlotView final : public QGraphicsObject
 {

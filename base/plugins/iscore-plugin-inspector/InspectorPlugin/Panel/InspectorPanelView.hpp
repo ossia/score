@@ -1,19 +1,25 @@
 #pragma once
 #include <iscore/plugins/panel/PanelView.hpp>
 #include <iscore/selection/Selection.hpp>
+
+#include <QString>
+
+class QWidget;
+
 namespace iscore
 {
     class Document;
-    class View;
+
 }
-class SelectionStackWidget;
 class InspectorPanel;
+class SelectionStackWidget;
+
 class InspectorPanelView : public iscore::PanelView
 {
         Q_OBJECT
     public:
         const iscore::DefaultPanelStatus& defaultPanelStatus() const override;
-        explicit InspectorPanelView(iscore::View* parent);
+        explicit InspectorPanelView(QObject* parent);
 
         QWidget* getWidget() override;
 

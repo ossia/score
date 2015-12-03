@@ -2,8 +2,12 @@
 #include <iscore/plugins/documentdelegate/DocumentDelegateFactoryInterface.hpp>
 #include <iscore/plugins/documentdelegate/DocumentDelegateModelInterface.hpp>
 #include <iscore/plugins/documentdelegate/plugin/DocumentDelegatePluginModel.hpp>
-#include <iscore/plugins/panel/PanelModel.hpp>
-#include <iscore/tools/SettableIdentifierGeneration.hpp>
+
+#include <iscore/selection/Selection.hpp>
+#include <iscore/tools/IdentifiedObject.hpp>
+
+class QObject;
+#include <iscore/tools/SettableIdentifier.hpp>
 
 using namespace iscore;
 
@@ -24,7 +28,7 @@ void DocumentModel::addPanel(PanelModel *m)
 
 
 
-void DocumentModel::addPluginModel(DocumentDelegatePluginModel *m)
+void DocumentModel::addPluginModel(DocumentPluginModel *m)
 {
     m->setParent(this);
     m_pluginModels.push_back(m);

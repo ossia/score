@@ -1,12 +1,20 @@
 #pragma once
-#include <iscore/plugins/plugincontrol/PluginControlInterface.hpp>
-#include <QAction>
+#include <iscore/plugins/application/GUIApplicationContextPlugin.hpp>
+
+class QAction;
+namespace iscore {
+
+class MenubarManager;
+}  // namespace iscore
+
 namespace TemporalAutomatas
 {
-class ApplicationPlugin : public iscore::PluginControlInterface
+class ApplicationPlugin :
+        public QObject,
+        public iscore::GUIApplicationContextPlugin
 {
     public:
-        ApplicationPlugin(iscore::Application& app);
+        ApplicationPlugin(const iscore::ApplicationContext& app);
 
         void populateMenus(iscore::MenubarManager*) override;
 

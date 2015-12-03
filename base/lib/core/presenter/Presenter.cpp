@@ -1,44 +1,65 @@
-#include <iscore/plugins/plugincontrol/PluginControlInterface.hpp>
-
-#include <core/application/Application.hpp>
-#include <core/application/OpenDocumentsFile.hpp>
+#include <boost/optional/optional.hpp>
 #include <core/view/View.hpp>
-
-#include <iscore/plugins/panel/PanelFactory.hpp>
-#include <iscore/plugins/panel/PanelPresenter.hpp>
-#include <iscore/plugins/panel/PanelModel.hpp>
-#include <iscore/plugins/panel/PanelView.hpp>
-#include <iscore/tools/exceptions/MissingCommand.hpp>
+#include <iscore/plugins/application/GUIApplicationContextPlugin.hpp>
 #include <iscore/tools/SettableIdentifierGeneration.hpp>
-#include <core/document/DocumentPresenter.hpp>
-#include <core/document/DocumentView.hpp>
+#include <QAction>
+#include <QKeySequence>
+#include <QMenu>
+#include <QMenuBar>
+#include <QMessageBox>
+#include <qnamespace.h>
+#include <QObject>
 
-#include <core/undo/UndoControl.hpp>
+#include <QString>
+#include <sys/types.h>
+#include <algorithm>
+#include <cstdint>
+#include <functional>
+#include <utility>
+#include <vector>
 
-
+#include <core/document/Document.hpp>
+#include "QRecentFilesMenu.h"
+#include <iscore/application/ApplicationComponents.hpp>
+#include <core/presenter/DocumentManager.hpp>
+#include <core/presenter/MenubarManager.hpp>
+#include <core/presenter/Presenter.hpp>
+#include <core/settings/Settings.hpp>
+#include <core/settings/SettingsView.hpp>
+#include <iscore/menu/MenuInterface.hpp>
+#include <iscore/plugins/customfactory/StringFactoryKey.hpp>
+#include <iscore/tools/NamedObject.hpp>
+#include <iscore/tools/SettableIdentifier.hpp>
+#include <iscore/widgets/OrderedToolbar.hpp>
 #include "iscore_git_info.hpp"
 
-#include <QFileDialog>
-#include <QSaveFile>
-#include <QMessageBox>
-#include <QToolBar>
-#include <QJsonDocument>
+namespace iscore {
+class Document;
+class DocumentModel;
+}  // namespace iscore
 
 namespace iscore
 {
 
-Presenter::Presenter(View* view, QObject* arg_parent) :
+Presenter::Presenter(
+        const iscore::ApplicationSettings& app,
+        View* view,
+        QObject* arg_parent) :
     NamedObject {"Presenter", arg_parent},
     m_view {view},
-    m_docManager{*this},
+    m_docManager{*view, this},
     m_components{},
     m_components_readonly{m_components},
+    m_context{app, m_components_readonly, m_docManager},
     #ifdef __APPLE__
     m_menubar {new QMenuBar, this}
   #else
     m_menubar {view->menuBar(), this}
   #endif
 {
+    m_docManager.init(m_context); // It is necessary to break
+    // this dependency cycle.
+
     setupMenus();
     connect(m_view,		&View::insertActionIntoMenubar,
             &m_menubar, &MenubarManager::insertActionIntoMenubar);
@@ -46,30 +67,17 @@ Presenter::Presenter(View* view, QObject* arg_parent) :
     m_view->setPresenter(this);
 }
 
-auto getStrongId(const std::vector<Document*>& v)
-{
-    using namespace std;
-    vector<int32_t> ids(v.size());   // Map reduce
-
-    transform(v.begin(),
-              v.end(),
-              ids.begin(),
-              [](const auto elt)
-    {
-        return * (elt->id().val());
-    });
-
-    return Id<DocumentModel>{iscore::id_generator::getNextId(ids)};
-}
-
 void Presenter::setupMenus()
 {
     ////// File //////
+    //// New
     auto newAct = m_menubar.addActionIntoToplevelMenu(
                 ToplevelMenuElement::FileMenu,
                 FileMenuElement::New,
                 [&] () {
-        m_docManager.newDocument(getStrongId(m_docManager.documents()),
+        m_docManager.newDocument(
+                    m_context,
+                    getStrongId(m_docManager.documents()),
                     applicationComponents().availableDocuments().front());
     });
 
@@ -84,19 +92,19 @@ void Presenter::setupMenus()
     auto openAct = m_menubar.addActionIntoToplevelMenu(
                 ToplevelMenuElement::FileMenu,
                 FileMenuElement::Load,
-                [this]() { m_docManager.loadFile(); });
+                [this]() { m_docManager.loadFile(m_context); });
     openAct->setShortcut(QKeySequence::Open);
 
     auto saveAct = m_menubar.addActionIntoToplevelMenu(
                 ToplevelMenuElement::FileMenu,
                 FileMenuElement::Save,
-                [this]() { m_docManager.saveDocument(m_docManager.currentDocument()); });
+                [this]() { m_docManager.saveDocument(*m_docManager.currentDocument()); });
     saveAct->setShortcut(QKeySequence::Save);
 
     auto saveAsAct = m_menubar.addActionIntoToplevelMenu(
                 ToplevelMenuElement::FileMenu,
                 FileMenuElement::SaveAs,
-                [this]() { m_docManager.saveDocumentAs(m_docManager.currentDocument()); });
+                [this]() { m_docManager.saveDocumentAs(*m_docManager.currentDocument()); });
     saveAsAct->setShortcut(QKeySequence::SaveAs);
 
     QMenu* fileMenu = m_menubar.menuAt(ToplevelMenuElement::FileMenu);
@@ -112,40 +120,63 @@ void Presenter::setupMenus()
                                            FileMenuElement::Separator_Quit);
 
 
+    auto closeAct = m_menubar.addActionIntoToplevelMenu(
+                ToplevelMenuElement::FileMenu,
+                FileMenuElement::Close,
+                [this]() {
+        if(auto doc = m_docManager.currentDocument())
+            m_docManager.closeDocument(m_context, *doc);
+    });
+    closeAct->setShortcut(QKeySequence::Close);
+
     m_menubar.addActionIntoToplevelMenu(ToplevelMenuElement::FileMenu,
                                         FileMenuElement::Quit,
                                         [&] () {
         m_view->close();
     });
 
+#ifdef ISCORE_DEBUG
+    m_menubar.addActionIntoToplevelMenu(
+                          ToplevelMenuElement::FileMenu,
+                          FileMenuElement::SaveCommands,
+                          [this] () {m_docManager.saveStack(); });
+    m_menubar.addActionIntoToplevelMenu(
+                        ToplevelMenuElement::FileMenu,
+                        FileMenuElement::LoadCommands,
+                [this] () { m_docManager.loadStack(m_context); });
+
+#endif
+
     ////// View //////
     m_menubar.addMenuIntoToplevelMenu(ToplevelMenuElement::ViewMenu,
                                       ViewMenuElement::Windows);
 
     ////// Settings //////
+    /*
     m_menubar.addActionIntoToplevelMenu(ToplevelMenuElement::SettingsMenu,
                                         SettingsMenuElement::Settings,
                                         std::bind(&SettingsView::exec,
                                                   qobject_cast<Application*> (parent())->settings()->view()));
-
+    */
     ////// About /////
     m_menubar.addActionIntoToplevelMenu(ToplevelMenuElement::AboutMenu,
                                         AboutMenuElement::About, [] () {
         QMessageBox::about(nullptr,
                            tr("About i-score"),
                            tr("With love and sweat from the i-score team. \nVersion:\n")
-                           + QString("%1.%2.%3-%4")
+                           + QString("%1.%2.%3-%4 '%5'")
                            .arg(ISCORE_VERSION_MAJOR)
                            .arg(ISCORE_VERSION_MINOR)
                            .arg(ISCORE_VERSION_PATCH)
                            .arg(ISCORE_VERSION_EXTRA)
+                           .arg(ISCORE_CODENAME)
                            + tr("\n\nCommit: \n")
                            + QString(ISCORE_XSTR(GIT_COMMIT))); });
 }
 
 bool Presenter::exit()
 {
-    return m_docManager.closeAllDocuments();
+    return m_docManager.closeAllDocuments(m_context);
 }
 
 View* Presenter::view() const

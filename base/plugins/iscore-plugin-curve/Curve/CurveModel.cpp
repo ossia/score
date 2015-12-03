@@ -1,15 +1,30 @@
-#include "CurveModel.hpp"
-#include <Curve/Segment/CurveSegmentModel.hpp>
 #include <Curve/Point/CurvePointModel.hpp>
-#include <boost/range/algorithm.hpp>
-#include <iscore/tools/SettableIdentifierGeneration.hpp>
-#include <Curve/Segment/CurveSegmentModelSerialization.hpp>
-#include <core/application/ApplicationComponents.hpp>
-#include <iscore/selection/SelectionDispatcher.hpp>
-#include <iscore/document/DocumentInterface.hpp>
-#include <core/document/DocumentContext.hpp>
 #include <Curve/Segment/CurveSegmentList.hpp>
-#include <numeric>
+#include <Curve/Segment/CurveSegmentModel.hpp>
+#include <Curve/Segment/CurveSegmentModelSerialization.hpp>
+
+#include <boost/iterator/indirect_iterator.hpp>
+#include <boost/iterator/iterator_facade.hpp>
+#include <boost/multi_index/detail/hash_index_iterator.hpp>
+
+#include <iscore/document/DocumentContext.hpp>
+#include <iscore/document/DocumentInterface.hpp>
+#include <iscore/tools/SettableIdentifierGeneration.hpp>
+#include <algorithm>
+
+#include <Curve/Segment/CurveSegmentData.hpp>
+#include "CurveModel.hpp"
+#include <iscore/application/ApplicationContext.hpp>
+#include <iscore/plugins/customfactory/StringFactoryKey.hpp>
+#include <iscore/selection/Selectable.hpp>
+#include <iscore/selection/Selection.hpp>
+#include <iscore/tools/IdentifiedObject.hpp>
+#include <iscore/tools/IdentifiedObjectMap.hpp>
+#include <iscore/tools/SettableIdentifier.hpp>
+#include <iscore/tools/std/StdlibWrapper.hpp>
+#include <iscore/tools/std/Algorithms.hpp>
+
+class QObject;
 
 CurveModel::CurveModel(const Id<CurveModel>& id, QObject* parent):
     IdentifiedObject<CurveModel>(id, "CurveModel", parent)

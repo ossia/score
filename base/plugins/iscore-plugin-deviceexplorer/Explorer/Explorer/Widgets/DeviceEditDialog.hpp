@@ -1,13 +1,16 @@
 #pragma once
 
-class QComboBox;
-class QGridLayout;
-#include <Device/Protocol/ProtocolSettingsWidget.hpp>
-#include <Device/Protocol/ProtocolList.hpp>
-
 #include <QDialog>
 #include <QList>
 #include <QString>
+
+#include <Device/Protocol/DeviceSettings.hpp>
+
+class DynamicProtocolList;
+class ProtocolSettingsWidget;
+class QComboBox;
+class QGridLayout;
+class QWidget;
 
 
 class DeviceEditDialog final : public QDialog

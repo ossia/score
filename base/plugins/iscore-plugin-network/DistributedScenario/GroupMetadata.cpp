@@ -1,5 +1,8 @@
-#include "GroupMetadata.hpp"
 #include <iscore/serialization/VisitorCommon.hpp>
+
+#include "GroupMetadata.hpp"
+
+struct VisitorVariant;
 
 GroupMetadata::GroupMetadata(
         const QObject* element,

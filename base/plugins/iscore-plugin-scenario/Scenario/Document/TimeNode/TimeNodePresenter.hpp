@@ -1,15 +1,14 @@
 #pragma once
 #include <iscore/tools/NamedObject.hpp>
 #include <iscore/tools/SettableIdentifier.hpp>
-#include <Scenario/Document/Constraint/ConstraintModel.hpp>
+#include <QPoint>
+#include <sys/types.h>
 
-#include <QObject>
-#include <QMap>
-
-class TimeNodeView;
-class TimeNodeModel;
 class EventModel;
 class QGraphicsObject;
+class QObject;
+class TimeNodeModel;
+class TimeNodeView;
 class TriggerPresenter;
 
 class TimeNodePresenter final :  public NamedObject

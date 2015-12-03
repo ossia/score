@@ -1,8 +1,13 @@
-#include "AutomationView.hpp"
 #include <Process/Style/ProcessFonts.hpp>
+#include <QFlags>
+#include <QFont>
+#include <QGraphicsItem>
+#include <qnamespace.h>
 #include <QPainter>
-#include <QKeyEvent>
-#include <QDebug>
+#include <QRect>
+
+#include "AutomationView.hpp"
+#include <Process/LayerView.hpp>
 
 AutomationView::AutomationView(QGraphicsItem* parent) :
     LayerView {parent}
@@ -22,6 +27,6 @@ void AutomationView::paint_impl(QPainter* painter) const
         f.setPointSize(fontSize);
         painter->setFont(f);
         painter->setPen(Qt::lightGray);
-        painter->drawText(processNameRect, Qt::AlignRight, m_displayedName);
+        painter->drawText(processNameRect, Qt::AlignCenter, m_displayedName);
     }
 }

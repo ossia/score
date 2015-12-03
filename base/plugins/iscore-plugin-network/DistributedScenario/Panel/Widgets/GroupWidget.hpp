@@ -1,7 +1,9 @@
 #pragma once
-#include <QWidget>
 #include <iscore/tools/SettableIdentifier.hpp>
+#include <QWidget>
+
 class Group;
+
 class GroupWidget : public QWidget
 {
     public:

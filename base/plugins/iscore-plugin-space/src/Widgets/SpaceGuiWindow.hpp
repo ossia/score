@@ -8,7 +8,7 @@ class SpaceGuiWindow : public QWidget
 {
         Q_OBJECT
     public:
-        SpaceGuiWindow(iscore::CommandStack &stack, const SpaceProcess &space, QWidget* parent);
+        SpaceGuiWindow(iscore::CommandStackFacade &stack, const SpaceProcess &space, QWidget* parent);
 
 
     private:

@@ -1,11 +1,17 @@
 #pragma once
 #include <iscore/plugins/panel/PanelPresenter.hpp>
 
+namespace iscore {
+class PanelView;
+
+}  // namespace iscore
+
 class UndoPresenter final : public iscore::PanelPresenter
 {
     public:
-    UndoPresenter(iscore::Presenter *parent_presenter,
-                       iscore::PanelView *view);
+    UndoPresenter(
+            iscore::PanelView *view,
+            QObject* parent);
 
     int panelId() const override;
 

@@ -1,17 +1,17 @@
 #pragma once
 #include <Curve/Commands/CurveCommandFactory.hpp>
+#include <Curve/Segment/CurveSegmentData.hpp>
 #include <iscore/command/SerializableCommand.hpp>
 #include <iscore/tools/ModelPath.hpp>
-#include <Curve/Segment/CurveSegmentData.hpp>
+#include <vector>
+
 class CurveModel;
-class CurveSegmentModel;
+class DataStreamInput;
+class DataStreamOutput;
 
 class UpdateCurve final : public iscore::SerializableCommand
 {
-        ISCORE_COMMAND_DECL(
-                CurveCommandFactoryName(),
-                UpdateCurve,
-                "UpdateCurve")
+        ISCORE_COMMAND_DECL(CurveCommandFactoryName(), UpdateCurve, "Update Curve")
     public:
         UpdateCurve(
           Path<CurveModel>&& model,

@@ -1,14 +1,12 @@
 #pragma once
 #include <QFrame>
-#include <QLineEdit>
-#include <QIntValidator>
-#include <cstdint>
-#include <QHBoxLayout>
-#include <QFont>
-#include <QLabel>
-#include <QKeyEvent>
-
 #include <array>
+
+class QEvent;
+class QLineEdit;
+class QObject;
+class QWidget;
+
 // Found on stackoverflow :
 // http://stackoverflow.com/questions/9306335/an-ip-address-widget-for-qt-similar-to-mfcs-ip-address-control
 class IpWidget : public QFrame

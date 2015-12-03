@@ -1,9 +1,19 @@
 #pragma once
-#include <QGraphicsObject>
-#include <Process/TimeValue.hpp>
+#include <QColor>
+#include <QDateTime>
+#include <QtGlobal>
+#include <QGraphicsItem>
+#include <QMap>
+#include <QPainterPath>
+#include <QPoint>
+#include <QString>
 
-class QPainterPath;
 class AbstractTimeRuler;
+class QGraphicsSceneMouseEvent;
+class QPainter;
+class QStyleOptionGraphicsItem;
+class QWidget;
+
 class AbstractTimeRulerView : public QGraphicsObject
 {
         Q_OBJECT

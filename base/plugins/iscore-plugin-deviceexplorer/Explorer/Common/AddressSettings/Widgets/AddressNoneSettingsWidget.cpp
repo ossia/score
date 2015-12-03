@@ -1,4 +1,7 @@
 #include "AddressNoneSettingsWidget.hpp"
+#include <Explorer/Common/AddressSettings/Widgets/AddressSettingsWidget.hpp>
+
+class QWidget;
 
 AddressNoneSettingsWidget::AddressNoneSettingsWidget(QWidget* parent)
     : AddressSettingsWidget(parent)

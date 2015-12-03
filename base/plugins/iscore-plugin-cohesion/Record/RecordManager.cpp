@@ -1,32 +1,55 @@
-#include "RecordManager.hpp"
-
-#include "Commands/Record.hpp"
-
-#include <Scenario/Commands/Scenario/Creations/CreateTimeNode_Event_State.hpp>
-#include <Scenario/Commands/Scenario/Creations/CreateConstraint_State_Event_TimeNode.hpp>
-#include <Scenario/Commands/Constraint/AddProcessToConstraint.hpp>
+#include <Automation/AutomationModel.hpp>
+#include <Automation/Commands/InitAutomation.hpp>
+#include <Curve/Segment/PointArray/PointArrayCurveSegmentModel.hpp>
+#include <Explorer/DocumentPlugin/DeviceDocumentPlugin.hpp>
+#include <Explorer/Explorer/DeviceExplorerModel.hpp>
 #include <Scenario/Commands/Constraint/AddOnlyProcessToConstraint.hpp>
-#include <Scenario/Commands/Scenario/Displacement/MoveNewEvent.hpp>
-#include <Scenario/Commands/Scenario/Displacement/MoveEvent.hpp>
-#include "Automation/Commands/ChangeAddress.hpp"
-#include "Automation/Commands/InitAutomation.hpp"
-#include <Scenario/Commands/Scenario/ShowRackInViewModel.hpp>
 #include <Scenario/Commands/Constraint/AddRackToConstraint.hpp>
 #include <Scenario/Commands/Constraint/Rack/AddSlotToRack.hpp>
-#include <Scenario/Commands/Constraint/Rack/Slot/AddLayerModelToSlot.hpp>
-
-#include "Automation/AutomationModel.hpp"
-#include "Curve/CurveModel.hpp"
-
-#include "Curve/Commands/UpdateCurve.hpp"
-#include "Curve/Segment/Linear/LinearCurveSegmentModel.hpp"
-#include "Curve/Segment/PointArray/PointArrayCurveSegmentModel.hpp"
-
-#include <Explorer/Explorer/DeviceExplorerModel.hpp>
-
-#include <iscore/document/DocumentInterface.hpp>
+#include <Scenario/Commands/Scenario/Creations/CreateConstraint_State_Event_TimeNode.hpp>
+#include <Scenario/Commands/Scenario/Creations/CreateTimeNode_Event_State.hpp>
+#include <Scenario/Commands/Scenario/Displacement/MoveNewEvent.hpp>
+#include <Scenario/Commands/Scenario/ShowRackInViewModel.hpp>
+#include <boost/optional/optional.hpp>
 #include <core/document/Document.hpp>
+
 #include <QApplication>
+#include <qnamespace.h>
+#include <QString>
+#include <algorithm>
+#include <type_traits>
+#include <utility>
+
+#include <Automation/AutomationProcessMetadata.hpp>
+#include "Commands/Record.hpp"
+#include <Curve/CurveModel.hpp>
+#include <Device/Address/AddressSettings.hpp>
+#include <Device/Address/IOType.hpp>
+#include <Device/Node/DeviceNode.hpp>
+#include <Device/Protocol/DeviceInterface.hpp>
+#include <Device/Protocol/DeviceList.hpp>
+#include <Explorer/DocumentPlugin/ListeningState.hpp>
+#include <Process/ExpandMode.hpp>
+#include <Process/Process.hpp>
+#include <Process/TimeValue.hpp>
+#include "Record/RecordData.hpp"
+#include "RecordManager.hpp"
+#include <Scenario/Commands/Constraint/Rack/Slot/AddLayerModelToSlot.hpp>
+#include <Scenario/Document/Constraint/ConstraintModel.hpp>
+#include <Scenario/Document/Constraint/Rack/RackModel.hpp>
+#include <Scenario/Document/Constraint/Rack/Slot/SlotModel.hpp>
+#include <Scenario/Palette/ScenarioPoint.hpp>
+#include <Scenario/Process/ScenarioModel.hpp>
+#include <State/Value.hpp>
+#include <State/ValueConversion.hpp>
+#include <iscore/command/Dispatchers/MacroCommandDispatcher.hpp>
+#include <iscore/document/DocumentInterface.hpp>
+#include <iscore/tools/ModelPath.hpp>
+#include <iscore/tools/NotifyingMap.hpp>
+#include <iscore/tools/SettableIdentifier.hpp>
+#include <iscore/tools/TreeNode.hpp>
+
+class CurveSegmentModel;
 
 RecordManager::RecordManager()
 {
@@ -67,9 +90,8 @@ void RecordManager::stopRecording()
             double newval = iscore::convert::value<double>(node.get<iscore::AddressSettings>().value);
 
             const auto& proc_data = records.at(addr);
-            proc_data.segment.addPoint(msecs, newval);
+            segt.addPoint(msecs, newval);
 
-            segt.addPoint(0, newval); // TODO why????
             static_cast<AutomationModel*>(proc_data.curveModel.parent())->setDuration(TimeValue::fromMsecs(msecs));
         }
 
@@ -98,13 +120,13 @@ void RecordManager::stopRecording()
     m_explorer->deviceModel().resumeListening(m_savedListening);
 }
 
-void RecordManager::recordInNewBox(ScenarioModel& scenar, Scenario::Point pt)
+void RecordManager::recordInNewBox(Scenario::ScenarioModel& scenar, Scenario::Point pt)
 {
-    auto& doc = *iscore::IDocument::documentFromObject(scenar);
+    auto& doc = iscore::IDocument::documentContext(scenar);
     //// Device tree management ////
 
     // Get all the selected nodes
-    m_explorer = &deviceExplorerFromObject(doc);
+    m_explorer = &deviceExplorerFromContext(doc);
     auto indices = m_explorer->selectedIndexes(); // TODO maybe filterUniqueParents and then recurse on the listening ??
 
     // Disable listening for everything
@@ -145,14 +167,14 @@ void RecordManager::recordInNewBox(ScenarioModel& scenar, Scenario::Point pt)
     if(recordListening.empty())
         return;
 
-    m_dispatcher = std::make_unique<RecordCommandDispatcher>(new Record, doc.commandStack());
+    m_dispatcher = std::make_unique<RecordCommandDispatcher>(new Record, doc.commandStack);
 
     //// Initial commands ////
 
     // Get the clicked point in scenario and create a state + constraint + state there
     // Create an automation + a rack + a slot + process views for all automations.
     auto default_end_date = pt.date;
-    auto cmd_start = new CreateTimeNode_Event_State{
+    auto cmd_start = new Scenario::Command::CreateTimeNode_Event_State{
             scenar,
             pt.date,
             pt.y};
@@ -160,7 +182,7 @@ void RecordManager::recordInNewBox(ScenarioModel& scenar, Scenario::Point pt)
     m_dispatcher->submitCommand(cmd_start);
 
     // TODO what happens if we go past the end of our scenario ? Stop recording ??
-    auto cmd_end = new CreateConstraint_State_Event_TimeNode{
+    auto cmd_end = new Scenario::Command::CreateConstraint_State_Event_TimeNode{
             scenar,
             cmd_start->createdState(),
             default_end_date,
@@ -213,7 +235,7 @@ void RecordManager::recordInNewBox(ScenarioModel& scenar, Scenario::Point pt)
             auto& autom = static_cast<AutomationModel&>(proc);
 
 
-            auto cmd_layer = new AddLayerModelToSlot{slot, proc};
+            auto cmd_layer = new Scenario::Command::AddLayerModelToSlot{slot, proc};
             cmd_layer->redo();
 
             autom.curve().clear();
@@ -275,7 +297,7 @@ void RecordManager::recordInNewBox(ScenarioModel& scenar, Scenario::Point pt)
         // Move end event by the current duration.
         int msecs = std::chrono::duration_cast<std::chrono::milliseconds>(current_time_pt - start_time_pt).count();
         cmd_move->update(
-                    Path<ScenarioModel>{},
+                    Path<Scenario::ScenarioModel>{},
                     Id<ConstraintModel>{},
                     cmd_end->createdEvent(),
                     pt.date + TimeValue::fromMsecs(msecs),

@@ -1,22 +1,24 @@
-#include "CreateCurves.hpp"
-
 #include <Commands/CreateCurvesFromAddresses.hpp>
 #include <Commands/CreateCurvesFromAddressesInConstraints.hpp>
-
-#include <Scenario/Document/Constraint/ConstraintModel.hpp>
 #include <Explorer/Explorer/DeviceExplorerModel.hpp>
-
+#include <Scenario/Document/Constraint/ConstraintModel.hpp>
 #include <iscore/command/Dispatchers/MacroCommandDispatcher.hpp>
+#include <QList>
+#include <QPointer>
 
-#include <core/document/Document.hpp>
+#include "CreateCurves.hpp"
+#include <Device/Node/DeviceNode.hpp>
+#include <State/Address.hpp>
+#include <iscore/document/DocumentContext.hpp>
+#include <iscore/selection/Selectable.hpp>
+#include <iscore/selection/SelectionStack.hpp>
+#include <iscore/tools/IdentifiedObjectAbstract.hpp>
 
-void CreateCurves(iscore::Document& doc)
+void CreateCurves(const iscore::DocumentContext& doc)
 {
     using namespace std;
     // Fetch the selected constraints
-    auto sel = doc.
-            selectionStack().
-            currentSelection();
+    auto sel = doc.selectionStack.currentSelection();
 
     QList<const ConstraintModel*> selected_constraints;
     for(auto obj : sel)
@@ -27,11 +29,11 @@ void CreateCurves(iscore::Document& doc)
     }
 
     // Fetch the selected DeviceExplorer elements
-    auto& device_explorer = deviceExplorerFromObject(doc);
+    auto& device_explorer = deviceExplorerFromContext(doc);
     auto addresses = device_explorer.selectedIndexes();
 
     MacroCommandDispatcher macro{new CreateCurvesFromAddressesInConstraints,
-                doc.commandStack()};
+                doc.commandStack};
     for(auto constraint : selected_constraints)
     {
         QList<iscore::Address> l;

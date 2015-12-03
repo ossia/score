@@ -1,4 +1,9 @@
+#include <Curve/Palette/CurvePoint.hpp>
+#include <Curve/Segment/CurveSegmentData.hpp>
 #include "CurveSegmentModel.hpp"
+#include <iscore/tools/IdentifiedObject.hpp>
+
+class QObject;
 
 
 CurveSegmentModel::CurveSegmentModel(

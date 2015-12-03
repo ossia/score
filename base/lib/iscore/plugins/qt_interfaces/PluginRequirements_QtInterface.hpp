@@ -6,7 +6,7 @@ namespace iscore
 {
 
     // Used to declare which plug-ins require to
-    // have their Control loaded prior to this one.
+    // have their ApplicationPlugin loaded prior to this one.
     class PluginRequirementslInterface_QtInterface
     {
         public:

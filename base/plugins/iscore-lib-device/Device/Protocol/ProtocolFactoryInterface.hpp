@@ -1,13 +1,17 @@
 #pragma once
 #include <iscore/plugins/customfactory/FactoryInterface.hpp>
-#include <Device/Protocol/ProtocolSettingsWidget.hpp>
-#include <Device/Protocol/DeviceSettings.hpp>
-
 #include <iscore/serialization/VisitorCommon.hpp>
 #include <QString>
 #include <QVariant>
 
+#include <Device/Protocol/ProtocolFactoryKey.hpp>
+
 class DeviceInterface;
+class ProtocolSettingsWidget;
+namespace iscore {
+struct DeviceSettings;
+}  // namespace iscore
+struct VisitorVariant;
 
 class ProtocolFactory : public iscore::GenericFactoryInterface<ProtocolFactoryKey>
 {

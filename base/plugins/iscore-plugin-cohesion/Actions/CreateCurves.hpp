@@ -2,7 +2,7 @@
 
 namespace iscore
 {
-class Document;
+struct DocumentContext;
 }
 
-void CreateCurves(iscore::Document& doc);
+void CreateCurves(const iscore::DocumentContext& doc);

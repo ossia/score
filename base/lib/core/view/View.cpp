@@ -1,17 +1,27 @@
+#include <core/document/Document.hpp>
+#include <core/document/DocumentModel.hpp>
+#include <core/document/DocumentView.hpp>
+#include <core/presenter/Presenter.hpp>
 #include <core/view/View.hpp>
 #include <iscore/menu/MenuInterface.hpp>
-#include <QDockWidget>
-#include <QGridLayout>
-#include <QDesktopWidget>
-
-#include <core/application/Application.hpp>
-#include <core/document/DocumentView.hpp>
-
 #include <iscore/plugins/panel/PanelView.hpp>
-#include <iscore/plugins/panel/PanelPresenter.hpp>
-
+#include <QAction>
+#include <qcoreevent.h>
+#include <QDesktopWidget>
+#include <QDockWidget>
+#include <QEvent>
+#include <QFlags>
+#include <qnamespace.h>
+#include <QRect>
+#include <QTabBar>
+#include <QTabWidget>
+#include <QWidget>
 #include <QCloseEvent>
-#include <core/presenter/Presenter.hpp>
+#include <algorithm>
+#include <iterator>
+#include <set>
+
+class QObject;
 
 using namespace iscore;
 
@@ -38,13 +48,14 @@ View::View(QObject* parent) :
            auto view = dynamic_cast<DocumentView*>(m_tabWidget->widget(index));
            if(!view)
                return;
-           emit activeDocumentChanged(view->document());
+           emit activeDocumentChanged(view->document().model().id());
     });
 
     connect(m_tabWidget, &QTabWidget::tabCloseRequested, [&] (int index)
     {
-        emit closeRequested(safe_cast<DocumentView*>(m_tabWidget->widget(index))->document());
+        emit closeRequested(safe_cast<DocumentView*>(m_tabWidget->widget(index))->document().model().id());
     });
+
 }
 
 void View::setPresenter(Presenter* p)
@@ -55,7 +66,7 @@ void View::setPresenter(Presenter* p)
 void View::addDocumentView(DocumentView* doc)
 {
     doc->setParent(this);
-    m_tabWidget->addTab(doc, doc->document()->docFileName());
+    m_tabWidget->addTab(doc, doc->document().docFileName());
     m_tabWidget->setCurrentIndex(m_tabWidget->count() - 1);
     m_tabWidget->setTabsClosable(true);
 }
@@ -150,4 +161,14 @@ void View::on_fileNameChanged(DocumentView* d, const QString& newName)
             return;
         }
     }
+}
+
+void View::changeEvent(QEvent* ev)
+{
+    if(ev->type() == QEvent::ActivationChange)
+    {
+        emit activeWindowChanged();
+    }
+
+    QMainWindow::changeEvent(ev);
 }

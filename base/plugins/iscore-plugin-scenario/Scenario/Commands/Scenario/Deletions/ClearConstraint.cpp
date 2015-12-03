@@ -1,15 +1,23 @@
-#include "ClearConstraint.hpp"
-
+#include <Process/ProcessList.hpp>
+#include <Process/ProcessModelSerialization.hpp>
 #include <Scenario/Document/Constraint/ConstraintModel.hpp>
 #include <Scenario/Document/Constraint/Rack/RackModel.hpp>
-#include <Scenario/Document/Constraint/Rack/Slot/SlotModel.hpp>
-#include <Scenario/Process/ScenarioModel.hpp>
-#include <Scenario/Process/Temporal/TemporalScenarioLayerModel.hpp>
-#include <Process/ProcessModelSerialization.hpp>
 #include <Scenario/Document/Constraint/ViewModels/ConstraintViewModel.hpp>
 
-#include <core/application/ApplicationComponents.hpp>
-#include <Process/ProcessList.hpp>
+
+#include <QDataStream>
+#include <QtGlobal>
+#include <algorithm>
+
+#include "ClearConstraint.hpp"
+#include <Process/Process.hpp>
+#include <iscore/application/ApplicationContext.hpp>
+#include <iscore/plugins/customfactory/StringFactoryKey.hpp>
+#include <iscore/serialization/DataStreamVisitor.hpp>
+#include <iscore/tools/IdentifiedObject.hpp>
+#include <iscore/tools/ModelPath.hpp>
+#include <iscore/tools/ModelPathSerialization.hpp>
+#include <iscore/tools/NotifyingMap.hpp>
 
 using namespace iscore;
 using namespace Scenario::Command;
@@ -45,7 +53,7 @@ ClearConstraint::ClearConstraint(Path<ConstraintModel>&& constraintPath) :
 
 void ClearConstraint::undo() const
 {
-    auto& fact = context.components.factory<DynamicProcessList>();
+    auto& fact = context.components.factory<ProcessList>();
 
     auto& constraint = m_path.find();
 

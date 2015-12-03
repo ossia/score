@@ -1,33 +1,46 @@
 #pragma once
-#include <iscore/command/SerializableCommand.hpp>
-#include "CreateConstraint_State_Event_TimeNode.hpp"
-#include <Process/TimeValue.hpp>
 #include <Process/State/MessageNode.hpp>
-
+#include <Process/TimeValue.hpp>
 #include <Scenario/Commands/Cohesion/InterpolateMacro.hpp>
+#include <iscore/command/SerializableCommand.hpp>
+
+#include "CreateConstraint_State_Event_TimeNode.hpp"
+#include <Scenario/Commands/ScenarioCommandFactory.hpp>
+#include <iscore/tools/ModelPath.hpp>
+
+class ConstraintModel;
+class DataStreamInput;
+class DataStreamOutput;
+class EventModel;
+class StateModel;
 class TimeNodeModel;
+namespace Scenario {
+class ScenarioModel;
+}  // namespace Scenario
+#include <iscore/tools/SettableIdentifier.hpp>
+
 namespace Scenario
 {
 namespace Command
 {
 class CreateSequence final : public iscore::SerializableCommand
 {
-        ISCORE_COMMAND_DECL(ScenarioCommandFactoryName(), CreateSequence,"CreateSequence")
+        ISCORE_COMMAND_DECL(ScenarioCommandFactoryName(), CreateSequence,"Create a sequence")
     public:
 
         CreateSequence(
-            const ScenarioModel& scenario,
+            const Scenario::ScenarioModel& scenario,
             const Id<StateModel>& startState,
             const TimeValue& date,
             double endStateY);
 
         CreateSequence(
-            const Path<ScenarioModel>& scenarioPath,
+            const Path<Scenario::ScenarioModel>& scenarioPath,
             const Id<StateModel>& startState,
             const TimeValue& date,
             double endStateY);
 
-        const Path<ScenarioModel>& scenarioPath() const
+        const Path<Scenario::ScenarioModel>& scenarioPath() const
         { return m_command.scenarioPath(); }
 
         const Id<ConstraintModel>& createdConstraint() const

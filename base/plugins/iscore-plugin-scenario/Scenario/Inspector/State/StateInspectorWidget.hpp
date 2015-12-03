@@ -1,16 +1,22 @@
 #pragma once
 
 #include <Inspector/InspectorWidgetBase.hpp>
+#include <list>
+
+class InspectorSectionWidget;
+class QWidget;
 class StateModel;
-class QFormLayout;
-class StateWidget;
+namespace iscore {
+struct DocumentContext;
+}  // namespace iscore
+
 class StateInspectorWidget final : public InspectorWidgetBase
 {
         Q_OBJECT
     public:
         explicit StateInspectorWidget(
                 const StateModel& object,
-                iscore::Document& doc,
+                const iscore::DocumentContext& context,
                 QWidget* parent);
 
     public slots:

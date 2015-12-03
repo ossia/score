@@ -1,6 +1,15 @@
-#include "AutomationStateInspectorFactory.hpp"
+#include <QString>
+
 #include "AutomationStateInspector.hpp"
+#include "AutomationStateInspectorFactory.hpp"
+#include <Inspector/InspectorWidgetFactoryInterface.hpp>
 #include <Automation/State/AutomationState.hpp>
+class InspectorWidgetBase;
+class QObject;
+class QWidget;
+namespace iscore {
+class Document;
+}  // namespace iscore
 
 AutomationStateInspectorFactory::AutomationStateInspectorFactory() :
     InspectorWidgetFactory {}
@@ -10,8 +19,8 @@ AutomationStateInspectorFactory::AutomationStateInspectorFactory() :
 
 InspectorWidgetBase* AutomationStateInspectorFactory::makeWidget(
         const QObject& sourceElement,
-        iscore::Document& doc,
-        QWidget* parent)
+        const iscore::DocumentContext& doc,
+        QWidget* parent) const
 {
     return new AutomationStateInspector{
                 safe_cast<const AutomationState&>(sourceElement),

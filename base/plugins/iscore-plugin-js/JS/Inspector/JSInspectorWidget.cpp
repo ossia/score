@@ -1,24 +1,23 @@
-#include "JSInspectorWidget.hpp"
 #include <JS/JSProcessModel.hpp>
-#include <Inspector/InspectorSectionWidget.hpp>
+#include <QPlainTextEdit>
+#include <algorithm>
+
+#include <Inspector/InspectorWidgetBase.hpp>
 #include "JS/Commands/EditScript.hpp"
-
-#include <iscore/document/DocumentInterface.hpp>
-#include <core/document/Document.hpp>
-#include <core/document/DocumentModel.hpp>
-
-#include <iscore/widgets/SpinBoxes.hpp>
+#include "JSInspectorWidget.hpp"
+#include <iscore/command/Dispatchers/CommandDispatcher.hpp>
+#include <iscore/tools/ModelPath.hpp>
 #include <QVBoxLayout>
-#include <QLineEdit>
-#include <QPushButton>
-#include <QFormLayout>
-#include <QDoubleSpinBox>
-#include <QMessageBox>
-#include <QApplication>
+
+class QVBoxLayout;
+class QWidget;
+namespace iscore {
+class Document;
+}  // namespace iscore
 
 JSInspectorWidget::JSInspectorWidget(
         const JSProcessModel& JSModel,
-        iscore::Document& doc,
+        const iscore::DocumentContext& doc,
         QWidget* parent) :
     InspectorWidgetBase {JSModel, doc, parent},
     m_model {JSModel}

@@ -1,11 +1,19 @@
 #pragma once
-#include <State/StateMimeTypes.hpp>
-#include <State/Message.hpp>
-#include <iscore/command/Dispatchers/CommandDispatcher.hpp>
-
-#include <iscore/tools/TreeNodeItemModel.hpp>
-#include <QModelIndex>
 #include <Process/State/MessageNode.hpp>
+#include <iscore/tools/TreeNodeItemModel.hpp>
+#include <QAbstractItemModel>
+#include <qnamespace.h>
+#include <QStringList>
+#include <QVariant>
+
+class QMimeData;
+class QObject;
+class StateModel;
+namespace iscore {
+class CommandStackFacade;
+struct Message;
+}  // namespace iscore
+
 /**
  * @brief The MessageItemModel class
  *
@@ -28,7 +36,7 @@ class MessageItemModel final : public TreeNodeBasedItemModel<MessageNode>
         };
 
         MessageItemModel(
-                iscore::CommandStack& stack,
+                iscore::CommandStackFacade& stack,
                 const StateModel&,
                 QObject* parent);
         MessageItemModel& operator=(const MessageItemModel&);
@@ -67,5 +75,5 @@ class MessageItemModel final : public TreeNodeBasedItemModel<MessageNode>
     private:
         node_type m_rootNode;
 
-        iscore::CommandStack& m_stack;
+        iscore::CommandStackFacade& m_stack;
 };

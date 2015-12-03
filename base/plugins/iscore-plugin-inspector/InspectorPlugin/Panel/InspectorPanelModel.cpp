@@ -1,9 +1,9 @@
+
 #include "InspectorPanelModel.hpp"
+#include <iscore/plugins/panel/PanelModel.hpp>
 #include "InspectorPanelId.hpp"
 
-#include <core/document/DocumentModel.hpp>
-
-InspectorPanelModel::InspectorPanelModel(iscore::DocumentModel* parent) :
+InspectorPanelModel::InspectorPanelModel(QObject* parent) :
     iscore::PanelModel {"InspectorPanelModel", nullptr}
 // NOTE : here we declare parent after because else for some weird reason,
 // "newItemInspected" is not found...

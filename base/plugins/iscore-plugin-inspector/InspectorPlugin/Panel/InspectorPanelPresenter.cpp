@@ -1,12 +1,20 @@
-#include "InspectorPanelPresenter.hpp"
 #include "InspectorPanelModel.hpp"
+#include "InspectorPanelPresenter.hpp"
 #include "InspectorPanelView.hpp"
+#include <iscore/document/DocumentInterface.hpp>
+#include <iscore/plugins/panel/PanelModel.hpp>
+#include <iscore/plugins/panel/PanelPresenter.hpp>
 #include "InspectorPanelId.hpp"
 
-#include <core/document/DocumentPresenter.hpp>
-InspectorPanelPresenter::InspectorPanelPresenter(iscore::Presenter* parent,
-        iscore::PanelView* view) :
-    iscore::PanelPresenter {parent, view}
+namespace iscore {
+class PanelView;
+
+}  // namespace iscore
+
+InspectorPanelPresenter::InspectorPanelPresenter(
+        iscore::PanelView* view,
+        QObject* parent) :
+    iscore::PanelPresenter {view, parent}
 {
 
 }

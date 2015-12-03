@@ -1,18 +1,20 @@
 #pragma once
-#include <iscore/tools/NamedObject.hpp>
 #include <iscore/tools/ObjectPath.hpp>
+#include <type_traits>
+#include <vector>
+
+class QObject;
 //#include <iscore/tools/ModelPath.hpp>
 
 namespace iscore
 {
-class Document;
-class DocumentDelegatePresenterInterface;
-class DocumentDelegateModelInterface;
 class CommandStack;
-class SelectionStack;
+class Document;
+class DocumentDelegateModelInterface;
+class DocumentDelegatePresenterInterface;
 class PanelModel;
-class ObjectLocker;
 struct DocumentContext;
+
 namespace IDocument
 {
 /**
@@ -24,8 +26,6 @@ namespace IDocument
 Document* documentFromObject(const QObject* obj);
 Document* documentFromObject(const QObject& obj);
 DocumentContext& documentContext(const QObject& obj);
-
-iscore::CommandStack& commandStack(const QObject& obj);
 
 /**
  * @brief pathFromDocument
@@ -76,15 +76,10 @@ T& get(const Document& d)
 }
 
 // And then if we are not
-DocumentDelegateModelInterface* try_modelDelegate_generic(const Document& d);
 
 template<typename T> T* try_modelDelegate(const Document& d)
 {
-    if(auto md = try_modelDelegate_generic(d))
-    {
-        return dynamic_cast<T*>(md);
-    }
-    return nullptr;
+    return dynamic_cast<T*>(&modelDelegate_generic(d));
 }
 
 template<typename T,

@@ -1,7 +1,7 @@
 #include "iscore_plugin_space.hpp"
 
 #include "SpaceProcessFactory.hpp"
-#include "SpaceControl.hpp"
+#include "SpaceApplicationPlugin.hpp"
 #include "Area/AreaFactory.hpp"
 #include "Area/SingletonAreaFactoryList.hpp"
 
@@ -14,12 +14,12 @@ iscore_plugin_space::iscore_plugin_space() :
 {
 }
 
-iscore::PluginControlInterface* iscore_plugin_space::make_control(iscore::Presenter* pres)
+iscore::GUIApplicationContextPlugin* iscore_plugin_space::make_applicationplugin(iscore::Presenter* pres)
 {
-    return new SpaceControl{pres};
+    return new SpaceApplicationPlugin{pres};
 }
 
-std::vector<iscore::FactoryInterfaceBase*> iscore_plugin_space::factories(const iscore::FactoryBaseKey& factoryName) const
+std::vector<std::unique_ptr<iscore::FactoryInterfaceBase>> iscore_plugin_space::factories(const iscore::FactoryBaseKey& factoryName) const
 {
     if(factoryName == ProcessFactory::staticFactoryKey())
     {

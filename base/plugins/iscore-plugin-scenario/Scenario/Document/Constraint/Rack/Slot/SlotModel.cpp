@@ -1,10 +1,18 @@
-#include "SlotModel.hpp"
-
+#include <Process/LayerModel.hpp>
+#include <Process/Process.hpp>
 #include <Scenario/Document/Constraint/ConstraintModel.hpp>
 #include <Scenario/Document/Constraint/Rack/RackModel.hpp>
 
-#include <Process/Process.hpp>
-#include <Process/LayerModel.hpp>
+#include <boost/iterator/indirect_iterator.hpp>
+#include <boost/iterator/iterator_facade.hpp>
+#include <boost/multi_index/detail/hash_index_iterator.hpp>
+#include <algorithm>
+#include <iterator>
+
+#include <Process/ModelMetadata.hpp>
+#include "SlotModel.hpp"
+#include <iscore/tools/NotifyingMap.hpp>
+#include <iscore/tools/Todo.hpp>
 
 constexpr const char SlotModel::className[];
 
@@ -14,6 +22,7 @@ SlotModel::SlotModel(
     IdentifiedObject<SlotModel> {id, "SlotModel", parent}
 {
     initConnections();
+    metadata.setName(QString{"Slot.%1"}.arg(*id.val()));
 }
 
 SlotModel::SlotModel(
@@ -33,6 +42,7 @@ SlotModel::SlotModel(
     // one we have cloned, hence instead of just copying the id, we ask the corresponding
     // layer model to give us its id.
     // TODO this is fucking ugly - mostly because two objects exist with the same id...
+    metadata.setName(QString{"Slot.%1"} .arg(*id.val()));
 }
 
 RackModel&SlotModel::rack() const
@@ -128,10 +138,8 @@ void SlotModel::setFocus(bool arg)
 
 void SlotModel::initConnections()
 {
-    con(layers, &NotifyingMap<LayerModel>::added,
-        this, &SlotModel::on_addLayer);
-    con(layers, &NotifyingMap<LayerModel>::removed,
-        this, &SlotModel::on_removeLayer);
+    layers.added.connect<SlotModel,&SlotModel::on_addLayer>(this);
+    layers.removed.connect<SlotModel,&SlotModel::on_removeLayer>(this);
 }
 
 ConstraintModel& SlotModel::parentConstraint() const

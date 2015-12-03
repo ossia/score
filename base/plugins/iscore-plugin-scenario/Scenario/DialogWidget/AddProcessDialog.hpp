@@ -1,7 +1,10 @@
 #pragma once
+
 #include <QWidget>
-#include <Process/ProcessFactory.hpp>
-#include <Process/ProcessList.hpp>
+
+#include <Process/ProcessFactoryKey.hpp>
+
+class ProcessList;
 
 class AddProcessDialog final : public QWidget
 {
@@ -9,7 +12,7 @@ class AddProcessDialog final : public QWidget
 
     public:
         AddProcessDialog(
-                const DynamicProcessList& plist,
+                const ProcessList& plist,
                 QWidget* parent = 0);
 
     public slots:
@@ -19,6 +22,6 @@ class AddProcessDialog final : public QWidget
         void okPressed(const ProcessFactoryKey&);
 
     private:
-        const DynamicProcessList& m_factoryList;
+        const ProcessList& m_factoryList;
 
 };

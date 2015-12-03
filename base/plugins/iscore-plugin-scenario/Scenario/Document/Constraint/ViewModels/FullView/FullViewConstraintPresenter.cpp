@@ -1,17 +1,16 @@
-#include "FullViewConstraintPresenter.hpp"
-#include "FullViewConstraintHeader.hpp"
-
-#include <Scenario/Document/Event/EventModel.hpp>
 #include <Scenario/Document/Constraint/ConstraintModel.hpp>
-#include <Scenario/Document/Constraint/ViewModels/FullView/FullViewConstraintViewModel.hpp>
 #include <Scenario/Document/Constraint/ViewModels/FullView/FullViewConstraintView.hpp>
-#include <Scenario/Commands/Constraint/AddProcessToConstraint.hpp>
+#include <Scenario/Document/Constraint/ViewModels/FullView/FullViewConstraintViewModel.hpp>
+#include <iscore/document/DocumentInterface.hpp>
+#include <QGraphicsScene>
+#include <QList>
 
 #include "AddressBarItem.hpp"
-#include <iscore/document/DocumentInterface.hpp>
-#include <core/document/Document.hpp>
+#include "FullViewConstraintHeader.hpp"
+#include "FullViewConstraintPresenter.hpp"
+#include <Scenario/Document/Constraint/ViewModels/ConstraintPresenter.hpp>
 
-#include <QGraphicsScene>
+class QObject;
 
 FullViewConstraintPresenter::FullViewConstraintPresenter(
         const FullViewConstraintViewModel& cstr_model,
@@ -21,12 +20,8 @@ FullViewConstraintPresenter::FullViewConstraintPresenter(
                          cstr_model,
                          new FullViewConstraintView{*this, parentobject},
                          new FullViewConstraintHeader{parentobject},
-                         parent},
-    m_selectionDispatcher{iscore::IDocument::documentFromObject(cstr_model.model())->selectionStack()}
+                         parent}
 {
-    connect(this, &ConstraintPresenter::pressed,
-            this, &FullViewConstraintPresenter::on_pressed);
-
     // Update the address bar
     auto addressBar = static_cast<FullViewConstraintHeader*>(m_header)->bar();
     addressBar->setTargetObject(iscore::IDocument::unsafe_path(cstr_model.model()));
@@ -47,9 +42,4 @@ FullViewConstraintPresenter::~FullViewConstraintPresenter()
 
         ::view(this)->deleteLater();
     }
-}
-
-void FullViewConstraintPresenter::on_pressed(const QPointF&)
-{
-    m_selectionDispatcher.setAndCommit({&this->model()});
 }

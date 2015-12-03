@@ -1,10 +1,17 @@
 #pragma once
 #include <Scenario/Commands/ScenarioCommandFactory.hpp>
+#include <boost/optional/optional.hpp>
 #include <iscore/command/SerializableCommand.hpp>
 #include <iscore/tools/ModelPath.hpp>
+#include <QByteArray>
 
-class SlotModel;
+#include <iscore/tools/SettableIdentifier.hpp>
+
+class DataStreamInput;
+class DataStreamOutput;
 class RackModel;
+class SlotModel;
+
 namespace Scenario
 {
     namespace Command
@@ -16,7 +23,7 @@ namespace Scenario
          */
         class RemoveSlotFromRack final : public iscore::SerializableCommand
         {
-                ISCORE_COMMAND_DECL(ScenarioCommandFactoryName(), RemoveSlotFromRack, "RemoveSlotFromRack")
+                ISCORE_COMMAND_DECL(ScenarioCommandFactoryName(), RemoveSlotFromRack, "Remove a slot")
             public:
                 RemoveSlotFromRack(Path<SlotModel>&& slotPath);
                 RemoveSlotFromRack(Path<RackModel>&& rackPath, Id<SlotModel> slotId);

@@ -1,8 +1,11 @@
-#include "ProcessPanelGraphicsProxy.hpp"
-#include <Process/Process.hpp>
-#include "ProcessPanelPresenter.hpp"
-#include <QPainter>
 #include <Process/Style/ScenarioStyle.hpp>
+#include <QPainter>
+
+#include "ProcessPanelGraphicsProxy.hpp"
+
+class LayerModel;
+class QStyleOptionGraphicsItem;
+class QWidget;
 
 ProcessPanelGraphicsProxy::ProcessPanelGraphicsProxy(const LayerModel& lm,
                                                      const ProcessPanelPresenter& pres)

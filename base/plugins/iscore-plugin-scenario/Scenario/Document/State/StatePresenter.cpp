@@ -1,17 +1,27 @@
-#include "StatePresenter.hpp"
-#include "StateModel.hpp"
-#include "StateView.hpp"
-
-#include <Scenario/Commands/Event/State/AddStateWithData.hpp>
-#include <State/StateMimeTypes.hpp>
 #include <State/MessageListSerialization.hpp>
-
 #include <iscore/document/DocumentInterface.hpp>
 #include <iscore/widgets/GraphicsItem.hpp>
-#include <core/document/Document.hpp>
-#include <QGraphicsScene>
 #include <QMimeData>
-#include <QJsonDocument>
+#include <QStringList>
+
+#include <Process/ModelMetadata.hpp>
+#include <Scenario/Commands/State/AddMessagesToState.hpp>
+#include <Scenario/Document/Event/ExecutionStatus.hpp>
+#include <Scenario/Document/State/ItemModel/MessageItemModel.hpp>
+#include <State/Message.hpp>
+#include "StateModel.hpp"
+#include "StatePresenter.hpp"
+#include "StateView.hpp"
+#include <iscore/document/DocumentContext.hpp>
+#include <iscore/command/Dispatchers/CommandDispatcher.hpp>
+#include <iscore/selection/Selectable.hpp>
+#include <iscore/serialization/MimeVisitor.hpp>
+#include <iscore/tools/IdentifiedObject.hpp>
+#include <iscore/tools/NamedObject.hpp>
+#include <iscore/tools/Todo.hpp>
+
+class QObject;
+#include <iscore/tools/SettableIdentifier.hpp>
 
 StatePresenter::StatePresenter(
         const StateModel &model,
@@ -20,7 +30,7 @@ StatePresenter::StatePresenter(
     NamedObject {"StatePresenter", parent},
     m_model {model},
     m_view {new StateView{*this, parentview}},
-    m_dispatcher{iscore::IDocument::commandStack(m_model)}
+    m_dispatcher{iscore::IDocument::documentContext(m_model).commandStack}
 {
     // The scenario catches this :
     con(m_model.selection, &Selectable::changed,
@@ -33,16 +43,12 @@ StatePresenter::StatePresenter(
             this, &StatePresenter::updateStateView);
 
     con(m_model, &StateModel::statusChanged,
-        this, [&] (ExecutionStatus e)
-    {
-        m_view->changeColor(eventStatusColor(e));
-    });
+        m_view, &StateView::setStatus);
 
     connect(m_view, &StateView::dropReceived,
             this, &StatePresenter::handleDrop);
 
     updateStateView();
-    m_view->changeColor(eventStatusColor(m_model.status()));
 }
 
 StatePresenter::~StatePresenter()

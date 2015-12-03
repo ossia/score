@@ -1,13 +1,20 @@
 #pragma once
 #include <Scenario/Commands/ScenarioCommandFactory.hpp>
+#include <boost/optional/optional.hpp>
 #include <iscore/command/SerializableCommand.hpp>
-
 #include <iscore/tools/ModelPath.hpp>
+#include <QByteArray>
 #include <QMap>
-#include <tuple>
-class ConstraintViewModel;
-class RackModel;
+#include <QVector>
+
+#include <iscore/tools/SettableIdentifier.hpp>
+
 class ConstraintModel;
+class ConstraintViewModel;
+class DataStreamInput;
+class DataStreamOutput;
+class RackModel;
+
 namespace Scenario
 {
     namespace Command
@@ -19,7 +26,7 @@ namespace Scenario
          */
         class ClearConstraint final : public iscore::SerializableCommand
         {
-                ISCORE_COMMAND_DECL(ScenarioCommandFactoryName(), ClearConstraint, "ClearConstraint")
+                ISCORE_COMMAND_DECL(ScenarioCommandFactoryName(), ClearConstraint, "Clear a constraint")
             public:
                 ClearConstraint(Path<ConstraintModel>&& constraintPath);
                 void undo() const override;

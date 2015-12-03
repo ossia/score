@@ -1,46 +1,49 @@
 #pragma once
-#include <Scenario/Document/State/StatePresenter.hpp>
-
-#include <Scenario/Document/Event/EventModel.hpp>
-#include <Scenario/Document/Event/EventPresenter.hpp>
-
-#include <Scenario/Document/TimeNode/TimeNodeModel.hpp>
-#include <Scenario/Document/TimeNode/TimeNodePresenter.hpp>
-
-#include <Scenario/Document/Constraint/ConstraintModel.hpp>
-#include <Scenario/Document/Constraint/ViewModels/Temporal/TemporalConstraintPresenter.hpp>
-
-#include <Scenario/Document/State/StateModel.hpp>
-
-#include <Scenario/Process/Temporal/StateMachines/ScenarioStateMachine.hpp>
-
+#include <Process/Focus/FocusDispatcher.hpp>
 #include <Process/LayerPresenter.hpp>
 #include <Process/ProcessContext.hpp>
-#include <Process/Focus/FocusDispatcher.hpp>
-#include <core/document/DocumentContext.hpp>
+#include <Scenario/Document/Constraint/ViewModels/Temporal/TemporalConstraintPresenter.hpp>
+#include <Scenario/Palette/ScenarioPalette.hpp>
+#include <Scenario/Process/Temporal/ScenarioViewInterface.hpp>
+#include <boost/optional/optional.hpp>
 #include <iscore/tools/IdentifiedObjectMap.hpp>
+#include <QObject>
+#include <QPoint>
 
-#include <Scenario/Control/ScenarioEditionSettings.hpp>
+#include <Process/ZoomHelper.hpp>
+#include <Scenario/Document/Constraint/ConstraintModel.hpp>
+#include <Scenario/Document/Event/EventModel.hpp>
+#include <Scenario/Document/Event/EventPresenter.hpp>
+#include <Scenario/Document/State/StateModel.hpp>
+#include <Scenario/Document/State/StatePresenter.hpp>
+#include <Scenario/Document/TimeNode/TimeNodeModel.hpp>
+#include <Scenario/Document/TimeNode/TimeNodePresenter.hpp>
+#include <Scenario/Document/CommentBlock/CommentBlockModel.hpp>
+#include <Scenario/Document/CommentBlock/CommentBlockPresenter.hpp>
+#include <iscore/tools/SettableIdentifier.hpp>
+
+#include <iscore/command/Dispatchers/OngoingCommandDispatcher.hpp>
+
+class Process;
+class QEvent;
+class QMenu;
+class QMimeData;
+namespace Scenario {
+class EditionSettings;
+}  // namespace Scenario
+namespace iscore {
+struct DocumentContext;
+}  // namespace iscore
 
 namespace iscore
 {
-    class SerializableCommand;
 }
+class ConstraintViewModel;
 class LayerModel;
 class LayerView;
-
-class ConstraintViewModel;
 class TemporalConstraintViewModel;
-class TemporalConstraintPresenter;
-
 class TemporalScenarioLayerModel;
 class TemporalScenarioView;
-class TimeNodeModel;
-class TimeNodePresenter;
-class ConstraintModel;
-class ScenarioSelectionManager;
-class ScenarioViewInterface;
-class SelectionDispatcher;
 
 class TemporalScenarioPresenter final : public LayerPresenter
 {
@@ -72,6 +75,16 @@ class TemporalScenarioPresenter final : public LayerPresenter
 
         void on_zoomRatioChanged(ZoomRatio val) override;
 
+        const auto& event(const Id<EventModel>& id) const
+        { return m_events.at(id); }
+        const auto& timeNode(const Id<TimeNodeModel>& id) const
+        { return m_timeNodes.at(id); }
+        const auto& constraint(const Id<ConstraintModel>& id) const
+        { return m_constraints.at(id); }
+        const auto& state(const Id<StateModel>& id) const
+        { return m_states.at(id); }
+        const auto& comment(const Id<CommentBlockModel>& id) const
+        { return m_comments.at(id); }
         const auto& events() const
         { return m_events; }
         const auto& timeNodes() const
@@ -80,6 +93,8 @@ class TemporalScenarioPresenter final : public LayerPresenter
         { return m_constraints; }
         const auto& states() const
         { return m_states; }
+        const auto& comments() const
+        { return m_comments; }
 
         TemporalScenarioView& view() const
         { return *m_view; }
@@ -101,6 +116,10 @@ class TemporalScenarioPresenter final : public LayerPresenter
                 const QPointF& pos,
                 const QMimeData *mime);
 
+        bool event(QEvent* e) override
+        {
+            return QObject::event(e);
+        }
     signals:
         void linesExtremityScaled(int, int);
 
@@ -121,6 +140,9 @@ class TemporalScenarioPresenter final : public LayerPresenter
         void on_constraintViewModelCreated(const TemporalConstraintViewModel&);
         void on_constraintViewModelRemoved(const ConstraintViewModel&);
 
+        void on_commentBlockCreated(const CommentBlockModel&);
+        void on_commentBlockRemoved(const CommentBlockModel&);
+
         void on_askUpdate();
 
     private:
@@ -136,17 +158,21 @@ class TemporalScenarioPresenter final : public LayerPresenter
         IdContainer<EventPresenter, EventModel> m_events;
         IdContainer<TimeNodePresenter, TimeNodeModel> m_timeNodes;
         IdContainer<TemporalConstraintPresenter, ConstraintModel> m_constraints;
+        IdContainer<CommentBlockPresenter, CommentBlockModel> m_comments;
 
         ZoomRatio m_zoomRatio {1};
 
         const TemporalScenarioLayerModel& m_layer;
         TemporalScenarioView* m_view;
 
-        ScenarioViewInterface* m_viewInterface{};
+        ScenarioViewInterface m_viewInterface;
 
         Scenario::EditionSettings& m_editionSettings;
 
+        OngoingCommandDispatcher m_ongoingDispatcher;
+
         FocusDispatcher m_focusDispatcher;
+        SelectionDispatcher m_selectionDispatcher;
         LayerContext m_context;
         Scenario::ToolPalette m_sm;
 };

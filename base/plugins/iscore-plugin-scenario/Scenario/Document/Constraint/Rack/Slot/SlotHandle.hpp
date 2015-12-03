@@ -1,15 +1,24 @@
 #pragma once
+#include <QtGlobal>
 #include <QGraphicsItem>
 #include <QPen>
+#include <QRect>
+
+class QPainter;
+class QStyleOptionGraphicsItem;
+class QWidget;
 class SlotView;
+
 class SlotHandle final : public QGraphicsItem
 {
     public:
         SlotHandle(const SlotView& slotView,
                    QGraphicsItem* parent);
 
-        int type() const override
+        static constexpr int static_type()
         { return QGraphicsItem::UserType + 5; }
+        int type() const override
+        { return static_type(); }
 
         static constexpr double handleHeight()
         {

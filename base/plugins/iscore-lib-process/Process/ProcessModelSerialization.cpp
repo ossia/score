@@ -1,9 +1,25 @@
-#include "ProcessModelSerialization.hpp"
-#include <Process/ProcessFactory.hpp>
-
-#include <Process/ProcessList.hpp>
 #include <Process/Process.hpp>
-#include <iscore/tools/std/StdlibWrapper.hpp>
+
+#include <QJsonObject>
+#include <QJsonValue>
+
+#include <Process/ModelMetadata.hpp>
+#include <Process/ProcessFactory.hpp>
+#include <Process/ProcessFactoryKey.hpp>
+#include <Process/ProcessList.hpp>
+#include <Process/TimeValue.hpp>
+#include "ProcessModelSerialization.hpp"
+#include <iscore/plugins/customfactory/FactoryFamily.hpp>
+#include <iscore/plugins/customfactory/FactoryMap.hpp>
+#include <iscore/plugins/customfactory/StringFactoryKey.hpp>
+#include <iscore/serialization/DataStreamVisitor.hpp>
+#include <iscore/serialization/JSONValueVisitor.hpp>
+#include <iscore/serialization/JSONVisitor.hpp>
+#include <iscore/plugins/customfactory/StringFactoryKeySerialization.hpp>
+
+
+class QObject;
+template <typename model> class IdentifiedObject;
 
 
 template<>
@@ -37,7 +53,7 @@ void Visitor<Writer<DataStream>>::writeTo(Process& process)
 
 template<>
 Process* createProcess(
-        const DynamicProcessList& pl,
+        const ProcessList& pl,
         Deserializer<DataStream>& deserializer,
         QObject* parent)
 {
@@ -82,7 +98,7 @@ void Visitor<Writer<JSONObject>>::writeTo(Process& process)
 
 template<>
 Process* createProcess(
-        const DynamicProcessList& pl,
+        const ProcessList& pl,
         Deserializer<JSONObject>& deserializer,
         QObject* parent)
 {
@@ -94,4 +110,96 @@ Process* createProcess(
 
     return model;
 }
+
+
+
+
+
+
+
+
+
+
+
+
+#include <Process/StateProcess.hpp>
+#include <Process/ProcessList.hpp>
+
+template<>
+void Visitor<Reader<DataStream>>::readFrom(const StateProcess& process)
+{
+    // To allow recration using createProcess
+    m_stream << process.key();
+
+    readFrom(static_cast<const IdentifiedObject<StateProcess>&>(process));
+
+    // Save the subclass
+    process.serialize(toVariant());
+
+    insertDelimiter();
+}
+
+// We only load the members of the process here.
+
+template<>
+void Visitor<Writer<DataStream>>::writeTo(StateProcess&)
+{
+    // Delimiter checked on createProcess
+}
+
+template<>
+StateProcess* createStateProcess(
+        const StateProcessList& pl,
+        Deserializer<DataStream>& deserializer,
+        QObject* parent)
+{
+    StateProcessFactoryKey processName;
+    deserializer.m_stream >> processName;
+
+    auto model = pl.list().get(processName)
+                 ->load(deserializer.toVariant(),
+                             parent);
+    // Calls the concrete process's factory
+    // which in turn calls its deserialization ctor
+    // which in turn calls writeTo(ProcessModel&)
+
+    deserializer.checkDelimiter();
+    return model;
+}
+
+
+
+template<>
+void Visitor<Reader<JSONObject>>::readFrom(const StateProcess& process)
+{
+    // To allow recration using createProcess
+    m_obj["StateProcessName"] = toJsonValue(process.key());
+
+    readFrom(static_cast<const IdentifiedObject<StateProcess>&>(process));
+
+    // Save the subclass
+    process.serialize(toVariant());
+}
+
+
+template<>
+void Visitor<Writer<JSONObject>>::writeTo(StateProcess& process)
+{
+}
+
+template<>
+StateProcess* createStateProcess(
+        const StateProcessList& pl,
+        Deserializer<JSONObject>& deserializer,
+        QObject* parent)
+{
+    auto model = pl.list().get(
+                     fromJsonValue<StateProcessFactoryKey>(deserializer.m_obj["StateProcessName"]))
+                        ->load(
+                            deserializer.toVariant(),
+                            parent);
+
+    return model;
+}
+
 

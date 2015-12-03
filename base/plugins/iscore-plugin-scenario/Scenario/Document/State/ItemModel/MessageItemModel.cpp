@@ -1,12 +1,35 @@
-#include "MessageItemModel.hpp"
-
+#include <Scenario/Commands/State/AddMessagesToState.hpp>
 #include <State/MessageListSerialization.hpp>
-#include <iscore/document/DocumentInterface.hpp>
 
-#include <Scenario/Commands/State/UpdateState.hpp>
+#include <boost/optional/optional.hpp>
+#include <QFlags>
+#include <QJsonDocument>
+#include <QMap>
+#include <QMimeData>
+#include <QObject>
+
+#include <QString>
+#include <algorithm>
+
+#include "MessageItemModel.hpp"
+#include <Process/State/MessageNode.hpp>
+#include <State/Message.hpp>
+#include <State/StateMimeTypes.hpp>
+#include <State/ValueConversion.hpp>
+#include <iscore/command/Dispatchers/CommandDispatcher.hpp>
+#include <iscore/serialization/JSONVisitor.hpp>
+#include <iscore/tools/ModelPath.hpp>
+#include <iscore/tools/TreeNode.hpp>
+#include <iscore/tools/TreeNodeItemModel.hpp>
+
+class StateModel;
+namespace iscore {
+class CommandStackFacade;
+}  // namespace iscore
+
 using namespace iscore;
 MessageItemModel::MessageItemModel(
-        CommandStack& stack,
+        CommandStackFacade& stack,
         const StateModel& sm,
         QObject* parent):
     TreeNodeBasedItemModel<MessageNode>{parent},

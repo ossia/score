@@ -1,4 +1,14 @@
+#include <QJsonObject>
+#include <QJsonValue>
+
 #include "ConstraintDurations.hpp"
+#include <Process/TimeValue.hpp>
+#include <iscore/serialization/DataStreamVisitor.hpp>
+#include <iscore/serialization/JSONValueVisitor.hpp>
+#include <iscore/serialization/JSONVisitor.hpp>
+
+template <typename T> class Reader;
+template <typename T> class Writer;
 
 template<> void Visitor<Reader<DataStream>>::readFrom(const ConstraintDurations& durs)
 {

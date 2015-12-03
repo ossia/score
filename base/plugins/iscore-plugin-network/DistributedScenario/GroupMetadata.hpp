@@ -1,9 +1,14 @@
 #pragma once
-#include <iscore/serialization/DataStreamVisitor.hpp>
-#include <iscore/serialization/JSONVisitor.hpp>
-#include <iscore/plugins/documentdelegate/plugin/DocumentDelegatePluginModel.hpp>
+#include <boost/optional/optional.hpp>
+#include <QObject>
+
+#include <QString>
+
+#include <iscore/plugins/documentdelegate/plugin/ElementPluginModel.hpp>
+#include <iscore/tools/SettableIdentifier.hpp>
 
 class Group;
+struct VisitorVariant;
 
 // Goes into the constraints, events, etc.
 class GroupMetadata : public iscore::ElementPluginModel

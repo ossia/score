@@ -1,26 +1,25 @@
 #pragma once
-#include <iscore/tools/SettableIdentifier.hpp>
-#include <iscore/tools/NamedObject.hpp>
-#include <iscore/selection/Selection.hpp>
-#include <vector>
-
 #include <Process/TimeValue.hpp>
 #include <Process/ZoomHelper.hpp>
+#include <iscore/tools/NamedObject.hpp>
+#include <nano_signal_slot.hpp>
+#include <QPoint>
+#include <QString>
 
-class ConstraintViewModel;
-class ConstraintView;
-class RackPresenter;
-class RackModel;
-class ConstraintModel;
-class Process;
 class ConstraintHeader;
+class ConstraintModel;
+class ConstraintView;
+class ConstraintViewModel;
+class QObject;
+class RackModel;
+class RackPresenter;
+#include <iscore/tools/SettableIdentifier.hpp>
+
 namespace iscore
 {
-    class SerializableCommand;
 }
-class LayerPresenter;
 
-class ConstraintPresenter : public NamedObject
+class ConstraintPresenter : public NamedObject, public Nano::Observer
 {
         Q_OBJECT
 
@@ -39,7 +38,8 @@ class ConstraintPresenter : public NamedObject
         RackPresenter* rack() const;
 
         const ConstraintModel& model() const;
-        const ConstraintViewModel& abstractConstraintViewModel() const;
+        const ConstraintViewModel& abstractConstraintViewModel() const
+        { return m_viewModel; }
 
         ConstraintView* view() const;
 
@@ -49,9 +49,9 @@ class ConstraintPresenter : public NamedObject
         const Id<ConstraintModel>& id() const;
 
     signals:
-        void pressed(const QPointF&);
-        void moved(const QPointF&);
-        void released(const QPointF&);
+        void pressed(QPointF);
+        void moved(QPointF);
+        void released(QPointF);
 
         void askUpdate();
         void heightChanged(); // The vertical size
@@ -80,6 +80,7 @@ class ConstraintPresenter : public NamedObject
         void updateChildren();
         void createRackPresenter(const RackModel&);
         void clearRackPresenter();
+        void on_rackRemoved(const RackModel&);
 
         ZoomRatio m_zoomRatio {};
         RackPresenter* m_rack {};

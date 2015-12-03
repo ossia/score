@@ -12,12 +12,12 @@ public:
 
     CSPFlexDisplacementPolicy() = default;
 
-    CSPFlexDisplacementPolicy(ScenarioModel& scenario, const QVector<Id<TimeNodeModel>>& draggedElements);
+    CSPFlexDisplacementPolicy(Scenario::ScenarioModel& scenario, const QVector<Id<TimeNodeModel>>& draggedElements);
 
     static
     void
     computeDisplacement(
-            ScenarioModel& scenario,
+            Scenario::ScenarioModel& scenario,
             const QVector<Id<TimeNodeModel>>& draggedElements,
             const TimeValue& deltaTime,
             ElementsProperties& elementsProperties);

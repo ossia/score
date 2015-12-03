@@ -1,7 +1,11 @@
 #pragma once
 #include <QDialog>
-class QSpinBox;
+#include <QString>
+
 class IpWidget;
+class QSpinBox;
+class QWidget;
+
 class IpDialog : public QDialog
 {
     public:

@@ -1,6 +1,11 @@
-#include "NetworkServer.hpp"
+#include <QDebug>
+#include <QHostAddress>
+#include <QList>
 #include <QNetworkInterface>
+#include <QString>
 #include <QTcpServer>
+
+#include "NetworkServer.hpp"
 
 
 NetworkServer::NetworkServer(int port, QObject* parent):

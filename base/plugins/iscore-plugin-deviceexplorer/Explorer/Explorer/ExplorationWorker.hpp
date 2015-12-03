@@ -1,7 +1,9 @@
 #pragma once
-#include <QObject>
-class DeviceInterface;
 #include <Device/Node/DeviceNode.hpp>
+#include <QObject>
+#include <QString>
+
+class DeviceInterface;
 
 /**
  * @brief The ExplorationWorker class

@@ -1,6 +1,12 @@
 #include "DocumentDelegatePluginModel.hpp"
-#include <core/document/Document.hpp>
-iscore::DocumentDelegatePluginModel::DocumentDelegatePluginModel(
+#include <iscore/tools/NamedObject.hpp>
+
+class QObject;
+namespace iscore {
+class Document;
+}  // namespace iscore
+
+iscore::DocumentPluginModel::DocumentPluginModel(
         iscore::Document& ctx,
         const QString& name,
         QObject* parent):
@@ -10,7 +16,7 @@ iscore::DocumentDelegatePluginModel::DocumentDelegatePluginModel(
 
 }
 
-iscore::DocumentDelegatePluginModel::~DocumentDelegatePluginModel()
+iscore::DocumentPluginModel::~DocumentPluginModel()
 {
 
 }

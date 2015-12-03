@@ -1,24 +1,24 @@
+#include <Automation/AutomationColors.hpp>
+#include <Automation/AutomationLayerModel.hpp>
+#include <Automation/AutomationModel.hpp>
+#include <Automation/AutomationPresenter.hpp>
+#include <Automation/AutomationView.hpp>
+#include <unordered_map>
+
+#include <Automation/AutomationProcessMetadata.hpp>
+#include <Automation/Commands/AutomationCommandFactory.hpp>
+#include <Inspector/InspectorWidgetFactoryInterface.hpp>
+#include <Process/ProcessFactory.hpp>
+#include <iscore/plugins/customfactory/StringFactoryKey.hpp>
 #include "iscore_plugin_automation.hpp"
 
-#include <Curve/Process/CurveProcessFactory.hpp>
-
-#include <Automation/AutomationColors.hpp>
-#include <Automation/AutomationModel.hpp>
-#include <Automation/AutomationView.hpp>
-#include <Automation/AutomationLayerModel.hpp>
-#include <Automation/AutomationPresenter.hpp>
-
 #if defined(ISCORE_LIB_INSPECTOR)
-#include "Automation/Inspector/AutomationInspectorFactory.hpp"
-#include "Automation/Inspector/CurvePointInspectorFactory.hpp"
-#include "Automation/Inspector/AutomationStateInspectorFactory.hpp"
+#include <Automation/Inspector/AutomationInspectorFactory.hpp>
+#include <Automation/Inspector/AutomationStateInspectorFactory.hpp>
+#include <Automation/Inspector/CurvePointInspectorFactory.hpp>
 #endif
-
-#include "Automation/Commands/ChangeAddress.hpp"
-#include "Automation/Commands/SetCurveMin.hpp"
-#include "Automation/Commands/SetCurveMax.hpp"
-#include "Automation/Commands/InitAutomation.hpp"
-
+#include <iscore_plugin_automation_commands_files.hpp>
+#include <Curve/Process/CurveProcessFactory.hpp>
 DEFINE_CURVE_PROCESS_FACTORY(
         AutomationFactory,
         AutomationProcessMetadata,
@@ -33,21 +33,23 @@ iscore_plugin_automation::iscore_plugin_automation() :
 {
 }
 
-std::vector<iscore::FactoryInterfaceBase*> iscore_plugin_automation::factories(
+std::vector<std::unique_ptr<iscore::FactoryInterfaceBase>> iscore_plugin_automation::factories(
         const iscore::ApplicationContext& ctx,
         const iscore::FactoryBaseKey& factoryName) const
 {
     if(factoryName == ProcessFactory::staticFactoryKey())
     {
-        return {new AutomationFactory};
+        return make_ptr_vector<iscore::FactoryInterfaceBase,
+                AutomationFactory>();
     }
 
 #if defined(ISCORE_LIB_INSPECTOR)
     if(factoryName == InspectorWidgetFactory::staticFactoryKey())
     {
-        return {new AutomationInspectorFactory,
-                new AutomationStateInspectorFactory,
-                new CurvePointInspectorFactory};
+        return make_ptr_vector<iscore::FactoryInterfaceBase,
+                AutomationInspectorFactory,
+                AutomationStateInspectorFactory,
+                CurvePointInspectorFactory>();
     }
 #endif
     return {};
@@ -56,15 +58,11 @@ std::vector<iscore::FactoryInterfaceBase*> iscore_plugin_automation::factories(
 std::pair<const CommandParentFactoryKey, CommandGeneratorMap> iscore_plugin_automation::make_commands()
 {
     std::pair<const CommandParentFactoryKey, CommandGeneratorMap> cmds{AutomationCommandFactoryName(), CommandGeneratorMap{}};
-    boost::mpl::for_each<
-            boost::mpl::list<
-                ChangeAddress,
-                SetAutomationMin,
-                SetAutomationMax,
-                InitAutomation
-            >,
-            boost::type<boost::mpl::_>
-            >(CommandGeneratorMapInserter{cmds.second});
+
+    using Types = TypeList<
+#include <iscore_plugin_automation_commands.hpp>
+      >;
+    for_each_type<Types>(iscore::commands::FactoryInserter{cmds.second});
 
     return cmds;
 }

@@ -19,6 +19,9 @@ option(ISCORE_BUILD_FOR_PACKAGE_MANAGER "Set FHS-friendly install paths" OFF)
 option(ISCORE_OPENGL "Use OpenGL for rendering" OFF)
 option(ISCORE_IEEE "Use a graphical skin adapted to publication" OFF)
 option(ISCORE_WEBSOCKETS "Run a websocket server in the scenario" OFF)
+
+option(ISCORE_COVERAGE "Enable coverage" OFF)
+
 if(ISCORE_OPENGL)
         add_definitions(-DISCORE_OPENGL)
 endif()
@@ -72,13 +75,19 @@ if(INTEGRATION_TESTING)
 endif()
 
 if(ISCORE_STATIC_PLUGINS)
-    set(BUILD_SHARED_LIBS OFF)
-    add_definitions(-DISCORE_STATIC_PLUGINS)
-    add_definitions(-DQT_STATICPLUGIN)
+  set(BUILD_SHARED_LIBS OFF)
+  add_definitions(-DISCORE_STATIC_PLUGINS)
+  add_definitions(-DQT_STATICPLUGIN)
 else()
-    set(BUILD_SHARED_LIBS ON)
+  set(BUILD_SHARED_LIBS ON)
 endif()
 
+if(ISCORE_COVERAGE)
+  include("${CMAKE_CURRENT_LIST_DIR}/modules/CodeCoverage.cmake")
+  set(CMAKE_CXX_FLAGS "${CMAKE_CXX_FLAGS} ${CMAKE_CXX_FLAGS_COVERAGE}")
+  set(CMAKE_EXE_LINKER_FLAGS_COVERAGE "${CMAKE_EXE_LINKER_FLAGS} ${CMAKE_EXE_LINKER_FLAGS_COVERAGE}")
+  set(CMAKE_SHARED_LINKER_FLAGS_COVERAGE "${CMAKE_SHARED_LINKER_FLAGS} ${CMAKE_SHARED_LINKER_FLAGS_COVERAGE}")
+endif()
 
 # Note : if building with a Qt installed in e.g. /home/myuser/Qt/ or /Users/Qt or c:\Qt\
 # keep in mind that you have to call CMake with :
@@ -104,9 +113,9 @@ if ("${CMAKE_CXX_COMPILER_ID}" STREQUAL "MSVC")
 else()
   # Linux flags
   if(NOT APPLE AND NOT WIN32)
-    set(CMAKE_EXE_LINKER_FLAGS "${CMAKE_EXE_LINKER_FLAGS}  -Wl,-z,defs -fvisibility=hidden")
-    set(CMAKE_SHARED_LINKER_FLAGS "${CMAKE_SHARED_LINKER_FLAGS}  -Wl,-z,defs -fvisibility=hidden")
-    set(CMAKE_MODULE_LINKER_FLAGS "${CMAKE_MODULE_LINKER_FLAGS}  -Wl,-z,defs -fvisibility=hidden")
+    set(CMAKE_EXE_LINKER_FLAGS "${CMAKE_EXE_LINKER_FLAGS} -fuse-ld=gold -Wl,-z,defs -fvisibility=hidden")
+    set(CMAKE_SHARED_LINKER_FLAGS "${CMAKE_SHARED_LINKER_FLAGS} -fuse-ld=gold -Wl,-z,defs -fvisibility=hidden")
+    set(CMAKE_MODULE_LINKER_FLAGS "${CMAKE_MODULE_LINKER_FLAGS} -fuse-ld=gold -Wl,-z,defs -fvisibility=hidden")
   endif()
 
 
@@ -115,7 +124,7 @@ else()
   #set(CMAKE_CXX_FLAGS "${CMAKE_CXX_FLAGS} -Wc++0x-compat -Wcast-align -Wcast-qual -Wchar-subscripts -Wclobbered -Wcomment -Wconversion -Wcoverage-mismatch -Wno-deprecated -Wno-deprecated-declarations -Wdisabled-optimization -Wno-div-by-zero -Wempty-body -Wenum-compare")
   set(CMAKE_CXX_FLAGS "${CMAKE_CXX_FLAGS} -std=c++1y -pipe -Wall -Wextra -Wno-unused-parameter -Wno-unknown-pragmas  -Wnon-virtual-dtor -pedantic -Woverloaded-virtual")
 
-  set(CMAKE_CXX_FLAGS_DEBUG "${CMAKE_CXX_FLAGS_DEBUG} -O0")
+  set(CMAKE_CXX_FLAGS_DEBUG "${CMAKE_CXX_FLAGS_DEBUG} -O0 -gsplit-dwarf")
   set(CMAKE_CXX_FLAGS_RELEASE "${CMAKE_CXX_FLAGS_RELEASE} -Ofast")
   if(ISCORE_ENABLE_OPTIMIZE_CUSTOM)
     set(CMAKE_CXX_FLAGS_RELEASE "${CMAKE_CXX_FLAGS_RELEASE} -march=native")
@@ -129,11 +138,12 @@ else()
       message(FATAL_ERROR "i-score requires at least g++-4.9 to build")
     endif()
 
+#    set(CMAKE_CXX_FLAGS "${CMAKE_CXX_FLAGS} -Werror -Wno-error=shadow -Wno-error=switch -Wno-error=switch-enum -Wno-error=empty-body -Wno-error=overloaded-virtual -Wno-error=suggest-final-methods -Wno-error=suggest-final-types -Wno-error=suggest-override -Wno-error=maybe-uninitialized")
     if (GCC_VERSION VERSION_GREATER 5.2 OR GCC_VERSION VERSION_EQUAL 5.2)
       # -Wcast-qual is nice but requires more work...
       # -Wzero-as-null-pointer-constant  is garbage
-      set(CMAKE_CXX_FLAGS "${CMAKE_CXX_FLAGS} -Wswitch-enum -Wno-div-by-zero -Wsuggest-final-types -Wsuggest-final-methods -Wshadow -Wsuggest-override -Wpointer-arith -Wsuggest-attribute=noreturn -Wno-missing-braces -Wformat=2 -Wno-format-nonliteral -Wpedantic")
-      # Too much clutter :set(CMAKE_CXX_FLAGS "${CMAKE_CXX_FLAGS}  -Wsuggest-attribute=const  -Wsuggest-attribute=pure ")
+      set(CMAKE_CXX_FLAGS "${CMAKE_CXX_FLAGS}  -Wno-div-by-zero -Wsuggest-final-types -Wsuggest-final-methods -Wsuggest-override -Wpointer-arith -Wsuggest-attribute=noreturn -Wno-missing-braces -Wformat=2 -Wno-format-nonliteral -Wpedantic")
+      # Too much clutter :set(CMAKE_CXX_FLAGS "${CMAKE_CXX_FLAGS} -Wswitch-enum -Wshadow  -Wsuggest-attribute=const  -Wsuggest-attribute=pure ")
     endif()
 
 
@@ -187,5 +197,6 @@ file(WRITE "${CMAKE_CURRENT_BINARY_DIR}/iscore_git_info.hpp" "
 #define ISCORE_VERSION_MINOR ${ISCORE_VERSION_MINOR}
 #define ISCORE_VERSION_PATCH ${ISCORE_VERSION_PATCH}
 #define ISCORE_VERSION_EXTRA \"${ISCORE_VERSION_EXTRA}\"
+#define ISCORE_CODENAME \"${ISCORE_CODENAME}\"
 ")
 include(cotire)

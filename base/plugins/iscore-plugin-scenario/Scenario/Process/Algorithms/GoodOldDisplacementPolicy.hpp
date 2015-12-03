@@ -1,13 +1,19 @@
 #pragma once
 
-#include <QVector>
-#include <iscore/tools/SettableIdentifier.hpp>
 #include <Scenario/Process/Algorithms/StandardDisplacementPolicy.hpp>
+#include <QString>
+#include <QVector>
+#include <algorithm>
+#include <vector>
 
-class QString;
-class ScenarioModel;
+#include <Process/TimeValue.hpp>
+
 class TimeNodeModel;
+namespace Scenario {
+class ScenarioModel;
+}  // namespace Scenario
 struct ElementsProperties;
+#include <iscore/tools/SettableIdentifier.hpp>
 
 class GoodOldDisplacementPolicy
 {
@@ -15,16 +21,16 @@ public:
 
     GoodOldDisplacementPolicy() = default;
 
-    GoodOldDisplacementPolicy(ScenarioModel& scenario, const QVector<Id<TimeNodeModel>>& draggedElements){}
+    GoodOldDisplacementPolicy(Scenario::ScenarioModel& scenario, const QVector<Id<TimeNodeModel>>& draggedElements){}
 
     static void computeDisplacement(
-            ScenarioModel& scenario,
+            Scenario::ScenarioModel& scenario,
             const QVector<Id<TimeNodeModel>>& draggedElements,
             const TimeValue& deltaTime,
             ElementsProperties& elementsProperties);
 
     static void getRelatedTimeNodes(
-            ScenarioModel& scenario,
+            Scenario::ScenarioModel& scenario,
             const Id<TimeNodeModel>& firstTimeNodeMovedId,
             std::vector<Id<TimeNodeModel> >& translatedTimeNodes);
 

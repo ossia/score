@@ -1,15 +1,15 @@
 #pragma once
 
+#include <QString>
 #include <QWidget>
-class QVBoxLayout;
+
 class QLineEdit;
-class QToolButton;
 class QPushButton;
-class QScrollArea;
+class QToolButton;
+class QVBoxLayout;
 
 namespace iscore
 {
-    class SerializableCommand;
 }
 /** @brief InspectorSectionWidget is widget that can fold or unfold his content.
  *
@@ -21,9 +21,9 @@ class InspectorSectionWidget : public QWidget
 {
         Q_OBJECT
     public:
-        explicit InspectorSectionWidget(QWidget* parent = 0);
-        InspectorSectionWidget(QString name, QWidget* parent = 0);
-        ~InspectorSectionWidget();
+        explicit InspectorSectionWidget(bool editable = false, QWidget* parent = 0);
+        InspectorSectionWidget(QString name, bool nameEditable = false, QWidget* parent = 0);
+        virtual ~InspectorSectionWidget();
 
     public slots:
 
@@ -43,11 +43,17 @@ class InspectorSectionWidget : public QWidget
 
         void removeAll();
 
+    signals:
+        void nameChanged(QString newName);
+
+    protected:
+        virtual QWidget* titleWidget();
+        QLineEdit* m_sectionTitle = nullptr; /*!< header label editable ? */
+
     private:
         QWidget* m_container = nullptr;
         QVBoxLayout* m_containerLayout = nullptr; /*!< main layout */
 
-        QLineEdit* _sectionTitle = nullptr; /*!< header label \todo editable ? */
         QToolButton* m_btn = nullptr; /*!< button for the fold/unfold action */
 
         QPushButton* m_buttonTitle;

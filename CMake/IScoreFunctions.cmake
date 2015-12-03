@@ -110,6 +110,63 @@ function(setup_iscore_plugin PluginName)
 endfunction()
 
 
+### Generate files of commands ###
+function(iscore_generate_command_list_file TheTarget Headers)
+    # Initialize our lists
+    set(commandNameList)
+    set(commandFileList)
+
+    # First look for the ISCORE_COMMAND_DECL(...) ones
+    foreach(sourceFile ${Headers})
+        file(STRINGS "${sourceFile}" fileContent REGEX "ISCORE_COMMAND_DECL\\(")
+
+        # If there are matching strings, we add the file to our include list
+        list(LENGTH fileContent matchingLines)
+        if(${matchingLines} GREATER 0)
+            list(APPEND commandFileList "${sourceFile}")
+        endif()
+
+        foreach(fileLine ${fileContent})
+            string(STRIP ${fileLine} strippedLine)
+            string(REPLACE "," ";" lineAsList ${strippedLine})
+            list(GET lineAsList 1 commandName)
+            string(STRIP ${commandName} strippedCommandName)
+            list(APPEND commandNameList "${strippedCommandName}")
+        endforeach()
+    endforeach()
+
+    # Then look for the ISCORE_COMMAND_DECL_T(...) ones
+    foreach(sourceFile ${Headers})
+        file(STRINGS ${sourceFile} fileContent REGEX "ISCORE_COMMAND_DECL_T\\(")
+
+        list(LENGTH fileContent matchingLines)
+        if(${matchingLines} GREATER 0)
+            list(APPEND commandFileList "${sourceFile}")
+        endif()
+
+        foreach(fileLine ${fileContent})
+            string(STRIP ${fileLine} strippedLine)
+            string(REPLACE "ISCORE_COMMAND_DECL_T(" "" filtered1 ${strippedLine})
+            string(REPLACE ")" "" strippedCommandName ${filtered1})
+            list(APPEND commandNameList "${strippedCommandName}")
+        endforeach()
+    endforeach()
+
+    # Generate a file with the list of includes
+    set(finalCommandFileList)
+    foreach(sourceFile ${commandFileList})
+        string(REPLACE "${CMAKE_CURRENT_SOURCE_DIR}/" "" strippedSourceFile ${sourceFile})
+        set(finalCommandFileList "${finalCommandFileList}#include <${strippedSourceFile}>\n")
+    endforeach()
+
+    file(WRITE "${CMAKE_CURRENT_BINARY_DIR}/${TheTarget}_commands_files.hpp" ${finalCommandFileList})
+
+    # Generate a file with the list of types
+    string(REPLACE ";" ", \n" commaSeparatedCommandList "${commandNameList}")
+    file(WRITE "${CMAKE_CURRENT_BINARY_DIR}/${TheTarget}_commands.hpp" ${commaSeparatedCommandList})
+endfunction()
+
+
 ### Adds tests ###
 function(setup_iscore_tests TestFolder)
   if(NOT DEPLOYMENT_BUILD)

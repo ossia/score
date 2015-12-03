@@ -1,9 +1,19 @@
 #pragma once
-#include <ProcessModel/TimeProcessWithConstraint.hpp>
-#include <State/Value.hpp>
+#include <OSSIA/ProcessModel/TimeProcessWithConstraint.hpp>
 #include <QJSEngine>
+#include <QJSValue>
+#include <QString>
+#include <memory>
+
+#include "Editor/TimeValue.h"
+
 class DeviceDocumentPlugin;
 class DeviceList;
+namespace OSSIA {
+class State;
+class StateElement;
+}  // namespace OSSIA
+
 class JSProcess final : public TimeProcessWithConstraint
 {
     public:
@@ -31,7 +41,6 @@ class JSProcess final : public TimeProcessWithConstraint
         QJSEngine m_engine;
         QJSValue m_tickFun;
 
-        std::shared_ptr<OSSIA::TimeConstraint> m_constraint;
         std::shared_ptr<OSSIA::State> m_start;
         std::shared_ptr<OSSIA::State> m_end;
 };

@@ -3,7 +3,7 @@
 #include <memory>
 #include <set>
 #include <exception>
-#include <iscore/plugins/qt_interfaces/PluginControlInterface_QtInterface.hpp>
+#include <iscore/plugins/qt_interfaces/GUIApplicationContextPlugin_QtInterface.hpp>
 #include <iscore/plugins/qt_interfaces/PluginRequirements_QtInterface.hpp>
 
 namespace iscore
@@ -24,9 +24,9 @@ struct PluginDependencyNode
         PluginRequirementslInterface_QtInterface*
         requirements() const
         { return qobject_cast<PluginRequirementslInterface_QtInterface*> (plug); }
-        PluginControlInterface_QtInterface*
-        control() const
-        { return qobject_cast<PluginControlInterface_QtInterface*> (plug); }
+        GUIApplicationContextPlugin_QtInterface*
+        applicationPlugin() const
+        { return qobject_cast<GUIApplicationContextPlugin_QtInterface*> (plug); }
 
         bool checkDependencies()
         {
@@ -133,7 +133,7 @@ struct PluginDependencyGraph
         /**
          * @brief visit Will visit the graph in dependency order,
          * without visiting a node twice.
-         * @param f a function to apply. void(PluginControlInterface*).
+         * @param f a function to apply. void(GUIApplicationContextPlugin*).
          */
         void visit(Fun f)
         {

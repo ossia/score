@@ -1,12 +1,25 @@
 #pragma once
 #include <Scenario/Commands/ScenarioCommandFactory.hpp>
-#include <Scenario/Document/Constraint/ViewModels/ConstraintViewModelSerialization.hpp>
-#include <iscore/tools/SettableIdentifier.hpp>
+#include <boost/optional/optional.hpp>
 #include <iscore/command/SerializableCommand.hpp>
-
 #include <iscore/tools/ModelPath.hpp>
+#include <iscore/tools/SettableIdentifier.hpp>
+#include <QByteArray>
+#include <QPair>
+#include <QVector>
 
+#include <Scenario/Document/Constraint/ViewModels/ConstraintViewModelIdMap.hpp>
+#include <iscore/selection/Selection.hpp>
+
+class ConstraintModel;
+class DataStreamInput;
+class DataStreamOutput;
 class EventModel;
+class StateModel;
+class TimeNodeModel;
+namespace Scenario {
+class ScenarioModel;
+}  // namespace Scenario
 
 namespace Scenario
 {
@@ -19,9 +32,9 @@ namespace Scenario
         */
         class RemoveSelection final : public iscore::SerializableCommand
         {
-                ISCORE_COMMAND_DECL(ScenarioCommandFactoryName(), RemoveSelection, "RemoveSelection")
+                ISCORE_COMMAND_DECL(ScenarioCommandFactoryName(), RemoveSelection, "Remove selected elements")
             public:
-                RemoveSelection(Path<ScenarioModel>&& scenarioPath, Selection sel);
+                RemoveSelection(Path<Scenario::ScenarioModel>&& scenarioPath, Selection sel);
 
                 void undo() const override;
                 void redo() const override;
@@ -31,7 +44,7 @@ namespace Scenario
                 void deserializeImpl(DataStreamOutput&) override;
 
             private:
-                Path<ScenarioModel> m_path;
+                Path<Scenario::ScenarioModel> m_path;
 
                 // For timenodes that may be removed when there is only a single event
                 QVector<QPair<Id<TimeNodeModel>, QByteArray>> m_maybeRemovedTimeNodes;

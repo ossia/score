@@ -1,6 +1,13 @@
+#include <iscore/serialization/VisitorCommon.hpp>
+
 #include "DummyLayerModel.hpp"
 #include "DummyLayerPanelProxy.hpp"
-#include <iscore/serialization/VisitorCommon.hpp>
+#include <Process/LayerModel.hpp>
+
+class LayerModelPanelProxy;
+class Process;
+class QObject;
+#include <iscore/tools/SettableIdentifier.hpp>
 
 DummyLayerModel::DummyLayerModel(
         Process& model,

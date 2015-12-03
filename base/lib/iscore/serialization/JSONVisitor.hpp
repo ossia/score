@@ -2,7 +2,7 @@
 #include <iscore/serialization/JSONValueVisitor.hpp>
 
 #include <iscore/tools/IdentifiedObject.hpp>
-#include <core/application/ApplicationContext.hpp>
+#include <iscore/application/ApplicationContext.hpp>
 #include <QJsonObject>
 #include <QJsonArray>
 #include <QMap>
@@ -82,7 +82,7 @@ class Visitor<Reader<JSONObject>> final : public AbstractVisitor
 
         QJsonObject m_obj;
 
-        iscore::ApplicationContext context;
+        const iscore::ApplicationContext& context;
 };
 
 template<>
@@ -139,7 +139,7 @@ class Visitor<Writer<JSONObject>> : public AbstractVisitor
         }
 
         const QJsonObject m_obj;
-        iscore::ApplicationContext context;
+        const iscore::ApplicationContext& context;
 };
 
 template<typename T>

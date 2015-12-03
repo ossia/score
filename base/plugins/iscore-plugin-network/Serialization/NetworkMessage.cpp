@@ -1,5 +1,9 @@
-#include "NetworkMessage.hpp"
+#include <QDataStream>
+
 #include "../Repartition/session/Session.hpp"
+#include "NetworkMessage.hpp"
+#include "Serialization/../Repartition/session/../client/LocalClient.hpp"
+#include <iscore/tools/SettableIdentifier.hpp>
 
 QDataStream& operator<<(QDataStream& s, const NetworkMessage& m)
 {

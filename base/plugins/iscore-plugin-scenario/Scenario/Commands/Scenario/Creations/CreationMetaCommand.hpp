@@ -16,7 +16,7 @@ namespace Scenario
     {
         class CreationMetaCommand final : public iscore::AggregateCommand
         {
-                ISCORE_COMMAND_DECL(ScenarioCommandFactoryName(), CreationMetaCommand, "CreationMetaCommand")
+                ISCORE_COMMAND_DECL(ScenarioCommandFactoryName(), CreationMetaCommand, "Create elements in scenario")
             public:
                 void undo() const override
         {

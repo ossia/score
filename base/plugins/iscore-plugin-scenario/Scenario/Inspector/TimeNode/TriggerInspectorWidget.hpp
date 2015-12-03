@@ -1,19 +1,23 @@
 #pragma once
 
 #include <QWidget>
-#include <Scenario/Inspector/ExpressionValidator.hpp>
-#include <Inspector/InspectorWidgetBase.hpp>
-#include <Scenario/Document/TimeNode/TimeNodeModel.hpp>
 
-class QLineEdit;
+#include <State/Expression.hpp>
+
+class InspectorWidgetBase;
 class QPushButton;
+class ExpressionEditorWidget;
+class TimeNodeModel;
+class TriggerCommandFactoryList;
 
 class TriggerInspectorWidget final : public QWidget
 {
     public:
-        TriggerInspectorWidget(const TimeNodeModel& object, InspectorWidgetBase* parent);
+        TriggerInspectorWidget(
+                const TriggerCommandFactoryList& fact,
+                const TimeNodeModel& object,
+                InspectorWidgetBase* parent);
 
-    public slots:
         void on_triggerChanged();
 
         void createTrigger();
@@ -22,15 +26,16 @@ class TriggerInspectorWidget final : public QWidget
         void on_triggerActiveChanged();
         void HideRmButton();
 
-        void updateExpression(QString);
+        void updateExpression(const iscore::Trigger&);
 
     private:
+        const TriggerCommandFactoryList& m_triggerCommandFactory;
         const TimeNodeModel& m_model;
 
         InspectorWidgetBase* m_parent;
 
-        QLineEdit* m_triggerLineEdit{};
         QPushButton* m_addTrigBtn{};
         QPushButton* m_rmTrigBtn{};
-        ExpressionValidator<iscore::Trigger> m_validator;
+
+        ExpressionEditorWidget* m_exprEditor{};
 };

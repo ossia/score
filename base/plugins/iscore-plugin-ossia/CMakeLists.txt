@@ -14,80 +14,98 @@ endif()
 
 # Files & main target
 set(HDRS
-    "${CMAKE_CURRENT_SOURCE_DIR}/OSSIA2iscore.hpp"
-    "${CMAKE_CURRENT_SOURCE_DIR}/Protocols/Minuit/MinuitProtocolSettingsWidget.hpp"
-    "${CMAKE_CURRENT_SOURCE_DIR}/Protocols/Minuit/MinuitDevice.hpp"
-    "${CMAKE_CURRENT_SOURCE_DIR}/Protocols/Minuit/MinuitSpecificSettings.hpp"
-    "${CMAKE_CURRENT_SOURCE_DIR}/Protocols/Minuit/MinuitProtocolFactory.hpp"
-    "${CMAKE_CURRENT_SOURCE_DIR}/Protocols/OSSIADevice.hpp"
-    "${CMAKE_CURRENT_SOURCE_DIR}/Protocols/OSC/OSCDevice.hpp"
-    "${CMAKE_CURRENT_SOURCE_DIR}/Protocols/OSC/OSCProtocolFactory.hpp"
-    "${CMAKE_CURRENT_SOURCE_DIR}/Protocols/OSC/OSCProtocolSettingsWidget.hpp"
-    "${CMAKE_CURRENT_SOURCE_DIR}/Protocols/OSC/OSCSpecificSettings.hpp"
-    "${CMAKE_CURRENT_SOURCE_DIR}/Protocols/MIDI/MIDIProtocolFactory.hpp"
-    "${CMAKE_CURRENT_SOURCE_DIR}/Protocols/MIDI/MIDIDevice.hpp"
-    "${CMAKE_CURRENT_SOURCE_DIR}/Protocols/MIDI/MIDIProtocolSettingsWidget.hpp"
-    "${CMAKE_CURRENT_SOURCE_DIR}/Protocols/MIDI/MIDISpecificSettings.hpp"
-    "${CMAKE_CURRENT_SOURCE_DIR}/OSSIAControl.hpp"
+    "${CMAKE_CURRENT_SOURCE_DIR}/OSSIA/OSSIA2iscore.hpp"
+    "${CMAKE_CURRENT_SOURCE_DIR}/OSSIA/Protocols/Minuit/MinuitProtocolSettingsWidget.hpp"
+    "${CMAKE_CURRENT_SOURCE_DIR}/OSSIA/Protocols/Minuit/MinuitDevice.hpp"
+    "${CMAKE_CURRENT_SOURCE_DIR}/OSSIA/Protocols/Minuit/MinuitSpecificSettings.hpp"
+    "${CMAKE_CURRENT_SOURCE_DIR}/OSSIA/Protocols/Minuit/MinuitProtocolFactory.hpp"
+    "${CMAKE_CURRENT_SOURCE_DIR}/OSSIA/Protocols/OSSIADevice.hpp"
+    "${CMAKE_CURRENT_SOURCE_DIR}/OSSIA/Protocols/OSC/OSCDevice.hpp"
+    "${CMAKE_CURRENT_SOURCE_DIR}/OSSIA/Protocols/OSC/OSCProtocolFactory.hpp"
+    "${CMAKE_CURRENT_SOURCE_DIR}/OSSIA/Protocols/OSC/OSCProtocolSettingsWidget.hpp"
+    "${CMAKE_CURRENT_SOURCE_DIR}/OSSIA/Protocols/OSC/OSCSpecificSettings.hpp"
+    "${CMAKE_CURRENT_SOURCE_DIR}/OSSIA/Protocols/MIDI/MIDIProtocolFactory.hpp"
+    "${CMAKE_CURRENT_SOURCE_DIR}/OSSIA/Protocols/MIDI/MIDIDevice.hpp"
+    "${CMAKE_CURRENT_SOURCE_DIR}/OSSIA/Protocols/MIDI/MIDIProtocolSettingsWidget.hpp"
+    "${CMAKE_CURRENT_SOURCE_DIR}/OSSIA/Protocols/MIDI/MIDISpecificSettings.hpp"
+    "${CMAKE_CURRENT_SOURCE_DIR}/OSSIA/OSSIAApplicationPlugin.hpp"
+    "${CMAKE_CURRENT_SOURCE_DIR}/OSSIA/ProcessModel/TimeProcessWithConstraint.hpp"
+    "${CMAKE_CURRENT_SOURCE_DIR}/OSSIA/iscore2OSSIA.hpp"
+
+    "${CMAKE_CURRENT_SOURCE_DIR}/OSSIA/DocumentPlugin/ContextMenu/PlayContextMenu.hpp"
+    "${CMAKE_CURRENT_SOURCE_DIR}/OSSIA/DocumentPlugin/ContextMenu/PlayContextMenuFactory.hpp"
+
+    "${CMAKE_CURRENT_SOURCE_DIR}/OSSIA/DocumentPlugin/BasicProcessWrapper.hpp"
+    "${CMAKE_CURRENT_SOURCE_DIR}/OSSIA/DocumentPlugin/LoopingProcessWrapper.hpp"
+    "${CMAKE_CURRENT_SOURCE_DIR}/OSSIA/DocumentPlugin/BaseScenarioElement.hpp"
+    "${CMAKE_CURRENT_SOURCE_DIR}/OSSIA/DocumentPlugin/EventElement.hpp"
+    "${CMAKE_CURRENT_SOURCE_DIR}/OSSIA/DocumentPlugin/ScenarioElement.hpp"
+    "${CMAKE_CURRENT_SOURCE_DIR}/OSSIA/DocumentPlugin/ProcessElement.hpp"
+    "${CMAKE_CURRENT_SOURCE_DIR}/OSSIA/DocumentPlugin/StateElement.hpp"
+    "${CMAKE_CURRENT_SOURCE_DIR}/OSSIA/DocumentPlugin/ProcessWrapper.hpp"
+    "${CMAKE_CURRENT_SOURCE_DIR}/OSSIA/DocumentPlugin/AutomationElement.hpp"
+    "${CMAKE_CURRENT_SOURCE_DIR}/OSSIA/DocumentPlugin/DocumentPlugin.hpp"
+    "${CMAKE_CURRENT_SOURCE_DIR}/OSSIA/DocumentPlugin/TimeNodeElement.hpp"
+    "${CMAKE_CURRENT_SOURCE_DIR}/OSSIA/DocumentPlugin/ConstraintElement.hpp"
+
+    "${CMAKE_CURRENT_SOURCE_DIR}/OSSIA/DocumentPlugin/ProcessModel/ProcessModel.hpp"
+    "${CMAKE_CURRENT_SOURCE_DIR}/OSSIA/DocumentPlugin/ProcessModel/ProcessModelElement.hpp"
+
     "${CMAKE_CURRENT_SOURCE_DIR}/iscore_plugin_ossia.hpp"
-    "${CMAKE_CURRENT_SOURCE_DIR}/ProcessModel/OSSIAProcessModel.hpp"
-    "${CMAKE_CURRENT_SOURCE_DIR}/ProcessModel/OSSIAProcessModelElement.hpp"
-    "${CMAKE_CURRENT_SOURCE_DIR}/ProcessModel/TimeProcessWithConstraint.hpp"
-    "${CMAKE_CURRENT_SOURCE_DIR}/iscore2OSSIA.hpp"
-    "${CMAKE_CURRENT_SOURCE_DIR}/DocumentPlugin/LoopingProcessWrapper.hpp"
-    "${CMAKE_CURRENT_SOURCE_DIR}/DocumentPlugin/OSSIABaseScenarioElement.hpp"
-    "${CMAKE_CURRENT_SOURCE_DIR}/DocumentPlugin/OSSIAEventElement.hpp"
-    "${CMAKE_CURRENT_SOURCE_DIR}/DocumentPlugin/OSSIAScenarioElement.hpp"
-    "${CMAKE_CURRENT_SOURCE_DIR}/DocumentPlugin/OSSIAProcessElement.hpp"
-    "${CMAKE_CURRENT_SOURCE_DIR}/DocumentPlugin/OSSIAStateElement.hpp"
-    "${CMAKE_CURRENT_SOURCE_DIR}/DocumentPlugin/ContextMenu/PlayContextMenu.hpp"
-    "${CMAKE_CURRENT_SOURCE_DIR}/DocumentPlugin/ContextMenu/PlayContextMenuFactory.hpp"
-    "${CMAKE_CURRENT_SOURCE_DIR}/DocumentPlugin/BasicProcessWrapper.hpp"
-    "${CMAKE_CURRENT_SOURCE_DIR}/DocumentPlugin/ProcessWrapper.hpp"
-    "${CMAKE_CURRENT_SOURCE_DIR}/DocumentPlugin/OSSIAAutomationElement.hpp"
-    "${CMAKE_CURRENT_SOURCE_DIR}/DocumentPlugin/OSSIADocumentPlugin.hpp"
-    "${CMAKE_CURRENT_SOURCE_DIR}/DocumentPlugin/OSSIATimeNodeElement.hpp"
-    "${CMAKE_CURRENT_SOURCE_DIR}/DocumentPlugin/OSSIAConstraintElement.hpp"
     )
 set(SRCS
-"${CMAKE_CURRENT_SOURCE_DIR}/Protocols/MIDI/MIDIProtocolSettingsWidget.cpp"
-"${CMAKE_CURRENT_SOURCE_DIR}/Protocols/MIDI/MIDIDevice.cpp"
-"${CMAKE_CURRENT_SOURCE_DIR}/Protocols/MIDI/MIDIProtocolFactory.cpp"
-"${CMAKE_CURRENT_SOURCE_DIR}/Protocols/MIDI/MIDISpecificSettingsSerialization.cpp"
-"${CMAKE_CURRENT_SOURCE_DIR}/Protocols/Minuit/MinuitSpecificSettingsSerialization.cpp"
-"${CMAKE_CURRENT_SOURCE_DIR}/Protocols/Minuit/MinuitProtocolSettingsWidget.cpp"
-"${CMAKE_CURRENT_SOURCE_DIR}/Protocols/Minuit/MinuitDevice.cpp"
-"${CMAKE_CURRENT_SOURCE_DIR}/Protocols/Minuit/MinuitProtocolFactory.cpp"
-"${CMAKE_CURRENT_SOURCE_DIR}/Protocols/OSC/OSCSpecificSettingsSerialization.cpp"
-"${CMAKE_CURRENT_SOURCE_DIR}/Protocols/OSC/OSCProtocolSettingsWidget.cpp"
-"${CMAKE_CURRENT_SOURCE_DIR}/Protocols/OSC/OSCDevice.cpp"
-"${CMAKE_CURRENT_SOURCE_DIR}/Protocols/OSC/OSCProtocolFactory.cpp"
-"${CMAKE_CURRENT_SOURCE_DIR}/Protocols/OSSIADevice.cpp"
+"${CMAKE_CURRENT_SOURCE_DIR}/OSSIA/Protocols/MIDI/MIDIProtocolSettingsWidget.cpp"
+"${CMAKE_CURRENT_SOURCE_DIR}/OSSIA/Protocols/MIDI/MIDIDevice.cpp"
+"${CMAKE_CURRENT_SOURCE_DIR}/OSSIA/Protocols/MIDI/MIDIProtocolFactory.cpp"
+"${CMAKE_CURRENT_SOURCE_DIR}/OSSIA/Protocols/MIDI/MIDISpecificSettingsSerialization.cpp"
+"${CMAKE_CURRENT_SOURCE_DIR}/OSSIA/Protocols/Minuit/MinuitSpecificSettingsSerialization.cpp"
+"${CMAKE_CURRENT_SOURCE_DIR}/OSSIA/Protocols/Minuit/MinuitProtocolSettingsWidget.cpp"
+"${CMAKE_CURRENT_SOURCE_DIR}/OSSIA/Protocols/Minuit/MinuitDevice.cpp"
+"${CMAKE_CURRENT_SOURCE_DIR}/OSSIA/Protocols/Minuit/MinuitProtocolFactory.cpp"
+"${CMAKE_CURRENT_SOURCE_DIR}/OSSIA/Protocols/OSC/OSCSpecificSettingsSerialization.cpp"
+"${CMAKE_CURRENT_SOURCE_DIR}/OSSIA/Protocols/OSC/OSCProtocolSettingsWidget.cpp"
+"${CMAKE_CURRENT_SOURCE_DIR}/OSSIA/Protocols/OSC/OSCDevice.cpp"
+"${CMAKE_CURRENT_SOURCE_DIR}/OSSIA/Protocols/OSC/OSCProtocolFactory.cpp"
+"${CMAKE_CURRENT_SOURCE_DIR}/OSSIA/Protocols/OSSIADevice.cpp"
+"${CMAKE_CURRENT_SOURCE_DIR}/OSSIA/OSSIA2iscore.cpp"
+"${CMAKE_CURRENT_SOURCE_DIR}/OSSIA/OSSIAApplicationPlugin.cpp"
+
+"${CMAKE_CURRENT_SOURCE_DIR}/OSSIA/DocumentPlugin/ContextMenu/PlayContextMenu.cpp"
+"${CMAKE_CURRENT_SOURCE_DIR}/OSSIA/DocumentPlugin/ContextMenu/PlayContextMenuFactory.cpp"
+
+"${CMAKE_CURRENT_SOURCE_DIR}/OSSIA/DocumentPlugin/BasicProcessWrapper.cpp"
+"${CMAKE_CURRENT_SOURCE_DIR}/OSSIA/DocumentPlugin/LoopingProcessWrapper.cpp"
+"${CMAKE_CURRENT_SOURCE_DIR}/OSSIA/DocumentPlugin/BaseScenarioElement.cpp"
+"${CMAKE_CURRENT_SOURCE_DIR}/OSSIA/DocumentPlugin/EventElement.cpp"
+"${CMAKE_CURRENT_SOURCE_DIR}/OSSIA/DocumentPlugin/ScenarioElement.cpp"
+"${CMAKE_CURRENT_SOURCE_DIR}/OSSIA/DocumentPlugin/StateElement.cpp"
+"${CMAKE_CURRENT_SOURCE_DIR}/OSSIA/DocumentPlugin/AutomationElement.cpp"
+"${CMAKE_CURRENT_SOURCE_DIR}/OSSIA/DocumentPlugin/DocumentPlugin.cpp"
+"${CMAKE_CURRENT_SOURCE_DIR}/OSSIA/DocumentPlugin/TimeNodeElement.cpp"
+"${CMAKE_CURRENT_SOURCE_DIR}/OSSIA/DocumentPlugin/ConstraintElement.cpp"
+
+"${CMAKE_CURRENT_SOURCE_DIR}/OSSIA/iscore2OSSIA.cpp"
+
 "${CMAKE_CURRENT_SOURCE_DIR}/iscore_plugin_ossia.cpp"
-"${CMAKE_CURRENT_SOURCE_DIR}/OSSIA2iscore.cpp"
-"${CMAKE_CURRENT_SOURCE_DIR}/OSSIAControl.cpp"
-"${CMAKE_CURRENT_SOURCE_DIR}/DocumentPlugin/BasicProcessWrapper.cpp"
-"${CMAKE_CURRENT_SOURCE_DIR}/DocumentPlugin/LoopingProcessWrapper.cpp"
-"${CMAKE_CURRENT_SOURCE_DIR}/DocumentPlugin/OSSIAScenarioElement.cpp"
-"${CMAKE_CURRENT_SOURCE_DIR}/DocumentPlugin/OSSIAStateElement.cpp"
-"${CMAKE_CURRENT_SOURCE_DIR}/DocumentPlugin/OSSIATimeNodeElement.cpp"
-"${CMAKE_CURRENT_SOURCE_DIR}/DocumentPlugin/OSSIAAutomationElement.cpp"
-"${CMAKE_CURRENT_SOURCE_DIR}/DocumentPlugin/OSSIABaseScenarioElement.cpp"
-"${CMAKE_CURRENT_SOURCE_DIR}/DocumentPlugin/ContextMenu/PlayContextMenu.cpp"
-"${CMAKE_CURRENT_SOURCE_DIR}/DocumentPlugin/ContextMenu/PlayContextMenuFactory.cpp"
-"${CMAKE_CURRENT_SOURCE_DIR}/DocumentPlugin/OSSIADocumentPlugin.cpp"
-"${CMAKE_CURRENT_SOURCE_DIR}/DocumentPlugin/OSSIAConstraintElement.cpp"
-"${CMAKE_CURRENT_SOURCE_DIR}/DocumentPlugin/OSSIAEventElement.cpp"
-"${CMAKE_CURRENT_SOURCE_DIR}/iscore2OSSIA.cpp"
 )
 
 if(TARGET iscore_plugin_mapping)
     set(SRCS ${SRCS}
-        "${CMAKE_CURRENT_SOURCE_DIR}/DocumentPlugin/OSSIAMappingElement.cpp")
+        "${CMAKE_CURRENT_SOURCE_DIR}/OSSIA/DocumentPlugin/MappingElement.cpp"
+)
     set(HDRS ${HDRS}
-        "${CMAKE_CURRENT_SOURCE_DIR}/DocumentPlugin/OSSIAMappingElement.hpp")
+        "${CMAKE_CURRENT_SOURCE_DIR}/OSSIA/DocumentPlugin/MappingElement.hpp"
+)
 endif()
 
+if(TARGET iscore_plugin_loop)
+    set(SRCS ${SRCS}
+        "${CMAKE_CURRENT_SOURCE_DIR}/OSSIA/DocumentPlugin/LoopElement.cpp"
+)
+    set(HDRS ${HDRS}
+        "${CMAKE_CURRENT_SOURCE_DIR}/OSSIA/DocumentPlugin/LoopElement.hpp"
+)
+endif()
 
 add_library(${PROJECT_NAME} ${SRCS} ${HDRS})
 target_link_libraries(${PROJECT_NAME}
@@ -97,6 +115,9 @@ target_link_libraries(${PROJECT_NAME}
 
 if(TARGET iscore_plugin_mapping)
     target_link_libraries(${PROJECT_NAME} iscore_plugin_mapping)
+endif()
+if(TARGET iscore_plugin_loop)
+    target_link_libraries(${PROJECT_NAME} iscore_plugin_loop)
 endif()
 
 setup_iscore_plugin(${PROJECT_NAME})

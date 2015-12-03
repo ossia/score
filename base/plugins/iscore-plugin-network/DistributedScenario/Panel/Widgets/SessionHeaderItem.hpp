@@ -1,6 +1,8 @@
 #pragma once
-#include <QTableWidgetItem>
+#include <boost/optional/optional.hpp>
 #include <iscore/tools/SettableIdentifier.hpp>
+#include <QTableWidget>
+
 class Client;
 
 class SessionHeaderItem : public QTableWidgetItem

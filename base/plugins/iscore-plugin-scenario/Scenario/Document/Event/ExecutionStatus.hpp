@@ -1,13 +1,11 @@
 #pragma once
-#include <QMetaType>
-#include <QMap>
-#include <QColor>
 #include <QObject>
+
+class QColor;
+
 enum class ExecutionStatus { Waiting, Pending, Happened, Disposed, Editing };
 Q_DECLARE_METATYPE(ExecutionStatus)
 
-
-const QColor& eventStatusColor(ExecutionStatus);
 
 // TODO Use me for events, states
 class ExecutionStatusProperty final : public QObject
@@ -23,6 +21,8 @@ class ExecutionStatusProperty final : public QObject
                 emit changed(m_status);
             }
         }
+        const QColor& eventStatusColor();
+        const QColor& stateStatusColor();
 
     signals:
         void changed(ExecutionStatus);

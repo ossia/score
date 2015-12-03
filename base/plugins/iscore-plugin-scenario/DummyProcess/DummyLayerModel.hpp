@@ -1,7 +1,16 @@
 #pragma once
 #include <Process/LayerModel.hpp>
+
+#include <iscore/serialization/VisitorInterface.hpp>
+
 #include <iscore/serialization/DataStreamVisitor.hpp>
 #include <iscore/serialization/JSONVisitor.hpp>
+class DataStream;
+class JSONObject;
+class LayerModelPanelProxy;
+class Process;
+class QObject;
+#include <iscore/tools/SettableIdentifier.hpp>
 
 class DummyLayerModel final : public LayerModel
 {

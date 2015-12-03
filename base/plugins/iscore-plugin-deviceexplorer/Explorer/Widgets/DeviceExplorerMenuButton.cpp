@@ -1,8 +1,15 @@
-#include "DeviceExplorerMenuButton.hpp"
-#include <Explorer/Explorer/DeviceExplorerModel.hpp>
 #include <Device/QMenuView/qmenuview.h>
-#include <QPushButton>
+#include <Explorer/Explorer/DeviceExplorerModel.hpp>
 #include <QGridLayout>
+#include <QLayout>
+#include <QPushButton>
+
+#include <Device/Node/DeviceNode.hpp>
+#include "DeviceExplorerMenuButton.hpp"
+
+class QAbstractItemModel;
+class QModelIndex;
+
 DeviceExplorerMenuButton::DeviceExplorerMenuButton(DeviceExplorerModel *model)
 {
     auto lay = new QGridLayout;

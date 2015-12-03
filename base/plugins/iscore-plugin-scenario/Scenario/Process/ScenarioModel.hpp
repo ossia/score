@@ -1,54 +1,64 @@
 #pragma once
+#include <Process/Process.hpp>
+#include <Process/TimeValue.hpp>
 #include <Scenario/Document/Constraint/ConstraintModel.hpp>
 #include <Scenario/Document/Event/EventModel.hpp>
-#include <Scenario/Document/TimeNode/TimeNodeModel.hpp>
 #include <Scenario/Document/State/StateModel.hpp>
+#include <Scenario/Document/TimeNode/TimeNodeModel.hpp>
+#include <Scenario/Document/CommentBlock/CommentBlockModel.hpp>
 #include <Scenario/Process/ScenarioInterface.hpp>
-#include <Scenario/Process/ScenarioProcessMetadata.hpp>
-
-#include <Process/Process.hpp>
+#include <boost/iterator/indirect_iterator.hpp>
+#include <boost/iterator/iterator_facade.hpp>
+#include <boost/multi_index/detail/hash_index_iterator.hpp>
+#include <boost/optional/optional.hpp>
 #include <iscore/tools/IdentifiedObjectMap.hpp>
-
-#include <iscore/serialization/DataStreamVisitor.hpp>
-#include <iscore/serialization/JSONVisitor.hpp>
-
-#include <Process/TimeValue.hpp>
-
 #include <iscore/tools/NotifyingMap.hpp>
+#include <QByteArray>
+#include <QList>
+#include <QObject>
+#include <QPointer>
+#include <QString>
+#include <QVector>
 
-#include <iterator>
+#include <Process/ProcessFactoryKey.hpp>
+#include <Scenario/Process/AbstractScenarioLayerModel.hpp>
+#include <iscore/selection/Selection.hpp>
+#include <iscore/serialization/VisitorInterface.hpp>
+#include <iscore/tools/SettableIdentifier.hpp>
+
+class DataStream;
+class JSONObject;
+class LayerModel;
+class ProcessStateDataInterface;
+class QEvent;
+class ScenarioFactory;
 
 namespace OSSIA
 {
-    class Scenario;
 }
-class TimeNodeModel;
-class ConstraintModel;
-class EventModel;
-class AbstractScenarioLayerModel;
-class ConstraintViewModel;
 
-class OSSIAScenarioImpl;
 /**
  * @brief The ScenarioModel class
  *
  * Creation methods return tuples with the identifiers of the objects in their temporal order.
  * (first to last)
  */
+namespace Scenario
+{
 class ScenarioModel final : public Process, public ScenarioInterface
 {
         Q_OBJECT
 
-        ISCORE_SERIALIZE_FRIENDS(ScenarioModel, DataStream)
-        ISCORE_SERIALIZE_FRIENDS(ScenarioModel, JSONObject)
-        friend class ScenarioFactory;
+        ISCORE_SERIALIZE_FRIENDS(Scenario::ScenarioModel, DataStream)
+        ISCORE_SERIALIZE_FRIENDS(Scenario::ScenarioModel, JSONObject)
+        friend class ::ScenarioFactory;
 
     public:
         using layer_type = AbstractScenarioLayerModel;
         ScenarioModel(const TimeValue& duration,
                       const Id<Process>& id,
                       QObject* parent);
-        ScenarioModel* clone(
+        Scenario::ScenarioModel* clone(
                 const Id<Process>& newId,
                 QObject* newParent) const override;
 
@@ -79,8 +89,8 @@ class ScenarioModel final : public Process, public ScenarioInterface
         Selection selectedChildren() const override;
         void setSelection(const Selection& s) const override;
 
-        ProcessStateDataInterface* startState() const override;
-        ProcessStateDataInterface* endState() const override;
+        ProcessStateDataInterface* startStateData() const override;
+        ProcessStateDataInterface* endStateData() const override;
 
         //// ScenarioModel specifics ////
 
@@ -122,7 +132,10 @@ class ScenarioModel final : public Process, public ScenarioInterface
         {
             return states.at(stId);
         }
-        const QVector<Id<ConstraintModel>> constraintsBeforeTimeNode(const Id<TimeNodeModel>& timeNodeId) const;
+        CommentBlockModel& comment(const Id<CommentBlockModel>& cmtId) const
+        {
+            return comments.at(cmtId);
+        }
 
         TimeNodeModel& startTimeNode() const override
         {
@@ -145,6 +158,7 @@ class ScenarioModel final : public Process, public ScenarioInterface
         NotifyingMap<EventModel> events;
         NotifyingMap<TimeNodeModel> timeNodes;
         NotifyingMap<StateModel> states;
+        NotifyingMap<CommentBlockModel> comments;
 
         IdContainer<ConstraintModel> getConstraints() const
         {
@@ -162,11 +176,16 @@ class ScenarioModel final : public Process, public ScenarioInterface
         {
             return states;
         }
+        IdContainer<CommentBlockModel> getComments() const
+        {
+            return comments;
+        }
 
     signals:
         void stateMoved(const StateModel&);
         void eventMoved(const EventModel&);
         void constraintMoved(const ConstraintModel&);
+        void commentMoved(const CommentBlockModel&);
 
         void locked();
         void unlocked();
@@ -208,8 +227,9 @@ class ScenarioModel final : public Process, public ScenarioInterface
             fun(&ScenarioModel::events);
             fun(&ScenarioModel::constraints);
             fun(&ScenarioModel::states);
+            fun(&ScenarioModel::comments);
         }
-        ScenarioModel(const ScenarioModel& source,
+        ScenarioModel(const Scenario::ScenarioModel& source,
                       const Id<Process>& id,
                       QObject* parent);
         void makeLayer_impl(AbstractScenarioLayerModel*);
@@ -223,8 +243,7 @@ class ScenarioModel final : public Process, public ScenarioInterface
         // By default, creation in the void will make a constraint
         // that goes to the startEvent and add a new state
 };
-
-#include <iterator>
+}
 // TODO this ought to go in Selection.hpp ?
 template<typename Vector>
 QList<const typename Vector::value_type*> selectedElements(const Vector& in)
@@ -248,7 +267,7 @@ QList<const T*> filterSelectionByType(const Selection& sel)
         // TODO replace with a virtual Element::type() which will be faster.
         if(auto casted_obj = dynamic_cast<const T*>(obj.data()))
         {
-            if(casted_obj->selection.get() && dynamic_cast<ScenarioModel*>(casted_obj->parent()))
+            if(casted_obj->selection.get() && dynamic_cast<Scenario::ScenarioModel*>(casted_obj->parent()))
             {
                 selected_elements.push_back(casted_obj);
             }
@@ -259,5 +278,12 @@ QList<const T*> filterSelectionByType(const Selection& sel)
 }
 
 
-const StateModel* furthestSelectedState(const ScenarioModel& scenario);
-const StateModel* furthestSelectedStateWithoutFollowingConstraint(const ScenarioModel& scenario);
+namespace Scenario
+{
+const QVector<Id<ConstraintModel>> constraintsBeforeTimeNode(
+        const Scenario::ScenarioModel&,
+        const Id<TimeNodeModel>& timeNodeId);
+}
+
+const StateModel* furthestSelectedState(const Scenario::ScenarioModel& scenario);
+const StateModel* furthestSelectedStateWithoutFollowingConstraint(const Scenario::ScenarioModel& scenario);

@@ -1,17 +1,26 @@
-#include "RemoveProcessFromConstraint.hpp"
-
+#include <Process/Process.hpp>
+#include <Process/ProcessModelSerialization.hpp>
 #include <Scenario/Document/Constraint/ConstraintModel.hpp>
+#include <Scenario/Document/Constraint/LayerModelLoader.hpp>
 #include <Scenario/Document/Constraint/Rack/RackModel.hpp>
 #include <Scenario/Document/Constraint/Rack/Slot/SlotModel.hpp>
 
 
-#include <Process/Process.hpp>
-#include <Process/LayerModel.hpp>
-#include <Process/ProcessModelSerialization.hpp>
-#include <Scenario/Document/Constraint/LayerModelLoader.hpp>
 
-#include <iscore/document/DocumentInterface.hpp>
-#include <core/application/ApplicationComponents.hpp>
+#include <QDataStream>
+#include <QtGlobal>
+#include <algorithm>
+#include <vector>
+
+#include <Process/ProcessList.hpp>
+#include "RemoveProcessFromConstraint.hpp"
+#include <iscore/application/ApplicationContext.hpp>
+#include <iscore/plugins/customfactory/StringFactoryKey.hpp>
+#include <iscore/serialization/DataStreamVisitor.hpp>
+#include <iscore/tools/ModelPath.hpp>
+#include <iscore/tools/ModelPathSerialization.hpp>
+#include <iscore/tools/NotifyingMap.hpp>
+#include <iscore/tools/ObjectPath.hpp>
 
 using namespace iscore;
 using namespace Scenario::Command;
@@ -44,7 +53,7 @@ void RemoveProcessFromConstraint::undo() const
 {
     auto& constraint = m_path.find();
     Deserializer<DataStream> s {m_serializedProcessData};
-    auto& fact = context.components.factory<DynamicProcessList>();
+    auto& fact = context.components.factory<ProcessList>();
     constraint.processes.add(createProcess(fact, s, &constraint));
 
     // Restore the view models

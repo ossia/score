@@ -1,16 +1,20 @@
 #pragma once
-#include <iscore/command/SerializableCommand.hpp>
 #include <Scenario/Commands/ScenarioCommandFactory.hpp>
-#include <Process/ProcessFactory.hpp>
+#include <boost/optional/optional.hpp>
+#include <iscore/command/SerializableCommand.hpp>
+
+#include <Process/ProcessFactoryKey.hpp>
+#include <iscore/tools/ModelPath.hpp>
+#include <iscore/tools/SettableIdentifier.hpp>
 
 class ConstraintModel;
+class DataStreamInput;
+class DataStreamOutput;
 class Process;
+
 class AddOnlyProcessToConstraint final : public iscore::SerializableCommand
 {
-        ISCORE_COMMAND_DECL(
-                ScenarioCommandFactoryName(),
-                AddOnlyProcessToConstraint,
-                "AddOnlyProcessToConstraint")
+        ISCORE_COMMAND_DECL(ScenarioCommandFactoryName(), AddOnlyProcessToConstraint, "Add a process")
     public:
         AddOnlyProcessToConstraint(
             Path<ConstraintModel>&& constraint,

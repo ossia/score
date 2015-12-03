@@ -1,42 +1,55 @@
-#include "EventPresenter.hpp"
-
+#include <Scenario/Commands/Event/State/AddStateWithData.hpp>
 #include <Scenario/Document/Event/EventModel.hpp>
 #include <Scenario/Document/Event/EventView.hpp>
-
-#include <Scenario/Commands/Event/State/AddStateWithData.hpp>
 #include <Scenario/Process/ScenarioModel.hpp>
-#include <iscore/document/DocumentInterface.hpp>
-#include <core/document/Document.hpp>
-#include <State/StateMimeTypes.hpp>
 #include <State/MessageListSerialization.hpp>
-
+#include <iscore/document/DocumentInterface.hpp>
 #include <iscore/widgets/GraphicsItem.hpp>
+#include <QGraphicsItem>
 #include <QMimeData>
-#include <QJsonDocument>
-#include <QGraphicsScene>
+#include <QRect>
+#include <QSize>
+#include <QStringList>
+#include <algorithm>
+
+#include "EventPresenter.hpp"
+#include <Process/ModelMetadata.hpp>
+#include <Scenario/Process/ScenarioInterface.hpp>
+#include <State/Expression.hpp>
+#include <State/Message.hpp>
+#include <iscore/document/DocumentContext.hpp>
+#include <iscore/command/Dispatchers/CommandDispatcher.hpp>
+#include <iscore/selection/Selectable.hpp>
+#include <iscore/serialization/MimeVisitor.hpp>
+#include <iscore/tools/NamedObject.hpp>
+#include <iscore/tools/Todo.hpp>
+
+class QObject;
+#include <iscore/tools/SettableIdentifier.hpp>
+
 EventPresenter::EventPresenter(const EventModel& model,
                                QGraphicsObject* parentview,
                                QObject* parent) :
     NamedObject {"EventPresenter", parent},
     m_model {model},
     m_view {new EventView{*this, parentview}},
-    m_dispatcher{iscore::IDocument::commandStack(m_model)}
+    m_dispatcher{iscore::IDocument::documentContext(m_model).commandStack}
 {
     // The scenario catches this :
     con(m_model.selection, &Selectable::changed,
-            m_view, &EventView::setSelected);
+        m_view, &EventView::setSelected);
 
-    con((m_model.metadata),  &ModelMetadata::colorChanged,
-            m_view,                 &EventView::changeColor);
+    con(m_model.metadata, &ModelMetadata::colorChanged,
+        m_view, &EventView::changeColor);
 
     con(m_model, &EventModel::statusChanged,
-        m_view,  &EventView::setStatus);
+        m_view, &EventView::setStatus);
 
     connect(m_view, &EventView::eventHoverEnter,
-            this,   &EventPresenter::eventHoverEnter);
+            this, &EventPresenter::eventHoverEnter);
 
     connect(m_view, &EventView::eventHoverLeave,
-            this,   &EventPresenter::eventHoverLeave);
+            this, &EventPresenter::eventHoverLeave);
 
     connect(m_view, &EventView::dropReceived,
             this, &EventPresenter::handleDrop);
@@ -80,7 +93,7 @@ void EventPresenter::triggerSetted(QString trig)
 void EventPresenter::handleDrop(const QPointF& pos, const QMimeData *mime)
 {
     // We don't want to create a new state in BaseScenario
-    auto scenar = dynamic_cast<ScenarioModel*>(m_model.parentScenario());
+    auto scenar = dynamic_cast<Scenario::ScenarioModel*>(m_model.parent());
     // todo Maybe the drop should be handled by the scenario presenter ?? or not
 
     // If the mime data has states in it we can handle it.

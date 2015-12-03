@@ -1,12 +1,26 @@
 #pragma once
-#include <ProcessModel/OSSIAProcessModel.hpp>
-#include <iscore/serialization/DataStreamVisitor.hpp>
-#include <iscore/serialization/JSONVisitor.hpp>
-#include <iscore/serialization/VisitorCommon.hpp>
+#include <OSSIA/DocumentPlugin/ProcessModel/ProcessModel.hpp>
+#include <QByteArray>
+#include <QString>
+#include <memory>
+
+#include <Process/ProcessFactoryKey.hpp>
+#include <Process/TimeValue.hpp>
 #include "SimpleProcess/SimpleProcess.hpp"
+#include <iscore/selection/Selection.hpp>
+#include <iscore/serialization/VisitorInterface.hpp>
+
+class DataStream;
+class JSONObject;
+class LayerModel;
+class Process;
+class ProcessStateDataInterface;
+class QObject;
+class TimeProcessWithConstraint;
+#include <iscore/tools/SettableIdentifier.hpp>
 
 
-class SimpleProcessModel final : public OSSIAProcessModel
+class SimpleProcessModel final : public RecreateOnPlay::OSSIAProcessModel
 {
         ISCORE_SERIALIZE_FRIENDS(SimpleProcessModel, DataStream)
         ISCORE_SERIALIZE_FRIENDS(SimpleProcessModel, JSONObject)
@@ -54,8 +68,8 @@ class SimpleProcessModel final : public OSSIAProcessModel
         void stopExecution() override;
         void reset() override;
 
-        ProcessStateDataInterface* startState() const override;
-        ProcessStateDataInterface* endState() const override;
+        ProcessStateDataInterface* startStateData() const override;
+        ProcessStateDataInterface* endStateData() const override;
 
         Selection selectableChildren() const override;
         Selection selectedChildren() const override;

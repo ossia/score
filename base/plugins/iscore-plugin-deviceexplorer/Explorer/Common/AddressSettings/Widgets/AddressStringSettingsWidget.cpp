@@ -1,12 +1,14 @@
-#include "AddressStringSettingsWidget.hpp"
-#include <State/ValueConversion.hpp>
-#include <QComboBox>
-#include <QDebug>
-#include <QGridLayout>
-#include <QLabel>
-#include <QLineEdit>
-#include <QSpinBox>
 #include <QFormLayout>
+#include <QLineEdit>
+
+#include <QString>
+
+#include "AddressStringSettingsWidget.hpp"
+#include <Explorer/Common/AddressSettings/Widgets/AddressSettingsWidget.hpp>
+#include <State/Value.hpp>
+#include <State/ValueConversion.hpp>
+
+class QWidget;
 
 AddressStringSettingsWidget::AddressStringSettingsWidget(QWidget* parent)
     : AddressSettingsWidget(parent)

@@ -1,4 +1,6 @@
+#include <QObject>
 #include "MenuInterface.hpp"
+
 using namespace iscore;
 
 namespace iscore
@@ -114,7 +116,10 @@ const std::map<FileMenuElement, QString> MenuInterface::m_fileMap
     {FileMenuElement::Separator_Export, QObject::tr("Separator_Export") },
     {FileMenuElement::Export, QObject::tr("Export") },
     {FileMenuElement::Separator_Quit, QObject::tr("Separator_Quit") },
-    {FileMenuElement::Quit, QObject::tr("Quit") }
+    {FileMenuElement::Close, QObject::tr("Close") },
+    {FileMenuElement::Quit, QObject::tr("Quit") },
+    {FileMenuElement::SaveCommands, QObject::tr("Save_Cmds") },
+    {FileMenuElement::LoadCommands, QObject::tr("Load_Cmds") }
 };
 
 const std::map<EditMenuElement, QString> MenuInterface::m_editMap

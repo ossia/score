@@ -1,46 +1,65 @@
-#include "InterpolateStates.hpp"
-
+#include <Automation/AutomationModel.hpp>
+#include <Device/Address/AddressSettings.hpp>
+#include <Explorer/DocumentPlugin/DeviceDocumentPlugin.hpp>
 #include <Scenario/Commands/Cohesion/CreateCurveFromStates.hpp>
 #include <Scenario/Commands/Cohesion/InterpolateMacro.hpp>
-
-#include <Automation/AutomationModel.hpp>
 #include <Scenario/Document/Constraint/ConstraintModel.hpp>
 #include <Scenario/Process/ScenarioModel.hpp>
-
-#include <iscore/command/Dispatchers/MacroCommandDispatcher.hpp>
-#include <iscore/tools/SettableIdentifierGeneration.hpp>
-
-#include <core/document/Document.hpp>
-#include <Device/Address/AddressSettings.hpp>
-
+#include <boost/iterator/indirect_iterator.hpp>
+#include <boost/iterator/iterator_facade.hpp>
+#include <boost/multi_index/detail/hash_index_iterator.hpp>
 #include <iscore/document/DocumentInterface.hpp>
-#include <core/document/Document.hpp>
-#include <core/document/DocumentModel.hpp>
-#include <Explorer/DocumentPlugin/DeviceDocumentPlugin.hpp>
+#include <iscore/tools/SettableIdentifierGeneration.hpp>
+#include <QObject>
+#include <QString>
+#include <algorithm>
+#include <iterator>
+#include <utility>
+#include <vector>
 
-void InterpolateStates(iscore::Document* doc)
+#include <Device/Address/Domain.hpp>
+#include <Device/Node/DeviceNode.hpp>
+#include "InterpolateStates.hpp"
+#include <Process/LayerModel.hpp>
+#include <Process/Process.hpp>
+#include <Process/State/MessageNode.hpp>
+#include <Scenario/Document/Constraint/Rack/Slot/SlotModel.hpp>
+#include <Scenario/Document/State/ItemModel/MessageItemModel.hpp>
+#include <Scenario/Document/State/StateModel.hpp>
+#include <State/Address.hpp>
+#include <State/Message.hpp>
+#include <State/Value.hpp>
+#include <State/ValueConversion.hpp>
+#include <iscore/command/Dispatchers/CommandDispatcher.hpp>
+#include <iscore/selection/SelectionStack.hpp>
+#include <iscore/tools/ModelPath.hpp>
+#include <iscore/tools/NotifyingMap.hpp>
+#include <iscore/tools/SettableIdentifier.hpp>
+#include <iscore/tools/TreeNode.hpp>
+
+void InterpolateStates(const iscore::DocumentContext& doc)
 {
     using namespace std;
 
     // Fetch the selected constraints
-    auto selected_constraints = filterSelectionByType<ConstraintModel>(doc->selectionStack().currentSelection());
+    auto selected_constraints = filterSelectionByType<ConstraintModel>(doc.selectionStack.currentSelection());
 
     if(selected_constraints.empty())
         return;
 
-    InterpolateStates(selected_constraints, doc->commandStack());
+    InterpolateStates(selected_constraints, doc.commandStack);
 }
 
 void InterpolateStates(const QList<const ConstraintModel*>& selected_constraints,
-                       iscore::CommandStack& stack)
+                       iscore::CommandStackFacade& stack)
 {
     // For each constraint, interpolate between the states in its start event and end event.
 
     // They should all be in the same scenario so we can select the first.
-    ScenarioModel* scenar = dynamic_cast<ScenarioModel*>(
+    Scenario::ScenarioModel* scenar = dynamic_cast<Scenario::ScenarioModel*>(
                                 selected_constraints.first()->parent());
 
-    auto& devPlugin = *iscore::IDocument::documentFromObject(*scenar)->model().pluginModel<DeviceDocumentPlugin>();
+    auto& devPlugin = iscore::IDocument::documentContext(*scenar).plugin<DeviceDocumentPlugin>();
     auto& rootNode = devPlugin.rootNode();
 
     auto big_macro = new GenericInterpolateMacro;

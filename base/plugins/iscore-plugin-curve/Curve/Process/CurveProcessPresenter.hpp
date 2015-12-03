@@ -3,7 +3,7 @@
 #include <Curve/CurveModel.hpp>
 #include <Curve/CurvePresenter.hpp>
 #include <Curve/CurveView.hpp>
-#include <Curve/StateMachine/CurveStateMachine.hpp>
+#include <Curve/Palette/CurvePalette.hpp>
 
 #include <Process/LayerPresenter.hpp>
 #include <Process/Focus/FocusDispatcher.hpp>
@@ -12,8 +12,7 @@
 #include <iscore/document/DocumentInterface.hpp>
 #include <iscore/widgets/GraphicsItem.hpp>
 
-#include <core/document/Document.hpp>
-#include <core/application/ApplicationComponents.hpp>
+
 #include <Curve/Segment/CurveSegmentList.hpp>
 #include <QGraphicsSceneMouseEvent>
 #include <QGraphicsScene>
@@ -29,7 +28,7 @@ class CurveProcessPresenter : public LayerPresenter
 {
     public:
         CurveProcessPresenter(
-                iscore::DocumentContext& context,
+                const iscore::DocumentContext& context,
                 const Curve::Style& style,
                 const LayerModel_T& lm,
                 LayerView_T* view,

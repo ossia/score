@@ -1,5 +1,5 @@
+#include <Device/Protocol/DeviceInterface.hpp>
 #include "DeviceList.hpp"
-#include <algorithm>
 
 template<typename TheList>
 static auto get_device_iterator_by_name(

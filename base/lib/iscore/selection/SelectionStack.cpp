@@ -1,6 +1,13 @@
-#include "SelectionStack.hpp"
 #include <iscore/tools/IdentifiedObjectAbstract.hpp>
+#include <QList>
+#include <qnamespace.h>
+#include <QPointer>
+#include <QVector>
 #include <algorithm>
+
+#include "SelectionStack.hpp"
+#include <iscore/selection/Selection.hpp>
+
 using namespace iscore;
 
 SelectionStack::SelectionStack()

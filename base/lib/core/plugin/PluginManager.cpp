@@ -1,25 +1,29 @@
+#include <boost/concept/usage.hpp>
+#include <boost/range/algorithm/find_if.hpp>
+#include <iscore/application/ApplicationComponents.hpp>
+#include <core/application/ApplicationRegistrar.hpp>
 #include <core/plugin/PluginManager.hpp>
-#include <core/application/Application.hpp>
-
-#include <iscore/plugins/qt_interfaces/FactoryInterface_QtInterface.hpp>
 #include <iscore/plugins/qt_interfaces/DocumentDelegateFactoryInterface_QtInterface.hpp>
 #include <iscore/plugins/qt_interfaces/FactoryFamily_QtInterface.hpp>
+#include <iscore/plugins/qt_interfaces/FactoryInterface_QtInterface.hpp>
+#include <iscore/plugins/qt_interfaces/GUIApplicationContextPlugin_QtInterface.hpp>
 #include <iscore/plugins/qt_interfaces/PanelFactoryInterface_QtInterface.hpp>
-#include <iscore/plugins/qt_interfaces/PluginControlInterface_QtInterface.hpp>
-#include <iscore/plugins/qt_interfaces/PluginRequirements_QtInterface.hpp>
 #include <iscore/plugins/qt_interfaces/SettingsDelegateFactoryInterface_QtInterface.hpp>
-
-#include <iscore/plugins/customfactory/FactoryInterface.hpp>
-#include <iscore/plugins/plugincontrol/PluginControlInterface.hpp>
-#include <iscore/plugins/documentdelegate/DocumentDelegateFactoryInterface.hpp>
-
-#include <core/application/ApplicationRegistrar.hpp>
-#include <core/application/ApplicationComponents.hpp>
+#include <QCoreApplication>
+#include <QDebug>
 #include <QDir>
-#include <QSettings>
+
 #include <QPluginLoader>
+#include <QSettings>
+#include <QVariant>
+#include <unordered_map>
+#include <utility>
+
 #include "PluginDependencyGraph.hpp"
-#include <boost/range/algorithm.hpp>
+#include <iscore/application/ApplicationContext.hpp>
+#include <iscore/plugins/customfactory/FactoryFamily.hpp>
+#include <iscore/plugins/customfactory/StringFactoryKey.hpp>
+#include <iscore/tools/std/Algorithms.hpp>
 
 using namespace iscore;
 
@@ -40,23 +44,9 @@ static QStringList pluginsDir()
 #endif
 }
 
-PluginLoader::PluginLoader(Application* app):
-    m_app{app}
-{
-}
-
-PluginLoader::~PluginLoader()
-{
-    clearPlugins();
-}
-
-
-QStringList PluginLoader::pluginsOnSystem() const
-{
-    return m_pluginsOnSystem;
-}
-
-void PluginLoader::loadPlugin(const QString &fileName)
+std::pair<QString, QObject*> PluginLoader::loadPlugin(
+        const QString &fileName,
+        const std::vector<QObject*>& availablePlugins)
 {
 #if !defined(ISCORE_STATIC_QT)
     auto blacklist = pluginsBlacklist();
@@ -65,51 +55,58 @@ void PluginLoader::loadPlugin(const QString &fileName)
     if(QObject* plugin = loader.instance())
     {
         // Check if the plugin is not already loaded
-        if(boost::range::find_if(m_availablePlugins,
+        if(find_if(availablePlugins,
            [&] (QObject* obj)
            { return obj->metaObject()->className() == plugin->metaObject()->className(); })
-                != m_availablePlugins.end())
+                != availablePlugins.end())
         {
             qDebug() << "Warning: plugin"
                      << plugin->metaObject()->className()
                      << "was already loaded. Not reloading.";
 
-            return;
+            return std::make_pair(fileName, nullptr);
         }
 
         // Check if it is blacklisted
         if(!blacklist.contains(fileName))
         {
-            m_availablePlugins.push_back(plugin);
-            plugin->setParent(this);
+            return std::make_pair(fileName, plugin);
         }
         else
         {
             plugin->deleteLater();
+            return std::make_pair(fileName, nullptr);
         }
 
-        m_pluginsOnSystem.push_back(fileName);
     }
     else
     {
         QString s = loader.errorString();
         if(!s.contains("Plugin verification data mismatch") && !s.contains("is not a Qt plugin"))
             qDebug() << "Error while loading" << fileName << ": " << loader.errorString();
+        return {};
     }
 #endif
+
+    return {};
 }
 
-void PluginLoader::reloadPlugins(iscore::ApplicationRegistrar& registrar)
+void PluginLoader::loadPlugins(
+        iscore::ApplicationRegistrar& registrar,
+        const iscore::ApplicationContext& context)
 {
-    clearPlugins();
     auto folders = pluginsDir();
+
+    // Here, the plug-ins that are effectively loaded.
+    std::vector<QObject*> availablePlugins;
 
     // Load static plug-ins
     for(QObject* plugin : QPluginLoader::staticInstances())
     {
-        m_availablePlugins.push_back(plugin);
+        availablePlugins.push_back(plugin);
     }
 
+    QSet<QString> pluginFiles;
 #if !defined(ISCORE_STATIC_QT)
     // Load dynamic plug-ins
     for(const QString& pluginsFolder : folders)
@@ -117,49 +114,63 @@ void PluginLoader::reloadPlugins(iscore::ApplicationRegistrar& registrar)
         QDir pluginsDir(pluginsFolder);
         for(const QString& fileName : pluginsDir.entryList(QDir::Files))
         {
-            loadPlugin(pluginsDir.absoluteFilePath(fileName));
+            auto plug = loadPlugin(pluginsDir.absoluteFilePath(fileName), availablePlugins);
+
+            if(!plug.first.isEmpty())
+            {
+                pluginFiles.insert(plug.first);
+            }
+
+            if(plug.second)
+            {
+                availablePlugins.push_back(plug.second);
+            }
         }
     }
 #endif
 
+    // First bring in the plugin objects
+    registrar.registerPlugins(
+                pluginFiles.toList(),
+                availablePlugins);
+
+
     // Here, it is important not to collapse all the for-loops
-    // because for instance a control from plugin B might require the factory
+    // because for instance a ApplicationPlugin from plugin B might require the factory
     // from plugin A to be loaded prior.
     // Load all the factories.
-    for(QObject* plugin : m_availablePlugins)
+    for(QObject* plugin : availablePlugins)
     {
         auto facfam_interface = qobject_cast<FactoryList_QtInterface*> (plugin);
 
         if(facfam_interface)
         {
-            auto other = facfam_interface->factoryFamilies();
-            for(auto elt : other)
+            for(auto&& elt : facfam_interface->factoryFamilies())
             {
-                registrar.registerFactory(elt);
+                registrar.registerFactory(std::move(elt));
             }
         }
     }
 
-    // Load all the plug-in controls (because all controls need to be initialized for the
-    // factories to work, generally).
+    // Load all the application context plugins.
     // We have to order them according to their dependencies
     PluginDependencyGraph graph;
-    for(QObject* plugin : m_availablePlugins)
+    for(QObject* plugin : availablePlugins)
     {
         graph.addNode(plugin);
     }
 
     graph.visit([&] (QObject* plugin) {
-        auto ctrl_plugin = qobject_cast<PluginControlInterface_QtInterface*> (plugin);
+        auto ctrl_plugin = qobject_cast<GUIApplicationContextPlugin_QtInterface*> (plugin);
         if(ctrl_plugin)
         {
-            auto plug = ctrl_plugin->make_control(*m_app);
-            registrar.registerPluginControl(plug);
+            auto plug = ctrl_plugin->make_applicationPlugin(context);
+            registrar.registerApplicationContextPlugin(plug);
         }
     });
 
     // Load what the plug-ins have to offer.
-    for(QObject* plugin : m_availablePlugins)
+    for(QObject* plugin : availablePlugins)
     {
         auto settings_plugin = qobject_cast<SettingsDelegateFactoryInterface_QtInterface*> (plugin);
         if(settings_plugin)
@@ -193,32 +204,18 @@ void PluginLoader::reloadPlugins(iscore::ApplicationRegistrar& registrar)
             registrar.registerCommands(commands_plugin->make_commands());
         }
 
-        ApplicationContext c{*m_app};
         auto factories_plugin = qobject_cast<FactoryInterface_QtInterface*> (plugin);
         if(factories_plugin)
         {
-            for(auto factory_family : registrar.components().factories)
+            for(auto& factory_family : registrar.components().factories)
             {
-                auto new_factories = factories_plugin->factories(c, factory_family.first);
-                for(auto new_factory : new_factories)
+                for(auto&& new_factory : factories_plugin->factories(context, factory_family.first))
                 {
-                    factory_family.second->insert(new_factory);
+                    factory_family.second->insert(std::move(new_factory));
                 }
             }
         }
     }
-}
-
-
-void PluginLoader::clearPlugins()
-{
-    for(auto& elt : m_availablePlugins)
-        if(elt)
-        {
-            elt->deleteLater();
-        }
-
-    m_availablePlugins.clear();
 }
 
 QStringList PluginLoader::pluginsBlacklist()

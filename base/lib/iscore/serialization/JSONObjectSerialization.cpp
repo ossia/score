@@ -1,6 +1,10 @@
+#include <iscore/serialization/DataStreamVisitor.hpp>
+#include <QByteArray>
 #include <QJsonDocument>
 #include <QJsonObject>
-#include <iscore/serialization/DataStreamVisitor.hpp>
+
+template <typename T> class Reader;
+template <typename T> class Writer;
 
 template<>
 void Visitor<Reader<DataStream>>::readFrom(const QJsonObject& obj)

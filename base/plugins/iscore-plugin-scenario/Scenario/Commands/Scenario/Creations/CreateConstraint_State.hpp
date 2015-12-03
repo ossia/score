@@ -1,30 +1,43 @@
 #pragma once
 #include <Scenario/Commands/ScenarioCommandFactory.hpp>
+#include <boost/optional/optional.hpp>
 #include <iscore/command/SerializableCommand.hpp>
+
 #include "CreateConstraint.hpp"
+#include <iscore/tools/ModelPath.hpp>
+#include <iscore/tools/SettableIdentifier.hpp>
+
+class ConstraintModel;
+class DataStreamInput;
+class DataStreamOutput;
+class EventModel;
+class StateModel;
+namespace Scenario {
 class ScenarioModel;
+}  // namespace Scenario
+
 namespace Scenario
 {
 namespace Command
 {
 class CreateConstraint_State final : public iscore::SerializableCommand
 {
-        ISCORE_COMMAND_DECL(ScenarioCommandFactoryName(), CreateConstraint_State, "CreateConstraint_State")
+        ISCORE_COMMAND_DECL(ScenarioCommandFactoryName(), CreateConstraint_State, "Create a constraint and a state")
         public:
 
           CreateConstraint_State(
-            const ScenarioModel& scenario,
+            const Scenario::ScenarioModel& scenario,
             const Id<StateModel>& startState,
             const Id<EventModel>& endEvent,
             double endStateY);
 
         CreateConstraint_State(
-          const Path<ScenarioModel>& scenario,
+          const Path<Scenario::ScenarioModel>& scenario,
           const Id<StateModel>& startState,
           const Id<EventModel>& endEvent,
           double endStateY);
 
-        const Path<ScenarioModel>& scenarioPath() const
+        const Path<Scenario::ScenarioModel>& scenarioPath() const
         { return m_command.scenarioPath(); }
 
         const double& endStateY() const

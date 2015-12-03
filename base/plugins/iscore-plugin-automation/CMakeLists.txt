@@ -50,6 +50,9 @@ endif()
 qt5_add_resources(QRCS "${CMAKE_CURRENT_SOURCE_DIR}/Automation/Resources/AutomationResources.qrc")
 
 add_library(${PROJECT_NAME} ${SRCS} ${HDRS} ${QRCS})
+
+iscore_generate_command_list_file(${PROJECT_NAME} "${HDRS}")
+
 target_link_libraries(${PROJECT_NAME}
                      Qt5::Core Qt5::Widgets
                      iscore_lib_base iscore_plugin_deviceexplorer iscore_lib_process iscore_lib_state iscore_plugin_curve)

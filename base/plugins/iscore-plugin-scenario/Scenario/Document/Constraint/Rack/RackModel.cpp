@@ -1,6 +1,10 @@
+#include <Process/ModelMetadata.hpp>
 #include "RackModel.hpp"
-
 #include <Scenario/Document/Constraint/ConstraintModel.hpp>
+#include <Scenario/Document/Constraint/Rack/Slot/SlotModel.hpp>
+#include <iscore/tools/NotifyingMap.hpp>
+#include <iscore/tools/SettableIdentifier.hpp>
+#include <iscore/tools/Todo.hpp>
 
 constexpr const char RackModel::className[];
 
@@ -9,6 +13,7 @@ RackModel::RackModel(const Id<RackModel>& id, QObject* parent) :
     IdentifiedObject<RackModel> {id, className, parent}
 {
     initConnections();
+    metadata.setName(QString{"Rack.%1"} .arg(*id.val()));
 }
 
 RackModel::RackModel(const RackModel& source,
@@ -66,6 +71,5 @@ void RackModel::swapSlots(const Id<SlotModel>& firstslot,
 
 void RackModel::initConnections()
 {
-    con(slotmodels, &NotifyingMap<SlotModel>::removed,
-        this, &RackModel::on_slotRemoved);
+    slotmodels.removing.connect<RackModel, &RackModel::on_slotRemoved>(this);
 }

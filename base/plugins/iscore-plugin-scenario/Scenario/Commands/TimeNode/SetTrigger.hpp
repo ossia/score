@@ -1,12 +1,11 @@
 #pragma once
 #include <Scenario/Commands/ScenarioCommandFactory.hpp>
+#include <State/Expression.hpp>
 #include <iscore/command/SerializableCommand.hpp>
 #include <iscore/tools/ModelPath.hpp>
 
-#include <Scenario/Commands/Constraint/SetRigidity.hpp>
-
-#include <State/Expression.hpp>
-
+class DataStreamInput;
+class DataStreamOutput;
 class TimeNodeModel;
 
 namespace Scenario
@@ -15,7 +14,7 @@ namespace Scenario
     {
         class SetTrigger final : public iscore::SerializableCommand
         {
-                ISCORE_COMMAND_DECL(ScenarioCommandFactoryName(), SetTrigger, "SetTrigger")
+                ISCORE_COMMAND_DECL(ScenarioCommandFactoryName(), SetTrigger, "Change a trigger")
             public:
                 SetTrigger(Path<TimeNodeModel>&& timeNodePath, iscore::Trigger trigger);
                 ~SetTrigger();

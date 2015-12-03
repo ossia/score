@@ -1,11 +1,15 @@
-#include "GroupPanelFactory.hpp"
+#include <core/view/View.hpp>
 
+#include "GroupPanelFactory.hpp"
 #include "GroupPanelModel.hpp"
 #include "GroupPanelPresenter.hpp"
 #include "GroupPanelView.hpp"
 #include "GroupPanelId.hpp"
 
-#include <core/view/View.hpp>
+namespace iscore {
+class DocumentModel;
+
+}  // namespace iscore
 // TODO review if it is really useful to make the panel view with iscore::View
 
 int GroupPanelFactory::panelId() const
@@ -18,18 +22,25 @@ QString GroupPanelFactory::panelName() const
     return "Groups";
 }
 
-iscore::PanelView* GroupPanelFactory::makeView(iscore::View* v)
+iscore::PanelView* GroupPanelFactory::makeView(
+        const iscore::ApplicationContext& ctx,
+        QObject* v)
 {
     return new GroupPanelView{v};
 }
 
-iscore::PanelPresenter* GroupPanelFactory::makePresenter(iscore::Presenter* parent_presenter,
-                                                                 iscore::PanelView* view)
+iscore::PanelPresenter* GroupPanelFactory::makePresenter(
+        const iscore::ApplicationContext& ctx,
+        iscore::PanelView* view,
+        QObject* parent)
 {
-    return new GroupPanelPresenter{parent_presenter, view};
+    return new GroupPanelPresenter{view, parent};
 }
 
-iscore::PanelModel* GroupPanelFactory::makeModel(iscore::DocumentModel* m)
+iscore::PanelModel* GroupPanelFactory::makeModel(
+        const iscore::DocumentContext& ctx,
+        QObject* parent)
 {
-    return new GroupPanelModel{m};
+    return new GroupPanelModel{
+        ctx, parent};
 }

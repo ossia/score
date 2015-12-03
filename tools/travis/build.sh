@@ -5,12 +5,13 @@
 
 mkdir build
 cd build
-export CMAKE_COMMON_FLAGS="-GNinja -DCMAKE_BUILD_TYPE=$BUILD_TYPE -DISCORE_STATIC_PLUGINS:Bool=$STATIC_PLUGINS -DDEPLOYMENT_BUILD:Bool=$DEPLOYMENT -DISCORE_COTIRE:Bool=True"
+export CMAKE_COMMON_FLAGS="-GNinja -DCMAKE_BUILD_TYPE=$BUILD_TYPE -DISCORE_STATIC_PLUGINS:Bool=$STATIC_PLUGINS -DDEPLOYMENT_BUILD:Bool=$DEPLOYMENT -DISCORE_COTIRE:Bool=True -DISCORE_COVERAGE:Bool=$USE_GCOV"
 export CTEST_OUTPUT_ON_FAILURE=1
 
 if [[ "$USE_COVERITY" = "False" ]];
 then
   case "$TRAVIS_OS_NAME" in
+
     linux)
       if [[ "$STATIC_QT" = "True" ]];
       then
@@ -26,8 +27,22 @@ then
         else
           ninja
         fi
+
+        if [[ "$USE_GCOV" = "True" ]];
+        then
+          echo "$PWD"
+          gem install coveralls-lcov
+          export DISPLAY=:99.0
+          sh -e /etc/init.d/xvfb start
+          sleep 3
+          cp -rf ../Tests/testdata .
+          ninja iscore_test_coverage
+          lcov --compat-libtool --directory . --capture --output-file coverage.info
+          coveralls-lcov --repo-token jjoMcOyOg9R05XT3aVysqTcsL1gyAc9tF coverage.info
+        fi
       fi
     ;;
+
     osx)
       QT_PATH=$(dirname $(dirname $(find /usr/local/Cellar/qt5 -name Qt5Config.cmake) ) )
       cmake -DCMAKE_PREFIX_PATH="$QT_PATH;$(pwd)/../Jamoma/share/cmake" -DCMAKE_INSTALL_PREFIX=$(pwd)/bundle $CMAKE_COMMON_FLAGS ..

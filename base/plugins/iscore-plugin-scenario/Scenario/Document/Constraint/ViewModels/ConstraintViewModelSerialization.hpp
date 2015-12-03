@@ -1,13 +1,19 @@
 #pragma once
-#include <iscore/serialization/DataStreamVisitor.hpp>
-#include <iscore/serialization/JSONVisitor.hpp>
-#include <iscore/serialization/JSONValueVisitor.hpp>
-
-#include <Scenario/Document/Constraint/ConstraintModel.hpp>
-#include <Scenario/Process/AbstractScenarioLayerModel.hpp>
-#include <Scenario/Process/ScenarioModel.hpp>
 #include <Scenario/Document/Constraint/ViewModels/ConstraintViewModelIdMap.hpp>
-class ConstraintViewModel;
+#include <boost/optional/optional.hpp>
+#include <iscore/serialization/DataStreamVisitor.hpp>
+#include <iscore/serialization/JSONValueVisitor.hpp>
+#include <iscore/serialization/JSONVisitor.hpp>
+#include <QJsonObject>
+
+#include <Process/LayerModel.hpp>
+#include <iscore/tools/SettableIdentifier.hpp>
+
+class ConstraintModel;
+namespace Scenario {
+class ScenarioModel;
+}  // namespace Scenario
+template <typename VisitorType> class Visitor;
 
 // Load a single constraint view model.
 template<typename ScenarioViewModelType>
@@ -61,11 +67,11 @@ loadConstraintViewModel(Deserializer<JSONObject>& deserializer,
 
 SerializedConstraintViewModels serializeConstraintViewModels(
         const ConstraintModel& constraint,
-        const ScenarioModel& scenario);
+        const Scenario::ScenarioModel& scenario);
 
 // Save all the constraint view models
 // Load a group of constraint view models
 
 void deserializeConstraintViewModels(
         const SerializedConstraintViewModels& vms,
-        const ScenarioModel& scenar);
+        const Scenario::ScenarioModel& scenar);

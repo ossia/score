@@ -1,5 +1,12 @@
-#include "GroupManager.hpp"
+#include <boost/optional/optional.hpp>
+#include <algorithm>
+#include <iterator>
+
 #include "Group.hpp"
+#include "GroupManager.hpp"
+#include <iscore/tools/IdentifiedObject.hpp>
+
+class QObject;
 
 GroupManager::GroupManager(QObject* parent):
     IdentifiedObject<GroupManager>{Id<GroupManager>{0}, "GroupManager", parent}

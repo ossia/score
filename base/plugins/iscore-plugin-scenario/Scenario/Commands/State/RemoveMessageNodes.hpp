@@ -2,13 +2,17 @@
 #include <Scenario/Commands/ScenarioCommandFactory.hpp>
 #include <iscore/command/SerializableCommand.hpp>
 #include <iscore/tools/ModelPath.hpp>
+#include <QList>
 
-#include <Device/Node/DeviceNode.hpp>
-#include <Scenario/Document/State/ItemModel/MessageItemModel.hpp>
+#include <Process/State/MessageNode.hpp>
+
+class DataStreamInput;
+class DataStreamOutput;
+class MessageItemModel;
 
 class RemoveMessageNodes final : public iscore::SerializableCommand
 {
-        ISCORE_COMMAND_DECL(ScenarioCommandFactoryName(), RemoveMessageNodes, "RemoveMessageNodes")
+        ISCORE_COMMAND_DECL(ScenarioCommandFactoryName(), RemoveMessageNodes, "Remove user messages")
 
         public:
           RemoveMessageNodes(

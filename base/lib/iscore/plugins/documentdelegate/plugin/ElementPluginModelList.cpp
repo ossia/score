@@ -1,17 +1,26 @@
-#include "ElementPluginModelList.hpp"
-
-#include <iscore/document/DocumentInterface.hpp>
 #include <core/document/Document.hpp>
 #include <core/document/DocumentModel.hpp>
+#include <iscore/document/DocumentInterface.hpp>
+#include <QtAlgorithms>
+#include <algorithm>
+#include <iterator>
+
+#include "ElementPluginModelList.hpp"
+#include <iscore/plugins/documentdelegate/plugin/DocumentDelegatePluginModel.hpp>
+#include <iscore/plugins/documentdelegate/plugin/ElementPluginModel.hpp>
+#include <iscore/tools/std/StdlibWrapper.hpp>
+#include <iscore/tools/std/Algorithms.hpp>
+
+class QObject;
 
 iscore::ElementPluginModelList::ElementPluginModelList(
-        iscore::Document* doc,
+        const iscore::DocumentContext& doc,
         QObject *parent):
     m_parent{parent}
 {
     // We initialize the potential plug-ins of this document
     // with this object's metadata if necessary.
-    for(auto& plugin : doc->model().pluginModels())
+    for(auto& plugin : doc.pluginModels())
     {
         for(const auto& plugid : plugin->elementPlugins())
         {
@@ -35,7 +44,7 @@ iscore::ElementPluginModelList::ElementPluginModelList(
     iscore::Document* doc = iscore::IDocument::documentFromObject(m_parent);
     for(ElementPluginModel* elt : source.m_list)
     {
-        for(DocumentDelegatePluginModel* plugin : doc->model().pluginModels())
+        for(DocumentPluginModel* plugin : doc->model().pluginModels())
         {
             if(contains(plugin->elementPlugins(), elt->elementPluginId()))
             {

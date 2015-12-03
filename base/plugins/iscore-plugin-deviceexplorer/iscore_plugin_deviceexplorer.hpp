@@ -1,16 +1,26 @@
 #pragma once
-#include <QObject>
-#include <iscore/plugins/qt_interfaces/PanelFactoryInterface_QtInterface.hpp>
 #include <iscore/plugins/qt_interfaces/FactoryFamily_QtInterface.hpp>
-#include <iscore/plugins/qt_interfaces/PluginControlInterface_QtInterface.hpp>
-#include <Device/Protocol/DeviceList.hpp>
+#include <iscore/plugins/qt_interfaces/GUIApplicationContextPlugin_QtInterface.hpp>
+#include <iscore/plugins/qt_interfaces/PanelFactoryInterface_QtInterface.hpp>
+#include <QObject>
+#include <utility>
+#include <vector>
 
-// TODO rename file
+#include <iscore/command/CommandGeneratorMap.hpp>
+#include <iscore/command/SerializableCommand.hpp>
+#include <iscore/plugins/application/GUIApplicationContextPlugin.hpp>
+
+namespace iscore {
+
+class FactoryListInterface;
+class PanelFactory;
+}  // namespace iscore
+
 class iscore_plugin_deviceexplorer final :
         public QObject,
         public iscore::PanelFactory_QtInterface,
         public iscore::FactoryList_QtInterface,
-        public iscore::PluginControlInterface_QtInterface,
+        public iscore::GUIApplicationContextPlugin_QtInterface,
         public iscore::CommandFactory_QtInterface
 {
         Q_OBJECT
@@ -18,7 +28,7 @@ class iscore_plugin_deviceexplorer final :
         Q_INTERFACES(
                 iscore::PanelFactory_QtInterface
                 iscore::FactoryList_QtInterface
-                iscore::PluginControlInterface_QtInterface
+                iscore::GUIApplicationContextPlugin_QtInterface
                 iscore::CommandFactory_QtInterface)
 
     public:
@@ -28,10 +38,10 @@ class iscore_plugin_deviceexplorer final :
         std::vector<iscore::PanelFactory*> panels() override;
 
         // Factory for protocols
-        std::vector<iscore::FactoryListInterface*> factoryFamilies() override;
+        std::vector<std::unique_ptr<iscore::FactoryListInterface>> factoryFamilies() override;
 
-        // Control
-        iscore::PluginControlInterface* make_control(iscore::Application& app) override;
+        // application plugin
+        iscore::GUIApplicationContextPlugin* make_applicationPlugin(const iscore::ApplicationContext& app) override;
 
         std::pair<const CommandParentFactoryKey, CommandGeneratorMap> make_commands() override;
 };

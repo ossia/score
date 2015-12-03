@@ -1,12 +1,16 @@
 #pragma once
 #include <Scenario/Commands/ScenarioCommandFactory.hpp>
+#include <boost/optional/optional.hpp>
 #include <iscore/command/SerializableCommand.hpp>
 #include <iscore/tools/ModelPath.hpp>
 
-#include <tests/helpers/ForwardDeclaration.hpp>
+#include <iscore/tools/SettableIdentifier.hpp>
 
-class SlotModel;
+class DataStreamInput;
+class DataStreamOutput;
 class RackModel;
+class SlotModel;
+
 namespace Scenario
 {
     namespace Command
@@ -20,8 +24,7 @@ namespace Scenario
          */
         class CopySlot final : public iscore::SerializableCommand
         {
-                ISCORE_COMMAND_DECL(ScenarioCommandFactoryName(), CopySlot, "CopySlot")
-#include <tests/helpers/FriendDeclaration.hpp>
+                ISCORE_COMMAND_DECL(ScenarioCommandFactoryName(), CopySlot, "Copy a slot")
             public:
                 CopySlot(Path<SlotModel>&& slotToCopy,
                          Path<RackModel>&& targetRackPath);

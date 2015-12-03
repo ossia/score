@@ -1,17 +1,19 @@
 #pragma once
 #include <DistributedScenario/Commands/DistributedScenarioCommandFactory.hpp>
+#include <boost/optional/optional.hpp>
 #include <iscore/command/SerializableCommand.hpp>
 #include <iscore/tools/ObjectPath.hpp>
-#include <iscore/tools/IdentifiedObject.hpp>
+
+#include <iscore/tools/SettableIdentifier.hpp>
 
 class Client;
+class DataStreamInput;
+class DataStreamOutput;
 class Group;
+
 class AddClientToGroup : public iscore::SerializableCommand
 {
-        ISCORE_COMMAND_DECL(
-                DistributedScenarioCommandFactoryName(),
-                AddClientToGroup,
-                "AddClientToGroup")
+        ISCORE_COMMAND_DECL(DistributedScenarioCommandFactoryName(), AddClientToGroup, "AddClientToGroup")
     public:
         AddClientToGroup(ObjectPath&& groupMgrPath,
                          Id<Client> client,

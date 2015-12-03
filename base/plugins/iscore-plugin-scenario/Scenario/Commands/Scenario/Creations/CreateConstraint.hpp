@@ -1,18 +1,21 @@
 #pragma once
 #include <Scenario/Commands/ScenarioCommandFactory.hpp>
-#include <iscore/tools/SettableIdentifier.hpp>
+#include <Scenario/Document/Constraint/ViewModels/ConstraintViewModelIdMap.hpp>
+#include <boost/optional/optional.hpp>
 #include <iscore/command/SerializableCommand.hpp>
 #include <iscore/tools/ModelPath.hpp>
-#include <Scenario/Document/Constraint/ViewModels/ConstraintViewModelIdMap.hpp>
+#include <iscore/tools/SettableIdentifier.hpp>
+#include <QString>
 
-class EventModel;
-class ConstraintViewModel;
 class ConstraintModel;
-class LayerModel;
+class ConstraintViewModel;
+class DataStreamInput;
+class DataStreamOutput;
 class StateModel;
+namespace Scenario {
 class ScenarioModel;
+}  // namespace Scenario
 
-#include <tests/helpers/ForwardDeclaration.hpp>
 namespace Scenario
 {
     namespace Command
@@ -25,16 +28,15 @@ namespace Scenario
         */
         class CreateConstraint final : public iscore::SerializableCommand
         {
-                ISCORE_COMMAND_DECL(ScenarioCommandFactoryName(), CreateConstraint,"CreateConstraint")
-#include <tests/helpers/FriendDeclaration.hpp>
+                ISCORE_COMMAND_DECL(ScenarioCommandFactoryName(), CreateConstraint,"Create a constraint")
             public:
                 CreateConstraint(
-                    Path<ScenarioModel>&& scenarioPath,
+                    Path<Scenario::ScenarioModel>&& scenarioPath,
                     const Id<StateModel>& startState,
                     const Id<StateModel>& endState);
                 CreateConstraint& operator= (CreateConstraint &&) = default;
 
-                const Path<ScenarioModel>& scenarioPath() const
+                const Path<Scenario::ScenarioModel>& scenarioPath() const
                 { return m_path; }
 
                 void undo() const override;
@@ -48,7 +50,7 @@ namespace Scenario
                 void deserializeImpl(DataStreamOutput&) override;
 
             private:
-                Path<ScenarioModel> m_path;
+                Path<Scenario::ScenarioModel> m_path;
                 QString m_createdName;
 
                 Id<ConstraintModel> m_createdConstraintId {};

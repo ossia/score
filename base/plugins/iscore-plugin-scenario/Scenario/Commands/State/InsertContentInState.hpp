@@ -1,15 +1,18 @@
 #pragma once
-#include <iscore/command/SerializableCommand.hpp>
-#include <Scenario/Commands/ScenarioCommandFactory.hpp>
-
 #include <Process/State/MessageNode.hpp>
+#include <Scenario/Commands/ScenarioCommandFactory.hpp>
+#include <iscore/command/SerializableCommand.hpp>
+#include <QJsonObject>
+
+#include <iscore/tools/ModelPath.hpp>
+
+class DataStreamInput;
+class DataStreamOutput;
+class StateModel;
 
 class InsertContentInState final : public iscore::SerializableCommand
 {
-        ISCORE_COMMAND_DECL(
-                ScenarioCommandFactoryName(),
-                InsertContentInState,
-                "InsertContentInState")
+        ISCORE_COMMAND_DECL(ScenarioCommandFactoryName(), InsertContentInState,"Insert content in a state")
 
     public:
        InsertContentInState(

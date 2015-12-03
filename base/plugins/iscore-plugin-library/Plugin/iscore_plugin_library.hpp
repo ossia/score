@@ -1,6 +1,6 @@
 #pragma once
 #include <iscore/plugins/qt_interfaces/PanelFactoryInterface_QtInterface.hpp>
-#include <iscore/plugins/qt_interfaces/PluginControlInterface_QtInterface.hpp>
+#include <iscore/plugins/qt_interfaces/GUIApplicationContextPlugin_QtInterface.hpp>
 class iscore_plugin_library :
     public QObject,
     public iscore::PanelFactory_QtInterface

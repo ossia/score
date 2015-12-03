@@ -1,19 +1,21 @@
 #pragma once
+#include <Device/Node/DeviceNode.hpp>
 #include <Explorer/Commands/DeviceExplorerCommandFactory.hpp>
-
 #include <iscore/command/SerializableCommand.hpp>
 #include <iscore/tools/ModelPath.hpp>
 
-#include <Explorer/Explorer/DeviceExplorerModel.hpp>
-#include <Device/Node/DeviceNode.hpp>
+class DataStreamInput;
+class DataStreamOutput;
+class DeviceDocumentPlugin;
 
 namespace DeviceExplorer
 {
 namespace Command
 {
+// TODO split this command.
 class Remove final : public iscore::SerializableCommand
 {
-        ISCORE_COMMAND_DECL(DeviceExplorerCommandFactoryName(), Remove, "Remove")
+        ISCORE_COMMAND_DECL(DeviceExplorerCommandFactoryName(), Remove, "Remove an Explorer node")
         public:
 
           Remove(

@@ -1,10 +1,16 @@
-#include "ApplicationSettings.hpp"
-
-#include <QCommandLineParser>
-#include <QCommandLineOption>
-#include <QFile>
 #include <QApplication>
+#include <QCommandLineOption>
+#include <QCommandLineParser>
+#include <QCoreApplication>
+#include <QFile>
+#include <QList>
+#include <QObject>
 
+#include <QString>
+
+#include "ApplicationSettings.hpp"
+namespace iscore
+{
 void ApplicationSettings::parse()
 {
     QCommandLineParser parser;
@@ -33,4 +39,5 @@ void ApplicationSettings::parse()
     {
         loadList.push_back(args[0]);
     }
+}
 }

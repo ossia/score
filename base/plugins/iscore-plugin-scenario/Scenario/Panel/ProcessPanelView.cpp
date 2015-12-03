@@ -1,8 +1,14 @@
-#include "ProcessPanelView.hpp"
-#include <QHBoxLayout>
+#include <Scenario/Document/ScenarioDocument/Widgets/DoubleSlider.hpp>
+#include <Scenario/Document/ScenarioDocument/Widgets/ScenarioBaseGraphicsView.hpp>
+#include <QBoxLayout>
 #include <QGraphicsScene>
-#include <Scenario/Document/BaseElement/Widgets/ScenarioBaseGraphicsView.hpp>
-#include <Scenario/Document/BaseElement/Widgets/DoubleSlider.hpp>
+#include <QLayout>
+#include <qnamespace.h>
+#include <QObject>
+#include <QWidget>
+
+#include "ProcessPanelView.hpp"
+#include <iscore/plugins/panel/PanelView.hpp>
 
 
 ProcessPanelView::ProcessPanelView(QObject* parent):

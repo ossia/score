@@ -4,7 +4,7 @@
 #include <iscore/widgets/MarginLess.hpp>
 
 AreaTab::AreaTab(
-        iscore::CommandStack& stack,
+        iscore::CommandStackFacade& stack,
         const SpaceProcess &space,
         QWidget *parent):
     QWidget{parent},

@@ -1,14 +1,23 @@
-#include "CreateEvent_State.hpp"
-
 #include <Scenario/Process/Algorithms/StandardCreationPolicy.hpp>
 #include <Scenario/Process/ScenarioModel.hpp>
-
-#include <iscore/tools/SettableIdentifierGeneration.hpp>
 #include <Scenario/Tools/RandomNameProvider.hpp>
+
+#include <boost/iterator/iterator_facade.hpp>
+#include <boost/multi_index/detail/hash_index_iterator.hpp>
+#include <iscore/tools/SettableIdentifierGeneration.hpp>
+#include <QByteArray>
+#include <vector>
+
+#include "CreateEvent_State.hpp"
+#include <Process/ModelMetadata.hpp>
+#include <Scenario/Commands/Scenario/Creations/CreateState.hpp>
+#include <Scenario/Document/Event/EventModel.hpp>
+#include <iscore/serialization/DataStreamVisitor.hpp>
+#include <iscore/tools/NotifyingMap.hpp>
 
 using namespace Scenario::Command;
 CreateEvent_State::CreateEvent_State(
-        const ScenarioModel& scenario,
+        const Scenario::ScenarioModel& scenario,
         const Id<TimeNodeModel>& timeNode,
         double stateY):
     m_newEvent{getStrongId(scenario.events)},
@@ -22,7 +31,7 @@ CreateEvent_State::CreateEvent_State(
 }
 
 CreateEvent_State::CreateEvent_State(
-        const Path<ScenarioModel>& scenario,
+        const Path<Scenario::ScenarioModel>& scenario,
         const Id<TimeNodeModel> &timeNode,
         double stateY):
     CreateEvent_State{scenario.find(),

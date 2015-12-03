@@ -1,12 +1,20 @@
+#include <Scenario/Document/State/StateModel.hpp>
+#include <QString>
+
 #include "StateInspectorFactory.hpp"
 #include "StateInspectorWidget.hpp"
 
-#include <Scenario/Document/State/StateModel.hpp>
+class InspectorWidgetBase;
+class QObject;
+class QWidget;
+namespace iscore {
+class Document;
+}  // namespace iscore
 
 InspectorWidgetBase* StateInspectorFactory::makeWidget(
         const QObject& sourceElement,
-        iscore::Document& doc,
-        QWidget* parentWidget)
+        const iscore::DocumentContext& doc,
+        QWidget* parentWidget) const
 {
     return new StateInspectorWidget{
         static_cast<const StateModel&>(sourceElement),

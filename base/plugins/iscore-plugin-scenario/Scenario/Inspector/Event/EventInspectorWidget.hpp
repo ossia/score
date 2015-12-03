@@ -1,16 +1,20 @@
 #pragma once
 
 #include <Inspector/InspectorWidgetBase.hpp>
+#include <list>
+#include <vector>
+
 class EventModel;
-
-class QFormLayout;
-class StateModel;
+class ExpressionEditorWidget;
 class MetadataWidget;
-struct Message;
+class QLabel;
+class QLineEdit;
+class QWidget;
+class StateModel;
 class TriggerInspectorWidget;
-
-#include <Scenario/Inspector/ExpressionValidator.hpp>
-#include <QLineEdit>
+namespace iscore {
+class Document;
+}  // namespace iscore
 
 
 /*!
@@ -23,7 +27,7 @@ class EventInspectorWidget final : public InspectorWidgetBase
     public:
         explicit EventInspectorWidget(
                 const EventModel& object,
-                iscore::Document& doc,
+                const iscore::DocumentContext& context,
                 QWidget* parent = 0);
 
         void addState(const StateModel& state);
@@ -43,13 +47,13 @@ class EventInspectorWidget final : public InspectorWidgetBase
         std::vector<QWidget*> m_states;
 
         QLabel* m_date {};
-        QLineEdit* m_conditionLineEdit{};
         QLineEdit* m_stateLineEdit{};
         QWidget* m_statesWidget{};
         const EventModel& m_model;
 
         MetadataWidget* m_metadata {};
 
-        ExpressionValidator<iscore::Condition> m_validator;
         TriggerInspectorWidget* m_triggerWidg{};
+
+        ExpressionEditorWidget* m_exprEditor{};
 };

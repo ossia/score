@@ -1,10 +1,33 @@
-#include <Scenario/Document/Constraint/ConstraintModel.hpp>
 #include <Process/Process.hpp>
 #include <Process/ProcessModelSerialization.hpp>
-#include <core/application/ApplicationComponents.hpp>
+#include <Scenario/Document/Constraint/ConstraintModel.hpp>
 #include <Scenario/Document/Constraint/Rack/RackModel.hpp>
 #include <Scenario/Document/Constraint/ViewModels/FullView/FullViewConstraintViewModel.hpp>
-#include <iscore/plugins/documentdelegate/plugin/ElementPluginModelSerialization.hpp>
+
+#include <boost/optional/optional.hpp>
+
+#include <QJsonArray>
+#include <QJsonObject>
+#include <QJsonValue>
+#include <sys/types.h>
+#include <algorithm>
+
+#include <Process/ModelMetadata.hpp>
+#include <Process/ProcessList.hpp>
+#include <Process/TimeValue.hpp>
+#include <iscore/application/ApplicationContext.hpp>
+#include <iscore/plugins/customfactory/StringFactoryKey.hpp>
+#include <iscore/plugins/documentdelegate/plugin/ElementPluginModelList.hpp>
+#include <iscore/serialization/DataStreamVisitor.hpp>
+#include <iscore/serialization/JSONValueVisitor.hpp>
+#include <iscore/serialization/JSONVisitor.hpp>
+#include <iscore/tools/NotifyingMap.hpp>
+#include <iscore/tools/SettableIdentifier.hpp>
+
+class StateModel;
+template <typename T> class IdentifiedObject;
+template <typename T> class Reader;
+template <typename T> class Writer;
 
 // Note : comment gérer le cas d'un process shared model qui ne sait se sérializer qu'en binaire, dans du json?
 // Faire passer l'info en base64 ?
@@ -54,7 +77,7 @@ template<> void Visitor<Writer<DataStream>>::writeTo(ConstraintModel& constraint
     int32_t process_count;
     m_stream >> process_count;
 
-    auto& pl = context.components.factory<DynamicProcessList>();
+    auto& pl = context.components.factory<ProcessList>();
     for(; process_count -- > 0;)
     {
         constraint.processes.add(createProcess(pl, *this, &constraint));
@@ -126,7 +149,7 @@ template<> void Visitor<Writer<JSONObject>>::writeTo(ConstraintModel& constraint
 {
     constraint.metadata = fromJsonObject<ModelMetadata>(m_obj["Metadata"].toObject());
 
-    auto& pl = context.components.factory<DynamicProcessList>();
+    auto& pl = context.components.factory<ProcessList>();
 
     QJsonArray process_array = m_obj["Processes"].toArray();
     for(const auto& json_vref : process_array)

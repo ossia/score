@@ -1,8 +1,8 @@
-#include "ConstraintView.hpp"
-#include "ConstraintPresenter.hpp"
-#include <Scenario/Document/State/StateView.hpp>
+#include <QtGlobal>
+#include <QGraphicsSceneEvent>
 
-#include <QGraphicsSceneMouseEvent>
+#include "ConstraintPresenter.hpp"
+#include "ConstraintView.hpp"
 
 ConstraintView::ConstraintView(
         ConstraintPresenter& presenter,
@@ -31,6 +31,7 @@ void ConstraintView::setDefaultWidth(double width)
 {
     prepareGeometryChange();
     m_defaultWidth = width;
+    update();
 }
 
 void ConstraintView::setMaxWidth(bool infinite, double max)
@@ -42,19 +43,21 @@ void ConstraintView::setMaxWidth(bool infinite, double max)
     {
         m_maxWidth = max;
     }
-
+    update();
 }
 
 void ConstraintView::setMinWidth(double min)
 {
     prepareGeometryChange();
     m_minWidth = min;
+    update();
 }
 
 void ConstraintView::setHeight(double height)
 {
     prepareGeometryChange();
     m_height = height;
+    update();
 }
 
 void ConstraintView::setPlayWidth(double width)

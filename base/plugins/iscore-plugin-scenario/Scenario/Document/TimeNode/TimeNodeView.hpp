@@ -1,9 +1,16 @@
 #pragma once
-#include <QGraphicsObject>
-#include <QMouseEvent>
 #include <Scenario/Document/VerticalExtent.hpp>
+#include <QColor>
+#include <QGraphicsItem>
+#include <QPoint>
+#include <QRect>
 
+class QGraphicsSceneMouseEvent;
+class QPainter;
+class QStyleOptionGraphicsItem;
+class QWidget;
 class TimeNodePresenter;
+
 class TimeNodeView final : public QGraphicsObject
 {
         Q_OBJECT
@@ -13,8 +20,10 @@ class TimeNodeView final : public QGraphicsObject
                      QGraphicsObject* parent);
         ~TimeNodeView() = default;
 
-        int type() const override
+        static constexpr int static_type()
         { return QGraphicsItem::UserType + 3; }
+        int type() const override
+        { return static_type(); }
 
         const TimeNodePresenter& presenter() const
         { return m_presenter;}

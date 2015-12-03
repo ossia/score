@@ -3,6 +3,7 @@
 #include <iscore/command/SerializableCommand.hpp>
 
 #include <iscore/tools/ModelPath.hpp>
+#include <iscore/tools/ModelPathSerialization.hpp>
 
 namespace Scenario
 {
@@ -29,7 +30,7 @@ namespace Scenario
                 }
                 QString description() const override
                 {
-                    return QObject::tr("Change %1 comments").arg(T::prettyName());
+                    return QObject::tr("Change %1 comments").arg(T::description());
                 }
 
                 ChangeElementComments() = default;
@@ -72,3 +73,7 @@ namespace Scenario
         };
     }
 }
+
+ISCORE_COMMAND_DECL_T(ChangeElementComments<ConstraintModel>)
+ISCORE_COMMAND_DECL_T(ChangeElementComments<EventModel>)
+ISCORE_COMMAND_DECL_T(ChangeElementComments<TimeNodeModel>)

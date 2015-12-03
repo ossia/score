@@ -1,23 +1,88 @@
-#include <core/application/Application.hpp>
-#include <core/application/OpenDocumentsFile.hpp>
+#include "Application.hpp"
 
+#include <boost/optional/optional.hpp>
 #include <core/application/ApplicationRegistrar.hpp>
-#include <core/presenter/Presenter.hpp>
-#include <core/view/View.hpp>
-
-#include <core/undo/Panel/UndoPanelFactory.hpp>
-#include <core/undo/UndoControl.hpp>
-#include <QSplashScreen>
-#include <QFontDatabase>
 #include <core/document/DocumentBackups.hpp>
-#include "iscore_git_info.hpp"
-using namespace iscore;
-#include <QMessageBox>
-#include <QFileInfo>
+#include <core/presenter/Presenter.hpp>
+#include <core/undo/Panel/UndoPanelFactory.hpp>
+#include <core/undo/UndoApplicationPlugin.hpp>
+#include <core/view/View.hpp>
+#include <QByteArray>
+#include <QCoreApplication>
+#include <QFile>
+#include <QFont>
+#include <QFontDatabase>
+#include <QIODevice>
+#include <QMetaType>
+#include <qnamespace.h>
+#include <QPixmap>
+#include <QSplashScreen>
+#include <QString>
+#include <QStringList>
 #include <QStyleFactory>
+#include <QFileInfo>
+
+using namespace iscore;
 #include <iscore/tools/SettableIdentifierGeneration.hpp>
-#include "SafeQApplication.hpp"
-static Application* application_instance = nullptr;
+#include <algorithm>
+#include <vector>
+
+#include <core/application/SafeQApplication.hpp>
+#include <iscore/application/ApplicationComponents.hpp>
+#include <core/application/ApplicationSettings.hpp>
+#include <core/plugin/PluginManager.hpp>
+#include <core/presenter/DocumentManager.hpp>
+#include <core/settings/Settings.hpp>
+#include <iscore/selection/Selection.hpp>
+#include <iscore/tools/NamedObject.hpp>
+#include <iscore/tools/ObjectIdentifier.hpp>
+#include <iscore/tools/SettableIdentifier.hpp>
+#include <iscore/widgets/OrderedToolbar.hpp>
+#include "iscore_git_info.hpp"
+
+namespace iscore {
+class DocumentModel;
+
+void setQApplicationSettings(QApplication &m_app)
+{
+    QFontDatabase::addApplicationFont(":/APCCourierBold.otf"); // APCCourier-Bold
+    QFontDatabase::addApplicationFont(":/Ubuntu-R.ttf"); // Ubuntu
+    m_app.setFont(QFont{"Ubuntu", 10, QFont::Normal});
+
+    QCoreApplication::setOrganizationName("OSSIA");
+    QCoreApplication::setOrganizationDomain("i-score.org");
+    QCoreApplication::setApplicationName("i-score");
+    QCoreApplication::setApplicationVersion(
+                QString("%1.%2.%3-%4")
+                .arg(ISCORE_VERSION_MAJOR)
+                .arg(ISCORE_VERSION_MINOR)
+                .arg(ISCORE_VERSION_PATCH)
+                .arg(ISCORE_VERSION_EXTRA)
+                );
+
+    qRegisterMetaType<ObjectIdentifierVector> ("ObjectIdentifierVector");
+    qRegisterMetaType<Selection>("Selection");
+
+    QFile stylesheet_file{":/qdarkstyle/qdarkstyle.qss"};
+    stylesheet_file.open(QFile::ReadOnly);
+    QString stylesheet = QLatin1String(stylesheet_file.readAll());
+
+    qApp->setStyle(QStyleFactory::create("Fusion"));
+    qApp->setStyleSheet(stylesheet);
+}
+
+ApplicationInterface::~ApplicationInterface()
+{
+
+}
+
+}  // namespace iscore
+
+static ApplicationInterface* application_instance = nullptr;
+const ApplicationContext& iscore::AppContext()
+{
+    return ::application_instance->context();
+}
 
 
 #ifdef ISCORE_DEBUG
@@ -68,8 +133,6 @@ Application::Application(int& argc, char** argv) :
     ::application_instance = this;
 
     m_applicationSettings.parse();
-
-    init();
 }
 
 Application::Application(
@@ -86,8 +149,6 @@ Application::Application(
     // Crashes if put in member initialization list... :(
     m_app = new SafeQApplication{argc, argv};
     ::application_instance = this;
-
-    init();
 }
 
 
@@ -100,106 +161,95 @@ Application::~Application()
     delete m_app;
 }
 
+const ApplicationContext& Application::context() const
+{
+    return m_presenter->applicationContext();
+}
+
+
 void Application::init()
 {
 #if !defined(ISCORE_DEBUG)
-    QPixmap logo{":/i-score.png"};
-    QSplashScreen splash{logo, Qt::FramelessWindowHint};
+    QSplashScreen splash{QPixmap{":/i-score.png"}, Qt::FramelessWindowHint};
     if(m_applicationSettings.gui)
         splash.show();
 #endif
 
-    QFontDatabase::addApplicationFont(":/APCCourierBold.otf"); // APCCourier-Bold
-    QFontDatabase::addApplicationFont(":/Ubuntu-R.ttf"); // Ubuntu
-    m_app->setFont(QFont{"Ubuntu", 10, QFont::Normal});
-    this->setParent(m_app);
     this->setObjectName("Application");
-
-    QCoreApplication::setOrganizationName("OSSIA");
-    QCoreApplication::setOrganizationDomain("i-score.org");
-    QCoreApplication::setApplicationName("i-score");
-    QCoreApplication::setApplicationVersion(
-                QString("%1.%2.%3-%4")
-                .arg(ISCORE_VERSION_MAJOR)
-                .arg(ISCORE_VERSION_MINOR)
-                .arg(ISCORE_VERSION_PATCH)
-                .arg(ISCORE_VERSION_EXTRA)
-                );
-
-    qRegisterMetaType<ObjectIdentifierVector> ("ObjectIdentifierVector");
-    qRegisterMetaType<Selection>("Selection");
-
-    QFile stylesheet_file{":/qdarkstyle/qdarkstyle.qss"};
-    stylesheet_file.open(QFile::ReadOnly);
-    QString stylesheet = QLatin1String(stylesheet_file.readAll());
-
-    qApp->setStyle(QStyleFactory::create("Fusion"));
-    qApp->setStyleSheet(stylesheet);
+    this->setParent(m_app);
+    setQApplicationSettings(*m_app);
 
     // Settings
     m_settings = std::make_unique<Settings> (this);
 
     // MVP
     m_view = new View{this};
-    m_presenter = new Presenter{m_view, this};
+    m_presenter = new Presenter{m_applicationSettings, m_view, this};
 
     // Plugins
     loadPluginData();
 
     // View
-
     if(m_applicationSettings.gui)
     {
         m_view->show();
 
-    #if !defined(ISCORE_DEBUG)
+#if !defined(ISCORE_DEBUG)
         splash.finish(m_view);
-    #endif
+#endif
     }
 
+    initDocuments();
+}
+
+void Application::initDocuments()
+{
+    auto& ctx = m_presenter->applicationContext();
     if(!m_applicationSettings.loadList.empty())
     {
         for(const auto& doc : m_applicationSettings.loadList)
-            m_presenter->documentManager().loadFile(doc);
+            m_presenter->documentManager().loadFile(ctx, doc);
+    }
 
-        if(!m_presenter->documentManager().documents().empty())
+    // The plug-ins have the ability to override the boot process.
+    for(auto plug : ctx.components.applicationPlugins())
+    {
+        if(plug->handleStartup())
         {
-            if(m_applicationSettings.autoplay)
-            {
-                // TODO find a better way, most likely by allowing plug-ins to have
-                // command line arguments, too. Eww.
-                emit autoplay();
-            }
-            return; // A document was loaded correctly
+            return;
         }
     }
 
     // Try to reload if there was a crash
     if(m_applicationSettings.tryToRestore && DocumentBackups::canRestoreDocuments())
     {
-        m_presenter->documentManager().restoreDocuments();
+        m_presenter->documentManager().restoreDocuments(ctx);
     }
     else
     {
         if(!m_presenter->applicationComponents().availableDocuments().empty())
             m_presenter->documentManager().newDocument(
+                        ctx,
                         Id<DocumentModel>{iscore::random_id_generator::getRandomId()}, // TODO crashes if loaded twice by chance
                         m_presenter->applicationComponents().availableDocuments().front());
     }
 }
 
-Application &Application::instance()
-{
-    return *application_instance;
-}
-
 void Application::loadPluginData()
 {
-    // TODO finish to do this properly.
-    ApplicationRegistrar registrar{m_presenter->components(), *this};
+    auto& ctx = m_presenter->applicationContext();
+    ApplicationRegistrar registrar{
+        m_presenter->components(),
+                ctx,
+                *m_view,
+                *m_settings,
+                m_presenter->menuBar(),
+                m_presenter->toolbars(),
+                m_presenter};
 
-    m_pluginManager.reloadPlugins(registrar);
-    registrar.registerPluginControl(new UndoControl{*this, m_presenter});
+    PluginLoader::loadPlugins(registrar, ctx);
+
+    registrar.registerApplicationContextPlugin(new UndoApplicationPlugin{ctx, m_presenter});
     registrar.registerPanel(new UndoPanelFactory);
 
     std::sort(m_presenter->toolbars().begin(), m_presenter->toolbars().end());
@@ -209,3 +259,52 @@ void Application::loadPluginData()
     }
 }
 
+
+TestApplication::TestApplication(int &argc, char **argv):
+    NamedObject{"toto", nullptr}
+{
+    m_app = new SafeQApplication{argc, argv};
+    ::application_instance = this;
+    this->setParent(m_app);
+
+    // Settings
+    m_settings = std::make_unique<iscore::Settings> (nullptr);
+
+    // MVP
+    m_view = new View{nullptr};
+    m_presenter = new Presenter{m_applicationSettings, m_view, this};
+    auto& ctx = m_presenter->applicationContext();
+
+    // Plugins
+    ApplicationRegistrar registrar{
+        m_presenter->components(),
+                ctx,
+                *m_view,
+                *m_settings,
+                m_presenter->menuBar(),
+                m_presenter->toolbars(),
+                m_presenter};
+
+    PluginLoader::loadPlugins(registrar, ctx);
+
+    registrar.registerApplicationContextPlugin(new UndoApplicationPlugin{ctx, m_presenter});
+    registrar.registerPanel(new UndoPanelFactory);
+
+    std::sort(m_presenter->toolbars().begin(), m_presenter->toolbars().end());
+    for(auto& toolbar : m_presenter->toolbars())
+    {
+        m_view->addToolBar(toolbar.bar);
+    }
+
+    m_view->show();
+}
+
+TestApplication::~TestApplication()
+{
+
+}
+
+const ApplicationContext &TestApplication::context() const
+{
+    return m_presenter->applicationContext();
+}

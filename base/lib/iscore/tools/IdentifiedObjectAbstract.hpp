@@ -1,5 +1,7 @@
 #pragma once
 #include <iscore/tools/NamedObject.hpp>
+#include <sys/types.h>
+
 class IdentifiedObjectAbstract : public NamedObject
 {
         Q_OBJECT

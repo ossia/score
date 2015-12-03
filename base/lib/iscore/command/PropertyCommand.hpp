@@ -1,6 +1,13 @@
 #pragma once
 #include <iscore/command/SerializableCommand.hpp>
 #include <iscore/tools/ObjectPath.hpp>
+#include <QByteArray>
+#include <QObject>
+#include <QString>
+#include <QVariant>
+
+class DataStreamInput;
+class DataStreamOutput;
 
 namespace iscore
 {

@@ -1,8 +1,12 @@
-#include "CreateGroup.hpp"
 
+#include <iscore/tools/SettableIdentifierGeneration.hpp>
+#include <vector>
+
+#include "CreateGroup.hpp"
 #include "DistributedScenario/Group.hpp"
 #include "DistributedScenario/GroupManager.hpp"
-#include <iscore/tools/SettableIdentifierGeneration.hpp>
+#include <iscore/serialization/DataStreamVisitor.hpp>
+#include <iscore/tools/ObjectPath.hpp>
 
 
 CreateGroup::CreateGroup(ObjectPath&& groupMgrPath, QString groupName):

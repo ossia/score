@@ -1,21 +1,29 @@
-#include "NetworkDocumentPlugin.hpp"
-#include "Repartition/session/Session.hpp"
-#include "DistributedScenario/GroupManager.hpp"
-
-#include "Scenario/Document/Constraint/ConstraintModel.hpp"
-#include "Scenario/Document/Event/EventModel.hpp"
-#include "Scenario/Document/TimeNode/TimeNodeModel.hpp"
-
-#include <core/document/DocumentModel.hpp>
-#include <iscore/plugins/documentdelegate/DocumentDelegateModelInterface.hpp>
-
-#include "DistributedScenario/GroupMetadataWidget.hpp"
-
-#include <iscore/serialization/VisitorCommon.hpp>
+#include <Scenario/Document/ScenarioDocument/ScenarioDocumentModel.hpp>
 #include <Scenario/Process/ScenarioModel.hpp>
-#include <Scenario/Document/BaseElement/BaseElementModel.hpp>
+#include <boost/optional/optional.hpp>
 #include <core/document/Document.hpp>
 #include <core/document/DocumentModel.hpp>
+#include <iscore/serialization/VisitorCommon.hpp>
+
+#include <QString>
+
+#include "DistributedScenario/Group.hpp"
+#include "DistributedScenario/GroupManager.hpp"
+#include "DistributedScenario/GroupMetadata.hpp"
+#include "DistributedScenario/GroupMetadataWidget.hpp"
+#include "NetworkDocumentPlugin.hpp"
+#include <Process/Process.hpp>
+#include "Repartition/session/Session.hpp"
+#include <Scenario/Document/Constraint/ConstraintModel.hpp>
+#include <Scenario/Document/Event/EventModel.hpp>
+#include <iscore/plugins/documentdelegate/plugin/DocumentDelegatePluginModel.hpp>
+#include <iscore/plugins/documentdelegate/plugin/ElementPluginModelList.hpp>
+#include <iscore/tools/NotifyingMap.hpp>
+#include <iscore/tools/SettableIdentifier.hpp>
+#include "session/../client/LocalClient.hpp"
+
+class QWidget;
+struct VisitorVariant;
 
 
 // TODO refactor me
@@ -24,7 +32,7 @@ class ScenarioFindConstraintVisitor
     public:
         std::vector<ConstraintModel*> constraints;
 
-        void visit(ScenarioModel& s)
+        void visit(Scenario::ScenarioModel& s)
         {
             constraints.reserve(constraints.size() + s.constraints.size());
             for(auto& constraint : s.constraints)
@@ -38,7 +46,7 @@ class ScenarioFindConstraintVisitor
         {
             for(auto& proc : c.processes)
             {
-                if(auto scenario = dynamic_cast<ScenarioModel*>(&proc))
+                if(auto scenario = dynamic_cast<Scenario::ScenarioModel*>(&proc))
                 {
                     visit(*scenario);
                 }
@@ -56,14 +64,14 @@ class ScenarioFindEventVisitor
         {
             for(auto& proc : c.processes)
             {
-                if(auto scenario = dynamic_cast<ScenarioModel*>(&proc))
+                if(auto scenario = dynamic_cast<Scenario::ScenarioModel*>(&proc))
                 {
                     visit(*scenario);
                 }
             }
         }
 
-        void visit(ScenarioModel& s)
+        void visit(Scenario::ScenarioModel& s)
         {
             events.reserve(events.size() + s.events.size());
             for(auto& event : s.events)
@@ -77,9 +85,10 @@ class ScenarioFindEventVisitor
         }
 };
 
-NetworkDocumentPlugin::NetworkDocumentPlugin(NetworkPluginPolicy *policy,
-                                             iscore::Document& doc):
-    iscore::DocumentDelegatePluginModel{doc, "NetworkDocumentPlugin", &doc.model()},
+NetworkDocumentPlugin::NetworkDocumentPlugin(
+        iscore_plugin_networkPolicy *policy,
+        iscore::Document& doc):
+    iscore::DocumentPluginModel{doc, "NetworkDocumentPlugin", &doc.model()},
     m_policy{policy},
     m_groups{new GroupManager{this}}
 {
@@ -92,7 +101,7 @@ NetworkDocumentPlugin::NetworkDocumentPlugin(NetworkPluginPolicy *policy,
     groupManager()->addGroup(baseGroup);
 
     // Create it for each constraint / event.
-    BaseElementModel* bem = safe_cast<BaseElementModel*>(doc.model().modelDelegate());
+    ScenarioDocumentModel* bem = safe_cast<ScenarioDocumentModel*>(&doc.model().modelDelegate());
     {
         ScenarioFindConstraintVisitor v;
         v.visit(bem->baseConstraint());// TODO this doesn't match baseconstraint
@@ -132,7 +141,7 @@ NetworkDocumentPlugin::NetworkDocumentPlugin(NetworkPluginPolicy *policy,
 
 NetworkDocumentPlugin::NetworkDocumentPlugin(const VisitorVariant &loader,
                                              iscore::Document& doc):
-    iscore::DocumentDelegatePluginModel{doc, "NetworkDocumentPlugin", &doc.model()}
+    iscore::DocumentPluginModel{doc, "NetworkDocumentPlugin", &doc.model()}
 {
     deserialize_dyn(loader, *this);
 }
@@ -142,7 +151,7 @@ void NetworkDocumentPlugin::serialize(const VisitorVariant & vis) const
     serialize_dyn(vis, *this);
 }
 
-void NetworkDocumentPlugin::setPolicy(NetworkPluginPolicy * pol)
+void NetworkDocumentPlugin::setPolicy(iscore_plugin_networkPolicy * pol)
 {
     delete m_policy;
     m_policy = pol;

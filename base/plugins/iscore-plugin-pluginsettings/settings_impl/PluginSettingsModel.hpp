@@ -1,15 +1,14 @@
 #pragma once
 #include <iscore/plugins/settingsdelegate/SettingsDelegateModelInterface.hpp>
-#include <QStandardItemModel>
-#include <QString>
-#include <QObject>
+
+class QStandardItem;
+class QStandardItemModel;
 
 namespace iscore
 {
-    class SettingsDelegatePresenterInterface;
 }
 class BlacklistCommand;
-class PluginSettingsPresenter;
+
 class PluginSettingsModel : public iscore::SettingsDelegateModelInterface
 {
         Q_OBJECT

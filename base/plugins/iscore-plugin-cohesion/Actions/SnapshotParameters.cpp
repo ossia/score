@@ -1,23 +1,30 @@
-#include "SnapshotParameters.hpp"
-
-#include <Commands/CreateStatesFromParametersInEvents.hpp>
-
-#include <Scenario/Commands/State/UpdateState.hpp>
-#include <Scenario/Document/State/StateModel.hpp>
-#include <Explorer/Explorer/DeviceExplorerModel.hpp>
+#include <Commands/SnapshotStatesMacro.hpp>
 #include <Explorer/DocumentPlugin/DeviceDocumentPlugin.hpp>
-
+#include <Explorer/Explorer/DeviceExplorerModel.hpp>
+#include <Scenario/Commands/State/AddMessagesToState.hpp>
+#include <Scenario/Document/State/StateModel.hpp>
+#include <iscore/document/DocumentContext.hpp>
 #include <iscore/command/Dispatchers/MacroCommandDispatcher.hpp>
+#include <QList>
+#include <QPointer>
+#include <algorithm>
+#include <vector>
 
-#include <core/document/Document.hpp>
-#include <core/document/DocumentModel.hpp>
+#include <Explorer/DocumentPlugin/NodeUpdateProxy.hpp>
+#include <Scenario/Document/State/ItemModel/MessageItemModel.hpp>
+#include "SnapshotParameters.hpp"
+#include <State/Message.hpp>
+#include <iscore/selection/Selectable.hpp>
+#include <iscore/selection/SelectionStack.hpp>
+#include <iscore/tools/IdentifiedObjectAbstract.hpp>
+#include <iscore/tools/ModelPath.hpp>
 
-void SnapshotParametersInStates(iscore::Document& doc)
+void SnapshotParametersInStates(const iscore::DocumentContext& doc)
 {
     using namespace std;
     // Fetch the selected events
     auto sel = doc.
-            selectionStack().
+            selectionStack.
             currentSelection();
 
     QList<const StateModel*> selected_states;
@@ -29,14 +36,12 @@ void SnapshotParametersInStates(iscore::Document& doc)
     }
 
     // Fetch the selected DeviceExplorer elements
-    auto device_explorer = doc.model().pluginModel<DeviceDocumentPlugin>()->updateProxy.deviceExplorer;
-
-    iscore::MessageList messages = getSelectionSnapshot(*device_explorer);
+    iscore::MessageList messages = getSelectionSnapshot(deviceExplorerFromContext(doc));
     if(messages.empty())
         return;
 
     MacroCommandDispatcher macro{new SnapshotStatesMacro,
-                doc.commandStack()};
+                doc.commandStack};
     for(auto& state : selected_states)
     {
         auto cmd = new AddMessagesToState{

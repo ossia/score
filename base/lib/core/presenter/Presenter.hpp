@@ -1,25 +1,18 @@
 #pragma once
-#include <core/presenter/MenubarManager.hpp>
-
-#include <set>
-#include <core/document/Document.hpp>
+#include <iscore/application/ApplicationComponents.hpp>
+#include <iscore/application/ApplicationContext.hpp>
 #include <core/presenter/DocumentManager.hpp>
-
+#include <core/presenter/MenubarManager.hpp>
 #include <iscore/tools/NamedObject.hpp>
-#include <iscore/tools/ObjectPath.hpp>
-
 #include <iscore/widgets/OrderedToolbar.hpp>
-#include <iscore/command/CommandGeneratorMap.hpp>
-#include <core/application/ApplicationComponents.hpp>
-#include <unordered_map>
+#include <vector>
+
+class QObject;
 
 
 namespace iscore
 {
-    class SerializableCommand;
     class View;
-    class Presenter;
-
 
     /**
      * @brief The Presenter class
@@ -34,7 +27,10 @@ namespace iscore
     {
             Q_OBJECT
         public:
-            Presenter(iscore::View* view, QObject* parent);
+            Presenter(
+                    const iscore::ApplicationSettings& app,
+                    iscore::View* view,
+                    QObject* parent);
 
             // Exit i-score
             bool exit();
@@ -53,6 +49,8 @@ namespace iscore
             { return m_docManager; }
             const ApplicationComponents& applicationComponents()
             { return m_components_readonly; }
+            const ApplicationContext& applicationContext()
+            { return m_context; }
 
             auto& components()
             { return m_components; }
@@ -63,6 +61,7 @@ namespace iscore
             DocumentManager m_docManager;
             ApplicationComponentsData m_components;
             ApplicationComponents m_components_readonly;
+            ApplicationContext m_context;
 
             MenubarManager m_menubar;
 

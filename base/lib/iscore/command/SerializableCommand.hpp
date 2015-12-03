@@ -1,15 +1,15 @@
 #pragma once
 #include <iscore/command/Command.hpp>
-#include <iscore/plugins/customfactory/StringFactoryKey.hpp>
+#include <iscore/command/CommandFactoryKey.hpp>
+#include <QByteArray>
+#include <QString>
 
-class CommandTag{};
-using CommandFactoryKey = StringKey<CommandTag>;
-class CommandParentTag{};
-using CommandParentFactoryKey = StringKey<CommandParentTag>;
+class DataStreamInput;
+class DataStreamOutput;
 
 /**
  * This macro is used to specify the common metadata of commands :
- *  - factory name (e.g. "ScenarioControl")
+ *  - factory name (e.g. "ScenarioApplicationPlugin")
  *  - command name
  *  - command description
  */
@@ -26,6 +26,8 @@ using CommandParentFactoryKey = StringKey<CommandParentTag>;
     } \
     private:
 
+// A helper to allow cmake to parse commands.
+#define ISCORE_COMMAND_DECL_T(name)
 namespace iscore
 {
 /**

@@ -1,10 +1,15 @@
 #pragma once
 #include <iscore/plugins/panel/PanelView.hpp>
 
-class QGraphicsScene;
-class QGraphicsView;
-class ScenarioBaseGraphicsView;
+#include <QString>
+
 class DoubleSlider;
+class QGraphicsScene;
+class QObject;
+class QSize;
+class QWidget;
+class ScenarioBaseGraphicsView;
+
 class ProcessPanelView final : public iscore::PanelView
 {
         Q_OBJECT

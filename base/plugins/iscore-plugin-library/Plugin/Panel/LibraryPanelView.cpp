@@ -10,7 +10,7 @@ static const iscore::DefaultPanelStatus status{false, Qt::RightDockWidgetArea, 0
 const iscore::DefaultPanelStatus &LibraryPanelView::defaultPanelStatus() const
 { return status; }
 
-LibraryPanelView::LibraryPanelView(iscore::View* parent):
+LibraryPanelView::LibraryPanelView(QObject* parent):
     iscore::PanelView {parent},
     m_widget{new QTabWidget}
 {

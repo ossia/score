@@ -1,10 +1,15 @@
 #pragma once
 
 #include <Scenario/Commands/ScenarioCommandFactory.hpp>
+#include <boost/optional/optional.hpp>
 #include <iscore/command/SerializableCommand.hpp>
-
 #include <iscore/tools/ModelPath.hpp>
+#include <QVector>
 
+#include <iscore/tools/SettableIdentifier.hpp>
+
+class DataStreamInput;
+class DataStreamOutput;
 class EventModel;
 class TimeNodeModel;
 
@@ -14,7 +19,7 @@ namespace Scenario
     {
         class SplitTimeNode final : public iscore::SerializableCommand
         {
-                ISCORE_COMMAND_DECL(ScenarioCommandFactoryName(), SplitTimeNode, "SplitTimeNode")
+                ISCORE_COMMAND_DECL(ScenarioCommandFactoryName(), SplitTimeNode, "Split a timenode")
             public:
                 SplitTimeNode(
                     Path<TimeNodeModel>&& path,

@@ -1,17 +1,26 @@
-#include "AddressEditDialog.hpp"
-
-#include <QComboBox>
-#include <QDialogButtonBox>
-#include <QFormLayout>
-#include <QLabel>
-#include <QLineEdit>
-
 #include <Explorer/Common/AddressSettings/AddressSettingsFactory.hpp>
 #include <Explorer/Common/AddressSettings/Widgets/AddressSettingsWidget.hpp>
-
 #include <Explorer/Widgets/AddressFragmentLineEdit.hpp>
-
 #include <State/ValueConversion.hpp>
+#include <QComboBox>
+#include <QDebug>
+#include <QDialogButtonBox>
+#include <QFlags>
+#include <QFormLayout>
+#include <QLineEdit>
+#include <qnamespace.h>
+
+#include <QString>
+
+#include "AddressEditDialog.hpp"
+#include <Device/Address/AddressSettings.hpp>
+#include <Device/Address/Domain.hpp>
+#include <Device/Address/IOType.hpp>
+#include <Explorer/Widgets/ValueWrapper.hpp>
+#include <State/Value.hpp>
+
+class QWidget;
+
 AddressEditDialog::AddressEditDialog(
         QWidget* parent):
     AddressEditDialog{makeDefaultSettings(), parent}

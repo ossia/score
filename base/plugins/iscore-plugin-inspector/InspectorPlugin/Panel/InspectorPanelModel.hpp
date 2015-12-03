@@ -1,6 +1,9 @@
 #pragma once
 
 #include <iscore/plugins/panel/PanelModel.hpp>
+
+#include <iscore/selection/Selection.hpp>
+
 namespace iscore
 {
     class DocumentModel;
@@ -14,7 +17,7 @@ class InspectorPanelModel : public iscore::PanelModel
 {
         Q_OBJECT
     public:
-        explicit InspectorPanelModel(iscore::DocumentModel* parent);
+        explicit InspectorPanelModel(QObject* parent);
         int panelId() const override;
 
     signals:

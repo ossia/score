@@ -1,20 +1,20 @@
 #pragma once
 
 #include <iscore/command/AggregateCommand.hpp>
-#include <Scenario/Commands/State/UpdateState.hpp>
+#include <Scenario/Commands/State/AddMessagesToState.hpp>
 #include <Scenario/Commands/Scenario/Creations/CreateState.hpp>
 #include <Scenario/Document/Event/EventModel.hpp>
-
+#include <Scenario/Document/State/StateModel.hpp>
 namespace Scenario
 {
     namespace Command
     {
         class AddStateWithData final : public iscore::AggregateCommand
         {
-                ISCORE_COMMAND_DECL(ScenarioCommandFactoryName(), AddStateWithData, "AddStateWithData")
+                ISCORE_COMMAND_DECL(ScenarioCommandFactoryName(), AddStateWithData, "Drop a new state in an event")
             public:
                 AddStateWithData(
-                         const ScenarioModel& scenario,
+                         const Scenario::ScenarioModel& scenario,
                          const Id<EventModel>& ev,
                          double ypos,
                          iscore::MessageList&& stateData)

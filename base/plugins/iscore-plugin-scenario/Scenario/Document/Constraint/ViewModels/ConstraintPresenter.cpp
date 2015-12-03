@@ -1,19 +1,25 @@
-#include "ConstraintPresenter.hpp"
-#include "ConstraintView.hpp"
-#include "ConstraintViewModel.hpp"
-#include "ConstraintHeader.hpp"
-
-#include <Scenario/Document/Event/EventModel.hpp>
 #include <Scenario/Document/Constraint/ConstraintModel.hpp>
 #include <Scenario/Document/Constraint/Rack/RackPresenter.hpp>
 #include <Scenario/Document/Constraint/Rack/RackView.hpp>
-#include <Scenario/Commands/Constraint/AddProcessToConstraint.hpp>
-#include <QGraphicsScene>
-
-#include "Temporal/TemporalConstraintViewModel.hpp"
-#include "FullView/FullViewConstraintViewModel.hpp"
+#include <boost/optional/optional.hpp>
+#include <qnamespace.h>
 
 #include "ConstraintHeader.hpp"
+#include "ConstraintPresenter.hpp"
+#include "ConstraintView.hpp"
+#include "ConstraintViewModel.hpp"
+#include <Process/TimeValue.hpp>
+#include <Process/ZoomHelper.hpp>
+#include <Scenario/Document/Constraint/ConstraintDurations.hpp>
+#include <Scenario/Document/Constraint/Rack/RackModel.hpp>
+#include <Scenario/Document/ModelConsistency.hpp>
+#include <iscore/selection/Selectable.hpp>
+#include <iscore/tools/NamedObject.hpp>
+#include <iscore/tools/NotifyingMap.hpp>
+#include <iscore/tools/SettableIdentifier.hpp>
+#include <iscore/tools/Todo.hpp>
+
+class QObject;
 /**
  * TODO Mettre dans la doc :
  * L'abstract constraint presenter a deux interfaces :
@@ -63,11 +69,13 @@ ConstraintPresenter::ConstraintPresenter(
             this, &ConstraintPresenter::heightPercentageChanged);
 
     con(m_viewModel, &ConstraintViewModel::rackShown,
-            this,         &ConstraintPresenter::on_rackShown);
+            this, &ConstraintPresenter::on_rackShown);
+
     con(m_viewModel, &ConstraintViewModel::rackHidden,
-            this,         &ConstraintPresenter::on_rackHidden);
-    con(m_viewModel, &ConstraintViewModel::rackRemoved,
-            this,         &ConstraintPresenter::on_noRacks);
+        this, &ConstraintPresenter::on_rackHidden);
+
+    con(m_viewModel, &ConstraintViewModel::lastRackRemoved,
+        this, &ConstraintPresenter::on_noRacks);
 
 
     con(m_viewModel.model().consistency, &ModelConsistency::validChanged,
@@ -75,19 +83,11 @@ ConstraintPresenter::ConstraintPresenter(
     con(m_viewModel.model().consistency,   &ModelConsistency::warningChanged,
             m_view, &ConstraintView::setWarning);
 
-    con(m_viewModel.model().racks, &NotifyingMap<RackModel>::removed,
-            this, [&] (const auto&) {
-        if(m_viewModel.model().racks.size() == 0)
-        {
-            this->on_noRacks();
-        }
-    });
-
     if(m_viewModel.isRackShown())
     {
         on_rackShown(m_viewModel.shownRack());
     }
-    else if(!m_viewModel.model().processes.empty())
+    else if(!m_viewModel.model().processes.empty()) // TODO why isn't this when there are racks but hidden ?
     {
         on_rackHidden();
     }
@@ -140,7 +140,7 @@ void ConstraintPresenter::on_defaultDurationChanged(const TimeValue& val)
 
     if(rack())
     {
-        rack()->setWidth(m_view->defaultWidth() - 20);
+        rack()->setWidth(m_view->defaultWidth());
     }
 }
 
@@ -162,7 +162,7 @@ void ConstraintPresenter::on_playPercentageChanged(double t)
 
 void ConstraintPresenter::updateHeight()
 {
-    if(m_viewModel.isRackShown())
+    if(rack() && m_viewModel.isRackShown())
     {
         m_view->setHeight(rack()->height() + 50);
     }
@@ -198,12 +198,9 @@ const ConstraintModel& ConstraintPresenter::model() const
     return m_viewModel.model();
 }
 
-const ConstraintViewModel&ConstraintPresenter::abstractConstraintViewModel() const
-{
-    return m_viewModel;
-}
 
-ConstraintView*ConstraintPresenter::view() const
+
+ConstraintView* ConstraintPresenter::view() const
 {
     return m_view;
 }
@@ -219,17 +216,11 @@ void ConstraintPresenter::on_rackShown(const Id<RackModel>& rackId)
 
 void ConstraintPresenter::on_rackHidden()
 {
-    if(model().racks.size() > 0)
-    {
-        clearRackPresenter();
+    ISCORE_ASSERT(model().racks.size() > 0);
+    clearRackPresenter();
 
-        m_header->setState(ConstraintHeader::State::RackHidden);
-        updateHeight();
-    }
-    else
-    {
-        on_noRacks();
-    }
+    m_header->setState(ConstraintHeader::State::RackHidden);
+    updateHeight();
 }
 
 void ConstraintPresenter::on_noRacks()

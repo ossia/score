@@ -1,7 +1,16 @@
-#include "AddressBoolSettingsWidget.hpp"
 #include <State/ValueConversion.hpp>
-#include <QFormLayout>
 #include <QComboBox>
+#include <QFormLayout>
+
+#include <QString>
+#include <QVariant>
+
+#include "AddressBoolSettingsWidget.hpp"
+#include <Explorer/Common/AddressSettings/Widgets/AddressSettingsWidget.hpp>
+#include <State/Value.hpp>
+
+class QWidget;
+
 AddressBoolSettingsWidget::AddressBoolSettingsWidget(QWidget* parent)
     : AddressSettingsWidget(parent)
 {

@@ -1,14 +1,22 @@
-#include "EventView.hpp"
-
-#include <QPainter>
-#include <QGraphicsScene>
-#include <QCursor>
-#include <QMimeData>
-#include <QGraphicsSceneMouseEvent>
-#include "EventPresenter.hpp"
-#include "EventModel.hpp"
-#include "ConditionView.hpp"
 #include <Process/Style/ScenarioStyle.hpp>
+#include <QBrush>
+#include <QGraphicsSceneEvent>
+#include <qnamespace.h>
+#include <QPainter>
+#include <QPen>
+#include <algorithm>
+
+#include "ConditionView.hpp"
+#include "EventModel.hpp"
+#include "EventPresenter.hpp"
+#include "EventView.hpp"
+#include <Process/ModelMetadata.hpp>
+#include <Scenario/Document/Event/ExecutionStatus.hpp>
+#include <Scenario/Document/VerticalExtent.hpp>
+#include <QCursor>
+
+class QStyleOptionGraphicsItem;
+class QWidget;
 
 EventView::EventView(EventPresenter& presenter,
                      QGraphicsObject* parent) :
@@ -30,10 +38,7 @@ EventView::EventView(EventPresenter& presenter,
     m_color = presenter.model().metadata.color();
 }
 
-const EventPresenter& EventView::presenter() const
-{
-    return m_presenter;
-}
+
 
 void EventView::setCondition(const QString &cond)
 {
@@ -71,10 +76,10 @@ void EventView::paint(QPainter* painter,
                       QWidget* widget)
 {
     QPen eventPen;
-    if(m_status == ExecutionStatus::Editing)
+    if(m_status.get() == ExecutionStatus::Editing)
         eventPen = QPen(m_color);
     else
-        eventPen = QPen(eventStatusColor(m_status));
+        eventPen = QPen(m_status.eventStatusColor());
 
     if(isSelected())
     {
@@ -98,19 +103,21 @@ void EventView::setExtent(const VerticalExtent& extent)
 {
     prepareGeometryChange();
     m_extent = extent;
+    m_conditionItem->changeHeight(extent.bottom() - extent.top());
     this->update();
 }
 
 void EventView::setExtent(VerticalExtent &&extent)
 {
     prepareGeometryChange();
+    m_conditionItem->changeHeight(extent.bottom() - extent.top());
     m_extent = std::move(extent);
     this->update();
 }
 
 void EventView::setStatus(ExecutionStatus s)
 {
-    m_status = s;
+    m_status.set(s);
     update();
 }
 

@@ -1,26 +1,27 @@
 #pragma once
 #include <Process/ModelMetadata.hpp>
+#include <Process/TimeValue.hpp>
+#include <Scenario/Document/Event/ExecutionStatus.hpp>
 #include <Scenario/Document/VerticalExtent.hpp>
-
+#include <State/Expression.hpp>
+#include <boost/optional/optional.hpp>
+#include <iscore/plugins/documentdelegate/plugin/ElementPluginModelList.hpp>
+#include <iscore/selection/Selectable.hpp>
 #include <iscore/tools/IdentifiedObject.hpp>
 #include <iscore/tools/SettableIdentifier.hpp>
-#include <iscore/serialization/DataStreamVisitor.hpp>
-#include <iscore/serialization/JSONVisitor.hpp>
-#include <iscore/selection/Selectable.hpp>
-#include <Process/TimeValue.hpp>
+#include <QString>
+#include <QVector>
 
-#include <State/Expression.hpp>
+class DataStream;
+class JSONObject;
+class QObject;
+class StateModel;
 
-#include <Scenario/Document/State/StateModel.hpp>
-#include <Scenario/Document/Event/ExecutionStatus.hpp>
-#include <iscore/plugins/documentdelegate/plugin/ElementPluginModelList.hpp>
 namespace OSSIA
 {
-    class TimeNode;
 }
-class ConstraintModel;
-class TimeNodeModel;
 class ScenarioInterface;
+class TimeNodeModel;
 
 class EventModel final : public IdentifiedObject<EventModel>
 {
@@ -36,9 +37,7 @@ class EventModel final : public IdentifiedObject<EventModel>
         ModelMetadata metadata;
         iscore::ElementPluginModelList pluginModelList;
 
-        static QString prettyName();
-
-        ScenarioInterface* parentScenario() const;
+        static QString description();
 
         /** The class **/
         EventModel(const Id<EventModel>&,
@@ -110,5 +109,5 @@ class EventModel final : public IdentifiedObject<EventModel>
         VerticalExtent m_extent;
         TimeValue m_date{TimeValue::zero()};
 
-        ExecutionStatus m_status{ExecutionStatus::Editing};
+        ExecutionStatusProperty m_status{};
 };

@@ -1,7 +1,8 @@
 #pragma once
+
+
+
 #include <QObject>
-
-
 
 class ModelConsistency final : public QObject
 {

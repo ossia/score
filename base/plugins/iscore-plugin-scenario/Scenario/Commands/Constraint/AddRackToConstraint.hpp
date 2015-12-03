@@ -1,11 +1,16 @@
 #pragma once
 #include <Scenario/Commands/ScenarioCommandFactory.hpp>
+#include <boost/optional/optional.hpp>
 #include <iscore/command/SerializableCommand.hpp>
 #include <iscore/tools/ModelPath.hpp>
 
-#include <tests/helpers/ForwardDeclaration.hpp>
-class RackModel;
+#include <iscore/tools/SettableIdentifier.hpp>
+
 class ConstraintModel;
+class DataStreamInput;
+class DataStreamOutput;
+class RackModel;
+
 namespace Scenario
 {
     namespace Command
@@ -17,8 +22,7 @@ namespace Scenario
          */
         class AddRackToConstraint final : public iscore::SerializableCommand
         {
-                ISCORE_COMMAND_DECL(ScenarioCommandFactoryName(), AddRackToConstraint, "AddRackToConstraint")
-#include <tests/helpers/FriendDeclaration.hpp>
+                ISCORE_COMMAND_DECL(ScenarioCommandFactoryName(), AddRackToConstraint, "Add a rack")
 
             public:
                 AddRackToConstraint(Path<ConstraintModel>&& constraintPath);

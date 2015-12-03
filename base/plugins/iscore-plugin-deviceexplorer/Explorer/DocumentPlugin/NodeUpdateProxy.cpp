@@ -1,8 +1,20 @@
-#include "NodeUpdateProxy.hpp"
-#include "DeviceDocumentPlugin.hpp"
-#include <Explorer/Explorer/DeviceExplorerModel.hpp>
 #include <Device/Address/AddressSettings.hpp>
-#include <boost/range/algorithm/find_if.hpp>
+#include <Explorer/Explorer/DeviceExplorerModel.hpp>
+
+#include <boost/optional/optional.hpp>
+#include <QDebug>
+#include <QStringList>
+#include <algorithm>
+#include <vector>
+
+#include <Device/Node/DeviceNode.hpp>
+#include <Device/Protocol/DeviceInterface.hpp>
+#include <Device/Protocol/DeviceList.hpp>
+#include <Device/Protocol/DeviceSettings.hpp>
+#include "DeviceDocumentPlugin.hpp"
+#include "NodeUpdateProxy.hpp"
+#include <State/Address.hpp>
+#include <iscore/tools/TreeNode.hpp>
 
 NodeUpdateProxy::NodeUpdateProxy(DeviceDocumentPlugin& root):
     devModel{root}

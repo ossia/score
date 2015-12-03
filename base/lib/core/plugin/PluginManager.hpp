@@ -1,67 +1,31 @@
 #pragma once
-#include <iscore/tools/NamedObject.hpp>
-#include <QMap>
-
-#include <iscore/plugins/customfactory/FactoryFamily.hpp>
-#include <iscore/plugins/panel/PanelFactory.hpp>
-#include <iscore/command/CommandGeneratorMap.hpp>
+#include <QObject>
+#include <QString>
+#include <QStringList>
+#include <vector>
 
 namespace iscore
 {
-class FactoryInterfaceBase;
-class Application;
+class ApplicationContext;
 class ApplicationRegistrar;
-class PluginControlInterface;
-class PanelFactory;
-class DocumentDelegateFactoryInterface;
-class SettingsDelegateFactoryInterface;
 
-
-/**
-     * @brief The PluginManager class loads and keeps track of the plug-ins.
-     */
-class PluginLoader final : public QObject
+namespace PluginLoader
 {
-        Q_OBJECT
-        friend class iscore::Application;
-    public:
-        PluginLoader(iscore::Application* app);
-        ~PluginLoader();
+/**
+ * @brief loadPlugins
+ *
+ * Reloads all the plug-ins.
+ * Note: for now this is unsafe after the first loading.
+ */
+void loadPlugins(iscore::ApplicationRegistrar&,
+                 const iscore::ApplicationContext& context);
 
-        /**
-             * @brief reloadPlugins
-             *
-             * Reloads all the plug-ins.
-             * Note: for now this is unsafe after the first loading.
-             */
-        void clearPlugins();
-        void reloadPlugins(iscore::ApplicationRegistrar&);
+// QString is set if it's a valid plug-in file,
+// QObject* is set if the plug-in could be loaded
+std::pair<QString, QObject*> loadPlugin(
+        const QString& filename,
+        const std::vector<QObject*>& availablePlugins);
 
-        /**
-             * @brief pluginsOnSystem
-             * @return All the plugins available on the system
-             *
-             * Even plug-ins that were not loaded will be returned.
-             */
-        QStringList pluginsOnSystem() const;
-
-    private:
-        iscore::Application* m_app{};
-
-        // We need a list for all the plug-ins present on the system even if we do not load them.
-        // Else we can't blacklist / unblacklist plug-ins.
-        QStringList m_pluginsOnSystem;
-
-        void loadPlugin(const QString& filename);
-
-
-        // Classify the plug-in element in the correct container.
-        void dispatch(QObject* plugin);
-
-
-        QStringList pluginsBlacklist();
-
-        // Here, the plug-ins that are effectively loaded.
-        std::vector<QObject*> m_availablePlugins;
-};
+QStringList pluginsBlacklist();
+}
 }

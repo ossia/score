@@ -1,6 +1,8 @@
-#include "TimeRulerView.hpp"
-
 #include <Process/Style/ScenarioStyle.hpp>
+#include <QColor>
+
+#include <Scenario/Document/TimeRuler/AbstractTimeRulerView.hpp>
+#include "TimeRulerView.hpp"
 
 TimeRulerView::TimeRulerView() :
     AbstractTimeRulerView{}

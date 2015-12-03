@@ -1,9 +1,9 @@
 #pragma once
 #include <iscore/serialization/VisitorInterface.hpp>
-class QObject;
-class LayerModel;
-class Process;
+
 class ConstraintModel;
+class LayerModel;
+class QObject;
 
 
 template<typename T>

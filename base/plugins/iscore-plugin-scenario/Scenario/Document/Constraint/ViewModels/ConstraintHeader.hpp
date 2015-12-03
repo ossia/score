@@ -1,8 +1,10 @@
 #pragma once
-#include <QGraphicsObject>
-#include <QFont>
+#include <QGraphicsItem>
+#include <QString>
 
 class ConstraintView;
+class QGraphicsSceneMouseEvent;
+
 class ConstraintHeader : public QGraphicsObject
 {
     public:
@@ -13,6 +15,11 @@ class ConstraintHeader : public QGraphicsObject
         };
 
         using QGraphicsObject::QGraphicsObject;
+
+        static constexpr int static_type()
+        { return QGraphicsItem::UserType + 6; }
+        int type() const override
+        { return static_type(); }
 
         void setConstraintView(ConstraintView* view)
         {

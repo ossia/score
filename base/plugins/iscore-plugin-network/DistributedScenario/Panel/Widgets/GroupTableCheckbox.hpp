@@ -2,6 +2,7 @@
 #include <QWidget>
 
 class QCheckBox;
+
 class GroupTableCheckbox : public QWidget
 {
         Q_OBJECT

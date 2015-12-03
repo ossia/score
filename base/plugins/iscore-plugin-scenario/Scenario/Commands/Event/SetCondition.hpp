@@ -1,16 +1,20 @@
 #pragma once
 #include <Scenario/Commands/ScenarioCommandFactory.hpp>
+#include <State/Expression.hpp>
 #include <iscore/command/SerializableCommand.hpp>
 #include <iscore/tools/ModelPath.hpp>
-#include <State/Expression.hpp>
+
+class DataStreamInput;
+class DataStreamOutput;
 class EventModel;
+
 namespace Scenario
 {
     namespace Command
     {
         class SetCondition final : public iscore::SerializableCommand
         {
-                ISCORE_COMMAND_DECL(ScenarioCommandFactoryName(), SetCondition, "SetCondition")
+                ISCORE_COMMAND_DECL(ScenarioCommandFactoryName(), SetCondition, "Set an Event's condition")
             public:
                 SetCondition(
                     Path<EventModel>&& eventPath,

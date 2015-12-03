@@ -1,12 +1,19 @@
 #pragma once
+#include <boost/optional/optional.hpp>
+#include <iscore/selection/Selection.hpp>
 #include <iscore/tools/IdentifiedObject.hpp>
 #include <iscore/tools/IdentifiedObjectMap.hpp>
-#include <iscore/selection/Selection.hpp>
-#include <iscore/serialization/DataStreamVisitor.hpp>
-#include <iscore/serialization/JSONVisitor.hpp>
+#include <vector>
 
 #include "Segment/CurveSegmentModel.hpp"
+#include <iscore/serialization/VisitorInterface.hpp>
+
 class CurvePointModel;
+class DataStream;
+class JSONObject;
+class QObject;
+struct CurveSegmentData;
+#include <iscore/tools/SettableIdentifier.hpp>
 
 class CurveModel final : public IdentifiedObject<CurveModel>
 {

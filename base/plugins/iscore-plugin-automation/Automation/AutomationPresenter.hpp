@@ -14,7 +14,7 @@ class AutomationPresenter final :
 {
     public:
         AutomationPresenter(
-                iscore::DocumentContext& context,
+                const iscore::DocumentContext& context,
                 const Curve::Style& style,
                 const AutomationLayerModel& layer,
                 AutomationView* view,
@@ -25,6 +25,11 @@ class AutomationPresenter final :
                 this, [&] (const auto&)
             {
                 m_view->setDisplayedName(m_layer.model().prettyName());
+            });
+            con(m_layer.model().metadata, &ModelMetadata::nameChanged,
+                this, [&] (QString s)
+            {
+                m_view->setDisplayedName(s);
             });
 
             m_view->setDisplayedName(m_layer.model().prettyName());

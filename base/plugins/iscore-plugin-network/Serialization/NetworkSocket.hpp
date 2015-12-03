@@ -1,6 +1,9 @@
 #pragma once
-#include <QTcpSocket>
+#include <QObject>
+#include <QString>
 #include "NetworkMessage.hpp"
+class QTcpSocket;
+
 // Utilisé par le serveur lorsque le client se connecte :
 // le client a un NetworkSerializationServer qui tourne
 // et le serveur écrit dedans avec le NetworkSerializationSocket

@@ -39,16 +39,16 @@ set(SRCS
 "${CMAKE_CURRENT_SOURCE_DIR}/Curve/Segment/Sin/SinCurveSegmentModel.cpp"
 "${CMAKE_CURRENT_SOURCE_DIR}/Curve/Segment/PointArray/PointArrayCurveSegmentModel.cpp"
 
-"${CMAKE_CURRENT_SOURCE_DIR}/Curve/StateMachine/CommandObjects/MoveSegmentCommandObject.cpp"
-"${CMAKE_CURRENT_SOURCE_DIR}/Curve/StateMachine/CommandObjects/CreatePointCommandObject.cpp"
-"${CMAKE_CURRENT_SOURCE_DIR}/Curve/StateMachine/CommandObjects/MovePointCommandObject.cpp"
-"${CMAKE_CURRENT_SOURCE_DIR}/Curve/StateMachine/CommandObjects/CurveCommandObjectBase.cpp"
-"${CMAKE_CURRENT_SOURCE_DIR}/Curve/StateMachine/CommandObjects/SetSegmentParametersCommandObject.cpp"
-"${CMAKE_CURRENT_SOURCE_DIR}/Curve/StateMachine/States/Tools/CurveTool.cpp"
-"${CMAKE_CURRENT_SOURCE_DIR}/Curve/StateMachine/States/Tools/MoveTool.cpp"
-"${CMAKE_CURRENT_SOURCE_DIR}/Curve/StateMachine/States/Tools/SelectionTool.cpp"
-"${CMAKE_CURRENT_SOURCE_DIR}/Curve/StateMachine/CurveStateMachine.cpp"
-"${CMAKE_CURRENT_SOURCE_DIR}/Curve/StateMachine/CurveEditionSettings.cpp"
+"${CMAKE_CURRENT_SOURCE_DIR}/Curve/Palette/CommandObjects/MoveSegmentCommandObject.cpp"
+"${CMAKE_CURRENT_SOURCE_DIR}/Curve/Palette/CommandObjects/CreatePointCommandObject.cpp"
+"${CMAKE_CURRENT_SOURCE_DIR}/Curve/Palette/CommandObjects/MovePointCommandObject.cpp"
+"${CMAKE_CURRENT_SOURCE_DIR}/Curve/Palette/CommandObjects/CurveCommandObjectBase.cpp"
+"${CMAKE_CURRENT_SOURCE_DIR}/Curve/Palette/CommandObjects/SetSegmentParametersCommandObject.cpp"
+"${CMAKE_CURRENT_SOURCE_DIR}/Curve/Palette/Tools/CurveTool.cpp"
+"${CMAKE_CURRENT_SOURCE_DIR}/Curve/Palette/Tools/MoveTool.cpp"
+"${CMAKE_CURRENT_SOURCE_DIR}/Curve/Palette/Tools/SmartTool.cpp"
+"${CMAKE_CURRENT_SOURCE_DIR}/Curve/Palette/CurvePalette.cpp"
+"${CMAKE_CURRENT_SOURCE_DIR}/Curve/Palette/CurveEditionSettings.cpp"
 "${CMAKE_CURRENT_SOURCE_DIR}/Curve/CurveModel.cpp"
 "${CMAKE_CURRENT_SOURCE_DIR}/Curve/CurvePresenter.cpp"
 "${CMAKE_CURRENT_SOURCE_DIR}/Curve/CurveView.cpp"
@@ -57,6 +57,7 @@ set(SRCS
 )
 
 add_library(${PROJECT_NAME} ${SRCS} ${HDRS})
+iscore_generate_command_list_file(${PROJECT_NAME} "${HDRS}")
 target_link_libraries(${PROJECT_NAME}
                      Qt5::Core Qt5::Widgets
                      iscore_lib_base iscore_plugin_deviceexplorer iscore_lib_process iscore_lib_state)

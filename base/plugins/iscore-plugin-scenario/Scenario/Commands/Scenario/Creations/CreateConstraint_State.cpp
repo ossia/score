@@ -1,14 +1,24 @@
-#include "CreateConstraint_State.hpp"
-
 #include <Scenario/Process/Algorithms/StandardCreationPolicy.hpp>
+#include <Scenario/Process/Algorithms/VerticalMovePolicy.hpp>
 #include <Scenario/Process/ScenarioModel.hpp>
 
+#include <boost/iterator/iterator_facade.hpp>
+#include <boost/multi_index/detail/hash_index_iterator.hpp>
 #include <iscore/tools/SettableIdentifierGeneration.hpp>
-#include <Scenario/Process/Algorithms/VerticalMovePolicy.hpp>
+#include <QByteArray>
+#include <algorithm>
+#include <vector>
+
+#include "CreateConstraint_State.hpp"
+#include <Scenario/Commands/Scenario/Creations/CreateConstraint.hpp>
+#include <Scenario/Document/Event/EventModel.hpp>
+#include <Scenario/Document/State/StateModel.hpp>
+#include <iscore/serialization/DataStreamVisitor.hpp>
+#include <iscore/tools/NotifyingMap.hpp>
 
 using namespace Scenario::Command;
 CreateConstraint_State::CreateConstraint_State(
-        const ScenarioModel& scenario,
+        const Scenario::ScenarioModel& scenario,
         const Id<StateModel>& startState,
         const Id<EventModel>& endEvent,
         double endStateY):
@@ -22,7 +32,7 @@ CreateConstraint_State::CreateConstraint_State(
 }
 
 CreateConstraint_State::CreateConstraint_State(
-        const Path<ScenarioModel>& scenario,
+        const Path<Scenario::ScenarioModel>& scenario,
         const Id<StateModel> &startState,
         const Id<EventModel> &endEvent,
         double endStateY):

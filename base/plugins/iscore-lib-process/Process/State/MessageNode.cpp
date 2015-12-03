@@ -1,4 +1,7 @@
 #include "MessageNode.hpp"
+#include <State/Message.hpp>
+#include <iscore/tools/TreeNode.hpp>
+
 iscore::Address address(const MessageNode& treeNode)
 {
     iscore::Address addr;

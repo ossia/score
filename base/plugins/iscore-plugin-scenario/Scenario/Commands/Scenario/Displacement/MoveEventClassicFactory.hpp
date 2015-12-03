@@ -2,12 +2,23 @@
 
 #include <Scenario/Commands/Scenario/Displacement/MoveEventFactoryInterface.hpp>
 
+#include <Process/ExpandMode.hpp>
+#include <Process/TimeValue.hpp>
+
+class EventModel;
+class SerializableMoveEvent;
+namespace Scenario {
+class ScenarioModel;
+}  // namespace Scenario
+template <typename Object> class Path;
+#include <iscore/tools/SettableIdentifier.hpp>
+
 class MoveEventClassicFactory final : public MoveEventFactoryInterface
 {
     // MoveEventFactory interface
 public:
     SerializableMoveEvent* make(
-            Path<ScenarioModel>&& scenarioPath,
+            Path<Scenario::ScenarioModel>&& scenarioPath,
             const Id<EventModel>& eventId,
             const TimeValue& newDate,
             ExpandMode mode) override;

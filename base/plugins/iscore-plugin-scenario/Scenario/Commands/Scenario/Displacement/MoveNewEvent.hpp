@@ -1,10 +1,22 @@
 #pragma once
 
+#include <boost/optional/optional.hpp>
+
 #include "MoveEventOnCreationMeta.hpp"
+#include <Process/ExpandMode.hpp>
+#include <Process/TimeValue.hpp>
+#include <Scenario/Commands/ScenarioCommandFactory.hpp>
+#include <iscore/command/SerializableCommand.hpp>
+#include <iscore/tools/ModelPath.hpp>
+#include <iscore/tools/SettableIdentifier.hpp>
 
-
-class EventModel;
 class ConstraintModel;
+class DataStreamInput;
+class DataStreamOutput;
+class EventModel;
+namespace Scenario {
+class ScenarioModel;
+}  // namespace Scenario
 
 /*
  * Used on creation mode, when mouse is pressed and is moving.
@@ -18,17 +30,17 @@ namespace Scenario
 
         class MoveNewEvent final : public iscore::SerializableCommand
         {
-                ISCORE_COMMAND_DECL(ScenarioCommandFactoryName(), MoveNewEvent, "MoveNewEvent")
+                ISCORE_COMMAND_DECL(ScenarioCommandFactoryName(), MoveNewEvent, "Move a new event")
                 public:
                 MoveNewEvent(
-                  Path<ScenarioModel>&& scenarioPath,
+                  Path<Scenario::ScenarioModel>&& scenarioPath,
                     const Id<ConstraintModel>& constraintId,
                     const Id<EventModel>& eventId,
                     const TimeValue& date,
                     const double y,
                     bool yLocked);
                 MoveNewEvent(
-                        Path<ScenarioModel>&& scenarioPath,
+                        Path<Scenario::ScenarioModel>&& scenarioPath,
                         const Id<ConstraintModel>& constraintId,
                         const Id<EventModel>& eventId,
                         const TimeValue& date,
@@ -40,7 +52,7 @@ namespace Scenario
                 void redo() const override;
 
                 void update(
-                        const Path<ScenarioModel>& path,
+                        const Path<Scenario::ScenarioModel>& path,
                         const Id<ConstraintModel>&,
                         const Id<EventModel>& id,
                         const TimeValue& date,
@@ -52,7 +64,7 @@ namespace Scenario
                     m_yLocked = yLocked;
                 }
 
-                const Path<ScenarioModel>& path() const
+                const Path<Scenario::ScenarioModel>& path() const
                 { return m_path; }
 
             protected:
@@ -60,7 +72,7 @@ namespace Scenario
                 void deserializeImpl(DataStreamOutput&) override;
 
             private:
-                Path<ScenarioModel> m_path;
+                Path<Scenario::ScenarioModel> m_path;
                 Id<ConstraintModel> m_constraintId{};
 
                 MoveEventOnCreationMeta m_cmd;

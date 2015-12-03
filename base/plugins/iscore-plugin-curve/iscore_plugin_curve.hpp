@@ -1,8 +1,19 @@
 #pragma once
-#include <QObject>
-#include <iscore/plugins/qt_interfaces/FactoryInterface_QtInterface.hpp>
 #include <iscore/plugins/qt_interfaces/FactoryFamily_QtInterface.hpp>
-#include <iscore/plugins/qt_interfaces/PluginControlInterface_QtInterface.hpp>
+#include <iscore/plugins/qt_interfaces/FactoryInterface_QtInterface.hpp>
+#include <iscore/plugins/qt_interfaces/GUIApplicationContextPlugin_QtInterface.hpp>
+#include <QObject>
+#include <utility>
+#include <vector>
+
+#include <iscore/application/ApplicationContext.hpp>
+#include <iscore/command/CommandGeneratorMap.hpp>
+#include <iscore/command/SerializableCommand.hpp>
+#include <iscore/plugins/customfactory/FactoryInterface.hpp>
+
+namespace iscore {
+class FactoryListInterface;
+}  // namespace iscore
 
 class iscore_plugin_curve final :
         public QObject,
@@ -23,12 +34,12 @@ class iscore_plugin_curve final :
         virtual ~iscore_plugin_curve() = default;
 
         // Process & inspector
-        std::vector<iscore::FactoryInterfaceBase*> factories(
+        std::vector<std::unique_ptr<iscore::FactoryInterfaceBase>> factories(
                 const iscore::ApplicationContext& ctx,
                 const iscore::FactoryBaseKey& factoryName) const override;
 
         // Curve segment factory family
-        std::vector<iscore::FactoryListInterface*> factoryFamilies() override;
+        std::vector<std::unique_ptr<iscore::FactoryListInterface>> factoryFamilies() override;
 
         // CommandFactory_QtInterface interface
         std::pair<const CommandParentFactoryKey, CommandGeneratorMap> make_commands() override;

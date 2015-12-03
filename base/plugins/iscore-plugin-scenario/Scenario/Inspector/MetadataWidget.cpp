@@ -1,15 +1,19 @@
-#include "MetadataWidget.hpp"
-
-#include <Process//ModelMetadata.hpp>
-#include "Inspector/InspectorSectionWidget.hpp"
-#include "CommentEdit.hpp"
-
-#include <QLabel>
-#include <QPushButton>
-#include <QLineEdit>
-#include <QFormLayout>
-
+#include <QBoxLayout>
 #include <QColorDialog>
+#include <QFormLayout>
+#include <QIcon>
+#include <QLabel>
+#include <QLineEdit>
+#include <QPushButton>
+#include <QSize>
+#include <Process//ModelMetadata.hpp>
+
+#include "CommentEdit.hpp"
+#include <Inspector/InspectorSectionWidget.hpp>
+#include "MetadataWidget.hpp"
+#include <iscore/command/Dispatchers/CommandDispatcher.hpp>
+
+class QObject;
 
 
 MetadataWidget::MetadataWidget(
@@ -54,9 +58,9 @@ MetadataWidget::MetadataWidget(
 
     // comments
     m_comments = new CommentEdit{metadata->comment(), this};
-    InspectorSectionWidget* comments = new InspectorSectionWidget("Comments");
+    auto comments = new InspectorSectionWidget("Comments", false, this);
     comments->addContent(m_comments);
-    comments->expand(); // todo à enlever par la suite
+    comments->expand();
 
     metadataLayout->addLayout(typeLay);
     metadataLayout->addWidget(descriptionWidget);

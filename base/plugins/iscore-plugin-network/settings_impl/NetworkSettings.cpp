@@ -1,7 +1,11 @@
 #include "NetworkSettings.hpp"
 #include "NetworkSettingsModel.hpp"
-#include "NetworkSettingsView.hpp"
 #include "NetworkSettingsPresenter.hpp"
+#include "NetworkSettingsView.hpp"
+
+namespace iscore {
+class SettingsPresenter;
+}  // namespace iscore
 
 using namespace iscore;
 

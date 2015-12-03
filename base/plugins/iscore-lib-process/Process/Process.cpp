@@ -1,6 +1,16 @@
-#include "Process.hpp"
+#include <QObject>
+#include <algorithm>
+#include <stdexcept>
+
 #include "LayerModel.hpp"
-#include <iscore/document/DocumentInterface.hpp>
+#include "Process.hpp"
+#include <Process/ExpandMode.hpp>
+#include <Process/ModelMetadata.hpp>
+#include <Process/TimeValue.hpp>
+#include <iscore/tools/IdentifiedObject.hpp>
+#include <iscore/tools/SettableIdentifier.hpp>
+#include <iscore/tools/std/StdlibWrapper.hpp>
+#include <iscore/tools/std/Algorithms.hpp>
 
 Process::Process(
         const TimeValue& duration,
@@ -133,7 +143,7 @@ void Process::removeLayer(LayerModel* m)
 Process* parentProcess(QObject* obj)
 {
     QString objName (obj ? obj->objectName() : "INVALID");
-    while(obj && !obj->inherits(Process::staticMetaObject.className()))
+    while(obj && !dynamic_cast<Process*>(obj))
     {
         obj = obj->parent();
     }
@@ -151,7 +161,7 @@ Process* parentProcess(QObject* obj)
 const Process* parentProcess(const QObject* obj)
 {
     QString objName (obj ? obj->objectName() : "INVALID");
-    while(obj && !obj->inherits(Process::staticMetaObject.className()))
+    while(obj && !dynamic_cast<const Process*>(obj))
     {
         obj = obj->parent();
     }

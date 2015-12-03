@@ -1,9 +1,10 @@
 #pragma once
-#include <iscore/tools/IdentifiedObject.hpp>
-#include <iscore/tools/SettableIdentifier.hpp>
 #include <Scenario/Document/Event/ExecutionStatus.hpp>
-
 #include <State/Expression.hpp>
+#include <iscore/tools/IdentifiedObject.hpp>
+
+class QObject;
+#include <iscore/tools/SettableIdentifier.hpp>
 
 using namespace iscore;
 
@@ -24,7 +25,7 @@ class TriggerModel final : public IdentifiedObject<TriggerModel>
 
         // Note : this is for API -> UI communication.
         // To trigger by hand we have the triggered() signal.
-        ExecutionStatusProperty executionStatus; // TODO serialize me
+        ExecutionStatusProperty executionStatus; // TODO serialize me ?
 
     signals:
         void triggerChanged(const iscore::Trigger&);

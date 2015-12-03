@@ -1,19 +1,27 @@
 #pragma once
 #include <Process/LayerModel.hpp>
-#include <iscore/tools/IdentifiedObjectMap.hpp>
-#include <iscore/serialization/DataStreamVisitor.hpp>
-#include <iscore/serialization/JSONVisitor.hpp>
+#include <Process/ModelMetadata.hpp>
+#include <boost/optional/optional.hpp>
 #include <iscore/tools/NotifyingMap.hpp>
-#include <vector>
+#include <QtGlobal>
+#include <QObject>
+#include <nano_signal_slot.hpp>
 
-class RackModel;
+#include <QString>
+#include <functional>
+
+#include <iscore/serialization/VisitorInterface.hpp>
+#include <iscore/tools/IdentifiedObject.hpp>
+#include <iscore/tools/SettableIdentifier.hpp>
+
 class ConstraintModel;
-
+class DataStream;
+class JSONObject;
 class Process;
-class LayerModel;
+class RackModel;
 
 // Note : the SlotModel is assumed to be in a Rack, itself in a Constraint.
-class SlotModel final : public IdentifiedObject<SlotModel>
+class SlotModel final : public IdentifiedObject<SlotModel>, public Nano::Observer
 {
         Q_OBJECT
         ISCORE_METADATA("SlotModel")
@@ -31,6 +39,7 @@ class SlotModel final : public IdentifiedObject<SlotModel>
                    NOTIFY focusChanged)
 
     public:
+        ModelMetadata metadata;
         SlotModel(const Id<SlotModel>& id,
                   RackModel* parent);
 
@@ -43,6 +52,8 @@ class SlotModel final : public IdentifiedObject<SlotModel>
         RackModel& rack() const;
 
         static void copyViewModelsInSameConstraint(const SlotModel&, SlotModel&);
+        static QString description()
+        { return QObject::tr("Slot"); }
 
         template<typename Impl>
         SlotModel(Deserializer<Impl>& vis, QObject* parent) :

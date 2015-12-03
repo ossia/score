@@ -1,22 +1,30 @@
-#include "GroupTableWidget.hpp"
-
-#include "GroupHeaderItem.hpp"
-#include "SessionHeaderItem.hpp"
-#include "GroupTableCheckbox.hpp"
-
-#include "DistributedScenario/Group.hpp"
-#include "session/Session.hpp"
+#include <boost/optional/optional.hpp>
+#include <iscore/document/DocumentInterface.hpp>
+#include <QGridLayout>
+#include <QLabel>
+#include <QLayout>
+#include <QList>
+#include <qnamespace.h>
+#include <QTableWidget>
+#include <QVector>
+#include <vector>
 
 #include "DistributedScenario/Commands/AddClientToGroup.hpp"
 #include "DistributedScenario/Commands/RemoveClientFromGroup.hpp"
-
-#include <iscore/document/DocumentInterface.hpp>
-#include <core/document/Document.hpp>
-
-#include <QLabel>
-#include <QGridLayout>
-
+#include "DistributedScenario/Group.hpp"
 #include "DistributedScenario/GroupManager.hpp"
+#include "GroupHeaderItem.hpp"
+#include "GroupTableCheckbox.hpp"
+#include "GroupTableWidget.hpp"
+#include "SessionHeaderItem.hpp"
+#include <iscore/command/Dispatchers/CommandDispatcher.hpp>
+#include <iscore/tools/ObjectPath.hpp>
+#include <iscore/tools/SettableIdentifier.hpp>
+#include <iscore/document/DocumentContext.hpp>
+#include "session/../client/LocalClient.hpp"
+#include "session/../client/RemoteClient.hpp"
+#include "session/Session.hpp"
+
 GroupTableWidget::GroupTableWidget(
         const GroupManager* mgr,
         const Session* session,
@@ -25,7 +33,7 @@ GroupTableWidget::GroupTableWidget(
     m_mgr{mgr},
     m_session{session},
     m_managerPath{iscore::IDocument::unsafe_path(m_mgr)},
-    m_dispatcher{iscore::IDocument::commandStack(*m_mgr)}
+    m_dispatcher{iscore::IDocument::documentContext(*m_mgr).commandStack}
 {
     connect(m_mgr, &GroupManager::groupAdded, this, &GroupTableWidget::setup);
     connect(m_mgr, &GroupManager::groupRemoved, this, &GroupTableWidget::setup);

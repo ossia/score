@@ -1,13 +1,19 @@
 #pragma once
 
 #include <Scenario/Commands/ScenarioCommandFactory.hpp>
+#include <boost/optional/optional.hpp>
 #include <iscore/command/SerializableCommand.hpp>
-
 #include <iscore/tools/ModelPath.hpp>
+#include <QByteArray>
 
-class ScenarioModel;
-class EventModel;
+#include <iscore/tools/SettableIdentifier.hpp>
+
+class DataStreamInput;
+class DataStreamOutput;
 class TimeNodeModel;
+namespace Scenario {
+class ScenarioModel;
+}  // namespace Scenario
 
 namespace Scenario
 {
@@ -15,9 +21,9 @@ namespace Scenario
     {
         class MergeTimeNodes final : public iscore::SerializableCommand
         {
-                ISCORE_COMMAND_DECL(ScenarioCommandFactoryName(), MergeTimeNodes, "MergeTimeNodes")
+                ISCORE_COMMAND_DECL(ScenarioCommandFactoryName(), MergeTimeNodes, "Merge timenodes")
             public:
-                MergeTimeNodes(Path<ScenarioModel>&& path, Id<TimeNodeModel> aimedTimeNode, Id<TimeNodeModel> movingTimeNode);
+                MergeTimeNodes(Path<Scenario::ScenarioModel>&& path, Id<TimeNodeModel> aimedTimeNode, Id<TimeNodeModel> movingTimeNode);
                 void undo() const override;
                 void redo() const override;
 
@@ -26,7 +32,7 @@ namespace Scenario
                 void deserializeImpl(DataStreamOutput&) override;
 
             private:
-                Path<ScenarioModel> m_path;
+                Path<Scenario::ScenarioModel> m_path;
 
                 Id<TimeNodeModel> m_aimedTimeNodeId;
                 Id<TimeNodeModel> m_movingTimeNodeId;

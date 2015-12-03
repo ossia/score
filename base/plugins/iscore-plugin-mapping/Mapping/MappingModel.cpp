@@ -1,20 +1,30 @@
-#include "MappingModel.hpp"
-#include "MappingLayerModel.hpp"
 #include <Curve/CurveModel.hpp>
-#include <Curve/Segment/Linear/LinearCurveSegmentModel.hpp>
 #include <Curve/Segment/Power/PowerCurveSegmentModel.hpp>
-#include <Curve/Point/CurvePointModel.hpp>
-
+#include <boost/optional/optional.hpp>
 #include <iscore/document/DocumentInterface.hpp>
 
-#include <Curve/Segment/PointArray/PointArrayCurveSegmentModel.hpp>
+#include <Curve/Process/CurveProcessModel.hpp>
+#include <Curve/Segment/CurveSegmentModel.hpp>
+#include <Mapping/MappingProcessMetadata.hpp>
+#include "MappingLayerModel.hpp"
+#include "MappingModel.hpp"
+#include <Process/ModelMetadata.hpp>
+#include <State/Address.hpp>
+#include <iscore/plugins/documentdelegate/plugin/ElementPluginModelList.hpp>
+#include <iscore/tools/SettableIdentifier.hpp>
+
+class LayerModel;
+class Process;
+class ProcessStateDataInterface;
+class QObject;
+
 MappingModel::MappingModel(
         const TimeValue& duration,
         const Id<Process>& id,
         QObject* parent) :
     CurveProcessModel {duration, id, MappingProcessMetadata::processObjectName(), parent}
 {
-    pluginModelList = new iscore::ElementPluginModelList{iscore::IDocument::documentFromObject(parent), this};
+    pluginModelList = new iscore::ElementPluginModelList{iscore::IDocument::documentContext(*parent), this};
 
     // Named shall be enough ?
     setCurve(new CurveModel{Id<CurveModel>(45345), this});
@@ -106,12 +116,12 @@ LayerModel* MappingModel::cloneLayer_impl(
 }
 
 
-ProcessStateDataInterface* MappingModel::startState() const
+ProcessStateDataInterface* MappingModel::startStateData() const
 {
     return nullptr;
 }
 
-ProcessStateDataInterface* MappingModel::endState() const
+ProcessStateDataInterface* MappingModel::endStateData() const
 {
     return nullptr;
 }

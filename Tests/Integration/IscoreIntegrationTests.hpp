@@ -27,7 +27,7 @@
 #include <Explorer/DocumentPlugin/DeviceDocumentPlugin.hpp>
 #include <Commands/ChangeAddress.hpp>
 
-#include <Scenario/Document/BaseElement/BaseElementModel.hpp>
+#include <Scenario/Document/BaseElement/ScenarioDocumentModel.hpp>
 #include <Scenario/Document/BaseElement/BaseScenario/BaseScenario.hpp>
 #include <Scenario/Document/Constraint/ConstraintModel.hpp>
 #include <Scenario/Document/Event/EventModel.hpp>
@@ -90,9 +90,9 @@ class IscoreTestBase : public QObject
             return *app.presenter()->documents()[0];
         }
 
-        BaseElementModel& getBaseElementModel() const
+        ScenarioDocumentModel& getScenarioDocumentModel() const
         {
-            return iscore::IDocument::get<BaseElementModel>(getDocument());
+            return iscore::IDocument::get<ScenarioDocumentModel>(getDocument());
         }
 
         template<typename T>

@@ -1,6 +1,16 @@
-#include "InsertContentInState.hpp"
-#include <Scenario/Document/State/StateModel.hpp>
 #include <Scenario/Document/State/ItemModel/MessageItemModelAlgorithms.hpp>
+#include <Scenario/Document/State/StateModel.hpp>
+#include <QJsonArray>
+#include <QJsonValue>
+#include <algorithm>
+
+#include "InsertContentInState.hpp"
+#include <Process/State/MessageNode.hpp>
+#include <Scenario/Document/State/ItemModel/MessageItemModel.hpp>
+#include <iscore/serialization/DataStreamVisitor.hpp>
+#include <iscore/serialization/VisitorCommon.hpp>
+#include <iscore/tools/ModelPathSerialization.hpp>
+#include <iscore/tools/TreeNode.hpp>
 
 
 InsertContentInState::InsertContentInState(

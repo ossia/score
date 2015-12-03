@@ -1,13 +1,19 @@
 #pragma once
-#include <QString>
 #include <Device/Node/DeviceNode.hpp>
-class DeviceExplorerModel;
+#include <QString>
+
+#include <State/Value.hpp>
+
 class DeviceDocumentPlugin;
+class DeviceExplorerModel;
+namespace iscore {
+struct Address;
+}  // namespace iscore
 
 namespace iscore
 {
-struct DeviceSettings;
 struct AddressSettings;
+struct DeviceSettings;
 }
 /**
  * @brief The NodeUpdateProxy class
@@ -28,6 +34,10 @@ class NodeUpdateProxy
         DeviceExplorerModel* deviceExplorer{};
 
         explicit NodeUpdateProxy(DeviceDocumentPlugin& root);
+        NodeUpdateProxy(const NodeUpdateProxy&) = delete;
+        NodeUpdateProxy(NodeUpdateProxy&&) = delete;
+        NodeUpdateProxy& operator=(const NodeUpdateProxy&) = delete;
+        NodeUpdateProxy& operator=(NodeUpdateProxy&&) = delete;
 
         void addDevice(const iscore::DeviceSettings& dev);
         void loadDevice(const iscore::Node& node);

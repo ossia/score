@@ -1,7 +1,15 @@
-#include "iscore/serialization/DataStreamVisitor.hpp"
-#include "iscore/serialization/JSONVisitor.hpp"
-#include "ObjectPath.hpp"
 #include <iscore/tools/std/StdlibWrapper.hpp>
+#include <QJsonArray>
+#include <QJsonObject>
+#include <QJsonValue>
+
+#include "ObjectPath.hpp"
+#include <iscore/serialization/DataStreamVisitor.hpp>
+#include <iscore/serialization/JSONVisitor.hpp>
+
+template <typename T> class Reader;
+template <typename T> class Writer;
+
 template<>
 void Visitor<Reader<DataStream>>::readFrom(const ObjectPath& path)
 {

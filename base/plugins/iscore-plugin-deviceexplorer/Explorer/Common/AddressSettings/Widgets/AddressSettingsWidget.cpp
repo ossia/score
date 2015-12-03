@@ -1,10 +1,19 @@
-#include "AddressSettingsWidget.hpp"
-#include <QFormLayout>
-#include <QSpinBox>
-#include <QLineEdit>
+#include <QBoxLayout>
 #include <QComboBox>
-#include <QPushButton>
+#include <QFormLayout>
 #include <QInputDialog>
+#include <QLineEdit>
+#include <QMap>
+
+#include <QPushButton>
+#include <QString>
+#include <QStringList>
+#include <QVariant>
+
+#include "AddressSettingsWidget.hpp"
+#include <Device/Address/AddressSettings.hpp>
+#include <Device/Address/ClipMode.hpp>
+#include <Device/Address/IOType.hpp>
 
 AddressSettingsWidget::AddressSettingsWidget(QWidget *parent) :
     QWidget(parent),

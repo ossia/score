@@ -1,13 +1,20 @@
-#include "AddLayerInNewSlot.hpp"
-
+#include <Process/Process.hpp>
 #include <Scenario/Document/Constraint/ConstraintModel.hpp>
 #include <Scenario/Document/Constraint/Rack/RackModel.hpp>
 #include <Scenario/Document/Constraint/Rack/Slot/SlotModel.hpp>
-#include <Scenario/Document/Constraint/ViewModels/FullView/FullViewConstraintViewModel.hpp>
 
-#include <Process/Process.hpp>
-#include <Process/LayerModel.hpp>
+#include <boost/iterator/iterator_facade.hpp>
+#include <boost/multi_index/detail/hash_index_iterator.hpp>
 #include <iscore/tools/SettableIdentifierGeneration.hpp>
+#include <algorithm>
+#include <vector>
+
+#include "AddLayerInNewSlot.hpp"
+#include <Scenario/Document/Constraint/ViewModels/ConstraintViewModel.hpp>
+#include <iscore/serialization/DataStreamVisitor.hpp>
+#include <iscore/tools/ModelPath.hpp>
+#include <iscore/tools/ModelPathSerialization.hpp>
+#include <iscore/tools/NotifyingMap.hpp>
 
 
 using namespace iscore;

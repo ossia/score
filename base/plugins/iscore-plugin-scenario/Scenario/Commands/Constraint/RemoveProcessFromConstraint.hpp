@@ -1,20 +1,27 @@
 #pragma once
 #include <Scenario/Commands/ScenarioCommandFactory.hpp>
+#include <boost/optional/optional.hpp>
 #include <iscore/command/SerializableCommand.hpp>
 #include <iscore/tools/ModelPath.hpp>
+#include <QByteArray>
+#include <QPair>
+#include <QVector>
 
-#include <tests/helpers/ForwardDeclaration.hpp>
-class Process;
+#include <iscore/tools/SettableIdentifier.hpp>
+
 class ConstraintModel;
+class DataStreamInput;
+class DataStreamOutput;
 class LayerModel;
+class Process;
+
 namespace Scenario
 {
     namespace Command
     {
         class RemoveProcessFromConstraint final : public iscore::SerializableCommand
         {
-                ISCORE_COMMAND_DECL(ScenarioCommandFactoryName(), RemoveProcessFromConstraint, "RemoveProcessFromConstraint")
-#include <tests/helpers/FriendDeclaration.hpp>
+                ISCORE_COMMAND_DECL(ScenarioCommandFactoryName(), RemoveProcessFromConstraint, "Remove a process")
             public:
                 RemoveProcessFromConstraint(
                     Path<ConstraintModel>&& constraintPath,

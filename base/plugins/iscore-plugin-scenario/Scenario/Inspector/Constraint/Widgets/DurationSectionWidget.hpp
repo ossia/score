@@ -1,16 +1,20 @@
 #pragma once
 #include <Inspector/InspectorSectionWidget.hpp>
 #include <Process/TimeValue.hpp>
-#include <Scenario/Control/ScenarioEditionSettings.hpp>
-
 #include <iscore/command/Dispatchers/OngoingCommandDispatcher.hpp>
-#include <iscore/widgets/SpinBoxes.hpp>
-class QLabel;
-class ConstraintModel;
+
+class ConstraintInspectorDelegate;
 class ConstraintInspectorWidget;
+class ConstraintModel;
 class QCheckBox;
 class QGridLayout;
-class QHBoxLayout;
+class QLabel;
+namespace Scenario {
+class EditionSettings;
+}  // namespace Scenario
+namespace iscore {
+class TimeSpinBox;
+}  // namespace iscore
 
 class DurationSectionWidget final : public InspectorSectionWidget
 {
@@ -18,6 +22,7 @@ class DurationSectionWidget final : public InspectorSectionWidget
     public:
         DurationSectionWidget(
                 const Scenario::EditionSettings& set,
+                const ConstraintInspectorDelegate&,
                 ConstraintInspectorWidget* parent);
 
     virtual ~DurationSectionWidget();
@@ -32,6 +37,8 @@ class DurationSectionWidget final : public InspectorSectionWidget
         void on_modelMinDurationChanged(const TimeValue& dur);
         void on_modelMaxDurationChanged(const TimeValue& dur);
         void on_modelRigidityChanged(bool b);
+        void on_modelMinNullChanged(bool b);
+        void on_modelMaxInfiniteChanged(bool b);
         void on_durationsChanged();
 
         void on_minNonNullToggled(bool val);
@@ -45,6 +52,8 @@ class DurationSectionWidget final : public InspectorSectionWidget
 
         QLabel* m_maxLab{};
         QLabel* m_minLab{};
+        QLabel* m_maxInfinity{};
+        QLabel* m_minNull{};
 
         iscore::TimeSpinBox* m_minSpin{};
         iscore::TimeSpinBox* m_valueSpin{};
@@ -59,4 +68,5 @@ class DurationSectionWidget final : public InspectorSectionWidget
         OngoingCommandDispatcher m_dispatcher;
 
         const Scenario::EditionSettings& m_editionSettings;
+        const ConstraintInspectorDelegate& m_delegate;
 };

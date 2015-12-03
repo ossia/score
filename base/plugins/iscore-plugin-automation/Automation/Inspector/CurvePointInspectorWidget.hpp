@@ -5,6 +5,10 @@
 
 class CurvePointModel;
 class QDoubleSpinBox;
+class QWidget;
+namespace iscore {
+class Document;
+}  // namespace iscore
 
 class CurvePointInspectorWidget final : public InspectorWidgetBase
 {
@@ -12,7 +16,7 @@ class CurvePointInspectorWidget final : public InspectorWidgetBase
     public:
         explicit CurvePointInspectorWidget(
             const CurvePointModel& model,
-            iscore::Document& doc,
+            const iscore::DocumentContext& context,
             QWidget* parent);
 
     public slots:

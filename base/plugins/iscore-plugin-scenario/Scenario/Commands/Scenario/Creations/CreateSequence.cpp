@@ -1,18 +1,50 @@
-#include "CreateSequence.hpp"
-
-#include  <Scenario/Process/ScenarioModel.hpp>
 #include <Explorer/DocumentPlugin/DeviceDocumentPlugin.hpp>
-#include <core/document/Document.hpp>
-#include <core/document/DocumentModel.hpp>
-#include <Scenario/Document/State/ItemModel/MessageItemModelAlgorithms.hpp>
 #include <Scenario/Commands/Cohesion/CreateCurveFromStates.hpp>
-#include <iscore/tools/SettableIdentifierGeneration.hpp>
+#include <Scenario/Document/State/ItemModel/MessageItemModelAlgorithms.hpp>
+#include  <Scenario/Process/ScenarioModel.hpp>
 
-#include <iostream>
+#include <boost/optional/optional.hpp>
+#include <iscore/tools/SettableIdentifierGeneration.hpp>
+#include <QByteArray>
+#include <QtGlobal>
+#include <QList>
+#include <QString>
+#include <algorithm>
+#include <iterator>
+#include <list>
+#include <utility>
+#include <vector>
+
+#include "CreateSequence.hpp"
+#include <Device/Address/AddressSettings.hpp>
+#include <Device/Address/Domain.hpp>
+#include <Device/Node/DeviceNode.hpp>
+#include <Explorer/DocumentPlugin/NodeUpdateProxy.hpp>
+#include <Process/State/MessageNode.hpp>
+#include <Process/TimeValue.hpp>
+#include <Scenario/Commands/Cohesion/InterpolateMacro.hpp>
+#include <Scenario/Commands/Scenario/Creations/CreateConstraint_State_Event_TimeNode.hpp>
+#include <Scenario/Document/Constraint/ConstraintModel.hpp>
+#include <Scenario/Document/State/ItemModel/MessageItemModel.hpp>
+#include <Scenario/Document/State/StateModel.hpp>
+#include <State/Address.hpp>
+#include <State/Message.hpp>
+#include <State/Value.hpp>
+#include <State/ValueConversion.hpp>
+#include <iscore/document/DocumentInterface.hpp>
+#include <iscore/serialization/DataStreamVisitor.hpp>
+#include <iscore/tools/SettableIdentifier.hpp>
+#include <iscore/tools/Todo.hpp>
+#include <iscore/tools/TreeNode.hpp>
+
+class LayerModel;
+class Process;
+class SlotModel;
+
 using namespace Scenario::Command;
 
 CreateSequence::CreateSequence(
-        const ScenarioModel& scenario,
+        const Scenario::ScenarioModel& scenario,
         const Id<StateModel>& startState,
         const TimeValue& date,
         double endStateY):
@@ -32,7 +64,7 @@ CreateSequence::CreateSequence(
     std::transform(startMessages.begin(), startMessages.end(), std::back_inserter(endAddresses),
                    [] (const auto& mess) { return iscore::FullAddressSettings::make(mess); });
 
-    auto& devPlugin = *iscore::IDocument::documentFromObject(scenario)->model().pluginModel<DeviceDocumentPlugin>();
+    auto& devPlugin = iscore::IDocument::documentContext(scenario).plugin<DeviceDocumentPlugin>();
     auto& rootNode = devPlugin.rootNode();
 
     auto it = endAddresses.begin();
@@ -88,7 +120,7 @@ CreateSequence::CreateSequence(
     // Then, if there are correct messages we can actually do our interpolation.
     if(!matchingMessages.empty())
     {
-        auto constraint = Path<ScenarioModel>{scenario}.extend(ConstraintModel::className, m_command.createdConstraint());
+        auto constraint = Path<Scenario::ScenarioModel>{scenario}.extend(ConstraintModel::className, m_command.createdConstraint());
 
         {
             InterpolateMacro interpolateMacro{Path<ConstraintModel>{constraint}};
@@ -134,7 +166,7 @@ CreateSequence::CreateSequence(
 }
 
 CreateSequence::CreateSequence(
-        const Path<ScenarioModel>& scenarioPath,
+        const Path<Scenario::ScenarioModel>& scenarioPath,
         const Id<StateModel>& startState,
         const TimeValue& date,
         double endStateY):

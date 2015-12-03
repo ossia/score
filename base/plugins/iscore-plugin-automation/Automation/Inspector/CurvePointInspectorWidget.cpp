@@ -1,19 +1,29 @@
-#include "CurvePointInspectorWidget.hpp"
-
-#include <Curve/Point/CurvePointModel.hpp>
-#include <Curve/CurveModel.hpp>
 #include <Automation/AutomationModel.hpp>
-
 #include <Curve/Commands/MovePoint.hpp>
-#include <QVBoxLayout>
-#include <QLineEdit>
+#include <Curve/CurveModel.hpp>
+#include <Curve/Point/CurvePointModel.hpp>
+#include <QBoxLayout>
 #include <QLabel>
-#include <QDoubleSpinBox>
+#include <QObject>
+#include <QSpinBox>
+#include <QWidget>
+#include <list>
+
+#include <Curve/Palette/CurvePoint.hpp>
+#include "CurvePointInspectorWidget.hpp"
+#include <Inspector/InspectorWidgetBase.hpp>
+#include <Process/TimeValue.hpp>
+#include <iscore/command/Dispatchers/CommandDispatcher.hpp>
+#include <iscore/command/Dispatchers/OngoingCommandDispatcher.hpp>
+
+namespace iscore {
+class Document;
+}  // namespace iscore
 
 
 CurvePointInspectorWidget::CurvePointInspectorWidget(
     const CurvePointModel& model,
-    iscore::Document& doc,
+    const iscore::DocumentContext& doc,
     QWidget* parent):
     InspectorWidgetBase{model, doc, parent},
     m_model{model},

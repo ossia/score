@@ -1,15 +1,7 @@
 #pragma once
-#include <QByteArray>
-#include <QDataStream>
-#include <QBuffer>
+#include <iscore/application/ApplicationContext.hpp>
+#include <QtGlobal>
 #include <chrono>
-#include <string>
-
-#include <numeric>
-
-#include <iscore/serialization/DataStreamVisitor.hpp>
-#include <iscore/tools/ModelPathSerialization.hpp>
-#include <core/application/ApplicationContext.hpp>
 
 namespace iscore
 {
@@ -19,7 +11,7 @@ namespace iscore
      * The base of the command system in i-score
      * It is timestamped, because we can then compare between clients.
      *
-     * Maybe the NetworkPlugin should replace the Command by a TimestampedCommand instead ?
+     * Maybe the iscore_plugin_network should replace the Command by a TimestampedCommand instead ?
      * What if other plug-ins also want to add functionality ?
      *
      * Note: for mergeWith put two timestamps, one for the initial command (5 sec) and one for each
@@ -38,7 +30,7 @@ namespace iscore
             quint32 timestamp() const;
             void setTimestamp(quint32 stmp);
 
-            iscore::ApplicationContext context;
+            const iscore::ApplicationContext& context;
 
         private:
             //TODO check if this is UTC

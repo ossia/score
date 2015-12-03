@@ -1,21 +1,22 @@
-#include "InspectorSectionWidget.hpp"
-#include "InspectorWidgetBase.hpp"
-#include <iscore/document/DocumentInterface.hpp>
-#include <core/document/Document.hpp>
-
-#include <QLineEdit>
-#include <QTextEdit>
+#include <QBoxLayout>
+#include <QLayoutItem>
 #include <QScrollArea>
+#include <iscore/document/DocumentContext.hpp>
+
+#include "InspectorWidgetBase.hpp"
+#include <iscore/command/Dispatchers/CommandDispatcher.hpp>
+#include <iscore/selection/SelectionDispatcher.hpp>
+#include <iscore/tools/IdentifiedObjectAbstract.hpp>
 
 InspectorWidgetBase::InspectorWidgetBase(
         const IdentifiedObjectAbstract& inspectedObj,
-        iscore::Document& doc,
+        const iscore::DocumentContext& ctx,
         QWidget* parent) :
     QWidget(parent),
     m_inspectedObject {inspectedObj},
-    m_document{doc},
-    m_commandDispatcher(new CommandDispatcher<>{m_document.commandStack()}),
-    m_selectionDispatcher(new iscore::SelectionDispatcher{m_document.selectionStack()})
+    m_context{ctx},
+    m_commandDispatcher(new CommandDispatcher<>{ctx.commandStack}),
+    m_selectionDispatcher(new iscore::SelectionDispatcher{ctx.selectionStack})
 
 {
     m_layout = new QVBoxLayout;

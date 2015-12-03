@@ -1,26 +1,35 @@
 #pragma once
 #include <Process/ModelMetadata.hpp>
-
+#include <Process/StateProcess.hpp>
+#include <Scenario/Document/Event/ExecutionStatus.hpp>
+#include <boost/optional/optional.hpp>
+#include <iscore/selection/Selectable.hpp>
 #include <iscore/tools/IdentifiedObject.hpp>
 #include <iscore/tools/SettableIdentifier.hpp>
-#include <iscore/serialization/DataStreamVisitor.hpp>
-#include <iscore/serialization/JSONVisitor.hpp>
-#include <iscore/selection/Selectable.hpp>
+#include <iscore/tools/NotifyingMap.hpp>
+#include <nano_signal_slot.hpp>
 
-#include <Scenario/Document/State/ItemModel/MessageItemModel.hpp>
 #include <set>
-#include "StateView.hpp"
-#include <Scenario/Document/Event/ExecutionStatus.hpp>
+#include <vector>
 
-class ConstraintView;
-class ScenarioInterface;
-class EventModel;
+#include <iscore/serialization/VisitorInterface.hpp>
+#include <iscore/tools/Todo.hpp>
+
 class ConstraintModel;
+class DataStream;
+class EventModel;
+class JSONObject;
+class MessageItemModel;
 class Process;
 class ProcessStateDataInterface;
 
+namespace iscore
+{
+class CommandStackFacade;
+}
+
 // Model for the graphical state in a scenario.
-class StateModel final : public IdentifiedObject<StateModel>
+class StateModel final : public IdentifiedObject<StateModel>, public Nano::Observer
 {
         Q_OBJECT
         ISCORE_METADATA("StateModel")
@@ -34,24 +43,27 @@ class StateModel final : public IdentifiedObject<StateModel>
         StateModel(const Id<StateModel>& id,
                    const Id<EventModel>& eventId,
                    double yPos,
+                   iscore::CommandStackFacade& stack,
                    QObject* parent);
 
         // Copy
         StateModel(const StateModel& source,
                    const Id<StateModel>&,
+                   iscore::CommandStackFacade& stack,
                    QObject* parent);
 
         // Load
         template<typename DeserializerVisitor,
                  enable_if_deserializer<DeserializerVisitor>* = nullptr>
-        StateModel(DeserializerVisitor&& vis, QObject* parent) :
-            IdentifiedObject{vis, parent}
+        StateModel(DeserializerVisitor&& vis,
+                   iscore::CommandStackFacade& stack,
+                   QObject* parent) :
+            IdentifiedObject{vis, parent},
+            m_stack{stack}
         {
             vis.writeTo(*this);
             init();
         }
-
-        const ScenarioInterface* parentScenario() const;
 
         double heightPercentage() const;
 
@@ -75,7 +87,9 @@ class StateModel final : public IdentifiedObject<StateModel>
 
         void setStatus(ExecutionStatus);
         ExecutionStatus status() const
-        { return m_status; }
+        { return m_status.get(); }
+
+        NotifyingMap<StateProcess> stateProcesses;
 
     signals:
         void sig_statesUpdated();
@@ -94,6 +108,8 @@ class StateModel final : public IdentifiedObject<StateModel>
         void on_previousProcessAdded(const Process&);
         void on_previousProcessRemoved(const Process&);
 
+        iscore::CommandStackFacade& m_stack;
+
         std::set<ProcessStateDataInterface*> m_previousProcesses;
         std::set<ProcessStateDataInterface*> m_nextProcesses;
         Id<EventModel> m_eventId;
@@ -105,8 +121,5 @@ class StateModel final : public IdentifiedObject<StateModel>
         double m_heightPercentage{0.5}; // In the whole scenario
 
         ptr<MessageItemModel> m_messageItemModel;
-        ExecutionStatus m_status{ExecutionStatus::Editing};
-
-        std::vector<QMetaObject::Connection> m_prevConnections;
-        std::vector<QMetaObject::Connection> m_nextConnections;
+        ExecutionStatusProperty m_status{};
 };

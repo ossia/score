@@ -1,15 +1,23 @@
-#include "TemporalConstraintPresenter.hpp"
-
-#include <Scenario/Document/Event/EventModel.hpp>
 #include <Scenario/Document/Constraint/ConstraintModel.hpp>
-#include <Scenario/Document/Constraint/ViewModels/Temporal/TemporalConstraintViewModel.hpp>
 #include <Scenario/Document/Constraint/ViewModels/Temporal/TemporalConstraintView.hpp>
-#include <Scenario/Commands/Constraint/AddProcessToConstraint.hpp>
+#include <Scenario/Document/Constraint/ViewModels/Temporal/TemporalConstraintViewModel.hpp>
+#include <Scenario/Document/ScenarioDocument/ScenarioDocumentModel.hpp>
 #include <iscore/document/DocumentInterface.hpp>
-#include <Scenario/Document/BaseElement/BaseElementModel.hpp>
-
-#include "TemporalConstraintHeader.hpp"
 #include <QGraphicsScene>
+#include <QList>
+
+#include <Process/ModelMetadata.hpp>
+#include <Scenario/Document/Constraint/ViewModels/ConstraintHeader.hpp>
+#include <Scenario/Document/Constraint/ViewModels/ConstraintPresenter.hpp>
+#include <Scenario/Document/Constraint/ViewModels/ConstraintViewModel.hpp>
+#include "TemporalConstraintHeader.hpp"
+#include "TemporalConstraintPresenter.hpp"
+#include <iscore/selection/Selectable.hpp>
+#include <iscore/tools/Todo.hpp>
+
+class QColor;
+class QObject;
+class QString;
 
 TemporalConstraintPresenter::TemporalConstraintPresenter(
         const TemporalConstraintViewModel& cstr_model,
@@ -55,7 +63,7 @@ TemporalConstraintPresenter::TemporalConstraintPresenter(
     connect(static_cast<TemporalConstraintHeader*>(m_header), &TemporalConstraintHeader::doubleClicked,
             this, [this] () {
         using namespace iscore::IDocument;
-        auto& base = get<BaseElementModel> (*documentFromObject(m_viewModel.model()));
+        auto& base = get<ScenarioDocumentModel> (*documentFromObject(m_viewModel.model()));
 
         base.setDisplayedConstraint(m_viewModel.model());
     });

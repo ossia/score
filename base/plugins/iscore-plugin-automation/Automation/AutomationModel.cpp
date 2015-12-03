@@ -1,15 +1,27 @@
-#include "AutomationModel.hpp"
-#include "AutomationLayerModel.hpp"
-#include "State/AutomationState.hpp"
-
-#include "Curve/CurveModel.hpp"
-#include "Curve/Segment/Linear/LinearCurveSegmentModel.hpp"
-#include "Curve/Segment/Power/PowerCurveSegmentModel.hpp"
-#include "Curve/Point/CurvePointModel.hpp"
-
+#include <boost/optional/optional.hpp>
 #include <iscore/document/DocumentInterface.hpp>
+#include <QDebug>
+#include <QPoint>
 
-#include "Curve/Segment/PointArray/PointArrayCurveSegmentModel.hpp"
+#include <Automation/AutomationProcessMetadata.hpp>
+#include "AutomationLayerModel.hpp"
+#include "AutomationModel.hpp"
+#include <Curve/CurveModel.hpp>
+#include <Curve/Palette/CurvePoint.hpp>
+#include <Curve/Process/CurveProcessModel.hpp>
+#include <Curve/Segment/CurveSegmentModel.hpp>
+#include <Curve/Segment/Power/PowerCurveSegmentModel.hpp>
+#include <Process/ModelMetadata.hpp>
+#include <State/Address.hpp>
+#include <Automation/State/AutomationState.hpp>
+#include <iscore/plugins/documentdelegate/plugin/ElementPluginModelList.hpp>
+#include <iscore/tools/IdentifiedObjectMap.hpp>
+#include <iscore/tools/SettableIdentifier.hpp>
+
+class LayerModel;
+class Process;
+class QObject;
+
 AutomationModel::AutomationModel(
         const TimeValue& duration,
         const Id<Process>& id,
@@ -18,7 +30,7 @@ AutomationModel::AutomationModel(
     m_startState{new AutomationState{*this, 0., this}},
     m_endState{new AutomationState{*this, 1., this}}
 {
-    pluginModelList = new iscore::ElementPluginModelList{iscore::IDocument::documentFromObject(parent), this};
+    pluginModelList = new iscore::ElementPluginModelList{iscore::IDocument::documentContext(*parent), this};
 
     // Named shall be enough ?
     setCurve(new CurveModel{Id<CurveModel>(45345), this});
@@ -177,12 +189,12 @@ void AutomationModel::setCurve_impl()
 }
 
 
-AutomationState* AutomationModel::startState() const
+AutomationState* AutomationModel::startStateData() const
 {
     return m_startState;
 }
 
-AutomationState* AutomationModel::endState() const
+AutomationState* AutomationModel::endStateData() const
 {
     return m_endState;
 }

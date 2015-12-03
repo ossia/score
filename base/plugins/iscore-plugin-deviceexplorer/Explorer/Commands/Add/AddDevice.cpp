@@ -1,7 +1,14 @@
-#include "AddDevice.hpp"
-#include <Device/Node/DeviceNode.hpp>
-
 #include <Explorer/DocumentPlugin/DeviceDocumentPlugin.hpp>
+
+#include "AddDevice.hpp"
+#include <Explorer/DocumentPlugin/NodeUpdateProxy.hpp>
+#include <iscore/serialization/DataStreamVisitor.hpp>
+#include <iscore/tools/ModelPath.hpp>
+#include <iscore/tools/ModelPathSerialization.hpp>
+
+namespace iscore {
+struct DeviceSettings;
+}  // namespace iscore
 
 using namespace iscore;
 AddDevice::AddDevice(

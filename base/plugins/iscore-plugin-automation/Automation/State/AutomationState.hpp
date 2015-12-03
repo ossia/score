@@ -2,8 +2,17 @@
 
 #include <Process/State/ProcessStateDataInterface.hpp>
 #include <State/Message.hpp>
+#include <QString>
+#include <vector>
+
+#include <Process/State/MessageNode.hpp>
 
 class AutomationModel;
+class QObject;
+namespace iscore {
+struct Address;
+}  // namespace iscore
+
 class AutomationState final : public ProcessStateDataInterface
 {
     public:

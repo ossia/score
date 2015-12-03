@@ -1,5 +1,8 @@
 #pragma once
 #include "AddressSettingsWidget.hpp"
+#include <Device/Address/AddressSettings.hpp>
+
+class QWidget;
 
 class AddressNoneSettingsWidget final : public AddressSettingsWidget
 {

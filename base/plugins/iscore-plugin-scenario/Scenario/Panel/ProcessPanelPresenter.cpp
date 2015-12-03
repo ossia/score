@@ -1,29 +1,40 @@
+#include <Process/LayerModelPanelProxy.hpp>
+#include <Scenario/Document/ScenarioDocument/ScenarioDocumentModel.hpp>
+#include <Scenario/Document/ScenarioDocument/Widgets/ScenarioBaseGraphicsView.hpp>
+#include <QGraphicsScene>
+#include <QObject>
+#include <QSize>
+#include <algorithm>
+
+#include <Process/LayerModel.hpp>
+#include <Process/LayerPresenter.hpp>
+#include <Process/Process.hpp>
+#include <Process/ProcessFactory.hpp>
+#include <Process/ProcessList.hpp>
+#include <Process/TimeValue.hpp>
+#include <Process/ZoomHelper.hpp>
 #include "ProcessPanelPresenter.hpp"
 #include "ProcessPanelView.hpp"
-#include "ProcessPanelModel.hpp"
-
-#include <QApplication>
-#include <Scenario/Document/BaseElement/BaseElementModel.hpp>
-
-#include <Process/ProcessList.hpp>
-#include <Process/Process.hpp>
-#include <Process/LayerModel.hpp>
-#include <Process/LayerModelPanelProxy.hpp>
-#include <Process/LayerPresenter.hpp>
-#include <Process/LayerView.hpp>
-#include <Process/ProcessFactory.hpp>
-
-#include <Scenario/Document/BaseElement/Widgets/ScenarioBaseGraphicsView.hpp>
+#include <Scenario/Document/ScenarioDocument/ProcessFocusManager.hpp>
+#include <Scenario/Panel/ProcessPanelGraphicsProxy.hpp>
+#include <iscore/document/DocumentInterface.hpp>
+#include <iscore/plugins/customfactory/FactoryFamily.hpp>
+#include <iscore/plugins/customfactory/FactoryMap.hpp>
+#include <iscore/plugins/panel/PanelModel.hpp>
+#include <iscore/plugins/panel/PanelPresenter.hpp>
+#include <iscore/tools/Todo.hpp>
 
 #include "ProcessPanelId.hpp"
-#include <Scenario/Document/BaseElement/ProcessFocusManager.hpp>
-#include <Scenario/Document/BaseElement/Widgets/DoubleSlider.hpp>
+namespace iscore {
+class PanelView;
+
+}  // namespace iscore
 
 ProcessPanelPresenter::ProcessPanelPresenter(
-        const DynamicProcessList& plist,
-        iscore::Presenter* parent_presenter,
-        iscore::PanelView* view):
-    iscore::PanelPresenter{parent_presenter, view},
+        const ProcessList& plist,
+        iscore::PanelView* view,
+        QObject* parent):
+    iscore::PanelPresenter{view, parent},
     m_processList{plist}
 {
     auto v = static_cast<ProcessPanelView*>(view);
@@ -44,7 +55,7 @@ void ProcessPanelPresenter::on_modelChanged()
         return;
     }
 
-    auto bem = iscore::IDocument::try_get<BaseElementModel>(*iscore::IDocument::documentFromObject(model()));
+    auto bem = iscore::IDocument::try_get<ScenarioDocumentModel>(*iscore::IDocument::documentFromObject(model()));
 
     if(!bem)
         return;

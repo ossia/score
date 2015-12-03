@@ -14,9 +14,9 @@ relevant.
 
 
 # Addresses
-alnum 			:= +[a-zA-Z0-9];
-device 			:= alnum;
-path_element 	:= alnum;
+fragment 		:= +[a-zA-Z0-9.~()_];
+device 			:= fragment;
+path_element 	:= fragment;
 path 			:= ('/', path_element)+ | '/';
 
 Address 		:= device, ‘:’, path;

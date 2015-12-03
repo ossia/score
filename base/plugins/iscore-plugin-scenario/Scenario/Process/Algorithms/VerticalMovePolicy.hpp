@@ -1,21 +1,23 @@
 #pragma once
-#include <iscore/tools/SettableIdentifier.hpp>
-class TimeNodeModel;
-class EventModel;
-class ScenarioModel;
 class ConstraintModel;
+class EventModel;
+class TimeNodeModel;
+namespace Scenario {
+class ScenarioModel;
+}  // namespace Scenario
+#include <iscore/tools/SettableIdentifier.hpp>
 
 void updateTimeNodeExtent(
         const Id<TimeNodeModel>& id,
-        ScenarioModel& s);
+        Scenario::ScenarioModel& s);
 
 // Will call updateTimeNodeExtent
 void updateEventExtent(
         const Id<EventModel>& id,
-        ScenarioModel& s);
+        Scenario::ScenarioModel& s);
 
 // Will call updateEventExtent
 void updateConstraintVerticalPos(
         double y,
         const Id<ConstraintModel>& id,
-        ScenarioModel& s);
+        Scenario::ScenarioModel& s);

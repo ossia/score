@@ -1,8 +1,10 @@
-#include "AbstractTimeRuler.hpp"
+#include <QString>
+#include <chrono>
 
+#include "AbstractTimeRuler.hpp"
 #include "AbstractTimeRulerView.hpp"
-#include <QGraphicsScene>
-#include <QGraphicsView>
+#include <Process/TimeValue.hpp>
+
 AbstractTimeRuler::AbstractTimeRuler(AbstractTimeRulerView* view, QObject* parent) :
     QObject{parent},
     m_view{view}

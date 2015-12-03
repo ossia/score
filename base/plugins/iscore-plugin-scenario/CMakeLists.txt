@@ -23,27 +23,27 @@ add_subdirectory(DummyProcess)
 
 ### Scenario plugin ###
 file(GLOB_RECURSE HDRS
+    "${CMAKE_CURRENT_SOURCE_DIR}/Scenario/Application/*.hpp"
     "${CMAKE_CURRENT_SOURCE_DIR}/Scenario/Commands/*.hpp"
-    "${CMAKE_CURRENT_SOURCE_DIR}/Scenario/Control/*.hpp"
     "${CMAKE_CURRENT_SOURCE_DIR}/Scenario/DialogWidget/*.hpp"
     "${CMAKE_CURRENT_SOURCE_DIR}/Scenario/Document/*.hpp"
+    "${CMAKE_CURRENT_SOURCE_DIR}/Scenario/Palette/*.hpp"
     "${CMAKE_CURRENT_SOURCE_DIR}/Scenario/Panel/*.hpp"
     "${CMAKE_CURRENT_SOURCE_DIR}/Scenario/Process/*.hpp"
-    "${CMAKE_CURRENT_SOURCE_DIR}/Scenario/ProcessInterfaceSerialization/*.hpp"
     "${CMAKE_CURRENT_SOURCE_DIR}/Scenario/ViewCommands/*.hpp"
-    "${CMAKE_CURRENT_SOURCE_DIR}/Scenario/ScenarioPlugin.hpp"
+    "${CMAKE_CURRENT_SOURCE_DIR}/Scenario/iscore_plugin_scenario.hpp"
     "${CMAKE_CURRENT_SOURCE_DIR}/Scenario/Tools/*.hpp"
 )
 
-list(REMOVE_ITEM HDRS "${CMAKE_CURRENT_SOURCE_DIR}/Scenario/Document/BaseElement/WebSocketView.hpp")
+list(REMOVE_ITEM HDRS "${CMAKE_CURRENT_SOURCE_DIR}/Scenario/Document/ScenarioDocument/WebSocketView.hpp")
 qt5_add_resources(QRCS "${CMAKE_CURRENT_SOURCE_DIR}/Scenario/resources/ScenarioResources.qrc")
 
 if(ISCORE_WEBSOCKETS)
 set(SRCS
-"${CMAKE_CURRENT_SOURCE_DIR}/Scenario/Document/BaseElement/WebSocketView.cpp"
+"${CMAKE_CURRENT_SOURCE_DIR}/Scenario/Document/ScenarioDocument/WebSocketView.cpp"
 )
 set(HDRS ${HDRS}
-"${CMAKE_CURRENT_SOURCE_DIR}/Scenario/Document/BaseElement/WebSocketView.hpp"
+"${CMAKE_CURRENT_SOURCE_DIR}/Scenario/Document/ScenarioDocument/WebSocketView.hpp"
 )
 endif()
 set(SRCS ${SRCS}
@@ -62,13 +62,15 @@ set(SRCS ${SRCS}
 "${CMAKE_CURRENT_SOURCE_DIR}/Scenario/Document/State/StateModelSerialization.cpp"
 "${CMAKE_CURRENT_SOURCE_DIR}/Scenario/Document/Event/EventModelSerialization.cpp"
 "${CMAKE_CURRENT_SOURCE_DIR}/Scenario/Document/TimeNode/TimeNodeModelSerialization.cpp"
+"${CMAKE_CURRENT_SOURCE_DIR}/Scenario/Document/CommentBlock/CommentBlockModelSerialization.cpp"
 "${CMAKE_CURRENT_SOURCE_DIR}/Scenario/Process/Temporal/TemporalScenarioLayerSerialization.cpp"
 "${CMAKE_CURRENT_SOURCE_DIR}/Scenario/Process/ScenarioModelSerialization.cpp"
-"${CMAKE_CURRENT_SOURCE_DIR}/Scenario/Document/BaseElement/BaseScenario/BaseScenarioSerialization.cpp"
-"${CMAKE_CURRENT_SOURCE_DIR}/Scenario/Document/BaseElement/BaseElementModelSerialization.cpp"
+"${CMAKE_CURRENT_SOURCE_DIR}/Scenario/Document/BaseScenario/BaseScenarioContainerSerialization.cpp"
+"${CMAKE_CURRENT_SOURCE_DIR}/Scenario/Document/BaseScenario/BaseScenarioSerialization.cpp"
+"${CMAKE_CURRENT_SOURCE_DIR}/Scenario/Document/ScenarioDocument/ScenarioDocumentModelSerialization.cpp"
 
 
-"${CMAKE_CURRENT_SOURCE_DIR}/Scenario/Process/Temporal/StateMachines/Tools/ScenarioRollbackStrategy.cpp"
+"${CMAKE_CURRENT_SOURCE_DIR}/Scenario/Palette/Tools/ScenarioRollbackStrategy.cpp"
 "${CMAKE_CURRENT_SOURCE_DIR}/Scenario/Commands/Constraint/SetLooping.cpp"
 "${CMAKE_CURRENT_SOURCE_DIR}/Scenario/Commands/Constraint/Rack/Slot/AddLayerModelToSlot.cpp"
 "${CMAKE_CURRENT_SOURCE_DIR}/Scenario/Commands/Constraint/Rack/Slot/RemoveLayerModelFromSlot.cpp"
@@ -78,10 +80,9 @@ set(SRCS ${SRCS}
 "${CMAKE_CURRENT_SOURCE_DIR}/Scenario/Commands/Constraint/Rack/RemoveSlotFromRack.cpp"
 "${CMAKE_CURRENT_SOURCE_DIR}/Scenario/Commands/Constraint/Rack/SwapSlots.cpp"
 "${CMAKE_CURRENT_SOURCE_DIR}/Scenario/Commands/Constraint/AddRackToConstraint.cpp"
-"${CMAKE_CURRENT_SOURCE_DIR}/Scenario/Commands/Constraint/AddProcessToConstraint.cpp"
 "${CMAKE_CURRENT_SOURCE_DIR}/Scenario/Commands/Constraint/AddOnlyProcessToConstraint.cpp"
 "${CMAKE_CURRENT_SOURCE_DIR}/Scenario/Commands/Constraint/AddLayerInNewSlot.cpp"
-"${CMAKE_CURRENT_SOURCE_DIR}/Scenario/Commands/Constraint/ReplaceConstraintContent.cpp"
+"${CMAKE_CURRENT_SOURCE_DIR}/Scenario/Commands/Constraint/InsertContentInConstraint.cpp"
 "${CMAKE_CURRENT_SOURCE_DIR}/Scenario/Commands/Constraint/DuplicateRack.cpp"
 "${CMAKE_CURRENT_SOURCE_DIR}/Scenario/Commands/Constraint/RemoveRackFromConstraint.cpp"
 "${CMAKE_CURRENT_SOURCE_DIR}/Scenario/Commands/Constraint/RemoveProcessFromConstraint.cpp"
@@ -89,6 +90,8 @@ set(SRCS ${SRCS}
 
 "${CMAKE_CURRENT_SOURCE_DIR}/Scenario/Commands/Event/SetCondition.cpp"
 "${CMAKE_CURRENT_SOURCE_DIR}/Scenario/Commands/Event/SplitEvent.cpp"
+
+"${CMAKE_CURRENT_SOURCE_DIR}/Scenario/Commands/Comment/SetCommentText.cpp"
 
 "${CMAKE_CURRENT_SOURCE_DIR}/Scenario/Commands/Scenario/Creations/CreateState.cpp"
 "${CMAKE_CURRENT_SOURCE_DIR}/Scenario/Commands/Scenario/Creations/CreateEvent_State.cpp"
@@ -98,9 +101,10 @@ set(SRCS ${SRCS}
 "${CMAKE_CURRENT_SOURCE_DIR}/Scenario/Commands/Scenario/Creations/CreateConstraint_State_Event.cpp"
 "${CMAKE_CURRENT_SOURCE_DIR}/Scenario/Commands/Scenario/Creations/CreateConstraint_State_Event_TimeNode.cpp"
 "${CMAKE_CURRENT_SOURCE_DIR}/Scenario/Commands/Scenario/Creations/CreateSequence.cpp"
+"${CMAKE_CURRENT_SOURCE_DIR}/Scenario/Commands/Scenario/Creations/CreateCommentBlock.cpp"
 
 "${CMAKE_CURRENT_SOURCE_DIR}/Scenario/Commands/Scenario/Deletions/ClearConstraint.cpp"
-"${CMAKE_CURRENT_SOURCE_DIR}/Scenario/Commands/Scenario/Deletions/ClearEvent.cpp"
+"${CMAKE_CURRENT_SOURCE_DIR}/Scenario/Commands/Scenario/Deletions/ClearState.cpp"
 "${CMAKE_CURRENT_SOURCE_DIR}/Scenario/Commands/Scenario/Deletions/RemoveSelection.cpp"
 "${CMAKE_CURRENT_SOURCE_DIR}/Scenario/Commands/Scenario/Displacement/MoveConstraint.cpp"
 "${CMAKE_CURRENT_SOURCE_DIR}/Scenario/Commands/Scenario/Displacement/MoveEventClassicFactory.cpp"
@@ -110,6 +114,7 @@ set(SRCS ${SRCS}
 "${CMAKE_CURRENT_SOURCE_DIR}/Scenario/Commands/Scenario/Displacement/MoveEventOnCreationMeta.cpp"
 "${CMAKE_CURRENT_SOURCE_DIR}/Scenario/Commands/Scenario/Displacement/MoveNewEvent.cpp"
 "${CMAKE_CURRENT_SOURCE_DIR}/Scenario/Commands/Scenario/Displacement/MoveNewState.cpp"
+"${CMAKE_CURRENT_SOURCE_DIR}/Scenario/Commands/Scenario/Displacement/MoveCommentBlock.cpp"
 "${CMAKE_CURRENT_SOURCE_DIR}/Scenario/Commands/Scenario/HideRackInViewModel.cpp"
 "${CMAKE_CURRENT_SOURCE_DIR}/Scenario/Commands/Scenario/ShowRackInViewModel.cpp"
 "${CMAKE_CURRENT_SOURCE_DIR}/Scenario/Commands/Scenario/ShowRackInAllViewModels.cpp"
@@ -117,57 +122,68 @@ set(SRCS ${SRCS}
 
 "${CMAKE_CURRENT_SOURCE_DIR}/Scenario/Commands/Cohesion/CreateCurveFromStates.cpp"
 "${CMAKE_CURRENT_SOURCE_DIR}/Scenario/Commands/Cohesion/InterpolateStates.cpp"
-"${CMAKE_CURRENT_SOURCE_DIR}/Scenario/Commands/Cohesion/UpdateStates.cpp"
+"${CMAKE_CURRENT_SOURCE_DIR}/Scenario/Commands/Cohesion/RefreshStates.cpp"
 
 "${CMAKE_CURRENT_SOURCE_DIR}/Scenario/Commands/State/RemoveMessageNodes.cpp"
-"${CMAKE_CURRENT_SOURCE_DIR}/Scenario/Commands/State/UpdateState.cpp"
+"${CMAKE_CURRENT_SOURCE_DIR}/Scenario/Commands/State/AddMessagesToState.cpp"
 "${CMAKE_CURRENT_SOURCE_DIR}/Scenario/Commands/State/InsertContentInState.cpp"
 
-"${CMAKE_CURRENT_SOURCE_DIR}/Scenario/Commands/SwitchStatePosition.cpp"
-"${CMAKE_CURRENT_SOURCE_DIR}/Scenario/Commands/TimeNode/AddTrigger.cpp"
+"${CMAKE_CURRENT_SOURCE_DIR}/Scenario/Commands/TimeNode/TriggerCommandFactory/TriggerCommandFactory.cpp"
+"${CMAKE_CURRENT_SOURCE_DIR}/Scenario/Commands/TimeNode/TriggerCommandFactory/ScenarioTriggerCommandFactory.cpp"
+"${CMAKE_CURRENT_SOURCE_DIR}/Scenario/Commands/TimeNode/TriggerCommandFactory/BaseScenarioTriggerCommandFactory.cpp"
 "${CMAKE_CURRENT_SOURCE_DIR}/Scenario/Commands/TimeNode/MergeTimeNodes.cpp"
-"${CMAKE_CURRENT_SOURCE_DIR}/Scenario/Commands/TimeNode/RemoveTrigger.cpp"
 "${CMAKE_CURRENT_SOURCE_DIR}/Scenario/Commands/TimeNode/SplitTimeNode.cpp"
 "${CMAKE_CURRENT_SOURCE_DIR}/Scenario/Commands/TimeNode/SetTrigger.cpp"
 "${CMAKE_CURRENT_SOURCE_DIR}/Scenario/Commands/CommandNames.cpp"
-"${CMAKE_CURRENT_SOURCE_DIR}/Scenario/Commands/ResizeBaseConstraint.cpp"
 "${CMAKE_CURRENT_SOURCE_DIR}/Scenario/Commands/SetProcessDuration.cpp"
 
 "${CMAKE_CURRENT_SOURCE_DIR}/Scenario/Commands/ScenarioCommandFactory.cpp"
 
 "${CMAKE_CURRENT_SOURCE_DIR}/Scenario/ViewCommands/PutLayerModelToFront.cpp"
 
-"${CMAKE_CURRENT_SOURCE_DIR}/Scenario/Control/Menus/Plugin/ScenarioActionsFactory.cpp"
-"${CMAKE_CURRENT_SOURCE_DIR}/Scenario/Control/Menus/ScenarioActions.cpp"
-"${CMAKE_CURRENT_SOURCE_DIR}/Scenario/Control/Menus/ToolMenuActions.cpp"
-"${CMAKE_CURRENT_SOURCE_DIR}/Scenario/Control/Menus/ScenarioCopy.cpp"
-"${CMAKE_CURRENT_SOURCE_DIR}/Scenario/Control/Menus/ObjectMenuActions.cpp"
-"${CMAKE_CURRENT_SOURCE_DIR}/Scenario/Control/Menus/TransportActions.cpp"
-"${CMAKE_CURRENT_SOURCE_DIR}/Scenario/Control/Menus/TextDialog.cpp"
-"${CMAKE_CURRENT_SOURCE_DIR}/Scenario/Control/Menus/ScenarioCommonContextMenuFactory.cpp"
-"${CMAKE_CURRENT_SOURCE_DIR}/Scenario/Control/Menus/ContextMenuDispatcher.cpp"
-"${CMAKE_CURRENT_SOURCE_DIR}/Scenario/Control/ScenarioControl.cpp"
-"${CMAKE_CURRENT_SOURCE_DIR}/Scenario/Control/ScenarioEditionSettings.cpp"
+"${CMAKE_CURRENT_SOURCE_DIR}/Scenario/Application/Menus/Plugin/ScenarioActionsFactory.cpp"
+"${CMAKE_CURRENT_SOURCE_DIR}/Scenario/Application/Menus/ScenarioActions.cpp"
+"${CMAKE_CURRENT_SOURCE_DIR}/Scenario/Application/Menus/ToolMenuActions.cpp"
+"${CMAKE_CURRENT_SOURCE_DIR}/Scenario/Application/Menus/ScenarioCopy.cpp"
+"${CMAKE_CURRENT_SOURCE_DIR}/Scenario/Application/Menus/ObjectMenuActions.cpp"
+"${CMAKE_CURRENT_SOURCE_DIR}/Scenario/Application/Menus/TransportActions.cpp"
+"${CMAKE_CURRENT_SOURCE_DIR}/Scenario/Application/Menus/TextDialog.cpp"
+"${CMAKE_CURRENT_SOURCE_DIR}/Scenario/Application/Menus/ScenarioCommonContextMenuFactory.cpp"
+"${CMAKE_CURRENT_SOURCE_DIR}/Scenario/Application/Menus/ScenarioContextMenuManager.cpp"
+"${CMAKE_CURRENT_SOURCE_DIR}/Scenario/Application/ScenarioApplicationPlugin.cpp"
+"${CMAKE_CURRENT_SOURCE_DIR}/Scenario/Application/ScenarioEditionSettings.cpp"
 
 "${CMAKE_CURRENT_SOURCE_DIR}/Scenario/DialogWidget/AddProcessDialog.cpp"
 "${CMAKE_CURRENT_SOURCE_DIR}/Scenario/DialogWidget/MessageTreeView.cpp"
 
-"${CMAKE_CURRENT_SOURCE_DIR}/Scenario/Document/BaseElement/BaseScenario/BaseScenarioStateMachine.cpp"
-"${CMAKE_CURRENT_SOURCE_DIR}/Scenario/Document/BaseElement/BaseScenario/StateMachine/BaseMoveSlot.cpp"
-"${CMAKE_CURRENT_SOURCE_DIR}/Scenario/Document/BaseElement/BaseScenario/BaseScenario.cpp"
-"${CMAKE_CURRENT_SOURCE_DIR}/Scenario/Document/BaseElement/DisplayedElements/DisplayedElementsModel.cpp"
-"${CMAKE_CURRENT_SOURCE_DIR}/Scenario/Document/BaseElement/DisplayedElements/DisplayedElementsPresenter.cpp"
-"${CMAKE_CURRENT_SOURCE_DIR}/Scenario/Document/BaseElement/ProcessFocusManager.cpp"
-"${CMAKE_CURRENT_SOURCE_DIR}/Scenario/Document/BaseElement/ZoomPolicy.cpp"
-"${CMAKE_CURRENT_SOURCE_DIR}/Scenario/Document/BaseElement/ScenarioDocument.cpp"
-"${CMAKE_CURRENT_SOURCE_DIR}/Scenario/Document/BaseElement/Widgets/DoubleSlider.cpp"
-"${CMAKE_CURRENT_SOURCE_DIR}/Scenario/Document/BaseElement/Widgets/ProgressBar.cpp"
-"${CMAKE_CURRENT_SOURCE_DIR}/Scenario/Document/BaseElement/Widgets/SceneGraduations.cpp"
-"${CMAKE_CURRENT_SOURCE_DIR}/Scenario/Document/BaseElement/Widgets/ScenarioBaseGraphicsView.cpp"
-"${CMAKE_CURRENT_SOURCE_DIR}/Scenario/Document/BaseElement/BaseElementModel.cpp"
-"${CMAKE_CURRENT_SOURCE_DIR}/Scenario/Document/BaseElement/BaseElementPresenter.cpp"
-"${CMAKE_CURRENT_SOURCE_DIR}/Scenario/Document/BaseElement/BaseElementView.cpp"
+"${CMAKE_CURRENT_SOURCE_DIR}/Scenario/Document/BaseScenario/BaseScenario.cpp"
+"${CMAKE_CURRENT_SOURCE_DIR}/Scenario/Document/BaseScenario/BaseElementContext.cpp"
+
+"${CMAKE_CURRENT_SOURCE_DIR}/Scenario/Document/ScenarioDocument/ProcessFocusManager.cpp"
+"${CMAKE_CURRENT_SOURCE_DIR}/Scenario/Document/ScenarioDocument/ZoomPolicy.cpp"
+"${CMAKE_CURRENT_SOURCE_DIR}/Scenario/Document/ScenarioDocument/Widgets/DoubleSlider.cpp"
+"${CMAKE_CURRENT_SOURCE_DIR}/Scenario/Document/ScenarioDocument/Widgets/ProgressBar.cpp"
+"${CMAKE_CURRENT_SOURCE_DIR}/Scenario/Document/ScenarioDocument/Widgets/SceneGraduations.cpp"
+"${CMAKE_CURRENT_SOURCE_DIR}/Scenario/Document/ScenarioDocument/Widgets/ScenarioBaseGraphicsView.cpp"
+"${CMAKE_CURRENT_SOURCE_DIR}/Scenario/Document/ScenarioDocument/ScenarioDocumentFactory.cpp"
+"${CMAKE_CURRENT_SOURCE_DIR}/Scenario/Document/ScenarioDocument/ScenarioDocumentModel.cpp"
+"${CMAKE_CURRENT_SOURCE_DIR}/Scenario/Document/ScenarioDocument/ScenarioDocumentPresenter.cpp"
+"${CMAKE_CURRENT_SOURCE_DIR}/Scenario/Document/ScenarioDocument/ScenarioDocumentView.cpp"
+
+"${CMAKE_CURRENT_SOURCE_DIR}/Scenario/Document/DisplayedElements/DisplayedElementsModel.cpp"
+"${CMAKE_CURRENT_SOURCE_DIR}/Scenario/Document/DisplayedElements/DisplayedElementsPresenter.cpp"
+"${CMAKE_CURRENT_SOURCE_DIR}/Scenario/Document/DisplayedElements/DisplayedElementsProvider.cpp"
+"${CMAKE_CURRENT_SOURCE_DIR}/Scenario/Document/DisplayedElements/ScenarioDisplayedElementsProvider.cpp"
+"${CMAKE_CURRENT_SOURCE_DIR}/Scenario/Document/DisplayedElements/BaseScenarioDisplayedElementsProvider.cpp"
+
+"${CMAKE_CURRENT_SOURCE_DIR}/Scenario/Document/DisplayedElements/DisplayedElementsToolPalette/DisplayedElementsToolPaletteFactory.cpp"
+"${CMAKE_CURRENT_SOURCE_DIR}/Scenario/Document/DisplayedElements/DisplayedElementsToolPalette/BaseScenarioDisplayedElementsToolPalette.cpp"
+"${CMAKE_CURRENT_SOURCE_DIR}/Scenario/Document/DisplayedElements/DisplayedElementsToolPalette/BaseScenarioDisplayedElementsToolPaletteFactory.cpp"
+"${CMAKE_CURRENT_SOURCE_DIR}/Scenario/Document/DisplayedElements/DisplayedElementsToolPalette/ScenarioDisplayedElementsToolPalette.cpp"
+"${CMAKE_CURRENT_SOURCE_DIR}/Scenario/Document/DisplayedElements/DisplayedElementsToolPalette/ScenarioDisplayedElementsToolPaletteFactory.cpp"
+
 "${CMAKE_CURRENT_SOURCE_DIR}/Scenario/Document/Constraint/Rack/RackView.cpp"
+"${CMAKE_CURRENT_SOURCE_DIR}/Scenario/Document/BaseScenario/BaseScenarioContainer.cpp"
 "${CMAKE_CURRENT_SOURCE_DIR}/Scenario/Document/Constraint/Rack/Slot/SlotPresenter.cpp"
 "${CMAKE_CURRENT_SOURCE_DIR}/Scenario/Document/Constraint/Rack/Slot/SlotView.cpp"
 "${CMAKE_CURRENT_SOURCE_DIR}/Scenario/Document/Constraint/Rack/Slot/SlotHandle.cpp"
@@ -214,6 +230,10 @@ set(SRCS ${SRCS}
 "${CMAKE_CURRENT_SOURCE_DIR}/Scenario/Document/State/StateModel.cpp"
 "${CMAKE_CURRENT_SOURCE_DIR}/Scenario/Document/State/ItemModel/MessageItemModel.cpp"
 "${CMAKE_CURRENT_SOURCE_DIR}/Scenario/Document/State/ItemModel/MessageItemModelAlgorithms.cpp"
+"${CMAKE_CURRENT_SOURCE_DIR}/Scenario/Document/CommentBlock/CommentBlockModel.cpp"
+"${CMAKE_CURRENT_SOURCE_DIR}/Scenario/Document/CommentBlock/CommentBlockPresenter.cpp"
+"${CMAKE_CURRENT_SOURCE_DIR}/Scenario/Document/CommentBlock/CommentBlockView.cpp"
+
 
 "${CMAKE_CURRENT_SOURCE_DIR}/Scenario/Panel/ProcessPanelFactory.cpp"
 "${CMAKE_CURRENT_SOURCE_DIR}/Scenario/Panel/ProcessPanelGraphicsProxy.cpp"
@@ -227,25 +247,9 @@ set(SRCS ${SRCS}
 "${CMAKE_CURRENT_SOURCE_DIR}/Scenario/Process/Algorithms/VerticalMovePolicy.cpp"
 "${CMAKE_CURRENT_SOURCE_DIR}/Scenario/Process/ScenarioFactory.cpp"
 
-"${CMAKE_CURRENT_SOURCE_DIR}/Scenario/Process/Temporal/StateMachines/Tools/ScenarioToolState.cpp"
-"${CMAKE_CURRENT_SOURCE_DIR}/Scenario/Process/Temporal/StateMachines/Tools/States/ScenarioCreation_FromEvent.cpp"
-"${CMAKE_CURRENT_SOURCE_DIR}/Scenario/Process/Temporal/StateMachines/Tools/States/ScenarioCreation_FromTimeNode.cpp"
-"${CMAKE_CURRENT_SOURCE_DIR}/Scenario/Process/Temporal/StateMachines/Tools/States/ScenarioCreation_FromState.cpp"
-"${CMAKE_CURRENT_SOURCE_DIR}/Scenario/Process/Temporal/StateMachines/Tools/States/ScenarioCreation_FromNothing.cpp"
-"${CMAKE_CURRENT_SOURCE_DIR}/Scenario/Process/Temporal/StateMachines/Tools/States/MoveStates.cpp"
-"${CMAKE_CURRENT_SOURCE_DIR}/Scenario/Process/Temporal/StateMachines/Tools/States/ScenarioCreationState.cpp"
-"${CMAKE_CURRENT_SOURCE_DIR}/Scenario/Process/Temporal/StateMachines/Tools/States/ScenarioSelectionState.cpp"
-"${CMAKE_CURRENT_SOURCE_DIR}/Scenario/Process/Temporal/StateMachines/Tools/CreationToolState.cpp"
-"${CMAKE_CURRENT_SOURCE_DIR}/Scenario/Process/Temporal/StateMachines/Tools/MoveSlotToolState.cpp"
-"${CMAKE_CURRENT_SOURCE_DIR}/Scenario/Process/Temporal/StateMachines/Tools/SelectionToolState.cpp"
-"${CMAKE_CURRENT_SOURCE_DIR}/Scenario/Process/Temporal/StateMachines/Transitions/AnythingTransitions.cpp"
-"${CMAKE_CURRENT_SOURCE_DIR}/Scenario/Process/Temporal/StateMachines/Transitions/ConstraintTransitions.cpp"
-"${CMAKE_CURRENT_SOURCE_DIR}/Scenario/Process/Temporal/StateMachines/Transitions/SlotTransitions.cpp"
-"${CMAKE_CURRENT_SOURCE_DIR}/Scenario/Process/Temporal/StateMachines/Transitions/EventTransitions.cpp"
-"${CMAKE_CURRENT_SOURCE_DIR}/Scenario/Process/Temporal/StateMachines/Transitions/StateTransitions.cpp"
-"${CMAKE_CURRENT_SOURCE_DIR}/Scenario/Process/Temporal/StateMachines/Transitions/NothingTransitions.cpp"
-"${CMAKE_CURRENT_SOURCE_DIR}/Scenario/Process/Temporal/StateMachines/Transitions/TimeNodeTransitions.cpp"
-"${CMAKE_CURRENT_SOURCE_DIR}/Scenario/Process/Temporal/StateMachines/ScenarioStateMachine.cpp"
+"${CMAKE_CURRENT_SOURCE_DIR}/Scenario/Palette/Tools/MoveSlotToolState.cpp"
+"${CMAKE_CURRENT_SOURCE_DIR}/Scenario/Palette/Transitions/SlotTransitions.cpp"
+"${CMAKE_CURRENT_SOURCE_DIR}/Scenario/Palette/ScenarioPalette.cpp"
 "${CMAKE_CURRENT_SOURCE_DIR}/Scenario/Process/Temporal/TemporalScenarioView.cpp"
 "${CMAKE_CURRENT_SOURCE_DIR}/Scenario/Process/Temporal/TemporalScenarioLayerModel.cpp"
 "${CMAKE_CURRENT_SOURCE_DIR}/Scenario/Process/Temporal/ScenarioViewInterface.cpp"
@@ -259,13 +263,16 @@ set(SRCS ${SRCS}
 "${CMAKE_CURRENT_SOURCE_DIR}/Scenario/Tools/dataStructures.cpp"
 "${CMAKE_CURRENT_SOURCE_DIR}/Scenario/Tools/RandomNameProvider.cpp"
 
-"${CMAKE_CURRENT_SOURCE_DIR}/Scenario/ScenarioPlugin.cpp"
+"${CMAKE_CURRENT_SOURCE_DIR}/Scenario/iscore_plugin_scenario.cpp"
 )
 
 if(TARGET iscore_lib_inspector)
     set(INSPECTOR_SRCS
 "${CMAKE_CURRENT_SOURCE_DIR}/Scenario/Inspector/SelectionButton.cpp"
 "${CMAKE_CURRENT_SOURCE_DIR}/Scenario/Inspector/Constraint/ConstraintInspectorFactory.cpp"
+"${CMAKE_CURRENT_SOURCE_DIR}/Scenario/Inspector/Constraint/ConstraintInspectorDelegateFactory.cpp"
+"${CMAKE_CURRENT_SOURCE_DIR}/Scenario/Inspector/Constraint/BaseConstraintInspectorDelegateFactory.cpp"
+"${CMAKE_CURRENT_SOURCE_DIR}/Scenario/Inspector/Constraint/ScenarioConstraintInspectorDelegateFactory.cpp"
 "${CMAKE_CURRENT_SOURCE_DIR}/Scenario/Inspector/Constraint/Widgets/Rack/AddSlotWidget.cpp"
 "${CMAKE_CURRENT_SOURCE_DIR}/Scenario/Inspector/Constraint/Widgets/Rack/Slot/AddLayerModelWidget.cpp"
 "${CMAKE_CURRENT_SOURCE_DIR}/Scenario/Inspector/Constraint/Widgets/Rack/Slot/SlotInspectorSection.cpp"
@@ -274,6 +281,9 @@ if(TARGET iscore_lib_inspector)
 "${CMAKE_CURRENT_SOURCE_DIR}/Scenario/Inspector/Constraint/Widgets/RackWidget.cpp"
 "${CMAKE_CURRENT_SOURCE_DIR}/Scenario/Inspector/Constraint/Widgets/DurationSectionWidget.cpp"
 "${CMAKE_CURRENT_SOURCE_DIR}/Scenario/Inspector/Constraint/ConstraintInspectorWidget.cpp"
+"${CMAKE_CURRENT_SOURCE_DIR}/Scenario/Inspector/Constraint/ConstraintInspectorDelegate.cpp"
+"${CMAKE_CURRENT_SOURCE_DIR}/Scenario/Inspector/Constraint/BaseConstraintInspectorDelegate.cpp"
+"${CMAKE_CURRENT_SOURCE_DIR}/Scenario/Inspector/Constraint/ScenarioConstraintInspectorDelegate.cpp"
 "${CMAKE_CURRENT_SOURCE_DIR}/Scenario/Inspector/State/StateInspectorFactory.cpp"
 "${CMAKE_CURRENT_SOURCE_DIR}/Scenario/Inspector/State/StateInspectorWidget.cpp"
 "${CMAKE_CURRENT_SOURCE_DIR}/Scenario/Inspector/Event/EventInspectorFactory.cpp"
@@ -285,6 +295,8 @@ if(TARGET iscore_lib_inspector)
 "${CMAKE_CURRENT_SOURCE_DIR}/Scenario/Inspector/TimeNode/TimeNodeInspectorFactory.cpp"
 "${CMAKE_CURRENT_SOURCE_DIR}/Scenario/Inspector/TimeNode/TimeNodeInspectorWidget.cpp"
 "${CMAKE_CURRENT_SOURCE_DIR}/Scenario/Inspector/TimeNode/TriggerInspectorWidget.cpp"
+"${CMAKE_CURRENT_SOURCE_DIR}/Scenario/Inspector/Expression/ExpressionEditorWidget.cpp"
+"${CMAKE_CURRENT_SOURCE_DIR}/Scenario/Inspector/Expression/SimpleExpressionEditorWidget.cpp"
     )
 
     set(SRCS ${SRCS} ${INSPECTOR_SRCS})
@@ -296,6 +308,8 @@ if(TARGET iscore_lib_inspector)
 endif()
 
 add_library(iscore_plugin_scenario ${SRCS} ${HDRS} ${QRCS})
+iscore_generate_command_list_file(iscore_plugin_scenario "${HDRS}")
+
 target_link_libraries(iscore_plugin_scenario Qt5::Core Qt5::Widgets Qt5::Svg
                      iscore_lib_base
                      iscore_lib_process iscore_plugin_deviceexplorer iscore_lib_state iscore_plugin_curve iscore_plugin_automation pthread)

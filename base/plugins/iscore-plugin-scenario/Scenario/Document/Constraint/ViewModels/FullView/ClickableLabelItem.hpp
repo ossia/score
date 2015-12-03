@@ -1,7 +1,10 @@
 #pragma once
-#include <QGraphicsTextItem>
-#include <QGraphicsObject>
+#include <QGraphicsItem>
+#include <QString>
 #include <functional>
+
+class QGraphicsSceneHoverEvent;
+class QGraphicsSceneMouseEvent;
 
 class SeparatorItem final : public QGraphicsSimpleTextItem
 {

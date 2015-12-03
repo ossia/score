@@ -1,17 +1,18 @@
 #pragma once
 #include <Inspector/InspectorSectionWidget.hpp>
-#include <iscore/tools/SettableIdentifier.hpp>
+#include <QString>
+#include <nano_signal_slot.hpp>
 
-class RackModel;
-class SlotModel;
+class AddLayerModelWidget;
 class ConstraintInspectorWidget;
 class LayerModel;
-class AddLayerModelWidget;
-class RackInspectorSection;
 class Process;
+class RackInspectorSection;
+class SlotModel;
+#include <iscore/tools/SettableIdentifier.hpp>
 
 // Contains a single rack which can contain multiple slots and a Add Slot button.
-class SlotInspectorSection final : public InspectorSectionWidget
+class SlotInspectorSection final : public InspectorSectionWidget, public Nano::Observer
 {
     public:
         SlotInspectorSection(
@@ -25,6 +26,8 @@ class SlotInspectorSection final : public InspectorSectionWidget
 
         const SlotModel& model() const;
 
+    private slots:
+        void ask_changeName(QString newName);
 
     private:
         void on_layerModelCreated(const LayerModel&);

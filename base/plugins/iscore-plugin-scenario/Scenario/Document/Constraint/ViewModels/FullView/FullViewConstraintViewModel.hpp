@@ -1,9 +1,13 @@
 #pragma once
-#include <Scenario/Document/Constraint/ViewModels/ConstraintViewModel.hpp>
 #include <Process/ZoomHelper.hpp>
-#include <QPointF>
+#include <Scenario/Document/Constraint/ViewModels/ConstraintViewModel.hpp>
+#include <QPoint>
+#include <QString>
 
 class ConstraintModel;
+class QObject;
+#include <iscore/tools/SettableIdentifier.hpp>
+
 /**
  * @brief The FullViewConstraintViewModel class
  *

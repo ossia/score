@@ -3,7 +3,7 @@
 #include <Scenario/Document/Constraint/Rack/Slot/SlotModel.hpp>
 #include "Rack/MoveSlot.hpp"
 #include "RemoveRackFromConstraint.hpp"
-#include "iscore/document/DocumentInterface.hpp"
+#include <iscore/document/DocumentInterface.hpp>
 namespace Scenario
 {
     namespace Command
@@ -15,8 +15,7 @@ namespace Scenario
          */
         class MergeRackes final : public iscore::AggregateCommand
         {
-                ISCORE_COMMAND_DECL(ScenarioCommandFactoryName(), MergeRackes, "MergeRackes")
-#include <tests/helpers/FriendDeclaration.hpp>
+                ISCORE_COMMAND_DECL(ScenarioCommandFactoryName(), MergeRackes, "Merge racks")
             public:
                 MergeRackes(const Path<RackModel>& mergeSource,
                            const Path<RackModel>& mergeTarget)

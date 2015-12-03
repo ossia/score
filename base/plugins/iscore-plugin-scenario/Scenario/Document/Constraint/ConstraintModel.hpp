@@ -1,39 +1,35 @@
 #pragma once
+#include <Process/ModelMetadata.hpp>
+#include <Process/Process.hpp>
+#include <Process/TimeValue.hpp>
 #include <Scenario/Document/Constraint/ConstraintDurations.hpp>
 #include <Scenario/Document/Constraint/Rack/RackModel.hpp>
-#include <Process/Process.hpp>
-
-#include <Process/ModelMetadata.hpp>
 #include <Scenario/Document/ModelConsistency.hpp>
-#include <Scenario/Document/State/StateModel.hpp>
-#include <Scenario/Document/TimeNode/TimeNodeModel.hpp>
-#include <Scenario/Document/Event/EventModel.hpp>
-
-#include <iscore/tools/IdentifiedObjectMap.hpp>
-#include <iscore/serialization/VisitorInterface.hpp>
-#include <Process/TimeValue.hpp>
-
-#include <iscore/selection/Selectable.hpp>
-
+#include <boost/optional/optional.hpp>
 #include <iscore/plugins/documentdelegate/plugin/ElementPluginModelList.hpp>
-#include <QColor>
-#include <vector>
+#include <iscore/selection/Selectable.hpp>
+#include <QObject>
+#include <nano_signal_slot.hpp>
+
+#include <QString>
+#include <QVector>
+
+#include <iscore/tools/IdentifiedObject.hpp>
+#include <iscore/tools/NotifyingMap.hpp>
+#include <iscore/tools/SettableIdentifier.hpp>
+
+class DataStream;
+class JSONObject;
+class StateModel;
 
 namespace OSSIA
 {
-    class TimeRack;
 }
 
-class Process;
 class ConstraintViewModel;
 class FullViewConstraintViewModel;
 
-class RackModel;
-class EventModel;
-class TimeRack;
-class ScenarioInterface;
-
-class ConstraintModel final : public IdentifiedObject<ConstraintModel>
+class ConstraintModel final : public IdentifiedObject<ConstraintModel>, public Nano::Observer
 {
         Q_OBJECT
         ISCORE_METADATA("ConstraintModel")
@@ -56,7 +52,7 @@ class ConstraintModel final : public IdentifiedObject<ConstraintModel>
 
         iscore::ElementPluginModelList pluginModelList;
 
-        static QString prettyName()
+        static QString description()
         { return QObject::tr("Constraint"); }
 
         /** The class **/
@@ -91,19 +87,14 @@ class ConstraintModel final : public IdentifiedObject<ConstraintModel>
             return viewmodel;
         }
 
-        // If the constraint is in a scenario, then returns the scenario
-        ScenarioInterface* parentScenario() const;
-
         // Note : the Constraint does not have ownership (it's generally the Slot)
         void setupConstraintViewModel(ConstraintViewModel* viewmodel);
 
         const Id<StateModel>& startState() const;
         void setStartState(const Id<StateModel>& eventId);
-        const Id<TimeNodeModel>& startTimeNode() const;
 
         const Id<StateModel>& endState() const;
         void setEndState(const Id<StateModel> &endState);
-        const Id<TimeNodeModel>& endTimeNode() const;
 
         // Here we won't remove / add things from the outside so it is safe to
         // return a reference
@@ -131,7 +122,7 @@ class ConstraintModel final : public IdentifiedObject<ConstraintModel>
         // Resets the execution display recursively
         void reset();
 
-        NotifyingMap<RackModel> racks; // No content -> Phantom ?
+        NotifyingMap<RackModel> racks;
         NotifyingMap<Process> processes;
 
         bool looping() const;

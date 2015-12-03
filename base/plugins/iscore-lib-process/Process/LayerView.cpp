@@ -1,6 +1,10 @@
-#include "LayerView.hpp"
-#include <QPainter>
 #include <Process/Style/ScenarioStyle.hpp>
+#include <QPainter>
+
+#include "LayerView.hpp"
+
+class QStyleOptionGraphicsItem;
+class QWidget;
 
 LayerView::~LayerView()
 {

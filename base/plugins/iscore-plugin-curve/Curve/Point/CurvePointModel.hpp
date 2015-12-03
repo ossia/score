@@ -1,9 +1,13 @@
 #pragma once
-#include <iscore/tools/IdentifiedObject.hpp>
+#include <boost/optional/optional.hpp>
 #include <iscore/selection/Selectable.hpp>
-#include "Curve/StateMachine/CurvePoint.hpp"
+#include <iscore/tools/IdentifiedObject.hpp>
+
+#include <Curve/Palette/CurvePoint.hpp>
+#include <iscore/tools/SettableIdentifier.hpp>
 
 class CurveSegmentModel;
+class QObject;
 
 class CurvePointModel final : public IdentifiedObject<CurvePointModel>
 {

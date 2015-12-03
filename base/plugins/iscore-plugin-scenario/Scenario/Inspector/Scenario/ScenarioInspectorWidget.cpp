@@ -1,15 +1,20 @@
-#include "ScenarioInspectorWidget.hpp"
-#include <Inspector/InspectorSectionWidget.hpp>
-
 #include <Scenario/Process/ScenarioModel.hpp>
+#include <QBoxLayout>
 
-#include <QLabel>
-#include <QVBoxLayout>
 #include <QPushButton>
+#include <list>
+
+#include <Inspector/InspectorWidgetBase.hpp>
+#include "ScenarioInspectorWidget.hpp"
+
+class QWidget;
+namespace iscore {
+class Document;
+}  // namespace iscore
 
 ScenarioInspectorWidget::ScenarioInspectorWidget(
-        const ScenarioModel& object,
-        iscore::Document& doc,
+        const Scenario::ScenarioModel& object,
+        const iscore::DocumentContext& doc,
         QWidget* parent) :
     InspectorWidgetBase {object, doc, parent},
     m_model {object}
