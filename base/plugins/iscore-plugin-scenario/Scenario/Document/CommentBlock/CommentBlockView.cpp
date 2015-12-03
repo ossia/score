@@ -21,6 +21,9 @@ CommentBlockView::CommentBlockView(
 
     m_textItem = new QGraphicsTextItem{"", this};
     m_textItem->setDefaultTextColor(Qt::white);
+
+    connect(m_textItem->document(), &QTextDocument::contentsChanged,
+            this, [&] () {this->prepareGeometryChange();});
 }
 
 void CommentBlockView::paint(QPainter* painter,
@@ -49,6 +52,9 @@ QRectF CommentBlockView::boundingRect() const
 
 void CommentBlockView::setSelected(bool b)
 {
+    if(m_selected == b)
+        return;
+
     m_selected = b;
     SetTextInteraction(b);
 }

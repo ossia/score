@@ -428,8 +428,11 @@ void TemporalScenarioPresenter::on_commentBlockCreated(const CommentBlockModel& 
     connect(cmt_pres, &CommentBlockPresenter::editFinished,
             this, [&] (const QString& doc)
     {
-        CommandDispatcher<> c {m_context.commandStack};
-        c.submitCommand(new SetCommentText{{comment_block_model}, doc}) ;
+        if(focused() && doc != comment_block_model.content())
+        {
+            CommandDispatcher<> c {m_context.commandStack};
+            c.submitCommand(new SetCommentText{{comment_block_model}, doc}) ;
+        }
     });
 }
 
