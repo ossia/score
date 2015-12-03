@@ -3,7 +3,7 @@
 
 namespace iscore
 {
-    class ApplicationContext;
+    struct ApplicationContext;
     class GUIApplicationContextPlugin;
 
     class GUIApplicationContextPlugin_QtInterface

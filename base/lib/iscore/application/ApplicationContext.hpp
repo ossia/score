@@ -4,7 +4,7 @@
 namespace iscore
 {
 class ApplicationComponents;
-class ApplicationSettings;
+struct ApplicationSettings;
 class DocumentManager;
 struct ApplicationContext
 {

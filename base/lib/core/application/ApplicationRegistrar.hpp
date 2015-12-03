@@ -17,7 +17,7 @@ class SettingsDelegateFactoryInterface;
 struct ApplicationComponentsData;
 class View;
 class MenubarManager;
-class OrderedToolbar;
+struct OrderedToolbar;
 class Settings;
 
 class ApplicationRegistrar : public QObject

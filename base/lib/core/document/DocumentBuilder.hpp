@@ -9,7 +9,7 @@ class Document;
 class DocumentBackupManager;
 class DocumentDelegateFactoryInterface;
 class DocumentModel;
-class ApplicationContext;
+struct ApplicationContext;
 
 /**
  * @brief The DocumentBuilder class

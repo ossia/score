@@ -77,7 +77,7 @@ DocumentManager::~DocumentManager()
     // This is because the Local device has to be deleted last in OSSIAApplicationPlugin.
     for(auto document : m_documents)
     {
-        delete document;
+        document->deleteLater();
     }
 
     m_documents.clear();
@@ -172,13 +172,21 @@ bool DocumentManager::closeDocument(
     }
 
     // Close operation
+    forceCloseDocument(ctx, doc);
+    return true;
+}
+
+void DocumentManager::forceCloseDocument(
+        const ApplicationContext& ctx,
+        Document& doc)
+{
     m_view.closeDocument(&doc.view());
     remove_one(m_documents, &doc);
-    setCurrentDocument(ctx,
-                       m_documents.size() > 0 ? m_documents.back() : nullptr);
+    setCurrentDocument(
+                ctx,
+                m_documents.size() > 0 ? m_documents.back() : nullptr);
 
     delete &doc;
-    return true;
 }
 
 bool DocumentManager::saveDocument(Document& doc)

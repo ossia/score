@@ -26,6 +26,9 @@ matrix:
     - os: osx
 
   include:
+  # GCOV
+    - os: linux
+      env: BUILD_TYPE=Debug   STATIC_PLUGINS=False DEPLOYMENT=False CAN_DEPLOY=False USE_COVERITY=False STATIC_QT=False USE_GCOV=True
 
     - os: osx
       env: BUILD_TYPE=Release STATIC_PLUGINS=True  DEPLOYMENT=True  CAN_DEPLOY=True  USE_COVERITY=False STATIC_QT=False USE_GCOV=False
@@ -45,10 +48,6 @@ matrix:
       env: BUILD_TYPE=Debug   STATIC_PLUGINS=True  DEPLOYMENT=False CAN_DEPLOY=False USE_COVERITY=False STATIC_QT=False USE_GCOV=False
     - os: linux
       env: BUILD_TYPE=Release STATIC_PLUGINS=False DEPLOYMENT=True  CAN_DEPLOY=False USE_COVERITY=False STATIC_QT=False USE_GCOV=False
-
-# GCOV
-    - os: linux
-      env: BUILD_TYPE=Debug   STATIC_PLUGINS=False DEPLOYMENT=False CAN_DEPLOY=False USE_COVERITY=False STATIC_QT=False USE_GCOV=True
 
 # Coverity
 #    - os: linux

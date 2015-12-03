@@ -9,7 +9,7 @@ class CommandStack;
 class QRecentFilesMenu;
 namespace iscore {
 class Document;
-class ApplicationContext;
+struct ApplicationContext;
 class View;
 }  // namespace iscore
 
@@ -78,6 +78,9 @@ class DocumentManager : public QObject
 
         // Returns true if the document was closed.
         bool closeDocument(
+                const iscore::ApplicationContext& ctx,
+                Document&);
+        void forceCloseDocument(
                 const iscore::ApplicationContext& ctx,
                 Document&);
 

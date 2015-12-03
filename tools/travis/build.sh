@@ -30,11 +30,13 @@ then
 
         if [[ "$USE_GCOV" = "True" ]];
         then
+          echo "$PWD"
           gem install coveralls-lcov
           export DISPLAY=:99.0
           sh -e /etc/init.d/xvfb start
           sleep 3
-          ninja iscore_coverage
+          cp -rf ../Tests/testdata .
+          ninja iscore_test_coverage
           lcov --compat-libtool --directory . --capture --output-file coverage.info
           coveralls-lcov --repo-token jjoMcOyOg9R05XT3aVysqTcsL1gyAc9tF coverage.info
         fi
