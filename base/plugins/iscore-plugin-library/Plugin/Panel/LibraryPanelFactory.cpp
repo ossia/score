@@ -16,7 +16,7 @@ QString LibraryPanelFactory::panelName() const
     return "Library";
 }
 
-iscore::PanelView* LibraryPanelFactory::makeView(iscore::View* parent)
+iscore::PanelView* LibraryPanelFactory::makeView(QObject* parent)
 {
     return new LibraryPanelView {parent};
 }

@@ -97,6 +97,7 @@ void ClientSessionBuilder::on_messageReceived(const NetworkMessage& m)
         // undo, too.
 
         iscore::Document* doc = m_context.documents.loadDocument(
+                       m_context,
                        m_documentData,
                        m_context.components.availableDocuments().front()); // TODO id instead
 

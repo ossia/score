@@ -9,17 +9,21 @@ class CommandStack;
 class QRecentFilesMenu;
 namespace iscore {
 class Document;
+class ApplicationContext;
+class View;
 }  // namespace iscore
 
 namespace iscore
 {
-class Presenter;
-
 class DocumentManager : public QObject
 {
         Q_OBJECT
     public:
-        DocumentManager(Presenter&);
+        DocumentManager(
+                iscore::View& view,
+                QObject* parentPresenter);
+
+        void init(const iscore::ApplicationContext& ctx);
 
         ~DocumentManager();
 
@@ -27,40 +31,55 @@ class DocumentManager : public QObject
         { return m_recentFiles; }
 
         // Document management
-        Document* setupDocument(iscore::Document* doc);
+        Document* setupDocument(const iscore::ApplicationContext& ctx,
+                                iscore::Document* doc);
 
         template<typename... Args>
-        void newDocument(Args&&... args)
+        void newDocument(
+                const iscore::ApplicationContext& ctx,
+                Args&&... args)
         {
-            prepareNewDocument();
-            setupDocument(m_builder.newDocument(std::forward<Args>(args)...));
+            prepareNewDocument(ctx);
+            setupDocument(
+                        ctx,
+                        m_builder.newDocument(ctx, std::forward<Args>(args)...));
         }
 
         template<typename... Args>
-        Document* loadDocument(Args&&... args)
+        Document* loadDocument(
+                const iscore::ApplicationContext& ctx,
+                Args&&... args)
         {
-            prepareNewDocument();
-            return setupDocument(m_builder.loadDocument(std::forward<Args>(args)...));
+            prepareNewDocument(ctx);
+            return setupDocument(
+                        ctx, m_builder.loadDocument(ctx, std::forward<Args>(args)...));
         }
 
         template<typename... Args>
-        void restoreDocument(Args&&... args)
+        void restoreDocument(
+                const iscore::ApplicationContext& ctx,
+                Args&&... args)
         {
-            prepareNewDocument();
-            setupDocument(m_builder.restoreDocument(std::forward<Args>(args)...));
+            prepareNewDocument(ctx);
+            setupDocument(
+                        ctx, m_builder.restoreDocument(ctx, std::forward<Args>(args)...));
         }
 
         // Restore documents after a crash
-        void restoreDocuments();
+        void restoreDocuments(const iscore::ApplicationContext& ctx);
 
         const std::vector<Document*>& documents() const
         { return m_documents; }
 
         Document* currentDocument() const;
-        void setCurrentDocument(Document* doc);
+        void setCurrentDocument(
+                const iscore::ApplicationContext& ctx,
+                Document* doc);
 
         // Returns true if the document was closed.
-        bool closeDocument(Document&);
+        bool closeDocument(
+                const iscore::ApplicationContext& ctx,
+                Document&);
 
 
         // Methods to save and load
@@ -68,20 +87,26 @@ class DocumentManager : public QObject
         bool saveDocumentAs(Document&);
 
         bool saveStack();
-        bool loadStack();
+        bool loadStack(
+                const iscore::ApplicationContext& ctx);
 
-        Document* loadFile();
-        Document* loadFile(const QString& filename);
+        Document* loadFile(
+                const iscore::ApplicationContext& ctx);
+        Document* loadFile(
+                const iscore::ApplicationContext& ctx,
+                const QString& filename);
 
-        void prepareNewDocument();
+        void prepareNewDocument(
+                const iscore::ApplicationContext& ctx);
 
-        bool closeAllDocuments();
+        bool closeAllDocuments(
+                const iscore::ApplicationContext& ctx);
 
     signals:
         void currentDocumentChanged(Document* newDoc);
 
     private:
-        Presenter& m_presenter;
+        iscore::View& m_view;
 
         DocumentBuilder m_builder;
 

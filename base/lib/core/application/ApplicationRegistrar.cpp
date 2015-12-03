@@ -1,4 +1,3 @@
-#include <core/application/Application.hpp>
 #include <iscore/application/ApplicationComponents.hpp>
 #include <iscore/application/ApplicationContext.hpp>
 #include <core/presenter/Presenter.hpp>

@@ -9,7 +9,7 @@
 
 namespace iscore {
 class PanelView;
-class Presenter;
+
 }  // namespace iscore
 
 UndoPresenter::UndoPresenter(

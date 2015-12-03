@@ -27,7 +27,7 @@
 #include "ProcessPanelId.hpp"
 namespace iscore {
 class PanelView;
-class Presenter;
+
 }  // namespace iscore
 
 ProcessPanelPresenter::ProcessPanelPresenter(

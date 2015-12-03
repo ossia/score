@@ -23,7 +23,7 @@ static const iscore::DefaultPanelStatus status{true, Qt::RightDockWidgetArea, 10
 const iscore::DefaultPanelStatus &InspectorPanelView::defaultPanelStatus() const
 { return status; }
 
-InspectorPanelView::InspectorPanelView(iscore::View* parent) :
+InspectorPanelView::InspectorPanelView(QObject* parent) :
     iscore::PanelView {parent},
     m_widget{new QWidget}
 {

@@ -23,11 +23,11 @@ const iscore::DefaultPanelStatus &DeviceExplorerPanelView::defaultPanelStatus() 
 
 DeviceExplorerPanelView::DeviceExplorerPanelView(
         const iscore::ApplicationContext& ctx,
-        iscore::View* parent) :
+        QObject* parent) :
     iscore::PanelView {parent},
     m_widget {new DeviceExplorerWidget{
               ctx.components.factory<DynamicProtocolList>(),
-              parent}}
+              nullptr}}
 {
 }
 

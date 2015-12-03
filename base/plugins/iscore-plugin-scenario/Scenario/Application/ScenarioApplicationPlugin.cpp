@@ -70,7 +70,6 @@ namespace iscore {
 using namespace iscore;
 #include <Scenario/Application/Menus/ScenarioCommonContextMenuFactory.hpp>
 #include <algorithm>
-#include <core/application/Application.hpp>
 #include <core/presenter/Presenter.hpp>
 #include <core/view/View.hpp>
 

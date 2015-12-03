@@ -62,7 +62,7 @@ class ScenarioApplicationPlugin final : public QObject, public iscore::GUIApplic
                 iscore::Document* olddoc,
                 iscore::Document* newdoc) override;
 
-        void on_activeWindowChanged();
+        void on_activeWindowChanged() override;
     private:
         void initColors();
 

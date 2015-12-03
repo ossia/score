@@ -35,10 +35,10 @@ struct VisitorVariant;
 #include <OSSIA/DocumentPlugin/ContextMenu/PlayContextMenu.hpp>
 #include <Explorer/DocumentPlugin/DeviceDocumentPlugin.hpp>
 #include <Scenario/Document/ScenarioDocument/ScenarioDocumentModel.hpp>
-#include <core/application/Application.hpp>
 #include <core/document/Document.hpp>
 #include <core/presenter/DocumentManager.hpp>
 #include <core/document/DocumentModel.hpp>
+#include <core/application/ApplicationSettings.hpp>
 #include <algorithm>
 #include <vector>
 

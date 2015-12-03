@@ -4,7 +4,7 @@
 
 namespace iscore {
 class PanelView;
-class Presenter;
+
 }  // namespace iscore
 
 class GroupPanelPresenter : public iscore::PanelPresenter

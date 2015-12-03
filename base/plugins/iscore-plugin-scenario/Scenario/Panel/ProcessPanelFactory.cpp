@@ -22,7 +22,7 @@ QString ProcessPanelFactory::panelName() const
 
 iscore::PanelView*ProcessPanelFactory::makeView(
         const iscore::ApplicationContext& ctx,
-        iscore::View* parent)
+        QObject* parent)
 {
     return new ProcessPanelView{parent};
 }

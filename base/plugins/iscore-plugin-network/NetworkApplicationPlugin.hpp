@@ -11,7 +11,7 @@ namespace iscore {
 
 class Document;
 class MenubarManager;
-class Presenter;
+
 }  // namespace iscore
 struct VisitorVariant;
 

@@ -2,7 +2,7 @@
 #include <QObject>
 
 namespace iscore {
-class Presenter;
+
 }  // namespace iscore
 
 namespace iscore

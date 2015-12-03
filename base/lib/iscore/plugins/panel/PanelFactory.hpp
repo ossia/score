@@ -9,8 +9,8 @@ namespace iscore
     class PanelModel;
     class PanelPresenter;
     class PanelView;
-    class Presenter;
-    class View;
+    
+    
     struct ApplicationContext;
     struct DocumentContext;
 
@@ -28,7 +28,7 @@ namespace iscore
             virtual ~PanelFactory();
             virtual PanelView* makeView(
                     const iscore::ApplicationContext& ctx,
-                    iscore::View* parent) = 0;
+                    QObject* parent) = 0;
 
             virtual PanelPresenter* makePresenter(
                     const iscore::ApplicationContext& ctx,

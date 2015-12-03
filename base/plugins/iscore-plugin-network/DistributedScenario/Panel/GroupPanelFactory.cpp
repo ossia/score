@@ -8,7 +8,7 @@
 
 namespace iscore {
 class DocumentModel;
-class Presenter;
+
 }  // namespace iscore
 // TODO review if it is really useful to make the panel view with iscore::View
 
@@ -24,7 +24,7 @@ QString GroupPanelFactory::panelName() const
 
 iscore::PanelView* GroupPanelFactory::makeView(
         const iscore::ApplicationContext& ctx,
-        iscore::View* v)
+        QObject* v)
 {
     return new GroupPanelView{v};
 }

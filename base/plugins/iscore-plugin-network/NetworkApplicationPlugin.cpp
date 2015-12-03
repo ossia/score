@@ -1,5 +1,4 @@
 #include <boost/optional/optional.hpp>
-#include <core/application/Application.hpp>
 #include <core/document/Document.hpp>
 #include <QAction>
 #include <QApplication>

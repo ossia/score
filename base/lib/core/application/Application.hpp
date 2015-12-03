@@ -56,9 +56,6 @@ namespace iscore
             const ApplicationSettings& appSettings() const
             { return m_applicationSettings; }
 
-        signals:
-            void autoplay();
-
         private:
             void init(); // m_applicationSettings has to be set.
             void loadPluginData();

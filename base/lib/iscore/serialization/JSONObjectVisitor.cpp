@@ -1,4 +1,4 @@
-#include <core/application/Application.hpp>
+
 #include <QJsonObject>
 #include <algorithm>
 

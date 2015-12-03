@@ -8,7 +8,7 @@ class QWidget;
 
 namespace iscore
 {
-    class View;
+    
 }
 class DeviceExplorerWidget;
 
@@ -19,7 +19,7 @@ class DeviceExplorerPanelView final : public iscore::PanelView
         const iscore::DefaultPanelStatus& defaultPanelStatus() const override;
         explicit DeviceExplorerPanelView(
                 const iscore::ApplicationContext& ctx,
-                iscore::View* parent);
+                QObject* parent);
 
         QWidget* getWidget() override;
         const QString shortcut() const override

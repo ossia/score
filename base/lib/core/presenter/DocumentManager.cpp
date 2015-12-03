@@ -32,23 +32,30 @@
 
 namespace iscore
 {
-DocumentManager::DocumentManager(Presenter& p):
-    m_presenter{p},
-    m_builder{p}
+DocumentManager::DocumentManager(
+        iscore::View& view,
+        QObject* parentPresenter):
+    m_view{view},
+    m_builder{parentPresenter, &view}
 {
-    connect(m_presenter.view(), &View::activeDocumentChanged,
-            this, [&] (const Id<DocumentModel>& doc) {
-        prepareNewDocument();
+
+}
+
+void DocumentManager::init(const ApplicationContext& ctx)
+{
+    con(m_view, &View::activeDocumentChanged,
+        this, [&] (const Id<DocumentModel>& doc) {
+        prepareNewDocument(ctx);
         auto it = find_if(m_documents, [&] (auto other) { return other->model().id() == doc; });
-        setCurrentDocument(it != m_documents.end() ? *it : nullptr);
+        setCurrentDocument(ctx, it != m_documents.end() ? *it : nullptr);
     });
 
 
-    connect(m_presenter.view(), &View::closeRequested,
-            this, [&] (const Id<DocumentModel>& doc) {
+    con(m_view, &View::closeRequested,
+        this, [&] (const Id<DocumentModel>& doc) {
         auto it = find_if(m_documents, [&] (auto other) { return other->model().id() == doc; });
         ISCORE_ASSERT(it != m_documents.end());
-        closeDocument(**it);
+        closeDocument(ctx, **it);
     });
 
     m_recentFiles = new QRecentFilesMenu{tr("Recent files"), nullptr};
@@ -57,7 +64,7 @@ DocumentManager::DocumentManager(Presenter& p):
     m_recentFiles->restoreState(settings.value("RecentFiles").toByteArray());
 
     connect(m_recentFiles, &QRecentFilesMenu::recentFileTriggered,
-            this, [&] (const QString& f) { loadFile(f); });
+            this, [&] (const QString& f) { loadFile(ctx, f); });
 
 }
 
@@ -77,27 +84,31 @@ DocumentManager::~DocumentManager()
     m_currentDocument = nullptr;
 }
 
-Document* DocumentManager::setupDocument(Document* doc)
+Document* DocumentManager::setupDocument(
+        const iscore::ApplicationContext& ctx,
+        Document* doc)
 {
     if(doc)
     {
-        for(auto& panel : m_presenter.applicationComponents().panelPresenters())
+        for(auto& panel : ctx.components.panelPresenters())
         {
             doc->setupNewPanel(panel.second);
         }
 
         m_documents.push_back(doc);
-        m_presenter.view()->addDocumentView(&doc->view());
-        setCurrentDocument(doc);
+        m_view.addDocumentView(&doc->view());
+        setCurrentDocument(ctx, doc);
         connect(&doc->model(), &DocumentModel::fileNameChanged,
                 this, [=] (const QString& s)
         {
-            m_presenter.view()->on_fileNameChanged(&doc->view(), s);
+            m_view.on_fileNameChanged(&doc->view(), s);
         });
     }
     else
     {
-        setCurrentDocument(m_documents.empty() ? nullptr : m_documents.front());
+        setCurrentDocument(
+                    ctx,
+                    m_documents.empty() ? nullptr : m_documents.front());
     }
 
     return doc;
@@ -108,12 +119,14 @@ Document *DocumentManager::currentDocument() const
     return m_currentDocument;
 }
 
-void DocumentManager::setCurrentDocument(Document* doc)
+void DocumentManager::setCurrentDocument(
+        const iscore::ApplicationContext& ctx,
+        Document* doc)
 {
     auto old = m_currentDocument;
     m_currentDocument = doc;
 
-    for(auto& pair : m_presenter.applicationComponents().panelPresenters())
+    for(auto& pair : ctx.components.panelPresenters())
     {
         if(doc)
             m_currentDocument->bindPanelPresenter(pair.first);
@@ -121,7 +134,7 @@ void DocumentManager::setCurrentDocument(Document* doc)
             pair.first->setModel(nullptr);
     }
 
-    for(auto& ctrl : m_presenter.applicationComponents().applicationPlugins())
+    for(auto& ctrl : ctx.components.applicationPlugins())
     {
         ctrl->on_documentChanged(old, m_currentDocument);
     }
@@ -129,7 +142,9 @@ void DocumentManager::setCurrentDocument(Document* doc)
     emit currentDocumentChanged(doc);
 }
 
-bool DocumentManager::closeDocument(Document& doc)
+bool DocumentManager::closeDocument(
+        const iscore::ApplicationContext& ctx,
+        Document& doc)
 {
     // Warn the user if he might loose data
     if(!doc.commandStack().isAtSavedIndex())
@@ -159,9 +174,10 @@ bool DocumentManager::closeDocument(Document& doc)
     }
 
     // Close operation
-    m_presenter.view()->closeDocument(&doc.view());
+    m_view.closeDocument(&doc.view());
     remove_one(m_documents, &doc);
-    setCurrentDocument(m_documents.size() > 0 ? m_documents.back() : nullptr);
+    setCurrentDocument(ctx,
+                       m_documents.size() > 0 ? m_documents.back() : nullptr);
 
     delete &doc;
     return true;
@@ -196,7 +212,7 @@ bool DocumentManager::saveDocument(Document& doc)
 
 bool DocumentManager::saveDocumentAs(Document& doc)
 {
-    QFileDialog d{m_presenter.view(), tr("Save Document As")};
+    QFileDialog d{&m_view, tr("Save Document As")};
     QString binFilter{tr("Binary (*.scorebin)")};
     QString jsonFilter{tr("JSON (*.scorejson)")};
     QStringList filters;
@@ -247,7 +263,7 @@ bool DocumentManager::saveDocumentAs(Document& doc)
 
 bool DocumentManager::saveStack()
 {
-    QFileDialog d{m_presenter.view(), tr("Save Stack As")};
+    QFileDialog d{&m_view, tr("Save Stack As")};
     d.setNameFilters({".stack"});
     d.setConfirmOverwrite(true);
     d.setFileMode(QFileDialog::AnyFile);
@@ -275,9 +291,10 @@ bool DocumentManager::saveStack()
     return false;
 }
 
-bool DocumentManager::loadStack()
+bool DocumentManager::loadStack(
+        const iscore::ApplicationContext& ctx)
 {
-    QString loadname = QFileDialog::getOpenFileName(m_presenter.view(), tr("Open Stack"), QString(), "*.stack");
+    QString loadname = QFileDialog::getOpenFileName(&m_view, tr("Open Stack"), QString(), "*.stack");
     if(!loadname.isEmpty()
         && (loadname.indexOf(".stack") != -1) )
     {
@@ -291,11 +308,12 @@ bool DocumentManager::loadStack()
         Id<DocumentModel> id; //getStrongId(documents())
         writer.writeTo(id);
 
-        newDocument(id,
-                    m_presenter.applicationComponents().availableDocuments().front());
+        newDocument(ctx,
+                    id,
+                    ctx.components.availableDocuments().front());
 
         loadCommandStack(
-                    m_presenter.applicationComponents(),
+                    ctx.components,
                     writer,
                     currentDocument()->commandStack(),
                     [] (auto cmd) { cmd->redo(); }
@@ -307,13 +325,16 @@ bool DocumentManager::loadStack()
     return false;
 }
 
-Document* DocumentManager::loadFile()
+Document* DocumentManager::loadFile(
+        const iscore::ApplicationContext& ctx)
 {
-    QString loadname = QFileDialog::getOpenFileName(m_presenter.view(), tr("Open"), QString(), "*.scorebin *.scorejson");
-    return loadFile(loadname);
+    QString loadname = QFileDialog::getOpenFileName(&m_view, tr("Open"), QString(), "*.scorebin *.scorejson");
+    return loadFile(ctx, loadname);
 }
 
-Document* DocumentManager::loadFile(const QString& fileName)
+Document* DocumentManager::loadFile(
+        const iscore::ApplicationContext& ctx,
+        const QString& fileName)
 {
     Document* doc{};
     if(!fileName.isEmpty()
@@ -325,12 +346,12 @@ Document* DocumentManager::loadFile(const QString& fileName)
         {
             if (fileName.indexOf(".scorebin") != -1)
             {
-                doc = loadDocument(f.readAll(), m_presenter.applicationComponents().availableDocuments().front());
+                doc = loadDocument(ctx, f.readAll(), ctx.components.availableDocuments().front());
             }
             else if (fileName.indexOf(".scorejson") != -1)
             {
                 auto json = QJsonDocument::fromJson(f.readAll());
-                doc = loadDocument(json.object(), m_presenter.applicationComponents().availableDocuments().front());
+                doc = loadDocument(ctx, json.object(), ctx.components.availableDocuments().front());
             }
 
             m_currentDocument->setDocFileName(fileName);
@@ -341,19 +362,21 @@ Document* DocumentManager::loadFile(const QString& fileName)
     return doc;
 }
 
-void DocumentManager::prepareNewDocument()
+void DocumentManager::prepareNewDocument(
+        const iscore::ApplicationContext& ctx)
 {
-    for(GUIApplicationContextPlugin* appPlugin : m_presenter.applicationComponents().applicationPlugins())
+    for(GUIApplicationContextPlugin* appPlugin : ctx.components.applicationPlugins())
     {
         appPlugin->prepareNewDocument();
     }
 }
 
-bool DocumentManager::closeAllDocuments()
+bool DocumentManager::closeAllDocuments(
+        const iscore::ApplicationContext& ctx)
 {
     while(!m_documents.empty())
     {
-        bool b = closeDocument(*m_documents.back());
+        bool b = closeDocument(ctx, *m_documents.back());
         if(!b)
             return false;
     }
@@ -363,11 +386,12 @@ bool DocumentManager::closeAllDocuments()
 
 
 
-void DocumentManager::restoreDocuments()
+void DocumentManager::restoreDocuments(
+        const iscore::ApplicationContext& ctx)
 {
     for(const auto& backup : DocumentBackups::restorableDocuments())
     {
-        restoreDocument(backup.first, backup.second, m_presenter.applicationComponents().availableDocuments().front());
+        restoreDocument(ctx, backup.first, backup.second, ctx.components.availableDocuments().front());
     }
 }
 

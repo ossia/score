@@ -7,7 +7,7 @@
 
 namespace iscore {
 class DocumentModel;
-class Presenter;
+
 }  // namespace iscore
 
 int UndoPanelFactory::panelId() const
@@ -22,7 +22,7 @@ QString UndoPanelFactory::panelName() const
 
 iscore::PanelView *UndoPanelFactory::makeView(
         const iscore::ApplicationContext& ctx,
-        iscore::View *v)
+        QObject *v)
 {
     return new UndoView{v};
 }

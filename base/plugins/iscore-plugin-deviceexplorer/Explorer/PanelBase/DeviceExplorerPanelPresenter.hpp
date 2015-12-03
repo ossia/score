@@ -3,7 +3,7 @@
 
 namespace iscore {
 class PanelView;
-class Presenter;
+
 }  // namespace iscore
 
 class DeviceExplorerPanelPresenter final : public iscore::PanelPresenter

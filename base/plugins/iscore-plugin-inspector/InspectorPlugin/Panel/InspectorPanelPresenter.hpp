@@ -5,7 +5,7 @@
 
 namespace iscore {
 class PanelView;
-class Presenter;
+
 }  // namespace iscore
 
 class InspectorPanelPresenter : public iscore::PanelPresenter

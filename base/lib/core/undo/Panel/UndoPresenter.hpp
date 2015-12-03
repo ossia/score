@@ -3,7 +3,7 @@
 
 namespace iscore {
 class PanelView;
-class Presenter;
+
 }  // namespace iscore
 
 class UndoPresenter final : public iscore::PanelPresenter

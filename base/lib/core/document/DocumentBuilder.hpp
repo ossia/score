@@ -9,7 +9,7 @@ class Document;
 class DocumentBackupManager;
 class DocumentDelegateFactoryInterface;
 class DocumentModel;
-class Presenter;
+class ApplicationContext;
 
 /**
  * @brief The DocumentBuilder class
@@ -23,15 +23,20 @@ class Presenter;
 class DocumentBuilder
 {
     public:
-        explicit DocumentBuilder(Presenter& pres);
+        explicit DocumentBuilder(
+            QObject* parentPresenter,
+            QWidget* parentView);
 
         Document* newDocument(
+                const iscore::ApplicationContext& ctx,
                 const Id<DocumentModel>& id,
                 iscore::DocumentDelegateFactoryInterface* doctype);
         Document* loadDocument(
+                const iscore::ApplicationContext& ctx,
                 const QVariant &data,
                 iscore::DocumentDelegateFactoryInterface* doctype);
         Document* restoreDocument(
+                const iscore::ApplicationContext& ctx,
                 const QByteArray &docData,
                 const QByteArray &cmdData,
                 iscore::DocumentDelegateFactoryInterface* doctype);
@@ -43,12 +48,15 @@ class DocumentBuilder
                 typename BackupFun // the model data to save
         >
         Document* loadDocument_impl(
+                const iscore::ApplicationContext& ctx,
                 const QVariant &data,
                 iscore::DocumentDelegateFactoryInterface* doctype,
                 InitFun&& initfun,
                 BackupFun&& backupfun);
 
-        Presenter& m_presenter;
+        QObject* m_parentPresenter{};
+        QWidget* m_parentView{};
+
         DocumentBackupManager* m_backupManager{};
 };
 

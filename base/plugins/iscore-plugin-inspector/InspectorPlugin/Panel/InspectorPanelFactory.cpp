@@ -6,8 +6,8 @@
 
 namespace iscore {
 class DocumentModel;
-class Presenter;
-class View;
+
+
 }  // namespace iscore
 
 using namespace iscore;
@@ -25,7 +25,7 @@ QString InspectorPanelFactory::panelName() const
 
 iscore::PanelView* InspectorPanelFactory::makeView(
         const iscore::ApplicationContext& ctx,
-        iscore::View* parent)
+        QObject* parent)
 {
     return new InspectorPanelView {parent};
 }

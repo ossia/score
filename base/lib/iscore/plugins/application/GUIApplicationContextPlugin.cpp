@@ -1,4 +1,4 @@
-#include <core/application/Application.hpp>
+
 #include <QApplication>
 
 #include "GUIApplicationContextPlugin.hpp"
@@ -18,9 +18,10 @@ struct VisitorVariant;
 using namespace iscore;
 
 
-GUIApplicationContextPlugin::GUIApplicationContextPlugin(const iscore::ApplicationContext& app,
-                                               const QString& name,
-                                               QObject* parent):
+GUIApplicationContextPlugin::GUIApplicationContextPlugin(
+        const iscore::ApplicationContext& app,
+        const QString& name,
+        QObject* parent):
     context{app}
 {
 

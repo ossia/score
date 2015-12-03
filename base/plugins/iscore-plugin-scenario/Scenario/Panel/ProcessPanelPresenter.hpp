@@ -10,7 +10,7 @@ class ProcessPanelGraphicsProxy;
 class QSize;
 namespace iscore {
 class PanelView;
-class Presenter;
+
 }  // namespace iscore
 
 class ProcessPanelPresenter final : public iscore::PanelPresenter

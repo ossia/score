@@ -192,7 +192,7 @@ void Application::init()
     if(!m_applicationSettings.loadList.empty())
     {
         for(const auto& doc : m_applicationSettings.loadList)
-            m_presenter->documentManager().loadFile(doc);
+            m_presenter->documentManager().loadFile(context(), doc);
     }
 
     for(auto plug : context().components.applicationPlugins())
@@ -206,12 +206,13 @@ void Application::init()
     // Try to reload if there was a crash
     if(m_applicationSettings.tryToRestore && DocumentBackups::canRestoreDocuments())
     {
-        m_presenter->documentManager().restoreDocuments();
+        m_presenter->documentManager().restoreDocuments(context());
     }
     else
     {
         if(!m_presenter->applicationComponents().availableDocuments().empty())
             m_presenter->documentManager().newDocument(
+                        context(),
                         Id<DocumentModel>{iscore::random_id_generator::getRandomId()}, // TODO crashes if loaded twice by chance
                         m_presenter->applicationComponents().availableDocuments().front());
     }

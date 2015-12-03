@@ -1,5 +1,4 @@
 #include <boost/optional/optional.hpp>
-#include <core/application/Application.hpp>
 #include <core/view/View.hpp>
 #include <iscore/plugins/application/GUIApplicationContextPlugin.hpp>
 #include <iscore/tools/SettableIdentifierGeneration.hpp>
@@ -48,7 +47,7 @@ Presenter::Presenter(
         QObject* arg_parent) :
     NamedObject {"Presenter", arg_parent},
     m_view {view},
-    m_docManager{*this},
+    m_docManager{*view, this},
     m_components{},
     m_components_readonly{m_components},
     m_context{app, m_components_readonly, m_docManager},
@@ -58,6 +57,9 @@ Presenter::Presenter(
     m_menubar {view->menuBar(), this}
   #endif
 {
+    m_docManager.init(m_context); // It is necessary to break
+    // this dependency cycle.
+
     setupMenus();
     connect(m_view,		&View::insertActionIntoMenubar,
             &m_menubar, &MenubarManager::insertActionIntoMenubar);
@@ -73,7 +75,9 @@ void Presenter::setupMenus()
                 ToplevelMenuElement::FileMenu,
                 FileMenuElement::New,
                 [&] () {
-        m_docManager.newDocument(getStrongId(m_docManager.documents()),
+        m_docManager.newDocument(
+                    m_context,
+                    getStrongId(m_docManager.documents()),
                     applicationComponents().availableDocuments().front());
     });
 
@@ -88,7 +92,7 @@ void Presenter::setupMenus()
     auto openAct = m_menubar.addActionIntoToplevelMenu(
                 ToplevelMenuElement::FileMenu,
                 FileMenuElement::Load,
-                [this]() { m_docManager.loadFile(); });
+                [this]() { m_docManager.loadFile(m_context); });
     openAct->setShortcut(QKeySequence::Open);
 
     auto saveAct = m_menubar.addActionIntoToplevelMenu(
@@ -121,7 +125,7 @@ void Presenter::setupMenus()
                 FileMenuElement::Close,
                 [this]() {
         if(auto doc = m_docManager.currentDocument())
-            m_docManager.closeDocument(*doc);
+            m_docManager.closeDocument(m_context, *doc);
     });
     closeAct->setShortcut(QKeySequence::Close);
 
@@ -139,7 +143,7 @@ void Presenter::setupMenus()
     m_menubar.addActionIntoToplevelMenu(
                         ToplevelMenuElement::FileMenu,
                         FileMenuElement::LoadCommands,
-                [this] () {m_docManager.loadStack();});
+                [this] () { m_docManager.loadStack(m_context); });
 
 #endif
 
@@ -172,7 +176,7 @@ void Presenter::setupMenus()
 
 bool Presenter::exit()
 {
-    return m_docManager.closeAllDocuments();
+    return m_docManager.closeAllDocuments(m_context);
 }
 
 View* Presenter::view() const

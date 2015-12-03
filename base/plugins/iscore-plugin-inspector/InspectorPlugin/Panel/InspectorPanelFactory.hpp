@@ -9,8 +9,8 @@
 
 namespace iscore {
 class DocumentModel;
-class Presenter;
-class View;
+
+
 }  // namespace iscore
 
 class InspectorPanelFactory : public iscore::PanelFactory
@@ -20,7 +20,7 @@ class InspectorPanelFactory : public iscore::PanelFactory
         QString panelName() const override;
         iscore::PanelView* makeView(
                 const iscore::ApplicationContext& ctx,
-                iscore::View*) override;
+                QObject*) override;
         iscore::PanelPresenter* makePresenter(
                 const iscore::ApplicationContext& ctx,
                 iscore::PanelView* view,

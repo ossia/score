@@ -16,7 +16,6 @@
 #include <QPluginLoader>
 #include <QSettings>
 #include <QVariant>
-#include <core/application/Application.hpp>
 #include <unordered_map>
 #include <utility>
 

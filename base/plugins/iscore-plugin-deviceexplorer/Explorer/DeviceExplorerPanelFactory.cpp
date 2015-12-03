@@ -6,8 +6,8 @@
 
 namespace iscore {
 class DocumentModel;
-class Presenter;
-class View;
+
+
 }  // namespace iscore
 
 using namespace iscore;
@@ -25,7 +25,7 @@ int DeviceExplorerPanelFactory::panelId() const
 
 iscore::PanelView* DeviceExplorerPanelFactory::makeView(
         const iscore::ApplicationContext& ctx,
-        iscore::View* parent)
+        QObject* parent)
 {
     return new DeviceExplorerPanelView {ctx, parent};
 }

@@ -6,7 +6,7 @@
 
 namespace iscore {
 class PanelView;
-class Presenter;
+
 }  // namespace iscore
 
 GroupPanelPresenter::GroupPanelPresenter(
