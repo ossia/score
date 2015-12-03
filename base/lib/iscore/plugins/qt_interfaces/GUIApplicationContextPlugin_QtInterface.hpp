@@ -1,5 +1,8 @@
 #pragma once
 #include <QObject>
+
+#include <iscore/application/ApplicationContext.hpp>
+
 namespace iscore
 {
     class Application;

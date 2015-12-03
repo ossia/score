@@ -41,3 +41,9 @@ void CommentBlockPresenter::pressed(const QPointF& pos)
     m_clickedPoint = pos;
 }
 
+void CommentBlockPresenter::on_zoomRatioChanged(ZoomRatio newRatio)
+{
+    m_view->setPos(m_model.date().msec() / newRatio, m_view->pos().y());
+    m_view->update();
+}
+

@@ -85,12 +85,12 @@ TemporalScenarioPresenter::TemporalScenarioPresenter(
     {
         on_timeNodeCreated(tn_model);
     }
-/*
+
     for(const auto& cmt_model : scenario.comments)
     {
         on_commentBlockCreated(cmt_model);
     }
-*/
+
     for(const auto& constraint_view_model : constraintsViewModels(m_layer))
     {
         on_constraintViewModelCreated(*constraint_view_model);
@@ -196,6 +196,10 @@ void TemporalScenarioPresenter::on_zoomRatioChanged(ZoomRatio val)
     for(auto& constraint : m_constraints)
     {
         constraint.on_zoomRatioChanged(m_zoomRatio);
+    }
+    for(auto& comment : m_comments)
+    {
+        comment.on_zoomRatioChanged(m_zoomRatio);
     }
 }
 

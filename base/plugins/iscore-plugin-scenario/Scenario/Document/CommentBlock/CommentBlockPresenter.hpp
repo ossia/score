@@ -46,6 +46,7 @@ class CommentBlockPresenter final :  public NamedObject
 
     public slots:
         void pressed(const QPointF&);
+        void on_zoomRatioChanged(ZoomRatio newRatio);
 
     private:
         const CommentBlockModel& m_model;
