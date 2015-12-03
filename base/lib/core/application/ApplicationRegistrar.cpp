@@ -20,10 +20,20 @@ namespace iscore
 {
 
 ApplicationRegistrar::ApplicationRegistrar(
-        ApplicationComponentsData& c,
-        iscore::Application& p):
-    m_components{c},
-    m_app{p}
+        ApplicationComponentsData& comp,
+        const iscore::ApplicationContext& ctx,
+        iscore::View& view,
+        Settings& set,
+        MenubarManager& menubar,
+        std::vector<OrderedToolbar>& toolbars,
+        QObject* panelPresenterParent):
+    m_components{comp},
+    m_context{ctx},
+    m_view{view},
+    m_settings{set},
+    m_menubar{menubar},
+    m_toolbars{toolbars},
+    m_panelPresenterParent{panelPresenterParent}
 {
 
 }
@@ -42,12 +52,11 @@ void ApplicationRegistrar::registerApplicationContextPlugin(
         GUIApplicationContextPlugin* ctrl)
 {
     // GUI Presenter stuff...
-    ctrl->populateMenus(&m_app.presenter().menuBar());
+    ctrl->populateMenus(&m_menubar);
     auto toolbars = ctrl->makeToolbars();
-    auto& currentToolbars = m_app.presenter().toolbars();
-    currentToolbars.insert(currentToolbars.end(), toolbars.begin(), toolbars.end());
+    m_toolbars.insert(m_toolbars.end(), toolbars.begin(), toolbars.end());
 
-    connect(m_app.presenter().view(), &iscore::View::activeWindowChanged,
+    con(m_view, &iscore::View::activeWindowChanged,
            [=] () {
         ctrl->on_activeWindowChanged();
         // TODO give a context if it is deleted
@@ -60,14 +69,14 @@ void ApplicationRegistrar::registerApplicationContextPlugin(
 void ApplicationRegistrar::registerPanel(
         PanelFactory* factory)
 {
-    auto view = factory->makeView(m_app.context(), m_app.presenter().view());
-    auto pres = factory->makePresenter(m_app.context(), view, &m_app.presenter());
+    auto view = factory->makeView(m_context, &m_view);
+    auto pres = factory->makePresenter(m_context, view, m_panelPresenterParent);
 
     m_components.panelPresenters.push_back({pres, factory});
 
-    m_app.presenter().view()->setupPanelView(view);
+    m_view.setupPanelView(view);
 
-    for(auto doc : m_app.presenter().documentManager().documents())
+    for(auto doc : m_context.documents.documents())
         doc->setupNewPanel(factory);
 }
 
@@ -102,7 +111,7 @@ void ApplicationRegistrar::registerFactory(std::unique_ptr<FactoryListInterface>
 
 void ApplicationRegistrar::registerSettings(SettingsDelegateFactoryInterface* set)
 {
-    m_app.settings()->setupSettingsPlugin(set);
+    m_settings.setupSettingsPlugin(set);
 }
 
 

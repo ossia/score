@@ -7,10 +7,6 @@
 #include <iscore/command/SerializableCommand.hpp>
 #include <iscore/plugins/customfactory/FactoryInterface.hpp>
 
-namespace iscore {
-class Application;
-}  // namespace iscore
-
 namespace iscore
 {
 class DocumentDelegateFactoryInterface;
@@ -19,11 +15,22 @@ class GUIApplicationContextPlugin;
 class PanelFactory;
 class SettingsDelegateFactoryInterface;
 struct ApplicationComponentsData;
+class View;
+class MenubarManager;
+class OrderedToolbar;
+class Settings;
 
 class ApplicationRegistrar : public QObject
 {
     public:
-        ApplicationRegistrar(ApplicationComponentsData&, iscore::Application&);
+        ApplicationRegistrar(
+                ApplicationComponentsData&,
+                const iscore::ApplicationContext&,
+                iscore::View&,
+                Settings&,
+                MenubarManager&,
+                std::vector<OrderedToolbar>&,
+                QObject* panelPresenterParent);
 
         // Register data from plugins
         void registerPlugins(const QStringList&, const std::vector<QObject*>& vec);
@@ -41,6 +48,11 @@ class ApplicationRegistrar : public QObject
 
     private:
         ApplicationComponentsData& m_components;
-        Application& m_app;
+        const iscore::ApplicationContext& m_context;
+        iscore::View& m_view;
+        Settings& m_settings;
+        MenubarManager& m_menubar;
+        std::vector<OrderedToolbar>& m_toolbars;
+        QObject* m_panelPresenterParent{};
 };
 }

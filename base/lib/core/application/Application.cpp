@@ -219,7 +219,14 @@ void Application::init()
 
 void Application::loadPluginData()
 {
-    ApplicationRegistrar registrar{m_presenter->components(), *this};
+    ApplicationRegistrar registrar{
+        m_presenter->components(),
+                context(),
+                *m_view,
+                *m_settings,
+                m_presenter->menuBar(),
+                m_presenter->toolbars(),
+                m_presenter};
 
     PluginLoader::loadPlugins(registrar, m_presenter->applicationContext());
 
