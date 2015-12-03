@@ -43,7 +43,8 @@ AddLayerModelWidget::AddLayerModelWidget(SlotInspectorSection* parentSlot) :
     connect(addButton, &QToolButton::pressed,
             [ = ]()
     {
-        QStringList available_models;
+        QMap<QString, int> available_models;
+        QStringList modelList;
 
         // 1. List the processes in the model.
         const auto& shared_process_list = parentSlot->model().parentConstraint().processes;
@@ -63,7 +64,9 @@ AddLayerModelWidget::AddLayerModelWidget(SlotInspectorSection* parentSlot) :
 
             if(it == end_it)
             {
-                available_models += QString::number(*process.id().val());
+                QString name = process.prettyName();
+                available_models[name] = *process.id().val();
+                modelList += name;
             }
         }
 
@@ -74,15 +77,15 @@ AddLayerModelWidget::AddLayerModelWidget(SlotInspectorSection* parentSlot) :
             auto process_name =
                     QInputDialog::getItem(
                         this,
-                        QObject::tr("Choose a process id"),
-                        QObject::tr("Choose a process id"),
-                        available_models,
+                        QObject::tr("Choose a process"),
+                        QObject::tr("Choose a process"),
+                        modelList,
                         0,
                         false,
                         &ok);
 
             if(ok)
-                parentSlot->createLayerModel(Id<Process> {process_name.toInt() });
+                parentSlot->createLayerModel(Id<Process> {available_models[process_name] });
         }
     });
 }
