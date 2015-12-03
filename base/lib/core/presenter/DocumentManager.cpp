@@ -138,8 +138,6 @@ void DocumentManager::setCurrentDocument(
     {
         ctrl->on_documentChanged(old, m_currentDocument);
     }
-
-    emit currentDocumentChanged(doc);
 }
 
 bool DocumentManager::closeDocument(

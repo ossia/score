@@ -102,9 +102,6 @@ class DocumentManager : public QObject
         bool closeAllDocuments(
                 const iscore::ApplicationContext& ctx);
 
-    signals:
-        void currentDocumentChanged(Document* newDoc);
-
     private:
         iscore::View& m_view;
 
