@@ -80,10 +80,10 @@ void EventModel::setDate(const TimeValue& date)
 
 void EventModel::setStatus(ExecutionStatus status)
 {
-    if (m_status == status)
+    if (m_status.get() == status)
         return;
 
-    m_status = status;
+    m_status.set(status);
     emit statusChanged(status);
 
     auto scenar = dynamic_cast<ScenarioInterface*>(parent());
@@ -102,7 +102,7 @@ void EventModel::translate(const TimeValue& deltaTime)
 
 ExecutionStatus EventModel::status() const
 {
-    return m_status;
+    return m_status.get();
 }
 
 void EventModel::reset()

@@ -304,9 +304,9 @@ MessageItemModel& StateModel::messages() const
 
 void StateModel::setStatus(ExecutionStatus status)
 {
-    if (m_status == status)
+    if (m_status.get() == status)
         return;
 
-    m_status = status;
+    m_status.set(status);
     emit statusChanged(status);
 }

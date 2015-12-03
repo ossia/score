@@ -4,6 +4,8 @@
 #include <QGraphicsItem>
 #include <QRect>
 
+#include <Scenario/Document/Event/ExecutionStatus.hpp>
+
 class QGraphicsSceneDragDropEvent;
 class QGraphicsSceneMouseEvent;
 class QMimeData;
@@ -38,6 +40,7 @@ class StateView final : public QGraphicsObject
         void setSelected(bool arg);
 
         void changeColor(const QColor&);
+        void setStatus(ExecutionStatus);
 
     signals:
         void dropReceived(const QMimeData*);
@@ -55,6 +58,8 @@ class StateView final : public QGraphicsObject
         bool m_selected{false};
 
         QColor m_baseColor;
+
+        ExecutionStatusProperty m_status{};
 
         static const constexpr qreal m_radiusFull = 7.;
         static const constexpr qreal m_radiusVoid = 3.;

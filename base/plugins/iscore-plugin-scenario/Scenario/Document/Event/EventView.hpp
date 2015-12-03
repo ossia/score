@@ -82,7 +82,7 @@ class EventView final : public QGraphicsObject
         QPointF m_clickedPoint;
         QColor m_color;
 
-        ExecutionStatus m_status{ExecutionStatus::Editing};
+        ExecutionStatusProperty m_status{};
         bool m_selected{};
 
         VerticalExtent m_extent;

@@ -87,7 +87,7 @@ class StateModel final : public IdentifiedObject<StateModel>, public Nano::Obser
 
         void setStatus(ExecutionStatus);
         ExecutionStatus status() const
-        { return m_status; }
+        { return m_status.get(); }
 
         NotifyingMap<StateProcess> stateProcesses;
 
@@ -121,5 +121,5 @@ class StateModel final : public IdentifiedObject<StateModel>, public Nano::Obser
         double m_heightPercentage{0.5}; // In the whole scenario
 
         ptr<MessageItemModel> m_messageItemModel;
-        ExecutionStatus m_status{ExecutionStatus::Editing};
+        ExecutionStatusProperty m_status{};
 };
