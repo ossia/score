@@ -136,7 +136,7 @@ void DurationSectionWidget::minDurationSpinboxChanged(int val)
     m_dispatcher.submitCommand<SetMinDuration>(
                 m_model,
                 TimeValue{std::chrono::milliseconds{val}},
-                m_minNonNullBox->isChecked());
+                !m_minNonNullBox->isChecked());
 }
 
 void DurationSectionWidget::maxDurationSpinboxChanged(int val)
