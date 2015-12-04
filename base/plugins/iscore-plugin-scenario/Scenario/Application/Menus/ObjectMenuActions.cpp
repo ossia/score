@@ -419,7 +419,7 @@ void ObjectMenuActions::addProcessInConstraint(const ProcessFactoryKey& processN
 
 void ObjectMenuActions::addTriggerToTimeNode()
 {
-    auto selectedTimeNodes = selectedElements(m_parent->focusedScenarioModel()->timeNodes);// TODO : event or timenode ?
+    auto selectedTimeNodes = selectedElements(m_parent->focusedScenarioModel()->timeNodes);
     if(selectedTimeNodes.isEmpty())
         return;
 
@@ -429,7 +429,7 @@ void ObjectMenuActions::addTriggerToTimeNode()
 
 void ObjectMenuActions::removeTriggerFromTimeNode()
 {
-    auto selectedTimeNodes = selectedElements(m_parent->focusedScenarioModel()->timeNodes);// TODO : event or timenode ?
+    auto selectedTimeNodes = selectedElements(m_parent->focusedScenarioModel()->timeNodes);
     if(selectedTimeNodes.isEmpty())
         return;
 

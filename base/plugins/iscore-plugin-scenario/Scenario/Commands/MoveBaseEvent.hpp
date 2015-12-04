@@ -35,7 +35,7 @@ class MoveBaseEvent final : public iscore::SerializableCommand
             scenar.endTimeNode().setDate(newDuration);
 
             auto& constraint = scenar.constraint();
-            ConstraintDurations::Algorithms::setDurationInBounds(constraint, newDuration);
+            ConstraintDurations::Algorithms::changeAllDurations(constraint, newDuration);
             for(auto& process : constraint.processes)
             {
                 scaleMethod(process, newDuration);

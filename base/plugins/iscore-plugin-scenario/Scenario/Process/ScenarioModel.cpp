@@ -74,7 +74,7 @@ ScenarioModel::ScenarioModel(const Scenario::ScenarioModel& source,
     clone(&ScenarioModel::timeNodes);
     clone(&ScenarioModel::events);
     clone(&ScenarioModel::constraints);
-    // TODO clone comment blocks
+    clone(&ScenarioModel::comments);
     auto& stack = iscore::IDocument::documentContext(*this).commandStack;
     for(const auto& elt : source.states)
     {
