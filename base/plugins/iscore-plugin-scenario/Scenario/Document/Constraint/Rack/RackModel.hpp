@@ -14,7 +14,7 @@
 
 #include "Slot/SlotModel.hpp"
 #include <iscore/tools/IdentifiedObject.hpp>
-
+#include <iscore_plugin_scenario_export.h>
 class ConstraintModel;
 class Process;
 
@@ -24,7 +24,7 @@ class Process;
  * A Rack is a slot container.
  * A Rack is always found in a Constraint.
  */
-class RackModel final : public IdentifiedObject<RackModel>, public Nano::Observer
+class ISCORE_PLUGIN_SCENARIO_EXPORT RackModel final : public IdentifiedObject<RackModel>, public Nano::Observer
 {
         Q_OBJECT
         ISCORE_METADATA("RackModel") // TODO use this everywhere.

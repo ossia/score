@@ -11,11 +11,11 @@ class DeviceInterface;
  */
 namespace DeviceExplorer
 {
-QVariant nameColumnData(const iscore::Node& node, int role);
-QVariant deviceNameColumnData(const iscore::Node& node, DeviceInterface& dev, int role);
-QVariant valueColumnData(const iscore::Node& node, int role);
-QVariant GetColumnData(const iscore::Node& node, int role);
-QVariant SetColumnData(const iscore::Node& node, int role);
-QVariant minColumnData(const iscore::Node& node, int role);
-QVariant maxColumnData(const iscore::Node& node, int role);
+ISCORE_LIB_DEVICE_EXPORT QVariant nameColumnData(const iscore::Node& node, int role);
+ISCORE_LIB_DEVICE_EXPORT QVariant deviceNameColumnData(const iscore::Node& node, DeviceInterface& dev, int role);
+ISCORE_LIB_DEVICE_EXPORT QVariant valueColumnData(const iscore::Node& node, int role);
+ISCORE_LIB_DEVICE_EXPORT QVariant GetColumnData(const iscore::Node& node, int role);
+ISCORE_LIB_DEVICE_EXPORT QVariant SetColumnData(const iscore::Node& node, int role);
+ISCORE_LIB_DEVICE_EXPORT QVariant minColumnData(const iscore::Node& node, int role);
+ISCORE_LIB_DEVICE_EXPORT QVariant maxColumnData(const iscore::Node& node, int role);
 }

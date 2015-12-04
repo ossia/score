@@ -5,14 +5,14 @@
 #include <iscore/command/SerializableCommand.hpp>
 #include <iscore/tools/ModelPath.hpp>
 #include <vector>
-
+#include <iscore_plugin_automation_export.h>
 class DataStreamInput;
 class DataStreamOutput;
 /** Note : this command is for internal use only, in recording **/
 
 class AutomationModel;
 
-class InitAutomation final : public iscore::SerializableCommand
+class ISCORE_PLUGIN_AUTOMATION_EXPORT InitAutomation final : public iscore::SerializableCommand
 {
         ISCORE_COMMAND_DECL(AutomationCommandFactoryName(), InitAutomation, "InitAutomation")
     public:

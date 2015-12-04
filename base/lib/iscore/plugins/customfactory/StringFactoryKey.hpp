@@ -1,10 +1,11 @@
 #pragma once
 #include <iscore/tools/opaque/OpaqueString.hpp>
 #include <iscore/tools/std/String.hpp>
+#include <iscore_lib_base_export.h>
 #include <QDebug>
 // TODO rename file.
 template<typename Tag>
-class StringKey : OpaqueString
+class ISCORE_LIB_BASE_EXPORT StringKey : OpaqueString
 {
         using this_type = StringKey<Tag>;
 

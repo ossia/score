@@ -5,6 +5,7 @@
 #include <utility>
 
 #include <iscore/command/CommandFactoryKey.hpp>
+#include <iscore_lib_base_export.h>
 
 namespace iscore
 {
@@ -29,7 +30,7 @@ class SerializableCommand;
  *
  * Base class for command instantiation. Allows a polymorphic use.
  */
-class CommandFactory
+class ISCORE_LIB_BASE_EXPORT CommandFactory
 {
     public:
         virtual ~CommandFactory();

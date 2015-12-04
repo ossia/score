@@ -3,6 +3,7 @@
 #include <QString>
 
 #include <State/Value.hpp>
+#include <iscore_plugin_deviceexplorer_export.h>
 
 class DeviceDocumentPlugin;
 class DeviceExplorerModel;
@@ -27,7 +28,7 @@ struct DeviceSettings;
  * to use its methods (that calls beginAddRows, etc.) to prevent a full refresh
  * which would be laggy.
  */
-class NodeUpdateProxy
+class ISCORE_PLUGIN_DEVICEEXPLORER_EXPORT NodeUpdateProxy
 {
     public:
         DeviceDocumentPlugin& devModel;

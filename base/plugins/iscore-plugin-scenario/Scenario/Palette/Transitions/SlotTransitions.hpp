@@ -2,7 +2,7 @@
 
 #include <Scenario/Palette/ScenarioPaletteBaseEvents.hpp>
 #include <iscore/statemachine/StateMachineUtils.hpp>
-
+#include <iscore_plugin_scenario_export.h>
 class QEvent;
 namespace Scenario {
 class SlotState;
@@ -24,7 +24,7 @@ class ClickOnSlotOverlay_Transition final : public iscore::MatchedTransition<Cli
         Scenario::SlotState& m_state;
 };
 
-class ClickOnSlotHandle_Transition final : public iscore::MatchedTransition<ClickOnSlotHandle_Event>
+class ISCORE_PLUGIN_SCENARIO_EXPORT ClickOnSlotHandle_Transition final : public iscore::MatchedTransition<ClickOnSlotHandle_Event>
 {
     public:
         ClickOnSlotHandle_Transition(Scenario::SlotState& state);

@@ -1,6 +1,6 @@
 #pragma once
 #include <QObject>
-
+#include <iscore_lib_process_export.h>
 class LayerPresenter;
 
 namespace iscore
@@ -9,7 +9,7 @@ namespace iscore
     class DocumentDelegateModelInterface;
 }
 // Sets the focus on a scenario document.
-class FocusDispatcher : public QObject
+class ISCORE_LIB_PROCESS_EXPORT FocusDispatcher : public QObject
 {
         Q_OBJECT
     public:

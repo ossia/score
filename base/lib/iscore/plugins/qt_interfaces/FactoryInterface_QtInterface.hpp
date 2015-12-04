@@ -1,6 +1,7 @@
 #pragma once
 #include <iscore/plugins/customfactory/FactoryInterface.hpp>
 #include <vector>
+#include <iscore_lib_base_export.h>
 #include <memory>
 
 namespace iscore
@@ -9,7 +10,7 @@ struct ApplicationContext;
 
 // Reimplement in plug-in if the plug-in offers an IMPLEMENTATION of an abstract type offered in another plug-in.
 // Example : the Scenario plug-in provides inspector widget factories implementations for Interval and event
-class FactoryInterface_QtInterface
+class ISCORE_LIB_BASE_EXPORT FactoryInterface_QtInterface
 {
     public:
         virtual ~FactoryInterface_QtInterface();

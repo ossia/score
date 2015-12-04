@@ -3,7 +3,7 @@
 
 #include <Scenario/Document/Constraint/ViewModels/Temporal/TemporalConstraintView.hpp>
 #include <Scenario/Document/Constraint/ViewModels/Temporal/TemporalConstraintViewModel.hpp>
-
+#include <iscore_plugin_scenario_export.h>
 class QGraphicsObject;
 class QObject;
 
@@ -12,7 +12,7 @@ namespace iscore
 {
 }
 
-class TemporalConstraintPresenter final : public ConstraintPresenter
+class ISCORE_PLUGIN_SCENARIO_EXPORT TemporalConstraintPresenter final : public ConstraintPresenter
 {
         Q_OBJECT
 

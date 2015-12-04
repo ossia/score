@@ -4,6 +4,7 @@
 #include <Explorer/DocumentPlugin/ListeningState.hpp>
 #include <Explorer/DocumentPlugin/NodeUpdateProxy.hpp>
 #include <iscore/plugins/documentdelegate/plugin/DocumentDelegatePluginModel.hpp>
+#include <iscore_plugin_deviceexplorer_export.h>
 
 class QObject;
 namespace iscore {
@@ -11,7 +12,7 @@ class Document;
 }  // namespace iscore
 struct VisitorVariant;
 
-class DeviceDocumentPlugin final : public iscore::DocumentPluginModel
+class ISCORE_PLUGIN_DEVICEEXPLORER_EXPORT DeviceDocumentPlugin final : public iscore::DocumentPluginModel
 {
         Q_OBJECT
     public:

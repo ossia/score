@@ -7,7 +7,7 @@
 // everywhere (core, plugins...)
 ////////////////////////////////////////////////
 template<typename QType>
-class NamedType : public QType
+class ISCORE_LIB_BASE_EXPORT NamedType : public QType
 {
     public:
         template<typename... Args>

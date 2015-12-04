@@ -1,10 +1,12 @@
 #pragma once
 #include <Process/LayerModelPanelProxy.hpp>
 
+#include <iscore_lib_dummyprocess_export.h>
+
 class LayerModel;
 class QObject;
 
-class DummyLayerPanelProxy final : public LayerModelPanelProxy
+class ISCORE_LIB_DUMMYPROCESS_EXPORT DummyLayerPanelProxy final : public LayerModelPanelProxy
 {
     public:
         explicit DummyLayerPanelProxy(

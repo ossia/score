@@ -19,7 +19,7 @@ template <typename T> class Writer;
 template <typename model> class IdentifiedObject;
 
 template<>
-void Visitor<Reader<DataStream>>::readFrom(const CurveModel& curve)
+ISCORE_PLUGIN_CURVE_EXPORT void Visitor<Reader<DataStream>>::readFrom(const CurveModel& curve)
 {
     readFrom(static_cast<const IdentifiedObject<CurveModel>&>(curve));
 
@@ -34,7 +34,7 @@ void Visitor<Reader<DataStream>>::readFrom(const CurveModel& curve)
 }
 
 template<>
-void Visitor<Writer<DataStream>>::writeTo(CurveModel& curve)
+ISCORE_PLUGIN_CURVE_EXPORT void Visitor<Writer<DataStream>>::writeTo(CurveModel& curve)
 {
     int32_t size;
     m_stream >> size;
@@ -50,7 +50,7 @@ void Visitor<Writer<DataStream>>::writeTo(CurveModel& curve)
 }
 
 template<>
-void Visitor<Reader<JSONObject>>::readFrom(const CurveModel& curve)
+ISCORE_PLUGIN_CURVE_EXPORT void Visitor<Reader<JSONObject>>::readFrom(const CurveModel& curve)
 {
     readFrom(static_cast<const IdentifiedObject<CurveModel>&>(curve));
 
@@ -58,7 +58,7 @@ void Visitor<Reader<JSONObject>>::readFrom(const CurveModel& curve)
 }
 
 template<>
-void Visitor<Writer<JSONObject>>::writeTo(CurveModel& curve)
+ISCORE_PLUGIN_CURVE_EXPORT void Visitor<Writer<JSONObject>>::writeTo(CurveModel& curve)
 {
     auto& csl = context.components.factory<DynamicCurveSegmentList>();
     for(const auto& segment : m_obj["Segments"].toArray())

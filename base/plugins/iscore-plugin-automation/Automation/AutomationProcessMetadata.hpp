@@ -1,8 +1,8 @@
 #pragma once
 #include <Process/ProcessFactoryKey.hpp>
 #include <QString>
-
-struct AutomationProcessMetadata
+#include <iscore_plugin_automation_export.h>
+struct ISCORE_PLUGIN_AUTOMATION_EXPORT AutomationProcessMetadata
 {
         static const ProcessFactoryKey& factoryKey();
 

@@ -11,7 +11,7 @@
 #include <iscore/tools/SettableIdentifier.hpp>
 #include <QString>
 #include <QVector>
-
+#include <iscore_plugin_scenario_export.h>
 class DataStream;
 class JSONObject;
 class QObject;
@@ -23,7 +23,7 @@ namespace OSSIA
 class ScenarioInterface;
 class TimeNodeModel;
 
-class EventModel final : public IdentifiedObject<EventModel>
+class ISCORE_PLUGIN_SCENARIO_EXPORT EventModel final : public IdentifiedObject<EventModel>
 {
         Q_OBJECT
         ISCORE_METADATA("EventModel")

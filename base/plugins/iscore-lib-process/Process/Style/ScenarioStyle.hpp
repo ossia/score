@@ -2,8 +2,9 @@
 
 #include <QColor>
 #include <qnamespace.h>
+#include <iscore_lib_process_export.h>
 
-struct ScenarioStyle
+struct ISCORE_LIB_PROCESS_EXPORT ScenarioStyle
 {
         ScenarioStyle(const ScenarioStyle&) = delete;
         ScenarioStyle(ScenarioStyle&&) = delete;

@@ -5,6 +5,7 @@
 #include <iscore/plugins/customfactory/FactoryFamily.hpp>
 #include <iscore/plugins/customfactory/FactoryInterface.hpp>
 #include <iscore/plugins/customfactory/StringFactoryKey.hpp>
+#include <iscore_lib_base_export.h>
 
 #include <QByteArray>
 #include <algorithm>
@@ -38,7 +39,7 @@ struct ApplicationComponentsData
         std::vector<std::pair<PanelPresenter*, PanelFactory*>> panelPresenters;
 };
 
-class ApplicationComponents
+class ISCORE_LIB_BASE_EXPORT ApplicationComponents
 {
     public:
         ApplicationComponents(const iscore::ApplicationComponentsData& d):

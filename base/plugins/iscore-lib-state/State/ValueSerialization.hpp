@@ -1,4 +1,4 @@
 #pragma once
 #include "Value.hpp"
 
-QJsonValue ValueToJson(const iscore::Value&);
+ISCORE_LIB_STATE_EXPORT QJsonValue ValueToJson(const iscore::Value&);

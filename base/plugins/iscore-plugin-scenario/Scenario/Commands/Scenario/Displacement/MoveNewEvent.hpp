@@ -10,6 +10,8 @@
 #include <iscore/tools/ModelPath.hpp>
 #include <iscore/tools/SettableIdentifier.hpp>
 
+#include <iscore_plugin_scenario_export.h>
+
 class ConstraintModel;
 class DataStreamInput;
 class DataStreamOutput;
@@ -27,8 +29,7 @@ namespace Scenario
 {
     namespace Command
     {
-
-        class MoveNewEvent final : public iscore::SerializableCommand
+        class ISCORE_PLUGIN_SCENARIO_EXPORT MoveNewEvent final : public iscore::SerializableCommand
         {
                 ISCORE_COMMAND_DECL(ScenarioCommandFactoryName(), MoveNewEvent, "Move a new event")
                 public:

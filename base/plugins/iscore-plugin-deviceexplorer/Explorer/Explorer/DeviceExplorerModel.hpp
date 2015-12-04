@@ -12,7 +12,7 @@
 #include <Device/Node/DeviceNode.hpp>
 #include <State/Message.hpp>
 #include <State/Value.hpp>
-
+#include <iscore_plugin_deviceexplorer_export.h>
 class QMimeData;
 class QObject;
 namespace iscore {
@@ -32,7 +32,7 @@ namespace iscore {
 struct AddressSettings;
 }
 
-class DeviceExplorerModel final : public NodeBasedItemModel
+class ISCORE_PLUGIN_DEVICEEXPLORER_EXPORT DeviceExplorerModel final : public NodeBasedItemModel
 {
         Q_OBJECT
 
@@ -166,9 +166,9 @@ class DeviceExplorerModel final : public NodeBasedItemModel
 
 
 // Will update the tree and return the messages corresponding to the selected nodes.
-iscore::MessageList getSelectionSnapshot(DeviceExplorerModel& model);
+ISCORE_PLUGIN_DEVICEEXPLORER_EXPORT iscore::MessageList getSelectionSnapshot(DeviceExplorerModel& model);
 
-DeviceExplorerModel& deviceExplorerFromObject(const QObject&);
-DeviceExplorerModel* try_deviceExplorerFromObject(const QObject&);
-DeviceExplorerModel* try_deviceExplorerFromContext(const iscore::DocumentContext& ctx);
-DeviceExplorerModel& deviceExplorerFromContext(const iscore::DocumentContext& ctx);
+ISCORE_PLUGIN_DEVICEEXPLORER_EXPORT DeviceExplorerModel& deviceExplorerFromObject(const QObject&);
+ISCORE_PLUGIN_DEVICEEXPLORER_EXPORT DeviceExplorerModel* try_deviceExplorerFromObject(const QObject&);
+ISCORE_PLUGIN_DEVICEEXPLORER_EXPORT DeviceExplorerModel* try_deviceExplorerFromContext(const iscore::DocumentContext& ctx);
+ISCORE_PLUGIN_DEVICEEXPLORER_EXPORT DeviceExplorerModel& deviceExplorerFromContext(const iscore::DocumentContext& ctx);

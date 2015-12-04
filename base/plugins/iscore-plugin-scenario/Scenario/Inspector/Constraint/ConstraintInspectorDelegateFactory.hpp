@@ -7,10 +7,10 @@
 
 #include <iscore/plugins/customfactory/FactoryInterface.hpp>
 #include <iscore/tools/std/Algorithms.hpp>
-
+#include <iscore_plugin_scenario_export.h>
 class ConstraintModel;
 
-class ConstraintInspectorDelegateFactory : public iscore::FactoryInterfaceBase
+class ISCORE_PLUGIN_SCENARIO_EXPORT ConstraintInspectorDelegateFactory : public iscore::FactoryInterfaceBase
 {
          ISCORE_FACTORY_DECL("ConstraintInspectorDelegate")
     public:
@@ -19,7 +19,7 @@ class ConstraintInspectorDelegateFactory : public iscore::FactoryInterfaceBase
         virtual bool matches(const ConstraintModel& constraint) const = 0;
 };
 
-class ConstraintInspectorDelegateFactoryList final : public iscore::FactoryListInterface
+class ISCORE_PLUGIN_SCENARIO_EXPORT ConstraintInspectorDelegateFactoryList final : public iscore::FactoryListInterface
 {
     public:
       static const iscore::FactoryBaseKey& staticFactoryKey() {

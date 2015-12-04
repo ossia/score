@@ -58,7 +58,7 @@ template<>
  *
  * TODO enforce the invariant of children.size <= 2 (since it's a binary tree)
  */
-class TreeNode<ExprData> final : public ExprData
+class ISCORE_LIB_STATE_EXPORT TreeNode<ExprData> final : public ExprData
 {
         ISCORE_SERIALIZE_FRIENDS(TreeNode<ExprData>, DataStream)
         ISCORE_SERIALIZE_FRIENDS(TreeNode<ExprData>, JSONObject)
@@ -264,6 +264,6 @@ using Expression = TreeNode<ExprData>;
 using Condition = Expression;
 using Trigger = Expression;
 
-boost::optional<iscore::Expression> parse(const QString& str);
+ISCORE_LIB_STATE_EXPORT boost::optional<iscore::Expression> parse(const QString& str);
 }
 

@@ -1,12 +1,12 @@
 #pragma once
 #include <iscore/plugins/customfactory/FactoryInterface.hpp>
-
+#include <iscore_plugin_scenario_export.h>
 class TimeNodeModel;
 namespace iscore
 {
 class SerializableCommand;
 }
-class TriggerCommandFactory : public iscore::FactoryInterfaceBase
+class ISCORE_PLUGIN_SCENARIO_EXPORT TriggerCommandFactory : public iscore::FactoryInterfaceBase
 {
         ISCORE_FACTORY_DECL("TriggerCommandFactory")
     public:

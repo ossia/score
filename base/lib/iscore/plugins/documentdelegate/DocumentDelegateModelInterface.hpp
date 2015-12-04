@@ -7,7 +7,7 @@ struct VisitorVariant;
 
 namespace iscore
 {
-    class DocumentDelegateModelInterface : public IdentifiedObject<DocumentDelegateModelInterface>
+    class ISCORE_LIB_BASE_EXPORT DocumentDelegateModelInterface : public IdentifiedObject<DocumentDelegateModelInterface>
     {
             Q_OBJECT
         public:

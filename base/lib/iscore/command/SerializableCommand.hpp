@@ -36,7 +36,7 @@ namespace iscore
  * Adds serialization & deserialization capabilities to Command.
  * Most concrete commands shall inherit from this class.
  */
-class SerializableCommand : public Command
+class ISCORE_LIB_BASE_EXPORT SerializableCommand : public Command
 {
     public:
         SerializableCommand() = default;

@@ -8,6 +8,7 @@
 #include <QVector>
 
 #include <iscore/tools/SettableIdentifier.hpp>
+#include <iscore_plugin_scenario_export.h>
 
 class ConstraintModel;
 class ConstraintViewModel;
@@ -24,7 +25,7 @@ namespace Scenario
          *
          * Removes all the processes and the rackes of a constraint.
          */
-        class ClearConstraint final : public iscore::SerializableCommand
+        class ISCORE_PLUGIN_SCENARIO_EXPORT ClearConstraint final : public iscore::SerializableCommand
         {
                 ISCORE_COMMAND_DECL(ScenarioCommandFactoryName(), ClearConstraint, "Clear a constraint")
             public:

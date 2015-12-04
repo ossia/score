@@ -10,6 +10,7 @@
 template <typename T> class Reader;
 template <typename T> class Writer;
 
+// TODO RENAME FILE
 template<>
 void Visitor<Reader<JSONValue>>::readFrom(const QPointF& pt)
 {
@@ -31,7 +32,7 @@ void Visitor<Writer<JSONValue>>::writeTo(QPointF& pt)
 
 
 template<>
-void Visitor<Reader<DataStream>>::readFrom(const boost::optional<double>& obj)
+ISCORE_LIB_BASE_EXPORT void Visitor<Reader<DataStream>>::readFrom(const boost::optional<double>& obj)
 {
     m_stream << bool (obj);
 
@@ -42,7 +43,7 @@ void Visitor<Reader<DataStream>>::readFrom(const boost::optional<double>& obj)
 }
 
 template<>
-void Visitor<Writer<DataStream>>::writeTo(boost::optional<double>& obj)
+ISCORE_LIB_BASE_EXPORT void Visitor<Writer<DataStream>>::writeTo(boost::optional<double>& obj)
 {
     bool b {};
     m_stream >> b;

@@ -5,7 +5,7 @@
 #include <iscore/tools/NamedObject.hpp>
 #include <QApplication>
 #include <memory>
-
+#include <iscore_lib_base_export.h>
 namespace iscore {
 class Settings;
 }  // namespace iscore
@@ -29,7 +29,7 @@ namespace iscore
      * parent of every other object created.
      * It does instantiate the rest of the software (MVP, settings, plugins).
      */
-    class Application final : public NamedObject, public ApplicationInterface
+    class ISCORE_LIB_BASE_EXPORT Application final : public NamedObject, public ApplicationInterface
     {
             Q_OBJECT
             friend class ChildEventFilter;

@@ -16,6 +16,7 @@
 #include <Curve/Segment/CurveSegmentList.hpp>
 #include <QGraphicsSceneMouseEvent>
 #include <QGraphicsScene>
+#include <iscore_plugin_curve_export.h>
 
 
 class CurvePresenter;
@@ -24,7 +25,7 @@ class CurveProcessView;
 
 
 template<typename LayerModel_T, typename LayerView_T>
-class CurveProcessPresenter : public LayerPresenter
+class ISCORE_PLUGIN_CURVE_EXPORT CurveProcessPresenter : public LayerPresenter
 {
     public:
         CurveProcessPresenter(

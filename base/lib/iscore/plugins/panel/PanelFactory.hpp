@@ -1,5 +1,5 @@
 #pragma once
-
+#include <iscore_lib_base_export.h>
 #include <QString>
 class QObject;
 
@@ -19,7 +19,7 @@ namespace iscore
      *
      * Factory for a side panel. Think of the palettes in photoshop.
      */
-    class PanelFactory
+    class ISCORE_LIB_BASE_EXPORT PanelFactory
     {
         public:
             virtual QString panelName() const = 0;

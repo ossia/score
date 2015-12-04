@@ -2,7 +2,7 @@
 #include <iscore/tools/NamedObject.hpp>
 #include <sys/types.h>
 
-class IdentifiedObjectAbstract : public NamedObject
+class ISCORE_LIB_BASE_EXPORT IdentifiedObjectAbstract : public NamedObject
 {
         Q_OBJECT
     public:

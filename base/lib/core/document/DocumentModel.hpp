@@ -27,7 +27,7 @@ struct ApplicationContext;
      * Drawbridge between the application and a model given by a plugin.
      * Contains all the "saveable" data.
      */
-class DocumentModel final : public IdentifiedObject<DocumentModel>
+class ISCORE_LIB_BASE_EXPORT DocumentModel final : public IdentifiedObject<DocumentModel>
 {
         Q_OBJECT
     public:

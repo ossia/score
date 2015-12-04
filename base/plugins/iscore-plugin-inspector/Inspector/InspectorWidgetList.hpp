@@ -16,7 +16,7 @@ namespace iscore
 
 class InspectorWidgetBase;
 
-class InspectorWidgetList final : public iscore::FactoryListInterface
+class ISCORE_LIB_INSPECTOR_EXPORT InspectorWidgetList final : public iscore::FactoryListInterface
 {
     public:
         static const iscore::FactoryBaseKey& staticFactoryKey() {

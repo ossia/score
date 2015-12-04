@@ -10,7 +10,7 @@ class QObject;
 struct CurveSegmentData;
 #include <iscore/tools/SettableIdentifier.hpp>
 
-struct PowerCurveSegmentData
+struct ISCORE_PLUGIN_CURVE_EXPORT PowerCurveSegmentData
 {
         static const CurveSegmentFactoryKey& key();
         double gamma;
@@ -18,7 +18,7 @@ struct PowerCurveSegmentData
 
 Q_DECLARE_METATYPE(PowerCurveSegmentData)
 
-class PowerCurveSegmentModel final : public CurveSegmentModel
+class ISCORE_PLUGIN_CURVE_EXPORT PowerCurveSegmentModel final : public CurveSegmentModel
 {
     public:
         using data_type = PowerCurveSegmentData;

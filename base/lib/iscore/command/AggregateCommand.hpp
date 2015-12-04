@@ -11,7 +11,7 @@ namespace iscore
     /**
     * @brief AggregateCommand: allows for grouping of multiple commands.
     */
-    class AggregateCommand : public iscore::SerializableCommand
+    class ISCORE_LIB_BASE_EXPORT AggregateCommand : public iscore::SerializableCommand
     {
         public:
             AggregateCommand() = default;

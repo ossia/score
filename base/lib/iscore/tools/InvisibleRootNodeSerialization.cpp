@@ -6,24 +6,24 @@ template <typename T> class Reader;
 template <typename T> class Writer;
 
 template<>
-void Visitor<Reader<DataStream>>::readFrom(const InvisibleRootNodeTag&)
+ISCORE_LIB_BASE_EXPORT void Visitor<Reader<DataStream>>::readFrom(const InvisibleRootNodeTag&)
 {
     insertDelimiter();
 }
 
 template<>
-void Visitor<Writer<DataStream>>::writeTo(InvisibleRootNodeTag&)
+ISCORE_LIB_BASE_EXPORT void Visitor<Writer<DataStream>>::writeTo(InvisibleRootNodeTag&)
 {
     checkDelimiter();
 }
 
 template<>
-void Visitor<Reader<JSONObject>>::readFrom(const InvisibleRootNodeTag&)
+ISCORE_LIB_BASE_EXPORT void Visitor<Reader<JSONObject>>::readFrom(const InvisibleRootNodeTag&)
 {
 }
 
 template<>
-void Visitor<Writer<JSONObject>>::writeTo(InvisibleRootNodeTag&)
+ISCORE_LIB_BASE_EXPORT void Visitor<Writer<JSONObject>>::writeTo(InvisibleRootNodeTag&)
 {
 }
 

@@ -45,7 +45,7 @@ class TemporalConstraintViewModel;
 class TemporalScenarioLayerModel;
 class TemporalScenarioView;
 
-class TemporalScenarioPresenter final : public LayerPresenter
+class ISCORE_PLUGIN_SCENARIO_EXPORT TemporalScenarioPresenter final : public LayerPresenter
 {
         Q_OBJECT
 
@@ -55,7 +55,7 @@ class TemporalScenarioPresenter final : public LayerPresenter
 
     public:
         TemporalScenarioPresenter(
-                iscore::DocumentContext&,
+                const iscore::DocumentContext&,
                 Scenario::EditionSettings&,
                 const TemporalScenarioLayerModel& model,
                 LayerView* view,

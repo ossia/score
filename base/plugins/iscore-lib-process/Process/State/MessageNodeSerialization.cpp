@@ -152,28 +152,28 @@ void Visitor<Writer<JSONObject>>::writeTo(StateNodeValues& val)
 
 
 template<>
-void Visitor<Reader<DataStream>>::readFrom(const StateNodeData& node)
+ISCORE_LIB_PROCESS_EXPORT void Visitor<Reader<DataStream>>::readFrom(const StateNodeData& node)
 {
     m_stream << node.name << node.values;
     insertDelimiter();
 }
 
 template<>
-void Visitor<Writer<DataStream>>::writeTo(StateNodeData& node)
+ISCORE_LIB_PROCESS_EXPORT void Visitor<Writer<DataStream>>::writeTo(StateNodeData& node)
 {
     m_stream >> node.name >> node.values;
     checkDelimiter();
 }
 
 template<>
-void Visitor<Reader<JSONObject>>::readFrom(const StateNodeData& node)
+ISCORE_LIB_PROCESS_EXPORT void Visitor<Reader<JSONObject>>::readFrom(const StateNodeData& node)
 {
     m_obj["Name"] = node.name;
     readFrom(node.values);
 }
 
 template<>
-void Visitor<Writer<JSONObject>>::writeTo(StateNodeData& node)
+ISCORE_LIB_PROCESS_EXPORT void Visitor<Writer<JSONObject>>::writeTo(StateNodeData& node)
 {
     node.name = m_obj["Name"].toString();
     writeTo(node.values);

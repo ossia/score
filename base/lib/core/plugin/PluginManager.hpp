@@ -6,7 +6,7 @@
 
 namespace iscore
 {
-class ApplicationContext;
+struct ApplicationContext;
 class ApplicationRegistrar;
 
 namespace PluginLoader

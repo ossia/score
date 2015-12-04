@@ -26,7 +26,7 @@ class ElementPluginModelList;
  *
  * Interface to implement to make a process.
  */
-class Process: public IdentifiedObject<Process>
+class ISCORE_LIB_PROCESS_EXPORT Process: public IdentifiedObject<Process>
 {
         Q_OBJECT
         ISCORE_METADATA("Process")
@@ -187,8 +187,8 @@ std::vector<typename T::layer_type*> layers(const T& processModel)
     return v;
 }
 
-Process* parentProcess(QObject* obj);
-const Process* parentProcess(const QObject* obj);
+ISCORE_LIB_PROCESS_EXPORT Process* parentProcess(QObject* obj);
+ISCORE_LIB_PROCESS_EXPORT const Process* parentProcess(const QObject* obj);
 
 template<typename T>
 QString NameInUndo();

@@ -4,7 +4,7 @@
 #include <QString>
 #include <algorithm>
 #include <vector>
-
+#include <iscore_lib_base_export.h>
 class CommandStack;
 class QRecentFilesMenu;
 namespace iscore {
@@ -15,7 +15,7 @@ class View;
 
 namespace iscore
 {
-class DocumentManager : public QObject
+class ISCORE_LIB_BASE_EXPORT DocumentManager : public QObject
 {
         Q_OBJECT
     public:

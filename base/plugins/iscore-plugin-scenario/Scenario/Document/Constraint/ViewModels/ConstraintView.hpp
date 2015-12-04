@@ -3,11 +3,11 @@
 #include <QGraphicsItem>
 #include <qnamespace.h>
 #include <QPen>
-
+#include <iscore_plugin_scenario_export.h>
 class ConstraintPresenter;
 class QGraphicsSceneMouseEvent;
 
-class ConstraintView : public QGraphicsObject
+class ISCORE_PLUGIN_SCENARIO_EXPORT ConstraintView : public QGraphicsObject
 {
         Q_OBJECT
 

@@ -53,6 +53,9 @@ function(setup_iscore_common_features TheTarget)
     target_compile_definitions(${TheTarget}
                                PUBLIC ISCORE_STATIC_PLUGINS)
   endif()
+
+  target_include_directories(${TheTarget} INTERFACE "${CMAKE_CURRENT_BINARY_DIR}")
+  generate_export_header(${TheTarget})
 endfunction()
 
 

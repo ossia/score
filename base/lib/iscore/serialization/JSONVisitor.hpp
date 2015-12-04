@@ -43,7 +43,7 @@ class variant;
 }
 
 template<>
-class Visitor<Reader<JSONObject>> final : public AbstractVisitor
+class ISCORE_LIB_BASE_EXPORT Visitor<Reader<JSONObject>> final : public AbstractVisitor
 {
     public:
         using is_visitor_tag = std::integral_constant<bool, true>;
@@ -86,7 +86,7 @@ class Visitor<Reader<JSONObject>> final : public AbstractVisitor
 };
 
 template<>
-class Visitor<Writer<JSONObject>> : public AbstractVisitor
+class ISCORE_LIB_BASE_EXPORT Visitor<Writer<JSONObject>> : public AbstractVisitor
 {
     public:
         using is_visitor_tag = std::integral_constant<bool, true>;

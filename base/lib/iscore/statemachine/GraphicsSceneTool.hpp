@@ -6,7 +6,7 @@
 #include <iscore/statemachine/StateMachineUtils.hpp>
 
 template<typename Coordinates>
-class GraphicsSceneTool
+class ISCORE_LIB_BASE_EXPORT GraphicsSceneTool
 {
     public:
         virtual ~GraphicsSceneTool() = default;

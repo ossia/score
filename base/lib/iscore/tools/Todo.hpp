@@ -1,5 +1,6 @@
 #pragma once
 #include <iscore_compiler_detection.hpp>
+#include <iscore_lib_base_export.h>
 #include <exception>
 #include <typeinfo>
 #include <QDebug>

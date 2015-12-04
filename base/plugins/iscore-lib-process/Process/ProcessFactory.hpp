@@ -4,6 +4,7 @@
 #include <iscore/plugins/customfactory/FactoryInterface.hpp>
 #include <QByteArray>
 #include <QString>
+#include <iscore_lib_process_export.h>
 
 class LayerModel;
 class LayerPresenter;
@@ -21,7 +22,7 @@ struct VisitorVariant;
      * Interface to make processes, like Scenario, Automation...
      */
 
-class ProcessFactory :
+class ISCORE_LIB_PROCESS_EXPORT ProcessFactory :
         public iscore::GenericFactoryInterface<ProcessFactoryKey>
 {
         ISCORE_FACTORY_DECL("Process")

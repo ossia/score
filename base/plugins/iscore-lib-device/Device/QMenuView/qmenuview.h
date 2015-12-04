@@ -44,12 +44,14 @@ J'ai apporté quelques modifications en plus.
 #include <qmenu.h>
 #include <qscopedpointer.h>
 #include <qstring.h>
+#include <iscore_lib_device_export.h>
+// TODO put me in 3rdparty
 
 class QMenuViewPrivate;
 class QMouseEvent;
 class QWidget;
 
-class ClickableMenu : public QMenu
+class ISCORE_LIB_DEVICE_EXPORT  ClickableMenu : public QMenu
 {
         Q_OBJECT
     public:
@@ -58,7 +60,7 @@ class ClickableMenu : public QMenu
         virtual void mouseReleaseEvent(QMouseEvent *event) override;
 };
 
-class QMenuView final : public ClickableMenu
+class ISCORE_LIB_DEVICE_EXPORT QMenuView final : public ClickableMenu
 {
         Q_OBJECT
     public:

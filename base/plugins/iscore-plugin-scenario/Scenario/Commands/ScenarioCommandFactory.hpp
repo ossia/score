@@ -1,7 +1,8 @@
 #pragma once
 #include <iscore/command/SerializableCommand.hpp>
+#include <iscore_plugin_scenario_export.h>
 
-const CommandParentFactoryKey& ScenarioCommandFactoryName();
+ISCORE_PLUGIN_SCENARIO_EXPORT const CommandParentFactoryKey& ScenarioCommandFactoryName();
 
 namespace Scenario {
 class ScenarioModel;

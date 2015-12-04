@@ -1,13 +1,14 @@
 #pragma once
 
 #include <QObject>
+#include <iscore_lib_base_export.h>
 
 struct VisitorVariant;
 
 namespace iscore
 {
 using ElementPluginModelType = int;
-class ElementPluginModel : public QObject
+class ISCORE_LIB_BASE_EXPORT ElementPluginModel : public QObject
 {
     protected:
         // Note : subclasses should take an element as a parameter

@@ -10,7 +10,7 @@ namespace iscore
     struct DocumentContext;
 
     // The owner of the elements is the class that contains the ElementPluginModelList.
-    class ElementPluginModelList
+    class ISCORE_LIB_BASE_EXPORT ElementPluginModelList
     {
         public:
             ElementPluginModelList() = default; // For safe serialization.

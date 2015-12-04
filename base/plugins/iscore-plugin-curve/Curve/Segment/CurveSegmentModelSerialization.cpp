@@ -66,13 +66,13 @@ void Visitor<Writer<DataStream>>::writeTo(CurveSegmentData& segmt)
 
 
 template<>
-void Visitor<Reader<DataStream>>::readFrom(const std::vector<CurveSegmentData>& segmt)
+ISCORE_PLUGIN_CURVE_EXPORT void Visitor<Reader<DataStream>>::readFrom(const std::vector<CurveSegmentData>& segmt)
 {
     readFrom_vector_obj_impl(*this, segmt);
 }
 
 template<>
-void Visitor<Writer<DataStream>>::writeTo(std::vector<CurveSegmentData>& segmt)
+ISCORE_PLUGIN_CURVE_EXPORT void Visitor<Writer<DataStream>>::writeTo(std::vector<CurveSegmentData>& segmt)
 {
     writeTo_vector_obj_impl(*this, segmt);
 }

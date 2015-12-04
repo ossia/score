@@ -8,7 +8,7 @@
 #include <QString>
 
 #include "ExecutionStatus.hpp"
-
+#include <iscore_plugin_scenario_export.h>
 class ConditionView;
 class EventPresenter;
 class QGraphicsSceneDragDropEvent;
@@ -19,7 +19,7 @@ class QPainter;
 class QStyleOptionGraphicsItem;
 class QWidget;
 
-class EventView final : public QGraphicsObject
+class ISCORE_PLUGIN_SCENARIO_EXPORT EventView final : public QGraphicsObject
 {
         Q_OBJECT
 

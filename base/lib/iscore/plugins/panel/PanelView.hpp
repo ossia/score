@@ -1,8 +1,8 @@
 #pragma once
-
 #include <qnamespace.h>
 #include <QObject>
 #include <QString>
+#include <iscore_lib_base_export.h>
 
 class QWidget;
 
@@ -23,7 +23,7 @@ namespace iscore
           const QString prettyName;
     };
 
-    class PanelView : public QObject
+    class ISCORE_LIB_BASE_EXPORT PanelView : public QObject
     {
         public:
             using QObject::QObject;

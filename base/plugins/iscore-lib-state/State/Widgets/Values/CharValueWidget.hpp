@@ -7,7 +7,7 @@
 class QLineEdit;
 class QWidget;
 
-class CharValueWidget : public ValueWidget
+class ISCORE_LIB_STATE_EXPORT CharValueWidget : public ValueWidget
 {
     public:
         CharValueWidget(QChar value, QWidget* parent = nullptr);

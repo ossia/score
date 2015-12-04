@@ -14,7 +14,7 @@
 
 #include <iscore/serialization/VisitorInterface.hpp>
 #include <iscore/tools/Todo.hpp>
-
+#include <iscore_plugin_scenario_export.h>
 class ConstraintModel;
 class DataStream;
 class EventModel;
@@ -29,7 +29,7 @@ class CommandStackFacade;
 }
 
 // Model for the graphical state in a scenario.
-class StateModel final : public IdentifiedObject<StateModel>, public Nano::Observer
+class ISCORE_PLUGIN_SCENARIO_EXPORT StateModel final : public IdentifiedObject<StateModel>, public Nano::Observer
 {
         Q_OBJECT
         ISCORE_METADATA("StateModel")

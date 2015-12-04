@@ -3,6 +3,7 @@
 #include <iscore/tools/SettableIdentifier.hpp>
 #include <QPoint>
 #include <sys/types.h>
+#include <iscore_plugin_scenario_export.h>
 
 class EventModel;
 class QGraphicsObject;
@@ -11,7 +12,7 @@ class TimeNodeModel;
 class TimeNodeView;
 class TriggerPresenter;
 
-class TimeNodePresenter final :  public NamedObject
+class ISCORE_PLUGIN_SCENARIO_EXPORT TimeNodePresenter final :  public NamedObject
 {
         Q_OBJECT
     public:

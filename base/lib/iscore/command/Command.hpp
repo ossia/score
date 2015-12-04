@@ -17,7 +17,7 @@ namespace iscore
      * Note: for mergeWith put two timestamps, one for the initial command (5 sec) and one for each
      * new command merged.
      */
-    class Command
+    class ISCORE_LIB_BASE_EXPORT Command
     {
         public:
             Command();

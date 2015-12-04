@@ -14,8 +14,9 @@ class JSONObject;
 class QObject;
 struct CurveSegmentData;
 #include <iscore/tools/SettableIdentifier.hpp>
+#include <iscore_plugin_curve_export.h>
 
-class CurveModel final : public IdentifiedObject<CurveModel>
+class ISCORE_PLUGIN_CURVE_EXPORT CurveModel final : public IdentifiedObject<CurveModel>
 {
         ISCORE_SERIALIZE_FRIENDS(CurveModel, DataStream)
         ISCORE_SERIALIZE_FRIENDS(CurveModel, JSONObject)

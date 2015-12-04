@@ -4,6 +4,8 @@
 
 #include <Process/ZoomHelper.hpp>
 #include <iscore/tools/SettableIdentifier.hpp>
+#include <iscore_lib_dummyprocess_export.h>
+
 
 class DummyLayerView;
 class LayerModel;
@@ -11,7 +13,7 @@ class Process;
 class QMenu;
 class QObject;
 
-class DummyLayerPresenter final : public LayerPresenter
+class ISCORE_LIB_DUMMYPROCESS_EXPORT DummyLayerPresenter final : public LayerPresenter
 {
     public:
         explicit DummyLayerPresenter(

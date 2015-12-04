@@ -27,7 +27,7 @@ class JSONValue
 };
 
 template<>
-class Visitor<Reader<JSONValue>> final : public AbstractVisitor
+class ISCORE_LIB_BASE_EXPORT Visitor<Reader<JSONValue>> final : public AbstractVisitor
 {
     public:
         using is_visitor_tag = std::integral_constant<bool, true>;
@@ -60,7 +60,7 @@ class Visitor<Reader<JSONValue>> final : public AbstractVisitor
 };
 
 template<>
-class Visitor<Writer<JSONValue>> : public AbstractVisitor
+class ISCORE_LIB_BASE_EXPORT Visitor<Writer<JSONValue>> : public AbstractVisitor
 {
     public:
         using is_visitor_tag = std::integral_constant<bool, true>;

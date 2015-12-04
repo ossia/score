@@ -6,6 +6,7 @@
 #include "ClipMode.hpp"
 #include "Domain.hpp"
 #include <State/Message.hpp>
+#include <iscore_lib_device_export.h>
 namespace iscore
 {
 using RefreshRate = int;
@@ -42,11 +43,11 @@ struct FullAddressSettings : public iscore::AddressSettingsCommon
         iscore::Address address;
 
         template<typename T>
-        static FullAddressSettings make(
+        ISCORE_LIB_DEVICE_EXPORT static FullAddressSettings make(
                 const iscore::AddressSettings& other,
                 const iscore::Address& addr);
 
-        static FullAddressSettings make(
+        ISCORE_LIB_DEVICE_EXPORT static FullAddressSettings make(
                 const iscore::Message& mess);
         // Specializations are in FullAddressSettings.cpp
 };

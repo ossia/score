@@ -1,7 +1,7 @@
 #pragma once
 #include <Process/ZoomHelper.hpp>
 #include <iscore/tools/NamedObject.hpp>
-
+#include <iscore_lib_process_export.h>
 class LayerModel;
 class Process;
 class QMenu;
@@ -12,7 +12,7 @@ class QPointF;
 namespace iscore
 {
 }
-class LayerPresenter : public NamedObject
+class ISCORE_LIB_PROCESS_EXPORT LayerPresenter : public NamedObject
 {
         Q_OBJECT
         bool m_focus{false};

@@ -15,7 +15,7 @@ namespace iscore
  * For instance, if user A starts moving a constraint in a scenario, the
  * other users won't be able to change the scenario.
  */
-class ObjectLocker : public QObject
+class ISCORE_LIB_BASE_EXPORT ObjectLocker : public QObject
 {
         Q_OBJECT
     public:

@@ -4,13 +4,14 @@
 #include <QString>
 
 #include <iscore/serialization/JSONValueVisitor.hpp>
+#include <iscore_lib_process_export.h>
 
 template <typename T> class Reader;
 template <typename T> class Writer;
 
 
 template<>
-void Visitor<Reader<DataStream>>::readFrom(const TimeValue& tv)
+ISCORE_LIB_PROCESS_EXPORT void Visitor<Reader<DataStream>>::readFrom(const TimeValue& tv)
 {
     m_stream << tv.isInfinite();
 
@@ -23,7 +24,7 @@ void Visitor<Reader<DataStream>>::readFrom(const TimeValue& tv)
 }
 
 template<>
-void Visitor<Writer<DataStream>>::writeTo(TimeValue& tv)
+ISCORE_LIB_PROCESS_EXPORT void Visitor<Writer<DataStream>>::writeTo(TimeValue& tv)
 {
     bool inf;
     m_stream >> inf;
@@ -43,7 +44,7 @@ void Visitor<Writer<DataStream>>::writeTo(TimeValue& tv)
 }
 
 template<>
-void Visitor<Reader<JSONValue>>::readFrom(const TimeValue& tv)
+ISCORE_LIB_PROCESS_EXPORT void Visitor<Reader<JSONValue>>::readFrom(const TimeValue& tv)
 {
     if(tv.isInfinite())
     {
@@ -56,7 +57,7 @@ void Visitor<Reader<JSONValue>>::readFrom(const TimeValue& tv)
 }
 
 template<>
-void Visitor<Writer<JSONValue>>::writeTo(TimeValue& tv)
+ISCORE_LIB_PROCESS_EXPORT void Visitor<Writer<JSONValue>>::writeTo(TimeValue& tv)
 {
     if(val.toString() == "inf")
     {

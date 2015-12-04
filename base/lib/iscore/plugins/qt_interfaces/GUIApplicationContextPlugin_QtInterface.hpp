@@ -1,12 +1,13 @@
 #pragma once
 #include <QObject>
+#include <iscore_lib_base_export.h>
 
 namespace iscore
 {
     struct ApplicationContext;
     class GUIApplicationContextPlugin;
 
-    class GUIApplicationContextPlugin_QtInterface
+    class ISCORE_LIB_BASE_EXPORT GUIApplicationContextPlugin_QtInterface
     {
         public:
             virtual ~GUIApplicationContextPlugin_QtInterface();
@@ -24,13 +25,14 @@ Q_DECLARE_INTERFACE(iscore::GUIApplicationContextPlugin_QtInterface, GUIApplicat
 
 // MOVEME
 #include <iscore/command/CommandGeneratorMap.hpp>
+#include <iscore_lib_base_export.h>
 #include <utility>
 
 #include <iscore/command/SerializableCommand.hpp>
 
 namespace iscore
 {
-class CommandFactory_QtInterface
+class ISCORE_LIB_BASE_EXPORT CommandFactory_QtInterface
 {
     public:
         virtual ~CommandFactory_QtInterface();

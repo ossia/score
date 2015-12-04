@@ -4,7 +4,7 @@
 
 namespace iscore
 {
-    class PanelModel : public NamedObject
+    class ISCORE_LIB_BASE_EXPORT PanelModel : public NamedObject
     {
             Q_OBJECT
         public:

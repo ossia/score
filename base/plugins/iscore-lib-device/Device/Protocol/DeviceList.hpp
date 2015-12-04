@@ -6,7 +6,7 @@
 
 #include <Device/Protocol/DeviceSettings.hpp>
 
-class DeviceList
+class ISCORE_LIB_DEVICE_EXPORT DeviceList
 {
     public:
         DeviceList() = default;

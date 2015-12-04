@@ -13,6 +13,7 @@
 
 #include <Curve/Segment/CurveSegmentFactoryKey.hpp>
 #include <State/Value.hpp>
+#include <iscore_plugin_ossia_export.h>
 class StateModel;
 class DeviceList;
 namespace OSSIA {
@@ -37,62 +38,62 @@ namespace convert
 // Creates it if necessary.
 //// Device-related functions
 // OSSIA::Node* might be null.
-OSSIA::Node* findNodeFromPath(
+ISCORE_PLUGIN_OSSIA_EXPORT OSSIA::Node* findNodeFromPath(
         const QStringList& path,
         OSSIA::Device *dev);
-std::shared_ptr<OSSIA::Node> findNodeFromPath(
+ISCORE_PLUGIN_OSSIA_EXPORT std::shared_ptr<OSSIA::Node> findNodeFromPath(
         const QStringList& path,
         std::shared_ptr<OSSIA::Device> dev);
 
 // OSSIA::Node* won't be null.
-OSSIA::Node* getNodeFromPath(
+ISCORE_PLUGIN_OSSIA_EXPORT OSSIA::Node* getNodeFromPath(
         const QStringList& path,
         OSSIA::Device *dev);
-OSSIA::Node* createNodeFromPath(
+ISCORE_PLUGIN_OSSIA_EXPORT OSSIA::Node* createNodeFromPath(
         const QStringList& path,
         OSSIA::Device* dev);
 
-void createOSSIAAddress(
+ISCORE_PLUGIN_OSSIA_EXPORT void createOSSIAAddress(
         const iscore::FullAddressSettings& settings,
         OSSIA::Node* node);
-void updateOSSIAAddress(
+ISCORE_PLUGIN_OSSIA_EXPORT void updateOSSIAAddress(
         const iscore::FullAddressSettings& settings,
         const std::shared_ptr<OSSIA::Address>& addr);
-void removeOSSIAAddress(
+ISCORE_PLUGIN_OSSIA_EXPORT void removeOSSIAAddress(
         OSSIA::Node*); // Keeps the Node.
-void updateOSSIAValue(
+ISCORE_PLUGIN_OSSIA_EXPORT void updateOSSIAValue(
         const iscore::ValueImpl& data,
         OSSIA::Value& val);
 
-OSSIA::Value* toOSSIAValue(
+ISCORE_PLUGIN_OSSIA_EXPORT OSSIA::Value* toOSSIAValue(
         const iscore::Value&);
 
-void setValue(
+ISCORE_PLUGIN_OSSIA_EXPORT void setValue(
         OSSIA::Address& addr,
         const iscore::Value& val);
 
 //// Other conversions
-inline OSSIA::TimeValue time(const TimeValue& t)
+ISCORE_PLUGIN_OSSIA_EXPORT inline OSSIA::TimeValue time(const TimeValue& t)
 {
     return t.isInfinite()
             ? OSSIA::Infinite
             : OSSIA::TimeValue{t.msec()};
 }
 
-std::shared_ptr<OSSIA::State> state(
+ISCORE_PLUGIN_OSSIA_EXPORT std::shared_ptr<OSSIA::State> state(
         std::shared_ptr<OSSIA::State> ossia_state,
         const StateModel& iscore_state,
         const DeviceList& deviceList);
-std::shared_ptr<OSSIA::State> state(
+ISCORE_PLUGIN_OSSIA_EXPORT std::shared_ptr<OSSIA::State> state(
         const StateModel& iscore_state,
         const DeviceList& deviceList);
 
 
-std::shared_ptr<OSSIA::Message> message(
+ISCORE_PLUGIN_OSSIA_EXPORT std::shared_ptr<OSSIA::Message> message(
         const iscore::Message& mess,
         const DeviceList&);
 
-std::shared_ptr<OSSIA::Expression> expression(
+ISCORE_PLUGIN_OSSIA_EXPORT std::shared_ptr<OSSIA::Expression> expression(
         const iscore::Expression& expr,
         const DeviceList&);
 

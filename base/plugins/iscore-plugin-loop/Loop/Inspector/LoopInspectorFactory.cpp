@@ -117,15 +117,27 @@ LoopInspectorFactory::~LoopInspectorFactory()
 
 }
 
+struct testlol {
+
+        const iscore::ApplicationComponentsData& m_data;
+};
+
+#include <typeinfo>
+
 InspectorWidgetBase* LoopInspectorFactory::makeWidget(
         const QObject& sourceElement,
         const iscore::DocumentContext& doc,
         QWidget* parent) const
 {
-    auto& appContext = doc.app;
-    auto& widgetFact = appContext.components.factory<InspectorWidgetList>();
-    auto& processFact = appContext.components.factory<ProcessList>();
-    auto& constraintWidgetFactory = appContext.components.factory<ConstraintInspectorDelegateFactoryList>();
+    auto& appContext = doc.app.components;
+    auto& test = reinterpret_cast<const testlol&>(appContext).m_data.factories;
+    for(auto& fact : test)
+    {
+        qDebug() << dynamic_cast<ProcessList*>(fact.second.get()) << typeid(fact.second.get()).name() << fact.second->name().toString();
+    }
+    auto& widgetFact = appContext.factory<InspectorWidgetList>();
+    auto& processFact = appContext.factory<ProcessList>();
+    auto& constraintWidgetFactory = appContext.factory<ConstraintInspectorDelegateFactoryList>();
 
     auto& constraint = static_cast<const Loop::ProcessModel&>(sourceElement).constraint();
 

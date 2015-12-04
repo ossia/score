@@ -10,7 +10,7 @@ namespace iscore
 
     // Second argument should be the address of the parent.
     template<>
-    FullAddressSettings FullAddressSettings::make<FullAddressSettings::as_parent>(
+    ISCORE_LIB_DEVICE_EXPORT FullAddressSettings FullAddressSettings::make<FullAddressSettings::as_parent>(
             const iscore::AddressSettings& other,
             const iscore::Address& addr)
     {
@@ -25,7 +25,7 @@ namespace iscore
 
     // Second argument should be the address of the resulting FullAddressSettings.
     template<>
-    FullAddressSettings FullAddressSettings::make<FullAddressSettings::as_child>(
+    ISCORE_LIB_DEVICE_EXPORT FullAddressSettings FullAddressSettings::make<FullAddressSettings::as_child>(
             const iscore::AddressSettings& other,
             const iscore::Address& addr)
     {
@@ -37,7 +37,7 @@ namespace iscore
         return as;
     }
 
-    FullAddressSettings FullAddressSettings::make(
+    ISCORE_LIB_DEVICE_EXPORT FullAddressSettings FullAddressSettings::make(
             const iscore::Message& mess)
     {
         FullAddressSettings as;

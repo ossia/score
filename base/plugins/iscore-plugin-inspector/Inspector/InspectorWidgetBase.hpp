@@ -7,6 +7,7 @@
 #include <QWidget>
 #include <list>
 #include <memory>
+#include <iscore_lib_inspector_export.h>
 
 class IdentifiedObjectAbstract;
 class QVBoxLayout;
@@ -23,7 +24,7 @@ namespace iscore
  *
  * Manage sections added by user.
  */
-class InspectorWidgetBase : public QWidget
+class ISCORE_LIB_INSPECTOR_EXPORT InspectorWidgetBase : public QWidget
 {
         Q_OBJECT
     public:

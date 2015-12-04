@@ -15,11 +15,13 @@
 #include <iscore/serialization/DataStreamVisitor.hpp>
 #include <iscore/serialization/JSONVisitor.hpp>
 
+#include <iscore_plugin_curve_export.h>
+
 class QObject;
 class PowerCurveSegmentModel;
 
 // Gives the data.
-class CurveSegmentModel : public IdentifiedObject<CurveSegmentModel>
+class ISCORE_PLUGIN_CURVE_EXPORT CurveSegmentModel : public IdentifiedObject<CurveSegmentModel>
 {
         Q_OBJECT
 

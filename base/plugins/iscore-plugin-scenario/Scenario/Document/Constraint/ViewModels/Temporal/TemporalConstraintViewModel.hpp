@@ -11,7 +11,7 @@ class QObject;
  *
  * The ViewModel of a Constraint shown inside a temporal view of a scenario
  */
-class TemporalConstraintViewModel final : public ConstraintViewModel
+class ISCORE_PLUGIN_SCENARIO_EXPORT TemporalConstraintViewModel final : public ConstraintViewModel
 {
         Q_OBJECT
 

@@ -5,6 +5,7 @@
 #include <QVector>
 #include <vector>
 #include <Scenario/Palette/ScenarioPoint.hpp>
+#include <iscore_plugin_scenario_export.h>
 
 class LayerPresenter;
 class ObjectMenuActions;
@@ -24,7 +25,7 @@ struct OrderedToolbar;
 }  // namespace iscore
 
 
-class ScenarioApplicationPlugin final : public QObject, public iscore::GUIApplicationContextPlugin
+class ISCORE_PLUGIN_SCENARIO_EXPORT ScenarioApplicationPlugin final : public QObject, public iscore::GUIApplicationContextPlugin
 {
         Q_OBJECT
         friend class ScenarioContextMenuManager;

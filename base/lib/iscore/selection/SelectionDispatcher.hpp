@@ -11,7 +11,7 @@ class SelectionStack;
  * Sends new selections to the document so that they
  * can be shown in the inspector and other places that work with selections.
  */
-class SelectionDispatcher
+class ISCORE_LIB_BASE_EXPORT SelectionDispatcher
 {
     public:
         explicit SelectionDispatcher(SelectionStack& s):

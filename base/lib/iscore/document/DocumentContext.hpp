@@ -9,7 +9,7 @@ class SelectionStack;
 class ObjectLocker;
 class DocumentPluginModel;
 
-struct DocumentContext
+struct ISCORE_LIB_BASE_EXPORT DocumentContext
 {
         DocumentContext(iscore::Document& d);
         DocumentContext(const DocumentContext&) = delete;

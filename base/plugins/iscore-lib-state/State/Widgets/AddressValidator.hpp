@@ -11,7 +11,7 @@
  *  - "device:/dada/dodo" would work.
  *  - "/;/.f,v ç'tế&'" would not.
  */
-class AddressValidator final : public QValidator
+class ISCORE_LIB_STATE_EXPORT AddressValidator final : public QValidator
 {
     public:
         State validate(QString& s, int& pos) const override

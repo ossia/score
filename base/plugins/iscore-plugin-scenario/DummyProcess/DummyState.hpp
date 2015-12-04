@@ -5,6 +5,8 @@
 
 #include <Process/State/MessageNode.hpp>
 #include <State/Message.hpp>
+#include <iscore_lib_dummyprocess_export.h>
+
 
 class Process;
 class QObject;
@@ -12,7 +14,7 @@ namespace iscore {
 struct Address;
 }  // namespace iscore
 
-class DummyState final : public ProcessStateDataInterface
+class ISCORE_LIB_DUMMYPROCESS_EXPORT DummyState final : public ProcessStateDataInterface
 {
     public:
         DummyState(Process& model, QObject* parent);

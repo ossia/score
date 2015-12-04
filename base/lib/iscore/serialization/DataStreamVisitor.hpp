@@ -89,7 +89,7 @@ class variant;
 }
 }
 template<>
-class Visitor<Reader<DataStream>> final : public AbstractVisitor
+class ISCORE_LIB_BASE_EXPORT Visitor<Reader<DataStream>> final : public AbstractVisitor
 {
     public:
         using is_visitor_tag = std::integral_constant<bool, true>;
@@ -168,7 +168,7 @@ class Visitor<Reader<DataStream>> final : public AbstractVisitor
 };
 
 template<>
-class Visitor<Writer<DataStream>> : public AbstractVisitor
+class ISCORE_LIB_BASE_EXPORT Visitor<Writer<DataStream>> : public AbstractVisitor
 {
     public:
         using is_visitor_tag = std::integral_constant<bool, true>;

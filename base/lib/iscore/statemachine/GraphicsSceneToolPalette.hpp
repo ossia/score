@@ -1,10 +1,11 @@
 #pragma once
 #include <QObject>
 #include <QPoint>
+#include <iscore_lib_base_export.h>
 
 class QGraphicsScene;
 
-class GraphicsSceneToolPalette : public QObject
+class ISCORE_LIB_BASE_EXPORT GraphicsSceneToolPalette : public QObject
 {
     public:
         explicit GraphicsSceneToolPalette(const QGraphicsScene& scene):

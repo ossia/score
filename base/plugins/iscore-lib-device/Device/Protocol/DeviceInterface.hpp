@@ -8,13 +8,14 @@
 #include <vector>
 
 #include <State/Value.hpp>
+#include <iscore_lib_device_export.h>
 
 namespace iscore {
 struct FullAddressSettings;
 struct Message;
 }  // namespace iscore
 
-class DeviceInterface : public QObject
+class ISCORE_LIB_DEVICE_EXPORT DeviceInterface : public QObject
 {
         Q_OBJECT
 

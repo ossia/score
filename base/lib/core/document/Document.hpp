@@ -15,6 +15,7 @@ namespace iscore {
 class DocumentBackupManager;
 }  // namespace iscore
 #include <iscore/tools/SettableIdentifier.hpp>
+#include <iscore_lib_base_export.h>
 
 namespace iscore
 {
@@ -31,7 +32,7 @@ class PanelPresenter;
      * It is similar to the opened file in Word for instance, this is the
      * data on which i-score operates, further defined by the plugins.
      */
-class Document final : public NamedObject
+class ISCORE_LIB_BASE_EXPORT Document final : public NamedObject
 {
         Q_OBJECT
         friend class DocumentBuilder;
@@ -50,8 +51,6 @@ class Document final : public NamedObject
         ObjectLocker& locker()
         { return m_objectLocker; }
 
-        DocumentContext& context()
-        { return m_context; }
         const DocumentContext& context() const
         { return m_context; }
 

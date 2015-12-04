@@ -2,6 +2,7 @@
 #include <iscore/plugins/customfactory/FactoryInterface.hpp>
 #include <iscore/tools/ForEachType.hpp>
 #include <iscore/tools/std/Pointer.hpp>
+#include <iscore_lib_base_export.h>
 #include <QMetaType>
 
 namespace iscore
@@ -12,7 +13,7 @@ namespace iscore
      *
      * Keeps the factories, so that they can be found easily.
      */
-class FactoryListInterface
+class ISCORE_LIB_BASE_EXPORT FactoryListInterface
 {
     public:
         FactoryListInterface() = default;
@@ -53,7 +54,7 @@ auto make_ptr_vector()
     return GenericFactoryInserter<Args...>{}.vec;
 }
 
-
+// FIXME They should take an export macro also ?
 
 #define ISCORE_FACTORY_LIST_DECL(FactoryType) \
   private: \

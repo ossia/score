@@ -5,13 +5,14 @@
 
 #include <iscore/serialization/DataStreamVisitor.hpp>
 #include <iscore/serialization/JSONVisitor.hpp>
+#include <iscore_plugin_scenario_export.h>
 
 class ConstraintModel;
 class DataStream;
 class JSONObject;
 
 // A container class to separate management of the duration of a constraint.
-class ConstraintDurations final : public QObject
+class ISCORE_PLUGIN_SCENARIO_EXPORT ConstraintDurations final : public QObject
 {
         // These dates are relative to the beginning of the constraint.
         Q_PROPERTY(TimeValue minDuration

@@ -4,7 +4,7 @@
 #include <QList>
 #include <QObject>
 #include <QPoint>
-
+#include <iscore_plugin_scenario_export.h>
 class QAction;
 class QMenu;
 class QToolBar;
@@ -14,7 +14,7 @@ namespace iscore {
 class MenubarManager;
 }  // namespace iscore
 
-class ScenarioActions : public QObject
+class ISCORE_PLUGIN_SCENARIO_EXPORT ScenarioActions : public QObject
 {
         Q_OBJECT
 

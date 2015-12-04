@@ -14,6 +14,7 @@
 #include <State/ValueConversion.hpp>
 #include <iscore/serialization/JSONVisitor.hpp>
 #include <iscore/tools/SettableIdentifier.hpp>
+#include <iscore_lib_process_export.h>
 
 class Process;
 
@@ -136,8 +137,8 @@ struct StateNodeData
 using MessageNode = TreeNode<StateNodeData>;
 using MessageNodePath = TreePath<MessageNode>;
 
-iscore::Address address(const MessageNode& treeNode);
-iscore::Message message(const MessageNode& node);
-QStringList toStringList(const iscore::Address& addr);
+ISCORE_LIB_PROCESS_EXPORT iscore::Address address(const MessageNode& treeNode);
+ISCORE_LIB_PROCESS_EXPORT iscore::Message message(const MessageNode& node);
+ISCORE_LIB_PROCESS_EXPORT QStringList toStringList(const iscore::Address& addr);
 
-iscore::MessageList flatten(const MessageNode&);
+ISCORE_LIB_PROCESS_EXPORT iscore::MessageList flatten(const MessageNode&);

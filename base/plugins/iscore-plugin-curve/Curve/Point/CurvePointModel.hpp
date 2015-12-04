@@ -5,11 +5,12 @@
 
 #include <Curve/Palette/CurvePoint.hpp>
 #include <iscore/tools/SettableIdentifier.hpp>
+#include <iscore_plugin_curve_export.h>
 
 class CurveSegmentModel;
 class QObject;
 
-class CurvePointModel final : public IdentifiedObject<CurvePointModel>
+class ISCORE_PLUGIN_CURVE_EXPORT CurvePointModel final : public IdentifiedObject<CurvePointModel>
 {
         Q_OBJECT
     public:

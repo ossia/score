@@ -2,10 +2,10 @@
 #include <Process/ExpandMode.hpp>
 #include <Scenario/Palette/Tool.hpp>
 #include <QObject>
-
+#include <iscore_plugin_scenario_export.h>
 namespace Scenario
 {
-class EditionSettings : public QObject
+class ISCORE_PLUGIN_SCENARIO_EXPORT EditionSettings : public QObject
 {
         Q_OBJECT
         Q_PROPERTY(ExpandMode expandMode READ expandMode WRITE setExpandMode NOTIFY expandModeChanged)

@@ -8,14 +8,14 @@
 class QObject;
 #include <iscore/tools/SettableIdentifier.hpp>
 
-struct LinearCurveSegmentData
+struct ISCORE_PLUGIN_CURVE_EXPORT LinearCurveSegmentData
 {
         static const CurveSegmentFactoryKey& key();
 };
 
 Q_DECLARE_METATYPE(LinearCurveSegmentData)
 
-class LinearCurveSegmentModel final : public CurveSegmentModel
+class ISCORE_PLUGIN_CURVE_EXPORT LinearCurveSegmentModel final : public CurveSegmentModel
 {
     public:
         using data_type = LinearCurveSegmentData;

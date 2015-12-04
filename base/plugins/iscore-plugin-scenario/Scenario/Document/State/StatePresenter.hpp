@@ -2,6 +2,7 @@
 #include <iscore/command/Dispatchers/CommandDispatcher.hpp>
 #include <iscore/tools/NamedObject.hpp>
 #include <QPoint>
+#include <iscore_plugin_scenario_export.h>
 
 class QGraphicsItem;
 class QMimeData;
@@ -10,7 +11,7 @@ class StateModel;
 class StateView;
 #include <iscore/tools/SettableIdentifier.hpp>
 
-class StatePresenter final : public NamedObject
+class ISCORE_PLUGIN_SCENARIO_EXPORT StatePresenter final : public NamedObject
 {
         Q_OBJECT
 

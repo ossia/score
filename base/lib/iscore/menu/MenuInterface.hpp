@@ -1,11 +1,12 @@
 #pragma once
 #include <QString>
 #include <map>
+#include <iscore_lib_base_export.h>
 
 // TODO faire un script qui génère ça automatiquement
 namespace iscore
 {
-    enum class ToplevelMenuElement
+    enum class ISCORE_LIB_BASE_EXPORT ToplevelMenuElement
     {
         FileMenu,
         EditMenu,
@@ -17,7 +18,7 @@ namespace iscore
         AboutMenu
     };
 
-    enum class FileMenuElement
+    enum class ISCORE_LIB_BASE_EXPORT FileMenuElement
     {
         New,
         Separator_Load,
@@ -34,7 +35,7 @@ namespace iscore
         LoadCommands
     };
 
-    enum class EditMenuElement
+    enum class ISCORE_LIB_BASE_EXPORT EditMenuElement
     {
         Separator_Copy,
         Copy,
@@ -45,23 +46,23 @@ namespace iscore
         Redo
     };
 
-    enum class ToolMenuElement
+    enum class ISCORE_LIB_BASE_EXPORT ToolMenuElement
     {
         Separator_Tool
     };
 
-    enum class ViewMenuElement
+    enum class ISCORE_LIB_BASE_EXPORT ViewMenuElement
     {
         Windows
     };
 
-    enum class SettingsMenuElement
+    enum class ISCORE_LIB_BASE_EXPORT SettingsMenuElement
     {
         Settings
     };
 
 
-    enum class AboutMenuElement
+    enum class ISCORE_LIB_BASE_EXPORT AboutMenuElement
     {
         Help,
         About
@@ -75,7 +76,7 @@ namespace iscore
      *
      * The strings are not directly available to the plug-ins because they have to be translated.
      */
-    class MenuInterface
+    class ISCORE_LIB_BASE_EXPORT MenuInterface
     {
         public:
             template<typename MenuType>

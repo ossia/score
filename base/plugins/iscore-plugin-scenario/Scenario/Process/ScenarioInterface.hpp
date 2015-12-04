@@ -4,8 +4,8 @@ class EventModel;
 class StateModel;
 class TimeNodeModel;
 #include <iscore/tools/SettableIdentifier.hpp>
-
-class ScenarioInterface
+#include <iscore_plugin_scenario_export.h>
+class ISCORE_PLUGIN_SCENARIO_EXPORT ScenarioInterface
 {
     public:
         virtual ~ScenarioInterface();

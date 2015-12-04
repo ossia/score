@@ -13,7 +13,7 @@
 
 #include <Process/ProcessFactoryKey.hpp>
 #include <iscore/tools/SettableIdentifier.hpp>
-
+#include <iscore_plugin_scenario_export.h>
 class ConstraintModel;
 class ConstraintViewModel;
 class ProcessList;
@@ -38,7 +38,7 @@ class Document;
  *
  * Inherits from InspectorWidgetInterface. Manages an inteface for an Constraint (Timerack) element.
  */
-class ConstraintInspectorWidget final : public InspectorWidgetBase, public Nano::Observer
+class ISCORE_PLUGIN_SCENARIO_EXPORT ConstraintInspectorWidget final : public InspectorWidgetBase, public Nano::Observer
 {
         Q_OBJECT
     public:

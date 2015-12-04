@@ -1,11 +1,11 @@
 #pragma once
 #include <QObject>
-
+#include <iscore_lib_base_export.h>
 class QWidget;
 
 namespace iscore
 {
-    class DocumentDelegateViewInterface : public QObject
+    class ISCORE_LIB_BASE_EXPORT DocumentDelegateViewInterface : public QObject
     {
         public:
             using QObject::QObject;

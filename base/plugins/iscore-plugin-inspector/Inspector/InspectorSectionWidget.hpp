@@ -2,7 +2,7 @@
 
 #include <QString>
 #include <QWidget>
-
+#include <iscore_lib_inspector_export.h>
 class QLineEdit;
 class QPushButton;
 class QToolButton;
@@ -17,7 +17,7 @@ namespace iscore
  * It contains one main widget in a QScrollArea with a vertical layout, that can be folded/unfolded on click on the arrow button.
  */
 
-class InspectorSectionWidget : public QWidget
+class ISCORE_LIB_INSPECTOR_EXPORT InspectorSectionWidget : public QWidget
 {
         Q_OBJECT
     public:

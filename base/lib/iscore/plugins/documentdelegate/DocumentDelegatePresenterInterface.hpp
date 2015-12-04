@@ -8,7 +8,7 @@ namespace iscore
     class DocumentDelegateViewInterface;
     class DocumentPresenter;
 
-    class DocumentDelegatePresenterInterface : public NamedObject
+    class ISCORE_LIB_BASE_EXPORT DocumentDelegatePresenterInterface : public NamedObject
     {
         public:
             DocumentDelegatePresenterInterface(DocumentPresenter* parent_presenter,

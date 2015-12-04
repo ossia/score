@@ -19,7 +19,7 @@ namespace iscore
  * NOTE : the posted events must have the same id as Press / Move / Release event,
  * e.g. PressOnNothing_Event, etc.
  */
-class CommonSelectionState : public QState
+class ISCORE_LIB_BASE_EXPORT CommonSelectionState : public QState
 {
     public:
         iscore::SelectionDispatcher dispatcher;

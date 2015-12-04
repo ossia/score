@@ -3,12 +3,13 @@
 #include <iscore/plugins/customfactory/FactoryInterface.hpp>
 #include <iscore/tools/SettableIdentifier.hpp>
 #include <iscore/serialization/VisitorCommon.hpp>
+#include <iscore_lib_process_export.h>
 #include <QByteArray>
 #include <QString>
 
 class StateProcess;
 
-class StateProcessFactory :
+class ISCORE_LIB_PROCESS_EXPORT StateProcessFactory :
         public iscore::GenericFactoryInterface<StateProcessFactoryKey>
 {
         ISCORE_FACTORY_DECL("StateProcess")

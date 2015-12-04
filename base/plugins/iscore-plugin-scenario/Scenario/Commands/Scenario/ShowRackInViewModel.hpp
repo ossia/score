@@ -5,7 +5,7 @@
 #include <iscore/tools/ModelPath.hpp>
 
 #include <iscore/tools/SettableIdentifier.hpp>
-
+#include <iscore_plugin_scenario_export.h>
 class ConstraintViewModel;
 class DataStreamInput;
 class DataStreamOutput;
@@ -21,7 +21,7 @@ namespace Scenario
          * For a given constraint view model,
          * select the rack that is to be shown, and show it.
          */
-        class ShowRackInViewModel final : public iscore::SerializableCommand
+        class ISCORE_PLUGIN_SCENARIO_EXPORT ShowRackInViewModel final : public iscore::SerializableCommand
         {
                 ISCORE_COMMAND_DECL(ScenarioCommandFactoryName(), ShowRackInViewModel, "Show a rack")
             public:

@@ -2,7 +2,7 @@
 class QByteArray;
 class QVariant;
 #include <iscore/tools/SettableIdentifier.hpp>
-
+#include <iscore_lib_base_export.h>
 namespace iscore
 {
 class Document;
@@ -20,7 +20,7 @@ struct ApplicationContext;
  * - Restoring a document after a crash.
  *
  */
-class DocumentBuilder
+class ISCORE_LIB_BASE_EXPORT DocumentBuilder
 {
     public:
         explicit DocumentBuilder(

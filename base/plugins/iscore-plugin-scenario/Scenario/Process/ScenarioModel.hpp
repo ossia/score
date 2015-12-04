@@ -45,7 +45,7 @@ namespace OSSIA
  */
 namespace Scenario
 {
-class ScenarioModel final : public Process, public ScenarioInterface
+class ISCORE_PLUGIN_SCENARIO_EXPORT ScenarioModel final : public Process, public ScenarioInterface
 {
         Q_OBJECT
 

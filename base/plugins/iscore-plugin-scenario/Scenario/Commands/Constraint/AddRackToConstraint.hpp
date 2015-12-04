@@ -5,7 +5,7 @@
 #include <iscore/tools/ModelPath.hpp>
 
 #include <iscore/tools/SettableIdentifier.hpp>
-
+#include <iscore_plugin_scenario_export.h>
 class ConstraintModel;
 class DataStreamInput;
 class DataStreamOutput;
@@ -20,7 +20,7 @@ namespace Scenario
          *
          * Adds an empty rack, with no slots, to a constraint.
          */
-        class AddRackToConstraint final : public iscore::SerializableCommand
+        class ISCORE_PLUGIN_SCENARIO_EXPORT AddRackToConstraint final : public iscore::SerializableCommand
         {
                 ISCORE_COMMAND_DECL(ScenarioCommandFactoryName(), AddRackToConstraint, "Add a rack")
 

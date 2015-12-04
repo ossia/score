@@ -23,9 +23,9 @@ namespace IDocument
  *
  * @return the Document parent of the object or nullptr.
  */
-Document* documentFromObject(const QObject* obj);
-Document* documentFromObject(const QObject& obj);
-DocumentContext& documentContext(const QObject& obj);
+ISCORE_LIB_BASE_EXPORT Document* documentFromObject(const QObject* obj);
+ISCORE_LIB_BASE_EXPORT Document* documentFromObject(const QObject& obj);
+ISCORE_LIB_BASE_EXPORT const DocumentContext& documentContext(const QObject& obj);
 
 /**
  * @brief pathFromDocument
@@ -36,15 +36,15 @@ DocumentContext& documentContext(const QObject& obj);
  * These functions are not type-safe, hence use them only if there
  * is no other choice (e.g. storing the path to objects of different types)...
  */
-ObjectPath unsafe_path(QObject const * const& obj);
-ObjectPath unsafe_path(const QObject& obj);
+ISCORE_LIB_BASE_EXPORT ObjectPath unsafe_path(QObject const * const& obj);
+ISCORE_LIB_BASE_EXPORT ObjectPath unsafe_path(const QObject& obj);
 
 //// Various getters ////
 // Panel models
-const std::vector<PanelModel*>& panels(const Document* d);
+ISCORE_LIB_BASE_EXPORT const std::vector<PanelModel*>& panels(const Document* d);
 
 // Presenter of a document plugin.
-DocumentDelegatePresenterInterface& presenterDelegate_generic(const Document& d);
+ISCORE_LIB_BASE_EXPORT DocumentDelegatePresenterInterface& presenterDelegate_generic(const Document& d);
 
 template<typename T> T& presenterDelegate(const Document& d)
 {
@@ -61,7 +61,7 @@ T& get(const Document& d)
 
 // Model of a document plugin
 // First if we are sure
-DocumentDelegateModelInterface& modelDelegate_generic(const Document& d);
+ISCORE_LIB_BASE_EXPORT DocumentDelegateModelInterface& modelDelegate_generic(const Document& d);
 
 template<typename T> T& modelDelegate(const Document& d)
 {

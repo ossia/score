@@ -68,7 +68,8 @@ bool iscore::ValueImpl::isValid() const
 
 
 namespace iscore {
-QDebug& operator<<(QDebug& s, const iscore::ValueImpl& m)
+
+ISCORE_LIB_STATE_EXPORT QDebug& operator<<(QDebug& s, const iscore::ValueImpl& m)
 {
     return s;
 }

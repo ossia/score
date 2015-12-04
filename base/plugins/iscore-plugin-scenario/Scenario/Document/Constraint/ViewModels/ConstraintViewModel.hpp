@@ -5,12 +5,13 @@
 #include <nano_signal_slot.hpp>
 
 #include <iscore/tools/SettableIdentifier.hpp>
+#include <iscore_plugin_scenario_export.h>
 
 class ConstraintModel;
 class QObject;
 class RackModel;
 
-class ConstraintViewModel : public IdentifiedObject<ConstraintViewModel>, public Nano::Observer
+class ISCORE_PLUGIN_SCENARIO_EXPORT ConstraintViewModel : public IdentifiedObject<ConstraintViewModel>, public Nano::Observer
 {
         Q_OBJECT
 

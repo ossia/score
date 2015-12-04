@@ -70,27 +70,27 @@ template<> class TypeToName<iscore::UnaryOperator>
 
 
 template<>
-void Visitor<Reader<DataStream>>::readFrom(const ExprData& expr)
+ISCORE_LIB_STATE_EXPORT void Visitor<Reader<DataStream>>::readFrom(const ExprData& expr)
 {
     readFrom(expr.m_data);
     insertDelimiter();
 }
 
 template<>
-void Visitor<Reader<JSONObject>>::readFrom(const ExprData& expr)
+ISCORE_LIB_STATE_EXPORT void Visitor<Reader<JSONObject>>::readFrom(const ExprData& expr)
 {
     readFrom(expr.m_data);
 }
 
 template<>
-void Visitor<Writer<DataStream>>::writeTo(ExprData& expr)
+ISCORE_LIB_STATE_EXPORT void Visitor<Writer<DataStream>>::writeTo(ExprData& expr)
 {
     writeTo(expr.m_data);
     checkDelimiter();
 }
 
 template<>
-void Visitor<Writer<JSONObject>>::writeTo(ExprData& expr)
+ISCORE_LIB_STATE_EXPORT void Visitor<Writer<JSONObject>>::writeTo(ExprData& expr)
 {
     writeTo(expr.m_data);
 }

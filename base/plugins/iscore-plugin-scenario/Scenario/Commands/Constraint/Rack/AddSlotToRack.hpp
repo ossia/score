@@ -5,7 +5,7 @@
 #include <iscore/tools/ModelPath.hpp>
 
 #include <iscore/tools/SettableIdentifier.hpp>
-
+#include <iscore_plugin_scenario_export.h>
 class DataStreamInput;
 class DataStreamOutput;
 class RackModel;
@@ -20,7 +20,7 @@ namespace Scenario
          *
          * Adds an empty slot at the end of a Rack.
          */
-        class AddSlotToRack final : public iscore::SerializableCommand
+        class ISCORE_PLUGIN_SCENARIO_EXPORT AddSlotToRack final : public iscore::SerializableCommand
         {
                 ISCORE_COMMAND_DECL(ScenarioCommandFactoryName(), AddSlotToRack, "Create a slot")
             public:

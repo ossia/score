@@ -5,10 +5,10 @@
 
 class QObject;
 #include <iscore/tools/SettableIdentifier.hpp>
-
+#include <iscore_plugin_scenario_export.h>
 using namespace iscore;
 
-class TriggerModel final : public IdentifiedObject<TriggerModel>
+class ISCORE_PLUGIN_SCENARIO_EXPORT TriggerModel final : public IdentifiedObject<TriggerModel>
 {
         Q_OBJECT
         ISCORE_METADATA("TriggerModel")

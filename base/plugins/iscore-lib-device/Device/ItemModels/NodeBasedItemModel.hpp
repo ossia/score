@@ -8,8 +8,9 @@
 #include <Device/Protocol/DeviceSettings.hpp>
 #include <iscore/tools/InvisibleRootNode.hpp>
 #include <iscore/tools/TreeNode.hpp>
+#include <iscore_lib_device_export.h>
 
-class NodeBasedItemModel : public TreeNodeBasedItemModel<iscore::Node>
+class ISCORE_LIB_DEVICE_EXPORT NodeBasedItemModel : public TreeNodeBasedItemModel<iscore::Node>
 {
     public:
         using TreeNodeBasedItemModel<iscore::Node>::TreeNodeBasedItemModel;

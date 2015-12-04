@@ -13,7 +13,7 @@
 #include <iscore/serialization/VisitorInterface.hpp>
 #include <iscore/tools/IdentifiedObject.hpp>
 #include <iscore/tools/SettableIdentifier.hpp>
-
+#include <iscore_plugin_scenario_export.h>
 class ConstraintModel;
 class DataStream;
 class JSONObject;
@@ -21,7 +21,7 @@ class Process;
 class RackModel;
 
 // Note : the SlotModel is assumed to be in a Rack, itself in a Constraint.
-class SlotModel final : public IdentifiedObject<SlotModel>, public Nano::Observer
+class ISCORE_PLUGIN_SCENARIO_EXPORT SlotModel final : public IdentifiedObject<SlotModel>, public Nano::Observer
 {
         Q_OBJECT
         ISCORE_METADATA("SlotModel")

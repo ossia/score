@@ -11,6 +11,7 @@
 #include <algorithm>
 
 #include <State/Address.hpp>
+#include <iscore_lib_device_export.h>
 
 class DataStream;
 class JSONObject;
@@ -21,7 +22,7 @@ struct DeviceSettings;
 
 namespace iscore
 {
-class DeviceExplorerNode : public VariantBasedNode<
+class ISCORE_LIB_DEVICE_EXPORT DeviceExplorerNode : public VariantBasedNode<
         iscore::DeviceSettings,
         iscore::AddressSettings>
 {
@@ -56,18 +57,19 @@ using NodePath = TreePath<iscore::Node>;
 using NodeList = QList<iscore::Node*>;
 
 // TODO add specifications & tests to these functions
-iscore::Address address(const Node& treeNode);
+ISCORE_LIB_DEVICE_EXPORT iscore::Address address(const Node& treeNode);
 
-iscore::Message message(const iscore::Node& node);
+ISCORE_LIB_DEVICE_EXPORT iscore::Message message(const iscore::Node& node);
 
 // Note : this one takes an output reference as an optimization
 // because of its use in DeviceExplorerModel::indexesToMime
-void messageList(const Node& treeNode,
-                 MessageList& ml);
+ISCORE_LIB_DEVICE_EXPORT void messageList(
+        const Node& treeNode,
+        MessageList& ml);
 
 // TODO have all these guys return references
-iscore::Node& getNodeFromAddress(iscore::Node& root, const iscore::Address&);
-iscore::Node* getNodeFromString(iscore::Node& n, QStringList&& str); // Fails if not present.
+ISCORE_LIB_DEVICE_EXPORT iscore::Node& getNodeFromAddress(iscore::Node& root, const iscore::Address&);
+ISCORE_LIB_DEVICE_EXPORT iscore::Node* getNodeFromString(iscore::Node& n, QStringList&& str); // Fails if not present.
 
 
 
@@ -75,23 +77,23 @@ iscore::Node* getNodeFromString(iscore::Node& n, QStringList&& str); // Fails if
  * @brief dumpTree An utility to print trees
  * of iscore::Nodes
  */
-void dumpTree(const iscore::Node& node, QString rec);
+ISCORE_LIB_DEVICE_EXPORT void dumpTree(const iscore::Node& node, QString rec);
 
 
 
 
-iscore::Node merge(
+ISCORE_LIB_DEVICE_EXPORT iscore::Node merge(
         iscore::Node base,
         const iscore::MessageList& other);
 
-void merge(
+ISCORE_LIB_DEVICE_EXPORT void merge(
         iscore::Node& base,
         const iscore::Message& message);
 
 
 // True if gramps is a parent, grand-parent, etc. of node.
 template<typename Node_T>
-bool isAncestor(const Node_T& gramps, const Node_T* node)
+ISCORE_LIB_DEVICE_EXPORT bool isAncestor(const Node_T& gramps, const Node_T* node)
 {
     auto parent = node->parent();
     if(!parent)
@@ -125,7 +127,7 @@ bool isAncestor(const Node_T& gramps, const Node_T* node)
  * TESTME
  */
 template<typename Node_T>
-QList<Node_T*> filterUniqueParents(const QList<Node_T*>& nodes)
+ISCORE_LIB_DEVICE_EXPORT QList<Node_T*> filterUniqueParents(const QList<Node_T*>& nodes)
 {
     // OPTIMIZEME this horrible lazy algorithm.
     auto nodes_cpy = nodes.toSet().toList(); // Remove duplicates
@@ -156,7 +158,7 @@ QList<Node_T*> filterUniqueParents(const QList<Node_T*>& nodes)
 
 // Generic algorithms for DeviceExplorerNode-like structures.
 template<typename Node_T>
-Node_T* try_getNodeFromString(Node_T& n, QStringList&& parts)
+ISCORE_LIB_DEVICE_EXPORT Node_T* try_getNodeFromString(Node_T& n, QStringList&& parts)
 {
     if(parts.size() == 0)
         return &n;
@@ -174,7 +176,7 @@ Node_T* try_getNodeFromString(Node_T& n, QStringList&& parts)
 }
 
 template<typename Node_T>
-Node_T* try_getNodeFromAddress(Node_T& root, const iscore::Address& addr)
+ISCORE_LIB_DEVICE_EXPORT Node_T* try_getNodeFromAddress(Node_T& root, const iscore::Address& addr)
 {
     if(addr.device.isEmpty())
         return &root;

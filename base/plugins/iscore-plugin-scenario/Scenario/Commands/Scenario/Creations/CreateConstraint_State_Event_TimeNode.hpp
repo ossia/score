@@ -8,7 +8,7 @@
 #include <Scenario/Commands/ScenarioCommandFactory.hpp>
 #include <iscore/tools/ModelPath.hpp>
 #include <iscore/tools/SettableIdentifier.hpp>
-
+#include <iscore_plugin_scenario_export.h>
 class ConstraintModel;
 class DataStreamInput;
 class DataStreamOutput;
@@ -23,7 +23,7 @@ namespace Scenario
 {
 namespace Command
 {
-class CreateConstraint_State_Event_TimeNode final : public iscore::SerializableCommand
+class ISCORE_PLUGIN_SCENARIO_EXPORT CreateConstraint_State_Event_TimeNode final : public iscore::SerializableCommand
 {
         ISCORE_COMMAND_DECL(ScenarioCommandFactoryName(), CreateConstraint_State_Event_TimeNode, "Create a constraint, a state, an event and a timenode")
         public:

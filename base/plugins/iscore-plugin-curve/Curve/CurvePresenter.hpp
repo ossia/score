@@ -13,6 +13,7 @@
 
 #include <Curve/Segment/CurveSegmentFactoryKey.hpp>
 #include <iscore/document/DocumentContext.hpp>
+#include <iscore_plugin_curve_export.h>
 
 class DynamicCurveSegmentList;
 namespace Curve {
@@ -27,7 +28,7 @@ class CurveView;
 class QActionGroup;
 class QMenu;
 
-class CurvePresenter : public QObject
+class ISCORE_PLUGIN_CURVE_EXPORT CurvePresenter : public QObject
 {
         Q_OBJECT
     public:

@@ -20,7 +20,7 @@ namespace iscore
      * These are mainly convenience methods to add elements in a non-anarchic way
      * to the menu bar, using the information in \c{MenuInterface}.
      */
-    class MenubarManager final : public QObject
+    class ISCORE_LIB_BASE_EXPORT MenubarManager final : public QObject
     {
             Q_OBJECT
         public:

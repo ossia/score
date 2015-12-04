@@ -14,8 +14,9 @@ namespace Scenario {
 class ScenarioModel;
 }  // namespace Scenario
 #include <iscore/tools/SettableIdentifier.hpp>
+#include <iscore_plugin_scenario_export.h>
 
-class MoveEventOnCreationMeta final : public SerializableMoveEvent
+class ISCORE_PLUGIN_SCENARIO_EXPORT MoveEventOnCreationMeta final : public SerializableMoveEvent
 {
         ISCORE_COMMAND_DECL(ScenarioCommandFactoryName(), MoveEventOnCreationMeta, "Move an event on creation")
 public:

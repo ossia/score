@@ -6,7 +6,7 @@
 
 #include <QGridLayout>
 template<typename T>
-class NumericValueWidget : public ValueWidget
+class ISCORE_LIB_STATE_EXPORT  NumericValueWidget : public ValueWidget
 {
     public:
         NumericValueWidget(

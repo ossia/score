@@ -14,7 +14,7 @@ struct VisitorVariant;
 
 namespace iscore
 {
-class DocumentPluginModel : public NamedObject
+class ISCORE_LIB_BASE_EXPORT DocumentPluginModel : public NamedObject
 {
         Q_OBJECT
     public:

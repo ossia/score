@@ -6,8 +6,9 @@
 
 #include <Curve/Segment/CurveSegmentModel.hpp>
 #include <iscore/selection/Selection.hpp>
+#include <iscore_plugin_curve_export.h>
 
-class CurveProcessModel : public Process
+class ISCORE_PLUGIN_CURVE_EXPORT CurveProcessModel : public Process
 {
         Q_OBJECT
     public:

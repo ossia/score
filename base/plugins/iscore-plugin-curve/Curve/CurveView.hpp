@@ -3,6 +3,7 @@
 #include <QGraphicsItem>
 #include <QPoint>
 #include <QRect>
+#include <iscore_plugin_curve_export.h>
 
 class QGraphicsSceneContextMenuEvent;
 class QGraphicsSceneMouseEvent;
@@ -11,7 +12,7 @@ class QPainter;
 class QStyleOptionGraphicsItem;
 class QWidget;
 
-class CurveView final : public QGraphicsObject
+class ISCORE_PLUGIN_CURVE_EXPORT CurveView final : public QGraphicsObject
 {
         Q_OBJECT
     public:

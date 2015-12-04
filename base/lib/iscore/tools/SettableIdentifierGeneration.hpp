@@ -11,7 +11,7 @@
 
 namespace iscore
 {
-struct random_id_generator
+struct ISCORE_LIB_BASE_EXPORT random_id_generator
 {
 /**
  * @brief getNextId
@@ -42,7 +42,7 @@ static auto getNextId(const Vector& ids)
 }
 };
 
-struct linear_id_generator
+struct ISCORE_LIB_BASE_EXPORT linear_id_generator
 {
         static int32_t getFirstId() { return 1; }
 

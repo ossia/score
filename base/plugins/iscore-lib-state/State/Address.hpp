@@ -10,6 +10,7 @@
 #include <unordered_map>
 #include <QMetaType>
 #include <QMetaObject>
+#include <iscore_lib_state_export.h>
 
 namespace iscore
 {
@@ -21,7 +22,7 @@ namespace iscore
  *  aDevice:/aNode/anotherNode
  *
  */
-struct Address
+struct ISCORE_LIB_STATE_EXPORT Address
 {
         // Data
         QString device; // No device means that this is the invisible root node.

@@ -6,7 +6,7 @@
 #include <QByteArray>
 
 #include <iscore/tools/SettableIdentifier.hpp>
-
+#include <iscore_plugin_scenario_export.h>
 class DataStreamInput;
 class DataStreamOutput;
 class LayerModel;
@@ -22,7 +22,7 @@ namespace Scenario
          *
          * Adds a process view to a slot.
          */
-        class AddLayerModelToSlot final : public iscore::SerializableCommand
+        class ISCORE_PLUGIN_SCENARIO_EXPORT AddLayerModelToSlot final : public iscore::SerializableCommand
         {
                 ISCORE_COMMAND_DECL(ScenarioCommandFactoryName(), AddLayerModelToSlot, "Add a layer to a slot")
             public:

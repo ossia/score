@@ -51,7 +51,7 @@ void Visitor<Writer<DataStream>>::writeTo(iscore::AddressSettingsCommon& n)
 
 
 template<>
-void Visitor<Reader<DataStream>>::readFrom(const iscore::AddressSettings& n)
+ISCORE_LIB_DEVICE_EXPORT void Visitor<Reader<DataStream>>::readFrom(const iscore::AddressSettings& n)
 {
     readFrom(static_cast<const iscore::AddressSettingsCommon&>(n));
     m_stream << n.name;
@@ -59,7 +59,7 @@ void Visitor<Reader<DataStream>>::readFrom(const iscore::AddressSettings& n)
     insertDelimiter();
 }
 template<>
-void Visitor<Writer<DataStream>>::writeTo(iscore::AddressSettings& n)
+ISCORE_LIB_DEVICE_EXPORT void Visitor<Writer<DataStream>>::writeTo(iscore::AddressSettings& n)
 {
     writeTo(static_cast<iscore::AddressSettingsCommon&>(n));
     m_stream >> n.name;
@@ -67,7 +67,7 @@ void Visitor<Writer<DataStream>>::writeTo(iscore::AddressSettings& n)
     checkDelimiter();
 }
 template<>
-void Visitor<Reader<DataStream>>::readFrom(const iscore::FullAddressSettings& n)
+ISCORE_LIB_DEVICE_EXPORT void Visitor<Reader<DataStream>>::readFrom(const iscore::FullAddressSettings& n)
 {
     readFrom(static_cast<const iscore::AddressSettingsCommon&>(n));
     m_stream << n.address;
@@ -75,7 +75,7 @@ void Visitor<Reader<DataStream>>::readFrom(const iscore::FullAddressSettings& n)
     insertDelimiter();
 }
 template<>
-void Visitor<Writer<DataStream>>::writeTo(iscore::FullAddressSettings& n)
+ISCORE_LIB_DEVICE_EXPORT void Visitor<Writer<DataStream>>::writeTo(iscore::FullAddressSettings& n)
 {
     writeTo(static_cast<iscore::AddressSettingsCommon&>(n));
     m_stream >> n.address;
@@ -84,7 +84,7 @@ void Visitor<Writer<DataStream>>::writeTo(iscore::FullAddressSettings& n)
 }
 
 template<>
-void Visitor<Reader<JSONObject>>::readFrom(const iscore::AddressSettings& n)
+ISCORE_LIB_DEVICE_EXPORT void Visitor<Reader<JSONObject>>::readFrom(const iscore::AddressSettings& n)
 {
     m_obj["Name"] = n.name;
 
@@ -109,7 +109,7 @@ void Visitor<Reader<JSONObject>>::readFrom(const iscore::AddressSettings& n)
 }
 
 template<>
-void Visitor<Writer<JSONObject>>::writeTo(iscore::AddressSettings& n)
+ISCORE_LIB_DEVICE_EXPORT void Visitor<Writer<JSONObject>>::writeTo(iscore::AddressSettings& n)
 {
     n.name = m_obj["Name"].toString();
 

@@ -17,7 +17,7 @@ template <typename T> class Writer;
 
 using namespace iscore;
 template<>
-void Visitor<Reader<DataStream>>::readFrom(const Message& mess)
+ISCORE_LIB_STATE_EXPORT void Visitor<Reader<DataStream>>::readFrom(const Message& mess)
 {
     readFrom(mess.address);
     readFrom(mess.value);
@@ -25,7 +25,7 @@ void Visitor<Reader<DataStream>>::readFrom(const Message& mess)
 }
 
 template<>
-void Visitor<Reader<JSONObject>>::readFrom(const Message& mess)
+ISCORE_LIB_STATE_EXPORT void Visitor<Reader<JSONObject>>::readFrom(const Message& mess)
 {
     m_obj["Address"] = toJsonObject(mess.address);
     m_obj["Type"] = iscore::convert::textualType(mess.value);
@@ -33,7 +33,7 @@ void Visitor<Reader<JSONObject>>::readFrom(const Message& mess)
 }
 
 template<>
-void Visitor<Writer<DataStream>>::writeTo(Message& mess)
+ISCORE_LIB_STATE_EXPORT void Visitor<Writer<DataStream>>::writeTo(Message& mess)
 {
     writeTo(mess.address);
     writeTo(mess.value);
@@ -42,7 +42,7 @@ void Visitor<Writer<DataStream>>::writeTo(Message& mess)
 }
 
 template<>
-void Visitor<Writer<JSONObject>>::writeTo(Message& mess)
+ISCORE_LIB_STATE_EXPORT void Visitor<Writer<JSONObject>>::writeTo(Message& mess)
 {
     mess.address = fromJsonObject<Address>(m_obj["Address"].toObject());
     mess.value = iscore::convert::toValue(m_obj["Value"], m_obj["Type"].toString());

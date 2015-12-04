@@ -1,6 +1,7 @@
 #pragma once
 
 #include <QObject>
+#include <iscore_plugin_curve_export.h>
 
 namespace Curve
 {
@@ -11,7 +12,7 @@ enum class AddPointBehaviour {
     LinearBefore, LinearAfter, DuplicateSegment
 };
 
-class EditionSettings : public QObject
+class ISCORE_PLUGIN_CURVE_EXPORT  EditionSettings : public QObject
 {
         Q_OBJECT
         Q_PROPERTY(bool lockBetweenPoints READ lockBetweenPoints WRITE setLockBetweenPoints NOTIFY lockBetweenPointsChanged)

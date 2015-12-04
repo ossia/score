@@ -8,6 +8,8 @@
 #include <Process/TimeValue.hpp>
 #include <iscore/selection/Selection.hpp>
 #include <iscore/serialization/VisitorInterface.hpp>
+#include <iscore_lib_dummyprocess_export.h>
+
 
 class DataStream;
 class JSONObject;
@@ -16,7 +18,7 @@ class ProcessStateDataInterface;
 class QObject;
 #include <iscore/tools/SettableIdentifier.hpp>
 
-class DummyModel final : public Process
+class ISCORE_LIB_DUMMYPROCESS_EXPORT DummyModel final : public Process
 {
         ISCORE_SERIALIZE_FRIENDS(DummyModel, DataStream)
         ISCORE_SERIALIZE_FRIENDS(DummyModel, JSONObject)

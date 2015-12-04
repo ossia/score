@@ -1,5 +1,5 @@
 #pragma once
-
+#include <iscore_lib_base_export.h>
 struct VisitorVariant;
 class QObject;
 
@@ -18,7 +18,7 @@ namespace iscore
      *
      * The interface required to create a custom main document (like MS Word's main page)
      */
-    class DocumentDelegateFactoryInterface
+    class ISCORE_LIB_BASE_EXPORT DocumentDelegateFactoryInterface
     {
         public:
             virtual ~DocumentDelegateFactoryInterface();

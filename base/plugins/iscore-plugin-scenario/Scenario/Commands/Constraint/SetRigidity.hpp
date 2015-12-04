@@ -3,7 +3,7 @@
 #include <Scenario/Commands/ScenarioCommandFactory.hpp>
 #include <iscore/command/SerializableCommand.hpp>
 #include <iscore/tools/ModelPath.hpp>
-
+#include <iscore_plugin_scenario_export.h>
 class ConstraintModel;
 class DataStreamInput;
 class DataStreamOutput;
@@ -17,7 +17,7 @@ namespace Scenario
          *
          * Sets the rigidity of a constraint
          */
-        class SetRigidity final : public iscore::SerializableCommand
+        class ISCORE_PLUGIN_SCENARIO_EXPORT SetRigidity final : public iscore::SerializableCommand
         {
                 ISCORE_COMMAND_DECL(ScenarioCommandFactoryName(), SetRigidity, "Change constraint rigidity")
 

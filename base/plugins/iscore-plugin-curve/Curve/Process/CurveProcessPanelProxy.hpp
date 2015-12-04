@@ -1,8 +1,9 @@
 #pragma once
 #include <Process/LayerModelPanelProxy.hpp>
+#include <iscore_plugin_curve_export.h>
 
 template<typename LayerModel_T>
-class CurveProcessPanelProxy : public LayerModelPanelProxy
+class ISCORE_PLUGIN_CURVE_EXPORT CurveProcessPanelProxy : public LayerModelPanelProxy
 {
     public:
         CurveProcessPanelProxy(

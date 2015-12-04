@@ -29,7 +29,7 @@ namespace iscore
      *
      * It is instatiated exactly once.
      */
-    class GUIApplicationContextPlugin
+    class ISCORE_LIB_BASE_EXPORT GUIApplicationContextPlugin
     {
             // Menus : trouver un moyen pour créer automatiquement si n'existe pas ?
             // Dire chemin : File/Export/SomeCustomExport ?

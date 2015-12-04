@@ -1,6 +1,7 @@
 #pragma once
 #include <iscore/serialization/DataStreamVisitor.hpp>
 #include <iscore/serialization/JSONVisitor.hpp>
+#include <iscore_lib_state_export.h>
 #include <boost/optional/optional.hpp>
 #include <eggs/variant.hpp>
 #include <QChar>
@@ -27,7 +28,7 @@ class ValueImpl;
 using tuple_t = std::vector<ValueImpl>;
 enum class ValueType { Impulse, Int, Float, Bool, String, Char, Tuple, NoValue };
 
-class ValueImpl
+class ISCORE_LIB_STATE_EXPORT ValueImpl
 {
         ISCORE_SERIALIZE_FRIENDS(ValueImpl, DataStream)
         ISCORE_SERIALIZE_FRIENDS(ValueImpl, JSONObject)
@@ -93,7 +94,7 @@ class ValueImpl
  * A variant used to represent the data that can be in a message.
  *
  */
-struct Value
+struct ISCORE_LIB_STATE_EXPORT Value
 {
         using value_type = ValueImpl;
         value_type val{};

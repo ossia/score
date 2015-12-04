@@ -2,6 +2,7 @@
 
 #include <iscore/plugins/customfactory/FactoryInterface.hpp>
 #include <QString>
+#include <iscore_lib_inspector_export.h>
 
 class InspectorWidgetBase;
 class QObject;
@@ -26,7 +27,7 @@ struct DocumentContext;
      * in the inspector.
      *
      */
-class InspectorWidgetFactory : public iscore::GenericFactoryInterface<QList<QString>>
+class ISCORE_LIB_INSPECTOR_EXPORT InspectorWidgetFactory : public iscore::GenericFactoryInterface<QList<QString>>
 {
         ISCORE_FACTORY_DECL("Inspector")
     public:

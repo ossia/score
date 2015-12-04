@@ -12,14 +12,14 @@
 #include <QString>
 #include <QVector>
 #include <chrono>
-
+#include <iscore_plugin_scenario_export.h>
 class DataStream;
 class EventModel;
 class JSONObject;
 class ScenarioInterface;
 class TriggerModel;
 
-class TimeNodeModel final : public IdentifiedObject<TimeNodeModel>
+class ISCORE_PLUGIN_SCENARIO_EXPORT TimeNodeModel final : public IdentifiedObject<TimeNodeModel>
 {
         Q_OBJECT
         ISCORE_METADATA("TimeNodeModel")

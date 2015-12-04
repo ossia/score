@@ -2,7 +2,7 @@
 #include <Scenario/Commands/ScenarioCommandFactory.hpp>
 #include <iscore/command/SerializableCommand.hpp>
 #include <iscore/tools/ModelPath.hpp>
-
+#include <iscore_plugin_scenario_export.h>
 class DataStreamInput;
 class DataStreamOutput;
 class SlotModel;
@@ -16,7 +16,7 @@ namespace Scenario
          *
          * Changes a slot's vertical size
          */
-        class ResizeSlotVertically final : public iscore::SerializableCommand
+        class ISCORE_PLUGIN_SCENARIO_EXPORT ResizeSlotVertically final : public iscore::SerializableCommand
         {
                 ISCORE_COMMAND_DECL(ScenarioCommandFactoryName(), ResizeSlotVertically, "Resize a slot")
             public:

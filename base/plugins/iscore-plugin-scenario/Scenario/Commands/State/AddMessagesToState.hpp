@@ -8,12 +8,13 @@
 #include <State/Message.hpp>
 #include <iscore/tools/SettableIdentifier.hpp>
 
+#include <iscore_plugin_scenario_export.h>
 class DataStreamInput;
 class DataStreamOutput;
 class MessageItemModel;
 class Process;
 
-class AddMessagesToState final : public iscore::SerializableCommand
+class ISCORE_PLUGIN_SCENARIO_EXPORT AddMessagesToState final : public iscore::SerializableCommand
 {
         ISCORE_COMMAND_DECL(ScenarioCommandFactoryName(), AddMessagesToState, "Add messages to state")
         public:

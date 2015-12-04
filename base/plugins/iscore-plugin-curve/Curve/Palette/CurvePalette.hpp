@@ -6,7 +6,7 @@
 #include <Process/Tools/ToolPalette.hpp>
 #include <iscore/statemachine/GraphicsSceneToolPalette.hpp>
 #include <QPoint>
-
+#include <iscore_plugin_curve_export.h>
 class CurveModel;
 class CurvePresenter;
 class CurveView;
@@ -19,7 +19,7 @@ struct LayerContext;
 
 namespace Curve
 {
-class ToolPalette final : public GraphicsSceneToolPalette
+class ISCORE_PLUGIN_CURVE_EXPORT ToolPalette final : public GraphicsSceneToolPalette
 {
         Q_OBJECT
     public:

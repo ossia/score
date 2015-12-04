@@ -22,7 +22,7 @@ template <typename T> class Reader;
 template <typename T> class Writer;
 
 template<>
-void Visitor<Reader<DataStream>>::readFrom(const iscore::DeviceSettings& n)
+ISCORE_LIB_DEVICE_EXPORT void Visitor<Reader<DataStream>>::readFrom(const iscore::DeviceSettings& n)
 {
     m_stream << n.name
              << n.protocol;
@@ -45,7 +45,7 @@ void Visitor<Reader<DataStream>>::readFrom(const iscore::DeviceSettings& n)
 }
 
 template<>
-void Visitor<Writer<DataStream>>::writeTo(iscore::DeviceSettings& n)
+ISCORE_LIB_DEVICE_EXPORT void Visitor<Writer<DataStream>>::writeTo(iscore::DeviceSettings& n)
 {
     m_stream >> n.name
              >> n.protocol;
@@ -64,7 +64,7 @@ void Visitor<Writer<DataStream>>::writeTo(iscore::DeviceSettings& n)
     checkDelimiter();
 }
 template<>
-void Visitor<Reader<JSONObject>>::readFrom(const iscore::DeviceSettings& n)
+ISCORE_LIB_DEVICE_EXPORT void Visitor<Reader<JSONObject>>::readFrom(const iscore::DeviceSettings& n)
 {
     m_obj["Name"] = n.name;
     m_obj["Protocol"] = toJsonValue(n.protocol);
@@ -82,7 +82,7 @@ void Visitor<Reader<JSONObject>>::readFrom(const iscore::DeviceSettings& n)
 }
 
 template<>
-void Visitor<Writer<JSONObject>>::writeTo(iscore::DeviceSettings& n)
+ISCORE_LIB_DEVICE_EXPORT void Visitor<Writer<JSONObject>>::writeTo(iscore::DeviceSettings& n)
 {
     n.name = m_obj["Name"].toString();
     n.protocol = fromJsonValue<ProtocolFactoryKey>(m_obj["Protocol"]);

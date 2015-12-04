@@ -6,13 +6,13 @@
 
 #include <Curve/Palette/CurvePoint.hpp>
 #include <iscore/tools/SettableIdentifier.hpp>
-
+#include <iscore_plugin_curve_export.h>
 class CurveModel;
 class CurvePointModel;
 class DataStreamInput;
 class DataStreamOutput;
 
-class MovePoint final : public iscore::SerializableCommand
+class ISCORE_PLUGIN_CURVE_EXPORT MovePoint final : public iscore::SerializableCommand
 {
         ISCORE_COMMAND_DECL(CurveCommandFactoryName(), MovePoint, "Move a point")
         public:

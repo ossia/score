@@ -22,7 +22,7 @@
 class Client;
 
 MasterNetworkPolicy::MasterNetworkPolicy(MasterSession* s,
-                                         iscore::DocumentContext& c):
+                                         const iscore::DocumentContext& c):
     m_session{s}
 {
     auto& stack = c.document.commandStack();

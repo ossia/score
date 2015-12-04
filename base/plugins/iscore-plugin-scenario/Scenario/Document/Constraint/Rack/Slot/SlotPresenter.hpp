@@ -13,7 +13,7 @@ class QObject;
 class SlotModel;
 class SlotView;
 #include <iscore/tools/SettableIdentifier.hpp>
-
+#include <iscore_plugin_scenario_export.h>
 namespace iscore
 {
 }
@@ -42,7 +42,7 @@ struct SlotProcessData
         std::vector<ProcessPair> processes;
 };
 
-class SlotPresenter final : public NamedObject, public Nano::Observer
+class ISCORE_PLUGIN_SCENARIO_EXPORT SlotPresenter final : public NamedObject, public Nano::Observer
 {
         Q_OBJECT
 

@@ -7,19 +7,20 @@
 #include <QJsonValue>
 
 #include "DomainSerialization.hpp"
+#include <iscore_lib_device_export.h>
 #include <State/Value.hpp>
 
 template <typename T> class Reader;
 template <typename T> class Writer;
 
 template<>
-void Visitor<Reader<DataStream>>::readFrom(const iscore::Domain& n)
+ISCORE_LIB_DEVICE_EXPORT void Visitor<Reader<DataStream>>::readFrom(const iscore::Domain& n)
 {
     m_stream << n.min << n.max << n.values;
 }
 
 template<>
-void Visitor<Writer<DataStream>>::writeTo(iscore::Domain& n)
+ISCORE_LIB_DEVICE_EXPORT void Visitor<Writer<DataStream>>::writeTo(iscore::Domain& n)
 {
     m_stream >> n.min >> n.max >> n.values;
 }

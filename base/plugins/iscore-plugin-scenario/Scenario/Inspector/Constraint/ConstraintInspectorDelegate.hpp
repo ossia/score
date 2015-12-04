@@ -7,8 +7,8 @@ class ConstraintInspectorWidget;
 class ConstraintModel;
 class OngoingCommandDispatcher;
 class QWidget;
-
-class ConstraintInspectorDelegate
+#include <iscore_plugin_scenario_export.h>
+class ISCORE_PLUGIN_SCENARIO_EXPORT ConstraintInspectorDelegate
 {
     protected:
         const ConstraintModel& m_model;

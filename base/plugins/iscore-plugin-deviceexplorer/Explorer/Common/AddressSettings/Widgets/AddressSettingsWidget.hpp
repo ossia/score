@@ -1,12 +1,13 @@
 #pragma once
 
 #include <Device/Address/AddressSettings.hpp>
+#include <iscore_lib_device_export.h>
 #include <QWidget>
 
 class QComboBox;
 class QFormLayout;
 
-class AddressSettingsWidget : public QWidget
+class ISCORE_LIB_DEVICE_EXPORT AddressSettingsWidget : public QWidget
 {
     public:
         explicit AddressSettingsWidget(QWidget* parent = nullptr);

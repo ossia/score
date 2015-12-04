@@ -1,10 +1,11 @@
 #pragma once
 
 #include <Device/Protocol/DeviceSettings.hpp>
+#include <iscore_lib_device_export.h>
 #include <QString>
 #include <QWidget>
 
-class ProtocolSettingsWidget : public QWidget
+class ISCORE_LIB_DEVICE_EXPORT ProtocolSettingsWidget : public QWidget
 {
     public:
         explicit ProtocolSettingsWidget(QWidget* parent = nullptr) : QWidget(parent) {}

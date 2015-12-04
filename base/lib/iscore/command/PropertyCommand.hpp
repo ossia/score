@@ -20,7 +20,7 @@ namespace iscore
  * It will save the current state and switch between the current and new
  * state upon undo / redo.
  */
-class PropertyCommand : public SerializableCommand
+class ISCORE_LIB_BASE_EXPORT PropertyCommand : public SerializableCommand
 {
     public:
         using SerializableCommand::SerializableCommand;

@@ -52,7 +52,7 @@ class QMenu;
 struct VerticalExtent;
 
 TemporalScenarioPresenter::TemporalScenarioPresenter(
-        iscore::DocumentContext& context,
+        const iscore::DocumentContext& context,
         Scenario::EditionSettings& e,
         const TemporalScenarioLayerModel& process_view_model,
         LayerView* view,

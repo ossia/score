@@ -14,7 +14,7 @@ class MasterNetworkPolicy : public iscore_plugin_networkPolicy
 {
     public:
         MasterNetworkPolicy(MasterSession* s,
-                            iscore::DocumentContext& c);
+                            const iscore::DocumentContext& c);
 
         MasterSession* session() const override
         { return m_session; }

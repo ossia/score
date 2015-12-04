@@ -1,5 +1,6 @@
 #pragma once
 #include <iscore/tools/IdentifiedObject.hpp>
+#include <iscore_lib_process_export.h>
 #include <QString>
 
 #include <iscore/serialization/VisitorInterface.hpp>
@@ -14,7 +15,7 @@ class QObject;
  *
  * Interface to implement to make a process view model.
  */
-class LayerModel: public IdentifiedObject<LayerModel>
+class ISCORE_LIB_PROCESS_EXPORT LayerModel: public IdentifiedObject<LayerModel>
 {
         ISCORE_METADATA("LayerModel")
     public:

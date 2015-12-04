@@ -25,7 +25,7 @@ struct PointArrayCurveSegmentData
 
 Q_DECLARE_METATYPE(PointArrayCurveSegmentData)
 
-class PointArrayCurveSegmentModel final : public CurveSegmentModel
+class ISCORE_PLUGIN_CURVE_EXPORT PointArrayCurveSegmentModel final : public CurveSegmentModel
 {
         Q_OBJECT
     public:

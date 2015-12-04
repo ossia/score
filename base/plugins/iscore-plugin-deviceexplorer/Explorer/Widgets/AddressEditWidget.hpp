@@ -1,6 +1,7 @@
 #pragma once
 #include <State/Address.hpp>
 #include <QWidget>
+#include <iscore_lib_device_export.h>
 
 class AddressLineEdit;
 class DeviceExplorerModel;
@@ -12,7 +13,7 @@ class DeviceExplorerModel;
  * A device explorer model is used for completion.
  *
  */
-class AddressEditWidget final : public QWidget
+class ISCORE_LIB_DEVICE_EXPORT AddressEditWidget final : public QWidget
 {
         Q_OBJECT
     public:

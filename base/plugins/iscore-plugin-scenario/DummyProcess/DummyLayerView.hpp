@@ -1,11 +1,13 @@
 #pragma once
 #include <Process/LayerView.hpp>
 #include <QString>
+#include <iscore_lib_dummyprocess_export.h>
+
 
 class QGraphicsItem;
 class QPainter;
 
-class DummyLayerView final : public LayerView
+class ISCORE_LIB_DUMMYPROCESS_EXPORT DummyLayerView final : public LayerView
 {
     public:
         explicit DummyLayerView(QGraphicsItem* parent);

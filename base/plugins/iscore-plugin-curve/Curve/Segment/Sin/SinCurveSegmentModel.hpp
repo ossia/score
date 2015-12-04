@@ -18,7 +18,7 @@ struct SinCurveSegmentData
 
 Q_DECLARE_METATYPE(SinCurveSegmentData)
 
-class SinCurveSegmentModel final : public CurveSegmentModel
+class ISCORE_PLUGIN_CURVE_EXPORT SinCurveSegmentModel final : public CurveSegmentModel
 {
     public:
         using data_type = SinCurveSegmentData;

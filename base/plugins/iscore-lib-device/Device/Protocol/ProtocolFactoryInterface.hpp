@@ -5,6 +5,7 @@
 #include <QVariant>
 
 #include <Device/Protocol/ProtocolFactoryKey.hpp>
+#include <iscore_lib_device_export.h>
 
 class DeviceInterface;
 class ProtocolSettingsWidget;
@@ -13,7 +14,7 @@ struct DeviceSettings;
 }  // namespace iscore
 struct VisitorVariant;
 
-class ProtocolFactory : public iscore::GenericFactoryInterface<ProtocolFactoryKey>
+class ISCORE_LIB_DEVICE_EXPORT ProtocolFactory : public iscore::GenericFactoryInterface<ProtocolFactoryKey>
 {
         ISCORE_FACTORY_DECL("Protocol")
 

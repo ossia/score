@@ -14,12 +14,12 @@ class QObject;
 class RackModel;
 class RackPresenter;
 #include <iscore/tools/SettableIdentifier.hpp>
-
+#include <iscore_plugin_scenario_export.h>
 namespace iscore
 {
 }
 
-class ConstraintPresenter : public NamedObject, public Nano::Observer
+class ISCORE_PLUGIN_SCENARIO_EXPORT ConstraintPresenter : public NamedObject, public Nano::Observer
 {
         Q_OBJECT
 

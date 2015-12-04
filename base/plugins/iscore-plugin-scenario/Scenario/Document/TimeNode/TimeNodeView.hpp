@@ -4,14 +4,14 @@
 #include <QGraphicsItem>
 #include <QPoint>
 #include <QRect>
-
+#include <iscore_plugin_scenario_export.h>
 class QGraphicsSceneMouseEvent;
 class QPainter;
 class QStyleOptionGraphicsItem;
 class QWidget;
 class TimeNodePresenter;
 
-class TimeNodeView final : public QGraphicsObject
+class ISCORE_PLUGIN_SCENARIO_EXPORT TimeNodeView final : public QGraphicsObject
 {
         Q_OBJECT
 

@@ -1,5 +1,6 @@
 #pragma once
 #include <iscore/plugins/customfactory/StringFactoryKey.hpp>
+#include <iscore_lib_base_export.h>
 
 namespace iscore
 {
@@ -8,7 +9,7 @@ namespace iscore
 class FactoryBaseTag{};
 using FactoryBaseKey = StringKey<FactoryBaseTag>;
 
-class FactoryInterfaceBase
+class ISCORE_LIB_BASE_EXPORT FactoryInterfaceBase
 {
     public:
         virtual ~FactoryInterfaceBase();
@@ -22,7 +23,7 @@ class FactoryInterfaceBase
 
 // Keys for the sub-classes to identify themselves.
 template<typename Key>
-class FactoryKeyInterface
+class ISCORE_LIB_BASE_EXPORT FactoryKeyInterface
 {
     public:
         virtual ~FactoryKeyInterface() = default;
@@ -35,7 +36,7 @@ template <typename... Keys>
 class GenericFactoryInterface_Base;
 
 template<typename Key, typename... Keys>
-class GenericFactoryInterface_Base<Key, Keys...> :
+class ISCORE_LIB_BASE_EXPORT GenericFactoryInterface_Base<Key, Keys...> :
         public FactoryKeyInterface<Key>,
         public GenericFactoryInterface_Base<Keys...>
 {
@@ -44,7 +45,7 @@ class GenericFactoryInterface_Base<Key, Keys...> :
 };
 
 template<>
-class GenericFactoryInterface_Base<> :
+class ISCORE_LIB_BASE_EXPORT GenericFactoryInterface_Base<> :
         public iscore::FactoryInterfaceBase
 {
     public:
@@ -52,7 +53,7 @@ class GenericFactoryInterface_Base<> :
 };
 
 template<typename... Keys>
-class GenericFactoryInterface : public GenericFactoryInterface_Base<Keys...>
+class ISCORE_LIB_BASE_EXPORT GenericFactoryInterface : public GenericFactoryInterface_Base<Keys...>
 {
     public:
         template<typename Key_T>

@@ -7,12 +7,13 @@
 #include <iscore/tools/ModelPath.hpp>
 #include <iscore/tools/SettableIdentifier.hpp>
 
+#include <iscore_plugin_scenario_export.h>
 class ConstraintModel;
 class DataStreamInput;
 class DataStreamOutput;
 class Process;
 
-class AddOnlyProcessToConstraint final : public iscore::SerializableCommand
+class ISCORE_PLUGIN_SCENARIO_EXPORT AddOnlyProcessToConstraint final : public iscore::SerializableCommand
 {
         ISCORE_COMMAND_DECL(ScenarioCommandFactoryName(), AddOnlyProcessToConstraint, "Add a process")
     public:

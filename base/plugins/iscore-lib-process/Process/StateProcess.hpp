@@ -4,8 +4,9 @@
 #include <iscore/serialization/JSONVisitor.hpp>
 
 #include <Process/StateProcessFactoryKey.hpp>
+#include <iscore_lib_process_export.h>
 
-class StateProcess: public IdentifiedObject<StateProcess>
+class ISCORE_LIB_PROCESS_EXPORT StateProcess: public IdentifiedObject<StateProcess>
 {
         Q_OBJECT
         ISCORE_METADATA("Process")

@@ -8,11 +8,12 @@
 #include <State/Address.hpp>
 #include <iscore/tools/IdentifiedObject.hpp>
 #include <iscore/tools/SettableIdentifier.hpp>
+#include <iscore_lib_process_export.h>
 
 class Process;
 class QObject;
 
-class ProcessStateDataInterface : public IdentifiedObject<ProcessStateDataInterface>
+class ISCORE_LIB_PROCESS_EXPORT ProcessStateDataInterface : public IdentifiedObject<ProcessStateDataInterface>
 {
         Q_OBJECT
     public:

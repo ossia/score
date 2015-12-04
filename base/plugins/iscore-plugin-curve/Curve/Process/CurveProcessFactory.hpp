@@ -3,6 +3,7 @@
 #include <Process/Process.hpp>
 #include <Process/LayerModel.hpp>
 #include <iscore/serialization/VisitorCommon.hpp>
+#include <iscore_plugin_curve_export.h>
 
 namespace Curve
 {
@@ -14,7 +15,7 @@ template<
         typename LayerPresenter_T,
         typename LayerView_T,
         typename CurveColors_T>
-class CurveProcessFactory_T : public ProcessFactory
+class ISCORE_PLUGIN_CURVE_EXPORT CurveProcessFactory_T : public ProcessFactory
 {
     public:
         virtual ~CurveProcessFactory_T() = default;

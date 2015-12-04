@@ -19,10 +19,11 @@ class ProcessStateDataInterface;
 class QObject;
 class TimeNodeModel;
 #include <iscore/tools/SettableIdentifier.hpp>
+#include <iscore_plugin_loop_export.h>
 
 namespace Loop
 {
-class ProcessModel final : public Process, public BaseScenarioContainer
+class ISCORE_PLUGIN_LOOP_EXPORT ProcessModel final : public Process, public BaseScenarioContainer
 {
         ISCORE_SERIALIZE_FRIENDS(Loop::ProcessModel, DataStream)
         ISCORE_SERIALIZE_FRIENDS(Loop::ProcessModel, JSONObject)

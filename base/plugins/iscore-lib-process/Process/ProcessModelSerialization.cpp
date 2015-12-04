@@ -52,7 +52,7 @@ void Visitor<Writer<DataStream>>::writeTo(Process& process)
 }
 
 template<>
-Process* createProcess(
+ISCORE_LIB_PROCESS_EXPORT Process* createProcess(
         const ProcessList& pl,
         Deserializer<DataStream>& deserializer,
         QObject* parent)
@@ -97,7 +97,7 @@ void Visitor<Writer<JSONObject>>::writeTo(Process& process)
 }
 
 template<>
-Process* createProcess(
+ISCORE_LIB_PROCESS_EXPORT Process* createProcess(
         const ProcessList& pl,
         Deserializer<JSONObject>& deserializer,
         QObject* parent)
@@ -121,7 +121,7 @@ Process* createProcess(
 
 
 
-
+// MOVEME
 #include <Process/StateProcess.hpp>
 #include <Process/ProcessList.hpp>
 
@@ -148,7 +148,7 @@ void Visitor<Writer<DataStream>>::writeTo(StateProcess&)
 }
 
 template<>
-StateProcess* createStateProcess(
+ISCORE_LIB_PROCESS_EXPORT StateProcess* createStateProcess(
         const StateProcessList& pl,
         Deserializer<DataStream>& deserializer,
         QObject* parent)
@@ -188,7 +188,7 @@ void Visitor<Writer<JSONObject>>::writeTo(StateProcess& process)
 }
 
 template<>
-StateProcess* createStateProcess(
+ISCORE_LIB_PROCESS_EXPORT StateProcess* createStateProcess(
         const StateProcessList& pl,
         Deserializer<JSONObject>& deserializer,
         QObject* parent)
@@ -202,4 +202,5 @@ StateProcess* createStateProcess(
     return model;
 }
 
+// TODO --IMPORTANT-- The createStuff methods ought to go in the ProcessList / StateProcessList.
 

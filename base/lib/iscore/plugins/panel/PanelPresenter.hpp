@@ -1,5 +1,6 @@
 #pragma once
 #include <QObject>
+#include <iscore_lib_base_export.h>
 
 namespace iscore {
 
@@ -10,7 +11,7 @@ namespace iscore
     class PanelModel;
     class PanelView;
 
-    class PanelPresenter : public QObject
+    class ISCORE_LIB_BASE_EXPORT PanelPresenter : public QObject
     {
             Q_OBJECT
         public:

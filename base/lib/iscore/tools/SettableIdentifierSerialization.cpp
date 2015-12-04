@@ -12,7 +12,7 @@ template <typename T> class Writer;
 
 // TODO refactor with OptionalValue serialization.
 template<>
-void Visitor<Reader<DataStream>>::readFrom(const boost::optional<int32_t>& obj)
+ISCORE_LIB_BASE_EXPORT void Visitor<Reader<DataStream>>::readFrom(const boost::optional<int32_t>& obj)
 {
     m_stream << static_cast<bool>(obj);
 
@@ -23,7 +23,7 @@ void Visitor<Reader<DataStream>>::readFrom(const boost::optional<int32_t>& obj)
 }
 
 template<>
-void Visitor<Writer<DataStream>>::writeTo(boost::optional<int32_t>& obj)
+ISCORE_LIB_BASE_EXPORT void Visitor<Writer<DataStream>>::writeTo(boost::optional<int32_t>& obj)
 {
     bool b {};
     m_stream >> b;
@@ -43,7 +43,7 @@ void Visitor<Writer<DataStream>>::writeTo(boost::optional<int32_t>& obj)
 
 // TODO should not be used. Save as optional json value instead.
 template<>
-void Visitor<Reader<JSONObject>>::readFrom(const boost::optional<int32_t>& obj)
+ISCORE_LIB_BASE_EXPORT void Visitor<Reader<JSONObject>>::readFrom(const boost::optional<int32_t>& obj)
 {
     if(obj)
     {
@@ -56,7 +56,7 @@ void Visitor<Reader<JSONObject>>::readFrom(const boost::optional<int32_t>& obj)
 }
 
 template<>
-void Visitor<Writer<JSONObject>>::writeTo(boost::optional<int32_t>& obj)
+ISCORE_LIB_BASE_EXPORT void Visitor<Writer<JSONObject>>::writeTo(boost::optional<int32_t>& obj)
 {
     if(m_obj["id"].toString() == "none")
     {
@@ -70,7 +70,7 @@ void Visitor<Writer<JSONObject>>::writeTo(boost::optional<int32_t>& obj)
 
 
 template<>
-void Visitor<Reader<JSONValue>>::readFrom(const boost::optional<int32_t>& obj)
+ISCORE_LIB_BASE_EXPORT void Visitor<Reader<JSONValue>>::readFrom(const boost::optional<int32_t>& obj)
 {
     if(obj)
     {
@@ -83,7 +83,7 @@ void Visitor<Reader<JSONValue>>::readFrom(const boost::optional<int32_t>& obj)
 }
 
 template<>
-void Visitor<Writer<JSONValue>>::writeTo(boost::optional<int32_t>& obj)
+ISCORE_LIB_BASE_EXPORT void Visitor<Writer<JSONValue>>::writeTo(boost::optional<int32_t>& obj)
 {
     if(val.toString() == "none")
     {
