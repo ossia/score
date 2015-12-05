@@ -47,6 +47,21 @@ void BaseScenarioContainer::init()
 
 }
 
+void BaseScenarioContainer::init(const BaseScenarioContainer& source)
+{
+    auto& stack = iscore::IDocument::documentContext(*m_parent).commandStack;
+    m_startNode = new TimeNodeModel{*source.m_startNode, source.m_startNode->id(),  m_parent};
+    m_endNode = new TimeNodeModel{*source.m_endNode, source.m_endNode->id(), m_parent};
+
+    m_startEvent = new EventModel{*source.m_startEvent, source.m_startEvent->id(), m_parent};
+    m_endEvent = new EventModel{*source.m_endEvent, source.m_endEvent->id(), m_parent};
+
+    m_startState = new StateModel{*source.m_startState, source.m_startState->id(), stack, m_parent};
+    m_endState = new StateModel{*source.m_endState, source.m_endState->id(),  stack, m_parent};
+
+    m_constraint = new ConstraintModel{*source.m_constraint, source.m_constraint->id(), m_parent};
+}
+
 ConstraintModel* BaseScenarioContainer::findConstraint(
         const Id<ConstraintModel>& id) const
 {

@@ -52,9 +52,10 @@ ScenarioModel::ScenarioModel(const TimeValue& duration,
     metadata.setName(QString("Scenario.%1").arg(*this->id().val()));
 }
 
-ScenarioModel::ScenarioModel(const Scenario::ScenarioModel& source,
-                             const Id<Process>& id,
-                             QObject* parent) :
+ScenarioModel::ScenarioModel(
+        const Scenario::ScenarioModel& source,
+        const Id<Process>& id,
+        QObject* parent) :
     Process {source, id, ScenarioProcessMetadata::processObjectName(), parent},
     m_startTimeNodeId{source.m_startTimeNodeId},
     m_endTimeNodeId{source.m_endTimeNodeId},

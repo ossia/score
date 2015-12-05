@@ -66,6 +66,10 @@ ProcessModel::ProcessModel(
     pluginModelList = new iscore::ElementPluginModelList{
                       *source.pluginModelList,
                       this};
+
+    BaseScenarioContainer::init(source);
+
+
 }
 
 ProcessModel* ProcessModel::clone(

@@ -30,6 +30,7 @@ class ISCORE_PLUGIN_SCENARIO_EXPORT BaseScenarioContainer : public ScenarioInter
 
         QObject& parent() const { return *m_parent; }
         void init();
+        void init(const BaseScenarioContainer&); // clone
 
         ConstraintModel* findConstraint(
                 const Id<ConstraintModel>& id) const final override;
