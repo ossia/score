@@ -55,6 +55,7 @@ function(setup_iscore_common_features TheTarget)
   endif()
 
   target_include_directories(${TheTarget} INTERFACE "${CMAKE_CURRENT_BINARY_DIR}")
+  
   generate_export_header(${TheTarget})
 endfunction()
 
