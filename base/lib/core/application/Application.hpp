@@ -15,7 +15,7 @@ namespace iscore
     class Presenter;
     class View;
 
-    class ApplicationInterface
+    class ISCORE_LIB_BASE_EXPORT ApplicationInterface
     {
     public:
         virtual ~ApplicationInterface();
@@ -71,10 +71,7 @@ namespace iscore
             ApplicationSettings m_applicationSettings;
     };
 
-    void setQApplicationSettings(QApplication& app);
-
-
-    class TestApplication : public NamedObject, public iscore::ApplicationInterface
+    class ISCORE_LIB_BASE_EXPORT TestApplication : public NamedObject, public iscore::ApplicationInterface
     {
         public:
             TestApplication(int& argc, char** argv);
