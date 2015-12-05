@@ -1,7 +1,7 @@
 #pragma once
 #include <State/Value.hpp>
 #include <QWidget>
-#include <iscore_lib_state_export.H>
+#include <iscore_lib_state_export.h>
 
 /**
  * @brief The ValueWidget class
