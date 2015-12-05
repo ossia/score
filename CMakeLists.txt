@@ -23,6 +23,9 @@ add_subdirectory("${CMAKE_CURRENT_SOURCE_DIR}/API")
 #     endif()
 # endif()
 
+if(POLICY CMP0063)
+CMAKE_POLICY(SET CMP0063 NEW)
+endif()
 set(CMAKE_CXX_VISIBILITY_PRESET hidden)
 set(CMAKE_VISIBILITY_INLINES_HIDDEN 1)
 
