@@ -124,6 +124,7 @@ DeviceExplorerWidget::buildGUI()
     connect(m_refreshValueAction, &QAction::triggered, this, &DeviceExplorerWidget::refreshValue);
     connect(m_disconnect, &QAction::triggered, this, &DeviceExplorerWidget::disconnect);
     connect(m_reconnect, &QAction::triggered, this, &DeviceExplorerWidget::reconnect);
+    connect(m_removeNodeAction, &QAction::triggered, this, &DeviceExplorerWidget::removeNodes);
 
 
     QPushButton* addButton = new QPushButton(this);
