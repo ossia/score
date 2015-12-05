@@ -1,6 +1,6 @@
 #include <boost/optional/optional.hpp>
 
-#ifdef USE_ZEROCONF
+#if defined(USE_ZEROCONF)
 #include <KF5/KDNSSD/DNSSD/PublicService>
 #endif
 

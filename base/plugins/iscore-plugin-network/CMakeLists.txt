@@ -10,7 +10,16 @@ iscore_common_setup()
 
 # Packages
 find_package(Qt5 5.3 REQUIRED COMPONENTS Core Widgets Network Xml Test)
-find_package(KF5DNSSD NO_MODULE)
+find_package(KF5DNSSD NO_MODULE QUIET)
+if(${KF5DNSSD_FOUND})
+    find_package(Qt5 5.3 COMPONENTS Dbus QUIET)
+    if(${Qt5DBus_FOUND})
+        set(CAN_USE_KDNSSD True)
+    else()
+        set(CAN_USE_KDNSSD False)
+    endif()
+
+endif()
 
 # Files & main target
 include_directories("${CMAKE_CURRENT_SOURCE_DIR}/Repartition")
@@ -78,7 +87,7 @@ foreach(item ${HDRS})
   endif()
 endforeach()
 
-if(${KF5DNSSD_FOUND})
+if(CAN_USE_KDNSSD)
     message("Will use ZeroConf")
     file(GLOB_RECURSE ZEROCONF_SRCS
         "${CMAKE_CURRENT_SOURCE_DIR}/Zeroconf/*.cpp"
@@ -100,13 +109,13 @@ target_link_libraries(${PROJECT_NAME}
                                     Qt5::Widgets
                                     Qt5::Network)
 
-if(${KF5DNSSD_FOUND})
+if(CAN_USE_KDNSSD)
     target_compile_definitions(${PROJECT_NAME} PUBLIC USE_ZEROCONF)
     target_link_libraries(${PROJECT_NAME} KF5::DNSSD)
-endif()
 
-if(NOT APPLE AND NOT WIN32)
-    target_link_libraries(${PROJECT_NAME} dns_sd)
+    if(NOT APPLE AND NOT WIN32)
+        target_link_libraries(${PROJECT_NAME} dns_sd)
+    endif()
 endif()
 
 setup_iscore_plugin(${PROJECT_NAME})
