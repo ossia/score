@@ -28,20 +28,20 @@ class LanguageVisitor;
     // ex.
     //
     // constraint c1 after s0
-    // duration [2, oo] of constraint c1
+    // duration [2, oo] of c1
 
     // scenario sx {
     // ...
-    // } of constraint c1
+    // } of c1
 
-    // state s2 after constraint c1
-    // state s2 of event e1
-    // event e1 of timenode t1
-    // state s0 of event e0
-    // event e0 of timenode t0
+    // state s2 after c1
+    // state s2 of e1
+    // event e1 of t1
+    // state s0 of e0
+    // event e0 of t0
     // timenode t0
-    // expression {(tze < 123)} of event e0
-    // scenario sx of constraint c1
+    // expression {(tze < 123)} of e0
+    // scenario sx of c1
     */
 template<>
 class LanguageVisitor<Scenario::ScenarioModel>
@@ -112,10 +112,10 @@ class LanguageVisitor<Scenario::ScenarioModel>
         void visit(const ConstraintModel& c)
         {
             text += "constraint "   + id(c)
-                  + " after state " + id(startState(c, m_scenar))
+                  + " after " + id(startState(c, m_scenar))
                   + QString("\n");
             text += "duration " + duration(c)
-                  + " of constraint " + id(c)
+                  + " of " + id(c)
                   + QString("\n");
 
             for(auto& process : c.processes)
@@ -124,7 +124,7 @@ class LanguageVisitor<Scenario::ScenarioModel>
                 {
                     text += "scenario " + id(*scenar)
                           + LanguageVisitor<Scenario::ScenarioModel>{*scenar}.text
-                          + " of constraint " + id(c)
+                          + " of " + id(c)
                           + QString("\n");
                 }
             }
@@ -133,14 +133,14 @@ class LanguageVisitor<Scenario::ScenarioModel>
         void visit(const EventModel& e)
         {
             text += "event " + id(e)
-                  + " of timenode " + id(parentTimeNode(e, m_scenar))
+                  + " of " + id(parentTimeNode(e, m_scenar))
                   + QString("\n");
 
 
             if(e.condition().childCount() > 0)
             {
                 text += "expression '" + e.condition().toString()
-                      + "' of event " + id(e)
+                      + "' of " + id(e)
                       + QString("\n");
             }
         }
@@ -153,7 +153,7 @@ class LanguageVisitor<Scenario::ScenarioModel>
             if(tn.trigger() && tn.trigger()->expression().childCount() > 0)
             {
                 text += "expression '" + tn.trigger()->expression().toString()
-                      + "' of timenode " + id(tn)
+                      + "' of " + id(tn)
                       + QString("\n");
             }
         }
@@ -163,12 +163,12 @@ class LanguageVisitor<Scenario::ScenarioModel>
             if(st.previousConstraint())
             {
                 text += "state " + id(st)
-                      + " after constraint " + id(previousConstraint(st, m_scenar))
+                      + " after " + id(previousConstraint(st, m_scenar))
                       + QString("\n");
             }
 
             text += "state " + id(st)
-                  + " of event " + id(parentEvent(st, m_scenar))
+                  + " of " + id(parentEvent(st, m_scenar))
                   + QString("\n");
         }
 };
@@ -338,12 +338,10 @@ class HalsteadVisitor<Scenario::ScenarioModel>
             f.operators.constraint += 1;
             f.operands.variables[id(c)] += 1;
             f.operators.after += 1;
-            f.operators.state += 1;
             f.operands.variables[id(startState(c, m_scenar))] += 1;
 
             f.operators.duration += 1;
             f.operators.of += 1;
-            f.operators.constraint += 1;
             f.operands.variables[id(c)] += 1;
 
             for(auto& process : c.processes)
@@ -354,7 +352,6 @@ class HalsteadVisitor<Scenario::ScenarioModel>
                     f.operands.variables[id(*scenar)] += 1;
                     f += HalsteadVisitor<Scenario::ScenarioModel>{*scenar}.f;
                     f.operators.of += 1;
-                    f.operators.constraint += 1;
                     f.operands.variables[id(c)] += 1;
                 }
             }
@@ -365,7 +362,6 @@ class HalsteadVisitor<Scenario::ScenarioModel>
             f.operators.event += 1;
             f.operands.variables[id(e)] += 1;
             f.operators.of += 1;
-            f.operators.timenode += 1;
             f.operands.variables[id(parentTimeNode(e, m_scenar))] += 1;
 
             if(e.condition().childCount() > 0)
@@ -373,7 +369,6 @@ class HalsteadVisitor<Scenario::ScenarioModel>
                 f.operators.expression += 1;
                 f.operands.expressions += 1;
                 f.operators.of += 1;
-                f.operators.event += 1;
                 f.operands.variables[id(e)] += 1;
             }
         }
@@ -388,7 +383,6 @@ class HalsteadVisitor<Scenario::ScenarioModel>
                 f.operators.expression += 1;
                 f.operands.expressions += 1;
                 f.operators.of += 1;
-                f.operators.timenode += 1;
                 f.operands.variables[id(tn)] += 1;
             }
         }
@@ -400,14 +394,12 @@ class HalsteadVisitor<Scenario::ScenarioModel>
                 f.operators.state += 1;
                 f.operands.variables[id(st)] += 1;
                 f.operators.after += 1;
-                f.operators.constraint += 1;
                 f.operands.variables[id(previousConstraint(st, m_scenar))] += 1;
             }
 
             f.operators.state += 1;
             f.operands.variables[id(st)] += 1;
             f.operators.of += 1;
-            f.operators.event += 1;
             f.operands.variables[id(parentEvent(st, m_scenar))] += 1;
         }
 };
