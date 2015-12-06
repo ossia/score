@@ -411,7 +411,7 @@ struct TAVisitor
 
 #include <Scenario/Application/Menus/TextDialog.hpp>
 TemporalAutomatas::ApplicationPlugin::ApplicationPlugin(const iscore::ApplicationContext& app):
-    iscore::GUIApplicationContextPlugin(app, "TemporalAutomatasApplicationPlugin", &app)
+    iscore::GUIApplicationContextPlugin(app, "TemporalAutomatasApplicationPlugin", nullptr)
 {
     m_convert = new QAction{tr("Convert to Temporal Automatas"), nullptr};
     connect(m_convert, &QAction::triggered, [&] () {

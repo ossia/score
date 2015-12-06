@@ -6,6 +6,7 @@
 #include <Scenario/Application/ScenarioApplicationPlugin.hpp>
 
 #include <iscore/plugins/customfactory/FactoryFamily.hpp>
+#include <core/document/DocumentModel.hpp>
 #include <QAction>
 
 std::pair<const CommandParentFactoryKey, CommandGeneratorMap> iscore_plugin_audio::make_commands()
@@ -36,11 +37,11 @@ iscore_plugin_audio::~iscore_plugin_audio()
 }
 namespace Audio
 {
-class ApplicationPlugin : public iscore::GUIApplicationContextPlugin
+class ApplicationPlugin : public QObject, public iscore::GUIApplicationContextPlugin
 {
     public:
         ApplicationPlugin(const iscore::ApplicationContext& app):
-            iscore::GUIApplicationContextPlugin{app, "AudioApplicationPlugin", &app}
+            iscore::GUIApplicationContextPlugin{app, "AudioApplicationPlugin", nullptr}
         {
 
         }

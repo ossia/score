@@ -1,6 +1,6 @@
 #pragma once
-#include <DocumentPlugin/ProcessModel/ProcessModelElement.hpp>
-#include <ProcessModel/TimeProcessWithConstraint.hpp>
+#include <OSSIA/DocumentPlugin/ProcessModel/ProcessModelElement.hpp>
+#include <OSSIA/ProcessModel/TimeProcessWithConstraint.hpp>
 #include <Editor/TimeValue.h>
 #include <Explorer/DocumentPlugin/DeviceDocumentPlugin.hpp>
 #include <Audio/AudioBlock.hpp>

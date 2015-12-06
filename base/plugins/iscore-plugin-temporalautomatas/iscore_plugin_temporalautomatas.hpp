@@ -26,6 +26,6 @@ class iscore_plugin_temporalautomatas final:
         virtual ~iscore_plugin_temporalautomatas() = default;
 
         iscore::GUIApplicationContextPlugin* make_applicationPlugin(
-                iscore::Application& app);
+                const iscore::ApplicationContext& app);
 
 };

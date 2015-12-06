@@ -1,13 +1,13 @@
 #pragma once
 #include <iscore/plugins/documentdelegate/plugin/DocumentDelegatePluginModel.hpp>
 #include <Audio/AudioEngine.hpp>
-class AudioDocumentPlugin : public iscore::DocumentDelegatePluginModel
+class AudioDocumentPlugin : public iscore::DocumentPluginModel
 {
     public:
         AudioDocumentPlugin(
                 iscore::Document& doc,
                 QObject* parent):
-            iscore::DocumentDelegatePluginModel{doc, "AudioDocumentPlugin", parent}
+            iscore::DocumentPluginModel{doc, "AudioDocumentPlugin", parent}
         {
 
         }

@@ -65,6 +65,8 @@ class ISCORE_PLUGIN_SCENARIO_EXPORT StateModel final : public IdentifiedObject<S
             init();
         }
 
+        static QString description()
+        { return "State"; }
         double heightPercentage() const;
 
         MessageItemModel &messages() const;

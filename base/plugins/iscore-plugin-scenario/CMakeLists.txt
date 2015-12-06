@@ -241,6 +241,7 @@ set(SRCS ${SRCS}
 "${CMAKE_CURRENT_SOURCE_DIR}/Scenario/Panel/ProcessPanelPresenter.cpp"
 "${CMAKE_CURRENT_SOURCE_DIR}/Scenario/Panel/ProcessPanelView.cpp"
 
+"${CMAKE_CURRENT_SOURCE_DIR}/Scenario/Process/Algorithms/Metrics.cpp"
 "${CMAKE_CURRENT_SOURCE_DIR}/Scenario/Process/Algorithms/StandardCreationPolicy.cpp"
 "${CMAKE_CURRENT_SOURCE_DIR}/Scenario/Process/Algorithms/GoodOldDisplacementPolicy.cpp"
 "${CMAKE_CURRENT_SOURCE_DIR}/Scenario/Process/Algorithms/StandardRemovalPolicy.cpp"

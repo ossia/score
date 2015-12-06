@@ -10,7 +10,8 @@ iscore_plugin_temporalautomatas::iscore_plugin_temporalautomatas() :
 {
 }
 
-iscore::GUIApplicationContextPlugin*iscore_plugin_temporalautomatas::make_applicationPlugin(const iscore::ApplicationContext& app)
+iscore::GUIApplicationContextPlugin*iscore_plugin_temporalautomatas::make_applicationPlugin(
+        const iscore::ApplicationContext& app)
 {
     return new TemporalAutomatas::ApplicationPlugin{app};
 }

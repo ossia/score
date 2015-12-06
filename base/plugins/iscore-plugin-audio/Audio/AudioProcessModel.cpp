@@ -11,7 +11,7 @@ namespace Audio
 {
 std::shared_ptr<Audio::Process> ProcessModel::makeProcess() const
 {
-    auto& docPlugin = *iscore::IDocument::documentContext(*this).plugin<AudioDocumentPlugin>();
+    auto& docPlugin = iscore::IDocument::documentContext(*this).plugin<AudioDocumentPlugin>();
     auto proc = std::make_shared<Audio::Process>(docPlugin.engine());
 
     return proc;
@@ -66,7 +66,7 @@ ProcessModel::ProcessModel(
     m_ossia_process{makeProcess()}
 {
     pluginModelList = new iscore::ElementPluginModelList{
-                      iscore::IDocument::documentFromObject(parent),
+                      iscore::IDocument::documentContext(*parent),
                       this};
 
     m_audioFile = "test.wav";

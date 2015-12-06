@@ -1,5 +1,5 @@
 #include "AudioEngine.hpp"
-#include <iscore/tools/std/StdlibWrapper.hpp>
+#include <iscore/tools/std/Algorithms.hpp>
 
 void AudioEngine::play()
 {
