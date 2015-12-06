@@ -410,6 +410,7 @@ struct TAVisitor
 };
 
 #include <Scenario/Application/Menus/TextDialog.hpp>
+#include <ScenarioMetrics.hpp>
 TemporalAutomatas::ApplicationPlugin::ApplicationPlugin(const iscore::ApplicationContext& app):
     iscore::GUIApplicationContextPlugin(app, "TemporalAutomatasApplicationPlugin", nullptr)
 {
@@ -419,12 +420,18 @@ TemporalAutomatas::ApplicationPlugin::ApplicationPlugin(const iscore::Applicatio
         if(!doc)
             return;
         ScenarioDocumentModel& base = iscore::IDocument::get<ScenarioDocumentModel>(*doc);
+        auto& baseScenario = static_cast<Scenario::ScenarioModel&>(*base.baseScenario().constraint().processes.begin());
 
+        /*
         TAVisitor v;
 
-        v.visit(static_cast<Scenario::ScenarioModel&>(*base.baseScenario().constraint().processes.begin()));
+        v.visit(baseScenario);
 
-        TextDialog dial(QString::fromStdString(v.output.str()), qApp->activeWindow());
+        QString str = QString::fromStdString(v.output.str());
+        */
+
+        QString str = Scenario::Metrics::toScenarioLanguage(baseScenario);
+        TextDialog dial(str, qApp->activeWindow());
         dial.exec();
     } );
 }

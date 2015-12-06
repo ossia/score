@@ -1,4 +1,4 @@
-#include "Metrics.hpp"
+#include "ScenarioMetrics.hpp"
 #include <Scenario/Process/ScenarioModel.hpp>
 #include <Scenario/Document/Constraint/ConstraintModel.hpp>
 #include <Scenario/Document/Event/EventModel.hpp>
@@ -6,7 +6,14 @@
 #include <Scenario/Document/TimeNode/TimeNodeModel.hpp>
 #include <Scenario/Document/TimeNode/Trigger/TriggerModel.hpp>
 #include <Scenario/Process/Algorithms/Accessors.hpp>
-class LanguageVisitor
+
+#include <Automation/AutomationModel.hpp>
+
+template<class>
+class LanguageVisitor;
+
+template<>
+class LanguageVisitor<Scenario::ScenarioModel>
 {
     public:
         const Scenario::ScenarioModel& m_scenar;
@@ -15,22 +22,31 @@ class LanguageVisitor
         LanguageVisitor(const Scenario::ScenarioModel& scenar):
             m_scenar{scenar}
         {
+            text += "scenario " + id(scenar) + " {"
+                  + QString("\n");
+
             for(const auto& elt : scenar.constraints)
             {
                 visit(elt);
             }
+
             for(const auto& elt : scenar.events)
             {
                 visit(elt);
             }
+
             for(const auto& elt : scenar.timeNodes)
             {
                 visit(elt);
             }
+
             for(const auto& elt : scenar.states)
             {
                 visit(elt);
             }
+
+            text += "}"
+                  + QString("\n");
         }
 
         template<typename T>
@@ -69,12 +85,24 @@ class LanguageVisitor
                   + " after state " + id(startState(c, m_scenar))
                   + " of duration " + duration(c)
                   + QString("\n");
+
+            for(auto& process : c.processes)
+            {
+                if(auto scenar = dynamic_cast<Scenario::ScenarioModel*>(&process))
+                {
+                    text += "scenario " + id(*scenar)
+                          + " inside " + id(c)
+                          + QString("\n");
+
+                    text += LanguageVisitor<Scenario::ScenarioModel>{*scenar}.text;
+                }
+            }
         }
 
         void visit(const EventModel& e)
         {
             text += "event " + id(e)
-                  + "inside timenode " + id(parentTimeNode(e, m_scenar))
+                  + " inside timenode " + id(parentTimeNode(e, m_scenar))
                   + QString("\n");
 
 
@@ -88,7 +116,9 @@ class LanguageVisitor
 
         void visit(const TimeNodeModel& tn)
         {
-            text += "timenode " + id(tn);
+            text += "timenode " + id(tn)
+                  + QString("\n");
+
             if(tn.trigger() && tn.trigger()->expression().childCount() > 0)
             {
                 text += "expression '" + tn.trigger()->expression().toString()
@@ -107,14 +137,14 @@ class LanguageVisitor
             }
 
             text += "state " + id(st)
-                  + "inside event " + id(parentEvent(st, m_scenar))
+                  + " inside event " + id(parentEvent(st, m_scenar))
                   + QString("\n");
         }
 };
 
-QString toScenarioLanguage(const Scenario::ScenarioModel& s)
+QString Scenario::Metrics::toScenarioLanguage(const Scenario::ScenarioModel& s)
 {
-    return LanguageVisitor{s}.text;
+    return LanguageVisitor<Scenario::ScenarioModel>{s}.text;
 }
 
 int Scenario::Metrics::halstead(const Scenario::ScenarioModel& scenar)

@@ -5,10 +5,12 @@ iscore_common_setup()
 
 # Files & main target
 set(HDRS
+"${CMAKE_CURRENT_SOURCE_DIR}/ScenarioMetrics.hpp"
 "${CMAKE_CURRENT_SOURCE_DIR}/ScenarioVisitor.hpp"
 "${CMAKE_CURRENT_SOURCE_DIR}/iscore_plugin_temporalautomatas.hpp"
 )
 set(SRCS
+"${CMAKE_CURRENT_SOURCE_DIR}/ScenarioMetrics.cpp"
 "${CMAKE_CURRENT_SOURCE_DIR}/ScenarioVisitor.cpp"
 "${CMAKE_CURRENT_SOURCE_DIR}/iscore_plugin_temporalautomatas.cpp"
 )
