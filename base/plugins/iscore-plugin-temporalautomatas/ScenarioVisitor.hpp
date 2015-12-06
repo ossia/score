@@ -6,7 +6,7 @@ namespace iscore {
 
 class MenubarManager;
 }  // namespace iscore
-
+// RENAMEME
 namespace TemporalAutomatas
 {
 class ApplicationPlugin :

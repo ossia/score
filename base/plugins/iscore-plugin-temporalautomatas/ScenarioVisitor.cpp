@@ -430,7 +430,14 @@ TemporalAutomatas::ApplicationPlugin::ApplicationPlugin(const iscore::Applicatio
         QString str = QString::fromStdString(v.output.str());
         */
 
-        QString str = Scenario::Metrics::toScenarioLanguage(baseScenario);
+        using namespace Scenario::Metrics;
+        QString str = toScenarioLanguage(baseScenario);
+        auto factors = Halstead::ComputeFactors(baseScenario);
+        str += "Difficulty = " + QString::number(Halstead::Difficulty(factors)) + "\n";
+        str += "Volume = " + QString::number(Halstead::Volume(factors)) + "\n";
+        str += "Effort = " + QString::number(Halstead::Effort(factors)) + "\n";
+        str += "TimeRequired = " + QString::number(Halstead::TimeRequired(factors)) + "\n";
+        str += "Bugs2 = " + QString::number(Halstead::Bugs2(factors)) + "\n";
         TextDialog dial(str, qApp->activeWindow());
         dial.exec();
     } );

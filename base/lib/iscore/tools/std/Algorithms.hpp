@@ -31,6 +31,14 @@ void remove_one(Vector&& v, const Value& val)
     }
 }
 
+
+template<typename Vector1, typename Vector2>
+void copy(const Vector1& source, Vector2& destination)
+{
+    destination.reserve(destination.size() + source.size());
+    std::copy(source.begin(), source.end(), std::back_inserter(destination));
+}
+
 // http://stackoverflow.com/a/26902803/1495627
 template<class F, class...Ts, std::size_t...Is>
 void for_each_in_tuple(const std::tuple<Ts...> & tuple, F func, std::index_sequence<Is...>){
