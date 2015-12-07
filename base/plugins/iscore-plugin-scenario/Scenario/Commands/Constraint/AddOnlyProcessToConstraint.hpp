@@ -19,11 +19,11 @@ class ISCORE_PLUGIN_SCENARIO_EXPORT AddOnlyProcessToConstraint final : public is
     public:
         AddOnlyProcessToConstraint(
             Path<ConstraintModel>&& constraint,
-                const ProcessFactoryKey& process);
+            const ProcessFactoryKey& process);
         AddOnlyProcessToConstraint(
-                Path<ConstraintModel>&& constraint,
-                const Id<Process>& idToUse,
-                const ProcessFactoryKey& process);
+            Path<ConstraintModel>&& constraint,
+            const Id<Process>& idToUse,
+            const ProcessFactoryKey& process);
 
         void undo() const override;
         void redo() const override;

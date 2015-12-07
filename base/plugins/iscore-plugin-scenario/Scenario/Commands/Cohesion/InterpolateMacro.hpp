@@ -9,21 +9,22 @@
 #include <Scenario/Commands/Constraint/AddRackToConstraint.hpp>
 #include <Scenario/Commands/Constraint/Rack/AddSlotToRack.hpp>
 
+// RENAMEME
 // One InterpolateMacro per constraint
-class GenericInterpolateMacro final : public iscore::AggregateCommand
+class AddMultipleProcessesToMultipleConstraintsMacro final : public iscore::AggregateCommand
 {
-        ISCORE_COMMAND_DECL(ScenarioCommandFactoryName(), GenericInterpolateMacro, "Interpolate states in multiple constraints")
+        ISCORE_COMMAND_DECL(ScenarioCommandFactoryName(), AddMultipleProcessesToMultipleConstraintsMacro, "Add processes to constraints")
 };
 
-class InterpolateMacro final : public iscore::AggregateCommand
+class AddMultipleProcessesToConstraintMacro final : public iscore::AggregateCommand
 {
-        ISCORE_COMMAND_DECL(ScenarioCommandFactoryName(), InterpolateMacro, "Interpolate states")
+        ISCORE_COMMAND_DECL(ScenarioCommandFactoryName(), AddMultipleProcessesToConstraintMacro, "Add processes to constraint")
 
         public:
             auto& commands() { return m_cmds; }
 
         // Use this constructor when the constraint does not exist yet.
-        InterpolateMacro(const Path<ConstraintModel>& cstpath)
+        AddMultipleProcessesToConstraintMacro(const Path<ConstraintModel>& cstpath)
         {
             // First create a new rack
             auto cmd_rack = new Scenario::Command::AddRackToConstraint{Path<ConstraintModel>{cstpath}};
@@ -43,7 +44,7 @@ class InterpolateMacro final : public iscore::AggregateCommand
         }
 
         // Use this constructor when the constraint already exists
-        InterpolateMacro(const ConstraintModel& constraint)
+        AddMultipleProcessesToConstraintMacro(const ConstraintModel& constraint)
         {
             Path<ConstraintModel> cstpath{constraint};
 
@@ -148,3 +149,45 @@ class InterpolateMacro final : public iscore::AggregateCommand
 
         std::vector<std::pair<Path<SlotModel>, std::vector<Id<LayerModel>>>> slotsToUse; // No need to save this, it is useful only for construction.
 };
+
+
+#include <iscore/tools/SettableIdentifierGeneration.hpp>
+inline std::tuple<
+    AddMultipleProcessesToConstraintMacro*,
+    std::vector<std::vector<std::pair<Path<SlotModel>, Id<LayerModel>>>>
+>
+makeAddProcessMacro(
+        const ConstraintModel& constraint,
+        int num_processes)
+{
+    auto macro = new AddMultipleProcessesToConstraintMacro{constraint}; // The constraint already exists
+
+    std::vector<std::pair<Path<SlotModel>, std::vector<Id<LayerModel>>>> slotVec;
+    slotVec.reserve(macro->slotsToUse.size());
+    // For each slot we have to generate num_processes ids.
+    for(const auto& elt : macro->slotsToUse)
+    {
+        if(auto slot = elt.first.try_find())
+        {
+            slotVec.push_back({elt.first, getStrongIdRange<LayerModel>(num_processes, slot->layers)});
+        }
+        else
+        {
+            slotVec.push_back({elt.first, getStrongIdRange<LayerModel>(num_processes)});
+        }
+    }
+
+    std::vector<std::vector<std::pair<Path<SlotModel>, Id<LayerModel>>>> bigLayerVec;
+    bigLayerVec.resize(num_processes);
+    for(int i = 0; i < num_processes; ++i)
+    {
+        auto& layerVec = bigLayerVec[i];
+        layerVec.reserve(macro->slotsToUse.size());
+        std::transform(slotVec.begin(), slotVec.end(), std::back_inserter(layerVec),
+                       [&] (const auto& slotVecElt) {
+           return std::make_pair(slotVecElt.first, slotVecElt.second[i]);
+        });
+    }
+
+    return std::make_tuple(macro, std::move(bigLayerVec));
+}

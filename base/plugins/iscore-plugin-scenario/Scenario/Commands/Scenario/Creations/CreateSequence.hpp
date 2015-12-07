@@ -64,8 +64,9 @@ class CreateSequence final : public iscore::SerializableCommand
 
     private:
         CreateConstraint_State_Event_TimeNode m_command;
-        InterpolateMacro m_interpolations;
+        AddMultipleProcessesToConstraintMacro m_interpolations;
         MessageNode m_stateData;
+        int m_addedProcessCount{};
 };
 }
 }

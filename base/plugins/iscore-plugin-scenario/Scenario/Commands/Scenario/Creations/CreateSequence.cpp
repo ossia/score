@@ -120,10 +120,11 @@ CreateSequence::CreateSequence(
     // Then, if there are correct messages we can actually do our interpolation.
     if(!matchingMessages.empty())
     {
+        m_addedProcessCount = matchingMessages.size();
         auto constraint = Path<Scenario::ScenarioModel>{scenario}.extend(ConstraintModel::className, m_command.createdConstraint());
 
         {
-            InterpolateMacro interpolateMacro{Path<ConstraintModel>{constraint}};
+            AddMultipleProcessesToConstraintMacro interpolateMacro{Path<ConstraintModel>{constraint}};
             m_interpolations.slotsToUse = interpolateMacro.slotsToUse;
             m_interpolations.commands() = interpolateMacro.commands();
         }
@@ -190,19 +191,25 @@ void CreateSequence::redo() const
 
     endstate.messages() = m_stateData;
 
-    if(m_interpolations.count() > 0)
+    if(m_addedProcessCount > 0)
         m_interpolations.redo();
 }
 
 void CreateSequence::serializeImpl(DataStreamInput& s) const
 {
-    s << m_command.serialize() << m_interpolations.serialize() << m_stateData;
+    s << m_command.serialize()
+      << m_interpolations.serialize()
+      << m_stateData
+      << m_addedProcessCount;
 }
 
 void CreateSequence::deserializeImpl(DataStreamOutput& s)
 {
     QByteArray command, interp;
-    s >> command >> interp >> m_stateData;
+    s >> command
+      >> interp
+      >> m_stateData
+      >> m_addedProcessCount;
     m_command.deserialize(command);
     m_interpolations.deserialize(interp);
 }

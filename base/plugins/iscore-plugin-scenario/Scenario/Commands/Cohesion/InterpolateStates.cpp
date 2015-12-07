@@ -37,19 +37,6 @@
 #include <iscore/tools/SettableIdentifier.hpp>
 #include <iscore/tools/TreeNode.hpp>
 
-void InterpolateStates(const iscore::DocumentContext& doc)
-{
-    using namespace std;
-
-    // Fetch the selected constraints
-    auto selected_constraints = filterSelectionByType<ConstraintModel>(doc.selectionStack.currentSelection());
-
-    if(selected_constraints.empty())
-        return;
-
-    InterpolateStates(selected_constraints, doc.commandStack);
-}
-
 void InterpolateStates(const QList<const ConstraintModel*>& selected_constraints,
                        iscore::CommandStackFacade& stack)
 {
@@ -62,7 +49,7 @@ void InterpolateStates(const QList<const ConstraintModel*>& selected_constraints
     auto& devPlugin = iscore::IDocument::documentContext(*scenar).plugin<DeviceDocumentPlugin>();
     auto& rootNode = devPlugin.rootNode();
 
-    auto big_macro = new GenericInterpolateMacro;
+    auto big_macro = new AddMultipleProcessesToMultipleConstraintsMacro;
     for(auto& constraint : selected_constraints)
     {
         const auto& startState = scenar->state(constraint->startState());
@@ -108,38 +95,17 @@ void InterpolateStates(const QList<const ConstraintModel*>& selected_constraints
 
         if(!matchingMessages.empty())
         {
-            Path<ConstraintModel> constraintPath{*constraint};
-            auto macro = new InterpolateMacro{*constraint}; // The constraint already exists
-
             // Generate brand new ids for the processes
             auto process_ids = getStrongIdRange<Process>(matchingMessages.size(), constraint->processes);
+            auto macro_tuple = makeAddProcessMacro(*constraint, matchingMessages.size());
+            auto macro = std::get<0>(macro_tuple);
+            auto& bigLayerVec = std::get<1>(macro_tuple);
 
-            std::vector<std::pair<Path<SlotModel>, std::vector<Id<LayerModel>>>> slotVec;
-            slotVec.reserve(macro->slotsToUse.size());
-            // For each slot we have to generate matchingMessages.size() ids.
-            for(const auto& elt : macro->slotsToUse)
-            {
-                if(auto slot = elt.first.try_find())
-                {
-                    slotVec.push_back({elt.first, getStrongIdRange<LayerModel>(matchingMessages.size(), slot->layers)});
-                }
-                else
-                {
-                    slotVec.push_back({elt.first, getStrongIdRange<LayerModel>(matchingMessages.size())});
-                }
-            }
+            Path<ConstraintModel> constraintPath{*constraint};
 
             int i = 0;
             for(const auto& elt : matchingMessages)
             {
-                std::vector<std::pair<Path<SlotModel>, Id<LayerModel>>> layerVec;
-                layerVec.reserve(macro->slotsToUse.size());
-                std::transform(slotVec.begin(), slotVec.end(), std::back_inserter(layerVec),
-                               [&] (const auto& slotVecElt) {
-                   return std::make_pair(slotVecElt.first, slotVecElt.second[i]);
-                });
-
-
                 double start = iscore::convert::value<double>(elt.first->value);
                 double end = iscore::convert::value<double>(elt.second->value);
 
@@ -157,7 +123,7 @@ void InterpolateStates(const QList<const ConstraintModel*>& selected_constraints
 
                 macro->addCommand(new CreateCurveFromStates{
                                       Path<ConstraintModel>{constraintPath},
-                                      layerVec,
+                                      bigLayerVec[i],
                                       process_ids[i],
                                       elt.first->address,
                                       start, end, min, max
@@ -172,3 +138,6 @@ void InterpolateStates(const QList<const ConstraintModel*>& selected_constraints
     CommandDispatcher<> disp{stack};
     disp.submitCommand(big_macro);
 }
+
+
+

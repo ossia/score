@@ -7,8 +7,8 @@
 #include "CreateCurvesFromAddresses.hpp"
 #include <Process/Process.hpp>
 #include <State/Address.hpp>
-#include "base/plugins/iscore-plugin-scenario/Scenario/Commands/Constraint/AddProcessToConstraint.hpp"
-#include "base/plugins/iscore-plugin-scenario/Scenario/Document/Constraint/ConstraintModel.hpp"
+#include <Scenario/Commands/Constraint/AddProcessToConstraint.hpp>
+#include <Scenario/Document/Constraint/ConstraintModel.hpp>
 
 #include <iscore/application/ApplicationContext.hpp>
 #include <iscore/command/CommandData.hpp>
@@ -32,20 +32,21 @@ CreateCurvesFromAddresses::CreateCurvesFromAddresses(
     m_path {constraint},
     m_addresses {addresses}
 {
-    // OPTIMIZEME write them on the stack instead
+    /*
+    // First we have generate ids
     m_serializedCommands.reserve(m_addresses.size());
     for(int i = 0; i < m_addresses.size(); ++i)
     {
-        auto cmd = Scenario::Command::make_AddProcessToConstraint(
-                   constraint,
-                   AutomationProcessMetadata::factoryKey());
-        m_serializedCommands.emplace_back(*cmd);
-        delete cmd;
+        m_processCommands.emplace_back(
+                    constraint,
+                    AutomationProcessMetadata::factoryKey());
     }
+    */
 }
 
 void CreateCurvesFromAddresses::undo() const
 {
+    /*
     for(auto& cmd_pack : m_serializedCommands)
     {
         auto cmd = context.components.instantiateUndoCommand(cmd_pack);
@@ -53,10 +54,12 @@ void CreateCurvesFromAddresses::undo() const
         cmd->undo();
         delete cmd;
     }
+    */
 }
 
 void CreateCurvesFromAddresses::redo() const
 {
+    /*
     auto& constraint = m_path.find();
 
     for(int i = 0; i < m_addresses.size(); ++i)
@@ -66,6 +69,7 @@ void CreateCurvesFromAddresses::redo() const
         auto base_cmd = context.components.instantiateUndoCommand(m_serializedCommands[i]);
 
         auto cmd = safe_cast<Scenario::Command::AddProcessToConstraintBase*>(base_cmd);
+        cmd->redo();
 
         // Change the address
         // TODO maybe pass parameters to AddProcessToConstraint?
@@ -77,19 +81,24 @@ void CreateCurvesFromAddresses::redo() const
 
         delete cmd;
     }
+    */
 }
 
 void CreateCurvesFromAddresses::serializeImpl(DataStreamInput& s) const
 {
+    /*
     s << m_path << m_addresses;
     Visitor<Reader<DataStream>> v{s.stream().device()};
     readFrom_vector_obj_impl(v, m_serializedCommands);
+    */
 }
 
 void CreateCurvesFromAddresses::deserializeImpl(DataStreamOutput& s)
 {
+    /*
     s >> m_path >> m_addresses;
 
     Visitor<Writer<DataStream>> v{s.stream().device()};
     writeTo_vector_obj_impl(v, m_serializedCommands);
+    */
 }

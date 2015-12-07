@@ -61,7 +61,7 @@
 #include <iscore/tools/ModelPathSerialization.hpp>
 #include <iscore/tools/NotifyingMap.hpp>
 #include <iscore/plugins/customfactory/StringFactoryKeySerialization.hpp>
-
+#include <Scenario/Commands/Cohesion/DoForSelectedConstraints.hpp>
 ObjectMenuActions::ObjectMenuActions(
         iscore::ToplevelMenuElement menuElt,
         ScenarioApplicationPlugin* parent) :
@@ -167,7 +167,7 @@ ObjectMenuActions::ObjectMenuActions(
     m_interp->setToolTip(tr("Ctrl+K"));
     connect(m_interp, &QAction::triggered,
             this, [&] () {
-        InterpolateStates(m_parent->currentDocument()->context());
+        DoForSelectedConstraints(m_parent->currentDocument()->context(), InterpolateStates);
     });
 
 

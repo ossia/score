@@ -16,9 +16,83 @@ class SlotModel;
 template <typename Object> class Path;
 #include <iscore/tools/SettableIdentifier.hpp>
 
-class CreateCurveFromStates final : public iscore::SerializableCommand
+#include <Process/ProcessList.hpp>
+template<typename ProcessMetadata_T>
+class ISCORE_PLUGIN_SCENARIO_EXPORT CreateProcessAndLayers : public iscore::SerializableCommand
 {
-        ISCORE_COMMAND_DECL(ScenarioCommandFactoryName(), CreateCurveFromStates, "CreateCurveFromStates")
+    public:
+        CreateProcessAndLayers() = default;
+        CreateProcessAndLayers(
+                Path<ConstraintModel>&& constraint,
+                const std::vector<std::pair<Path<SlotModel>, Id<LayerModel>>>& slotList,
+                const Id<Process>& procId):
+            m_addProcessCmd{
+                std::move(constraint),
+                procId,
+                ProcessMetadata_T::factoryKey()}
+        {
+            auto proc = m_addProcessCmd.constraintPath().extend(ProcessMetadata_T::processObjectName(), procId);
+
+            m_slotsCmd.reserve(slotList.size());
+
+            auto fact = context.components.factory<ProcessList>().list().get(ProcessMetadata_T::factoryKey());
+            ISCORE_ASSERT(fact);
+            auto procData = fact->makeStaticLayerConstructionData();
+
+            for(const auto& elt : slotList)
+            {
+                m_slotsCmd.emplace_back(
+                            Path<SlotModel>(elt.first),
+                            elt.second,
+                            Path<Process>{proc},
+                            procData);
+            }
+        }
+
+        void undo() const final override
+        {
+            for(const auto& cmd : m_slotsCmd)
+                cmd.undo();
+            m_addProcessCmd.undo();
+        }
+
+    protected:
+        void serializeImpl(DataStreamInput& s) const override
+        {
+            s << m_addProcessCmd.serialize();
+            s << (int32_t)m_slotsCmd.size();
+            for(const auto& elt : m_slotsCmd)
+            {
+                s << elt.serialize();
+            }
+        }
+
+        void deserializeImpl(DataStreamOutput& s) override
+        {
+            QByteArray a;
+            s >> a;
+            m_addProcessCmd.deserialize(a);
+
+            int32_t n = 0;
+            s >> n;
+            m_slotsCmd.resize(n);
+            for(int i = 0; i < n; i++)
+            {
+                QByteArray b;
+                s >> b;
+                m_slotsCmd.at(i).deserialize(b);
+            }
+        }
+
+        AddOnlyProcessToConstraint m_addProcessCmd;
+        std::vector<Scenario::Command::AddLayerModelToSlot> m_slotsCmd;
+};
+
+
+#include <Automation/AutomationProcessMetadata.hpp>
+class ISCORE_PLUGIN_SCENARIO_EXPORT CreateCurveFromStates final : public CreateProcessAndLayers<AutomationProcessMetadata>
+{
+         ISCORE_COMMAND_DECL(ScenarioCommandFactoryName(), CreateCurveFromStates, "CreateCurveFromStates")
     public:
         CreateCurveFromStates(
                 Path<ConstraintModel>&& constraint,
@@ -29,17 +103,13 @@ class CreateCurveFromStates final : public iscore::SerializableCommand
                 double end,
                 double min, double max);
 
-        void undo() const override;
         void redo() const override;
 
     protected:
-        void serializeImpl(DataStreamInput&) const override;
+        void serializeImpl(DataStreamInput& s) const override;
         void deserializeImpl(DataStreamOutput&) override;
 
     private:
-        AddOnlyProcessToConstraint m_addProcessCmd;
-        std::vector<Scenario::Command::AddLayerModelToSlot> m_slotsCmd;
-
         iscore::Address m_address;
 
         double m_start{}, m_end{};

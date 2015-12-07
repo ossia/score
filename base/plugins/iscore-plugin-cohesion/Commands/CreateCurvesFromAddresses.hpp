@@ -1,4 +1,6 @@
 #pragma once
+#include <Scenario/Commands/Constraint/AddOnlyProcessToConstraint.hpp>
+
 #include <Commands/IScoreCohesionCommandFactory.hpp>
 #include <State/Address.hpp>
 #include <iscore/command/CommandData.hpp>
@@ -31,5 +33,5 @@ class CreateCurvesFromAddresses final : public iscore::SerializableCommand
         Path<ConstraintModel> m_path;
         QList<iscore::Address> m_addresses;
 
-        std::vector<iscore::CommandData> m_serializedCommands;
+        std::vector<AddOnlyProcessToConstraint> m_processCommands;
 };

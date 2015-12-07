@@ -17,6 +17,7 @@
 #include <core/document/Document.hpp>
 #include <iscore/plugins/application/GUIApplicationContextPlugin.hpp>
 #include <iscore/widgets/OrderedToolbar.hpp>
+#include <Scenario/Commands/Cohesion/DoForSelectedConstraints.hpp>
 
 namespace iscore {
 
@@ -64,7 +65,7 @@ IScoreCohesionApplicationPlugin::IScoreCohesionApplicationPlugin(const iscore::A
     connect(m_curves, &QAction::triggered,
             this, [&] () {
         if(auto doc = currentDocument())
-            CreateCurves(doc->context());
+            DoForSelectedConstraints(doc->context(), CreateCurves);
     });
 
 }
