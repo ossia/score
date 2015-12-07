@@ -49,7 +49,7 @@ void ConstraintDurations::setMinDuration(const TimeValue& arg)
 
 void ConstraintDurations::setMaxDuration(const TimeValue& arg)
 {
-    if(m_maxDuration != arg && !m_isMaxInfinite)
+    if(m_maxDuration != arg)
     {
         m_maxDuration = arg;
         emit maxDurationChanged(arg);

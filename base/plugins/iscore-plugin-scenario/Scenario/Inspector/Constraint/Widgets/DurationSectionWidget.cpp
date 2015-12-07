@@ -246,7 +246,8 @@ void DurationSectionWidget::on_maxFiniteToggled(bool val)
     m_maxSpin->setVisible(val);
     m_maxInfinity->setVisible(!val);
 
-    m_max = !val ? m_model.duration.maxDuration() : m_max;
+    m_max = !val ? m_model.duration.maxDuration() : m_model.duration.defaultDuration() * 1.2;
+
 
     auto cmd = new Scenario::Command::SetMaxDuration(
                    m_model,
