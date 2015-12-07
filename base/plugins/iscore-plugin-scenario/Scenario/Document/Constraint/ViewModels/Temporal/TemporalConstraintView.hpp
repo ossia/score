@@ -22,7 +22,10 @@ class TemporalConstraintView final : public ConstraintView
                                QGraphicsObject* parent);
 
         QRectF boundingRect() const override
-        { return {0, -15, qreal(maxWidth()), qreal(constraintHeight()) }; }
+        {
+            qreal rectW = infinite() ? defaultWidth() : maxWidth();
+            return {0, -15, rectW, qreal(constraintHeight()) };
+        }
 
         void paint(QPainter* painter,
                    const QStyleOptionGraphicsItem* option,
