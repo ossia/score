@@ -7,11 +7,15 @@
 
 ConstraintDurations &ConstraintDurations::operator=(const ConstraintDurations &other)
 {
+    m_defaultDuration = other.m_defaultDuration;
     m_minDuration = other.m_minDuration;
     m_maxDuration = other.m_maxDuration;
-    m_defaultDuration = other.m_defaultDuration;
+
     m_playPercentage = other.m_playPercentage;
     m_rigidity = other.m_rigidity;
+
+    m_isMinNull = other.m_isMinNull;
+    m_isMaxInfinite = other.m_isMaxInfinite;
 
     return *this;
 }

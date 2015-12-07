@@ -30,6 +30,7 @@
 #include <iscore/plugins/application/GUIApplicationContextPlugin.hpp>
 #include <iscore/tools/SettableIdentifier.hpp>
 #include <iscore/tools/std/Algorithms.hpp>
+#include <QApplication>
 
 template<typename Object>
 QString name(const Object& obj)

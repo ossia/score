@@ -16,7 +16,9 @@ template<> void Visitor<Reader<DataStream>>::readFrom(const ConstraintDurations&
             << durs.m_defaultDuration
             << durs.m_minDuration
             << durs.m_maxDuration
-            << durs.m_rigidity;
+            << durs.m_rigidity
+            << durs.m_isMinNull
+            << durs.m_isMaxInfinite;
 }
 
 template<> void Visitor<Writer<DataStream>>::writeTo(ConstraintDurations& durs)
@@ -25,7 +27,9 @@ template<> void Visitor<Writer<DataStream>>::writeTo(ConstraintDurations& durs)
             >> durs.m_defaultDuration
             >> durs.m_minDuration
             >> durs.m_maxDuration
-            >> durs.m_rigidity;
+            >> durs.m_rigidity
+            >> durs.m_isMinNull
+            >> durs.m_isMaxInfinite;
 }
 
 template<> void Visitor<Reader<JSONObject>>::readFrom(const ConstraintDurations& durs)
@@ -34,6 +38,8 @@ template<> void Visitor<Reader<JSONObject>>::readFrom(const ConstraintDurations&
     m_obj["MinDuration"] = toJsonValue(durs.m_minDuration);
     m_obj["MaxDuration"] = toJsonValue(durs.m_maxDuration);
     m_obj["Rigidity"] = durs.m_rigidity;
+    m_obj["MinNull"] = durs.m_isMinNull;
+    m_obj["MaxInf"] = durs.m_isMaxInfinite;
 }
 
 template<> void Visitor<Writer<JSONObject>>::writeTo(ConstraintDurations& durs)
@@ -42,4 +48,6 @@ template<> void Visitor<Writer<JSONObject>>::writeTo(ConstraintDurations& durs)
     durs.m_minDuration = fromJsonValue<TimeValue> (m_obj["MinDuration"]);
     durs.m_maxDuration = fromJsonValue<TimeValue> (m_obj["MaxDuration"]);
     durs.m_rigidity = m_obj["Rigidity"].toBool();
+    durs.m_isMinNull = m_obj["MinNull"].toBool();
+    durs.m_isMaxInfinite = m_obj["MaxInf"].toBool();
 }

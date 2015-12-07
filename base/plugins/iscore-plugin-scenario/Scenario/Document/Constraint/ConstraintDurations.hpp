@@ -56,10 +56,18 @@ class ISCORE_PLUGIN_SCENARIO_EXPORT ConstraintDurations final : public QObject
 
         const TimeValue& defaultDuration() const
         { return m_defaultDuration; }
-        const TimeValue& minDuration() const
-        { return m_isMinNull ? Zero : m_minDuration; }
-        const TimeValue& maxDuration() const
-        { return m_isMaxInfinite ? Infinity : m_maxDuration; }
+        TimeValue minDuration() const
+        {
+            if(m_isMinNull)
+                return TimeValue::zero();
+            return m_minDuration;
+        }
+        TimeValue maxDuration() const
+        {
+            if(m_isMaxInfinite)
+                return PositiveInfinity{};
+            return m_maxDuration;
+        }
         double playPercentage() const
         { return m_playPercentage; }
 
@@ -118,7 +126,4 @@ class ISCORE_PLUGIN_SCENARIO_EXPORT ConstraintDurations final : public QObject
         bool m_rigidity{true};
         bool m_isMinNull{false};
         bool m_isMaxInfinite{false};
-
-        TimeValue Zero{TimeValue::zero()};
-        TimeValue Infinity{PositiveInfinity{}};
 };

@@ -403,6 +403,7 @@ class HalsteadVisitor<Scenario::ScenarioModel>
             f.operands.variables[id(parentEvent(st, m_scenar))] += 1;
         }
 };
+
 QString Scenario::Metrics::toScenarioLanguage(
         const Scenario::ScenarioModel& s)
 {

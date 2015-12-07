@@ -30,7 +30,7 @@ FaustAudioBlock::FaustAudioBlock(
     std::string target;
     m_faustFactory = createDSPFactoryFromString(
                          "name",
-                         "phasor(f)   = f/48000 : (+,1.0:fmod) ~ _ ; process = phasor(440) * 6.28 : sin;",//script.toStdString(),
+                         "phasor(f)   = f/48000 : (+,1.0:fmod) ~ _ ; process = phasor(220) * 6.28 : sin;",//script.toStdString(),
                          0, nullptr, "", target);
     if(m_faustFactory)
     {
