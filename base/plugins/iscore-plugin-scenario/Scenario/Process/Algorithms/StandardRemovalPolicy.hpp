@@ -2,6 +2,7 @@
 class ConstraintModel;
 class EventModel;
 class StateModel;
+class CommentBlockModel;
 namespace Scenario {
 class ScenarioModel;
 }  // namespace Scenario
@@ -17,6 +18,9 @@ namespace StandardRemovalPolicy
             Scenario::ScenarioModel& scenario,
             StateModel& state);
 
+    void removeComment(
+            Scenario::ScenarioModel& scenario,
+            CommentBlockModel& cmt);
 
     void removeEventStatesAndConstraints(
             Scenario::ScenarioModel& scenario,

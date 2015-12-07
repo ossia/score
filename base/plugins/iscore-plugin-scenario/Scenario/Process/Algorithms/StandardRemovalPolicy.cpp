@@ -99,3 +99,8 @@ void StandardRemovalPolicy::removeEventStatesAndConstraints(
 
     scenario.events.remove(&ev);
 }
+
+void StandardRemovalPolicy::removeComment(Scenario::ScenarioModel& scenario, CommentBlockModel& cmt)
+{
+    scenario.comments.remove(&cmt);
+}

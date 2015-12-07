@@ -17,6 +17,7 @@ class DataStreamOutput;
 class EventModel;
 class StateModel;
 class TimeNodeModel;
+class CommentBlockModel;
 namespace Scenario {
 class ScenarioModel;
 }  // namespace Scenario
@@ -49,6 +50,8 @@ namespace Scenario
                 // For timenodes that may be removed when there is only a single event
                 QVector<QPair<Id<TimeNodeModel>, QByteArray>> m_maybeRemovedTimeNodes;
 
+
+                QVector<QPair<Id<CommentBlockModel>, QByteArray>> m_removedComments;
                 QVector<QPair<Id<StateModel>, QByteArray>> m_removedStates;
                 QVector<QPair<Id<EventModel>, QByteArray>> m_removedEvents;
                 QVector<QPair<Id<TimeNodeModel>, QByteArray>> m_removedTimeNodes;
