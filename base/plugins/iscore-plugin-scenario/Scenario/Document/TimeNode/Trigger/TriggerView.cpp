@@ -3,7 +3,8 @@
 #include "TriggerView.hpp"
 
 class QGraphicsSceneMouseEvent;
-class QPainter;
+#include<QPainter>
+
 class QStyleOptionGraphicsItem;
 class QWidget;
 

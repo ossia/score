@@ -26,7 +26,7 @@ class ConstraintHeader : public QGraphicsObject
             m_view = view;
         }
 
-        static constexpr int headerHeight() { return 20; }
+        static constexpr int headerHeight() { return 30; }
 
         void setWidth(double width);
         void setText(const QString &text);
