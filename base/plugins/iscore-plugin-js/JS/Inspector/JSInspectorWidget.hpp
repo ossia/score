@@ -4,7 +4,7 @@
 #include <QString>
 
 class JSProcessModel;
-class QPlainTextEdit;
+class NotifyingPlainTextEdit;
 class QWidget;
 namespace iscore {
 class Document;
@@ -22,9 +22,13 @@ class JSInspectorWidget final : public InspectorWidgetBase
     signals:
         void createViewInNewSlot(QString);
 
+    public slots:
+        void on_modelChanged(const QString& script);
+
     private:
         void on_textChange(const QString& newText);
 
         const JSProcessModel& m_model;
-        QPlainTextEdit* m_edit{};
+        NotifyingPlainTextEdit* m_edit{};
+        QString m_script;
 };
