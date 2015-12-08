@@ -25,6 +25,7 @@ set(SRCS
 
 "${CMAKE_CURRENT_SOURCE_DIR}/JS/Inspector/JSInspectorFactory.cpp"
 "${CMAKE_CURRENT_SOURCE_DIR}/JS/Inspector/JSInspectorWidget.cpp"
+"${CMAKE_CURRENT_SOURCE_DIR}/JS/Inspector/NotifyingPlainTextEdit.cpp"
 
 "${CMAKE_CURRENT_SOURCE_DIR}/iscore_plugin_js.cpp"
 )

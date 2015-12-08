@@ -23,8 +23,10 @@ class TemporalConstraintView final : public ConstraintView
 
         QRectF boundingRect() const override
         {
+            qreal x = std::min(0., minWidth());
             qreal rectW = infinite() ? defaultWidth() : maxWidth();
-            return {0, -15, rectW, qreal(constraintHeight()) };
+            rectW -= x;
+            return {x, -15, rectW, qreal(constraintHeight()) };
         }
 
         void paint(QPainter* painter,

@@ -65,6 +65,7 @@ void ExpressionEditorWidget::setExpression(iscore::Expression e)
     m_expression = es;
     if(!es.isEmpty())
     {
+        // TODO use the tree to avoid pb with the substring "or", "and"
         auto ORmembers = es.split("or");
         for(auto m : ORmembers)
         {

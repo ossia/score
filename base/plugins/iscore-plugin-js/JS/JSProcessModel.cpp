@@ -59,6 +59,7 @@ void JSProcessModel::setScript(const QString& script)
 {
     m_script = script;
     m_ossia_process->setTickFun(m_script);
+    emit scriptChanged(script);
 }
 
 JSProcessModel* JSProcessModel::clone(

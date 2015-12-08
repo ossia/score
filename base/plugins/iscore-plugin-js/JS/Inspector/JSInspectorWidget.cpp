@@ -1,5 +1,5 @@
 #include <JS/JSProcessModel.hpp>
-#include <QPlainTextEdit>
+#include "NotifyingPlainTextEdit.hpp"
 #include <algorithm>
 
 #include <Inspector/InspectorWidgetBase.hpp>
@@ -25,17 +25,28 @@ JSInspectorWidget::JSInspectorWidget(
     setObjectName("JSInspectorWidget");
     setParent(parent);
 
-    m_edit = new QPlainTextEdit{JSModel.script()};
-    connect(m_edit, &QPlainTextEdit::textChanged,
-            this, [&] () {
-        on_textChange(m_edit->toPlainText()); // TODO timer before validating ? TimerCommandDispatcher ?
-    });
+    m_edit = new NotifyingPlainTextEdit{JSModel.script()};
+    connect(m_edit, &NotifyingPlainTextEdit::editingFinished,
+            this, &JSInspectorWidget::on_textChange);
+
+    con(m_model, &JSProcessModel::scriptChanged,
+            this, &JSInspectorWidget::on_modelChanged);
 
     updateSectionsView(safe_cast<QVBoxLayout*>(layout()), {m_edit});
+    m_script = m_edit->toPlainText();
+}
+
+void JSInspectorWidget::on_modelChanged(const QString& script)
+{
+    m_script = script;
+    m_edit->setPlainText(script);
 }
 
 void JSInspectorWidget::on_textChange(const QString& newTxt)
 {
+    if(newTxt == m_script)
+        return;
+
     auto cmd = new EditScript{m_model, newTxt};
 
     commandDispatcher()->submitCommand(cmd);

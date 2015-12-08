@@ -24,7 +24,7 @@ class JSProcessModel final : public RecreateOnPlay::OSSIAProcessModel
 {
         ISCORE_SERIALIZE_FRIENDS(JSProcessModel, DataStream)
         ISCORE_SERIALIZE_FRIENDS(JSProcessModel, JSONObject)
-
+    Q_OBJECT
     public:
         explicit JSProcessModel(
                 const TimeValue& duration,
@@ -85,6 +85,9 @@ class JSProcessModel final : public RecreateOnPlay::OSSIAProcessModel
         {
             return m_ossia_process;
         }
+
+    signals:
+        void scriptChanged(QString);
 
     protected:
         LayerModel* makeLayer_impl(const Id<LayerModel>& viewModelId, const QByteArray& constructionData, QObject* parent) override;
