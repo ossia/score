@@ -2,27 +2,19 @@
 #include "CSPDocumentPlugin.hpp"
 
 #include <Process/Process.hpp>
+#include <core/document/Document.hpp>
+#include <core/document/DocumentModel.hpp>
 #include <Scenario/Document/Constraint/Rack/RackModel.hpp>
 
-#if defined(ISCORE_STATIC_PLUGINS) && defined(ISCORE_COMPILER_IS_AppleClang)
-// This part is somewhat similar to what moc does
-// with moc_.. stuff generation.
-#include <iscore/tools/NotifyingMap_impl.hpp>
-void ignore_template_instantiations_CSPApplicationPlugin()
-{
-    NotifyingMapInstantiations_T<RackModel>();
-    NotifyingMapInstantiations_T<Process>();
-}
-#endif
-CSPApplicationPlugin::CSPApplicationPlugin(iscore::Presenter* pres) :
+CSPApplicationPlugin::CSPApplicationPlugin(const iscore::ApplicationContext& pres) :
     iscore::GUIApplicationContextPlugin {pres, "CSPApplicationPlugin", nullptr}
 {
 }
 
-iscore::DocumentDelegatePluginModel*CSPApplicationPlugin::loadDocumentPlugin(
+iscore::DocumentPluginModel* CSPApplicationPlugin::loadDocumentPlugin(
         const QString& name,
         const VisitorVariant& var,
-        iscore::DocumentModel* model)
+        iscore::Document *parent)
 {
     // We don't have anything to load; it's easier to just recreate.
     return nullptr;
@@ -31,13 +23,16 @@ iscore::DocumentDelegatePluginModel*CSPApplicationPlugin::loadDocumentPlugin(
 void
 CSPApplicationPlugin::on_newDocument(iscore::Document* document)
 {
-    document->model().addPluginModel(new CSPDocumentPlugin{document->model(), &document->model()});
+    if(document)
+    {
+        document->model().addPluginModel(new CSPDocumentPlugin{*document, &document->model()});
+    }
 }
 
 void
 CSPApplicationPlugin::on_loadedDocument(iscore::Document* document)
 {
-    if(auto pluginModel = document->context().plugin<CSPDocumentPlugin>())
+    if(auto pluginModel = document->context().findPlugin<CSPDocumentPlugin>())
     {
         pluginModel->reload(document->model());
     }

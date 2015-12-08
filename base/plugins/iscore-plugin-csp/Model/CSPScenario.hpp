@@ -18,7 +18,7 @@ namespace Scenario { class ScenarioModel; }
 class ScenarioInterface;
 class BaseScenario;
 
-class CSPScenario : public QObject
+class CSPScenario : public QObject, public Nano::Observer
 {
     friend class CSPDisplacementPolicy;
     friend class CSPFlexDisplacementPolicy;

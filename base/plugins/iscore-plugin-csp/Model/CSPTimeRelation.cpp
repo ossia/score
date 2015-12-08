@@ -5,6 +5,7 @@
 #include <Scenario/Document/Constraint/ConstraintModel.hpp>
 #include <Model/CSPTimeNode.hpp>
 #include <kiwi/kiwi.h>
+#include <Scenario/Process/Algorithms/Accessors.hpp>
 
 CSPTimeRelation::CSPTimeRelation(CSPScenario& cspScenario, const Id<ConstraintModel>& constraintId)
     :CSPConstraintHolder::CSPConstraintHolder(cspScenario.getSolver(), &cspScenario)
@@ -13,21 +14,21 @@ CSPTimeRelation::CSPTimeRelation(CSPScenario& cspScenario, const Id<ConstraintMo
     this->setParent(&cspScenario);
     this->setObjectName("CSPTimeRelation");
 
-    m_iscoreMin = &cspScenario.getScenario()->constraint(constraintId).duration.minDuration();
-    m_iscoreMax = &cspScenario.getScenario()->constraint(constraintId).duration.maxDuration();
+    m_iscoreMin = cspScenario.getScenario()->constraint(constraintId).duration.minDuration();
+    m_iscoreMax = cspScenario.getScenario()->constraint(constraintId).duration.maxDuration();
 
-    m_min.setValue(m_iscoreMin->msec());
-    m_max.setValue(m_iscoreMax->msec());
+    m_min.setValue(m_iscoreMin.msec());
+    m_max.setValue(m_iscoreMax.msec());
 
     // weight
     //solver.addEditVariable(m_min, kiwi::strength::strong);
     //solver.addEditVariable(m_max, kiwi::strength::medium);
 
-    auto scenario = cspScenario.getScenario();
-    auto& constraint = scenario->constraint(constraintId);
+    auto& scenario = *cspScenario.getScenario();
+    auto& constraint = scenario.constraint(constraintId);
 
-    auto& prevTimenodeModel = scenario->timeNode(constraint.startTimeNode());
-    auto& nextTimenodeModel = scenario->timeNode(constraint.endTimeNode());
+    auto& prevTimenodeModel = startTimeNode(constraint, scenario);
+    auto& nextTimenodeModel = endTimeNode(constraint, scenario);
 
     //retrieve/create prev and next timenode
     auto prevCSPTimenode = cspScenario.insertTimenode(prevTimenodeModel.id());
@@ -48,9 +49,9 @@ CSPTimeRelation::CSPTimeRelation(CSPScenario& cspScenario, const Id<ConstraintMo
     // if there are sub scenarios, store them
     for(auto& process : constraint.processes)
     {
-        if(auto* scenario = dynamic_cast<Scenario::ScenarioModel*>(&process))
+        if(auto* scenar = dynamic_cast<Scenario::ScenarioModel*>(&process))
         {
-            m_subScenarios.insert(scenario->id(), new CSPScenario(*scenario, scenario));
+            m_subScenarios.insert(scenar->id(), new CSPScenario(*scenar, scenar));
         }
     }
 
@@ -59,8 +60,8 @@ CSPTimeRelation::CSPTimeRelation(CSPScenario& cspScenario, const Id<ConstraintMo
     con(constraint.duration, &ConstraintDurations::maxDurationChanged, this, &CSPTimeRelation::onMaxDurationChanged);
 
     // watch over potential subscenarios
-    con(constraint.processes, &NotifyingMap<Process>::added, this, &CSPTimeRelation::onProcessCreated);
-    con(constraint.processes, &NotifyingMap<Process>::removed, this, &CSPTimeRelation::onProcessRemoved);
+    constraint.processes.added.connect<CSPTimeRelation, &CSPTimeRelation::onProcessCreated>(this);
+    constraint.processes.removed.connect<CSPTimeRelation, &CSPTimeRelation::onProcessRemoved>(this);
 }
 
 CSPTimeRelation::~CSPTimeRelation()
@@ -79,12 +80,12 @@ kiwi::Variable& CSPTimeRelation::getMax()
 
 bool CSPTimeRelation::minChanged() const
 {
-    return m_min.value() != m_iscoreMin->msec();
+    return m_min.value() != m_iscoreMin.msec();
 }
 
 bool CSPTimeRelation::maxChanged() const
 {
-    return m_max.value() != m_iscoreMax->msec();
+    return m_max.value() != m_iscoreMax.msec();
 }
 
 void CSPTimeRelation::onMinDurationChanged(const TimeValue& min)

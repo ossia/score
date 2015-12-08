@@ -29,25 +29,17 @@ CSPScenario::CSPScenario(const Scenario::ScenarioModel& scenario, QObject *paren
     }
 
     // Link with i-score
-    con(scenario.constraints, &NotifyingMap<ConstraintModel>::added,
-        this, &CSPScenario::on_constraintCreated);
-    con(scenario.constraints, &NotifyingMap<ConstraintModel>::removed,
-        this, &CSPScenario::on_constraintRemoved);
+    scenario.constraints.added.connect<CSPScenario, &CSPScenario::on_constraintCreated>(this);
+    scenario.constraints.removed.connect<CSPScenario, &CSPScenario::on_constraintRemoved>(this);
 
-    con(scenario.states, &NotifyingMap<StateModel>::added,
-        this, &CSPScenario::on_stateCreated);
-    con(scenario.states, &NotifyingMap<StateModel>::removed,
-        this, &CSPScenario::on_stateRemoved);
+    scenario.states.added.connect<CSPScenario, &CSPScenario::on_stateCreated>(this);
+    scenario.states.removed.connect<CSPScenario, &CSPScenario::on_stateRemoved>(this);
 
-    con(scenario.events, &NotifyingMap<EventModel>::added,
-        this, &CSPScenario::on_eventCreated);
-    con(scenario.events, &NotifyingMap<EventModel>::removed,
-        this, &CSPScenario::on_eventRemoved);
+    scenario.events.added.connect<CSPScenario, &CSPScenario::on_eventCreated>(this);
+    scenario.events.removed.connect<CSPScenario, &CSPScenario::on_eventRemoved>(this);
 
-    con(scenario.timeNodes, &NotifyingMap<TimeNodeModel>::added,
-        this, &CSPScenario::on_timeNodeCreated);
-    con(scenario.timeNodes, &NotifyingMap<TimeNodeModel>::removed,
-        this, &CSPScenario::on_timeNodeRemoved);
+    scenario.timeNodes.added.connect<CSPScenario, &CSPScenario::on_timeNodeCreated>(this);
+    scenario.timeNodes.removed.connect<CSPScenario, &CSPScenario::on_timeNodeRemoved>(this);
 }
 
 CSPScenario::CSPScenario(const BaseScenario& baseScenario, QObject *parent)
@@ -64,7 +56,7 @@ CSPScenario::CSPScenario(const BaseScenario& baseScenario, QObject *parent)
     on_timeNodeCreated(baseScenario.endTimeNode());
 
     // insert existing constraints
-    on_constraintCreated(baseScenario.baseConstraint());
+    on_constraintCreated(baseScenario.constraint());
 }
 
 CSPScenario::~CSPScenario()

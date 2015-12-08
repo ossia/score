@@ -15,3 +15,9 @@ SerializableMoveEvent* MoveEventCSPFactory::make()
 {
     return new MoveEvent<CSPDisplacementPolicy>();
 }
+
+const MoveEventFactoryKey& MoveEventCSPFactory::key_impl() const
+{
+    static const MoveEventFactoryKey str{"CSPFlex"};
+    return str;
+}

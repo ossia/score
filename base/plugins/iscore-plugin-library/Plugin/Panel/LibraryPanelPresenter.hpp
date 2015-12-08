@@ -4,8 +4,9 @@
 class LibraryPanelPresenter : public iscore::PanelPresenter
 {
     public:
-        LibraryPanelPresenter(iscore::Presenter* parent,
-                                iscore::PanelView* view);
+        LibraryPanelPresenter(
+                iscore::PanelView* view,
+                QObject* parent);
 
         int panelId() const override;
 

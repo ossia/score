@@ -8,7 +8,7 @@
 class SerializableMoveEvent;
 template <typename Object> class Path;
 #include <iscore/tools/SettableIdentifier.hpp>
-
+#include <iscore_plugin_scenario_export.h>
 class MoveEventTag{};
 using MoveEventFactoryKey = StringKey<MoveEventTag>;
 Q_DECLARE_METATYPE(MoveEventFactoryKey)
@@ -19,7 +19,7 @@ class ScenarioModel;
 }  // namespace Scenario
 
 
-class MoveEventFactoryInterface : public iscore::GenericFactoryInterface<MoveEventFactoryKey>
+class ISCORE_PLUGIN_SCENARIO_EXPORT MoveEventFactoryInterface : public iscore::GenericFactoryInterface<MoveEventFactoryKey>
 {
         ISCORE_FACTORY_DECL("MoveEvent")
 public:

@@ -3,9 +3,10 @@
 #include "LibraryPanelView.hpp"
 #include "LibraryPanelId.hpp"
 
-LibraryPanelPresenter::LibraryPanelPresenter(iscore::Presenter* parent,
-        iscore::PanelView* view) :
-    iscore::PanelPresenter {parent, view}
+LibraryPanelPresenter::LibraryPanelPresenter(
+        iscore::PanelView* view,
+        QObject* parent) :
+    iscore::PanelPresenter {view, parent}
 {
 
 }

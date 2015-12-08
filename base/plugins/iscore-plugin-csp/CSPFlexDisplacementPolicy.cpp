@@ -2,7 +2,7 @@
 #include <Model/CSPScenario.hpp>
 #include <Model/CSPTimeNode.hpp>
 #include <Model/CSPTimeRelation.hpp>
-
+#include <Scenario/Process/Algorithms/Accessors.hpp>
 #define STAY_MINMAXFROMDATEONCREATION_STRENGTH kiwi::strength::required
 #define STAY_MINMAXPREVTIMERELATION_STRENGTH kiwi::strength::strong
 #define STAY_MINMAX_STRENGTH kiwi::strength::required
@@ -117,8 +117,8 @@ void CSPFlexDisplacementPolicy::computeDisplacement(
                 if(! elementsProperties.constraints.contains(curTimeRelationId))
                 {
                     elementsProperties.constraints[curTimeRelationId] = ConstraintProperties{};
-                    elementsProperties.constraints[curTimeRelationId].oldMin = *(curCspTimerelation->m_iscoreMin);
-                    elementsProperties.constraints[curTimeRelationId].oldMax = *(curCspTimerelation->m_iscoreMax);
+                    elementsProperties.constraints[curTimeRelationId].oldMin = curCspTimerelation->m_iscoreMin;
+                    elementsProperties.constraints[curTimeRelationId].oldMax = curCspTimerelation->m_iscoreMax;
 
                     // Save the constraint display data START ----------------
                     QByteArray arr;
@@ -158,6 +158,7 @@ void CSPFlexDisplacementPolicy::computeDisplacement(
 
 void CSPFlexDisplacementPolicy::refreshStays(CSPScenario& cspScenario, const QVector<Id<TimeNodeModel> >& draggedElements)
 {
+    auto& scenario = *cspScenario.getScenario();
     // time relations stays
     QHashIterator<Id<ConstraintModel>, CSPTimeRelation*> timeRelationIterator(cspScenario.m_timeRelations);
     while(timeRelationIterator.hasNext())
@@ -167,21 +168,22 @@ void CSPFlexDisplacementPolicy::refreshStays(CSPScenario& cspScenario, const QVe
         auto& curTimeRelationId = timeRelationIterator.key();
         auto& curTimeRelation = timeRelationIterator.value();
 
-        auto initialMin = cspScenario.getScenario()->constraint(curTimeRelationId).duration.minDuration();
-        auto initialMax = cspScenario.getScenario()->constraint(curTimeRelationId).duration.maxDuration();
+        auto& curConstraint = scenario.constraint(curTimeRelationId);
+        auto initialMin = curConstraint.duration.minDuration();
+        auto initialMax = curConstraint.duration.maxDuration();
 
         // - remove old stays
         curTimeRelation->removeStays();
 
         //ad new stays
         // - if constraint preceed dragged element
-        auto endTimeNodeId = cspScenario.getScenario()->constraint(curTimeRelationId).endTimeNode();
+        auto& endTimeNodeId = endTimeNode(curConstraint, scenario).id();
         if( draggedElements.contains(endTimeNodeId) )
         {
             auto endTimenode = cspScenario.m_timeNodes[endTimeNodeId];
             auto endDateMsec = endTimenode->m_iscoreDate->msec();
-            auto distanceFromMinToDate = endDateMsec - curTimeRelation->m_iscoreMin->msec();
-            auto distanceFromMaxToDate = endDateMsec - curTimeRelation->m_iscoreMax->msec();
+            auto distanceFromMinToDate = endDateMsec - curTimeRelation->m_iscoreMin.msec();
+            auto distanceFromMaxToDate = endDateMsec - curTimeRelation->m_iscoreMax.msec();
 
             // keep min and max around default duration
             curTimeRelation->addStay(new kiwi::Constraint(endTimenode->m_date - curTimeRelation->m_min == distanceFromMinToDate, STAY_MINMAXFROMDATEONCREATION_STRENGTH));

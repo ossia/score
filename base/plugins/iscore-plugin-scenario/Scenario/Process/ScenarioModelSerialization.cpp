@@ -23,7 +23,7 @@
 #include <iscore/tools/NotifyingMap.hpp>
 #include <iscore/tools/SettableIdentifier.hpp>
 #include <iscore/document/DocumentContext.hpp>
-
+#include <iscore_plugin_scenario_export.h>
 class LayerModel;
 class Process;
 class QObject;

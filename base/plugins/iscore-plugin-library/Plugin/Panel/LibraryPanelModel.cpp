@@ -2,7 +2,7 @@
 #include "LibraryPanelId.hpp"
 
 
-LibraryPanelModel::LibraryPanelModel(iscore::DocumentModel* parent) :
+LibraryPanelModel::LibraryPanelModel(QObject* parent) :
     iscore::PanelModel {"LibraryPanelModel", parent}
 {
     this->setParent(parent);

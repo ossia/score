@@ -15,3 +15,10 @@ SerializableMoveEvent* MoveEventCSPFlexFactory::make()
 {
     return new MoveEvent<CSPFlexDisplacementPolicy>();
 }
+
+const MoveEventFactoryKey& MoveEventCSPFlexFactory::key_impl() const
+{
+    // TODO why is CSP CSPFlex and CSPFlex CSP
+    static const MoveEventFactoryKey str{"CSP"};
+    return str;
+}

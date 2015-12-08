@@ -8,16 +8,22 @@ iscore_plugin_csp::iscore_plugin_csp() :
 {
 }
 
-iscore::GUIApplicationContextPlugin* iscore_plugin_csp::make_applicationplugin(iscore::Presenter* pres)
+iscore::GUIApplicationContextPlugin* iscore_plugin_csp::make_applicationPlugin(
+        const iscore::ApplicationContext& app)
 {
-    return new CSPApplicationPlugin{pres};
+    return new CSPApplicationPlugin{app};
 }
 
-QVector<iscore::FactoryInterface*> iscore_plugin_csp::factories(const QString& factoryName)
+std::vector<std::unique_ptr<iscore::FactoryInterfaceBase>>
+iscore_plugin_csp::factories(
+        const iscore::ApplicationContext&,
+        const iscore::FactoryBaseKey& factoryName) const
 {
-    if(factoryName == MoveEventFactoryInterface::factoryName())
+    if(factoryName == MoveEventFactoryInterface::staticFactoryKey())
     {
-        return {new MoveEventCSPFactory, new MoveEventCSPFlexFactory};
+        return make_ptr_vector<iscore::FactoryInterfaceBase,
+                MoveEventCSPFactory,
+                MoveEventCSPFlexFactory>();
     }
 
     return {};

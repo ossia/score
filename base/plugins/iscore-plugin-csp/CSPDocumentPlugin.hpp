@@ -9,11 +9,11 @@ class DocumentModel;
 }
 
 class OSSIABaseScenarioElement;
-class CSPDocumentPlugin : public iscore::DocumentDelegatePluginModel
+class CSPDocumentPlugin : public iscore::DocumentPluginModel
 {
         Q_OBJECT
     public:
-        CSPDocumentPlugin(iscore::DocumentModel& doc, QObject* parent);
+        CSPDocumentPlugin(iscore::Document& doc, QObject* parent);
 
         void reload(iscore::DocumentModel& doc);
 

@@ -32,6 +32,6 @@ class MoveEventCSPFlexFactory : public MoveEventFactoryInterface
             }
         }
 
-        QString name() const override
-        { return "CSP"; }
+
+        const MoveEventFactoryKey& key_impl() const override;
 };

@@ -9,6 +9,6 @@ class LibraryPanelModel : public iscore::PanelModel
 {
         Q_OBJECT
     public:
-        LibraryPanelModel(iscore::DocumentModel* parent);
+        LibraryPanelModel(QObject* parent);
         int panelId() const override;
 };

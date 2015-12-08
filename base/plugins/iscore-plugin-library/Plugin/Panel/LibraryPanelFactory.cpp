@@ -16,19 +16,25 @@ QString LibraryPanelFactory::panelName() const
     return "Library";
 }
 
-iscore::PanelView* LibraryPanelFactory::makeView(QObject* parent)
+
+iscore::PanelView* LibraryPanelFactory::makeView(
+        const iscore::ApplicationContext& ctx,
+        QObject* parent)
 {
     return new LibraryPanelView {parent};
 }
 
 iscore::PanelPresenter* LibraryPanelFactory::makePresenter(
-    iscore::Presenter* parent_presenter,
-    iscore::PanelView* view)
+        const iscore::ApplicationContext& ctx,
+        iscore::PanelView* view,
+        QObject* parent)
 {
-    return new LibraryPanelPresenter {parent_presenter, view};
+    return new LibraryPanelPresenter {view, parent};
 }
 
-iscore::PanelModel* LibraryPanelFactory::makeModel(iscore::DocumentModel* parent)
+iscore::PanelModel* LibraryPanelFactory::makeModel(
+        const iscore::DocumentContext& ctx,
+        QObject* parent)
 {
     return new LibraryPanelModel {parent};
 }

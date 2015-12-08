@@ -12,7 +12,7 @@ class CSPDisplacementPolicy;
 
 class ConstraintModel;
 
-class CSPTimeRelation : public CSPConstraintHolder
+class CSPTimeRelation : public CSPConstraintHolder, public Nano::Observer
 {
     friend class CSPDisplacementPolicy;
     friend class CSPFlexDisplacementPolicy;
@@ -44,10 +44,10 @@ public:
 
 private:
     kiwi::Variable m_min{"min"};
-    const TimeValue* m_iscoreMin;
+    TimeValue m_iscoreMin{};
 
     kiwi::Variable m_max{"max"};
-    const TimeValue* m_iscoreMax;
+    TimeValue m_iscoreMax{};
 
     kiwi::Constraint m_cstrRigidity{kiwi::Constraint(m_min == m_max)};// TODO ask JM if it is safe to do so
 

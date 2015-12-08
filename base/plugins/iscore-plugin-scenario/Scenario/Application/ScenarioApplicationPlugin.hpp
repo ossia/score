@@ -25,7 +25,9 @@ struct OrderedToolbar;
 }  // namespace iscore
 
 
-class ISCORE_PLUGIN_SCENARIO_EXPORT ScenarioApplicationPlugin final : public QObject, public iscore::GUIApplicationContextPlugin
+class ISCORE_PLUGIN_SCENARIO_EXPORT ScenarioApplicationPlugin final :
+        public QObject,
+        public iscore::GUIApplicationContextPlugin
 {
         Q_OBJECT
         friend class ScenarioContextMenuManager;

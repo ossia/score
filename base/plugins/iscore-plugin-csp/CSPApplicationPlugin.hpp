@@ -1,17 +1,18 @@
 #pragma once
 #include <iscore/plugins/application/GUIApplicationContextPlugin.hpp>
+#include <iscore/plugins/documentdelegate/plugin/DocumentDelegatePluginModel.hpp>
 
 class CSPApplicationPlugin : public iscore::GUIApplicationContextPlugin
 {
     public:
-        CSPApplicationPlugin(iscore::Presenter* pres);
+        CSPApplicationPlugin(const iscore::ApplicationContext& pres);
         ~CSPApplicationPlugin() = default;
 
 
-        iscore::DocumentDelegatePluginModel* loadDocumentPlugin(
+        iscore::DocumentPluginModel* loadDocumentPlugin(
                 const QString& name,
                 const VisitorVariant& var,
-                iscore::DocumentModel* parent) override;
+                iscore::Document *parent);
 
 
         void on_newDocument(iscore::Document* doc) override;
