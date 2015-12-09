@@ -54,7 +54,7 @@ class LanguageVisitor<Scenario::ScenarioModel>
             m_scenar{scenar}
         {
             text += " {"
-                  + QString("\n");
+                    + QString("\n");
 
             for(const auto& elt : scenar.constraints)
             {
@@ -112,20 +112,20 @@ class LanguageVisitor<Scenario::ScenarioModel>
         void visit(const ConstraintModel& c)
         {
             text += "constraint "   + id(c)
-                  + " after " + id(startState(c, m_scenar))
-                  + QString("\n");
+                    + " after " + id(startState(c, m_scenar))
+                    + QString("\n");
             text += "duration " + duration(c)
-                  + " of " + id(c)
-                  + QString("\n");
+                    + " of " + id(c)
+                    + QString("\n");
 
             for(auto& process : c.processes)
             {
                 if(auto scenar = dynamic_cast<Scenario::ScenarioModel*>(&process))
                 {
                     text += "scenario " + id(*scenar)
-                          + LanguageVisitor<Scenario::ScenarioModel>{*scenar}.text
-                          + " of " + id(c)
-                          + QString("\n");
+                            + LanguageVisitor<Scenario::ScenarioModel>{*scenar}.text
+                            + " of " + id(c)
+                            + QString("\n");
                 }
             }
         }
@@ -133,28 +133,28 @@ class LanguageVisitor<Scenario::ScenarioModel>
         void visit(const EventModel& e)
         {
             text += "event " + id(e)
-                  + " of " + id(parentTimeNode(e, m_scenar))
-                  + QString("\n");
+                    + " of " + id(parentTimeNode(e, m_scenar))
+                    + QString("\n");
 
 
             if(e.condition().childCount() > 0)
             {
                 text += "expression '" + e.condition().toString()
-                      + "' of " + id(e)
-                      + QString("\n");
+                        + "' of " + id(e)
+                        + QString("\n");
             }
         }
 
         void visit(const TimeNodeModel& tn)
         {
             text += "timenode " + id(tn)
-                  + QString("\n");
+                    + QString("\n");
 
             if(tn.trigger() && tn.trigger()->expression().childCount() > 0)
             {
                 text += "expression '" + tn.trigger()->expression().toString()
-                      + "' of " + id(tn)
-                      + QString("\n");
+                        + "' of " + id(tn)
+                        + QString("\n");
             }
         }
 
@@ -163,19 +163,19 @@ class LanguageVisitor<Scenario::ScenarioModel>
             if(st.previousConstraint())
             {
                 text += "state " + id(st)
-                      + " after " + id(previousConstraint(st, m_scenar))
-                      + QString("\n");
+                        + " after " + id(previousConstraint(st, m_scenar))
+                        + QString("\n");
             }
 
             text += "state " + id(st)
-                  + " of " + id(parentEvent(st, m_scenar))
-                  + QString("\n");
+                    + " of " + id(parentEvent(st, m_scenar))
+                    + QString("\n");
         }
 };
 
 struct ScenarioFactors
 {
-    // Operators
+        // Operators
         struct operators_t {
                 int scenario{};
 
@@ -199,7 +199,7 @@ struct ScenarioFactors
 
         } operators;
 
-    // Operands
+        // Operands
         struct operands_t {
                 QMap<QString, int> variables;
                 std::vector<QMap<QString, int>> subprocesses_variables;
@@ -293,24 +293,16 @@ class HalsteadVisitor<Scenario::ScenarioModel>
             f.operators.lbrace += 1;
 
             for(const auto& elt : scenar.constraints)
-            {
-                visit(elt);
-            }
+            { visit(elt); }
 
             for(const auto& elt : scenar.events)
-            {
-                visit(elt);
-            }
+            { visit(elt); }
 
             for(const auto& elt : scenar.timeNodes)
-            {
-                visit(elt);
-            }
+            { visit(elt); }
 
             for(const auto& elt : scenar.states)
-            {
-                visit(elt);
-            }
+            { visit(elt); }
 
             f.operators.rbrace += 1;
         }
@@ -420,4 +412,82 @@ Scenario::Metrics::Halstead::ComputeFactors(const Scenario::ScenarioModel& scena
     factors.N1 = sum_all(sf.operators.toVector());
     factors.N2 = sum_all(sf.operands.toVector());
     return factors;
+}
+
+
+
+
+
+
+class CyclomaticVisitor
+{
+    public:
+        const Scenario::ScenarioModel& m_scenar;
+
+        int edges = 0;
+        int nodes = 0;
+        CyclomaticVisitor(const Scenario::ScenarioModel& scenar):
+            m_scenar{scenar}
+        {
+            f.operators.lbrace += 1;
+
+            for(const auto& elt : scenar.constraints)
+            { visit(elt); }
+
+            for(const auto& elt : scenar.events)
+            { visit(elt); }
+
+            for(const auto& elt : scenar.timeNodes)
+            { visit(elt); }
+
+            for(const auto& elt : scenar.states)
+            { visit(elt); }
+
+            f.operators.rbrace += 1;
+        }
+
+        template<typename T>
+        QString id(const T& c)
+        {
+            return QString(T::description()) + QString::number(c.id_val());
+        }
+
+        void visit(const ConstraintModel& c)
+        {
+            for(auto& process : c.processes)
+            {
+                if(auto scenar = dynamic_cast<Scenario::ScenarioModel*>(&process))
+                {
+
+                }
+            }
+        }
+
+        void visit(const EventModel& e)
+        {
+            if(e.condition().hasChildren())
+            {
+                cyclo++;
+            }
+        }
+
+        void visit(const TimeNodeModel& tn)
+        {
+            if(tn.trigger().hasChildren())
+            {
+                cyclo++;
+            }
+        }
+
+        void visit(const StateModel& st)
+        {
+        }
+};
+
+
+Scenario::Metrics::Cyclomatic::Factors
+Scenario::Metrics::Cyclomatic::ComputeFactors(const Scenario::ScenarioModel& scenar)
+{
+
+    auto sf = CyclomaticVisitor{scenar};
 }
