@@ -19,5 +19,6 @@ class ApplicationPlugin :
         void populateMenus(iscore::MenubarManager*) override;
 
         QAction* m_convert{};
+        QAction* m_metrics{};
 };
 }
