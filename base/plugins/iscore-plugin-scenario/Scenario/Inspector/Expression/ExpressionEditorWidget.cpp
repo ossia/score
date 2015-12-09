@@ -44,8 +44,6 @@ ExpressionEditorWidget::ExpressionEditorWidget(QWidget *parent) :
         else
             setExpression(*iscore::parse(m_expression));
     });
-
-    addNewRelation();
 }
 
 iscore::Expression ExpressionEditorWidget::expression()
@@ -66,10 +64,10 @@ void ExpressionEditorWidget::setExpression(iscore::Expression e)
     if(!es.isEmpty())
     {
         // TODO use the tree to avoid pb with the substring "or", "and"
-        auto ORmembers = es.split("or");
+        auto ORmembers = es.split(" or ");
         for(auto m : ORmembers)
         {
-            auto ANDmembers = m.split("and");
+            auto ANDmembers = m.split(" and ");
             for(auto n : ANDmembers)
             {
                 if(n.isEmpty())
@@ -80,7 +78,7 @@ void ExpressionEditorWidget::setExpression(iscore::Expression e)
             }
             m_relations.back()->setOperator(iscore::BinaryOperator::Or);
         }
-        m_relations.back()->setOperator(iscore::BinaryOperator::None);
+        m_relations.front()->setOperator(iscore::BinaryOperator::None);
     }
     if(m_relations.size() == 0)
         addNewRelation(); //if no expression in model, add a void one

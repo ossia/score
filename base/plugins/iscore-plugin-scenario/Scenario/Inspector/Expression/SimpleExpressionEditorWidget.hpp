@@ -27,6 +27,8 @@ class SimpleExpressionEditorWidget : public QWidget
         void setOperator(iscore::BinaryOperator o);
         void setOperator(iscore::UnaryOperator u);
 
+        void adjustWidth();
+
         QString currentRelation();
         QString currentOperator();
     signals:

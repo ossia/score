@@ -15,55 +15,61 @@ SimpleExpressionEditorWidget::SimpleExpressionEditorWidget(int index, QWidget* p
     QWidget(parent),
     id{index}
 {
-    auto mainLay = new QGridLayout{this};
+    auto mainLay = new QHBoxLayout{this};
     mainLay->setSpacing(1);
+    mainLay->setContentsMargins(0,0,0,0);
+
+    // TODO : this f*ck Widget is here because QCombobox doesnt let itself resize correctly
+    auto binWidg = new QWidget{this};
+    auto binLay = new QHBoxLayout{binWidg};
+    m_binOperator = new QComboBox{binWidg};
+    binLay->addWidget(m_binOperator);
+    binLay->setContentsMargins(0,0,0,0);
+    binWidg->setMaximumWidth(30);
 
     m_address = new QLineEdit{this};
-//    auto secondMember = new QWidget{this};
-
-//    mainLay->addWidget(m_address);
-//    mainLay->addWidget(secondMember);
-/*
-    auto hLay = new QHBoxLayout{mainLay};
-    hLay->setContentsMargins(0,0,0,0);
-    hLay->setSpacing(0);
-*/
     m_ok = new QLabel{"/!\\ ", this};
-    m_comparator = new QComboBox{this};
-    m_value = new QLineEdit{this};
-/*
-    hLay->addWidget(m_ok);
-    hLay->addWidget(m_comparator);
-    hLay->addWidget(m_value);
-*/
-    auto addBtn = new QToolButton{this};
-    addBtn->setText("+");
-    auto rmBtn = new QToolButton{this};
-    rmBtn->setText("-");
-//    hLay->addWidget(addBtn);
-//    hLay->addWidget(rmBtn);
 
-    m_binOperator = new QComboBox{this};
-//    mainLay->addWidget(m_binOperator);
-    m_binOperator->addItem("");
+    auto opWidg = new QWidget{this};
+    auto opLay = new QHBoxLayout{opWidg};
+    m_comparator = new QComboBox{opWidg};
+    opLay->addWidget(m_comparator);
+    opLay->setContentsMargins(0,0,0,0);
+    opWidg->setMaximumWidth(25);
+
+    m_value = new QLineEdit{this};
+
+    auto btnWidg = new QWidget{this};
+    auto btnLay = new QVBoxLayout{btnWidg};
+    btnLay->setContentsMargins(0,0,0,0);
+    btnLay->setSpacing(0);
+    auto addBtn = new QToolButton{btnWidg};
+    addBtn->setText("+");
+    auto rmBtn = new QToolButton{btnWidg};
+    rmBtn->setText("-");
+
+    addBtn->setMaximumSize(20, 20);
+    rmBtn->setMaximumSize(20, 20);
+
+    btnLay->addWidget(rmBtn);
+    btnLay->addWidget(addBtn);
+
+    m_binOperator->addItem(" ");
     m_binOperator->addItem("and");
     m_binOperator->addItem("or");
 
-    mainLay->addWidget(m_binOperator, 1, 0, 1, 1);
-    mainLay->addWidget(m_address, 1, 1, 1, 1);
-    mainLay->addWidget(m_comparator, 1, 3, 1, 1);
-    mainLay->addWidget(m_value, 1, 4, 1, 3);
-//    mainLay->addWidget(addBtn, 1, 1, 1, 1);
-//    mainLay->addWidget(rmBtn, 1, 1, 1, 1);
-/*    mainLay->setColumnStretch(2, 10);
-    mainLay->setColumnStretch(3, 0);
-    mainLay->setColumnStretch(4, 10);
-*/
-    mainLay->setColumnStretch(0, 100);
-    m_binOperator->setMaximumWidth(5);
-    mainLay->setColumnMinimumWidth(0,1);
-    mainLay->setColumnStretch(0, 0);
-    m_binOperator->setMaximumWidth(10);
+    mainLay->addWidget(m_ok);
+    mainLay->addWidget(binWidg, 1, Qt::AlignHCenter);
+    mainLay->addWidget(m_address, 10);
+    mainLay->addWidget(opWidg, 1, Qt::AlignHCenter);
+    mainLay->addWidget(m_value, 5);
+
+    mainLay->addWidget(btnWidg);
+
+    mainLay->setContentsMargins(0,0,0,0);
+
+
+//    adjustWidth();
 
     connect(addBtn, &QPushButton::clicked,
             this, &SimpleExpressionEditorWidget::addRelation);
@@ -90,13 +96,15 @@ SimpleExpressionEditorWidget::SimpleExpressionEditorWidget(int index, QWidget* p
     m_ok->setVisible(false);
     m_value->setEnabled(false);
 
-    m_comparator->addItem(""); //TODO if no value : is it a bang  ?
+    m_comparator->addItem("");
     m_comparator->addItem("==");
     m_comparator->addItem("!=");
     m_comparator->addItem(">");
     m_comparator->addItem("<");
     m_comparator->addItem(">=");
     m_comparator->addItem("<=");
+
+//    adjustWidth();
 }
 
 iscore::Expression SimpleExpressionEditorWidget::expression()
@@ -168,8 +176,15 @@ void SimpleExpressionEditorWidget::setOperator(iscore::UnaryOperator u)
     */
 }
 
+void SimpleExpressionEditorWidget::adjustWidth()
+{
+    m_binOperator->setFixedWidth(40);
+    m_comparator->setFixedWidth(35);
+}
+
 void SimpleExpressionEditorWidget::on_editFinished()
 {
+    qDebug() << m_binOperator->minimumWidth() << " < " << m_binOperator->width() << " < " << m_binOperator->maximumWidth() << " hint " << m_binOperator->sizeHint().width();
     QString expr = currentRelation();
     if(expr == m_relation && m_op == currentOperator())
         return;
