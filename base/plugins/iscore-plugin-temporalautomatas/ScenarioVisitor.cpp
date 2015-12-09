@@ -66,6 +66,12 @@ namespace TA
 using Event = QString;
 struct Point
 {
+        Point(const EventModel& ev):
+            iscore_event{ev}
+        {
+
+        }
+
         const EventModel& iscore_event;
         int condition{};
         int conditionValue{};
@@ -108,6 +114,11 @@ void print(const Point& pt, Stream& stream)
 
 struct Flexible
 {
+    Flexible(const ConstraintModel& ev):
+        iscore_constraint{ev}
+    {
+
+    }
         const ConstraintModel& iscore_constraint;
 
         TimeValue dmin;
@@ -148,6 +159,11 @@ void print(const Flexible& c, Stream& stream)
 
 struct Rigid
 {
+    Rigid(const ConstraintModel& ev):
+        iscore_constraint{ev}
+    {
+
+    }
         const ConstraintModel& iscore_constraint;
 
         TimeValue dur;
