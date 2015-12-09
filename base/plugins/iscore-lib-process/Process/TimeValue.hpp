@@ -13,6 +13,7 @@ class TimeValue_T
 {
     public:
         static constexpr TimeValue_T zero() {return ZeroTime{}; }
+        static constexpr TimeValue_T infinite() {return PositiveInfinity{}; }
         static TimeValue_T fromMsecs(T msecs)
         {
             TimeValue_T time;

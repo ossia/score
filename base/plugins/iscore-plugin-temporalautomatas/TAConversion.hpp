@@ -3,6 +3,7 @@
 #include <sstream>
 #include <Process/TimeValue.hpp>
 #include <iscore/tools/ModelPath.hpp>
+#include <set>
 class AutomationModel;
 class TimeNodeModel;
 class EventModel;
@@ -26,6 +27,8 @@ QString name(const Object& obj)
             elt = ObjectIdentifier{"IEvent", elt.id()};
         else if(elt.objectName() == "ConstraintModel")
             elt = ObjectIdentifier{"IConstraint", elt.id()};
+        else if(elt.objectName() == "TimeNodeModel")
+            elt = ObjectIdentifier{"ITimeNode", elt.id()};
     }
 
     return path.toString().replace('/', "__").replace('.', "").prepend('_');
@@ -56,13 +59,13 @@ struct Event
 
 struct Point
 {
-    Point(const EventModel& ev):
-        iscore_event{ev}
+    Point(const QString& name):
+        name{name}
     {
 
     }
 
-    const EventModel& iscore_event;
+    QString name;
     int condition{};
     int conditionValue{};
     BroadcastChan en; // Enabled
@@ -137,8 +140,8 @@ struct TAScenario
         self{"toto"}
     {
         // TODO setup self
-        broadcasts.push_back(skip_S);
-        broadcasts.push_back(kill_S);
+        broadcasts.insert(skip_S);
+        broadcasts.insert(kill_S);
     }
 
     const Scenario::ScenarioModel& iscore_scenario;
@@ -148,7 +151,7 @@ struct TAScenario
     const TA::BroadcastChan skip_S = "skip_S" + name(iscore_scenario);
     const TA::BroadcastChan kill_S = "kill_S" + name(iscore_scenario);
 
-    std::vector<TA::BroadcastChan> broadcasts;
+    std::set<TA::BroadcastChan> broadcasts;
     std::vector<TA::Rigid> rigids;
     std::vector<TA::Flexible> flexibles;
     std::vector<TA::Point> points;
