@@ -641,172 +641,433 @@ struct MarkedConstraints
 
 struct Program
 {
-    std::vector<Id<ConstraintModel>> constraints;
-    std::vector<Id<EventModel>> events;
-    std::vector<Id<TimeNodeModel>> nodes;
-    std::vector<Id<StateModel>> states;
+        std::vector<Id<ConstraintModel>> constraints;
+        std::vector<Id<EventModel>> events;
+        std::vector<Id<TimeNodeModel>> nodes;
+        std::vector<Id<StateModel>> states;
 };
+template<typename Vector1, typename Vector2, typename Pred>
+void copy_if(const Vector1& source, Vector2& destination, Pred predicate)
+{
+    std::copy_if(source.begin(), source.end(), std::back_inserter(destination), predicate);
+}
+
 
 using Mark = int;
 static const constexpr int NoMark = -1;
 // A program is a connected set of constraints, etc.
 class ProgramVisitor
 {
-    Mark currentMark = 0;
+        Mark currentMark = 0;
 
-    std::map<Id<ConstraintModel>, Mark> constraints;
-    std::map<Id<EventModel>, Mark> events;
-    std::map<Id<TimeNodeModel>, Mark> nodes;
-    std::map<Id<StateModel>, Mark> states;
+        std::map<Id<ConstraintModel>, Mark> constraints;
+        std::map<Id<EventModel>, Mark> events;
+        std::map<Id<TimeNodeModel>, Mark> nodes;
+        std::map<Id<StateModel>, Mark> states;
 
-    const Scenario::ScenarioModel& m_scenar;
-public:
-    ProgramVisitor(const Scenario::ScenarioModel& scenar):
-        m_scenar{scenar}
-    {
-        for(const auto& elt : scenar.constraints)
-        {
-            constraints.insert(std::make_pair(elt.id(), NoMark));
-        }
-        for(const auto& elt : scenar.timeNodes)
-        {
-            nodes.insert(std::make_pair(elt.id(), NoMark));
-        }
-        for(const auto& elt : scenar.events)
-        {
-            events.insert(std::make_pair(elt.id(), NoMark));
-        }
-        for(const auto& elt : scenar.states)
-        {
-            states.insert(std::make_pair(elt.id(), NoMark));
-        }
-
-        // Take a constraint and recursively mark everything
-        for(const auto& constraint : scenar.constraints)
-        {
-            if(constraints.at(constraint.id()) == NoMark)
-            {
-                currentMark++;
-                mark(constraint.id(), currentMark);
-            }
-        }
-    }
-
-    void mark(const Id<ConstraintModel>& cid, Mark m)
-    {
-        ISCORE_ASSERT(constraints.at(cid) == m || constraints.at(cid) == NoMark);
-        if(constraints.at(cid) == m)
-        {
-            return;
-        }
-
-        constraints.at(cid) = m;
-
-        auto& cst = m_scenar.constraints.at(cid);
-        cst.metadata.setLabel(QString::number(m));
-        states.at(startState(cst, m_scenar).id()) = m;
-        states.at(endState(cst, m_scenar).id()) = m;
-        events.at(startEvent(cst, m_scenar).id()) = m;
-        events.at(endEvent(cst, m_scenar).id()) = m;
-        nodes.at(startTimeNode(cst, m_scenar).id()) = m;
-        nodes.at(endTimeNode(cst, m_scenar).id()) = m;
-
-        // Mark all that's before the start node.
-        auto& start_node = startTimeNode(cst, m_scenar);
-        for(const auto& cst : previousConstraints(start_node, m_scenar))
-        {
-            mark(cst, m);
-        }
-
-        // Mark all that's after the start node.
-        for(const auto& cst : nextConstraints(start_node, m_scenar))
-        {
-            mark(cst, m);
-        }
-
-        // Mark all that's before the end node.
-        auto& end_node = endTimeNode(cst, m_scenar);
-        for(const auto& cst : previousConstraints(end_node, m_scenar))
-        {
-            mark(cst, m);
-        }
-
-        // Mark all that's after the end node.
-        for(const auto& cst : nextConstraints(end_node, m_scenar))
-        {
-            mark(cst, m);
-        }
-    }
-
-};
-/*
-
-class CyclomaticVisitor
-{
-    public:
         const Scenario::ScenarioModel& m_scenar;
-
-        int edges = 0;
-        int nodes = 0;
-        CyclomaticVisitor(const Scenario::ScenarioModel& scenar):
+    public:
+        ProgramVisitor(const Scenario::ScenarioModel& scenar):
             m_scenar{scenar}
         {
-
             for(const auto& elt : scenar.constraints)
-            { visit(elt); }
-
-            for(const auto& elt : scenar.events)
-            { visit(elt); }
-
-            for(const auto& elt : scenar.timeNodes)
-            { visit(elt); }
-
-            for(const auto& elt : scenar.states)
-            { visit(elt); }
-
-        }
-
-        template<typename T>
-        QString id(const T& c)
-        {
-            return QString(T::description()) + QString::number(c.id_val());
-        }
-
-        void visit(const ConstraintModel& c)
-        {
-            for(auto& process : c.processes)
             {
-                if(auto scenar = dynamic_cast<Scenario::ScenarioModel*>(&process))
-                {
+                constraints.insert(std::make_pair(elt.id(), NoMark));
+            }
+            for(const auto& elt : scenar.timeNodes)
+            {
+                nodes.insert(std::make_pair(elt.id(), NoMark));
+            }
+            for(const auto& elt : scenar.events)
+            {
+                events.insert(std::make_pair(elt.id(), NoMark));
+            }
+            for(const auto& elt : scenar.states)
+            {
+                states.insert(std::make_pair(elt.id(), NoMark));
+            }
 
+            // Take a constraint and recursively mark everything
+            for(const auto& constraint : scenar.constraints)
+            {
+                if(constraints.at(constraint.id()) == NoMark)
+                {
+                    mark(constraint.id(), currentMark);
+                    currentMark++;
                 }
             }
         }
 
-        void visit(const EventModel& e)
+        std::vector<Program> programs()
         {
-            if(e.condition().hasChildren())
+            std::vector<Program> prog;
+            prog.reserve(currentMark);
+            for(Mark m = 0; m < currentMark; m++)
             {
+                Program p;
+
+                for(const auto& elt : constraints)
+                {
+                    if(elt.second == m)
+                    {
+                        p.constraints.push_back(elt.first);
+                    }
+                }
+
+                for(const auto& elt : events)
+                {
+                    if(elt.second == m)
+                    {
+                        p.events.push_back(elt.first);
+                    }
+                }
+
+                for(const auto& elt : nodes)
+                {
+                    if(elt.second == m)
+                    {
+                        p.nodes.push_back(elt.first);
+                    }
+                }
+
+                for(const auto& elt : states)
+                {
+                    if(elt.second == m)
+                    {
+                        p.states.push_back(elt.first);
+                    }
+                }
+
+                prog.push_back(std::move(p));
+            }
+
+            return prog;
+        }
+
+    private:
+        void mark(const Id<ConstraintModel>& cid, Mark m)
+        {
+            ISCORE_ASSERT(constraints.at(cid) == m || constraints.at(cid) == NoMark);
+            if(constraints.at(cid) == m)
+            {
+                return;
+            }
+
+            constraints.at(cid) = m;
+
+            auto& cst = m_scenar.constraints.at(cid);
+            cst.metadata.setLabel(QString::number(m));
+            states.at(startState(cst, m_scenar).id()) = m;
+            states.at(endState(cst, m_scenar).id()) = m;
+            events.at(startEvent(cst, m_scenar).id()) = m;
+            events.at(endEvent(cst, m_scenar).id()) = m;
+            nodes.at(startTimeNode(cst, m_scenar).id()) = m;
+            nodes.at(endTimeNode(cst, m_scenar).id()) = m;
+
+            // Mark all that's before the start node.
+            auto& start_node = startTimeNode(cst, m_scenar);
+            for(const auto& cst : previousConstraints(start_node, m_scenar))
+            {
+                mark(cst, m);
+            }
+
+            // Mark all that's after the start node.
+            for(const auto& cst : nextConstraints(start_node, m_scenar))
+            {
+                mark(cst, m);
+            }
+
+            // Mark all that's before the end node.
+            auto& end_node = endTimeNode(cst, m_scenar);
+            for(const auto& cst : previousConstraints(end_node, m_scenar))
+            {
+                mark(cst, m);
+            }
+
+            // Mark all that's after the end node.
+            for(const auto& cst : nextConstraints(end_node, m_scenar))
+            {
+                mark(cst, m);
             }
         }
 
-        void visit(const TimeNodeModel& tn)
+};
+
+auto startingTimeNodes(const Program& program, const Scenario::ScenarioModel& scenario)
+{
+    std::list<Id<TimeNodeModel>> startingNodes;
+    for(const auto& node_id : program.nodes)
+    {
+        const auto& node = scenario.timeNodes.at(node_id);
+        auto csts = previousConstraints(node, scenario);
+        if(csts.empty())
         {
+            startingNodes.push_back(node_id);
+        }
+    }
+    return startingNodes;
+}
+
+// For each starting point we propagate the flow in blocks in the following fashion :
+// Each condition yields a new block.
+// Each timenode with a trigger yields a new block.
+// Each starting point yields a new block.
+// If there is a single block before a timenode,
+// and if there is no trigger / condition, then the block continues afterwards.
+
+template<typename Vector, typename Fun>
+auto any_of(Vector&& v, Fun fun)
+{
+    return std::any_of(std::begin(v), std::end(v), fun);
+}
+
+class CyclomaticVisitor
+{
+        // Here the mark refers to the block id of the group of elements.
+        Mark maxMark = 0;
+
+        std::map<Id<ConstraintModel>, Mark> constraints;
+        std::map<Id<EventModel>, Mark> events;
+        std::map<Id<TimeNodeModel>, Mark> nodes;
+
+    public:
+        const Program& m_program;
+        const Scenario::ScenarioModel& m_scenar;
+
+        CyclomaticVisitor(
+                const Program& program,
+                const Scenario::ScenarioModel& scenar):
+            m_program{program},
+            m_scenar{scenar}
+        {
+            std::list<Id<TimeNodeModel>> startingNodes = startingTimeNodes(program, scenar);
+            std::list<Id<EventModel>> startingEvents;
+            while(!startingNodes.empty() || !startingEvents.empty())
+            {
+                for(auto node_id : startingNodes)
+                {
+                    auto val = computeNode(node_id, maxMark);
+
+                    std::list<Id<TimeNodeModel>> newNodes(val.first.begin(), val.first.end());
+                    startingNodes.splice(startingNodes.end(), newNodes);
+                    startingNodes.remove(node_id);
+
+                    std::list<Id<EventModel>> newEvents(val.second.begin(), val.second.end());
+                    startingEvents.splice(startingEvents.end(), newEvents);
+
+                    maxMark++;
+                }
+
+                for(auto event_id : startingEvents)
+                {
+                    auto val = computeEvent(event_id, maxMark);
+
+                    std::list<Id<TimeNodeModel>> newNodes(val.first.begin(), val.first.end());
+                    startingNodes.splice(startingNodes.end(), newNodes);
+
+                    std::list<Id<EventModel>> newEvents(val.second.begin(), val.second.end());
+                    startingEvents.splice(startingEvents.end(), newEvents);
+                    startingEvents.remove(event_id);
+
+                    maxMark++;
+                }
+            }
+        }
+
+        std::pair<std::set<Id<TimeNodeModel>>, std::set<Id<EventModel>>> computeEvent(
+                const Id<EventModel>& event,
+                Mark m)
+        {
+
+            std::set<Id<TimeNodeModel>> notSame,   prev_notSame;
+            std::set<Id<TimeNodeModel>> notSure,   prev_notSure;
+            std::set<Id<EventModel>> notSameEvent, prev_notSameEvent;
+
+            mark(event, m, notSame, notSure, notSameEvent);
+            return iterate(m, notSame, notSure, notSameEvent);
+        }
+
+        std::pair<std::set<Id<TimeNodeModel>>, std::set<Id<EventModel>>> computeNode(
+                const Id<TimeNodeModel>& node,
+                Mark m)
+        {
+            std::set<Id<TimeNodeModel>> notSame;
+            std::set<Id<TimeNodeModel>> notSure;
+            std::set<Id<EventModel>> notSameEvent;
+            mark(node, m, notSame, notSure, notSameEvent);
+            return iterate(m, notSame, notSure, notSameEvent);
+        }
+
+        std::pair<std::set<Id<TimeNodeModel>>, std::set<Id<EventModel>>> iterate(
+                Mark m,
+                std::set<Id<TimeNodeModel>>& notSame,
+                std::set<Id<TimeNodeModel>>& notSure,
+                std::set<Id<EventModel>>& notSameEvent)
+        {
+            std::set<Id<TimeNodeModel>> prev_notSame;
+            std::set<Id<TimeNodeModel>> prev_notSure;
+            std::set<Id<EventModel>> prev_notSameEvent;
+            do
+            {
+                // As long as we gain new information, we iterate.
+                prev_notSame = notSame;
+                prev_notSure = notSure;
+                prev_notSameEvent = notSameEvent;
+
+                for(const auto& id : notSure)
+                {
+                    // We check again since this may have changed
+                    auto newState = timeNodeIsInSameBlock(m_scenar.timeNodes.at(id), m);
+                    switch(newState)
+                    {
+                    case NodeInBlock::Same:
+                        mark(id, m, notSame, notSure, notSameEvent);
+                        notSure.erase(id);
+                        break;
+                    case NodeInBlock::NotSure:
+                        // do nothing
+                        break;
+                    case NodeInBlock::NotSame:
+                        notSame.insert(id);
+                        notSure.erase(id);
+                        break;
+                    }
+                }
+            } while(prev_notSame != notSame || prev_notSure != notSure || prev_notSameEvent != notSameEvent);
+
+            // Now we should have reached our limits.
+            notSame.insert(notSure.begin(), notSure.end());
+            notSure.clear();
+
+            return std::make_pair(notSame, notSameEvent);
+
+        }
+
+        // Three levels :
+        //  in same block,
+        //  not sure (some constraints are unmarked),
+        //  not in same block
+        enum class NodeInBlock { Same, NotSure, NotSame} ;
+        NodeInBlock timeNodeIsInSameBlock(const TimeNodeModel& tn, Mark mark)
+        {
+            // True if no condition,
+            // or if previous constraints are from different blocks
             if(tn.trigger()->expression().hasChildren())
+                return NodeInBlock::NotSame;
+
+            auto prev_csts = previousConstraints(tn, m_scenar);
+            if(any_of(prev_csts, [&] (const auto& cst) {
+                      auto constraint_mark = constraints.at(cst);
+                    return constraint_mark != mark && constraint_mark != NoMark;
+                }))
             {
+                return NodeInBlock::NotSame;
+            }
+            else if(any_of(prev_csts, [&] (const auto& cst) {
+                           auto constraint_mark = constraints.at(cst);
+                         return constraint_mark != mark && constraint_mark == NoMark;
+                     }))
+            {
+                return NodeInBlock::NotSure;
+            }
+            else
+            {
+                return NodeInBlock::Same;
             }
         }
 
-        void visit(const StateModel& st)
+        bool eventIsInSameBlock(const EventModel& ev)
         {
+            return ev.condition().childCount() > 0;
+        }
+
+        void mark(const Id<TimeNodeModel>& id,
+                  Mark m,
+                  std::set<Id<TimeNodeModel>>& notSame,
+                  std::set<Id<TimeNodeModel>>& notSure,
+                  std::set<Id<EventModel>>& notSameEvent)
+        {
+            // We flow for as long as we can and stop once
+            // new blocks are encountered
+            const auto& tn = m_scenar.timeNodes.at(id);
+            nodes.at(id) = m;
+
+            // For each event, if they have a condition, they introduce a new mark
+            for(const auto& event_id : tn.events())
+            {
+                mark(event_id, m, notSame, notSure, notSameEvent);
+            }
+        }
+
+
+        void mark(const Id<EventModel>& event_id,
+                  Mark m,
+                  std::set<Id<TimeNodeModel>>& notSame,
+                  std::set<Id<TimeNodeModel>>& notSure,
+                  std::set<Id<EventModel>>& notSameEvent)
+        {
+            // We flow for as long as we can and stop once
+            // new blocks are encountered
+            const auto& ev = m_scenar.events.at(event_id);
+            if(eventIsInSameBlock(ev))
+            {
+                events.at(event_id) = m;
+                for(const auto& cid : nextConstraints(ev, m_scenar))
+                {
+                    mark(cid, m, notSame, notSure, notSameEvent);
+                }
+            }
+            else
+            {
+                notSameEvent.insert(event_id);
+            }
+
+        }
+
+        void mark(const Id<ConstraintModel>& id,
+                  Mark m,
+                  std::set<Id<TimeNodeModel>>& notSame,
+                  std::set<Id<TimeNodeModel>>& notSure,
+                  std::set<Id<EventModel>>& notSameEvent)
+        {
+            const auto& cst = m_scenar.constraints.at(id);
+            constraints.at(id) = m;
+
+            const auto& endNode = endTimeNode(cst, m_scenar);
+            auto sameblock = timeNodeIsInSameBlock(endNode, m);
+            switch(sameblock)
+            {
+            case NodeInBlock::Same:
+                mark(endNode.id(), m, notSame, notSure, notSameEvent);
+                break;
+            case NodeInBlock::NotSure:
+                notSure.insert(endNode.id());
+                break;
+            case NodeInBlock::NotSame:
+                notSame.insert(endNode.id());
+                break;
+            }
         }
 };
-*/
-
 
 Scenario::Metrics::Cyclomatic::Factors
 Scenario::Metrics::Cyclomatic::ComputeFactors(const Scenario::ScenarioModel& scenar)
 {
     ProgramVisitor v(scenar);
-    return {};
+    auto programs = v.programs();
+
+    // For each program, we count the number of edge / vertice.
+
+    // First case : each constraint is an edge, each node / event is a vertice.
+    int N = std::accumulate(programs.begin(), programs.end(), 0,
+                            [] (int size, const Program& program) { return size + program.constraints.size(); });
+    int E_events = std::accumulate(programs.begin(), programs.end(), 0,
+                                   [] (int size, const Program& program) { return size + program.events.size(); });
+    int E_nodes = std::accumulate(programs.begin(), programs.end(), 0,
+                                  [] (int size, const Program& program) { return size + program.nodes.size(); });
+
+    // Second case, more intelligent.
+    CyclomaticVisitor vis2(programs.front(), scenar);
+
+    return Scenario::Metrics::Cyclomatic::Factors{E_events + E_nodes, N, programs.size()};
 }

@@ -66,15 +66,19 @@ TemporalAutomatas::ApplicationPlugin::ApplicationPlugin(const iscore::Applicatio
         QString str = toScenarioLanguage(baseScenario);
 
         // Halstead
-        auto factors = Halstead::ComputeFactors(baseScenario);
-        str += "Difficulty = " + QString::number(Halstead::Difficulty(factors)) + "\n";
-        str += "Volume = " + QString::number(Halstead::Volume(factors)) + "\n";
-        str += "Effort = " + QString::number(Halstead::Effort(factors)) + "\n";
-        str += "TimeRequired = " + QString::number(Halstead::TimeRequired(factors)) + "\n";
-        str += "Bugs2 = " + QString::number(Halstead::Bugs2(factors)) + "\n";
-
+        {
+            auto factors = Halstead::ComputeFactors(baseScenario);
+            str += "Difficulty = " + QString::number(Halstead::Difficulty(factors)) + "\n";
+            str += "Volume = " + QString::number(Halstead::Volume(factors)) + "\n";
+            str += "Effort = " + QString::number(Halstead::Effort(factors)) + "\n";
+            str += "TimeRequired = " + QString::number(Halstead::TimeRequired(factors)) + "\n";
+            str += "Bugs2 = " + QString::number(Halstead::Bugs2(factors)) + "\n";
+        }
         // Cyclomatic
-        Cyclomatic::ComputeFactors(baseScenario);
+        {
+            auto factors = Cyclomatic::ComputeFactors(baseScenario);
+            str += "Cyclomatic1 = " + QString::number(Cyclomatic::Complexity(factors));
+        }
         // Display
         TextDialog dial(str, qApp->activeWindow());
         dial.exec();
