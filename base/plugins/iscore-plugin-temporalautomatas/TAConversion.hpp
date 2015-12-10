@@ -12,7 +12,7 @@ class StateModel;
 namespace Scenario
 { class ScenarioModel; }
 namespace TA
-{ class TAScenario; }
+{ struct TAScenario; }
 
 template<typename Object>
 QString name(const Object& obj)

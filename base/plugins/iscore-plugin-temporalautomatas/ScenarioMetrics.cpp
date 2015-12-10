@@ -756,7 +756,6 @@ class ProgramVisitor
             constraints.at(cid) = m;
 
             auto& cst = m_scenar.constraints.at(cid);
-            cst.metadata.setLabel(QString::number(m));
             states.at(startState(cst, m_scenar).id()) = m;
             states.at(endState(cst, m_scenar).id()) = m;
             events.at(startEvent(cst, m_scenar).id()) = m;
@@ -821,6 +820,13 @@ auto any_of(Vector&& v, Fun fun)
     return std::any_of(std::begin(v), std::end(v), fun);
 }
 
+struct Block
+{
+        std::vector<Id<ConstraintModel>> constraints;
+        std::vector<Id<EventModel>> events;
+        std::vector<Id<TimeNodeModel>> nodes;
+};
+
 class CyclomaticVisitor
 {
         // Here the mark refers to the block id of the group of elements.
@@ -840,12 +846,27 @@ class CyclomaticVisitor
             m_program{program},
             m_scenar{scenar}
         {
+
+            for(const auto& elt : scenar.constraints)
+            {
+                constraints.insert(std::make_pair(elt.id(), NoMark));
+            }
+            for(const auto& elt : scenar.timeNodes)
+            {
+                nodes.insert(std::make_pair(elt.id(), NoMark));
+            }
+            for(const auto& elt : scenar.events)
+            {
+                events.insert(std::make_pair(elt.id(), NoMark));
+            }
+
             std::list<Id<TimeNodeModel>> startingNodes = startingTimeNodes(program, scenar);
             std::list<Id<EventModel>> startingEvents;
             while(!startingNodes.empty() || !startingEvents.empty())
             {
-                for(auto node_id : startingNodes)
+                while(!startingNodes.empty())
                 {
+                    auto node_id = *startingNodes.begin();
                     auto val = computeNode(node_id, maxMark);
 
                     std::list<Id<TimeNodeModel>> newNodes(val.first.begin(), val.first.end());
@@ -858,8 +879,9 @@ class CyclomaticVisitor
                     maxMark++;
                 }
 
-                for(auto event_id : startingEvents)
+                while(!startingEvents.empty())
                 {
+                    auto event_id = *startingEvents.begin();
                     auto val = computeEvent(event_id, maxMark);
 
                     std::list<Id<TimeNodeModel>> newNodes(val.first.begin(), val.first.end());
@@ -874,6 +896,42 @@ class CyclomaticVisitor
             }
         }
 
+        std::vector<Block> blocks() const
+        {
+            std::vector<Block> blocks;
+
+            for(Mark m = 0; m < maxMark; m++)
+            {
+                Block b;
+
+                for(const auto& elt : constraints)
+                {
+                    if(elt.second == m)
+                    {
+                        b.constraints.push_back(elt.first);
+                    }
+                }
+
+                for(const auto& elt : events)
+                {
+                    if(elt.second == m)
+                    {
+                        b.events.push_back(elt.first);
+                    }
+                }
+
+                for(const auto& elt : nodes)
+                {
+                    if(elt.second == m)
+                    {
+                        b.nodes.push_back(elt.first);
+                    }
+                }
+
+                blocks.push_back(std::move(b));
+            }
+            return blocks;
+        }
         std::pair<std::set<Id<TimeNodeModel>>, std::set<Id<EventModel>>> computeEvent(
                 const Id<EventModel>& event,
                 Mark m)
@@ -883,7 +941,12 @@ class CyclomaticVisitor
             std::set<Id<TimeNodeModel>> notSure,   prev_notSure;
             std::set<Id<EventModel>> notSameEvent, prev_notSameEvent;
 
-            mark(event, m, notSame, notSure, notSameEvent);
+            events.at(event) = m;
+            const auto& ev = m_scenar.events.at(event);
+            for(const auto& cid : nextConstraints(ev, m_scenar))
+            {
+                mark(cid, m, notSame, notSure, notSameEvent);
+            }
             return iterate(m, notSame, notSure, notSameEvent);
         }
 
@@ -918,11 +981,12 @@ class CyclomaticVisitor
                 {
                     // We check again since this may have changed
                     auto newState = timeNodeIsInSameBlock(m_scenar.timeNodes.at(id), m);
+
                     switch(newState)
                     {
                     case NodeInBlock::Same:
-                        mark(id, m, notSame, notSure, notSameEvent);
                         notSure.erase(id);
+                        mark(id, m, notSame, notSure, notSameEvent);
                         break;
                     case NodeInBlock::NotSure:
                         // do nothing
@@ -952,7 +1016,7 @@ class CyclomaticVisitor
         {
             // True if no condition,
             // or if previous constraints are from different blocks
-            if(tn.trigger()->expression().hasChildren())
+            if(tn.trigger()->active())
                 return NodeInBlock::NotSame;
 
             auto prev_csts = previousConstraints(tn, m_scenar);
@@ -978,7 +1042,7 @@ class CyclomaticVisitor
 
         bool eventIsInSameBlock(const EventModel& ev)
         {
-            return ev.condition().childCount() > 0;
+            return !ev.condition().hasChildren();
         }
 
         void mark(const Id<TimeNodeModel>& id,
@@ -1067,7 +1131,32 @@ Scenario::Metrics::Cyclomatic::ComputeFactors(const Scenario::ScenarioModel& sce
                                   [] (int size, const Program& program) { return size + program.nodes.size(); });
 
     // Second case, more intelligent.
-    CyclomaticVisitor vis2(programs.front(), scenar);
+    int program_n = 0;
+    for(const auto& program : programs)
+    {
+        CyclomaticVisitor vis2(program, scenar);
+        auto blocks = vis2.blocks();
 
-    return Scenario::Metrics::Cyclomatic::Factors{E_events + E_nodes, N, programs.size()};
+        for(int i = 0; i < blocks.size(); i++)
+        {
+            const auto& block = blocks[i];
+            for(const auto& cid : block.constraints)
+            {
+                auto& cst = scenar.constraints.at(cid);
+                cst.metadata.setLabel(QString::number(program_n) + " - " + QString::number(i));
+            }
+            for(const auto& cid : block.events)
+            {
+                auto& cst = scenar.events.at(cid);
+                cst.metadata.setLabel(QString::number(program_n) + " - " + QString::number(i));
+            }
+            for(const auto& cid : block.nodes)
+            {
+                auto& cst = scenar.timeNodes.at(cid);
+                cst.metadata.setLabel(QString::number(program_n) + " - " + QString::number(i));
+            }
+        }
+        program_n++;
+    }
+    return Scenario::Metrics::Cyclomatic::Factors{E_events + E_nodes, N, (int)programs.size()};
 }
