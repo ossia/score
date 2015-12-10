@@ -17,17 +17,15 @@ class SimpleExpressionEditorWidget : public QWidget
     public:
         SimpleExpressionEditorWidget(int index, QWidget* parent = 0);
 
-        iscore::Expression expression();
+        iscore::Expression relation();
         iscore::BinaryOperator binOperator();
 
         int id;
 
     public slots:
-        void setExpression(iscore::Expression e);
+        void setRelation(iscore::Relation r);
         void setOperator(iscore::BinaryOperator o);
         void setOperator(iscore::UnaryOperator u);
-
-        void adjustWidth();
 
         QString currentRelation();
         QString currentOperator();
@@ -39,7 +37,7 @@ class SimpleExpressionEditorWidget : public QWidget
     private slots:
         void on_editFinished();
         void on_operatorChanged(int i);
-// TODO on_modelChanged()
+// TODO on_modelChanged() -> done in parent inspector (i.e. event), no ?
 
     private:
 
@@ -53,5 +51,7 @@ class SimpleExpressionEditorWidget : public QWidget
         ExpressionValidator<iscore::Expression> m_validator;
         QString m_relation{};
         QString m_op{};
+
+        QMap<iscore::Relation::Operator, QString> m_comparatorList;
 };
 

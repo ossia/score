@@ -1,4 +1,5 @@
 #include <State/Expression.hpp>
+#include <State/Relation.hpp>
 #include <boost/optional/optional.hpp>
 #include <QBoxLayout>
 #include <QComboBox>
@@ -19,23 +20,27 @@ SimpleExpressionEditorWidget::SimpleExpressionEditorWidget(int index, QWidget* p
     mainLay->setSpacing(1);
     mainLay->setContentsMargins(0,0,0,0);
 
-    // TODO : this f*ck Widget is here because QCombobox doesnt let itself resize correctly
+    // TODO : this f*ck'n Widget is here because QCombobox doesnt let itself resize correctly
     auto binWidg = new QWidget{this};
     auto binLay = new QHBoxLayout{binWidg};
     m_binOperator = new QComboBox{binWidg};
-    binLay->addWidget(m_binOperator);
     binLay->setContentsMargins(0,0,0,0);
     binWidg->setMaximumWidth(30);
+
+    binLay->addWidget(m_binOperator);
 
     m_address = new QLineEdit{this};
     m_ok = new QLabel{"/!\\ ", this};
 
+
+    // Again ugly thing
     auto opWidg = new QWidget{this};
     auto opLay = new QHBoxLayout{opWidg};
     m_comparator = new QComboBox{opWidg};
-    opLay->addWidget(m_comparator);
     opLay->setContentsMargins(0,0,0,0);
     opWidg->setMaximumWidth(25);
+
+    opLay->addWidget(m_comparator);
 
     m_value = new QLineEdit{this};
 
@@ -54,9 +59,7 @@ SimpleExpressionEditorWidget::SimpleExpressionEditorWidget(int index, QWidget* p
     btnLay->addWidget(rmBtn);
     btnLay->addWidget(addBtn);
 
-    m_binOperator->addItem(" ");
-    m_binOperator->addItem("and");
-    m_binOperator->addItem("or");
+    // Main Layout
 
     mainLay->addWidget(m_ok);
     mainLay->addWidget(binWidg, 1, Qt::AlignHCenter);
@@ -68,8 +71,7 @@ SimpleExpressionEditorWidget::SimpleExpressionEditorWidget(int index, QWidget* p
 
     mainLay->setContentsMargins(0,0,0,0);
 
-
-//    adjustWidth();
+    // Connections
 
     connect(addBtn, &QPushButton::clicked,
             this, &SimpleExpressionEditorWidget::addRelation);
@@ -96,18 +98,24 @@ SimpleExpressionEditorWidget::SimpleExpressionEditorWidget(int index, QWidget* p
     m_ok->setVisible(false);
     m_value->setEnabled(false);
 
-    m_comparator->addItem("");
-    m_comparator->addItem("==");
-    m_comparator->addItem("!=");
-    m_comparator->addItem(">");
-    m_comparator->addItem("<");
-    m_comparator->addItem(">=");
-    m_comparator->addItem("<=");
+    // Fill ComboBox
 
-//    adjustWidth();
+    m_binOperator->addItem(" ");
+    m_binOperator->addItem("and");
+    m_binOperator->addItem("or");
+
+    m_comparatorList = iscore::opToString();
+
+    for(auto c : m_comparatorList)
+    {
+        m_comparator->addItem(c);
+    }
+
+    m_comparator->setCurrentText(m_comparatorList[iscore::Relation::Operator::None]);
+
 }
 
-iscore::Expression SimpleExpressionEditorWidget::expression()
+iscore::Expression SimpleExpressionEditorWidget::relation()
 {
     int i = 1;
     QString expr = currentRelation();
@@ -124,26 +132,16 @@ iscore::BinaryOperator SimpleExpressionEditorWidget::binOperator()
     }
 }
 
-void SimpleExpressionEditorWidget::setExpression(iscore::Expression e)
+void SimpleExpressionEditorWidget::setRelation(iscore::Relation r)
 {
-    auto stringExp = e.toString();
-    if(e.childCount() == 1)
-    {
-        if(stringExp.indexOf("(") == 0)
-            stringExp.remove(0,1);
-        if(stringExp.endsWith(")"))
-            stringExp.remove(stringExp.size()-1, 1);
+    m_address->setText(r.relMemberToString(r.lhs));
+    m_value->setText(r.relMemberToString(r.rhs));
 
-        QStringList list = stringExp.split(" ");
-        m_address->setText(list.first());
+    m_comparator->setCurrentText(m_comparatorList[r.op]);
 
-        if(list.size() > 1)
-        {
-            m_comparator->setCurrentText(list.at(1));
-            m_value->setText(list.last());
-        }
-    }
-    m_relation = stringExp;
+    m_relation = r.toString();
+    qDebug() << m_relation;
+
     int i;
     m_ok->setVisible(m_validator.validate(m_relation, i) != QValidator::State::Acceptable);
 }
@@ -176,15 +174,8 @@ void SimpleExpressionEditorWidget::setOperator(iscore::UnaryOperator u)
     */
 }
 
-void SimpleExpressionEditorWidget::adjustWidth()
-{
-    m_binOperator->setFixedWidth(40);
-    m_comparator->setFixedWidth(35);
-}
-
 void SimpleExpressionEditorWidget::on_editFinished()
 {
-    qDebug() << m_binOperator->minimumWidth() << " < " << m_binOperator->width() << " < " << m_binOperator->maximumWidth() << " hint " << m_binOperator->sizeHint().width();
     QString expr = currentRelation();
     if(expr == m_relation && m_op == currentOperator())
         return;
@@ -200,7 +191,7 @@ void SimpleExpressionEditorWidget::on_editFinished()
 
 void SimpleExpressionEditorWidget::on_operatorChanged(int i)
 {
-    m_value->setEnabled(i != 0);
+    m_value->setEnabled(m_comparator->currentText() != m_comparatorList[iscore::Relation::Operator::None]);
 }
 
 

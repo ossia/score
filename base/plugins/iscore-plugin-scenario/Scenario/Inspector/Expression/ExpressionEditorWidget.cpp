@@ -59,29 +59,8 @@ void ExpressionEditorWidget::setExpression(iscore::Expression e)
         delete elt;
     }
     m_relations.clear();
-    auto es = e.toString();
-    m_expression = es;
-    if(!es.isEmpty())
-    {
-        // TODO use the tree to avoid pb with the substring "or", "and"
-        auto ORmembers = es.split(" or ");
-        for(auto m : ORmembers)
-        {
-            auto ANDmembers = m.split(" and ");
-            for(auto n : ANDmembers)
-            {
-                if(n.isEmpty())
-                    break;
-                addNewRelation();
-                m_relations.back()->setExpression(*iscore::parse(n));
-                m_relations.back()->setOperator(iscore::BinaryOperator::And);
-            }
-            m_relations.back()->setOperator(iscore::BinaryOperator::Or);
-        }
-        m_relations.front()->setOperator(iscore::BinaryOperator::None);
-    }
-    if(m_relations.size() == 0)
-        addNewRelation(); //if no expression in model, add a void one
+
+    exploreExpression(e);
 }
 
 void ExpressionEditorWidget::on_editFinished()
@@ -91,6 +70,53 @@ void ExpressionEditorWidget::on_editFinished()
 
     m_expression = currentExpr();
     emit editingFinished();
+}
+
+void ExpressionEditorWidget::exploreExpression(iscore::Expression e)
+{
+    int c = e.childCount();
+    switch (c)
+    {
+    case 2: {
+        auto a = e.childAt(0);
+        auto b = e.childAt(1);
+        if(a.hasChildren())
+            exploreExpression(a);
+        else
+        {
+            addNewRelation();
+            m_relations.back()->setRelation( a.get<iscore::Relation>() );
+        }
+
+        if(b.hasChildren())
+        {
+            if(e.is<iscore::BinaryOperator>())
+            {
+                m_relations.back()->setOperator( e.get<iscore::BinaryOperator>() );
+            }
+            exploreExpression(b);
+        }
+        else
+        {
+            if(e.is<iscore::BinaryOperator>())
+            {
+                addNewRelation();
+                m_relations.back()->setOperator( e.get<iscore::BinaryOperator>() );
+                m_relations.back()->setRelation( b.get<iscore::Relation>() );
+            }
+        }
+    }
+        break;
+    case 1:
+        qDebug() << "no unary op for now"; exploreExpression(e.childAt(0)); break;
+    case 0:
+        addNewRelation();
+        if(e.is<iscore::Relation>())
+            m_relations.back()->setRelation(e.get<iscore::Relation>());
+        break;
+    default:
+        qDebug() << "unexpected child count"; break;
+    }
 }
 
 QString ExpressionEditorWidget::currentExpr()

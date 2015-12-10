@@ -7,6 +7,14 @@
 
 #include <State/Expression.hpp>
 
+/* ****************************************************************
+ * This class contain an aggregation of simples expressions.
+ *
+ * We assume that the global expression is "linear"
+ * (without parenthesis)
+ *
+ * ****************************************************************/
+
 class QVBoxLayout;
 class SimpleExpressionEditorWidget;
 
@@ -28,6 +36,8 @@ class ExpressionEditorWidget : public QWidget
         void on_editFinished();
 //	void on_operatorChanged(int i);
 // TODO on_modelChanged()
+
+        void exploreExpression(iscore::Expression e);
 
         QString currentExpr();
         void addNewRelation();
