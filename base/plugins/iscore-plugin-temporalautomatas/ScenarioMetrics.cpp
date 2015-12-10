@@ -820,7 +820,7 @@ auto any_of(Vector&& v, Fun fun)
     return std::any_of(std::begin(v), std::end(v), fun);
 }
 
-struct Block
+struct BaseBlock
 {
         std::vector<Id<ConstraintModel>> constraints;
         std::vector<Id<EventModel>> events;
@@ -896,13 +896,13 @@ class CyclomaticVisitor
             }
         }
 
-        std::vector<Block> blocks() const
+        std::vector<BaseBlock> blocks() const
         {
-            std::vector<Block> blocks;
+            std::vector<BaseBlock> blocks;
 
             for(Mark m = 0; m < maxMark; m++)
             {
-                Block b;
+                BaseBlock b;
 
                 for(const auto& elt : constraints)
                 {
@@ -1158,5 +1158,13 @@ Scenario::Metrics::Cyclomatic::ComputeFactors(const Scenario::ScenarioModel& sce
         }
         program_n++;
     }
+
+    // To compute the metric, we create the graph between blocks.
+    // For each block, if it is adjacent to another block,
+    // we add an edge between them.
+    // If it begins with a condition we create two blocks (one for the "false" case).
+    // If it begins with a trigger,
+    //  - if the range is infinite :
+    //  - else it does not change.
     return Scenario::Metrics::Cyclomatic::Factors{E_events + E_nodes, N, (int)programs.size()};
 }
