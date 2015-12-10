@@ -417,7 +417,329 @@ Scenario::Metrics::Halstead::ComputeFactors(const Scenario::ScenarioModel& scena
 
 
 
+// construction du CFG :
+// 1. on liste tous les programmes
+// i.e. les bouts de code indépendants
+// 2. pour chaque entrée, on cherche les blocs "simples" (qui n'ont pas de conditions) :
+// on va de chaque contrainte au timenode le plus lointain qui n'a pas de trigger / condition.
+// -> algorithme de flot avec marquage.
 
+template<typename Scenario_T>
+auto nextConstraints(
+        const EventModel& ev,
+        const Scenario_T& scenario)
+{
+    std::list<Id<ConstraintModel>> constraints;
+    for(const Id<StateModel>& state : ev.states())
+    {
+        const StateModel& st = scenario.states.at(state);
+        if(const auto& cst_id = st.nextConstraint())
+            constraints.push_back(cst_id);
+    }
+    return constraints;
+}
+template<typename Scenario_T>
+auto previousConstraints(
+        const EventModel& ev,
+        const Scenario_T& scenario)
+{
+    std::list<Id<ConstraintModel>> constraints;
+    for(const Id<StateModel>& state : ev.states())
+    {
+        const StateModel& st = scenario.states.at(state);
+        if(const auto& cst_id = st.previousConstraint())
+            constraints.push_back(cst_id);
+    }
+    return constraints;
+}
+
+template<typename Scenario_T>
+auto nextConstraints(
+        const TimeNodeModel& tn,
+        const Scenario_T& scenario)
+{
+    std::list<Id<ConstraintModel>> constraints;
+    for(const Id<EventModel>& event_id : tn.events())
+    {
+        const EventModel& event = scenario.events.at(event_id);
+        auto prev = nextConstraints(event, scenario);
+        constraints.splice(constraints.end(), prev);
+    }
+
+    return constraints;
+}
+
+
+template<typename Scenario_T>
+auto previousConstraints(
+        const TimeNodeModel& tn,
+        const Scenario_T& scenario)
+{
+    std::list<Id<ConstraintModel>> constraints;
+    for(const Id<EventModel>& event_id : tn.events())
+    {
+        const EventModel& event = scenario.events.at(event_id);
+        auto prev = previousConstraints(event, scenario);
+        constraints.splice(constraints.end(), prev);
+    }
+
+    return constraints;
+}
+
+
+
+
+/*
+template<typename Scenario_T>
+auto ConstraintsAttachedToStartInSameBlock(
+        const ConstraintModel& cst,
+        const Scenario_T& scenario)
+{
+    // We make a list of events in the same block.
+    // It's the event on the parent timenode of the start of the constraint
+    // with no conditions.
+    //std::vector<Id<EventModel>> events_of_previous_block;
+    std::vector<Id<EventModel>> events_of_next_block;
+
+    // We at least return the next constraints on the start event.
+    std::vector<Id<ConstraintModel>> constraints;
+    const EventModel& previous_event = startEvent(cst, scenario);
+    events_of_next_block.push_back(previous_event.id());
+
+    const TimeNodeModel& tn = parentTimeNode(previous_event, scenario);
+    // If there is a trigger on the time node, we don't take into account
+    // all the previous elements.
+    bool trigger_exists = tn.trigger()->expression().hasChildren();
+
+    // First check if there is a condition on the previous event.
+    if(!previous_event.condition().hasChildren())
+    {
+
+        // We can add the previous constraints.
+//        if(!trigger_exists)
+//        {
+//            events_of_previous_block.push_back(previous_event.id());
+//        }
+
+
+        // Check if there is a condition on the events in the same timenode.
+        for(const auto& event_id: tn.events())
+        {
+            if(event_id != previous_event.id())
+            {
+                const EventModel& other_event = scenario.events.at(event_id);
+                if(!other_event.condition().hasChildren())
+                {
+                    events_of_next_block.push_back(event_id);
+//                    if(!trigger_exists)
+//                    {
+//                        events_of_previous_block.push_back(event_id);
+//                    }
+                }
+            }
+        }
+    }
+
+    // Now, for each previous & next block event,
+    // we add the constraints.
+    for(auto& event_id : events_of_next_block)
+    {
+        const auto& ev = scenario.events.at(event_id);
+        for(auto& constraint : nextConstraints(ev, scenario))
+        {
+            if(constraint != cst.id())
+            {
+                constraints.push_back(constraint);
+            }
+        }
+    }
+
+//    for(auto& event_id : events_of_previous_block)
+//    {
+//        const auto& ev = scenario.events.at(event_id);
+//        for(auto& constraint : previousConstraints(ev, scenario))
+//        {
+//            constraints.push_back(constraint);
+//        }
+//    }
+
+    return constraints;
+}
+
+struct MarkedConstraints
+{
+    using Mark = int;
+    Mark currentMark = 0;
+    static const constexpr int NoMark = -1;
+    const Scenario::ScenarioModel& m_scenar;
+    MarkedConstraints(const Scenario::ScenarioModel& scenar):
+        m_scenar{scenar}
+    {
+        for(const auto& cst : scenar.constraints)
+        {
+            marks.insert(std::make_pair(cst.id(), NoMark));
+        }
+
+        marking();
+    }
+
+    void mark_recursive_previous(const Id<ConstraintModel>& id, Mark mark)
+    {
+        auto& cst = m_scenar.constraints.at(id);
+        for(const auto& c_id : ConstraintsAttachedToStartInSameBlock(cst, m_scenar))
+        {
+            marks.at(cst.id()) = mark;
+            mark_recursive_previous(c_id, mark);
+            mark_recursive_next(c_id, mark);
+        }
+    }
+
+    void mark_recursive_next(const Id<ConstraintModel>& id, Mark mark)
+    {
+
+        auto& cst = m_scenar.constraints.at(id);
+        for(const auto& c_id : ConstraintsAttachedToEndInSameBlock(cst, m_scenar))
+        {
+            marks.at(cst.id()) = mark;
+            mark_recursive_previous(c_id, mark);
+            mark_recursive_next(c_id, mark);
+        }
+    }
+
+    void marking()
+    {
+        for(const auto& event : m_scenar.events)
+        {
+        }
+
+
+
+
+
+
+
+
+        for(const auto& cst : m_scenar.constraints)
+        {
+            // We start from constraints that don't have previous constraints.
+
+            if(marks.at(cst.id()) == NoMark)
+            {
+                // First we choose a mark
+                int mark = currentMark;
+                marks.at(cst.id()) = mark;
+                mark_recursive_previous(cst.id(), mark);
+                mark_recursive_next(cst.id(), mark);
+                currentMark++;
+            }
+        }
+    }
+
+    std::map<Id<ConstraintModel>, int> marks;
+};
+*/
+
+struct Program
+{
+    std::vector<Id<ConstraintModel>> constraints;
+    std::vector<Id<EventModel>> events;
+    std::vector<Id<TimeNodeModel>> nodes;
+    std::vector<Id<StateModel>> states;
+};
+
+using Mark = int;
+static const constexpr int NoMark = -1;
+// A program is a connected set of constraints, etc.
+class ProgramVisitor
+{
+    Mark currentMark = 0;
+
+    std::map<Id<ConstraintModel>, Mark> constraints;
+    std::map<Id<EventModel>, Mark> events;
+    std::map<Id<TimeNodeModel>, Mark> nodes;
+    std::map<Id<StateModel>, Mark> states;
+
+    const Scenario::ScenarioModel& m_scenar;
+public:
+    ProgramVisitor(const Scenario::ScenarioModel& scenar):
+        m_scenar{scenar}
+    {
+        for(const auto& elt : scenar.constraints)
+        {
+            constraints.insert(std::make_pair(elt.id(), NoMark));
+        }
+        for(const auto& elt : scenar.timeNodes)
+        {
+            nodes.insert(std::make_pair(elt.id(), NoMark));
+        }
+        for(const auto& elt : scenar.events)
+        {
+            events.insert(std::make_pair(elt.id(), NoMark));
+        }
+        for(const auto& elt : scenar.states)
+        {
+            states.insert(std::make_pair(elt.id(), NoMark));
+        }
+
+        // Take a constraint and recursively mark everything
+        for(const auto& constraint : scenar.constraints)
+        {
+            if(constraints.at(constraint.id()) == NoMark)
+            {
+                currentMark++;
+                mark(constraint.id(), currentMark);
+            }
+        }
+    }
+
+    void mark(const Id<ConstraintModel>& cid, Mark m)
+    {
+        ISCORE_ASSERT(constraints.at(cid) == m || constraints.at(cid) == NoMark);
+        if(constraints.at(cid) == m)
+        {
+            return;
+        }
+
+        constraints.at(cid) = m;
+
+        auto& cst = m_scenar.constraints.at(cid);
+        cst.metadata.setLabel(QString::number(m));
+        states.at(startState(cst, m_scenar).id()) = m;
+        states.at(endState(cst, m_scenar).id()) = m;
+        events.at(startEvent(cst, m_scenar).id()) = m;
+        events.at(endEvent(cst, m_scenar).id()) = m;
+        nodes.at(startTimeNode(cst, m_scenar).id()) = m;
+        nodes.at(endTimeNode(cst, m_scenar).id()) = m;
+
+        // Mark all that's before the start node.
+        auto& start_node = startTimeNode(cst, m_scenar);
+        for(const auto& cst : previousConstraints(start_node, m_scenar))
+        {
+            mark(cst, m);
+        }
+
+        // Mark all that's after the start node.
+        for(const auto& cst : nextConstraints(start_node, m_scenar))
+        {
+            mark(cst, m);
+        }
+
+        // Mark all that's before the end node.
+        auto& end_node = endTimeNode(cst, m_scenar);
+        for(const auto& cst : previousConstraints(end_node, m_scenar))
+        {
+            mark(cst, m);
+        }
+
+        // Mark all that's after the end node.
+        for(const auto& cst : nextConstraints(end_node, m_scenar))
+        {
+            mark(cst, m);
+        }
+    }
+
+};
+/*
 
 class CyclomaticVisitor
 {
@@ -429,7 +751,6 @@ class CyclomaticVisitor
         CyclomaticVisitor(const Scenario::ScenarioModel& scenar):
             m_scenar{scenar}
         {
-            f.operators.lbrace += 1;
 
             for(const auto& elt : scenar.constraints)
             { visit(elt); }
@@ -443,7 +764,6 @@ class CyclomaticVisitor
             for(const auto& elt : scenar.states)
             { visit(elt); }
 
-            f.operators.rbrace += 1;
         }
 
         template<typename T>
@@ -467,15 +787,13 @@ class CyclomaticVisitor
         {
             if(e.condition().hasChildren())
             {
-                cyclo++;
             }
         }
 
         void visit(const TimeNodeModel& tn)
         {
-            if(tn.trigger().hasChildren())
+            if(tn.trigger()->expression().hasChildren())
             {
-                cyclo++;
             }
         }
 
@@ -483,11 +801,12 @@ class CyclomaticVisitor
         {
         }
 };
+*/
 
 
 Scenario::Metrics::Cyclomatic::Factors
 Scenario::Metrics::Cyclomatic::ComputeFactors(const Scenario::ScenarioModel& scenar)
 {
-
-    auto sf = CyclomaticVisitor{scenar};
+    ProgramVisitor v(scenar);
+    return {};
 }
