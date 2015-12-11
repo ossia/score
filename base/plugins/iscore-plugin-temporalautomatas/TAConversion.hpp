@@ -5,6 +5,7 @@
 #include <iscore/tools/ModelPath.hpp>
 #include <set>
 #include <eggs/variant.hpp>
+
 class AutomationModel;
 class TimeNodeModel;
 class EventModel;
@@ -41,10 +42,12 @@ QString name(const Object& obj)
 namespace TA
 {
 
-using BroadcastChan = QString;
+using BroadcastVariable = QString;
+using BoolVariable = QString;
+using IntVariable = QString;
 struct Event
 {
-    Event(QString n, int a, BroadcastChan b, TimeValue c, int d):
+    Event(QString n, IntVariable a, BroadcastVariable b, TimeValue c, int d):
         name{n},
         message{a},
         event{b},
@@ -55,10 +58,30 @@ struct Event
     }
 
     QString name;
-    int message{};
-    BroadcastChan event{};
+    IntVariable message{};
+    BroadcastVariable event{};
     TimeValue date{};
     int val{};
+};
+using Event_ND = Event;
+
+struct Mix
+{
+        Mix(QString name, BroadcastVariable a, BroadcastVariable b, BroadcastVariable c, BroadcastVariable d ):
+            name{name},
+            event_in{a},
+            event_out{b},
+            skip_p{c},
+            kill_p{d}
+        {
+
+        }
+
+        QString name;
+        BroadcastVariable event_in;
+        BroadcastVariable event_out;
+        BroadcastVariable skip_p;
+        BroadcastVariable kill_p;
 };
 
 struct Point
@@ -72,20 +95,20 @@ struct Point
     QString name;
     int condition{};
     int conditionValue{};
-    BroadcastChan en; // Enabled
-    BroadcastChan conditionMessage;
+    BoolVariable en; // Enabled
+    IntVariable conditionMessage;
 
-    BroadcastChan event;
+    BroadcastVariable event;
 
-    bool urgent{};
+    bool urgent = false;
 
-    BroadcastChan event_s;
-    BroadcastChan skip_p;
-    BroadcastChan event_e;
-    BroadcastChan kill_p;
+    BroadcastVariable event_s;
+    BroadcastVariable skip_p;
+    BroadcastVariable event_e;
+    BroadcastVariable kill_p;
 
-    BroadcastChan skip;
-    BroadcastChan event_t;
+    BroadcastVariable skip;
+    BroadcastVariable event_t;
 };
 
 
@@ -101,17 +124,17 @@ struct Flexible
 
     TimeValue dmin;
     TimeValue dmax;
-    bool finite{};
+    bool finite = true;
 
-    BroadcastChan event_s;
-    BroadcastChan event_min;
-    BroadcastChan event_i;
-    BroadcastChan event_max;
+    BroadcastVariable event_s;
+    BroadcastVariable event_min;
+    BroadcastVariable event_i;
+    BroadcastVariable event_max;
 
-    BroadcastChan skip_p;
-    BroadcastChan kill_p;
-    BroadcastChan skip;
-    BroadcastChan kill;
+    BroadcastVariable skip_p;
+    BroadcastVariable kill_p;
+    BroadcastVariable skip;
+    BroadcastVariable kill;
 };
 
 struct Rigid
@@ -126,26 +149,31 @@ struct Rigid
 
     TimeValue dur;
 
-    BroadcastChan event_s;
-    BroadcastChan event_e1;
+    BroadcastVariable event_s;
+    BroadcastVariable event_e1;
 
-    BroadcastChan skip_p;
-    BroadcastChan kill_p;
-    BroadcastChan skip;
-    BroadcastChan kill;
+    BroadcastVariable skip_p;
+    BroadcastVariable kill_p;
+    BroadcastVariable skip;
+    BroadcastVariable kill;
 
-    BroadcastChan event_e2;
+    BroadcastVariable event_e2;
 };
 
 using Constraint = eggs::variant<Rigid, Flexible>;
 
 struct ScenarioContent
 {
-        std::set<TA::BroadcastChan> broadcasts;
+        std::set<TA::BroadcastVariable> broadcasts;
+        std::set<TA::IntVariable> ints;
+        std::set<TA::BoolVariable> bools;
+
         std::list<TA::Rigid> rigids;
         std::list<TA::Flexible> flexibles;
         std::list<TA::Point> points;
         std::list<TA::Event> events;
+        std::list<TA::Event_ND> events_nd;
+        std::list<TA::Mix> mixs;
 };
 
 
@@ -168,9 +196,9 @@ struct TAScenario : public ScenarioContent
 
     TA::Constraint self; // The scenario is considered similar to a constraint.
 
-    const TA::BroadcastChan event_s;// = "skip_S" + name(iscore_scenario);
-    const TA::BroadcastChan skip;// = "skip_S" + name(iscore_scenario);
-    const TA::BroadcastChan kill;// = "kill_S" + name(iscore_scenario);
+    const TA::BroadcastVariable event_s;// = "skip_S" + name(iscore_scenario);
+    const TA::BroadcastVariable skip;// = "skip_S" + name(iscore_scenario);
+    const TA::BroadcastVariable kill;// = "kill_S" + name(iscore_scenario);
 };
 
 }
