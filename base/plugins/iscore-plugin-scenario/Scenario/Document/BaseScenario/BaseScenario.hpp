@@ -36,6 +36,7 @@ class BaseScenario final : public IdentifiedObject<BaseScenario>, public BaseSce
         Selection selectedChildren() const;
 
         using BaseScenarioContainer::event;
+        using QObject::event;
 };
 
 const QVector<Id<ConstraintModel>> constraintsBeforeTimeNode(

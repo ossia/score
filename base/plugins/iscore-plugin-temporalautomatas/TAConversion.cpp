@@ -433,30 +433,20 @@ void TAVisitor::visit(const ConstraintModel &c)
         }
     }
 
+    depth ++;
 
-    /*
-            if(c.duration.isRigid())
-            {
-                c.duration.defaultDuration();
-            }
-            else
-            {
-                c.duration.minDuration();
-                c.duration.maxDuration();
-            }*/
 
-    depth ++;/*
-            for(const auto& process : c.processes)
-            {
-                if(auto autom = dynamic_cast<const AutomationModel*>(&process))
-                {
-                    visit(*autom);
-                }
-                else if(auto scenario = dynamic_cast<const Scenario::ScenarioModel*>(&process))
-                {
-                    visit(*scenario);
-                }
-            }
-*/
+    for(const auto& process : c.processes)
+    {
+        if(auto autom = dynamic_cast<const AutomationModel*>(&process))
+        {
+            visit(*autom);
+        }
+        else if(auto scenario = dynamic_cast<const Scenario::ScenarioModel*>(&process))
+        {
+            visit(*scenario);
+        }
+    }
+
     depth --;
 }
