@@ -24,6 +24,8 @@
 #include <iscore/tools/SettableIdentifier.hpp>
 #include <Scenario/Inspector/SelectionButton.hpp>
 
+#include <QSizePolicy>
+
 namespace iscore {
 class Document;
 }  // namespace iscore
@@ -75,7 +77,7 @@ void StateInspectorWidget::updateDisplayedValues()
                 selectionDispatcher(),
                 this);
 
-        lay->addWidget(btn);
+        m_stateSection->addContent(btn);
     }
 
     // Constraints setup
@@ -87,7 +89,7 @@ void StateInspectorWidget::updateDisplayedValues()
                 selectionDispatcher(),
                 this);
 
-        lay->addWidget(btn);
+        m_stateSection->addContent(btn);
     }
     if(m_model.nextConstraint())
     {
@@ -97,7 +99,7 @@ void StateInspectorWidget::updateDisplayedValues()
                 selectionDispatcher(),
                 this);
 
-        lay->addWidget(btn);
+        m_stateSection->addContent(btn);
     }
 
     auto scenarModel = dynamic_cast<const Scenario::ScenarioModel*>(m_model.parent());
@@ -118,6 +120,7 @@ void StateInspectorWidget::updateDisplayedValues()
     m_properties.push_back(widget);
 
     updateAreaLayout(m_properties);
+    m_stateSection->expand();
 }
 
 using namespace Scenario;
