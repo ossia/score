@@ -67,7 +67,11 @@ using Event_ND = Event;
 
 struct Mix
 {
-        Mix(QString name, BroadcastVariable a, BroadcastVariable b, BroadcastVariable c, BroadcastVariable d ):
+        Mix(QString name,
+            BroadcastVariable a,
+            BroadcastVariable b,
+            BroadcastVariable c,
+            BroadcastVariable d):
             name{name},
             event_in{a},
             event_out{b},
@@ -82,6 +86,39 @@ struct Mix
         BroadcastVariable event_out;
         BroadcastVariable skip_p;
         BroadcastVariable kill_p;
+};
+
+struct Control
+{
+    Control(QString name,
+            int num,
+            BroadcastVariable a,
+            BroadcastVariable b,
+            BroadcastVariable c,
+            BroadcastVariable d,
+            BroadcastVariable e,
+            BroadcastVariable f
+            ):
+        name{name},
+        num_prev_rels{num},
+        event_s1{a},
+        skip_p{b},
+        skip{c},
+        event_e{d},
+        kill_p{e},
+        event_s2{f}
+    {
+
+    }
+
+    QString name;
+    int num_prev_rels = 0;
+    BroadcastVariable event_s1;
+    BroadcastVariable skip_p;
+    BroadcastVariable skip;
+    BroadcastVariable event_e;
+    BroadcastVariable kill_p;
+    BroadcastVariable event_s2;
 };
 
 struct Point
@@ -100,7 +137,7 @@ struct Point
 
     BroadcastVariable event;
 
-    bool urgent = false;
+    bool urgent = true;
 
     BroadcastVariable event_s;
     BroadcastVariable skip_p;
@@ -174,6 +211,7 @@ struct ScenarioContent
         std::list<TA::Event> events;
         std::list<TA::Event_ND> events_nd;
         std::list<TA::Mix> mixs;
+        std::list<TA::Control> controls;
 };
 
 

@@ -88,3 +88,68 @@ const auto& nextConstraint(
 {
     return scenario.constraint(st.nextConstraint());
 }
+
+
+template<typename Scenario_T>
+auto nextConstraints(
+        const EventModel& ev,
+        const Scenario_T& scenario)
+{
+    std::list<Id<ConstraintModel>> constraints;
+    for(const Id<StateModel>& state : ev.states())
+    {
+        const StateModel& st = scenario.states.at(state);
+        if(const auto& cst_id = st.nextConstraint())
+            constraints.push_back(cst_id);
+    }
+    return constraints;
+}
+template<typename Scenario_T>
+auto previousConstraints(
+        const EventModel& ev,
+        const Scenario_T& scenario)
+{
+    std::list<Id<ConstraintModel>> constraints;
+    for(const Id<StateModel>& state : ev.states())
+    {
+        const StateModel& st = scenario.states.at(state);
+        if(const auto& cst_id = st.previousConstraint())
+            constraints.push_back(cst_id);
+    }
+    return constraints;
+}
+
+template<typename Scenario_T>
+auto nextConstraints(
+        const TimeNodeModel& tn,
+        const Scenario_T& scenario)
+{
+    std::list<Id<ConstraintModel>> constraints;
+    for(const Id<EventModel>& event_id : tn.events())
+    {
+        const EventModel& event = scenario.events.at(event_id);
+        auto prev = nextConstraints(event, scenario);
+        constraints.splice(constraints.end(), prev);
+    }
+
+    return constraints;
+}
+
+
+template<typename Scenario_T>
+auto previousConstraints(
+        const TimeNodeModel& tn,
+        const Scenario_T& scenario)
+{
+    std::list<Id<ConstraintModel>> constraints;
+    for(const Id<EventModel>& event_id : tn.events())
+    {
+        const EventModel& event = scenario.events.at(event_id);
+        auto prev = previousConstraints(event, scenario);
+        constraints.splice(constraints.end(), prev);
+    }
+
+    return constraints;
+}
+
+

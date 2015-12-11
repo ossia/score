@@ -424,69 +424,6 @@ Scenario::Metrics::Halstead::ComputeFactors(const Scenario::ScenarioModel& scena
 // on va de chaque contrainte au timenode le plus lointain qui n'a pas de trigger / condition.
 // -> algorithme de flot avec marquage.
 
-template<typename Scenario_T>
-auto nextConstraints(
-        const EventModel& ev,
-        const Scenario_T& scenario)
-{
-    std::list<Id<ConstraintModel>> constraints;
-    for(const Id<StateModel>& state : ev.states())
-    {
-        const StateModel& st = scenario.states.at(state);
-        if(const auto& cst_id = st.nextConstraint())
-            constraints.push_back(cst_id);
-    }
-    return constraints;
-}
-template<typename Scenario_T>
-auto previousConstraints(
-        const EventModel& ev,
-        const Scenario_T& scenario)
-{
-    std::list<Id<ConstraintModel>> constraints;
-    for(const Id<StateModel>& state : ev.states())
-    {
-        const StateModel& st = scenario.states.at(state);
-        if(const auto& cst_id = st.previousConstraint())
-            constraints.push_back(cst_id);
-    }
-    return constraints;
-}
-
-template<typename Scenario_T>
-auto nextConstraints(
-        const TimeNodeModel& tn,
-        const Scenario_T& scenario)
-{
-    std::list<Id<ConstraintModel>> constraints;
-    for(const Id<EventModel>& event_id : tn.events())
-    {
-        const EventModel& event = scenario.events.at(event_id);
-        auto prev = nextConstraints(event, scenario);
-        constraints.splice(constraints.end(), prev);
-    }
-
-    return constraints;
-}
-
-
-template<typename Scenario_T>
-auto previousConstraints(
-        const TimeNodeModel& tn,
-        const Scenario_T& scenario)
-{
-    std::list<Id<ConstraintModel>> constraints;
-    for(const Id<EventModel>& event_id : tn.events())
-    {
-        const EventModel& event = scenario.events.at(event_id);
-        auto prev = previousConstraints(event, scenario);
-        constraints.splice(constraints.end(), prev);
-    }
-
-    return constraints;
-}
-
-
 
 
 /*
@@ -646,12 +583,6 @@ struct Program
         std::vector<Id<TimeNodeModel>> nodes;
         std::vector<Id<StateModel>> states;
 };
-template<typename Vector1, typename Vector2, typename Pred>
-void copy_if(const Vector1& source, Vector2& destination, Pred predicate)
-{
-    std::copy_if(source.begin(), source.end(), std::back_inserter(destination), predicate);
-}
-
 
 using Mark = int;
 static const constexpr int NoMark = -1;
@@ -813,12 +744,6 @@ auto startingTimeNodes(const Program& program, const Scenario::ScenarioModel& sc
 // Each starting point yields a new block.
 // If there is a single block before a timenode,
 // and if there is no trigger / condition, then the block continues afterwards.
-
-template<typename Vector, typename Fun>
-auto any_of(Vector&& v, Fun fun)
-{
-    return std::any_of(std::begin(v), std::end(v), fun);
-}
 
 struct BaseBlock
 {

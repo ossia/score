@@ -32,11 +32,24 @@ void remove_one(Vector&& v, const Value& val)
 }
 
 
+template<typename Vector, typename Fun>
+auto any_of(Vector&& v, Fun fun)
+{
+    return std::any_of(std::begin(v), std::end(v), fun);
+}
+
+
 template<typename Vector1, typename Vector2>
 void copy(const Vector1& source, Vector2& destination)
 {
     destination.reserve(destination.size() + source.size());
     std::copy(source.begin(), source.end(), std::back_inserter(destination));
+}
+
+template<typename Vector1, typename Vector2, typename Pred>
+void copy_if(const Vector1& source, Vector2& destination, Pred predicate)
+{
+    std::copy_if(source.begin(), source.end(), std::back_inserter(destination), predicate);
 }
 
 // http://stackoverflow.com/a/26902803/1495627
