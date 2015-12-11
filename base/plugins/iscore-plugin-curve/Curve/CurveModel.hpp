@@ -79,5 +79,5 @@ class ISCORE_PLUGIN_CURVE_EXPORT CurveModel final : public IdentifiedObject<Curv
 };
 
 namespace Curve {
-std::vector<CurveSegmentData> orderedSegments(const CurveModel& curve);
+std::vector<CurveSegmentData> ISCORE_PLUGIN_CURVE_EXPORT orderedSegments(const CurveModel& curve);
 }

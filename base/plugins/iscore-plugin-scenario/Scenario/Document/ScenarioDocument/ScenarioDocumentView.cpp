@@ -74,12 +74,11 @@ ScenarioDocumentView::ScenarioDocumentView(
         QBuffer b;
         QSvgGenerator p;
         p.setOutputDevice(&b);
-        p.setSize(QSize(1024,768));
-        p.setViewBox(QRect(0,0,1024,768));
         QPainter painter;
         painter.begin(&p);
         painter.setRenderHints(QPainter::Antialiasing | QPainter::SmoothPixmapTransform);
-        m_scene->render(&painter);
+
+        m_scene->render(&painter, QRectF(0, 0, 1920, 1080),  QRectF(0, 0, 1920, 1080));
         painter.end();
 
         QMimeData * d = new QMimeData;

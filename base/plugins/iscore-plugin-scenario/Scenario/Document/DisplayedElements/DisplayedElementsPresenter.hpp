@@ -22,6 +22,7 @@ class DisplayedElementsPresenter final :
         Q_OBJECT
     public:
         DisplayedElementsPresenter(ScenarioDocumentPresenter* parent);
+        using QObject::event;
         using BaseScenarioPresenter<DisplayedElementsModel, FullViewConstraintPresenter>::event;
 
         BaseGraphicsObject& view() const;

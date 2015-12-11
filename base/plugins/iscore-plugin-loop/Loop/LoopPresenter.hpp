@@ -58,7 +58,8 @@ class LoopPresenter :
         LoopView& view() const
         { return *m_view; }
 
-        using  BaseScenarioPresenter<Loop::ProcessModel, TemporalConstraintPresenter>::event;
+        using BaseScenarioPresenter<Loop::ProcessModel, TemporalConstraintPresenter>::event;
+        using QObject::event;
 
         void setWidth(int width) override;
         void setHeight(int height) override;

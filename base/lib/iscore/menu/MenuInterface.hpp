@@ -6,7 +6,7 @@
 // TODO faire un script qui génère ça automatiquement
 namespace iscore
 {
-    enum class ISCORE_LIB_BASE_EXPORT ToplevelMenuElement
+    enum class ToplevelMenuElement : int ISCORE_LIB_BASE_EXPORT
     {
         FileMenu,
         EditMenu,
@@ -18,7 +18,7 @@ namespace iscore
         AboutMenu
     };
 
-    enum class ISCORE_LIB_BASE_EXPORT FileMenuElement
+    enum class FileMenuElement : int ISCORE_LIB_BASE_EXPORT
     {
         New,
         Separator_Load,
@@ -35,7 +35,7 @@ namespace iscore
         LoadCommands
     };
 
-    enum class ISCORE_LIB_BASE_EXPORT EditMenuElement
+    enum class EditMenuElement : int ISCORE_LIB_BASE_EXPORT
     {
         Separator_Copy,
         Copy,
@@ -46,23 +46,23 @@ namespace iscore
         Redo
     };
 
-    enum class ISCORE_LIB_BASE_EXPORT ToolMenuElement
+    enum class ToolMenuElement : int ISCORE_LIB_BASE_EXPORT
     {
         Separator_Tool
     };
 
-    enum class ISCORE_LIB_BASE_EXPORT ViewMenuElement
+    enum class ViewMenuElement : int ISCORE_LIB_BASE_EXPORT
     {
         Windows
     };
 
-    enum class ISCORE_LIB_BASE_EXPORT SettingsMenuElement
+    enum class SettingsMenuElement : int ISCORE_LIB_BASE_EXPORT
     {
         Settings
     };
 
 
-    enum class ISCORE_LIB_BASE_EXPORT AboutMenuElement
+    enum class AboutMenuElement : int ISCORE_LIB_BASE_EXPORT
     {
         Help,
         About

@@ -48,6 +48,30 @@ inline double Bugs2(const Factors& f)
 }
 }
 
+namespace Cyclomatic
+{
+struct Factors
+{
+    Factors(int e, int n, int c):
+        edgeCount{e},
+        nodeCount{n},
+        connectedComponents{c}
+    {
+    }
+        int edgeCount{};
+        int nodeCount{};
+        int connectedComponents{};
+};
+
+Factors ComputeFactors(const ScenarioModel& scenar);
+Factors ComputeFactors2(const ScenarioModel& scenar);
+
+inline double Complexity(const Factors& f)
+{
+    return f.edgeCount - f.nodeCount + 2 * f.connectedComponents;
+}
+}
+
 QString toScenarioLanguage(const Scenario::ScenarioModel& s);
 }
 }
