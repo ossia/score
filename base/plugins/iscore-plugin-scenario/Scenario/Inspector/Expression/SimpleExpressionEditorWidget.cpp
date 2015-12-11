@@ -142,7 +142,16 @@ iscore::BinaryOperator SimpleExpressionEditorWidget::binOperator()
 void SimpleExpressionEditorWidget::setRelation(iscore::Relation r)
 {
     m_address->setText(r.relMemberToString(r.lhs));
-    m_value->setText(r.relMemberToString(r.rhs));
+
+    auto s = r.relMemberToString(r.rhs);
+    bool isDouble;
+    s.toDouble(&isDouble);
+    if(!isDouble)
+    {
+        s.remove(0,1);
+        s.remove(s.lastIndexOf("\""),1);
+    }
+    m_value->setText(s);
 
     m_comparator->setCurrentText(m_comparatorList[r.op]);
 
@@ -189,9 +198,9 @@ void SimpleExpressionEditorWidget::on_editFinished()
     int i = 1;
     m_op = currentOperator();
     m_relation = expr;
-
-    m_ok->setVisible(m_validator.validate(expr, i) != QValidator::State::Acceptable );
-    if(m_validator.validate(expr, i) == QValidator::State::Acceptable)
+    bool b = m_validator.validate(expr, i) == QValidator::State::Acceptable;
+    m_ok->setVisible(!b);
+    if(b)
         emit editingFinished();
 }
 
@@ -206,10 +215,18 @@ QString SimpleExpressionEditorWidget::currentRelation()
     QString expr =  m_address->text();
     if(m_comparator->currentText() != m_comparatorList[Comparator::None])
     {
+        bool ok;
+        auto val = m_value->text();
+        val.toDouble(&ok);
+        if(!ok)
+        {
+            val.prepend("\"");
+            val += "\"";
+        }
         expr += " ";
         expr += m_comparator->currentText();
         expr += " ";
-        expr += m_value->text();
+        expr += val;
     }
     return expr;
 }
