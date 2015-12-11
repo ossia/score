@@ -64,6 +64,7 @@ struct Factors
 };
 
 Factors ComputeFactors(const ScenarioModel& scenar);
+Factors ComputeFactors2(const ScenarioModel& scenar);
 
 inline double Complexity(const Factors& f)
 {

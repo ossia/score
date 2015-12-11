@@ -822,6 +822,8 @@ auto any_of(Vector&& v, Fun fun)
 
 struct BaseBlock
 {
+        BaseBlock(int b): block{b} {}
+        int block{};
         std::vector<Id<ConstraintModel>> constraints;
         std::vector<Id<EventModel>> events;
         std::vector<Id<TimeNodeModel>> nodes;
@@ -902,7 +904,7 @@ class CyclomaticVisitor
 
             for(Mark m = 0; m < maxMark; m++)
             {
-                BaseBlock b;
+                BaseBlock b{m};
 
                 for(const auto& elt : constraints)
                 {
@@ -1130,8 +1132,19 @@ Scenario::Metrics::Cyclomatic::ComputeFactors(const Scenario::ScenarioModel& sce
     int E_nodes = std::accumulate(programs.begin(), programs.end(), 0,
                                   [] (int size, const Program& program) { return size + program.nodes.size(); });
 
+    return Scenario::Metrics::Cyclomatic::Factors{E_events + E_nodes, N, (int)programs.size()};
+}
+
+Scenario::Metrics::Cyclomatic::Factors Scenario::Metrics::Cyclomatic::ComputeFactors2(const Scenario::ScenarioModel& scenar)
+{
+    ProgramVisitor v(scenar);
+    auto programs = v.programs();
+
     // Second case, more intelligent.
     int program_n = 0;
+    int E = 0;
+    int N = 0;
+    int P = programs.size();
     for(const auto& program : programs)
     {
         CyclomaticVisitor vis2(program, scenar);
@@ -1140,21 +1153,51 @@ Scenario::Metrics::Cyclomatic::ComputeFactors(const Scenario::ScenarioModel& sce
         for(int i = 0; i < blocks.size(); i++)
         {
             const auto& block = blocks[i];
-            for(const auto& cid : block.constraints)
+            N += 1;
+            std::set<int> nextBlocks;
+            // We search all the adjacent forward blocks and we add edges.
+
+            for(const auto& elt_id : block.constraints)
             {
-                auto& cst = scenar.constraints.at(cid);
-                cst.metadata.setLabel(QString::number(program_n) + " - " + QString::number(i));
+                auto& elt = scenar.constraints.at(elt_id);
+                elt.metadata.setLabel(QString::number(program_n) + " - " + QString::number(i));
+
+
+                auto& tn = endTimeNode(elt, scenar);
+                auto it = find_if(blocks, [&] (const BaseBlock& block) {
+                   return contains(block.nodes, tn.id());
+                });
+                if(it != blocks.end())
+                {
+                    nextBlocks.insert(it->block && it->block != block.block);
+                }
             }
-            for(const auto& cid : block.events)
+            for(const auto& elt_id : block.events)
             {
-                auto& cst = scenar.events.at(cid);
-                cst.metadata.setLabel(QString::number(program_n) + " - " + QString::number(i));
+                auto& elt = scenar.events.at(elt_id);
+                elt.metadata.setLabel(QString::number(program_n) + " - " + QString::number(i));
             }
-            for(const auto& cid : block.nodes)
+            for(const auto& elt_id : block.nodes)
             {
-                auto& cst = scenar.timeNodes.at(cid);
-                cst.metadata.setLabel(QString::number(program_n) + " - " + QString::number(i));
+                auto& elt = scenar.timeNodes.at(elt_id);
+                elt.metadata.setLabel(QString::number(program_n) + " - " + QString::number(i));
+
+                for(const auto& event : elt.events())
+                {
+                    auto it = find_if(blocks, [&] (const BaseBlock& block) {
+                        return contains(block.events, event);
+                    });
+                    if(it != blocks.end() && it->block != block.block)
+                    {
+                        nextBlocks.insert(it->block);
+                        nextBlocks.insert(-it->block); // Twice for the disabled part
+                    }
+                }
             }
+
+            E += nextBlocks.size();
+
+
         }
         program_n++;
     }
@@ -1166,5 +1209,6 @@ Scenario::Metrics::Cyclomatic::ComputeFactors(const Scenario::ScenarioModel& sce
     // If it begins with a trigger,
     //  - if the range is infinite :
     //  - else it does not change.
-    return Scenario::Metrics::Cyclomatic::Factors{E_events + E_nodes, N, (int)programs.size()};
+
+    return  Scenario::Metrics::Cyclomatic::Factors{E, N, P};
 }
