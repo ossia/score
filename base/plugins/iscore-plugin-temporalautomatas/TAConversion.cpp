@@ -410,6 +410,7 @@ void TAVisitor::visit(const TimeNodeModel &timenode)
     }
 
 
+    /*
     // We create a flexible that will go to each event of the timenode.
     QString flexible_name = "__after__" + tn_name;
     TA::Flexible flexible{flexible_name};
@@ -434,7 +435,7 @@ void TAVisitor::visit(const TimeNodeModel &timenode)
     scenario.broadcasts.insert(flexible.event_max);
     scenario.broadcasts.insert(flexible.skip);
     scenario.broadcasts.insert(flexible.kill);
-
+*/
     scenario.points.push_back(tn_point);
 }
 
@@ -442,9 +443,11 @@ void TAVisitor::visit(const EventModel &event)
 {
     const auto& timenode = parentTimeNode(event, scenario.iscore_scenario);
     QString tn_name = name(timenode);
-    QString event_name = name(event);
+    auto it = find_if(scenario.points, [&] (const auto& point ) { return point.name == tn_name; });
+    ISCORE_ASSERT(it != scenario.points.end());
 
-    QString flexible_name = "__after__" + tn_name;
+    const TA::Point& previous_timenode_point = *it;
+    QString event_name = name(event);
 
     TA::Point point{event_name};
 
@@ -453,25 +456,41 @@ void TAVisitor::visit(const EventModel &event)
 
     point.en = "en_" + event_name;
     point.skip = "skip_" + event_name;
+    point.event = "event_" + event_name;
     point.event_t = "ok_" + event_name;
+    point.event_e = "emax_" + event_name;
 
     point.condition = 0;
     point.conditionMessage = "msg" + event_name;
 
-    point.event_s = "emin_" + flexible_name;
-    point.event = "event_" + flexible_name;
-    point.event_e = "emax_" + flexible_name;
-    point.skip_p = "skip_" + flexible_name;
+    point.event_s = previous_timenode_point.event_e;
+    point.skip_p = previous_timenode_point.skip;
+
     point.kill_p = scenario.kill;
 
     point.urgent = true;
+
+    if(!event.condition().hasChildren())
+    {
+        // No condition
+        TA::Mix point_start_mix{
+            "Mix_" + event_name,
+                    previous_timenode_point.event_e,
+                    point.event_e,
+                    point.skip_p,
+                    point.kill_p
+        };
+
+        scenario.mixs.push_back(point_start_mix);
+    }
     scenario.points.push_back(point);
 
     scenario.bools.insert(point.en);
     scenario.ints.insert(point.conditionMessage);
-    scenario.broadcasts.insert(point.event);
     scenario.broadcasts.insert(point.skip);
+    scenario.broadcasts.insert(point.event);
     scenario.broadcasts.insert(point.event_t);
+    scenario.broadcasts.insert(point.event_e);
 
     // We already linked the start of this event, with
     // the end of the flexible created in the timenode pass
@@ -543,7 +562,7 @@ void TAVisitor::visit(const ConstraintModel &c)
         TA::Rigid rigid{cst_name};
         rigid.dur = c.duration.defaultDuration();
 
-        rigid.event_s = "event_" + start_event_name;
+        rigid.event_s = "ok_" + start_event_name;
 
         // skip_p : skip precedent
         // kill_p : kill parent
@@ -574,7 +593,7 @@ void TAVisitor::visit(const ConstraintModel &c)
         flexible.dmax = c.duration.maxDuration();
         flexible.finite = !c.duration.isMaxInfinite();
 
-        flexible.event_s = "event_" + start_event_name;
+        flexible.event_s = "ok_" + start_event_name;
         flexible.skip_p = scenario.skip; // TODO this must be the skip of the start event.
         flexible.kill_p = scenario.kill;
 
