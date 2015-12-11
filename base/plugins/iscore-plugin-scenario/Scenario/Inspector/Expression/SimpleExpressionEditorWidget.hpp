@@ -36,7 +36,7 @@ class SimpleExpressionEditorWidget : public QWidget
 
     private slots:
         void on_editFinished();
-        void on_operatorChanged(int i);
+        void on_comparatorChanged(int i);
 // TODO on_modelChanged() -> done in parent inspector (i.e. event), no ?
 
     private:

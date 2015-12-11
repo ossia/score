@@ -48,8 +48,59 @@ ExpressionEditorWidget::ExpressionEditorWidget(QWidget *parent) :
 
 iscore::Expression ExpressionEditorWidget::expression()
 {
-    auto e = *iscore::parse(currentExpr());
-    return e;
+    iscore::Expression exp{};
+
+    iscore::Expression* lastRel{};
+
+    // will keep containing the last relation added
+
+    for(auto r : m_relations)
+    {
+        if(!exp.hasChildren())
+        {
+            // add the first node : simple relation
+            exp.emplace_back(r->relation(), &exp);
+            lastRel = &(exp.back());
+        }
+        else
+        {
+            auto op = r->binOperator();
+            if(op == iscore::BinaryOperator::Or)
+            {
+                auto pOp = op;
+                if(lastRel->parent()->is<iscore::BinaryOperator>())
+                    pOp = lastRel->parent()->get<iscore::BinaryOperator>();
+
+                // we're taking out the child of an "OR" node or of the root
+                while (pOp != iscore::BinaryOperator::Or && lastRel->parent() != &exp )
+                {
+                    lastRel = lastRel->parent();
+                    if(lastRel->is<iscore::BinaryOperator>())
+                        pOp = lastRel->get<iscore::BinaryOperator>();
+                }
+            }
+            if(op != iscore::BinaryOperator::None)
+            {
+                auto p = lastRel->parent();
+                // remove link between parent and current
+                auto oldC = p->back();
+                p->removeChild(p->end()--);
+
+                // insert operator
+                p->emplace_back(op, p);
+                auto& nOp = p->front();
+
+                // recreate link
+                oldC.setParent(&nOp);
+                nOp.push_back(oldC);
+
+                // add the relation as child of the inserted operator
+                nOp.emplace_back(r->relation(), &nOp);
+            }
+        }
+    }
+//    qDebug() << "-----------" << exp.toString() << "-----------";
+    return exp;
 }
 
 void ExpressionEditorWidget::setExpression(iscore::Expression e)
@@ -65,10 +116,12 @@ void ExpressionEditorWidget::setExpression(iscore::Expression e)
 
 void ExpressionEditorWidget::on_editFinished()
 {
-    if (m_expression == currentExpr())
+    auto ex = currentExpr();
+    auto e = iscore::parse(m_expression);
+    if (m_expression == ex && !e)
         return;
 
-    m_expression = currentExpr();
+    m_expression = ex;
     emit editingFinished();
 }
 
@@ -90,11 +143,15 @@ void ExpressionEditorWidget::exploreExpression(iscore::Expression e)
 
         if(b.hasChildren())
         {
+            exploreExpression(b);
             if(e.is<iscore::BinaryOperator>())
             {
-                m_relations.back()->setOperator( e.get<iscore::BinaryOperator>() );
+                for(int i = 1; i<m_relations.size(); i++)
+                {
+                    if(m_relations.at(i)->binOperator() == iscore::BinaryOperator::None )
+                        m_relations.at(i)->setOperator( e.get<iscore::BinaryOperator>() );
+                }
             }
-            exploreExpression(b);
         }
         else
         {
@@ -121,19 +178,8 @@ void ExpressionEditorWidget::exploreExpression(iscore::Expression e)
 
 QString ExpressionEditorWidget::currentExpr()
 {
-    QString expr;
-    for(auto r : m_relations)
-    {
-        expr += r->currentRelation();
-        expr += " ";
-        expr += r->currentOperator();
-        expr += " ";
-    }
-    while(expr.endsWith(" "))
-    {
-        expr.remove(expr.size()-1, 1);
-    }
-    return expr;
+    auto exp = expression();
+    return exp.toString();
 }
 
 void ExpressionEditorWidget::addNewRelation()

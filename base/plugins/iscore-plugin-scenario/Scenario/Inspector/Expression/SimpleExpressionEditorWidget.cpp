@@ -93,7 +93,7 @@ SimpleExpressionEditorWidget::SimpleExpressionEditorWidget(int index, QWidget* p
 
     // enable value field
     connect(m_comparator,  static_cast<void (QComboBox::*)(int)>(&QComboBox::currentIndexChanged),
-            this, &SimpleExpressionEditorWidget::on_operatorChanged);
+            this, &SimpleExpressionEditorWidget::on_comparatorChanged);
 
     m_ok->setVisible(false);
     m_value->setEnabled(false);
@@ -111,7 +111,7 @@ SimpleExpressionEditorWidget::SimpleExpressionEditorWidget(int index, QWidget* p
         m_comparator->addItem(c);
     }
 
-    m_comparator->setCurrentText(m_comparatorList[iscore::Relation::Operator::None]);
+    m_comparator->setCurrentText(m_comparatorList[Comparator::None]);
 
 }
 
@@ -119,8 +119,15 @@ iscore::Expression SimpleExpressionEditorWidget::relation()
 {
     int i = 1;
     QString expr = currentRelation();
+
     m_validator.validate(expr, i);
-    return *m_validator.get();
+    if(m_validator.validate(expr, i) == QValidator::State::Acceptable )
+    {
+        return *m_validator.get();
+    }
+
+    else
+        return iscore::Expression{};
 }
 
 iscore::BinaryOperator SimpleExpressionEditorWidget::binOperator()
@@ -140,7 +147,6 @@ void SimpleExpressionEditorWidget::setRelation(iscore::Relation r)
     m_comparator->setCurrentText(m_comparatorList[r.op]);
 
     m_relation = r.toString();
-    qDebug() << m_relation;
 
     int i;
     m_ok->setVisible(m_validator.validate(m_relation, i) != QValidator::State::Acceptable);
@@ -189,16 +195,16 @@ void SimpleExpressionEditorWidget::on_editFinished()
         emit editingFinished();
 }
 
-void SimpleExpressionEditorWidget::on_operatorChanged(int i)
+void SimpleExpressionEditorWidget::on_comparatorChanged(int i)
 {
-    m_value->setEnabled(m_comparator->currentText() != m_comparatorList[iscore::Relation::Operator::None]);
+    m_value->setEnabled(m_comparator->currentText() != m_comparatorList[Comparator::None]);
 }
 
 
 QString SimpleExpressionEditorWidget::currentRelation()
 {
     QString expr =  m_address->text();
-    if(m_comparator->currentIndex() > 0)
+    if(m_comparator->currentText() != m_comparatorList[Comparator::None])
     {
         expr += " ";
         expr += m_comparator->currentText();

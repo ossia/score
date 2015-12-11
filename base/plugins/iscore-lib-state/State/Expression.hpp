@@ -24,7 +24,7 @@ enum class UnaryOperator {
     Not, None
 };
 
-struct ExprData : public VariantBasedNode<Relation, BinaryOperator, UnaryOperator>
+struct ISCORE_LIB_STATE_EXPORT ExprData : public VariantBasedNode<Relation, BinaryOperator, UnaryOperator>
 {
         ISCORE_SERIALIZE_FRIENDS(ExprData, DataStream)
         ISCORE_SERIALIZE_FRIENDS(ExprData, JSONObject)
@@ -95,10 +95,12 @@ class ISCORE_LIB_STATE_EXPORT TreeNode<ExprData> final : public ExprData
         auto begin() { return m_children.begin(); }
         auto begin() const { return m_children.cbegin(); }
         auto cbegin() const { return m_children.cbegin(); }
+        auto& front() { return m_children.front(); }
 
         auto end() { return m_children.end(); }
         auto end() const { return m_children.cend(); }
         auto cend() const { return m_children.cend(); }
+        auto& back() { return m_children.back(); }
 
         TreeNode() = default;
 
@@ -180,6 +182,7 @@ class ISCORE_LIB_STATE_EXPORT TreeNode<ExprData> final : public ExprData
             cld.setParent(this);
         }
 
+        // OPTIMIZEME : the last arg will be this. Is it possible to optimize that ?
         template<typename... Args>
         auto& emplace_back(Args&&... args)
         {

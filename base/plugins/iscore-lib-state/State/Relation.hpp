@@ -37,3 +37,5 @@ struct ISCORE_LIB_STATE_EXPORT Relation
 ISCORE_LIB_STATE_EXPORT const QMap<iscore::Relation::Operator, QString> opToString();
 
 }
+
+using Comparator = iscore::Relation::Operator;
