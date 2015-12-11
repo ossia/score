@@ -164,8 +164,12 @@ void SlotPresenter::on_layerModelRemoved(
         if(to_delete)
         {
             // No need to delete the view, the process presenters already do it.
+
             for(const auto& pair : elt.processes)
+            {
                 delete pair.first;
+                deleteGraphicsObject(pair.second);
+            }
         }
 
         return to_delete;

@@ -25,6 +25,10 @@
 #include <iscore/tools/Todo.hpp>
 
 #include "ProcessPanelId.hpp"
+#include <iscore/widgets/GraphicsItem.hpp>
+
+#include <Process/LayerView.hpp>
+
 namespace iscore {
 class PanelView;
 
@@ -158,6 +162,7 @@ void ProcessPanelPresenter::on_zoomChanged(ZoomRatio newzoom)
 void ProcessPanelPresenter::cleanup()
 {
     m_layerModel = nullptr;
+    deleteGraphicsObject(m_layer);
 
     delete m_processPresenter; // Will delete the view, too
     m_processPresenter = nullptr;
