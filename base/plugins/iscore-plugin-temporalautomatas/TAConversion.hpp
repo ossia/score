@@ -4,6 +4,7 @@
 #include <Process/TimeValue.hpp>
 #include <iscore/tools/ModelPath.hpp>
 #include <set>
+#include <eggs/variant.hpp>
 class AutomationModel;
 class TimeNodeModel;
 class EventModel;
@@ -18,20 +19,23 @@ template<typename Object>
 QString name(const Object& obj)
 {
     ObjectPath path = Path<Object>{obj}.unsafePath();
-    path.vec().erase(path.vec().begin(), path.vec().begin() + 4);
+    path.vec().erase(path.vec().begin(), path.vec().begin() + 3);
+    std::reverse(path.vec().begin(), path.vec().end());
     for(ObjectIdentifier& elt : path.vec())
     {
         if(elt.objectName() == "Scenario")
-            elt = ObjectIdentifier{"IScenario", elt.id()};
+            elt = ObjectIdentifier{"S", elt.id()};
         else if(elt.objectName() == "EventModel")
-            elt = ObjectIdentifier{"IEvent", elt.id()};
+            elt = ObjectIdentifier{"E", elt.id()};
         else if(elt.objectName() == "ConstraintModel")
-            elt = ObjectIdentifier{"IConstraint", elt.id()};
+            elt = ObjectIdentifier{"C", elt.id()};
+        else if(elt.objectName() == "BaseConstraintModel")
+            elt = ObjectIdentifier{"B", elt.id()};
         else if(elt.objectName() == "TimeNodeModel")
-            elt = ObjectIdentifier{"ITimeNode", elt.id()};
+            elt = ObjectIdentifier{"T", elt.id()};
     }
 
-    return path.toString().replace('/', "__").replace('.', "").prepend('_');
+    return path.toString().replace('/', "_").replace('.', "").prepend('_');
 }
 
 namespace TA
@@ -133,28 +137,40 @@ struct Rigid
     BroadcastChan event_e2;
 };
 
-struct TAScenario
+using Constraint = eggs::variant<Rigid, Flexible>;
+
+struct ScenarioContent
 {
-    TAScenario(const Scenario::ScenarioModel& s):
+        std::set<TA::BroadcastChan> broadcasts;
+        std::list<TA::Rigid> rigids;
+        std::list<TA::Flexible> flexibles;
+        std::list<TA::Point> points;
+        std::list<TA::Event> events;
+};
+
+
+struct TAScenario : public ScenarioContent
+{
+    template<typename T>
+    TAScenario(const Scenario::ScenarioModel& s, const T& constraint):
         iscore_scenario{s},
-        self{"toto"}
+        self{constraint},
+        event_s{constraint.event_s},
+        skip{constraint.skip},
+        kill{constraint.kill}
     {
-        // TODO setup self
-        broadcasts.insert(skip_S);
-        broadcasts.insert(kill_S);
+        broadcasts.insert(event_s);
+        broadcasts.insert(skip);
+        broadcasts.insert(kill);
     }
 
     const Scenario::ScenarioModel& iscore_scenario;
 
-    TA::Rigid self; // The scenario is considered similar to a constraint.
+    TA::Constraint self; // The scenario is considered similar to a constraint.
 
-    const TA::BroadcastChan skip_S = "skip_S" + name(iscore_scenario);
-    const TA::BroadcastChan kill_S = "kill_S" + name(iscore_scenario);
-
-    std::set<TA::BroadcastChan> broadcasts;
-    std::vector<TA::Rigid> rigids;
-    std::vector<TA::Flexible> flexibles;
-    std::vector<TA::Point> points;
+    const TA::BroadcastChan event_s;// = "skip_S" + name(iscore_scenario);
+    const TA::BroadcastChan skip;// = "skip_S" + name(iscore_scenario);
+    const TA::BroadcastChan kill;// = "kill_S" + name(iscore_scenario);
 };
 
 }
@@ -162,8 +178,9 @@ struct TAScenario
 struct TAVisitor
 {
     TA::TAScenario scenario;
-    TAVisitor(const Scenario::ScenarioModel& s):
-        scenario{s}
+    template<typename T>
+    TAVisitor(const Scenario::ScenarioModel& s, const T& constraint):
+        scenario{s, constraint}
     {
         visit(s);
     }
@@ -187,5 +204,5 @@ private:
 };
 namespace TA
 {
-QString makeScenario(const Scenario::ScenarioModel& s);
+QString makeScenario(const ConstraintModel& s);
 }

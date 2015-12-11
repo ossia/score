@@ -44,9 +44,8 @@ TemporalAutomatas::ApplicationPlugin::ApplicationPlugin(const iscore::Applicatio
         if(!doc)
             return;
         ScenarioDocumentModel& base = iscore::IDocument::get<ScenarioDocumentModel>(*doc);
-        auto& baseScenario = static_cast<Scenario::ScenarioModel&>(*base.baseScenario().constraint().processes.begin());
 
-        TextDialog dial(TA::makeScenario(baseScenario), qApp->activeWindow());
+        TextDialog dial(TA::makeScenario(base.baseScenario().constraint()), qApp->activeWindow());
         dial.exec();
 
     } );

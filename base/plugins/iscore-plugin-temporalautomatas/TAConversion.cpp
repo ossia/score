@@ -15,8 +15,8 @@ namespace TA
 {
 using BroadcastChan = QString;
 
-template<typename T, typename Stream>
-void print(const std::vector<T>& vec, Stream& s)
+template<typename Container, typename Stream>
+void print(const Container& vec, Stream& s)
 {
     for(const auto& elt : vec)
     {
@@ -98,41 +98,87 @@ void print(const Event& c, Stream& stream)
     stream << s.toLatin1().constData();
 }
 
-
-QString makeScenario(const Scenario::ScenarioModel &s)
+QString print(const ScenarioContent& c)
 {
-    TAVisitor v{s};
-    // Then create an external event for the start event.
-
-    TA::Event scenario_start_event{"MainStartEvent", 0, BroadcastChan{"global_start"}, TimeValue::zero(), 1};
-    for(TA::Point& point : v.scenario.points)
-    {
-        if(point.event_s.isEmpty())
-        {
-            point.event_s = scenario_start_event.event;
-        }
-
-        if(point.skip_p.isEmpty())
-        {
-            point.skip_p = v.scenario.skip_S;
-        }
-
-        if(point.event_e.isEmpty())
-        {
-            point.event_e = scenario_start_event.event;
-        }
-
-        ;//= rigid.skip;
-        //        pt.event_e = rigid.event_e2;)
-    }
-
     std::stringstream output;
 
-    print(scenario_start_event, output);
-    print(v.scenario.rigids, output);
-    print(v.scenario.flexibles, output);
-    print(v.scenario.points, output);
+    print(c.events, output);
+    print(c.rigids, output);
+    print(c.flexibles, output);
+    print(c.points, output);
+
     return QString::fromStdString(output.str());
+}
+
+void insert(TA::ScenarioContent& source, TA::ScenarioContent& dest)
+{
+    dest.rigids.splice(dest.rigids.end(), source.rigids);
+    dest.flexibles.splice(dest.flexibles.end(), source.flexibles);
+    dest.points.splice(dest.points.end(), source.points);
+    dest.broadcasts.insert(source.broadcasts.begin(), source.broadcasts.end());
+}
+
+
+template<typename T>
+void visitProcesses(
+        const ConstraintModel& c,
+        const T& ta_cst,
+        TA::ScenarioContent& content)
+{
+    for(const auto& process : c.processes)
+    {
+        if(auto scenario = dynamic_cast<const Scenario::ScenarioModel*>(&process))
+        {
+            TAVisitor v{*scenario, ta_cst};
+
+            for(const TA::Point& point : v.scenario.points)
+            {
+                ISCORE_ASSERT(!point.event_s.isEmpty());
+                ISCORE_ASSERT(!point.event_e.isEmpty());
+                ISCORE_ASSERT(!point.skip_p.isEmpty());
+            }
+
+            insert(v.scenario, content);
+        }
+    }
+}
+
+QString makeScenario(const ConstraintModel &c)
+{
+    // Global play
+
+    // Our register of elements
+    ScenarioContent baseContent;
+
+    TA::Event scenario_start_event{"MainStartEvent", 0, BroadcastChan{"global_start"}, TimeValue::zero(), 1};
+
+    QString cst_name = name(c);
+
+    // Setup of the rigid
+    TA::Rigid rigid{cst_name};
+    rigid.dur = c.duration.defaultDuration();
+
+    rigid.event_s = scenario_start_event.event;
+    rigid.event_e1 = "event_e1" + cst_name;
+    rigid.event_e2 = "event_e2" + cst_name;
+
+    rigid.skip_p = "skip_p" + cst_name;
+    rigid.kill_p = "kill_p" + cst_name;
+
+    rigid.skip = "skip" + cst_name;
+    rigid.kill = "kill" + cst_name;
+
+    // Register all the new elements
+    baseContent.rigids.push_back(rigid);
+    baseContent.events.push_back(scenario_start_event);
+    baseContent.broadcasts.insert(rigid.event_e1);
+    baseContent.broadcasts.insert(rigid.event_e2);
+    baseContent.broadcasts.insert(rigid.skip);
+    baseContent.broadcasts.insert(rigid.kill);
+
+    visitProcesses(c, rigid, baseContent);
+
+    return print(baseContent);
 }
 
 }
@@ -174,7 +220,7 @@ void TAVisitor::visit(const TimeNodeModel &timenode)
 
     // TODO trigger
 
-    tn_point.kill_p = scenario.kill_S;
+    tn_point.kill_p = scenario.kill;
     tn_point.en = "en_" + tn_name;
     tn_point.event = "event_" + tn_name;
     tn_point.skip = "skip_" + tn_name;
@@ -184,6 +230,13 @@ void TAVisitor::visit(const TimeNodeModel &timenode)
     tn_point.conditionMessage = "msg_true";
 
     tn_point.urgent = false;
+    if(&timenode == &scenario.iscore_scenario.startTimeNode())
+    {
+        tn_point.skip_p = scenario.skip;
+        tn_point.event_s = scenario.event_s;
+        tn_point.event_e = scenario.event_s;
+    }
+
     scenario.points.push_back(tn_point);
 
     scenario.broadcasts.insert(tn_point.en);
@@ -191,29 +244,30 @@ void TAVisitor::visit(const TimeNodeModel &timenode)
     scenario.broadcasts.insert(tn_point.skip);
     scenario.broadcasts.insert(tn_point.event_t);
 
-    for(auto& event_id : timenode.events())
+    for(const auto& event_id : timenode.events())
     {
         // We create flexibles that goes to each event.
         const auto& event = scenario.iscore_scenario.events.at(event_id);
 
         QString event_name = name(event);
 
-        TA::Flexible flexible{tn_name + "___to___" + event_name};
+        QString flexible_name = tn_name + "__to__" + event_name;
+        TA::Flexible flexible{flexible_name};
 
         flexible.dmin = TimeValue::zero();
         flexible.dmax = TimeValue::infinite();
         flexible.finite = false;
 
         flexible.event_s = tn_point.event;
-        flexible.skip_p = scenario.skip_S;
-        flexible.kill_p = scenario.kill_S;
+        flexible.skip_p = scenario.skip;
+        flexible.kill_p = scenario.kill;
 
-        flexible.event_min = "DUMMY";
-        flexible.event_max = "DUMMY";
+        flexible.event_min = "emin_" + flexible_name;
+        flexible.event_max = "emax_" + flexible_name;
         flexible.event_i = "event_" + event_name;
 
-        flexible.skip = "skip_DUMMY";
-        flexible.kill = "kill_DUMMY";
+        flexible.skip = "skip_" + flexible_name;
+        flexible.kill = "kill_" + flexible_name;
 
         scenario.flexibles.push_back(flexible);
         scenario.broadcasts.insert(flexible.event_min);
@@ -221,12 +275,6 @@ void TAVisitor::visit(const TimeNodeModel &timenode)
         scenario.broadcasts.insert(flexible.skip);
         scenario.broadcasts.insert(flexible.kill);
     }
-    /*
-    auto trigger = timenode.trigger();
-    trigger->expression();
-
-    timenode.events();
-    */
 }
 
 void TAVisitor::visit(const EventModel &event)
@@ -234,13 +282,17 @@ void TAVisitor::visit(const EventModel &event)
     qDebug() << space() << "Visiting event" << event.id();
     event.states();
 
+    const auto& timenode = parentTimeNode(event, scenario.iscore_scenario);
+    QString tn_name = name(timenode);
     QString event_name = name(event);
+
+    QString flexible_name = tn_name + "__to__" + event_name;
+
     TA::Point point{event_name};
 
     // TODO condition
     // TODO states
 
-    point.kill_p = scenario.kill_S;
     point.en = "en_" + event_name;
     point.event = "event_" + event_name;
     point.skip = "skip_" + event_name;
@@ -248,6 +300,11 @@ void TAVisitor::visit(const EventModel &event)
 
     point.condition = 0;
     point.conditionMessage = "msg_true";
+
+    point.event_s = "emin_" + flexible_name;
+    point.event_e = "emax_" + flexible_name;
+    point.skip_p = "skip_" + flexible_name;
+    point.kill_p = scenario.kill;
 
     point.urgent = false;
     scenario.points.push_back(point);
@@ -373,8 +430,8 @@ void TAVisitor::visit(const ConstraintModel &c)
         rigid.event_e1 = "event_" + end_node_name;
         rigid.event_e2 = "event_" + end_node_name;
 
-        rigid.skip_p = scenario.skip_S;
-        rigid.kill_p = scenario.kill_S;
+        rigid.skip_p = scenario.skip;
+        rigid.kill_p = scenario.kill;
 
         rigid.skip = "skip_" + cst_name;
         rigid.kill = "kill_" + cst_name;
@@ -396,18 +453,20 @@ void TAVisitor::visit(const ConstraintModel &c)
             pt.skip_p = rigid.skip;
             pt.event_e = rigid.event_e2;
         }
+
+        visitProcesses(c, rigid, scenario);
     }
     else
     {
         TA::Flexible flexible{cst_name};
 
-        // TODO
         flexible.dmin = c.duration.minDuration();
         flexible.dmax = c.duration.maxDuration();
+        flexible.finite = !c.duration.isMaxInfinite();
 
         flexible.event_s = "event_" + start_event_name;
-        flexible.skip_p = scenario.skip_S;
-        flexible.kill_p = scenario.kill_S;
+        flexible.skip_p = scenario.skip;
+        flexible.kill_p = scenario.kill;
 
         QString cst_name = name(c);
         flexible.event_min = "min_" + cst_name;
@@ -431,22 +490,11 @@ void TAVisitor::visit(const ConstraintModel &c)
             pt.skip_p = flexible.skip;
             pt.event_e = flexible.event_max;
         }
+
+        visitProcesses(c, flexible, scenario);
     }
 
     depth ++;
-
-
-    for(const auto& process : c.processes)
-    {
-        if(auto autom = dynamic_cast<const AutomationModel*>(&process))
-        {
-            visit(*autom);
-        }
-        else if(auto scenario = dynamic_cast<const Scenario::ScenarioModel*>(&process))
-        {
-            visit(*scenario);
-        }
-    }
 
     depth --;
 }
