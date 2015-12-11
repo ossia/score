@@ -104,6 +104,10 @@ DurationSectionWidget::DurationSectionWidget(
     m_grid->addWidget(m_maxSpin, 2, 2, 1, 1);
     m_grid->addWidget(m_maxInfinity, 2, 2, 1, 1);
 
+    m_grid->setColumnStretch(0,0);
+    m_grid->setColumnStretch(1,1);
+    m_grid->setColumnStretch(2,2);
+
     connect(m_valueSpin,    &TimeSpinBox::editingFinished,
             this,   &DurationSectionWidget::on_durationsChanged);
     connect(m_minSpin,  &TimeSpinBox::editingFinished,
@@ -117,7 +121,6 @@ DurationSectionWidget::DurationSectionWidget(
     {
         m_valueSpin->setEnabled(false);
     }
-    on_modelRigidityChanged(m_model.duration.isRigid());
 
     m_min = m_model.duration.minDuration();
     m_max = m_model.duration.maxDuration();
@@ -127,6 +130,8 @@ DurationSectionWidget::DurationSectionWidget(
 
     m_maxInfinity->setVisible(m_model.duration.isMaxInfinite());
     m_maxSpin->setVisible(!m_model.duration.isMaxInfinite());
+
+    on_modelRigidityChanged(m_model.duration.isRigid());
 }
 
 using namespace Scenario::Command;

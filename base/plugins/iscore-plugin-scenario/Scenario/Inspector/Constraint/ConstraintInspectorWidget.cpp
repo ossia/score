@@ -87,7 +87,6 @@ ConstraintInspectorWidget::ConstraintInspectorWidget(
                  commandDispatcher(),
                  &m_model,
                  this};
-    m_metadata->setType(ConstraintModel::description());
 
     m_metadata->setupConnections(m_model);
 
