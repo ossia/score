@@ -18,6 +18,7 @@ class QLabel;
 class QLineEdit;
 class QObject;
 class QPushButton;
+class QToolButton;
 
 class MetadataWidget final : public QWidget
 {
@@ -71,8 +72,6 @@ class MetadataWidget final : public QWidget
 
         void changeColor();
 
-        void setType(QString type);
-
         void updateAsked();
 
     signals:
@@ -85,7 +84,6 @@ class MetadataWidget final : public QWidget
         const ModelMetadata* m_metadata;
         CommandDispatcher<>* m_commandDispatcher;
 
-        QLabel* m_typeLb {};
         QLineEdit* m_scriptingNameLine {};
         QLineEdit* m_labelLine {};
         QPushButton* m_colorButton {};
@@ -95,6 +93,8 @@ class MetadataWidget final : public QWidget
         {
             21
         };
+        bool m_cmtExpanded{false};
+        QToolButton* m_cmtBtn{};
 
 //        QString m_scriptingName;
 };

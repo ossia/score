@@ -60,7 +60,6 @@ EventInspectorWidget::EventInspectorWidget(
     ////// HEADER
     // metadata
     m_metadata = new MetadataWidget{&m_model.metadata, commandDispatcher(), &m_model, this};
-    m_metadata->setType(EventModel::description());
     m_metadata->setupConnections(m_model);
 
     addHeader(m_metadata);

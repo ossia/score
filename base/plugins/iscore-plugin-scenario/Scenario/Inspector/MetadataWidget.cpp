@@ -5,6 +5,7 @@
 #include <QLabel>
 #include <QLineEdit>
 #include <QPushButton>
+#include <QToolButton>
 #include <QSize>
 #include <Process//ModelMetadata.hpp>
 
@@ -25,14 +26,22 @@ MetadataWidget::MetadataWidget(
     m_metadata {metadata},
     m_commandDispatcher{m}
 {
-    QVBoxLayout* metadataLayout = new QVBoxLayout{this};
-    setLayout(metadataLayout);
+    // main
+    auto metadataLayout = new QVBoxLayout{this};
+    metadataLayout->setContentsMargins(0,0,0,0);
+    metadataLayout->setSpacing(1);
 
-    QHBoxLayout* typeLay = new QHBoxLayout{};
-    // type
-    m_typeLb = new QLabel("type");
+    // btn
+    auto btnLay = new QVBoxLayout{};
+    btnLay->setContentsMargins(0,0,0,0);
+    btnLay->setSpacing(1);
 
-    // LABEL : label + lineEdit in a container
+    // header
+    auto headerLay = new QHBoxLayout{};
+    headerLay->setContentsMargins(0,0,0,0);
+    headerLay->setSpacing(1);
+
+    // Name(s)
     QWidget* descriptionWidget = new QWidget {this};
     QFormLayout* descriptionLay = new QFormLayout;
 
@@ -53,18 +62,33 @@ MetadataWidget::MetadataWidget(
     m_colorButtonPixmap.fill(metadata->color());
     m_colorButton->setIcon(QIcon(m_colorButtonPixmap));
 
-    typeLay->addWidget(m_colorButton);
-    typeLay->addWidget(m_typeLb);
 
     // comments
     m_comments = new CommentEdit{metadata->comment(), this};
-    auto comments = new InspectorSectionWidget("Comments", false, this);
-    comments->addContent(m_comments);
-    comments->expand();
+    m_comments->setVisible(false);
 
-    metadataLayout->addLayout(typeLay);
-    metadataLayout->addWidget(descriptionWidget);
-    metadataLayout->addWidget(comments);
+    m_cmtBtn = new QToolButton{};
+    m_cmtBtn->setArrowType(Qt::RightArrow);
+
+    btnLay->addWidget(m_colorButton);
+    btnLay->addWidget(m_cmtBtn);
+
+    headerLay->addWidget(descriptionWidget);
+    headerLay->addLayout(btnLay);
+
+    metadataLayout->addLayout(headerLay);
+    metadataLayout->addWidget(m_comments);
+
+    connect(m_cmtBtn, &QToolButton::released,
+            this,  [&] ()
+    {
+        m_cmtExpanded = !m_cmtExpanded;
+        m_comments->setVisible(m_cmtExpanded);
+        if(m_cmtExpanded)
+            m_cmtBtn->setArrowType(Qt::DownArrow);
+        else
+            m_cmtBtn->setArrowType(Qt::RightArrow);
+    });
 
     connect(m_scriptingNameLine, &QLineEdit::editingFinished,
             [ = ]()
@@ -115,11 +139,6 @@ void MetadataWidget::changeColor()
     {
         emit colorChanged(color);
     }
-}
-
-void MetadataWidget::setType(QString type)
-{
-    m_typeLb->setText(type);
 }
 
 void MetadataWidget::updateAsked()
