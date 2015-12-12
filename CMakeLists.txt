@@ -11,8 +11,8 @@ set(ISCORE_CODENAME "Oh, je suis désolée")
 set(ISCORE_VERSION "${ISCORE_VERSION_MAJOR}.${ISCORE_VERSION_MINOR}.${ISCORE_VERSION_PATCH}-${ISCORE_VERSION_EXTRA}")
 
 enable_testing()
-include("${CMAKE_CURRENT_SOURCE_DIR}/CMake/IScoreConfiguration.cmake")
 include("${CMAKE_CURRENT_SOURCE_DIR}/CMake/IScoreFunctions.cmake")
+include("${CMAKE_CURRENT_SOURCE_DIR}/CMake/IScoreConfiguration.cmake")
 
 add_subdirectory("${CMAKE_CURRENT_SOURCE_DIR}/API")
 

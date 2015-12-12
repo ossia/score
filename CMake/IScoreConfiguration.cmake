@@ -156,8 +156,8 @@ write_compiler_detection_header(
 include(GetGitRevisionDescription)
 get_git_head_revision(GIT_COMMIT_REFSPEC GIT_COMMIT_HASH)
 
-file(WRITE "${CMAKE_CURRENT_BINARY_DIR}/iscore_git_info.hpp" "
-#pragma once
+iscore_write_file("${CMAKE_CURRENT_BINARY_DIR}/iscore_git_info.hpp"
+"#pragma once
 #define GIT_COMMIT ${GIT_COMMIT_HASH}
 #define ISCORE_VERSION_MAJOR ${ISCORE_VERSION_MAJOR}
 #define ISCORE_VERSION_MINOR ${ISCORE_VERSION_MINOR}

@@ -238,6 +238,13 @@ endfunction()
 
 
 ### Generate files of commands ###
+function(iscore_write_file FileName Content)
+    file(READ "${FileName}" EXISTING_CONTENT)
+    if(NOT "${Content}" STREQUAL "${EXISTING_CONTENT}")
+        file(WRITE "${FileName}" ${Content})
+    endif()
+endfunction()
+
 function(iscore_generate_command_list_file TheTarget Headers)
     # Initialize our lists
     set(commandNameList)
@@ -286,11 +293,18 @@ function(iscore_generate_command_list_file TheTarget Headers)
         set(finalCommandFileList "${finalCommandFileList}#include <${strippedSourceFile}>\n")
     endforeach()
 
-    file(WRITE "${CMAKE_CURRENT_BINARY_DIR}/${TheTarget}_commands_files.hpp" ${finalCommandFileList})
+    iscore_write_file(
+        "${CMAKE_CURRENT_BINARY_DIR}/${TheTarget}_commands_files.hpp"
+        "${finalCommandFileList}"
+        )
 
     # Generate a file with the list of types
     string(REPLACE ";" ", \n" commaSeparatedCommandList "${commandNameList}")
-    file(WRITE "${CMAKE_CURRENT_BINARY_DIR}/${TheTarget}_commands.hpp" ${commaSeparatedCommandList})
+    iscore_write_file(
+         "${CMAKE_CURRENT_BINARY_DIR}/${TheTarget}_commands.hpp"
+         "${commaSeparatedCommandList}"
+        )
+
 endfunction()
 
 
