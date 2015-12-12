@@ -34,16 +34,18 @@ StatePresenter::StatePresenter(
 {
     // The scenario catches this :
     con(m_model.selection, &Selectable::changed,
-            m_view, &StateView::setSelected);
+        m_view, &StateView::setSelected);
 
     con(m_model.metadata,  &ModelMetadata::colorChanged,
         m_view, &StateView::changeColor);
+    m_view->changeColor(m_model.metadata.color());
 
     con(m_model, &StateModel::sig_statesUpdated,
             this, &StatePresenter::updateStateView);
 
     con(m_model, &StateModel::statusChanged,
         m_view, &StateView::setStatus);
+    m_view->setStatus(m_model.status());
 
     connect(m_view, &StateView::dropReceived,
             this, &StatePresenter::handleDrop);
