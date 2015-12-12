@@ -1,0 +1,546 @@
+<?xml version="1.0" encoding="utf-8"?>
+<!DOCTYPE nta PUBLIC '-//Uppaal Team//DTD Flat System 1.1//EN' 'http://www.it.uu.se/research/group/darts/uppaal/flat-1_2.dtd'>
+<nta>
+	<declaration>// Place global declarations here.
+
+clock clk;
+
+// Multimedia Structure
+typedef struct {
+    int value;
+    int offset;
+    } parameter_t;
+
+// Example
+parameter_t m_process[2] = {
+    {10,0}, {30,0}
+};
+
+$DECLARATIONS
+
+</declaration>
+	<template>
+		<name x="5" y="5">Event</name>
+		<parameter>int &amp;msg, broadcast chan &amp;event, int date, int val</parameter>
+		<declaration>// Place local declarations here.
+
+clock t;</declaration>
+		<location id="id0" x="25" y="-34">
+			<name x="1" y="-66">finished</name>
+		</location>
+		<location id="id1" x="-153" y="-34">
+			<name x="-177" y="-66">waiting</name>
+			<label kind="invariant" x="-185" y="-18">t &lt;= date</label>
+		</location>
+		<init ref="id1"/>
+		<transition>
+			<source ref="id1"/>
+			<target ref="id0"/>
+			<label kind="guard" x="-127" y="-51">t == date</label>
+			<label kind="synchronisation" x="-51" y="-51">event!</label>
+			<label kind="assignment" x="-119" y="-34">msg=val, t=0</label>
+		</transition>
+	</template>
+	<template>
+		<name>Event_ND</name>
+		<parameter>int &amp;msg, broadcast chan &amp;event, int date, int val</parameter>
+		<location id="id2" x="102" y="0">
+			<name x="76" y="-34">finished</name>
+		</location>
+		<location id="id3" x="-17" y="0">
+			<name x="-34" y="-34">idle</name>
+		</location>
+		<init ref="id3"/>
+		<transition>
+			<source ref="id3"/>
+			<target ref="id2"/>
+			<label kind="synchronisation" x="17" y="-17">event!</label>
+			<label kind="assignment" x="8" y="0">msg=val</label>
+		</transition>
+	</template>
+	<template>
+		<name>Multimedia</name>
+		<parameter>broadcast chan &amp;send, int &amp;data, int limit, broadcast chan &amp;start, broadcast chan &amp;stop, broadcast chan &amp;skip_p, broadcast chan &amp;kill_p</parameter>
+		<declaration>clock t;
+
+int index = 0;</declaration>
+		<location id="id4" x="-25" y="102">
+			<name x="-50" y="111">finished</name>
+		</location>
+		<location id="id5" x="59" y="0">
+			<name x="76" y="-17">wait</name>
+			<label kind="invariant" x="76" y="0">t &lt;= m_process[index].offset</label>
+		</location>
+		<location id="id6" x="-120" y="0">
+			<name x="-136" y="-32">idle</name>
+		</location>
+		<init ref="id6"/>
+		<transition>
+			<source ref="id5"/>
+			<target ref="id4"/>
+			<label kind="synchronisation" x="-42" y="34">kill_p?</label>
+			<label kind="assignment" x="-34" y="51">t=0</label>
+			<nail x="17" y="25"/>
+			<nail x="0" y="42"/>
+		</transition>
+		<transition>
+			<source ref="id5"/>
+			<target ref="id5"/>
+			<label kind="guard" x="-59" y="-85">t == m_process[index].offset &amp;&amp; index &lt; limit</label>
+			<label kind="synchronisation" x="34" y="-102">send!</label>
+			<label kind="assignment" x="-42" y="-68">t=0, data = m_process[index].value, index++</label>
+			<nail x="34" y="-51"/>
+			<nail x="85" y="-51"/>
+		</transition>
+		<transition>
+			<source ref="id5"/>
+			<target ref="id4"/>
+			<label kind="synchronisation" x="8" y="42">stop?</label>
+			<label kind="assignment" x="8" y="59">t=0</label>
+			<nail x="42" y="85"/>
+		</transition>
+		<transition>
+			<source ref="id5"/>
+			<target ref="id4"/>
+			<label kind="guard" x="17" y="102">t == m_process[index].offset &amp;&amp; index == limit</label>
+			<label kind="synchronisation" x="17" y="136">send!</label>
+			<label kind="assignment" x="17" y="119">data = m_process[index].value, t=0</label>
+			<nail x="59" y="102"/>
+		</transition>
+		<transition>
+			<source ref="id6"/>
+			<target ref="id4"/>
+			<label kind="synchronisation" x="-102" y="102">skip_p?</label>
+			<label kind="assignment" x="-102" y="119">t=0</label>
+			<nail x="-119" y="102"/>
+		</transition>
+		<transition>
+			<source ref="id6"/>
+			<target ref="id4"/>
+			<label kind="synchronisation" x="-93" y="34">kill_p?</label>
+			<label kind="assignment" x="-85" y="51">t=0</label>
+		</transition>
+		<transition>
+			<source ref="id6"/>
+			<target ref="id5"/>
+			<label kind="synchronisation" x="-59" y="0">start?</label>
+			<label kind="assignment" x="-51" y="-17">t = 0, index=0</label>
+		</transition>
+	</template>
+	<template>
+		<name>Rigid</name>
+		<parameter>int dur, broadcast chan &amp;event_s, broadcast chan &amp;event_e1, broadcast chan &amp;skip_p, broadcast chan &amp;kill_p, broadcast chan &amp;skip, broadcast chan &amp;kill, broadcast chan &amp;event_e2</parameter>
+		<declaration>clock t;</declaration>
+		<location id="id7" x="51" y="136">
+			<urgent/>
+		</location>
+		<location id="id8" x="-212" y="136">
+			<name x="-246" y="153">skipped</name>
+			<committed/>
+		</location>
+		<location id="id9" x="-85" y="68">
+			<name x="-136" y="68">killed</name>
+			<committed/>
+		</location>
+		<location id="id10" x="-85" y="136">
+			<name x="-110" y="153">finished</name>
+		</location>
+		<location id="id11" x="51" y="0">
+			<name x="42" y="-34">wait</name>
+			<label kind="invariant" x="68" y="-8">t &lt;= dur</label>
+		</location>
+		<location id="id12" x="-212" y="0">
+			<name x="-229" y="-34">idle</name>
+		</location>
+		<init ref="id12"/>
+		<transition>
+			<source ref="id7"/>
+			<target ref="id10"/>
+			<label kind="synchronisation" x="-42" y="136">event_e2!</label>
+		</transition>
+		<transition>
+			<source ref="id8"/>
+			<target ref="id10"/>
+			<label kind="synchronisation" x="-187" y="136">skip!</label>
+			<label kind="assignment" x="-144" y="136">t=0</label>
+		</transition>
+		<transition>
+			<source ref="id12"/>
+			<target ref="id8"/>
+			<label kind="synchronisation" x="-263" y="42">skip_p?</label>
+		</transition>
+		<transition>
+			<source ref="id9"/>
+			<target ref="id10"/>
+			<label kind="synchronisation" x="-76" y="85">kill!</label>
+			<label kind="assignment" x="-76" y="102">t=0</label>
+		</transition>
+		<transition>
+			<source ref="id11"/>
+			<target ref="id9"/>
+			<label kind="synchronisation" x="-76" y="25">kill_p?</label>
+		</transition>
+		<transition>
+			<source ref="id12"/>
+			<target ref="id9"/>
+			<label kind="synchronisation" x="-153" y="17">kill_p?</label>
+		</transition>
+		<transition>
+			<source ref="id11"/>
+			<target ref="id7"/>
+			<label kind="guard" x="51" y="25">t==dur</label>
+			<label kind="synchronisation" x="51" y="42">event_e1!</label>
+			<label kind="assignment" x="51" y="59">t=0</label>
+		</transition>
+		<transition>
+			<source ref="id12"/>
+			<target ref="id11"/>
+			<label kind="synchronisation" x="-110" y="-17">event_s?</label>
+			<label kind="assignment" x="-34" y="-17">t=0</label>
+			<nail x="-136" y="0"/>
+			<nail x="-136" y="0"/>
+		</transition>
+	</template>
+	<template>
+		<name>Flexible</name>
+		<parameter>int dmin, int dmax, bool finite, broadcast chan &amp;event_s, broadcast chan &amp;event_e1, broadcast chan &amp;event_i, broadcast chan &amp;event_e2, broadcast chan &amp;skip_p, broadcast chan &amp;kill_p, broadcast chan &amp;skip, broadcast chan &amp;kill</parameter>
+		<declaration>// Flexible represents flexible and semi-flexible intervals. 
+// Also, it represents structures and textures with an interaction point at the end
+
+clock t;</declaration>
+		<location id="id13" x="42" y="42">
+			<name x="59" y="42">flexible</name>
+		</location>
+		<location id="id14" x="-59" y="153">
+			<name x="-85" y="170">finished</name>
+		</location>
+		<location id="id15" x="102" y="153">
+			<committed/>
+		</location>
+		<location id="id16" x="-59" y="42">
+			<name x="-76" y="8">killed</name>
+			<committed/>
+		</location>
+		<location id="id17" x="-161" y="153">
+			<name x="-187" y="170">skipped</name>
+			<committed/>
+		</location>
+		<location id="id18" x="221" y="93">
+			<name x="238" y="85">semi_flexible</name>
+			<label kind="invariant" x="238" y="102">t&lt;=dmax</label>
+		</location>
+		<location id="id19" x="221" y="-59">
+			<name x="238" y="-76">wait_min</name>
+			<label kind="invariant" x="238" y="-59">t&lt;=dmin</label>
+		</location>
+		<location id="id20" x="-161" y="-59">
+			<name x="-170" y="-93">idle</name>
+		</location>
+		<init ref="id20"/>
+		<transition>
+			<source ref="id13"/>
+			<target ref="id16"/>
+			<label kind="synchronisation" x="-17" y="25">kill_p?</label>
+		</transition>
+		<transition>
+			<source ref="id13"/>
+			<target ref="id15"/>
+			<label kind="synchronisation" x="34" y="110">event_i?</label>
+		</transition>
+		<transition>
+			<source ref="id19"/>
+			<target ref="id13"/>
+			<label kind="guard" x="25" y="-17">t==dmin &amp;&amp; finite == false</label>
+			<label kind="synchronisation" x="85" y="0">event_e1!</label>
+			<nail x="170" y="8"/>
+		</transition>
+		<transition>
+			<source ref="id18"/>
+			<target ref="id15"/>
+			<label kind="guard" x="136" y="153">t==dmax</label>
+			<nail x="221" y="153"/>
+		</transition>
+		<transition>
+			<source ref="id16"/>
+			<target ref="id14"/>
+			<label kind="synchronisation" x="-85" y="85">kill!</label>
+			<label kind="assignment" x="-85" y="102">t=0</label>
+			<nail x="-59" y="85"/>
+		</transition>
+		<transition>
+			<source ref="id17"/>
+			<target ref="id14"/>
+			<label kind="synchronisation" x="-127" y="136">skip!</label>
+			<label kind="assignment" x="-119" y="153">t=0</label>
+			<nail x="-102" y="153"/>
+		</transition>
+		<transition>
+			<source ref="id20"/>
+			<target ref="id17"/>
+			<label kind="synchronisation" x="-221" y="51">skip_p?</label>
+			<nail x="-161" y="34"/>
+		</transition>
+		<transition>
+			<source ref="id15"/>
+			<target ref="id14"/>
+			<label kind="synchronisation" x="-34" y="136">event_e2!</label>
+			<label kind="assignment" x="42" y="136">t=0</label>
+		</transition>
+		<transition>
+			<source ref="id18"/>
+			<target ref="id15"/>
+			<label kind="synchronisation" x="119" y="110">event_i?</label>
+		</transition>
+		<transition>
+			<source ref="id18"/>
+			<target ref="id16"/>
+			<label kind="synchronisation" x="-8" y="68">kill_p?</label>
+			<nail x="0" y="93"/>
+		</transition>
+		<transition>
+			<source ref="id19"/>
+			<target ref="id18"/>
+			<label kind="guard" x="144" y="34">t==dmin &amp;&amp; finite == true</label>
+			<label kind="synchronisation" x="229" y="51">event_e1!</label>
+			<nail x="221" y="-8"/>
+		</transition>
+		<transition>
+			<source ref="id20"/>
+			<target ref="id16"/>
+			<label kind="synchronisation" x="-110" y="-25">kill_p?</label>
+		</transition>
+		<transition>
+			<source ref="id19"/>
+			<target ref="id16"/>
+			<label kind="synchronisation" x="-42" y="-25">kill_p?</label>
+			<nail x="25" y="-34"/>
+		</transition>
+		<transition>
+			<source ref="id20"/>
+			<target ref="id19"/>
+			<label kind="synchronisation" x="-42" y="-76">event_s?</label>
+			<label kind="assignment" x="25" y="-76">t=0</label>
+		</transition>
+	</template>
+	<template>
+		<name>Mix</name>
+		<parameter>broadcast chan &amp;event_in, broadcast chan &amp;event_out, broadcast chan &amp;skip_p, broadcast chan &amp;kill_p</parameter>
+		<location id="id21" x="-153" y="34">
+			<name x="-178" y="42">finished</name>
+		</location>
+		<location id="id22" x="-102" y="-34">
+			<committed/>
+		</location>
+		<location id="id23" x="-204" y="-34">
+			<name x="-214" y="-64">idle</name>
+		</location>
+		<init ref="id23"/>
+		<transition>
+			<source ref="id23"/>
+			<target ref="id21"/>
+			<label kind="synchronisation" x="-246" y="34">skip_p?</label>
+			<nail x="-204" y="34"/>
+		</transition>
+		<transition>
+			<source ref="id23"/>
+			<target ref="id21"/>
+			<label kind="synchronisation" x="-178" y="-17">kill_p?</label>
+		</transition>
+		<transition>
+			<source ref="id22"/>
+			<target ref="id21"/>
+			<label kind="synchronisation" x="-127" y="0">event_out!</label>
+		</transition>
+		<transition>
+			<source ref="id23"/>
+			<target ref="id22"/>
+			<label kind="synchronisation" x="-187" y="-51">event_in?</label>
+		</transition>
+	</template>
+	<template>
+		<name>Control</name>
+		<parameter>int n,  broadcast chan &amp;event_s1, broadcast chan &amp;skip_p, broadcast chan &amp;skip, broadcast chan &amp;event_e, broadcast chan &amp;kill_p, broadcast chan &amp;event_s2</parameter>
+		<declaration>int counter = 0;
+bool skip_v = true;</declaration>
+		<location id="id24" x="-272" y="-110">
+			<name x="-289" y="-144">error</name>
+		</location>
+		<location id="id25" x="-272" y="102">
+			<name x="-297" y="111">finished</name>
+		</location>
+		<location id="id26" x="0" y="-34">
+			<committed/>
+		</location>
+		<location id="id27" x="-272" y="-34">
+			<name x="-314" y="-42">idle</name>
+		</location>
+		<init ref="id27"/>
+		<transition>
+			<source ref="id27"/>
+			<target ref="id24"/>
+			<label kind="synchronisation" x="-340" y="-85">event_s2?</label>
+		</transition>
+		<transition>
+			<source ref="id27"/>
+			<target ref="id25"/>
+			<label kind="synchronisation" x="-323" y="25">kill_p?</label>
+		</transition>
+		<transition>
+			<source ref="id26"/>
+			<target ref="id27"/>
+			<label kind="guard" x="-187" y="0">counter&lt; n</label>
+			<nail x="-64" y="0"/>
+			<nail x="-224" y="0"/>
+		</transition>
+		<transition>
+			<source ref="id27"/>
+			<target ref="id26"/>
+			<label kind="synchronisation" x="-153" y="-102">event_s1?</label>
+			<label kind="assignment" x="-232" y="-88">counter++, skip_v = false</label>
+			<nail x="-224" y="-72"/>
+			<nail x="-80" y="-72"/>
+		</transition>
+		<transition>
+			<source ref="id26"/>
+			<target ref="id25"/>
+			<label kind="guard" x="-204" y="102">counter==n &amp;&amp; skip_v==true</label>
+			<label kind="synchronisation" x="-144" y="119">skip!</label>
+			<nail x="0" y="102"/>
+		</transition>
+		<transition>
+			<source ref="id26"/>
+			<target ref="id25"/>
+			<label kind="guard" x="-246" y="42">counter==n &amp;&amp; skip_v == false</label>
+			<label kind="synchronisation" x="-136" y="59">event_e!</label>
+			<nail x="-34" y="76"/>
+		</transition>
+		<transition>
+			<source ref="id27"/>
+			<target ref="id26"/>
+			<label kind="synchronisation" x="-172" y="-53">skip_p?</label>
+			<label kind="assignment" x="-178" y="-34">counter++</label>
+		</transition>
+	</template>
+	<template>
+		<name>Point</name>
+		<parameter>int  id, int value, bool &amp;en, int &amp;msg, broadcast chan &amp;event, bool urg, broadcast chan &amp;event_s, broadcast chan &amp;skip_p, broadcast chan &amp;event_e, broadcast chan &amp;kill_p, broadcast chan &amp;skip,  broadcast chan &amp;event_t</parameter>
+		<declaration>bool cond = false;
+
+// Interpretation of a condition
+bool condition(){
+    if (id == 0) {return true;}          // trigger
+    if (id == 1) {return msg == value;}  // message = value 
+    if (id == 2) {return msg &lt; value;}   // message &lt; value
+    if (id == 3) {return msg &lt;= value;}  // message &lt;= value
+    if (id == 4) {return msg &gt; value;}   // message &gt; value
+    if (id == 5) {return msg &gt;= value;}  // message &gt;= value
+    return false;
+}</declaration>
+		<location id="id28" x="-59" y="136">
+			<urgent/>
+		</location>
+		<location id="id29" x="-144" y="68">
+			<name x="-161" y="85">timeout</name>
+			<committed/>
+		</location>
+		<location id="id30" x="-281" y="-59">
+			<name x="-306" y="-90">skipped</name>
+			<committed/>
+		</location>
+		<location id="id31" x="-348" y="68">
+			<name x="-424" y="60">finished</name>
+		</location>
+		<location id="id32" x="-59" y="25">
+			<name x="-42" y="8">cond_true</name>
+			<label kind="invariant" x="-42" y="25">cond == true</label>
+			<committed/>
+		</location>
+		<location id="id33" x="-144" y="-59">
+			<name x="-135" y="-85">enabled</name>
+		</location>
+		<location id="id34" x="-417" y="-59">
+			<name x="-433" y="-93">idle</name>
+		</location>
+		<init ref="id34"/>
+		<transition>
+			<source ref="id28"/>
+			<target ref="id31"/>
+			<label kind="synchronisation" x="-187" y="136">event_e!</label>
+			<nail x="-289" y="136"/>
+		</transition>
+		<transition>
+			<source ref="id33"/>
+			<target ref="id31"/>
+			<label kind="synchronisation" x="-229" y="-8">kill_p?</label>
+		</transition>
+		<transition>
+			<source ref="id34"/>
+			<target ref="id31"/>
+			<label kind="synchronisation" x="-433" y="0">kill_p ?</label>
+		</transition>
+		<transition>
+			<source ref="id29"/>
+			<target ref="id31"/>
+			<label kind="guard" x="-263" y="76">urg==false</label>
+			<label kind="synchronisation" x="-238" y="93">skip!</label>
+			<nail x="-170" y="93"/>
+			<nail x="-280" y="93"/>
+		</transition>
+		<transition>
+			<source ref="id29"/>
+			<target ref="id31"/>
+			<label kind="guard" x="-323" y="51">urg == true</label>
+			<label kind="synchronisation" x="-229" y="51">event_t!</label>
+			<nail x="-221" y="68"/>
+		</transition>
+		<transition>
+			<source ref="id33"/>
+			<target ref="id29"/>
+			<label kind="guard" x="-144" y="-8">en==true</label>
+			<label kind="synchronisation" x="-144" y="-25">event_e?</label>
+		</transition>
+		<transition>
+			<source ref="id30"/>
+			<target ref="id31"/>
+			<label kind="synchronisation" x="-340" y="-25">skip!</label>
+		</transition>
+		<transition>
+			<source ref="id34"/>
+			<target ref="id30"/>
+			<label kind="synchronisation" x="-374" y="-76">skip_p?</label>
+		</transition>
+		<transition>
+			<source ref="id33"/>
+			<target ref="id30"/>
+			<label kind="guard" x="-264" y="-59">en == false</label>
+			<label kind="synchronisation" x="-238" y="-76">event_e?</label>
+		</transition>
+		<transition>
+			<source ref="id32"/>
+			<target ref="id28"/>
+			<label kind="synchronisation" x="-51" y="68">event_t!</label>
+			<label kind="assignment" x="-51" y="85">en=false</label>
+		</transition>
+		<transition>
+			<source ref="id33"/>
+			<target ref="id32"/>
+			<label kind="guard" x="-51" y="-59">cond == false</label>
+			<label kind="synchronisation" x="-51" y="-42">event ?</label>
+			<label kind="assignment" x="-51" y="-25">cond = condition()</label>
+			<nail x="-59" y="-59"/>
+		</transition>
+		<transition>
+			<source ref="id34"/>
+			<target ref="id33"/>
+			<label kind="synchronisation" x="-340" y="-118">event_s?</label>
+			<label kind="assignment" x="-272" y="-118">en=true</label>
+			<nail x="-383" y="-101"/>
+			<nail x="-196" y="-101"/>
+		</transition>
+	</template>
+	<system>
+	$SYSTEM
+	</system>
+	<queries>
+	</queries>
+</nta>

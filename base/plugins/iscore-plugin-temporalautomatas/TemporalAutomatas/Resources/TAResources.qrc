@@ -1,0 +1,5 @@
+<RCC>
+    <qresource prefix="/">
+        <file>model-uppaal.xml.in</file>
+    </qresource>
+</RCC>

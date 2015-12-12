@@ -11,6 +11,7 @@
 #include <Automation/AutomationModel.hpp>
 #include <iscore/tools/std/Algorithms.hpp>
 
+#include <QFile>
 namespace TA
 {
 template<typename Container, typename Stream>
@@ -130,42 +131,56 @@ void print(const Event& c, Stream& stream)
 
 QString print(const ScenarioContent& c)
 {
-    std::stringstream output;
-
-    output << "///// VARIABLES /////\n";
-    for(const auto& elt : c.broadcasts)
-        output << "broadcast chan " << qUtf8Printable(elt) << ";\n";
-    for(const auto& elt : c.bools)
-        output << "bool " << qUtf8Printable(elt) << ";\n";
-    for(const auto& elt : c.ints)
-        output << "int " << qUtf8Printable(elt) << ";\n";
-
-    output << "///// ELEMENTS /////\n";
-    print(c.events, output);
-    print(c.events_nd, output);
-    print(c.rigids, output);
-    print(c.flexibles, output);
-    print(c.points, output);
-    print(c.mixs, output);
-    print(c.controls, output);
-
-    output << "///// SYSTEM /////\n";
-    output << "system\n";
-    for_each_in_tuple(std::tie(
-                          c.events,
-                          c.rigids,
-                          c.flexibles,
-                          c.points,
-                          c.mixs,
-                          c.controls), [&] (const auto& vec) {
-        for(const auto& elt : vec)
-            output << qUtf8Printable(elt.name) << ",\n";
-    });
+    QFile f(":/model-uppaal.xml.in");
+    ISCORE_ASSERT(f.exists());
+    f.open(QFile::ReadOnly);
+    QString str = f.readAll();
 
 
-    auto lastStr = QString::fromStdString(output.str());
-    lastStr[lastStr.size() - 2] = ';';
-    return lastStr;
+    {
+        std::stringstream output;
+
+        output << "///// VARIABLES /////\n";
+        for(const auto& elt : c.broadcasts)
+            output << "broadcast chan " << qUtf8Printable(elt) << ";\n";
+        for(const auto& elt : c.bools)
+            output << "bool " << qUtf8Printable(elt) << ";\n";
+        for(const auto& elt : c.ints)
+            output << "int " << qUtf8Printable(elt) << ";\n";
+
+        str.replace("$DECLARATIONS", QString::fromStdString(output.str()));
+    }
+    {
+        std::stringstream output;
+        output << "///// ELEMENTS /////\n";
+        print(c.events, output);
+        print(c.events_nd, output);
+        print(c.rigids, output);
+        print(c.flexibles, output);
+        print(c.points, output);
+        print(c.mixs, output);
+        print(c.controls, output);
+
+        output << "///// SYSTEM /////\n";
+        output << "system\n";
+        for_each_in_tuple(std::tie(
+                              c.events,
+                              c.rigids,
+                              c.flexibles,
+                              c.points,
+                              c.mixs,
+                              c.controls), [&] (const auto& vec) {
+            for(const auto& elt : vec)
+                output << qUtf8Printable(elt.name) << ",\n";
+        });
+
+        auto lastStr = QString::fromStdString(output.str());
+        lastStr[lastStr.size() - 2] = ';';
+
+        str.replace("$SYSTEM", lastStr);
+    }
+
+    return str;
 }
 
 void insert(TA::ScenarioContent& source, TA::ScenarioContent& dest)

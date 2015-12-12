@@ -17,7 +17,8 @@ set(SRCS
 "${CMAKE_CURRENT_SOURCE_DIR}/iscore_plugin_temporalautomatas.cpp"
 )
 
-add_library(${PROJECT_NAME} ${SRCS} ${HDRS})
+qt5_add_resources(QRCS "${CMAKE_CURRENT_SOURCE_DIR}/TemporalAutomatas/Resources/TAResources.qrc")
+add_library(${PROJECT_NAME} ${SRCS} ${HDRS} ${QRCS})
 target_link_libraries(${PROJECT_NAME} iscore_plugin_scenario)
 
 setup_iscore_plugin(${PROJECT_NAME})

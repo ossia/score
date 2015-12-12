@@ -31,7 +31,7 @@
 #include <iscore/tools/SettableIdentifier.hpp>
 #include <iscore/tools/std/Algorithms.hpp>
 #include <QApplication>
-
+#include <QFile>
 #include "TAConversion.hpp"
 #include <Scenario/Application/Menus/TextDialog.hpp>
 #include <ScenarioMetrics.hpp>
@@ -45,9 +45,14 @@ TemporalAutomatas::ApplicationPlugin::ApplicationPlugin(const iscore::Applicatio
             return;
         ScenarioDocumentModel& base = iscore::IDocument::get<ScenarioDocumentModel>(*doc);
 
-        TextDialog dial(TA::makeScenario(base.baseScenario().constraint()), qApp->activeWindow());
+        QString text = TA::makeScenario(base.baseScenario().constraint());
+        TextDialog dial(text, qApp->activeWindow());
         dial.exec();
 
+        QFile f("model-output.xml");
+        f.open(QFile::WriteOnly);
+        f.write(text.toUtf8());
+        f.close();
     } );
 
     m_metrics = new QAction{tr("Scenario metrics"), nullptr};
