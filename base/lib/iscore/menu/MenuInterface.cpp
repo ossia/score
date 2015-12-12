@@ -6,43 +6,43 @@ using namespace iscore;
 namespace iscore
 {
     template<>
-    std::map<ToplevelMenuElement, QString> MenuInterface::map()
+    ISCORE_LIB_BASE_EXPORT std::map<ToplevelMenuElement, QString> MenuInterface::map()
     {
         return m_map;
     }
 
     template<>
-    std::map<FileMenuElement, QString> MenuInterface::map()
+    ISCORE_LIB_BASE_EXPORT std::map<FileMenuElement, QString> MenuInterface::map()
     {
         return m_fileMap;
     }
 
     template<>
-    std::map<EditMenuElement, QString> MenuInterface::map()
+    ISCORE_LIB_BASE_EXPORT std::map<EditMenuElement, QString> MenuInterface::map()
     {
         return m_editMap;
     }
 
     template<>
-    std::map<ToolMenuElement, QString> MenuInterface::map()
+    ISCORE_LIB_BASE_EXPORT std::map<ToolMenuElement, QString> MenuInterface::map()
     {
         return m_toolMap;
     }
 
     template<>
-    std::map<ViewMenuElement, QString> MenuInterface::map()
+    ISCORE_LIB_BASE_EXPORT std::map<ViewMenuElement, QString> MenuInterface::map()
     {
         return m_viewMap;
     }
 
     template<>
-    std::map<SettingsMenuElement, QString> MenuInterface::map()
+    ISCORE_LIB_BASE_EXPORT std::map<SettingsMenuElement, QString> MenuInterface::map()
     {
         return m_settingsMap;
     }
 
     template<>
-    std::map<AboutMenuElement, QString> MenuInterface::map()
+    ISCORE_LIB_BASE_EXPORT std::map<AboutMenuElement, QString> MenuInterface::map()
     {
         return m_aboutMap;
     }
@@ -50,43 +50,43 @@ namespace iscore
 
 
     template<>
-    QString MenuInterface::name(ToplevelMenuElement elt)
+    ISCORE_LIB_BASE_EXPORT QString MenuInterface::name(ToplevelMenuElement elt)
     {
         return m_map.at(elt);
     }
 
     template<>
-    QString MenuInterface::name(FileMenuElement elt)
+    ISCORE_LIB_BASE_EXPORT QString MenuInterface::name(FileMenuElement elt)
     {
         return m_fileMap.at(elt);
     }
 
     template<>
-    QString MenuInterface::name(EditMenuElement elt)
+    ISCORE_LIB_BASE_EXPORT QString MenuInterface::name(EditMenuElement elt)
     {
         return m_editMap.at(elt);
     }
 
     template<>
-    QString MenuInterface::name(ToolMenuElement elt)
+    ISCORE_LIB_BASE_EXPORT QString MenuInterface::name(ToolMenuElement elt)
     {
         return m_toolMap.at(elt);
     }
 
     template<>
-    QString MenuInterface::name(ViewMenuElement elt)
+    ISCORE_LIB_BASE_EXPORT QString MenuInterface::name(ViewMenuElement elt)
     {
         return m_viewMap.at(elt);
     }
 
     template<>
-    QString MenuInterface::name(SettingsMenuElement elt)
+    ISCORE_LIB_BASE_EXPORT QString MenuInterface::name(SettingsMenuElement elt)
     {
         return m_settingsMap.at(elt);
     }
 
     template<>
-    QString MenuInterface::name(AboutMenuElement elt)
+    ISCORE_LIB_BASE_EXPORT QString MenuInterface::name(AboutMenuElement elt)
     {
         return m_aboutMap.at(elt);
     }
