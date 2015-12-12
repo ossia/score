@@ -67,14 +67,14 @@ void ScenarioViewInterface::on_constraintMoved(const TemporalConstraintPresenter
     const auto& cstr_model = pres.model();
     auto& cstr_view = view(pres);
 
-    auto startPos = cstr_model.startDate().toPixels(msPerPixel);
-    auto delta = cstr_view.x() - startPos;
-    bool dateChanged = (delta * delta > 1); // Magnetism
+    double startPos = cstr_model.startDate().toPixels(msPerPixel);
+    // double delta = cstr_view.x() - startPos;
+    bool dateChanged = true; // Disabled because it does a whacky movement when there are processes. (delta * delta > 1); // Magnetism
 
     if(dateChanged)
     {
-        cstr_view.setPos({startPos,
-                            rect.height() * cstr_model.heightPercentage()});
+        cstr_view.setPos(startPos,
+                         rect.height() * cstr_model.heightPercentage());
     }
     else
     {

@@ -1,6 +1,7 @@
 #pragma once
 #include <Scenario/Palette/ScenarioPaletteBaseStates.hpp>
 #include <Scenario/Palette/Transitions/AnythingTransitions.hpp>
+#include <Scenario/Process/Algorithms/Accessors.hpp>
 
 #include <iscore/command/Dispatchers/SingleOngoingCommandDispatcher.hpp>
 #include <iscore/locking/ObjectLocker.hpp>
@@ -128,19 +129,53 @@ class MoveEventState final : public StateBase<Scenario_T>
                             moving, released);
 
                 // What happens in each state.
-                QObject::connect(moving, &QState::entered, [&] ()
+                QObject::connect(pressed, &QState::entered, [&] ()
                 {
+                    auto& scenar = stateMachine.model();
                     Id<EventModel> evId{this->clickedEvent};
                     if(!bool(evId) && bool(this->clickedState))
                     {
-                        auto& scenar = this->m_scenarioPath.find();
                         evId = scenar.state(this->clickedState).eventId();
                     }
+
+                    auto prev_csts = previousConstraints(scenar.event(evId), scenar);
+                    if(!prev_csts.empty())
+                    {
+                        // We find the one that starts the latest.
+                        TimeValue t = TimeValue::zero();
+                        for(const auto& cst_id : prev_csts)
+                        {
+                            const auto& other_date = scenar.constraint(cst_id).startDate();
+                            if(other_date > t)
+                                t = other_date;
+                        }
+                        this->m_pressedPrevious = t;
+                    }
+                    else
+                    {
+                        this->m_pressedPrevious.reset();
+                    }
+
+                });
+
+                QObject::connect(moving, &QState::entered, [&] ()
+                {
+                    auto& scenar = stateMachine.model();
+                    // If we came here through a state.
+                    Id<EventModel> evId{this->clickedEvent};
+                    if(!bool(evId) && bool(this->clickedState))
+                    {
+                        evId = scenar.state(this->clickedState).eventId();
+                    }
+
+                    TimeValue date = this->m_pressedPrevious
+                            ? max(this->currentPoint.date, *this->m_pressedPrevious)
+                            : this->currentPoint.date;
 
                     this->m_dispatcher.submitCommand(
                                 Path<Scenario_T>{this->m_scenarioPath},
                                 evId,
-                                this->currentPoint.date,
+                                date,
                                 stateMachine.editionSettings().expandMode());
                 });
 
@@ -162,6 +197,7 @@ class MoveEventState final : public StateBase<Scenario_T>
         }
 
         SingleOngoingCommandDispatcher<MoveEventCommand_T> m_dispatcher;
+        boost::optional<TimeValue> m_pressedPrevious;
 };
 
 template<
@@ -203,16 +239,51 @@ class MoveTimeNodeState final : public StateBase<Scenario_T>
                             moving, released);
 
                 // What happens in each state.
+                QObject::connect(pressed, &QState::entered, [&] ()
+                {
+                    auto& scenar = stateMachine.model();
+
+                    auto prev_csts = previousConstraints(
+                                scenar.timeNode(this->clickedTimeNode),
+                                scenar);
+                    if(!prev_csts.empty())
+                    {
+                        // We find the one that starts the latest.
+                        TimeValue t = TimeValue::zero();
+                        for(const auto& cst_id : prev_csts)
+                        {
+                            const auto& other_date = scenar.constraint(cst_id).startDate();
+                            if(other_date > t)
+                                t = other_date;
+                        }
+                        this->m_pressedPrevious = t;
+                    }
+                    else
+                    {
+                        this->m_pressedPrevious.reset();
+                    }
+
+                });
+
+
                 QObject::connect(moving, &QState::entered, [&] ()
                 {
                     // Get the 1st event on the timenode.
-                    auto& scenar = this->m_scenarioPath.find();
+                    auto& scenar = stateMachine.model();
                     auto& tn = scenar.timeNode(this->clickedTimeNode);
                     const auto& ev_id = tn.events().first();
                     auto date = this->currentPoint.date;
 
                     if (!stateMachine.editionSettings().sequence())
+                    {
+                        // TODO why??
                         date = tn.date();
+                    }
+
+                    if(this->m_pressedPrevious)
+                    {
+                        date = max(date, *this->m_pressedPrevious);
+                    }
 
                     m_dispatcher.submitCommand(
                                 Path<Scenario_T>{this->m_scenarioPath},
@@ -239,6 +310,7 @@ class MoveTimeNodeState final : public StateBase<Scenario_T>
         }
 
         SingleOngoingCommandDispatcher<MoveTimeNodeCommand_T> m_dispatcher;
+        boost::optional<TimeValue> m_pressedPrevious;
 };
 
 }

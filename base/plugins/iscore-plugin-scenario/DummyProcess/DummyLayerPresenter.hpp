@@ -21,8 +21,8 @@ class ISCORE_LIB_DUMMYPROCESS_EXPORT DummyLayerPresenter final : public LayerPre
                 DummyLayerView* view,
                 QObject* parent);
 
-        void setWidth(int width) override;
-        void setHeight(int height) override;
+        void setWidth(qreal width) override;
+        void setHeight(qreal height) override;
 
         void putToFront() override;
         void putBehind() override;

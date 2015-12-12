@@ -161,12 +161,12 @@ const Id<Process>& TemporalScenarioPresenter::modelId() const
     return m_layer.processModel().id();
 }
 
-void TemporalScenarioPresenter::setWidth(int width)
+void TemporalScenarioPresenter::setWidth(qreal width)
 {
     m_view->setWidth(width);
 }
 
-void TemporalScenarioPresenter::setHeight(int height)
+void TemporalScenarioPresenter::setHeight(qreal height)
 {
     m_view->setHeight(height);
 }

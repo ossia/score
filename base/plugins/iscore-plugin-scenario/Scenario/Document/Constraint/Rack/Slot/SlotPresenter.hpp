@@ -58,7 +58,7 @@ class ISCORE_PLUGIN_SCENARIO_EXPORT SlotPresenter final : public NamedObject, pu
         const SlotModel& model() const;
         int height() const; // Return the height of the view
 
-        void setWidth(double w);
+        void setWidth(qreal w);
         void setVerticalPosition(double h);
 
         // Sets the enabled - disabled graphism for

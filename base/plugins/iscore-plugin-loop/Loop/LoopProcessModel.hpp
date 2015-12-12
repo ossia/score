@@ -49,6 +49,9 @@ class ISCORE_PLUGIN_LOOP_EXPORT ProcessModel final : public Process, public Base
             vis.writeTo(*this);
         }
 
+        using BaseScenarioContainer::event;
+        using QObject::event;
+
         // Process interface
         ProcessModel* clone(
                 const Id<Process>& newId,

@@ -16,8 +16,8 @@ QRectF RackView::boundingRect() const
 {
     return {0,
             0,
-            qreal(m_width),
-            qreal(m_height)
+            m_width,
+            m_height
            };
 }
 

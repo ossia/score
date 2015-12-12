@@ -75,12 +75,12 @@ class ISCORE_PLUGIN_CURVE_EXPORT CurveProcessPresenter : public LayerPresenter
                                                           : Curve::Tool::Disabled);
         }
 
-        void setWidth(int width) override
+        void setWidth(qreal width) override
         {
             m_view->setWidth(width);
         }
 
-        void setHeight(int height) override
+        void setHeight(qreal height) override
         {
             m_view->setHeight(height);
         }

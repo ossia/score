@@ -112,7 +112,7 @@ auto previousConstraints(
     std::list<Id<ConstraintModel>> constraints;
     for(const Id<StateModel>& state : ev.states())
     {
-        const StateModel& st = scenario.states.at(state);
+        const StateModel& st = scenario.state(state);
         if(const auto& cst_id = st.previousConstraint())
             constraints.push_back(cst_id);
     }
@@ -144,7 +144,7 @@ auto previousConstraints(
     std::list<Id<ConstraintModel>> constraints;
     for(const Id<EventModel>& event_id : tn.events())
     {
-        const EventModel& event = scenario.events.at(event_id);
+        const EventModel& event = scenario.event(event_id);
         auto prev = previousConstraints(event, scenario);
         constraints.splice(constraints.end(), prev);
     }

@@ -97,7 +97,7 @@ int SlotPresenter::height() const
     return m_view->height();
 }
 
-void SlotPresenter::setWidth(double w)
+void SlotPresenter::setWidth(qreal w)
 {
     m_view->setWidth(w);
 

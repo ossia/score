@@ -239,7 +239,6 @@ class TimeValue_T
         boost::optional<T> m_impl {0}; // TODO std::isinf instead.
 };
 
-
 /*
 template<>
 class TimeValue_T<QTime>
@@ -281,5 +280,13 @@ inline QDebug operator<< (QDebug d, const TimeValue& tv)
 
     return d;
 }
+inline const TimeValue& max(const TimeValue& lhs, const TimeValue& rhs)
+{
+    if(lhs < rhs)
+        return rhs;
+    else
+        return lhs;
+}
+
 
 Q_DECLARE_METATYPE(TimeValue)

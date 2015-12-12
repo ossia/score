@@ -91,12 +91,12 @@ LoopPresenter::~LoopPresenter()
     deleteGraphicsObject(m_view);
 }
 
-void LoopPresenter::setWidth(int width)
+void LoopPresenter::setWidth(qreal width)
 {
     m_view->setWidth(width);
 }
 
-void LoopPresenter::setHeight(int height)
+void LoopPresenter::setHeight(qreal height)
 {
     m_view->setHeight(height);
 }

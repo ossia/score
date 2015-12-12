@@ -61,8 +61,8 @@ class LoopPresenter :
         using BaseScenarioPresenter<Loop::ProcessModel, TemporalConstraintPresenter>::event;
         using QObject::event;
 
-        void setWidth(int width) override;
-        void setHeight(int height) override;
+        void setWidth(qreal width) override;
+        void setHeight(qreal height) override;
 
         void putToFront() override;
         void putBehind() override;

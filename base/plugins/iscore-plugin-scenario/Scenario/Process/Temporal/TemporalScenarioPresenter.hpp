@@ -66,8 +66,8 @@ class ISCORE_PLUGIN_SCENARIO_EXPORT TemporalScenarioPresenter final : public Lay
         const LayerModel& layerModel() const override;
         const Id<Process>& modelId() const override;
 
-        void setWidth(int width) override;
-        void setHeight(int height) override;
+        void setWidth(qreal width) override;
+        void setHeight(qreal height) override;
         void putToFront() override;
         void putBehind() override;
 

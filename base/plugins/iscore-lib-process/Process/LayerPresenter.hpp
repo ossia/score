@@ -27,8 +27,8 @@ class ISCORE_LIB_PROCESS_EXPORT LayerPresenter : public NamedObject
         virtual void on_focusChanged();
 
 
-        virtual void setWidth(int width) = 0;
-        virtual void setHeight(int height) = 0;
+        virtual void setWidth(qreal width) = 0;
+        virtual void setHeight(qreal height) = 0;
 
         virtual void putToFront() = 0;
         virtual void putBehind() = 0;

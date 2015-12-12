@@ -21,12 +21,12 @@ DummyLayerPresenter::DummyLayerPresenter(
 
 }
 
-void DummyLayerPresenter::setWidth(int val)
+void DummyLayerPresenter::setWidth(qreal val)
 {
     m_view->setWidth(val);
 }
 
-void DummyLayerPresenter::setHeight(int val)
+void DummyLayerPresenter::setHeight(qreal val)
 {
     m_view->setHeight(val);
 }
