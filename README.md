@@ -15,6 +15,7 @@ The previous version source is located at : http://github.com/i-score/i-score
 ## Status
 
 [![Join the chat at https://gitter.im/OSSIA/i-score](https://badges.gitter.im/Join%20Chat.svg)](https://gitter.im/OSSIA/i-score?utm_source=badge&utm_medium=badge&utm_campaign=pr-badge&utm_content=badge)
+[![OpenHub](https://www.openhub.net/p/i-score2/widgets/project_thin_badge.gif)](https://www.openhub.net/p/i-score2)
 
 ### Build
 * Linux, OS X : [![Travis Status](https://travis-ci.org/OSSIA/i-score.svg?branch=dev)](https://travis-ci.org/OSSIA/i-score)
