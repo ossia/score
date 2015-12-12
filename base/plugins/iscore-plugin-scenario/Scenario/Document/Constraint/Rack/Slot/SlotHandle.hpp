@@ -3,13 +3,13 @@
 #include <QGraphicsItem>
 #include <QPen>
 #include <QRect>
-
+#include <iscore_plugin_scenario_export.h>
 class QPainter;
 class QStyleOptionGraphicsItem;
 class QWidget;
 class SlotView;
 
-class SlotHandle final : public QGraphicsItem
+class ISCORE_PLUGIN_SCENARIO_EXPORT SlotHandle final : public QGraphicsItem
 {
     public:
         SlotHandle(const SlotView& slotView,

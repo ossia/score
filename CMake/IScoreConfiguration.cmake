@@ -12,6 +12,7 @@ option(ISCORE_COTIRE_ALL_HEADERS "All headers will be put in prefix headers. Fas
 option(ISCORE_STATIC_QT "Try to link with a static Qt" OFF)
 option(ISCORE_STATIC_EVERYTHING "Try to link with everything static" OFF)
 option(ISCORE_USE_DEV_PLUGINS "Build the prototypal plugins" OFF)
+option(ISCORE_SANITIZE "Build with sanitizers and debug glibc" OFF)
 option(INTEGRATION_TESTING "Run integration tests" OFF)
 
 option(ISCORE_BUILD_FOR_PACKAGE_MANAGER "Set FHS-friendly install paths" OFF)

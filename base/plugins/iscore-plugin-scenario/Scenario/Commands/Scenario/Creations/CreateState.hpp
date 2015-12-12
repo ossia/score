@@ -18,7 +18,7 @@ namespace Scenario
 {
 namespace Command
 {
-class CreateState final : public iscore::SerializableCommand
+class ISCORE_PLUGIN_SCENARIO_EXPORT CreateState final : public iscore::SerializableCommand
 {
         ISCORE_COMMAND_DECL(ScenarioCommandFactoryName(), CreateState, "Create a state")
         public:

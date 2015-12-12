@@ -320,11 +320,11 @@ void ScenarioApplicationPlugin::on_activeWindowChanged()
 void ScenarioApplicationPlugin::initColors()
 {
     ScenarioStyle& instance = ScenarioStyle::instance();
-//#ifdef ISCORE_IEEE_SKIN
-//    QFile cols(":/ScenarioColors-IEEE.json");
-//#else
+#ifdef ISCORE_IEEE_SKIN
+    QFile cols(":/ScenarioColors-IEEE.json");
+#else
     QFile cols(":/ScenarioColors.json");
-//#endif
+#endif
     if(cols.open(QFile::ReadOnly))
     {
         auto obj = QJsonDocument::fromJson(cols.readAll()).object();

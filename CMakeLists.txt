@@ -26,10 +26,6 @@ add_subdirectory("${CMAKE_CURRENT_SOURCE_DIR}/API")
 if(POLICY CMP0063)
 CMAKE_POLICY(SET CMP0063 NEW)
 endif()
-if(NOT ISCORE_STATIC_PLUGINS)
-set(CMAKE_CXX_VISIBILITY_PRESET hidden)
-set(CMAKE_VISIBILITY_INLINES_HIDDEN 1)
-endif()
 
 find_package(Qt5 5.3 REQUIRED COMPONENTS Core Widgets Gui Network Xml Svg Test Qml WebSockets OpenGL)
 

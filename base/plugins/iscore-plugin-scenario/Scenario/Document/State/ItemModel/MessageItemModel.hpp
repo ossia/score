@@ -5,6 +5,7 @@
 #include <qnamespace.h>
 #include <QStringList>
 #include <QVariant>
+#include <iscore_plugin_scenario_export.h>
 
 class QMimeData;
 class QObject;
@@ -21,7 +22,7 @@ struct Message;
  * the Qt way.
  *
  */
-class MessageItemModel final : public TreeNodeBasedItemModel<MessageNode>
+class ISCORE_PLUGIN_SCENARIO_EXPORT MessageItemModel final : public TreeNodeBasedItemModel<MessageNode>
 {
         Q_OBJECT
 

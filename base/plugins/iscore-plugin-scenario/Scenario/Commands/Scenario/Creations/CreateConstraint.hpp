@@ -7,6 +7,7 @@
 #include <iscore/tools/SettableIdentifier.hpp>
 #include <QString>
 
+#include <iscore_plugin_scenario_export.h>
 class ConstraintModel;
 class ConstraintViewModel;
 class DataStreamInput;
@@ -26,7 +27,7 @@ namespace Scenario
         * This Command creates a constraint and another event in a scenario,
         * starting from an event selected by the user.
         */
-        class CreateConstraint final : public iscore::SerializableCommand
+        class ISCORE_PLUGIN_SCENARIO_EXPORT CreateConstraint final : public iscore::SerializableCommand
         {
                 ISCORE_COMMAND_DECL(ScenarioCommandFactoryName(), CreateConstraint,"Create a constraint")
             public:

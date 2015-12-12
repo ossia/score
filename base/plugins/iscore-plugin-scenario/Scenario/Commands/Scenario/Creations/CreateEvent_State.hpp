@@ -21,7 +21,7 @@ namespace Scenario
 {
 namespace Command
 {
-class CreateEvent_State final : public iscore::SerializableCommand
+class ISCORE_PLUGIN_SCENARIO_EXPORT CreateEvent_State final : public iscore::SerializableCommand
 {
         ISCORE_COMMAND_DECL(ScenarioCommandFactoryName(), CreateEvent_State, "Create an event and a state")
         public:

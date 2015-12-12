@@ -13,7 +13,7 @@ class QStyleOptionGraphicsItem;
 class QWidget;
 class TemporalConstraintPresenter;
 
-class TemporalConstraintView final : public ConstraintView
+class ISCORE_PLUGIN_SCENARIO_EXPORT TemporalConstraintView final : public ConstraintView
 {
         Q_OBJECT
 

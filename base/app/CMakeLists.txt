@@ -61,7 +61,7 @@ if(ISCORE_STATIC_QT)
         )
 endif()
 
-setup_iscore_common_features(${APPNAME})
+setup_iscore_common_exe_features(${APPNAME})
 
 install(TARGETS ${APPNAME}
         BUNDLE DESTINATION .

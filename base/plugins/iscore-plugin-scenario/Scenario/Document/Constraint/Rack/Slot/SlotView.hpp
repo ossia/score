@@ -5,6 +5,7 @@
 #include <QRect>
 #include <QString>
 
+#include <iscore_plugin_scenario_export.h>
 class QGraphicsSceneContextMenuEvent;
 class QPainter;
 class QStyleOptionGraphicsItem;
@@ -13,7 +14,7 @@ class SlotHandle;
 class SlotOverlay;
 class SlotPresenter;
 
-class SlotView final : public QGraphicsObject
+class ISCORE_PLUGIN_SCENARIO_EXPORT SlotView final : public QGraphicsObject
 {
         Q_OBJECT
 

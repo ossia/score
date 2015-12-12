@@ -22,7 +22,7 @@ namespace Scenario
 {
 namespace Command
 {
-class CreateConstraint_State_Event final : public iscore::SerializableCommand
+class ISCORE_PLUGIN_SCENARIO_EXPORT CreateConstraint_State_Event final : public iscore::SerializableCommand
 {
         ISCORE_COMMAND_DECL(ScenarioCommandFactoryName(), CreateConstraint_State_Event, "Create a constraint, a state and an event")
         public:

@@ -55,9 +55,20 @@ endfunction()
 function(iscore_set_gcc_compile_options theTarget)
     # set(CMAKE_CXX_FLAGS "${CMAKE_CXX_FLAGS} -Werror -Wno-error=shadow -Wno-error=switch -Wno-error=switch-enum -Wno-error=empty-body -Wno-error=overloaded-virtual -Wno-error=suggest-final-methods -Wno-error=suggest-final-types -Wno-error=suggest-override -Wno-error=maybe-uninitialized")
 
-    target_compile_definitions(${TheTarget} PUBLIC
+    if(ISCORE_SANITIZE)
+      target_compile_definitions(${TheTarget} PUBLIC
         $<$<CONFIG:Debug>:_GLIBCXX_DEBUG>
+        $<$<CONFIG:Debug>:_GLIBCXX_DEBUG_PEDANTIC>
         )
+
+      if(NOT ISCORE_COTIRE) ## Sanitizer won't work with PCHs
+        target_compile_options(${theTarget} PUBLIC
+          $<$<CONFIG:Debug>:-fsanitize=undefined>
+        )
+        target_link_libraries(${theTarget}
+          $<$<CONFIG:Debug>:-fsanitize=undefined> )
+      endif()
+    endif()
 
     if (GCC_VERSION VERSION_GREATER 5.2 OR GCC_VERSION VERSION_EQUAL 5.2)
         target_compile_options(${theTarget} PUBLIC
@@ -83,10 +94,27 @@ function(iscore_set_clang_compile_options theTarget)
     #if ("${CMAKE_CXX_COMPILER_ID}" STREQUAL "Clang")
     #	set(CMAKE_CXX_FLAGS "${CMAKE_CXX_FLAGS} -Weverything -Wno-c++98-compat -Wno-exit-time-destructors -Wno-padded")
     #endif()
+
+    if(ISCORE_SANITIZE)
+      if(NOT APPLE AND NOT WIN32) # Only for linux.
+        # TODO : http://stackoverflow.com/a/30176092/1495627
+        # Need to check for the libstdc++ abi.
+        # target_compile_definitions(${TheTarget} PUBLIC
+        #  $<$<CONFIG:Debug>:_GLIBCXX_DEBUG>
+        #  $<$<CONFIG:Debug>:_GLIBCXX_DEBUG_PEDANTIC>
+        #  )
+      endif()
+
+      target_compile_options(${theTarget} PUBLIC
+        $<$<CONFIG:Debug>:-fsanitize=undefined>
+        )
+      target_link_libraries(${theTarget}
+        $<$<CONFIG:Debug>:-lubsan> )
+    endif()
 endfunction()
 
 function(iscore_set_linux_compile_options theTarget)
-    target_link_libraries(${theTarget} "-fuse-ld=gold -Wl,-z,defs")
+    target_link_libraries(${theTarget} "-fuse-ld=gold" "-Wl,-z,defs")
 endfunction()
 
 function(iscore_set_unix_compile_options theTarget)
@@ -119,8 +147,6 @@ endfunction()
 
 function(iscore_set_compile_options theTarget)
   set_target_properties(${TheTarget} PROPERTIES CXX_STANDARD 14)
-  set_target_properties(${TheTarget} PROPERTIES CXX_VISIBILITY_PRESET hidden)
-  set_target_properties(${TheTarget} PROPERTIES VISIBILITY_INLINES_HIDDEN 1)
 
   target_compile_definitions(${TheTarget} PUBLIC
       $<$<CONFIG:Debug>:ISCORE_DEBUG>
@@ -170,8 +196,6 @@ function(setup_iscore_common_features TheTarget)
   endif()
 
   target_include_directories(${TheTarget} INTERFACE "${CMAKE_CURRENT_BINARY_DIR}")
-
-  generate_export_header(${TheTarget})
 endfunction()
 
 
@@ -186,6 +210,10 @@ endfunction()
 
 function(setup_iscore_common_lib_features TheTarget)
   setup_iscore_common_features("${TheTarget}")
+
+  generate_export_header(${TheTarget})
+  set_target_properties(${TheTarget} PROPERTIES CXX_VISIBILITY_PRESET hidden)
+  set_target_properties(${TheTarget} PROPERTIES VISIBILITY_INLINES_HIDDEN 1)
 
   string(TOUPPER "${TheTarget}" UPPERCASE_PLUGIN_NAME)
   set_property(TARGET ${TheTarget} APPEND
@@ -239,8 +267,12 @@ endfunction()
 
 ### Generate files of commands ###
 function(iscore_write_file FileName Content)
-    file(READ "${FileName}" EXISTING_CONTENT)
-    if(NOT "${Content}" STREQUAL "${EXISTING_CONTENT}")
+    if(EXISTS "${FileName}")
+      file(READ "${FileName}" EXISTING_CONTENT)
+      if(NOT "${Content}" STREQUAL "${EXISTING_CONTENT}")
+        file(WRITE "${FileName}" ${Content})
+      endif()
+    else()
         file(WRITE "${FileName}" ${Content})
     endif()
 endfunction()

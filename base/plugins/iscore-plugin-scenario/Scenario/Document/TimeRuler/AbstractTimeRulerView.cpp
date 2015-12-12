@@ -18,7 +18,7 @@ AbstractTimeRulerView::AbstractTimeRulerView() :
     m_width{800},
     m_graduationsSpacing{10},
     m_graduationDelta{10},
-    m_intervalsBeetwenMark{1},
+    m_intervalsBetweenMark{1},
     m_graduationHeight{-10}
 {
     setY(-25);
@@ -63,7 +63,7 @@ void AbstractTimeRulerView::setGraduationsStyle(double size, int delta, QString 
     m_graduationsSpacing = size;
     m_graduationDelta = delta;
     m_timeFormat = format;
-    m_intervalsBeetwenMark = mark;
+    m_intervalsBetweenMark = mark;
     createRulerPath();
 }
 
@@ -97,7 +97,7 @@ void AbstractTimeRulerView::createRulerPath()
     QTime time = TimeValue::fromMsecs(prev_big_grad_msec).toQTime();
     double t = -startTime.toPixels(1./m_pres->pixelsPerMillis());
 
-    int i = 0;
+    uint32_t i = 0;
     double gradSize;
 
     while (t < m_width + 1)
@@ -112,7 +112,9 @@ void AbstractTimeRulerView::createRulerPath()
             }
         }
         */
-        if (i % m_intervalsBeetwenMark == 0)
+
+        uint32_t res = (i % m_intervalsBetweenMark);
+        if (res == 0)
         {
             m_marks[t] = time;
             gradSize = 3;

@@ -5,7 +5,7 @@
 #include <QRect>
 
 #include <Scenario/Document/Event/ExecutionStatus.hpp>
-
+#include <iscore_plugin_scenario_export.h>
 class QGraphicsSceneDragDropEvent;
 class QGraphicsSceneMouseEvent;
 class QMimeData;
@@ -14,7 +14,7 @@ class QStyleOptionGraphicsItem;
 class QWidget;
 class StatePresenter;
 
-class StateView final : public QGraphicsObject
+class ISCORE_PLUGIN_SCENARIO_EXPORT  StateView final : public QGraphicsObject
 {
         Q_OBJECT
     public:

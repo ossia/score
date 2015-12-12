@@ -15,6 +15,7 @@ class TreeNodeBasedItemModel : public QAbstractItemModel
         using node_type = NodeType;
 
         using QAbstractItemModel::QAbstractItemModel;
+        virtual ~TreeNodeBasedItemModel() = default;
         virtual NodeType& rootNode() = 0;
         virtual const NodeType& rootNode() const = 0;
 
