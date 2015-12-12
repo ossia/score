@@ -32,15 +32,14 @@ case "$TRAVIS_OS_NAME" in
     sudo update-alternatives --install /usr/bin/g++ g++ /usr/bin/g++-5 1000
   ;;
   osx)
-    # work around a homebrew bug
     set +e
-    brew update; brew update; 
-    brew upgrade
+    brew update
     brew install wget
     wget https://www.dropbox.com/s/t155m8wt2cp075k/JamomaDarwin20151108.zip?dl=1 -O JamomaDarwin20151108.zip
     unzip JamomaDarwin20151108.zip
     mv JamomaDarwin20151108 Jamoma
-    brew install cmake qt5 boost ninja
+    brew install cmake qt5 ninja
+    brew upgrade boost
     set -e
   ;;
 esac
