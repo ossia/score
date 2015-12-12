@@ -30,6 +30,7 @@ class ISCORE_PLUGIN_SCENARIO_EXPORT ScenarioDocumentModel final : public iscore:
             iscore::DocumentDelegateModelInterface {vis, parent}
         {
             vis.writeTo(*this);
+            init();
         }
 
         virtual ~ScenarioDocumentModel() = default;
@@ -50,7 +51,6 @@ class ISCORE_PLUGIN_SCENARIO_EXPORT ScenarioDocumentModel final : public iscore:
 
         void setDisplayedConstraint(const ConstraintModel& constraint);
 
-        DisplayedElementsModel displayedElements;
 
     signals:
         void focusMe();
@@ -62,6 +62,7 @@ class ISCORE_PLUGIN_SCENARIO_EXPORT ScenarioDocumentModel final : public iscore:
         void on_viewModelFocused(const LayerModel* vm);
 
     private:
+        void init();
         void initializeNewDocument(const FullViewConstraintViewModel* viewmodel);
 
         ProcessFocusManager m_focusManager;
@@ -69,5 +70,8 @@ class ISCORE_PLUGIN_SCENARIO_EXPORT ScenarioDocumentModel final : public iscore:
         BaseScenario* m_baseScenario{};
 
         QMetaObject::Connection m_constraintConnection;
+
+    public:
+        DisplayedElementsModel displayedElements;
 };
 

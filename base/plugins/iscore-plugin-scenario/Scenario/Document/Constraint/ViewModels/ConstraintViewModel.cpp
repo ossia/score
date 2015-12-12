@@ -64,6 +64,11 @@ ConstraintViewModel::ConstraintViewModel(
 {
 }
 
+ConstraintViewModel::~ConstraintViewModel()
+{
+    emit aboutToBeDeleted(this);
+}
+
 const ConstraintModel& ConstraintViewModel::model() const
 {
     return m_model;

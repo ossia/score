@@ -123,7 +123,7 @@ void ProcessPanelPresenter::on_sizeChanged(const QSize& size)
     m_processPresenter->setHeight(size.height());
     m_processPresenter->parentGeometryChanged();
 
-    auto fullWidth = m_processPresenter->layerModel().processModel().duration().toPixels(m_zoomRatio);
+    double fullWidth = m_processPresenter->layerModel().processModel().duration().toPixels(m_zoomRatio);
 
     m_obj->setSize(QSizeF{(double)fullWidth, (double)size.height()});
 }

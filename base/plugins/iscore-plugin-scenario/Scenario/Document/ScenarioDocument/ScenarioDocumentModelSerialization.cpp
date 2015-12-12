@@ -1,5 +1,7 @@
 #include <Scenario/Document/BaseScenario/BaseScenario.hpp>
 
+
+#include <Scenario/Document/DisplayedElements/DisplayedElementsProviderList.hpp>
 #include <iscore/serialization/VisitorCommon.hpp>
 #include <QJsonObject>
 #include <QJsonValue>
@@ -30,6 +32,7 @@ template<>
 void Visitor<Writer<DataStream>>::writeTo(ScenarioDocumentModel& obj)
 {
     obj.m_baseScenario = new BaseScenario{*this, &obj};
+    obj.displayedElements.setDisplayedElements(context.components.factory<DisplayedElementsProviderList>().make(obj.m_baseScenario->constraint()));
 
     checkDelimiter();
 }
@@ -48,6 +51,7 @@ void Visitor<Writer<JSONObject>>::writeTo(ScenarioDocumentModel& obj)
     obj.m_baseScenario = new BaseScenario{
                         Deserializer<JSONObject>{m_obj["BaseScenario"].toObject()},
                         &obj};
+    obj.displayedElements.setDisplayedElements(context.components.factory<DisplayedElementsProviderList>().make(obj.m_baseScenario->constraint()));
 }
 
 void ScenarioDocumentModel::serialize(const VisitorVariant& vis) const

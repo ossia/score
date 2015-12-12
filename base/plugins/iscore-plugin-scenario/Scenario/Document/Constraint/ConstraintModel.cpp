@@ -96,23 +96,16 @@ void ConstraintModel::setupConstraintViewModel(ConstraintViewModel* viewmodel)
 {
     racks.removing.connect<ConstraintViewModel, &ConstraintViewModel::on_rackRemoval>(viewmodel);
 
-    // TODO why not the one in identifiedobjectabstract
-    connect(viewmodel, &QObject::destroyed,
+    connect(viewmodel, &ConstraintViewModel::aboutToBeDeleted,
             this, &ConstraintModel::on_destroyedViewModel);
 
     m_constraintViewModels.push_back(viewmodel);
     emit viewModelCreated(*viewmodel);
 }
 
-void ConstraintModel::on_destroyedViewModel(QObject* obj)
+void ConstraintModel::on_destroyedViewModel(ConstraintViewModel* obj)
 {
-    // Note : don't change into a dynamic/safe cast
-    // because the ConstraintViewModel part already was deleted
-    // at this point.
-    // TODO : make ConstraintViewModel send a signal
-    // at the beginning of its destructor instead.
-    int index = m_constraintViewModels.indexOf(
-                    static_cast<ConstraintViewModel*>(obj));
+    int index = m_constraintViewModels.indexOf(obj);
 
     if(index != -1)
     {

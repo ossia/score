@@ -212,8 +212,10 @@ function(setup_iscore_common_lib_features TheTarget)
   setup_iscore_common_features("${TheTarget}")
 
   generate_export_header(${TheTarget})
-  set_target_properties(${TheTarget} PROPERTIES CXX_VISIBILITY_PRESET hidden)
-  set_target_properties(${TheTarget} PROPERTIES VISIBILITY_INLINES_HIDDEN 1)
+  if(NOT ISCORE_STATIC_PLUGINS)
+    set_target_properties(${TheTarget} PROPERTIES CXX_VISIBILITY_PRESET hidden)
+    set_target_properties(${TheTarget} PROPERTIES VISIBILITY_INLINES_HIDDEN 1)
+  endif()
 
   string(TOUPPER "${TheTarget}" UPPERCASE_PLUGIN_NAME)
   set_property(TARGET ${TheTarget} APPEND

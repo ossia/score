@@ -11,6 +11,9 @@ class TimeNodeModel;
 class DisplayedElementsModel
 {
     public:
+        DisplayedElementsModel() = default;
+        bool initialized() const { return m_initialized; }
+
         void setSelection(const Selection&);
 
         void setDisplayedElements(DisplayedElementsContainer&&);
@@ -39,4 +42,5 @@ class DisplayedElementsModel
         }
 
         DisplayedElementsContainer m_elements;
+        bool m_initialized = false;
 };

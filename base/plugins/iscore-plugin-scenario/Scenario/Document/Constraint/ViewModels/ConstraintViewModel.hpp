@@ -21,6 +21,8 @@ class ISCORE_PLUGIN_SCENARIO_EXPORT ConstraintViewModel : public IdentifiedObjec
                             const ConstraintModel& model,
                             QObject* parent);
 
+        virtual ~ConstraintViewModel();
+
         template<typename DeserializerVisitor>
         ConstraintViewModel(DeserializerVisitor&& vis,
                             const ConstraintModel& model,
@@ -49,6 +51,8 @@ class ISCORE_PLUGIN_SCENARIO_EXPORT ConstraintViewModel : public IdentifiedObjec
         void lastRackRemoved();
         void rackHidden();
         void rackShown(const Id<RackModel>&);
+
+        void aboutToBeDeleted(ConstraintViewModel*);
 
     public slots:
         virtual void on_rackRemoval(const RackModel&);

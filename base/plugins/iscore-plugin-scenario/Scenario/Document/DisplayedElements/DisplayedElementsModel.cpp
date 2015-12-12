@@ -23,6 +23,7 @@ void DisplayedElementsModel::setDisplayedElements(
         DisplayedElementsContainer&& elts)
 {
     m_elements = std::move(elts);
+    m_initialized = true;
 }
 
 const ConstraintModel &DisplayedElementsModel::constraint() const

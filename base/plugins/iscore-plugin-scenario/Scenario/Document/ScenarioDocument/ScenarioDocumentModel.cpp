@@ -61,7 +61,13 @@ ScenarioDocumentModel::ScenarioDocumentModel(QObject* parent) :
     m_baseScenario->constraint().setObjectName("BaseConstraintModel");
 
     initializeNewDocument(m_baseScenario->constraint().fullView());
+    init();
 
+    //displayedElements = iscore::IDocument::documentContext(*this).app.components.factory<DisplayedElementsProviderList>().make(m_baseScenario->constraint());
+}
+
+void ScenarioDocumentModel::init()
+{
     // Help for the FocusDispatcher.
     connect(this, &ScenarioDocumentModel::setFocusedPresenter,
             &m_focusManager, static_cast<void (ProcessFocusManager::*)(LayerPresenter*)>(&ProcessFocusManager::focus));
@@ -223,8 +229,11 @@ void ScenarioDocumentModel::setNewSelection(const Selection& s)
 
 void ScenarioDocumentModel::setDisplayedConstraint(const ConstraintModel& constraint)
 {
-    if(&constraint == &displayedElements.constraint())
-        return;
+    if(displayedElements.initialized())
+    {
+        if(&constraint == &displayedElements.constraint())
+            return;
+    }
 
     auto& provider = iscore::IDocument::documentContext(*this).app.components.factory<DisplayedElementsProviderList>();
     displayedElements.setDisplayedElements(provider.make(constraint));

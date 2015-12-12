@@ -142,10 +142,9 @@ class ISCORE_PLUGIN_SCENARIO_EXPORT ConstraintModel final : public IdentifiedObj
     public slots:
         void setHeightPercentage(double arg);
 
-    private slots:
-        void on_destroyedViewModel(QObject*);
 
     private:
+        void on_destroyedViewModel(ConstraintViewModel* obj);
         void initConnections();
         void on_rackAdded(const RackModel& rack);
 

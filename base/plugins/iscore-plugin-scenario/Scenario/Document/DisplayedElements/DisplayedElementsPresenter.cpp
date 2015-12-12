@@ -151,6 +151,8 @@ void DisplayedElementsPresenter::showConstraint()
 
 void DisplayedElementsPresenter::on_zoomRatioChanged(ZoomRatio r)
 {
+    if(!m_constraintPresenter)
+        return;
     updateLength(m_constraintPresenter->abstractConstraintViewModel().model().duration.defaultDuration().toPixels(r));
 
     m_constraintPresenter->on_zoomRatioChanged(r);

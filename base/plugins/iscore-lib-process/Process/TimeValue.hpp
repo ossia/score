@@ -73,7 +73,9 @@ class TimeValue_T
 
         double toPixels(ZoomRatio ratio) const
         {
-            return *m_impl / ratio;
+            return ratio > 0
+                    ? *m_impl / ratio
+                    : 0;
         }
 
         QTime toQTime() const

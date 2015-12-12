@@ -45,6 +45,8 @@ template<typename T>
 class CurveSegmentFactory_T : public CurveSegmentFactory
 {
     public:
+        virtual ~CurveSegmentFactory_T() = default;
+
         CurveSegmentModel *make(
                 const Id<CurveSegmentModel>& id,
                 QObject* parent) override
@@ -79,6 +81,10 @@ class CurveSegmentFactory_T : public CurveSegmentFactory
 #define DEFINE_CURVE_SEGMENT_FACTORY(Name, DynName, Model) \
     class Name final : public CurveSegmentFactory_T<Model> \
 { \
+    public: \
+    virtual ~Name() = default; \
+    \
+    private: \
     const CurveSegmentFactoryKey& key_impl() const override { \
         static const CurveSegmentFactoryKey name{DynName}; \
         return name; \
