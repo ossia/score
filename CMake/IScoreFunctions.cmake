@@ -55,6 +55,10 @@ endfunction()
 function(iscore_set_gcc_compile_options theTarget)
     # set(CMAKE_CXX_FLAGS "${CMAKE_CXX_FLAGS} -Werror -Wno-error=shadow -Wno-error=switch -Wno-error=switch-enum -Wno-error=empty-body -Wno-error=overloaded-virtual -Wno-error=suggest-final-methods -Wno-error=suggest-final-types -Wno-error=suggest-override -Wno-error=maybe-uninitialized")
 
+    target_compile_definitions(${TheTarget} PUBLIC
+        $<$<CONFIG:Debug>:_GLIBCXX_DEBUG>
+        )
+
     if (GCC_VERSION VERSION_GREATER 5.2 OR GCC_VERSION VERSION_EQUAL 5.2)
         target_compile_options(${theTarget} PUBLIC
           -Wno-div-by-zero
