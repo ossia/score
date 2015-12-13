@@ -267,8 +267,10 @@ void SlotPresenter::on_layerModelCreated_impl(
         auto it = std::find_if(m_processes.begin(), m_processes.end(), [&] (const auto& elt) {
             return elt.model->processModel().id() == proc_vm.processModel().id();
         });
-        ISCORE_ASSERT(it != m_processes.end());
-        updateProcessShape(*it);
+
+        // TODO this should be an assert but it sometimes causes crashes.
+        if(it != m_processes.end())
+            updateProcessShape(*it);
     });
 
     if(m_enabled)
