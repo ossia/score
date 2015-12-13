@@ -35,9 +35,27 @@
 #include "TAConversion.hpp"
 #include <Scenario/Application/Menus/TextDialog.hpp>
 #include <ScenarioMetrics.hpp>
+#include <ScenarioGenerator.hpp>
 TemporalAutomatas::ApplicationPlugin::ApplicationPlugin(const iscore::ApplicationContext& app):
     iscore::GUIApplicationContextPlugin(app, "TemporalAutomatasApplicationPlugin", nullptr)
 {
+    m_generate = new QAction{tr("Generate random score"), nullptr};
+    connect(m_generate, &QAction::triggered, [&] () {
+        auto doc = currentDocument();
+        if(!doc)
+            return;
+        ScenarioDocumentModel& base = iscore::IDocument::get<ScenarioDocumentModel>(*doc);
+
+        const auto& baseConstraint = base.baseScenario().constraint();
+        if(baseConstraint.processes.size() == 0)
+            return;
+
+        auto firstScenario = dynamic_cast<Scenario::ScenarioModel*>(&*baseConstraint.processes.begin());
+        if(!firstScenario)
+            return;
+
+        Scenario::generateScenario(*firstScenario);
+    });
     m_convert = new QAction{tr("Convert to Temporal Automatas"), nullptr};
     connect(m_convert, &QAction::triggered, [&] () {
         auto doc = currentDocument();
@@ -91,6 +109,9 @@ TemporalAutomatas::ApplicationPlugin::ApplicationPlugin(const iscore::Applicatio
 
 void TemporalAutomatas::ApplicationPlugin::populateMenus(iscore::MenubarManager* menus)
 {
+    menus->insertActionIntoToplevelMenu(
+                ToplevelMenuElement::FileMenu,
+                m_generate);
     menus->insertActionIntoToplevelMenu(
                 ToplevelMenuElement::FileMenu,
                 m_convert);
