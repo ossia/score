@@ -68,6 +68,16 @@ namespace iscore
         About
     };
 
+    enum class ContextMenu : int
+    {
+        Object,
+        Constraint,
+        Process,
+        Slot,
+        Rack,
+        Event,
+        State
+    };
     /**
      * @brief The MenuInterface class
      *
@@ -93,5 +103,6 @@ namespace iscore
             static const std::map<ViewMenuElement, QString> m_viewMap;
             static const std::map<SettingsMenuElement, QString> m_settingsMap;
             static const std::map<AboutMenuElement, QString> m_aboutMap;
+            static const std::map<ContextMenu, QString> m_contextMap;
     };
 }

@@ -27,6 +27,8 @@
 #include <boost/optional/optional.hpp>
 #include <iscore/command/Dispatchers/CommandDispatcher.hpp>
 #include <iscore/command/Dispatchers/MacroCommandDispatcher.hpp>
+#include <iscore/selection/SelectionStack.hpp>
+#include <iscore/selection/Selection.hpp>
 #include <QAction>
 #include <QApplication>
 #include <QMenu>
@@ -178,8 +180,6 @@ void ScenarioContextMenuManager::createSlotContextMenu(
         dialog.launchWindow();
     });
     menu.addAction(addNewProcessInNewSlot);
-
-    menu.addSeparator();
 }
 
 void ScenarioContextMenuManager::createLayerContextMenu(
@@ -192,11 +192,23 @@ void ScenarioContextMenuManager::createLayerContextMenu(
     if(auto slotp = dynamic_cast<SlotPresenter*>(pres.parent()))
     {
         auto& context = iscore::IDocument::documentContext(slotp->model());
-        ScenarioContextMenuManager::createSlotContextMenu(context, menu, *slotp);
+
+        if (context.selectionStack.currentSelection().toList().isEmpty())
+        {
+            // submenu Slot created if needed
+            auto slotSubmenu = menu.findChild<QMenu*>(MenuInterface::name(iscore::ContextMenu::Slot));
+            if(!slotSubmenu)
+            {
+                slotSubmenu = menu.addMenu(MenuInterface::name(iscore::ContextMenu::Slot));
+                slotSubmenu->setTitle(MenuInterface::name(iscore::ContextMenu::Slot));
+            }
+            ScenarioContextMenuManager::createSlotContextMenu(context, *slotSubmenu, *slotp);
+        }
     }
 
     // Then the process-specific part
-    pres.fillContextMenu(&menu, pos, scenepos);
+    auto processMenu = menu.addMenu(iscore::MenuInterface::name(iscore::ContextMenu::Process));
+    pres.fillContextMenu(processMenu, pos, scenepos);
 }
 
 void ScenarioContextMenuManager::createScenarioContextMenu(

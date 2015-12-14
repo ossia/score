@@ -62,6 +62,8 @@
 #include <iscore/tools/NotifyingMap.hpp>
 #include <iscore/plugins/customfactory/StringFactoryKeySerialization.hpp>
 #include <Scenario/Commands/Cohesion/DoForSelectedConstraints.hpp>
+#include <iscore/menu/MenuInterface.hpp>
+
 ObjectMenuActions::ObjectMenuActions(
         iscore::ToplevelMenuElement menuElt,
         ScenarioApplicationPlugin* parent) :
@@ -224,41 +226,50 @@ void ObjectMenuActions::fillContextMenu(
         QList<const ConstraintModel*> selectedConstraints = filterSelectionByType<ConstraintModel>(sel);
         if(selectedConstraints.size() == 1)
         {
-            auto rackMenu = menu->addMenu(tr("Rack"));
             auto& cst = *selectedConstraints.front();
-
-            // We have to find the constraint view model of this layer.
-            auto& vm = dynamic_cast<const TemporalScenarioLayerModel*>(&pres.layerModel())->constraint(cst.id());
-
-            for(const RackModel& rack : cst.racks)
+            if(!cst.racks.empty())
             {
-                auto act = new QAction{rack.objectName(), rackMenu};
-                connect(act, &QAction::triggered,
+                auto rackMenu = menu->addMenu(MenuInterface::name(ContextMenu::Rack));
+
+                // We have to find the constraint view model of this layer.
+                auto& vm = dynamic_cast<const TemporalScenarioLayerModel*>(&pres.layerModel())->constraint(cst.id());
+
+                for(const RackModel& rack : cst.racks)
+                {
+                    auto act = new QAction{rack.objectName(), rackMenu};
+                    connect(act, &QAction::triggered,
+                            this, [&] () {
+                        auto cmd = new Scenario::Command::ShowRackInViewModel{vm, rack.id()};
+                        CommandDispatcher<> dispatcher{m_parent->currentDocument()->context().commandStack};
+                        dispatcher.submitCommand(cmd);
+                    });
+
+                    rackMenu->addAction(act);
+                }
+
+                auto hideAct = new QAction{tr("Hide"), rackMenu};
+                connect(hideAct, &QAction::triggered,
                         this, [&] () {
-                    auto cmd = new Scenario::Command::ShowRackInViewModel{vm, rack.id()};
+                    auto cmd = new Scenario::Command::HideRackInViewModel{vm};
                     CommandDispatcher<> dispatcher{m_parent->currentDocument()->context().commandStack};
                     dispatcher.submitCommand(cmd);
                 });
-
-                rackMenu->addAction(act);
+                rackMenu->addAction(hideAct);
             }
-
-            auto hideAct = new QAction{tr("Hide"), rackMenu};
-            connect(hideAct, &QAction::triggered,
-                    this, [&] () {
-                auto cmd = new Scenario::Command::HideRackInViewModel{vm};
-                CommandDispatcher<> dispatcher{m_parent->currentDocument()->context().commandStack};
-                dispatcher.submitCommand(cmd);
-            });
-            rackMenu->addAction(hideAct);
         }
 
         if(selectedConstraints.size() >= 1)
         {
+            auto cstrSubmenu = menu->findChild<QMenu*>(MenuInterface::name(iscore::ContextMenu::Constraint));
+            if(!cstrSubmenu)
+            {
+                cstrSubmenu = menu->addMenu(MenuInterface::name(iscore::ContextMenu::Constraint));
+                cstrSubmenu->setTitle(MenuInterface::name(iscore::ContextMenu::Constraint));
+            }
+
             if(m_addProcess)
-                menu->addAction(m_addProcess);
-            menu->addAction(m_interp);
-            menu->addSeparator();
+                cstrSubmenu->addAction(m_addProcess);
+            cstrSubmenu->addAction(m_interp);
         }
 
 
@@ -266,30 +277,48 @@ void ObjectMenuActions::fillContextMenu(
                        sel.cend(),
                        [] (const QObject* obj) { return dynamic_cast<const EventModel*>(obj); })) // TODO : event or timenode ?
         {
-            menu->addAction(m_addTrigger);
-            menu->addAction(m_removeTrigger);
-            menu->addSeparator();
+            auto tnSubmenu = menu->findChild<QMenu*>(MenuInterface::name(iscore::ContextMenu::Event));
+            if(!tnSubmenu)
+            {
+                tnSubmenu = menu->addMenu(MenuInterface::name(iscore::ContextMenu::Event));
+                tnSubmenu->setTitle(MenuInterface::name(iscore::ContextMenu::Event));
+            }
+            tnSubmenu->addAction(m_addTrigger);
+            tnSubmenu->addAction(m_removeTrigger);
         }
 
         if(std::any_of(sel.cbegin(),
                        sel.cend(),
                        [] (const QObject* obj) { return dynamic_cast<const StateModel*>(obj); })) // TODO : event or timenode ?
         {
-            menu->addAction(m_updateStates);
-            menu->addSeparator();
+            auto stateSubmenu = menu->findChild<QMenu*>(MenuInterface::name(iscore::ContextMenu::State));
+            if(!stateSubmenu)
+            {
+                stateSubmenu = menu->addMenu(MenuInterface::name(iscore::ContextMenu::State));
+                stateSubmenu->setTitle(MenuInterface::name(iscore::ContextMenu::State));
+            }
+
+            stateSubmenu->addAction(m_updateStates);
         }
 
-        menu->addAction(m_elementsToJson);
-        menu->addAction(m_removeElements);
-        menu->addAction(m_clearElements);
-        menu->addSeparator();
+        auto objectMenu = menu->findChild<QMenu*>(MenuInterface::name(iscore::ContextMenu::Object));
+        if(!objectMenu)
+        {
+            objectMenu = menu->addMenu(MenuInterface::name(iscore::ContextMenu::Object));
+            objectMenu->setTitle(MenuInterface::name(iscore::ContextMenu::Object));
+        }
 
-        menu->addAction(m_copyContent);
-        menu->addAction(m_cutContent);
-        menu->addAction(m_pasteContent);
+        objectMenu->addAction(m_elementsToJson);
+        objectMenu->addAction(m_removeElements);
+        objectMenu->addAction(m_clearElements);
+        objectMenu->addSeparator();
+
+        objectMenu->addAction(m_copyContent);
+        objectMenu->addAction(m_cutContent);
+        objectMenu->addAction(m_pasteContent);
     }
 
-    auto pasteElements = new QAction{tr("Paste here"), this};
+    auto pasteElements = new QAction{tr("Paste element(s)"), this};
     pasteElements->setShortcut(QKeySequence::Paste);
     pasteElements->setShortcutContext(Qt::WidgetWithChildrenShortcut);
     connect(pasteElements, &QAction::triggered,
@@ -299,7 +328,6 @@ void ObjectMenuActions::fillContextMenu(
                       Scenario::ConvertToScenarioPoint(scenePoint, pres.zoomRatio(), pres.view().boundingRect().height()));
     });
     menu->addAction(pasteElements);
-
 }
 
 bool ObjectMenuActions::populateToolBar(QToolBar * b)
