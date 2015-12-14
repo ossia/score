@@ -147,14 +147,26 @@ void ScenarioDocumentPresenter::on_displayedConstraintChanged()
 
     // Set a new zoom ratio, such that the displayed constraint takes the whole screen.
 
-    auto newZoom = displayedConstraint().fullView()->zoom();
+    ZoomRatio newZoom = displayedConstraint().fullView()->zoom();
+    if(newZoom != -1) // constraint has already been in fullview
+    {
+        double newSliderPos = ZoomPolicy::zoomRatioToSliderPos(
+                                  newZoom,
+                                  displayedConstraint().duration.defaultDuration().msec(),
+                                  view().view().width()
+                                  );
+        view().zoomSlider()->setValue(newSliderPos);
+    }
+    else // first time in fullview : init the zoom ratio
+    {
+        view().zoomSlider()->setValue(0.01);
+        newZoom = ZoomPolicy::sliderPosToZoomRatio(
+                      0.01,
+                      displayedConstraint().duration.defaultDuration().msec(),
+                      view().view().width()
+                      );
+    }
 
-    double newSliderPos = ZoomPolicy::zoomRatioToSliderPos(
-                              newZoom,
-                              displayedConstraint().duration.defaultDuration().msec(),
-                              view().view().width()
-                              );
-    view().zoomSlider()->setValue(newSliderPos);
     setMillisPerPixel(newZoom);
 
     on_askUpdate();
