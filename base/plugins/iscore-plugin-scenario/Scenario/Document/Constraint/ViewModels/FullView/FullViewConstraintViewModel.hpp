@@ -58,6 +58,6 @@ class FullViewConstraintViewModel final : public ConstraintViewModel
         bool isActive();
 
     private:
-        ZoomRatio m_zoom{60};
+        ZoomRatio m_zoom{-1};
         QPointF m_center{0,0};
 };
