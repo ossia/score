@@ -63,6 +63,7 @@ const auto& parentTimeNode(
     return scenario.timeNode(ev.timeNode());
 }
 
+
 // States
 template<typename Scenario_T>
 const auto& parentEvent(
@@ -70,6 +71,14 @@ const auto& parentEvent(
         const Scenario_T& scenario)
 {
     return scenario.event(st.eventId());
+}
+
+template<typename Scenario_T>
+const auto& parentTimeNode(
+        const StateModel& st,
+        const Scenario_T& scenario)
+{
+    return parentTimeNode(parentEvent(st, scenario), scenario);
 }
 
 
