@@ -30,7 +30,10 @@
 #include <iscore/plugins/application/GUIApplicationContextPlugin.hpp>
 #include <iscore/tools/SettableIdentifier.hpp>
 #include <iscore/tools/std/Algorithms.hpp>
+#include <core/document/Document.hpp>
+
 #include <QApplication>
+#include <QJsonDocument>
 #include <QFile>
 #include "TAConversion.hpp"
 #include <Scenario/Application/Menus/TextDialog.hpp>
@@ -54,7 +57,31 @@ TemporalAutomatas::ApplicationPlugin::ApplicationPlugin(const iscore::Applicatio
         if(!firstScenario)
             return;
 
-        Scenario::generateScenario(*firstScenario);
+        CommandDispatcher<> disp(doc->context().commandStack);
+        for(int n = 4; n < 150; n++)
+        {
+            while(doc->commandStack().canUndo())
+                doc->commandStack().undo();
+
+            Scenario::generateScenario(*firstScenario, n, disp);
+
+            {
+                QFile savefile("gen_test/" + QString::number(n) + ".scorejson");
+                savefile.open(QFile::WriteOnly);
+                QJsonDocument jdoc(doc->saveAsJson());
+
+                savefile.write(jdoc.toJson());
+                savefile.close();
+            }
+
+            {
+                QString text = TA::makeScenario(base.baseScenario().constraint());
+                QFile f("gen_test/" + QString::number(n) + ".xml");
+                f.open(QFile::WriteOnly);
+                f.write(text.toUtf8());
+                f.close();
+            }
+        }
     });
     m_convert = new QAction{tr("Convert to Temporal Automatas"), nullptr};
     connect(m_convert, &QAction::triggered, [&] () {

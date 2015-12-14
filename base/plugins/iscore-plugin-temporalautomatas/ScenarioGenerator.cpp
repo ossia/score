@@ -13,45 +13,43 @@
 template <typename RandomGenerator = std::default_random_engine>
 struct random_selector
 {
-    //On most platforms, you probably want to use std::random_device("/dev/urandom")()
-    random_selector(RandomGenerator g = RandomGenerator(std::random_device()()))
-        : gen(g) {}
+        //On most platforms, you probably want to use std::random_device("/dev/urandom")()
+        random_selector(RandomGenerator g = RandomGenerator(std::random_device()()))
+            : gen(g) {}
 
-    template <typename Iter>
-    Iter select(Iter start, Iter end) {
-        std::uniform_int_distribution<> dis(0, std::distance(start, end) - 1);
-        std::advance(start, dis(gen));
-        return start;
-    }
+        template <typename Iter>
+        Iter select(Iter start, Iter end) {
+            std::uniform_int_distribution<> dis(0, std::distance(start, end) - 1);
+            std::advance(start, dis(gen));
+            return start;
+        }
 
-    //convenience function
-    template <typename Iter>
-    Iter operator()(Iter start, Iter end) {
-        return select(start, end);
-    }
+        //convenience function
+        template <typename Iter>
+        Iter operator()(Iter start, Iter end) {
+            return select(start, end);
+        }
 
-    //convenience function that works on anything with a sensible begin() and end(), and returns with a ref to the value type
-    template <typename Container>
-    auto operator()(const Container& c) -> decltype(*begin(c))& {
-        return *select(begin(c), end(c));
-    }
+        //convenience function that works on anything with a sensible begin() and end(), and returns with a ref to the value type
+        template <typename Container>
+        auto operator()(const Container& c) -> decltype(*begin(c))& {
+            return *select(begin(c), end(c));
+        }
 
-private:
-    RandomGenerator gen;
+    private:
+        RandomGenerator gen;
 };
 namespace Scenario
 {
-void generateScenario(const Scenario::ScenarioModel& scenar)
+void generateScenario(const Scenario::ScenarioModel& scenar, int N, CommandDispatcher<>& disp)
 {
-    Command::CreateState cs(scenar, scenar.startEvent().id(), 0.5);
-    random_selector<> selector{};
-    cs.redo();
+    disp.submitCommand(new Command::CreateState(scenar, scenar.startEvent().id(), 0.5));
 
-    int N = 300;
+    random_selector<> selector{};
 
     for(int i = 0; i < N; i++)
     {
-        int randn = rand() % 4;
+        int randn = rand() % 2;
         double y = (rand() % 1000) / 1200.;
         switch(randn)
         {
@@ -64,8 +62,7 @@ void generateScenario(const Scenario::ScenarioModel& scenar)
                     const TimeNodeModel& parentNode = parentTimeNode(state, scenar);
                     Id<StateModel> state_id = state.id();
                     TimeValue t = TimeValue::fromMsecs(rand() % 20000) + parentNode.date();
-                    Command::CreateConstraint_State_Event_TimeNode command(scenar, state_id, t, state.heightPercentage());
-                    command.redo();
+                    disp.submitCommand(new Command::CreateConstraint_State_Event_TimeNode(scenar, state_id, t, state.heightPercentage()));
                     break;
                 }
             }
@@ -74,19 +71,8 @@ void generateScenario(const Scenario::ScenarioModel& scenar)
                 EventModel& event = *selector(scenar.events.get());
                 if(&event != &scenar.endEvent())
                 {
-                    Command::CreateState st(scenar, event.id(), y);
-                    st.redo();
+                    disp.submitCommand(new Command::CreateState(scenar, event.id(), y));
                 }
-
-                break;
-            }
-            case 2:
-            {
-
-                break;
-            }
-            case 3:
-            {
 
                 break;
             }
