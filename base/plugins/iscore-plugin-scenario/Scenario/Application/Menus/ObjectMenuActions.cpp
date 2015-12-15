@@ -212,6 +212,11 @@ void ObjectMenuActions::setEnabled(bool b)
     m_stateActions->setEnabled(b);
 }
 
+bool ObjectMenuActions::populateToolBar(QToolBar* tb)
+{
+    return m_cstrActions->populateToolBar(tb);
+}
+
 QJsonObject ObjectMenuActions::copySelectedElementsToJson()
 {
     if (auto sm = m_parent->focusedScenarioModel())
