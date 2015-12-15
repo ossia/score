@@ -15,6 +15,7 @@ class ISCORE_PLUGIN_SCENARIO_EXPORT EditionSettings : public QObject
         ExpandMode m_expandMode{ExpandMode::Scale};
         Scenario::Tool m_tool{Scenario::Tool::Select};
         bool m_sequence{false};
+        bool m_execution{false};
 
     public:
 
@@ -25,6 +26,7 @@ class ISCORE_PLUGIN_SCENARIO_EXPORT EditionSettings : public QObject
         void setExpandMode(ExpandMode expandMode);
         void setTool(Scenario::Tool tool);
         void setSequence(bool sequence);
+        void setExecution(bool ex);
 
         void setDefault();
 
