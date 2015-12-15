@@ -186,6 +186,8 @@ OSSIA::Node* getNodeFromPath(
 
 void setValue(OSSIA::Address& addr, const iscore::Value& val)
 {
+    addr.pushValue(iscore::convert::toOSSIAValue(val));
+    /*
     if(auto orig_val = addr.getValue())
     {
         auto clone = orig_val->clone();
@@ -200,6 +202,7 @@ void setValue(OSSIA::Address& addr, const iscore::Value& val)
         addr.pushValue(newval);
         delete newval;
     }
+    */
 
 }
 
