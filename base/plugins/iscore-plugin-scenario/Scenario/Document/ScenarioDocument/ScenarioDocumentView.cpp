@@ -23,6 +23,7 @@
 #include <QSvgGenerator>
 #include <QToolBar>
 #include <QWidget>
+#include <QFile>
 
 #include <Scenario/Application/Menus/ScenarioActions.hpp>
 #include <Scenario/Document/ScenarioDocument/Widgets/ScenarioBaseGraphicsView.hpp>
@@ -84,6 +85,12 @@ ScenarioDocumentView::ScenarioDocumentView(
         QMimeData * d = new QMimeData;
         d->setData("image/svg+xml",b.buffer());
         QApplication::clipboard()->setMimeData(d,QClipboard::Clipboard);
+        
+        QFile screenshot("screenshot.svg");
+        screenshot.open(QFile::WriteOnly);
+        screenshot.write(b.buffer());
+        screenshot.close();
+
     });
     m_scene->setItemIndexMethod(QGraphicsScene::NoIndex);
     // Configuration

@@ -617,7 +617,8 @@ void TAVisitor::visit(const ConstraintModel &c)
         flexible.event_max = event_e2;
         flexible.skip = skip;
 
-        flexible.event_i = "event_e_" + end_node_name;
+        // TODO check this; this is weird because if we're in Control case there is no event_e_Node anywhere."event_e_" + end_node_name;
+        flexible.event_i = event_e2;
 
         QString cst_name = name(c);
         flexible.kill = "kill_" + cst_name;
