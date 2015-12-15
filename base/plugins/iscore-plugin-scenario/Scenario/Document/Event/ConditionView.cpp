@@ -61,7 +61,7 @@ void ConditionView::paint(
     pen.setWidth(2);
     painter->setPen(pen);
     painter->setBrush(Qt::transparent);
-    painter->drawPath(*m_Cpath);
+    painter->drawPath(m_Cpath);
 
     pen.setWidth(1);
     pen.setCosmetic(true);
@@ -75,18 +75,16 @@ void ConditionView::changeHeight(qreal newH)
     prepareGeometryChange();
     m_height = newH;
 
-    if(m_Cpath)
-        delete m_Cpath;
+    m_Cpath = QPainterPath();
 
-    m_Cpath = new QPainterPath{};
     QRectF rect(boundingRect().topLeft(), QSize(m_CHeight,
                                                   m_CHeight));
     QRectF bottomRect(QPointF(boundingRect().bottomLeft().x(), boundingRect().bottomLeft().y() - m_CHeight),
                               QSize(m_CHeight,m_CHeight));
 
-    m_Cpath->moveTo(boundingRect().width() / 2., 0);
-    m_Cpath->arcTo(rect, 60, 120);
-    m_Cpath->lineTo(0, m_height + m_CHeight/2);
-    m_Cpath->arcTo(bottomRect, -180, 120);
+    m_Cpath.moveTo(boundingRect().width() / 2., 2);
+    m_Cpath.arcTo(rect, 60, 120);
+    m_Cpath.lineTo(0, m_height + m_CHeight/2);
+    m_Cpath.arcTo(bottomRect, -180, 120);
     this->update();
 }
