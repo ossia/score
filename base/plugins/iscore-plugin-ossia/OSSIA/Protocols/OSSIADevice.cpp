@@ -205,7 +205,11 @@ void OSSIADevice::setListening(
                 {
                      ossia_addr,
                      ossia_addr->addCallback([=] (const OSSIA::Value* val)
-                      { emit valueUpdated(addr, OSSIA::convert::ToValue(val)); })
+                      {
+                          auto conv = OSSIA::convert::ToValue(val);
+                              if(conv.val.which() != iscore::ValueType::NoValue)
+                                  emit valueUpdated(addr, conv);
+                      })
                 }
             });
         }
