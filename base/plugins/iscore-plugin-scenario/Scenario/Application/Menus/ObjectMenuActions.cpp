@@ -1,14 +1,8 @@
 #include <Scenario/Application/ScenarioApplicationPlugin.hpp>
-#include <Scenario/Commands/Cohesion/InterpolateStates.hpp>
-#include <Scenario/Commands/Cohesion/RefreshStates.hpp>
-#include <Scenario/Commands/Constraint/AddProcessToConstraint.hpp>
-#include <Scenario/Commands/Constraint/InsertContentInConstraint.hpp>
-#include <Scenario/Commands/Scenario/HideRackInViewModel.hpp>
 #include <Scenario/Commands/Scenario/ScenarioPasteContent.hpp>
 #include <Scenario/Commands/Scenario/ScenarioPasteElements.hpp>
 #include <Scenario/Commands/State/InsertContentInState.hpp>
-#include <Scenario/Commands/TimeNode/AddTrigger.hpp>
-#include <Scenario/Commands/TimeNode/RemoveTrigger.hpp>
+#include <Scenario/Commands/Constraint/InsertContentInConstraint.hpp>
 #include <Scenario/Document/ScenarioDocument/ScenarioDocumentModel.hpp>
 #include <Scenario/Process/ScenarioGlobalCommandManager.hpp>
 #include <Scenario/Process/Temporal/TemporalScenarioLayerModel.hpp>
@@ -17,7 +11,6 @@
 #include <boost/optional/optional.hpp>
 #include <iscore/command/Dispatchers/MacroCommandDispatcher.hpp>
 #include <QAction>
-#include <QApplication>
 #include <QByteArray>
 #include <QClipboard>
 #include <QJsonArray>
@@ -33,18 +26,14 @@
 #include <QToolBar>
 #include <algorithm>
 
+#include <Scenario/Application/Menus/ObjectsActions/EventActions.hpp>
+#include <Scenario/Application/Menus/ObjectsActions/ConstraintActions.hpp>
+#include <Scenario/Application/Menus/ObjectsActions/StateActions.hpp>
 #include "ObjectMenuActions.hpp"
 #include <Process/LayerModel.hpp>
 #include <Process/ProcessList.hpp>
 #include <Scenario/Application/Menus/ScenarioActions.hpp>
 #include <Scenario/Application/ScenarioEditionSettings.hpp>
-#include <Scenario/Commands/Scenario/ShowRackInViewModel.hpp>
-#include <Scenario/DialogWidget/AddProcessDialog.hpp>
-#include <Scenario/Document/Constraint/ConstraintModel.hpp>
-#include <Scenario/Document/Constraint/Rack/RackModel.hpp>
-#include <Scenario/Document/Event/EventModel.hpp>
-#include <Scenario/Document/State/StateModel.hpp>
-#include <Scenario/Document/TimeNode/TimeNodeModel.hpp>
 #include <Scenario/Palette/ScenarioPoint.hpp>
 #include <Scenario/Process/ScenarioModel.hpp>
 #include "ScenarioCopy.hpp"
@@ -54,13 +43,11 @@
 #include <core/document/Document.hpp>
 #include <core/presenter/MenubarManager.hpp>
 #include <iscore/document/DocumentInterface.hpp>
-#include <iscore/plugins/customfactory/StringFactoryKey.hpp>
 #include <iscore/selection/Selectable.hpp>
 #include <iscore/serialization/DataStreamVisitor.hpp>
 #include <iscore/tools/ModelPath.hpp>
 #include <iscore/tools/ModelPathSerialization.hpp>
 #include <iscore/tools/NotifyingMap.hpp>
-#include <iscore/plugins/customfactory/StringFactoryKeySerialization.hpp>
 #include <Scenario/Commands/Cohesion/DoForSelectedConstraints.hpp>
 #include <iscore/menu/MenuInterface.hpp>
 
@@ -69,6 +56,11 @@ ObjectMenuActions::ObjectMenuActions(
         ScenarioApplicationPlugin* parent) :
     ScenarioActions(menuElt, parent)
 {
+
+    m_eventActions = new EventActions{menuElt, parent};
+    m_cstrActions = new ConstraintActions{menuElt, parent};
+    m_stateActions = new StateActions{menuElt, parent};
+
     // REMOVE
     m_removeElements = new QAction{tr("Remove selected elements"), this};
     m_removeElements->setShortcut(Qt::Key_Backspace);
@@ -150,67 +142,10 @@ ObjectMenuActions::ObjectMenuActions(
         s.exec();
     });
 
-    // ADD PROCESS
-
-    const auto& appContext = parent->context;
-    auto& fact = appContext.components.factory<ProcessList>();
-    m_addProcessDialog = new AddProcessDialog{fact, qApp->activeWindow()};
-
-    connect(m_addProcessDialog, &AddProcessDialog::okPressed,
-            this, &ObjectMenuActions::addProcessInConstraint);
-
-    m_addProcess = new QAction{tr("Add Process in constraint"), this};
-    m_addProcess->setWhatsThis(MenuInterface::name(iscore::ContextMenu::Constraint));
-    connect(m_addProcess, &QAction::triggered,
-            [this]()
-    {
-        auto selectedConstraints = selectedElements(m_parent->focusedScenarioModel()->constraints);
-        if(selectedConstraints.isEmpty())
-            return;
-        m_addProcessDialog->launchWindow();
-    });
-
-    m_interp = new QAction {tr("Interpolate states"), this};
-    m_interp->setShortcutContext(Qt::ApplicationShortcut);
-    m_interp->setShortcut(tr("Ctrl+K"));
-    m_interp->setToolTip(tr("Ctrl+K"));
-    m_interp->setWhatsThis(MenuInterface::name(iscore::ContextMenu::Constraint));
-    connect(m_interp, &QAction::triggered,
-            this, [&] () {
-        DoForSelectedConstraints(m_parent->currentDocument()->context(), InterpolateStates);
-    });
-
-
-    m_updateStates = new QAction {tr("Refresh states"), this};
-    m_updateStates->setShortcutContext(Qt::ApplicationShortcut);
-    m_updateStates->setShortcut(tr("Ctrl+U"));
-    m_updateStates->setToolTip(tr("Ctrl+U"));
-    m_updateStates->setWhatsThis(MenuInterface::name(iscore::ContextMenu::State));
-    connect(m_updateStates, &QAction::triggered,
-            this, [&] () {
-        RefreshStates(m_parent->currentDocument()->context());
-    });
-
-
-    // ADD TRIGGER
-    m_addTrigger = new QAction{tr("Add Trigger"), this};
-    m_addTrigger->setWhatsThis(MenuInterface::name(iscore::ContextMenu::Event));
-    connect(m_addTrigger, &QAction::triggered,
-            this, &ObjectMenuActions::addTriggerToTimeNode);
-
-    m_removeTrigger = new QAction{tr("Remove Trigger"), this};
-    m_removeTrigger->setWhatsThis(MenuInterface::name(iscore::ContextMenu::Event));
-    connect(m_removeTrigger, &QAction::triggered,
-            this, &ObjectMenuActions::removeTriggerFromTimeNode);
-
 }
 
 void ObjectMenuActions::fillMenuBar(iscore::MenubarManager* menu)
 {
-    if(m_addProcess)
-        menu->insertActionIntoToplevelMenu(m_menuElt, m_addProcess);
-    menu->insertActionIntoToplevelMenu(m_menuElt, m_addTrigger);
-    menu->insertActionIntoToplevelMenu(m_menuElt, m_removeTrigger);
     menu->insertActionIntoToplevelMenu(m_menuElt, m_elementsToJson);
     menu->insertActionIntoToplevelMenu(m_menuElt, m_removeElements);
     menu->insertActionIntoToplevelMenu(m_menuElt, m_clearElements);
@@ -219,99 +154,24 @@ void ObjectMenuActions::fillMenuBar(iscore::MenubarManager* menu)
     menu->insertActionIntoToplevelMenu(m_menuElt, m_cutContent);
     menu->insertActionIntoToplevelMenu(m_menuElt, m_pasteContent);
 
-    menu->insertActionIntoToplevelMenu(iscore::ToplevelMenuElement::ObjectMenu,
-                                       m_interp);
-    menu->insertActionIntoToplevelMenu(iscore::ToplevelMenuElement::ObjectMenu,
-                                       m_updateStates);
+    m_eventActions->fillMenuBar(menu);
+    m_cstrActions->fillMenuBar(menu);
+    m_stateActions->fillMenuBar(menu);
 }
 
 void ObjectMenuActions::fillContextMenu(
         QMenu *menu,
         const Selection& sel,
         const TemporalScenarioPresenter& pres,
-        const QPoint&,
+        const QPoint& p,
         const QPointF& scenePoint)
 {
+    m_eventActions->fillContextMenu(menu, sel, pres, p, scenePoint );
+    m_cstrActions->fillContextMenu(menu, sel, pres, p, scenePoint );
+    m_stateActions->fillContextMenu(menu, sel, pres, p ,scenePoint);
+
     if(!sel.empty())
     {
-        QList<const ConstraintModel*> selectedConstraints = filterSelectionByType<ConstraintModel>(sel);
-        if(selectedConstraints.size() == 1)
-        {
-            auto& cst = *selectedConstraints.front();
-            if(!cst.racks.empty())
-            {
-                auto rackMenu = menu->addMenu(MenuInterface::name(ContextMenu::Rack));
-
-                // We have to find the constraint view model of this layer.
-                auto& vm = dynamic_cast<const TemporalScenarioLayerModel*>(&pres.layerModel())->constraint(cst.id());
-
-                for(const RackModel& rack : cst.racks)
-                {
-                    auto act = new QAction{rack.objectName(), rackMenu};
-                    connect(act, &QAction::triggered,
-                            this, [&] () {
-                        auto cmd = new Scenario::Command::ShowRackInViewModel{vm, rack.id()};
-                        CommandDispatcher<> dispatcher{m_parent->currentDocument()->context().commandStack};
-                        dispatcher.submitCommand(cmd);
-                    });
-
-                    rackMenu->addAction(act);
-                }
-
-                auto hideAct = new QAction{tr("Hide"), rackMenu};
-                connect(hideAct, &QAction::triggered,
-                        this, [&] () {
-                    auto cmd = new Scenario::Command::HideRackInViewModel{vm};
-                    CommandDispatcher<> dispatcher{m_parent->currentDocument()->context().commandStack};
-                    dispatcher.submitCommand(cmd);
-                });
-                rackMenu->addAction(hideAct);
-            }
-        }
-
-        if(selectedConstraints.size() >= 1)
-        {
-            auto cstrSubmenu = menu->findChild<QMenu*>(MenuInterface::name(iscore::ContextMenu::Constraint));
-            if(!cstrSubmenu)
-            {
-                cstrSubmenu = menu->addMenu(MenuInterface::name(iscore::ContextMenu::Constraint));
-                cstrSubmenu->setTitle(MenuInterface::name(iscore::ContextMenu::Constraint));
-            }
-
-            if(m_addProcess)
-                cstrSubmenu->addAction(m_addProcess);
-            cstrSubmenu->addAction(m_interp);
-        }
-
-
-        if(std::any_of(sel.cbegin(),
-                       sel.cend(),
-                       [] (const QObject* obj) { return dynamic_cast<const EventModel*>(obj); })) // TODO : event or timenode ?
-        {
-            auto tnSubmenu = menu->findChild<QMenu*>(MenuInterface::name(iscore::ContextMenu::Event));
-            if(!tnSubmenu)
-            {
-                tnSubmenu = menu->addMenu(MenuInterface::name(iscore::ContextMenu::Event));
-                tnSubmenu->setTitle(MenuInterface::name(iscore::ContextMenu::Event));
-            }
-            tnSubmenu->addAction(m_addTrigger);
-            tnSubmenu->addAction(m_removeTrigger);
-        }
-
-        if(std::any_of(sel.cbegin(),
-                       sel.cend(),
-                       [] (const QObject* obj) { return dynamic_cast<const StateModel*>(obj); })) // TODO : event or timenode ?
-        {
-            auto stateSubmenu = menu->findChild<QMenu*>(MenuInterface::name(iscore::ContextMenu::State));
-            if(!stateSubmenu)
-            {
-                stateSubmenu = menu->addMenu(MenuInterface::name(iscore::ContextMenu::State));
-                stateSubmenu->setTitle(MenuInterface::name(iscore::ContextMenu::State));
-            }
-
-            stateSubmenu->addAction(m_updateStates);
-        }
-
         auto objectMenu = menu->findChild<QMenu*>(MenuInterface::name(iscore::ContextMenu::Object));
         if(!objectMenu)
         {
@@ -341,18 +201,15 @@ void ObjectMenuActions::fillContextMenu(
     menu->addAction(pasteElements);
 }
 
-bool ObjectMenuActions::populateToolBar(QToolBar * b)
-{
-    b->addAction(m_interp);
-    return true;
-}
-
 void ObjectMenuActions::setEnabled(bool b)
 {
     for (auto& act : actions())
     {
         act->setEnabled(b);
     }
+    m_eventActions->setEnabled(b);
+    m_cstrActions->setEnabled(b);
+    m_stateActions->setEnabled(b);
 }
 
 QJsonObject ObjectMenuActions::copySelectedElementsToJson()
@@ -444,38 +301,6 @@ void ObjectMenuActions::writeJsonToSelectedElements(const QJsonObject &obj)
     dispatcher.commit();
 }
 
-void ObjectMenuActions::addProcessInConstraint(const ProcessFactoryKey& processName)
-{
-    auto selectedConstraints = selectedElements(m_parent->focusedScenarioModel()->constraints);
-    if(selectedConstraints.isEmpty())
-        return;
-    auto cmd = Scenario::Command::make_AddProcessToConstraint( //NOTE just the first, not all ?
-        **selectedConstraints.begin(),
-        processName);
-
-    emit dispatcher().submitCommand(cmd);
-}
-
-void ObjectMenuActions::addTriggerToTimeNode()
-{
-    auto selectedTimeNodes = selectedElements(m_parent->focusedScenarioModel()->timeNodes);
-    if(selectedTimeNodes.isEmpty())
-        return;
-
-    auto cmd = new Scenario::Command::AddTrigger<Scenario::ScenarioModel>{**selectedTimeNodes.begin()};
-    emit dispatcher().submitCommand(cmd);
-}
-
-void ObjectMenuActions::removeTriggerFromTimeNode()
-{
-    auto selectedTimeNodes = selectedElements(m_parent->focusedScenarioModel()->timeNodes);
-    if(selectedTimeNodes.isEmpty())
-        return;
-
-    auto cmd = new Scenario::Command::RemoveTrigger<Scenario::ScenarioModel>{**selectedTimeNodes.begin()};
-    emit dispatcher().submitCommand(cmd);
-}
-
 CommandDispatcher<> ObjectMenuActions::dispatcher()
 {
     CommandDispatcher<> disp{m_parent->currentDocument()->context().commandStack};
@@ -492,17 +317,10 @@ QList<QAction*> ObjectMenuActions::actions() const
             m_cutContent,
             m_pasteContent,
             m_elementsToJson,
-
-            m_addTrigger,
-            m_removeTrigger,
-
-            m_updateStates
         };
-    if(m_addProcess)
-    {
-        lst.push_back(m_addProcess);
-        lst.push_back(m_interp);
-    }
+    lst.append(m_eventActions->actions());
+    lst.append(m_cstrActions->actions());
+    lst.append(m_stateActions->actions());
     return lst;
 }
 
