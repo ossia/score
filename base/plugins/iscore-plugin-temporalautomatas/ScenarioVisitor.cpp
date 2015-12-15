@@ -58,28 +58,32 @@ TemporalAutomatas::ApplicationPlugin::ApplicationPlugin(const iscore::Applicatio
             return;
 
         CommandDispatcher<> disp(doc->context().commandStack);
-        for(int n = 4; n < 150; n++)
+        for(int set = 0; set < 100; set++)
         {
-            while(doc->commandStack().canUndo())
-                doc->commandStack().undo();
-
-            Scenario::generateScenario(*firstScenario, n, disp);
-
+            for(int n = 5; n < 80; n++)
             {
-                QFile savefile("gen_test/" + QString::number(n) + ".scorejson");
-                savefile.open(QFile::WriteOnly);
-                QJsonDocument jdoc(doc->saveAsJson());
+                while(doc->commandStack().canUndo())
+                    doc->commandStack().undo();
 
-                savefile.write(jdoc.toJson());
-                savefile.close();
-            }
+                Scenario::generateScenario(*firstScenario, n, disp);
 
-            {
-                QString text = TA::makeScenario(base.baseScenario().constraint());
-                QFile f("gen_test/" + QString::number(n) + ".xml");
-                f.open(QFile::WriteOnly);
-                f.write(text.toUtf8());
-                f.close();
+                QString baseName = "data/" + QString::number(set) + "/" + QString::number(n);
+                {
+                    QFile savefile(baseName + ".scorejson");
+                    savefile.open(QFile::WriteOnly);
+                    QJsonDocument jdoc(doc->saveAsJson());
+
+                    savefile.write(jdoc.toJson());
+                    savefile.close();
+                }
+
+                {
+                    QString text = TA::makeScenario(base.baseScenario().constraint());
+                    QFile f(baseName + ".xml");
+                    f.open(QFile::WriteOnly);
+                    f.write(text.toUtf8());
+                    f.close();
+                }
             }
         }
     });
