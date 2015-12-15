@@ -45,7 +45,7 @@ AddressSettingsFactory::AddressSettingsFactory()
     m_addressSettingsWidgetFactory.insert(QObject::tr("Char"),
                                           new AddressSettingsWidgetFactoryMethodT<AddressCharSettingsWidget>);
     m_addressSettingsWidgetFactory.insert(QObject::tr("Impulse"),
-                                          new AddressSettingsWidgetFactoryMethodT<AddressNoneSettingsWidget>);
+                                          new AddressSettingsWidgetFactoryMethodT<AddressImpulseSettingsWidget>);
 }
 
 

@@ -1075,7 +1075,7 @@ Scenario::Metrics::Cyclomatic::Factors Scenario::Metrics::Cyclomatic::ComputeFac
         CyclomaticVisitor vis2(program, scenar);
         auto blocks = vis2.blocks();
 
-        for(int i = 0; i < blocks.size(); i++)
+        for(int i = 0U; i < blocks.size(); i++)
         {
             const auto& block = blocks[i];
             N += 1;

@@ -15,7 +15,9 @@ include("${CMAKE_CURRENT_SOURCE_DIR}/CMake/IScoreFunctions.cmake")
 include("${CMAKE_CURRENT_SOURCE_DIR}/CMake/IScoreConfiguration.cmake")
 
 add_subdirectory("${CMAKE_CURRENT_SOURCE_DIR}/API")
-
+if(TARGET JamomaAPI)
+    setup_iscore_common_lib_features(APIJamoma)
+endif()
 # too hardcore for jamoma
 # if(CMAKE_BUILD_TYPE STREQUAL "Debug")
 #     if("${CMAKE_CXX_COMPILER_ID}" STREQUAL "GNU")
