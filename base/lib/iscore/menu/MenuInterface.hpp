@@ -68,6 +68,8 @@ namespace iscore
         About
     };
 
+    // this is used to create sub context menu
+    // and to enable actions in ObjectMenu
     enum class ContextMenu : int
     {
         Object,

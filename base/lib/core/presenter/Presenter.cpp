@@ -50,12 +50,12 @@ Presenter::Presenter(
     m_docManager{*view, this},
     m_components{},
     m_components_readonly{m_components},
-    m_context{app, m_components_readonly, m_docManager},
     #ifdef __APPLE__
-    m_menubar {new QMenuBar, this}
+    m_menubar {new QMenuBar, this},
   #else
-    m_menubar {view->menuBar(), this}
+    m_menubar {view->menuBar(), this},
   #endif
+    m_context{app, m_components_readonly, m_docManager, m_menubar}
 {
     m_docManager.init(m_context); // It is necessary to break
     // this dependency cycle.

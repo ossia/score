@@ -73,6 +73,7 @@ ObjectMenuActions::ObjectMenuActions(
     m_removeElements = new QAction{tr("Remove selected elements"), this};
     m_removeElements->setShortcut(Qt::Key_Backspace);
     m_removeElements->setShortcutContext(Qt::WidgetWithChildrenShortcut);
+    m_removeElements->setWhatsThis(MenuInterface::name(iscore::ContextMenu::Object));
     connect(m_removeElements, &QAction::triggered,
             [this]()
     {
@@ -85,6 +86,7 @@ ObjectMenuActions::ObjectMenuActions(
     m_clearElements = new QAction{tr("Clear selected elements"), this};
     m_clearElements->setShortcut(QKeySequence::Delete);
     m_clearElements->setShortcutContext(Qt::WidgetWithChildrenShortcut);
+    m_clearElements->setWhatsThis(MenuInterface::name(iscore::ContextMenu::Object));
     connect(m_clearElements, &QAction::triggered,
             [this]()
     {
@@ -98,6 +100,7 @@ ObjectMenuActions::ObjectMenuActions(
     m_copyContent = new QAction{tr("Copy"), this};
     m_copyContent->setShortcut(QKeySequence::Copy);
     m_copyContent->setShortcutContext(Qt::ApplicationShortcut);
+    m_copyContent->setWhatsThis(MenuInterface::name(iscore::ContextMenu::Object));
     connect(m_copyContent, &QAction::triggered,
             [this]()
     {
@@ -112,6 +115,7 @@ ObjectMenuActions::ObjectMenuActions(
     m_cutContent = new QAction{tr("Cut"), this};
     m_cutContent->setShortcut(QKeySequence::Cut);
     m_cutContent->setShortcutContext(Qt::ApplicationShortcut);
+    m_cutContent->setWhatsThis(MenuInterface::name(iscore::ContextMenu::Object));
     connect(m_cutContent, &QAction::triggered,
             [this]()
     {
@@ -125,6 +129,7 @@ ObjectMenuActions::ObjectMenuActions(
 
     m_pasteContent = new QAction{tr("Paste content"), this};
     m_pasteContent->setShortcutContext(Qt::WidgetWithChildrenShortcut);
+    m_pasteContent->setWhatsThis(MenuInterface::name(iscore::ContextMenu::Object));
     connect(m_pasteContent, &QAction::triggered,
             [this]()
     {
@@ -135,6 +140,7 @@ ObjectMenuActions::ObjectMenuActions(
 
     // DISPLAY JSON
     m_elementsToJson = new QAction{tr("Convert selection to JSON"), this};
+    m_elementsToJson->setWhatsThis(MenuInterface::name(iscore::ContextMenu::Object));
     connect(m_elementsToJson, &QAction::triggered,
             [this]()
     {
@@ -154,6 +160,7 @@ ObjectMenuActions::ObjectMenuActions(
             this, &ObjectMenuActions::addProcessInConstraint);
 
     m_addProcess = new QAction{tr("Add Process in constraint"), this};
+    m_addProcess->setWhatsThis(MenuInterface::name(iscore::ContextMenu::Constraint));
     connect(m_addProcess, &QAction::triggered,
             [this]()
     {
@@ -167,6 +174,7 @@ ObjectMenuActions::ObjectMenuActions(
     m_interp->setShortcutContext(Qt::ApplicationShortcut);
     m_interp->setShortcut(tr("Ctrl+K"));
     m_interp->setToolTip(tr("Ctrl+K"));
+    m_interp->setWhatsThis(MenuInterface::name(iscore::ContextMenu::Constraint));
     connect(m_interp, &QAction::triggered,
             this, [&] () {
         DoForSelectedConstraints(m_parent->currentDocument()->context(), InterpolateStates);
@@ -177,6 +185,7 @@ ObjectMenuActions::ObjectMenuActions(
     m_updateStates->setShortcutContext(Qt::ApplicationShortcut);
     m_updateStates->setShortcut(tr("Ctrl+U"));
     m_updateStates->setToolTip(tr("Ctrl+U"));
+    m_updateStates->setWhatsThis(MenuInterface::name(iscore::ContextMenu::State));
     connect(m_updateStates, &QAction::triggered,
             this, [&] () {
         RefreshStates(m_parent->currentDocument()->context());
@@ -185,10 +194,12 @@ ObjectMenuActions::ObjectMenuActions(
 
     // ADD TRIGGER
     m_addTrigger = new QAction{tr("Add Trigger"), this};
+    m_addTrigger->setWhatsThis(MenuInterface::name(iscore::ContextMenu::Event));
     connect(m_addTrigger, &QAction::triggered,
             this, &ObjectMenuActions::addTriggerToTimeNode);
 
     m_removeTrigger = new QAction{tr("Remove Trigger"), this};
+    m_removeTrigger->setWhatsThis(MenuInterface::name(iscore::ContextMenu::Event));
     connect(m_removeTrigger, &QAction::triggered,
             this, &ObjectMenuActions::removeTriggerFromTimeNode);
 
@@ -481,11 +492,16 @@ QList<QAction*> ObjectMenuActions::actions() const
             m_cutContent,
             m_pasteContent,
             m_elementsToJson,
-            m_addTrigger
+
+            m_addTrigger,
+            m_removeTrigger,
+
+            m_updateStates
         };
     if(m_addProcess)
     {
         lst.push_back(m_addProcess);
+        lst.push_back(m_interp);
     }
     return lst;
 }

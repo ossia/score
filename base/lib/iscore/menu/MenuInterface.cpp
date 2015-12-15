@@ -47,6 +47,12 @@ namespace iscore
         return m_aboutMap;
     }
 
+    template<>
+    ISCORE_LIB_BASE_EXPORT std::map<ContextMenu, QString> MenuInterface::map()
+    {
+        return m_contextMap;
+    }
+
 
 
     template<>

@@ -36,6 +36,7 @@
 #include <Scenario/Application/Menus/ScenarioActions.hpp>
 #include <Scenario/Application/Menus/ScenarioContextMenuManager.hpp>
 #include <Scenario/Application/ScenarioEditionSettings.hpp>
+#include <Scenario/Application/Menus/ObjectMenuActions.hpp>
 #include <Scenario/Document/Constraint/Rack/RackModel.hpp>
 #include <Scenario/Document/Constraint/Rack/Slot/SlotModel.hpp>
 #include <Scenario/Document/Constraint/Rack/Slot/SlotPresenter.hpp>
@@ -210,9 +211,12 @@ void ScenarioApplicationPlugin::on_presenterFocused(LayerPresenter* pres)
     // First get the scenario presenter
     auto s_pres = dynamic_cast<TemporalScenarioPresenter*>(pres);
 
-    for(ScenarioActions*& elt : m_pluginActions)
+    for(ScenarioActions* elt : m_pluginActions)
     {
-        elt->setEnabled(bool(s_pres));
+        if(dynamic_cast<ObjectMenuActions*>(elt))
+            elt->setEnabled(false);
+        else
+            elt->setEnabled(bool(s_pres));
     }
 
     if (s_pres)

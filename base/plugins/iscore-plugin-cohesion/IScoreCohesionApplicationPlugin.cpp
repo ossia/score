@@ -52,21 +52,25 @@ IScoreCohesionApplicationPlugin::IScoreCohesionApplicationPlugin(const iscore::A
     m_snapshot->setShortcutContext(Qt::ApplicationShortcut);
     m_snapshot->setShortcut(tr("Ctrl+J"));
     m_snapshot->setToolTip(tr("Ctrl+J"));
+    m_snapshot->setWhatsThis(iscore::MenuInterface::name(iscore::ContextMenu::State));
     connect(m_snapshot, &QAction::triggered,
             this, [&] () {
         if(auto doc = currentDocument())
             SnapshotParametersInStates(doc->context());
     });
+    m_snapshot->setEnabled(false);
 
     m_curves = new QAction {tr("Create Curves"), this};
     m_curves->setShortcutContext(Qt::ApplicationShortcut);
     m_curves->setShortcut(tr("Ctrl+L"));
     m_curves->setToolTip(tr("Ctrl+L"));
+    m_curves->setWhatsThis(iscore::MenuInterface::name(iscore::ContextMenu::Constraint));
     connect(m_curves, &QAction::triggered,
             this, [&] () {
         if(auto doc = currentDocument())
             DoForSelectedConstraints(doc->context(), CreateCurves);
     });
+    m_curves->setEnabled(false);
 
 }
 
