@@ -88,13 +88,14 @@ CommonSelectionState::CommonSelectionState(
                     this, &CommonSelectionState::on_deselect);
 
             // Actions on selected elements
+            //NOTE : see ObjectMenuActions too.
             auto t_delete = new QKeyEventTransition(
-                                process_view, QEvent::KeyPress, Qt::Key_Delete, m_waitState);
+                                process_view, QEvent::KeyPress, Qt::Key_Backspace, m_waitState);
             connect(t_delete, &QAbstractTransition::triggered,
                     this, &CommonSelectionState::on_delete);
 
             auto t_deleteContent = new QKeyEventTransition(
-                                       process_view, QEvent::KeyPress, Qt::Key_Backspace, m_waitState);
+                                       process_view, QEvent::KeyPress, Qt::Key_Delete, m_waitState);
             connect(t_deleteContent, &QAbstractTransition::triggered,
                     this, &CommonSelectionState::on_deleteContent);
         }

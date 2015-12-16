@@ -63,7 +63,7 @@ ObjectMenuActions::ObjectMenuActions(
 
     // REMOVE
     m_removeElements = new QAction{tr("Remove selected elements"), this};
-    m_removeElements->setShortcut(Qt::Key_Backspace);
+    m_removeElements->setShortcut(Qt::Key_Backspace); //NOTE : the effective shortcut is in CommonSelectionState.cpp
     m_removeElements->setShortcutContext(Qt::WidgetWithChildrenShortcut);
     m_removeElements->setWhatsThis(MenuInterface::name(iscore::ContextMenu::Object));
     connect(m_removeElements, &QAction::triggered,
@@ -76,7 +76,7 @@ ObjectMenuActions::ObjectMenuActions(
     });
 
     m_clearElements = new QAction{tr("Clear selected elements"), this};
-    m_clearElements->setShortcut(QKeySequence::Delete);
+    m_clearElements->setShortcut(QKeySequence::Delete); //NOTE : the effective shortcut is in CommonSelectionState.cpp
     m_clearElements->setShortcutContext(Qt::WidgetWithChildrenShortcut);
     m_clearElements->setWhatsThis(MenuInterface::name(iscore::ContextMenu::Object));
     connect(m_clearElements, &QAction::triggered,
