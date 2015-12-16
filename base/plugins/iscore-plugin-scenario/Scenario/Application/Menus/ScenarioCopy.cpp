@@ -1,3 +1,4 @@
+#include "ScenarioCopy.hpp"
 #include <Scenario/Document/Constraint/ConstraintModel.hpp>
 #include <Scenario/Document/Event/EventModel.hpp>
 #include <Scenario/Document/State/StateModel.hpp>
@@ -5,18 +6,29 @@
 #include <Scenario/Process/ScenarioModel.hpp>
 #include <boost/optional/optional.hpp>
 #include <QJsonArray>
+#include <QJsonObject>
 #include <QJsonValue>
 #include <QList>
 #include <algorithm>
 #include <vector>
 
-#include "ScenarioCopy.hpp"
+
+#include <Scenario/Document/BaseScenario/BaseScenario.hpp>
 #include <iscore/serialization/VisitorCommon.hpp>
 #include <iscore/tools/NotifyingMap.hpp>
 #include <iscore/tools/SettableIdentifier.hpp>
 #include <iscore/document/DocumentContext.hpp>
+#include <iscore/tools/std/Algorithms.hpp>
 
-class JSONObject;
+QJsonObject copyBaseConstraint(const ConstraintModel& cst)
+{
+    QJsonObject base;
+    QJsonArray arr;
+    arr.push_back(marshall<JSONObject>(cst));
+    base["Constraints"] = arr;
+
+    return base;
+}
 
 template<typename Selected_T>
 static auto arrayToJson(Selected_T &&selected)
@@ -33,7 +45,7 @@ static auto arrayToJson(Selected_T &&selected)
     return array;
 }
 
-QJsonObject copySelectedScenarioElements(const Scenario::ScenarioModel& sm)
+QJsonObject copySelectedScenarioElements(const Scenario::ScenarioModel &sm)
 {
     auto selectedConstraints = selectedElements(sm.constraints);
     auto selectedEvents = selectedElements(sm.events);
@@ -42,35 +54,39 @@ QJsonObject copySelectedScenarioElements(const Scenario::ScenarioModel& sm)
 
     for(const ConstraintModel* constraint : selectedConstraints)
     {
-        auto start_it = std::find_if(selectedStates.begin(), selectedStates.end(), [&] (const StateModel* state) { return state->id() == constraint->startState();});
+        auto start_it = find_if(selectedStates,
+                                [&] (const StateModel* state) { return state->id() == constraint->startState();});
         if(start_it == selectedStates.end())
         {
-            selectedStates.push_back(&sm.states.at(constraint->startState()));
+            selectedStates.push_back(&sm.state(constraint->startState()));
         }
 
-        auto end_it = std::find_if(selectedStates.begin(), selectedStates.end(), [&] (const StateModel* state) { return state->id() == constraint->endState();});
+        auto end_it = find_if(selectedStates,
+                              [&] (const StateModel* state) { return state->id() == constraint->endState();});
         if(end_it == selectedStates.end())
         {
-            selectedStates.push_back(&sm.states.at(constraint->endState()));
+            selectedStates.push_back(&sm.state(constraint->endState()));
         }
     }
 
     for(const StateModel* state : selectedStates)
     {
-        auto ev_it = std::find_if(selectedEvents.begin(), selectedEvents.end(), [&] (const EventModel* event) { return state->eventId() == event->id(); });
+        auto ev_it = find_if(selectedEvents,
+                             [&] (const EventModel* event) { return state->eventId() == event->id(); });
         if(ev_it == selectedEvents.end())
         {
-            selectedEvents.push_back(&sm.events.at(state->eventId()));
+            selectedEvents.push_back(&sm.event(state->eventId()));
         }
 
         // If the previous or next constraint is not here, we set it to null in a copy.
     }
     for(const EventModel* event : selectedEvents)
     {
-        auto tn_it = std::find_if(selectedTimeNodes.begin(), selectedTimeNodes.end(), [&] (const TimeNodeModel* tn) { return tn->id() == event->timeNode(); });
+        auto tn_it = find_if(selectedTimeNodes,
+                             [&] (const TimeNodeModel* tn) { return tn->id() == event->timeNode(); });
         if(tn_it == selectedTimeNodes.end())
         {
-            selectedTimeNodes.push_back(&sm.timeNodes.at(event->timeNode()));
+            selectedTimeNodes.push_back(&sm.timeNode(event->timeNode()));
         }
 
         // If some events aren't there, we set them to null in a copy.
@@ -84,7 +100,8 @@ QJsonObject copySelectedScenarioElements(const Scenario::ScenarioModel& sm)
         auto events = clone_tn->events();
         for(const auto& event : events)
         {
-            auto absent = std::none_of(selectedEvents.begin(), selectedEvents.end(), [&] (const EventModel* ev) { return ev->id() == event; });
+            auto absent = none_of(selectedEvents,
+                                  [&] (const EventModel* ev) { return ev->id() == event; });
             if(absent)
                 clone_tn->removeEvent(event);
         }
@@ -101,7 +118,8 @@ QJsonObject copySelectedScenarioElements(const Scenario::ScenarioModel& sm)
         auto states = clone_ev->states();
         for(const auto& state : states)
         {
-            auto absent = std::none_of(selectedStates.begin(), selectedStates.end(), [&] (const StateModel* st) { return st->id() == state; });
+            auto absent = none_of(selectedStates,
+                                  [&] (const StateModel* st) { return st->id() == state; });
             if(absent)
                 clone_ev->removeState(state);
         }
@@ -112,16 +130,41 @@ QJsonObject copySelectedScenarioElements(const Scenario::ScenarioModel& sm)
     std::vector<StateModel*> copiedStates;
     copiedStates.reserve(selectedStates.size());
     auto& stack = iscore::IDocument::documentContext(sm).commandStack;
-    for(const auto& st : selectedStates)
+    for(const StateModel* st : selectedStates)
     {
         auto clone_st = new StateModel(*st, st->id(), stack, sm.parent());
-        auto prev_absent = std::none_of(selectedConstraints.begin(), selectedConstraints.end(), [&] (const ConstraintModel* cst) { return cst->id() == st->previousConstraint(); });
-        if(prev_absent)
-            clone_st->setPreviousConstraint(Id<ConstraintModel>{});
-        auto next_absent = std::none_of(selectedConstraints.begin(), selectedConstraints.end(), [&] (const ConstraintModel* cst) { return cst->id() == st->nextConstraint(); });
-        if(next_absent)
-            clone_st->setNextConstraint(Id<ConstraintModel>{});
 
+        // NOTE : we must not serialize the state with their previous / next constraint
+        // since they will change once pasted and cause crash at the end of the ctor
+        // of StateModel.
+        clone_st->setPreviousConstraint(Id<ConstraintModel>{});
+        clone_st->setNextConstraint(Id<ConstraintModel>{});
+        /*
+        clone_st->setPreviousConstraint(st->previousConstraint());
+        clone_st->setNextConstraint(st->nextConstraint());
+        if(st->previousConstraint())
+        {
+            auto prev_absent = std::none_of(
+                        selectedConstraints.begin(),
+                        selectedConstraints.end(),
+                        [&] (const ConstraintModel* cst) { return cst->id() == st->previousConstraint(); });
+            if(prev_absent)
+            {
+                clone_st->setPreviousConstraint(Id<ConstraintModel>{});
+            }
+        }
+
+        if(st->nextConstraint())
+        {
+            auto next_absent = std::none_of(selectedConstraints.begin(),
+                                            selectedConstraints.end(),
+                                            [&] (const ConstraintModel* cst) { return cst->id() == st->nextConstraint(); });
+            if(next_absent)
+            {
+                clone_st->setNextConstraint(Id<ConstraintModel>{});
+            }
+        }
+        */
         copiedStates.push_back(clone_st);
     }
 
@@ -131,6 +174,7 @@ QJsonObject copySelectedScenarioElements(const Scenario::ScenarioModel& sm)
     base["Events"] = arrayToJson(copiedEvents);
     base["TimeNodes"] = arrayToJson(copiedTimeNodes);
     base["States"] = arrayToJson(copiedStates);
+    base["Comments"] = arrayToJson(selectedElements(sm.comments));
 
     for(auto elt : copiedTimeNodes)
         delete elt;
@@ -142,12 +186,62 @@ QJsonObject copySelectedScenarioElements(const Scenario::ScenarioModel& sm)
     return base;
 }
 
-QJsonObject copyBaseConstraint(const ConstraintModel& cst)
+
+QJsonObject copySelectedScenarioElements(BaseScenario &sm)
 {
     QJsonObject base;
-    QJsonArray arr;
-    arr.push_back(marshall<JSONObject>(cst));
-    base["Constraints"] = arr;
+    if(sm.constraint().selection.get())
+    {
+        std::vector<TimeNodeModel*> copiedTimeNodes;
+        copiedTimeNodes.reserve(2);
+        for(const auto& tn : sm.timeNodes())
+        {
+            auto clone_tn = new TimeNodeModel(tn, tn.id(), &sm);
+            copiedTimeNodes.push_back(clone_tn);
+        }
+
+
+        std::vector<EventModel*> copiedEvents;
+        copiedEvents.reserve(2);
+        for(const auto& ev : sm.events())
+        {
+            auto clone_ev = new EventModel(ev, ev.id(), &sm);
+            copiedEvents.push_back(clone_ev);
+        }
+
+        std::vector<StateModel*> copiedStates;
+        copiedStates.reserve(2);
+        auto& stack = iscore::IDocument::documentContext(sm.parentObject()).commandStack;
+        for(const StateModel& st : sm.states())
+        {
+            auto clone_st = new StateModel(st, st.id(), stack, &sm);
+
+            // NOTE : we must not serialize the state with their previous / next constraint
+            // since they will change once pasted and cause crash at the end of the ctor
+            // of StateModel.
+            clone_st->setPreviousConstraint(Id<ConstraintModel>{});
+            clone_st->setNextConstraint(Id<ConstraintModel>{});
+            copiedStates.push_back(clone_st);
+        }
+
+
+        QJsonArray arr;
+        arr.push_back(marshall<JSONObject>(sm.constraint()));
+        base["Constraints"] = arr;
+
+        base["Events"] = arrayToJson(copiedEvents);
+        base["TimeNodes"] = arrayToJson(copiedTimeNodes);
+        base["States"] = arrayToJson(copiedStates);
+
+
+        for(auto elt : copiedTimeNodes)
+            delete elt;
+        for(auto elt : copiedEvents)
+            delete elt;
+        for(auto elt : copiedStates)
+            delete elt;
+    }
 
     return base;
+
 }

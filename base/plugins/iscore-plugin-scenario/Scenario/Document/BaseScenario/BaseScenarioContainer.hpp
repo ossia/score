@@ -4,6 +4,7 @@
 
 #include <iscore/serialization/DataStreamVisitor.hpp>
 #include <iscore/serialization/JSONVisitor.hpp>
+#include <iscore/tools/std/IndirectContainer.hpp>
 
 class ConstraintModel;
 class DataStream;
@@ -28,7 +29,7 @@ class ISCORE_PLUGIN_SCENARIO_EXPORT BaseScenarioContainer : public ScenarioInter
 
         virtual ~BaseScenarioContainer();
 
-        QObject& parent() const { return *m_parent; }
+        QObject& parentObject() const { return *m_parent; }
         void init();
         void init(const BaseScenarioContainer&); // clone
 
@@ -66,6 +67,24 @@ class ISCORE_PLUGIN_SCENARIO_EXPORT BaseScenarioContainer : public ScenarioInter
 
         StateModel& startState() const;
         StateModel& endState() const;
+
+        IndirectArray<ConstraintModel, 1> constraints() const
+        {
+            return m_constraint;
+        }
+
+        IndirectArray<EventModel, 2> events() const
+        {
+            return {m_startEvent, m_endEvent};
+        }
+        IndirectArray<StateModel, 2>  states() const
+        {
+            return {m_startState, m_endState};
+        }
+        IndirectArray<TimeNodeModel, 2>  timeNodes() const
+        {
+            return {m_startNode, m_endNode};
+        }
 
     protected:
         TimeNodeModel* m_startNode{};

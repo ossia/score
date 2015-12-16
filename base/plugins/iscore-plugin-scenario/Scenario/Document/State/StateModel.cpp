@@ -54,6 +54,8 @@ StateModel::StateModel(
     IdentifiedObject<StateModel> {id, "StateModel", parent},
     m_stack{stack},
     m_eventId{source.eventId()},
+    m_previousConstraint{source.previousConstraint()},
+    m_nextConstraint{source.nextConstraint()},
     m_heightPercentage{source.heightPercentage()},
     m_messageItemModel{new MessageItemModel{
                             m_stack,
@@ -215,19 +217,22 @@ const Id<ConstraintModel> &StateModel::nextConstraint() const
 
 void StateModel::setNextConstraint(const Id<ConstraintModel> & id)
 {
+    auto scenar = dynamic_cast<ScenarioInterface*>(parent());
     if(m_nextConstraint)
     {
         auto node = m_messageItemModel->rootNode();
         updateTreeWithRemovedConstraint(node, ProcessPosition::Following);
         *m_messageItemModel = std::move(node);
 
-        auto cstr = dynamic_cast<ScenarioInterface*>(parent())->findConstraint(m_nextConstraint);
-        if(cstr)
+        if(scenar)
         {
-            cstr->processes.added.disconnect<StateModel,&StateModel::on_nextProcessAdded>(this);
-            cstr->processes.removed.disconnect<StateModel,&StateModel::on_nextProcessRemoved>(this);
+            auto cstr = scenar->findConstraint(m_nextConstraint);
+            if(cstr)
+            {
+                cstr->processes.added.disconnect<StateModel,&StateModel::on_nextProcessAdded>(this);
+                cstr->processes.removed.disconnect<StateModel,&StateModel::on_nextProcessRemoved>(this);
+            }
         }
-
         m_nextProcesses.clear();
     }
 
@@ -236,7 +241,6 @@ void StateModel::setNextConstraint(const Id<ConstraintModel> & id)
     if(!m_nextConstraint)
         return;
 
-    auto scenar = dynamic_cast<ScenarioInterface*>(parent());
     if(scenar)
     {
         // The constraints might not be present in a scenario
@@ -258,17 +262,21 @@ void StateModel::setNextConstraint(const Id<ConstraintModel> & id)
 void StateModel::setPreviousConstraint(const Id<ConstraintModel> & id)
 {
     // First clean the state model of the previous constraint's states
+    auto scenar = dynamic_cast<ScenarioInterface*>(parent());
     if(m_previousConstraint)
     {
         auto node = m_messageItemModel->rootNode();
         updateTreeWithRemovedConstraint(node, ProcessPosition::Previous);
         *m_messageItemModel = std::move(node);
 
-        auto cstr = dynamic_cast<ScenarioInterface*>(parent())->findConstraint(m_previousConstraint);
-        if(cstr)
+        if(scenar)
         {
-            cstr->processes.added.disconnect<StateModel,&StateModel::on_previousProcessAdded>(this);
-            cstr->processes.removed.disconnect<StateModel,&StateModel::on_previousProcessRemoved>(this);
+            auto cstr = scenar->findConstraint(m_previousConstraint);
+            if(cstr)
+            {
+                cstr->processes.added.disconnect<StateModel,&StateModel::on_previousProcessAdded>(this);
+                cstr->processes.removed.disconnect<StateModel,&StateModel::on_previousProcessRemoved>(this);
+            }
         }
 
         m_previousProcesses.clear();
@@ -279,7 +287,6 @@ void StateModel::setPreviousConstraint(const Id<ConstraintModel> & id)
     if(!m_previousConstraint)
         return;
 
-    auto scenar = dynamic_cast<ScenarioInterface*>(parent());
     if(scenar)
     {
         auto cstr = scenar->findConstraint(m_previousConstraint);

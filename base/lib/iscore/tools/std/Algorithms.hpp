@@ -31,11 +31,16 @@ void remove_one(Vector&& v, const Value& val)
     }
 }
 
-
 template<typename Vector, typename Fun>
 auto any_of(Vector&& v, Fun fun)
 {
     return std::any_of(std::begin(v), std::end(v), fun);
+}
+
+template<typename Vector, typename Fun>
+auto none_of(Vector&& v, Fun fun)
+{
+    return std::none_of(std::begin(v), std::end(v), fun);
 }
 
 

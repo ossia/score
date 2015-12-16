@@ -22,7 +22,7 @@ class BaseScenario final : public IdentifiedObject<BaseScenario>, public BaseSce
     public:
         iscore::ElementPluginModelList pluginModelList;
 
-        BaseScenario(const Id<BaseScenario>& id, QObject* parent);
+        BaseScenario(const Id<BaseScenario>& id, QObject* parentObject);
 
         template<typename DeserializerVisitor,
                  enable_if_deserializer<DeserializerVisitor>* = nullptr>

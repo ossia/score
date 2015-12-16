@@ -32,12 +32,12 @@ class ISCORE_PLUGIN_LOOP_EXPORT ProcessModel final : public Process, public Base
         explicit ProcessModel(
                 const TimeValue& duration,
                 const Id<Process>& id,
-                QObject* parent);
+                QObject* parentObject);
 
         explicit ProcessModel(
                 const ProcessModel& source,
                 const Id<Process>& id,
-                QObject* parent);
+                QObject* parentObject);
 
         template<typename Impl>
         explicit ProcessModel(
@@ -83,9 +83,9 @@ class ISCORE_PLUGIN_LOOP_EXPORT ProcessModel final : public Process, public Base
         void serialize(const VisitorVariant& vis) const override;
 
     protected:
-        LayerModel* makeLayer_impl(const Id<LayerModel>& viewModelId, const QByteArray& constructionData, QObject* parent) override;
-        LayerModel* loadLayer_impl(const VisitorVariant&, QObject* parent) override;
-        LayerModel* cloneLayer_impl(const Id<LayerModel>& newId, const LayerModel& source, QObject* parent) override;
+        LayerModel* makeLayer_impl(const Id<LayerModel>& viewModelId, const QByteArray& constructionData, QObject* parentObject) override;
+        LayerModel* loadLayer_impl(const VisitorVariant&, QObject* parentObject) override;
+        LayerModel* cloneLayer_impl(const Id<LayerModel>& newId, const LayerModel& source, QObject* parentObject) override;
 
 };
 

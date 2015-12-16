@@ -79,7 +79,8 @@ ScenarioModel::ScenarioModel(
     auto& stack = iscore::IDocument::documentContext(*this).commandStack;
     for(const auto& elt : source.states)
     {
-        states.add(new StateModel{elt, elt.id(), stack, this});
+        auto st = new StateModel{elt, elt.id(), stack, this};
+        states.add(st);
     }
     metadata.setName(QString("Scenario.%1").arg(*this->id().val()));
 }

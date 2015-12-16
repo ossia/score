@@ -29,6 +29,7 @@
 #include <Scenario/Application/Menus/ObjectsActions/EventActions.hpp>
 #include <Scenario/Application/Menus/ObjectsActions/ConstraintActions.hpp>
 #include <Scenario/Application/Menus/ObjectsActions/StateActions.hpp>
+#include <Scenario/Document/BaseScenario/BaseScenario.hpp>
 #include "ObjectMenuActions.hpp"
 #include <Process/LayerModel.hpp>
 #include <Process/ProcessList.hpp>
@@ -229,7 +230,7 @@ QJsonObject ObjectMenuActions::copySelectedElementsToJson()
         auto& bem = iscore::IDocument::modelDelegate<ScenarioDocumentModel>(*m_parent->currentDocument());
         if(bem.baseConstraint().selection.get())
         {
-            return copyBaseConstraint(bem.baseConstraint());
+            return copySelectedScenarioElements(bem.baseScenario());
         }
     }
 

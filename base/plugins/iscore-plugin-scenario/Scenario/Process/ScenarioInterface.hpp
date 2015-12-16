@@ -22,5 +22,3 @@ class ISCORE_PLUGIN_SCENARIO_EXPORT ScenarioInterface
         virtual TimeNodeModel& startTimeNode() const = 0;
         virtual TimeNodeModel& endTimeNode() const = 0;
 };
-
-

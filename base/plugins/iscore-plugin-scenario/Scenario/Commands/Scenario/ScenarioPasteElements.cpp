@@ -38,7 +38,7 @@
 #include <iscore/tools/ModelPathSerialization.hpp>
 #include <iscore/tools/NotifyingMap.hpp>
 #include <iscore/tools/ObjectPath.hpp>
-
+#include <core/document/Document.hpp>
 // Needed for copy since we want to generate IDs that are neither
 // in the scenario in which we are copying into, nor in the elements
 // that we copied because it may cause conflicts.
@@ -89,6 +89,7 @@ ScenarioPasteElements::ScenarioPasteElements(
     const auto& tsModel = m_ts.find();
     const Scenario::ScenarioModel& scenario = ::model(tsModel);
 
+    auto& doc = iscore::IDocument::documentContext(scenario);
     auto& stack = iscore::IDocument::documentContext(scenario).commandStack;
 
 
@@ -103,7 +104,7 @@ ScenarioPasteElements::ScenarioPasteElements(
         constraints.reserve(json_arr.size());
         for(const auto& element : json_arr)
         {
-            constraints.emplace_back(new ConstraintModel{Deserializer<JSONObject>{element.toObject()}, nullptr});
+            constraints.emplace_back(new ConstraintModel{Deserializer<JSONObject>{element.toObject()}, &doc.document});
         }
     }
     {
