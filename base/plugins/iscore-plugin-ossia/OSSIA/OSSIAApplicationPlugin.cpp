@@ -169,31 +169,36 @@ void OSSIAApplicationPlugin::on_play(bool b, ::TimeValue t)
         {
             if(m_playing)
             {
-                auto& cstr = *plugmodel->baseScenario()->baseConstraint();
-                cstr.OSSIAConstraint()->resume();
+                if(auto bs = plugmodel->baseScenario())
+                {
+                    auto& cstr = *bs->baseConstraint();
+                    cstr.OSSIAConstraint()->resume();
+                }
             }
             else
             {
-                plugmodel->reload(scenar->baseScenario());
-
-                auto& cstr = *plugmodel->baseScenario()->baseConstraint();
-
-                cstr.play(t);
-
                 // Here we stop the listening when we start playing the scenario.
                 // Get all the selected nodes
                 auto explorer = try_deviceExplorerFromObject(*doc);
                 // Disable listening for everything
                 if(explorer)
                     m_savedListening = explorer->deviceModel().pauseListening();
+
+                plugmodel->reload(scenar->baseScenario());
+                auto& cstr = *plugmodel->baseScenario()->baseConstraint();
+
+                cstr.play(t);
             }
 
             m_playing = true;
         }
         else
         {
-            auto& cstr = *plugmodel->baseScenario()->baseConstraint();
-            cstr.OSSIAConstraint()->pause();
+            if(auto bs = plugmodel->baseScenario())
+            {
+                auto& cstr = *bs->baseConstraint();
+                cstr.OSSIAConstraint()->pause();
+            }
         }
     }
 }

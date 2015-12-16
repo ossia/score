@@ -162,10 +162,13 @@ void ProcessPanelPresenter::on_zoomChanged(ZoomRatio newzoom)
 void ProcessPanelPresenter::cleanup()
 {
     m_layerModel = nullptr;
-    deleteGraphicsObject(m_layer);
 
-    delete m_processPresenter; // Will delete the view, too
-    m_processPresenter = nullptr;
+    if(m_processPresenter)
+    {
+        deleteGraphicsObject(m_layer);
+        delete m_processPresenter;
+        m_processPresenter = nullptr;
+    }
 
     delete m_obj;
     m_obj = nullptr;

@@ -249,6 +249,8 @@ void ScenarioApplicationPlugin::on_documentChanged(
     this->disconnect(m_focusConnection);
     this->disconnect(m_defocusConnection);
 
+    m_editionSettings.setDefault();
+    m_editionSettings.setExecution(false);
     if(!newdoc)
     {
         return;

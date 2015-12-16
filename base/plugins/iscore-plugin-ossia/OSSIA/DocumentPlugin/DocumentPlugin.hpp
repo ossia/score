@@ -1,6 +1,6 @@
 #pragma once
 #include <iscore/plugins/documentdelegate/plugin/DocumentDelegatePluginModel.hpp>
-
+#include <memory>
 class QObject;
 namespace iscore {
 class Document;
@@ -21,12 +21,13 @@ class DocumentPlugin final : public iscore::DocumentPluginModel
     public:
         DocumentPlugin(iscore::Document& doc, QObject* parent);
 
+        ~DocumentPlugin();
         void reload(BaseScenario& doc);
         void clear();
 
         BaseScenarioElement* baseScenario() const;
 
-    private:
-        BaseScenarioElement* m_base{};
+private:
+        std::unique_ptr<BaseScenarioElement> m_base{};
 };
 }

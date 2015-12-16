@@ -40,6 +40,7 @@ class ISCORE_LIB_BASE_EXPORT DocumentModel final : public IdentifiedObject<Docum
                 const QVariant &data,
                 DocumentDelegateFactoryInterface* fact,
                 QObject* parent);
+        ~DocumentModel();
 
         DocumentDelegateModelInterface& modelDelegate() const
         {
@@ -70,7 +71,7 @@ class ISCORE_LIB_BASE_EXPORT DocumentModel final : public IdentifiedObject<Docum
         QString docFileName() const;
         void setDocFileName(const QString &docFileName);
 
-    signals:
+signals:
         void pluginModelsChanged();
         void fileNameChanged(const QString&);
 

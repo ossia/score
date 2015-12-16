@@ -8,6 +8,7 @@
 
 class QObject;
 #include <iscore/tools/SettableIdentifier.hpp>
+#include <iscore/plugins/panel/PanelModel.hpp>
 
 using namespace iscore;
 
@@ -18,6 +19,19 @@ DocumentModel::DocumentModel(
     IdentifiedObject {id, "DocumentModel", parent},
     m_model{fact->makeModel(this)}
 {
+}
+
+DocumentModel::~DocumentModel()
+{
+    // We remove the plug-ins first.
+    for(auto plug : m_pluginModels)
+    {
+        delete plug;
+    }
+    for(auto panel : m_panelModels)
+    {
+        delete panel;
+    }
 }
 
 void DocumentModel::addPanel(PanelModel *m)

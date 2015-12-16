@@ -4,7 +4,7 @@
 #include "DocumentPlugin.hpp"
 #include <iscore/plugins/documentdelegate/plugin/DocumentDelegatePluginModel.hpp>
 #include <core/document/DocumentModel.hpp>
-
+#include <OSSIA/DocumentPlugin/ConstraintElement.hpp>
 class QObject;
 namespace iscore {
 class Document;
@@ -18,20 +18,30 @@ DocumentPlugin::DocumentPlugin(iscore::Document& doc, QObject* parent):
 {
 }
 
+DocumentPlugin::~DocumentPlugin()
+{
+    if(m_base)
+    {
+        m_base->baseConstraint()->stop();
+    }
+}
+
 void DocumentPlugin::reload(BaseScenario& doc)
 {
-    // TODO unique_ptr and stop it.
-    m_base = new BaseScenarioElement{doc, this};
+    if(m_base)
+    {
+        m_base->baseConstraint()->stop();
+    }
+    m_base = std::make_unique<BaseScenarioElement>(doc, this);
 }
 
 void DocumentPlugin::clear()
 {
-    delete m_base;
-    m_base = nullptr;
+    m_base.reset();
 }
 
 BaseScenarioElement *DocumentPlugin::baseScenario() const
 {
-    return m_base;
+    return m_base.get();
 }
 }
