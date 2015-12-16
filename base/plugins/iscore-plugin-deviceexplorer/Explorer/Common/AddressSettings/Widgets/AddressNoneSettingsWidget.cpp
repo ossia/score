@@ -3,17 +3,19 @@
 
 class QWidget;
 
-AddressNoneSettingsWidget::AddressNoneSettingsWidget(QWidget* parent)
+AddressImpulseSettingsWidget::AddressImpulseSettingsWidget(QWidget* parent)
     : AddressSettingsWidget(parent)
 {
 }
 
-iscore::AddressSettings AddressNoneSettingsWidget::getSettings() const
+iscore::AddressSettings AddressImpulseSettingsWidget::getSettings() const
 {
-    return getCommonSettings();
+    auto set = getCommonSettings();
+    set.value = iscore::ValueImpl{iscore::impulse_t{}};
+    return set;
 }
 
-void AddressNoneSettingsWidget::setSettings(const iscore::AddressSettings& settings)
+void AddressImpulseSettingsWidget::setSettings(const iscore::AddressSettings& settings)
 {
     setCommonSettings(settings);
 }

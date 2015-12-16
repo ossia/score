@@ -36,6 +36,8 @@
 #include <iscore/tools/ObjectPath.hpp>
 #include <iscore/tools/Todo.hpp>
 
+#include <core/presenter/MenubarManager.hpp>
+
 namespace iscore {
 class DocumentDelegateModelInterface;
 class DocumentDelegateViewInterface;
@@ -147,15 +149,30 @@ void ScenarioDocumentPresenter::on_displayedConstraintChanged()
 
     // Set a new zoom ratio, such that the displayed constraint takes the whole screen.
 
-    auto newZoom = displayedConstraint().fullView()->zoom();
+    ZoomRatio newZoom = displayedConstraint().fullView()->zoom();
+    if(newZoom != -1) // constraint has already been in fullview
+    {
+        double newSliderPos = ZoomPolicy::zoomRatioToSliderPos(
+                                  newZoom,
+                                  displayedConstraint().duration.defaultDuration().msec(),
+                                  view().view().width()
+                                  );
+        view().zoomSlider()->setValue(newSliderPos);
+    }
+    else // first time in fullview : init the zoom ratio
+    {
+        view().zoomSlider()->setValue(0.01);
+        newZoom = ZoomPolicy::sliderPosToZoomRatio(
+                      0.01,
+                      displayedConstraint().duration.defaultDuration().msec(),
+                      view().view().width()
+                      );
+    }
 
-    double newSliderPos = ZoomPolicy::zoomRatioToSliderPos(
-                              newZoom,
-                              displayedConstraint().duration.defaultDuration().msec(),
-                              view().view().width()
-                              );
-    view().zoomSlider()->setValue(newSliderPos);
     setMillisPerPixel(newZoom);
+    // scroll to the last center position
+
+    view().view().centerOn(displayedConstraint().fullView()->center());
 
     on_askUpdate();
 }
@@ -170,6 +187,34 @@ void ScenarioDocumentPresenter::setMillisPerPixel(ZoomRatio newRatio)
 
 void ScenarioDocumentPresenter::on_newSelection(const Selection& sel)
 {
+    auto editMenu = iscore::AppContext().menuBar.menuAt(ToplevelMenuElement::ObjectMenu);
+
+    bool ev = std::any_of(sel.cbegin(),
+                   sel.cend(),
+                   [] (const QObject* obj) { return dynamic_cast<const EventModel*>(obj); });
+
+    bool st = std::any_of(sel.cbegin(),
+                   sel.cend(),
+                   [] (const QObject* obj) { return dynamic_cast<const StateModel*>(obj); });
+
+    bool cstr = std::any_of(sel.cbegin(),
+                    sel.cend(),
+                    [] (const QObject* obj) { return dynamic_cast<const ConstraintModel*>(obj); });
+
+
+    for(auto a : editMenu->actions())
+    {
+        if(sel.empty())
+            a->setEnabled(false);
+        else if (a->whatsThis() == MenuInterface::name(ContextMenu::Constraint))
+            a->setEnabled(cstr);
+        else if (a->whatsThis() == MenuInterface::name(ContextMenu::Event))
+            a->setEnabled(ev);
+        else if (a->whatsThis() == MenuInterface::name(ContextMenu::State))
+            a->setEnabled(st);
+        else if (a->whatsThis() == MenuInterface::name(ContextMenu::Object))
+            a->setEnabled(true);
+    }
 }
 
 void ScenarioDocumentPresenter::on_zoomSliderChanged(double sliderPos)
@@ -217,6 +262,9 @@ void ScenarioDocumentPresenter::on_viewSizeChanged(const QSize &s)
 
     m_mainTimeRuler->view()->setWidth(s.width());
     updateZoom(zoom, {0,0});
+
+    // update the center of view
+    displayedConstraint().fullView()->setCenter(view().view().mapToScene(view().view().viewport()->rect()).boundingRect().center());
 }
 
 void ScenarioDocumentPresenter::on_horizontalPositionChanged(int dx)
@@ -225,6 +273,7 @@ void ScenarioDocumentPresenter::on_horizontalPositionChanged(int dx)
     QRectF visible_scene_rect = view().view().mapToScene(viewport_rect).boundingRect();
 
     m_mainTimeRuler->setStartPoint(TimeValue::fromMsecs(visible_scene_rect.x() * m_zoomRatio));
+    displayedConstraint().fullView()->setCenter(visible_scene_rect.center());
 }
 
 void ScenarioDocumentPresenter::updateRect(const QRectF& rect)
@@ -271,7 +320,7 @@ void ScenarioDocumentPresenter::updateZoom(ZoomRatio newZoom, QPointF focus)
 
     view().view().ensureVisible(newView,0,0);
 
-    QRectF new_visible_scene_rect = view().view().mapToScene(viewport_rect).boundingRect();
+    QRectF new_visible_scene_rect = view().view().mapToScene(view().view().viewport()->rect()).boundingRect();
 
     // TODO should call displayedElementsPresenter instead??
     displayedConstraint().fullView()->setZoom(m_zoomRatio);

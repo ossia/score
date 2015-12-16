@@ -150,6 +150,9 @@ set(SRCS ${SRCS}
 "${CMAKE_CURRENT_SOURCE_DIR}/Scenario/Application/Menus/TextDialog.cpp"
 "${CMAKE_CURRENT_SOURCE_DIR}/Scenario/Application/Menus/ScenarioCommonContextMenuFactory.cpp"
 "${CMAKE_CURRENT_SOURCE_DIR}/Scenario/Application/Menus/ScenarioContextMenuManager.cpp"
+"${CMAKE_CURRENT_SOURCE_DIR}/Scenario/Application/Menus/ObjectsActions/EventActions.cpp"
+"${CMAKE_CURRENT_SOURCE_DIR}/Scenario/Application/Menus/ObjectsActions/ConstraintActions.cpp"
+"${CMAKE_CURRENT_SOURCE_DIR}/Scenario/Application/Menus/ObjectsActions/StateActions.cpp"
 "${CMAKE_CURRENT_SOURCE_DIR}/Scenario/Application/ScenarioApplicationPlugin.cpp"
 "${CMAKE_CURRENT_SOURCE_DIR}/Scenario/Application/ScenarioEditionSettings.cpp"
 

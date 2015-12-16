@@ -41,6 +41,7 @@ void UpdateAddressSettings::redo() const
 void UpdateAddressSettings::serializeImpl(DataStreamInput& d) const
 {
     d << m_devicesModel
+      << m_node
       << m_oldParameters
       << m_newParameters;
 }
@@ -48,6 +49,7 @@ void UpdateAddressSettings::serializeImpl(DataStreamInput& d) const
 void UpdateAddressSettings::deserializeImpl(DataStreamOutput& d)
 {
     d >> m_devicesModel
+      >> m_node
       >> m_oldParameters
       >> m_newParameters;
 }

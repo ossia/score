@@ -149,7 +149,7 @@ class MoveEventState final : public StateBase<Scenario_T>
                             if(other_date > t)
                                 t = other_date;
                         }
-                        this->m_pressedPrevious = t;
+                        this->m_pressedPrevious = t + TimeValue::fromMsecs(10);
                     }
                     else
                     {

@@ -9,12 +9,15 @@
 #include <iscore/menu/MenuInterface.hpp>
 #include <iscore/selection/Selection.hpp>
 
-class AddProcessDialog;
 class QAction;
 class QMenu;
 class QToolBar;
 class ScenarioApplicationPlugin;
 class TemporalScenarioPresenter;
+class EventActions;
+class ConstraintActions;
+class StateActions;
+
 namespace Scenario {
 struct Point;
 }  // namespace Scenario
@@ -28,8 +31,9 @@ class ObjectMenuActions final : public ScenarioActions
         ObjectMenuActions(iscore::ToplevelMenuElement, ScenarioApplicationPlugin* parent);
         void fillMenuBar(iscore::MenubarManager *menu) override;
         void fillContextMenu(QMenu* menu, const Selection&, const TemporalScenarioPresenter& pres, const QPoint&, const QPointF&) override;
-        bool populateToolBar(QToolBar*) override;
         void setEnabled(bool) override;
+        bool populateToolBar(QToolBar*) override;
+
 
         QList<QAction*> actions() const override;
     private:
@@ -37,12 +41,12 @@ class ObjectMenuActions final : public ScenarioActions
         QJsonObject cutSelectedElementsToJson();
         void pasteElements(const QJsonObject& obj, const Scenario::Point& origin);
         void writeJsonToSelectedElements(const QJsonObject &obj);
-        void addProcessInConstraint(const ProcessFactoryKey&);
-        void addTriggerToTimeNode();
-        void removeTriggerFromTimeNode();
 
         CommandDispatcher<> dispatcher();
 
+        EventActions* m_eventActions{};
+        ConstraintActions* m_cstrActions{};
+        StateActions* m_stateActions{};
 
         QAction* m_removeElements{};
         QAction *m_clearElements{};
@@ -50,18 +54,4 @@ class ObjectMenuActions final : public ScenarioActions
         QAction *m_cutContent{};
         QAction *m_pasteContent{};
         QAction *m_elementsToJson{};
-
-        // TODO separate classes for these
-        // Constraint
-        QAction *m_addProcess{};
-        QAction *m_interp{};
-
-        // Event
-        QAction *m_addTrigger{};
-        QAction *m_removeTrigger{};
-
-        // State
-        QAction* m_updateStates{};
-
-        AddProcessDialog* m_addProcessDialog{};
 };

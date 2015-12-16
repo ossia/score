@@ -23,6 +23,9 @@ void Scenario::EditionSettings::setExpandMode(ExpandMode expandMode)
 
 void Scenario::EditionSettings::setTool(Scenario::Tool tool)
 {
+    if(m_execution)
+        return;
+
     m_tool = tool;
     emit toolChanged(tool);
 }
@@ -39,6 +42,11 @@ void Scenario::EditionSettings::setSequence(bool sequence)
 
     m_sequence = sequence;
     emit sequenceChanged(sequence);
+}
+
+void Scenario::EditionSettings::setExecution(bool ex)
+{
+    m_execution = ex;
 }
 
 void Scenario::EditionSettings::setDefault()

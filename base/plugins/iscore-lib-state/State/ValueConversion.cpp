@@ -46,8 +46,8 @@ QVariant value(const iscore::Value& val)
     static const constexpr struct {
         public:
             using return_type = QVariant;
-            return_type operator()(const no_value_t&) const { return QVariant{}; }
-            return_type operator()(const impulse_t&) const { return QVariant{QVariant::UserType + 1}; }
+            return_type operator()(const no_value_t&) const { return QVariant::fromValue(iscore::no_value_t{}); }
+            return_type operator()(const impulse_t&) const { return QVariant::fromValue(iscore::impulse_t{}); }
             return_type operator()(int i) const { return QVariant::fromValue(i); }
             return_type operator()(float f) const { return QVariant::fromValue(f); }
             return_type operator()(bool b) const { return QVariant::fromValue(b); }
@@ -414,7 +414,7 @@ iscore::ValueImpl toValueImpl(const QVariant& val)
 {
 #pragma GCC diagnostic ignored "-Wswitch"
 #pragma GCC diagnostic ignored "-Wswitch-enum"
-    switch(QMetaType::Type(val.type()))
+    switch(auto t = QMetaType::Type(val.type()))
     {
         case QMetaType::Int:
             return iscore::ValueImpl{val.value<int>()};
@@ -444,8 +444,6 @@ iscore::ValueImpl toValueImpl(const QVariant& val)
             return iscore::ValueImpl{(QChar)val.value<char>()};
         case QMetaType::QChar:
             return iscore::ValueImpl{val.value<char>()};
-        case QMetaType::User + 1:
-            return iscore::ValueImpl{impulse_t{}};
         case QMetaType::QVariantList:
         {
             auto list = val.value<QVariantList>();
@@ -455,9 +453,19 @@ iscore::ValueImpl toValueImpl(const QVariant& val)
             {
                 tuple_val.push_back(toValueImpl(elt));
             }
+            return tuple_val;
         }
         default:
-            return iscore::ValueImpl{no_value_t{}};
+        {
+            if(t == qMetaTypeId<iscore::Value>())
+            {
+                return iscore::ValueImpl{impulse_t{}};
+            }
+            else
+            {
+                return iscore::ValueImpl{no_value_t{}};
+            }
+        }
     }
 
 #pragma GCC diagnostic warning "-Wswitch"

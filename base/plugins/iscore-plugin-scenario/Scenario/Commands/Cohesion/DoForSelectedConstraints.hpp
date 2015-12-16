@@ -2,6 +2,7 @@
 #include <Scenario/Document/Constraint/ConstraintModel.hpp>
 #include <Scenario/Process/ScenarioModel.hpp>
 #include <iscore/document/DocumentContext.hpp>
+#include <iscore/application/ApplicationContext.hpp>
 
 template<typename Fun>
 void DoForSelectedConstraints(

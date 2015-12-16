@@ -122,6 +122,8 @@ using ValueList = QList<Value>;
 using OptionalValue = boost::optional<iscore::Value>;
 }
 
+Q_DECLARE_METATYPE(iscore::no_value_t)
+Q_DECLARE_METATYPE(iscore::impulse_t)
 Q_DECLARE_METATYPE(iscore::Value)
 Q_DECLARE_METATYPE(iscore::ValueList)
 

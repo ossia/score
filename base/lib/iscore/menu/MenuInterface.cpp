@@ -47,6 +47,12 @@ namespace iscore
         return m_aboutMap;
     }
 
+    template<>
+    ISCORE_LIB_BASE_EXPORT std::map<ContextMenu, QString> MenuInterface::map()
+    {
+        return m_contextMap;
+    }
+
 
 
     template<>
@@ -89,6 +95,12 @@ namespace iscore
     ISCORE_LIB_BASE_EXPORT QString MenuInterface::name(AboutMenuElement elt)
     {
         return m_aboutMap.at(elt);
+    }
+
+    template<>
+    ISCORE_LIB_BASE_EXPORT QString MenuInterface::name(ContextMenu elt)
+    {
+        return m_contextMap.at(elt);
     }
 }
 
@@ -152,4 +164,15 @@ const std::map<AboutMenuElement, QString> MenuInterface::m_aboutMap
 {
     {AboutMenuElement::Help, QObject::tr("Help") },
     {AboutMenuElement::About, QObject::tr("About") },
+};
+
+const std::map<ContextMenu, QString> MenuInterface::m_contextMap
+{
+    {ContextMenu::Object, QObject::tr("Object") },
+    {ContextMenu::Constraint, QObject::tr("Constraint") },
+    {ContextMenu::Process, QObject::tr("Process") },
+    {ContextMenu::Slot, QObject::tr("Slot") },
+    {ContextMenu::Rack, QObject::tr("Rack") },
+    {ContextMenu::Event, QObject::tr("Event") },
+    {ContextMenu::State, QObject::tr("State") },
 };

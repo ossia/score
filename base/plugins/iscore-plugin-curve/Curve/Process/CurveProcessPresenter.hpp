@@ -12,12 +12,10 @@
 #include <iscore/document/DocumentInterface.hpp>
 #include <iscore/widgets/GraphicsItem.hpp>
 
-
 #include <Curve/Segment/CurveSegmentList.hpp>
 #include <QGraphicsSceneMouseEvent>
 #include <QGraphicsScene>
 #include <iscore_plugin_curve_export.h>
-
 
 class CurvePresenter;
 class LayerView;

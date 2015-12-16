@@ -61,9 +61,9 @@ namespace iscore
             DocumentManager m_docManager;
             ApplicationComponentsData m_components;
             ApplicationComponents m_components_readonly;
-            ApplicationContext m_context;
 
             MenubarManager m_menubar;
+            ApplicationContext m_context;
 
             std::vector<OrderedToolbar> m_toolbars;
 

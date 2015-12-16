@@ -39,7 +39,7 @@ then
           sleep 3
           cp -rf ../Tests/testdata .
           ninja iscore_test_coverage
-          lcov --compat-libtool --directory . --capture --output-file coverage.info
+          lcov --compat-libtool --directory .. --capture --output-file coverage.info --no-external
           coveralls-lcov --repo-token jjoMcOyOg9R05XT3aVysqTcsL1gyAc9tF coverage.info
         fi
       fi
