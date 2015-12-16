@@ -1,6 +1,7 @@
 project(iscore)
 cmake_minimum_required(VERSION 3.1)
 
+set(CMAKE_MODULE_PATH "${CMAKE_MODULE_PATH};${CMAKE_CURRENT_SOURCE_DIR}/CMake;${CMAKE_CURRENT_SOURCE_DIR}/CMake/modules;${CMAKE_CURRENT_SOURCE_DIR}/CMake/modules/cmake-modules")
 
 set(APPNAME "i-score")
 set(ISCORE_VERSION_MAJOR 1)
@@ -14,17 +15,10 @@ enable_testing()
 include("${CMAKE_CURRENT_SOURCE_DIR}/CMake/IScoreFunctions.cmake")
 include("${CMAKE_CURRENT_SOURCE_DIR}/CMake/IScoreConfiguration.cmake")
 
-add_subdirectory("${CMAKE_CURRENT_SOURCE_DIR}/API")
-if(TARGET JamomaAPI)
-    setup_iscore_common_lib_features(APIJamoma)
+if(ISCORE_SANITIZE)
+    set(OSSIA_SANITIZE True)
 endif()
-# too hardcore for jamoma
-# if(CMAKE_BUILD_TYPE STREQUAL "Debug")
-#     if("${CMAKE_CXX_COMPILER_ID}" STREQUAL "GNU")
-#         add_definitions(-D_GLIBCXX_DEBUG)
-#     endif()
-# endif()
-
+add_subdirectory("${CMAKE_CURRENT_SOURCE_DIR}/API")
 if(POLICY CMP0063)
 CMAKE_POLICY(SET CMP0063 NEW)
 endif()

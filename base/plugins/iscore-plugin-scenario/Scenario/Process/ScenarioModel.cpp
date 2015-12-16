@@ -234,8 +234,10 @@ void ScenarioModel::setDurationAndShrink(const TimeValue& newDuration)
 
 void ScenarioModel::startExecution()
 {
+    // TODO this is called for each process!!
+    // But it should be done only once at the global level.
     emit execution(true);
-    for(auto& constraint : constraints)
+    for(ConstraintModel& constraint : constraints)
     {
         constraint.startExecution();
     }
@@ -244,6 +246,10 @@ void ScenarioModel::startExecution()
 void ScenarioModel::stopExecution()
 {
     emit execution(false);
+    for(ConstraintModel& constraint : constraints)
+    {
+        constraint.stopExecution();
+    }
 }
 
 void ScenarioModel::reset()

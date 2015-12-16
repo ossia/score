@@ -69,7 +69,6 @@ void TemporalScenarioView::contextMenuEvent(QGraphicsSceneContextMenuEvent* even
 
 void TemporalScenarioView::keyPressEvent(QKeyEvent* event)
 {
-    qDebug("totot");
     QGraphicsObject::keyPressEvent(event);
     if(event->key() == Qt::Key_Escape)
     {

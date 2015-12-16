@@ -106,14 +106,20 @@ void ProcessModel::setDurationAndShrink(const TimeValue& newDuration)
 
 void ProcessModel::startExecution()
 {
+    constraint().startExecution();
 }
 
 void ProcessModel::stopExecution()
 {
+    constraint().stopExecution();
 }
 
 void ProcessModel::reset()
 {
+    constraint().reset();
+    startEvent().reset();
+    endEvent().reset();
+    // TODO reset events / states display too
 }
 
 ProcessStateDataInterface* ProcessModel::startStateData() const

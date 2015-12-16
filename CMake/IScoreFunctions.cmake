@@ -1,3 +1,8 @@
+include(Sanitize)
+include(UseGold)
+include(LinkerWarnings)
+include(DebugMode)
+
 function(iscore_cotire_pre TheTarget)
 if(ISCORE_COTIRE)
     set_property(TARGET ${TheTarget} PROPERTY COTIRE_ADD_UNITY_BUILD FALSE)
@@ -48,27 +53,13 @@ function(iscore_set_msvc_compile_options theTarget)
     "/wd4224"
     )
 endfunction()
+
 function(iscore_set_apple_compile_options theTarget)
     target_link_libraries(${theTarget} "-Wl,-fatal_warnings")
 endfunction()
 
 function(iscore_set_gcc_compile_options theTarget)
     # set(CMAKE_CXX_FLAGS "${CMAKE_CXX_FLAGS} -Werror -Wno-error=shadow -Wno-error=switch -Wno-error=switch-enum -Wno-error=empty-body -Wno-error=overloaded-virtual -Wno-error=suggest-final-methods -Wno-error=suggest-final-types -Wno-error=suggest-override -Wno-error=maybe-uninitialized")
-
-    if(ISCORE_SANITIZE)
-      target_compile_definitions(${TheTarget} PUBLIC
-        $<$<CONFIG:Debug>:_GLIBCXX_DEBUG>
-        $<$<CONFIG:Debug>:_GLIBCXX_DEBUG_PEDANTIC>
-        )
-
-      if(NOT ISCORE_COTIRE) ## Sanitizer won't work with PCHs
-        target_compile_options(${theTarget} PUBLIC
-          $<$<CONFIG:Debug>:-fsanitize=undefined>
-        )
-        target_link_libraries(${theTarget}
-          $<$<CONFIG:Debug>:-fsanitize=undefined> )
-      endif()
-    endif()
 
     if (GCC_VERSION VERSION_GREATER 5.2 OR GCC_VERSION VERSION_EQUAL 5.2)
         target_compile_options(${theTarget} PUBLIC
@@ -94,23 +85,6 @@ function(iscore_set_clang_compile_options theTarget)
     #if ("${CMAKE_CXX_COMPILER_ID}" STREQUAL "Clang")
     #	set(CMAKE_CXX_FLAGS "${CMAKE_CXX_FLAGS} -Weverything -Wno-c++98-compat -Wno-exit-time-destructors -Wno-padded")
     #endif()
-
-    if(ISCORE_SANITIZE)
-      if(NOT APPLE AND NOT WIN32) # Only for linux.
-        # TODO : http://stackoverflow.com/a/30176092/1495627
-        # Need to check for the libstdc++ abi.
-        # target_compile_definitions(${TheTarget} PUBLIC
-        #  $<$<CONFIG:Debug>:_GLIBCXX_DEBUG>
-        #  $<$<CONFIG:Debug>:_GLIBCXX_DEBUG_PEDANTIC>
-        #  )
-      endif()
-
-      target_compile_options(${theTarget} PUBLIC
-        $<$<CONFIG:Debug>:-fsanitize=undefined>
-        )
-      target_link_libraries(${theTarget}
-        $<$<CONFIG:Debug>:-lubsan> )
-    endif()
 endfunction()
 
 function(iscore_set_linux_compile_options theTarget)
@@ -140,7 +114,7 @@ function(iscore_set_unix_compile_options theTarget)
 
     # Release options
     "$<$<CONFIG:Release>:-Ofast>"
-    "$<$<AND:$<CONFIG:Release>,$<BOOL:ISCORE_ENABLE_OPTIMIZE_CUSTOM>>:-march=native>"
+    "$<$<AND:$<CONFIG:Release>,$<BOOL:${ISCORE_ENABLE_OPTIMIZE_CUSTOM}>>:-march=native>"
     )
 
 endfunction()
@@ -152,7 +126,21 @@ function(iscore_set_compile_options theTarget)
       $<$<CONFIG:Debug>:ISCORE_DEBUG>
       $<$<CONFIG:Debug>:BOOST_MULTI_INDEX_ENABLE_INVARIANT_CHECKING>
       $<$<CONFIG:Debug>:BOOST_MULTI_INDEX_ENABLE_SAFE_MODE>
+
+# various options
+
+      $<$<BOOL:${ISCORE_IEEE}>:ISCORE_IEEE_SKIN>
+      $<$<BOOL:${ISCORE_WEBSOCKETS}>:ISCORE_WEBSOCKETS>
+      $<$<BOOL:${ISCORE_OPENGL}>:ISCORE_OPENGL>
+      $<$<BOOL:${DEPLOYMENT_BUILD}>:ISCORE_DEPLOYMENT_BUILD>
+      $<$<BOOL:${ISCORE_STATIC_PLUGINS}>:ISCORE_STATIC_PLUGINS>
+      $<$<BOOL:${ISCORE_STATIC_PLUGINS}>:QT_STATICPLUGIN>
       )
+
+  if(ISCORE_SANITIZE)
+      sanitize_build(${theTarget})
+      debugmode_build(${theTarget})
+  endif()
 
   if (CXX_IS_CLANG)
       iscore_set_clang_compile_options(${theTarget})
@@ -179,6 +167,9 @@ function(iscore_set_compile_options theTarget)
   if(NOT APPLE AND NOT WIN32)
       iscore_set_linux_compile_options(${theTarget})
   endif()
+
+  use_gold(${theTarget})
+  add_linker_warnings(${theTarget})
 endfunction()
 
 function(setup_iscore_common_features TheTarget)

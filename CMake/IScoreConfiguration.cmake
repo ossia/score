@@ -23,24 +23,8 @@ option(ISCORE_WEBSOCKETS "Run a websocket server in the scenario" OFF)
 
 option(ISCORE_COVERAGE "Enable coverage" OFF)
 
-if(ISCORE_OPENGL)
-        add_definitions(-DISCORE_OPENGL)
-endif()
-
-if(ISCORE_WEBSOCKETS)
-  add_definitions(-DISCORE_WEBSOCKETS)
-endif()
-
-if(DEPLOYMENT_BUILD)
-  add_definitions(-DISCORE_DEPLOYMENT_BUILD)
-endif()
-
-if(ISCORE_IEEE)
-  add_definitions(-DISCORE_IEEE_SKIN)
-endif()
-
 if(ISCORE_STATIC_EVERYTHING)
-    set(ISCORE_STATIC_QT True)
+  set(ISCORE_STATIC_QT True)
   if(UNIX AND NOT APPLE)
     set(CMAKE_CXX_FLAGS "${CMAKE_CXX_FLAGS} -static-libgcc -static-libstdc++ -static")
     set(CMAKE_EXE_LINKER_FLAGS "${CMAKE_EXE_LINKER_FLAGS} -static-libgcc -static-libstdc++ -static")
@@ -64,9 +48,6 @@ else()
   include_directories("${Boost_INCLUDE_DIRS}")
 endif()
 
-# if(APPLE AND DEPLOYMENT_BUILD)
-#  set(ISCORE_STATIC_PLUGINS True)
-# endif()
 if(UNIX AND NOT APPLE AND DEPLOYMENT_BUILD)
   set(ISCORE_BUILD_FOR_PACKAGE_MANAGER ON)
 endif()
@@ -77,8 +58,6 @@ endif()
 
 if(ISCORE_STATIC_PLUGINS)
   set(BUILD_SHARED_LIBS OFF)
-  add_definitions(-DISCORE_STATIC_PLUGINS)
-  add_definitions(-DQT_STATICPLUGIN)
 else()
   set(BUILD_SHARED_LIBS ON)
 endif()
@@ -107,8 +86,6 @@ set(CMAKE_AUTOUIC ON)
 set(CMAKE_POSITION_INDEPENDENT_CODE ON)
 
 set(CMAKE_ANDROID_PATH "${CMAKE_CURRENT_SOURCE_DIR}/CMake/Android")
-set(CMAKE_MODULE_PATH "${CMAKE_MODULE_PATH};${CMAKE_CURRENT_SOURCE_DIR}/CMake;${CMAKE_CURRENT_SOURCE_DIR}/CMake/modules")
-
 if ("${CMAKE_CXX_COMPILER_ID}" MATCHES "Clang")
     set(CXX_IS_CLANG True)
 endif()

@@ -19,3 +19,6 @@
 [submodule "3rdparty/nano-signal-slot"]
 	path = 3rdparty/nano-signal-slot
 	url = https://github.com/jcelerier/nano-signal-slot
+[submodule "CMake/modules/cmake-modules"]
+	path = CMake/modules/cmake-modules
+	url = https://github.com/OSSIA/cmake-modules
