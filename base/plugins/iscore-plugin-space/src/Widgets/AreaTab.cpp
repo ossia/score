@@ -4,7 +4,7 @@
 #include <iscore/widgets/MarginLess.hpp>
 
 AreaTab::AreaTab(
-        iscore::CommandStackFacade& stack,
+        const iscore::DocumentContext& ctx,
         const SpaceProcess &space,
         QWidget *parent):
     QWidget{parent},
@@ -20,7 +20,7 @@ AreaTab::AreaTab(
     m_listWidget = new QListWidget;
     list_widg->layout()->addWidget(m_listWidget);
     lay->addWidget(list_widg, 0, 0);
-    m_areaWidget = new AreaWidget{stack, space, this};
+    m_areaWidget = new AreaWidget{ctx, space, this};
     lay->addWidget(m_areaWidget, 0, 1);
 
     lay->setColumnMinimumWidth(0, 200);

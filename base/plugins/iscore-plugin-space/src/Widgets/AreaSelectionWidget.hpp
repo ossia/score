@@ -2,12 +2,15 @@
 #include <QWidget>
 class QComboBox;
 class QLineEdit;
+class SingletonAreaFactoryList;
 
 class AreaSelectionWidget : public QWidget
 {
         Q_OBJECT
     public:
-        AreaSelectionWidget(QWidget* parent);
+        AreaSelectionWidget(
+                const SingletonAreaFactoryList& fact,
+                QWidget* parent);
 
         QComboBox* comboBox() const { return m_comboBox; }
         QLineEdit* lineEdit() const { return m_lineEdit; }

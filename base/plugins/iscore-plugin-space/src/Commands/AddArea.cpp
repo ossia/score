@@ -9,9 +9,10 @@
 
 #include "src/SpaceProcess.hpp"
 
+#include <iscore/application/ApplicationContext.hpp>
 #include <boost/range/algorithm/find_if.hpp>
 #include <iscore/tools/SettableIdentifierGeneration.hpp>
-
+#include <iscore/tools/ModelPathSerialization.hpp>
 
 AddArea::AddArea(Path<SpaceProcess> &&spacProcess,
                  int areatype,
@@ -37,7 +38,7 @@ void AddArea::redo() const
 {
     auto& proc = m_path.find();
 
-    const auto& facts = SingletonAreaFactoryList::instance().get();
+    const auto& facts = context.components.factory<SingletonAreaFactoryList>().get();
     auto it = boost::range::find_if(facts,
                                     [&] (const auto& f) { return f.second->type() == m_areaType; });
 

@@ -10,8 +10,9 @@ class AreaPresenter;
 
 class AreaFactory : public iscore::GenericFactoryInterface<AreaFactoryKey>
 {
-        ISCORE_FACTORY_DECL("Area")
+        ISCORE_FACTORY_DECL("AreaFactory")
     public:
+            using factory_key_type = AreaFactoryKey;
         virtual ~AreaFactory();
 
         // Pretty name, id
