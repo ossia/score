@@ -14,35 +14,34 @@ iscore_plugin_space::iscore_plugin_space() :
 {
 }
 
-iscore::GUIApplicationContextPlugin* iscore_plugin_space::make_applicationplugin(iscore::Presenter* pres)
+iscore::GUIApplicationContextPlugin* iscore_plugin_space::make_applicationPlugin(
+        const iscore::ApplicationContext& pres)
 {
     return new SpaceApplicationPlugin{pres};
 }
 
-std::vector<std::unique_ptr<iscore::FactoryInterfaceBase>> iscore_plugin_space::factories(const iscore::FactoryBaseKey& factoryName) const
+std::vector<std::unique_ptr<iscore::FactoryInterfaceBase>> iscore_plugin_space::factories(
+        const iscore::ApplicationContext& ctx,
+        const iscore::FactoryBaseKey& factoryName) const
 {
     if(factoryName == ProcessFactory::staticFactoryKey())
     {
-        return {new SpaceProcessFactory};
+        return make_ptr_vector<iscore::FactoryInterfaceBase,
+                SpaceProcessFactory>();
     }
     if(factoryName == AreaFactory::staticFactoryKey())
     {
-        return {
-            new GenericAreaFactory,
-                    new CircleAreaFactory
-        };
+        return make_ptr_vector<iscore::FactoryInterfaceBase,
+                GenericAreaFactory,
+                CircleAreaFactory>();
     }
 
     return {};
 }
 
 
-std::vector<iscore::FactoryFamily> iscore_plugin_space::factoryFamilies()
+std::vector<std::unique_ptr<iscore::FactoryListInterface>> iscore_plugin_space::factoryFamilies()
 {
-    return {{AreaFactory::staticFactoryKey(),
-                    [] (iscore::FactoryInterfaceBase* f)
-            {
-                if(auto elt = dynamic_cast<AreaFactory*>(f))
-                    SingletonAreaFactoryList::instance().inscribe(elt);
-            }}};
+    return make_ptr_vector<iscore::FactoryListInterface,
+            SingletonAreaFactoryList>();
 }

@@ -1,14 +1,18 @@
 #pragma once
 #include <QtWidgets>
 #include <iscore/command/Dispatchers/CommandDispatcher.hpp>
-
+namespace iscore
+{ struct DocumentContext; }
 class AreaModel;
 class SpaceProcess;
 class AreaSelectionWidget;
 class AreaWidget : public QWidget
 {
     public:
-        AreaWidget(iscore::CommandStackFacade& stack, const SpaceProcess &space, QWidget* parent);
+        AreaWidget(
+                const iscore::DocumentContext& ctx,
+                const SpaceProcess &space,
+                QWidget* parent);
 
         // If null, will add a new area instead.
         void setActiveArea(const AreaModel *);

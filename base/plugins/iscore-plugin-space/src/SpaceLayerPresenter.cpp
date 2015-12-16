@@ -9,17 +9,21 @@
 #include <iscore/document/DocumentInterface.hpp>
 #include <core/document/Document.hpp>
 #include <QMainWindow>
-SpaceLayerPresenter::SpaceLayerPresenter(const LayerModel& model, LayerView* view, QObject* parent):
+SpaceLayerPresenter::SpaceLayerPresenter(
+        const LayerModel& model,
+        LayerView* view,
+        QObject* parent):
     LayerPresenter{"LayerPresenter", parent},
     m_model{static_cast<const SpaceLayerModel&>(model)},
     m_view{static_cast<SpaceLayerView*>(view)},
-    m_focusDispatcher{*iscore::IDocument::documentFromObject(m_model.processModel())}
+    m_ctx{iscore::IDocument::documentContext(m_model.processModel())},
+    m_focusDispatcher{m_ctx.document}
 {
     const SpaceProcess& procmodel = static_cast<SpaceProcess&>(m_model.processModel());
     m_spaceWindowView = new QMainWindow;
     m_spaceWindowView->setCentralWidget(
                 new SpaceGuiWindow{
-                    iscore::IDocument::commandStack(model),
+                    m_ctx,
                     procmodel,
                     m_spaceWindowView});
 
@@ -43,13 +47,13 @@ SpaceLayerPresenter::~SpaceLayerPresenter()
     deleteGraphicsObject(m_view);
 }
 
-void SpaceLayerPresenter::setWidth(int width)
+void SpaceLayerPresenter::setWidth(qreal width)
 {
     m_view->setWidth(width);
     update();
 }
 
-void SpaceLayerPresenter::setHeight(int height)
+void SpaceLayerPresenter::setHeight(qreal height)
 {
     m_view->setHeight(height);
     update();
@@ -106,7 +110,7 @@ void SpaceLayerPresenter::update()
 #include "src/Area/SingletonAreaFactoryList.hpp"
 void SpaceLayerPresenter::on_areaAdded(const AreaModel & a)
 {
-    auto fact = SingletonAreaFactoryList::instance().get(a.factoryKey());
+    auto fact = m_ctx.app.components.factory<SingletonAreaFactoryList>().get(a.factoryKey());
 
     auto v = fact->makeView(m_view);
     // TODO call the factory list

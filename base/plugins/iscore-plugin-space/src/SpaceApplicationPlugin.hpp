@@ -4,6 +4,6 @@
 class SpaceApplicationPlugin : public iscore::GUIApplicationContextPlugin
 {
     public:
-        SpaceApplicationPlugin(iscore::Presenter* pres);
+        SpaceApplicationPlugin(const iscore::ApplicationContext& pres);
         virtual ~SpaceApplicationPlugin();
 };

@@ -2,13 +2,19 @@
 #include <QtWidgets>
 #include <iscore/command/Dispatchers/CommandDispatcher.hpp>
 
+namespace iscore {
+class DocumentContext;
+}
 class SpaceProcess;
 class AreaWidget;
 class AreaTab : public QWidget
 {
         Q_OBJECT
     public:
-        AreaTab(iscore::CommandStackFacade &stack, const SpaceProcess &space, QWidget* parent);
+        AreaTab(
+                const iscore::DocumentContext& ctx,
+                const SpaceProcess &space,
+                QWidget* parent);
 
     private slots:
         void updateDisplayedArea(int);

@@ -2,7 +2,7 @@
 
 #include <iscore/command/CommandGeneratorMap.hpp>
 SpaceApplicationPlugin::SpaceApplicationPlugin(
-        iscore::Presenter* pres) :
+        const iscore::ApplicationContext& pres) :
     GUIApplicationContextPlugin {pres, "SpaceApplicationPlugin", nullptr}
 {
 }

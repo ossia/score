@@ -23,10 +23,13 @@ class iscore_plugin_space:
         virtual ~iscore_plugin_space() = default;
 
         // Application plugin interface
-        iscore::GUIApplicationContextPlugin* make_applicationplugin(iscore::Presenter*) override;
+        iscore::GUIApplicationContextPlugin* make_applicationPlugin(
+                const iscore::ApplicationContext&) override;
 
         // Process & inspector
-        std::vector<std::unique_ptr<iscore::FactoryInterfaceBase>> factories(const iscore::FactoryBaseKey& factoryName) const override;
+        std::vector<std::unique_ptr<iscore::FactoryInterfaceBase>> factories(
+                const iscore::ApplicationContext& ctx,
+                const iscore::FactoryBaseKey& matchingName) const override;
 
-        std::vector<iscore::FactoryFamily> factoryFamilies() override;
+        std::vector<std::unique_ptr<iscore::FactoryListInterface>> factoryFamilies() override;
 };

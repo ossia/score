@@ -10,16 +10,20 @@
 #include "ParameterWidget.hpp"
 #include <iscore/widgets/MarginLess.hpp>
 #include <iscore/document/DocumentInterface.hpp>
-
-AreaWidget::AreaWidget(iscore::CommandStackFacade& stack, const SpaceProcess& space, QWidget *parent):
+#include <iscore/document/DocumentContext.hpp>
+#include <src/Area/SingletonAreaFactoryList.hpp>
+AreaWidget::AreaWidget(
+        const iscore::DocumentContext& ctx,
+        const SpaceProcess& space,
+        QWidget *parent):
     QWidget{parent},
-    m_dispatcher{stack},
+    m_dispatcher{ctx.commandStack},
     m_space{space}
 {
     auto lay = new QGridLayout;
     this->setLayout(lay);
 
-    m_selectionWidget = new AreaSelectionWidget{this};
+    m_selectionWidget = new AreaSelectionWidget{ctx.app.components.factory<SingletonAreaFactoryList>(), this};
     lay->addWidget(m_selectionWidget);
     connect(m_selectionWidget, &AreaSelectionWidget::lineEditChanged, this, &AreaWidget::on_formulaChanged);
 

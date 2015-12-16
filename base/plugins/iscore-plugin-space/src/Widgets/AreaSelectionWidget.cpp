@@ -9,7 +9,9 @@
 #include "src/Area/SingletonAreaFactoryList.hpp"
 #include "src/Area/AreaModel.hpp"
 #include "src/Area/Circle/CircleAreaModel.hpp"
-AreaSelectionWidget::AreaSelectionWidget(QWidget* parent):
+AreaSelectionWidget::AreaSelectionWidget(
+        const SingletonAreaFactoryList& fact,
+        QWidget* parent):
     QWidget{parent}
 {
     auto lay = new iscore::MarginLess<QHBoxLayout>;
@@ -23,7 +25,6 @@ AreaSelectionWidget::AreaSelectionWidget(QWidget* parent):
     connect(m_lineEdit, &QLineEdit::editingFinished,
             this, &AreaSelectionWidget::lineEditChanged);
 
-    auto& fact = SingletonAreaFactoryList::instance();
     for(auto& elt : fact.get())
     {
         m_comboBox->addItem(elt.second->prettyName(), QVariant::fromValue(elt.second->key<AreaFactoryKey>()));

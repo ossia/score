@@ -17,8 +17,8 @@ class SpaceLayerPresenter : public LayerPresenter
                             QObject* parent);
         ~SpaceLayerPresenter();
 
-        void setWidth(int width) override;
-        void setHeight(int height) override;
+        void setWidth(qreal width) override;
+        void setHeight(qreal height) override;
 
         void on_focusChanged() override;
 
@@ -39,6 +39,7 @@ class SpaceLayerPresenter : public LayerPresenter
         const SpaceLayerModel& m_model;
         SpaceLayerView* m_view;
 
+        const iscore::DocumentContext& m_ctx;
         QMainWindow* m_spaceWindowView{};
         IdContainer<AreaPresenter, AreaModel> m_areas;
         FocusDispatcher m_focusDispatcher;
