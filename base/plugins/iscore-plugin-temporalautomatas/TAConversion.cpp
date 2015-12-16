@@ -597,7 +597,6 @@ void TAVisitor::visit(const ConstraintModel &c)
         scenario.broadcasts.insert(rigid.skip);
         scenario.broadcasts.insert(rigid.kill);
 
-
         visitProcesses(c, rigid, scenario);
     }
     else
