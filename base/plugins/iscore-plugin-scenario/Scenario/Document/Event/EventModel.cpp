@@ -117,6 +117,9 @@ QString EventModel::description()
 
 void EventModel::addState(const Id<StateModel> &ds)
 {
+    auto idx = m_states.indexOf(ds, 0);
+    if(idx != -1)
+        return;
     m_states.append(ds);
     emit statesChanged();
 }
@@ -125,8 +128,10 @@ void EventModel::removeState(const Id<StateModel> &ds)
 {
     auto idx = m_states.indexOf(ds, 0);
     if(idx != -1)
+    {
         m_states.remove(idx);
-    emit statesChanged();
+        emit statesChanged();
+    }
 }
 
 const QVector<Id<StateModel> > &EventModel::states() const

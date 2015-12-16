@@ -305,6 +305,7 @@ void RemoveSelection::undo() const
     for(const auto& state : states)
     {
         scenar.states.add(state);
+        scenar.event(state->eventId()).addState(state->id());
     }
 
     for(const auto& cmt : comments)
