@@ -22,7 +22,7 @@ RemoveMessageNodes::RemoveMessageNodes(
     m_newState = m_oldState;
     for(const auto& node : nodes)
     {
-        updateTreeWithRemovedUserMessage(m_newState, message(*node));
+        updateTreeWithRemovedNode(m_newState, address(*node));
     }
 }
 

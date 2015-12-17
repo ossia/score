@@ -136,7 +136,7 @@ typename Container::value_type findById_weak_unsafe(const Container& c, int32_t 
 
 QObject* ObjectPath::find_impl() const
 {
-    NamedObject* obj{};
+    QObject* obj{};
 
     const auto& docs = iscore::AppContext().documents.documents();
     auto parent_doc_it = find_if(docs,
@@ -171,7 +171,7 @@ QObject* ObjectPath::find_impl() const
         }
         else
         {
-            auto child = obj->findChild<NamedObject*> (currentObjIdentifier.objectName(),
+            auto child = obj->findChild<QObject*> (currentObjIdentifier.objectName(),
                          Qt::FindDirectChildrenOnly);
 
             if(!child)
@@ -190,7 +190,7 @@ QObject* ObjectPath::find_impl() const
 
 QObject* ObjectPath::find_impl_unsafe() const
 {
-    NamedObject* obj{};
+    QObject* obj{};
 
     const auto& docs = iscore::AppContext().documents.documents();
     auto parent_doc_it = find_if(docs,
@@ -230,7 +230,7 @@ QObject* ObjectPath::find_impl_unsafe() const
         }
         else
         {
-            auto child = obj->findChild<NamedObject*> (currentObjIdentifier.objectName(),
+            auto child = obj->findChild<QObject*> (currentObjIdentifier.objectName(),
                          Qt::FindDirectChildrenOnly);
 
             if(!child)

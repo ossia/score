@@ -268,6 +268,9 @@ bool DeviceExplorerModel::checkAddressInstantiatable(
 {
     ISCORE_ASSERT(!parent.is<InvisibleRootNodeTag>());
 
+    if(addr.name.isEmpty())
+        return false;
+
     return std::none_of(parent.begin(),
                         parent.end(),
                         [&] (const iscore::Node& n) {
@@ -281,6 +284,9 @@ bool DeviceExplorerModel::checkAddressEditable(
         const AddressSettings& after)
 {
     ISCORE_ASSERT(!parent.is<InvisibleRootNodeTag>());
+
+    if(after.name.isEmpty())
+        return false;
 
     auto it = std::find_if(
                 parent.begin(),

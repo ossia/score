@@ -33,5 +33,8 @@ void updateTreeWithRemovedConstraint(
 
 void updateTreeWithRemovedUserMessage(
         MessageNode& rootNode,
-        const iscore::Message&);
+        const iscore::Address&);
 
+void updateTreeWithRemovedNode(
+        MessageNode& rootNode,
+        const iscore::Address& addr);

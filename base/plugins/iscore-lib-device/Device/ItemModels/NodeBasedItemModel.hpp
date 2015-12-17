@@ -66,7 +66,7 @@ class ISCORE_LIB_DEVICE_EXPORT NodeBasedItemModel : public TreeNodeBasedItemMode
                 int row = parent->indexOfChild(&*node);
 
                 beginRemoveRows(parentIndex, row, row);
-                parent->removeChild(node);
+                parent->erase(node);
                 endRemoveRows();
             }
             else if(node->is<iscore::DeviceSettings>())
@@ -74,7 +74,7 @@ class ISCORE_LIB_DEVICE_EXPORT NodeBasedItemModel : public TreeNodeBasedItemMode
                 int row = rootNode().indexOfChild(&*node);
 
                 beginRemoveRows(QModelIndex(), row, row);
-                rootNode().removeChild(node);
+                rootNode().erase(node);
                 endRemoveRows();
             }
         }
