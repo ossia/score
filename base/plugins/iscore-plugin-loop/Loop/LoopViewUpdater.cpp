@@ -36,7 +36,7 @@ void LoopViewUpdater::updateEvent(const EventPresenter& event)
 
     event.view()->setExtent(event.model().extent() * h);
 
-    event.view()->setPos({event.model().date().msec() / m_presenter.m_zoomRatio,
+    event.view()->setPos({event.model().date().toPixels(m_presenter.m_zoomRatio),
                           event.model().extent().top() * h});
 
     // We also have to move all the relevant states
@@ -89,7 +89,7 @@ void LoopViewUpdater::updateTimeNode(const TimeNodePresenter& timenode)
     auto h = m_presenter.m_view->boundingRect().height();
     timenode.view()->setExtent(timenode.model().extent() * h);
 
-    timenode.view()->setPos({timenode.model().date().msec() / m_presenter.m_zoomRatio,
+    timenode.view()->setPos({timenode.model().date().toPixels(m_presenter.m_zoomRatio),
                              timenode.model().extent().top() * h});
 
     m_presenter.m_view->update();
@@ -102,13 +102,13 @@ void LoopViewUpdater::updateState(const StatePresenter& state)
     if(&state == m_presenter.m_startStatePresenter)
     {
         const auto& ev = m_presenter.m_layer.model().startEvent();
-        state.view()->setPos({ev.date().msec() / m_presenter.m_zoomRatio,
+        state.view()->setPos({ev.date().toPixels(m_presenter.m_zoomRatio),
                               rect.height() * state.model().heightPercentage()});
     }
     else if(&state == m_presenter.m_endStatePresenter)
     {
         const auto& ev = m_presenter.m_layer.model().endEvent();
-        state.view()->setPos({ev.date().msec() / m_presenter.m_zoomRatio,
+        state.view()->setPos({ev.date().toPixels(m_presenter.m_zoomRatio),
                               rect.height() * state.model().heightPercentage()});
     }
 

@@ -81,7 +81,7 @@ class MoveBaseEvent final : public iscore::SerializableCommand
             QMap<Id<ConstraintViewModel>, Id<RackModel>> map;
             for(const ConstraintViewModel* vm : constraint.viewModels())
             {
-                map[vm->id()] = vm->shownRack();
+                map.insert(vm->id(), vm->shownRack());
             }
 
             m_savedConstraint = {arr, map};
