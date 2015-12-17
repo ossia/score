@@ -9,6 +9,8 @@
 #include <Scenario/Commands/Constraint/AddRackToConstraint.hpp>
 #include <Scenario/Commands/Constraint/Rack/AddSlotToRack.hpp>
 
+#include <iscore/tools/std/Algorithms.hpp>
+
 // RENAMEME
 // One InterpolateMacro per constraint
 class AddMultipleProcessesToMultipleConstraintsMacro final : public iscore::AggregateCommand
@@ -111,16 +113,18 @@ class AddMultipleProcessesToConstraintMacro final : public iscore::AggregateComm
                         auto& rack = constraint.racks.at(rackId);
                         if(rack.slotmodels.size() > 0)
                         {
+                            const auto& firstSlot = rack.slotmodels.at(rack.slotsPositions()[0]);
+
                             // Check if the rack / slot has already been added
-                            for(const auto& elt : slotsToUse)
-                            {
+                            bool used = any_of(slotsToUse, [&] (const auto& elt) {
                                 const ObjectIdentifierVector& vec = elt.first.unsafePath().vec();
-                                if(vec[vec.size() - 2].id() == rackId.val())
-                                    continue;
-                            }
+                                return (vec[vec.size() - 2].id() == rackId.val()) &&
+                                        (vec[vec.size() - 1].id() == firstSlot.id().val());
+                            });
 
                             // If not, we add it to the list
-                            slotsToUse.push_back({rack.slotmodels.at(rack.slotsPositions()[0]), {}});
+                            if(!used)
+                                slotsToUse.push_back({firstSlot, {}});
                         }
                         else
                         {
