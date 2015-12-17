@@ -15,7 +15,7 @@ class MoveConstraintInBaseScenario_StateWrapper
         template<
                 typename Scenario_T,
                 typename ToolPalette_T>
-        static void make(const ToolPalette_T& palette, QState* waitState, QStateMachine& sm)
+        static void make(const ToolPalette_T& palette, QState* waitState, QState& sm)
         {
             // We cannot move the constraint
         }
@@ -27,7 +27,7 @@ class MoveEventInBaseScenario_StateWrapper
         template<
                 typename Scenario_T,
                 typename ToolPalette_T>
-        static void make(const ToolPalette_T& palette, QState* waitState, QStateMachine& sm)
+        static void make(const ToolPalette_T& palette, QState* waitState, QState& sm)
         {
             /// Event
             auto moveEvent =
@@ -36,7 +36,7 @@ class MoveEventInBaseScenario_StateWrapper
                         palette.model(),
                         palette.context().commandStack,
                         palette.context().objectLocker,
-                        nullptr};
+                        &sm};
 
             make_transition<Scenario::ClickOnState_Transition<Scenario_T>>(waitState,
                                                      moveEvent,
@@ -48,7 +48,6 @@ class MoveEventInBaseScenario_StateWrapper
             moveEvent->addTransition(moveEvent,
                                        SIGNAL(finished()),
                                        waitState);
-            sm.addState(moveEvent);
         }
 };
 
@@ -58,7 +57,7 @@ class MoveTimeNodeInBaseScenario_StateWrapper
         template<
                 typename Scenario_T,
                 typename ToolPalette_T>
-        static void make(const ToolPalette_T& palette, QState* waitState, QStateMachine& sm)
+        static void make(const ToolPalette_T& palette, QState* waitState, QState& sm)
         {
             /// TimeNode
             auto moveTimeNode =
@@ -67,7 +66,7 @@ class MoveTimeNodeInBaseScenario_StateWrapper
                         palette.model(),
                         palette.context().commandStack,
                         palette.context().objectLocker,
-                        nullptr};
+                        &sm};
 
             make_transition<Scenario::ClickOnTimeNode_Transition<Scenario_T>>(waitState,
                                                                     moveTimeNode,
@@ -75,6 +74,5 @@ class MoveTimeNodeInBaseScenario_StateWrapper
             moveTimeNode->addTransition(moveTimeNode,
                                         SIGNAL(finished()),
                                         waitState);
-            sm.addState(moveTimeNode);
         }
 };
