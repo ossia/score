@@ -84,6 +84,9 @@ LoopPresenter::LoopPresenter(
         this, [=] (const VerticalExtent&) { m_viewUpdater.updateTimeNode(*m_endNodePresenter); });
     con(m_endNodePresenter->model(), &TimeNodeModel::dateChanged,
         this, [=] (const TimeValue&) { m_viewUpdater.updateTimeNode(*m_endNodePresenter); });
+
+    connect(m_view, &LoopView::askContextMenu,
+            this,   &LoopPresenter::contextMenuRequested);
 }
 
 LoopPresenter::~LoopPresenter()
@@ -144,8 +147,22 @@ void LoopPresenter::updateAllElements()
     m_viewUpdater.updateTimeNode(*m_endNodePresenter);
 }
 
-void LoopPresenter::fillContextMenu(QMenu*, const QPoint& pos, const QPointF& scenepos) const
+
+#include <Scenario/Application/ScenarioApplicationPlugin.hpp>
+#include <Scenario/Application/Menus/ScenarioActions.hpp>
+void LoopPresenter::fillContextMenu(QMenu* menu, const QPoint& pos, const QPointF& scenepos) const
 {
+    /*
+    auto selected = layerModel().processModel().selectedChildren();
+
+    auto& appPlug = m_context.app.components.applicationPlugin<ScenarioApplicationPlugin>();
+    for(auto elt : appPlug.pluginActions())
+    {
+        // TODO make a class to encapsulate all the data
+        // required to set-up a context menu in a scenario.
+        elt->fillContextMenu(menu, selected, *this, pos, scenepos);
+        menu->addSeparator();
+    }*/
 }
 
 

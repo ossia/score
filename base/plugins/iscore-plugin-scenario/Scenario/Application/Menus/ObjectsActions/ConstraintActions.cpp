@@ -30,8 +30,9 @@
 
 #include <QApplication>
 
-ConstraintActions::ConstraintActions(iscore::ToplevelMenuElement menuElt,
-                     ScenarioApplicationPlugin* parent):
+ConstraintActions::ConstraintActions(
+        iscore::ToplevelMenuElement menuElt,
+        ScenarioApplicationPlugin* parent):
     ScenarioActions(menuElt, parent)
 {
     const auto& appContext = parent->context;
@@ -79,54 +80,54 @@ void ConstraintActions::fillContextMenu(
 {
     if(!sel.empty())
     {
-    QList<const ConstraintModel*> selectedConstraints = filterSelectionByType<ConstraintModel>(sel);
-    if(selectedConstraints.size() == 1)
-    {
-        auto& cst = *selectedConstraints.front();
-        if(!cst.racks.empty())
+        QList<const ConstraintModel*> selectedConstraints = filterSelectionByType<ConstraintModel>(sel);
+        if(selectedConstraints.size() == 1)
         {
-        auto rackMenu = menu->addMenu(iscore::MenuInterface::name(iscore::ContextMenu::Rack));
+            auto& cst = *selectedConstraints.front();
+            if(!cst.racks.empty())
+            {
+                auto rackMenu = menu->addMenu(iscore::MenuInterface::name(iscore::ContextMenu::Rack));
 
-        // We have to find the constraint view model of this layer.
-        auto& vm = dynamic_cast<const TemporalScenarioLayerModel*>(&pres.layerModel())->constraint(cst.id());
+                // We have to find the constraint view model of this layer.
+                auto& vm = dynamic_cast<const TemporalScenarioLayerModel*>(&pres.layerModel())->constraint(cst.id());
 
-        for(const RackModel& rack : cst.racks)
-        {
-            auto act = new QAction{rack.objectName(), rackMenu};
-            connect(act, &QAction::triggered,
-                this, [&] () {
-            auto cmd = new Scenario::Command::ShowRackInViewModel{vm, rack.id()};
-            CommandDispatcher<> dispatcher{m_parent->currentDocument()->context().commandStack};
-            dispatcher.submitCommand(cmd);
-            });
+                for(const RackModel& rack : cst.racks)
+                {
+                    auto act = new QAction{rack.objectName(), rackMenu};
+                    connect(act, &QAction::triggered,
+                            this, [&] () {
+                        auto cmd = new Scenario::Command::ShowRackInViewModel{vm, rack.id()};
+                        CommandDispatcher<> dispatcher{m_parent->currentDocument()->context().commandStack};
+                        dispatcher.submitCommand(cmd);
+                    });
 
-            rackMenu->addAction(act);
+                    rackMenu->addAction(act);
+                }
+
+                auto hideAct = new QAction{tr("Hide"), rackMenu};
+                connect(hideAct, &QAction::triggered,
+                        this, [&] () {
+                    auto cmd = new Scenario::Command::HideRackInViewModel{vm};
+                    CommandDispatcher<> dispatcher{m_parent->currentDocument()->context().commandStack};
+                    dispatcher.submitCommand(cmd);
+                });
+                rackMenu->addAction(hideAct);
+            }
         }
 
-        auto hideAct = new QAction{tr("Hide"), rackMenu};
-        connect(hideAct, &QAction::triggered,
-            this, [&] () {
-            auto cmd = new Scenario::Command::HideRackInViewModel{vm};
-            CommandDispatcher<> dispatcher{m_parent->currentDocument()->context().commandStack};
-            dispatcher.submitCommand(cmd);
-        });
-        rackMenu->addAction(hideAct);
-        }
-    }
-
-    if(selectedConstraints.size() >= 1)
-    {
-        auto cstrSubmenu = menu->findChild<QMenu*>(MenuInterface::name(iscore::ContextMenu::Constraint));
-        if(!cstrSubmenu)
+        if(selectedConstraints.size() >= 1)
         {
-        cstrSubmenu = menu->addMenu(MenuInterface::name(iscore::ContextMenu::Constraint));
-        cstrSubmenu->setTitle(MenuInterface::name(iscore::ContextMenu::Constraint));
-        }
+            auto cstrSubmenu = menu->findChild<QMenu*>(MenuInterface::name(iscore::ContextMenu::Constraint));
+            if(!cstrSubmenu)
+            {
+                cstrSubmenu = menu->addMenu(MenuInterface::name(iscore::ContextMenu::Constraint));
+                cstrSubmenu->setTitle(MenuInterface::name(iscore::ContextMenu::Constraint));
+            }
 
-        if(m_addProcess)
-        cstrSubmenu->addAction(m_addProcess);
-        cstrSubmenu->addAction(m_interp);
-    }
+            if(m_addProcess)
+                cstrSubmenu->addAction(m_addProcess);
+            cstrSubmenu->addAction(m_interp);
+        }
 
     }
 }
