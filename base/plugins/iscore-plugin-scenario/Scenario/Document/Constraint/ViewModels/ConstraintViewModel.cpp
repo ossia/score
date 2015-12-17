@@ -18,8 +18,11 @@ const Id<RackModel>& ConstraintViewModel::shownRack() const
 
 void ConstraintViewModel::hideRack()
 {
-    m_shownRack.unset();
-    emit rackHidden();
+    if(m_shownRack)
+    {
+        m_shownRack.unset();
+        emit rackHidden();
+    }
 }
 
 void ConstraintViewModel::showRack(const Id<RackModel>& rackId)
