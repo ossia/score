@@ -188,7 +188,8 @@ void ScenarioElement::on_timeNodeCreated(const TimeNodeModel& tn)
 void ScenarioElement::startConstraintExecution(const Id<ConstraintModel>& id)
 {
     auto& cst = m_iscore_scenario.constraints.at(id);
-    m_executingConstraints.insert(&cst);
+    if(m_executingConstraints.find(id) == m_executingConstraints.end())
+        m_executingConstraints.insert(&cst);
 
     m_ossia_constraints.at(id)->executionStarted();
 }
