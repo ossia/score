@@ -6,13 +6,13 @@
                 "EndState": 1,
                 "FullView": {
                     "CenterOn": [
-                        276,
-                        343
+                        1250,
+                        292
                     ],
                     "ConstraintId": 0,
                     "ObjectName": "FullViewConstraintViewModel",
                     "ShownRack": 1,
-                    "Zoom": 118.16550709935328,
+                    "Zoom": 28.074268357178951,
                     "id": 0
                 },
                 "HeightPercentage": 0,
@@ -425,6 +425,529 @@
                                 "StartDate": 19932.875608003695,
                                 "StartState": 4,
                                 "id": 3
+                            },
+                            {
+                                "DefaultDuration": 7648.3862804703786,
+                                "EndState": 7,
+                                "FullView": {
+                                    "CenterOn": [
+                                        293.5,
+                                        299.5
+                                    ],
+                                    "ConstraintId": 4,
+                                    "ObjectName": "FullViewConstraintViewModel",
+                                    "ShownRack": 1,
+                                    "Zoom": 14.141403130586507,
+                                    "id": 5
+                                },
+                                "HeightPercentage": 0.12892451569806282,
+                                "Looping": false,
+                                "MaxDuration": 7648.3862804703786,
+                                "MaxInf": false,
+                                "Metadata": {
+                                    "Color": [
+                                        0,
+                                        127,
+                                        229
+                                    ],
+                                    "Comment": "",
+                                    "Label": "",
+                                    "ScriptingName": "Panorama loop"
+                                },
+                                "MinDuration": 7648.3862804703786,
+                                "MinNull": false,
+                                "ObjectName": "ConstraintModel",
+                                "PluginsMetadata": [
+                                ],
+                                "Processes": [
+                                    {
+                                        "Constraint": {
+                                            "DefaultDuration": 2175.3383635305304,
+                                            "EndState": 1,
+                                            "FullView": {
+                                                "CenterOn": [
+                                                    0,
+                                                    0
+                                                ],
+                                                "ConstraintId": 0,
+                                                "ObjectName": "FullViewConstraintViewModel",
+                                                "ShownRack": "none",
+                                                "Zoom": -1,
+                                                "id": 0
+                                            },
+                                            "HeightPercentage": 0.14999999999999999,
+                                            "Looping": false,
+                                            "MaxDuration": 2464.4198407793046,
+                                            "MaxInf": true,
+                                            "Metadata": {
+                                                "Color": [
+                                                    255,
+                                                    255,
+                                                    0
+                                                ],
+                                                "Comment": "",
+                                                "Label": "",
+                                                "ScriptingName": "Loop pattern"
+                                            },
+                                            "MinDuration": 2000,
+                                            "MinNull": false,
+                                            "ObjectName": "ConstraintModel",
+                                            "PluginsMetadata": [
+                                            ],
+                                            "Processes": [
+                                                {
+                                                    "Address": {
+                                                        "Device": "Max",
+                                                        "Path": "input/balance/position"
+                                                    },
+                                                    "Curve": {
+                                                        "ObjectName": "CurveModel",
+                                                        "Segments": [
+                                                            {
+                                                                "End": [
+                                                                    1,
+                                                                    1
+                                                                ],
+                                                                "Following": "none",
+                                                                "Name": "Power",
+                                                                "ObjectName": "CurveSegmentModel",
+                                                                "Power": 12.050000000000001,
+                                                                "Previous": "none",
+                                                                "Start": [
+                                                                    0,
+                                                                    0
+                                                                ],
+                                                                "id": 1
+                                                            }
+                                                        ],
+                                                        "id": 45345
+                                                    },
+                                                    "Duration": 2175.3383635305304,
+                                                    "Max": 1,
+                                                    "Metadata": {
+                                                        "Color": [
+                                                            160,
+                                                            160,
+                                                            164
+                                                        ],
+                                                        "Comment": "",
+                                                        "Label": "",
+                                                        "ScriptingName": "Automation.1"
+                                                    },
+                                                    "Min": -1,
+                                                    "ObjectName": "Automation",
+                                                    "PluginsMetadata": [
+                                                    ],
+                                                    "ProcessName": "Automation",
+                                                    "id": 1
+                                                }
+                                            ],
+                                            "Rackes": [
+                                            ],
+                                            "Rigidity": false,
+                                            "StartDate": 0,
+                                            "StartState": 0,
+                                            "id": 0
+                                        },
+                                        "Duration": 7648.3862804703786,
+                                        "EndEvent": {
+                                            "Condition": {
+                                                "Children": [
+                                                ],
+                                                "RootNode": {
+                                                }
+                                            },
+                                            "Date": 2175.3383635305304,
+                                            "Extent": [
+                                                0.14999999999999999,
+                                                0.20000000000000001
+                                            ],
+                                            "Metadata": {
+                                                "Color": [
+                                                    255,
+                                                    255,
+                                                    255
+                                                ],
+                                                "Comment": "",
+                                                "Label": "",
+                                                "ScriptingName": "Event.1"
+                                            },
+                                            "ObjectName": "EventModel",
+                                            "PluginsMetadata": [
+                                            ],
+                                            "States": [
+                                                1
+                                            ],
+                                            "TimeNode": 1,
+                                            "id": 1
+                                        },
+                                        "EndState": {
+                                            "Event": 1,
+                                            "HeightPercentage": 0.14999999999999999,
+                                            "Messages": {
+                                                "Children": [
+                                                    {
+                                                        "Children": [
+                                                            {
+                                                                "Children": [
+                                                                    {
+                                                                        "Children": [
+                                                                            {
+                                                                                "Children": [
+                                                                                ],
+                                                                                "Following": [
+                                                                                ],
+                                                                                "Name": "position",
+                                                                                "Previous": [
+                                                                                    {
+                                                                                        "Process": 1,
+                                                                                        "Value": {
+                                                                                            "Type": "Float",
+                                                                                            "Value": 1
+                                                                                        }
+                                                                                    }
+                                                                                ],
+                                                                                "Priorities": [
+                                                                                    1,
+                                                                                    2,
+                                                                                    0
+                                                                                ]
+                                                                            }
+                                                                        ],
+                                                                        "Following": [
+                                                                        ],
+                                                                        "Name": "balance",
+                                                                        "Previous": [
+                                                                        ],
+                                                                        "Priorities": [
+                                                                            1,
+                                                                            2,
+                                                                            0
+                                                                        ]
+                                                                    }
+                                                                ],
+                                                                "Following": [
+                                                                ],
+                                                                "Name": "input",
+                                                                "Previous": [
+                                                                ],
+                                                                "Priorities": [
+                                                                    1,
+                                                                    2,
+                                                                    0
+                                                                ]
+                                                            }
+                                                        ],
+                                                        "Following": [
+                                                        ],
+                                                        "Name": "Max",
+                                                        "Previous": [
+                                                        ],
+                                                        "Priorities": [
+                                                            1,
+                                                            2,
+                                                            0
+                                                        ]
+                                                    }
+                                                ],
+                                                "Following": [
+                                                ],
+                                                "Name": "",
+                                                "Previous": [
+                                                ],
+                                                "Priorities": [
+                                                    1,
+                                                    2,
+                                                    0
+                                                ]
+                                            },
+                                            "Metadata": {
+                                                "Color": [
+                                                    160,
+                                                    160,
+                                                    164
+                                                ],
+                                                "Comment": "",
+                                                "Label": "",
+                                                "ScriptingName": ""
+                                            },
+                                            "NextConstraint": "none",
+                                            "ObjectName": "StateModel",
+                                            "PreviousConstraint": 0,
+                                            "StateProcesses": [
+                                            ],
+                                            "id": 1
+                                        },
+                                        "EndTimeNode": {
+                                            "Date": 2175.3383635305304,
+                                            "Events": [
+                                                1
+                                            ],
+                                            "Extent": [
+                                                0.14999999999999999,
+                                                1
+                                            ],
+                                            "Metadata": {
+                                                "Color": [
+                                                    70,
+                                                    70,
+                                                    70
+                                                ],
+                                                "Comment": "",
+                                                "Label": "TimeNode",
+                                                "ScriptingName": "TimeNode.1"
+                                            },
+                                            "ObjectName": "TimeNodeModel",
+                                            "PluginsMetadata": [
+                                            ],
+                                            "Trigger": {
+                                                "Active": true,
+                                                "Expression": {
+                                                    "Children": [
+                                                        {
+                                                            "Children": [
+                                                                {
+                                                                    "Children": [
+                                                                    ],
+                                                                    "Relation": {
+                                                                        "LHS": {
+                                                                            "Address": {
+                                                                                "Device": "Max",
+                                                                                "Path": "key"
+                                                                            }
+                                                                        },
+                                                                        "Op": 0,
+                                                                        "RHS": {
+                                                                            "Value": {
+                                                                                "Type": "String",
+                                                                                "Value": "l"
+                                                                            }
+                                                                        }
+                                                                    }
+                                                                }
+                                                            ],
+                                                            "RootNode": {
+                                                            }
+                                                        }
+                                                    ],
+                                                    "RootNode": {
+                                                    }
+                                                }
+                                            },
+                                            "id": 1
+                                        },
+                                        "Metadata": {
+                                            "Color": [
+                                                160,
+                                                160,
+                                                164
+                                            ],
+                                            "Comment": "",
+                                            "Label": "",
+                                            "ScriptingName": "Process.1"
+                                        },
+                                        "ObjectName": "Loop",
+                                        "PluginsMetadata": [
+                                        ],
+                                        "ProcessName": "Loop",
+                                        "StartEvent": {
+                                            "Condition": {
+                                                "Children": [
+                                                ],
+                                                "RootNode": {
+                                                }
+                                            },
+                                            "Date": 0,
+                                            "Extent": [
+                                                0.14999999999999999,
+                                                0.20000000000000001
+                                            ],
+                                            "Metadata": {
+                                                "Color": [
+                                                    255,
+                                                    255,
+                                                    255
+                                                ],
+                                                "Comment": "",
+                                                "Label": "",
+                                                "ScriptingName": "Event.0"
+                                            },
+                                            "ObjectName": "EventModel",
+                                            "PluginsMetadata": [
+                                            ],
+                                            "States": [
+                                                0
+                                            ],
+                                            "TimeNode": 0,
+                                            "id": 0
+                                        },
+                                        "StartState": {
+                                            "Event": 0,
+                                            "HeightPercentage": 0.14999999999999999,
+                                            "Messages": {
+                                                "Children": [
+                                                    {
+                                                        "Children": [
+                                                            {
+                                                                "Children": [
+                                                                    {
+                                                                        "Children": [
+                                                                            {
+                                                                                "Children": [
+                                                                                ],
+                                                                                "Following": [
+                                                                                    {
+                                                                                        "Process": 1,
+                                                                                        "Value": {
+                                                                                            "Type": "Float",
+                                                                                            "Value": -1
+                                                                                        }
+                                                                                    }
+                                                                                ],
+                                                                                "Name": "position",
+                                                                                "Previous": [
+                                                                                ],
+                                                                                "Priorities": [
+                                                                                    1,
+                                                                                    2,
+                                                                                    0
+                                                                                ]
+                                                                            }
+                                                                        ],
+                                                                        "Following": [
+                                                                        ],
+                                                                        "Name": "balance",
+                                                                        "Previous": [
+                                                                        ],
+                                                                        "Priorities": [
+                                                                            1,
+                                                                            2,
+                                                                            0
+                                                                        ]
+                                                                    }
+                                                                ],
+                                                                "Following": [
+                                                                ],
+                                                                "Name": "input",
+                                                                "Previous": [
+                                                                ],
+                                                                "Priorities": [
+                                                                    1,
+                                                                    2,
+                                                                    0
+                                                                ]
+                                                            }
+                                                        ],
+                                                        "Following": [
+                                                        ],
+                                                        "Name": "Max",
+                                                        "Previous": [
+                                                        ],
+                                                        "Priorities": [
+                                                            1,
+                                                            2,
+                                                            0
+                                                        ]
+                                                    }
+                                                ],
+                                                "Following": [
+                                                ],
+                                                "Name": "",
+                                                "Previous": [
+                                                ],
+                                                "Priorities": [
+                                                    1,
+                                                    2,
+                                                    0
+                                                ]
+                                            },
+                                            "Metadata": {
+                                                "Color": [
+                                                    160,
+                                                    160,
+                                                    164
+                                                ],
+                                                "Comment": "",
+                                                "Label": "",
+                                                "ScriptingName": ""
+                                            },
+                                            "NextConstraint": 0,
+                                            "ObjectName": "StateModel",
+                                            "PreviousConstraint": "none",
+                                            "StateProcesses": [
+                                            ],
+                                            "id": 0
+                                        },
+                                        "StartTimeNode": {
+                                            "Date": 0,
+                                            "Events": [
+                                                0
+                                            ],
+                                            "Extent": [
+                                                0.14999999999999999,
+                                                1
+                                            ],
+                                            "Metadata": {
+                                                "Color": [
+                                                    70,
+                                                    70,
+                                                    70
+                                                ],
+                                                "Comment": "",
+                                                "Label": "TimeNode",
+                                                "ScriptingName": "TimeNode.0"
+                                            },
+                                            "ObjectName": "TimeNodeModel",
+                                            "PluginsMetadata": [
+                                            ],
+                                            "Trigger": {
+                                                "Active": false,
+                                                "Expression": {
+                                                    "Children": [
+                                                    ],
+                                                    "RootNode": {
+                                                    }
+                                                }
+                                            },
+                                            "id": 0
+                                        },
+                                        "id": 1
+                                    }
+                                ],
+                                "Rackes": [
+                                    {
+                                        "ObjectName": "RackModel",
+                                        "Slots": [
+                                            {
+                                                "EditedProcess": 1,
+                                                "Height": 147,
+                                                "LayerModels": [
+                                                    {
+                                                        "Constraint": {
+                                                            "ConstraintId": 0,
+                                                            "ObjectName": "TemporalConstraintViewModel",
+                                                            "ShownRack": "none",
+                                                            "id": 0
+                                                        },
+                                                        "ObjectName": "LoopLayer",
+                                                        "SharedProcessId": 1,
+                                                        "id": 1
+                                                    }
+                                                ],
+                                                "ObjectName": "SlotModel",
+                                                "id": 1
+                                            }
+                                        ],
+                                        "SlotsPositions": [
+                                            1
+                                        ],
+                                        "id": 1
+                                    }
+                                ],
+                                "Rigidity": true,
+                                "StartDate": 30250.44158901116,
+                                "StartState": 6,
+                                "id": 4
                             }
                         ],
                         "Duration": 180000,
@@ -565,7 +1088,7 @@
                                 "Date": 30250.44158901116,
                                 "Extent": [
                                     0.10821643286573145,
-                                    0.10821643286573145
+                                    0.12892451569806282
                                 ],
                                 "Metadata": {
                                     "Color": [
@@ -581,10 +1104,42 @@
                                 "PluginsMetadata": [
                                 ],
                                 "States": [
-                                    5
+                                    5,
+                                    6
                                 ],
                                 "TimeNode": 4,
                                 "id": 4
+                            },
+                            {
+                                "Condition": {
+                                    "Children": [
+                                    ],
+                                    "RootNode": {
+                                    }
+                                },
+                                "Date": 37898.827869481538,
+                                "Extent": [
+                                    0.12892451569806282,
+                                    0.12892451569806282
+                                ],
+                                "Metadata": {
+                                    "Color": [
+                                        255,
+                                        255,
+                                        255
+                                    ],
+                                    "Comment": "",
+                                    "Label": "",
+                                    "ScriptingName": "fledge84handle84"
+                                },
+                                "ObjectName": "EventModel",
+                                "PluginsMetadata": [
+                                ],
+                                "States": [
+                                    7
+                                ],
+                                "TimeNode": 5,
+                                "id": 5
                             }
                         ],
                         "Metadata": {
@@ -2542,6 +3097,74 @@
                                 "StateProcesses": [
                                 ],
                                 "id": 5
+                            },
+                            {
+                                "Event": 4,
+                                "HeightPercentage": 0.12892451569806282,
+                                "Messages": {
+                                    "Children": [
+                                    ],
+                                    "Following": [
+                                    ],
+                                    "Name": "",
+                                    "Previous": [
+                                    ],
+                                    "Priorities": [
+                                        1,
+                                        2,
+                                        0
+                                    ]
+                                },
+                                "Metadata": {
+                                    "Color": [
+                                        160,
+                                        160,
+                                        164
+                                    ],
+                                    "Comment": "",
+                                    "Label": "",
+                                    "ScriptingName": ""
+                                },
+                                "NextConstraint": 4,
+                                "ObjectName": "StateModel",
+                                "PreviousConstraint": "none",
+                                "StateProcesses": [
+                                ],
+                                "id": 6
+                            },
+                            {
+                                "Event": 5,
+                                "HeightPercentage": 0.12892451569806282,
+                                "Messages": {
+                                    "Children": [
+                                    ],
+                                    "Following": [
+                                    ],
+                                    "Name": "",
+                                    "Previous": [
+                                    ],
+                                    "Priorities": [
+                                        1,
+                                        2,
+                                        0
+                                    ]
+                                },
+                                "Metadata": {
+                                    "Color": [
+                                        160,
+                                        160,
+                                        164
+                                    ],
+                                    "Comment": "",
+                                    "Label": "",
+                                    "ScriptingName": ""
+                                },
+                                "NextConstraint": "none",
+                                "ObjectName": "StateModel",
+                                "PreviousConstraint": 4,
+                                "StateProcesses": [
+                                ],
+                                "id": 7
                             }
                         ],
                         "TimeNodes": [
@@ -2709,7 +3332,7 @@
                                 ],
                                 "Extent": [
                                     0.10821643286573145,
-                                    0.10821643286573145
+                                    0.12892451569806282
                                 ],
                                 "Metadata": {
                                     "Color": [
@@ -2734,6 +3357,39 @@
                                     }
                                 },
                                 "id": 4
+                            },
+                            {
+                                "Date": 37898.827869481538,
+                                "Events": [
+                                    5
+                                ],
+                                "Extent": [
+                                    0.12892451569806282,
+                                    0.12892451569806282
+                                ],
+                                "Metadata": {
+                                    "Color": [
+                                        70,
+                                        70,
+                                        70
+                                    ],
+                                    "Comment": "",
+                                    "Label": "TimeNode",
+                                    "ScriptingName": "besplit85Cladonia34"
+                                },
+                                "ObjectName": "TimeNodeModel",
+                                "PluginsMetadata": [
+                                ],
+                                "Trigger": {
+                                    "Active": false,
+                                    "Expression": {
+                                        "Children": [
+                                        ],
+                                        "RootNode": {
+                                        }
+                                    }
+                                },
+                                "id": 5
                             }
                         ],
                         "id": 1
@@ -2766,6 +3422,12 @@
                                                 "ObjectName": "TemporalConstraintViewModel",
                                                 "ShownRack": 1,
                                                 "id": 3
+                                            },
+                                            {
+                                                "ConstraintId": 4,
+                                                "ObjectName": "TemporalConstraintViewModel",
+                                                "ShownRack": 1,
+                                                "id": 4
                                             }
                                         ],
                                         "ObjectName": "TemporalScenarioLayer",
