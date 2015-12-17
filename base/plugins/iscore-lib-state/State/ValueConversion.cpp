@@ -271,7 +271,7 @@ QChar value(const iscore::Value& val)
             return_type operator()(int) const { return '-'; }
             return_type operator()(float) const { return '-'; }
             return_type operator()(bool v) const { return v ? 'T' : 'F'; }
-            return_type operator()(const QString&) const { return '-'; } // TODO boueeeff
+            return_type operator()(const QString& s) const { return s.size() > 0 ? s[0] : '-'; } // TODO boueeeff
             return_type operator()(const QChar& v) const { return  v; }
             return_type operator()(const tuple_t&) const { return '-'; }
     } visitor{};
