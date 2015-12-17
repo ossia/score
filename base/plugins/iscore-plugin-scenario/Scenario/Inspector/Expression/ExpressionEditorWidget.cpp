@@ -42,7 +42,7 @@ ExpressionEditorWidget::ExpressionEditorWidget(QWidget *parent) :
             addNewRelation();
         }
         else
-            setExpression(*iscore::parse(m_expression));
+            setExpression(*iscore::parseExpression(m_expression));
     });
 }
 
@@ -117,7 +117,7 @@ void ExpressionEditorWidget::setExpression(iscore::Expression e)
 void ExpressionEditorWidget::on_editFinished()
 {
     auto ex = currentExpr();
-    auto e = iscore::parse(m_expression);
+    auto e = iscore::parseExpression(m_expression);
     if (m_expression == ex && !e)
         return;
 

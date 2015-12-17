@@ -345,7 +345,7 @@ struct Expression_builder : boost::static_visitor<void>
 }
 
 
-    boost::optional<iscore::Expression> iscore::parse(const QString& str)
+    boost::optional<iscore::Expression> iscore::parseExpression(const QString& str)
     {
         auto input = str.toStdString();
         auto f(std::begin(input)), l(std::end(input));
@@ -366,6 +366,39 @@ struct Expression_builder : boost::static_visitor<void>
             boost::apply_visitor(bldr, result);
 
             return e;
+
+        }
+        catch (const qi::expectation_failure<decltype(f)>& e)
+        {
+            //ISCORE_BREAKPOINT;
+            return {};
+        }
+        catch(...)
+        {
+            //ISCORE_BREAKPOINT;
+            return {};
+        }
+
+        return {};
+    }
+
+
+    boost::optional<iscore::Value> iscore::parseValue(const QString& str)
+    {
+        auto input = str.toStdString();
+        auto f(std::begin(input)), l(std::end(input));
+        Value_parser<decltype(f)> p;
+        try
+        {
+            iscore::Value result;
+            bool ok = qi::phrase_parse(f, l , p, qi::space, result);
+
+            if (!ok)
+            {
+                return {};
+            }
+
+            return result;
 
         }
         catch (const qi::expectation_failure<decltype(f)>& e)

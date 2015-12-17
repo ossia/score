@@ -17,7 +17,7 @@ class ExpressionValidator final : public QValidator
         }
         else
         {
-            m_currentExp = iscore::parse(str);
+            m_currentExp = iscore::parseExpression(str);
             return m_currentExp ? State::Acceptable : State::Intermediate;
         }
     }
