@@ -144,13 +144,14 @@ void SimpleExpressionEditorWidget::setRelation(iscore::Relation r)
     m_address->setText(r.relMemberToString(r.lhs));
 
     auto s = r.relMemberToString(r.rhs);
+    /*
     bool isDouble;
     s.toDouble(&isDouble);
     if(!isDouble)
     {
         s.remove(0,1);
         s.remove(s.lastIndexOf("\""),1);
-    }
+    }*/
     m_value->setText(s);
 
     m_comparator->setCurrentText(m_comparatorList[r.op]);
@@ -215,6 +216,12 @@ QString SimpleExpressionEditorWidget::currentRelation()
     QString expr =  m_address->text();
     if(m_comparator->currentText() != m_comparatorList[Comparator::None])
     {
+        expr += " ";
+        expr += m_comparator->currentText();
+        expr += " ";
+        expr += m_value->text();
+
+        /*
         bool ok;
         auto val = m_value->text();
         val.toDouble(&ok);
@@ -226,7 +233,7 @@ QString SimpleExpressionEditorWidget::currentRelation()
         expr += " ";
         expr += m_comparator->currentText();
         expr += " ";
-        expr += val;
+        expr += val;*/
     }
     return expr;
 }

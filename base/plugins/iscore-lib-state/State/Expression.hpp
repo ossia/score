@@ -267,6 +267,7 @@ using Expression = TreeNode<ExprData>;
 using Condition = Expression;
 using Trigger = Expression;
 
-ISCORE_LIB_STATE_EXPORT boost::optional<iscore::Expression> parse(const QString& str);
+ISCORE_LIB_STATE_EXPORT boost::optional<iscore::Expression> parseExpression(const QString& str);
+ISCORE_LIB_STATE_EXPORT boost::optional<iscore::Value> parseValue(const QString& str);
 }
 

@@ -83,13 +83,20 @@ ConstraintPresenter::ConstraintPresenter(
     con(m_viewModel.model().consistency,   &ModelConsistency::warningChanged,
             m_view, &ConstraintView::setWarning);
 
-    if(m_viewModel.isRackShown())
+    if(m_viewModel.model().racks.size() > 0)
     {
-        on_rackShown(m_viewModel.shownRack());
-    }
-    else if(!m_viewModel.model().processes.empty()) // TODO why isn't this when there are racks but hidden ?
-    {
-        on_rackHidden();
+        if(m_viewModel.isRackShown())
+        {
+            on_rackShown(m_viewModel.shownRack());
+        }
+        else if(!m_viewModel.model().processes.empty()) // TODO why isn't this when there are racks but hidden ?
+        {
+            on_rackHidden();
+        }
+        else
+        {
+            on_noRacks();
+        }
     }
     else
     {
