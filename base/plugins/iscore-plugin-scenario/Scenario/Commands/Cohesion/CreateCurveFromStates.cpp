@@ -30,7 +30,15 @@ namespace iscore {
 struct Address;
 }  // namespace iscore
 
-CreateCurveFromStates::CreateCurveFromStates(Path<ConstraintModel>&& constraint, const std::vector<std::pair<Path<SlotModel>, Id<LayerModel> > >& slotList, const Id<Process>& curveId, const iscore::Address& address, double start, double end, double min, double max):
+CreateCurveFromStates::CreateCurveFromStates(
+        Path<ConstraintModel>&& constraint,
+        const std::vector<std::pair<Path<SlotModel>, Id<LayerModel> > >& slotList,
+        const Id<Process>& curveId,
+        const iscore::Address& address,
+        double start,
+        double end,
+        double min,
+        double max):
     CreateProcessAndLayers<AutomationProcessMetadata>{
         std::move(constraint),
         slotList,
