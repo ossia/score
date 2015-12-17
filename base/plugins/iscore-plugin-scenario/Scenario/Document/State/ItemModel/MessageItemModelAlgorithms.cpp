@@ -9,6 +9,7 @@
 #include <QVector>
 #include <algorithm>
 #include <vector>
+#include <set>
 
 #include "MessageItemModelAlgorithms.hpp"
 #include <State/Address.hpp>
@@ -17,6 +18,7 @@
 #include <iscore/tools/SettableIdentifier.hpp>
 #include <iscore/tools/Todo.hpp>
 #include <iscore/tools/TreeNode.hpp>
+#include <iscore/tools/std/Algorithms.hpp>
 
 bool match(MessageNode& node, const iscore::Message& mess)
 {
@@ -72,7 +74,7 @@ void rec_delete(MessageNode& node)
             auto it = std::find_if(parent->begin(), parent->end(), [&] (const auto& other) { return &node == &other; });
             if(it != parent->end())
             {
-                parent->removeChild(it);
+                parent->erase(it);
                 rec_delete(*parent);
             }
         }
@@ -447,12 +449,12 @@ void updateTreeWithRemovedConstraint(MessageNode& rootNode, ProcessPosition pos)
     }
 }
 
-void updateTreeWithRemovedUserMessage(MessageNode& rootNode, const iscore::Message& mess)
+void updateTreeWithRemovedUserMessage(MessageNode& rootNode, const iscore::Address& addr)
 {
     // Find the message node
     QStringList s;
-    s += mess.address.device;
-    s = s + mess.address.path;
+    s += addr.device;
+    s = s + addr.path;
     MessageNode* node = iscore::try_getNodeFromString(rootNode, std::move(s));
 
     if(node)
@@ -465,6 +467,77 @@ void updateTreeWithRemovedUserMessage(MessageNode& rootNode, const iscore::Messa
         && node->childCount() == 0)
         {
             rec_delete(*node);
+        }
+    }
+}
+
+
+
+void rec_removeUserValue(
+        MessageNode& node)
+{
+    // Recursively set the user value to nil.
+    node.values.userValue = iscore::OptionalValue{};
+
+    for(auto& child : node)
+    {
+        rec_removeUserValue(child);
+    }
+}
+
+bool rec_cleanup(
+        MessageNode& node)
+{
+    std::set<const MessageNode*> toRemove;
+    for(auto& child : node)
+    {
+        bool canEraseChild = rec_cleanup(child);
+        if(canEraseChild)
+        {
+            toRemove.insert(&child);
+        }
+    }
+
+    auto remove_it = remove_if(node,
+                               [&] (const auto& child) {
+        return toRemove.find(&child) != toRemove.end();
+    });
+    node.erase(remove_it, node.end());
+
+    if(node.values.previousProcessValues.isEmpty()
+    && node.values.followingProcessValues.isEmpty()
+    && node.childCount() == 0)
+    {
+        return true;
+    }
+
+    return false;
+}
+
+void updateTreeWithRemovedNode(
+        MessageNode& rootNode,
+        const iscore::Address& addr)
+{
+    // Find the message node
+    QStringList s;
+    s += addr.device;
+    s = s + addr.path;
+    MessageNode* node = iscore::try_getNodeFromString(rootNode, std::move(s));
+
+    if(node)
+    {
+        // Recursively set the user value to nil.
+        rec_removeUserValue(*node);
+
+        // If it is empty, delete it
+        rec_cleanup(*node);
+
+
+        if(node->values.previousProcessValues.isEmpty()
+        && node->values.followingProcessValues.isEmpty()
+        && node->childCount() == 0)
+        {
+            node->parent()->erase(node->parent()->iterOfChild(node));
         }
     }
 }

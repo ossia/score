@@ -85,7 +85,7 @@ void NodeUpdateProxy::removeDevice(const iscore::DeviceSettings& dev)
             }
             else
             {
-                devModel.rootNode().removeChild(it);
+                devModel.rootNode().erase(it);
             }
         }
     }
@@ -212,7 +212,7 @@ void NodeUpdateProxy::removeNode(
     }
     else
     {
-        parentnode->removeChild(it);
+        parentnode->erase(it);
     }
 }
 

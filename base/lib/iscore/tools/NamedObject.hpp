@@ -6,31 +6,27 @@
 // This file contains utility algorithms & classes that can be used
 // everywhere (core, plugins...)
 ////////////////////////////////////////////////
-template<typename QType>
-class ISCORE_LIB_BASE_EXPORT NamedType : public QType
+class ISCORE_LIB_BASE_EXPORT NamedObject : public QObject
 {
     public:
         template<typename... Args>
-        NamedType(const QString& name, QObject* parent, Args&& ... args) :
-            QType {std::forward<Args> (args)...}
+        NamedObject(const QString& name, QObject* parent, Args&& ... args) :
+            QObject {std::forward<Args> (args)...}
         {
-            QType::setObjectName(name);
-            QType::setParent(parent);
+            QObject::setObjectName(name);
+            QObject::setParent(parent);
         }
 
         template<typename ReaderImpl, typename... Args>
-        NamedType(Deserializer<ReaderImpl>& v, QObject* parent, Args&& ... args) :
-            QType {std::forward<Args> (args)...}
+        NamedObject(Deserializer<ReaderImpl>& v, QObject* parent, Args&& ... args) :
+            QObject {std::forward<Args> (args)...}
         {
             v.writeTo(*this);
-            QType::setParent(parent);
+            QObject::setParent(parent);
         }
 
-        ~NamedType() = default;
+        virtual ~NamedObject();
 };
-
-
-using NamedObject = NamedType<QObject>;
 
 
 inline void debug_parentHierarchy(QObject* obj)

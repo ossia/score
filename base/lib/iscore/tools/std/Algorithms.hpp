@@ -43,6 +43,11 @@ auto none_of(Vector&& v, Fun fun)
     return std::none_of(std::begin(v), std::end(v), fun);
 }
 
+template<typename Vector, typename Fun>
+auto remove_if(Vector&& v, Fun fun)
+{
+    return std::remove_if(std::begin(v), std::end(v), fun);
+}
 
 template<typename Vector1, typename Vector2>
 void copy(const Vector1& source, Vector2& destination)
