@@ -28,6 +28,7 @@ class SmartTool final : public ToolBase<ToolPalette_T>
         SmartTool(ToolPalette_T& sm):
             ToolBase<ToolPalette_T>{sm}
         {
+            // Selection
             m_state = new SelectionState<ToolPalette_T, View_T>{
                       this->m_parentSM.context().selectionStack,
                       this->m_parentSM,
@@ -36,25 +37,33 @@ class SmartTool final : public ToolBase<ToolPalette_T>
 
             this->localSM().setInitialState(m_state);
 
-            MoveConstraintWrapper_T::template make<Scenario_T, ToolPalette_T>(this->m_parentSM, m_state, this->localSM());
-            MoveEventWrapper_T::template make<Scenario_T, ToolPalette_T>(this->m_parentSM, m_state, this->localSM());
-            MoveTimeNodeWrapper_T::template make<Scenario_T, ToolPalette_T>(this->m_parentSM, m_state, this->localSM());
+            // Other actions; they are in //.
+            QState* actionsState = new QState(&this->localSM());
+            {
+                QState* waitState = new QState(actionsState);
+                actionsState->setInitialState(waitState);
 
-            /// Slot resize
-            auto resizeSlot = new ResizeSlotState<ToolPalette_T>{
-                    this->m_parentSM.context().commandStack,
-                    this->m_parentSM,
-                    &this->localSM()};
+                MoveConstraintWrapper_T::template make<Scenario_T, ToolPalette_T>(this->m_parentSM, waitState, *actionsState);
+                MoveEventWrapper_T::template make<Scenario_T, ToolPalette_T>(this->m_parentSM, waitState, *actionsState);
+                MoveTimeNodeWrapper_T::template make<Scenario_T, ToolPalette_T>(this->m_parentSM, waitState, *actionsState);
 
-            make_transition<ClickOnSlotHandle_Transition>(
-                        m_state,
-                        resizeSlot,
-                        *resizeSlot);
+                /// Slot resize
+                auto resizeSlot = new ResizeSlotState<ToolPalette_T>{
+                        this->m_parentSM.context().commandStack,
+                        this->m_parentSM,
+                        actionsState};
 
-            resizeSlot->addTransition(resizeSlot,
-                                      SIGNAL(finished()),
-                                      m_state);
+                make_transition<ClickOnSlotHandle_Transition>(
+                            waitState,
+                            resizeSlot,
+                            *resizeSlot);
 
+                resizeSlot->addTransition(resizeSlot,
+                                          SIGNAL(finished()),
+                                          waitState);
+            }
+
+            this->localSM().setChildMode(QState::ParallelStates);
             this->localSM().start();
         }
 

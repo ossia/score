@@ -15,7 +15,7 @@ class MoveConstraintInScenario_StateWrapper
         template<
                 typename Scenario_T,
                 typename ToolPalette_T>
-        static void make(const ToolPalette_T& palette, QState* waitState, QStateMachine& sm)
+        static void make(const ToolPalette_T& palette, QState* waitState, QState& parent)
         {
             /// Constraint
             /// //TODO remove useless arguments to ctor
@@ -25,7 +25,7 @@ class MoveConstraintInScenario_StateWrapper
                         palette.model(),
                         palette.context().commandStack,
                         palette.context().objectLocker,
-                        nullptr};
+                        &parent};
 
             make_transition<ClickOnConstraint_Transition<Scenario_T>>(waitState,
                                                           moveConstraint,
@@ -33,7 +33,6 @@ class MoveConstraintInScenario_StateWrapper
             moveConstraint->addTransition(moveConstraint,
                                           SIGNAL(finished()),
                                           waitState);
-            sm.addState(moveConstraint);
         }
 };
 
@@ -43,7 +42,7 @@ class MoveEventInScenario_StateWrapper
         template<
                 typename Scenario_T,
                 typename ToolPalette_T>
-        static void make(const ToolPalette_T& palette, QState* waitState, QStateMachine& sm)
+        static void make(const ToolPalette_T& palette, QState* waitState, QState& parent)
         {
             /// Event
             auto moveEvent =
@@ -52,7 +51,7 @@ class MoveEventInScenario_StateWrapper
                         palette.model(),
                         palette.context().commandStack,
                         palette.context().objectLocker,
-                        nullptr};
+                        &parent};
 
             make_transition<ClickOnState_Transition<Scenario_T>>(waitState,
                                                      moveEvent,
@@ -64,7 +63,6 @@ class MoveEventInScenario_StateWrapper
             moveEvent->addTransition(moveEvent,
                                        SIGNAL(finished()),
                                        waitState);
-            sm.addState(moveEvent);
         }
 };
 
@@ -74,7 +72,7 @@ class MoveTimeNodeInScenario_StateWrapper
         template<
                 typename Scenario_T,
                 typename ToolPalette_T>
-        static void make(const ToolPalette_T& palette, QState* waitState, QStateMachine& sm)
+        static void make(const ToolPalette_T& palette, QState* waitState, QState& parent)
         {
             /// TimeNode
             auto moveTimeNode =
@@ -83,7 +81,7 @@ class MoveTimeNodeInScenario_StateWrapper
                         palette.model(),
                         palette.context().commandStack,
                         palette.context().objectLocker,
-                        nullptr};
+                        &parent};
 
             make_transition<ClickOnTimeNode_Transition<Scenario_T>>(waitState,
                                                                     moveTimeNode,
@@ -91,7 +89,6 @@ class MoveTimeNodeInScenario_StateWrapper
             moveTimeNode->addTransition(moveTimeNode,
                                         SIGNAL(finished()),
                                         waitState);
-            sm.addState(moveTimeNode);
         }
 };
 }
