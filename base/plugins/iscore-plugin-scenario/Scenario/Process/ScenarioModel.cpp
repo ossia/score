@@ -39,13 +39,16 @@ ScenarioModel::ScenarioModel(const TimeValue& duration,
     m_startTimeNodeId{0},
     m_endTimeNodeId{1},
     m_startEventId{0},
-    m_endEventId{1}
+    m_endEventId{1},
+    m_startStateId{0}
 {
     auto& start_tn = ScenarioCreate<TimeNodeModel>::redo(m_startTimeNodeId, {0.2, 0.8}, TimeValue::zero(), *this);
     auto& end_tn = ScenarioCreate<TimeNodeModel>::redo(m_endTimeNodeId, {0.2, 0.8}, duration, *this);
 
-    ScenarioCreate<EventModel>::redo(m_startEventId, start_tn, {0.4, 0.6}, *this);
+    auto& start_ev = ScenarioCreate<EventModel>::redo(m_startEventId, start_tn, {0.4, 0.6}, *this);
     ScenarioCreate<EventModel>::redo(m_endEventId, end_tn, {0.4, 0.6}, *this);
+
+    ScenarioCreate<StateModel>::redo(m_startStateId, start_ev, 0.5, *this);
 
     // At the end because plug-ins depend on the start/end timenode & al being here
     pluginModelList = new iscore::ElementPluginModelList{iscore::IDocument::documentContext(*parent), this};

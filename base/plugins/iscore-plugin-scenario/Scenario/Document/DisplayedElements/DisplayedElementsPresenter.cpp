@@ -31,6 +31,7 @@
 #include <Scenario/Document/TimeNode/TimeNodeModel.hpp>
 #include <Scenario/Document/TimeNode/TimeNodePresenter.hpp>
 #include <Scenario/Document/TimeNode/TimeNodeView.hpp>
+#include <Scenario/Document/ScenarioDocument/ScenarioDocumentViewConstants.hpp>
 #include <iscore/tools/IdentifiedObjectMap.hpp>
 #include <iscore/tools/NotifyingMap.hpp>
 #include <iscore/tools/SettableIdentifier.hpp>
@@ -167,7 +168,7 @@ void DisplayedElementsPresenter::on_displayedConstraintHeightChanged(double size
 {
     m_model->updateRect(
     {
-        0,
+        ScenarioLeftSpace,
         0,
         m_constraintPresenter->abstractConstraintViewModel().model().duration.defaultDuration().toPixels(m_constraintPresenter->model().fullView()->zoom()),
         size

@@ -33,6 +33,7 @@
 
 #include <iscore/application/ApplicationContext.hpp>
 #include <iscore/plugins/documentdelegate/DocumentDelegateViewInterface.hpp>
+#include <Scenario/Document/ScenarioDocument/ScenarioDocumentViewConstants.hpp>
 
 class QObject;
 #if defined(ISCORE_OPENGL)
@@ -100,7 +101,7 @@ ScenarioDocumentView::ScenarioDocumentView(
     m_timeRulersView->setHorizontalScrollBarPolicy(Qt::ScrollBarAlwaysOff);
     m_timeRulersView->setVerticalScrollBarPolicy(Qt::ScrollBarAlwaysOff);
     m_timeRulersView->setFocusPolicy(Qt::NoFocus);
-    m_timeRulersView->setSceneRect(0, -70, 800, 35);
+    m_timeRulersView->setSceneRect(ScenarioLeftSpace, -70, 800, 35);
     m_timeRulersView->setFixedHeight(40);
     m_timeRulersView->setViewportUpdateMode(QGraphicsView::NoViewportUpdate);
     m_timeRulersView->setAlignment(Qt::AlignTop | Qt::AlignLeft);

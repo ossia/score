@@ -240,6 +240,7 @@ class ISCORE_PLUGIN_SCENARIO_EXPORT ScenarioModel final : public Process, public
         Id<EventModel> m_startEventId {};
         Id<EventModel> m_endEventId {};
 
+        Id<StateModel> m_startStateId {};
         // By default, creation in the void will make a constraint
         // that goes to the startEvent and add a new state
 };
