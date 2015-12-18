@@ -6,13 +6,13 @@
                 "EndState": 1,
                 "FullView": {
                     "CenterOn": [
-                        1250,
-                        292
+                        406,
+                        460
                     ],
                     "ConstraintId": 0,
                     "ObjectName": "FullViewConstraintViewModel",
                     "ShownRack": 1,
-                    "Zoom": 28.074268357178951,
+                    "Zoom": 21.674185647261826,
                     "id": 0
                 },
                 "HeightPercentage": 0,
@@ -3775,52 +3775,6 @@
                                             "AddressSettings": {
                                                 "ClipMode": "Clip",
                                                 "Domain": {
-                                                    "Max": null,
-                                                    "Min": null,
-                                                    "Values": [
-                                                    ]
-                                                },
-                                                "Name": "in.1",
-                                                "Priority": 0,
-                                                "RefreshRate": 0,
-                                                "RepetitionFilter": false,
-                                                "Tags": [
-                                                ],
-                                                "Type": "NoValue",
-                                                "Unit": "",
-                                                "Value": null,
-                                                "ioType": ""
-                                            },
-                                            "Children": [
-                                            ]
-                                        },
-                                        {
-                                            "AddressSettings": {
-                                                "ClipMode": "Clip",
-                                                "Domain": {
-                                                    "Max": null,
-                                                    "Min": null,
-                                                    "Values": [
-                                                    ]
-                                                },
-                                                "Name": "in.2",
-                                                "Priority": 0,
-                                                "RefreshRate": 0,
-                                                "RepetitionFilter": false,
-                                                "Tags": [
-                                                ],
-                                                "Type": "NoValue",
-                                                "Unit": "",
-                                                "Value": null,
-                                                "ioType": ""
-                                            },
-                                            "Children": [
-                                            ]
-                                        },
-                                        {
-                                            "AddressSettings": {
-                                                "ClipMode": "Clip",
-                                                "Domain": {
                                                     "Max": 100,
                                                     "Min": 0,
                                                     "Values": [
@@ -3862,104 +3816,7 @@
                                             },
                                             "Children": [
                                             ]
-                                        },
-                                        {
-                                            "AddressSettings": {
-                                                "ClipMode": "Clip",
-                                                "Domain": {
-                                                    "Max": null,
-                                                    "Min": null,
-                                                    "Values": [
-                                                    ]
-                                                },
-                                                "Name": "out.1",
-                                                "Priority": 0,
-                                                "RefreshRate": 0,
-                                                "RepetitionFilter": false,
-                                                "Tags": [
-                                                ],
-                                                "Type": "NoValue",
-                                                "Unit": "",
-                                                "Value": null,
-                                                "ioType": ""
-                                            },
-                                            "Children": [
-                                            ]
-                                        },
-                                        {
-                                            "AddressSettings": {
-                                                "ClipMode": "Clip",
-                                                "Domain": {
-                                                    "Max": null,
-                                                    "Min": null,
-                                                    "Values": [
-                                                    ]
-                                                },
-                                                "Name": "out.2",
-                                                "Priority": 0,
-                                                "RefreshRate": 0,
-                                                "RepetitionFilter": false,
-                                                "Tags": [
-                                                ],
-                                                "Type": "NoValue",
-                                                "Unit": "",
-                                                "Value": null,
-                                                "ioType": ""
-                                            },
-                                            "Children": [
-                                            ]
                                         }
-                                    ]
-                                },
-                                {
-                                    "AddressSettings": {
-                                        "ClipMode": "Free",
-                                        "Domain": {
-                                            "Max": null,
-                                            "Min": null,
-                                            "Values": [
-                                            ]
-                                        },
-                                        "Name": "clear",
-                                        "Priority": 0,
-                                        "RefreshRate": 0,
-                                        "RepetitionFilter": false,
-                                        "Tags": [
-                                        ],
-                                        "Type": "Impulse",
-                                        "Unit": "",
-                                        "Value": null,
-                                        "ioType": "->"
-                                    },
-                                    "Children": [
-                                    ]
-                                },
-                                {
-                                    "AddressSettings": {
-                                        "ClipMode": "Free",
-                                        "Domain": {
-                                            "Max": [
-                                            ],
-                                            "Min": [
-                                            ],
-                                            "Values": [
-                                            ]
-                                        },
-                                        "Name": "filtergraph",
-                                        "Priority": 0,
-                                        "RefreshRate": 0,
-                                        "RepetitionFilter": false,
-                                        "Tags": [
-                                        ],
-                                        "Type": "Tuple",
-                                        "Unit": "",
-                                        "Value": [
-                                            [
-                                            ]
-                                        ],
-                                        "ioType": "->"
-                                    },
-                                    "Children": [
                                     ]
                                 },
                                 {
@@ -4012,29 +3869,6 @@
                                     "AddressSettings": {
                                         "ClipMode": "Clip",
                                         "Domain": {
-                                            "Max": null,
-                                            "Min": null,
-                                            "Values": [
-                                            ]
-                                        },
-                                        "Name": "model",
-                                        "Priority": 0,
-                                        "RefreshRate": 0,
-                                        "RepetitionFilter": false,
-                                        "Tags": [
-                                        ],
-                                        "Type": "NoValue",
-                                        "Unit": "",
-                                        "Value": null,
-                                        "ioType": ""
-                                    },
-                                    "Children": [
-                                    ]
-                                },
-                                {
-                                    "AddressSettings": {
-                                        "ClipMode": "Clip",
-                                        "Domain": {
                                             "Max": 10,
                                             "Min": 0.10000000149011612,
                                             "Values": [
@@ -4050,29 +3884,6 @@
                                         "Unit": "",
                                         "Value": 1,
                                         "ioType": "<->"
-                                    },
-                                    "Children": [
-                                    ]
-                                },
-                                {
-                                    "AddressSettings": {
-                                        "ClipMode": "Clip",
-                                        "Domain": {
-                                            "Max": null,
-                                            "Min": null,
-                                            "Values": [
-                                            ]
-                                        },
-                                        "Name": "preset",
-                                        "Priority": 0,
-                                        "RefreshRate": 0,
-                                        "RepetitionFilter": false,
-                                        "Tags": [
-                                        ],
-                                        "Type": "NoValue",
-                                        "Unit": "",
-                                        "Value": null,
-                                        "ioType": ""
                                     },
                                     "Children": [
                                     ]
@@ -4212,52 +4023,6 @@
                                             },
                                             "Children": [
                                             ]
-                                        },
-                                        {
-                                            "AddressSettings": {
-                                                "ClipMode": "Clip",
-                                                "Domain": {
-                                                    "Max": null,
-                                                    "Min": null,
-                                                    "Values": [
-                                                    ]
-                                                },
-                                                "Name": "out.L",
-                                                "Priority": 0,
-                                                "RefreshRate": 0,
-                                                "RepetitionFilter": false,
-                                                "Tags": [
-                                                ],
-                                                "Type": "NoValue",
-                                                "Unit": "",
-                                                "Value": null,
-                                                "ioType": ""
-                                            },
-                                            "Children": [
-                                            ]
-                                        },
-                                        {
-                                            "AddressSettings": {
-                                                "ClipMode": "Clip",
-                                                "Domain": {
-                                                    "Max": null,
-                                                    "Min": null,
-                                                    "Values": [
-                                                    ]
-                                                },
-                                                "Name": "out.R",
-                                                "Priority": 0,
-                                                "RefreshRate": 0,
-                                                "RepetitionFilter": false,
-                                                "Tags": [
-                                                ],
-                                                "Type": "NoValue",
-                                                "Unit": "",
-                                                "Value": null,
-                                                "ioType": ""
-                                            },
-                                            "Children": [
-                                            ]
                                         }
                                     ]
                                 },
@@ -4284,75 +4049,6 @@
                                     "Children": [
                                         {
                                             "AddressSettings": {
-                                                "ClipMode": "Clip",
-                                                "Domain": {
-                                                    "Max": null,
-                                                    "Min": null,
-                                                    "Values": [
-                                                    ]
-                                                },
-                                                "Name": "audio",
-                                                "Priority": 0,
-                                                "RefreshRate": 0,
-                                                "RepetitionFilter": false,
-                                                "Tags": [
-                                                ],
-                                                "Type": "NoValue",
-                                                "Unit": "",
-                                                "Value": null,
-                                                "ioType": ""
-                                            },
-                                            "Children": [
-                                                {
-                                                    "AddressSettings": {
-                                                        "ClipMode": "Clip",
-                                                        "Domain": {
-                                                            "Max": null,
-                                                            "Min": null,
-                                                            "Values": [
-                                                            ]
-                                                        },
-                                                        "Name": "out.L",
-                                                        "Priority": 0,
-                                                        "RefreshRate": 0,
-                                                        "RepetitionFilter": false,
-                                                        "Tags": [
-                                                        ],
-                                                        "Type": "NoValue",
-                                                        "Unit": "",
-                                                        "Value": null,
-                                                        "ioType": ""
-                                                    },
-                                                    "Children": [
-                                                    ]
-                                                },
-                                                {
-                                                    "AddressSettings": {
-                                                        "ClipMode": "Clip",
-                                                        "Domain": {
-                                                            "Max": null,
-                                                            "Min": null,
-                                                            "Values": [
-                                                            ]
-                                                        },
-                                                        "Name": "out.R",
-                                                        "Priority": 0,
-                                                        "RefreshRate": 0,
-                                                        "RepetitionFilter": false,
-                                                        "Tags": [
-                                                        ],
-                                                        "Type": "NoValue",
-                                                        "Unit": "",
-                                                        "Value": null,
-                                                        "ioType": ""
-                                                    },
-                                                    "Children": [
-                                                    ]
-                                                }
-                                            ]
-                                        },
-                                        {
-                                            "AddressSettings": {
                                                 "ClipMode": "Free",
                                                 "Domain": {
                                                     "Max": "",
@@ -4370,29 +4066,6 @@
                                                 "Unit": "",
                                                 "Value": "FastMode",
                                                 "ioType": "<->"
-                                            },
-                                            "Children": [
-                                            ]
-                                        },
-                                        {
-                                            "AddressSettings": {
-                                                "ClipMode": "Clip",
-                                                "Domain": {
-                                                    "Max": null,
-                                                    "Min": null,
-                                                    "Values": [
-                                                    ]
-                                                },
-                                                "Name": "model",
-                                                "Priority": 0,
-                                                "RefreshRate": 0,
-                                                "RepetitionFilter": false,
-                                                "Tags": [
-                                                ],
-                                                "Type": "NoValue",
-                                                "Unit": "",
-                                                "Value": null,
-                                                "ioType": ""
                                             },
                                             "Children": [
                                             ]
@@ -4531,34 +4204,6 @@
                                                 "Unit": "",
                                                 "Value": "none",
                                                 "ioType": "<->"
-                                            },
-                                            "Children": [
-                                            ]
-                                        },
-                                        {
-                                            "AddressSettings": {
-                                                "ClipMode": "Free",
-                                                "Domain": {
-                                                    "Max": [
-                                                    ],
-                                                    "Min": [
-                                                    ],
-                                                    "Values": [
-                                                    ]
-                                                },
-                                                "Name": "direct",
-                                                "Priority": 0,
-                                                "RefreshRate": 0,
-                                                "RepetitionFilter": false,
-                                                "Tags": [
-                                                ],
-                                                "Type": "Tuple",
-                                                "Unit": "",
-                                                "Value": [
-                                                    [
-                                                    ]
-                                                ],
-                                                "ioType": "->"
                                             },
                                             "Children": [
                                             ]
@@ -4818,29 +4463,6 @@
                                         },
                                         {
                                             "AddressSettings": {
-                                                "ClipMode": "Free",
-                                                "Domain": {
-                                                    "Max": null,
-                                                    "Min": null,
-                                                    "Values": [
-                                                    ]
-                                                },
-                                                "Name": "dspStatus",
-                                                "Priority": 0,
-                                                "RefreshRate": 0,
-                                                "RepetitionFilter": false,
-                                                "Tags": [
-                                                ],
-                                                "Type": "Impulse",
-                                                "Unit": "",
-                                                "Value": null,
-                                                "ioType": "->"
-                                            },
-                                            "Children": [
-                                            ]
-                                        },
-                                        {
-                                            "AddressSettings": {
                                                 "ClipMode": "Clip",
                                                 "Domain": {
                                                     "Max": null,
@@ -4881,121 +4503,6 @@
                                                         "ioType": "<->"
                                                     },
                                                     "Children": [
-                                                    ]
-                                                },
-                                                {
-                                                    "AddressSettings": {
-                                                        "ClipMode": "Clip",
-                                                        "Domain": {
-                                                            "Max": null,
-                                                            "Min": null,
-                                                            "Values": [
-                                                            ]
-                                                        },
-                                                        "Name": "audio",
-                                                        "Priority": 0,
-                                                        "RefreshRate": 0,
-                                                        "RepetitionFilter": false,
-                                                        "Tags": [
-                                                        ],
-                                                        "Type": "NoValue",
-                                                        "Unit": "",
-                                                        "Value": null,
-                                                        "ioType": ""
-                                                    },
-                                                    "Children": [
-                                                        {
-                                                            "AddressSettings": {
-                                                                "ClipMode": "Clip",
-                                                                "Domain": {
-                                                                    "Max": null,
-                                                                    "Min": null,
-                                                                    "Values": [
-                                                                    ]
-                                                                },
-                                                                "Name": "in.L",
-                                                                "Priority": 0,
-                                                                "RefreshRate": 0,
-                                                                "RepetitionFilter": false,
-                                                                "Tags": [
-                                                                ],
-                                                                "Type": "NoValue",
-                                                                "Unit": "",
-                                                                "Value": null,
-                                                                "ioType": ""
-                                                            },
-                                                            "Children": [
-                                                            ]
-                                                        },
-                                                        {
-                                                            "AddressSettings": {
-                                                                "ClipMode": "Clip",
-                                                                "Domain": {
-                                                                    "Max": null,
-                                                                    "Min": null,
-                                                                    "Values": [
-                                                                    ]
-                                                                },
-                                                                "Name": "in.R",
-                                                                "Priority": 0,
-                                                                "RefreshRate": 0,
-                                                                "RepetitionFilter": false,
-                                                                "Tags": [
-                                                                ],
-                                                                "Type": "NoValue",
-                                                                "Unit": "",
-                                                                "Value": null,
-                                                                "ioType": ""
-                                                            },
-                                                            "Children": [
-                                                            ]
-                                                        },
-                                                        {
-                                                            "AddressSettings": {
-                                                                "ClipMode": "Clip",
-                                                                "Domain": {
-                                                                    "Max": null,
-                                                                    "Min": null,
-                                                                    "Values": [
-                                                                    ]
-                                                                },
-                                                                "Name": "out.L",
-                                                                "Priority": 0,
-                                                                "RefreshRate": 0,
-                                                                "RepetitionFilter": false,
-                                                                "Tags": [
-                                                                ],
-                                                                "Type": "NoValue",
-                                                                "Unit": "",
-                                                                "Value": null,
-                                                                "ioType": ""
-                                                            },
-                                                            "Children": [
-                                                            ]
-                                                        },
-                                                        {
-                                                            "AddressSettings": {
-                                                                "ClipMode": "Clip",
-                                                                "Domain": {
-                                                                    "Max": null,
-                                                                    "Min": null,
-                                                                    "Values": [
-                                                                    ]
-                                                                },
-                                                                "Name": "out.R",
-                                                                "Priority": 0,
-                                                                "RefreshRate": 0,
-                                                                "RepetitionFilter": false,
-                                                                "Tags": [
-                                                                ],
-                                                                "Type": "NoValue",
-                                                                "Unit": "",
-                                                                "Value": null,
-                                                                "ioType": ""
-                                                            },
-                                                            "Children": [
-                                                            ]
-                                                        }
                                                     ]
                                                 },
                                                 {
@@ -5115,29 +4622,6 @@
                                                 },
                                                 {
                                                     "AddressSettings": {
-                                                        "ClipMode": "Clip",
-                                                        "Domain": {
-                                                            "Max": null,
-                                                            "Min": null,
-                                                            "Values": [
-                                                            ]
-                                                        },
-                                                        "Name": "model",
-                                                        "Priority": 0,
-                                                        "RefreshRate": 0,
-                                                        "RepetitionFilter": false,
-                                                        "Tags": [
-                                                        ],
-                                                        "Type": "NoValue",
-                                                        "Unit": "",
-                                                        "Value": null,
-                                                        "ioType": ""
-                                                    },
-                                                    "Children": [
-                                                    ]
-                                                },
-                                                {
-                                                    "AddressSettings": {
                                                         "ClipMode": "Free",
                                                         "Domain": {
                                                             "Max": 48,
@@ -5229,76 +4713,7 @@
                                                     ]
                                                 }
                                             ]
-                                        },
-                                        {
-                                            "AddressSettings": {
-                                                "ClipMode": "Clip",
-                                                "Domain": {
-                                                    "Max": null,
-                                                    "Min": null,
-                                                    "Values": [
-                                                    ]
-                                                },
-                                                "Name": "model",
-                                                "Priority": 0,
-                                                "RefreshRate": 0,
-                                                "RepetitionFilter": false,
-                                                "Tags": [
-                                                ],
-                                                "Type": "NoValue",
-                                                "Unit": "",
-                                                "Value": null,
-                                                "ioType": ""
-                                            },
-                                            "Children": [
-                                            ]
                                         }
-                                    ]
-                                },
-                                {
-                                    "AddressSettings": {
-                                        "ClipMode": "Clip",
-                                        "Domain": {
-                                            "Max": null,
-                                            "Min": null,
-                                            "Values": [
-                                            ]
-                                        },
-                                        "Name": "model",
-                                        "Priority": 0,
-                                        "RefreshRate": 0,
-                                        "RepetitionFilter": false,
-                                        "Tags": [
-                                        ],
-                                        "Type": "NoValue",
-                                        "Unit": "",
-                                        "Value": null,
-                                        "ioType": ""
-                                    },
-                                    "Children": [
-                                    ]
-                                },
-                                {
-                                    "AddressSettings": {
-                                        "ClipMode": "Clip",
-                                        "Domain": {
-                                            "Max": null,
-                                            "Min": null,
-                                            "Values": [
-                                            ]
-                                        },
-                                        "Name": "preset",
-                                        "Priority": 0,
-                                        "RefreshRate": 0,
-                                        "RepetitionFilter": false,
-                                        "Tags": [
-                                        ],
-                                        "Type": "NoValue",
-                                        "Unit": "",
-                                        "Value": null,
-                                        "ioType": ""
-                                    },
-                                    "Children": [
                                     ]
                                 },
                                 {
@@ -5528,52 +4943,6 @@
                                             },
                                             "Children": [
                                             ]
-                                        },
-                                        {
-                                            "AddressSettings": {
-                                                "ClipMode": "Clip",
-                                                "Domain": {
-                                                    "Max": null,
-                                                    "Min": null,
-                                                    "Values": [
-                                                    ]
-                                                },
-                                                "Name": "out.L",
-                                                "Priority": 0,
-                                                "RefreshRate": 0,
-                                                "RepetitionFilter": false,
-                                                "Tags": [
-                                                ],
-                                                "Type": "NoValue",
-                                                "Unit": "",
-                                                "Value": null,
-                                                "ioType": ""
-                                            },
-                                            "Children": [
-                                            ]
-                                        },
-                                        {
-                                            "AddressSettings": {
-                                                "ClipMode": "Clip",
-                                                "Domain": {
-                                                    "Max": null,
-                                                    "Min": null,
-                                                    "Values": [
-                                                    ]
-                                                },
-                                                "Name": "out.R",
-                                                "Priority": 0,
-                                                "RefreshRate": 0,
-                                                "RepetitionFilter": false,
-                                                "Tags": [
-                                                ],
-                                                "Type": "NoValue",
-                                                "Unit": "",
-                                                "Value": null,
-                                                "ioType": ""
-                                            },
-                                            "Children": [
-                                            ]
                                         }
                                     ]
                                 },
@@ -5600,75 +4969,6 @@
                                     "Children": [
                                         {
                                             "AddressSettings": {
-                                                "ClipMode": "Clip",
-                                                "Domain": {
-                                                    "Max": null,
-                                                    "Min": null,
-                                                    "Values": [
-                                                    ]
-                                                },
-                                                "Name": "audio",
-                                                "Priority": 0,
-                                                "RefreshRate": 0,
-                                                "RepetitionFilter": false,
-                                                "Tags": [
-                                                ],
-                                                "Type": "NoValue",
-                                                "Unit": "",
-                                                "Value": null,
-                                                "ioType": ""
-                                            },
-                                            "Children": [
-                                                {
-                                                    "AddressSettings": {
-                                                        "ClipMode": "Clip",
-                                                        "Domain": {
-                                                            "Max": null,
-                                                            "Min": null,
-                                                            "Values": [
-                                                            ]
-                                                        },
-                                                        "Name": "out.L",
-                                                        "Priority": 0,
-                                                        "RefreshRate": 0,
-                                                        "RepetitionFilter": false,
-                                                        "Tags": [
-                                                        ],
-                                                        "Type": "NoValue",
-                                                        "Unit": "",
-                                                        "Value": null,
-                                                        "ioType": ""
-                                                    },
-                                                    "Children": [
-                                                    ]
-                                                },
-                                                {
-                                                    "AddressSettings": {
-                                                        "ClipMode": "Clip",
-                                                        "Domain": {
-                                                            "Max": null,
-                                                            "Min": null,
-                                                            "Values": [
-                                                            ]
-                                                        },
-                                                        "Name": "out.R",
-                                                        "Priority": 0,
-                                                        "RefreshRate": 0,
-                                                        "RepetitionFilter": false,
-                                                        "Tags": [
-                                                        ],
-                                                        "Type": "NoValue",
-                                                        "Unit": "",
-                                                        "Value": null,
-                                                        "ioType": ""
-                                                    },
-                                                    "Children": [
-                                                    ]
-                                                }
-                                            ]
-                                        },
-                                        {
-                                            "AddressSettings": {
                                                 "ClipMode": "Free",
                                                 "Domain": {
                                                     "Max": "",
@@ -5686,29 +4986,6 @@
                                                 "Unit": "",
                                                 "Value": "FastMode",
                                                 "ioType": "<->"
-                                            },
-                                            "Children": [
-                                            ]
-                                        },
-                                        {
-                                            "AddressSettings": {
-                                                "ClipMode": "Clip",
-                                                "Domain": {
-                                                    "Max": null,
-                                                    "Min": null,
-                                                    "Values": [
-                                                    ]
-                                                },
-                                                "Name": "model",
-                                                "Priority": 0,
-                                                "RefreshRate": 0,
-                                                "RepetitionFilter": false,
-                                                "Tags": [
-                                                ],
-                                                "Type": "NoValue",
-                                                "Unit": "",
-                                                "Value": null,
-                                                "ioType": ""
                                             },
                                             "Children": [
                                             ]
@@ -5832,29 +5109,6 @@
                                 },
                                 {
                                     "AddressSettings": {
-                                        "ClipMode": "Free",
-                                        "Domain": {
-                                            "Max": null,
-                                            "Min": null,
-                                            "Values": [
-                                            ]
-                                        },
-                                        "Name": "dspStatus",
-                                        "Priority": 0,
-                                        "RefreshRate": 0,
-                                        "RepetitionFilter": false,
-                                        "Tags": [
-                                        ],
-                                        "Type": "Impulse",
-                                        "Unit": "",
-                                        "Value": null,
-                                        "ioType": "->"
-                                    },
-                                    "Children": [
-                                    ]
-                                },
-                                {
-                                    "AddressSettings": {
                                         "ClipMode": "Clip",
                                         "Domain": {
                                             "Max": null,
@@ -5895,121 +5149,6 @@
                                                 "ioType": "<->"
                                             },
                                             "Children": [
-                                            ]
-                                        },
-                                        {
-                                            "AddressSettings": {
-                                                "ClipMode": "Clip",
-                                                "Domain": {
-                                                    "Max": null,
-                                                    "Min": null,
-                                                    "Values": [
-                                                    ]
-                                                },
-                                                "Name": "audio",
-                                                "Priority": 0,
-                                                "RefreshRate": 0,
-                                                "RepetitionFilter": false,
-                                                "Tags": [
-                                                ],
-                                                "Type": "NoValue",
-                                                "Unit": "",
-                                                "Value": null,
-                                                "ioType": ""
-                                            },
-                                            "Children": [
-                                                {
-                                                    "AddressSettings": {
-                                                        "ClipMode": "Clip",
-                                                        "Domain": {
-                                                            "Max": null,
-                                                            "Min": null,
-                                                            "Values": [
-                                                            ]
-                                                        },
-                                                        "Name": "in.L",
-                                                        "Priority": 0,
-                                                        "RefreshRate": 0,
-                                                        "RepetitionFilter": false,
-                                                        "Tags": [
-                                                        ],
-                                                        "Type": "NoValue",
-                                                        "Unit": "",
-                                                        "Value": null,
-                                                        "ioType": ""
-                                                    },
-                                                    "Children": [
-                                                    ]
-                                                },
-                                                {
-                                                    "AddressSettings": {
-                                                        "ClipMode": "Clip",
-                                                        "Domain": {
-                                                            "Max": null,
-                                                            "Min": null,
-                                                            "Values": [
-                                                            ]
-                                                        },
-                                                        "Name": "in.R",
-                                                        "Priority": 0,
-                                                        "RefreshRate": 0,
-                                                        "RepetitionFilter": false,
-                                                        "Tags": [
-                                                        ],
-                                                        "Type": "NoValue",
-                                                        "Unit": "",
-                                                        "Value": null,
-                                                        "ioType": ""
-                                                    },
-                                                    "Children": [
-                                                    ]
-                                                },
-                                                {
-                                                    "AddressSettings": {
-                                                        "ClipMode": "Clip",
-                                                        "Domain": {
-                                                            "Max": null,
-                                                            "Min": null,
-                                                            "Values": [
-                                                            ]
-                                                        },
-                                                        "Name": "out.L",
-                                                        "Priority": 0,
-                                                        "RefreshRate": 0,
-                                                        "RepetitionFilter": false,
-                                                        "Tags": [
-                                                        ],
-                                                        "Type": "NoValue",
-                                                        "Unit": "",
-                                                        "Value": null,
-                                                        "ioType": ""
-                                                    },
-                                                    "Children": [
-                                                    ]
-                                                },
-                                                {
-                                                    "AddressSettings": {
-                                                        "ClipMode": "Clip",
-                                                        "Domain": {
-                                                            "Max": null,
-                                                            "Min": null,
-                                                            "Values": [
-                                                            ]
-                                                        },
-                                                        "Name": "out.R",
-                                                        "Priority": 0,
-                                                        "RefreshRate": 0,
-                                                        "RepetitionFilter": false,
-                                                        "Tags": [
-                                                        ],
-                                                        "Type": "NoValue",
-                                                        "Unit": "",
-                                                        "Value": null,
-                                                        "ioType": ""
-                                                    },
-                                                    "Children": [
-                                                    ]
-                                                }
                                             ]
                                         },
                                         {
@@ -6129,29 +5268,6 @@
                                         },
                                         {
                                             "AddressSettings": {
-                                                "ClipMode": "Clip",
-                                                "Domain": {
-                                                    "Max": null,
-                                                    "Min": null,
-                                                    "Values": [
-                                                    ]
-                                                },
-                                                "Name": "model",
-                                                "Priority": 0,
-                                                "RefreshRate": 0,
-                                                "RepetitionFilter": false,
-                                                "Tags": [
-                                                ],
-                                                "Type": "NoValue",
-                                                "Unit": "",
-                                                "Value": null,
-                                                "ioType": ""
-                                            },
-                                            "Children": [
-                                            ]
-                                        },
-                                        {
-                                            "AddressSettings": {
                                                 "ClipMode": "Free",
                                                 "Domain": {
                                                     "Max": 48,
@@ -6253,52 +5369,6 @@
                                             "Values": [
                                             ]
                                         },
-                                        "Name": "model",
-                                        "Priority": 0,
-                                        "RefreshRate": 0,
-                                        "RepetitionFilter": false,
-                                        "Tags": [
-                                        ],
-                                        "Type": "NoValue",
-                                        "Unit": "",
-                                        "Value": null,
-                                        "ioType": ""
-                                    },
-                                    "Children": [
-                                    ]
-                                },
-                                {
-                                    "AddressSettings": {
-                                        "ClipMode": "Clip",
-                                        "Domain": {
-                                            "Max": null,
-                                            "Min": null,
-                                            "Values": [
-                                            ]
-                                        },
-                                        "Name": "preset",
-                                        "Priority": 0,
-                                        "RefreshRate": 0,
-                                        "RepetitionFilter": false,
-                                        "Tags": [
-                                        ],
-                                        "Type": "NoValue",
-                                        "Unit": "",
-                                        "Value": null,
-                                        "ioType": ""
-                                    },
-                                    "Children": [
-                                    ]
-                                },
-                                {
-                                    "AddressSettings": {
-                                        "ClipMode": "Clip",
-                                        "Domain": {
-                                            "Max": null,
-                                            "Min": null,
-                                            "Values": [
-                                            ]
-                                        },
                                         "Name": "record",
                                         "Priority": 0,
                                         "RefreshRate": 0,
@@ -6343,75 +5413,6 @@
                                                     "Values": [
                                                     ]
                                                 },
-                                                "Name": "audio",
-                                                "Priority": 0,
-                                                "RefreshRate": 0,
-                                                "RepetitionFilter": false,
-                                                "Tags": [
-                                                ],
-                                                "Type": "NoValue",
-                                                "Unit": "",
-                                                "Value": null,
-                                                "ioType": ""
-                                            },
-                                            "Children": [
-                                                {
-                                                    "AddressSettings": {
-                                                        "ClipMode": "Clip",
-                                                        "Domain": {
-                                                            "Max": null,
-                                                            "Min": null,
-                                                            "Values": [
-                                                            ]
-                                                        },
-                                                        "Name": "in.L",
-                                                        "Priority": 0,
-                                                        "RefreshRate": 0,
-                                                        "RepetitionFilter": false,
-                                                        "Tags": [
-                                                        ],
-                                                        "Type": "NoValue",
-                                                        "Unit": "",
-                                                        "Value": null,
-                                                        "ioType": ""
-                                                    },
-                                                    "Children": [
-                                                    ]
-                                                },
-                                                {
-                                                    "AddressSettings": {
-                                                        "ClipMode": "Clip",
-                                                        "Domain": {
-                                                            "Max": null,
-                                                            "Min": null,
-                                                            "Values": [
-                                                            ]
-                                                        },
-                                                        "Name": "in.R",
-                                                        "Priority": 0,
-                                                        "RefreshRate": 0,
-                                                        "RepetitionFilter": false,
-                                                        "Tags": [
-                                                        ],
-                                                        "Type": "NoValue",
-                                                        "Unit": "",
-                                                        "Value": null,
-                                                        "ioType": ""
-                                                    },
-                                                    "Children": [
-                                                    ]
-                                                }
-                                            ]
-                                        },
-                                        {
-                                            "AddressSettings": {
-                                                "ClipMode": "Clip",
-                                                "Domain": {
-                                                    "Max": null,
-                                                    "Min": null,
-                                                    "Values": [
-                                                    ]
-                                                },
                                                 "Name": "file",
                                                 "Priority": 0,
                                                 "RefreshRate": 0,
@@ -6424,29 +5425,6 @@
                                                 "ioType": ""
                                             },
                                             "Children": [
-                                                {
-                                                    "AddressSettings": {
-                                                        "ClipMode": "Free",
-                                                        "Domain": {
-                                                            "Max": "",
-                                                            "Min": "",
-                                                            "Values": [
-                                                            ]
-                                                        },
-                                                        "Name": "path",
-                                                        "Priority": 0,
-                                                        "RefreshRate": 0,
-                                                        "RepetitionFilter": false,
-                                                        "Tags": [
-                                                        ],
-                                                        "Type": "String",
-                                                        "Unit": "",
-                                                        "Value": "",
-                                                        "ioType": "->"
-                                                    },
-                                                    "Children": [
-                                                    ]
-                                                },
                                                 {
                                                     "AddressSettings": {
                                                         "ClipMode": "Free",
@@ -6493,29 +5471,6 @@
                                                     "Children": [
                                                     ]
                                                 }
-                                            ]
-                                        },
-                                        {
-                                            "AddressSettings": {
-                                                "ClipMode": "Clip",
-                                                "Domain": {
-                                                    "Max": null,
-                                                    "Min": null,
-                                                    "Values": [
-                                                    ]
-                                                },
-                                                "Name": "model",
-                                                "Priority": 0,
-                                                "RefreshRate": 0,
-                                                "RepetitionFilter": false,
-                                                "Tags": [
-                                                ],
-                                                "Type": "NoValue",
-                                                "Unit": "",
-                                                "Value": null,
-                                                "ioType": ""
-                                            },
-                                            "Children": [
                                             ]
                                         },
                                         {
@@ -6591,121 +5546,6 @@
                                             "AddressSettings": {
                                                 "ClipMode": "Clip",
                                                 "Domain": {
-                                                    "Max": null,
-                                                    "Min": null,
-                                                    "Values": [
-                                                    ]
-                                                },
-                                                "Name": "audio",
-                                                "Priority": 0,
-                                                "RefreshRate": 0,
-                                                "RepetitionFilter": false,
-                                                "Tags": [
-                                                ],
-                                                "Type": "NoValue",
-                                                "Unit": "",
-                                                "Value": null,
-                                                "ioType": ""
-                                            },
-                                            "Children": [
-                                                {
-                                                    "AddressSettings": {
-                                                        "ClipMode": "Clip",
-                                                        "Domain": {
-                                                            "Max": null,
-                                                            "Min": null,
-                                                            "Values": [
-                                                            ]
-                                                        },
-                                                        "Name": "in.L",
-                                                        "Priority": 0,
-                                                        "RefreshRate": 0,
-                                                        "RepetitionFilter": false,
-                                                        "Tags": [
-                                                        ],
-                                                        "Type": "NoValue",
-                                                        "Unit": "",
-                                                        "Value": null,
-                                                        "ioType": ""
-                                                    },
-                                                    "Children": [
-                                                    ]
-                                                },
-                                                {
-                                                    "AddressSettings": {
-                                                        "ClipMode": "Clip",
-                                                        "Domain": {
-                                                            "Max": null,
-                                                            "Min": null,
-                                                            "Values": [
-                                                            ]
-                                                        },
-                                                        "Name": "in.R",
-                                                        "Priority": 0,
-                                                        "RefreshRate": 0,
-                                                        "RepetitionFilter": false,
-                                                        "Tags": [
-                                                        ],
-                                                        "Type": "NoValue",
-                                                        "Unit": "",
-                                                        "Value": null,
-                                                        "ioType": ""
-                                                    },
-                                                    "Children": [
-                                                    ]
-                                                },
-                                                {
-                                                    "AddressSettings": {
-                                                        "ClipMode": "Clip",
-                                                        "Domain": {
-                                                            "Max": null,
-                                                            "Min": null,
-                                                            "Values": [
-                                                            ]
-                                                        },
-                                                        "Name": "out.L",
-                                                        "Priority": 0,
-                                                        "RefreshRate": 0,
-                                                        "RepetitionFilter": false,
-                                                        "Tags": [
-                                                        ],
-                                                        "Type": "NoValue",
-                                                        "Unit": "",
-                                                        "Value": null,
-                                                        "ioType": ""
-                                                    },
-                                                    "Children": [
-                                                    ]
-                                                },
-                                                {
-                                                    "AddressSettings": {
-                                                        "ClipMode": "Clip",
-                                                        "Domain": {
-                                                            "Max": null,
-                                                            "Min": null,
-                                                            "Values": [
-                                                            ]
-                                                        },
-                                                        "Name": "out.R",
-                                                        "Priority": 0,
-                                                        "RefreshRate": 0,
-                                                        "RepetitionFilter": false,
-                                                        "Tags": [
-                                                        ],
-                                                        "Type": "NoValue",
-                                                        "Unit": "",
-                                                        "Value": null,
-                                                        "ioType": ""
-                                                    },
-                                                    "Children": [
-                                                    ]
-                                                }
-                                            ]
-                                        },
-                                        {
-                                            "AddressSettings": {
-                                                "ClipMode": "Clip",
-                                                "Domain": {
                                                     "Max": 99,
                                                     "Min": 0,
                                                     "Values": [
@@ -6749,29 +5589,6 @@
                                                     ]
                                                 ],
                                                 "ioType": "<->"
-                                            },
-                                            "Children": [
-                                            ]
-                                        },
-                                        {
-                                            "AddressSettings": {
-                                                "ClipMode": "Clip",
-                                                "Domain": {
-                                                    "Max": null,
-                                                    "Min": null,
-                                                    "Values": [
-                                                    ]
-                                                },
-                                                "Name": "model",
-                                                "Priority": 0,
-                                                "RefreshRate": 0,
-                                                "RepetitionFilter": false,
-                                                "Tags": [
-                                                ],
-                                                "Type": "NoValue",
-                                                "Unit": "",
-                                                "Value": null,
-                                                "ioType": ""
                                             },
                                             "Children": [
                                             ]
