@@ -43,6 +43,7 @@ class OSSIADevice : public DeviceInterface
         boost::optional<iscore::Value> refresh(const iscore::Address&) final override;
 
         void setListening(const iscore::Address&, bool) final override;
+
         std::vector<iscore::Address> listening() const final override;
         void replaceListening(const std::vector<iscore::Address>&) final override;
 
@@ -65,4 +66,7 @@ class OSSIADevice : public DeviceInterface
                 OSSIA::CallbackContainer<OSSIA::ValueCallback>::iterator
             >
         > m_callbacks;
+
+    private:
+        void removeListening_impl(OSSIA::Node &node, iscore::Address addr);
 };

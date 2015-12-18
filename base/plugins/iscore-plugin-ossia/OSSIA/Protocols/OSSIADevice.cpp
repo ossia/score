@@ -107,6 +107,25 @@ void OSSIADevice::updateAddress(const iscore::FullAddressSettings &settings)
         updateOSSIAAddress(settings, node->getAddress());
 }
 
+void OSSIADevice::removeListening_impl(
+        OSSIA::Node& node, iscore::Address addr)
+{
+    // Find & remove our callback
+    auto it = m_callbacks.find(addr);
+    if(it != m_callbacks.end())
+    {
+        it->second.first->removeCallback(it->second.second);
+        m_callbacks.erase(it);
+    }
+
+    // Recurse
+    for(const auto& child : node.children())
+    {
+        iscore::Address sub_addr = addr;
+        sub_addr.path += QString::fromStdString(child->getName());
+        removeListening_impl(*child.get(), sub_addr);
+    }
+}
 
 void OSSIADevice::removeNode(const iscore::Address& address)
 {
@@ -120,6 +139,13 @@ void OSSIADevice::removeNode(const iscore::Address& address)
                            [&] (auto&& elt) { return elt.get() == node; });
     if(it != children.end())
     {
+        /* If we are listening to this node, we recursively
+         * remove listening to all the children. */
+        removeListening_impl(*it->get(), address);
+
+        // TODO !! if we remove nodes while recording
+        // (or anything involving a registered listening state), there will be crashes.
+        // The Device Explorer should be locked for edition during recording / playing.
         children.erase(it);
     }
 }
@@ -286,4 +312,3 @@ OSSIA::Device& OSSIADevice::impl() const
     ISCORE_ASSERT(connected());
     return *m_dev;
 }
-
