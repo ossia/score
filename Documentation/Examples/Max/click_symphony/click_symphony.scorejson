@@ -6,13 +6,13 @@
                 "EndState": 1,
                 "FullView": {
                     "CenterOn": [
-                        406,
-                        460
+                        1262,
+                        343
                     ],
                     "ConstraintId": 0,
                     "ObjectName": "FullViewConstraintViewModel",
                     "ShownRack": 1,
-                    "Zoom": 21.674185647261826,
+                    "Zoom": 36.147256122210429,
                     "id": 0
                 },
                 "HeightPercentage": 0,
@@ -3995,7 +3995,7 @@
                                                 ],
                                                 "Type": "Float",
                                                 "Unit": "",
-                                                "Value": -0.38985446095466614,
+                                                "Value": -22.873188018798828,
                                                 "ioType": "<->"
                                             },
                                             "Children": [
@@ -5101,7 +5101,7 @@
                                         ],
                                         "Type": "Float",
                                         "Unit": "",
-                                        "Value": 14,
+                                        "Value": 11.699999809265137,
                                         "ioType": "<-"
                                     },
                                     "Children": [
@@ -5353,144 +5353,6 @@
                                                 "Type": "Float",
                                                 "Unit": "",
                                                 "Value": -1,
-                                                "ioType": "<->"
-                                            },
-                                            "Children": [
-                                            ]
-                                        }
-                                    ]
-                                },
-                                {
-                                    "AddressSettings": {
-                                        "ClipMode": "Clip",
-                                        "Domain": {
-                                            "Max": null,
-                                            "Min": null,
-                                            "Values": [
-                                            ]
-                                        },
-                                        "Name": "record",
-                                        "Priority": 0,
-                                        "RefreshRate": 0,
-                                        "RepetitionFilter": false,
-                                        "Tags": [
-                                        ],
-                                        "Type": "NoValue",
-                                        "Unit": "",
-                                        "Value": null,
-                                        "ioType": ""
-                                    },
-                                    "Children": [
-                                        {
-                                            "AddressSettings": {
-                                                "ClipMode": "Free",
-                                                "Domain": {
-                                                    "Max": true,
-                                                    "Min": false,
-                                                    "Values": [
-                                                    ]
-                                                },
-                                                "Name": "active",
-                                                "Priority": 0,
-                                                "RefreshRate": 0,
-                                                "RepetitionFilter": false,
-                                                "Tags": [
-                                                ],
-                                                "Type": "Bool",
-                                                "Unit": "",
-                                                "Value": true,
-                                                "ioType": "->"
-                                            },
-                                            "Children": [
-                                            ]
-                                        },
-                                        {
-                                            "AddressSettings": {
-                                                "ClipMode": "Clip",
-                                                "Domain": {
-                                                    "Max": null,
-                                                    "Min": null,
-                                                    "Values": [
-                                                    ]
-                                                },
-                                                "Name": "file",
-                                                "Priority": 0,
-                                                "RefreshRate": 0,
-                                                "RepetitionFilter": false,
-                                                "Tags": [
-                                                ],
-                                                "Type": "NoValue",
-                                                "Unit": "",
-                                                "Value": null,
-                                                "ioType": ""
-                                            },
-                                            "Children": [
-                                                {
-                                                    "AddressSettings": {
-                                                        "ClipMode": "Free",
-                                                        "Domain": {
-                                                            "Max": 1,
-                                                            "Min": 0,
-                                                            "Values": [
-                                                            ]
-                                                        },
-                                                        "Name": "time",
-                                                        "Priority": 0,
-                                                        "RefreshRate": 0,
-                                                        "RepetitionFilter": false,
-                                                        "Tags": [
-                                                        ],
-                                                        "Type": "Float",
-                                                        "Unit": "",
-                                                        "Value": 0.056621316820383072,
-                                                        "ioType": "<-"
-                                                    },
-                                                    "Children": [
-                                                    ]
-                                                },
-                                                {
-                                                    "AddressSettings": {
-                                                        "ClipMode": "Free",
-                                                        "Domain": {
-                                                            "Max": "",
-                                                            "Min": "",
-                                                            "Values": [
-                                                            ]
-                                                        },
-                                                        "Name": "type",
-                                                        "Priority": 0,
-                                                        "RefreshRate": 0,
-                                                        "RepetitionFilter": false,
-                                                        "Tags": [
-                                                        ],
-                                                        "Type": "String",
-                                                        "Unit": "",
-                                                        "Value": "aiff",
-                                                        "ioType": "<->"
-                                                    },
-                                                    "Children": [
-                                                    ]
-                                                }
-                                            ]
-                                        },
-                                        {
-                                            "AddressSettings": {
-                                                "ClipMode": "Free",
-                                                "Domain": {
-                                                    "Max": "",
-                                                    "Min": "",
-                                                    "Values": [
-                                                    ]
-                                                },
-                                                "Name": "samptype",
-                                                "Priority": 0,
-                                                "RefreshRate": 0,
-                                                "RepetitionFilter": false,
-                                                "Tags": [
-                                                ],
-                                                "Type": "String",
-                                                "Unit": "",
-                                                "Value": "int24",
                                                 "ioType": "<->"
                                             },
                                             "Children": [
