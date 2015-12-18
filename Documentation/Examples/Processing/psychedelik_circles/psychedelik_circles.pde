@@ -35,10 +35,11 @@ void draw()
 
   for (int i=0; i<nbCircles; i++) 
   {  
-    if (size[i] < width)
-      size[i] += i*speed;
-    else
-      size[i] = 0;
+    size[i] += i*speed;
+    if (size[i] < 0)
+      size[i] = width;
+    else if (size[i] > width)
+     size[i] = 0;
 
     stroke(250 - size[i]/2);
     ellipse(250, 250, size[i], size[i]);
