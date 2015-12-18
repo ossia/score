@@ -24,7 +24,8 @@ using namespace OSSIA::convert;
 
 OSSIADevice::~OSSIADevice()
 {
-
+    if(connected())
+        disconnect();
 }
 
 bool OSSIADevice::connected() const
@@ -73,6 +74,11 @@ void OSSIADevice::updateSettings(const iscore::DeviceSettings& newsettings)
 
 void OSSIADevice::disconnect()
 {
+    if(connected())
+    {
+        removeListening_impl(*m_dev.get(), iscore::Address{m_settings.name, {}});
+    }
+
     m_callbacks.clear();
 
     m_dev.reset();
