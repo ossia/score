@@ -161,19 +161,26 @@ iscore::Node OSSIADevice::refresh()
     iscore::Node device_node{settings(), nullptr};
 
     if(!connected())
-        return device_node;
-
-    if(m_dev && m_dev->updateNamespace())
     {
-        // Make a device explorer node from the current state of the device.
-        // First make the node corresponding to the root node.
+        return device_node;
+    }
+    else
+    {
+        // Clear the listening
+        removeListening_impl(*m_dev.get(), iscore::Address{m_settings.name, {}});
 
-        // Recurse on the children
-        auto& children = m_dev->children();
-        device_node.reserve(children.size());
-        for(const auto& node : children)
+        if(m_dev->updateNamespace())
         {
-            device_node.push_back(OSSIA::convert::ToDeviceExplorer(*node.get()));
+            // Make a device explorer node from the current state of the device.
+            // First make the node corresponding to the root node.
+
+            // Recurse on the children
+            auto& children = m_dev->children();
+            device_node.reserve(children.size());
+            for(const auto& node : children)
+            {
+                device_node.push_back(OSSIA::convert::ToDeviceExplorer(*node.get()));
+            }
         }
     }
 
