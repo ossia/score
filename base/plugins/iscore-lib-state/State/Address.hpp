@@ -51,6 +51,11 @@ struct ISCORE_LIB_STATE_EXPORT Address
             return !(*this == a);
         }
 };
+
+inline QStringList stringList(const iscore::Address& addr)
+{
+    return QStringList{} << addr.device << addr.path;
+}
 }
 
 namespace std {

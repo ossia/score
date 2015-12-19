@@ -452,10 +452,7 @@ void updateTreeWithRemovedConstraint(MessageNode& rootNode, ProcessPosition pos)
 void updateTreeWithRemovedUserMessage(MessageNode& rootNode, const iscore::Address& addr)
 {
     // Find the message node
-    QStringList s;
-    s += addr.device;
-    s = s + addr.path;
-    MessageNode* node = iscore::try_getNodeFromString(rootNode, std::move(s));
+    MessageNode* node = iscore::try_getNodeFromString(rootNode, stringList(addr));
 
     if(node)
     {
@@ -519,10 +516,7 @@ void updateTreeWithRemovedNode(
         const iscore::Address& addr)
 {
     // Find the message node
-    QStringList s;
-    s += addr.device;
-    s = s + addr.path;
-    MessageNode* node = iscore::try_getNodeFromString(rootNode, std::move(s));
+    MessageNode* node = iscore::try_getNodeFromString(rootNode, stringList(addr));
 
     if(node)
     {

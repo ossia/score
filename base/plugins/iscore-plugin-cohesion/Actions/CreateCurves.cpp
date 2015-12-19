@@ -4,6 +4,10 @@
 
 #include <Explorer/Explorer/DeviceExplorerModel.hpp>
 #include <Scenario/Document/Constraint/ConstraintModel.hpp>
+#include <Scenario/Document/State/StateModel.hpp>
+#include <Scenario/Document/State/ItemModel/MessageItemModel.hpp>
+#include <Scenario/Process/Algorithms/Accessors.hpp>
+#include <Process/State/MessageNode.hpp>
 #include <QList>
 #include <QPointer>
 
@@ -16,10 +20,14 @@
 #include <iscore/selection/SelectionStack.hpp>
 #include <iscore/tools/IdentifiedObjectAbstract.hpp>
 
+#include <Automation/AutomationModel.hpp>
 void CreateCurves(
         const QList<const ConstraintModel*>& selected_constraints,
         iscore::CommandStackFacade& stack)
 {
+    if(selected_constraints.empty())
+        return;
+
     // For each constraint, interpolate between the states in its start event and end event.
 
     // They should all be in the same scenario so we can select the first.
@@ -49,47 +57,97 @@ void CreateCurves(
         }
     }
 
+    if(addresses.empty())
+        return;
+
+    int added_processes = 0;
     // Then create the commands
     auto big_macro = new AddMultipleProcessesToMultipleConstraintsMacro;
-    if(!addresses.empty())
+
+    for(const auto& constraint : selected_constraints)
     {
-        for(auto& constraint : selected_constraints)
+        // Generate brand new ids for the processes
+        auto process_ids = getStrongIdRange<Process>(addresses.size(), constraint->processes);
+        auto macro_tuple = makeAddProcessMacro(*constraint, addresses.size());
+        auto macro = std::get<0>(macro_tuple);
+        auto& bigLayerVec = std::get<1>(macro_tuple);
+
+        Path<ConstraintModel> constraintPath{*constraint};
+        const StateModel& ss = startState(*constraint, *scenar);
+        const auto& es = endState(*constraint, *scenar);
+
+        std::vector<iscore::Address> existing_automations;
+        for(const auto& proc : constraint->processes)
         {
-            // Generate brand new ids for the processes
-            auto process_ids = getStrongIdRange<Process>(addresses.size(), constraint->processes);
-            auto macro_tuple = makeAddProcessMacro(*constraint, addresses.size());
-            auto macro = std::get<0>(macro_tuple);
-            auto& bigLayerVec = std::get<1>(macro_tuple);
-
-            Path<ConstraintModel> constraintPath{*constraint};
-            int i = 0;
-            for(const iscore::FullAddressSettings& as : addresses)
-            {
-                double min = as.domain.min.val.isNumeric()
-                             ? iscore::convert::value<double>(as.domain.min)
-                             : 0;
-
-                double max = as.domain.max.val.isNumeric()
-                             ? iscore::convert::value<double>(as.domain.max)
-                             : 1;
-
-                double start = std::min(min, max);
-                double end = std::max(min, max);
-
-                macro->addCommand(new CreateCurveFromStates{
-                                      Path<ConstraintModel>{constraintPath},
-                                      bigLayerVec[i],
-                                      process_ids[i],
-                                      as.address,
-                                      start, end, min, max
-                                  });
-
-                i++;
-            }
-            big_macro->addCommand(macro);
+            if(auto autom = dynamic_cast<const AutomationModel*>(&proc))
+                existing_automations.push_back(autom->address());
         }
+
+        int i = 0;
+        for(const iscore::FullAddressSettings& as : addresses)
+        {
+            // First, we skip the curve if there is already a curve
+            // with this address in the constraint.
+            if(contains(existing_automations, as.address))
+                continue;
+
+            // Then we set-up all the necessary values
+            // min / max
+            double min = as.domain.min.val.isNumeric()
+                    ? iscore::convert::value<double>(as.domain.min)
+                    : 0;
+
+            double max = as.domain.max.val.isNumeric()
+                    ? iscore::convert::value<double>(as.domain.max)
+                    : 1;
+
+            // start value / end value
+            double start = std::min(min, max);
+            double end = std::max(min, max);
+            MessageNode* s_node = iscore::try_getNodeFromString(
+                        ss.messages().rootNode(),
+                        stringList(as.address));
+            if(s_node)
+            {
+                if(auto val = s_node->value())
+                {
+                    start = iscore::convert::value<double>(*val);
+                }
+            }
+
+            MessageNode* e_node = iscore::try_getNodeFromString(
+                        es.messages().rootNode(),
+                        stringList(as.address));
+            if(e_node)
+            {
+                if(auto val = e_node->value())
+                {
+                    end = iscore::convert::value<double>(*val);
+                }
+            }
+
+            // Send the command.
+            macro->addCommand(new CreateCurveFromStates{
+                                  Path<ConstraintModel>{constraintPath},
+                                  bigLayerVec[i],
+                                  process_ids[i],
+                                  as.address,
+                                  start, end, min, max
+                              });
+
+            i++;
+            added_processes++;
+        }
+        big_macro->addCommand(macro);
     }
 
-    CommandDispatcher<> disp{stack};
-    disp.submitCommand(big_macro);
+    if(added_processes > 0)
+    {
+        CommandDispatcher<> disp{stack};
+        disp.submitCommand(big_macro);
+    }
+    else
+    {
+        delete big_macro;
+    }
 }
