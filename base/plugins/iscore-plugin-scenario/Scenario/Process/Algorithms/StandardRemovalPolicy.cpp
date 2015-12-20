@@ -12,6 +12,8 @@
 #include <Scenario/Document/Constraint/ConstraintModel.hpp>
 #include <Scenario/Document/Event/EventModel.hpp>
 #include <Scenario/Document/State/StateModel.hpp>
+#include <Scenario/Process/Algorithms/Accessors.hpp>
+#include <Scenario/Process/Algorithms/ProcessPolicy.hpp>
 #include "StandardRemovalPolicy.hpp"
 #include <iscore/tools/NotifyingMap.hpp>
 #include <iscore/tools/SettableIdentifier.hpp>
@@ -47,11 +49,9 @@ void StandardRemovalPolicy::removeConstraint(
     if(cstr_it != scenario.constraints.end())
     {
         ConstraintModel& cstr =  *cstr_it;
-        auto& sst = scenario.state(cstr.startState());
-        sst.setNextConstraint(Id<ConstraintModel>{});
 
-        auto& est = scenario.state(cstr.endState());
-        est.setPreviousConstraint(Id<ConstraintModel>{});
+        SetNoNextConstraint(startState(cstr, scenario));
+        SetNoPreviousConstraint(endState(cstr, scenario));
 
         scenario.constraints.remove(&cstr);
     }

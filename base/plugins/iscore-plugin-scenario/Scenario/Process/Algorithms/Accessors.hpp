@@ -6,7 +6,7 @@
 
 // Constraints
 template<typename Scenario_T>
-const auto& startState(
+auto& startState(
         const ConstraintModel& cst,
         const Scenario_T& scenario)
 {
@@ -14,7 +14,7 @@ const auto& startState(
 }
 
 template<typename Scenario_T>
-const auto& endState(
+auto& endState(
         const ConstraintModel& cst,
         const Scenario_T& scenario)
 {

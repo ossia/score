@@ -7,6 +7,7 @@
 #include <Scenario/Document/Event/EventModel.hpp>
 #include <Scenario/Document/TimeNode/TimeNodeModel.hpp>
 #include <Scenario/Process/Algorithms/StandardDisplacementPolicy.hpp>
+#include <Scenario/Process/Algorithms/ProcessPolicy.hpp>
 
 #include <iscore/command/SerializableCommand.hpp>
 #include <iscore/tools/SettableIdentifier.hpp>
@@ -124,7 +125,7 @@ class MoveBaseEvent final : public iscore::SerializableCommand
                 auto newproc = sourceproc.clone(sourceproc.id(), &constraint);
 
                 processPairs.insert(std::make_pair(&sourceproc, newproc));
-                constraint.processes.add(newproc);
+                AddProcess(constraint, newproc);
             }
 
             // Clone the rackes

@@ -112,6 +112,8 @@ void CreateCurves(
                 if(auto val = s_node->value())
                 {
                     start = iscore::convert::value<double>(*val);
+                    min = std::min(start, min);
+                    max = std::max(start, max);
                 }
             }
 
@@ -123,6 +125,8 @@ void CreateCurves(
                 if(auto val = e_node->value())
                 {
                     end = iscore::convert::value<double>(*val);
+                    min = std::min(end, min);
+                    max = std::max(end, max);
                 }
             }
 

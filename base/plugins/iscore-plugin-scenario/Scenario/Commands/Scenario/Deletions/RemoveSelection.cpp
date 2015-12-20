@@ -20,6 +20,8 @@
 #include <Scenario/Document/TimeNode/TimeNodeModel.hpp>
 #include <Scenario/Document/CommentBlock/CommentBlockModel.hpp>
 #include <Scenario/Process/ScenarioModel.hpp>
+#include <Scenario/Process/Algorithms/ProcessPolicy.hpp>
+#include <Scenario/Process/Algorithms/Accessors.hpp>
 #include <iscore/serialization/DataStreamVisitor.hpp>
 #include <iscore/tools/IdentifiedObject.hpp>
 #include <iscore/tools/IdentifiedObjectAbstract.hpp>
@@ -322,11 +324,8 @@ void RemoveSelection::undo() const
         scenar.constraints.add(cstr);
 
         // Set-up the start / end events correctly.
-        auto& sst = scenar.state(cstr->startState());
-        sst.setNextConstraint(cstr->id());
-
-        auto& est = scenar.state(cstr->endState());
-        est.setPreviousConstraint(cstr->id());
+        SetNextConstraint(startState(*cstr, scenar), *cstr);
+        SetPreviousConstraint(endState(*cstr, scenar), *cstr);
     }
 
     // And finally the constraint's view models

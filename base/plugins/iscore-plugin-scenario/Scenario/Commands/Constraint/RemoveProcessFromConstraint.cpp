@@ -4,6 +4,7 @@
 #include <Scenario/Document/Constraint/LayerModelLoader.hpp>
 #include <Scenario/Document/Constraint/Rack/RackModel.hpp>
 #include <Scenario/Document/Constraint/Rack/Slot/SlotModel.hpp>
+#include <Scenario/Process/Algorithms/ProcessPolicy.hpp>
 
 
 
@@ -54,7 +55,7 @@ void RemoveProcessFromConstraint::undo() const
     auto& constraint = m_path.find();
     Deserializer<DataStream> s {m_serializedProcessData};
     auto& fact = context.components.factory<ProcessList>();
-    constraint.processes.add(createProcess(fact, s, &constraint));
+    AddProcess(constraint, createProcess(fact, s, &constraint));
 
     // Restore the view models
     for(const auto& it : m_serializedViewModels)
@@ -76,7 +77,7 @@ void RemoveProcessFromConstraint::undo() const
 void RemoveProcessFromConstraint::redo() const
 {
     auto& constraint = m_path.find();
-    constraint.processes.remove(m_processId);
+    RemoveProcess(constraint, m_processId);
 
     // The view models will be deleted accordingly.
 }

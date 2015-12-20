@@ -3,6 +3,7 @@
 #include <Scenario/Document/Constraint/ConstraintModel.hpp>
 #include <Scenario/Document/Constraint/Rack/RackModel.hpp>
 #include <Scenario/Document/Constraint/Rack/Slot/SlotModel.hpp>
+#include <Scenario/Process/Algorithms/ProcessPolicy.hpp>
 
 #include <boost/iterator/indirect_iterator.hpp>
 #include <boost/iterator/iterator_facade.hpp>
@@ -81,7 +82,7 @@ void InsertContentInConstraint::undo() const
 
     for(const auto& proc_id : m_processIds)
     {
-        trg_constraint.processes.remove(proc_id);
+        RemoveProcess(trg_constraint, proc_id);
     }
 
     for(const auto& rack_id : m_rackIds)
@@ -107,7 +108,7 @@ void InsertContentInConstraint::redo() const
         auto newproc = sourceproc.clone(m_processIds[sourceproc.id()], &trg_constraint);
 
         processPairs.insert(std::make_pair(&sourceproc, newproc));
-        trg_constraint.processes.add(newproc);
+        AddProcess(trg_constraint, newproc);
 
         // Resize the processes according to the new constraint.
         if(m_mode == ExpandMode::Scale)

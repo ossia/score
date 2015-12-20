@@ -8,7 +8,10 @@
 #include <Scenario/Document/Constraint/Rack/Slot/SlotModel.hpp>
 #include <Scenario/Document/Constraint/ViewModels/ConstraintViewModel.hpp>
 #include <Scenario/Process/ScenarioModel.hpp>
-
+#include <Scenario/Document/State/StateModel.hpp>
+#include <Scenario/Document/State/ItemModel/MessageItemModel.hpp>
+#include <Scenario/Process/Algorithms/Accessors.hpp>
+#include <Scenario/Process/ScenarioInterface.hpp>
 #include <boost/iterator/iterator_facade.hpp>
 #include <boost/multi_index/detail/hash_index_iterator.hpp>
 #include <boost/optional/optional.hpp>
@@ -32,6 +35,7 @@
 #include <iscore/tools/ModelPathSerialization.hpp>
 #include <iscore/tools/NotifyingMap.hpp>
 #include <iscore/tools/SettableIdentifier.hpp>
+#include <Scenario/Commands/Constraint/AddOnlyProcessToConstraint.hpp>
 
 namespace Scenario
 {
@@ -43,23 +47,24 @@ class AddProcessToConstraintBase : public iscore::SerializableCommand
         AddProcessToConstraintBase() = default;
         AddProcessToConstraintBase(
                 const ConstraintModel& constraint,
-                const ProcessFactoryKey& process) :
-            m_path{constraint},
-            m_processName{process},
-            m_createdProcessId{getStrongId(constraint.processes)}
+                const ProcessFactoryKey& process):
+            m_addProcessCommand{
+                constraint,
+                getStrongId(constraint.processes),
+                process}
         {
         }
 
         const Path<ConstraintModel>& constraintPath() const
-        { return m_path; }
+        { return m_addProcessCommand.constraintPath(); }
         const Id<Process>& processId() const
-        { return m_createdProcessId; }
+        { return m_addProcessCommand.processId(); }
+        const ProcessFactoryKey& processKey() const
+        { return m_addProcessCommand.processKey(); }
 
 
     protected:
-        Path<ConstraintModel> m_path;
-        ProcessFactoryKey m_processName;
-        Id<Process> m_createdProcessId;
+        AddOnlyProcessToConstraint m_addProcessCommand;
 };
 
 template<typename AddProcessDelegate>
@@ -90,43 +95,32 @@ class AddProcessToConstraint final : public AddProcessToConstraintBase
 
         void undo() const override
         {
-            auto& constraint = m_path.find();
+            auto& constraint = m_addProcessCommand.constraintPath().find();
 
             m_delegate.undo(constraint);
-
-            constraint.processes.remove(m_createdProcessId);
+            m_addProcessCommand.undo(constraint);
         }
         void redo() const override
         {
-            auto& fact = context.components.factory<ProcessList>();
-            auto& constraint = m_path.find();
+            auto& constraint = m_addProcessCommand.constraintPath().find();
 
             // Create process model
-            auto proc =
-                    fact.list().get(m_processName)
-                    ->makeModel(
-                        constraint.duration.defaultDuration(),
-                        m_createdProcessId,
-                        &constraint);
-
-            constraint.processes.add(proc);
-
-            m_delegate.redo(constraint, *proc);
+            auto& proc = m_addProcessCommand.redo(constraint);
+            m_delegate.redo(constraint, proc);
         }
 
     protected:
         void serializeImpl(DataStreamInput& s) const override
         {
-            s << m_path
-              << m_processName
-              << m_createdProcessId;
+            s << m_addProcessCommand.serialize();
             m_delegate.serialize(s);
         }
         void deserializeImpl(DataStreamOutput& s) override
         {
-            s >> m_path
-              >> m_processName
-              >> m_createdProcessId;
+            QByteArray b;
+            s >> b;
+
+            m_addProcessCommand.deserialize(b);
             m_delegate.deserialize(s);
         }
 
@@ -168,7 +162,7 @@ class AddProcessDelegate<HasNoRacks>
             m_createdRackId = getStrongId(constraint.racks);
             m_createdSlotId = Id<SlotModel>(iscore::id_generator::getFirstId());
             m_createdLayerId = Id<LayerModel> (iscore::id_generator::getFirstId());
-            m_layerConstructionData = fact.list().get(m_cmd.m_processName)->makeStaticLayerConstructionData();
+            m_layerConstructionData = fact.list().get(m_cmd.processKey())->makeStaticLayerConstructionData();
         }
 
         void undo(ConstraintModel& constraint) const
@@ -253,7 +247,7 @@ class AddProcessDelegate<HasNoSlots, HasRacks, NotBaseConstraint>
         {
             m_createdSlotId = Id<SlotModel>(iscore::id_generator::getFirstId());
 
-            m_layerConstructionData = fact.list().get(m_cmd.m_processName)->makeStaticLayerConstructionData();
+            m_layerConstructionData = fact.list().get(m_cmd.processKey())->makeStaticLayerConstructionData();
             m_createdLayerId = Id<LayerModel> (iscore::id_generator::getFirstId());
         }
 
@@ -330,7 +324,7 @@ class AddProcessDelegate<HasSlots, HasRacks, NotBaseConstraint>
             ISCORE_ASSERT(!firstRack.slotmodels.empty());
             const auto& firstSlot = *firstRack.slotmodels.begin();
 
-            m_layerConstructionData = fact.list().get(m_cmd.m_processName)->makeStaticLayerConstructionData();
+            m_layerConstructionData = fact.list().get(m_cmd.processKey())->makeStaticLayerConstructionData();
             m_createdLayerId = getStrongId(firstSlot.layers);
         }
 
