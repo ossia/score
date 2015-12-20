@@ -30,6 +30,11 @@ enum class PriorityPolicy {
 
 struct StateNodeValues
 {
+        bool empty() const
+        {
+            return previousProcessValues.isEmpty() && followingProcessValues.isEmpty() && !userValue;
+        }
+
         // TODO use lists or queues instead to manage the priorities
         QVector<ProcessStateData> previousProcessValues;
         QVector<ProcessStateData> followingProcessValues;
@@ -132,6 +137,7 @@ struct StateNodeData
 
         iscore::OptionalValue value() const
         { return values.value(); }
+
 };
 
 using MessageNode = TreeNode<StateNodeData>;
