@@ -110,91 +110,6 @@ void StateModel::statesUpdated_slt()
     emit sig_statesUpdated();
 }
 
-void StateModel::on_previousProcessAdded(const Process& proc)
-{
-    ProcessStateDataInterface* state = proc.endStateData();
-    if(!state)
-        return;
-
-    auto prev_proc_fun = [&] (const iscore::MessageList& ml) {
-        // TODO have some collapsing between all the processes of a state
-        // NOTE how to prevent these states from being played
-        // twice ? mark them ?
-        // TODO which one should be sent ? the ones
-        // from the process ?
-
-        auto node = m_messageItemModel->rootNode();
-        updateTreeWithMessageList(node, ml, proc.id(), ProcessPosition::Previous);
-        *m_messageItemModel = std::move(node);
-
-        for(auto& next_proc : m_nextProcesses)
-        {
-            next_proc->setMessages(ml, m_messageItemModel->rootNode());
-        }
-    };
-    connect(state, &ProcessStateDataInterface::messagesChanged,
-            this, prev_proc_fun);
-
-    prev_proc_fun(state->messages());
-
-    m_previousProcesses.insert(state);
-    statesUpdated_slt();
-}
-
-void StateModel::on_previousProcessRemoved(const Process& proc)
-{
-    ProcessStateDataInterface* state = proc.endStateData();
-    if(!state)
-        return;
-
-    auto node = m_messageItemModel->rootNode();
-    updateTreeWithRemovedProcess(node, proc.id(), ProcessPosition::Previous);
-    *m_messageItemModel = std::move(node);
-
-    m_previousProcesses.erase(state);
-}
-
-void StateModel::on_nextProcessAdded(const Process& proc)
-{
-    ProcessStateDataInterface* state = proc.startStateData();
-    if(!state)
-        return;
-
-    auto next_proc_fun = [&] (const iscore::MessageList& ml) {
-
-        auto node = m_messageItemModel->rootNode();
-        updateTreeWithMessageList(node, ml, proc.id(), ProcessPosition::Following);
-        *m_messageItemModel = std::move(node);
-
-        // TODO if(synchronize) ...
-        for(auto& prev_proc : m_previousProcesses)
-        {
-            prev_proc->setMessages(ml, m_messageItemModel->rootNode());
-        }
-    };
-
-    connect(state, &ProcessStateDataInterface::messagesChanged,
-            this, next_proc_fun);
-
-    next_proc_fun(state->messages());
-
-    m_nextProcesses.insert(state);
-    statesUpdated_slt();
-}
-
-void StateModel::on_nextProcessRemoved(const Process& proc)
-{
-    ProcessStateDataInterface* state = proc.startStateData();
-    if(!state)
-        return;
-
-    auto node = m_messageItemModel->rootNode();
-    updateTreeWithRemovedProcess(node, proc.id(), ProcessPosition::Following);
-    *m_messageItemModel = std::move(node);
-
-    m_nextProcesses.erase(state);
-}
-
 const Id<EventModel> &StateModel::eventId() const
 {
     return m_eventId;
@@ -217,90 +132,12 @@ const Id<ConstraintModel> &StateModel::nextConstraint() const
 
 void StateModel::setNextConstraint(const Id<ConstraintModel> & id)
 {
-    auto scenar = dynamic_cast<ScenarioInterface*>(parent());
-    if(m_nextConstraint)
-    {
-        auto node = m_messageItemModel->rootNode();
-        updateTreeWithRemovedConstraint(node, ProcessPosition::Following);
-        *m_messageItemModel = std::move(node);
-
-        if(scenar)
-        {
-            auto cstr = scenar->findConstraint(m_nextConstraint);
-            if(cstr)
-            {
-                cstr->processes.added.disconnect<StateModel,&StateModel::on_nextProcessAdded>(this);
-                cstr->processes.removed.disconnect<StateModel,&StateModel::on_nextProcessRemoved>(this);
-            }
-        }
-        m_nextProcesses.clear();
-    }
-
     m_nextConstraint = id;
-
-    if(!m_nextConstraint)
-        return;
-
-    if(scenar)
-    {
-        // The constraints might not be present in a scenario
-        // for instance when restoring removed elements.
-        auto cstr = scenar->findConstraint(m_nextConstraint);
-        if(cstr)
-        {
-            for(const auto& proc : cstr->processes)
-            {
-                on_nextProcessAdded(proc);
-            }
-
-            cstr->processes.added.connect<StateModel,&StateModel::on_nextProcessAdded>(this);
-            cstr->processes.removed.connect<StateModel,&StateModel::on_nextProcessRemoved>(this);
-        }
-    }
 }
 
 void StateModel::setPreviousConstraint(const Id<ConstraintModel> & id)
 {
-    // First clean the state model of the previous constraint's states
-    auto scenar = dynamic_cast<ScenarioInterface*>(parent());
-    if(m_previousConstraint)
-    {
-        auto node = m_messageItemModel->rootNode();
-        updateTreeWithRemovedConstraint(node, ProcessPosition::Previous);
-        *m_messageItemModel = std::move(node);
-
-        if(scenar)
-        {
-            auto cstr = scenar->findConstraint(m_previousConstraint);
-            if(cstr)
-            {
-                cstr->processes.added.disconnect<StateModel,&StateModel::on_previousProcessAdded>(this);
-                cstr->processes.removed.disconnect<StateModel,&StateModel::on_previousProcessRemoved>(this);
-            }
-        }
-
-        m_previousProcesses.clear();
-    }
-
     m_previousConstraint = id;
-
-    if(!m_previousConstraint)
-        return;
-
-    if(scenar)
-    {
-        auto cstr = scenar->findConstraint(m_previousConstraint);
-        if(cstr)
-        {
-            for(const auto& proc : cstr->processes)
-            {
-                on_previousProcessAdded(proc);
-            }
-
-            cstr->processes.added.connect<StateModel,&StateModel::on_previousProcessAdded>(this);
-            cstr->processes.removed.connect<StateModel,&StateModel::on_previousProcessRemoved>(this);
-        }
-    }
 }
 
 

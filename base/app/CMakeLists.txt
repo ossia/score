@@ -131,5 +131,4 @@ if(ISCORE_UNITY_BUILD)
         cotire(IscoreCustomUnity)
 endif()
 
-cotire(${APPNAME})
 include(IScoreDeployment)

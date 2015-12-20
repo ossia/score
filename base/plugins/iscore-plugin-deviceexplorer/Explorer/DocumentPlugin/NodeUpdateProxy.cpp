@@ -15,6 +15,7 @@
 #include "NodeUpdateProxy.hpp"
 #include <State/Address.hpp>
 #include <iscore/tools/TreeNode.hpp>
+#include <iscore/tools/std/Algorithms.hpp>
 
 NodeUpdateProxy::NodeUpdateProxy(DeviceDocumentPlugin& root):
     devModel{root}
@@ -75,19 +76,19 @@ void NodeUpdateProxy::removeDevice(const iscore::DeviceSettings& dev)
 {
     devModel.list().removeDevice(dev.name);
 
-    for(auto it = devModel.rootNode().begin(); it < devModel.rootNode().end(); ++it)
+    const auto& rootNode = devModel.rootNode();
+    auto it = find_if(rootNode, [&] (const auto& val) {
+        return val.template is<iscore::DeviceSettings>() && val.template get<iscore::DeviceSettings>().name == dev.name;
+    });
+    ISCORE_ASSERT(it != rootNode.end());
+
+    if(deviceExplorer)
     {
-        if(it->is<iscore::DeviceSettings>() && it->get<iscore::DeviceSettings>().name == dev.name)
-        {
-            if(deviceExplorer)
-            {
-                deviceExplorer->removeNode(it);
-            }
-            else
-            {
-                devModel.rootNode().erase(it);
-            }
-        }
+        deviceExplorer->removeNode(it);
+    }
+    else
+    {
+        devModel.rootNode().erase(it);
     }
 }
 

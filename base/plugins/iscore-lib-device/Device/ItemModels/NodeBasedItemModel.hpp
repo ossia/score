@@ -50,7 +50,7 @@ class ISCORE_LIB_DEVICE_EXPORT NodeBasedItemModel : public TreeNodeBasedItemMode
             endInsertRows();
         }
 
-        void removeNode(node_type::const_iterator node)
+        auto removeNode(node_type::const_iterator node)
         {
             ISCORE_ASSERT(!node->is<InvisibleRootNodeTag>());
 
@@ -66,16 +66,18 @@ class ISCORE_LIB_DEVICE_EXPORT NodeBasedItemModel : public TreeNodeBasedItemMode
                 int row = parent->indexOfChild(&*node);
 
                 beginRemoveRows(parentIndex, row, row);
-                parent->erase(node);
+                auto it = parent->erase(node);
                 endRemoveRows();
+                return it;
             }
             else if(node->is<iscore::DeviceSettings>())
             {
                 int row = rootNode().indexOfChild(&*node);
 
                 beginRemoveRows(QModelIndex(), row, row);
-                rootNode().erase(node);
+                auto it = rootNode().erase(node);
                 endRemoveRows();
+                return it;
             }
         }
 };
