@@ -20,6 +20,25 @@
 #include <iscore/tools/TreeNode.hpp>
 #include <iscore/tools/std/Algorithms.hpp>
 
+bool removable(const MessageNode& node)
+{ return node.values.empty() && !node.hasChildren(); }
+
+void cleanupNode(MessageNode& rootNode)
+{
+    for(auto it = rootNode.begin(); it != rootNode.end(); )
+    {
+        auto& child = *it;
+        if(removable(child))
+        {
+            it = rootNode.erase(it);
+        }
+        else
+        {
+            it++;
+        }
+    }
+}
+
 bool match(MessageNode& node, const iscore::Message& mess)
 {
     MessageNode* n = &node;
@@ -133,12 +152,12 @@ void nodePruneAction(
     // If there is no corresponding message in our list,
     // but there is a corresponding process in the tree,
     // we prune it
-    bool deleteMe = false;
+    bool deleteMe = node.childCount() == 0;
     switch(pos)
     {
         case ProcessPosition::Previous:
         {
-            deleteMe = nodePruneAction_impl(
+            deleteMe &= nodePruneAction_impl(
                         node, proc,
                         node.values.previousProcessValues,
                         node.values.followingProcessValues);
@@ -146,7 +165,7 @@ void nodePruneAction(
         }
         case ProcessPosition::Following:
         {
-            deleteMe = nodePruneAction_impl(
+            deleteMe &= nodePruneAction_impl(
                         node, proc,
                         node.values.followingProcessValues,
                         node.values.previousProcessValues);
@@ -159,17 +178,7 @@ void nodePruneAction(
 
     if(deleteMe)
     {
-        if(node.childCount() > 0)
-        {
-            // We just clear the data
-            node.values = StateNodeValues{};
-        }
-        else
-        {
-            // We can delete this node and recursively
-            // try to delete its empty parents
-            rec_delete(node);
-        }
+        node.values = StateNodeValues{};
     }
 }
 
@@ -231,6 +240,8 @@ void rec_updateTree(
     {
         rec_updateTree(child, lst, proc, pos);
     }
+
+    cleanupNode(node);
 }
 
 // TODO another one to refactor with merges
@@ -370,7 +381,10 @@ void rec_pruneTree(
     {
         rec_pruneTree(child, proc, pos);
     }
+
+    cleanupNode(node);
 }
+
 
 void updateTreeWithRemovedProcess(
         MessageNode& rootNode,
@@ -381,6 +395,8 @@ void updateTreeWithRemovedProcess(
     {
         rec_pruneTree(child, proc, pos);
     }
+
+    cleanupNode(rootNode);
 }
 
 
@@ -395,17 +411,17 @@ void nodePruneAction(
     // If there is no corresponding message in our list,
     // but there is a corresponding process in the tree,
     // we prune it
-    bool deleteMe = false;
+    bool deleteMe = node.childCount() == 0;
     switch(pos)
     {
         case ProcessPosition::Previous:
         {
-            deleteMe = !node.values.userValue && node.values.followingProcessValues.isEmpty();
+            deleteMe &= !node.values.userValue && node.values.followingProcessValues.isEmpty();
             break;
         }
         case ProcessPosition::Following:
         {
-            deleteMe = !node.values.userValue && node.values.previousProcessValues.isEmpty();
+            deleteMe &= !node.values.userValue && node.values.previousProcessValues.isEmpty();
             break;
         }
         default:
@@ -415,17 +431,7 @@ void nodePruneAction(
 
     if(deleteMe)
     {
-        if(node.childCount() > 0)
-        {
-            // We just clear the data
-            node.values = StateNodeValues{};
-        }
-        else
-        {
-            // We can delete this node and recursively
-            // try to delete its empty parents
-            rec_delete(node);
-        }
+        node.values = StateNodeValues{};
     }
 }
 
@@ -439,6 +445,8 @@ void rec_pruneTree(
     {
         rec_pruneTree(child, pos);
     }
+
+    cleanupNode(node);
 }
 
 void updateTreeWithRemovedConstraint(MessageNode& rootNode, ProcessPosition pos)
