@@ -2,6 +2,12 @@
 #include <Process/ProcessList.hpp>
 #include <Scenario/Document/Constraint/ConstraintModel.hpp>
 
+#include <Scenario/Document/State/StateModel.hpp>
+#include <Scenario/Document/State/ItemModel/MessageItemModel.hpp>
+#include <Scenario/Document/Constraint/ConstraintDurations.hpp>
+#include <Scenario/Process/Algorithms/Accessors.hpp>
+#include <Scenario/Process/Algorithms/ProcessPolicy.hpp>
+#include <Scenario/Process/ScenarioInterface.hpp>
 #include <boost/iterator/iterator_facade.hpp>
 #include <boost/multi_index/detail/hash_index_iterator.hpp>
 
@@ -10,7 +16,6 @@
 #include <vector>
 
 #include "AddOnlyProcessToConstraint.hpp"
-#include <Scenario/Document/Constraint/ConstraintDurations.hpp>
 #include <iscore/application/ApplicationContext.hpp>
 #include <iscore/plugins/customfactory/FactoryFamily.hpp>
 #include <iscore/plugins/customfactory/FactoryMap.hpp>
@@ -43,14 +48,21 @@ AddOnlyProcessToConstraint::AddOnlyProcessToConstraint(
 
 void AddOnlyProcessToConstraint::undo() const
 {
-    auto& constraint = m_path.find();
-    constraint.processes.remove(m_createdProcessId);
+    undo(m_path.find());
 }
 
 void AddOnlyProcessToConstraint::redo() const
 {
-    auto& constraint = m_path.find();
+    redo(m_path.find());
+}
 
+void AddOnlyProcessToConstraint::undo(ConstraintModel& constraint) const
+{
+    RemoveProcess(constraint, m_createdProcessId);
+}
+
+Process& AddOnlyProcessToConstraint::redo(ConstraintModel& constraint) const
+{
     // Create process model
     auto proc = context.components.factory<ProcessList>().list().get(m_processName)
             ->makeModel(
@@ -58,7 +70,8 @@ void AddOnlyProcessToConstraint::redo() const
                 m_createdProcessId,
                 &constraint);
 
-    constraint.processes.add(proc);
+    AddProcess(constraint, proc);
+    return *proc;
 }
 
 void AddOnlyProcessToConstraint::serializeImpl(DataStreamInput& s) const

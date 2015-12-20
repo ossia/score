@@ -11,6 +11,7 @@
 #include <Scenario/Commands/Scenario/Deletions/ClearConstraint.hpp>
 #include <Scenario/Document/Constraint/Rack/RackModel.hpp>
 #include <Scenario/Document/Constraint/Rack/Slot/SlotModel.hpp>
+#include <Scenario/Process/Algorithms/ProcessPolicy.hpp>
 
 #include <Scenario/Document/Constraint/ViewModels/ConstraintViewModel.hpp>
 #include <Scenario/Process/Algorithms/StandardCreationPolicy.hpp>
@@ -173,7 +174,7 @@ class CommonDisplacementPolicy
                         auto newproc = sourceproc.clone(sourceproc.id(), &constraint);
 
                         processPairs.insert(std::make_pair(&sourceproc, newproc));
-                        constraint.processes.add(newproc);
+                        AddProcess(constraint, newproc);
                     }
 
                     // Clone the rackes

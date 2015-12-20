@@ -4,6 +4,7 @@
 #include <Scenario/Document/Constraint/Rack/RackModel.hpp>
 #include <Scenario/Document/Constraint/ViewModels/ConstraintViewModel.hpp>
 
+#include <Scenario/Process/Algorithms/ProcessPolicy.hpp>
 
 #include <QDataStream>
 #include <QtGlobal>
@@ -60,7 +61,7 @@ void ClearConstraint::undo() const
     for(auto& serializedProcess : m_serializedProcesses)
     {
         Deserializer<DataStream> s {serializedProcess};
-        constraint.processes.add(createProcess(fact, s, &constraint));
+        AddProcess(constraint, createProcess(fact, s, &constraint));
     }
 
     for(auto& serializedRack : m_serializedRackes)
@@ -87,7 +88,7 @@ void ClearConstraint::redo() const
     auto processes = constraint.processes.map();
     for(const auto& process : processes)
     {
-        constraint.processes.remove(process.id());
+        RemoveProcess(constraint, process.id());
     }
 
     auto rackes = constraint.racks.map();

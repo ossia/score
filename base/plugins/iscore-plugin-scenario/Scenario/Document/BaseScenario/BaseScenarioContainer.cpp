@@ -2,6 +2,7 @@
 #include <Scenario/Document/Event/EventModel.hpp>
 #include <Scenario/Document/State/StateModel.hpp>
 #include <Scenario/Document/TimeNode/TimeNodeModel.hpp>
+#include <Scenario/Process/Algorithms/ProcessPolicy.hpp>
 #include <boost/optional/optional.hpp>
 
 #include "BaseScenarioContainer.hpp"
@@ -42,9 +43,8 @@ void BaseScenarioContainer::init()
     m_constraint->setStartState(m_startState->id());
     m_constraint->setEndState(m_endState->id());
 
-    m_startState->setNextConstraint(m_constraint->id());
-    m_endState->setPreviousConstraint(m_constraint->id());
-
+    SetNextConstraint(*m_startState, *m_constraint);
+    SetPreviousConstraint(*m_endState, *m_constraint);
 }
 
 void BaseScenarioContainer::init(const BaseScenarioContainer& source)
@@ -60,7 +60,6 @@ void BaseScenarioContainer::init(const BaseScenarioContainer& source)
 
     m_startState = new StateModel{*source.m_startState, source.m_startState->id(), stack, m_parent};
     m_endState = new StateModel{*source.m_endState, source.m_endState->id(),  stack, m_parent};
-
 }
 
 ConstraintModel* BaseScenarioContainer::findConstraint(

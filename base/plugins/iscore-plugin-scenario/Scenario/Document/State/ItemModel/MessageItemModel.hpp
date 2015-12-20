@@ -44,9 +44,9 @@ class ISCORE_PLUGIN_SCENARIO_EXPORT MessageItemModel final : public TreeNodeBase
         MessageItemModel& operator=(const node_type&);
         MessageItemModel& operator=(node_type&&);
 
-        const node_type& rootNode() const override
+        const MessageNode& rootNode() const override
         { return m_rootNode; }
-        node_type& rootNode() override
+        MessageNode& rootNode() override
         { return m_rootNode; }
 
         // AbstractItemModel interface

@@ -16,6 +16,10 @@
 class LayerModel;
 class ProcessStateDataInterface;
 class QObject;
+template<typename>
+class TreeNode;
+class StateNodeData;
+using MessageNode = TreeNode<StateNodeData>;
 namespace iscore {
 class ElementPluginModelList;
 }  // namespace iscore

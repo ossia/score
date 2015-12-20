@@ -9,6 +9,8 @@
 #include <Scenario/Document/State/StateModel.hpp>
 #include <Scenario/Document/TimeNode/TimeNodeModel.hpp>
 #include <Scenario/Document/VerticalExtent.hpp>
+#include <Scenario/Process/Algorithms/ProcessPolicy.hpp>
+#include <Scenario/Process/Algorithms/Accessors.hpp>
 #include "StandardCreationPolicy.hpp"
 #include <iscore/document/DocumentContext.hpp>
 #include <iscore/tools/NotifyingMap.hpp>
@@ -114,11 +116,8 @@ void ScenarioCreate<ConstraintModel>::undo(
 {
     auto& cst = s.constraints.at(id);
 
-    auto& sev = s.states.at(cst.startState());
-    auto& eev = s.states.at(cst.endState());
-
-    sev.setNextConstraint(Id<ConstraintModel>{});
-    eev.setPreviousConstraint(Id<ConstraintModel>{});
+    SetNoNextConstraint(startState(cst, s));
+    SetNoPreviousConstraint(endState(cst, s));
 
     s.constraints.remove(&cst);
 }
@@ -142,8 +141,8 @@ ConstraintModel& ScenarioCreate<ConstraintModel>::redo(
 
     s.constraints.add(constraint);
 
-    sst.setNextConstraint(id);
-    est.setPreviousConstraint(id);
+    SetNextConstraint(sst, *constraint);
+    SetPreviousConstraint(est, *constraint);
 
     const auto& sev = s.event(sst.eventId());
     const auto& eev = s.event(est.eventId());

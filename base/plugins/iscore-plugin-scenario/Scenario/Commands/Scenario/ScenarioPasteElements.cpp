@@ -30,6 +30,7 @@
 #include <Scenario/Document/Constraint/ViewModels/ConstraintViewModelIdMap.hpp>
 #include <Scenario/Palette/ScenarioPoint.hpp>
 #include <Scenario/Process/AbstractScenarioLayerModel.hpp>
+#include <Scenario/Process/Algorithms/ProcessPolicy.hpp>
 #include "ScenarioPasteElements.hpp"
 #include <iscore/document/DocumentInterface.hpp>
 #include <iscore/serialization/DataStreamVisitor.hpp>
@@ -38,6 +39,7 @@
 #include <iscore/tools/ModelPathSerialization.hpp>
 #include <iscore/tools/NotifyingMap.hpp>
 #include <iscore/tools/ObjectPath.hpp>
+#include <iscore/tools/std/Algorithms.hpp>
 #include <core/document/Document.hpp>
 // Needed for copy since we want to generate IDs that are neither
 // in the scenario in which we are copying into, nor in the elements
@@ -76,7 +78,6 @@ auto getStrongIdRangePtr(std::size_t s, const Vector& existing)
 
     return std::vector<Id<T>>(vec.begin() + existing.size(), vec.end());
 }
-
 
 ScenarioPasteElements::ScenarioPasteElements(
         Path<TemporalScenarioLayerModel>&& path,
@@ -214,19 +215,21 @@ ScenarioPasteElements::ScenarioPasteElements(
         int i = 0;
         for(ConstraintModel* constraint : constraints)
         {
-            for(StateModel* state : states)
-            {
-                if(state->id() == constraint->startState())
-                {
-                    state->setNextConstraint(constraint_ids[i]);
-                }
-                else if(state->id() == constraint->endState())
-                {
-                    state->setPreviousConstraint(constraint_ids[i]);
-                }
-            }
-
             constraint->setId(constraint_ids[i]);
+            {
+                auto start_state_id = find_if(states, [&] (auto state) {
+                    return state->id() == constraint->startState();
+                });
+                if(start_state_id != states.end())
+                    SetNextConstraint(**start_state_id, *constraint);
+            }
+            {
+                auto end_state_id = find_if(states, [&] (auto state) {
+                    return state->id() == constraint->endState();
+                });
+                if(end_state_id != states.end())
+                    SetPreviousConstraint(**end_state_id, *constraint);
+            }
             i++;
         }
     }

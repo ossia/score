@@ -4,6 +4,7 @@
 #include <Scenario/Document/State/StateModel.hpp>
 #include <Scenario/Document/TimeNode/TimeNodeModel.hpp>
 #include <Scenario/Process/ScenarioModel.hpp>
+#include <Scenario/Process/Algorithms/ProcessPolicy.hpp>
 #include <boost/optional/optional.hpp>
 #include <QJsonArray>
 #include <QJsonObject>
@@ -136,35 +137,10 @@ QJsonObject copySelectedScenarioElements(const Scenario::ScenarioModel &sm)
 
         // NOTE : we must not serialize the state with their previous / next constraint
         // since they will change once pasted and cause crash at the end of the ctor
-        // of StateModel.
-        clone_st->setPreviousConstraint(Id<ConstraintModel>{});
-        clone_st->setNextConstraint(Id<ConstraintModel>{});
-        /*
-        clone_st->setPreviousConstraint(st->previousConstraint());
-        clone_st->setNextConstraint(st->nextConstraint());
-        if(st->previousConstraint())
-        {
-            auto prev_absent = std::none_of(
-                        selectedConstraints.begin(),
-                        selectedConstraints.end(),
-                        [&] (const ConstraintModel* cst) { return cst->id() == st->previousConstraint(); });
-            if(prev_absent)
-            {
-                clone_st->setPreviousConstraint(Id<ConstraintModel>{});
-            }
-        }
+        // of StateModel. They are saved in the previous / next state of constraint anyway.
+        SetNoPreviousConstraint(*clone_st);
+        SetNoNextConstraint(*clone_st);
 
-        if(st->nextConstraint())
-        {
-            auto next_absent = std::none_of(selectedConstraints.begin(),
-                                            selectedConstraints.end(),
-                                            [&] (const ConstraintModel* cst) { return cst->id() == st->nextConstraint(); });
-            if(next_absent)
-            {
-                clone_st->setNextConstraint(Id<ConstraintModel>{});
-            }
-        }
-        */
         copiedStates.push_back(clone_st);
     }
 
@@ -216,11 +192,9 @@ QJsonObject copySelectedScenarioElements(BaseScenario &sm)
         {
             auto clone_st = new StateModel(st, st.id(), stack, &sm);
 
-            // NOTE : we must not serialize the state with their previous / next constraint
-            // since they will change once pasted and cause crash at the end of the ctor
-            // of StateModel.
-            clone_st->setPreviousConstraint(Id<ConstraintModel>{});
-            clone_st->setNextConstraint(Id<ConstraintModel>{});
+            // NOTE : see above note on copySelectedScenarioElements(const Scenario::ScenarioModel &)
+            SetNoPreviousConstraint(*clone_st);
+            SetNoNextConstraint(*clone_st);
             copiedStates.push_back(clone_st);
         }
 
