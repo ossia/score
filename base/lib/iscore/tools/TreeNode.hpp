@@ -182,14 +182,14 @@ class TreeNode : public DataType
             m_children.swap(oldIndex, newIndex);
         }
 
-        void erase(const_iterator it)
+        auto erase(const_iterator it)
         {
-            m_children.erase(it);
+            return m_children.erase(it);
         }
 
-        void erase(const_iterator it_beg, const_iterator it_end)
+        auto erase(const_iterator it_beg, const_iterator it_end)
         {
-            m_children.erase(it_beg, it_end);
+            return m_children.erase(it_beg, it_end);
         }
 
         void setParent(TreeNode* parent)

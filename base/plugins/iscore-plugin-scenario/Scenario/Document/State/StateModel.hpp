@@ -28,6 +28,21 @@ namespace iscore
 class CommandStackFacade;
 }
 
+class ProcessStateWrapper : public QObject
+{
+    private:
+        ProcessStateDataInterface* m_proc;
+
+    public:
+        ProcessStateWrapper(ProcessStateDataInterface* proc):
+            m_proc{proc}
+        {
+
+        }
+
+        ProcessStateDataInterface& process() const { return *m_proc; }
+};
+
 // Model for the graphical state in a scenario.
 class ISCORE_PLUGIN_SCENARIO_EXPORT StateModel final : public IdentifiedObject<StateModel>, public Nano::Observer
 {
@@ -37,6 +52,7 @@ class ISCORE_PLUGIN_SCENARIO_EXPORT StateModel final : public IdentifiedObject<S
         ISCORE_SERIALIZE_FRIENDS(StateModel, DataStream)
         ISCORE_SERIALIZE_FRIENDS(StateModel, JSONObject)
     public:
+        using ProcessVector = std::list<ProcessStateWrapper>;
         Selectable selection;
         ModelMetadata metadata;
 
@@ -82,9 +98,13 @@ class ISCORE_PLUGIN_SCENARIO_EXPORT StateModel final : public IdentifiedObject<S
         void setNextConstraint(const Id<ConstraintModel>&);
         void setPreviousConstraint(const Id<ConstraintModel>&);
 
-        const auto& previousProcesses() const
+        ProcessVector& previousProcesses()
         { return m_previousProcesses; }
-        const auto& followingProcesses() const
+        ProcessVector& followingProcesses()
+        { return m_nextProcesses; }
+        const ProcessVector& previousProcesses() const
+        { return m_previousProcesses; }
+        const ProcessVector& followingProcesses() const
         { return m_nextProcesses; }
 
         void setStatus(ExecutionStatus);
@@ -104,16 +124,10 @@ class ISCORE_PLUGIN_SCENARIO_EXPORT StateModel final : public IdentifiedObject<S
     private:
         void statesUpdated_slt();
         void init(); // TODO check if other model elements need an init method too.
-        void setConstraint_impl(const Id<ConstraintModel>& id);
-        void on_nextProcessAdded(const Process&);
-        void on_nextProcessRemoved(const Process&);
-        void on_previousProcessAdded(const Process&);
-        void on_previousProcessRemoved(const Process&);
-
         iscore::CommandStackFacade& m_stack;
 
-        std::set<ProcessStateDataInterface*> m_previousProcesses;
-        std::set<ProcessStateDataInterface*> m_nextProcesses;
+        ProcessVector m_previousProcesses;
+        ProcessVector m_nextProcesses;
         Id<EventModel> m_eventId;
 
         // OPTIMIZEME if we shift to Id = int, put this Optional

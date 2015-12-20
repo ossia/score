@@ -41,21 +41,24 @@ AddMessagesToState::AddMessagesToState(
         // of this node, and if there is no "user" or message from another process, we remove
         // the node altogether
 
-        for(ProcessStateDataInterface* prevProc : sm.previousProcesses())
+        for(const auto& prevProc : sm.previousProcesses())
         {
-            m_previousBackup.insert(prevProc->process().id(), prevProc->messages());
+            const auto& processModel = prevProc.process().process();
+            m_previousBackup.insert(processModel.id(), prevProc.process().messages());
 
-            auto lst = prevProc->setMessages(messages, m_oldState);
+            auto lst = prevProc.process().setMessages(messages, m_oldState);
 
-            updateTreeWithMessageList(m_newState, lst, prevProc->process().id(), ProcessPosition::Previous);
+            updateTreeWithMessageList(m_newState, lst, processModel.id(), ProcessPosition::Previous);
         }
-        for(ProcessStateDataInterface* prevProc : sm.followingProcesses())
+
+        for(const auto& nextProc : sm.followingProcesses())
         {
-            m_followingBackup.insert(prevProc->process().id(), prevProc->messages());
+            const auto& processModel = nextProc.process().process();
+            m_followingBackup.insert(processModel.id(), nextProc.process().messages());
 
-            auto lst = prevProc->setMessages(messages, m_oldState);
+            auto lst = nextProc.process().setMessages(messages, m_oldState);
 
-            updateTreeWithMessageList(m_newState, lst, prevProc->process().id(), ProcessPosition::Following);
+            updateTreeWithMessageList(m_newState, lst, processModel.id(), ProcessPosition::Following);
         }
 
         // TODO one day there will also be State functions that will perform
@@ -72,13 +75,13 @@ void AddMessagesToState::undo() const
 
     // Restore the state of the processes.
     auto& sm = model.stateModel;
-    for(ProcessStateDataInterface* prevProc : sm.previousProcesses())
+    for(const auto& prevProc : sm.previousProcesses())
     {
-        prevProc->setMessages(m_previousBackup[prevProc->process().id()], m_oldState);
+        prevProc.process().setMessages(m_previousBackup[prevProc.process().process().id()], m_oldState);
     }
-    for(ProcessStateDataInterface* prevProc : sm.followingProcesses())
+    for(const auto& nextProc : sm.followingProcesses())
     {
-        prevProc->setMessages(m_followingBackup[prevProc->process().id()], m_oldState);
+        nextProc.process().setMessages(m_followingBackup[nextProc.process().process().id()], m_oldState);
     }
 }
 

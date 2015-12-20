@@ -230,6 +230,7 @@ void OSSIAApplicationPlugin::on_stop()
 
 void OSSIAApplicationPlugin::setupOSSIACallbacks()
 {
+    return;
     // TODO in settings allow to set-up the local device's tree. Or maybe just use the device explorer ??
     // TODO OSSIALocalDevice; this would be a document plug-in that would visit a scenario
     // and create relevant "ossia" nodes as QObjects children - like in network plug-in.
