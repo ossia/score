@@ -30,7 +30,8 @@ void Visitor<Reader<DataStream>>::readFrom(const Process& process)
 
     readFrom(static_cast<const IdentifiedObject<Process>&>(process));
 
-    readFrom(process.duration());
+    readFrom(process.m_duration);
+    m_stream << process.m_useParentDuration;
 
     readFrom(process.metadata);
 
@@ -46,6 +47,7 @@ template<>
 void Visitor<Writer<DataStream>>::writeTo(Process& process)
 {
     writeTo(process.m_duration);
+    m_stream >> process.m_useParentDuration;
     writeTo(process.metadata);
 
     // Delimiter checked on createProcess

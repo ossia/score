@@ -61,6 +61,7 @@ class ISCORE_PLUGIN_SCENARIO_EXPORT ConstraintModel final : public IdentifiedObj
                         double yPos,
                         QObject* parent);
 
+        ~ConstraintModel();
 
         // Copy
         ConstraintModel(const ConstraintModel &source,

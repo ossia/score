@@ -95,6 +95,14 @@ Scenario::ScenarioModel* ScenarioModel::clone(
     return new ScenarioModel {*this, newId, newParent};
 }
 
+ScenarioModel::~ScenarioModel()
+{
+    apply([&] (const auto& m) {
+        for(auto elt : (this->*m).map().get())
+            delete elt;
+    });
+}
+
 QByteArray ScenarioModel::makeLayerConstructionData() const
 {
     // For all existing constraints we need to generate corresponding

@@ -116,6 +116,20 @@ class ISCORE_LIB_PROCESS_EXPORT Process: public IdentifiedObject<Process>
 
         void expandProcess(ExpandMode mode, const TimeValue& t);
 
+        void setUseParentDuration(bool b)
+        {
+            if(m_useParentDuration != b)
+            {
+                m_useParentDuration = b;
+                emit useParentDurationChanged(b);
+            }
+        }
+
+        bool useParentDuration() const
+        {
+            return m_useParentDuration;
+        }
+
         // TODO might not be useful... put in protected ?
         // Constructor needs it, too.
         void setDuration(const TimeValue& other);
@@ -143,7 +157,7 @@ class ISCORE_LIB_PROCESS_EXPORT Process: public IdentifiedObject<Process>
         // True if the execution is running.
         void execution(bool);
         void durationChanged(const TimeValue&);
-
+        void useParentDurationChanged(bool);
     protected:
         // Clone
         Process(
@@ -173,6 +187,7 @@ class ISCORE_LIB_PROCESS_EXPORT Process: public IdentifiedObject<Process>
         // A process view is never displayed alone, it is always in a view, which is in a rack.
         std::vector<LayerModel*> m_layers;
         TimeValue m_duration;
+        bool m_useParentDuration{};
 };
 
 template<typename T>
