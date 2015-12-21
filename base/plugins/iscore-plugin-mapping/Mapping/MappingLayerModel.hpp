@@ -1,5 +1,6 @@
 #pragma once
 
+#include <iscore/tools/Metadata.hpp>
 #include <Process/LayerModel.hpp>
 
 #include <iscore/serialization/VisitorInterface.hpp>
@@ -11,7 +12,7 @@ class QObject;
 
 class MappingLayerModel : public LayerModel
 {
-        ISCORE_METADATA("MappingLayerModel")
+        ISCORE_METADATA(MappingLayerModel)
         public:
             MappingLayerModel(
                 MappingModel& model,

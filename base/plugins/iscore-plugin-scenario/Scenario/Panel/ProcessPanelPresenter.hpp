@@ -15,7 +15,6 @@ class PanelView;
 
 class ProcessPanelPresenter final : public iscore::PanelPresenter
 {
-        Q_OBJECT
     public:
         ProcessPanelPresenter(
                 const ProcessList& plist,
@@ -28,12 +27,11 @@ class ProcessPanelPresenter final : public iscore::PanelPresenter
         ZoomRatio zoomRatio() const
         { return m_zoomRatio; }
 
-    private slots:
+    private:
         void on_focusedViewModelChanged(const LayerModel*);
         void on_sizeChanged(const QSize& size);
         void on_zoomChanged(ZoomRatio ratio);
 
-    private:
         void cleanup();
 
         const ProcessList& m_processList;

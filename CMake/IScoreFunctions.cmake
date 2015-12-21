@@ -82,6 +82,9 @@ function(iscore_set_gcc_compile_options theTarget)
 endfunction()
 
 function(iscore_set_clang_compile_options theTarget)
+    target_compile_options(${theTarget} PUBLIC
+        -Wno-gnu-string-literal-operator-template
+        )
     #if ("${CMAKE_CXX_COMPILER_ID}" STREQUAL "Clang")
     #	set(CMAKE_CXX_FLAGS "${CMAKE_CXX_FLAGS} -Weverything -Wno-c++98-compat -Wno-exit-time-destructors -Wno-padded")
     #endif()

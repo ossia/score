@@ -109,11 +109,11 @@ ToolMenuActions::ToolMenuActions(
     auto grow = makeToolbarAction(
                     tr("Grow/Shrink"),
                     m_scenarioScaleModeActionGroup,
-                    ExpandMode::Grow,
+                    ExpandMode::GrowShrink,
                     tr("Alt+D"));
     connect(grow, &QAction::triggered, this, [=]()
     {
-        m_parent->editionSettings().setExpandMode(ExpandMode::Grow);
+        m_parent->editionSettings().setExpandMode(ExpandMode::GrowShrink);
     });
 
     auto fixed = makeToolbarAction(
@@ -180,7 +180,8 @@ ToolMenuActions::ToolMenuActions(
                 if(!scale->isChecked())
                     scale->setChecked(true);
                 break;
-            case ExpandMode::Grow:
+            case ExpandMode::GrowShrink:
+            case ExpandMode::ForceGrow:
                 if(!grow->isChecked())
                     grow->setChecked(true);
                 break;
@@ -188,6 +189,7 @@ ToolMenuActions::ToolMenuActions(
                 if(!fixed->isChecked())
                     fixed->setChecked(true);
                 break;
+
         }
     });
 }

@@ -16,6 +16,7 @@
 
 #include <Inspector/InspectorWidgetFactoryInterface.hpp>
 #include "LoopInspectorFactory.hpp"
+#include "LoopInspectorWidget.hpp"
 #include <Process/ExpandMode.hpp>
 #include <Process/TimeValue.hpp>
 #include <Scenario/Commands/MoveBaseEvent.hpp>
@@ -30,6 +31,8 @@
 
 class InspectorWidgetBase;
 class QWidget;
+
+// TODO cleanup this file
 
 class LoopConstraintInspectorDelegate final : public ConstraintInspectorDelegate
 {
@@ -105,9 +108,8 @@ bool LoopConstraintInspectorDelegateFactory::matches(
 
 
 
-
 LoopInspectorFactory::LoopInspectorFactory() :
-    InspectorWidgetFactory {}
+    ProcessInspectorWidgetDelegateFactory {}
 {
 
 }
@@ -117,24 +119,18 @@ LoopInspectorFactory::~LoopInspectorFactory()
 
 }
 
-InspectorWidgetBase* LoopInspectorFactory::makeWidget(
-        const QObject& sourceElement,
+ProcessInspectorWidgetDelegate* LoopInspectorFactory::make(
+        const Process& process,
         const iscore::DocumentContext& doc,
         QWidget* parent) const
 {
+    return new LoopInspectorWidget{
+        static_cast<const Loop::ProcessModel&>(process),
+                doc,
+                parent};
+}
 
-    // FIXME URGENT add implemented virtual destructors to every class that inherits from a virtual.
-    auto& appContext = doc.app.components;
-    auto& widgetFact = appContext.factory<InspectorWidgetList>();
-    auto& processFact = appContext.factory<ProcessList>();
-    auto& constraintWidgetFactory = appContext.factory<ConstraintInspectorDelegateFactoryList>();
-
-    auto& constraint = static_cast<const Loop::ProcessModel&>(sourceElement).constraint();
-
-    auto delegate = constraintWidgetFactory.make(constraint);
-    if(!delegate)
-        return nullptr;
-
-    return new ConstraintInspectorWidget{widgetFact, processFact, constraint, std::move(delegate), doc, parent};
-
+bool LoopInspectorFactory::matches(const Process& process) const
+{
+    return dynamic_cast<const Loop::ProcessModel*>(&process);
 }

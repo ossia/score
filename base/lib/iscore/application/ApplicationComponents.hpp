@@ -89,6 +89,7 @@ class ISCORE_LIB_BASE_EXPORT ApplicationComponents
         template<typename T>
         const T& factory() const
         {
+            static_assert(T::factory_list_tag, "This needs to be called with a factory list class");
             auto it = m_data.factories.find(T::staticFactoryKey());
             if(it != m_data.factories.end())
             {

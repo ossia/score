@@ -1,4 +1,5 @@
 #pragma once
+#include <iscore/tools/Metadata.hpp>
 #include <Process/ModelMetadata.hpp>
 #include <Process/TimeValue.hpp>
 #include <boost/optional/optional.hpp>
@@ -27,7 +28,7 @@ class Process;
 class ISCORE_PLUGIN_SCENARIO_EXPORT RackModel final : public IdentifiedObject<RackModel>, public Nano::Observer
 {
         Q_OBJECT
-        ISCORE_METADATA("RackModel") // TODO use this everywhere.
+        ISCORE_METADATA(RackModel)
 
     public:
         ModelMetadata metadata;

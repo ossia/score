@@ -13,7 +13,7 @@ class QLineEdit;
 
 class SimpleExpressionEditorWidget : public QWidget
 {
-	Q_OBJECT
+    Q_OBJECT
     public:
         SimpleExpressionEditorWidget(int index, QWidget* parent = 0);
 
@@ -22,24 +22,22 @@ class SimpleExpressionEditorWidget : public QWidget
 
         int id;
 
-    public slots:
         void setRelation(iscore::Relation r);
         void setOperator(iscore::BinaryOperator o);
         void setOperator(iscore::UnaryOperator u);
 
         QString currentRelation();
         QString currentOperator();
+
     signals:
         void editingFinished();
         void addRelation();
         void removeRelation(int index);
 
-    private slots:
+    private:
         void on_editFinished();
         void on_comparatorChanged(int i);
 // TODO on_modelChanged() -> done in parent inspector (i.e. event), no ?
-
-    private:
 
         QLabel* m_ok{};
 

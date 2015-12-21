@@ -14,19 +14,17 @@ class Document;
 
 //using namespace iscore;
 
-InspectorWidgetBase* ScenarioInspectorFactory::makeWidget(
-        const QObject& sourceElement,
-        const iscore::DocumentContext& doc,
+ProcessInspectorWidgetDelegate* ScenarioInspectorFactory::make(
+        const Process& process,
+        const iscore::DocumentContext&,
         QWidget* parent) const
 {
     return new ScenarioInspectorWidget{
-        static_cast<const Scenario::ScenarioModel&>(sourceElement),
-                doc,
+        static_cast<const Scenario::ScenarioModel&>(process),
                 parent};
 }
 
-const QList<QString>&ScenarioInspectorFactory::key_impl() const
+bool ScenarioInspectorFactory::matches(const Process& process) const
 {
-    static const QList<QString> list{ScenarioProcessMetadata::processObjectName()};
-    return list;
+    return dynamic_cast<const Scenario::ScenarioModel*>(&process);
 }

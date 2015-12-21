@@ -20,24 +20,26 @@ class QObject;
 class TimeProcessWithConstraint;
 #include <iscore/tools/SettableIdentifier.hpp>
 
-class JSProcessModel final : public RecreateOnPlay::OSSIAProcessModel
+namespace JS
 {
-        ISCORE_SERIALIZE_FRIENDS(JSProcessModel, DataStream)
-        ISCORE_SERIALIZE_FRIENDS(JSProcessModel, JSONObject)
+class ProcessModel final : public RecreateOnPlay::OSSIAProcessModel
+{
+        ISCORE_SERIALIZE_FRIENDS(ProcessModel, DataStream)
+        ISCORE_SERIALIZE_FRIENDS(ProcessModel, JSONObject)
     Q_OBJECT
     public:
-        explicit JSProcessModel(
+        explicit ProcessModel(
                 const TimeValue& duration,
                 const Id<Process>& id,
                 QObject* parent);
 
-        explicit JSProcessModel(
-                const JSProcessModel& source,
+        explicit ProcessModel(
+                const ProcessModel& source,
                 const Id<Process>& id,
                 QObject* parent);
 
         template<typename Impl>
-        explicit JSProcessModel(
+        explicit ProcessModel(
                 Deserializer<Impl>& vis,
                 QObject* parent) :
             OSSIAProcessModel{vis, parent},
@@ -51,7 +53,7 @@ class JSProcessModel final : public RecreateOnPlay::OSSIAProcessModel
         { return m_script; }
 
         // Process interface
-        JSProcessModel* clone(
+        ProcessModel* clone(
                 const Id<Process>& newId,
                 QObject* newParent) const override;
 
@@ -100,3 +102,6 @@ class JSProcessModel final : public RecreateOnPlay::OSSIAProcessModel
 
         QString m_script;
 };
+
+
+}

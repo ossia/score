@@ -21,21 +21,16 @@ class Document;
  */
 class TimeNodeInspectorWidget final : public InspectorWidgetBase
 {
-        Q_OBJECT
     public:
         explicit TimeNodeInspectorWidget(
                 const TimeNodeModel& object,
                 const iscore::DocumentContext& context,
                 QWidget* parent);
-    signals:
-
-    public slots:
-        void updateDisplayedValues();
-
-        void on_splitTimeNodeClicked();
-
 
     private:
+        void updateDisplayedValues();
+        void on_splitTimeNodeClicked();
+
         std::list<QWidget*> m_properties;
         std::vector<EventShortCut*> m_events;
 

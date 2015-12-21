@@ -18,7 +18,6 @@ class TimeSpinBox;
 
 class DurationSectionWidget final : public InspectorSectionWidget
 {
-        Q_OBJECT
     public:
         DurationSectionWidget(
                 const Scenario::EditionSettings& set,
@@ -27,8 +26,7 @@ class DurationSectionWidget final : public InspectorSectionWidget
 
     virtual ~DurationSectionWidget();
 
-    private slots:
-
+    private:
         void minDurationSpinboxChanged(int val);
         void maxDurationSpinboxChanged(int val);
         void defaultDurationSpinboxChanged(int val);
@@ -44,7 +42,6 @@ class DurationSectionWidget final : public InspectorSectionWidget
         void on_minNonNullToggled(bool val);
         void on_maxFiniteToggled(bool val);
 
-    private:
         const ConstraintModel& m_model;
         ConstraintInspectorWidget* m_parent {};
 

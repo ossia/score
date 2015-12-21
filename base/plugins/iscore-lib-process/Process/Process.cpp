@@ -12,6 +12,8 @@
 #include <iscore/tools/std/StdlibWrapper.hpp>
 #include <iscore/tools/std/Algorithms.hpp>
 
+
+ISCORE_METADATA_IMPL(Process)
 Process::Process(
         const TimeValue& duration,
         const Id<Process>& id,
@@ -93,18 +95,33 @@ std::vector<LayerModel*> Process::layers() const
 }
 
 
-void Process::expandProcess(ExpandMode mode, const TimeValue& t)
+void Process::setParentDuration(ExpandMode mode, const TimeValue& t)
 {
-    if(mode == ExpandMode::Scale)
+    if(m_useParentDuration)
+        mode = ExpandMode::Scale;
+
+    switch(mode)
     {
-        setDurationAndScale(t);
-    }
-    else if (mode == ExpandMode::Grow)
-    {
-        if(duration() < t)
-            setDurationAndGrow(t);
-        else
-            setDurationAndShrink(t);
+        case ExpandMode::Scale:
+            setDurationAndScale(t);
+            break;
+        case ExpandMode::GrowShrink:
+        {
+            if(duration() < t)
+                setDurationAndGrow(t);
+            else
+                setDurationAndShrink(t);
+            break;
+        }
+        case ExpandMode::ForceGrow:
+        {
+            if(duration() < t)
+                setDurationAndGrow(t);
+            break;
+        }
+        case ExpandMode::Fixed:
+        default:
+            break;
     }
 }
 

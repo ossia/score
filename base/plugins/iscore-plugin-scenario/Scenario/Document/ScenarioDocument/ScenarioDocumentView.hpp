@@ -48,8 +48,6 @@ class ScenarioDocumentView final : public iscore::DocumentDelegateViewInterface
 
         void newLocalTimeRuler();
 
-    public slots:
-
     signals:
         void horizontalZoomChanged(double newZoom);
         void horizontalPositionChanged(int);

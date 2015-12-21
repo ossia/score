@@ -44,7 +44,7 @@ SmartTool::SmartTool(Curve::ToolPalette& sm):
                                                  *m_moveState);
 
         m_moveState->addTransition(m_moveState,
-                                  SIGNAL(finished()),
+                                  finishedState(),
                                   m_state);
 
         localSM().addState(m_moveState);

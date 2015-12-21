@@ -32,12 +32,11 @@ class DisplayedElementsPresenter final :
 
         void on_zoomRatioChanged(ZoomRatio r);
 
-    signals:
-        void requestFocusedPresenterChange(LayerPresenter*);
-
-    public slots:
         void on_displayedConstraintDurationChanged(TimeValue);
         void on_displayedConstraintHeightChanged(double);
+
+    signals:
+        void requestFocusedPresenterChange(LayerPresenter*);
 
     private:
         void updateLength(double);

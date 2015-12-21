@@ -3,7 +3,7 @@
 #include <iscore/command/Dispatchers/CommandDispatcher.hpp>
 
 namespace iscore {
-class DocumentContext;
+struct DocumentContext;
 }
 class SpaceProcess;
 class AreaWidget;

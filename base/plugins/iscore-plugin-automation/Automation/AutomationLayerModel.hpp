@@ -1,5 +1,6 @@
 #pragma once
 
+#include <iscore/tools/Metadata.hpp>
 #include <Process/LayerModel.hpp>
 
 #include <iscore/serialization/VisitorInterface.hpp>
@@ -11,7 +12,7 @@ class QObject;
 
 class AutomationLayerModel final : public LayerModel
 {
-        ISCORE_METADATA("AutomationLayerModel")
+        ISCORE_METADATA(AutomationLayerModel)
     public:
         AutomationLayerModel(
                 AutomationModel& model,

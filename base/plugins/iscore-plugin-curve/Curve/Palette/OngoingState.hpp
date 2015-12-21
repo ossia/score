@@ -2,6 +2,7 @@
 #include <QState>
 #include <QFinalState>
 #include <iscore/statemachine/StateMachineUtils.hpp>
+#include <iscore/statemachine/StateMachineTools.hpp>
 #include <Curve/Palette/CurvePaletteBaseTransitions.hpp>
 #include <Curve/Palette/CurvePoint.hpp>
 
@@ -55,7 +56,7 @@ class OngoingState final : public Curve::StateBase
                 });
             }
 
-            mainState->addTransition(mainState, SIGNAL(finished()), finalState);
+            mainState->addTransition(mainState, finishedState(), finalState);
 
             auto cancelled = new QState{this};
             iscore::make_transition<iscore::Cancel_Transition>(mainState, cancelled);

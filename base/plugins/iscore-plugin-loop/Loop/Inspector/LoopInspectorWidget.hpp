@@ -1,11 +1,11 @@
 #pragma once
-
-#include <Inspector/InspectorWidgetBase.hpp>
-#include <QString>
+#include <QVBoxLayout>
+#include <Process/Inspector/ProcessInspectorWidgetDelegate.hpp>
 
 class QWidget;
 namespace iscore {
 class Document;
+struct DocumentContext;
 }  // namespace iscore
 
 namespace Loop
@@ -13,18 +13,12 @@ namespace Loop
 class ProcessModel;
 }
 
-class LoopInspectorWidget final : public InspectorWidgetBase
+class LoopInspectorWidget final :
+        public ProcessInspectorWidgetDelegate_T<Loop::ProcessModel>
 {
-        Q_OBJECT
     public:
         explicit LoopInspectorWidget(
                 const Loop::ProcessModel& object,
                 const iscore::DocumentContext& context,
                 QWidget* parent);
-
-    signals:
-        void createViewInNewSlot(QString);
-
-    private:
-        const Loop::ProcessModel& m_model;
 };

@@ -1,4 +1,5 @@
 #pragma once
+#include <iscore/tools/Metadata.hpp>
 #include <Scenario/Document/Event/ExecutionStatus.hpp>
 #include <State/Expression.hpp>
 #include <iscore/tools/IdentifiedObject.hpp>
@@ -11,7 +12,7 @@ using namespace iscore;
 class ISCORE_PLUGIN_SCENARIO_EXPORT TriggerModel final : public IdentifiedObject<TriggerModel>
 {
         Q_OBJECT
-        ISCORE_METADATA("TriggerModel")
+        ISCORE_METADATA(TriggerModel)
 
     public:
         TriggerModel(const Id<TriggerModel>& id, QObject* parent);

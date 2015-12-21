@@ -28,23 +28,15 @@ AutomationInspectorWidget::AutomationInspectorWidget(
         const AutomationModel& automationModel,
         const iscore::DocumentContext& doc,
         QWidget* parent) :
-    InspectorWidgetBase {automationModel, doc, parent},
-    m_model {automationModel}
+    ProcessInspectorWidgetDelegate_T {automationModel, parent},
+    m_dispatcher{doc.commandStack}
 {
     setObjectName("AutomationInspectorWidget");
     setParent(parent);
 
-    std::list<QWidget*> vec;
-
-    auto widg = new QWidget;
-    auto vlay = new QVBoxLayout{widg};
+    auto vlay = new QVBoxLayout;
     vlay->setSpacing(0);
     vlay->setContentsMargins(0,0,0,0);
-    auto hlay = new QHBoxLayout{};
-    hlay->setSpacing(0);
-    hlay->setContentsMargins(0,0,0,0);
-
-    vec.push_back(widg);
 
     // LineEdit
     // If there is a DeviceExplorer in the current document, use it
@@ -56,8 +48,8 @@ AutomationInspectorWidget::AutomationInspectorWidget(
         explorer = plug->updateProxy.deviceExplorer;
     m_lineEdit = new AddressEditWidget{explorer, this};
 
-    m_lineEdit->setAddress(m_model.address());
-    con(m_model, &AutomationModel::addressChanged,
+    m_lineEdit->setAddress(process().address());
+    con(process(), &AutomationModel::addressChanged,
             m_lineEdit, &AddressEditWidget::setAddress);
 
     connect(m_lineEdit, &AddressEditWidget::addressChanged,
@@ -68,71 +60,59 @@ AutomationInspectorWidget::AutomationInspectorWidget(
     // Min / max
     auto minmaxwid = new QWidget;
     auto minmaxlay = new QFormLayout{minmaxwid};
-    vec.push_back(minmaxwid);
+    vlay->addWidget(minmaxwid);
     minmaxlay->setSpacing(0);
     minmaxlay->setContentsMargins(0, 0, 0, 0);
 
     m_minsb = new iscore::SpinBox<float>;
     m_maxsb = new iscore::SpinBox<float>;
-    m_minsb->setValue(m_model.min());
-    m_maxsb->setValue(m_model.max());
+    m_minsb->setValue(process().min());
+    m_maxsb->setValue(process().max());
     minmaxlay->addRow(tr("Min"), m_minsb);
     minmaxlay->addRow(tr("Max"), m_maxsb);
 
-    con(m_model, SIGNAL(minChanged(double)), m_minsb, SLOT(setValue(double)));
-    con(m_model, SIGNAL(maxChanged(double)), m_maxsb, SLOT(setValue(double)));
+    con(process(), &AutomationModel::minChanged, m_minsb, &QDoubleSpinBox::setValue);
+    con(process(), &AutomationModel::maxChanged, m_maxsb, &QDoubleSpinBox::setValue);
 
-    connect(m_minsb, SIGNAL(editingFinished()), this, SLOT(on_minValueChanged()));
-    connect(m_maxsb, SIGNAL(editingFinished()), this, SLOT(on_maxValueChanged()));
+    connect(m_minsb, &QAbstractSpinBox::editingFinished,
+            this, &AutomationInspectorWidget::on_minValueChanged);
+    connect(m_maxsb, &QAbstractSpinBox::editingFinished,
+            this, &AutomationInspectorWidget::on_maxValueChanged);
 
-
-    // Add it to a new slot
-    auto display = new QPushButton{"~"};
-    hlay->addWidget(display);
-    connect(display,    &QPushButton::clicked,
-            [ = ]()
-    {
-        createViewInNewSlot(QString::number(m_model.id_val()));
-    });
-
-    vlay->addLayout(hlay);
-
-
-    updateSectionsView(safe_cast<QVBoxLayout*>(layout()), vec);
+    this->setLayout(vlay);
 }
 
 void AutomationInspectorWidget::on_addressChange(const iscore::Address& newAddr)
 {
     // Various checks
-    if(newAddr == m_model.address())
+    if(newAddr == process().address())
         return;
 
     if(newAddr.path.isEmpty())
         return;
 
-    auto cmd = new ChangeAddress{m_model, newAddr};
+    auto cmd = new ChangeAddress{process(), newAddr};
 
-    commandDispatcher()->submitCommand(cmd);
+    m_dispatcher.submitCommand(cmd);
 }
-
 void AutomationInspectorWidget::on_minValueChanged()
 {
     auto newVal = m_minsb->value();
-    if(newVal != m_model.min())
+    if(newVal != process().min())
     {
-        auto cmd = new SetAutomationMin{m_model, newVal};
+        auto cmd = new SetAutomationMin{process(), newVal};
 
-        commandDispatcher()->submitCommand(cmd);
+        m_dispatcher.submitCommand(cmd);
     }
 }
 
 void AutomationInspectorWidget::on_maxValueChanged()
 {
     auto newVal = m_maxsb->value();
-    if(newVal != m_model.max())
+    if(newVal != process().max())
     {
-        auto cmd = new SetAutomationMax{m_model, newVal};
+        auto cmd = new SetAutomationMax{process(), newVal};
 
-        commandDispatcher()->submitCommand(cmd);
+        m_dispatcher.submitCommand(cmd);
     }
 }

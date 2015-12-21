@@ -23,7 +23,6 @@ class Document;
  */
 class EventInspectorWidget final : public InspectorWidgetBase
 {
-        Q_OBJECT
     public:
         explicit EventInspectorWidget(
                 const EventModel& object,
@@ -34,14 +33,12 @@ class EventInspectorWidget final : public InspectorWidgetBase
         void removeState(const StateModel& state);
         void focusState(const StateModel* state);
 
-    public slots:
+    private:
         void updateDisplayedValues();
-
         void on_conditionChanged();
-
         void modelDateChanged();
 
-    private:
+
         std::list<QWidget*> m_properties;
 
         std::vector<QWidget*> m_states;

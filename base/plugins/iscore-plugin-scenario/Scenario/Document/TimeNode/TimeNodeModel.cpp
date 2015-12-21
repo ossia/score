@@ -12,6 +12,7 @@
 #include <iscore/tools/IdentifiedObject.hpp>
 #include <iscore/tools/SettableIdentifier.hpp>
 
+ISCORE_METADATA_IMPL(TimeNodeModel)
 TimeNodeModel::TimeNodeModel(
         const Id<TimeNodeModel>& id,
         const VerticalExtent& extent,

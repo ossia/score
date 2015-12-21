@@ -45,7 +45,8 @@ DeviceExplorerView::DeviceExplorerView(QWidget* parent)
 
 
     header()->setContextMenuPolicy(Qt::CustomContextMenu);  //header will emit the signal customContextMenuRequested()
-    connect(header(), SIGNAL(customContextMenuRequested(const QPoint&)), this, SLOT(headerMenuRequested(const QPoint&)));
+    connect(header(), &QWidget::customContextMenuRequested,
+            this, &DeviceExplorerView::headerMenuRequested);
 
 
     //- Drag'n Drop.
@@ -191,7 +192,8 @@ DeviceExplorerView::initActions()
 
         a->setChecked(!isColumnHidden(i));
 
-        connect(a, SIGNAL(toggled(bool)), this, SLOT(columnVisibilityChanged(bool)));
+        connect(a, &QAction::toggled, this,
+                &DeviceExplorerView::columnVisibilityChanged);
         m_actions.append(a);
     }
 

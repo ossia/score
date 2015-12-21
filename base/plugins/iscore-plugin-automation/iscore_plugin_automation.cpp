@@ -9,8 +9,11 @@
 #include <Automation/Commands/AutomationCommandFactory.hpp>
 #include <Inspector/InspectorWidgetFactoryInterface.hpp>
 #include <Process/ProcessFactory.hpp>
+#include <Process/Inspector/ProcessInspectorWidgetDelegate.hpp>
 #include <iscore/plugins/customfactory/StringFactoryKey.hpp>
+#include <iscore/plugins/customfactory/FactorySetup.hpp>
 #include "iscore_plugin_automation.hpp"
+
 
 #if defined(ISCORE_LIB_INSPECTOR)
 #include <Automation/Inspector/AutomationInspectorFactory.hpp>
@@ -33,26 +36,24 @@ iscore_plugin_automation::iscore_plugin_automation() :
 {
 }
 
+
 std::vector<std::unique_ptr<iscore::FactoryInterfaceBase>> iscore_plugin_automation::factories(
         const iscore::ApplicationContext& ctx,
-        const iscore::FactoryBaseKey& factoryName) const
+        const iscore::FactoryBaseKey& key) const
 {
-    if(factoryName == ProcessFactory::staticFactoryKey())
-    {
-        return make_ptr_vector<iscore::FactoryInterfaceBase,
-                AutomationFactory>();
-    }
-
+    return instantiate_factories<
+            iscore::ApplicationContext,
+    TL<
+        FW<ProcessFactory,
+             AutomationFactory>,
 #if defined(ISCORE_LIB_INSPECTOR)
-    if(factoryName == InspectorWidgetFactory::staticFactoryKey())
-    {
-        return make_ptr_vector<iscore::FactoryInterfaceBase,
-                AutomationInspectorFactory,
-                AutomationStateInspectorFactory,
-                CurvePointInspectorFactory>();
-    }
+        FW<InspectorWidgetFactory,
+             AutomationStateInspectorFactory,
+             CurvePointInspectorFactory>,
 #endif
-    return {};
+        FW<ProcessInspectorWidgetDelegateFactory,
+             AutomationInspectorFactory>
+    >>(ctx, key);
 }
 
 std::pair<const CommandParentFactoryKey, CommandGeneratorMap> iscore_plugin_automation::make_commands()

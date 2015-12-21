@@ -34,11 +34,10 @@ class ToolMenuActions final : public ScenarioActions
         QList<QAction*> toolActions();
         QAction* shiftAction();
 
-    private slots:
+    private:
         void keyPressed(int key);
         void keyReleased(int key);
 
-    private:
         QActionGroup* m_scenarioScaleModeActionGroup{};
         QActionGroup* m_scenarioToolActionGroup{};
         QAction* m_shiftAction{};

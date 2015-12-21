@@ -47,15 +47,14 @@ class ISCORE_PLUGIN_SCENARIO_EXPORT ConstraintViewModel : public IdentifiedObjec
         void hideRack();
         void showRack(const Id<RackModel>& rackId);
 
+        virtual void on_rackRemoval(const RackModel&);
+
     signals:
         void lastRackRemoved();
         void rackHidden();
         void rackShown(const Id<RackModel>&);
 
         void aboutToBeDeleted(ConstraintViewModel*);
-
-    public slots:
-        virtual void on_rackRemoval(const RackModel&);
 
     private:
         // A view model cannot be constructed without a model

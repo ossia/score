@@ -16,6 +16,7 @@ namespace iscore
 class ISCORE_LIB_BASE_EXPORT FactoryListInterface
 {
     public:
+        static constexpr bool factory_list_tag = true;
         FactoryListInterface() = default;
         FactoryListInterface(const FactoryListInterface&) = delete;
         FactoryListInterface& operator=(const FactoryListInterface&) = delete;
@@ -44,7 +45,7 @@ struct GenericFactoryInserter
         template<typename TheClass>
         void visit()
         {
-            vec.emplace_back(std::make_unique<TheClass>());
+            vec.push_back(std::make_unique<TheClass>());
         }
 };
 
@@ -53,6 +54,46 @@ auto make_ptr_vector()
 {
     return GenericFactoryInserter<Args...>{}.vec;
 }
+
+template<typename Context_T,
+         typename Factory_T>
+struct FactoryBuilder // sorry padre for I have sinned
+{
+        static auto make(const Context_T&)
+        {
+            return std::make_unique<Factory_T>();
+        }
+};
+
+template<typename Context_T,
+         typename Base_T,
+         typename... Args>
+struct ContextualGenericFactoryInserter
+{
+        const Context_T& context;
+        std::vector<std::unique_ptr<Base_T>> vec;
+        ContextualGenericFactoryInserter(const Context_T& ctx):
+            context{ctx}
+        {
+            vec.reserve(sizeof...(Args));
+            for_each_type<TypeList<Args...>>(*this);
+        }
+
+        template<typename TheClass>
+        void visit()
+        {
+            vec.push_back(FactoryBuilder<Context_T, TheClass>::make(context));
+        }
+};
+
+
+template<typename Context_T, typename Base_T, typename... Args>
+auto make_ptr_vector(const Context_T& context)
+{
+    return ContextualGenericFactoryInserter<Context_T, Base_T, Args...>{context}.vec;
+}
+
+
 
 // FIXME They should take an export macro also ?
 

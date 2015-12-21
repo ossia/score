@@ -23,8 +23,8 @@ SettingsView::SettingsView(QWidget* parent) :
         this->setLayout(m_vertLayout);
     }
 
-    connect(m_settingsList, SIGNAL(currentRowChanged(int)),
-    m_stackedWidget, SLOT(setCurrentIndex(int)));
+    connect(m_settingsList, &QListWidget::currentRowChanged,
+    m_stackedWidget, &QStackedWidget::setCurrentIndex);
 
     connect(m_buttons, &QDialogButtonBox::accepted,
     this,	   &SettingsView::accept);

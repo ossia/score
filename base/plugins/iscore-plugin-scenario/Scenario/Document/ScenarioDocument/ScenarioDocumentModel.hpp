@@ -51,15 +51,13 @@ class ISCORE_PLUGIN_SCENARIO_EXPORT ScenarioDocumentModel final : public iscore:
 
         void setDisplayedConstraint(const ConstraintModel& constraint);
 
+        void on_viewModelDefocused(const LayerModel* vm);
+        void on_viewModelFocused(const LayerModel* vm);
 
     signals:
         void focusMe();
         void setFocusedPresenter(LayerPresenter*);
         void displayedConstraintChanged();
-
-    public slots:
-        void on_viewModelDefocused(const LayerModel* vm);
-        void on_viewModelFocused(const LayerModel* vm);
 
     private:
         void init();

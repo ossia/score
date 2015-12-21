@@ -35,13 +35,11 @@ class AbstractTimeRulerView : public QGraphicsObject
             return m_width;
         }
 
-    signals:
-        void drag(QPointF, QPointF);
-
-    public slots:
         void setGraduationsStyle(double size, int delta, QString format, int mark);
         void setFormat(QString);
 
+    signals:
+        void drag(QPointF, QPointF);
 
     protected:
         void mousePressEvent(QGraphicsSceneMouseEvent*) final override;

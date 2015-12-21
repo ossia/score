@@ -14,24 +14,7 @@ class Document;
 
 ScenarioInspectorWidget::ScenarioInspectorWidget(
         const Scenario::ScenarioModel& object,
-        const iscore::DocumentContext& doc,
         QWidget* parent) :
-    InspectorWidgetBase {object, doc, parent},
-    m_model {object}
+    ProcessInspectorWidgetDelegate_T {object, parent}
 {
-    setObjectName("ScenarioInspectorWidget");
-    setParent(parent);
-
-    std::list<QWidget*> vec;
-
-    QPushButton* displayBtn = new QPushButton {tr("Display in new Slot"), this};
-    vec.push_back(displayBtn);
-
-    connect(displayBtn, &QPushButton::clicked,
-            [=] ()
-    {
-        emit createViewInNewSlot(QString::number(m_model.id_val()));
-    });
-
-    updateSectionsView(static_cast<QVBoxLayout*>(layout()), vec);
 }

@@ -49,7 +49,7 @@ class CreationTool final : public ToolBase<ToolPalette_T>
                     this->m_parentSM.context().commandStack, nullptr};
 
             iscore::make_transition<ClickOnNothing_Transition<Scenario_T>>(m_waitState, m_createFromNothingState, *m_createFromNothingState);
-            m_createFromNothingState->addTransition(m_createFromNothingState, SIGNAL(finished()), m_waitState);
+            m_createFromNothingState->addTransition(m_createFromNothingState, finishedState(), m_waitState);
 
             this->localSM().addState(m_createFromNothingState);
 
@@ -61,7 +61,7 @@ class CreationTool final : public ToolBase<ToolPalette_T>
                     this->m_parentSM.context().commandStack, nullptr};
 
             iscore::make_transition<ClickOnEvent_Transition<Scenario_T>>(m_waitState, m_createFromEventState, *m_createFromEventState);
-            m_createFromEventState->addTransition(m_createFromEventState, SIGNAL(finished()), m_waitState);
+            m_createFromEventState->addTransition(m_createFromEventState, finishedState(), m_waitState);
 
             this->localSM().addState(m_createFromEventState);
 
@@ -75,7 +75,7 @@ class CreationTool final : public ToolBase<ToolPalette_T>
             iscore::make_transition<ClickOnTimeNode_Transition<Scenario_T>>(m_waitState,
                                                                 m_createFromTimeNodeState,
                                                                 *m_createFromTimeNodeState);
-            m_createFromTimeNodeState->addTransition(m_createFromTimeNodeState, SIGNAL(finished()), m_waitState);
+            m_createFromTimeNodeState->addTransition(m_createFromTimeNodeState, finishedState(), m_waitState);
 
             this->localSM().addState(m_createFromTimeNodeState);
 
@@ -90,7 +90,7 @@ class CreationTool final : public ToolBase<ToolPalette_T>
                                                              m_createFromStateState,
                                                              *m_createFromStateState);
 
-            m_createFromStateState->addTransition(m_createFromStateState, SIGNAL(finished()), m_waitState);
+            m_createFromStateState->addTransition(m_createFromStateState, finishedState(), m_waitState);
 
             this->localSM().addState(m_createFromStateState);
 

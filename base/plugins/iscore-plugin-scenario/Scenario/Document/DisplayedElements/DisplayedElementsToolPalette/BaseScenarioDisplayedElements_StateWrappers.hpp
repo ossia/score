@@ -46,7 +46,7 @@ class MoveEventInBaseScenario_StateWrapper
                                                      moveEvent,
                                                      *moveEvent);
             moveEvent->addTransition(moveEvent,
-                                       SIGNAL(finished()),
+                                       finishedState(),
                                        waitState);
         }
 };
@@ -72,7 +72,7 @@ class MoveTimeNodeInBaseScenario_StateWrapper
                                                                     moveTimeNode,
                                                                     *moveTimeNode);
             moveTimeNode->addTransition(moveTimeNode,
-                                        SIGNAL(finished()),
+                                        finishedState(),
                                         waitState);
         }
 };

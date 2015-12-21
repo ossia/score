@@ -1,9 +1,15 @@
 #include <Loop/LoopProcessModel.hpp>
 
-#include <Inspector/InspectorWidgetBase.hpp>
 #include "LoopInspectorWidget.hpp"
 #include <QVBoxLayout>
 
+#include <Scenario/Inspector/Constraint/ConstraintInspectorWidget.hpp>
+#include <Scenario/Inspector/Constraint/ConstraintInspectorDelegateFactory.hpp>
+#include <Inspector/InspectorWidgetList.hpp>
+#include <Process/ProcessList.hpp>
+
+#include <iscore/application/ApplicationContext.hpp>
+#include <iscore/document/DocumentContext.hpp>
 class QVBoxLayout;
 class QWidget;
 namespace iscore {
@@ -11,41 +17,30 @@ class Document;
 }  // namespace iscore
 
 LoopInspectorWidget::LoopInspectorWidget(
-        const Loop::ProcessModel& LoopModel,
+        const Loop::ProcessModel& object,
         const iscore::DocumentContext& doc,
         QWidget* parent) :
-    InspectorWidgetBase {LoopModel, doc, parent},
-    m_model {LoopModel}
+    ProcessInspectorWidgetDelegate_T {object, parent}
 {
-    /*
-    setObjectName("LoopInspectorWidget");
-    setParent(parent);
+    // FIXME URGENT add implemented virtual destructors to every class that inherits from a virtual.
+    auto& appContext = doc.app.components;
+    auto& constraintWidgetFactory = appContext.factory<ConstraintInspectorDelegateFactoryList>();
 
-    std::list<QWidget*> props;
+    auto& constraint = object.constraint();
 
-    QWidget* addProc = new QWidget(this);
-    QHBoxLayout* addProcLayout = new QHBoxLayout;
-    addProcLayout->setContentsMargins(0, 0, 0 , 0);
-    addProc->setLayout(addProcLayout);
+    auto delegate = constraintWidgetFactory.make(constraint);
+    if(!delegate)
+        return;
 
-    QToolButton* addProcButton = new QToolButton;
-    addProcButton->setText("+");
-    addProcButton->setObjectName("addAProcess");
-
-    auto addProcText = new QLabel("Add Process");
-    addProcText->setStyleSheet(QString("text-align : left;"));
-
-    addProcLayout->addWidget(addProcButton);
-    addProcLayout->addWidget(addProcText);
-    auto addProcess = new AddProcessDialog {m_processList, this};
-
-    connect(addProcButton,  &QToolButton::pressed,
-            addProcess, &AddProcessDialog::launchWindow);
-
-    connect(addProcess, &AddProcessDialog::okPressed,
-            this, &LoopInspectorWidget::createProcess);
-
-    props.push_back(addProc);
-*/
-    updateSectionsView(safe_cast<QVBoxLayout*>(layout()), {});
+    auto lay = new QVBoxLayout;
+    this->setLayout(lay);
+    auto& widgetFact = appContext.factory<InspectorWidgetList>();
+    auto& processFact = appContext.factory<ProcessList>();
+    lay->addWidget(new ConstraintInspectorWidget{
+                       widgetFact,
+                       processFact,
+                       constraint,
+                       std::move(delegate),
+                       doc,
+                       this});
 }

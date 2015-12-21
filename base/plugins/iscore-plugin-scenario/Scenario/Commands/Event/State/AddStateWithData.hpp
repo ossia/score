@@ -23,7 +23,7 @@ namespace Scenario
 
                     // We create the path of the to-be state
                     auto path = createStateCmd->scenarioPath()
-                            .extend(StateModel::className, createStateCmd->createdState())
+                            .extend(StateModel::className.c_str(), createStateCmd->createdState())
                             .extend("MessageItemModel", Id<MessageItemModel>{});
 
                     addCommand(createStateCmd);

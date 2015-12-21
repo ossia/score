@@ -115,7 +115,7 @@ class MoveEvent final : public SerializableMoveEvent
             // update positions using old stored dates
             DisplacementPolicy::revertPositions(
                         scenario,
-                        [&] (Process& p, const TimeValue& t){ p.expandProcess(m_mode, t); },
+                        [&] (Process& p, const TimeValue& t){ p.setParentDuration(m_mode, t); },
             m_savedElementsProperties);
 
             updateEventExtent(m_eventId, scenario);
@@ -128,7 +128,7 @@ class MoveEvent final : public SerializableMoveEvent
             // update positions using new stored dates
             DisplacementPolicy::updatePositions(
                         scenario,
-                        [&] (Process& p, const TimeValue& t){ p.expandProcess(m_mode, t); },
+                        [&] (Process& p, const TimeValue& t){ p.setParentDuration(m_mode, t); },
             m_savedElementsProperties);
 
             updateEventExtent(m_eventId, scenario);

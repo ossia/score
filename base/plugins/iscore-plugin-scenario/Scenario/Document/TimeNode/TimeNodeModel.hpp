@@ -1,4 +1,5 @@
 #pragma once
+#include <iscore/tools/Metadata.hpp>
 #include <Process/ModelMetadata.hpp>
 #include <Process/TimeValue.hpp>
 #include <Scenario/Document/VerticalExtent.hpp>
@@ -22,7 +23,7 @@ class TriggerModel;
 class ISCORE_PLUGIN_SCENARIO_EXPORT TimeNodeModel final : public IdentifiedObject<TimeNodeModel>
 {
         Q_OBJECT
-        ISCORE_METADATA("TimeNodeModel")
+        ISCORE_METADATA(TimeNodeModel)
 
         ISCORE_SERIALIZE_FRIENDS(TimeNodeModel, DataStream)
         ISCORE_SERIALIZE_FRIENDS(TimeNodeModel, JSONObject)

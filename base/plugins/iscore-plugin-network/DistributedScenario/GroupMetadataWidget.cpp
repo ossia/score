@@ -87,8 +87,8 @@ void GroupMetadataWidget::updateLabel(const Id<Group>& currentGroup)
         }
     }
 
-    connect(m_combo, SIGNAL(currentIndexChanged(int)),
-            this, SLOT(on_indexChanged(int)));
+    connect(m_combo, static_cast<void (QComboBox::*)(int)>(&QComboBox::currentIndexChanged),
+            this, &GroupMetadataWidget::on_indexChanged);
 
     this->layout()->addWidget(m_combo);
 }

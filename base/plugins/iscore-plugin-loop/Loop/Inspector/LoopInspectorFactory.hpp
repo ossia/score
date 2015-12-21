@@ -1,5 +1,5 @@
 #pragma once
-#include <Inspector/InspectorWidgetFactoryInterface.hpp>
+#include <Process/Inspector/ProcessInspectorWidgetDelegateFactory.hpp>
 #include <Loop/LoopProcessMetadata.hpp>
 #include <Scenario/Inspector/Constraint/ConstraintInspectorDelegateFactory.hpp>
 #include <QList>
@@ -25,20 +25,16 @@ class LoopConstraintInspectorDelegateFactory : public ConstraintInspectorDelegat
         bool matches(const ConstraintModel& constraint) const override;
 };
 
-class LoopInspectorFactory final : public InspectorWidgetFactory
+class LoopInspectorFactory final : public ProcessInspectorWidgetDelegateFactory
 {
     public:
         LoopInspectorFactory();
         virtual ~LoopInspectorFactory();
 
-        InspectorWidgetBase* makeWidget(
-                const QObject& sourceElement,
-                const iscore::DocumentContext& doc,
+    private:
+        ProcessInspectorWidgetDelegate* make(
+                const Process&,
+                const iscore::DocumentContext&,
                 QWidget* parent) const override;
-
-        const QList<QString>& key_impl() const override
-        {
-            static const QList<QString> list{LoopProcessMetadata::processObjectName()};
-            return list;
-        }
+        bool matches(const Process&) const override;
 };

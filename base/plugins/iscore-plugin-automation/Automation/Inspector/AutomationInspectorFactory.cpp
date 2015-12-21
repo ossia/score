@@ -9,23 +9,18 @@ class QObject;
 class QWidget;
 namespace iscore {
 class Document;
-}  // namespace iscore
+}
 
-//using namespace iscore;
-
-InspectorWidgetBase* AutomationInspectorFactory::makeWidget(
-        const QObject& sourceElement,
+ProcessInspectorWidgetDelegate* AutomationInspectorFactory::make(
+        const Process& process,
         const iscore::DocumentContext& doc,
         QWidget* parent) const
 {
     return new AutomationInspectorWidget{
-                safe_cast<const AutomationModel&>(sourceElement),
-                doc,
-                parent};
+        static_cast<const AutomationModel&>(process), doc, parent};
 }
 
-const QList<QString>& AutomationInspectorFactory::key_impl() const
+bool AutomationInspectorFactory::matches(const Process& process) const
 {
-    static const QList<QString> lst{AutomationProcessMetadata::processObjectName()};
-    return lst;
+    return dynamic_cast<const AutomationModel*>(&process);
 }

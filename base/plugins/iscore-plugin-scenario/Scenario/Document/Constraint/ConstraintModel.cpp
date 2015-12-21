@@ -18,13 +18,13 @@
 class StateModel;
 class TimeNodeModel;
 
-constexpr const char ConstraintModel::className[];
+ISCORE_METADATA_IMPL(ConstraintModel)
 ConstraintModel::ConstraintModel(
         const Id<ConstraintModel>& id,
         const Id<ConstraintViewModel>& fullViewId,
         double yPos,
         QObject* parent) :
-    IdentifiedObject<ConstraintModel> {id, "ConstraintModel", parent},
+    IdentifiedObject<ConstraintModel> {id, className.c_str(), parent},
     pluginModelList{iscore::IDocument::documentContext(*parent), this},
     m_fullViewModel{new FullViewConstraintViewModel{fullViewId, *this, this}}
 {
@@ -47,7 +47,7 @@ ConstraintModel::ConstraintModel(
         const ConstraintModel& source,
         const Id<ConstraintModel>& id,
         QObject* parent):
-    IdentifiedObject<ConstraintModel> {id, "ConstraintModel", parent},
+    IdentifiedObject<ConstraintModel> {id, className.c_str(), parent},
     pluginModelList{source.pluginModelList, this}
 {
     initConnections();

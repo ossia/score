@@ -25,10 +25,10 @@ class RackInspectorSection final : public InspectorSectionWidget, public Nano::O
 
         auto constraintInspector() const
         { return m_parent; }
-    private slots:
-        void ask_changeName(QString newName);
 
     private:
+        void ask_changeName(QString newName);
+
         ConstraintInspectorWidget* m_parent{};
 
         void on_slotCreated(const SlotModel&);

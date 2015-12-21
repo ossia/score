@@ -1,4 +1,5 @@
 #pragma once
+#include <iscore/tools/Metadata.hpp>
 #include <Process/LayerModel.hpp>
 #include <Process/ModelMetadata.hpp>
 #include <boost/optional/optional.hpp>
@@ -24,7 +25,7 @@ class RackModel;
 class ISCORE_PLUGIN_SCENARIO_EXPORT SlotModel final : public IdentifiedObject<SlotModel>, public Nano::Observer
 {
         Q_OBJECT
-        ISCORE_METADATA("SlotModel")
+        ISCORE_METADATA(SlotModel)
         ISCORE_SERIALIZE_FRIENDS(SlotModel, DataStream)
         ISCORE_SERIALIZE_FRIENDS(SlotModel, JSONObject)
 
@@ -79,17 +80,15 @@ class ISCORE_PLUGIN_SCENARIO_EXPORT SlotModel final : public IdentifiedObject<Sl
 
         NotifyingMap<LayerModel> layers;
 
+        void on_deleteSharedProcessModel(const Process& sharedProcessId);
+
+        void setHeight(qreal arg);
+        void setFocus(bool arg);
     signals:
         void layerModelPutToFront(const LayerModel& layerModelId);
 
         void heightChanged(qreal arg);
         void focusChanged(bool arg);
-
-    public slots:
-        void on_deleteSharedProcessModel(const Process& sharedProcessId);
-
-        void setHeight(qreal arg);
-        void setFocus(bool arg);
 
     private:
         void initConnections();

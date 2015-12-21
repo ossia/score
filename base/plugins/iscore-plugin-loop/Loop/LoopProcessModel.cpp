@@ -27,6 +27,8 @@ class QObject;
 
 namespace Loop
 {
+
+ISCORE_METADATA_IMPL(Loop::ProcessModel)
 ProcessModel::ProcessModel(
         const TimeValue& duration,
         const Id<Process>& id,
