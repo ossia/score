@@ -416,8 +416,8 @@ inline iscore::SerializableCommand* make_AddProcessToConstraint(
         const ConstraintModel& constraint,
         const ProcessFactoryKey& process)
 {
-    auto notBaseConstraint = dynamic_cast<Scenario::ScenarioModel*>(constraint.parent());
-    auto noRackes = constraint.racks.empty() && notBaseConstraint;
+    auto isScenarioModel = dynamic_cast<Scenario::ScenarioModel*>(constraint.parent());
+    auto noRackes = constraint.racks.empty();
 
 
     iscore::SerializableCommand* cmd{};
@@ -430,7 +430,7 @@ inline iscore::SerializableCommand* make_AddProcessToConstraint(
     {
         auto& firstRack = *constraint.racks.begin();
         auto noSlots = firstRack.slotmodels.empty();
-        if(notBaseConstraint)
+        if(isScenarioModel)
         {
             if(noSlots)
             {
