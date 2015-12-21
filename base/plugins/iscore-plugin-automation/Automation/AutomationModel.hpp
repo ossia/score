@@ -76,18 +76,16 @@ class ISCORE_PLUGIN_AUTOMATION_EXPORT AutomationModel final : public CurveProces
         double min() const;
         double max() const;
 
+        void setAddress(const iscore::Address& arg);
+
+        void setMin(double arg);
+        void setMax(double arg);
     signals:
         void addressChanged(const iscore::Address& arg);
 
         void minChanged(double arg);
 
         void maxChanged(double arg);
-
-    public slots:
-        void setAddress(const iscore::Address& arg);
-
-        void setMin(double arg);
-        void setMax(double arg);
 
     protected:
         AutomationModel(const AutomationModel& source,

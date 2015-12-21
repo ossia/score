@@ -11,16 +11,15 @@ class Document;
 
 class AutomationStateInspector final : public InspectorWidgetBase
 {
-        Q_OBJECT
     public:
         explicit AutomationStateInspector(
                 const AutomationState& object,
                 const iscore::DocumentContext& context,
                 QWidget* parent = 0);
 
+    private:
         void on_stateChanged();
 
-    private:
         const AutomationState& m_state;
         QLabel* m_label{};
 };

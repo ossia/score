@@ -41,7 +41,7 @@ MoveSlotTool::MoveSlotTool(const ToolPalette& sm):
                     dragSlot,
                     *dragSlot);
 
-        dragSlot->addTransition(dragSlot, SIGNAL(finished()), m_waitState);
+        dragSlot->addTransition(dragSlot, finishedState(), m_waitState);
     }
 
     {
@@ -51,7 +51,7 @@ MoveSlotTool::MoveSlotTool(const ToolPalette& sm):
                     resizeSlot,
                     *resizeSlot);
 
-        resizeSlot->addTransition(resizeSlot, SIGNAL(finished()), m_waitState);
+        resizeSlot->addTransition(resizeSlot, finishedState(), m_waitState);
     }
 
     m_localSM.start();

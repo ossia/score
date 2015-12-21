@@ -54,8 +54,10 @@ InspectorSectionWidget::InspectorSectionWidget(bool editable, QWidget* parent) :
     globalLayout->addWidget(m_container);
     this->setContentsMargins(0,0,0,0);
 
-    connect(m_btn, SIGNAL(released()), this, SLOT(expand()));
-    connect(m_buttonTitle, SIGNAL(clicked()), this, SLOT(expand()));
+    connect(m_btn, &QAbstractButton::released,
+            this, &InspectorSectionWidget::expand);
+    connect(m_buttonTitle, &QAbstractButton::clicked,
+            this, &InspectorSectionWidget::expand);
 
     // INIT
     m_isUnfolded = true;

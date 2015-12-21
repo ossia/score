@@ -1,5 +1,6 @@
 #pragma once
 
+#include <iscore/tools/Metadata.hpp>
 #include <Process/TimeValue.hpp>
 #include <iscore/tools/IdentifiedObject.hpp>
 #include <iscore/tools/SettableIdentifier.hpp>
@@ -16,7 +17,7 @@ class CommentBlockModel final : public IdentifiedObject<CommentBlockModel>
 {
         Q_OBJECT
 
-        ISCORE_METADATA("CommentBlockModel")
+        ISCORE_METADATA(CommentBlockModel)
 
         ISCORE_SERIALIZE_FRIENDS(CommentBlockModel, DataStream)
         ISCORE_SERIALIZE_FRIENDS(CommentBlockModel, JSONObject)
@@ -56,8 +57,6 @@ class CommentBlockModel final : public IdentifiedObject<CommentBlockModel>
         void dateChanged(const TimeValue&);
         void heightPercentageChanged(bool);
         void contentChanged(QString);
-
-    public slots:
 
     private:
         TimeValue m_date{std::chrono::seconds{0}};

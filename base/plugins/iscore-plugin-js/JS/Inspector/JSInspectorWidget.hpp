@@ -1,34 +1,34 @@
 #pragma once
-
-#include <Inspector/InspectorWidgetBase.hpp>
+#include <Process/Inspector/ProcessInspectorWidgetDelegate.hpp>
+#include <iscore/command/Dispatchers/CommandDispatcher.hpp>
 #include <QString>
 
-class JSProcessModel;
+namespace JS
+{
+class ProcessModel;
+}
 class NotifyingPlainTextEdit;
 class QWidget;
 namespace iscore {
 class Document;
+struct DocumentContext;
 }  // namespace iscore
 
-class JSInspectorWidget final : public InspectorWidgetBase
+class JSInspectorWidget final :
+        public ProcessInspectorWidgetDelegate_T<JS::ProcessModel>
 {
-        Q_OBJECT
     public:
         explicit JSInspectorWidget(
-                const JSProcessModel& object,
+                const JS::ProcessModel& object,
                 const iscore::DocumentContext& context,
                 QWidget* parent);
 
-    signals:
-        void createViewInNewSlot(QString);
-
-    public slots:
-        void on_modelChanged(const QString& script);
-
     private:
         void on_textChange(const QString& newText);
+        void on_modelChanged(const QString& script);
 
-        const JSProcessModel& m_model;
         NotifyingPlainTextEdit* m_edit{};
         QString m_script;
+
+        CommandDispatcher<> m_dispatcher;
 };

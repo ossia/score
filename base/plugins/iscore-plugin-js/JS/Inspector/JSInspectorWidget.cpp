@@ -7,6 +7,7 @@
 #include "JSInspectorWidget.hpp"
 #include <iscore/command/Dispatchers/CommandDispatcher.hpp>
 #include <iscore/tools/ModelPath.hpp>
+#include <iscore/document/DocumentContext.hpp>
 #include <QVBoxLayout>
 
 class QVBoxLayout;
@@ -16,24 +17,27 @@ class Document;
 }  // namespace iscore
 
 JSInspectorWidget::JSInspectorWidget(
-        const JSProcessModel& JSModel,
+        const JS::ProcessModel& JSModel,
         const iscore::DocumentContext& doc,
         QWidget* parent) :
-    InspectorWidgetBase {JSModel, doc, parent},
-    m_model {JSModel}
+    ProcessInspectorWidgetDelegate_T {JSModel, parent},
+    m_dispatcher{doc.commandStack}
 {
     setObjectName("JSInspectorWidget");
     setParent(parent);
+    auto lay = new QVBoxLayout;
 
     m_edit = new NotifyingPlainTextEdit{JSModel.script()};
     connect(m_edit, &NotifyingPlainTextEdit::editingFinished,
             this, &JSInspectorWidget::on_textChange);
 
-    con(m_model, &JSProcessModel::scriptChanged,
+    con(process(), &JS::ProcessModel::scriptChanged,
             this, &JSInspectorWidget::on_modelChanged);
 
-    updateSectionsView(safe_cast<QVBoxLayout*>(layout()), {m_edit});
     m_script = m_edit->toPlainText();
+
+    lay->addWidget(m_edit);
+    this->setLayout(lay);
 }
 
 void JSInspectorWidget::on_modelChanged(const QString& script)
@@ -47,7 +51,7 @@ void JSInspectorWidget::on_textChange(const QString& newTxt)
     if(newTxt == m_script)
         return;
 
-    auto cmd = new EditScript{m_model, newTxt};
+    auto cmd = new JS::EditScript{process(), newTxt};
 
-    commandDispatcher()->submitCommand(cmd);
+    m_dispatcher.submitCommand(cmd);
 }

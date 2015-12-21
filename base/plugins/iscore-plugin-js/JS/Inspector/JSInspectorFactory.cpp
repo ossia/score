@@ -13,8 +13,7 @@ class Document;
 
 //using namespace iscore;
 
-JSInspectorFactory::JSInspectorFactory() :
-    InspectorWidgetFactory {}
+JSInspectorFactory::JSInspectorFactory()
 {
 
 }
@@ -24,13 +23,18 @@ JSInspectorFactory::~JSInspectorFactory()
 
 }
 
-InspectorWidgetBase* JSInspectorFactory::makeWidget(
-        const QObject& sourceElement,
+ProcessInspectorWidgetDelegate* JSInspectorFactory::make(
+        const Process& process,
         const iscore::DocumentContext& doc,
         QWidget* parent) const
 {
     return new JSInspectorWidget{
-                safe_cast<const JSProcessModel&>(sourceElement),
+        static_cast<const JS::ProcessModel&>(process),
                 doc,
                 parent};
+}
+
+bool JSInspectorFactory::matches(const Process& process) const
+{
+    return dynamic_cast<const JS::ProcessModel*>(&process);
 }

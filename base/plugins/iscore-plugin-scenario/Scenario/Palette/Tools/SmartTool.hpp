@@ -59,7 +59,7 @@ class SmartTool final : public ToolBase<ToolPalette_T>
                             *resizeSlot);
 
                 resizeSlot->addTransition(resizeSlot,
-                                          SIGNAL(finished()),
+                                          finishedState(),
                                           waitState);
             }
 

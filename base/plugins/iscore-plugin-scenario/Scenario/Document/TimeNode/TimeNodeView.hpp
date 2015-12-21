@@ -48,7 +48,6 @@ class ISCORE_PLUGIN_SCENARIO_EXPORT TimeNodeView final : public QGraphicsObject
             return m_selected;
         }
 
-    public slots:
         void changeColor(QColor);
 
     protected:

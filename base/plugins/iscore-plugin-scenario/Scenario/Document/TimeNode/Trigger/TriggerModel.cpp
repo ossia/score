@@ -5,9 +5,9 @@
 class QObject;
 #include <iscore/tools/SettableIdentifier.hpp>
 
-constexpr const char TriggerModel::className[];
+ISCORE_METADATA_IMPL(TriggerModel)
 TriggerModel::TriggerModel(const Id<TriggerModel>& id, QObject* parent):
-    IdentifiedObject<TriggerModel>{id, className, parent}
+    IdentifiedObject<TriggerModel>{id, className.c_str(), parent}
 {
 
 }

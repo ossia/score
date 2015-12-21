@@ -17,5 +17,5 @@ TextDialog::TextDialog(const QString &s, QWidget *parent):
     auto buttonBox = new QDialogButtonBox(QDialogButtonBox::Ok);
     layout()->addWidget(buttonBox);
 
-    connect(buttonBox, SIGNAL(accepted()), this, SLOT(accept()));
+    connect(buttonBox, &QDialogButtonBox::accepted, this, &QDialog::accept);
 }

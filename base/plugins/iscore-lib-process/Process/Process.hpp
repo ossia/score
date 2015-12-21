@@ -8,6 +8,7 @@
 #include <QString>
 #include <vector>
 
+#include <iscore/tools/Metadata.hpp>
 #include "ModelMetadata.hpp"
 #include <iscore/serialization/VisitorInterface.hpp>
 #include <iscore/serialization/DataStreamVisitor.hpp>
@@ -30,7 +31,7 @@ class ElementPluginModelList;
 class ISCORE_LIB_PROCESS_EXPORT Process: public IdentifiedObject<Process>
 {
         Q_OBJECT
-        ISCORE_METADATA("Process")
+        ISCORE_METADATA(Process)
 
         ISCORE_SERIALIZE_FRIENDS(Process, DataStream)
         ISCORE_SERIALIZE_FRIENDS(Process, JSONObject)
@@ -101,20 +102,7 @@ class ISCORE_LIB_PROCESS_EXPORT Process: public IdentifiedObject<Process>
 
         //// Features of a process
         /// Duration
-        // Used to scale the process.
-        // This should be commutative :
-        //   setDurationWithScale(2); setDurationWithScale(3);
-        // yields the same result as :
-        //   setDurationWithScale(3); setDurationWithScale(2);
-        virtual void setDurationAndScale(const TimeValue& newDuration) = 0;
-
-        // Does nothing if newDuration < currentDuration
-        virtual void setDurationAndGrow(const TimeValue& newDuration) = 0;
-
-        // Does nothing if newDuration > currentDuration
-        virtual void setDurationAndShrink(const TimeValue& newDuration) = 0;
-
-        void expandProcess(ExpandMode mode, const TimeValue& t);
+        void setParentDuration(ExpandMode mode, const TimeValue& t);
 
         void setUseParentDuration(bool b)
         {
@@ -158,6 +146,7 @@ class ISCORE_LIB_PROCESS_EXPORT Process: public IdentifiedObject<Process>
         void execution(bool);
         void durationChanged(const TimeValue&);
         void useParentDurationChanged(bool);
+
     protected:
         // Clone
         Process(
@@ -178,6 +167,18 @@ class ISCORE_LIB_PROCESS_EXPORT Process: public IdentifiedObject<Process>
                 const LayerModel& source,
                 QObject* parent) = 0;
 
+        // Used to scale the process.
+        // This should be commutative :
+        //   setDurationWithScale(2); setDurationWithScale(3);
+        // yields the same result as :
+        //   setDurationWithScale(3); setDurationWithScale(2);
+        virtual void setDurationAndScale(const TimeValue& newDuration) = 0;
+
+        // Does nothing if newDuration < currentDuration
+        virtual void setDurationAndGrow(const TimeValue& newDuration) = 0;
+
+        // Does nothing if newDuration > currentDuration
+        virtual void setDurationAndShrink(const TimeValue& newDuration) = 0;
 
     private:
         void addLayer(LayerModel* m);

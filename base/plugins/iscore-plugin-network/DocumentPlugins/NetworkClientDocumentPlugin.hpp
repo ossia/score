@@ -13,7 +13,7 @@ class ClientNetworkPolicy : public iscore_plugin_networkPolicy
     public:
         ClientNetworkPolicy(ClientSession* s, iscore::Document* doc);
 
-        ClientSession* session() const
+        ClientSession* session() const override
         { return m_session; }
 
     private:

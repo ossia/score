@@ -13,6 +13,7 @@
 #include <iscore/plugins/customfactory/StringFactoryKey.hpp>
 #include "iscore_plugin_mapping.hpp"
 
+#include <iscore/plugins/customfactory/FactorySetup.hpp>
 #include <Curve/Process/CurveProcessFactory.hpp>
 DEFINE_CURVE_PROCESS_FACTORY(
         MappingFactory,
@@ -37,22 +38,16 @@ iscore_plugin_mapping::iscore_plugin_mapping() :
 
 std::vector<std::unique_ptr<iscore::FactoryInterfaceBase>> iscore_plugin_mapping::factories(
         const iscore::ApplicationContext& ctx,
-        const iscore::FactoryBaseKey& factoryName) const
+        const iscore::FactoryBaseKey& key) const
 {
-    if(factoryName == ProcessFactory::staticFactoryKey())
-    {
-        return make_ptr_vector<iscore::FactoryInterfaceBase,
-                MappingFactory>();
-    }
-
-#if defined(ISCORE_LIB_INSPECTOR)
-    if(factoryName == InspectorWidgetFactory::staticFactoryKey())
-    {
-        return make_ptr_vector<iscore::FactoryInterfaceBase,
-                MappingInspectorFactory>();
-    }
-#endif
-    return {};
+    return instantiate_factories<
+            iscore::ApplicationContext,
+            TL<
+            FW<ProcessFactory,
+                MappingFactory>,
+            FW<ProcessInspectorWidgetDelegateFactory,
+                MappingInspectorFactory>
+            >>(ctx, key);
 }
 
 std::pair<const CommandParentFactoryKey, CommandGeneratorMap> iscore_plugin_mapping::make_commands()

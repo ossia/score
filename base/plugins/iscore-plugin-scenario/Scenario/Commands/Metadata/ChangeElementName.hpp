@@ -4,7 +4,7 @@
 
 #include <iscore/tools/ModelPath.hpp>
 #include <iscore/tools/ModelPathSerialization.hpp>
-
+#include <iscore/tools/std/ConstexprString.hpp>
 namespace Scenario
 {
     namespace Command
@@ -20,8 +20,8 @@ namespace Scenario
                 }
                 static const CommandFactoryKey& static_key()
                 {
-                    static const QByteArray name = QString{"ChangeElementName_%1"}.arg(T::staticMetaObject.className()).toUtf8();
-                    static const CommandFactoryKey kagi{name.constData()};
+                    auto name = "ChangeElementName_"_S + T::className;
+                    static const CommandFactoryKey kagi{std::move(name)};
                     return kagi;
                 }
                 const CommandFactoryKey& key() const override

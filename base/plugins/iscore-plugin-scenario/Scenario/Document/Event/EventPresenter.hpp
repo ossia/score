@@ -38,10 +38,8 @@ class ISCORE_PLUGIN_SCENARIO_EXPORT EventPresenter final : public NamedObject
         void eventHoverEnter();
         void eventHoverLeave();
 
-    private slots:
-        void triggerSetted(QString);
-
     private:
+        void triggerSetted(QString);
         const EventModel& m_model;
         EventView* m_view {};
 

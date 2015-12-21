@@ -5,11 +5,12 @@
 
 #include <Process/StateProcessFactoryKey.hpp>
 #include <iscore_lib_process_export.h>
+#include <iscore/tools/Metadata.hpp>
 
 class ISCORE_LIB_PROCESS_EXPORT StateProcess: public IdentifiedObject<StateProcess>
 {
         Q_OBJECT
-        ISCORE_METADATA("Process")
+        ISCORE_METADATA(StateProcess)
 
         ISCORE_SERIALIZE_FRIENDS(StateProcess, DataStream)
         ISCORE_SERIALIZE_FRIENDS(StateProcess, JSONObject)

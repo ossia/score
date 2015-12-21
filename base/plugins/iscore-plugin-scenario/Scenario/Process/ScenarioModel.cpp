@@ -32,6 +32,8 @@ class ProcessStateDataInterface;
 
 namespace Scenario
 {
+
+ISCORE_METADATA_IMPL(ScenarioModel)
 ScenarioModel::ScenarioModel(const TimeValue& duration,
                              const Id<Process>& id,
                              QObject* parent) :
@@ -188,13 +190,13 @@ void ScenarioModel::setDurationAndScale(const TimeValue& newDuration)
         constraint.setStartDate(constraint.startDate() * scale);
         // Note : scale the min / max.
 
+        auto newdur = constraint.duration.defaultDuration() * scale;
         ConstraintDurations::Algorithms::changeAllDurations(
-                    constraint,
-                    constraint.duration.defaultDuration() * scale);
+                    constraint, newdur);
 
         for(auto& process : constraint.processes)
         {
-            process.setDurationAndScale(constraint.duration.defaultDuration() * scale);
+            process.setParentDuration(ExpandMode::Scale, newdur);
         }
 
         emit constraintMoved(constraint);
@@ -205,14 +207,7 @@ void ScenarioModel::setDurationAndScale(const TimeValue& newDuration)
 
 void ScenarioModel::setDurationAndGrow(const TimeValue& newDuration)
 {
-    ///* Should work but does not ?
-    /*StandardDisplacementPolicy::setEventPosition(*this,
-                                                 endEvent()->id(),
-                                                 newDuration,
-                                                 endEvent()->heightPercentage(),
-                                                 [&] (ProcessModel* p, const TimeValue& t)
-     { p->expandProcess(ExpandMode::Grow, t); }); */
-
+    // TODO what happens when there are constraints linked here ?
     auto& eev = endEvent();
 
     eev.setDate(newDuration);
@@ -224,23 +219,6 @@ void ScenarioModel::setDurationAndGrow(const TimeValue& newDuration)
 void ScenarioModel::setDurationAndShrink(const TimeValue& newDuration)
 {
     return; // Disabled by Asana
-
-    ///* Should work but does not ?
-    /* StandardDisplacementPolicy::setEventPosition(*this,
-                                                 endEvent()->id(),
-                                                 newDuration,
-                                                 endEvent()->heightPercentage(),
-                                                 [&] (ProcessModel* p, const TimeValue& t)
-     { p->expandProcess(ExpandMode::Grow, t); }); */
-
-    /*
-    auto& eev = endEvent();
-
-    eev.setDate(newDuration);
-    timeNode(eev.timeNode()).setDate(newDuration);
-    emit eventMoved(eev.id());
-    this->setDuration(newDuration);
-    */
 }
 
 void ScenarioModel::startExecution()

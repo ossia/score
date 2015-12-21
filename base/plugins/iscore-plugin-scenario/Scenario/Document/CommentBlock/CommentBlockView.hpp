@@ -27,7 +27,6 @@ class CommentBlockView final : public QGraphicsObject
 
         QRectF boundingRect() const override;
 
-    public slots:
         void setSelected(bool b);
         void setHtmlContent(QString htmlText);
 
@@ -36,7 +35,6 @@ class CommentBlockView final : public QGraphicsObject
         void mouseMoveEvent(QGraphicsSceneMouseEvent *event) override;
         void mouseReleaseEvent(QGraphicsSceneMouseEvent *event) override;
         void mouseDoubleClickEvent(QGraphicsSceneMouseEvent *evt) override;
-
 
     private:
         void SetTextInteraction(bool on, bool selectAll = false);

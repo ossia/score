@@ -45,7 +45,8 @@
 #include "Widgets/DurationSectionWidget.hpp"
 #include "Widgets/Rack/RackInspectorSection.hpp"
 #include "Widgets/RackWidget.hpp"
-
+#include <Process/Inspector/ProcessInspectorWidget.hpp>
+#include <Process/Inspector/ProcessInspectorWidgetDelegateFactoryList.hpp>
 #include <iscore/application/ApplicationContext.hpp>
 #include <iscore/document/DocumentContext.hpp>
 #include <iscore/command/Dispatchers/CommandDispatcher.hpp>
@@ -208,6 +209,11 @@ ConstraintInspectorWidget::ConstraintInspectorWidget(
     updateAreaLayout(m_properties);
 }
 
+ConstraintInspectorWidget::~ConstraintInspectorWidget()
+{
+
+}
+
 const ConstraintModel& ConstraintInspectorWidget::model() const
 {
     return m_model;
@@ -303,12 +309,18 @@ void ConstraintInspectorWidget::displaySharedProcess(const Process& process)
         ask_processNameChanged(process, s);
     });
     con(process.metadata, &ModelMetadata::nameChanged,
-            newProc, &InspectorSectionWidget::renameSection);
+        newProc, &InspectorSectionWidget::renameSection);
 
     // Process
-    auto processWidget = m_widgetList.makeInspectorWidget(
-                             process.objectName(), process, newProc); // FIXME objectName BERK
-    newProc->addContent(processWidget);
+    const auto& fact = context().app.components.factory<ProcessInspectorWidgetDelegateFactoryList>();
+    if(auto widg = fact.make(process, context(), newProc))
+    {
+        auto processWidget = new ProcessInspectorWidget{widg, context(), newProc};
+        newProc->addContent(processWidget);
+
+        connect(processWidget, &ProcessInspectorWidget::createViewInNewSlot,
+                this, &ConstraintInspectorWidget::createLayerInNewSlot);
+    }
 
     // Start & end state
     QWidget* stateWidget = new QWidget;
@@ -358,9 +370,6 @@ void ConstraintInspectorWidget::displaySharedProcess(const Process& process)
     // Global setup
     m_processesSectionWidgets.push_back(newProc);
     m_processSection->addContent(newProc);
-
-    connect(processWidget,   SIGNAL(createViewInNewSlot(QString)),
-            this,   SLOT(createLayerInNewSlot(QString)));
 }
 
 void ConstraintInspectorWidget::setupRack(const RackModel& rack)

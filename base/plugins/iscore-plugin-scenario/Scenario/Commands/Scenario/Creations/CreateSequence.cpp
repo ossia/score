@@ -121,7 +121,7 @@ CreateSequence::CreateSequence(
     if(!matchingMessages.empty())
     {
         m_addedProcessCount = matchingMessages.size();
-        auto constraint = Path<Scenario::ScenarioModel>{scenario}.extend(ConstraintModel::className, m_command.createdConstraint());
+        auto constraint = Path<Scenario::ScenarioModel>{scenario}.extend(ConstraintModel::className.c_str(), m_command.createdConstraint());
 
         {
             AddMultipleProcessesToConstraintMacro interpolateMacro{Path<ConstraintModel>{constraint}};

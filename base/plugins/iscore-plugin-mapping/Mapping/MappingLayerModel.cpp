@@ -7,13 +7,13 @@ class LayerModelPanelProxy;
 class QObject;
 #include <iscore/tools/SettableIdentifier.hpp>
 
-constexpr const char MappingLayerModel::className[];
+ISCORE_METADATA_IMPL(MappingLayerModel)
 MappingLayerModel::MappingLayerModel(
         MappingModel& model,
         const Id<LayerModel>& id,
         QObject* parent) :
     LayerModel {id,
-                className,
+                className.c_str(),
                 model,
                 parent}
 {
@@ -26,7 +26,7 @@ MappingLayerModel::MappingLayerModel(
         const Id<LayerModel>& id,
         QObject* parent) :
     LayerModel {id,
-                className,
+                className.c_str(),
                 model,
                 parent}
 {

@@ -62,19 +62,18 @@ class ISCORE_LIB_PROCESS_EXPORT ModelMetadata : public QObject
         const QColor& color() const;
         const QString& label() const;
 
+        void setName(const QString& arg);
+        void setComment(const QString& arg);
+        void setColor(const QColor& arg);
+        void setLabel(const QString& arg);
+
+
     signals:
         void nameChanged(const QString& arg);
         void commentChanged(const QString& arg);
         void colorChanged(const QColor& arg);
         void labelChanged(const QString& arg);
         void metadataChanged();
-
-    public slots:
-        void setName(const QString& arg);
-        void setComment(const QString& arg);
-        void setColor(const QColor& arg);
-        void setLabel(const QString& arg);
-
 
     private:
         QString m_scriptingName;

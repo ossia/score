@@ -82,7 +82,7 @@ SetSegmentTool::SetSegmentTool(Curve::ToolPalette &sm):
     auto state = new OngoingState(*co, &localSM());
     state->setObjectName("SetSegmentParametersState");
     iscore::make_transition<ClickOnSegment_Transition>(waitState, state, *state);
-    state->addTransition(state, SIGNAL(finished()), waitState);
+    state->addTransition(state, finishedState(), waitState);
 
     localSM().setInitialState(waitState);
 
@@ -102,7 +102,7 @@ CreateTool::CreateTool(Curve::ToolPalette &sm):
     state->setObjectName("CreatePointFromNothingState");
     iscore::make_transition<ClickOnSegment_Transition>(waitState, state, *state);
     iscore::make_transition<ClickOnNothing_Transition>(waitState, state, *state);
-    state->addTransition(state, SIGNAL(finished()), waitState);
+    state->addTransition(state, finishedState(), waitState);
 
     localSM().setInitialState(waitState);
 

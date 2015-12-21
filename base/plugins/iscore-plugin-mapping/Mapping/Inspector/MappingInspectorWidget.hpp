@@ -1,30 +1,26 @@
 #pragma once
-
-#include <Inspector/InspectorWidgetBase.hpp>
-#include <QString>
-
+#include <Process/Inspector/ProcessInspectorWidgetDelegate.hpp>
+#include <iscore/command/Dispatchers/CommandDispatcher.hpp>
 class QWidget;
 
 namespace iscore{
 class Document;
 struct Address;
+struct DocumentContext;
 }
 class AddressEditWidget;
 class DeviceExplorerModel;
 class MappingModel;
 class QDoubleSpinBox;
 
-class MappingInspectorWidget : public InspectorWidgetBase
+class MappingInspectorWidget :
+        public ProcessInspectorWidgetDelegate_T<MappingModel>
 {
-        Q_OBJECT
     public:
         explicit MappingInspectorWidget(
                 const MappingModel& object,
                 const iscore::DocumentContext& context,
                 QWidget* parent);
-
-    signals:
-        void createViewInNewSlot(QString);
 
     public slots:
         void on_sourceAddressChange(const iscore::Address& newText);
@@ -41,5 +37,5 @@ class MappingInspectorWidget : public InspectorWidgetBase
         AddressEditWidget* m_targetLineEdit{};
         QDoubleSpinBox* m_targetMin{}, *m_targetMax{};
 
-        const MappingModel& m_model;
+        CommandDispatcher<> m_dispatcher;
 };

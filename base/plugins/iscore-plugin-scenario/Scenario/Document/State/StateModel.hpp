@@ -1,4 +1,5 @@
 #pragma once
+#include <iscore/tools/Metadata.hpp>
 #include <Process/ModelMetadata.hpp>
 #include <Process/StateProcess.hpp>
 #include <Scenario/Document/Event/ExecutionStatus.hpp>
@@ -47,7 +48,7 @@ class ProcessStateWrapper : public QObject
 class ISCORE_PLUGIN_SCENARIO_EXPORT StateModel final : public IdentifiedObject<StateModel>, public Nano::Observer
 {
         Q_OBJECT
-        ISCORE_METADATA("StateModel")
+        ISCORE_METADATA(StateModel)
 
         ISCORE_SERIALIZE_FRIENDS(StateModel, DataStream)
         ISCORE_SERIALIZE_FRIENDS(StateModel, JSONObject)
@@ -113,13 +114,12 @@ class ISCORE_PLUGIN_SCENARIO_EXPORT StateModel final : public IdentifiedObject<S
 
         NotifyingMap<StateProcess> stateProcesses;
 
+        void setHeightPercentage(double y);
+
     signals:
         void sig_statesUpdated();
         void heightPercentageChanged();
         void statusChanged(ExecutionStatus);
-
-    public slots:
-        void setHeightPercentage(double y);
 
     private:
         void statesUpdated_slt();

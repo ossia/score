@@ -19,7 +19,6 @@ class ProcessFocusManager final : public QObject
         const LayerModel* focusedViewModel() const;
         LayerPresenter* focusedPresenter() const;
 
-    public slots:
         void focus(LayerPresenter*);
         void focus(ScenarioDocumentPresenter*);
 

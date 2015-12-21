@@ -56,14 +56,12 @@ class ISCORE_PLUGIN_SCENARIO_EXPORT EventView final : public QGraphicsObject
 
         void setStatus(ExecutionStatus s);
 
+        void changeColor(QColor);
     signals:
         void eventHoverEnter();
         void eventHoverLeave();
 
         void dropReceived(const QPointF& pos, const QMimeData*);
-
-    public slots:
-        void changeColor(QColor);
 
     protected:
         void mousePressEvent(QGraphicsSceneMouseEvent *event) override;

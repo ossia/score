@@ -1,12 +1,14 @@
 #pragma once
-
-#include <Inspector/InspectorWidgetBase.hpp>
+#include <Process/Inspector/ProcessInspectorWidgetDelegate.hpp>
+#include <Automation/AutomationModel.hpp>
 #include <QString>
+#include <iscore/command/Dispatchers/CommandDispatcher.hpp>
 
 class QWidget;
 
 namespace iscore{
 class Document;
+struct DocumentContext;
 struct Address;
 }
 class AddressEditWidget;
@@ -14,17 +16,14 @@ class AutomationModel;
 class DeviceExplorerModel;
 class QDoubleSpinBox;
 
-class AutomationInspectorWidget final : public InspectorWidgetBase
+class AutomationInspectorWidget final :
+        public ProcessInspectorWidgetDelegate_T<AutomationModel>
 {
-        Q_OBJECT
     public:
         explicit AutomationInspectorWidget(
                 const AutomationModel& object,
                 const iscore::DocumentContext& context,
                 QWidget* parent);
-
-    signals:
-        void createViewInNewSlot(QString);
 
     public slots:
         void on_addressChange(const iscore::Address& newText);
@@ -34,5 +33,6 @@ class AutomationInspectorWidget final : public InspectorWidgetBase
     private:
         AddressEditWidget* m_lineEdit{};
         QDoubleSpinBox* m_minsb{}, *m_maxsb{};
-        const AutomationModel& m_model;
+
+        CommandDispatcher<> m_dispatcher;
 };

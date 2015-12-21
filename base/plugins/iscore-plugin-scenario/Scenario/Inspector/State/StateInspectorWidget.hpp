@@ -12,20 +12,16 @@ struct DocumentContext;
 
 class StateInspectorWidget final : public InspectorWidgetBase
 {
-        Q_OBJECT
     public:
         explicit StateInspectorWidget(
                 const StateModel& object,
                 const iscore::DocumentContext& context,
                 QWidget* parent);
 
-    public slots:
+    private:
         void updateDisplayedValues();
-
-    private slots:
         void splitEvent();
 
-    private:
         std::list<QWidget*> m_properties;
 
         const StateModel& m_model;

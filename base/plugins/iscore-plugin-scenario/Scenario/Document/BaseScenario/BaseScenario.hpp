@@ -1,4 +1,5 @@
 #pragma once
+#include <iscore/tools/Metadata.hpp>
 #include <Scenario/Document/BaseScenario/BaseScenarioContainer.hpp>
 #include <iscore/plugins/documentdelegate/plugin/ElementPluginModelList.hpp>
 #include <iscore/selection/Selection.hpp>
@@ -16,6 +17,7 @@ class TimeNodeModel;
 
 class BaseScenario final : public IdentifiedObject<BaseScenario>, public BaseScenarioContainer
 {
+        ISCORE_METADATA(BaseScenario)
         ISCORE_SERIALIZE_FRIENDS(BaseScenario, DataStream)
         ISCORE_SERIALIZE_FRIENDS(BaseScenario, JSONObject)
 

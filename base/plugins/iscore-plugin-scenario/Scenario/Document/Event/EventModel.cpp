@@ -15,6 +15,7 @@
 #include <iscore/tools/IdentifiedObject.hpp>
 #include <iscore/tools/SettableIdentifier.hpp>
 
+ISCORE_METADATA_IMPL(EventModel)
 EventModel::EventModel(
         const Id<EventModel>& id,
         const Id<TimeNodeModel>& timenode,

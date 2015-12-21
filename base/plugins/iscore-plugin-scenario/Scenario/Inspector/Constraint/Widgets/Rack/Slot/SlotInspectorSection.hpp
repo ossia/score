@@ -26,10 +26,9 @@ class SlotInspectorSection final : public InspectorSectionWidget, public Nano::O
 
         const SlotModel& model() const;
 
-    private slots:
+    private:
         void ask_changeName(QString newName);
 
-    private:
         void on_layerModelCreated(const LayerModel&);
         void on_layerModelRemoved(const LayerModel&);
 

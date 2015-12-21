@@ -9,6 +9,7 @@
 #include "iscore_plugin_js.hpp"
 #include <iscore_plugin_js_commands_files.hpp>
 #include <iscore/plugins/customfactory/FactoryFamily.hpp>
+#include <iscore/plugins/customfactory/FactorySetup.hpp>
 
 iscore_plugin_js::iscore_plugin_js() :
     QObject {}
@@ -17,25 +18,21 @@ iscore_plugin_js::iscore_plugin_js() :
 
 std::vector<std::unique_ptr<iscore::FactoryInterfaceBase>> iscore_plugin_js::factories(
         const iscore::ApplicationContext& ctx,
-        const iscore::FactoryBaseKey& factoryName) const
+        const iscore::FactoryBaseKey& key) const
 {
-    if(factoryName == ProcessFactory::staticFactoryKey())
-    {
-        return make_ptr_vector<iscore::FactoryInterfaceBase,
-                JSProcessFactory>();
-    }
-
-    if(factoryName == InspectorWidgetFactory::staticFactoryKey())
-    {
-        return make_ptr_vector<iscore::FactoryInterfaceBase,
-                JSInspectorFactory>();
-    }
-
-    return {};
+    return instantiate_factories<
+            iscore::ApplicationContext,
+    TL<
+        FW<ProcessFactory,
+             JSProcessFactory>,
+        FW<ProcessInspectorWidgetDelegateFactory,
+             JSInspectorFactory>
+    >>(ctx, key);
 }
 
 std::pair<const CommandParentFactoryKey, CommandGeneratorMap> iscore_plugin_js::make_commands()
 {
+    using namespace JS;
     std::pair<const CommandParentFactoryKey, CommandGeneratorMap> cmds{JSCommandFactoryName(), CommandGeneratorMap{}};
 
     using Types = TypeList<

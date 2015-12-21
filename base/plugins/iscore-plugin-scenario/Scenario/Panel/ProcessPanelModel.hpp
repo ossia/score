@@ -11,6 +11,5 @@ class ProcessPanelModel final : public iscore::PanelModel
         ProcessPanelModel(QObject*);
         int panelId() const override;
 
-    public slots:
         void setNewSelection(const Selection&) override;
 };

@@ -27,7 +27,7 @@ class JSProcessFactory final : public ProcessFactory
                 const Id<Process>& id,
                 QObject* parent) override
         {
-            return new JSProcessModel{duration, id, parent};
+            return new JS::ProcessModel{duration, id, parent};
         }
 
         QByteArray makeStaticLayerConstructionData() const override
@@ -38,7 +38,7 @@ class JSProcessFactory final : public ProcessFactory
         Process* loadModel(const VisitorVariant& vis, QObject* parent) override
         {
             return deserialize_dyn(vis, [&] (auto&& deserializer)
-            { return new JSProcessModel{deserializer, parent};});
+            { return new JS::ProcessModel{deserializer, parent};});
         }
 
         LayerPresenter* makeLayerPresenter(

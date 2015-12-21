@@ -1,6 +1,7 @@
 #pragma once
 #include <Process/LayerModel.hpp>
 
+#include <iscore/tools/Metadata.hpp>
 #include <iscore/serialization/VisitorInterface.hpp>
 
 #include <iscore/serialization/DataStreamVisitor.hpp>
@@ -16,7 +17,7 @@ namespace Loop{
 }
 class LoopLayer final : public LayerModel
 {
-        ISCORE_METADATA("LoopLayer")
+        ISCORE_METADATA(LoopLayer)
 
         ISCORE_SERIALIZE_FRIENDS(LoopLayer, DataStream)
         ISCORE_SERIALIZE_FRIENDS(LoopLayer, JSONObject)

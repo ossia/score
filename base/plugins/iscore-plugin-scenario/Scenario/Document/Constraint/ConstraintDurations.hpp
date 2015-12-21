@@ -90,19 +90,6 @@ class ISCORE_PLUGIN_SCENARIO_EXPORT ConstraintDurations final : public QObject
         bool isMaxInfinite() const
         { return m_isMaxInfinite; }
 
-    signals:
-        void defaultDurationChanged(const TimeValue& arg);
-        void minDurationChanged(const TimeValue& arg);
-        void maxDurationChanged(const TimeValue& arg);
-
-        void playPercentageChanged(double arg);
-        void rigidityChanged(bool arg);
-
-        void minNullChanged(bool isMinNul);
-
-        void maxInfiniteChanged(bool isMaxInfinite);
-
-    public slots:
         void setDefaultDuration(const TimeValue& arg);
         void setMinDuration(const TimeValue& arg);
         void setMaxDuration(const TimeValue& arg);
@@ -114,6 +101,18 @@ class ISCORE_PLUGIN_SCENARIO_EXPORT ConstraintDurations final : public QObject
         void setMinNull(bool isMinNull);
 
         void setMaxInfinite(bool isMaxInfinite);
+
+    signals:
+        void defaultDurationChanged(const TimeValue& arg);
+        void minDurationChanged(const TimeValue& arg);
+        void maxDurationChanged(const TimeValue& arg);
+
+        void playPercentageChanged(double arg);
+        void rigidityChanged(bool arg);
+
+        void minNullChanged(bool isMinNul);
+
+        void maxInfiniteChanged(bool isMaxInfinite);
 
     private:
         ConstraintModel& m_model;

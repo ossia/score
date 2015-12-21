@@ -25,6 +25,7 @@ namespace Loop
 {
 class ISCORE_PLUGIN_LOOP_EXPORT ProcessModel final : public Process, public BaseScenarioContainer
 {
+        ISCORE_METADATA(Loop::ProcessModel)
         ISCORE_SERIALIZE_FRIENDS(Loop::ProcessModel, DataStream)
         ISCORE_SERIALIZE_FRIENDS(Loop::ProcessModel, JSONObject)
 

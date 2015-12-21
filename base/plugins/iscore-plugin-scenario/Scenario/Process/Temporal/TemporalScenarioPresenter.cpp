@@ -530,7 +530,7 @@ void TemporalScenarioPresenter::handleDrop(const QPointF &pos, const QMimeData *
         }
 
         auto state_path = make_path(scenar)
-                .extend(StateModel::className, createdState)
+                .extend(StateModel::className.c_str(), createdState)
                 .extend("MessageItemModel", Id<MessageItemModel>{});
 
         auto cmd2 = new AddMessagesToState{

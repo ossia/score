@@ -22,12 +22,11 @@ class AbstractTimeRuler : public QObject
         { return m_pixelPerMillis; }
         const QVector<QPair<double, TimeValue>>& graduationsSpacing() const;
 
-    signals:
-        void drag(QPointF origin, QPointF current);
-
-    public slots:
         virtual void setStartPoint(TimeValue dur);
         void setPixelPerMillis(double factor);
+
+    signals:
+        void drag(QPointF origin, QPointF current);
 
     protected:
         void computeGraduationSpacing();

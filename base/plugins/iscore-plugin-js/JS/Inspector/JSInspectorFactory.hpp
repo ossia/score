@@ -1,9 +1,12 @@
 #pragma once
-#include <Inspector/InspectorWidgetFactoryInterface.hpp>
+#include <Process/Inspector/ProcessInspectorWidgetDelegateFactory.hpp>
 #include <JS/JSProcessMetadata.hpp>
 #include <QList>
 #include <QString>
-
+namespace JS
+{
+class ProcessModel;
+}
 class InspectorWidgetBase;
 class QObject;
 class QWidget;
@@ -12,20 +15,17 @@ class Document;
 }  // namespace iscore
 
 
-class JSInspectorFactory final : public InspectorWidgetFactory
+class JSInspectorFactory final :
+        public ProcessInspectorWidgetDelegateFactory
 {
     public:
         JSInspectorFactory();
         virtual ~JSInspectorFactory();
 
-        InspectorWidgetBase* makeWidget(
-                const QObject& sourceElement,
-                const iscore::DocumentContext& doc,
+    private:
+        ProcessInspectorWidgetDelegate* make(
+                const Process&,
+                const iscore::DocumentContext&,
                 QWidget* parent) const override;
-
-        const QList<QString>& key_impl() const override
-        {
-            static const QList<QString> list{JSProcessMetadata::processObjectName()};
-            return list;
-        }
+        bool matches(const Process&) const override;
 };

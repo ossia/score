@@ -37,7 +37,7 @@ namespace Scenario
             private:
                 QJsonObject m_source;
                 Path<ConstraintModel> m_target;
-                ExpandMode m_mode{ExpandMode::Grow};
+                ExpandMode m_mode{ExpandMode::GrowShrink};
 
                 QMap<Id<RackModel>, Id<RackModel>> m_rackIds;
                 QMap<Id<Process>, Id<Process>> m_processIds;

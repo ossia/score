@@ -22,6 +22,7 @@
 #include <Process/ProcessFactory.hpp>
 #include <Process/ProcessList.hpp>
 #include <Process/TimeValue.hpp>
+#include <Process/Inspector/ProcessInspectorWidgetDelegateFactoryList.hpp>
 #include <Scenario/Application/Menus/Plugin/ScenarioActionsFactory.hpp>
 #include <Scenario/Application/Menus/Plugin/ScenarioContextMenuPluginList.hpp>
 #include <Scenario/Commands/Scenario/Displacement/MoveEventList.hpp>
@@ -30,6 +31,7 @@
 #include <Scenario/Document/DisplayedElements/DisplayedElementsToolPalette/DisplayedElementsToolPaletteFactory.hpp>
 #include <State/Value.hpp>
 
+#include <iscore/plugins/customfactory/FactorySetup.hpp>
 #include <iscore/plugins/customfactory/StringFactoryKey.hpp>
 #include <iscore/plugins/qt_interfaces/DocumentDelegateFactoryInterface_QtInterface.hpp>
 #include <iscore/plugins/qt_interfaces/FactoryFamily_QtInterface.hpp>
@@ -105,79 +107,64 @@ std::vector<std::unique_ptr<iscore::FactoryListInterface>> iscore_plugin_scenari
             ConstraintInspectorDelegateFactoryList,
             DisplayedElementsToolPaletteFactoryList,
             TriggerCommandFactoryList,
-            DisplayedElementsProviderList>();
+            DisplayedElementsProviderList,
+            ProcessInspectorWidgetDelegateFactoryList>();
 }
+
+template<>
+struct FactoryBuilder<iscore::ApplicationContext, ScenarioFactory>
+{
+        static auto make(const iscore::ApplicationContext& ctx)
+        {
+            auto& appPlugin = ctx.components.applicationPlugin<ScenarioApplicationPlugin>();
+            return std::make_unique<ScenarioFactory>(appPlugin.editionSettings());
+        }
+};
 
 std::vector<std::unique_ptr<iscore::FactoryInterfaceBase>> iscore_plugin_scenario::factories(
         const iscore::ApplicationContext& ctx,
         const iscore::FactoryBaseKey& key) const
 {
-    if(key == ProcessFactory::staticFactoryKey())
-    {
-        auto& appPlugin = ctx.components.applicationPlugin<ScenarioApplicationPlugin>();
-        std::vector<std::unique_ptr<iscore::FactoryInterfaceBase>> vec;
-        vec.emplace_back(new ScenarioFactory{appPlugin.editionSettings()});
-        return vec;
-    }
+    /*
+        if(key == ScenarioActionsFactory::staticFactoryKey())
+        {
+            // new ScenarioCommonActionsFactory is instantiated in ScenarioApplicationPlugin
+            // because other plug ins need it.
+            return {};
+        }
+    */
 
-    if(key == ScenarioActionsFactory::staticFactoryKey())
-    {
-        // new ScenarioCommonActionsFactory is instantiated in ScenarioApplicationPlugin
-        // because other plug ins need it.
-        return {};
-    }
-
-    if(key == MoveEventClassicFactory::staticFactoryKey())
-    {
-        return make_ptr_vector<iscore::FactoryInterfaceBase,
-                MoveEventClassicFactory>();
-    }
-
+    // TODO use me everywhere.
+    return instantiate_factories<
+            iscore::ApplicationContext,
+    TL<
+    FW<ProcessFactory,
+        ScenarioFactory>,
+    FW<MoveEventFactoryInterface,
+        MoveEventClassicFactory>,
+    FW<ProcessInspectorWidgetDelegateFactory,
+        ScenarioInspectorFactory>,
+    FW<DisplayedElementsToolPaletteFactory,
+        BaseScenarioDisplayedElementsToolPaletteFactory,
+        ScenarioDisplayedElementsToolPaletteFactory>,
+    FW<TriggerCommandFactory,
+        ScenarioTriggerCommandFactory,
+        BaseScenarioTriggerCommandFactory>,
+    FW<DisplayedElementsProvider,
+        ScenarioDisplayedElementsProvider,
+        BaseScenarioDisplayedElementsProvider>
 #if defined(ISCORE_LIB_INSPECTOR)
-    if(key == InspectorWidgetFactory::staticFactoryKey())
-    {
-        return make_ptr_vector<iscore::FactoryInterfaceBase,
-            ConstraintInspectorFactory,
-            StateInspectorFactory,
-            EventInspectorFactory,
-            ScenarioInspectorFactory,
-            TimeNodeInspectorFactory
-        >();
-    }
-
-    if(key == ConstraintInspectorDelegateFactory::staticFactoryKey())
-    {
-        return make_ptr_vector<iscore::FactoryInterfaceBase,
-            ScenarioConstraintInspectorDelegateFactory,
-            BaseConstraintInspectorDelegateFactory
-                >();
-    }
+    ,
+    FW<InspectorWidgetFactory,
+        ConstraintInspectorFactory,
+        StateInspectorFactory,
+        EventInspectorFactory,
+        TimeNodeInspectorFactory>,
+    FW<ConstraintInspectorDelegateFactory,
+        ScenarioConstraintInspectorDelegateFactory,
+        BaseConstraintInspectorDelegateFactory>
 #endif
-
-    if(key == DisplayedElementsToolPaletteFactory::staticFactoryKey())
-    {
-    return make_ptr_vector<iscore::FactoryInterfaceBase,
-            BaseScenarioDisplayedElementsToolPaletteFactory,
-            ScenarioDisplayedElementsToolPaletteFactory
-            >();
-    }
-
-    if(key == TriggerCommandFactory::staticFactoryKey())
-    {
-    return make_ptr_vector<iscore::FactoryInterfaceBase,
-            ScenarioTriggerCommandFactory,
-            BaseScenarioTriggerCommandFactory
-            >();
-    }
-
-    if(key == DisplayedElementsProvider::staticFactoryKey())
-    {
-    return make_ptr_vector<iscore::FactoryInterfaceBase,
-            ScenarioDisplayedElementsProvider,
-            BaseScenarioDisplayedElementsProvider
-            >();
-    }
-    return {};
+    >>(ctx, key);
 }
 
 

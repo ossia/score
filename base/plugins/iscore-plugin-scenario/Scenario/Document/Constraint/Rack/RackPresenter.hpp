@@ -44,6 +44,12 @@ class RackPresenter final : public NamedObject, public Nano::Observer
         void setDisabledSlotState();
         void setEnabledSlotState();
 
+        void on_durationChanged(const TimeValue&);
+
+        void on_askUpdate();
+
+        void on_zoomRatioChanged(ZoomRatio);
+        void on_slotPositionsChanged();
 
     signals:
         void askUpdate();
@@ -51,15 +57,6 @@ class RackPresenter final : public NamedObject, public Nano::Observer
         void pressed(const QPointF&);
         void moved(const QPointF&);
         void released(const QPointF&);
-
-
-    public slots:
-        void on_durationChanged(const TimeValue&);
-
-        void on_askUpdate();
-
-        void on_zoomRatioChanged(ZoomRatio);
-        void on_slotPositionsChanged();
 
     private:
         void on_slotCreated(const SlotModel&);

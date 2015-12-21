@@ -12,7 +12,7 @@ template <typename T> class Reader;
 template <typename T> class Writer;
 
 template<>
-void Visitor<Reader<DataStream>>::readFrom(const JSProcessModel& proc)
+void Visitor<Reader<DataStream>>::readFrom(const JS::ProcessModel& proc)
 {
     readFrom(*proc.pluginModelList);
 
@@ -22,7 +22,7 @@ void Visitor<Reader<DataStream>>::readFrom(const JSProcessModel& proc)
 }
 
 template<>
-void Visitor<Writer<DataStream>>::writeTo(JSProcessModel& proc)
+void Visitor<Writer<DataStream>>::writeTo(JS::ProcessModel& proc)
 {
     proc.pluginModelList = new iscore::ElementPluginModelList{*this, &proc};
 
@@ -34,14 +34,14 @@ void Visitor<Writer<DataStream>>::writeTo(JSProcessModel& proc)
 }
 
 template<>
-void Visitor<Reader<JSONObject>>::readFrom(const JSProcessModel& proc)
+void Visitor<Reader<JSONObject>>::readFrom(const JS::ProcessModel& proc)
 {
     m_obj["PluginsMetadata"] = toJsonValue(*proc.pluginModelList);
     m_obj["Script"] = proc.script();
 }
 
 template<>
-void Visitor<Writer<JSONObject>>::writeTo(JSProcessModel& proc)
+void Visitor<Writer<JSONObject>>::writeTo(JS::ProcessModel& proc)
 {
     Deserializer<JSONValue> elementPluginDeserializer(m_obj["PluginsMetadata"]);
     proc.pluginModelList = new iscore::ElementPluginModelList{elementPluginDeserializer, &proc};

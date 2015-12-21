@@ -12,18 +12,16 @@ class Document;
 
 class CurvePointInspectorWidget final : public InspectorWidgetBase
 {
-    Q_OBJECT
     public:
         explicit CurvePointInspectorWidget(
             const CurvePointModel& model,
             const iscore::DocumentContext& context,
             QWidget* parent);
 
-    public slots:
+    private:
         void on_pointChanged(double);
         void on_editFinished();
 
-    private:
         const CurvePointModel& m_model;
         QDoubleSpinBox* m_XBox;
         QDoubleSpinBox* m_YBox;

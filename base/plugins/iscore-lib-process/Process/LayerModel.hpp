@@ -1,4 +1,5 @@
 #pragma once
+#include <iscore/tools/Metadata.hpp>
 #include <iscore/tools/IdentifiedObject.hpp>
 #include <iscore_lib_process_export.h>
 #include <QString>
@@ -17,7 +18,7 @@ class QObject;
  */
 class ISCORE_LIB_PROCESS_EXPORT LayerModel: public IdentifiedObject<LayerModel>
 {
-        ISCORE_METADATA("LayerModel")
+        ISCORE_METADATA(LayerModel)
     public:
         virtual ~LayerModel();
         Process& processModel() const;

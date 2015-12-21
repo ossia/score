@@ -57,7 +57,8 @@ OSCProtocolSettingsWidget::buildGUI()
     gLayout->addWidget(loadNamespaceButton, 4, 0, 1, 1);
     gLayout->addWidget(m_namespaceFilePathEdit, 4, 1, 1, 1);
 
-    connect(loadNamespaceButton, SIGNAL(clicked()), this, SLOT(openFileDialog()));
+    connect(loadNamespaceButton, &QAbstractButton::clicked,
+            this, &OSCProtocolSettingsWidget::openFileDialog);
 
     setLayout(gLayout);
 

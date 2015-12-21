@@ -1,4 +1,5 @@
 #pragma once
+#include <iscore/tools/Metadata.hpp>
 #include <Process/ModelMetadata.hpp>
 #include <Process/TimeValue.hpp>
 #include <Scenario/Document/Event/ExecutionStatus.hpp>
@@ -26,7 +27,7 @@ class TimeNodeModel;
 class ISCORE_PLUGIN_SCENARIO_EXPORT EventModel final : public IdentifiedObject<EventModel>
 {
         Q_OBJECT
-        ISCORE_METADATA("EventModel")
+        ISCORE_METADATA(EventModel)
 
         ISCORE_SERIALIZE_FRIENDS(EventModel, DataStream)
         ISCORE_SERIALIZE_FRIENDS(EventModel, JSONObject)
@@ -81,7 +82,7 @@ class ISCORE_PLUGIN_SCENARIO_EXPORT EventModel final : public IdentifiedObject<E
         ExecutionStatus status() const;
         void reset();
 
-    public slots:
+
         void setCondition(const iscore::Condition& arg);
 
         void setExtent(const VerticalExtent &extent);

@@ -54,15 +54,7 @@ class ScenarioDocumentPresenter final : public iscore::DocumentDelegatePresenter
         //double height() const;
         ZoomRatio zoomRatio() const;
 
-    signals:
-        void pressed(const QPointF&);
-        void moved(const QPointF&);
-        void released(const QPointF&);
-        void escPressed();
 
-        void requestDisplayedConstraintChange(const ConstraintModel&);
-
-    public slots:
         void setDisplayedObject(const ObjectPath&);
 
         void on_askUpdate();
@@ -76,7 +68,16 @@ class ScenarioDocumentPresenter final : public iscore::DocumentDelegatePresenter
 
         void updateRect(const QRectF& rect);
 
-    private slots:
+
+    signals:
+        void pressed(const QPointF&);
+        void moved(const QPointF&);
+        void released(const QPointF&);
+        void escPressed();
+
+        void requestDisplayedConstraintChange(const ConstraintModel&);
+
+    private:
         void on_displayedConstraintChanged();
         void on_zoomSliderChanged(double);
         void on_zoomOnWheelEvent(QPoint, QPointF);
@@ -84,9 +85,6 @@ class ScenarioDocumentPresenter final : public iscore::DocumentDelegatePresenter
         void on_horizontalPositionChanged(int dx);
 
         //void updateGrid();
-
-
-    private:
         void updateZoom(ZoomRatio newZoom, QPointF focus);
 
         DisplayedElementsPresenter* m_scenarioPresenter{};

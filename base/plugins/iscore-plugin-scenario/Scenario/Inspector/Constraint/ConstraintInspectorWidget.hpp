@@ -40,7 +40,6 @@ class Document;
  */
 class ISCORE_PLUGIN_SCENARIO_EXPORT ConstraintInspectorWidget final : public InspectorWidgetBase, public Nano::Observer
 {
-        Q_OBJECT
     public:
         explicit ConstraintInspectorWidget(
                 const InspectorWidgetList& list,
@@ -50,17 +49,20 @@ class ISCORE_PLUGIN_SCENARIO_EXPORT ConstraintInspectorWidget final : public Ins
                 const iscore::DocumentContext& context,
                 QWidget* parent = 0);
 
+        ~ConstraintInspectorWidget();
+
         const ConstraintModel& model() const;
 
-    public slots:
+        void createRack();
+        void activeRackChanged(QString rack, ConstraintViewModel* vm);
+
+    private:
         void updateDisplayedValues();
 
         // These methods ask for creation and the signals originate from other parts of the inspector
         void createProcess(const ProcessFactoryKey& processName);
-        void createRack();
         void createLayerInNewSlot(QString processName);
 
-        void activeRackChanged(QString rack, ConstraintViewModel* vm);
 
         // Interface of Constraint
 
@@ -70,7 +72,8 @@ class ISCORE_PLUGIN_SCENARIO_EXPORT ConstraintInspectorWidget final : public Ins
 
         void ask_processNameChanged(const Process& p, QString s);
 
-    private:
+
+
         void on_processCreated(const Process&);
         void on_processRemoved(const Process&);
 

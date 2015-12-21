@@ -38,15 +38,13 @@ class CommentBlockPresenter final :  public NamedObject
         const QPointF& pressedPoint() {return isPressed() ? m_clickedPoint : m_origin;}
         void setPressed(bool b) {m_pressed = b;}
 
+        void pressed(const QPointF&);
+        void on_zoomRatioChanged(ZoomRatio newRatio);
     signals:
         void moved(const QPointF&);
         void released(const QPointF&);
         void doubleClicked();
         void editFinished(QString);
-
-    public slots:
-        void pressed(const QPointF&);
-        void on_zoomRatioChanged(ZoomRatio newRatio);
 
     private:
         const CommentBlockModel& m_model;

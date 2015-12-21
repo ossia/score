@@ -7,14 +7,16 @@
 
 class DataStreamInput;
 class DataStreamOutput;
-class JSProcessModel;
+namespace JS
+{
+class ProcessModel;
 
 class EditScript final : public iscore::SerializableCommand
 {
         ISCORE_COMMAND_DECL(JSCommandFactoryName(), EditScript, "Edit a JS script")
     public:
         EditScript(
-                Path<JSProcessModel>&& model,
+                Path<ProcessModel>&& model,
                 const QString& text);
 
         void undo() const override;
@@ -25,6 +27,7 @@ class EditScript final : public iscore::SerializableCommand
         void deserializeImpl(DataStreamOutput & s) override;
 
     private:
-        Path<JSProcessModel> m_model;
+        Path<ProcessModel> m_model;
         QString m_old, m_new;
 };
+}

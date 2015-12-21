@@ -1,4 +1,5 @@
 #pragma once
+#include <iscore/tools/Metadata.hpp>
 #include <Process/ModelMetadata.hpp>
 #include <Process/Process.hpp>
 #include <Process/TimeValue.hpp>
@@ -32,7 +33,7 @@ class FullViewConstraintViewModel;
 class ISCORE_PLUGIN_SCENARIO_EXPORT ConstraintModel final : public IdentifiedObject<ConstraintModel>, public Nano::Observer
 {
         Q_OBJECT
-        ISCORE_METADATA("ConstraintModel")
+        ISCORE_METADATA(ConstraintModel)
 
         ISCORE_SERIALIZE_FRIENDS(ConstraintModel, DataStream)
         ISCORE_SERIALIZE_FRIENDS(ConstraintModel, JSONObject)
@@ -129,6 +130,7 @@ class ISCORE_PLUGIN_SCENARIO_EXPORT ConstraintModel final : public IdentifiedObj
         bool looping() const;
         void setLooping(bool looping);
 
+        void setHeightPercentage(double arg);
     signals:
         void viewModelCreated(const ConstraintViewModel&);
         void viewModelRemoved(const QObject*);
@@ -139,10 +141,6 @@ class ISCORE_PLUGIN_SCENARIO_EXPORT ConstraintModel final : public IdentifiedObj
 
         void focusChanged(bool);
         void loopingChanged(bool);
-
-    public slots:
-        void setHeightPercentage(double arg);
-
 
     private:
         void on_destroyedViewModel(ConstraintViewModel* obj);

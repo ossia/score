@@ -17,13 +17,14 @@ class ProcessStateDataInterface;
 class QObject;
 #include <iscore/tools/SettableIdentifier.hpp>
 
-
-std::shared_ptr<JSProcess> JSProcessModel::makeProcess() const
+namespace JS
+{
+std::shared_ptr<JSProcess> ProcessModel::makeProcess() const
 {
     return std::make_shared<JSProcess>(iscore::IDocument::documentFromObject(*this)->context().plugin<DeviceDocumentPlugin>());
 }
 
-JSProcessModel::JSProcessModel(
+ProcessModel::ProcessModel(
         const TimeValue& duration,
         const Id<Process>& id,
         QObject* parent):
@@ -42,8 +43,8 @@ JSProcessModel::JSProcessModel(
                "});";
 }
 
-JSProcessModel::JSProcessModel(
-        const JSProcessModel& source,
+ProcessModel::ProcessModel(
+        const ProcessModel& source,
         const Id<Process>& id,
         QObject* parent):
     OSSIAProcessModel{source.duration(), id, JSProcessMetadata::processObjectName(), parent},
@@ -55,87 +56,87 @@ JSProcessModel::JSProcessModel(
                       this};
 }
 
-void JSProcessModel::setScript(const QString& script)
+void ProcessModel::setScript(const QString& script)
 {
     m_script = script;
     m_ossia_process->setTickFun(m_script);
     emit scriptChanged(script);
 }
 
-JSProcessModel* JSProcessModel::clone(
+ProcessModel* ProcessModel::clone(
         const Id<Process>& newId,
         QObject* newParent) const
 {
-    return new JSProcessModel{*this, newId, newParent};
+    return new ProcessModel{*this, newId, newParent};
 }
 
-QString JSProcessModel::prettyName() const
+QString ProcessModel::prettyName() const
 {
     return "Javascript Process";
 }
 
-QByteArray JSProcessModel::makeLayerConstructionData() const
+QByteArray ProcessModel::makeLayerConstructionData() const
 {
     return {};
 }
 
-void JSProcessModel::setDurationAndScale(const TimeValue& newDuration)
+void ProcessModel::setDurationAndScale(const TimeValue& newDuration)
 {
     setDuration(newDuration);
 }
 
-void JSProcessModel::setDurationAndGrow(const TimeValue& newDuration)
+void ProcessModel::setDurationAndGrow(const TimeValue& newDuration)
 {
     setDuration(newDuration);
 }
 
-void JSProcessModel::setDurationAndShrink(const TimeValue& newDuration)
+void ProcessModel::setDurationAndShrink(const TimeValue& newDuration)
 {
     setDuration(newDuration);
 }
 
-void JSProcessModel::startExecution()
+void ProcessModel::startExecution()
 {
 }
 
-void JSProcessModel::stopExecution()
+void ProcessModel::stopExecution()
 {
 }
 
-void JSProcessModel::reset()
+void ProcessModel::reset()
 {
 }
 
-ProcessStateDataInterface* JSProcessModel::startStateData() const
+ProcessStateDataInterface* ProcessModel::startStateData() const
 {
     return nullptr;
 }
 
-ProcessStateDataInterface* JSProcessModel::endStateData() const
+ProcessStateDataInterface* ProcessModel::endStateData() const
 {
     return nullptr;
 }
 
-Selection JSProcessModel::selectableChildren() const
+Selection ProcessModel::selectableChildren() const
 {
     return {};
 }
 
-Selection JSProcessModel::selectedChildren() const
+Selection ProcessModel::selectedChildren() const
 {
     return {};
 }
 
-void JSProcessModel::setSelection(const Selection&) const
+void ProcessModel::setSelection(const Selection&) const
 {
 }
 
-void JSProcessModel::serialize(const VisitorVariant& s) const
+void ProcessModel::serialize(const VisitorVariant& s) const
 {
     serialize_dyn(s, *this);
 }
 
-LayerModel* JSProcessModel::makeLayer_impl(
+LayerModel* ProcessModel::makeLayer_impl(
         const Id<LayerModel>& viewModelId,
         const QByteArray& constructionData,
         QObject* parent)
@@ -145,7 +146,7 @@ LayerModel* JSProcessModel::makeLayer_impl(
     return lay;
 }
 
-LayerModel* JSProcessModel::loadLayer_impl(
+LayerModel* ProcessModel::loadLayer_impl(
         const VisitorVariant& vis,
         QObject* parent)
 {
@@ -158,7 +159,7 @@ LayerModel* JSProcessModel::loadLayer_impl(
     });
 }
 
-LayerModel* JSProcessModel::cloneLayer_impl(
+LayerModel* ProcessModel::cloneLayer_impl(
         const Id<LayerModel>& newId,
         const LayerModel& source,
         QObject* parent)
@@ -168,3 +169,4 @@ LayerModel* JSProcessModel::cloneLayer_impl(
     return lay;
 }
 
+}

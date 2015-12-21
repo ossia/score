@@ -48,16 +48,6 @@ class ISCORE_PLUGIN_SCENARIO_EXPORT ConstraintPresenter : public NamedObject, pu
 
         const Id<ConstraintModel>& id() const;
 
-    signals:
-        void pressed(QPointF);
-        void moved(QPointF);
-        void released(QPointF);
-
-        void askUpdate();
-        void heightChanged(); // The vertical size
-        void heightPercentageChanged(); // The vertical position
-
-    public slots:
         void on_defaultDurationChanged(const TimeValue&);
         void on_minDurationChanged(const TimeValue&);
         void on_maxDurationChanged(const TimeValue&);
@@ -69,6 +59,16 @@ class ISCORE_PLUGIN_SCENARIO_EXPORT ConstraintPresenter : public NamedObject, pu
         void on_noRacks();
 
         void updateHeight();
+
+    signals:
+        void pressed(QPointF);
+        void moved(QPointF);
+        void released(QPointF);
+
+        void askUpdate();
+        void heightChanged(); // The vertical size
+        void heightPercentageChanged(); // The vertical position
+
 
     protected:
         // Process presenters are in the slot presenters.

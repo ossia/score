@@ -113,11 +113,11 @@ void InsertContentInConstraint::redo() const
         // Resize the processes according to the new constraint.
         if(m_mode == ExpandMode::Scale)
         {
-            newproc->setDurationAndScale(trg_constraint.duration.defaultDuration());
+            newproc->setParentDuration(ExpandMode::Scale, trg_constraint.duration.defaultDuration());
         }
-        else if (m_mode == ExpandMode::Grow)
+        else if (m_mode == ExpandMode::GrowShrink)
         {
-            newproc->setDurationAndGrow(trg_constraint.duration.defaultDuration());
+            newproc->setParentDuration(ExpandMode::ForceGrow, trg_constraint.duration.defaultDuration());
         }
     }
 

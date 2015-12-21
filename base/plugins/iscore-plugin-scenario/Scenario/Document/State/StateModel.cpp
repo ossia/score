@@ -22,14 +22,15 @@
 #include <iscore/application/ApplicationContext.hpp>
 
 */
-constexpr const char StateModel::className[];
+
+ISCORE_METADATA_IMPL(StateModel)
 StateModel::StateModel(
         const Id<StateModel>& id,
         const Id<EventModel>& eventId,
         double yPos,
         iscore::CommandStackFacade& stack,
         QObject *parent):
-    IdentifiedObject<StateModel> {id, "StateModel", parent},
+    IdentifiedObject<StateModel> {id, className.c_str(), parent},
     m_stack{stack},
     m_eventId{eventId},
     m_heightPercentage{yPos},
@@ -51,7 +52,7 @@ StateModel::StateModel(
         const Id<StateModel> &id,
         iscore::CommandStackFacade& stack,
         QObject *parent):
-    IdentifiedObject<StateModel> {id, "StateModel", parent},
+    IdentifiedObject<StateModel> {id, className.c_str(), parent},
     m_stack{stack},
     m_eventId{source.eventId()},
     m_previousConstraint{source.previousConstraint()},

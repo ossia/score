@@ -1,6 +1,5 @@
 #pragma once
-#include <Inspector/InspectorWidgetFactoryInterface.hpp>
-#include <QList>
+#include <Process/Inspector/ProcessInspectorWidgetDelegateFactory.hpp>
 
 class InspectorWidgetBase;
 class QObject;
@@ -10,20 +9,16 @@ namespace iscore {
 class Document;
 }  // namespace iscore
 
-class ScenarioInspectorFactory final : public InspectorWidgetFactory
+class ScenarioInspectorFactory final : public ProcessInspectorWidgetDelegateFactory
 {
     public:
-        ScenarioInspectorFactory() :
-            InspectorWidgetFactory {}
-        {
+        ScenarioInspectorFactory() = default;
 
-        }
-
-        InspectorWidgetBase* makeWidget(
-                const QObject& sourceElement,
-                const iscore::DocumentContext& doc,
+    private:
+        ProcessInspectorWidgetDelegate* make(
+                const Process&,
+                const iscore::DocumentContext&,
                 QWidget* parent) const override;
-
-        const QList<QString>& key_impl() const override;
+        bool matches(const Process&) const override;
 
 };

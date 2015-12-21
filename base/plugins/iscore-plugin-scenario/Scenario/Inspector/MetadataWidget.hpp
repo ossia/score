@@ -67,11 +67,8 @@ class MetadataWidget final : public QWidget
             });
         }
 
-    public slots:
         void setScriptingName(QString arg);
-
         void changeColor();
-
         void updateAsked();
 
     signals:

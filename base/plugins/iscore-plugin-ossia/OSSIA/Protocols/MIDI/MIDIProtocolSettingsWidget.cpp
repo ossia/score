@@ -39,8 +39,8 @@ MIDIProtocolSettingsWidget::buildGUI()
 
     setLayout(gLayout);
 
-    connect(m_inButton, SIGNAL(clicked()), this, SLOT(updateInputDevices()));
-    connect(m_outButton, SIGNAL(clicked()), this, SLOT(updateOutputDevices()));
+    connect(m_inButton, &QAbstractButton::clicked, this, &MIDIProtocolSettingsWidget::updateInputDevices);
+    connect(m_outButton, &QAbstractButton::clicked, this, &MIDIProtocolSettingsWidget::updateOutputDevices);
 
 
     m_inButton->setChecked(true);  //TODO: QSettings

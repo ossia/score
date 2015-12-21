@@ -52,8 +52,7 @@ class MoveBaseEvent final : public iscore::SerializableCommand
         { return QObject::tr("Move a %1 event").arg(NameInUndo<SimpleScenario_T>()); }
         static const CommandFactoryKey& static_key()
         {
-            static const QByteArray name = QString{"MoveBaseEvent_%1"}.arg(SimpleScenario_T::staticMetaObject.className()).toUtf8();
-            static const CommandFactoryKey kagi{name.constData()};
+            static const CommandFactoryKey kagi{"MoveBaseEvent_"_S + SimpleScenario_T::className};
             return kagi;
         }
 
@@ -168,7 +167,7 @@ class MoveBaseEvent final : public iscore::SerializableCommand
             updateDuration(scenar,
                            m_newDate,
                            [&] (Process& p , const TimeValue& v) {
-                p.expandProcess(m_mode, v);
+                p.setParentDuration(m_mode, v);
             });
         }
 

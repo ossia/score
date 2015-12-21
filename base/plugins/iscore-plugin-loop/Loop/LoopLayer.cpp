@@ -14,13 +14,13 @@ class ConstraintViewModel;
 class LayerModelPanelProxy;
 class QObject;
 
+ISCORE_METADATA_IMPL(LoopLayer)
 
-constexpr const char LoopLayer::className[];
 LoopLayer::LoopLayer(
         Loop::ProcessModel& model,
         const Id<LayerModel>& id,
         QObject* parent) :
-    LayerModel {id, LoopLayer::staticMetaObject.className(), model, parent}
+    LayerModel {id, LoopLayer::className.c_str(), model, parent}
 {
     m_constraint = model.constraint().makeConstraintViewModel<TemporalConstraintViewModel>(
                 Id<ConstraintViewModel>{0},
@@ -32,7 +32,7 @@ LoopLayer::LoopLayer(
         Loop::ProcessModel& model,
         const Id<LayerModel>& id,
         QObject* parent) :
-    LayerModel {id, LoopLayer::staticMetaObject.className(), model, parent}
+    LayerModel {id, LoopLayer::className.c_str(), model, parent}
 {
     m_constraint = source.m_constraint->clone(
                 source.constraint().id(),

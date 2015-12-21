@@ -9,12 +9,12 @@ class LayerModelPanelProxy;
 class QObject;
 #include <iscore/tools/SettableIdentifier.hpp>
 
+ISCORE_METADATA_IMPL(AutomationLayerModel)
 // TODO refactor with mapping ?
-constexpr const char AutomationLayerModel::className[];
 AutomationLayerModel::AutomationLayerModel(AutomationModel& model,
                                          const Id<LayerModel>& id,
                                          QObject* parent) :
-    LayerModel {id, AutomationLayerModel::className, model, parent}
+    LayerModel {id, AutomationLayerModel::className.c_str(), model, parent}
 {
 
 }
@@ -23,7 +23,7 @@ AutomationLayerModel::AutomationLayerModel(const AutomationLayerModel& source,
                                          AutomationModel& model,
                                          const Id<LayerModel>& id,
                                          QObject* parent) :
-    LayerModel {id, AutomationLayerModel::staticMetaObject.className(), model, parent}
+    LayerModel {id, AutomationLayerModel::className.c_str(), model, parent}
 {
     // Nothing to copy
 }

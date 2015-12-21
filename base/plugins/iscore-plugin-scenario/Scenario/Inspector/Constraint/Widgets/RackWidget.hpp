@@ -9,8 +9,6 @@ class QString;
 
 class RackWidget final : public QWidget
 {
-        Q_OBJECT
-
     public:
         RackWidget(ConstraintInspectorWidget* parent);
 

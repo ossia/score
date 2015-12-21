@@ -15,7 +15,6 @@ class AddProcessDialog final : public QWidget
                 const ProcessList& plist,
                 QWidget* parent = 0);
 
-    public slots:
         void launchWindow();
 
     signals:

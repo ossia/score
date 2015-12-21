@@ -112,7 +112,7 @@ void AddProcess(ConstraintModel& constraint, Process* proc)
 {
     constraint.processes.add(proc);
 
-    const auto& scenar = *safe_cast<ScenarioInterface*>(constraint.parent());
+    const auto& scenar = *dynamic_cast<ScenarioInterface*>(constraint.parent());
     AddProcessAfterState(startState(constraint, scenar), *proc);
     AddProcessBeforeState(endState(constraint, scenar), *proc);
 }
@@ -120,7 +120,7 @@ void AddProcess(ConstraintModel& constraint, Process* proc)
 void RemoveProcess(ConstraintModel& constraint, const Id<Process>& proc_id)
 {
     const auto& proc = constraint.processes.at(proc_id);
-    const auto& scenar = *safe_cast<ScenarioInterface*>(constraint.parent());
+    const auto& scenar = *dynamic_cast<ScenarioInterface*>(constraint.parent());
 
     RemoveProcessAfterState(startState(constraint, scenar), proc);
     RemoveProcessBeforeState(endState(constraint, scenar), proc);

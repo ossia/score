@@ -72,8 +72,6 @@ catch(std::bad_cast& e)
 #define safe_cast static_cast
 #endif
 
-#define ISCORE_METADATA(str) public: static constexpr const char className[]{ str }; private:
-
 /**
  * @brief The ptr struct
  * Reduces the chances of UB

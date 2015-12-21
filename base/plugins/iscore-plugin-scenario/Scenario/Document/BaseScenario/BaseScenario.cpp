@@ -17,6 +17,7 @@
 
 class QObject;
 
+ISCORE_METADATA_IMPL(BaseScenario)
 BaseScenario::BaseScenario(const Id<BaseScenario>& id, QObject* parent):
     IdentifiedObject<BaseScenario>{id, "BaseScenario", parent},
     BaseScenarioContainer{this},

@@ -44,8 +44,10 @@ DeviceEditDialog::buildGUI()
 
     QDialogButtonBox* buttonBox = new QDialogButtonBox(QDialogButtonBox::Ok
             | QDialogButtonBox::Cancel, Qt::Horizontal, this);
-    connect(buttonBox, SIGNAL(accepted()), this, SLOT(accept()));
-    connect(buttonBox, SIGNAL(rejected()), this, SLOT(reject()));
+    connect(buttonBox, &QDialogButtonBox::accepted,
+            this, &QDialog::accept);
+    connect(buttonBox, &QDialogButtonBox::rejected,
+            this, &QDialog::reject);
 
 
     m_gLayout = new QGridLayout;
@@ -62,7 +64,8 @@ DeviceEditDialog::buildGUI()
 
     initAvailableProtocols(); //populate m_protocolCBox
 
-    connect(m_protocolCBox, SIGNAL(currentIndexChanged(int)), this, SLOT(updateProtocolWidget()));
+    connect(m_protocolCBox,  static_cast<void (QComboBox::*)(int)>(&QComboBox::currentIndexChanged),
+            this, &DeviceEditDialog::updateProtocolWidget);
 
     if(m_protocolCBox->count() > 0)
     {

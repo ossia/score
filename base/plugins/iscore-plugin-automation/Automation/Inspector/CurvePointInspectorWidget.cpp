@@ -65,9 +65,10 @@ CurvePointInspectorWidget::CurvePointInspectorWidget(
     m_YBox->setSingleStep(m_yFactor/100);
     m_YBox->setValue(m_model.pos().y() * m_yFactor  + m_Ymin);
 
-    connect(m_YBox, SIGNAL(valueChanged(double)), this, SLOT(on_pointChanged(double)));
+    connect(m_YBox, static_cast<void (QDoubleSpinBox::*)(double)>(&QDoubleSpinBox::valueChanged),
+            this, &CurvePointInspectorWidget::on_pointChanged);
 
-    connect(m_YBox, &QDoubleSpinBox::editingFinished,
+    connect(m_YBox, static_cast<void (QDoubleSpinBox::*)(double)>(&QDoubleSpinBox::valueChanged),
             this, &CurvePointInspectorWidget::on_editFinished);
     vec.push_back(widgY);
 

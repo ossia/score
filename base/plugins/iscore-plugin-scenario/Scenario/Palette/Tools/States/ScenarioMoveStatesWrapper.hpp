@@ -31,7 +31,7 @@ class MoveConstraintInScenario_StateWrapper
                                                           moveConstraint,
                                                           *moveConstraint);
             moveConstraint->addTransition(moveConstraint,
-                                          SIGNAL(finished()),
+                                          finishedState(),
                                           waitState);
         }
 };
@@ -61,7 +61,7 @@ class MoveEventInScenario_StateWrapper
                                                      moveEvent,
                                                      *moveEvent);
             moveEvent->addTransition(moveEvent,
-                                       SIGNAL(finished()),
+                                       finishedState(),
                                        waitState);
         }
 };
@@ -87,7 +87,7 @@ class MoveTimeNodeInScenario_StateWrapper
                                                                     moveTimeNode,
                                                                     *moveTimeNode);
             moveTimeNode->addTransition(moveTimeNode,
-                                        SIGNAL(finished()),
+                                        finishedState(),
                                         waitState);
         }
 };

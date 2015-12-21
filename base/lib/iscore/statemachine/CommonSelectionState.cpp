@@ -51,7 +51,7 @@ CommonSelectionState::CommonSelectionState(
             selectionAreaState->setObjectName("selectionAreaState");
 
             iscore::make_transition<iscore::Press_Transition>(m_waitState, selectionAreaState);
-            selectionAreaState->addTransition(selectionAreaState, SIGNAL(finished()), m_waitState);
+            selectionAreaState->addTransition(selectionAreaState, finishedState(), m_waitState);
             {
                 // States
                 auto pressAreaSelection = new QState{selectionAreaState};

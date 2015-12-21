@@ -14,12 +14,11 @@
 #include <iscore/tools/NotifyingMap.hpp>
 #include <iscore/tools/Todo.hpp>
 
-constexpr const char SlotModel::className[];
-
+ISCORE_METADATA_IMPL(SlotModel)
 SlotModel::SlotModel(
         const Id<SlotModel>& id,
         RackModel* parent) :
-    IdentifiedObject<SlotModel> {id, "SlotModel", parent}
+    IdentifiedObject<SlotModel> {id, className.c_str(), parent}
 {
     initConnections();
     metadata.setName(QString{"Slot.%1"}.arg(*id.val()));
@@ -30,7 +29,7 @@ SlotModel::SlotModel(
         const SlotModel& source,
         const Id<SlotModel>& id,
         RackModel *parent):
-    IdentifiedObject<SlotModel> {id, "SlotModel", parent},
+    IdentifiedObject<SlotModel> {id, className.c_str(), parent},
     m_frontLayerModelId{Id<LayerModel>{source.m_frontLayerModelId.val()}},
     m_height {source.height() }
 {
