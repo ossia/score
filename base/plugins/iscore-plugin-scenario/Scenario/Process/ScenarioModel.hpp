@@ -61,6 +61,7 @@ class ISCORE_PLUGIN_SCENARIO_EXPORT ScenarioModel final : public Process, public
         Scenario::ScenarioModel* clone(
                 const Id<Process>& newId,
                 QObject* newParent) const override;
+        ~ScenarioModel();
 
         //// ProcessModel specifics ////
         QByteArray makeLayerConstructionData() const override;
@@ -223,10 +224,10 @@ class ISCORE_PLUGIN_SCENARIO_EXPORT ScenarioModel final : public Process, public
     private:
         template<typename Fun>
         void apply(Fun fun) const {
-            fun(&ScenarioModel::timeNodes);
-            fun(&ScenarioModel::events);
             fun(&ScenarioModel::constraints);
             fun(&ScenarioModel::states);
+            fun(&ScenarioModel::events);
+            fun(&ScenarioModel::timeNodes);
             fun(&ScenarioModel::comments);
         }
         ScenarioModel(const Scenario::ScenarioModel& source,

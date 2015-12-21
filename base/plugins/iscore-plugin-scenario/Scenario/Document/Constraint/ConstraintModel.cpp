@@ -35,6 +35,14 @@ ConstraintModel::ConstraintModel(
     setHeightPercentage(yPos);
 }
 
+ConstraintModel::~ConstraintModel()
+{
+    for(auto elt : racks.map().get())
+        delete elt;
+    for(auto elt : processes.map().get())
+        delete elt;
+}
+
 ConstraintModel::ConstraintModel(
         const ConstraintModel& source,
         const Id<ConstraintModel>& id,
