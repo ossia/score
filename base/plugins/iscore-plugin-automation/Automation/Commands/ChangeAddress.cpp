@@ -22,31 +22,34 @@ ChangeAddress::ChangeAddress(
     m_path{path}
 {
     auto& autom = m_path.find();
-    auto& deviceexplorer = deviceExplorerFromObject(autom);
-
-    // Note : since we change the address, we also have to update the min / max if possible.
-    // To do this, we must go and check into the device explorer.
-    // If the node isn't found, we fallback on common values.
 
     // Get the current data.
     m_old.address = autom.address();
     m_old.domain.min.val = autom.min();
     m_old.domain.max.val = autom.max();
 
-    // Get the new data.
-    auto newpath = newval.path;
-    newpath.prepend(newval.device);
-    auto new_n = iscore::try_getNodeFromString(deviceexplorer.rootNode(), std::move(newpath));
-    if(new_n)
+
+    if(auto deviceexplorer = try_deviceExplorerFromObject(autom))
     {
-        ISCORE_ASSERT(!new_n->is<iscore::DeviceSettings>());
-        m_new = iscore::FullAddressSettings::make<iscore::FullAddressSettings::as_child>(new_n->get<iscore::AddressSettings>(), newval);
-    }
-    else
-    {
-        m_new.address = newval;
-        m_new.domain.min.val = 0.;
-        m_new.domain.max.val = 1.;
+        // Note : since we change the address, we also have to update the min / max if possible.
+        // To do this, we must go and check into the device explorer.
+        // If the node isn't found, we fallback on common values.
+
+        // Get the new data.
+        auto newpath = newval.path;
+        newpath.prepend(newval.device);
+        auto new_n = iscore::try_getNodeFromString(deviceexplorer->rootNode(), std::move(newpath));
+        if(new_n)
+        {
+            ISCORE_ASSERT(!new_n->is<iscore::DeviceSettings>());
+            m_new = iscore::FullAddressSettings::make<iscore::FullAddressSettings::as_child>(new_n->get<iscore::AddressSettings>(), newval);
+        }
+        else
+        {
+            m_new.address = newval;
+            m_new.domain.min.val = 0.;
+            m_new.domain.max.val = 1.;
+        }
     }
 }
 
