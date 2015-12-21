@@ -22,3 +22,16 @@ class ISCORE_PLUGIN_SCENARIO_EXPORT ScenarioInterface
         virtual TimeNodeModel& startTimeNode() const = 0;
         virtual TimeNodeModel& endTimeNode() const = 0;
 };
+
+namespace Scenario {
+template<typename T>
+static const auto startId()
+{
+    return Id<T>{0};
+}
+template<typename T>
+static const auto endId()
+{
+    return Id<T>{1};
+}
+}

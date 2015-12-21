@@ -38,11 +38,11 @@ class MoveEventInBaseScenario_StateWrapper
                         palette.context().objectLocker,
                         &sm};
 
-            make_transition<Scenario::ClickOnState_Transition<Scenario_T>>(waitState,
+            make_transition<Scenario::ClickOnEndState_Transition<Scenario_T>>(waitState,
                                                      moveEvent,
                                                      *moveEvent);
 
-            make_transition<Scenario::ClickOnEvent_Transition<Scenario_T>>(waitState,
+            make_transition<Scenario::ClickOnEndEvent_Transition<Scenario_T>>(waitState,
                                                      moveEvent,
                                                      *moveEvent);
             moveEvent->addTransition(moveEvent,
@@ -68,7 +68,7 @@ class MoveTimeNodeInBaseScenario_StateWrapper
                         palette.context().objectLocker,
                         &sm};
 
-            make_transition<Scenario::ClickOnTimeNode_Transition<Scenario_T>>(waitState,
+            make_transition<Scenario::ClickOnEndTimeNode_Transition<Scenario_T>>(waitState,
                                                                     moveTimeNode,
                                                                     *moveTimeNode);
             moveTimeNode->addTransition(moveTimeNode,

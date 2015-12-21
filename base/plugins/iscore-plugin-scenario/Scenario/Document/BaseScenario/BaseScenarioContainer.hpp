@@ -15,7 +15,6 @@ class StateModel;
 class TimeNodeModel;
 #include <iscore/tools/SettableIdentifier.hpp>
 #include <iscore_plugin_scenario_export.h>
-
 class ISCORE_PLUGIN_SCENARIO_EXPORT BaseScenarioContainer : public ScenarioInterface
 {
         ISCORE_SERIALIZE_FRIENDS(BaseScenarioContainer, DataStream)
