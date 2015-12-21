@@ -3,6 +3,7 @@
 #include <Scenario/Document/State/StateModel.hpp>
 #include <Scenario/Document/TimeNode/TimeNodeModel.hpp>
 #include <Scenario/Process/Algorithms/ProcessPolicy.hpp>
+#include <Scenario/Process/ScenarioInterface.hpp>
 #include <boost/optional/optional.hpp>
 
 #include "BaseScenarioContainer.hpp"
@@ -19,14 +20,14 @@ BaseScenarioContainer::~BaseScenarioContainer()
 void BaseScenarioContainer::init()
 {
     auto& stack = iscore::IDocument::documentContext(*m_parent).commandStack;
-    m_startNode = new TimeNodeModel{Id<TimeNodeModel>{0}, {0.2, 0.8}, TimeValue::zero(),  m_parent};
-    m_endNode = new TimeNodeModel{Id<TimeNodeModel>{1}, {0.2, 0.8}, TimeValue::zero(), m_parent};
+    m_startNode = new TimeNodeModel{Scenario::startId<TimeNodeModel>(), {0.2, 0.8}, TimeValue::zero(),  m_parent};
+    m_endNode = new TimeNodeModel{Scenario::endId<TimeNodeModel>(), {0.2, 0.8}, TimeValue::zero(), m_parent};
 
-    m_startEvent = new EventModel{Id<EventModel>{0}, m_startNode->id(), {0.4, 0.6}, TimeValue::zero(), m_parent};
-    m_endEvent = new EventModel{Id<EventModel>{1}, m_endNode->id(),   {0.4, 0.6}, TimeValue::zero(), m_parent};
+    m_startEvent = new EventModel{Scenario::startId<EventModel>(), m_startNode->id(), {0.4, 0.6}, TimeValue::zero(), m_parent};
+    m_endEvent = new EventModel{Scenario::endId<EventModel>(), m_endNode->id(),   {0.4, 0.6}, TimeValue::zero(), m_parent};
 
-    m_startState = new StateModel{Id<StateModel>{0}, m_startEvent->id(), 0, stack, m_parent};
-    m_endState = new StateModel{Id<StateModel>{1}, m_endEvent->id(),   0, stack, m_parent};
+    m_startState = new StateModel{Scenario::startId<StateModel>(), m_startEvent->id(), 0, stack, m_parent};
+    m_endState = new StateModel{Scenario::endId<StateModel>(), m_endEvent->id(),   0, stack, m_parent};
 
     m_constraint = new ConstraintModel{
             Id<ConstraintModel>{0},

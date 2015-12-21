@@ -36,11 +36,11 @@ ScenarioModel::ScenarioModel(const TimeValue& duration,
                              const Id<Process>& id,
                              QObject* parent) :
     Process {duration, id, ScenarioProcessMetadata::processObjectName(), parent},
-    m_startTimeNodeId{0},
-    m_endTimeNodeId{1},
-    m_startEventId{0},
-    m_endEventId{1},
-    m_startStateId{0}
+    m_startTimeNodeId{Scenario::startId<TimeNodeModel>()},
+    m_endTimeNodeId{Scenario::endId<TimeNodeModel>()},
+    m_startEventId{Scenario::startId<EventModel>()},
+    m_endEventId{Scenario::endId<EventModel>()},
+    m_startStateId{Scenario::startId<StateModel>()}
 {
     auto& start_tn = ScenarioCreate<TimeNodeModel>::redo(m_startTimeNodeId, {0.2, 0.8}, TimeValue::zero(), *this);
     auto& end_tn = ScenarioCreate<TimeNodeModel>::redo(m_endTimeNodeId, {0.2, 0.8}, duration, *this);
