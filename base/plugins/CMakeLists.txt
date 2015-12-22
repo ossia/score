@@ -17,16 +17,17 @@ add_subdirectory(iscore-plugin-loop)
 add_subdirectory(iscore-plugin-ossia)
 add_subdirectory(iscore-plugin-cohesion)
 
-add_subdirectory(iscore-plugin-js)
+add_subdirectory(iscore-plugin-space)
 
-add_subdirectory(iscore-plugin-temporalautomatas)
-add_subdirectory(iscore-plugin-mapping)
-
-
-add_subdirectory(iscore-plugin-network)
-add_subdirectory(iscore-plugin-audio)
-add_subdirectory(iscore-plugin-library)
 if(ISCORE_USE_DEV_PLUGINS)
-    add_subdirectory(iscore-plugin-space)
+
+  add_subdirectory(iscore-plugin-js)
+
+  add_subdirectory(iscore-plugin-temporalautomatas)
+  add_subdirectory(iscore-plugin-mapping)
+
+    add_subdirectory(iscore-plugin-network)
+    add_subdirectory(iscore-plugin-audio)
+    add_subdirectory(iscore-plugin-library)
     add_subdirectory(iscore-plugin-csp)
 endif()

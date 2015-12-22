@@ -70,8 +70,9 @@ class ISCORE_LIB_DEVICE_EXPORT NodeBasedItemModel : public TreeNodeBasedItemMode
                 endRemoveRows();
                 return it;
             }
-            else if(node->is<iscore::DeviceSettings>())
+            else
             {
+                ISCORE_ASSERT(node->is<iscore::DeviceSettings>());
                 int row = rootNode().indexOfChild(&*node);
 
                 beginRemoveRows(QModelIndex(), row, row);

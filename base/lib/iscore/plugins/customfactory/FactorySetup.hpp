@@ -41,7 +41,7 @@ using TL = TypeList<Args...>;
 
 namespace iscore
 {
-class ApplicationContext;
+struct ApplicationContext;
 }
 
 struct FactoryMatcher
