@@ -16,6 +16,8 @@ namespace OSSIA
 {
 namespace convert
 {
+
+
 iscore::IOType ToIOType(OSSIA::Address::AccessMode t)
 {
     switch(t)
