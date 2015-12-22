@@ -10,7 +10,9 @@ class QFormLayout;
 class ISCORE_LIB_DEVICE_EXPORT AddressSettingsWidget : public QWidget
 {
     public:
+        struct no_widgets_t {};
         explicit AddressSettingsWidget(QWidget* parent = nullptr);
+        explicit AddressSettingsWidget(no_widgets_t, QWidget* parent = nullptr);
 
         virtual iscore::AddressSettings getSettings() const = 0;
         virtual void setSettings(const iscore::AddressSettings& settings) = 0;
@@ -21,6 +23,7 @@ class ISCORE_LIB_DEVICE_EXPORT AddressSettingsWidget : public QWidget
         QFormLayout* m_layout;
 
     private:
+        bool m_none_type{false};
         QComboBox* m_ioTypeCBox;
         QComboBox* m_clipModeCBox;
         QComboBox* m_tagsEdit;

@@ -26,7 +26,7 @@ static const std::array<const QString, 8> ValueTypesArray{{
     QString{"String"},
     QString{"Char"},
     QString{"Tuple"},
-    QString{"NoValue"}
+    QString{"None"}
 }};
 
 static const std::array<const QString, 8> ValuePrettyTypesArray{{
@@ -37,7 +37,7 @@ static const std::array<const QString, 8> ValuePrettyTypesArray{{
     QObject::tr("String"),
     QObject::tr("Char"),
     QObject::tr("Tuple"),
-    QObject::tr("NoValue")
+    QObject::tr("None")
 }};
 
 template<>

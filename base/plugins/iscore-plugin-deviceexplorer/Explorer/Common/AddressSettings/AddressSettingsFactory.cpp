@@ -32,6 +32,10 @@ AddressSettingsFactory AddressSettingsFactory::m_instance;
 
 AddressSettingsFactory::AddressSettingsFactory()
 {
+    // TODO important these strings must be the same than ValueTypesArray in ValueConversion.
+    // Change this by storing keys instead (or the ValueType enum).
+    m_addressSettingsWidgetFactory.insert(QObject::tr("None"),
+                                          new AddressSettingsWidgetFactoryMethodT<AddressNoneSettingsWidget>);
     m_addressSettingsWidgetFactory.insert(QObject::tr("Int"),
                                           new AddressSettingsWidgetFactoryMethodT<AddressIntSettingsWidget>);
     m_addressSettingsWidgetFactory.insert(QObject::tr("Float"),
