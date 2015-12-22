@@ -42,30 +42,20 @@ AddressEditDialog::AddressEditDialog(
 
     setNodeSettings();
 
+    // Value type
+    m_valueTypeCBox = new QComboBox(this);
+    m_valueTypeCBox->addItems(AddressSettingsFactory::instance().getAvailableValueTypes());
+    //m_valueTypeCBox->setEnabled(false); // Note : the day where the OSSIA API will be able to change the type of an address.
+    connect(m_valueTypeCBox, static_cast<void (QComboBox::*)(int)>(&QComboBox::currentIndexChanged),
+            this, &AddressEditDialog::updateType);
 
-    if(m_originalSettings.ioType != iscore::IOType::Invalid)
-    {
-        // Value type
-        m_valueTypeCBox = new QComboBox(this);
-        m_valueTypeCBox->addItems(AddressSettingsFactory::instance().getAvailableValueTypes());
-        //m_valueTypeCBox->setEnabled(false); // Note : the day where the OSSIA API will be able to change the type of an address.
-        connect(m_valueTypeCBox, static_cast<void (QComboBox::*)(int)>(&QComboBox::currentIndexChanged),
-                this, &AddressEditDialog::updateType);
+    m_layout->addRow(tr("Value type"), m_valueTypeCBox);
 
-        m_layout->addRow(tr("Value type"), m_valueTypeCBox);
+    // AddressWidget
+    m_addressWidget = new WidgetWrapper<AddressSettingsWidget>{this};
+    m_layout->addWidget(m_addressWidget);
 
-        // AddressWidget
-        m_addressWidget = new WidgetWrapper<AddressSettingsWidget>{this};
-        m_layout->addWidget(m_addressWidget);
-
-        setValueSettings();
-    }
-    else
-    {
-        // TODO Make a way to add addresses when there are none.
-        // e. g. "Add address" and "Remove address" button.
-        ISCORE_TODO;
-    }
+    setValueSettings();
 
     // Ok / Cancel
     auto buttonBox = new QDialogButtonBox{QDialogButtonBox::Ok
@@ -87,6 +77,8 @@ void AddressEditDialog::updateType()
 {
     const QString valueType = m_valueTypeCBox->currentText();
     m_addressWidget->setWidget(AddressSettingsFactory::instance().getValueTypeWidget(valueType));
+    if(m_originalSettings.ioType == iscore::IOType::Invalid)
+        m_originalSettings.ioType = iscore::IOType::InOut;
     m_addressWidget->widget()->setSettings(m_originalSettings);
 }
 

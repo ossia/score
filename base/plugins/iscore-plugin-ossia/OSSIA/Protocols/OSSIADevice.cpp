@@ -107,10 +107,18 @@ void OSSIADevice::updateAddress(const iscore::FullAddressSettings &settings)
     OSSIA::Node* node = getNodeFromPath(settings.address.path, m_dev.get());
     node->setName(settings.address.path.last().toStdString());
 
-    if(settings.ioType == iscore::IOType::Invalid)
+    if(settings.value.val.which() == iscore::ValueType::NoValue)
+    {
         removeOSSIAAddress(node);
+    }
     else
-        updateOSSIAAddress(settings, node->getAddress());
+    {
+        auto currentAddr = node->getAddress();
+        if(currentAddr)
+            updateOSSIAAddress(settings, node->getAddress());
+        else
+            createOSSIAAddress(settings, node);
+    }
 }
 
 void OSSIADevice::removeListening_impl(
