@@ -63,9 +63,14 @@ class PropertyWrapper : public QObject
 
             connect(parent, chgd,
                     this, [=] {
-                m_addr->pushValue(iscore::convert::toOSSIAValue(iscore::Value::fromValue((parent->*get)())));
+                auto newVal = iscore::Value::fromValue((parent->*get)());
+                if(newVal != OSSIA::convert::ToValue(m_addr->getValue()))
+                    m_addr->pushValue(iscore::convert::toOSSIAValue(newVal));
             });
 
+            addr->pushValue(
+                            iscore::convert::toOSSIAValue(
+                                iscore::Value::fromValue((parent->*get)())));
         }
 
         void val(OSSIA::Value* val)
@@ -96,77 +101,6 @@ auto add_property(OSSIA::Node& n, const std::string& name, Object* obj, PropGet 
     return new PropertyWrapper{node, addr, obj, get, set, chgd, T{}};
 }
 
-namespace OSSIA
-{
-namespace LocalTree
-{
-
-struct ScenarioVisitor
-{
-        void visit(Scenario::ScenarioModel& scenario,
-                   const std::shared_ptr<OSSIA::Node>& parent)
-        {
-            auto constraints = add_node(*parent, "constraints");
-            for(ConstraintModel& elt : scenario.constraints)
-            {
-                auto it = add_node(*constraints, elt.metadata.name().toStdString());
-                visit(elt, it);
-            }
-
-            auto events = add_node(*parent, "events");
-            for(auto& elt : scenario.events)
-            {
-                visit(elt, events);
-            }
-
-            auto timenodes = add_node(*parent, "timenodes");
-            for(auto& elt : scenario.timeNodes)
-            {
-                visit(elt, timenodes);
-            }
-
-            auto states = add_node(*parent, "states");
-            for(auto& elt : scenario.states)
-            {
-                visit(elt, states);
-            }
-        }
-
-        void visit(ModelMetadata& metadata,
-                   const std::shared_ptr<OSSIA::Node>& parent)
-        {
-            auto it = add_node(*parent, metadata.comment().toStdString());
-
-        }
-
-        void visit(ConstraintModel& constraint,
-                   const std::shared_ptr<OSSIA::Node>& parent)
-        {
-            add_property<float>(*parent, "yPos", &constraint,
-                         &ConstraintModel::heightPercentage,
-                         &ConstraintModel::setHeightPercentage,
-                         &ConstraintModel::heightPercentageChanged);
-        }
-
-        void visit(EventModel& ev,
-                   const std::shared_ptr<OSSIA::Node>& parent)
-        {
-
-        }
-
-        void visit(TimeNodeModel& tn,
-                   const std::shared_ptr<OSSIA::Node>& parent)
-        {
-
-        }
-
-        void visit(StateModel& state,
-                   const std::shared_ptr<OSSIA::Node>& parent)
-        {
-
-        }
-};
-
 class DocumentPlugin : public iscore::DocumentPluginModel
 {
         std::shared_ptr<OSSIA::Device> m_localDevice;
@@ -182,5 +116,84 @@ class DocumentPlugin : public iscore::DocumentPluginModel
         }
 };
 
+
+
+void OSSIA::LocalTree::ScenarioVisitor::visit(Scenario::ScenarioModel& scenario, const std::shared_ptr<OSSIA::Node>& parent)
+{
+    auto constraints = add_node(*parent, "constraints");
+    for(ConstraintModel& elt : scenario.constraints)
+    {
+        auto it = add_node(*constraints, elt.metadata.name().toStdString());
+        visit(elt, it);
+    }
+
+    auto events = add_node(*parent, "events");
+    for(auto& elt : scenario.events)
+    {
+        visit(elt, events);
+    }
+
+    auto timenodes = add_node(*parent, "timenodes");
+    for(auto& elt : scenario.timeNodes)
+    {
+        visit(elt, timenodes);
+    }
+
+    auto states = add_node(*parent, "states");
+    for(auto& elt : scenario.states)
+    {
+        visit(elt, states);
+    }
 }
+
+
+
+void OSSIA::LocalTree::ScenarioVisitor::visit(ModelMetadata& metadata, const std::shared_ptr<OSSIA::Node>& parent)
+{
+    auto it = add_node(*parent, metadata.comment().toStdString());
+
 }
+
+
+
+void OSSIA::LocalTree::ScenarioVisitor::visit(ConstraintModel& constraint, const std::shared_ptr<OSSIA::Node>& parent)
+{
+    add_property<float>(*parent, "yPos", &constraint,
+                        &ConstraintModel::heightPercentage,
+                        &ConstraintModel::setHeightPercentage,
+                        &ConstraintModel::heightPercentageChanged);
+
+
+    auto processes = add_node(*parent, "processes");
+    for(Process& proc : constraint.processes)
+    {
+        auto it = add_node(*processes, proc.metadata.name().toStdString());
+        if(auto scenario = dynamic_cast<Scenario::ScenarioModel*>(&proc))
+        {
+            visit(*scenario, it);
+        }
+
+    }
+}
+
+
+
+void OSSIA::LocalTree::ScenarioVisitor::visit(EventModel& ev, const std::shared_ptr<OSSIA::Node>& parent)
+{
+
+}
+
+
+
+void OSSIA::LocalTree::ScenarioVisitor::visit(TimeNodeModel& tn, const std::shared_ptr<OSSIA::Node>& parent)
+{
+
+}
+
+
+
+void OSSIA::LocalTree::ScenarioVisitor::visit(StateModel& state, const std::shared_ptr<OSSIA::Node>& parent)
+{
+
+}
+

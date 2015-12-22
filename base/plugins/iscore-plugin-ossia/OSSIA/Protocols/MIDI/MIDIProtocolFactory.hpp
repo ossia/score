@@ -23,7 +23,7 @@ class MIDIProtocolFactory : public ProtocolFactory
                 const iscore::DeviceSettings& settings,
                 const iscore::DocumentContext& ctx) override;
 
-        const iscore::DeviceSettings& defaultSettings() const;
+        const iscore::DeviceSettings& defaultSettings() const override;
 
         ProtocolSettingsWidget* makeSettingsWidget() override;
 
