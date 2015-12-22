@@ -22,9 +22,24 @@ const ProtocolFactoryKey&MIDIProtocolFactory::key_impl() const
     return name;
 }
 
-DeviceInterface*MIDIProtocolFactory::makeDevice(const iscore::DeviceSettings& settings)
+DeviceInterface*MIDIProtocolFactory::makeDevice(
+        const iscore::DeviceSettings& settings,
+        const iscore::DocumentContext& ctx)
 {
     return new MIDIDevice{settings};
+}
+
+const iscore::DeviceSettings& MIDIProtocolFactory::defaultSettings() const
+{
+    static const iscore::DeviceSettings settings = [&] () {
+        iscore::DeviceSettings s;
+        s.protocol = key_impl();
+        s.name = "Midi";
+        MIDISpecificSettings specif;
+        s.deviceSpecificSettings = QVariant::fromValue(specif);
+        return s;
+    }();
+    return settings;
 }
 
 ProtocolSettingsWidget*MIDIProtocolFactory::makeSettingsWidget()

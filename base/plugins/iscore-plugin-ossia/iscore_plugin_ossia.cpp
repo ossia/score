@@ -1,5 +1,6 @@
 #include <OSSIA/Protocols/Minuit/MinuitProtocolFactory.hpp>
 #include <OSSIA/Protocols/OSC/OSCProtocolFactory.hpp>
+#include <OSSIA/Protocols/Local/LocalProtocolFactory.hpp>
 #include <QString>
 
 #include <Device/Protocol/ProtocolFactoryInterface.hpp>
@@ -36,7 +37,9 @@ std::vector<std::unique_ptr<iscore::FactoryInterfaceBase>> iscore_plugin_ossia::
     {
         return make_ptr_vector<iscore::FactoryInterfaceBase,
                 MinuitProtocolFactory,
-                OSCProtocolFactory>();
+                OSCProtocolFactory,
+                LocalProtocolFactory
+                >();
     }
 
     if(factoryName == ScenarioActionsFactory::staticFactoryKey())

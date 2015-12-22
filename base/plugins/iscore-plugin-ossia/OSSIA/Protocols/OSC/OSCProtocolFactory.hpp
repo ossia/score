@@ -20,7 +20,10 @@ class OSCProtocolFactory : public ProtocolFactory
         const ProtocolFactoryKey& key_impl() const override;
 
 
-        DeviceInterface* makeDevice(const iscore::DeviceSettings& settings) override;
+        DeviceInterface* makeDevice(
+                const iscore::DeviceSettings& settings,
+                const iscore::DocumentContext& ctx) override;
+        const iscore::DeviceSettings& defaultSettings() const override;
 
         ProtocolSettingsWidget* makeSettingsWidget() override;
 

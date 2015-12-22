@@ -12,7 +12,7 @@ struct DeviceSettings;
 }  // namespace iscore
 struct VisitorVariant;
 
-class MIDIProtocolFactory : public ProtocolFactory
+class LocalProtocolFactory : public ProtocolFactory
 {
         // Implement with OSSIA::Device
         QString prettyName() const override;
@@ -23,16 +23,13 @@ class MIDIProtocolFactory : public ProtocolFactory
                 const iscore::DeviceSettings& settings,
                 const iscore::DocumentContext& ctx) override;
 
-        const iscore::DeviceSettings& defaultSettings() const;
+        const iscore::DeviceSettings& defaultSettings() const override;
 
         ProtocolSettingsWidget* makeSettingsWidget() override;
 
-        QVariant makeProtocolSpecificSettings(
-                const VisitorVariant& visitor) const override;
+        QVariant makeProtocolSpecificSettings(const VisitorVariant& visitor) const override;
 
-        void serializeProtocolSpecificSettings(
-                const QVariant& data,
-                const VisitorVariant& visitor) const override;
+        void serializeProtocolSpecificSettings(const QVariant& data, const VisitorVariant& visitor) const override;
 
         bool checkCompatibility(
                 const iscore::DeviceSettings& a,

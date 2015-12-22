@@ -72,7 +72,7 @@ iscore::Node DeviceDocumentPlugin::createDeviceFromNode(const iscore::Node & nod
 
         // Instantiate a real device.
         auto proto = fact.list().get(node.get<iscore::DeviceSettings>().protocol);
-        auto newdev = proto->makeDevice(node.get<iscore::DeviceSettings>());
+        auto newdev = proto->makeDevice(node.get<iscore::DeviceSettings>(), context());
         connect(newdev, &DeviceInterface::valueUpdated,
                 this, [&] (const iscore::Address& addr, const iscore::Value& v) { updateProxy.updateLocalValue(addr, v); });
 
@@ -108,7 +108,7 @@ iscore::Node DeviceDocumentPlugin::loadDeviceFromNode(const iscore::Node & node)
         // Instantiate a real device.
         auto& fact = m_context.app.components.factory<DynamicProtocolList>();
         auto proto = fact.list().get(node.get<iscore::DeviceSettings>().protocol);
-        auto newdev = proto->makeDevice(node.get<iscore::DeviceSettings>());
+        auto newdev = proto->makeDevice(node.get<iscore::DeviceSettings>(), context());
         connect(newdev, &DeviceInterface::valueUpdated,
                 this, [&] (const iscore::Address& addr, const iscore::Value& v) { updateProxy.updateLocalValue(addr, v); });
 

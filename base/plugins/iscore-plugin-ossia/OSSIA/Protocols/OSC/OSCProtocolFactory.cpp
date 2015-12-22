@@ -22,9 +22,24 @@ const ProtocolFactoryKey&OSCProtocolFactory::key_impl() const
     return name;
 }
 
-DeviceInterface*OSCProtocolFactory::makeDevice(const iscore::DeviceSettings& settings)
+DeviceInterface*OSCProtocolFactory::makeDevice(
+        const iscore::DeviceSettings& settings,
+        const iscore::DocumentContext& ctx)
 {
     return new OSCDevice{settings};
+}
+
+const iscore::DeviceSettings&OSCProtocolFactory::defaultSettings() const
+{
+    static const iscore::DeviceSettings settings = [&] () {
+        iscore::DeviceSettings s;
+        s.protocol = key_impl();
+        s.name = "OSC";
+        OSCSpecificSettings specif;
+        s.deviceSpecificSettings = QVariant::fromValue(specif);
+        return s;
+    }();
+    return settings;
 }
 
 ProtocolSettingsWidget*OSCProtocolFactory::makeSettingsWidget()
