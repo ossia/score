@@ -25,12 +25,12 @@ class ISCORE_PLUGIN_SCENARIO_EXPORT ScenarioInterface
 
 namespace Scenario {
 template<typename T>
-static const auto startId()
+static auto startId()
 {
     return Id<T>{0};
 }
 template<typename T>
-static const auto endId()
+static auto endId()
 {
     return Id<T>{1};
 }

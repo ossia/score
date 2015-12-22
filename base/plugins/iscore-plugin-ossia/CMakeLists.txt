@@ -51,6 +51,8 @@ set(HDRS
     "${CMAKE_CURRENT_SOURCE_DIR}/OSSIA/DocumentPlugin/ProcessModel/ProcessModel.hpp"
     "${CMAKE_CURRENT_SOURCE_DIR}/OSSIA/DocumentPlugin/ProcessModel/ProcessModelElement.hpp"
 
+    "${CMAKE_CURRENT_SOURCE_DIR}/OSSIA/LocalTree/LocalTreeDocumentPlugin.hpp"
+
     "${CMAKE_CURRENT_SOURCE_DIR}/iscore_plugin_ossia.hpp"
     )
 set(SRCS
@@ -83,6 +85,8 @@ set(SRCS
 "${CMAKE_CURRENT_SOURCE_DIR}/OSSIA/DocumentPlugin/DocumentPlugin.cpp"
 "${CMAKE_CURRENT_SOURCE_DIR}/OSSIA/DocumentPlugin/TimeNodeElement.cpp"
 "${CMAKE_CURRENT_SOURCE_DIR}/OSSIA/DocumentPlugin/ConstraintElement.cpp"
+
+"${CMAKE_CURRENT_SOURCE_DIR}/OSSIA/LocalTree/LocalTreeDocumentPlugin.cpp"
 
 "${CMAKE_CURRENT_SOURCE_DIR}/OSSIA/iscore2OSSIA.cpp"
 
