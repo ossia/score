@@ -52,6 +52,7 @@ iscore::DeviceSettings MIDIProtocolSettingsWidget::getSettings() const
     ISCORE_ASSERT(m_deviceCBox);
     ISCORE_ASSERT(m_inButton);
 
+    // TODO *** Initialize with ProtocolFactory.defaultSettings().
     iscore::DeviceSettings s;
     MIDISpecificSettings midi;
     s.name = m_deviceCBox->currentText();

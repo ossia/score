@@ -79,15 +79,16 @@ DeviceEditDialog::initAvailableProtocols()
 {
     ISCORE_ASSERT(m_protocolCBox);
 
-    for(const auto& prot : m_protocolList.list().get())
-        m_protocolCBox->addItem(prot.second->prettyName(), QVariant::fromValue(prot.second->key<ProtocolFactoryKey>()));
-
     //initialize previous settings
     m_previousSettings.clear();
 
-    for(int i = 0; i < m_protocolCBox->count(); ++i)
+    for(const auto& prot : m_protocolList.list().get())
     {
-        m_previousSettings.append(iscore::DeviceSettings());
+        m_protocolCBox->addItem(
+                    prot.second->prettyName(),
+                    QVariant::fromValue(prot.second->key<ProtocolFactoryKey>()));
+
+        m_previousSettings.append(prot.second->defaultSettings());
     }
 
     m_index = m_protocolCBox->currentIndex();
@@ -131,6 +132,7 @@ iscore::DeviceSettings DeviceEditDialog::getSettings() const
         settings = m_protocolWidget->getSettings();
     }
 
+    // TODO after set the protocol in getSettings instead.
     settings.protocol = m_protocolCBox->currentData().value<ProtocolFactoryKey>();
 
     return settings;

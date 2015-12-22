@@ -37,7 +37,7 @@ class OSSIADevice : public DeviceInterface
         void updateAddress(const iscore::FullAddressSettings& address) final override;
         void removeNode(const iscore::Address& path) final override;
 
-        iscore::Node refresh() final override;
+        iscore::Node refresh() override;
 
         // throws std::runtime_error
         boost::optional<iscore::Value> refresh(const iscore::Address&) final override;

@@ -12,10 +12,16 @@ class LocalDevice final : public OSSIADevice
 {
     public:
         LocalDevice(
+                const iscore::DocumentContext& ctx,
                 std::shared_ptr<OSSIA::Device> dev,
                 const iscore::DeviceSettings& settings);
 
+
+    private:
         bool reconnect() override;
 
         bool canRefresh() const override;
+        iscore::Node refresh() override;
+
+        const iscore::DocumentContext& m_context;
 };
