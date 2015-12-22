@@ -25,8 +25,10 @@ class ISCORE_LIB_DEVICE_EXPORT ProtocolFactory : public iscore::GenericFactoryIn
         virtual QString prettyName() const = 0;
 
         virtual DeviceInterface* makeDevice(
-                const iscore::DeviceSettings& settings) = 0;
+                const iscore::DeviceSettings& settings,
+                const iscore::DocumentContext& ctx) = 0;
         virtual ProtocolSettingsWidget* makeSettingsWidget() = 0;
+        virtual const iscore::DeviceSettings& defaultSettings() const = 0;
 
         // Save
         virtual void serializeProtocolSpecificSettings(

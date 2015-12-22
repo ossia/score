@@ -22,9 +22,24 @@ const ProtocolFactoryKey&MinuitProtocolFactory::key_impl() const
     return name;
 }
 
-DeviceInterface*MinuitProtocolFactory::makeDevice(const iscore::DeviceSettings& settings)
+DeviceInterface*MinuitProtocolFactory::makeDevice(
+        const iscore::DeviceSettings& settings,
+        const iscore::DocumentContext& ctx)
 {
     return new MinuitDevice{settings};
+}
+
+const iscore::DeviceSettings& MinuitProtocolFactory::defaultSettings() const
+{
+    static const iscore::DeviceSettings settings = [&] () {
+        iscore::DeviceSettings s;
+        s.protocol = key_impl();
+        s.name = "Minuit";
+        MinuitSpecificSettings specif;
+        s.deviceSpecificSettings = QVariant::fromValue(specif);
+        return s;
+    }();
+    return settings;
 }
 
 ProtocolSettingsWidget*MinuitProtocolFactory::makeSettingsWidget()
