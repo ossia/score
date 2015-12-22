@@ -22,6 +22,7 @@ class LocalDevice final : public OSSIADevice
 
         bool canRefresh() const override;
         iscore::Node refresh() override;
+        using OSSIADevice::refresh;
 
         const iscore::DocumentContext& m_context;
 };

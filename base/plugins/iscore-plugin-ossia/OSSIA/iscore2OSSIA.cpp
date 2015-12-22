@@ -227,7 +227,7 @@ void updateOSSIAAddress(
             break;
     }
 
-    setValue(*addr, settings.value);
+    addr->setValue(iscore::convert::toOSSIAValue(settings.value));
 }
 
 void createOSSIAAddress(
