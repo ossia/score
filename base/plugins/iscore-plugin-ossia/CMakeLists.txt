@@ -60,6 +60,7 @@ set(HDRS
     "${CMAKE_CURRENT_SOURCE_DIR}/OSSIA/LocalTree/SetProperty.hpp"
     "${CMAKE_CURRENT_SOURCE_DIR}/OSSIA/LocalTree/GetProperty.hpp"
     "${CMAKE_CURRENT_SOURCE_DIR}/OSSIA/LocalTree/BaseCallbackWrapper.hpp"
+    "${CMAKE_CURRENT_SOURCE_DIR}/OSSIA/LocalTree/ScenarioTreeBuilder.hpp"
 
     "${CMAKE_CURRENT_SOURCE_DIR}/iscore_plugin_ossia.hpp"
     )
@@ -99,6 +100,7 @@ set(SRCS
 "${CMAKE_CURRENT_SOURCE_DIR}/OSSIA/DocumentPlugin/ConstraintElement.cpp"
 
 "${CMAKE_CURRENT_SOURCE_DIR}/OSSIA/LocalTree/LocalTreeDocumentPlugin.cpp"
+"${CMAKE_CURRENT_SOURCE_DIR}/OSSIA/LocalTree/ScenarioTreeBuilder.cpp"
 
 "${CMAKE_CURRENT_SOURCE_DIR}/OSSIA/iscore2OSSIA.cpp"
 

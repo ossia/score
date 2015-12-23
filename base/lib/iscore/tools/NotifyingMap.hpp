@@ -37,12 +37,15 @@ class NotifyingMap
         auto find(const Id<T>& id) const { return m_map.find(id); }
 
         // signals:
+        mutable Nano::Signal<void(T&)> mutable_added;
         mutable Nano::Signal<void(const T&)> added;
         mutable Nano::Signal<void(const T&)> removing;
         mutable Nano::Signal<void(const T&)> removed;
 
         void add(T* t) {
             m_map.insert(t);
+
+            mutable_added(*t);
             added(*t);
         }
 
