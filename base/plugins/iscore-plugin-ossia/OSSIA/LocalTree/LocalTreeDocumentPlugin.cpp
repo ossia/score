@@ -1,5 +1,4 @@
 #include "LocalTreeDocumentPlugin.hpp"
-#include <iscore/plugins/documentdelegate/plugin/DocumentDelegatePluginModel.hpp>
 #include <Network/Device.h>
 #include <Editor/Value.h>
 #include <Network/Address.h>
@@ -30,31 +29,6 @@
 #include <iscore/document/DocumentInterface.hpp>
 #include <OSSIA/OSSIA2iscore.hpp>
 #include <OSSIA/iscore2OSSIA.hpp>
-
-#include "SetProperty.hpp"
-#include "GetProperty.hpp"
-#include "Property.hpp"
-
-auto add_node(OSSIA::Node& n, const std::string& name)
-{
-    return *n.emplace(n.children().end(), name);
-}
-
-class DocumentPlugin : public iscore::DocumentPluginModel
-{
-        std::shared_ptr<OSSIA::Device> m_localDevice;
-    public:
-        DocumentPlugin(
-                std::shared_ptr<OSSIA::Device> localDev,
-                iscore::Document& doc,
-                QObject* parent):
-            iscore::DocumentPluginModel{doc, "LocalTreeDocumentPlugin", parent},
-            m_localDevice{localDev}
-        {
-
-        }
-};
-
 
 
 void OSSIA::LocalTree::ScenarioVisitor::visit(
@@ -95,8 +69,8 @@ void OSSIA::LocalTree::ScenarioVisitor::visit(
         const std::shared_ptr<OSSIA::Node>& parent)
 {
     add_getProperty<QString>(*parent, "name", &metadata,
-                          &ModelMetadata::name,
-                          &ModelMetadata::nameChanged);
+                             &ModelMetadata::name,
+                             &ModelMetadata::nameChanged);
     add_property<QString>(*parent, "comment", &metadata,
                           &ModelMetadata::comment,
                           &ModelMetadata::setComment,
@@ -111,34 +85,42 @@ void OSSIA::LocalTree::ScenarioVisitor::visit(
         ConstraintModel& constraint,
         const std::shared_ptr<OSSIA::Node>& parent)
 {
-    add_property<float>(*parent, "yPos", &constraint,
-                        &ConstraintModel::heightPercentage,
-                        &ConstraintModel::setHeightPercentage,
-                        &ConstraintModel::heightPercentageChanged);
-    add_getProperty<::TimeValue>(*parent, "min", &constraint.duration,
-                               &ConstraintDurations::minDuration,
-                               &ConstraintDurations::minDurationChanged
-                               );
-    add_getProperty<::TimeValue>(*parent, "max", &constraint.duration,
-                               &ConstraintDurations::maxDuration,
-                               &ConstraintDurations::maxDurationChanged
-                               );
-    add_getProperty<::TimeValue>(*parent, "default", &constraint.duration,
-                               &ConstraintDurations::defaultDuration,
-                               &ConstraintDurations::defaultDurationChanged
-                               );
-    add_getProperty<float>(*parent, "play", &constraint.duration,
-                           &ConstraintDurations::playPercentage,
-                           &ConstraintDurations::playPercentageChanged
-                           );
+    using tv_t = ::TimeValue;
 
-    auto processes = add_node(*parent, "processes");
-    for(Process& proc : constraint.processes)
+    auto constraint_node = add_node(*parent, elt.metadata.name().toStdString());
     {
-        auto it = add_node(*processes, proc.metadata.name().toStdString());
-        if(auto scenario = dynamic_cast<Scenario::ScenarioModel*>(&proc))
+        visit(constraint.metadata, constraint_node);
+        add_property<float>(*constraint_node, "yPos", &constraint,
+                            &ConstraintModel::heightPercentage,
+                            &ConstraintModel::setHeightPercentage,
+                            &ConstraintModel::heightPercentageChanged);
+
+        add_getProperty<tv_t>(*constraint_node, "min", &constraint.duration,
+                                     &ConstraintDurations::minDuration,
+                                     &ConstraintDurations::minDurationChanged
+                                     );
+        add_getProperty<tv_t>(*constraint_node, "max", &constraint.duration,
+                                     &ConstraintDurations::maxDuration,
+                                     &ConstraintDurations::maxDurationChanged
+                                     );
+        add_getProperty<tv_t>(*constraint_node, "default", &constraint.duration,
+                                     &ConstraintDurations::defaultDuration,
+                                     &ConstraintDurations::defaultDurationChanged
+                                     );
+        add_getProperty<float>(*constraint_node, "play", &constraint.duration,
+                               &ConstraintDurations::playPercentage,
+                               &ConstraintDurations::playPercentageChanged
+                               );
+
+
+        auto processes = add_node(*constraint_node, "processes");
+        for(Process& proc : constraint.processes)
         {
-            visit(*scenario, it);
+            auto it = add_node(*processes, proc.metadata.name().toStdString());
+            if(auto scenario = dynamic_cast<Scenario::ScenarioModel*>(&proc))
+            {
+                visit(*scenario, it);
+            }
         }
     }
 }
@@ -159,7 +141,7 @@ void OSSIA::LocalTree::ScenarioVisitor::visit(
         const std::shared_ptr<OSSIA::Node>& parent)
 {
     add_setProperty<impulse_t>(*parent, "trigger", tn.trigger(),
-                 [&] (auto) {
+                               [&] (auto) {
         tn.trigger()->triggered();
     });
 }
