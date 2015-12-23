@@ -740,5 +740,5 @@ DeviceExplorerWidget::filterChanged()
     QRegExp regExp(pattern, cs, syntax);
 
     m_proxyModel->setFilterRegExp(regExp);
-
+    m_proxyModel->setColumn(m_columnCBox->currentIndex());
 }
