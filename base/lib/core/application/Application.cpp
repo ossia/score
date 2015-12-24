@@ -143,7 +143,9 @@ Application::Application(int& argc, char** argv) :
     m_app = make_application(argc, argv);
     ::application_instance = this;
 
+#if !defined(__native_client__)
     m_applicationSettings.parse();
+#endif
 }
 
 Application::Application(
