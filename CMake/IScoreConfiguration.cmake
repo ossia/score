@@ -1,4 +1,11 @@
+include(CheckCCompilerFlag)
+
 # Options
+set(CMAKE_REQUIRED_FLAGS "-Wl,-z,defs")
+CHECK_C_COMPILER_FLAG("" WL_ZDEFS_SUPPORTED)
+set(CMAKE_REQUIRED_FLAGS "-fuse-ld=gold")
+CHECK_C_COMPILER_FLAG("" GOLD_LINKER_SUPPORTED)
+
 
 option(ISCORE_ENABLE_LTO "Enable link-time optimization. Won't work on Travis." OFF)
 option(ISCORE_ENABLE_OPTIMIZE_CUSTOM "Enable -march=native." OFF)
