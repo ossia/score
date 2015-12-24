@@ -36,14 +36,15 @@ static void init_plugins()
 
 
 #if defined(__native_client__)
-
+#include <QtGui>
+#include <QtWidgets>
 iscore::Application * app;
 
 void app_init(int argc, char **argv)
 {
     init_plugins();
     app = new iscore::Application{argc, argv};
-    app.init();
+    app->init();
 }
 
 void app_exit()
