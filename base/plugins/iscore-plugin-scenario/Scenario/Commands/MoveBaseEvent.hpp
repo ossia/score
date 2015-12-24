@@ -52,7 +52,7 @@ class MoveBaseEvent final : public iscore::SerializableCommand
         { return QObject::tr("Move a %1 event").arg(NameInUndo<SimpleScenario_T>()); }
         static const CommandFactoryKey& static_key()
         {
-            static const CommandFactoryKey kagi{"MoveBaseEvent_"_S + SimpleScenario_T::className};
+            static const CommandFactoryKey kagi{"MoveBaseEvent_"_CS + SimpleScenario_T::className};
             return kagi;
         }
 

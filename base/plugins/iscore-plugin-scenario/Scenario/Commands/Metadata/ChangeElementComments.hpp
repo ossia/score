@@ -20,7 +20,7 @@ namespace Scenario
                 }
                 static const CommandFactoryKey& static_key()
                 {
-                    auto name = "ChangeElementComments_"_S + T::className;
+                    auto name = "ChangeElementComments_"_CS + T::className;
                     static const CommandFactoryKey kagi{std::move(name)};
                     return kagi;
                 }
