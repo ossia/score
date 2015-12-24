@@ -21,6 +21,11 @@ else()
     add_executable(${APPNAME} WIN32 ${SRCS})
 endif()
 
+if("${PLATFORM_NAME}" MATCHES "PNaCl")
+   target_compile_options(${APPNAME} PUBLIC -Wl,--undefined=PSUserCreateInstance)
+endif()
+
+
 target_link_libraries(${APPNAME} iscore_lib_base)
 function(IScoreWriteStaticPluginsHeader)
         set(ISCORE_PLUGINS_FILE "${ISCORE_ROOT_BINARY_DIR}/iscore_static_plugins.hpp")
@@ -40,25 +45,60 @@ if(ISCORE_STATIC_QT)
     get_target_property(QtCore_LIB Qt5::Core LOCATION)
     get_filename_component(QT_LIB_FOLDER ${QtCore_LIB} DIRECTORY)
 
+    find_library(qtharfbuzzng_LIBRARY NAMES qtharfbuzzng libqtharfbuzzng HINTS ${QT_LIB_FOLDER})
     find_library(qtfreetype_LIBRARY NAMES qtfreetype libqtfreetype HINTS ${QT_LIB_FOLDER})
     find_library(Qt5XcbQpa_LIBRARY NAMES Qt5XcbQpa libQt5XcbQpa HINTS ${QT_LIB_FOLDER})
     find_library(Qt5PlatformSupport_LIBRARY NAMES Qt5PlatformSupport libQt5PlatformSupport HINTS ${QT_LIB_FOLDER})
-    find_library(qtharfbuzzng_LIBRARY NAMES qtharfbuzzng libqtharfbuzzng HINTS ${QT_LIB_FOLDER})
     find_library(qtpcre_LIBRARY NAMES qtpcre libqtpcre HINTS ${QT_LIB_FOLDER})
 
     find_library(qsvg_LIBRARY NAMES qsvg libqsvg HINTS ${QT_LIB_FOLDER}/../plugins/imageformats)
 
     target_link_libraries(
         ${APPNAME}
-        Qt5::Core Qt5::Gui Qt5::Widgets Qt5::Network Qt5::Svg Qt5::WebSockets Qt5::Xml
-        Qt5::QXcbIntegrationPlugin ${Qt5XcbQpa_LIBRARY} ${Qt5PlatformSupport_LIBRARY}
-        ${qtharfbuzzng_LIBRARY} ${qtpcre_LIBRARY} ${qtfreetype_LIBRARY} ${qsvg_LIBRARY}
+        Qt5::Core Qt5::Gui Qt5::Widgets Qt5::Network Qt5::Svg Qt5::Xml
+    )
+
+    if(TARGET Qt5::WebSockets)
+      target_link_libraries(${APPNAME} Qt5::WebSockets)
+    endif()
+
+    if(TARGET Qt5::QXcbIntegrationPlugin)
+      target_link_libraries(${APPNAME}
+        Qt5::QXcbIntegrationPlugin 
+        ${Qt5XcbQpa_LIBRARY} 
+        ${Qt5PlatformSupport_LIBRARY}
+        ${qtharfbuzzng_LIBRARY} 
+        ${qtpcre_LIBRARY}
+        ${qtfreetype_LIBRARY} 
+         ${qsvg_LIBRARY}
         GL
         Xi
         xcb-render xcb-image xcb-icccm xcb-sync xcb-xfixes xcb-shm xcb-randr xcb-shape xcb-keysyms xcb-xkb xcb-render-util  xcb
         X11-xcb Xrender Xext X11
-        z m dl rt pthread
-        )
+        z dl rt
+      )
+    endif()
+      target_link_libraries(${APPNAME}
+         m pthread
+      )
+
+   if("${PLATFORM_NAME}" MATCHES "PNaCl")
+     find_library(nacl_LIBRARY NAMES nacl libnacl)
+     find_library(ppapi_LIBRARY NAMES ppapi_gles2 libppapi_gles2)
+
+     target_link_libraries(${APPNAME} 
+       # ${ppapi_LIBRARY}
+
+       /opt/nacl_sdk/pepper_42/lib/pnacl/Release/libppapi_cpp.a
+       /opt/nacl_sdk/pepper_42/lib/pnacl/Release/libppapi_cpp_private.a
+#       /opt/nacl_sdk/pepper_42/lib/pnacl/Release/libppapi_simple.a
+       /opt/nacl_sdk/pepper_42/lib/pnacl/Release/libppapi_gles2.a
+       /opt/nacl_sdk/pepper_42/lib/pnacl/Release/libnacl_io.a
+       /opt/nacl_sdk/pepper_42/lib/pnacl/Release/libsdk_util.a
+
+       /opt/QtNaCl_5.4/qtbase/lib/libqtharfbuzzng.a
+     )
+   endif()
 endif()
 
 setup_iscore_common_exe_features(${APPNAME})
