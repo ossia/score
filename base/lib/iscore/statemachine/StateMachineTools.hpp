@@ -14,7 +14,7 @@ inline bool isStateActive(QState* s)
 inline auto finishedState()
 {
 #if (QT_VERSION < QT_VERSION_CHECK(5, 5, 0))
-    return finishedState();
+    return SIGNAL(finished());
 #else
     return &QState::finished;
 #endif
