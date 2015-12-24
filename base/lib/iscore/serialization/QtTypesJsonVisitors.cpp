@@ -4,6 +4,7 @@
 #include <QJsonValue>
 #include <QPoint>
 
+#include <iscore/tools/std/Optional.hpp>
 #include "DataStreamVisitor.hpp"
 #include "JSONValueVisitor.hpp"
 
@@ -57,7 +58,7 @@ ISCORE_LIB_BASE_EXPORT void Visitor<Writer<DataStream>>::writeTo(boost::optional
     }
     else
     {
-        obj = boost::none_t {};
+        reset(obj);
     }
 }
 
