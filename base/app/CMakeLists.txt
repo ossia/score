@@ -89,6 +89,7 @@ if(ISCORE_STATIC_QT)
      target_link_libraries(${APPNAME} 
        # ${ppapi_LIBRARY}
 
+       /opt/nacl_sdk/pepper_42/toolchain/linux_pnacl/x86_64-nacl/lib/libppapi.a       
        /opt/nacl_sdk/pepper_42/lib/pnacl/Release/libppapi_cpp.a
        /opt/nacl_sdk/pepper_42/lib/pnacl/Release/libppapi_cpp_private.a
 #       /opt/nacl_sdk/pepper_42/lib/pnacl/Release/libppapi_simple.a
