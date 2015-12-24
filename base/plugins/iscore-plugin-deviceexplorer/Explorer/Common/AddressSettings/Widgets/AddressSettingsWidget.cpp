@@ -17,8 +17,8 @@
 
 AddressSettingsWidget::AddressSettingsWidget(QWidget *parent) :
     QWidget(parent),
-    m_none_type{false},
-    m_layout{new QFormLayout}
+    m_layout{new QFormLayout},
+    m_none_type{false}
 {
     m_ioTypeCBox = new QComboBox{this};
     m_clipModeCBox = new QComboBox{this};
@@ -63,8 +63,8 @@ AddressSettingsWidget::AddressSettingsWidget(
         AddressSettingsWidget::no_widgets_t,
         QWidget* parent):
     QWidget(parent),
-    m_none_type{true},
-    m_layout{new QFormLayout}
+    m_layout{new QFormLayout},
+    m_none_type{true}
 {
     m_tagsEdit = new QComboBox{this};
     m_tagsEdit->setEditable(true);
