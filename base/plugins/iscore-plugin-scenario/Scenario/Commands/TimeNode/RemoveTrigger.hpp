@@ -28,7 +28,7 @@ class RemoveTrigger final : public iscore::SerializableCommand
         { return QObject::tr("Remove a trigger"); }
         static const CommandFactoryKey& static_key()
         {
-            static const CommandFactoryKey kagi{"RemoveTrigger_"_S + Scenario_T::className};
+            static const CommandFactoryKey kagi{"RemoveTrigger_"_CS + Scenario_T::className};
             return kagi;
         }
 

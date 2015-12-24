@@ -3,7 +3,7 @@
 #include <string>
 namespace std
 {
-inline std::string operator "" _S(const char* s, std::size_t size)
+inline std::string operator "" _CS(const char* s, std::size_t size)
 {
     return std::string(s, size);
 }
@@ -27,7 +27,7 @@ template <typename charT, charT... Chars>
 struct basic_string_literal;
 
 template <typename charT, charT... Chars>
-constexpr basic_string_literal<charT, Chars...> operator"" _S();
+constexpr basic_string_literal<charT, Chars...> operator"" _CS();
 
 #pragma endregion
 
@@ -60,7 +60,7 @@ public:
 #pragma region Friends and constructors (broken)
 
 //    template <typename charU, charU... CharUs>
-//    friend constexpr basic_string_literal operator""_S <charU, CharUs...>();
+//    friend constexpr basic_string_literal operator""_CS <charU, CharUs...>();
 //
 //private:
     constexpr basic_string_literal() = default;
@@ -347,7 +347,7 @@ struct basic_string_literal<charT>
 #pragma region Friends and constructors (broken)
 
 //template <typename charU>
-//friend constexpr basic_string_literal operator "" _S <charU>();
+//friend constexpr basic_string_literal operator "" _CS <charU>();
 //
 //private:
     static constexpr const charT _data[] = { '\0' };
@@ -479,7 +479,7 @@ public:
 #pragma region User-defined literal
 
 template <typename charT, charT... Chars>
-constexpr basic_string_literal<charT, Chars...> operator"" _S()
+constexpr basic_string_literal<charT, Chars...> operator"" _CS()
 {
     return basic_string_literal<charT, Chars...>();
 }
@@ -599,4 +599,4 @@ inline std::ostream& operator<< (std::ostream& os, const basic_string_literal<ch
 
 
 #endif
-using std::operator"" _S;
+using std::operator"" _CS;
