@@ -43,7 +43,18 @@ using namespace iscore;
 namespace iscore {
 class DocumentModel;
 
-void setQApplicationSettings(QApplication &m_app)
+static QApplication* make_application(
+        int& argc,
+        char** argv)
+{
+#if defined(__native_client__)
+    return qApp;
+#else
+    return new SafeQApplication{argc, argv};
+#endif
+}
+
+static void setQApplicationSettings(QApplication &m_app)
 {
     QFontDatabase::addApplicationFont(":/APCCourierBold.otf"); // APCCourier-Bold
     QFontDatabase::addApplicationFont(":/Ubuntu-R.ttf"); // Ubuntu
@@ -129,7 +140,7 @@ Application::Application(int& argc, char** argv) :
 #endif
     // Application
     // Crashes if put in member initialization list... :(
-    m_app = new SafeQApplication{argc, argv};
+    m_app = make_application(argc, argv);
     ::application_instance = this;
 
     m_applicationSettings.parse();
@@ -176,8 +187,8 @@ void Application::init()
 #endif
 
     this->setObjectName("Application");
-    this->setParent(m_app);
-    setQApplicationSettings(*m_app);
+    this->setParent(qApp);
+    setQApplicationSettings(*qApp);
 
     // Settings
     m_settings = std::make_unique<Settings> (this);

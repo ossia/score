@@ -18,7 +18,7 @@
 #include <QSurfaceFormat>
 #endif
 
-int main(int argc, char** argv)
+static void init_plugins()
 {
 #if defined(ISCORE_STATIC_PLUGINS)
     Q_INIT_RESOURCE(iscore);
@@ -32,6 +32,32 @@ int main(int argc, char** argv)
     Q_INIT_RESOURCE(TAResources);
 #endif
 #endif
+}
+
+
+#if defined(__native_client__)
+
+iscore::Application * app;
+
+void app_init(int argc, char **argv)
+{
+    init_plugins();
+    app = new iscore::Application{argc, argv};
+    app.init();
+}
+
+void app_exit()
+{
+    delete app;
+}
+
+Q_WIDGETS_MAIN(app_init, app_exit);
+#else
+
+
+int main(int argc, char** argv)
+{
+    init_plugins();
 #if defined(ISCORE_OPENGL)
     QSurfaceFormat fmt;
     fmt.setSamples(2);
@@ -43,3 +69,4 @@ int main(int argc, char** argv)
     app.init();
     return app.exec();
 }
+#endif
