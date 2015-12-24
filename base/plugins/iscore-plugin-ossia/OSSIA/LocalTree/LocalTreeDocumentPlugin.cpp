@@ -87,7 +87,7 @@ void OSSIA::LocalTree::ScenarioVisitor::visit(
 {
     using tv_t = ::TimeValue;
 
-    auto constraint_node = add_node(*parent, elt.metadata.name().toStdString());
+    auto constraint_node = add_node(*parent, constraint.metadata.name().toStdString());
     {
         visit(constraint.metadata, constraint_node);
         add_property<float>(*constraint_node, "yPos", &constraint,
