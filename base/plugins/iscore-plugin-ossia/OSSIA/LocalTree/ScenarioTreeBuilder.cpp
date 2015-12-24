@@ -32,6 +32,7 @@
 class Component : public IdentifiedObject<Component>
 {
     public:
+        using IdentifiedObject<Component>::IdentifiedObject;
         using Key = StringKey<Component>;
         virtual const Key& key() const = 0;
 
@@ -163,9 +164,9 @@ class ConstraintComponent
             auto processFun = [&] (Process& process) {
                 if(auto factory = m_componentFactory.factory(process, doc, ctx))
                 {
-                    auto proc_comp = fun(*factory, process, doc, ctx);
-                    process.components.add(proc_comp);
-                    m_children.emplace_back(proc_comp);
+                   // auto proc_comp = fun(*factory, process, doc, ctx);
+                   // process.components.add(proc_comp);
+                   // m_children.emplace_back(proc_comp);
                 }
             };
 
@@ -175,19 +176,20 @@ class ConstraintComponent
             }
 
             constraint.processes.mutable_added.connect(processFun);
-            constraint.components.add(*this); // TODO in scenario instead maybe ?
+           // constraint.components.add(*this); // TODO in scenario instead maybe ?
         }
 
         ~ConstraintComponent()
         {
-            for(ProcessPair element : m_children)
-                element.process.components.remove(element.component);
+           // for(ProcessPair element : m_children)
+           //     element.process.components.remove(element.component);
         }
 
     private:
         std::vector<ProcessPair> m_children;
 };
 
+/*
 void OSSIA::LocalTree::ScenarioVisitor::visit(
         ModelMetadata& metadata,
         const std::shared_ptr<OSSIA::Node>& parent)
@@ -210,6 +212,7 @@ void OSSIA::LocalTree::ScenarioVisitor::visit(
         const std::shared_ptr<OSSIA::Node>& parent)
 {
 }
+*/
 namespace OSSIA
 {
 namespace LocalTree
@@ -257,7 +260,7 @@ class ConstraintComponent : public Component
                 ConstraintModel& constraint,
                 const iscore::DocumentPluginModel& doc,
                 const iscore::DocumentContext& ctx):
-            Component{{}, "", nullptr},
+            Component{Id<Component>{}, "", nullptr},
             m_thisNode{add_node(parent, constraint.metadata.name().toStdString())},
             m_processesNode{add_node(*m_thisNode, "processes")},
             m_baseComponent{constraint, doc, ctx,
