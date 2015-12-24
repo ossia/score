@@ -14,6 +14,9 @@
 #include <iscore/document/DocumentContext.hpp>
 #include <iscore/plugins/documentdelegate/plugin/DocumentDelegatePluginModel.hpp>
 #include <iscore/plugins/customfactory/FactoryMap.hpp>
+
+#include "LocalTreeDocumentPlugin.hpp"
+
 // Structure qui crée des objets qui se créent récursivement à l'insertion d'enfants
 // dans le scénario.
 // Doivent être créés après insertion, et supprimés avant suppression.
@@ -22,26 +25,63 @@
 
 // Pattern général de création, puis delegate.
 
-class ProcessComponent
+// Suppression : avoir connection dans deux sens .
+// - si le composant parent est supprimé
+// - si l'objet (constraint model) est supprimé
+// - graphe de dépendances entre composants ??
+class Component : public IdentifiedObject<Component>
 {
     public:
-        virtual ~ProcessComponent();
+        using Key = StringKey<Component>;
+        virtual const Key& key() const = 0;
+
+        virtual ~Component()
+        {
+
+        }
+
+};
+
+class ComponentContainer
+{
+    public:
+        void add(Component*)
+        {
+
+        }
+
+        void remove()
+        {
+            // Est-ce qu'on veut avoir plusieurs
+            // composants du même type ? bouef...
+
+            // Les composants doivent maintenir un tableau de leurs composants enfants.
+            // Comment ? Trouver un type map meilleur que ce qu'il y a dans OSSIADocumentPlugin.
+        }
+
+        ~ComponentContainer()
+        {
+
+        }
+
+    private:
+        std::vector<Component*> m_components;
 };
 
 template<typename System_T, typename Component_T>
-class ProcessComponentFactory;
+class ComponentFactory;
 
 template<typename System_T, typename Component_T>
-using ProcessComponentFactoryKey =  StringKey<ProcessComponentFactory<System_T, Component_T>>;
+using ComponentFactoryKey =  StringKey<ComponentFactory<System_T, Component_T>>;
 
 template<typename System_T, typename Component_T>
-class ProcessComponentFactory :
-        public GenericFactoryInterface<ProcessComponentFactoryKey<System_T, Component_T>>
+class ComponentFactory :
+        public GenericFactoryInterface<ComponentFactoryKey<System_T, Component_T>>
 {
     public:
         static const iscore::FactoryBaseKey& staticFactoryKey() {
             static const iscore::FactoryBaseKey s{
-                "ProcessComponentFactory<" +
+                "ComponentFactory<" +
                 System_T::className +
                 Component_T::className + ">"
             };
@@ -52,20 +92,20 @@ class ProcessComponentFactory :
             return staticFactoryKey();
         }
 
-        using factory_key_type = ProcessComponentFactoryKey<System_T, Component_T>;
+        using factory_key_type = ComponentFactoryKey<System_T, Component_T>;
 
         virtual bool matches(
                 Process&,
-                const iscore::System_T&,
+                const System_T&,
                 const iscore::DocumentContext&) const;
 };
 
 
 template<typename System_T, typename Component_T>
-class ProcessComponentFactoryList :
+class ComponentFactoryList :
         public iscore::FactoryListInterface
 {
-        using FactoryType = ProcessComponentFactory<System_T, Component_T>;
+        using FactoryType = ComponentFactory<System_T, Component_T>;
 
         GenericFactoryMap_T<FactoryType, typename FactoryType::factory_key_type> m_list;
 
@@ -103,21 +143,29 @@ template<
 class ConstraintComponent
 {
     private:
-        using ProcessComponentFactory_t = ProcessComponentFactoryList<System_T, Component_T>;
-        const ProcessComponentFactory_t& m_componentFactory;
+        using ComponentFactory_t = ComponentFactoryList<System_T, Component_T>;
+        const ComponentFactory_t& m_componentFactory;
+
+        struct ProcessPair {
+                Process& process;
+                Component_T& component;
+        };
+
     public:
-        template<typename ProcessComponentFactory_Fun>
+        template<typename ComponentFactory_Fun>
         ConstraintComponent(
                 ConstraintModel& constraint,
                 const iscore::DocumentPluginModel& doc,
                 const iscore::DocumentContext& ctx,
-                ProcessComponentFactory_Fun fun):
-            m_componentFactory{ctx.app.components.factory<ProcessComponentFactory_t>()}
+                ComponentFactory_Fun fun):
+            m_componentFactory{ctx.app.components.factory<ComponentFactory_t>()}
         {
             auto processFun = [&] (Process& process) {
                 if(auto factory = m_componentFactory.factory(process, doc, ctx))
                 {
-                    process.components.add(fun(factory, process, doc, ctx));
+                    auto proc_comp = fun(*factory, process, doc, ctx);
+                    process.components.add(proc_comp);
+                    m_children.emplace_back(proc_comp);
                 }
             };
 
@@ -127,9 +175,17 @@ class ConstraintComponent
             }
 
             constraint.processes.mutable_added.connect(processFun);
-
             constraint.components.add(*this); // TODO in scenario instead maybe ?
         }
+
+        ~ConstraintComponent()
+        {
+            for(ProcessPair element : m_children)
+                element.process.components.remove(element.component);
+        }
+
+    private:
+        std::vector<ProcessPair> m_children;
 };
 
 void OSSIA::LocalTree::ScenarioVisitor::visit(
@@ -154,38 +210,45 @@ void OSSIA::LocalTree::ScenarioVisitor::visit(
         const std::shared_ptr<OSSIA::Node>& parent)
 {
 }
-
-#include "LocalTreeDocumentPlugin.hpp"
 namespace OSSIA
 {
 namespace LocalTree
 {
-class ProcessComponent
+class ProcessComponent : public Component
 {
-
 };
 
 class ProcessComponentFactory :
-        public ::ProcessComponentFactory<LocalTree::DocumentPlugin, LocalTree::TreeComponent>
+        public ::ComponentFactory<LocalTree::DocumentPlugin, LocalTree::TreeComponent>
 {
     public:
-        virtual ProcessComponent* make(
+        virtual Component* make(
                 OSSIA::Node& parent,
                 Process& proc,
                 const iscore::DocumentPluginModel& doc,
                 const iscore::DocumentContext& ctx) const = 0;
 };
-class ScenarioProcessComponent
-{
 
+#define COMPONENT_METADATA(TheType) \
+    public: \
+    static const Component::Key& static_key() { \
+      static const Component::Key& s \
+      { #TheType }; \
+      return s; \
+    } \
+    \
+    const Component::Key& key() const final override { \
+      return static_key(); \
+    } \
+    private:
+
+class ScenarioComponent : public ProcessComponent
+{
+        COMPONENT_METADATA(OSSIA::LocalTree::ScenarioComponent)
 };
 
-class ConstraintComponent
+class ConstraintComponent : public Component
 {
-    private:
-        std::shared_ptr<OSSIA::Node> m_thisNode;
-        std::shared_ptr<OSSIA::Node> m_processesNode;
-        ConstraintComponent<LocalTree::DocumentPlugin, LocalTree::TreeComponent> m_baseComponent;
     public:
         using parent_t = ::ConstraintComponent<LocalTree::DocumentPlugin, LocalTree::TreeComponent>;
 
@@ -194,6 +257,7 @@ class ConstraintComponent
                 ConstraintModel& constraint,
                 const iscore::DocumentPluginModel& doc,
                 const iscore::DocumentContext& ctx):
+            Component{{}, "", nullptr},
             m_thisNode{add_node(parent, constraint.metadata.name().toStdString())},
             m_processesNode{add_node(*m_thisNode, "processes")},
             m_baseComponent{constraint, doc, ctx,
@@ -232,6 +296,11 @@ class ConstraintComponent
                                    &ConstraintDurations::playPercentageChanged
                                    );
         }
+
+    private:
+        std::shared_ptr<OSSIA::Node> m_thisNode;
+        std::shared_ptr<OSSIA::Node> m_processesNode;
+        parent_t m_baseComponent;
 };
 }
 }
