@@ -91,7 +91,7 @@ function(iscore_set_clang_compile_options theTarget)
 endfunction()
 
 function(iscore_set_linux_compile_options theTarget)
-    target_link_libraries(${theTarget} "-fuse-ld=gold" "-Wl,-z,defs")
+  use_gold(${theTarget})
 endfunction()
 
 function(iscore_set_unix_compile_options theTarget)
