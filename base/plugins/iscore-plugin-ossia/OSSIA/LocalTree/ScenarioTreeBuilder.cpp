@@ -14,7 +14,7 @@
 #include <iscore/document/DocumentContext.hpp>
 #include <iscore/plugins/documentdelegate/plugin/DocumentDelegatePluginModel.hpp>
 #include <iscore/plugins/customfactory/FactoryMap.hpp>
-
+#include <iscore/tools/SettableIdentifierGeneration.hpp>
 #include "LocalTreeDocumentPlugin.hpp"
 
 // Structure qui crée des objets qui se créent récursivement à l'insertion d'enfants
@@ -165,11 +165,10 @@ template<
         typename System_T,
         typename Component_T,
         typename ComponentFactory_T>
-class ConstraintComponent
+class ConstraintComponentHierarchyManager
 {
     private:
         //using ComponentFactory_t = ComponentFactoryList<System_T, Component_T, Factory_T>;
-        const ComponentFactory_T& m_componentFactory;
 
         struct ProcessPair {
                 Process& process;
@@ -178,14 +177,117 @@ class ConstraintComponent
 
     public:
         template<typename ComponentFactory_Fun>
-        ConstraintComponent(
-                ConstraintModel& constraint,
+        ConstraintComponentHierarchyManager(
+                ConstraintModel& cst,
                 const System_T& doc,
                 const iscore::DocumentContext& ctx,
                 ComponentFactory_Fun fun):
+            constraint{cst},
             m_componentFactory{ctx.app.components.factory<ComponentFactory_T>()}
         {
-            auto processFun = [&] (Process& process) {
+            auto processFun = [&,fun,this] (Process& process) {
+                // Will return a factory for the given process if available
+                if(auto factory = m_componentFactory.factory(process, doc, ctx))
+                {
+                    // The subclass should provide this function to construct
+                    // the correct component relative to this process.
+                    auto proc_comp = fun(Id<Component>{}/*getStrongId(constraint.components)*/,
+                                         *factory, process, doc, ctx);
+                    if(proc_comp)
+                    {
+                        // process.components.add(proc_comp);
+                        m_children.emplace_back(ProcessPair{process, *proc_comp});
+                    }
+                }
+            };
+
+            for(auto& process : constraint.processes)
+            {
+                processFun(process);
+            }
+
+            constraint.processes.mutable_added.connect(processFun);
+        }
+
+        ~ConstraintComponentHierarchyManager()
+        {
+            for(ProcessPair element : m_children)
+            {
+                // element.process.components.remove(element.component);
+            }
+        }
+
+
+        ConstraintModel& constraint;
+    private:
+        const ComponentFactory_T& m_componentFactory;
+        std::vector<ProcessPair> m_children;
+};
+
+
+
+template<
+        typename System_T,
+        typename ConstraintComponent_T,
+        typename EventComponent_T,
+        typename TimeNodeComponent_T,
+        typename StateComponent_T>
+class ScenarioComponentHierarchyManager
+{
+    private:
+        struct ConstraintPair {
+                ConstraintModel& constraint;
+                ConstraintComponent_T& component;
+        };
+        struct EventPair {
+                EventModel& event;
+                EventComponent_T& component;
+        };
+        struct TimeNodePair {
+                TimeNodeModel& timeNode;
+                TimeNodeComponent_T& component;
+        };
+        struct StatePair {
+                StateModel& state;
+                StateComponent_T& component;
+        };
+
+    public:
+        template<
+                typename ConstraintFactory_Fun,
+                typename EventFactory_Fun,
+                typename TimeNodeFactory_Fun,
+                typename StateFactory_Fun
+                >
+        ScenarioComponentHierarchyManager(
+                Scenario::ScenarioModel& scenar,
+                const System_T& doc,
+                const iscore::DocumentContext& ctx,
+                ConstraintFactory_Fun cst_fun,
+                EventFactory_Fun ev_fun,
+                TimeNodeFactory_Fun tn_fun,
+                StateFactory_Fun state_fun
+                ):
+            scenario{scenar}
+        {
+            auto constraintFun = [&,cst_fun,this] (ConstraintModel& constraint) {
+                auto cst_comp = cst_fun(getStrongId(scenario.constraints), constraint, doc, ctx);
+                if(cst_comp)
+                {
+                    // constraint.components.add(cst_comp);
+                    m_constraints.emplace_back(ConstraintPair{constraint, *cst_comp});
+                }
+            };
+
+            for(auto& constraint : scenario.constraints)
+            {
+                constraintFun(constraint);
+            }
+
+            scenario.constraints.mutable_added.connect(constraintFun);
+
+            /*
+            auto constraintFun = [&] (Process& process) {
                 // Will return a factory for the given process if available
                 if(auto factory = m_componentFactory.factory(process, doc, ctx))
                 {
@@ -206,20 +308,26 @@ class ConstraintComponent
             }
 
             constraint.processes.mutable_added.connect(processFun);
-            // constraint.components.add(*this); // TODO in scenario instead maybe ?
+            */
         }
 
-        ~ConstraintComponent()
+        ~ScenarioComponentHierarchyManager()
         {
-            for(ProcessPair element : m_children)
+            for(ConstraintPair element : m_constraints)
             {
                 // element.process.components.remove(element.component);
             }
         }
 
+        Scenario::ScenarioModel& scenario;
+
     private:
-        std::vector<ProcessPair> m_children;
+        std::vector<ConstraintPair> m_constraints;
+        std::vector<EventPair> m_events;
+        std::vector<TimeNodePair> m_timeNodes;
+        std::vector<StatePair> m_states;
 };
+
 
 /*
 void OSSIA::LocalTree::ScenarioVisitor::visit(
@@ -252,6 +360,8 @@ namespace LocalTree
 class ProcessComponent : public Component
 {
         ISCORE_METADATA(OSSIA::LocalTree::ProcessComponent)
+    public:
+        using Component::Component;
 };
 
 class ProcessComponentFactory :
@@ -261,6 +371,7 @@ class ProcessComponentFactory :
 {
     public:
         virtual ProcessComponent* make(
+                const Id<Component>&,
                 OSSIA::Node& parent,
                 Process& proc,
                 const LocalTree::DocumentPlugin& doc,
@@ -292,11 +403,6 @@ class ProcessComponentFactoryList :
         */
 };
 
-class ScenarioComponent : public ProcessComponent
-{
-        COMPONENT_METADATA(OSSIA::LocalTree::ScenarioComponent)
-};
-
 class ConstraintComponent : public Component
 {
     public:
@@ -305,26 +411,29 @@ class ConstraintComponent : public Component
         using process_component_factory_t = OSSIA::LocalTree::ProcessComponentFactory;
         using process_component_factory_list_t = OSSIA::LocalTree::ProcessComponentFactoryList;
 
-        using parent_t = ::ConstraintComponent<
+        using parent_t = ::ConstraintComponentHierarchyManager<
             system_t,
             process_component_t,
             process_component_factory_list_t
         >;
 
         ConstraintComponent(
+                const Id<Component>& id,
                 OSSIA::Node& parent,
                 ConstraintModel& constraint,
                 const system_t& doc,
-                const iscore::DocumentContext& ctx):
-            Component{Id<Component>{}, "", nullptr},
+                const iscore::DocumentContext& ctx,
+                QObject* parent_comp):
+            Component{id, "ConstraintComponent", parent_comp},
             m_thisNode{add_node(parent, constraint.metadata.name().toStdString())},
             m_processesNode{add_node(*m_thisNode, "processes")},
             m_baseComponent{constraint, doc, ctx,
-                            [&](const process_component_factory_t& factory,
+                            [&](const Id<Component>& id,
+                                const process_component_factory_t& factory,
                                 Process& process,
                                 const system_t& doc,
                                 const iscore::DocumentContext& ctx) {
-            return factory.make(*m_processesNode, process, doc, ctx); //auto it = add_node(*m_processesNode, process.metadata.name().toStdString());
+            return factory.make(id, *m_processesNode, process, doc, ctx); //auto it = add_node(*m_processesNode, process.metadata.name().toStdString());
         }}
         {
             using tv_t = ::TimeValue;
@@ -358,6 +467,33 @@ class ConstraintComponent : public Component
         std::shared_ptr<OSSIA::Node> m_processesNode;
         parent_t m_baseComponent;
 };
+
+
+
+
+
+class ScenarioComponent : public ProcessComponent
+{
+        COMPONENT_METADATA(OSSIA::LocalTree::ScenarioComponent)
+
+        using system_t = OSSIA::LocalTree::DocumentPlugin;
+
+        public:
+            ScenarioComponent(
+                    const Id<Component>& id,
+                    OSSIA::Node& parent,
+                    Scenario::ScenarioModel& constraint,
+                    const system_t& doc,
+                    const iscore::DocumentContext& ctx,
+                    QObject* parent_obj):
+                ProcessComponent{id, "ScenarioComponent", parent_obj}
+            {
+
+            }
+};
+
+
+
 }
 }
 struct ScenarioTreeBuilder
