@@ -38,13 +38,6 @@ bool LocalDevice::canRefresh() const
 #include <Scenario/Document/BaseScenario/BaseScenario.hpp>
 iscore::Node LocalDevice::refresh()
 {
-    auto scenar = dynamic_cast<ScenarioDocumentModel*>(
-                      &m_context.document.model().modelDelegate());
-    ISCORE_ASSERT(scenar);
-    auto& cstr = scenar->baseScenario().constraint();
-    OSSIA::LocalTree::ScenarioVisitor v;
-    v.visit(cstr, m_dev);
-
     iscore::Node iscore_device{settings(), nullptr};
 
     // Recurse on the children

@@ -61,6 +61,9 @@ set(HDRS
     "${CMAKE_CURRENT_SOURCE_DIR}/OSSIA/LocalTree/GetProperty.hpp"
     "${CMAKE_CURRENT_SOURCE_DIR}/OSSIA/LocalTree/BaseCallbackWrapper.hpp"
     "${CMAKE_CURRENT_SOURCE_DIR}/OSSIA/LocalTree/ScenarioTreeBuilder.hpp"
+    "${CMAKE_CURRENT_SOURCE_DIR}/OSSIA/LocalTree/ProcessComponent.hpp"
+    "${CMAKE_CURRENT_SOURCE_DIR}/OSSIA/LocalTree/ScenarioComponent.hpp"
+    "${CMAKE_CURRENT_SOURCE_DIR}/OSSIA/LocalTree/ConstraintComponent.hpp"
 
     "${CMAKE_CURRENT_SOURCE_DIR}/iscore_plugin_ossia.hpp"
     )
