@@ -29,6 +29,21 @@
 // - si le composant parent est supprimé
 // - si l'objet (constraint model) est supprimé
 // - graphe de dépendances entre composants ??
+
+#define COMPONENT_METADATA(TheType) \
+    public: \
+    static const Component::Key& static_key() { \
+      static const Component::Key& s \
+      { #TheType }; \
+      return s; \
+    } \
+    \
+    const Component::Key& key() const final override { \
+      return static_key(); \
+    } \
+    private:
+
+
 class Component : public IdentifiedObject<Component>
 {
     public:
@@ -70,16 +85,18 @@ class ComponentContainer
 };
 
 template<typename System_T, typename Component_T>
-class ComponentFactory;
+class GenericProcessComponentFactory;
 
 template<typename System_T, typename Component_T>
-using ComponentFactoryKey =  StringKey<ComponentFactory<System_T, Component_T>>;
+using ComponentFactoryKey =  StringKey<GenericProcessComponentFactory<System_T, Component_T>>;
 
 template<typename System_T, typename Component_T>
-class ComponentFactory :
+class GenericProcessComponentFactory :
         public GenericFactoryInterface<ComponentFactoryKey<System_T, Component_T>>
 {
     public:
+        using factory_key_type = ComponentFactoryKey<System_T, Component_T>;
+
         static const iscore::FactoryBaseKey& staticFactoryKey() {
             static const iscore::FactoryBaseKey s{
                 "ComponentFactory<" +
@@ -93,59 +110,66 @@ class ComponentFactory :
             return staticFactoryKey();
         }
 
-        using factory_key_type = ComponentFactoryKey<System_T, Component_T>;
-
         virtual bool matches(
                 Process&,
                 const System_T&,
-                const iscore::DocumentContext&) const;
+                const iscore::DocumentContext&) const = 0;
 };
 
 
-template<typename System_T, typename Component_T>
-class ComponentFactoryList :
+template<
+        typename System_T,
+        typename Component_T,
+        typename Factory_T>
+class GenericProcessComponentFactoryList :
         public iscore::FactoryListInterface
 {
-        using FactoryType = ComponentFactory<System_T, Component_T>;
-
-        GenericFactoryMap_T<FactoryType, typename FactoryType::factory_key_type> m_list;
+        std::vector<std::unique_ptr<Factory_T>> m_list;
 
     public:
         static const iscore::FactoryBaseKey& staticFactoryKey() {
-            return FactoryType::staticFactoryKey();
+            return Factory_T::staticFactoryKey();
         }
 
         iscore::FactoryBaseKey name() const final override {
-            return FactoryType::staticFactoryKey();
+            return Factory_T::staticFactoryKey();
         }
 
         void insert(std::unique_ptr<iscore::FactoryInterfaceBase> e) final override
         {
-            if(auto pf = dynamic_unique_ptr_cast<FactoryType>(std::move(e)))
-                m_list.inscribe(std::move(pf));
+            if(auto pf = dynamic_unique_ptr_cast<Factory_T>(std::move(e)))
+                m_list.push_back(std::move(pf));
         }
 
         const auto& list() const
         { return m_list; }
 
-        FactoryType* factory(
-                Process&,
-                const iscore::DocumentPluginModel&,
-                const iscore::DocumentContext&) const
+        Factory_T* factory(
+                Process& proc,
+                const System_T& doc,
+                const iscore::DocumentContext& ctx) const
         {
+            for(auto& factory : list())
+            {
+                if(factory->matches(proc, doc, ctx))
+                {
+                    return factory.get();
+                }
+            }
+
             return nullptr;
         }
-
 };
 
 template<
         typename System_T,
-        typename Component_T>
+        typename Component_T,
+        typename ComponentFactory_T>
 class ConstraintComponent
 {
     private:
-        using ComponentFactory_t = ComponentFactoryList<System_T, Component_T>;
-        const ComponentFactory_t& m_componentFactory;
+        //using ComponentFactory_t = ComponentFactoryList<System_T, Component_T, Factory_T>;
+        const ComponentFactory_T& m_componentFactory;
 
         struct ProcessPair {
                 Process& process;
@@ -156,17 +180,23 @@ class ConstraintComponent
         template<typename ComponentFactory_Fun>
         ConstraintComponent(
                 ConstraintModel& constraint,
-                const iscore::DocumentPluginModel& doc,
+                const System_T& doc,
                 const iscore::DocumentContext& ctx,
                 ComponentFactory_Fun fun):
-            m_componentFactory{ctx.app.components.factory<ComponentFactory_t>()}
+            m_componentFactory{ctx.app.components.factory<ComponentFactory_T>()}
         {
             auto processFun = [&] (Process& process) {
+                // Will return a factory for the given process if available
                 if(auto factory = m_componentFactory.factory(process, doc, ctx))
                 {
-                   // auto proc_comp = fun(*factory, process, doc, ctx);
-                   // process.components.add(proc_comp);
-                   // m_children.emplace_back(proc_comp);
+                    // The subclass should provide this function to construct
+                    // the correct component relative to this process.
+                    auto proc_comp = fun(*factory, process, doc, ctx);
+                    if(proc_comp)
+                    {
+                        // process.components.add(proc_comp);
+                        m_children.emplace_back(ProcessPair{process, *proc_comp});
+                    }
                 }
             };
 
@@ -176,13 +206,15 @@ class ConstraintComponent
             }
 
             constraint.processes.mutable_added.connect(processFun);
-           // constraint.components.add(*this); // TODO in scenario instead maybe ?
+            // constraint.components.add(*this); // TODO in scenario instead maybe ?
         }
 
         ~ConstraintComponent()
         {
-           // for(ProcessPair element : m_children)
-           //     element.process.components.remove(element.component);
+            for(ProcessPair element : m_children)
+            {
+                // element.process.components.remove(element.component);
+            }
         }
 
     private:
@@ -219,31 +251,46 @@ namespace LocalTree
 {
 class ProcessComponent : public Component
 {
+        ISCORE_METADATA(OSSIA::LocalTree::ProcessComponent)
 };
 
 class ProcessComponentFactory :
-        public ::ComponentFactory<LocalTree::DocumentPlugin, LocalTree::TreeComponent>
+        public ::GenericProcessComponentFactory<
+            LocalTree::DocumentPlugin,
+            LocalTree::ProcessComponent>
 {
     public:
-        virtual Component* make(
+        virtual ProcessComponent* make(
                 OSSIA::Node& parent,
                 Process& proc,
-                const iscore::DocumentPluginModel& doc,
+                const LocalTree::DocumentPlugin& doc,
                 const iscore::DocumentContext& ctx) const = 0;
 };
 
-#define COMPONENT_METADATA(TheType) \
-    public: \
-    static const Component::Key& static_key() { \
-      static const Component::Key& s \
-      { #TheType }; \
-      return s; \
-    } \
-    \
-    const Component::Key& key() const final override { \
-      return static_key(); \
-    } \
-    private:
+class ProcessComponentFactoryList :
+        public ::GenericProcessComponentFactoryList<
+            LocalTree::DocumentPlugin,
+            LocalTree::ProcessComponent,
+            LocalTree::ProcessComponentFactory>
+{
+    public:
+        /*
+        ProcessComponent* make(
+                OSSIA::Node& parent,
+                Process& proc,
+                const LocalTree::DocumentPlugin& doc,
+                const iscore::DocumentContext& ctx)
+        {
+            auto matching = factory(proc, doc, ctx);
+            if(matching)
+            {
+                return matching->make(parent, proc, doc, ctx);
+            }
+
+            return nullptr;
+        }
+        */
+};
 
 class ScenarioComponent : public ProcessComponent
 {
@@ -253,25 +300,31 @@ class ScenarioComponent : public ProcessComponent
 class ConstraintComponent : public Component
 {
     public:
-        using parent_t = ::ConstraintComponent<LocalTree::DocumentPlugin, LocalTree::TreeComponent>;
+        using system_t = OSSIA::LocalTree::DocumentPlugin;
+        using process_component_t = OSSIA::LocalTree::ProcessComponent;
+        using process_component_factory_t = OSSIA::LocalTree::ProcessComponentFactory;
+        using process_component_factory_list_t = OSSIA::LocalTree::ProcessComponentFactoryList;
+
+        using parent_t = ::ConstraintComponent<
+            system_t,
+            process_component_t,
+            process_component_factory_list_t
+        >;
 
         ConstraintComponent(
                 OSSIA::Node& parent,
                 ConstraintModel& constraint,
-                const iscore::DocumentPluginModel& doc,
+                const system_t& doc,
                 const iscore::DocumentContext& ctx):
             Component{Id<Component>{}, "", nullptr},
             m_thisNode{add_node(parent, constraint.metadata.name().toStdString())},
             m_processesNode{add_node(*m_thisNode, "processes")},
             m_baseComponent{constraint, doc, ctx,
-                            [&] (
-                            const ProcessComponentFactory& factory,
-                            Process& process,
-                            const iscore::DocumentPluginModel& doc,
-                            const iscore::DocumentContext& ctx
-                            ) {
-            //auto it = add_node(*m_processesNode, process.metadata.name().toStdString());
-            return factory.make(*m_processesNode, process, doc, ctx);
+                            [&](const process_component_factory_t& factory,
+                                Process& process,
+                                const system_t& doc,
+                                const iscore::DocumentContext& ctx) {
+            return factory.make(*m_processesNode, process, doc, ctx); //auto it = add_node(*m_processesNode, process.metadata.name().toStdString());
         }}
         {
             using tv_t = ::TimeValue;
