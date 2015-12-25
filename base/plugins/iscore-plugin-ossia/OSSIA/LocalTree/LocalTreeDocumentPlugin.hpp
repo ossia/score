@@ -51,10 +51,11 @@ struct ScenarioVisitor
         void visit(StateModel& state,
                    const std::shared_ptr<OSSIA::Node>& parent);
 };
-
+/*
 struct TreeComponent {
         ISCORE_METADATA(OSSIA::LocalTree::TreeComponent)
 };
+*/
 class DocumentPlugin : public iscore::DocumentPluginModel
 {
         std::shared_ptr<OSSIA::Device> m_localDevice;
