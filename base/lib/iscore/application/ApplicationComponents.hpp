@@ -23,7 +23,7 @@ class GUIApplicationContextPlugin;
 class PanelFactory;
 class PanelPresenter;
 
-struct ApplicationComponentsData
+struct ISCORE_LIB_BASE_EXPORT ApplicationComponentsData
 {
         // TODO Forbid copy, etc... (in ALL types!!)
         ~ApplicationComponentsData();
