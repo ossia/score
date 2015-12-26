@@ -46,9 +46,9 @@ std::vector<std::unique_ptr<iscore::FactoryInterfaceBase>> iscore_plugin_ossia::
             iscore::ApplicationContext,
             TL<
             FW<ProtocolFactory,
-                 MinuitProtocolFactory,
+                 LocalProtocolFactory,
                  OSCProtocolFactory,
-                 LocalProtocolFactory>,
+                 MinuitProtocolFactory>,
             FW<ScenarioActionsFactory,
                  PlayContextMenuFactory>,
             FW<OSSIA::LocalTree::ProcessComponentFactory,

@@ -141,12 +141,12 @@ TemporalAutomatas::ApplicationPlugin::ApplicationPlugin(const iscore::Applicatio
 void TemporalAutomatas::ApplicationPlugin::populateMenus(iscore::MenubarManager* menus)
 {
     menus->insertActionIntoToplevelMenu(
-                ToplevelMenuElement::FileMenu,
+                iscore::ToplevelMenuElement::FileMenu,
                 m_generate);
     menus->insertActionIntoToplevelMenu(
-                ToplevelMenuElement::FileMenu,
+                iscore::ToplevelMenuElement::FileMenu,
                 m_convert);
     menus->insertActionIntoToplevelMenu(
-                ToplevelMenuElement::FileMenu,
+                iscore::ToplevelMenuElement::FileMenu,
                 m_metrics);
 }
