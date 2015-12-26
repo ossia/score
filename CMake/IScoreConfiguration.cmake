@@ -1,10 +1,8 @@
-include(CheckCCompilerFlag)
+include(CheckCXXCompilerFlag)
 
 # Options
-set(CMAKE_REQUIRED_FLAGS "-Wl,-z,defs")
-CHECK_C_COMPILER_FLAG("" WL_ZDEFS_SUPPORTED)
-set(CMAKE_REQUIRED_FLAGS "-fuse-ld=gold")
-CHECK_C_COMPILER_FLAG("" GOLD_LINKER_SUPPORTED)
+CHECK_CXX_COMPILER_FLAG("-Wl,-z,defs" WL_ZDEFS_SUPPORTED)
+CHECK_CXX_COMPILER_FLAG("-fuse-ld=gold" GOLD_LINKER_SUPPORTED)
 
 
 option(ISCORE_ENABLE_LTO "Enable link-time optimization. Won't work on Travis." OFF)

@@ -15,58 +15,58 @@ namespace iscore
 {
     class Presenter;
     class View;
+}
 
-    /**
+/**
      * @brief Application
      *
      * This class is the main object in i-score. It is the
      * parent of every other object created.
      * It does instantiate the rest of the software (MVP, settings, plugins).
      */
-    class Application final :
-            public NamedObject,
-            public ApplicationInterface
-    {
-            Q_OBJECT
-            friend class ChildEventFilter;
-        public:
-            Application(
-                    int& argc,
-                    char** argv);
+class Application final :
+        public NamedObject,
+        public iscore::ApplicationInterface
+{
+        Q_OBJECT
+        friend class ChildEventFilter;
+    public:
+        Application(
+                int& argc,
+                char** argv);
 
-            Application(
-                    const ApplicationSettings& appSettings,
-                    int& argc,
-                    char** argv);
+        Application(
+                const iscore::ApplicationSettings& appSettings,
+                int& argc,
+                char** argv);
 
-            Application(const Application&) = delete;
-            Application& operator= (const Application&) = delete;
-            ~Application();
+        Application(const Application&) = delete;
+        Application& operator= (const Application&) = delete;
+        ~Application();
 
-            int exec()
-            { return m_app->exec(); }
+        int exec()
+        { return m_app->exec(); }
 
-            Settings* settings() const
-            { return m_settings.get(); }
+        iscore::Settings* settings() const
+        { return m_settings.get(); }
 
-            const ApplicationContext& context() const override;
-            void init(); // m_applicationSettings has to be set.
+        const iscore::ApplicationContext& context() const override;
+        void init(); // m_applicationSettings has to be set.
 
-        private:
-            void initDocuments();
-            void loadPluginData();
+    private:
+        void initDocuments();
+        void loadPluginData();
 
-            // Base stuff.
-            QApplication* m_app;
-            std::unique_ptr<Settings> m_settings; // Global settings
+        // Base stuff.
+        QApplication* m_app;
+        std::unique_ptr<iscore::Settings> m_settings; // Global settings
 
-            // MVP
-            View* m_view {};
-            Presenter* m_presenter {};
+        // MVP
+        iscore::View* m_view {};
+        iscore::Presenter* m_presenter {};
 
-            ApplicationSettings m_applicationSettings;
-    };
+        iscore::ApplicationSettings m_applicationSettings;
+};
 
-}
 
 
