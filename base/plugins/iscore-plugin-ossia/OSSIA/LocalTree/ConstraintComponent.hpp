@@ -9,7 +9,8 @@ namespace LocalTree
 void make_metadata_node(
         ModelMetadata& metadata,
         OSSIA::Node& parent,
-        std::vector<QObject*>& properties);
+        std::vector<BaseProperty*>& properties,
+        QObject* context);
 
 class ConstraintComponent final :
         public iscore::Component
@@ -54,7 +55,7 @@ class ConstraintComponent final :
     private:
         std::shared_ptr<OSSIA::Node> m_thisNode;
         std::shared_ptr<OSSIA::Node> m_processesNode;
-        std::vector<QObject*> m_properties;
+        std::vector<BaseProperty*> m_properties;
         parent_t m_baseComponent;
 };
 
@@ -65,7 +66,7 @@ class EventComponent final :
         public iscore::Component
 {
         std::shared_ptr<OSSIA::Node> m_thisNode;
-        std::vector<QObject*> m_properties;
+        std::vector<BaseProperty*> m_properties;
 
     public:
         using system_t = OSSIA::LocalTree::DocumentPlugin;
@@ -89,7 +90,7 @@ class TimeNodeComponent final :
         public iscore::Component
 {
         std::shared_ptr<OSSIA::Node> m_thisNode;
-        std::vector<QObject*> m_properties;
+        std::vector<BaseProperty*> m_properties;
 
     public:
         using system_t = OSSIA::LocalTree::DocumentPlugin;
@@ -113,7 +114,7 @@ class StateComponent final :
         public iscore::Component
 {
         std::shared_ptr<OSSIA::Node> m_thisNode;
-        std::vector<QObject*> m_properties;
+        std::vector<BaseProperty*> m_properties;
 
     public:
         using system_t = OSSIA::LocalTree::DocumentPlugin;

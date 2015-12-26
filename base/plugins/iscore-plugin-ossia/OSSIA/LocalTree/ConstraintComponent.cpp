@@ -8,25 +8,29 @@ namespace LocalTree
 void make_metadata_node(
         ModelMetadata& metadata,
         OSSIA::Node& parent,
-        std::vector<QObject*>& properties)
+        std::vector<BaseProperty*>& properties,
+        QObject* context)
 {
 
     properties.push_back(
     add_getProperty<QString>(parent, "name", &metadata,
                              &ModelMetadata::name,
-                             &ModelMetadata::nameChanged));
+                             &ModelMetadata::nameChanged,
+                             context));
 
     properties.push_back(
     add_property<QString>(parent, "comment", &metadata,
                           &ModelMetadata::comment,
                           &ModelMetadata::setComment,
-                          &ModelMetadata::commentChanged));
+                          &ModelMetadata::commentChanged,
+                          context));
 
     properties.push_back(
     add_property<QString>(parent, "label", &metadata,
                           &ModelMetadata::label,
                           &ModelMetadata::setLabel,
-                          &ModelMetadata::labelChanged));
+                          &ModelMetadata::labelChanged,
+                          context));
 }
 
 const iscore::Component::Key&ConstraintComponent::key() const
@@ -49,37 +53,38 @@ ConstraintComponent::ConstraintComponent(
     m_baseComponent{*this, constraint, doc, ctx, this}
 {
     using tv_t = ::TimeValue;
-    make_metadata_node(constraint.metadata, *m_thisNode, m_properties);
+    make_metadata_node(constraint.metadata, *m_thisNode, m_properties, this);
 
     m_properties.push_back(
                 add_property<float>(*m_thisNode, "yPos", &constraint,
                         &ConstraintModel::heightPercentage,
                         &ConstraintModel::setHeightPercentage,
-                        &ConstraintModel::heightPercentageChanged));
+                        &ConstraintModel::heightPercentageChanged,
+                        this));
 
     m_properties.push_back(
     add_getProperty<tv_t>(*m_thisNode, "min", &constraint.duration,
                           &ConstraintDurations::minDuration,
-                          &ConstraintDurations::minDurationChanged
-                          ));
+                          &ConstraintDurations::minDurationChanged,
+                          this));
 
     m_properties.push_back(
     add_getProperty<tv_t>(*m_thisNode, "max", &constraint.duration,
                           &ConstraintDurations::maxDuration,
-                          &ConstraintDurations::maxDurationChanged
-                          ));
+                          &ConstraintDurations::maxDurationChanged,
+                          this));
 
     m_properties.push_back(
     add_getProperty<tv_t>(*m_thisNode, "default", &constraint.duration,
                           &ConstraintDurations::defaultDuration,
-                          &ConstraintDurations::defaultDurationChanged
-                          ));
+                          &ConstraintDurations::defaultDurationChanged,
+                          this));
 
     m_properties.push_back(
     add_getProperty<float>(*m_thisNode, "play", &constraint.duration,
                            &ConstraintDurations::playPercentage,
-                           &ConstraintDurations::playPercentageChanged
-                           ));
+                           &ConstraintDurations::playPercentageChanged,
+                           this));
 }
 
 ConstraintComponent::~ConstraintComponent()
@@ -108,7 +113,7 @@ EventComponent::EventComponent(Node& parent, const Id<iscore::Component>& id, Ev
     Component{id, "EventComponent", parent_comp},
     m_thisNode{add_node(parent, event.metadata.name().toStdString())}
 {
-    make_metadata_node(event.metadata, *m_thisNode, m_properties);
+    make_metadata_node(event.metadata, *m_thisNode, m_properties, this);
 }
 
 const iscore::Component::Key&EventComponent::key() const
@@ -127,11 +132,11 @@ TimeNodeComponent::TimeNodeComponent(Node& parent, const Id<iscore::Component>& 
     Component{id, "TimeNodeComponent", parent_comp},
     m_thisNode{add_node(parent, timeNode.metadata.name().toStdString())}
 {
-    make_metadata_node(timeNode.metadata, *m_thisNode, m_properties);
+    make_metadata_node(timeNode.metadata, *m_thisNode, m_properties, this);
 
 
     m_properties.push_back(
-    add_setProperty<iscore::impulse_t>(*m_thisNode, "trigger", timeNode.trigger(),
+    add_setProperty<iscore::impulse_t>(*m_thisNode, "trigger",
                                        [&] (auto) {
         timeNode.trigger()->triggered();
     }));
@@ -153,7 +158,7 @@ StateComponent::StateComponent(Node& parent, const Id<iscore::Component>& id, St
     Component{id, "StateComponent", parent_comp},
     m_thisNode{add_node(parent, state.metadata.name().toStdString())}
 {
-    make_metadata_node(state.metadata, *m_thisNode, m_properties);
+    make_metadata_node(state.metadata, *m_thisNode, m_properties, this);
 }
 
 const iscore::Component::Key&StateComponent::key() const

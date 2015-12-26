@@ -1,25 +1,10 @@
 #pragma once
-#include <QObject>
-#include <Network/Address.h>
-#include <Network/Node.h>
+#include "BaseProperty.hpp"
 
-class BaseCallbackWrapper : public QObject
+class BaseCallbackWrapper : public BaseProperty
 {
     public:
-        std::shared_ptr<OSSIA::Node> node;
-        std::shared_ptr<OSSIA::Address> addr;
-
-        BaseCallbackWrapper(
-                const std::shared_ptr<OSSIA::Node> & n,
-                const std::shared_ptr<OSSIA::Address>& a,
-                QObject* parent):
-            QObject{parent},
-            node{n},
-            addr{a}
-        {
-
-        }
-
+        using BaseProperty::BaseProperty;
         ~BaseCallbackWrapper()
         {
             addr->removeCallback(m_callbackIt);
