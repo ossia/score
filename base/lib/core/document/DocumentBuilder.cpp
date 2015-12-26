@@ -29,6 +29,7 @@ DocumentBuilder::DocumentBuilder(
 
 }
 
+ISCORE_LIB_BASE_EXPORT
 Document* DocumentBuilder::newDocument(
         const iscore::ApplicationContext& ctx,
         const Id<DocumentModel>& id,

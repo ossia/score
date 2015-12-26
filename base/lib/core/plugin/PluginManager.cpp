@@ -46,6 +46,7 @@ static QStringList pluginsDir()
 #endif
 }
 
+ISCORE_LIB_BASE_EXPORT
 std::pair<QString, QObject*> PluginLoader::loadPlugin(
         const QString &fileName,
         const std::vector<QObject*>& availablePlugins)
