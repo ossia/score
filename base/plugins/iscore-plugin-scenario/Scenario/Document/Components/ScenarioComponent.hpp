@@ -183,7 +183,6 @@ class ConstraintComponentHierarchyManager : public Nano::Observer
         {
             m_component.removing(pair.process, pair.component);
             pair.process.components.remove(pair.component);
-            delete &pair.component;
         }
 
         ~ConstraintComponentHierarchyManager()
@@ -245,7 +244,6 @@ class ScenarioComponentHierarchyManager : public Nano::Observer
         {
             m_component.removing(pair.element, pair.component);
             pair.element.components.remove(pair.component);
-            delete &pair.component;
         }
 
 
