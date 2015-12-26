@@ -1,5 +1,5 @@
 #pragma once
-#include <Scenario/Document/Components/ScenarioComponent.hpp>
+#include <Scenario/Document/Components/ProcessComponent.hpp>
 #include <OSSIA/LocalTree/LocalTreeDocumentPlugin.hpp>
 namespace OSSIA
 {

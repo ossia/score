@@ -1,5 +1,9 @@
 #pragma once
 #include <OSSIA/LocalTree/ConstraintComponent.hpp>
+#include <OSSIA/LocalTree/EventComponent.hpp>
+#include <OSSIA/LocalTree/TimeNodeComponent.hpp>
+#include <OSSIA/LocalTree/StateComponent.hpp>
+#include <Scenario/Document/Components/ScenarioComponent.hpp>
 
 namespace OSSIA
 {

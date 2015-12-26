@@ -9,11 +9,7 @@
 #include <OSSIA/Protocols/Local/LocalSpecificSettings.hpp>
 #include <OSSIA/OSSIA2iscore.hpp>
 #include <OSSIA/iscore2OSSIA.hpp>
-#include <OSSIA/LocalTree/LocalTreeDocumentPlugin.hpp>
 
-#include <iscore/document/DocumentContext.hpp>
-#include <core/document/Document.hpp>
-#include <core/document/DocumentModel.hpp>
 LocalDevice::LocalDevice(
         const iscore::DocumentContext& ctx,
         std::shared_ptr<OSSIA::Device> dev,
@@ -33,8 +29,6 @@ bool LocalDevice::canRefresh() const
     return true;
 }
 
-#include <Scenario/Document/ScenarioDocument/ScenarioDocumentModel.hpp>
-#include <Scenario/Document/BaseScenario/BaseScenario.hpp>
 iscore::Node LocalDevice::refresh()
 {
     iscore::Node iscore_device{settings(), nullptr};

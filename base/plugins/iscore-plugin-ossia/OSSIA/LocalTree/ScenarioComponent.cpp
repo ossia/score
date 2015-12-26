@@ -1,5 +1,6 @@
 #include "ScenarioComponent.hpp"
 
+#include "MetadataParameters.hpp"
 namespace OSSIA
 {
 namespace LocalTree
