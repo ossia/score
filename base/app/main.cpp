@@ -45,7 +45,7 @@ int main(int argc, char** argv)
 #endif
     QApplication::setAttribute(Qt::AA_UseHighDpiPixmaps);
 
-    iscore::Application app(argc, argv);
+    Application app(argc, argv);
     app.init();
     return app.exec();
 }

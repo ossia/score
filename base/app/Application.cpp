@@ -43,17 +43,6 @@ using namespace iscore;
 namespace iscore {
 class DocumentModel;
 
-static QApplication* make_application(
-        int& argc,
-        char** argv)
-{
-#if defined(__native_client__)
-    return qApp;
-#else
-    return new SafeQApplication{argc, argv};
-#endif
-}
-
 static void setQApplicationSettings(QApplication &m_app)
 {
     QFontDatabase::addApplicationFont(":/APCCourierBold.otf"); // APCCourier-Bold
@@ -128,7 +117,7 @@ Application::Application(int& argc, char** argv) :
 #endif
     // Application
     // Crashes if put in member initialization list... :(
-    m_app = make_application(argc, argv);
+    m_app = new SafeQApplication{argc, argv};
     m_instance = this;
 
 #if !defined(__native_client__)
