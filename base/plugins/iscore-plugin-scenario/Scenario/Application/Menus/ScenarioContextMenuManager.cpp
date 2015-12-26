@@ -188,6 +188,7 @@ void ScenarioContextMenuManager::createLayerContextMenu(
         const QPointF& scenepos,
         const LayerPresenter& pres)
 {
+    using namespace iscore;
     // Fill with slot actions
     if(auto slotp = dynamic_cast<SlotPresenter*>(pres.parent()))
     {

@@ -27,7 +27,7 @@ class MoveConstraintInScenario_StateWrapper
                         palette.context().objectLocker,
                         &parent};
 
-            make_transition<ClickOnConstraint_Transition<Scenario_T>>(waitState,
+            iscore::make_transition<ClickOnConstraint_Transition<Scenario_T>>(waitState,
                                                           moveConstraint,
                                                           *moveConstraint);
             moveConstraint->addTransition(moveConstraint,
@@ -53,11 +53,11 @@ class MoveEventInScenario_StateWrapper
                         palette.context().objectLocker,
                         &parent};
 
-            make_transition<ClickOnState_Transition<Scenario_T>>(waitState,
+            iscore::make_transition<ClickOnState_Transition<Scenario_T>>(waitState,
                                                      moveEvent,
                                                      *moveEvent);
 
-            make_transition<ClickOnEvent_Transition<Scenario_T>>(waitState,
+            iscore::make_transition<ClickOnEvent_Transition<Scenario_T>>(waitState,
                                                      moveEvent,
                                                      *moveEvent);
             moveEvent->addTransition(moveEvent,
@@ -83,7 +83,7 @@ class MoveTimeNodeInScenario_StateWrapper
                         palette.context().objectLocker,
                         &parent};
 
-            make_transition<ClickOnTimeNode_Transition<Scenario_T>>(waitState,
+            iscore::make_transition<ClickOnTimeNode_Transition<Scenario_T>>(waitState,
                                                                     moveTimeNode,
                                                                     *moveTimeNode);
             moveTimeNode->addTransition(moveTimeNode,

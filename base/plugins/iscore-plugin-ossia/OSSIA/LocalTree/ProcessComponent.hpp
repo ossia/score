@@ -6,11 +6,27 @@ namespace OSSIA
 namespace LocalTree
 {
 
-class ProcessComponent : public Component
+class ProcessComponent : public iscore::Component
 {
         ISCORE_METADATA(OSSIA::LocalTree::ProcessComponent)
     public:
-        using Component::Component;
+        ProcessComponent(
+                const std::shared_ptr<OSSIA::Node>& node,
+                const Id<iscore::Component>& id,
+                const QString& name,
+                QObject* parent):
+        Component{id, name, parent},
+            m_thisNode{node}
+        {
+        }
+
+        auto& node() const
+        {
+            return m_thisNode;
+        }
+
+    private:
+        std::shared_ptr<OSSIA::Node> m_thisNode;
 };
 
 class ProcessComponentFactory :
@@ -20,7 +36,7 @@ class ProcessComponentFactory :
 {
     public:
         virtual ProcessComponent* make(
-                const Id<Component>&,
+                const Id<iscore::Component>&,
                 OSSIA::Node& parent,
                 Process& proc,
                 const LocalTree::DocumentPlugin& doc,

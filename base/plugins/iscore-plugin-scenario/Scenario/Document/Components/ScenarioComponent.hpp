@@ -27,59 +27,6 @@
 #include <iscore/document/DocumentContext.hpp>
 #include <iscore/tools/std/Algorithms.hpp>
 
-#define COMPONENT_METADATA(TheType) \
-    public: \
-    static const Component::Key& static_key() { \
-      static const Component::Key& s \
-      { #TheType }; \
-      return s; \
-    } \
-    \
-    const Component::Key& key() const final override { \
-      return static_key(); \
-    } \
-    private:
-
-
-class Component : public IdentifiedObject<Component>
-{
-    public:
-        using IdentifiedObject<Component>::IdentifiedObject;
-        using Key = StringKey<Component>;
-        virtual const Key& key() const = 0;
-
-        virtual ~Component()
-        {
-
-        }
-
-};
-
-class ComponentContainer
-{
-    public:
-        void add(Component*)
-        {
-
-        }
-
-        void remove()
-        {
-            // Est-ce qu'on veut avoir plusieurs
-            // composants du même type ? bouef...
-
-            // Les composants doivent maintenir un tableau de leurs composants enfants.
-            // Comment ? Trouver un type map meilleur que ce qu'il y a dans OSSIADocumentPlugin.
-        }
-
-        ~ComponentContainer()
-        {
-
-        }
-
-    private:
-        std::vector<Component*> m_components;
-};
 
 template<typename System_T, typename Component_T>
 class GenericProcessComponentFactory;
@@ -89,7 +36,7 @@ using ComponentFactoryKey =  StringKey<GenericProcessComponentFactory<System_T, 
 
 template<typename System_T, typename Component_T>
 class GenericProcessComponentFactory :
-        public GenericFactoryInterface<ComponentFactoryKey<System_T, Component_T>>
+        public iscore::GenericFactoryInterface<ComponentFactoryKey<System_T, Component_T>>
 {
     public:
         using factory_key_type = ComponentFactoryKey<System_T, Component_T>;
@@ -208,7 +155,7 @@ class ConstraintComponentHierarchyManager : public Nano::Observer
                 // The subclass should provide this function to construct
                 // the correct component relative to this process.
                 auto proc_comp = m_component.make_processComponent(
-                                     Id<Component>{}/*getStrongId(constraint.components)*/,
+                                     Id<iscore::Component>{}/*getStrongId(constraint.components)*/,
                                      *factory, process, m_system, m_context, m_parentObject);
                 if(proc_comp)
                 {
@@ -233,6 +180,7 @@ class ConstraintComponentHierarchyManager : public Nano::Observer
 
         void remove(const ProcessPair& pair)
         {
+            m_component.removing(pair.process, pair.component);
             //pair.process.components.remove(pair.component);
             delete &pair.component;
         }
@@ -321,7 +269,7 @@ class ScenarioComponentHierarchyManager : public Nano::Observer
         void add(ConstraintModel& element)
         {
             auto comp = m_component.makeConstraint(
-                            Id<Component>{}/*getStrongId(scenario.components)*/,
+                            Id<iscore::Component>{}/*getStrongId(scenario.components)*/,
                             element,
                             m_system,
                             m_context,
@@ -336,7 +284,7 @@ class ScenarioComponentHierarchyManager : public Nano::Observer
         void add(EventModel& element)
         {
             auto comp = m_component.makeEvent(
-                            Id<Component>{}/*getStrongId(scenario.components)*/,
+                            Id<iscore::Component>{}/*getStrongId(scenario.components)*/,
                             element,
                             m_system,
                             m_context,
@@ -351,7 +299,7 @@ class ScenarioComponentHierarchyManager : public Nano::Observer
         void add(TimeNodeModel& element)
         {
             auto comp = m_component.makeTimeNode(
-                            Id<Component>{}/*getStrongId(scenario.components)*/,
+                            Id<iscore::Component>{}/*getStrongId(scenario.components)*/,
                             element,
                             m_system,
                             m_context,
@@ -366,7 +314,7 @@ class ScenarioComponentHierarchyManager : public Nano::Observer
         void add(StateModel& element)
         {
             auto comp = m_component.makeState(
-                            Id<Component>{}/*getStrongId(scenario.components)*/,
+                            Id<iscore::Component>{}/*getStrongId(scenario.components)*/,
                             element,
                             m_system,
                             m_context,

@@ -18,7 +18,7 @@
 #include <iscore/tools/IdentifiedObject.hpp>
 #include <iscore/tools/NotifyingMap.hpp>
 #include <iscore/tools/SettableIdentifier.hpp>
-
+#include <iscore/component/Component.hpp>
 class DataStream;
 class JSONObject;
 class StateModel;
@@ -46,6 +46,7 @@ class ISCORE_PLUGIN_SCENARIO_EXPORT ConstraintModel final : public IdentifiedObj
 
     public:
         /** Properties of the class **/
+        iscore::Components components;
         Selectable selection;
         ModelMetadata metadata;
         ModelConsistency consistency;

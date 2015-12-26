@@ -29,15 +29,16 @@ class ScenarioComponent : public ProcessComponent
                const system_t& doc,
                const iscore::DocumentContext& ctx,
                QObject* parent_obj):
-           ProcessComponent{id, "ScenarioComponent", parent_obj},
-           m_thisNode{add_node(parent, scenario.metadata.name().toStdString())},
-           m_constraintsNode{add_node(*m_thisNode, "constraints")},
-           m_eventsNode{add_node(*m_thisNode, "events")},
-           m_timeNodesNode{add_node(*m_thisNode, "timenodes")},
-           m_statesNode{add_node(*m_thisNode, "states")},
+           ProcessComponent{
+               add_node(parent, scenario.metadata.name().toStdString()),
+               id, "ScenarioComponent", parent_obj},
+           m_constraintsNode{add_node(*node(), "constraints")},
+           m_eventsNode{add_node(*node(), "events")},
+           m_timeNodesNode{add_node(*node(), "timenodes")},
+           m_statesNode{add_node(*node(), "states")},
            m_hm{*this, scenario, doc, ctx, this}
        {
-           make_metadata_node(scenario.metadata, *m_thisNode);
+           make_metadata_node(scenario.metadata, *node());
        }
 
 
@@ -126,7 +127,6 @@ class ScenarioComponent : public ProcessComponent
         }
 
     private:
-        std::shared_ptr<OSSIA::Node> m_thisNode;
         std::shared_ptr<OSSIA::Node> m_constraintsNode;
         std::shared_ptr<OSSIA::Node> m_eventsNode;
         std::shared_ptr<OSSIA::Node> m_timeNodesNode;

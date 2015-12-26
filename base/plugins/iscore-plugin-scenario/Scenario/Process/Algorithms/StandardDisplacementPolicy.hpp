@@ -20,7 +20,6 @@
 
 #include <Scenario/Tools/dataStructures.hpp>
 
-using namespace iscore;
 using namespace Scenario::Command;
 
 /**

@@ -53,7 +53,7 @@ class SmartTool final : public ToolBase<ToolPalette_T>
                         this->m_parentSM,
                         actionsState};
 
-                make_transition<ClickOnSlotHandle_Transition>(
+                iscore::make_transition<ClickOnSlotHandle_Transition>(
                             waitState,
                             resizeSlot,
                             *resizeSlot);
@@ -99,7 +99,7 @@ class SmartTool final : public ToolBase<ToolPalette_T>
             },
             [&] ()
             {
-                this->localSM().postEvent(new Press_Event);
+                this->localSM().postEvent(new iscore::Press_Event);
                 m_nothingPressed = true;
             });
         }
@@ -108,7 +108,7 @@ class SmartTool final : public ToolBase<ToolPalette_T>
         {
             if (m_nothingPressed)
             {
-                this->localSM().postEvent(new Move_Event);
+                this->localSM().postEvent(new iscore::Move_Event);
             }
             else
             {
@@ -132,7 +132,7 @@ class SmartTool final : public ToolBase<ToolPalette_T>
         {
             if(m_nothingPressed)
             {
-                this->localSM().postEvent(new Release_Event); // select
+                this->localSM().postEvent(new iscore::Release_Event); // select
                 m_nothingPressed = false;
 
                 return;
@@ -181,7 +181,7 @@ class SmartTool final : public ToolBase<ToolPalette_T>
             },
             [&] (const SlotModel& slot) // Slot handle
             {
-                this->localSM().postEvent(new Release_Event); // select
+                this->localSM().postEvent(new iscore::Release_Event); // select
                 m_nothingPressed = false; // TODO useless ???
             },
             [&] ()

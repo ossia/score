@@ -8,6 +8,7 @@
 #include <QString>
 #include <vector>
 
+#include <iscore/component/Component.hpp>
 #include <iscore/tools/Metadata.hpp>
 #include "ModelMetadata.hpp"
 #include <iscore/serialization/VisitorInterface.hpp>
@@ -37,6 +38,7 @@ class ISCORE_LIB_PROCESS_EXPORT Process: public IdentifiedObject<Process>
         ISCORE_SERIALIZE_FRIENDS(Process, JSONObject)
 
     public:
+        iscore::Components components;
         iscore::ElementPluginModelList* pluginModelList{}; // Note: has to be initialized by the sub-classes.
         ModelMetadata metadata;
 

@@ -33,7 +33,7 @@
 
 OSSIA::LocalTree::DocumentPlugin::DocumentPlugin(
         std::shared_ptr<OSSIA::Device> localDev,
-        Document& doc,
+        iscore::Document& doc,
         QObject* parent):
     iscore::DocumentPluginModel{doc, "LocalTree::DocumentPlugin", parent},
     m_localDevice{localDev}
