@@ -50,7 +50,9 @@ std::vector<std::unique_ptr<iscore::FactoryInterfaceBase>> iscore_plugin_ossia::
                  OSCProtocolFactory,
                  LocalProtocolFactory>,
             FW<ScenarioActionsFactory,
-                 PlayContextMenuFactory>
+                 PlayContextMenuFactory>,
+            FW<OSSIA::LocalTree::ProcessComponentFactory,
+                 OSSIA::LocalTree::ScenarioComponentFactory>
             >
             >(ctx, key);
 }

@@ -18,18 +18,14 @@ namespace iscore
     private:
 
 
-class Component : public IdentifiedObject<Component>
+class ISCORE_LIB_BASE_EXPORT Component : public IdentifiedObject<Component>
 {
     public:
         using IdentifiedObject<Component>::IdentifiedObject;
         using Key = StringKey<Component>;
         virtual const Key& key() const = 0;
 
-        virtual ~Component()
-        {
-            // TODO cpp
-
-        }
+        virtual ~Component();
 };
 
 using Components = NotifyingMap<Component>;

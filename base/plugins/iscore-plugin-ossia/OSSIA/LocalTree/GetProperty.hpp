@@ -41,7 +41,7 @@ class QtGetProperty
 };
 
 template<typename GetProperty>
-struct GetPropertyWrapper : public BaseCallbackWrapper
+struct GetPropertyWrapper : public QObject
 {
         GetProperty property;
         using converter_t = OSSIA::convert::MatchingType<typename GetProperty::value_type>;
@@ -52,7 +52,7 @@ struct GetPropertyWrapper : public BaseCallbackWrapper
                 GetProperty prop,
                 QObject* parent
                 ):
-            BaseCallbackWrapper{node, addr, parent},
+            QObject{parent},
             property{prop}
         {
             connect(&property.object(), property.changed_property(),
@@ -64,6 +64,9 @@ struct GetPropertyWrapper : public BaseCallbackWrapper
 
             addr->setValue(iscore::convert::toOSSIAValue(converter_t::convert(property.get())));
         }
+
+        std::shared_ptr<OSSIA::Node> node;
+        std::shared_ptr<OSSIA::Address> addr;
 };
 
 template<typename Property>
