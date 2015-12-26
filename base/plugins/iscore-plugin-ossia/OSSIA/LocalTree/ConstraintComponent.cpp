@@ -1,37 +1,12 @@
 #include "ConstraintComponent.hpp"
+#include <iscore/tools/std/Algorithms.hpp>
+#include "MetadataParameters.hpp"
 
 namespace OSSIA
 {
 namespace LocalTree
 {
 
-void make_metadata_node(
-        ModelMetadata& metadata,
-        OSSIA::Node& parent,
-        std::vector<BaseProperty*>& properties,
-        QObject* context)
-{
-
-    properties.push_back(
-    add_getProperty<QString>(parent, "name", &metadata,
-                             &ModelMetadata::name,
-                             &ModelMetadata::nameChanged,
-                             context));
-
-    properties.push_back(
-    add_property<QString>(parent, "comment", &metadata,
-                          &ModelMetadata::comment,
-                          &ModelMetadata::setComment,
-                          &ModelMetadata::commentChanged,
-                          context));
-
-    properties.push_back(
-    add_property<QString>(parent, "label", &metadata,
-                          &ModelMetadata::label,
-                          &ModelMetadata::setLabel,
-                          &ModelMetadata::labelChanged,
-                          context));
-}
 
 const iscore::Component::Key&ConstraintComponent::key() const
 {
@@ -109,68 +84,6 @@ void ConstraintComponent::removing(const Process& cst, const ProcessComponent& c
     m_processesNode->children().erase(it);
 }
 
-EventComponent::EventComponent(Node& parent, const Id<iscore::Component>& id, EventModel& event, const EventComponent::system_t& doc, const iscore::DocumentContext& ctx, QObject* parent_comp):
-    Component{id, "EventComponent", parent_comp},
-    m_thisNode{add_node(parent, event.metadata.name().toStdString())}
-{
-    make_metadata_node(event.metadata, *m_thisNode, m_properties, this);
-}
 
-const iscore::Component::Key&EventComponent::key() const
-{
-    static const Key k{"OSSIA::LocalTree::EventComponent"};
-    return k;
-}
-
-EventComponent::~EventComponent()
-{
-    for(auto prop : m_properties)
-        delete prop;
-}
-
-TimeNodeComponent::TimeNodeComponent(Node& parent, const Id<iscore::Component>& id, TimeNodeModel& timeNode, const TimeNodeComponent::system_t& doc, const iscore::DocumentContext& ctx, QObject* parent_comp):
-    Component{id, "TimeNodeComponent", parent_comp},
-    m_thisNode{add_node(parent, timeNode.metadata.name().toStdString())}
-{
-    make_metadata_node(timeNode.metadata, *m_thisNode, m_properties, this);
-
-
-    m_properties.push_back(
-    add_setProperty<iscore::impulse_t>(*m_thisNode, "trigger",
-                                       [&] (auto) {
-        timeNode.trigger()->triggered();
-    }));
-}
-
-const iscore::Component::Key&TimeNodeComponent::key() const
-{
-    static const Key k{"OSSIA::LocalTree::TimeNodeComponent"};
-    return k;
-}
-
-TimeNodeComponent::~TimeNodeComponent()
-{
-    for(auto prop : m_properties)
-        delete prop;
-}
-
-StateComponent::StateComponent(Node& parent, const Id<iscore::Component>& id, StateModel& state, const StateComponent::system_t& doc, const iscore::DocumentContext& ctx, QObject* parent_comp):
-    Component{id, "StateComponent", parent_comp},
-    m_thisNode{add_node(parent, state.metadata.name().toStdString())}
-{
-    make_metadata_node(state.metadata, *m_thisNode, m_properties, this);
-}
-
-const iscore::Component::Key&StateComponent::key() const
-{
-    static const Key k{"OSSIA::LocalTree::StateComponent"};
-    return k;
-}
-
-StateComponent::~StateComponent()
-{
-    for(auto prop : m_properties)
-        delete prop;
-}
 }
 }

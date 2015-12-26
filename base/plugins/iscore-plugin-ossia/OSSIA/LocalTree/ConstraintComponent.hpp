@@ -1,17 +1,11 @@
 #pragma once
 #include <OSSIA/LocalTree/ProcessComponent.hpp>
+#include <Scenario/Document/Components/ConstraintComponent.hpp>
 
 namespace OSSIA
 {
 namespace LocalTree
 {
-
-void make_metadata_node(
-        ModelMetadata& metadata,
-        OSSIA::Node& parent,
-        std::vector<BaseProperty*>& properties,
-        QObject* context);
-
 class ConstraintComponent final :
         public iscore::Component
 {
@@ -60,79 +54,6 @@ class ConstraintComponent final :
 };
 
 
-
-
-class EventComponent final :
-        public iscore::Component
-{
-        std::shared_ptr<OSSIA::Node> m_thisNode;
-        std::vector<BaseProperty*> m_properties;
-
-    public:
-        using system_t = OSSIA::LocalTree::DocumentPlugin;
-
-        EventComponent(
-                OSSIA::Node& parent,
-                const Id<Component>& id,
-                EventModel& event,
-                const system_t& doc,
-                const iscore::DocumentContext& ctx,
-                QObject* parent_comp);
-
-        const Key& key() const override;
-
-        auto& node() const
-        { return m_thisNode; }
-        ~EventComponent();
-};
-
-class TimeNodeComponent final :
-        public iscore::Component
-{
-        std::shared_ptr<OSSIA::Node> m_thisNode;
-        std::vector<BaseProperty*> m_properties;
-
-    public:
-        using system_t = OSSIA::LocalTree::DocumentPlugin;
-
-        TimeNodeComponent(
-                OSSIA::Node& parent,
-                const Id<iscore::Component>& id,
-                TimeNodeModel& timeNode,
-                const system_t& doc,
-                const iscore::DocumentContext& ctx,
-                QObject* parent_comp);
-
-        const Key& key() const override;
-
-        auto& node() const
-        { return m_thisNode; }
-        ~TimeNodeComponent();
-};
-
-class StateComponent final :
-        public iscore::Component
-{
-        std::shared_ptr<OSSIA::Node> m_thisNode;
-        std::vector<BaseProperty*> m_properties;
-
-    public:
-        using system_t = OSSIA::LocalTree::DocumentPlugin;
-
-        StateComponent(
-                OSSIA::Node& parent,
-                const Id<iscore::Component>& id,
-                StateModel& state,
-                const system_t& doc,
-                const iscore::DocumentContext& ctx,
-                QObject* parent_comp);
-
-        const Key& key() const override;
-
-        auto& node() const
-        { return m_thisNode; }
-        ~StateComponent();
-};
 
 }
 }
