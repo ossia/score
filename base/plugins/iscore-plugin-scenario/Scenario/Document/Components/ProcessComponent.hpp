@@ -38,7 +38,7 @@ template<
         typename System_T,
         typename Component_T,
         typename Factory_T>
-class GenericProcessComponentFactoryList :
+class GenericProcessComponentFactoryList final :
         public iscore::FactoryListInterface
 {
         std::vector<std::unique_ptr<Factory_T>> m_list;
