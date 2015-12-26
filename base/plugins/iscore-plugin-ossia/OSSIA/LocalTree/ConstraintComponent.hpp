@@ -60,7 +60,6 @@ class ConstraintComponent final :
             using tv_t = ::TimeValue;
             make_metadata_node(constraint.metadata, *m_thisNode);
 
-            //visit(constraint.metadata, m_thisNode);
             add_property<float>(*m_thisNode, "yPos", &constraint,
                                 &ConstraintModel::heightPercentage,
                                 &ConstraintModel::setHeightPercentage,
@@ -92,7 +91,6 @@ class ConstraintComponent final :
                 const iscore::DocumentContext &ctx,
                 QObject *parent_component)
         {
-            //auto it = add_node(*m_processesNode, process.metadata.name().toStdString());
             return factory.make(id, *m_processesNode, process, system, ctx, parent_component);
         }
 

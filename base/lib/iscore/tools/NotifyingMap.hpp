@@ -42,26 +42,35 @@ class NotifyingMap
         mutable Nano::Signal<void(const T&)> removing;
         mutable Nano::Signal<void(const T&)> removed;
 
-        void add(T* t) {
+        void add(T* t)
+        {
             m_map.insert(t);
 
             mutable_added(*t);
             added(*t);
         }
 
-        void remove(T* elt) {
-            m_map.remove(elt->id());
-            removed(*elt);
-            delete elt;
+        void remove(const T& elt)
+        {
+            removing(elt);
+            m_map.remove(elt.id());
+            removed(elt);
+            delete &elt;
+        }
+
+        void remove(T* elt)
+        {
+            remove(*elt);
         }
 
         void remove(const Id<T>& id) {
-            auto elt = *m_map.get().find(id);
+            auto it = m_map.get().find(id);
+            auto& elt = **it ;
 
-            removing(*elt);
-            m_map.remove(id);
-            removed(*elt);
-            delete elt;
+            removing(elt);
+            m_map.remove(it);
+            removed(elt);
+            delete &elt;
         }
 
     private:

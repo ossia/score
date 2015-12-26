@@ -5,7 +5,6 @@ namespace OSSIA
 {
 namespace LocalTree
 {
-
 class ProcessComponent : public iscore::Component
 {
         ISCORE_METADATA(OSSIA::LocalTree::ProcessComponent)
@@ -14,12 +13,9 @@ class ProcessComponent : public iscore::Component
                 const std::shared_ptr<OSSIA::Node>& node,
                 const Id<iscore::Component>& id,
                 const QString& name,
-                QObject* parent):
-        Component{id, name, parent},
-            m_thisNode{node}
-        {
-        }
+                QObject* parent);
 
+        virtual ~ProcessComponent();
         auto& node() const
         {
             return m_thisNode;

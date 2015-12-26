@@ -32,6 +32,7 @@ struct VisitorVariant;
 #include <QFileInfo>
 #include <QDir>
 #endif
+#include <OSSIA/LocalTree/LocalTreeDocumentPlugin.hpp>
 #include <OSSIA/DocumentPlugin/ContextMenu/PlayContextMenu.hpp>
 #include <Explorer/DocumentPlugin/DeviceDocumentPlugin.hpp>
 #include <Scenario/Document/ScenarioDocument/ScenarioDocumentModel.hpp>
@@ -145,6 +146,7 @@ bool OSSIAApplicationPlugin::handleStartup()
 
 void OSSIAApplicationPlugin::on_newDocument(iscore::Document* doc)
 {
+    doc->model().addPluginModel(new OSSIA::LocalTree::DocumentPlugin{m_localDevice,*doc, &doc->model()});
     doc->model().addPluginModel(new RecreateOnPlay::DocumentPlugin{*doc, &doc->model()});
 }
 

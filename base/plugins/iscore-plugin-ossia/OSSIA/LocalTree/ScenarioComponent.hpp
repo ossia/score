@@ -136,6 +136,38 @@ class ScenarioComponent : public ProcessComponent
 
 };
 
+class ScenarioComponentFactory final :
+        public ProcessComponentFactory
+{
+    public:
+        const factory_key_type& key_impl() const override
+        {
+            static const factory_key_type name{"ScenarioComponentFactory"};
+            return name;
+        }
+
+        bool matches(
+                Process& p,
+                const OSSIA::LocalTree::DocumentPlugin&,
+                const iscore::DocumentContext&) const override
+        {
+            return dynamic_cast<Scenario::ScenarioModel*>(&p);
+        }
+
+        // ProcessComponentFactory interface
+    public:
+        ProcessComponent* make(
+                const Id<iscore::Component>& id,
+                OSSIA::Node& parent,
+                Process& proc,
+                const DocumentPlugin& doc,
+                const iscore::DocumentContext& ctx,
+                QObject* paren_objt) const override
+        {
+            return new ScenarioComponent(id, parent, static_cast<Scenario::ScenarioModel&>(proc), doc, ctx, paren_objt);
+        }
+};
+
 
 
 }
