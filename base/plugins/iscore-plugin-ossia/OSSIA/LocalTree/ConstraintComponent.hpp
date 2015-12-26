@@ -24,7 +24,7 @@ inline void make_metadata_node(
 }
 
 class ConstraintComponent final :
-        public Component
+        public iscore::Component
 {
     public:
         using system_t = OSSIA::LocalTree::DocumentPlugin;
@@ -89,11 +89,20 @@ class ConstraintComponent final :
                 ProcessComponentFactory& factory,
                 Process &process,
                 const DocumentPlugin &system,
-                const DocumentContext &ctx,
+                const iscore::DocumentContext &ctx,
                 QObject *parent_component)
         {
             //auto it = add_node(*m_processesNode, process.metadata.name().toStdString());
             return factory.make(id, *m_processesNode, process, system, ctx, parent_component);
+        }
+
+        void removing(const Process& cst, const ProcessComponent& comp)
+        {
+            auto it = find_if(m_processesNode->children(), [&] (const auto& node)
+            { return node == comp.node(); });
+            ISCORE_ASSERT(it != m_processesNode->children().end());
+
+            m_processesNode->children().erase(it);
         }
 
         auto& node() const
@@ -108,7 +117,8 @@ class ConstraintComponent final :
 
 
 
-class EventComponent final : public Component
+class EventComponent final :
+        public iscore::Component
 {
         std::shared_ptr<OSSIA::Node> m_thisNode;
 
@@ -138,7 +148,8 @@ class EventComponent final : public Component
         { return m_thisNode; }
 };
 
-class TimeNodeComponent final : public Component
+class TimeNodeComponent final :
+        public iscore::Component
 {
         std::shared_ptr<OSSIA::Node> m_thisNode;
 
@@ -147,7 +158,7 @@ class TimeNodeComponent final : public Component
 
         TimeNodeComponent(
                 OSSIA::Node& parent,
-                const Id<Component>& id,
+                const Id<iscore::Component>& id,
                 TimeNodeModel& timeNode,
                 const system_t& doc,
                 const iscore::DocumentContext& ctx,
@@ -157,7 +168,7 @@ class TimeNodeComponent final : public Component
         {
             make_metadata_node(timeNode.metadata, *m_thisNode);
 
-            add_setProperty<impulse_t>(*m_thisNode, "trigger", timeNode.trigger(),
+            add_setProperty<iscore::impulse_t>(*m_thisNode, "trigger", timeNode.trigger(),
                                        [&] (auto) {
                 timeNode.trigger()->triggered();
             });
@@ -173,7 +184,8 @@ class TimeNodeComponent final : public Component
         { return m_thisNode; }
 };
 
-class StateComponent final : public Component
+class StateComponent final :
+        public iscore::Component
 {
         std::shared_ptr<OSSIA::Node> m_thisNode;
 
@@ -182,7 +194,7 @@ class StateComponent final : public Component
 
         StateComponent(
                 OSSIA::Node& parent,
-                const Id<Component>& id,
+                const Id<iscore::Component>& id,
                 StateModel& state,
                 const system_t& doc,
                 const iscore::DocumentContext& ctx,

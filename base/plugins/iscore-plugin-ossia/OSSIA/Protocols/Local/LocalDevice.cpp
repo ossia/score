@@ -18,8 +18,7 @@ LocalDevice::LocalDevice(
         const iscore::DocumentContext& ctx,
         std::shared_ptr<OSSIA::Device> dev,
         const iscore::DeviceSettings &settings):
-    OSSIADevice{settings},
-    m_context{ctx}
+    OSSIADevice{settings}
 {
     m_dev = dev;
 }

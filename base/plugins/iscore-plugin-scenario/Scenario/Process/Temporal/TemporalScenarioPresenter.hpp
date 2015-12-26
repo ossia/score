@@ -172,7 +172,7 @@ class ISCORE_PLUGIN_SCENARIO_EXPORT TemporalScenarioPresenter final : public Lay
         OngoingCommandDispatcher m_ongoingDispatcher;
 
         FocusDispatcher m_focusDispatcher;
-        SelectionDispatcher m_selectionDispatcher;
+        iscore::SelectionDispatcher m_selectionDispatcher;
         LayerContext m_context;
         Scenario::ToolPalette m_sm;
 };

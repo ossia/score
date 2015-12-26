@@ -30,6 +30,7 @@
 
 #include <QApplication>
 
+using namespace iscore;
 ConstraintActions::ConstraintActions(
         iscore::ToplevelMenuElement menuElt,
         ScenarioApplicationPlugin* parent):
