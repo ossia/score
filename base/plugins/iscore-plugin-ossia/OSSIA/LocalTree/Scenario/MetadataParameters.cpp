@@ -1,6 +1,6 @@
 #include "MetadataParameters.hpp"
-#include "GetProperty.hpp"
-#include "Property.hpp"
+#include <OSSIA/LocalTree/GetProperty.hpp>
+#include <OSSIA/LocalTree/Property.hpp>
 #include <Process/ModelMetadata.hpp>
 namespace OSSIA
 {

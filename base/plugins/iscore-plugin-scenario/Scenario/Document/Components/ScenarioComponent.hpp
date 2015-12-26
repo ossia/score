@@ -23,31 +23,6 @@ template<
         typename StateComponent_T>
 class ScenarioComponentHierarchyManager : public Nano::Observer
 {
-    private:
-        struct ConstraintPair {
-                using element_t = ConstraintModel;
-                ConstraintModel& element;
-                ConstraintComponent_T& component;
-        };
-        struct EventPair {
-                using element_t = EventModel;
-                EventModel& element;
-                EventComponent_T& component;
-        };
-        struct TimeNodePair {
-                using element_t = TimeNodeModel;
-                TimeNodeModel& element;
-                TimeNodeComponent_T& component;
-        };
-        struct StatePair {
-                using element_t = StateModel;
-                StateModel& element;
-                StateComponent_T& component;
-        };
-
-        template<typename T, bool dummy = true>
-        struct MatchingComponent;
-
     public:
         ScenarioComponentHierarchyManager(
                 Component_T& component,
@@ -79,6 +54,31 @@ class ScenarioComponentHierarchyManager : public Nano::Observer
             for(auto element : m_timeNodes)
                 cleanup(element);
         }
+
+    private:
+        struct ConstraintPair {
+                using element_t = ConstraintModel;
+                ConstraintModel& element;
+                ConstraintComponent_T& component;
+        };
+        struct EventPair {
+                using element_t = EventModel;
+                EventModel& element;
+                EventComponent_T& component;
+        };
+        struct TimeNodePair {
+                using element_t = TimeNodeModel;
+                TimeNodeModel& element;
+                TimeNodeComponent_T& component;
+        };
+        struct StatePair {
+                using element_t = StateModel;
+                StateModel& element;
+                StateComponent_T& component;
+        };
+
+        template<typename T, bool dummy = true>
+        struct MatchingComponent;
 
         template<typename Pair_T>
         void cleanup(const Pair_T& pair)
@@ -141,7 +141,7 @@ class ScenarioComponentHierarchyManager : public Nano::Observer
             }
         }
 
-    private:
+
         Scenario::ScenarioModel& m_scenario;
         Component_T& m_component;
 

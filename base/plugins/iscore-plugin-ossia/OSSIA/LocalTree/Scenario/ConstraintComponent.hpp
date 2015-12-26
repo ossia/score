@@ -1,5 +1,5 @@
 #pragma once
-#include <OSSIA/LocalTree/ProcessComponent.hpp>
+#include <OSSIA/LocalTree/Scenario/ProcessComponent.hpp>
 #include <Scenario/Document/Components/ConstraintComponent.hpp>
 
 namespace OSSIA
