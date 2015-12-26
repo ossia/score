@@ -31,7 +31,7 @@
 #include <OSSIA/OSSIA2iscore.hpp>
 #include <OSSIA/iscore2OSSIA.hpp>
 
-#include "ScenarioComponent.hpp"
+#include "Scenario/ScenarioComponent.hpp"
 
 ISCORE_METADATA_IMPL(OSSIA::LocalTree::DocumentPlugin)
 OSSIA::LocalTree::DocumentPlugin::DocumentPlugin(
