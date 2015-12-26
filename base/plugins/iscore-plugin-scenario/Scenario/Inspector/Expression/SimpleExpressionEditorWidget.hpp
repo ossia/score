@@ -11,7 +11,7 @@ class QComboBox;
 class QLabel;
 class QLineEdit;
 
-class SimpleExpressionEditorWidget : public QWidget
+class SimpleExpressionEditorWidget final : public QWidget
 {
     Q_OBJECT
     public:

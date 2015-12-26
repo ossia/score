@@ -12,7 +12,7 @@ struct DeviceSettings;
 }  // namespace iscore
 struct VisitorVariant;
 
-class MIDIProtocolFactory : public ProtocolFactory
+class MIDIProtocolFactory final : public ProtocolFactory
 {
         // Implement with OSSIA::Device
         QString prettyName() const override;

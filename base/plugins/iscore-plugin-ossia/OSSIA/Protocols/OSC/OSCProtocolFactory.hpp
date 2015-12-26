@@ -12,7 +12,7 @@ struct DeviceSettings;
 }  // namespace iscore
 struct VisitorVariant;
 
-class OSCProtocolFactory : public ProtocolFactory
+class OSCProtocolFactory final : public ProtocolFactory
 {
         // Implement with OSSIA::Device
         QString prettyName() const override;
