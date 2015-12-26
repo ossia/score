@@ -80,7 +80,7 @@ class ScenarioComponent : public ProcessComponent
         std::shared_ptr<OSSIA::Node> m_timeNodesNode;
         std::shared_ptr<OSSIA::Node> m_statesNode;
 
-        std::vector<QObject*> m_properties;
+        std::vector<BaseProperty*> m_properties;
 
         hierarchy_t m_hm;
 

@@ -21,7 +21,7 @@ ScenarioComponent::ScenarioComponent(
     m_statesNode{add_node(*node(), "states")},
     m_hm{*this, scenario, doc, ctx, this}
 {
-    make_metadata_node(scenario.metadata, *node(), m_properties);
+    make_metadata_node(scenario.metadata, *node(), m_properties, this);
 }
 
 ConstraintComponent*ScenarioComponent::makeConstraint(const Id<iscore::Component>& id, ConstraintModel& elt, const ScenarioComponent::system_t& doc, const iscore::DocumentContext& ctx, QObject* parent)
