@@ -1,6 +1,6 @@
 #pragma once
 #include <iscore/tools/NotifyingMap.hpp>
-
+#include <iscore/plugins/customfactory/StringFactoryKey.hpp>
 namespace iscore
 {
 
