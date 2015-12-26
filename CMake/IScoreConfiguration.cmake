@@ -38,6 +38,10 @@ if(ISCORE_STATIC_EVERYTHING)
   endif()
 endif()
 
+if(NACL)
+  set(ISCORE_STATIC_QT True)
+endif()
+
 if(ISCORE_STATIC_QT)
   if(UNIX AND NOT APPLE)
     set(ISCORE_STATIC_PLUGINS True)

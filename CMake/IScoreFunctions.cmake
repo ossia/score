@@ -335,6 +335,15 @@ function(iscore_generate_command_list_file TheTarget Headers)
 
 endfunction()
 
+function(iscore_write_static_plugins_header)
+  # TODO use iscore_write_file here
+  set(ISCORE_PLUGINS_FILE "${ISCORE_ROOT_BINARY_DIR}/iscore_static_plugins.hpp")
+  file(WRITE "${ISCORE_PLUGINS_FILE}" "#pragma once\n#include <QtPlugin>\n")
+  foreach(plugin ${ISCORE_PLUGINS_LIST})
+    message("Linking statically with i-score plugin : ${plugin}")
+    file(APPEND "${ISCORE_PLUGINS_FILE}" "Q_IMPORT_PLUGIN(${plugin})\n")
+  endforeach()
+endfunction()
 
 ### Adds tests ###
 function(setup_iscore_tests TestFolder)

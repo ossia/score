@@ -1,4 +1,4 @@
-#include <core/application/Application.hpp>
+#include "Application.hpp"
 #include <QApplication>
 #include <qnamespace.h>
 
@@ -20,6 +20,7 @@
 
 static void init_plugins()
 {
+// TODO generate this too
 #if defined(ISCORE_STATIC_PLUGINS)
     Q_INIT_RESOURCE(iscore);
     Q_INIT_RESOURCE(ScenarioResources);
@@ -33,28 +34,6 @@ static void init_plugins()
 #endif
 #endif
 }
-
-
-#if defined(__native_client__)
-#include <QtGui>
-#include <QtWidgets>
-iscore::Application * app;
-
-void app_init(int argc, char **argv)
-{
-    init_plugins();
-    app = new iscore::Application{argc, argv};
-    app->init();
-}
-
-void app_exit()
-{
-    delete app;
-}
-
-Q_WIDGETS_MAIN(app_init, app_exit);
-#else
-
 
 int main(int argc, char** argv)
 {
@@ -70,4 +49,3 @@ int main(int argc, char** argv)
     app.init();
     return app.exec();
 }
-#endif

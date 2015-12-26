@@ -1,9 +1,9 @@
 #include "TestObject.hpp"
 
-#include <core/application/Application.hpp>
+#include "TestApplication.hpp"
 int main(int argc, char** argv)
 {
-    iscore::TestApplication app(argc, argv);
+    TestApplication app(argc, argv);
 
     TestObject obj{app.context()};
 
