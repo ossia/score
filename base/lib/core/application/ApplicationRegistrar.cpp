@@ -17,7 +17,7 @@
 
 namespace iscore
 {
-
+ISCORE_LIB_BASE_EXPORT
 ApplicationRegistrar::ApplicationRegistrar(
         ApplicationComponentsData& comp,
         const iscore::ApplicationContext& ctx,
@@ -37,6 +37,7 @@ ApplicationRegistrar::ApplicationRegistrar(
 
 }
 
+ISCORE_LIB_BASE_EXPORT
 void ApplicationRegistrar::registerPlugins(
         const QStringList& pluginFiles,
         const std::vector<QObject*>& vec)
@@ -47,6 +48,7 @@ void ApplicationRegistrar::registerPlugins(
     m_components.plugins = vec;
 }
 
+ISCORE_LIB_BASE_EXPORT
 void ApplicationRegistrar::registerApplicationContextPlugin(
         GUIApplicationContextPlugin* ctrl)
 {
@@ -65,6 +67,7 @@ void ApplicationRegistrar::registerApplicationContextPlugin(
     m_components.appPlugins.push_back(ctrl);
 }
 
+ISCORE_LIB_BASE_EXPORT
 void ApplicationRegistrar::registerPanel(
         PanelFactory* factory)
 {
@@ -79,35 +82,41 @@ void ApplicationRegistrar::registerPanel(
         doc->setupNewPanel(factory);
 }
 
+ISCORE_LIB_BASE_EXPORT
 void ApplicationRegistrar::registerDocumentDelegate(
         DocumentDelegateFactoryInterface* docpanel)
 {
     m_components.availableDocuments.push_back(docpanel);
 }
 
+ISCORE_LIB_BASE_EXPORT
 void ApplicationRegistrar::registerCommands(
         std::unordered_map<CommandParentFactoryKey, CommandGeneratorMap>&& cmds)
 {
     m_components.commands = std::move(cmds);
 }
 
+ISCORE_LIB_BASE_EXPORT
 void ApplicationRegistrar::registerCommands(
         std::pair<CommandParentFactoryKey, CommandGeneratorMap>&& cmds)
 {
     m_components.commands.insert(std::move(cmds));
 }
 
+ISCORE_LIB_BASE_EXPORT
 void ApplicationRegistrar::registerFactories(
         std::unordered_map<iscore::FactoryBaseKey, std::unique_ptr<FactoryListInterface>>&& facts)
 {
     m_components.factories = std::move(facts);
 }
 
+ISCORE_LIB_BASE_EXPORT
 void ApplicationRegistrar::registerFactory(std::unique_ptr<FactoryListInterface> cmds)
 {
     m_components.factories.insert(std::make_pair(cmds->name(), std::move(cmds)));
 }
 
+ISCORE_LIB_BASE_EXPORT
 void ApplicationRegistrar::registerSettings(SettingsDelegateFactoryInterface* set)
 {
     m_settings.setupSettingsPlugin(set);
