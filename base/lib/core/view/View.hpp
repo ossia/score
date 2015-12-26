@@ -13,6 +13,7 @@ class QObject;
 class QTabWidget;
 
 #include <iscore/tools/SettableIdentifier.hpp>
+#include <iscore_lib_base_export.h>
 
 namespace iscore
 {
@@ -26,7 +27,7 @@ namespace iscore
      *
      * The main display of the application.
      */
-    class View final : public QMainWindow
+    class ISCORE_LIB_BASE_EXPORT View final : public QMainWindow
     {
             Q_OBJECT
         public:

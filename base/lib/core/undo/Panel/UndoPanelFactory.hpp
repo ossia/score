@@ -8,13 +8,14 @@
 #include <iscore/plugins/panel/PanelPresenter.hpp>
 #include <iscore/plugins/panel/PanelView.hpp>
 
+#include <iscore_lib_base_export.h>
 namespace iscore {
 class DocumentModel;
 
 
 }  // namespace iscore
 
-class UndoPanelFactory final : public iscore::PanelFactory
+class ISCORE_LIB_BASE_EXPORT UndoPanelFactory final : public iscore::PanelFactory
 {
     public:
         int panelId() const override;

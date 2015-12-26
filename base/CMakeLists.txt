@@ -10,10 +10,12 @@ add_subdirectory(plugins)
 
 if(ANDROID)
     add_subdirectory(app-android)
+elseif(NACL)
+    add_subdirectory(app-nacl)
 else()
     add_subdirectory(app)
 endif()
 
 if(ISCORE_COVERAGE)
-    add_subdirectory(testapp)
+    add_subdirectory(app-test)
 endif()

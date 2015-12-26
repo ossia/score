@@ -1,8 +1,7 @@
 #pragma once
-
-
 #include <QObject>
 
+#include <iscore_lib_base_export.h>
 namespace iscore {
 class SettingsDelegateFactoryInterface;
 class SettingsModel;
@@ -27,7 +26,7 @@ namespace iscore
      * An exemple is given in the network plugin.
      *
      */
-    class Settings final : public QObject
+    class ISCORE_LIB_BASE_EXPORT Settings final : public QObject
     {
         public:
             Settings(QObject* parent);

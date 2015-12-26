@@ -5,6 +5,7 @@
 #include <QList>
 
 #include <vector>
+#include <iscore_lib_base_export.h>
 
 class QObject;
 namespace iscore {
@@ -21,7 +22,7 @@ namespace iscore
  * Base class for the "fake" undo plugin,
  * which provides a undo panel.
  */
-class UndoApplicationPlugin final : public iscore::GUIApplicationContextPlugin
+class ISCORE_LIB_BASE_EXPORT UndoApplicationPlugin final : public iscore::GUIApplicationContextPlugin
 {
     public:
         UndoApplicationPlugin(const iscore::ApplicationContext& app, QObject* parent);
