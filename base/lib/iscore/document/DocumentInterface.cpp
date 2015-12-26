@@ -61,7 +61,7 @@ const std::vector<iscore::PanelModel*>& iscore::IDocument::panels(const iscore::
     return d->model().panels();
 }
 
-const iscore::DocumentContext&iscore::IDocument::documentContext(const QObject& obj)
+ISCORE_LIB_BASE_EXPORT const iscore::DocumentContext&iscore::IDocument::documentContext(const QObject& obj)
 {
     auto doc = documentFromObject(obj);
     ISCORE_ASSERT(doc);
