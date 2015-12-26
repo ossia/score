@@ -28,7 +28,7 @@ if(ISCORE_STATIC_QT)
         ${qtharfbuzzng_LIBRARY}
         ${qtpcre_LIBRARY}
         ${qtfreetype_LIBRARY}
-         ${qsvg_LIBRARY}
+        ${qsvg_LIBRARY}
         GL
         Xi
         xcb-render xcb-image xcb-icccm xcb-sync xcb-xfixes xcb-shm xcb-randr xcb-shape xcb-keysyms xcb-xkb xcb-render-util  xcb
