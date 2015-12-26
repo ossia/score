@@ -45,6 +45,9 @@ class ScenarioComponentHierarchyManager : public Nano::Observer
                 StateComponent_T& component;
         };
 
+        template<typename T, bool dummy = true>
+        struct MatchingComponent;
+
     public:
         template<typename Pair_T>
         void remove(const Pair_T& pair)
@@ -72,9 +75,12 @@ class ScenarioComponentHierarchyManager : public Nano::Observer
                     &ScenarioComponentHierarchyManager::remove>(this);
         }
 
-        void add(ConstraintModel& element)
+        template<typename elt_t>
+        void add(elt_t& element)
         {
-            auto comp = m_component.makeConstraint(
+            //using elt_t = std::remove_reference_t<decltype(element)>;
+            using map_t = MatchingComponent<elt_t, true>;
+            auto comp = m_component.template make<elt_t, typename map_t::type>(
                             getStrongId(element.components),
                             element,
                             m_system,
@@ -83,55 +89,9 @@ class ScenarioComponentHierarchyManager : public Nano::Observer
             if(comp)
             {
                 element.components.add(comp);
-                m_constraints.emplace_back(ConstraintPair{element, *comp});
+                (this->*map_t::member).emplace_back(typename map_t::pair_type{element, *comp});
             }
         }
-
-        void add(EventModel& element)
-        {
-            auto comp = m_component.makeEvent(
-                            getStrongId(element.components),
-                            element,
-                            m_system,
-                            m_context,
-                            m_parentObject);
-            if(comp)
-            {
-                element.components.add(comp);
-                m_events.emplace_back(EventPair{element, *comp});
-            }
-        }
-
-        void add(TimeNodeModel& element)
-        {
-            auto comp = m_component.makeTimeNode(
-                            getStrongId(element.components),
-                            element,
-                            m_system,
-                            m_context,
-                            m_parentObject);
-            if(comp)
-            {
-                element.components.add(comp);
-                m_timeNodes.emplace_back(TimeNodePair{element, *comp});
-            }
-        }
-
-        void add(StateModel& element)
-        {
-            auto comp = m_component.makeState(
-                            getStrongId(element.components),
-                            element,
-                            m_system,
-                            m_context,
-                            m_parentObject);
-            if(comp)
-            {
-                element.components.add(comp);
-                m_states.emplace_back(StatePair{element, *comp});
-            }
-        }
-
 
         void remove(const ConstraintModel& element)
         {
@@ -230,5 +190,31 @@ class ScenarioComponentHierarchyManager : public Nano::Observer
         std::list<EventPair> m_events;
         std::list<TimeNodePair> m_timeNodes;
         std::list<StatePair> m_states;
+
+
+        template<bool dummy>
+        struct MatchingComponent<ConstraintModel, dummy> {
+                using type = ConstraintComponent_T;
+                using pair_type = ConstraintPair;
+                static const constexpr auto member = &ScenarioComponentHierarchyManager::m_constraints;
+        };
+        template<bool dummy>
+        struct MatchingComponent<EventModel, dummy> {
+                using type = EventComponent_T;
+                using pair_type = EventPair;
+                static const constexpr auto member = &ScenarioComponentHierarchyManager::m_events;
+        };
+        template<bool dummy>
+        struct MatchingComponent<TimeNodeModel, dummy> {
+                using type = TimeNodeComponent_T;
+                using pair_type = TimeNodePair;
+                static const constexpr auto member = &ScenarioComponentHierarchyManager::m_timeNodes;
+        };
+        template<bool dummy>
+        struct MatchingComponent<StateModel, dummy> {
+                using type = StateComponent_T;
+                using pair_type = StatePair;
+                static const constexpr auto member = &ScenarioComponentHierarchyManager::m_states;
+        };
 };
 

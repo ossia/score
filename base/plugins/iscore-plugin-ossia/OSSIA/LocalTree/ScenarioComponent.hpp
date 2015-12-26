@@ -33,13 +33,22 @@ class ScenarioComponent : public ProcessComponent
                const iscore::DocumentContext& ctx,
                QObject* parent_obj);
 
+       template<typename Element, typename Component_T>
+       Component_T* make(
+               const Id<Component>& id,
+               Element& elt,
+               const system_t& doc,
+               const iscore::DocumentContext& ctx,
+               QObject* parent);
 
+/*
         ConstraintComponent* makeConstraint(
                 const Id<Component>& id,
                 ConstraintModel& elt,
                 const system_t& doc,
                 const iscore::DocumentContext& ctx,
                 QObject* parent);
+
 
         EventComponent* makeEvent(
                 const Id<Component>& id,
@@ -62,6 +71,7 @@ class ScenarioComponent : public ProcessComponent
                 const iscore::DocumentContext& ctx,
                 QObject* parent);
 
+                */
         void removing(
                 const ConstraintModel& elt,
                 const ConstraintComponent& comp);
@@ -121,8 +131,5 @@ class ScenarioComponentFactory final :
             return new ScenarioComponent(id, parent, static_cast<Scenario::ScenarioModel&>(proc), doc, ctx, paren_objt);
         }
 };
-
-
-
 }
 }

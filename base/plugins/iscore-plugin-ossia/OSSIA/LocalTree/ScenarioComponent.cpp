@@ -25,22 +25,46 @@ ScenarioComponent::ScenarioComponent(
     make_metadata_node(scenario.metadata, *node(), m_properties, this);
 }
 
-ConstraintComponent*ScenarioComponent::makeConstraint(const Id<iscore::Component>& id, ConstraintModel& elt, const ScenarioComponent::system_t& doc, const iscore::DocumentContext& ctx, QObject* parent)
+template<>
+ConstraintComponent* ScenarioComponent::make<ConstraintModel, ConstraintComponent>(
+        const Id<iscore::Component>& id,
+        ConstraintModel& elt,
+        const ScenarioComponent::system_t& doc,
+        const iscore::DocumentContext& ctx,
+        QObject* parent)
 {
     return new ConstraintComponent{*m_constraintsNode, id, elt, doc, ctx, parent};
 }
 
-EventComponent*ScenarioComponent::makeEvent(const Id<iscore::Component>& id, EventModel& elt, const ScenarioComponent::system_t& doc, const iscore::DocumentContext& ctx, QObject* parent)
+template<>
+EventComponent* ScenarioComponent::make<EventModel, EventComponent>(
+        const Id<iscore::Component>& id,
+        EventModel& elt,
+        const ScenarioComponent::system_t& doc,
+        const iscore::DocumentContext& ctx,
+        QObject* parent)
 {
     return new EventComponent{*m_eventsNode, id, elt, doc, ctx, parent};
 }
 
-TimeNodeComponent*ScenarioComponent::makeTimeNode(const Id<iscore::Component>& id, TimeNodeModel& elt, const ScenarioComponent::system_t& doc, const iscore::DocumentContext& ctx, QObject* parent)
+template<>
+TimeNodeComponent* ScenarioComponent::make<TimeNodeModel, TimeNodeComponent>(
+        const Id<iscore::Component>& id,
+        TimeNodeModel& elt,
+        const ScenarioComponent::system_t& doc,
+        const iscore::DocumentContext& ctx,
+        QObject* parent)
 {
     return new TimeNodeComponent{*m_timeNodesNode, id, elt, doc, ctx, parent};
 }
 
-StateComponent*ScenarioComponent::makeState(const Id<iscore::Component>& id, StateModel& elt, const ScenarioComponent::system_t& doc, const iscore::DocumentContext& ctx, QObject* parent)
+template<>
+StateComponent* ScenarioComponent::make<StateModel, StateComponent>(
+        const Id<iscore::Component>& id,
+        StateModel& elt,
+        const ScenarioComponent::system_t& doc,
+        const iscore::DocumentContext& ctx,
+        QObject* parent)
 {
     return new StateComponent{*m_statesNode, id, elt, doc, ctx, parent};
 }
