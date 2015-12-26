@@ -31,6 +31,9 @@
 #include <OSSIA/OSSIA2iscore.hpp>
 #include <OSSIA/iscore2OSSIA.hpp>
 
+#include "ScenarioComponent.hpp"
+
+ISCORE_METADATA_IMPL(OSSIA::LocalTree::DocumentPlugin)
 OSSIA::LocalTree::DocumentPlugin::DocumentPlugin(
         std::shared_ptr<OSSIA::Device> localDev,
         iscore::Document& doc,
@@ -42,6 +45,13 @@ OSSIA::LocalTree::DocumentPlugin::DocumentPlugin(
                       &m_context.document.model().modelDelegate());
     ISCORE_ASSERT(scenar);
     auto& cstr = scenar->baseScenario().constraint();
+    cstr.components.add(new ConstraintComponent(
+                            *m_localDevice,
+                            Id<iscore::Component>{0},
+                            cstr,
+                            *this,
+                            doc.context(),
+                            this));
 
     //OSSIA::LocalTree::ScenarioVisitor v;
     //v.visit(cstr, m_dev);

@@ -8,6 +8,7 @@
 
 #include <iscore/application/ApplicationContext.hpp>
 #include <iscore/plugins/application/GUIApplicationContextPlugin.hpp>
+#include <iscore/plugins/qt_interfaces/FactoryFamily_QtInterface.hpp>
 #include <iscore/plugins/customfactory/FactoryInterface.hpp>
 
 namespace iscore {
@@ -17,6 +18,7 @@ namespace iscore {
 class iscore_plugin_ossia final :
     public QObject,
     public iscore::GUIApplicationContextPlugin_QtInterface,
+        public iscore::FactoryList_QtInterface,
     public iscore::FactoryInterface_QtInterface,
         public iscore::PluginRequirementslInterface_QtInterface
 {
@@ -24,6 +26,7 @@ class iscore_plugin_ossia final :
         Q_PLUGIN_METADATA(IID GUIApplicationContextPlugin_QtInterface_iid)
         Q_INTERFACES(
             iscore::GUIApplicationContextPlugin_QtInterface
+                iscore::FactoryList_QtInterface
             iscore::FactoryInterface_QtInterface
                 iscore::PluginRequirementslInterface_QtInterface
         )
@@ -34,6 +37,8 @@ class iscore_plugin_ossia final :
 
         iscore::GUIApplicationContextPlugin* make_applicationPlugin(
                 const iscore::ApplicationContext& app) override;
+
+        std::vector<std::unique_ptr<iscore::FactoryListInterface>> factoryFamilies() override;
 
         // Contains the OSC, MIDI, Minuit factories
         std::vector<std::unique_ptr<iscore::FactoryInterfaceBase>> factories(

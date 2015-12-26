@@ -56,12 +56,9 @@ class MapBase
         bool empty() const
         { return map.empty(); }
 
-        void remove(value_type* t)
+        template<typename T>
+        void remove(const T& t)
         { map.erase(t); }
-
-        // TODO create one that takes an iterator.
-        void remove(const Id<model_type>& id)
-        { map.erase(id); }
 
         void clear()
         { map.clear(); }

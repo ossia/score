@@ -104,6 +104,9 @@ set(SRCS
 
 "${CMAKE_CURRENT_SOURCE_DIR}/OSSIA/LocalTree/LocalTreeDocumentPlugin.cpp"
 "${CMAKE_CURRENT_SOURCE_DIR}/OSSIA/LocalTree/ScenarioTreeBuilder.cpp"
+"${CMAKE_CURRENT_SOURCE_DIR}/OSSIA/LocalTree/ProcessComponent.cpp"
+"${CMAKE_CURRENT_SOURCE_DIR}/OSSIA/LocalTree/ScenarioComponent.cpp"
+"${CMAKE_CURRENT_SOURCE_DIR}/OSSIA/LocalTree/ConstraintComponent.cpp"
 
 "${CMAKE_CURRENT_SOURCE_DIR}/OSSIA/iscore2OSSIA.cpp"
 

@@ -26,6 +26,7 @@
 
 #include <iscore/document/DocumentContext.hpp>
 #include <iscore/tools/std/Algorithms.hpp>
+#include <iscore/tools/SettableIdentifierGeneration.hpp>
 
 
 template<typename System_T, typename Component_T>
@@ -155,11 +156,11 @@ class ConstraintComponentHierarchyManager : public Nano::Observer
                 // The subclass should provide this function to construct
                 // the correct component relative to this process.
                 auto proc_comp = m_component.make_processComponent(
-                                     Id<iscore::Component>{}/*getStrongId(constraint.components)*/,
+                                     getStrongId(process.components),
                                      *factory, process, m_system, m_context, m_parentObject);
                 if(proc_comp)
                 {
-                    // process.components.add(proc_comp);
+                    process.components.add(proc_comp);
                     m_children.emplace_back(ProcessPair{process, *proc_comp});
                 }
             }
@@ -181,11 +182,11 @@ class ConstraintComponentHierarchyManager : public Nano::Observer
         void remove(const ProcessPair& pair)
         {
             m_component.removing(pair.process, pair.component);
-            //pair.process.components.remove(pair.component);
+            pair.process.components.remove(pair.component);
             delete &pair.component;
         }
 
-        virtual ~ConstraintComponentHierarchyManager()
+        ~ConstraintComponentHierarchyManager()
         {
             for(ProcessPair element : m_children)
             {
@@ -243,7 +244,7 @@ class ScenarioComponentHierarchyManager : public Nano::Observer
         void remove(const Pair_T& pair)
         {
             m_component.removing(pair.element, pair.component);
-            //pair.process.components.remove(pair.component);
+            pair.element.components.remove(pair.component);
             delete &pair.component;
         }
 
@@ -269,14 +270,14 @@ class ScenarioComponentHierarchyManager : public Nano::Observer
         void add(ConstraintModel& element)
         {
             auto comp = m_component.makeConstraint(
-                            Id<iscore::Component>{}/*getStrongId(scenario.components)*/,
+                            getStrongId(element.components),
                             element,
                             m_system,
                             m_context,
                             m_parentObject);
             if(comp)
             {
-                // constraint.components.add(cst_comp);
+                element.components.add(comp);
                 m_constraints.emplace_back(ConstraintPair{element, *comp});
             }
         }
@@ -284,14 +285,14 @@ class ScenarioComponentHierarchyManager : public Nano::Observer
         void add(EventModel& element)
         {
             auto comp = m_component.makeEvent(
-                            Id<iscore::Component>{}/*getStrongId(scenario.components)*/,
+                            getStrongId(element.components),
                             element,
                             m_system,
                             m_context,
                             m_parentObject);
             if(comp)
             {
-                // constraint.components.add(cst_comp);
+                element.components.add(comp);
                 m_events.emplace_back(EventPair{element, *comp});
             }
         }
@@ -299,14 +300,14 @@ class ScenarioComponentHierarchyManager : public Nano::Observer
         void add(TimeNodeModel& element)
         {
             auto comp = m_component.makeTimeNode(
-                            Id<iscore::Component>{}/*getStrongId(scenario.components)*/,
+                            getStrongId(element.components),
                             element,
                             m_system,
                             m_context,
                             m_parentObject);
             if(comp)
             {
-                // constraint.components.add(cst_comp);
+                element.components.add(comp);
                 m_timeNodes.emplace_back(TimeNodePair{element, *comp});
             }
         }
@@ -314,14 +315,14 @@ class ScenarioComponentHierarchyManager : public Nano::Observer
         void add(StateModel& element)
         {
             auto comp = m_component.makeState(
-                            Id<iscore::Component>{}/*getStrongId(scenario.components)*/,
+                            getStrongId(element.components),
                             element,
                             m_system,
                             m_context,
                             m_parentObject);
             if(comp)
             {
-                // constraint.components.add(cst_comp);
+                element.components.add(comp);
                 m_states.emplace_back(StatePair{element, *comp});
             }
         }
