@@ -5,7 +5,7 @@
 
 #include "dataStructures.hpp"
 #include <iscore/tools/SettableIdentifier.hpp>
-
+#include <iscore_plugin_scenario_export.h>
 template <typename T> class Reader;
 template <typename T> class Writer;
 
@@ -57,7 +57,7 @@ void Visitor<Writer<DataStream>>::writeTo(ConstraintProperties& constraintProper
 
 //----------
 template<>
-void Visitor<Reader<DataStream>>::readFrom(const ElementsProperties& elementsProperties)
+ISCORE_PLUGIN_SCENARIO_EXPORT void Visitor<Reader<DataStream>>::readFrom(const ElementsProperties& elementsProperties)
 {
     m_stream << elementsProperties.timenodes
              << elementsProperties.constraints;
@@ -68,7 +68,7 @@ void Visitor<Reader<DataStream>>::readFrom(const ElementsProperties& elementsPro
 
 
 template<>
-void Visitor<Writer<DataStream>>::writeTo(ElementsProperties& elementsProperties)
+ISCORE_PLUGIN_SCENARIO_EXPORT void Visitor<Writer<DataStream>>::writeTo(ElementsProperties& elementsProperties)
 {
 
     m_stream >> elementsProperties.timenodes
