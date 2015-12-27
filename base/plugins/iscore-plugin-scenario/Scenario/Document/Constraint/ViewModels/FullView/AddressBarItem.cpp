@@ -65,6 +65,7 @@ void AddressBarItem::setTargetObject(ObjectPath && path)
         QString txt = name.value(i);
 
         auto lab = new ClickableLabelItem{
+                   thisObj.metadata,
                 [&] (ClickableLabelItem* item) {
                     emit constraintSelected(thisObj);
                 },
@@ -72,6 +73,8 @@ void AddressBarItem::setTargetObject(ObjectPath && path)
                 this};
 
         lab->setIndex(i);
+        connect(lab, &ClickableLabelItem::textChanged,
+               this, &AddressBarItem::redraw);
 
         m_items.append(lab);
         lab->setPos(currentWidth, 0);
@@ -102,4 +105,16 @@ QRectF AddressBarItem::boundingRect() const
 
 void AddressBarItem::paint(QPainter *painter, const QStyleOptionGraphicsItem *option, QWidget *widget)
 {
+}
+
+void AddressBarItem::redraw()
+{
+    double currentWidth = 0;
+    for(auto obj : m_items)
+    {
+        obj->setPos(currentWidth, 0);
+        currentWidth += 10 + obj->boundingRect().width();
+    }
+
+    emit needRedraw();
 }

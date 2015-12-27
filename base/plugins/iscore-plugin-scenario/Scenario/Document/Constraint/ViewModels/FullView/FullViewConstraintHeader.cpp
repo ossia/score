@@ -18,6 +18,8 @@ FullViewConstraintHeader::FullViewConstraintHeader(QGraphicsItem * parent):
     m_bar{new AddressBarItem(this)}
 {
     m_bar->setPos(10, 5);
+    connect(m_bar, &AddressBarItem::needRedraw,
+            this, [&] () { update(); });
 }
 
 AddressBarItem *FullViewConstraintHeader::bar() const

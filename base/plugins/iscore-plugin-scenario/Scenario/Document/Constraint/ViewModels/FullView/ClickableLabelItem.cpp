@@ -5,6 +5,7 @@
 #include <QBrush>
 
 #include "ClickableLabelItem.hpp"
+#include <Process/ModelMetadata.hpp>
 
 class QGraphicsSceneHoverEvent;
 class QGraphicsSceneMouseEvent;
@@ -21,12 +22,19 @@ SeparatorItem::SeparatorItem(QGraphicsItem *parent):
 
 
 ClickableLabelItem::ClickableLabelItem(
+        ModelMetadata& metadata,
         ClickHandler&& onClick,
         const QString &text,
         QGraphicsItem *parent):
     QGraphicsSimpleTextItem{text, parent},
     m_onClick{std::move(onClick)}
 {
+    connect(&metadata, &ModelMetadata::nameChanged,
+            this, [&] (const QString& name) {
+        setText(name);
+        emit textChanged();
+    });
+
     auto font = ProcessFonts::Sans();
     font.setPointSize(10);
     font.setBold(true);
