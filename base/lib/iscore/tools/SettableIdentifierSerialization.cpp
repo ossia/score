@@ -5,6 +5,7 @@
 #include <QJsonObject>
 #include <QJsonValue>
 #include <QString>
+#include <iscore/tools/std/Optional.hpp>
 #include <sys/types.h>
 
 template <typename T> class Reader;
@@ -37,7 +38,7 @@ ISCORE_LIB_BASE_EXPORT void Visitor<Writer<DataStream>>::writeTo(boost::optional
     }
     else
     {
-        obj = boost::none_t {};
+        reset(obj);
     }
 }
 
@@ -60,7 +61,7 @@ ISCORE_LIB_BASE_EXPORT void Visitor<Writer<JSONObject>>::writeTo(boost::optional
 {
     if(m_obj["id"].toString() == "none")
     {
-        obj = boost::none_t {};
+        reset(obj);
     }
     else
     {
@@ -87,7 +88,7 @@ ISCORE_LIB_BASE_EXPORT void Visitor<Writer<JSONValue>>::writeTo(boost::optional<
 {
     if(val.toString() == "none")
     {
-        obj = boost::none_t {};
+        reset(obj);
     }
     else
     {

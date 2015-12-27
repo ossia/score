@@ -10,6 +10,8 @@ include_directories("${CMAKE_CURRENT_SOURCE_DIR}/../lib/core")
 set(SRCS
     "${CMAKE_CURRENT_SOURCE_DIR}/main.cpp"
     "${CMAKE_CURRENT_SOURCE_DIR}/TestObject.hpp"
+    "${CMAKE_CURRENT_SOURCE_DIR}/TestApplication.hpp"
+    "${CMAKE_CURRENT_SOURCE_DIR}/TestApplication.cpp"
     )
 
 add_executable(iscore_testapp ${SRCS})
@@ -18,9 +20,7 @@ target_link_libraries(iscore_testapp iscore_lib_base)
 
 setup_iscore_common_features(iscore_testapp)
 
-if(ISCORE_COVERAGE)
-  setup_target_for_coverage(
-      iscore_test_coverage
-      iscore_testapp
-      coverage_out)
-endif()
+setup_target_for_coverage(
+    iscore_test_coverage
+    iscore_testapp
+    coverage_out)

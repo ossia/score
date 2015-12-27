@@ -7,6 +7,7 @@
 #include <iscore/widgets/OrderedToolbar.hpp>
 #include <vector>
 
+#include <iscore_lib_base_export.h>
 class QObject;
 
 
@@ -23,7 +24,7 @@ namespace iscore
      * It is also able to instantiate a Command from serialized Undo/Redo data.
      * (this should go in the DocumentPresenter maybe ?)
      */
-    class Presenter final : public NamedObject
+    class ISCORE_LIB_BASE_EXPORT Presenter final : public NamedObject
     {
             Q_OBJECT
         public:

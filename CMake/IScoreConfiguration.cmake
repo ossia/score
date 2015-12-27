@@ -1,4 +1,9 @@
+include(CheckCXXCompilerFlag)
+
 # Options
+CHECK_CXX_COMPILER_FLAG("-Wl,-z,defs" WL_ZDEFS_SUPPORTED)
+CHECK_CXX_COMPILER_FLAG("-fuse-ld=gold" GOLD_LINKER_SUPPORTED)
+
 
 option(ISCORE_ENABLE_LTO "Enable link-time optimization. Won't work on Travis." OFF)
 option(ISCORE_ENABLE_OPTIMIZE_CUSTOM "Enable -march=native." OFF)
@@ -29,6 +34,10 @@ if(ISCORE_STATIC_EVERYTHING)
     set(CMAKE_CXX_FLAGS "${CMAKE_CXX_FLAGS} -static-libgcc -static-libstdc++ -static")
     set(CMAKE_EXE_LINKER_FLAGS "${CMAKE_EXE_LINKER_FLAGS} -static-libgcc -static-libstdc++ -static")
   endif()
+endif()
+
+if(NACL)
+  set(ISCORE_STATIC_QT True)
 endif()
 
 if(ISCORE_STATIC_QT)

@@ -16,6 +16,7 @@
 #include <iscore/serialization/VisitorInterface.hpp>
 #include <iscore/tools/Todo.hpp>
 #include <iscore_plugin_scenario_export.h>
+#include <iscore/component/Component.hpp>
 class ConstraintModel;
 class DataStream;
 class EventModel;
@@ -54,6 +55,7 @@ class ISCORE_PLUGIN_SCENARIO_EXPORT StateModel final : public IdentifiedObject<S
         ISCORE_SERIALIZE_FRIENDS(StateModel, JSONObject)
     public:
         using ProcessVector = std::list<ProcessStateWrapper>;
+        iscore::Components components;
         Selectable selection;
         ModelMetadata metadata;
 

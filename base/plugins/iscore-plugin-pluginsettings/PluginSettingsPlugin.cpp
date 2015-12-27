@@ -8,7 +8,7 @@ iscore_plugin_pluginsettings::iscore_plugin_pluginsettings() :
     QObject {},
 iscore::SettingsDelegateFactoryInterface_QtInterface {}
 {
-    auto plop =             "AddTrigger_"_S;
+    auto plop =             "AddTrigger_"_CS;
 }
 
 //////////////////////////

@@ -36,4 +36,6 @@ add_library(${PROJECT_NAME} ${HDRS} ${SRCS})
 target_link_libraries(${PROJECT_NAME} Qt5::Core Qt5::Widgets iscore_lib_base)
 
 setup_iscore_library(${PROJECT_NAME})
+
 setup_iscore_tests(Tests)
+

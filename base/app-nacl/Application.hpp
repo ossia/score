@@ -1,11 +1,12 @@
 #pragma once
+#include <core/application/ApplicationInterface.hpp>
 #include <core/application/ApplicationSettings.hpp>
 #include <iscore/application/ApplicationContext.hpp>
 #include <core/plugin/PluginManager.hpp>
 #include <iscore/tools/NamedObject.hpp>
 #include <QApplication>
 #include <memory>
-#include <iscore_lib_base_export.h>
+
 namespace iscore {
 class Settings;
 }  // namespace iscore
@@ -15,13 +16,6 @@ namespace iscore
     class Presenter;
     class View;
 
-    class ISCORE_LIB_BASE_EXPORT ApplicationInterface
-    {
-    public:
-        virtual ~ApplicationInterface();
-        virtual const ApplicationContext& context() const = 0;
-    };
-
     /**
      * @brief Application
      *
@@ -29,7 +23,9 @@ namespace iscore
      * parent of every other object created.
      * It does instantiate the rest of the software (MVP, settings, plugins).
      */
-    class ISCORE_LIB_BASE_EXPORT Application final : public NamedObject, public ApplicationInterface
+    class Application final :
+            public NamedObject,
+            public ApplicationInterface
     {
             Q_OBJECT
             friend class ChildEventFilter;
@@ -71,27 +67,6 @@ namespace iscore
             ApplicationSettings m_applicationSettings;
     };
 
-    class ISCORE_LIB_BASE_EXPORT TestApplication : public NamedObject, public iscore::ApplicationInterface
-    {
-        public:
-            TestApplication(int& argc, char** argv);
-            ~TestApplication();
-            const iscore::ApplicationContext& context() const override;
-
-
-            int exec()
-            { return m_app->exec(); }
-
-            // Base stuff.
-            QApplication* m_app;
-            std::unique_ptr<iscore::Settings> m_settings; // Global settings
-
-            // MVP
-            iscore::View* m_view {};
-            iscore::Presenter* m_presenter {};
-
-            iscore::ApplicationSettings m_applicationSettings;
-    };
 }
 
 

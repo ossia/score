@@ -14,6 +14,7 @@
 #include <QVector>
 #include <chrono>
 #include <iscore_plugin_scenario_export.h>
+#include <iscore/component/Component.hpp>
 class DataStream;
 class EventModel;
 class JSONObject;
@@ -30,6 +31,7 @@ class ISCORE_PLUGIN_SCENARIO_EXPORT TimeNodeModel final : public IdentifiedObjec
 
     public:
         /** Properties of the class **/
+        iscore::Components components;
         Selectable selection;
         ModelMetadata metadata;
         iscore::ElementPluginModelList pluginModelList;

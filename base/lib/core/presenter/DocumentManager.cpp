@@ -84,6 +84,7 @@ DocumentManager::~DocumentManager()
     m_currentDocument = nullptr;
 }
 
+ISCORE_LIB_BASE_EXPORT
 Document* DocumentManager::setupDocument(
         const iscore::ApplicationContext& ctx,
         Document* doc)
@@ -344,6 +345,7 @@ Document* DocumentManager::loadStack(
     return nullptr;
 }
 
+ISCORE_LIB_BASE_EXPORT
 Document* DocumentManager::loadFile(
         const iscore::ApplicationContext& ctx)
 {
@@ -381,6 +383,7 @@ Document* DocumentManager::loadFile(
     return doc;
 }
 
+ISCORE_LIB_BASE_EXPORT
 void DocumentManager::prepareNewDocument(
         const iscore::ApplicationContext& ctx)
 {
@@ -404,7 +407,7 @@ bool DocumentManager::closeAllDocuments(
 }
 
 
-
+ISCORE_LIB_BASE_EXPORT
 void DocumentManager::restoreDocuments(
         const iscore::ApplicationContext& ctx)
 {

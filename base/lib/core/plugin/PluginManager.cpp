@@ -41,9 +41,12 @@ static QStringList pluginsDir()
 #elif defined(__APPLE__) && defined(__MACH__)
     return {QCoreApplication::applicationDirPath() + "/plugins",
             QCoreApplication::applicationDirPath() + "../Frameworks/i-score/plugins"};
+#else
+    return {};
 #endif
 }
 
+ISCORE_LIB_BASE_EXPORT
 std::pair<QString, QObject*> PluginLoader::loadPlugin(
         const QString &fileName,
         const std::vector<QObject*>& availablePlugins)

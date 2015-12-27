@@ -57,9 +57,9 @@ struct PropertyWrapper : public BaseCallbackWrapper
                 const std::shared_ptr<OSSIA::Node>& node,
                 const std::shared_ptr<OSSIA::Address>& addr,
                 Property prop,
-                QObject* parent
+                QObject* context
                 ):
-            BaseCallbackWrapper{node, addr, parent},
+            BaseCallbackWrapper{node, addr},
             property{prop}
         {
             m_callbackIt = addr->addCallback([=] (const OSSIA::Value* v) {
@@ -67,8 +67,8 @@ struct PropertyWrapper : public BaseCallbackWrapper
                     property.set(OSSIA::convert::ToValue(v));
             });
 
-            connect(&property.object(), property.changed_property(),
-                    this, [=] {
+            QObject::connect(&property.object(), property.changed_property(),
+                    context, [=] {
                 auto newVal = iscore::Value::fromValue(property.get());
                 if(newVal != OSSIA::convert::ToValue(addr->getValue()))
                     addr->pushValue(iscore::convert::toOSSIAValue(newVal));
@@ -84,17 +84,27 @@ auto make_property(
         const std::shared_ptr<OSSIA::Node>& node,
         const std::shared_ptr<OSSIA::Address>& addr,
         Property prop,
-        QObject* parent)
+        QObject* context)
 {
-    return new PropertyWrapper<Property>{node, addr, prop, parent};
+    return new PropertyWrapper<Property>{node, addr, prop, context};
 }
 
 template<typename T, typename Object, typename PropGet, typename PropSet, typename PropChanged>
-auto add_property(OSSIA::Node& n, const std::string& name, Object* obj, PropGet get, PropSet set, PropChanged chgd)
+auto add_property(
+        OSSIA::Node& n,
+        const std::string& name,
+        Object* obj,
+        PropGet get,
+        PropSet set,
+        PropChanged chgd,
+        QObject* context)
 {
     std::shared_ptr<OSSIA::Node> node = *n.emplace(n.children().end(), name);
     auto addr = node->createAddress(OSSIA::convert::MatchingType<T>::val);
     addr->setAccessMode(OSSIA::Address::AccessMode::BI);
 
-    return make_property(node, addr, QtProperty<T, Object, PropGet, PropSet, PropChanged>{*obj, get, set, chgd}, obj);
+    return make_property(node,
+                         addr,
+                         QtProperty<T, Object, PropGet, PropSet, PropChanged>{*obj, get, set, chgd},
+                         context);
 }

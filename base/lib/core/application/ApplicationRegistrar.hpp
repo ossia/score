@@ -7,6 +7,7 @@
 #include <iscore/command/SerializableCommand.hpp>
 #include <iscore/plugins/customfactory/FactoryInterface.hpp>
 
+#include <iscore_lib_base_export.h>
 namespace iscore
 {
 class DocumentDelegateFactoryInterface;
@@ -20,7 +21,7 @@ class MenubarManager;
 struct OrderedToolbar;
 class Settings;
 
-class ApplicationRegistrar : public QObject
+class ISCORE_LIB_BASE_EXPORT ApplicationRegistrar : public QObject
 {
     public:
         ApplicationRegistrar(

@@ -4,6 +4,7 @@
 #include <QStringList>
 #include <vector>
 
+#include <iscore_lib_base_export.h>
 namespace iscore
 {
 struct ApplicationContext;
@@ -17,7 +18,7 @@ namespace PluginLoader
  * Reloads all the plug-ins.
  * Note: for now this is unsafe after the first loading.
  */
-void loadPlugins(iscore::ApplicationRegistrar&,
+ISCORE_LIB_BASE_EXPORT void loadPlugins(iscore::ApplicationRegistrar&,
                  const iscore::ApplicationContext& context);
 
 // QString is set if it's a valid plug-in file,

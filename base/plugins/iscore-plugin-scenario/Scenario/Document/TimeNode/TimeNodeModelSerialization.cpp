@@ -93,7 +93,7 @@ void Visitor<Writer<JSONObject>>::writeTo(TimeNodeModel& timenode)
 
     timenode.m_trigger =  new TriggerModel{Id<TriggerModel>(0), &timenode};
 
-    Trigger t;
+    iscore::Trigger t;
     fromJsonObject(m_obj["Trigger"].toObject()["Expression"].toObject(),t);
     timenode.m_trigger->setExpression(t);
     timenode.m_trigger->setActive(m_obj["Trigger"].toObject()["Active"].toBool());
