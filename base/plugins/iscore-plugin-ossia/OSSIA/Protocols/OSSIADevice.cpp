@@ -211,6 +211,14 @@ boost::optional<iscore::Value> OSSIADevice::refresh(const iscore::Address& addre
     return {};
 }
 
+iscore::Node OSSIADevice::getNode(const iscore::FullAddressSettings& path)
+{
+    auto ossia_node = iscore::convert::findNodeFromPath(path.address.path, m_dev);
+    if(ossia_node)
+        return OSSIA::convert::ToDeviceExplorer(*ossia_node.get());
+    return {};
+}
+
 void OSSIADevice::setListening(
         const iscore::Address& addr,
         bool b)

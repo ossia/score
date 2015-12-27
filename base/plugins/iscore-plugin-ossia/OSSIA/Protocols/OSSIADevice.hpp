@@ -42,6 +42,8 @@ class OSSIADevice : public DeviceInterface
         // throws std::runtime_error
         boost::optional<iscore::Value> refresh(const iscore::Address&) final override;
 
+        iscore::Node getNode(const iscore::FullAddressSettings&) final override;
+
         void setListening(const iscore::Address&, bool) final override;
 
         std::vector<iscore::Address> listening() const final override;

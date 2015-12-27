@@ -79,9 +79,24 @@ class ISCORE_PLUGIN_DEVICEEXPLORER_EXPORT NodeUpdateProxy
                 const iscore::NodePath& parentPath,
                 const iscore::AddressSettings& settings);
 
+
+        // Local : the iscore::Node structure
+        // Remote : what's behind a DeviceInterface
+        void addLocalAddress(
+                iscore::Node& parent,
+                const iscore::AddressSettings& data,
+                int row);
+
+        void addLocalNode(
+                iscore::Node& parent,
+                iscore::Node&& node);
+
+        void removeLocalNode(
+                const iscore::Address&);
         void updateLocalValue(
                 const iscore::Address&,
                 const iscore::Value&);
+
         void updateRemoteValue(
                 const iscore::Address&,
                 const iscore::Value&);
@@ -90,6 +105,7 @@ class ISCORE_PLUGIN_DEVICEEXPLORER_EXPORT NodeUpdateProxy
                 const iscore::Address&);
         void refreshRemoteValues(
                 const iscore::NodeList&);
+
 
     private:
         void rec_addNode(

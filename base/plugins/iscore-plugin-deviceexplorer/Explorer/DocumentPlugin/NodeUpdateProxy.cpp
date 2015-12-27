@@ -117,17 +117,7 @@ void NodeUpdateProxy::addAddress(
             .addAddress(full);
 
     // Add in the device explorer
-    if(deviceExplorer)
-    {
-        deviceExplorer->addAddress(
-                    parentnode,
-                    settings,
-                    row);
-    }
-    else
-    {
-        parentnode->emplace(parentnode->begin() + row, settings, parentnode);
-    }
+    addLocalAddress(*parentnode, settings, row);
 }
 
 void NodeUpdateProxy::rec_addNode(
@@ -214,6 +204,25 @@ void NodeUpdateProxy::removeNode(
     else
     {
         parentnode->erase(it);
+    }
+}
+
+
+void NodeUpdateProxy::addLocalAddress(
+        iscore::Node& parentnode,
+        const iscore::AddressSettings& settings,
+        int row)
+{
+    if(deviceExplorer)
+    {
+        deviceExplorer->addAddress(
+                    &parentnode,
+                    settings,
+                    row);
+    }
+    else
+    {
+        parentnode.emplace(parentnode.begin() + row, settings, &parentnode);
     }
 }
 
@@ -313,5 +322,47 @@ void NodeUpdateProxy::refreshRemoteValues(const iscore::NodeList& nodes)
 
             rec_refreshRemoteValues(*n, dev);
         }
+    }
+}
+
+void NodeUpdateProxy::addLocalNode(
+        iscore::Node& parent,
+        iscore::Node&& node)
+{
+    ISCORE_ASSERT(node.is<iscore::AddressSettings>());
+
+    int row = parent.childCount();
+    if(deviceExplorer)
+    {
+        deviceExplorer->addNode(
+                    &parent,
+                    std::move(node),
+                    row);
+    }
+    else
+    {
+        parent.emplace(parent.begin() + row,
+                       std::move(node));
+    }
+}
+
+
+void NodeUpdateProxy::removeLocalNode(const iscore::Address& addr)
+{
+    auto parentAddr = addr;
+    auto nodeName = parentAddr.path.takeLast();
+    auto& parentNode = iscore::getNodeFromAddress(devModel.rootNode(), parentAddr);
+
+    auto it = find_if(parentNode,
+                  [&] (const iscore::Node& n) { return n.get<iscore::AddressSettings>().name == nodeName; });
+    ISCORE_ASSERT(it != parentNode.end());
+
+    if(deviceExplorer)
+    {
+        deviceExplorer->removeNode(it);
+    }
+    else
+    {
+        parentNode.erase(it);
     }
 }

@@ -73,11 +73,8 @@ iscore::Node DeviceDocumentPlugin::createDeviceFromNode(const iscore::Node & nod
         // Instantiate a real device.
         auto proto = fact.list().get(node.get<iscore::DeviceSettings>().protocol);
         auto newdev = proto->makeDevice(node.get<iscore::DeviceSettings>(), context());
-        connect(newdev, &DeviceInterface::valueUpdated,
-                this, [&] (const iscore::Address& addr, const iscore::Value& v) { updateProxy.updateLocalValue(addr, v); });
 
-        m_list.addDevice(newdev);
-        newdev->setParent(this);
+        initDevice(*newdev);
 
         if(newdev->canRefresh())
         {
@@ -109,11 +106,9 @@ iscore::Node DeviceDocumentPlugin::loadDeviceFromNode(const iscore::Node & node)
         auto& fact = m_context.app.components.factory<DynamicProtocolList>();
         auto proto = fact.list().get(node.get<iscore::DeviceSettings>().protocol);
         auto newdev = proto->makeDevice(node.get<iscore::DeviceSettings>(), context());
-        connect(newdev, &DeviceInterface::valueUpdated,
-                this, [&] (const iscore::Address& addr, const iscore::Value& v) { updateProxy.updateLocalValue(addr, v); });
 
-        m_list.addDevice(newdev);
-        newdev->setParent(this);
+        initDevice(*newdev);
+
         for(auto& child : node)
         {
             newdev->addNode(child);
@@ -190,4 +185,30 @@ void DeviceDocumentPlugin::setConnection(bool b)
         else
             dev->disconnect();
     }
+}
+
+void DeviceDocumentPlugin::initDevice(DeviceInterface& newdev)
+{
+    con(newdev, &DeviceInterface::valueUpdated,
+        this, [&] (const iscore::Address& addr, const iscore::Value& v) {
+        updateProxy.updateLocalValue(addr, v);
+    });
+
+    con(newdev, &DeviceInterface::pathAdded,
+        this, [&] (const iscore::FullAddressSettings& newaddr) {
+        auto parentAddr = newaddr.address;
+        parentAddr.path.removeLast();
+
+        auto& parent = iscore::getNodeFromAddress(m_rootNode, parentAddr);
+        updateProxy.addLocalNode(
+                    parent,
+                    newdev.getNode(newaddr));
+    });
+    con(newdev, &DeviceInterface::pathRemoved,
+        this, [&] (const iscore::Address& addr) {
+        updateProxy.removeLocalNode(addr);
+    });
+
+    m_list.addDevice(&newdev);
+    newdev.setParent(this);
 }
