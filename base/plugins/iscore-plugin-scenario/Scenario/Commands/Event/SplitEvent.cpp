@@ -1,7 +1,7 @@
 #include <Scenario/Process/Algorithms/StandardCreationPolicy.hpp>
 #include <Scenario/Process/Algorithms/VerticalMovePolicy.hpp>
 #include <Scenario/Process/ScenarioModel.hpp>
-#include <Scenario/Tools/RandomNameProvider.hpp>
+#include <iscore/tools/RandomNameProvider.hpp>
 
 #include <boost/iterator/iterator_facade.hpp>
 #include <boost/multi_index/detail/hash_index_iterator.hpp>

@@ -84,6 +84,7 @@ class ISCORE_LIB_BASE_EXPORT Document final : public NamedObject
     private:
         // These are to be constructed by DocumentBuilder.
         Document(
+                const QString& name,
                 const Id<DocumentModel>& id,
                 DocumentDelegateFactoryInterface* type,
                 QWidget* parentview,

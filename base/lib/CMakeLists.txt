@@ -73,6 +73,7 @@ set(SRCS
 "${CMAKE_CURRENT_SOURCE_DIR}/iscore/tools/IdentifiedObjectAbstract.cpp"
 "${CMAKE_CURRENT_SOURCE_DIR}/iscore/tools/NamedObject.cpp"
 "${CMAKE_CURRENT_SOURCE_DIR}/iscore/tools/ObjectPath.cpp"
+"${CMAKE_CURRENT_SOURCE_DIR}/iscore/tools/RandomNameProvider.cpp"
 "${CMAKE_CURRENT_SOURCE_DIR}/iscore/statemachine/GraphicsSceneToolPalette.cpp"
 "${CMAKE_CURRENT_SOURCE_DIR}/iscore/statemachine/CommonSelectionState.cpp"
 "${CMAKE_CURRENT_SOURCE_DIR}/iscore/widgets/GraphicsItem.cpp"
