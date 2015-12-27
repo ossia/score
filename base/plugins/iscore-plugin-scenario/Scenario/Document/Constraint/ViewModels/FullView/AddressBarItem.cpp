@@ -57,10 +57,17 @@ void AddressBarItem::setTargetObject(ObjectPath && path)
         if(!identifier.objectName().contains("ConstraintModel"))
             continue;
 
+        auto thisPath = m_currentPath;
+        auto& pathVec = thisPath.vec();
+        pathVec.resize(i + 1);
+        ConstraintModel& thisObj = thisPath.find<ConstraintModel>();
+
         QString txt = name.value(i);
 
         auto lab = new ClickableLabelItem{
-                [&] (ClickableLabelItem* item) { on_elementClicked(item); },
+                [&] (ClickableLabelItem* item) {
+                    emit constraintSelected(thisObj);
+                },
                 txt,
                 this};
 
@@ -80,18 +87,7 @@ void AddressBarItem::setTargetObject(ObjectPath && path)
     m_width = currentWidth;
 }
 
-void AddressBarItem::on_elementClicked(ClickableLabelItem * clicked)
-{
-    std::size_t index = clicked->index();
 
-    if(index < m_currentPath.vec().size())
-    {
-        auto vec = m_currentPath.vec();
-        vec.resize(index + 1);
-
-        emit objectSelected(ObjectPath(std::move(vec)));
-    }
-}
 double AddressBarItem::width() const
 {
     return m_width;

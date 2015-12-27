@@ -5,6 +5,7 @@
 
 #include <iscore/tools/ObjectPath.hpp>
 
+class ConstraintModel;
 class ClickableLabelItem;
 class QPainter;
 class QStyleOptionGraphicsItem;
@@ -23,11 +24,9 @@ class AddressBarItem final : public QGraphicsObject
         void paint(QPainter *painter, const QStyleOptionGraphicsItem *option, QWidget *widget) override;
 
     signals:
-        void objectSelected(ObjectPath path);
+        void constraintSelected(ConstraintModel& cst);
 
     private:
-        void on_elementClicked(ClickableLabelItem*);
-
         QList<QGraphicsItem*> m_items;
         ObjectPath m_currentPath;
 

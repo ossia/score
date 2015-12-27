@@ -17,7 +17,8 @@ class LayerModel;
 class LayerPresenter;
 class QObject;
 
-class ISCORE_PLUGIN_SCENARIO_EXPORT ScenarioDocumentModel final : public iscore::DocumentDelegateModelInterface
+class ISCORE_PLUGIN_SCENARIO_EXPORT ScenarioDocumentModel final :
+        public iscore::DocumentDelegateModelInterface
 {
         Q_OBJECT
         ISCORE_SERIALIZE_FRIENDS(ScenarioDocumentModel, DataStream)

@@ -54,9 +54,6 @@ class ScenarioDocumentPresenter final : public iscore::DocumentDelegatePresenter
         //double height() const;
         ZoomRatio zoomRatio() const;
 
-
-        void setDisplayedObject(const ObjectPath&);
-
         void on_askUpdate();
 
         void selectAll();

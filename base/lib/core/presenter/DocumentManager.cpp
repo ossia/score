@@ -99,7 +99,7 @@ Document* DocumentManager::setupDocument(
         m_documents.push_back(doc);
         m_view.addDocumentView(&doc->view());
         setCurrentDocument(ctx, doc);
-        connect(&doc->model(), &DocumentModel::fileNameChanged,
+        connect(&doc->metadata, &DocumentMetadata::fileNameChanged,
                 this, [=] (const QString& s)
         {
             m_view.on_fileNameChanged(&doc->view(), s);
@@ -192,7 +192,7 @@ void DocumentManager::forceCloseDocument(
 
 bool DocumentManager::saveDocument(Document& doc)
 {
-    auto savename = doc.docFileName();
+    auto savename = doc.metadata.fileName();
 
     if(savename == tr("Untitled"))
     {
@@ -251,7 +251,7 @@ bool DocumentManager::saveDocumentAs(Document& doc)
 
             QSaveFile f{savename};
             f.open(QIODevice::WriteOnly);
-            doc.setDocFileName(savename);
+            doc.metadata.setFileName(savename);
             if(savename.indexOf(".scorebin") != -1)
                 f.write(doc.saveAsByteArray());
             else
@@ -375,7 +375,7 @@ Document* DocumentManager::loadFile(
                 doc = loadDocument(ctx, json.object(), ctx.components.availableDocuments().front());
             }
 
-            m_currentDocument->setDocFileName(fileName);
+            m_currentDocument->metadata.setFileName(fileName);
             m_recentFiles->addRecentFile(fileName);
         }
     }

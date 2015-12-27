@@ -25,8 +25,13 @@ FullViewConstraintPresenter::FullViewConstraintPresenter(
     // Update the address bar
     auto addressBar = static_cast<FullViewConstraintHeader*>(m_header)->bar();
     addressBar->setTargetObject(iscore::IDocument::unsafe_path(cstr_model.model()));
-    connect(addressBar, &AddressBarItem::objectSelected,
-            this, &FullViewConstraintPresenter::objectSelected);
+    connect(addressBar, &AddressBarItem::constraintSelected,
+            this, &FullViewConstraintPresenter::constraintSelected);
+
+    const auto& metadata = m_viewModel.model().metadata;
+    con(metadata, &ModelMetadata::nameChanged,
+        m_header, &ConstraintHeader::setText);
+    m_header->setText(metadata.name());
 }
 
 FullViewConstraintPresenter::~FullViewConstraintPresenter()
