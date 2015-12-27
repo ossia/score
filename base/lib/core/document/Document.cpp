@@ -38,6 +38,7 @@ const std::vector<DocumentPluginModel*>&DocumentContext::pluginModels() const
 
 
 Document::Document(
+        const QString& name,
         const Id<DocumentModel>& id,
         DocumentDelegateFactoryInterface* factory,
         QWidget* parentview,
@@ -47,6 +48,7 @@ Document::Document(
     m_backupMgr{new DocumentBackupManager{*this}},
     m_context{*this}
 {
+    metadata.setFileName(name);
     /// Construction of the document model
 
     // Note : we have to separate allocation

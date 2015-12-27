@@ -17,7 +17,7 @@
 #include <core/command/CommandStackSerialization.hpp>
 
 #include <iscore/tools/SettableIdentifier.hpp>
-
+#include <iscore/tools/RandomNameProvider.hpp>
 using namespace iscore;
 
 DocumentBuilder::DocumentBuilder(
@@ -35,7 +35,8 @@ Document* DocumentBuilder::newDocument(
         const Id<DocumentModel>& id,
         DocumentDelegateFactoryInterface* doctype)
 {
-    auto doc = new Document{id, doctype, m_parentView, m_parentPresenter};
+    QString docName = "Untitled." + RandomNameProvider::generateRandomName();
+    auto doc = new Document{docName, id, doctype, m_parentView, m_parentPresenter};
 
     m_backupManager = new DocumentBackupManager{*doc};
     for(auto& appPlug: ctx.components.applicationPlugins())

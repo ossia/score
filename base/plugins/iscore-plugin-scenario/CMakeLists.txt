@@ -265,7 +265,6 @@ set(SRCS ${SRCS}
 "${CMAKE_CURRENT_SOURCE_DIR}/Scenario/Process/ScenarioInterface.cpp"
 
 "${CMAKE_CURRENT_SOURCE_DIR}/Scenario/Tools/dataStructures.cpp"
-"${CMAKE_CURRENT_SOURCE_DIR}/Scenario/Tools/RandomNameProvider.cpp"
 
 "${CMAKE_CURRENT_SOURCE_DIR}/Scenario/iscore_plugin_scenario.cpp"
 )
