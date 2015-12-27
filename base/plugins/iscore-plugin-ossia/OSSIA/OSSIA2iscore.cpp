@@ -8,6 +8,7 @@
 #include "Editor/Domain.h"
 #include "Editor/Value.h"
 #include "Network/Address.h"
+#include "Network/Device.h"
 #include "Network/Node.h"
 #include <OSSIA/OSSIA2iscore.hpp>
 #include <iscore/tools/TreeNode.hpp>
@@ -107,6 +108,22 @@ iscore::Value ToValue(const OSSIA::Value *val)
     }
 }
 
+iscore::Address ToAddress(const OSSIA::Node& node)
+{
+    iscore::Address addr;
+    const OSSIA::Node* cur = &node;
+
+    while(!dynamic_cast<const OSSIA::Device*>(cur))
+    {
+        addr.path.push_front(QString::fromStdString(cur->getName()));
+        cur = cur->getParent().get();
+        ISCORE_ASSERT(cur);
+    }
+
+    ISCORE_ASSERT(dynamic_cast<const OSSIA::Device*>(cur));
+    addr.device = QString::fromStdString(cur->getName());
+    return addr;
+}
 
 iscore::AddressSettings ToAddressSettings(const OSSIA::Node &node)
 {

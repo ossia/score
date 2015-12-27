@@ -17,6 +17,22 @@ LocalDevice::LocalDevice(
     OSSIADevice{settings}
 {
     m_dev = dev;
+    m_addedNodeCb = m_dev->addNodeCallbacks.addCallback([this] (const OSSIA::Node& n) {
+        emit pathAdded(OSSIA::convert::ToAddress(n));
+    });
+
+    m_removedNodeCb = m_dev->removeNodeCallbacks.addCallback([this] (const OSSIA::Node& n) {
+        emit pathRemoved(OSSIA::convert::ToAddress(n));
+    });
+}
+
+LocalDevice::~LocalDevice()
+{
+    if(m_dev)
+    {
+        m_dev->addNodeCallbacks.removeCallback(m_addedNodeCb);
+        m_dev->removeNodeCallbacks.removeCallback(m_removedNodeCb);
+    }
 }
 
 bool LocalDevice::reconnect()
@@ -41,7 +57,7 @@ iscore::Node LocalDevice::refresh()
         iscore_device.push_back(OSSIA::convert::ToDeviceExplorer(*node.get()));
     }
 
-    iscore_device.get<iscore::DeviceSettings>().name = settings().name;
+    iscore_device.get<iscore::DeviceSettings>().name = QString::fromStdString(m_dev->getName());
 
     return iscore_device;
 }

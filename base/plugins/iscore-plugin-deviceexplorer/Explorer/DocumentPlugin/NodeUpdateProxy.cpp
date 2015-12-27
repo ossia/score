@@ -146,7 +146,7 @@ void NodeUpdateProxy::addNode(
     rec_addNode(parentPath, node, row);
 }
 
-void NodeUpdateProxy::updateAddress(
+void NodeUpdateProxy::requestUpdateAddress(
         const iscore::NodePath &nodePath,
         const iscore::AddressSettings &settings)
 {

@@ -1,5 +1,6 @@
 #pragma once
 #include <OSSIA/Protocols/OSSIADevice.hpp>
+#include <Network/Device.h>
 
 namespace iscore {
 struct DeviceSettings;
@@ -16,6 +17,8 @@ class LocalDevice final : public OSSIADevice
                 std::shared_ptr<OSSIA::Device> dev,
                 const iscore::DeviceSettings& settings);
 
+        ~LocalDevice();
+
 
     private:
         bool reconnect() override;
@@ -24,5 +27,6 @@ class LocalDevice final : public OSSIADevice
         iscore::Node refresh() override;
         using OSSIADevice::refresh;
 
-        //const iscore::DocumentContext& m_context;
+        OSSIA::CallbackContainer<OSSIA::Device::AddedNodeCallback>::iterator m_addedNodeCb;
+        OSSIA::CallbackContainer<OSSIA::Device::RemovingNodeCallback>::iterator m_removedNodeCb;
 };

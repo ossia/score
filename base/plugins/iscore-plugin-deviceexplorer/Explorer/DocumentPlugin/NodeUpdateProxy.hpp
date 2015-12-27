@@ -71,7 +71,7 @@ class ISCORE_PLUGIN_DEVICEEXPLORER_EXPORT NodeUpdateProxy
                 const iscore::Node& node,
                 int row);
 
-        void updateAddress(
+        void requestUpdateAddress(
                 const iscore::NodePath& nodePath,
                 const iscore::AddressSettings& settings);
 

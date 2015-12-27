@@ -36,7 +36,7 @@ auto make_setProperty(
 template<typename T, typename Callback>
 auto add_setProperty(OSSIA::Node& n, const std::string& name, Callback cb)
 {
-    std::shared_ptr<OSSIA::Node> node = *n.emplace(n.children().end(), name);
+    std::shared_ptr<OSSIA::Node> node = *n.emplaceAndNotify(n.children().end(), name);
     auto addr = node->createAddress(OSSIA::convert::MatchingType<T>::val);
     addr->setAccessMode(OSSIA::Address::AccessMode::SET);
 

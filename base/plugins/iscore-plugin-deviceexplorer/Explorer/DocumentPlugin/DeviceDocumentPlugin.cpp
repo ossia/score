@@ -195,8 +195,8 @@ void DeviceDocumentPlugin::initDevice(DeviceInterface& newdev)
     });
 
     con(newdev, &DeviceInterface::pathAdded,
-        this, [&] (const iscore::FullAddressSettings& newaddr) {
-        auto parentAddr = newaddr.address;
+        this, [&] (const iscore::Address& newaddr) {
+        auto parentAddr = newaddr;
         parentAddr.path.removeLast();
 
         auto& parent = iscore::getNodeFromAddress(m_rootNode, parentAddr);
