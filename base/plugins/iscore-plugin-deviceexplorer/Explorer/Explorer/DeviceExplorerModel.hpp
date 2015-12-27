@@ -91,6 +91,11 @@ class ISCORE_PLUGIN_DEVICEEXPLORER_EXPORT DeviceExplorerModel final : public Nod
                 iscore::Node * node,
                 const iscore::AddressSettings& addressSettings);
 
+        void addNode(
+                iscore::Node* parentNode,
+                iscore::Node&& child,
+                int row);
+
         void updateValue(iscore::Node* n,
                 const iscore::Value& v);
 

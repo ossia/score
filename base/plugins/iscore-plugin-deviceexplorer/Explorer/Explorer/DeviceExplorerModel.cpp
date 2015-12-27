@@ -193,6 +193,26 @@ void DeviceExplorerModel::addAddress(
     endInsertRows();
 }
 
+void DeviceExplorerModel::addNode(
+        Node* parentNode,
+        iscore::Node&& child,
+        int row)
+{
+    ISCORE_ASSERT(parentNode);
+    ISCORE_ASSERT(parentNode != &m_rootNode);
+
+    Node* grandparent = parentNode->parent();
+    ISCORE_ASSERT(grandparent);
+    int rowParent = grandparent->indexOfChild(parentNode);
+    QModelIndex parentIndex = createIndex(rowParent, 0, parentNode);
+
+    beginInsertRows(parentIndex, row, row);
+
+    parentNode->emplace(parentNode->begin() + row, std::move(child));
+
+    endInsertRows();
+}
+
 void DeviceExplorerModel::updateAddress(
         Node *node,
         const AddressSettings &addressSettings)

@@ -52,6 +52,7 @@ class ISCORE_PLUGIN_DEVICEEXPLORER_EXPORT DeviceDocumentPlugin final : public is
         void setConnection(bool);
 
     private:
+        void initDevice(DeviceInterface&);
         iscore::Node m_rootNode;
         DeviceList m_list;
 };

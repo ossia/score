@@ -50,11 +50,14 @@ class ISCORE_LIB_DEVICE_EXPORT DeviceInterface : public QObject
         virtual void sendMessage(const iscore::Message& mess) = 0;
         virtual bool check(const QString& str) = 0;
 
+        // Make a node from an inside path, if it has been added for instance.
+        virtual iscore::Node getNode(const iscore::FullAddressSettings&) = 0;
+
     signals:
         // These signals are emitted if a device changes from the inside
         void pathAdded(const iscore::FullAddressSettings&);
         void pathUpdated(const iscore::FullAddressSettings&);
-        void pathRemoved(const QString&);
+        void pathRemoved(const iscore::Address&);
 
         void valueUpdated(const iscore::Address&, const iscore::Value&);
 
