@@ -85,7 +85,7 @@ auto add_getProperty(
         PropChanged chgd,
         QObject* context)
 {
-    std::shared_ptr<OSSIA::Node> node = *n.emplace(n.children().end(), name);
+    std::shared_ptr<OSSIA::Node> node = *n.emplaceAndNotify(n.children().end(), name);
     auto addr = node->createAddress(OSSIA::convert::MatchingType<T>::val);
     addr->setAccessMode(OSSIA::Address::AccessMode::GET);
 

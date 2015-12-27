@@ -160,7 +160,7 @@ void OSSIADevice::removeNode(const iscore::Address& address)
         // TODO !! if we remove nodes while recording
         // (or anything involving a registered listening state), there will be crashes.
         // The Device Explorer should be locked for edition during recording / playing.
-        children.erase(it);
+        node->erase(it);
     }
 }
 
@@ -211,9 +211,9 @@ boost::optional<iscore::Value> OSSIADevice::refresh(const iscore::Address& addre
     return {};
 }
 
-iscore::Node OSSIADevice::getNode(const iscore::FullAddressSettings& path)
+iscore::Node OSSIADevice::getNode(const iscore::Address& address)
 {
-    auto ossia_node = iscore::convert::findNodeFromPath(path.address.path, m_dev);
+    auto ossia_node = iscore::convert::findNodeFromPath(address.path, m_dev);
     if(ossia_node)
         return OSSIA::convert::ToDeviceExplorer(*ossia_node.get());
     return {};

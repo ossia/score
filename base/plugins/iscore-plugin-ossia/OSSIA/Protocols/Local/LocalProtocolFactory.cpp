@@ -17,7 +17,7 @@ QString LocalProtocolFactory::prettyName() const
     return QObject::tr("Local");
 }
 
-const ProtocolFactoryKey&LocalProtocolFactory::key_impl() const
+const ProtocolFactoryKey& LocalProtocolFactory::key_impl() const
 {
     static const ProtocolFactoryKey name{"Local"};
     return name;
@@ -31,12 +31,12 @@ DeviceInterface*LocalProtocolFactory::makeDevice(
     return new LocalDevice{ctx, app_plug.localDevice(), settings};
 }
 
-const iscore::DeviceSettings&LocalProtocolFactory::defaultSettings() const
+const iscore::DeviceSettings& LocalProtocolFactory::defaultSettings() const
 {
     static const iscore::DeviceSettings settings = [&] () {
         iscore::DeviceSettings s;
         s.protocol = key_impl(); // Todo check for un-set protocol.
-        s.name = "Local";
+        s.name = "i-score";
         LocalSpecificSettings specif;
         s.deviceSpecificSettings = QVariant::fromValue(specif);
         return s;
@@ -44,7 +44,7 @@ const iscore::DeviceSettings&LocalProtocolFactory::defaultSettings() const
     return settings;
 }
 
-ProtocolSettingsWidget*LocalProtocolFactory::makeSettingsWidget()
+ProtocolSettingsWidget* LocalProtocolFactory::makeSettingsWidget()
 {
     return new LocalProtocolSettingsWidget;
 }

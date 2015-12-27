@@ -29,13 +29,13 @@ UpdateAddressSettings::UpdateAddressSettings(
 void UpdateAddressSettings::undo() const
 {
     auto& devplug = m_devicesModel.find();
-    devplug.updateProxy.updateAddress(m_node, m_oldParameters);
+    devplug.updateProxy.requestUpdateAddress(m_node, m_oldParameters);
 }
 
 void UpdateAddressSettings::redo() const
 {
     auto& devplug = m_devicesModel.find();
-    devplug.updateProxy.updateAddress(m_node, m_newParameters);
+    devplug.updateProxy.requestUpdateAddress(m_node, m_newParameters);
 }
 
 void UpdateAddressSettings::serializeImpl(DataStreamInput& d) const

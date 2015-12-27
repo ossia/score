@@ -20,7 +20,7 @@ iscore::DeviceSettings LocalProtocolSettingsWidget::getSettings() const
 {
     iscore::DeviceSettings s;
     // TODO *** protocol is never set here. Check everywhere.! ***
-    s.name = "Local";
+    s.name = "i-score";
     LocalSpecificSettings local;
     s.deviceSpecificSettings = QVariant::fromValue(local);
     return s;

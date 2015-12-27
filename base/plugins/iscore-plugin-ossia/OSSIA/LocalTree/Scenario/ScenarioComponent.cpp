@@ -75,7 +75,7 @@ void ScenarioComponent::removing(const ConstraintModel& elt, const ConstraintCom
     { return node == comp.node(); });
     ISCORE_ASSERT(it != m_constraintsNode->children().end());
 
-    m_constraintsNode->children().erase(it);
+    m_constraintsNode->eraseAndNotify(it);
 }
 
 void ScenarioComponent::removing(const EventModel& elt, const EventComponent& comp)
@@ -84,7 +84,7 @@ void ScenarioComponent::removing(const EventModel& elt, const EventComponent& co
     { return node == comp.node(); });
     ISCORE_ASSERT(it != m_eventsNode->children().end());
 
-    m_eventsNode->children().erase(it);
+    m_eventsNode->eraseAndNotify(it);
 }
 
 void ScenarioComponent::removing(const TimeNodeModel& elt, const TimeNodeComponent& comp)
@@ -93,7 +93,7 @@ void ScenarioComponent::removing(const TimeNodeModel& elt, const TimeNodeCompone
     { return node == comp.node(); });
     ISCORE_ASSERT(it != m_timeNodesNode->children().end());
 
-    m_timeNodesNode->children().erase(it);
+    m_timeNodesNode->eraseAndNotify(it);
 }
 
 void ScenarioComponent::removing(const StateModel& elt, const StateComponent& comp)
@@ -102,7 +102,7 @@ void ScenarioComponent::removing(const StateModel& elt, const StateComponent& co
     { return node == comp.node(); });
     ISCORE_ASSERT(it != m_statesNode->children().end());
 
-    m_statesNode->children().erase(it);
+    m_statesNode->eraseAndNotify(it);
 }
 
 }
