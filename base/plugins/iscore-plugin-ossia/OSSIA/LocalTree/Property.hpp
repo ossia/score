@@ -72,7 +72,8 @@ struct PropertyWrapper : public BaseCallbackWrapper
                 auto newVal = iscore::Value::fromValue(property.get());
                 if(newVal != OSSIA::convert::ToValue(addr->getValue()))
                     addr->pushValue(iscore::convert::toOSSIAValue(newVal));
-            });
+            },
+            Qt::QueuedConnection);
 
             addr->setValue(iscore::convert::toOSSIAValue(
                                 iscore::Value::fromValue(property.get())));

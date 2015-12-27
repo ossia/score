@@ -23,40 +23,40 @@ ConstraintComponent::ConstraintComponent(
         const iscore::DocumentContext& ctx,
         QObject* parent_comp):
     Component{id, "ConstraintComponent", parent_comp},
-    m_thisNode{add_node(parent, constraint.metadata.name().toStdString())},
-    m_processesNode{add_node(*m_thisNode, "processes")},
+    m_thisNode{parent, constraint.metadata, this},
+    m_processesNode{add_node(thisNode(), "processes")},
     m_baseComponent{*this, constraint, doc, ctx, this}
 {
     using tv_t = ::TimeValue;
-    make_metadata_node(constraint.metadata, *m_thisNode, m_properties, this);
+    make_metadata_node(constraint.metadata, thisNode(), m_properties, this);
 
     m_properties.push_back(
-                add_property<float>(*m_thisNode, "yPos", &constraint,
+                add_property<float>(thisNode(), "yPos", &constraint,
                         &ConstraintModel::heightPercentage,
                         &ConstraintModel::setHeightPercentage,
                         &ConstraintModel::heightPercentageChanged,
                         this));
 
     m_properties.push_back(
-    add_getProperty<tv_t>(*m_thisNode, "min", &constraint.duration,
+    add_getProperty<tv_t>(thisNode(), "min", &constraint.duration,
                           &ConstraintDurations::minDuration,
                           &ConstraintDurations::minDurationChanged,
                           this));
 
     m_properties.push_back(
-    add_getProperty<tv_t>(*m_thisNode, "max", &constraint.duration,
+    add_getProperty<tv_t>(thisNode(), "max", &constraint.duration,
                           &ConstraintDurations::maxDuration,
                           &ConstraintDurations::maxDurationChanged,
                           this));
 
     m_properties.push_back(
-    add_getProperty<tv_t>(*m_thisNode, "default", &constraint.duration,
+    add_getProperty<tv_t>(thisNode(), "default", &constraint.duration,
                           &ConstraintDurations::defaultDuration,
                           &ConstraintDurations::defaultDurationChanged,
                           this));
 
     m_properties.push_back(
-    add_getProperty<float>(*m_thisNode, "play", &constraint.duration,
+    add_getProperty<float>(thisNode(), "play", &constraint.duration,
                            &ConstraintDurations::playPercentage,
                            &ConstraintDurations::playPercentageChanged,
                            this));

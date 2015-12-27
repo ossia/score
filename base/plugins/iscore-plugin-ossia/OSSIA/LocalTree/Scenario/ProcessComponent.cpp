@@ -2,12 +2,13 @@
 
 ISCORE_METADATA_IMPL(OSSIA::LocalTree::ProcessComponent)
 OSSIA::LocalTree::ProcessComponent::ProcessComponent(
-        const std::shared_ptr<OSSIA::Node>& node,
+        OSSIA::Node& parentNode,
+        Process& process,
         const Id<iscore::Component>& id,
         const QString& name,
         QObject* parent):
     Component{id, name, parent},
-    m_thisNode{node}
+    m_thisNode{parentNode, process.metadata, this}
 {
 }
 

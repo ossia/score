@@ -136,7 +136,13 @@ iscore::AddressSettings ToAddressSettings(const OSSIA::Node &node)
     {
         addr->pullValue();
         if(auto val = addr->getValue())
+        {
             s.value = ToValue(val);
+        }
+        else
+        {
+            s.value = ToValue(addr->getValueType());
+        }
 
         /* Debug code
         else
@@ -199,5 +205,33 @@ iscore::Domain ToDomain(OSSIA::Domain &domain)
 
     return d;
 }
+
+iscore::Value ToValue(OSSIA::Value::Type t)
+{
+    switch(t)
+    {
+        case Value::Type::FLOAT:
+            return iscore::Value::fromValue(float{});
+        case Value::Type::IMPULSE:
+            return iscore::Value::fromValue(iscore::impulse_t{});
+        case Value::Type::INT:
+            return iscore::Value::fromValue(int{});
+        case Value::Type::BOOL:
+            return iscore::Value::fromValue(bool{});
+        case Value::Type::CHAR:
+            return iscore::Value::fromValue(QChar{});
+        case Value::Type::STRING:
+            return iscore::Value::fromValue(QString{});
+        case Value::Type::TUPLE:
+            return iscore::Value::fromValue(iscore::tuple_t{});
+        case Value::Type::GENERIC:
+        case Value::Type::DESTINATION:
+        case Value::Type::BEHAVIOR:
+        default:
+            return iscore::Value{};
+    }
+
+}
+
 }
 }

@@ -14,19 +14,23 @@ class LocalDevice final : public OSSIADevice
     public:
         LocalDevice(
                 const iscore::DocumentContext& ctx,
-                std::shared_ptr<OSSIA::Device> dev,
+                const std::shared_ptr<OSSIA::Device>& dev,
                 const iscore::DeviceSettings& settings);
 
         ~LocalDevice();
 
 
     private:
+        void disconnect() override;
         bool reconnect() override;
 
         bool canRefresh() const override;
         iscore::Node refresh() override;
+
+
         using OSSIADevice::refresh;
 
         OSSIA::CallbackContainer<OSSIA::Device::AddedNodeCallback>::iterator m_addedNodeCb;
         OSSIA::CallbackContainer<OSSIA::Device::RemovingNodeCallback>::iterator m_removedNodeCb;
+        OSSIA::CallbackContainer<OSSIA::Device::NameChangesDeviceCallback>::iterator m_nameChangesCb;
 };

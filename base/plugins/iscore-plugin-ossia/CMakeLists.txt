@@ -60,6 +60,7 @@ set(HDRS
     "${CMAKE_CURRENT_SOURCE_DIR}/OSSIA/LocalTree/Property.hpp"
     "${CMAKE_CURRENT_SOURCE_DIR}/OSSIA/LocalTree/SetProperty.hpp"
     "${CMAKE_CURRENT_SOURCE_DIR}/OSSIA/LocalTree/GetProperty.hpp"
+    "${CMAKE_CURRENT_SOURCE_DIR}/OSSIA/LocalTree/NameProperty.hpp"
     "${CMAKE_CURRENT_SOURCE_DIR}/OSSIA/LocalTree/BaseCallbackWrapper.hpp"
 
     "${CMAKE_CURRENT_SOURCE_DIR}/OSSIA/LocalTree/Scenario/ProcessComponent.hpp"

@@ -60,7 +60,8 @@ struct GetPropertyWrapper : public BaseProperty
                 auto newVal = converter_t::convert(property.get());
                 if(newVal != OSSIA::convert::ToValue(addr->getValue()))
                     addr->pushValue(iscore::convert::toOSSIAValue(newVal));
-            });
+            },
+            Qt::QueuedConnection);
 
             addr->setValue(iscore::convert::toOSSIAValue(converter_t::convert(property.get())));
         }

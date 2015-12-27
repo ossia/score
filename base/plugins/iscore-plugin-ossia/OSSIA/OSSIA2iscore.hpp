@@ -89,6 +89,7 @@ iscore::IOType ToIOType(OSSIA::Address::AccessMode t);
 iscore::ClipMode ToClipMode(OSSIA::Address::BoundingMode b);
 iscore::Domain ToDomain(OSSIA::Domain& domain);
 iscore::Value ToValue(const OSSIA::Value* val);
+iscore::Value ToValue(OSSIA::Value::Type);
 
 iscore::Address ToAddress(const OSSIA::Node& node);
 iscore::AddressSettings ToAddressSettings(const OSSIA::Node& node);
