@@ -28,7 +28,7 @@ class OSSIADevice : public DeviceInterface
 {
     public:
         virtual ~OSSIADevice();
-        void disconnect() final override;
+        void disconnect() override;
         bool connected() const final override;
 
         void updateSettings(const iscore::DeviceSettings& settings) final override;

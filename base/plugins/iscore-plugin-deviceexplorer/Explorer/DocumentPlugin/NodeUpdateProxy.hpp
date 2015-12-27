@@ -96,6 +96,9 @@ class ISCORE_PLUGIN_DEVICEEXPLORER_EXPORT NodeUpdateProxy
         void updateLocalValue(
                 const iscore::Address&,
                 const iscore::Value&);
+        void updateLocalSettings(
+                const iscore::Address&,
+                const iscore::AddressSettings&);
 
         void updateRemoteValue(
                 const iscore::Address&,

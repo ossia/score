@@ -44,10 +44,13 @@ class ConstraintComponent final :
         void removing(const Process& cst, const ProcessComponent& comp);
 
         auto& node() const
-        { return m_thisNode; }
+        { return m_thisNode.node; }
 
     private:
-        std::shared_ptr<OSSIA::Node> m_thisNode;
+        OSSIA::Node& thisNode() const
+        { return *node(); }
+
+        MetadataNamePropertyWrapper m_thisNode;
         std::shared_ptr<OSSIA::Node> m_processesNode;
         std::vector<BaseProperty*> m_properties;
         parent_t m_baseComponent;

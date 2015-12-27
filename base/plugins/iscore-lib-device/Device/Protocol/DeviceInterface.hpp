@@ -56,7 +56,9 @@ class ISCORE_LIB_DEVICE_EXPORT DeviceInterface : public QObject
     signals:
         // These signals are emitted if a device changes from the inside
         void pathAdded(const iscore::Address&);
-        void pathUpdated(const iscore::FullAddressSettings&);
+        void pathUpdated(
+                const iscore::Address&, // current address
+                const iscore::AddressSettings&); // new data
         void pathRemoved(const iscore::Address&);
 
         void valueUpdated(const iscore::Address&, const iscore::Value&);

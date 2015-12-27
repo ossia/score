@@ -13,9 +13,7 @@ ScenarioComponent::ScenarioComponent(
         const ScenarioComponent::system_t& doc,
         const iscore::DocumentContext& ctx,
         QObject* parent_obj):
-    ProcessComponent{
-        add_node(parent, scenario.metadata.name().toStdString()),
-        id, "ScenarioComponent", parent_obj},
+    ProcessComponent{parent, scenario, id, "ScenarioComponent", parent_obj},
     m_constraintsNode{add_node(*node(), "constraints")},
     m_eventsNode{add_node(*node(), "events")},
     m_timeNodesNode{add_node(*node(), "timenodes")},

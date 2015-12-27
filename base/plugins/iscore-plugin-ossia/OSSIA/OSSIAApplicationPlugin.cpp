@@ -95,6 +95,7 @@ OSSIAApplicationPlugin::OSSIAApplicationPlugin(const iscore::ApplicationContext&
 
 OSSIAApplicationPlugin::~OSSIAApplicationPlugin()
 {
+    qDebug() << "Removing app plugin" << (void*) m_localDevice.get();
     // TODO doesn't handle the case where
     // two scenarios are playing in two ducments (we have to
     // stop them both)

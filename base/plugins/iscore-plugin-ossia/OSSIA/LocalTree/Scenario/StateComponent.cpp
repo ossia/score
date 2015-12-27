@@ -14,9 +14,9 @@ StateComponent::StateComponent(
         const iscore::DocumentContext& ctx,
         QObject* parent_comp):
     Component{id, "StateComponent", parent_comp},
-    m_thisNode{add_node(parent, state.metadata.name().toStdString())}
+    m_thisNode{parent, state.metadata, this}
 {
-    make_metadata_node(state.metadata, *m_thisNode, m_properties, this);
+    make_metadata_node(state.metadata, thisNode(), m_properties, this);
 }
 
 const iscore::Component::Key&StateComponent::key() const

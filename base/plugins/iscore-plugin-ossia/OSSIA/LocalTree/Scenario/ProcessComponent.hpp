@@ -1,6 +1,7 @@
 #pragma once
 #include <Scenario/Document/Components/ProcessComponent.hpp>
 #include <OSSIA/LocalTree/LocalTreeDocumentPlugin.hpp>
+#include <OSSIA/LocalTree/NameProperty.hpp>
 namespace OSSIA
 {
 namespace LocalTree
@@ -10,19 +11,20 @@ class ProcessComponent : public iscore::Component
         ISCORE_METADATA(OSSIA::LocalTree::ProcessComponent)
     public:
         ProcessComponent(
-                const std::shared_ptr<OSSIA::Node>& node,
+                OSSIA::Node& node,
+                Process& proc,
                 const Id<iscore::Component>& id,
                 const QString& name,
                 QObject* parent);
 
         virtual ~ProcessComponent();
         auto& node() const
-        {
-            return m_thisNode;
-        }
+        { return m_thisNode.node; }
 
     private:
-        std::shared_ptr<OSSIA::Node> m_thisNode;
+        OSSIA::Node& thisNode() const
+        { return *node(); }
+        MetadataNamePropertyWrapper m_thisNode;
 };
 
 class ProcessComponentFactory :

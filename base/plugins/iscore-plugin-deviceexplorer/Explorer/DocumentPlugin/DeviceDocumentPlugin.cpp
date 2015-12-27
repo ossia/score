@@ -204,9 +204,17 @@ void DeviceDocumentPlugin::initDevice(DeviceInterface& newdev)
                     parent,
                     newdev.getNode(newaddr));
     });
+
     con(newdev, &DeviceInterface::pathRemoved,
         this, [&] (const iscore::Address& addr) {
         updateProxy.removeLocalNode(addr);
+    });
+
+    con(newdev, &DeviceInterface::pathUpdated,
+        this, [&] (
+            const iscore::Address& addr,
+            const iscore::AddressSettings& set) {
+        updateProxy.updateLocalSettings(addr, set);
     });
 
     m_list.addDevice(&newdev);

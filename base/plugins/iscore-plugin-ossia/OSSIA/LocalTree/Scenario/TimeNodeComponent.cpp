@@ -15,12 +15,12 @@ TimeNodeComponent::TimeNodeComponent(
         const iscore::DocumentContext& ctx,
         QObject* parent_comp):
     Component{id, "TimeNodeComponent", parent_comp},
-    m_thisNode{add_node(parent, timeNode.metadata.name().toStdString())}
+    m_thisNode{parent, timeNode.metadata, this}
 {
-    make_metadata_node(timeNode.metadata, *m_thisNode, m_properties, this);
+    make_metadata_node(timeNode.metadata, thisNode(), m_properties, this);
 
     m_properties.push_back(
-    add_setProperty<iscore::impulse_t>(*m_thisNode, "trigger",
+    add_setProperty<iscore::impulse_t>(thisNode(), "trigger",
                                        [&] (auto) {
         timeNode.trigger()->triggered();
     }));

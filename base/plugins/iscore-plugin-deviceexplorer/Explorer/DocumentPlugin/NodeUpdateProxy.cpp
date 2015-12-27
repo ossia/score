@@ -236,6 +236,7 @@ void NodeUpdateProxy::updateLocalValue(
         qDebug() << "Updating invalid node";
         return;
     }
+
     if(deviceExplorer)
     {
         deviceExplorer->updateValue(n, v);
@@ -243,6 +244,27 @@ void NodeUpdateProxy::updateLocalValue(
     else
     {
         n->get<iscore::AddressSettings>().value = v;
+    }
+}
+
+void NodeUpdateProxy::updateLocalSettings(
+        const iscore::Address& addr,
+        const iscore::AddressSettings& set)
+{
+    auto n = iscore::try_getNodeFromAddress(devModel.rootNode(), addr);
+    if(!n->is<iscore::AddressSettings>())
+    {
+        qDebug() << "Updating invalid node";
+        return;
+    }
+
+    if(deviceExplorer)
+    {
+        deviceExplorer->updateAddress(n, set);
+    }
+    else
+    {
+        n->set(set);
     }
 }
 
@@ -355,14 +377,15 @@ void NodeUpdateProxy::removeLocalNode(const iscore::Address& addr)
 
     auto it = find_if(parentNode,
                   [&] (const iscore::Node& n) { return n.get<iscore::AddressSettings>().name == nodeName; });
-    ISCORE_ASSERT(it != parentNode.end());
-
-    if(deviceExplorer)
+    if(it != parentNode.end())
     {
-        deviceExplorer->removeNode(it);
-    }
-    else
-    {
-        parentNode.erase(it);
+        if(deviceExplorer)
+        {
+            deviceExplorer->removeNode(it);
+        }
+        else
+        {
+            parentNode.erase(it);
+        }
     }
 }
