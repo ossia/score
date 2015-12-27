@@ -68,12 +68,8 @@ class ISCORE_LIB_BASE_EXPORT DocumentModel final : public IdentifiedObject<Docum
         void addPluginModel(DocumentPluginModel* m);
         const std::vector<DocumentPluginModel*>& pluginModels() { return m_pluginModels; }
 
-        QString docFileName() const;
-        void setDocFileName(const QString &docFileName);
-
-signals:
+    signals:
         void pluginModelsChanged();
-        void fileNameChanged(const QString&);
 
     public slots:
         void setNewSelection(const Selection&);
@@ -87,8 +83,6 @@ signals:
                 const iscore::ApplicationContext& ctx,
                 const QByteArray&,
                 DocumentDelegateFactoryInterface* fact);
-
-        QString m_docFileName{tr("Untitled")};
 
         std::vector<PanelModel*> m_panelModels;
         std::vector<DocumentPluginModel*> m_pluginModels;

@@ -66,7 +66,7 @@ void View::setPresenter(Presenter* p)
 void View::addDocumentView(DocumentView* doc)
 {
     doc->setParent(this);
-    m_tabWidget->addTab(doc, doc->document().docFileName());
+    m_tabWidget->addTab(doc, doc->document().metadata.fileName());
     m_tabWidget->setCurrentIndex(m_tabWidget->count() - 1);
     m_tabWidget->setTabsClosable(true);
 }

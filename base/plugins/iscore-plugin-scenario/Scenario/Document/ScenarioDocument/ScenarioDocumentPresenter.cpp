@@ -128,14 +128,6 @@ void ScenarioDocumentPresenter::deselectAll()
     m_selectionDispatcher.setAndCommit(Selection{});
 }
 
-void ScenarioDocumentPresenter::setDisplayedObject(const ObjectPath &path)
-{
-    if(path.vec().back().objectName().contains("ConstraintModel")) // Constraint & BaseConstraint
-    {
-        emit requestDisplayedConstraintChange(path.find<ConstraintModel>());
-    }
-}
-
 void ScenarioDocumentPresenter::on_displayedConstraintChanged()
 {
     auto& cst = displayedConstraint();
@@ -144,8 +136,8 @@ void ScenarioDocumentPresenter::on_displayedConstraintChanged()
     const auto& fact = ctx.app.components.factory<DisplayedElementsToolPaletteFactoryList>();
     m_stateMachine = fact.make(*this, cst);
     m_scenarioPresenter->on_displayedConstraintChanged(cst);
-    connect(m_scenarioPresenter->constraintPresenter(), &FullViewConstraintPresenter::objectSelected,
-            this, &ScenarioDocumentPresenter::setDisplayedObject);
+    connect(m_scenarioPresenter->constraintPresenter(), &FullViewConstraintPresenter::constraintSelected,
+            this, &ScenarioDocumentPresenter::requestDisplayedConstraintChange);
 
     // Set a new zoom ratio, such that the displayed constraint takes the whole screen.
 

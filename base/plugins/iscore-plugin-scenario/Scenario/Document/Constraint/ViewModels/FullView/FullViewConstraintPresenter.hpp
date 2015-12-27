@@ -34,6 +34,6 @@ class FullViewConstraintPresenter final : public ConstraintPresenter
         virtual ~FullViewConstraintPresenter();
 
     signals:
-        void objectSelected(ObjectPath);
+        void constraintSelected(ConstraintModel&);
 };
 

@@ -4,6 +4,7 @@
 #include <iscore/locking/ObjectLocker.hpp>
 #include <iscore/selection/SelectionStack.hpp>
 #include <iscore/tools/NamedObject.hpp>
+#include <core/document/DocumentMetadata.hpp>
 #include <QByteArray>
 #include <QJsonObject>
 #include <QString>
@@ -38,6 +39,8 @@ class ISCORE_LIB_BASE_EXPORT Document final : public NamedObject
         friend class DocumentBuilder;
         friend struct DocumentContext;
     public:
+        DocumentMetadata metadata;
+
         ~Document();
 
         const Id<DocumentModel>& id() const;
@@ -77,12 +80,6 @@ class ISCORE_LIB_BASE_EXPORT Document final : public NamedObject
         { return m_backupMgr; }
 
         void setBackupMgr(DocumentBackupManager* backupMgr);
-
-        QString docFileName() const;
-        void setDocFileName(const QString &docFileName);
-
-    signals:
-        void fileNameChanged(const QString& newName);
 
     private:
         // These are to be constructed by DocumentBuilder.

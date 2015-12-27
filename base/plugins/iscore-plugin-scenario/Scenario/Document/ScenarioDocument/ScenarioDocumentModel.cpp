@@ -44,6 +44,8 @@ using namespace Scenario;
 #include <Scenario/Document/DisplayedElements/DisplayedElementsProviderList.hpp>
 #include <iscore/tools/SettableIdentifierGeneration.hpp>
 #include <Process/LayerPresenter.hpp>
+#include <core/document/Document.hpp>
+#include <QFileInfo>
 #include <algorithm>
 #include <chrono>
 
@@ -60,10 +62,18 @@ ScenarioDocumentModel::ScenarioDocumentModel(QObject* parent) :
     m_baseScenario->endTimeNode().setDate(m_baseScenario->constraint().duration.defaultDuration());
     m_baseScenario->constraint().setObjectName("BaseConstraintModel");
 
+    auto& doc_metadata = iscore::IDocument::documentContext(*parent).document.metadata;
+    m_baseScenario->constraint().metadata.setName(doc_metadata.fileName());
+
+    connect(&doc_metadata, &iscore::DocumentMetadata::fileNameChanged,
+            this, [&] (const QString& newName) {
+        QFileInfo info(newName);
+
+        m_baseScenario->constraint().metadata.setName(info.baseName());
+    });
+
     initializeNewDocument(m_baseScenario->constraint().fullView());
     init();
-
-    //displayedElements = iscore::IDocument::documentContext(*this).app.components.factory<DisplayedElementsProviderList>().make(m_baseScenario->constraint());
 }
 
 void ScenarioDocumentModel::init()
