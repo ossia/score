@@ -13,6 +13,7 @@
 #include <QString>
 #include <QVector>
 #include <iscore_plugin_scenario_export.h>
+#include <iscore/component/Component.hpp>
 class DataStream;
 class JSONObject;
 class QObject;
@@ -34,6 +35,7 @@ class ISCORE_PLUGIN_SCENARIO_EXPORT EventModel final : public IdentifiedObject<E
 
     public:
         /** Public properties of the class **/
+        iscore::Components components;
         Selectable selection;
         ModelMetadata metadata;
         iscore::ElementPluginModelList pluginModelList;

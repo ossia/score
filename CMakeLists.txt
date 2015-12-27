@@ -3,7 +3,6 @@ cmake_minimum_required(VERSION 3.1)
 
 set(CMAKE_MODULE_PATH "${CMAKE_MODULE_PATH};${CMAKE_CURRENT_SOURCE_DIR}/CMake;${CMAKE_CURRENT_SOURCE_DIR}/CMake/modules;${CMAKE_CURRENT_SOURCE_DIR}/CMake/modules/cmake-modules")
 
-set(APPNAME "i-score")
 set(ISCORE_VERSION_MAJOR 1)
 set(ISCORE_VERSION_MINOR 0)
 set(ISCORE_VERSION_PATCH 0)
@@ -23,7 +22,7 @@ if(POLICY CMP0063)
 CMAKE_POLICY(SET CMP0063 NEW)
 endif()
 
-find_package(Qt5 5.3 REQUIRED COMPONENTS Core Widgets Gui Network Xml Svg Test Qml WebSockets OpenGL)
+find_package(Qt5 5.3 REQUIRED COMPONENTS Core Widgets Gui Network Xml Svg Test Qml)
 
 set(3RDPARTY_FOLDER "${CMAKE_CURRENT_SOURCE_DIR}/3rdparty/")
 set(ISCORE_ROOT_SOURCE_DIR "${CMAKE_CURRENT_SOURCE_DIR}")

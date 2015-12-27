@@ -78,7 +78,7 @@ iscore::DocumentBackups::restorableDocuments()
     return arr;
 }
 
-void iscore::DocumentBackups::clear()
+ISCORE_LIB_BASE_EXPORT void iscore::DocumentBackups::clear()
 {
     if(OpenDocumentsFile::exists())
     {

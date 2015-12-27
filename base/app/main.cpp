@@ -1,4 +1,4 @@
-#include <core/application/Application.hpp>
+#include "Application.hpp"
 #include <QApplication>
 #include <qnamespace.h>
 
@@ -18,8 +18,9 @@
 #include <QSurfaceFormat>
 #endif
 
-int main(int argc, char** argv)
+static void init_plugins()
 {
+// TODO generate this too
 #if defined(ISCORE_STATIC_PLUGINS)
     Q_INIT_RESOURCE(iscore);
     Q_INIT_RESOURCE(ScenarioResources);
@@ -32,6 +33,11 @@ int main(int argc, char** argv)
     Q_INIT_RESOURCE(TAResources);
 #endif
 #endif
+}
+
+int main(int argc, char** argv)
+{
+    init_plugins();
 #if defined(ISCORE_OPENGL)
     QSurfaceFormat fmt;
     fmt.setSamples(2);
@@ -39,7 +45,7 @@ int main(int argc, char** argv)
 #endif
     QApplication::setAttribute(Qt::AA_UseHighDpiPixmaps);
 
-    iscore::Application app(argc, argv);
+    Application app(argc, argv);
     app.init();
     return app.exec();
 }

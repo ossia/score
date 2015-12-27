@@ -1,6 +1,7 @@
 #pragma once
 #include <utility>
 #include <vector>
+#include <iscore_lib_base_export.h>
 
 class QByteArray;
 
@@ -20,7 +21,7 @@ namespace iscore
  * outage.
  * TODO : implement periodic saves in an on-disk folder for this case.
  */
-struct DocumentBackups
+struct ISCORE_LIB_BASE_EXPORT DocumentBackups
 {
         // Check if there are available backup files.
         static bool canRestoreDocuments();

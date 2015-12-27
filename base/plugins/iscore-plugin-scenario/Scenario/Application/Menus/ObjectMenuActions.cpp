@@ -52,6 +52,7 @@
 #include <Scenario/Commands/Cohesion/DoForSelectedConstraints.hpp>
 #include <iscore/menu/MenuInterface.hpp>
 
+using namespace iscore;
 ObjectMenuActions::ObjectMenuActions(
         iscore::ToplevelMenuElement menuElt,
         ScenarioApplicationPlugin* parent) :

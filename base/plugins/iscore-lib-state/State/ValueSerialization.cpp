@@ -9,6 +9,7 @@
 #include <QJsonObject>
 #include <QJsonValue>
 #include <QString>
+#include <iscore/tools/std/Optional.hpp>
 
 #include "Value.hpp"
 
@@ -130,6 +131,6 @@ ISCORE_LIB_STATE_EXPORT void Visitor<Writer<DataStream>>::writeTo(iscore::Option
     }
     else
     {
-        obj = boost::none_t {};
+        reset(obj);
     }
 }

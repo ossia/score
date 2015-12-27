@@ -39,6 +39,8 @@ StateModel::StateModel(
                             *this,
                             this}}
 {
+
+    metadata.setName(QString("State.%1").arg(*this->id().val()));
     init();
 /*
     auto ctx = iscore::IDocument::documentContext(*this);

@@ -43,7 +43,7 @@ using namespace iscore;
 namespace iscore {
 class DocumentModel;
 
-void setQApplicationSettings(QApplication &m_app)
+static void setQApplicationSettings(QApplication &m_app)
 {
     QFontDatabase::addApplicationFont(":/APCCourierBold.otf"); // APCCourier-Bold
     QFontDatabase::addApplicationFont(":/Ubuntu-R.ttf"); // Ubuntu
@@ -71,19 +71,7 @@ void setQApplicationSettings(QApplication &m_app)
     qApp->setStyleSheet(stylesheet);
 }
 
-ApplicationInterface::~ApplicationInterface()
-{
-
-}
-
 }  // namespace iscore
-
-static ApplicationInterface* application_instance = nullptr;
-const ApplicationContext& iscore::AppContext()
-{
-    return ::application_instance->context();
-}
-
 
 #ifdef ISCORE_DEBUG
 
@@ -130,9 +118,11 @@ Application::Application(int& argc, char** argv) :
     // Application
     // Crashes if put in member initialization list... :(
     m_app = new SafeQApplication{argc, argv};
-    ::application_instance = this;
+    m_instance = this;
 
+#if !defined(__native_client__)
     m_applicationSettings.parse();
+#endif
 }
 
 Application::Application(
@@ -148,7 +138,7 @@ Application::Application(
     // Application
     // Crashes if put in member initialization list... :(
     m_app = new SafeQApplication{argc, argv};
-    ::application_instance = this;
+    m_instance = this;
 }
 
 
@@ -176,8 +166,8 @@ void Application::init()
 #endif
 
     this->setObjectName("Application");
-    this->setParent(m_app);
-    setQApplicationSettings(*m_app);
+    this->setParent(qApp);
+    setQApplicationSettings(*qApp);
 
     // Settings
     m_settings = std::make_unique<Settings> (this);
@@ -257,54 +247,4 @@ void Application::loadPluginData()
     {
         m_view->addToolBar(toolbar.bar);
     }
-}
-
-
-TestApplication::TestApplication(int &argc, char **argv):
-    NamedObject{"toto", nullptr}
-{
-    m_app = new SafeQApplication{argc, argv};
-    ::application_instance = this;
-    this->setParent(m_app);
-
-    // Settings
-    m_settings = std::make_unique<iscore::Settings> (nullptr);
-
-    // MVP
-    m_view = new View{nullptr};
-    m_presenter = new Presenter{m_applicationSettings, m_view, this};
-    auto& ctx = m_presenter->applicationContext();
-
-    // Plugins
-    ApplicationRegistrar registrar{
-        m_presenter->components(),
-                ctx,
-                *m_view,
-                *m_settings,
-                m_presenter->menuBar(),
-                m_presenter->toolbars(),
-                m_presenter};
-
-    PluginLoader::loadPlugins(registrar, ctx);
-
-    registrar.registerApplicationContextPlugin(new UndoApplicationPlugin{ctx, m_presenter});
-    registrar.registerPanel(new UndoPanelFactory);
-
-    std::sort(m_presenter->toolbars().begin(), m_presenter->toolbars().end());
-    for(auto& toolbar : m_presenter->toolbars())
-    {
-        m_view->addToolBar(toolbar.bar);
-    }
-
-    m_view->show();
-}
-
-TestApplication::~TestApplication()
-{
-
-}
-
-const ApplicationContext &TestApplication::context() const
-{
-    return m_presenter->applicationContext();
 }

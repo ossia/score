@@ -7,11 +7,13 @@
 #include <OSSIA/DocumentPlugin/ContextMenu/PlayContextMenuFactory.hpp>
 #include <OSSIA/OSSIAApplicationPlugin.hpp>
 
+#include <OSSIA/LocalTree/Scenario/ScenarioComponentFactory.hpp>
 #include <Scenario/Application/Menus/Plugin/ScenarioActionsFactory.hpp>
 #include <iscore/plugins/customfactory/StringFactoryKey.hpp>
 #include "iscore_plugin_ossia.hpp"
 #include <iscore/plugins/customfactory/FactoryFamily.hpp>
 
+#include <iscore/plugins/customfactory/FactorySetup.hpp>
 namespace iscore {
 
 }  // namespace iscore
@@ -27,28 +29,32 @@ iscore::GUIApplicationContextPlugin* iscore_plugin_ossia::make_applicationPlugin
     return new OSSIAApplicationPlugin{app};
 }
 
+std::vector<std::unique_ptr<iscore::FactoryListInterface>> iscore_plugin_ossia::factoryFamilies()
+{
+    return make_ptr_vector<iscore::FactoryListInterface,
+            OSSIA::LocalTree::ProcessComponentFactoryList>();
+}
+
 
 
 std::vector<std::unique_ptr<iscore::FactoryInterfaceBase>> iscore_plugin_ossia::factories(
-        const iscore::ApplicationContext&,
-        const iscore::FactoryBaseKey& factoryName) const
+        const iscore::ApplicationContext& ctx,
+        const iscore::FactoryBaseKey& key) const
 {
-    if(factoryName == ProtocolFactory::staticFactoryKey())
-    {
-        return make_ptr_vector<iscore::FactoryInterfaceBase,
-                MinuitProtocolFactory,
-                OSCProtocolFactory,
-                LocalProtocolFactory
-                >();
-    }
 
-    if(factoryName == ScenarioActionsFactory::staticFactoryKey())
-    {
-        return make_ptr_vector<iscore::FactoryInterfaceBase,
-                PlayContextMenuFactory>();
-    }
-
-    return {};
+    return instantiate_factories<
+            iscore::ApplicationContext,
+            TL<
+            FW<ProtocolFactory,
+                 LocalProtocolFactory,
+                 OSCProtocolFactory,
+                 MinuitProtocolFactory>,
+            FW<ScenarioActionsFactory,
+                 PlayContextMenuFactory>,
+            FW<OSSIA::LocalTree::ProcessComponentFactory,
+                 OSSIA::LocalTree::ScenarioComponentFactory>
+            >
+            >(ctx, key);
 }
 
 

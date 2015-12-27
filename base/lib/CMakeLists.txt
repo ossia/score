@@ -32,6 +32,8 @@ set(SRCS
 "${CMAKE_CURRENT_SOURCE_DIR}/iscore/command/PropertyCommand.cpp"
 "${CMAKE_CURRENT_SOURCE_DIR}/iscore/command/SerializableCommand.cpp"
 
+"${CMAKE_CURRENT_SOURCE_DIR}/iscore/component/Component.cpp"
+
 "${CMAKE_CURRENT_SOURCE_DIR}/iscore/application/ApplicationContext.cpp"
 "${CMAKE_CURRENT_SOURCE_DIR}/iscore/application/ApplicationComponents.cpp"
 
@@ -76,7 +78,7 @@ set(SRCS
 "${CMAKE_CURRENT_SOURCE_DIR}/iscore/widgets/GraphicsItem.cpp"
 "${CMAKE_CURRENT_SOURCE_DIR}/iscore/widgets/ClearLayout.cpp"
 
-"${CMAKE_CURRENT_SOURCE_DIR}/core/application/Application.cpp"
+"${CMAKE_CURRENT_SOURCE_DIR}/core/application/ApplicationInterface.cpp"
 "${CMAKE_CURRENT_SOURCE_DIR}/core/application/ApplicationRegistrar.cpp"
 "${CMAKE_CURRENT_SOURCE_DIR}/core/application/ApplicationSettings.cpp"
 "${CMAKE_CURRENT_SOURCE_DIR}/core/command/CommandStackSerialization.cpp"

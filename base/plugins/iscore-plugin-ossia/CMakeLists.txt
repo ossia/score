@@ -56,11 +56,20 @@ set(HDRS
     "${CMAKE_CURRENT_SOURCE_DIR}/OSSIA/DocumentPlugin/ProcessModel/ProcessModelElement.hpp"
 
     "${CMAKE_CURRENT_SOURCE_DIR}/OSSIA/LocalTree/LocalTreeDocumentPlugin.hpp"
+    "${CMAKE_CURRENT_SOURCE_DIR}/OSSIA/LocalTree/BaseProperty.hpp"
     "${CMAKE_CURRENT_SOURCE_DIR}/OSSIA/LocalTree/Property.hpp"
     "${CMAKE_CURRENT_SOURCE_DIR}/OSSIA/LocalTree/SetProperty.hpp"
     "${CMAKE_CURRENT_SOURCE_DIR}/OSSIA/LocalTree/GetProperty.hpp"
     "${CMAKE_CURRENT_SOURCE_DIR}/OSSIA/LocalTree/BaseCallbackWrapper.hpp"
-    "${CMAKE_CURRENT_SOURCE_DIR}/OSSIA/LocalTree/ScenarioTreeBuilder.hpp"
+
+    "${CMAKE_CURRENT_SOURCE_DIR}/OSSIA/LocalTree/Scenario/ProcessComponent.hpp"
+    "${CMAKE_CURRENT_SOURCE_DIR}/OSSIA/LocalTree/Scenario/ScenarioComponent.hpp"
+    "${CMAKE_CURRENT_SOURCE_DIR}/OSSIA/LocalTree/Scenario/ScenarioComponentFactory.hpp"
+    "${CMAKE_CURRENT_SOURCE_DIR}/OSSIA/LocalTree/Scenario/ConstraintComponent.hpp"
+    "${CMAKE_CURRENT_SOURCE_DIR}/OSSIA/LocalTree/Scenario/EventComponent.hpp"
+    "${CMAKE_CURRENT_SOURCE_DIR}/OSSIA/LocalTree/Scenario/TimeNodeComponent.hpp"
+    "${CMAKE_CURRENT_SOURCE_DIR}/OSSIA/LocalTree/Scenario/StateComponent.hpp"
+    "${CMAKE_CURRENT_SOURCE_DIR}/OSSIA/LocalTree/Scenario/MetadataParameters.hpp"
 
     "${CMAKE_CURRENT_SOURCE_DIR}/iscore_plugin_ossia.hpp"
     )
@@ -100,7 +109,16 @@ set(SRCS
 "${CMAKE_CURRENT_SOURCE_DIR}/OSSIA/DocumentPlugin/ConstraintElement.cpp"
 
 "${CMAKE_CURRENT_SOURCE_DIR}/OSSIA/LocalTree/LocalTreeDocumentPlugin.cpp"
-"${CMAKE_CURRENT_SOURCE_DIR}/OSSIA/LocalTree/ScenarioTreeBuilder.cpp"
+"${CMAKE_CURRENT_SOURCE_DIR}/OSSIA/LocalTree/BaseProperty.cpp"
+
+"${CMAKE_CURRENT_SOURCE_DIR}/OSSIA/LocalTree/Scenario/ProcessComponent.cpp"
+"${CMAKE_CURRENT_SOURCE_DIR}/OSSIA/LocalTree/Scenario/ScenarioComponent.cpp"
+"${CMAKE_CURRENT_SOURCE_DIR}/OSSIA/LocalTree/Scenario/ScenarioComponentFactory.cpp"
+"${CMAKE_CURRENT_SOURCE_DIR}/OSSIA/LocalTree/Scenario/ConstraintComponent.cpp"
+"${CMAKE_CURRENT_SOURCE_DIR}/OSSIA/LocalTree/Scenario/EventComponent.cpp"
+"${CMAKE_CURRENT_SOURCE_DIR}/OSSIA/LocalTree/Scenario/TimeNodeComponent.cpp"
+"${CMAKE_CURRENT_SOURCE_DIR}/OSSIA/LocalTree/Scenario/StateComponent.cpp"
+"${CMAKE_CURRENT_SOURCE_DIR}/OSSIA/LocalTree/Scenario/MetadataParameters.cpp"
 
 "${CMAKE_CURRENT_SOURCE_DIR}/OSSIA/iscore2OSSIA.cpp"
 

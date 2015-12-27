@@ -32,6 +32,7 @@ struct VisitorVariant;
 #include <QFileInfo>
 #include <QDir>
 #endif
+#include <OSSIA/LocalTree/LocalTreeDocumentPlugin.hpp>
 #include <OSSIA/DocumentPlugin/ContextMenu/PlayContextMenu.hpp>
 #include <Explorer/DocumentPlugin/DeviceDocumentPlugin.hpp>
 #include <Scenario/Document/ScenarioDocument/ScenarioDocumentModel.hpp>
@@ -145,6 +146,7 @@ bool OSSIAApplicationPlugin::handleStartup()
 
 void OSSIAApplicationPlugin::on_newDocument(iscore::Document* doc)
 {
+    doc->model().addPluginModel(new OSSIA::LocalTree::DocumentPlugin{m_localDevice,*doc, &doc->model()});
     doc->model().addPluginModel(new RecreateOnPlay::DocumentPlugin{*doc, &doc->model()});
 }
 
@@ -230,13 +232,12 @@ void OSSIAApplicationPlugin::on_stop()
 
 void OSSIAApplicationPlugin::setupOSSIACallbacks()
 {
-    // TODO in settings allow to set-up the local device's tree. Or maybe just use the device explorer ??
-    // TODO OSSIALocalDevice; this would be a document plug-in that would visit a scenario
-    // and create relevant "ossia" nodes as QObjects children - like in network plug-in.
     auto local_play_node = *(m_localDevice->emplace(m_localDevice->children().cend(), "play"));
     auto local_play_address = local_play_node->createAddress(OSSIA::Value::Type::BOOL);
+    local_play_address->setValue(new OSSIA::Bool{false});
     auto local_stop_node = *(m_localDevice->emplace(m_localDevice->children().cend(), "stop"));
     auto local_stop_address = local_stop_node->createAddress(OSSIA::Value::Type::IMPULSE);
+    local_stop_address->setValue(new OSSIA::Impulse{});
 
     local_play_address->addCallback([&] (const OSSIA::Value* v) {
         if (v->getType() == OSSIA::Value::Type::BOOL)
