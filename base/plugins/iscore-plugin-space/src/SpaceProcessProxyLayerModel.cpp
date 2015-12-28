@@ -4,7 +4,7 @@
 
 SpaceProcessProxyLayerModel::SpaceProcessProxyLayerModel(
         const Id<LayerModel>& id,
-        const SpaceLayerModel &model,
+        const LayerModel &model,
         QObject *parent):
     LayerModel{id, staticMetaObject.className(), model.processModel(), parent},
     m_source{model}

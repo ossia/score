@@ -21,7 +21,7 @@ QString CircleAreaFactory::prettyName() const
 
 AreaModel*CircleAreaFactory::makeModel(
         const QString& formula,
-        const SpaceModel& space,
+        const Space::AreaContext& space,
         const Id<AreaModel>& id,
         QObject* parent) const
 {

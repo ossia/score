@@ -3,15 +3,17 @@
 #include <sstream>
 
 #include <Device/Node/DeviceNode.hpp>
+#include <Explorer/DocumentPlugin/DeviceDocumentPlugin.hpp>
 AreaModel::AreaModel(
         std::unique_ptr<spacelib::area>&& area,
-        const SpaceModel& space,
+        const Space::AreaContext& space,
         const Id<AreaModel> & id,
         QObject *parent):
     IdentifiedObject{id, staticMetaObject.className(), parent},
-    m_space{space},
+    m_context{space},
     m_area{std::move(area)}
 {
+    // TODO area defined by system of equations instead of single one.
     /*
     for(const auto& sym : m_area->symbols())
     {
@@ -26,20 +28,13 @@ AreaModel::AreaModel(
 void AreaModel::setSpaceMapping(const GiNaC::exmap& mapping)
 {
     m_spaceMap = mapping;
+    emit areaChanged(m_currentParameterMap);
 }
 
-void AreaModel::setParameterMapping(const AreaModel::ParameterMap &mapping)
+void AreaModel::setParameterMapping(const AreaModel::ParameterMap &parameter_mapping)
 {
-    m_parameterMap = mapping;
-}
+    m_parameterMap = parameter_mapping;
 
-spacelib::projected_area AreaModel::projectedArea() const
-{
-    return spacelib::projected_area(*m_area.get(), m_spaceMap);
-}
-
-spacelib::valued_area AreaModel::valuedArea() const
-{
     GiNaC::exmap mapping;
     for(const auto& elt : m_parameterMap)
     {
@@ -49,10 +44,34 @@ spacelib::valued_area AreaModel::valuedArea() const
         }
         else // We fetch it from the device tree
         {
-            ISCORE_TODO;
+            iscore::Node* n = iscore::try_getNodeFromAddress(m_context.devices.rootNode(), elt.second.address);
+            if(n)
+            {
+                mapping[elt.first] = iscore::convert::value<double>(n->get<iscore::AddressSettings>().value);
+            }
+            else
+            {
+                mapping[elt.first] = iscore::convert::value<double>(elt.second.value);
+            }
         }
     }
-    return spacelib::valued_area(projectedArea(), mapping);
+    setCurrentMapping(mapping);
+}
+
+void AreaModel::setCurrentMapping(const GiNaC::exmap& map)
+{
+    m_currentParameterMap = map;
+    emit areaChanged(map);
+}
+
+spacelib::projected_area AreaModel::projectedArea() const
+{
+    return spacelib::projected_area(*m_area.get(), m_spaceMap);
+}
+
+spacelib::valued_area AreaModel::valuedArea(const GiNaC::exmap& vals) const
+{
+    return spacelib::valued_area(projectedArea(), vals);
 }
 
 QString AreaModel::toString() const

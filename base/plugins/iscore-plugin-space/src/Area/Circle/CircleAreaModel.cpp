@@ -22,7 +22,7 @@ QString CircleAreaModel::formula()
 }
 
 CircleAreaModel::CircleAreaModel(
-        const SpaceModel &space,
+        const Space::AreaContext &space,
         const Id<AreaModel> &id,
         QObject *parent):
     AreaModel{AreaParser{formula()}.result(), space, id, parent}
@@ -58,7 +58,5 @@ CircleAreaModel::CircleAreaModel(
 AreaPresenter *CircleAreaModel::makePresenter(QGraphicsItem * parentitem, QObject * obj) const
 {
     auto pres = new CircleAreaPresenter{new CircleAreaView{parentitem}, *this, obj};
-    connect(this, &CircleAreaModel::areaChanged,
-            pres, &CircleAreaPresenter::on_areaChanged);
     return pres;
 }

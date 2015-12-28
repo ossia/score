@@ -5,7 +5,7 @@
 
 AreaTab::AreaTab(
         const iscore::DocumentContext& ctx,
-        const SpaceProcess &space,
+        const Space::ProcessModel &space,
         QWidget *parent):
     QWidget{parent},
     m_space{space}
@@ -26,8 +26,8 @@ AreaTab::AreaTab(
     lay->setColumnMinimumWidth(0, 200);
     lay->setColumnStretch(1, 3);
 
-    con(m_space, &SpaceProcess::areaAdded, this, [&] { rebuildList(); });
-    con(m_space, &SpaceProcess::areaRemoved, this, [&] { rebuildList(); });
+    con(m_space, &Space::ProcessModel::areaAdded, this, [&] { rebuildList(); });
+    con(m_space, &Space::ProcessModel::areaRemoved, this, [&] { rebuildList(); });
 
     connect(m_listWidget, SIGNAL(currentRowChanged(int)), this, SLOT(updateDisplayedArea(int)));
 

@@ -4,14 +4,14 @@
 namespace iscore
 { struct DocumentContext; }
 class AreaModel;
-class SpaceProcess;
+namespace Space { class ProcessModel; }
 class AreaSelectionWidget;
 class AreaWidget : public QWidget
 {
     public:
         AreaWidget(
                 const iscore::DocumentContext& ctx,
-                const SpaceProcess &space,
+                const Space::ProcessModel &space,
                 QWidget* parent);
 
         // If null, will add a new area instead.
@@ -25,7 +25,7 @@ class AreaWidget : public QWidget
 
     private:
         CommandDispatcher<> m_dispatcher;
-        const SpaceProcess& m_space;
+        const Space::ProcessModel& m_space;
         const AreaModel* m_area{};
 
         AreaSelectionWidget* m_selectionWidget{};

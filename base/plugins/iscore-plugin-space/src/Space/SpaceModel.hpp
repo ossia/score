@@ -6,6 +6,7 @@
 #include <Space/bounded_symbol.hpp>
 #include "DimensionModel.hpp"
 #include "ViewportModel.hpp"
+#include <src/SpaceContext.hpp>
 // A space has a number of dimensions
 class SpaceModel : public IdentifiedObject<SpaceModel>
 {

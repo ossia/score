@@ -13,10 +13,10 @@ QString GenericAreaModel::prettyName() const
 
 GenericAreaModel::GenericAreaModel(
         const QString& formula,
-        const SpaceModel& space,
+        const Space::AreaContext& space,
         const Id<AreaModel>& id,
         QObject* parent):
     AreaModel{AreaParser{formula}.result(), space, id, parent}
 {
-
+    qDebug("fuuuu");
 }

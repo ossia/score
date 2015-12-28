@@ -7,7 +7,7 @@
 #include "Area/AreaPresenter.hpp"
 class QMainWindow;
 class LayerView;
-class SpaceLayerModel;
+class LayerModel;
 class SpaceLayerView;
 class SpaceLayerPresenter : public LayerPresenter
 {
@@ -36,7 +36,7 @@ class SpaceLayerPresenter : public LayerPresenter
     private:
         void on_areaAdded(const AreaModel&);
 
-        const SpaceLayerModel& m_model;
+        const LayerModel& m_model;
         SpaceLayerView* m_view;
 
         const iscore::DocumentContext& m_ctx;

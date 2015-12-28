@@ -5,7 +5,7 @@
 namespace iscore {
 struct DocumentContext;
 }
-class SpaceProcess;
+namespace Space { class ProcessModel; }
 class AreaWidget;
 class AreaTab : public QWidget
 {
@@ -13,7 +13,7 @@ class AreaTab : public QWidget
     public:
         AreaTab(
                 const iscore::DocumentContext& ctx,
-                const SpaceProcess &space,
+                const Space::ProcessModel &space,
                 QWidget* parent);
 
     private slots:
@@ -23,7 +23,7 @@ class AreaTab : public QWidget
     private:
         void rebuildList();
 
-        const SpaceProcess &m_space;
+        const Space::ProcessModel &m_space;
         QListWidget* m_listWidget{};
         AreaWidget* m_areaWidget{};
 };

@@ -13,14 +13,15 @@
 #include <boost/range/algorithm/find_if.hpp>
 #include <iscore/tools/SettableIdentifierGeneration.hpp>
 #include <iscore/tools/ModelPathSerialization.hpp>
+#include <iscore/plugins/customfactory/StringFactoryKeySerialization.hpp>
 
-AddArea::AddArea(Path<SpaceProcess> &&spacProcess,
-                 int areatype,
+AddArea::AddArea(Path<Space::ProcessModel> &&spacProcess,
+                 AreaFactoryKey type,
                  const QString &area,
                  const QMap<Id<DimensionModel>, QString> &dimMap,
                  const QMap<QString, iscore::FullAddressSettings> &addrMap):
     m_path{std::move(spacProcess)},
-    m_areaType{areatype},
+    m_areaType{type},
     m_areaFormula{area},
     m_dimensionToVarMap{dimMap},
     m_symbolToAddressMap{addrMap}
@@ -38,13 +39,10 @@ void AddArea::redo() const
 {
     auto& proc = m_path.find();
 
-    const auto& facts = context.components.factory<SingletonAreaFactoryList>().get();
-    auto it = boost::range::find_if(facts,
-                                    [&] (const auto& f) { return f.second->type() == m_areaType; });
+    auto factory = context.components.factory<SingletonAreaFactoryList>().get(m_areaType);
+    ISCORE_ASSERT(factory);
 
-    ISCORE_ASSERT(it != facts.end());
-
-    auto ar = it->second->makeModel(m_areaFormula, proc.space(), m_createdAreaId, &proc);
+    auto ar = factory->makeModel(m_areaFormula, proc.context(), m_createdAreaId, &proc);
 
     GiNaC::exmap sym_map;
     const auto& syms = ar->area().symbols();

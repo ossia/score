@@ -4,15 +4,81 @@
 #include "Space/SpaceModel.hpp"
 #include "Area/Circle/CircleAreaModel.hpp"
 
-SpaceProcess::SpaceProcess(const TimeValue &duration, const Id<Process> &id, QObject *parent):
-    Process{id, SpaceProcessMetadata::processObjectName(), parent}
+#include <Explorer/DocumentPlugin/DeviceDocumentPlugin.hpp>
+namespace Space
+{
+
+
+Process::Process(ProcessModel& process):
+m_process{process}
+{
+
+}
+
+
+std::shared_ptr<OSSIA::StateElement> Process::state(const OSSIA::TimeValue&, const OSSIA::TimeValue&)
+{
+    auto& devlist = m_process.context().devices.list();
+
+    // TODO for solving collisions, do a "==" on the two equation ?
+    // For each area whose parameters depend on an address,
+    // get the current area value and update it.
+    for(AreaModel& area : m_process.areas())
+    {
+        const auto& parameter_map = area.parameterMapping();
+        GiNaC::exmap mapping;
+
+        for(const auto& elt : parameter_map)
+        {
+            // We always set the default value just in case.
+            auto it_pair = mapping.insert(
+                               std::make_pair(
+                                   elt.first,
+                                   iscore::convert::value<double>(elt.second.value)
+                                   )
+                               );
+
+            auto& addr = elt.second.address;
+
+            if(!addr.device.isEmpty())
+            {
+                // We fetch it from the device tree
+                auto dev_it = devlist.find(addr.device);
+                if(dev_it != devlist.devices().end())
+                {
+                    auto val = (*dev_it)->refresh(addr);
+                    if(val)
+                    {
+                       it_pair.first->second = iscore::convert::value<double>(*val);
+                    }
+                }
+            }
+        }
+
+        area.setCurrentMapping(mapping);
+    }
+
+    // Send the parameters of each area
+    // (variables's value ? default computations (like diameter, etc. ?))
+    // For each computation, send the new state.
+
+    return OSSIA::State::create();
+}
+
+ProcessModel::ProcessModel(
+        const iscore::DocumentContext& doc,
+        const TimeValue &duration,
+        const Id<::Process> &id,
+        QObject *parent):
+    RecreateOnPlay::OSSIAProcessModel{id, ProcessMetadata::processObjectName(), parent},
+    m_space{new SpaceModel{
+            Id<SpaceModel>(0),
+            this}},
+    m_context{doc, *m_space, doc.plugin<DeviceDocumentPlugin>()},
+    m_process{std::make_shared<Space::Process>(*this)}
 {
     using namespace GiNaC;
     using namespace spacelib;
-
-    m_space = new SpaceModel{
-            Id<SpaceModel>(0),
-            this};
 
     auto x_dim = new DimensionModel{"x", Id<DimensionModel>{0}, m_space};
     auto y_dim = new DimensionModel{"y", Id<DimensionModel>{1}, m_space};
@@ -76,110 +142,126 @@ SpaceProcess::SpaceProcess(const TimeValue &duration, const Id<Process> &id, QOb
     setDuration(duration);
 }
 
-Process *SpaceProcess::clone(const Id<Process> &newId, QObject *newParent) const
+
+std::shared_ptr<TimeProcessWithConstraint> ProcessModel::process() const
 {
-    return new SpaceProcess{this->duration(), newId, newParent};
+    return m_process;
 }
 
-const ProcessFactoryKey& SpaceProcess::key() const
+
+ProcessModel *ProcessModel::clone(const Id<Process> &newId, QObject *newParent) const
 {
-    return SpaceProcessMetadata::factoryKey();
+    auto& doc = iscore::IDocument::documentContext(*newParent);
+    return new ProcessModel{doc, this->duration(), newId, newParent};
 }
 
-QString SpaceProcess::prettyName() const
+const ProcessFactoryKey& ProcessModel::key() const
+{
+    return ProcessMetadata::factoryKey();
+}
+
+QString ProcessModel::prettyName() const
 {
     return tr("Space process");
 }
 
-void SpaceProcess::setDurationAndScale(const TimeValue &newDuration)
+void ProcessModel::setDurationAndScale(const TimeValue &newDuration)
 {
     setDuration(newDuration);
     ISCORE_TODO;
 }
 
-void SpaceProcess::setDurationAndGrow(const TimeValue &newDuration)
+void ProcessModel::setDurationAndGrow(const TimeValue &newDuration)
 {
     setDuration(newDuration);
     ISCORE_TODO;
 }
 
-void SpaceProcess::setDurationAndShrink(const TimeValue &newDuration)
+void ProcessModel::setDurationAndShrink(const TimeValue &newDuration)
 {
     setDuration(newDuration);
     ISCORE_TODO;
 }
 
-void SpaceProcess::reset()
+void ProcessModel::reset()
 {
     ISCORE_TODO;
 }
 
-ProcessStateDataInterface* SpaceProcess::startStateData() const
+ProcessStateDataInterface* ProcessModel::startStateData() const
 {
     ISCORE_TODO;
     return nullptr;
 }
 
-ProcessStateDataInterface *SpaceProcess::endStateData() const
+ProcessStateDataInterface *ProcessModel::endStateData() const
 {
     ISCORE_TODO;
     return nullptr;
 }
 
-Selection SpaceProcess::selectableChildren() const
+Selection ProcessModel::selectableChildren() const
 {
     ISCORE_TODO;
     return {};
 }
 
-Selection SpaceProcess::selectedChildren() const
+Selection ProcessModel::selectedChildren() const
 {
     ISCORE_TODO;
     return {};
 }
 
-void SpaceProcess::setSelection(const Selection &s) const
+void ProcessModel::setSelection(const Selection &s) const
 {
     ISCORE_TODO;
 }
 
-void SpaceProcess::serialize(const VisitorVariant &vis) const
+void ProcessModel::serialize(const VisitorVariant &vis) const
 {
     ISCORE_TODO;
 }
 
-void SpaceProcess::addArea(AreaModel* a)
+void ProcessModel::addArea(AreaModel* a)
 {
     m_areas.insert(a);
 
     emit areaAdded(*a);
 }
 
-void SpaceProcess::removeArea(const Id<AreaModel> &id)
+void ProcessModel::removeArea(const Id<AreaModel> &id)
 {
     ISCORE_TODO;
 
 }
 
-LayerModel *SpaceProcess::makeLayer_impl(const Id<LayerModel> &viewModelId, const QByteArray &constructionData, QObject *parent)
+::LayerModel *ProcessModel::makeLayer_impl(
+        const Id<::LayerModel> &viewModelId,
+        const QByteArray &constructionData,
+        QObject *parent)
 {
-    return new SpaceLayerModel{viewModelId, *this, parent};
+    return new LayerModel{viewModelId, *this, parent};
 }
 
-LayerModel *SpaceProcess::loadLayer_impl(const VisitorVariant &, QObject *parent)
+::LayerModel *ProcessModel::loadLayer_impl(
+        const VisitorVariant &,
+        QObject *parent)
 {
     ISCORE_TODO;
     return nullptr;
 }
 
-LayerModel *SpaceProcess::cloneLayer_impl(const Id<LayerModel> &newId, const LayerModel &source, QObject *parent)
+::LayerModel *ProcessModel::cloneLayer_impl(
+        const Id<::LayerModel> &newId,
+        const ::LayerModel &source,
+        QObject *parent)
 {
     ISCORE_TODO;
     return nullptr;
 }
 
 
-void SpaceProcess::addComputation(ComputationModel * c)
+void ProcessModel::addComputation(ComputationModel * c)
 {
     m_computations.insert(c);
 
@@ -187,10 +269,11 @@ void SpaceProcess::addComputation(ComputationModel * c)
 }
 
 
-void SpaceProcess::startExecution()
+void ProcessModel::startExecution()
 {
 }
 
-void SpaceProcess::stopExecution()
+void ProcessModel::stopExecution()
 {
+}
 }

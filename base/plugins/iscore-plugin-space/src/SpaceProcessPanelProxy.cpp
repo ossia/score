@@ -1,7 +1,7 @@
 #include "SpaceProcessPanelProxy.hpp"
 
 SpaceProcessPanelProxy::SpaceProcessPanelProxy(
-        const SpaceLayerModel &vm,
+        const LayerModel &vm,
         QObject *parent):
     LayerModelPanelProxy{parent}
 {

@@ -21,7 +21,7 @@ QString GenericAreaFactory::prettyName() const
 
 AreaModel*GenericAreaFactory::makeModel(
         const QString& formula,
-        const SpaceModel& space,
+        const Space::AreaContext& space,
         const Id<AreaModel>& id,
         QObject* parent) const
 {

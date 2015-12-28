@@ -12,7 +12,7 @@ class GenericAreaFactory : public AreaFactory
 
         AreaModel* makeModel(
                 const QString& formula,
-                const SpaceModel& space,
+                const Space::AreaContext& space,
                 const Id<AreaModel>&,
                 QObject* parent) const override;
 
