@@ -12,7 +12,9 @@ class DeviceExplorerPanelPresenter final : public iscore::PanelPresenter
         DeviceExplorerPanelPresenter(iscore::PanelView* view,
                                      QObject* parent);
 
-        void on_modelChanged() override;
+        void on_modelChanged(
+                iscore::PanelModel* oldm,
+                iscore::PanelModel* newm) override;
         int panelId() const override;
 
 };

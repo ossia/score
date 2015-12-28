@@ -15,8 +15,9 @@ PanelPresenter::PanelPresenter(
 
 void PanelPresenter::setModel(PanelModel* model)
 {
+    auto old = m_model;
     m_model = model;
-    on_modelChanged();
+    on_modelChanged(old, model);
 }
 
 PanelModel*PanelPresenter::model() const

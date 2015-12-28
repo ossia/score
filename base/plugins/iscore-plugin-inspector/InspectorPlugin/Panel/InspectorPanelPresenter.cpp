@@ -24,7 +24,9 @@ int InspectorPanelPresenter::panelId() const
     return INSPECTOR_PANEL_ID;
 }
 
-void InspectorPanelPresenter::on_modelChanged()
+void InspectorPanelPresenter::on_modelChanged(
+        iscore::PanelModel* oldm,
+        iscore::PanelModel* newm)
 {
     using namespace iscore;
     if(model())

@@ -156,6 +156,33 @@ void OSSIAApplicationPlugin::on_loadedDocument(iscore::Document *doc)
     on_newDocument(doc);
 }
 
+void OSSIAApplicationPlugin::on_documentChanged(
+        iscore::Document* olddoc,
+        iscore::Document* newdoc)
+{
+    if(olddoc)
+    {
+        // note : dans device doc plugin, si on change de document,
+        // penser à mettre DEviceExplorerModel = null dans NodeUpdate Proxy
+        // Disable the local tree for this document by removing
+        // the node temporarily
+        /*
+        auto& doc_plugin = olddoc->context().plugin<DeviceDocumentPlugin>();
+        doc_plugin.setConnection(false);
+        */
+    }
+
+    if(newdoc)
+    {
+        // Enable the local tree for this document.
+
+        /*
+        auto& doc_plugin = newdoc->context().plugin<DeviceDocumentPlugin>();
+        doc_plugin.setConnection(true);
+        */
+    }
+}
+
 void OSSIAApplicationPlugin::on_play(bool b, ::TimeValue t)
 {
     // TODO have a on_exit handler to properly stop the scenario.
