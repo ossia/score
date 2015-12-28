@@ -98,6 +98,8 @@ void NodeUpdateProxy::addAddress(
         int row)
 {
     auto parentnode = parentPath.toNode(&devModel.rootNode());
+    if(!parentnode)
+        return;
 
     // Add in the device impl
     // Get the device node :
@@ -146,11 +148,14 @@ void NodeUpdateProxy::addNode(
     rec_addNode(parentPath, node, row);
 }
 
-void NodeUpdateProxy::requestUpdateAddress(
+void NodeUpdateProxy::updateAddress(
         const iscore::NodePath &nodePath,
         const iscore::AddressSettings &settings)
 {
     auto node = nodePath.toNode(&devModel.rootNode());
+    if(!node)
+        return;
+
     const auto addr = iscore::address(*node);
     // Make a full path
     iscore::FullAddressSettings full = iscore::FullAddressSettings::make<iscore::FullAddressSettings::as_child>(
@@ -181,6 +186,8 @@ void NodeUpdateProxy::removeNode(
         const iscore::AddressSettings& settings)
 {
     iscore::Node* parentnode = parentPath.toNode(&devModel.rootNode());
+    if(!parentnode)
+        return;
 
     auto addr = iscore::address(*parentnode);
     addr.path.append(settings.name);
@@ -231,6 +238,9 @@ void NodeUpdateProxy::updateLocalValue(
         const iscore::Value& v)
 {
     auto n = iscore::try_getNodeFromAddress(devModel.rootNode(), addr);
+    if(!n)
+        return;
+
     if(!n->is<iscore::AddressSettings>())
     {
         qDebug() << "Updating invalid node";
@@ -252,6 +262,9 @@ void NodeUpdateProxy::updateLocalSettings(
         const iscore::AddressSettings& set)
 {
     auto n = iscore::try_getNodeFromAddress(devModel.rootNode(), addr);
+    if(!n)
+        return;
+
     if(!n->is<iscore::AddressSettings>())
     {
         qDebug() << "Updating invalid node";
