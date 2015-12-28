@@ -24,7 +24,6 @@ class LocalDevice final : public OSSIADevice
         void disconnect() override;
         bool reconnect() override;
 
-        bool canRefresh() const override;
         iscore::Node refresh() override;
 
 

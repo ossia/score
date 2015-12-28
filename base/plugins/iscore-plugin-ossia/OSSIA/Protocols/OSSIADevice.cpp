@@ -87,6 +87,9 @@ void OSSIADevice::disconnect()
 void OSSIADevice::addAddress(const iscore::FullAddressSettings &settings)
 {
     using namespace OSSIA;
+    if(!m_capas.canAddNode)
+        return; // TODO return bool instead, and check in the node update proxy ?
+
     if(!connected())
         return;
 
@@ -144,6 +147,8 @@ void OSSIADevice::removeListening_impl(
 void OSSIADevice::removeNode(const iscore::Address& address)
 {
     using namespace OSSIA;
+    if(!m_capas.canRemoveNode)
+        return;
     if(!connected())
         return;
 

@@ -76,7 +76,7 @@ iscore::Node DeviceDocumentPlugin::createDeviceFromNode(const iscore::Node & nod
 
         initDevice(*newdev);
 
-        if(newdev->canRefresh())
+        if(newdev->capabilities().canRefresh)
         {
             return newdev->refresh();
         }

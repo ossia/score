@@ -25,7 +25,9 @@ namespace iscore
             PanelModel* model() const;
 
         protected:
-            virtual void on_modelChanged() = 0;
+            virtual void on_modelChanged(
+                    PanelModel* oldm,
+                    PanelModel* newm) = 0;
 
             PanelView* view() const;
 

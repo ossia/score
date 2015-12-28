@@ -23,8 +23,16 @@ DeviceExplorerPanelPresenter::DeviceExplorerPanelPresenter(
 
 }
 
-void DeviceExplorerPanelPresenter::on_modelChanged()
+void DeviceExplorerPanelPresenter::on_modelChanged(
+        iscore::PanelModel* oldm,
+        iscore::PanelModel* newm)
 {
+    if(oldm)
+    {
+        auto old_model = static_cast<DeviceExplorerPanelModel*>(oldm);
+        old_model->m_model->setView(nullptr);
+    }
+
     auto v = static_cast<DeviceExplorerPanelView*>(view());
     if(model())
     {

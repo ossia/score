@@ -51,7 +51,9 @@ int ProcessPanelPresenter::panelId() const
     return PROCESS_PANEL_ID;
 }
 
-void ProcessPanelPresenter::on_modelChanged()
+void ProcessPanelPresenter::on_modelChanged(
+        iscore::PanelModel* oldm,
+        iscore::PanelModel* newm)
 {
     if(!model())
     {

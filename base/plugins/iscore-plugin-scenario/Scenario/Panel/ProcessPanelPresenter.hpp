@@ -22,7 +22,9 @@ class ProcessPanelPresenter final : public iscore::PanelPresenter
                 QObject* parent);
 
         int panelId() const override;
-        void on_modelChanged() override;
+        void on_modelChanged(
+                iscore::PanelModel* oldm,
+                iscore::PanelModel* newm) override;
 
         ZoomRatio zoomRatio() const
         { return m_zoomRatio; }

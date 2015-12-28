@@ -26,7 +26,9 @@ int UndoPresenter::panelId() const
 }
 
 
-void UndoPresenter::on_modelChanged()
+void UndoPresenter::on_modelChanged(
+        iscore::PanelModel* oldm,
+        iscore::PanelModel* newm)
 {
     if (model())
     {

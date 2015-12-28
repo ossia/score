@@ -518,7 +518,7 @@ void DeviceExplorerWidget::refresh()
     {
         // Create a thread, ask the device, when it is done put a command on the chain.
         auto& dev = m->deviceModel().list().device(select.get<iscore::DeviceSettings>().name);
-        if(!dev.canRefresh())
+        if(!dev.capabilities().canRefresh)
             return;
 
         auto wrkr = make_worker(
@@ -553,7 +553,7 @@ void DeviceExplorerWidget::refreshValue()
         // Device checks
         auto addr = iscore::address(*node);
         auto& dev = model()->deviceModel().list().device(addr.device);
-        if(!dev.canRefresh())
+        if(!dev.capabilities().canRefresh)
             return;
 
         // Getting the new values

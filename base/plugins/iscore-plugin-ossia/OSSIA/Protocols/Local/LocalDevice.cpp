@@ -17,6 +17,9 @@ LocalDevice::LocalDevice(
     OSSIADevice{settings}
 {
     m_dev = dev;
+    m_capas.canRefresh = true;
+    m_capas.canAddNode = false;
+    m_capas.canRemoveNode = false;
 
     m_addedNodeCb = m_dev->addNodeCallbacks.addCallback(
                         [this] (const OSSIA::Node& n) {
@@ -58,11 +61,6 @@ void LocalDevice::disconnect()
 bool LocalDevice::reconnect()
 {
     return connected();
-}
-
-bool LocalDevice::canRefresh() const
-{
-    return true;
 }
 
 iscore::Node LocalDevice::refresh()

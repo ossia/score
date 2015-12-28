@@ -294,7 +294,7 @@ iscore::Value NodeUpdateProxy::refreshRemoteValue(const iscore::Address& addr)
     auto& dev = **dev_it;
 
     auto& n = iscore::getNodeFromAddress(devModel.rootNode(), addr).get<iscore::AddressSettings>();
-    if(dev.canRefresh())
+    if(dev.capabilities().canRefresh)
     {
         if(auto val = dev.refresh(addr))
         {
@@ -327,7 +327,7 @@ void NodeUpdateProxy::refreshRemoteValues(const iscore::NodeList& nodes)
         {
             auto dev_name = n->get<iscore::DeviceSettings>().name;
             auto& dev = devModel.list().device(dev_name);
-            if(!dev.canRefresh())
+            if(!dev.capabilities().canRefresh)
                 continue;
 
             for(auto& child : *n)
@@ -339,7 +339,7 @@ void NodeUpdateProxy::refreshRemoteValues(const iscore::NodeList& nodes)
         {
             auto addr = iscore::address(*n);
             auto& dev = devModel.list().device(addr.device);
-            if(!dev.canRefresh())
+            if(!dev.capabilities().canRefresh)
                 continue;
 
             rec_refreshRemoteValues(*n, dev);
@@ -373,19 +373,23 @@ void NodeUpdateProxy::removeLocalNode(const iscore::Address& addr)
 {
     auto parentAddr = addr;
     auto nodeName = parentAddr.path.takeLast();
-    auto& parentNode = iscore::getNodeFromAddress(devModel.rootNode(), parentAddr);
-
-    auto it = find_if(parentNode,
-                  [&] (const iscore::Node& n) { return n.get<iscore::AddressSettings>().name == nodeName; });
-    if(it != parentNode.end())
+    auto parentNode = iscore::try_getNodeFromAddress(
+                           devModel.rootNode(),
+                           parentAddr);
+    if(parentNode)
     {
-        if(deviceExplorer)
+        auto it = find_if(*parentNode,
+                          [&] (const iscore::Node& n) { return n.get<iscore::AddressSettings>().name == nodeName; });
+        if(it != parentNode->end())
         {
-            deviceExplorer->removeNode(it);
-        }
-        else
-        {
-            parentNode.erase(it);
+            if(deviceExplorer)
+            {
+                deviceExplorer->removeNode(it);
+            }
+            else
+            {
+                parentNode->erase(it);
+            }
         }
     }
 }

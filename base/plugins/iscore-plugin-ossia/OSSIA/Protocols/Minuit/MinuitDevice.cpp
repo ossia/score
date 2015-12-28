@@ -11,6 +11,7 @@
 MinuitDevice::MinuitDevice(const iscore::DeviceSettings &settings):
     OSSIADevice{settings}
 {
+    m_capas.canRefresh = true;
 
     reconnect();
 }
@@ -34,9 +35,4 @@ bool MinuitDevice::reconnect()
     }
 
     return connected();
-}
-
-bool MinuitDevice::canRefresh() const
-{
-    return true;
 }

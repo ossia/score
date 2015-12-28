@@ -15,6 +15,16 @@ struct FullAddressSettings;
 struct Message;
 }  // namespace iscore
 
+struct ISCORE_LIB_DEVICE_EXPORT DeviceCapabilities
+{
+        bool canAddNode{true};
+        bool canRemoveNode{true};
+        bool canRenameNode{true};
+        bool canDisconnect{true};
+        bool canRefresh{false};
+        bool canListen{true};
+};
+
 class ISCORE_LIB_DEVICE_EXPORT DeviceInterface : public QObject
 {
         Q_OBJECT
@@ -27,6 +37,9 @@ class ISCORE_LIB_DEVICE_EXPORT DeviceInterface : public QObject
 
         virtual void addNode(const iscore::Node& n);
 
+        DeviceCapabilities capabilities() const
+        { return m_capas; }
+
         virtual void disconnect() = 0;
         virtual bool reconnect() = 0;
         virtual bool connected() const = 0;
@@ -35,7 +48,6 @@ class ISCORE_LIB_DEVICE_EXPORT DeviceInterface : public QObject
 
         // Asks, and returns all the new addresses if the device can refresh itself Minuit-like.
         // The addresses are not applied to the device, they have to be via a command!
-        virtual bool canRefresh() const { return false; }
         virtual iscore::Node refresh() { return {}; }
         virtual boost::optional<iscore::Value> refresh(const iscore::Address&) { return {}; }
         virtual void setListening(const iscore::Address&, bool) { }
@@ -68,4 +80,5 @@ class ISCORE_LIB_DEVICE_EXPORT DeviceInterface : public QObject
 
     protected:
         iscore::DeviceSettings m_settings;
+        DeviceCapabilities m_capas;
 };

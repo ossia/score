@@ -47,6 +47,10 @@ class OSSIAApplicationPlugin final :
         void on_newDocument(iscore::Document* doc) override;
         void on_loadedDocument(iscore::Document* doc) override;
 
+        void on_documentChanged(
+                iscore::Document* olddoc,
+                iscore::Document* newdoc) override;
+
         RecreateOnPlay::ConstraintElement& baseConstraint() const;
         const std::shared_ptr<OSSIA::Device>& localDevice() const
         { return m_localDevice; }
