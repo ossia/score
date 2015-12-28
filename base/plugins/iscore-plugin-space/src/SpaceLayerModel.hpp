@@ -12,6 +12,6 @@ class SpaceLayerModel : public LayerModel
                 SpaceProcess&,
                 QObject* parent);
 
-        void serialize(const VisitorVariant &) const;
-        LayerModelPanelProxy *make_panelProxy(QObject *parent) const;
+        void serialize(const VisitorVariant &) const override;
+        LayerModelPanelProxy *make_panelProxy(QObject *parent) const override;
 };
