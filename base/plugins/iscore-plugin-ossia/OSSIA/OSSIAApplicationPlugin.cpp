@@ -162,8 +162,6 @@ void OSSIAApplicationPlugin::on_documentChanged(
 {
     if(olddoc)
     {
-        // note : dans device doc plugin, si on change de document,
-        // penser à mettre DEviceExplorerModel = null dans NodeUpdate Proxy
         // Disable the local tree for this document by removing
         // the node temporarily
         /*

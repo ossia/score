@@ -199,10 +199,13 @@ void DeviceDocumentPlugin::initDevice(DeviceInterface& newdev)
         auto parentAddr = newaddr;
         parentAddr.path.removeLast();
 
-        auto& parent = iscore::getNodeFromAddress(m_rootNode, parentAddr);
-        updateProxy.addLocalNode(
-                    parent,
-                    newdev.getNode(newaddr));
+        auto parent = iscore::try_getNodeFromAddress(m_rootNode, parentAddr);
+        if(parent)
+        {
+            updateProxy.addLocalNode(
+                        *parent,
+                        newdev.getNode(newaddr));
+        }
     });
 
     con(newdev, &DeviceInterface::pathRemoved,

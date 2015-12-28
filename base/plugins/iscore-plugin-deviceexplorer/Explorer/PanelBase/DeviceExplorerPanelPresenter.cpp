@@ -34,10 +34,10 @@ void DeviceExplorerPanelPresenter::on_modelChanged(
     }
 
     auto v = static_cast<DeviceExplorerPanelView*>(view());
-    if(model())
+    if(newm)
     {
-        auto m = static_cast<DeviceExplorerPanelModel *>(model());
-        auto& doc = iscore::IDocument::documentContext(*model());
+        auto m = static_cast<DeviceExplorerPanelModel *>(newm);
+        auto& doc = iscore::IDocument::documentContext(*m);
         m->m_model->setCommandQueue(&doc.commandStack);
         v->m_widget->setModel(m->m_model);
     }
