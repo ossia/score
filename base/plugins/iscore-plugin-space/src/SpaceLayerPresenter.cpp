@@ -14,12 +14,12 @@ SpaceLayerPresenter::SpaceLayerPresenter(
         LayerView* view,
         QObject* parent):
     LayerPresenter{"LayerPresenter", parent},
-    m_model{static_cast<const SpaceLayerModel&>(model)},
+    m_model{static_cast<const LayerModel&>(model)},
     m_view{static_cast<SpaceLayerView*>(view)},
     m_ctx{iscore::IDocument::documentContext(m_model.processModel())},
     m_focusDispatcher{m_ctx.document}
 {
-    const SpaceProcess& procmodel = static_cast<SpaceProcess&>(m_model.processModel());
+    const auto& procmodel = static_cast<Space::ProcessModel&>(m_model.processModel());
     m_spaceWindowView = new QMainWindow;
     m_spaceWindowView->setCentralWidget(
                 new SpaceGuiWindow{
@@ -27,16 +27,18 @@ SpaceLayerPresenter::SpaceLayerPresenter(
                     procmodel,
                     m_spaceWindowView});
 
-    connect(m_view, &SpaceLayerView::guiRequested, m_spaceWindowView, &QWidget::show);
+    connect(m_view, &SpaceLayerView::guiRequested,
+            m_spaceWindowView, &QWidget::show);
 
     connect(m_view, &SpaceLayerView::contextMenuRequested,
             this, &LayerPresenter::contextMenuRequested);
-    for(const auto& area : ::model(m_model).areas())
+    for(const auto& area : procmodel.areas())
     {
         on_areaAdded(area);
     }
 
-    con(procmodel, &SpaceProcess::areaAdded, this, &SpaceLayerPresenter::on_areaAdded);
+    con(procmodel, &Space::ProcessModel::areaAdded,
+        this, &SpaceLayerPresenter::on_areaAdded);
     m_view->setEnabled(true);
 
     parentGeometryChanged();
@@ -117,9 +119,10 @@ void SpaceLayerPresenter::on_areaAdded(const AreaModel & a)
     auto pres = fact->makePresenter(v, a, this);
 
     con(a, &AreaModel::areaChanged,
-            pres, &AreaPresenter::on_areaChanged);
+        pres, &AreaPresenter::on_areaChanged,
+        Qt::QueuedConnection);
     m_areas.insert(pres);
-    pres->on_areaChanged();
+    pres->on_areaChanged(a.currentMapping());
     update();
 }
 

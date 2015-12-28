@@ -16,7 +16,7 @@ class GenericAreaModel : public AreaModel
 
         GenericAreaModel(
                 const QString& formula,
-                const SpaceModel& space,
+                const Space::AreaContext& space,
                 const Id<AreaModel>&,
                 QObject* parent);
 };

@@ -1,18 +1,19 @@
 #pragma once
 #include <Process/ProcessFactory.hpp>
-
-class SpaceProcessFactory : public ProcessFactory
+namespace Space
+{
+class ProcessFactory : public ::ProcessFactory
 {
     public:
         const ProcessFactoryKey& key_impl() const override;
         QString prettyName() const override;
 
-        Process* makeModel(
+        ::Process* makeModel(
                 const TimeValue &duration,
-                const Id<Process> &id,
+                const Id<::Process> &id,
                 QObject *parent) override;
 
-        Process* loadModel(
+        ::Process* loadModel(
                 const VisitorVariant &,
                 QObject *parent) override;
 
@@ -20,11 +21,12 @@ class SpaceProcessFactory : public ProcessFactory
         QByteArray makeStaticLayerConstructionData() const override;
 
         LayerPresenter* makeLayerPresenter(
-                const LayerModel &,
+                const ::LayerModel &,
                 LayerView *,
                 QObject *parent) override;
 
         LayerView* makeLayerView(
-                const LayerModel &view,
+                const ::LayerModel &view,
                 QGraphicsItem *parent) override;
 };
+}

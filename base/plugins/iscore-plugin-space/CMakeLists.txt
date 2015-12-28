@@ -66,8 +66,8 @@ set(SRCS
 add_library(${PROJECT_NAME} ${SRCS} ${HDRS})
 target_link_libraries(${PROJECT_NAME}
                      Qt5::Core Qt5::Widgets
-                     iscore_lib_base iscore_plugin_deviceexplorer iscore_lib_process iscore_lib_state
-					 ${GINAC_LIBRARIES})
+                     iscore_lib_base iscore_plugin_deviceexplorer iscore_lib_process iscore_lib_state iscore_plugin_ossia
+           ${GINAC_LIBRARIES})
 
 setup_iscore_plugin(${PROJECT_NAME})
 #setup_iscore_tests(tests)

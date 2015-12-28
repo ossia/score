@@ -15,7 +15,7 @@ class CircleAreaModel : public AreaModel
         static QString formula();
 
         CircleAreaModel(
-                const SpaceModel& space,
+                const Space::AreaContext& space,
                 const Id<AreaModel>&,
                 QObject* parent);
 

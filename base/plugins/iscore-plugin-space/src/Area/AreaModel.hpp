@@ -3,6 +3,8 @@
 #include <Space/area.hpp>
 #include <Device/Address/AddressSettings.hpp>
 #include <src/Area/AreaFactory.hpp>
+#include <src/SpaceContext.hpp>
+Q_DECLARE_METATYPE(GiNaC::exmap)
 class SpaceModel;
 class QGraphicsItem;
 
@@ -21,7 +23,7 @@ class AreaModel : public IdentifiedObject<AreaModel>
 
         AreaModel(
                 std::unique_ptr<spacelib::area>&& area,
-                const SpaceModel& space,
+                const Space::AreaContext& space,
                 const Id<AreaModel>&,
                 QObject* parent);
 
@@ -29,10 +31,10 @@ class AreaModel : public IdentifiedObject<AreaModel>
         const spacelib::area& area() const
         { return *m_area; }
         spacelib::projected_area projectedArea() const;
-        spacelib::valued_area valuedArea() const;
+        spacelib::valued_area valuedArea(const GiNaC::exmap& vals) const;
 
         const SpaceModel& space() const
-        { return m_space; }
+        { return m_context.space; }
 
         void setSpaceMapping(const GiNaC::exmap& mapping);
         const GiNaC::exmap& spaceMapping() const
@@ -42,19 +44,24 @@ class AreaModel : public IdentifiedObject<AreaModel>
         const ParameterMap& parameterMapping() const
         { return m_parameterMap; }
 
+        void setCurrentMapping(const GiNaC::exmap& map);
+        const GiNaC::exmap& currentMapping() const
+        { return m_currentParameterMap;}
+
         QString toString() const;
 
     signals:
-        void areaChanged();
+        void areaChanged(GiNaC::exmap);
 
     private:
-        const SpaceModel& m_space;
+        const Space::AreaContext& m_context;
         std::unique_ptr<spacelib::area> m_area;
 
         // Maps a variable from m_area to a variable from m_space.
         GiNaC::exmap m_spaceMap;
 
-        ParameterMap m_parameterMap;
+        ParameterMap m_parameterMap; // General values of the model.
+        GiNaC::exmap m_currentParameterMap; // Current values used for display / execution.
 };
 
 Q_DECLARE_METATYPE(Id<AreaModel>)

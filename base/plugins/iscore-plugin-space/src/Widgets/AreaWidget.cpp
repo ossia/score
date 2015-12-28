@@ -14,7 +14,7 @@
 #include <src/Area/SingletonAreaFactoryList.hpp>
 AreaWidget::AreaWidget(
         const iscore::DocumentContext& ctx,
-        const SpaceProcess& space,
+        const Space::ProcessModel& space,
         QWidget *parent):
     QWidget{parent},
     m_dispatcher{ctx.commandStack},
@@ -253,7 +253,7 @@ void AreaWidget::validate()
         m_dispatcher.submitCommand(
                     new AddArea{
                         m_space,
-                        m_selectionWidget->comboBox()->currentData().toInt(),
+                        m_selectionWidget->comboBox()->currentData().value<AreaFactoryKey>(),
                         m_selectionWidget->lineEdit()->text(),
                         dim_map,
                         param_map});

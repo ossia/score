@@ -207,11 +207,12 @@ boost::optional<iscore::Value> OSSIADevice::refresh(const iscore::Address& addre
     if(!connected())
         return {};
 
-    OSSIA::Node* node = getNodeFromPath(address.path, m_dev.get());
-    ISCORE_ASSERT(node);
-
-    if(auto addr = node->getAddress())
-        return ToValue(addr->pullValue());
+    auto node = findNodeFromPath(address.path, m_dev.get());
+    if(node)
+    {
+        if(auto addr = node->getAddress())
+            return OSSIA::convert::ToValue(addr->pullValue());
+    }
 
     return {};
 }

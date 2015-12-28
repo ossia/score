@@ -8,7 +8,7 @@
 #include "ComputationsTab.hpp"
 SpaceGuiWindow::SpaceGuiWindow(
         const iscore::DocumentContext& ctx,
-        const SpaceProcess &space,
+        const Space::ProcessModel &space,
         QWidget* parent) :
     QWidget{parent}
 {
