@@ -24,5 +24,4 @@ GenericAreaModel::GenericAreaModel(
         QObject* parent):
     AreaModel{AreaParser{formula}.result(), space, id, parent}
 {
-    qDebug("fuuuu");
 }

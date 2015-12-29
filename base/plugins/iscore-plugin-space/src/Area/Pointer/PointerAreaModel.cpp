@@ -18,7 +18,7 @@ QString PointerAreaModel::prettyName() const
 
 QStringList PointerAreaModel::formula()
 {
-    return QStringList{"xv = x0 && yv = y0"};
+    return QStringList{"xv == x0", "yv == y0"};
 }
 
 PointerAreaModel::PointerAreaModel(
