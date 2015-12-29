@@ -16,9 +16,9 @@ QString CircleAreaModel::prettyName() const
     return tr("Circle");
 }
 
-QString CircleAreaModel::formula()
+QStringList CircleAreaModel::formula()
 {
-    return "(xv-x0)^2 + (yv-y0)^2 <= r^2";
+    return {"(xv-x0)^2 + (yv-y0)^2 <= r^2"};
 }
 
 CircleAreaModel::CircleAreaModel(

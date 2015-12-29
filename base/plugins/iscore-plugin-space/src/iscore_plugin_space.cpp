@@ -6,6 +6,7 @@
 #include "Area/SingletonAreaFactoryList.hpp"
 
 #include "Area/Circle/CircleAreaFactory.hpp"
+#include "Area/Pointer/PointerAreaFactory.hpp"
 #include "Area/Generic/GenericAreaFactory.hpp"
 #include <iscore/plugins/customfactory/FactoryFamily.hpp>
 
@@ -33,7 +34,9 @@ std::vector<std::unique_ptr<iscore::FactoryInterfaceBase>> iscore_plugin_space::
     {
         return make_ptr_vector<iscore::FactoryInterfaceBase,
                 GenericAreaFactory,
-                CircleAreaFactory>();
+                CircleAreaFactory,
+                PointerAreaFactory
+                >();
     }
 
     return {};

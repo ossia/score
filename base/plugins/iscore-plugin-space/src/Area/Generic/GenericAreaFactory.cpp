@@ -20,7 +20,7 @@ QString GenericAreaFactory::prettyName() const
 }
 
 AreaModel*GenericAreaFactory::makeModel(
-        const QString& formula,
+        const QStringList& formula,
         const Space::AreaContext& space,
         const Id<AreaModel>& id,
         QObject* parent) const
@@ -28,7 +28,7 @@ AreaModel*GenericAreaFactory::makeModel(
     return new GenericAreaModel{formula, space, id, parent};
 }
 
-QString GenericAreaFactory::generic_formula() const
+QStringList GenericAreaFactory::generic_formula() const
 {
     return {};
 }

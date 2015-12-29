@@ -1,7 +1,7 @@
 #pragma once
 #include "src/Area/AreaFactory.hpp"
 
-class GenericAreaFactory : public AreaFactory
+class PointerAreaFactory : public AreaFactory
 {
     public:
         int type() const override;

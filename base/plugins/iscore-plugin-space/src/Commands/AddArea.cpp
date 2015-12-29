@@ -17,7 +17,7 @@
 
 AddArea::AddArea(Path<Space::ProcessModel> &&spacProcess,
                  AreaFactoryKey type,
-                 const QString &area,
+                 const QStringList &area,
                  const QMap<Id<DimensionModel>, QString> &dimMap,
                  const QMap<QString, iscore::FullAddressSettings> &addrMap):
     m_path{std::move(spacProcess)},

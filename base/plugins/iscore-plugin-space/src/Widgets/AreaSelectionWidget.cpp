@@ -27,17 +27,21 @@ AreaSelectionWidget::AreaSelectionWidget(
 
     for(auto& elt : fact.get())
     {
-        m_comboBox->addItem(elt.second->prettyName(), QVariant::fromValue(elt.second->key<AreaFactoryKey>()));
+        m_comboBox->addItem(
+                    elt.second->prettyName(),
+                    QVariant::fromValue(elt.second->key<AreaFactoryKey>()));
     }
     connect(m_comboBox, static_cast<void (QComboBox::*)(int)>(&QComboBox::currentIndexChanged),
             this, [&] (int index) {
-        if(index == m_comboBox->findData(GenericAreaModel::static_type()))
+        if(m_comboBox->currentData().value<AreaFactoryKey>() == GenericAreaModel::static_factoryKey())
         {
             m_lineEdit->setEnabled(true);
         }
         else
         {
-            m_lineEdit->setText(fact.get(m_comboBox->currentData().value<AreaFactoryKey>())->generic_formula());
+            auto formula = fact.get(m_comboBox->currentData().value<AreaFactoryKey>())->generic_formula();
+            if(formula.size() > 0)
+                m_lineEdit->setText(formula[0]); // TODO multiline or cut on ';'
             m_lineEdit->setEnabled(false);
             lineEditChanged();
         }
