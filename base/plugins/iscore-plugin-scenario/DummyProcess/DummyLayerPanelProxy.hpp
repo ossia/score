@@ -3,18 +3,18 @@
 
 #include <iscore_lib_dummyprocess_export.h>
 
-class LayerModel;
+namespace Process { class LayerModel; }
 class QObject;
 
-class ISCORE_LIB_DUMMYPROCESS_EXPORT DummyLayerPanelProxy final : public LayerModelPanelProxy
+class ISCORE_LIB_DUMMYPROCESS_EXPORT DummyLayerPanelProxy final : public Process::LayerModelPanelProxy
 {
     public:
         explicit DummyLayerPanelProxy(
-                const LayerModel& vm,
+                const Process::LayerModel& vm,
                 QObject* parent);
 
-        const LayerModel& layer() override;
+        const Process::LayerModel& layer() override;
 
     private:
-        const LayerModel& m_layer;
+        const Process::LayerModel& m_layer;
 };

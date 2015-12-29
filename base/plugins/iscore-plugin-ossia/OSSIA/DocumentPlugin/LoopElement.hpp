@@ -4,10 +4,10 @@
 
 class ConstraintModel;
 class DeviceList;
-class Process;
+namespace Process { class ProcessModel; }
 class QObject;
 namespace Loop {
-class ProcessModel;
+namespace Process { class ProcessModel; }
 }  // namespace Loop
 namespace OSSIA {
 class Loop;
@@ -39,7 +39,7 @@ class LoopElement final : public ProcessElement
         std::shared_ptr<OSSIA::TimeProcess> OSSIAProcess() const override;
         std::shared_ptr<OSSIA::Loop> scenario() const;
 
-        Process& iscoreProcess() const override;
+        Process::ProcessModel& iscoreProcess() const override;
 
         void stop() override;
 

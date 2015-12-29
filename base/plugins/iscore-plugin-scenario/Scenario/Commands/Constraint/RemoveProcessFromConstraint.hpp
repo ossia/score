@@ -12,8 +12,8 @@
 class ConstraintModel;
 class DataStreamInput;
 class DataStreamOutput;
-class LayerModel;
-class Process;
+namespace Process { class LayerModel; }
+namespace Process { class ProcessModel; }
 
 namespace Scenario
 {
@@ -25,7 +25,7 @@ namespace Scenario
             public:
                 RemoveProcessFromConstraint(
                     Path<ConstraintModel>&& constraintPath,
-                    const Id<Process>& processId);
+                    const Id<Process::ProcessModel>& processId);
                 void undo() const override;
                 void redo() const override;
 
@@ -35,10 +35,10 @@ namespace Scenario
 
             private:
                 Path<ConstraintModel> m_path;
-                Id<Process> m_processId;
+                Id<Process::ProcessModel> m_processId;
 
                 QByteArray m_serializedProcessData;
-                QVector<QPair<Path<LayerModel>, QByteArray>> m_serializedViewModels;
+                QVector<QPair<Path<Process::LayerModel>, QByteArray>> m_serializedViewModels;
         };
     }
 }

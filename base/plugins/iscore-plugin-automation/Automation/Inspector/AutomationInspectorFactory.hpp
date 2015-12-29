@@ -17,9 +17,9 @@ class AutomationInspectorFactory final : public ProcessInspectorWidgetDelegateFa
 
     private:
         ProcessInspectorWidgetDelegate* make(
-                const Process&,
+                const Process::ProcessModel&,
                 const iscore::DocumentContext& doc,
                 QWidget* parent) const override;
-        bool matches(const Process&) const override;
+        bool matches(const Process::ProcessModel&) const override;
 
 };

@@ -24,7 +24,7 @@
 #include <iscore/tools/NotifyingMap.hpp>
 #include <iscore/tools/SettableIdentifier.hpp>
 
-class LayerModel;
+namespace Process { class LayerModel; }
 class SlotModel;
 namespace iscore {
 struct Address;
@@ -32,8 +32,8 @@ struct Address;
 
 CreateCurveFromStates::CreateCurveFromStates(
         Path<ConstraintModel>&& constraint,
-        const std::vector<std::pair<Path<SlotModel>, Id<LayerModel> > >& slotList,
-        const Id<Process>& curveId,
+        const std::vector<std::pair<Path<SlotModel>, Id<Process::LayerModel> > >& slotList,
+        const Id<Process::ProcessModel>& curveId,
         const iscore::Address& address,
         double start,
         double end,

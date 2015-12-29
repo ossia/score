@@ -1,23 +1,26 @@
 #pragma once
 #include <Process/ZoomHelper.hpp>
 #include <iscore/plugins/panel/PanelPresenter.hpp>
-
+namespace Process
+{
 class ProcessList;
 class LayerModel;
 class LayerPresenter;
 class LayerView;
+}
+
 class ProcessPanelGraphicsProxy;
 class QSize;
+
 namespace iscore {
 class PanelView;
-
 }  // namespace iscore
 
 class ProcessPanelPresenter final : public iscore::PanelPresenter
 {
     public:
         ProcessPanelPresenter(
-                const ProcessList& plist,
+                const Process::ProcessList& plist,
                 iscore::PanelView* view,
                 QObject* parent);
 
@@ -30,17 +33,17 @@ class ProcessPanelPresenter final : public iscore::PanelPresenter
         { return m_zoomRatio; }
 
     private:
-        void on_focusedViewModelChanged(const LayerModel*);
+        void on_focusedViewModelChanged(const Process::LayerModel*);
         void on_sizeChanged(const QSize& size);
         void on_zoomChanged(ZoomRatio ratio);
 
         void cleanup();
 
-        const ProcessList& m_processList;
+        const Process::ProcessList& m_processList;
         ProcessPanelGraphicsProxy* m_obj{};
-        const LayerModel* m_layerModel{};
-        LayerPresenter* m_processPresenter{};
-        LayerView* m_layer{};
+        const Process::LayerModel* m_layerModel{};
+        Process::LayerPresenter* m_processPresenter{};
+        Process::LayerView* m_layer{};
 
         ZoomRatio m_zoomRatio{};
 };

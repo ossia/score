@@ -120,7 +120,7 @@ LoopInspectorFactory::~LoopInspectorFactory()
 }
 
 ProcessInspectorWidgetDelegate* LoopInspectorFactory::make(
-        const Process& process,
+        const Process::ProcessModel& process,
         const iscore::DocumentContext& doc,
         QWidget* parent) const
 {
@@ -130,7 +130,7 @@ ProcessInspectorWidgetDelegate* LoopInspectorFactory::make(
                 parent};
 }
 
-bool LoopInspectorFactory::matches(const Process& process) const
+bool LoopInspectorFactory::matches(const Process::ProcessModel& process) const
 {
     return dynamic_cast<const Loop::ProcessModel*>(&process);
 }

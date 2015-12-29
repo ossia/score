@@ -2,31 +2,31 @@
 #include <Process/ProcessFactory.hpp>
 namespace Space
 {
-class ProcessFactory : public ::ProcessFactory
+class ProcessFactory : public Process::ProcessFactory
 {
     public:
         const ProcessFactoryKey& key_impl() const override;
         QString prettyName() const override;
 
-        ::Process* makeModel(
+        Process::ProcessModel* makeModel(
                 const TimeValue &duration,
-                const Id<::Process> &id,
+                const Id<Process::ProcessModel> &id,
                 QObject *parent) override;
 
-        ::Process* loadModel(
+        Process::ProcessModel* loadModel(
                 const VisitorVariant &,
                 QObject *parent) override;
 
 
         QByteArray makeStaticLayerConstructionData() const override;
 
-        LayerPresenter* makeLayerPresenter(
-                const ::LayerModel &,
-                LayerView *,
+        Process::LayerPresenter* makeLayerPresenter(
+                const Process::LayerModel &,
+                Process::LayerView *,
                 QObject *parent) override;
 
-        LayerView* makeLayerView(
-                const ::LayerModel &view,
+        Process::LayerView* makeLayerView(
+                const Process::LayerModel &view,
                 QGraphicsItem *parent) override;
 };
 }

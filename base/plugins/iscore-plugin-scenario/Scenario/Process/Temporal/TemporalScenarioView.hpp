@@ -12,7 +12,8 @@ class QMimeData;
 class QPainter;
 class TemporalScenarioPresenter;
 
-class TemporalScenarioView final : public LayerView
+class TemporalScenarioView final :
+        public Process::LayerView
 {
         Q_OBJECT
 

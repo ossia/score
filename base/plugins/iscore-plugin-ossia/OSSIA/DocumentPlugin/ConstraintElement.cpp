@@ -96,7 +96,7 @@ void ConstraintElement::stop()
 void ConstraintElement::executionStarted()
 {
     m_iscore_constraint.duration.setPlayPercentage(0);
-    for(Process& proc : m_iscore_constraint.processes)
+    for(Process::ProcessModel& proc : m_iscore_constraint.processes)
     {
         proc.startExecution();
     }
@@ -104,19 +104,19 @@ void ConstraintElement::executionStarted()
 
 void ConstraintElement::executionStopped()
 {
-    for(Process& proc : m_iscore_constraint.processes)
+    for(Process::ProcessModel& proc : m_iscore_constraint.processes)
     {
         proc.stopExecution();
     }
 }
 
 void ConstraintElement::on_processAdded(
-        const Process& iscore_proc) // TODO ProcessExecutionView
+        const Process::ProcessModel& iscore_proc) // TODO ProcessExecutionView
 {
     // The DocumentPlugin creates the elements in the processes.
     // TODO maybe have an execution_view template on processes, that
     // gives correct const / non_const access ?
-    auto proc = const_cast<Process*>(&iscore_proc);
+    auto proc = const_cast<Process::ProcessModel*>(&iscore_proc);
     ProcessElement* plug{};
     if(auto scenar = dynamic_cast<Scenario::ScenarioModel*>(proc))
     {

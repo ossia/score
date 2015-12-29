@@ -13,7 +13,7 @@
 #include <iscore/plugins/documentdelegate/plugin/ElementPluginModelList.hpp>
 #include <iscore/tools/SettableIdentifier.hpp>
 
-class LayerModel;
+namespace Process { class LayerModel; }
 class Process;
 class ProcessStateDataInterface;
 class QObject;

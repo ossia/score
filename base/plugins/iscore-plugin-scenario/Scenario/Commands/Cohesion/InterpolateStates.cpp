@@ -79,7 +79,7 @@ void InterpolateStates(const QList<const ConstraintModel*>& selected_constraints
                 auto has_existing_curve = std::find_if(
                             constraint->processes.begin(),
                             constraint->processes.end(),
-                            [&] (const Process& proc) {
+                            [&] (const Process::ProcessModel& proc) {
                     auto ptr = dynamic_cast<const AutomationModel*>(&proc);
                     if(ptr && ptr->address() == message.address)
                         return true;
@@ -96,7 +96,7 @@ void InterpolateStates(const QList<const ConstraintModel*>& selected_constraints
         if(!matchingMessages.empty())
         {
             // Generate brand new ids for the processes
-            auto process_ids = getStrongIdRange<Process>(matchingMessages.size(), constraint->processes);
+            auto process_ids = getStrongIdRange<Process::ProcessModel>(matchingMessages.size(), constraint->processes);
             auto macro_tuple = makeAddProcessMacro(*constraint, matchingMessages.size());
             auto macro = std::get<0>(macro_tuple);
             auto& bigLayerVec = std::get<1>(macro_tuple);

@@ -7,7 +7,7 @@
 #include <iscore/serialization/VisitorCommon.hpp>
 
 
-class SimpleProcessFactory : public ProcessFactory
+class SimpleProcessFactory : public Process::ProcessFactory
 {
     public:
         QString prettyName() const override
@@ -19,9 +19,9 @@ class SimpleProcessFactory : public ProcessFactory
             return name;
         }
 
-        Process* makeModel(
+        Process::ProcessModel* makeModel(
                 const TimeValue& duration,
-                const Id<Process>& id,
+                const Id<Process::ProcessModel>& id,
                 QObject* parent) override
         {
             return new SimpleProcessModel{duration, id, parent};
@@ -32,22 +32,22 @@ class SimpleProcessFactory : public ProcessFactory
             return {};
         }
 
-        Process* loadModel(const VisitorVariant& vis, QObject* parent) override
+        Process::ProcessModel* loadModel(const VisitorVariant& vis, QObject* parent) override
         {
             return deserialize_dyn(vis, [&] (auto&& deserializer)
             { return new SimpleProcessModel{deserializer, parent};});
         }
 
-        LayerPresenter* makeLayerPresenter(
-                const LayerModel& model,
-                LayerView* v,
+        Process::LayerPresenter* makeLayerPresenter(
+                const Process::LayerModel& model,
+                Process::LayerView* v,
                 QObject* parent) override
         {
             return new DummyLayerPresenter{model, dynamic_cast<DummyLayerView*>(v), parent};
         }
 
-        LayerView* makeLayerView(
-                const LayerModel&,
+        Process::LayerView* makeLayerView(
+                const Process::LayerModel&,
                 QGraphicsItem* parent) override
         {
             return new DummyLayerView{parent};

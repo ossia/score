@@ -1,7 +1,7 @@
 #pragma once
 #include <Process/LayerView.hpp>
 
-class SpaceLayerView : public LayerView
+class SpaceLayerView : public Process::LayerView
 {
         Q_OBJECT
     public:

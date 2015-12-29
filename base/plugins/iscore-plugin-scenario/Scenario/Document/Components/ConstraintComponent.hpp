@@ -12,7 +12,7 @@ class ConstraintComponentHierarchyManager : public Nano::Observer
 {
     private:
         struct ProcessPair {
-                Process& process;
+                Process::ProcessModel& process;
                 ProcessComponent_T& component;
         };
 
@@ -44,7 +44,7 @@ class ConstraintComponentHierarchyManager : public Nano::Observer
                     &ConstraintComponentHierarchyManager::remove>(this);
         }
 
-        void add(Process& process)
+        void add(Process::ProcessModel& process)
         {
             // Will return a factory for the given process if available
             if(auto factory = m_componentFactory.factory(process, m_system, m_context))
@@ -62,7 +62,7 @@ class ConstraintComponentHierarchyManager : public Nano::Observer
             }
         }
 
-        void remove(const Process& process)
+        void remove(const Process::ProcessModel& process)
         {
             auto it = find_if(m_children, [&] (auto pair) {
                 return &pair.process == &process;

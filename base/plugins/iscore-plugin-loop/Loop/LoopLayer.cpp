@@ -11,7 +11,7 @@
 #include <iscore/tools/SettableIdentifier.hpp>
 
 class ConstraintViewModel;
-class LayerModelPanelProxy;
+namespace Process { class LayerModelPanelProxy; }
 class QObject;
 
 ISCORE_METADATA_IMPL(LoopLayer)
@@ -40,7 +40,7 @@ LoopLayer::LoopLayer(
                 this);
 }
 
-LayerModelPanelProxy* LoopLayer::make_panelProxy(
+Process::LayerModelPanelProxy* LoopLayer::make_panelProxy(
         QObject* parent) const
 {
     return new LoopPanelProxy{*this, parent};

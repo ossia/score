@@ -15,7 +15,7 @@ class Document;
 //using namespace iscore;
 
 ProcessInspectorWidgetDelegate* ScenarioInspectorFactory::make(
-        const Process& process,
+        const Process::ProcessModel& process,
         const iscore::DocumentContext&,
         QWidget* parent) const
 {
@@ -24,7 +24,7 @@ ProcessInspectorWidgetDelegate* ScenarioInspectorFactory::make(
                 parent};
 }
 
-bool ScenarioInspectorFactory::matches(const Process& process) const
+bool ScenarioInspectorFactory::matches(const Process::ProcessModel& process) const
 {
     return dynamic_cast<const Scenario::ScenarioModel*>(&process);
 }

@@ -8,7 +8,9 @@
 #include <Process/State/ProcessStateDataInterface.hpp>
 #include <iscore/tools/std/Algorithms.hpp>
 
-static void AddProcessBeforeState(StateModel& statemodel, const Process& proc)
+static void AddProcessBeforeState(
+        StateModel& statemodel,
+        const Process::ProcessModel& proc)
 {
     // TODO this should be fused with the notion of State Process.
     ProcessStateDataInterface* state = proc.endStateData();
@@ -44,7 +46,7 @@ static void AddProcessBeforeState(StateModel& statemodel, const Process& proc)
     emit statemodel.sig_statesUpdated();
 }
 
-static void AddProcessAfterState(StateModel& statemodel, const Process& proc)
+static void AddProcessAfterState(StateModel& statemodel, const Process::ProcessModel& proc)
 {
     ProcessStateDataInterface* state = proc.startStateData();
     if(!state)
@@ -74,7 +76,7 @@ static void AddProcessAfterState(StateModel& statemodel, const Process& proc)
 
 }
 
-static void RemoveProcessBeforeState(StateModel& statemodel, const Process& proc)
+static void RemoveProcessBeforeState(StateModel& statemodel, const Process::ProcessModel& proc)
 {
     ProcessStateDataInterface* state = proc.endStateData();
     if(!state)
@@ -91,7 +93,7 @@ static void RemoveProcessBeforeState(StateModel& statemodel, const Process& proc
     statemodel.previousProcesses().erase(it);
 }
 
-static void RemoveProcessAfterState(StateModel& statemodel, const Process& proc)
+static void RemoveProcessAfterState(StateModel& statemodel, const Process::ProcessModel& proc)
 {
     ProcessStateDataInterface* state = proc.startStateData();
     if(!state)
@@ -108,7 +110,7 @@ static void RemoveProcessAfterState(StateModel& statemodel, const Process& proc)
     statemodel.followingProcesses().erase(it);
 }
 
-void AddProcess(ConstraintModel& constraint, Process* proc)
+void AddProcess(ConstraintModel& constraint, Process::ProcessModel* proc)
 {
     constraint.processes.add(proc);
 
@@ -117,7 +119,7 @@ void AddProcess(ConstraintModel& constraint, Process* proc)
     AddProcessBeforeState(endState(constraint, scenar), *proc);
 }
 
-void RemoveProcess(ConstraintModel& constraint, const Id<Process>& proc_id)
+void RemoveProcess(ConstraintModel& constraint, const Id<Process::ProcessModel>& proc_id)
 {
     const auto& proc = constraint.processes.at(proc_id);
     const auto& scenar = *dynamic_cast<ScenarioInterface*>(constraint.parent());

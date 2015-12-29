@@ -10,11 +10,11 @@
 #include <core/document/Document.hpp>
 #include <QMainWindow>
 SpaceLayerPresenter::SpaceLayerPresenter(
-        const LayerModel& model,
-        LayerView* view,
+        const Process::LayerModel& model,
+        Process::LayerView* view,
         QObject* parent):
     LayerPresenter{"LayerPresenter", parent},
-    m_model{static_cast<const LayerModel&>(model)},
+    m_model{static_cast<const Space::LayerModel&>(model)},
     m_view{static_cast<SpaceLayerView*>(view)},
     m_ctx{iscore::IDocument::documentContext(m_model.processModel())},
     m_focusDispatcher{m_ctx.document}
@@ -89,12 +89,12 @@ void SpaceLayerPresenter::parentGeometryChanged()
     update();
 }
 
-const LayerModel &SpaceLayerPresenter::layerModel() const
+const Process::LayerModel &SpaceLayerPresenter::layerModel() const
 {
     return m_model;
 }
 
-const Id<Process> &SpaceLayerPresenter::modelId() const
+const Id<Process::ProcessModel> &SpaceLayerPresenter::modelId() const
 {
     return m_model.processModel().id();
 }

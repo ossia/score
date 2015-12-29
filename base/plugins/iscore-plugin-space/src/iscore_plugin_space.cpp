@@ -24,7 +24,7 @@ std::vector<std::unique_ptr<iscore::FactoryInterfaceBase>> iscore_plugin_space::
         const iscore::ApplicationContext& ctx,
         const iscore::FactoryBaseKey& factoryName) const
 {
-    if(factoryName == ProcessFactory::staticFactoryKey())
+    if(factoryName == Process::ProcessFactory::staticFactoryKey())
     {
         return make_ptr_vector<iscore::FactoryInterfaceBase,
                 Space::ProcessFactory>();

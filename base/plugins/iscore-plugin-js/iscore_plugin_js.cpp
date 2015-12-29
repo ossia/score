@@ -23,7 +23,7 @@ std::vector<std::unique_ptr<iscore::FactoryInterfaceBase>> iscore_plugin_js::fac
     return instantiate_factories<
             iscore::ApplicationContext,
     TL<
-        FW<ProcessFactory,
+        FW<Process::ProcessFactory,
              JSProcessFactory>,
         FW<ProcessInspectorWidgetDelegateFactory,
              JSInspectorFactory>

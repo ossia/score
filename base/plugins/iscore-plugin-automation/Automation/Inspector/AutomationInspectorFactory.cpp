@@ -12,7 +12,7 @@ class Document;
 }
 
 ProcessInspectorWidgetDelegate* AutomationInspectorFactory::make(
-        const Process& process,
+        const Process::ProcessModel& process,
         const iscore::DocumentContext& doc,
         QWidget* parent) const
 {
@@ -20,7 +20,7 @@ ProcessInspectorWidgetDelegate* AutomationInspectorFactory::make(
         static_cast<const AutomationModel&>(process), doc, parent};
 }
 
-bool AutomationInspectorFactory::matches(const Process& process) const
+bool AutomationInspectorFactory::matches(const Process::ProcessModel& process) const
 {
     return dynamic_cast<const AutomationModel*>(&process);
 }

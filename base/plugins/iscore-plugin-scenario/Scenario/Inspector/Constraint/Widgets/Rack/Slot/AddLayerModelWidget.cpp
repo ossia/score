@@ -59,7 +59,7 @@ AddLayerModelWidget::AddLayerModelWidget(SlotInspectorSection* parentSlot) :
             auto end_it = already_displayed_processes.cend();
             auto it = std::find_if(beg_it,
                                    end_it,
-                                   [&process](const LayerModel& lm)
+                                   [&process](const Process::LayerModel& lm)
             { return lm.processModel().id() == process.id(); });
 
             if(it == end_it)
@@ -85,7 +85,7 @@ AddLayerModelWidget::AddLayerModelWidget(SlotInspectorSection* parentSlot) :
                         &ok);
 
             if(ok)
-                parentSlot->createLayerModel(Id<Process> {available_models[process_name] });
+                parentSlot->createLayerModel(Id<Process::ProcessModel> {available_models[process_name] });
         }
     });
 }

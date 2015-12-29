@@ -9,14 +9,16 @@ namespace Space
 {
 
 
-Process::Process(ProcessModel& process):
+ProcessExecutor::ProcessExecutor(ProcessModel& process):
 m_process{process}
 {
 
 }
 
 
-std::shared_ptr<OSSIA::StateElement> Process::state(const OSSIA::TimeValue&, const OSSIA::TimeValue&)
+std::shared_ptr<OSSIA::StateElement> ProcessExecutor::state(
+        const OSSIA::TimeValue&,
+        const OSSIA::TimeValue&)
 {
     auto& devlist = m_process.context().devices.list();
 
@@ -68,14 +70,14 @@ std::shared_ptr<OSSIA::StateElement> Process::state(const OSSIA::TimeValue&, con
 ProcessModel::ProcessModel(
         const iscore::DocumentContext& doc,
         const TimeValue &duration,
-        const Id<::Process> &id,
+        const Id<Process::ProcessModel> &id,
         QObject *parent):
     RecreateOnPlay::OSSIAProcessModel{id, ProcessMetadata::processObjectName(), parent},
     m_space{new SpaceModel{
             Id<SpaceModel>(0),
             this}},
     m_context{doc, *m_space, doc.plugin<DeviceDocumentPlugin>()},
-    m_process{std::make_shared<Space::Process>(*this)}
+    m_process{std::make_shared<Space::ProcessExecutor>(*this)}
 {
     using namespace GiNaC;
     using namespace spacelib;
@@ -149,7 +151,9 @@ std::shared_ptr<TimeProcessWithConstraint> ProcessModel::process() const
 }
 
 
-ProcessModel *ProcessModel::clone(const Id<Process> &newId, QObject *newParent) const
+ProcessModel *ProcessModel::clone(
+        const Id<Process::ProcessModel> &newId,
+        QObject *newParent) const
 {
     auto& doc = iscore::IDocument::documentContext(*newParent);
     return new ProcessModel{doc, this->duration(), newId, newParent};
@@ -235,15 +239,15 @@ void ProcessModel::removeArea(const Id<AreaModel> &id)
 
 }
 
-::LayerModel *ProcessModel::makeLayer_impl(
-        const Id<::LayerModel> &viewModelId,
+Process::LayerModel *ProcessModel::makeLayer_impl(
+        const Id<Process::LayerModel> &viewModelId,
         const QByteArray &constructionData,
         QObject *parent)
 {
     return new LayerModel{viewModelId, *this, parent};
 }
 
-::LayerModel *ProcessModel::loadLayer_impl(
+Process::LayerModel *ProcessModel::loadLayer_impl(
         const VisitorVariant &,
         QObject *parent)
 {
@@ -251,9 +255,9 @@ void ProcessModel::removeArea(const Id<AreaModel> &id)
     return nullptr;
 }
 
-::LayerModel *ProcessModel::cloneLayer_impl(
-        const Id<::LayerModel> &newId,
-        const ::LayerModel &source,
+Process::LayerModel *ProcessModel::cloneLayer_impl(
+        const Id<Process::LayerModel> &newId,
+        const Process::LayerModel &source,
         QObject *parent)
 {
     ISCORE_TODO;

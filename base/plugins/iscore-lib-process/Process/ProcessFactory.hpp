@@ -5,16 +5,18 @@
 #include <QByteArray>
 #include <QString>
 #include <iscore_lib_process_export.h>
+#include <iscore/tools/SettableIdentifier.hpp>
 
-class LayerModel;
-class LayerPresenter;
-class LayerView;
-class Process;
 class QGraphicsItem;
 class QObject;
 struct VisitorVariant;
-#include <iscore/tools/SettableIdentifier.hpp>
 
+namespace Process
+{
+class LayerModel;
+class LayerPresenter;
+class LayerView;
+class ProcessModel;
 
 /**
      * @brief The ProcessFactory class
@@ -31,9 +33,9 @@ class ISCORE_LIB_PROCESS_EXPORT ProcessFactory :
         virtual ~ProcessFactory();
         virtual QString prettyName() const = 0;
 
-        virtual Process* makeModel(
+        virtual ProcessModel* makeModel(
                 const TimeValue& duration,
-                const Id<Process>& id,
+                const Id<ProcessModel>& id,
                 QObject* parent) = 0;
 
         // The layers may need some specific static data to construct,
@@ -41,7 +43,7 @@ class ISCORE_LIB_PROCESS_EXPORT ProcessFactory :
         virtual QByteArray makeStaticLayerConstructionData() const = 0;
 
         // throws if the serialization method is not implemented by the subclass
-        virtual Process* loadModel(
+        virtual ProcessModel* loadModel(
                 const VisitorVariant&,
                 QObject* parent) = 0;
 
@@ -56,3 +58,4 @@ class ISCORE_LIB_PROCESS_EXPORT ProcessFactory :
                 const LayerModel& view,
                 QGraphicsItem* parent) = 0;
 };
+}

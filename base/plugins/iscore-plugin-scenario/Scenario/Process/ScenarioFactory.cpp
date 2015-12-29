@@ -18,7 +18,7 @@
 
 class ConstraintModel;
 class ConstraintViewModel;
-class LayerPresenter;
+namespace Process { class LayerPresenter; }
 class LayerView;
 class QGraphicsItem;
 class QObject;
@@ -29,8 +29,8 @@ ScenarioFactory::ScenarioFactory(Scenario::EditionSettings& e):
 
 }
 
-LayerView* ScenarioFactory::makeLayerView(
-        const LayerModel& viewmodel,
+Process::LayerView* ScenarioFactory::makeLayerView(
+        const Process::LayerModel& viewmodel,
         QGraphicsItem* parent)
 {
     if(dynamic_cast<const TemporalScenarioLayerModel*>(&viewmodel))
@@ -39,10 +39,10 @@ LayerView* ScenarioFactory::makeLayerView(
     return nullptr;
 }
 
-LayerPresenter*
+Process::LayerPresenter*
 ScenarioFactory::makeLayerPresenter(
-        const LayerModel& lm,
-        LayerView* view,
+        const Process::LayerModel& lm,
+        Process::LayerView* view,
         QObject* parent)
 {
     if(auto vm = dynamic_cast<const TemporalScenarioLayerModel*>(&lm))
@@ -69,9 +69,9 @@ QString ScenarioFactory::prettyName() const
     return ScenarioProcessMetadata::factorydescription();
 }
 
-Process* ScenarioFactory::makeModel(
+Process::ProcessModel* ScenarioFactory::makeModel(
         const TimeValue& duration,
-        const Id<Process>& id,
+        const Id<Process::ProcessModel>& id,
         QObject* parent)
 {
     return new Scenario::ScenarioModel {duration, id, parent};

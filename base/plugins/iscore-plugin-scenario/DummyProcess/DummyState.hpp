@@ -8,7 +8,7 @@
 #include <iscore_lib_dummyprocess_export.h>
 
 
-class Process;
+namespace Process { class ProcessModel; }
 class QObject;
 namespace iscore {
 struct Address;
@@ -17,7 +17,7 @@ struct Address;
 class ISCORE_LIB_DUMMYPROCESS_EXPORT DummyState final : public ProcessStateDataInterface
 {
     public:
-        DummyState(Process& model, QObject* parent);
+        DummyState(Process::ProcessModel& model, QObject* parent);
         QString stateName() const override;
         ProcessStateDataInterface* clone(QObject* parent) const override;
 

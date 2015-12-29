@@ -36,12 +36,12 @@ class ConstraintComponent final :
         ProcessComponent* make_processComponent(
                 const Id<Component> & id,
                 ProcessComponentFactory& factory,
-                Process &process,
+                Process::ProcessModel &process,
                 const DocumentPlugin &system,
                 const iscore::DocumentContext &ctx,
                 QObject *parent_component);
 
-        void removing(const Process& cst, const ProcessComponent& comp);
+        void removing(const Process::ProcessModel& cst, const ProcessComponent& comp);
 
         auto& node() const
         { return m_thisNode.node; }

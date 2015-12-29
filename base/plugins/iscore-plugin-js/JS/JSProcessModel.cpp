@@ -11,8 +11,8 @@
 #include <iscore/plugins/documentdelegate/plugin/ElementPluginModelList.hpp>
 #include <iscore/serialization/VisitorCommon.hpp>
 
-class LayerModel;
-class Process;
+namespace Process { class LayerModel; }
+namespace Process { class ProcessModel; }
 class ProcessStateDataInterface;
 class QObject;
 #include <iscore/tools/SettableIdentifier.hpp>
@@ -26,7 +26,7 @@ std::shared_ptr<JSProcess> ProcessModel::makeProcess() const
 
 ProcessModel::ProcessModel(
         const TimeValue& duration,
-        const Id<Process>& id,
+        const Id<Process::ProcessModel>& id,
         QObject* parent):
     OSSIAProcessModel{duration, id, JSProcessMetadata::processObjectName(), parent},
     m_ossia_process{makeProcess()}
@@ -45,7 +45,7 @@ ProcessModel::ProcessModel(
 
 ProcessModel::ProcessModel(
         const ProcessModel& source,
-        const Id<Process>& id,
+        const Id<Process::ProcessModel>& id,
         QObject* parent):
     OSSIAProcessModel{source.duration(), id, JSProcessMetadata::processObjectName(), parent},
     m_ossia_process{makeProcess()},
@@ -63,8 +63,8 @@ void ProcessModel::setScript(const QString& script)
     emit scriptChanged(script);
 }
 
-ProcessModel* ProcessModel::clone(
-        const Id<Process>& newId,
+Process::ProcessModel* ProcessModel::clone(
+        const Id<Process::ProcessModel>& newId,
         QObject* newParent) const
 {
     return new ProcessModel{*this, newId, newParent};
@@ -136,8 +136,8 @@ void ProcessModel::serialize(const VisitorVariant& s) const
     serialize_dyn(s, *this);
 }
 
-LayerModel* ProcessModel::makeLayer_impl(
-        const Id<LayerModel>& viewModelId,
+Process::LayerModel* ProcessModel::makeLayer_impl(
+        const Id<Process::LayerModel>& viewModelId,
         const QByteArray& constructionData,
         QObject* parent)
 {
@@ -146,7 +146,7 @@ LayerModel* ProcessModel::makeLayer_impl(
     return lay;
 }
 
-LayerModel* ProcessModel::loadLayer_impl(
+Process::LayerModel* ProcessModel::loadLayer_impl(
         const VisitorVariant& vis,
         QObject* parent)
 {
@@ -159,9 +159,9 @@ LayerModel* ProcessModel::loadLayer_impl(
     });
 }
 
-LayerModel* ProcessModel::cloneLayer_impl(
-        const Id<LayerModel>& newId,
-        const LayerModel& source,
+Process::LayerModel* ProcessModel::cloneLayer_impl(
+        const Id<Process::LayerModel>& newId,
+        const Process::LayerModel& source,
         QObject* parent)
 {
     auto lay = new DummyLayerModel{safe_cast<const DummyLayerModel&>(source), *this, newId, parent};

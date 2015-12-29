@@ -11,7 +11,7 @@
 #include <iscore/serialization/VisitorCommon.hpp>
 
 
-class LoopProcessFactory final : public ProcessFactory
+class LoopProcessFactory final : public Process::ProcessFactory
 {
     public:
         QString prettyName() const override
@@ -25,9 +25,9 @@ class LoopProcessFactory final : public ProcessFactory
         }
 
 
-        Process* makeModel(
+        Process::ProcessModel* makeModel(
                 const TimeValue& duration,
-                const Id<Process>& id,
+                const Id<Process::ProcessModel>& id,
                 QObject* parent) override
         {
             return new Loop::ProcessModel{duration, id, parent};
@@ -38,15 +38,15 @@ class LoopProcessFactory final : public ProcessFactory
             return {};
         }
 
-        Process* loadModel(const VisitorVariant& vis, QObject* parent) override
+        Process::ProcessModel* loadModel(const VisitorVariant& vis, QObject* parent) override
         {
             return deserialize_dyn(vis, [&] (auto&& deserializer)
             { return new Loop::ProcessModel{deserializer, parent};});
         }
 
-        LayerPresenter* makeLayerPresenter(
-                const LayerModel& model,
-                LayerView* v,
+        Process::LayerPresenter* makeLayerPresenter(
+                const Process::LayerModel& model,
+                Process::LayerView* v,
                 QObject* parent) override
         {
             return new LoopPresenter{
@@ -56,8 +56,8 @@ class LoopProcessFactory final : public ProcessFactory
                         parent};
         }
 
-        LayerView* makeLayerView(
-                const LayerModel&,
+        Process::LayerView* makeLayerView(
+                const Process::LayerModel&,
                 QGraphicsItem* parent) override
         {
             return new LoopView{parent};

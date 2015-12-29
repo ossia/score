@@ -18,7 +18,7 @@
 #include <iscore/serialization/JSONVisitor.hpp>
 #include <iscore/tools/SettableIdentifier.hpp>
 
-class Process;
+namespace Process { class ProcessModel; }
 namespace boost {
 template <class T> class optional;
 }  // namespace boost
@@ -115,7 +115,7 @@ void Visitor<Reader<JSONObject>>::readFrom(const ProcessStateData& val)
 template<>
 void Visitor<Writer<JSONObject>>::writeTo(ProcessStateData& val)
 {
-    val.process = fromJsonValue<Id<Process>>(m_obj["Process"]);
+    val.process = fromJsonValue<Id<Process::ProcessModel>>(m_obj["Process"]);
     fromJsonValue(m_obj, "Value", val.value);
 }
 

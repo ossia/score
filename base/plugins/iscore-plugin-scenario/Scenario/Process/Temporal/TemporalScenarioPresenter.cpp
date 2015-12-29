@@ -55,7 +55,7 @@ TemporalScenarioPresenter::TemporalScenarioPresenter(
         const iscore::DocumentContext& context,
         Scenario::EditionSettings& e,
         const TemporalScenarioLayerModel& process_view_model,
-        LayerView* view,
+        Process::LayerView* view,
         QObject* parent) :
     LayerPresenter {"TemporalScenarioPresenter", parent},
     m_layer {process_view_model},
@@ -138,7 +138,7 @@ TemporalScenarioPresenter::TemporalScenarioPresenter(
     con(model(m_layer), &Scenario::ScenarioModel::unlocked,
             m_view,     &TemporalScenarioView::unlock);
 
-    connect(&layerModel().processModel(), &Process::execution,
+    connect(&layerModel().processModel(), &Process::ProcessModel::execution,
             this, [&] (bool b) {
                 if(b) {
                     editionSettings().setTool(
@@ -162,12 +162,12 @@ TemporalScenarioPresenter::~TemporalScenarioPresenter()
     deleteGraphicsObject(m_view);
 }
 
-const LayerModel& TemporalScenarioPresenter::layerModel() const
+const Process::LayerModel& TemporalScenarioPresenter::layerModel() const
 {
     return m_layer;
 }
 
-const Id<Process>& TemporalScenarioPresenter::modelId() const
+const Id<Process::ProcessModel>& TemporalScenarioPresenter::modelId() const
 {
     return m_layer.processModel().id();
 }

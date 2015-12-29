@@ -9,8 +9,8 @@
 #include <iscore_plugin_scenario_export.h>
 class DataStreamInput;
 class DataStreamOutput;
-class LayerModel;
-class Process;
+namespace Process { class LayerModel; }
+namespace Process { class ProcessModel; }
 class SlotModel;
 
 namespace Scenario
@@ -29,18 +29,18 @@ namespace Scenario
                 // Use this constructor when the process already exists
                 AddLayerModelToSlot(
                     Path<SlotModel>&& slot,
-                    Path<Process>&& process);
+                    Path<Process::ProcessModel>&& process);
 
                 // Use this constructor when the process isn't created yet
                 AddLayerModelToSlot(
                     Path<SlotModel>&& slot,
-                    Path<Process>&& process,
+                    Path<Process::ProcessModel>&& process,
                     const QByteArray& processConstructionData);
 
                 AddLayerModelToSlot(
                         Path<SlotModel>&& slot,
-                        const Id<LayerModel>& layerid,
-                        Path<Process>&& process,
+                        const Id<Process::LayerModel>& layerid,
+                        Path<Process::ProcessModel>&& process,
                         const QByteArray& processConstructionData);
 
                 void undo() const override;
@@ -52,11 +52,11 @@ namespace Scenario
 
             private:
                 Path<SlotModel> m_slotPath;
-                Path<Process> m_processPath;
+                Path<Process::ProcessModel> m_processPath;
 
                 QByteArray m_processData;
 
-                Id<LayerModel> m_createdLayerId {};
+                Id<Process::LayerModel> m_createdLayerId {};
         };
     }
 }

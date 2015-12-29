@@ -7,9 +7,11 @@
 #include <Scenario/Palette/ScenarioPoint.hpp>
 #include <iscore_plugin_scenario_export.h>
 
+namespace Process {
 class LayerPresenter;
-class ObjectMenuActions;
 class ProcessFocusManager;
+}
+class ObjectMenuActions;
 class QAction;
 class ScenarioActions;
 class TemporalScenarioPresenter;
@@ -49,7 +51,7 @@ class ISCORE_PLUGIN_SCENARIO_EXPORT ScenarioApplicationPlugin final :
         Scenario::EditionSettings& editionSettings()
         { return m_editionSettings; }
 
-        ProcessFocusManager* processFocusManager() const;
+        Process::ProcessFocusManager* processFocusManager() const;
 
     signals:
         void keyPressed(int);
@@ -80,6 +82,6 @@ class ISCORE_PLUGIN_SCENARIO_EXPORT ScenarioApplicationPlugin final :
         QAction *m_selectAll{};
         QAction *m_deselectAll{};
 
-        void on_presenterFocused(LayerPresenter* lm);
-        void on_presenterDefocused(LayerPresenter* lm);
+        void on_presenterFocused(Process::LayerPresenter* lm);
+        void on_presenterDefocused(Process::LayerPresenter* lm);
 };

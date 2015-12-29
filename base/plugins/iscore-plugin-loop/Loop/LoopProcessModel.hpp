@@ -14,7 +14,7 @@
 class ConstraintModel;
 class DataStream;
 class JSONObject;
-class LayerModel;
+namespace Process { class LayerModel; }
 class ProcessStateDataInterface;
 class QObject;
 class TimeNodeModel;
@@ -23,7 +23,9 @@ class TimeNodeModel;
 
 namespace Loop
 {
-class ISCORE_PLUGIN_LOOP_EXPORT ProcessModel final : public Process, public BaseScenarioContainer
+class ISCORE_PLUGIN_LOOP_EXPORT ProcessModel final :
+        public Process::ProcessModel,
+        public BaseScenarioContainer
 {
         ISCORE_METADATA(Loop::ProcessModel)
         ISCORE_SERIALIZE_FRIENDS(Loop::ProcessModel, DataStream)
@@ -32,19 +34,19 @@ class ISCORE_PLUGIN_LOOP_EXPORT ProcessModel final : public Process, public Base
     public:
         explicit ProcessModel(
                 const TimeValue& duration,
-                const Id<Process>& id,
+                const Id<Process::ProcessModel>& id,
                 QObject* parentObject);
 
         explicit ProcessModel(
-                const ProcessModel& source,
-                const Id<Process>& id,
+                const Loop::ProcessModel& source,
+                const Id<Process::ProcessModel>& id,
                 QObject* parentObject);
 
         template<typename Impl>
         explicit ProcessModel(
                 Deserializer<Impl>& vis,
                 QObject* parent) :
-            Process{vis, parent},
+            Process::ProcessModel{vis, parent},
             BaseScenarioContainer{this}
         {
             vis.writeTo(*this);
@@ -55,7 +57,7 @@ class ISCORE_PLUGIN_LOOP_EXPORT ProcessModel final : public Process, public Base
 
         // Process interface
         ProcessModel* clone(
-                const Id<Process>& newId,
+                const Id<Process::ProcessModel>& newId,
                 QObject* newParent) const override;
 
         const ProcessFactoryKey& key() const override
@@ -84,9 +86,17 @@ class ISCORE_PLUGIN_LOOP_EXPORT ProcessModel final : public Process, public Base
         void serialize(const VisitorVariant& vis) const override;
 
     protected:
-        LayerModel* makeLayer_impl(const Id<LayerModel>& viewModelId, const QByteArray& constructionData, QObject* parentObject) override;
-        LayerModel* loadLayer_impl(const VisitorVariant&, QObject* parentObject) override;
-        LayerModel* cloneLayer_impl(const Id<LayerModel>& newId, const LayerModel& source, QObject* parentObject) override;
+        Process::LayerModel* makeLayer_impl(
+                const Id<Process::LayerModel>& viewModelId,
+                const QByteArray& constructionData,
+                QObject* parentObject) override;
+        Process::LayerModel* loadLayer_impl(
+                const VisitorVariant&,
+                QObject* parentObject) override;
+        Process::LayerModel* cloneLayer_impl(
+                const Id<Process::LayerModel>& newId,
+                const Process::LayerModel& source,
+                QObject* parentObject) override;
 
 };
 

@@ -8,37 +8,38 @@
 #include <nano_signal_slot.hpp>
 #include <iscore/document/DocumentContext.hpp>
 
-class ProcessList;
 class QObject;
 class SlotModel;
 class SlotView;
 #include <iscore/tools/SettableIdentifier.hpp>
 #include <iscore_plugin_scenario_export.h>
-namespace iscore
+
+namespace Process
 {
-}
+class ProcessList;
+class LayerView;
 class LayerModel;
 class LayerPresenter;
-class LayerView;
+}
 class RackView;
 
 struct SlotProcessData
 {
-        using ProcessPair = std::pair<LayerPresenter*, LayerView*>;
+        using ProcessPair = std::pair<Process::LayerPresenter*, Process::LayerView*>;
 
         SlotProcessData() = default;
         SlotProcessData(const SlotProcessData&) = default;
         SlotProcessData(SlotProcessData&&) = default;
         SlotProcessData& operator=(const SlotProcessData&) = default;
         SlotProcessData& operator=(SlotProcessData&&) = default;
-        SlotProcessData(const LayerModel* m, std::vector<ProcessPair>&& procs):
+        SlotProcessData(const Process::LayerModel* m, std::vector<ProcessPair>&& procs):
             model(m),
             processes(std::move(procs))
         {
 
         }
 
-        const LayerModel* model{};
+        const Process::LayerModel* model{};
         std::vector<ProcessPair> processes;
 };
 
@@ -83,17 +84,17 @@ class ISCORE_PLUGIN_SCENARIO_EXPORT SlotPresenter final : public NamedObject, pu
 
     private:
         // From Model
-        void on_layerModelCreated(const LayerModel&);
-        void on_layerModelRemoved(const LayerModel&);
-        void on_layerModelPutToFront(const LayerModel&);
+        void on_layerModelCreated(const Process::LayerModel&);
+        void on_layerModelRemoved(const Process::LayerModel&);
+        void on_layerModelPutToFront(const Process::LayerModel&);
 
-        void on_layerModelCreated_impl(const LayerModel&);
+        void on_layerModelCreated_impl(const Process::LayerModel&);
 
         void updateProcesses();
         void updateProcessShape(const SlotProcessData&);
         void updateProcessesShape();
 
-        const ProcessList& m_processList;
+        const Process::ProcessList& m_processList;
         const SlotModel& m_model;
         SlotView* m_view{};
         std::vector<SlotProcessData> m_processes;

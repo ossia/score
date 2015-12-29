@@ -6,14 +6,17 @@
 #include "Area/AreaModel.hpp"
 #include "Area/AreaPresenter.hpp"
 class QMainWindow;
-class LayerView;
+namespace Process {
 class LayerModel;
+class LayerView;
+}
+
 class SpaceLayerView;
-class SpaceLayerPresenter : public LayerPresenter
+class SpaceLayerPresenter : public Process::LayerPresenter
 {
     public:
-        SpaceLayerPresenter(const LayerModel& model,
-                            LayerView* view,
+        SpaceLayerPresenter(const Process::LayerModel& model,
+                            Process::LayerView* view,
                             QObject* parent);
         ~SpaceLayerPresenter();
 
@@ -28,15 +31,15 @@ class SpaceLayerPresenter : public LayerPresenter
         void on_zoomRatioChanged(ZoomRatio) override;
         void parentGeometryChanged() override;
 
-        const LayerModel &layerModel() const override;
-        const Id<Process> &modelId() const override;
+        const Process::LayerModel &layerModel() const override;
+        const Id<Process::ProcessModel> &modelId() const override;
 
         void update();
 
     private:
         void on_areaAdded(const AreaModel&);
 
-        const LayerModel& m_model;
+        const Process::LayerModel& m_model;
         SpaceLayerView* m_view;
 
         const iscore::DocumentContext& m_ctx;

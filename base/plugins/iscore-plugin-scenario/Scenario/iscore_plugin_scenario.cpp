@@ -100,8 +100,8 @@ std::vector<iscore::PanelFactory*> iscore_plugin_scenario::panels()
 std::vector<std::unique_ptr<iscore::FactoryListInterface>> iscore_plugin_scenario::factoryFamilies()
 {
     return make_ptr_vector<iscore::FactoryListInterface,
-            ProcessList,
-            StateProcessList,
+            Process::ProcessList,
+            Process::StateProcessList,
             MoveEventList,
             ScenarioContextMenuPluginList,
             ConstraintInspectorDelegateFactoryList,
@@ -138,7 +138,7 @@ std::vector<std::unique_ptr<iscore::FactoryInterfaceBase>> iscore_plugin_scenari
     return instantiate_factories<
             iscore::ApplicationContext,
     TL<
-    FW<ProcessFactory,
+    FW<Process::ProcessFactory,
         ScenarioFactory>,
     FW<MoveEventFactoryInterface,
         MoveEventClassicFactory>,

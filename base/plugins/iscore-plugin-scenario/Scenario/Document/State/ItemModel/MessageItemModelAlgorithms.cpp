@@ -68,7 +68,7 @@ bool match(MessageNode& node, const iscore::Message& mess)
 void updateNode(
         QVector<ProcessStateData>& vec,
         const iscore::Value& val,
-        const Id<Process>& proc)
+        const Id<Process::ProcessModel>& proc)
 {
     for(ProcessStateData& data : vec)
     {
@@ -104,7 +104,7 @@ void rec_delete(MessageNode& node)
 // Returns true if this node is to be deleted.
 bool nodePruneAction_impl(
         MessageNode& node,
-        const Id<Process>& proc,
+        const Id<Process::ProcessModel>& proc,
         QVector<ProcessStateData>& vec,
         const QVector<ProcessStateData>& other_vec)
 {
@@ -145,7 +145,7 @@ bool nodePruneAction_impl(
 
 void nodePruneAction(
         MessageNode& node,
-        const Id<Process>& proc,
+        const Id<Process::ProcessModel>& proc,
         ProcessPosition pos
         )
 {
@@ -185,7 +185,7 @@ void nodePruneAction(
 void nodeInsertAction(
         MessageNode& node,
         iscore::MessageList& msg,
-        const Id<Process>& proc,
+        const Id<Process::ProcessModel>& proc,
         ProcessPosition pos
         )
 {
@@ -225,7 +225,7 @@ void nodeInsertAction(
 void rec_updateTree(
         MessageNode& node,
         iscore::MessageList& lst,
-        const Id<Process>& proc,
+        const Id<Process::ProcessModel>& proc,
         ProcessPosition pos)
 {
     // If the message is in the tree, we add the process value.
@@ -328,7 +328,7 @@ void updateTreeWithMessageList(
 void updateTreeWithMessageList(
         MessageNode& rootNode,
         iscore::MessageList lst,
-        const Id<Process>& proc,
+        const Id<Process::ProcessModel>& proc,
         ProcessPosition pos)
 {
     // We go through the tree.
@@ -371,7 +371,7 @@ void updateTreeWithMessageList(
 
 void rec_pruneTree(
         MessageNode& node,
-        const Id<Process>& proc,
+        const Id<Process::ProcessModel>& proc,
         ProcessPosition pos)
 {
     // If the message is in the tree, we add the process value.
@@ -388,7 +388,7 @@ void rec_pruneTree(
 
 void updateTreeWithRemovedProcess(
         MessageNode& rootNode,
-        const Id<Process>& proc,
+        const Id<Process::ProcessModel>& proc,
         ProcessPosition pos)
 {
     for(auto& child : rootNode)

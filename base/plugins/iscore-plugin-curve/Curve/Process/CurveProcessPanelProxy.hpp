@@ -3,7 +3,8 @@
 #include <iscore_plugin_curve_export.h>
 
 template<typename LayerModel_T>
-class ISCORE_PLUGIN_CURVE_EXPORT CurveProcessPanelProxy : public LayerModelPanelProxy
+class ISCORE_PLUGIN_CURVE_EXPORT CurveProcessPanelProxy :
+        public Process::LayerModelPanelProxy
 {
     public:
         CurveProcessPanelProxy(

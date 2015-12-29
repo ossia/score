@@ -57,7 +57,7 @@ class AddProcessToConstraintBase : public iscore::SerializableCommand
 
         const Path<ConstraintModel>& constraintPath() const
         { return m_addProcessCommand.constraintPath(); }
-        const Id<Process>& processId() const
+        const Id<Process::ProcessModel>& processId() const
         { return m_addProcessCommand.processId(); }
         const ProcessFactoryKey& processKey() const
         { return m_addProcessCommand.processKey(); }
@@ -89,7 +89,7 @@ class AddProcessToConstraint final : public AddProcessToConstraintBase
                 const ProcessFactoryKey& process) :
             AddProcessToConstraintBase{constraint, process}
         {
-            auto& fact = context.components.factory<ProcessList>();
+            auto& fact = context.components.factory<Process::ProcessList>();
             m_delegate.init(fact, constraint);
         }
 
@@ -157,11 +157,11 @@ class AddProcessDelegate<HasNoRacks>
 
         }
 
-        void init(const ProcessList& fact, const ConstraintModel& constraint)
+        void init(const Process::ProcessList& fact, const ConstraintModel& constraint)
         {
             m_createdRackId = getStrongId(constraint.racks);
             m_createdSlotId = Id<SlotModel>(iscore::id_generator::getFirstId());
-            m_createdLayerId = Id<LayerModel> (iscore::id_generator::getFirstId());
+            m_createdLayerId = Id<Process::LayerModel> (iscore::id_generator::getFirstId());
             m_layerConstructionData = fact.list().get(m_cmd.processKey())->makeStaticLayerConstructionData();
         }
 
@@ -174,7 +174,7 @@ class AddProcessDelegate<HasNoRacks>
             constraint.racks.remove(m_createdRackId);
         }
 
-        void redo(ConstraintModel& constraint, Process& proc) const
+        void redo(ConstraintModel& constraint, Process::ProcessModel& proc) const
         {
             // TODO refactor with AddRackToConstraint
             auto rack = new RackModel{m_createdRackId, &constraint};
@@ -218,7 +218,7 @@ class AddProcessDelegate<HasNoRacks>
     private:
         Id<RackModel> m_createdRackId;
         Id<SlotModel> m_createdSlotId;
-        Id<LayerModel> m_createdLayerId;
+        Id<Process::LayerModel> m_createdLayerId;
         QByteArray m_layerConstructionData;
 };
 
@@ -243,12 +243,12 @@ class AddProcessDelegate<HasNoSlots, HasRacks, NotBaseConstraint>
 
         }
 
-        void init(const ProcessList& fact, const ConstraintModel& constraint)
+        void init(const Process::ProcessList& fact, const ConstraintModel& constraint)
         {
             m_createdSlotId = Id<SlotModel>(iscore::id_generator::getFirstId());
 
             m_layerConstructionData = fact.list().get(m_cmd.processKey())->makeStaticLayerConstructionData();
-            m_createdLayerId = Id<LayerModel> (iscore::id_generator::getFirstId());
+            m_createdLayerId = Id<Process::LayerModel> (iscore::id_generator::getFirstId());
         }
 
         void undo(ConstraintModel& constraint) const
@@ -260,7 +260,7 @@ class AddProcessDelegate<HasNoSlots, HasRacks, NotBaseConstraint>
             firstRack.slotmodels.remove(m_createdSlotId);
         }
 
-        void redo(ConstraintModel& constraint, Process& proc) const
+        void redo(ConstraintModel& constraint, Process::ProcessModel& proc) const
         {
             ISCORE_ASSERT(!constraint.racks.empty());
             auto& firstRack = *constraint.racks.begin();
@@ -291,7 +291,7 @@ class AddProcessDelegate<HasNoSlots, HasRacks, NotBaseConstraint>
 
     private:
         Id<SlotModel> m_createdSlotId;
-        Id<LayerModel> m_createdLayerId;
+        Id<Process::LayerModel> m_createdLayerId;
         QByteArray m_layerConstructionData;
 };
 
@@ -316,7 +316,7 @@ class AddProcessDelegate<HasSlots, HasRacks, NotBaseConstraint>
 
         }
 
-        void init(const ProcessList& fact, const ConstraintModel& constraint)
+        void init(const Process::ProcessList& fact, const ConstraintModel& constraint)
         {
             ISCORE_ASSERT(!constraint.racks.empty());
             const auto& firstRack = *constraint.racks.begin();
@@ -339,7 +339,7 @@ class AddProcessDelegate<HasSlots, HasRacks, NotBaseConstraint>
             firstSlot.layers.remove(m_createdLayerId);
         }
 
-        void redo(ConstraintModel& constraint, Process& proc) const
+        void redo(ConstraintModel& constraint, Process::ProcessModel& proc) const
         {
             ISCORE_ASSERT(!constraint.racks.empty());
             const auto& firstRack = *constraint.racks.begin();
@@ -363,7 +363,7 @@ class AddProcessDelegate<HasSlots, HasRacks, NotBaseConstraint>
         }
 
     private:
-        Id<LayerModel> m_createdLayerId;
+        Id<Process::LayerModel> m_createdLayerId;
         QByteArray m_layerConstructionData;
 };
 
@@ -385,7 +385,7 @@ class AddProcessDelegate<HasRacks, IsBaseConstraint>
 
         }
 
-        void init(const ProcessList& fact, const ConstraintModel& constraint)
+        void init(const Process::ProcessList& fact, const ConstraintModel& constraint)
         {
             // Base constraint : add in new slot?
         }
@@ -395,7 +395,7 @@ class AddProcessDelegate<HasRacks, IsBaseConstraint>
 
         }
 
-        void redo(ConstraintModel& constraint, Process& proc) const
+        void redo(ConstraintModel& constraint, Process::ProcessModel& proc) const
         {
 
         }

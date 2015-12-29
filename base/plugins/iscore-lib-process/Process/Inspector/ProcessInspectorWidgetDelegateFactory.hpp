@@ -1,7 +1,7 @@
 #pragma once
 #include <iscore/plugins/customfactory/FactoryInterface.hpp>
 #include <iscore_lib_process_export.h>
-class Process;
+namespace Process { class ProcessModel; }
 class ProcessInspectorWidgetDelegate;
 namespace iscore
 {
@@ -13,8 +13,8 @@ class ISCORE_LIB_PROCESS_EXPORT ProcessInspectorWidgetDelegateFactory : public i
     public:
         virtual ~ProcessInspectorWidgetDelegateFactory();
         virtual ProcessInspectorWidgetDelegate* make(
-                 const Process&,
+                 const Process::ProcessModel&,
                  const iscore::DocumentContext& doc,
                  QWidget* parent) const = 0;
-        virtual bool matches(const Process&) const = 0;
+        virtual bool matches(const Process::ProcessModel&) const = 0;
 };

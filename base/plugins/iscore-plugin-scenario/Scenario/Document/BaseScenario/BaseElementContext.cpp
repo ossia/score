@@ -11,7 +11,7 @@ class Document;
 BaseElementContext::BaseElementContext(
         iscore::Document& doc,
         ScenarioDocumentPresenter& pres,
-        ProcessFocusManager& d):
+        Process::ProcessFocusManager& d):
     iscore::DocumentContext{doc},
     layerPresenter{pres},
     focusDispatcher{d}

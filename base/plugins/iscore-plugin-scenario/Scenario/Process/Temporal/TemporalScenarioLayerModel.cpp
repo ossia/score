@@ -11,7 +11,9 @@
 #include <iscore/tools/SettableIdentifier.hpp>
 
 class ConstraintViewModel;
+namespace Process {
 class LayerModelPanelProxy;
+}
 class QObject;
 
 TemporalScenarioLayerModel::TemporalScenarioLayerModel(
@@ -53,7 +55,7 @@ TemporalScenarioLayerModel::TemporalScenarioLayerModel(
     }
 }
 
-LayerModelPanelProxy* TemporalScenarioLayerModel::make_panelProxy(QObject* parent) const
+Process::LayerModelPanelProxy* TemporalScenarioLayerModel::make_panelProxy(QObject* parent) const
 {
     return new TemporalScenarioPanelProxy{*this, parent};
 }

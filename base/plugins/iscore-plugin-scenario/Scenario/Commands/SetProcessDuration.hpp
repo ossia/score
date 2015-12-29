@@ -7,7 +7,7 @@
 
 class DataStreamInput;
 class DataStreamOutput;
-class Process;
+namespace Process { class ProcessModel; }
 
 class SetProcessDuration final : public iscore::SerializableCommand
 {
@@ -16,7 +16,7 @@ class SetProcessDuration final : public iscore::SerializableCommand
     public:
 
         SetProcessDuration(
-                Path<Process>&& path,
+                Path<Process::ProcessModel>&& path,
                 const TimeValue& newVal);
 
         void undo() const override;
@@ -27,7 +27,7 @@ class SetProcessDuration final : public iscore::SerializableCommand
         void deserializeImpl(DataStreamOutput& s) override;
 
     private:
-        Path<Process> m_path;
+        Path<Process::ProcessModel> m_path;
         TimeValue m_old;
         TimeValue m_new;
 };

@@ -5,7 +5,6 @@
 #include "AutomationPanelProxy.hpp"
 #include <Process/LayerModel.hpp>
 
-class LayerModelPanelProxy;
 class QObject;
 #include <iscore/tools/SettableIdentifier.hpp>
 
@@ -28,7 +27,7 @@ AutomationLayerModel::AutomationLayerModel(const AutomationLayerModel& source,
     // Nothing to copy
 }
 
-LayerModelPanelProxy* AutomationLayerModel::make_panelProxy(QObject* parent) const
+Process::LayerModelPanelProxy* AutomationLayerModel::make_panelProxy(QObject* parent) const
 {
     return new AutomationPanelProxy{*this, parent};
 }

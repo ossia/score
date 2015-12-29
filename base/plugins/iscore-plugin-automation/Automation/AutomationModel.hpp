@@ -12,8 +12,8 @@
 
 class DataStream;
 class JSONObject;
-class LayerModel;
-class Process;
+namespace Process { class LayerModel; }
+namespace Process { class ProcessModel; }
 class QObject;
 #include <iscore/tools/SettableIdentifier.hpp>
 #include <iscore_plugin_automation_export.h>
@@ -31,9 +31,9 @@ class ISCORE_PLUGIN_AUTOMATION_EXPORT AutomationModel final : public CurveProces
 
     public:
         AutomationModel(const TimeValue& duration,
-                        const Id<Process>& id,
+                        const Id<ProcessModel>& id,
                         QObject* parent);
-        Process* clone(const Id<Process>& newId,
+        ProcessModel* clone(const Id<ProcessModel>& newId,
                                            QObject* newParent) const override;
 
         template<typename Impl>
@@ -50,11 +50,11 @@ class ISCORE_PLUGIN_AUTOMATION_EXPORT AutomationModel final : public CurveProces
 
         QString prettyName() const override;
 
-        LayerModel* makeLayer_impl(
-                const Id<LayerModel>& viewModelId,
+        Process::LayerModel* makeLayer_impl(
+                const Id<Process::LayerModel>& viewModelId,
                 const QByteArray& constructionData,
                 QObject* parent) override;
-        LayerModel* loadLayer_impl(
+        Process::LayerModel* loadLayer_impl(
                 const VisitorVariant&,
                 QObject* parent) override;
 
@@ -89,11 +89,11 @@ class ISCORE_PLUGIN_AUTOMATION_EXPORT AutomationModel final : public CurveProces
 
     protected:
         AutomationModel(const AutomationModel& source,
-                        const Id<Process>& id,
+                        const Id<ProcessModel>& id,
                         QObject* parent);
-        LayerModel* cloneLayer_impl(
-                const Id<LayerModel>& newId,
-                const LayerModel& source,
+        Process::LayerModel* cloneLayer_impl(
+                const Id<Process::LayerModel>& newId,
+                const Process::LayerModel& source,
                 QObject* parent) override;
 
     private:

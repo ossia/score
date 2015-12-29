@@ -11,7 +11,7 @@
 
 class DeviceList;
 class EventModel;
-class Process;
+namespace Process { class ProcessModel; }
 class QObject;
 class StateModel;
 class TimeNodeModel;
@@ -57,7 +57,7 @@ class ScenarioElement final : public ProcessElement
         const auto& timeNodes() const
         { return m_ossia_timenodes; }
 
-        Process& iscoreProcess() const override;
+        Process::ProcessModel& iscoreProcess() const override;
 
         void stop() override;
 

@@ -5,11 +5,13 @@
 #include <QString>
 
 #include <iscore/serialization/VisitorInterface.hpp>
-
-class LayerModelPanelProxy;
-class Process;
-class QObject;
 #include <iscore/tools/SettableIdentifier.hpp>
+
+class QObject;
+namespace Process
+{
+class LayerModelPanelProxy;
+class ProcessModel;
 
 /**
  * @brief The LayerModel class
@@ -21,7 +23,7 @@ class ISCORE_LIB_PROCESS_EXPORT LayerModel: public IdentifiedObject<LayerModel>
         ISCORE_METADATA(LayerModel)
     public:
         virtual ~LayerModel();
-        Process& processModel() const;
+        ProcessModel& processModel() const;
 
         virtual void serialize(const VisitorVariant&) const = 0;
         virtual LayerModelPanelProxy* make_panelProxy(QObject* parent) const = 0;
@@ -31,12 +33,12 @@ class ISCORE_LIB_PROCESS_EXPORT LayerModel: public IdentifiedObject<LayerModel>
         // TODO this argument order sucks
         LayerModel(const Id<LayerModel>& viewModelId,
                    const QString& name,
-                   Process& sharedProcess,
+                   ProcessModel& sharedProcess,
                    QObject* parent);
 
         template<typename Impl>
         LayerModel(Deserializer<Impl>& vis,
-                   Process& sharedProcess,
+                   ProcessModel& sharedProcess,
                    QObject* parent) :
             IdentifiedObject{vis, parent},
             m_sharedProcessModel {sharedProcess}
@@ -45,9 +47,9 @@ class ISCORE_LIB_PROCESS_EXPORT LayerModel: public IdentifiedObject<LayerModel>
         }
 
     private:
-        Process& m_sharedProcessModel;
+        ProcessModel& m_sharedProcessModel;
 };
-
+}
 
 /**
  * @brief model Returns the casted version of a shared model given a view model.

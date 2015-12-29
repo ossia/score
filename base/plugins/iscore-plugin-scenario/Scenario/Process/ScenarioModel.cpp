@@ -27,7 +27,7 @@
 #include <iscore/tools/NotifyingMap.hpp>
 #include <iscore/tools/Todo.hpp>
 #include <iscore/document/DocumentContext.hpp>
-class LayerModel;
+namespace Process { class LayerModel; }
 class ProcessStateDataInterface;
 
 namespace Scenario
@@ -35,9 +35,9 @@ namespace Scenario
 
 ISCORE_METADATA_IMPL(ScenarioModel)
 ScenarioModel::ScenarioModel(const TimeValue& duration,
-                             const Id<Process>& id,
+                             const Id<ProcessModel>& id,
                              QObject* parent) :
-    Process {duration, id, ScenarioProcessMetadata::processObjectName(), parent},
+    ProcessModel {duration, id, ScenarioProcessMetadata::processObjectName(), parent},
     m_startTimeNodeId{Scenario::startId<TimeNodeModel>()},
     m_endTimeNodeId{Scenario::endId<TimeNodeModel>()},
     m_startEventId{Scenario::startId<EventModel>()},
@@ -59,9 +59,9 @@ ScenarioModel::ScenarioModel(const TimeValue& duration,
 
 ScenarioModel::ScenarioModel(
         const Scenario::ScenarioModel& source,
-        const Id<Process>& id,
+        const Id<ProcessModel>& id,
         QObject* parent) :
-    Process {source, id, ScenarioProcessMetadata::processObjectName(), parent},
+    ProcessModel {source, id, ScenarioProcessMetadata::processObjectName(), parent},
     m_startTimeNodeId{source.m_startTimeNodeId},
     m_endTimeNodeId{source.m_endTimeNodeId},
     m_startEventId{source.m_startEventId},
@@ -91,7 +91,7 @@ ScenarioModel::ScenarioModel(
 }
 
 Scenario::ScenarioModel* ScenarioModel::clone(
-        const Id<Process>& newId,
+        const Id<ProcessModel>& newId,
         QObject* newParent) const
 {
     return new ScenarioModel {*this, newId, newParent};
@@ -125,8 +125,8 @@ QByteArray ScenarioModel::makeLayerConstructionData() const
     return arr;
 }
 
-LayerModel* ScenarioModel::makeLayer_impl(
-        const Id<LayerModel>& viewModelId,
+Process::LayerModel* ScenarioModel::makeLayer_impl(
+        const Id<Process::LayerModel>& viewModelId,
         const QByteArray& constructionData,
         QObject* parent)
 {
@@ -140,9 +140,9 @@ LayerModel* ScenarioModel::makeLayer_impl(
 }
 
 
-LayerModel* ScenarioModel::cloneLayer_impl(
-        const Id<LayerModel>& newId,
-        const LayerModel& source,
+Process::LayerModel* ScenarioModel::cloneLayer_impl(
+        const Id<Process::LayerModel>& newId,
+        const Process::LayerModel& source,
         QObject* parent)
 {
     auto scen = new TemporalScenarioLayerModel{

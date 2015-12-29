@@ -4,7 +4,7 @@
 
 class QObject;
 
-class LoopPanelProxy final : public LayerModelPanelProxy
+class LoopPanelProxy final : public Process::LayerModelPanelProxy
 {
     public:
         LoopPanelProxy(
