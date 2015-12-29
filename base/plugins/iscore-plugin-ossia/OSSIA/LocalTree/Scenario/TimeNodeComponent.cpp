@@ -34,8 +34,6 @@ const iscore::Component::Key&TimeNodeComponent::key() const
 
 TimeNodeComponent::~TimeNodeComponent()
 {
-    for(auto prop : m_properties)
-        delete prop;
 }
 
 }

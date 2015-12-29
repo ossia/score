@@ -47,12 +47,12 @@ struct GetPropertyWrapper : public BaseProperty
         using converter_t = OSSIA::convert::MatchingType<typename GetProperty::value_type>;
 
         GetPropertyWrapper(
-                const std::shared_ptr<OSSIA::Node>& node,
-                const std::shared_ptr<OSSIA::Address>& addr,
+                const std::shared_ptr<OSSIA::Node>& param_node,
+                const std::shared_ptr<OSSIA::Address>& param_addr,
                 GetProperty prop,
                 QObject* context
                 ):
-            BaseProperty{node, addr},
+            BaseProperty{param_node, param_addr},
             property{prop}
         {
             QObject::connect(&property.object(), property.changed_property(),
@@ -74,7 +74,7 @@ auto make_getProperty(
         Property prop,
         QObject* context)
 {
-    return new GetPropertyWrapper<Property>{node, addr, prop, context};
+    return std::make_unique<GetPropertyWrapper<Property>>(node, addr, prop, context);
 }
 
 template<typename T, typename Object, typename PropGet, typename PropChanged>

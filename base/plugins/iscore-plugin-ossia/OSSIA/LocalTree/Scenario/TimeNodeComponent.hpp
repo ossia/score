@@ -32,7 +32,7 @@ class TimeNodeComponent final :
 
     private:
         MetadataNamePropertyWrapper m_thisNode;
-        std::vector<BaseProperty*> m_properties;
+        std::vector<std::unique_ptr<BaseProperty>> m_properties;
 
         OSSIA::Node& thisNode() const
         { return *node(); }

@@ -82,6 +82,8 @@ DocumentManager::~DocumentManager()
 
     m_documents.clear();
     m_currentDocument = nullptr;
+    if(m_recentFiles)
+        delete m_recentFiles;
 }
 
 ISCORE_LIB_BASE_EXPORT

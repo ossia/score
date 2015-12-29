@@ -52,7 +52,7 @@ class ConstraintComponent final :
 
         MetadataNamePropertyWrapper m_thisNode;
         std::shared_ptr<OSSIA::Node> m_processesNode;
-        std::vector<BaseProperty*> m_properties;
+        std::vector<std::unique_ptr<BaseProperty>> m_properties;
         parent_t m_baseComponent;
 };
 
