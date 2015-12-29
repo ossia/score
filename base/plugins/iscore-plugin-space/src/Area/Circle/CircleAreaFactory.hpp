@@ -8,10 +8,10 @@ class CircleAreaFactory : public AreaFactory
         const AreaFactoryKey& key_impl() const override;
         QString prettyName() const override;
 
-        QString generic_formula() const override;
+        QStringList generic_formula() const override;
 
         AreaModel* makeModel(
-                const QString& formula,
+                const QStringList& formula,
                 const Space::AreaContext& space,
                 const Id<AreaModel>&,
                 QObject* parent) const override;

@@ -142,7 +142,8 @@ void AreaWidget::on_formulaChanged()
 {
     cleanup();
 
-    AreaParser parser{m_selectionWidget->lineEdit()->text()};
+    // TODO multiline
+    AreaParser parser{QStringList{m_selectionWidget->lineEdit()->text()}};
     if(!parser.check())
     {
         return;
@@ -246,6 +247,7 @@ void AreaWidget::validate()
     if(m_area)
     {
         // Make a UpdateArea command.
+        ISCORE_TODO;
     }
     else
     {
@@ -254,7 +256,7 @@ void AreaWidget::validate()
                     new AddArea{
                         m_space,
                         m_selectionWidget->comboBox()->currentData().value<AreaFactoryKey>(),
-                        m_selectionWidget->lineEdit()->text(),
+                        QStringList{m_selectionWidget->lineEdit()->text()}, // TODO multiline
                         dim_map,
                         param_map});
     }

@@ -14,7 +14,7 @@ class AddArea : public iscore::SerializableCommand
 
           AddArea(Path<Space::ProcessModel>&& spacProcess,
             AreaFactoryKey type,
-            const QString& area,
+            const QStringList& area,
                   const QMap<Id<DimensionModel>, QString>& dimMap,
                   const QMap<QString, iscore::FullAddressSettings>& addrMap);
 
@@ -30,7 +30,7 @@ class AddArea : public iscore::SerializableCommand
         Id<AreaModel> m_createdAreaId;
 
         AreaFactoryKey m_areaType{"Generic"};
-        QString m_areaFormula;
+        QStringList m_areaFormula;
 
         QMap<Id<DimensionModel>, QString> m_dimensionToVarMap;
         QMap<QString, iscore::FullAddressSettings> m_symbolToAddressMap;

@@ -20,7 +20,7 @@ QString CircleAreaFactory::prettyName() const
 }
 
 AreaModel*CircleAreaFactory::makeModel(
-        const QString& formula,
+        const QStringList& formula,
         const Space::AreaContext& space,
         const Id<AreaModel>& id,
         QObject* parent) const
@@ -28,9 +28,9 @@ AreaModel*CircleAreaFactory::makeModel(
     return new CircleAreaModel{space, id, parent};
 }
 
-QString CircleAreaFactory::generic_formula() const
+QStringList CircleAreaFactory::generic_formula() const
 {
-    return {CircleAreaModel::formula()};
+    return CircleAreaModel::formula();
 }
 
 
