@@ -64,8 +64,6 @@ ConstraintComponent::ConstraintComponent(
 
 ConstraintComponent::~ConstraintComponent()
 {
-    for(auto prop : m_properties)
-        delete prop;
 }
 
 

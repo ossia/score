@@ -19,6 +19,12 @@ MenubarManager::MenubarManager(QMenuBar* bar, QObject* parent) :
     }
 }
 
+MenubarManager::~MenubarManager()
+{
+    if(m_menuBar)
+        delete m_menuBar;
+}
+
 
 
 void MenubarManager::insertActionIntoMenubar(PositionedMenuAction actionToInsert)

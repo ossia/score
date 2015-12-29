@@ -81,6 +81,10 @@ void OSSIADevice::disconnect()
 
     m_callbacks.clear();
 
+
+    auto& children = m_dev->children();
+    while(!children.empty())
+        m_dev->erase(children.end() - 1);
     m_dev.reset();
 }
 

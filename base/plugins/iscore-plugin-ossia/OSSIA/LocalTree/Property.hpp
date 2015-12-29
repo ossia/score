@@ -54,12 +54,12 @@ struct PropertyWrapper : public BaseCallbackWrapper
         Property property;
 
         PropertyWrapper(
-                const std::shared_ptr<OSSIA::Node>& node,
-                const std::shared_ptr<OSSIA::Address>& addr,
+                const std::shared_ptr<OSSIA::Node>& param_node,
+                const std::shared_ptr<OSSIA::Address>& param_addr,
                 Property prop,
                 QObject* context
                 ):
-            BaseCallbackWrapper{node, addr},
+            BaseCallbackWrapper{param_node, param_addr},
             property{prop}
         {
             m_callbackIt = addr->addCallback([=] (const OSSIA::Value* v) {
@@ -87,7 +87,7 @@ auto make_property(
         Property prop,
         QObject* context)
 {
-    return new PropertyWrapper<Property>{node, addr, prop, context};
+    return std::make_unique<PropertyWrapper<Property>>(node, addr, prop, context);
 }
 
 template<typename T, typename Object, typename PropGet, typename PropSet, typename PropChanged>

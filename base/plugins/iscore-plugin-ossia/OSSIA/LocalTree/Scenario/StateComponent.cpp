@@ -27,8 +27,6 @@ const iscore::Component::Key&StateComponent::key() const
 
 StateComponent::~StateComponent()
 {
-    for(auto prop : m_properties)
-        delete prop;
 }
 
 }

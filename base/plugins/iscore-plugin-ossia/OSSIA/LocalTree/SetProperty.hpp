@@ -9,11 +9,11 @@ struct SetPropertyWrapper : public BaseCallbackWrapper
         SetFun setFun;
 
         SetPropertyWrapper(
-                const std::shared_ptr<OSSIA::Node>& node,
-                const std::shared_ptr<OSSIA::Address>& addr,
+                const std::shared_ptr<OSSIA::Node>& param_node,
+                const std::shared_ptr<OSSIA::Address>& param_addr,
                 SetFun prop
                 ):
-            BaseCallbackWrapper{node, addr},
+            BaseCallbackWrapper{param_node, param_addr},
             setFun{prop}
         {
             m_callbackIt = addr->addCallback([=] (const OSSIA::Value* v) {
@@ -30,7 +30,7 @@ auto make_setProperty(
         const std::shared_ptr<OSSIA::Address>& addr,
         Callback prop)
 {
-    return new SetPropertyWrapper<T, Callback>{node, addr, prop};
+    return std::make_unique<SetPropertyWrapper<T, Callback>>(node, addr, prop);
 }
 
 template<typename T, typename Callback>

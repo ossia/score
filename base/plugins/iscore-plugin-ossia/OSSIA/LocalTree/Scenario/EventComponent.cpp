@@ -27,8 +27,6 @@ const iscore::Component::Key&EventComponent::key() const
 
 EventComponent::~EventComponent()
 {
-    for(auto prop : m_properties)
-        delete prop;
 }
 
 }

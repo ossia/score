@@ -36,7 +36,7 @@ class EventComponent final :
         { return *node(); }
 
         MetadataNamePropertyWrapper m_thisNode;
-        std::vector<BaseProperty*> m_properties;
+        std::vector<std::unique_ptr<BaseProperty>> m_properties;
 };
 }
 }

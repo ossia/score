@@ -115,7 +115,7 @@ class ISCORE_LIB_BASE_EXPORT DocumentManager : public QObject
 
         std::vector<Document*> m_documents;
         Document* m_currentDocument{};
-        QRecentFilesMenu* m_recentFiles{};
+        QPointer<QRecentFilesMenu> m_recentFiles{};
 
 
 };
