@@ -142,8 +142,8 @@ void AreaWidget::on_formulaChanged()
 {
     cleanup();
 
-    // TODO multiline
-    AreaParser parser{QStringList{m_selectionWidget->lineEdit()->text()}};
+    auto formulas = m_selectionWidget->lineEdit()->text().split(';');
+    AreaParser parser{formulas};
     if(!parser.check())
     {
         return;
@@ -256,7 +256,7 @@ void AreaWidget::validate()
                     new AddArea{
                         m_space,
                         m_selectionWidget->comboBox()->currentData().value<AreaFactoryKey>(),
-                        QStringList{m_selectionWidget->lineEdit()->text()}, // TODO multiline
+                        QStringList{m_selectionWidget->lineEdit()->text().split(';')}, // TODO multiline
                         dim_map,
                         param_map});
     }

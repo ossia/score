@@ -33,15 +33,16 @@ AreaSelectionWidget::AreaSelectionWidget(
     }
     connect(m_comboBox, static_cast<void (QComboBox::*)(int)>(&QComboBox::currentIndexChanged),
             this, [&] (int index) {
-        if(m_comboBox->currentData().value<AreaFactoryKey>() == GenericAreaModel::static_factoryKey())
+        auto key = m_comboBox->currentData().value<AreaFactoryKey>();
+        if(key == GenericAreaModel::static_factoryKey())
         {
             m_lineEdit->setEnabled(true);
         }
         else
         {
-            auto formula = fact.get(m_comboBox->currentData().value<AreaFactoryKey>())->generic_formula();
+            auto formula = fact.get(key)->generic_formula();
             if(formula.size() > 0)
-                m_lineEdit->setText(formula[0]); // TODO multiline or cut on ';'
+                m_lineEdit->setText(formula.join(';')); // TODO multiline or cut on ';'
             m_lineEdit->setEnabled(false);
             lineEditChanged();
         }
