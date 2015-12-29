@@ -67,7 +67,7 @@ void CreateCurves(
     for(const auto& constraint : selected_constraints)
     {
         // Generate brand new ids for the processes
-        auto process_ids = getStrongIdRange<Process>(addresses.size(), constraint->processes);
+        auto process_ids = getStrongIdRange<Process::ProcessModel>(addresses.size(), constraint->processes);
         auto macro_tuple = makeAddProcessMacro(*constraint, addresses.size());
         auto macro = std::get<0>(macro_tuple);
         auto& bigLayerVec = std::get<1>(macro_tuple);

@@ -2,9 +2,10 @@
 #include <Process/LayerPresenter.hpp>
 #include <Process/Process.hpp>
 #include "ProcessFocusManager.hpp"
+namespace Process
+{
 
-
-const Process* ProcessFocusManager::focusedModel() const
+const ProcessModel* ProcessFocusManager::focusedModel() const
 {
     return m_currentModel;
 }
@@ -82,4 +83,5 @@ void ProcessFocusManager::defocusPresenter(LayerPresenter* p)
 {
     p->setFocus(false);
     emit sig_defocusedPresenter(p);
+}
 }

@@ -12,7 +12,7 @@ class ProcessComponent : public iscore::Component
     public:
         ProcessComponent(
                 OSSIA::Node& node,
-                Process& proc,
+                Process::ProcessModel& proc,
                 const Id<iscore::Component>& id,
                 const QString& name,
                 QObject* parent);
@@ -36,7 +36,7 @@ class ProcessComponentFactory :
         virtual ProcessComponent* make(
                 const Id<iscore::Component>&,
                 OSSIA::Node& parent,
-                Process& proc,
+                Process::ProcessModel& proc,
                 const LocalTree::DocumentPlugin& doc,
                 const iscore::DocumentContext& ctx,
                 QObject* paren_objt) const = 0;

@@ -8,16 +8,17 @@
 
 
 class DummyLayerView;
-class LayerModel;
-class Process;
+namespace Process { class LayerModel; }
+namespace Process { class ProcessModel; }
 class QMenu;
 class QObject;
 
-class ISCORE_LIB_DUMMYPROCESS_EXPORT DummyLayerPresenter final : public LayerPresenter
+class ISCORE_LIB_DUMMYPROCESS_EXPORT DummyLayerPresenter final :
+        public Process::LayerPresenter
 {
     public:
         explicit DummyLayerPresenter(
-                const LayerModel& model,
+                const Process::LayerModel& model,
                 DummyLayerView* view,
                 QObject* parent);
 
@@ -31,8 +32,8 @@ class ISCORE_LIB_DUMMYPROCESS_EXPORT DummyLayerPresenter final : public LayerPre
 
         void parentGeometryChanged() override;
 
-        const LayerModel& layerModel() const override;
-        const Id<Process>& modelId() const override;
+        const Process::LayerModel& layerModel() const override;
+        const Id<Process::ProcessModel>& modelId() const override;
 
         void fillContextMenu(
                 QMenu*,
@@ -40,6 +41,6 @@ class ISCORE_LIB_DUMMYPROCESS_EXPORT DummyLayerPresenter final : public LayerPre
                 const QPointF& scenepos) const override;
 
     private:
-        const LayerModel& m_layer;
+        const Process::LayerModel& m_layer;
         DummyLayerView* m_view{};
 };

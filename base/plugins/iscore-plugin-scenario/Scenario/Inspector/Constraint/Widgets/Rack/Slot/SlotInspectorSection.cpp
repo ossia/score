@@ -80,7 +80,7 @@ SlotInspectorSection::SlotInspectorSection(
 }
 
 void SlotInspectorSection::createLayerModel(
-        const Id<Process>& sharedProcessModelId)
+        const Id<Process::ProcessModel>& sharedProcessModelId)
 {
     auto cmd = new AddLayerModelToSlot{
                 m_model,
@@ -89,7 +89,7 @@ void SlotInspectorSection::createLayerModel(
     m_parent->commandDispatcher()->submitCommand(cmd);
 }
 
-void SlotInspectorSection::displayLayerModel(const LayerModel& lm)
+void SlotInspectorSection::displayLayerModel(const Process::LayerModel& lm)
 {
     auto lm_id = lm.id();
 
@@ -133,12 +133,12 @@ void SlotInspectorSection::displayLayerModel(const LayerModel& lm)
 
 
 void SlotInspectorSection::on_layerModelCreated(
-        const LayerModel& lm)
+        const Process::LayerModel& lm)
 {
     displayLayerModel(lm);
 }
 
-void SlotInspectorSection::on_layerModelRemoved(const LayerModel& removed)
+void SlotInspectorSection::on_layerModelRemoved(const Process::LayerModel& removed)
 {
     // OPTIMIZEME
     m_lmSection->removeAll();

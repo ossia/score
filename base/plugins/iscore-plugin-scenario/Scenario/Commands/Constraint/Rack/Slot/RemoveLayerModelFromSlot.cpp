@@ -14,7 +14,7 @@ using namespace Scenario::Command;
 
 RemoveLayerModelFromSlot::RemoveLayerModelFromSlot(
         Path<SlotModel>&& rackPath,
-        const Id<LayerModel>& layerId) :
+        const Id<Process::LayerModel>& layerId) :
     m_path {rackPath},
     m_layerId {layerId}
 {
@@ -29,7 +29,7 @@ void RemoveLayerModelFromSlot::undo() const
     auto& slot = m_path.find();
     Deserializer<DataStream> s {m_serializedLayerData};
 
-    auto lm = createLayerModel(s,
+    auto lm = Process::createLayerModel(s,
                                slot.parentConstraint(),
                                &slot);
     slot.layers.add(lm);

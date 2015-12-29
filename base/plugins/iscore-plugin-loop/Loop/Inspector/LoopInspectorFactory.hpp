@@ -33,8 +33,8 @@ class LoopInspectorFactory final : public ProcessInspectorWidgetDelegateFactory
 
     private:
         ProcessInspectorWidgetDelegate* make(
-                const Process&,
+                const Process::ProcessModel&,
                 const iscore::DocumentContext&,
                 QWidget* parent) const override;
-        bool matches(const Process&) const override;
+        bool matches(const Process::ProcessModel&) const override;
 };

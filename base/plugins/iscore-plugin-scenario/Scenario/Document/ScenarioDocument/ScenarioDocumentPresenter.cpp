@@ -87,7 +87,7 @@ ScenarioDocumentPresenter::ScenarioDocumentPresenter(DocumentPresenter* parent_p
     connect(this, &ScenarioDocumentPresenter::requestDisplayedConstraintChange,
             &model(), &ScenarioDocumentModel::setDisplayedConstraint);
     connect(m_scenarioPresenter, &DisplayedElementsPresenter::requestFocusedPresenterChange,
-            &model().focusManager(), static_cast<void (ProcessFocusManager::*)(LayerPresenter*)>(&ProcessFocusManager::focus));
+            &model().focusManager(), static_cast<void (Process::ProcessFocusManager::*)(Process::LayerPresenter*)>(&Process::ProcessFocusManager::focus));
 
     con(model(), &ScenarioDocumentModel::focusMe,
         this,    [&] () { view().view().setFocus(); });

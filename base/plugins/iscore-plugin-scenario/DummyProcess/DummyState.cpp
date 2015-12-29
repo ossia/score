@@ -2,11 +2,11 @@
 #include <Process/State/ProcessStateDataInterface.hpp>
 #include <State/Address.hpp>
 
-class Process;
+namespace Process { class ProcessModel; }
 class QObject;
 
 DummyState::DummyState(
-        Process& model,
+        Process::ProcessModel& model,
         QObject* parent):
     ProcessStateDataInterface{model, parent}
 {

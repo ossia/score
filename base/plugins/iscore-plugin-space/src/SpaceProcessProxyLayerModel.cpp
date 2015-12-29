@@ -18,7 +18,7 @@ void SpaceProcessProxyLayerModel::serialize(const VisitorVariant &) const
     ISCORE_TODO;
 }
 
-LayerModelPanelProxy* SpaceProcessProxyLayerModel::make_panelProxy(QObject *parent) const
+Process::LayerModelPanelProxy* SpaceProcessProxyLayerModel::make_panelProxy(QObject *parent) const
 {
     return new SpaceProcessPanelProxy{m_source, parent};
 }

@@ -10,14 +10,14 @@
 #include <iscore/tools/SettableIdentifier.hpp>
 #include <iscore_lib_process_export.h>
 
-class Process;
+namespace Process { class ProcessModel; }
 class QObject;
 
 class ISCORE_LIB_PROCESS_EXPORT ProcessStateDataInterface : public IdentifiedObject<ProcessStateDataInterface>
 {
         Q_OBJECT
     public:
-        ProcessStateDataInterface(Process& model, QObject* parent):
+        ProcessStateDataInterface(Process::ProcessModel& model, QObject* parent):
             IdentifiedObject{Id<ProcessStateDataInterface>{}, "", parent},
             m_model{model}
         {
@@ -61,7 +61,7 @@ class ISCORE_LIB_PROCESS_EXPORT ProcessStateDataInterface : public IdentifiedObj
             return messages();
         }
 
-        Process& process() const
+        Process::ProcessModel& process() const
         { return m_model; }
 
     signals:
@@ -74,5 +74,5 @@ class ISCORE_LIB_PROCESS_EXPORT ProcessStateDataInterface : public IdentifiedObj
         void messagesChanged(const iscore::MessageList&);
 
     private:
-        Process& m_model;
+        Process::ProcessModel& m_model;
 };

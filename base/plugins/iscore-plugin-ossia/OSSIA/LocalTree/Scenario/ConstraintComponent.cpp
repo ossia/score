@@ -67,13 +67,21 @@ ConstraintComponent::~ConstraintComponent()
 }
 
 
-ProcessComponent*ConstraintComponent::make_processComponent(const Id<iscore::Component>& id, ProcessComponentFactory& factory, Process& process, const DocumentPlugin& system, const iscore::DocumentContext& ctx, QObject* parent_component)
+ProcessComponent*ConstraintComponent::make_processComponent(
+        const Id<iscore::Component>& id,
+        ProcessComponentFactory& factory,
+        Process::ProcessModel& process,
+        const DocumentPlugin& system,
+        const iscore::DocumentContext& ctx,
+        QObject* parent_component)
 {
     return factory.make(id, *m_processesNode, process, system, ctx, parent_component);
 }
 
 
-void ConstraintComponent::removing(const Process& cst, const ProcessComponent& comp)
+void ConstraintComponent::removing(
+        const Process::ProcessModel& cst,
+        const ProcessComponent& comp)
 {
     auto it = find_if(m_processesNode->children(), [&] (const auto& node)
     { return node == comp.node(); });

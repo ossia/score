@@ -11,7 +11,7 @@
 class ConstraintModel;
 class DataStreamInput;
 class DataStreamOutput;
-class Process;
+namespace Process { class ProcessModel; }
 
 class ISCORE_PLUGIN_SCENARIO_EXPORT AddOnlyProcessToConstraint final : public iscore::SerializableCommand
 {
@@ -22,19 +22,19 @@ class ISCORE_PLUGIN_SCENARIO_EXPORT AddOnlyProcessToConstraint final : public is
             const ProcessFactoryKey& process);
         AddOnlyProcessToConstraint(
             Path<ConstraintModel>&& constraint,
-            const Id<Process>& idToUse,
+            const Id<Process::ProcessModel>& idToUse,
             const ProcessFactoryKey& process);
 
         void undo() const override;
         void redo() const override;
 
         void undo(ConstraintModel&) const;
-        Process& redo(ConstraintModel&) const;
+        Process::ProcessModel& redo(ConstraintModel&) const;
 
         const Path<ConstraintModel>& constraintPath() const
         { return m_path; }
 
-        const Id<Process>& processId() const
+        const Id<Process::ProcessModel>& processId() const
         { return m_createdProcessId; }
 
         const ProcessFactoryKey& processKey() const
@@ -48,5 +48,5 @@ class ISCORE_PLUGIN_SCENARIO_EXPORT AddOnlyProcessToConstraint final : public is
         Path<ConstraintModel> m_path;
         ProcessFactoryKey m_processName;
 
-        Id<Process> m_createdProcessId {};
+        Id<Process::ProcessModel> m_createdProcessId {};
 };

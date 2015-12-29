@@ -7,6 +7,8 @@
 #include <iscore_lib_process_export.h>
 #include <iscore/tools/Metadata.hpp>
 
+namespace Process
+{
 class ISCORE_LIB_PROCESS_EXPORT StateProcess: public IdentifiedObject<StateProcess>
 {
         Q_OBJECT
@@ -44,3 +46,4 @@ class ISCORE_LIB_PROCESS_EXPORT StateProcess: public IdentifiedObject<StateProce
         virtual QString prettyName() const = 0;
         static QString description() {return "StateProcess";}
 };
+}

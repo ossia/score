@@ -10,8 +10,8 @@
 class ConstraintModel;
 class DataStreamInput;
 class DataStreamOutput;
-class LayerModel;
-class Process;
+namespace Process { class LayerModel; }
+namespace Process { class ProcessModel; }
 class SlotModel;
 template <typename Object> class Path;
 #include <iscore/tools/SettableIdentifier.hpp>
@@ -24,8 +24,8 @@ class ISCORE_PLUGIN_SCENARIO_EXPORT CreateProcessAndLayers : public iscore::Seri
         CreateProcessAndLayers() = default;
         CreateProcessAndLayers(
                 Path<ConstraintModel>&& constraint,
-                const std::vector<std::pair<Path<SlotModel>, Id<LayerModel>>>& slotList,
-                const Id<Process>& procId):
+                const std::vector<std::pair<Path<SlotModel>, Id<Process::LayerModel>>>& slotList,
+                const Id<Process::ProcessModel>& procId):
             m_addProcessCmd{
                 std::move(constraint),
                 procId,
@@ -35,7 +35,7 @@ class ISCORE_PLUGIN_SCENARIO_EXPORT CreateProcessAndLayers : public iscore::Seri
 
             m_slotsCmd.reserve(slotList.size());
 
-            auto fact = context.components.factory<ProcessList>().list().get(ProcessMetadata_T::factoryKey());
+            auto fact = context.components.factory<Process::ProcessList>().list().get(ProcessMetadata_T::factoryKey());
             ISCORE_ASSERT(fact);
             auto procData = fact->makeStaticLayerConstructionData();
 
@@ -44,7 +44,7 @@ class ISCORE_PLUGIN_SCENARIO_EXPORT CreateProcessAndLayers : public iscore::Seri
                 m_slotsCmd.emplace_back(
                             Path<SlotModel>(elt.first),
                             elt.second,
-                            Path<Process>{proc},
+                            Path<Process::ProcessModel>{proc},
                             procData);
             }
         }
@@ -96,8 +96,8 @@ class ISCORE_PLUGIN_SCENARIO_EXPORT CreateCurveFromStates final : public CreateP
     public:
         CreateCurveFromStates(
                 Path<ConstraintModel>&& constraint,
-                const std::vector<std::pair<Path<SlotModel>, Id<LayerModel>>>& slotList,
-                const Id<Process>& curveId,
+                const std::vector<std::pair<Path<SlotModel>, Id<Process::LayerModel>>>& slotList,
+                const Id<Process::ProcessModel>& curveId,
                 const iscore::Address &address,
                 double start,
                 double end,

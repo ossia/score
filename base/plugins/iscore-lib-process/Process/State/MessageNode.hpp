@@ -16,11 +16,11 @@
 #include <iscore/tools/SettableIdentifier.hpp>
 #include <iscore_lib_process_export.h>
 
-class Process;
+namespace Process { class ProcessModel; }
 
 struct ProcessStateData
 {
-        Id<Process> process;
+        Id<Process::ProcessModel> process;
         iscore::OptionalValue value;
 };
 

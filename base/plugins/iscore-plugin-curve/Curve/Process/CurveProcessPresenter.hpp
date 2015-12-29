@@ -23,7 +23,8 @@ class CurveProcessView;
 
 
 template<typename LayerModel_T, typename LayerView_T>
-class ISCORE_PLUGIN_CURVE_EXPORT CurveProcessPresenter : public LayerPresenter
+class ISCORE_PLUGIN_CURVE_EXPORT CurveProcessPresenter :
+        public Process::LayerPresenter
 {
     public:
         CurveProcessPresenter(
@@ -47,7 +48,7 @@ class ISCORE_PLUGIN_CURVE_EXPORT CurveProcessPresenter : public LayerPresenter
             connect(m_curvepresenter, &CurvePresenter::contextMenuRequested,
                     this, &LayerPresenter::contextMenuRequested);
 
-            con(m_layer.model(), &Process::execution,
+            con(m_layer.model(), &Process::ProcessModel::execution,
                 this, [&] (bool b) {
                 m_curvepresenter->editionSettings().setTool(
                             b ? Curve::Tool::Playing
@@ -118,7 +119,7 @@ class ISCORE_PLUGIN_CURVE_EXPORT CurveProcessPresenter : public LayerPresenter
             return m_layer;
         }
 
-        const Id<Process>& modelId() const override
+        const Id<Process::ProcessModel>& modelId() const override
         {
             return m_layer.model().id();
         }

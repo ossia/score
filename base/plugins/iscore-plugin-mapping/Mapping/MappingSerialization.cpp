@@ -12,7 +12,7 @@
 #include <iscore/serialization/JSONValueVisitor.hpp>
 #include <iscore/serialization/JSONVisitor.hpp>
 
-class LayerModel;
+namespace Process { class LayerModel; }
 class QObject;
 struct VisitorVariant;
 template <typename T> class Reader;

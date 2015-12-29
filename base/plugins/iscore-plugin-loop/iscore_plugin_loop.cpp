@@ -26,7 +26,7 @@ std::vector<std::unique_ptr<iscore::FactoryInterfaceBase>> iscore_plugin_loop::f
         const iscore::ApplicationContext& ctx,
         const iscore::FactoryBaseKey& key) const
 {
-    if(key == ProcessFactory::staticFactoryKey())
+    if(key == Process::ProcessFactory::staticFactoryKey())
     {
         return make_ptr_vector<iscore::FactoryInterfaceBase,
             LoopProcessFactory>();

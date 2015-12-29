@@ -7,6 +7,8 @@
 #include <QByteArray>
 #include <QString>
 
+namespace Process
+{
 class StateProcess;
 
 class ISCORE_LIB_PROCESS_EXPORT StateProcessFactory :
@@ -28,3 +30,4 @@ class ISCORE_LIB_PROCESS_EXPORT StateProcessFactory :
                 const VisitorVariant&,
                 QObject* parent) = 0;
 };
+}

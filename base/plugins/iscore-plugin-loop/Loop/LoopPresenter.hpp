@@ -11,8 +11,8 @@
 #include <Process/ZoomHelper.hpp>
 #include <iscore/tools/SettableIdentifier.hpp>
 
-class LayerModel;
-class Process;
+namespace Process { class LayerModel; }
+namespace Process { class ProcessModel; }
 class QMenu;
 class QObject;
 class TemporalConstraintPresenter;
@@ -42,7 +42,7 @@ class LoopLayer;
 class LoopView;
 
 class LoopPresenter :
-        public LayerPresenter,
+        public Process::LayerPresenter,
         public BaseScenarioPresenter<Loop::ProcessModel, TemporalConstraintPresenter>
 {
         Q_OBJECT
@@ -70,8 +70,8 @@ class LoopPresenter :
         void on_zoomRatioChanged(ZoomRatio) override;
         void parentGeometryChanged() override;
 
-        const LayerModel& layerModel() const override;
-        const Id<Process>& modelId() const override;
+        const Process::LayerModel& layerModel() const override;
+        const Id<Process::ProcessModel>& modelId() const override;
 
         ZoomRatio zoomRatio() const
         { return m_zoomRatio; }

@@ -3,7 +3,7 @@
 ISCORE_METADATA_IMPL(OSSIA::LocalTree::ProcessComponent)
 OSSIA::LocalTree::ProcessComponent::ProcessComponent(
         OSSIA::Node& parentNode,
-        Process& process,
+        Process::ProcessModel& process,
         const Id<iscore::Component>& id,
         const QString& name,
         QObject* parent):

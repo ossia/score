@@ -44,7 +44,7 @@ std::vector<std::unique_ptr<iscore::FactoryInterfaceBase>> iscore_plugin_automat
     return instantiate_factories<
             iscore::ApplicationContext,
     TL<
-        FW<ProcessFactory,
+        FW<Process::ProcessFactory,
              AutomationFactory>,
 #if defined(ISCORE_LIB_INSPECTOR)
         FW<InspectorWidgetFactory,

@@ -39,7 +39,7 @@ SlotPresenter::SlotPresenter(
         RackView *view,
         QObject* par) :
     NamedObject {"SlotPresenter", par},
-    m_processList{doc.app.components.factory<ProcessList>()},
+    m_processList{doc.app.components.factory<Process::ProcessList>()},
     m_model {model},
     m_view {new SlotView{*this, view}}
 {
@@ -148,13 +148,13 @@ void SlotPresenter::disable()
 
 
 void SlotPresenter::on_layerModelCreated(
-        const LayerModel& layerModel)
+        const Process::LayerModel& layerModel)
 {
     on_layerModelCreated_impl(layerModel);
 }
 
 void SlotPresenter::on_layerModelRemoved(
-        const LayerModel& layerModel)
+        const Process::LayerModel& layerModel)
 {
     vec_erase_remove_if(m_processes,
                         [&](auto& elt)
@@ -181,7 +181,7 @@ void SlotPresenter::on_layerModelRemoved(
 }
 
 void SlotPresenter::on_layerModelPutToFront(
-        const LayerModel& layer)
+        const Process::LayerModel& layer)
 {
     // Put the selected one at z+1 and the others at -z; set "disabled" graphics mode.
     // OPTIMIZEME by saving the previous to front and just switching...
@@ -239,7 +239,7 @@ void SlotPresenter::on_loopingChanged(bool b)
 }
 
 void SlotPresenter::on_layerModelCreated_impl(
-        const LayerModel& proc_vm)
+        const Process::LayerModel& proc_vm)
 {
     auto& procKey = proc_vm.processModel().key();
 
@@ -261,7 +261,7 @@ void SlotPresenter::on_layerModelCreated_impl(
 
     m_processes.push_back(SlotProcessData(&proc_vm, std::move(vec)));
 
-    con(proc_vm.processModel(), &Process::durationChanged,
+    con(proc_vm.processModel(), &Process::ProcessModel::durationChanged,
         this, [&] (const TimeValue&) {
         // TODO index instead
         auto it = std::find_if(m_processes.begin(), m_processes.end(), [&] (const auto& elt) {

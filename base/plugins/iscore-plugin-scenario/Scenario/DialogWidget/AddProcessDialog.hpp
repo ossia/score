@@ -4,7 +4,10 @@
 
 #include <Process/ProcessFactoryKey.hpp>
 
+namespace Process
+{
 class ProcessList;
+}
 
 class AddProcessDialog final : public QWidget
 {
@@ -12,7 +15,7 @@ class AddProcessDialog final : public QWidget
 
     public:
         AddProcessDialog(
-                const ProcessList& plist,
+                const Process::ProcessList& plist,
                 QWidget* parent = 0);
 
         void launchWindow();
@@ -21,6 +24,6 @@ class AddProcessDialog final : public QWidget
         void okPressed(const ProcessFactoryKey&);
 
     private:
-        const ProcessList& m_factoryList;
+        const Process::ProcessList& m_factoryList;
 
 };

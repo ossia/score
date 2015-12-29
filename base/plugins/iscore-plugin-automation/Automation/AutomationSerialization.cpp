@@ -12,7 +12,7 @@
 #include <iscore/serialization/JSONValueVisitor.hpp>
 #include <iscore/serialization/VisitorCommon.hpp>
 
-class LayerModel;
+namespace Process { class LayerModel; }
 class QObject;
 struct VisitorVariant;
 template <typename T> class Reader;
@@ -86,7 +86,7 @@ void AutomationModel::serialize(const VisitorVariant& vis) const
     serialize_dyn(vis, *this);
 }
 
-LayerModel* AutomationModel::loadLayer_impl(
+Process::LayerModel* AutomationModel::loadLayer_impl(
         const VisitorVariant& vis,
         QObject* parent)
 {

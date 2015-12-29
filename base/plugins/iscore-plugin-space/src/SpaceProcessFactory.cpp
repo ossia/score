@@ -15,9 +15,9 @@ QString ProcessFactory::prettyName() const
     return "Space Process";
 }
 
-::Process *ProcessFactory::makeModel(
+Process::ProcessModel *ProcessFactory::makeModel(
         const TimeValue &duration,
-        const Id<::Process> &id,
+        const Id<Process::ProcessModel> &id,
         QObject *parent)
 {
     auto& doc = iscore::IDocument::documentContext(*parent);
@@ -29,18 +29,25 @@ QByteArray ProcessFactory::makeStaticLayerConstructionData() const
     return {};
 }
 
-::Process *ProcessFactory::loadModel(const VisitorVariant &, QObject *parent)
+Process::ProcessModel *ProcessFactory::loadModel(
+        const VisitorVariant &,
+        QObject *parent)
 {
     return nullptr;
 }
 
-LayerPresenter *ProcessFactory::makeLayerPresenter(const ::LayerModel & model, LayerView * view, QObject *parent)
+Process::LayerPresenter *ProcessFactory::makeLayerPresenter(
+        const Process::LayerModel & model,
+        Process::LayerView * view,
+        QObject *parent)
 {
     // TODO check with panel proxy
     return new SpaceLayerPresenter{model, view, parent};
 }
 
-LayerView *ProcessFactory::makeLayerView(const ::LayerModel &layer, QGraphicsItem* parent)
+Process::LayerView *ProcessFactory::makeLayerView(
+        const Process::LayerModel &layer,
+        QGraphicsItem* parent)
 {
     // TODO check with panel proxy
     return new SpaceLayerView{parent};

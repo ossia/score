@@ -5,7 +5,7 @@
 
 class QObject;
 
-class TemporalScenarioPanelProxy final : public LayerModelPanelProxy
+class TemporalScenarioPanelProxy final : public Process::LayerModelPanelProxy
 {
     public:
         TemporalScenarioPanelProxy(

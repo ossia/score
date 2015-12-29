@@ -7,7 +7,7 @@
 #include <iscore/serialization/DataStreamVisitor.hpp>
 #include <iscore/serialization/JSONVisitor.hpp>
 
-class LayerModelPanelProxy;
+namespace Process { class LayerModelPanelProxy; }
 class QObject;
 class TemporalConstraintViewModel;
 #include <iscore/tools/SettableIdentifier.hpp>
@@ -15,7 +15,7 @@ class TemporalConstraintViewModel;
 namespace Loop{
     class ProcessModel;
 }
-class LoopLayer final : public LayerModel
+class LoopLayer final : public Process::LayerModel
 {
         ISCORE_METADATA(LoopLayer)
 
@@ -47,7 +47,7 @@ class LoopLayer final : public LayerModel
             vis.writeTo(*this);
         }
 
-        LayerModelPanelProxy* make_panelProxy(QObject* parent) const override;
+        Process::LayerModelPanelProxy* make_panelProxy(QObject* parent) const override;
         void serialize(const VisitorVariant&) const override;
 
         const Loop::ProcessModel& model() const;

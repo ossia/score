@@ -10,7 +10,7 @@ struct DocumentContext;
 
 namespace Loop
 {
-class ProcessModel;
+namespace Process { class ProcessModel; }
 }
 
 class LoopInspectorWidget final :

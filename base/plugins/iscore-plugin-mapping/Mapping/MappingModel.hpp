@@ -11,7 +11,7 @@
 
 class DataStream;
 class JSONObject;
-class LayerModel;
+namespace Process { class LayerModel; }
 class Process;
 class ProcessStateDataInterface;
 class QObject;

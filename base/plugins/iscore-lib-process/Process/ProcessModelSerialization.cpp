@@ -23,12 +23,12 @@ template <typename model> class IdentifiedObject;
 
 
 template<>
-void Visitor<Reader<DataStream>>::readFrom(const Process& process)
+void Visitor<Reader<DataStream>>::readFrom(const Process::ProcessModel& process)
 {
     // To allow recration using createProcess
     m_stream << process.key();
 
-    readFrom(static_cast<const IdentifiedObject<Process>&>(process));
+    readFrom(static_cast<const IdentifiedObject<Process::ProcessModel>&>(process));
 
     readFrom(process.m_duration);
     m_stream << process.m_useParentDuration;
@@ -44,7 +44,7 @@ void Visitor<Reader<DataStream>>::readFrom(const Process& process)
 // We only load the members of the process here.
 
 template<>
-void Visitor<Writer<DataStream>>::writeTo(Process& process)
+void Visitor<Writer<DataStream>>::writeTo(Process::ProcessModel& process)
 {
     writeTo(process.m_duration);
     m_stream >> process.m_useParentDuration;
@@ -54,7 +54,7 @@ void Visitor<Writer<DataStream>>::writeTo(Process& process)
 }
 
 template<>
-ISCORE_LIB_PROCESS_EXPORT Process* createProcess(
+ISCORE_LIB_PROCESS_EXPORT Process::ProcessModel* Process::createProcess(
         const ProcessList& pl,
         Deserializer<DataStream>& deserializer,
         QObject* parent)
@@ -76,12 +76,12 @@ ISCORE_LIB_PROCESS_EXPORT Process* createProcess(
 
 
 template<>
-void Visitor<Reader<JSONObject>>::readFrom(const Process& process)
+void Visitor<Reader<JSONObject>>::readFrom(const Process::ProcessModel& process)
 {
     // To allow recration using createProcess
     m_obj["ProcessName"] = toJsonValue(process.key());
 
-    readFrom(static_cast<const IdentifiedObject<Process>&>(process));
+    readFrom(static_cast<const IdentifiedObject<Process::ProcessModel>&>(process));
 
     m_obj["Duration"] = toJsonValue(process.duration());
     m_obj["Metadata"] = toJsonObject(process.metadata);
@@ -92,14 +92,14 @@ void Visitor<Reader<JSONObject>>::readFrom(const Process& process)
 
 
 template<>
-void Visitor<Writer<JSONObject>>::writeTo(Process& process)
+void Visitor<Writer<JSONObject>>::writeTo(Process::ProcessModel& process)
 {
     process.m_duration = fromJsonValue<TimeValue>(m_obj["Duration"]);
     process.metadata = fromJsonObject<ModelMetadata>(m_obj["Metadata"].toObject());
 }
 
 template<>
-ISCORE_LIB_PROCESS_EXPORT Process* createProcess(
+ISCORE_LIB_PROCESS_EXPORT Process::ProcessModel* Process::createProcess(
         const ProcessList& pl,
         Deserializer<JSONObject>& deserializer,
         QObject* parent)
@@ -128,12 +128,12 @@ ISCORE_LIB_PROCESS_EXPORT Process* createProcess(
 #include <Process/ProcessList.hpp>
 
 template<>
-void Visitor<Reader<DataStream>>::readFrom(const StateProcess& process)
+void Visitor<Reader<DataStream>>::readFrom(const Process::StateProcess& process)
 {
     // To allow recration using createProcess
     m_stream << process.key();
 
-    readFrom(static_cast<const IdentifiedObject<StateProcess>&>(process));
+    readFrom(static_cast<const IdentifiedObject<Process::StateProcess>&>(process));
 
     // Save the subclass
     process.serialize(toVariant());
@@ -144,14 +144,14 @@ void Visitor<Reader<DataStream>>::readFrom(const StateProcess& process)
 // We only load the members of the process here.
 
 template<>
-void Visitor<Writer<DataStream>>::writeTo(StateProcess&)
+void Visitor<Writer<DataStream>>::writeTo(Process::StateProcess&)
 {
     // Delimiter checked on createProcess
 }
 
 template<>
-ISCORE_LIB_PROCESS_EXPORT StateProcess* createStateProcess(
-        const StateProcessList& pl,
+ISCORE_LIB_PROCESS_EXPORT Process::StateProcess* Process::createStateProcess(
+        const Process::StateProcessList& pl,
         Deserializer<DataStream>& deserializer,
         QObject* parent)
 {
@@ -172,12 +172,12 @@ ISCORE_LIB_PROCESS_EXPORT StateProcess* createStateProcess(
 
 
 template<>
-void Visitor<Reader<JSONObject>>::readFrom(const StateProcess& process)
+void Visitor<Reader<JSONObject>>::readFrom(const Process::StateProcess& process)
 {
     // To allow recration using createProcess
     m_obj["StateProcessName"] = toJsonValue(process.key());
 
-    readFrom(static_cast<const IdentifiedObject<StateProcess>&>(process));
+    readFrom(static_cast<const IdentifiedObject<Process::StateProcess>&>(process));
 
     // Save the subclass
     process.serialize(toVariant());
@@ -185,12 +185,13 @@ void Visitor<Reader<JSONObject>>::readFrom(const StateProcess& process)
 
 
 template<>
-void Visitor<Writer<JSONObject>>::writeTo(StateProcess& process)
+void Visitor<Writer<JSONObject>>::writeTo(Process::StateProcess& process)
 {
 }
 
+
 template<>
-ISCORE_LIB_PROCESS_EXPORT StateProcess* createStateProcess(
+ISCORE_LIB_PROCESS_EXPORT Process::StateProcess* Process::createStateProcess(
         const StateProcessList& pl,
         Deserializer<JSONObject>& deserializer,
         QObject* parent)

@@ -3,7 +3,7 @@
 #include <QString>
 
 class QWidget;
-class Process;
+namespace Process { class ProcessModel; }
 namespace Scenario {
 class ScenarioModel;
 }  // namespace Scenario

@@ -29,10 +29,10 @@ struct ProcessMetadata
         }
 };
 
-class Process final : public TimeProcessWithConstraint
+class ProcessExecutor final : public TimeProcessWithConstraint
 {
     public:
-        Process(ProcessModel& process);
+        ProcessExecutor(Space::ProcessModel& process);
 
 
         std::shared_ptr<OSSIA::StateElement> state(
@@ -51,7 +51,7 @@ class Process final : public TimeProcessWithConstraint
 
 
     private:
-        ProcessModel& m_process;
+        Space::ProcessModel& m_process;
 
         std::shared_ptr<OSSIA::State> m_start;
         std::shared_ptr<OSSIA::State> m_end;
@@ -66,9 +66,9 @@ class ProcessModel : public RecreateOnPlay::OSSIAProcessModel
         ProcessModel(
                 const iscore::DocumentContext& doc,
                 const TimeValue &duration,
-                const Id<::Process> &id,
+                const Id<Process::ProcessModel> &id,
                 QObject *parent);
-        ProcessModel *clone(const Id<::Process> &newId, QObject *newParent) const override;
+        ProcessModel *clone(const Id<Process::ProcessModel> &newId, QObject *newParent) const override;
 
         const ProcessFactoryKey& key() const override;
         QString prettyName() const override;
@@ -108,16 +108,16 @@ class ProcessModel : public RecreateOnPlay::OSSIAProcessModel
         void computationAdded(const ComputationModel&);
 
     protected:
-        ::LayerModel *makeLayer_impl(
-                const Id<::LayerModel> &viewModelId,
+        Process::LayerModel *makeLayer_impl(
+                const Id<Process::LayerModel> &viewModelId,
                 const QByteArray &constructionData,
                 QObject *parent) override;
-        ::LayerModel *loadLayer_impl(
+        Process::LayerModel *loadLayer_impl(
                 const VisitorVariant &,
                 QObject *parent) override;
-        ::LayerModel *cloneLayer_impl(
-                const Id<::LayerModel> &newId,
-                const ::LayerModel &source,
+        Process::LayerModel *cloneLayer_impl(
+                const Id<Process::LayerModel> &newId,
+                const Process::LayerModel &source,
                 QObject *parent) override;
 
     private:
@@ -129,7 +129,7 @@ class ProcessModel : public RecreateOnPlay::OSSIAProcessModel
         IdContainer<AreaModel> m_areas;
         IdContainer<ComputationModel> m_computations;
         Space::AreaContext m_context;
-        std::shared_ptr<Space::Process> m_process;
+        std::shared_ptr<Space::ProcessExecutor> m_process;
 
 };
 }

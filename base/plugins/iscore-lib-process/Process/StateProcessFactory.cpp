@@ -1,5 +1,5 @@
 #include "StateProcessFactory.hpp"
-StateProcessFactory::~StateProcessFactory()
+Process::StateProcessFactory::~StateProcessFactory()
 {
 
 }

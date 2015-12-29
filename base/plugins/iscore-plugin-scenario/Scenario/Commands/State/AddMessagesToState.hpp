@@ -12,7 +12,7 @@
 class DataStreamInput;
 class DataStreamOutput;
 class MessageItemModel;
-class Process;
+namespace Process { class ProcessModel; }
 
 class ISCORE_PLUGIN_SCENARIO_EXPORT AddMessagesToState final : public iscore::SerializableCommand
 {
@@ -35,6 +35,6 @@ class ISCORE_PLUGIN_SCENARIO_EXPORT AddMessagesToState final : public iscore::Se
 
         MessageNode m_oldState, m_newState;
 
-        QMap<Id<Process>, iscore::MessageList> m_previousBackup;
-        QMap<Id<Process>, iscore::MessageList> m_followingBackup;
+        QMap<Id<Process::ProcessModel>, iscore::MessageList> m_previousBackup;
+        QMap<Id<Process::ProcessModel>, iscore::MessageList> m_followingBackup;
 };

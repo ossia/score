@@ -3,7 +3,7 @@
 #include <SimpleProcess/SimpleStateProcess.hpp>
 #include <iscore/serialization/VisitorCommon.hpp>
 
-class SimpleStateProcessFactory : public StateProcessFactory
+class SimpleStateProcessFactory : public Process::StateProcessFactory
 {
 
 
@@ -18,11 +18,11 @@ class SimpleStateProcessFactory : public StateProcessFactory
             return name;
         }
 
-        StateProcess*make(const Id<StateProcess>& id, QObject* parent) override
+        Process::StateProcess*make(const Id<Process::StateProcess>& id, QObject* parent) override
         {
             return new SimpleStateProcessModel(id, parent);
         }
-        StateProcess*load(const VisitorVariant& vis, QObject* parent) override
+        Process::StateProcess*load(const VisitorVariant& vis, QObject* parent) override
         {
             return deserialize_dyn(vis, [&] (auto&& deserializer)
             { return new SimpleStateProcessModel{deserializer, parent};});

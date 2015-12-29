@@ -12,7 +12,7 @@
 class ConstraintModel;
 class ConstraintViewModel;
 class EventModel;
-class Process;
+namespace Process { class ProcessModel; }
 class QObject;
 class StateModel;
 class TimeNodeModel;
@@ -22,7 +22,9 @@ class ScenarioModel;
 }
 #include <iscore/tools/SettableIdentifier.hpp>
 
-class AbstractScenarioLayerModel : public LayerModel, public Nano::Observer
+class AbstractScenarioLayerModel :
+        public Process::LayerModel,
+        public Nano::Observer
 {
         Q_OBJECT
     public:
@@ -69,7 +71,7 @@ class AbstractScenarioLayerModel : public LayerModel, public Nano::Observer
     protected:
         AbstractScenarioLayerModel(const Id<LayerModel>& viewModelId,
                               const QString& name,
-                              Process& sharedProcess,
+                              Process::ProcessModel& sharedProcess,
                               QObject* parent) :
             LayerModel {viewModelId,
                         name,
@@ -83,7 +85,7 @@ class AbstractScenarioLayerModel : public LayerModel, public Nano::Observer
         AbstractScenarioLayerModel(const AbstractScenarioLayerModel& source,
                               const Id<LayerModel>& viewModelId,
                               const QString& name,
-                              Process& sharedProcess,
+                              Process::ProcessModel& sharedProcess,
                               QObject* parent) :
             LayerModel {viewModelId,
                         name,
@@ -95,7 +97,7 @@ class AbstractScenarioLayerModel : public LayerModel, public Nano::Observer
         // Load
         template<typename Impl>
         AbstractScenarioLayerModel(Deserializer<Impl>& vis,
-                              Process& sharedProcess,
+                              Process::ProcessModel& sharedProcess,
                               QObject* parent) :
             LayerModel {vis,
                         sharedProcess,

@@ -9,7 +9,7 @@
 
 class DataStreamInput;
 class DataStreamOutput;
-class LayerModel;
+namespace Process { class LayerModel; }
 class SlotModel;
 
 namespace Scenario
@@ -28,7 +28,7 @@ namespace Scenario
 
                 RemoveLayerModelFromSlot(
                     Path<SlotModel>&& slotPath,
-                    const Id<LayerModel>& layerId);
+                    const Id<Process::LayerModel>& layerId);
 
                 void undo() const override;
                 void redo() const override;
@@ -39,7 +39,7 @@ namespace Scenario
 
             private:
                 Path<SlotModel> m_path;
-                Id<LayerModel> m_layerId {};
+                Id<Process::LayerModel> m_layerId {};
 
                 QByteArray m_serializedLayerData;
         };

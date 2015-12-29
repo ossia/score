@@ -7,6 +7,7 @@
 FocusDispatcher::FocusDispatcher(iscore::Document& doc):
     m_baseElementModel{iscore::IDocument::modelDelegate_generic(doc)}
 {
-    connect(this, SIGNAL(focus(LayerPresenter*)),
-            &m_baseElementModel, SIGNAL(setFocusedPresenter(LayerPresenter*)), Qt::QueuedConnection);
+    connect(this, SIGNAL(focus(Process::LayerPresenter*)),
+            &m_baseElementModel, SIGNAL(setFocusedPresenter(Process::LayerPresenter*)),
+            Qt::QueuedConnection);
 }

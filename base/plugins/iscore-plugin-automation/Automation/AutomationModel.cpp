@@ -18,13 +18,13 @@
 #include <iscore/tools/IdentifiedObjectMap.hpp>
 #include <iscore/tools/SettableIdentifier.hpp>
 
-class LayerModel;
-class Process;
+namespace Process { class LayerModel; }
+namespace Process { class ProcessModel; }
 class QObject;
 
 AutomationModel::AutomationModel(
         const TimeValue& duration,
-        const Id<Process>& id,
+        const Id<ProcessModel>& id,
         QObject* parent) :
     CurveProcessModel {duration, id, AutomationProcessMetadata::processObjectName(), parent},
     m_startState{new AutomationState{*this, 0., this}},
@@ -48,7 +48,7 @@ AutomationModel::AutomationModel(
 
 AutomationModel::AutomationModel(
         const AutomationModel& source,
-        const Id<Process>& id,
+        const Id<ProcessModel>& id,
         QObject* parent):
     CurveProcessModel{source, id, AutomationProcessMetadata::processObjectName(), parent},
     m_address(source.address()),
@@ -64,8 +64,8 @@ AutomationModel::AutomationModel(
     metadata.setName(QString("Automation.%1").arg(*this->id().val()));
 }
 
-Process* AutomationModel::clone(
-        const Id<Process>& newId,
+Process::ProcessModel* AutomationModel::clone(
+        const Id<ProcessModel>& newId,
         QObject* newParent) const
 {
     return new AutomationModel {*this, newId, newParent};
@@ -158,8 +158,8 @@ void AutomationModel::setDurationAndShrink(const TimeValue& newDuration)
     m_curve->changed();
 }
 
-LayerModel* AutomationModel::makeLayer_impl(
-        const Id<LayerModel>& viewModelId,
+Process::LayerModel* AutomationModel::makeLayer_impl(
+        const Id<Process::LayerModel>& viewModelId,
         const QByteArray& constructionData,
         QObject* parent)
 {
@@ -167,9 +167,9 @@ LayerModel* AutomationModel::makeLayer_impl(
     return vm;
 }
 
-LayerModel* AutomationModel::cloneLayer_impl(
-        const Id<LayerModel>& newId,
-        const LayerModel& source,
+Process::LayerModel* AutomationModel::cloneLayer_impl(
+        const Id<Process::LayerModel>& newId,
+        const Process::LayerModel& source,
         QObject* parent)
 {
     auto vm = new AutomationLayerModel {

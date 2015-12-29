@@ -24,7 +24,7 @@ JSInspectorFactory::~JSInspectorFactory()
 }
 
 ProcessInspectorWidgetDelegate* JSInspectorFactory::make(
-        const Process& process,
+        const Process::ProcessModel& process,
         const iscore::DocumentContext& doc,
         QWidget* parent) const
 {
@@ -34,7 +34,7 @@ ProcessInspectorWidgetDelegate* JSInspectorFactory::make(
                 parent};
 }
 
-bool JSInspectorFactory::matches(const Process& process) const
+bool JSInspectorFactory::matches(const Process::ProcessModel& process) const
 {
     return dynamic_cast<const JS::ProcessModel*>(&process);
 }

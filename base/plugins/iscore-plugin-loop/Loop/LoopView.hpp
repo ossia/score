@@ -6,7 +6,7 @@ class QGraphicsItem;
 class QPainter;
 
 
-class LoopView final : public LayerView
+class LoopView final : public Process::LayerView
 {
         Q_OBJECT
     public:

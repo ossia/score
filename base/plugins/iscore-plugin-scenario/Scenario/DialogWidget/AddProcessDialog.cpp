@@ -14,7 +14,7 @@
 #include <iscore/plugins/customfactory/FactoryMap.hpp>
 
 AddProcessDialog::AddProcessDialog(
-        const ProcessList& plist,
+        const Process::ProcessList& plist,
         QWidget *parent) :
     QWidget {parent},
     m_factoryList{plist}

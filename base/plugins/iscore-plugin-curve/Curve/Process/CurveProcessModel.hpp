@@ -8,11 +8,12 @@
 #include <iscore/selection/Selection.hpp>
 #include <iscore_plugin_curve_export.h>
 
-class ISCORE_PLUGIN_CURVE_EXPORT CurveProcessModel : public Process
+class ISCORE_PLUGIN_CURVE_EXPORT CurveProcessModel :
+        public Process::ProcessModel
 {
         Q_OBJECT
     public:
-        using Process::Process;
+        using ProcessModel::ProcessModel;
 
         CurveModel& curve() const
         { return *m_curve; }

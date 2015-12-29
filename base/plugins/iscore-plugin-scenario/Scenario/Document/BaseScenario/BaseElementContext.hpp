@@ -1,7 +1,7 @@
 #pragma once
 #include <iscore/document/DocumentContext.hpp>
 
-class ProcessFocusManager;
+namespace Process { class ProcessFocusManager; }
 class ScenarioDocumentPresenter;
 namespace iscore {
 class Document;
@@ -13,12 +13,12 @@ class BaseElementContext : public iscore::DocumentContext
         BaseElementContext(
                 iscore::Document& doc,
                 ScenarioDocumentPresenter& pres,
-                ProcessFocusManager& d);
+                Process::ProcessFocusManager& d);
 
         BaseElementContext(
                 const iscore::DocumentContext& doc,
                 ScenarioDocumentPresenter& pres);
 
         ScenarioDocumentPresenter& layerPresenter;
-        ProcessFocusManager& focusDispatcher;
+        Process::ProcessFocusManager& focusDispatcher;
 };

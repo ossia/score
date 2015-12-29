@@ -6,7 +6,7 @@
 class QGraphicsItem;
 class QPainter;
 
-class AutomationView final : public LayerView
+class AutomationView final : public Process::LayerView
 {
     public:
         explicit AutomationView(QGraphicsItem *parent);

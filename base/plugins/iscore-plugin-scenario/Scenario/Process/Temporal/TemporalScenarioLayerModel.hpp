@@ -9,8 +9,10 @@
 
 class ConstraintModel;
 class ConstraintViewModel;
+namespace Process {
 class LayerModel;
 class LayerModelPanelProxy;
+}
 class QObject;
 #include <iscore/tools/SettableIdentifier.hpp>
 
@@ -46,7 +48,7 @@ class TemporalScenarioLayerModel final : public AbstractScenarioLayerModel
             vis.writeTo(*this);
         }
 
-        LayerModelPanelProxy* make_panelProxy(QObject* parent) const override;
+        Process::LayerModelPanelProxy* make_panelProxy(QObject* parent) const override;
 
         ~TemporalScenarioLayerModel() = default;
 

@@ -24,7 +24,7 @@
 #include <iscore/plugins/customfactory/StringFactoryKey.hpp>
 #include <OSSIA/iscore2OSSIA.hpp>
 
-class Process;
+namespace Process { class ProcessModel; }
 class QObject;
 namespace OSSIA {
 class TimeProcess;
@@ -54,7 +54,7 @@ std::shared_ptr<OSSIA::TimeProcess> AutomationElement::OSSIAProcess() const
     return m_ossia_autom;
 }
 
-Process& AutomationElement::iscoreProcess() const
+Process::ProcessModel& AutomationElement::iscoreProcess() const
 {
     return m_iscore_autom;
 }

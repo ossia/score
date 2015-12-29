@@ -15,7 +15,7 @@
 #include <iscore/tools/NotifyingMap.hpp>
 #include <iscore/tools/SettableIdentifier.hpp>
 
-class LayerModel;
+namespace Process { class LayerModel; }
 template <typename T> class Reader;
 template <typename T> class Writer;
 template <typename model> class IdentifiedObject;
@@ -41,7 +41,7 @@ template<> void Visitor<Reader<DataStream>>::readFrom(const SlotModel& slot)
 
 template<> void Visitor<Writer<DataStream>>::writeTo(SlotModel& slot)
 {
-    Id<LayerModel> editedProcessId;
+    Id<Process::LayerModel> editedProcessId;
     m_stream >> editedProcessId;
 
     int32_t lm_size;
@@ -51,7 +51,7 @@ template<> void Visitor<Writer<DataStream>>::writeTo(SlotModel& slot)
 
     for(int i = 0; i < lm_size; i++)
     {
-        auto lm = createLayerModel(*this, cstr, &slot);
+        auto lm = Process::createLayerModel(*this, cstr, &slot);
         slot.layers.add(lm);
     }
 
@@ -94,7 +94,7 @@ template<> void Visitor<Writer<JSONObject>>::writeTo(SlotModel& slot)
     for(const auto& json_vref : arr)
     {
         Deserializer<JSONObject> deserializer {json_vref.toObject() };
-        auto lm = createLayerModel(deserializer,
+        auto lm = Process::createLayerModel(deserializer,
                                           cstr,
                                           &slot);
         slot.layers.add(lm);
@@ -102,6 +102,6 @@ template<> void Visitor<Writer<JSONObject>>::writeTo(SlotModel& slot)
 
     slot.setHeight(static_cast<qreal>(m_obj["Height"].toDouble()));
     slot.putToFront(
-                fromJsonValue<Id<LayerModel>>(
+                fromJsonValue<Id<Process::LayerModel>>(
                     m_obj["EditedProcess"]));
 }

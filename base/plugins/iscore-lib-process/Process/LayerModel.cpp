@@ -3,23 +3,25 @@
 
 class QObject;
 #include <iscore/tools/SettableIdentifier.hpp>
-
+namespace Process
+{
 LayerModel::~LayerModel()
 {
 
 }
 
-Process& LayerModel::processModel() const
+ProcessModel& LayerModel::processModel() const
 { return m_sharedProcessModel; }
 
 
 LayerModel::LayerModel(
         const Id<LayerModel>& viewModelId,
         const QString& name,
-        Process& sharedProcess,
+        ProcessModel& sharedProcess,
         QObject* parent) :
     IdentifiedObject<LayerModel> {viewModelId, name, parent},
     m_sharedProcessModel {sharedProcess}
 {
 
+}
 }

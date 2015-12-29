@@ -3,7 +3,7 @@
 #include <OSSIA/DocumentPlugin/ProcessElement.hpp>
 #include <memory>
 
-class Process;
+namespace Process { class ProcessModel; }
 class QObject;
 namespace OSSIA {
 class TimeProcess;
@@ -35,7 +35,7 @@ class AutomationElement final : public ProcessElement
                 QObject* parent);
 
         std::shared_ptr<OSSIA::TimeProcess> OSSIAProcess() const override;
-        Process& iscoreProcess() const override;
+        Process::ProcessModel& iscoreProcess() const override;
 
     private:
         void recreate();

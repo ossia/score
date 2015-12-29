@@ -126,7 +126,7 @@ class ISCORE_PLUGIN_SCENARIO_EXPORT ConstraintModel final : public IdentifiedObj
         void reset();
 
         NotifyingMap<RackModel> racks;
-        NotifyingMap<Process> processes;
+        NotifyingMap<Process::ProcessModel> processes;
 
         bool looping() const;
         void setLooping(bool looping);

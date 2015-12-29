@@ -28,7 +28,7 @@ class GenericProcessComponentFactory :
         }
 
         virtual bool matches(
-                Process&,
+                Process::ProcessModel&,
                 const System_T&,
                 const iscore::DocumentContext&) const = 0;
 };
@@ -63,7 +63,7 @@ class GenericProcessComponentFactoryList final :
         { return m_list; }
 
         Factory_T* factory(
-                Process& proc,
+                Process::ProcessModel& proc,
                 const System_T& doc,
                 const iscore::DocumentContext& ctx) const
         {

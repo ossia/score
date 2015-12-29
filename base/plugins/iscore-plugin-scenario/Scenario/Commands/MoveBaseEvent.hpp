@@ -93,7 +93,7 @@ class MoveBaseEvent final : public iscore::SerializableCommand
 
             updateDuration(scenar,
                            m_oldDate,
-                           [&] (Process& p , const TimeValue& v) {
+                           [&] (Process::ProcessModel& p , const TimeValue& v) {
                 // Nothing is needed since the processes will be replaced anyway.
             });
 
@@ -116,7 +116,7 @@ class MoveBaseEvent final : public iscore::SerializableCommand
                 Deserializer<DataStream>{m_savedConstraint.first},
                 &constraint}; // Temporary parent
 
-            std::map<const Process*, Process*> processPairs;
+            std::map<const Process::ProcessModel*, Process::ProcessModel*> processPairs;
 
             // Clone the processes
             for(const auto& sourceproc : src_constraint.processes)
@@ -143,7 +143,7 @@ class MoveBaseEvent final : public iscore::SerializableCommand
                     for(const auto& lm : source.layers)
                     {
                         // We can safely reuse the same id since it's in a different slot.
-                        Process* proc = processPairs[&lm.processModel()];
+                        Process::ProcessModel* proc = processPairs[&lm.processModel()];
                         // TODO harmonize the order of parameters (source first, then new id)
                         target.layers.add(proc->cloneLayer(lm.id(), lm, &target));
                     }
@@ -166,7 +166,7 @@ class MoveBaseEvent final : public iscore::SerializableCommand
 
             updateDuration(scenar,
                            m_newDate,
-                           [&] (Process& p , const TimeValue& v) {
+                           [&] (Process::ProcessModel& p , const TimeValue& v) {
                 p.setParentDuration(m_mode, v);
             });
         }

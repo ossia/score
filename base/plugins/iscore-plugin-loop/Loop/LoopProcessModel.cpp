@@ -21,7 +21,7 @@
 #include <iscore/tools/std/StdlibWrapper.hpp>
 #include <iscore/tools/std/Algorithms.hpp>
 
-class LayerModel;
+namespace Process { class LayerModel; }
 class ProcessStateDataInterface;
 class QObject;
 
@@ -31,9 +31,9 @@ namespace Loop
 ISCORE_METADATA_IMPL(Loop::ProcessModel)
 ProcessModel::ProcessModel(
         const TimeValue& duration,
-        const Id<Process>& id,
+        const Id<Process::ProcessModel>& id,
         QObject* parent):
-    Process{duration, id, LoopProcessMetadata::processObjectName(), parent},
+    Process::ProcessModel{duration, id, LoopProcessMetadata::processObjectName(), parent},
     BaseScenarioContainer{this}
 {
     pluginModelList = new iscore::ElementPluginModelList{
@@ -59,10 +59,10 @@ ProcessModel::ProcessModel(
 }
 
 ProcessModel::ProcessModel(
-        const ProcessModel& source,
-        const Id<Process>& id,
+        const Loop::ProcessModel& source,
+        const Id<Process::ProcessModel>& id,
         QObject* parent):
-    Process{source.duration(), id, LoopProcessMetadata::processObjectName(), parent},
+    Process::ProcessModel{source.duration(), id, LoopProcessMetadata::processObjectName(), parent},
     BaseScenarioContainer{this}
 {
     pluginModelList = new iscore::ElementPluginModelList{
@@ -75,7 +75,7 @@ ProcessModel::ProcessModel(
 }
 
 ProcessModel* ProcessModel::clone(
-        const Id<Process>& newId,
+        const Id<Process::ProcessModel>& newId,
         QObject* newParent) const
 {
     return new ProcessModel{*this, newId, newParent};
@@ -167,15 +167,15 @@ void ProcessModel::serialize(const VisitorVariant& s) const
     serialize_dyn(s, *this);
 }
 
-LayerModel* ProcessModel::makeLayer_impl(
-        const Id<LayerModel>& viewModelId,
+Process::LayerModel* ProcessModel::makeLayer_impl(
+        const Id<Process::LayerModel>& viewModelId,
         const QByteArray& constructionData,
         QObject* parent)
 {
     return new LoopLayer{*this, viewModelId, parent};
 }
 
-LayerModel* ProcessModel::loadLayer_impl(
+Process::LayerModel* ProcessModel::loadLayer_impl(
         const VisitorVariant& vis,
         QObject* parent)
 {
@@ -188,9 +188,9 @@ LayerModel* ProcessModel::loadLayer_impl(
     });
 }
 
-LayerModel* ProcessModel::cloneLayer_impl(
-        const Id<LayerModel>& newId,
-        const LayerModel& source,
+Process::LayerModel* ProcessModel::cloneLayer_impl(
+        const Id<Process::LayerModel>& newId,
+        const Process::LayerModel& source,
         QObject* parent)
 {
     return new LoopLayer{safe_cast<const LoopLayer&>(source), *this, newId, parent};

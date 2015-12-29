@@ -28,7 +28,7 @@
 
 class DataStream;
 class JSONObject;
-class LayerModel;
+namespace Process { class LayerModel; }
 class ProcessStateDataInterface;
 class QEvent;
 class ScenarioFactory;
@@ -45,7 +45,9 @@ namespace OSSIA
  */
 namespace Scenario
 {
-class ISCORE_PLUGIN_SCENARIO_EXPORT ScenarioModel final : public Process, public ScenarioInterface
+class ISCORE_PLUGIN_SCENARIO_EXPORT ScenarioModel final :
+        public Process::ProcessModel,
+        public ScenarioInterface
 {
         Q_OBJECT
 
@@ -57,23 +59,23 @@ class ISCORE_PLUGIN_SCENARIO_EXPORT ScenarioModel final : public Process, public
     public:
         using layer_type = AbstractScenarioLayerModel;
         ScenarioModel(const TimeValue& duration,
-                      const Id<Process>& id,
+                      const Id<ProcessModel>& id,
                       QObject* parent);
         Scenario::ScenarioModel* clone(
-                const Id<Process>& newId,
+                const Id<ProcessModel>& newId,
                 QObject* newParent) const override;
         ~ScenarioModel();
 
         //// ProcessModel specifics ////
         QByteArray makeLayerConstructionData() const override;
-        LayerModel* makeLayer_impl(
-                const Id<LayerModel>& viewModelId,
+        Process::LayerModel* makeLayer_impl(
+                const Id<Process::LayerModel>& viewModelId,
                 const QByteArray& constructionData,
                 QObject* parent) override;
 
-        LayerModel* cloneLayer_impl(
-                const Id<LayerModel>& newId,
-                const LayerModel& source,
+        Process::LayerModel* cloneLayer_impl(
+                const Id<Process::LayerModel>& newId,
+                const Process::LayerModel& source,
                 QObject* parent) override;
 
         const ProcessFactoryKey& key() const override;
@@ -205,12 +207,12 @@ class ISCORE_PLUGIN_SCENARIO_EXPORT ScenarioModel final : public Process, public
     protected:
         template<typename Impl>
         ScenarioModel(Deserializer<Impl>& vis, QObject* parent) :
-            Process {vis, parent}
+            ProcessModel {vis, parent}
         {
             vis.writeTo(*this);
         }
 
-        LayerModel* loadLayer_impl(
+        Process::LayerModel* loadLayer_impl(
                 const VisitorVariant& vis,
                 QObject* parent) override;
 
@@ -232,7 +234,7 @@ class ISCORE_PLUGIN_SCENARIO_EXPORT ScenarioModel final : public Process, public
             fun(&ScenarioModel::comments);
         }
         ScenarioModel(const Scenario::ScenarioModel& source,
-                      const Id<Process>& id,
+                      const Id<ProcessModel>& id,
                       QObject* parent);
         void makeLayer_impl(AbstractScenarioLayerModel*);
 

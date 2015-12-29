@@ -23,8 +23,8 @@
 #include <iscore/tools/std/StdlibWrapper.hpp>
 #include <iscore/tools/std/Algorithms.hpp>
 
-class LayerModel;
-class Process;
+namespace Process { class LayerModel; }
+namespace Process { class ProcessModel; }
 class QMenu;
 class QObject;
 struct VerticalExtent;
@@ -128,12 +128,12 @@ void LoopPresenter::parentGeometryChanged()
     m_view->update();
 }
 
-const LayerModel& LoopPresenter::layerModel() const
+const Process::LayerModel& LoopPresenter::layerModel() const
 {
     return m_layer;
 }
 
-const Id<Process>&LoopPresenter::modelId() const
+const Id<Process::ProcessModel>&LoopPresenter::modelId() const
 {
     return m_layer.model().id();
 }

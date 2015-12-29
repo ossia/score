@@ -37,8 +37,8 @@
 #include <iscore/tools/Todo.hpp>
 #include <iscore/tools/TreeNode.hpp>
 
-class LayerModel;
-class Process;
+namespace Process { class LayerModel; }
+namespace Process { class ProcessModel; }
 class SlotModel;
 
 using namespace Scenario::Command;
@@ -130,15 +130,15 @@ CreateSequence::CreateSequence(
         }
 
         // Generate brand new ids for the processes
-        auto process_ids = getStrongIdRange<Process>(matchingMessages.size());
-        auto layers_ids = getStrongIdRange<LayerModel>(matchingMessages.size());
+        auto process_ids = getStrongIdRange<Process::ProcessModel>(matchingMessages.size());
+        auto layers_ids = getStrongIdRange<Process::LayerModel>(matchingMessages.size());
 
         int i = 0;
         // Here we know that there is nothing yet, so we can just assign
         // ids 1, 2, 3, 4 to each process and each process view in each slot
         for(const auto& elt : matchingMessages)
         {
-            std::vector<std::pair<Path<SlotModel>, Id<LayerModel>>> layer_vect;
+            std::vector<std::pair<Path<SlotModel>, Id<Process::LayerModel>>> layer_vect;
             for(const auto& slots_elt : m_interpolations.slotsToUse)
             {
                 layer_vect.push_back(std::make_pair(slots_elt.first, layers_ids[i]));

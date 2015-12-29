@@ -173,7 +173,7 @@ std::vector<QAction*> ScenarioApplicationPlugin::actions()
     return act;
 }
 
-void ScenarioApplicationPlugin::on_presenterDefocused(LayerPresenter* pres)
+void ScenarioApplicationPlugin::on_presenterDefocused(Process::LayerPresenter* pres)
 {
     // We set the currently focused view model to a "select" state
     // to prevent problems.
@@ -188,7 +188,7 @@ void ScenarioApplicationPlugin::on_presenterDefocused(LayerPresenter* pres)
 }
 
 
-void ScenarioApplicationPlugin::on_presenterFocused(LayerPresenter* pres)
+void ScenarioApplicationPlugin::on_presenterFocused(Process::LayerPresenter* pres)
 {
     // Generic stuff
     if(focusedPresenter())
@@ -197,7 +197,7 @@ void ScenarioApplicationPlugin::on_presenterFocused(LayerPresenter* pres)
     }
     if(pres)
     {
-        m_contextMenuConnection = connect(pres, &LayerPresenter::contextMenuRequested,
+        m_contextMenuConnection = connect(pres, &Process::LayerPresenter::contextMenuRequested,
                 this, [=] (const QPoint& pos, const QPointF& pt2) {
             QMenu menu;
             ScenarioContextMenuManager::createLayerContextMenu(menu, pos, pt2, *pres);
@@ -263,10 +263,10 @@ void ScenarioApplicationPlugin::on_documentChanged(
             return;
 
         m_focusConnection =
-                connect(focusManager, &ProcessFocusManager::sig_focusedPresenter,
+                connect(focusManager, &Process::ProcessFocusManager::sig_focusedPresenter,
                         this, &ScenarioApplicationPlugin::on_presenterFocused);
         m_defocusConnection =
-                connect(focusManager, &ProcessFocusManager::sig_defocusedPresenter,
+                connect(focusManager, &Process::ProcessFocusManager::sig_defocusedPresenter,
                         this, &ScenarioApplicationPlugin::on_presenterDefocused);
 
         if(focusManager->focusedPresenter())
@@ -425,7 +425,7 @@ void ScenarioApplicationPlugin::prepareNewDocument()
     }
 }
 
-ProcessFocusManager* ScenarioApplicationPlugin::processFocusManager() const
+Process::ProcessFocusManager* ScenarioApplicationPlugin::processFocusManager() const
 {
     if(auto doc = currentDocument())
     {

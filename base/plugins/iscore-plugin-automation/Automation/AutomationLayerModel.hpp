@@ -4,13 +4,12 @@
 #include <Process/LayerModel.hpp>
 
 #include <iscore/serialization/VisitorInterface.hpp>
-
-class AutomationModel;
-class LayerModelPanelProxy;
-class QObject;
 #include <iscore/tools/SettableIdentifier.hpp>
 
-class AutomationLayerModel final : public LayerModel
+class AutomationModel;
+class QObject;
+
+class AutomationLayerModel final : public Process::LayerModel
 {
         ISCORE_METADATA(AutomationLayerModel)
     public:
@@ -37,7 +36,7 @@ class AutomationLayerModel final : public LayerModel
             vis.writeTo(*this);
         }
 
-        LayerModelPanelProxy* make_panelProxy(QObject* parent) const override;
+        Process::LayerModelPanelProxy* make_panelProxy(QObject* parent) const override;
         void serialize(const VisitorVariant&) const override;
 
         const AutomationModel& model() const;
