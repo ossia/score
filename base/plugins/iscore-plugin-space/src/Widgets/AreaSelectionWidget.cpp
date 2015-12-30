@@ -42,7 +42,7 @@ AreaSelectionWidget::AreaSelectionWidget(
         {
             auto formula = fact.get(key)->generic_formula();
             if(formula.size() > 0)
-                m_lineEdit->setText(formula.join(';')); // TODO multiline or cut on ';'
+                m_lineEdit->setText(formula.join(';'));
             m_lineEdit->setEnabled(false);
             lineEditChanged();
         }

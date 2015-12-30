@@ -14,7 +14,7 @@ class PointerAreaView : public QGraphicsItem
                    const QStyleOptionGraphicsItem* ,
                    QWidget*) override;
 
-        void update(double x0, double y0, double r);
+        void update(double x0, double y0);
 
     private:
         QPainterPath m_path;

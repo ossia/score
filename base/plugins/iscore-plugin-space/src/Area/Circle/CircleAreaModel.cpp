@@ -5,10 +5,15 @@
 #include "src/Space/SpaceModel.hpp"
 
 
-const AreaFactoryKey&CircleAreaModel::factoryKey() const
+const AreaFactoryKey&CircleAreaModel::static_factoryKey()
 {
     static const AreaFactoryKey name{"Circle"};
     return name;
+}
+
+const AreaFactoryKey&CircleAreaModel::factoryKey() const
+{
+    return static_factoryKey();
 }
 
 QString CircleAreaModel::prettyName() const
