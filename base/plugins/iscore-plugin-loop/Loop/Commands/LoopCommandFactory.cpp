@@ -7,7 +7,7 @@ const CommandParentFactoryKey& LoopCommandFactoryName() {
 }
 
 namespace Loop {
-namespace Process { class ProcessModel; }
+class ProcessModel;
 }  // namespace Loop
 
 template<>

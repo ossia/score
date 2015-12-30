@@ -14,25 +14,26 @@ class ConstraintViewModel;
 namespace Process { class LayerModelPanelProxy; }
 class QObject;
 
-ISCORE_METADATA_IMPL(LoopLayer)
-
-LoopLayer::LoopLayer(
+ISCORE_METADATA_IMPL(Loop::Layer)
+namespace Loop
+{
+Layer::Layer(
         Loop::ProcessModel& model,
         const Id<LayerModel>& id,
         QObject* parent) :
-    LayerModel {id, LoopLayer::className.c_str(), model, parent}
+    LayerModel {id, Layer::className.c_str(), model, parent}
 {
     m_constraint = model.constraint().makeConstraintViewModel<TemporalConstraintViewModel>(
                 Id<ConstraintViewModel>{0},
                 this);
 }
 
-LoopLayer::LoopLayer(
-        const LoopLayer& source,
+Layer::Layer(
+        const Layer& source,
         Loop::ProcessModel& model,
         const Id<LayerModel>& id,
         QObject* parent) :
-    LayerModel {id, LoopLayer::className.c_str(), model, parent}
+    LayerModel {id, Layer::className.c_str(), model, parent}
 {
     m_constraint = source.m_constraint->clone(
                 source.constraint().id(),
@@ -40,14 +41,16 @@ LoopLayer::LoopLayer(
                 this);
 }
 
-Process::LayerModelPanelProxy* LoopLayer::make_panelProxy(
+Process::LayerModelPanelProxy* Layer::make_panelProxy(
         QObject* parent) const
 {
-    return new LoopPanelProxy{*this, parent};
+    return new PanelProxy{*this, parent};
 }
 
 
-const Loop::ProcessModel& LoopLayer::model() const
+const Loop::ProcessModel& Layer::model() const
 {
     return static_cast<const Loop::ProcessModel&>(processModel());
+}
+
 }

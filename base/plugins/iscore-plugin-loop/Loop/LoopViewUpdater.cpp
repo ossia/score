@@ -24,13 +24,15 @@
 #include <Scenario/Document/TimeNode/TimeNodePresenter.hpp>
 #include <Scenario/Document/VerticalExtent.hpp>
 
-LoopViewUpdater::LoopViewUpdater(LoopPresenter& presenter):
+namespace Loop
+{
+ViewUpdater::ViewUpdater(LayerPresenter& presenter):
     m_presenter{presenter}
 {
 
 }
 
-void LoopViewUpdater::updateEvent(const EventPresenter& event)
+void ViewUpdater::updateEvent(const EventPresenter& event)
 {
     auto h = m_presenter.m_view->boundingRect().height();
 
@@ -53,7 +55,7 @@ void LoopViewUpdater::updateEvent(const EventPresenter& event)
 
 }
 
-void LoopViewUpdater::updateConstraint(const TemporalConstraintPresenter& pres)
+void ViewUpdater::updateConstraint(const TemporalConstraintPresenter& pres)
 {
     auto rect = m_presenter.m_view->boundingRect();
     auto msPerPixel = m_presenter.m_zoomRatio;
@@ -84,7 +86,7 @@ void LoopViewUpdater::updateConstraint(const TemporalConstraintPresenter& pres)
     m_presenter.m_view->update();
 }
 
-void LoopViewUpdater::updateTimeNode(const TimeNodePresenter& timenode)
+void ViewUpdater::updateTimeNode(const TimeNodePresenter& timenode)
 {
     auto h = m_presenter.m_view->boundingRect().height();
     timenode.view()->setExtent(timenode.model().extent() * h);
@@ -95,7 +97,7 @@ void LoopViewUpdater::updateTimeNode(const TimeNodePresenter& timenode)
     m_presenter.m_view->update();
 }
 
-void LoopViewUpdater::updateState(const StatePresenter& state)
+void ViewUpdater::updateState(const StatePresenter& state)
 {
     auto rect = m_presenter.m_view->boundingRect();
 
@@ -113,4 +115,5 @@ void LoopViewUpdater::updateState(const StatePresenter& state)
     }
 
     m_presenter.m_view->update();
+}
 }

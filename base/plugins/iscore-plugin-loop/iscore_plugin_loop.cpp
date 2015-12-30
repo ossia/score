@@ -17,6 +17,7 @@
 #include "iscore_plugin_loop.hpp"
 #include <iscore_plugin_loop_commands_files.hpp>
 
+#include <iscore/plugins/customfactory/FactorySetup.hpp>
 iscore_plugin_loop::iscore_plugin_loop() :
     QObject {}
 {
@@ -26,32 +27,20 @@ std::vector<std::unique_ptr<iscore::FactoryInterfaceBase>> iscore_plugin_loop::f
         const iscore::ApplicationContext& ctx,
         const iscore::FactoryBaseKey& key) const
 {
-    if(key == Process::ProcessFactory::staticFactoryKey())
-    {
-        return make_ptr_vector<iscore::FactoryInterfaceBase,
-            LoopProcessFactory>();
-    }
 
-    if(key == InspectorWidgetFactory::staticFactoryKey())
-    {
-        return make_ptr_vector<iscore::FactoryInterfaceBase,
-                LoopInspectorFactory>();
-    }
-
-    if(key == ConstraintInspectorDelegateFactory::staticFactoryKey())
-    {
-        return make_ptr_vector<iscore::FactoryInterfaceBase,
-                LoopConstraintInspectorDelegateFactory>();
-    }
-
-    if(key == TriggerCommandFactory::staticFactoryKey())
-    {
-        return make_ptr_vector<iscore::FactoryInterfaceBase,
-            LoopTriggerCommandFactory
-        >();
-    }
-
-    return {};
+    return instantiate_factories<
+            iscore::ApplicationContext,
+            TL<
+            FW<Process::ProcessFactory,
+                Loop::ProcessFactory>,
+            FW<ProcessInspectorWidgetDelegateFactory,
+                Loop::InspectorFactory>,
+            FW<ConstraintInspectorDelegateFactory,
+                Loop::ConstraintInspectorDelegateFactory>,
+            FW<TriggerCommandFactory,
+                LoopTriggerCommandFactory>
+            >
+            >(ctx, key);
 }
 
 std::pair<const CommandParentFactoryKey, CommandGeneratorMap> iscore_plugin_loop::make_commands()

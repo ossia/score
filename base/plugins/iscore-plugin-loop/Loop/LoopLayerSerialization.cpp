@@ -16,14 +16,17 @@ struct VisitorVariant;
 template <typename T> class Reader;
 template <typename T> class Writer;
 
-void LoopLayer::serialize(
+namespace Loop
+{
+void Layer::serialize(
         const VisitorVariant& vis) const
 {
     serialize_dyn(vis, *this);
 }
+}
 
 template<>
-void Visitor<Reader<DataStream>>::readFrom(const LoopLayer& lm)
+void Visitor<Reader<DataStream>>::readFrom(const Loop::Layer& lm)
 {
     readFrom(*lm.m_constraint);
 
@@ -31,7 +34,7 @@ void Visitor<Reader<DataStream>>::readFrom(const LoopLayer& lm)
 }
 
 template<>
-void Visitor<Writer<DataStream>>::writeTo(LoopLayer& lm)
+void Visitor<Writer<DataStream>>::writeTo(Loop::Layer& lm)
 {
     // Note : keep in sync with loadConstraintViewModel, or try to refactor them.
 
@@ -58,13 +61,13 @@ void Visitor<Writer<DataStream>>::writeTo(LoopLayer& lm)
 
 
 template<>
-void Visitor<Reader<JSONObject>>::readFrom(const LoopLayer& lm)
+void Visitor<Reader<JSONObject>>::readFrom(const Loop::Layer& lm)
 {
     m_obj["Constraint"] = toJsonObject(*lm.m_constraint);
 }
 
 template<>
-void Visitor<Writer<JSONObject>>::writeTo(LoopLayer& lm)
+void Visitor<Writer<JSONObject>>::writeTo(Loop::Layer& lm)
 {
     Deserializer<JSONObject> deserializer {m_obj["Constraint"].toObject() };
 

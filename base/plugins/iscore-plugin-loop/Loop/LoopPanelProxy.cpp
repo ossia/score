@@ -4,8 +4,10 @@
 
 class QObject;
 
-LoopPanelProxy::LoopPanelProxy(
-        const LoopLayer& lm,
+namespace Loop
+{
+PanelProxy::PanelProxy(
+        const Layer& lm,
         QObject* parent):
     LayerModelPanelProxy{parent},
     m_viewModel{lm}
@@ -13,7 +15,8 @@ LoopPanelProxy::LoopPanelProxy(
 
 }
 
-const LoopLayer& LoopPanelProxy::layer()
+const Layer& PanelProxy::layer()
 {
     return m_viewModel;
+}
 }

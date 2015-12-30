@@ -4,15 +4,18 @@
 
 class QObject;
 
-class LoopPanelProxy final : public Process::LayerModelPanelProxy
+namespace Loop
+{
+class PanelProxy final : public Process::LayerModelPanelProxy
 {
     public:
-        LoopPanelProxy(
-                const LoopLayer& lm,
+        PanelProxy(
+                const Layer& lm,
                 QObject* parent);
 
-        const LoopLayer& layer() override;
+        const Layer& layer() override;
 
     private:
-        const LoopLayer& m_viewModel;
+        const Layer& m_viewModel;
 };
+}

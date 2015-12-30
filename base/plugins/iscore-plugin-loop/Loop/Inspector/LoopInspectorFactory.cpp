@@ -33,11 +33,12 @@ class InspectorWidgetBase;
 class QWidget;
 
 // TODO cleanup this file
-
-class LoopConstraintInspectorDelegate final : public ConstraintInspectorDelegate
+namespace Loop
+{
+class ConstraintInspectorDelegate final : public ::ConstraintInspectorDelegate
 {
     public:
-        LoopConstraintInspectorDelegate(const ConstraintModel& cst);
+        ConstraintInspectorDelegate(const ConstraintModel& cst);
 
         void updateElements() override;
         void addWidgets_pre(std::list<QWidget*>& widgets, ConstraintInspectorWidget* parent) override;
@@ -50,29 +51,29 @@ class LoopConstraintInspectorDelegate final : public ConstraintInspectorDelegate
 };
 
 
-LoopConstraintInspectorDelegate::LoopConstraintInspectorDelegate(
+ConstraintInspectorDelegate::ConstraintInspectorDelegate(
         const ConstraintModel& cst):
-    ConstraintInspectorDelegate{cst}
+    ::ConstraintInspectorDelegate{cst}
 {
 }
 
-void LoopConstraintInspectorDelegate::updateElements()
+void ConstraintInspectorDelegate::updateElements()
 {
 }
 
-void LoopConstraintInspectorDelegate::addWidgets_pre(
+void ConstraintInspectorDelegate::addWidgets_pre(
         std::list<QWidget*>& widgets,
         ConstraintInspectorWidget* parent)
 {
 }
 
-void LoopConstraintInspectorDelegate::addWidgets_post(
+void ConstraintInspectorDelegate::addWidgets_post(
         std::list<QWidget*>& widgets,
         ConstraintInspectorWidget* parent)
 {
 }
 
-void LoopConstraintInspectorDelegate::on_defaultDurationChanged(
+void ConstraintInspectorDelegate::on_defaultDurationChanged(
         OngoingCommandDispatcher& dispatcher,
         const TimeValue& val,
         ExpandMode expandmode) const
@@ -89,18 +90,18 @@ void LoopConstraintInspectorDelegate::on_defaultDurationChanged(
 
 
 
-LoopConstraintInspectorDelegateFactory::~LoopConstraintInspectorDelegateFactory()
+ConstraintInspectorDelegateFactory::~ConstraintInspectorDelegateFactory()
 {
 
 }
 
-std::unique_ptr<ConstraintInspectorDelegate> LoopConstraintInspectorDelegateFactory::make(
+std::unique_ptr<::ConstraintInspectorDelegate> ConstraintInspectorDelegateFactory::make(
         const ConstraintModel& constraint)
 {
-    return std::make_unique<LoopConstraintInspectorDelegate>(constraint);
+    return std::make_unique<ConstraintInspectorDelegate>(constraint);
 }
 
-bool LoopConstraintInspectorDelegateFactory::matches(
+bool ConstraintInspectorDelegateFactory::matches(
         const ConstraintModel& constraint) const
 {
     return dynamic_cast<Loop::ProcessModel*>(constraint.parent());
@@ -108,18 +109,18 @@ bool LoopConstraintInspectorDelegateFactory::matches(
 
 
 
-LoopInspectorFactory::LoopInspectorFactory() :
+InspectorFactory::InspectorFactory() :
     ProcessInspectorWidgetDelegateFactory {}
 {
 
 }
 
-LoopInspectorFactory::~LoopInspectorFactory()
+InspectorFactory::~InspectorFactory()
 {
 
 }
 
-ProcessInspectorWidgetDelegate* LoopInspectorFactory::make(
+ProcessInspectorWidgetDelegate* InspectorFactory::make(
         const Process::ProcessModel& process,
         const iscore::DocumentContext& doc,
         QWidget* parent) const
@@ -130,7 +131,8 @@ ProcessInspectorWidgetDelegate* LoopInspectorFactory::make(
                 parent};
 }
 
-bool LoopInspectorFactory::matches(const Process::ProcessModel& process) const
+bool InspectorFactory::matches(const Process::ProcessModel& process) const
 {
     return dynamic_cast<const Loop::ProcessModel*>(&process);
+}
 }

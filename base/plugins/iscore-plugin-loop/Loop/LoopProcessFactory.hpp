@@ -10,18 +10,19 @@
 
 #include <iscore/serialization/VisitorCommon.hpp>
 
-
-class LoopProcessFactory final : public Process::ProcessFactory
+namespace Loop
+{
+class ProcessFactory final : public Process::ProcessFactory
 {
     public:
         QString prettyName() const override
         { // In factory list
-            return LoopProcessMetadata::factoryPrettyName();
+            return ProcessMetadata::factoryPrettyName();
         }
 
         const ProcessFactoryKey& key_impl() const override
         {
-            return LoopProcessMetadata::factoryKey();
+            return ProcessMetadata::factoryKey();
         }
 
 
@@ -49,10 +50,10 @@ class LoopProcessFactory final : public Process::ProcessFactory
                 Process::LayerView* v,
                 QObject* parent) override
         {
-            return new LoopPresenter{
+            return new LayerPresenter{
                 iscore::IDocument::documentContext(model),
-                        dynamic_cast<const LoopLayer&>(model),
-                        dynamic_cast<LoopView*>(v),
+                        dynamic_cast<const Layer&>(model),
+                        dynamic_cast<LayerView*>(v),
                         parent};
         }
 
@@ -60,6 +61,7 @@ class LoopProcessFactory final : public Process::ProcessFactory
                 const Process::LayerModel&,
                 QGraphicsItem* parent) override
         {
-            return new LoopView{parent};
+            return new Loop::LayerView{parent};
         }
 };
+}

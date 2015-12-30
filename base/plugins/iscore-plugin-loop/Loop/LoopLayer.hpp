@@ -14,31 +14,31 @@ class TemporalConstraintViewModel;
 
 namespace Loop{
     class ProcessModel;
-}
-class LoopLayer final : public Process::LayerModel
-{
-        ISCORE_METADATA(LoopLayer)
 
-        ISCORE_SERIALIZE_FRIENDS(LoopLayer, DataStream)
-        ISCORE_SERIALIZE_FRIENDS(LoopLayer, JSONObject)
+class Layer final : public Process::LayerModel
+{
+        ISCORE_METADATA(Loop::Layer)
+
+        ISCORE_SERIALIZE_FRIENDS(Layer, DataStream)
+        ISCORE_SERIALIZE_FRIENDS(Layer, JSONObject)
 
         Q_OBJECT
     public:
-        LoopLayer(
+        Layer(
                 Loop::ProcessModel& model,
                 const Id<LayerModel>& id,
                 QObject* parent);
 
         // Copy
-        LoopLayer(
-                const LoopLayer& source,
+        Layer(
+                const Layer& source,
                 Loop::ProcessModel& model,
                 const Id<LayerModel>& id,
                 QObject* parent);
 
         // Load
         template<typename Impl>
-        LoopLayer(
+        Layer(
                 Deserializer<Impl>& vis,
                 Loop::ProcessModel& model,
                 QObject* parent) :
@@ -60,3 +60,4 @@ class LoopLayer final : public Process::LayerModel
     private:
         TemporalConstraintViewModel* m_constraint{};
 };
+}

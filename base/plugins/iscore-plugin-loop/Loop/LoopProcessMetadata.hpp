@@ -2,7 +2,9 @@
 #include <Process/ProcessFactoryKey.hpp>
 #include <QString>
 
-struct LoopProcessMetadata
+namespace Loop
+{
+struct ProcessMetadata
 {
         static const ProcessFactoryKey& factoryKey();
 
@@ -10,3 +12,4 @@ struct LoopProcessMetadata
 
         static QString factoryPrettyName();
 };
+}

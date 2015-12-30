@@ -21,12 +21,13 @@
 namespace Scenario {
 class EditionSettings;
 }  // namespace Scenario
-
-LoopToolPalette::LoopToolPalette(
+namespace Loop
+{
+ToolPalette::ToolPalette(
         const Loop::ProcessModel& model,
-        LoopPresenter& presenter,
+        LayerPresenter& presenter,
         LayerContext& ctx,
-        LoopView& view):
+        LayerView& view):
     GraphicsSceneToolPalette{*view.scene()},
     m_model{model},
     m_presenter{presenter},
@@ -39,68 +40,69 @@ LoopToolPalette::LoopToolPalette(
 
 }
 
-LoopView&LoopToolPalette::view() const
+LayerView& ToolPalette::view() const
 {
     return m_view;
 }
 
-const LoopPresenter&LoopToolPalette::presenter() const
+const LayerPresenter& ToolPalette::presenter() const
 {
     return m_presenter;
 }
 
-const Loop::ProcessModel&LoopToolPalette::model() const
+const Loop::ProcessModel& ToolPalette::model() const
 {
     return m_model;
 }
 
-const LayerContext&LoopToolPalette::context() const
+const LayerContext&ToolPalette::context() const
 {
     return m_context;
 }
 
-const Scenario::EditionSettings&LoopToolPalette::editionSettings() const
+const Scenario::EditionSettings&ToolPalette::editionSettings() const
 {
     return m_editionSettings;
 }
 
-void LoopToolPalette::activate(Scenario::Tool)
+void ToolPalette::activate(Scenario::Tool)
 {
 
 }
 
-void LoopToolPalette::desactivate(Scenario::Tool)
+void ToolPalette::desactivate(Scenario::Tool)
 {
 
 }
 
-void LoopToolPalette::on_pressed(QPointF point)
+void ToolPalette::on_pressed(QPointF point)
 {
     scenePoint = point;
     auto scenarioPoint = ScenePointToScenarioPoint(m_view.mapFromScene(point));
     m_state.on_pressed(point, scenarioPoint);
 }
 
-void LoopToolPalette::on_moved(QPointF point)
+void ToolPalette::on_moved(QPointF point)
 {
     scenePoint = point;
     auto scenarioPoint = ScenePointToScenarioPoint(m_view.mapFromScene(point));
     m_state.on_moved(point, scenarioPoint);
 }
 
-void LoopToolPalette::on_released(QPointF point)
+void ToolPalette::on_released(QPointF point)
 {
     scenePoint = point;
     auto scenarioPoint = ScenePointToScenarioPoint(m_view.mapFromScene(point));
     m_state.on_released(point, scenarioPoint);
 }
 
-void LoopToolPalette::on_cancel()
+void ToolPalette::on_cancel()
 {
     m_state.on_cancel();
 }
 
-Scenario::Point LoopToolPalette::ScenePointToScenarioPoint(QPointF point)
+Scenario::Point ToolPalette::ScenePointToScenarioPoint(QPointF point)
 {
     return {TimeValue::fromMsecs(point.x() * m_presenter.zoomRatio()) , 0};
+}
 }
