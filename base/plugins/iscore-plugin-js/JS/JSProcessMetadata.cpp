@@ -4,18 +4,21 @@
 #include "JSProcessMetadata.hpp"
 #include <Process/ProcessFactoryKey.hpp>
 
-const ProcessFactoryKey&JSProcessMetadata::factoryKey()
+namespace JS
+{
+const ProcessFactoryKey& ProcessMetadata::factoryKey()
 {
     static const ProcessFactoryKey name{"Javascript"};
     return name;
 }
 
-QString JSProcessMetadata::processObjectName()
+QString ProcessMetadata::processObjectName()
 {
     return "Javascript";
 }
 
-QString JSProcessMetadata::factoryPrettyName()
+QString ProcessMetadata::factoryPrettyName()
 {
     return QObject::tr("Javascript");
+}
 }

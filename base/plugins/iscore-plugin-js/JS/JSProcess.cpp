@@ -13,21 +13,22 @@ class StateElement;
 }  // namespace OSSIA
 
 
-
-JSProcess::JSProcess(DeviceDocumentPlugin& devices):
+namespace JS
+{
+ProcessExecutor::ProcessExecutor(DeviceDocumentPlugin& devices):
     m_devices{devices.list()},
     m_start{OSSIA::State::create()},
     m_end{OSSIA::State::create()}
 {
-    m_engine.globalObject().setProperty("iscore", m_engine.newQObject(new JSAPIWrapper{devices}));
+    m_engine.globalObject().setProperty("iscore", m_engine.newQObject(new JS::APIWrapper{devices}));
 }
 
-void JSProcess::setTickFun(const QString& val)
+void ProcessExecutor::setTickFun(const QString& val)
 {
     m_tickFun = m_engine.evaluate(val);
 }
 
-std::shared_ptr<OSSIA::StateElement> JSProcess::state(
+std::shared_ptr<OSSIA::StateElement> ProcessExecutor::state(
         const OSSIA::TimeValue& t,
         const OSSIA::TimeValue&)
 {
@@ -35,10 +36,10 @@ std::shared_ptr<OSSIA::StateElement> JSProcess::state(
         return {};
 
     // 1. Convert the time in value.
-    auto js_time = iscore::convert::js::time(OSSIA::convert::time(t));
+    auto js_time = iscore::convert::JS::time(OSSIA::convert::time(t));
 
     // 2. Get the value of the js fun
-    auto messages = js::convert::messages(m_tickFun.call({js_time}));
+    auto messages = JS::convert::messages(m_tickFun.call({js_time}));
 
     m_engine.collectGarbage();
 
@@ -53,4 +54,5 @@ std::shared_ptr<OSSIA::StateElement> JSProcess::state(
 
     // 3. Convert our value back
     return st;
+}
 }

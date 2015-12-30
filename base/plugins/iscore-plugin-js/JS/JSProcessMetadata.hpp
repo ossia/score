@@ -2,7 +2,9 @@
 #include <Process/ProcessFactoryKey.hpp>
 #include <QString>
 
-struct JSProcessMetadata
+namespace JS
+{
+struct ProcessMetadata
 {
         static const ProcessFactoryKey& factoryKey();
 
@@ -10,3 +12,4 @@ struct JSProcessMetadata
 
         static QString factoryPrettyName();
 };
+}

@@ -14,11 +14,13 @@ class Document;
 struct DocumentContext;
 }  // namespace iscore
 
-class JSInspectorWidget final :
+namespace JS
+{
+class InspectorWidget final :
         public ProcessInspectorWidgetDelegate_T<JS::ProcessModel>
 {
     public:
-        explicit JSInspectorWidget(
+        explicit InspectorWidget(
                 const JS::ProcessModel& object,
                 const iscore::DocumentContext& context,
                 QWidget* parent);
@@ -32,3 +34,4 @@ class JSInspectorWidget final :
 
         CommandDispatcher<> m_dispatcher;
 };
+}
