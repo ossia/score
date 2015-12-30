@@ -5,10 +5,15 @@
 #include "src/Space/SpaceModel.hpp"
 
 
-const AreaFactoryKey&PointerAreaModel::factoryKey() const
+const AreaFactoryKey&PointerAreaModel::static_factoryKey()
 {
     static const AreaFactoryKey name{"Pointer"};
     return name;
+}
+
+const AreaFactoryKey&PointerAreaModel::factoryKey() const
+{
+    return static_factoryKey();
 }
 
 QString PointerAreaModel::prettyName() const

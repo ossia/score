@@ -3,9 +3,10 @@
 #include "Area/AreaParser.hpp"
 #include "Space/SpaceModel.hpp"
 #include "Area/Circle/CircleAreaModel.hpp"
-
+#include "Area/Pointer/PointerAreaModel.hpp"
 #include <Explorer/DocumentPlugin/DeviceDocumentPlugin.hpp>
 
+#include <Editor/Message.h>
 template<typename K>
 struct KeyPair : std::pair<K, K>
 {
@@ -34,7 +35,7 @@ auto make_keys(const K& k1, const K& k2)
     return KeyPair<K>{k1, k2};
 }
 
-using CollisionFun = std::function<bool(AreaModel& a1, AreaModel& a2)>;
+using CollisionFun = std::function<bool(const AreaModel& a1, const AreaModel& a2)>;
 
 class CollisionHandler
 {
@@ -42,14 +43,88 @@ class CollisionHandler
     public:
         CollisionHandler()
         {
-            m_handlers.find(make_keys(
+            m_handlers.insert(
+                        std::make_pair(
+                        make_keys(
                                 CircleAreaModel::static_factoryKey(),
-                                CircleAreaModel::static_factoryKey()));
+                                CircleAreaModel::static_factoryKey()),
+                              [] (const AreaModel& a1, const AreaModel& a2)
+            {
+                auto& c1 = static_cast<const CircleAreaModel&>(a1);
+                auto& c2 = static_cast<const CircleAreaModel&>(a2);
+
+                auto c1_val = c1.mapToData(c1.currentMapping(), c1.parameterMapping());
+                auto c2_val = c2.mapToData(c2.currentMapping(), c2.parameterMapping());
+
+                // Check if the distance of both centers is < to the sum of radiuses
+                auto dist = [] (auto v1, auto v2) {
+                    return std::sqrt(std::pow(v2.x - v1.x, 2) + std::pow(v2.y - v1.y, 2));
+                };
+                return dist(c1_val, c2_val) < (c1_val.r + c2_val.r);
+            }));
+
+            m_handlers.insert(
+                        std::make_pair(
+                        make_keys(
+                                CircleAreaModel::static_factoryKey(),
+                                PointerAreaModel::static_factoryKey()),
+                              [] (const AreaModel& a1, const AreaModel& a2)
+            {
+                auto& c = static_cast<const CircleAreaModel&>(a1);
+                auto& p = static_cast<const PointerAreaModel&>(a2);
+
+                auto c_val = c.mapToData(c.currentMapping(), c.parameterMapping());
+                auto p_val = p.mapToData(p.currentMapping(), p.parameterMapping());
+
+                // Check if the distance of both centers is < to the sum of radiuses
+                auto dist = [] (auto v1, auto v2) {
+                    return std::sqrt(std::pow(v2.x - v1.x, 2) + std::pow(v2.y - v1.y, 2));
+                };
+                return dist(c_val, p_val) < c_val.r;
+            }));
+        }
+
+        void inscribe(std::pair<KeyPair<AreaFactoryKey>, CollisionFun> val)
+        {
+            m_handlers.insert(val);
+        }
+
+        bool check(const AreaModel& a1, const AreaModel& a2)
+        {
+            auto it = m_handlers.find(make_keys(a1.factoryKey(), a2.factoryKey()));
+            if(it != m_handlers.end())
+            {
+                return it->second(a1, a2);
+            }
+
+            // TODO return a generic computation
+
+            // TODO for solving collisions, put the equations in a system ?
+            return false;
         }
 };
 
 namespace Space
 {
+
+void makeState(
+        OSSIA::State& state,
+        const AreaModel& ar)
+{
+    // Display all variables of the equation
+
+    // Then display custom variables.
+
+}
+
+void makeState(
+        OSSIA::State& state,
+        const ComputationModel& comp)
+{
+    // Name and result
+    // auto mess = OSSIA::Message::create()
+
+}
 
 
 ProcessExecutor::ProcessExecutor(ProcessModel& process):
@@ -65,7 +140,7 @@ std::shared_ptr<OSSIA::StateElement> ProcessExecutor::state(
 {
     auto& devlist = m_process.context().devices.list();
 
-    // TODO for solving collisions, do a "==" on the two equation ?
+
     // For each area whose parameters depend on an address,
     // get the current area value and update it.
     for(AreaModel& area : m_process.areas())
@@ -103,11 +178,44 @@ std::shared_ptr<OSSIA::StateElement> ProcessExecutor::state(
         area.setCurrentMapping(mapping);
     }
 
+
+    auto state = OSSIA::State::create();
+    // State of each area
+    // Shall be done in the "tree" component.
+    /*
+    for(const AreaModel& area : m_process.areas())
+    {
+        makeState(*state, area);
+    }
+    */
+
+
+    // Shall be done either here, or in the tree component : choose between reactive, and state mode.
+    // Handle computations / collisions
+    for(const auto& comp : m_process.computations())
+    {
+        makeState(*state, comp);
+        /*
+        CollisionHandler h;
+        for(const AreaModel& area_lhs : m_process.areas())
+        {
+            for(const AreaModel& area_rhs : m_process.areas())
+            {
+                if(&area_rhs != &area_lhs)
+                {
+                    h.check(area_lhs, area_rhs);
+                }
+            }
+        }
+        */
+
+    }
+
     // Send the parameters of each area
     // (variables's value ? default computations (like diameter, etc. ?))
     // For each computation, send the new state.
 
-    return OSSIA::State::create();
+    return state;
 }
 
 ProcessModel::ProcessModel(

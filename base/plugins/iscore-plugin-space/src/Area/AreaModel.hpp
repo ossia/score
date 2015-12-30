@@ -4,6 +4,7 @@
 #include <Device/Address/AddressSettings.hpp>
 #include <src/Area/AreaFactory.hpp>
 #include <src/SpaceContext.hpp>
+#include <Process/ModelMetadata.hpp>
 Q_DECLARE_METATYPE(GiNaC::exmap)
 class SpaceModel;
 class QGraphicsItem;
@@ -15,6 +16,8 @@ class AreaModel : public IdentifiedObject<AreaModel>
 {
         Q_OBJECT
     public:
+        ModelMetadata metadata;
+
         // The value is used as default value if the address is invalid.
         using ParameterMap = QMap<QString, QPair<GiNaC::symbol, iscore::FullAddressSettings>>;
         virtual const AreaFactoryKey& factoryKey() const = 0;
