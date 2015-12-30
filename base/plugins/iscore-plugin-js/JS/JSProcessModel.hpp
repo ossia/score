@@ -58,7 +58,7 @@ class ProcessModel final : public RecreateOnPlay::OSSIAProcessModel
 
         const ProcessFactoryKey& key() const override
         {
-            return JSProcessMetadata::factoryKey();
+            return ProcessMetadata::factoryKey();
         }
 
         QString prettyName() const override;
@@ -104,8 +104,8 @@ class ProcessModel final : public RecreateOnPlay::OSSIAProcessModel
                 QObject* parent) override;
 
     private:
-        std::shared_ptr<JSProcess> makeProcess() const;
-        std::shared_ptr<JSProcess> m_ossia_process;
+        std::shared_ptr<ProcessExecutor> makeProcess() const;
+        std::shared_ptr<ProcessExecutor> m_ossia_process;
 
         QString m_script;
 };

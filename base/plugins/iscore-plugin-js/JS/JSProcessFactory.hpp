@@ -7,18 +7,19 @@
 #include <iscore/serialization/VisitorCommon.hpp>
 #include <JS/JSProcessMetadata.hpp>
 
-
-class JSProcessFactory final : public Process::ProcessFactory
+namespace JS
+{
+class ProcessFactory final : public Process::ProcessFactory
 {
     public:
         QString prettyName() const override
         { // In factory list
-            return JSProcessMetadata::factoryPrettyName();
+            return ProcessMetadata::factoryPrettyName();
         }
 
         const ProcessFactoryKey& key_impl() const override
         {
-            return JSProcessMetadata::factoryKey();
+            return ProcessMetadata::factoryKey();
         }
 
 
@@ -56,3 +57,4 @@ class JSProcessFactory final : public Process::ProcessFactory
             return new DummyLayerView{parent};
         }
 };
+}

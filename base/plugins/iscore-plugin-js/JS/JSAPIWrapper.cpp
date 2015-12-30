@@ -3,7 +3,9 @@
 #include <Explorer/DocumentPlugin/NodeUpdateProxy.hpp>
 #include "JSAPIWrapper.hpp"
 
-QJSValue JSAPIWrapper::value(QJSValue address)
+namespace JS
+{
+QJSValue APIWrapper::value(QJSValue address)
 {
     // TODO optional class that moves on first use ?
     auto engine = qjsEngine(this);
@@ -13,10 +15,11 @@ QJSValue JSAPIWrapper::value(QJSValue address)
     auto addr_str = address.toString();
     if(iscore::Address::validateString(addr_str))
     {
-        return iscore::convert::js::value(
+        return iscore::convert::JS::value(
                     *engine,
                     devices.updateProxy.refreshRemoteValue(iscore::Address::fromString(addr_str)));
     }
 
     return {};
+}
 }

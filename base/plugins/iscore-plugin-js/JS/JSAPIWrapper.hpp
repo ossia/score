@@ -12,12 +12,13 @@
 #include <State/Address.hpp>
 #include <State/Value.hpp>
 
+// TODO cleanup this file
 
 namespace iscore
 {
 namespace convert
 {
-namespace js
+namespace JS
 {
 inline QJSValue makeImpulse(
         QJSEngine& engine)
@@ -107,7 +108,7 @@ inline QJSValue messages(
 }
 }
 
-namespace js
+namespace JS
 {
 namespace convert
 {
@@ -191,11 +192,13 @@ inline iscore::MessageList messages(const QJSValue& val)
 
 class DeviceDocumentPlugin;
 
-class JSAPIWrapper : public QObject
+namespace JS
+{
+class APIWrapper : public QObject
 {
         Q_OBJECT
     public:
-        JSAPIWrapper(DeviceDocumentPlugin& devs):
+        APIWrapper(DeviceDocumentPlugin& devs):
             devices{devs}
         {
 
@@ -207,3 +210,4 @@ class JSAPIWrapper : public QObject
         DeviceDocumentPlugin& devices;
 
 };
+}
