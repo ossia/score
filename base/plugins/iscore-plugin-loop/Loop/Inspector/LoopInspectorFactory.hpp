@@ -15,21 +15,24 @@ namespace iscore {
 class Document;
 }  // namespace iscore
 
-class LoopConstraintInspectorDelegateFactory : public ConstraintInspectorDelegateFactory
+namespace Loop
+{
+// TODO Clean this file
+class ConstraintInspectorDelegateFactory : public ::ConstraintInspectorDelegateFactory
 {
     public:
-        virtual ~LoopConstraintInspectorDelegateFactory();
+        virtual ~ConstraintInspectorDelegateFactory();
 
-        std::unique_ptr<ConstraintInspectorDelegate> make(const ConstraintModel& constraint) override;
+        std::unique_ptr<::ConstraintInspectorDelegate> make(const ConstraintModel& constraint) override;
 
         bool matches(const ConstraintModel& constraint) const override;
 };
 
-class LoopInspectorFactory final : public ProcessInspectorWidgetDelegateFactory
+class InspectorFactory final : public ProcessInspectorWidgetDelegateFactory
 {
     public:
-        LoopInspectorFactory();
-        virtual ~LoopInspectorFactory();
+        InspectorFactory();
+        virtual ~InspectorFactory();
 
     private:
         ProcessInspectorWidgetDelegate* make(
@@ -38,3 +41,4 @@ class LoopInspectorFactory final : public ProcessInspectorWidgetDelegateFactory
                 QWidget* parent) const override;
         bool matches(const Process::ProcessModel&) const override;
 };
+}

@@ -33,7 +33,7 @@ ProcessModel::ProcessModel(
         const TimeValue& duration,
         const Id<Process::ProcessModel>& id,
         QObject* parent):
-    Process::ProcessModel{duration, id, LoopProcessMetadata::processObjectName(), parent},
+    Process::ProcessModel{duration, id, ProcessMetadata::processObjectName(), parent},
     BaseScenarioContainer{this}
 {
     pluginModelList = new iscore::ElementPluginModelList{
@@ -62,7 +62,7 @@ ProcessModel::ProcessModel(
         const Loop::ProcessModel& source,
         const Id<Process::ProcessModel>& id,
         QObject* parent):
-    Process::ProcessModel{source.duration(), id, LoopProcessMetadata::processObjectName(), parent},
+    Process::ProcessModel{source.duration(), id, ProcessMetadata::processObjectName(), parent},
     BaseScenarioContainer{this}
 {
     pluginModelList = new iscore::ElementPluginModelList{
@@ -172,7 +172,7 @@ Process::LayerModel* ProcessModel::makeLayer_impl(
         const QByteArray& constructionData,
         QObject* parent)
 {
-    return new LoopLayer{*this, viewModelId, parent};
+    return new Layer{*this, viewModelId, parent};
 }
 
 Process::LayerModel* ProcessModel::loadLayer_impl(
@@ -181,7 +181,7 @@ Process::LayerModel* ProcessModel::loadLayer_impl(
 {
     return deserialize_dyn(vis, [&] (auto&& deserializer)
     {
-        auto autom = new LoopLayer{
+        auto autom = new Layer{
                         deserializer, *this, parent};
 
         return autom;
@@ -193,7 +193,7 @@ Process::LayerModel* ProcessModel::cloneLayer_impl(
         const Process::LayerModel& source,
         QObject* parent)
 {
-    return new LoopLayer{safe_cast<const LoopLayer&>(source), *this, newId, parent};
+    return new Layer{safe_cast<const Layer&>(source), *this, newId, parent};
 }
 
 const QVector<Id<ConstraintModel> > constraintsBeforeTimeNode(

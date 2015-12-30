@@ -5,14 +5,15 @@
 class QGraphicsItem;
 class QPainter;
 
-
-class LoopView final : public Process::LayerView
+namespace Loop
+{
+class LayerView final : public Process::LayerView
 {
         Q_OBJECT
     public:
-        LoopView(QGraphicsItem* parent);
+        LayerView(QGraphicsItem* parent);
 
-        ~LoopView();
+        ~LayerView();
 
         void setSelectionArea(QRectF);
 
@@ -23,3 +24,4 @@ class LoopView final : public Process::LayerView
         void paint_impl(QPainter*) const override;
         void contextMenuEvent(QGraphicsSceneContextMenuEvent* event) override;
 };
+}

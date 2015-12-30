@@ -4,18 +4,21 @@
 #include "LoopProcessMetadata.hpp"
 #include <Process/ProcessFactoryKey.hpp>
 
-const ProcessFactoryKey&LoopProcessMetadata::factoryKey()
+namespace Loop
+{
+const ProcessFactoryKey& ProcessMetadata::factoryKey()
 {
     static const ProcessFactoryKey name{"Loop"};
     return name;
 }
 
-QString LoopProcessMetadata::processObjectName()
+QString ProcessMetadata::processObjectName()
 {
     return "Loop";
 }
 
-QString LoopProcessMetadata::factoryPrettyName()
+QString ProcessMetadata::factoryPrettyName()
 {
     return QObject::tr("Loop");
+}
 }
