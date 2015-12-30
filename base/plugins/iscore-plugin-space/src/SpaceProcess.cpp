@@ -5,6 +5,49 @@
 #include "Area/Circle/CircleAreaModel.hpp"
 
 #include <Explorer/DocumentPlugin/DeviceDocumentPlugin.hpp>
+
+template<typename K>
+struct KeyPair : std::pair<K, K>
+{
+    public:
+        using std::pair<K, K>::pair;
+
+        friend bool operator==(
+                const KeyPair& lhs,
+                const KeyPair& rhs)
+        {
+            return (lhs.first == rhs.first && lhs.second == rhs.second)
+                    ||
+                   (lhs.first == rhs.second && lhs.second == rhs.first);
+        }
+
+        friend bool operator!=(
+                const KeyPair& lhs,
+                const KeyPair& rhs)
+        {
+            return !(lhs == rhs);
+        }
+};
+template<typename K>
+auto make_keys(const K& k1, const K& k2)
+{
+    return KeyPair<K>{k1, k2};
+}
+
+using CollisionFun = std::function<bool(AreaModel& a1, AreaModel& a2)>;
+
+class CollisionHandler
+{
+        std::map<KeyPair<AreaFactoryKey>, CollisionFun> m_handlers;
+    public:
+        CollisionHandler()
+        {
+            m_handlers.find(make_keys(
+                                CircleAreaModel::static_factoryKey(),
+                                CircleAreaModel::static_factoryKey()));
+        }
+};
+
 namespace Space
 {
 

@@ -1,6 +1,7 @@
 #include "PointerAreaView.hpp"
 #include <QPainter>
 #include <QDebug>
+#define SIDE 4
 PointerAreaView::PointerAreaView(QGraphicsItem *parent):
     QGraphicsItem{parent}
 {
@@ -9,21 +10,18 @@ PointerAreaView::PointerAreaView(QGraphicsItem *parent):
 
 QRectF PointerAreaView::boundingRect() const
 {
-    return m_path.boundingRect();
+    return {-SIDE, -SIDE, 2*SIDE, 2*SIDE};
 }
 
 void PointerAreaView::paint(QPainter *painter, const QStyleOptionGraphicsItem *, QWidget *)
 {
     painter->setPen(Qt::black);
     painter->setBrush(Qt::white);
-    painter->drawPath(m_path);
+    painter->drawEllipse(boundingRect());
 }
 
-void PointerAreaView::update(double x0, double y0, double r)
+void PointerAreaView::update(double x0, double y0)
 {
-    prepareGeometryChange();
-    setPos({x0 - r, y0 - r});
-    m_path = QPainterPath();
-    m_path.addEllipse({r, r}, r, r);
+    setPos({x0, y0});
     QGraphicsItem::update();
 }
