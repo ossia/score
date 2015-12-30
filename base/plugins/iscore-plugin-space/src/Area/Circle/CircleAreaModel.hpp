@@ -15,6 +15,21 @@ class CircleAreaModel : public AreaModel
 
         static QStringList formula();
 
+        struct values {
+                double x;
+                double y;
+                double r;
+        };
+
+        static auto mapToData(
+                GiNaC::exmap map,
+                const ParameterMap& pm)
+        {
+            return values{GiNaC::ex_to<GiNaC::numeric>(map.at(pm["x0"].first)).to_double(),
+                        GiNaC::ex_to<GiNaC::numeric>(map.at(pm["y0"].first)).to_double(),
+                        GiNaC::ex_to<GiNaC::numeric>(map.at(pm["r"].first)).to_double()};
+        }
+
         CircleAreaModel(
                 const Space::AreaContext& space,
                 const Id<AreaModel>&,

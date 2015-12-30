@@ -10,21 +10,35 @@ class ComputationModel : public IdentifiedObject<ComputationModel>
 {
         Q_OBJECT
     public:
+        using Computation = std::function<double()>;
         ComputationModel(
-                std::unique_ptr<spacelib::computation>&& computation,
+                const QString& name,
+                const Computation& comp,
                 const SpaceModel& space,
                 const Id<ComputationModel>&,
                 QObject* parent);
 
-        void setComputation(std::unique_ptr<spacelib::computation> &&ar);
 
+        //void setComputation(std::unique_ptr<spacelib::computation> &&ar);
+
+        void setName(const QString& n)
+        {
+            m_name = n;
+        }
+
+        const QString& name()
+        { return m_name; }
         const auto& computation() const
-        { return *m_computation; }
+        { return m_fun; }
+
+
         const auto& space() const
         { return m_space; }
 
     private:
+        QString m_name; // e.g. dist_a1_a2
+        Computation m_fun;
         const SpaceModel& m_space;
-        std::unique_ptr<spacelib::computation> m_computation;
+        //std::unique_ptr<spacelib::computation> m_computation;
 
 };
