@@ -4,18 +4,21 @@
 #include "AutomationProcessMetadata.hpp"
 #include <Process/ProcessFactoryKey.hpp>
 
-const ProcessFactoryKey& AutomationProcessMetadata::factoryKey()
+namespace Automation
+{
+const ProcessFactoryKey& ProcessMetadata::factoryKey()
 {
     static const ProcessFactoryKey name{"Automation"};
     return name;
 }
 
-QString AutomationProcessMetadata::processObjectName()
+QString ProcessMetadata::processObjectName()
 {
     return "Automation";
 }
 
-QString AutomationProcessMetadata::factoryPrettyName()
+QString ProcessMetadata::factoryPrettyName()
 {
     return QObject::tr("Automation");
+}
 }

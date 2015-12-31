@@ -10,10 +10,12 @@ namespace iscore {
 class Document;
 }  // namespace iscore
 
-class CurvePointInspectorFactory final : public InspectorWidgetFactory
+namespace Automation
+{
+class PointInspectorFactory final : public InspectorWidgetFactory
 {
     public:
-    CurvePointInspectorFactory() :
+    PointInspectorFactory() :
         InspectorWidgetFactory {}
     {
 
@@ -26,3 +28,4 @@ class CurvePointInspectorFactory final : public InspectorWidgetFactory
 
     virtual const QList<QString>& key_impl() const override;
 };
+}

@@ -122,7 +122,7 @@ void ConstraintElement::on_processAdded(
     {
         plug = new ScenarioElement{*this, *scenar, proc};
     }
-    else if(auto autom = dynamic_cast<AutomationModel*>(proc))
+    else if(auto autom = dynamic_cast<Automation::ProcessModel*>(proc))
     {
         plug = new AutomationElement{*this, *autom, proc};
     }

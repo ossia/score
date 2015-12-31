@@ -8,36 +8,43 @@
 class QObject;
 #include <iscore/tools/SettableIdentifier.hpp>
 
-ISCORE_METADATA_IMPL(AutomationLayerModel)
+ISCORE_METADATA_IMPL(Automation::LayerModel)
 // TODO refactor with mapping ?
-AutomationLayerModel::AutomationLayerModel(AutomationModel& model,
-                                         const Id<LayerModel>& id,
-                                         QObject* parent) :
-    LayerModel {id, AutomationLayerModel::className.c_str(), model, parent}
+namespace Automation
+{
+LayerModel::LayerModel(
+            ProcessModel& model,
+            const Id<Process::LayerModel>& id,
+            QObject* parent) :
+    Process::LayerModel {id, LayerModel::className.c_str(), model, parent}
 {
 
 }
 
-AutomationLayerModel::AutomationLayerModel(const AutomationLayerModel& source,
-                                         AutomationModel& model,
-                                         const Id<LayerModel>& id,
-                                         QObject* parent) :
-    LayerModel {id, AutomationLayerModel::className.c_str(), model, parent}
+LayerModel::LayerModel(
+            const LayerModel& source,
+            ProcessModel& model,
+            const Id<Process::LayerModel>& id,
+            QObject* parent) :
+    Process::LayerModel {id, LayerModel::className.c_str(), model, parent}
 {
     // Nothing to copy
 }
 
-Process::LayerModelPanelProxy* AutomationLayerModel::make_panelProxy(QObject* parent) const
+Process::LayerModelPanelProxy* LayerModel::make_panelProxy(
+            QObject* parent) const
 {
-    return new AutomationPanelProxy{*this, parent};
+    return new PanelProxy{*this, parent};
 }
 
-void AutomationLayerModel::serialize(const VisitorVariant&) const
+void LayerModel::serialize(
+            const VisitorVariant&) const
 {
     // Nothing to save
 }
 
-const AutomationModel& AutomationLayerModel::model() const
+const ProcessModel& LayerModel::model() const
 {
-    return static_cast<const AutomationModel&>(processModel());
+    return static_cast<const ProcessModel&>(processModel());
+}
 }

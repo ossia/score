@@ -93,7 +93,7 @@ void RecordManager::stopRecording()
             const auto& proc_data = records.at(addr);
             segt.addPoint(msecs, newval);
 
-            static_cast<AutomationModel*>(proc_data.curveModel.parent())->setDuration(TimeValue::fromMsecs(msecs));
+            static_cast<Automation::ProcessModel*>(proc_data.curveModel.parent())->setDuration(TimeValue::fromMsecs(msecs));
         }
 
         // Conversion of the piecewise to segments, and
@@ -102,8 +102,8 @@ void RecordManager::stopRecording()
         // TODO if there is no remaining segment or an invalid segment, don't add it.
 
         // Add a point with the last state.
-        auto initCurveCmd = new InitAutomation{
-                *safe_cast<AutomationModel*>(recorded.second.curveModel.parent()),
+        auto initCurveCmd = new Automation::InitAutomation{
+                *safe_cast<Automation::ProcessModel*>(recorded.second.curveModel.parent()),
                 recorded.first,
                 recorded.second.segment.min(),
                 recorded.second.segment.max(),
@@ -230,10 +230,10 @@ void RecordManager::recordInNewBox(Scenario::ScenarioModel& scenar, Scenario::Po
             // about their generation.
             auto cmd_proc = new AddOnlyProcessToConstraint{
                     Path<ConstraintModel>(cstr_path),
-                    AutomationProcessMetadata::factoryKey()};
+                    Automation::ProcessMetadata::factoryKey()};
             cmd_proc->redo();
             auto& proc = cstr.processes.at(cmd_proc->processId());
-            auto& autom = static_cast<AutomationModel&>(proc);
+            auto& autom = static_cast<Automation::ProcessModel&>(proc);
 
 
             auto cmd_layer = new Scenario::Command::AddLayerModelToSlot{slot, proc};
@@ -286,7 +286,7 @@ void RecordManager::recordInNewBox(Scenario::ScenarioModel& scenar, Scenario::Po
             const auto& proc_data = records.at(addr);
             proc_data.segment.addPoint(msecs, newval);
 
-            static_cast<AutomationModel*>(proc_data.curveModel.parent())->setDuration(TimeValue::fromMsecs(msecs));
+            static_cast<Automation::ProcessModel*>(proc_data.curveModel.parent())->setDuration(TimeValue::fromMsecs(msecs));
         }));
     }
 

@@ -16,8 +16,10 @@
 #include <iscore/tools/ModelPathSerialization.hpp>
 #include <iscore/tools/TreeNode.hpp>
 
+namespace Automation
+{
 ChangeAddress::ChangeAddress(
-        Path<AutomationModel> &&path,
+        Path<ProcessModel> &&path,
         const iscore::Address &newval):
     m_path{path}
 {
@@ -82,4 +84,5 @@ void ChangeAddress::serializeImpl(DataStreamInput & s) const
 void ChangeAddress::deserializeImpl(DataStreamOutput & s)
 {
     s >> m_path >> m_old >> m_new;
+}
 }

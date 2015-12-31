@@ -39,7 +39,7 @@ CreateCurveFromStates::CreateCurveFromStates(
         double end,
         double min,
         double max):
-    CreateProcessAndLayers<AutomationProcessMetadata>{
+    CreateProcessAndLayers<Automation::ProcessMetadata>{
         std::move(constraint),
         slotList,
         curveId},
@@ -55,7 +55,7 @@ void CreateCurveFromStates::redo() const
 {
     m_addProcessCmd.redo();
     auto& cstr = m_addProcessCmd.constraintPath().find();
-    auto& autom = safe_cast<AutomationModel&>(cstr.processes.at(m_addProcessCmd.processId()));
+    auto& autom = safe_cast<Automation::ProcessModel&>(cstr.processes.at(m_addProcessCmd.processId()));
     autom.setAddress(m_address);
     autom.curve().clear();
 
@@ -81,12 +81,12 @@ void CreateCurveFromStates::redo() const
 
 void CreateCurveFromStates::serializeImpl(DataStreamInput& s) const
 {
-    CreateProcessAndLayers<AutomationProcessMetadata>::serializeImpl(s);
+    CreateProcessAndLayers<Automation::ProcessMetadata>::serializeImpl(s);
     s << m_address << m_start << m_end << m_min << m_max;
 }
 
 void CreateCurveFromStates::deserializeImpl(DataStreamOutput& s)
 {
-    CreateProcessAndLayers<AutomationProcessMetadata>::deserializeImpl(s);
+    CreateProcessAndLayers<Automation::ProcessMetadata>::deserializeImpl(s);
     s >> m_address >> m_start >> m_end >> m_min >> m_max;
 }

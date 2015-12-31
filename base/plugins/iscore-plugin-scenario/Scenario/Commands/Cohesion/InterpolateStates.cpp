@@ -80,7 +80,7 @@ void InterpolateStates(const QList<const ConstraintModel*>& selected_constraints
                             constraint->processes.begin(),
                             constraint->processes.end(),
                             [&] (const Process::ProcessModel& proc) {
-                    auto ptr = dynamic_cast<const AutomationModel*>(&proc);
+                    auto ptr = dynamic_cast<const Automation::ProcessModel*>(&proc);
                     if(ptr && ptr->address() == message.address)
                         return true;
                     return false;

@@ -36,7 +36,7 @@ DummyLayerView::DummyLayerView(QGraphicsItem* parent):
 
 void DummyLayerView::paint_impl(QPainter* painter) const
 {
-    auto f = ProcessFonts::Sans();
+    auto f = Process::Fonts::Sans();
     f.setPointSize(30);
     painter->setFont(f);
     painter->setPen(Qt::lightGray);

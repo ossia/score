@@ -17,9 +17,10 @@
 #include <iscore/tools/Todo.hpp>
 
 class QObject;
-
-AutomationState::AutomationState(
-        AutomationModel& model,
+namespace Automation
+{
+State::State(
+        ProcessModel& model,
         double watchedPoint,
         QObject* parent):
     ProcessStateDataInterface{model, parent},
@@ -27,18 +28,18 @@ AutomationState::AutomationState(
 {
     ISCORE_ASSERT(0 <= watchedPoint && watchedPoint <= 1);
 
-    con(this->process(), &AutomationModel::curveChanged,
+    con(this->process(), &ProcessModel::curveChanged,
             this, &ProcessStateDataInterface::stateChanged);
 
-    con(this->process(), &AutomationModel::addressChanged,
+    con(this->process(), &ProcessModel::addressChanged,
             this, &ProcessStateDataInterface::stateChanged);
 }
 
-QString AutomationState::stateName() const
+QString State::stateName() const
 { return "AutomationState"; }
 
 // TESTME
-iscore::Message AutomationState::message() const
+iscore::Message State::message() const
 {
     iscore::Message m;
     m.address = process().address();
@@ -56,20 +57,20 @@ iscore::Message AutomationState::message() const
     return {};
 }
 
-double AutomationState::point() const
+double State::point() const
 { return m_point; }
 
-AutomationState *AutomationState::clone(QObject* parent) const
+State *State::clone(QObject* parent) const
 {
-    return new AutomationState{process(), m_point, parent};
+    return new State{process(), m_point, parent};
 }
 
-AutomationModel& AutomationState::process() const
+ProcessModel& State::process() const
 {
-    return static_cast<AutomationModel&>(ProcessStateDataInterface::process());
+    return static_cast<ProcessModel&>(ProcessStateDataInterface::process());
 }
 
-std::vector<iscore::Address> AutomationState::matchingAddresses()
+std::vector<iscore::Address> State::matchingAddresses()
 {
     // TODO have a better check of "address validity"
     if(!process().address().device.isEmpty())
@@ -77,7 +78,7 @@ std::vector<iscore::Address> AutomationState::matchingAddresses()
     return {};
 }
 
-iscore::MessageList AutomationState::messages() const
+iscore::MessageList State::messages() const
 {
     if(!process().address().device.isEmpty())
     {
@@ -90,7 +91,7 @@ iscore::MessageList AutomationState::messages() const
 }
 
 // TESTME
-iscore::MessageList AutomationState::setMessages(const iscore::MessageList& received, const MessageNode&)
+iscore::MessageList State::setMessages(const iscore::MessageList& received, const MessageNode&)
 {
     if(m_point != 0 && m_point != 1)
         return messages();
@@ -147,4 +148,5 @@ iscore::MessageList AutomationState::setMessages(const iscore::MessageList& rece
         }
     }
     return messages();
+}
 }

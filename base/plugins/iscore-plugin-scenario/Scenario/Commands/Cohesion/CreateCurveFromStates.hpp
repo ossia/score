@@ -90,7 +90,7 @@ class ISCORE_PLUGIN_SCENARIO_EXPORT CreateProcessAndLayers : public iscore::Seri
 
 
 #include <Automation/AutomationProcessMetadata.hpp>
-class ISCORE_PLUGIN_SCENARIO_EXPORT CreateCurveFromStates final : public CreateProcessAndLayers<AutomationProcessMetadata>
+class ISCORE_PLUGIN_SCENARIO_EXPORT CreateCurveFromStates final : public CreateProcessAndLayers<Automation::ProcessMetadata>
 {
          ISCORE_COMMAND_DECL(ScenarioCommandFactoryName(), CreateCurveFromStates, "CreateCurveFromStates")
     public:

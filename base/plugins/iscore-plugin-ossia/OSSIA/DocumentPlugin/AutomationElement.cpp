@@ -40,7 +40,7 @@ namespace RecreateOnPlay
 
 AutomationElement::AutomationElement(
         ConstraintElement& parentConstraint,
-        AutomationModel& element,
+        Automation::ProcessModel& element,
         QObject *parent):
     ProcessElement{parentConstraint, parent},
     m_iscore_autom{element},
@@ -108,7 +108,7 @@ void AutomationElement::recreate()
         goto curve_cleanup_label;
 
     // TODO on_min/max changed
-    new_autom = Automation::create(
+    new_autom = OSSIA::Automation::create(
                 address,
                 new Behavior(m_ossia_curve));
 

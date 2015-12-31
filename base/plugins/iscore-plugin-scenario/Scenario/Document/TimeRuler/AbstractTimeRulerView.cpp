@@ -33,7 +33,7 @@ void AbstractTimeRulerView::paint(QPainter *painter, const QStyleOptionGraphicsI
     painter->setPen(QPen(brush, 1, Qt::SolidLine));
     painter->drawPath(m_path);
 
-    painter->setFont(ProcessFonts::Mono());
+    painter->setFont(Process::Fonts::Mono());
 
     if (m_width > 0)
     {
