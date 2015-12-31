@@ -234,6 +234,7 @@ ProcessModel::ProcessModel(
     m_context{doc, *m_space, doc.plugin<DeviceDocumentPlugin>()},
     m_process{std::make_shared<Space::ProcessExecutor>(*this)}
 {
+    metadata.setName(QString("Space.%1").arg(*this->id().val()));
     using namespace GiNaC;
     using namespace spacelib;
 
