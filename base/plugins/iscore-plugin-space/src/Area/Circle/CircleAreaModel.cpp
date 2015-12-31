@@ -48,10 +48,10 @@ CircleAreaModel::CircleAreaModel(
     setSpaceMapping({{xv, space_vars[0].symbol()}, // xv -> x
                      {yv, space_vars[1].symbol()}}); // yv -> y
 
-    iscore::FullAddressSettings x0_val, y0_val, r_val;
-    x0_val.value = iscore::Value::fromVariant(200);
-    y0_val.value = iscore::Value::fromVariant(200);
-    r_val.value = iscore::Value::fromVariant(100);
+    Device::FullAddressSettings x0_val, y0_val, r_val;
+    x0_val.value = State::Value::fromVariant(200);
+    y0_val.value = State::Value::fromVariant(200);
+    r_val.value = State::Value::fromVariant(100);
     setParameterMapping({
                     {x0.get_name().c_str(), {x0, x0_val}},
                     {y0.get_name().c_str(), {y0, y0_val}},

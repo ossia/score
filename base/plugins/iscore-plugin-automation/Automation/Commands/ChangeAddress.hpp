@@ -6,7 +6,7 @@
 
 class DataStreamInput;
 class DataStreamOutput;
-namespace iscore {
+namespace State {
 struct Address;
 }  // namespace iscore
 
@@ -19,7 +19,7 @@ class ChangeAddress final : public iscore::SerializableCommand
     public:
         ChangeAddress(
                 Path<ProcessModel>&& path,
-                const iscore::Address& newval);
+                const State::Address& newval);
 
     public:
         void undo() const override;
@@ -31,7 +31,7 @@ class ChangeAddress final : public iscore::SerializableCommand
 
     private:
         Path<ProcessModel> m_path;
-        iscore::FullAddressSettings m_old, m_new;
+        Device::FullAddressSettings m_old, m_new;
 };
 
 }

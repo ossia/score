@@ -19,7 +19,7 @@ AreaModel::AreaModel(
     {
         m_parameterMap.insert(
                     sym.get_name().c_str(),
-                    {sym, iscore::FullAddressSettings{}});
+                    {sym, Device::FullAddressSettings{}});
     }
     */
 }
@@ -40,18 +40,18 @@ void AreaModel::setParameterMapping(const AreaModel::ParameterMap &parameter_map
     {
         if(elt.second.address.device.isEmpty()) // We use the value
         {
-            mapping[elt.first] = iscore::convert::value<double>(elt.second.value);
+            mapping[elt.first] = State::convert::value<double>(elt.second.value);
         }
         else // We fetch it from the device tree
         {
-            iscore::Node* n = iscore::try_getNodeFromAddress(m_context.devices.rootNode(), elt.second.address);
+            Device::Node* n = Device::try_getNodeFromAddress(m_context.devices.rootNode(), elt.second.address);
             if(n)
             {
-                mapping[elt.first] = iscore::convert::value<double>(n->get<iscore::AddressSettings>().value);
+                mapping[elt.first] = State::convert::value<double>(n->get<Device::AddressSettings>().value);
             }
             else
             {
-                mapping[elt.first] = iscore::convert::value<double>(elt.second.value);
+                mapping[elt.first] = State::convert::value<double>(elt.second.value);
             }
         }
     }

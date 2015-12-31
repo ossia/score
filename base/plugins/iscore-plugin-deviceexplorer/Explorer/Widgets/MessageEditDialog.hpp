@@ -4,7 +4,7 @@
 #include <Explorer/Widgets/ValueWrapper.hpp>
 
 class QWidget;
-namespace iscore
+namespace State
 {
 struct Address;
 struct Message;
@@ -29,19 +29,19 @@ class MessageEditDialog final : public QDialog
 {
     public:
         MessageEditDialog(
-                const iscore::Message& mess,
+                const State::Message& mess,
                 DeviceExplorerModel* model,
                 QWidget* parent);
 
-        const iscore::Address& address() const;
+        const State::Address& address() const;
 
-        iscore::Value value() const;
+        State::Value value() const;
 
     private:
         void initTypeCombo();
         void on_typeChanged(int t);
 
-        const iscore::Message& m_message;
+        const State::Message& m_message;
 
         AddressEditWidget* m_addr{};
 

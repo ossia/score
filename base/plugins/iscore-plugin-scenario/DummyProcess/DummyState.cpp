@@ -24,18 +24,18 @@ ProcessStateDataInterface* DummyState::clone(
     return new DummyState{process(), parent};
 }
 
-std::vector<iscore::Address> DummyState::matchingAddresses()
+std::vector<State::Address> DummyState::matchingAddresses()
 {
     return {};
 }
 
-iscore::MessageList DummyState::messages() const
+State::MessageList DummyState::messages() const
 {
     return {};
 }
 
-iscore::MessageList DummyState::setMessages(
-        const iscore::MessageList&,
+State::MessageList DummyState::setMessages(
+        const State::MessageList&,
         const MessageNode&)
 {
     return {};

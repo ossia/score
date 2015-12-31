@@ -25,8 +25,12 @@ class Node;
 class State;
 class Value;
 }  // namespace OSSIA
-namespace iscore {
+namespace Device
+{
 struct FullAddressSettings;
+}
+namespace State
+{
 struct Message;
 }  // namespace iscore
 
@@ -54,23 +58,23 @@ ISCORE_PLUGIN_OSSIA_EXPORT OSSIA::Node* createNodeFromPath(
         OSSIA::Device* dev);
 
 ISCORE_PLUGIN_OSSIA_EXPORT void createOSSIAAddress(
-        const iscore::FullAddressSettings& settings,
+        const Device::FullAddressSettings& settings,
         OSSIA::Node* node);
 ISCORE_PLUGIN_OSSIA_EXPORT void updateOSSIAAddress(
-        const iscore::FullAddressSettings& settings,
+        const Device::FullAddressSettings& settings,
         const std::shared_ptr<OSSIA::Address>& addr);
 ISCORE_PLUGIN_OSSIA_EXPORT void removeOSSIAAddress(
         OSSIA::Node*); // Keeps the Node.
 ISCORE_PLUGIN_OSSIA_EXPORT void updateOSSIAValue(
-        const iscore::ValueImpl& data,
+        const State::ValueImpl& data,
         OSSIA::Value& val);
 
 ISCORE_PLUGIN_OSSIA_EXPORT OSSIA::Value* toOSSIAValue(
-        const iscore::Value&);
+        const State::Value&);
 
 ISCORE_PLUGIN_OSSIA_EXPORT void setValue(
         OSSIA::Address& addr,
-        const iscore::Value& val);
+        const State::Value& val);
 
 //// Other conversions
 ISCORE_PLUGIN_OSSIA_EXPORT inline OSSIA::TimeValue time(const TimeValue& t)
@@ -90,11 +94,11 @@ ISCORE_PLUGIN_OSSIA_EXPORT std::shared_ptr<OSSIA::State> state(
 
 
 ISCORE_PLUGIN_OSSIA_EXPORT std::shared_ptr<OSSIA::Message> message(
-        const iscore::Message& mess,
+        const State::Message& mess,
         const DeviceList&);
 
 ISCORE_PLUGIN_OSSIA_EXPORT std::shared_ptr<OSSIA::Expression> expression(
-        const iscore::Expression& expr,
+        const State::Expression& expr,
         const DeviceList&);
 
 

@@ -20,7 +20,7 @@ class UpdateDeviceSettings final : public iscore::SerializableCommand
         UpdateDeviceSettings(
                   Path<DeviceDocumentPlugin>&& device_tree,
                   const QString& name,
-                  const iscore::DeviceSettings& parameters);
+                  const Device::DeviceSettings& parameters);
 
 
         void undo() const override;
@@ -32,8 +32,8 @@ class UpdateDeviceSettings final : public iscore::SerializableCommand
 
     private:
         Path<DeviceDocumentPlugin> m_devicesModel;
-        iscore::DeviceSettings m_oldParameters;
-        iscore::DeviceSettings m_newParameters;
+        Device::DeviceSettings m_oldParameters;
+        Device::DeviceSettings m_newParameters;
 };
 }
 }

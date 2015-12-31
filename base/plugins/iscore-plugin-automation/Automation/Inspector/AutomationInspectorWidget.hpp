@@ -9,6 +9,9 @@ class QWidget;
 namespace iscore{
 class Document;
 struct DocumentContext;
+}
+namespace State
+{
 struct Address;
 }
 class AddressEditWidget;
@@ -28,7 +31,7 @@ class InspectorWidget final :
                 QWidget* parent);
 
     public slots:
-        void on_addressChange(const iscore::Address& newText);
+        void on_addressChange(const ::State::Address& newText);
         void on_minValueChanged();
         void on_maxValueChanged();
 

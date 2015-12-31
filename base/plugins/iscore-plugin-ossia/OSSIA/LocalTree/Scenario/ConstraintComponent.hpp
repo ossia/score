@@ -2,7 +2,7 @@
 #include <OSSIA/LocalTree/Scenario/ProcessComponent.hpp>
 #include <Scenario/Document/Components/ConstraintComponent.hpp>
 
-namespace OSSIA
+namespace Ossia
 {
 namespace LocalTree
 {
@@ -10,10 +10,10 @@ class ConstraintComponent final :
         public iscore::Component
 {
     public:
-        using system_t = OSSIA::LocalTree::DocumentPlugin;
-        using process_component_t = OSSIA::LocalTree::ProcessComponent;
-        using process_component_factory_t = OSSIA::LocalTree::ProcessComponentFactory;
-        using process_component_factory_list_t = OSSIA::LocalTree::ProcessComponentFactoryList;
+        using system_t = Ossia::LocalTree::DocumentPlugin;
+        using process_component_t = Ossia::LocalTree::ProcessComponent;
+        using process_component_factory_t = Ossia::LocalTree::ProcessComponentFactory;
+        using process_component_factory_list_t = Ossia::LocalTree::ProcessComponentFactoryList;
 
         using parent_t = ::ConstraintComponentHierarchyManager<
             ConstraintComponent,

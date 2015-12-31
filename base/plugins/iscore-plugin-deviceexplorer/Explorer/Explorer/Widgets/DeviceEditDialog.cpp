@@ -123,9 +123,9 @@ DeviceEditDialog::updateProtocolWidget()
 
 }
 
-iscore::DeviceSettings DeviceEditDialog::getSettings() const
+Device::DeviceSettings DeviceEditDialog::getSettings() const
 {
-    iscore::DeviceSettings settings;
+    Device::DeviceSettings settings;
 
     if(m_protocolWidget)
     {
@@ -144,7 +144,7 @@ QString DeviceEditDialog::getPath() const
 }
 
 void
-DeviceEditDialog::setSettings(const iscore::DeviceSettings &settings)
+DeviceEditDialog::setSettings(const Device::DeviceSettings &settings)
 {
     //auto proto = SingletonProtocolList::instance().get(settings.protocol);
     //if(proto)

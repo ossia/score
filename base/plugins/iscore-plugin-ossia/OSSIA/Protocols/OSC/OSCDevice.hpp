@@ -8,7 +8,7 @@ struct DeviceSettings;
 class OSCDevice final : public OSSIADevice
 {
     public:
-        OSCDevice(const iscore::DeviceSettings& stngs);
+        OSCDevice(const Device::DeviceSettings& stngs);
 
         bool reconnect() override;
 };

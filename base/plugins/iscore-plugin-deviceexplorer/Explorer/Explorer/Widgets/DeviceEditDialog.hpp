@@ -23,10 +23,10 @@ class DeviceEditDialog final : public QDialog
                 QWidget* parent);
         ~DeviceEditDialog();
 
-        iscore::DeviceSettings getSettings() const;
+        Device::DeviceSettings getSettings() const;
         QString getPath() const;
 
-        void setSettings(const iscore::DeviceSettings& settings);
+        void setSettings(const Device::DeviceSettings& settings);
 
         // This mode will display a warning to
         // the user if he has to edit the device again.
@@ -49,7 +49,7 @@ class DeviceEditDialog final : public QDialog
         QComboBox* m_protocolCBox;
         ProtocolSettingsWidget* m_protocolWidget;
         QGridLayout* m_gLayout;
-        QList<iscore::DeviceSettings> m_previousSettings;
+        QList<Device::DeviceSettings> m_previousSettings;
         int m_index;
 
         bool m_invalidState{false};

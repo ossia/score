@@ -10,9 +10,9 @@ class AddressBoolSettingsWidget final : public AddressSettingsWidget
     public:
         explicit AddressBoolSettingsWidget(QWidget* parent = nullptr);
 
-        iscore::AddressSettings getSettings() const override;
+        Device::AddressSettings getSettings() const override;
 
-        void setSettings(const iscore::AddressSettings& settings) override;
+        void setSettings(const Device::AddressSettings& settings) override;
 
     private:
         QComboBox* m_cb{};

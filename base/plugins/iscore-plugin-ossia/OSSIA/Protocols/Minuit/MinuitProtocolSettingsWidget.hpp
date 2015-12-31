@@ -13,9 +13,9 @@ class MinuitProtocolSettingsWidget : public ProtocolSettingsWidget
     public:
         MinuitProtocolSettingsWidget(QWidget* parent = nullptr);
 
-        iscore::DeviceSettings getSettings() const override;
+        Device::DeviceSettings getSettings() const override;
 
-        void setSettings(const iscore::DeviceSettings& settings) override;
+        void setSettings(const Device::DeviceSettings& settings) override;
 
     protected:
         void buildGUI();

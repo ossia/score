@@ -20,7 +20,7 @@ class Remove final : public iscore::SerializableCommand
 
           Remove(
             Path<DeviceDocumentPlugin> device_tree,
-            const iscore::Node& node);
+            const Device::Node& node);
 
           ~Remove();
 

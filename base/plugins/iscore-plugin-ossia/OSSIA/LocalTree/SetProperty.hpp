@@ -17,10 +17,10 @@ struct SetPropertyWrapper : public BaseCallbackWrapper
             setFun{prop}
         {
             m_callbackIt = addr->addCallback([=] (const OSSIA::Value* v) {
-                setFun(OSSIA::convert::ToValue(v));
+                setFun(Ossia::convert::ToValue(v));
             });
 
-            addr->setValue(new typename OSSIA::convert::MatchingType<T>::type);
+            addr->setValue(new typename Ossia::convert::MatchingType<T>::type);
         }
 };
 
@@ -37,7 +37,7 @@ template<typename T, typename Callback>
 auto add_setProperty(OSSIA::Node& n, const std::string& name, Callback cb)
 {
     std::shared_ptr<OSSIA::Node> node = *n.emplaceAndNotify(n.children().end(), name);
-    auto addr = node->createAddress(OSSIA::convert::MatchingType<T>::val);
+    auto addr = node->createAddress(Ossia::convert::MatchingType<T>::val);
     addr->setAccessMode(OSSIA::Address::AccessMode::SET);
 
     return make_setProperty<T>(node, addr, cb);

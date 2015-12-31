@@ -8,7 +8,7 @@ struct DeviceSettings;
 class MIDIDevice final : public OSSIADevice
 {
     public:
-        MIDIDevice(const iscore::DeviceSettings& settings);
+        MIDIDevice(const Device::DeviceSettings& settings);
 
         bool reconnect() override;
 };

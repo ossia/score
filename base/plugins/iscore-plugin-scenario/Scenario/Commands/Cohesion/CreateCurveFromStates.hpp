@@ -98,7 +98,7 @@ class ISCORE_PLUGIN_SCENARIO_EXPORT CreateCurveFromStates final : public CreateP
                 Path<ConstraintModel>&& constraint,
                 const std::vector<std::pair<Path<SlotModel>, Id<Process::LayerModel>>>& slotList,
                 const Id<Process::ProcessModel>& curveId,
-                const iscore::Address &address,
+                const State::Address &address,
                 double start,
                 double end,
                 double min, double max);
@@ -110,7 +110,7 @@ class ISCORE_PLUGIN_SCENARIO_EXPORT CreateCurveFromStates final : public CreateP
         void deserializeImpl(DataStreamOutput&) override;
 
     private:
-        iscore::Address m_address;
+        State::Address m_address;
 
         double m_start{}, m_end{};
         double m_min{}, m_max{};

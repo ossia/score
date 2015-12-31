@@ -1,7 +1,7 @@
 #include "ScenarioComponentFactory.hpp"
 #include "ScenarioComponent.hpp"
 
-namespace OSSIA
+namespace Ossia
 {
 namespace LocalTree
 {

@@ -83,8 +83,8 @@ void StatePresenter::handleDrop(const QMimeData *mime)
     // If the mime data has states in it we can handle it.
     if(mime->formats().contains(iscore::mime::messagelist()))
     {
-        Mime<iscore::MessageList>::Deserializer des{*mime};
-        iscore::MessageList ml = des.deserialize();
+        Mime<State::MessageList>::Deserializer des{*mime};
+        State::MessageList ml = des.deserialize();
 
         auto cmd = new AddMessagesToState{
                    iscore::IDocument::path(m_model.messages()),

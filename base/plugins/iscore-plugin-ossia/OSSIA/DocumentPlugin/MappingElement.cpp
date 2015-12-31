@@ -145,7 +145,7 @@ void OSSIAMappingElement::recreate()
     const auto& devices = m_deviceList.devices();
 
     // TODO use this in automation
-    auto getAddress = [&] (const iscore::Address& addr) -> std::shared_ptr<OSSIA::Address>
+    auto getAddress = [&] (const State::Address& addr) -> std::shared_ptr<OSSIA::Address>
     {
         // Look for the real node in the device
         auto dev_it = std::find_if(devices.begin(), devices.end(),

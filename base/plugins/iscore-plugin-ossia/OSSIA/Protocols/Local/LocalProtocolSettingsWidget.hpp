@@ -14,7 +14,7 @@ class LocalProtocolSettingsWidget final : public ProtocolSettingsWidget
         LocalProtocolSettingsWidget(QWidget* parent = nullptr);
 
     private:
-        iscore::DeviceSettings getSettings() const override;
-        void setSettings(const iscore::DeviceSettings& settings) override;
+        Device::DeviceSettings getSettings() const override;
+        void setSettings(const Device::DeviceSettings& settings) override;
 };
 

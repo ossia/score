@@ -84,7 +84,7 @@ InspectorWidget::InspectorWidget(
     this->setLayout(vlay);
 }
 
-void InspectorWidget::on_addressChange(const iscore::Address& newAddr)
+void InspectorWidget::on_addressChange(const ::State::Address& newAddr)
 {
     // Various checks
     if(newAddr == process().address())

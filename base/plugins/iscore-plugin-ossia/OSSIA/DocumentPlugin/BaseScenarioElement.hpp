@@ -11,10 +11,6 @@ class StateElement;
 class TimeNodeElement;
 }  // namespace RecreateOnPlay
 
-namespace OSSIA
-{
-}
-
 
 namespace RecreateOnPlay
 {

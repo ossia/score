@@ -74,7 +74,7 @@ class ISCORE_PLUGIN_SCENARIO_EXPORT EventModel final : public IdentifiedObject<E
 
 
         // Other properties
-        const iscore::Condition& condition() const;
+        const State::Condition& condition() const;
 
         VerticalExtent extent() const;
 
@@ -85,7 +85,7 @@ class ISCORE_PLUGIN_SCENARIO_EXPORT EventModel final : public IdentifiedObject<E
         void reset();
 
 
-        void setCondition(const iscore::Condition& arg);
+        void setCondition(const State::Condition& arg);
 
         void setExtent(const VerticalExtent &extent);
         void setDate(const TimeValue& date);
@@ -96,7 +96,7 @@ class ISCORE_PLUGIN_SCENARIO_EXPORT EventModel final : public IdentifiedObject<E
         void extentChanged(const VerticalExtent&);
         void dateChanged(const TimeValue&);
 
-        void conditionChanged(const iscore::Condition&);
+        void conditionChanged(const State::Condition&);
 
         void statesChanged();
 
@@ -107,7 +107,7 @@ class ISCORE_PLUGIN_SCENARIO_EXPORT EventModel final : public IdentifiedObject<E
 
         QVector<Id<StateModel>> m_states;
 
-        iscore::Condition m_condition;
+        State::Condition m_condition;
 
         VerticalExtent m_extent;
         TimeValue m_date{TimeValue::zero()};

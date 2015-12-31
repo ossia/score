@@ -25,7 +25,7 @@ DeviceExplorerMenuButton::DeviceExplorerMenuButton(DeviceExplorerModel *model)
 
     connect(menuview, &QMenuView::triggered,
             this, [=](const QModelIndex & m)
-    { emit addressChosen(iscore::address(model->nodeFromModelIndex(m))); });
+    { emit addressChosen(Device::address(model->nodeFromModelIndex(m))); });
 
     pb->setMenu(menuview);
     this->layout()->addWidget(pb);

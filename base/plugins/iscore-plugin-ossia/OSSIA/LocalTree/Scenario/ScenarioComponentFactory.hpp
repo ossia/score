@@ -1,7 +1,7 @@
 #pragma once
 #include <OSSIA/LocalTree/Scenario/ProcessComponent.hpp>
 
-namespace OSSIA
+namespace Ossia
 {
 namespace LocalTree
 {
@@ -14,7 +14,7 @@ class ScenarioComponentFactory final :
 
         bool matches(
                 Process::ProcessModel& p,
-                const OSSIA::LocalTree::DocumentPlugin&,
+                const Ossia::LocalTree::DocumentPlugin&,
                 const iscore::DocumentContext&) const override;
 
         ProcessComponent* make(

@@ -25,11 +25,11 @@ class MappingModel : public Curve::CurveProcessModel
 
         Q_OBJECT
 
-        Q_PROPERTY(iscore::Address sourceAddress READ sourceAddress WRITE setSourceAddress NOTIFY sourceAddressChanged)
+        Q_PROPERTY(State::Address sourceAddress READ sourceAddress WRITE setSourceAddress NOTIFY sourceAddressChanged)
         Q_PROPERTY(double sourceMin READ sourceMin WRITE setSourceMin NOTIFY sourceMinChanged)
         Q_PROPERTY(double sourceMax READ sourceMax WRITE setSourceMax NOTIFY sourceMaxChanged)
 
-        Q_PROPERTY(iscore::Address targetAddress READ targetAddress WRITE setTargetAddress NOTIFY targetAddressChanged)
+        Q_PROPERTY(State::Address targetAddress READ targetAddress WRITE setTargetAddress NOTIFY targetAddressChanged)
         Q_PROPERTY(double targetMin READ targetMin WRITE setTargetMin NOTIFY targetMinChanged)
         Q_PROPERTY(double targetMax READ targetMax WRITE setTargetMax NOTIFY targetMaxChanged)
     public:
@@ -46,28 +46,28 @@ class MappingModel : public Curve::CurveProcessModel
         }
 
         //// MappingModel specifics ////
-        iscore::Address sourceAddress() const;
+        State::Address sourceAddress() const;
         double sourceMin() const;
         double sourceMax() const;
 
-        void setSourceAddress(const iscore::Address& arg);
+        void setSourceAddress(const State::Address& arg);
         void setSourceMin(double arg);
         void setSourceMax(double arg);
 
-        iscore::Address targetAddress() const;
+        State::Address targetAddress() const;
         double targetMin() const;
         double targetMax() const;
 
-        void setTargetAddress(const iscore::Address& arg);
+        void setTargetAddress(const State::Address& arg);
         void setTargetMin(double arg);
         void setTargetMax(double arg);
 
     signals:
-        void sourceAddressChanged(const iscore::Address& arg);
+        void sourceAddressChanged(const State::Address& arg);
         void sourceMinChanged(double arg);
         void sourceMaxChanged(double arg);
 
-        void targetAddressChanged(const iscore::Address& arg);
+        void targetAddressChanged(const State::Address& arg);
         void targetMinChanged(double arg);
         void targetMaxChanged(double arg);
 
@@ -109,8 +109,8 @@ class MappingModel : public Curve::CurveProcessModel
 
 
 
-        iscore::Address m_sourceAddress;
-        iscore::Address m_targetAddress;
+        State::Address m_sourceAddress;
+        State::Address m_targetAddress;
 
         double m_sourceMin{};
         double m_sourceMax{};

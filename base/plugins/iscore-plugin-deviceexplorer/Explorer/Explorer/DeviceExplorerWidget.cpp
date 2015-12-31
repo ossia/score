@@ -384,11 +384,11 @@ DeviceExplorerWidget::updateActions()
     }
 }
 
-void DeviceExplorerWidget::setListening_rec(const iscore::Node& node, bool b)
+void DeviceExplorerWidget::setListening_rec(const Device::Node& node, bool b)
 {
-    if(node.is<iscore::AddressSettings>())
+    if(node.is<Device::AddressSettings>())
     {
-        auto addr = iscore::address(node);
+        auto addr = Device::address(node);
         auto& dev = model()->deviceModel().list().device(addr.device);
         dev.setListening(addr, b);
     }
@@ -406,9 +406,9 @@ void DeviceExplorerWidget::setListening_rec2(const QModelIndex& index, bool b)
     int i = 0;
     for(const auto& child : node)
     {
-        if(child.is<iscore::AddressSettings>())
+        if(child.is<Device::AddressSettings>())
         {
-            auto addr = iscore::address(child);
+            auto addr = Device::address(child);
             auto& dev = model()->deviceModel().list().device(addr.device);
             dev.setListening(addr, b);
         }
@@ -458,13 +458,13 @@ DeviceExplorerWidget::proxyModel()
 void DeviceExplorerWidget::edit()
 {
     const auto& select = model()->nodeFromModelIndex(m_ntView->selectedIndex());
-    if (select.is<iscore::DeviceSettings>())
+    if (select.is<Device::DeviceSettings>())
     {
         if(! m_deviceDialog)
         {
             m_deviceDialog = new DeviceEditDialog{m_protocolList, this};
         }
-        auto set = select.get<iscore::DeviceSettings>();
+        auto set = select.get<Device::DeviceSettings>();
         m_deviceDialog->setSettings(set);
 
         QDialog::DialogCode code = static_cast<QDialog::DialogCode>(m_deviceDialog->exec());
@@ -483,7 +483,7 @@ void DeviceExplorerWidget::edit()
     }
     else
     {
-        auto before = select.get<iscore::AddressSettings>();
+        auto before = select.get<Device::AddressSettings>();
         AddressEditDialog dial{before, this};
 
         auto code = static_cast<QDialog::DialogCode>(dial.exec());
@@ -497,7 +497,7 @@ void DeviceExplorerWidget::edit()
 
             auto cmd = new DeviceExplorer::Command::UpdateAddressSettings{
                     model()->deviceModel(),
-                    iscore::NodePath(select),
+                    Device::NodePath(select),
                     stgs};
 
             m_cmdDispatcher->submitCommand(cmd);
@@ -514,15 +514,15 @@ void DeviceExplorerWidget::refresh()
         return;
 
     const auto& select = m->nodeFromModelIndex(m_ntView->selectedIndex());
-    if (select.is<iscore::DeviceSettings>())
+    if (select.is<Device::DeviceSettings>())
     {
         // Create a thread, ask the device, when it is done put a command on the chain.
-        auto& dev = m->deviceModel().list().device(select.get<iscore::DeviceSettings>().name);
+        auto& dev = m->deviceModel().list().device(select.get<Device::DeviceSettings>().name);
         if(!dev.capabilities().canRefresh)
             return;
 
         auto wrkr = make_worker(
-            [=] (iscore::Node&& node) {
+            [=] (Device::Node&& node) {
                 auto cmd = new DeviceExplorer::Command::ReplaceDevice{
                     *m,
                     m_ntView->selectedIndex().row(),
@@ -538,20 +538,20 @@ void DeviceExplorerWidget::refresh()
 void DeviceExplorerWidget::refreshValue()
 {
     // TODO deprecate this
-    QList<QPair<const iscore::Node*, iscore::Value>> lst;
+    QList<QPair<const Device::Node*, State::Value>> lst;
     for(auto index : m_ntView->selectedIndexes())
     {
         // Model checks
         index = sourceIndex(index);
-        iscore::Node* node = index.isValid()
-                              ? static_cast<iscore::Node*>(index.internalPointer())
+        Device::Node* node = index.isValid()
+                              ? static_cast<Device::Node*>(index.internalPointer())
                               : nullptr;
 
-        if(!node || node->is<iscore::DeviceSettings>())
+        if(!node || node->is<Device::DeviceSettings>())
             continue;
 
         // Device checks
-        auto addr = iscore::address(*node);
+        auto addr = Device::address(*node);
         auto& dev = model()->deviceModel().list().device(addr.device);
         if(!dev.capabilities().canRefresh)
             return;
@@ -580,9 +580,9 @@ void DeviceExplorerWidget::disconnect()
         return;
 
     const auto& select = m->nodeFromModelIndex(m_ntView->selectedIndex());
-    if (select.is<iscore::DeviceSettings>())
+    if (select.is<Device::DeviceSettings>())
     {
-        auto& dev = m->deviceModel().list().device(select.get<iscore::DeviceSettings>().name);
+        auto& dev = m->deviceModel().list().device(select.get<Device::DeviceSettings>().name);
         dev.disconnect();
     }
 }
@@ -594,9 +594,9 @@ void DeviceExplorerWidget::reconnect()
         return;
 
     const auto& select = m->nodeFromModelIndex(m_ntView->selectedIndex());
-    if (select.is<iscore::DeviceSettings>())
+    if (select.is<Device::DeviceSettings>())
     {
-        auto& dev = m->deviceModel().list().device(select.get<iscore::DeviceSettings>().name);
+        auto& dev = m->deviceModel().list().device(select.get<Device::DeviceSettings>().name);
         dev.reconnect();
     }
 }
@@ -635,7 +635,7 @@ DeviceExplorerWidget::addDevice()
         }
         else
         {
-            iscore::Node n{deviceSettings, nullptr};
+            Device::Node n{deviceSettings, nullptr};
             loadDeviceFromXML(path, n);
             m_cmdDispatcher->submitCommand(new LoadDevice{std::move(devplug_path), std::move(n)});
         }
@@ -664,7 +664,7 @@ void DeviceExplorerWidget::removeNodes()
 {
     auto indexes = m_ntView->selectedIndexes();
 
-    QList<iscore::Node*> nodes;
+    QList<Device::Node*> nodes;
     for(auto index : indexes)
     {
         auto& n = model()->nodeFromModelIndex(sourceIndex(index));
@@ -674,7 +674,7 @@ void DeviceExplorerWidget::removeNodes()
 
     auto cmd = new RemoveNodes;
     auto dev_model_path = iscore::IDocument::path(model()->deviceModel());
-    for(const auto& n : iscore::filterUniqueParents(nodes))
+    for(const auto& n : Device::filterUniqueParents(nodes))
     {
         cmd->addCommand(new DeviceExplorer::Command::Remove{
                             dev_model_path,
@@ -701,12 +701,12 @@ DeviceExplorerWidget::addAddress(InsertMode insert)
         auto& node = model()->nodeFromModelIndex(index);
 
         // TODO not very elegant.
-        if(insert == InsertMode::AsSibling && node.is<iscore::DeviceSettings>())
+        if(insert == InsertMode::AsSibling && node.is<Device::DeviceSettings>())
         {
             return;
         }
 
-        iscore::Node* parent =
+        Device::Node* parent =
               (insert == InsertMode::AsChild)
                 ? &node
                 : node.parent();
@@ -718,7 +718,7 @@ DeviceExplorerWidget::addAddress(InsertMode insert)
         m_cmdDispatcher->submitCommand(
                         new DeviceExplorer::Command::AddAddress{
                             model()->deviceModel(),
-                            iscore::NodePath{index},
+                            Device::NodePath{index},
                             insert,
                             stgs});
         updateActions();

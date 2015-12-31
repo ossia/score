@@ -16,7 +16,7 @@ class ExplorationWorker final : public QObject
         Q_OBJECT
     public:
         DeviceInterface& dev;
-        iscore::Node node; // Result
+        Device::Node node; // Result
 
         explicit ExplorationWorker(DeviceInterface& dev);
 

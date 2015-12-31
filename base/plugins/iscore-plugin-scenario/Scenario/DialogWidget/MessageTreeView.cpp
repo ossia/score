@@ -84,7 +84,7 @@ void MessageTreeView::removeNodes()
 
     auto cmd = new RemoveMessageNodes(
                       model(),
-                      iscore::filterUniqueParents(nodes));
+                      Device::filterUniqueParents(nodes));
 
     CommandDispatcher<> dispatcher{iscore::IDocument::documentContext(m_model).commandStack};
     dispatcher.submitCommand(cmd);

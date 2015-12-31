@@ -27,7 +27,7 @@ class ISCORE_PLUGIN_AUTOMATION_EXPORT ProcessModel final : public Curve::CurvePr
         ISCORE_SERIALIZE_FRIENDS(ProcessModel, JSONObject)
 
         Q_OBJECT
-        Q_PROPERTY(iscore::Address address READ address WRITE setAddress NOTIFY addressChanged)
+        Q_PROPERTY(::State::Address address READ address WRITE setAddress NOTIFY addressChanged)
         // Min and max to scale the curve with at execution
         Q_PROPERTY(double min READ min WRITE setMin NOTIFY minChanged)
         Q_PROPERTY(double max READ max WRITE setMax NOTIFY maxChanged)
@@ -42,8 +42,8 @@ class ISCORE_PLUGIN_AUTOMATION_EXPORT ProcessModel final : public Curve::CurvePr
         template<typename Impl>
         ProcessModel(Deserializer<Impl>& vis, QObject* parent) :
             CurveProcessModel{vis, parent},
-            m_startState{new State{*this, 0., this}},
-            m_endState{new State{*this, 1., this}}
+            m_startState{new ProcessState{*this, 0., this}},
+            m_endState{new ProcessState{*this, 1., this}}
         {
             vis.writeTo(*this);
         }
@@ -68,23 +68,23 @@ class ISCORE_PLUGIN_AUTOMATION_EXPORT ProcessModel final : public Curve::CurvePr
         void serialize(const VisitorVariant& vis) const override;
 
         /// States
-        State* startStateData() const override;
-        State* endStateData() const override;
+        ProcessState* startStateData() const override;
+        ProcessState* endStateData() const override;
 
         //// AutomationModel specifics ////
-        iscore::Address address() const;
+        ::State::Address address() const;
 
         double value(const TimeValue& time);
 
         double min() const;
         double max() const;
 
-        void setAddress(const iscore::Address& arg);
+        void setAddress(const ::State::Address& arg);
 
         void setMin(double arg);
         void setMax(double arg);
     signals:
-        void addressChanged(const iscore::Address& arg);
+        void addressChanged(const ::State::Address& arg);
 
         void minChanged(double arg);
 
@@ -101,12 +101,12 @@ class ISCORE_PLUGIN_AUTOMATION_EXPORT ProcessModel final : public Curve::CurvePr
 
     private:
         void setCurve_impl() override;
-        iscore::Address m_address;
+        ::State::Address m_address;
 
         double m_min{};
         double m_max{};
 
-        State* m_startState{};
-        State* m_endState{};
+        ProcessState* m_startState{};
+        ProcessState* m_endState{};
 };
 }

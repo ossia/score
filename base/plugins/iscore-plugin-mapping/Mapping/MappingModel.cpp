@@ -127,7 +127,7 @@ ProcessStateDataInterface* MappingModel::endStateData() const
 
 
 
-iscore::Address MappingModel::sourceAddress() const
+State::Address MappingModel::sourceAddress() const
 {
     return m_sourceAddress;
 }
@@ -142,7 +142,7 @@ double MappingModel::sourceMax() const
     return m_sourceMax;
 }
 
-void MappingModel::setSourceAddress(const iscore::Address& arg)
+void MappingModel::setSourceAddress(const State::Address& arg)
 {
     if(m_sourceAddress == arg)
     {
@@ -176,7 +176,7 @@ void MappingModel::setSourceMax(double arg)
 
 
 
-iscore::Address MappingModel::targetAddress() const
+State::Address MappingModel::targetAddress() const
 {
     return m_targetAddress;
 }
@@ -191,7 +191,7 @@ double MappingModel::targetMax() const
     return m_targetMax;
 }
 
-void MappingModel::setTargetAddress(const iscore::Address& arg)
+void MappingModel::setTargetAddress(const State::Address& arg)
 {
     if(m_targetAddress == arg)
     {

@@ -5,7 +5,7 @@
 #include <OSSIA/LocalTree/LocalTreeDocumentPlugin.hpp>
 #include <OSSIA/LocalTree/NameProperty.hpp>
 
-namespace OSSIA
+namespace Ossia
 {
 namespace LocalTree
 {
@@ -13,7 +13,7 @@ class StateComponent final :
         public iscore::Component
 {
     public:
-        using system_t = OSSIA::LocalTree::DocumentPlugin;
+        using system_t = Ossia::LocalTree::DocumentPlugin;
 
         StateComponent(
                 OSSIA::Node& parent,

@@ -11,7 +11,7 @@ namespace OSSIA
 class MinuitDevice final : public OSSIADevice
 {
     public:
-        MinuitDevice(const iscore::DeviceSettings& settings);
+        MinuitDevice(const Device::DeviceSettings& settings);
 
         bool reconnect() override;
 };

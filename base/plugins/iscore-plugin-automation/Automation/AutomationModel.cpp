@@ -28,8 +28,8 @@ ProcessModel::ProcessModel(
         const Id<Process::ProcessModel>& id,
         QObject* parent) :
     CurveProcessModel {duration, id, ProcessMetadata::processObjectName(), parent},
-    m_startState{new State{*this, 0., this}},
-    m_endState{new State{*this, 1., this}}
+    m_startState{new ProcessState{*this, 0., this}},
+    m_endState{new ProcessState{*this, 1., this}}
 {
     pluginModelList = new iscore::ElementPluginModelList{iscore::IDocument::documentContext(*parent), this};
 
@@ -55,8 +55,8 @@ ProcessModel::ProcessModel(
     m_address(source.address()),
     m_min{source.min()},
     m_max{source.max()},
-    m_startState{new State{*this, 0., this}},
-    m_endState{new State{*this, 1., this}}
+    m_startState{new ProcessState{*this, 0., this}},
+    m_endState{new ProcessState{*this, 1., this}}
 {
     setCurve(source.curve().clone(source.curve().id(), this));
     pluginModelList = new iscore::ElementPluginModelList(*source.pluginModelList, this);
@@ -190,17 +190,17 @@ void ProcessModel::setCurve_impl()
 }
 
 
-State* ProcessModel::startStateData() const
+ProcessState* ProcessModel::startStateData() const
 {
     return m_startState;
 }
 
-State* ProcessModel::endStateData() const
+ProcessState* ProcessModel::endStateData() const
 {
     return m_endState;
 }
 
-iscore::Address ProcessModel::address() const
+::State::Address ProcessModel::address() const
 {
     return m_address;
 }
@@ -222,7 +222,7 @@ double ProcessModel::max() const
     return m_max;
 }
 
-void ProcessModel::setAddress(const iscore::Address &arg)
+void ProcessModel::setAddress(const ::State::Address &arg)
 {
     if(m_address == arg)
     {

@@ -21,7 +21,7 @@ class ISCORE_PLUGIN_AUTOMATION_EXPORT InitAutomation final : public iscore::Seri
            // Note : the segments shall be sorted from start to end.
         InitAutomation(
                 Path<ProcessModel>&& path,
-                const iscore::Address& newaddr,
+                const State::Address& newaddr,
                 double newmin,
                 double newmax,
                 std::vector<Curve::SegmentData>&& segments);
@@ -36,7 +36,7 @@ class ISCORE_PLUGIN_AUTOMATION_EXPORT InitAutomation final : public iscore::Seri
 
     private:
         Path<ProcessModel> m_path;
-        iscore::Address m_addr;
+        State::Address m_addr;
         double m_newMin;
         double m_newMax;
         std::vector<Curve::SegmentData> m_segments;

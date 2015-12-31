@@ -52,9 +52,8 @@ OSSIAApplicationPlugin::OSSIAApplicationPlugin(const iscore::ApplicationContext&
     TTFoundationInit(contents.toUtf8().constData(), true);
     TTModularInit(contents.toUtf8().constData(), true);
 #endif
-    using namespace OSSIA;
     auto localDevice = OSSIA::Local::create();
-    m_localDevice = Device::create(localDevice, "i-score");
+    m_localDevice = OSSIA::Device::create(localDevice, "i-score");
 
     setupOSSIACallbacks();
 
@@ -152,7 +151,7 @@ bool OSSIAApplicationPlugin::handleStartup()
 
 void OSSIAApplicationPlugin::on_newDocument(iscore::Document* doc)
 {
-    //doc->model().addPluginModel(new OSSIA::LocalTree::DocumentPlugin{m_localDevice,*doc, &doc->model()});
+    //doc->model().addPluginModel(new Ossia::LocalTree::DocumentPlugin{m_localDevice,*doc, &doc->model()});
     doc->model().addPluginModel(new RecreateOnPlay::DocumentPlugin{*doc, &doc->model()});
 }
 

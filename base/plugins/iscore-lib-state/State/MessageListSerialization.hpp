@@ -13,10 +13,10 @@ inline constexpr const char * messagelist() { return "application/x-iscore-messa
 }
 
 template<>
-struct Visitor<Reader<Mime<iscore::MessageList>>> : public MimeDataReader
+struct Visitor<Reader<Mime<State::MessageList>>> : public MimeDataReader
 {
         using MimeDataReader::MimeDataReader;
-        void serialize(const iscore::MessageList& lst) const
+        void serialize(const State::MessageList& lst) const
         {
             m_mime.setData(
                         iscore::mime::messagelist(),
@@ -25,12 +25,12 @@ struct Visitor<Reader<Mime<iscore::MessageList>>> : public MimeDataReader
 };
 
 template<>
-struct Visitor<Writer<Mime<iscore::MessageList>>> : public MimeDataWriter
+struct Visitor<Writer<Mime<State::MessageList>>> : public MimeDataWriter
 {
         using MimeDataWriter::MimeDataWriter;
         auto deserialize()
         {
-            iscore::MessageList ml;
+            State::MessageList ml;
             fromJsonArray(
                         QJsonDocument::fromJson(m_mime.data(iscore::mime::messagelist())).array(),
                         ml);

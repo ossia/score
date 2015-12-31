@@ -3,7 +3,7 @@
 class QString;
 template <class Key, class T> class QMap;
 
-namespace iscore {
+namespace Device {
 enum class IOType : int { Invalid, In, Out, InOut };
 
 ISCORE_LIB_DEVICE_EXPORT const QMap<IOType, QString>& IOTypeStringMap();

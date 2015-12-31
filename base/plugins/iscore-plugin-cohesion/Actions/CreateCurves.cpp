@@ -40,18 +40,18 @@ void CreateCurves(
     // First get the addresses
     auto& device_explorer = deviceExplorerFromContext(doc);
 
-    std::vector<iscore::FullAddressSettings> addresses;
+    std::vector<Device::FullAddressSettings> addresses;
     for(const auto& index : device_explorer.selectedIndexes())
     {
         const auto& node = device_explorer.nodeFromModelIndex(index);
-        if(node.is<iscore::AddressSettings>())
+        if(node.is<Device::AddressSettings>())
         {
-            const iscore::AddressSettings& addr = node.get<iscore::AddressSettings>();
+            const Device::AddressSettings& addr = node.get<Device::AddressSettings>();
             if(addr.value.val.isNumeric())
             {
-                iscore::FullAddressSettings as;
-                static_cast<iscore::AddressSettingsCommon&>(as) = addr;
-                as.address = iscore::address(node);
+                Device::FullAddressSettings as;
+                static_cast<Device::AddressSettingsCommon&>(as) = addr;
+                as.address = Device::address(node);
                 addresses.push_back(std::move(as));
             }
         }
@@ -76,7 +76,7 @@ void CreateCurves(
         const StateModel& ss = startState(*constraint, *scenar);
         const auto& es = endState(*constraint, *scenar);
 
-        std::vector<iscore::Address> existing_automations;
+        std::vector<State::Address> existing_automations;
         for(const auto& proc : constraint->processes)
         {
             if(auto autom = dynamic_cast<const Automation::ProcessModel*>(&proc))
@@ -84,7 +84,7 @@ void CreateCurves(
         }
 
         int i = 0;
-        for(const iscore::FullAddressSettings& as : addresses)
+        for(const Device::FullAddressSettings& as : addresses)
         {
             // First, we skip the curve if there is already a curve
             // with this address in the constraint.
@@ -94,37 +94,37 @@ void CreateCurves(
             // Then we set-up all the necessary values
             // min / max
             double min = as.domain.min.val.isNumeric()
-                    ? iscore::convert::value<double>(as.domain.min)
+                    ? State::convert::value<double>(as.domain.min)
                     : 0;
 
             double max = as.domain.max.val.isNumeric()
-                    ? iscore::convert::value<double>(as.domain.max)
+                    ? State::convert::value<double>(as.domain.max)
                     : 1;
 
             // start value / end value
             double start = std::min(min, max);
             double end = std::max(min, max);
-            MessageNode* s_node = iscore::try_getNodeFromString(
+            MessageNode* s_node = Device::try_getNodeFromString(
                         ss.messages().rootNode(),
                         stringList(as.address));
             if(s_node)
             {
                 if(auto val = s_node->value())
                 {
-                    start = iscore::convert::value<double>(*val);
+                    start = State::convert::value<double>(*val);
                     min = std::min(start, min);
                     max = std::max(start, max);
                 }
             }
 
-            MessageNode* e_node = iscore::try_getNodeFromString(
+            MessageNode* e_node = Device::try_getNodeFromString(
                         es.messages().rootNode(),
                         stringList(as.address));
             if(e_node)
             {
                 if(auto val = e_node->value())
                 {
-                    end = iscore::convert::value<double>(*val);
+                    end = State::convert::value<double>(*val);
                     min = std::min(end, min);
                     max = std::max(end, max);
                 }

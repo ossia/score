@@ -18,7 +18,7 @@ static void AddProcessBeforeState(
         return;
 
 
-    auto prev_proc_fun = [&] (const iscore::MessageList& ml) {
+    auto prev_proc_fun = [&] (const State::MessageList& ml) {
         // TODO have some collapsing between all the processes of a state
         // NOTE how to prevent these states from being played
         // twice ? mark them ?
@@ -52,7 +52,7 @@ static void AddProcessAfterState(StateModel& statemodel, const Process::ProcessM
     if(!state)
         return;
 
-    auto next_proc_fun = [&] (const iscore::MessageList& ml) {
+    auto next_proc_fun = [&] (const State::MessageList& ml) {
         auto& messages = statemodel.messages();
 
         auto node = messages.rootNode();

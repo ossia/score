@@ -21,7 +21,7 @@ BoolValueWidget::BoolValueWidget(bool value, QWidget *parent)
     this->setLayout(lay);
 }
 
-iscore::Value BoolValueWidget::value() const
+State::Value BoolValueWidget::value() const
 {
-    return iscore::Value{bool(m_value->currentIndex())};
+    return State::Value{bool(m_value->currentIndex())};
 }

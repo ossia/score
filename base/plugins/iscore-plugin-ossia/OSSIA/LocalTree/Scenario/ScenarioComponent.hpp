@@ -5,15 +5,15 @@
 #include <OSSIA/LocalTree/Scenario/StateComponent.hpp>
 #include <Scenario/Document/Components/ScenarioComponent.hpp>
 
-namespace OSSIA
+namespace Ossia
 {
 namespace LocalTree
 {
 class ScenarioComponent final : public ProcessComponent
 {
-       COMPONENT_METADATA(OSSIA::LocalTree::ScenarioComponent)
+       COMPONENT_METADATA(Ossia::LocalTree::ScenarioComponent)
 
-        using system_t = OSSIA::LocalTree::DocumentPlugin;
+        using system_t = Ossia::LocalTree::DocumentPlugin;
         using hierarchy_t =
            ScenarioComponentHierarchyManager<
                ScenarioComponent,

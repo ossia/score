@@ -85,7 +85,7 @@ QVariant valueColumnData(const MessageItemModel::node_type& node, int role)
     {
         const auto& val = node.value();
         if(val)
-            return iscore::convert::value<QVariant>(*val);
+            return State::convert::value<QVariant>(*val);
         return QVariant{};
     }
 
@@ -204,7 +204,7 @@ bool MessageItemModel::dropMimeData(
         return false;
     }
 
-    iscore::MessageList ml;
+    State::MessageList ml;
     fromJsonArray(
                 QJsonDocument::fromJson(data->data(iscore::mime::messagelist())).array(),
                 ml);
@@ -269,14 +269,14 @@ bool MessageItemModel::setData(
     {
         if(col == Column::Value)
         {
-            auto value = iscore::convert::toValue(value_received);
+            auto value = State::convert::toValue(value_received);
             auto current_val = n.value();
             if(current_val)
             {
-                iscore::convert::convert(*current_val, value);
+                State::convert::convert(*current_val, value);
             }
             auto cmd = new AddMessagesToState{*this,
-                                     iscore::MessageList{{address(n), value}}};
+                                     State::MessageList{{address(n), value}}};
 
             CommandDispatcher<> disp(m_stack);
             disp.submitCommand(cmd);

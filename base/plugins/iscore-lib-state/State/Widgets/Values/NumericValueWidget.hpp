@@ -21,9 +21,9 @@ class ISCORE_LIB_STATE_EXPORT  NumericValueWidget : public ValueWidget
             this->setLayout(lay);
         }
 
-        iscore::Value value() const override
+        State::Value value() const override
         {
-            return iscore::Value{m_valueSBox->value()};
+            return State::Value{m_valueSBox->value()};
         }
 
     private:

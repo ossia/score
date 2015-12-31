@@ -16,7 +16,7 @@
 
 AddMessagesToState::AddMessagesToState(
         Path<MessageItemModel> &&device_tree,
-        const iscore::MessageList& messages):
+        const State::MessageList& messages):
     m_path{device_tree}
 {
     auto model = m_path.try_find();

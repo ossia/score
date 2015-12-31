@@ -154,7 +154,7 @@ std::shared_ptr<OSSIA::StateElement> ProcessExecutor::state(
             auto it_pair = mapping.insert(
                                std::make_pair(
                                    elt.first,
-                                   iscore::convert::value<double>(elt.second.value)
+                                   State::convert::value<double>(elt.second.value)
                                    )
                                );
 
@@ -169,7 +169,7 @@ std::shared_ptr<OSSIA::StateElement> ProcessExecutor::state(
                     auto val = (*dev_it)->refresh(addr);
                     if(val)
                     {
-                       it_pair.first->second = iscore::convert::value<double>(*val);
+                       it_pair.first->second = State::convert::value<double>(*val);
                     }
                 }
             }
@@ -258,10 +258,10 @@ ProcessModel::ProcessModel(
         ar1->setSpaceMapping({{syms[0], space_vars[0].symbol()},
                               {syms[2], space_vars[1].symbol()}});
 
-        iscore::FullAddressSettings x0, y0, r;
-        x0.value = iscore::Value::fromVariant(200);
-        y0.value = iscore::Value::fromVariant(200);
-        r.value = iscore::Value::fromVariant(100);
+        Device::FullAddressSettings x0, y0, r;
+        x0.value = State::Value::fromVariant(200);
+        y0.value = State::Value::fromVariant(200);
+        r.value = State::Value::fromVariant(100);
         ar1->setParameterMapping({
                         {syms[1].get_name().c_str(), {syms[1], x0}},
                         {syms[3].get_name().c_str(), {syms[3], y0}},
@@ -281,8 +281,8 @@ ProcessModel::ProcessModel(
                               {syms[1], space_vars[1].symbol()}});
 
 
-        iscore::FullAddressSettings c;
-        c.value = iscore::Value::fromVariant(300);
+        Device::FullAddressSettings c;
+        c.value = State::Value::fromVariant(300);
 
         ar2->setParameterMapping({
                         {syms[2].get_name().c_str(), {syms[2], c}}
@@ -433,18 +433,18 @@ ProcessLocalTreeFactory::key_impl() const
 
 bool ProcessLocalTreeFactory::matches(
         Process::ProcessModel& p,
-        const OSSIA::LocalTree::DocumentPlugin&,
+        const Ossia::LocalTree::DocumentPlugin&,
         const iscore::DocumentContext&) const
 {
     return dynamic_cast<Space::ProcessModel*>(&p);
 }
 
 
-OSSIA::LocalTree::ProcessComponent* ProcessLocalTreeFactory::make(
+Ossia::LocalTree::ProcessComponent* ProcessLocalTreeFactory::make(
         const Id<iscore::Component>& id,
         OSSIA::Node& parent,
         Process::ProcessModel& proc,
-        const OSSIA::LocalTree::DocumentPlugin& doc,
+        const Ossia::LocalTree::DocumentPlugin& doc,
         const iscore::DocumentContext& ctx,
         QObject* paren_objt) const
 {
@@ -465,7 +465,7 @@ ProcessLocalTree::ProcessLocalTree(
     m_areas{add_node(*node(), "areas")},
     m_computations{add_node(*node(), "computations")}
 {
-    OSSIA::LocalTree::make_metadata_node(process.metadata, *node(), m_properties, this);
+    Ossia::LocalTree::make_metadata_node(process.metadata, *node(), m_properties, this);
     for(auto& area : process.areas)
     {
 

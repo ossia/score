@@ -3,7 +3,7 @@
 class QString;
 template <class Key, class T> class QMap;
 
-namespace iscore {
+namespace Device {
 enum class ClipMode : int { Clip, Fold, Free, Wrap };
 
 ISCORE_LIB_DEVICE_EXPORT const QMap<ClipMode, QString> &ClipModeStringMap();

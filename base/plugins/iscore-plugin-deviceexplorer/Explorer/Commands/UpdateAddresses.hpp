@@ -23,7 +23,7 @@ namespace DeviceExplorer
             ISCORE_COMMAND_DECL(DeviceExplorerCommandFactoryName(), UpdateAddressesValues, "Update addresses values")
             public:
                 UpdateAddressesValues(Path<DeviceExplorerModel>&& device_tree,
-                              const QList<QPair<const iscore::Node*, iscore::Value>>& nodes);
+                              const QList<QPair<const Device::Node*, State::Value>>& nodes);
 
                 void undo() const override;
                 void redo() const override;
@@ -37,10 +37,10 @@ namespace DeviceExplorer
 
                 QList<
                     QPair<
-                        iscore::NodePath,
+                        Device::NodePath,
                         QPair< // First is old, second is new
-                            iscore::Value,
-                            iscore::Value
+                            State::Value,
+                            State::Value
                         >
                     >
                 > m_data;

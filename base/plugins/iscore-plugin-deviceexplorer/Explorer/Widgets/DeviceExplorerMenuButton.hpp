@@ -3,7 +3,7 @@
 
 class DeviceExplorerModel;
 
-namespace iscore{
+namespace State{
 struct Address;
 }
 class DeviceExplorerMenuButton final : public QWidget
@@ -13,5 +13,5 @@ class DeviceExplorerMenuButton final : public QWidget
         DeviceExplorerMenuButton(DeviceExplorerModel* model);
 
     signals:
-        void addressChosen(const iscore::Address&);
+        void addressChosen(const State::Address&);
 };

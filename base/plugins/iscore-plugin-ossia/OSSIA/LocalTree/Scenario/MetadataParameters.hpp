@@ -10,7 +10,7 @@ class Node;
 class QObject;
 class BaseProperty;
 
-namespace OSSIA
+namespace Ossia
 {
 namespace LocalTree
 {

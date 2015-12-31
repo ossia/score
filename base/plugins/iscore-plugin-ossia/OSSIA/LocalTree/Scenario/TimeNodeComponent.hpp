@@ -6,7 +6,7 @@
 #include <OSSIA/LocalTree/NameProperty.hpp>
 
 
-namespace OSSIA
+namespace Ossia
 {
 namespace LocalTree
 {
@@ -14,7 +14,7 @@ class TimeNodeComponent final :
         public iscore::Component
 {
     public:
-        using system_t = OSSIA::LocalTree::DocumentPlugin;
+        using system_t = Ossia::LocalTree::DocumentPlugin;
 
         TimeNodeComponent(
                 OSSIA::Node& parent,

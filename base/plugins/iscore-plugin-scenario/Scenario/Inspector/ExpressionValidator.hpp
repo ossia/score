@@ -7,26 +7,28 @@ template<typename T>
 class ExpressionValidator final : public QValidator
 {
     public:
-    State validate(QString& str, int&) const override
+    QValidator::State validate(QString& str, int&) const override
     {
         if(str.isEmpty())
         {
             // Remove the condition
             m_currentExp = T{};
-            return State::Acceptable;
+            return QValidator::State::Acceptable;
         }
         else
         {
-            m_currentExp = iscore::parseExpression(str);
-            return m_currentExp ? State::Acceptable : State::Intermediate;
+            m_currentExp = ::State::parseExpression(str);
+            return m_currentExp
+                    ? QValidator::State::Acceptable
+                    : QValidator::State::Intermediate;
         }
     }
 
-    boost::optional<iscore::Expression> get() const
+    boost::optional<::State::Expression> get() const
     {
         return m_currentExp;
     }
 
     private:
-    mutable boost::optional<iscore::Expression> m_currentExp;
+    mutable boost::optional<::State::Expression> m_currentExp;
 };

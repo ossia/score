@@ -51,6 +51,6 @@ class RecordManager final : public QObject
         std::chrono::steady_clock::time_point start_time_pt;
 
         std::unordered_map<
-            iscore::Address,
+            State::Address,
             RecordData> records;
 };

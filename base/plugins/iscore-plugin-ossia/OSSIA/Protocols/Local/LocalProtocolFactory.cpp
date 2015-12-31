@@ -24,17 +24,17 @@ const ProtocolFactoryKey& LocalProtocolFactory::key_impl() const
 }
 
 DeviceInterface*LocalProtocolFactory::makeDevice(
-        const iscore::DeviceSettings& settings,
+        const Device::DeviceSettings& settings,
         const iscore::DocumentContext& ctx)
 {
     auto& app_plug = ctx.app.components.applicationPlugin<OSSIAApplicationPlugin>();
     return new LocalDevice{ctx, app_plug.localDevice(), settings};
 }
 
-const iscore::DeviceSettings& LocalProtocolFactory::defaultSettings() const
+const Device::DeviceSettings& LocalProtocolFactory::defaultSettings() const
 {
-    static const iscore::DeviceSettings settings = [&] () {
-        iscore::DeviceSettings s;
+    static const Device::DeviceSettings settings = [&] () {
+        Device::DeviceSettings s;
         s.protocol = key_impl(); // Todo check for un-set protocol.
         s.name = "i-score";
         LocalSpecificSettings specif;
@@ -59,7 +59,7 @@ void LocalProtocolFactory::serializeProtocolSpecificSettings(const QVariant& dat
     serializeProtocolSpecificSettings_T<LocalSpecificSettings>(data, visitor);
 }
 
-bool LocalProtocolFactory::checkCompatibility(const iscore::DeviceSettings& a, const iscore::DeviceSettings& b) const
+bool LocalProtocolFactory::checkCompatibility(const Device::DeviceSettings& a, const Device::DeviceSettings& b) const
 {
     return a.name != b.name;
 }

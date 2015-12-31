@@ -44,7 +44,7 @@ template<typename GetProperty>
 struct GetPropertyWrapper : public BaseProperty
 {
         GetProperty property;
-        using converter_t = OSSIA::convert::MatchingType<typename GetProperty::value_type>;
+        using converter_t = Ossia::convert::MatchingType<typename GetProperty::value_type>;
 
         GetPropertyWrapper(
                 const std::shared_ptr<OSSIA::Node>& param_node,
@@ -58,7 +58,7 @@ struct GetPropertyWrapper : public BaseProperty
             QObject::connect(&property.object(), property.changed_property(),
                              context, [=] {
                 auto newVal = converter_t::convert(property.get());
-                if(newVal != OSSIA::convert::ToValue(addr->getValue()))
+                if(newVal != Ossia::convert::ToValue(addr->getValue()))
                     addr->pushValue(iscore::convert::toOSSIAValue(newVal));
             },
             Qt::QueuedConnection);
@@ -87,7 +87,7 @@ auto add_getProperty(
         QObject* context)
 {
     std::shared_ptr<OSSIA::Node> node = *n.emplaceAndNotify(n.children().end(), name);
-    auto addr = node->createAddress(OSSIA::convert::MatchingType<T>::val);
+    auto addr = node->createAddress(Ossia::convert::MatchingType<T>::val);
     addr->setAccessMode(OSSIA::Address::AccessMode::GET);
 
     return make_getProperty(node, addr, QtGetProperty<T, Object, PropGet, PropChanged>{*obj, get, chgd}, context);
