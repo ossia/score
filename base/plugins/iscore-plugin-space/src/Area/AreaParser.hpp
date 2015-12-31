@@ -1,6 +1,9 @@
 #pragma once
 #include <Space/area.hpp>
 #include <QStringList>
+
+namespace Space
+{
 class AreaParser
 {
     public:
@@ -22,3 +25,4 @@ class AreaParser
 };
 
 // TODO AreaValidator for QLineEdit..
+}

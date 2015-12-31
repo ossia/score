@@ -1,5 +1,8 @@
 #pragma once
 #include "src/Area/AreaPresenter.hpp"
+
+namespace Space
+{
 class GenericAreaView;
 class GenericAreaModel;
 
@@ -18,3 +21,4 @@ class GenericAreaPresenter : public AreaPresenter
         void on_areaChanged(GiNaC::exmap) override;
 
 };
+}

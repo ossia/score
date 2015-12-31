@@ -5,13 +5,15 @@
 #include "src/Space/SpaceModel.hpp"
 
 
-const AreaFactoryKey&PointerAreaModel::static_factoryKey()
+namespace Space
+{
+const AreaFactoryKey& PointerAreaModel::static_factoryKey()
 {
     static const AreaFactoryKey name{"Pointer"};
     return name;
 }
 
-const AreaFactoryKey&PointerAreaModel::factoryKey() const
+const AreaFactoryKey& PointerAreaModel::factoryKey() const
 {
     return static_factoryKey();
 }
@@ -39,4 +41,5 @@ AreaPresenter *PointerAreaModel::makePresenter(QGraphicsItem * parentitem, QObje
 {
     auto pres = new PointerAreaPresenter{new PointerAreaView{parentitem}, *this, obj};
     return pres;
+}
 }

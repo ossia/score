@@ -3,8 +3,12 @@
 #include <iscore/tools/SettableIdentifier.hpp>
 #include <ginac/ex.h>
 class QGraphicsItem;
+
+namespace Space
+{
 class AreaModel;
 class GenericAreaView;
+
 class AreaPresenter : public NamedObject
 {
     public:
@@ -33,3 +37,4 @@ class AreaPresenter : public NamedObject
         QGraphicsItem* m_view{};
 
 };
+}

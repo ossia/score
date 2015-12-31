@@ -2,6 +2,8 @@
 #include <QGraphicsItem>
 #include <QPainterPath>
 
+namespace Space
+{
 class PointerAreaView : public QGraphicsItem
 {
     public:
@@ -19,3 +21,4 @@ class PointerAreaView : public QGraphicsItem
     private:
         QPainterPath m_path;
 };
+}

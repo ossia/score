@@ -9,6 +9,9 @@ Q_DECLARE_METATYPE(GiNaC::exmap)
 class SpaceModel;
 class QGraphicsItem;
 
+
+namespace Space
+{
 // in the end, isn't an area the same thing as a domain???
 // Maps addresses / values to the parameter of an area
 class AreaPresenter;
@@ -66,5 +69,6 @@ class AreaModel : public IdentifiedObject<AreaModel>
         ParameterMap m_parameterMap; // General values of the model.
         GiNaC::exmap m_currentParameterMap; // Current values used for display / execution.
 };
+}
 
-Q_DECLARE_METATYPE(Id<AreaModel>)
+Q_DECLARE_METATYPE(Id<Space::AreaModel>)

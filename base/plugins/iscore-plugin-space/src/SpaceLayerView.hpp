@@ -1,6 +1,8 @@
 #pragma once
 #include <Process/LayerView.hpp>
 
+namespace Space
+{
 class SpaceLayerView : public Process::LayerView
 {
         Q_OBJECT
@@ -18,3 +20,4 @@ class SpaceLayerView : public Process::LayerView
         void mouseDoubleClickEvent(QGraphicsSceneMouseEvent *event) override;
         void contextMenuEvent(QGraphicsSceneContextMenuEvent*) override;
 };
+}

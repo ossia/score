@@ -1,5 +1,8 @@
 #include "SpaceModel.hpp"
 #include <algorithm>
+
+namespace Space
+{
 SpaceModel::SpaceModel(
         const Id<SpaceModel> &id,
         QObject *parent):
@@ -70,4 +73,5 @@ void SpaceModel::rebuildSpace()
 
     m_space = std::make_unique<spacelib::euclidean_space>(std::move(syms));
     emit spaceChanged();
+}
 }

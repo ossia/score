@@ -4,7 +4,9 @@
 namespace iscore {
     struct DocumentContext;
 }
-namespace Space { class ProcessModel; }
+namespace Space
+{
+class ProcessModel;
 // The widget that opens when a space process is clicked
 class SpaceGuiWindow : public QWidget
 {
@@ -18,3 +20,4 @@ class SpaceGuiWindow : public QWidget
 
     private:
 };
+}

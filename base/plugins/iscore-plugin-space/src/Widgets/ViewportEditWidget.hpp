@@ -2,6 +2,8 @@
 #include "src/Space/SpaceModel.hpp"
 #include "src/Space/ViewportModel.hpp"
 #include <QtWidgets>
+namespace Space
+{
 class ViewportEditWidget : public QWidget
 {
     public:
@@ -24,3 +26,4 @@ class ViewportEditWidget : public QWidget
         QPushButton* m_remove{};
 
 };
+}

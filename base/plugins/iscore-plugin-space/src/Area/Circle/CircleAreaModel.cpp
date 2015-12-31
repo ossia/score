@@ -4,6 +4,8 @@
 #include "src/Area/AreaParser.hpp"
 #include "src/Space/SpaceModel.hpp"
 
+namespace Space
+{
 
 const AreaFactoryKey&CircleAreaModel::static_factoryKey()
 {
@@ -64,4 +66,6 @@ AreaPresenter *CircleAreaModel::makePresenter(QGraphicsItem * parentitem, QObjec
 {
     auto pres = new CircleAreaPresenter{new CircleAreaView{parentitem}, *this, obj};
     return pres;
+}
+
 }

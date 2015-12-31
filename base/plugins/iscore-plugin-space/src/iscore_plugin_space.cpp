@@ -9,6 +9,7 @@
 #include "Area/Pointer/PointerAreaFactory.hpp"
 #include "Area/Generic/GenericAreaFactory.hpp"
 #include <src/SpaceProcess.hpp>
+#include <src/LocalTree/AreaComponent.hpp>
 #include <iscore/plugins/customfactory/FactoryFamily.hpp>
 #include <iscore/plugins/customfactory/FactorySetup.hpp>
 
@@ -38,14 +39,16 @@ std::vector<std::unique_ptr<iscore::FactoryInterfaceBase>> iscore_plugin_space::
     TL<
         FW<Process::ProcessFactory,
             Space::ProcessFactory>,
-        FW<AreaFactory,
-            GenericAreaFactory,
-            CircleAreaFactory,
-            PointerAreaFactory>,
+        FW<Space::AreaFactory,
+            Space::GenericAreaFactory,
+            Space::CircleAreaFactory,
+            Space::PointerAreaFactory>,
         FW<Ossia::LocalTree::ProcessComponentFactory,
-            Space::LocalTree::ProcessLocalTreeFactory>
-            >//,
-        //FW<Space::LocalTree::AreaComponentFactory>
+            Space::LocalTree::ProcessLocalTreeFactory>,
+        FW<Space::LocalTree::AreaComponentFactory,
+            Space::LocalTree::GenericAreaComponentFactory // Shall be last in the vector so must be first here, because of the recursion order of C++ templates in instantiate_factories
+            >
+      >
      >(ctx, key);
 }
 
@@ -53,6 +56,6 @@ std::vector<std::unique_ptr<iscore::FactoryInterfaceBase>> iscore_plugin_space::
 std::vector<std::unique_ptr<iscore::FactoryListInterface>> iscore_plugin_space::factoryFamilies()
 {
     return make_ptr_vector<iscore::FactoryListInterface,
-            SingletonAreaFactoryList,
+            Space::SingletonAreaFactoryList,
             Space::LocalTree::AreaComponentFactoryList>();
 }

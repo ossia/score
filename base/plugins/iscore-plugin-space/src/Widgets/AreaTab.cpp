@@ -3,6 +3,8 @@
 #include "src/SpaceProcess.hpp"
 #include <iscore/widgets/MarginLess.hpp>
 
+namespace Space
+{
 AreaTab::AreaTab(
         const iscore::DocumentContext& ctx,
         const Space::ProcessModel &space,
@@ -65,4 +67,5 @@ void AreaTab::on_areaRemoved(const AreaModel&)
 {
     //OPTIMIZEME
     rebuildList();
+}
 }

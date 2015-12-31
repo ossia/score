@@ -2,6 +2,9 @@
 #include <QPainter>
 #include <QDebug>
 #define SIDE 4
+
+namespace Space
+{
 PointerAreaView::PointerAreaView(QGraphicsItem *parent):
     QGraphicsItem{parent}
 {
@@ -24,4 +27,5 @@ void PointerAreaView::update(double x0, double y0)
 {
     setPos({x0, y0});
     QGraphicsItem::update();
+}
 }

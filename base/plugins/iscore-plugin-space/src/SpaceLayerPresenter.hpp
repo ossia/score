@@ -12,6 +12,8 @@ class LayerModel;
 class LayerView;
 }
 
+namespace Space
+{
 class SpaceLayerView;
 class SpaceLayerPresenter :
         public Process::LayerPresenter,
@@ -55,3 +57,4 @@ class SpaceLayerPresenter :
     public:
         void fillContextMenu(QMenu*, const QPoint& pos, const QPointF& scenepos) const override;
 };
+}

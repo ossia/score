@@ -12,6 +12,9 @@
 #include <iscore/document/DocumentInterface.hpp>
 #include <iscore/document/DocumentContext.hpp>
 #include <src/Area/SingletonAreaFactoryList.hpp>
+
+namespace Space
+{
 AreaWidget::AreaWidget(
         const iscore::DocumentContext& ctx,
         const Space::ProcessModel& space,
@@ -276,4 +279,5 @@ void AreaWidget::cleanup()
         item->widget()->deleteLater();
         delete item;
     }
+}
 }

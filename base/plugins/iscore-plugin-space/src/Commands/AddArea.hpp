@@ -4,9 +4,12 @@
 #include <Device/Address/AddressSettings.hpp>
 #include <src/Commands/SpaceCommandFactory.hpp>
 #include <src/Area/AreaFactoryKey.hpp>
-namespace Space { class ProcessModel; }
+
+namespace Space
+{
 class AreaModel;
 class DimensionModel;
+class ProcessModel;
 class AddArea : public iscore::SerializableCommand
 {
         ISCORE_COMMAND_DECL(SpaceCommandFactoryName(), AddArea, "AddArea")
@@ -35,3 +38,4 @@ class AddArea : public iscore::SerializableCommand
         QMap<Id<DimensionModel>, QString> m_dimensionToVarMap;
         QMap<QString, Device::FullAddressSettings> m_symbolToAddressMap;
 };
+}

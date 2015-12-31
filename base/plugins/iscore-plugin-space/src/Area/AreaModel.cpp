@@ -4,6 +4,9 @@
 
 #include <Device/Node/DeviceNode.hpp>
 #include <Explorer/DocumentPlugin/DeviceDocumentPlugin.hpp>
+
+namespace Space
+{
 AreaModel::AreaModel(
         std::unique_ptr<spacelib::area>&& area,
         const Space::AreaContext& space,
@@ -80,4 +83,4 @@ QString AreaModel::toString() const
     s << static_cast<const GiNaC::ex&>(m_area->rel());
     return QString::fromStdString(s.str());
 }
-
+}

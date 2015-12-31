@@ -3,6 +3,9 @@
 #include "PointerAreaPresenter.hpp"
 #include "PointerAreaView.hpp"
 
+
+namespace Space
+{
 int PointerAreaFactory::type() const
 {
     return PointerAreaModel::static_type();
@@ -47,4 +50,5 @@ AreaPresenter*PointerAreaFactory::makePresenter(
 QGraphicsItem* PointerAreaFactory::makeView(QGraphicsItem* parent) const
 {
     return new PointerAreaView{parent};
+}
 }

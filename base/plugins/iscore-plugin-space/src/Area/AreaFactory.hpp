@@ -6,6 +6,9 @@
 #include <QObject>
 class QGraphicsItem;
 class SpaceModel;
+
+namespace Space
+{
 class AreaModel;
 class AreaPresenter;
 
@@ -42,3 +45,4 @@ class AreaFactory : public iscore::GenericFactoryInterface<AreaFactoryKey>
 
         // Widget ?
 };
+}
