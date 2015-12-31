@@ -53,26 +53,6 @@ void Visitor<Writer<DataStream>>::writeTo(Process::ProcessModel& process)
     // Delimiter checked on createProcess
 }
 
-template<>
-ISCORE_LIB_PROCESS_EXPORT Process::ProcessModel* Process::createProcess(
-        const ProcessList& pl,
-        Deserializer<DataStream>& deserializer,
-        QObject* parent)
-{
-    ProcessFactoryKey processName;
-    deserializer.m_stream >> processName;
-
-    auto model = pl.list().get(processName)
-                 ->loadModel(deserializer.toVariant(),
-                             parent);
-    // Calls the concrete process's factory
-    // which in turn calls its deserialization ctor
-    // which in turn calls writeTo(ProcessModel&)
-
-    deserializer.checkDelimiter();
-    return model;
-}
-
 
 
 template<>
@@ -97,23 +77,6 @@ void Visitor<Writer<JSONObject>>::writeTo(Process::ProcessModel& process)
     process.m_duration = fromJsonValue<TimeValue>(m_obj["Duration"]);
     process.metadata = fromJsonObject<ModelMetadata>(m_obj["Metadata"].toObject());
 }
-
-template<>
-ISCORE_LIB_PROCESS_EXPORT Process::ProcessModel* Process::createProcess(
-        const ProcessList& pl,
-        Deserializer<JSONObject>& deserializer,
-        QObject* parent)
-{
-    auto model = pl.list().get(
-                     fromJsonValue<ProcessFactoryKey>(deserializer.m_obj["ProcessName"]))
-                        ->loadModel(
-                            deserializer.toVariant(),
-                            parent);
-
-    return model;
-}
-
-
 
 
 
@@ -149,26 +112,6 @@ void Visitor<Writer<DataStream>>::writeTo(Process::StateProcess&)
     // Delimiter checked on createProcess
 }
 
-template<>
-ISCORE_LIB_PROCESS_EXPORT Process::StateProcess* Process::createStateProcess(
-        const Process::StateProcessList& pl,
-        Deserializer<DataStream>& deserializer,
-        QObject* parent)
-{
-    StateProcessFactoryKey processName;
-    deserializer.m_stream >> processName;
-
-    auto model = pl.list().get(processName)
-                 ->load(deserializer.toVariant(),
-                             parent);
-    // Calls the concrete process's factory
-    // which in turn calls its deserialization ctor
-    // which in turn calls writeTo(ProcessModel&)
-
-    deserializer.checkDelimiter();
-    return model;
-}
-
 
 
 template<>
@@ -190,8 +133,70 @@ void Visitor<Writer<JSONObject>>::writeTo(Process::StateProcess& process)
 }
 
 
+
+
+
+
+namespace Process
+{
 template<>
-ISCORE_LIB_PROCESS_EXPORT Process::StateProcess* Process::createStateProcess(
+ISCORE_LIB_PROCESS_EXPORT Process::ProcessModel* createProcess(
+        const ProcessList& pl,
+        Deserializer<DataStream>& deserializer,
+        QObject* parent)
+{
+    ProcessFactoryKey processName;
+    deserializer.m_stream >> processName;
+
+    auto model = pl.list().get(processName)
+                 ->loadModel(deserializer.toVariant(),
+                             parent);
+    // Calls the concrete process's factory
+    // which in turn calls its deserialization ctor
+    // which in turn calls writeTo(ProcessModel&)
+
+    deserializer.checkDelimiter();
+    return model;
+}
+
+template<>
+ISCORE_LIB_PROCESS_EXPORT Process::ProcessModel* createProcess(
+        const ProcessList& pl,
+        Deserializer<JSONObject>& deserializer,
+        QObject* parent)
+{
+    auto model = pl.list().get(
+                     fromJsonValue<ProcessFactoryKey>(deserializer.m_obj["ProcessName"]))
+                        ->loadModel(
+                            deserializer.toVariant(),
+                            parent);
+
+    return model;
+}
+
+
+template<>
+ISCORE_LIB_PROCESS_EXPORT Process::StateProcess* createStateProcess(
+        const Process::StateProcessList& pl,
+        Deserializer<DataStream>& deserializer,
+        QObject* parent)
+{
+    StateProcessFactoryKey processName;
+    deserializer.m_stream >> processName;
+
+    auto model = pl.list().get(processName)
+                 ->load(deserializer.toVariant(),
+                             parent);
+    // Calls the concrete process's factory
+    // which in turn calls its deserialization ctor
+    // which in turn calls writeTo(ProcessModel&)
+
+    deserializer.checkDelimiter();
+    return model;
+}
+
+template<>
+ISCORE_LIB_PROCESS_EXPORT Process::StateProcess* createStateProcess(
         const StateProcessList& pl,
         Deserializer<JSONObject>& deserializer,
         QObject* parent)
@@ -206,4 +211,7 @@ ISCORE_LIB_PROCESS_EXPORT Process::StateProcess* Process::createStateProcess(
 }
 
 // TODO --IMPORTANT-- The createStuff methods ought to go in the ProcessList / StateProcessList.
+
+
+}
 

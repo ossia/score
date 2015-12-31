@@ -8,6 +8,10 @@ if(NOT GINAC_FOUND)
     return()
 endif()
 
+if(NOT TARGET iscore_plugin_ossia)
+  return()
+endif()
+
 file(GLOB_RECURSE HDRS
     "${CMAKE_CURRENT_SOURCE_DIR}/*.hpp"
 )

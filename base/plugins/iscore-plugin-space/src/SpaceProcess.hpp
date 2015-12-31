@@ -222,8 +222,37 @@ using AreaComponentFactoryList =
             Space::LocalTree::AreaComponent,
             Space::LocalTree::AreaComponentFactory>;
 
-class GenericAreaComponentFactory : public AreaComponentFactory
+class GenericAreaComponent final : public AreaComponent
 {
+        COMPONENT_METADATA(GenericAreaComponent)
+    public:
+        GenericAreaComponent(
+                const Id<iscore::Component>& cmp,
+                OSSIA::Node& parent_node,
+                AreaModel& proc,
+                const Ossia::LocalTree::DocumentPlugin& doc,
+                const iscore::DocumentContext& ctx,
+                QObject* paren_objt):
+            AreaComponent(parent_node, proc, cmp, "GenericAreaComponent", paren_objt)
+        {
+        }
+};
+
+class GenericAreaComponentFactory final
+        : public AreaComponentFactory
+{
+    private:
+        AreaComponent* make(
+                        const Id<iscore::Component>& cmp,
+                        OSSIA::Node& parent,
+                        AreaModel& proc,
+                        const Ossia::LocalTree::DocumentPlugin& doc,
+                        const iscore::DocumentContext& ctx,
+                        QObject* paren_objt) const
+        {
+            return new GenericAreaComponent{
+                cmp, parent, proc, doc, ctx, paren_objt};
+        }
 
 };
 }

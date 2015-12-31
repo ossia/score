@@ -15,7 +15,7 @@ static const QMap<ClipMode, QString> clipmodemap{
      {ClipMode::Wrap, QObject::tr("Wrap")},
     }
 };
-const QMap<ClipMode, QString> &Device::ClipModeStringMap()
+const QMap<ClipMode, QString> &ClipModeStringMap()
 {
     return clipmodemap;
 }
