@@ -18,10 +18,13 @@ class QObject;
 #include <iscore/tools/SettableIdentifier.hpp>
 #include <iscore_plugin_automation_export.h>
 
-class ISCORE_PLUGIN_AUTOMATION_EXPORT AutomationModel final : public Curve::CurveProcessModel
+
+namespace Automation
 {
-        ISCORE_SERIALIZE_FRIENDS(AutomationModel, DataStream)
-        ISCORE_SERIALIZE_FRIENDS(AutomationModel, JSONObject)
+class ISCORE_PLUGIN_AUTOMATION_EXPORT ProcessModel final : public Curve::CurveProcessModel
+{
+        ISCORE_SERIALIZE_FRIENDS(ProcessModel, DataStream)
+        ISCORE_SERIALIZE_FRIENDS(ProcessModel, JSONObject)
 
         Q_OBJECT
         Q_PROPERTY(iscore::Address address READ address WRITE setAddress NOTIFY addressChanged)
@@ -30,17 +33,17 @@ class ISCORE_PLUGIN_AUTOMATION_EXPORT AutomationModel final : public Curve::Curv
         Q_PROPERTY(double max READ max WRITE setMax NOTIFY maxChanged)
 
     public:
-        AutomationModel(const TimeValue& duration,
-                        const Id<ProcessModel>& id,
-                        QObject* parent);
-        ProcessModel* clone(const Id<ProcessModel>& newId,
-                                           QObject* newParent) const override;
+        ProcessModel(const TimeValue& duration,
+                     const Id<Process::ProcessModel>& id,
+                     QObject* parent);
+        Process::ProcessModel* clone(const Id<Process::ProcessModel>& newId,
+                            QObject* newParent) const override;
 
         template<typename Impl>
-        AutomationModel(Deserializer<Impl>& vis, QObject* parent) :
+        ProcessModel(Deserializer<Impl>& vis, QObject* parent) :
             CurveProcessModel{vis, parent},
-            m_startState{new AutomationState{*this, 0., this}},
-            m_endState{new AutomationState{*this, 1., this}}
+            m_startState{new State{*this, 0., this}},
+            m_endState{new State{*this, 1., this}}
         {
             vis.writeTo(*this);
         }
@@ -65,8 +68,8 @@ class ISCORE_PLUGIN_AUTOMATION_EXPORT AutomationModel final : public Curve::Curv
         void serialize(const VisitorVariant& vis) const override;
 
         /// States
-        AutomationState* startStateData() const override;
-        AutomationState* endStateData() const override;
+        State* startStateData() const override;
+        State* endStateData() const override;
 
         //// AutomationModel specifics ////
         iscore::Address address() const;
@@ -88,8 +91,8 @@ class ISCORE_PLUGIN_AUTOMATION_EXPORT AutomationModel final : public Curve::Curv
         void maxChanged(double arg);
 
     protected:
-        AutomationModel(const AutomationModel& source,
-                        const Id<ProcessModel>& id,
+        ProcessModel(const ProcessModel& source,
+                        const Id<Process::ProcessModel>& id,
                         QObject* parent);
         Process::LayerModel* cloneLayer_impl(
                 const Id<Process::LayerModel>& newId,
@@ -103,6 +106,7 @@ class ISCORE_PLUGIN_AUTOMATION_EXPORT AutomationModel final : public Curve::Curv
         double m_min{};
         double m_max{};
 
-        AutomationState* m_startState{};
-        AutomationState* m_endState{};
+        State* m_startState{};
+        State* m_endState{};
 };
+}

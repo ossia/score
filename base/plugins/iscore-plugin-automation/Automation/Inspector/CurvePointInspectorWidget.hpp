@@ -12,11 +12,14 @@ namespace Curve
 {
 class PointModel;
 }
-// TODO automation instead.
-class CurvePointInspectorWidget final : public InspectorWidgetBase
+
+
+namespace Automation
+{
+class PointInspectorWidget final : public InspectorWidgetBase
 {
     public:
-        explicit CurvePointInspectorWidget(
+        explicit PointInspectorWidget(
             const Curve::PointModel& model,
             const iscore::DocumentContext& context,
             QWidget* parent);
@@ -34,3 +37,5 @@ class CurvePointInspectorWidget final : public InspectorWidgetBase
 
         double m_Ymin;
 };
+
+}

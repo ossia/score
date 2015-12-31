@@ -24,8 +24,10 @@
 #include <iscore/tools/ModelPath.hpp>
 #include <iscore/tools/Todo.hpp>
 
-AutomationInspectorWidget::AutomationInspectorWidget(
-        const AutomationModel& automationModel,
+namespace Automation
+{
+InspectorWidget::InspectorWidget(
+        const ProcessModel& automationModel,
         const iscore::DocumentContext& doc,
         QWidget* parent) :
     ProcessInspectorWidgetDelegate_T {automationModel, parent},
@@ -49,11 +51,11 @@ AutomationInspectorWidget::AutomationInspectorWidget(
     m_lineEdit = new AddressEditWidget{explorer, this};
 
     m_lineEdit->setAddress(process().address());
-    con(process(), &AutomationModel::addressChanged,
+    con(process(), &ProcessModel::addressChanged,
             m_lineEdit, &AddressEditWidget::setAddress);
 
     connect(m_lineEdit, &AddressEditWidget::addressChanged,
-            this, &AutomationInspectorWidget::on_addressChange);
+            this, &InspectorWidget::on_addressChange);
 
     vlay->addWidget(m_lineEdit);
 
@@ -71,18 +73,18 @@ AutomationInspectorWidget::AutomationInspectorWidget(
     minmaxlay->addRow(tr("Min"), m_minsb);
     minmaxlay->addRow(tr("Max"), m_maxsb);
 
-    con(process(), &AutomationModel::minChanged, m_minsb, &QDoubleSpinBox::setValue);
-    con(process(), &AutomationModel::maxChanged, m_maxsb, &QDoubleSpinBox::setValue);
+    con(process(), &ProcessModel::minChanged, m_minsb, &QDoubleSpinBox::setValue);
+    con(process(), &ProcessModel::maxChanged, m_maxsb, &QDoubleSpinBox::setValue);
 
     connect(m_minsb, &QAbstractSpinBox::editingFinished,
-            this, &AutomationInspectorWidget::on_minValueChanged);
+            this, &InspectorWidget::on_minValueChanged);
     connect(m_maxsb, &QAbstractSpinBox::editingFinished,
-            this, &AutomationInspectorWidget::on_maxValueChanged);
+            this, &InspectorWidget::on_maxValueChanged);
 
     this->setLayout(vlay);
 }
 
-void AutomationInspectorWidget::on_addressChange(const iscore::Address& newAddr)
+void InspectorWidget::on_addressChange(const iscore::Address& newAddr)
 {
     // Various checks
     if(newAddr == process().address())
@@ -95,24 +97,25 @@ void AutomationInspectorWidget::on_addressChange(const iscore::Address& newAddr)
 
     m_dispatcher.submitCommand(cmd);
 }
-void AutomationInspectorWidget::on_minValueChanged()
+void InspectorWidget::on_minValueChanged()
 {
     auto newVal = m_minsb->value();
     if(newVal != process().min())
     {
-        auto cmd = new SetAutomationMin{process(), newVal};
+        auto cmd = new SetMin{process(), newVal};
 
         m_dispatcher.submitCommand(cmd);
     }
 }
 
-void AutomationInspectorWidget::on_maxValueChanged()
+void InspectorWidget::on_maxValueChanged()
 {
     auto newVal = m_maxsb->value();
     if(newVal != process().max())
     {
-        auto cmd = new SetAutomationMax{process(), newVal};
+        auto cmd = new SetMax{process(), newVal};
 
         m_dispatcher.submitCommand(cmd);
     }
+}
 }

@@ -12,9 +12,10 @@ namespace iscore {
 struct Address;
 }  // namespace iscore
 
-
+namespace Automation
+{
 InitAutomation::InitAutomation(
-        Path<AutomationModel>&& path,
+        Path<ProcessModel>&& path,
         const iscore::Address& newaddr,
         double newmin,
         double newmax,
@@ -53,4 +54,5 @@ void InitAutomation::serializeImpl(DataStreamInput& s) const
 void InitAutomation::deserializeImpl(DataStreamOutput& s)
 {
     s >> m_path >> m_addr >> m_newMin >> m_newMax >> m_segments;
+}
 }

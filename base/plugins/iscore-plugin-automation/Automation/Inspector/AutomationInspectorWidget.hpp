@@ -12,16 +12,18 @@ struct DocumentContext;
 struct Address;
 }
 class AddressEditWidget;
-class AutomationModel;
 class DeviceExplorerModel;
 class QDoubleSpinBox;
 
-class AutomationInspectorWidget final :
-        public ProcessInspectorWidgetDelegate_T<AutomationModel>
+namespace Automation
+{
+class ProcessModel;
+class InspectorWidget final :
+        public ProcessInspectorWidgetDelegate_T<Automation::ProcessModel>
 {
     public:
-        explicit AutomationInspectorWidget(
-                const AutomationModel& object,
+        explicit InspectorWidget(
+                const ProcessModel& object,
                 const iscore::DocumentContext& context,
                 QWidget* parent);
 
@@ -36,3 +38,4 @@ class AutomationInspectorWidget final :
 
         CommandDispatcher<> m_dispatcher;
 };
+}

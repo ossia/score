@@ -21,7 +21,9 @@ class Document;
 }  // namespace iscore
 
 
-CurvePointInspectorWidget::CurvePointInspectorWidget(
+namespace Automation
+{
+PointInspectorWidget::PointInspectorWidget(
     const Curve::PointModel& model,
     const iscore::DocumentContext& doc,
     QWidget* parent):
@@ -34,7 +36,7 @@ CurvePointInspectorWidget::CurvePointInspectorWidget(
 
     std::list<QWidget*> vec;
     auto cm = safe_cast<Curve::Model*>(m_model.parent());
-    auto automModel_base = dynamic_cast<AutomationModel*>(cm->parent());
+    auto automModel_base = dynamic_cast<ProcessModel*>(cm->parent());
     if(!automModel_base)
         return;
 
@@ -66,10 +68,10 @@ CurvePointInspectorWidget::CurvePointInspectorWidget(
     m_YBox->setValue(m_model.pos().y() * m_yFactor  + m_Ymin);
 
     connect(m_YBox, static_cast<void (QDoubleSpinBox::*)(double)>(&QDoubleSpinBox::valueChanged),
-            this, &CurvePointInspectorWidget::on_pointChanged);
+            this, &PointInspectorWidget::on_pointChanged);
 
     connect(m_YBox, static_cast<void (QDoubleSpinBox::*)(double)>(&QDoubleSpinBox::valueChanged),
-            this, &CurvePointInspectorWidget::on_editFinished);
+            this, &PointInspectorWidget::on_editFinished);
     vec.push_back(widgY);
 
     hlayY->addWidget(new QLabel{"value"});
@@ -93,7 +95,7 @@ CurvePointInspectorWidget::CurvePointInspectorWidget(
     updateAreaLayout(vec);
 }
 
-void CurvePointInspectorWidget::on_pointChanged(double d)
+void PointInspectorWidget::on_pointChanged(double d)
 {
     Curve::Point pos{m_XBox->value()/m_xFactor, (m_YBox->value() - m_Ymin)/m_yFactor};
     m_dispatcher.submitCommand<Curve::MovePoint>(
@@ -102,8 +104,8 @@ void CurvePointInspectorWidget::on_pointChanged(double d)
                 pos);
 }
 
-void CurvePointInspectorWidget::on_editFinished()
+void PointInspectorWidget::on_editFinished()
 {
     m_dispatcher.commit();
 }
-
+}

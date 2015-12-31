@@ -2,15 +2,18 @@
 #include <Automation/Commands/AutomationCommandFactory.hpp>
 #include <iscore/command/PropertyCommand.hpp>
 
-class AutomationModel;
-class SetAutomationMin final : public iscore::PropertyCommand
+namespace Automation
 {
-        ISCORE_COMMAND_DECL(AutomationCommandFactoryName(), SetAutomationMin, "Set curve minimum")
+class ProcessModel;
+class SetMin final : public iscore::PropertyCommand
+{
+        ISCORE_COMMAND_DECL(CommandFactoryName(), SetMin, "Set curve minimum")
     public:
 
-        SetAutomationMin(Path<AutomationModel>&& path, double newval):
+        SetMin(Path<ProcessModel>&& path, double newval):
             iscore::PropertyCommand{std::move(path), "min", newval}
         {
 
         }
 };
+}

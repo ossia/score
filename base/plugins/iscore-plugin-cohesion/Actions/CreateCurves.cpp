@@ -79,7 +79,7 @@ void CreateCurves(
         std::vector<iscore::Address> existing_automations;
         for(const auto& proc : constraint->processes)
         {
-            if(auto autom = dynamic_cast<const AutomationModel*>(&proc))
+            if(auto autom = dynamic_cast<const Automation::ProcessModel*>(&proc))
                 existing_automations.push_back(autom->address());
         }
 

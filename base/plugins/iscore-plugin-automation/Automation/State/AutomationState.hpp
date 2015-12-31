@@ -7,28 +7,30 @@
 
 #include <Process/State/MessageNode.hpp>
 
-class AutomationModel;
 class QObject;
 namespace iscore {
 struct Address;
 }  // namespace iscore
 
-class AutomationState final : public ProcessStateDataInterface
+namespace Automation
+{
+class ProcessModel;
+class State final : public ProcessStateDataInterface
 {
     public:
         // watchedPoint : something between 0 and 1
-        AutomationState(
-                AutomationModel& process,
+        State(
+                ProcessModel& process,
                 double watchedPoint,
                 QObject* parent);
 
         QString stateName() const override;
-        AutomationModel& process() const;
+        ProcessModel& process() const;
 
         iscore::Message message() const;
         double point() const;
 
-        AutomationState* clone(QObject* parent) const override;
+        State* clone(QObject* parent) const override;
 
         std::vector<iscore::Address> matchingAddresses() override;
         iscore::MessageList messages() const override;
@@ -37,3 +39,5 @@ class AutomationState final : public ProcessStateDataInterface
     private:
         double m_point{};
 };
+
+}

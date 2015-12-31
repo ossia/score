@@ -13,7 +13,7 @@ class QGraphicsSceneMouseEvent;
 SeparatorItem::SeparatorItem(QGraphicsItem *parent):
     QGraphicsSimpleTextItem{"/", parent}
 {
-    auto font = ProcessFonts::Sans();
+    auto font = Process::Fonts::Sans();
     font.setPointSize(10);
     font.setBold(true);
     this->setFont(font);
@@ -35,7 +35,7 @@ ClickableLabelItem::ClickableLabelItem(
         emit textChanged();
     });
 
-    auto font = ProcessFonts::Sans();
+    auto font = Process::Fonts::Sans();
     font.setPointSize(10);
     font.setBold(true);
     this->setFont(font);

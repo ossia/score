@@ -14,8 +14,10 @@ namespace iscore {
 class Document;
 }  // namespace iscore
 
-AutomationStateInspector::AutomationStateInspector(
-        const AutomationState& object,
+namespace Automation
+{
+StateInspectorWidget::StateInspectorWidget(
+        const State& object,
         const iscore::DocumentContext& doc,
         QWidget* parent):
     InspectorWidgetBase{object, doc, parent},
@@ -27,14 +29,15 @@ AutomationStateInspector::AutomationStateInspector(
 
 
     con(m_state, &ProcessStateDataInterface::stateChanged,
-        this,    &AutomationStateInspector::on_stateChanged);
+        this,    &StateInspectorWidget::on_stateChanged);
 
     on_stateChanged();
 
     updateSectionsView(safe_cast<QVBoxLayout*>(layout()), vec);
 }
 
-void AutomationStateInspector::on_stateChanged()
+void StateInspectorWidget::on_stateChanged()
 {
     m_label->setText(m_state.message().toString());
+}
 }

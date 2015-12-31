@@ -18,7 +18,10 @@ namespace OSSIA
     class CurveAbstract;
 }
 
-class AutomationModel;
+namespace Automation
+{
+class ProcessModel;
+}
 class DeviceList;
 
 
@@ -31,7 +34,7 @@ class AutomationElement final : public ProcessElement
     public:
         AutomationElement(
                 ConstraintElement& parentConstraint,
-                AutomationModel& element,
+                Automation::ProcessModel& element,
                 QObject* parent);
 
         std::shared_ptr<OSSIA::TimeProcess> OSSIAProcess() const override;
@@ -49,7 +52,7 @@ class AutomationElement final : public ProcessElement
         std::shared_ptr<OSSIA::Automation> m_ossia_autom;
         std::shared_ptr<OSSIA::CurveAbstract> m_ossia_curve;
 
-        AutomationModel& m_iscore_autom;
+        Automation::ProcessModel& m_iscore_autom;
 
         const DeviceList& m_deviceList;
 };

@@ -12,7 +12,9 @@
 
 class QString;
 
-AutomationColors::AutomationColors()
+namespace Automation
+{
+Colors::Colors()
 {
 #ifdef ISCORE_IEEE_SKIN
     QFile cols(":/AutomationColors-IEEE.json");
@@ -39,4 +41,5 @@ AutomationColors::AutomationColors()
         m_style.SegmentSelected = fromColor("SegmentSelected");
         m_style.SegmentDisabled = fromColor("SegmentDisabled");
     }
+}
 }

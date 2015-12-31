@@ -7,21 +7,23 @@
 
 #include <Process/ProcessContext.hpp>
 
-class AutomationPresenter final :
+namespace Automation
+{
+class LayerPresenter final :
         public Curve::CurveProcessPresenter<
-            AutomationLayerModel,
-            AutomationView>
+            LayerModel,
+            LayerView>
 {
     public:
-        AutomationPresenter(
+        LayerPresenter(
                 const iscore::DocumentContext& context,
                 const Curve::Style& style,
-                const AutomationLayerModel& layer,
-                AutomationView* view,
+                const LayerModel& layer,
+                LayerView* view,
                 QObject* parent):
             CurveProcessPresenter{context, style, layer, view, parent}
         {
-            con(m_layer.model(), &AutomationModel::addressChanged,
+            con(m_layer.model(), &ProcessModel::addressChanged,
                 this, [&] (const auto&)
             {
                 m_view->setDisplayedName(m_layer.model().prettyName());
@@ -36,3 +38,4 @@ class AutomationPresenter final :
             m_view->showName(true);
         }
 };
+}
