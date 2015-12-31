@@ -43,8 +43,9 @@ std::vector<std::unique_ptr<iscore::FactoryInterfaceBase>> iscore_plugin_space::
             CircleAreaFactory,
             PointerAreaFactory>,
         FW<OSSIA::LocalTree::ProcessComponentFactory,
-            Space::ProcessLocalTreeFactory>
-            >
+            Space::LocalTree::ProcessLocalTreeFactory>
+            >//,
+        //FW<Space::LocalTree::AreaComponentFactory>
      >(ctx, key);
 }
 
@@ -52,5 +53,6 @@ std::vector<std::unique_ptr<iscore::FactoryInterfaceBase>> iscore_plugin_space::
 std::vector<std::unique_ptr<iscore::FactoryListInterface>> iscore_plugin_space::factoryFamilies()
 {
     return make_ptr_vector<iscore::FactoryListInterface,
-            SingletonAreaFactoryList>();
+            SingletonAreaFactoryList,
+            Space::LocalTree::AreaComponentFactoryList>();
 }
