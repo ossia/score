@@ -33,14 +33,14 @@ AutomationModel::AutomationModel(
     pluginModelList = new iscore::ElementPluginModelList{iscore::IDocument::documentContext(*parent), this};
 
     // Named shall be enough ?
-    setCurve(new CurveModel{Id<CurveModel>(45345), this});
+    setCurve(new Curve::Model{Id<Curve::Model>(45345), this});
 
-    auto s1 = new DefaultCurveSegmentModel(Id<CurveSegmentModel>(1), m_curve);
+    auto s1 = new Curve::DefaultCurveSegmentModel(Id<Curve::SegmentModel>(1), m_curve);
     s1->setStart({0., 0.0});
     s1->setEnd({1., 1.});
 
     m_curve->addSegment(s1);
-    connect(m_curve, &CurveModel::changed,
+    connect(m_curve, &Curve::Model::changed,
             this, &AutomationModel::curveChanged);
 
     metadata.setName(QString("Automation.%1").arg(*this->id().val()));
@@ -59,7 +59,7 @@ AutomationModel::AutomationModel(
 {
     setCurve(source.curve().clone(source.curve().id(), this));
     pluginModelList = new iscore::ElementPluginModelList(*source.pluginModelList, this);
-    connect(m_curve, &CurveModel::changed,
+    connect(m_curve, &Curve::Model::changed,
             this, &AutomationModel::curveChanged);
     metadata.setName(QString("Automation.%1").arg(*this->id().val()));
 }
@@ -179,7 +179,7 @@ Process::LayerModel* AutomationModel::cloneLayer_impl(
 
 void AutomationModel::setCurve_impl()
 {
-    connect(m_curve, &CurveModel::changed,
+    connect(m_curve, &Curve::Model::changed,
             this, [&] () {
         emit curveChanged();
 

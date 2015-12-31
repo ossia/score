@@ -56,12 +56,12 @@ SmartTool::SmartTool(Curve::ToolPalette& sm):
 void SmartTool::on_pressed(QPointF scenePoint, Curve::Point curvePoint)
 {
     mapTopItem(scenePoint, itemUnderMouse(scenePoint),
-               [&] (const CurvePointView* point)
+               [&] (const PointView* point)
     {
         localSM().postEvent(new ClickOnPoint_Event(curvePoint, point));
         m_nothingPressed = false;
     },
-    [&] (const CurveSegmentView* segment)
+    [&] (const SegmentView* segment)
     {
         localSM().postEvent(new ClickOnSegment_Event(curvePoint, segment));
         m_nothingPressed = false;
@@ -82,11 +82,11 @@ void SmartTool::on_moved(QPointF scenePoint, Curve::Point curvePoint)
     else
     {
         mapTopItem(scenePoint, itemUnderMouse(scenePoint),
-                   [&] (const CurvePointView* point)
+                   [&] (const PointView* point)
         {
             localSM().postEvent(new MoveOnPoint_Event(curvePoint, point));
         },
-        [&] (const CurveSegmentView* segment)
+        [&] (const SegmentView* segment)
         {
             localSM().postEvent(new MoveOnSegment_Event(curvePoint, segment));
         },
@@ -108,7 +108,7 @@ void SmartTool::on_released(QPointF scenePoint, Curve::Point curvePoint)
     }
 
     mapTopItem(scenePoint, itemUnderMouse(scenePoint),
-               [&] (const CurvePointView* point)
+               [&] (const PointView* point)
     {
         m_state->dispatcher.setAndCommit(
                     filterSelections(&point->model(),
@@ -118,7 +118,7 @@ void SmartTool::on_released(QPointF scenePoint, Curve::Point curvePoint)
 
         localSM().postEvent(new ReleaseOnPoint_Event(curvePoint, point));
     },
-    [&] (const CurveSegmentView* segment)
+    [&] (const SegmentView* segment)
     {
         m_state->dispatcher.setAndCommit(
                     filterSelections(&segment->model(),

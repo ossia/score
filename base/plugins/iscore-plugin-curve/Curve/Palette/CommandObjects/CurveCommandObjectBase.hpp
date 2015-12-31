@@ -12,12 +12,6 @@
 #include <iscore/tools/ModelPath.hpp>
 #include <iscore/tools/SettableIdentifier.hpp>
 
-class CurveModel;
-class CurvePresenter;
-class UpdateCurve;
-namespace Curve {
-class StateBase;
-}  // namespace Curve
 namespace iscore {
 class CommandStackFacade;
 }  // namespace iscore
@@ -38,13 +32,20 @@ concept CommandObject
 // RemoveSegment -> easy peasy
 // RemovePoint -> which segment do we merge ? At the left or at the right ?
 // A point(view) has pointers to one or both of its curve segments.
-class CurveSegmentModel;
 
-class CurveCommandObjectBase
+namespace Curve
+{
+class UpdateCurve;
+class Model;
+class Presenter;
+class StateBase;
+class SegmentModel;
+
+class CommandObjectBase
 {
     public:
-        CurveCommandObjectBase(CurvePresenter* pres, iscore::CommandStackFacade&);
-        virtual ~CurveCommandObjectBase();
+        CommandObjectBase(Presenter* pres, iscore::CommandStackFacade&);
+        virtual ~CommandObjectBase();
 
         void setCurveState(Curve::StateBase* stateBase) { m_state = stateBase; }
         void press();
@@ -55,13 +56,13 @@ class CurveCommandObjectBase
         // Creates and pushes an UpdateCurve command
         // from a vector of segments.
         // They are removed afterwards
-        void submit(std::vector<CurveSegmentData>&&);
+        void submit(std::vector<SegmentData>&&);
 
     protected:
 
         auto find(
-                std::vector<CurveSegmentData>& segments,
-                const Id<CurveSegmentModel>& id)
+                std::vector<SegmentData>& segments,
+                const Id<SegmentModel>& id)
         {
             return std::find_if(
                         segments.begin(),
@@ -69,8 +70,8 @@ class CurveCommandObjectBase
                         [&] (const auto& seg) { return seg.id == id; });
         }
         auto find(
-                const std::vector<CurveSegmentData>& segments,
-                const Id<CurveSegmentModel>& id)
+                const std::vector<SegmentData>& segments,
+                const Id<SegmentModel>& id)
         {
             return std::find_if(
                         segments.cbegin(),
@@ -79,26 +80,26 @@ class CurveCommandObjectBase
         }
 
         template<typename Container>
-        Id<CurveSegmentModel> getSegmentId(const Container& ids)
+        Id<SegmentModel> getSegmentId(const Container& ids)
         {
-            Id<CurveSegmentModel> id {};
+            Id<SegmentModel> id {};
 
             do
             {
-                id = Id<CurveSegmentModel>{iscore::random_id_generator::getRandomId()};
+                id = Id<SegmentModel>{iscore::random_id_generator::getRandomId()};
             }
             while(ids.find(id) != ids.end());
 
             return id;
         }
 
-        Id<CurveSegmentModel> getSegmentId(const std::vector<CurveSegmentData>& ids)
+        Id<SegmentModel> getSegmentId(const std::vector<SegmentData>& ids)
         {
-            Id<CurveSegmentModel> id {};
+            Id<SegmentModel> id {};
 
             do
             {
-                id = Id<CurveSegmentModel>{iscore::random_id_generator::getRandomId()};
+                id = Id<SegmentModel>{iscore::random_id_generator::getRandomId()};
             }
             while(std::find_if(ids.begin(),
                                ids.end(),
@@ -112,15 +113,16 @@ class CurveCommandObjectBase
         QVector<QByteArray> m_oldCurveData;
         QPointF m_originalPress; // Note : there should be only one per curve...
 
-        CurvePresenter* m_presenter{};
+        Presenter* m_presenter{};
 
         Curve::StateBase* m_state{};
 
         SingleOngoingCommandDispatcher<UpdateCurve> m_dispatcher;
-        Path<CurveModel> m_modelPath;
+        Path<Model> m_modelPath;
 
-        std::vector<CurveSegmentData> m_startSegments;
+        std::vector<SegmentData> m_startSegments;
 
         // To prevent behind locked at 0.000001 or 0.9999
         double m_xmin{-1}, m_xmax{2};
 };
+}

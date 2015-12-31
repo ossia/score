@@ -6,7 +6,7 @@
 class QGraphicsItem;
 class QPainter;
 
-class MappingView final : public LayerView
+class MappingView final : public Process::LayerView
 {
     public:
         explicit MappingView(QGraphicsItem *parent);

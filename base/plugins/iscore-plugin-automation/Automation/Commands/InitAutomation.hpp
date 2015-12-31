@@ -22,7 +22,7 @@ class ISCORE_PLUGIN_AUTOMATION_EXPORT InitAutomation final : public iscore::Seri
                 const iscore::Address& newaddr,
                 double newmin,
                 double newmax,
-                std::vector<CurveSegmentData>&& segments);
+                std::vector<Curve::SegmentData>&& segments);
 
     public:
         void undo() const override;
@@ -37,5 +37,5 @@ class ISCORE_PLUGIN_AUTOMATION_EXPORT InitAutomation final : public iscore::Seri
         iscore::Address m_addr;
         double m_newMin;
         double m_newMax;
-        std::vector<CurveSegmentData> m_segments;
+        std::vector<Curve::SegmentData> m_segments;
 };

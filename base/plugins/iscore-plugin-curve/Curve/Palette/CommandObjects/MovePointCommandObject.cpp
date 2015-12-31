@@ -20,15 +20,17 @@
 #include <iscore/command/Dispatchers/SingleOngoingCommandDispatcher.hpp>
 #include <iscore/tools/SettableIdentifier.hpp>
 
-class CurveSegmentModel;
 namespace iscore {
 class CommandStackFacade;
 }  // namespace iscore
 
+namespace Curve
+{
+class SegmentModel;
 MovePointCommandObject::MovePointCommandObject(
-        CurvePresenter* presenter,
+        Presenter* presenter,
         iscore::CommandStackFacade& stack):
-    CurveCommandObjectBase{presenter, stack}
+    CommandObjectBase{presenter, stack}
 {
 
 }
@@ -40,7 +42,7 @@ void MovePointCommandObject::on_press()
     auto clickedCurvePoint_it = std::find_if(
                                  m_presenter->model().points().begin(),
                                  m_presenter->model().points().end(),
-                                 [&] (CurvePointModel* pt)
+                                 [&] (PointModel* pt)
     { return pt->previous()  == m_state->clickedPointId.previous
           && pt->following() == m_state->clickedPointId.following; });
 
@@ -50,7 +52,7 @@ void MovePointCommandObject::on_press()
 
     // Compute xmin, xmax
     // Look for the next and previous points
-    for(CurvePointModel* pt : m_presenter->model().points())
+    for(PointModel* pt : m_presenter->model().points())
     {
         auto pt_x = pt->pos().x();
         if(pt == clickedCurvePoint)
@@ -89,7 +91,7 @@ void MovePointCommandObject::move()
     }
 
     // Rewirte and make a command
-    submit(std::vector<CurveSegmentData>(segments.begin(), segments.end()));
+    submit(std::vector<SegmentData>(segments.begin(), segments.end()));
 }
 
 void MovePointCommandObject::release()
@@ -132,7 +134,7 @@ void MovePointCommandObject::handleSuppressOnOverlap(CurveSegmentMap& segments)
 
     auto& segments_by_id = segments.get<Segments::Hashed>();
 
-    std::vector<Id<CurveSegmentModel>> indicesToRemove;
+    std::vector<Id<SegmentModel>> indicesToRemove;
     // First the case where we're going to the right.
     if(m_originalPress.x() < current_x)
     {
@@ -201,12 +203,12 @@ void MovePointCommandObject::handleSuppressOnOverlap(CurveSegmentMap& segments)
                 else if(segment.following)
                 {
                     auto seg_foll_it = segments_by_id.find(segment.following);
-                    segments_by_id.modify(seg_foll_it, [&] (auto& seg) { seg.previous = Id<CurveSegmentModel>{}; });
+                    segments_by_id.modify(seg_foll_it, [&] (auto& seg) { seg.previous = Id<SegmentModel>{}; });
                 }
                 else if(segment.previous)
                 {
                     auto seg_prev_it = segments_by_id.find(segment.previous);
-                    segments_by_id.modify(seg_prev_it, [&] (auto& seg) { seg.following = Id<CurveSegmentModel>{}; });
+                    segments_by_id.modify(seg_prev_it, [&] (auto& seg) { seg.following = Id<SegmentModel>{}; });
                 }
 
                 // The segment is in front of us, we delete it
@@ -256,7 +258,7 @@ void MovePointCommandObject::handleCrossOnOverlap(CurveSegmentMap& segments)
     {
         // Get the segment we're in, if there's any
         auto middleSegmentIt = std::find_if(segments_by_id.begin(), segments_by_id.end(),
-                                            [&] (const CurveSegmentData& segment)
+                                            [&] (const SegmentData& segment)
         {       // Going to the right
                 return
                    segment.start.x() > m_originalPress.x()
@@ -333,7 +335,7 @@ void MovePointCommandObject::handleCrossOnOverlap(CurveSegmentMap& segments)
                     // We set its following to null.
                     auto prev_prev_seg_it = segments_by_id.find(prev_seg.previous);
                     segments_by_id.modify(prev_prev_seg_it, [&] (auto& seg) {
-                        seg.following = Id<CurveSegmentModel>{};
+                        seg.following = Id<SegmentModel>{};
                     });
                 }
 
@@ -351,7 +353,7 @@ void MovePointCommandObject::handleCrossOnOverlap(CurveSegmentMap& segments)
         {
             // We insert a new element after the leftmost point from the current point.
             // Since we are in a segment we split it and create another with a new id.
-            CurveSegmentData newSegment{
+            SegmentData newSegment{
                         getSegmentId(segments_by_id),
                         middle->start,    m_state->currentPoint,
                         middle->previous, middle->id,
@@ -484,7 +486,7 @@ void MovePointCommandObject::handleCrossOnOverlap(CurveSegmentMap& segments)
                     // We set its following to null.
                     auto foll_foll_seg_it = segments_by_id.find(foll_seg.following);
                     segments_by_id.modify(foll_foll_seg_it, [&] (auto& seg) {
-                        seg.previous = Id<CurveSegmentModel>{};
+                        seg.previous = Id<SegmentModel>{};
                     });
                 }
 
@@ -501,7 +503,7 @@ void MovePointCommandObject::handleCrossOnOverlap(CurveSegmentMap& segments)
         // Second part : creation of a new segment where the cursor actually is
         if(middle)
         {
-            CurveSegmentData newSegment{
+            SegmentData newSegment{
                         getSegmentId(segments_by_id),
                         m_state->currentPoint, middle->end,
                         middle->id, middle->following,
@@ -550,4 +552,5 @@ void MovePointCommandObject::setCurrentPoint(CurveSegmentMap& segments)
             seg.start = m_state->currentPoint;
         });
     }
+}
 }

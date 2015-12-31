@@ -48,9 +48,10 @@
 #include <iscore/tools/NotifyingMap.hpp>
 #include <iscore/tools/SettableIdentifier.hpp>
 #include <iscore/tools/TreeNode.hpp>
-
-class CurveSegmentModel;
-
+namespace Curve
+{
+class SegmentModel;
+}
 RecordManager::RecordManager()
 {
     m_recordTimer.setInterval(8);
@@ -239,8 +240,8 @@ void RecordManager::recordInNewBox(Scenario::ScenarioModel& scenar, Scenario::Po
             cmd_layer->redo();
 
             autom.curve().clear();
-            auto segt = new PointArrayCurveSegmentModel{
-                    Id<CurveSegmentModel>{0},
+            auto segt = new Curve::PointArraySegment{
+                    Id<Curve::SegmentModel>{0},
                     &autom.curve()};
 
             segt->setStart({0, -1});

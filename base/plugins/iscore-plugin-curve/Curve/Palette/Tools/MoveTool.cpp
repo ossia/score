@@ -24,11 +24,11 @@ EditionToolForCreate::EditionToolForCreate(Curve::ToolPalette& sm):
 void EditionToolForCreate::on_pressed(QPointF scenePoint, Curve::Point curvePoint)
 {
     mapTopItem(scenePoint, itemUnderMouse(scenePoint),
-               [&] (const CurvePointView* point)
+               [&] (const PointView* point)
     {
         localSM().postEvent(new ClickOnPoint_Event(curvePoint, point));
     },
-    [&] (const CurveSegmentView* segment)
+    [&] (const SegmentView* segment)
     {
         localSM().postEvent(new ClickOnSegment_Event(curvePoint, segment));
     },
@@ -41,11 +41,11 @@ void EditionToolForCreate::on_pressed(QPointF scenePoint, Curve::Point curvePoin
 void EditionToolForCreate::on_moved(QPointF scenePoint, Curve::Point curvePoint)
 {
     mapTopItem(scenePoint, itemUnderMouse(scenePoint),
-               [&] (const CurvePointView* point)
+               [&] (const PointView* point)
     {
         localSM().postEvent(new MoveOnPoint_Event(curvePoint, point));
     },
-    [&] (const CurveSegmentView* segment)
+    [&] (const SegmentView* segment)
     {
         localSM().postEvent(new MoveOnSegment_Event(curvePoint, segment));
     },
@@ -58,11 +58,11 @@ void EditionToolForCreate::on_moved(QPointF scenePoint, Curve::Point curvePoint)
 void EditionToolForCreate::on_released(QPointF scenePoint, Curve::Point curvePoint)
 {
     mapTopItem(scenePoint, itemUnderMouse(scenePoint),
-               [&] (const CurvePointView* point)
+               [&] (const PointView* point)
     {
         localSM().postEvent(new ReleaseOnPoint_Event(curvePoint, point));
     },
-    [&] (const CurveSegmentView* segment)
+    [&] (const SegmentView* segment)
     {
         localSM().postEvent(new ReleaseOnSegment_Event(curvePoint, segment));
     },

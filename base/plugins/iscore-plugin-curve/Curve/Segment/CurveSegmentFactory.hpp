@@ -4,32 +4,35 @@
 #include <iscore/serialization/VisitorCommon.hpp>
 #include <QString>
 #include <QVariant>
-
-class CurveSegmentModel;
-class QObject;
-struct CurveSegmentData;
-struct VisitorVariant;
 #include <iscore/tools/SettableIdentifier.hpp>
 
-class CurveSegmentFactory : public iscore::GenericFactoryInterface<CurveSegmentFactoryKey>
+
+class QObject;
+struct VisitorVariant;
+
+namespace Curve
+{
+class SegmentModel;
+struct SegmentData;
+class SegmentFactory : public iscore::GenericFactoryInterface<SegmentFactoryKey>
 {
         ISCORE_FACTORY_DECL("CurveSegment")
     public:
-            using factory_key_type = CurveSegmentFactoryKey;
-        virtual ~CurveSegmentFactory();
+            using factory_key_type = SegmentFactoryKey;
+        virtual ~SegmentFactory();
 
         virtual QString prettyName() const = 0;
 
-        virtual CurveSegmentModel* make(
-                const Id<CurveSegmentModel>&,
+        virtual SegmentModel* make(
+                const Id<SegmentModel>&,
                 QObject* parent) = 0;
 
-        virtual CurveSegmentModel* load(
+        virtual SegmentModel* load(
                 const VisitorVariant& data,
                 QObject* parent) = 0;
 
-        virtual CurveSegmentModel* load(
-                const CurveSegmentData& data,
+        virtual SegmentModel* load(
+                const SegmentData& data,
                 QObject* parent) = 0;
 
         virtual QVariant makeCurveSegmentData() const = 0;
@@ -42,17 +45,17 @@ class CurveSegmentFactory : public iscore::GenericFactoryInterface<CurveSegmentF
 };
 
 template<typename T>
-class CurveSegmentFactory_T : public CurveSegmentFactory
+class SegmentFactory_T : public SegmentFactory
 {
     public:
-        virtual ~CurveSegmentFactory_T() = default;
+        virtual ~SegmentFactory_T() = default;
 
-        CurveSegmentModel *make(
-                const Id<CurveSegmentModel>& id,
+        SegmentModel *make(
+                const Id<SegmentModel>& id,
                 QObject* parent) override
         { return new T{id, parent}; }
 
-        CurveSegmentModel *load(
+        SegmentModel *load(
                 const VisitorVariant& vis,
                 QObject* parent) override
         {
@@ -60,8 +63,8 @@ class CurveSegmentFactory_T : public CurveSegmentFactory
             { return new T{deserializer, parent}; });
         }
 
-        CurveSegmentModel *load(
-                const CurveSegmentData& dat,
+        SegmentModel *load(
+                const SegmentData& dat,
                 QObject* parent) override
         { return new T{dat, parent}; }
 
@@ -78,15 +81,16 @@ class CurveSegmentFactory_T : public CurveSegmentFactory
         { return QVariant::fromValue(deserialize_dyn<typename T::data_type>(vis)); }
 };
 
+}
 #define DEFINE_CURVE_SEGMENT_FACTORY(Name, DynName, Model) \
-    class Name final : public CurveSegmentFactory_T<Model> \
+    class Name final : public Curve::SegmentFactory_T<Model> \
 { \
     public: \
     virtual ~Name() = default; \
     \
     private: \
-    const CurveSegmentFactoryKey& key_impl() const override { \
-        static const CurveSegmentFactoryKey name{DynName}; \
+    const Curve::SegmentFactoryKey& key_impl() const override { \
+        static const Curve::SegmentFactoryKey name{DynName}; \
         return name; \
     } \
     \

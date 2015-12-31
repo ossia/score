@@ -4,10 +4,10 @@
 
 #include <iscore/tools/Clamp.hpp>
 
-class CurveSegmentModel;
 class QGraphicsItem;
 namespace Curve
 {
+class SegmentModel;
     namespace Element {
         struct Nothing_tag{ static constexpr const int value = 0; };
         struct Point_tag  { static constexpr const int value = 1; };

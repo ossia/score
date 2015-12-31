@@ -9,26 +9,30 @@ template <typename T> class Reader;
 template <typename T> class Writer;
 
 template<>
-void Visitor<Reader<DataStream>>::readFrom(const SinCurveSegmentModel& segmt)
+void Visitor<Reader<DataStream>>::readFrom(
+        const Curve::SinSegment& segmt)
 {
     m_stream << segmt.freq << segmt.ampl;
 }
 
 template<>
-void Visitor<Writer<DataStream>>::writeTo(SinCurveSegmentModel& segmt)
+void Visitor<Writer<DataStream>>::writeTo(
+        Curve::SinSegment& segmt)
 {
     m_stream >> segmt.freq >> segmt.ampl;
 }
 
 template<>
-void Visitor<Reader<JSONObject>>::readFrom(const SinCurveSegmentModel& segmt)
+void Visitor<Reader<JSONObject>>::readFrom(
+        const Curve::SinSegment& segmt)
 {
     m_obj["Freq"] = segmt.freq;
     m_obj["Ampl"] = segmt.ampl;
 }
 
 template<>
-void Visitor<Writer<JSONObject>>::writeTo(SinCurveSegmentModel& segmt)
+void Visitor<Writer<JSONObject>>::writeTo(
+        Curve::SinSegment& segmt)
 {
     segmt.freq = m_obj["Freq"].toDouble();
     segmt.ampl = m_obj["Ampl"].toDouble();
@@ -36,26 +40,30 @@ void Visitor<Writer<JSONObject>>::writeTo(SinCurveSegmentModel& segmt)
 
 
 template<>
-void Visitor<Reader<DataStream>>::readFrom(const SinCurveSegmentData& segmt)
+void Visitor<Reader<DataStream>>::readFrom(
+        const Curve::SinSegmentData& segmt)
 {
     m_stream << segmt.freq << segmt.ampl;
 }
 
 template<>
-void Visitor<Writer<DataStream>>::writeTo(SinCurveSegmentData& segmt)
+void Visitor<Writer<DataStream>>::writeTo(
+        Curve::SinSegmentData& segmt)
 {
     m_stream >> segmt.freq >> segmt.ampl;
 }
 
 template<>
-void Visitor<Reader<JSONObject>>::readFrom(const SinCurveSegmentData& segmt)
+void Visitor<Reader<JSONObject>>::readFrom(
+        const Curve::SinSegmentData& segmt)
 {
     m_obj["Freq"] = segmt.freq;
     m_obj["Ampl"] = segmt.ampl;
 }
 
 template<>
-void Visitor<Writer<JSONObject>>::writeTo(SinCurveSegmentData& segmt)
+void Visitor<Writer<JSONObject>>::writeTo(
+        Curve::SinSegmentData& segmt)
 {
     segmt.freq = m_obj["Freq"].toDouble();
     segmt.ampl = m_obj["Ampl"].toDouble();

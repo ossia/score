@@ -41,7 +41,7 @@ void Visitor<Writer<DataStream>>::writeTo(MappingModel& autom)
 {
     autom.pluginModelList = new iscore::ElementPluginModelList{*this, &autom};
 
-    autom.setCurve(new CurveModel{*this, &autom});
+    autom.setCurve(new Curve::Model{*this, &autom});
     { // Source
         iscore::Address address;
         double min, max;
@@ -91,7 +91,7 @@ void Visitor<Writer<JSONObject>>::writeTo(MappingModel& autom)
     autom.pluginModelList = new iscore::ElementPluginModelList{elementPluginDeserializer, &autom};
 
     Deserializer<JSONObject> curve_deser{m_obj["Curve"].toObject()};
-    autom.setCurve(new CurveModel{curve_deser, &autom});
+    autom.setCurve(new Curve::Model{curve_deser, &autom});
 
     autom.setSourceAddress(fromJsonObject<iscore::Address>(m_obj["SourceAddress"].toObject()));
     autom.setSourceMin(m_obj["SourceMin"].toDouble());
@@ -110,7 +110,7 @@ void MappingModel::serialize(const VisitorVariant& vis) const
     serialize_dyn(vis, *this);
 }
 
-LayerModel* MappingModel::loadLayer_impl(
+Process::LayerModel* MappingModel::loadLayer_impl(
         const VisitorVariant& vis,
         QObject* parent)
 {

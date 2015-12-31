@@ -37,7 +37,7 @@ void Visitor<Writer<DataStream>>::writeTo(AutomationModel& autom)
 {
     autom.pluginModelList = new iscore::ElementPluginModelList{*this, &autom};
 
-    autom.setCurve(new CurveModel{*this, &autom});
+    autom.setCurve(new Curve::Model{*this, &autom});
 
     iscore::Address address;
     double min, max;
@@ -72,7 +72,7 @@ void Visitor<Writer<JSONObject>>::writeTo(AutomationModel& autom)
     autom.pluginModelList = new iscore::ElementPluginModelList{elementPluginDeserializer, &autom};
 
     Deserializer<JSONObject> curve_deser{m_obj["Curve"].toObject()};
-    autom.setCurve(new CurveModel{curve_deser, &autom});
+    autom.setCurve(new Curve::Model{curve_deser, &autom});
 
     autom.setAddress(fromJsonObject<iscore::Address>(m_obj["Address"].toObject()));
     autom.setMin(m_obj["Min"].toDouble());

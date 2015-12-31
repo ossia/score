@@ -18,7 +18,7 @@ class QObject;
 #include <iscore/tools/SettableIdentifier.hpp>
 #include <iscore_plugin_automation_export.h>
 
-class ISCORE_PLUGIN_AUTOMATION_EXPORT AutomationModel final : public CurveProcessModel
+class ISCORE_PLUGIN_AUTOMATION_EXPORT AutomationModel final : public Curve::CurveProcessModel
 {
         ISCORE_SERIALIZE_FRIENDS(AutomationModel, DataStream)
         ISCORE_SERIALIZE_FRIENDS(AutomationModel, JSONObject)

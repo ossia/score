@@ -14,27 +14,26 @@
 #include <iscore/tools/SettableIdentifier.hpp>
 
 namespace Process { class LayerModel; }
-class Process;
 class ProcessStateDataInterface;
 class QObject;
 
 MappingModel::MappingModel(
         const TimeValue& duration,
-        const Id<Process>& id,
+        const Id<Process::ProcessModel>& id,
         QObject* parent) :
-    CurveProcessModel {duration, id, MappingProcessMetadata::processObjectName(), parent}
+    Curve::CurveProcessModel {duration, id, MappingProcessMetadata::processObjectName(), parent}
 {
     pluginModelList = new iscore::ElementPluginModelList{iscore::IDocument::documentContext(*parent), this};
 
     // Named shall be enough ?
-    setCurve(new CurveModel{Id<CurveModel>(45345), this});
+    setCurve(new Curve::Model{Id<Curve::Model>(45345), this});
 
-    auto s1 = new DefaultCurveSegmentModel(Id<CurveSegmentModel>(1), m_curve);
+    auto s1 = new Curve::DefaultCurveSegmentModel(Id<Curve::SegmentModel>(1), m_curve);
     s1->setStart({0., 0.0});
     s1->setEnd({1., 1.});
 
     m_curve->addSegment(s1);
-    connect(m_curve, &CurveModel::changed,
+    connect(m_curve, &Curve::Model::changed,
             this, &MappingModel::curveChanged);
 
     metadata.setName(QString("Mapping.%1").arg(*this->id().val()));
@@ -42,7 +41,7 @@ MappingModel::MappingModel(
 
 MappingModel::MappingModel(
         const MappingModel& source,
-        const Id<Process>& id,
+        const Id<Process::ProcessModel>& id,
         QObject* parent):
     CurveProcessModel{source, id, MappingProcessMetadata::processObjectName(), parent},
     m_sourceAddress(source.sourceAddress()),
@@ -54,13 +53,13 @@ MappingModel::MappingModel(
 {
     setCurve(source.curve().clone(source.curve().id(), this));
     pluginModelList = new iscore::ElementPluginModelList(*source.pluginModelList, this);
-    connect(m_curve, &CurveModel::changed,
+    connect(m_curve, &Curve::Model::changed,
             this, &MappingModel::curveChanged);
     metadata.setName(QString("Mapping.%1").arg(*this->id().val()));
 }
 
-Process* MappingModel::clone(
-        const Id<Process>& newId,
+Process::ProcessModel* MappingModel::clone(
+        const Id<Process::ProcessModel>& newId,
         QObject* newParent) const
 {
     return new MappingModel {*this, newId, newParent};
@@ -96,8 +95,8 @@ void MappingModel::setDurationAndShrink(const TimeValue& newDuration)
     m_curve->changed();
 }
 
-LayerModel* MappingModel::makeLayer_impl(
-        const Id<LayerModel>& viewModelId,
+Process::LayerModel* MappingModel::makeLayer_impl(
+        const Id<Process::LayerModel>& viewModelId,
         const QByteArray& constructionData,
         QObject* parent)
 {
@@ -105,9 +104,9 @@ LayerModel* MappingModel::makeLayer_impl(
     return vm;
 }
 
-LayerModel* MappingModel::cloneLayer_impl(
-        const Id<LayerModel>& newId,
-        const LayerModel& source,
+Process::LayerModel* MappingModel::cloneLayer_impl(
+        const Id<Process::LayerModel>& newId,
+        const Process::LayerModel& source,
         QObject* parent)
 {
     auto vm = new MappingLayerModel {

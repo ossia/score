@@ -7,9 +7,6 @@
 #include <iscore/statemachine/GraphicsSceneToolPalette.hpp>
 #include <QPoint>
 #include <iscore_plugin_curve_export.h>
-class CurveModel;
-class CurvePresenter;
-class CurveView;
 namespace iscore {
 class CommandStackFacade;
 class ObjectLocker;
@@ -19,16 +16,19 @@ struct LayerContext;
 
 namespace Curve
 {
+class Model;
+class Presenter;
+class View;
 class ISCORE_PLUGIN_CURVE_EXPORT ToolPalette final : public GraphicsSceneToolPalette
 {
         Q_OBJECT
     public:
-        ToolPalette(LayerContext& f, CurvePresenter& pres);
+        ToolPalette(LayerContext& f, Presenter& pres);
 
-        CurvePresenter& presenter() const;
+        Presenter& presenter() const;
         Curve::EditionSettings& editionSettings() const;
 
-        const CurveModel& model() const;
+        const Model& model() const;
 
         const LayerContext& context() const
         { return m_context; }
@@ -44,7 +44,7 @@ class ISCORE_PLUGIN_CURVE_EXPORT ToolPalette final : public GraphicsSceneToolPal
     private:
         Curve::Point ScenePointToCurvePoint(const QPointF& point);
 
-        CurvePresenter& m_presenter;
+        Presenter& m_presenter;
 
         const LayerContext& m_context;
 
@@ -56,6 +56,6 @@ class ISCORE_PLUGIN_CURVE_EXPORT ToolPalette final : public GraphicsSceneToolPal
             Curve::Tool,
             ToolPalette,
             LayerContext,
-            CurveView> m_inputDisp;
+            View> m_inputDisp;
 };
 }

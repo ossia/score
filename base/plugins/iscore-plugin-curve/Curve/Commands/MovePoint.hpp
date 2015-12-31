@@ -7,24 +7,26 @@
 #include <Curve/Palette/CurvePoint.hpp>
 #include <iscore/tools/SettableIdentifier.hpp>
 #include <iscore_plugin_curve_export.h>
-class CurveModel;
-class CurvePointModel;
 class DataStreamInput;
 class DataStreamOutput;
 
+namespace Curve
+{
+class Model;
+class PointModel;
 class ISCORE_PLUGIN_CURVE_EXPORT MovePoint final : public iscore::SerializableCommand
 {
-        ISCORE_COMMAND_DECL(CurveCommandFactoryName(), MovePoint, "Move a point")
+        ISCORE_COMMAND_DECL(CommandFactoryName(), MovePoint, "Move a point")
         public:
-            MovePoint(Path<CurveModel>&& model,
-                      const Id<CurvePointModel>& pointId,
+            MovePoint(Path<Model>&& model,
+                      const Id<PointModel>& pointId,
                       Curve::Point newPoint);
 
         void undo() const override;
         void redo() const override;
 
-        void update(Path<CurveModel>&& model,
-                    const Id<CurvePointModel>& pointId,
+        void update(Path<Model>&& model,
+                    const Id<PointModel>& pointId,
                     const Curve::Point& newPoint);
 
     protected:
@@ -32,9 +34,10 @@ class ISCORE_PLUGIN_CURVE_EXPORT MovePoint final : public iscore::SerializableCo
         void deserializeImpl(DataStreamOutput & s) override;
 
     private:
-        Path<CurveModel> m_model;
-        Id<CurvePointModel> m_pointId;
+        Path<Model> m_model;
+        Id<PointModel> m_pointId;
         Curve::Point m_newPoint;
         Curve::Point m_oldPoint;
 };
 
+}

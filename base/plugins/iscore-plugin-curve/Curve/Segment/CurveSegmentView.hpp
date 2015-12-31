@@ -3,28 +3,28 @@
 #include <QPainterPath>
 #include <QPoint>
 #include <QRect>
+#include <iscore/tools/SettableIdentifier.hpp>
 
-class CurveSegmentModel;
 class QGraphicsSceneContextMenuEvent;
 class QPainter;
 class QStyleOptionGraphicsItem;
 class QWidget;
-#include <iscore/tools/SettableIdentifier.hpp>
 
 namespace Curve
 {
+class SegmentModel;
+
 struct Style;
-}
-class CurveSegmentView final : public QGraphicsObject
+class SegmentView final : public QGraphicsObject
 {
         Q_OBJECT
     public:
-        CurveSegmentView(
-                const CurveSegmentModel* model,
+        SegmentView(
+                const SegmentModel* model,
                 const Curve::Style& style,
                 QGraphicsItem* parent);
 
-        const Id<CurveSegmentModel>& id() const;
+        const Id<SegmentModel>& id() const;
 
         static constexpr int static_type()
         { return QGraphicsItem::UserType + 11; }
@@ -51,8 +51,8 @@ class CurveSegmentView final : public QGraphicsObject
 
         void paint(QPainter *painter, const QStyleOptionGraphicsItem *option, QWidget *widget) override;
 
-        void setModel(const CurveSegmentModel*);
-        const CurveSegmentModel& model() const
+        void setModel(const SegmentModel*);
+        const SegmentModel& model() const
         { return *m_model; }
 
         void setRect(const QRectF& theRect);
@@ -74,7 +74,7 @@ class CurveSegmentView final : public QGraphicsObject
         // QGraphicsItem interface
         QRectF m_rect;
 
-        const CurveSegmentModel* m_model{};
+        const SegmentModel* m_model{};
         const Curve::Style& m_style;
         bool m_selected{};
 
@@ -83,3 +83,5 @@ class CurveSegmentView final : public QGraphicsObject
 
         bool m_enabled{true};
 };
+
+}

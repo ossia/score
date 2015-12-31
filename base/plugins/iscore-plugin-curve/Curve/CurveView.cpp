@@ -10,7 +10,9 @@
 class QStyleOptionGraphicsItem;
 class QWidget;
 
-CurveView::CurveView(QGraphicsItem *parent):
+namespace Curve
+{
+View::View(QGraphicsItem *parent):
     QGraphicsObject{parent}
 {
     //this->setCursor(Qt::ArrowCursor);
@@ -19,11 +21,11 @@ CurveView::CurveView(QGraphicsItem *parent):
     this->setZValue(1);
 }
 
-CurveView::~CurveView()
+View::~View()
 {
 }
 
-void CurveView::paint(QPainter *painter, const QStyleOptionGraphicsItem *option, QWidget *widget)
+void View::paint(QPainter *painter, const QStyleOptionGraphicsItem *option, QWidget *widget)
 {
     painter->setPen(Qt::transparent);
     painter->setBrush(Qt::transparent);
@@ -38,50 +40,51 @@ void CurveView::paint(QPainter *painter, const QStyleOptionGraphicsItem *option,
     }
 }
 
-void CurveView::setSelectionArea(const QRectF& rect)
+void View::setSelectionArea(const QRectF& rect)
 {
     m_selectArea = rect;
     update();
 }
 
-void CurveView::mousePressEvent(QGraphicsSceneMouseEvent *event)
+void View::mousePressEvent(QGraphicsSceneMouseEvent *event)
 {
     if(event->button() == Qt::LeftButton)
         emit pressed(event->scenePos());
     event->accept();
 }
 
-void CurveView::mouseMoveEvent(QGraphicsSceneMouseEvent *event)
+void View::mouseMoveEvent(QGraphicsSceneMouseEvent *event)
 {
     emit moved(event->scenePos());
     event->accept();
 }
 
-void CurveView::mouseReleaseEvent(QGraphicsSceneMouseEvent *event)
+void View::mouseReleaseEvent(QGraphicsSceneMouseEvent *event)
 {
     emit released(event->scenePos());
     event->accept();
 }
 
-void CurveView::keyPressEvent(QKeyEvent* ev)
+void View::keyPressEvent(QKeyEvent* ev)
 {
     emit keyPressed(ev->key());
     ev->accept();
 }
 
-void CurveView::keyReleaseEvent(QKeyEvent* ev)
+void View::keyReleaseEvent(QKeyEvent* ev)
 {
     emit keyReleased(ev->key());
     ev->accept();
 }
 
-void CurveView::contextMenuEvent(QGraphicsSceneContextMenuEvent* ev)
+void View::contextMenuEvent(QGraphicsSceneContextMenuEvent* ev)
 {
     emit contextMenuRequested(ev->screenPos(), ev->scenePos());
 }
 
-void CurveView::setRect(const QRectF& theRect)
+void View::setRect(const QRectF& theRect)
 {
     prepareGeometryChange();
     m_rect = theRect;
+}
 }

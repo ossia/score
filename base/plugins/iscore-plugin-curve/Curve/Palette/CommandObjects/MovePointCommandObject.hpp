@@ -2,15 +2,17 @@
 #include <Curve/Segment/CurveSegmentData.hpp>
 #include "CurveCommandObjectBase.hpp"
 
-class CurvePresenter;
 namespace iscore {
 class CommandStackFacade;
 }  // namespace iscore
 
-class MovePointCommandObject final : public CurveCommandObjectBase
+namespace Curve
+{
+class Presenter;
+class MovePointCommandObject final : public CommandObjectBase
 {
     public:
-        MovePointCommandObject(CurvePresenter* presenter, iscore::CommandStackFacade& stack);
+        MovePointCommandObject(Presenter* presenter, iscore::CommandStackFacade& stack);
 
         void on_press() override;
 
@@ -27,3 +29,4 @@ class MovePointCommandObject final : public CurveCommandObjectBase
         void setCurrentPoint(CurveSegmentMap& segments);
 
 };
+}

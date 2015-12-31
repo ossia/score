@@ -13,6 +13,8 @@ class CommandStackFacade;
 // How to find the previous - next segments ? They have to be linked...
 // How to prevent overlapping segments ?
 // Can move create new segments ? I'd say no.
+namespace Curve
+{
 class MoveSegmentCommandObject
 {
     public:
@@ -29,3 +31,4 @@ class MoveSegmentCommandObject
     private:
         //SingleOngoingCommandDispatcher m_dispatcher;
 };
+}

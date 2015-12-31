@@ -8,7 +8,7 @@
 #include <Process/ProcessContext.hpp>
 
 class AutomationPresenter final :
-        public CurveProcessPresenter<
+        public Curve::CurveProcessPresenter<
             AutomationLayerModel,
             AutomationView>
 {

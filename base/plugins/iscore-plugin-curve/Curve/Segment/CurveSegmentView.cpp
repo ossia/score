@@ -14,7 +14,8 @@
 class QStyleOptionGraphicsItem;
 class QWidget;
 #include <iscore/tools/SettableIdentifier.hpp>
-
+namespace Curve
+{
 static const QPainterPathStroker CurveSegmentStroker{
     [] () {
         QPen p;
@@ -22,8 +23,8 @@ static const QPainterPathStroker CurveSegmentStroker{
         return p;
     }()
 };
-CurveSegmentView::CurveSegmentView(
-        const CurveSegmentModel* model,
+SegmentView::SegmentView(
+        const SegmentModel* model,
         const Curve::Style& style,
         QGraphicsItem *parent):
     QGraphicsObject{parent},
@@ -35,37 +36,37 @@ CurveSegmentView::CurveSegmentView(
     setModel(model);
 }
 
-void CurveSegmentView::setModel(const CurveSegmentModel* model)
+void SegmentView::setModel(const SegmentModel* model)
 {
     m_model = model;
 
     if(m_model)
     {
         con(m_model->selection, &Selectable::changed,
-            this, &CurveSegmentView::setSelected);
-        connect(m_model, &CurveSegmentModel::dataChanged,
-            this, &CurveSegmentView::updatePoints);
+            this, &SegmentView::setSelected);
+        connect(m_model, &SegmentModel::dataChanged,
+            this, &SegmentView::updatePoints);
     }
 }
 
-const Id<CurveSegmentModel>& CurveSegmentView::id() const
+const Id<SegmentModel>& SegmentView::id() const
 {
     return m_model->id();
 }
 
-void CurveSegmentView::setRect(const QRectF& theRect)
+void SegmentView::setRect(const QRectF& theRect)
 {
     prepareGeometryChange();
     m_rect = theRect;
     updatePoints();
 }
 
-QRectF CurveSegmentView::boundingRect() const
+QRectF SegmentView::boundingRect() const
 {
     return m_rect;
 }
 
-void CurveSegmentView::paint(
+void SegmentView::paint(
         QPainter *painter,
         const QStyleOptionGraphicsItem *option,
         QWidget *widget)
@@ -85,25 +86,25 @@ void CurveSegmentView::paint(
 }
 
 
-void CurveSegmentView::setSelected(bool selected)
+void SegmentView::setSelected(bool selected)
 {
     m_selected = selected;
     update();
 }
 
-void CurveSegmentView::enable()
+void SegmentView::enable()
 {
     m_enabled = true;
     update();
 }
 
-void CurveSegmentView::disable()
+void SegmentView::disable()
 {
     m_enabled = false;
     update();
 }
 
-void CurveSegmentView::updatePoints()
+void SegmentView::updatePoints()
 {
     if(!m_model)
         return;
@@ -142,7 +143,8 @@ void CurveSegmentView::updatePoints()
 
 
 
-void CurveSegmentView::contextMenuEvent(QGraphicsSceneContextMenuEvent* ev)
+void SegmentView::contextMenuEvent(QGraphicsSceneContextMenuEvent* ev)
 {
     emit contextMenuRequested(ev->screenPos(), ev->scenePos());
+}
 }

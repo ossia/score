@@ -16,7 +16,7 @@ InspectorWidgetBase* CurvePointInspectorFactory::makeWidget(
         QWidget* parent) const
 {
     return new CurvePointInspectorWidget{
-        safe_cast<const CurvePointModel&>(sourceElement),
+        safe_cast<const Curve::PointModel&>(sourceElement),
                 doc,
                 parent};
 }

@@ -12,12 +12,14 @@ class QPainter;
 class QStyleOptionGraphicsItem;
 class QWidget;
 
-class ISCORE_PLUGIN_CURVE_EXPORT CurveView final : public QGraphicsObject
+namespace Curve
+{
+class ISCORE_PLUGIN_CURVE_EXPORT View final : public QGraphicsObject
 {
         Q_OBJECT
     public:
-        explicit CurveView(QGraphicsItem* parent);
-        virtual ~CurveView();
+        explicit View(QGraphicsItem* parent);
+        virtual ~View();
 
         void setRect(const QRectF& theRect);
 
@@ -58,4 +60,5 @@ class ISCORE_PLUGIN_CURVE_EXPORT CurveView final : public QGraphicsObject
         QRectF m_rect; // The rect in which the whole curve must fit.
         QRectF m_selectArea;
 };
+}
 
