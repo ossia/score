@@ -16,23 +16,23 @@ using namespace DeviceExplorer::Command;
 
 Remove::Remove(
         Path<DeviceDocumentPlugin> device_tree,
-        const iscore::Node& node)
+        const Device::Node& node)
 {
     ISCORE_ASSERT(!node.is<InvisibleRootNodeTag>());
 
-    if (node.is<iscore::AddressSettings>())
+    if (node.is<Device::AddressSettings>())
     {
         m_device = false;
         m_cmd = new RemoveAddress{
                     std::move(device_tree),
-                    iscore::NodePath{node}};
+                    Device::NodePath{node}};
     }
     else
     {
         m_device = true;
         m_cmd = new LoadDevice{
                     std::move(device_tree),
-                    iscore::Node{node}};
+                    Device::Node{node}};
     }
 }
 

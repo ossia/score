@@ -8,7 +8,7 @@
 #include <iscore/tools/ModelPath.hpp>
 #include <iscore/tools/ModelPathSerialization.hpp>
 
-namespace iscore {
+namespace State {
 struct Address;
 }  // namespace iscore
 
@@ -16,7 +16,7 @@ namespace Automation
 {
 InitAutomation::InitAutomation(
         Path<ProcessModel>&& path,
-        const iscore::Address& newaddr,
+        const ::State::Address& newaddr,
         double newmin,
         double newmax,
         std::vector<Curve::SegmentData>&& segments):

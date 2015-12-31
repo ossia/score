@@ -2,13 +2,13 @@
 #include "MetadataParameters.hpp"
 #include <Scenario/Document/TimeNode/Trigger/TriggerModel.hpp>
 
-namespace OSSIA
+namespace Ossia
 {
 namespace LocalTree
 {
 
 TimeNodeComponent::TimeNodeComponent(
-        Node& parent,
+        OSSIA::Node& parent,
         const Id<iscore::Component>& id,
         TimeNodeModel& timeNode,
         const TimeNodeComponent::system_t& doc,
@@ -20,7 +20,7 @@ TimeNodeComponent::TimeNodeComponent(
     make_metadata_node(timeNode.metadata, thisNode(), m_properties, this);
 
     m_properties.push_back(
-    add_setProperty<iscore::impulse_t>(thisNode(), "trigger",
+    add_setProperty<State::impulse_t>(thisNode(), "trigger",
                                        [&] (auto) {
         timeNode.trigger()->triggered();
     }));
@@ -28,7 +28,7 @@ TimeNodeComponent::TimeNodeComponent(
 
 const iscore::Component::Key&TimeNodeComponent::key() const
 {
-    static const Key k{"OSSIA::LocalTree::TimeNodeComponent"};
+    static const Key k{"Ossia::LocalTree::TimeNodeComponent"};
     return k;
 }
 

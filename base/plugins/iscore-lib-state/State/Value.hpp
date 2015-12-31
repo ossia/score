@@ -14,7 +14,7 @@ class DataStream;
 class JSONObject;
 class QDebug;
 
-namespace iscore
+namespace State
 {
 struct no_value_t {};
 inline bool operator==(no_value_t, no_value_t) { return true; }
@@ -102,7 +102,7 @@ struct ISCORE_LIB_STATE_EXPORT Value
         template<typename Val>
         static Value fromValue(Val&& val)
         {
-            return iscore::Value{std::forward<Val>(val)};
+            return State::Value{std::forward<Val>(val)};
         }
 
         Value() = default;
@@ -119,11 +119,11 @@ struct ISCORE_LIB_STATE_EXPORT Value
 };
 
 using ValueList = QList<Value>;
-using OptionalValue = boost::optional<iscore::Value>;
+using OptionalValue = boost::optional<State::Value>;
 }
 
-Q_DECLARE_METATYPE(iscore::no_value_t)
-Q_DECLARE_METATYPE(iscore::impulse_t)
-Q_DECLARE_METATYPE(iscore::Value)
-Q_DECLARE_METATYPE(iscore::ValueList)
+Q_DECLARE_METATYPE(State::no_value_t)
+Q_DECLARE_METATYPE(State::impulse_t)
+Q_DECLARE_METATYPE(State::Value)
+Q_DECLARE_METATYPE(State::ValueList)
 

@@ -12,12 +12,12 @@ TriggerModel::TriggerModel(const Id<TriggerModel>& id, QObject* parent):
 
 }
 
-iscore::Trigger TriggerModel::expression() const
+State::Trigger TriggerModel::expression() const
 {
     return m_expression;
 }
 
-void TriggerModel::setExpression(const iscore::Trigger& expression)
+void TriggerModel::setExpression(const State::Trigger& expression)
 {
     if (m_expression == expression)
         return;

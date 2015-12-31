@@ -125,7 +125,7 @@ void AreaWidget::setActiveArea(const AreaModel *area)
             }
 
             // Storing a value
-            param_widg->defaultValue()->setValue(iscore::convert::value<double>((*param_it).second.value));
+            param_widg->defaultValue()->setValue(State::convert::value<double>((*param_it).second.value));
 
             // Storing an address
             param_widg->address()->setText((*param_it).second.address.toString());
@@ -215,7 +215,7 @@ void AreaWidget::validate()
     }
 
 
-    QMap<QString, iscore::FullAddressSettings> param_map;
+    QMap<QString, Device::FullAddressSettings> param_map;
     for(int param_i = 0; param_i < m_paramMappingLayout->rowCount(); param_i++)
     {
         auto it = m_paramMappingLayout->itemAt(param_i, QFormLayout::ItemRole::LabelRole);
@@ -234,12 +234,12 @@ void AreaWidget::validate()
         if(!param_widg->isEnabled())
             continue;
 
-        iscore::FullAddressSettings addr;
-        if(iscore::Address::validateString(param_widg->address()->text()))
+        Device::FullAddressSettings addr;
+        if(State::Address::validateString(param_widg->address()->text()))
         {
-            addr.address = iscore::Address::fromString(param_widg->address()->text());
+            addr.address = State::Address::fromString(param_widg->address()->text());
         }
-        addr.value = iscore::convert::toValue(param_widg->defaultValue()->value());
+        addr.value = State::convert::toValue(param_widg->defaultValue()->value());
         param_map.insert(label->text(), addr);
     }
 

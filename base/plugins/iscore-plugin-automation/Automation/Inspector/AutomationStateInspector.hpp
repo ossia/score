@@ -10,19 +10,19 @@ class Document;
 
 namespace Automation
 {
-class State;
+class ProcessState;
 class StateInspectorWidget final : public InspectorWidgetBase
 {
     public:
         explicit StateInspectorWidget(
-                const State& object,
+                const ProcessState& object,
                 const iscore::DocumentContext& context,
                 QWidget* parent = 0);
 
     private:
         void on_stateChanged();
 
-        const State& m_state;
+        const ProcessState& m_state;
         QLabel* m_label{};
 };
 }

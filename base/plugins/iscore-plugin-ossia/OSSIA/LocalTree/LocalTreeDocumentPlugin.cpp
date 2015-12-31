@@ -33,8 +33,8 @@
 
 #include "Scenario/ScenarioComponent.hpp"
 
-ISCORE_METADATA_IMPL(OSSIA::LocalTree::DocumentPlugin)
-OSSIA::LocalTree::DocumentPlugin::DocumentPlugin(
+ISCORE_METADATA_IMPL(Ossia::LocalTree::DocumentPlugin)
+Ossia::LocalTree::DocumentPlugin::DocumentPlugin(
         std::shared_ptr<OSSIA::Device> localDev,
         iscore::Document& doc,
         QObject* parent):
@@ -53,7 +53,7 @@ OSSIA::LocalTree::DocumentPlugin::DocumentPlugin(
                             doc.context(),
                             this));
 
-    //OSSIA::LocalTree::ScenarioVisitor v;
+    //Ossia::LocalTree::ScenarioVisitor v;
     //v.visit(cstr, m_dev);
 
 }

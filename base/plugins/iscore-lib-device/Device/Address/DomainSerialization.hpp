@@ -5,5 +5,8 @@
 
 #include <Device/Address/Domain.hpp>
 
-QJsonObject DomainToJson(const iscore::Domain& d);
-iscore::Domain JsonToDomain(const QJsonObject& obj, const QString& t);
+namespace Device
+{
+QJsonObject DomainToJson(const Device::Domain& d);
+Device::Domain JsonToDomain(const QJsonObject& obj, const QString& t);
+}

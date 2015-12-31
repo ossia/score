@@ -78,9 +78,9 @@ OSCProtocolSettingsWidget::setDefaults()
 
 class QWidget;
 
-iscore::DeviceSettings OSCProtocolSettingsWidget::getSettings() const
+Device::DeviceSettings OSCProtocolSettingsWidget::getSettings() const
 {
-    iscore::DeviceSettings s;
+    Device::DeviceSettings s;
     s.name = m_deviceNameEdit->text();
 
     OSCSpecificSettings osc;
@@ -100,7 +100,7 @@ QString OSCProtocolSettingsWidget::getPath() const
 }
 
 void
-OSCProtocolSettingsWidget::setSettings(const iscore::DeviceSettings &settings)
+OSCProtocolSettingsWidget::setSettings(const Device::DeviceSettings &settings)
 {
 /*
     ISCORE_ASSERT(settings.size() == 5);

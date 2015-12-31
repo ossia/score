@@ -2,7 +2,7 @@
 #include <iscore/tools/std/Algorithms.hpp>
 #include "MetadataParameters.hpp"
 
-namespace OSSIA
+namespace Ossia
 {
 namespace LocalTree
 {
@@ -10,13 +10,13 @@ namespace LocalTree
 
 const iscore::Component::Key&ConstraintComponent::key() const
 {
-    static const Key k{"OSSIA::LocalTree::ConstraintComponent"};
+    static const Key k{"Ossia::LocalTree::ConstraintComponent"};
     return k;
 }
 
 
 ConstraintComponent::ConstraintComponent(
-        Node& parent,
+        OSSIA::Node& parent,
         const Id<iscore::Component>& id,
         ConstraintModel& constraint,
         const ConstraintComponent::system_t& doc,

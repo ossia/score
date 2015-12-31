@@ -14,9 +14,9 @@
 class ISCORE_LIB_STATE_EXPORT AddressValidator final : public QValidator
 {
     public:
-        State validate(QString& s, int& pos) const override
+        QValidator::State validate(QString& s, int& pos) const override
         {
-            return iscore::Address::validateString(s)
+            return ::State::Address::validateString(s)
                     ? State::Acceptable
                     : State::Intermediate;
         }

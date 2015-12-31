@@ -19,15 +19,15 @@ class ISCORE_LIB_DEVICE_EXPORT AddressEditWidget final : public QWidget
     public:
         AddressEditWidget(DeviceExplorerModel* model, QWidget* parent);
 
-        void setAddress(const iscore::Address& addr);
+        void setAddress(const State::Address& addr);
 
-        const iscore::Address& address() const
+        const State::Address& address() const
         { return m_address; }
 
     signals:
-        void addressChanged(const iscore::Address&);
+        void addressChanged(const State::Address&);
 
     private:
         AddressLineEdit* m_lineEdit{};
-        iscore::Address m_address;
+        State::Address m_address;
 };

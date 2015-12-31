@@ -39,7 +39,7 @@ void Visitor<Writer<DataStream>>::writeTo(Automation::ProcessModel& autom)
 
     autom.setCurve(new Curve::Model{*this, &autom});
 
-    iscore::Address address;
+    State::Address address;
     double min, max;
 
     m_stream >> address >> min >> max;
@@ -74,7 +74,7 @@ void Visitor<Writer<JSONObject>>::writeTo(Automation::ProcessModel& autom)
     Deserializer<JSONObject> curve_deser{m_obj["Curve"].toObject()};
     autom.setCurve(new Curve::Model{curve_deser, &autom});
 
-    autom.setAddress(fromJsonObject<iscore::Address>(m_obj["Address"].toObject()));
+    autom.setAddress(fromJsonObject<State::Address>(m_obj["Address"].toObject()));
     autom.setMin(m_obj["Min"].toDouble());
     autom.setMax(m_obj["Max"].toDouble());
 }

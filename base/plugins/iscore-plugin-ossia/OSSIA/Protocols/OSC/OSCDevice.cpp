@@ -9,7 +9,7 @@
 #include "OSCDevice.hpp"
 #include <OSSIA/Protocols/OSC/OSCSpecificSettings.hpp>
 
-OSCDevice::OSCDevice(const iscore::DeviceSettings &settings):
+OSCDevice::OSCDevice(const Device::DeviceSettings &settings):
     OSSIADevice{settings}
 {
     using namespace OSSIA;

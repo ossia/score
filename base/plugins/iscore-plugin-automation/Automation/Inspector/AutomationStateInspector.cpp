@@ -17,7 +17,7 @@ class Document;
 namespace Automation
 {
 StateInspectorWidget::StateInspectorWidget(
-        const State& object,
+        const ProcessState& object,
         const iscore::DocumentContext& doc,
         QWidget* parent):
     InspectorWidgetBase{object, doc, parent},

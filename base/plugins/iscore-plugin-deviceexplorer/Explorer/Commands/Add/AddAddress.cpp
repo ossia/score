@@ -14,16 +14,16 @@ using namespace DeviceExplorer::Command;
 
 AddAddress::AddAddress(
         Path<DeviceDocumentPlugin>&& device_tree,
-        const iscore::NodePath& nodePath,
+        const Device::NodePath& nodePath,
         InsertMode insert,
-        const iscore::AddressSettings &addressSettings):
+        const Device::AddressSettings &addressSettings):
     m_devicesModel{device_tree}
 {
     m_addressSettings = addressSettings;
 
     auto& devplug = m_devicesModel.find();
 
-    const iscore::Node* parentNode{};
+    const Device::Node* parentNode{};
     // DeviceExplorerWidget prevents adding a sibling on a Device
     if (insert == InsertMode::AsChild)
     {
@@ -34,7 +34,7 @@ AddAddress::AddAddress(
         parentNode =  nodePath.toNode(&devplug.rootNode())->parent();
     }
     ISCORE_ASSERT(parentNode);
-    m_parentNodePath = iscore::NodePath{*parentNode};
+    m_parentNodePath = Device::NodePath{*parentNode};
 }
 
 void AddAddress::undo() const

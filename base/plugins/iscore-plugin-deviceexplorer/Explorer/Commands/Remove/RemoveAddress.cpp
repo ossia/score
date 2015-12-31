@@ -15,7 +15,7 @@
 
 RemoveAddress::RemoveAddress(
         Path<DeviceDocumentPlugin>&& device_tree,
-        const iscore::NodePath& nodePath):
+        const Device::NodePath& nodePath):
     m_devicesModel{device_tree},
     m_nodePath{nodePath}
 {
@@ -23,7 +23,7 @@ RemoveAddress::RemoveAddress(
 
     auto n = nodePath.toNode(&devplug.rootNode());
     ISCORE_ASSERT(n);
-    ISCORE_ASSERT(n->is<iscore::AddressSettings>());
+    ISCORE_ASSERT(n->is<Device::AddressSettings>());
     m_savedNode = *n;
 }
 
@@ -43,7 +43,7 @@ void RemoveAddress::redo() const
     parentPath.removeLast();
     devplug.updateProxy.removeNode(
                 parentPath,
-                m_savedNode.get<iscore::AddressSettings>());
+                m_savedNode.get<Device::AddressSettings>());
 }
 
 void RemoveAddress::serializeImpl(DataStreamInput &s) const

@@ -27,9 +27,9 @@ class ISCORE_PLUGIN_DEVICEEXPLORER_EXPORT DeviceDocumentPlugin final : public is
 
         void serialize(const VisitorVariant&) const override;
 
-        iscore::Node& rootNode()
+        Device::Node& rootNode()
         { return m_rootNode; }
-        const iscore::Node& rootNode() const
+        const Device::Node& rootNode() const
         { return m_rootNode; }
 
         DeviceList& list()
@@ -40,8 +40,8 @@ class ISCORE_PLUGIN_DEVICEEXPLORER_EXPORT DeviceDocumentPlugin final : public is
 
         // TODO make functions that take an address and call list().device(...).TheRelevantMethod
 
-        iscore::Node createDeviceFromNode(const iscore::Node&);
-        iscore::Node loadDeviceFromNode(const iscore::Node&);
+        Device::Node createDeviceFromNode(const Device::Node&);
+        Device::Node loadDeviceFromNode(const Device::Node&);
 
         NodeUpdateProxy updateProxy{*this};
 
@@ -53,7 +53,7 @@ class ISCORE_PLUGIN_DEVICEEXPLORER_EXPORT DeviceDocumentPlugin final : public is
 
     private:
         void initDevice(DeviceInterface&);
-        iscore::Node m_rootNode;
+        Device::Node m_rootNode;
         DeviceList m_list;
 };
 

@@ -15,7 +15,7 @@ class LoadDevice final : public iscore::SerializableCommand
         public:
           LoadDevice(
             Path<DeviceDocumentPlugin>&& device_tree,
-            iscore::Node&& node);
+            Device::Node&& node);
 
 
         void undo() const override;
@@ -27,5 +27,5 @@ class LoadDevice final : public iscore::SerializableCommand
 
     private:
         Path<DeviceDocumentPlugin> m_devicesModel;
-        iscore::Node m_deviceNode;
+        Device::Node m_deviceNode;
 };

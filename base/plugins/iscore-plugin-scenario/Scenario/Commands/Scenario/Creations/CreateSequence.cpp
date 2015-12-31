@@ -59,10 +59,10 @@ CreateSequence::CreateSequence(
     auto& scenar = m_command.scenarioPath().find();
     const auto& startMessages = flatten(scenar.state(startState).messages().rootNode());
 
-    std::vector<iscore::FullAddressSettings> endAddresses;
+    std::vector<Device::FullAddressSettings> endAddresses;
     endAddresses.reserve(startMessages.size());
     std::transform(startMessages.begin(), startMessages.end(), std::back_inserter(endAddresses),
-                   [] (const auto& mess) { return iscore::FullAddressSettings::make(mess); });
+                   [] (const auto& mess) { return Device::FullAddressSettings::make(mess); });
 
     auto& devPlugin = iscore::IDocument::documentContext(scenario).plugin<DeviceDocumentPlugin>();
     auto& rootNode = devPlugin.rootNode();
@@ -72,13 +72,13 @@ CreateSequence::CreateSequence(
     {
         auto& mess = *it;
 
-        auto node = iscore::try_getNodeFromAddress(rootNode, mess.address);
+        auto node = Device::try_getNodeFromAddress(rootNode, mess.address);
 
-        if(node && node->is<iscore::AddressSettings>())
+        if(node && node->is<Device::AddressSettings>())
         {
             devPlugin.updateProxy.refreshRemoteValue(mess.address);
-            const auto& nodeImpl = node->get<iscore::AddressSettings>();
-            static_cast<iscore::AddressSettingsCommon&>(mess) = static_cast<const iscore::AddressSettingsCommon&>(nodeImpl);
+            const auto& nodeImpl = node->get<Device::AddressSettings>();
+            static_cast<Device::AddressSettingsCommon&>(mess) = static_cast<const Device::AddressSettingsCommon&>(nodeImpl);
             ++it;
         }
         else
@@ -87,15 +87,15 @@ CreateSequence::CreateSequence(
         }
     }
 
-    QList<iscore::Message> endMessages;
+    QList<State::Message> endMessages;
     endMessages.reserve(endAddresses.size());
     std::transform(endAddresses.begin(), endAddresses.end(), std::back_inserter(endMessages),
-                   [] (const auto& addr) { return iscore::Message{addr.address, addr.value}; });
+                   [] (const auto& addr) { return State::Message{addr.address, addr.value}; });
 
     updateTreeWithMessageList(m_stateData, endMessages);
 
     // We also create relevant curves.
-    std::vector<std::pair<const iscore::Message*, const iscore::FullAddressSettings*>> matchingMessages;
+    std::vector<std::pair<const State::Message*, const Device::FullAddressSettings*>> matchingMessages;
     // First we filter the messages
     for(auto& message : startMessages)
     {
@@ -145,13 +145,13 @@ CreateSequence::CreateSequence(
             }
 
 
-            auto start = iscore::convert::value<double>(elt.first->value);
-            auto end = iscore::convert::value<double>(elt.second->value);
-            double min = (elt.second->domain.min.val.which() != iscore::ValueType::NoValue)
-                           ? std::min(iscore::convert::value<double>(elt.second->domain.min), std::min(start, end))
+            auto start = State::convert::value<double>(elt.first->value);
+            auto end = State::convert::value<double>(elt.second->value);
+            double min = (elt.second->domain.min.val.which() != State::ValueType::NoValue)
+                           ? std::min(State::convert::value<double>(elt.second->domain.min), std::min(start, end))
                            : std::min(start, end);
-            double max = (elt.second->domain.max.val.which() != iscore::ValueType::NoValue)
-                         ? std::max(iscore::convert::value<double>(elt.second->domain.max), std::max(start, end))
+            double max = (elt.second->domain.max.val.which() != State::ValueType::NoValue)
+                         ? std::max(State::convert::value<double>(elt.second->domain.max), std::max(start, end))
                          : std::max(start, end);
 
             auto cmd = new CreateCurveFromStates{

@@ -19,7 +19,7 @@
 class QObject;
 namespace Automation
 {
-State::State(
+ProcessState::ProcessState(
         ProcessModel& model,
         double watchedPoint,
         QObject* parent):
@@ -35,13 +35,13 @@ State::State(
             this, &ProcessStateDataInterface::stateChanged);
 }
 
-QString State::stateName() const
+QString ProcessState::stateName() const
 { return "AutomationState"; }
 
 // TESTME
-iscore::Message State::message() const
+::State::Message ProcessState::message() const
 {
-    iscore::Message m;
+    ::State::Message m;
     m.address = process().address();
     for(const auto& seg : process().curve().segments())
     {
@@ -57,20 +57,20 @@ iscore::Message State::message() const
     return {};
 }
 
-double State::point() const
+double ProcessState::point() const
 { return m_point; }
 
-State *State::clone(QObject* parent) const
+ProcessState *ProcessState::clone(QObject* parent) const
 {
-    return new State{process(), m_point, parent};
+    return new ProcessState{process(), m_point, parent};
 }
 
-ProcessModel& State::process() const
+ProcessModel& ProcessState::process() const
 {
     return static_cast<ProcessModel&>(ProcessStateDataInterface::process());
 }
 
-std::vector<iscore::Address> State::matchingAddresses()
+std::vector<State::Address> ProcessState::matchingAddresses()
 {
     // TODO have a better check of "address validity"
     if(!process().address().device.isEmpty())
@@ -78,7 +78,7 @@ std::vector<iscore::Address> State::matchingAddresses()
     return {};
 }
 
-iscore::MessageList State::messages() const
+::State::MessageList ProcessState::messages() const
 {
     if(!process().address().device.isEmpty())
     {
@@ -91,7 +91,9 @@ iscore::MessageList State::messages() const
 }
 
 // TESTME
-iscore::MessageList State::setMessages(const iscore::MessageList& received, const MessageNode&)
+::State::MessageList ProcessState::setMessages(
+        const ::State::MessageList& received,
+        const MessageNode&)
 {
     if(m_point != 0 && m_point != 1)
         return messages();
@@ -103,7 +105,7 @@ iscore::MessageList State::setMessages(const iscore::MessageList& received, cons
         {
             // Scale min, max, and the value
             // TODO convert to the real type of the curve.
-            auto val = iscore::convert::value<float>(mess.value);
+            auto val = State::convert::value<float>(mess.value);
             if(val < process().min())
                 process().setMin(val);
             if(val > process().max())

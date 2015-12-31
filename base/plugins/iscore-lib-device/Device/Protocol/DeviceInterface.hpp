@@ -10,9 +10,12 @@
 #include <State/Value.hpp>
 #include <iscore_lib_device_export.h>
 
-namespace iscore {
-struct FullAddressSettings;
+namespace State
+{
 struct Message;
+}
+namespace Device {
+struct FullAddressSettings;
 }  // namespace iscore
 
 struct ISCORE_LIB_DEVICE_EXPORT DeviceCapabilities
@@ -30,12 +33,12 @@ class ISCORE_LIB_DEVICE_EXPORT DeviceInterface : public QObject
         Q_OBJECT
 
     public:
-        explicit DeviceInterface(const iscore::DeviceSettings& s);
+        explicit DeviceInterface(const Device::DeviceSettings& s);
         virtual ~DeviceInterface();
 
-        const iscore::DeviceSettings& settings() const;
+        const Device::DeviceSettings& settings() const;
 
-        virtual void addNode(const iscore::Node& n);
+        virtual void addNode(const Device::Node& n);
 
         DeviceCapabilities capabilities() const
         { return m_capas; }
@@ -44,41 +47,41 @@ class ISCORE_LIB_DEVICE_EXPORT DeviceInterface : public QObject
         virtual bool reconnect() = 0;
         virtual bool connected() const = 0;
 
-        virtual void updateSettings(const iscore::DeviceSettings&) = 0;
+        virtual void updateSettings(const Device::DeviceSettings&) = 0;
 
         // Asks, and returns all the new addresses if the device can refresh itself Minuit-like.
         // The addresses are not applied to the device, they have to be via a command!
-        virtual iscore::Node refresh() { return {}; }
-        virtual boost::optional<iscore::Value> refresh(const iscore::Address&) { return {}; }
-        virtual void setListening(const iscore::Address&, bool) { }
-        virtual void replaceListening(const std::vector<iscore::Address>&) { }
-        virtual std::vector<iscore::Address> listening() const { return {}; }
+        virtual Device::Node refresh() { return {}; }
+        virtual boost::optional<State::Value> refresh(const State::Address&) { return {}; }
+        virtual void setListening(const State::Address&, bool) { }
+        virtual void replaceListening(const std::vector<State::Address>&) { }
+        virtual std::vector<State::Address> listening() const { return {}; }
 
-        virtual void addAddress(const iscore::FullAddressSettings&) = 0;
-        virtual void updateAddress(const iscore::FullAddressSettings&) = 0;
-        virtual void removeNode(const iscore::Address&) = 0;
+        virtual void addAddress(const Device::FullAddressSettings&) = 0;
+        virtual void updateAddress(const Device::FullAddressSettings&) = 0;
+        virtual void removeNode(const State::Address&) = 0;
 
         // Execution API... Maybe we don't need it here.
-        virtual void sendMessage(const iscore::Message& mess) = 0;
+        virtual void sendMessage(const State::Message& mess) = 0;
         virtual bool check(const QString& str) = 0;
 
         // Make a node from an inside path, if it has been added for instance.
-        virtual iscore::Node getNode(const iscore::Address&) = 0;
+        virtual Device::Node getNode(const State::Address&) = 0;
 
     signals:
         // These signals are emitted if a device changes from the inside
-        void pathAdded(const iscore::Address&);
+        void pathAdded(const State::Address&);
         void pathUpdated(
-                const iscore::Address&, // current address
-                const iscore::AddressSettings&); // new data
-        void pathRemoved(const iscore::Address&);
+                const State::Address&, // current address
+                const Device::AddressSettings&); // new data
+        void pathRemoved(const State::Address&);
 
-        void valueUpdated(const iscore::Address&, const iscore::Value&);
+        void valueUpdated(const State::Address&, const State::Value&);
 
         // In case the whole namespace changed?
         void namespaceUpdated();
 
     protected:
-        iscore::DeviceSettings m_settings;
+        Device::DeviceSettings m_settings;
         DeviceCapabilities m_capas;
 };

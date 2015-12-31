@@ -130,11 +130,11 @@ class ProcessModel : public RecreateOnPlay::OSSIAProcessModel
 namespace LocalTree
 {
 class ProcessLocalTree final :
-        public OSSIA::LocalTree::ProcessComponent
+        public Ossia::LocalTree::ProcessComponent
 {
         COMPONENT_METADATA(SpaceProcessLocalTree)
 
-         using system_t = OSSIA::LocalTree::DocumentPlugin;
+         using system_t = Ossia::LocalTree::DocumentPlugin;
 
      public:
         ProcessLocalTree(
@@ -153,7 +153,7 @@ class ProcessLocalTree final :
 
 
 class ProcessLocalTreeFactory final :
-        public OSSIA::LocalTree::ProcessComponentFactory
+        public Ossia::LocalTree::ProcessComponentFactory
 {
     public:
         virtual ~ProcessLocalTreeFactory();
@@ -161,14 +161,14 @@ class ProcessLocalTreeFactory final :
 
         bool matches(
                 Process::ProcessModel& p,
-                const OSSIA::LocalTree::DocumentPlugin&,
+                const Ossia::LocalTree::DocumentPlugin&,
                 const iscore::DocumentContext&) const override;
 
-        OSSIA::LocalTree::ProcessComponent* make(
+        Ossia::LocalTree::ProcessComponent* make(
                 const Id<iscore::Component>& id,
                 OSSIA::Node& parent,
                 Process::ProcessModel& proc,
-                const OSSIA::LocalTree::DocumentPlugin& doc,
+                const Ossia::LocalTree::DocumentPlugin& doc,
                 const iscore::DocumentContext& ctx,
                 QObject* paren_objt) const override;
 };
@@ -199,7 +199,7 @@ class ISCORE_PLUGIN_SPACE_EXPORT AreaComponent : public iscore::Component
 class ISCORE_PLUGIN_SPACE_EXPORT AreaComponentFactory :
         public ::GenericComponentFactory<
             AreaModel,
-            OSSIA::LocalTree::DocumentPlugin,
+            Ossia::LocalTree::DocumentPlugin,
             Space::LocalTree::AreaComponent>
 {
     public:
@@ -209,7 +209,7 @@ class ISCORE_PLUGIN_SPACE_EXPORT AreaComponentFactory :
                 const Id<iscore::Component>&,
                 OSSIA::Node& parent,
                 AreaModel& proc,
-                const OSSIA::LocalTree::DocumentPlugin& doc,
+                const Ossia::LocalTree::DocumentPlugin& doc,
                 const iscore::DocumentContext& ctx,
                 QObject* paren_objt) const = 0;
 };
@@ -218,7 +218,7 @@ class ISCORE_PLUGIN_SPACE_EXPORT AreaComponentFactory :
 using AreaComponentFactoryList =
     ::GenericComponentFactoryList<
             AreaModel,
-            OSSIA::LocalTree::DocumentPlugin,
+            Ossia::LocalTree::DocumentPlugin,
             Space::LocalTree::AreaComponent,
             Space::LocalTree::AreaComponentFactory>;
 

@@ -14,7 +14,7 @@
 class QWidget;
 
 MessageListEditor::MessageListEditor(
-        const iscore::MessageList& m,
+        const State::MessageList& m,
         DeviceExplorerModel* model,
         QWidget* parent):
     m_model{model},
@@ -43,12 +43,12 @@ MessageListEditor::MessageListEditor(
 
 void MessageListEditor::addMessage()
 {
-    MessageEditDialog dial(iscore::Message(), m_model, this);
+    MessageEditDialog dial(State::Message(), m_model, this);
     int res = dial.exec();
 
     if(res)
     {
-        m_messages.push_back(iscore::Message(dial.address(), dial.value()));
+        m_messages.push_back(State::Message(dial.address(), dial.value()));
     }
 
     updateLayout();

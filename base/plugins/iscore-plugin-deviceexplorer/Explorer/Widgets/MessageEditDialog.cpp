@@ -23,7 +23,7 @@
 
 class QWidget;
 
-MessageEditDialog::MessageEditDialog(const iscore::Message &mess, DeviceExplorerModel *model, QWidget *parent):
+MessageEditDialog::MessageEditDialog(const State::Message &mess, DeviceExplorerModel *model, QWidget *parent):
     QDialog{parent},
     m_message(mess)
 {
@@ -54,12 +54,12 @@ MessageEditDialog::MessageEditDialog(const iscore::Message &mess, DeviceExplorer
     m_lay->addWidget(buttons);
 }
 
-const iscore::Address &MessageEditDialog::address() const
+const State::Address &MessageEditDialog::address() const
 {
     return m_addr->address();
 }
 
-iscore::Value MessageEditDialog::value() const
+State::Value MessageEditDialog::value() const
 {
     if(m_val && m_val->widget())
         return m_val->widget()->value();
@@ -70,38 +70,38 @@ iscore::Value MessageEditDialog::value() const
 void MessageEditDialog::initTypeCombo()
 {
     // TODO sync with ValueConversion
-    m_typeCombo->insertItems(0, iscore::convert::ValuePrettyTypesList());
+    m_typeCombo->insertItems(0, State::convert::ValuePrettyTypesList());
     m_typeCombo->setCurrentIndex(m_message.value.val.impl().which());
 }
 
 void MessageEditDialog::on_typeChanged(int t)
 {
     // TODO refactor these widgets with the various address settings widgets
-    switch(iscore::ValueType(t))
+    switch(State::ValueType(t))
     {
-        case iscore::ValueType::NoValue:
+        case State::ValueType::NoValue:
             m_val->setWidget(nullptr);
             break;
-        case iscore::ValueType::Impulse:
+        case State::ValueType::Impulse:
             m_val->setWidget(nullptr);
             break;
-        case iscore::ValueType::Int:
-            m_val->setWidget(new NumericValueWidget<int>(iscore::convert::value<int>(m_message.value), this));
+        case State::ValueType::Int:
+            m_val->setWidget(new NumericValueWidget<int>(State::convert::value<int>(m_message.value), this));
             break;
-        case iscore::ValueType::Float:
-            m_val->setWidget(new NumericValueWidget<float>(iscore::convert::value<float>(m_message.value), this));
+        case State::ValueType::Float:
+            m_val->setWidget(new NumericValueWidget<float>(State::convert::value<float>(m_message.value), this));
             break;
-        case iscore::ValueType::Bool:
-            m_val->setWidget(new BoolValueWidget(iscore::convert::value<bool>(m_message.value), this));
+        case State::ValueType::Bool:
+            m_val->setWidget(new BoolValueWidget(State::convert::value<bool>(m_message.value), this));
             break;
-        case iscore::ValueType::String:
-            m_val->setWidget(new StringValueWidget(iscore::convert::value<QString>(m_message.value), this));
+        case State::ValueType::String:
+            m_val->setWidget(new StringValueWidget(State::convert::value<QString>(m_message.value), this));
             break;
-        case iscore::ValueType::Char:
+        case State::ValueType::Char:
             // TODO here a bug might be introduced : everywhere the char are utf8 while here it's latin1.
-            m_val->setWidget(new CharValueWidget(iscore::convert::value<QChar>(m_message.value).toLatin1(), this));
+            m_val->setWidget(new CharValueWidget(State::convert::value<QChar>(m_message.value).toLatin1(), this));
             break;
-        case iscore::ValueType::Tuple:
+        case State::ValueType::Tuple:
             ISCORE_TODO; // TODO Tuples
             break;
         default:

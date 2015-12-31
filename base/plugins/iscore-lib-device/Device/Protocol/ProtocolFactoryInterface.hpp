@@ -9,7 +9,7 @@
 
 class DeviceInterface;
 class ProtocolSettingsWidget;
-namespace iscore {
+namespace Device {
 struct DeviceSettings;
 }  // namespace iscore
 struct VisitorVariant;
@@ -25,10 +25,10 @@ class ISCORE_LIB_DEVICE_EXPORT ProtocolFactory : public iscore::GenericFactoryIn
         virtual QString prettyName() const = 0;
 
         virtual DeviceInterface* makeDevice(
-                const iscore::DeviceSettings& settings,
+                const Device::DeviceSettings& settings,
                 const iscore::DocumentContext& ctx) = 0;
         virtual ProtocolSettingsWidget* makeSettingsWidget() = 0;
-        virtual const iscore::DeviceSettings& defaultSettings() const = 0;
+        virtual const Device::DeviceSettings& defaultSettings() const = 0;
 
         // Save
         virtual void serializeProtocolSpecificSettings(
@@ -54,6 +54,6 @@ class ISCORE_LIB_DEVICE_EXPORT ProtocolFactory : public iscore::GenericFactoryIn
 
         // Returns true if the two devicesettings can coexist at the same time.
         virtual bool checkCompatibility(
-                const iscore::DeviceSettings& a,
-                const iscore::DeviceSettings& b) const = 0;
+                const Device::DeviceSettings& a,
+                const Device::DeviceSettings& b) const = 0;
 };

@@ -69,11 +69,11 @@ MinuitProtocolSettingsWidget::setDefaults()
     m_localHostEdit->setText("127.0.0.1");
 }
 
-iscore::DeviceSettings MinuitProtocolSettingsWidget::getSettings() const
+Device::DeviceSettings MinuitProtocolSettingsWidget::getSettings() const
 {
     ISCORE_ASSERT(m_deviceNameEdit);
 
-    iscore::DeviceSettings s;
+    Device::DeviceSettings s;
     s.name = m_deviceNameEdit->text();
 
     MinuitSpecificSettings minuit;
@@ -86,7 +86,7 @@ iscore::DeviceSettings MinuitProtocolSettingsWidget::getSettings() const
 }
 
 void
-MinuitProtocolSettingsWidget::setSettings(const iscore::DeviceSettings &settings)
+MinuitProtocolSettingsWidget::setSettings(const Device::DeviceSettings &settings)
 {
     m_deviceNameEdit->setText(settings.name);
     MinuitSpecificSettings minuit;

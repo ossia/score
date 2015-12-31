@@ -4,7 +4,7 @@
 #include <State/Address.hpp>
 #include <State/Value.hpp>
 #include <State/ValueConversion.hpp>
-namespace iscore
+namespace State
 {
 /**
  * @brief The Message struct
@@ -17,7 +17,7 @@ namespace iscore
 struct Message
 {
     Message() = default;
-    Message(const iscore::Address& addr, const iscore::Value& val):
+    Message(const State::Address& addr, const State::Value& val):
         address(addr),
         value(val)
     { }
@@ -43,9 +43,9 @@ struct Message
     }
 
     QString toString() const
-    { return address.toString() + " " + iscore::convert::toPrettyString(value); }
+    { return address.toString() + " " + State::convert::toPrettyString(value); }
 
-    friend QDebug operator<<(QDebug s, const iscore::Message& mess)
+    friend QDebug operator<<(QDebug s, const State::Message& mess)
     {
         s << mess.toString();
         return s;
@@ -56,11 +56,11 @@ struct Message
 };
 
 using MessageList = QList<Message>;
-inline bool operator<(const iscore::MessageList&, const iscore::MessageList&)
+inline bool operator<(const State::MessageList&, const State::MessageList&)
 {
     return false;
 }
 }
 
-Q_DECLARE_METATYPE(iscore::Message)
-Q_DECLARE_METATYPE(iscore::MessageList)
+Q_DECLARE_METATYPE(State::Message)
+Q_DECLARE_METATYPE(State::MessageList)

@@ -3,7 +3,7 @@
 #include "Address.hpp"
 #include <iscore/tools/Todo.hpp>
 
-namespace iscore
+namespace State
 {
     bool Address::validateString(const QString &str)
     {

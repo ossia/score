@@ -26,7 +26,7 @@ void ClearState::undo() const
     ISCORE_TODO;
     /*
     auto& state = m_path.find();
-    iscore::Node states;
+    Device::Node states;
     QDataStream s(m_serializedStates);
     s >> states;
 
@@ -40,7 +40,7 @@ void ClearState::redo() const
     /*
     auto& state = m_path.find();
 
-    state.messages() = iscore::Node{};
+    state.messages() = Device::Node{};
     */
 }
 

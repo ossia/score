@@ -5,7 +5,8 @@
 
 #include "IOType.hpp"
 
-using namespace iscore;
+namespace Device
+{
 
 static const QMap<IOType, QString> iotypemap{
     {
@@ -16,7 +17,8 @@ static const QMap<IOType, QString> iotypemap{
     }
 };
 
-const QMap<IOType, QString>& iscore::IOTypeStringMap()
+const QMap<IOType, QString>& Device::IOTypeStringMap()
 {
     return iotypemap;
+}
 }

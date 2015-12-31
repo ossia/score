@@ -12,17 +12,17 @@
 #include <iscore/tools/Todo.hpp>
 #include <iscore/tools/TreeNode.hpp>
 
-namespace iscore
+namespace Device
 {
 QString DeviceExplorerNode::displayName() const
 {
     switch(m_data.which())
     {
         case (int)Type::Device:
-            return get<DeviceSettings>().name;
+            return get<Device::DeviceSettings>().name;
             break;
         case (int)Type::Address:
-            return get<AddressSettings>().name;
+            return get<Device::AddressSettings>().name;
             break;
         case (int)Type::RootNode:
             return "Invisible Root DeviceExplorerNode";
@@ -40,11 +40,11 @@ bool DeviceExplorerNode::isSelectable() const
 
 bool DeviceExplorerNode::isEditable() const
 {
-    return is<AddressSettings>() && hasOutput(get<AddressSettings>().ioType);
+    return is<Device::AddressSettings>() && hasOutput(get<Device::AddressSettings>().ioType);
 }
 
-iscore::Node* getNodeFromString(
-        iscore::Node& n,
+Device::Node* getNodeFromString(
+        Device::Node& n,
         QStringList&& parts)
 {
     auto theN = try_getNodeFromString(n, std::move(parts));
@@ -52,18 +52,18 @@ iscore::Node* getNodeFromString(
     return theN;
 }
 
-iscore::Node& getNodeFromAddress(
-        iscore::Node& n,
-        const iscore::Address& addr)
+Device::Node& getNodeFromAddress(
+        Device::Node& n,
+        const State::Address& addr)
 {
     auto theN = try_getNodeFromAddress(n, addr);
     ISCORE_ASSERT(theN);
     return *theN;
 }
 
-Address address(const Node &treeNode)
+State::Address address(const Node &treeNode)
 {
-    Address addr;
+    State::Address addr;
     const Node* n = &treeNode;
     while(n->parent() && !n->is<DeviceSettings>())
     {
@@ -79,7 +79,7 @@ Address address(const Node &treeNode)
 }
 
 void messageList(const Node& n,
-                 MessageList& ml)
+                 State::MessageList& ml)
 {
     if(n.is<AddressSettings>())
     {
@@ -97,14 +97,14 @@ void messageList(const Node& n,
     }
 }
 
-Message message(const Node& node)
+State::Message message(const Node& node)
 {
-    if(!node.is<iscore::AddressSettings>())
+    if(!node.is<Device::AddressSettings>())
         return {};
 
-    iscore::Message mess;
+    State::Message mess;
     mess.address = address(node);
-    mess.value = node.get<iscore::AddressSettings>().value;
+    mess.value = node.get<Device::AddressSettings>().value;
 
     return mess;
 }
@@ -115,10 +115,10 @@ Message message(const Node& node)
 // (see iscore2OSSIA, iscore_plugin_coppa and friends), try to refactor it.
 // This could be a try_insert algorithm.
 void merge(
-        iscore::Node& base,
-        const iscore::Message& message)
+        Device::Node& base,
+        const State::Message& message)
 {
-    using iscore::Node;
+    using Device::Node;
 
     QStringList path = message.address.path;
     path.prepend(message.address.device);
@@ -142,14 +142,14 @@ void merge(
                 if(k == 0)
                 {
                     // We're adding a device
-                    iscore::DeviceSettings dev;
+                    Device::DeviceSettings dev;
                     dev.name = path[k];
                     newNode = &parentnode->emplace_back(std::move(dev), nullptr);
                 }
                 else
                 {
                     // We're adding an address
-                    iscore::AddressSettings addr;
+                    Device::AddressSettings addr;
                     addr.name = path[k];
 
                     if(k == path.size() - 1)
@@ -182,18 +182,18 @@ void merge(
             if(i == path.size() - 1)
             {
                 // We replace the value by the one in the message
-                if(node->is<iscore::AddressSettings>())
+                if(node->is<Device::AddressSettings>())
                 {
-                    node->get<iscore::AddressSettings>().value = message.value;
+                    node->get<Device::AddressSettings>().value = message.value;
                 }
             }
         }
     }
 }
 
-iscore::Node merge(
-        iscore::Node base,
-        const iscore::MessageList& other)
+Device::Node merge(
+        Device::Node base,
+        const State::MessageList& other)
 {
     using namespace iscore;
     // For each node in other, if we can also find a similar node in

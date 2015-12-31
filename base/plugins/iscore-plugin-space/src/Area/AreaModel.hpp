@@ -19,7 +19,7 @@ class AreaModel : public IdentifiedObject<AreaModel>
         ModelMetadata metadata;
 
         // The value is used as default value if the address is invalid.
-        using ParameterMap = QMap<QString, QPair<GiNaC::symbol, iscore::FullAddressSettings>>;
+        using ParameterMap = QMap<QString, QPair<GiNaC::symbol, Device::FullAddressSettings>>;
         virtual const AreaFactoryKey& factoryKey() const = 0;
         virtual QString prettyName() const = 0;
         virtual int type() const = 0;

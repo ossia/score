@@ -18,7 +18,7 @@ using namespace iscore;
 // a LoadDevice() ?
 ReplaceDevice::ReplaceDevice(Path<DeviceExplorerModel>&& device_tree,
                              int deviceIndex,
-                             Node&& rootNode):
+                             Device::Node&& rootNode):
     m_deviceTree{device_tree},
     m_deviceIndex(deviceIndex),
     m_deviceNode{std::move(rootNode)}
@@ -42,8 +42,8 @@ void ReplaceDevice::redo() const
     const auto& cld = explorer.rootNode().children();
     for(auto it = cld.begin(); it != cld.end(); ++it)
     {
-        auto ds = it->get<iscore::DeviceSettings>();
-        if(ds.name == m_deviceNode.get<iscore::DeviceSettings>().name)
+        auto ds = it->get<Device::DeviceSettings>();
+        if(ds.name == m_deviceNode.get<Device::DeviceSettings>().name)
         {
             explorer.removeNode(it);
             break;

@@ -25,7 +25,7 @@ InspectorWidgetBase* StateInspectorFactory::makeWidget(
         QWidget* parent) const
 {
     return new StateInspectorWidget{
-                safe_cast<const State&>(sourceElement),
+                safe_cast<const ProcessState&>(sourceElement),
                 doc,
                 parent};
 }

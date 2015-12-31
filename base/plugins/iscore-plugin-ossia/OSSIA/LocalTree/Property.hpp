@@ -36,8 +36,8 @@ class QtProperty
 
         auto set(const T& newval) const
         { return (m_obj.*m_set)(newval); }
-        auto set(const iscore::Value& newval) const
-        { return (m_obj.*m_set)(iscore::convert::value<T>(newval)); }
+        auto set(const State::Value& newval) const
+        { return (m_obj.*m_set)(State::convert::value<T>(newval)); }
 
         auto changed() const
         { return (m_obj.*m_changed); }
@@ -64,19 +64,19 @@ struct PropertyWrapper : public BaseCallbackWrapper
         {
             m_callbackIt = addr->addCallback([=] (const OSSIA::Value* v) {
                 if(v)
-                    property.set(OSSIA::convert::ToValue(v));
+                    property.set(Ossia::convert::ToValue(v));
             });
 
             QObject::connect(&property.object(), property.changed_property(),
                     context, [=] {
-                auto newVal = iscore::Value::fromValue(property.get());
-                if(newVal != OSSIA::convert::ToValue(addr->getValue()))
+                auto newVal = State::Value::fromValue(property.get());
+                if(newVal != Ossia::convert::ToValue(addr->getValue()))
                     addr->pushValue(iscore::convert::toOSSIAValue(newVal));
             },
             Qt::QueuedConnection);
 
             addr->setValue(iscore::convert::toOSSIAValue(
-                                iscore::Value::fromValue(property.get())));
+                                State::Value::fromValue(property.get())));
         }
 };
 
@@ -101,7 +101,7 @@ auto add_property(
         QObject* context)
 {
     std::shared_ptr<OSSIA::Node> node = *n.emplaceAndNotify(n.children().end(), name);
-    auto addr = node->createAddress(OSSIA::convert::MatchingType<T>::val);
+    auto addr = node->createAddress(Ossia::convert::MatchingType<T>::val);
     addr->setAccessMode(OSSIA::Address::AccessMode::BI);
 
     return make_property(node,

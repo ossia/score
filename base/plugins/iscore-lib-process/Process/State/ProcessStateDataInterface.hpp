@@ -35,7 +35,7 @@ class ISCORE_LIB_PROCESS_EXPORT ProcessStateDataInterface : public IdentifiedObj
          * @return nothing if the process doesn't have any "settable" address.
          * Else it returns the addresses that may change.
          */
-        virtual std::vector<iscore::Address> matchingAddresses()
+        virtual std::vector<State::Address> matchingAddresses()
         {
             return {};
         }
@@ -43,7 +43,7 @@ class ISCORE_LIB_PROCESS_EXPORT ProcessStateDataInterface : public IdentifiedObj
         /**
          * @brief messages The current messages in this point of the process.
          */
-        virtual iscore::MessageList messages() const
+        virtual State::MessageList messages() const
         {
             return {};
         }
@@ -54,8 +54,8 @@ class ISCORE_LIB_PROCESS_EXPORT ProcessStateDataInterface : public IdentifiedObj
          * Should return the actual new state of the process.
          *
          */
-        virtual iscore::MessageList setMessages(
-                const iscore::MessageList& newMessages,
+        virtual State::MessageList setMessages(
+                const State::MessageList& newMessages,
                 const MessageNode& currentState)
         {
             return messages();
@@ -71,7 +71,7 @@ class ISCORE_LIB_PROCESS_EXPORT ProcessStateDataInterface : public IdentifiedObj
          * Sent whenever the messages in the process changed.
          *
          */
-        void messagesChanged(const iscore::MessageList&);
+        void messagesChanged(const State::MessageList&);
 
     private:
         Process::ProcessModel& m_model;

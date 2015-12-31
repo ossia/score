@@ -164,7 +164,7 @@ void ConstraintElement::constraintCallback(
         const OSSIA::TimeValue& date,
         const std::shared_ptr<OSSIA::StateElement>& state)
 {
-    auto currentTime = OSSIA::convert::time(date);
+    auto currentTime = Ossia::convert::time(date);
 
     auto& cstdur = m_iscore_constraint.duration;
     const auto& maxdur = cstdur.maxDuration();

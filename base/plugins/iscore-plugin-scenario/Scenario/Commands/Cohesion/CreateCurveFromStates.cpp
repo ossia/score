@@ -26,7 +26,7 @@
 
 namespace Process { class LayerModel; }
 class SlotModel;
-namespace iscore {
+namespace State {
 struct Address;
 }  // namespace iscore
 
@@ -34,7 +34,7 @@ CreateCurveFromStates::CreateCurveFromStates(
         Path<ConstraintModel>&& constraint,
         const std::vector<std::pair<Path<SlotModel>, Id<Process::LayerModel> > >& slotList,
         const Id<Process::ProcessModel>& curveId,
-        const iscore::Address& address,
+        const State::Address& address,
         double start,
         double end,
         double min,

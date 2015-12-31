@@ -43,6 +43,9 @@ namespace iscore {
 class DocumentDelegateFactoryInterface;
 class FactoryListInterface;
 class PanelFactory;
+}
+namespace State
+{
 struct Address;
 }  // namespace iscore
 
@@ -64,15 +67,15 @@ iscore_plugin_scenario::iscore_plugin_scenario() :
         iscore::FactoryList_QtInterface {},
         iscore::FactoryInterface_QtInterface {}
 {
-    QMetaType::registerComparators<iscore::Value>();
-    QMetaType::registerComparators<iscore::Message>();
-    QMetaType::registerComparators<iscore::MessageList>();
+    QMetaType::registerComparators<State::Value>();
+    QMetaType::registerComparators<State::Message>();
+    QMetaType::registerComparators<State::MessageList>();
 
-    qRegisterMetaTypeStreamOperators<iscore::Message>();
-    qRegisterMetaTypeStreamOperators<iscore::MessageList>();
-    qRegisterMetaTypeStreamOperators<iscore::Address>();
-    qRegisterMetaTypeStreamOperators<iscore::Value>();
-    qRegisterMetaTypeStreamOperators<iscore::ValueList>();
+    qRegisterMetaTypeStreamOperators<State::Message>();
+    qRegisterMetaTypeStreamOperators<State::MessageList>();
+    qRegisterMetaTypeStreamOperators<State::Address>();
+    qRegisterMetaTypeStreamOperators<State::Value>();
+    qRegisterMetaTypeStreamOperators<State::ValueList>();
 
     qRegisterMetaTypeStreamOperators<TimeValue>();
     qRegisterMetaType<ExecutionStatus>();

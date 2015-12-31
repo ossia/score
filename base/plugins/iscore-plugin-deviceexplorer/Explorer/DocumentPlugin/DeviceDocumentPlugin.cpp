@@ -65,14 +65,14 @@ void DeviceDocumentPlugin::serialize(const VisitorVariant& vis) const
     serialize_dyn(vis, m_rootNode);
 }
 
-iscore::Node DeviceDocumentPlugin::createDeviceFromNode(const iscore::Node & node)
+Device::Node DeviceDocumentPlugin::createDeviceFromNode(const Device::Node & node)
 {
     try {
         auto& fact = m_context.app.components.factory<DynamicProtocolList>();
 
         // Instantiate a real device.
-        auto proto = fact.list().get(node.get<iscore::DeviceSettings>().protocol);
-        auto newdev = proto->makeDevice(node.get<iscore::DeviceSettings>(), context());
+        auto proto = fact.list().get(node.get<Device::DeviceSettings>().protocol);
+        auto newdev = proto->makeDevice(node.get<Device::DeviceSettings>(), context());
 
         initDevice(*newdev);
 
@@ -93,19 +93,19 @@ iscore::Node DeviceDocumentPlugin::createDeviceFromNode(const iscore::Node & nod
     {
         QMessageBox::warning(QApplication::activeWindow(),
                              QObject::tr("Error loading device"),
-                             node.get<iscore::DeviceSettings>().name + ": " + QString::fromLatin1(e.what()));
+                             node.get<Device::DeviceSettings>().name + ": " + QString::fromLatin1(e.what()));
     }
 
     return node;
 }
 
-iscore::Node DeviceDocumentPlugin::loadDeviceFromNode(const iscore::Node & node)
+Device::Node DeviceDocumentPlugin::loadDeviceFromNode(const Device::Node & node)
 {
     try {
         // Instantiate a real device.
         auto& fact = m_context.app.components.factory<DynamicProtocolList>();
-        auto proto = fact.list().get(node.get<iscore::DeviceSettings>().protocol);
-        auto newdev = proto->makeDevice(node.get<iscore::DeviceSettings>(), context());
+        auto proto = fact.list().get(node.get<Device::DeviceSettings>().protocol);
+        auto newdev = proto->makeDevice(node.get<Device::DeviceSettings>(), context());
 
         initDevice(*newdev);
 
@@ -120,7 +120,7 @@ iscore::Node DeviceDocumentPlugin::loadDeviceFromNode(const iscore::Node & node)
     {
         QMessageBox::warning(QApplication::activeWindow(),
                              QObject::tr("Error loading device"),
-                             node.get<iscore::DeviceSettings>().name + ": " + QString::fromLatin1(e.what()));
+                             node.get<Device::DeviceSettings>().name + ": " + QString::fromLatin1(e.what()));
     }
 
     return node;
@@ -172,7 +172,7 @@ void DeviceDocumentPlugin::setConnection(bool b)
         {
             dev->reconnect();
             auto it = std::find_if(m_rootNode.cbegin(), m_rootNode.cend(), [&] (const auto& dev_node) {
-                return dev_node.template get<iscore::DeviceSettings>().name == dev->settings().name;
+                return dev_node.template get<Device::DeviceSettings>().name == dev->settings().name;
             });
 
             ISCORE_ASSERT(it != m_rootNode.cend());
@@ -190,16 +190,16 @@ void DeviceDocumentPlugin::setConnection(bool b)
 void DeviceDocumentPlugin::initDevice(DeviceInterface& newdev)
 {
     con(newdev, &DeviceInterface::valueUpdated,
-        this, [&] (const iscore::Address& addr, const iscore::Value& v) {
+        this, [&] (const State::Address& addr, const State::Value& v) {
         updateProxy.updateLocalValue(addr, v);
     });
 
     con(newdev, &DeviceInterface::pathAdded,
-        this, [&] (const iscore::Address& newaddr) {
+        this, [&] (const State::Address& newaddr) {
         auto parentAddr = newaddr;
         parentAddr.path.removeLast();
 
-        auto parent = iscore::try_getNodeFromAddress(m_rootNode, parentAddr);
+        auto parent = Device::try_getNodeFromAddress(m_rootNode, parentAddr);
         if(parent)
         {
             updateProxy.addLocalNode(
@@ -209,14 +209,14 @@ void DeviceDocumentPlugin::initDevice(DeviceInterface& newdev)
     });
 
     con(newdev, &DeviceInterface::pathRemoved,
-        this, [&] (const iscore::Address& addr) {
+        this, [&] (const State::Address& addr) {
         updateProxy.removeLocalNode(addr);
     });
 
     con(newdev, &DeviceInterface::pathUpdated,
         this, [&] (
-            const iscore::Address& addr,
-            const iscore::AddressSettings& set) {
+            const State::Address& addr,
+            const Device::AddressSettings& set) {
         updateProxy.updateLocalSettings(addr, set);
     });
 

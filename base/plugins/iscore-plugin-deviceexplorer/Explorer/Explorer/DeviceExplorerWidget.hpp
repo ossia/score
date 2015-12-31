@@ -69,7 +69,7 @@ class DeviceExplorerWidget final : public QWidget
          * @brief setListening_rec Simple recursion to enable / disable listening
          * on all child nodes.
          */
-        void setListening_rec(const iscore::Node& node, bool b);
+        void setListening_rec(const Device::Node& node, bool b);
 
         /**
          * @brief setListening_rec2 Recursion that checks the "expanded" state

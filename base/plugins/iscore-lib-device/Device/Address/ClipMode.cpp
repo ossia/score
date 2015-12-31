@@ -5,7 +5,8 @@
 
 #include "ClipMode.hpp"
 
-using namespace iscore;
+namespace Device
+{
 
 static const QMap<ClipMode, QString> clipmodemap{
     {{ClipMode::Clip, QObject::tr("Clip")},
@@ -14,7 +15,8 @@ static const QMap<ClipMode, QString> clipmodemap{
      {ClipMode::Wrap, QObject::tr("Wrap")},
     }
 };
-const QMap<ClipMode, QString> &iscore::ClipModeStringMap()
+const QMap<ClipMode, QString> &Device::ClipModeStringMap()
 {
     return clipmodemap;
+}
 }

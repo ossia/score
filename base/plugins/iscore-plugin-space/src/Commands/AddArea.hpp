@@ -16,7 +16,7 @@ class AddArea : public iscore::SerializableCommand
             AreaFactoryKey type,
             const QStringList& area,
                   const QMap<Id<DimensionModel>, QString>& dimMap,
-                  const QMap<QString, iscore::FullAddressSettings>& addrMap);
+                  const QMap<QString, Device::FullAddressSettings>& addrMap);
 
         void undo() const override;
         void redo() const override;
@@ -33,5 +33,5 @@ class AddArea : public iscore::SerializableCommand
         QStringList m_areaFormula;
 
         QMap<Id<DimensionModel>, QString> m_dimensionToVarMap;
-        QMap<QString, iscore::FullAddressSettings> m_symbolToAddressMap;
+        QMap<QString, Device::FullAddressSettings> m_symbolToAddressMap;
 };

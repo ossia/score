@@ -6,7 +6,7 @@
 #include <Device/Protocol/DeviceSettings.hpp>
 #include "MIDIDevice.hpp"
 
-MIDIDevice::MIDIDevice(const iscore::DeviceSettings &settings):
+MIDIDevice::MIDIDevice(const Device::DeviceSettings &settings):
     OSSIADevice{settings}
 {
     using namespace OSSIA;

@@ -2,7 +2,7 @@
 #include <OSSIA/LocalTree/GetProperty.hpp>
 #include <OSSIA/LocalTree/Property.hpp>
 #include <Process/ModelMetadata.hpp>
-namespace OSSIA
+namespace Ossia
 {
 namespace LocalTree
 {

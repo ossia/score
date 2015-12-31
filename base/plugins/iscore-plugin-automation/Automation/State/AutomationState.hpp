@@ -8,18 +8,18 @@
 #include <Process/State/MessageNode.hpp>
 
 class QObject;
-namespace iscore {
+namespace State {
 struct Address;
 }  // namespace iscore
 
 namespace Automation
 {
 class ProcessModel;
-class State final : public ProcessStateDataInterface
+class ProcessState final : public ProcessStateDataInterface
 {
     public:
         // watchedPoint : something between 0 and 1
-        State(
+        ProcessState(
                 ProcessModel& process,
                 double watchedPoint,
                 QObject* parent);
@@ -27,14 +27,16 @@ class State final : public ProcessStateDataInterface
         QString stateName() const override;
         ProcessModel& process() const;
 
-        iscore::Message message() const;
+        ::State::Message message() const;
         double point() const;
 
-        State* clone(QObject* parent) const override;
+        ProcessState* clone(QObject* parent) const override;
 
-        std::vector<iscore::Address> matchingAddresses() override;
-        iscore::MessageList messages() const override;
-        iscore::MessageList setMessages(const iscore::MessageList&, const MessageNode&) override;
+        std::vector<State::Address> matchingAddresses() override;
+        ::State::MessageList messages() const override;
+        ::State::MessageList setMessages(
+                const ::State::MessageList&,
+                const MessageNode&) override;
 
     private:
         double m_point{};

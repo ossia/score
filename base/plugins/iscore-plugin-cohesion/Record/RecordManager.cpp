@@ -88,7 +88,7 @@ void RecordManager::stopRecording()
             int msecs = std::chrono::duration_cast<std::chrono::milliseconds>(current_time_pt - start_time_pt).count();
 
             const auto& node = getNodeFromAddress(m_explorer->rootNode(), addr);
-            double newval = iscore::convert::value<double>(node.get<iscore::AddressSettings>().value);
+            double newval = State::convert::value<double>(node.get<Device::AddressSettings>().value);
 
             const auto& proc_data = records.at(addr);
             segt.addPoint(msecs, newval);
@@ -134,12 +134,12 @@ void RecordManager::recordInNewBox(Scenario::ScenarioModel& scenar, Scenario::Po
     m_savedListening = m_explorer->deviceModel().pauseListening();
 
     // First get the addresses to listen.
-    std::vector<std::vector<iscore::Address>> recordListening;
+    std::vector<std::vector<State::Address>> recordListening;
     for(auto& index : indices)
     {
         // TODO use address settings instead.
         auto& node = m_explorer->nodeFromModelIndex(index);
-        auto addr = iscore::address(node);
+        auto addr = Device::address(node);
         // TODO shall we check if the address is in, out, recordable ?
         // Recording an automation of strings would actually have a meaning
         // here (for instance recording someone typing).
@@ -151,8 +151,8 @@ void RecordManager::recordInNewBox(Scenario::ScenarioModel& scenar, Scenario::Po
         { return vec.front().device == addr.device; });
 
 
-        if(node.get<iscore::AddressSettings>().value.val.isNumeric()
-        && hasInput(node.get<iscore::AddressSettings>().ioType))
+        if(node.get<Device::AddressSettings>().value.val.isNumeric()
+        && hasInput(node.get<Device::AddressSettings>().ioType))
         {
             if(dev_it != recordListening.end())
             {
@@ -249,7 +249,7 @@ void RecordManager::recordInNewBox(Scenario::ScenarioModel& scenar, Scenario::Po
 
             autom.curve().addSegment(segt);
 
-            segt->addPoint(0, iscore::convert::value<float>(getNodeFromAddress(m_explorer->rootNode(), addr).get<iscore::AddressSettings>().value));
+            segt->addPoint(0, State::convert::value<float>(getNodeFromAddress(m_explorer->rootNode(), addr).get<Device::AddressSettings>().value));
 
             // TODO fetch initial min / max from AddressSettings ?
             records.insert(
@@ -275,13 +275,13 @@ void RecordManager::recordInNewBox(Scenario::ScenarioModel& scenar, Scenario::Po
         // Add a custom callback.
         m_recordCallbackConnections.push_back(
                     connect(&dev, &DeviceInterface::valueUpdated,
-                this, [=] (const iscore::Address& addr, const iscore::Value& val) {
+                this, [=] (const State::Address& addr, const State::Value& val) {
             auto current_time_pt = std::chrono::steady_clock::now();
 
             // Move end event by the current duration.
             int msecs = std::chrono::duration_cast<std::chrono::milliseconds>(current_time_pt - start_time_pt).count();
 
-            auto newval = iscore::convert::value<float>(val.val);
+            auto newval = State::convert::value<float>(val.val);
 
             const auto& proc_data = records.at(addr);
             proc_data.segment.addPoint(msecs, newval);

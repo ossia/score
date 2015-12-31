@@ -42,7 +42,7 @@ std::vector<std::unique_ptr<iscore::FactoryInterfaceBase>> iscore_plugin_space::
             GenericAreaFactory,
             CircleAreaFactory,
             PointerAreaFactory>,
-        FW<OSSIA::LocalTree::ProcessComponentFactory,
+        FW<Ossia::LocalTree::ProcessComponentFactory,
             Space::LocalTree::ProcessLocalTreeFactory>
             >//,
         //FW<Space::LocalTree::AreaComponentFactory>

@@ -1,14 +1,14 @@
 #include "ScenarioComponent.hpp"
 
 #include "MetadataParameters.hpp"
-namespace OSSIA
+namespace Ossia
 {
 namespace LocalTree
 {
 
 ScenarioComponent::ScenarioComponent(
         const Id<iscore::Component>& id,
-        Node& parent,
+        OSSIA::Node& parent,
         Scenario::ScenarioModel& scenario,
         const ScenarioComponent::system_t& doc,
         const iscore::DocumentContext& ctx,

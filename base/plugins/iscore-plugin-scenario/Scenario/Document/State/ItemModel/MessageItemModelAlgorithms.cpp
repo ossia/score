@@ -39,7 +39,7 @@ void cleanupNode(MessageNode& rootNode)
     }
 }
 
-bool match(MessageNode& node, const iscore::Message& mess)
+bool match(MessageNode& node, const State::Message& mess)
 {
     MessageNode* n = &node;
 
@@ -67,7 +67,7 @@ bool match(MessageNode& node, const iscore::Message& mess)
 
 void updateNode(
         QVector<ProcessStateData>& vec,
-        const iscore::Value& val,
+        const State::Value& val,
         const Id<Process::ProcessModel>& proc)
 {
     for(ProcessStateData& data : vec)
@@ -184,7 +184,7 @@ void nodePruneAction(
 
 void nodeInsertAction(
         MessageNode& node,
-        iscore::MessageList& msg,
+        State::MessageList& msg,
         const Id<Process::ProcessModel>& proc,
         ProcessPosition pos
         )
@@ -224,7 +224,7 @@ void nodeInsertAction(
 
 void rec_updateTree(
         MessageNode& node,
-        iscore::MessageList& lst,
+        State::MessageList& lst,
         const Id<Process::ProcessModel>& proc,
         ProcessPosition pos)
 {
@@ -249,7 +249,7 @@ void rec_updateTree(
 template<typename MergeFun>
 void merge_impl(
         MessageNode& base,
-        const iscore::Address& addr,
+        const State::Address& addr,
         MergeFun merge)
 {
     QStringList path = toStringList(addr);
@@ -310,7 +310,7 @@ void merge_impl(
 
 void updateTreeWithMessageList(
         MessageNode& rootNode,
-        iscore::MessageList lst)
+        State::MessageList lst)
 {
     for(const auto& mess : lst)
     {
@@ -327,7 +327,7 @@ void updateTreeWithMessageList(
 
 void updateTreeWithMessageList(
         MessageNode& rootNode,
-        iscore::MessageList lst,
+        State::MessageList lst,
         const Id<Process::ProcessModel>& proc,
         ProcessPosition pos)
 {
@@ -457,14 +457,14 @@ void updateTreeWithRemovedConstraint(MessageNode& rootNode, ProcessPosition pos)
     }
 }
 
-void updateTreeWithRemovedUserMessage(MessageNode& rootNode, const iscore::Address& addr)
+void updateTreeWithRemovedUserMessage(MessageNode& rootNode, const State::Address& addr)
 {
     // Find the message node
-    MessageNode* node = iscore::try_getNodeFromString(rootNode, stringList(addr));
+    MessageNode* node = Device::try_getNodeFromString(rootNode, stringList(addr));
 
     if(node)
     {
-        node->values.userValue = iscore::OptionalValue{};
+        node->values.userValue = State::OptionalValue{};
 
         // If it is empty, delete it.
         if(node->values.previousProcessValues.isEmpty()
@@ -482,7 +482,7 @@ void rec_removeUserValue(
         MessageNode& node)
 {
     // Recursively set the user value to nil.
-    node.values.userValue = iscore::OptionalValue{};
+    node.values.userValue = State::OptionalValue{};
 
     for(auto& child : node)
     {
@@ -521,10 +521,10 @@ bool rec_cleanup(
 
 void updateTreeWithRemovedNode(
         MessageNode& rootNode,
-        const iscore::Address& addr)
+        const State::Address& addr)
 {
     // Find the message node
-    MessageNode* node = iscore::try_getNodeFromString(rootNode, stringList(addr));
+    MessageNode* node = Device::try_getNodeFromString(rootNode, stringList(addr));
 
     if(node)
     {

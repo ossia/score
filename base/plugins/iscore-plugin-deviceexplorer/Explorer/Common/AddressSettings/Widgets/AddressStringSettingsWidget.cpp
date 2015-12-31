@@ -17,7 +17,7 @@ AddressStringSettingsWidget::AddressStringSettingsWidget(QWidget* parent)
     m_layout->insertRow(0, tr("Text"), m_valueEdit);
 }
 
-iscore::AddressSettings AddressStringSettingsWidget::getSettings() const
+Device::AddressSettings AddressStringSettingsWidget::getSettings() const
 {
     auto settings = getCommonSettings();
     settings.value.val = m_valueEdit->text();
@@ -25,8 +25,8 @@ iscore::AddressSettings AddressStringSettingsWidget::getSettings() const
 }
 
 void
-AddressStringSettingsWidget::setSettings(const iscore::AddressSettings &settings)
+AddressStringSettingsWidget::setSettings(const Device::AddressSettings &settings)
 {
     setCommonSettings(settings);
-    m_valueEdit->setText(iscore::convert::value<QString>(settings.value));
+    m_valueEdit->setText(State::convert::value<QString>(settings.value));
 }

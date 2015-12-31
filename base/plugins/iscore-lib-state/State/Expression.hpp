@@ -15,7 +15,7 @@ class DataStream;
 class JSONObject;
 template <typename DataType> class TreeNode;
 
-namespace iscore
+namespace State
 {
 enum class BinaryOperator {
     And, Or, Xor, None
@@ -24,7 +24,8 @@ enum class UnaryOperator {
     Not, None
 };
 
-struct ISCORE_LIB_STATE_EXPORT ExprData : public VariantBasedNode<Relation, BinaryOperator, UnaryOperator>
+struct ISCORE_LIB_STATE_EXPORT ExprData :
+        public iscore::VariantBasedNode<Relation, BinaryOperator, UnaryOperator>
 {
         ISCORE_SERIALIZE_FRIENDS(ExprData, DataStream)
         ISCORE_SERIALIZE_FRIENDS(ExprData, JSONObject)
@@ -46,7 +47,8 @@ struct ISCORE_LIB_STATE_EXPORT ExprData : public VariantBasedNode<Relation, Bina
 };
 
 }
-using iscore::ExprData;
+// TODO bouefff
+using State::ExprData;
 
 template<>
 /**
@@ -54,7 +56,7 @@ template<>
  *
  * This class is specialized from TreeNode<T>
  * because we want to have an additional check :
- * a node is a leaf iff a node is a iscore::Relation
+ * a node is a leaf iff a node is a State::Relation
  *
  * TODO enforce the invariant of children.size <= 2 (since it's a binary tree)
  */
@@ -252,7 +254,7 @@ class ISCORE_LIB_STATE_EXPORT TreeNode<ExprData> final : public ExprData
 
         void setParent(TreeNode* parent)
         {
-            ISCORE_ASSERT(!m_parent || (m_parent && !m_parent->is<iscore::Relation>()));
+            ISCORE_ASSERT(!m_parent || (m_parent && !m_parent->is<State::Relation>()));
             m_parent = parent;
         }
 
@@ -261,13 +263,13 @@ class ISCORE_LIB_STATE_EXPORT TreeNode<ExprData> final : public ExprData
         std::vector<TreeNode> m_children;
 };
 
-namespace iscore
+namespace State
 {
 using Expression = TreeNode<ExprData>;
 using Condition = Expression;
 using Trigger = Expression;
 
-ISCORE_LIB_STATE_EXPORT boost::optional<iscore::Expression> parseExpression(const QString& str);
-ISCORE_LIB_STATE_EXPORT boost::optional<iscore::Value> parseValue(const QString& str);
+ISCORE_LIB_STATE_EXPORT boost::optional<State::Expression> parseExpression(const QString& str);
+ISCORE_LIB_STATE_EXPORT boost::optional<State::Value> parseValue(const QString& str);
 }
 

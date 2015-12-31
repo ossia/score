@@ -14,18 +14,20 @@ template <typename T> class Reader;
 template <typename T> class Writer;
 
 template<>
-ISCORE_LIB_DEVICE_EXPORT void Visitor<Reader<DataStream>>::readFrom(const iscore::Domain& n)
+ISCORE_LIB_DEVICE_EXPORT void Visitor<Reader<DataStream>>::readFrom(const Device::Domain& n)
 {
     m_stream << n.min << n.max << n.values;
 }
 
 template<>
-ISCORE_LIB_DEVICE_EXPORT void Visitor<Writer<DataStream>>::writeTo(iscore::Domain& n)
+ISCORE_LIB_DEVICE_EXPORT void Visitor<Writer<DataStream>>::writeTo(Device::Domain& n)
 {
     m_stream >> n.min >> n.max >> n.values;
 }
+namespace Device
+{
 
-QJsonObject DomainToJson(const iscore::Domain& d)
+QJsonObject DomainToJson(const Device::Domain& d)
 {
     QJsonObject obj;
     obj["Min"] = ValueToJson(d.min);
@@ -39,20 +41,21 @@ QJsonObject DomainToJson(const iscore::Domain& d)
     return obj;
 }
 
-iscore::Domain JsonToDomain(const QJsonObject& obj, const QString& t)
+Device::Domain JsonToDomain(const QJsonObject& obj, const QString& t)
 {
-    iscore::Domain d;
+    Device::Domain d;
     if(obj.contains("Min"))
     {
-        d.min = iscore::convert::toValue(obj["Min"], t);
+        d.min = State::convert::toValue(obj["Min"], t);
     }
     if(obj.contains("Max"))
     {
-        d.max = iscore::convert::toValue(obj["Max"], t);
+        d.max = State::convert::toValue(obj["Max"], t);
     }
 
     for(const QJsonValue& val : obj["Values"].toArray())
-        d.values.append(iscore::convert::toValue(val, t));
+        d.values.append(State::convert::toValue(val, t));
 
     return d;
+}
 }

@@ -10,7 +10,7 @@
 
 namespace Process { class ProcessModel; }
 class QObject;
-namespace iscore {
+namespace State {
 struct Address;
 }  // namespace iscore
 
@@ -21,9 +21,9 @@ class ISCORE_LIB_DUMMYPROCESS_EXPORT DummyState final : public ProcessStateDataI
         QString stateName() const override;
         ProcessStateDataInterface* clone(QObject* parent) const override;
 
-        std::vector<iscore::Address> matchingAddresses() override;
-        iscore::MessageList messages() const override;
-        iscore::MessageList setMessages(
-                const iscore::MessageList& newMessages,
+        std::vector<State::Address> matchingAddresses() override;
+        State::MessageList messages() const override;
+        State::MessageList setMessages(
+                const State::MessageList& newMessages,
                 const MessageNode& currentState) override;
 };

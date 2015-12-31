@@ -26,7 +26,7 @@ class TriggerInspectorWidget final : public QWidget
         void on_triggerActiveChanged();
         void HideRmButton();
 
-        void updateExpression(const iscore::Trigger&);
+        void updateExpression(const State::Trigger&);
 
     private:
         const TriggerCommandFactoryList& m_triggerCommandFactory;
