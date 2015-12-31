@@ -17,7 +17,7 @@ static const QMap<IOType, QString> iotypemap{
     }
 };
 
-const QMap<IOType, QString>& Device::IOTypeStringMap()
+const QMap<IOType, QString>& IOTypeStringMap()
 {
     return iotypemap;
 }
