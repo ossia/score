@@ -1,18 +1,21 @@
 #pragma once
 #include <Process/Process.hpp>
 
-template<typename System_T, typename Component_T>
-class GenericProcessComponentFactory;
+template<typename Model_T, typename System_T, typename Component_T>
+class GenericComponentFactory;
 
-template<typename System_T, typename Component_T>
-using ComponentFactoryKey =  StringKey<GenericProcessComponentFactory<System_T, Component_T>>;
+template<typename Model_T, typename System_T, typename Component_T>
+using ComponentFactoryKey =  StringKey<GenericComponentFactory<Model_T, System_T, Component_T>>;
 
-template<typename System_T, typename Component_T>
-class GenericProcessComponentFactory :
-        public iscore::GenericFactoryInterface<ComponentFactoryKey<System_T, Component_T>>
+template<
+        typename Model_T, // e.g. ProcessModel - maybe ProcessEntity ?
+        typename System_T, // e.g. LocalTree::DocumentPlugin
+        typename Component_T> // e.g. ProcessComponent
+class GenericComponentFactory :
+        public iscore::GenericFactoryInterface<ComponentFactoryKey<Model_T, System_T, Component_T>>
 {
     public:
-        using factory_key_type = ComponentFactoryKey<System_T, Component_T>;
+        using factory_key_type = ComponentFactoryKey<Model_T, System_T, Component_T>;
 
         static const iscore::FactoryBaseKey& staticFactoryKey() {
             static const iscore::FactoryBaseKey s{
@@ -28,17 +31,18 @@ class GenericProcessComponentFactory :
         }
 
         virtual bool matches(
-                Process::ProcessModel&,
+                Model_T&,
                 const System_T&,
                 const iscore::DocumentContext&) const = 0;
 };
 
 
 template<
-        typename System_T,
-        typename Component_T,
-        typename Factory_T>
-class GenericProcessComponentFactoryList final :
+        typename Model_T, // e.g. ProcessModel - maybe ProcessEntity ?
+        typename System_T, // e.g. LocalTree::DocumentPlugin
+        typename Component_T, // e.g. ProcessComponent
+        typename Factory_T> // e.g. ProcessComponentFactoryList
+class GenericComponentFactoryList final :
         public iscore::FactoryListInterface
 {
         std::vector<std::unique_ptr<Factory_T>> m_list;
@@ -63,13 +67,13 @@ class GenericProcessComponentFactoryList final :
         { return m_list; }
 
         Factory_T* factory(
-                Process::ProcessModel& proc,
+                Model_T& model,
                 const System_T& doc,
                 const iscore::DocumentContext& ctx) const
         {
             for(auto& factory : list())
             {
-                if(factory->matches(proc, doc, ctx))
+                if(factory->matches(model, doc, ctx))
                 {
                     return factory.get();
                 }

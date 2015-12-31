@@ -415,6 +415,8 @@ void ProcessModel::startExecution()
 void ProcessModel::stopExecution()
 {
 }
+namespace LocalTree
+{
 
 ProcessLocalTreeFactory::~ProcessLocalTreeFactory()
 {
@@ -429,13 +431,22 @@ ProcessLocalTreeFactory::key_impl() const
 
 }
 
-bool ProcessLocalTreeFactory::matches(Process::ProcessModel& p, const OSSIA::LocalTree::DocumentPlugin&, const iscore::DocumentContext&) const
+bool ProcessLocalTreeFactory::matches(
+        Process::ProcessModel& p,
+        const OSSIA::LocalTree::DocumentPlugin&,
+        const iscore::DocumentContext&) const
 {
     return dynamic_cast<Space::ProcessModel*>(&p);
 }
 
 
-OSSIA::LocalTree::ProcessComponent*ProcessLocalTreeFactory::make(const Id<iscore::Component>& id, OSSIA::Node& parent, Process::ProcessModel& proc, const OSSIA::LocalTree::DocumentPlugin& doc, const iscore::DocumentContext& ctx, QObject* paren_objt) const
+OSSIA::LocalTree::ProcessComponent* ProcessLocalTreeFactory::make(
+        const Id<iscore::Component>& id,
+        OSSIA::Node& parent,
+        Process::ProcessModel& proc,
+        const OSSIA::LocalTree::DocumentPlugin& doc,
+        const iscore::DocumentContext& ctx,
+        QObject* paren_objt) const
 {
     return new ProcessLocalTree{
         id, parent,
@@ -443,7 +454,13 @@ OSSIA::LocalTree::ProcessComponent*ProcessLocalTreeFactory::make(const Id<iscore
                 doc, ctx, paren_objt};
 }
 
-ProcessLocalTree::ProcessLocalTree(const Id<iscore::Component>& id, OSSIA::Node& parent, ProcessModel& process, const ProcessLocalTree::system_t& doc, const iscore::DocumentContext& ctx, QObject* parent_obj):
+ProcessLocalTree::ProcessLocalTree(
+        const Id<iscore::Component>& id,
+        OSSIA::Node& parent,
+        ProcessModel& process,
+        const ProcessLocalTree::system_t& doc,
+        const iscore::DocumentContext& ctx,
+        QObject* parent_obj):
     ProcessComponent{parent, process, id, "SpaceComponent", parent_obj},
     m_areas{add_node(*node(), "areas")},
     m_computations{add_node(*node(), "computations")}
@@ -460,4 +477,16 @@ ProcessLocalTree::ProcessLocalTree(const Id<iscore::Component>& id, OSSIA::Node&
     }
 }
 
+AreaComponentFactory::~AreaComponentFactory()
+{
+
 }
+
+AreaComponent::~AreaComponent()
+{
+
+}
+}
+}
+
+ISCORE_METADATA_IMPL(Space::LocalTree::AreaComponent)

@@ -8,6 +8,7 @@
 
 #include <OSSIA/LocalTree/Scenario/ProcessComponent.hpp>
 #include <OSSIA/LocalTree/Scenario/MetadataParameters.hpp>
+#include <iscore_plugin_space_export.h>
 class SpaceModel;
 
 namespace Space
@@ -72,6 +73,16 @@ class ProcessModel : public RecreateOnPlay::OSSIAProcessModel
                 const TimeValue &duration,
                 const Id<Process::ProcessModel> &id,
                 QObject *parent);
+        const SpaceModel& space() const
+        { return *m_space; }
+        const Space::AreaContext& context() const
+        { return m_context; }
+
+        NotifyingMap<AreaModel> areas;
+        NotifyingMap<ComputationModel> computations;
+
+
+    private:
         ProcessModel *clone(const Id<Process::ProcessModel> &newId, QObject *newParent) const override;
 
         const ProcessFactoryKey& key() const override;
@@ -92,15 +103,6 @@ class ProcessModel : public RecreateOnPlay::OSSIAProcessModel
 
         void serialize(const VisitorVariant &vis) const override;
 
-        const SpaceModel& space() const
-        { return *m_space; }
-        const Space::AreaContext& context() const
-        { return m_context; }
-
-        NotifyingMap<AreaModel> areas;
-        NotifyingMap<ComputationModel> computations;
-
-    protected:
         Process::LayerModel *makeLayer_impl(
                 const Id<Process::LayerModel> &viewModelId,
                 const QByteArray &constructionData,
@@ -113,7 +115,6 @@ class ProcessModel : public RecreateOnPlay::OSSIAProcessModel
                 const Process::LayerModel &source,
                 QObject *parent) override;
 
-    private:
         void startExecution() override;
         void stopExecution() override;
         std::shared_ptr<TimeProcessWithConstraint> process() const override;
@@ -126,6 +127,8 @@ class ProcessModel : public RecreateOnPlay::OSSIAProcessModel
 
 
 
+namespace LocalTree
+{
 class ProcessLocalTree final :
         public OSSIA::LocalTree::ProcessComponent
 {
@@ -169,4 +172,59 @@ class ProcessLocalTreeFactory final :
                 const iscore::DocumentContext& ctx,
                 QObject* paren_objt) const override;
 };
+
+
+class ISCORE_PLUGIN_SPACE_EXPORT AreaComponent : public iscore::Component
+{
+        ISCORE_METADATA(Space::LocalTree::AreaComponent)
+    public:
+        AreaComponent(
+                OSSIA::Node& node,
+                AreaModel& proc,
+                const Id<iscore::Component>& id,
+                const QString& name,
+                QObject* parent);
+
+        virtual ~AreaComponent();
+
+        auto& node() const
+        { return m_thisNode.node; }
+
+    private:
+        OSSIA::Node& thisNode() const
+        { return *node(); }
+        MetadataNamePropertyWrapper m_thisNode;
+};
+
+class ISCORE_PLUGIN_SPACE_EXPORT AreaComponentFactory :
+        public ::GenericComponentFactory<
+            AreaModel,
+            OSSIA::LocalTree::DocumentPlugin,
+            Space::LocalTree::AreaComponent>
+{
+    public:
+        virtual ~AreaComponentFactory();
+
+        virtual AreaComponent* make(
+                const Id<iscore::Component>&,
+                OSSIA::Node& parent,
+                AreaModel& proc,
+                const OSSIA::LocalTree::DocumentPlugin& doc,
+                const iscore::DocumentContext& ctx,
+                QObject* paren_objt) const = 0;
+};
+
+// TODO return Generic by default
+using AreaComponentFactoryList =
+    ::GenericComponentFactoryList<
+            AreaModel,
+            OSSIA::LocalTree::DocumentPlugin,
+            Space::LocalTree::AreaComponent,
+            Space::LocalTree::AreaComponentFactory>;
+
+class GenericAreaComponentFactory : public AreaComponentFactory
+{
+
+};
+}
 }
