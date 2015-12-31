@@ -8,11 +8,18 @@
 #include "Area/Circle/CircleAreaFactory.hpp"
 #include "Area/Pointer/PointerAreaFactory.hpp"
 #include "Area/Generic/GenericAreaFactory.hpp"
+#include <src/SpaceProcess.hpp>
 #include <iscore/plugins/customfactory/FactoryFamily.hpp>
+#include <iscore/plugins/customfactory/FactorySetup.hpp>
 
 iscore_plugin_space::iscore_plugin_space() :
     QObject {}
 {
+}
+
+iscore_plugin_space::~iscore_plugin_space()
+{
+
 }
 
 iscore::GUIApplicationContextPlugin* iscore_plugin_space::make_applicationPlugin(
@@ -23,23 +30,22 @@ iscore::GUIApplicationContextPlugin* iscore_plugin_space::make_applicationPlugin
 
 std::vector<std::unique_ptr<iscore::FactoryInterfaceBase>> iscore_plugin_space::factories(
         const iscore::ApplicationContext& ctx,
-        const iscore::FactoryBaseKey& factoryName) const
+        const iscore::FactoryBaseKey& key) const
 {
-    if(factoryName == Process::ProcessFactory::staticFactoryKey())
-    {
-        return make_ptr_vector<iscore::FactoryInterfaceBase,
-                Space::ProcessFactory>();
-    }
-    if(factoryName == AreaFactory::staticFactoryKey())
-    {
-        return make_ptr_vector<iscore::FactoryInterfaceBase,
-                GenericAreaFactory,
-                CircleAreaFactory,
-                PointerAreaFactory
-                >();
-    }
 
-    return {};
+    return instantiate_factories<
+            iscore::ApplicationContext,
+    TL<
+        FW<Process::ProcessFactory,
+            Space::ProcessFactory>,
+        FW<AreaFactory,
+            GenericAreaFactory,
+            CircleAreaFactory,
+            PointerAreaFactory>,
+        FW<OSSIA::LocalTree::ProcessComponentFactory,
+            Space::ProcessLocalTreeFactory>
+            >
+     >(ctx, key);
 }
 
 

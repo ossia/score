@@ -2,11 +2,13 @@
 #include <Scenario/Document/Components/ProcessComponent.hpp>
 #include <OSSIA/LocalTree/LocalTreeDocumentPlugin.hpp>
 #include <OSSIA/LocalTree/NameProperty.hpp>
+
+// TODO clean me up
 namespace OSSIA
 {
 namespace LocalTree
 {
-class ProcessComponent : public iscore::Component
+class ISCORE_PLUGIN_OSSIA_EXPORT ProcessComponent : public iscore::Component
 {
         ISCORE_METADATA(OSSIA::LocalTree::ProcessComponent)
     public:
@@ -27,12 +29,13 @@ class ProcessComponent : public iscore::Component
         MetadataNamePropertyWrapper m_thisNode;
 };
 
-class ProcessComponentFactory :
+class ISCORE_PLUGIN_OSSIA_EXPORT ProcessComponentFactory :
         public ::GenericProcessComponentFactory<
             LocalTree::DocumentPlugin,
             LocalTree::ProcessComponent>
 {
     public:
+        virtual ~ProcessComponentFactory();
         virtual ProcessComponent* make(
                 const Id<iscore::Component>&,
                 OSSIA::Node& parent,

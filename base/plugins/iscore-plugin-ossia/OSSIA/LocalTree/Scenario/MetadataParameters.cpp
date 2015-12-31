@@ -6,7 +6,7 @@ namespace OSSIA
 {
 namespace LocalTree
 {
-
+ISCORE_PLUGIN_OSSIA_EXPORT
 void make_metadata_node(
         ModelMetadata& metadata,
         OSSIA::Node& parent,

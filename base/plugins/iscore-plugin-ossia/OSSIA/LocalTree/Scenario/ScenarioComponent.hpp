@@ -9,7 +9,7 @@ namespace OSSIA
 {
 namespace LocalTree
 {
-class ScenarioComponent : public ProcessComponent
+class ScenarioComponent final : public ProcessComponent
 {
        COMPONENT_METADATA(OSSIA::LocalTree::ScenarioComponent)
 

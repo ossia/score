@@ -1,6 +1,7 @@
 #pragma once
 #include <iscore/plugins/documentdelegate/plugin/DocumentDelegatePluginModel.hpp>
 #include <memory>
+#include <iscore_plugin_ossia_export.h>
 class QObject;
 namespace iscore {
 class Document;

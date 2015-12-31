@@ -143,7 +143,7 @@ std::shared_ptr<OSSIA::StateElement> ProcessExecutor::state(
 
     // For each area whose parameters depend on an address,
     // get the current area value and update it.
-    for(AreaModel& area : m_process.areas())
+    for(AreaModel& area : m_process.areas)
     {
         const auto& parameter_map = area.parameterMapping();
         GiNaC::exmap mapping;
@@ -191,8 +191,11 @@ std::shared_ptr<OSSIA::StateElement> ProcessExecutor::state(
 
 
     // Shall be done either here, or in the tree component : choose between reactive, and state mode.
+    // Same problem for "mapping" plug-in : react to changes or return state ?
+    // "Reactive" execution component (has to be enabled / disabled on start / end)
+    // vs "state" execution component
     // Handle computations / collisions
-    for(const auto& comp : m_process.computations())
+    for(const auto& comp : m_process.computations)
     {
         makeState(*state, comp);
         /*
@@ -217,6 +220,7 @@ std::shared_ptr<OSSIA::StateElement> ProcessExecutor::state(
 
     return state;
 }
+
 
 ProcessModel::ProcessModel(
         const iscore::DocumentContext& doc,
@@ -377,18 +381,6 @@ void ProcessModel::serialize(const VisitorVariant &vis) const
     ISCORE_TODO;
 }
 
-void ProcessModel::addArea(AreaModel* a)
-{
-    m_areas.insert(a);
-
-    emit areaAdded(*a);
-}
-
-void ProcessModel::removeArea(const Id<AreaModel> &id)
-{
-    ISCORE_TODO;
-
-}
 
 Process::LayerModel *ProcessModel::makeLayer_impl(
         const Id<Process::LayerModel> &viewModelId,
@@ -416,14 +408,6 @@ Process::LayerModel *ProcessModel::cloneLayer_impl(
 }
 
 
-void ProcessModel::addComputation(ComputationModel * c)
-{
-    m_computations.insert(c);
-
-    emit computationAdded(*c);
-}
-
-
 void ProcessModel::startExecution()
 {
 }
@@ -431,4 +415,49 @@ void ProcessModel::startExecution()
 void ProcessModel::stopExecution()
 {
 }
+
+ProcessLocalTreeFactory::~ProcessLocalTreeFactory()
+{
+
+}
+
+const ProcessLocalTreeFactory::factory_key_type&
+ProcessLocalTreeFactory::key_impl() const
+{
+    static const factory_key_type name{"SpaceComponentFactory"};
+    return name;
+
+}
+
+bool ProcessLocalTreeFactory::matches(Process::ProcessModel& p, const OSSIA::LocalTree::DocumentPlugin&, const iscore::DocumentContext&) const
+{
+    return dynamic_cast<Space::ProcessModel*>(&p);
+}
+
+
+OSSIA::LocalTree::ProcessComponent*ProcessLocalTreeFactory::make(const Id<iscore::Component>& id, OSSIA::Node& parent, Process::ProcessModel& proc, const OSSIA::LocalTree::DocumentPlugin& doc, const iscore::DocumentContext& ctx, QObject* paren_objt) const
+{
+    return new ProcessLocalTree{
+        id, parent,
+                static_cast<Space::ProcessModel&>(proc),
+                doc, ctx, paren_objt};
+}
+
+ProcessLocalTree::ProcessLocalTree(const Id<iscore::Component>& id, OSSIA::Node& parent, ProcessModel& process, const ProcessLocalTree::system_t& doc, const iscore::DocumentContext& ctx, QObject* parent_obj):
+    ProcessComponent{parent, process, id, "SpaceComponent", parent_obj},
+    m_areas{add_node(*node(), "areas")},
+    m_computations{add_node(*node(), "computations")}
+{
+    OSSIA::LocalTree::make_metadata_node(process.metadata, *node(), m_properties, this);
+    for(auto& area : process.areas)
+    {
+
+    }
+
+    for(auto& component : process.computations)
+    {
+
+    }
+}
+
 }
