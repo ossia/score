@@ -8,7 +8,6 @@
 namespace Curve
 {
 class EditionSettings;
-}
 template<
         typename Model_T,
         typename LayerModel_T,
@@ -65,11 +64,12 @@ class ISCORE_PLUGIN_CURVE_EXPORT CurveProcessFactory_T : public Process::Process
         CurveColors_T m_colors;
 };
 
+}
 // See AutomationProcessMetadata.
 #define DEFINE_CURVE_PROCESS_FACTORY(Name, ProcessMetadata, Model, Layer, Presenter, View, Colors) \
-class Name final : public CurveProcessFactory_T<Model, Layer, Presenter, View, Colors> \
+class Name final : public Curve::CurveProcessFactory_T<Model, Layer, Presenter, View, Colors> \
 { \
-    using CurveProcessFactory_T<Model, Layer, Presenter, View, Colors>::CurveProcessFactory_T; \
+    using Curve::CurveProcessFactory_T<Model, Layer, Presenter, View, Colors>::CurveProcessFactory_T; \
     const ProcessFactoryKey& key_impl() const override \
     { return ProcessMetadata::factoryKey(); } \
     \

@@ -42,7 +42,7 @@ iscore::Message AutomationState::message() const
 {
     iscore::Message m;
     m.address = process().address();
-    for(const CurveSegmentModel& seg : process().curve().segments())
+    for(const auto& seg : process().curve().segments())
     {
         // OPTIMIZEME introduce another index on that has an ordering on curve segments
         // to make this fast (just checking for the first and the last).
@@ -117,7 +117,7 @@ iscore::MessageList AutomationState::setMessages(const iscore::MessageList& rece
                 auto seg_it = std::find_if(
                             segs.begin(),
                             segs.end(),
-                            [] (CurveSegmentModel& segt) {
+                            [] (Curve::SegmentModel& segt) {
                         return segt.start().x() == 0;
                 });
                 if(seg_it != segs.end())
@@ -134,7 +134,7 @@ iscore::MessageList AutomationState::setMessages(const iscore::MessageList& rece
                 auto seg_it = std::find_if(
                             segs.begin(),
                             segs.end(),
-                            [] (CurveSegmentModel& segt) {
+                            [] (Curve::SegmentModel& segt) {
                         return segt.end().x() == 1;
                 });
                 if(seg_it != segs.end())

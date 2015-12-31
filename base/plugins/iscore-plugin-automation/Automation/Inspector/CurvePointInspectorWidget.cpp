@@ -22,7 +22,7 @@ class Document;
 
 
 CurvePointInspectorWidget::CurvePointInspectorWidget(
-    const CurvePointModel& model,
+    const Curve::PointModel& model,
     const iscore::DocumentContext& doc,
     QWidget* parent):
     InspectorWidgetBase{model, doc, parent},
@@ -33,7 +33,7 @@ CurvePointInspectorWidget::CurvePointInspectorWidget(
     setParent(parent);
 
     std::list<QWidget*> vec;
-    auto cm = safe_cast<CurveModel*>(m_model.parent());
+    auto cm = safe_cast<Curve::Model*>(m_model.parent());
     auto automModel_base = dynamic_cast<AutomationModel*>(cm->parent());
     if(!automModel_base)
         return;
@@ -96,8 +96,8 @@ CurvePointInspectorWidget::CurvePointInspectorWidget(
 void CurvePointInspectorWidget::on_pointChanged(double d)
 {
     Curve::Point pos{m_XBox->value()/m_xFactor, (m_YBox->value() - m_Ymin)/m_yFactor};
-    m_dispatcher.submitCommand<MovePoint>(
-                *safe_cast<CurveModel*>(m_model.parent()),
+    m_dispatcher.submitCommand<Curve::MovePoint>(
+                *safe_cast<Curve::Model*>(m_model.parent()),
                 m_model.id(),
                 pos);
 }

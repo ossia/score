@@ -18,39 +18,42 @@
 #include <iscore_plugin_curve_export.h>
 
 class QObject;
-class PowerCurveSegmentModel;
+namespace Curve
+{
+class PowerSegment;
 
 // Gives the data.
-class ISCORE_PLUGIN_CURVE_EXPORT CurveSegmentModel : public IdentifiedObject<CurveSegmentModel>
+class ISCORE_PLUGIN_CURVE_EXPORT SegmentModel :
+        public IdentifiedObject<SegmentModel>
 {
         Q_OBJECT
 
-        ISCORE_SERIALIZE_FRIENDS(CurveSegmentModel, DataStream)
-        ISCORE_SERIALIZE_FRIENDS(CurveSegmentModel, JSONObject)
+        ISCORE_SERIALIZE_FRIENDS(Curve::SegmentModel, DataStream)
+        ISCORE_SERIALIZE_FRIENDS(Curve::SegmentModel, JSONObject)
     public:
         Selectable selection;
-        CurveSegmentModel(
-                const Id<CurveSegmentModel>& id,
+        SegmentModel(
+                const Id<SegmentModel>& id,
                 QObject* parent);
-        CurveSegmentModel(
-                const CurveSegmentData& id,
+        SegmentModel(
+                const SegmentData& id,
                 QObject* parent);
 
         template<typename Impl>
-        CurveSegmentModel(Deserializer<Impl>& vis, QObject* parent) :
+        SegmentModel(Deserializer<Impl>& vis, QObject* parent) :
             IdentifiedObject{vis, parent}
         {
             vis.writeTo(*this);
         }
 
-        virtual CurveSegmentModel* clone(
-                const Id<CurveSegmentModel>& id,
+        virtual SegmentModel* clone(
+                const Id<SegmentModel>& id,
                 QObject* parent) const = 0;
 
-        virtual ~CurveSegmentModel();
+        virtual ~SegmentModel();
 
 
-        virtual const CurveSegmentFactoryKey& key() const = 0;
+        virtual const SegmentFactoryKey& key() const = 0;
         virtual void serialize(const VisitorVariant&) const = 0;
         virtual void updateData(int numInterp) const = 0; // Will interpolate.
         virtual double valueAt(double x) const = 0;
@@ -67,12 +70,12 @@ class ISCORE_PLUGIN_CURVE_EXPORT CurveSegmentModel : public IdentifiedObject<Cur
         Curve::Point end() const
         { return m_end; }
 
-        void setPrevious(const Id<CurveSegmentModel>& previous);
-        const Id<CurveSegmentModel>& previous() const
+        void setPrevious(const Id<SegmentModel>& previous);
+        const Id<SegmentModel>& previous() const
         { return m_previous; }
 
-        void setFollowing(const Id<CurveSegmentModel>& following);
-        const Id<CurveSegmentModel>& following() const
+        void setFollowing(const Id<SegmentModel>& following);
+        const Id<SegmentModel>& following() const
         { return m_following; }
 
         // Between -1 and 1, to map to the real parameter.
@@ -81,7 +84,7 @@ class ISCORE_PLUGIN_CURVE_EXPORT CurveSegmentModel : public IdentifiedObject<Cur
         virtual boost::optional<double> verticalParameter() const;
         virtual boost::optional<double> horizontalParameter() const;
 
-        CurveSegmentData toSegmentData() const
+        SegmentData toSegmentData() const
         {
             return{
                 id(),
@@ -110,8 +113,9 @@ class ISCORE_PLUGIN_CURVE_EXPORT CurveSegmentModel : public IdentifiedObject<Cur
         Curve::Point m_start, m_end;
 
     private:
-        Id<CurveSegmentModel> m_previous, m_following;
+        Id<SegmentModel> m_previous, m_following;
 };
 
 
-using DefaultCurveSegmentModel = PowerCurveSegmentModel;
+using DefaultCurveSegmentModel = PowerSegment;
+}

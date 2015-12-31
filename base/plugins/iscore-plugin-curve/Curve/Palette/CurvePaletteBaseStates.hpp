@@ -2,26 +2,27 @@
 #include "CurvePoint.hpp"
 #include <iscore/tools/SettableIdentifier.hpp>
 #include <QState>
-class CurveSegmentModel;
-struct CurvePointId
-{
-        Id<CurveSegmentModel> previous;
-        Id<CurveSegmentModel> following;
-};
-
 class QGraphicsItem;
 
 namespace Curve
 {
+class SegmentModel;
+
+struct PointId
+{
+        Id<SegmentModel> previous;
+        Id<SegmentModel> following;
+};
+
 class StateBase : public QState
 {
     public:
         using QState::QState;
-        Id<CurveSegmentModel> clickedSegmentId;
-        CurvePointId clickedPointId;
+        Id<SegmentModel> clickedSegmentId;
+        PointId clickedPointId;
 
-        Id<CurveSegmentModel> hoveredSegmentId;
-        CurvePointId hoveredPointId;
+        Id<SegmentModel> hoveredSegmentId;
+        PointId hoveredPointId;
 
         Curve::Point currentPoint;
 };

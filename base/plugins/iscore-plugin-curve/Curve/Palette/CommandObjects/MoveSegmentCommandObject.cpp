@@ -4,6 +4,8 @@ namespace iscore {
 class CommandStackFacade;
 }  // namespace iscore
 
+namespace Curve
+{
 MoveSegmentCommandObject::MoveSegmentCommandObject(iscore::CommandStackFacade& stack)
     //:
     //m_dispatcher{stack}
@@ -29,4 +31,5 @@ void MoveSegmentCommandObject::release()
 void MoveSegmentCommandObject::cancel()
 {
 
+}
 }

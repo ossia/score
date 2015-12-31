@@ -10,34 +10,34 @@ class QObject;
 struct CurveSegmentData;
 #include <iscore/tools/SettableIdentifier.hpp>
 
-struct GammaCurveSegmentData
+namespace Curve
+{
+struct GammaSegmentData
 {
     double gamma;
 };
 
-Q_DECLARE_METATYPE(GammaCurveSegmentData)
-
-class GammaCurveSegmentModel final : public CurveSegmentModel
+class GammaSegment final : public SegmentModel
 {
     public:
-        using data_type = GammaCurveSegmentData;
-        using CurveSegmentModel::CurveSegmentModel;
-        GammaCurveSegmentModel(
-                const CurveSegmentData& dat,
+        using data_type = GammaSegmentData;
+        using SegmentModel::SegmentModel;
+        GammaSegment(
+                const SegmentData& dat,
                 QObject* parent);
 
         template<typename Impl>
-        GammaCurveSegmentModel(Deserializer<Impl>& vis, QObject* parent) :
-            CurveSegmentModel {vis, parent}
+        GammaSegment(Deserializer<Impl>& vis, QObject* parent) :
+            SegmentModel {vis, parent}
         {
             vis.writeTo(*this);
         }
 
-        CurveSegmentModel* clone(
-                const Id<CurveSegmentModel>& id,
+        SegmentModel* clone(
+                const Id<SegmentModel>& id,
                 QObject* parent) const override;
 
-        const CurveSegmentFactoryKey& key() const override;
+        const SegmentFactoryKey& key() const override;
         void serialize(const VisitorVariant& vis) const override;
         void on_startChanged() override;
         void on_endChanged() override;
@@ -50,9 +50,11 @@ class GammaCurveSegmentModel final : public CurveSegmentModel
 
         QVariant toSegmentSpecificData() const override
         {
-            return QVariant::fromValue(GammaCurveSegmentData{gamma});
+            return QVariant::fromValue(GammaSegmentData{gamma});
         }
 
         double gamma = 0.5;
-
 };
+}
+
+Q_DECLARE_METATYPE(Curve::GammaSegmentData)

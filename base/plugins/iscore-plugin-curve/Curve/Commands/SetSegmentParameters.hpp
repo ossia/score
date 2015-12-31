@@ -8,35 +8,38 @@
 
 #include <iscore/tools/SettableIdentifier.hpp>
 
-class CurveModel;
-class CurveSegmentModel;
 class DataStreamInput;
 class DataStreamOutput;
 
-using SegmentParameterMap = QMap<Id<CurveSegmentModel>, QPair<double, double>>;
+namespace Curve
+{
+class Model;
+class SegmentModel;
+using SegmentParameterMap = QMap<Id<SegmentModel>, QPair<double, double>>;
 class SetSegmentParameters final : public iscore::SerializableCommand
 {
-        ISCORE_COMMAND_DECL(CurveCommandFactoryName(), SetSegmentParameters, "Set segment parameters")
+        ISCORE_COMMAND_DECL(CommandFactoryName(), SetSegmentParameters, "Set segment parameters")
     public:
-        SetSegmentParameters(Path<CurveModel>&& model, SegmentParameterMap&& parameters);
+        SetSegmentParameters(Path<Model>&& model, SegmentParameterMap&& parameters);
 
         void undo() const override;
         void redo() const override;
 
-        void update(Path<CurveModel>&& model, SegmentParameterMap&&  segments);
+        void update(Path<Model>&& model, SegmentParameterMap&&  segments);
 
     protected:
         void serializeImpl(DataStreamInput & s) const override;
         void deserializeImpl(DataStreamOutput & s) override;
 
     private:
-        Path<CurveModel> m_model;
+        Path<Model> m_model;
         SegmentParameterMap m_new;
         QMap<
-            Id<CurveSegmentModel>,
+            Id<SegmentModel>,
             QPair<
                 boost::optional<double>,
                 boost::optional<double>
             >
         > m_old;
 };
+}

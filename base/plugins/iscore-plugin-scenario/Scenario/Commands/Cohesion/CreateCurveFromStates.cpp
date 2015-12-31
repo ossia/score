@@ -60,8 +60,8 @@ void CreateCurveFromStates::redo() const
     autom.curve().clear();
 
     // Add a segment
-    auto segment = new DefaultCurveSegmentModel{
-                   Id<CurveSegmentModel>{iscore::id_generator::getFirstId()},
+    auto segment = new Curve::DefaultCurveSegmentModel{
+                   Id<Curve::SegmentModel>{iscore::id_generator::getFirstId()},
                    &autom.curve()};
 
     double fact = 1. / (m_max - m_min);

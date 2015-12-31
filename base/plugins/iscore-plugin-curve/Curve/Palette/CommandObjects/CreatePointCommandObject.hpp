@@ -3,17 +3,20 @@
 
 #include <Curve/Palette/CommandObjects/CurveCommandObjectBase.hpp>
 
-class CurvePresenter;
 namespace iscore {
 class CommandStackFacade;
-}  // namespace iscore
-struct CurveSegmentData;
+}
 
-class CreatePointCommandObject final : public CurveCommandObjectBase
+namespace Curve
+{
+struct SegmentData;
+class Presenter;
+
+class CreatePointCommandObject final : public CommandObjectBase
 {
     public:
         CreatePointCommandObject(
-                CurvePresenter* presenter,
+                Presenter* presenter,
                 iscore::CommandStackFacade& stack);
 
         void on_press() override;
@@ -25,5 +28,6 @@ class CreatePointCommandObject final : public CurveCommandObjectBase
         void cancel();
 
     private:
-        void createPoint(std::vector<CurveSegmentData>& segments);
+        void createPoint(std::vector<SegmentData>& segments);
 };
+}

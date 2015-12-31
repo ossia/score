@@ -8,6 +8,8 @@
 #include <iscore/selection/Selection.hpp>
 #include <iscore_plugin_curve_export.h>
 
+namespace Curve
+{
 class ISCORE_PLUGIN_CURVE_EXPORT CurveProcessModel :
         public Process::ProcessModel
 {
@@ -15,7 +17,7 @@ class ISCORE_PLUGIN_CURVE_EXPORT CurveProcessModel :
     public:
         using ProcessModel::ProcessModel;
 
-        CurveModel& curve() const
+        Model& curve() const
         { return *m_curve; }
 
         virtual ~CurveProcessModel();
@@ -62,7 +64,7 @@ class ISCORE_PLUGIN_CURVE_EXPORT CurveProcessModel :
         void curveChanged();
 
     protected:
-        void setCurve(CurveModel* newCurve)
+        void setCurve(Model* newCurve)
         {
             delete m_curve;
             m_curve = newCurve;
@@ -74,5 +76,6 @@ class ISCORE_PLUGIN_CURVE_EXPORT CurveProcessModel :
 
         virtual void setCurve_impl() { }
 
-        CurveModel* m_curve{};
+        Model* m_curve{};
 };
+}

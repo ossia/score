@@ -112,16 +112,16 @@ std::shared_ptr<OSSIA::CurveAbstract> curve(
 
     for(const auto& iscore_segment : segments)
     {
-        if(iscore_segment.type == LinearCurveSegmentData::key())
+        if(iscore_segment.type == Curve::LinearSegmentData::key())
         {
             curve->addPoint(
                         OSSIA::CurveSegmentLinear<Y_T>::create(curve),
                         scale_x(iscore_segment.end.x()),
                         scale_y(iscore_segment.end.y()));
         }
-        else if(iscore_segment.type == PowerCurveSegmentData::key())
+        else if(iscore_segment.type == Curve::PowerSegmentData::key())
         {
-            auto val = iscore_segment.specificSegmentData.template value<PowerCurveSegmentData>();
+            auto val = iscore_segment.specificSegmentData.template value<Curve::PowerSegmentData>();
 
             if(val.gamma == 12.05)
             {

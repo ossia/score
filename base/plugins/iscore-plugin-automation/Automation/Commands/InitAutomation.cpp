@@ -18,7 +18,7 @@ InitAutomation::InitAutomation(
         const iscore::Address& newaddr,
         double newmin,
         double newmax,
-        std::vector<CurveSegmentData>&& segments):
+        std::vector<Curve::SegmentData>&& segments):
     m_path{std::move(path)},
     m_addr(newaddr),
     m_newMin{newmin},

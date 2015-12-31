@@ -3,28 +3,30 @@
 
 class QObject;
 
-CurvePointModel::CurvePointModel(const Id<CurvePointModel>& id, QObject* parent):
-    IdentifiedObject<CurvePointModel>{id, "CurvePointModel", parent}
+namespace Curve
+{
+PointModel::PointModel(const Id<PointModel>& id, QObject* parent):
+    IdentifiedObject<PointModel>{id, "CurvePointModel", parent}
 {
 
 }
 
-const Id<CurveSegmentModel>& CurvePointModel::following() const
+const Id<SegmentModel>& PointModel::following() const
 {
     return m_following;
 }
 
-void CurvePointModel::setFollowing(const Id<CurveSegmentModel> &following)
+void PointModel::setFollowing(const Id<SegmentModel> &following)
 {
     m_following = following;
 }
 
-Curve::Point CurvePointModel::pos() const
+Curve::Point PointModel::pos() const
 {
     return m_pos;
 }
 
-void CurvePointModel::setPos(const Curve::Point &pos)
+void PointModel::setPos(const Curve::Point &pos)
 {
     m_pos = pos;
     emit posChanged();
@@ -32,12 +34,13 @@ void CurvePointModel::setPos(const Curve::Point &pos)
 
 
 
-const Id<CurveSegmentModel> &CurvePointModel::previous() const
+const Id<SegmentModel> &PointModel::previous() const
 {
     return m_previous;
 }
 
-void CurvePointModel::setPrevious(const Id<CurveSegmentModel> &previous)
+void PointModel::setPrevious(const Id<SegmentModel> &previous)
 {
     m_previous = previous;
+}
 }
