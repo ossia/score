@@ -20,7 +20,7 @@ class iscore_plugin_space:
 
     public:
         iscore_plugin_space();
-        virtual ~iscore_plugin_space() = default;
+        virtual ~iscore_plugin_space();
 
         // Application plugin interface
         iscore::GUIApplicationContextPlugin* make_applicationPlugin(

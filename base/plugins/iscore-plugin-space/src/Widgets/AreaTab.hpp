@@ -1,13 +1,17 @@
 #pragma once
 #include <QtWidgets>
 #include <iscore/command/Dispatchers/CommandDispatcher.hpp>
+#include <nano_observer.hpp>
 
 namespace iscore {
 struct DocumentContext;
 }
 namespace Space { class ProcessModel; }
 class AreaWidget;
-class AreaTab : public QWidget
+class AreaModel;
+class AreaTab :
+        public QWidget,
+        public Nano::Observer
 {
         Q_OBJECT
     public:
@@ -22,6 +26,8 @@ class AreaTab : public QWidget
 
     private:
         void rebuildList();
+        void on_areaAdded(const AreaModel&);
+        void on_areaRemoved(const AreaModel&);
 
         const Space::ProcessModel &m_space;
         QListWidget* m_listWidget{};

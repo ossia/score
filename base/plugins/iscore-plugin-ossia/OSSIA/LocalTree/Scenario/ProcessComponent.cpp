@@ -16,3 +16,8 @@ OSSIA::LocalTree::ProcessComponent::~ProcessComponent()
 {
 
 }
+
+OSSIA::LocalTree::ProcessComponentFactory::~ProcessComponentFactory()
+{
+
+}

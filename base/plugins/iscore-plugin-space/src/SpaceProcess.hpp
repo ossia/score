@@ -4,6 +4,10 @@
 #include "Area/AreaModel.hpp"
 #include "Computation/ComputationModel.hpp"
 #include <OSSIA/DocumentPlugin/ProcessModel/ProcessModel.hpp>
+#include <iscore/tools/NotifyingMap.hpp>
+
+#include <OSSIA/LocalTree/Scenario/ProcessComponent.hpp>
+#include <OSSIA/LocalTree/Scenario/MetadataParameters.hpp>
 class SpaceModel;
 
 namespace Space
@@ -93,19 +97,8 @@ class ProcessModel : public RecreateOnPlay::OSSIAProcessModel
         const Space::AreaContext& context() const
         { return m_context; }
 
-        const auto& areas() const
-        { return m_areas; }
-        void addArea(AreaModel*);
-        void removeArea(const Id<AreaModel>& id);
-
-        const auto& computations() const
-        { return m_computations; }
-        void addComputation(ComputationModel*);
-
-    signals:
-        void areaAdded(const AreaModel&);
-        void areaRemoved(const Id<AreaModel>&);
-        void computationAdded(const ComputationModel&);
+        NotifyingMap<AreaModel> areas;
+        NotifyingMap<ComputationModel> computations;
 
     protected:
         Process::LayerModel *makeLayer_impl(
@@ -126,10 +119,54 @@ class ProcessModel : public RecreateOnPlay::OSSIAProcessModel
         std::shared_ptr<TimeProcessWithConstraint> process() const override;
 
         SpaceModel* m_space{};
-        IdContainer<AreaModel> m_areas;
-        IdContainer<ComputationModel> m_computations;
         Space::AreaContext m_context;
         std::shared_ptr<Space::ProcessExecutor> m_process;
 
+};
+
+
+
+class ProcessLocalTree final :
+        public OSSIA::LocalTree::ProcessComponent
+{
+        COMPONENT_METADATA(SpaceProcessLocalTree)
+
+         using system_t = OSSIA::LocalTree::DocumentPlugin;
+
+     public:
+        ProcessLocalTree(
+                const Id<Component>& id,
+                OSSIA::Node& parent,
+                Space::ProcessModel& process,
+                const system_t& doc,
+                const iscore::DocumentContext& ctx,
+                QObject* parent_obj);
+
+        std::shared_ptr<OSSIA::Node> m_areas;
+        std::shared_ptr<OSSIA::Node> m_computations;
+        std::vector<std::unique_ptr<BaseProperty>> m_properties;
+
+};
+
+
+class ProcessLocalTreeFactory final :
+        public OSSIA::LocalTree::ProcessComponentFactory
+{
+    public:
+        virtual ~ProcessLocalTreeFactory();
+        const factory_key_type& key_impl() const override;
+
+        bool matches(
+                Process::ProcessModel& p,
+                const OSSIA::LocalTree::DocumentPlugin&,
+                const iscore::DocumentContext&) const override;
+
+        OSSIA::LocalTree::ProcessComponent* make(
+                const Id<iscore::Component>& id,
+                OSSIA::Node& parent,
+                Process::ProcessModel& proc,
+                const OSSIA::LocalTree::DocumentPlugin& doc,
+                const iscore::DocumentContext& ctx,
+                QObject* paren_objt) const override;
 };
 }

@@ -32,13 +32,12 @@ SpaceLayerPresenter::SpaceLayerPresenter(
 
     connect(m_view, &SpaceLayerView::contextMenuRequested,
             this, &LayerPresenter::contextMenuRequested);
-    for(const auto& area : procmodel.areas())
+    for(const auto& area : procmodel.areas)
     {
         on_areaAdded(area);
     }
 
-    con(procmodel, &Space::ProcessModel::areaAdded,
-        this, &SpaceLayerPresenter::on_areaAdded);
+    procmodel.areas.added.connect<SpaceLayerPresenter, &SpaceLayerPresenter::on_areaAdded>(this);
     m_view->setEnabled(true);
 
     parentGeometryChanged();

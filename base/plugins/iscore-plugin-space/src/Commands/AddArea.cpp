@@ -26,13 +26,13 @@ AddArea::AddArea(Path<Space::ProcessModel> &&spacProcess,
     m_dimensionToVarMap{dimMap},
     m_symbolToAddressMap{addrMap}
 {
-    m_createdAreaId = getStrongId(m_path.find().areas());
+    m_createdAreaId = getStrongId(m_path.find().areas);
 }
 
 void AddArea::undo() const
 {
     auto& proc = m_path.find();
-    proc.removeArea(m_createdAreaId);
+    proc.areas.remove(m_createdAreaId);
 }
 
 void AddArea::redo() const
@@ -70,7 +70,7 @@ void AddArea::redo() const
     ar->setSpaceMapping(sym_map);
     ar->setParameterMapping(addr_map);
 
-    proc.addArea(ar);
+    proc.areas.add(ar);
 }
 
 void AddArea::serializeImpl(DataStreamInput &s) const

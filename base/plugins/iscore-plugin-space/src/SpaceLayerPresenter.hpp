@@ -3,6 +3,7 @@
 #include <Process/Focus/FocusDispatcher.hpp>
 #include <iscore/tools/IdentifiedObjectMap.hpp>
 
+#include "nano_observer.hpp"
 #include "Area/AreaModel.hpp"
 #include "Area/AreaPresenter.hpp"
 class QMainWindow;
@@ -12,7 +13,9 @@ class LayerView;
 }
 
 class SpaceLayerView;
-class SpaceLayerPresenter : public Process::LayerPresenter
+class SpaceLayerPresenter :
+        public Process::LayerPresenter,
+        public Nano::Observer
 {
     public:
         SpaceLayerPresenter(const Process::LayerModel& model,
