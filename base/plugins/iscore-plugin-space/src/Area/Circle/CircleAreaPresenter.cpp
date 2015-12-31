@@ -2,6 +2,9 @@
 #include "CircleAreaModel.hpp"
 #include "CircleAreaView.hpp"
 
+
+namespace Space
+{
 CircleAreaPresenter::CircleAreaPresenter(
         CircleAreaView *view,
         const CircleAreaModel &model,
@@ -24,4 +27,5 @@ void CircleAreaPresenter::on_areaChanged(GiNaC::exmap mapping)
 void CircleAreaPresenter::update()
 {
     ((QGraphicsItem&)view(this)).update();
+}
 }

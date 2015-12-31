@@ -1,5 +1,7 @@
 #include "AreaParser.hpp"
 
+namespace Space
+{
 // Maps to GiNaC::relational::operators
 static const QStringList operator_map_rels{"==", "!=", "<", "<=", ">", ">="}; // In the order of GiNaC::relational::operators
 static const QStringList ordered_rels{"==", "!=", "<=", ">=", "<", ">"}; // Else parsing fails due to < matching before <=
@@ -66,4 +68,5 @@ std::unique_ptr<spacelib::area> AreaParser::result()
     return std::make_unique<spacelib::area>(
                 std::move(rels),
                 syms);
+}
 }

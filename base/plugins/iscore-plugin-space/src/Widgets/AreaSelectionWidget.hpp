@@ -2,6 +2,9 @@
 #include <QWidget>
 class QComboBox;
 class QLineEdit;
+
+namespace Space
+{
 class SingletonAreaFactoryList;
 
 class AreaSelectionWidget : public QWidget
@@ -22,3 +25,4 @@ class AreaSelectionWidget : public QWidget
         QComboBox* m_comboBox{};
         QLineEdit* m_lineEdit{};
 };
+}

@@ -1,5 +1,8 @@
 #pragma once
 #include "src/Area/AreaPresenter.hpp"
+
+namespace Space
+{
 class CircleAreaView;
 class CircleAreaModel;
 
@@ -16,3 +19,4 @@ class CircleAreaPresenter : public AreaPresenter
         void on_areaChanged(GiNaC::exmap) override;
 
 };
+}

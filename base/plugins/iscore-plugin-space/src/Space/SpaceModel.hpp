@@ -7,6 +7,9 @@
 #include "DimensionModel.hpp"
 #include "ViewportModel.hpp"
 #include <src/SpaceContext.hpp>
+
+namespace Space
+{
 // A space has a number of dimensions
 class SpaceModel : public IdentifiedObject<SpaceModel>
 {
@@ -50,3 +53,4 @@ class SpaceModel : public IdentifiedObject<SpaceModel>
 
         Id<ViewportModel> m_defaultViewport;
 };
+}

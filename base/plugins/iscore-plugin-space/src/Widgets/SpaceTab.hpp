@@ -2,6 +2,8 @@
 #include <QtWidgets>
 
 #include <iscore/widgets/MarginLess.hpp>
+namespace Space
+{
 class SpaceModel;
 class SpaceTab : public QWidget
 {
@@ -15,3 +17,4 @@ class SpaceTab : public QWidget
         QVBoxLayout* m_viewportLayout{};
         QPushButton* m_addDim{}, *m_addViewport{};
 };
+}

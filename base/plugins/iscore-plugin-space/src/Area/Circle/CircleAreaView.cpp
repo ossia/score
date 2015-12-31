@@ -1,6 +1,10 @@
 #include "CircleAreaView.hpp"
 #include <QPainter>
 #include <QDebug>
+
+
+namespace Space
+{
 CircleAreaView::CircleAreaView(QGraphicsItem *parent):
     QGraphicsItem{parent}
 {
@@ -26,4 +30,5 @@ void CircleAreaView::update(double x0, double y0, double r)
     m_path = QPainterPath();
     m_path.addEllipse({r, r}, r, r);
     QGraphicsItem::update();
+}
 }

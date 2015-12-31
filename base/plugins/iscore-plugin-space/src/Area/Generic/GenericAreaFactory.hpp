@@ -1,6 +1,8 @@
 #pragma once
 #include "src/Area/AreaFactory.hpp"
 
+namespace Space
+{
 class GenericAreaFactory : public AreaFactory
 {
     public:
@@ -23,3 +25,4 @@ class GenericAreaFactory : public AreaFactory
 
         QGraphicsItem* makeView(QGraphicsItem* parent) const override;
 };
+}

@@ -4,6 +4,9 @@
 
 #include "src/Space/SpaceModel.hpp"
 #include <Space/square_renderer.hpp>
+
+namespace Space
+{
 GenericAreaPresenter::GenericAreaPresenter(
         GenericAreaView* view,
         const GenericAreaModel& model,
@@ -29,4 +32,5 @@ void GenericAreaPresenter::on_areaChanged(GiNaC::exmap map)
 
     view(this).rects = renderer.render_device.rects;
     view(this).update();
+}
 }

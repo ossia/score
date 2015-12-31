@@ -2,10 +2,10 @@
 #include <iscore/document/DocumentContext.hpp>
 #include <Device/Node/DeviceNode.hpp>
 
-class SpaceModel;
 class DeviceDocumentPlugin;
 namespace Space
 {
+class SpaceModel;
 struct AreaContext
 {
     const iscore::DocumentContext& doc;

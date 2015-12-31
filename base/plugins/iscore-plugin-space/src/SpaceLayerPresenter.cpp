@@ -9,6 +9,12 @@
 #include <iscore/document/DocumentInterface.hpp>
 #include <core/document/Document.hpp>
 #include <QMainWindow>
+
+#include "src/Area/AreaFactory.hpp"
+#include "src/Area/SingletonAreaFactoryList.hpp"
+
+namespace Space
+{
 SpaceLayerPresenter::SpaceLayerPresenter(
         const Process::LayerModel& model,
         Process::LayerView* view,
@@ -107,8 +113,6 @@ void SpaceLayerPresenter::update()
     }
 }
 
-#include "src/Area/AreaFactory.hpp"
-#include "src/Area/SingletonAreaFactoryList.hpp"
 void SpaceLayerPresenter::on_areaAdded(const AreaModel & a)
 {
     auto fact = m_ctx.app.components.factory<SingletonAreaFactoryList>().get(a.factoryKey());
@@ -135,4 +139,5 @@ void SpaceLayerPresenter::fillContextMenu(
     connect(act, &QAction::triggered, this, [&] () {
        m_spaceWindowView->show();
     });
+}
 }

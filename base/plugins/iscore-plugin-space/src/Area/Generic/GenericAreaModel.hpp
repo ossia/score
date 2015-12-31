@@ -2,6 +2,8 @@
 #include "src/Area/AreaModel.hpp"
 
 
+namespace Space
+{
 class GenericAreaModel : public AreaModel
 {
         Q_OBJECT
@@ -21,3 +23,4 @@ class GenericAreaModel : public AreaModel
                 const Id<AreaModel>&,
                 QObject* parent);
 };
+}

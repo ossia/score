@@ -5,6 +5,8 @@
 #include <State/Value.hpp>
 #include <iscore/tools/IdentifiedObject.hpp>
 
+namespace Space
+{
 // For now a simple min-max.
 class DimensionModel : public IdentifiedObject<DimensionModel>
 {
@@ -30,3 +32,4 @@ class DimensionModel : public IdentifiedObject<DimensionModel>
         // The value is used if valid.
         boost::optional<double> m_val;
 };
+}

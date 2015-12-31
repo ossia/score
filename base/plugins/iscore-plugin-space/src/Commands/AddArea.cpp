@@ -15,6 +15,8 @@
 #include <iscore/tools/ModelPathSerialization.hpp>
 #include <iscore/plugins/customfactory/StringFactoryKeySerialization.hpp>
 
+namespace Space
+{
 AddArea::AddArea(Path<Space::ProcessModel> &&spacProcess,
                  AreaFactoryKey type,
                  const QStringList &area,
@@ -81,4 +83,5 @@ void AddArea::serializeImpl(DataStreamInput &s) const
 void AddArea::deserializeImpl(DataStreamOutput &s)
 {
     s >> m_path >> m_createdAreaId >> m_areaType >> m_areaFormula >> m_dimensionToVarMap >> m_symbolToAddressMap;
+}
 }

@@ -7,6 +7,8 @@
 #include "ViewportEditWidget.hpp"
 #include "DimensionEditWidget.hpp"
 
+namespace Space
+{
 SpaceTab::SpaceTab(const SpaceModel& space, QWidget *parent):
     QWidget{parent},
     m_space{space}
@@ -62,4 +64,5 @@ SpaceTab::SpaceTab(const SpaceModel& space, QWidget *parent):
     //  - Which space dimension maps to viewport dimension
     //  - What are the default values for unmapped dimensions.
 
+}
 }

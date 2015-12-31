@@ -2,6 +2,9 @@
 #include "PointerAreaModel.hpp"
 #include "PointerAreaView.hpp"
 
+
+namespace Space
+{
 PointerAreaPresenter::PointerAreaPresenter(
         PointerAreaView *view,
         const PointerAreaModel &model,
@@ -23,4 +26,5 @@ void PointerAreaPresenter::on_areaChanged(GiNaC::exmap mapping)
 void PointerAreaPresenter::update()
 {
     ((QGraphicsItem&)view(this)).update();
+}
 }

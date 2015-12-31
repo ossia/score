@@ -3,8 +3,10 @@
 #include <iscore/command/Dispatchers/CommandDispatcher.hpp>
 namespace iscore
 { struct DocumentContext; }
+
+namespace Space {
 class AreaModel;
-namespace Space { class ProcessModel; }
+class ProcessModel;
 class AreaSelectionWidget;
 class AreaWidget : public QWidget
 {
@@ -32,3 +34,4 @@ class AreaWidget : public QWidget
         QFormLayout* m_spaceMappingLayout{};
         QFormLayout* m_paramMappingLayout{};
 };
+}

@@ -3,6 +3,8 @@
 #include "CircleAreaPresenter.hpp"
 #include "CircleAreaView.hpp"
 
+namespace Space
+{
 int CircleAreaFactory::type() const
 {
     return CircleAreaModel::static_type();
@@ -47,4 +49,5 @@ AreaPresenter*CircleAreaFactory::makePresenter(
 QGraphicsItem* CircleAreaFactory::makeView(QGraphicsItem* parent) const
 {
     return new CircleAreaView{parent};
+}
 }

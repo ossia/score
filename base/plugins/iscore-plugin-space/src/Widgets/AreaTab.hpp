@@ -6,7 +6,9 @@
 namespace iscore {
 struct DocumentContext;
 }
-namespace Space { class ProcessModel; }
+namespace Space
+{
+class ProcessModel;
 class AreaWidget;
 class AreaModel;
 class AreaTab :
@@ -33,3 +35,4 @@ class AreaTab :
         QListWidget* m_listWidget{};
         AreaWidget* m_areaWidget{};
 };
+}

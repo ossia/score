@@ -1,5 +1,7 @@
 #include "ViewportModel.hpp"
 
+namespace Space
+{
 const Id<DimensionModel>& ViewportModel::xDim() const
 {
     return m_xDim;
@@ -68,7 +70,4 @@ void ViewportModel::setName(const QString& name)
 {
     m_name = name;
 }
-
-
-
-
+}

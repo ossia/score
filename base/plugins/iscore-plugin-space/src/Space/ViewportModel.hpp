@@ -6,6 +6,9 @@
 #include <QPointF>
 
 #include <QGraphicsView>
+
+namespace Space
+{
 class ViewportModel : public IdentifiedObject<ViewportModel>
 {
         Q_OBJECT
@@ -54,3 +57,4 @@ class ViewportModel : public IdentifiedObject<ViewportModel>
         // e.g. : for (x, y, z), we set z = 0.
         QMap<Id<DimensionModel>, double> m_defaultValuesMap;
 };
+}

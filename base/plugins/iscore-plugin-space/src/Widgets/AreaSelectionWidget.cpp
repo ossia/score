@@ -9,6 +9,9 @@
 #include "src/Area/SingletonAreaFactoryList.hpp"
 #include "src/Area/AreaModel.hpp"
 #include "src/Area/Circle/CircleAreaModel.hpp"
+
+namespace Space
+{
 AreaSelectionWidget::AreaSelectionWidget(
         const SingletonAreaFactoryList& fact,
         QWidget* parent):
@@ -47,4 +50,5 @@ AreaSelectionWidget::AreaSelectionWidget(
             lineEditChanged();
         }
     });
+}
 }

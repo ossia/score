@@ -1,6 +1,8 @@
 #pragma once
 #include "src/Area/AreaModel.hpp"
 
+namespace Space
+{
 class PointerAreaModel : public AreaModel
 {
         Q_OBJECT
@@ -35,3 +37,4 @@ class PointerAreaModel : public AreaModel
 
         AreaPresenter *makePresenter(QGraphicsItem *, QObject *) const;
 };
+}

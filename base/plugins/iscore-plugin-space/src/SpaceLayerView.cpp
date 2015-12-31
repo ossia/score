@@ -4,7 +4,8 @@
 #include <QBrush>
 #include <QPen>
 
-
+namespace Space
+{
 SpaceLayerView::SpaceLayerView(QGraphicsItem *parent):
     LayerView{parent}
 {
@@ -26,4 +27,5 @@ void SpaceLayerView::mouseDoubleClickEvent(QGraphicsSceneMouseEvent *event)
 void SpaceLayerView::contextMenuEvent(QGraphicsSceneContextMenuEvent* ev)
 {
     emit contextMenuRequested(ev->screenPos(), ev->scenePos());
+}
 }
