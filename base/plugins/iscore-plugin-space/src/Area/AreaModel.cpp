@@ -16,7 +16,7 @@ AreaModel::AreaModel(
     m_context{space},
     m_area{std::move(area)}
 {
-    // TODO area defined by system of equations instead of single one.
+    metadata.setName(QString("Space.%1").arg(*this->id().val()));
     /*
     for(const auto& sym : m_area->symbols())
     {

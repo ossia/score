@@ -53,33 +53,30 @@ class ProcessLocalTreeFactory final :
 
 class ISCORE_PLUGIN_SPACE_EXPORT AreaComponent : public iscore::Component
 {
-        ISCORE_METADATA(Space::LocalTree::AreaComponent)
+    ISCORE_METADATA(Space::LocalTree::AreaComponent)
     public:
         AreaComponent(
                 OSSIA::Node& node,
                 AreaModel& area,
                 const Id<iscore::Component>& id,
                 const QString& name,
-                QObject* parent):
-        Component{id, name, parent},
-        m_thisNode{node, area.metadata, this}
-    {
-    }
+                QObject* parent);
 
         virtual ~AreaComponent();
 
-        auto& node() const
-        { return m_thisNode.node; }
+        const std::shared_ptr<OSSIA::Node>& node() const;
+
+    protected:
+        std::vector<std::unique_ptr<BaseProperty>> m_properties;
 
     private:
-        OSSIA::Node& thisNode() const
-        { return *node(); }
+        OSSIA::Node& thisNode() const;
         MetadataNamePropertyWrapper m_thisNode;
 };
 
 class ISCORE_PLUGIN_SPACE_EXPORT AreaComponentFactory :
         public ::GenericComponentFactory<
-            AreaModel,
+        AreaModel,
             Ossia::LocalTree::DocumentPlugin,
             Space::LocalTree::AreaComponent>
 {
@@ -113,10 +110,7 @@ class GenericAreaComponent final : public AreaComponent
                 AreaModel& proc,
                 const Ossia::LocalTree::DocumentPlugin& doc,
                 const iscore::DocumentContext& ctx,
-                QObject* paren_objt):
-            AreaComponent(parent_node, proc, cmp, "GenericAreaComponent", paren_objt)
-        {
-        }
+                QObject* paren_objt);
 };
 
 // It must be last in the vector
@@ -130,25 +124,14 @@ class GenericAreaComponentFactory final
                         AreaModel& proc,
                         const Ossia::LocalTree::DocumentPlugin& doc,
                         const iscore::DocumentContext& ctx,
-                        QObject* paren_objt) const override
-        {
-            return new GenericAreaComponent{
-                cmp, parent, proc, doc, ctx, paren_objt};
-        }
+                        QObject* paren_objt) const override;
 
-        const factory_key_type& key_impl() const override
-        {
-            static const factory_key_type name{"AreaComponentFactory"};
-            return name;
-        }
+        const factory_key_type& key_impl() const override;
 
         bool matches(
                 Space::AreaModel& p,
                 const Ossia::LocalTree::DocumentPlugin&,
-                const iscore::DocumentContext&) const override
-        {
-            return true;
-        }
+                const iscore::DocumentContext&) const override;
 };
 }
 }
