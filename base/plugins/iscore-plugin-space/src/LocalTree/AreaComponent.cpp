@@ -1,5 +1,5 @@
 #include "AreaComponent.hpp"
-
+#include <QDynamicPropertyChangeEvent>
 namespace Space
 {
 
@@ -111,6 +111,7 @@ AreaComponent::AreaComponent(
         const QString& name,
         QObject* parent):
     Component{id, name, parent},
+    m_area{area},
     m_thisNode{node, area.metadata, this}
 {
 }
@@ -136,6 +137,44 @@ GenericAreaComponent::GenericAreaComponent(
     AreaComponent{parent_node, area, cmp, "GenericAreaComponent", paren_objt}
 {
     Ossia::LocalTree::make_metadata_node(area.metadata, *node(), m_properties, this);
+
+    using namespace GiNaC;
+    for(const auto& param : area.currentMapping())
+    {
+        symbol sym = ex_to<symbol>(param.first);
+        auto node_it = thisNode().emplaceAndNotify(
+                                                thisNode().children().end(),
+                                                sym.get_name());
+        auto& node = *node_it;
+        auto addr = node->createAddress(Ossia::convert::MatchingType<double>::val);
+        addr->setAccessMode(OSSIA::Address::AccessMode::BI);
+
+        auto callback_it = addr->addCallback([=] (const OSSIA::Value* v)
+        {
+            if(v)
+            {
+                auto val = State::convert::value<double>(Ossia::convert::ToValue(v));
+                m_area.updateCurrentMapping(sym, val);
+            }
+        });
+
+        auto wrap = std::make_unique<BaseCallbackWrapper>(node, addr);
+        wrap->callbackIt = callback_it;
+        m_ginacProperties.insert(std::make_pair(sym.get_name(), std::move(wrap)));
+        std::cerr << m_ginacProperties.size();
+
+        addr->setValue(iscore::convert::toOSSIAValue(
+                           State::Value::fromValue(ex_to<numeric>(param.second).to_double())));
+    }
+
+    QObject::connect(&m_area, &AreaModel::currentSymbolChanged,
+                     this, [=] (const GiNaC::symbol& sym, double val) {
+        auto newVal = State::Value::fromValue(val);
+        auto& addr = m_ginacProperties.at(sym.get_name())->addr;
+        if(newVal != Ossia::convert::ToValue(addr->getValue()))
+            addr->pushValue(iscore::convert::toOSSIAValue(newVal));
+    },
+    Qt::QueuedConnection);
 }
 
 AreaComponent* GenericAreaComponentFactory::make(

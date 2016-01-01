@@ -6,7 +6,6 @@
 #include <src/SpaceContext.hpp>
 #include <Process/ModelMetadata.hpp>
 #include <iscore/component/Component.hpp>
-Q_DECLARE_METATYPE(GiNaC::exmap)
 class SpaceModel;
 class QGraphicsItem;
 
@@ -53,12 +52,14 @@ class AreaModel : public IdentifiedObject<AreaModel>
         { return m_parameterMap; }
 
         void setCurrentMapping(const GiNaC::exmap& map);
+        void updateCurrentMapping(const GiNaC::symbol& sym, double value);
         const GiNaC::exmap& currentMapping() const
         { return m_currentParameterMap;}
 
         QString toString() const;
 
     signals:
+        void currentSymbolChanged(const GiNaC::symbol&, double);
         void areaChanged(GiNaC::exmap);
 
     private:
@@ -73,4 +74,6 @@ class AreaModel : public IdentifiedObject<AreaModel>
 };
 }
 
+Q_DECLARE_METATYPE(GiNaC::exmap)
+Q_DECLARE_METATYPE(GiNaC::symbol)
 Q_DECLARE_METATYPE(Id<Space::AreaModel>)
