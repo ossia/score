@@ -161,12 +161,13 @@ void NodeUpdateProxy::updateAddress(
     Device::FullAddressSettings full = Device::FullAddressSettings::make<Device::FullAddressSettings::as_child>(
                                    settings,
                                    addr);
+    full.address.path.last() = settings.name;
 
     // Update in the device implementation
     devModel
             .list()
             .device(addr.device)
-            .updateAddress(full);
+            .updateAddress(addr, full);
 
     // Update in the device explorer
     if(deviceExplorer)

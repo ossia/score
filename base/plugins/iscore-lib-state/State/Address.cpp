@@ -28,7 +28,7 @@ namespace State
 
     bool Address::validateFragment(const QString& s)
     {
-        // TODO refactor with ExpressionParser.cpp (auto base = +qi::char_("a-zA-Z0-9_~().");)
+        // TODO refactor with ExpressionParser.cpp (auto base = +qi::char_("a-zA-Z0-9_~().-");)
         return std::all_of(s.cbegin(), s.cend(), [] (auto uc) {
             auto c = uc.toLatin1();
             return (c >= 'a' && c <= 'z')
@@ -38,7 +38,9 @@ namespace State
                     || (c == '~')
                     || (c == '_')
                     || (c == '(')
-                    || (c == ')');
+                    || (c == ')')
+                    || (c == '-')
+                    ;
         });
     }
 

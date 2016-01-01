@@ -14,7 +14,7 @@ relevant.
 
 
 # Addresses
-fragment 		:= +[a-zA-Z0-9.~()_];
+fragment 		:= +[a-zA-Z0-9.~()_-];
 device 			:= fragment;
 path_element 	:= fragment;
 path 			:= ('/', path_element)+ | '/';
@@ -125,7 +125,7 @@ struct Address_parser : qi::grammar<Iterator, State::Address()>
     Address_parser() : Address_parser::base_type(start)
     {
         using qi::alnum;
-        auto base = +qi::char_("a-zA-Z0-9_~().");
+        auto base = +qi::char_("a-zA-Z0-9_~().-");
 
         dev = base;
         member_elt = base;

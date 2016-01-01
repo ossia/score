@@ -37,7 +37,9 @@ class OSSIADevice : public DeviceInterface
         void updateSettings(const Device::DeviceSettings& settings) final override;
 
         void addAddress(const Device::FullAddressSettings& settings) final override;
-        void updateAddress(const Device::FullAddressSettings& address) final override;
+        void updateAddress(
+                const State::Address& currentAddr,
+                const Device::FullAddressSettings& address) final override;
         void removeNode(const State::Address& path) final override;
 
         Device::Node refresh() override;
