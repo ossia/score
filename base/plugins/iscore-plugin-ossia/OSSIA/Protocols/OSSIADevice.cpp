@@ -105,13 +105,19 @@ void OSSIADevice::addAddress(const Device::FullAddressSettings &settings)
 }
 
 
-void OSSIADevice::updateAddress(const Device::FullAddressSettings &settings)
+void OSSIADevice::updateAddress(
+        const State::Address& currentAddr,
+        const Device::FullAddressSettings &settings)
 {
     if(!connected())
         return;
 
-    OSSIA::Node* node = getNodeFromPath(settings.address.path, m_dev.get());
-    node->setName(settings.address.path.last().toStdString());
+    OSSIA::Node* node = getNodeFromPath(currentAddr.path, m_dev.get());
+    auto newName = settings.address.path.last().toStdString();
+    if(newName != node->getName())
+    {
+        node->setName(newName);
+    }
 
     if(settings.value.val.which() == State::ValueType::NoValue)
     {

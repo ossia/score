@@ -58,7 +58,9 @@ class ISCORE_LIB_DEVICE_EXPORT DeviceInterface : public QObject
         virtual std::vector<State::Address> listening() const { return {}; }
 
         virtual void addAddress(const Device::FullAddressSettings&) = 0;
-        virtual void updateAddress(const Device::FullAddressSettings&) = 0;
+        virtual void updateAddress(
+                const State::Address& currentAddr,
+                const Device::FullAddressSettings& newAddr) = 0;
         virtual void removeNode(const State::Address&) = 0;
 
         // Execution API... Maybe we don't need it here.
