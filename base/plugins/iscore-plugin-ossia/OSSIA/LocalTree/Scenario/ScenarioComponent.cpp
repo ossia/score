@@ -24,7 +24,7 @@ ScenarioComponent::ScenarioComponent(
 }
 
 template<>
-ConstraintComponent* ScenarioComponent::make<ConstraintModel, ConstraintComponent>(
+ConstraintComponent* ScenarioComponent::make<ConstraintComponent, ConstraintModel>(
         const Id<iscore::Component>& id,
         ConstraintModel& elt,
         const ScenarioComponent::system_t& doc,
@@ -35,7 +35,7 @@ ConstraintComponent* ScenarioComponent::make<ConstraintModel, ConstraintComponen
 }
 
 template<>
-EventComponent* ScenarioComponent::make<EventModel, EventComponent>(
+EventComponent* ScenarioComponent::make<EventComponent, EventModel>(
         const Id<iscore::Component>& id,
         EventModel& elt,
         const ScenarioComponent::system_t& doc,
@@ -46,7 +46,7 @@ EventComponent* ScenarioComponent::make<EventModel, EventComponent>(
 }
 
 template<>
-TimeNodeComponent* ScenarioComponent::make<TimeNodeModel, TimeNodeComponent>(
+TimeNodeComponent* ScenarioComponent::make<TimeNodeComponent, TimeNodeModel>(
         const Id<iscore::Component>& id,
         TimeNodeModel& elt,
         const ScenarioComponent::system_t& doc,
@@ -57,7 +57,7 @@ TimeNodeComponent* ScenarioComponent::make<TimeNodeModel, TimeNodeComponent>(
 }
 
 template<>
-StateComponent* ScenarioComponent::make<StateModel, StateComponent>(
+StateComponent* ScenarioComponent::make<StateComponent, StateModel>(
         const Id<iscore::Component>& id,
         StateModel& elt,
         const ScenarioComponent::system_t& doc,

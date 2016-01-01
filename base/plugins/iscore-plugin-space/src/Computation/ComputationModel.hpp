@@ -3,7 +3,7 @@
 #include <Space/computation.hpp>
 #include <Process/ModelMetadata.hpp>
 #include <iscore/tools/IdentifiedObject.hpp>
-
+#include <iscore/component/Component.hpp>
 namespace Space
 {
 class SpaceModel;
@@ -13,7 +13,7 @@ class ComputationModel : public IdentifiedObject<ComputationModel>
         Q_OBJECT
     public:
         ModelMetadata metadata;
-
+        iscore::Components components;
         using Computation = std::function<double()>;
         ComputationModel(
                 const Computation& comp,

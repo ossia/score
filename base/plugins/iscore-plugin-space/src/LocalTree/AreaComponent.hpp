@@ -1,6 +1,8 @@
 #pragma once
 #include <OSSIA/LocalTree/Scenario/ProcessComponent.hpp>
 #include <src/SpaceProcess.hpp>
+#include <iscore/tools/SettableIdentifierGeneration.hpp>
+#include <iscore/tools/std/Algorithms.hpp>
 // TODO Cleanme
 namespace Space
 {
@@ -14,7 +16,7 @@ template<
         typename AreaComponentFactoryList_T,
         typename ComputationsComponentFactoryList_T,
         typename System_T
-        > // TODO factory for computations.
+        >
 class SpaceProcessComponentHierarchyManager : public Nano::Observer
 {
         using this_t = SpaceProcessComponentHierarchyManager;
@@ -30,8 +32,8 @@ class SpaceProcessComponentHierarchyManager : public Nano::Observer
                 QObject* component_as_parent):
             m_process{space},
             m_component{component},
-            m_areaComponentFactory{ctx.app.components.factory<AreaComponentFactoryList_T>()},
-            m_computationsComponentFactory{ctx.app.components.factory<ComputationsComponentFactoryList_T>()},
+            m_areaComponentFactory{&ctx.app.components.factory<AreaComponentFactoryList_T>()},
+            m_computationsComponentFactory{&ctx.app.components.factory<ComputationsComponentFactoryList_T>()},
             m_system{doc},
             m_context{ctx},
             m_parentObject{component_as_parent}
@@ -50,17 +52,18 @@ class SpaceProcessComponentHierarchyManager : public Nano::Observer
 
     private:
         struct AreaPair {
-                using element_t = ConstraintModel;
+                using element_t = AreaModel;
                 AreaModel& element;
                 AreaComponent_T& component;
         };
         struct ComputationPair {
-                using element_t = EventModel;
+                using element_t = ComputationModel;
                 ComputationModel& element;
                 ComputationComponent_T& component;
         };
 
         // TODO maybe we can abstract this between Scenario, Space, and Constraint ?
+        // We should have some kind of generic handler for a single pair
         template<typename Pair_T>
         void cleanup(const Pair_T& pair)
         {
@@ -87,16 +90,20 @@ class SpaceProcessComponentHierarchyManager : public Nano::Observer
         void add(elt_t& element)
         {
             using map_t = MatchingComponent<elt_t, true>;
-            auto comp = m_component.template make<elt_t, typename map_t::type>(
+            if(auto factory = (this->*map_t::factory_container)->factory(element, m_system, m_context))
+            {
+                auto comp = m_component.template make<typename map_t::type>(
                             getStrongId(element.components),
+                            *factory,
                             element,
                             m_system,
                             m_context,
                             m_parentObject);
-            if(comp)
-            {
-                element.components.add(comp);
-                (this->*map_t::local_container).emplace_back(typename map_t::pair_type{element, *comp});
+                if(comp)
+                {
+                    element.components.add(comp);
+                    (this->*map_t::local_container).emplace_back(typename map_t::pair_type{element, *comp});
+                }
             }
         }
 
@@ -120,30 +127,34 @@ class SpaceProcessComponentHierarchyManager : public Nano::Observer
         std::list<AreaPair> m_areas;
         std::list<ComputationPair> m_computations;
 
+
+        Space::ProcessModel& m_process;
+        Component_T& m_component;
+
+        // These are pointers because it is not possible to make ptr-to-member reference.
+        const AreaComponentFactoryList_T* m_areaComponentFactory{};
+        const ComputationsComponentFactoryList_T* m_computationsComponentFactory{};
+        const System_T& m_system;
+        const iscore::DocumentContext& m_context;
+
+        QObject* m_parentObject{};
+
         template<bool dummy>
         struct MatchingComponent<AreaModel, dummy> {
                 using type = AreaComponent_T;
                 using pair_type = AreaPair;
                 static const constexpr auto local_container = &this_t::m_areas;
+                static const constexpr auto factory_container = &this_t::m_areaComponentFactory;
                 static const constexpr auto process_container = &Space::ProcessModel::areas;
         };
         template<bool dummy>
-        struct MatchingComponent<EventModel, dummy> {
+        struct MatchingComponent<ComputationModel, dummy> {
                 using type = ComputationComponent_T;
                 using pair_type = ComputationPair;
                 static const constexpr auto local_container = &this_t::m_computations;
+                static const constexpr auto factory_container = &this_t::m_computationsComponentFactory;
                 static const constexpr auto process_container = &Space::ProcessModel::computations;
         };
-
-        Space::ProcessModel& m_process;
-        ConstraintModel& m_constraint;
-        Component_T& m_component;
-        const AreaComponentFactoryList_T& m_areaComponentFactory;
-        const ComputationsComponentFactoryList_T& m_computationsComponentFactory;
-        const System_T& m_system;
-        const iscore::DocumentContext& m_context;
-
-        QObject* m_parentObject{};
 };
 
 
@@ -315,9 +326,28 @@ class ProcessLocalTree final :
                 const iscore::DocumentContext& ctx,
                 QObject* parent_obj);
 
+        template<typename Component_T, typename Element_T, typename Factory_T>
+        Component_T* make(
+                const Id<Component>& id,
+                Factory_T&,
+                Element_T& elt,
+                const system_t& doc,
+                const iscore::DocumentContext& ctx,
+                QObject* parent);
+
+        void removing(
+                const AreaModel& elt,
+                const AreaComponent& comp);
+        void removing(
+                const ComputationModel& elt,
+                const ComputationComponent& comp);
+
+
         std::shared_ptr<OSSIA::Node> m_areas;
         std::shared_ptr<OSSIA::Node> m_computations;
         std::vector<std::unique_ptr<BaseProperty>> m_properties;
+
+        hierarchy_t m_hm;
 
 };
 

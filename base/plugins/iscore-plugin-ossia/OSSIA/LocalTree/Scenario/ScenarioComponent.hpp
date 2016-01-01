@@ -33,7 +33,7 @@ class ScenarioComponent final : public ProcessComponent
                const iscore::DocumentContext& ctx,
                QObject* parent_obj);
 
-       template<typename Element, typename Component_T>
+       template<typename Component_T, typename Element>
        Component_T* make(
                const Id<Component>& id,
                Element& elt,
