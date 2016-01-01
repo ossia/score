@@ -16,7 +16,7 @@ AreaModel::AreaModel(
     m_context{space},
     m_area{std::move(area)}
 {
-    metadata.setName(QString("Space.%1").arg(*this->id().val()));
+    metadata.setName(QString("Area.%1").arg(*this->id().val()));
     /*
     for(const auto& sym : m_area->symbols())
     {
