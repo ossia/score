@@ -48,6 +48,7 @@ std::vector<std::unique_ptr<iscore::FactoryInterfaceBase>> iscore_plugin_space::
         FW<Space::LocalTree::AreaComponentFactory,
             Space::LocalTree::GenericAreaComponentFactory // Shall be last in the vector so must be first here, because of the recursion order of C++ templates in instantiate_factories
             >
+            // , FW<Space::LocalTree::ComputationComponentFactory>
       >
      >(ctx, key);
 }
@@ -57,5 +58,7 @@ std::vector<std::unique_ptr<iscore::FactoryListInterface>> iscore_plugin_space::
 {
     return make_ptr_vector<iscore::FactoryListInterface,
             Space::SingletonAreaFactoryList,
-            Space::LocalTree::AreaComponentFactoryList>();
+            Space::LocalTree::AreaComponentFactoryList,
+            Space::LocalTree::ComputationComponentFactoryList
+            >();
 }
