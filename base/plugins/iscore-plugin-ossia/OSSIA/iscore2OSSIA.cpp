@@ -213,13 +213,13 @@ void updateOSSIAAddress(
     switch(settings.ioType)
     {
         case Device::IOType::In:
-            addr->setAccessMode(OSSIA::Address::AccessMode::GET);
+            addr->setAccessMode(OSSIA::AccessMode::GET);
             break;
         case Device::IOType::Out:
-            addr->setAccessMode(OSSIA::Address::AccessMode::SET);
+            addr->setAccessMode(OSSIA::AccessMode::SET);
             break;
         case Device::IOType::InOut:
-            addr->setAccessMode(OSSIA::Address::AccessMode::BI);
+            addr->setAccessMode(OSSIA::AccessMode::BI);
             break;
         case Device::IOType::Invalid:
             ISCORE_ABORT;

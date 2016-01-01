@@ -100,12 +100,15 @@ auto add_property(
         PropChanged chgd,
         QObject* context)
 {
-    std::shared_ptr<OSSIA::Node> node = *n.emplaceAndNotify(n.children().end(), name);
-    auto addr = node->createAddress(Ossia::convert::MatchingType<T>::val);
-    addr->setAccessMode(OSSIA::Address::AccessMode::BI);
+    constexpr const auto t = Ossia::convert::MatchingType<T>::val;
+    std::shared_ptr<OSSIA::Node> node = *n.emplaceAndNotify(
+                                            n.children().end(),
+                                            name,
+                                            t,
+                                            OSSIA::AccessMode::BI);
 
     return make_property(node,
-                         addr,
+                         node->getAddress(),
                          QtProperty<T, Object, PropGet, PropSet, PropChanged>{*obj, get, set, chgd},
                          context);
 }
