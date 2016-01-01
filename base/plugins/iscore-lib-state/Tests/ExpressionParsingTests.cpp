@@ -117,6 +117,8 @@ QDebug operator<<(QDebug dbg, const State::Relation::Operator& v)
             dbg << "<"; break;
         case State::Relation::Operator::LowerEqual:
             dbg << "<="; break;
+        case State::Relation::Operator::None:
+            dbg << "none"; break;
     }
     return dbg;
 }
@@ -137,6 +139,8 @@ QDebug operator<<(QDebug dbg, const State::BinaryOperator& v)
             dbg << "or"; break;
         case State::BinaryOperator::Xor:
             dbg << "xor"; break;
+        case State::BinaryOperator::None:
+            dbg << "none"; break;
     }
     return dbg;
 }
@@ -147,6 +151,8 @@ QDebug operator<<(QDebug dbg, const State::UnaryOperator& v)
     {
         case State::UnaryOperator::Not:
             dbg << "not"; break;
+        case State::UnaryOperator::None:
+            dbg << "none"; break;
     }
     return dbg;
 }
