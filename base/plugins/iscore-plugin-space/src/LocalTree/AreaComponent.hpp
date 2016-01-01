@@ -158,7 +158,7 @@ class SpaceProcessComponentHierarchyManager : public Nano::Observer
 };
 
 
-
+class GiNaCProperty;
 class ISCORE_PLUGIN_SPACE_EXPORT AreaComponent : public iscore::Component
 {
     ISCORE_METADATA(Space::LocalTree::AreaComponent)
@@ -175,10 +175,13 @@ class ISCORE_PLUGIN_SPACE_EXPORT AreaComponent : public iscore::Component
         const std::shared_ptr<OSSIA::Node>& node() const;
 
     protected:
+        OSSIA::Node& thisNode() const;
+        std::map<std::string, std::unique_ptr<BaseCallbackWrapper>> m_ginacProperties;
         std::vector<std::unique_ptr<BaseProperty>> m_properties;
 
+        AreaModel& m_area;
+
     private:
-        OSSIA::Node& thisNode() const;
         MetadataNamePropertyWrapper m_thisNode;
 };
 

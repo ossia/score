@@ -63,9 +63,28 @@ void AreaModel::setParameterMapping(const AreaModel::ParameterMap &parameter_map
 
 void AreaModel::setCurrentMapping(const GiNaC::exmap& map)
 {
+    using namespace GiNaC;
+
     m_currentParameterMap = map;
+    for(auto sym : map)
+    {
+        emit currentSymbolChanged(
+                ex_to<symbol>(sym.first),
+                ex_to<numeric>(sym.second).to_double());
+    }
+
     emit areaChanged(map);
 }
+
+void AreaModel::updateCurrentMapping(
+        const GiNaC::symbol& sym,
+        double value)
+{
+    m_currentParameterMap.at(sym) = value;
+    emit currentSymbolChanged(sym, value);
+    emit areaChanged(m_currentParameterMap);
+}
+
 
 spacelib::projected_area AreaModel::projectedArea() const
 {

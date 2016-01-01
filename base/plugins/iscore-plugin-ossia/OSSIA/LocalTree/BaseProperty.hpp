@@ -1,8 +1,10 @@
 #pragma once
 #include <Network/Address.h>
 #include <Network/Node.h>
+#include <iscore_plugin_ossia_export.h>
 
-class BaseProperty
+
+class ISCORE_PLUGIN_OSSIA_EXPORT BaseProperty
 {
     public:
         std::shared_ptr<OSSIA::Node> node;
