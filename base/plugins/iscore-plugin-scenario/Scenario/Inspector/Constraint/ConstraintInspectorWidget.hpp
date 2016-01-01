@@ -91,7 +91,7 @@ class ISCORE_PLUGIN_SCENARIO_EXPORT ConstraintInspectorWidget final : public Ins
         const Process::ProcessList& m_processList;
         const ConstraintModel& m_model;
 
-        InspectorSectionWidget* m_eventsSection {};
+        //InspectorSectionWidget* m_eventsSection {};
         InspectorSectionWidget* m_durationSection {};
 
         InspectorSectionWidget* m_processSection {};

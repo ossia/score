@@ -48,6 +48,6 @@ namespace iscore
 
             QTemporaryFile m_file;
 
-            int m_previousIndex{};
+            //int m_previousIndex{};
     };
 }
