@@ -142,12 +142,14 @@ GenericAreaComponent::GenericAreaComponent(
     for(const auto& param : area.currentMapping())
     {
         symbol sym = ex_to<symbol>(param.first);
+        constexpr auto t = Ossia::convert::MatchingType<double>::val;
         auto node_it = thisNode().emplaceAndNotify(
-                                                thisNode().children().end(),
-                                                sym.get_name());
+                           thisNode().children().end(),
+                           sym.get_name(),
+                           t,
+                           OSSIA::AccessMode::BI);
         auto& node = *node_it;
-        auto addr = node->createAddress(Ossia::convert::MatchingType<double>::val);
-        addr->setAccessMode(OSSIA::Address::AccessMode::BI);
+        auto addr = node->getAddress();
 
         auto callback_it = addr->addCallback([=] (const OSSIA::Value* v)
         {

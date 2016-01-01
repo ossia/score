@@ -87,8 +87,8 @@ template<> struct MatchingType<::TimeValue> {
 
 
 
-Device::IOType ToIOType(OSSIA::Address::AccessMode t);
-Device::ClipMode ToClipMode(OSSIA::Address::BoundingMode b);
+Device::IOType ToIOType(OSSIA::AccessMode t);
+Device::ClipMode ToClipMode(OSSIA::BoundingMode b);
 Device::Domain ToDomain(OSSIA::Domain& domain);
 
 ISCORE_PLUGIN_OSSIA_EXPORT

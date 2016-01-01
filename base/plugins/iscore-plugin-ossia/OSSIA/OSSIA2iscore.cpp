@@ -19,15 +19,15 @@ namespace convert
 {
 
 
-Device::IOType ToIOType(OSSIA::Address::AccessMode t)
+Device::IOType ToIOType(OSSIA::AccessMode t)
 {
     switch(t)
     {
-        case OSSIA::Address::AccessMode::GET:
+        case OSSIA::AccessMode::GET:
             return Device::IOType::In;
-        case OSSIA::Address::AccessMode::SET:
+        case OSSIA::AccessMode::SET:
             return Device::IOType::Out;
-        case OSSIA::Address::AccessMode::BI:
+        case OSSIA::AccessMode::BI:
             return Device::IOType::InOut;
         default:
             ISCORE_ABORT;
@@ -36,20 +36,20 @@ Device::IOType ToIOType(OSSIA::Address::AccessMode t)
 }
 
 
-Device::ClipMode ToClipMode(OSSIA::Address::BoundingMode b)
+Device::ClipMode ToClipMode(OSSIA::BoundingMode b)
 {
     switch(b)
     {
-        case OSSIA::Address::BoundingMode::CLIP:
+        case OSSIA::BoundingMode::CLIP:
             return Device::ClipMode::Clip;
             break;
-        case OSSIA::Address::BoundingMode::FOLD:
+        case OSSIA::BoundingMode::FOLD:
             return Device::ClipMode::Fold;
             break;
-        case OSSIA::Address::BoundingMode::FREE:
+        case OSSIA::BoundingMode::FREE:
             return Device::ClipMode::Free;
             break;
-        case OSSIA::Address::BoundingMode::WRAP:
+        case OSSIA::BoundingMode::WRAP:
             return Device::ClipMode::Wrap;
             break;
         default:
@@ -131,7 +131,12 @@ Device::AddressSettings ToAddressSettings(const OSSIA::Node &node)
     s.name = QString::fromStdString(node.getName());
 
     const auto& addr = node.getAddress();
+    qDebug() << "node name : " << s.name;
 
+    if(s.name == "yPos" && !addr)
+    {
+        ISCORE_BREAKPOINT;
+    }
     if(addr)
     {
         addr->pullValue();
@@ -143,6 +148,8 @@ Device::AddressSettings ToAddressSettings(const OSSIA::Node &node)
         {
             s.value = ToValue(addr->getValueType());
         }
+
+        qDebug() << "node type : " << (int) s.value.val.which() << State::convert::toPrettyString(s.value);
 
         /* Debug code
         else
