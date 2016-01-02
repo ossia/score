@@ -1,7 +1,7 @@
 #pragma once
 #include <QObject>
 
-class LayerPresenter;
+namespace Process { class LayerPresenter; }
 class QMenu;
 class QPoint;
 class QPointF;
@@ -33,6 +33,6 @@ class ScenarioContextMenuManager final : public QObject
                 QMenu& menu,
                 const QPoint& pos,
                 const QPointF& scenepos,
-                const LayerPresenter& pres);
+                const Process::LayerPresenter& pres);
 
 };

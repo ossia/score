@@ -23,7 +23,7 @@ void MappingView::paint_impl(QPainter* painter) const
 
     if(m_showName)
     {
-        auto f = ProcessFonts::Sans();
+        auto f = Process::Fonts::Sans();
         f.setPointSize(fontSize);
         painter->setFont(f);
         painter->setPen(Qt::lightGray);

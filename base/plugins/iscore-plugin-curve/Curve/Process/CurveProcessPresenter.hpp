@@ -21,9 +21,11 @@ class CurvePresenter;
 class LayerView;
 class CurveProcessView;
 
-
+namespace Curve
+{
 template<typename LayerModel_T, typename LayerView_T>
-class ISCORE_PLUGIN_CURVE_EXPORT CurveProcessPresenter : public LayerPresenter
+class ISCORE_PLUGIN_CURVE_EXPORT CurveProcessPresenter :
+        public Process::LayerPresenter
 {
     public:
         CurveProcessPresenter(
@@ -35,7 +37,7 @@ class ISCORE_PLUGIN_CURVE_EXPORT CurveProcessPresenter : public LayerPresenter
             LayerPresenter {"CurveProcessPresenter", parent},
             m_layer{lm},
             m_view{static_cast<LayerView_T*>(view)},
-            m_curvepresenter{new CurvePresenter{context, style, m_layer.model().curve(), new CurveView{m_view}, this}},
+            m_curvepresenter{new Presenter{context, style, m_layer.model().curve(), new View{m_view}, this}},
             m_commandDispatcher{context.commandStack},
             m_focusDispatcher{context.document},
             m_context{context, *this, m_focusDispatcher},
@@ -44,10 +46,10 @@ class ISCORE_PLUGIN_CURVE_EXPORT CurveProcessPresenter : public LayerPresenter
             con(m_layer.model(), &CurveProcessModel::curveChanged,
                 this, &CurveProcessPresenter::parentGeometryChanged);
 
-            connect(m_curvepresenter, &CurvePresenter::contextMenuRequested,
+            connect(m_curvepresenter, &Presenter::contextMenuRequested,
                     this, &LayerPresenter::contextMenuRequested);
 
-            con(m_layer.model(), &Process::execution,
+            con(m_layer.model(), &Process::ProcessModel::execution,
                 this, [&] (bool b) {
                 m_curvepresenter->editionSettings().setTool(
                             b ? Curve::Tool::Playing
@@ -118,7 +120,7 @@ class ISCORE_PLUGIN_CURVE_EXPORT CurveProcessPresenter : public LayerPresenter
             return m_layer;
         }
 
-        const Id<Process>& modelId() const override
+        const Id<Process::ProcessModel>& modelId() const override
         {
             return m_layer.model().id();
         }
@@ -135,7 +137,7 @@ class ISCORE_PLUGIN_CURVE_EXPORT CurveProcessPresenter : public LayerPresenter
         const LayerModel_T& m_layer;
         LayerView_T* m_view{};
 
-        CurvePresenter* m_curvepresenter{};
+        Presenter* m_curvepresenter{};
 
         CommandDispatcher<> m_commandDispatcher;
         FocusDispatcher m_focusDispatcher;
@@ -145,4 +147,5 @@ class ISCORE_PLUGIN_CURVE_EXPORT CurveProcessPresenter : public LayerPresenter
         LayerContext m_context;
         Curve::ToolPalette m_sm;
 };
+}
 

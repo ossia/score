@@ -20,7 +20,7 @@
 // TODO why not use AddressSettings directly on Automations / Mapping ? It would simplify...
 ChangeSourceAddress::ChangeSourceAddress(
         Path<MappingModel> &&path,
-        const iscore::Address &newval):
+        const State::Address &newval):
     m_path{path}
 {
     auto& mapping = m_path.find();
@@ -38,11 +38,11 @@ ChangeSourceAddress::ChangeSourceAddress(
     // Get the new data.
     auto newpath = newval.path;
     newpath.prepend(newval.device);
-    auto new_n = iscore::try_getNodeFromString(deviceexplorer.rootNode(), std::move(newpath));
+    auto new_n = Device::try_getNodeFromString(deviceexplorer.rootNode(), std::move(newpath));
     if(new_n)
     {
-        ISCORE_ASSERT(!new_n->is<iscore::DeviceSettings>());
-        m_new = iscore::FullAddressSettings::make<iscore::FullAddressSettings::as_child>(new_n->get<iscore::AddressSettings>(), newval);
+        ISCORE_ASSERT(!new_n->is<Device::DeviceSettings>());
+        m_new = Device::FullAddressSettings::make<Device::FullAddressSettings::as_child>(new_n->get<Device::AddressSettings>(), newval);
     }
     else
     {
@@ -57,8 +57,8 @@ void ChangeSourceAddress::undo() const
 {
     auto& mapping = m_path.find();
 
-    mapping.setSourceMin(iscore::convert::value<double>(m_old.domain.min));
-    mapping.setSourceMax(iscore::convert::value<double>(m_old.domain.max));
+    mapping.setSourceMin(State::convert::value<double>(m_old.domain.min));
+    mapping.setSourceMax(State::convert::value<double>(m_old.domain.max));
 
     mapping.setSourceAddress(m_old.address);
 }
@@ -67,8 +67,8 @@ void ChangeSourceAddress::redo() const
 {
     auto& mapping = m_path.find();
 
-    mapping.setSourceMin(iscore::convert::value<double>(m_new.domain.min));
-    mapping.setSourceMax(iscore::convert::value<double>(m_new.domain.max));
+    mapping.setSourceMin(State::convert::value<double>(m_new.domain.min));
+    mapping.setSourceMax(State::convert::value<double>(m_new.domain.max));
 
     mapping.setSourceAddress(m_new.address);
 }
@@ -90,7 +90,7 @@ void ChangeSourceAddress::deserializeImpl(DataStreamOutput & s)
 
 ChangeTargetAddress::ChangeTargetAddress(
         Path<MappingModel> &&path,
-        const iscore::Address &newval):
+        const State::Address &newval):
     m_path{path}
 {
     auto& mapping = m_path.find();
@@ -108,11 +108,11 @@ ChangeTargetAddress::ChangeTargetAddress(
     // Get the new data.
     auto newpath = newval.path;
     newpath.prepend(newval.device);
-    auto new_n = iscore::try_getNodeFromString(deviceexplorer.rootNode(), std::move(newpath));
+    auto new_n = Device::try_getNodeFromString(deviceexplorer.rootNode(), std::move(newpath));
     if(new_n)
     {
-        ISCORE_ASSERT(!new_n->is<iscore::DeviceSettings>());
-        m_new = iscore::FullAddressSettings::make<iscore::FullAddressSettings::as_child>(new_n->get<iscore::AddressSettings>(), newval);
+        ISCORE_ASSERT(!new_n->is<Device::DeviceSettings>());
+        m_new = Device::FullAddressSettings::make<Device::FullAddressSettings::as_child>(new_n->get<Device::AddressSettings>(), newval);
     }
     else
     {
@@ -127,8 +127,8 @@ void ChangeTargetAddress::undo() const
 {
     auto& mapping = m_path.find();
 
-    mapping.setTargetMin(iscore::convert::value<double>(m_old.domain.min));
-    mapping.setTargetMax(iscore::convert::value<double>(m_old.domain.max));
+    mapping.setTargetMin(State::convert::value<double>(m_old.domain.min));
+    mapping.setTargetMax(State::convert::value<double>(m_old.domain.max));
 
     mapping.setTargetAddress(m_old.address);
 }
@@ -137,8 +137,8 @@ void ChangeTargetAddress::redo() const
 {
     auto& mapping = m_path.find();
 
-    mapping.setTargetMin(iscore::convert::value<double>(m_new.domain.min));
-    mapping.setTargetMax(iscore::convert::value<double>(m_new.domain.max));
+    mapping.setTargetMin(State::convert::value<double>(m_new.domain.min));
+    mapping.setTargetMax(State::convert::value<double>(m_new.domain.max));
 
     mapping.setTargetAddress(m_new.address);
 }

@@ -12,9 +12,12 @@
 #include "Misc/CallbackContainer.h"
 #include <State/Address.hpp>
 
-namespace iscore {
+namespace Device {
 struct DeviceSettings;
 struct FullAddressSettings;
+}
+namespace State
+{
 struct Message;
 struct Value;
 }  // namespace iscore
@@ -31,25 +34,27 @@ class OSSIADevice : public DeviceInterface
         void disconnect() override;
         bool connected() const final override;
 
-        void updateSettings(const iscore::DeviceSettings& settings) final override;
+        void updateSettings(const Device::DeviceSettings& settings) final override;
 
-        void addAddress(const iscore::FullAddressSettings& settings) final override;
-        void updateAddress(const iscore::FullAddressSettings& address) final override;
-        void removeNode(const iscore::Address& path) final override;
+        void addAddress(const Device::FullAddressSettings& settings) final override;
+        void updateAddress(
+                const State::Address& currentAddr,
+                const Device::FullAddressSettings& address) final override;
+        void removeNode(const State::Address& path) final override;
 
-        iscore::Node refresh() override;
+        Device::Node refresh() override;
 
         // throws std::runtime_error
-        boost::optional<iscore::Value> refresh(const iscore::Address&) final override;
+        boost::optional<State::Value> refresh(const State::Address&) final override;
 
-        iscore::Node getNode(const iscore::Address&) final override;
+        Device::Node getNode(const State::Address&) final override;
 
-        void setListening(const iscore::Address&, bool) final override;
+        void setListening(const State::Address&, bool) final override;
 
-        std::vector<iscore::Address> listening() const final override;
-        void replaceListening(const std::vector<iscore::Address>&) final override;
+        std::vector<State::Address> listening() const final override;
+        void replaceListening(const std::vector<State::Address>&) final override;
 
-        void sendMessage(const iscore::Message& mess) final override;
+        void sendMessage(const State::Message& mess) final override;
         bool check(const QString& str) final override;
 
         OSSIA::Device& impl() const;
@@ -62,7 +67,7 @@ class OSSIADevice : public DeviceInterface
         std::shared_ptr<OSSIA::Device> m_dev;
 
         std::unordered_map<
-            iscore::Address,
+            State::Address,
             std::pair<
                 std::shared_ptr<OSSIA::Address>,
                 OSSIA::CallbackContainer<OSSIA::ValueCallback>::iterator
@@ -70,5 +75,5 @@ class OSSIADevice : public DeviceInterface
         > m_callbacks;
 
     private:
-        void removeListening_impl(OSSIA::Node &node, iscore::Address addr);
+        void removeListening_impl(OSSIA::Node &node, State::Address addr);
 };

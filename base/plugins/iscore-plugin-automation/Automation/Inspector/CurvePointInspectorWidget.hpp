@@ -3,18 +3,24 @@
 #include <Inspector/InspectorWidgetBase.hpp>
 #include <iscore/command/Dispatchers/OngoingCommandDispatcher.hpp>
 
-class CurvePointModel;
 class QDoubleSpinBox;
 class QWidget;
 namespace iscore {
 class Document;
 }  // namespace iscore
+namespace Curve
+{
+class PointModel;
+}
 
-class CurvePointInspectorWidget final : public InspectorWidgetBase
+
+namespace Automation
+{
+class PointInspectorWidget final : public InspectorWidgetBase
 {
     public:
-        explicit CurvePointInspectorWidget(
-            const CurvePointModel& model,
+        explicit PointInspectorWidget(
+            const Curve::PointModel& model,
             const iscore::DocumentContext& context,
             QWidget* parent);
 
@@ -22,7 +28,7 @@ class CurvePointInspectorWidget final : public InspectorWidgetBase
         void on_pointChanged(double);
         void on_editFinished();
 
-        const CurvePointModel& m_model;
+        const Curve::PointModel& m_model;
         QDoubleSpinBox* m_XBox;
         QDoubleSpinBox* m_YBox;
         OngoingCommandDispatcher m_dispatcher;
@@ -31,3 +37,5 @@ class CurvePointInspectorWidget final : public InspectorWidgetBase
 
         double m_Ymin;
 };
+
+}

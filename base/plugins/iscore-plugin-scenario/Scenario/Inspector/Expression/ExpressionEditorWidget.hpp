@@ -24,8 +24,8 @@ class ExpressionEditorWidget : public QWidget
     public:
         explicit ExpressionEditorWidget(QWidget *parent = 0);
 
-        iscore::Expression expression();
-        void setExpression(iscore::Expression e);
+        State::Expression expression();
+        void setExpression(State::Expression e);
 
     signals:
         void editingFinished();
@@ -36,7 +36,7 @@ class ExpressionEditorWidget : public QWidget
 //	void on_operatorChanged(int i);
 // TODO on_modelChanged()
 
-        void exploreExpression(iscore::Expression e);
+        void exploreExpression(State::Expression e);
 
         QString currentExpr();
         void addNewRelation();
@@ -45,7 +45,7 @@ class ExpressionEditorWidget : public QWidget
 
         QVBoxLayout* m_mainLayout{};
 
-        ExpressionValidator<iscore::Expression> m_validator;
+        ExpressionValidator<State::Expression> m_validator;
 
         QString m_expression{};
 };

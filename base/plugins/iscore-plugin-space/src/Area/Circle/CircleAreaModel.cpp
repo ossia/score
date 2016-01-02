@@ -4,11 +4,18 @@
 #include "src/Area/AreaParser.hpp"
 #include "src/Space/SpaceModel.hpp"
 
+namespace Space
+{
 
-const AreaFactoryKey&CircleAreaModel::factoryKey() const
+const AreaFactoryKey&CircleAreaModel::static_factoryKey()
 {
     static const AreaFactoryKey name{"Circle"};
     return name;
+}
+
+const AreaFactoryKey&CircleAreaModel::factoryKey() const
+{
+    return static_factoryKey();
 }
 
 QString CircleAreaModel::prettyName() const
@@ -16,13 +23,13 @@ QString CircleAreaModel::prettyName() const
     return tr("Circle");
 }
 
-QString CircleAreaModel::formula()
+QStringList CircleAreaModel::formula()
 {
-    return "(xv-x0)^2 + (yv-y0)^2 <= r^2";
+    return {"(xv-x0)^2 + (yv-y0)^2 <= r^2"};
 }
 
 CircleAreaModel::CircleAreaModel(
-        const SpaceModel &space,
+        const Space::AreaContext &space,
         const Id<AreaModel> &id,
         QObject *parent):
     AreaModel{AreaParser{formula()}.result(), space, id, parent}
@@ -43,10 +50,10 @@ CircleAreaModel::CircleAreaModel(
     setSpaceMapping({{xv, space_vars[0].symbol()}, // xv -> x
                      {yv, space_vars[1].symbol()}}); // yv -> y
 
-    iscore::FullAddressSettings x0_val, y0_val, r_val;
-    x0_val.value = iscore::Value::fromVariant(200);
-    y0_val.value = iscore::Value::fromVariant(200);
-    r_val.value = iscore::Value::fromVariant(100);
+    Device::FullAddressSettings x0_val, y0_val, r_val;
+    x0_val.value = State::Value::fromVariant(200);
+    y0_val.value = State::Value::fromVariant(200);
+    r_val.value = State::Value::fromVariant(100);
     setParameterMapping({
                     {x0.get_name().c_str(), {x0, x0_val}},
                     {y0.get_name().c_str(), {y0, y0_val}},
@@ -58,7 +65,7 @@ CircleAreaModel::CircleAreaModel(
 AreaPresenter *CircleAreaModel::makePresenter(QGraphicsItem * parentitem, QObject * obj) const
 {
     auto pres = new CircleAreaPresenter{new CircleAreaView{parentitem}, *this, obj};
-    connect(this, &CircleAreaModel::areaChanged,
-            pres, &CircleAreaPresenter::on_areaChanged);
     return pres;
+}
+
 }

@@ -61,7 +61,7 @@ InsertContentInConstraint::InsertContentInConstraint(
 
     // Same for processes
     const auto& target_processes = trg_constraint.processes;
-    std::vector<Id<Process>> target_processes_ids;
+    std::vector<Id<Process::ProcessModel>> target_processes_ids;
     target_processes_ids.reserve(target_processes.size());
     std::transform(target_processes.begin(), target_processes.end(),
                    std::back_inserter(target_processes_ids),
@@ -99,7 +99,7 @@ void InsertContentInConstraint::redo() const
             Deserializer<JSONObject>{m_source},
             &trg_constraint}; // Temporary parent
 
-    std::map<const Process*, Process*> processPairs;
+    std::map<const Process::ProcessModel*, Process::ProcessModel*> processPairs;
 
     // Clone the processes
     const auto& src_procs = src_constraint.processes;

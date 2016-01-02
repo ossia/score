@@ -5,14 +5,14 @@
 #include <State/Message.hpp>
 #include <State/Value.hpp>
 
-namespace iscore
+namespace Device
 {
 
     // Second argument should be the address of the parent.
     template<>
     ISCORE_LIB_DEVICE_EXPORT FullAddressSettings FullAddressSettings::make<FullAddressSettings::as_parent>(
-            const iscore::AddressSettings& other,
-            const iscore::Address& addr)
+            const Device::AddressSettings& other,
+            const State::Address& addr)
     {
         FullAddressSettings as;
         static_cast<AddressSettingsCommon&>(as) = other;
@@ -26,8 +26,8 @@ namespace iscore
     // Second argument should be the address of the resulting FullAddressSettings.
     template<>
     ISCORE_LIB_DEVICE_EXPORT FullAddressSettings FullAddressSettings::make<FullAddressSettings::as_child>(
-            const iscore::AddressSettings& other,
-            const iscore::Address& addr)
+            const Device::AddressSettings& other,
+            const State::Address& addr)
     {
         FullAddressSettings as;
         static_cast<AddressSettingsCommon&>(as) = other;
@@ -38,7 +38,7 @@ namespace iscore
     }
 
     ISCORE_LIB_DEVICE_EXPORT FullAddressSettings FullAddressSettings::make(
-            const iscore::Message& mess)
+            const State::Message& mess)
     {
         FullAddressSettings as;
 

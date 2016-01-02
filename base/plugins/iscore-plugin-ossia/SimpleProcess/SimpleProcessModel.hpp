@@ -12,8 +12,8 @@
 
 class DataStream;
 class JSONObject;
-class LayerModel;
-class Process;
+namespace Process { class LayerModel; }
+namespace Process { class ProcessModel; }
 class ProcessStateDataInterface;
 class QObject;
 class TimeProcessWithConstraint;
@@ -28,12 +28,12 @@ class SimpleProcessModel final : public RecreateOnPlay::OSSIAProcessModel
     public:
         explicit SimpleProcessModel(
                 const TimeValue& duration,
-                const Id<Process>& id,
+                const Id<ProcessModel>& id,
                 QObject* parent);
 
         explicit SimpleProcessModel(
                 const SimpleProcessModel& source,
-                const Id<Process>& id,
+                const Id<ProcessModel>& id,
                 QObject* parent);
 
         template<typename Impl>
@@ -48,7 +48,7 @@ class SimpleProcessModel final : public RecreateOnPlay::OSSIAProcessModel
 
         // Process interface
         SimpleProcessModel* clone(
-                const Id<Process>& newId,
+                const Id<ProcessModel>& newId,
                 QObject* newParent) const override;
 
         QString prettyName() const override;
@@ -84,9 +84,17 @@ class SimpleProcessModel final : public RecreateOnPlay::OSSIAProcessModel
         }
 
     protected:
-        LayerModel* makeLayer_impl(const Id<LayerModel>& viewModelId, const QByteArray& constructionData, QObject* parent) override;
-        LayerModel* loadLayer_impl(const VisitorVariant&, QObject* parent) override;
-        LayerModel* cloneLayer_impl(const Id<LayerModel>& newId, const LayerModel& source, QObject* parent) override;
+        Process::LayerModel* makeLayer_impl(
+                const Id<Process::LayerModel>& viewModelId,
+                const QByteArray& constructionData,
+                QObject* parent) override;
+        Process::LayerModel* loadLayer_impl(
+                const VisitorVariant&,
+                QObject* parent) override;
+        Process::LayerModel* cloneLayer_impl(
+                const Id<Process::LayerModel>& newId,
+                const Process::LayerModel& source,
+                QObject* parent) override;
 
     private:
         std::shared_ptr<TimeProcessWithConstraint> m_ossia_process;

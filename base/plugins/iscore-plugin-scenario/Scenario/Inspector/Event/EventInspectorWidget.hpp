@@ -44,7 +44,7 @@ class EventInspectorWidget final : public InspectorWidgetBase
         std::vector<QWidget*> m_states;
 
         QLabel* m_date {};
-        QLineEdit* m_stateLineEdit{};
+        //QLineEdit* m_stateLineEdit{};
         QWidget* m_statesWidget{};
         const EventModel& m_model;
 

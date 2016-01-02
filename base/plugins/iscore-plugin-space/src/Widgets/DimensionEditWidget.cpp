@@ -3,6 +3,8 @@
 #include <iscore/widgets/MarginLess.hpp>
 #include <iscore/widgets/SpinBoxes.hpp>
 
+namespace Space
+{
 DimensionEditWidget::DimensionEditWidget(const DimensionModel& dim, QWidget* parent):
     QWidget{parent},
     m_dim{dim}
@@ -24,4 +26,5 @@ DimensionEditWidget::DimensionEditWidget(const DimensionModel& dim, QWidget* par
     lay->addWidget(m_remove);
 
     this->setLayout(lay);
+}
 }

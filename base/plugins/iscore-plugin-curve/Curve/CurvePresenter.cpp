@@ -47,21 +47,20 @@
 
 namespace Curve {
 struct Style;
-}  // namespace Curve
 
 static QPointF myscale(QPointF first, QSizeF second)
 {
     return {first.x() * second.width(), (1. - first.y()) * second.height()};
 }
 
-CurvePresenter::CurvePresenter(
+Presenter::Presenter(
         const iscore::DocumentContext& context,
         const Curve::Style& style,
-        const CurveModel& model,
-        CurveView* view,
+        const Model& model,
+        View* view,
         QObject* parent):
     QObject{parent},
-    m_curveSegments{context.app.components.factory<DynamicCurveSegmentList>()},
+    m_curveSegments{context.app.components.factory<SegmentList>()},
     m_model{model},
     m_view{view},
     m_commandDispatcher{context.commandStack},
@@ -72,16 +71,16 @@ CurvePresenter::CurvePresenter(
     setupView();
     setupSignals();
 
-    connect(m_view, &CurveView::contextMenuRequested,
-            this, &CurvePresenter::contextMenuRequested);
+    connect(m_view, &View::contextMenuRequested,
+            this, &Presenter::contextMenuRequested);
 }
 
-CurvePresenter::~CurvePresenter()
+Presenter::~Presenter()
 {
     deleteGraphicsObject(m_view);
 }
 
-void CurvePresenter::setRect(const QRectF& rect)
+void Presenter::setRect(const QRectF& rect)
 {
     m_view->setRect(rect);
 
@@ -97,12 +96,12 @@ void CurvePresenter::setRect(const QRectF& rect)
     }
 }
 
-void CurvePresenter::setPos(CurvePointView& point)
+void Presenter::setPos(PointView& point)
 {
     point.setPos(myscale(point.model().pos(),  m_view->boundingRect().size()));
 }
 
-void CurvePresenter::setPos(CurveSegmentView& segment)
+void Presenter::setPos(SegmentView& segment)
 {
     auto rect = m_view->boundingRect();
     // Pos is the top-left corner of the segment
@@ -115,22 +114,22 @@ void CurvePresenter::setPos(CurveSegmentView& segment)
     segment.setRect({0., 0., endx - startx, rect.height()});
 }
 
-void CurvePresenter::setupSignals()
+void Presenter::setupSignals()
 {
-    con(m_model, &CurveModel::segmentAdded, this,
-            [&] (const CurveSegmentModel& segment)
+    con(m_model, &Model::segmentAdded, this,
+            [&] (const SegmentModel& segment)
     {
-        addSegment(new CurveSegmentView{&segment, m_style, m_view});
+        addSegment(new SegmentView{&segment, m_style, m_view});
     });
 
-    con(m_model, &CurveModel::pointAdded, this,
-            [&] (const CurvePointModel& point)
+    con(m_model, &Model::pointAdded, this,
+            [&] (const PointModel& point)
     {
-        addPoint(new CurvePointView{&point, m_style, m_view});
+        addPoint(new PointView{&point, m_style, m_view});
     });
 
-    con(m_model, &CurveModel::pointRemoved, this,
-            [&] (const Id<CurvePointModel>& m)
+    con(m_model, &Model::pointRemoved, this,
+            [&] (const Id<PointModel>& m)
     {
         auto& map = m_points.get();
         auto it = map.find(m);
@@ -141,8 +140,8 @@ void CurvePresenter::setupSignals()
         }
     });
 
-    con(m_model, &CurveModel::segmentRemoved, this,
-            [&] (const Id<CurveSegmentModel>& m)
+    con(m_model, &Model::segmentRemoved, this,
+            [&] (const Id<SegmentModel>& m)
     {
         auto& map = m_segments.get();
         auto it = map.find(m);
@@ -153,7 +152,7 @@ void CurvePresenter::setupSignals()
         }
     });
 
-    con(m_model, &CurveModel::cleared, this,
+    con(m_model, &Model::cleared, this,
             [&] ()
     {
         qDeleteAll(m_points.get());
@@ -162,21 +161,21 @@ void CurvePresenter::setupSignals()
         m_segments.clear();
     });
 
-    con(m_model, &CurveModel::curveReset,
-        this, &CurvePresenter::modelReset);
+    con(m_model, &Model::curveReset,
+        this, &Presenter::modelReset);
 }
 
-void CurvePresenter::setupView()
+void Presenter::setupView()
 {
     // Initialize the elements
     for(const auto& segment : m_model.segments())
     {
-        addSegment(new CurveSegmentView{&segment, m_style, m_view});
+        addSegment(new SegmentView{&segment, m_style, m_view});
     }
 
-    for(CurvePointModel* pt : m_model.points())
+    for(PointModel* pt : m_model.points())
     {
-        addPoint(new CurvePointView{pt, m_style, m_view});
+        addPoint(new PointView{pt, m_style, m_view});
     }
 
     // Setup the actions
@@ -214,7 +213,7 @@ void CurvePresenter::setupView()
         }
     });
 
-    connect(m_view, &CurveView::keyPressed, this, [=] (int key)
+    connect(m_view, &View::keyPressed, this, [=] (int key)
     {
         if(key == Qt::Key_Shift)
         {
@@ -226,7 +225,7 @@ void CurvePresenter::setupView()
         }
     });
 
-    connect(m_view, &CurveView::keyReleased, this, [=] (int key)
+    connect(m_view, &View::keyReleased, this, [=] (int key)
     {
         if(key == Qt::Key_Shift)
         {
@@ -241,7 +240,7 @@ void CurvePresenter::setupView()
     });
 }
 
-void CurvePresenter::fillContextMenu(
+void Presenter::fillContextMenu(
         QMenu* menu,
         const QPoint& pos,
         const QPointF& scenepos)
@@ -282,19 +281,19 @@ void CurvePresenter::fillContextMenu(
     menu->addAction(suppressAction);
 }
 
-void CurvePresenter::addPoint(CurvePointView * pt_view)
+void Presenter::addPoint(PointView * pt_view)
 {
     setupPointConnections(pt_view);
     addPoint_impl(pt_view);
 }
 
-void CurvePresenter::addSegment(CurveSegmentView * seg_view)
+void Presenter::addSegment(SegmentView * seg_view)
 {
     setupSegmentConnections(seg_view);
     addSegment_impl(seg_view);
 }
 
-void CurvePresenter::addPoint_impl(CurvePointView* pt_view)
+void Presenter::addPoint_impl(PointView* pt_view)
 {
     m_points.insert(pt_view);
     setPos(*pt_view);
@@ -302,7 +301,7 @@ void CurvePresenter::addPoint_impl(CurvePointView* pt_view)
     m_enabled ? pt_view->enable() : pt_view->disable();
 }
 
-void CurvePresenter::addSegment_impl(CurveSegmentView* seg_view)
+void Presenter::addSegment_impl(SegmentView* seg_view)
 {
     m_segments.insert(seg_view);
     setPos(*seg_view);
@@ -310,28 +309,28 @@ void CurvePresenter::addSegment_impl(CurveSegmentView* seg_view)
     m_enabled ? seg_view->enable() : seg_view->disable();
 }
 
-void CurvePresenter::setupPointConnections(CurvePointView* pt_view)
+void Presenter::setupPointConnections(PointView* pt_view)
 {
-    connect(pt_view, &CurvePointView::contextMenuRequested,
-            m_view, &CurveView::contextMenuRequested);
-    con(pt_view->model(), &CurvePointModel::posChanged,
+    connect(pt_view, &PointView::contextMenuRequested,
+            m_view, &View::contextMenuRequested);
+    con(pt_view->model(), &PointModel::posChanged,
         this, [=] () { setPos(*pt_view); });
 }
 
-void CurvePresenter::setupSegmentConnections(CurveSegmentView* seg_view)
+void Presenter::setupSegmentConnections(SegmentView* seg_view)
 {
-    connect(seg_view, &CurveSegmentView::contextMenuRequested,
-            m_view, &CurveView::contextMenuRequested);
+    connect(seg_view, &SegmentView::contextMenuRequested,
+            m_view, &View::contextMenuRequested);
 }
 
-void CurvePresenter::modelReset()
+void Presenter::modelReset()
 {
     // 1. We put our current elements in our pool.
-    std::vector<CurvePointView*> points(m_points.get().begin(), m_points.get().end());
-    std::vector<CurveSegmentView*> segments(m_segments.get().begin(), m_segments.get().end());
+    std::vector<PointView*> points(m_points.get().begin(), m_points.get().end());
+    std::vector<SegmentView*> segments(m_segments.get().begin(), m_segments.get().end());
 
-    std::vector<CurvePointView*> newPoints;
-    std::vector<CurveSegmentView*> newSegments;
+    std::vector<PointView*> newPoints;
+    std::vector<SegmentView*> newSegments;
 
     // 2. We add / remove new elements if necessary
     {
@@ -341,7 +340,7 @@ void CurvePresenter::modelReset()
             points.reserve(points.size() + diff_points);
             for(;diff_points --> 0;)
             {
-                auto pt = new CurvePointView{nullptr, m_style, m_view};
+                auto pt = new PointView{nullptr, m_style, m_view};
                 points.push_back(pt);
                 newPoints.push_back(pt);
             }
@@ -365,7 +364,7 @@ void CurvePresenter::modelReset()
             segments.reserve(segments.size() + diff_segts);
             for(;diff_segts --> 0;)
             {
-                auto seg = new CurveSegmentView{nullptr, m_style, m_view};
+                auto seg = new SegmentView{nullptr, m_style, m_view};
                 segments.push_back(seg);
                 newSegments.push_back(seg);
             }
@@ -422,12 +421,12 @@ void CurvePresenter::modelReset()
     }
 }
 
-void CurvePresenter::enableActions(bool b)
+void Presenter::enableActions(bool b)
 {
     m_actions->setEnabled(b);
 }
 
-void CurvePresenter::enable()
+void Presenter::enable()
 {
     for(auto& segment : m_segments)
     {
@@ -441,7 +440,7 @@ void CurvePresenter::enable()
     m_enabled = true;
 }
 
-void CurvePresenter::disable()
+void Presenter::disable()
 {
     for(auto& segment : m_segments)
     {
@@ -456,15 +455,15 @@ void CurvePresenter::disable()
 }
 
 // TESTME
-void CurvePresenter::removeSelection()
+void Presenter::removeSelection()
 {
     // We remove all that is selected,
     // And set the bounds correctly
-    QSet<Id<CurveSegmentModel>> segmentsToDelete;
+    QSet<Id<SegmentModel>> segmentsToDelete;
 
     for(const auto& elt : m_model.selectedChildren())
     {
-        if(auto point = dynamic_cast<const CurvePointModel*>(elt.data()))
+        if(auto point = dynamic_cast<const PointModel*>(elt.data()))
         {
             if(point->previous())
                 segmentsToDelete.insert(point->previous());
@@ -472,7 +471,7 @@ void CurvePresenter::removeSelection()
                 segmentsToDelete.insert(point->following());
         }
 
-        if(auto segmt = dynamic_cast<const CurveSegmentModel*>(elt.data()))
+        if(auto segmt = dynamic_cast<const SegmentModel*>(elt.data()))
         {
             segmentsToDelete.insert(segmt->id());
         }
@@ -489,9 +488,9 @@ void CurvePresenter::removeSelection()
         }
 
         if(it->previous && segmentsToDelete.contains(it->previous))
-            it->previous = Id<CurveSegmentModel>{};
+            it->previous = Id<SegmentModel>{};
         if(it->following && segmentsToDelete.contains(it->following))
-            it->following = Id<CurveSegmentModel>{};
+            it->following = Id<SegmentModel>{};
 
         it++;
     }
@@ -503,7 +502,7 @@ void CurvePresenter::removeSelection()
                 });
 }
 
-void CurvePresenter::updateSegmentsType(const CurveSegmentFactoryKey& segment)
+void Presenter::updateSegmentsType(const SegmentFactoryKey& segment)
 {
     // They keep their start / end and previous / following but change type.
     auto factory = m_curveSegments.list().get(segment);
@@ -525,3 +524,5 @@ void CurvePresenter::updateSegmentsType(const CurveSegmentFactoryKey& segment)
                     std::move(newSegments)
                 });
 }
+
+}  // namespace Curve

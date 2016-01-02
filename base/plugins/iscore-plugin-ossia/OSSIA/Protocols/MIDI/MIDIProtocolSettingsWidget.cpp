@@ -47,13 +47,13 @@ MIDIProtocolSettingsWidget::buildGUI()
     updateInputDevices();
 }
 
-iscore::DeviceSettings MIDIProtocolSettingsWidget::getSettings() const
+Device::DeviceSettings MIDIProtocolSettingsWidget::getSettings() const
 {
     ISCORE_ASSERT(m_deviceCBox);
     ISCORE_ASSERT(m_inButton);
 
     // TODO *** Initialize with ProtocolFactory.defaultSettings().
-    iscore::DeviceSettings s;
+    Device::DeviceSettings s;
     MIDISpecificSettings midi;
     s.name = m_deviceCBox->currentText();
 
@@ -66,7 +66,7 @@ iscore::DeviceSettings MIDIProtocolSettingsWidget::getSettings() const
 }
 
 void
-MIDIProtocolSettingsWidget::setSettings(const iscore::DeviceSettings &settings)
+MIDIProtocolSettingsWidget::setSettings(const Device::DeviceSettings &settings)
 {
     /*
     ISCORE_ASSERT(settings.size() == 2);

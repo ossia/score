@@ -9,7 +9,7 @@
 #include <Process/ProcessContext.hpp>
 
 class MappingPresenter :
-        public CurveProcessPresenter<
+        public Curve::CurveProcessPresenter<
             MappingLayerModel,
             MappingView>
 {

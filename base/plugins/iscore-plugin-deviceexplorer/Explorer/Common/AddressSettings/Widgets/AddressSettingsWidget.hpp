@@ -14,12 +14,12 @@ class ISCORE_LIB_DEVICE_EXPORT AddressSettingsWidget : public QWidget
         explicit AddressSettingsWidget(QWidget* parent = nullptr);
         explicit AddressSettingsWidget(no_widgets_t, QWidget* parent = nullptr);
 
-        virtual iscore::AddressSettings getSettings() const = 0;
-        virtual void setSettings(const iscore::AddressSettings& settings) = 0;
+        virtual Device::AddressSettings getSettings() const = 0;
+        virtual void setSettings(const Device::AddressSettings& settings) = 0;
 
     protected:
-        iscore::AddressSettings getCommonSettings() const;
-        void setCommonSettings(const iscore::AddressSettings&);
+        Device::AddressSettings getCommonSettings() const;
+        void setCommonSettings(const Device::AddressSettings&);
         QFormLayout* m_layout;
 
     private:

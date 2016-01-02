@@ -5,8 +5,11 @@ class QWidget;
 
 namespace iscore{
 class Document;
-struct Address;
 struct DocumentContext;
+}
+namespace State
+{
+struct Address;
 }
 class AddressEditWidget;
 class DeviceExplorerModel;
@@ -23,11 +26,11 @@ class MappingInspectorWidget :
                 QWidget* parent);
 
     public slots:
-        void on_sourceAddressChange(const iscore::Address& newText);
+        void on_sourceAddressChange(const State::Address& newText);
         void on_sourceMinValueChanged();
         void on_sourceMaxValueChanged();
 
-        void on_targetAddressChange(const iscore::Address& newText);
+        void on_targetAddressChange(const State::Address& newText);
         void on_targetMinValueChanged();
         void on_targetMaxValueChanged();
     private:

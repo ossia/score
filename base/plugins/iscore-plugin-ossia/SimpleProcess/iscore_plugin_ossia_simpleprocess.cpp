@@ -21,12 +21,12 @@ std::vector<std::unique_ptr<iscore::FactoryInterfaceBase>> iscore_plugin_ossia_s
         const iscore::ApplicationContext&,
         const iscore::FactoryBaseKey& factoryName) const
 {
-    if(factoryName == ProcessFactory::staticFactoryKey())
+    if(factoryName == Process::ProcessFactory::staticFactoryKey())
     {
         return make_ptr_vector<iscore::FactoryInterfaceBase,
                 SimpleProcessFactory>();
     }
-    if(factoryName == StateProcessFactory::staticFactoryKey())
+    if(factoryName == Process::StateProcessFactory::staticFactoryKey())
     {
         return make_ptr_vector<iscore::FactoryInterfaceBase,
                 SimpleStateProcessFactory>();

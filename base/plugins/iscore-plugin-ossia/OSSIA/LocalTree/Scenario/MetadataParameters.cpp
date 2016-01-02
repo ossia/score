@@ -2,15 +2,15 @@
 #include <OSSIA/LocalTree/GetProperty.hpp>
 #include <OSSIA/LocalTree/Property.hpp>
 #include <Process/ModelMetadata.hpp>
-namespace OSSIA
+namespace Ossia
 {
 namespace LocalTree
 {
-
+ISCORE_PLUGIN_OSSIA_EXPORT
 void make_metadata_node(
         ModelMetadata& metadata,
         OSSIA::Node& parent,
-        std::vector<BaseProperty*>& properties,
+        std::vector<std::unique_ptr<BaseProperty>>& properties,
         QObject* context)
 {
 

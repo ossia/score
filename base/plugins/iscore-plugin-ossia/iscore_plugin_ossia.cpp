@@ -32,7 +32,7 @@ iscore::GUIApplicationContextPlugin* iscore_plugin_ossia::make_applicationPlugin
 std::vector<std::unique_ptr<iscore::FactoryListInterface>> iscore_plugin_ossia::factoryFamilies()
 {
     return make_ptr_vector<iscore::FactoryListInterface,
-            OSSIA::LocalTree::ProcessComponentFactoryList>();
+            Ossia::LocalTree::ProcessComponentFactoryList>();
 }
 
 
@@ -51,8 +51,8 @@ std::vector<std::unique_ptr<iscore::FactoryInterfaceBase>> iscore_plugin_ossia::
                  MinuitProtocolFactory>,
             FW<ScenarioActionsFactory,
                  PlayContextMenuFactory>,
-            FW<OSSIA::LocalTree::ProcessComponentFactory,
-                 OSSIA::LocalTree::ScenarioComponentFactory>
+            FW<Ossia::LocalTree::ProcessComponentFactory,
+                 Ossia::LocalTree::ScenarioComponentFactory>
             >
             >(ctx, key);
 }

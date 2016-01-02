@@ -24,22 +24,22 @@
 #include <iscore/tools/NotifyingMap.hpp>
 #include <iscore/tools/SettableIdentifier.hpp>
 
-class LayerModel;
+namespace Process { class LayerModel; }
 class SlotModel;
-namespace iscore {
+namespace State {
 struct Address;
 }  // namespace iscore
 
 CreateCurveFromStates::CreateCurveFromStates(
         Path<ConstraintModel>&& constraint,
-        const std::vector<std::pair<Path<SlotModel>, Id<LayerModel> > >& slotList,
-        const Id<Process>& curveId,
-        const iscore::Address& address,
+        const std::vector<std::pair<Path<SlotModel>, Id<Process::LayerModel> > >& slotList,
+        const Id<Process::ProcessModel>& curveId,
+        const State::Address& address,
         double start,
         double end,
         double min,
         double max):
-    CreateProcessAndLayers<AutomationProcessMetadata>{
+    CreateProcessAndLayers<Automation::ProcessMetadata>{
         std::move(constraint),
         slotList,
         curveId},
@@ -55,13 +55,13 @@ void CreateCurveFromStates::redo() const
 {
     m_addProcessCmd.redo();
     auto& cstr = m_addProcessCmd.constraintPath().find();
-    auto& autom = safe_cast<AutomationModel&>(cstr.processes.at(m_addProcessCmd.processId()));
+    auto& autom = safe_cast<Automation::ProcessModel&>(cstr.processes.at(m_addProcessCmd.processId()));
     autom.setAddress(m_address);
     autom.curve().clear();
 
     // Add a segment
-    auto segment = new DefaultCurveSegmentModel{
-                   Id<CurveSegmentModel>{iscore::id_generator::getFirstId()},
+    auto segment = new Curve::DefaultCurveSegmentModel{
+                   Id<Curve::SegmentModel>{iscore::id_generator::getFirstId()},
                    &autom.curve()};
 
     double fact = 1. / (m_max - m_min);
@@ -81,12 +81,12 @@ void CreateCurveFromStates::redo() const
 
 void CreateCurveFromStates::serializeImpl(DataStreamInput& s) const
 {
-    CreateProcessAndLayers<AutomationProcessMetadata>::serializeImpl(s);
+    CreateProcessAndLayers<Automation::ProcessMetadata>::serializeImpl(s);
     s << m_address << m_start << m_end << m_min << m_max;
 }
 
 void CreateCurveFromStates::deserializeImpl(DataStreamOutput& s)
 {
-    CreateProcessAndLayers<AutomationProcessMetadata>::deserializeImpl(s);
+    CreateProcessAndLayers<Automation::ProcessMetadata>::deserializeImpl(s);
     s >> m_address >> m_start >> m_end >> m_min >> m_max;
 }

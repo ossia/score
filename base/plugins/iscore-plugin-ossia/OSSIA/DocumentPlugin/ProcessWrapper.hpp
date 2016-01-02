@@ -1,7 +1,7 @@
 #pragma once
 #include "BasicProcessWrapper.hpp"
 #include "LoopingProcessWrapper.hpp"
-class Process;
+namespace Process { class ProcessModel; }
 
 
 namespace RecreateOnPlay

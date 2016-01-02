@@ -13,12 +13,13 @@
 
 class DataStream;
 class JSONObject;
-class LayerModel;
+namespace Process { class LayerModel; }
 class ProcessStateDataInterface;
 class QObject;
 #include <iscore/tools/SettableIdentifier.hpp>
 
-class ISCORE_LIB_DUMMYPROCESS_EXPORT DummyModel final : public Process
+class ISCORE_LIB_DUMMYPROCESS_EXPORT DummyModel final :
+        public Process::ProcessModel
 {
         ISCORE_SERIALIZE_FRIENDS(DummyModel, DataStream)
         ISCORE_SERIALIZE_FRIENDS(DummyModel, JSONObject)
@@ -26,25 +27,25 @@ class ISCORE_LIB_DUMMYPROCESS_EXPORT DummyModel final : public Process
     public:
         explicit DummyModel(
                 const TimeValue& duration,
-                const Id<Process>& id,
+                const Id<ProcessModel>& id,
                 QObject* parent);
 
         explicit DummyModel(
                 const DummyModel& source,
-                const Id<Process>& id,
+                const Id<ProcessModel>& id,
                 QObject* parent);
 
         template<typename Impl>
         explicit DummyModel(
                 Deserializer<Impl>& vis,
                 QObject* parent) :
-            Process{vis, parent}
+            ProcessModel{vis, parent}
         {
             vis.writeTo(*this);
         }
 
         DummyModel* clone(
-                const Id<Process>& newId,
+                const Id<ProcessModel>& newId,
                 QObject* newParent) const override;
 
         const ProcessFactoryKey& key() const override;
@@ -69,9 +70,9 @@ class ISCORE_LIB_DUMMYPROCESS_EXPORT DummyModel final : public Process
         void serialize(const VisitorVariant& vis) const override;
 
     protected:
-        LayerModel* makeLayer_impl(const Id<LayerModel>& viewModelId, const QByteArray& constructionData, QObject* parent) override;
-        LayerModel* loadLayer_impl(const VisitorVariant&, QObject* parent) override;
-        LayerModel* cloneLayer_impl(const Id<LayerModel>& newId, const LayerModel& source, QObject* parent) override;
+        Process::LayerModel* makeLayer_impl(const Id<Process::LayerModel>& viewModelId, const QByteArray& constructionData, QObject* parent) override;
+        Process::LayerModel* loadLayer_impl(const VisitorVariant&, QObject* parent) override;
+        Process::LayerModel* cloneLayer_impl(const Id<Process::LayerModel>& newId, const Process::LayerModel& source, QObject* parent) override;
 
     private:
         mutable DummyState m_startState{*this, nullptr};

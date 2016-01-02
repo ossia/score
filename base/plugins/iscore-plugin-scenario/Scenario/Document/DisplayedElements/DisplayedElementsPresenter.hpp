@@ -10,7 +10,7 @@ class BaseGraphicsObject;
 class ConstraintModel;
 class DisplayedElementsModel;
 class FullViewConstraintPresenter;
-class LayerPresenter;
+namespace Process { class LayerPresenter; }
 class ScenarioDocumentPresenter;
 
 // Contains the elements that are shown (not necessarily the ones in
@@ -36,7 +36,7 @@ class DisplayedElementsPresenter final :
         void on_displayedConstraintHeightChanged(double);
 
     signals:
-        void requestFocusedPresenterChange(LayerPresenter*);
+        void requestFocusedPresenterChange(Process::LayerPresenter*);
 
     private:
         void updateLength(double);

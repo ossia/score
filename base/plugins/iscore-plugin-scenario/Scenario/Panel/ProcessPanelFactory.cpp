@@ -32,7 +32,7 @@ iscore::PanelPresenter*ProcessPanelFactory::makePresenter(
         iscore::PanelView* view,
         QObject* parent)
 {
-    auto& fact = ctx.components.factory<ProcessList>();
+    auto& fact = ctx.components.factory<Process::ProcessList>();
     return new ProcessPanelPresenter{fact, view, parent};
 }
 

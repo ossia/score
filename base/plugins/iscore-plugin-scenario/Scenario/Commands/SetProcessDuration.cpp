@@ -6,7 +6,9 @@
 #include <iscore/serialization/DataStreamVisitor.hpp>
 #include <iscore/tools/ModelPathSerialization.hpp>
 
-SetProcessDuration::SetProcessDuration(Path<Process>&& path, const TimeValue& newVal) :
+SetProcessDuration::SetProcessDuration(
+        Path<Process::ProcessModel>&& path,
+        const TimeValue& newVal) :
     m_path {std::move(path)},
     m_new {newVal}
 {

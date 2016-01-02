@@ -2,7 +2,7 @@
 #include <Process/State/MessageNode.hpp>
 #include <State/Message.hpp>
 
-class Process;
+namespace Process { class ProcessModel; }
 #include <iscore/tools/SettableIdentifier.hpp>
 
 // An enum that says if a process is before or after the state.
@@ -13,18 +13,18 @@ enum class ProcessPosition {
 // User messages
 void updateTreeWithMessageList(
         MessageNode& rootNode,
-        iscore::MessageList lst);
+        State::MessageList lst);
 
 // Messages from a process
 void updateTreeWithMessageList(
         MessageNode& rootNode,
-        iscore::MessageList lst,
-        const Id<Process>& proc,
+        State::MessageList lst,
+        const Id<Process::ProcessModel>& proc,
         ProcessPosition pos);
 
 void updateTreeWithRemovedProcess(
         MessageNode& rootNode,
-        const Id<Process>& proc,
+        const Id<Process::ProcessModel>& proc,
         ProcessPosition pos);
 
 void updateTreeWithRemovedConstraint(
@@ -33,8 +33,8 @@ void updateTreeWithRemovedConstraint(
 
 void updateTreeWithRemovedUserMessage(
         MessageNode& rootNode,
-        const iscore::Address&);
+        const State::Address&);
 
 void updateTreeWithRemovedNode(
         MessageNode& rootNode,
-        const iscore::Address& addr);
+        const State::Address& addr);

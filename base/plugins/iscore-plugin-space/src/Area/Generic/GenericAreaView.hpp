@@ -17,6 +17,9 @@ class RectDevice
         }
 };
 
+
+namespace Space
+{
 class GenericAreaView : public QGraphicsItem
 {
     public:
@@ -34,3 +37,4 @@ class GenericAreaView : public QGraphicsItem
     private:
         QRectF m_rect;
 };
+}

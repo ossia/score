@@ -15,7 +15,7 @@ class LocalDevice final : public OSSIADevice
         LocalDevice(
                 const iscore::DocumentContext& ctx,
                 const std::shared_ptr<OSSIA::Device>& dev,
-                const iscore::DeviceSettings& settings);
+                const Device::DeviceSettings& settings);
 
         ~LocalDevice();
 
@@ -24,7 +24,7 @@ class LocalDevice final : public OSSIADevice
         void disconnect() override;
         bool reconnect() override;
 
-        iscore::Node refresh() override;
+        Device::Node refresh() override;
 
 
         using OSSIADevice::refresh;

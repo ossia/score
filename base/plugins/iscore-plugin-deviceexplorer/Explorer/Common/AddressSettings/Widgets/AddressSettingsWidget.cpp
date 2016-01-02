@@ -46,14 +46,14 @@ AddressSettingsWidget::AddressSettingsWidget(QWidget *parent) :
     m_layout->addRow(tr("Tags"), tagLayout);
 
     // Populate the combo boxes
-    for(const auto& key : iscore::IOTypeStringMap().keys())
+    for(const auto& key : Device::IOTypeStringMap().keys())
     {
-        m_ioTypeCBox->addItem(iscore::IOTypeStringMap()[key], (int)key);
+        m_ioTypeCBox->addItem(Device::IOTypeStringMap()[key], (int)key);
     }
 
-    for(const auto& key : iscore::ClipModeStringMap().keys())
+    for(const auto& key : Device::ClipModeStringMap().keys())
     {
-        m_clipModeCBox->addItem(iscore::ClipModeStringMap()[key], (int)key);
+        m_clipModeCBox->addItem(Device::ClipModeStringMap()[key], (int)key);
     }
 
     setLayout(m_layout);
@@ -90,13 +90,13 @@ AddressSettingsWidget::AddressSettingsWidget(
     setLayout(m_layout);
 }
 
-iscore::AddressSettings AddressSettingsWidget::getCommonSettings() const
+Device::AddressSettings AddressSettingsWidget::getCommonSettings() const
 {
-    iscore::AddressSettings settings;
+    Device::AddressSettings settings;
     if(!m_none_type)
     {
-        settings.ioType = static_cast<iscore::IOType>(m_ioTypeCBox->currentData().value<int>());
-        settings.clipMode = static_cast<iscore::ClipMode>(m_clipModeCBox->currentData().value<int>());
+        settings.ioType = static_cast<Device::IOType>(m_ioTypeCBox->currentData().value<int>());
+        settings.clipMode = static_cast<Device::ClipMode>(m_clipModeCBox->currentData().value<int>());
     }
 
     for(int i = 0; i < m_tagsEdit->count(); i++)
@@ -105,7 +105,7 @@ iscore::AddressSettings AddressSettingsWidget::getCommonSettings() const
     return settings;
 }
 
-void AddressSettingsWidget::setCommonSettings(const iscore::AddressSettings & settings)
+void AddressSettingsWidget::setCommonSettings(const Device::AddressSettings & settings)
 {
     if(!m_none_type)
     {

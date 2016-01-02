@@ -2,8 +2,12 @@
 #include <Curve/Process/CurveProcessPanelProxy.hpp>
 
 #include "AutomationLayerModel.hpp"
-class AutomationPanelProxy : public CurveProcessPanelProxy<AutomationLayerModel>
+
+namespace Automation
+{
+class PanelProxy : public Curve::CurveProcessPanelProxy<LayerModel>
 {
     public:
-        using CurveProcessPanelProxy<AutomationLayerModel>::CurveProcessPanelProxy;
+        using CurveProcessPanelProxy<LayerModel>::CurveProcessPanelProxy;
 };
+}

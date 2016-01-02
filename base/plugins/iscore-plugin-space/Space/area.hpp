@@ -8,9 +8,9 @@ class area
 {
         friend class projected_area;
     public:
-        area(const GiNaC::relational& e,
+        area(std::vector<GiNaC::relational>&& e,
              const std::vector<GiNaC::symbol>& vars):
-            m_rel{e},
+            m_rel{std::move(e)},
             m_symbols(vars)
         {
 
@@ -22,10 +22,10 @@ class area
         }
 
         const GiNaC::relational& rel() const
-        { return m_rel; }
+        { return m_rel[0]; }
 
     private:
-        GiNaC::relational m_rel;
+        const std::vector<GiNaC::relational> m_rel;
 
         // Variables that can map to a dimension of space
         std::vector<GiNaC::symbol> m_symbols;

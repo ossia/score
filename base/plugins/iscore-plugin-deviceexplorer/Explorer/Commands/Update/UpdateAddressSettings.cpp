@@ -13,8 +13,8 @@ using namespace iscore;
 using namespace DeviceExplorer::Command;
 UpdateAddressSettings::UpdateAddressSettings(
         Path<DeviceDocumentPlugin>&& device_tree,
-        const iscore::NodePath& node,
-        const iscore::AddressSettings& parameters):
+        const Device::NodePath& node,
+        const Device::AddressSettings& parameters):
     m_devicesModel{device_tree},
     m_node(node),
     m_newParameters(parameters)
@@ -23,7 +23,7 @@ UpdateAddressSettings::UpdateAddressSettings(
     auto n = m_node.toNode(&devplug.rootNode());
     ISCORE_ASSERT(n);
 
-    m_oldParameters = n->get<iscore::AddressSettings>();
+    m_oldParameters = n->get<Device::AddressSettings>();
 }
 
 void UpdateAddressSettings::undo() const

@@ -2,20 +2,22 @@
 #include <QObject>
 #include <QPointer>
 
-class LayerModel;
-class LayerPresenter;
-class Process;
+namespace Process { class LayerModel; }
+namespace Process { class LayerPresenter; }
+namespace Process { class ProcessModel; }
 class ScenarioDocumentPresenter;
 
 // Keeps the focused elements in memory for use by the scenario application plugin.
 // Note : focus should not be lost when switching documents. Hence, this
 // should more be part of the per-document part.
+namespace Process
+{
 class ProcessFocusManager final : public QObject
 {
         Q_OBJECT
 
     public:
-        const Process* focusedModel() const;
+        const ProcessModel* focusedModel() const;
         const LayerModel* focusedViewModel() const;
         LayerPresenter* focusedPresenter() const;
 
@@ -34,7 +36,8 @@ class ProcessFocusManager final : public QObject
     private:
         void focusPresenter(LayerPresenter*);
         void defocusPresenter(LayerPresenter*);
-        QPointer<const Process> m_currentModel{};
+        QPointer<const ProcessModel> m_currentModel{};
         QPointer<const LayerModel> m_currentViewModel{};
         QPointer<LayerPresenter> m_currentPresenter{};
 };
+}

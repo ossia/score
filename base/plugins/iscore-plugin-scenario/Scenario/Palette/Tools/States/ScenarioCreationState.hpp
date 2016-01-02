@@ -19,6 +19,9 @@
 #include <Scenario/Commands/State/AddMessagesToState.hpp>
 
 
+namespace Scenario
+{
+
 template<int Value>
 class StrongQState : public QState
 {
@@ -31,8 +34,7 @@ class StrongQState : public QState
         }
 };
 
-namespace Scenario
-{
+
 template<typename Scenario_T>
 class CreationStateBase : public StateBase<Scenario_T>
 {
@@ -171,7 +173,7 @@ class CreationState : public CreationStateBase<Scenario_T>
 
             auto device_explorer = this->m_parentSM.context().template plugin<DeviceDocumentPlugin>().updateProxy.deviceExplorer;
 
-            iscore::MessageList messages = getSelectionSnapshot(*device_explorer);
+            State::MessageList messages = getSelectionSnapshot(*device_explorer);
             if(messages.empty())
                 return;
 

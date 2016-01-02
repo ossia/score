@@ -2,17 +2,19 @@
 #include <Scenario/Document/Components/ProcessComponent.hpp>
 #include <OSSIA/LocalTree/LocalTreeDocumentPlugin.hpp>
 #include <OSSIA/LocalTree/NameProperty.hpp>
-namespace OSSIA
+
+// TODO clean me up
+namespace Ossia
 {
 namespace LocalTree
 {
-class ProcessComponent : public iscore::Component
+class ISCORE_PLUGIN_OSSIA_EXPORT ProcessComponent : public iscore::Component
 {
-        ISCORE_METADATA(OSSIA::LocalTree::ProcessComponent)
+        ISCORE_METADATA(Ossia::LocalTree::ProcessComponent)
     public:
         ProcessComponent(
                 OSSIA::Node& node,
-                Process& proc,
+                Process::ProcessModel& proc,
                 const Id<iscore::Component>& id,
                 const QString& name,
                 QObject* parent);
@@ -27,23 +29,26 @@ class ProcessComponent : public iscore::Component
         MetadataNamePropertyWrapper m_thisNode;
 };
 
-class ProcessComponentFactory :
-        public ::GenericProcessComponentFactory<
+class ISCORE_PLUGIN_OSSIA_EXPORT ProcessComponentFactory :
+        public ::GenericComponentFactory<
+            Process::ProcessModel,
             LocalTree::DocumentPlugin,
             LocalTree::ProcessComponent>
 {
     public:
+        virtual ~ProcessComponentFactory();
         virtual ProcessComponent* make(
                 const Id<iscore::Component>&,
                 OSSIA::Node& parent,
-                Process& proc,
+                Process::ProcessModel& proc,
                 const LocalTree::DocumentPlugin& doc,
                 const iscore::DocumentContext& ctx,
                 QObject* paren_objt) const = 0;
 };
 
 using ProcessComponentFactoryList =
-    ::GenericProcessComponentFactoryList<
+    ::GenericComponentFactoryList<
+            Process::ProcessModel,
             LocalTree::DocumentPlugin,
             LocalTree::ProcessComponent,
             LocalTree::ProcessComponentFactory>;

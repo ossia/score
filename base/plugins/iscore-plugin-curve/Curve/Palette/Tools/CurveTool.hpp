@@ -35,17 +35,17 @@ class CurveTool : public GraphicsSceneTool<Curve::Point>
 
             switch(pressedItem->type())
             {
-                case CurvePointView::static_type():
+                case PointView::static_type():
                 {
-                    auto pt = safe_cast<const CurvePointView*>(pressedItem);
+                    auto pt = safe_cast<const PointView*>(pressedItem);
                     if(pt->contains(pt->mapFromScene(scenePoint)))
                         pt_fun(pt);
                     break;
                 }
 
-                case CurveSegmentView::static_type():
+                case SegmentView::static_type():
                 {
-                    auto segt = safe_cast<const CurveSegmentView*>(pressedItem);
+                    auto segt = safe_cast<const SegmentView*>(pressedItem);
                     if(segt->contains(segt->mapFromScene(scenePoint)))
                     {
                         seg_fun(segt);

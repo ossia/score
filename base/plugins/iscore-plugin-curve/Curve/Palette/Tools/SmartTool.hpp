@@ -4,12 +4,9 @@
 #include <Curve/Palette/CurvePoint.hpp>
 #include "CurveTool.hpp"
 
-namespace Curve {
-class ToolPalette;
-}  // namespace Curve
-
 namespace Curve
 {
+class ToolPalette;
 class OngoingState;
 class SelectionState;
 

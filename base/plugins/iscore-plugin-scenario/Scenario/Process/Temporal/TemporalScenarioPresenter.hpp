@@ -24,7 +24,7 @@
 
 #include <iscore/command/Dispatchers/OngoingCommandDispatcher.hpp>
 
-class Process;
+namespace Process { class ProcessModel; }
 class QEvent;
 class QMenu;
 class QMimeData;
@@ -39,13 +39,16 @@ namespace iscore
 {
 }
 class ConstraintViewModel;
+namespace Process {
 class LayerModel;
 class LayerView;
+}
 class TemporalConstraintViewModel;
 class TemporalScenarioLayerModel;
 class TemporalScenarioView;
 
-class ISCORE_PLUGIN_SCENARIO_EXPORT TemporalScenarioPresenter final : public LayerPresenter
+class ISCORE_PLUGIN_SCENARIO_EXPORT TemporalScenarioPresenter final :
+        public Process::LayerPresenter
 {
         Q_OBJECT
 
@@ -58,13 +61,13 @@ class ISCORE_PLUGIN_SCENARIO_EXPORT TemporalScenarioPresenter final : public Lay
                 const iscore::DocumentContext&,
                 Scenario::EditionSettings&,
                 const TemporalScenarioLayerModel& model,
-                LayerView* view,
+                Process::LayerView* view,
                 QObject* parent);
         ~TemporalScenarioPresenter();
 
 
-        const LayerModel& layerModel() const override;
-        const Id<Process>& modelId() const override;
+        const Process::LayerModel& layerModel() const override;
+        const Id<Process::ProcessModel>& modelId() const override;
 
         void setWidth(qreal width) override;
         void setHeight(qreal height) override;

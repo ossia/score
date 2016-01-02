@@ -5,9 +5,9 @@
 #include <State/Address.hpp>
 #include <State/Value.hpp>
 
-namespace iscore
+namespace State
 {
-using RelationMember = eggs::variant<iscore::Address, iscore::Value>;
+using RelationMember = eggs::variant<State::Address, State::Value>;
 
 struct ISCORE_LIB_STATE_EXPORT Relation
 {
@@ -34,8 +34,8 @@ struct ISCORE_LIB_STATE_EXPORT Relation
         QString toString() const;
 };
 
-ISCORE_LIB_STATE_EXPORT const QMap<iscore::Relation::Operator, QString> opToString();
+ISCORE_LIB_STATE_EXPORT const QMap<State::Relation::Operator, QString> opToString();
 
 }
 
-using Comparator = iscore::Relation::Operator;
+using Comparator = State::Relation::Operator;

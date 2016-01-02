@@ -23,16 +23,16 @@ const ProtocolFactoryKey&MinuitProtocolFactory::key_impl() const
 }
 
 DeviceInterface*MinuitProtocolFactory::makeDevice(
-        const iscore::DeviceSettings& settings,
+        const Device::DeviceSettings& settings,
         const iscore::DocumentContext& ctx)
 {
     return new MinuitDevice{settings};
 }
 
-const iscore::DeviceSettings& MinuitProtocolFactory::defaultSettings() const
+const Device::DeviceSettings& MinuitProtocolFactory::defaultSettings() const
 {
-    static const iscore::DeviceSettings settings = [&] () {
-        iscore::DeviceSettings s;
+    static const Device::DeviceSettings settings = [&] () {
+        Device::DeviceSettings s;
         s.protocol = key_impl();
         s.name = "Minuit";
         MinuitSpecificSettings specif;
@@ -57,7 +57,7 @@ void MinuitProtocolFactory::serializeProtocolSpecificSettings(const QVariant& da
     serializeProtocolSpecificSettings_T<MinuitSpecificSettings>(data, visitor);
 }
 
-bool MinuitProtocolFactory::checkCompatibility(const iscore::DeviceSettings& a, const iscore::DeviceSettings& b) const
+bool MinuitProtocolFactory::checkCompatibility(const Device::DeviceSettings& a, const Device::DeviceSettings& b) const
 {
     // TODO we should check also for other devices.  Devices should have a "open ports" method that
     // returns the ports they use.

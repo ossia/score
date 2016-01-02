@@ -2,16 +2,16 @@
 #include <Process/ZoomHelper.hpp>
 #include <iscore/tools/NamedObject.hpp>
 #include <iscore_lib_process_export.h>
-class LayerModel;
-class Process;
+
+#include <iscore/tools/SettableIdentifier.hpp>
+
 class QMenu;
 class QPoint;
 class QPointF;
-#include <iscore/tools/SettableIdentifier.hpp>
-
-namespace iscore
+namespace Process
 {
-}
+class ProcessModel;
+class LayerModel;
 class ISCORE_LIB_PROCESS_EXPORT LayerPresenter : public NamedObject
 {
         Q_OBJECT
@@ -37,7 +37,7 @@ class ISCORE_LIB_PROCESS_EXPORT LayerPresenter : public NamedObject
         virtual void parentGeometryChanged() = 0;
 
         virtual const LayerModel& layerModel() const = 0;
-        virtual const Id<Process>& modelId() const = 0;
+        virtual const Id<ProcessModel>& modelId() const = 0;
 
         virtual void fillContextMenu(QMenu*,
                                      const QPoint& pos,
@@ -46,3 +46,5 @@ class ISCORE_LIB_PROCESS_EXPORT LayerPresenter : public NamedObject
         void contextMenuRequested(const QPoint&, const QPointF&);
 
 };
+
+}

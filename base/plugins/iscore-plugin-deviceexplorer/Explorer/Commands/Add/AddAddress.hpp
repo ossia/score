@@ -21,9 +21,9 @@ namespace DeviceExplorer
             ISCORE_COMMAND_DECL(DeviceExplorerCommandFactoryName(), AddAddress, "Add an address")
             public:
                 AddAddress(Path<DeviceDocumentPlugin>&& device_tree,
-                           const iscore::NodePath &nodePath,
+                           const Device::NodePath &nodePath,
                            InsertMode insert,
-                           const iscore::AddressSettings& addressSettings);
+                           const Device::AddressSettings& addressSettings);
 
                 void undo() const override;
                 void redo() const override;
@@ -36,8 +36,8 @@ namespace DeviceExplorer
 
             private:
                 Path<DeviceDocumentPlugin> m_devicesModel;
-                iscore::NodePath m_parentNodePath;
-                iscore::AddressSettings m_addressSettings;
+                Device::NodePath m_parentNodePath;
+                Device::AddressSettings m_addressSettings;
 
         };
     }

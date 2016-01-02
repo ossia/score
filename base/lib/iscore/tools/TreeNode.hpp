@@ -173,6 +173,8 @@ class TreeNode : public DataType
         { return m_children;  }
         void reserve(std::size_t s)
         { m_children.reserve(s); }
+        void resize(std::size_t s)
+        { m_children.resize(s); }
 
         void swapChildren(int oldIndex, int newIndex)
         {

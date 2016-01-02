@@ -13,16 +13,20 @@ namespace DeviceExplorer
 namespace Command
 {
 // TODO split this command.
-class Remove final : public iscore::SerializableCommand
+class Remove final :
+        public iscore::SerializableCommand
 {
-        ISCORE_COMMAND_DECL(DeviceExplorerCommandFactoryName(), Remove, "Remove an Explorer node")
-        public:
+          ISCORE_COMMAND_DECL(DeviceExplorerCommandFactoryName(), Remove, "Remove an Explorer node")
+    public:
+        // For addresses
+        Remove(Path<DeviceDocumentPlugin> device_tree,
+               Device::NodePath&& path);
 
-          Remove(
-            Path<DeviceDocumentPlugin> device_tree,
-            const iscore::Node& node);
+        // For devices
+        Remove(Path<DeviceDocumentPlugin> device_tree,
+               const Device::Node& node);
 
-          ~Remove();
+        ~Remove();
 
         void undo() const override;
         void redo() const override;
@@ -33,7 +37,6 @@ class Remove final : public iscore::SerializableCommand
 
     protected:
         bool m_device{};
-
         iscore::SerializableCommand* m_cmd{};
 
 };

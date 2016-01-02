@@ -2,13 +2,13 @@
 #include <iscore/document/DocumentContext.hpp>
 #include <Process/Focus/FocusDispatcher.hpp>
 
-class LayerPresenter;
+namespace Process { class LayerPresenter; }
 
 struct LayerContext : public iscore::DocumentContext
 {
         LayerContext(
                 iscore::Document& doc,
-                LayerPresenter& pres,
+                Process::LayerPresenter& pres,
                 FocusDispatcher& d):
             iscore::DocumentContext{doc},
             layerPresenter{pres},
@@ -19,7 +19,7 @@ struct LayerContext : public iscore::DocumentContext
 
         LayerContext(
                 const iscore::DocumentContext& doc,
-                LayerPresenter& pres,
+                Process::LayerPresenter& pres,
                 FocusDispatcher& d):
             LayerContext{doc.document, pres, d}
         {
@@ -28,6 +28,6 @@ struct LayerContext : public iscore::DocumentContext
 
 
 
-        LayerPresenter& layerPresenter;
+        Process::LayerPresenter& layerPresenter;
         FocusDispatcher& focusDispatcher;
 };

@@ -37,7 +37,7 @@
 #include <iscore/tools/SettableIdentifier.hpp>
 #include <iscore/tools/Todo.hpp>
 
-class LayerPresenter;
+namespace Process { class LayerPresenter; }
 
 using namespace Scenario;
 
@@ -80,11 +80,11 @@ void ScenarioDocumentModel::init()
 {
     // Help for the FocusDispatcher.
     connect(this, &ScenarioDocumentModel::setFocusedPresenter,
-            &m_focusManager, static_cast<void (ProcessFocusManager::*)(LayerPresenter*)>(&ProcessFocusManager::focus));
+            &m_focusManager, static_cast<void (Process::ProcessFocusManager::*)(Process::LayerPresenter*)>(&Process::ProcessFocusManager::focus));
 
-    con(m_focusManager, &ProcessFocusManager::sig_defocusedViewModel,
+    con(m_focusManager, &Process::ProcessFocusManager::sig_defocusedViewModel,
             this, &ScenarioDocumentModel::on_viewModelDefocused);
-    con(m_focusManager, &ProcessFocusManager::sig_focusedViewModel,
+    con(m_focusManager, &Process::ProcessFocusManager::sig_focusedViewModel,
             this, &ScenarioDocumentModel::on_viewModelFocused);
 }
 
@@ -135,7 +135,7 @@ ConstraintModel& ScenarioDocumentModel::baseConstraint() const
     return m_baseScenario->constraint();
 }
 
-static void updateSlotFocus(const LayerModel* lm, bool b)
+static void updateSlotFocus(const Process::LayerModel* lm, bool b)
 {
     if(lm && lm->parent())
     {
@@ -146,7 +146,7 @@ static void updateSlotFocus(const LayerModel* lm, bool b)
     }
 }
 
-void ScenarioDocumentModel::on_viewModelDefocused(const LayerModel* vm)
+void ScenarioDocumentModel::on_viewModelDefocused(const Process::LayerModel* vm)
 {
     // Disable the focus on previously focused view model
     updateSlotFocus(vm, false);
@@ -156,7 +156,7 @@ void ScenarioDocumentModel::on_viewModelDefocused(const LayerModel* vm)
     iscore::IDocument::documentContext(*this).selectionStack.clear();
 }
 
-void ScenarioDocumentModel::on_viewModelFocused(const LayerModel* process)
+void ScenarioDocumentModel::on_viewModelFocused(const Process::LayerModel* process)
 {
     // Enable focus on the new viewmodel
     updateSlotFocus(process, true);
@@ -222,7 +222,7 @@ void ScenarioDocumentModel::setNewSelection(const Selection& s)
 
         // We know by the presenter that all objects
         // in a given selection are in the same Process.
-        auto newProc = parentProcess(*s.begin());
+        auto newProc = Process::parentProcess(*s.begin());
         if(process && newProc != process)
         {
             process->setSelection(Selection{});

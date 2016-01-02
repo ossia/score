@@ -3,9 +3,19 @@
 #include <iscore/tools/IdentifiedObjectMap.hpp>
 #include "Area/AreaModel.hpp"
 #include "Computation/ComputationModel.hpp"
+#include <OSSIA/DocumentPlugin/ProcessModel/ProcessModel.hpp>
+#include <iscore/tools/NotifyingMap.hpp>
+
+#include <OSSIA/LocalTree/Scenario/ProcessComponent.hpp>
+#include <OSSIA/LocalTree/Scenario/MetadataParameters.hpp>
+#include <iscore_plugin_space_export.h>
+namespace Space
+{
 class SpaceModel;
 
-struct SpaceProcessMetadata
+class LayerModel;
+class ProcessModel;
+struct ProcessMetadata
 {
         static const ProcessFactoryKey& factoryKey()
         {
@@ -24,12 +34,56 @@ struct SpaceProcessMetadata
         }
 };
 
-class SpaceProcess : public Process
+class ProcessExecutor final : public TimeProcessWithConstraint
+{
+    public:
+        ProcessExecutor(Space::ProcessModel& process);
+
+
+        std::shared_ptr<OSSIA::StateElement> state(
+                const OSSIA::TimeValue&,
+                const OSSIA::TimeValue&) override;
+
+        const std::shared_ptr<OSSIA::State>& getStartState() const override
+        {
+            return m_start;
+        }
+
+        const std::shared_ptr<OSSIA::State>& getEndState() const override
+        {
+            return m_end;
+        }
+
+
+    private:
+        Space::ProcessModel& m_process;
+
+        std::shared_ptr<OSSIA::State> m_start;
+        std::shared_ptr<OSSIA::State> m_end;
+};
+
+
+
+class ProcessModel : public RecreateOnPlay::OSSIAProcessModel
 {
         Q_OBJECT
     public:
-        SpaceProcess(const TimeValue &duration, const Id<Process> &id, QObject *parent);
-        Process *clone(const Id<Process> &newId, QObject *newParent) const override;
+        ProcessModel(
+                const iscore::DocumentContext& doc,
+                const TimeValue &duration,
+                const Id<Process::ProcessModel> &id,
+                QObject *parent);
+        const SpaceModel& space() const
+        { return *m_space; }
+        const Space::AreaContext& context() const
+        { return m_context; }
+
+        NotifyingMap<AreaModel> areas;
+        NotifyingMap<ComputationModel> computations;
+
+
+    private:
+        ProcessModel *clone(const Id<Process::ProcessModel> &newId, QObject *newParent) const override;
 
         const ProcessFactoryKey& key() const override;
         QString prettyName() const override;
@@ -49,45 +103,25 @@ class SpaceProcess : public Process
 
         void serialize(const VisitorVariant &vis) const override;
 
-        const SpaceModel& space() const
-        { return *m_space; }
-
-        const auto& areas() const
-        { return m_areas; }
-        void addArea(AreaModel*);
-        void removeArea(const Id<AreaModel>& id);
-
-        const auto& computations() const
-        { return m_computations; }
-        void addComputation(ComputationModel*);
-
-    signals:
-        void areaAdded(const AreaModel&);
-        void areaRemoved(const Id<AreaModel>&);
-        void computationAdded(const ComputationModel&);
-
-    protected:
-        LayerModel *makeLayer_impl(
-                const Id<LayerModel> &viewModelId,
+        Process::LayerModel *makeLayer_impl(
+                const Id<Process::LayerModel> &viewModelId,
                 const QByteArray &constructionData,
                 QObject *parent) override;
-        LayerModel *loadLayer_impl(
+        Process::LayerModel *loadLayer_impl(
                 const VisitorVariant &,
                 QObject *parent) override;
-        LayerModel *cloneLayer_impl(
-                const Id<LayerModel> &newId,
-                const LayerModel &source,
+        Process::LayerModel *cloneLayer_impl(
+                const Id<Process::LayerModel> &newId,
+                const Process::LayerModel &source,
                 QObject *parent) override;
 
-    private:
-        SpaceModel* m_space{};
-        IdContainer<AreaModel> m_areas;
-        IdContainer<ComputationModel> m_computations;
-
-        // Default viewport
-
-        // Process interface
-    public:
         void startExecution() override;
         void stopExecution() override;
+        std::shared_ptr<TimeProcessWithConstraint> process() const override;
+
+        SpaceModel* m_space{};
+        Space::AreaContext m_context;
+        std::shared_ptr<Space::ProcessExecutor> m_process;
+
 };
+}

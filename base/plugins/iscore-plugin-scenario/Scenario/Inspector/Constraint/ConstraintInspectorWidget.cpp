@@ -68,7 +68,7 @@ using namespace iscore::IDocument;
 
 ConstraintInspectorWidget::ConstraintInspectorWidget(
         const InspectorWidgetList& widg,
-        const ProcessList& pl,
+        const Process::ProcessList& pl,
         const ConstraintModel& object,
         std::unique_ptr<ConstraintInspectorDelegate> del,
         const iscore::DocumentContext& ctx,
@@ -267,7 +267,7 @@ void ConstraintInspectorWidget::createLayerInNewSlot(QString processName)
 {
     // TODO this will bite us when the name does not contain the id anymore.
     // We will have to stock the id's somewhere.
-    auto cmd = new AddLayerInNewSlot{model(), Id<Process>(processName.toInt())};
+    auto cmd = new AddLayerInNewSlot{model(), Id<Process::ProcessModel>(processName.toInt())};
 
     commandDispatcher()->submitCommand(cmd);
 }
@@ -300,7 +300,7 @@ void ConstraintInspectorWidget::activeRackChanged(QString rack, ConstraintViewMo
     }
 }
 
-void ConstraintInspectorWidget::displaySharedProcess(const Process& process)
+void ConstraintInspectorWidget::displaySharedProcess(const Process::ProcessModel& process)
 {
     auto newProc = new InspectorSectionWidget(process.metadata.name(), true);
     connect(newProc, &InspectorSectionWidget::nameChanged,
@@ -346,7 +346,7 @@ void ConstraintInspectorWidget::displaySharedProcess(const Process& process)
 
     QPointer<TimeSpinBox> durWidg = new TimeSpinBox;
     durWidg->setTime(process.duration().toQTime());
-    con(process, &Process::durationChanged,
+    con(process, &Process::ProcessModel::durationChanged,
         this, [=] (const TimeValue& tv) {
         if(durWidg)
             durWidg->setTime(tv.toQTime());
@@ -384,11 +384,11 @@ void ConstraintInspectorWidget::setupRack(const RackModel& rack)
     m_rackSection->addContent(newRack);
 }
 
-void ConstraintInspectorWidget::ask_processNameChanged(const Process& p, QString s)
+void ConstraintInspectorWidget::ask_processNameChanged(const Process::ProcessModel& p, QString s)
 {
     if(s != p.metadata.name())
     {
-        auto cmd = new ChangeElementName<Process>{path(p), s};
+        auto cmd = new ChangeElementName<Process::ProcessModel>{path(p), s};
         emit commandDispatcher()->submitCommand(cmd);
     }
 }
@@ -423,14 +423,14 @@ QWidget* ConstraintInspectorWidget::makeStatesWidget(Scenario::ScenarioModel* sc
 }
 
 void ConstraintInspectorWidget::on_processCreated(
-        const Process&)
+        const Process::ProcessModel&)
 {
     // OPTIMIZEME
     updateDisplayedValues();
 }
 
 void ConstraintInspectorWidget::on_processRemoved(
-        const Process&)
+        const Process::ProcessModel&)
 {
     // OPTIMIZEME
     updateDisplayedValues();

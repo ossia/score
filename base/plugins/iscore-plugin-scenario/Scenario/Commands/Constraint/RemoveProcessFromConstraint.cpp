@@ -28,7 +28,7 @@ using namespace Scenario::Command;
 
 RemoveProcessFromConstraint::RemoveProcessFromConstraint(
         Path<ConstraintModel>&& constraintPath,
-        const Id<Process>& processId) :
+        const Id<Process::ProcessModel>& processId) :
     m_path {std::move(constraintPath) },
     m_processId {processId}
 {
@@ -54,7 +54,7 @@ void RemoveProcessFromConstraint::undo() const
 {
     auto& constraint = m_path.find();
     Deserializer<DataStream> s {m_serializedProcessData};
-    auto& fact = context.components.factory<ProcessList>();
+    auto& fact = context.components.factory<Process::ProcessList>();
     AddProcess(constraint, createProcess(fact, s, &constraint));
 
     // Restore the view models
@@ -67,7 +67,7 @@ void RemoveProcessFromConstraint::undo() const
                 .slotmodels.at(Id<SlotModel>(path.at(path.size() - 2).id()));
 
         Deserializer<DataStream> stream {it.second};
-        auto lm = createLayerModel(stream,
+        auto lm = Process::createLayerModel(stream,
                                    slot.parentConstraint(),
                                    &slot);
         slot.layers.add(lm);

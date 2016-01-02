@@ -21,7 +21,7 @@ namespace Curve
 
 ToolPalette::ToolPalette(
         LayerContext& f,
-        CurvePresenter& pres):
+        Presenter& pres):
     GraphicsSceneToolPalette{*pres.view().scene()},
     m_presenter{pres},
     m_context{f},
@@ -31,7 +31,7 @@ ToolPalette::ToolPalette(
     m_inputDisp{pres.view(), *this, f}
 {
 }
-CurvePresenter& ToolPalette::presenter() const
+Presenter& ToolPalette::presenter() const
 {
     return m_presenter;
 }
@@ -41,7 +41,7 @@ Curve::EditionSettings& ToolPalette::editionSettings() const
     return m_presenter.editionSettings();
 }
 
-const CurveModel& ToolPalette::model() const
+const Model& ToolPalette::model() const
 {
     return m_presenter.model();
 }

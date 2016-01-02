@@ -23,7 +23,7 @@ InspectorWidgetBase* ConstraintInspectorFactory::makeWidget(
 {
     auto& appContext = doc.app;
     auto& widgetFact = appContext.components.factory<InspectorWidgetList>();
-    auto& processFact = appContext.components.factory<ProcessList>();
+    auto& processFact = appContext.components.factory<Process::ProcessList>();
     auto& constraintWidgetFactory = appContext.components.factory<ConstraintInspectorDelegateFactoryList>();
 
     // make a relevant widget delegate :

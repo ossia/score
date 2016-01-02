@@ -1,23 +1,26 @@
 #pragma once
-class CurveSegmentModel;
 class DataStream;
-class DynamicCurveSegmentList;
 class JSONObject;
 class QObject;
-struct CurveSegmentData;
 template <typename VisitorType> class Visitor;
 
-CurveSegmentModel* createCurveSegment(
-        const DynamicCurveSegmentList& csl,
+namespace Curve
+{
+class SegmentModel;
+class SegmentList;
+struct SegmentData;
+SegmentModel* createCurveSegment(
+        const SegmentList& csl,
         Deserializer<DataStream>& deserializer,
         QObject* parent);
 
-CurveSegmentModel* createCurveSegment(
-        const DynamicCurveSegmentList& csl,
+SegmentModel* createCurveSegment(
+        const SegmentList& csl,
         Deserializer<JSONObject>& deserializer,
         QObject* parent);
 
-CurveSegmentModel* createCurveSegment(
-        const DynamicCurveSegmentList& csl,
-        const CurveSegmentData& dat,
+SegmentModel* createCurveSegment(
+        const SegmentList& csl,
+        const SegmentData& dat,
         QObject* parent);
+}

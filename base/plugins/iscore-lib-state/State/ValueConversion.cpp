@@ -13,7 +13,7 @@
 #include <State/Value.hpp>
 #include "ValueConversion.hpp"
 
-namespace iscore
+namespace State
 {
 namespace convert
 {
@@ -41,13 +41,13 @@ static const std::array<const QString, 8> ValuePrettyTypesArray{{
 }};
 
 template<>
-QVariant value(const iscore::Value& val)
+QVariant value(const State::Value& val)
 {
     static const constexpr struct {
         public:
             using return_type = QVariant;
-            return_type operator()(const no_value_t&) const { return QVariant::fromValue(iscore::no_value_t{}); }
-            return_type operator()(const impulse_t&) const { return QVariant::fromValue(iscore::impulse_t{}); }
+            return_type operator()(const no_value_t&) const { return QVariant::fromValue(State::no_value_t{}); }
+            return_type operator()(const impulse_t&) const { return QVariant::fromValue(State::impulse_t{}); }
             return_type operator()(int i) const { return QVariant::fromValue(i); }
             return_type operator()(float f) const { return QVariant::fromValue(f); }
             return_type operator()(bool b) const { return QVariant::fromValue(b); }
@@ -72,7 +72,7 @@ QVariant value(const iscore::Value& val)
 }
 
 template<>
-QJsonValue value(const iscore::Value& val)
+QJsonValue value(const State::Value& val)
 {
     static const constexpr struct {
         public:
@@ -108,7 +108,7 @@ QJsonValue value(const iscore::Value& val)
 }
 
 
-QString textualType(const iscore::Value& val)
+QString textualType(const State::Value& val)
 {
     const auto& impl = val.val.impl();
     ISCORE_ASSERT(impl.which() < ValueTypesArray.size());
@@ -119,37 +119,37 @@ static ValueType which(const QString& val)
 {
     auto it = std::find(ValueTypesArray.begin(), ValueTypesArray.end(), val);
     ISCORE_ASSERT(it != ValueTypesArray.end()); // What happens if there is a corrupt save file ?
-    return static_cast<iscore::ValueType>(std::distance(ValueTypesArray.begin(), it));
+    return static_cast<State::ValueType>(std::distance(ValueTypesArray.begin(), it));
 }
 
 
-static iscore::ValueImpl toValueImpl(const QJsonValue& val, iscore::ValueType which)
+static State::ValueImpl toValueImpl(const QJsonValue& val, State::ValueType which)
 {
     switch(which)
     {
         case ValueType::NoValue:
-            return iscore::ValueImpl{iscore::no_value_t{}};
+            return State::ValueImpl{State::no_value_t{}};
         case ValueType::Impulse:
-            return iscore::ValueImpl{iscore::impulse_t{}};
+            return State::ValueImpl{State::impulse_t{}};
         case ValueType::Int:
-            return iscore::ValueImpl{val.toInt()};
+            return State::ValueImpl{val.toInt()};
         case ValueType::Float:
-            return iscore::ValueImpl{val.toDouble()};
+            return State::ValueImpl{val.toDouble()};
         case ValueType::Bool:
-            return iscore::ValueImpl{val.toBool()};
+            return State::ValueImpl{val.toBool()};
         case ValueType::String:
-            return iscore::ValueImpl{val.toString()};
+            return State::ValueImpl{val.toString()};
         case ValueType::Char:
         {
             auto str = val.toString();
             if(str.size() > 0)
-                return iscore::ValueImpl{val.toString()[0]};
-            return iscore::ValueImpl{QChar{}};
+                return State::ValueImpl{val.toString()[0]};
+            return State::ValueImpl{QChar{}};
         }
         case ValueType::Tuple:
         {
             auto arr = val.toArray();
-            iscore::tuple_t tuple;
+            State::tuple_t tuple;
             tuple.reserve(arr.size());
 
             for(const auto& elt : arr)
@@ -157,7 +157,7 @@ static iscore::ValueImpl toValueImpl(const QJsonValue& val, iscore::ValueType wh
                 tuple.push_back(toValueImpl(elt, which));
             }
 
-            return iscore::ValueImpl{tuple};
+            return State::ValueImpl{tuple};
         }
         default:
             ISCORE_ABORT;
@@ -165,19 +165,19 @@ static iscore::ValueImpl toValueImpl(const QJsonValue& val, iscore::ValueType wh
     }
 }
 
-static iscore::Value toValue(const QJsonValue& val, ValueType which)
+static State::Value toValue(const QJsonValue& val, ValueType which)
 {
-    return iscore::Value{toValueImpl(val, which)};
+    return State::Value{toValueImpl(val, which)};
 }
 
-iscore::Value toValue(const QJsonValue& val, const QString& type)
+State::Value toValue(const QJsonValue& val, const QString& type)
 {
     return toValue(val, which(type));
 }
 
 
 
-QString prettyType(const iscore::Value& val)
+QString prettyType(const State::Value& val)
 {
     const auto& impl = val.val.impl();
     ISCORE_ASSERT(impl.which() < ValuePrettyTypesArray.size());
@@ -199,7 +199,7 @@ const QStringList& ValuePrettyTypesList()
 }
 
 template<>
-int value(const iscore::Value& val)
+int value(const State::Value& val)
 {
     static const constexpr struct {
         public:
@@ -218,7 +218,7 @@ int value(const iscore::Value& val)
 }
 
 template<>
-float value(const iscore::Value& val)
+float value(const State::Value& val)
 {
     static const constexpr struct {
         public:
@@ -236,13 +236,13 @@ float value(const iscore::Value& val)
     return eggs::variants::apply(visitor, val.val.impl());
 }
 template<>
-double value(const iscore::Value& val)
+double value(const State::Value& val)
 {
     return (double) value<float>(val);
 }
 
 template<>
-bool value(const iscore::Value& val)
+bool value(const State::Value& val)
 {
     static const constexpr struct {
         public:
@@ -261,7 +261,7 @@ bool value(const iscore::Value& val)
 }
 
 template<>
-QChar value(const iscore::Value& val)
+QChar value(const State::Value& val)
 {
     static const constexpr struct {
         public:
@@ -280,12 +280,12 @@ QChar value(const iscore::Value& val)
 }
 
 template<>
-QString value(const iscore::Value& val)
+QString value(const State::Value& val)
 {
     static const constexpr struct {
             using return_type = QString;
-            return_type operator()(const iscore::no_value_t&) const { return {}; }
-            return_type operator()(const iscore::impulse_t&) const { return {}; }
+            return_type operator()(const State::no_value_t&) const { return {}; }
+            return_type operator()(const State::impulse_t&) const { return {}; }
             return_type operator()(int i) const { return QLocale::c().toString(i); }
             return_type operator()(float f) const { return QLocale::c().toString(f); }
             return_type operator()(bool b) const {
@@ -295,19 +295,19 @@ QString value(const iscore::Value& val)
             }
             return_type operator()(const QString& s) const { return s; }
             return_type operator()(const QChar& c) const { return c; }
-            return_type operator()(const iscore::tuple_t& t) const { return ""; }
+            return_type operator()(const State::tuple_t& t) const { return ""; }
     } visitor{};
 
     return eggs::variants::apply(visitor, val.val.impl());
 }
 
 template<>
-tuple_t value(const iscore::Value& val)
+tuple_t value(const State::Value& val)
 {
     static const constexpr struct {
             using return_type = tuple_t;
-            return_type operator()(const iscore::no_value_t&) const { return {impulse_t{}}; }
-            return_type operator()(const iscore::impulse_t&) const { return {impulse_t{}}; }
+            return_type operator()(const State::no_value_t&) const { return {impulse_t{}}; }
+            return_type operator()(const State::impulse_t&) const { return {impulse_t{}}; }
             return_type operator()(int i) const { return {i}; }
             return_type operator()(float f) const { return {f}; }
             return_type operator()(bool b) const {
@@ -315,18 +315,18 @@ tuple_t value(const iscore::Value& val)
             }
             return_type operator()(const QString& s) const { return {s}; }
             return_type operator()(const QChar& c) const { return {c}; }
-            return_type operator()(const iscore::tuple_t& t) const { return t; }
+            return_type operator()(const State::tuple_t& t) const { return t; }
     } visitor{};
 
     return eggs::variants::apply(visitor, val.val.impl());
 }
 
 
-QString toPrettyString(const iscore::Value& val)
+QString toPrettyString(const State::Value& val)
 {
     static const constexpr struct {
-            QString operator()(const iscore::no_value_t&) const { return {}; }
-            QString operator()(const iscore::impulse_t&) const { return {}; }
+            QString operator()(const State::no_value_t&) const { return {}; }
+            QString operator()(const State::impulse_t&) const { return {}; }
             QString operator()(int i) const {
                 const auto& loc = QLocale::c();
                 auto str = loc.toString(i);
@@ -355,7 +355,7 @@ QString toPrettyString(const iscore::Value& val)
                 return QString("'%1'").arg(c);
             }
 
-            QString operator()(const iscore::tuple_t& t) const
+            QString operator()(const State::tuple_t& t) const
             {
                 QString s{"["};
 
@@ -374,7 +374,7 @@ QString toPrettyString(const iscore::Value& val)
 }
 
 
-bool convert(const iscore::Value& orig, iscore::Value& toConvert)
+bool convert(const State::Value& orig, State::Value& toConvert)
 {
     switch(orig.val.which())
     {
@@ -410,40 +410,40 @@ bool convert(const iscore::Value& orig, iscore::Value& toConvert)
 }
 
 
-iscore::ValueImpl toValueImpl(const QVariant& val)
+State::ValueImpl toValueImpl(const QVariant& val)
 {
 #pragma GCC diagnostic ignored "-Wswitch"
 #pragma GCC diagnostic ignored "-Wswitch-enum"
     switch(auto t = QMetaType::Type(val.type()))
     {
         case QMetaType::Int:
-            return iscore::ValueImpl{val.value<int>()};
+            return State::ValueImpl{val.value<int>()};
         case QMetaType::UInt:
-            return iscore::ValueImpl{(int)val.value<unsigned int>()};
+            return State::ValueImpl{(int)val.value<unsigned int>()};
         case QMetaType::Long:
-            return iscore::ValueImpl{(int)val.value<long>()};
+            return State::ValueImpl{(int)val.value<long>()};
         case QMetaType::LongLong:
-            return iscore::ValueImpl{(int)val.value<long long>()};
+            return State::ValueImpl{(int)val.value<long long>()};
         case QMetaType::ULong:
-            return iscore::ValueImpl{(int)val.value<unsigned long>()};
+            return State::ValueImpl{(int)val.value<unsigned long>()};
         case QMetaType::ULongLong:
-            return iscore::ValueImpl{(int)val.value<unsigned long long>()};
+            return State::ValueImpl{(int)val.value<unsigned long long>()};
         case QMetaType::Short:
-            return iscore::ValueImpl{(int)val.value<short>()};
+            return State::ValueImpl{(int)val.value<short>()};
         case QMetaType::UShort:
-            return iscore::ValueImpl{(int)val.value<unsigned short>()};
+            return State::ValueImpl{(int)val.value<unsigned short>()};
         case QMetaType::Float:
-            return iscore::ValueImpl{val.value<float>()};
+            return State::ValueImpl{val.value<float>()};
         case QMetaType::Double:
-            return iscore::ValueImpl{(float)val.value<double>()};
+            return State::ValueImpl{(float)val.value<double>()};
         case QMetaType::Bool:
-            return iscore::ValueImpl{val.value<bool>()};
+            return State::ValueImpl{val.value<bool>()};
         case QMetaType::QString:
-            return iscore::ValueImpl{val.value<QString>()};
+            return State::ValueImpl{val.value<QString>()};
         case QMetaType::Char:
-            return iscore::ValueImpl{(QChar)val.value<char>()};
+            return State::ValueImpl{(QChar)val.value<char>()};
         case QMetaType::QChar:
-            return iscore::ValueImpl{val.value<char>()};
+            return State::ValueImpl{val.value<char>()};
         case QMetaType::QVariantList:
         {
             auto list = val.value<QVariantList>();
@@ -457,13 +457,13 @@ iscore::ValueImpl toValueImpl(const QVariant& val)
         }
         default:
         {
-            if(t == qMetaTypeId<iscore::Value>())
+            if(t == qMetaTypeId<State::Value>())
             {
-                return iscore::ValueImpl{impulse_t{}};
+                return State::ValueImpl{impulse_t{}};
             }
             else
             {
-                return iscore::ValueImpl{no_value_t{}};
+                return State::ValueImpl{no_value_t{}};
             }
         }
     }
@@ -473,9 +473,9 @@ iscore::ValueImpl toValueImpl(const QVariant& val)
 }
 
 
-iscore::Value toValue(const QVariant& val)
+State::Value toValue(const QVariant& val)
 {
-    return iscore::Value{toValueImpl(val)};
+    return State::Value{toValueImpl(val)};
 }
 
 }

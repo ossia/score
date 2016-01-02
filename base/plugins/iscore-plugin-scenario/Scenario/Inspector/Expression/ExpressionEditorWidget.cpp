@@ -42,15 +42,15 @@ ExpressionEditorWidget::ExpressionEditorWidget(QWidget *parent) :
             addNewRelation();
         }
         else
-            setExpression(*iscore::parseExpression(m_expression));
+            setExpression(*State::parseExpression(m_expression));
     });
 }
 
-iscore::Expression ExpressionEditorWidget::expression()
+State::Expression ExpressionEditorWidget::expression()
 {
-    iscore::Expression exp{};
+    State::Expression exp{};
 
-    iscore::Expression* lastRel{};
+    State::Expression* lastRel{};
 
     // will keep containing the last relation added
 
@@ -65,21 +65,21 @@ iscore::Expression ExpressionEditorWidget::expression()
         else
         {
             auto op = r->binOperator();
-            if(op == iscore::BinaryOperator::Or)
+            if(op == State::BinaryOperator::Or)
             {
                 auto pOp = op;
-                if(lastRel->parent()->is<iscore::BinaryOperator>())
-                    pOp = lastRel->parent()->get<iscore::BinaryOperator>();
+                if(lastRel->parent()->is<State::BinaryOperator>())
+                    pOp = lastRel->parent()->get<State::BinaryOperator>();
 
                 // we're taking out the child of an "OR" node or of the root
-                while (pOp != iscore::BinaryOperator::Or && lastRel->parent() != &exp )
+                while (pOp != State::BinaryOperator::Or && lastRel->parent() != &exp )
                 {
                     lastRel = lastRel->parent();
-                    if(lastRel->is<iscore::BinaryOperator>())
-                        pOp = lastRel->get<iscore::BinaryOperator>();
+                    if(lastRel->is<State::BinaryOperator>())
+                        pOp = lastRel->get<State::BinaryOperator>();
                 }
             }
-            if(op != iscore::BinaryOperator::None)
+            if(op != State::BinaryOperator::None)
             {
                 auto p = lastRel->parent();
                 // remove link between parent and current
@@ -103,7 +103,7 @@ iscore::Expression ExpressionEditorWidget::expression()
     return exp;
 }
 
-void ExpressionEditorWidget::setExpression(iscore::Expression e)
+void ExpressionEditorWidget::setExpression(State::Expression e)
 {
     for(auto& elt : m_relations)
     {
@@ -117,7 +117,7 @@ void ExpressionEditorWidget::setExpression(iscore::Expression e)
 void ExpressionEditorWidget::on_editFinished()
 {
     auto ex = currentExpr();
-    auto e = iscore::parseExpression(m_expression);
+    auto e = State::parseExpression(m_expression);
     if (m_expression == ex && !e)
         return;
 
@@ -125,7 +125,7 @@ void ExpressionEditorWidget::on_editFinished()
     emit editingFinished();
 }
 
-void ExpressionEditorWidget::exploreExpression(iscore::Expression e)
+void ExpressionEditorWidget::exploreExpression(State::Expression e)
 {
     int c = e.childCount();
     switch (c)
@@ -138,28 +138,28 @@ void ExpressionEditorWidget::exploreExpression(iscore::Expression e)
         else
         {
             addNewRelation();
-            m_relations.back()->setRelation( a.get<iscore::Relation>() );
+            m_relations.back()->setRelation( a.get<State::Relation>() );
         }
 
         if(b.hasChildren())
         {
             exploreExpression(b);
-            if(e.is<iscore::BinaryOperator>())
+            if(e.is<State::BinaryOperator>())
             {
                 for(int i = 1; i<m_relations.size(); i++)
                 {
-                    if(m_relations.at(i)->binOperator() == iscore::BinaryOperator::None )
-                        m_relations.at(i)->setOperator( e.get<iscore::BinaryOperator>() );
+                    if(m_relations.at(i)->binOperator() == State::BinaryOperator::None )
+                        m_relations.at(i)->setOperator( e.get<State::BinaryOperator>() );
                 }
             }
         }
         else
         {
-            if(e.is<iscore::BinaryOperator>())
+            if(e.is<State::BinaryOperator>())
             {
                 addNewRelation();
-                m_relations.back()->setOperator( e.get<iscore::BinaryOperator>() );
-                m_relations.back()->setRelation( b.get<iscore::Relation>() );
+                m_relations.back()->setOperator( e.get<State::BinaryOperator>() );
+                m_relations.back()->setRelation( b.get<State::Relation>() );
             }
         }
     }
@@ -168,8 +168,8 @@ void ExpressionEditorWidget::exploreExpression(iscore::Expression e)
         qDebug() << "no unary op for now"; exploreExpression(e.childAt(0)); break;
     case 0:
         addNewRelation();
-        if(e.is<iscore::Relation>())
-            m_relations.back()->setRelation(e.get<iscore::Relation>());
+        if(e.is<State::Relation>())
+            m_relations.back()->setRelation(e.get<State::Relation>());
         break;
     default:
         qDebug() << "unexpected child count"; break;

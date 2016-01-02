@@ -23,12 +23,12 @@ template <typename model> class IdentifiedObject;
 
 
 template<>
-void Visitor<Reader<DataStream>>::readFrom(const Process& process)
+void Visitor<Reader<DataStream>>::readFrom(const Process::ProcessModel& process)
 {
     // To allow recration using createProcess
     m_stream << process.key();
 
-    readFrom(static_cast<const IdentifiedObject<Process>&>(process));
+    readFrom(static_cast<const IdentifiedObject<Process::ProcessModel>&>(process));
 
     readFrom(process.m_duration);
     m_stream << process.m_useParentDuration;
@@ -44,7 +44,7 @@ void Visitor<Reader<DataStream>>::readFrom(const Process& process)
 // We only load the members of the process here.
 
 template<>
-void Visitor<Writer<DataStream>>::writeTo(Process& process)
+void Visitor<Writer<DataStream>>::writeTo(Process::ProcessModel& process)
 {
     writeTo(process.m_duration);
     m_stream >> process.m_useParentDuration;
@@ -53,8 +53,94 @@ void Visitor<Writer<DataStream>>::writeTo(Process& process)
     // Delimiter checked on createProcess
 }
 
+
+
 template<>
-ISCORE_LIB_PROCESS_EXPORT Process* createProcess(
+void Visitor<Reader<JSONObject>>::readFrom(const Process::ProcessModel& process)
+{
+    // To allow recration using createProcess
+    m_obj["ProcessName"] = toJsonValue(process.key());
+
+    readFrom(static_cast<const IdentifiedObject<Process::ProcessModel>&>(process));
+
+    m_obj["Duration"] = toJsonValue(process.duration());
+    m_obj["Metadata"] = toJsonObject(process.metadata);
+
+    // Save the subclass
+    process.serialize(toVariant());
+}
+
+
+template<>
+void Visitor<Writer<JSONObject>>::writeTo(Process::ProcessModel& process)
+{
+    process.m_duration = fromJsonValue<TimeValue>(m_obj["Duration"]);
+    process.metadata = fromJsonObject<ModelMetadata>(m_obj["Metadata"].toObject());
+}
+
+
+
+
+
+
+
+
+
+// MOVEME
+#include <Process/StateProcess.hpp>
+#include <Process/ProcessList.hpp>
+
+template<>
+void Visitor<Reader<DataStream>>::readFrom(const Process::StateProcess& process)
+{
+    // To allow recration using createProcess
+    m_stream << process.key();
+
+    readFrom(static_cast<const IdentifiedObject<Process::StateProcess>&>(process));
+
+    // Save the subclass
+    process.serialize(toVariant());
+
+    insertDelimiter();
+}
+
+// We only load the members of the process here.
+
+template<>
+void Visitor<Writer<DataStream>>::writeTo(Process::StateProcess&)
+{
+    // Delimiter checked on createProcess
+}
+
+
+
+template<>
+void Visitor<Reader<JSONObject>>::readFrom(const Process::StateProcess& process)
+{
+    // To allow recration using createProcess
+    m_obj["StateProcessName"] = toJsonValue(process.key());
+
+    readFrom(static_cast<const IdentifiedObject<Process::StateProcess>&>(process));
+
+    // Save the subclass
+    process.serialize(toVariant());
+}
+
+
+template<>
+void Visitor<Writer<JSONObject>>::writeTo(Process::StateProcess& process)
+{
+}
+
+
+
+
+
+
+namespace Process
+{
+template<>
+ISCORE_LIB_PROCESS_EXPORT Process::ProcessModel* createProcess(
         const ProcessList& pl,
         Deserializer<DataStream>& deserializer,
         QObject* parent)
@@ -73,33 +159,8 @@ ISCORE_LIB_PROCESS_EXPORT Process* createProcess(
     return model;
 }
 
-
-
 template<>
-void Visitor<Reader<JSONObject>>::readFrom(const Process& process)
-{
-    // To allow recration using createProcess
-    m_obj["ProcessName"] = toJsonValue(process.key());
-
-    readFrom(static_cast<const IdentifiedObject<Process>&>(process));
-
-    m_obj["Duration"] = toJsonValue(process.duration());
-    m_obj["Metadata"] = toJsonObject(process.metadata);
-
-    // Save the subclass
-    process.serialize(toVariant());
-}
-
-
-template<>
-void Visitor<Writer<JSONObject>>::writeTo(Process& process)
-{
-    process.m_duration = fromJsonValue<TimeValue>(m_obj["Duration"]);
-    process.metadata = fromJsonObject<ModelMetadata>(m_obj["Metadata"].toObject());
-}
-
-template<>
-ISCORE_LIB_PROCESS_EXPORT Process* createProcess(
+ISCORE_LIB_PROCESS_EXPORT Process::ProcessModel* createProcess(
         const ProcessList& pl,
         Deserializer<JSONObject>& deserializer,
         QObject* parent)
@@ -114,44 +175,9 @@ ISCORE_LIB_PROCESS_EXPORT Process* createProcess(
 }
 
 
-
-
-
-
-
-
-
-
-
-// MOVEME
-#include <Process/StateProcess.hpp>
-#include <Process/ProcessList.hpp>
-
 template<>
-void Visitor<Reader<DataStream>>::readFrom(const StateProcess& process)
-{
-    // To allow recration using createProcess
-    m_stream << process.key();
-
-    readFrom(static_cast<const IdentifiedObject<StateProcess>&>(process));
-
-    // Save the subclass
-    process.serialize(toVariant());
-
-    insertDelimiter();
-}
-
-// We only load the members of the process here.
-
-template<>
-void Visitor<Writer<DataStream>>::writeTo(StateProcess&)
-{
-    // Delimiter checked on createProcess
-}
-
-template<>
-ISCORE_LIB_PROCESS_EXPORT StateProcess* createStateProcess(
-        const StateProcessList& pl,
+ISCORE_LIB_PROCESS_EXPORT Process::StateProcess* createStateProcess(
+        const Process::StateProcessList& pl,
         Deserializer<DataStream>& deserializer,
         QObject* parent)
 {
@@ -169,28 +195,8 @@ ISCORE_LIB_PROCESS_EXPORT StateProcess* createStateProcess(
     return model;
 }
 
-
-
 template<>
-void Visitor<Reader<JSONObject>>::readFrom(const StateProcess& process)
-{
-    // To allow recration using createProcess
-    m_obj["StateProcessName"] = toJsonValue(process.key());
-
-    readFrom(static_cast<const IdentifiedObject<StateProcess>&>(process));
-
-    // Save the subclass
-    process.serialize(toVariant());
-}
-
-
-template<>
-void Visitor<Writer<JSONObject>>::writeTo(StateProcess& process)
-{
-}
-
-template<>
-ISCORE_LIB_PROCESS_EXPORT StateProcess* createStateProcess(
+ISCORE_LIB_PROCESS_EXPORT Process::StateProcess* createStateProcess(
         const StateProcessList& pl,
         Deserializer<JSONObject>& deserializer,
         QObject* parent)
@@ -205,4 +211,7 @@ ISCORE_LIB_PROCESS_EXPORT StateProcess* createStateProcess(
 }
 
 // TODO --IMPORTANT-- The createStuff methods ought to go in the ProcessList / StateProcessList.
+
+
+}
 

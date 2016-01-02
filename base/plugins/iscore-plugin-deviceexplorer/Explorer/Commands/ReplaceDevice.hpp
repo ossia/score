@@ -20,7 +20,7 @@ namespace DeviceExplorer
             public:
                 ReplaceDevice(Path<DeviceExplorerModel>&& device_tree,
                               int deviceIndex,
-                              iscore::Node&& rootNode);
+                              Device::Node&& rootNode);
 
                 void undo() const override;
                 void redo() const override;
@@ -32,8 +32,8 @@ namespace DeviceExplorer
             private:
                 Path<DeviceExplorerModel> m_deviceTree;
                 int m_deviceIndex{};
-                iscore::Node m_deviceNode;
-                iscore::Node m_savedNode;
+                Device::Node m_deviceNode;
+                Device::Node m_savedNode;
 
         };
     }

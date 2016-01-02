@@ -2,24 +2,30 @@
 #include "CircleAreaModel.hpp"
 #include "CircleAreaView.hpp"
 
-CircleAreaPresenter::CircleAreaPresenter(CircleAreaView *view, const CircleAreaModel &model, QObject *parent):
+
+namespace Space
+{
+CircleAreaPresenter::CircleAreaPresenter(
+        CircleAreaView *view,
+        const CircleAreaModel &model,
+        QObject *parent):
     AreaPresenter{view, model, parent}
 {
-
 }
 
-void CircleAreaPresenter::on_areaChanged()
+void CircleAreaPresenter::on_areaChanged(GiNaC::exmap mapping)
 {
-    const AreaModel::ParameterMap& pm = model(this).parameterMapping();
-    auto x0 = iscore::convert::value<double>(pm["x0"].second.value);
-    auto y0 = iscore::convert::value<double>(pm["y0"].second.value);
-    auto r = iscore::convert::value<double>(pm["r"].second.value);
-
-    view(this).update(x0, y0, r);
+    const CircleAreaModel& m = model(this);
+    const auto& pm = m.parameterMapping();
+    view(this).update(
+                GiNaC::ex_to<GiNaC::numeric>(mapping.at(pm["x0"].first)).to_double(),
+            GiNaC::ex_to<GiNaC::numeric>(mapping.at(pm["y0"].first)).to_double(),
+            GiNaC::ex_to<GiNaC::numeric>(mapping.at(pm["r"].first)).to_double());
 }
 
 
 void CircleAreaPresenter::update()
 {
     ((QGraphicsItem&)view(this)).update();
+}
 }

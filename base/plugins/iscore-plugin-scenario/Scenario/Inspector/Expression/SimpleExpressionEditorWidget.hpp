@@ -17,14 +17,14 @@ class SimpleExpressionEditorWidget final : public QWidget
     public:
         SimpleExpressionEditorWidget(int index, QWidget* parent = 0);
 
-        iscore::Expression relation();
-        iscore::BinaryOperator binOperator();
+        State::Expression relation();
+        State::BinaryOperator binOperator();
 
         int id;
 
-        void setRelation(iscore::Relation r);
-        void setOperator(iscore::BinaryOperator o);
-        void setOperator(iscore::UnaryOperator u);
+        void setRelation(State::Relation r);
+        void setOperator(State::BinaryOperator o);
+        void setOperator(State::UnaryOperator u);
 
         QString currentRelation();
         QString currentOperator();
@@ -46,10 +46,10 @@ class SimpleExpressionEditorWidget final : public QWidget
         QLineEdit * m_value{};
         QComboBox* m_binOperator{};
 
-        ExpressionValidator<iscore::Expression> m_validator;
+        ExpressionValidator<State::Expression> m_validator;
         QString m_relation{};
         QString m_op{};
 
-        QMap<iscore::Relation::Operator, QString> m_comparatorList;
+        QMap<State::Relation::Operator, QString> m_comparatorList;
 };
 

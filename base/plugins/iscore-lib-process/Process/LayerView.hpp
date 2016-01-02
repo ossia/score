@@ -9,6 +9,8 @@ class QPainter;
 class QStyleOptionGraphicsItem;
 class QWidget;
 
+namespace Process
+{
 class ISCORE_LIB_PROCESS_EXPORT LayerView : public QGraphicsObject
 {
     public:
@@ -33,3 +35,4 @@ class ISCORE_LIB_PROCESS_EXPORT LayerView : public QGraphicsObject
         qreal m_height {};
         qreal m_width {};
 };
+}

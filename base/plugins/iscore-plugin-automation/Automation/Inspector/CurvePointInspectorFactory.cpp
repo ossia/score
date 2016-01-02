@@ -10,19 +10,23 @@ namespace iscore {
 class Document;
 }  // namespace iscore
 
-InspectorWidgetBase* CurvePointInspectorFactory::makeWidget(
+
+namespace Automation
+{
+InspectorWidgetBase* PointInspectorFactory::makeWidget(
         const QObject& sourceElement,
         const iscore::DocumentContext& doc,
         QWidget* parent) const
 {
-    return new CurvePointInspectorWidget{
-        safe_cast<const CurvePointModel&>(sourceElement),
+    return new PointInspectorWidget{
+        safe_cast<const Curve::PointModel&>(sourceElement),
                 doc,
                 parent};
 }
 
-const QList<QString>&CurvePointInspectorFactory::key_impl() const
+const QList<QString>&PointInspectorFactory::key_impl() const
 {
     static const QList<QString>& lst{"CurvePointModel"};
     return lst;
+}
 }

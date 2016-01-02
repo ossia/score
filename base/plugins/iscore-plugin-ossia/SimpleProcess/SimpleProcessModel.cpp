@@ -12,15 +12,15 @@
 #include <iscore/serialization/JSONVisitor.hpp>
 #include <iscore/serialization/VisitorCommon.hpp>
 
-class LayerModel;
-class Process;
+namespace Process { class LayerModel; }
+namespace Process { class ProcessModel; }
 class ProcessStateDataInterface;
 class QObject;
 #include <iscore/tools/SettableIdentifier.hpp>
 
 SimpleProcessModel::SimpleProcessModel(
         const TimeValue& duration,
-        const Id<Process>& id,
+        const Id<ProcessModel>& id,
         QObject* parent):
     OSSIAProcessModel{duration, id, "SimpleProcessModel", parent},
     m_ossia_process{std::make_shared<SimpleProcess>()}
@@ -32,7 +32,7 @@ SimpleProcessModel::SimpleProcessModel(
 
 SimpleProcessModel::SimpleProcessModel(
         const SimpleProcessModel& source,
-        const Id<Process>& id,
+        const Id<ProcessModel>& id,
         QObject* parent):
     SimpleProcessModel{source.duration(), id, parent}
 {
@@ -42,7 +42,7 @@ SimpleProcessModel::SimpleProcessModel(
 }
 
 SimpleProcessModel* SimpleProcessModel::clone(
-        const Id<Process>& newId,
+        const Id<ProcessModel>& newId,
         QObject* newParent) const
 {
     return new SimpleProcessModel{*this, newId, newParent};
@@ -114,15 +114,15 @@ void SimpleProcessModel::serialize(const VisitorVariant& s) const
     serialize_dyn(s, *this);
 }
 
-LayerModel* SimpleProcessModel::makeLayer_impl(
-        const Id<LayerModel>& viewModelId,
+Process::LayerModel* SimpleProcessModel::makeLayer_impl(
+        const Id<Process::LayerModel>& viewModelId,
         const QByteArray& constructionData,
         QObject* parent)
 {
     return new DummyLayerModel{*this, viewModelId, parent};
 }
 
-LayerModel* SimpleProcessModel::loadLayer_impl(
+Process::LayerModel* SimpleProcessModel::loadLayer_impl(
         const VisitorVariant& vis,
         QObject* parent)
 {
@@ -135,9 +135,9 @@ LayerModel* SimpleProcessModel::loadLayer_impl(
     });
 }
 
-LayerModel* SimpleProcessModel::cloneLayer_impl(
-        const Id<LayerModel>& newId,
-        const LayerModel& source,
+Process::LayerModel* SimpleProcessModel::cloneLayer_impl(
+        const Id<Process::LayerModel>& newId,
+        const Process::LayerModel& source,
         QObject* parent)
 {
     return new DummyLayerModel{safe_cast<const DummyLayerModel&>(source), *this, newId, parent};

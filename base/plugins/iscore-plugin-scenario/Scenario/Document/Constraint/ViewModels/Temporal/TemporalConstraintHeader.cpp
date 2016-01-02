@@ -44,7 +44,7 @@ void TemporalConstraintHeader::paint(
     }
 
     // Header
-    auto font = ProcessFonts::Sans();
+    auto font = Process::Fonts::Sans();
     font.setPointSize(10);
     font.setBold(true);
 

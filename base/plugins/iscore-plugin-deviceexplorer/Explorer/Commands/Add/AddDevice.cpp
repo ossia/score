@@ -6,14 +6,13 @@
 #include <iscore/tools/ModelPath.hpp>
 #include <iscore/tools/ModelPathSerialization.hpp>
 
-namespace iscore {
+namespace Device {
 struct DeviceSettings;
 }  // namespace iscore
 
-using namespace iscore;
 AddDevice::AddDevice(
         Path<DeviceDocumentPlugin>&& device_tree,
-        const DeviceSettings& parameters):
+        const Device::DeviceSettings& parameters):
     m_devicesModel{device_tree},
     m_parameters(parameters)
 {

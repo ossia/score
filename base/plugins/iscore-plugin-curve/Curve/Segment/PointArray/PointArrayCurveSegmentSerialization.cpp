@@ -1,56 +1,58 @@
 #include <iscore/serialization/DataStreamVisitor.hpp>
 #include <iscore/serialization/JSONVisitor.hpp>
 #include <QDebug>
-
-class PointArrayCurveSegmentModel;
-struct PointArrayCurveSegmentData;
+namespace Curve
+{
+class PointArraySegment;
+struct PointArraySegmentData;
+}
 template <typename T> class Reader;
 template <typename T> class Writer;
 
 template<>
-void Visitor<Reader<DataStream>>::readFrom(const PointArrayCurveSegmentModel& segmt)
+void Visitor<Reader<DataStream>>::readFrom(const Curve::PointArraySegment& segmt)
 {
     ISCORE_TODO;
 }
 
 template<>
-void Visitor<Writer<DataStream>>::writeTo(PointArrayCurveSegmentModel& segmt)
+void Visitor<Writer<DataStream>>::writeTo(Curve::PointArraySegment& segmt)
 {
     ISCORE_TODO;
 }
 
 template<>
-void Visitor<Reader<JSONObject>>::readFrom(const PointArrayCurveSegmentModel& segmt)
+void Visitor<Reader<JSONObject>>::readFrom(const Curve::PointArraySegment& segmt)
 {
     ISCORE_TODO;
 }
 
 template<>
-void Visitor<Writer<JSONObject>>::writeTo(PointArrayCurveSegmentModel& segmt)
+void Visitor<Writer<JSONObject>>::writeTo(Curve::PointArraySegment& segmt)
 {
     ISCORE_TODO;
 }
 
 template<>
-void Visitor<Reader<DataStream>>::readFrom(const PointArrayCurveSegmentData& segmt)
+void Visitor<Reader<DataStream>>::readFrom(const Curve::PointArraySegmentData& segmt)
 {
     ISCORE_TODO;
 }
 
 template<>
-void Visitor<Writer<DataStream>>::writeTo(PointArrayCurveSegmentData& segmt)
+void Visitor<Writer<DataStream>>::writeTo(Curve::PointArraySegmentData& segmt)
 {
     ISCORE_TODO;
 }
 
 template<>
-void Visitor<Reader<JSONObject>>::readFrom(const PointArrayCurveSegmentData& segmt)
+void Visitor<Reader<JSONObject>>::readFrom(const Curve::PointArraySegmentData& segmt)
 {
     ISCORE_TODO;
 }
 
 template<>
-void Visitor<Writer<JSONObject>>::writeTo(PointArrayCurveSegmentData& segmt)
+void Visitor<Writer<JSONObject>>::writeTo(Curve::PointArraySegmentData& segmt)
 {
     ISCORE_TODO;
 }

@@ -23,16 +23,16 @@ const ProtocolFactoryKey&OSCProtocolFactory::key_impl() const
 }
 
 DeviceInterface*OSCProtocolFactory::makeDevice(
-        const iscore::DeviceSettings& settings,
+        const Device::DeviceSettings& settings,
         const iscore::DocumentContext& ctx)
 {
     return new OSCDevice{settings};
 }
 
-const iscore::DeviceSettings&OSCProtocolFactory::defaultSettings() const
+const Device::DeviceSettings&OSCProtocolFactory::defaultSettings() const
 {
-    static const iscore::DeviceSettings settings = [&] () {
-        iscore::DeviceSettings s;
+    static const Device::DeviceSettings settings = [&] () {
+        Device::DeviceSettings s;
         s.protocol = key_impl();
         s.name = "OSC";
         OSCSpecificSettings specif;
@@ -57,7 +57,7 @@ void OSCProtocolFactory::serializeProtocolSpecificSettings(const QVariant& data,
     serializeProtocolSpecificSettings_T<OSCSpecificSettings>(data, visitor);
 }
 
-bool OSCProtocolFactory::checkCompatibility(const iscore::DeviceSettings& a, const iscore::DeviceSettings& b) const
+bool OSCProtocolFactory::checkCompatibility(const Device::DeviceSettings& a, const Device::DeviceSettings& b) const
 {
     auto a_p = a.deviceSpecificSettings.value<OSCSpecificSettings>();
     auto b_p = b.deviceSpecificSettings.value<OSCSpecificSettings>();

@@ -43,7 +43,7 @@ std::vector<std::unique_ptr<iscore::FactoryInterfaceBase>> iscore_plugin_mapping
     return instantiate_factories<
             iscore::ApplicationContext,
             TL<
-            FW<ProcessFactory,
+            FW<Process::ProcessFactory,
                 MappingFactory>,
             FW<ProcessInspectorWidgetDelegateFactory,
                 MappingInspectorFactory>

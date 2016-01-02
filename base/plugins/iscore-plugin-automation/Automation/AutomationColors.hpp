@@ -1,10 +1,13 @@
 #pragma once
 #include <Curve/CurveStyle.hpp>
 
-class AutomationColors
+
+namespace Automation
+{
+class Colors
 {
     public:
-        AutomationColors();
+        Colors();
 
         const auto& style() const
         { return m_style; }
@@ -12,3 +15,4 @@ class AutomationColors
     private:
         Curve::Style m_style;
 };
+}

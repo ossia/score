@@ -151,14 +151,14 @@ class AddMultipleProcessesToConstraintMacro final : public iscore::AggregateComm
             }
         }
 
-        std::vector<std::pair<Path<SlotModel>, std::vector<Id<LayerModel>>>> slotsToUse; // No need to save this, it is useful only for construction.
+        std::vector<std::pair<Path<SlotModel>, std::vector<Id<Process::LayerModel>>>> slotsToUse; // No need to save this, it is useful only for construction.
 };
 
 
 #include <iscore/tools/SettableIdentifierGeneration.hpp>
 inline std::tuple<
     AddMultipleProcessesToConstraintMacro*,
-    std::vector<std::vector<std::pair<Path<SlotModel>, Id<LayerModel>>>>
+    std::vector<std::vector<std::pair<Path<SlotModel>, Id<Process::LayerModel>>>>
 >
 makeAddProcessMacro(
         const ConstraintModel& constraint,
@@ -166,22 +166,27 @@ makeAddProcessMacro(
 {
     auto macro = new AddMultipleProcessesToConstraintMacro{constraint}; // The constraint already exists
 
-    std::vector<std::pair<Path<SlotModel>, std::vector<Id<LayerModel>>>> slotVec;
+    std::vector<std::pair<Path<SlotModel>, std::vector<Id<Process::LayerModel>>>> slotVec;
     slotVec.reserve(macro->slotsToUse.size());
     // For each slot we have to generate num_processes ids.
     for(const auto& elt : macro->slotsToUse)
     {
         if(auto slot = elt.first.try_find())
         {
-            slotVec.push_back({elt.first, getStrongIdRange<LayerModel>(num_processes, slot->layers)});
+            slotVec.push_back({elt.first,
+                               getStrongIdRange<Process::LayerModel>(
+                                num_processes,
+                                slot->layers)});
         }
         else
         {
-            slotVec.push_back({elt.first, getStrongIdRange<LayerModel>(num_processes)});
+            slotVec.push_back({elt.first,
+                               getStrongIdRange<Process::LayerModel>(
+                                num_processes)});
         }
     }
 
-    std::vector<std::vector<std::pair<Path<SlotModel>, Id<LayerModel>>>> bigLayerVec;
+    std::vector<std::vector<std::pair<Path<SlotModel>, Id<Process::LayerModel>>>> bigLayerVec;
     bigLayerVec.resize(num_processes);
     for(int i = 0; i < num_processes; ++i)
     {

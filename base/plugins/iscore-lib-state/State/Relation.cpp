@@ -3,26 +3,26 @@
 
 #include "Relation.hpp"
 
-namespace iscore {
+namespace State {
 struct Address;
 struct Value;
 }  // namespace iscore
 
-QString iscore::Relation::relMemberToString(iscore::RelationMember m) const
+QString State::Relation::relMemberToString(State::RelationMember m) const
 {
     using namespace eggs::variants;
     switch(m.which())
     {
         case 0:
-            return get<iscore::Address>(m).toString();
+            return get<State::Address>(m).toString();
         case 1:
-            return iscore::convert::toPrettyString(get<iscore::Value>(m));
+            return State::convert::toPrettyString(get<State::Value>(m));
         default:
             return "ERROR";
     }
 }
 
-QString iscore::Relation::toString() const
+QString State::Relation::toString() const
 {
     using namespace eggs::variants;
 
@@ -32,15 +32,15 @@ QString iscore::Relation::toString() const
             .arg(relMemberToString(rhs));
 }
 
-const QMap<iscore::Relation::Operator, QString> iscore::opToString()
+const QMap<State::Relation::Operator, QString> State::opToString()
 {
     return {
-        {iscore::Relation::Operator::LowerEqual,    "<="},
-        {iscore::Relation::Operator::GreaterEqual,  ">="},
-        {iscore::Relation::Operator::Lower,         "<"},
-        {iscore::Relation::Operator::Greater,       ">"},
-        {iscore::Relation::Operator::Different,     "!="},
-        {iscore::Relation::Operator::Equal,         "=="},
-        {iscore::Relation::Operator::None,          ""}
+        {State::Relation::Operator::LowerEqual,    "<="},
+        {State::Relation::Operator::GreaterEqual,  ">="},
+        {State::Relation::Operator::Lower,         "<"},
+        {State::Relation::Operator::Greater,       ">"},
+        {State::Relation::Operator::Different,     "!="},
+        {State::Relation::Operator::Equal,         "=="},
+        {State::Relation::Operator::None,          ""}
     };
 }

@@ -14,10 +14,12 @@ class State;
 class StateElement;
 }  // namespace OSSIA
 
-class JSProcess final : public TimeProcessWithConstraint
+namespace JS
+{
+class ProcessExecutor final : public TimeProcessWithConstraint
 {
     public:
-        JSProcess(DeviceDocumentPlugin& devices);
+        ProcessExecutor(DeviceDocumentPlugin& devices);
 
         void setTickFun(const QString& val);
 
@@ -44,3 +46,4 @@ class JSProcess final : public TimeProcessWithConstraint
         std::shared_ptr<OSSIA::State> m_start;
         std::shared_ptr<OSSIA::State> m_end;
 };
+}

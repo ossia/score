@@ -7,11 +7,11 @@
 class AddressFragmentValidator : public QValidator
 {
     public:
-        State validate(QString& s, int& pos) const override
+        QValidator::State validate(QString& s, int& pos) const override
         {
-            return iscore::Address::validateFragment(s)
-                    ? State::Acceptable
-                    : State::Invalid;
+            return ::State::Address::validateFragment(s)
+                    ? QValidator::State::Acceptable
+                    : QValidator::State::Invalid;
         }
 };
 

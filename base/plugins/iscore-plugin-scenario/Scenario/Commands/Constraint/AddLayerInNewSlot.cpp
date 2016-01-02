@@ -22,7 +22,7 @@ using namespace Scenario::Command;
 
 AddLayerInNewSlot::AddLayerInNewSlot(
         Path<ConstraintModel>&& constraintPath,
-        const Id<Process>& process) :
+        const Id<Process::ProcessModel>& process) :
     m_path {std::move(constraintPath) },
     m_sharedProcessModelId{process}
 {
@@ -42,7 +42,7 @@ AddLayerInNewSlot::AddLayerInNewSlot(
         m_createdSlotId = getStrongId(rack.slotmodels);
     }
 
-    m_createdLayerId = Id<LayerModel> (iscore::id_generator::getFirstId());
+    m_createdLayerId = Id<Process::LayerModel> (iscore::id_generator::getFirstId());
     m_processData = constraint.processes.at(m_sharedProcessModelId).makeLayerConstructionData();
 }
 

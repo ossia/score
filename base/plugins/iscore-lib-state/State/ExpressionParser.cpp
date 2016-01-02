@@ -14,7 +14,7 @@ relevant.
 
 
 # Addresses
-fragment 		:= +[a-zA-Z0-9.~()_];
+fragment 		:= +[a-zA-Z0-9.~()_-];
 device 			:= fragment;
 path_element 	:= fragment;
 path 			:= ('/', path_element)+ | '/';
@@ -95,21 +95,21 @@ struct print_attribute_debug<Out, QString, Enable>
 
 
 BOOST_FUSION_ADAPT_STRUCT(
-        iscore::Address,
+        State::Address,
         (QString, device)
         (QStringList, path)
         )
 
 BOOST_FUSION_ADAPT_STRUCT(
-        iscore::Value,
-        (iscore::Value::value_type, val)
+        State::Value,
+        (State::Value::value_type, val)
         )
 
 BOOST_FUSION_ADAPT_STRUCT(
-        iscore::Relation,
-        (iscore::RelationMember, lhs)
-        (iscore::Relation::Operator, op)
-        (iscore::RelationMember, rhs)
+        State::Relation,
+        (State::RelationMember, lhs)
+        (State::Relation::Operator, op)
+        (State::RelationMember, rhs)
         )
 namespace {
 /// Address parsing.
@@ -120,12 +120,12 @@ using namespace boost::phoenix;
 using boost::spirit::qi::rule;
 
 template <typename Iterator>
-struct Address_parser : qi::grammar<Iterator, iscore::Address()>
+struct Address_parser : qi::grammar<Iterator, State::Address()>
 {
     Address_parser() : Address_parser::base_type(start)
     {
         using qi::alnum;
-        auto base = +qi::char_("a-zA-Z0-9_~().");
+        auto base = +qi::char_("a-zA-Z0-9_~().-");
 
         dev = base;
         member_elt = base;
@@ -140,7 +140,7 @@ struct Address_parser : qi::grammar<Iterator, iscore::Address()>
     qi::rule<Iterator, QString()> dev;
     qi::rule<Iterator, QString()> member_elt;
     qi::rule<Iterator, QStringList()> path;
-    qi::rule<Iterator, iscore::Address()> start;
+    qi::rule<Iterator, State::Address()> start;
 };
 
 
@@ -155,7 +155,7 @@ struct BoolParse_map : qi::symbols<char, bool>
         }
 };
 template <typename Iterator>
-struct Value_parser : qi::grammar<Iterator, iscore::Value()>
+struct Value_parser : qi::grammar<Iterator, State::Value()>
 {
     Value_parser() : Value_parser::base_type(start)
     {
@@ -181,17 +181,17 @@ struct Value_parser : qi::grammar<Iterator, iscore::Value()>
 
     BoolParse_map bool_parser;
 
-    qi::rule<Iterator, iscore::tuple_t()> tuple_parser;
+    qi::rule<Iterator, State::tuple_t()> tuple_parser;
     qi::rule<Iterator, QChar()> char_parser;
     qi::rule<Iterator, QString()> str_parser;
-    qi::rule<Iterator, iscore::Value::value_type()> variant;
-    qi::rule<Iterator, iscore::Value()> start;
+    qi::rule<Iterator, State::Value::value_type()> variant;
+    qi::rule<Iterator, State::Value()> start;
 };
 
 
 //// RelMember parsing
 template <typename Iterator>
-struct RelationMember_parser : qi::grammar<Iterator, iscore::RelationMember()>
+struct RelationMember_parser : qi::grammar<Iterator, State::RelationMember()>
 {
     RelationMember_parser() : RelationMember_parser::base_type(start)
     {
@@ -200,26 +200,26 @@ struct RelationMember_parser : qi::grammar<Iterator, iscore::RelationMember()>
 
     Address_parser<Iterator> addr;
     Value_parser<Iterator> val;
-    qi::rule<Iterator, iscore::RelationMember()> start;
+    qi::rule<Iterator, State::RelationMember()> start;
 };
 
 /// Relation parsing
-struct RelationOperation_map : qi::symbols<char, iscore::Relation::Operator>
+struct RelationOperation_map : qi::symbols<char, State::Relation::Operator>
 {
         RelationOperation_map() {
             add
-                    ("<=", iscore::Relation::Operator::LowerEqual)
-                    (">=", iscore::Relation::Operator::GreaterEqual)
-                    ("<" , iscore::Relation::Operator::Lower)
-                    (">" , iscore::Relation::Operator::Greater)
-                    ("!=", iscore::Relation::Operator::Different)
-                    ("==", iscore::Relation::Operator::Equal)
+                    ("<=", State::Relation::Operator::LowerEqual)
+                    (">=", State::Relation::Operator::GreaterEqual)
+                    ("<" , State::Relation::Operator::Lower)
+                    (">" , State::Relation::Operator::Greater)
+                    ("!=", State::Relation::Operator::Different)
+                    ("==", State::Relation::Operator::Equal)
                     ;
         }
 };
 
 template <typename Iterator>
-struct Relation_parser : qi::grammar<Iterator, iscore::Relation()>
+struct Relation_parser : qi::grammar<Iterator, State::Relation()>
 {
     Relation_parser() : Relation_parser::base_type(start)
     {
@@ -232,7 +232,7 @@ struct Relation_parser : qi::grammar<Iterator, iscore::Relation()>
 
     RelationMember_parser<Iterator> rm_parser;
     RelationOperation_map op_map;
-    qi::rule<Iterator, iscore::Relation()> start;
+    qi::rule<Iterator, State::Relation()> start;
 };
 
 
@@ -253,7 +253,7 @@ typedef std::string var;
 template <typename tag> struct binop;
 template <typename tag> struct unop;
 
-using expr_raw = boost::variant<iscore::Relation,
+using expr_raw = boost::variant<State::Relation,
         boost::recursive_wrapper<unop <op_not> >,
         boost::recursive_wrapper<binop<op_and> >,
         boost::recursive_wrapper<binop<op_xor> >,
@@ -296,28 +296,28 @@ template <typename It, typename Skipper = qi::space_type>
 
 struct Expression_builder : boost::static_visitor<void>
 {
-            Expression_builder(iscore::Expression* e):m_current{e}{}
-        iscore::Expression* m_current{};
+            Expression_builder(State::Expression* e):m_current{e}{}
+        State::Expression* m_current{};
 
-        void operator()(const iscore::Relation& rel)
+        void operator()(const State::Relation& rel)
         {
             m_current->emplace_back(rel, nullptr);
         }
 
         void operator()(const binop<op_and>& b)
         {
-            rec_binop(iscore::BinaryOperator::And, b.oper1, b.oper2);
+            rec_binop(State::BinaryOperator::And, b.oper1, b.oper2);
         }
         void operator()(const binop<op_or >& b)
         {
-            rec_binop(iscore::BinaryOperator::Or, b.oper1, b.oper2);
+            rec_binop(State::BinaryOperator::Or, b.oper1, b.oper2);
         }
         void operator()(const binop<op_xor>& b)
         {
-            rec_binop(iscore::BinaryOperator::Xor, b.oper1, b.oper2);
+            rec_binop(State::BinaryOperator::Xor, b.oper1, b.oper2);
         }
 
-        void rec_binop(iscore::BinaryOperator binop, const expr_raw& l, const expr_raw& r)
+        void rec_binop(State::BinaryOperator binop, const expr_raw& l, const expr_raw& r)
         {
             m_current->emplace_back(binop, nullptr);
 
@@ -332,7 +332,7 @@ struct Expression_builder : boost::static_visitor<void>
 
         void operator()(const unop<op_not>& u)
         {
-            m_current->emplace_back(iscore::UnaryOperator::Not, nullptr);
+            m_current->emplace_back(State::UnaryOperator::Not, nullptr);
 
             auto old_expr = m_current;
             m_current = &old_expr->children().back();
@@ -345,7 +345,7 @@ struct Expression_builder : boost::static_visitor<void>
 }
 
 
-    boost::optional<iscore::Expression> iscore::parseExpression(const QString& str)
+    boost::optional<State::Expression> State::parseExpression(const QString& str)
     {
         auto input = str.toStdString();
         auto f(std::begin(input)), l(std::end(input));
@@ -360,7 +360,7 @@ struct Expression_builder : boost::static_visitor<void>
                 return {};
             }
 
-            iscore::Expression e;
+            State::Expression e;
 
             Expression_builder bldr{&e};
             boost::apply_visitor(bldr, result);
@@ -383,14 +383,14 @@ struct Expression_builder : boost::static_visitor<void>
     }
 
 
-    boost::optional<iscore::Value> iscore::parseValue(const QString& str)
+    boost::optional<State::Value> State::parseValue(const QString& str)
     {
         auto input = str.toStdString();
         auto f(std::begin(input)), l(std::end(input));
         Value_parser<decltype(f)> p;
         try
         {
-            iscore::Value result;
+            State::Value result;
             bool ok = qi::phrase_parse(f, l , p, qi::space, result);
 
             if (!ok)

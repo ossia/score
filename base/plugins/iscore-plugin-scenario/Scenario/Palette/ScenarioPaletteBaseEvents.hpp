@@ -31,6 +31,9 @@ struct PositionedEvent<Scenario::Point> : public QEvent
 };
 }
 
+namespace Scenario
+{
+
 // We avoid virtual inheritance (with Numbered event);
 // this replicates a tiny bit of code.
 template<int N>
@@ -170,4 +173,5 @@ QString debug_StateMachineIDs()
     }
 
     return txt;
+}
 }

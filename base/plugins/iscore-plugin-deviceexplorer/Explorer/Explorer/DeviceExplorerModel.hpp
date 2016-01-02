@@ -15,10 +15,6 @@
 #include <iscore_plugin_deviceexplorer_export.h>
 class QMimeData;
 class QObject;
-namespace iscore {
-struct DeviceSettings;
-}  // namespace iscore
-
 namespace iscore
 {
     class CommandStackFacade;
@@ -28,7 +24,8 @@ class DeviceDocumentPlugin;
 class DeviceEditDialog;
 class DeviceExplorerView;
 
-namespace iscore {
+namespace Device {
+struct DeviceSettings;
 struct AddressSettings;
 }
 
@@ -55,10 +52,10 @@ class ISCORE_PLUGIN_DEVICEEXPLORER_EXPORT DeviceExplorerModel final : public Nod
 
         ~DeviceExplorerModel();
 
-        iscore::Node& rootNode() override
+        Device::Node& rootNode() override
         { return m_rootNode; }
 
-        const iscore::Node& rootNode() const override
+        const Device::Node& rootNode() const override
         { return m_rootNode; }
 
         void setView(DeviceExplorerView* v)
@@ -77,46 +74,46 @@ class ISCORE_PLUGIN_DEVICEEXPLORER_EXPORT DeviceExplorerModel final : public Nod
         { return *m_cmdQ; }
 
         // Returns the row (useful for undo)
-        int addDevice(iscore::Node&& deviceNode);
-        int addDevice(const iscore::Node& deviceNode);
+        int addDevice(Device::Node&& deviceNode);
+        int addDevice(const Device::Node& deviceNode);
         void updateDevice(
                 const QString &name,
-                const iscore::DeviceSettings& dev);
+                const Device::DeviceSettings& dev);
 
         void addAddress(
-                iscore::Node * parentNode,
-                const iscore::AddressSettings& addressSettings,
+                Device::Node * parentNode,
+                const Device::AddressSettings& addressSettings,
                 int row);
         void updateAddress(
-                iscore::Node * node,
-                const iscore::AddressSettings& addressSettings);
+                Device::Node * node,
+                const Device::AddressSettings& addressSettings);
 
         void addNode(
-                iscore::Node* parentNode,
-                iscore::Node&& child,
+                Device::Node* parentNode,
+                Device::Node&& child,
                 int row);
 
-        void updateValue(iscore::Node* n,
-                const iscore::Value& v);
+        void updateValue(Device::Node* n,
+                const State::Value& v);
 
         // Checks if the settings can be added; if not,
         // trigger a dialog to edit them as wanted.
         // Returns true if the device is to be added, false if
         // it should not be added.
         bool checkDeviceInstantiatable(
-                iscore::DeviceSettings& n);
+                Device::DeviceSettings& n);
         bool tryDeviceInstantiation(
-                iscore::DeviceSettings&,
+                Device::DeviceSettings&,
                 DeviceEditDialog&);
 
         bool checkAddressInstantiatable(
-                iscore::Node& parent,
-                const iscore::AddressSettings& addr);
+                Device::Node& parent,
+                const Device::AddressSettings& addr);
 
         bool checkAddressEditable(
-                iscore::Node& parent,
-                const iscore::AddressSettings& before,
-                const iscore::AddressSettings& after);
+                Device::Node& parent,
+                const Device::AddressSettings& before,
+                const Device::AddressSettings& after);
 
         int columnCount() const;
         QStringList getColumns() const;
@@ -128,7 +125,7 @@ class ISCORE_PLUGIN_DEVICEEXPLORER_EXPORT DeviceExplorerModel final : public Nod
 
         int columnCount(const QModelIndex& parent) const override;
 
-        QVariant getData(iscore::NodePath node, Column column, int role);
+        QVariant getData(Device::NodePath node, Column column, int role);
         QVariant data(const QModelIndex& index, int role) const override;
         QVariant headerData(int section, Qt::Orientation orientation, int role) const override;
 
@@ -137,7 +134,7 @@ class ISCORE_PLUGIN_DEVICEEXPLORER_EXPORT DeviceExplorerModel final : public Nod
         bool setData(const QModelIndex& index, const QVariant& value, int role) override;
         bool setHeaderData(int, Qt::Orientation, const QVariant&, int = Qt::EditRole) override;
 
-        void editData(const iscore::NodePath &path, Column column, const iscore::Value& value, int role);
+        void editData(const Device::NodePath &path, Column column, const State::Value& value, int role);
 
         Qt::DropActions supportedDropActions() const override;
         Qt::DropActions supportedDragActions() const override;
@@ -146,14 +143,14 @@ class ISCORE_PLUGIN_DEVICEEXPLORER_EXPORT DeviceExplorerModel final : public Nod
         bool canDropMimeData(const QMimeData* data, Qt::DropAction action, int row, int column, const QModelIndex& parent) const override;
         bool dropMimeData(const QMimeData* mimeData, Qt::DropAction action, int row, int column, const QModelIndex& parent) override;
 
-        QModelIndex convertPathToIndex(const iscore::NodePath& path);
+        QModelIndex convertPathToIndex(const Device::NodePath& path);
 
-        QList<iscore::Node*> uniqueSelectedNodes(const QModelIndexList& indexes) const; // Note : filters so that only parents are given.
+        QList<Device::Node*> uniqueSelectedNodes(const QModelIndexList& indexes) const; // Note : filters so that only parents are given.
 
     protected:
-        void debug_printPath(const iscore::NodePath& path);
+        void debug_printPath(const Device::NodePath& path);
 
-        typedef QPair<iscore::Node*, bool> CutElt;
+        typedef QPair<Device::Node*, bool> CutElt;
         QStack<CutElt> m_cutNodes;
         bool m_lastCutNodeIsCopied;
 
@@ -162,7 +159,7 @@ class ISCORE_PLUGIN_DEVICEEXPLORER_EXPORT DeviceExplorerModel final : public Nod
 
         QModelIndex bottomIndex(const QModelIndex& index) const;
 
-        iscore::Node& m_rootNode;
+        Device::Node& m_rootNode;
 
         iscore::CommandStackFacade* m_cmdQ{};
 
@@ -171,7 +168,7 @@ class ISCORE_PLUGIN_DEVICEEXPLORER_EXPORT DeviceExplorerModel final : public Nod
 
 
 // Will update the tree and return the messages corresponding to the selected nodes.
-ISCORE_PLUGIN_DEVICEEXPLORER_EXPORT iscore::MessageList getSelectionSnapshot(DeviceExplorerModel& model);
+ISCORE_PLUGIN_DEVICEEXPLORER_EXPORT State::MessageList getSelectionSnapshot(DeviceExplorerModel& model);
 
 ISCORE_PLUGIN_DEVICEEXPLORER_EXPORT DeviceExplorerModel& deviceExplorerFromObject(const QObject&);
 ISCORE_PLUGIN_DEVICEEXPLORER_EXPORT DeviceExplorerModel* try_deviceExplorerFromObject(const QObject&);

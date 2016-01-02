@@ -12,9 +12,12 @@
 #include <iscore/document/DocumentInterface.hpp>
 #include <iscore/document/DocumentContext.hpp>
 #include <src/Area/SingletonAreaFactoryList.hpp>
+
+namespace Space
+{
 AreaWidget::AreaWidget(
         const iscore::DocumentContext& ctx,
-        const SpaceProcess& space,
+        const Space::ProcessModel& space,
         QWidget *parent):
     QWidget{parent},
     m_dispatcher{ctx.commandStack},
@@ -125,7 +128,7 @@ void AreaWidget::setActiveArea(const AreaModel *area)
             }
 
             // Storing a value
-            param_widg->defaultValue()->setValue(iscore::convert::value<double>((*param_it).second.value));
+            param_widg->defaultValue()->setValue(State::convert::value<double>((*param_it).second.value));
 
             // Storing an address
             param_widg->address()->setText((*param_it).second.address.toString());
@@ -142,7 +145,8 @@ void AreaWidget::on_formulaChanged()
 {
     cleanup();
 
-    AreaParser parser{m_selectionWidget->lineEdit()->text()};
+    auto formulas = m_selectionWidget->lineEdit()->text().split(';');
+    AreaParser parser{formulas};
     if(!parser.check())
     {
         return;
@@ -214,7 +218,7 @@ void AreaWidget::validate()
     }
 
 
-    QMap<QString, iscore::FullAddressSettings> param_map;
+    QMap<QString, Device::FullAddressSettings> param_map;
     for(int param_i = 0; param_i < m_paramMappingLayout->rowCount(); param_i++)
     {
         auto it = m_paramMappingLayout->itemAt(param_i, QFormLayout::ItemRole::LabelRole);
@@ -233,12 +237,12 @@ void AreaWidget::validate()
         if(!param_widg->isEnabled())
             continue;
 
-        iscore::FullAddressSettings addr;
-        if(iscore::Address::validateString(param_widg->address()->text()))
+        Device::FullAddressSettings addr;
+        if(State::Address::validateString(param_widg->address()->text()))
         {
-            addr.address = iscore::Address::fromString(param_widg->address()->text());
+            addr.address = State::Address::fromString(param_widg->address()->text());
         }
-        addr.value = iscore::convert::toValue(param_widg->defaultValue()->value());
+        addr.value = State::convert::toValue(param_widg->defaultValue()->value());
         param_map.insert(label->text(), addr);
     }
 
@@ -246,6 +250,7 @@ void AreaWidget::validate()
     if(m_area)
     {
         // Make a UpdateArea command.
+        ISCORE_TODO;
     }
     else
     {
@@ -253,8 +258,8 @@ void AreaWidget::validate()
         m_dispatcher.submitCommand(
                     new AddArea{
                         m_space,
-                        m_selectionWidget->comboBox()->currentData().toInt(),
-                        m_selectionWidget->lineEdit()->text(),
+                        m_selectionWidget->comboBox()->currentData().value<AreaFactoryKey>(),
+                        QStringList{m_selectionWidget->lineEdit()->text().split(';')}, // TODO multiline
                         dim_map,
                         param_map});
     }
@@ -274,4 +279,5 @@ void AreaWidget::cleanup()
         item->widget()->deleteLater();
         delete item;
     }
+}
 }

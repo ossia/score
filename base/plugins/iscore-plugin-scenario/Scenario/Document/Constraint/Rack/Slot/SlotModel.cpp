@@ -30,7 +30,7 @@ SlotModel::SlotModel(
         const Id<SlotModel>& id,
         RackModel *parent):
     IdentifiedObject<SlotModel> {id, className.c_str(), parent},
-    m_frontLayerModelId{Id<LayerModel>{source.m_frontLayerModelId.val()}},
+    m_frontLayerModelId{Id<Process::LayerModel>{source.m_frontLayerModelId.val()}},
     m_height {source.height() }
 {
     initConnections();
@@ -62,13 +62,13 @@ void SlotModel::copyViewModelsInSameConstraint(
     }
 }
 
-void SlotModel::on_addLayer(const LayerModel& viewmodel)
+void SlotModel::on_addLayer(const Process::LayerModel& viewmodel)
 {
     putToFront(viewmodel.id());
 }
 
 void SlotModel::on_removeLayer(
-        const LayerModel&)
+        const Process::LayerModel&)
 {
     if(!layers.empty())
     {
@@ -81,7 +81,7 @@ void SlotModel::on_removeLayer(
 }
 
 void SlotModel::putToFront(
-        const Id<LayerModel>& id)
+        const Id<Process::LayerModel>& id)
 {
     if(!id.val())
         return;
@@ -93,7 +93,7 @@ void SlotModel::putToFront(
     }
 }
 
-const LayerModel* SlotModel::frontLayerModel() const
+const Process::LayerModel* SlotModel::frontLayerModel() const
 {
     if(!m_frontLayerModelId)
         return nullptr;
@@ -101,12 +101,12 @@ const LayerModel* SlotModel::frontLayerModel() const
 }
 
 void SlotModel::on_deleteSharedProcessModel(
-        const Process& proc)
+        const Process::ProcessModel& proc)
 {
     using namespace std;
     auto it = find_if(begin(layers),
                       end(layers),
-                      [id = proc.id()](const LayerModel& lm)
+                      [id = proc.id()](const Process::LayerModel& lm)
     {
         return lm.processModel().id() == id;
     });

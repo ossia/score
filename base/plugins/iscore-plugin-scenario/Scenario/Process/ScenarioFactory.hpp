@@ -6,10 +6,12 @@
 #include <Process/ProcessFactoryKey.hpp>
 #include <Process/TimeValue.hpp>
 
+namespace Process {
 class LayerModel;
 class LayerPresenter;
 class LayerView;
-class Process;
+class ProcessModel;
+}
 class QGraphicsItem;
 class QObject;
 struct VisitorVariant;
@@ -19,31 +21,32 @@ namespace Scenario
 {
 class EditionSettings;
 }
-class ScenarioFactory final : public ProcessFactory
+class ScenarioFactory final :
+        public Process::ProcessFactory
 {
     public:
         ScenarioFactory(Scenario::EditionSettings&);
         const ProcessFactoryKey& key_impl() const override;
         QString prettyName() const override;
 
-        Process* makeModel(
+        Process::ProcessModel* makeModel(
                 const TimeValue& duration,
-                const Id<Process>& id,
+                const Id<Process::ProcessModel>& id,
                 QObject* parent) override;
 
-        Process* loadModel(
+        Process::ProcessModel* loadModel(
                 const VisitorVariant&,
                 QObject* parent) override;
 
         QByteArray makeStaticLayerConstructionData() const override;
 
-        LayerPresenter* makeLayerPresenter(
-                const LayerModel&,
-                LayerView*,
+        Process::LayerPresenter* makeLayerPresenter(
+                const Process::LayerModel&,
+                Process::LayerView*,
                 QObject* parent) override;
 
-        LayerView* makeLayerView(
-                const LayerModel& viewmodel,
+        Process::LayerView* makeLayerView(
+                const Process::LayerModel& viewmodel,
                 QGraphicsItem* parent) override;
 
     private:

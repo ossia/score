@@ -5,8 +5,8 @@
 
 class AddLayerModelWidget;
 class ConstraintInspectorWidget;
-class LayerModel;
-class Process;
+namespace Process { class LayerModel; }
+namespace Process { class ProcessModel; }
 class RackInspectorSection;
 class SlotModel;
 #include <iscore/tools/SettableIdentifier.hpp>
@@ -20,17 +20,17 @@ class SlotInspectorSection final : public InspectorSectionWidget, public Nano::O
                 const SlotModel& slot,
                 RackInspectorSection* parentRack);
 
-        void displayLayerModel(const LayerModel&);
+        void displayLayerModel(const Process::LayerModel&);
         void createLayerModel(
-                const Id<Process>& sharedProcessId);
+                const Id<Process::ProcessModel>& sharedProcessId);
 
         const SlotModel& model() const;
 
     private:
         void ask_changeName(QString newName);
 
-        void on_layerModelCreated(const LayerModel&);
-        void on_layerModelRemoved(const LayerModel&);
+        void on_layerModelCreated(const Process::LayerModel&);
+        void on_layerModelRemoved(const Process::LayerModel&);
 
         const SlotModel& m_model;
 

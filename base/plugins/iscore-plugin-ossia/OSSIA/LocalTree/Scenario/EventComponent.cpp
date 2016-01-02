@@ -1,13 +1,12 @@
 #include "EventComponent.hpp"
 #include "MetadataParameters.hpp"
 
-namespace OSSIA
+namespace Ossia
 {
 namespace LocalTree
 {
-
 EventComponent::EventComponent(
-        Node& parent,
+        OSSIA::Node& parent,
         const Id<iscore::Component>& id,
         EventModel& event,
         const EventComponent::system_t& doc,
@@ -21,14 +20,12 @@ EventComponent::EventComponent(
 
 const iscore::Component::Key&EventComponent::key() const
 {
-    static const Key k{"OSSIA::LocalTree::EventComponent"};
+    static const Key k{"Ossia::LocalTree::EventComponent"};
     return k;
 }
 
 EventComponent::~EventComponent()
 {
-    for(auto prop : m_properties)
-        delete prop;
 }
 
 }

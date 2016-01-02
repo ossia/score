@@ -25,8 +25,12 @@ class PanelPresenter;
 
 struct ISCORE_LIB_BASE_EXPORT ApplicationComponentsData
 {
-        // TODO Forbid copy, etc... (in ALL types!!)
         ~ApplicationComponentsData();
+        ApplicationComponentsData() = default;
+        ApplicationComponentsData(const ApplicationComponentsData&) = delete;
+        ApplicationComponentsData(ApplicationComponentsData&&) = delete;
+        ApplicationComponentsData& operator=(const ApplicationComponentsData&) = delete;
+        ApplicationComponentsData& operator=(ApplicationComponentsData&&) = delete;
 
         QStringList pluginFiles;
         std::vector<QObject*> plugins;

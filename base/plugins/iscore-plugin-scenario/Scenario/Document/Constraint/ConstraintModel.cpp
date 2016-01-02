@@ -62,7 +62,7 @@ ConstraintModel::ConstraintModel(
     m_heightPercentage = source.heightPercentage();
 
     // For an explanation of this, see ReplaceConstraintContent command
-    std::map<const Process*, Process*> processPairs;
+    std::map<const Process::ProcessModel*, Process::ProcessModel*> processPairs;
 
     // Clone the processes
     for(const auto& process : source.processes)
@@ -202,7 +202,7 @@ void ConstraintModel::setFullView(FullViewConstraintViewModel* fv)
 // Should go in an "execution" object.
 void ConstraintModel::startExecution()
 {
-    for(Process& proc : processes)
+    for(Process::ProcessModel& proc : processes)
     {
         proc.startExecution(); // prevents editing
     }
@@ -210,7 +210,7 @@ void ConstraintModel::startExecution()
 }
 void ConstraintModel::stopExecution()
 {
-    for(Process& proc : processes)
+    for(Process::ProcessModel& proc : processes)
     {
         proc.stopExecution();
     }
@@ -220,7 +220,7 @@ void ConstraintModel::reset()
 {
     duration.setPlayPercentage(0);
 
-    for(Process& proc : processes)
+    for(Process::ProcessModel& proc : processes)
     {
         proc.reset();
         proc.stopExecution();

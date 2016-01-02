@@ -8,15 +8,16 @@
 
 namespace Curve
 {
+// TODO cleanup this file
 
 template<typename T>
-using GenericCurveTransition = iscore::StateAwareTransition<StateBase, T>;
+using GenericTransition = iscore::StateAwareTransition<StateBase, T>;
 
 template<typename Event>
-class MatchedCurveTransition : public GenericCurveTransition<iscore::MatchedTransition<Event>>
+class MatchedCurveTransition : public GenericTransition<iscore::MatchedTransition<Event>>
 {
     public:
-        using GenericCurveTransition<iscore::MatchedTransition<Event>>::GenericCurveTransition;
+        using GenericTransition<iscore::MatchedTransition<Event>>::GenericTransition;
 };
 
 
@@ -41,12 +42,12 @@ class PositionedCurveTransition final : public MatchedCurveTransition<CurveEvent
         }
         void impl(CurveEvent<Element::Point_tag, iscore::Modifier::Click_tag>* ev)
         {
-            auto& model = safe_cast<const CurvePointView*>(ev->item)->model();
+            auto& model = safe_cast<const PointView*>(ev->item)->model();
             this->state().clickedPointId = {model.previous(), model.following()};
         }
         void impl(CurveEvent<Element::Segment_tag, iscore::Modifier::Click_tag>* ev)
         {
-            this->state().clickedSegmentId = safe_cast<const CurveSegmentView*>(ev->item)->model().id();
+            this->state().clickedSegmentId = safe_cast<const SegmentView*>(ev->item)->model().id();
         }
 
 
@@ -55,12 +56,12 @@ class PositionedCurveTransition final : public MatchedCurveTransition<CurveEvent
         }
         void impl(CurveEvent<Element::Point_tag, iscore::Modifier::Move_tag>* ev)
         {
-            auto& model = safe_cast<const CurvePointView*>(ev->item)->model();
+            auto& model = safe_cast<const PointView*>(ev->item)->model();
             this->state().hoveredPointId = {model.previous(), model.following()};
         }
         void impl(CurveEvent<Element::Segment_tag, iscore::Modifier::Move_tag>* ev)
         {
-            this->state().hoveredSegmentId = safe_cast<const CurveSegmentView*>(ev->item)->model().id();
+            this->state().hoveredSegmentId = safe_cast<const SegmentView*>(ev->item)->model().id();
         }
 
 
@@ -69,12 +70,12 @@ class PositionedCurveTransition final : public MatchedCurveTransition<CurveEvent
         }
         void impl(CurveEvent<Element::Point_tag, iscore::Modifier::Release_tag>* ev)
         {
-            auto& model = safe_cast<const CurvePointView*>(ev->item)->model();
+            auto& model = safe_cast<const PointView*>(ev->item)->model();
             this->state().hoveredPointId = {model.previous(), model.following()};
         }
         void impl(CurveEvent<Element::Segment_tag, iscore::Modifier::Release_tag>* ev)
         {
-            this->state().hoveredSegmentId = safe_cast<const CurveSegmentView*>(ev->item)->model().id();
+            this->state().hoveredSegmentId = safe_cast<const SegmentView*>(ev->item)->model().id();
         }
 };
 
@@ -91,10 +92,10 @@ using ReleaseOnPoint_Transition = PositionedCurveTransition<Element::Point_tag, 
 using ReleaseOnSegment_Transition = PositionedCurveTransition<Element::Segment_tag, iscore::Modifier::Release_tag>;
 
 
-class ClickOnAnything_Transition final : public GenericCurveTransition<QAbstractTransition>
+class ClickOnAnything_Transition final : public GenericTransition<QAbstractTransition>
 {
     public:
-        using GenericCurveTransition<QAbstractTransition>::GenericCurveTransition;
+        using GenericTransition<QAbstractTransition>::GenericTransition;
     protected:
         bool eventTest(QEvent* e) override
         {
@@ -115,10 +116,10 @@ class ClickOnAnything_Transition final : public GenericCurveTransition<QAbstract
         }
 };
 
-class MoveOnAnything_Transition final : public GenericCurveTransition<QAbstractTransition>
+class MoveOnAnything_Transition final : public GenericTransition<QAbstractTransition>
 {
     public:
-        using GenericCurveTransition<QAbstractTransition>::GenericCurveTransition;
+        using GenericTransition<QAbstractTransition>::GenericTransition;
     protected:
         bool eventTest(QEvent* e) override
         {

@@ -39,7 +39,7 @@ void cleanupNode(MessageNode& rootNode)
     }
 }
 
-bool match(MessageNode& node, const iscore::Message& mess)
+bool match(MessageNode& node, const State::Message& mess)
 {
     MessageNode* n = &node;
 
@@ -67,8 +67,8 @@ bool match(MessageNode& node, const iscore::Message& mess)
 
 void updateNode(
         QVector<ProcessStateData>& vec,
-        const iscore::Value& val,
-        const Id<Process>& proc)
+        const State::Value& val,
+        const Id<Process::ProcessModel>& proc)
 {
     for(ProcessStateData& data : vec)
     {
@@ -104,7 +104,7 @@ void rec_delete(MessageNode& node)
 // Returns true if this node is to be deleted.
 bool nodePruneAction_impl(
         MessageNode& node,
-        const Id<Process>& proc,
+        const Id<Process::ProcessModel>& proc,
         QVector<ProcessStateData>& vec,
         const QVector<ProcessStateData>& other_vec)
 {
@@ -145,7 +145,7 @@ bool nodePruneAction_impl(
 
 void nodePruneAction(
         MessageNode& node,
-        const Id<Process>& proc,
+        const Id<Process::ProcessModel>& proc,
         ProcessPosition pos
         )
 {
@@ -184,8 +184,8 @@ void nodePruneAction(
 
 void nodeInsertAction(
         MessageNode& node,
-        iscore::MessageList& msg,
-        const Id<Process>& proc,
+        State::MessageList& msg,
+        const Id<Process::ProcessModel>& proc,
         ProcessPosition pos
         )
 {
@@ -224,8 +224,8 @@ void nodeInsertAction(
 
 void rec_updateTree(
         MessageNode& node,
-        iscore::MessageList& lst,
-        const Id<Process>& proc,
+        State::MessageList& lst,
+        const Id<Process::ProcessModel>& proc,
         ProcessPosition pos)
 {
     // If the message is in the tree, we add the process value.
@@ -249,7 +249,7 @@ void rec_updateTree(
 template<typename MergeFun>
 void merge_impl(
         MessageNode& base,
-        const iscore::Address& addr,
+        const State::Address& addr,
         MergeFun merge)
 {
     QStringList path = toStringList(addr);
@@ -310,7 +310,7 @@ void merge_impl(
 
 void updateTreeWithMessageList(
         MessageNode& rootNode,
-        iscore::MessageList lst)
+        State::MessageList lst)
 {
     for(const auto& mess : lst)
     {
@@ -327,8 +327,8 @@ void updateTreeWithMessageList(
 
 void updateTreeWithMessageList(
         MessageNode& rootNode,
-        iscore::MessageList lst,
-        const Id<Process>& proc,
+        State::MessageList lst,
+        const Id<Process::ProcessModel>& proc,
         ProcessPosition pos)
 {
     // We go through the tree.
@@ -371,7 +371,7 @@ void updateTreeWithMessageList(
 
 void rec_pruneTree(
         MessageNode& node,
-        const Id<Process>& proc,
+        const Id<Process::ProcessModel>& proc,
         ProcessPosition pos)
 {
     // If the message is in the tree, we add the process value.
@@ -388,7 +388,7 @@ void rec_pruneTree(
 
 void updateTreeWithRemovedProcess(
         MessageNode& rootNode,
-        const Id<Process>& proc,
+        const Id<Process::ProcessModel>& proc,
         ProcessPosition pos)
 {
     for(auto& child : rootNode)
@@ -457,14 +457,14 @@ void updateTreeWithRemovedConstraint(MessageNode& rootNode, ProcessPosition pos)
     }
 }
 
-void updateTreeWithRemovedUserMessage(MessageNode& rootNode, const iscore::Address& addr)
+void updateTreeWithRemovedUserMessage(MessageNode& rootNode, const State::Address& addr)
 {
     // Find the message node
-    MessageNode* node = iscore::try_getNodeFromString(rootNode, stringList(addr));
+    MessageNode* node = Device::try_getNodeFromString(rootNode, stringList(addr));
 
     if(node)
     {
-        node->values.userValue = iscore::OptionalValue{};
+        node->values.userValue = State::OptionalValue{};
 
         // If it is empty, delete it.
         if(node->values.previousProcessValues.isEmpty()
@@ -482,7 +482,7 @@ void rec_removeUserValue(
         MessageNode& node)
 {
     // Recursively set the user value to nil.
-    node.values.userValue = iscore::OptionalValue{};
+    node.values.userValue = State::OptionalValue{};
 
     for(auto& child : node)
     {
@@ -521,10 +521,10 @@ bool rec_cleanup(
 
 void updateTreeWithRemovedNode(
         MessageNode& rootNode,
-        const iscore::Address& addr)
+        const State::Address& addr)
 {
     // Find the message node
-    MessageNode* node = iscore::try_getNodeFromString(rootNode, stringList(addr));
+    MessageNode* node = Device::try_getNodeFromString(rootNode, stringList(addr));
 
     if(node)
     {

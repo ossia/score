@@ -2,7 +2,8 @@
 
 #include <iscore/widgets/MarginLess.hpp>
 #include <iscore/widgets/SpinBoxes.hpp>
-
+namespace Space
+{
 ViewportEditWidget::ViewportEditWidget(const SpaceModel& sp, const ViewportModel& vp, QWidget* parent):
     QWidget{parent},
     m_viewport{vp}
@@ -56,4 +57,5 @@ ViewportEditWidget::ViewportEditWidget(const SpaceModel& sp, const ViewportModel
 
     this->setLayout(lay);
 
+}
 }

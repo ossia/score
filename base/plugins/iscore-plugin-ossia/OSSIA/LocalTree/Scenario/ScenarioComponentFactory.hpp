@@ -1,7 +1,7 @@
 #pragma once
 #include <OSSIA/LocalTree/Scenario/ProcessComponent.hpp>
 
-namespace OSSIA
+namespace Ossia
 {
 namespace LocalTree
 {
@@ -13,14 +13,14 @@ class ScenarioComponentFactory final :
         const factory_key_type& key_impl() const override;
 
         bool matches(
-                Process& p,
-                const OSSIA::LocalTree::DocumentPlugin&,
+                Process::ProcessModel& p,
+                const Ossia::LocalTree::DocumentPlugin&,
                 const iscore::DocumentContext&) const override;
 
         ProcessComponent* make(
                 const Id<iscore::Component>& id,
                 OSSIA::Node& parent,
-                Process& proc,
+                Process::ProcessModel& proc,
                 const DocumentPlugin& doc,
                 const iscore::DocumentContext& ctx,
                 QObject* paren_objt) const override;

@@ -17,7 +17,7 @@ StringValueWidget::StringValueWidget(const QString &value, QWidget *parent)
     this->setLayout(lay);
 }
 
-iscore::Value StringValueWidget::value() const
+State::Value StringValueWidget::value() const
 {
-    return iscore::Value{m_value->text()};
+    return State::Value{m_value->text()};
 }

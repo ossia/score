@@ -7,22 +7,22 @@
 #include "Domain.hpp"
 #include <State/Message.hpp>
 #include <iscore_lib_device_export.h>
-namespace iscore
+namespace Device
 {
 using RefreshRate = int;
 using RepetitionFilter = bool;
 
 struct AddressSettingsCommon
 {
-    iscore::Value value;
-    iscore::Domain domain;
+    State::Value value;
+    Device::Domain domain;
 
-    iscore::IOType ioType{};
-    iscore::ClipMode clipMode{};
+    Device::IOType ioType{};
+    Device::ClipMode clipMode{};
     QString unit;
 
-    iscore::RepetitionFilter repetitionFilter{};
-    iscore::RefreshRate rate{};
+    Device::RepetitionFilter repetitionFilter{};
+    Device::RefreshRate rate{};
 
     int priority{};
 
@@ -30,31 +30,31 @@ struct AddressSettingsCommon
 };
 
 // this one has only the name of the current node (e.g. 'a' for dev:/azazd/a)
-struct AddressSettings : public iscore::AddressSettingsCommon
+struct AddressSettings : public Device::AddressSettingsCommon
 {
         QString name;
 };
 
 // This one has the whole path of the node in address
-struct FullAddressSettings : public iscore::AddressSettingsCommon
+struct FullAddressSettings : public Device::AddressSettingsCommon
 {
         struct as_parent;
         struct as_child;
-        iscore::Address address;
+        State::Address address;
 
         template<typename T>
         ISCORE_LIB_DEVICE_EXPORT static FullAddressSettings make(
-                const iscore::AddressSettings& other,
-                const iscore::Address& addr);
+                const Device::AddressSettings& other,
+                const State::Address& addr);
 
         ISCORE_LIB_DEVICE_EXPORT static FullAddressSettings make(
-                const iscore::Message& mess);
+                const State::Message& mess);
         // Specializations are in FullAddressSettings.cpp
 };
 
 inline bool operator==(
-        const iscore::AddressSettings& lhs,
-        const iscore::AddressSettings& rhs)
+        const Device::AddressSettings& lhs,
+        const Device::AddressSettings& rhs)
 {
     return
             lhs.value == rhs.value
@@ -69,8 +69,8 @@ inline bool operator==(
 }
 
 inline bool operator!=(
-        const iscore::AddressSettings& lhs,
-        const iscore::AddressSettings& rhs)
+        const Device::AddressSettings& lhs,
+        const Device::AddressSettings& rhs)
 {
     return !(lhs == rhs);
 }

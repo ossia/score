@@ -2,7 +2,7 @@
 #include <iscore/tools/std/Algorithms.hpp>
 #include "MetadataParameters.hpp"
 
-namespace OSSIA
+namespace Ossia
 {
 namespace LocalTree
 {
@@ -10,13 +10,13 @@ namespace LocalTree
 
 const iscore::Component::Key&ConstraintComponent::key() const
 {
-    static const Key k{"OSSIA::LocalTree::ConstraintComponent"};
+    static const Key k{"Ossia::LocalTree::ConstraintComponent"};
     return k;
 }
 
 
 ConstraintComponent::ConstraintComponent(
-        Node& parent,
+        OSSIA::Node& parent,
         const Id<iscore::Component>& id,
         ConstraintModel& constraint,
         const ConstraintComponent::system_t& doc,
@@ -64,18 +64,24 @@ ConstraintComponent::ConstraintComponent(
 
 ConstraintComponent::~ConstraintComponent()
 {
-    for(auto prop : m_properties)
-        delete prop;
 }
 
 
-ProcessComponent*ConstraintComponent::make_processComponent(const Id<iscore::Component>& id, ProcessComponentFactory& factory, Process& process, const DocumentPlugin& system, const iscore::DocumentContext& ctx, QObject* parent_component)
+ProcessComponent*ConstraintComponent::make_processComponent(
+        const Id<iscore::Component>& id,
+        ProcessComponentFactory& factory,
+        Process::ProcessModel& process,
+        const DocumentPlugin& system,
+        const iscore::DocumentContext& ctx,
+        QObject* parent_component)
 {
     return factory.make(id, *m_processesNode, process, system, ctx, parent_component);
 }
 
 
-void ConstraintComponent::removing(const Process& cst, const ProcessComponent& comp)
+void ConstraintComponent::removing(
+        const Process::ProcessModel& cst,
+        const ProcessComponent& comp)
 {
     auto it = find_if(m_processesNode->children(), [&] (const auto& node)
     { return node == comp.node(); });

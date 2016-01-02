@@ -24,7 +24,7 @@
 #include <iscore/plugins/customfactory/StringFactoryKey.hpp>
 #include <OSSIA/iscore2OSSIA.hpp>
 
-class Process;
+namespace Process { class ProcessModel; }
 class QObject;
 namespace OSSIA {
 class TimeProcess;
@@ -40,7 +40,7 @@ namespace RecreateOnPlay
 
 AutomationElement::AutomationElement(
         ConstraintElement& parentConstraint,
-        AutomationModel& element,
+        Automation::ProcessModel& element,
         QObject *parent):
     ProcessElement{parentConstraint, parent},
     m_iscore_autom{element},
@@ -54,7 +54,7 @@ std::shared_ptr<OSSIA::TimeProcess> AutomationElement::OSSIAProcess() const
     return m_ossia_autom;
 }
 
-Process& AutomationElement::iscoreProcess() const
+Process::ProcessModel& AutomationElement::iscoreProcess() const
 {
     return m_iscore_autom;
 }
@@ -108,7 +108,7 @@ void AutomationElement::recreate()
         goto curve_cleanup_label;
 
     // TODO on_min/max changed
-    new_autom = Automation::create(
+    new_autom = OSSIA::Automation::create(
                 address,
                 new Behavior(m_ossia_curve));
 

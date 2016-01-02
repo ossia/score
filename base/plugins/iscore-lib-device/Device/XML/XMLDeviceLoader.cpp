@@ -11,9 +11,9 @@
 #include <State/Value.hpp>
 #include "XMLDeviceLoader.hpp"
 
-static iscore::Value stringToVal(const QString& str, const QString& type)
+static State::Value stringToVal(const QString& str, const QString& type)
 {
-    iscore::Value val;
+    State::Value val;
     bool ok = false;
     if(type == "integer")
     {
@@ -38,12 +38,12 @@ static iscore::Value stringToVal(const QString& str, const QString& type)
     }
 
     if(!ok)
-        return iscore::Value{};
+        return State::Value{};
 
     return val;
 }
 
-static iscore::Value read_valueDefault(
+static State::Value read_valueDefault(
         const QDomElement& dom_element,
         const QString& type)
 {
@@ -66,7 +66,7 @@ static auto read_service(const QDomElement& dom_element)
     {
         const auto service = dom_element.attribute("service");
         if(service == "parameter")
-            return IOType::InOut;
+            return Device::IOType::InOut;
         /*
     else if(service == "")
         addr.ioType = IOType::In;
@@ -74,17 +74,17 @@ static auto read_service(const QDomElement& dom_element)
         addr.ioType = IOType::Out;
     */
         else
-            return IOType::Invalid;
+            return Device::IOType::Invalid;
     }
 
-    return IOType::Invalid;
+    return Device::IOType::Invalid;
 }
 
 static auto read_rangeBounds(
         const QDomElement& dom_element,
         const QString& type)
 {
-    iscore::Domain domain;
+    Device::Domain domain;
 
     if(dom_element.hasAttribute("rangeBounds"))
     {
@@ -110,14 +110,13 @@ static auto read_rangeClipmode(const QDomElement& dom_element)
         const auto clipmode = dom_element.attribute("rangeClipmode");
         if(clipmode == "both")
         {
-            return iscore::ClipMode::Clip;
+            return Device::ClipMode::Clip;
         }
     }
-    return iscore::ClipMode{};
+    return Device::ClipMode{};
 }
 
-using namespace iscore;
-static void convertFromDomElement(const QDomElement& dom_element, Node &parentNode)
+static void convertFromDomElement(const QDomElement& dom_element, Device::Node &parentNode)
 {
     QDomElement dom_child = dom_element.firstChildElement("");
     QString name;
@@ -131,7 +130,7 @@ static void convertFromDomElement(const QDomElement& dom_element, Node &parentNo
         name = dom_element.tagName();
     }
 
-    iscore::AddressSettings addr;
+    Device::AddressSettings addr;
     addr.name = name;
 
     if(dom_element.hasAttribute("type"))
@@ -158,7 +157,7 @@ static void convertFromDomElement(const QDomElement& dom_element, Node &parentNo
     return;
 }
 
-void loadDeviceFromXML(const QString &filePath, Node &node)
+void loadDeviceFromXML(const QString &filePath, Device::Node &node)
 {
     // ouverture d'un xml
     QFile doc_xml(filePath);

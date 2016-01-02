@@ -1,6 +1,9 @@
 #include "GenericAreaView.hpp"
 #include <QDebug>
 #include <cmath>
+
+namespace Space
+{
 GenericAreaView::GenericAreaView(QGraphicsItem *parent):
     QGraphicsItem{parent}
 {
@@ -24,4 +27,5 @@ void GenericAreaView::paint(QPainter *painter, const QStyleOptionGraphicsItem *,
     painter->setBrush(col);
 
     painter->drawRects(rects);
+}
 }

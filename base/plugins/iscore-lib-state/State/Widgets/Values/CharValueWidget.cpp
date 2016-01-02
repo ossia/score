@@ -20,8 +20,8 @@ CharValueWidget::CharValueWidget(QChar value, QWidget *parent)
     this->setLayout(lay);
 }
 
-iscore::Value CharValueWidget::value() const
+State::Value CharValueWidget::value() const
 {
     auto txt = m_value->text();
-    return iscore::Value{txt.length() > 0 ? txt[0] : QChar{}};
+    return State::Value{txt.length() > 0 ? txt[0] : QChar{}};
 }

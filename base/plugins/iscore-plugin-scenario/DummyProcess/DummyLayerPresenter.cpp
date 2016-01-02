@@ -10,7 +10,7 @@ class QObject;
 
 
 DummyLayerPresenter::DummyLayerPresenter(
-        const LayerModel& model,
+        const Process::LayerModel& model,
         DummyLayerView* view,
         QObject* parent):
     LayerPresenter{"DummyLayerPresenter", parent},
@@ -49,12 +49,12 @@ void DummyLayerPresenter::parentGeometryChanged()
 {
 }
 
-const LayerModel&DummyLayerPresenter::layerModel() const
+const Process::LayerModel& DummyLayerPresenter::layerModel() const
 {
     return m_layer;
 }
 
-const Id<Process>&DummyLayerPresenter::modelId() const
+const Id<Process::ProcessModel>& DummyLayerPresenter::modelId() const
 {
     return m_layer.processModel().id();
 }

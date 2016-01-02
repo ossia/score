@@ -95,7 +95,7 @@ void TriggerInspectorWidget::HideRmButton()
     m_rmTrigBtn->setVisible(false);
 }
 
-void TriggerInspectorWidget::updateExpression(const iscore::Trigger& expr)
+void TriggerInspectorWidget::updateExpression(const State::Trigger& expr)
 {
     m_exprEditor->setExpression(expr);
 }

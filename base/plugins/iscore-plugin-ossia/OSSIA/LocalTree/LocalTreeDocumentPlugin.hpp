@@ -24,15 +24,15 @@ namespace Scenario
 class ScenarioModel;
 
 }
-namespace OSSIA
+namespace Ossia
 {
 namespace LocalTree
 {
 
-class DocumentPlugin : public iscore::DocumentPluginModel
+class ISCORE_PLUGIN_OSSIA_EXPORT DocumentPlugin : public iscore::DocumentPluginModel
 {
         std::shared_ptr<OSSIA::Device> m_localDevice;
-        ISCORE_METADATA(OSSIA::LocalTree::DocumentPlugin)
+        ISCORE_METADATA(Ossia::LocalTree::DocumentPlugin)
 
     public:
         DocumentPlugin(

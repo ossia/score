@@ -19,10 +19,12 @@ namespace iscore {
 class CommandStackFacade;
 }  // namespace iscore
 
+namespace Curve
+{
 CreatePointCommandObject::CreatePointCommandObject(
-        CurvePresenter *presenter,
+        Presenter *presenter,
         iscore::CommandStackFacade& stack):
-    CurveCommandObjectBase{presenter, stack}
+    CommandObjectBase{presenter, stack}
 {
 }
 
@@ -31,7 +33,7 @@ void CreatePointCommandObject::on_press()
     // Save the start data.
     m_originalPress = m_state->currentPoint;
 
-    for(CurvePointModel* pt : m_presenter->model().points())
+    for(PointModel* pt : m_presenter->model().points())
     {
         auto pt_x = pt->pos().x();
 
@@ -72,15 +74,15 @@ void CreatePointCommandObject::cancel()
     m_dispatcher.rollback();
 }
 
-void CreatePointCommandObject::createPoint(std::vector<CurveSegmentData> &segments)
+void CreatePointCommandObject::createPoint(std::vector<SegmentData> &segments)
 {
     // Create a point where we clicked
     // By creating segments that goes to the closest points if we're in the empty,
     // or by splitting a segment if we're in the middle of it.
     // 1. Check if we're clicking in a place where there is a segment
-    CurveSegmentData* middle = nullptr;
-    CurveSegmentData* exactBefore = nullptr;
-    CurveSegmentData* exactAfter = nullptr;
+    SegmentData* middle = nullptr;
+    SegmentData* exactBefore = nullptr;
+    SegmentData* exactAfter = nullptr;
     for(auto& segment : segments)
     {
         if(segment.start.x() < m_state->currentPoint.x() && m_state->currentPoint.x() < segment.end.x())
@@ -110,7 +112,7 @@ void CreatePointCommandObject::createPoint(std::vector<CurveSegmentData> &segmen
     {
         // TODO refactor with MovePointState (line ~330)
         // The segment goes in the first half of "middle"
-        CurveSegmentData newSegment{
+        SegmentData newSegment{
                     getSegmentId(segments),
                     middle->start,    m_state->currentPoint,
                     middle->previous, middle->id,
@@ -139,10 +141,10 @@ void CreatePointCommandObject::createPoint(std::vector<CurveSegmentData> &segmen
         segments.reserve(segments.size() + 2);
 
         double seg_closest_from_left_x = 0;
-        CurveSegmentData* seg_closest_from_left{};
+        SegmentData* seg_closest_from_left{};
         double seg_closest_from_right_x = 1.;
-        CurveSegmentData* seg_closest_from_right{};
-        for(CurveSegmentData& segment : segments)
+        SegmentData* seg_closest_from_right{};
+        for(SegmentData& segment : segments)
         {
             auto seg_start_x = segment.start.x();
             if(seg_start_x > m_state->currentPoint.x() && seg_start_x < seg_closest_from_right_x)
@@ -162,24 +164,24 @@ void CreatePointCommandObject::createPoint(std::vector<CurveSegmentData> &segmen
         // Create a curve segment for the left
         // We do this little dance because of id generation.
         {
-            CurveSegmentData newLeftSegment;
+            SegmentData newLeftSegment;
             newLeftSegment.id = getSegmentId(segments);
             segments.push_back(newLeftSegment);
         }
-        CurveSegmentData& newLeftSegment = segments.back();
-        newLeftSegment.type = PowerCurveSegmentData::key();
-        newLeftSegment.specificSegmentData = QVariant::fromValue(PowerCurveSegmentData{0});
+        SegmentData& newLeftSegment = segments.back();
+        newLeftSegment.type = PowerSegmentData::key();
+        newLeftSegment.specificSegmentData = QVariant::fromValue(PowerSegmentData{0});
         newLeftSegment.start = {seg_closest_from_left_x, 0.};
         newLeftSegment.end = m_state->currentPoint;
 
         {
-            CurveSegmentData newRightSegment;
+            SegmentData newRightSegment;
             newRightSegment.id = getSegmentId(segments);
             segments.push_back(newRightSegment);
         }
-        CurveSegmentData& newRightSegment = segments.back();
-        newRightSegment.type = PowerCurveSegmentData::key();
-        newRightSegment.specificSegmentData = QVariant::fromValue(PowerCurveSegmentData{0});
+        SegmentData& newRightSegment = segments.back();
+        newRightSegment.type = PowerSegmentData::key();
+        newRightSegment.specificSegmentData = QVariant::fromValue(PowerSegmentData{0});
         newRightSegment.start = m_state->currentPoint;
         newRightSegment.end = {seg_closest_from_right_x, 0.};
 
@@ -203,4 +205,5 @@ void CreatePointCommandObject::createPoint(std::vector<CurveSegmentData> &segmen
         }
 
     }
+}
 }

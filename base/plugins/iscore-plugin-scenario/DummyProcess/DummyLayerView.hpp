@@ -6,8 +6,9 @@
 
 class QGraphicsItem;
 class QPainter;
+//class QQuickWidget;
 
-class ISCORE_LIB_DUMMYPROCESS_EXPORT DummyLayerView final : public LayerView
+class ISCORE_LIB_DUMMYPROCESS_EXPORT DummyLayerView final : public Process::LayerView
 {
     public:
         explicit DummyLayerView(QGraphicsItem* parent);
@@ -23,4 +24,5 @@ class ISCORE_LIB_DUMMYPROCESS_EXPORT DummyLayerView final : public LayerView
 
     private:
         QString m_text;
+        //QQuickWidget* m_widg{};
 };

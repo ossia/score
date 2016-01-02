@@ -8,8 +8,10 @@
 #include <Curve/Palette/CurvePoint.hpp>
 #include <iscore/tools/IdentifiedObject.hpp>
 #include <Curve/Segment/CurveSegmentFactoryKey.hpp>
-class CurveSegmentModel;
-struct CurveSegmentData;
+namespace Curve
+{
+class SegmentModel;
+struct SegmentData;
 /* TODO it would maybe faster to have them on the heap and use QPointer for
  * caching ...
 class SegmentId
@@ -54,19 +56,19 @@ class SegmentId
 
 
 // An object wrapper useful for saving / loading
-struct CurveSegmentData
+struct SegmentData
 {
-        CurveSegmentData() = default;
-        CurveSegmentData(const CurveSegmentData&) = default;
-        CurveSegmentData(CurveSegmentData&&) = default;
-        CurveSegmentData& operator=(const CurveSegmentData&) = default;
-        CurveSegmentData& operator=(CurveSegmentData&&) = default;
+        SegmentData() = default;
+        SegmentData(const SegmentData&) = default;
+        SegmentData(SegmentData&&) = default;
+        SegmentData& operator=(const SegmentData&) = default;
+        SegmentData& operator=(SegmentData&&) = default;
 
-        CurveSegmentData(
-                const Id<CurveSegmentModel>& i,
+        SegmentData(
+                const Id<SegmentModel>& i,
                 Curve::Point s, Curve::Point e,
-                const Id<CurveSegmentModel>& prev, const Id<CurveSegmentModel>&  foll,
-                const CurveSegmentFactoryKey& t, const QVariant& data):
+                const Id<SegmentModel>& prev, const Id<SegmentModel>&  foll,
+                const SegmentFactoryKey& t, const QVariant& data):
             id(i),
             start(s),
             end(e),
@@ -78,12 +80,12 @@ struct CurveSegmentData
 
         }
 
-        Id<CurveSegmentModel> id;
+        Id<SegmentModel> id;
 
         Curve::Point start, end;
-        Id<CurveSegmentModel> previous, following;
+        Id<SegmentModel> previous, following;
 
-        CurveSegmentFactoryKey type;
+        SegmentFactoryKey type;
         QVariant specificSegmentData;
 
         double x() const {
@@ -91,26 +93,24 @@ struct CurveSegmentData
         }
 };
 
-inline bool operator<(const CurveSegmentData& lhs, const CurveSegmentData& rhs)
+inline bool operator<(const SegmentData& lhs, const SegmentData& rhs)
 {
     return lhs.x() < rhs.x();
 }
 
-inline bool operator<=(const CurveSegmentData& lhs, const CurveSegmentData& rhs)
+inline bool operator<=(const SegmentData& lhs, const SegmentData& rhs)
 {
     return lhs.x() <= rhs.x();
 }
 
 
 
-Q_DECLARE_METATYPE(CurveSegmentData)
-
 
 // We don't want crashes on invalid ids search
 class CurveDataHash
 {
     public:
-        std::size_t operator()(const Id<CurveSegmentModel>& id) const
+        std::size_t operator()(const Id<SegmentModel>& id) const
         {
             if(!id)
                 return -1;
@@ -121,13 +121,13 @@ class CurveDataHash
 
 namespace bmi = boost::multi_index;
 using CurveSegmentMap = bmi::multi_index_container<
-    CurveSegmentData,
+    SegmentData,
     bmi::indexed_by<
         bmi::hashed_unique<
             bmi::member<
-                CurveSegmentData,
-                Id<CurveSegmentModel>,
-                &CurveSegmentData::id
+                SegmentData,
+                Id<SegmentModel>,
+                &SegmentData::id
             >, CurveDataHash
 
         >
@@ -154,19 +154,22 @@ class CurveSegmentCachingMap : private CurveSegmentMap
 };
 */
 using CurveSegmentOrderedMap = bmi::multi_index_container<
-CurveSegmentData,
+SegmentData,
 bmi::indexed_by<
 bmi::hashed_unique<
 bmi::member<
-CurveSegmentData,
-Id<CurveSegmentModel>,
-&CurveSegmentData::id
+SegmentData,
+Id<SegmentModel>,
+&SegmentData::id
 >, CurveDataHash
 >,
 bmi::ordered_unique<
-bmi::identity<CurveSegmentData>
+bmi::identity<SegmentData>
 >
 >
 >;
 
 enum Segments { Hashed, Ordered };
+}
+
+Q_DECLARE_METATYPE(Curve::SegmentData)

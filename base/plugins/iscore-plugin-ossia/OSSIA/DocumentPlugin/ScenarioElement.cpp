@@ -29,7 +29,7 @@
 #include <iscore/tools/NotifyingMap.hpp>
 #include <iscore/tools/SettableIdentifier.hpp>
 
-class Process;
+namespace Process { class ProcessModel; }
 class QObject;
 namespace OSSIA {
 class TimeProcess;
@@ -75,7 +75,7 @@ std::shared_ptr<OSSIA::Scenario> ScenarioElement::scenario() const
     return m_ossia_scenario;
 }
 
-Process& ScenarioElement::iscoreProcess() const
+Process::ProcessModel& ScenarioElement::iscoreProcess() const
 {
     return m_iscore_scenario;
 }

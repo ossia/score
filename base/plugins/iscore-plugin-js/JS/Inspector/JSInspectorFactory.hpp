@@ -14,18 +14,22 @@ namespace iscore {
 class Document;
 }  // namespace iscore
 
+namespace JS
+{
 
-class JSInspectorFactory final :
+class InspectorFactory final :
         public ProcessInspectorWidgetDelegateFactory
 {
     public:
-        JSInspectorFactory();
-        virtual ~JSInspectorFactory();
+        InspectorFactory();
+        virtual ~InspectorFactory();
 
     private:
         ProcessInspectorWidgetDelegate* make(
-                const Process&,
+                const Process::ProcessModel&,
                 const iscore::DocumentContext&,
                 QWidget* parent) const override;
-        bool matches(const Process&) const override;
+        bool matches(const Process::ProcessModel&) const override;
 };
+
+}

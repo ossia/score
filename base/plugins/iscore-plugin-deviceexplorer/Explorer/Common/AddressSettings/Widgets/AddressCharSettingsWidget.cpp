@@ -19,7 +19,7 @@ AddressCharSettingsWidget::AddressCharSettingsWidget(QWidget* parent)
     m_layout->insertRow(0, tr("Character"), m_valueEdit);
 }
 
-iscore::AddressSettings AddressCharSettingsWidget::getSettings() const
+Device::AddressSettings AddressCharSettingsWidget::getSettings() const
 {
     auto settings = getCommonSettings();
     auto txt = m_valueEdit->text();
@@ -28,9 +28,9 @@ iscore::AddressSettings AddressCharSettingsWidget::getSettings() const
 }
 
 void
-AddressCharSettingsWidget::setSettings(const iscore::AddressSettings &settings)
+AddressCharSettingsWidget::setSettings(const Device::AddressSettings &settings)
 {
     setCommonSettings(settings);
-    m_valueEdit->setText(iscore::convert::value<QChar>(settings.value));
+    m_valueEdit->setText(State::convert::value<QChar>(settings.value));
 }
 

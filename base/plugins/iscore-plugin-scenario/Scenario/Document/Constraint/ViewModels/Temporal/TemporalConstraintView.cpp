@@ -171,7 +171,7 @@ void TemporalConstraintView::paint(
 
     static const int fontSize = 12;
     QRectF labelRect{0,0, defaultWidth(), (-fontSize - 2.)};
-    auto f = ProcessFonts::Sans();
+    auto f = Process::Fonts::Sans();
     f.setPointSize(fontSize);
 
     painter->setFont(f);

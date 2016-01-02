@@ -36,8 +36,8 @@ class QtProperty
 
         auto set(const T& newval) const
         { return (m_obj.*m_set)(newval); }
-        auto set(const iscore::Value& newval) const
-        { return (m_obj.*m_set)(iscore::convert::value<T>(newval)); }
+        auto set(const State::Value& newval) const
+        { return (m_obj.*m_set)(State::convert::value<T>(newval)); }
 
         auto changed() const
         { return (m_obj.*m_changed); }
@@ -54,29 +54,29 @@ struct PropertyWrapper : public BaseCallbackWrapper
         Property property;
 
         PropertyWrapper(
-                const std::shared_ptr<OSSIA::Node>& node,
-                const std::shared_ptr<OSSIA::Address>& addr,
+                const std::shared_ptr<OSSIA::Node>& param_node,
+                const std::shared_ptr<OSSIA::Address>& param_addr,
                 Property prop,
                 QObject* context
                 ):
-            BaseCallbackWrapper{node, addr},
+            BaseCallbackWrapper{param_node, param_addr},
             property{prop}
         {
-            m_callbackIt = addr->addCallback([=] (const OSSIA::Value* v) {
+            callbackIt = addr->addCallback([=] (const OSSIA::Value* v) {
                 if(v)
-                    property.set(OSSIA::convert::ToValue(v));
+                    property.set(Ossia::convert::ToValue(v));
             });
 
             QObject::connect(&property.object(), property.changed_property(),
                     context, [=] {
-                auto newVal = iscore::Value::fromValue(property.get());
-                if(newVal != OSSIA::convert::ToValue(addr->getValue()))
+                auto newVal = State::Value::fromValue(property.get());
+                if(newVal != Ossia::convert::ToValue(addr->getValue()))
                     addr->pushValue(iscore::convert::toOSSIAValue(newVal));
             },
             Qt::QueuedConnection);
 
             addr->setValue(iscore::convert::toOSSIAValue(
-                                iscore::Value::fromValue(property.get())));
+                                State::Value::fromValue(property.get())));
         }
 };
 
@@ -87,7 +87,7 @@ auto make_property(
         Property prop,
         QObject* context)
 {
-    return new PropertyWrapper<Property>{node, addr, prop, context};
+    return std::make_unique<PropertyWrapper<Property>>(node, addr, prop, context);
 }
 
 template<typename T, typename Object, typename PropGet, typename PropSet, typename PropChanged>
@@ -100,12 +100,15 @@ auto add_property(
         PropChanged chgd,
         QObject* context)
 {
-    std::shared_ptr<OSSIA::Node> node = *n.emplaceAndNotify(n.children().end(), name);
-    auto addr = node->createAddress(OSSIA::convert::MatchingType<T>::val);
-    addr->setAccessMode(OSSIA::Address::AccessMode::BI);
+    constexpr const auto t = Ossia::convert::MatchingType<T>::val;
+    std::shared_ptr<OSSIA::Node> node = *n.emplaceAndNotify(
+                                            n.children().end(),
+                                            name,
+                                            t,
+                                            OSSIA::AccessMode::BI);
 
     return make_property(node,
-                         addr,
+                         node->getAddress(),
                          QtProperty<T, Object, PropGet, PropSet, PropChanged>{*obj, get, set, chgd},
                          context);
 }

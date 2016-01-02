@@ -19,8 +19,8 @@ class UpdateAddressSettings final : public iscore::SerializableCommand
         public:
           UpdateAddressSettings(
             Path<DeviceDocumentPlugin>&& device_tree,
-            const iscore::NodePath &node,
-            const iscore::AddressSettings& parameters);
+            const Device::NodePath &node,
+            const Device::AddressSettings& parameters);
 
 
         void undo() const override;
@@ -33,10 +33,10 @@ class UpdateAddressSettings final : public iscore::SerializableCommand
     private:
         Path<DeviceDocumentPlugin> m_devicesModel;
 
-        iscore::NodePath m_node;
+        Device::NodePath m_node;
 
-        iscore::AddressSettings m_oldParameters;
-        iscore::AddressSettings m_newParameters;
+        Device::AddressSettings m_oldParameters;
+        Device::AddressSettings m_newParameters;
 };
 }
 }

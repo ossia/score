@@ -1,13 +1,13 @@
 #include "StateComponent.hpp"
 #include "MetadataParameters.hpp"
 
-namespace OSSIA
+namespace Ossia
 {
 namespace LocalTree
 {
 
 StateComponent::StateComponent(
-        Node& parent,
+        OSSIA::Node& parent,
         const Id<iscore::Component>& id,
         StateModel& state,
         const StateComponent::system_t& doc,
@@ -21,14 +21,12 @@ StateComponent::StateComponent(
 
 const iscore::Component::Key&StateComponent::key() const
 {
-    static const Key k{"OSSIA::LocalTree::StateComponent"};
+    static const Key k{"Ossia::LocalTree::StateComponent"};
     return k;
 }
 
 StateComponent::~StateComponent()
 {
-    for(auto prop : m_properties)
-        delete prop;
 }
 
 }

@@ -1,7 +1,10 @@
 #pragma once
 #include <iscore/plugins/customfactory/StringFactoryKey.hpp>
 #include <QMetaType>
+namespace Curve
+{
+class SegmentTag{};
+using SegmentFactoryKey = StringKey<SegmentTag>;
+}
 
-class CurveSegmentTag{};
-using CurveSegmentFactoryKey = StringKey<CurveSegmentTag>;
-Q_DECLARE_METATYPE(CurveSegmentFactoryKey)
+Q_DECLARE_METATYPE(Curve::SegmentFactoryKey)

@@ -23,17 +23,19 @@ std::vector<std::unique_ptr<iscore::FactoryInterfaceBase>> iscore_plugin_js::fac
     return instantiate_factories<
             iscore::ApplicationContext,
     TL<
-        FW<ProcessFactory,
-             JSProcessFactory>,
+        FW<Process::ProcessFactory,
+             JS::ProcessFactory>,
         FW<ProcessInspectorWidgetDelegateFactory,
-             JSInspectorFactory>
+             JS::InspectorFactory>
     >>(ctx, key);
 }
 
 std::pair<const CommandParentFactoryKey, CommandGeneratorMap> iscore_plugin_js::make_commands()
 {
     using namespace JS;
-    std::pair<const CommandParentFactoryKey, CommandGeneratorMap> cmds{JSCommandFactoryName(), CommandGeneratorMap{}};
+    std::pair<const CommandParentFactoryKey, CommandGeneratorMap> cmds{
+        JS::CommandFactoryName(),
+                CommandGeneratorMap{}};
 
     using Types = TypeList<
 #include <iscore_plugin_js_commands.hpp>

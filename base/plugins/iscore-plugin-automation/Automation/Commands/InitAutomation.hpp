@@ -10,19 +10,21 @@ class DataStreamInput;
 class DataStreamOutput;
 /** Note : this command is for internal use only, in recording **/
 
-class AutomationModel;
+namespace Automation
+{
+class ProcessModel;
 
 class ISCORE_PLUGIN_AUTOMATION_EXPORT InitAutomation final : public iscore::SerializableCommand
 {
-        ISCORE_COMMAND_DECL(AutomationCommandFactoryName(), InitAutomation, "InitAutomation")
+        ISCORE_COMMAND_DECL(CommandFactoryName(), InitAutomation, "InitAutomation")
     public:
            // Note : the segments shall be sorted from start to end.
         InitAutomation(
-                Path<AutomationModel>&& path,
-                const iscore::Address& newaddr,
+                Path<ProcessModel>&& path,
+                const State::Address& newaddr,
                 double newmin,
                 double newmax,
-                std::vector<CurveSegmentData>&& segments);
+                std::vector<Curve::SegmentData>&& segments);
 
     public:
         void undo() const override;
@@ -33,9 +35,10 @@ class ISCORE_PLUGIN_AUTOMATION_EXPORT InitAutomation final : public iscore::Seri
         void deserializeImpl(DataStreamOutput &) override;
 
     private:
-        Path<AutomationModel> m_path;
-        iscore::Address m_addr;
+        Path<ProcessModel> m_path;
+        State::Address m_addr;
         double m_newMin;
         double m_newMax;
-        std::vector<CurveSegmentData> m_segments;
+        std::vector<Curve::SegmentData> m_segments;
 };
+}

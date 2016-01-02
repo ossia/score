@@ -2,39 +2,54 @@
 #include "SpaceProcess.hpp"
 #include "SpaceLayerPresenter.hpp"
 #include "SpaceLayerView.hpp"
-const ProcessFactoryKey& SpaceProcessFactory::key_impl() const
+
+namespace Space
 {
-    return SpaceProcessMetadata::factoryKey();
+const ProcessFactoryKey& ProcessFactory::key_impl() const
+{
+    return ProcessMetadata::factoryKey();
 }
 
-QString SpaceProcessFactory::prettyName() const
+QString ProcessFactory::prettyName() const
 {
     return "Space Process";
 }
 
-Process *SpaceProcessFactory::makeModel(const TimeValue &duration, const Id<Process> &id, QObject *parent)
+Process::ProcessModel *ProcessFactory::makeModel(
+        const TimeValue &duration,
+        const Id<Process::ProcessModel> &id,
+        QObject *parent)
 {
-    return new SpaceProcess{duration, id, parent};
+    auto& doc = iscore::IDocument::documentContext(*parent);
+    return new ProcessModel{doc, duration, id, parent};
 }
 
-QByteArray SpaceProcessFactory::makeStaticLayerConstructionData() const
+QByteArray ProcessFactory::makeStaticLayerConstructionData() const
 {
     return {};
 }
 
-Process *SpaceProcessFactory::loadModel(const VisitorVariant &, QObject *parent)
+Process::ProcessModel *ProcessFactory::loadModel(
+        const VisitorVariant &,
+        QObject *parent)
 {
     return nullptr;
 }
 
-LayerPresenter *SpaceProcessFactory::makeLayerPresenter(const LayerModel & model, LayerView * view, QObject *parent)
+Process::LayerPresenter *ProcessFactory::makeLayerPresenter(
+        const Process::LayerModel & model,
+        Process::LayerView * view,
+        QObject *parent)
 {
     // TODO check with panel proxy
     return new SpaceLayerPresenter{model, view, parent};
 }
 
-LayerView *SpaceProcessFactory::makeLayerView(const LayerModel &layer, QGraphicsItem* parent)
+Process::LayerView *ProcessFactory::makeLayerView(
+        const Process::LayerModel &layer,
+        QGraphicsItem* parent)
 {
     // TODO check with panel proxy
     return new SpaceLayerView{parent};
+}
 }

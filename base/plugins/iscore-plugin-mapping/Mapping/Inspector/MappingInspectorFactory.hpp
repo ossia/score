@@ -10,7 +10,7 @@ class MappingInspectorFactory final : public ProcessInspectorWidgetDelegateFacto
 
     private:
         ProcessInspectorWidgetDelegate* make(
-                const Process& process,
+                const Process::ProcessModel& process,
                 const iscore::DocumentContext& doc,
                 QWidget* parent) const override
         {
@@ -19,7 +19,7 @@ class MappingInspectorFactory final : public ProcessInspectorWidgetDelegateFacto
 
         }
 
-        bool matches(const Process& process) const override
+        bool matches(const Process::ProcessModel& process) const override
         {
             return dynamic_cast<const MappingModel*>(&process);
         }

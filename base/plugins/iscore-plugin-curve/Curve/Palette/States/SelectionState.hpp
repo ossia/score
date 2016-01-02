@@ -15,13 +15,13 @@ class SelectionState : public CommonSelectionState
         QPointF m_movePoint;
 
         const Curve::ToolPalette& m_parentSM;
-        CurveView& m_view;
+        View& m_view;
 
     public:
         SelectionState(
                 iscore::SelectionStack& stack,
                 const Curve::ToolPalette& parentSM,
-                CurveView& view,
+                View& view,
                 QState* parent):
             CommonSelectionState{stack, &view, parent},
             m_parentSM{parentSM},

@@ -2,9 +2,13 @@
 #include <iscore/tools/SettableIdentifier.hpp>
 #include <iscore/plugins/customfactory/FactoryInterface.hpp>
 #include <src/Area/AreaFactoryKey.hpp>
+#include <src/SpaceContext.hpp>
 #include <QObject>
 class QGraphicsItem;
 class SpaceModel;
+
+namespace Space
+{
 class AreaModel;
 class AreaPresenter;
 
@@ -22,8 +26,8 @@ class AreaFactory : public iscore::GenericFactoryInterface<AreaFactoryKey>
 
         // Model
         virtual AreaModel* makeModel(
-                const QString& generic_formula,
-                const SpaceModel& space,
+                const QStringList& generic_formula,
+                const Space::AreaContext& space,
                 const Id<AreaModel>&,
                 QObject* parent) const = 0;
 
@@ -37,7 +41,8 @@ class AreaFactory : public iscore::GenericFactoryInterface<AreaFactoryKey>
         virtual QGraphicsItem* makeView(QGraphicsItem* parent) const = 0;
 
         // Formula
-        virtual QString generic_formula() const = 0;
+        virtual QStringList generic_formula() const = 0;
 
         // Widget ?
 };
+}

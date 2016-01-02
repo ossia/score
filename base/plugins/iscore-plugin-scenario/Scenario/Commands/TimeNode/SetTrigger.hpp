@@ -16,7 +16,7 @@ namespace Scenario
         {
                 ISCORE_COMMAND_DECL(ScenarioCommandFactoryName(), SetTrigger, "Change a trigger")
             public:
-                SetTrigger(Path<TimeNodeModel>&& timeNodePath, iscore::Trigger trigger);
+                SetTrigger(Path<TimeNodeModel>&& timeNodePath, State::Trigger trigger);
                 ~SetTrigger();
 
                 void undo() const override;
@@ -28,8 +28,8 @@ namespace Scenario
 
             private:
                 Path<TimeNodeModel> m_path;
-                iscore::Trigger m_trigger;
-                iscore::Trigger m_previousTrigger;
+                State::Trigger m_trigger;
+                State::Trigger m_previousTrigger;
         };
     }
 }

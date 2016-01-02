@@ -23,16 +23,16 @@ const ProtocolFactoryKey&MIDIProtocolFactory::key_impl() const
 }
 
 DeviceInterface*MIDIProtocolFactory::makeDevice(
-        const iscore::DeviceSettings& settings,
+        const Device::DeviceSettings& settings,
         const iscore::DocumentContext& ctx)
 {
     return new MIDIDevice{settings};
 }
 
-const iscore::DeviceSettings& MIDIProtocolFactory::defaultSettings() const
+const Device::DeviceSettings& MIDIProtocolFactory::defaultSettings() const
 {
-    static const iscore::DeviceSettings settings = [&] () {
-        iscore::DeviceSettings s;
+    static const Device::DeviceSettings settings = [&] () {
+        Device::DeviceSettings s;
         s.protocol = key_impl();
         s.name = "Midi";
         MIDISpecificSettings specif;
@@ -57,7 +57,7 @@ void MIDIProtocolFactory::serializeProtocolSpecificSettings(const QVariant& data
     serializeProtocolSpecificSettings_T<MIDISpecificSettings>(data, visitor);
 }
 
-bool MIDIProtocolFactory::checkCompatibility(const iscore::DeviceSettings& a, const iscore::DeviceSettings& b) const
+bool MIDIProtocolFactory::checkCompatibility(const Device::DeviceSettings& a, const Device::DeviceSettings& b) const
 {
     return a.name != b.name;
 }

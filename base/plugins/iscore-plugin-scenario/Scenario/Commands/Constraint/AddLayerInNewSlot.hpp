@@ -10,8 +10,8 @@
 class ConstraintModel;
 class DataStreamInput;
 class DataStreamOutput;
-class LayerModel;
-class Process;
+namespace Process { class LayerModel; }
+namespace Process { class ProcessModel; }
 class RackModel;
 class SlotModel;
 
@@ -28,12 +28,12 @@ namespace Scenario
             public:
                 AddLayerInNewSlot(
                     Path<ConstraintModel>&& constraintPath,
-                    const Id<Process>& process);
+                    const Id<Process::ProcessModel>& process);
 
                 void undo() const override;
                 void redo() const override;
 
-                Id<Process> processId() const
+                Id<Process::ProcessModel> processId() const
                 {
                     return m_processId;
                 }
@@ -47,11 +47,11 @@ namespace Scenario
 
                 bool m_existingRack {};
 
-                Id<Process> m_processId {};
+                Id<Process::ProcessModel> m_processId {};
                 Id<RackModel> m_createdRackId {};
                 Id<SlotModel> m_createdSlotId {};
-                Id<LayerModel> m_createdLayerId {};
-                Id<Process> m_sharedProcessModelId {};
+                Id<Process::LayerModel> m_createdLayerId {};
+                Id<Process::ProcessModel> m_sharedProcessModelId {};
 
                 QByteArray m_processData;
         };

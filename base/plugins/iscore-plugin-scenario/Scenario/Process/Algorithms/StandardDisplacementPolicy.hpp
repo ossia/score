@@ -165,7 +165,7 @@ class CommonDisplacementPolicy
                         Deserializer<DataStream>{savedConstraintData.first.second},
                         &constraint}; // Temporary parent
 
-                    std::map<const Process*, Process*> processPairs;
+                    std::map<const Process::ProcessModel*, Process::ProcessModel*> processPairs;
 
                     // Clone the processes
                     for(const auto& sourceproc : src_constraint.processes)
@@ -192,7 +192,7 @@ class CommonDisplacementPolicy
                             for(const auto& lm : source.layers)
                             {
                                 // We can safely reuse the same id since it's in a different slot.
-                                Process* proc = processPairs[&lm.processModel()];
+                                Process::ProcessModel* proc = processPairs[&lm.processModel()];
                                 // TODO harmonize the order of parameters (source first, then new id)
                                 target.layers.add(proc->cloneLayer(lm.id(), lm, &target));
                             }
