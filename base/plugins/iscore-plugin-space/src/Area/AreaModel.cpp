@@ -36,32 +36,43 @@ void AreaModel::setSpaceMapping(const GiNaC::exmap& mapping)
 
 void AreaModel::setParameterMapping(const AreaModel::ParameterMap &parameter_mapping)
 {
+    using namespace GiNaC;
     m_parameterMap = parameter_mapping;
 
-    GiNaC::exmap mapping;
+    ValMap mapping;
     for(const auto& elt : m_parameterMap)
     {
+        std::string name = ex_to<symbol>(elt.first).get_name();
         if(elt.second.address.device.isEmpty()) // We use the value
         {
-            mapping[elt.first] = State::convert::value<double>(elt.second.value);
+            mapping.insert(
+                        std::make_pair(
+                            name,
+                            State::convert::value<double>(elt.second.value)));
         }
         else // We fetch it from the device tree
         {
             Device::Node* n = Device::try_getNodeFromAddress(m_context.devices.rootNode(), elt.second.address);
             if(n)
             {
-                mapping[elt.first] = State::convert::value<double>(n->get<Device::AddressSettings>().value);
+                mapping.insert(
+                            std::make_pair(
+                                name,
+                                State::convert::value<double>(n->get<Device::AddressSettings>().value)));
             }
             else
             {
-                mapping[elt.first] = State::convert::value<double>(elt.second.value);
+                mapping.insert(
+                            std::make_pair(
+                                name,
+                                State::convert::value<double>(elt.second.value)));
             }
         }
     }
     setCurrentMapping(mapping);
 }
 
-void AreaModel::setCurrentMapping(const GiNaC::exmap& map)
+void AreaModel::setCurrentMapping(const ValMap& map)
 {
     using namespace GiNaC;
 
@@ -69,19 +80,16 @@ void AreaModel::setCurrentMapping(const GiNaC::exmap& map)
     m_currentParameterMap = map;
     for(auto sym : map)
     {
-        emit currentSymbolChanged(
-                ex_to<symbol>(sym.first),
-                ex_to<numeric>(sym.second).to_double());
+        emit currentSymbolChanged(sym.first, sym.second);
     }
 
     emit areaChanged(map);
 }
 
 void AreaModel::updateCurrentMapping(
-        const GiNaC::symbol& sym,
+        std::string sym,
         double value)
 {
-    ISCORE_TODO;
     m_currentParameterMap.at(sym) = value;
     emit currentSymbolChanged(sym, value);
     emit areaChanged(m_currentParameterMap);

@@ -1,6 +1,7 @@
 #pragma once
 #include <iscore/tools/NamedObject.hpp>
 #include <iscore/tools/SettableIdentifier.hpp>
+#include <src/Area/ValMap.hpp>
 #include <ginac/ex.h>
 class QGraphicsItem;
 
@@ -22,7 +23,7 @@ class AreaPresenter : public NamedObject
         const Id<AreaModel>& id() const;
 
         virtual void update() = 0;
-        virtual void on_areaChanged(GiNaC::exmap) = 0;
+        virtual void on_areaChanged(ValMap) = 0;
 
         // Useful for subclasses
         template<typename T>

@@ -13,13 +13,11 @@ PointerAreaPresenter::PointerAreaPresenter(
 {
 }
 
-void PointerAreaPresenter::on_areaChanged(GiNaC::exmap mapping)
+void PointerAreaPresenter::on_areaChanged(ValMap mapping)
 {
-    const PointerAreaModel& m = model(this);
-    const auto& pm = m.parameterMapping();
     view(this).update(
-            GiNaC::ex_to<GiNaC::numeric>(mapping.at(pm["x0"].first)).to_double(),
-            GiNaC::ex_to<GiNaC::numeric>(mapping.at(pm["y0"].first)).to_double());
+                mapping.at("x0"),
+                mapping.at("y0"));
 }
 
 

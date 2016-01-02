@@ -22,13 +22,13 @@ void GenericAreaPresenter::update()
 }
 
 // Il vaut mieux faire comme dans les courbes ou le curvepresenter s'occupe des segments....
-void GenericAreaPresenter::on_areaChanged(GiNaC::exmap map)
+void GenericAreaPresenter::on_areaChanged(ValMap map)
 {
     spacelib::square_renderer<QPointF, RectDevice> renderer;
     renderer.size = {800, 600};
 
     // Convert our dynamic space to a static one for rendering
-    renderer.render(model(this).valuedArea(map), spacelib::toStaticSpace<2>(model(this).space().space()));
+    ISCORE_TODO; //renderer.render(model(this).valuedArea(map), spacelib::toStaticSpace<2>(model(this).space().space()));
 
     view(this).rects = renderer.render_device.rects;
     view(this).update();

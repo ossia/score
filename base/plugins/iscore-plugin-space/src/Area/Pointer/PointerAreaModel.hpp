@@ -23,11 +23,9 @@ class PointerAreaModel : public AreaModel
         };
 
         static auto mapToData(
-                GiNaC::exmap map,
-                const ParameterMap& pm)
+                const ValMap& map)
         {
-            return values{GiNaC::ex_to<GiNaC::numeric>(map.at(pm["x0"].first)).to_double(),
-                        GiNaC::ex_to<GiNaC::numeric>(map.at(pm["y0"].first)).to_double()};
+            return values{map.at("x0"), map.at("y0")};
         }
 
         PointerAreaModel(
