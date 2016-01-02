@@ -1,19 +1,19 @@
 #pragma once
 #include <Process/LayerModel.hpp>
 class SpaceProcessPanelProxy;
-class SpaceLayerModel;
-class SpaceProcessProxyLayerModel : public LayerModel
+namespace Process { class LayerModel; }
+class SpaceProcessProxyLayerModel : public Process::LayerModel
 {
         Q_OBJECT
     public:
         SpaceProcessProxyLayerModel(
-                const Id<LayerModel>&,
-                const SpaceLayerModel& model,
+                const Id<Process::LayerModel>&,
+                const Process::LayerModel& model,
                 QObject* parent);
 
-        void serialize(const VisitorVariant &) const;
-        LayerModelPanelProxy* make_panelProxy(QObject *parent) const;
+        void serialize(const VisitorVariant &) const override;
+        Process::LayerModelPanelProxy* make_panelProxy(QObject *parent) const override;
 
     private:
-        const SpaceLayerModel& m_source;
+        const Process::LayerModel& m_source;
 };

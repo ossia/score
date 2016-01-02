@@ -1,11 +1,11 @@
 #include "DummyLayerPanelProxy.hpp"
 #include <Process/LayerModelPanelProxy.hpp>
 
-class LayerModel;
+namespace Process { class LayerModel; }
 class QObject;
 
 DummyLayerPanelProxy::DummyLayerPanelProxy(
-        const LayerModel& vm,
+        const Process::LayerModel& vm,
         QObject* parent):
     LayerModelPanelProxy{parent},
     m_layer{vm}
@@ -13,7 +13,7 @@ DummyLayerPanelProxy::DummyLayerPanelProxy(
 
 }
 
-const LayerModel& DummyLayerPanelProxy::layer()
+const Process::LayerModel& DummyLayerPanelProxy::layer()
 {
     return m_layer;
 }

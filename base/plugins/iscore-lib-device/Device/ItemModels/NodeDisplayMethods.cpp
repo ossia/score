@@ -12,17 +12,17 @@
 #include <State/Value.hpp>
 #include <State/ValueConversion.hpp>
 
-namespace DeviceExplorer
+namespace Device
 {
 // TODO boost::visitor ?
 
-QVariant nameColumnData(const iscore::Node& node, int role)
+QVariant nameColumnData(const Device::Node& node, int role)
 {
     static const QFont italicFont{[] () { QFont f; f.setItalic(true); return f; }()};
 
     using namespace iscore;
 
-    const IOType ioType = node.get<AddressSettings>().ioType;
+    const Device::IOType ioType = node.get<Device::AddressSettings>().ioType;
     switch(role)
     {
         case Qt::DisplayRole:
@@ -47,7 +47,7 @@ QVariant nameColumnData(const iscore::Node& node, int role)
     }
 }
 
-QVariant deviceNameColumnData(const iscore::Node& node, DeviceInterface& dev, int role)
+QVariant deviceNameColumnData(const Device::Node& node, DeviceInterface& dev, int role)
 {
     static const QFont italicFont{[] () { QFont f; f.setItalic(true); return f; }()};
 
@@ -68,7 +68,7 @@ QVariant deviceNameColumnData(const iscore::Node& node, DeviceInterface& dev, in
     }
 }
 
-QVariant valueColumnData(const iscore::Node& node, int role)
+QVariant valueColumnData(const Device::Node& node, int role)
 {
     using namespace iscore;
     if(node.is<DeviceSettings>())
@@ -77,14 +77,14 @@ QVariant valueColumnData(const iscore::Node& node, int role)
     if(role == Qt::DisplayRole || role == Qt::EditRole)
     {
         const auto& val = node.get<AddressSettings>().value;
-        if(val.val.is<iscore::tuple_t>())
+        if(val.val.is<State::tuple_t>())
         {
             // TODO a nice editor for tuples.
-            return iscore::convert::toPrettyString(val);
+            return State::convert::toPrettyString(val);
         }
         else
         {
-            return iscore::convert::value<QVariant>(val);
+            return State::convert::value<QVariant>(val);
         }
 
     }
@@ -101,7 +101,7 @@ QVariant valueColumnData(const iscore::Node& node, int role)
     return {};
 }
 
-QVariant GetColumnData(const iscore::Node& node, int role)
+QVariant GetColumnData(const Device::Node& node, int role)
 {
     using namespace iscore;
     if(node.is<DeviceSettings>())
@@ -132,7 +132,7 @@ QVariant GetColumnData(const iscore::Node& node, int role)
 
     return {};
 }
-QVariant SetColumnData(const iscore::Node& node, int role)
+QVariant SetColumnData(const Device::Node& node, int role)
 {
     using namespace iscore;
     if(node.is<DeviceSettings>())
@@ -163,7 +163,7 @@ QVariant SetColumnData(const iscore::Node& node, int role)
     return {};
 }
 
-QVariant minColumnData(const iscore::Node& node, int role)
+QVariant minColumnData(const Device::Node& node, int role)
 {
     using namespace iscore;
     if(node.is<DeviceSettings>())
@@ -171,13 +171,13 @@ QVariant minColumnData(const iscore::Node& node, int role)
 
     if(role == Qt::DisplayRole || role == Qt::EditRole)
     {
-        return iscore::convert::value<QVariant>(node.get<AddressSettings>().domain.min);
+        return State::convert::value<QVariant>(node.get<AddressSettings>().domain.min);
     }
 
     return {};
 }
 
-QVariant maxColumnData(const iscore::Node& node, int role)
+QVariant maxColumnData(const Device::Node& node, int role)
 {
     using namespace iscore;
     if(node.is<DeviceSettings>())
@@ -185,7 +185,7 @@ QVariant maxColumnData(const iscore::Node& node, int role)
 
     if(role == Qt::DisplayRole || role == Qt::EditRole)
     {
-        return iscore::convert::value<QVariant>(node.get<AddressSettings>().domain.max);
+        return State::convert::value<QVariant>(node.get<AddressSettings>().domain.max);
     }
 
     return {};

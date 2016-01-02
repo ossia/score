@@ -7,8 +7,6 @@
 
 #include <Scenario/Palette/Tool.hpp>
 
-class LoopPresenter;
-class LoopView;
 class MoveConstraintInBaseScenario_StateWrapper;
 class MoveEventInBaseScenario_StateWrapper;
 class MoveTimeNodeInBaseScenario_StateWrapper;
@@ -20,19 +18,21 @@ struct LayerContext;
 namespace Loop
 {
 class ProcessModel;
-}
-class LoopToolPalette final : public GraphicsSceneToolPalette
+class LayerPresenter;
+class LayerView;
+
+class ToolPalette final : public GraphicsSceneToolPalette
 {
     public:
-        LoopToolPalette(
+        ToolPalette(
                 const Loop::ProcessModel& model,
-                LoopPresenter& presenter,
+                LayerPresenter& presenter,
                 LayerContext& ctx,
-                LoopView& view);
+                LayerView& view);
 
-        LoopView& view() const;
+        LayerView& view() const;
 
-        const LoopPresenter& presenter() const;
+        const LayerPresenter& presenter() const;
         const Loop::ProcessModel& model() const;
         const LayerContext& context() const;
         const Scenario::EditionSettings& editionSettings() const;
@@ -48,15 +48,15 @@ class LoopToolPalette final : public GraphicsSceneToolPalette
         Scenario::Point ScenePointToScenarioPoint(QPointF point);
 
         const Loop::ProcessModel& m_model;
-        LoopPresenter& m_presenter;
+        LayerPresenter& m_presenter;
         LayerContext& m_context;
-        LoopView& m_view;
+        LayerView& m_view;
         const Scenario::EditionSettings& m_editionSettings;
 
         Scenario::SmartTool<
             Loop::ProcessModel,
-            LoopToolPalette,
-            LoopView,
+            ToolPalette,
+            LayerView,
             MoveConstraintInBaseScenario_StateWrapper,
             MoveEventInBaseScenario_StateWrapper,
             MoveTimeNodeInBaseScenario_StateWrapper
@@ -64,9 +64,9 @@ class LoopToolPalette final : public GraphicsSceneToolPalette
 
         ToolPaletteInputDispatcher<
                Scenario::Tool,
-               LoopToolPalette,
+               ToolPalette,
                LayerContext,
-               LoopPresenter
+               LayerPresenter
             > m_inputDisp;
 };
-
+}

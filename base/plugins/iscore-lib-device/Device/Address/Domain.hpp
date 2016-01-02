@@ -1,18 +1,18 @@
 #pragma once
 #include <State/Value.hpp>
 
-namespace iscore
+namespace Device
 {
 struct Domain
 {
-        Value min;
-        Value max;
-        ValueList values;
+        State::Value min;
+        State::Value max;
+        State::ValueList values;
 };
 
 inline bool operator==(
-        const iscore::Domain& lhs,
-        const iscore::Domain& rhs)
+        const Device::Domain& lhs,
+        const Device::Domain& rhs)
 {
     return lhs.min == rhs.min && lhs.max == rhs.max && lhs.values == rhs.values;
 }

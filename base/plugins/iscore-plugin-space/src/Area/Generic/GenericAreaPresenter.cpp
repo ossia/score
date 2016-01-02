@@ -4,6 +4,9 @@
 
 #include "src/Space/SpaceModel.hpp"
 #include <Space/square_renderer.hpp>
+
+namespace Space
+{
 GenericAreaPresenter::GenericAreaPresenter(
         GenericAreaView* view,
         const GenericAreaModel& model,
@@ -19,14 +22,15 @@ void GenericAreaPresenter::update()
 }
 
 // Il vaut mieux faire comme dans les courbes ou le curvepresenter s'occupe des segments....
-void GenericAreaPresenter::on_areaChanged()
+void GenericAreaPresenter::on_areaChanged(GiNaC::exmap map)
 {
     spacelib::square_renderer<QPointF, RectDevice> renderer;
     renderer.size = {800, 600};
 
     // Convert our dynamic space to a static one for rendering
-    renderer.render(model(this).valuedArea(), spacelib::toStaticSpace<2>(model(this).space().space()));
+    renderer.render(model(this).valuedArea(map), spacelib::toStaticSpace<2>(model(this).space().space()));
 
     view(this).rects = renderer.render_device.rects;
     view(this).update();
+}
 }

@@ -11,21 +11,22 @@
 
 class QObject;
 #include <iscore/tools/SettableIdentifier.hpp>
-
-GammaCurveSegmentModel::GammaCurveSegmentModel(
-        const CurveSegmentData& dat,
+namespace Curve
+{
+GammaSegment::GammaSegment(
+        const SegmentData& dat,
         QObject* parent):
-    CurveSegmentModel{dat, parent},
-    gamma{dat.specificSegmentData.value<GammaCurveSegmentData>().gamma}
+    SegmentModel{dat, parent},
+    gamma{dat.specificSegmentData.value<GammaSegmentData>().gamma}
 {
 
 }
 
-CurveSegmentModel*GammaCurveSegmentModel::clone(
-        const Id<CurveSegmentModel>& id,
+SegmentModel*GammaSegment::clone(
+        const Id<SegmentModel>& id,
         QObject* parent) const
 {
-    auto cs = new GammaCurveSegmentModel{id, parent};
+    auto cs = new GammaSegment{id, parent};
     cs->setStart(this->start());
     cs->setEnd(this->end());
 
@@ -34,28 +35,28 @@ CurveSegmentModel*GammaCurveSegmentModel::clone(
     return cs;
 }
 
-const CurveSegmentFactoryKey& GammaCurveSegmentModel::key() const
+const SegmentFactoryKey& GammaSegment::key() const
 {
-    static const CurveSegmentFactoryKey name{"Gamma"};
+    static const SegmentFactoryKey name{"Gamma"};
     return name;
 }
 
-void GammaCurveSegmentModel::serialize(const VisitorVariant& vis) const
+void GammaSegment::serialize(const VisitorVariant& vis) const
 {
     serialize_dyn(vis, *this);
 }
 
-void GammaCurveSegmentModel::on_startChanged()
+void GammaSegment::on_startChanged()
 {
     emit dataChanged();
 }
 
-void GammaCurveSegmentModel::on_endChanged()
+void GammaSegment::on_endChanged()
 {
     emit dataChanged();
 }
 
-void GammaCurveSegmentModel::updateData(int numInterp) const
+void GammaSegment::updateData(int numInterp) const
 {
     if(std::size_t(numInterp + 1) != m_data.size())
         m_valid = false;
@@ -75,20 +76,21 @@ void GammaCurveSegmentModel::updateData(int numInterp) const
     }
 }
 
-double GammaCurveSegmentModel::valueAt(double x) const
+double GammaSegment::valueAt(double x) const
 {
     ISCORE_TODO;
     return -1;
 }
 
-void GammaCurveSegmentModel::setVerticalParameter(double p)
+void GammaSegment::setVerticalParameter(double p)
 {
     gamma = p;
     emit dataChanged();
 }
 
 
-boost::optional<double> GammaCurveSegmentModel::verticalParameter() const
+boost::optional<double> GammaSegment::verticalParameter() const
 {
     return gamma;
+}
 }

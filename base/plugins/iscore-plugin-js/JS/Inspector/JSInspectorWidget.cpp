@@ -15,8 +15,9 @@ class QWidget;
 namespace iscore {
 class Document;
 }  // namespace iscore
-
-JSInspectorWidget::JSInspectorWidget(
+namespace JS
+{
+InspectorWidget::InspectorWidget(
         const JS::ProcessModel& JSModel,
         const iscore::DocumentContext& doc,
         QWidget* parent) :
@@ -29,10 +30,10 @@ JSInspectorWidget::JSInspectorWidget(
 
     m_edit = new NotifyingPlainTextEdit{JSModel.script()};
     connect(m_edit, &NotifyingPlainTextEdit::editingFinished,
-            this, &JSInspectorWidget::on_textChange);
+            this, &InspectorWidget::on_textChange);
 
     con(process(), &JS::ProcessModel::scriptChanged,
-            this, &JSInspectorWidget::on_modelChanged);
+            this, &InspectorWidget::on_modelChanged);
 
     m_script = m_edit->toPlainText();
 
@@ -40,13 +41,13 @@ JSInspectorWidget::JSInspectorWidget(
     this->setLayout(lay);
 }
 
-void JSInspectorWidget::on_modelChanged(const QString& script)
+void InspectorWidget::on_modelChanged(const QString& script)
 {
     m_script = script;
     m_edit->setPlainText(script);
 }
 
-void JSInspectorWidget::on_textChange(const QString& newTxt)
+void InspectorWidget::on_textChange(const QString& newTxt)
 {
     if(newTxt == m_script)
         return;
@@ -54,4 +55,5 @@ void JSInspectorWidget::on_textChange(const QString& newTxt)
     auto cmd = new JS::EditScript{process(), newTxt};
 
     m_dispatcher.submitCommand(cmd);
+}
 }

@@ -17,7 +17,7 @@ namespace Scenario
                          const Scenario::ScenarioModel& scenario,
                          const Id<EventModel>& ev,
                          double ypos,
-                         iscore::MessageList&& stateData)
+                         State::MessageList&& stateData)
                 {
                     auto createStateCmd =  new CreateState{scenario, ev, ypos};
 

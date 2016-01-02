@@ -1,19 +1,25 @@
 #pragma once
 #include <QtWidgets>
 #include <iscore/command/Dispatchers/CommandDispatcher.hpp>
+#include <nano_observer.hpp>
 
 namespace iscore {
 struct DocumentContext;
 }
-class SpaceProcess;
+namespace Space
+{
+class ProcessModel;
 class AreaWidget;
-class AreaTab : public QWidget
+class AreaModel;
+class AreaTab :
+        public QWidget,
+        public Nano::Observer
 {
         Q_OBJECT
     public:
         AreaTab(
                 const iscore::DocumentContext& ctx,
-                const SpaceProcess &space,
+                const Space::ProcessModel &space,
                 QWidget* parent);
 
     private slots:
@@ -22,8 +28,11 @@ class AreaTab : public QWidget
 
     private:
         void rebuildList();
+        void on_areaAdded(const AreaModel&);
+        void on_areaRemoved(const AreaModel&);
 
-        const SpaceProcess &m_space;
+        const Space::ProcessModel &m_space;
         QListWidget* m_listWidget{};
         AreaWidget* m_areaWidget{};
 };
+}

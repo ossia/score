@@ -1,7 +1,7 @@
 #include "ScenarioComponentFactory.hpp"
 #include "ScenarioComponent.hpp"
 
-namespace OSSIA
+namespace Ossia
 {
 namespace LocalTree
 {
@@ -14,7 +14,7 @@ ScenarioComponentFactory::key_impl() const
 }
 
 bool ScenarioComponentFactory::matches(
-        Process& p,
+        Process::ProcessModel& p,
         const DocumentPlugin&,
         const iscore::DocumentContext&) const
 {
@@ -25,7 +25,7 @@ ProcessComponent*
 ScenarioComponentFactory::make(
         const Id<iscore::Component>& id,
         OSSIA::Node& parent,
-        Process& proc,
+        Process::ProcessModel& proc,
         const DocumentPlugin& doc,
         const iscore::DocumentContext& ctx,
         QObject* paren_objt) const

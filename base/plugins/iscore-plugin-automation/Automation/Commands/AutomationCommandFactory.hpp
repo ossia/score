@@ -1,4 +1,7 @@
 #pragma once
 #include <iscore/command/SerializableCommand.hpp>
 
-const CommandParentFactoryKey& AutomationCommandFactoryName();
+namespace Automation
+{
+const CommandParentFactoryKey& CommandFactoryName();
+}

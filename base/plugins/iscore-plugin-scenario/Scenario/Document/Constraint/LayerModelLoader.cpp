@@ -12,13 +12,15 @@
 #include <iscore/tools/SettableIdentifier.hpp>
 
 template <typename VisitorType> class Visitor;
-
+namespace Process
+{
 template<>
-LayerModel* createLayerModel(Deserializer<DataStream>& deserializer,
+LayerModel* createLayerModel(
+        Deserializer<DataStream>& deserializer,
         const ConstraintModel& constraint,
         QObject* parent)
 {
-    Id<Process> sharedProcessId;
+    Id<ProcessModel> sharedProcessId;
     deserializer.m_stream >> sharedProcessId;
 
     auto& process = constraint.processes.at(sharedProcessId);
@@ -38,9 +40,11 @@ LayerModel* createLayerModel(
         QObject* parent)
 {
     auto& process = constraint.processes.at(
-                fromJsonValue<Id<Process>>(deserializer.m_obj["SharedProcessId"]));
+                fromJsonValue<Id<ProcessModel>>(deserializer.m_obj["SharedProcessId"]));
     auto viewmodel = process.loadLayer(deserializer.toVariant(),
                                             parent);
 
     return viewmodel;
+}
+
 }

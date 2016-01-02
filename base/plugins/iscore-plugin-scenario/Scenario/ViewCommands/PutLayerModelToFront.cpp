@@ -8,7 +8,7 @@
 
 PutLayerModelToFront::PutLayerModelToFront(
         Path<SlotModel>&& slotPath,
-        const Id<LayerModel>& pid):
+        const Id<Process::LayerModel>& pid):
     m_slotPath{std::move(slotPath)},
     m_pid{pid}
 {

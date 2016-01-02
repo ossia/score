@@ -7,38 +7,38 @@
 #include <iscore/serialization/DataStreamVisitor.hpp>
 #include <iscore/serialization/JSONVisitor.hpp>
 
-class LayerModelPanelProxy;
+namespace Process { class LayerModelPanelProxy; }
 class QObject;
 class TemporalConstraintViewModel;
 #include <iscore/tools/SettableIdentifier.hpp>
 
 namespace Loop{
     class ProcessModel;
-}
-class LoopLayer final : public LayerModel
-{
-        ISCORE_METADATA(LoopLayer)
 
-        ISCORE_SERIALIZE_FRIENDS(LoopLayer, DataStream)
-        ISCORE_SERIALIZE_FRIENDS(LoopLayer, JSONObject)
+class Layer final : public Process::LayerModel
+{
+        ISCORE_METADATA(Loop::Layer)
+
+        ISCORE_SERIALIZE_FRIENDS(Layer, DataStream)
+        ISCORE_SERIALIZE_FRIENDS(Layer, JSONObject)
 
         Q_OBJECT
     public:
-        LoopLayer(
+        Layer(
                 Loop::ProcessModel& model,
                 const Id<LayerModel>& id,
                 QObject* parent);
 
         // Copy
-        LoopLayer(
-                const LoopLayer& source,
+        Layer(
+                const Layer& source,
                 Loop::ProcessModel& model,
                 const Id<LayerModel>& id,
                 QObject* parent);
 
         // Load
         template<typename Impl>
-        LoopLayer(
+        Layer(
                 Deserializer<Impl>& vis,
                 Loop::ProcessModel& model,
                 QObject* parent) :
@@ -47,7 +47,7 @@ class LoopLayer final : public LayerModel
             vis.writeTo(*this);
         }
 
-        LayerModelPanelProxy* make_panelProxy(QObject* parent) const override;
+        Process::LayerModelPanelProxy* make_panelProxy(QObject* parent) const override;
         void serialize(const VisitorVariant&) const override;
 
         const Loop::ProcessModel& model() const;
@@ -60,3 +60,4 @@ class LoopLayer final : public LayerModel
     private:
         TemporalConstraintViewModel* m_constraint{};
 };
+}

@@ -57,7 +57,7 @@ EventPresenter::EventPresenter(const EventModel& model,
     m_view->setCondition(m_model.condition().toString());
 
     con(m_model, &EventModel::conditionChanged,
-        this, [&] (const iscore::Condition& c) { m_view->setCondition(c.toString()); });
+        this, [&] (const State::Condition& c) { m_view->setCondition(c.toString()); });
 }
 
 EventPresenter::~EventPresenter()
@@ -99,8 +99,8 @@ void EventPresenter::handleDrop(const QPointF& pos, const QMimeData *mime)
     // If the mime data has states in it we can handle it.
     if(scenar && mime->formats().contains(iscore::mime::messagelist()))
     {
-        Mime<iscore::MessageList>::Deserializer des{*mime};
-        iscore::MessageList ml = des.deserialize();
+        Mime<State::MessageList>::Deserializer des{*mime};
+        State::MessageList ml = des.deserialize();
 
         auto cmd = new Scenario::Command::AddStateWithData{
                 *scenar,

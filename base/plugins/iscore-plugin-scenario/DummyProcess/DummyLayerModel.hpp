@@ -7,27 +7,29 @@
 #include <iscore/serialization/JSONVisitor.hpp>
 class DataStream;
 class JSONObject;
+namespace Process {
+class ProcessModel;
 class LayerModelPanelProxy;
-class Process;
+}
 class QObject;
 #include <iscore/tools/SettableIdentifier.hpp>
 #include <iscore_lib_dummyprocess_export.h>
 
-class ISCORE_LIB_DUMMYPROCESS_EXPORT DummyLayerModel final : public LayerModel
+class ISCORE_LIB_DUMMYPROCESS_EXPORT DummyLayerModel final : public Process::LayerModel
 {
         ISCORE_SERIALIZE_FRIENDS(DummyLayerModel, DataStream)
         ISCORE_SERIALIZE_FRIENDS(DummyLayerModel, JSONObject)
 
     public:
         explicit DummyLayerModel(
-                Process& model,
+                Process::ProcessModel& model,
                 const Id<LayerModel>& id,
                 QObject* parent);
 
         // Copy
         explicit DummyLayerModel(
                 const DummyLayerModel& source,
-                Process& model,
+                Process::ProcessModel& model,
                 const Id<LayerModel>& id,
                 QObject* parent);
 
@@ -35,7 +37,7 @@ class ISCORE_LIB_DUMMYPROCESS_EXPORT DummyLayerModel final : public LayerModel
         template<typename Impl>
         explicit DummyLayerModel(
                 Deserializer<Impl>& vis,
-                Process& model,
+                Process::ProcessModel& model,
                 QObject* parent) :
             LayerModel {vis, model, parent}
         {
@@ -43,5 +45,5 @@ class ISCORE_LIB_DUMMYPROCESS_EXPORT DummyLayerModel final : public LayerModel
         }
 
         void serialize(const VisitorVariant&) const override;
-        LayerModelPanelProxy* make_panelProxy(QObject* parent) const override;
+        Process::LayerModelPanelProxy* make_panelProxy(QObject* parent) const override;
 };

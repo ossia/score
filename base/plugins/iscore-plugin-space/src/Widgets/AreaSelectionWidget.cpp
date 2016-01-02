@@ -9,6 +9,9 @@
 #include "src/Area/SingletonAreaFactoryList.hpp"
 #include "src/Area/AreaModel.hpp"
 #include "src/Area/Circle/CircleAreaModel.hpp"
+
+namespace Space
+{
 AreaSelectionWidget::AreaSelectionWidget(
         const SingletonAreaFactoryList& fact,
         QWidget* parent):
@@ -27,19 +30,25 @@ AreaSelectionWidget::AreaSelectionWidget(
 
     for(auto& elt : fact.get())
     {
-        m_comboBox->addItem(elt.second->prettyName(), QVariant::fromValue(elt.second->key<AreaFactoryKey>()));
+        m_comboBox->addItem(
+                    elt.second->prettyName(),
+                    QVariant::fromValue(elt.second->key<AreaFactoryKey>()));
     }
     connect(m_comboBox, static_cast<void (QComboBox::*)(int)>(&QComboBox::currentIndexChanged),
             this, [&] (int index) {
-        if(index == m_comboBox->findData(GenericAreaModel::static_type()))
+        auto key = m_comboBox->currentData().value<AreaFactoryKey>();
+        if(key == GenericAreaModel::static_factoryKey())
         {
             m_lineEdit->setEnabled(true);
         }
         else
         {
-            m_lineEdit->setText(fact.get(m_comboBox->currentData().value<AreaFactoryKey>())->generic_formula());
+            auto formula = fact.get(key)->generic_formula();
+            if(formula.size() > 0)
+                m_lineEdit->setText(formula.join(';'));
             m_lineEdit->setEnabled(false);
             lineEditChanged();
         }
     });
+}
 }

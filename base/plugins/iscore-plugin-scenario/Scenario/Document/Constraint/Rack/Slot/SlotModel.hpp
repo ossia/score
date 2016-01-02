@@ -18,7 +18,7 @@
 class ConstraintModel;
 class DataStream;
 class JSONObject;
-class Process;
+namespace Process { class ProcessModel; }
 class RackModel;
 
 // Note : the SlotModel is assumed to be in a Rack, itself in a Constraint.
@@ -69,8 +69,8 @@ class ISCORE_PLUGIN_SCENARIO_EXPORT SlotModel final : public IdentifiedObject<Sl
          // A process is selected for edition when it is
          // the edited process when the interface is clicked.
         void putToFront(
-                const Id<LayerModel>& layerId);
-        const LayerModel* frontLayerModel() const;
+                const Id<Process::LayerModel>& layerId);
+        const Process::LayerModel* frontLayerModel() const;
 
         // A slot is always in a constraint
         ConstraintModel& parentConstraint() const;
@@ -78,14 +78,14 @@ class ISCORE_PLUGIN_SCENARIO_EXPORT SlotModel final : public IdentifiedObject<Sl
         qreal height() const;
         bool focus() const;
 
-        NotifyingMap<LayerModel> layers;
+        NotifyingMap<Process::LayerModel> layers;
 
-        void on_deleteSharedProcessModel(const Process& sharedProcessId);
+        void on_deleteSharedProcessModel(const Process::ProcessModel& sharedProcessId);
 
         void setHeight(qreal arg);
         void setFocus(bool arg);
     signals:
-        void layerModelPutToFront(const LayerModel& layerModelId);
+        void layerModelPutToFront(const Process::LayerModel& layerModelId);
 
         void heightChanged(qreal arg);
         void focusChanged(bool arg);
@@ -93,10 +93,10 @@ class ISCORE_PLUGIN_SCENARIO_EXPORT SlotModel final : public IdentifiedObject<Sl
     private:
         void initConnections();
 
-        void on_addLayer(const LayerModel& viewmodel);
-        void on_removeLayer(const LayerModel&);
+        void on_addLayer(const Process::LayerModel& viewmodel);
+        void on_removeLayer(const Process::LayerModel&);
 
-        Id<LayerModel> m_frontLayerModelId;
+        Id<Process::LayerModel> m_frontLayerModelId;
 
         qreal m_height {200};
         bool m_focus{false};
@@ -108,4 +108,4 @@ class ISCORE_PLUGIN_SCENARIO_EXPORT SlotModel final : public IdentifiedObject<Sl
  *
  * @return A pointer to the parent constraint if there is one, or nullptr.
  */
-ConstraintModel* parentConstraint(LayerModel* lm);
+ConstraintModel* parentConstraint(Process::LayerModel* lm);

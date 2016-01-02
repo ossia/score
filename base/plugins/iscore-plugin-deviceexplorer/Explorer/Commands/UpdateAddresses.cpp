@@ -19,13 +19,13 @@ using namespace iscore;
 // TODO this should not be a command, values can be updated without undo-ability.
 UpdateAddressesValues::UpdateAddressesValues(
         Path<DeviceExplorerModel>&& device_tree,
-        const QList<QPair<const Node *, iscore::Value> > &nodes):
+        const QList<QPair<const Device::Node *, State::Value> > &nodes):
     m_deviceTree{std::move(device_tree)}
 {
     for(const auto& elt : nodes)
     {
-        ISCORE_ASSERT(!elt.first->is<DeviceSettings>());
-        m_data.append({*elt.first, {elt.first->get<AddressSettings>().value, elt.second}});
+        ISCORE_ASSERT(!elt.first->is<Device::DeviceSettings>());
+        m_data.append({*elt.first, {elt.first->get<Device::AddressSettings>().value, elt.second}});
     }
 }
 

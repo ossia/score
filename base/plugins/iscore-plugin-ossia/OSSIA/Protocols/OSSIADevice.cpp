@@ -20,7 +20,7 @@ class Value;
 }  // namespace OSSIA
 
 using namespace iscore::convert;
-using namespace OSSIA::convert;
+using namespace Ossia::convert;
 
 OSSIADevice::~OSSIADevice()
 {
@@ -33,7 +33,7 @@ bool OSSIADevice::connected() const
     return bool(m_dev);
 }
 
-void OSSIADevice::updateSettings(const iscore::DeviceSettings& newsettings)
+void OSSIADevice::updateSettings(const Device::DeviceSettings& newsettings)
 {
     // TODO we have to maintain the prior connection state
     // if we were disconnected, we stay disconnected
@@ -41,14 +41,14 @@ void OSSIADevice::updateSettings(const iscore::DeviceSettings& newsettings)
     if(connected())
     {
         // First we save the existing nodes.
-        iscore::Node iscore_device{settings(), nullptr};
+        Device::Node iscore_device{settings(), nullptr};
 
         // Recurse on the children
         auto& ossia_children = m_dev->children();
         iscore_device.reserve(ossia_children.size());
         for(const auto& node : ossia_children)
         {
-            iscore_device.push_back(OSSIA::convert::ToDeviceExplorer(*node.get()));
+            iscore_device.push_back(Ossia::convert::ToDeviceExplorer(*node.get()));
         }
 
         // We change the settings safely
@@ -76,15 +76,19 @@ void OSSIADevice::disconnect()
 {
     if(connected())
     {
-        removeListening_impl(*m_dev.get(), iscore::Address{m_settings.name, {}});
+        removeListening_impl(*m_dev.get(), State::Address{m_settings.name, {}});
     }
 
     m_callbacks.clear();
 
+
+    auto& children = m_dev->children();
+    while(!children.empty())
+        m_dev->erase(children.end() - 1);
     m_dev.reset();
 }
 
-void OSSIADevice::addAddress(const iscore::FullAddressSettings &settings)
+void OSSIADevice::addAddress(const Device::FullAddressSettings &settings)
 {
     using namespace OSSIA;
     if(!m_capas.canAddNode)
@@ -101,16 +105,21 @@ void OSSIADevice::addAddress(const iscore::FullAddressSettings &settings)
 }
 
 
-void OSSIADevice::updateAddress(const iscore::FullAddressSettings &settings)
+void OSSIADevice::updateAddress(
+        const State::Address& currentAddr,
+        const Device::FullAddressSettings &settings)
 {
-    using namespace OSSIA;
     if(!connected())
         return;
 
-    OSSIA::Node* node = getNodeFromPath(settings.address.path, m_dev.get());
-    node->setName(settings.address.path.last().toStdString());
+    OSSIA::Node* node = getNodeFromPath(currentAddr.path, m_dev.get());
+    auto newName = settings.address.path.last().toStdString();
+    if(newName != node->getName())
+    {
+        node->setName(newName);
+    }
 
-    if(settings.value.val.which() == iscore::ValueType::NoValue)
+    if(settings.value.val.which() == State::ValueType::NoValue)
     {
         removeOSSIAAddress(node);
     }
@@ -125,7 +134,7 @@ void OSSIADevice::updateAddress(const iscore::FullAddressSettings &settings)
 }
 
 void OSSIADevice::removeListening_impl(
-        OSSIA::Node& node, iscore::Address addr)
+        OSSIA::Node& node, State::Address addr)
 {
     // Find & remove our callback
     auto it = m_callbacks.find(addr);
@@ -138,13 +147,13 @@ void OSSIADevice::removeListening_impl(
     // Recurse
     for(const auto& child : node.children())
     {
-        iscore::Address sub_addr = addr;
+        State::Address sub_addr = addr;
         sub_addr.path += QString::fromStdString(child->getName());
         removeListening_impl(*child.get(), sub_addr);
     }
 }
 
-void OSSIADevice::removeNode(const iscore::Address& address)
+void OSSIADevice::removeNode(const State::Address& address)
 {
     using namespace OSSIA;
     if(!m_capas.canRemoveNode)
@@ -153,10 +162,11 @@ void OSSIADevice::removeNode(const iscore::Address& address)
         return;
 
     OSSIA::Node* node = getNodeFromPath(address.path, m_dev.get());
-    auto& children = node->getParent()->children();
-    auto it = std::find_if(children.begin(), children.end(),
+    auto parent = node->getParent();
+    auto& parentChildren = node->getParent()->children();
+    auto it = std::find_if(parentChildren.begin(), parentChildren.end(),
                            [&] (auto&& elt) { return elt.get() == node; });
-    if(it != children.end())
+    if(it != parentChildren.end())
     {
         /* If we are listening to this node, we recursively
          * remove listening to all the children. */
@@ -165,13 +175,13 @@ void OSSIADevice::removeNode(const iscore::Address& address)
         // TODO !! if we remove nodes while recording
         // (or anything involving a registered listening state), there will be crashes.
         // The Device Explorer should be locked for edition during recording / playing.
-        node->erase(it);
+        parent->erase(it);
     }
 }
 
-iscore::Node OSSIADevice::refresh()
+Device::Node OSSIADevice::refresh()
 {
-    iscore::Node device_node{settings(), nullptr};
+    Device::Node device_node{settings(), nullptr};
 
     if(!connected())
     {
@@ -180,7 +190,7 @@ iscore::Node OSSIADevice::refresh()
     else
     {
         // Clear the listening
-        removeListening_impl(*m_dev.get(), iscore::Address{m_settings.name, {}});
+        removeListening_impl(*m_dev.get(), State::Address{m_settings.name, {}});
 
         if(m_dev->updateNamespace())
         {
@@ -192,40 +202,41 @@ iscore::Node OSSIADevice::refresh()
             device_node.reserve(children.size());
             for(const auto& node : children)
             {
-                device_node.push_back(OSSIA::convert::ToDeviceExplorer(*node.get()));
+                device_node.push_back(Ossia::convert::ToDeviceExplorer(*node.get()));
             }
         }
     }
 
-    device_node.get<iscore::DeviceSettings>().name = settings().name;
+    device_node.get<Device::DeviceSettings>().name = settings().name;
 
     return device_node;
 }
 
-boost::optional<iscore::Value> OSSIADevice::refresh(const iscore::Address& address)
+boost::optional<State::Value> OSSIADevice::refresh(const State::Address& address)
 {
     if(!connected())
         return {};
 
-    OSSIA::Node* node = getNodeFromPath(address.path, m_dev.get());
-    ISCORE_ASSERT(node);
-
-    if(auto addr = node->getAddress())
-        return ToValue(addr->pullValue());
+    auto node = findNodeFromPath(address.path, m_dev.get());
+    if(node)
+    {
+        if(auto addr = node->getAddress())
+            return Ossia::convert::ToValue(addr->pullValue());
+    }
 
     return {};
 }
 
-iscore::Node OSSIADevice::getNode(const iscore::Address& address)
+Device::Node OSSIADevice::getNode(const State::Address& address)
 {
     auto ossia_node = iscore::convert::findNodeFromPath(address.path, m_dev);
     if(ossia_node)
-        return OSSIA::convert::ToDeviceExplorer(*ossia_node.get());
+        return Ossia::convert::ToDeviceExplorer(*ossia_node.get());
     return {};
 }
 
 void OSSIADevice::setListening(
-        const iscore::Address& addr,
+        const State::Address& addr,
         bool b)
 {
     if(!connected())
@@ -266,7 +277,7 @@ void OSSIADevice::setListening(
                      ossia_addr,
                      ossia_addr->addCallback([=] (const OSSIA::Value* val)
                       {
-                          emit valueUpdated(addr, OSSIA::convert::ToValue(val));
+                          emit valueUpdated(addr, Ossia::convert::ToValue(val));
                       })
                 }
             });
@@ -283,12 +294,12 @@ void OSSIADevice::setListening(
     }
 }
 
-std::vector<iscore::Address> OSSIADevice::listening() const
+std::vector<State::Address> OSSIADevice::listening() const
 {
     if(!connected())
         return {};
 
-    std::vector<iscore::Address> addrs;
+    std::vector<State::Address> addrs;
     addrs.reserve(m_callbacks.size());
 
     for(const auto& elt : m_callbacks)
@@ -299,7 +310,7 @@ std::vector<iscore::Address> OSSIADevice::listening() const
     return addrs;
 }
 
-void OSSIADevice::replaceListening(const std::vector<iscore::Address>& addresses)
+void OSSIADevice::replaceListening(const std::vector<State::Address>& addresses)
 {
     if(!connected())
         return;
@@ -319,7 +330,7 @@ void OSSIADevice::replaceListening(const std::vector<iscore::Address>& addresses
 }
 
 
-void OSSIADevice::sendMessage(const iscore::Message& mess)
+void OSSIADevice::sendMessage(const State::Message& mess)
 {
     if(!connected())
         return;

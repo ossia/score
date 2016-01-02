@@ -19,7 +19,7 @@ using namespace Scenario::Command;
 
 AddLayerModelToSlot::AddLayerModelToSlot(
         Path<SlotModel>&& slotPath,
-        Path<Process>&& processPath) :
+        Path<Process::ProcessModel>&& processPath) :
     m_slotPath {std::move(slotPath)},
     m_processPath {std::move(processPath)},
     m_processData{m_processPath.find().makeLayerConstructionData()},
@@ -29,7 +29,7 @@ AddLayerModelToSlot::AddLayerModelToSlot(
 
 AddLayerModelToSlot::AddLayerModelToSlot(
         Path<SlotModel>&& slotPath,
-        Path<Process>&& processPath,
+        Path<Process::ProcessModel>&& processPath,
         const QByteArray& processData) :
     m_slotPath {std::move(slotPath)},
     m_processPath {std::move(processPath)},
@@ -40,8 +40,8 @@ AddLayerModelToSlot::AddLayerModelToSlot(
 
 AddLayerModelToSlot::AddLayerModelToSlot(
         Path<SlotModel>&& slot,
-        const Id<LayerModel>& layerid,
-        Path<Process>&& process,
+        const Id<Process::LayerModel>& layerid,
+        Path<Process::ProcessModel>&& process,
         const QByteArray& processData):
     m_slotPath{std::move(slot)},
     m_processPath{std::move(process)},

@@ -17,7 +17,7 @@
 #include <iscore/tools/IdentifiedObject.hpp>
 #include <iscore_plugin_scenario_export.h>
 class ConstraintModel;
-class Process;
+namespace Process { class ProcessModel; }
 
 /**
  * @brief The RackModel class
@@ -72,7 +72,7 @@ class ISCORE_PLUGIN_SCENARIO_EXPORT RackModel final : public IdentifiedObject<Ra
     signals:
         void slotPositionsChanged();
 
-        void on_deleteSharedProcessModel(const Process&);
+        void on_deleteSharedProcessModel(const Process::ProcessModel&);
         void on_durationChanged(const TimeValue&);
 
     private:

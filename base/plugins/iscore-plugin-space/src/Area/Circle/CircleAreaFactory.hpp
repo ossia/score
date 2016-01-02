@@ -1,6 +1,8 @@
 #pragma once
 #include "src/Area/AreaFactory.hpp"
 
+namespace Space
+{
 class CircleAreaFactory : public AreaFactory
 {
     public:
@@ -8,11 +10,11 @@ class CircleAreaFactory : public AreaFactory
         const AreaFactoryKey& key_impl() const override;
         QString prettyName() const override;
 
-        QString generic_formula() const override;
+        QStringList generic_formula() const override;
 
         AreaModel* makeModel(
-                const QString& formula,
-                const SpaceModel& space,
+                const QStringList& formula,
+                const Space::AreaContext& space,
                 const Id<AreaModel>&,
                 QObject* parent) const override;
 
@@ -23,3 +25,4 @@ class CircleAreaFactory : public AreaFactory
 
         QGraphicsItem* makeView(QGraphicsItem* parent) const override;
 };
+}

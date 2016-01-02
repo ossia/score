@@ -1,7 +1,8 @@
 #pragma once
 #include "src/Space/DimensionModel.hpp"
 #include <QtWidgets>
-
+namespace Space
+{
 class DimensionEditWidget : public QWidget
 {
     public:
@@ -14,3 +15,4 @@ class DimensionEditWidget : public QWidget
         QDoubleSpinBox* m_maxBound{};
         QPushButton* m_remove{};
 };
+}

@@ -13,8 +13,7 @@
 
 class DataStream;
 class JSONObject;
-class LayerModel;
-class Process;
+namespace Process { class LayerModel; }
 class ProcessStateDataInterface;
 class QObject;
 class TimeProcessWithConstraint;
@@ -30,12 +29,12 @@ class ProcessModel final : public RecreateOnPlay::OSSIAProcessModel
     public:
         explicit ProcessModel(
                 const TimeValue& duration,
-                const Id<Process>& id,
+                const Id<Process::ProcessModel>& id,
                 QObject* parent);
 
         explicit ProcessModel(
                 const ProcessModel& source,
-                const Id<Process>& id,
+                const Id<Process::ProcessModel>& id,
                 QObject* parent);
 
         template<typename Impl>
@@ -53,13 +52,13 @@ class ProcessModel final : public RecreateOnPlay::OSSIAProcessModel
         { return m_script; }
 
         // Process interface
-        ProcessModel* clone(
-                const Id<Process>& newId,
+        Process::ProcessModel* clone(
+                const Id<Process::ProcessModel>& newId,
                 QObject* newParent) const override;
 
         const ProcessFactoryKey& key() const override
         {
-            return JSProcessMetadata::factoryKey();
+            return ProcessMetadata::factoryKey();
         }
 
         QString prettyName() const override;
@@ -92,13 +91,21 @@ class ProcessModel final : public RecreateOnPlay::OSSIAProcessModel
         void scriptChanged(QString);
 
     protected:
-        LayerModel* makeLayer_impl(const Id<LayerModel>& viewModelId, const QByteArray& constructionData, QObject* parent) override;
-        LayerModel* loadLayer_impl(const VisitorVariant&, QObject* parent) override;
-        LayerModel* cloneLayer_impl(const Id<LayerModel>& newId, const LayerModel& source, QObject* parent) override;
+        Process::LayerModel* makeLayer_impl(
+                const Id<Process::LayerModel>& viewModelId,
+                const QByteArray& constructionData,
+                QObject* parent) override;
+        Process::LayerModel* loadLayer_impl(
+                const VisitorVariant&,
+                QObject* parent) override;
+        Process::LayerModel* cloneLayer_impl(
+                const Id<Process::LayerModel>& newId,
+                const Process::LayerModel& source,
+                QObject* parent) override;
 
     private:
-        std::shared_ptr<JSProcess> makeProcess() const;
-        std::shared_ptr<JSProcess> m_ossia_process;
+        std::shared_ptr<ProcessExecutor> makeProcess() const;
+        std::shared_ptr<ProcessExecutor> m_ossia_process;
 
         QString m_script;
 };

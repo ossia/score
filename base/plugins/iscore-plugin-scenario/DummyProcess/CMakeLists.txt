@@ -2,7 +2,7 @@ cmake_minimum_required(VERSION 3.0)
 project(iscore_lib_dummyprocess)
 iscore_common_setup()
 
-find_package(Qt5 5.3 REQUIRED COMPONENTS Core Widgets)
+find_package(Qt5 5.3 REQUIRED COMPONENTS Core Widgets ) # QuickWidgets)
 
 set(DUMMYPROCESS_HDRS
 "${CMAKE_CURRENT_SOURCE_DIR}/DummyModel.hpp"
@@ -32,7 +32,7 @@ endif()
 
 add_library(iscore_lib_dummyprocess ${DUMMYPROCESS_HDRS} ${DUMMYPROCESS_SRCS}  ${DUMMYPROCESS_QRCS})
 target_link_libraries(iscore_lib_dummyprocess
-    Qt5::Core Qt5::Widgets
+    Qt5::Core Qt5::Widgets # Qt5::QuickWidgets
     iscore_lib_base iscore_lib_state iscore_lib_process)
 
 if(TARGET iscore_lib_inspector)

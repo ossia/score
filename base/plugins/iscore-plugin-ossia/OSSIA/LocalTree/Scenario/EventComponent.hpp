@@ -5,7 +5,7 @@
 #include <OSSIA/LocalTree/LocalTreeDocumentPlugin.hpp>
 #include <OSSIA/LocalTree/NameProperty.hpp>
 
-namespace OSSIA
+namespace Ossia
 {
 namespace LocalTree
 {
@@ -14,7 +14,7 @@ class EventComponent final :
 {
 
     public:
-        using system_t = OSSIA::LocalTree::DocumentPlugin;
+        using system_t = Ossia::LocalTree::DocumentPlugin;
 
         EventComponent(
                 OSSIA::Node& parent,
@@ -36,7 +36,7 @@ class EventComponent final :
         { return *node(); }
 
         MetadataNamePropertyWrapper m_thisNode;
-        std::vector<BaseProperty*> m_properties;
+        std::vector<std::unique_ptr<BaseProperty>> m_properties;
 };
 }
 }

@@ -8,21 +8,20 @@
 namespace Curve
 {
 class EditionSettings;
-}
 template<
         typename Model_T,
         typename LayerModel_T,
         typename LayerPresenter_T,
         typename LayerView_T,
         typename CurveColors_T>
-class ISCORE_PLUGIN_CURVE_EXPORT CurveProcessFactory_T : public ProcessFactory
+class ISCORE_PLUGIN_CURVE_EXPORT CurveProcessFactory_T : public Process::ProcessFactory
 {
     public:
         virtual ~CurveProcessFactory_T() = default;
 
         Model_T* makeModel(
                 const TimeValue& duration,
-                const Id<Process>& id,
+                const Id<Process::ProcessModel>& id,
                 QObject* parent) override
         {
             return new Model_T{duration, id, parent};
@@ -42,15 +41,15 @@ class ISCORE_PLUGIN_CURVE_EXPORT CurveProcessFactory_T : public ProcessFactory
         }
 
         LayerView_T* makeLayerView(
-                const LayerModel& viewmodel,
+                const Process::LayerModel& viewmodel,
                 QGraphicsItem* parent) override
         {
             return new LayerView_T{parent};
         }
 
         LayerPresenter_T* makeLayerPresenter(
-                const LayerModel& lm,
-                LayerView* v,
+                const Process::LayerModel& lm,
+                Process::LayerView* v,
                 QObject* parent) override
         {
             return new LayerPresenter_T {
@@ -65,11 +64,12 @@ class ISCORE_PLUGIN_CURVE_EXPORT CurveProcessFactory_T : public ProcessFactory
         CurveColors_T m_colors;
 };
 
+}
 // See AutomationProcessMetadata.
 #define DEFINE_CURVE_PROCESS_FACTORY(Name, ProcessMetadata, Model, Layer, Presenter, View, Colors) \
-class Name final : public CurveProcessFactory_T<Model, Layer, Presenter, View, Colors> \
+class Name final : public Curve::CurveProcessFactory_T<Model, Layer, Presenter, View, Colors> \
 { \
-    using CurveProcessFactory_T<Model, Layer, Presenter, View, Colors>::CurveProcessFactory_T; \
+    using Curve::CurveProcessFactory_T<Model, Layer, Presenter, View, Colors>::CurveProcessFactory_T; \
     const ProcessFactoryKey& key_impl() const override \
     { return ProcessMetadata::factoryKey(); } \
     \

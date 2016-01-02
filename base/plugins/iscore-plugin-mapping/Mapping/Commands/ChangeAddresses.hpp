@@ -7,7 +7,7 @@
 class DataStreamInput;
 class DataStreamOutput;
 class MappingModel;
-namespace iscore {
+namespace State {
 struct Address;
 }  // namespace iscore
 
@@ -17,7 +17,7 @@ class ChangeSourceAddress final : public iscore::SerializableCommand
     public:
         ChangeSourceAddress(
                 Path<MappingModel>&& path,
-                const iscore::Address& newval);
+                const State::Address& newval);
 
     public:
         void undo() const override;
@@ -29,7 +29,7 @@ class ChangeSourceAddress final : public iscore::SerializableCommand
 
     private:
         Path<MappingModel> m_path;
-        iscore::FullAddressSettings m_old, m_new;
+        Device::FullAddressSettings m_old, m_new;
 };
 
 class ChangeTargetAddress final : public iscore::SerializableCommand
@@ -38,7 +38,7 @@ class ChangeTargetAddress final : public iscore::SerializableCommand
     public:
         ChangeTargetAddress(
                 Path<MappingModel>&& path,
-                const iscore::Address& newval);
+                const State::Address& newval);
 
     public:
         void undo() const override;
@@ -50,7 +50,7 @@ class ChangeTargetAddress final : public iscore::SerializableCommand
 
     private:
         Path<MappingModel> m_path;
-        iscore::FullAddressSettings m_old, m_new;
+        Device::FullAddressSettings m_old, m_new;
 };
 
 

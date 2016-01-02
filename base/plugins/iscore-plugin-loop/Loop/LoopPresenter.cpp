@@ -23,19 +23,22 @@
 #include <iscore/tools/std/StdlibWrapper.hpp>
 #include <iscore/tools/std/Algorithms.hpp>
 
-class LayerModel;
-class Process;
+#include <Scenario/Application/ScenarioApplicationPlugin.hpp>
+#include <Scenario/Application/Menus/ScenarioActions.hpp>
+namespace Process { class LayerModel; }
+namespace Process { class ProcessModel; }
 class QMenu;
 class QObject;
 struct VerticalExtent;
 
-
-LoopPresenter::LoopPresenter(
+namespace Loop
+{
+LayerPresenter::LayerPresenter(
         const iscore::DocumentContext& context,
-        const LoopLayer& layer,
-        LoopView* view,
+        const Layer& layer,
+        LayerView* view,
         QObject* parent):
-    LayerPresenter{"LoopPresenter", parent},
+    Process::LayerPresenter{"LayerPresenter", parent},
     BaseScenarioPresenter<Loop::ProcessModel, TemporalConstraintPresenter>{layer.model()},
     m_layer{layer},
     m_view{view},
@@ -71,9 +74,9 @@ LoopPresenter::LoopPresenter(
 
     for_each_in_tuple(elements, [&] (auto elt) {
         using elt_t = std::remove_reference_t<decltype(*elt)>;
-        connect(elt, &elt_t::pressed,  this, &LoopPresenter::pressed);
-        connect(elt, &elt_t::moved,    this, &LoopPresenter::moved);
-        connect(elt, &elt_t::released, this, &LoopPresenter::released);
+        connect(elt, &elt_t::pressed,  this, &LayerPresenter::pressed);
+        connect(elt, &elt_t::moved,    this, &LayerPresenter::moved);
+        connect(elt, &elt_t::released, this, &LayerPresenter::released);
     });
 
     con(m_endEventPresenter->model(), &EventModel::extentChanged,
@@ -85,60 +88,60 @@ LoopPresenter::LoopPresenter(
     con(m_endNodePresenter->model(), &TimeNodeModel::dateChanged,
         this, [=] (const TimeValue&) { m_viewUpdater.updateTimeNode(*m_endNodePresenter); });
 
-    connect(m_view, &LoopView::askContextMenu,
-            this,   &LoopPresenter::contextMenuRequested);
+    connect(m_view, &LayerView::askContextMenu,
+            this,   &LayerPresenter::contextMenuRequested);
 }
 
-LoopPresenter::~LoopPresenter()
+LayerPresenter::~LayerPresenter()
 {
     deleteGraphicsObject(m_view);
 }
 
-void LoopPresenter::setWidth(qreal width)
+void LayerPresenter::setWidth(qreal width)
 {
     m_view->setWidth(width);
 }
 
-void LoopPresenter::setHeight(qreal height)
+void LayerPresenter::setHeight(qreal height)
 {
     m_view->setHeight(height);
 }
 
-void LoopPresenter::putToFront()
+void LayerPresenter::putToFront()
 {
     m_view->setFlag(QGraphicsItem::ItemStacksBehindParent, false);
     m_view->setOpacity(1);
 }
 
-void LoopPresenter::putBehind()
+void LayerPresenter::putBehind()
 {
     m_view->setFlag(QGraphicsItem::ItemStacksBehindParent, true);
     m_view->setOpacity(0.1);
 }
 
-void LoopPresenter::on_zoomRatioChanged(ZoomRatio val)
+void LayerPresenter::on_zoomRatioChanged(ZoomRatio val)
 {
     m_zoomRatio = val;
     m_constraintPresenter->on_zoomRatioChanged(m_zoomRatio);
 }
 
-void LoopPresenter::parentGeometryChanged()
+void LayerPresenter::parentGeometryChanged()
 {
     updateAllElements();
     m_view->update();
 }
 
-const LayerModel& LoopPresenter::layerModel() const
+const Process::LayerModel& LayerPresenter::layerModel() const
 {
     return m_layer;
 }
 
-const Id<Process>&LoopPresenter::modelId() const
+const Id<Process::ProcessModel>&LayerPresenter::modelId() const
 {
     return m_layer.model().id();
 }
 
-void LoopPresenter::updateAllElements()
+void LayerPresenter::updateAllElements()
 {
     m_viewUpdater.updateConstraint(*m_constraintPresenter);
     m_viewUpdater.updateEvent(*m_startEventPresenter);
@@ -148,9 +151,7 @@ void LoopPresenter::updateAllElements()
 }
 
 
-#include <Scenario/Application/ScenarioApplicationPlugin.hpp>
-#include <Scenario/Application/Menus/ScenarioActions.hpp>
-void LoopPresenter::fillContextMenu(QMenu* menu, const QPoint& pos, const QPointF& scenepos) const
+void LayerPresenter::fillContextMenu(QMenu* menu, const QPoint& pos, const QPointF& scenepos) const
 {
     /*
     auto selected = layerModel().processModel().selectedChildren();
@@ -165,4 +166,5 @@ void LoopPresenter::fillContextMenu(QMenu* menu, const QPoint& pos, const QPoint
     }*/
 }
 
+}
 

@@ -16,9 +16,11 @@
 #include <iscore/tools/ModelPathSerialization.hpp>
 #include <iscore/tools/TreeNode.hpp>
 
+namespace Automation
+{
 ChangeAddress::ChangeAddress(
-        Path<AutomationModel> &&path,
-        const iscore::Address &newval):
+        Path<ProcessModel> &&path,
+        const ::State::Address &newval):
     m_path{path}
 {
     auto& autom = m_path.find();
@@ -38,11 +40,11 @@ ChangeAddress::ChangeAddress(
         // Get the new data.
         auto newpath = newval.path;
         newpath.prepend(newval.device);
-        auto new_n = iscore::try_getNodeFromString(deviceexplorer->rootNode(), std::move(newpath));
+        auto new_n = Device::try_getNodeFromString(deviceexplorer->rootNode(), std::move(newpath));
         if(new_n)
         {
-            ISCORE_ASSERT(!new_n->is<iscore::DeviceSettings>());
-            m_new = iscore::FullAddressSettings::make<iscore::FullAddressSettings::as_child>(new_n->get<iscore::AddressSettings>(), newval);
+            ISCORE_ASSERT(!new_n->is<Device::DeviceSettings>());
+            m_new = Device::FullAddressSettings::make<Device::FullAddressSettings::as_child>(new_n->get<Device::AddressSettings>(), newval);
         }
         else
         {
@@ -58,8 +60,8 @@ void ChangeAddress::undo() const
 {
     auto& autom = m_path.find();
 
-    autom.setMin(iscore::convert::value<double>(m_old.domain.min));
-    autom.setMax(iscore::convert::value<double>(m_old.domain.max));
+    autom.setMin(::State::convert::value<double>(m_old.domain.min));
+    autom.setMax(::State::convert::value<double>(m_old.domain.max));
 
     autom.setAddress(m_old.address);
 }
@@ -68,8 +70,8 @@ void ChangeAddress::redo() const
 {
     auto& autom = m_path.find();
 
-    autom.setMin(iscore::convert::value<double>(m_new.domain.min));
-    autom.setMax(iscore::convert::value<double>(m_new.domain.max));
+    autom.setMin(::State::convert::value<double>(m_new.domain.min));
+    autom.setMax(::State::convert::value<double>(m_new.domain.max));
 
     autom.setAddress(m_new.address);
 }
@@ -82,4 +84,5 @@ void ChangeAddress::serializeImpl(DataStreamInput & s) const
 void ChangeAddress::deserializeImpl(DataStreamOutput & s)
 {
     s >> m_path >> m_old >> m_new;
+}
 }

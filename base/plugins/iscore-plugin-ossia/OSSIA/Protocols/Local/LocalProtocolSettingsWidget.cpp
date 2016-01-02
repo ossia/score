@@ -16,9 +16,9 @@ LocalProtocolSettingsWidget::LocalProtocolSettingsWidget(QWidget* parent)
     setLayout(lay);
 }
 
-iscore::DeviceSettings LocalProtocolSettingsWidget::getSettings() const
+Device::DeviceSettings LocalProtocolSettingsWidget::getSettings() const
 {
-    iscore::DeviceSettings s;
+    Device::DeviceSettings s;
     // TODO *** protocol is never set here. Check everywhere.! ***
     s.name = "i-score";
     LocalSpecificSettings local;
@@ -27,7 +27,7 @@ iscore::DeviceSettings LocalProtocolSettingsWidget::getSettings() const
 }
 
 void
-LocalProtocolSettingsWidget::setSettings(const iscore::DeviceSettings &settings)
+LocalProtocolSettingsWidget::setSettings(const Device::DeviceSettings &settings)
 {
     if(settings.deviceSpecificSettings.canConvert<LocalSpecificSettings>())
     {

@@ -15,8 +15,10 @@ namespace iscore {
 class CommandStackFacade;
 }  // namespace iscore
 
+namespace Curve
+{
 SetSegmentParametersCommandObject::SetSegmentParametersCommandObject(
-        CurvePresenter *pres,
+        Presenter *pres,
         iscore::CommandStackFacade & stack):
     m_presenter{pres},
     m_dispatcher{stack}
@@ -49,7 +51,7 @@ void SetSegmentParametersCommandObject::move()
 
     // OPTIMIZEME
     m_dispatcher.submitCommand(
-        Path<CurveModel>{},
+        Path<Model>{},
         SegmentParameterMap{{m_state->clickedSegmentId, {newVertical, newHorizontal
           }}});
 }
@@ -62,4 +64,5 @@ void SetSegmentParametersCommandObject::release()
 void SetSegmentParametersCommandObject::cancel()
 {
     m_dispatcher.rollback();
+}
 }

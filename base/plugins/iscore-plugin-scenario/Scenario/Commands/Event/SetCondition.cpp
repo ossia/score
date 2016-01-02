@@ -13,7 +13,7 @@ using namespace Scenario::Command;
 
 SetCondition::SetCondition(
         Path<EventModel>&& eventPath,
-        iscore::Condition&& cond) :
+        State::Condition&& cond) :
     m_path {std::move(eventPath) },
     m_condition(std::move(cond))
 {

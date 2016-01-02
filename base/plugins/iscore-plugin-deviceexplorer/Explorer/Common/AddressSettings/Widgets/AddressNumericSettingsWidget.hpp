@@ -31,7 +31,7 @@ class AddressNumericSettingsWidget final : public AddressSettingsWidget
             m_maxSBox->setValue(100);
         }
 
-        iscore::AddressSettings getSettings() const override
+        Device::AddressSettings getSettings() const override
         {
             auto settings = getCommonSettings();
             settings.value.val = T(m_valueSBox->value());
@@ -40,13 +40,13 @@ class AddressNumericSettingsWidget final : public AddressSettingsWidget
             return settings;
         }
 
-        void setSettings(const iscore::AddressSettings& settings) override
+        void setSettings(const Device::AddressSettings& settings) override
         {
             setCommonSettings(settings);
-            m_valueSBox->setValue(iscore::convert::value<T>(settings.value));
+            m_valueSBox->setValue(State::convert::value<T>(settings.value));
 
-            m_minSBox->setValue(iscore::convert::value<T>(settings.domain.min));
-            m_maxSBox->setValue(iscore::convert::value<T>(settings.domain.max));
+            m_minSBox->setValue(State::convert::value<T>(settings.domain.min));
+            m_maxSBox->setValue(State::convert::value<T>(settings.domain.max));
 
             // TODO if the "values" part of the domain is set, we
             // have to display a combobox instead.

@@ -1,22 +1,25 @@
 #include "SpaceLayerModel.hpp"
 #include "SpaceProcess.hpp"
-
-SpaceLayerModel::SpaceLayerModel(
-        const Id<LayerModel> & id,
-        SpaceProcess & proc,
+namespace Space
+{
+LayerModel::LayerModel(
+        const Id<Process::LayerModel> & id,
+        Space::ProcessModel & proc,
         QObject *parent):
-    LayerModel{id, staticMetaObject.className(), proc, parent}
+    Process::LayerModel{id, staticMetaObject.className(), proc, parent}
 {
 
 }
 
-void SpaceLayerModel::serialize(const VisitorVariant &) const
+void LayerModel::serialize(const VisitorVariant &) const
 {
     ISCORE_TODO;
 }
 
-LayerModelPanelProxy *SpaceLayerModel::make_panelProxy(QObject *parent) const
+Process::LayerModelPanelProxy *LayerModel::make_panelProxy(QObject *parent) const
 {
     ISCORE_TODO;
     return nullptr;
+}
+
 }

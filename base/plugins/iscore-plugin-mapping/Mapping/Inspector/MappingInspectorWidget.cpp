@@ -142,7 +142,7 @@ MappingInspectorWidget::MappingInspectorWidget(
     this->setLayout(lay);
 }
 
-void MappingInspectorWidget::on_sourceAddressChange(const iscore::Address& newAddr)
+void MappingInspectorWidget::on_sourceAddressChange(const State::Address& newAddr)
 {
     // Various checks
     if(newAddr == process().sourceAddress())
@@ -179,7 +179,7 @@ void MappingInspectorWidget::on_sourceMaxValueChanged()
 }
 
 
-void MappingInspectorWidget::on_targetAddressChange(const iscore::Address& newAddr)
+void MappingInspectorWidget::on_targetAddressChange(const State::Address& newAddr)
 {
     // Various checks
     if(newAddr == process().targetAddress())

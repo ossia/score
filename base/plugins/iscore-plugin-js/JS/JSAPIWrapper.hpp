@@ -12,12 +12,13 @@
 #include <State/Address.hpp>
 #include <State/Value.hpp>
 
+// TODO cleanup this file
 
 namespace iscore
 {
 namespace convert
 {
-namespace js
+namespace JS
 {
 inline QJSValue makeImpulse(
         QJSEngine& engine)
@@ -29,15 +30,15 @@ inline QJSValue makeImpulse(
 
 inline QJSValue value(
         QJSEngine& engine,
-        const iscore::Value& val)
+        const State::Value& val)
 {
     static const struct {
             QJSEngine& engine;
 
         public:
             using return_type = QJSValue;
-            return_type operator()(const iscore::no_value_t&) const { return {}; }
-            return_type operator()(const iscore::impulse_t&) const {
+            return_type operator()(const State::no_value_t&) const { return {}; }
+            return_type operator()(const State::impulse_t&) const {
                 return makeImpulse(engine);
             }
             return_type operator()(int i) const { return i; }
@@ -52,7 +53,7 @@ inline QJSValue value(
                 return QString(c);
             }
 
-            return_type operator()(const iscore::tuple_t& t) const
+            return_type operator()(const State::tuple_t& t) const
             {
                 auto arr = engine.newArray(t.size());
 
@@ -70,14 +71,14 @@ inline QJSValue value(
 }
 
 inline QJSValue address(
-        const iscore::Address& val)
+        const State::Address& val)
 {
     return val.toString();
 }
 
 inline QJSValue message(
         QJSEngine& engine,
-        const iscore::Message& mess)
+        const State::Message& mess)
 {
     auto obj = engine.newObject();
     obj.setProperty("address", address(mess.address));
@@ -93,7 +94,7 @@ inline QJSValue time(const TimeValue& val)
 // TODO vector instead of MessageList.
 inline QJSValue messages(
         QJSEngine& engine,
-        const iscore::MessageList& messages)
+        const State::MessageList& messages)
 {
     auto obj = engine.newArray(messages.size());
     for(int i = 0; i < messages.size(); i++)
@@ -107,12 +108,12 @@ inline QJSValue messages(
 }
 }
 
-namespace js
+namespace JS
 {
 namespace convert
 {
 
-inline iscore::ValueImpl value(const QJSValue& val)
+inline State::ValueImpl value(const QJSValue& val)
 {
     if(val.isUndefined() || val.isNull() || val.isError())
         return {};
@@ -130,13 +131,13 @@ inline iscore::ValueImpl value(const QJSValue& val)
     {
         if(val.hasProperty("impulse"))
         {
-            return iscore::impulse_t{};
+            return State::impulse_t{};
         }
     }
 
     if(val.isArray())
     {
-        iscore::tuple_t arr;
+        State::tuple_t arr;
 
         QJSValueIterator it{val};
         while(it.hasNext())
@@ -150,7 +151,7 @@ inline iscore::ValueImpl value(const QJSValue& val)
     return {};
 }
 
-inline iscore::Message message(const QJSValue& val)
+inline State::Message message(const QJSValue& val)
 {
     if(val.isObject())
     {
@@ -158,19 +159,19 @@ inline iscore::Message message(const QJSValue& val)
         auto iscore_val = val.property("value");
         if(iscore_addr.isString())
         {
-            return {iscore::Address::fromString(iscore_addr.toString()), value(iscore_val)};
+            return {State::Address::fromString(iscore_addr.toString()), value(iscore_val)};
         }
     }
 
     return {};
 }
 
-inline iscore::MessageList messages(const QJSValue& val)
+inline State::MessageList messages(const QJSValue& val)
 {
     if(!val.isArray())
         return {};
 
-    iscore::MessageList ml;
+    State::MessageList ml;
     QJSValueIterator it{val};
     while(it.hasNext())
     {
@@ -191,11 +192,13 @@ inline iscore::MessageList messages(const QJSValue& val)
 
 class DeviceDocumentPlugin;
 
-class JSAPIWrapper : public QObject
+namespace JS
+{
+class APIWrapper : public QObject
 {
         Q_OBJECT
     public:
-        JSAPIWrapper(DeviceDocumentPlugin& devs):
+        APIWrapper(DeviceDocumentPlugin& devs):
             devices{devs}
         {
 
@@ -207,3 +210,4 @@ class JSAPIWrapper : public QObject
         DeviceDocumentPlugin& devices;
 
 };
+}

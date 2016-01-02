@@ -104,7 +104,7 @@ SimpleExpressionEditorWidget::SimpleExpressionEditorWidget(int index, QWidget* p
     m_binOperator->addItem("and");
     m_binOperator->addItem("or");
 
-    m_comparatorList = iscore::opToString();
+    m_comparatorList = State::opToString();
 
     for(auto c : m_comparatorList)
     {
@@ -115,7 +115,7 @@ SimpleExpressionEditorWidget::SimpleExpressionEditorWidget(int index, QWidget* p
 
 }
 
-iscore::Expression SimpleExpressionEditorWidget::relation()
+State::Expression SimpleExpressionEditorWidget::relation()
 {
     int i = 1;
     QString expr = currentRelation();
@@ -127,19 +127,19 @@ iscore::Expression SimpleExpressionEditorWidget::relation()
     }
 
     else
-        return iscore::Expression{};
+        return State::Expression{};
 }
 
-iscore::BinaryOperator SimpleExpressionEditorWidget::binOperator()
+State::BinaryOperator SimpleExpressionEditorWidget::binOperator()
 {
     switch (m_binOperator->currentIndex()) {
-        case 1 : return iscore::BinaryOperator::And;
-        case 2 : return iscore::BinaryOperator::Or;
-        default : return iscore::BinaryOperator::None;
+        case 1 : return State::BinaryOperator::And;
+        case 2 : return State::BinaryOperator::Or;
+        default : return State::BinaryOperator::None;
     }
 }
 
-void SimpleExpressionEditorWidget::setRelation(iscore::Relation r)
+void SimpleExpressionEditorWidget::setRelation(State::Relation r)
 {
     m_address->setText(r.relMemberToString(r.lhs));
 
@@ -162,13 +162,13 @@ void SimpleExpressionEditorWidget::setRelation(iscore::Relation r)
     m_ok->setVisible(m_validator.validate(m_relation, i) != QValidator::State::Acceptable);
 }
 
-void SimpleExpressionEditorWidget::setOperator(iscore::BinaryOperator o)
+void SimpleExpressionEditorWidget::setOperator(State::BinaryOperator o)
 {
     switch (o) {
-        case iscore::BinaryOperator::And :
+        case State::BinaryOperator::And :
             m_binOperator->setCurrentIndex(1); m_op = "and";
             break;
-        case iscore::BinaryOperator::Or :
+        case State::BinaryOperator::Or :
             m_binOperator->setCurrentIndex(2); m_op = "or";
             break;
         default :
@@ -177,11 +177,11 @@ void SimpleExpressionEditorWidget::setOperator(iscore::BinaryOperator o)
         }
 }
 
-void SimpleExpressionEditorWidget::setOperator(iscore::UnaryOperator u)
+void SimpleExpressionEditorWidget::setOperator(State::UnaryOperator u)
 {
     // TODO : add the unary operator
 /*    switch (u) {
-        case iscore::UnaryOperator::Not :
+        case State::UnaryOperator::Not :
             break;
         default:
             m_binOperator->setCurrentIndex(0);

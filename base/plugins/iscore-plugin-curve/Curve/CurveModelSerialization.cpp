@@ -19,9 +19,10 @@ template <typename T> class Writer;
 template <typename model> class IdentifiedObject;
 
 template<>
-ISCORE_PLUGIN_CURVE_EXPORT void Visitor<Reader<DataStream>>::readFrom(const CurveModel& curve)
+ISCORE_PLUGIN_CURVE_EXPORT void Visitor<Reader<DataStream>>::readFrom(
+        const Curve::Model& curve)
 {
-    readFrom(static_cast<const IdentifiedObject<CurveModel>&>(curve));
+    readFrom(static_cast<const IdentifiedObject<Curve::Model>&>(curve));
 
     const auto& segments = curve.segments();
 
@@ -34,15 +35,16 @@ ISCORE_PLUGIN_CURVE_EXPORT void Visitor<Reader<DataStream>>::readFrom(const Curv
 }
 
 template<>
-ISCORE_PLUGIN_CURVE_EXPORT void Visitor<Writer<DataStream>>::writeTo(CurveModel& curve)
+ISCORE_PLUGIN_CURVE_EXPORT void Visitor<Writer<DataStream>>::writeTo(
+        Curve::Model& curve)
 {
     int32_t size;
     m_stream >> size;
 
-    auto& csl = context.components.factory<DynamicCurveSegmentList>();
+    auto& csl = context.components.factory<Curve::SegmentList>();
     for(; size --> 0;)
     {
-        curve.addSegment(createCurveSegment(csl, *this, &curve));
+        curve.addSegment(Curve::createCurveSegment(csl, *this, &curve));
     }
 
     curve.changed();
@@ -50,21 +52,23 @@ ISCORE_PLUGIN_CURVE_EXPORT void Visitor<Writer<DataStream>>::writeTo(CurveModel&
 }
 
 template<>
-ISCORE_PLUGIN_CURVE_EXPORT void Visitor<Reader<JSONObject>>::readFrom(const CurveModel& curve)
+ISCORE_PLUGIN_CURVE_EXPORT void Visitor<Reader<JSONObject>>::readFrom(
+        const Curve::Model& curve)
 {
-    readFrom(static_cast<const IdentifiedObject<CurveModel>&>(curve));
+    readFrom(static_cast<const IdentifiedObject<Curve::Model>&>(curve));
 
     m_obj["Segments"] = toJsonArray(curve.segments());
 }
 
 template<>
-ISCORE_PLUGIN_CURVE_EXPORT void Visitor<Writer<JSONObject>>::writeTo(CurveModel& curve)
+ISCORE_PLUGIN_CURVE_EXPORT void Visitor<Writer<JSONObject>>::writeTo(
+        Curve::Model& curve)
 {
-    auto& csl = context.components.factory<DynamicCurveSegmentList>();
+    auto& csl = context.components.factory<Curve::SegmentList>();
     for(const auto& segment : m_obj["Segments"].toArray())
     {
         Deserializer<JSONObject> segment_deser{segment.toObject()};
-        curve.addSegment(createCurveSegment(csl, segment_deser, &curve));
+        curve.addSegment(Curve::createCurveSegment(csl, segment_deser, &curve));
     }
 
     curve.changed();

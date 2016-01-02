@@ -3,6 +3,8 @@
 #include "CircleAreaPresenter.hpp"
 #include "CircleAreaView.hpp"
 
+namespace Space
+{
 int CircleAreaFactory::type() const
 {
     return CircleAreaModel::static_type();
@@ -20,17 +22,17 @@ QString CircleAreaFactory::prettyName() const
 }
 
 AreaModel*CircleAreaFactory::makeModel(
-        const QString& formula,
-        const SpaceModel& space,
+        const QStringList& formula,
+        const Space::AreaContext& space,
         const Id<AreaModel>& id,
         QObject* parent) const
 {
     return new CircleAreaModel{space, id, parent};
 }
 
-QString CircleAreaFactory::generic_formula() const
+QStringList CircleAreaFactory::generic_formula() const
 {
-    return {CircleAreaModel::formula()};
+    return CircleAreaModel::formula();
 }
 
 
@@ -47,4 +49,5 @@ AreaPresenter*CircleAreaFactory::makePresenter(
 QGraphicsItem* CircleAreaFactory::makeView(QGraphicsItem* parent) const
 {
     return new CircleAreaView{parent};
+}
 }

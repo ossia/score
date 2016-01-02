@@ -11,7 +11,7 @@
 class ConstraintModel;
 class DataStreamInput;
 class DataStreamOutput;
-class Process;
+namespace Process { class ProcessModel; }
 class RackModel;
 
 namespace Scenario
@@ -40,7 +40,7 @@ namespace Scenario
                 ExpandMode m_mode{ExpandMode::GrowShrink};
 
                 QMap<Id<RackModel>, Id<RackModel>> m_rackIds;
-                QMap<Id<Process>, Id<Process>> m_processIds;
+                QMap<Id<Process::ProcessModel>, Id<Process::ProcessModel>> m_processIds;
         };
     }
 }

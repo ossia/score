@@ -8,7 +8,7 @@
 #include "Network/Protocol/Minuit.h"
 #include <OSSIA/Protocols/Minuit/MinuitSpecificSettings.hpp>
 
-MinuitDevice::MinuitDevice(const iscore::DeviceSettings &settings):
+MinuitDevice::MinuitDevice(const Device::DeviceSettings &settings):
     OSSIADevice{settings}
 {
     m_capas.canRefresh = true;

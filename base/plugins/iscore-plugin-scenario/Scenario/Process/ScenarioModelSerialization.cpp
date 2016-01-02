@@ -24,8 +24,8 @@
 #include <iscore/tools/SettableIdentifier.hpp>
 #include <iscore/document/DocumentContext.hpp>
 #include <iscore_plugin_scenario_export.h>
-class LayerModel;
-class Process;
+namespace Process { class LayerModel; }
+namespace Process { class ProcessModel; }
 class QObject;
 struct VisitorVariant;
 template <typename T> class Reader;
@@ -248,7 +248,7 @@ void Scenario::ScenarioModel::serialize(const VisitorVariant& vis) const
     serialize_dyn(vis, *this);
 }
 
-Process* ScenarioFactory::loadModel(
+Process::ProcessModel* ScenarioFactory::loadModel(
         const VisitorVariant& vis,
         QObject* parent)
 {
@@ -256,7 +256,7 @@ Process* ScenarioFactory::loadModel(
     { return new Scenario::ScenarioModel{deserializer, parent};});
 }
 
-LayerModel* Scenario::ScenarioModel::loadLayer_impl(
+Process::LayerModel* Scenario::ScenarioModel::loadLayer_impl(
         const VisitorVariant& vis,
         QObject* parent)
 {

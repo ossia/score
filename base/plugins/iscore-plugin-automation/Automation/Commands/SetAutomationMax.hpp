@@ -2,15 +2,18 @@
 #include <Automation/Commands/AutomationCommandFactory.hpp>
 #include <iscore/command/PropertyCommand.hpp>
 
-class AutomationModel;
-class SetAutomationMax final : public iscore::PropertyCommand
+namespace Automation
 {
-        ISCORE_COMMAND_DECL(AutomationCommandFactoryName(), SetAutomationMax, "Set curve maximum")
+class ProcessModel;
+class SetMax final : public iscore::PropertyCommand
+{
+        ISCORE_COMMAND_DECL(CommandFactoryName(), SetMax, "Set curve maximum")
         public:
 
-        SetAutomationMax(Path<AutomationModel>&& path, double newval):
+        SetMax(Path<ProcessModel>&& path, double newval):
             iscore::PropertyCommand{std::move(path), "max", newval}
         {
 
         }
 };
+}

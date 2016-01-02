@@ -16,8 +16,8 @@ class ISCORE_PLUGIN_SCENARIO_EXPORT TriggerModel final : public IdentifiedObject
     public:
         TriggerModel(const Id<TriggerModel>& id, QObject* parent);
 
-        iscore::Trigger expression() const;
-        void setExpression(const iscore::Trigger& expression);
+        State::Trigger expression() const;
+        void setExpression(const State::Trigger& expression);
         bool isVoid();
 
         bool active() const;
@@ -28,12 +28,12 @@ class ISCORE_PLUGIN_SCENARIO_EXPORT TriggerModel final : public IdentifiedObject
         ExecutionStatusProperty executionStatus; // TODO serialize me ?
 
     signals:
-        void triggerChanged(const iscore::Trigger&);
+        void triggerChanged(const State::Trigger&);
         void activeChanged();
 
         void triggered() const;
 
     private:
-        iscore::Trigger m_expression;
+        State::Trigger m_expression;
         bool m_active {false};
 };

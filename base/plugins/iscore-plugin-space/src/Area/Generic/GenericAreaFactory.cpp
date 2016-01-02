@@ -3,6 +3,9 @@
 #include "GenericAreaPresenter.hpp"
 #include "GenericAreaView.hpp"
 
+
+namespace Space
+{
 int GenericAreaFactory::type() const
 {
     return GenericAreaModel::static_type();
@@ -20,15 +23,15 @@ QString GenericAreaFactory::prettyName() const
 }
 
 AreaModel*GenericAreaFactory::makeModel(
-        const QString& formula,
-        const SpaceModel& space,
+        const QStringList& formula,
+        const Space::AreaContext& space,
         const Id<AreaModel>& id,
         QObject* parent) const
 {
     return new GenericAreaModel{formula, space, id, parent};
 }
 
-QString GenericAreaFactory::generic_formula() const
+QStringList GenericAreaFactory::generic_formula() const
 {
     return {};
 }
@@ -47,4 +50,5 @@ AreaPresenter*GenericAreaFactory::makePresenter(
 QGraphicsItem* GenericAreaFactory::makeView(QGraphicsItem* parent) const
 {
     return new GenericAreaView{parent};
+}
 }

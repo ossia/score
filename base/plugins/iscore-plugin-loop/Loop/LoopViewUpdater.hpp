@@ -1,15 +1,17 @@
 #pragma once
 
-class LoopPresenter;
 class EventPresenter;
 class TimeNodePresenter;
 class TemporalConstraintPresenter;
 class StatePresenter;
 
-class LoopViewUpdater
+namespace Loop
+{
+class LayerPresenter;
+class ViewUpdater
 {
     public:
-        LoopViewUpdater(LoopPresenter& presenter);
+        ViewUpdater(LayerPresenter& presenter);
 
         void updateEvent(const EventPresenter &event);
 
@@ -19,6 +21,7 @@ class LoopViewUpdater
 
         void updateState(const StatePresenter &state);
 
-        LoopPresenter& m_presenter;
+        LayerPresenter& m_presenter;
 };
 
+}

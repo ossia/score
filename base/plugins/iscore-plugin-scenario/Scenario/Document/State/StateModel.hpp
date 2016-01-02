@@ -22,7 +22,7 @@ class DataStream;
 class EventModel;
 class JSONObject;
 class MessageItemModel;
-class Process;
+namespace Process { class ProcessModel; }
 class ProcessStateDataInterface;
 
 namespace iscore
@@ -114,7 +114,7 @@ class ISCORE_PLUGIN_SCENARIO_EXPORT StateModel final : public IdentifiedObject<S
         ExecutionStatus status() const
         { return m_status.get(); }
 
-        NotifyingMap<StateProcess> stateProcesses;
+        NotifyingMap<Process::StateProcess> stateProcesses;
 
         void setHeightPercentage(double y);
 

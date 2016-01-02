@@ -13,8 +13,8 @@ class ConstraintModel;
 class DataStream;
 class FullViewConstraintViewModel;
 class JSONObject;
-class LayerModel;
-class LayerPresenter;
+namespace Process { class LayerModel; }
+namespace Process { class LayerPresenter; }
 class QObject;
 
 class ISCORE_PLUGIN_SCENARIO_EXPORT ScenarioDocumentModel final :
@@ -45,26 +45,26 @@ class ISCORE_PLUGIN_SCENARIO_EXPORT ScenarioDocumentModel final :
         void setNewSelection(const Selection& s) override;
 
 
-        ProcessFocusManager& focusManager()
+        Process::ProcessFocusManager& focusManager()
         { return m_focusManager; }
-        const ProcessFocusManager& focusManager() const
+        const Process::ProcessFocusManager& focusManager() const
         { return m_focusManager; }
 
         void setDisplayedConstraint(const ConstraintModel& constraint);
 
-        void on_viewModelDefocused(const LayerModel* vm);
-        void on_viewModelFocused(const LayerModel* vm);
+        void on_viewModelDefocused(const Process::LayerModel* vm);
+        void on_viewModelFocused(const Process::LayerModel* vm);
 
     signals:
         void focusMe();
-        void setFocusedPresenter(LayerPresenter*);
+        void setFocusedPresenter(Process::LayerPresenter*);
         void displayedConstraintChanged();
 
     private:
         void init();
         void initializeNewDocument(const FullViewConstraintViewModel* viewmodel);
 
-        ProcessFocusManager m_focusManager;
+        Process::ProcessFocusManager m_focusManager;
         QPointer<ConstraintModel> m_focusedConstraint{};
         BaseScenario* m_baseScenario{};
 

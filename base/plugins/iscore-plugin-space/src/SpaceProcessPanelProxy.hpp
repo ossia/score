@@ -3,12 +3,12 @@
 #include "SpaceProcessProxyLayerModel.hpp"
 
 class SpaceProcessProxyLayerModel;
-class SpaceLayerModel;
-class SpaceProcessPanelProxy : public LayerModelPanelProxy
+namespace Process { class LayerModel; }
+class SpaceProcessPanelProxy : public Process::LayerModelPanelProxy
 {
     public:
         SpaceProcessPanelProxy(
-                const SpaceLayerModel& vm,
+                const Process::LayerModel& vm,
                 QObject* parent);
 
         const SpaceProcessProxyLayerModel& layer() override;

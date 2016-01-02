@@ -70,10 +70,10 @@ template<> void Visitor<Writer<DataStream>>::writeTo(StateModel& s)
     // Processes plugins
     int32_t process_count;
     m_stream >> process_count;
-    auto& pl = context.components.factory<StateProcessList>();
+    auto& pl = context.components.factory<Process::StateProcessList>();
     for(; process_count -- > 0;)
     {
-        s.stateProcesses.add(createStateProcess(pl, *this, &s));
+        s.stateProcesses.add(Process::createStateProcess(pl, *this, &s));
     }
 
 
@@ -113,7 +113,7 @@ template<> void Visitor<Writer<JSONObject>>::writeTo(StateModel& s)
     s.messages() = fromJsonObject<MessageNode>(m_obj["Messages"].toObject());
 
     // Processes plugins
-    auto& pl = context.components.factory<StateProcessList>();
+    auto& pl = context.components.factory<Process::StateProcessList>();
 
     QJsonArray process_array = m_obj["StateProcesses"].toArray();
     for(const auto& json_vref : process_array)

@@ -11,8 +11,10 @@ namespace iscore {
 class CommandStackFacade;
 }  // namespace iscore
 
-CurveCommandObjectBase::CurveCommandObjectBase(
-        CurvePresenter* pres,
+namespace Curve
+{
+CommandObjectBase::CommandObjectBase(
+        Presenter* pres,
         iscore::CommandStackFacade& stack):
     m_presenter{pres},
     m_dispatcher{stack},
@@ -21,12 +23,12 @@ CurveCommandObjectBase::CurveCommandObjectBase(
 
 }
 
-CurveCommandObjectBase::~CurveCommandObjectBase()
+CommandObjectBase::~CommandObjectBase()
 {
 
 }
 
-void CurveCommandObjectBase::press()
+void CommandObjectBase::press()
 {
     const auto& current = m_presenter->model();
 
@@ -40,7 +42,7 @@ void CurveCommandObjectBase::press()
     on_press();
 }
 
-void CurveCommandObjectBase::handleLocking()
+void CommandObjectBase::handleLocking()
 {
     double current_x = m_state->currentPoint.x();
     double current_y = m_state->currentPoint.y();
@@ -66,11 +68,11 @@ void CurveCommandObjectBase::handleLocking()
     }
 }
 
-void CurveCommandObjectBase::submit(std::vector<CurveSegmentData>&& segments)
+void CommandObjectBase::submit(std::vector<SegmentData>&& segments)
 {
     // TODO std::move
-    m_dispatcher.submitCommand(Path<CurveModel>(m_modelPath),
+    m_dispatcher.submitCommand(Path<Model>(m_modelPath),
                                std::move(segments));
 }
 
-
+}

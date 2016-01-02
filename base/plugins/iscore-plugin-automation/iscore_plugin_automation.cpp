@@ -24,12 +24,12 @@
 #include <Curve/Process/CurveProcessFactory.hpp>
 DEFINE_CURVE_PROCESS_FACTORY(
         AutomationFactory,
-        AutomationProcessMetadata,
-        AutomationModel,
-        AutomationLayerModel,
-        AutomationPresenter,
-        AutomationView,
-        AutomationColors)
+        Automation::ProcessMetadata,
+        Automation::ProcessModel,
+        Automation::LayerModel,
+        Automation::LayerPresenter,
+        Automation::LayerView,
+        Automation::Colors)
 
 iscore_plugin_automation::iscore_plugin_automation() :
     QObject {}
@@ -44,21 +44,22 @@ std::vector<std::unique_ptr<iscore::FactoryInterfaceBase>> iscore_plugin_automat
     return instantiate_factories<
             iscore::ApplicationContext,
     TL<
-        FW<ProcessFactory,
+        FW<Process::ProcessFactory,
              AutomationFactory>,
 #if defined(ISCORE_LIB_INSPECTOR)
         FW<InspectorWidgetFactory,
-             AutomationStateInspectorFactory,
-             CurvePointInspectorFactory>,
+             Automation::StateInspectorFactory,
+             Automation::PointInspectorFactory>,
 #endif
         FW<ProcessInspectorWidgetDelegateFactory,
-             AutomationInspectorFactory>
+             Automation::InspectorFactory>
     >>(ctx, key);
 }
 
 std::pair<const CommandParentFactoryKey, CommandGeneratorMap> iscore_plugin_automation::make_commands()
 {
-    std::pair<const CommandParentFactoryKey, CommandGeneratorMap> cmds{AutomationCommandFactoryName(), CommandGeneratorMap{}};
+    using namespace Automation;
+    std::pair<const CommandParentFactoryKey, CommandGeneratorMap> cmds{CommandFactoryName(), CommandGeneratorMap{}};
 
     using Types = TypeList<
 #include <iscore_plugin_automation_commands.hpp>

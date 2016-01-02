@@ -12,7 +12,7 @@
 
 LoadDevice::LoadDevice(
         Path<DeviceDocumentPlugin>&& device_tree,
-        iscore::Node&& node):
+        Device::Node&& node):
     m_devicesModel{std::move(device_tree)},
     m_deviceNode(std::move(node))
 {
@@ -21,7 +21,7 @@ LoadDevice::LoadDevice(
 void LoadDevice::undo() const
 {
     auto& devplug = m_devicesModel.find();
-    devplug.updateProxy.removeDevice(m_deviceNode.get<iscore::DeviceSettings>());
+    devplug.updateProxy.removeDevice(m_deviceNode.get<Device::DeviceSettings>());
 }
 
 void LoadDevice::redo() const

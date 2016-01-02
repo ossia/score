@@ -13,52 +13,52 @@
 #include <OSSIA/OSSIA2iscore.hpp>
 #include <iscore/tools/TreeNode.hpp>
 
-namespace OSSIA
+namespace Ossia
 {
 namespace convert
 {
 
 
-iscore::IOType ToIOType(OSSIA::Address::AccessMode t)
+Device::IOType ToIOType(OSSIA::AccessMode t)
 {
     switch(t)
     {
-        case OSSIA::Address::AccessMode::GET:
-            return iscore::IOType::In;
-        case OSSIA::Address::AccessMode::SET:
-            return iscore::IOType::Out;
-        case OSSIA::Address::AccessMode::BI:
-            return iscore::IOType::InOut;
+        case OSSIA::AccessMode::GET:
+            return Device::IOType::In;
+        case OSSIA::AccessMode::SET:
+            return Device::IOType::Out;
+        case OSSIA::AccessMode::BI:
+            return Device::IOType::InOut;
         default:
             ISCORE_ABORT;
-            return iscore::IOType::Invalid;
+            return Device::IOType::Invalid;
     }
 }
 
 
-iscore::ClipMode ToClipMode(OSSIA::Address::BoundingMode b)
+Device::ClipMode ToClipMode(OSSIA::BoundingMode b)
 {
     switch(b)
     {
-        case OSSIA::Address::BoundingMode::CLIP:
-            return iscore::ClipMode::Clip;
+        case OSSIA::BoundingMode::CLIP:
+            return Device::ClipMode::Clip;
             break;
-        case OSSIA::Address::BoundingMode::FOLD:
-            return iscore::ClipMode::Fold;
+        case OSSIA::BoundingMode::FOLD:
+            return Device::ClipMode::Fold;
             break;
-        case OSSIA::Address::BoundingMode::FREE:
-            return iscore::ClipMode::Free;
+        case OSSIA::BoundingMode::FREE:
+            return Device::ClipMode::Free;
             break;
-        case OSSIA::Address::BoundingMode::WRAP:
-            return iscore::ClipMode::Wrap;
+        case OSSIA::BoundingMode::WRAP:
+            return Device::ClipMode::Wrap;
             break;
         default:
             ISCORE_ABORT;
-            return static_cast<iscore::ClipMode>(-1);
+            return static_cast<Device::ClipMode>(-1);
     }
 }
 
-iscore::Value ToValue(const OSSIA::Value *val)
+State::Value ToValue(const OSSIA::Value *val)
 {
     if(!val)
         return {};
@@ -68,28 +68,28 @@ iscore::Value ToValue(const OSSIA::Value *val)
     switch(val->getType())
     {
         case OSSIA::Value::Type::IMPULSE:
-            return iscore::Value::fromValue(iscore::impulse_t{});
+            return State::Value::fromValue(State::impulse_t{});
         case OSSIA::Value::Type::BOOL:
-            return iscore::Value::fromValue(safe_cast<const OSSIA::Bool*>(val)->value);
+            return State::Value::fromValue(safe_cast<const OSSIA::Bool*>(val)->value);
         case OSSIA::Value::Type::INT:
-            return iscore::Value::fromValue(safe_cast<const OSSIA::Int*>(val)->value);
+            return State::Value::fromValue(safe_cast<const OSSIA::Int*>(val)->value);
         case OSSIA::Value::Type::FLOAT:
-            return iscore::Value::fromValue(safe_cast<const OSSIA::Float*>(val)->value);
+            return State::Value::fromValue(safe_cast<const OSSIA::Float*>(val)->value);
         case OSSIA::Value::Type::CHAR:
-            return iscore::Value::fromValue(QChar::fromLatin1(safe_cast<const OSSIA::Char*>(val)->value));
+            return State::Value::fromValue(QChar::fromLatin1(safe_cast<const OSSIA::Char*>(val)->value));
         case OSSIA::Value::Type::STRING:
-            return iscore::Value::fromValue(QString::fromStdString(safe_cast<const OSSIA::String*>(val)->value));
+            return State::Value::fromValue(QString::fromStdString(safe_cast<const OSSIA::String*>(val)->value));
         case OSSIA::Value::Type::TUPLE:
         {
             auto ossia_tuple = safe_cast<const OSSIA::Tuple*>(val);
-            iscore::tuple_t tuple;
+            State::tuple_t tuple;
             tuple.reserve(ossia_tuple->value.size());
             for (const auto & e : ossia_tuple->value)
             {
                 tuple.push_back(ToValue(e).val); // TODO REVIEW THIS
             }
 
-            return iscore::Value::fromValue(tuple);
+            return State::Value::fromValue(tuple);
         }
         case OSSIA::Value::Type::GENERIC:
         {
@@ -108,9 +108,9 @@ iscore::Value ToValue(const OSSIA::Value *val)
     }
 }
 
-iscore::Address ToAddress(const OSSIA::Node& node)
+State::Address ToAddress(const OSSIA::Node& node)
 {
-    iscore::Address addr;
+    State::Address addr;
     const OSSIA::Node* cur = &node;
 
     while(!dynamic_cast<const OSSIA::Device*>(cur))
@@ -125,13 +125,16 @@ iscore::Address ToAddress(const OSSIA::Node& node)
     return addr;
 }
 
-iscore::AddressSettings ToAddressSettings(const OSSIA::Node &node)
+Device::AddressSettings ToAddressSettings(const OSSIA::Node &node)
 {
-    iscore::AddressSettings s;
+    Device::AddressSettings s;
     s.name = QString::fromStdString(node.getName());
 
     const auto& addr = node.getAddress();
-
+    if(s.name == "yPos" && !addr)
+    {
+        ISCORE_BREAKPOINT;
+    }
     if(addr)
     {
         addr->pullValue();
@@ -175,9 +178,9 @@ iscore::AddressSettings ToAddressSettings(const OSSIA::Node &node)
 }
 
 
-iscore::Node ToDeviceExplorer(const OSSIA::Node &ossia_node)
+Device::Node ToDeviceExplorer(const OSSIA::Node &ossia_node)
 {
-    iscore::Node iscore_node{ToAddressSettings(ossia_node), nullptr};
+    Device::Node iscore_node{ToAddressSettings(ossia_node), nullptr};
     iscore_node.reserve(ossia_node.children().size());
 
     // 2. Recurse on the children
@@ -192,9 +195,9 @@ iscore::Node ToDeviceExplorer(const OSSIA::Node &ossia_node)
 }
 
 
-iscore::Domain ToDomain(OSSIA::Domain &domain)
+Device::Domain ToDomain(OSSIA::Domain &domain)
 {
-    iscore::Domain d;
+    Device::Domain d;
     d.min = ToValue(domain.getMin());
     d.max = ToValue(domain.getMax());
 
@@ -206,29 +209,29 @@ iscore::Domain ToDomain(OSSIA::Domain &domain)
     return d;
 }
 
-iscore::Value ToValue(OSSIA::Value::Type t)
+State::Value ToValue(OSSIA::Value::Type t)
 {
     switch(t)
     {
-        case Value::Type::FLOAT:
-            return iscore::Value::fromValue(float{});
-        case Value::Type::IMPULSE:
-            return iscore::Value::fromValue(iscore::impulse_t{});
-        case Value::Type::INT:
-            return iscore::Value::fromValue(int{});
-        case Value::Type::BOOL:
-            return iscore::Value::fromValue(bool{});
-        case Value::Type::CHAR:
-            return iscore::Value::fromValue(QChar{});
-        case Value::Type::STRING:
-            return iscore::Value::fromValue(QString{});
-        case Value::Type::TUPLE:
-            return iscore::Value::fromValue(iscore::tuple_t{});
-        case Value::Type::GENERIC:
-        case Value::Type::DESTINATION:
-        case Value::Type::BEHAVIOR:
+        case OSSIA::Value::Type::FLOAT:
+            return State::Value::fromValue(float{});
+        case OSSIA::Value::Type::IMPULSE:
+            return State::Value::fromValue(State::impulse_t{});
+        case OSSIA::Value::Type::INT:
+            return State::Value::fromValue(int{});
+        case OSSIA::Value::Type::BOOL:
+            return State::Value::fromValue(bool{});
+        case OSSIA::Value::Type::CHAR:
+            return State::Value::fromValue(QChar{});
+        case OSSIA::Value::Type::STRING:
+            return State::Value::fromValue(QString{});
+        case OSSIA::Value::Type::TUPLE:
+            return State::Value::fromValue(State::tuple_t{});
+        case OSSIA::Value::Type::GENERIC:
+        case OSSIA::Value::Type::DESTINATION:
+        case OSSIA::Value::Type::BEHAVIOR:
         default:
-            return iscore::Value{};
+            return State::Value{};
     }
 
 }

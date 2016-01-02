@@ -142,12 +142,12 @@ const QVector<Id<StateModel> > &EventModel::states() const
 
 
 
-const iscore::Condition& EventModel::condition() const
+const State::Condition& EventModel::condition() const
 {
     return m_condition;
 }
 
-void EventModel::setCondition(const iscore::Condition& arg)
+void EventModel::setCondition(const State::Condition& arg)
 {
     if(m_condition != arg)
     {

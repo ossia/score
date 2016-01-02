@@ -13,38 +13,38 @@
 #include <boost/range/algorithm/find_if.hpp>
 #include <iscore/tools/SettableIdentifierGeneration.hpp>
 #include <iscore/tools/ModelPathSerialization.hpp>
+#include <iscore/plugins/customfactory/StringFactoryKeySerialization.hpp>
 
-AddArea::AddArea(Path<SpaceProcess> &&spacProcess,
-                 int areatype,
-                 const QString &area,
+namespace Space
+{
+AddArea::AddArea(Path<Space::ProcessModel> &&spacProcess,
+                 AreaFactoryKey type,
+                 const QStringList &area,
                  const QMap<Id<DimensionModel>, QString> &dimMap,
-                 const QMap<QString, iscore::FullAddressSettings> &addrMap):
+                 const QMap<QString, Device::FullAddressSettings> &addrMap):
     m_path{std::move(spacProcess)},
-    m_areaType{areatype},
+    m_areaType{type},
     m_areaFormula{area},
     m_dimensionToVarMap{dimMap},
     m_symbolToAddressMap{addrMap}
 {
-    m_createdAreaId = getStrongId(m_path.find().areas());
+    m_createdAreaId = getStrongId(m_path.find().areas);
 }
 
 void AddArea::undo() const
 {
     auto& proc = m_path.find();
-    proc.removeArea(m_createdAreaId);
+    proc.areas.remove(m_createdAreaId);
 }
 
 void AddArea::redo() const
 {
     auto& proc = m_path.find();
 
-    const auto& facts = context.components.factory<SingletonAreaFactoryList>().get();
-    auto it = boost::range::find_if(facts,
-                                    [&] (const auto& f) { return f.second->type() == m_areaType; });
+    auto factory = context.components.factory<SingletonAreaFactoryList>().get(m_areaType);
+    ISCORE_ASSERT(factory);
 
-    ISCORE_ASSERT(it != facts.end());
-
-    auto ar = it->second->makeModel(m_areaFormula, proc.space(), m_createdAreaId, &proc);
+    auto ar = factory->makeModel(m_areaFormula, proc.context(), m_createdAreaId, &proc);
 
     GiNaC::exmap sym_map;
     const auto& syms = ar->area().symbols();
@@ -72,7 +72,7 @@ void AddArea::redo() const
     ar->setSpaceMapping(sym_map);
     ar->setParameterMapping(addr_map);
 
-    proc.addArea(ar);
+    proc.areas.add(ar);
 }
 
 void AddArea::serializeImpl(DataStreamInput &s) const
@@ -83,4 +83,5 @@ void AddArea::serializeImpl(DataStreamInput &s) const
 void AddArea::deserializeImpl(DataStreamOutput &s)
 {
     s >> m_path >> m_createdAreaId >> m_areaType >> m_areaFormula >> m_dimensionToVarMap >> m_symbolToAddressMap;
+}
 }

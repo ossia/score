@@ -145,6 +145,7 @@ Application::Application(
 Application::~Application()
 {
     this->setParent(nullptr);
+    delete m_view;
     delete m_presenter;
 
     DocumentBackups::clear();

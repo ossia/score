@@ -19,7 +19,7 @@ class RemoveAddress final : public iscore::SerializableCommand
     public:
         RemoveAddress(
                    Path<DeviceDocumentPlugin>&& device_tree,
-                   const iscore::NodePath &nodePath);
+                   const Device::NodePath &nodePath);
 
         void undo() const override;
         void redo() const override;
@@ -30,6 +30,6 @@ class RemoveAddress final : public iscore::SerializableCommand
 
     private:
         Path<DeviceDocumentPlugin> m_devicesModel;
-        iscore::NodePath m_nodePath;
-        iscore::Node m_savedNode;
+        Device::NodePath m_nodePath;
+        Device::Node m_savedNode;
 };

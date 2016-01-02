@@ -1,6 +1,6 @@
 #include "LayerModelPanelProxy.hpp"
 
-LayerModelPanelProxy::~LayerModelPanelProxy()
+Process::LayerModelPanelProxy::~LayerModelPanelProxy()
 {
 
 }

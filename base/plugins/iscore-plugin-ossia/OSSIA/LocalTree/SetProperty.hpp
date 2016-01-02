@@ -9,18 +9,18 @@ struct SetPropertyWrapper : public BaseCallbackWrapper
         SetFun setFun;
 
         SetPropertyWrapper(
-                const std::shared_ptr<OSSIA::Node>& node,
-                const std::shared_ptr<OSSIA::Address>& addr,
+                const std::shared_ptr<OSSIA::Node>& param_node,
+                const std::shared_ptr<OSSIA::Address>& param_addr,
                 SetFun prop
                 ):
-            BaseCallbackWrapper{node, addr},
+            BaseCallbackWrapper{param_node, param_addr},
             setFun{prop}
         {
-            m_callbackIt = addr->addCallback([=] (const OSSIA::Value* v) {
-                setFun(OSSIA::convert::ToValue(v));
+            callbackIt = addr->addCallback([=] (const OSSIA::Value* v) {
+                setFun(Ossia::convert::ToValue(v));
             });
 
-            addr->setValue(new typename OSSIA::convert::MatchingType<T>::type);
+            addr->setValue(new typename Ossia::convert::MatchingType<T>::type);
         }
 };
 
@@ -30,15 +30,18 @@ auto make_setProperty(
         const std::shared_ptr<OSSIA::Address>& addr,
         Callback prop)
 {
-    return new SetPropertyWrapper<T, Callback>{node, addr, prop};
+    return std::make_unique<SetPropertyWrapper<T, Callback>>(node, addr, prop);
 }
 
 template<typename T, typename Callback>
 auto add_setProperty(OSSIA::Node& n, const std::string& name, Callback cb)
 {
-    std::shared_ptr<OSSIA::Node> node = *n.emplaceAndNotify(n.children().end(), name);
-    auto addr = node->createAddress(OSSIA::convert::MatchingType<T>::val);
-    addr->setAccessMode(OSSIA::Address::AccessMode::SET);
+    constexpr const auto t = Ossia::convert::MatchingType<T>::val;
+    std::shared_ptr<OSSIA::Node> node = *n.emplaceAndNotify(
+                                            n.children().end(),
+                                            name,
+                                            t,
+                                            OSSIA::AccessMode::SET);
 
-    return make_setProperty<T>(node, addr, cb);
+    return make_setProperty<T>(node, node->getAddress(), cb);
 }

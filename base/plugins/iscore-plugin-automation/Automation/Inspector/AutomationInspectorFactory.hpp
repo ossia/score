@@ -10,16 +10,19 @@ struct DocumentContext;
 }  // namespace iscore
 
 
-class AutomationInspectorFactory final : public ProcessInspectorWidgetDelegateFactory
+namespace Automation
+{
+class InspectorFactory final : public ProcessInspectorWidgetDelegateFactory
 {
     public:
-        AutomationInspectorFactory() = default;
+        InspectorFactory() = default;
 
     private:
         ProcessInspectorWidgetDelegate* make(
-                const Process&,
+                const Process::ProcessModel&,
                 const iscore::DocumentContext& doc,
                 QWidget* parent) const override;
-        bool matches(const Process&) const override;
+        bool matches(const Process::ProcessModel&) const override;
 
 };
+}

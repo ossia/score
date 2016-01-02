@@ -5,25 +5,24 @@
 
 #include <iscore/serialization/VisitorInterface.hpp>
 
-class LayerModelPanelProxy;
 class MappingModel;
 class QObject;
 #include <iscore/tools/SettableIdentifier.hpp>
 
-class MappingLayerModel : public LayerModel
+class MappingLayerModel : public Process::LayerModel
 {
         ISCORE_METADATA(MappingLayerModel)
         public:
             MappingLayerModel(
                 MappingModel& model,
-                const Id<LayerModel>& id,
+                const Id<Process::LayerModel>& id,
                 QObject* parent);
 
         // Copy
         MappingLayerModel(
                 const MappingLayerModel& source,
                 MappingModel& model,
-                const Id<LayerModel>& id,
+                const Id<Process::LayerModel>& id,
                 QObject* parent);
 
         // Load
@@ -32,12 +31,12 @@ class MappingLayerModel : public LayerModel
                 Deserializer<Impl>& vis,
                 MappingModel& model,
                 QObject* parent) :
-            LayerModel {vis, model, parent}
+            Process::LayerModel {vis, model, parent}
         {
             vis.writeTo(*this);
         }
 
-        LayerModelPanelProxy* make_panelProxy(QObject* parent) const override;
+        Process::LayerModelPanelProxy* make_panelProxy(QObject* parent) const override;
         void serialize(const VisitorVariant&) const override;
 
         const MappingModel& model() const;

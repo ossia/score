@@ -20,7 +20,7 @@
 #include <OSSIA/DocumentPlugin/StateElement.hpp>
 #include <Scenario/Document/Constraint/ConstraintDurations.hpp>
 
-class Process;
+namespace Process { class ProcessModel; }
 class QObject;
 namespace OSSIA {
 class StateElement;
@@ -85,7 +85,7 @@ std::shared_ptr<OSSIA::TimeProcess> RecreateOnPlay::LoopElement::OSSIAProcess() 
 std::shared_ptr<OSSIA::Loop> RecreateOnPlay::LoopElement::scenario() const
 { return m_ossia_loop; }
 
-Process&RecreateOnPlay::LoopElement::iscoreProcess() const
+Process::ProcessModel&RecreateOnPlay::LoopElement::iscoreProcess() const
 { return m_iscore_loop; }
 
 void RecreateOnPlay::LoopElement::stop()

@@ -18,77 +18,78 @@
 #include <iscore/tools/IdentifiedObjectMap.hpp>
 #include <iscore/tools/SettableIdentifier.hpp>
 
-class LayerModel;
-class Process;
+namespace Process { class LayerModel; }
+namespace Process { class ProcessModel; }
 class QObject;
-
-AutomationModel::AutomationModel(
+namespace Automation
+{
+ProcessModel::ProcessModel(
         const TimeValue& duration,
-        const Id<Process>& id,
+        const Id<Process::ProcessModel>& id,
         QObject* parent) :
-    CurveProcessModel {duration, id, AutomationProcessMetadata::processObjectName(), parent},
-    m_startState{new AutomationState{*this, 0., this}},
-    m_endState{new AutomationState{*this, 1., this}}
+    CurveProcessModel {duration, id, ProcessMetadata::processObjectName(), parent},
+    m_startState{new ProcessState{*this, 0., this}},
+    m_endState{new ProcessState{*this, 1., this}}
 {
     pluginModelList = new iscore::ElementPluginModelList{iscore::IDocument::documentContext(*parent), this};
 
     // Named shall be enough ?
-    setCurve(new CurveModel{Id<CurveModel>(45345), this});
+    setCurve(new Curve::Model{Id<Curve::Model>(45345), this});
 
-    auto s1 = new DefaultCurveSegmentModel(Id<CurveSegmentModel>(1), m_curve);
+    auto s1 = new Curve::DefaultCurveSegmentModel(Id<Curve::SegmentModel>(1), m_curve);
     s1->setStart({0., 0.0});
     s1->setEnd({1., 1.});
 
     m_curve->addSegment(s1);
-    connect(m_curve, &CurveModel::changed,
-            this, &AutomationModel::curveChanged);
+    connect(m_curve, &Curve::Model::changed,
+            this, &ProcessModel::curveChanged);
 
     metadata.setName(QString("Automation.%1").arg(*this->id().val()));
 }
 
-AutomationModel::AutomationModel(
-        const AutomationModel& source,
-        const Id<Process>& id,
+ProcessModel::ProcessModel(
+        const ProcessModel& source,
+        const Id<Process::ProcessModel>& id,
         QObject* parent):
-    CurveProcessModel{source, id, AutomationProcessMetadata::processObjectName(), parent},
+    Curve::CurveProcessModel{source, id, ProcessMetadata::processObjectName(), parent},
     m_address(source.address()),
     m_min{source.min()},
     m_max{source.max()},
-    m_startState{new AutomationState{*this, 0., this}},
-    m_endState{new AutomationState{*this, 1., this}}
+    m_startState{new ProcessState{*this, 0., this}},
+    m_endState{new ProcessState{*this, 1., this}}
 {
     setCurve(source.curve().clone(source.curve().id(), this));
     pluginModelList = new iscore::ElementPluginModelList(*source.pluginModelList, this);
-    connect(m_curve, &CurveModel::changed,
-            this, &AutomationModel::curveChanged);
+    connect(m_curve, &Curve::Model::changed,
+            this, &ProcessModel::curveChanged);
     metadata.setName(QString("Automation.%1").arg(*this->id().val()));
 }
 
-Process* AutomationModel::clone(
-        const Id<Process>& newId,
+Process::ProcessModel* ProcessModel::clone(
+        const Id<Process::ProcessModel>& newId,
         QObject* newParent) const
 {
-    return new AutomationModel {*this, newId, newParent};
+    return new ProcessModel {*this, newId, newParent};
 }
 
-const ProcessFactoryKey& AutomationModel::key() const
+const ProcessFactoryKey& ProcessModel::key() const
 {
-    return AutomationProcessMetadata::factoryKey();
+    return ProcessMetadata::factoryKey();
 }
 
-QString AutomationModel::prettyName() const
+QString ProcessModel::prettyName() const
 {
     return metadata.name() + " : " + address().toString();
 }
 
-void AutomationModel::setDurationAndScale(const TimeValue& newDuration)
+void ProcessModel::setDurationAndScale(const TimeValue& newDuration)
 {
     // We only need to change the duration.
     setDuration(newDuration);
     m_curve->changed();
 }
 
-void AutomationModel::setDurationAndGrow(const TimeValue& newDuration)
+void ProcessModel::setDurationAndGrow(const TimeValue& newDuration)
 {
     // If there are no segments, nothing changes
     if(m_curve->segments().size() == 0)
@@ -114,7 +115,7 @@ void AutomationModel::setDurationAndGrow(const TimeValue& newDuration)
     m_curve->changed();
 }
 
-void AutomationModel::setDurationAndShrink(const TimeValue& newDuration)
+void ProcessModel::setDurationAndShrink(const TimeValue& newDuration)
 {
     // If there are no segments, nothing changes
     if(m_curve->segments().size() == 0)
@@ -158,28 +159,28 @@ void AutomationModel::setDurationAndShrink(const TimeValue& newDuration)
     m_curve->changed();
 }
 
-LayerModel* AutomationModel::makeLayer_impl(
-        const Id<LayerModel>& viewModelId,
+Process::LayerModel* ProcessModel::makeLayer_impl(
+        const Id<Process::LayerModel>& viewModelId,
         const QByteArray& constructionData,
         QObject* parent)
 {
-    auto vm = new AutomationLayerModel{*this, viewModelId, parent};
+    auto vm = new LayerModel{*this, viewModelId, parent};
     return vm;
 }
 
-LayerModel* AutomationModel::cloneLayer_impl(
-        const Id<LayerModel>& newId,
-        const LayerModel& source,
+Process::LayerModel* ProcessModel::cloneLayer_impl(
+        const Id<Process::LayerModel>& newId,
+        const Process::LayerModel& source,
         QObject* parent)
 {
-    auto vm = new AutomationLayerModel {
-              static_cast<const AutomationLayerModel&>(source), *this, newId, parent};
+    auto vm = new LayerModel {
+              static_cast<const LayerModel&>(source), *this, newId, parent};
     return vm;
 }
 
-void AutomationModel::setCurve_impl()
+void ProcessModel::setCurve_impl()
 {
-    connect(m_curve, &CurveModel::changed,
+    connect(m_curve, &Curve::Model::changed,
             this, [&] () {
         emit curveChanged();
 
@@ -189,39 +190,39 @@ void AutomationModel::setCurve_impl()
 }
 
 
-AutomationState* AutomationModel::startStateData() const
+ProcessState* ProcessModel::startStateData() const
 {
     return m_startState;
 }
 
-AutomationState* AutomationModel::endStateData() const
+ProcessState* ProcessModel::endStateData() const
 {
     return m_endState;
 }
 
-iscore::Address AutomationModel::address() const
+::State::Address ProcessModel::address() const
 {
     return m_address;
 }
 
-double AutomationModel::value(const TimeValue& time)
+double ProcessModel::value(const TimeValue& time)
 {
     ISCORE_TODO;
     // TODO instead get a State or at least a MessageList.
     return -1;
 }
 
-double AutomationModel::min() const
+double ProcessModel::min() const
 {
     return m_min;
 }
 
-double AutomationModel::max() const
+double ProcessModel::max() const
 {
     return m_max;
 }
 
-void AutomationModel::setAddress(const iscore::Address &arg)
+void ProcessModel::setAddress(const ::State::Address &arg)
 {
     if(m_address == arg)
     {
@@ -233,7 +234,7 @@ void AutomationModel::setAddress(const iscore::Address &arg)
     emit m_curve->changed();
 }
 
-void AutomationModel::setMin(double arg)
+void ProcessModel::setMin(double arg)
 {
     if (m_min == arg)
         return;
@@ -243,7 +244,7 @@ void AutomationModel::setMin(double arg)
     emit m_curve->changed();
 }
 
-void AutomationModel::setMax(double arg)
+void ProcessModel::setMax(double arg)
 {
     if (m_max == arg)
         return;
@@ -251,5 +252,6 @@ void AutomationModel::setMax(double arg)
     m_max = arg;
     emit maxChanged(arg);
     emit m_curve->changed();
+}
 }
 

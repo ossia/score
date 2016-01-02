@@ -43,6 +43,9 @@ namespace iscore {
 class DocumentDelegateFactoryInterface;
 class FactoryListInterface;
 class PanelFactory;
+}
+namespace State
+{
 struct Address;
 }  // namespace iscore
 
@@ -64,15 +67,15 @@ iscore_plugin_scenario::iscore_plugin_scenario() :
         iscore::FactoryList_QtInterface {},
         iscore::FactoryInterface_QtInterface {}
 {
-    QMetaType::registerComparators<iscore::Value>();
-    QMetaType::registerComparators<iscore::Message>();
-    QMetaType::registerComparators<iscore::MessageList>();
+    QMetaType::registerComparators<State::Value>();
+    QMetaType::registerComparators<State::Message>();
+    QMetaType::registerComparators<State::MessageList>();
 
-    qRegisterMetaTypeStreamOperators<iscore::Message>();
-    qRegisterMetaTypeStreamOperators<iscore::MessageList>();
-    qRegisterMetaTypeStreamOperators<iscore::Address>();
-    qRegisterMetaTypeStreamOperators<iscore::Value>();
-    qRegisterMetaTypeStreamOperators<iscore::ValueList>();
+    qRegisterMetaTypeStreamOperators<State::Message>();
+    qRegisterMetaTypeStreamOperators<State::MessageList>();
+    qRegisterMetaTypeStreamOperators<State::Address>();
+    qRegisterMetaTypeStreamOperators<State::Value>();
+    qRegisterMetaTypeStreamOperators<State::ValueList>();
 
     qRegisterMetaTypeStreamOperators<TimeValue>();
     qRegisterMetaType<ExecutionStatus>();
@@ -100,8 +103,8 @@ std::vector<iscore::PanelFactory*> iscore_plugin_scenario::panels()
 std::vector<std::unique_ptr<iscore::FactoryListInterface>> iscore_plugin_scenario::factoryFamilies()
 {
     return make_ptr_vector<iscore::FactoryListInterface,
-            ProcessList,
-            StateProcessList,
+            Process::ProcessList,
+            Process::StateProcessList,
             MoveEventList,
             ScenarioContextMenuPluginList,
             ConstraintInspectorDelegateFactoryList,
@@ -138,7 +141,7 @@ std::vector<std::unique_ptr<iscore::FactoryInterfaceBase>> iscore_plugin_scenari
     return instantiate_factories<
             iscore::ApplicationContext,
     TL<
-    FW<ProcessFactory,
+    FW<Process::ProcessFactory,
         ScenarioFactory>,
     FW<MoveEventFactoryInterface,
         MoveEventClassicFactory>,

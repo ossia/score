@@ -56,7 +56,7 @@ void ScenarioContextMenuManager::createSlotContextMenu(
 
     // First changing the process in the current slot
     auto processes_submenu = menu.addMenu(tr("Focus process in this slot"));
-    for(const LayerModel& proc : slotm.layers)
+    for(const Process::LayerModel& proc : slotm.layers)
     {
         QAction* procAct = new QAction{
                            proc.processModel().prettyName(),
@@ -70,7 +70,7 @@ void ScenarioContextMenuManager::createSlotContextMenu(
 
     // Then creation of a new slot with existing processes
     auto new_processes_submenu = menu.addMenu(tr("Show process in new slot"));
-    for(const LayerModel& proc : slotm.layers)
+    for(const Process::LayerModel& proc : slotm.layers)
     {
         QAction* procAct = new QAction{
                            proc.processModel().prettyName(),
@@ -96,10 +96,10 @@ void ScenarioContextMenuManager::createSlotContextMenu(
 
     // Then Add process in this slot
     auto existing_processes_submenu = menu.addMenu(tr("Add existing process in this slot"));
-    for(const Process& proc : slotm.parentConstraint().processes)
+    for(const Process::ProcessModel& proc : slotm.parentConstraint().processes)
     {
         // OPTIMIZEME by filtering before.
-        if(std::none_of(slotm.layers.begin(), slotm.layers.end(), [&] (const LayerModel& layer) {
+        if(std::none_of(slotm.layers.begin(), slotm.layers.end(), [&] (const Process::LayerModel& layer) {
                         return &layer.processModel() == &proc;
     }))
         {
@@ -118,7 +118,7 @@ void ScenarioContextMenuManager::createSlotContextMenu(
     auto addNewProcessInExistingSlot = new QAction{tr("Add new process in this slot"), &menu};
     QObject::connect(addNewProcessInExistingSlot, &QAction::triggered,
             [&] () {
-        auto& fact = ctx.app.components.factory<ProcessList>();
+        auto& fact = ctx.app.components.factory<Process::ProcessList>();
         AddProcessDialog dialog{fact, qApp->activeWindow()};
 
         QObject::connect(&dialog, &AddProcessDialog::okPressed,
@@ -149,7 +149,7 @@ void ScenarioContextMenuManager::createSlotContextMenu(
     auto addNewProcessInNewSlot = new QAction{tr("Add process in a new slot"), &menu};
     QObject::connect(addNewProcessInNewSlot, &QAction::triggered,
             [&] () {
-        auto& fact = ctx.app.components.factory<ProcessList>();
+        auto& fact = ctx.app.components.factory<Process::ProcessList>();
         AddProcessDialog dialog{fact, qApp->activeWindow()};
 
         QObject::connect(&dialog, &AddProcessDialog::okPressed,
@@ -186,7 +186,7 @@ void ScenarioContextMenuManager::createLayerContextMenu(
         QMenu& menu,
         const QPoint& pos,
         const QPointF& scenepos,
-        const LayerPresenter& pres)
+        const Process::LayerPresenter& pres)
 {
     using namespace iscore;
     // Fill with slot actions

@@ -1,13 +1,13 @@
 #pragma once
 #include <QWidget>
 #include <iscore_lib_process_export.h>
-class Process;
+namespace Process { class ProcessModel; }
 class ISCORE_LIB_PROCESS_EXPORT ProcessInspectorWidgetDelegate : public QWidget
 {
     public:
         using QWidget::QWidget;
         virtual ~ProcessInspectorWidgetDelegate();
-        virtual const Process& process() const = 0;
+        virtual const Process::ProcessModel& process() const = 0;
 };
 
 template<typename Process_T>

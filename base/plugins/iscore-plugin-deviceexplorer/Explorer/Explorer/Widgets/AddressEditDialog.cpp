@@ -28,7 +28,7 @@ AddressEditDialog::AddressEditDialog(
 }
 
 AddressEditDialog::AddressEditDialog(
-        const iscore::AddressSettings& addr,
+        const Device::AddressSettings& addr,
         QWidget* parent)
     : QDialog{parent},
       m_originalSettings{addr}
@@ -77,15 +77,15 @@ void AddressEditDialog::updateType()
 {
     const QString valueType = m_valueTypeCBox->currentText();
     m_addressWidget->setWidget(AddressSettingsFactory::instance().getValueTypeWidget(valueType));
-    if(m_originalSettings.ioType == iscore::IOType::Invalid)
-        m_originalSettings.ioType = iscore::IOType::InOut;
+    if(m_originalSettings.ioType == Device::IOType::Invalid)
+        m_originalSettings.ioType = Device::IOType::InOut;
     m_addressWidget->widget()->setSettings(m_originalSettings);
 }
 
 
-iscore::AddressSettings AddressEditDialog::getSettings() const
+Device::AddressSettings AddressEditDialog::getSettings() const
 {
-    iscore::AddressSettings settings;
+    Device::AddressSettings settings;
 
     if(m_addressWidget && m_addressWidget->widget())
     {
@@ -102,15 +102,15 @@ iscore::AddressSettings AddressEditDialog::getSettings() const
     return settings;
 }
 
-iscore::AddressSettings AddressEditDialog::makeDefaultSettings()
+Device::AddressSettings AddressEditDialog::makeDefaultSettings()
 {
-    static iscore::AddressSettings defaultSettings
+    static Device::AddressSettings defaultSettings
             = [] () {
-        iscore::AddressSettings s;
-        s.value = iscore::Value::fromValue(0);
-        s.domain.min = iscore::Value::fromValue(0);
-        s.domain.max = iscore::Value::fromValue(100);
-        s.ioType = iscore::IOType::InOut;
+        Device::AddressSettings s;
+        s.value = State::Value::fromValue(0);
+        s.domain.min = State::Value::fromValue(0);
+        s.domain.max = State::Value::fromValue(100);
+        s.ioType = Device::IOType::InOut;
         return s;
     }();
 
@@ -125,7 +125,7 @@ void AddressEditDialog::setNodeSettings()
 
 void AddressEditDialog::setValueSettings()
 {
-    const int index = m_valueTypeCBox->findText(iscore::convert::prettyType(m_originalSettings.value));
+    const int index = m_valueTypeCBox->findText(State::convert::prettyType(m_originalSettings.value));
     ISCORE_ASSERT(index != -1);
     ISCORE_ASSERT(index < m_valueTypeCBox->count());
     m_valueTypeCBox->setCurrentIndex(index);  //will emit currentIndexChanged(int) & call slot

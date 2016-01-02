@@ -1,9 +1,9 @@
 #include "ProcessComponent.hpp"
 
-ISCORE_METADATA_IMPL(OSSIA::LocalTree::ProcessComponent)
-OSSIA::LocalTree::ProcessComponent::ProcessComponent(
+ISCORE_METADATA_IMPL(Ossia::LocalTree::ProcessComponent)
+Ossia::LocalTree::ProcessComponent::ProcessComponent(
         OSSIA::Node& parentNode,
-        Process& process,
+        Process::ProcessModel& process,
         const Id<iscore::Component>& id,
         const QString& name,
         QObject* parent):
@@ -12,7 +12,12 @@ OSSIA::LocalTree::ProcessComponent::ProcessComponent(
 {
 }
 
-OSSIA::LocalTree::ProcessComponent::~ProcessComponent()
+Ossia::LocalTree::ProcessComponent::~ProcessComponent()
+{
+
+}
+
+Ossia::LocalTree::ProcessComponentFactory::~ProcessComponentFactory()
 {
 
 }

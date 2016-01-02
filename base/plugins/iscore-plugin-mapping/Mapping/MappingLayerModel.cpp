@@ -33,7 +33,8 @@ MappingLayerModel::MappingLayerModel(
     // Nothing to copy
 }
 
-LayerModelPanelProxy* MappingLayerModel::make_panelProxy(QObject* parent) const
+Process::LayerModelPanelProxy* MappingLayerModel::make_panelProxy(
+        QObject* parent) const
 {
     return new MappingPanelProxy{*this, parent};
 }

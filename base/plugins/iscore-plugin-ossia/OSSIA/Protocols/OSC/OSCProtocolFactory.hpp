@@ -21,9 +21,9 @@ class OSCProtocolFactory final : public ProtocolFactory
 
 
         DeviceInterface* makeDevice(
-                const iscore::DeviceSettings& settings,
+                const Device::DeviceSettings& settings,
                 const iscore::DocumentContext& ctx) override;
-        const iscore::DeviceSettings& defaultSettings() const override;
+        const Device::DeviceSettings& defaultSettings() const override;
 
         ProtocolSettingsWidget* makeSettingsWidget() override;
 
@@ -32,6 +32,6 @@ class OSCProtocolFactory final : public ProtocolFactory
         void serializeProtocolSpecificSettings(const QVariant& data, const VisitorVariant& visitor) const override;
 
         bool checkCompatibility(
-                const iscore::DeviceSettings& a,
-                const iscore::DeviceSettings& b) const override;
+                const Device::DeviceSettings& a,
+                const Device::DeviceSettings& b) const override;
 };

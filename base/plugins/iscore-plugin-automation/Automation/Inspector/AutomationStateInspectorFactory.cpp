@@ -11,25 +11,28 @@ namespace iscore {
 class Document;
 }  // namespace iscore
 
-AutomationStateInspectorFactory::AutomationStateInspectorFactory() :
+namespace Automation
+{
+StateInspectorFactory::StateInspectorFactory() :
     InspectorWidgetFactory {}
 {
 
 }
 
-InspectorWidgetBase* AutomationStateInspectorFactory::makeWidget(
+InspectorWidgetBase* StateInspectorFactory::makeWidget(
         const QObject& sourceElement,
         const iscore::DocumentContext& doc,
         QWidget* parent) const
 {
-    return new AutomationStateInspector{
-                safe_cast<const AutomationState&>(sourceElement),
+    return new StateInspectorWidget{
+                safe_cast<const ProcessState&>(sourceElement),
                 doc,
                 parent};
 }
 
-const QList<QString>&AutomationStateInspectorFactory::key_impl() const
+const QList<QString>&StateInspectorFactory::key_impl() const
 {
     static const QList<QString> lst{"AutomationState"};
     return lst;
+}
 }

@@ -11,10 +11,12 @@ class Document;
 }  // namespace iscore
 
 
-class AutomationStateInspectorFactory final : public InspectorWidgetFactory
+namespace Automation
+{
+class StateInspectorFactory final : public InspectorWidgetFactory
 {
     public:
-        AutomationStateInspectorFactory();
+        StateInspectorFactory();
 
         InspectorWidgetBase* makeWidget(
                 const QObject& sourceElement,
@@ -23,3 +25,5 @@ class AutomationStateInspectorFactory final : public InspectorWidgetFactory
 
         const QList<QString>& key_impl() const override;
 };
+
+}

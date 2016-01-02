@@ -49,7 +49,7 @@ void Visitor<Writer<DataStream>>::writeTo(TimeNodeModel& timenode)
     timenode.pluginModelList = iscore::ElementPluginModelList{*this, &timenode};
 
     bool a;
-    iscore::Trigger t;
+    State::Trigger t;
     m_stream >> timenode.m_date
              >> timenode.m_events
              >> timenode.m_extent
@@ -93,7 +93,7 @@ void Visitor<Writer<JSONObject>>::writeTo(TimeNodeModel& timenode)
 
     timenode.m_trigger =  new TriggerModel{Id<TriggerModel>(0), &timenode};
 
-    iscore::Trigger t;
+    State::Trigger t;
     fromJsonObject(m_obj["Trigger"].toObject()["Expression"].toObject(),t);
     timenode.m_trigger->setExpression(t);
     timenode.m_trigger->setActive(m_obj["Trigger"].toObject()["Active"].toBool());

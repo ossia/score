@@ -1,9 +1,19 @@
 #include "GenericAreaModel.hpp"
 #include "src/Area/AreaParser.hpp"
-const AreaFactoryKey&GenericAreaModel::factoryKey() const
+
+
+namespace Space
+{
+const AreaFactoryKey&GenericAreaModel::static_factoryKey()
 {
     static const AreaFactoryKey name{"Generic"};
     return name;
+
+}
+
+const AreaFactoryKey&GenericAreaModel::factoryKey() const
+{
+    return static_factoryKey();
 }
 
 QString GenericAreaModel::prettyName() const
@@ -12,11 +22,11 @@ QString GenericAreaModel::prettyName() const
 }
 
 GenericAreaModel::GenericAreaModel(
-        const QString& formula,
-        const SpaceModel& space,
+        const QStringList& formula,
+        const Space::AreaContext& space,
         const Id<AreaModel>& id,
         QObject* parent):
     AreaModel{AreaParser{formula}.result(), space, id, parent}
 {
-
+}
 }

@@ -25,7 +25,7 @@ class ProcessInspectorWidgetDelegateFactoryList final : public iscore::FactoryLi
       }
 
       auto make(
-              const Process& proc,
+              const Process::ProcessModel& proc,
               const iscore::DocumentContext& ctx,
               QWidget* parent) const
       {

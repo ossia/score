@@ -9,11 +9,13 @@
 class QObject;
 #include <iscore/tools/SettableIdentifier.hpp>
 
-CurveSegmentModel* LinearCurveSegmentModel::clone(
-        const Id<CurveSegmentModel>& id,
+namespace Curve
+{
+SegmentModel* LinearSegment::clone(
+        const Id<SegmentModel>& id,
         QObject *parent) const
 {
-    auto cs = new LinearCurveSegmentModel{id, parent};
+    auto cs = new LinearSegment{id, parent};
     cs->setStart(this->start());
     cs->setEnd(this->end());
 
@@ -21,27 +23,27 @@ CurveSegmentModel* LinearCurveSegmentModel::clone(
     return cs;
 }
 
-const CurveSegmentFactoryKey& LinearCurveSegmentModel::key() const
+const SegmentFactoryKey& LinearSegment::key() const
 {
-    return LinearCurveSegmentData::key();
+    return LinearSegmentData::key();
 }
 
-void LinearCurveSegmentModel::serialize(const VisitorVariant& vis) const
+void LinearSegment::serialize(const VisitorVariant& vis) const
 {
     serialize_dyn(vis, *this);
 }
 
-void LinearCurveSegmentModel::on_startChanged()
+void LinearSegment::on_startChanged()
 {
     emit dataChanged();
 }
 
-void LinearCurveSegmentModel::on_endChanged()
+void LinearSegment::on_endChanged()
 {
     emit dataChanged();
 }
 
-void LinearCurveSegmentModel::updateData(int numInterp) const
+void LinearSegment::updateData(int numInterp) const
 {
     if(!m_valid)
     {
@@ -52,18 +54,19 @@ void LinearCurveSegmentModel::updateData(int numInterp) const
     }
 }
 
-double LinearCurveSegmentModel::valueAt(double x) const
+double LinearSegment::valueAt(double x) const
 {
     return start().y() + (end().y() - start().y()) * (x - start().x()) / (end().x() - start().x());
 }
 
-QVariant LinearCurveSegmentModel::toSegmentSpecificData() const
+QVariant LinearSegment::toSegmentSpecificData() const
 {
     return QVariant::fromValue(data_type{});
 }
 
-const CurveSegmentFactoryKey& LinearCurveSegmentData::key()
+const SegmentFactoryKey& LinearSegmentData::key()
 {
-    static const CurveSegmentFactoryKey name{"Linear"};
+    static const SegmentFactoryKey name{"Linear"};
     return name;
+}
 }

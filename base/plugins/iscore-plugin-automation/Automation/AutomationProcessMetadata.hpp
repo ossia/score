@@ -2,7 +2,10 @@
 #include <Process/ProcessFactoryKey.hpp>
 #include <QString>
 #include <iscore_plugin_automation_export.h>
-struct ISCORE_PLUGIN_AUTOMATION_EXPORT AutomationProcessMetadata
+
+namespace Automation
+{
+struct ISCORE_PLUGIN_AUTOMATION_EXPORT ProcessMetadata
 {
         static const ProcessFactoryKey& factoryKey();
 
@@ -10,3 +13,4 @@ struct ISCORE_PLUGIN_AUTOMATION_EXPORT AutomationProcessMetadata
 
         static QString factoryPrettyName();
 };
+}

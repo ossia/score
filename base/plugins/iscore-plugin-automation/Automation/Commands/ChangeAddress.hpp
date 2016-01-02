@@ -4,20 +4,22 @@
 #include <iscore/command/SerializableCommand.hpp>
 #include <iscore/tools/ModelPath.hpp>
 
-class AutomationModel;
 class DataStreamInput;
 class DataStreamOutput;
-namespace iscore {
+namespace State {
 struct Address;
 }  // namespace iscore
 
+namespace Automation
+{
+class ProcessModel;
 class ChangeAddress final : public iscore::SerializableCommand
 {
-        ISCORE_COMMAND_DECL(AutomationCommandFactoryName(), ChangeAddress, "ChangeAddress")
+        ISCORE_COMMAND_DECL(CommandFactoryName(), ChangeAddress, "ChangeAddress")
     public:
         ChangeAddress(
-                Path<AutomationModel>&& path,
-                const iscore::Address& newval);
+                Path<ProcessModel>&& path,
+                const State::Address& newval);
 
     public:
         void undo() const override;
@@ -28,8 +30,8 @@ class ChangeAddress final : public iscore::SerializableCommand
         void deserializeImpl(DataStreamOutput &) override;
 
     private:
-        Path<AutomationModel> m_path;
-        iscore::FullAddressSettings m_old, m_new;
+        Path<ProcessModel> m_path;
+        Device::FullAddressSettings m_old, m_new;
 };
 
-
+}

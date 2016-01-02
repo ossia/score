@@ -6,7 +6,7 @@
 #include "DummyState.hpp"
 #include <Process/Process.hpp>
 
-class LayerModel;
+namespace Process { class LayerModel; }
 class ProcessStateDataInterface;
 class QObject;
 #include <iscore/tools/SettableIdentifier.hpp>
@@ -14,24 +14,24 @@ class QObject;
 
 DummyModel::DummyModel(
         const TimeValue& duration,
-        const Id<Process>& id,
+        const Id<ProcessModel>& id,
         QObject* parent):
-    Process{duration, id, "DummyModel", parent}
+    ProcessModel{duration, id, "DummyModel", parent}
 {
 
 }
 
 DummyModel::DummyModel(
         const DummyModel& source,
-        const Id<Process>& id,
+        const Id<ProcessModel>& id,
         QObject* parent):
-    Process{source.duration(), id, source.objectName(), parent}
+    ProcessModel{source.duration(), id, source.objectName(), parent}
 {
 
 }
 
 DummyModel* DummyModel::clone(
-        const Id<Process>& newId,
+        const Id<ProcessModel>& newId,
         QObject* newParent) const
 {
     return new DummyModel{*this, newId, newParent};
@@ -109,15 +109,15 @@ void DummyModel::serialize(const VisitorVariant& s) const
     serialize_dyn(s, *this);
 }
 
-LayerModel* DummyModel::makeLayer_impl(
-        const Id<LayerModel>& viewModelId,
+Process::LayerModel* DummyModel::makeLayer_impl(
+        const Id<Process::LayerModel>& viewModelId,
         const QByteArray& constructionData,
         QObject* parent)
 {
     return new DummyLayerModel{*this, viewModelId, parent};
 }
 
-LayerModel* DummyModel::loadLayer_impl(
+Process::LayerModel* DummyModel::loadLayer_impl(
         const VisitorVariant& vis,
         QObject* parent)
 {
@@ -130,9 +130,9 @@ LayerModel* DummyModel::loadLayer_impl(
     });
 }
 
-LayerModel* DummyModel::cloneLayer_impl(
-        const Id<LayerModel>& newId,
-        const LayerModel& source,
+Process::LayerModel* DummyModel::cloneLayer_impl(
+        const Id<Process::LayerModel>& newId,
+        const Process::LayerModel& source,
         QObject* parent)
 {
     return new DummyLayerModel{safe_cast<const DummyLayerModel&>(source), *this, newId, parent};

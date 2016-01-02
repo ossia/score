@@ -5,15 +5,15 @@
 #include <OSSIA/LocalTree/Scenario/StateComponent.hpp>
 #include <Scenario/Document/Components/ScenarioComponent.hpp>
 
-namespace OSSIA
+namespace Ossia
 {
 namespace LocalTree
 {
-class ScenarioComponent : public ProcessComponent
+class ScenarioComponent final : public ProcessComponent
 {
-       COMPONENT_METADATA(OSSIA::LocalTree::ScenarioComponent)
+       COMPONENT_METADATA(Ossia::LocalTree::ScenarioComponent)
 
-        using system_t = OSSIA::LocalTree::DocumentPlugin;
+        using system_t = Ossia::LocalTree::DocumentPlugin;
         using hierarchy_t =
            ScenarioComponentHierarchyManager<
                ScenarioComponent,
@@ -33,7 +33,7 @@ class ScenarioComponent : public ProcessComponent
                const iscore::DocumentContext& ctx,
                QObject* parent_obj);
 
-       template<typename Element, typename Component_T>
+       template<typename Component_T, typename Element>
        Component_T* make(
                const Id<Component>& id,
                Element& elt,
@@ -63,7 +63,7 @@ class ScenarioComponent : public ProcessComponent
         std::shared_ptr<OSSIA::Node> m_timeNodesNode;
         std::shared_ptr<OSSIA::Node> m_statesNode;
 
-        std::vector<BaseProperty*> m_properties;
+        std::vector<std::unique_ptr<BaseProperty>> m_properties;
 
         hierarchy_t m_hm;
 

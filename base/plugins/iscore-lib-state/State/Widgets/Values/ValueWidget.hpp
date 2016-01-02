@@ -19,5 +19,5 @@ class ISCORE_LIB_STATE_EXPORT ValueWidget : public QWidget
     public:
         using QWidget::QWidget;
         virtual ~ValueWidget();
-        virtual iscore::Value value() const = 0;
+        virtual State::Value value() const = 0;
 };

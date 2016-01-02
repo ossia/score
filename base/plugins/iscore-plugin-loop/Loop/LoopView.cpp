@@ -2,28 +2,31 @@
 #include <QGraphicsSceneContextMenuEvent>
 class QPainter;
 
-LoopView::LoopView(QGraphicsItem *parent):
-    LayerView {parent}
+namespace Loop
+{
+LayerView::LayerView(QGraphicsItem *parent):
+    Process::LayerView {parent}
 {
 
 }
 
-LoopView::~LoopView()
+LayerView::~LayerView()
 {
 
 }
 
-void LoopView::setSelectionArea(QRectF)
+void LayerView::setSelectionArea(QRectF)
 {
 
 }
 
-void LoopView::paint_impl(QPainter*) const
+void LayerView::paint_impl(QPainter*) const
 {
 }
 
-void LoopView::contextMenuEvent(
+void LayerView::contextMenuEvent(
         QGraphicsSceneContextMenuEvent* event)
 {
     emit askContextMenu(event->screenPos(), event->scenePos());
+}
 }

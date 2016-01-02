@@ -32,14 +32,14 @@ template <typename T> class Writer;
 template <typename VisitorType> class Visitor;
 
 template<>
-void Visitor<Reader<DataStream>>::readFrom(const CurveSegmentData& segmt)
+void Visitor<Reader<DataStream>>::readFrom(const Curve::SegmentData& segmt)
 {
     m_stream << segmt.id
              << segmt.start << segmt.end
              << segmt.previous << segmt.following
              << segmt.type;
 
-    auto& csl = context.components.factory<DynamicCurveSegmentList>();
+    auto& csl = context.components.factory<Curve::SegmentList>();
     auto segmt_fact = csl.list().get(segmt.type);
 
     ISCORE_ASSERT(segmt_fact);
@@ -49,14 +49,14 @@ void Visitor<Reader<DataStream>>::readFrom(const CurveSegmentData& segmt)
 }
 
 template<>
-void Visitor<Writer<DataStream>>::writeTo(CurveSegmentData& segmt)
+void Visitor<Writer<DataStream>>::writeTo(Curve::SegmentData& segmt)
 {
     m_stream >> segmt.id
              >> segmt.start >> segmt.end
              >> segmt.previous >> segmt.following
              >> segmt.type;
 
-    auto& csl = context.components.factory<DynamicCurveSegmentList>();
+    auto& csl = context.components.factory<Curve::SegmentList>();
     auto segmt_fact = csl.list().get(segmt.type);
     ISCORE_ASSERT(segmt_fact);
     segmt.specificSegmentData = segmt_fact->makeCurveSegmentData(this->toVariant());
@@ -66,25 +66,28 @@ void Visitor<Writer<DataStream>>::writeTo(CurveSegmentData& segmt)
 
 
 template<>
-ISCORE_PLUGIN_CURVE_EXPORT void Visitor<Reader<DataStream>>::readFrom(const std::vector<CurveSegmentData>& segmt)
+ISCORE_PLUGIN_CURVE_EXPORT void Visitor<Reader<DataStream>>::readFrom(
+        const std::vector<Curve::SegmentData>& segmt)
 {
     readFrom_vector_obj_impl(*this, segmt);
 }
 
 template<>
-ISCORE_PLUGIN_CURVE_EXPORT void Visitor<Writer<DataStream>>::writeTo(std::vector<CurveSegmentData>& segmt)
+ISCORE_PLUGIN_CURVE_EXPORT void Visitor<Writer<DataStream>>::writeTo(
+        std::vector<Curve::SegmentData>& segmt)
 {
     writeTo_vector_obj_impl(*this, segmt);
 }
 
 template<>
-void Visitor<Reader<DataStream>>::readFrom(const CurveSegmentModel& segmt)
+void Visitor<Reader<DataStream>>::readFrom(
+        const Curve::SegmentModel& segmt)
 {
     // To allow recration using createProcess
     readFrom(segmt.key());
 
     // Save the parent class
-    readFrom(static_cast<const IdentifiedObject<CurveSegmentModel>&>(segmt));
+    readFrom(static_cast<const IdentifiedObject<Curve::SegmentModel>&>(segmt));
 
     // Save this class (this will be loaded by writeTo(*this) in CurveSegmentModel ctor
     m_stream << segmt.previous() << segmt.following()
@@ -97,7 +100,8 @@ void Visitor<Reader<DataStream>>::readFrom(const CurveSegmentModel& segmt)
 }
 
 template<>
-void Visitor<Writer<DataStream>>::writeTo(CurveSegmentModel& segmt)
+void Visitor<Writer<DataStream>>::writeTo(
+        Curve::SegmentModel& segmt)
 {
     m_stream >> segmt.m_previous >> segmt.m_following
              >> segmt.m_start >> segmt.m_end;
@@ -110,13 +114,15 @@ void Visitor<Writer<DataStream>>::writeTo(CurveSegmentModel& segmt)
 }
 
 template<>
-void Visitor<Reader<JSONObject>>::readFrom(const CurveSegmentModel& segmt)
+void Visitor<Reader<JSONObject>>::readFrom(
+        const Curve::SegmentModel& segmt)
 {
+    using namespace Curve;
     // To allow recration using createProcess
     m_obj["Name"] = toJsonValue(segmt.key());
 
     // Save the parent class
-    readFrom(static_cast<const IdentifiedObject<CurveSegmentModel>&>(segmt));
+    readFrom(static_cast<const IdentifiedObject<SegmentModel>&>(segmt));
 
     // Save this class (this will be loaded by writeTo(*this) in CurveSegmentModel ctor
     m_obj["Previous"] = toJsonValue(segmt.previous());
@@ -129,23 +135,25 @@ void Visitor<Reader<JSONObject>>::readFrom(const CurveSegmentModel& segmt)
 }
 
 template<>
-void Visitor<Writer<JSONObject>>::writeTo(CurveSegmentModel& segmt)
+void Visitor<Writer<JSONObject>>::writeTo(
+        Curve::SegmentModel& segmt)
 {
-    segmt.m_previous = fromJsonValue<Id<CurveSegmentModel>>(m_obj["Previous"]);
-    segmt.m_following = fromJsonValue<Id<CurveSegmentModel>>(m_obj["Following"]);
+    using namespace Curve;
+    segmt.m_previous = fromJsonValue<Id<SegmentModel>>(m_obj["Previous"]);
+    segmt.m_following = fromJsonValue<Id<SegmentModel>>(m_obj["Following"]);
     segmt.m_start = fromJsonValue<Curve::Point>(m_obj["Start"]);
     segmt.m_end = fromJsonValue<Curve::Point>(m_obj["End"]);
 }
 
 
-
-
-CurveSegmentModel*createCurveSegment(
-        const DynamicCurveSegmentList& csl,
+namespace Curve
+{
+Curve::SegmentModel* createCurveSegment(
+        const Curve::SegmentList& csl,
         Deserializer<DataStream>& deserializer,
         QObject* parent)
 {
-    CurveSegmentFactoryKey name;
+    SegmentFactoryKey name;
     deserializer.writeTo(name);
 
     auto fact = csl.list().get(name);
@@ -155,26 +163,26 @@ CurveSegmentModel*createCurveSegment(
     return model;
 }
 
-CurveSegmentModel*createCurveSegment(
-        const DynamicCurveSegmentList& csl,
+Curve::SegmentModel* createCurveSegment(
+        const Curve::SegmentList& csl,
         Deserializer<JSONObject>& deserializer,
         QObject* parent)
 {
-    auto fact = csl.list().get(fromJsonValue<CurveSegmentFactoryKey>(deserializer.m_obj["Name"]));
+    auto fact = csl.list().get(fromJsonValue<SegmentFactoryKey>(deserializer.m_obj["Name"]));
     auto model = fact->load(deserializer.toVariant(), parent);
 
     return model;
 }
 
 
-CurveSegmentModel*createCurveSegment(
-        const DynamicCurveSegmentList& csl,
-        const CurveSegmentData& dat,
+Curve::SegmentModel* createCurveSegment(
+        const Curve::SegmentList& csl,
+        const Curve::SegmentData& dat,
         QObject* parent)
 {
     auto fact = csl.list().get(dat.type);
     auto model = fact->load(dat, parent);
 
     return model;
-
+}
 }

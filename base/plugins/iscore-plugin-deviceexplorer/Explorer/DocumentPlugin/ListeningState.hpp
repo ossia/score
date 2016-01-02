@@ -5,5 +5,5 @@
 class ListeningState
 {
     public:
-        std::vector<std::vector<iscore::Address>> listened;
+        std::vector<std::vector<State::Address>> listened;
 };

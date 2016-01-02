@@ -8,43 +8,44 @@
 #include "Segment/CurveSegmentModel.hpp"
 #include <iscore/serialization/VisitorInterface.hpp>
 
-class CurvePointModel;
 class DataStream;
 class JSONObject;
 class QObject;
-struct CurveSegmentData;
 #include <iscore/tools/SettableIdentifier.hpp>
 #include <iscore_plugin_curve_export.h>
-
-class ISCORE_PLUGIN_CURVE_EXPORT CurveModel final : public IdentifiedObject<CurveModel>
+namespace Curve
 {
-        ISCORE_SERIALIZE_FRIENDS(CurveModel, DataStream)
-        ISCORE_SERIALIZE_FRIENDS(CurveModel, JSONObject)
+class PointModel;
+struct SegmentData;
+class ISCORE_PLUGIN_CURVE_EXPORT Model final : public IdentifiedObject<Model>
+{
+        ISCORE_SERIALIZE_FRIENDS(Curve::Model, DataStream)
+        ISCORE_SERIALIZE_FRIENDS(Curve::Model, JSONObject)
         Q_OBJECT
     public:
-        CurveModel(const Id<CurveModel>&, QObject* parent);
+        Model(const Id<Model>&, QObject* parent);
 
         template<typename Impl>
-        CurveModel(Deserializer<Impl>& vis, QObject* parent) :
+        Model(Deserializer<Impl>& vis, QObject* parent) :
             IdentifiedObject{vis, parent}
         {
             vis.writeTo(*this);
         }
 
-        CurveModel* clone(const Id<CurveModel>&, QObject* parent);
+        Model* clone(const Id<Model>&, QObject* parent);
 
         // These two will create points
-        void addSegment(CurveSegmentModel* m);
-        void addSortedSegment(CurveSegmentModel* m);
+        void addSegment(SegmentModel* m);
+        void addSortedSegment(SegmentModel* m);
 
         // Won't create points, plain insertion.
-        void insertSegment(CurveSegmentModel*);
+        void insertSegment(SegmentModel*);
 
         // Here we don't pass an id because it's more efficient
-        void removeSegment(CurveSegmentModel* m);
+        void removeSegment(SegmentModel* m);
 
-        std::vector<CurveSegmentData> toCurveData() const;
-        void fromCurveData(const std::vector<CurveSegmentData>& curve);
+        std::vector<SegmentData> toCurveData() const;
+        void fromCurveData(const std::vector<SegmentData>& curve);
 
 
         Selection selectedChildren() const;
@@ -55,14 +56,14 @@ class ISCORE_PLUGIN_CURVE_EXPORT CurveModel final : public IdentifiedObject<Curv
         const auto& segments() const { return m_segments;}
         auto& segments() { return m_segments;}
 
-        const std::vector<CurvePointModel*>& points() const;
-        std::vector<CurvePointModel*>& points() {return m_points;}
+        const std::vector<PointModel*>& points() const;
+        std::vector<PointModel*>& points() {return m_points;}
 
     signals:
-        void segmentAdded(const CurveSegmentModel&);
-        void segmentRemoved(const Id<CurveSegmentModel>&); // dangerous if async
-        void pointAdded(const CurvePointModel&);
-        void pointRemoved(const Id<CurvePointModel>&); // dangerous if async
+        void segmentAdded(const SegmentModel&);
+        void segmentRemoved(const Id<SegmentModel>&); // dangerous if async
+        void pointAdded(const PointModel&);
+        void pointRemoved(const Id<PointModel>&); // dangerous if async
 
         // This signal has to be emitted after big modifications.
         // (it's an optimization to prevent updating the OSSIA API each time a segment moves).
@@ -71,13 +72,12 @@ class ISCORE_PLUGIN_CURVE_EXPORT CurveModel final : public IdentifiedObject<Curv
         void cleared();
 
     private:
-        void addPoint(CurvePointModel* pt);
-        void removePoint(CurvePointModel* pt);
+        void addPoint(PointModel* pt);
+        void removePoint(PointModel* pt);
 
-        IdContainer<CurveSegmentModel> m_segments;
-        std::vector<CurvePointModel*> m_points; // Each between 0, 1
+        IdContainer<SegmentModel> m_segments;
+        std::vector<PointModel*> m_points; // Each between 0, 1
 };
 
-namespace Curve {
-std::vector<CurveSegmentData> ISCORE_PLUGIN_CURVE_EXPORT orderedSegments(const CurveModel& curve);
+std::vector<SegmentData> ISCORE_PLUGIN_CURVE_EXPORT orderedSegments(const Model& curve);
 }

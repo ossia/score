@@ -4,6 +4,7 @@
 
 #include "ApplicationComponents.hpp"
 #include <iscore/command/CommandGeneratorMap.hpp>
+#include <iscore/plugins/application/GUIApplicationContextPlugin.hpp>
 
 namespace iscore
 {
@@ -21,6 +22,11 @@ ApplicationComponentsData::~ApplicationComponentsData()
     }
 
     for(auto& elt : availableDocuments)
+    {
+        delete elt;
+    }
+
+    for(auto& elt : appPlugins)
     {
         delete elt;
     }

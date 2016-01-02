@@ -52,9 +52,8 @@ OSSIAApplicationPlugin::OSSIAApplicationPlugin(const iscore::ApplicationContext&
     TTFoundationInit(contents.toUtf8().constData(), true);
     TTModularInit(contents.toUtf8().constData(), true);
 #endif
-    using namespace OSSIA;
     auto localDevice = OSSIA::Local::create();
-    m_localDevice = Device::create(localDevice, "i-score");
+    m_localDevice = OSSIA::Device::create(localDevice, "i-score");
 
     setupOSSIACallbacks();
 
@@ -95,7 +94,6 @@ OSSIAApplicationPlugin::OSSIAApplicationPlugin(const iscore::ApplicationContext&
 
 OSSIAApplicationPlugin::~OSSIAApplicationPlugin()
 {
-    qDebug() << "Removing app plugin" << (void*) m_localDevice.get();
     // TODO doesn't handle the case where
     // two scenarios are playing in two ducments (we have to
     // stop them both)
@@ -109,6 +107,12 @@ OSSIAApplicationPlugin::~OSSIAApplicationPlugin()
     {
         cstr->stop();
     }
+
+    auto& children = m_localDevice->children();
+    while(!children.empty())
+        m_localDevice->erase(children.end() - 1);
+
+    OSSIA::CleanupProtocols();
 }
 
 
@@ -147,7 +151,7 @@ bool OSSIAApplicationPlugin::handleStartup()
 
 void OSSIAApplicationPlugin::on_newDocument(iscore::Document* doc)
 {
-    doc->model().addPluginModel(new OSSIA::LocalTree::DocumentPlugin{m_localDevice,*doc, &doc->model()});
+    doc->model().addPluginModel(new Ossia::LocalTree::DocumentPlugin{m_localDevice,*doc, &doc->model()});
     doc->model().addPluginModel(new RecreateOnPlay::DocumentPlugin{*doc, &doc->model()});
 }
 
@@ -275,6 +279,7 @@ void OSSIAApplicationPlugin::setupOSSIACallbacks()
     local_stop_address->addCallback([&] (const OSSIA::Value*) {
         on_stop();
     });
+
 
     auto remote_protocol = OSSIA::OSC::create("127.0.0.1", 9999, 6666);
     m_remoteDevice = OSSIA::Device::create(remote_protocol, "i-score-remote");

@@ -4,6 +4,8 @@
 
 #include <QGraphicsItem>
 
+namespace Space
+{
 AreaPresenter::AreaPresenter(
         QGraphicsItem* view,
         const AreaModel& model,
@@ -17,4 +19,5 @@ AreaPresenter::AreaPresenter(
 const Id<AreaModel>& AreaPresenter::id() const
 {
     return m_model.id();
+}
 }

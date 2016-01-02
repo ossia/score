@@ -11,16 +11,19 @@ namespace iscore {
 class Document;
 }
 
-ProcessInspectorWidgetDelegate* AutomationInspectorFactory::make(
-        const Process& process,
+namespace Automation
+{
+ProcessInspectorWidgetDelegate* InspectorFactory::make(
+        const Process::ProcessModel& process,
         const iscore::DocumentContext& doc,
         QWidget* parent) const
 {
-    return new AutomationInspectorWidget{
-        static_cast<const AutomationModel&>(process), doc, parent};
+    return new InspectorWidget{
+        static_cast<const ProcessModel&>(process), doc, parent};
 }
 
-bool AutomationInspectorFactory::matches(const Process& process) const
+bool InspectorFactory::matches(const Process::ProcessModel& process) const
 {
-    return dynamic_cast<const AutomationModel*>(&process);
+    return dynamic_cast<const ProcessModel*>(&process);
+}
 }

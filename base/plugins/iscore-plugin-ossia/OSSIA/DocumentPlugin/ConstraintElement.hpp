@@ -9,7 +9,7 @@
 #include "ProcessWrapper.hpp"
 
 class ConstraintModel;
-class Process;
+namespace Process { class ProcessModel; }
 
 namespace OSSIA
 {
@@ -39,7 +39,7 @@ class ConstraintElement final : public QObject
 
     private:
         void on_processAdded(
-                const Process& iscore_proc);
+                const Process::ProcessModel& iscore_proc);
         void constraintCallback(
                 const OSSIA::TimeValue& position,
                 const OSSIA::TimeValue& date,
@@ -48,7 +48,7 @@ class ConstraintElement final : public QObject
         ConstraintModel& m_iscore_constraint;
         std::shared_ptr<OSSIA::TimeConstraint> m_ossia_constraint;
 
-        std::map<Id<Process>, OSSIAProcess> m_processes;
+        std::map<Id<Process::ProcessModel>, OSSIAProcess> m_processes;
 
         std::shared_ptr<OSSIA::Loop> m_loop;
 

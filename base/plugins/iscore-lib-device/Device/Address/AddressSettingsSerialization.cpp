@@ -21,7 +21,7 @@ template <typename T> class Writer;
 
 
 template<>
-void Visitor<Reader<DataStream>>::readFrom(const iscore::AddressSettingsCommon& n)
+void Visitor<Reader<DataStream>>::readFrom(const Device::AddressSettingsCommon& n)
 {
     m_stream << n.value
              << n.domain
@@ -36,7 +36,7 @@ void Visitor<Reader<DataStream>>::readFrom(const iscore::AddressSettingsCommon& 
 
 
 template<>
-void Visitor<Writer<DataStream>>::writeTo(iscore::AddressSettingsCommon& n)
+void Visitor<Writer<DataStream>>::writeTo(Device::AddressSettingsCommon& n)
 {
     m_stream >> n.value
              >> n.domain
@@ -51,46 +51,46 @@ void Visitor<Writer<DataStream>>::writeTo(iscore::AddressSettingsCommon& n)
 
 
 template<>
-ISCORE_LIB_DEVICE_EXPORT void Visitor<Reader<DataStream>>::readFrom(const iscore::AddressSettings& n)
+ISCORE_LIB_DEVICE_EXPORT void Visitor<Reader<DataStream>>::readFrom(const Device::AddressSettings& n)
 {
-    readFrom(static_cast<const iscore::AddressSettingsCommon&>(n));
+    readFrom(static_cast<const Device::AddressSettingsCommon&>(n));
     m_stream << n.name;
 
     insertDelimiter();
 }
 template<>
-ISCORE_LIB_DEVICE_EXPORT void Visitor<Writer<DataStream>>::writeTo(iscore::AddressSettings& n)
+ISCORE_LIB_DEVICE_EXPORT void Visitor<Writer<DataStream>>::writeTo(Device::AddressSettings& n)
 {
-    writeTo(static_cast<iscore::AddressSettingsCommon&>(n));
+    writeTo(static_cast<Device::AddressSettingsCommon&>(n));
     m_stream >> n.name;
 
     checkDelimiter();
 }
 template<>
-ISCORE_LIB_DEVICE_EXPORT void Visitor<Reader<DataStream>>::readFrom(const iscore::FullAddressSettings& n)
+ISCORE_LIB_DEVICE_EXPORT void Visitor<Reader<DataStream>>::readFrom(const Device::FullAddressSettings& n)
 {
-    readFrom(static_cast<const iscore::AddressSettingsCommon&>(n));
+    readFrom(static_cast<const Device::AddressSettingsCommon&>(n));
     m_stream << n.address;
 
     insertDelimiter();
 }
 template<>
-ISCORE_LIB_DEVICE_EXPORT void Visitor<Writer<DataStream>>::writeTo(iscore::FullAddressSettings& n)
+ISCORE_LIB_DEVICE_EXPORT void Visitor<Writer<DataStream>>::writeTo(Device::FullAddressSettings& n)
 {
-    writeTo(static_cast<iscore::AddressSettingsCommon&>(n));
+    writeTo(static_cast<Device::AddressSettingsCommon&>(n));
     m_stream >> n.address;
 
     checkDelimiter();
 }
 
 template<>
-ISCORE_LIB_DEVICE_EXPORT void Visitor<Reader<JSONObject>>::readFrom(const iscore::AddressSettings& n)
+ISCORE_LIB_DEVICE_EXPORT void Visitor<Reader<JSONObject>>::readFrom(const Device::AddressSettings& n)
 {
     m_obj["Name"] = n.name;
 
     // Metadata
-    m_obj["ioType"] = iscore::IOTypeStringMap()[n.ioType];
-    m_obj["ClipMode"] = iscore::ClipModeStringMap()[n.clipMode];
+    m_obj["ioType"] = Device::IOTypeStringMap()[n.ioType];
+    m_obj["ClipMode"] = Device::ClipModeStringMap()[n.clipMode];
     m_obj["Unit"] = n.unit;
 
     m_obj["RepetitionFilter"] = n.repetitionFilter;
@@ -109,12 +109,12 @@ ISCORE_LIB_DEVICE_EXPORT void Visitor<Reader<JSONObject>>::readFrom(const iscore
 }
 
 template<>
-ISCORE_LIB_DEVICE_EXPORT void Visitor<Writer<JSONObject>>::writeTo(iscore::AddressSettings& n)
+ISCORE_LIB_DEVICE_EXPORT void Visitor<Writer<JSONObject>>::writeTo(Device::AddressSettings& n)
 {
     n.name = m_obj["Name"].toString();
 
-    n.ioType = iscore::IOTypeStringMap().key(m_obj["ioType"].toString());
-    n.clipMode = iscore::ClipModeStringMap().key(m_obj["ClipMode"].toString());
+    n.ioType = Device::IOTypeStringMap().key(m_obj["ioType"].toString());
+    n.clipMode = Device::ClipModeStringMap().key(m_obj["ClipMode"].toString());
     n.unit = m_obj["Unit"].toString();
 
     n.repetitionFilter = m_obj["RepetitionFilter"].toBool();
@@ -130,6 +130,6 @@ ISCORE_LIB_DEVICE_EXPORT void Visitor<Writer<JSONObject>>::writeTo(iscore::Addre
     // TODO doesn't handle multi-type variants.
     if(m_obj.contains("Type"))
     {
-        n.domain = JsonToDomain(m_obj["Domain"].toObject(), m_obj["Type"].toString());
+        n.domain = Device::JsonToDomain(m_obj["Domain"].toObject(), m_obj["Type"].toString());
     }
 }

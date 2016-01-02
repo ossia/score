@@ -111,7 +111,7 @@ class ScenarioComponentHierarchyManager : public Nano::Observer
         void add(elt_t& element)
         {
             using map_t = MatchingComponent<elt_t, true>;
-            auto comp = m_component.template make<elt_t, typename map_t::type>(
+            auto comp = m_component.template make<typename map_t::type>(
                             getStrongId(element.components),
                             element,
                             m_system,

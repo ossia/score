@@ -15,7 +15,7 @@
 #include <iscore/serialization/DataStreamVisitor.hpp>
 #include <iscore/serialization/JSONVisitor.hpp>
 
-class LayerModel;
+namespace Process { class LayerModel; }
 class ProcessStateDataInterface;
 class QObject;
 
@@ -24,42 +24,44 @@ class ElementPluginModelList;
 }  // namespace iscore
 #include <iscore/tools/SettableIdentifier.hpp>
 
+namespace Process
+{
 /**
  * @brief The Process class
  *
  * Interface to implement to make a process.
  */
-class ISCORE_LIB_PROCESS_EXPORT Process: public IdentifiedObject<Process>
+class ISCORE_LIB_PROCESS_EXPORT ProcessModel: public IdentifiedObject<ProcessModel>
 {
         Q_OBJECT
-        ISCORE_METADATA(Process)
+        ISCORE_METADATA(Process::ProcessModel)
 
-        ISCORE_SERIALIZE_FRIENDS(Process, DataStream)
-        ISCORE_SERIALIZE_FRIENDS(Process, JSONObject)
+        ISCORE_SERIALIZE_FRIENDS(Process::ProcessModel, DataStream)
+        ISCORE_SERIALIZE_FRIENDS(Process::ProcessModel, JSONObject)
 
     public:
         iscore::Components components;
         iscore::ElementPluginModelList* pluginModelList{}; // Note: has to be initialized by the sub-classes.
         ModelMetadata metadata;
 
-        using IdentifiedObject<Process>::IdentifiedObject;
-        Process(
+        using IdentifiedObject<ProcessModel>::IdentifiedObject;
+        ProcessModel(
                 const TimeValue& duration,
-                const Id<Process>& id,
+                const Id<ProcessModel>& id,
                 const QString& name,
                 QObject* parent);
 
         template<typename Impl>
-        Process(Deserializer<Impl>& vis, QObject* parent) :
+        ProcessModel(Deserializer<Impl>& vis, QObject* parent) :
             IdentifiedObject {vis, parent}
         {
             vis.writeTo(*this);
         }
 
-        virtual ~Process();
+        virtual ~ProcessModel();
 
-        virtual Process* clone(
-                const Id<Process>& newId,
+        virtual ProcessModel* clone(
+                const Id<ProcessModel>& newId,
                 QObject* newParent) const = 0;
 
         virtual const ProcessFactoryKey& key() const = 0;
@@ -151,9 +153,9 @@ class ISCORE_LIB_PROCESS_EXPORT Process: public IdentifiedObject<Process>
 
     protected:
         // Clone
-        Process(
-                const Process& other,
-                const Id<Process>& id,
+        ProcessModel(
+                const ProcessModel& other,
+                const Id<ProcessModel>& id,
                 const QString& name,
                 QObject* parent);
 
@@ -193,6 +195,10 @@ class ISCORE_LIB_PROCESS_EXPORT Process: public IdentifiedObject<Process>
         bool m_useParentDuration{};
 };
 
+ISCORE_LIB_PROCESS_EXPORT ProcessModel* parentProcess(QObject* obj);
+ISCORE_LIB_PROCESS_EXPORT const ProcessModel* parentProcess(const QObject* obj);
+
+}
 template<typename T>
 std::vector<typename T::layer_type*> layers(const T& processModel)
 {
@@ -205,9 +211,6 @@ std::vector<typename T::layer_type*> layers(const T& processModel)
 
     return v;
 }
-
-ISCORE_LIB_PROCESS_EXPORT Process* parentProcess(QObject* obj);
-ISCORE_LIB_PROCESS_EXPORT const Process* parentProcess(const QObject* obj);
 
 template<typename T>
 QString NameInUndo();

@@ -11,12 +11,14 @@
 #include <Process/ZoomHelper.hpp>
 #include <iscore/tools/SettableIdentifier.hpp>
 
-class LayerModel;
-class Process;
+namespace Process { class LayerModel; }
+namespace Process { class ProcessModel; }
 class QMenu;
 class QObject;
 class TemporalConstraintPresenter;
 namespace Loop {
+class Layer;
+class LayerView;
 class ProcessModel;
 }  // namespace Loop
 namespace iscore {
@@ -38,24 +40,23 @@ inline void clearContentFromSelection(const Loop::ProcessModel& model, iscore::C
 }
 }
 
-class LoopLayer;
-class LoopView;
-
-class LoopPresenter :
-        public LayerPresenter,
+namespace Loop
+{
+class LayerPresenter :
+        public Process::LayerPresenter,
         public BaseScenarioPresenter<Loop::ProcessModel, TemporalConstraintPresenter>
 {
         Q_OBJECT
-        friend class LoopViewUpdater;
+        friend class ViewUpdater;
     public:
-        LoopPresenter(
+        LayerPresenter(
                 const iscore::DocumentContext& context,
-                const LoopLayer&,
-                LoopView* view,
+                const Loop::Layer&,
+                LayerView* view,
                 QObject* parent);
 
-        ~LoopPresenter();
-        LoopView& view() const
+        ~LayerPresenter();
+        LayerView& view() const
         { return *m_view; }
 
         using BaseScenarioPresenter<Loop::ProcessModel, TemporalConstraintPresenter>::event;
@@ -70,8 +71,8 @@ class LoopPresenter :
         void on_zoomRatioChanged(ZoomRatio) override;
         void parentGeometryChanged() override;
 
-        const LayerModel& layerModel() const override;
-        const Id<Process>& modelId() const override;
+        const Process::LayerModel& layerModel() const override;
+        const Id<Process::ProcessModel>& modelId() const override;
 
         ZoomRatio zoomRatio() const
         { return m_zoomRatio; }
@@ -85,15 +86,16 @@ class LoopPresenter :
         void escPressed();
 
     private:
-        const LoopLayer& m_layer;
-        LoopView* m_view{};
+        const Loop::Layer& m_layer;
+        LayerView* m_view{};
 
         ZoomRatio m_zoomRatio {};
 
-        LoopViewUpdater m_viewUpdater;
+        ViewUpdater m_viewUpdater;
 
         FocusDispatcher m_focusDispatcher;
         LayerContext m_context;
-        LoopToolPalette m_palette;
+        ToolPalette m_palette;
         void updateAllElements();
 };
+}

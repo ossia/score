@@ -8,7 +8,7 @@
 class QWidget;
 
 MessageWidget::MessageWidget(
-        iscore::Message& mess,
+        State::Message& mess,
         DeviceExplorerModel* model,
         QWidget* parent):
     QPushButton{mess.toString(), parent},

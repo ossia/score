@@ -16,11 +16,13 @@
 #include <iscore_plugin_scenario_export.h>
 class ConstraintModel;
 class ConstraintViewModel;
-class ProcessList;
 class InspectorSectionWidget;
 class InspectorWidgetList;
 class MetadataWidget;
-class Process;
+namespace Process {
+class ProcessModel;
+class ProcessList;
+}
 class QObject;
 class QWidget;
 class RackInspectorSection;
@@ -43,7 +45,7 @@ class ISCORE_PLUGIN_SCENARIO_EXPORT ConstraintInspectorWidget final : public Ins
     public:
         explicit ConstraintInspectorWidget(
                 const InspectorWidgetList& list,
-                const ProcessList& pl,
+                const Process::ProcessList& pl,
                 const ConstraintModel& object,
                 std::unique_ptr<ConstraintInspectorDelegate> del,
                 const iscore::DocumentContext& context,
@@ -67,15 +69,15 @@ class ISCORE_PLUGIN_SCENARIO_EXPORT ConstraintInspectorWidget final : public Ins
         // Interface of Constraint
 
         // These methods are used to display created things
-        void displaySharedProcess(const Process&);
+        void displaySharedProcess(const Process::ProcessModel&);
         void setupRack(const RackModel&);
 
-        void ask_processNameChanged(const Process& p, QString s);
+        void ask_processNameChanged(const Process::ProcessModel& p, QString s);
 
 
 
-        void on_processCreated(const Process&);
-        void on_processRemoved(const Process&);
+        void on_processCreated(const Process::ProcessModel&);
+        void on_processRemoved(const Process::ProcessModel&);
 
         void on_rackCreated(const RackModel&);
         void on_rackRemoved(const RackModel&);
@@ -86,10 +88,10 @@ class ISCORE_PLUGIN_SCENARIO_EXPORT ConstraintInspectorWidget final : public Ins
         QWidget* makeStatesWidget(Scenario::ScenarioModel*);
 
         const InspectorWidgetList& m_widgetList;
-        const ProcessList& m_processList;
+        const Process::ProcessList& m_processList;
         const ConstraintModel& m_model;
 
-        InspectorSectionWidget* m_eventsSection {};
+        //InspectorSectionWidget* m_eventsSection {};
         InspectorSectionWidget* m_durationSection {};
 
         InspectorSectionWidget* m_processSection {};

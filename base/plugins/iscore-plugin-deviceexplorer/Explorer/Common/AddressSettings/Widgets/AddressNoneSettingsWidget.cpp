@@ -10,14 +10,14 @@ AddressNoneSettingsWidget::AddressNoneSettingsWidget(QWidget* parent)
 {
 }
 
-iscore::AddressSettings AddressNoneSettingsWidget::getSettings() const
+Device::AddressSettings AddressNoneSettingsWidget::getSettings() const
 {
     auto set = getCommonSettings();
-    set.value = iscore::ValueImpl{iscore::no_value_t{}};
+    set.value = State::ValueImpl{State::no_value_t{}};
     return set;
 }
 
-void AddressNoneSettingsWidget::setSettings(const iscore::AddressSettings& settings)
+void AddressNoneSettingsWidget::setSettings(const Device::AddressSettings& settings)
 {
     setCommonSettings(settings);
 }
@@ -29,14 +29,14 @@ AddressImpulseSettingsWidget::AddressImpulseSettingsWidget(QWidget* parent)
 {
 }
 
-iscore::AddressSettings AddressImpulseSettingsWidget::getSettings() const
+Device::AddressSettings AddressImpulseSettingsWidget::getSettings() const
 {
     auto set = getCommonSettings();
-    set.value = iscore::ValueImpl{iscore::impulse_t{}};
+    set.value = State::ValueImpl{State::impulse_t{}};
     return set;
 }
 
-void AddressImpulseSettingsWidget::setSettings(const iscore::AddressSettings& settings)
+void AddressImpulseSettingsWidget::setSettings(const Device::AddressSettings& settings)
 {
     setCommonSettings(settings);
 }

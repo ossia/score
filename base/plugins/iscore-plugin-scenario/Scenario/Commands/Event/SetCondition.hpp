@@ -18,7 +18,7 @@ namespace Scenario
             public:
                 SetCondition(
                     Path<EventModel>&& eventPath,
-                    iscore::Condition&& condition);
+                    State::Condition&& condition);
                 void undo() const override;
                 void redo() const override;
 
@@ -28,8 +28,8 @@ namespace Scenario
 
             private:
                 Path<EventModel> m_path;
-                iscore::Condition m_condition;
-                iscore::Condition m_previousCondition;
+                State::Condition m_condition;
+                State::Condition m_previousCondition;
         };
     }
 }

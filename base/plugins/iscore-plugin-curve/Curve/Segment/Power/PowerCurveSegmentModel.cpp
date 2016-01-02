@@ -11,21 +11,23 @@
 
 class QObject;
 #include <iscore/tools/SettableIdentifier.hpp>
+namespace Curve
+{
 
-PowerCurveSegmentModel::PowerCurveSegmentModel(
-        const CurveSegmentData& dat,
+PowerSegment::PowerSegment(
+        const SegmentData& dat,
         QObject* parent):
-    CurveSegmentModel{dat, parent},
-    gamma{dat.specificSegmentData.value<PowerCurveSegmentData>().gamma}
+    SegmentModel{dat, parent},
+    gamma{dat.specificSegmentData.value<PowerSegmentData>().gamma}
 {
 
 }
 
-CurveSegmentModel*PowerCurveSegmentModel::clone(
-        const Id<CurveSegmentModel>& id,
+SegmentModel*PowerSegment::clone(
+        const Id<SegmentModel>& id,
         QObject* parent) const
 {
-    auto cs = new PowerCurveSegmentModel{id, parent};
+    auto cs = new PowerSegment{id, parent};
     cs->setStart(this->start());
     cs->setEnd(this->end());
 
@@ -34,27 +36,27 @@ CurveSegmentModel*PowerCurveSegmentModel::clone(
     return cs;
 }
 
-const CurveSegmentFactoryKey& PowerCurveSegmentModel::key() const
+const SegmentFactoryKey& PowerSegment::key() const
 {
-    return PowerCurveSegmentData::key();
+    return PowerSegmentData::key();
 }
 
-void PowerCurveSegmentModel::serialize(const VisitorVariant& vis) const
+void PowerSegment::serialize(const VisitorVariant& vis) const
 {
     serialize_dyn(vis, *this);
 }
 
-void PowerCurveSegmentModel::on_startChanged()
+void PowerSegment::on_startChanged()
 {
     emit dataChanged();
 }
 
-void PowerCurveSegmentModel::on_endChanged()
+void PowerSegment::on_endChanged()
 {
     emit dataChanged();
 }
 
-void PowerCurveSegmentModel::updateData(int numInterp) const
+void PowerSegment::updateData(int numInterp) const
 {
     if(std::size_t(numInterp + 1) != m_data.size())
         m_valid = false;
@@ -86,14 +88,14 @@ void PowerCurveSegmentModel::updateData(int numInterp) const
     }
 }
 
-double PowerCurveSegmentModel::valueAt(double x) const
+double PowerSegment::valueAt(double x) const
 {
     return start().y() + (end().y() - start().y()) * (x - start().x()) / (end().x() - start().x());
 
     return -1;
 }
 
-void PowerCurveSegmentModel::setVerticalParameter(double p)
+void PowerSegment::setVerticalParameter(double p)
 {
     if(start().y() < end().y())
         gamma = (p + 1) * 6.;
@@ -103,13 +105,14 @@ void PowerCurveSegmentModel::setVerticalParameter(double p)
 }
 
 
-boost::optional<double> PowerCurveSegmentModel::verticalParameter() const
+boost::optional<double> PowerSegment::verticalParameter() const
 {
     return gamma / 6. - 1;
 }
 
-const CurveSegmentFactoryKey&PowerCurveSegmentData::key()
+const SegmentFactoryKey&PowerSegmentData::key()
 {
-    static const CurveSegmentFactoryKey name{"Power"};
+    static const SegmentFactoryKey name{"Power"};
     return name;
+}
 }

@@ -23,9 +23,9 @@ NodeUpdateProxy::NodeUpdateProxy(DeviceDocumentPlugin& root):
 
 }
 
-void NodeUpdateProxy::addDevice(const iscore::DeviceSettings& dev)
+void NodeUpdateProxy::addDevice(const Device::DeviceSettings& dev)
 {
-    iscore::Node node(dev, nullptr);
+    Device::Node node(dev, nullptr);
     auto newNode = devModel.createDeviceFromNode(node);
 
     if(deviceExplorer)
@@ -38,7 +38,7 @@ void NodeUpdateProxy::addDevice(const iscore::DeviceSettings& dev)
     }
 }
 
-void NodeUpdateProxy::loadDevice(const iscore::Node& node)
+void NodeUpdateProxy::loadDevice(const Device::Node& node)
 {
     auto n = devModel.loadDeviceFromNode(node);
 
@@ -54,7 +54,7 @@ void NodeUpdateProxy::loadDevice(const iscore::Node& node)
 
 void NodeUpdateProxy::updateDevice(
         const QString &name,
-        const iscore::DeviceSettings& dev)
+        const Device::DeviceSettings& dev)
 {
     devModel.list().device(name).updateSettings(dev);
 
@@ -65,20 +65,20 @@ void NodeUpdateProxy::updateDevice(
     else
     {
         auto it = std::find_if(devModel.rootNode().begin(), devModel.rootNode().end(),
-                               [&] (const iscore::Node& n) { return n.get<iscore::DeviceSettings>().name == name; });
+                               [&] (const Device::Node& n) { return n.get<Device::DeviceSettings>().name == name; });
 
         ISCORE_ASSERT(it != devModel.rootNode().end());
         it->set(dev);
     }
 }
 
-void NodeUpdateProxy::removeDevice(const iscore::DeviceSettings& dev)
+void NodeUpdateProxy::removeDevice(const Device::DeviceSettings& dev)
 {
     devModel.list().removeDevice(dev.name);
 
     const auto& rootNode = devModel.rootNode();
     auto it = find_if(rootNode, [&] (const auto& val) {
-        return val.template is<iscore::DeviceSettings>() && val.template get<iscore::DeviceSettings>().name == dev.name;
+        return val.template is<Device::DeviceSettings>() && val.template get<Device::DeviceSettings>().name == dev.name;
     });
     ISCORE_ASSERT(it != rootNode.end());
 
@@ -93,8 +93,8 @@ void NodeUpdateProxy::removeDevice(const iscore::DeviceSettings& dev)
 }
 
 void NodeUpdateProxy::addAddress(
-        const iscore::NodePath& parentPath,
-        const iscore::AddressSettings& settings,
+        const Device::NodePath& parentPath,
+        const Device::AddressSettings& settings,
         int row)
 {
     auto parentnode = parentPath.toNode(&devModel.rootNode());
@@ -105,17 +105,17 @@ void NodeUpdateProxy::addAddress(
     // Get the device node :
     // TODO row isn't managed here.
     const auto& dev_node = devModel.rootNode().childAt(parentPath.at(0));
-    ISCORE_ASSERT(dev_node.is<iscore::DeviceSettings>());
+    ISCORE_ASSERT(dev_node.is<Device::DeviceSettings>());
 
     // Make a full path
-    iscore::FullAddressSettings full = iscore::FullAddressSettings::make<iscore::FullAddressSettings::as_parent>(
+    Device::FullAddressSettings full = Device::FullAddressSettings::make<Device::FullAddressSettings::as_parent>(
                                    settings,
-                                   iscore::address(*parentnode));
+                                   Device::address(*parentnode));
 
     // Add in the device implementation
     devModel
             .list()
-            .device(dev_node.get<iscore::DeviceSettings>().name)
+            .device(dev_node.get<Device::DeviceSettings>().name)
             .addAddress(full);
 
     // Add in the device explorer
@@ -123,11 +123,11 @@ void NodeUpdateProxy::addAddress(
 }
 
 void NodeUpdateProxy::rec_addNode(
-        iscore::NodePath parentPath,
-        const iscore::Node& n,
+        Device::NodePath parentPath,
+        const Device::Node& n,
         int row)
 {
-    addAddress(parentPath, n.get<iscore::AddressSettings>(), row);
+    addAddress(parentPath, n.get<Device::AddressSettings>(), row);
 
     parentPath.append(row);
 
@@ -139,34 +139,35 @@ void NodeUpdateProxy::rec_addNode(
 }
 
 void NodeUpdateProxy::addNode(
-        const iscore::NodePath& parentPath,
-        const iscore::Node& node,
+        const Device::NodePath& parentPath,
+        const Device::Node& node,
         int row)
 {
-    ISCORE_ASSERT(node.is<iscore::AddressSettings>());
+    ISCORE_ASSERT(node.is<Device::AddressSettings>());
 
     rec_addNode(parentPath, node, row);
 }
 
 void NodeUpdateProxy::updateAddress(
-        const iscore::NodePath &nodePath,
-        const iscore::AddressSettings &settings)
+        const Device::NodePath &nodePath,
+        const Device::AddressSettings &settings)
 {
     auto node = nodePath.toNode(&devModel.rootNode());
     if(!node)
         return;
 
-    const auto addr = iscore::address(*node);
+    const auto addr = Device::address(*node);
     // Make a full path
-    iscore::FullAddressSettings full = iscore::FullAddressSettings::make<iscore::FullAddressSettings::as_child>(
+    Device::FullAddressSettings full = Device::FullAddressSettings::make<Device::FullAddressSettings::as_child>(
                                    settings,
                                    addr);
+    full.address.path.last() = settings.name;
 
     // Update in the device implementation
     devModel
             .list()
             .device(addr.device)
-            .updateAddress(full);
+            .updateAddress(addr, full);
 
     // Update in the device explorer
     if(deviceExplorer)
@@ -182,26 +183,26 @@ void NodeUpdateProxy::updateAddress(
 }
 
 void NodeUpdateProxy::removeNode(
-        const iscore::NodePath& parentPath,
-        const iscore::AddressSettings& settings)
+        const Device::NodePath& parentPath,
+        const Device::AddressSettings& settings)
 {
-    iscore::Node* parentnode = parentPath.toNode(&devModel.rootNode());
+    Device::Node* parentnode = parentPath.toNode(&devModel.rootNode());
     if(!parentnode)
         return;
 
-    auto addr = iscore::address(*parentnode);
+    auto addr = Device::address(*parentnode);
     addr.path.append(settings.name);
 
     // Remove from the device implementation
     const auto& dev_node = devModel.rootNode().childAt(parentPath.at(0));
     devModel.list().device(
-                dev_node.get<iscore::DeviceSettings>().name)
+                dev_node.get<Device::DeviceSettings>().name)
             .removeNode(addr);
 
     // Remove from the device explorer
     auto it = std::find_if(
                   parentnode->begin(), parentnode->end(),
-                  [&] (const iscore::Node& n) { return n.get<iscore::AddressSettings>().name == settings.name; });
+                  [&] (const Device::Node& n) { return n.get<Device::AddressSettings>().name == settings.name; });
     ISCORE_ASSERT(it != parentnode->end());
 
     if(deviceExplorer)
@@ -216,8 +217,8 @@ void NodeUpdateProxy::removeNode(
 
 
 void NodeUpdateProxy::addLocalAddress(
-        iscore::Node& parentnode,
-        const iscore::AddressSettings& settings,
+        Device::Node& parentnode,
+        const Device::AddressSettings& settings,
         int row)
 {
     if(deviceExplorer)
@@ -234,14 +235,14 @@ void NodeUpdateProxy::addLocalAddress(
 }
 
 void NodeUpdateProxy::updateLocalValue(
-        const iscore::Address& addr,
-        const iscore::Value& v)
+        const State::Address& addr,
+        const State::Value& v)
 {
-    auto n = iscore::try_getNodeFromAddress(devModel.rootNode(), addr);
+    auto n = Device::try_getNodeFromAddress(devModel.rootNode(), addr);
     if(!n)
         return;
 
-    if(!n->is<iscore::AddressSettings>())
+    if(!n->is<Device::AddressSettings>())
     {
         qDebug() << "Updating invalid node";
         return;
@@ -253,19 +254,19 @@ void NodeUpdateProxy::updateLocalValue(
     }
     else
     {
-        n->get<iscore::AddressSettings>().value = v;
+        n->get<Device::AddressSettings>().value = v;
     }
 }
 
 void NodeUpdateProxy::updateLocalSettings(
-        const iscore::Address& addr,
-        const iscore::AddressSettings& set)
+        const State::Address& addr,
+        const Device::AddressSettings& set)
 {
-    auto n = iscore::try_getNodeFromAddress(devModel.rootNode(), addr);
+    auto n = Device::try_getNodeFromAddress(devModel.rootNode(), addr);
     if(!n)
         return;
 
-    if(!n->is<iscore::AddressSettings>())
+    if(!n->is<Device::AddressSettings>())
     {
         qDebug() << "Updating invalid node";
         return;
@@ -282,8 +283,8 @@ void NodeUpdateProxy::updateLocalSettings(
 }
 
 void NodeUpdateProxy::updateRemoteValue(
-        const iscore::Address& addr,
-        const iscore::Value& val)
+        const State::Address& addr,
+        const State::Value& val)
 {
     // TODO add these checks everywhere.
     if(devModel.list().hasDevice(addr.device))
@@ -296,7 +297,7 @@ void NodeUpdateProxy::updateRemoteValue(
     }
 }
 
-iscore::Value NodeUpdateProxy::refreshRemoteValue(const iscore::Address& addr)
+State::Value NodeUpdateProxy::refreshRemoteValue(const State::Address& addr)
 {
     // TODO here and in the following function, we should still update
     // the device explorer.
@@ -306,7 +307,7 @@ iscore::Value NodeUpdateProxy::refreshRemoteValue(const iscore::Address& addr)
 
     auto& dev = **dev_it;
 
-    auto& n = iscore::getNodeFromAddress(devModel.rootNode(), addr).get<iscore::AddressSettings>();
+    auto& n = Device::getNodeFromAddress(devModel.rootNode(), addr).get<Device::AddressSettings>();
     if(dev.capabilities().canRefresh)
     {
         if(auto val = dev.refresh(addr))
@@ -318,12 +319,12 @@ iscore::Value NodeUpdateProxy::refreshRemoteValue(const iscore::Address& addr)
     return n.value;
 }
 
-void rec_refreshRemoteValues(iscore::Node& n, DeviceInterface& dev)
+void rec_refreshRemoteValues(Device::Node& n, DeviceInterface& dev)
 {
     // OPTIMIZEME
-    auto val = dev.refresh(iscore::address(n));
+    auto val = dev.refresh(Device::address(n));
     if(val)
-        n.get<iscore::AddressSettings>().value = *val;
+        n.get<Device::AddressSettings>().value = *val;
 
     for(auto& child : n)
     {
@@ -331,14 +332,14 @@ void rec_refreshRemoteValues(iscore::Node& n, DeviceInterface& dev)
     }
 }
 
-void NodeUpdateProxy::refreshRemoteValues(const iscore::NodeList& nodes)
+void NodeUpdateProxy::refreshRemoteValues(const Device::NodeList& nodes)
 {
     // For each node, get its device.
     for(auto n : nodes)
     {
-        if(n->is<iscore::DeviceSettings>())
+        if(n->is<Device::DeviceSettings>())
         {
-            auto dev_name = n->get<iscore::DeviceSettings>().name;
+            auto dev_name = n->get<Device::DeviceSettings>().name;
             auto& dev = devModel.list().device(dev_name);
             if(!dev.capabilities().canRefresh)
                 continue;
@@ -350,7 +351,7 @@ void NodeUpdateProxy::refreshRemoteValues(const iscore::NodeList& nodes)
         }
         else
         {
-            auto addr = iscore::address(*n);
+            auto addr = Device::address(*n);
             auto& dev = devModel.list().device(addr.device);
             if(!dev.capabilities().canRefresh)
                 continue;
@@ -361,10 +362,10 @@ void NodeUpdateProxy::refreshRemoteValues(const iscore::NodeList& nodes)
 }
 
 void NodeUpdateProxy::addLocalNode(
-        iscore::Node& parent,
-        iscore::Node&& node)
+        Device::Node& parent,
+        Device::Node&& node)
 {
-    ISCORE_ASSERT(node.is<iscore::AddressSettings>());
+    ISCORE_ASSERT(node.is<Device::AddressSettings>());
 
     int row = parent.childCount();
     if(deviceExplorer)
@@ -382,17 +383,17 @@ void NodeUpdateProxy::addLocalNode(
 }
 
 
-void NodeUpdateProxy::removeLocalNode(const iscore::Address& addr)
+void NodeUpdateProxy::removeLocalNode(const State::Address& addr)
 {
     auto parentAddr = addr;
     auto nodeName = parentAddr.path.takeLast();
-    auto parentNode = iscore::try_getNodeFromAddress(
+    auto parentNode = Device::try_getNodeFromAddress(
                            devModel.rootNode(),
                            parentAddr);
     if(parentNode)
     {
         auto it = find_if(*parentNode,
-                          [&] (const iscore::Node& n) { return n.get<iscore::AddressSettings>().name == nodeName; });
+                          [&] (const Device::Node& n) { return n.get<Device::AddressSettings>().name == nodeName; });
         if(it != parentNode->end())
         {
             if(deviceExplorer)

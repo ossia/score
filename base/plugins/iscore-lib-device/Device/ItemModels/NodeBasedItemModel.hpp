@@ -10,10 +10,10 @@
 #include <iscore/tools/TreeNode.hpp>
 #include <iscore_lib_device_export.h>
 
-class ISCORE_LIB_DEVICE_EXPORT NodeBasedItemModel : public TreeNodeBasedItemModel<iscore::Node>
+class ISCORE_LIB_DEVICE_EXPORT NodeBasedItemModel : public TreeNodeBasedItemModel<Device::Node>
 {
     public:
-        using TreeNodeBasedItemModel<iscore::Node>::TreeNodeBasedItemModel;
+        using TreeNodeBasedItemModel<Device::Node>::TreeNodeBasedItemModel;
         virtual ~NodeBasedItemModel();
 
         QModelIndex modelIndexFromNode(node_type& n, int column) const
@@ -22,7 +22,7 @@ class ISCORE_LIB_DEVICE_EXPORT NodeBasedItemModel : public TreeNodeBasedItemMode
             {
                 return QModelIndex();
             }
-            else if(n.is<iscore::DeviceSettings>())
+            else if(n.is<Device::DeviceSettings>())
             {
                 ISCORE_ASSERT(n.parent());
                 return index(n.parent()->indexOfChild(&n), 0, QModelIndex());
@@ -54,7 +54,7 @@ class ISCORE_LIB_DEVICE_EXPORT NodeBasedItemModel : public TreeNodeBasedItemMode
         {
             ISCORE_ASSERT(!node->is<InvisibleRootNodeTag>());
 
-            if(node->is<iscore::AddressSettings>())
+            if(node->is<Device::AddressSettings>())
             {
                 node_type* parent = node->parent();
                 ISCORE_ASSERT(parent != &rootNode());
@@ -72,7 +72,7 @@ class ISCORE_LIB_DEVICE_EXPORT NodeBasedItemModel : public TreeNodeBasedItemMode
             }
             else
             {
-                ISCORE_ASSERT(node->is<iscore::DeviceSettings>());
+                ISCORE_ASSERT(node->is<Device::DeviceSettings>());
                 int row = rootNode().indexOfChild(&*node);
 
                 beginRemoveRows(QModelIndex(), row, row);

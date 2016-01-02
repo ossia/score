@@ -37,7 +37,7 @@ ConstraintActions::ConstraintActions(
     ScenarioActions(menuElt, parent)
 {
     const auto& appContext = parent->context;
-    auto& fact = appContext.components.factory<ProcessList>();
+    auto& fact = appContext.components.factory<Process::ProcessList>();
     m_addProcessDialog = new AddProcessDialog{fact, qApp->activeWindow()};
 
     connect(m_addProcessDialog, &AddProcessDialog::okPressed,

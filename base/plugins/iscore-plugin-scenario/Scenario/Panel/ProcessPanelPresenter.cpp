@@ -35,7 +35,7 @@ class PanelView;
 }  // namespace iscore
 
 ProcessPanelPresenter::ProcessPanelPresenter(
-        const ProcessList& plist,
+        const Process::ProcessList& plist,
         iscore::PanelView* view,
         QObject* parent):
     iscore::PanelPresenter{view, parent},
@@ -66,7 +66,7 @@ void ProcessPanelPresenter::on_modelChanged(
     if(!bem)
         return;
 
-    con(bem->focusManager(),  &ProcessFocusManager::sig_focusedViewModel,
+    con(bem->focusManager(),  &Process::ProcessFocusManager::sig_focusedViewModel,
         this, &ProcessPanelPresenter::on_focusedViewModelChanged);
 
     auto panelview = static_cast<ProcessPanelView*>(view());
@@ -76,7 +76,7 @@ void ProcessPanelPresenter::on_modelChanged(
     on_focusedViewModelChanged(bem->focusManager().focusedViewModel());
 }
 
-void ProcessPanelPresenter::on_focusedViewModelChanged(const LayerModel* theLM)
+void ProcessPanelPresenter::on_focusedViewModelChanged(const Process::LayerModel* theLM)
 {
     if(theLM != m_layerModel)
     {

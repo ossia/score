@@ -1,15 +1,14 @@
 #pragma once
 #include "BaseProperty.hpp"
 
-class BaseCallbackWrapper : public BaseProperty
+class ISCORE_PLUGIN_OSSIA_EXPORT BaseCallbackWrapper : public BaseProperty
 {
     public:
         using BaseProperty::BaseProperty;
         ~BaseCallbackWrapper()
         {
-            addr->removeCallback(m_callbackIt);
+            addr->removeCallback(callbackIt);
         }
 
-    protected:
-        OSSIA::Address::iterator m_callbackIt{};
+        OSSIA::Address::iterator callbackIt{};
 };

@@ -12,8 +12,11 @@ class QObject;
 class StateModel;
 namespace iscore {
 class CommandStackFacade;
-struct Message;
 }  // namespace iscore
+namespace State
+{
+struct Message;
+}
 
 /**
  * @brief The MessageItemModel class
@@ -71,7 +74,7 @@ class ISCORE_PLUGIN_SCENARIO_EXPORT MessageItemModel final : public TreeNodeBase
         const StateModel& stateModel;
 
     signals:
-        void userMessage(const iscore::Message&);
+        void userMessage(const State::Message&);
 
     private:
         node_type m_rootNode;
