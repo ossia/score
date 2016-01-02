@@ -6,6 +6,7 @@
 #include <src/SpaceContext.hpp>
 #include <Process/ModelMetadata.hpp>
 #include <iscore/component/Component.hpp>
+#include <src/Area/ValMap.hpp>
 class SpaceModel;
 class QGraphicsItem;
 
@@ -51,16 +52,16 @@ class AreaModel : public IdentifiedObject<AreaModel>
         const ParameterMap& parameterMapping() const
         { return m_parameterMap; }
 
-        void setCurrentMapping(const GiNaC::exmap& map);
-        void updateCurrentMapping(const GiNaC::symbol& sym, double value);
-        const GiNaC::exmap& currentMapping() const
+        void setCurrentMapping(const ValMap& map);
+        void updateCurrentMapping(std::string sym, double value);
+        const ValMap& currentMapping() const
         { return m_currentParameterMap;}
 
         QString toString() const;
 
     signals:
-        void currentSymbolChanged(const GiNaC::symbol&, double);
-        void areaChanged(GiNaC::exmap);
+        void currentSymbolChanged(std::string, double);
+        void areaChanged(ValMap);
 
     private:
         const Space::AreaContext& m_context;
@@ -70,10 +71,12 @@ class AreaModel : public IdentifiedObject<AreaModel>
         GiNaC::exmap m_spaceMap;
 
         ParameterMap m_parameterMap; // General values of the model.
-        GiNaC::exmap m_currentParameterMap; // Current values used for display / execution.
+        ValMap m_currentParameterMap; // Current values used for display / execution.
 };
 }
 
+Q_DECLARE_METATYPE(std::string)
+Q_DECLARE_METATYPE(Space::ValMap)
 Q_DECLARE_METATYPE(GiNaC::exmap)
 Q_DECLARE_METATYPE(GiNaC::symbol)
 Q_DECLARE_METATYPE(Id<Space::AreaModel>)

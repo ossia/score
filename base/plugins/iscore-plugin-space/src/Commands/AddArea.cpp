@@ -66,8 +66,8 @@ class CollisionHandler
                 auto& c1 = static_cast<const CircleAreaModel&>(a1);
                 auto& c2 = static_cast<const CircleAreaModel&>(a2);
 
-                auto c1_val = c1.mapToData(c1.currentMapping(), c1.parameterMapping());
-                auto c2_val = c2.mapToData(c2.currentMapping(), c2.parameterMapping());
+                auto c1_val = c1.mapToData(c1.currentMapping());
+                auto c2_val = c2.mapToData(c2.currentMapping());
 
                 // Check if the distance of both centers is < to the sum of radiuses
                 auto dist = [] (auto v1, auto v2) {
@@ -86,8 +86,8 @@ class CollisionHandler
                 auto& c = static_cast<const CircleAreaModel&>(a1);
                 auto& p = static_cast<const PointerAreaModel&>(a2);
 
-                auto c_val = c.mapToData(c.currentMapping(), c.parameterMapping());
-                auto p_val = p.mapToData(p.currentMapping(), p.parameterMapping());
+                auto c_val = c.mapToData(c.currentMapping());
+                auto p_val = p.mapToData(p.currentMapping());
 
                 // Check if the distance of both centers is < to the sum of radiuses
                 auto dist = [] (auto v1, auto v2) {

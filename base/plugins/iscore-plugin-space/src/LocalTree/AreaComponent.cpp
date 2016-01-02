@@ -141,11 +141,10 @@ GenericAreaComponent::GenericAreaComponent(
     using namespace GiNaC;
     for(const auto& param : area.currentMapping())
     {
-        symbol sym = ex_to<symbol>(param.first);
         constexpr auto t = Ossia::convert::MatchingType<double>::val;
         auto node_it = thisNode().emplaceAndNotify(
                            thisNode().children().end(),
-                           sym.get_name(),
+                           param.first,
                            t,
                            OSSIA::AccessMode::BI);
         auto& node = *node_it;
@@ -157,22 +156,22 @@ GenericAreaComponent::GenericAreaComponent(
             {
                 ISCORE_TODO;
                 auto val = State::convert::value<double>(Ossia::convert::ToValue(v));
-                m_area.updateCurrentMapping(sym, val);
+                m_area.updateCurrentMapping(param.first, val);
             }
         });
 
         auto wrap = std::make_unique<BaseCallbackWrapper>(node, addr);
         wrap->callbackIt = callback_it;
-        m_ginacProperties.insert(std::make_pair(sym.get_name(), std::move(wrap)));
+        m_ginacProperties.insert(std::make_pair(param.first, std::move(wrap)));
 
         addr->setValue(iscore::convert::toOSSIAValue(
                            State::Value::fromValue(ex_to<numeric>(param.second).to_double())));
     }
 
     QObject::connect(&m_area, &AreaModel::currentSymbolChanged,
-                     this, [=] (const GiNaC::symbol& sym, double val) {
+                     this, [=] (std::string sym, double val) {
         auto newVal = State::Value::fromValue(val);
-        auto& addr = m_ginacProperties.at(sym.get_name())->addr;
+        auto& addr = m_ginacProperties.at(sym)->addr;
         if(newVal != Ossia::convert::ToValue(addr->getValue()))
             addr->pushValue(iscore::convert::toOSSIAValue(newVal));
     },

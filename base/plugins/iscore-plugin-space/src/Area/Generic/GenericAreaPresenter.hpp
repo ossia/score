@@ -18,7 +18,7 @@ class GenericAreaPresenter : public AreaPresenter
                 QObject* parent);
 
         void update() override;
-        void on_areaChanged(GiNaC::exmap) override;
+        void on_areaChanged(ValMap) override;
 
 };
 }

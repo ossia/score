@@ -44,6 +44,7 @@ std::shared_ptr<OSSIA::StateElement> ProcessExecutor::state(
         const OSSIA::TimeValue&,
         const OSSIA::TimeValue&)
 {
+    using namespace GiNaC;
     auto& devlist = m_process.context().devices.list();
 
     // For each area whose parameters depend on an address,
@@ -51,14 +52,14 @@ std::shared_ptr<OSSIA::StateElement> ProcessExecutor::state(
     for(AreaModel& area : m_process.areas)
     {
         const auto& parameter_map = area.parameterMapping();
-        GiNaC::exmap mapping;
+        ValMap mapping;
 
         for(const auto& elt : parameter_map)
         {
             // We always set the default value just in case.
             auto it_pair = mapping.insert(
                                std::make_pair(
-                                   elt.first,
+                                   ex_to<symbol>(elt.first).get_name(),
                                    State::convert::value<double>(elt.second.value)
                                    )
                                );
