@@ -7,6 +7,7 @@
 #include <QMenuBar>
 #include <QObject>
 #include <QString>
+#include <QPointer>
 #include <algorithm>
 #include <map>
 #include <type_traits>
