@@ -17,10 +17,19 @@ void CircleAreaPresenter::on_areaChanged(GiNaC::exmap mapping)
 {
     const CircleAreaModel& m = model(this);
     const auto& pm = m.parameterMapping();
-    view(this).update(
-                GiNaC::ex_to<GiNaC::numeric>(mapping.at(pm["x0"].first)).to_double(),
-            GiNaC::ex_to<GiNaC::numeric>(mapping.at(pm["y0"].first)).to_double(),
-            GiNaC::ex_to<GiNaC::numeric>(mapping.at(pm["r"].first)).to_double());
+    auto x0_it = pm.find("x0");
+    auto y0_it = pm.find("y0");
+    auto r_it = pm.find("r");
+
+    if(x0_it != pm.end()
+    && y0_it != pm.end()
+    && r_it != pm.end())
+    {
+        view(this).update(
+                GiNaC::ex_to<GiNaC::numeric>(mapping.at((*x0_it).first)).to_double(),
+                GiNaC::ex_to<GiNaC::numeric>(mapping.at((*y0_it).first)).to_double(),
+                GiNaC::ex_to<GiNaC::numeric>(mapping.at((*r_it).first)).to_double());
+    }
 }
 
 

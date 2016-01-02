@@ -111,8 +111,8 @@ AreaComponent::AreaComponent(
         const QString& name,
         QObject* parent):
     Component{id, name, parent},
-    m_area{area},
-    m_thisNode{node, area.metadata, this}
+    m_thisNode{node, area.metadata, this},
+    m_area{area}
 {
 }
 
@@ -155,6 +155,7 @@ GenericAreaComponent::GenericAreaComponent(
         {
             if(v)
             {
+                ISCORE_TODO;
                 auto val = State::convert::value<double>(Ossia::convert::ToValue(v));
                 m_area.updateCurrentMapping(sym, val);
             }
@@ -163,7 +164,6 @@ GenericAreaComponent::GenericAreaComponent(
         auto wrap = std::make_unique<BaseCallbackWrapper>(node, addr);
         wrap->callbackIt = callback_it;
         m_ginacProperties.insert(std::make_pair(sym.get_name(), std::move(wrap)));
-        std::cerr << m_ginacProperties.size();
 
         addr->setValue(iscore::convert::toOSSIAValue(
                            State::Value::fromValue(ex_to<numeric>(param.second).to_double())));
@@ -235,6 +235,59 @@ const std::shared_ptr<OSSIA::Node>& ComputationComponent::node() const
 
 OSSIA::Node& ComputationComponent::thisNode() const
 { return *node(); }
+
+GenericComputationComponent::GenericComputationComponent(
+        const Id<iscore::Component>& cmp,
+        OSSIA::Node& parent_node,
+        ComputationModel& computation,
+        const Ossia::LocalTree::DocumentPlugin& doc,
+        const iscore::DocumentContext& ctx,
+        QObject* paren_objt):
+    ComputationComponent{parent_node, computation, cmp, "GenericComputationComponent", paren_objt}
+{
+    Ossia::LocalTree::make_metadata_node(computation.metadata, *node(), m_properties, this);
+
+    using namespace GiNaC;
+    constexpr auto t = Ossia::convert::MatchingType<double>::val;
+    auto node_it = thisNode().emplaceAndNotify(
+                       thisNode().children().end(),
+                       computation.metadata.name().toStdString(),
+                       t,
+                       OSSIA::AccessMode::GET);
+
+    m_valueNode = *node_it;
+    auto addr = m_valueNode->getAddress();
+    addr->setValue(iscore::convert::toOSSIAValue(
+                       State::Value::fromValue(computation.computation()())));
+
+}
+
+ComputationComponent*
+GenericComputationComponentFactory::make(
+        const Id<iscore::Component>& cmp,
+        OSSIA::Node& parent,
+        ComputationModel& proc,
+        const Ossia::LocalTree::DocumentPlugin& doc,
+        const iscore::DocumentContext& ctx,
+        QObject* paren_objt) const
+{
+    return new GenericComputationComponent{cmp, parent, proc, doc, ctx, paren_objt};
+}
+
+const GenericComputationComponentFactory::factory_key_type&
+GenericComputationComponentFactory::key_impl() const
+{
+    static const factory_key_type name{"ComputationComponentFactory"};
+    return name;
+}
+
+bool GenericComputationComponentFactory::matches(
+        ComputationModel& p,
+        const Ossia::LocalTree::DocumentPlugin&,
+        const iscore::DocumentContext&) const
+{
+    return true;
+}
 
 
 

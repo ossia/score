@@ -44,9 +44,9 @@ class SpaceProcessComponentHierarchyManager : public Nano::Observer
 
         ~SpaceProcessComponentHierarchyManager()
         {
-            for(auto element : m_areas)
-                cleanup(element);
             for(auto element : m_computations)
+                cleanup(element);
+            for(auto element : m_areas)
                 cleanup(element);
         }
 
@@ -176,13 +176,15 @@ class ISCORE_PLUGIN_SPACE_EXPORT AreaComponent : public iscore::Component
 
     protected:
         OSSIA::Node& thisNode() const;
+    private:
+        MetadataNamePropertyWrapper m_thisNode;
+
+    protected:
         std::map<std::string, std::unique_ptr<BaseCallbackWrapper>> m_ginacProperties;
         std::vector<std::unique_ptr<BaseProperty>> m_properties;
 
         AreaModel& m_area;
 
-    private:
-        MetadataNamePropertyWrapper m_thisNode;
 };
 
 class ISCORE_PLUGIN_SPACE_EXPORT AreaComponentFactory :
@@ -226,13 +228,18 @@ class ISCORE_PLUGIN_SPACE_EXPORT ComputationComponent : public iscore::Component
         virtual ~ComputationComponent();
 
         const std::shared_ptr<OSSIA::Node>& node() const;
+        const std::shared_ptr<OSSIA::Node>& valueNode() const
+        { return m_valueNode; }
 
     protected:
-        std::vector<std::unique_ptr<BaseProperty>> m_properties;
+        OSSIA::Node& thisNode() const;
 
     private:
-        OSSIA::Node& thisNode() const;
         MetadataNamePropertyWrapper m_thisNode;
+
+    protected:
+        std::shared_ptr<OSSIA::Node> m_valueNode;
+        std::vector<std::unique_ptr<BaseProperty>> m_properties;
 };
 
 class ISCORE_PLUGIN_SPACE_EXPORT ComputationComponentFactory :
@@ -303,6 +310,41 @@ class GenericAreaComponentFactory final
 };
 
 
+class GenericComputationComponent final : public ComputationComponent
+{
+        COMPONENT_METADATA(GenericComputationComponent)
+    public:
+        GenericComputationComponent(
+                const Id<iscore::Component>& cmp,
+                OSSIA::Node& parent_node,
+                ComputationModel& proc,
+                const Ossia::LocalTree::DocumentPlugin& doc,
+                const iscore::DocumentContext& ctx,
+                QObject* paren_objt);
+};
+
+// It must be last in the vector
+class GenericComputationComponentFactory final
+        : public ComputationComponentFactory
+{
+    private:
+        ComputationComponent* make(
+                        const Id<iscore::Component>& cmp,
+                        OSSIA::Node& parent,
+                        ComputationModel& proc,
+                        const Ossia::LocalTree::DocumentPlugin& doc,
+                        const iscore::DocumentContext& ctx,
+                        QObject* paren_objt) const override;
+
+        const factory_key_type& key_impl() const override;
+
+        bool matches(
+                ComputationModel& p,
+                const Ossia::LocalTree::DocumentPlugin&,
+                const iscore::DocumentContext&) const override;
+};
+
+
 class ProcessLocalTree final :
         public Ossia::LocalTree::ProcessComponent
 {
@@ -345,9 +387,9 @@ class ProcessLocalTree final :
                 const ComputationModel& elt,
                 const ComputationComponent& comp);
 
-
         std::shared_ptr<OSSIA::Node> m_areas;
         std::shared_ptr<OSSIA::Node> m_computations;
+
         std::vector<std::unique_ptr<BaseProperty>> m_properties;
 
         hierarchy_t m_hm;

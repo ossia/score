@@ -40,8 +40,7 @@ class ISCORE_LIB_DEVICE_EXPORT DeviceInterface : public QObject
 
         virtual void addNode(const Device::Node& n);
 
-        DeviceCapabilities capabilities() const
-        { return m_capas; }
+        auto capabilities() const { return m_capas; }
 
         virtual void disconnect() = 0;
         virtual bool reconnect() = 0;

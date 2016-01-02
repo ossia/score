@@ -37,7 +37,9 @@ struct ProcessMetadata
 class ProcessExecutor final : public TimeProcessWithConstraint
 {
     public:
-        ProcessExecutor(Space::ProcessModel& process);
+        ProcessExecutor(
+                Space::ProcessModel& process,
+                DeviceDocumentPlugin& devices);
 
 
         std::shared_ptr<OSSIA::StateElement> state(
@@ -57,6 +59,7 @@ class ProcessExecutor final : public TimeProcessWithConstraint
 
     private:
         Space::ProcessModel& m_process;
+        DeviceList& m_devices;
 
         std::shared_ptr<OSSIA::State> m_start;
         std::shared_ptr<OSSIA::State> m_end;
