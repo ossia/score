@@ -162,10 +162,11 @@ void OSSIADevice::removeNode(const State::Address& address)
         return;
 
     OSSIA::Node* node = getNodeFromPath(address.path, m_dev.get());
-    auto& children = node->getParent()->children();
-    auto it = std::find_if(children.begin(), children.end(),
+    auto parent = node->getParent();
+    auto& parentChildren = node->getParent()->children();
+    auto it = std::find_if(parentChildren.begin(), parentChildren.end(),
                            [&] (auto&& elt) { return elt.get() == node; });
-    if(it != children.end())
+    if(it != parentChildren.end())
     {
         /* If we are listening to this node, we recursively
          * remove listening to all the children. */
@@ -174,7 +175,7 @@ void OSSIADevice::removeNode(const State::Address& address)
         // TODO !! if we remove nodes while recording
         // (or anything involving a registered listening state), there will be crashes.
         // The Device Explorer should be locked for edition during recording / playing.
-        node->erase(it);
+        parent->erase(it);
     }
 }
 
