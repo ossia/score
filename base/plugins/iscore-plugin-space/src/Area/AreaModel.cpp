@@ -65,6 +65,7 @@ void AreaModel::setCurrentMapping(const GiNaC::exmap& map)
 {
     using namespace GiNaC;
 
+    ISCORE_DEBUG;
     m_currentParameterMap = map;
     for(auto sym : map)
     {
@@ -80,6 +81,7 @@ void AreaModel::updateCurrentMapping(
         const GiNaC::symbol& sym,
         double value)
 {
+    ISCORE_TODO;
     m_currentParameterMap.at(sym) = value;
     emit currentSymbolChanged(sym, value);
     emit areaChanged(m_currentParameterMap);

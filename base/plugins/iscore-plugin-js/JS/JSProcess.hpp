@@ -16,7 +16,8 @@ class StateElement;
 
 namespace JS
 {
-class ProcessExecutor final : public TimeProcessWithConstraint
+class ProcessExecutor final :
+        public TimeProcessWithConstraint
 {
     public:
         ProcessExecutor(DeviceDocumentPlugin& devices);

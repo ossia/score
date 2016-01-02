@@ -5,108 +5,11 @@
 #include "Area/Circle/CircleAreaModel.hpp"
 #include "Area/Pointer/PointerAreaModel.hpp"
 #include <Explorer/DocumentPlugin/DeviceDocumentPlugin.hpp>
-
+#include <src/LocalTree/AreaComponent.hpp>
 #include <Editor/Message.h>
 
 namespace Space
 {
-template<typename K>
-struct KeyPair : std::pair<K, K>
-{
-    public:
-        using std::pair<K, K>::pair;
-
-        friend bool operator==(
-                const KeyPair& lhs,
-                const KeyPair& rhs)
-        {
-            return (lhs.first == rhs.first && lhs.second == rhs.second)
-                    ||
-                   (lhs.first == rhs.second && lhs.second == rhs.first);
-        }
-
-        friend bool operator!=(
-                const KeyPair& lhs,
-                const KeyPair& rhs)
-        {
-            return !(lhs == rhs);
-        }
-};
-template<typename K>
-auto make_keys(const K& k1, const K& k2)
-{
-    return KeyPair<K>{k1, k2};
-}
-
-using CollisionFun = std::function<bool(const AreaModel& a1, const AreaModel& a2)>;
-
-class CollisionHandler
-{
-        std::map<KeyPair<AreaFactoryKey>, CollisionFun> m_handlers;
-    public:
-        CollisionHandler()
-        {
-            m_handlers.insert(
-                        std::make_pair(
-                        make_keys(
-                                CircleAreaModel::static_factoryKey(),
-                                CircleAreaModel::static_factoryKey()),
-                              [] (const AreaModel& a1, const AreaModel& a2)
-            {
-                auto& c1 = static_cast<const CircleAreaModel&>(a1);
-                auto& c2 = static_cast<const CircleAreaModel&>(a2);
-
-                auto c1_val = c1.mapToData(c1.currentMapping(), c1.parameterMapping());
-                auto c2_val = c2.mapToData(c2.currentMapping(), c2.parameterMapping());
-
-                // Check if the distance of both centers is < to the sum of radiuses
-                auto dist = [] (auto v1, auto v2) {
-                    return std::sqrt(std::pow(v2.x - v1.x, 2) + std::pow(v2.y - v1.y, 2));
-                };
-                return dist(c1_val, c2_val) < (c1_val.r + c2_val.r);
-            }));
-
-            m_handlers.insert(
-                        std::make_pair(
-                        make_keys(
-                                CircleAreaModel::static_factoryKey(),
-                                PointerAreaModel::static_factoryKey()),
-                              [] (const AreaModel& a1, const AreaModel& a2)
-            {
-                auto& c = static_cast<const CircleAreaModel&>(a1);
-                auto& p = static_cast<const PointerAreaModel&>(a2);
-
-                auto c_val = c.mapToData(c.currentMapping(), c.parameterMapping());
-                auto p_val = p.mapToData(p.currentMapping(), p.parameterMapping());
-
-                // Check if the distance of both centers is < to the sum of radiuses
-                auto dist = [] (auto v1, auto v2) {
-                    return std::sqrt(std::pow(v2.x - v1.x, 2) + std::pow(v2.y - v1.y, 2));
-                };
-                return dist(c_val, p_val) < c_val.r;
-            }));
-        }
-
-        void inscribe(std::pair<KeyPair<AreaFactoryKey>, CollisionFun> val)
-        {
-            m_handlers.insert(val);
-        }
-
-        bool check(const AreaModel& a1, const AreaModel& a2)
-        {
-            auto it = m_handlers.find(make_keys(a1.factoryKey(), a2.factoryKey()));
-            if(it != m_handlers.end())
-            {
-                return it->second(a1, a2);
-            }
-
-            // TODO return a generic computation
-
-            // TODO for solving collisions, put the equations in a system ?
-            return false;
-        }
-};
-
 void makeState(
         OSSIA::State& state,
         const AreaModel& ar)
@@ -127,8 +30,11 @@ void makeState(
 }
 
 
-ProcessExecutor::ProcessExecutor(ProcessModel& process):
-m_process{process}
+ProcessExecutor::ProcessExecutor(
+        ProcessModel& process,
+        DeviceDocumentPlugin& devices):
+    m_process{process},
+    m_devices{devices.list()}
 {
 
 }
@@ -139,7 +45,6 @@ std::shared_ptr<OSSIA::StateElement> ProcessExecutor::state(
         const OSSIA::TimeValue&)
 {
     auto& devlist = m_process.context().devices.list();
-
 
     // For each area whose parameters depend on an address,
     // get the current area value and update it.
@@ -195,22 +100,23 @@ std::shared_ptr<OSSIA::StateElement> ProcessExecutor::state(
     // "Reactive" execution component (has to be enabled / disabled on start / end)
     // vs "state" execution component
     // Handle computations / collisions
-    for(const auto& comp : m_process.computations)
+    for(const ComputationModel& computation : m_process.computations)
     {
-        makeState(*state, comp);
-        /*
-        CollisionHandler h;
-        for(const AreaModel& area_lhs : m_process.areas())
+        // We look for its tree component
+        auto compo_it = find_if(
+                            computation.components,
+                            [] (iscore::Component& comp)
+        { return dynamic_cast<LocalTree::ComputationComponent*>(&comp); });
+
+        if(compo_it != computation.components.end())
         {
-            for(const AreaModel& area_rhs : m_process.areas())
-            {
-                if(&area_rhs != &area_lhs)
-                {
-                    h.check(area_lhs, area_rhs);
-                }
-            }
+            auto& compo = static_cast<LocalTree::ComputationComponent&>(*compo_it);
+            ISCORE_ASSERT(compo.valueNode()->getAddress().get());
+            auto mess = OSSIA::Message::create(
+                            compo.valueNode()->getAddress(),
+                            new OSSIA::Float(computation.computation()()));
+            state->stateElements().push_back(std::move(mess));
         }
-        */
 
     }
 
@@ -232,7 +138,9 @@ ProcessModel::ProcessModel(
             Id<SpaceModel>(0),
             this}},
     m_context{doc, *m_space, doc.plugin<DeviceDocumentPlugin>()},
-    m_process{std::make_shared<Space::ProcessExecutor>(*this)}
+    m_process{std::make_shared<Space::ProcessExecutor>(
+                  *this,
+                  doc.plugin<DeviceDocumentPlugin>())}
 {
     metadata.setName(QString("Space.%1").arg(*this->id().val()));
     using namespace GiNaC;
@@ -415,5 +323,6 @@ void ProcessModel::startExecution()
 
 void ProcessModel::stopExecution()
 {
+    // Reset everything to the default values.
 }
 }
