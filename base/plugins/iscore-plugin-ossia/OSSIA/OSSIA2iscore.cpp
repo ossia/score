@@ -131,8 +131,6 @@ Device::AddressSettings ToAddressSettings(const OSSIA::Node &node)
     s.name = QString::fromStdString(node.getName());
 
     const auto& addr = node.getAddress();
-    qDebug() << "node name : " << s.name;
-
     if(s.name == "yPos" && !addr)
     {
         ISCORE_BREAKPOINT;
@@ -148,8 +146,6 @@ Device::AddressSettings ToAddressSettings(const OSSIA::Node &node)
         {
             s.value = ToValue(addr->getValueType());
         }
-
-        qDebug() << "node type : " << (int) s.value.val.which() << State::convert::toPrettyString(s.value);
 
         /* Debug code
         else

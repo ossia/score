@@ -24,7 +24,7 @@
 #include <QMenu>
 #include <QContextMenuEvent>
 #include <qnamespace.h>
-
+#include <set>
 #include <QPair>
 #include <QPushButton>
 #include <QRegExp>
@@ -674,11 +674,92 @@ void DeviceExplorerWidget::removeNodes()
 
     auto cmd = new RemoveNodes;
     auto dev_model_path = iscore::IDocument::path(model()->deviceModel());
+
+    // If two nodes have the same parent,
+    // we should send the commands in reverse order
+    // (from the last to the first)
+    // so that they are emplaced in correct order afterwards.
+    // IMPORTANT ! don't use emplace, only emplace_back in D.E. model
+    struct PathComparator
+    {
+            bool operator() (const Device::NodePath& lhs, const Device::NodePath& rhs) const
+            {
+                // We iterate on the shorter.
+                // The shorter is considered "smaller" : it comes before.
+                int l_size = lhs.size();
+                int r_size = rhs.size();
+                if(l_size < r_size)
+                {
+                    // lhs shorter
+                    for(int i = 0; i < l_size; i++)
+                    {
+                        if(lhs[i] < rhs[i])
+                            return true;
+                        else if(lhs[i] == rhs[i])
+                            continue;
+                        else if(lhs[i] > rhs[i])
+                            return false;
+                    }
+                    return true;
+                }
+                else if(l_size == r_size)
+                {
+                    for(int i = 0; i < l_size; i++)
+                    {
+                        if(lhs[i] < rhs[i])
+                            return true;
+                        else if(lhs[i] == rhs[i])
+                            continue;
+                        else if(lhs[i] > rhs[i])
+                            return false;
+                    }
+                    ISCORE_ABORT;
+                }
+                else
+                {
+                    // rhs shorter
+                    for(int i = 0; i < r_size; i++)
+                    {
+                        if(lhs[i] < rhs[i])
+                            return true;
+                        else if(lhs[i] == rhs[i])
+                            continue;
+                        else if(lhs[i] > rhs[i])
+                            return false;
+                    }
+                    return false;
+                }
+
+                ISCORE_ABORT;
+            }
+    };
+
+    std::set<Device::NodePath, PathComparator> paths;
     for(const auto& n : Device::filterUniqueParents(nodes))
     {
-        cmd->addCommand(new DeviceExplorer::Command::Remove{
-                            dev_model_path,
-                            *n});
+        if (n->is<Device::DeviceSettings>())
+        {
+            cmd->addCommand(new DeviceExplorer::Command::Remove{
+                                dev_model_path,
+                                *n});
+        }
+        else
+        {
+            paths.insert(*n);
+        }
+    }
+/*
+    for(auto path : paths)
+    {
+        qDebug() << path;
+    }
+*/
+    for(auto it = paths.rbegin(); it != paths.rend(); ++it)
+    {
+        cmd->addCommand(
+                    new DeviceExplorer::Command::Remove{
+                        dev_model_path,
+                        Device::NodePath{*it}});
     }
 
     m_cmdDispatcher->submitCommand(cmd);
