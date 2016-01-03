@@ -43,6 +43,7 @@ class SpaceLayerPresenter :
 
     private:
         void on_areaAdded(const AreaModel&);
+        void on_areaRemoved(const AreaModel& a);
 
         const Process::LayerModel& m_model;
         SpaceLayerView* m_view;
@@ -52,8 +53,6 @@ class SpaceLayerPresenter :
         IdContainer<AreaPresenter, AreaModel> m_areas;
         FocusDispatcher m_focusDispatcher;
 
-
-        // LayerPresenter interface
     public:
         void fillContextMenu(QMenu*, const QPoint& pos, const QPointF& scenepos) const override;
 };

@@ -129,12 +129,19 @@ AddArea::AddArea(Path<Space::ProcessModel> &&spacProcess,
     m_dimensionToVarMap{dimMap},
     m_symbolToAddressMap{addrMap}
 {
-    m_createdAreaId = getStrongId(m_path.find().areas);
+    auto& process = m_path.find();
+    m_createdAreaId = getStrongId(process.areas);
+
+    m_createdComputations = getStrongIdRange<ComputationModel>(
+                                process.areas.size(),
+                                process.computations);
 }
 
 void AddArea::undo() const
 {
     auto& proc = m_path.find();
+    for(auto& id : m_createdComputations)
+        proc.computations.remove(id);
     proc.areas.remove(m_createdAreaId);
 }
 
@@ -174,6 +181,7 @@ void AddArea::redo() const
     ar->setParameterMapping(addr_map);
 
     /// temporarily create "collision" computations
+    int i = 0;
     for(auto& area : proc.areas)
     {
         { // collisions
@@ -182,7 +190,7 @@ void AddArea::redo() const
                 return (double) h.check(area, *ar);
             },
                 proc.space(),
-                getStrongId(proc.computations),
+                m_createdComputations[i++],
                 &proc);
 
             comp->metadata.setName(QString("coll_%1_%2")

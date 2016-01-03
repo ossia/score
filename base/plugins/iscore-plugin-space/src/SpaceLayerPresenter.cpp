@@ -44,6 +44,7 @@ SpaceLayerPresenter::SpaceLayerPresenter(
     }
 
     procmodel.areas.added.connect<SpaceLayerPresenter, &SpaceLayerPresenter::on_areaAdded>(this);
+    procmodel.areas.removing.connect<SpaceLayerPresenter, &SpaceLayerPresenter::on_areaRemoved>(this);
     m_view->setEnabled(true);
 
     parentGeometryChanged();
@@ -126,6 +127,20 @@ void SpaceLayerPresenter::on_areaAdded(const AreaModel & a)
         Qt::QueuedConnection);
     m_areas.insert(pres);
     pres->on_areaChanged(a.currentMapping());
+    update();
+}
+
+void SpaceLayerPresenter::on_areaRemoved(
+        const AreaModel & a)
+{
+    auto& map = m_areas.get();
+    auto it = map.find(a.id());
+    if(it != map.end())
+    {
+        delete *it;
+        map.erase(it);
+    }
+
     update();
 }
 
