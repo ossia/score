@@ -5,6 +5,8 @@
 #include <iscore/widgets/MarginLess.hpp>
 #include <iscore/widgets/SpinBoxes.hpp>
 
+namespace Space
+{
 ParameterWidget::ParameterWidget()
 {
     auto lay = new iscore::MarginLess<QHBoxLayout>;
@@ -15,4 +17,5 @@ ParameterWidget::ParameterWidget()
     lay->addWidget(m_address);
     lay->addWidget(m_defaultValue);
 
+}
 }

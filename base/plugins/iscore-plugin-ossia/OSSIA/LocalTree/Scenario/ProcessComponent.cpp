@@ -1,5 +1,5 @@
 #include "ProcessComponent.hpp"
-
+#include <Process/Process.hpp>
 ISCORE_METADATA_IMPL(Ossia::LocalTree::ProcessComponent)
 Ossia::LocalTree::ProcessComponent::ProcessComponent(
         OSSIA::Node& parentNode,

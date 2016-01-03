@@ -1,7 +1,8 @@
 #pragma once
-#include <Scenario/Document/Components/ProcessComponent.hpp>
 #include <OSSIA/LocalTree/LocalTreeDocumentPlugin.hpp>
 #include <OSSIA/LocalTree/NameProperty.hpp>
+#include <iscore/component/Component.hpp>
+#include <iscore/component/ComponentFactory.hpp>
 
 // TODO clean me up
 namespace Ossia
@@ -30,7 +31,7 @@ class ISCORE_PLUGIN_OSSIA_EXPORT ProcessComponent : public iscore::Component
 };
 
 class ISCORE_PLUGIN_OSSIA_EXPORT ProcessComponentFactory :
-        public ::GenericComponentFactory<
+        public iscore::GenericComponentFactory<
             Process::ProcessModel,
             LocalTree::DocumentPlugin,
             LocalTree::ProcessComponent>
@@ -47,7 +48,7 @@ class ISCORE_PLUGIN_OSSIA_EXPORT ProcessComponentFactory :
 };
 
 using ProcessComponentFactoryList =
-    ::GenericComponentFactoryList<
+    iscore::GenericComponentFactoryList<
             Process::ProcessModel,
             LocalTree::DocumentPlugin,
             LocalTree::ProcessComponent,
