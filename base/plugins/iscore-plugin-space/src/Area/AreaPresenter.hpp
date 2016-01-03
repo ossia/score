@@ -20,6 +20,8 @@ class AreaPresenter : public NamedObject
                 const AreaModel &model,
                 QObject* parent);
 
+        ~AreaPresenter();
+
         const Id<AreaModel>& id() const;
 
         virtual void update() = 0;

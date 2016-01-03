@@ -3,6 +3,7 @@
 #include "src/Space/SpaceModel.hpp"
 
 #include <QGraphicsItem>
+#include <iscore/widgets/GraphicsItem.hpp>
 
 namespace Space
 {
@@ -14,6 +15,11 @@ AreaPresenter::AreaPresenter(
     m_model{model},
     m_view{view}
 {
+}
+
+AreaPresenter::~AreaPresenter()
+{
+    deleteGraphicsItem(m_view);
 }
 
 const Id<AreaModel>& AreaPresenter::id() const
