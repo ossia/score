@@ -7,7 +7,7 @@ class CommentEdit final : public QTextEdit
     public:
         template<typename... Args>
         CommentEdit(Args&&... args):
-            QTextEdit{std::forward<Args&&>(args)...}
+            QTextEdit{std::forward<Args>(args)...}
         {
             setMouseTracking(true);
         }
