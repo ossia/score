@@ -10,6 +10,7 @@ namespace Space
 class AreaModel;
 class DimensionModel;
 class ProcessModel;
+class ComputationModel;
 class AddArea : public iscore::SerializableCommand
 {
         ISCORE_COMMAND_DECL(SpaceCommandFactoryName(), AddArea, "AddArea")
@@ -37,5 +38,7 @@ class AddArea : public iscore::SerializableCommand
 
         QMap<Id<DimensionModel>, QString> m_dimensionToVarMap;
         QMap<QString, Device::FullAddressSettings> m_symbolToAddressMap;
+
+        std::vector<Id<ComputationModel>> m_createdComputations;
 };
 }

@@ -61,3 +61,26 @@ std::vector<std::unique_ptr<iscore::FactoryListInterface>> iscore_plugin_space::
             Space::LocalTree::ComputationComponentFactoryList
             >();
 }
+
+
+#include <iscore/plugins/customfactory/StringFactoryKeySerialization.hpp>
+#include <src/Commands/SpaceCommandFactory.hpp>
+
+#include <iscore_plugin_space_commands_files.hpp>
+#include <iscore/command/CommandGeneratorMap.hpp>
+#include <iscore/command/SerializableCommand.hpp>
+
+std::pair<const CommandParentFactoryKey, CommandGeneratorMap>
+iscore_plugin_space::make_commands()
+{
+    using namespace Space;
+    std::pair<const CommandParentFactoryKey, CommandGeneratorMap> cmds{
+        SpaceCommandFactoryName(), CommandGeneratorMap{}};
+
+    using Types = TypeList<
+#include <iscore_plugin_space_commands.hpp>
+      >;
+    for_each_type<Types>(iscore::commands::FactoryInserter{cmds.second});
+
+    return cmds;
+}
