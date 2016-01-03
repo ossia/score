@@ -68,7 +68,18 @@ set(SRCS
 "${CMAKE_CURRENT_SOURCE_DIR}/src/Commands/AddArea.cpp"
 "${CMAKE_CURRENT_SOURCE_DIR}/src/Commands/SpaceCommandFactory.cpp"
 
+"${CMAKE_CURRENT_SOURCE_DIR}/src/Executor/ProcessExecutor.cpp"
+
+"${CMAKE_CURRENT_SOURCE_DIR}/src/LocalTree/ProcessComponent.cpp"
+"${CMAKE_CURRENT_SOURCE_DIR}/src/LocalTree/ProcessComponentFactory.cpp"
 "${CMAKE_CURRENT_SOURCE_DIR}/src/LocalTree/AreaComponent.cpp"
+"${CMAKE_CURRENT_SOURCE_DIR}/src/LocalTree/ComputationComponent.cpp"
+"${CMAKE_CURRENT_SOURCE_DIR}/src/LocalTree/AreaComponentFactory.cpp"
+"${CMAKE_CURRENT_SOURCE_DIR}/src/LocalTree/ComputationComponentFactory.cpp"
+"${CMAKE_CURRENT_SOURCE_DIR}/src/LocalTree/GenericAreaComponent.cpp"
+"${CMAKE_CURRENT_SOURCE_DIR}/src/LocalTree/GenericComputationComponent.cpp"
+"${CMAKE_CURRENT_SOURCE_DIR}/src/LocalTree/GenericAreaComponentFactory.cpp"
+"${CMAKE_CURRENT_SOURCE_DIR}/src/LocalTree/GenericComputationComponentFactory.cpp"
 
 "${CMAKE_CURRENT_SOURCE_DIR}/src/SpaceApplicationPlugin.cpp"
 "${CMAKE_CURRENT_SOURCE_DIR}/src/iscore_plugin_space.cpp"

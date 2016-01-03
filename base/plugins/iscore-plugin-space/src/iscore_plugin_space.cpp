@@ -9,7 +9,10 @@
 #include "Area/Pointer/PointerAreaFactory.hpp"
 #include "Area/Generic/GenericAreaFactory.hpp"
 #include <src/SpaceProcess.hpp>
-#include <src/LocalTree/AreaComponent.hpp>
+#include <src/LocalTree/GenericAreaComponentFactory.hpp>
+#include <src/LocalTree/GenericComputationComponentFactory.hpp>
+#include <src/LocalTree/ProcessComponentFactory.hpp>
+
 #include <iscore/plugins/customfactory/FactoryFamily.hpp>
 #include <iscore/plugins/customfactory/FactorySetup.hpp>
 
@@ -23,11 +26,6 @@ iscore_plugin_space::~iscore_plugin_space()
 
 }
 
-iscore::GUIApplicationContextPlugin* iscore_plugin_space::make_applicationPlugin(
-        const iscore::ApplicationContext& pres)
-{
-    return new SpaceApplicationPlugin{pres};
-}
 
 std::vector<std::unique_ptr<iscore::FactoryInterfaceBase>> iscore_plugin_space::factories(
         const iscore::ApplicationContext& ctx,

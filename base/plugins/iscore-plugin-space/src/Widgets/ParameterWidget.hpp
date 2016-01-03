@@ -3,6 +3,8 @@
 class QLineEdit;
 class QDoubleSpinBox;
 
+namespace Space
+{
 class ParameterWidget : public QWidget
 {
     public:
@@ -15,3 +17,4 @@ class ParameterWidget : public QWidget
         QLineEdit* m_address{};
         QDoubleSpinBox* m_defaultValue{};
 };
+}
