@@ -1,12 +1,15 @@
 #pragma once
 #include <Process/LayerModel.hpp>
-class SpaceProcessPanelProxy;
 namespace Process { class LayerModel; }
-class SpaceProcessProxyLayerModel : public Process::LayerModel
+
+namespace Space
+{
+class ProcessPanelProxy;
+class ProcessProxyLayerModel : public Process::LayerModel
 {
         Q_OBJECT
     public:
-        SpaceProcessProxyLayerModel(
+        ProcessProxyLayerModel(
                 const Id<Process::LayerModel>&,
                 const Process::LayerModel& model,
                 QObject* parent);
@@ -17,3 +20,4 @@ class SpaceProcessProxyLayerModel : public Process::LayerModel
     private:
         const Process::LayerModel& m_source;
 };
+}

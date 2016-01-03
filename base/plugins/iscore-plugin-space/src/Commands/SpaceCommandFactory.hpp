@@ -3,5 +3,5 @@
 
 namespace Space
 {
-const CommandParentFactoryKey& SpaceCommandFactoryName();
+const CommandParentFactoryKey& CommandFactoryName();
 }

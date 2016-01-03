@@ -28,7 +28,7 @@ setup_iscore_library(iscore_lib_inspector)
 file(GLOB_RECURSE PLUGIN_HDRS
         "${CMAKE_CURRENT_SOURCE_DIR}/InspectorPlugin/*.hpp")
 set(PLUGIN_SRCS
-"${CMAKE_CURRENT_SOURCE_DIR}/InspectorPlugin/InspectorPlugin.cpp"
+"${CMAKE_CURRENT_SOURCE_DIR}/InspectorPlugin/iscore_plugin_inspector.cpp"
 "${CMAKE_CURRENT_SOURCE_DIR}/InspectorPlugin/Panel/Implementation/SelectionStackWidget.cpp"
 "${CMAKE_CURRENT_SOURCE_DIR}/InspectorPlugin/Panel/Implementation/InspectorPanel.cpp"
 "${CMAKE_CURRENT_SOURCE_DIR}/InspectorPlugin/Panel/InspectorPanelFactory.cpp"

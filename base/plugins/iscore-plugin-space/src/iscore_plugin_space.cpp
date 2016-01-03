@@ -75,7 +75,7 @@ iscore_plugin_space::make_commands()
 {
     using namespace Space;
     std::pair<const CommandParentFactoryKey, CommandGeneratorMap> cmds{
-        SpaceCommandFactoryName(), CommandGeneratorMap{}};
+        CommandFactoryName(), CommandGeneratorMap{}};
 
     using Types = TypeList<
 #include <iscore_plugin_space_commands.hpp>

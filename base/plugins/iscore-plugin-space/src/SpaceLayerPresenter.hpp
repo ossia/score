@@ -14,16 +14,16 @@ class LayerView;
 
 namespace Space
 {
-class SpaceLayerView;
-class SpaceLayerPresenter :
+class LayerView;
+class LayerPresenter :
         public Process::LayerPresenter,
         public Nano::Observer
 {
     public:
-        SpaceLayerPresenter(const Process::LayerModel& model,
+        LayerPresenter(const Process::LayerModel& model,
                             Process::LayerView* view,
                             QObject* parent);
-        ~SpaceLayerPresenter();
+        ~LayerPresenter();
 
         void setWidth(qreal width) override;
         void setHeight(qreal height) override;
@@ -46,7 +46,7 @@ class SpaceLayerPresenter :
         void on_areaRemoved(const AreaModel& a);
 
         const Process::LayerModel& m_model;
-        SpaceLayerView* m_view;
+        LayerView* m_view;
 
         const iscore::DocumentContext& m_ctx;
         QMainWindow* m_spaceWindowView{};

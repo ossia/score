@@ -42,7 +42,7 @@ Process::LayerPresenter *ProcessFactory::makeLayerPresenter(
         QObject *parent)
 {
     // TODO check with panel proxy
-    return new SpaceLayerPresenter{model, view, parent};
+    return new LayerPresenter{model, view, parent};
 }
 
 Process::LayerView *ProcessFactory::makeLayerView(
@@ -50,6 +50,6 @@ Process::LayerView *ProcessFactory::makeLayerView(
         QGraphicsItem* parent)
 {
     // TODO check with panel proxy
-    return new SpaceLayerView{parent};
+    return new LayerView{parent};
 }
 }

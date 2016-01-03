@@ -2,7 +2,10 @@
 #include "SpaceLayerModel.hpp"
 #include "SpaceProcessPanelProxy.hpp"
 
-SpaceProcessProxyLayerModel::SpaceProcessProxyLayerModel(
+namespace Space
+{
+
+ProcessProxyLayerModel::ProcessProxyLayerModel(
         const Id<LayerModel>& id,
         const LayerModel &model,
         QObject *parent):
@@ -13,12 +16,14 @@ SpaceProcessProxyLayerModel::SpaceProcessProxyLayerModel(
 }
 
 
-void SpaceProcessProxyLayerModel::serialize(const VisitorVariant &) const
+void ProcessProxyLayerModel::serialize(const VisitorVariant &) const
 {
     ISCORE_TODO;
 }
 
-Process::LayerModelPanelProxy* SpaceProcessProxyLayerModel::make_panelProxy(QObject *parent) const
+Process::LayerModelPanelProxy* ProcessProxyLayerModel::make_panelProxy(QObject *parent) const
 {
-    return new SpaceProcessPanelProxy{m_source, parent};
+    return new ProcessPanelProxy{m_source, parent};
+}
+
 }
