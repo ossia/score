@@ -1,14 +1,19 @@
 #include "SpaceProcessPanelProxy.hpp"
 
-SpaceProcessPanelProxy::SpaceProcessPanelProxy(
+#include <src/SpaceProcessProxyLayerModel.hpp>
+
+namespace Space
+{
+ProcessPanelProxy::ProcessPanelProxy(
         const Process::LayerModel &vm,
         QObject *parent):
     LayerModelPanelProxy{parent}
 {
-    m_layer = new SpaceProcessProxyLayerModel(Id<Process::LayerModel>(), vm, this);
+    m_layer = new ProcessProxyLayerModel(Id<Process::LayerModel>(), vm, this);
 }
 
-const SpaceProcessProxyLayerModel& SpaceProcessPanelProxy::layer()
+const Process::LayerModel& ProcessPanelProxy::layer()
 {
     return *m_layer;
+}
 }

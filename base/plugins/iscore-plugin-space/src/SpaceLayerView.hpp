@@ -3,11 +3,11 @@
 
 namespace Space
 {
-class SpaceLayerView : public Process::LayerView
+class LayerView : public Process::LayerView
 {
         Q_OBJECT
     public:
-        SpaceLayerView(QGraphicsItem* parent);
+        LayerView(QGraphicsItem* parent);
 
         void paint_impl(QPainter *painter) const override;
 

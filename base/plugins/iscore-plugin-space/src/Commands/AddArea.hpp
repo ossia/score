@@ -13,7 +13,7 @@ class ProcessModel;
 class ComputationModel;
 class AddArea : public iscore::SerializableCommand
 {
-        ISCORE_COMMAND_DECL(SpaceCommandFactoryName(), AddArea, "AddArea")
+        ISCORE_COMMAND_DECL(CommandFactoryName(), AddArea, "AddArea")
     public:
 
           AddArea(Path<Space::ProcessModel>&& spacProcess,

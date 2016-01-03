@@ -10,6 +10,7 @@
 #include <iscore/plugins/customfactory/StringFactoryKey.hpp>
 #include "iscore_plugin_curve.hpp"
 #include <iscore_plugin_curve_commands_files.hpp>
+#include <iscore/plugins/customfactory/FactorySetup.hpp>
 
 class GammaCurveSegmentModel;
 class SinCurveSegmentModel;
@@ -31,18 +32,17 @@ std::vector<std::unique_ptr<iscore::FactoryInterfaceBase>> iscore_plugin_curve::
         const iscore::ApplicationContext& ctx,
         const iscore::FactoryBaseKey& factoryName) const
 {
-    if(factoryName == Curve::SegmentFactory::staticFactoryKey())
-    {
-        // TODO make matching factories for OSSIA.
-        return make_ptr_vector<iscore::FactoryInterfaceBase,
-                LinearCurveSegmentFactory,
-                PowerCurveSegmentFactory>();
-        /*,
-                new GammaCurveSegmentFactory,
-                new SinCurveSegmentFactory*/
-    }
+    /*
+     * new GammaCurveSegmentFactory,
+     * new SinCurveSegmentFactory
+    */
 
-    return {};
+    return instantiate_factories<
+       iscore::ApplicationContext,
+       TL<
+         FW<Curve::SegmentFactory,
+             LinearCurveSegmentFactory,
+             PowerCurveSegmentFactory>>>(ctx, factoryName);
 }
 
 

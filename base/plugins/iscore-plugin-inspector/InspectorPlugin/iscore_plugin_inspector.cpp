@@ -1,4 +1,4 @@
-#include "InspectorPlugin.hpp"
+#include "iscore_plugin_inspector.hpp"
 #include "Panel/InspectorPanelFactory.hpp"
 #include <iscore/plugins/qt_interfaces/PanelFactoryInterface_QtInterface.hpp>
 #include <iscore/tools/ForEachType.hpp>

@@ -1,19 +1,21 @@
 #pragma once
 #include <Process/LayerModelPanelProxy.hpp>
-#include "SpaceProcessProxyLayerModel.hpp"
 
-class SpaceProcessProxyLayerModel;
 namespace Process { class LayerModel; }
-class SpaceProcessPanelProxy : public Process::LayerModelPanelProxy
+namespace Space
+{
+class ProcessProxyLayerModel;
+class ProcessPanelProxy : public Process::LayerModelPanelProxy
 {
     public:
-        SpaceProcessPanelProxy(
+        ProcessPanelProxy(
                 const Process::LayerModel& vm,
                 QObject* parent);
 
-        const SpaceProcessProxyLayerModel& layer() override;
+        const Process::LayerModel& layer() override;
 
     private:
-        SpaceProcessProxyLayerModel* m_layer{};
+        ProcessProxyLayerModel* m_layer{};
 
 };
+}

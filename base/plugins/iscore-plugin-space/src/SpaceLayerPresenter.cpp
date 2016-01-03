@@ -15,13 +15,13 @@
 
 namespace Space
 {
-SpaceLayerPresenter::SpaceLayerPresenter(
+LayerPresenter::LayerPresenter(
         const Process::LayerModel& model,
         Process::LayerView* view,
         QObject* parent):
-    LayerPresenter{"LayerPresenter", parent},
+    Process::LayerPresenter{"LayerPresenter", parent},
     m_model{static_cast<const Space::LayerModel&>(model)},
-    m_view{static_cast<SpaceLayerView*>(view)},
+    m_view{static_cast<LayerView*>(view)},
     m_ctx{iscore::IDocument::documentContext(m_model.processModel())},
     m_focusDispatcher{m_ctx.document}
 {
@@ -33,79 +33,79 @@ SpaceLayerPresenter::SpaceLayerPresenter(
                     procmodel,
                     m_spaceWindowView});
 
-    connect(m_view, &SpaceLayerView::guiRequested,
+    connect(m_view, &LayerView::guiRequested,
             m_spaceWindowView, &QWidget::show);
 
-    connect(m_view, &SpaceLayerView::contextMenuRequested,
+    connect(m_view, &LayerView::contextMenuRequested,
             this, &LayerPresenter::contextMenuRequested);
     for(const auto& area : procmodel.areas)
     {
         on_areaAdded(area);
     }
 
-    procmodel.areas.added.connect<SpaceLayerPresenter, &SpaceLayerPresenter::on_areaAdded>(this);
-    procmodel.areas.removing.connect<SpaceLayerPresenter, &SpaceLayerPresenter::on_areaRemoved>(this);
+    procmodel.areas.added.connect<LayerPresenter, &LayerPresenter::on_areaAdded>(this);
+    procmodel.areas.removing.connect<LayerPresenter, &LayerPresenter::on_areaRemoved>(this);
     m_view->setEnabled(true);
 
     parentGeometryChanged();
 }
 
-SpaceLayerPresenter::~SpaceLayerPresenter()
+LayerPresenter::~LayerPresenter()
 {
     deleteGraphicsObject(m_view);
 }
 
-void SpaceLayerPresenter::setWidth(qreal width)
+void LayerPresenter::setWidth(qreal width)
 {
     m_view->setWidth(width);
     update();
 }
 
-void SpaceLayerPresenter::setHeight(qreal height)
+void LayerPresenter::setHeight(qreal height)
 {
     m_view->setHeight(height);
     update();
 }
-void SpaceLayerPresenter::on_focusChanged()
+void LayerPresenter::on_focusChanged()
 {
 
 }
 
-void SpaceLayerPresenter::putToFront()
+void LayerPresenter::putToFront()
 {
     m_view->setFlag(QGraphicsItem::ItemStacksBehindParent, false);
     update();
 }
 
-void SpaceLayerPresenter::putBehind()
+void LayerPresenter::putBehind()
 {
     m_view->setFlag(QGraphicsItem::ItemStacksBehindParent, true);
     update();
 }
 
-void SpaceLayerPresenter::on_zoomRatioChanged(ZoomRatio)
+void LayerPresenter::on_zoomRatioChanged(ZoomRatio)
 {
     //ISCORE_TODO;
     update();
 }
 
-void SpaceLayerPresenter::parentGeometryChanged()
+void LayerPresenter::parentGeometryChanged()
 {
     //ISCORE_TODO;
     update();
 }
 
-const Process::LayerModel &SpaceLayerPresenter::layerModel() const
+const Process::LayerModel &LayerPresenter::layerModel() const
 {
     return m_model;
 }
 
-const Id<Process::ProcessModel> &SpaceLayerPresenter::modelId() const
+const Id<Process::ProcessModel> &LayerPresenter::modelId() const
 {
     return m_model.processModel().id();
 }
 
-void SpaceLayerPresenter::update()
+void LayerPresenter::update()
 {
     m_view->update();
     for(auto& pres : m_areas)
@@ -114,7 +114,7 @@ void SpaceLayerPresenter::update()
     }
 }
 
-void SpaceLayerPresenter::on_areaAdded(const AreaModel & a)
+void LayerPresenter::on_areaAdded(const AreaModel & a)
 {
     auto fact = m_ctx.app.components.factory<SingletonAreaFactoryList>().get(a.factoryKey());
 
@@ -130,7 +130,7 @@ void SpaceLayerPresenter::on_areaAdded(const AreaModel & a)
     update();
 }
 
-void SpaceLayerPresenter::on_areaRemoved(
+void LayerPresenter::on_areaRemoved(
         const AreaModel & a)
 {
     auto& map = m_areas.get();
@@ -145,7 +145,7 @@ void SpaceLayerPresenter::on_areaRemoved(
 }
 
 
-void SpaceLayerPresenter::fillContextMenu(
+void LayerPresenter::fillContextMenu(
         QMenu* menu,
         const QPoint& pos,
         const QPointF& scenepos) const

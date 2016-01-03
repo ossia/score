@@ -1,7 +1,7 @@
 #include "SpaceCommandFactory.hpp"
 namespace Space
 {
-const CommandParentFactoryKey& SpaceCommandFactoryName(){
+const CommandParentFactoryKey& CommandFactoryName(){
     static const CommandParentFactoryKey key{"SpaceApplicationPlugin"};
     return key;
 }
