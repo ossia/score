@@ -18,7 +18,7 @@ namespace Device {
 struct FullAddressSettings;
 }  // namespace iscore
 
-struct ISCORE_LIB_DEVICE_EXPORT DeviceCapabilities
+struct ISCORE_LIB_DEVICE_EXPORT DeviceCapas
 {
         bool canAddNode{true};
         bool canRemoveNode{true};
@@ -84,5 +84,5 @@ class ISCORE_LIB_DEVICE_EXPORT DeviceInterface : public QObject
 
     protected:
         Device::DeviceSettings m_settings;
-        DeviceCapabilities m_capas;
+        DeviceCapas m_capas;
 };
