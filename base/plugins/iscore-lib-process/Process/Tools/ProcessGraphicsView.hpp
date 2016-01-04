@@ -1,9 +1,7 @@
 #pragma once
-
-
 #include <QGraphicsView>
 #include <QPoint>
-
+#include <iscore_lib_process_export.h>
 class QFocusEvent;
 class QGraphicsScene;
 class QKeyEvent;
@@ -13,11 +11,11 @@ class QSize;
 class QWheelEvent;
 class SceneGraduations;
 
-class ScenarioBaseGraphicsView final : public QGraphicsView
+class ISCORE_LIB_PROCESS_EXPORT ProcessGraphicsView final : public QGraphicsView
 {
         Q_OBJECT
     public:
-        ScenarioBaseGraphicsView(QGraphicsScene* parent);
+        ProcessGraphicsView(QGraphicsScene* parent);
 
         void setGrid(QPainterPath&& newGrid);
 

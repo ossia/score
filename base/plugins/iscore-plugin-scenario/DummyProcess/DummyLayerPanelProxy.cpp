@@ -7,13 +7,7 @@ class QObject;
 DummyLayerPanelProxy::DummyLayerPanelProxy(
         const Process::LayerModel& vm,
         QObject* parent):
-    LayerModelPanelProxy{parent},
-    m_layer{vm}
+    Process::GraphicsViewLayerModelPanelProxy{vm, parent}
 {
 
-}
-
-const Process::LayerModel& DummyLayerPanelProxy::layer()
-{
-    return m_layer;
 }

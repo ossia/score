@@ -26,10 +26,10 @@
 #include <QFile>
 
 #include <Scenario/Application/Menus/ScenarioActions.hpp>
-#include <Scenario/Document/ScenarioDocument/Widgets/ScenarioBaseGraphicsView.hpp>
+#include <Process/Tools/ProcessGraphicsView.hpp>
 #include "ScenarioDocumentView.hpp"
-#include "Widgets/DoubleSlider.hpp"
-#include "Widgets/GraphicsProxyObject.hpp"
+#include <iscore/widgets/DoubleSlider.hpp>
+#include <iscore/widgets/GraphicsProxyObject.hpp>
 
 #include <iscore/application/ApplicationContext.hpp>
 #include <iscore/plugins/documentdelegate/DocumentDelegateViewInterface.hpp>
@@ -50,7 +50,7 @@ ScenarioDocumentView::ScenarioDocumentView(
     iscore::DocumentDelegateViewInterface {parent},
     m_widget {new QWidget},
     m_scene {new QGraphicsScene{m_widget}},
-    m_view {new ScenarioBaseGraphicsView{m_scene}},
+    m_view {new ProcessGraphicsView{m_scene}},
     m_baseObject {new BaseGraphicsObject},
     m_timeRuler {new TimeRulerView}
 {
@@ -86,7 +86,7 @@ ScenarioDocumentView::ScenarioDocumentView(
         QMimeData * d = new QMimeData;
         d->setData("image/svg+xml",b.buffer());
         QApplication::clipboard()->setMimeData(d,QClipboard::Clipboard);
-        
+
         QFile screenshot("screenshot.svg");
         screenshot.open(QFile::WriteOnly);
         screenshot.write(b.buffer());
@@ -158,7 +158,7 @@ ScenarioDocumentView::ScenarioDocumentView(
 
     lay->setSpacing(1);
 
-    connect(m_view, &ScenarioBaseGraphicsView::scrolled,
+    connect(m_view, &ProcessGraphicsView::scrolled,
             this,   &ScenarioDocumentView::horizontalPositionChanged);
 }
 

@@ -8,9 +8,9 @@
 #include <QWheelEvent>
 #include <QKeyEvent>
 
-#include "ScenarioBaseGraphicsView.hpp"
+#include "ProcessGraphicsView.hpp"
 
-ScenarioBaseGraphicsView::ScenarioBaseGraphicsView(QGraphicsScene* parent):
+ProcessGraphicsView::ProcessGraphicsView(QGraphicsScene* parent):
     QGraphicsView{parent}
 {
     setViewportUpdateMode(QGraphicsView::SmartViewportUpdate);
@@ -26,18 +26,18 @@ ScenarioBaseGraphicsView::ScenarioBaseGraphicsView(QGraphicsScene* parent):
     this->setBackgroundBrush(ScenarioStyle::instance().Background);
 }
 
-void ScenarioBaseGraphicsView::setGrid(QPainterPath&& newGrid)
+void ProcessGraphicsView::setGrid(QPainterPath&& newGrid)
 {
     //m_graduations->setGrid(std::move(newGrid));
 }
 
-void ScenarioBaseGraphicsView::resizeEvent(QResizeEvent* ev)
+void ProcessGraphicsView::resizeEvent(QResizeEvent* ev)
 {
     QGraphicsView::resizeEvent(ev);
     emit sizeChanged(size());
 }
 
-void ScenarioBaseGraphicsView::scrollContentsBy(int dx, int dy)
+void ProcessGraphicsView::scrollContentsBy(int dx, int dy)
 {
     QGraphicsView::scrollContentsBy(dx, dy);
 
@@ -45,7 +45,7 @@ void ScenarioBaseGraphicsView::scrollContentsBy(int dx, int dy)
     emit scrolled(dx);
 }
 
-void ScenarioBaseGraphicsView::wheelEvent(QWheelEvent *event)
+void ProcessGraphicsView::wheelEvent(QWheelEvent *event)
 {
     QPoint delta = event->angleDelta() / 8;
     if (m_zoomModifier)
@@ -58,7 +58,7 @@ void ScenarioBaseGraphicsView::wheelEvent(QWheelEvent *event)
 }
 
 
-void ScenarioBaseGraphicsView::keyPressEvent(QKeyEvent *event)
+void ProcessGraphicsView::keyPressEvent(QKeyEvent *event)
 {
     if (event->key() == Qt::Key_Control)
         m_zoomModifier = true;
@@ -67,7 +67,7 @@ void ScenarioBaseGraphicsView::keyPressEvent(QKeyEvent *event)
     QGraphicsView::keyPressEvent(event);
 }
 
-void ScenarioBaseGraphicsView::keyReleaseEvent(QKeyEvent *event)
+void ProcessGraphicsView::keyReleaseEvent(QKeyEvent *event)
 {
     if (event->key() == Qt::Key_Control)
         m_zoomModifier = false;
@@ -76,7 +76,7 @@ void ScenarioBaseGraphicsView::keyReleaseEvent(QKeyEvent *event)
     QGraphicsView::keyReleaseEvent(event);
 }
 
-void ScenarioBaseGraphicsView::focusOutEvent(QFocusEvent* event)
+void ProcessGraphicsView::focusOutEvent(QFocusEvent* event)
 {
     m_zoomModifier = false;
     event->ignore();

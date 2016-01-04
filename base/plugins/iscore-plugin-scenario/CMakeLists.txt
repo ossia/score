@@ -164,10 +164,8 @@ set(SRCS ${SRCS}
 
 "${CMAKE_CURRENT_SOURCE_DIR}/Scenario/Document/ScenarioDocument/ProcessFocusManager.cpp"
 "${CMAKE_CURRENT_SOURCE_DIR}/Scenario/Document/ScenarioDocument/ZoomPolicy.cpp"
-"${CMAKE_CURRENT_SOURCE_DIR}/Scenario/Document/ScenarioDocument/Widgets/DoubleSlider.cpp"
 "${CMAKE_CURRENT_SOURCE_DIR}/Scenario/Document/ScenarioDocument/Widgets/ProgressBar.cpp"
 "${CMAKE_CURRENT_SOURCE_DIR}/Scenario/Document/ScenarioDocument/Widgets/SceneGraduations.cpp"
-"${CMAKE_CURRENT_SOURCE_DIR}/Scenario/Document/ScenarioDocument/Widgets/ScenarioBaseGraphicsView.cpp"
 "${CMAKE_CURRENT_SOURCE_DIR}/Scenario/Document/ScenarioDocument/ScenarioDocumentFactory.cpp"
 "${CMAKE_CURRENT_SOURCE_DIR}/Scenario/Document/ScenarioDocument/ScenarioDocumentModel.cpp"
 "${CMAKE_CURRENT_SOURCE_DIR}/Scenario/Document/ScenarioDocument/ScenarioDocumentPresenter.cpp"
@@ -239,7 +237,6 @@ set(SRCS ${SRCS}
 
 
 "${CMAKE_CURRENT_SOURCE_DIR}/Scenario/Panel/ProcessPanelFactory.cpp"
-"${CMAKE_CURRENT_SOURCE_DIR}/Scenario/Panel/ProcessPanelGraphicsProxy.cpp"
 "${CMAKE_CURRENT_SOURCE_DIR}/Scenario/Panel/ProcessPanelModel.cpp"
 "${CMAKE_CURRENT_SOURCE_DIR}/Scenario/Panel/ProcessPanelPresenter.cpp"
 "${CMAKE_CURRENT_SOURCE_DIR}/Scenario/Panel/ProcessPanelView.cpp"

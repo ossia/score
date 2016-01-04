@@ -34,6 +34,8 @@ set(PROCESS_HDRS
 "${CMAKE_CURRENT_SOURCE_DIR}/Process/Style/ScenarioStyle.hpp"
 "${CMAKE_CURRENT_SOURCE_DIR}/Process/TimeValue.hpp"
 "${CMAKE_CURRENT_SOURCE_DIR}/Process/Tools/ToolPalette.hpp"
+"${CMAKE_CURRENT_SOURCE_DIR}/Process/Tools/ProcessGraphicsView.hpp"
+"${CMAKE_CURRENT_SOURCE_DIR}/Process/Tools/ProcessPanelGraphicsProxy.hpp"
 "${CMAKE_CURRENT_SOURCE_DIR}/Process/ZoomHelper.hpp"
 
 
@@ -65,6 +67,9 @@ set(PROCESS_SRCS
 
 "${CMAKE_CURRENT_SOURCE_DIR}/Process/State/MessageNode.cpp"
 "${CMAKE_CURRENT_SOURCE_DIR}/Process/State/ProcessStateDataInterface.cpp"
+
+"${CMAKE_CURRENT_SOURCE_DIR}/Process/Tools/ProcessGraphicsView.cpp"
+"${CMAKE_CURRENT_SOURCE_DIR}/Process/Tools/ProcessPanelGraphicsProxy.cpp"
 
 "${CMAKE_CURRENT_SOURCE_DIR}/Process/Inspector/ProcessInspectorWidgetDelegateFactory.cpp"
 "${CMAKE_CURRENT_SOURCE_DIR}/Process/Inspector/ProcessInspectorWidgetDelegateFactoryList.cpp"

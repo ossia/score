@@ -1,9 +1,9 @@
 #pragma once
 #include <QWidget>
-
+#include <iscore_lib_base_export.h>
 class QSlider;
 
-class DoubleSlider final : public QWidget
+class ISCORE_LIB_BASE_EXPORT DoubleSlider final : public QWidget
 {
         Q_OBJECT
     public:

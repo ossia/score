@@ -1,14 +1,9 @@
 #pragma once
 #include <iscore/plugins/panel/PanelView.hpp>
 
-#include <QString>
-
-class DoubleSlider;
-class QGraphicsScene;
 class QObject;
-class QSize;
+class QVBoxLayout;
 class QWidget;
-class ScenarioBaseGraphicsView;
 
 class ProcessPanelView final : public iscore::PanelView
 {
@@ -19,23 +14,13 @@ class ProcessPanelView final : public iscore::PanelView
 
         ProcessPanelView(QObject* parent);
 
+        void setInnerWidget(QWidget* widg);
+
         QWidget* getWidget() override;
         const QString shortcut() const override
         { return tr("Ctrl+P"); }
 
-        QGraphicsScene* scene() const;
-        ScenarioBaseGraphicsView* view() const;
-
-        DoubleSlider* zoomSlider() const
-        { return m_zoomSlider; }
-
-    signals:
-        void sizeChanged(const QSize&);
-        void horizontalZoomChanged(double d);
-
     private:
         QWidget* m_widget{};
-        QGraphicsScene* m_scene{};
-        ScenarioBaseGraphicsView* m_view{};
-        DoubleSlider* m_zoomSlider{};
+        QVBoxLayout* m_lay{};
 };
