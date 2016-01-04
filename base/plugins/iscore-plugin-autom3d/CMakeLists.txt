@@ -10,8 +10,9 @@ find_package(VTK COMPONENTS
   vtkCommonCore
   vtkFiltersSources
   vtkGUISupportQt
+  vtkInteractionWidgets
 )
-if(NOT VTK_Found)
+if(NOT ${VTK_FOUND})
     return()
 endif()
 include(${VTK_USE_FILE})
