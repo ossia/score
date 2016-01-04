@@ -10,7 +10,7 @@ namespace iscore {
 class Document;
 }  // namespace iscore
 
-
+ISCORE_METADATA_IMPL(RecreateOnPlay::DocumentPlugin)
 namespace RecreateOnPlay
 {
 DocumentPlugin::DocumentPlugin(iscore::Document& doc, QObject* parent):
