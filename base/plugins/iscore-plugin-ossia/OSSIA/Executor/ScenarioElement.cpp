@@ -16,6 +16,7 @@
 #include <OSSIA/Executor/ConstraintElement.hpp>
 #include <OSSIA/Executor/EventElement.hpp>
 #include <OSSIA/Executor/ProcessElement.hpp>
+#include <OSSIA/Executor/DocumentPlugin.hpp>
 #include <OSSIA/Executor/StateElement.hpp>
 #include <OSSIA/Executor/TimeNodeElement.hpp>
 #include <Scenario/Document/Constraint/ConstraintDurations.hpp>
@@ -41,10 +42,15 @@ namespace RecreateOnPlay
 ScenarioElement::ScenarioElement(
         ConstraintElement& parentConstraint,
         Scenario::ScenarioModel& element,
+        const DocumentPlugin &doc,
+        const iscore::DocumentContext &ctx,
+        const Id<iscore::Component>& id,
         QObject* parent):
-    ProcessElement{parentConstraint, parent},
+    ProcessComponent{parentConstraint, element, id, "ScenarioComponent", parent},
     m_iscore_scenario{element},
-    m_deviceList{iscore::IDocument::documentFromObject(element)->context().plugin<DeviceDocumentPlugin>().list()}
+    m_ctx{ctx},
+    m_sys{doc},
+    m_deviceList{ctx.plugin<DeviceDocumentPlugin>().list()}
 {
     this->setObjectName("OSSIAScenarioElement");
 
@@ -83,7 +89,7 @@ Process::ProcessModel& ScenarioElement::iscoreProcess() const
 void ScenarioElement::stop()
 {
     m_executingConstraints.clear();
-    ProcessElement::stop();
+    ProcessComponent::stop();
 }
 
 std::shared_ptr<OSSIA::TimeProcess> ScenarioElement::OSSIAProcess() const
@@ -244,4 +250,41 @@ void ScenarioElement::eventCallback(
         }
     }
 }
+
+const iscore::Component::Key &ScenarioElement::key() const
+{
+    static iscore::Component::Key k("OSSIAScenarioElement");
+    return k;
+}
+
+ScenarioComponentFactory::~ScenarioComponentFactory()
+{
+
+}
+
+ProcessComponent *ScenarioComponentFactory::make(
+        ConstraintElement &cst,
+        Process::ProcessModel &proc,
+        const DocumentPlugin &doc,
+        const iscore::DocumentContext &ctx,
+        const Id<iscore::Component> &id,
+        QObject *parent) const
+{
+    return new ScenarioElement{cst, static_cast<Scenario::ScenarioModel&>(proc), doc, ctx, id, parent};
+}
+
+const ScenarioComponentFactory::factory_key_type& ScenarioComponentFactory::key_impl() const
+{
+    static ScenarioComponentFactory::factory_key_type k("OSSIAScenarioElement");
+    return k;
+}
+
+bool ScenarioComponentFactory::matches(
+        Process::ProcessModel& proc,
+        const DocumentPlugin &,
+        const iscore::DocumentContext &) const
+{
+    return dynamic_cast<Scenario::ScenarioModel*>(&proc);
+}
+
 }

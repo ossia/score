@@ -56,4 +56,5 @@ class AutomationElement final : public ProcessElement
 
         const DeviceList& m_deviceList;
 };
+
 }

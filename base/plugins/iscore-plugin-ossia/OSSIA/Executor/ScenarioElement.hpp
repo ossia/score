@@ -37,12 +37,15 @@ namespace RecreateOnPlay
 class ConstraintElement;
 
 // TODO see if this can be used for the base scenario model too.
-class ScenarioElement final : public ProcessElement
+class ScenarioElement final : public ProcessComponent
 {
     public:
         ScenarioElement(
-                ConstraintElement& parentConstraint,
-                Scenario::ScenarioModel& element,
+                ConstraintElement& cst,
+                Scenario::ScenarioModel& proc,
+                const DocumentPlugin &doc,
+                const iscore::DocumentContext &ctx,
+                const Id<iscore::Component>& id,
                 QObject* parent);
 
         std::shared_ptr<OSSIA::TimeProcess> OSSIAProcess() const override;
@@ -75,6 +78,7 @@ class ScenarioElement final : public ProcessElement
                 OSSIA::TimeEvent::Status newStatus);
 
     private:
+        const Key &key() const override;
         // TODO use IdContainer
         std::map<Id<ConstraintModel>, ConstraintElement*> m_ossia_constraints;
         std::map<Id<StateModel>, StateElement*> m_ossia_states;
@@ -85,6 +89,32 @@ class ScenarioElement final : public ProcessElement
 
         IdContainer<ConstraintModel> m_executingConstraints;
 
+        const iscore::DocumentContext& m_ctx;
+        const DocumentPlugin& m_sys;
         const DeviceList& m_deviceList;
+
 };
+
+
+class ScenarioComponentFactory final :
+        public ProcessComponentFactory
+{
+    public:
+        virtual ~ScenarioComponentFactory();
+        virtual ProcessComponent* make(
+                ConstraintElement& cst,
+                Process::ProcessModel& proc,
+                const RecreateOnPlay::DocumentPlugin& doc,
+                const iscore::DocumentContext& ctx,
+                const Id<iscore::Component>& id,
+                QObject* parent) const override;
+
+        const factory_key_type& key_impl() const override;
+
+        bool matches(
+                Process::ProcessModel&,
+                const DocumentPlugin&,
+                const iscore::DocumentContext &) const override;
+};
+
 }

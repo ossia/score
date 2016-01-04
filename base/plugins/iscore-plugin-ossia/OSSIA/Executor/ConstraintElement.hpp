@@ -6,11 +6,15 @@
 #include <map>
 #include <memory>
 
-#include "ProcessWrapper.hpp"
+#include <OSSIA/Executor/ProcessElement.hpp>
+#include <OSSIA/Executor/ProcessWrapper.hpp>
 
 class ConstraintModel;
 namespace Process { class ProcessModel; }
-
+namespace iscore
+{
+struct DocumentContext;
+}
 namespace OSSIA
 {
 class Loop;
@@ -20,6 +24,7 @@ class TimeConstraint;
 
 namespace RecreateOnPlay
 {
+class DocumentPlugin;
 class ConstraintElement final : public QObject
 {
     public:
@@ -53,5 +58,9 @@ class ConstraintElement final : public QObject
         std::shared_ptr<OSSIA::Loop> m_loop;
 
         OSSIA::TimeValue m_offset;
+
+        const iscore::DocumentContext& m_ctx;
+        const RecreateOnPlay::DocumentPlugin& m_sys;
+        const RecreateOnPlay::ProcessComponentFactoryList& m_list;
 };
 }

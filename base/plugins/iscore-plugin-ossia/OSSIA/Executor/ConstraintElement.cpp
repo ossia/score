@@ -20,13 +20,15 @@
 #include <Scenario/Document/Constraint/ConstraintDurations.hpp>
 #include "ScenarioElement.hpp"
 #include <iscore/tools/SettableIdentifier.hpp>
+#include <iscore/tools/SettableIdentifierGeneration.hpp>
+#include <OSSIA/Executor/DocumentPlugin.hpp>
+#include <iscore/document/DocumentContext.hpp>
 
 #if defined(ISCORE_PLUGIN_MAPPING)
 #include <Mapping/MappingModel.hpp>
 
 #include "OSSIAMappingElement.hpp"
 #endif
-
 namespace RecreateOnPlay
 {
 ConstraintElement::ConstraintElement(
@@ -35,7 +37,10 @@ ConstraintElement::ConstraintElement(
         QObject* parent):
     QObject{parent},
     m_iscore_constraint{iscore_cst},
-    m_ossia_constraint{ossia_cst}
+    m_ossia_constraint{ossia_cst},
+    m_ctx{iscore::IDocument::documentContext(m_iscore_constraint)},
+    m_sys{m_ctx.plugin<RecreateOnPlay::DocumentPlugin>()},
+    m_list{m_ctx.app.components.factory<RecreateOnPlay::ProcessComponentFactoryList>()}
 {
     OSSIA::TimeValue min_duration(iscore::convert::time(m_iscore_constraint.duration.minDuration()));
     OSSIA::TimeValue max_duration(iscore::convert::time(m_iscore_constraint.duration.maxDuration()));
@@ -117,7 +122,26 @@ void ConstraintElement::on_processAdded(
     // TODO maybe have an execution_view template on processes, that
     // gives correct const / non_const access ?
     auto proc = const_cast<Process::ProcessModel*>(&iscore_proc);
-    ProcessElement* plug{};
+    auto fac = m_list.factory(*proc, m_sys, m_ctx);
+    if(fac)
+    {
+        auto plug = fac->make(*this, *proc, m_sys, m_ctx, getStrongId(iscore_proc.components), this);
+        if(plug)
+        {
+            auto id = iscore_proc.id();
+            m_processes.insert(std::make_pair(id,
+                                OSSIAProcess(plug,
+                                 std::make_unique<ProcessWrapper>(
+                                     m_ossia_constraint,
+                                     plug->OSSIAProcess(),
+                                     iscore::convert::time(plug->iscoreProcess().duration()),
+                                     m_iscore_constraint.looping()
+                                 )
+                                )
+                               ));
+        }
+    }
+    /*
     if(auto scenar = dynamic_cast<Scenario::ScenarioModel*>(proc))
     {
         plug = new ScenarioElement{*this, *scenar, proc};
@@ -142,21 +166,7 @@ void ConstraintElement::on_processAdded(
     {
         plug = new ProcessModelElement{*this, *generic, proc};
     }
-
-    if(plug)
-    {
-        auto id = iscore_proc.id();
-        m_processes.insert(std::make_pair(id,
-                            OSSIAProcess(plug,
-                             std::make_unique<ProcessWrapper>(
-                                 m_ossia_constraint,
-                                 plug->OSSIAProcess(),
-                                 iscore::convert::time(plug->iscoreProcess().duration()),
-                                 m_iscore_constraint.looping()
-                             )
-                            )
-                           ));
-    }
+    */
 }
 
 void ConstraintElement::constraintCallback(
