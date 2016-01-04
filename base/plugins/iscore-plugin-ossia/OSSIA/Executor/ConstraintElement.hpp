@@ -24,6 +24,7 @@ class TimeConstraint;
 
 namespace RecreateOnPlay
 {
+struct Context;
 class DocumentPlugin;
 class ConstraintElement final : public QObject
 {
@@ -31,6 +32,7 @@ class ConstraintElement final : public QObject
         ConstraintElement(
                 std::shared_ptr<OSSIA::TimeConstraint> ossia_cst,
                 ConstraintModel& iscore_cst,
+                const Context &ctx,
                 QObject* parent);
 
         std::shared_ptr<OSSIA::TimeConstraint> OSSIAConstraint() const;
@@ -59,8 +61,6 @@ class ConstraintElement final : public QObject
 
         OSSIA::TimeValue m_offset;
 
-        const iscore::DocumentContext& m_ctx;
-        const RecreateOnPlay::DocumentPlugin& m_sys;
-        const RecreateOnPlay::ProcessComponentFactoryList& m_list;
+        const RecreateOnPlay::Context& m_ctx;
 };
 }

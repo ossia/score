@@ -22,6 +22,7 @@
 #include <iscore/tools/SettableIdentifier.hpp>
 #include <iscore/tools/SettableIdentifierGeneration.hpp>
 #include <OSSIA/Executor/DocumentPlugin.hpp>
+#include <OSSIA/Executor/ExecutorContext.hpp>
 #include <iscore/document/DocumentContext.hpp>
 
 #if defined(ISCORE_PLUGIN_MAPPING)
@@ -34,13 +35,12 @@ namespace RecreateOnPlay
 ConstraintElement::ConstraintElement(
         std::shared_ptr<OSSIA::TimeConstraint> ossia_cst,
         ConstraintModel& iscore_cst,
+        const Context&ctx,
         QObject* parent):
     QObject{parent},
     m_iscore_constraint{iscore_cst},
     m_ossia_constraint{ossia_cst},
-    m_ctx{iscore::IDocument::documentContext(m_iscore_constraint)},
-    m_sys{m_ctx.plugin<RecreateOnPlay::DocumentPlugin>()},
-    m_list{m_ctx.app.components.factory<RecreateOnPlay::ProcessComponentFactoryList>()}
+    m_ctx{ctx}
 {
     OSSIA::TimeValue min_duration(iscore::convert::time(m_iscore_constraint.duration.minDuration()));
     OSSIA::TimeValue max_duration(iscore::convert::time(m_iscore_constraint.duration.maxDuration()));
@@ -122,10 +122,10 @@ void ConstraintElement::on_processAdded(
     // TODO maybe have an execution_view template on processes, that
     // gives correct const / non_const access ?
     auto proc = const_cast<Process::ProcessModel*>(&iscore_proc);
-    auto fac = m_list.factory(*proc, m_sys, m_ctx);
+    auto fac = m_ctx.processes.factory(*proc, m_ctx.sys, m_ctx.doc);
     if(fac)
     {
-        auto plug = fac->make(*this, *proc, m_sys, m_ctx, getStrongId(iscore_proc.components), this);
+        auto plug = fac->make(*this, *proc, m_ctx, getStrongId(iscore_proc.components), this);
         if(plug)
         {
             auto id = iscore_proc.id();

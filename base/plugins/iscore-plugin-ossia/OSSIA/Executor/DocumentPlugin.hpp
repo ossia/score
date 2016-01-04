@@ -3,6 +3,7 @@
 #include <memory>
 #include <iscore/tools/Metadata.hpp>
 #include <iscore_plugin_ossia_export.h>
+#include <OSSIA/Executor/ExecutorContext.hpp>
 class QObject;
 namespace iscore {
 class Document;
@@ -30,7 +31,8 @@ class DocumentPlugin final : public iscore::DocumentPluginModel
 
         BaseScenarioElement* baseScenario() const;
 
-private:
+    private:
+        Context m_ctx;
         std::unique_ptr<BaseScenarioElement> m_base{};
 };
 }
