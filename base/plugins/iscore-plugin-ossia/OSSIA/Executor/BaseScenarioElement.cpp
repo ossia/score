@@ -13,10 +13,10 @@
 #include "Editor/State.h"
 #include "Editor/StateElement.h"
 #include "Editor/TimeValue.h"
-#include <OSSIA/DocumentPlugin/ConstraintElement.hpp>
-#include <OSSIA/DocumentPlugin/EventElement.hpp>
-#include <OSSIA/DocumentPlugin/StateElement.hpp>
-#include <OSSIA/DocumentPlugin/TimeNodeElement.hpp>
+#include <OSSIA/Executor/ConstraintElement.hpp>
+#include <OSSIA/Executor/EventElement.hpp>
+#include <OSSIA/Executor/StateElement.hpp>
+#include <OSSIA/Executor/TimeNodeElement.hpp>
 #include <Scenario/Document/Constraint/ConstraintDurations.hpp>
 #include <Scenario/Document/Constraint/ConstraintModel.hpp>
 

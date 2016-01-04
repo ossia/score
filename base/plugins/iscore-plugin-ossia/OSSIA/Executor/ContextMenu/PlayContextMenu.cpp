@@ -16,11 +16,11 @@
 #include <map>
 #include <memory>
 
-#include <OSSIA/DocumentPlugin/StateElement.hpp>
-#include <OSSIA/DocumentPlugin/ConstraintElement.hpp>
-#include <OSSIA/DocumentPlugin/EventElement.hpp>
-#include <OSSIA/DocumentPlugin/ScenarioElement.hpp>
-#include <OSSIA/DocumentPlugin/StateElement.hpp>
+#include <OSSIA/Executor/StateElement.hpp>
+#include <OSSIA/Executor/ConstraintElement.hpp>
+#include <OSSIA/Executor/EventElement.hpp>
+#include <OSSIA/Executor/ScenarioElement.hpp>
+#include <OSSIA/Executor/StateElement.hpp>
 
 #include "Editor/TimeEvent.h"
 #include "PlayContextMenu.hpp"

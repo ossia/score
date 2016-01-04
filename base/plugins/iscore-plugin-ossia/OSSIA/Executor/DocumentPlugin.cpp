@@ -4,7 +4,7 @@
 #include "DocumentPlugin.hpp"
 #include <iscore/plugins/documentdelegate/plugin/DocumentDelegatePluginModel.hpp>
 #include <core/document/DocumentModel.hpp>
-#include <OSSIA/DocumentPlugin/ConstraintElement.hpp>
+#include <OSSIA/Executor/ConstraintElement.hpp>
 class QObject;
 namespace iscore {
 class Document;
