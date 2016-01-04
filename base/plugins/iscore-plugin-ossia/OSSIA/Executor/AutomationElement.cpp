@@ -18,7 +18,7 @@
 #include "Network/Address.h"
 #include "Network/Node.h"
 #include <OSSIA/Protocols/OSSIADevice.hpp>
-#include <OSSIA/DocumentPlugin/ProcessElement.hpp>
+#include <OSSIA/Executor/ProcessElement.hpp>
 #include <State/Address.hpp>
 #include <iscore/document/DocumentInterface.hpp>
 #include <iscore/plugins/customfactory/StringFactoryKey.hpp>

@@ -1,6 +1,6 @@
 #pragma once
 #include <Process/StateProcess.hpp>
-#include <OSSIA/DocumentPlugin/ProcessModel/ProcessModel.hpp>
+#include <OSSIA/Executor/ProcessModel/ProcessModel.hpp>
 
 #include <memory>
 

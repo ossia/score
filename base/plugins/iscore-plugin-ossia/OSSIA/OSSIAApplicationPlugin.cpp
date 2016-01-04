@@ -3,8 +3,8 @@
 #include <API/Headers/Network/Protocol/Local.h>
 #include <Explorer/Explorer/DeviceExplorerModel.hpp>
 #include <Network/Protocol/OSC.h>
-#include <OSSIA/DocumentPlugin/BaseScenarioElement.hpp>
-#include <OSSIA/DocumentPlugin/DocumentPlugin.hpp>
+#include <OSSIA/Executor/BaseScenarioElement.hpp>
+#include <OSSIA/Executor/DocumentPlugin.hpp>
 #include <Scenario/Application/ScenarioApplicationPlugin.hpp>
 #include <QAction>
 #include <QVariant>
@@ -16,7 +16,7 @@
 #include "Network/Node.h"
 #include "OSSIAApplicationPlugin.hpp"
 #include <Process/TimeValue.hpp>
-#include <OSSIA/DocumentPlugin/ConstraintElement.hpp>
+#include <OSSIA/Executor/ConstraintElement.hpp>
 
 #include <iscore/application/ApplicationContext.hpp>
 #include <iscore/plugins/application/GUIApplicationContextPlugin.hpp>
@@ -33,7 +33,7 @@ struct VisitorVariant;
 #include <QDir>
 #endif
 #include <OSSIA/LocalTree/LocalTreeDocumentPlugin.hpp>
-#include <OSSIA/DocumentPlugin/ContextMenu/PlayContextMenu.hpp>
+#include <OSSIA/Executor/ContextMenu/PlayContextMenu.hpp>
 #include <Explorer/DocumentPlugin/DeviceDocumentPlugin.hpp>
 #include <Scenario/Document/ScenarioDocument/ScenarioDocumentModel.hpp>
 #include <core/document/Document.hpp>

@@ -1,6 +1,6 @@
 #pragma once
 #include <API/Headers/Editor/Value.h>
-#include <OSSIA/DocumentPlugin/ProcessElement.hpp>
+#include <OSSIA/Executor/ProcessElement.hpp>
 #include <memory>
 
 namespace Process { class ProcessModel; }

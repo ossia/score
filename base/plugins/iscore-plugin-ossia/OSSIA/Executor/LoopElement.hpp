@@ -1,5 +1,5 @@
 #pragma once
-#include <OSSIA/DocumentPlugin/ProcessElement.hpp>
+#include <OSSIA/Executor/ProcessElement.hpp>
 #include <memory>
 
 class ConstraintModel;

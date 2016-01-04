@@ -1,5 +1,5 @@
 #pragma once
-#include <OSSIA/DocumentPlugin/ProcessModel/ProcessModelElement.hpp>
+#include <OSSIA/Executor/ProcessModel/ProcessModelElement.hpp>
 #include <OSSIA/ProcessModel/TimeProcessWithConstraint.hpp>
 #include <Editor/TimeValue.h>
 #include <Explorer/DocumentPlugin/DeviceDocumentPlugin.hpp>
