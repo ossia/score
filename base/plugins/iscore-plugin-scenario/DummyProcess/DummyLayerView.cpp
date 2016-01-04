@@ -43,3 +43,8 @@ void DummyLayerView::paint_impl(QPainter* painter) const
 
     painter->drawText(boundingRect(), Qt::AlignCenter, m_text);
 }
+
+void DummyLayerView::mousePressEvent(QGraphicsSceneMouseEvent*)
+{
+    emit pressed();
+}

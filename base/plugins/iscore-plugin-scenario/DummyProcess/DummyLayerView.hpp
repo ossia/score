@@ -10,6 +10,7 @@ class QPainter;
 
 class ISCORE_LIB_DUMMYPROCESS_EXPORT DummyLayerView final : public Process::LayerView
 {
+        Q_OBJECT
     public:
         explicit DummyLayerView(QGraphicsItem* parent);
 
@@ -19,10 +20,13 @@ class ISCORE_LIB_DUMMYPROCESS_EXPORT DummyLayerView final : public Process::Laye
             update();
         }
 
-    protected:
-        void paint_impl(QPainter*) const override;
+    signals:
+        void pressed();
+
 
     private:
+        void paint_impl(QPainter*) const override;
+        void mousePressEvent(QGraphicsSceneMouseEvent*);
         QString m_text;
         //QQuickWidget* m_widg{};
 };
