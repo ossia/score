@@ -13,6 +13,7 @@ namespace OSSIA
 
 namespace RecreateOnPlay
 {
+struct Context;
 class DocumentPlugin;
 class ConstraintElement;
 class ProcessElement : public QObject
@@ -75,8 +76,7 @@ class ISCORE_PLUGIN_OSSIA_EXPORT ProcessComponentFactory :
         virtual ProcessComponent* make(
                   ConstraintElement& cst,
                   Process::ProcessModel& proc,
-                  const RecreateOnPlay::DocumentPlugin& doc,
-                  const iscore::DocumentContext& ctx,
+                  const Context& ctx,
                   const Id<iscore::Component>& id,
                   QObject* parent) const = 0;
 };

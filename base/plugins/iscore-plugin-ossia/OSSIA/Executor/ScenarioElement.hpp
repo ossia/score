@@ -43,8 +43,7 @@ class ScenarioElement final : public ProcessComponent
         ScenarioElement(
                 ConstraintElement& cst,
                 Scenario::ScenarioModel& proc,
-                const DocumentPlugin &doc,
-                const iscore::DocumentContext &ctx,
+                const Context& ctx,
                 const Id<iscore::Component>& id,
                 QObject* parent);
 
@@ -89,10 +88,7 @@ class ScenarioElement final : public ProcessComponent
 
         IdContainer<ConstraintModel> m_executingConstraints;
 
-        const iscore::DocumentContext& m_ctx;
-        const DocumentPlugin& m_sys;
-        const DeviceList& m_deviceList;
-
+        const Context& m_ctx;
 };
 
 
@@ -104,8 +100,7 @@ class ScenarioComponentFactory final :
         virtual ProcessComponent* make(
                 ConstraintElement& cst,
                 Process::ProcessModel& proc,
-                const RecreateOnPlay::DocumentPlugin& doc,
-                const iscore::DocumentContext& ctx,
+                const Context& ctx,
                 const Id<iscore::Component>& id,
                 QObject* parent) const override;
 

@@ -29,6 +29,7 @@
 #include <iscore/tools/IdentifiedObjectMap.hpp>
 #include <iscore/tools/NotifyingMap.hpp>
 #include <iscore/tools/SettableIdentifier.hpp>
+#include <OSSIA/Executor/ExecutorContext.hpp>
 
 namespace Process { class ProcessModel; }
 class QObject;
@@ -42,15 +43,12 @@ namespace RecreateOnPlay
 ScenarioElement::ScenarioElement(
         ConstraintElement& parentConstraint,
         Scenario::ScenarioModel& element,
-        const DocumentPlugin &doc,
-        const iscore::DocumentContext &ctx,
+        const Context& ctx,
         const Id<iscore::Component>& id,
         QObject* parent):
     ProcessComponent{parentConstraint, element, id, "ScenarioComponent", parent},
     m_iscore_scenario{element},
-    m_ctx{ctx},
-    m_sys{doc},
-    m_deviceList{ctx.plugin<DeviceDocumentPlugin>().list()}
+    m_ctx{ctx}
 {
     this->setObjectName("OSSIAScenarioElement");
 
@@ -127,7 +125,7 @@ void ScenarioElement::on_constraintCreated(const ConstraintModel& const_constrai
     m_ossia_scenario->addTimeConstraint(ossia_cst);
 
     // Create the mapping object
-    auto elt = new ConstraintElement{ossia_cst, cst, this};
+    auto elt = new ConstraintElement{ossia_cst, cst, m_ctx, this};
     m_ossia_constraints.insert({cst.id(), elt});
 }
 
@@ -143,7 +141,7 @@ void ScenarioElement::on_stateCreated(const StateModel &iscore_state)
     auto state_elt = new StateElement{
             iscore_state,
             root_state,
-            m_deviceList,
+            m_ctx.devices,
             this};
 
     m_ossia_states.insert({iscore_state.id(), state_elt});
@@ -161,7 +159,7 @@ void ScenarioElement::on_eventCreated(const EventModel& const_ev)
                 OSSIA::TimeEvent::ExecutionCallback{});
 
     // Create the mapping object
-    auto elt = new EventElement{ossia_ev, ev, m_deviceList, this};
+    auto elt = new EventElement{ossia_ev, ev, m_ctx.devices, this};
     m_ossia_timeevents.insert({ev.id(), elt});
 
     elt->OSSIAEvent()->setCallback([=] (OSSIA::TimeEvent::Status st) {
@@ -187,7 +185,7 @@ void ScenarioElement::on_timeNodeCreated(const TimeNodeModel& tn)
     }
 
     // Create the mapping object
-    auto elt = new TimeNodeElement{ossia_tn, tn, m_deviceList, this};
+    auto elt = new TimeNodeElement{ossia_tn, tn, m_ctx.devices, this};
     m_ossia_timenodes.insert({tn.id(), elt});
 }
 
@@ -265,12 +263,11 @@ ScenarioComponentFactory::~ScenarioComponentFactory()
 ProcessComponent *ScenarioComponentFactory::make(
         ConstraintElement &cst,
         Process::ProcessModel &proc,
-        const DocumentPlugin &doc,
-        const iscore::DocumentContext &ctx,
+        const Context& ctx,
         const Id<iscore::Component> &id,
         QObject *parent) const
 {
-    return new ScenarioElement{cst, static_cast<Scenario::ScenarioModel&>(proc), doc, ctx, id, parent};
+    return new ScenarioElement{cst, static_cast<Scenario::ScenarioModel&>(proc), ctx, id, parent};
 }
 
 const ScenarioComponentFactory::factory_key_type& ScenarioComponentFactory::key_impl() const

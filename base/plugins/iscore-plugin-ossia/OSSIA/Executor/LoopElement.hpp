@@ -7,7 +7,7 @@ class DeviceList;
 namespace Process { class ProcessModel; }
 class QObject;
 namespace Loop {
-namespace Process { class ProcessModel; }
+class ProcessModel;
 }  // namespace Loop
 namespace OSSIA {
 class Loop;
@@ -32,6 +32,7 @@ class LoopElement final : public ProcessElement
         LoopElement(
                 ConstraintElement& parentConstraint,
                 Loop::ProcessModel& element,
+                const Context& ctx,
                 QObject* parent);
 
         virtual ~LoopElement();
@@ -50,6 +51,8 @@ class LoopElement final : public ProcessElement
 
 
     private:
+        const Context& m_ctx;
+
         ConstraintElement* m_ossia_constraint{};
 
         TimeNodeElement* m_ossia_startTimeNode{};
@@ -63,7 +66,5 @@ class LoopElement final : public ProcessElement
 
         std::shared_ptr<OSSIA::Loop> m_ossia_loop;
         Loop::ProcessModel& m_iscore_loop;
-
-        const DeviceList& m_deviceList;
 };
 }

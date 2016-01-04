@@ -39,6 +39,8 @@ set(HDRS
     "${CMAKE_CURRENT_SOURCE_DIR}/OSSIA/Executor/ContextMenu/PlayContextMenu.hpp"
     "${CMAKE_CURRENT_SOURCE_DIR}/OSSIA/Executor/ContextMenu/PlayContextMenuFactory.hpp"
 
+    "${CMAKE_CURRENT_SOURCE_DIR}/OSSIA/Executor/ExecutorContext.hpp"
+
     "${CMAKE_CURRENT_SOURCE_DIR}/OSSIA/Executor/BasicProcessWrapper.hpp"
     "${CMAKE_CURRENT_SOURCE_DIR}/OSSIA/Executor/LoopingProcessWrapper.hpp"
     "${CMAKE_CURRENT_SOURCE_DIR}/OSSIA/Executor/BaseScenarioElement.hpp"

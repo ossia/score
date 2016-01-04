@@ -2,6 +2,7 @@
 
 #include <QObject>
 
+
 class BaseScenario;
 class DeviceList;
 namespace RecreateOnPlay {
@@ -14,12 +15,13 @@ class TimeNodeElement;
 
 namespace RecreateOnPlay
 {
-
+struct Context;
 class BaseScenarioElement final : public QObject
 {
     public:
         BaseScenarioElement(
                 const BaseScenario& element,
+                const Context&,
                 QObject* parent);
 
         ConstraintElement* baseConstraint() const;
@@ -34,6 +36,7 @@ class BaseScenarioElement final : public QObject
         StateElement* endState() const;
 
     private:
+        const Context& m_ctx;
         ConstraintElement* m_ossia_constraint{};
 
         TimeNodeElement* m_ossia_startTimeNode{};
@@ -44,7 +47,5 @@ class BaseScenarioElement final : public QObject
 
         StateElement* m_ossia_startState{};
         StateElement* m_ossia_endState{};
-
-        const DeviceList& m_deviceList;
 };
 }

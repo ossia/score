@@ -20,6 +20,8 @@
 #include <Scenario/Document/Constraint/ConstraintDurations.hpp>
 #include <Scenario/Document/Constraint/ConstraintModel.hpp>
 
+#include <OSSIA/Executor/ExecutorContext.hpp>
+
 
 namespace RecreateOnPlay
 {
@@ -39,9 +41,10 @@ static void baseScenarioConstraintCallback(const OSSIA::TimeValue&,
 
 BaseScenarioElement::BaseScenarioElement(
         const BaseScenario& element,
+        const Context& ctx,
         QObject *parent):
     QObject{parent},
-    m_deviceList{iscore::IDocument::documentContext(element).plugin<DeviceDocumentPlugin>().list()}
+    m_ctx{ctx}
 {
     auto main_start_node = OSSIA::TimeNode::create();
     auto main_end_node = OSSIA::TimeNode::create();
@@ -68,16 +71,16 @@ BaseScenarioElement::BaseScenarioElement(
     // TODO put graphical settings somewhere.
     main_constraint->setSpeed(1.);
     main_constraint->setGranularity(50.);
-    m_ossia_startTimeNode = new TimeNodeElement{main_start_node, element.startTimeNode(),  m_deviceList, this};
-    m_ossia_endTimeNode = new TimeNodeElement{main_end_node, element.endTimeNode(), m_deviceList, this};
+    m_ossia_startTimeNode = new TimeNodeElement{main_start_node, element.startTimeNode(),  m_ctx.devices, this};
+    m_ossia_endTimeNode = new TimeNodeElement{main_end_node, element.endTimeNode(), m_ctx.devices, this};
 
-    m_ossia_startEvent = new EventElement{*main_start_event_it, element.startEvent(), m_deviceList, this};
-    m_ossia_endEvent = new EventElement{*main_end_event_it, element.endEvent(), m_deviceList, this};
+    m_ossia_startEvent = new EventElement{*main_start_event_it, element.startEvent(), m_ctx.devices, this};
+    m_ossia_endEvent = new EventElement{*main_end_event_it, element.endEvent(), m_ctx.devices, this};
 
-    m_ossia_startState = new StateElement{element.startState(), main_start_state, m_deviceList, this};
-    m_ossia_endState = new StateElement{element.endState(), main_end_state, m_deviceList, this};
+    m_ossia_startState = new StateElement{element.startState(), main_start_state, m_ctx.devices, this};
+    m_ossia_endState = new StateElement{element.endState(), main_end_state, m_ctx.devices, this};
 
-    m_ossia_constraint = new ConstraintElement{main_constraint, element.constraint(), this};
+    m_ossia_constraint = new ConstraintElement{main_constraint, element.constraint(), m_ctx, this};
 }
 
 ConstraintElement *BaseScenarioElement::baseConstraint() const
