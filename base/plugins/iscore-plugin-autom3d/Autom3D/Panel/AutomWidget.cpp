@@ -20,6 +20,7 @@
 #include <vtkSplineWidget2.h>
 #include <vtkCubeAxesActor.h>
 #include <vtkSplineRepresentation.h>
+#include <vtkParametricSpline.h>
 AutomWidget::AutomWidget()
 {
     m_widget = new QVTKWidget;
@@ -103,6 +104,13 @@ void AutomWidget::release(vtkObject* obj)
     // get event position
     int event_pos[2];
     iren->GetEventPosition(event_pos);
-    spline->GetRepresentation();
+    auto spl = vtkSplineRepresentation::SafeDownCast(spline->GetRepresentation())->GetParametricSpline();
+    auto& pts = *spl->GetPoints();
 
+    for(int i = 0; i < pts.GetNumberOfPoints(); i++)
+    {
+        double pt[3];
+        pts.GetPoint(i, pt);
+        qDebug() << pt[0] << pt[1] << pt[2];
+    }
 }
