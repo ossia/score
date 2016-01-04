@@ -5,17 +5,15 @@ namespace Process { class LayerModel; }
 namespace Space
 {
 class ProcessProxyLayerModel;
-class ProcessPanelProxy : public Process::LayerModelPanelProxy
+class ProcessPanelProxy : public Process::GraphicsViewLayerModelPanelProxy
 {
     public:
         ProcessPanelProxy(
-                const Process::LayerModel& vm,
+                ProcessProxyLayerModel* vm,
                 QObject* parent);
 
-        const Process::LayerModel& layer() override;
-
     private:
-        ProcessProxyLayerModel* m_layer{};
+        ProcessProxyLayerModel* m_layerImpl{};
 
 };
 }

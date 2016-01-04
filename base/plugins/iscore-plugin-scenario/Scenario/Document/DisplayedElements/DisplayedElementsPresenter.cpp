@@ -24,7 +24,7 @@
 #include <Scenario/Document/Event/EventModel.hpp>
 #include <Scenario/Document/Event/EventPresenter.hpp>
 #include <Scenario/Document/Event/EventView.hpp>
-#include <Scenario/Document/ScenarioDocument/Widgets/GraphicsProxyObject.hpp>
+#include <iscore/widgets/GraphicsProxyObject.hpp>
 #include <Scenario/Document/State/StateModel.hpp>
 #include <Scenario/Document/State/StatePresenter.hpp>
 #include <Scenario/Document/State/StateView.hpp>

@@ -15,7 +15,8 @@
 #include <Scenario/Document/BaseScenario/BaseElementContext.hpp>
 #include <Scenario/Document/BaseScenario/BaseScenario.hpp>
 #include <Scenario/Document/DisplayedElements/DisplayedElementsToolPalette/BaseScenarioDisplayedElements_StateWrappers.hpp>
-#include <Scenario/Document/ScenarioDocument/Widgets/GraphicsProxyObject.hpp>
+
+#include <iscore/widgets/GraphicsProxyObject.hpp>
 
 #include <iscore/statemachine/GraphicsSceneToolPalette.hpp>
 #include <iscore/tools/SettableIdentifier.hpp>
