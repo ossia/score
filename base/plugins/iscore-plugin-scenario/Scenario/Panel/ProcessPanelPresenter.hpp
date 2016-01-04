@@ -5,10 +5,8 @@ namespace Process
 {
 class ProcessList;
 class LayerModel;
-class LayerPresenter;
-class LayerView;
+class LayerModelPanelProxy;
 }
-
 class ProcessPanelGraphicsProxy;
 class QSize;
 
@@ -29,21 +27,13 @@ class ProcessPanelPresenter final : public iscore::PanelPresenter
                 iscore::PanelModel* oldm,
                 iscore::PanelModel* newm) override;
 
-        ZoomRatio zoomRatio() const
-        { return m_zoomRatio; }
 
     private:
         void on_focusedViewModelChanged(const Process::LayerModel*);
-        void on_sizeChanged(const QSize& size);
-        void on_zoomChanged(ZoomRatio ratio);
 
         void cleanup();
 
-        const Process::ProcessList& m_processList;
-        ProcessPanelGraphicsProxy* m_obj{};
         const Process::LayerModel* m_layerModel{};
-        Process::LayerPresenter* m_processPresenter{};
-        Process::LayerView* m_layer{};
+        Process::LayerModelPanelProxy* m_proxy{};
 
-        ZoomRatio m_zoomRatio{};
 };

@@ -7,13 +7,7 @@ class QObject;
 TemporalScenarioPanelProxy::TemporalScenarioPanelProxy(
         const TemporalScenarioLayerModel& lm,
         QObject* parent):
-    LayerModelPanelProxy{parent},
-    m_viewModel{lm}
+    GraphicsViewLayerModelPanelProxy{lm, parent}
 {
 
-}
-
-const TemporalScenarioLayerModel& TemporalScenarioPanelProxy::layer()
-{
-    return m_viewModel;
 }

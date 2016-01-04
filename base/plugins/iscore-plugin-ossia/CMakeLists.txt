@@ -36,24 +36,24 @@ set(HDRS
     "${CMAKE_CURRENT_SOURCE_DIR}/OSSIA/ProcessModel/TimeProcessWithConstraint.hpp"
     "${CMAKE_CURRENT_SOURCE_DIR}/OSSIA/iscore2OSSIA.hpp"
 
-    "${CMAKE_CURRENT_SOURCE_DIR}/OSSIA/DocumentPlugin/ContextMenu/PlayContextMenu.hpp"
-    "${CMAKE_CURRENT_SOURCE_DIR}/OSSIA/DocumentPlugin/ContextMenu/PlayContextMenuFactory.hpp"
+    "${CMAKE_CURRENT_SOURCE_DIR}/OSSIA/Executor/ContextMenu/PlayContextMenu.hpp"
+    "${CMAKE_CURRENT_SOURCE_DIR}/OSSIA/Executor/ContextMenu/PlayContextMenuFactory.hpp"
 
-    "${CMAKE_CURRENT_SOURCE_DIR}/OSSIA/DocumentPlugin/BasicProcessWrapper.hpp"
-    "${CMAKE_CURRENT_SOURCE_DIR}/OSSIA/DocumentPlugin/LoopingProcessWrapper.hpp"
-    "${CMAKE_CURRENT_SOURCE_DIR}/OSSIA/DocumentPlugin/BaseScenarioElement.hpp"
-    "${CMAKE_CURRENT_SOURCE_DIR}/OSSIA/DocumentPlugin/EventElement.hpp"
-    "${CMAKE_CURRENT_SOURCE_DIR}/OSSIA/DocumentPlugin/ScenarioElement.hpp"
-    "${CMAKE_CURRENT_SOURCE_DIR}/OSSIA/DocumentPlugin/ProcessElement.hpp"
-    "${CMAKE_CURRENT_SOURCE_DIR}/OSSIA/DocumentPlugin/StateElement.hpp"
-    "${CMAKE_CURRENT_SOURCE_DIR}/OSSIA/DocumentPlugin/ProcessWrapper.hpp"
-    "${CMAKE_CURRENT_SOURCE_DIR}/OSSIA/DocumentPlugin/AutomationElement.hpp"
-    "${CMAKE_CURRENT_SOURCE_DIR}/OSSIA/DocumentPlugin/DocumentPlugin.hpp"
-    "${CMAKE_CURRENT_SOURCE_DIR}/OSSIA/DocumentPlugin/TimeNodeElement.hpp"
-    "${CMAKE_CURRENT_SOURCE_DIR}/OSSIA/DocumentPlugin/ConstraintElement.hpp"
+    "${CMAKE_CURRENT_SOURCE_DIR}/OSSIA/Executor/BasicProcessWrapper.hpp"
+    "${CMAKE_CURRENT_SOURCE_DIR}/OSSIA/Executor/LoopingProcessWrapper.hpp"
+    "${CMAKE_CURRENT_SOURCE_DIR}/OSSIA/Executor/BaseScenarioElement.hpp"
+    "${CMAKE_CURRENT_SOURCE_DIR}/OSSIA/Executor/EventElement.hpp"
+    "${CMAKE_CURRENT_SOURCE_DIR}/OSSIA/Executor/ScenarioElement.hpp"
+    "${CMAKE_CURRENT_SOURCE_DIR}/OSSIA/Executor/ProcessElement.hpp"
+    "${CMAKE_CURRENT_SOURCE_DIR}/OSSIA/Executor/StateElement.hpp"
+    "${CMAKE_CURRENT_SOURCE_DIR}/OSSIA/Executor/ProcessWrapper.hpp"
+    "${CMAKE_CURRENT_SOURCE_DIR}/OSSIA/Executor/AutomationElement.hpp"
+    "${CMAKE_CURRENT_SOURCE_DIR}/OSSIA/Executor/DocumentPlugin.hpp"
+    "${CMAKE_CURRENT_SOURCE_DIR}/OSSIA/Executor/TimeNodeElement.hpp"
+    "${CMAKE_CURRENT_SOURCE_DIR}/OSSIA/Executor/ConstraintElement.hpp"
 
-    "${CMAKE_CURRENT_SOURCE_DIR}/OSSIA/DocumentPlugin/ProcessModel/ProcessModel.hpp"
-    "${CMAKE_CURRENT_SOURCE_DIR}/OSSIA/DocumentPlugin/ProcessModel/ProcessModelElement.hpp"
+    "${CMAKE_CURRENT_SOURCE_DIR}/OSSIA/Executor/ProcessModel/ProcessModel.hpp"
+    "${CMAKE_CURRENT_SOURCE_DIR}/OSSIA/Executor/ProcessModel/ProcessModelElement.hpp"
 
     "${CMAKE_CURRENT_SOURCE_DIR}/OSSIA/LocalTree/LocalTreeDocumentPlugin.hpp"
     "${CMAKE_CURRENT_SOURCE_DIR}/OSSIA/LocalTree/BaseProperty.hpp"
@@ -95,19 +95,19 @@ set(SRCS
 "${CMAKE_CURRENT_SOURCE_DIR}/OSSIA/OSSIA2iscore.cpp"
 "${CMAKE_CURRENT_SOURCE_DIR}/OSSIA/OSSIAApplicationPlugin.cpp"
 
-"${CMAKE_CURRENT_SOURCE_DIR}/OSSIA/DocumentPlugin/ContextMenu/PlayContextMenu.cpp"
-"${CMAKE_CURRENT_SOURCE_DIR}/OSSIA/DocumentPlugin/ContextMenu/PlayContextMenuFactory.cpp"
+"${CMAKE_CURRENT_SOURCE_DIR}/OSSIA/Executor/ContextMenu/PlayContextMenu.cpp"
+"${CMAKE_CURRENT_SOURCE_DIR}/OSSIA/Executor/ContextMenu/PlayContextMenuFactory.cpp"
 
-"${CMAKE_CURRENT_SOURCE_DIR}/OSSIA/DocumentPlugin/BasicProcessWrapper.cpp"
-"${CMAKE_CURRENT_SOURCE_DIR}/OSSIA/DocumentPlugin/LoopingProcessWrapper.cpp"
-"${CMAKE_CURRENT_SOURCE_DIR}/OSSIA/DocumentPlugin/BaseScenarioElement.cpp"
-"${CMAKE_CURRENT_SOURCE_DIR}/OSSIA/DocumentPlugin/EventElement.cpp"
-"${CMAKE_CURRENT_SOURCE_DIR}/OSSIA/DocumentPlugin/ScenarioElement.cpp"
-"${CMAKE_CURRENT_SOURCE_DIR}/OSSIA/DocumentPlugin/StateElement.cpp"
-"${CMAKE_CURRENT_SOURCE_DIR}/OSSIA/DocumentPlugin/AutomationElement.cpp"
-"${CMAKE_CURRENT_SOURCE_DIR}/OSSIA/DocumentPlugin/DocumentPlugin.cpp"
-"${CMAKE_CURRENT_SOURCE_DIR}/OSSIA/DocumentPlugin/TimeNodeElement.cpp"
-"${CMAKE_CURRENT_SOURCE_DIR}/OSSIA/DocumentPlugin/ConstraintElement.cpp"
+"${CMAKE_CURRENT_SOURCE_DIR}/OSSIA/Executor/BasicProcessWrapper.cpp"
+"${CMAKE_CURRENT_SOURCE_DIR}/OSSIA/Executor/LoopingProcessWrapper.cpp"
+"${CMAKE_CURRENT_SOURCE_DIR}/OSSIA/Executor/BaseScenarioElement.cpp"
+"${CMAKE_CURRENT_SOURCE_DIR}/OSSIA/Executor/EventElement.cpp"
+"${CMAKE_CURRENT_SOURCE_DIR}/OSSIA/Executor/ScenarioElement.cpp"
+"${CMAKE_CURRENT_SOURCE_DIR}/OSSIA/Executor/StateElement.cpp"
+"${CMAKE_CURRENT_SOURCE_DIR}/OSSIA/Executor/AutomationElement.cpp"
+"${CMAKE_CURRENT_SOURCE_DIR}/OSSIA/Executor/DocumentPlugin.cpp"
+"${CMAKE_CURRENT_SOURCE_DIR}/OSSIA/Executor/TimeNodeElement.cpp"
+"${CMAKE_CURRENT_SOURCE_DIR}/OSSIA/Executor/ConstraintElement.cpp"
 
 "${CMAKE_CURRENT_SOURCE_DIR}/OSSIA/LocalTree/LocalTreeDocumentPlugin.cpp"
 "${CMAKE_CURRENT_SOURCE_DIR}/OSSIA/LocalTree/BaseProperty.cpp"
@@ -128,19 +128,19 @@ set(SRCS
 
 if(TARGET iscore_plugin_mapping)
     set(SRCS ${SRCS}
-        "${CMAKE_CURRENT_SOURCE_DIR}/OSSIA/DocumentPlugin/MappingElement.cpp"
+        "${CMAKE_CURRENT_SOURCE_DIR}/OSSIA/Executor/MappingElement.cpp"
 )
     set(HDRS ${HDRS}
-        "${CMAKE_CURRENT_SOURCE_DIR}/OSSIA/DocumentPlugin/MappingElement.hpp"
+        "${CMAKE_CURRENT_SOURCE_DIR}/OSSIA/Executor/MappingElement.hpp"
 )
 endif()
 
 if(TARGET iscore_plugin_loop)
     set(SRCS ${SRCS}
-        "${CMAKE_CURRENT_SOURCE_DIR}/OSSIA/DocumentPlugin/LoopElement.cpp"
+        "${CMAKE_CURRENT_SOURCE_DIR}/OSSIA/Executor/LoopElement.cpp"
 )
     set(HDRS ${HDRS}
-        "${CMAKE_CURRENT_SOURCE_DIR}/OSSIA/DocumentPlugin/LoopElement.hpp"
+        "${CMAKE_CURRENT_SOURCE_DIR}/OSSIA/Executor/LoopElement.hpp"
 )
 endif()
 

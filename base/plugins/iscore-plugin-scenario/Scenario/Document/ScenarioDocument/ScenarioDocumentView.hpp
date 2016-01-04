@@ -7,7 +7,7 @@ class QGraphicsScene;
 class QGraphicsView;
 class QObject;
 class QWidget;
-class ScenarioBaseGraphicsView;
+class ProcessGraphicsView;
 class TimeRulerView;
 
 namespace iscore
@@ -34,7 +34,7 @@ class ScenarioDocumentView final : public iscore::DocumentDelegateViewInterface
         QGraphicsScene& scene() const
         { return *m_scene;}
 
-        ScenarioBaseGraphicsView& view() const
+        ProcessGraphicsView& view() const
         { return *m_view;}
 
         QGraphicsView* rulerView() const
@@ -55,7 +55,7 @@ class ScenarioDocumentView final : public iscore::DocumentDelegateViewInterface
     private:
         QWidget* m_widget {};
         QGraphicsScene* m_scene {};
-        ScenarioBaseGraphicsView* m_view {};
+        ProcessGraphicsView* m_view {};
         BaseGraphicsObject* m_baseObject {};
 
         QGraphicsView* m_timeRulersView {};

@@ -1,5 +1,5 @@
 #pragma once
-#include <OSSIA/DocumentPlugin/ProcessModel/ProcessModel.hpp>
+#include <OSSIA/Executor/ProcessModel/ProcessModel.hpp>
 #include <iscore/serialization/DataStreamVisitor.hpp>
 #include <iscore/serialization/JSONVisitor.hpp>
 #include <iscore/serialization/VisitorCommon.hpp>

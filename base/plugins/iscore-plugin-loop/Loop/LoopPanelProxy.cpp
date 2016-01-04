@@ -9,14 +9,8 @@ namespace Loop
 PanelProxy::PanelProxy(
         const Layer& lm,
         QObject* parent):
-    LayerModelPanelProxy{parent},
-    m_viewModel{lm}
+    GraphicsViewLayerModelPanelProxy{lm, parent}
 {
 
-}
-
-const Layer& PanelProxy::layer()
-{
-    return m_viewModel;
 }
 }

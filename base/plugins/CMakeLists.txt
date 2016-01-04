@@ -19,6 +19,7 @@ add_subdirectory(iscore-plugin-cohesion)
 
 add_subdirectory(iscore-plugin-js)
 add_subdirectory(iscore-plugin-space)
+add_subdirectory(iscore-plugin-autom3d)
 
 if(ISCORE_USE_DEV_PLUGINS)
   add_subdirectory(iscore-plugin-temporalautomatas)

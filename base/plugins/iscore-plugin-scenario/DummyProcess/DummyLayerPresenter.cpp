@@ -4,7 +4,8 @@
 #include "DummyLayerPresenter.hpp"
 #include "DummyLayerView.hpp"
 #include <Process/LayerPresenter.hpp>
-
+#include <iscore/document/DocumentInterface.hpp>
+#include <iscore/document/DocumentContext.hpp>
 class QMenu;
 class QObject;
 
@@ -15,10 +16,14 @@ DummyLayerPresenter::DummyLayerPresenter(
         QObject* parent):
     LayerPresenter{"DummyLayerPresenter", parent},
     m_layer{model},
-    m_view{view}
+    m_view{view},
+    m_focusDispatcher{iscore::IDocument::documentContext(model).document}
 {
     putToFront();
-
+    connect(view, &DummyLayerView::pressed,
+            this, [&] () {
+        m_focusDispatcher.focus(this);
+    });
 }
 
 void DummyLayerPresenter::setWidth(qreal val)

@@ -4,7 +4,7 @@
 #include <QString>
 
 #include <Device/Protocol/ProtocolFactoryInterface.hpp>
-#include <OSSIA/DocumentPlugin/ContextMenu/PlayContextMenuFactory.hpp>
+#include <OSSIA/Executor/ContextMenu/PlayContextMenuFactory.hpp>
 #include <OSSIA/OSSIAApplicationPlugin.hpp>
 
 #include <OSSIA/LocalTree/Scenario/ScenarioComponentFactory.hpp>
