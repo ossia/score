@@ -29,18 +29,21 @@ class DeviceList;
 namespace RecreateOnPlay
 {
 
-class AutomationElement final : public ProcessElement
+class AutomationElement final : public ProcessComponent
 {
     public:
         AutomationElement(
                 ConstraintElement& parentConstraint,
                 Automation::ProcessModel& element,
+                const Context& ctx,
+                const Id<iscore::Component>& id,
                 QObject* parent);
 
         std::shared_ptr<OSSIA::TimeProcess> OSSIAProcess() const override;
         Process::ProcessModel& iscoreProcess() const override;
 
     private:
+        const Key &key() const override;
         void recreate();
         OSSIA::Value::Type m_addressType{OSSIA::Value::Type(-1)};
 
@@ -55,6 +58,27 @@ class AutomationElement final : public ProcessElement
         Automation::ProcessModel& m_iscore_autom;
 
         const DeviceList& m_deviceList;
+};
+
+
+class AutomationComponentFactory final :
+        public ProcessComponentFactory
+{
+    public:
+        virtual ~AutomationComponentFactory();
+        virtual ProcessComponent* make(
+                ConstraintElement& cst,
+                Process::ProcessModel& proc,
+                const Context& ctx,
+                const Id<iscore::Component>& id,
+                QObject* parent) const override;
+
+        const factory_key_type& key_impl() const override;
+
+        bool matches(
+                Process::ProcessModel&,
+                const DocumentPlugin&,
+                const iscore::DocumentContext &) const override;
 };
 
 }

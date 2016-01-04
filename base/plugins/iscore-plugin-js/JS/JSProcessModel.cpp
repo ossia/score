@@ -19,17 +19,11 @@ class QObject;
 
 namespace JS
 {
-std::shared_ptr<ProcessExecutor> ProcessModel::makeProcess() const
-{
-    return std::make_shared<ProcessExecutor>(iscore::IDocument::documentFromObject(*this)->context().plugin<DeviceDocumentPlugin>());
-}
-
 ProcessModel::ProcessModel(
         const TimeValue& duration,
         const Id<Process::ProcessModel>& id,
         QObject* parent):
-    OSSIAProcessModel{duration, id, ProcessMetadata::processObjectName(), parent},
-    m_ossia_process{makeProcess()}
+    Process::ProcessModel{duration, id, ProcessMetadata::processObjectName(), parent}
 {
     pluginModelList = new iscore::ElementPluginModelList{
                       iscore::IDocument::documentContext(*parent),
@@ -47,8 +41,7 @@ ProcessModel::ProcessModel(
         const ProcessModel& source,
         const Id<Process::ProcessModel>& id,
         QObject* parent):
-    OSSIAProcessModel{source.duration(), id, ProcessMetadata::processObjectName(), parent},
-    m_ossia_process{makeProcess()},
+    Process::ProcessModel{source.duration(), id, ProcessMetadata::processObjectName(), parent},
     m_script{source.m_script}
 {
     pluginModelList = new iscore::ElementPluginModelList{
@@ -59,7 +52,6 @@ ProcessModel::ProcessModel(
 void ProcessModel::setScript(const QString& script)
 {
     m_script = script;
-    m_ossia_process->setTickFun(m_script);
     emit scriptChanged(script);
 }
 

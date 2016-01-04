@@ -22,7 +22,7 @@ SimpleProcessModel::SimpleProcessModel(
         const TimeValue& duration,
         const Id<ProcessModel>& id,
         QObject* parent):
-    OSSIAProcessModel{duration, id, "SimpleProcessModel", parent},
+    Process::ProcessModel{duration, id, "SimpleProcessModel", parent},
     m_ossia_process{std::make_shared<SimpleProcess>()}
 {
     pluginModelList = new iscore::ElementPluginModelList{

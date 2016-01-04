@@ -26,13 +26,14 @@ namespace RecreateOnPlay
 class ConstraintElement;
 
 // TODO see if this can be used for the base scenario model too.
-class LoopElement final : public ProcessElement
+class LoopElement final : public ProcessComponent
 {
     public:
         LoopElement(
                 ConstraintElement& parentConstraint,
                 Loop::ProcessModel& element,
                 const Context& ctx,
+                const Id<iscore::Component>& id,
                 QObject* parent);
 
         virtual ~LoopElement();
@@ -51,6 +52,7 @@ class LoopElement final : public ProcessElement
 
 
     private:
+        const Key &key() const override;
         const Context& m_ctx;
 
         ConstraintElement* m_ossia_constraint{};
@@ -66,5 +68,26 @@ class LoopElement final : public ProcessElement
 
         std::shared_ptr<OSSIA::Loop> m_ossia_loop;
         Loop::ProcessModel& m_iscore_loop;
+};
+
+
+class LoopComponentFactory final :
+        public ProcessComponentFactory
+{
+    public:
+        virtual ~LoopComponentFactory();
+        virtual ProcessComponent* make(
+                ConstraintElement& cst,
+                Process::ProcessModel& proc,
+                const Context& ctx,
+                const Id<iscore::Component>& id,
+                QObject* parent) const override;
+
+        const factory_key_type& key_impl() const override;
+
+        bool matches(
+                Process::ProcessModel&,
+                const DocumentPlugin&,
+                const iscore::DocumentContext &) const override;
 };
 }
