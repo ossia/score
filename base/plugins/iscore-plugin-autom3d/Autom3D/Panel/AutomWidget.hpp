@@ -15,7 +15,8 @@ class AutomWidget : public QWidget
         ~AutomWidget();
 
     public slots:
-        void updateCoords(vtkObject*);
+        void press(vtkObject*);
+        void release(vtkObject*);
 
     protected:
         QVTKWidget* m_widget{};
