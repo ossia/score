@@ -9,7 +9,7 @@
 class QPainter;
 class QStyleOptionGraphicsItem;
 class QWidget;
-class ScenarioBaseGraphicsView;
+class ProcessGraphicsView;
 
 class SceneGraduations final : public QGraphicsItem
 {
@@ -20,7 +20,7 @@ class SceneGraduations final : public QGraphicsItem
         void setSize(const QSizeF& s);
 
     public:
-        SceneGraduations(ScenarioBaseGraphicsView* view);
+        SceneGraduations(ProcessGraphicsView* view);
 
         QRectF boundingRect() const override;
         void paint(QPainter* painter, const QStyleOptionGraphicsItem* option, QWidget* widget) override;

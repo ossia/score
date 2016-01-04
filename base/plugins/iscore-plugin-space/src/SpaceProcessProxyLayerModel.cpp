@@ -23,7 +23,8 @@ void ProcessProxyLayerModel::serialize(const VisitorVariant &) const
 
 Process::LayerModelPanelProxy* ProcessProxyLayerModel::make_panelProxy(QObject *parent) const
 {
-    return new ProcessPanelProxy{m_source, parent};
+    auto lm = new ProcessProxyLayerModel(Id<Process::LayerModel>(), *this, nullptr);
+    return new ProcessPanelProxy{lm, parent};
 }
 
 }

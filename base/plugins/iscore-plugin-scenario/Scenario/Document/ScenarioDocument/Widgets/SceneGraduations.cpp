@@ -2,7 +2,7 @@
 #include <QPainter>
 #include <algorithm>
 
-#include "ScenarioBaseGraphicsView.hpp"
+#include <Process/Tools/ProcessGraphicsView.hpp>
 #include "SceneGraduations.hpp"
 
 class QStyleOptionGraphicsItem;
@@ -16,9 +16,9 @@ void SceneGraduations::setSize(const QSizeF& s)
 }
 
 
-SceneGraduations::SceneGraduations(ScenarioBaseGraphicsView* view)
+SceneGraduations::SceneGraduations(ProcessGraphicsView* view)
 {
-    QObject::connect(view, &ScenarioBaseGraphicsView::sizeChanged,
+    QObject::connect(view, &ProcessGraphicsView::sizeChanged,
                      [&] (const QSize& s) { setSize(s); });
 }
 

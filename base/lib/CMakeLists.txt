@@ -78,6 +78,7 @@ set(SRCS
 "${CMAKE_CURRENT_SOURCE_DIR}/iscore/statemachine/CommonSelectionState.cpp"
 "${CMAKE_CURRENT_SOURCE_DIR}/iscore/widgets/GraphicsItem.cpp"
 "${CMAKE_CURRENT_SOURCE_DIR}/iscore/widgets/ClearLayout.cpp"
+"${CMAKE_CURRENT_SOURCE_DIR}/iscore/widgets/DoubleSlider.cpp"
 
 "${CMAKE_CURRENT_SOURCE_DIR}/core/application/ApplicationInterface.cpp"
 "${CMAKE_CURRENT_SOURCE_DIR}/core/application/ApplicationRegistrar.cpp"

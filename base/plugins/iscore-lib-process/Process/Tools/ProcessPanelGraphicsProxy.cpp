@@ -7,8 +7,7 @@ namespace Process { class LayerModel; }
 class QStyleOptionGraphicsItem;
 class QWidget;
 
-ProcessPanelGraphicsProxy::ProcessPanelGraphicsProxy(const Process::LayerModel& lm,
-                                                     const ProcessPanelPresenter& pres)
+ProcessPanelGraphicsProxy::ProcessPanelGraphicsProxy()
 {
 }
 

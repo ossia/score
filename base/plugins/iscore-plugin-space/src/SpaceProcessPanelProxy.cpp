@@ -5,15 +5,12 @@
 namespace Space
 {
 ProcessPanelProxy::ProcessPanelProxy(
-        const Process::LayerModel &vm,
+        ProcessProxyLayerModel* vm,
         QObject *parent):
-    LayerModelPanelProxy{parent}
+    GraphicsViewLayerModelPanelProxy{*vm, parent},
+    m_layerImpl{vm}
 {
-    m_layer = new ProcessProxyLayerModel(Id<Process::LayerModel>(), vm, this);
+    m_layerImpl->setParent(this);
 }
 
-const Process::LayerModel& ProcessPanelProxy::layer()
-{
-    return *m_layer;
-}
 }

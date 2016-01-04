@@ -5,7 +5,7 @@
 #include <Scenario/Document/DisplayedElements/DisplayedElementsToolPalette/DisplayedElementsToolPaletteFactoryList.hpp>
 #include <Scenario/Document/ScenarioDocument/ScenarioDocumentModel.hpp>
 #include <Scenario/Document/ScenarioDocument/ScenarioDocumentView.hpp>
-#include <Scenario/Document/ScenarioDocument/Widgets/DoubleSlider.hpp>
+#include <iscore/widgets/DoubleSlider.hpp>
 #include <Scenario/Document/TimeRuler/MainTimeRuler/TimeRulerPresenter.hpp>
 #include <Scenario/Document/TimeRuler/MainTimeRuler/TimeRulerView.hpp>
 #include <iscore/application/ApplicationContext.hpp>
@@ -23,7 +23,7 @@
 #include <Scenario/Document/DisplayedElements/DisplayedElementsModel.hpp>
 #include <Scenario/Document/DisplayedElements/DisplayedElementsPresenter.hpp>
 #include <Scenario/Document/ScenarioDocument/ProcessFocusManager.hpp>
-#include <Scenario/Document/ScenarioDocument/Widgets/ScenarioBaseGraphicsView.hpp>
+#include <Process/Tools/ProcessGraphicsView.hpp>
 #include "ScenarioDocumentPresenter.hpp"
 #include "ZoomPolicy.hpp"
 #include <iscore/document/DocumentContext.hpp>
@@ -77,9 +77,9 @@ ScenarioDocumentPresenter::ScenarioDocumentPresenter(DocumentPresenter* parent_p
         this,                            &ScenarioDocumentPresenter::on_newSelection);
     con(view(), &ScenarioDocumentView::horizontalZoomChanged,
         this,   &ScenarioDocumentPresenter::on_zoomSliderChanged);
-    con(view().view(), &ScenarioBaseGraphicsView::sizeChanged,
+    con(view().view(), &ProcessGraphicsView::sizeChanged,
         this,          &ScenarioDocumentPresenter::on_viewSizeChanged);
-    con(view().view(), &ScenarioBaseGraphicsView::zoom,
+    con(view().view(), &ProcessGraphicsView::zoom,
         this,          &ScenarioDocumentPresenter::on_zoomOnWheelEvent);
     con(view(), &ScenarioDocumentView::horizontalPositionChanged,
         this,   &ScenarioDocumentPresenter::on_horizontalPositionChanged);
