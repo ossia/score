@@ -1,0 +1,6 @@
+<RCC>
+    <qresource prefix="/">
+        <file>Autom3DColors.json</file>
+        <file>Autom3DColors-IEEE.json</file>
+    </qresource>
+</RCC>
