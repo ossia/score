@@ -1,5 +1,6 @@
 #pragma once
 #include <OSSIA/Executor/ProcessModel/ProcessModel.hpp>
+#include <Process/Process.hpp>
 #include <QByteArray>
 #include <QString>
 #include <memory>
@@ -20,7 +21,7 @@ class TimeProcessWithConstraint;
 #include <iscore/tools/SettableIdentifier.hpp>
 
 
-class SimpleProcessModel final : public RecreateOnPlay::OSSIAProcessModel
+class SimpleProcessModel final : public Process::ProcessModel
 {
         ISCORE_SERIALIZE_FRIENDS(SimpleProcessModel, DataStream)
         ISCORE_SERIALIZE_FRIENDS(SimpleProcessModel, JSONObject)
@@ -40,7 +41,7 @@ class SimpleProcessModel final : public RecreateOnPlay::OSSIAProcessModel
         explicit SimpleProcessModel(
                 Deserializer<Impl>& vis,
                 QObject* parent) :
-            OSSIAProcessModel{vis, parent},
+            Process::ProcessModel{vis, parent},
             m_ossia_process{std::make_shared<SimpleProcess>()}
         {
             vis.writeTo(*this);
@@ -76,12 +77,6 @@ class SimpleProcessModel final : public RecreateOnPlay::OSSIAProcessModel
         void setSelection(const Selection& s) const override;
 
         void serialize(const VisitorVariant& vis) const override;
-
-        // OSSIAProcessModel interface
-        std::shared_ptr<TimeProcessWithConstraint> process() const override
-        {
-            return m_ossia_process;
-        }
 
     protected:
         Process::LayerModel* makeLayer_impl(

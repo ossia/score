@@ -19,7 +19,7 @@ namespace RecreateOnPlay
 
 class BaseScenarioElement;
 
-class DocumentPlugin final : public iscore::DocumentPluginModel
+class ISCORE_PLUGIN_OSSIA_EXPORT DocumentPlugin final : public iscore::DocumentPluginModel
 {
         ISCORE_METADATA(RecreateOnPlay::DocumentPlugin)
     public:

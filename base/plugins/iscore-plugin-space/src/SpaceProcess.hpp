@@ -36,7 +36,7 @@ struct ProcessMetadata
 };
 
 
-class ProcessModel : public RecreateOnPlay::OSSIAProcessModel
+class ProcessModel : public Process::ProcessModel
 {
         Q_OBJECT
     public:
@@ -89,11 +89,8 @@ class ProcessModel : public RecreateOnPlay::OSSIAProcessModel
 
         void startExecution() override;
         void stopExecution() override;
-        std::shared_ptr<TimeProcessWithConstraint> process() const override;
 
         SpaceModel* m_space{};
         Space::AreaContext m_context;
-        std::shared_ptr<Space::Executor::ProcessExecutor> m_process;
-
 };
 }

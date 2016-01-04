@@ -28,7 +28,7 @@
 #if defined(ISCORE_PLUGIN_MAPPING)
 #include <Mapping/MappingModel.hpp>
 
-#include "OSSIAMappingElement.hpp"
+#include "MappingElement.hpp"
 #endif
 namespace RecreateOnPlay
 {
@@ -141,32 +141,6 @@ void ConstraintElement::on_processAdded(
                                ));
         }
     }
-    /*
-    if(auto scenar = dynamic_cast<Scenario::ScenarioModel*>(proc))
-    {
-        plug = new ScenarioElement{*this, *scenar, proc};
-    }
-    else if(auto autom = dynamic_cast<Automation::ProcessModel*>(proc))
-    {
-        plug = new AutomationElement{*this, *autom, proc};
-    }
-#if defined(ISCORE_PLUGIN_MAPPING)
-    else if(auto mapping = dynamic_cast<MappingModel*>(proc))
-    {
-        plug = new MappingElement{*this, *mapping, proc};
-    }
-#endif
-#if defined(ISCORE_PLUGIN_LOOP)
-    else if(auto process = dynamic_cast<Loop::ProcessModel*>(proc))
-    {
-        plug = new LoopElement{*this, *process, proc};
-    }
-#endif
-    else if(auto generic = dynamic_cast<RecreateOnPlay::OSSIAProcessModel*>(proc))
-    {
-        plug = new ProcessModelElement{*this, *generic, proc};
-    }
-    */
 }
 
 void ConstraintElement::constraintCallback(

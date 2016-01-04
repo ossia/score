@@ -24,6 +24,8 @@
 #include <iscore/plugins/customfactory/StringFactoryKey.hpp>
 #include <OSSIA/iscore2OSSIA.hpp>
 
+#include <OSSIA/Executor/ExecutorContext.hpp>
+#include <OSSIA/Executor/DocumentPlugin.hpp>
 namespace Process { class ProcessModel; }
 class QObject;
 namespace OSSIA {
@@ -31,6 +33,7 @@ class TimeProcess;
 }  // namespace OSSIA
 namespace RecreateOnPlay {
 class ConstraintElement;
+
 }  // namespace RecreateOnPlay
 
 
@@ -41,10 +44,12 @@ namespace RecreateOnPlay
 AutomationElement::AutomationElement(
         ConstraintElement& parentConstraint,
         Automation::ProcessModel& element,
+        const Context& ctx,
+        const Id<iscore::Component>& id,
         QObject *parent):
-    ProcessElement{parentConstraint, parent},
+    ProcessComponent{parentConstraint, element, id, "AutomationComponent", parent},
     m_iscore_autom{element},
-    m_deviceList{iscore::IDocument::documentContext(element).plugin<DeviceDocumentPlugin>().list()}
+    m_deviceList{ctx.devices}
 {
     recreate();
 }
@@ -59,18 +64,18 @@ Process::ProcessModel& AutomationElement::iscoreProcess() const
     return m_iscore_autom;
 }
 
+const iscore::Component::Key& AutomationElement::key() const
+{
+    static iscore::Component::Key k("OSSIAAutomationElement");
+    return k;
+}
+
 void AutomationElement::recreate()
 {
     auto addr = m_iscore_autom.address();
-    std::shared_ptr<OSSIA::Automation> new_autom;
     std::shared_ptr<OSSIA::Address> address;
     OSSIA::Node* node{};
     OSSIADevice* dev{};
-    // The updating routine
-    auto update_fun = [&] (auto new_autom_param) {
-        auto old_autom = m_ossia_autom;
-        m_ossia_autom = new_autom_param;
-    };
 
     m_ossia_curve.reset(); // It will be remade after.
 
@@ -108,16 +113,15 @@ void AutomationElement::recreate()
         goto curve_cleanup_label;
 
     // TODO on_min/max changed
-    new_autom = OSSIA::Automation::create(
+    m_ossia_autom = OSSIA::Automation::create(
                 address,
                 new Behavior(m_ossia_curve));
 
-    update_fun(new_autom);
 
     return;
 
 curve_cleanup_label:
-    update_fun(std::shared_ptr<OSSIA::Automation>{}); // Cleanup
+    m_ossia_autom.reset(); // Cleanup
     return;
 }
 
@@ -162,4 +166,42 @@ std::shared_ptr<OSSIA::CurveAbstract> AutomationElement::on_curveChanged()
 
     return m_ossia_curve;
 }
+
+
+
+AutomationComponentFactory::~AutomationComponentFactory()
+{
+
+}
+
+ProcessComponent* AutomationComponentFactory::make(
+        ConstraintElement& cst,
+        Process::ProcessModel& proc,
+        const Context& ctx,
+        const Id<iscore::Component>& id,
+        QObject* parent) const
+{
+
+    return new AutomationElement{
+                cst,
+                static_cast<Automation::ProcessModel&>(proc),
+                ctx, id, parent};
+
+}
+
+const AutomationComponentFactory::factory_key_type&
+AutomationComponentFactory::key_impl() const
+{
+    static AutomationComponentFactory::factory_key_type k("OSSIAAutomationElement");
+    return k;
+}
+
+bool AutomationComponentFactory::matches(
+        Process::ProcessModel& proc,
+        const DocumentPlugin&,
+        const iscore::DocumentContext&) const
+{
+    return dynamic_cast<Automation::ProcessModel*>(&proc);
+}
+
 }
