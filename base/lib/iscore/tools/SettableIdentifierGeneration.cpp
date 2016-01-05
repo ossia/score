@@ -6,7 +6,6 @@
 
 namespace iscore
 {
-#define ISCORE_VALGRIND_IDS
 #ifdef ISCORE_VALGRIND_IDS
 int32_t random_id_generator::getRandomId()
 {
