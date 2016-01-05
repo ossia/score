@@ -24,22 +24,21 @@ class SimpleStateProcess : public OSSIA::StateElement
         }
 };
 
-class SimpleStateProcessModel : public RecreateOnPlay::OSSIAStateProcessModel
+class SimpleStateProcessModel : public Process::StateProcess
 {
     public:
         explicit SimpleStateProcessModel(
                 const Id<StateProcess>& id,
                 QObject* parent):
-            RecreateOnPlay::OSSIAStateProcessModel{id, "toto", parent}
+            Process::StateProcess{id, "toto", parent}
         {
-            m_ossia_state = std::make_shared<SimpleStateProcess>();
         }
 
         explicit SimpleStateProcessModel(
                 const SimpleStateProcessModel& source,
                 const Id<StateProcess>& id,
                 QObject* parent):
-            RecreateOnPlay::OSSIAStateProcessModel{id, "toto", parent}
+            Process::StateProcess{id, "toto", parent}
         {
 
         }
@@ -48,8 +47,7 @@ class SimpleStateProcessModel : public RecreateOnPlay::OSSIAStateProcessModel
         explicit SimpleStateProcessModel(
                 Deserializer<Impl>& vis,
                 QObject* parent) :
-            RecreateOnPlay::OSSIAStateProcessModel{vis, parent},
-            m_ossia_state{std::make_shared<SimpleStateProcess>()}
+            Process::StateProcess{vis, parent}
         {
             vis.writeTo(*this);
         }
@@ -76,11 +74,4 @@ class SimpleStateProcessModel : public RecreateOnPlay::OSSIAStateProcessModel
             return "toto";
         }
 
-        std::shared_ptr<OSSIA::StateElement> state() const override
-        {
-            return m_ossia_state;
-        }
-
-    private:
-        std::shared_ptr<OSSIA::StateElement> m_ossia_state;
 };

@@ -1,7 +1,9 @@
 #pragma once
 #include <iscore/plugins/documentdelegate/plugin/DocumentDelegatePluginModel.hpp>
 #include <memory>
+#include <iscore/tools/Metadata.hpp>
 #include <iscore_plugin_ossia_export.h>
+#include <OSSIA/Executor/ExecutorContext.hpp>
 class QObject;
 namespace iscore {
 class Document;
@@ -17,8 +19,9 @@ namespace RecreateOnPlay
 
 class BaseScenarioElement;
 
-class DocumentPlugin final : public iscore::DocumentPluginModel
+class ISCORE_PLUGIN_OSSIA_EXPORT DocumentPlugin final : public iscore::DocumentPluginModel
 {
+        ISCORE_METADATA(RecreateOnPlay::DocumentPlugin)
     public:
         DocumentPlugin(iscore::Document& doc, QObject* parent);
 
@@ -28,7 +31,8 @@ class DocumentPlugin final : public iscore::DocumentPluginModel
 
         BaseScenarioElement* baseScenario() const;
 
-private:
+    private:
+        Context m_ctx;
         std::unique_ptr<BaseScenarioElement> m_base{};
 };
 }

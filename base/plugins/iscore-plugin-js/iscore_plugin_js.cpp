@@ -10,6 +10,7 @@
 #include <iscore_plugin_js_commands_files.hpp>
 #include <iscore/plugins/customfactory/FactoryFamily.hpp>
 #include <iscore/plugins/customfactory/FactorySetup.hpp>
+#include <OSSIA/Executor/DocumentPlugin.hpp>
 
 iscore_plugin_js::iscore_plugin_js() :
     QObject {}
@@ -26,7 +27,9 @@ std::vector<std::unique_ptr<iscore::FactoryInterfaceBase>> iscore_plugin_js::fac
         FW<Process::ProcessFactory,
              JS::ProcessFactory>,
         FW<ProcessInspectorWidgetDelegateFactory,
-             JS::InspectorFactory>
+             JS::InspectorFactory>,
+        FW<RecreateOnPlay::ProcessComponentFactory,
+             JS::Executor::ProcessComponentFactory>
     >>(ctx, key);
 }
 

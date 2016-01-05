@@ -57,7 +57,7 @@ class ISCORE_PLUGIN_SCENARIO_EXPORT ScenarioDocumentModel final :
 
     signals:
         void focusMe();
-        void setFocusedPresenter(Process::LayerPresenter*);
+        void setFocusedPresenter(QPointer<Process::LayerPresenter>);
         void displayedConstraintChanged();
 
     private:

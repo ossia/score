@@ -26,7 +26,7 @@ class ISCORE_LIB_DUMMYPROCESS_EXPORT DummyLayerView final : public Process::Laye
 
     private:
         void paint_impl(QPainter*) const override;
-        void mousePressEvent(QGraphicsSceneMouseEvent*);
+        void mousePressEvent(QGraphicsSceneMouseEvent*) override;
         QString m_text;
         //QQuickWidget* m_widg{};
 };

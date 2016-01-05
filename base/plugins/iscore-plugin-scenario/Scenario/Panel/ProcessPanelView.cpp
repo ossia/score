@@ -16,7 +16,8 @@ ProcessPanelView::ProcessPanelView(QObject* parent):
 void ProcessPanelView::setInnerWidget(QWidget* widg)
 {
     iscore::clearLayout(m_lay);
-    m_lay->addWidget(widg);
+    if(widg)
+        m_lay->addWidget(widg);
 }
 
 QWidget* ProcessPanelView::getWidget()

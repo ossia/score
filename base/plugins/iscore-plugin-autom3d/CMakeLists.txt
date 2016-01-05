@@ -35,6 +35,10 @@ set(SRCS
 "${CMAKE_CURRENT_SOURCE_DIR}/Autom3D/Commands/ChangeAddress.cpp"
 "${CMAKE_CURRENT_SOURCE_DIR}/Autom3D/Commands/Autom3DCommandFactory.cpp"
 
+"${CMAKE_CURRENT_SOURCE_DIR}/Autom3D/Executor/Executor.cpp"
+"${CMAKE_CURRENT_SOURCE_DIR}/Autom3D/Executor/Component.cpp"
+"${CMAKE_CURRENT_SOURCE_DIR}/Autom3D/Executor/ComponentFactory.cpp"
+
 "${CMAKE_CURRENT_SOURCE_DIR}/Autom3D/State/Autom3DState.cpp"
 
 "${CMAKE_CURRENT_SOURCE_DIR}/Autom3D/Panel/AutomWidget.cpp"
@@ -74,7 +78,7 @@ iscore_generate_command_list_file(${PROJECT_NAME} "${HDRS}")
 
 target_link_libraries(${PROJECT_NAME}
                      Qt5::Core Qt5::Widgets
-                     iscore_lib_base iscore_plugin_deviceexplorer iscore_lib_process iscore_lib_state iscore_lib_dummyprocess
+                     iscore_lib_base iscore_plugin_deviceexplorer iscore_lib_process iscore_lib_state iscore_plugin_ossia
                      ${VTK_LIBRARIES} )
 
 if(TARGET iscore_lib_inspector)

@@ -22,6 +22,8 @@
 #endif
 #include <iscore_plugin_autom3d_commands_files.hpp>
 #include <Autom3D/Autom3DFactory.hpp>
+#include <Autom3D/Executor/ComponentFactory.hpp>
+#include <OSSIA/Executor/DocumentPlugin.hpp>
 
 iscore_plugin_autom3D::iscore_plugin_autom3D() :
     QObject {}
@@ -43,7 +45,9 @@ std::vector<std::unique_ptr<iscore::FactoryInterfaceBase>> iscore_plugin_autom3D
              Autom3D::StateInspectorFactory>,
 #endif
         FW<ProcessInspectorWidgetDelegateFactory,
-             Autom3D::InspectorFactory>
+             Autom3D::InspectorFactory>,
+        FW<RecreateOnPlay::ProcessComponentFactory,
+             Autom3D::Executor::ProcessComponentFactory>
     >>(ctx, key);
 }
 

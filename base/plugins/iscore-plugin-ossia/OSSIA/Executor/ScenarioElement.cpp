@@ -16,6 +16,7 @@
 #include <OSSIA/Executor/ConstraintElement.hpp>
 #include <OSSIA/Executor/EventElement.hpp>
 #include <OSSIA/Executor/ProcessElement.hpp>
+#include <OSSIA/Executor/DocumentPlugin.hpp>
 #include <OSSIA/Executor/StateElement.hpp>
 #include <OSSIA/Executor/TimeNodeElement.hpp>
 #include <Scenario/Document/Constraint/ConstraintDurations.hpp>
@@ -28,6 +29,7 @@
 #include <iscore/tools/IdentifiedObjectMap.hpp>
 #include <iscore/tools/NotifyingMap.hpp>
 #include <iscore/tools/SettableIdentifier.hpp>
+#include <OSSIA/Executor/ExecutorContext.hpp>
 
 namespace Process { class ProcessModel; }
 class QObject;
@@ -41,56 +43,41 @@ namespace RecreateOnPlay
 ScenarioElement::ScenarioElement(
         ConstraintElement& parentConstraint,
         Scenario::ScenarioModel& element,
+        const Context& ctx,
+        const Id<iscore::Component>& id,
         QObject* parent):
-    ProcessElement{parentConstraint, parent},
-    m_iscore_scenario{element},
-    m_deviceList{iscore::IDocument::documentFromObject(element)->context().plugin<DeviceDocumentPlugin>().list()}
+    ProcessComponent{parentConstraint, element, id, "ScenarioComponent", parent},
+    m_ctx{ctx}
 {
     this->setObjectName("OSSIAScenarioElement");
 
     // Setup of the OSSIA API Part
-    m_ossia_scenario = OSSIA::Scenario::create();
+    m_ossia_process = OSSIA::Scenario::create();
 
     // Create elements for the existing stuff. (e.g. start/ end timenode / event)
-    for(const auto& timenode : m_iscore_scenario.timeNodes)
+    for(const auto& timenode : element.timeNodes)
     {
         on_timeNodeCreated(timenode);
     }
-    for(const auto& event : m_iscore_scenario.events)
+    for(const auto& event : element.events)
     {
         on_eventCreated(event);
     }
-    for(const auto& state : m_iscore_scenario.states)
+    for(const auto& state : element.states)
     {
         on_stateCreated(state);
     }
-    for(const auto& constraint : m_iscore_scenario.constraints)
+    for(const auto& constraint : element.constraints)
     {
         on_constraintCreated(constraint);
     }
 }
 
-std::shared_ptr<OSSIA::Scenario> ScenarioElement::scenario() const
-{
-    return m_ossia_scenario;
-}
-
-Process::ProcessModel& ScenarioElement::iscoreProcess() const
-{
-    return m_iscore_scenario;
-}
-
 void ScenarioElement::stop()
 {
     m_executingConstraints.clear();
-    ProcessElement::stop();
+    ProcessComponent::stop();
 }
-
-std::shared_ptr<OSSIA::TimeProcess> ScenarioElement::OSSIAProcess() const
-{
-    return scenario();
-}
-
 
 static void ScenarioConstraintCallback(const OSSIA::TimeValue&,
                                const OSSIA::TimeValue&,
@@ -102,12 +89,14 @@ static void ScenarioConstraintCallback(const OSSIA::TimeValue&,
 
 void ScenarioElement::on_constraintCreated(const ConstraintModel& const_constraint)
 {
+    auto& iscore_scenario = static_cast<Scenario::ScenarioModel&>(m_iscore_process);
+    auto& ossia_scenario = dynamic_cast<OSSIA::Scenario&>(*m_ossia_process.get());
     auto& cst = const_cast<ConstraintModel&>(const_constraint);
     // TODO have a ConstraintPlayAspect to prevent this const_cast.
-    ISCORE_ASSERT(m_ossia_timeevents.find(m_iscore_scenario.state(cst.startState()).eventId()) != m_ossia_timeevents.end());
-    auto& ossia_sev = m_ossia_timeevents.at(m_iscore_scenario.state(cst.startState()).eventId());
-    ISCORE_ASSERT(m_ossia_timeevents.find(m_iscore_scenario.state(cst.endState()).eventId()) != m_ossia_timeevents.end());
-    auto& ossia_eev = m_ossia_timeevents.at(m_iscore_scenario.state(cst.endState()).eventId());
+    ISCORE_ASSERT(m_ossia_timeevents.find(iscore_scenario.state(cst.startState()).eventId()) != m_ossia_timeevents.end());
+    auto& ossia_sev = m_ossia_timeevents.at(iscore_scenario.state(cst.startState()).eventId());
+    ISCORE_ASSERT(m_ossia_timeevents.find(iscore_scenario.state(cst.endState()).eventId()) != m_ossia_timeevents.end());
+    auto& ossia_eev = m_ossia_timeevents.at(iscore_scenario.state(cst.endState()).eventId());
 
     auto ossia_cst = OSSIA::TimeConstraint::create(
                 ScenarioConstraintCallback,
@@ -118,10 +107,10 @@ void ScenarioElement::on_constraintCreated(const ConstraintModel& const_constrai
                 iscore::convert::time(cst.duration.maxDuration()));
 
 
-    m_ossia_scenario->addTimeConstraint(ossia_cst);
+    ossia_scenario.addTimeConstraint(ossia_cst);
 
     // Create the mapping object
-    auto elt = new ConstraintElement{ossia_cst, cst, this};
+    auto elt = new ConstraintElement{ossia_cst, cst, m_ctx, this};
     m_ossia_constraints.insert({cst.id(), elt});
 }
 
@@ -137,7 +126,7 @@ void ScenarioElement::on_stateCreated(const StateModel &iscore_state)
     auto state_elt = new StateElement{
             iscore_state,
             root_state,
-            m_deviceList,
+            m_ctx.devices.list(),
             this};
 
     m_ossia_states.insert({iscore_state.id(), state_elt});
@@ -155,7 +144,7 @@ void ScenarioElement::on_eventCreated(const EventModel& const_ev)
                 OSSIA::TimeEvent::ExecutionCallback{});
 
     // Create the mapping object
-    auto elt = new EventElement{ossia_ev, ev, m_deviceList, this};
+    auto elt = new EventElement{ossia_ev, ev, m_ctx.devices.list(), this};
     m_ossia_timeevents.insert({ev.id(), elt});
 
     elt->OSSIAEvent()->setCallback([=] (OSSIA::TimeEvent::Status st) {
@@ -165,29 +154,32 @@ void ScenarioElement::on_eventCreated(const EventModel& const_ev)
 
 void ScenarioElement::on_timeNodeCreated(const TimeNodeModel& tn)
 {
+    auto& iscore_scenario = static_cast<Scenario::ScenarioModel&>(m_iscore_process);
+    auto& ossia_scenario = dynamic_cast<OSSIA::Scenario&>(*m_ossia_process.get());
     std::shared_ptr<OSSIA::TimeNode> ossia_tn;
-    if(&tn == &m_iscore_scenario.startTimeNode())
+    if(&tn == &iscore_scenario.startTimeNode())
     {
-        ossia_tn = m_ossia_scenario->getStartTimeNode();
+        ossia_tn = ossia_scenario.getStartTimeNode();
     }
-    else if(&tn == &m_iscore_scenario.endTimeNode())
+    else if(&tn == &iscore_scenario.endTimeNode())
     {
-        ossia_tn = m_ossia_scenario->getEndTimeNode();
+        ossia_tn = ossia_scenario.getEndTimeNode();
     }
     else
     {
         ossia_tn = OSSIA::TimeNode::create();
-        m_ossia_scenario->addTimeNode(ossia_tn);
+        ossia_scenario.addTimeNode(ossia_tn);
     }
 
     // Create the mapping object
-    auto elt = new TimeNodeElement{ossia_tn, tn, m_deviceList, this};
+    auto elt = new TimeNodeElement{ossia_tn, tn, m_ctx.devices.list(), this};
     m_ossia_timenodes.insert({tn.id(), elt});
 }
 
 void ScenarioElement::startConstraintExecution(const Id<ConstraintModel>& id)
 {
-    auto& cst = m_iscore_scenario.constraints.at(id);
+    auto& iscore_scenario = static_cast<Scenario::ScenarioModel&>(m_iscore_process);
+    auto& cst = iscore_scenario.constraints.at(id);
     if(m_executingConstraints.find(id) == m_executingConstraints.end())
         m_executingConstraints.insert(&cst);
 
@@ -204,12 +196,13 @@ void ScenarioElement::eventCallback(
         EventElement& ev,
         OSSIA::TimeEvent::Status newStatus)
 {
+    auto& iscore_scenario = static_cast<Scenario::ScenarioModel&>(m_iscore_process);
     auto the_event = const_cast<EventModel*>(&ev.iscoreEvent());
     the_event->setStatus(static_cast<ExecutionStatus>(newStatus));
 
     for(auto& state : the_event->states())
     {
-        auto& iscore_state = m_iscore_scenario.states.at(state);
+        auto& iscore_state = iscore_scenario.states.at(state);
 
         switch(newStatus)
         {
@@ -244,4 +237,40 @@ void ScenarioElement::eventCallback(
         }
     }
 }
+
+const iscore::Component::Key &ScenarioElement::key() const
+{
+    static iscore::Component::Key k("OSSIAScenarioElement");
+    return k;
+}
+
+ScenarioComponentFactory::~ScenarioComponentFactory()
+{
+
+}
+
+ProcessComponent *ScenarioComponentFactory::make(
+        ConstraintElement &cst,
+        Process::ProcessModel &proc,
+        const Context& ctx,
+        const Id<iscore::Component> &id,
+        QObject *parent) const
+{
+    return new ScenarioElement{cst, static_cast<Scenario::ScenarioModel&>(proc), ctx, id, parent};
+}
+
+const ScenarioComponentFactory::factory_key_type& ScenarioComponentFactory::key_impl() const
+{
+    static ScenarioComponentFactory::factory_key_type k("OSSIAScenarioElement");
+    return k;
+}
+
+bool ScenarioComponentFactory::matches(
+        Process::ProcessModel& proc,
+        const DocumentPlugin &,
+        const iscore::DocumentContext &) const
+{
+    return dynamic_cast<Scenario::ScenarioModel*>(&proc);
+}
+
 }

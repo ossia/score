@@ -1,13 +1,14 @@
 #include <Explorer/DocumentPlugin/DeviceDocumentPlugin.hpp>
 #include <OSSIA/OSSIA2iscore.hpp>
 #include <OSSIA/iscore2OSSIA.hpp>
+#include <OSSIA/Executor/DocumentPlugin.hpp>
 #include <vector>
 
 #include "Editor/Message.h"
 #include "Editor/State.h"
 #include "JSAPIWrapper.hpp"
 #include "JSProcess.hpp"
-
+#include <JS/JSProcessModel.hpp>
 namespace OSSIA {
 class StateElement;
 }  // namespace OSSIA
@@ -15,7 +16,9 @@ class StateElement;
 
 namespace JS
 {
-ProcessExecutor::ProcessExecutor(DeviceDocumentPlugin& devices):
+namespace Executor
+{
+ProcessExecutor::ProcessExecutor(const DeviceDocumentPlugin& devices):
     m_devices{devices.list()},
     m_start{OSSIA::State::create()},
     m_end{OSSIA::State::create()}
@@ -54,5 +57,56 @@ std::shared_ptr<OSSIA::StateElement> ProcessExecutor::state(
 
     // 3. Convert our value back
     return st;
+}
+
+ProcessComponent::ProcessComponent(
+        RecreateOnPlay::ConstraintElement& parentConstraint,
+        JS::ProcessModel& element,
+        const RecreateOnPlay::Context& ctx,
+        const Id<iscore::Component>& id,
+        QObject* parent):
+    RecreateOnPlay::ProcessComponent{parentConstraint, element, id, "JSComponent", parent}
+{
+    auto proc = std::make_shared<ProcessExecutor>(ctx.devices);
+    proc->setTickFun(element.script());
+    m_ossia_process = proc;
+}
+
+const iscore::Component::Key& ProcessComponent::key() const
+{
+    static iscore::Component::Key k("JSComponent");
+    return k;
+}
+
+ProcessComponentFactory::~ProcessComponentFactory()
+{
+
+}
+
+RecreateOnPlay::ProcessComponent* ProcessComponentFactory::make(
+        RecreateOnPlay::ConstraintElement& cst,
+        Process::ProcessModel& proc,
+        const RecreateOnPlay::Context& ctx,
+        const Id<iscore::Component>& id,
+        QObject* parent) const
+{
+    return new ProcessComponent{cst, static_cast<JS::ProcessModel&>(proc), ctx, id, parent};
+}
+
+const ProcessComponentFactory::factory_key_type&
+ProcessComponentFactory::key_impl() const
+{
+    static factory_key_type k("JSComponent");
+    return k;
+}
+
+bool ProcessComponentFactory::matches(
+        Process::ProcessModel& proc,
+        const RecreateOnPlay::DocumentPlugin&,
+        const iscore::DocumentContext&) const
+{
+    return dynamic_cast<JS::ProcessModel*>(&proc);
+}
+
 }
 }

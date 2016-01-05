@@ -6,7 +6,7 @@ namespace Process { class ProcessModel; }
 
 namespace RecreateOnPlay
 {
-class ProcessElement;
+class ProcessComponent;
 using ProcessWrapper = LoopingProcessWrapper;
 
 struct OSSIAProcess
@@ -15,14 +15,14 @@ struct OSSIAProcess
         OSSIAProcess(OSSIAProcess&&) = default;
         OSSIAProcess& operator=(OSSIAProcess&&) = default;
 
-        OSSIAProcess(ProcessElement* e, std::unique_ptr<ProcessWrapper>&& proc):
+        OSSIAProcess(ProcessComponent* e, std::unique_ptr<ProcessWrapper>&& proc):
             element(e),
             wrapper(std::move(proc))
         {
 
         }
 
-        ProcessElement* element{};
+        ProcessComponent* element{};
         std::unique_ptr<ProcessWrapper> wrapper;
 };
 }

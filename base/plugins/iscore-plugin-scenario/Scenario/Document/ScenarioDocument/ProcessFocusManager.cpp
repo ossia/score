@@ -23,7 +23,7 @@ LayerPresenter* ProcessFocusManager::focusedPresenter() const
 }
 
 
-void ProcessFocusManager::focus(LayerPresenter* p)
+void ProcessFocusManager::focus(QPointer<Process::LayerPresenter> p)
 {
     if(p == m_currentPresenter)
         return;
@@ -46,6 +46,8 @@ void ProcessFocusManager::focus(LayerPresenter* p)
 
         emit sig_focusedViewModel(m_currentViewModel);
 
+        m_deathConnection = connect(m_currentViewModel, &IdentifiedObjectAbstract::identified_object_destroyed,
+                              this, &ProcessFocusManager::focusNothing);
         focusPresenter(m_currentPresenter);
     }
     else
@@ -82,6 +84,7 @@ void ProcessFocusManager::focusPresenter(LayerPresenter* p)
 void ProcessFocusManager::defocusPresenter(LayerPresenter* p)
 {
     p->setFocus(false);
+    m_deathConnection = QMetaObject::Connection{};
     emit sig_defocusedPresenter(p);
 }
 }

@@ -426,10 +426,13 @@ std::shared_ptr<OSSIA::State> state(
 
     for(const auto& proc : iscore_state.stateProcesses)
     {
+        // TODO Provide factoriesfor OSSIA State processes
+        /*
         if(auto state_proc = dynamic_cast<const RecreateOnPlay::OSSIAStateProcessModel*>(&proc))
         {
             elts.push_back(state_proc->state());
         }
+        */
     }
 
     return ossia_state;

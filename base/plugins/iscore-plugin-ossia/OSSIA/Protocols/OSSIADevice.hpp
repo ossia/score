@@ -11,6 +11,7 @@
 #include <Device/Node/DeviceNode.hpp>
 #include "Misc/CallbackContainer.h"
 #include <State/Address.hpp>
+#include <iscore_plugin_ossia_export.h>
 
 namespace Device {
 struct DeviceSettings;
@@ -27,7 +28,7 @@ namespace OSSIA
     class Device;
 }
 
-class OSSIADevice : public DeviceInterface
+class ISCORE_PLUGIN_OSSIA_EXPORT OSSIADevice : public DeviceInterface
 {
     public:
         virtual ~OSSIADevice();
