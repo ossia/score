@@ -12,7 +12,8 @@ ProcessComponent::ProcessComponent(
             const QString &name,
             QObject *parent):
     iscore::Component{id, name, parent},
-    m_parent_constraint{cst}
+    m_parent_constraint{cst},
+    m_iscore_process{proc}
 {
 
 }

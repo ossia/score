@@ -47,9 +47,6 @@ class ScenarioElement final : public ProcessComponent
                 const Id<iscore::Component>& id,
                 QObject* parent);
 
-        std::shared_ptr<OSSIA::TimeProcess> OSSIAProcess() const override;
-        std::shared_ptr<OSSIA::Scenario> scenario() const;
-
         const auto& states() const
         { return m_ossia_states; }
         const auto& constraints() const
@@ -58,8 +55,6 @@ class ScenarioElement final : public ProcessComponent
         { return m_ossia_timeevents; }
         const auto& timeNodes() const
         { return m_ossia_timenodes; }
-
-        Process::ProcessModel& iscoreProcess() const override;
 
         void stop() override;
 
@@ -83,8 +78,6 @@ class ScenarioElement final : public ProcessComponent
         std::map<Id<StateModel>, StateElement*> m_ossia_states;
         std::map<Id<TimeNodeModel>, TimeNodeElement*> m_ossia_timenodes;
         std::map<Id<EventModel>, EventElement*> m_ossia_timeevents;
-        std::shared_ptr<OSSIA::Scenario> m_ossia_scenario;
-        Scenario::ScenarioModel& m_iscore_scenario;
 
         IdContainer<ConstraintModel> m_executingConstraints;
 

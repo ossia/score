@@ -35,23 +35,10 @@ MappingElement::MappingElement(
         const Id<iscore::Component>& id,
         QObject *parent):
     ProcessComponent{parentConstraint, element, id, "MappingElement", parent},
-    m_iscore_mapping{element},
-    m_deviceList{ctx.devices}
+    m_deviceList{ctx.devices.list()}
 {
     recreate();
-
 }
-
-std::shared_ptr<OSSIA::TimeProcess> MappingElement::OSSIAProcess() const
-{
-    return {}; //m_ossia_mapping;
-}
-
-Process::ProcessModel& MappingElement::iscoreProcess() const
-{
-    return m_iscore_mapping;
-}
-
 
 const MappingElement::Key& MappingElement::key() const
 {
@@ -62,19 +49,20 @@ const MappingElement::Key& MappingElement::key() const
 template<typename X_T, typename Y_T>
 std::shared_ptr<OSSIA::CurveAbstract> MappingElement::on_curveChanged_impl2()
 {
-    if(m_iscore_mapping.curve().segments().size() == 0)
+    auto& iscore_mapping = static_cast<MappingModel&>(m_iscore_process);
+    if(iscore_mapping.curve().segments().size() == 0)
         return {};
 
-    const double xmin = m_iscore_mapping.sourceMin();
-    const double xmax = m_iscore_mapping.sourceMax();
+    const double xmin = iscore_mapping.sourceMin();
+    const double xmax = iscore_mapping.sourceMax();
 
-    const double ymin = m_iscore_mapping.targetMin();
-    const double ymax = m_iscore_mapping.targetMax();
+    const double ymin = iscore_mapping.targetMin();
+    const double ymax = iscore_mapping.targetMax();
 
     auto scale_x = [=] (double val) -> X_T { return val * (xmax - xmin) + xmin; };
     auto scale_y = [=] (double val) -> Y_T { return val * (ymax - ymin) + ymin; };
 
-    auto segt_data = m_iscore_mapping.curve().toCurveData();
+    auto segt_data = iscore_mapping.curve().toCurveData();
 
     if(segt_data.size() != 0)
     {
@@ -127,13 +115,12 @@ std::shared_ptr<OSSIA::CurveAbstract> MappingElement::rebuildCurve()
 
 void MappingElement::recreate()
 {
-    auto iscore_source_addr = m_iscore_mapping.sourceAddress();
-    auto iscore_target_addr = m_iscore_mapping.targetAddress();
+    auto& iscore_mapping = static_cast<MappingModel&>(m_iscore_process);
+    auto iscore_source_addr = iscore_mapping.sourceAddress();
+    auto iscore_target_addr = iscore_mapping.targetAddress();
 
     std::shared_ptr<OSSIA::Address> ossia_source_addr;
     std::shared_ptr<OSSIA::Address> ossia_target_addr;
-    std::shared_ptr<OSSIA::Mapper> new_mapping;
-
 
     m_ossia_curve.reset(); // It will be remade after.
 
@@ -186,14 +173,14 @@ void MappingElement::recreate()
         goto curve_cleanup_label;
 
     // TODO on_min/max changed
-    m_ossia_mapping = OSSIA::Mapper::create(
+    m_ossia_process = OSSIA::Mapper::create(
                 ossia_source_addr, ossia_target_addr,
                 new Behavior(m_ossia_curve));
 
     return;
 
 curve_cleanup_label:
-    m_ossia_mapping.reset();
+    m_ossia_process.reset();
     return;
 }
 

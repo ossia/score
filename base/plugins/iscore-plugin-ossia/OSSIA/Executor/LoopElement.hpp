@@ -38,16 +38,10 @@ class LoopElement final : public ProcessComponent
 
         virtual ~LoopElement();
 
-        std::shared_ptr<OSSIA::TimeProcess> OSSIAProcess() const override;
-        std::shared_ptr<OSSIA::Loop> scenario() const;
-
-        Process::ProcessModel& iscoreProcess() const override;
-
         void stop() override;
 
     private:
         void startConstraintExecution(const Id<ConstraintModel>&);
-
         void stopConstraintExecution(const Id<ConstraintModel>&);
 
 
@@ -65,9 +59,6 @@ class LoopElement final : public ProcessComponent
 
         StateElement* m_ossia_startState{};
         StateElement* m_ossia_endState{};
-
-        std::shared_ptr<OSSIA::Loop> m_ossia_loop;
-        Loop::ProcessModel& m_iscore_loop;
 };
 
 

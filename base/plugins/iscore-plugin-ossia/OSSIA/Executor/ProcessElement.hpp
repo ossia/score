@@ -31,15 +31,20 @@ class ISCORE_PLUGIN_OSSIA_EXPORT ProcessComponent :
 
         virtual ~ProcessComponent();
 
-        virtual std::shared_ptr<OSSIA::TimeProcess> OSSIAProcess() const = 0;
-        virtual Process::ProcessModel& iscoreProcess() const = 0;
         virtual void stop()
         {
-            iscoreProcess().stopExecution();
+            m_iscore_process.stopExecution();
         }
+
+        auto& iscoreProcess() const
+        { return m_iscore_process; }
+        auto& OSSIAProcess() const
+        { return m_ossia_process; }
 
     protected:
         ConstraintElement& m_parent_constraint;
+        Process::ProcessModel& m_iscore_process;
+        std::shared_ptr<OSSIA::TimeProcess> m_ossia_process;
 };
 
 class ISCORE_PLUGIN_OSSIA_EXPORT ProcessComponentFactory :
