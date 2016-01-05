@@ -72,8 +72,13 @@ void ProcessPanelPresenter::on_modelChanged(
     if(!bem)
         return;
 
-    con(bem->focusManager(),  &Process::ProcessFocusManager::sig_focusedViewModel,
+    con(bem->focusManager(), &Process::ProcessFocusManager::sig_focusedViewModel,
         this, &ProcessPanelPresenter::on_focusedViewModelChanged);
+
+    con(bem->focusManager(), &Process::ProcessFocusManager::sig_defocusedViewModel,
+        this, [&] {
+        on_focusedViewModelChanged(nullptr);
+    } );
 
     on_focusedViewModelChanged(bem->focusManager().focusedViewModel());
 }
@@ -85,12 +90,13 @@ void ProcessPanelPresenter::on_focusedViewModelChanged(const Process::LayerModel
         m_layerModel = theLM;
         delete m_proxy;
         m_proxy = nullptr;
-
+        auto v = static_cast<ProcessPanelView*>(view());
+        v->setInnerWidget(nullptr);
         if(!m_layerModel)
             return;
 
         m_proxy = m_layerModel->make_panelProxy(this);
-        static_cast<ProcessPanelView*>(view())->setInnerWidget(m_proxy->widget());
+        v->setInnerWidget(m_proxy->widget());
     }
 }
 

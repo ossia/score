@@ -4,4 +4,5 @@
 namespace Autom3D
 {
 using Point = QVector3D;
+
 }
