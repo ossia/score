@@ -32,12 +32,9 @@ class InspectorWidget final :
 
     public slots:
         void on_addressChange(const ::State::Address& newText);
-        void on_minValueChanged();
-        void on_maxValueChanged();
 
     private:
         AddressEditWidget* m_lineEdit{};
-        QDoubleSpinBox* m_minsb{}, *m_maxsb{};
 
         CommandDispatcher<> m_dispatcher;
 };
