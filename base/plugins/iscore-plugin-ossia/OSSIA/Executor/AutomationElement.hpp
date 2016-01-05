@@ -39,9 +39,6 @@ class AutomationElement final : public ProcessComponent
                 const Id<iscore::Component>& id,
                 QObject* parent);
 
-        std::shared_ptr<OSSIA::TimeProcess> OSSIAProcess() const override;
-        Process::ProcessModel& iscoreProcess() const override;
-
     private:
         const Key &key() const override;
         void recreate();
@@ -52,10 +49,7 @@ class AutomationElement final : public ProcessComponent
         template<typename T>
         std::shared_ptr<OSSIA::CurveAbstract> on_curveChanged_impl();
 
-        std::shared_ptr<OSSIA::Automation> m_ossia_autom;
         std::shared_ptr<OSSIA::CurveAbstract> m_ossia_curve;
-
-        Automation::ProcessModel& m_iscore_autom;
 
         const DeviceList& m_deviceList;
 };

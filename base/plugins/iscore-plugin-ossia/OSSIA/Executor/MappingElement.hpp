@@ -26,10 +26,6 @@ class MappingElement final : public ProcessComponent
                 const Id<iscore::Component>& id,
                 QObject* parent);
 
-        std::shared_ptr<OSSIA::TimeProcess> OSSIAProcess() const override;
-        Process::ProcessModel& iscoreProcess() const override;
-
-
     private:
         void recreate();
         std::shared_ptr<OSSIA::CurveAbstract> rebuildCurve();
@@ -43,10 +39,7 @@ class MappingElement final : public ProcessComponent
         template<typename X_T, typename Y_T>
         std::shared_ptr<OSSIA::CurveAbstract> on_curveChanged_impl2();
 
-        std::shared_ptr<OSSIA::Mapper> m_ossia_mapping;
         std::shared_ptr<OSSIA::CurveAbstract> m_ossia_curve;
-
-        MappingModel& m_iscore_mapping;
 
         const DeviceList& m_deviceList;
 

@@ -18,7 +18,7 @@ namespace JS
 {
 namespace Executor
 {
-Executor::Executor(DeviceDocumentPlugin& devices):
+ProcessExecutor::ProcessExecutor(const DeviceDocumentPlugin& devices):
     m_devices{devices.list()},
     m_start{OSSIA::State::create()},
     m_end{OSSIA::State::create()}
@@ -26,12 +26,12 @@ Executor::Executor(DeviceDocumentPlugin& devices):
     m_engine.globalObject().setProperty("iscore", m_engine.newQObject(new JS::APIWrapper{devices}));
 }
 
-void Executor::setTickFun(const QString& val)
+void ProcessExecutor::setTickFun(const QString& val)
 {
     m_tickFun = m_engine.evaluate(val);
 }
 
-std::shared_ptr<OSSIA::StateElement> Executor::state(
+std::shared_ptr<OSSIA::StateElement> ProcessExecutor::state(
         const OSSIA::TimeValue& t,
         const OSSIA::TimeValue&)
 {
@@ -65,24 +65,14 @@ ProcessComponent::ProcessComponent(
         const RecreateOnPlay::Context& ctx,
         const Id<iscore::Component>& id,
         QObject* parent):
-    RecreateOnPlay::ProcessComponent{parentConstraint, element, id, "JSComponent", parent},
-    m_iscore_process{element},
-    m_ossia_process{std::make_shared<Executor>(ctx.doc.plugin<DeviceDocumentPlugin>())}
+    RecreateOnPlay::ProcessComponent{parentConstraint, element, id, "JSComponent", parent}
 {
-
-    m_ossia_process->setTickFun(element.script());
+    auto proc = std::make_shared<ProcessExecutor>(ctx.devices);
+    proc->setTickFun(element.script());
+    m_ossia_process = proc;
 }
 
-
-std::shared_ptr<OSSIA::TimeProcess> ProcessComponent::OSSIAProcess() const
-{ return m_ossia_process; }
-
-
-Process::ProcessModel& ProcessComponent::iscoreProcess() const
-{ return m_iscore_process; }
-
-
-const iscore::Component::Key&ProcessComponent::key() const
+const iscore::Component::Key& ProcessComponent::key() const
 {
     static iscore::Component::Key k("JSComponent");
     return k;

@@ -26,11 +26,11 @@ namespace JS
 class ProcessModel;
 namespace Executor
 {
-class Executor final :
+class ProcessExecutor final :
         public TimeProcessWithConstraint
 {
     public:
-        Executor(DeviceDocumentPlugin& devices);
+        ProcessExecutor(const DeviceDocumentPlugin& devices);
 
         void setTickFun(const QString& val);
 
@@ -50,7 +50,7 @@ class Executor final :
 
 
     private:
-        DeviceList& m_devices;
+        const DeviceList& m_devices;
         QJSEngine m_engine;
         QJSValue m_tickFun;
 
@@ -69,15 +69,8 @@ class ProcessComponent final : public RecreateOnPlay::ProcessComponent
                 const Id<iscore::Component>& id,
                 QObject* parent);
 
-        std::shared_ptr<OSSIA::TimeProcess> OSSIAProcess() const override;
-
-        Process::ProcessModel& iscoreProcess() const override;
-
     private:
         const Key &key() const override;
-
-        JS::ProcessModel& m_iscore_process;
-        std::shared_ptr<Executor> m_ossia_process;
 };
 
 

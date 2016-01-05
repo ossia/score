@@ -48,20 +48,9 @@ AutomationElement::AutomationElement(
         const Id<iscore::Component>& id,
         QObject *parent):
     ProcessComponent{parentConstraint, element, id, "AutomationComponent", parent},
-    m_iscore_autom{element},
-    m_deviceList{ctx.devices}
+    m_deviceList{ctx.devices.list()}
 {
     recreate();
-}
-
-std::shared_ptr<OSSIA::TimeProcess> AutomationElement::OSSIAProcess() const
-{
-    return m_ossia_autom;
-}
-
-Process::ProcessModel& AutomationElement::iscoreProcess() const
-{
-    return m_iscore_autom;
 }
 
 const iscore::Component::Key& AutomationElement::key() const
@@ -72,7 +61,8 @@ const iscore::Component::Key& AutomationElement::key() const
 
 void AutomationElement::recreate()
 {
-    auto addr = m_iscore_autom.address();
+    auto& iscore_autom = static_cast<Automation::ProcessModel&>(m_iscore_process);
+    auto addr = iscore_autom.address();
     std::shared_ptr<OSSIA::Address> address;
     OSSIA::Node* node{};
     OSSIADevice* dev{};
@@ -113,7 +103,7 @@ void AutomationElement::recreate()
         goto curve_cleanup_label;
 
     // TODO on_min/max changed
-    m_ossia_autom = OSSIA::Automation::create(
+    m_ossia_process = OSSIA::Automation::create(
                 address,
                 new Behavior(m_ossia_curve));
 
@@ -121,22 +111,23 @@ void AutomationElement::recreate()
     return;
 
 curve_cleanup_label:
-    m_ossia_autom.reset(); // Cleanup
+    m_ossia_process.reset(); // Cleanup
     return;
 }
 
 template<typename Y_T>
 std::shared_ptr<OSSIA::CurveAbstract> AutomationElement::on_curveChanged_impl()
 {
+    auto& iscore_autom = static_cast<Automation::ProcessModel&>(m_iscore_process);
     using namespace OSSIA;
 
-    const double min = m_iscore_autom.min();
-    const double max = m_iscore_autom.max();
+    const double min = iscore_autom.min();
+    const double max = iscore_autom.max();
 
     auto scale_x = [=] (double val) -> double { return val; };
     auto scale_y = [=] (double val) -> Y_T { return val * (max - min) + min; };
 
-    auto segt_data = m_iscore_autom.curve().toCurveData();
+    auto segt_data = iscore_autom.curve().toCurveData();
     if(segt_data.size() != 0)
     {
         std::sort(segt_data.begin(), segt_data.end());

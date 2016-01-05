@@ -38,65 +38,55 @@ RecreateOnPlay::LoopElement::LoopElement(
         const Id<iscore::Component>& id,
         QObject* parent):
     ProcessComponent{parentConstraint, element, id, "LoopComponent", parent},
-    m_ctx{ctx},
-    m_iscore_loop{element}
+    m_ctx{ctx}
 {
     OSSIA::TimeValue main_duration(iscore::convert::time(element.constraint().duration.defaultDuration()));
 
-    m_ossia_loop = OSSIA::Loop::create(main_duration,
+    auto loop = OSSIA::Loop::create(main_duration,
                                        [] (const OSSIA::TimeValue&, const OSSIA::TimeValue&, std::shared_ptr<OSSIA::StateElement>) {},
     [] (OSSIA::TimeEvent::Status) {},
     [] (OSSIA::TimeEvent::Status) {}
     );
 
+    m_ossia_process = loop;
+
     // TODO also states in BasEelement
     // TODO put graphical settings somewhere.
-
-    auto startTN = m_ossia_loop->getPatternStartTimeNode();
-    auto endTN = m_ossia_loop->getPatternEndTimeNode();
+    auto startTN = loop->getPatternStartTimeNode();
+    auto endTN = loop->getPatternEndTimeNode();
     auto startEV = *startTN->timeEvents().begin();
     auto endEV = *endTN->timeEvents().begin();
 
+    m_ossia_startTimeNode = new TimeNodeElement{startTN, element.startTimeNode(),  m_ctx.devices.list(), this};
+    m_ossia_endTimeNode = new TimeNodeElement{endTN, element.endTimeNode(), m_ctx.devices.list(), this};
 
-    m_ossia_startTimeNode = new TimeNodeElement{startTN, element.startTimeNode(),  m_ctx.devices, this};
-    m_ossia_endTimeNode = new TimeNodeElement{endTN, element.endTimeNode(), m_ctx.devices, this};
-
-    m_ossia_startEvent = new EventElement{startEV, element.startEvent(), m_ctx.devices, this};
-    m_ossia_endEvent = new EventElement{endEV, element.endEvent(), m_ctx.devices, this};
+    m_ossia_startEvent = new EventElement{startEV, element.startEvent(), m_ctx.devices.list(), this};
+    m_ossia_endEvent = new EventElement{endEV, element.endEvent(), m_ctx.devices.list(), this};
 
     m_ossia_startState = new StateElement{
             element.startState(),
-            iscore::convert::state(element.startState(), m_ctx.devices),
-            m_ctx.devices,
+            iscore::convert::state(element.startState(), m_ctx.devices.list()),
+            m_ctx.devices.list(),
             this};
     m_ossia_endState = new StateElement{
             element.endState(),
-            iscore::convert::state(element.endState(), m_ctx.devices),
-            m_ctx.devices,
+            iscore::convert::state(element.endState(), m_ctx.devices.list()),
+            m_ctx.devices.list(),
             this};
 
     startEV->getState()->stateElements().push_back(m_ossia_startState->OSSIAState());
     endEV->getState()->stateElements().push_back(m_ossia_endState->OSSIAState());
-    m_ossia_constraint = new ConstraintElement{m_ossia_loop->getPatternTimeConstraint(), element.constraint(), m_ctx, this};
+    m_ossia_constraint = new ConstraintElement{loop->getPatternTimeConstraint(), element.constraint(), m_ctx, this};
 }
 
 RecreateOnPlay::LoopElement::~LoopElement()
 {
 }
 
-std::shared_ptr<OSSIA::TimeProcess> RecreateOnPlay::LoopElement::OSSIAProcess() const
-{ return m_ossia_loop; }
-
-std::shared_ptr<OSSIA::Loop> RecreateOnPlay::LoopElement::scenario() const
-{ return m_ossia_loop; }
-
-Process::ProcessModel&RecreateOnPlay::LoopElement::iscoreProcess() const
-{ return m_iscore_loop; }
-
 void RecreateOnPlay::LoopElement::stop()
 {
     ProcessComponent::stop();
-    m_iscore_loop.constraint().duration.setPlayPercentage(0);
+    static_cast<Loop::ProcessModel&>(m_iscore_process).constraint().duration.setPlayPercentage(0);
 }
 
 void RecreateOnPlay::LoopElement::startConstraintExecution(const Id<ConstraintModel>&)
