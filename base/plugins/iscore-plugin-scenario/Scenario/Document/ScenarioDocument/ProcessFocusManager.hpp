@@ -1,6 +1,7 @@
 #pragma once
 #include <QObject>
 #include <QPointer>
+#include <Process/Focus/FocusDispatcher.hpp>
 
 namespace Process { class LayerModel; }
 namespace Process { class LayerPresenter; }
@@ -21,7 +22,7 @@ class ProcessFocusManager final : public QObject
         const LayerModel* focusedViewModel() const;
         LayerPresenter* focusedPresenter() const;
 
-        void focus(LayerPresenter*);
+        void focus(QPointer<Process::LayerPresenter>);
         void focus(ScenarioDocumentPresenter*);
 
         void focusNothing();
@@ -43,3 +44,4 @@ class ProcessFocusManager final : public QObject
         QMetaObject::Connection m_deathConnection;
 };
 }
+

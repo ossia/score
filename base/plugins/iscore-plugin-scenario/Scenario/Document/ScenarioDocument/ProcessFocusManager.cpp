@@ -23,7 +23,7 @@ LayerPresenter* ProcessFocusManager::focusedPresenter() const
 }
 
 
-void ProcessFocusManager::focus(LayerPresenter* p)
+void ProcessFocusManager::focus(QPointer<Process::LayerPresenter> p)
 {
     if(p == m_currentPresenter)
         return;

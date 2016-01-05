@@ -22,6 +22,7 @@
 #include <Process/ProcessFactory.hpp>
 #include <Process/ProcessList.hpp>
 #include <Process/TimeValue.hpp>
+#include <Process/LayerPresenter.hpp>
 #include <Process/Inspector/ProcessInspectorWidgetDelegateFactoryList.hpp>
 #include <Scenario/Application/Menus/Plugin/ScenarioActionsFactory.hpp>
 #include <Scenario/Application/Menus/Plugin/ScenarioContextMenuPluginList.hpp>
@@ -79,6 +80,7 @@ iscore_plugin_scenario::iscore_plugin_scenario() :
 
     qRegisterMetaTypeStreamOperators<TimeValue>();
     qRegisterMetaType<ExecutionStatus>();
+    qRegisterMetaType<QPointer<Process::LayerPresenter>>();
 }
 
 // Interfaces implementations :

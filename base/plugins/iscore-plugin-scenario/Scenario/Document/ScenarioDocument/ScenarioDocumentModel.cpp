@@ -80,7 +80,7 @@ void ScenarioDocumentModel::init()
 {
     // Help for the FocusDispatcher.
     connect(this, &ScenarioDocumentModel::setFocusedPresenter,
-            &m_focusManager, static_cast<void (Process::ProcessFocusManager::*)(Process::LayerPresenter*)>(&Process::ProcessFocusManager::focus));
+            &m_focusManager, static_cast<void (Process::ProcessFocusManager::*)(QPointer<Process::LayerPresenter>)>(&Process::ProcessFocusManager::focus));
 
     con(m_focusManager, &Process::ProcessFocusManager::sig_defocusedViewModel,
             this, &ScenarioDocumentModel::on_viewModelDefocused);

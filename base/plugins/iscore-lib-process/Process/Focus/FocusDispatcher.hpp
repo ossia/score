@@ -1,8 +1,8 @@
 #pragma once
 #include <QObject>
+#include <QPointer>
+#include <Process/LayerPresenter.hpp>
 #include <iscore_lib_process_export.h>
-
-namespace Process { class LayerPresenter; }
 
 namespace iscore
 {
@@ -17,8 +17,10 @@ class ISCORE_LIB_PROCESS_EXPORT FocusDispatcher : public QObject
         explicit FocusDispatcher(iscore::Document& doc);
 
     signals:
-        void focus(Process::LayerPresenter* obj);
+        void focus(QPointer<Process::LayerPresenter>);
 
     private:
         iscore::DocumentDelegateModelInterface& m_baseElementModel;
 };
+
+Q_DECLARE_METATYPE(QPointer<Process::LayerPresenter>)
