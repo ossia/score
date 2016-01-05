@@ -36,7 +36,6 @@ InspectorWidget::InspectorWidget(
     setObjectName("Autom3DInspectorWidget");
     setParent(parent);
 
-    /*
     auto vlay = new QVBoxLayout;
     vlay->setSpacing(0);
     vlay->setContentsMargins(0,0,0,0);
@@ -61,34 +60,11 @@ InspectorWidget::InspectorWidget(
     vlay->addWidget(m_lineEdit);
 
     // Min / max
-    auto minmaxwid = new QWidget;
-    auto minmaxlay = new QFormLayout{minmaxwid};
-    vlay->addWidget(minmaxwid);
-    minmaxlay->setSpacing(0);
-    minmaxlay->setContentsMargins(0, 0, 0, 0);
-
-    m_minsb = new iscore::SpinBox<float>;
-    m_maxsb = new iscore::SpinBox<float>;
-    m_minsb->setValue(process().min());
-    m_maxsb->setValue(process().max());
-    minmaxlay->addRow(tr("Min"), m_minsb);
-    minmaxlay->addRow(tr("Max"), m_maxsb);
-
-    con(process(), &ProcessModel::minChanged, m_minsb, &QDoubleSpinBox::setValue);
-    con(process(), &ProcessModel::maxChanged, m_maxsb, &QDoubleSpinBox::setValue);
-
-    connect(m_minsb, &QAbstractSpinBox::editingFinished,
-            this, &InspectorWidget::on_minValueChanged);
-    connect(m_maxsb, &QAbstractSpinBox::editingFinished,
-            this, &InspectorWidget::on_maxValueChanged);
-
     this->setLayout(vlay);
-    */
 }
 
 void InspectorWidget::on_addressChange(const ::State::Address& newAddr)
 {
-    /*
     // Various checks
     if(newAddr == process().address())
         return;
@@ -99,31 +75,5 @@ void InspectorWidget::on_addressChange(const ::State::Address& newAddr)
     auto cmd = new ChangeAddress{process(), newAddr};
 
     m_dispatcher.submitCommand(cmd);
-    */
-}
-void InspectorWidget::on_minValueChanged()
-{
-    /*
-    auto newVal = m_minsb->value();
-    if(newVal != process().min())
-    {
-        auto cmd = new SetMin{process(), newVal};
-
-        m_dispatcher.submitCommand(cmd);
-    }
-    */
-}
-
-void InspectorWidget::on_maxValueChanged()
-{
-    /*
-    auto newVal = m_maxsb->value();
-    if(newVal != process().max())
-    {
-        auto cmd = new SetMax{process(), newVal};
-
-        m_dispatcher.submitCommand(cmd);
-    }
-    */
 }
 }

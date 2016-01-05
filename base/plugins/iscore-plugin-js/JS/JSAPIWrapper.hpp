@@ -198,7 +198,7 @@ class APIWrapper : public QObject
 {
         Q_OBJECT
     public:
-        APIWrapper(DeviceDocumentPlugin& devs):
+        APIWrapper(const DeviceDocumentPlugin& devs):
             devices{devs}
         {
 
@@ -207,7 +207,7 @@ class APIWrapper : public QObject
     public slots:
         QJSValue value(QJSValue address);
     private:
-        DeviceDocumentPlugin& devices;
+        const DeviceDocumentPlugin& devices;
 
 };
 }

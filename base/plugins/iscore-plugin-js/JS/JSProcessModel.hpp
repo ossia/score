@@ -1,7 +1,7 @@
 #pragma once
 #include <JS/JSProcess.hpp>
 #include <JS/JSProcessMetadata.hpp>
-#include <OSSIA/Executor/ProcessModel/ProcessModel.hpp>
+#include <Process/Process.hpp>
 #include <QByteArray>
 #include <QString>
 #include <memory>
@@ -21,7 +21,7 @@ class TimeProcessWithConstraint;
 
 namespace JS
 {
-class ProcessModel final : public RecreateOnPlay::OSSIAProcessModel
+class ProcessModel final : public Process::ProcessModel
 {
         ISCORE_SERIALIZE_FRIENDS(ProcessModel, DataStream)
         ISCORE_SERIALIZE_FRIENDS(ProcessModel, JSONObject)
@@ -41,8 +41,7 @@ class ProcessModel final : public RecreateOnPlay::OSSIAProcessModel
         explicit ProcessModel(
                 Deserializer<Impl>& vis,
                 QObject* parent) :
-            OSSIAProcessModel{vis, parent},
-            m_ossia_process{makeProcess()}
+            Process::ProcessModel{vis, parent}
         {
             vis.writeTo(*this);
         }
@@ -81,12 +80,6 @@ class ProcessModel final : public RecreateOnPlay::OSSIAProcessModel
 
         void serialize(const VisitorVariant& vis) const override;
 
-        // OSSIAProcessModel interface
-        std::shared_ptr<TimeProcessWithConstraint> process() const override
-        {
-            return m_ossia_process;
-        }
-
     signals:
         void scriptChanged(QString);
 
@@ -104,8 +97,6 @@ class ProcessModel final : public RecreateOnPlay::OSSIAProcessModel
                 QObject* parent) override;
 
     private:
-        std::shared_ptr<ProcessExecutor> makeProcess() const;
-        std::shared_ptr<ProcessExecutor> m_ossia_process;
 
         QString m_script;
 };

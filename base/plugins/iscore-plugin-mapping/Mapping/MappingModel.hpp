@@ -8,7 +8,7 @@
 #include <Process/ProcessFactoryKey.hpp>
 #include <Process/TimeValue.hpp>
 #include <iscore/serialization/VisitorInterface.hpp>
-
+#include <iscore_plugin_mapping_export.h>
 class DataStream;
 class JSONObject;
 namespace Process {
@@ -18,7 +18,7 @@ class ProcessStateDataInterface;
 class QObject;
 #include <iscore/tools/SettableIdentifier.hpp>
 
-class MappingModel : public Curve::CurveProcessModel
+class ISCORE_PLUGIN_MAPPING_EXPORT MappingModel : public Curve::CurveProcessModel
 {
         ISCORE_SERIALIZE_FRIENDS(MappingModel, DataStream)
         ISCORE_SERIALIZE_FRIENDS(MappingModel, JSONObject)

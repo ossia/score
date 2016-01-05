@@ -15,21 +15,20 @@
 #include <iscore/tools/ModelPath.hpp>
 #include <iscore/tools/ModelPathSerialization.hpp>
 #include <iscore/tools/TreeNode.hpp>
-
+#include <iscore/tools/std/StdlibWrapper.hpp>
 namespace Autom3D
 {
 ChangeAddress::ChangeAddress(
         Path<ProcessModel> &&path,
         const ::State::Address &newval):
-    m_path{path}
+    m_path{std::move(path)} // TODO check for std::move everywhere
 {
-    /*
     auto& autom = m_path.find();
 
     // Get the current data.
     m_old.address = autom.address();
-    m_old.domain.min.val = autom.min();
-    m_old.domain.max.val = autom.max();
+    m_old.domain.min.val = toTuple(autom.min());
+    m_old.domain.max.val = toTuple(autom.max());
 
 
     if(auto deviceexplorer = try_deviceExplorerFromObject(autom))
@@ -50,36 +49,31 @@ ChangeAddress::ChangeAddress(
         else
         {
             m_new.address = newval;
-            m_new.domain.min.val = 0.;
-            m_new.domain.max.val = 1.;
+            m_new.domain.min.val = State::tuple_t{0., 0., 0.};
+            m_new.domain.max.val = State::tuple_t{1., 1., 1.};
         }
     }
-    */
 }
 
 
 void ChangeAddress::undo() const
 {
-    /*
     auto& autom = m_path.find();
 
-    autom.setMin(::State::convert::value<double>(m_old.domain.min));
-    autom.setMax(::State::convert::value<double>(m_old.domain.max));
+    autom.setMin(fromTuple(::State::convert::value<State::tuple_t>(m_old.domain.min)));
+    autom.setMax(fromTuple(::State::convert::value<State::tuple_t>(m_old.domain.max)));
 
     autom.setAddress(m_old.address);
-    */
 }
 
 void ChangeAddress::redo() const
 {
-    /*
     auto& autom = m_path.find();
 
-    autom.setMin(::State::convert::value<double>(m_new.domain.min));
-    autom.setMax(::State::convert::value<double>(m_new.domain.max));
+    autom.setMin(fromTuple(::State::convert::value<State::tuple_t>(m_new.domain.min)));
+    autom.setMax(fromTuple(::State::convert::value<State::tuple_t>(m_new.domain.max)));
 
     autom.setAddress(m_new.address);
-    */
 }
 
 void ChangeAddress::serializeImpl(DataStreamInput & s) const
@@ -88,6 +82,44 @@ void ChangeAddress::serializeImpl(DataStreamInput & s) const
 }
 
 void ChangeAddress::deserializeImpl(DataStreamOutput & s)
+{
+    s >> m_path >> m_old >> m_new;
+}
+
+
+
+
+UpdateSpline::UpdateSpline(
+        Path<ProcessModel> &&path,
+        std::vector<Point>&& newHandles):
+    m_path{std::move(path)},
+    m_new{std::move(newHandles)}
+{
+    auto& autom = m_path.find();
+    m_old = autom.handles();
+}
+
+
+void UpdateSpline::undo() const
+{
+    auto& autom = m_path.find();
+
+    autom.setHandles(m_old);
+}
+
+void UpdateSpline::redo() const
+{
+    auto& autom = m_path.find();
+
+    autom.setHandles(m_new);
+}
+
+void UpdateSpline::serializeImpl(DataStreamInput& s) const
+{
+    s << m_path << m_old << m_new;
+}
+
+void UpdateSpline::deserializeImpl(DataStreamOutput& s)
 {
     s >> m_path >> m_old >> m_new;
 }

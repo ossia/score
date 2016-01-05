@@ -4,7 +4,7 @@
 #include <Explorer/DocumentPlugin/DeviceDocumentPlugin.hpp>
 #include <src/LocalTree/AreaComponent.hpp>
 #include <src/LocalTree/ComputationComponent.hpp>
-
+#include <OSSIA/Executor/DocumentPlugin.hpp>
 #include <Editor/Message.h>
 namespace Space
 {
@@ -12,9 +12,9 @@ namespace Executor
 {
 ProcessExecutor::ProcessExecutor(
         ProcessModel& process,
-        DeviceDocumentPlugin& devices):
+        const DeviceList& devices):
     m_process{process},
-    m_devices{devices.list()}
+    m_devices{devices}
 {
 
 }
@@ -24,7 +24,6 @@ std::shared_ptr<OSSIA::StateElement> ProcessExecutor::state(
         const OSSIA::TimeValue&)
 {
     using namespace GiNaC;
-    auto& devlist = m_process.context().devices.list();
 
     // For each area whose parameters depend on an address,
     // get the current area value and update it.
@@ -48,8 +47,8 @@ std::shared_ptr<OSSIA::StateElement> ProcessExecutor::state(
             if(!addr.device.isEmpty())
             {
                 // We fetch it from the device tree
-                auto dev_it = devlist.find(addr.device);
-                if(dev_it != devlist.devices().end())
+                auto dev_it = m_devices.find(addr.device);
+                if(dev_it != m_devices.devices().end())
                 {
                     auto val = (*dev_it)->refresh(addr);
                     if(val)
@@ -106,5 +105,58 @@ std::shared_ptr<OSSIA::StateElement> ProcessExecutor::state(
 
     return state;
 }
+
+
+
+
+
+ProcessComponent::ProcessComponent(
+        RecreateOnPlay::ConstraintElement& parentConstraint,
+        Space::ProcessModel& element,
+        const RecreateOnPlay::Context& ctx,
+        const Id<iscore::Component>& id,
+        QObject* parent):
+    RecreateOnPlay::ProcessComponent{parentConstraint, element, id, "SpaceComponent", parent}
+{
+    m_ossia_process = std::make_shared<ProcessExecutor>(element, ctx.devices.list());
+}
+
+const iscore::Component::Key&ProcessComponent::key() const
+{
+    static iscore::Component::Key k("SpaceComponent");
+    return k;
+}
+
+ProcessComponentFactory::~ProcessComponentFactory()
+{
+
+}
+
+RecreateOnPlay::ProcessComponent* ProcessComponentFactory::make(
+        RecreateOnPlay::ConstraintElement& cst,
+        Process::ProcessModel& proc,
+        const RecreateOnPlay::Context& ctx,
+        const Id<iscore::Component>& id,
+        QObject* parent) const
+{
+    return new ProcessComponent{cst, static_cast<ProcessModel&>(proc), ctx, id, parent};
+}
+
+const ProcessComponentFactory::factory_key_type&
+ProcessComponentFactory::key_impl() const
+{
+    static factory_key_type k("SpaceComponent");
+    return k;
+}
+
+bool ProcessComponentFactory::matches(
+        Process::ProcessModel& proc,
+        const RecreateOnPlay::DocumentPlugin&,
+        const iscore::DocumentContext&) const
+{
+    return dynamic_cast<ProcessModel*>(&proc);
+}
+
+
 }
 }

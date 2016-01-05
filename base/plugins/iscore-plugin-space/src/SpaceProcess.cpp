@@ -14,14 +14,11 @@ ProcessModel::ProcessModel(
         const TimeValue &duration,
         const Id<Process::ProcessModel> &id,
         QObject *parent):
-    RecreateOnPlay::OSSIAProcessModel{id, ProcessMetadata::processObjectName(), parent},
+    Process::ProcessModel{id, ProcessMetadata::processObjectName(), parent},
     m_space{new SpaceModel{
             Id<SpaceModel>(0),
             this}},
-    m_context{doc, *m_space, doc.plugin<DeviceDocumentPlugin>()},
-    m_process{std::make_shared<Space::Executor::ProcessExecutor>(
-                  *this,
-                  doc.plugin<DeviceDocumentPlugin>())}
+    m_context{doc, *m_space, doc.plugin<DeviceDocumentPlugin>()}
 {
     metadata.setName(QString("Space.%1").arg(*this->id().val()));
     using namespace GiNaC;
@@ -88,13 +85,6 @@ ProcessModel::ProcessModel(
 
     setDuration(duration);
 }
-
-
-std::shared_ptr<TimeProcessWithConstraint> ProcessModel::process() const
-{
-    return m_process;
-}
-
 
 ProcessModel *ProcessModel::clone(
         const Id<Process::ProcessModel> &newId,

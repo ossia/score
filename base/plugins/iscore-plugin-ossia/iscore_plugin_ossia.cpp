@@ -8,11 +8,17 @@
 #include <OSSIA/OSSIAApplicationPlugin.hpp>
 
 #include <OSSIA/LocalTree/Scenario/ScenarioComponentFactory.hpp>
+#include <OSSIA/Executor/ProcessElement.hpp>
+#include <OSSIA/Executor/ScenarioElement.hpp>
+#include <OSSIA/Executor/LoopElement.hpp>
+#include <OSSIA/Executor/AutomationElement.hpp>
+#include <OSSIA/Executor/MappingElement.hpp>
 #include <Scenario/Application/Menus/Plugin/ScenarioActionsFactory.hpp>
 #include <iscore/plugins/customfactory/StringFactoryKey.hpp>
 #include "iscore_plugin_ossia.hpp"
 #include <iscore/plugins/customfactory/FactoryFamily.hpp>
 
+#include <OSSIA/Executor/DocumentPlugin.hpp>
 #include <iscore/plugins/customfactory/FactorySetup.hpp>
 namespace iscore {
 
@@ -32,7 +38,9 @@ iscore::GUIApplicationContextPlugin* iscore_plugin_ossia::make_applicationPlugin
 std::vector<std::unique_ptr<iscore::FactoryListInterface>> iscore_plugin_ossia::factoryFamilies()
 {
     return make_ptr_vector<iscore::FactoryListInterface,
-            Ossia::LocalTree::ProcessComponentFactoryList>();
+            Ossia::LocalTree::ProcessComponentFactoryList,
+            RecreateOnPlay::ProcessComponentFactoryList
+            >();
 }
 
 
@@ -51,6 +59,12 @@ std::vector<std::unique_ptr<iscore::FactoryInterfaceBase>> iscore_plugin_ossia::
                  MinuitProtocolFactory>,
             FW<ScenarioActionsFactory,
                  PlayContextMenuFactory>,
+            FW<RecreateOnPlay::ProcessComponentFactory,
+                 RecreateOnPlay::ScenarioComponentFactory,
+                 RecreateOnPlay::LoopComponentFactory,
+                 RecreateOnPlay::AutomationComponentFactory,
+                 RecreateOnPlay::MappingComponentFactory
+            >,
             FW<Ossia::LocalTree::ProcessComponentFactory,
                  Ossia::LocalTree::ScenarioComponentFactory>
             >

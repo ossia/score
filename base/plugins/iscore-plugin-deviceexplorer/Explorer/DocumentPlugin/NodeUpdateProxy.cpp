@@ -297,7 +297,7 @@ void NodeUpdateProxy::updateRemoteValue(
     }
 }
 
-State::Value NodeUpdateProxy::refreshRemoteValue(const State::Address& addr)
+State::Value NodeUpdateProxy::refreshRemoteValue(const State::Address& addr) const
 {
     // TODO here and in the following function, we should still update
     // the device explorer.
