@@ -33,6 +33,6 @@ class ISCORE_PLUGIN_OSSIA_EXPORT DocumentPlugin final : public iscore::DocumentP
 
     private:
         Context m_ctx;
-        std::unique_ptr<BaseScenarioElement> m_base{};
+        std::unique_ptr<BaseScenarioElement> m_base;
 };
 }

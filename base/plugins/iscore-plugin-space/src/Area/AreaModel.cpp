@@ -76,7 +76,6 @@ void AreaModel::setCurrentMapping(const ValMap& map)
 {
     using namespace GiNaC;
 
-    ISCORE_DEBUG;
     m_currentParameterMap = map;
     for(auto sym : map)
     {

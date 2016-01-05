@@ -30,6 +30,7 @@
 #include <iscore/tools/NotifyingMap.hpp>
 #include <iscore/tools/SettableIdentifier.hpp>
 #include <OSSIA/Executor/ExecutorContext.hpp>
+#include <OSSIA/Executor/DocumentPlugin.hpp>
 
 namespace Process { class ProcessModel; }
 class QObject;
