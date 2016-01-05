@@ -39,5 +39,7 @@ class ProcessFocusManager final : public QObject
         QPointer<const ProcessModel> m_currentModel{};
         QPointer<const LayerModel> m_currentViewModel{};
         QPointer<LayerPresenter> m_currentPresenter{};
+
+        QMetaObject::Connection m_deathConnection;
 };
 }

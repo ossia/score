@@ -21,7 +21,18 @@
 #include <vtkCubeAxesActor.h>
 #include <vtkSplineRepresentation.h>
 #include <vtkParametricSpline.h>
-AutomWidget::AutomWidget()
+#include <vtkSmartPointer.h>
+
+#include <iscore/command/Dispatchers/CommandDispatcher.hpp>
+#include <Autom3D/Commands/ChangeAddress.hpp>
+#include <Autom3D/Autom3DModel.hpp>
+namespace Autom3D
+{
+AutomWidget::AutomWidget(
+        const ProcessModel& proc,
+        iscore::CommandStackFacade& stck):
+    m_disp{stck},
+    m_proc{proc}
 {
     m_widget = new QVTKWidget;
     auto lay = new QVBoxLayout;
@@ -40,9 +51,9 @@ AutomWidget::AutomWidget()
     m_widget->GetRenderWindow()->AddRenderer(m_renderer);
 
     // put cone in one window
-    auto spline = vtkSplineWidget2::New();
-    spline->SetInteractor(iren);
-    spline->On();
+    m_spline = vtkSplineWidget2::New();
+    m_spline->SetInteractor(iren);
+    m_spline->On();
 
     auto cubeAxesActor = vtkCubeAxesActor::New();
 
@@ -63,54 +74,69 @@ AutomWidget::AutomWidget()
     cubeAxesActor->ZAxisMinorTickVisibilityOff();
     // update coords as we move through the window
 
-    m_connections->Connect(spline,
+    m_connections->Connect(m_spline,
                            vtkCommand::StartInteractionEvent,
                            this,
                            SLOT(press(vtkObject*)));
 
-    m_connections->Connect(spline,
+    m_connections->Connect(m_spline,
                            vtkCommand::EndInteractionEvent,
                            this,
                            SLOT(release(vtkObject*)));
 
 
     renwin->Delete();
+
+    con(m_proc, &ProcessModel::handlesChanged,
+        this, &AutomWidget::on_handlesChanged);
+    on_handlesChanged();
 }
 
 AutomWidget::~AutomWidget()
 {
     m_renderer->Delete();
-
     m_connections->Delete();
 }
 
 
 void AutomWidget::press(vtkObject* obj)
 {
-    // get interactor
-    vtkSplineWidget2* spline = vtkSplineWidget2::SafeDownCast(obj);
-    auto iren = spline->GetInteractor();
-
-    // get event position
-    int event_pos[2];
-    iren->GetEventPosition(event_pos);
 }
 
 void AutomWidget::release(vtkObject* obj)
 {
-    // get interactor
-    vtkSplineWidget2* spline = vtkSplineWidget2::SafeDownCast(obj);
-    auto iren = spline->GetInteractor();
-    // get event position
-    int event_pos[2];
-    iren->GetEventPosition(event_pos);
-    auto spl = vtkSplineRepresentation::SafeDownCast(spline->GetRepresentation())->GetParametricSpline();
+    auto spl = vtkSplineRepresentation::SafeDownCast(m_spline->GetRepresentation())->GetParametricSpline();
     auto& pts = *spl->GetPoints();
 
-    for(int i = 0; i < pts.GetNumberOfPoints(); i++)
+    std::vector<Point> handles;
+    int n = pts.GetNumberOfPoints();
+    handles.reserve(n);
+    for(int i = 0; i < n; i++)
     {
         double pt[3];
         pts.GetPoint(i, pt);
-        qDebug() << pt[0] << pt[1] << pt[2];
+        handles.emplace_back(pt[0], pt[1], pt[2]);
     }
+
+    auto cmd = new UpdateSpline{m_proc, std::move(handles)};
+    m_disp.submitCommand(cmd);
+}
+
+void AutomWidget::on_handlesChanged()
+{
+    auto rep = vtkSplineRepresentation::SafeDownCast(m_spline->GetRepresentation());
+    auto spl = rep->GetParametricSpline();
+
+    spl->SetNumberOfPoints(0);
+
+    auto newPoints = vtkPoints::New();
+    for(const Point& pt : m_proc.handles())
+    {
+        newPoints->InsertNextPoint(pt.x(), pt.y(), pt.z());
+    }
+    spl->SetNumberOfPoints(newPoints->GetNumberOfPoints());
+    rep->InitializeHandles(newPoints);
+    m_widget->update();
+
+}
 }

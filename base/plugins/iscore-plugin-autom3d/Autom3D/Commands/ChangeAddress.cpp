@@ -15,13 +15,13 @@
 #include <iscore/tools/ModelPath.hpp>
 #include <iscore/tools/ModelPathSerialization.hpp>
 #include <iscore/tools/TreeNode.hpp>
-
+#include <iscore/tools/std/StdlibWrapper.hpp>
 namespace Autom3D
 {
 ChangeAddress::ChangeAddress(
         Path<ProcessModel> &&path,
         const ::State::Address &newval):
-    m_path{path}
+    m_path{std::move(path)} // TODO check for std::move everywhere
 {
     /*
     auto& autom = m_path.find();
@@ -88,6 +88,44 @@ void ChangeAddress::serializeImpl(DataStreamInput & s) const
 }
 
 void ChangeAddress::deserializeImpl(DataStreamOutput & s)
+{
+    s >> m_path >> m_old >> m_new;
+}
+
+
+
+
+UpdateSpline::UpdateSpline(
+        Path<ProcessModel> &&path,
+        std::vector<Point>&& newHandles):
+    m_path{std::move(path)},
+    m_new{std::move(newHandles)}
+{
+    auto& autom = m_path.find();
+    m_old = autom.handles();
+}
+
+
+void UpdateSpline::undo() const
+{
+    auto& autom = m_path.find();
+
+    autom.setHandles(m_old);
+}
+
+void UpdateSpline::redo() const
+{
+    auto& autom = m_path.find();
+
+    autom.setHandles(m_new);
+}
+
+void UpdateSpline::serializeImpl(DataStreamInput& s) const
+{
+    s << m_path << m_old << m_new;
+}
+
+void UpdateSpline::deserializeImpl(DataStreamOutput& s)
 {
     s >> m_path >> m_old >> m_new;
 }

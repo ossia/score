@@ -85,11 +85,21 @@ class ISCORE_PLUGIN_AUTOM3D_EXPORT ProcessModel final : public Process::ProcessM
         void setMin(Point arg);
         void setMax(Point arg);
 
+        auto& handles() const
+        { return m_handles; }
+        void setHandles(const std::vector<Point>& hdl)
+        {
+            m_handles = hdl;
+            emit handlesChanged();
+        }
+
     signals:
         void addressChanged(const ::State::Address& arg);
 
         void minChanged(Point arg);
         void maxChanged(Point arg);
+
+        void handlesChanged();
 
     protected:
         ProcessModel(const ProcessModel& source,
@@ -114,6 +124,7 @@ class ISCORE_PLUGIN_AUTOM3D_EXPORT ProcessModel final : public Process::ProcessM
         Point m_min{};
         Point m_max{};
 
+        std::vector<Point> m_handles;
         ProcessState* m_startState{};
         ProcessState* m_endState{};
 };
