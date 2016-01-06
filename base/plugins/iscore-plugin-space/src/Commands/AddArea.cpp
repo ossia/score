@@ -126,7 +126,7 @@ AddArea::AddArea(Path<Space::ProcessModel> &&spacProcess,
     m_path{std::move(spacProcess)},
     m_areaType{type},
     m_areaFormula{area},
-    m_dimensionToVarMap{dimMap},
+    m_spaceMap{dimMap},
     m_symbolToAddressMap{addrMap}
 {
     auto& process = m_path.find();
@@ -152,8 +152,11 @@ void AddArea::redo() const
     auto factory = context.components.factory<SingletonAreaFactoryList>().get(m_areaType);
     ISCORE_ASSERT(factory);
 
-    auto ar = factory->makeModel(m_areaFormula, proc.context(), m_createdAreaId, &proc);
+    AreaModel* ar = factory->makeModel(m_areaFormula, proc.context(), m_createdAreaId, &proc);
 
+    ar->setSpaceMapping(m_spaceMap);
+    ar->setParameterMapping(m_symbolToAddressMap);
+    /*
     GiNaC::exmap sym_map;
     const auto& syms = ar->area().symbols();
     for(const auto& dim : m_dimensionToVarMap.keys())
@@ -165,7 +168,6 @@ void AddArea::redo() const
 
         sym_map[*sym_it] = proc.space().dimension(dim).sym().symbol();
     }
-
 
     AreaModel::ParameterMap addr_map;
     for(const auto& elt : m_symbolToAddressMap.keys())
@@ -179,6 +181,7 @@ void AddArea::redo() const
 
     ar->setSpaceMapping(sym_map);
     ar->setParameterMapping(addr_map);
+    */
 
     /// temporarily create "collision" computations
     int i = 0;
@@ -209,11 +212,11 @@ void AddArea::redo() const
 
 void AddArea::serializeImpl(DataStreamInput &s) const
 {
-    s << m_path << m_createdAreaId << m_areaType << m_areaFormula << m_dimensionToVarMap << m_symbolToAddressMap;
+    s << m_path << m_createdAreaId << m_areaType << m_areaFormula << m_spaceMap << m_symbolToAddressMap;
 }
 
 void AddArea::deserializeImpl(DataStreamOutput &s)
 {
-    s >> m_path >> m_createdAreaId >> m_areaType >> m_areaFormula >> m_dimensionToVarMap >> m_symbolToAddressMap;
+    s >> m_path >> m_createdAreaId >> m_areaType >> m_areaFormula >> m_spaceMap >> m_symbolToAddressMap;
 }
 }

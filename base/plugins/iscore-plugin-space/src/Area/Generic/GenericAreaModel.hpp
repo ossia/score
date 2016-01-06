@@ -15,12 +15,16 @@ class GenericAreaModel : public AreaModel
         const AreaFactoryKey& factoryKey() const override;
 
         QString prettyName() const override;
-        static QString formula();
+        QStringList formula() const;
+
 
         GenericAreaModel(
                 const QStringList& formula,
                 const Space::AreaContext& space,
                 const Id<AreaModel>&,
                 QObject* parent);
+
+    private:
+        QStringList m_formula;
 };
 }

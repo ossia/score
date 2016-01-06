@@ -21,12 +21,18 @@ QString GenericAreaModel::prettyName() const
     return tr("Generic");
 }
 
+QStringList GenericAreaModel::formula() const
+{
+    return m_formula;
+}
+
 GenericAreaModel::GenericAreaModel(
         const QStringList& formula,
         const Space::AreaContext& space,
         const Id<AreaModel>& id,
         QObject* parent):
-    AreaModel{AreaParser{formula}.result(), space, id, parent}
+    AreaModel{AreaParser{formula}.result(), space, id, parent},
+    m_formula{formula}
 {
 }
 }

@@ -46,9 +46,6 @@ class projected_area
 {
         std::vector<GiNaC::relational> m_rels;
 
-        // Map between symbol and numeric value.
-        GiNaC::exmap m_parameters;
-
     public:
         projected_area(
                 const area& a,
@@ -59,13 +56,6 @@ class projected_area
             for(auto& rel : a.rels())
             {
                 m_rels.push_back(GiNaC::ex_to<GiNaC::relational>(rel.subs(map)));
-            }
-
-            // All the symbols that weren't mapped are parameters.
-            for(auto& sym : a.symbols())
-            {
-                if(map.find(sym) != map.end())
-                    m_parameters.insert({sym, 0});
             }
         }
 
@@ -79,6 +69,10 @@ class valued_area
         std::vector<GiNaC::relational> m_rels;
 
     public:
+        valued_area() = default;
+        valued_area(const valued_area& other) = default;
+        valued_area(valued_area&& other) = default;
+
         valued_area(
                 const projected_area& a,
                 const GiNaC::exmap& map)

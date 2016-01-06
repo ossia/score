@@ -3,17 +3,28 @@
 #include "GenericAreaModel.hpp"
 
 #include "src/Space/SpaceModel.hpp"
-#include <Space/square_renderer.hpp>
 
 namespace Space
 {
 GenericAreaPresenter::GenericAreaPresenter(
-        GenericAreaView* view,
+        GenericAreaView* v,
         const GenericAreaModel& model,
         QObject* parent):
-    AreaPresenter{view, model, parent}
+    AreaPresenter{v, model, parent}
 {
     this->view(this).setPos(0, 0);
+
+    connect(&m_cp, &AreaComputer::ready,
+            this, [&] (auto vec) {
+        view(this).rects = vec;
+        view(this).update();
+    }, Qt::QueuedConnection);
+
+    connect(this, &GenericAreaPresenter::startCompute,
+            &m_cp, &AreaComputer::computeArea,
+            Qt::QueuedConnection);
+
+
 }
 
 void GenericAreaPresenter::update()
@@ -24,25 +35,10 @@ void GenericAreaPresenter::update()
 // Il vaut mieux faire comme dans les courbes ou le curvepresenter s'occupe des segments....
 void GenericAreaPresenter::on_areaChanged(ValMap map)
 {
-    spacelib::square_renderer<QPointF, RectDevice> renderer;
-    renderer.size = {800, 600};
+    emit startCompute(
+                model(this).formula(),
+                m_model.spaceMapping(),
+                map);
 
-    // Convert our dynamic space to a static one for rendering
-    GiNaC::exmap gmap;
-    for(auto& val : model(this).parameterMapping())
-    {
-        auto it = map.find(val.first.get_name());
-        if(it != map.end())
-        {
-            gmap.insert(std::make_pair(val.first, it->second));
-        }
-    }
-
-    renderer.render(
-                model(this).valuedArea(gmap),
-                spacelib::toStaticSpace<2>(model(this).space().space()));
-
-    view(this).rects = renderer.render_device.rects;
-    view(this).update();
 }
 }

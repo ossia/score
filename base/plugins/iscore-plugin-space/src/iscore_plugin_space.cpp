@@ -12,9 +12,10 @@
 #include <src/LocalTree/GenericAreaComponentFactory.hpp>
 #include <src/LocalTree/GenericComputationComponentFactory.hpp>
 #include <src/LocalTree/ProcessComponentFactory.hpp>
-
+#include <src/Executor/ProcessExecutor.hpp>
 #include <iscore/plugins/customfactory/FactoryFamily.hpp>
 #include <iscore/plugins/customfactory/FactorySetup.hpp>
+#include <OSSIA/Executor/DocumentPlugin.hpp>
 
 iscore_plugin_space::iscore_plugin_space() :
     QObject {}
@@ -43,6 +44,8 @@ std::vector<std::unique_ptr<iscore::FactoryInterfaceBase>> iscore_plugin_space::
             Space::PointerAreaFactory>,
         FW<Ossia::LocalTree::ProcessComponentFactory,
             Space::LocalTree::ProcessLocalTreeFactory>,
+        FW<RecreateOnPlay::ProcessComponentFactory,
+            Space::Executor::ProcessComponentFactory>,
         FW<Space::LocalTree::AreaComponentFactory,
             Space::LocalTree::GenericAreaComponentFactory // Shall be last in the vector so must be first here, because of the recursion order of C++ templates in instantiate_factories
             >,

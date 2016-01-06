@@ -28,31 +28,32 @@ AreaModel::AreaModel(
 }
 
 
-void AreaModel::setSpaceMapping(const GiNaC::exmap& mapping)
+void AreaModel::setSpaceMapping(const SpaceMap& mapping)
 {
     m_spaceMap = mapping;
     emit areaChanged(m_currentParameterMap);
 }
 
-void AreaModel::setParameterMapping(const AreaModel::ParameterMap &parameter_mapping)
+void AreaModel::setParameterMapping(const ParameterMap &parameter_mapping)
 {
     using namespace GiNaC;
     m_parameterMap = parameter_mapping;
 
     ValMap mapping;
-    for(const auto& elt : m_parameterMap)
+    for(const auto& elt : m_parameterMap.keys())
     {
-        std::string name = ex_to<symbol>(elt.first).get_name();
-        if(elt.second.address.device.isEmpty()) // We use the value
+        std::string name = elt.toStdString();
+        auto& val = m_parameterMap[elt];
+        if(val.address.device.isEmpty()) // We use the value
         {
             mapping.insert(
                         std::make_pair(
                             name,
-                            State::convert::value<double>(elt.second.value)));
+                            State::convert::value<double>(val.value)));
         }
         else // We fetch it from the device tree
         {
-            Device::Node* n = Device::try_getNodeFromAddress(m_context.devices.rootNode(), elt.second.address);
+            Device::Node* n = Device::try_getNodeFromAddress(m_context.devices.rootNode(), val.address);
             if(n)
             {
                 mapping.insert(
@@ -65,7 +66,7 @@ void AreaModel::setParameterMapping(const AreaModel::ParameterMap &parameter_map
                 mapping.insert(
                             std::make_pair(
                                 name,
-                                State::convert::value<double>(elt.second.value)));
+                                State::convert::value<double>(val.value)));
             }
         }
     }
@@ -97,12 +98,12 @@ void AreaModel::updateCurrentMapping(
 
 spacelib::projected_area AreaModel::projectedArea() const
 {
-    return spacelib::projected_area(*m_area.get(), m_spaceMap);
+    //return spacelib::projected_area(*m_area.get(), m_spaceMap);
 }
 
 spacelib::valued_area AreaModel::valuedArea(const GiNaC::exmap& vals) const
 {
-    return spacelib::valued_area(projectedArea(), vals);
+    //return spacelib::valued_area(projectedArea(), vals);
 }
 
 QString AreaModel::toString() const

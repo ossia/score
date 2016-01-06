@@ -12,7 +12,8 @@
 #include <iscore/document/DocumentInterface.hpp>
 #include <iscore/document/DocumentContext.hpp>
 #include <src/Area/SingletonAreaFactoryList.hpp>
-
+#include <src/Space/SpaceModel.hpp>
+#include <src/Space/DimensionModel.hpp>
 namespace Space
 {
 AreaWidget::AreaWidget(
@@ -86,18 +87,24 @@ void AreaWidget::setActiveArea(const AreaModel *area)
             auto cb = static_cast<QComboBox*>(m_spaceMappingLayout->itemAt(symb_i, QFormLayout::ItemRole::FieldRole)->widget());
             ISCORE_ASSERT(cb);
 
-            auto dim_map_it = std::find_if(dim_map.begin(), dim_map.end(),
-                                           [&] (const auto& exp) { return GiNaC::ex_to<GiNaC::symbol>(exp.second).get_name() == label->text().toStdString(); });
-            if(dim_map_it == dim_map.end())
+            auto keys = dim_map.keys();
+            auto& dims = m_space.space().dimensions();
+            auto dim_map_it = find_if(keys,
+                                     [&] (const Id<DimensionModel>& exp) {
+
+                auto dim_it = dims.find(exp);
+                if(dim_it != dims.end())
+                    return dim_it->name() == label->text();
+                return false;
+            });
+            if(dim_map_it == keys.end())
             {
                 // Error : the requested dimension does not seem to exist in our space.
                 continue;
             }
-
-            auto target_sym = GiNaC::ex_to<GiNaC::symbol>((*dim_map_it).first).get_name();
             // Find it in the combobox
 
-            cb->setCurrentIndex(cb->findText(QString::fromStdString(target_sym)));
+            cb->setCurrentIndex(cb->findText(dim_map[*dim_map_it]));
         }
 
 
@@ -128,10 +135,10 @@ void AreaWidget::setActiveArea(const AreaModel *area)
             }
 
             // Storing a value
-            param_widg->defaultValue()->setValue(State::convert::value<double>((*param_it).second.value));
+            param_widg->defaultValue()->setValue(State::convert::value<double>((*param_it).value));
 
             // Storing an address
-            param_widg->address()->setText((*param_it).second.address.toString());
+            param_widg->address()->setText((*param_it).address.toString());
 
             param_widg->setEnabled(true);
         }
