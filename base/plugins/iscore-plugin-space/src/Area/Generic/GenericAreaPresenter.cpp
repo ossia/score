@@ -28,7 +28,19 @@ void GenericAreaPresenter::on_areaChanged(ValMap map)
     renderer.size = {800, 600};
 
     // Convert our dynamic space to a static one for rendering
-    ISCORE_TODO; //renderer.render(model(this).valuedArea(map), spacelib::toStaticSpace<2>(model(this).space().space()));
+    GiNaC::exmap gmap;
+    for(auto& val : model(this).parameterMapping())
+    {
+        auto it = map.find(val.first.get_name());
+        if(it != map.end())
+        {
+            gmap.insert(std::make_pair(val.first, it->second));
+        }
+    }
+
+    renderer.render(
+                model(this).valuedArea(gmap),
+                spacelib::toStaticSpace<2>(model(this).space().space()));
 
     view(this).rects = renderer.render_device.rects;
     view(this).update();

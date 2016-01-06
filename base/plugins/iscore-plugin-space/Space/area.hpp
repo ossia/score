@@ -10,7 +10,7 @@ class area
     public:
         area(std::vector<GiNaC::relational>&& e,
              const std::vector<GiNaC::symbol>& vars):
-            m_rel{std::move(e)},
+            m_rels{std::move(e)},
             m_symbols(vars)
         {
 
@@ -21,11 +21,11 @@ class area
             return m_symbols;
         }
 
-        const GiNaC::relational& rel() const
-        { return m_rel[0]; }
+        const auto& rels() const
+        { return m_rels; }
 
     private:
-        const std::vector<GiNaC::relational> m_rel;
+        const std::vector<GiNaC::relational> m_rels;
 
         // Variables that can map to a dimension of space
         std::vector<GiNaC::symbol> m_symbols;
@@ -44,7 +44,7 @@ class area
 // get (x - a)² + (y - d)² = r².
 class projected_area
 {
-        GiNaC::relational m_rel;
+        std::vector<GiNaC::relational> m_rels;
 
         // Map between symbol and numeric value.
         GiNaC::exmap m_parameters;
@@ -55,7 +55,11 @@ class projected_area
                 const GiNaC::exmap& map)
         {
             // We substitute sybmols with other symbols corresponding to our space.
-            m_rel = GiNaC::ex_to<GiNaC::relational>(a.rel().subs(map));
+            m_rels.reserve(a.rels().size());
+            for(auto& rel : a.rels())
+            {
+                m_rels.push_back(GiNaC::ex_to<GiNaC::relational>(rel.subs(map)));
+            }
 
             // All the symbols that weren't mapped are parameters.
             for(auto& sym : a.symbols())
@@ -65,21 +69,26 @@ class projected_area
             }
         }
 
-        const GiNaC::relational& rel() const
-        { return m_rel; }
+        const auto& rels() const
+        { return m_rels; }
 };
 
 // A projected area with all the parameters replaced by values
 class valued_area
 {
-        GiNaC::relational m_rel;
+        std::vector<GiNaC::relational> m_rels;
 
     public:
         valued_area(
                 const projected_area& a,
                 const GiNaC::exmap& map)
         {
-            m_rel = GiNaC::ex_to<GiNaC::relational>(a.rel().subs(map));
+            m_rels.reserve(a.rels().size());
+            for(auto& rel : a.rels())
+            {
+                m_rels.push_back(GiNaC::ex_to<GiNaC::relational>(rel.subs(map)));
+            }
+
         }
 
 
@@ -87,7 +96,12 @@ class valued_area
         bool check(const GiNaC::exmap& map) const
         try
         {
-            return bool(GiNaC::ex_to<GiNaC::relational>(m_rel.subs(map)));
+            return std::accumulate(m_rels.begin(), m_rels.end(),
+                                   true,
+                                   [&] (bool cur, const GiNaC::relational& rel)
+            {
+                return cur && bool(GiNaC::ex_to<GiNaC::relational>(rel.subs(map)));
+            });
         }
         catch(const std::exception& e)
         {
