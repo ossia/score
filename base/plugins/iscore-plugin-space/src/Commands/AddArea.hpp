@@ -36,7 +36,7 @@ class AddArea : public iscore::SerializableCommand
         AreaFactoryKey m_areaType{"Generic"};
         QStringList m_areaFormula;
 
-        QMap<Id<DimensionModel>, QString> m_dimensionToVarMap;
+        QMap<Id<DimensionModel>, QString> m_spaceMap;
         QMap<QString, Device::FullAddressSettings> m_symbolToAddressMap;
 
         std::vector<Id<ComputationModel>> m_createdComputations;

@@ -24,7 +24,6 @@ class AreaModel : public IdentifiedObject<AreaModel>
         iscore::Components components;
 
         // The value is used as default value if the address is invalid.
-        using ParameterMap = QMap<QString, QPair<GiNaC::symbol, Device::FullAddressSettings>>;
         virtual const AreaFactoryKey& factoryKey() const = 0;
         virtual QString prettyName() const = 0;
         virtual int type() const = 0;
@@ -44,8 +43,8 @@ class AreaModel : public IdentifiedObject<AreaModel>
         const SpaceModel& space() const
         { return m_context.space; }
 
-        void setSpaceMapping(const GiNaC::exmap& mapping);
-        const GiNaC::exmap& spaceMapping() const
+        void setSpaceMapping(const SpaceMap& mapping);
+        const SpaceMap& spaceMapping() const
         { return m_spaceMap; }
 
         void setParameterMapping(const ParameterMap& mapping);
@@ -68,7 +67,7 @@ class AreaModel : public IdentifiedObject<AreaModel>
         std::unique_ptr<spacelib::area> m_area;
 
         // Maps a variable from m_area to a variable from m_space.
-        GiNaC::exmap m_spaceMap;
+        SpaceMap m_spaceMap;
 
         ParameterMap m_parameterMap; // General values of the model.
         ValMap m_currentParameterMap; // Current values used for display / execution.

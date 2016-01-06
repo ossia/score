@@ -33,56 +33,6 @@ ProcessModel::ProcessModel(
     auto vp = new ViewportModel{Id<ViewportModel>{0}, m_space};
     m_space->addViewport(vp);
 
-    /*
-    const auto& space_vars = m_space->space().variables();
-    {
-        AreaParser circleParser("(xv-x0)^2 + (yv-y0)^2 <= r^2");
-
-        auto ar1 = new AreaModel(circleParser.result(),
-                                 *m_space, Id<AreaModel>(0), this);
-        const auto& syms = ar1->area().symbols();
-
-        ar1->setSpaceMapping({{syms[0], space_vars[0].symbol()},
-                              {syms[2], space_vars[1].symbol()}});
-
-        Device::FullAddressSettings x0, y0, r;
-        x0.value = State::Value::fromVariant(200);
-        y0.value = State::Value::fromVariant(200);
-        r.value = State::Value::fromVariant(100);
-        ar1->setParameterMapping({
-                        {syms[1].get_name().c_str(), {syms[1], x0}},
-                        {syms[3].get_name().c_str(), {syms[3], y0}},
-                        {syms[4].get_name().c_str(), {syms[4], r}},
-                    });
-
-        addArea(ar1);
-    }
-
-    {
-        AreaParser parser("xv + yv >= c");
-
-        auto ar2 = new AreaModel(parser.result(), *m_space, Id<AreaModel>(1), this);
-        const auto& syms = ar2->area().symbols();
-
-        ar2->setSpaceMapping({{syms[0], space_vars[0].symbol()},
-                              {syms[1], space_vars[1].symbol()}});
-
-
-        Device::FullAddressSettings c;
-        c.value = State::Value::fromVariant(300);
-
-        ar2->setParameterMapping({
-                        {syms[2].get_name().c_str(), {syms[2], c}}
-                    });
-
-        addArea(ar2);
-    }
-
-    {
-        addArea(new CircleAreaModel(*m_space,Id<AreaModel>(2), this));
-    }
-    */
-
     setDuration(duration);
 }
 

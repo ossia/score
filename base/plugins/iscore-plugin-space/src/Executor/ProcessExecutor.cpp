@@ -20,7 +20,7 @@ ProcessExecutor::ProcessExecutor(
 }
 
 std::shared_ptr<OSSIA::StateElement> ProcessExecutor::state(
-        const OSSIA::TimeValue&,
+        const OSSIA::TimeValue& t,
         const OSSIA::TimeValue&)
 {
     using namespace GiNaC;
@@ -29,31 +29,39 @@ std::shared_ptr<OSSIA::StateElement> ProcessExecutor::state(
     // get the current area value and update it.
     for(AreaModel& area : m_process.areas)
     {
+        // Handle time
         const auto& parameter_map = area.parameterMapping();
         ValMap mapping;
 
-        for(const auto& elt : parameter_map)
+        for(const auto& elt : parameter_map.keys())
         {
+            auto& val = parameter_map[elt];
             // We always set the default value just in case.
             auto it_pair = mapping.insert(
                                std::make_pair(
-                                   ex_to<symbol>(elt.first).get_name(),
-                                   State::convert::value<double>(elt.second.value)
+                                   elt.toStdString(),
+                                   State::convert::value<double>(val.value)
                                    )
                                );
 
-            auto& addr = elt.second.address;
-
+            auto& addr = val.address;
             if(!addr.device.isEmpty())
             {
-                // We fetch it from the device tree
-                auto dev_it = m_devices.find(addr.device);
-                if(dev_it != m_devices.devices().end())
+                if(addr.device == "parent" && addr.path == QStringList{"t"})
                 {
-                    auto val = (*dev_it)->refresh(addr);
-                    if(val)
+                    it_pair.first->second = 100 * t;
+                }
+                else
+                {
+                    // We fetch it from the device tree
+                    auto dev_it = m_devices.find(addr.device);
+                    if(dev_it != m_devices.devices().end())
                     {
-                       it_pair.first->second = State::convert::value<double>(*val);
+                        auto val = (*dev_it)->refresh(addr);
+                        if(val)
+                        {
+                           it_pair.first->second = State::convert::value<double>(*val);
+                        }
                     }
                 }
             }

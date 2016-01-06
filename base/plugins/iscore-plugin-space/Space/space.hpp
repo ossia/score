@@ -12,6 +12,13 @@ class space_t
         static constexpr int dimension() { return N; }
         using variable_lst = std::array<Symbol, N>;
 
+        space_t() = default;
+
+        space_t(const variable_lst& vars):
+            m_variables(vars)
+        {
+
+        }
 
         space_t(variable_lst&& vars):
             m_variables(std::move(vars))
