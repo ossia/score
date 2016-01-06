@@ -21,14 +21,14 @@ class area
             return m_symbols;
         }
 
-        const auto& rels() const
+        const std::vector<GiNaC::relational>& rels() const
         { return m_rels; }
 
     private:
         const std::vector<GiNaC::relational> m_rels;
 
         // Variables that can map to a dimension of space
-        std::vector<GiNaC::symbol> m_symbols;
+        const std::vector<GiNaC::symbol> m_symbols;
 
         // Map between symbol and numeric value.
         //GiNaC::exmap m_parameters;
@@ -72,6 +72,12 @@ class valued_area
         valued_area() = default;
         valued_area(const valued_area& other) = default;
         valued_area(valued_area&& other) = default;
+
+        valued_area(std::vector<GiNaC::relational>&& rels):
+            m_rels{std::move(rels)}
+        {
+
+        }
 
         valued_area(
                 const projected_area& a,

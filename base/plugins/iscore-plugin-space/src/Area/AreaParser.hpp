@@ -13,8 +13,6 @@ class AreaParser
         std::unique_ptr<spacelib::area> result();
 
 
-    private:
-
         std::vector<
             std::pair<
                 QStringList,

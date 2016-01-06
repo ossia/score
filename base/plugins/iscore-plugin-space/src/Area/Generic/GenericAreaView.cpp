@@ -7,6 +7,7 @@ namespace Space
 GenericAreaView::GenericAreaView(QGraphicsItem *parent):
     QGraphicsItem{parent}
 {
+    m_col = static_cast<Qt::GlobalColor>(std::abs((double)(qrand() % 19)));
 }
 
 QRectF GenericAreaView::boundingRect() const
@@ -22,9 +23,8 @@ void GenericAreaView::updateRect(const QRectF& r)
 
 void GenericAreaView::paint(QPainter *painter, const QStyleOptionGraphicsItem *, QWidget *)
 {
-    QColor col = static_cast<Qt::GlobalColor>(std::abs((double)(qrand() % 19)));
-    painter->setPen(col.darker());
-    painter->setBrush(col);
+    painter->setPen(m_col.darker());
+    painter->setBrush(m_col);
 
     painter->drawRects(rects);
 }

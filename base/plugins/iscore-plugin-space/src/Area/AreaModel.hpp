@@ -75,7 +75,6 @@ class AreaModel : public IdentifiedObject<AreaModel>
 }
 
 Q_DECLARE_METATYPE(std::string)
-Q_DECLARE_METATYPE(Space::ValMap)
 Q_DECLARE_METATYPE(GiNaC::exmap)
 Q_DECLARE_METATYPE(GiNaC::symbol)
 Q_DECLARE_METATYPE(Id<Space::AreaModel>)

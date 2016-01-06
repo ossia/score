@@ -39,8 +39,8 @@ class square_renderer
                 if(a.check(map))
                 {
                     render_device.add(
-                            GiNaC::ex_to<GiNaC::numeric>(map.at(s.variables()[0].symbol())).to_double() - side/2.,
-                            GiNaC::ex_to<GiNaC::numeric>(map.at(s.variables()[1].symbol())).to_double() - side/2.,
+                            GiNaC::ex_to<GiNaC::numeric>(map.at(s.variables()[0])).to_double() - side/2.,
+                            GiNaC::ex_to<GiNaC::numeric>(map.at(s.variables()[1])).to_double() - side/2.,
                             double(side), double(side));
                 }
             });

@@ -32,7 +32,6 @@ GenericAreaComponent::GenericAreaComponent(
         {
             if(v)
             {
-                ISCORE_TODO;
                 auto val = State::convert::value<double>(Ossia::convert::ToValue(v));
                 m_area.updateCurrentMapping(param.first, val);
             }
@@ -46,12 +45,16 @@ GenericAreaComponent::GenericAreaComponent(
                            State::Value::fromValue(ex_to<numeric>(param.second).to_double())));
     }
 
+    // IF Not listening :
+
     QObject::connect(&m_area, &AreaModel::currentSymbolChanged,
                      this, [=] (std::string sym, double val) {
         auto newVal = State::Value::fromValue(val);
         auto& addr = m_ginacProperties.at(sym)->addr;
-        if(newVal != Ossia::convert::ToValue(addr->getValue()))
+        auto ossia_val = addr->cloneValue();
+        if(newVal != Ossia::convert::ToValue(ossia_val))
             addr->pushValue(iscore::convert::toOSSIAValue(newVal));
+        delete ossia_val;
     },
     Qt::QueuedConnection);
 }

@@ -70,19 +70,38 @@ State::Value ToValue(const OSSIA::Value *val)
         case OSSIA::Value::Type::IMPULSE:
             return State::Value::fromValue(State::impulse_t{});
         case OSSIA::Value::Type::BOOL:
-            return State::Value::fromValue(safe_cast<const OSSIA::Bool*>(val)->value);
+        {
+            auto val_sub = dynamic_cast<const OSSIA::Bool*>(val);
+            return val_sub ? State::Value::fromValue(val_sub->value) : State::Value::fromValue(bool{});
+        }
         case OSSIA::Value::Type::INT:
-            return State::Value::fromValue(safe_cast<const OSSIA::Int*>(val)->value);
+        {
+            auto val_sub = dynamic_cast<const OSSIA::Int*>(val);
+            return val_sub ? State::Value::fromValue(val_sub->value) : State::Value::fromValue(int{});
+        }
         case OSSIA::Value::Type::FLOAT:
-            return State::Value::fromValue(safe_cast<const OSSIA::Float*>(val)->value);
+        {
+            auto val_sub = dynamic_cast<const OSSIA::Float*>(val);
+            return val_sub ? State::Value::fromValue(val_sub->value) : State::Value::fromValue(float{});
+        }
         case OSSIA::Value::Type::CHAR:
-            return State::Value::fromValue(QChar::fromLatin1(safe_cast<const OSSIA::Char*>(val)->value));
+        {
+            auto val_sub = dynamic_cast<const OSSIA::Char*>(val);
+            return val_sub ? State::Value::fromValue(val_sub->value) : State::Value::fromValue(char{});
+        }
         case OSSIA::Value::Type::STRING:
-            return State::Value::fromValue(QString::fromStdString(safe_cast<const OSSIA::String*>(val)->value));
+        {
+            auto val_sub = dynamic_cast<const OSSIA::String*>(val);
+            return val_sub ? State::Value::fromValue(QString::fromStdString(val_sub->value)) : State::Value::fromValue(QString{});
+        }
         case OSSIA::Value::Type::TUPLE:
         {
-            auto ossia_tuple = safe_cast<const OSSIA::Tuple*>(val);
+            auto ossia_tuple = dynamic_cast<const OSSIA::Tuple*>(val);
+
             State::tuple_t tuple;
+            if(!ossia_tuple)
+                return State::Value::fromValue(tuple);
+
             tuple.reserve(ossia_tuple->value.size());
             for (const auto & e : ossia_tuple->value)
             {

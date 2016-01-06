@@ -20,6 +20,9 @@
 iscore_plugin_space::iscore_plugin_space() :
     QObject {}
 {
+    qRegisterMetaType<Space::ValMap>();
+    qRegisterMetaType<Space::SpaceMap>();
+    qRegisterMetaType<Space::ParameterMap>();
 }
 
 iscore_plugin_space::~iscore_plugin_space()

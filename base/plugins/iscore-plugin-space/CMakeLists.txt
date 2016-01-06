@@ -12,6 +12,12 @@ if(NOT TARGET iscore_plugin_ossia)
   return()
 endif()
 
+find_package(VTK)
+if(NOT ${VTK_FOUND})
+    return()
+endif()
+include(${VTK_USE_FILE})
+
 file(GLOB_RECURSE HDRS
     "${CMAKE_CURRENT_SOURCE_DIR}/*.hpp"
 )
@@ -90,7 +96,7 @@ iscore_generate_command_list_file(${PROJECT_NAME} "${HDRS}")
 
 target_link_libraries(${PROJECT_NAME}
                      Qt5::Core Qt5::Widgets
-                     iscore_lib_base iscore_plugin_deviceexplorer iscore_lib_process iscore_lib_state iscore_plugin_ossia
+                     iscore_lib_base iscore_plugin_deviceexplorer iscore_lib_process iscore_lib_state iscore_plugin_ossia ${VTK_LIBRARIES}
            ${GINAC_LIBRARIES})
 
 setup_iscore_plugin(${PROJECT_NAME})

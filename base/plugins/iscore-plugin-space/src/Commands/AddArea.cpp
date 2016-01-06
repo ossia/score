@@ -17,6 +17,7 @@
 
 #include <src/Area/Circle/CircleAreaModel.hpp>
 #include <src/Area/Pointer/PointerAreaModel.hpp>
+#include <iscore/tools/std/StdlibWrapper.hpp>
 
 namespace Space
 {
@@ -209,14 +210,30 @@ void AddArea::redo() const
 
     proc.areas.add(ar);
 }
-
 void AddArea::serializeImpl(DataStreamInput &s) const
 {
     s << m_path << m_createdAreaId << m_areaType << m_areaFormula << m_spaceMap << m_symbolToAddressMap;
+
+
+    auto& vec = m_createdComputations;
+    s << (int32_t)vec.size();
+    for(const auto& elt : vec)
+        s << elt; ;
 }
 
 void AddArea::deserializeImpl(DataStreamOutput &s)
 {
     s >> m_path >> m_createdAreaId >> m_areaType >> m_areaFormula >> m_spaceMap >> m_symbolToAddressMap;
+
+    int32_t n;
+    auto& vec = m_createdComputations;
+    s >> n;
+    vec.reserve(n);
+    for(;n-->0;)
+    {
+        Id<ComputationModel> val;
+        s >> val;
+        vec.push_back(val);
+    }
 }
 }
