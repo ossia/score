@@ -108,7 +108,8 @@ spacelib::valued_area AreaModel::valuedArea(const GiNaC::exmap& vals) const
 QString AreaModel::toString() const
 {
     std::stringstream s;
-    s << static_cast<const GiNaC::ex&>(m_area->rel());
+    for(auto& rel : m_area->rels())
+        s << static_cast<const GiNaC::ex&>(rel);
     return QString::fromStdString(s.str());
 }
 }
