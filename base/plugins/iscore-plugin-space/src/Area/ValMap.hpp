@@ -13,3 +13,7 @@ using SpaceMap = QMap<Id<DimensionModel>, QString>;
 
 using ParameterMap = QMap<QString, Device::FullAddressSettings>;
 }
+
+Q_DECLARE_METATYPE(Space::ValMap)
+Q_DECLARE_METATYPE(Space::SpaceMap)
+Q_DECLARE_METATYPE(Space::ParameterMap)

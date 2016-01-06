@@ -14,17 +14,21 @@ GenericAreaPresenter::GenericAreaPresenter(
 {
     this->view(this).setPos(0, 0);
 
-    connect(&m_cp, &AreaComputer::ready,
+    m_cp = new AreaComputer{model.formula()};
+    connect(m_cp, &AreaComputer::ready,
             this, [&] (auto vec) {
         view(this).rects = vec;
         view(this).update();
     }, Qt::QueuedConnection);
 
     connect(this, &GenericAreaPresenter::startCompute,
-            &m_cp, &AreaComputer::computeArea,
+            m_cp, &AreaComputer::computeArea,
             Qt::QueuedConnection);
+}
 
-
+GenericAreaPresenter::~GenericAreaPresenter()
+{
+    m_cp->deleteLater();
 }
 
 void GenericAreaPresenter::update()
@@ -36,8 +40,7 @@ void GenericAreaPresenter::update()
 void GenericAreaPresenter::on_areaChanged(ValMap map)
 {
     emit startCompute(
-                model(this).formula(),
-                m_model.spaceMapping(),
+                model(this).spaceMapping(),
                 map);
 
 }

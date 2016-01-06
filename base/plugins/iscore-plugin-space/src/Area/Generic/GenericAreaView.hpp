@@ -36,5 +36,6 @@ class GenericAreaView : public QGraphicsItem
 
     private:
         QRectF m_rect;
+        QColor m_col;
 };
 }

@@ -36,6 +36,9 @@ AreaSelectionWidget::AreaSelectionWidget(
     }
     connect(m_comboBox, static_cast<void (QComboBox::*)(int)>(&QComboBox::currentIndexChanged),
             this, [&] (int index) {
+        if(index == -1)
+            return;
+
         auto key = m_comboBox->currentData().value<AreaFactoryKey>();
         if(key == GenericAreaModel::static_factoryKey())
         {

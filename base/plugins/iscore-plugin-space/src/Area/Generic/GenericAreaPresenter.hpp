@@ -22,11 +22,12 @@ class GenericAreaPresenter : public AreaPresenter
         void update() override;
         void on_areaChanged(ValMap) override;
 
+        ~GenericAreaPresenter();
     signals:
-        void startCompute(QStringList formula, SpaceMap sm, ValMap vals);
+        void startCompute(SpaceMap sm, ValMap vals);
 
     private:
-        AreaComputer m_cp;
+        AreaComputer* m_cp{};
 
 };
 }
