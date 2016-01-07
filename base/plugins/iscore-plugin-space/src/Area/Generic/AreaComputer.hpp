@@ -149,6 +149,10 @@ class AreaComputer : public QObject
         void computeArea(SpaceMap sm, ValMap vals)
         {
             computing = true;
+            if(sm.size() != 2)
+            {
+                return;
+            }
 
             auto x_str = sm.begin()->toStdString().c_str();
             auto y_str = (++sm.begin())->toStdString().c_str();
