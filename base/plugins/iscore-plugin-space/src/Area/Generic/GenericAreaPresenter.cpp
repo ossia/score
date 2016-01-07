@@ -28,6 +28,7 @@ GenericAreaPresenter::GenericAreaPresenter(
 
 GenericAreaPresenter::~GenericAreaPresenter()
 {
+    m_cp->thread()->quit();
     m_cp->deleteLater();
 }
 
