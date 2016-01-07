@@ -14,7 +14,7 @@ install:
   - Jamoma.exe /S /D=%JAMOMA_ROOT%
   - appveyor DownloadFile "https://unsis.googlecode.com/files/nsis-2.46.5-Unicode-setup.exe" -FileName nsis.exe
   - nsis.exe /S
-  - appveyor DownloadFile "http://www.cmake.org/files/v3.3/cmake-3.3.0-rc4-win32-x86.zip"
+  - appveyor DownloadFile "https://cmake.org/files/v3.4/cmake-3.4.1-win32-x86.zip"
   - 7z x cmake-3.3.0-rc4-win32-x86.zip -y > nul
 
 build_script:
