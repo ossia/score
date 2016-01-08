@@ -97,7 +97,10 @@ QJsonValue value(const State::Value& val)
 
                 for(const auto& elt : t)
                 {
-                    arr.append(eggs::variants::apply(*this, elt.impl()));
+                    QJsonObject obj;
+                    obj["Type"] = textualType(elt);
+                    obj["Value"] = eggs::variants::apply(*this, elt.impl());
+                    arr.append(obj);
                 }
 
                 return arr;
@@ -123,9 +126,9 @@ static ValueType which(const QString& val)
 }
 
 
-static State::ValueImpl toValueImpl(const QJsonValue& val, State::ValueType which)
+static State::ValueImpl toValueImpl(const QJsonValue& val, State::ValueType type)
 {
-    switch(which)
+    switch(type)
     {
         case ValueType::NoValue:
             return State::ValueImpl{State::no_value_t{}};
@@ -154,7 +157,9 @@ static State::ValueImpl toValueImpl(const QJsonValue& val, State::ValueType whic
 
             for(const auto& elt : arr)
             {
-                tuple.push_back(toValueImpl(elt, which));
+                auto obj = elt.toObject();
+
+                tuple.push_back(toValueImpl(obj["Value"], which(obj["Type"].toString())));
             }
 
             return State::ValueImpl{tuple};
