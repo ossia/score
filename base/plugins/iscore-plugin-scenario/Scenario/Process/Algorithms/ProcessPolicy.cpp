@@ -90,7 +90,9 @@ static void RemoveProcessBeforeState(StateModel& statemodel, const Process::Proc
         return state->id() == elt.process().id();
     });
 
-    statemodel.previousProcesses().erase(it);
+    // TODO debug the need for this check
+    if(it != statemodel.previousProcesses().end())
+        statemodel.previousProcesses().erase(it);
 }
 
 static void RemoveProcessAfterState(StateModel& statemodel, const Process::ProcessModel& proc)
@@ -107,7 +109,9 @@ static void RemoveProcessAfterState(StateModel& statemodel, const Process::Proce
         return state->id() == elt.process().id();
     });
 
-    statemodel.followingProcesses().erase(it);
+    // TODO debug the need for this check
+    if(it != statemodel.followingProcesses().end())
+        statemodel.followingProcesses().erase(it);
 }
 
 void AddProcess(ConstraintModel& constraint, Process::ProcessModel* proc)
