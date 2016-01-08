@@ -83,9 +83,20 @@ QVariant valueColumnData(const MessageItemModel::node_type& node, int role)
 {
     if(role == Qt::DisplayRole || role == Qt::EditRole)
     {
-        const auto& val = node.value();
-        if(val)
-            return State::convert::value<QVariant>(*val);
+        const auto& opt_val = node.value();
+        if(opt_val)
+        {
+            auto& val = *opt_val;
+            if(val.val.is<State::tuple_t>())
+            {
+                // TODO a nice editor for tuples.
+                return State::convert::toPrettyString(val);
+            }
+            else
+            {
+                return State::convert::value<QVariant>(val);
+            }
+        }
         return QVariant{};
     }
 
