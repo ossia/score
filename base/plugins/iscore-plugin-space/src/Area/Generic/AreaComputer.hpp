@@ -168,10 +168,13 @@ class AreaComputer : public QObject
 
 
             QVector<QRectF> rects;
-            const double side = 5;
-            for(int i = 0; i < 800; i += side)
+            const int max_x = 800;
+            const int max_y = 600;
+            const double side = 3;
+            rects.reserve((max_x / side) * (max_y / side));
+            for(int i = 0; i < max_x; i += side)
             {
-                for(int j = 0; j < 600; j += side)
+                for(int j = 0; j < max_y; j += side)
                 {
                     double x = i;
                     double y = j;
