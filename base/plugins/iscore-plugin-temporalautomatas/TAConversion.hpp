@@ -172,6 +172,8 @@ struct Flexible
     BroadcastVariable kill_p;
     BroadcastVariable skip;
     BroadcastVariable kill;
+
+    QString comment;
 };
 
 struct Rigid
@@ -195,6 +197,8 @@ struct Rigid
     BroadcastVariable kill;
 
     BroadcastVariable event_e2;
+
+    QString comment;
 };
 
 using Constraint = eggs::variant<Rigid, Flexible>;

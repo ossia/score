@@ -95,6 +95,9 @@ void print(const Flexible& c, Stream& stream)
             .arg(c.skip)
             .arg(c.kill);
 
+    if(!c.comment.isEmpty())
+        stream << "// " << c.comment.toLatin1().constData() << "\n";
+
     stream << s.toLatin1().constData();
 }
 
@@ -112,6 +115,8 @@ void print(const Rigid& c, Stream& stream)
             .arg(c.kill)
             .arg(c.event_e2);
 
+    if(!c.comment.isEmpty())
+        stream << "// " << c.comment.toLatin1().constData() << "\n";
     stream << s.toLatin1().constData();
 }
 
@@ -592,10 +597,12 @@ void TAVisitor::visit(const ConstraintModel &c)
         rigid.skip = skip;
 
         // Register all the new elements
+        rigid.comment = "Name : " + c.metadata.name() + ". Label : " + c.metadata.label();
         scenario.rigids.push_back(rigid);
         scenario.broadcasts.insert(rigid.event_s);
         scenario.broadcasts.insert(rigid.skip);
         scenario.broadcasts.insert(rigid.kill);
+
 
         visitProcesses(c, rigid, scenario);
     }
@@ -622,10 +629,12 @@ void TAVisitor::visit(const ConstraintModel &c)
         QString cst_name = name(c);
         flexible.kill = "kill_" + cst_name;
 
+        flexible.comment = "Name : " + c.metadata.name() + ". Label : " + c.metadata.label();
         scenario.flexibles.push_back(flexible);
         scenario.broadcasts.insert(flexible.event_s);
         scenario.broadcasts.insert(flexible.skip);
         scenario.broadcasts.insert(flexible.kill);
+
 
         visitProcesses(c, flexible, scenario);
     }
