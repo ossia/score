@@ -77,3 +77,5 @@ namespace Scenario
 ISCORE_COMMAND_DECL_T(ChangeElementLabel<ConstraintModel>)
 ISCORE_COMMAND_DECL_T(ChangeElementLabel<EventModel>)
 ISCORE_COMMAND_DECL_T(ChangeElementLabel<TimeNodeModel>)
+ISCORE_COMMAND_DECL_T(ChangeElementLabel<StateModel>)
+ISCORE_COMMAND_DECL_T(ChangeElementLabel<ProcessModel>)
