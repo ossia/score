@@ -158,8 +158,12 @@ static State::ValueImpl toValueImpl(const QJsonValue& val, State::ValueType type
             for(const auto& elt : arr)
             {
                 auto obj = elt.toObject();
-
-                tuple.push_back(toValueImpl(obj["Value"], which(obj["Type"].toString())));
+                auto val_it = obj.find("Value");
+                auto type_it = obj.find("Type");
+                if(val_it != obj.end() && type_it != obj.end())
+                {
+                    tuple.push_back(toValueImpl(*val_it, which((*type_it).toString())));
+                }
             }
 
             return State::ValueImpl{tuple};
