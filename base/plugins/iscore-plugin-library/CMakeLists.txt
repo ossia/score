@@ -1,5 +1,5 @@
 cmake_minimum_required(VERSION 3.0)
-project(iscore_plugin_library)
+project(iscore_plugin_library LANGUAGES CXX)
 
 iscore_common_setup()
 
@@ -13,7 +13,7 @@ file(GLOB_RECURSE PLUGIN_SRCS
 add_library(iscore_plugin_library ${PLUGIN_SRCS})
 
 target_link_libraries(
-  iscore_plugin_library
+  iscore_plugin_library PRIVATE
   Qt5::Core Qt5::Widgets
   iscore_lib_base iscore_lib_state iscore_plugin_deviceexplorer)
 

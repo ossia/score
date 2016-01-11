@@ -5,8 +5,8 @@
 #include <Autom3D/Autom3DModel.hpp>
 #include <Autom3D/Autom3DProcessMetadata.hpp>
 #include <Autom3D/Autom3DLayerModel.hpp>
-#include <DummyLayerPresenter.hpp>
-#include <DummyLayerView.hpp>
+#include <DummyProcess/DummyLayerPresenter.hpp>
+#include <DummyProcess/DummyLayerView.hpp>
 namespace Autom3D
 {
 class ProcessFactory: public Process::ProcessFactory

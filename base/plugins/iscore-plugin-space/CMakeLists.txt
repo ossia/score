@@ -1,5 +1,5 @@
-cmake_minimum_required(VERSION 2.8)
-project(iscore_plugin_space)
+cmake_minimum_required(VERSION 3.1)
+project(iscore_plugin_space LANGUAGES CXX)
 
 iscore_common_setup()
 
@@ -94,9 +94,9 @@ set(SRCS
 add_library(${PROJECT_NAME} ${SRCS} ${HDRS})
 iscore_generate_command_list_file(${PROJECT_NAME} "${HDRS}")
 
-target_link_libraries(${PROJECT_NAME}
+target_link_libraries(${PROJECT_NAME} PRIVATE
                      Qt5::Core Qt5::Widgets
-                     iscore_lib_base iscore_plugin_deviceexplorer iscore_lib_process iscore_lib_state iscore_plugin_ossia ${VTK_LIBRARIES}
+                     iscore_lib_base iscore_lib_device iscore_plugin_deviceexplorer iscore_lib_process iscore_lib_state iscore_plugin_ossia ${VTK_LIBRARIES}
            ${GINAC_LIBRARIES})
 
 setup_iscore_plugin(${PROJECT_NAME})

@@ -29,5 +29,5 @@ ${API_HEADERS_FOLDER}/Repartition/session/ZeroConfServerThread.h)
 
 add_executable(Server ${SRC} ${HEADERS})
 
-target_link_libraries(Server APIMock dns_sd pthread)
-target_link_libraries(Server Qt5::Core Qt5::Network)
+target_link_libraries(Server PRIVATE APIMock dns_sd pthread)
+target_link_libraries(Server PRIVATE Qt5::Core Qt5::Network)

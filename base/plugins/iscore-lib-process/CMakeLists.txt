@@ -1,5 +1,5 @@
 cmake_minimum_required(VERSION 3.0)
-project(iscore_plugin_scenario)
+project(iscore_plugin_scenario LANGUAGES CXX)
 iscore_common_setup()
 
 option(DEFINE_ISCORE_SCENARIO_DEBUG_RECTS "Enable to have debug rects around elements of a scenario" OFF)
@@ -79,7 +79,7 @@ set(PROCESS_SRCS
 )
 
 add_library(iscore_lib_process ${PROCESS_HDRS} ${PROCESS_SRCS} )
-target_link_libraries(iscore_lib_process
+target_link_libraries(iscore_lib_process  PUBLIC
     Qt5::Core Qt5::Widgets iscore_lib_base iscore_lib_state)
 setup_iscore_library(iscore_lib_process)
 

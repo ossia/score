@@ -1,5 +1,5 @@
-project(iscore)
-cmake_minimum_required(VERSION 3.1)
+project(iscore LANGUAGES CXX)
+cmake_minimum_required(VERSION 3.1 FATAL_ERROR)
 
 set(CMAKE_MODULE_PATH "${CMAKE_MODULE_PATH};${CMAKE_CURRENT_SOURCE_DIR}/CMake;${CMAKE_CURRENT_SOURCE_DIR}/CMake/modules;${CMAKE_CURRENT_SOURCE_DIR}/CMake/modules/cmake-modules")
 

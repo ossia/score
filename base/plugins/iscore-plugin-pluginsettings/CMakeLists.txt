@@ -1,5 +1,5 @@
 cmake_minimum_required(VERSION 3.0)
-project(iscore_plugin_pluginsettings)
+project(iscore_plugin_pluginsettings LANGUAGES CXX)
 
 # Packages
 find_package(Qt5 5.3 REQUIRED COMPONENTS Core Widgets)
@@ -28,7 +28,7 @@ set(SOURCE_FILES
 )
 
 add_library(${PROJECT_NAME} ${HEADER_FILES} ${SOURCE_FILES})
-target_link_libraries(${PROJECT_NAME}
+target_link_libraries(${PROJECT_NAME} PRIVATE
                         Qt5::Core Qt5::Widgets
                         iscore_lib_base)
 

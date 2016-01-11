@@ -1,5 +1,5 @@
 cmake_minimum_required(VERSION 3.0)
-project(iscore_app)
+project(iscore_app LANGUAGES CXX)
 
 enable_testing()
 set(APPNAME "i-score")
@@ -26,11 +26,11 @@ else()
 endif()
 
 
-target_link_libraries(${APPNAME} iscore_lib_base)
+target_link_libraries(${APPNAME} PRIVATE iscore_lib_base)
 
 if(ISCORE_STATIC_PLUGINS)
   iscore_write_static_plugins_header()
-  target_link_libraries(${APPNAME} ${ISCORE_PLUGINS_LIST})
+  target_link_libraries(${APPNAME} PRIVATE ${ISCORE_PLUGINS_LIST})
 endif()
 
 include(StaticApp.cmake)

@@ -7,7 +7,7 @@ find_package(Qt5 5.3 REQUIRED COMPONENTS Core Test)
 
 function(addIScoreQtTest TESTNAME TESTSRCS)
                 add_executable(${TESTNAME} ${TESTSRCS})
-                target_link_libraries(${TESTNAME}
+                target_link_libraries(${TESTNAME} PRIVATE
                   Qt5::Core Qt5::Test
                   cln ginac)
                 add_test(${TESTNAME}_target ${TESTNAME})

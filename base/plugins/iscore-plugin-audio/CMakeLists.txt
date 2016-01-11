@@ -1,5 +1,5 @@
-cmake_minimum_required(VERSION 2.8)
-project(iscore_plugin_audio)
+cmake_minimum_required(VERSION 3.1)
+project(iscore_plugin_audio LANGUAGES CXX)
 
 find_package(Sndfile)
 find_package(RtAudio)
@@ -48,7 +48,7 @@ set(SRCS
 
 add_library(${PROJECT_NAME} ${SRCS} ${HDRS})
 iscore_generate_command_list_file(${PROJECT_NAME} "${HDRS}")
-target_link_libraries(${PROJECT_NAME}
+target_link_libraries(${PROJECT_NAME} PRIVATE
                      Qt5::Core Qt5::Widgets Qt5::Multimedia
                      iscore_lib_base iscore_plugin_ossia iscore_lib_dummyprocess
                      ${FAUST_LIBRARY} ${RtAudio_LIBRARY} ${SNDFILE_LIBRARIES})

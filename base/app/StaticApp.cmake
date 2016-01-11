@@ -12,16 +12,16 @@ if(ISCORE_STATIC_QT)
     find_library(qsvg_LIBRARY NAMES qsvg libqsvg HINTS ${QT_LIB_FOLDER}/../plugins/imageformats)
 
     target_link_libraries(
-        ${APPNAME}
+        ${APPNAME} PRIVATE
         Qt5::Core Qt5::Gui Qt5::Widgets Qt5::Network Qt5::Svg Qt5::Xml
     )
 
     if(TARGET Qt5::WebSockets)
-      target_link_libraries(${APPNAME} Qt5::WebSockets)
+      target_link_libraries(${APPNAME} PRIVATE Qt5::WebSockets)
     endif()
 
     if(TARGET Qt5::QXcbIntegrationPlugin)
-      target_link_libraries(${APPNAME}
+      target_link_libraries(${APPNAME} PRIVATE
         Qt5::QXcbIntegrationPlugin
         ${Qt5XcbQpa_LIBRARY}
         ${Qt5PlatformSupport_LIBRARY}
@@ -36,7 +36,7 @@ if(ISCORE_STATIC_QT)
         z dl rt
       )
     endif()
-      target_link_libraries(${APPNAME}
+      target_link_libraries(${APPNAME} PRIVATE
          m pthread
       )
 endif()

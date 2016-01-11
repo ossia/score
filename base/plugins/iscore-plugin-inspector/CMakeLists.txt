@@ -1,5 +1,5 @@
 cmake_minimum_required(VERSION 3.0)
-project(iscore_plugin_inspector)
+project(iscore_plugin_inspector LANGUAGES CXX)
 
 iscore_common_setup()
 
@@ -19,7 +19,7 @@ set(INTERFACE_SRCS
 )
 
 add_library(iscore_lib_inspector ${INTERFACE_HDRS} ${INTERFACE_SRCS})
-target_link_libraries(iscore_lib_inspector Qt5::Core Qt5::Widgets iscore_lib_base)
+target_link_libraries(iscore_lib_inspector PUBLIC Qt5::Core Qt5::Widgets iscore_lib_base)
 
 setup_iscore_library(iscore_lib_inspector)
 
@@ -38,6 +38,6 @@ set(PLUGIN_SRCS
 )
 
 add_library(iscore_plugin_inspector ${PLUGIN_HDRS} ${PLUGIN_SRCS})
-target_link_libraries(iscore_plugin_inspector iscore_lib_inspector)
+target_link_libraries(iscore_plugin_inspector PRIVATE iscore_lib_inspector)
 
 setup_iscore_plugin(iscore_plugin_inspector)

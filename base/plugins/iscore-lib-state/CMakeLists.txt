@@ -1,5 +1,5 @@
-cmake_minimum_required(VERSION 2.8)
-project(iscore_lib_state)
+cmake_minimum_required(VERSION 3.1)
+project(iscore_lib_state LANGUAGES CXX)
 
 iscore_common_setup()
 
@@ -33,7 +33,8 @@ file(GLOB_RECURSE HDRS
      "${CMAKE_CURRENT_SOURCE_DIR}/State/*.hpp")
 
 add_library(${PROJECT_NAME} ${HDRS} ${SRCS})
-target_link_libraries(${PROJECT_NAME} Qt5::Core Qt5::Widgets iscore_lib_base)
+target_link_libraries(${PROJECT_NAME} PUBLIC
+    Qt5::Core Qt5::Widgets iscore_lib_base)
 
 setup_iscore_library(${PROJECT_NAME})
 

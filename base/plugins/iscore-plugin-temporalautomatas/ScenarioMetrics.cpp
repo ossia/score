@@ -8,7 +8,6 @@
 #include <Scenario/Process/Algorithms/Accessors.hpp>
 #include <iscore/tools/std/Algorithms.hpp>
 
-#include <Automation/AutomationModel.hpp>
 
 template<class>
 class LanguageVisitor;

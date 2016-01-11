@@ -104,7 +104,7 @@ void CSPTimeRelation::onMaxDurationChanged(const TimeValue& max)
     }
 }
 
-void CSPTimeRelation::onProcessCreated(const Process& process)
+void CSPTimeRelation::onProcessCreated(const Process::ProcessModel& process)
 {
     if(auto scenario = dynamic_cast<const Scenario::ScenarioModel*>(&process))
     {
@@ -112,7 +112,7 @@ void CSPTimeRelation::onProcessCreated(const Process& process)
     }
 }
 
-void CSPTimeRelation::onProcessRemoved(const Process& process)
+void CSPTimeRelation::onProcessRemoved(const Process::ProcessModel& process)
 {
     if(auto scenario = dynamic_cast<const Scenario::ScenarioModel*>(&process))
     {

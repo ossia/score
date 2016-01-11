@@ -1,5 +1,5 @@
 cmake_minimum_required(VERSION 3.0)
-project(iscore_plugin_deviceexplorer)
+project(iscore_plugin_deviceexplorer LANGUAGES CXX)
 
 iscore_common_setup()
 
@@ -67,7 +67,7 @@ add_library(${PROJECT_NAME}
       ${EXPLORER_RESOURCES_RCC})
 iscore_generate_command_list_file(${PROJECT_NAME} "${HDRS}")
 
-target_link_libraries(iscore_plugin_deviceexplorer
+target_link_libraries(iscore_plugin_deviceexplorer PRIVATE
                       Qt5::Core Qt5::Widgets
                       iscore_lib_base iscore_lib_state iscore_lib_device
                       QProgressIndicator)

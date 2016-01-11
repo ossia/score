@@ -1,5 +1,5 @@
 cmake_minimum_required(VERSION 3.0)
-project(iscore_plugin_network)
+project(iscore_plugin_network LANGUAGES CXX)
 
 if(ANDROID)
     message("TODO FIXME ON ANDROID")
@@ -102,19 +102,20 @@ endif()
 add_library(${PROJECT_NAME} ${SRCS} ${HDRS} ${ZEROCONF_SRCS})
 iscore_generate_command_list_file(${PROJECT_NAME} "${HDRS}")
 
-target_link_libraries(${PROJECT_NAME}
+target_link_libraries(${PROJECT_NAME} PRIVATE
                                     iscore_lib_base
                                     iscore_plugin_scenario
+                                    iscore_lib_process
                                     Qt5::Core
                                     Qt5::Widgets
                                     Qt5::Network)
 
 if(CAN_USE_KDNSSD)
     target_compile_definitions(${PROJECT_NAME} PUBLIC USE_ZEROCONF)
-    target_link_libraries(${PROJECT_NAME} KF5::DNSSD)
+    target_link_libraries(${PROJECT_NAME} PRIVATE KF5::DNSSD)
 
     if(NOT APPLE AND NOT WIN32)
-        target_link_libraries(${PROJECT_NAME} dns_sd)
+        target_link_libraries(${PROJECT_NAME} PRIVATE dns_sd)
     endif()
 endif()
 

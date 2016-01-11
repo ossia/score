@@ -1,5 +1,5 @@
-cmake_minimum_required(VERSION 2.8)
-project(iscore_plugin_ossia)
+cmake_minimum_required(VERSION 3.1)
+project(iscore_plugin_ossia LANGUAGES CXX)
 
 iscore_common_setup()
 
@@ -14,6 +14,7 @@ endif()
 
 # Files & main target
 set(HDRS
+    "${CMAKE_CURRENT_SOURCE_DIR}/OSSIA/CurveConversion.hpp"
     "${CMAKE_CURRENT_SOURCE_DIR}/OSSIA/OSSIA2iscore.hpp"
     "${CMAKE_CURRENT_SOURCE_DIR}/OSSIA/Protocols/Minuit/MinuitProtocolSettingsWidget.hpp"
     "${CMAKE_CURRENT_SOURCE_DIR}/OSSIA/Protocols/Minuit/MinuitDevice.hpp"
@@ -149,15 +150,16 @@ endif()
 
 add_library(${PROJECT_NAME} ${SRCS} ${HDRS})
 target_link_libraries(${PROJECT_NAME}
-                        Qt5::Core Qt5::Widgets
-                        iscore_lib_base iscore_plugin_scenario iscore_plugin_curve iscore_plugin_automation iscore_plugin_deviceexplorer
-                        APIJamoma)
+        PUBLIC  APIJamoma
+        PRIVATE Qt5::Core Qt5::Widgets
+                iscore_lib_base iscore_lib_device iscore_lib_process iscore_plugin_scenario iscore_plugin_curve iscore_plugin_automation iscore_plugin_deviceexplorer
+)
 
 if(TARGET iscore_plugin_mapping)
-    target_link_libraries(${PROJECT_NAME} iscore_plugin_mapping)
+    target_link_libraries(${PROJECT_NAME} PRIVATE iscore_plugin_mapping)
 endif()
 if(TARGET iscore_plugin_loop)
-    target_link_libraries(${PROJECT_NAME} iscore_plugin_loop)
+    target_link_libraries(${PROJECT_NAME} PRIVATE iscore_plugin_loop)
 endif()
 
 setup_iscore_plugin(${PROJECT_NAME})

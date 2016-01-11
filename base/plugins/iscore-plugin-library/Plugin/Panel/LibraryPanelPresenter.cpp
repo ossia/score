@@ -16,7 +16,9 @@ int LibraryPanelPresenter::panelId() const
     return LIBRARY_PANEL_ID;
 }
 
-void LibraryPanelPresenter::on_modelChanged()
+void LibraryPanelPresenter::on_modelChanged(
+        iscore::PanelModel* oldm,
+        iscore::PanelModel* newm)
 {
     using namespace iscore;
     if(model())

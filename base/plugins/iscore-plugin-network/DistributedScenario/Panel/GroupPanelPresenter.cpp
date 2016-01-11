@@ -21,7 +21,9 @@ int GroupPanelPresenter::panelId() const
     return GROUP_PANEL_ID;
 }
 
-void GroupPanelPresenter::on_modelChanged()
+void GroupPanelPresenter::on_modelChanged(
+        iscore::PanelModel* oldm,
+        iscore::PanelModel* newm)
 {
     on_update();
     if(!model())

@@ -2,7 +2,7 @@
 #include <iscore/plugins/application/GUIApplicationContextPlugin.hpp>
 #include <iscore/plugins/documentdelegate/plugin/DocumentDelegatePluginModel.hpp>
 
-class CSPApplicationPlugin : public iscore::GUIApplicationContextPlugin
+class CSPApplicationPlugin final : public iscore::GUIApplicationContextPlugin
 {
     public:
         CSPApplicationPlugin(const iscore::ApplicationContext& pres);
@@ -12,7 +12,7 @@ class CSPApplicationPlugin : public iscore::GUIApplicationContextPlugin
         iscore::DocumentPluginModel* loadDocumentPlugin(
                 const QString& name,
                 const VisitorVariant& var,
-                iscore::Document *parent);
+                iscore::Document *parent) override;
 
 
         void on_newDocument(iscore::Document* doc) override;

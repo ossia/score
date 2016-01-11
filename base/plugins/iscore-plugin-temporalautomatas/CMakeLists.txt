@@ -1,5 +1,5 @@
-cmake_minimum_required(VERSION 2.8)
-project(iscore_plugin_temporalautomatas)
+cmake_minimum_required(VERSION 3.1)
+project(iscore_plugin_temporalautomatas LANGUAGES CXX)
 
 iscore_common_setup()
 
@@ -21,6 +21,6 @@ set(SRCS
 
 qt5_add_resources(QRCS "${CMAKE_CURRENT_SOURCE_DIR}/TemporalAutomatas/Resources/TAResources.qrc")
 add_library(${PROJECT_NAME} ${SRCS} ${HDRS} ${QRCS})
-target_link_libraries(${PROJECT_NAME} iscore_plugin_scenario)
+target_link_libraries(${PROJECT_NAME} PRIVATE iscore_lib_base iscore_lib_process iscore_plugin_scenario iscore_plugin_automation)
 
 setup_iscore_plugin(${PROJECT_NAME})

@@ -20,6 +20,7 @@
 #include <Explorer/DocumentPlugin/DeviceDocumentPlugin.hpp>
 #include <core/document/Document.hpp>
 #include <OSSIA/iscore2OSSIA.hpp>
+#include <OSSIA/CurveConversion.hpp>
 #include <OSSIA/Protocols/OSSIADevice.hpp>
 #include <API/Headers/Editor/Curve.h>
 #include <API/Headers/Editor/CurveSegment/CurveSegmentLinear.h>
