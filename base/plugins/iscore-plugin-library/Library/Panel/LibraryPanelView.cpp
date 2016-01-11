@@ -1,6 +1,6 @@
 #include "LibraryPanelView.hpp"
 #include <core/view/View.hpp>
-#include "Plugin/JSONLibrary/LibraryWidget.hpp"
+#include <Library/JSONLibrary/LibraryWidget.hpp>
 // Library shall have :
 // - A global pane (system-wide)
 // - A local pane (document-wide, saved in the panel)

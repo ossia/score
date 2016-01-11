@@ -1,6 +1,7 @@
 #include "iscore_plugin_library.hpp"
 
-#include "Panel/LibraryPanelFactory.hpp"
+#include <Library/Panel/LibraryPanelFactory.hpp>
+
 using namespace iscore;
 
 iscore_plugin_library::iscore_plugin_library() :
