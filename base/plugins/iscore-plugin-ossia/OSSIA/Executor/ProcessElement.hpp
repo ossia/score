@@ -4,6 +4,8 @@
 #include <memory>
 #include <iscore/component/Component.hpp>
 #include <iscore/component/ComponentFactory.hpp>
+
+#include <OSSIA/Executor/DocumentPlugin.hpp>
 #include <iscore_plugin_ossia_export.h>
 namespace OSSIA
 {
@@ -14,7 +16,6 @@ namespace OSSIA
 namespace RecreateOnPlay
 {
 struct Context;
-class DocumentPlugin;
 class ConstraintElement;
 
 class ISCORE_PLUGIN_OSSIA_EXPORT ProcessComponent :

@@ -33,7 +33,7 @@ include_directories(SYSTEM "${3RDPARTY_FOLDER}/nano-signal-slot")
 add_subdirectory("${3RDPARTY_FOLDER}/QProgressIndicator")
 add_subdirectory("${3RDPARTY_FOLDER}/QRecentFilesMenu")
 
-set(ISCORE_PLUGINS_LIST CACHE INTERNAL "List of plugins")
+set(ISCORE_PLUGINS_LIST CACHE INTERNAL "List of plugins") # todo libraries, components ?
 
 add_subdirectory(base)
 
