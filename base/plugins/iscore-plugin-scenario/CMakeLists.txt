@@ -2,11 +2,6 @@ cmake_minimum_required(VERSION 3.0)
 project(iscore_plugin_scenario LANGUAGES CXX)
 iscore_common_setup()
 
-option(DEFINE_ISCORE_SCENARIO_DEBUG_RECTS "Enable to have debug rects around elements of a scenario" OFF)
-if(DEFINE_ISCORE_SCENARIO_DEBUG_RECTS)
-    add_definitions(-DISCORE_SCENARIO_DEBUG_RECTS)
-endif()
-
 # Packages
 # TODO make a check to see what libs aren't necessary
 find_package(Qt5 5.3 REQUIRED COMPONENTS Core Widgets Xml Svg Test)

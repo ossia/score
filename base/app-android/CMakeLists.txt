@@ -9,9 +9,6 @@ find_package(Qt5 5.3 REQUIRED COMPONENTS Core Widgets Xml Network Test)
 #~ SET(CMAKE_BUILD_WITH_INSTALL_RPATH FALSE)
 #~ SET(CMAKE_INSTALL_RPATH ".")
 #~ SET(CMAKE_INSTALL_RPATH_USE_LINK_PATH TRUE)
-
-include_directories("${CMAKE_CURRENT_SOURCE_DIR}/../lib")
-include_directories("${CMAKE_CURRENT_SOURCE_DIR}/../lib/core")
  
 add_library(iscore_app_android SHARED main.cpp)
 set_target_properties(iscore_app_android PROPERTIES VERSION ${ISCORE_VERSION})

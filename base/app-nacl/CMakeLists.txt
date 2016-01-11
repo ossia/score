@@ -17,8 +17,6 @@ find_library(nacl_LIBRARY NAMES nacl libnacl)
 find_library(ppapi_LIBRARY NAMES ppapi_gles2 libppapi_gles2)
 
 # Executable
-include_directories("${CMAKE_CURRENT_SOURCE_DIR}/../lib")
-include_directories("${CMAKE_CURRENT_SOURCE_DIR}/../lib/core")
 set(SRCS
   "${CMAKE_CURRENT_SOURCE_DIR}/Application.hpp"
   "${CMAKE_CURRENT_SOURCE_DIR}/Application.cpp"
