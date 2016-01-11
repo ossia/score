@@ -6,8 +6,6 @@ set(APPNAME "i-score")
 # TODO strip symbols after deployment build
 set(CMAKE_RUNTIME_OUTPUT_DIRECTORY "${CMAKE_BINARY_DIR}")
 
-include_directories("${CMAKE_CURRENT_SOURCE_DIR}/../lib")
-include_directories("${CMAKE_CURRENT_SOURCE_DIR}/../lib/core")
 set(SRCS
   "${CMAKE_CURRENT_SOURCE_DIR}/Application.hpp"
   "${CMAKE_CURRENT_SOURCE_DIR}/Application.cpp"

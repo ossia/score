@@ -4,9 +4,6 @@ project(iscore_testapp LANGUAGES CXX)
 enable_testing()
 set(CMAKE_RUNTIME_OUTPUT_DIRECTORY "${CMAKE_BINARY_DIR}")
 
-include_directories("${CMAKE_CURRENT_SOURCE_DIR}/../lib")
-include_directories("${CMAKE_CURRENT_SOURCE_DIR}/../lib/core")
-
 set(SRCS
     "${CMAKE_CURRENT_SOURCE_DIR}/main.cpp"
     "${CMAKE_CURRENT_SOURCE_DIR}/TestObject.hpp"
