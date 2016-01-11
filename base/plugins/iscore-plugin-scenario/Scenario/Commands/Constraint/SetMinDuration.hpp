@@ -7,9 +7,9 @@
 #include <Process/TimeValue.hpp>
 #include <Scenario/Document/Constraint/ConstraintModel.hpp>
 
-class ConstraintModel;
 namespace Scenario
 {
+class ConstraintModel;
 namespace Command
 {
 /**

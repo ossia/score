@@ -2,12 +2,14 @@
 #include <Scenario/Document/Constraint/ViewModels/ConstraintView.hpp>
 #include <QRect>
 
-class FullViewConstraintPresenter;
 class QGraphicsItem;
 class QPainter;
 class QStyleOptionGraphicsItem;
 class QWidget;
 
+namespace Scenario
+{
+class FullViewConstraintPresenter;
 class FullViewConstraintView final : public ConstraintView
 {
         Q_OBJECT
@@ -23,3 +25,4 @@ class FullViewConstraintView final : public ConstraintView
                            const QStyleOptionGraphicsItem* option,
                            QWidget* widget) override;
 };
+}

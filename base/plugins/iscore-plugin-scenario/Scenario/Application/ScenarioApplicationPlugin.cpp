@@ -73,7 +73,8 @@ using namespace iscore;
 #include <algorithm>
 #include <core/presenter/Presenter.hpp>
 #include <core/view/View.hpp>
-
+namespace Scenario
+{
 void test_parse_expr_full();
 ScenarioApplicationPlugin::ScenarioApplicationPlugin(const iscore::ApplicationContext& ctx) :
     GUIApplicationContextPlugin{ctx, "ScenarioApplicationPlugin", nullptr}
@@ -437,5 +438,6 @@ Process::ProcessFocusManager* ScenarioApplicationPlugin::processFocusManager() c
     }
 
     return nullptr;
+}
 }
 

@@ -10,6 +10,9 @@
 class QGraphicsSceneHoverEvent;
 class QGraphicsSceneMouseEvent;
 
+namespace Scenario
+{
+
 SeparatorItem::SeparatorItem(QGraphicsItem *parent):
     QGraphicsSimpleTextItem{"/", parent}
 {
@@ -71,4 +74,6 @@ int ClickableLabelItem::index() const
 void ClickableLabelItem::setIndex(int index)
 {
     m_index = index;
+}
+
 }

@@ -8,16 +8,17 @@
 #include <iscore/serialization/VisitorInterface.hpp>
 #include <iscore/tools/IdentifiedObject.hpp>
 
-class ConstraintModel;
 class DataStream;
 class JSONObject;
 class QObject;
-class TimeNodeModel;
 #include <iscore/tools/SettableIdentifier.hpp>
-
+namespace Scenario
+{
+class ConstraintModel;
+class TimeNodeModel;
 class BaseScenario final : public IdentifiedObject<BaseScenario>, public BaseScenarioContainer
 {
-        ISCORE_METADATA(BaseScenario)
+        ISCORE_METADATA(Scenario::BaseScenario)
         ISCORE_SERIALIZE_FRIENDS(BaseScenario, DataStream)
         ISCORE_SERIALIZE_FRIENDS(BaseScenario, JSONObject)
 
@@ -44,4 +45,4 @@ class BaseScenario final : public IdentifiedObject<BaseScenario>, public BaseSce
 const QVector<Id<ConstraintModel>> constraintsBeforeTimeNode(
         const BaseScenario&,
         const Id<TimeNodeModel>& timeNodeId);
-
+}

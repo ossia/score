@@ -6,6 +6,8 @@ class ModelMetadata;
 class QGraphicsSceneHoverEvent;
 class QGraphicsSceneMouseEvent;
 
+namespace Scenario
+{
 class SeparatorItem final :
         public QGraphicsSimpleTextItem
 {
@@ -41,3 +43,4 @@ class ClickableLabelItem final :
         int m_index{-1};
         ClickHandler m_onClick;
 };
+}

@@ -86,12 +86,14 @@ iscore_plugin_scenario::iscore_plugin_scenario() :
 // Interfaces implementations :
 std::vector<iscore::DocumentDelegateFactoryInterface*> iscore_plugin_scenario::documents()
 {
+    using namespace Scenario;
     return {new ScenarioDocumentFactory};
 }
 
 iscore::GUIApplicationContextPlugin* iscore_plugin_scenario::make_applicationPlugin(
         const iscore::ApplicationContext& app)
 {
+    using namespace Scenario;
     return new ScenarioApplicationPlugin{app};
 }
 
@@ -104,6 +106,7 @@ std::vector<iscore::PanelFactory*> iscore_plugin_scenario::panels()
 
 std::vector<std::unique_ptr<iscore::FactoryListInterface>> iscore_plugin_scenario::factoryFamilies()
 {
+    using namespace Scenario;
     return make_ptr_vector<iscore::FactoryListInterface,
             Process::ProcessList,
             Process::StateProcessList,
@@ -119,6 +122,7 @@ std::vector<std::unique_ptr<iscore::FactoryListInterface>> iscore_plugin_scenari
 template<>
 struct FactoryBuilder<iscore::ApplicationContext, ScenarioFactory>
 {
+        using namespace Scenario;
         static auto make(const iscore::ApplicationContext& ctx)
         {
             auto& appPlugin = ctx.components.applicationPlugin<ScenarioApplicationPlugin>();
@@ -130,6 +134,7 @@ std::vector<std::unique_ptr<iscore::FactoryInterfaceBase>> iscore_plugin_scenari
         const iscore::ApplicationContext& ctx,
         const iscore::FactoryBaseKey& key) const
 {
+    using namespace Scenario;
     /*
         if(key == ScenarioActionsFactory::staticFactoryKey())
         {

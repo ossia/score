@@ -15,6 +15,8 @@
 #include <iscore/tools/Todo.hpp>
 
 ISCORE_METADATA_IMPL(SlotModel)
+namespace Scenario
+{
 SlotModel::SlotModel(
         const Id<SlotModel>& id,
         RackModel* parent) :
@@ -154,4 +156,5 @@ qreal SlotModel::height() const
 bool SlotModel::focus() const
 {
     return m_focus;
+}
 }

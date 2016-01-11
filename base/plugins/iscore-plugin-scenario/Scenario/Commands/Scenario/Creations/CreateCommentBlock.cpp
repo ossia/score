@@ -6,8 +6,12 @@
 #include <Scenario/Process/Algorithms/StandardCreationPolicy.hpp>
 #include <Scenario/Document/CommentBlock/CommentBlockModel.hpp>
 
-using namespace Scenario::Command;
 
+
+namespace Scenario
+{
+namespace Command
+{
 CreateCommentBlock::CreateCommentBlock(const Path<ScenarioModel>& scenarioPath,
                                        const TimeValue& date,
                                        double yPosition):
@@ -39,4 +43,6 @@ void CreateCommentBlock::serializeImpl(DataStreamInput& s) const
 void CreateCommentBlock::deserializeImpl(DataStreamOutput& s)
 {
     s >> m_path >> m_date >> m_y >> m_id;
+}
+}
 }

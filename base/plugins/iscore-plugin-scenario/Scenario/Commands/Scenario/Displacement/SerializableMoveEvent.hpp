@@ -6,9 +6,13 @@
 #include <Process/ExpandMode.hpp>
 #include <Process/TimeValue.hpp>
 
-class EventModel;
-namespace Scenario { class ScenarioModel; }
+namespace Scenario {
 
+class EventModel;
+class ScenarioModel;
+
+namespace Command
+{
 class SerializableMoveEvent : public iscore::SerializableCommand
 {
 public:
@@ -25,3 +29,5 @@ public:
     Path<Scenario::ScenarioModel>&
     path() const = 0;
 };
+}
+}

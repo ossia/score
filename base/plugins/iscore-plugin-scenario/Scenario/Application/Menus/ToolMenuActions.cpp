@@ -17,6 +17,8 @@
 #include <core/presenter/MenubarManager.hpp>
 
 class QObject;
+namespace Scenario
+{
 class TemporalScenarioPresenter;
 
 template<typename Data>
@@ -283,4 +285,4 @@ QAction *ToolMenuActions::shiftAction()
 {
     return m_shiftAction;
 }
-
+}

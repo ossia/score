@@ -3,6 +3,8 @@
 #include "ScenarioActions.hpp"
 #include <iscore/menu/MenuInterface.hpp>
 
+namespace Scenario
+{
 ScenarioActions::ScenarioActions(
         iscore::ToplevelMenuElement menuElt,
         ScenarioApplicationPlugin *parent) :
@@ -21,5 +23,6 @@ ScenarioActions::~ScenarioActions()
 QList<QAction*> ScenarioActions::actions() const
 {
     return {};
+}
 }
 

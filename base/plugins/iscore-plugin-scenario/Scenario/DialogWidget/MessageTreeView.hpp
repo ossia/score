@@ -2,13 +2,14 @@
 #include <iscore/command/Dispatchers/CommandDispatcher.hpp>
 #include <QTreeView>
 
-class MessageItemModel;
 class QAction;
 class QContextMenuEvent;
 class QResizeEvent;
 class QWidget;
+namespace Scenario
+{
+class MessageItemModel;
 class StateModel;
-
 class MessageTreeView final : public QTreeView
 {
     public:
@@ -33,3 +34,4 @@ class MessageTreeView final : public QTreeView
         CommandDispatcher<> m_dispatcher;
         float m_valueColumnSize{0.15};
 };
+}

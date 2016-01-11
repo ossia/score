@@ -10,12 +10,17 @@
 #include <iscore/plugins/customfactory/StringFactoryKey.hpp>
 #include <iscore/serialization/DataStreamVisitor.hpp>
 
-class EventModel;
 namespace Scenario {
-class ScenarioModel;
 }  // namespace Scenario
 #include <iscore/tools/SettableIdentifier.hpp>
 
+
+namespace Scenario
+{
+namespace Command
+{
+class EventModel;
+class ScenarioModel;
 MoveEventMeta::MoveEventMeta(
         Path<Scenario::ScenarioModel>&& scenarioPath,
         const Id<EventModel>& eventId,
@@ -68,4 +73,6 @@ void MoveEventMeta::update(const Path<Scenario::ScenarioModel>& scenarioPath,
                            ExpandMode mode)
 {
     m_moveEventImplementation->update(scenarioPath, eventId, newDate, mode);
+}
+}
 }

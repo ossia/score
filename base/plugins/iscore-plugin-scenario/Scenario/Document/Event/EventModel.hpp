@@ -17,11 +17,10 @@
 class DataStream;
 class JSONObject;
 class QObject;
-class StateModel;
 
-namespace OSSIA
+namespace Scenario
 {
-}
+class StateModel;
 class ScenarioInterface;
 class TimeNodeModel;
 
@@ -114,3 +113,4 @@ class ISCORE_PLUGIN_SCENARIO_EXPORT EventModel final : public IdentifiedObject<E
 
         ExecutionStatusProperty m_status{};
 };
+}

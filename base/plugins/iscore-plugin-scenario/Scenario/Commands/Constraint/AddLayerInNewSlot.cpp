@@ -18,8 +18,11 @@
 
 
 using namespace iscore;
-using namespace Scenario::Command;
 
+namespace Scenario
+{
+namespace Command
+{
 AddLayerInNewSlot::AddLayerInNewSlot(
         Path<ConstraintModel>&& constraintPath,
         const Id<Process::ProcessModel>& process) :
@@ -119,4 +122,6 @@ void AddLayerInNewSlot::deserializeImpl(DataStreamOutput& s)
       >> m_createdLayerId
       >> m_sharedProcessModelId
       >> m_processData;
+}
+}
 }

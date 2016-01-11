@@ -2,9 +2,11 @@
 #include <iscore/tools/ModelPath.hpp>
 
 namespace Process { class LayerModel; }
-class SlotModel;
 #include <iscore/tools/SettableIdentifier.hpp>
 
+namespace Scenario
+{
+class SlotModel;
 class PutLayerModelToFront
 {
     public:
@@ -18,3 +20,4 @@ class PutLayerModelToFront
         Path<SlotModel> m_slotPath;
         const Id<Process::LayerModel>& m_pid;
 };
+}

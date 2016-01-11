@@ -9,6 +9,8 @@
 class QStyleOptionGraphicsItem;
 class QWidget;
 
+namespace Scenario
+{
 SlotOverlay::SlotOverlay(SlotView *parent):
     QGraphicsItem{parent},
     m_slotView{*parent}
@@ -53,4 +55,5 @@ void SlotOverlay::mouseMoveEvent(QGraphicsSceneMouseEvent* event)
 void SlotOverlay::mouseReleaseEvent(QGraphicsSceneMouseEvent* event)
 {
     emit m_slotView.presenter.released(event->scenePos());
+}
 }

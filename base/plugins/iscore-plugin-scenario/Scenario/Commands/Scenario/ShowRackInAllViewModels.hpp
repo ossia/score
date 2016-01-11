@@ -7,11 +7,17 @@
 #include <iscore/tools/ModelPath.hpp>
 #include <iscore/tools/SettableIdentifier.hpp>
 
-class ConstraintModel;
-class ConstraintViewModel;
 class DataStreamInput;
 class DataStreamOutput;
+
+namespace Scenario
+{
 class RackModel;
+class ConstraintModel;
+class ConstraintViewModel;
+
+namespace Command
+{
 
 class ShowRackInAllViewModels final : public iscore::SerializableCommand
 {
@@ -35,3 +41,7 @@ class ShowRackInAllViewModels final : public iscore::SerializableCommand
         QMap<Id<ConstraintViewModel>, Id<RackModel>> m_previousRacks;
 
 };
+
+}
+
+}

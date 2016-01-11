@@ -4,6 +4,10 @@
 #include <iscore/tools/std/StdlibWrapper.hpp>
 #include <iscore/tools/std/Algorithms.hpp>
 
+namespace Scenario
+{
+namespace Command
+{
 class TriggerCommandFactoryList final : public iscore::FactoryListInterface
 {
     public:
@@ -45,3 +49,5 @@ class TriggerCommandFactoryList final : public iscore::FactoryListInterface
     private:
       std::vector<std::unique_ptr<TriggerCommandFactory>> m_list;
 };
+}
+}

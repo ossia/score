@@ -18,6 +18,8 @@ class QPainter;
 class QStyleOptionGraphicsItem;
 class QWidget;
 
+namespace Scenario
+{
 AddressBarItem::AddressBarItem(QGraphicsItem *parent):
     QGraphicsObject{parent}
 {
@@ -117,4 +119,5 @@ void AddressBarItem::redraw()
     }
 
     emit needRedraw();
+}
 }

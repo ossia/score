@@ -16,7 +16,11 @@
 #include <iscore/tools/ModelPathSerialization.hpp>
 #include <iscore/tools/NotifyingMap.hpp>
 
-using namespace Scenario::Command;
+
+namespace Scenario
+{
+namespace Command
+{
 CreateState::CreateState(const Scenario::ScenarioModel& scenario, const Id<EventModel> &event, double stateY) :
     m_path {scenario},
     m_newState{getStrongId(scenario.states)},
@@ -70,5 +74,6 @@ void CreateState::deserializeImpl(DataStreamOutput & s)
 {
     s >> m_path >> m_newState >> m_event >> m_stateY;
 }
-
+}
+}
 

@@ -7,53 +7,53 @@
 
 #include <iscore/tools/SettableIdentifier.hpp>
 
-class ConstraintModel;
 class DataStreamInput;
 class DataStreamOutput;
 namespace Process { class LayerModel; }
 namespace Process { class ProcessModel; }
-class RackModel;
-class SlotModel;
 
 namespace Scenario
 {
-    namespace Command
-    {
-        /**
+class ConstraintModel;
+class RackModel;
+class SlotModel;
+namespace Command
+{
+/**
         * @brief The AddLayerInNewSlot class
         */
-        class AddLayerInNewSlot final : public iscore::SerializableCommand
+class AddLayerInNewSlot final : public iscore::SerializableCommand
+{
+        ISCORE_COMMAND_DECL(ScenarioCommandFactoryName(), AddLayerInNewSlot, "Add a new layer")
+        public:
+            AddLayerInNewSlot(
+                Path<ConstraintModel>&& constraintPath,
+                const Id<Process::ProcessModel>& process);
+
+        void undo() const override;
+        void redo() const override;
+
+        Id<Process::ProcessModel> processId() const
         {
-                ISCORE_COMMAND_DECL(ScenarioCommandFactoryName(), AddLayerInNewSlot, "Add a new layer")
-            public:
-                AddLayerInNewSlot(
-                    Path<ConstraintModel>&& constraintPath,
-                    const Id<Process::ProcessModel>& process);
+            return m_processId;
+        }
 
-                void undo() const override;
-                void redo() const override;
+    protected:
+        void serializeImpl(DataStreamInput&) const override;
+        void deserializeImpl(DataStreamOutput&) override;
 
-                Id<Process::ProcessModel> processId() const
-                {
-                    return m_processId;
-                }
+    private:
+        Path<ConstraintModel> m_path;
 
-            protected:
-                void serializeImpl(DataStreamInput&) const override;
-                void deserializeImpl(DataStreamOutput&) override;
+        bool m_existingRack {};
 
-            private:
-                Path<ConstraintModel> m_path;
+        Id<Process::ProcessModel> m_processId {};
+        Id<RackModel> m_createdRackId {};
+        Id<SlotModel> m_createdSlotId {};
+        Id<Process::LayerModel> m_createdLayerId {};
+        Id<Process::ProcessModel> m_sharedProcessModelId {};
 
-                bool m_existingRack {};
-
-                Id<Process::ProcessModel> m_processId {};
-                Id<RackModel> m_createdRackId {};
-                Id<SlotModel> m_createdSlotId {};
-                Id<Process::LayerModel> m_createdLayerId {};
-                Id<Process::ProcessModel> m_sharedProcessModelId {};
-
-                QByteArray m_processData;
-        };
-    }
+        QByteArray m_processData;
+};
+}
 }

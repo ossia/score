@@ -10,15 +10,13 @@
 
 class DataStreamInput;
 class DataStreamOutput;
-class EventModel;
-class StateModel;
-class TimeNodeModel;
-namespace Scenario {
-class ScenarioModel;
-}  // namespace Scenario
 
 namespace Scenario
 {
+class EventModel;
+class StateModel;
+class ScenarioModel;
+class TimeNodeModel;
 namespace Command
 {
 class ISCORE_PLUGIN_SCENARIO_EXPORT CreateEvent_State final : public iscore::SerializableCommand

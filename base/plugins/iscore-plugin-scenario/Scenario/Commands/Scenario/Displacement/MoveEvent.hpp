@@ -13,12 +13,6 @@
 #include <Scenario/Tools/elementFindingHelper.hpp>
 #include <iscore/tools/ModelPathSerialization.hpp>
 
-class EventModel;
-class TimeNodeModel;
-class ConstraintModel;
-class ConstraintViewModel;
-class RackModel;
-namespace Scenario { class ScenarioModel; }
 struct ElementsProperties;
 
 #include <tests/helpers/ForwardDeclaration.hpp>
@@ -26,6 +20,12 @@ struct ElementsProperties;
 
 namespace Scenario
 {
+class EventModel;
+class TimeNodeModel;
+class ConstraintModel;
+class ConstraintViewModel;
+class RackModel;
+class ScenarioModel;
 namespace Command
 {
 /**

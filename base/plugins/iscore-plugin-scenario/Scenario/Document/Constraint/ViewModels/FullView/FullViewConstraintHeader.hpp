@@ -2,12 +2,14 @@
 #include <Scenario/Document/Constraint/ViewModels/ConstraintHeader.hpp>
 #include <QRect>
 
-class AddressBarItem;
 class QGraphicsItem;
 class QPainter;
 class QStyleOptionGraphicsItem;
 class QWidget;
 
+namespace Scenario
+{
+class AddressBarItem;
 class FullViewConstraintHeader final : public ConstraintHeader
 {
     public:
@@ -21,3 +23,4 @@ class FullViewConstraintHeader final : public ConstraintHeader
     private:
         AddressBarItem* m_bar{};
 };
+}

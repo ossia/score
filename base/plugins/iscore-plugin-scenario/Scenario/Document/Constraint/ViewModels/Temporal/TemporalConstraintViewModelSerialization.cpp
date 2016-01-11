@@ -23,13 +23,13 @@
 template <typename T> class Reader;
 
 template<>
-void Visitor<Reader<DataStream>>::readFrom(const TemporalConstraintViewModel& constraint)
+void Visitor<Reader<DataStream>>::readFrom(const Scenario::TemporalConstraintViewModel& constraint)
 {
     readFrom(static_cast<const ConstraintViewModel&>(constraint));
 }
 
 template<>
-void Visitor<Reader<JSONObject>>::readFrom(const TemporalConstraintViewModel& constraint)
+void Visitor<Reader<JSONObject>>::readFrom(const Scenario::TemporalConstraintViewModel& constraint)
 {
     readFrom(static_cast<const ConstraintViewModel&>(constraint));
 }

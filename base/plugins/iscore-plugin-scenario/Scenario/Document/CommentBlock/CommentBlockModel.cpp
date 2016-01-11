@@ -2,6 +2,8 @@
 
 #include <QTextDocument>
 
+namespace Scenario
+{
 CommentBlockModel::CommentBlockModel(const Id<CommentBlockModel>& id,
                            const TimeValue& date,
                            double yPos,
@@ -62,4 +64,5 @@ void CommentBlockModel::setContent(const QString content)
         return;
     m_HTMLcontent = content;
     emit contentChanged(m_HTMLcontent);
+}
 }

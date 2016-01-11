@@ -21,6 +21,8 @@
 #include <iscore/document/DocumentContext.hpp>
 #include <iscore/tools/std/Algorithms.hpp>
 
+namespace Scenario
+{
 QJsonObject copyBaseConstraint(const ConstraintModel& cst)
 {
     QJsonObject base;
@@ -218,4 +220,5 @@ QJsonObject copySelectedScenarioElements(BaseScenario &sm)
 
     return base;
 
+}
 }

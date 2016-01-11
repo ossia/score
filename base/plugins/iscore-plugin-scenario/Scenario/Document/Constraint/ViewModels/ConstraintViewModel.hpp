@@ -7,11 +7,14 @@
 #include <iscore/tools/SettableIdentifier.hpp>
 #include <iscore_plugin_scenario_export.h>
 
-class ConstraintModel;
 class QObject;
+namespace Scenario
+{
 class RackModel;
-
-class ISCORE_PLUGIN_SCENARIO_EXPORT ConstraintViewModel : public IdentifiedObject<ConstraintViewModel>, public Nano::Observer
+class ConstraintModel;
+class ISCORE_PLUGIN_SCENARIO_EXPORT ConstraintViewModel :
+        public IdentifiedObject<ConstraintViewModel>,
+        public Nano::Observer
 {
         Q_OBJECT
 
@@ -63,3 +66,4 @@ class ISCORE_PLUGIN_SCENARIO_EXPORT ConstraintViewModel : public IdentifiedObjec
 
         Id<RackModel> m_shownRack {};
 };
+}

@@ -27,7 +27,8 @@
 #include <iscore/tools/TreeNode.hpp>
 
 class QWidget;
-
+namespace Scenario
+{
 MessageTreeView::MessageTreeView(
         const StateModel& model,
         QWidget* parent):
@@ -104,4 +105,4 @@ void MessageTreeView::contextMenuEvent(QContextMenuEvent* event)
     contextMenu.addAction(m_removeNodesAction);
     contextMenu.exec(event->globalPos());
 }
-
+}

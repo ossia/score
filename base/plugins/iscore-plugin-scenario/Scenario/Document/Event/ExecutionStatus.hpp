@@ -3,8 +3,9 @@
 
 class QColor;
 
+namespace Scenario
+{
 enum class ExecutionStatus { Waiting, Pending, Happened, Disposed, Editing };
-Q_DECLARE_METATYPE(ExecutionStatus)
 
 
 // TODO Use me for events, states
@@ -30,3 +31,6 @@ class ExecutionStatusProperty final : public QObject
     private:
         ExecutionStatus m_status{ExecutionStatus::Editing};
 };
+}
+
+Q_DECLARE_METATYPE(Scenario::ExecutionStatus)

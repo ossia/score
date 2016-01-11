@@ -8,6 +8,8 @@ namespace iscore {
 class Document;
 }  // namespace iscore
 
+namespace Scenario
+{
 BaseElementContext::BaseElementContext(
         iscore::Document& doc,
         ScenarioDocumentPresenter& pres,
@@ -28,4 +30,5 @@ BaseElementContext::BaseElementContext(
         const_cast<ScenarioDocumentModel&>(pres.model()).focusManager()}
 {
 
+}
 }

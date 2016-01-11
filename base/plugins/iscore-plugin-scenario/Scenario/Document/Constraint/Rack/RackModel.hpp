@@ -16,9 +16,12 @@
 #include "Slot/SlotModel.hpp"
 #include <iscore/tools/IdentifiedObject.hpp>
 #include <iscore_plugin_scenario_export.h>
-class ConstraintModel;
 namespace Process { class ProcessModel; }
 
+
+namespace Scenario
+{
+class ConstraintModel;
 /**
  * @brief The RackModel class
  *
@@ -82,4 +85,4 @@ class ISCORE_PLUGIN_SCENARIO_EXPORT RackModel final : public IdentifiedObject<Ra
         // Positions of the slots. First is topmost.
         QList<Id<SlotModel>> m_positions;
 };
-
+}

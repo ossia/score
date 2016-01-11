@@ -8,19 +8,18 @@
 
 #include <Scenario/Process/ScenarioModel.hpp>
 #include <iscore/serialization/VisitorInterface.hpp>
+#include <iscore/tools/SettableIdentifier.hpp>
 
+namespace Process { class ProcessModel; }
+class QObject;
+namespace Scenario
+{
+class StateModel;
+class TimeNodeModel;
 class ConstraintModel;
 class ConstraintViewModel;
 class EventModel;
-namespace Process { class ProcessModel; }
-class QObject;
-class StateModel;
-class TimeNodeModel;
-namespace Scenario
-{
 class ScenarioModel;
-}
-#include <iscore/tools/SettableIdentifier.hpp>
 
 class AbstractScenarioLayerModel :
         public Process::LayerModel,
@@ -141,3 +140,4 @@ void createConstraintViewModels(const ConstraintViewModelIdMap& idMap,
 std::vector<ConstraintViewModel*> getConstraintViewModels(
         const Id<ConstraintModel>& constraintId,
         const Scenario::ScenarioModel& scenario);
+}

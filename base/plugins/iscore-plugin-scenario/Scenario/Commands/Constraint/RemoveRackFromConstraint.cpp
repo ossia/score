@@ -15,7 +15,11 @@
 #include <iscore/tools/ObjectIdentifier.hpp>
 
 using namespace iscore;
-using namespace Scenario::Command;
+
+namespace Scenario
+{
+namespace Command
+{
 
 RemoveRackFromConstraint::RemoveRackFromConstraint(
         Path<RackModel>&& rackPath)
@@ -85,4 +89,6 @@ void RemoveRackFromConstraint::serializeImpl(DataStreamInput& s) const
 void RemoveRackFromConstraint::deserializeImpl(DataStreamOutput& s)
 {
     s >> m_path >> m_rackId >> m_serializedRackData >> m_rackMappings;
+}
+}
 }

@@ -8,7 +8,12 @@
 
 class DataStreamInput;
 class DataStreamOutput;
+
+namespace Scenario
+{
 class StateModel;
+namespace Command
+{
 
 class InsertContentInState final : public iscore::SerializableCommand
 {
@@ -33,3 +38,6 @@ class InsertContentInState final : public iscore::SerializableCommand
         MessageNode m_newNode;
         Path<StateModel> m_state;
 };
+
+}
+}

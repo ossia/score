@@ -32,7 +32,8 @@
 
 class QObject;
 
-
+namespace Scenario
+{
 SlotPresenter::SlotPresenter(
         const iscore::DocumentContext& doc,
         const SlotModel& model,
@@ -376,4 +377,5 @@ void SlotPresenter::updateProcessesShape()
     {
         updateProcessShape(elt);
     }
+}
 }

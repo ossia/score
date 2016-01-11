@@ -24,7 +24,12 @@
 #include <iscore/tools/ObjectPath.hpp>
 
 using namespace iscore;
-using namespace Scenario::Command;
+
+
+namespace Scenario
+{
+namespace Command
+{
 
 RemoveProcessFromConstraint::RemoveProcessFromConstraint(
         Path<ConstraintModel>&& constraintPath,
@@ -90,4 +95,6 @@ void RemoveProcessFromConstraint::serializeImpl(DataStreamInput& s) const
 void RemoveProcessFromConstraint::deserializeImpl(DataStreamOutput& s)
 {
     s >> m_path >> m_processId >> m_serializedProcessData >> m_serializedViewModels;
+}
+}
 }

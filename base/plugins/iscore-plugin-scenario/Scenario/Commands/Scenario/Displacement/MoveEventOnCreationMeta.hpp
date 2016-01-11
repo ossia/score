@@ -7,14 +7,17 @@
 #include <Scenario/Commands/ScenarioCommandFactory.hpp>
 #include <iscore/tools/ModelPath.hpp>
 
-class DataStreamInput;
-class DataStreamOutput;
-class EventModel;
-namespace Scenario {
-class ScenarioModel;
-}  // namespace Scenario
 #include <iscore/tools/SettableIdentifier.hpp>
 #include <iscore_plugin_scenario_export.h>
+class DataStreamInput;
+class DataStreamOutput;
+
+namespace Scenario
+{
+class EventModel;
+class ScenarioModel;
+namespace Command
+{
 
 class ISCORE_PLUGIN_SCENARIO_EXPORT MoveEventOnCreationMeta final : public SerializableMoveEvent
 {
@@ -43,3 +46,5 @@ private:
 public:
     void update(const Path<Scenario::ScenarioModel>& scenarioPath, const Id<EventModel>& eventId, const TimeValue& newDate, ExpandMode mode) override;
 };
+}
+}

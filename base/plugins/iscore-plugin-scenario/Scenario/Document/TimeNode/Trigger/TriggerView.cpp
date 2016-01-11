@@ -8,6 +8,8 @@ class QGraphicsSceneMouseEvent;
 class QStyleOptionGraphicsItem;
 class QWidget;
 
+namespace Scenario
+{
 TriggerView::TriggerView(QGraphicsItem *parent):
     QGraphicsObject{parent}
 {
@@ -50,4 +52,5 @@ void TriggerView::paint(QPainter *painter, const QStyleOptionGraphicsItem *optio
 void TriggerView::mousePressEvent(QGraphicsSceneMouseEvent* ev)
 {
     emit pressed();
+}
 }

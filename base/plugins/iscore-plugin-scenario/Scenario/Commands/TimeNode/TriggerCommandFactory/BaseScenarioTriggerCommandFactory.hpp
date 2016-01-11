@@ -1,11 +1,15 @@
 #pragma once
 #include <Scenario/Commands/TimeNode/TriggerCommandFactory/TriggerCommandFactory.hpp>
 
-class TimeNodeModel;
 namespace iscore {
 class SerializableCommand;
 }  // namespace iscore
 
+namespace Scenario
+{
+class TimeNodeModel;
+namespace Command
+{
 class BaseScenarioTriggerCommandFactory : public TriggerCommandFactory
 {
     public:
@@ -18,3 +22,6 @@ class BaseScenarioTriggerCommandFactory : public TriggerCommandFactory
         iscore::SerializableCommand* make_removeTriggerCommand(
                 const TimeNodeModel& tn) const override;
 };
+
+}
+}

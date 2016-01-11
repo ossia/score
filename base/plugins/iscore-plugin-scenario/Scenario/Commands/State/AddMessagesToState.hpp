@@ -11,9 +11,13 @@
 #include <iscore_plugin_scenario_export.h>
 class DataStreamInput;
 class DataStreamOutput;
-class MessageItemModel;
 namespace Process { class ProcessModel; }
 
+namespace Scenario
+{
+class MessageItemModel;
+namespace Command
+{
 class ISCORE_PLUGIN_SCENARIO_EXPORT AddMessagesToState final : public iscore::SerializableCommand
 {
         ISCORE_COMMAND_DECL(ScenarioCommandFactoryName(), AddMessagesToState, "Add messages to state")
@@ -38,3 +42,5 @@ class ISCORE_PLUGIN_SCENARIO_EXPORT AddMessagesToState final : public iscore::Se
         QMap<Id<Process::ProcessModel>, State::MessageList> m_previousBackup;
         QMap<Id<Process::ProcessModel>, State::MessageList> m_followingBackup;
 };
+}
+}

@@ -6,7 +6,8 @@
 #include <Process/ProcessFactoryKey.hpp>
 
 class AddProcessDialog;
-
+namespace Scenario
+{
 class ConstraintActions final : public ScenarioActions
 {
     public:
@@ -29,3 +30,4 @@ class ConstraintActions final : public ScenarioActions
     AddProcessDialog* m_addProcessDialog{};
 
 };
+}

@@ -4,13 +4,15 @@
 #include <QPoint>
 #include <QString>
 #include <iscore_plugin_scenario_export.h>
-class EventModel;
-class EventView;
 class QGraphicsObject;
 class QMimeData;
 class QObject;
 #include <iscore/tools/SettableIdentifier.hpp>
 
+namespace Scenario
+{
+class EventModel;
+class EventView;
 class ISCORE_PLUGIN_SCENARIO_EXPORT EventPresenter final : public NamedObject
 {
         Q_OBJECT
@@ -45,4 +47,4 @@ class ISCORE_PLUGIN_SCENARIO_EXPORT EventPresenter final : public NamedObject
 
         CommandDispatcher<> m_dispatcher;
 };
-
+}

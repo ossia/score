@@ -17,11 +17,8 @@
 #include <iscore/tools/Todo.hpp>
 #include <iscore_plugin_scenario_export.h>
 #include <iscore/component/Component.hpp>
-class ConstraintModel;
 class DataStream;
-class EventModel;
 class JSONObject;
-class MessageItemModel;
 namespace Process { class ProcessModel; }
 class ProcessStateDataInterface;
 
@@ -30,6 +27,11 @@ namespace iscore
 class CommandStackFacade;
 }
 
+namespace Scenario
+{
+class EventModel;
+class ConstraintModel;
+class MessageItemModel;
 class ProcessStateWrapper : public QObject
 {
     private:
@@ -141,3 +143,4 @@ class ISCORE_PLUGIN_SCENARIO_EXPORT StateModel final : public IdentifiedObject<S
         ptr<MessageItemModel> m_messageItemModel;
         ExecutionStatusProperty m_status{};
 };
+}

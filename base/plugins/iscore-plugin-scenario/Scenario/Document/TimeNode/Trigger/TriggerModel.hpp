@@ -8,6 +8,8 @@ class QObject;
 #include <iscore/tools/SettableIdentifier.hpp>
 #include <iscore_plugin_scenario_export.h>
 
+namespace Scenario
+{
 class ISCORE_PLUGIN_SCENARIO_EXPORT TriggerModel final : public IdentifiedObject<TriggerModel>
 {
         Q_OBJECT
@@ -37,3 +39,4 @@ class ISCORE_PLUGIN_SCENARIO_EXPORT TriggerModel final : public IdentifiedObject
         State::Trigger m_expression;
         bool m_active {false};
 };
+}

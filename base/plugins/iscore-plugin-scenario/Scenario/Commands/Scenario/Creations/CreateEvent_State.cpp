@@ -15,7 +15,11 @@
 #include <iscore/serialization/DataStreamVisitor.hpp>
 #include <iscore/tools/NotifyingMap.hpp>
 
-using namespace Scenario::Command;
+
+namespace Scenario
+{
+namespace Command
+{
 CreateEvent_State::CreateEvent_State(
         const Scenario::ScenarioModel& scenario,
         const Id<TimeNodeModel>& timeNode,
@@ -84,4 +88,6 @@ void CreateEvent_State::deserializeImpl(DataStreamOutput& s)
             >> m_timeNode;
 
     m_command.deserialize(b);
+}
+}
 }

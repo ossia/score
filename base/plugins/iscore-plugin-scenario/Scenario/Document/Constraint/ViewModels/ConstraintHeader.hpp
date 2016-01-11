@@ -2,9 +2,11 @@
 #include <QGraphicsItem>
 #include <QString>
 
-class ConstraintView;
 class QGraphicsSceneMouseEvent;
 
+namespace Scenario
+{
+class ConstraintView;
 class ConstraintHeader : public QGraphicsObject
 {
     public:
@@ -56,3 +58,4 @@ class ConstraintHeader : public QGraphicsObject
         double m_width{};
         QString m_text;
 };
+}

@@ -13,7 +13,11 @@
 #include <iscore/tools/NotifyingMap.hpp>
 
 using namespace iscore;
-using namespace Scenario::Command;
+
+namespace Scenario
+{
+namespace Command
+{
 
 AddSlotToRack::AddSlotToRack(Path<RackModel>&& rackPath) :
     m_path {rackPath}
@@ -47,4 +51,6 @@ void AddSlotToRack::serializeImpl(DataStreamInput& s) const
 void AddSlotToRack::deserializeImpl(DataStreamOutput& s)
 {
     s >> m_path >> m_createdSlotId;
+}
+}
 }

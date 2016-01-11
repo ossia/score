@@ -8,8 +8,12 @@
 #include <iscore/tools/ModelPathSerialization.hpp>
 
 using namespace iscore;
-using namespace Scenario::Command;
 
+
+namespace Scenario
+{
+namespace Command
+{
 // Rigid constraint == end TimeNode has a trigger
 
 SetRigidity::SetRigidity(
@@ -73,4 +77,6 @@ void SetRigidity::serializeImpl(DataStreamInput& s) const
 void SetRigidity::deserializeImpl(DataStreamOutput& s)
 {
     s >> m_path >> m_rigidity >> m_oldMinDuration >> m_oldMaxDuration;
+}
+}
 }

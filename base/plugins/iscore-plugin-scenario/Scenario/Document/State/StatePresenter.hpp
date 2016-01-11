@@ -11,6 +11,8 @@ class StateModel;
 class StateView;
 #include <iscore/tools/SettableIdentifier.hpp>
 
+namespace Scenario
+{
 class ISCORE_PLUGIN_SCENARIO_EXPORT StatePresenter final : public NamedObject
 {
         Q_OBJECT
@@ -48,4 +50,4 @@ class ISCORE_PLUGIN_SCENARIO_EXPORT StatePresenter final : public NamedObject
 
         CommandDispatcher<> m_dispatcher;
 };
-
+}

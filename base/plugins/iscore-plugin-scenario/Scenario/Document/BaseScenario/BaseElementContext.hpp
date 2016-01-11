@@ -2,11 +2,13 @@
 #include <iscore/document/DocumentContext.hpp>
 
 namespace Process { class ProcessFocusManager; }
-class ScenarioDocumentPresenter;
 namespace iscore {
 class Document;
 }  // namespace iscore
 
+namespace Scenario
+{
+class ScenarioDocumentPresenter;
 class BaseElementContext : public iscore::DocumentContext
 {
     public:
@@ -22,3 +24,4 @@ class BaseElementContext : public iscore::DocumentContext
         ScenarioDocumentPresenter& layerPresenter;
         Process::ProcessFocusManager& focusDispatcher;
 };
+}

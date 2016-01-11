@@ -4,10 +4,15 @@
 
 #include <iscore/tools/ModelPath.hpp>
 
-class ConstraintModel;
 class DataStreamInput;
 class DataStreamOutput;
 
+
+namespace Scenario
+{
+class ConstraintModel;
+namespace Command
+{
 class SetLooping final : public iscore::SerializableCommand
 {
         ISCORE_COMMAND_DECL(ScenarioCommandFactoryName(), SetLooping, "Change looping status")
@@ -29,4 +34,5 @@ class SetLooping final : public iscore::SerializableCommand
         Path<ConstraintModel> m_path;
         bool m_looping{};
 };
-
+}
+}

@@ -21,12 +21,10 @@
 #include <iscore/component/Component.hpp>
 class DataStream;
 class JSONObject;
-class StateModel;
 
-namespace OSSIA
+namespace Scenario
 {
-}
-
+class StateModel;
 class ConstraintViewModel;
 class FullViewConstraintViewModel;
 
@@ -35,8 +33,8 @@ class ISCORE_PLUGIN_SCENARIO_EXPORT ConstraintModel final : public IdentifiedObj
         Q_OBJECT
         ISCORE_METADATA(ConstraintModel)
 
-        ISCORE_SERIALIZE_FRIENDS(ConstraintModel, DataStream)
-        ISCORE_SERIALIZE_FRIENDS(ConstraintModel, JSONObject)
+        ISCORE_SERIALIZE_FRIENDS(Scenario::ConstraintModel, DataStream)
+        ISCORE_SERIALIZE_FRIENDS(Scenario::ConstraintModel, JSONObject)
 
         // TODO must go in view model
         Q_PROPERTY(double heightPercentage
@@ -166,3 +164,4 @@ class ISCORE_PLUGIN_SCENARIO_EXPORT ConstraintModel final : public IdentifiedObj
 
         bool m_looping{false};
 };
+}

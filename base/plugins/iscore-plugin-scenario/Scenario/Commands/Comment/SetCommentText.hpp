@@ -7,31 +7,32 @@
 
 #include <QTextDocument>
 
-class CommentBlockModel;
+
 
 namespace Scenario
 {
-    namespace Command
-    {
-        class SetCommentText final : public iscore::SerializableCommand
-        {
-                ISCORE_COMMAND_DECL(ScenarioCommandFactoryName(), SetCommentText, "Set Text in comment block")
-            public:
-                SetCommentText(Path<CommentBlockModel> path, QString newComment);
+class CommentBlockModel;
+namespace Command
+{
+class SetCommentText final : public iscore::SerializableCommand
+{
+        ISCORE_COMMAND_DECL(ScenarioCommandFactoryName(), SetCommentText, "Set Text in comment block")
+        public:
+            SetCommentText(Path<CommentBlockModel> path, QString newComment);
 
-                void undo() const override;
-                void redo() const override;
+        void undo() const override;
+        void redo() const override;
 
-                // SerializableCommand interface
-            protected:
-                void serializeImpl(DataStreamInput&) const override;
-                void deserializeImpl(DataStreamOutput&) override;
+        // SerializableCommand interface
+    protected:
+        void serializeImpl(DataStreamInput&) const override;
+        void deserializeImpl(DataStreamOutput&) override;
 
-            private:
-                Path<CommentBlockModel> m_path;
-                QString m_newComment;
-                QString m_oldComment;
-        };
-    }
+    private:
+        Path<CommentBlockModel> m_path;
+        QString m_newComment;
+        QString m_oldComment;
+};
+}
 }
 

@@ -20,15 +20,18 @@
 #include <iscore/tools/Todo.hpp>
 #include <iscore/tools/TreeNode.hpp>
 
+namespace Scenario
+{
 class ConstraintModel;
 class EventModel;
+}
 template <typename T> class Reader;
 template <typename T> class Writer;
 template <typename model> class IdentifiedObject;
 
-template<> void Visitor<Reader<DataStream>>::readFrom(const StateModel& s)
+template<> void Visitor<Reader<DataStream>>::readFrom(const Scenario::StateModel& s)
 {
-    readFrom(static_cast<const IdentifiedObject<StateModel>&>(s));
+    readFrom(static_cast<const IdentifiedObject<Scenario::StateModel>&>(s));
 
     // Common metadata
     readFrom(s.metadata);
@@ -51,7 +54,7 @@ template<> void Visitor<Reader<DataStream>>::readFrom(const StateModel& s)
     insertDelimiter();
 }
 
-template<> void Visitor<Writer<DataStream>>::writeTo(StateModel& s)
+template<> void Visitor<Writer<DataStream>>::writeTo(Scenario::StateModel& s)
 {
     // Common metadata
     writeTo(s.metadata);
@@ -64,7 +67,7 @@ template<> void Visitor<Writer<DataStream>>::writeTo(StateModel& s)
     // Message tree
     MessageNode n;
     m_stream >> n;
-    s.m_messageItemModel = new MessageItemModel{s.m_stack, s, &s};
+    s.m_messageItemModel = new Scenario::MessageItemModel{s.m_stack, s, &s};
     s.messages() = n;
 
     // Processes plugins
@@ -80,9 +83,9 @@ template<> void Visitor<Writer<DataStream>>::writeTo(StateModel& s)
     checkDelimiter();
 }
 
-template<> void Visitor<Reader<JSONObject>>::readFrom(const StateModel& s)
+template<> void Visitor<Reader<JSONObject>>::readFrom(const Scenario::StateModel& s)
 {
-    readFrom(static_cast<const IdentifiedObject<StateModel>&>(s));
+    readFrom(static_cast<const IdentifiedObject<Scenario::StateModel>&>(s));
     // Common metadata
     m_obj["Metadata"] = toJsonObject(s.metadata);
 
@@ -98,18 +101,18 @@ template<> void Visitor<Reader<JSONObject>>::readFrom(const StateModel& s)
     m_obj["StateProcesses"] = toJsonArray(s.stateProcesses);
 }
 
-template<> void Visitor<Writer<JSONObject>>::writeTo(StateModel& s)
+template<> void Visitor<Writer<JSONObject>>::writeTo(Scenario::StateModel& s)
 {
     // Common metadata
     s.metadata = fromJsonObject<ModelMetadata>(m_obj["Metadata"].toObject());
 
-    s.m_eventId = fromJsonValue<Id<EventModel>>(m_obj["Event"]);
-    s.m_previousConstraint = fromJsonValue<Id<ConstraintModel>>(m_obj["PreviousConstraint"]);
-    s.m_nextConstraint = fromJsonValue<Id<ConstraintModel>>(m_obj["NextConstraint"]);
+    s.m_eventId = fromJsonValue<Id<Scenario::EventModel>>(m_obj["Event"]);
+    s.m_previousConstraint = fromJsonValue<Id<Scenario::ConstraintModel>>(m_obj["PreviousConstraint"]);
+    s.m_nextConstraint = fromJsonValue<Id<Scenario::ConstraintModel>>(m_obj["NextConstraint"]);
     s.m_heightPercentage = m_obj["HeightPercentage"].toDouble();
 
     // Message tree
-    s.m_messageItemModel = new MessageItemModel{s.m_stack, s, &s};
+    s.m_messageItemModel = new Scenario::MessageItemModel{s.m_stack, s, &s};
     s.messages() = fromJsonObject<MessageNode>(m_obj["Messages"].toObject());
 
     // Processes plugins

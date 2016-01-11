@@ -9,12 +9,14 @@
 class QAction;
 class QMenu;
 class QToolBar;
-class ScenarioApplicationPlugin;
-class TemporalScenarioPresenter;
 namespace iscore {
 class MenubarManager;
 }  // namespace iscore
 
+namespace Scenario
+{
+class ScenarioApplicationPlugin;
+class TemporalScenarioPresenter;
 class TransportActions final : public ScenarioActions
 {
     public:
@@ -47,3 +49,4 @@ class TransportActions final : public ScenarioActions
         QAction* m_goToEnd{};
         QAction* m_record{};
 };
+}

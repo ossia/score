@@ -4,6 +4,8 @@
 #include <iscore/document/DocumentContext.hpp>
 #include <iscore/application/ApplicationContext.hpp>
 
+namespace Scenario
+{
 template<typename Fun>
 void DoForSelectedConstraints(
         const iscore::DocumentContext& doc,
@@ -18,4 +20,5 @@ void DoForSelectedConstraints(
         return;
 
     f(selected_constraints, doc.commandStack);
+}
 }

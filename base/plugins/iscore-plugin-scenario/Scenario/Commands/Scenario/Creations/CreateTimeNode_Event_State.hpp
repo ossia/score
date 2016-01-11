@@ -10,15 +10,12 @@
 #include <iscore_plugin_scenario_export.h>
 class DataStreamInput;
 class DataStreamOutput;
+namespace Scenario
+{
+class ScenarioModel;
 class EventModel;
 class StateModel;
 class TimeNodeModel;
-namespace Scenario {
-class ScenarioModel;
-}  // namespace Scenario
-
-namespace Scenario
-{
 namespace Command
 {
 class ISCORE_PLUGIN_SCENARIO_EXPORT CreateTimeNode_Event_State final : public iscore::SerializableCommand

@@ -11,6 +11,10 @@
 
 #include <iscore/tools/SettableIdentifier.hpp>
 
+namespace Scenario
+{
+namespace Command
+{
 Scenario::Command::MoveNewState::MoveNewState(
         Path<Scenario::ScenarioModel>&& scenarioPath,
         const Id<StateModel>& stateId,
@@ -49,4 +53,7 @@ void Scenario::Command::MoveNewState::serializeImpl(DataStreamInput & s) const
 void Scenario::Command::MoveNewState::deserializeImpl(DataStreamOutput & s)
 {
     s >> m_path >> m_stateId >> m_oldy >> m_y;
+}
+
+}
 }

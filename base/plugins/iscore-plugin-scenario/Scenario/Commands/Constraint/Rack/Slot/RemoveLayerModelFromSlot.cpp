@@ -10,7 +10,10 @@
 #include <iscore/tools/NotifyingMap.hpp>
 
 using namespace iscore;
-using namespace Scenario::Command;
+namespace Scenario
+{
+namespace Command
+{
 
 RemoveLayerModelFromSlot::RemoveLayerModelFromSlot(
         Path<SlotModel>&& rackPath,
@@ -49,4 +52,7 @@ void RemoveLayerModelFromSlot::serializeImpl(DataStreamInput& s) const
 void RemoveLayerModelFromSlot::deserializeImpl(DataStreamOutput& s)
 {
     s >> m_path >> m_layerId >> m_serializedLayerData;
+}
+
+}
 }

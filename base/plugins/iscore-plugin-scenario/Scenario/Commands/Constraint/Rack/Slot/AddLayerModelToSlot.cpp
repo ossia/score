@@ -14,9 +14,11 @@
 #include <iscore/tools/NotifyingMap.hpp>
 
 using namespace iscore;
-using namespace Scenario::Command;
 
-
+namespace Scenario
+{
+namespace Command
+{
 AddLayerModelToSlot::AddLayerModelToSlot(
         Path<SlotModel>&& slotPath,
         Path<Process::ProcessModel>&& processPath) :
@@ -72,4 +74,6 @@ void AddLayerModelToSlot::serializeImpl(DataStreamInput& s) const
 void AddLayerModelToSlot::deserializeImpl(DataStreamOutput& s)
 {
     s >> m_slotPath >> m_processPath >> m_processData >> m_createdLayerId;
+}
+}
 }

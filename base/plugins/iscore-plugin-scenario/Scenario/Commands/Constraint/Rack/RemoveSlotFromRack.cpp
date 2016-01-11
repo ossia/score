@@ -12,8 +12,11 @@
 #include <iscore/tools/ObjectIdentifier.hpp>
 
 using namespace iscore;
-using namespace Scenario::Command;
 
+namespace Scenario
+{
+namespace Command
+{
 RemoveSlotFromRack::RemoveSlotFromRack(Path<SlotModel>&& slotPath)
 {
     auto trimmedSlotPath = std::move(slotPath).splitLast<RackModel>();
@@ -62,4 +65,6 @@ void RemoveSlotFromRack::serializeImpl(DataStreamInput& s) const
 void RemoveSlotFromRack::deserializeImpl(DataStreamOutput& s)
 {
     s >> m_path >> m_slotId >> m_position >> m_serializedSlotData;
+}
+}
 }

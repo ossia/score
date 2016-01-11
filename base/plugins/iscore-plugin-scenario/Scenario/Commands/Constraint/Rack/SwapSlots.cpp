@@ -7,9 +7,11 @@
 #include <iscore/tools/ModelPath.hpp>
 #include <iscore/tools/ModelPathSerialization.hpp>
 
-using namespace Scenario::Command;
 
-
+namespace Scenario
+{
+namespace Command
+{
 SwapSlots::SwapSlots(
         Path<RackModel>&& rack,
         const Id<SlotModel>& first,
@@ -44,4 +46,6 @@ void SwapSlots::serializeImpl(DataStreamInput& s) const
 void SwapSlots::deserializeImpl(DataStreamOutput& s)
 {
     s >> m_rackPath >> m_first >> m_second;
+}
+}
 }

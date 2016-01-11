@@ -13,6 +13,8 @@ class QPainter;
 class QStyleOptionGraphicsItem;
 class QWidget;
 
+namespace Scenario
+{
 FullViewConstraintHeader::FullViewConstraintHeader(QGraphicsItem * parent):
     ConstraintHeader{parent},
     m_bar{new AddressBarItem(this)}
@@ -65,4 +67,6 @@ void FullViewConstraintHeader::paint(
 
     if(std::abs(m_bar->pos().x() - x) > 1)
         m_bar->setPos(x, 5);
+}
+
 }

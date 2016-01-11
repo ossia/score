@@ -25,6 +25,11 @@
 #include <iscore/tools/NotifyingMap.hpp>
 #include <iscore/plugins/customfactory/StringFactoryKeySerialization.hpp>
 
+
+namespace Scenario
+{
+namespace Command
+{
 AddOnlyProcessToConstraint::AddOnlyProcessToConstraint(
         Path<ConstraintModel>&& constraintPath,
         const ProcessFactoryKey& process) :
@@ -82,4 +87,6 @@ void AddOnlyProcessToConstraint::serializeImpl(DataStreamInput& s) const
 void AddOnlyProcessToConstraint::deserializeImpl(DataStreamOutput& s)
 {
     s >> m_path >> m_processName >> m_createdProcessId;
+}
+}
 }

@@ -9,7 +9,11 @@
 #include <iscore/tools/ModelPathSerialization.hpp>
 
 using namespace iscore;
-using namespace Scenario::Command;
+
+namespace Scenario
+{
+namespace Command
+{
 
 MergeTimeNodes::MergeTimeNodes( Path<Scenario::ScenarioModel> &&path,
                                 Id<TimeNodeModel> aimedTimeNode,
@@ -90,4 +94,6 @@ void MergeTimeNodes::serializeImpl(DataStreamInput & s) const
 void MergeTimeNodes::deserializeImpl(DataStreamOutput & s)
 {
     s >> m_path >> m_aimedTimeNodeId >> m_movingTimeNodeId >> m_serializedTimeNode;
+}
+}
 }

@@ -5,6 +5,11 @@
 #include <iscore/serialization/DataStreamVisitor.hpp>
 #include <iscore/tools/ModelPathSerialization.hpp>
 
+
+namespace Scenario
+{
+namespace Command
+{
 SetLooping::SetLooping(Path<ConstraintModel>&& constraintPath, bool looping) :
     m_path {std::move(constraintPath)},
     m_looping {looping}
@@ -29,4 +34,6 @@ void SetLooping::serializeImpl(DataStreamInput& s) const
 void SetLooping::deserializeImpl(DataStreamOutput& s)
 {
     s >> m_path >> m_looping;
+}
+}
 }

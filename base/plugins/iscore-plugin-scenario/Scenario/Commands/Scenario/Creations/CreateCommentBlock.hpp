@@ -10,35 +10,35 @@
 
 #include <Process/TimeValue.hpp>
 
-class CommentBlockModel;
-
 namespace Scenario
 {
-    namespace Command
-    {
-        class CreateCommentBlock final : public iscore::SerializableCommand
-        {
-                ISCORE_COMMAND_DECL(ScenarioCommandFactoryName(), CreateCommentBlock, "Create a comment block")
-            public:
-                CreateCommentBlock(
-                        const Path<ScenarioModel>& scenarioPath,
-                        const TimeValue& date,
-                        double yPosition);
+class CommentBlockModel;
 
-                void undo() const override;
-                void redo() const override;
+namespace Command
+{
+class CreateCommentBlock final : public iscore::SerializableCommand
+{
+        ISCORE_COMMAND_DECL(ScenarioCommandFactoryName(), CreateCommentBlock, "Create a comment block")
+        public:
+            CreateCommentBlock(
+                const Path<ScenarioModel>& scenarioPath,
+                const TimeValue& date,
+                double yPosition);
 
-            protected:
-                void serializeImpl(DataStreamInput&) const override;
-                void deserializeImpl(DataStreamOutput&) override;
+        void undo() const override;
+        void redo() const override;
 
-            private:
-                Path<ScenarioModel> m_path;
-                TimeValue m_date;
-                double m_y;
+    protected:
+        void serializeImpl(DataStreamInput&) const override;
+        void deserializeImpl(DataStreamOutput&) override;
 
-                Id<CommentBlockModel> m_id;
-        };
+    private:
+        Path<ScenarioModel> m_path;
+        TimeValue m_date;
+        double m_y;
 
-    }
+        Id<CommentBlockModel> m_id;
+};
+
+}
 }

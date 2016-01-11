@@ -7,6 +7,10 @@
 #include <iscore/tools/ModelPath.hpp>
 #include <iscore/tools/ModelPathSerialization.hpp>
 #include <iscore/tools/TreeNode.hpp>
+namespace Scenario
+{
+namespace Command
+{
 
 RemoveMessageNodes::RemoveMessageNodes(
         Path<MessageItemModel>&& device_tree,
@@ -46,4 +50,6 @@ void RemoveMessageNodes::serializeImpl(DataStreamInput &d) const
 void RemoveMessageNodes::deserializeImpl(DataStreamOutput &d)
 {
     d >> m_path >> m_oldState >> m_newState;
+}
+}
 }

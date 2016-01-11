@@ -13,6 +13,8 @@
 class QStyleOptionGraphicsItem;
 class QWidget;
 
+namespace Scenario
+{
 ConditionView::ConditionView(QGraphicsItem *parent):
     QGraphicsItem{parent},
     m_currentState{State::Waiting}
@@ -87,4 +89,5 @@ void ConditionView::changeHeight(qreal newH)
     m_Cpath.lineTo(0, m_height + m_CHeight/2);
     m_Cpath.arcTo(bottomRect, -180, 120);
     this->update();
+}
 }

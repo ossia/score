@@ -4,9 +4,11 @@
 #include <qnamespace.h>
 #include <QPen>
 #include <iscore_plugin_scenario_export.h>
-class ConstraintPresenter;
 class QGraphicsSceneMouseEvent;
 
+namespace Scenario
+{
+class ConstraintPresenter;
 class ISCORE_PLUGIN_SCENARIO_EXPORT ConstraintView : public QGraphicsObject
 {
         Q_OBJECT
@@ -120,3 +122,4 @@ class ISCORE_PLUGIN_SCENARIO_EXPORT ConstraintView : public QGraphicsObject
         bool m_validConstraint{true};
         bool m_warning{false};
 };
+}

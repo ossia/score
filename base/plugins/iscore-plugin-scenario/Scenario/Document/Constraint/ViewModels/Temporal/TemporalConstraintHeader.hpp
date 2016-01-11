@@ -9,6 +9,8 @@ class QPainter;
 class QStyleOptionGraphicsItem;
 class QWidget;
 
+namespace Scenario
+{
 class TemporalConstraintHeader final : public ConstraintHeader
 {
         Q_OBJECT
@@ -33,3 +35,4 @@ class TemporalConstraintHeader final : public ConstraintHeader
     private:
         int m_previous_x{};
 };
+}

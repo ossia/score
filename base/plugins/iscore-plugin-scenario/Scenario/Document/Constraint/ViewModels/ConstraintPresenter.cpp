@@ -26,7 +26,8 @@ class QObject;
  *  - une qui est relative à la gestion de la vue (setScaleFactor)
  *  - une qui est là pour interagir avec le modèle (on_defaul/min/maxDurationChanged)
  */
-
+namespace Scenario
+{
 ConstraintPresenter::ConstraintPresenter(
         const QString& name,
         const ConstraintViewModel& model,
@@ -266,4 +267,5 @@ void ConstraintPresenter::createRackPresenter(const RackModel& rackModel)
     connect(m_rack, &RackPresenter::pressed, this, &ConstraintPresenter::pressed);
     connect(m_rack, &RackPresenter::moved, this, &ConstraintPresenter::moved);
     connect(m_rack, &RackPresenter::released, this, &ConstraintPresenter::released);
+}
 }

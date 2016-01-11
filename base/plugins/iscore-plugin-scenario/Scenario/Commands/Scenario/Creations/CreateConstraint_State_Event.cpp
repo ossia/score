@@ -15,9 +15,12 @@
 #include <iscore/serialization/DataStreamVisitor.hpp>
 #include <iscore/tools/NotifyingMap.hpp>
 
-class StateModel;
 
-using namespace Scenario::Command;
+
+namespace Scenario
+{
+namespace Command
+{
 CreateConstraint_State_Event::CreateConstraint_State_Event(
         const Scenario::ScenarioModel& scenario,
         const Id<StateModel>& startState,
@@ -88,4 +91,6 @@ void CreateConstraint_State_Event::deserializeImpl(DataStreamOutput& s)
     s >> m_newEvent >> m_createdName >> b >> m_endTimeNode;
 
     m_command.deserialize(b);
+}
+}
 }

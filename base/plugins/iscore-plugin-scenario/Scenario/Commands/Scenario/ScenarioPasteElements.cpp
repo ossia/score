@@ -79,6 +79,10 @@ auto getStrongIdRangePtr(std::size_t s, const Vector& existing)
     return std::vector<Id<T>>(vec.begin() + existing.size(), vec.end());
 }
 
+namespace Scenario
+{
+namespace Command
+{
 ScenarioPasteElements::ScenarioPasteElements(
         Path<TemporalScenarioLayerModel>&& path,
         const QJsonObject& obj,
@@ -476,4 +480,7 @@ void ScenarioPasteElements::deserializeImpl(DataStreamOutput& s)
       >> m_json_constraints
 
       >> m_constraintViewModels;
+}
+
+}
 }

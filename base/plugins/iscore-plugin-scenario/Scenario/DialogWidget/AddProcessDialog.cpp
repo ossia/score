@@ -12,7 +12,8 @@
 #include <Process/ProcessFactory.hpp>
 #include <iscore/plugins/customfactory/FactoryFamily.hpp>
 #include <iscore/plugins/customfactory/FactoryMap.hpp>
-
+namespace Scenario
+{
 AddProcessDialog::AddProcessDialog(
         const Process::ProcessList& plist,
         QWidget *parent) :
@@ -67,4 +68,5 @@ void AddProcessDialog::launchWindow()
         ISCORE_ASSERT(it != sortedFactoryList.end());
         emit okPressed(it->second);
     }
+}
 }

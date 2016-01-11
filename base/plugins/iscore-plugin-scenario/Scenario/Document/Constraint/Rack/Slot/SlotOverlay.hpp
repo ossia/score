@@ -7,8 +7,10 @@ class QGraphicsSceneMouseEvent;
 class QPainter;
 class QStyleOptionGraphicsItem;
 class QWidget;
-class SlotView;
 
+namespace Scenario
+{
+class SlotView;
 class SlotOverlay final : public QGraphicsItem
 {
     public:
@@ -38,3 +40,4 @@ class SlotOverlay final : public QGraphicsItem
     private:
         const SlotView&m_slotView;
 };
+}

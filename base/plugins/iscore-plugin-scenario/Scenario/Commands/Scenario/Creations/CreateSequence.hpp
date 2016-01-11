@@ -7,20 +7,18 @@
 #include "CreateConstraint_State_Event_TimeNode.hpp"
 #include <Scenario/Commands/ScenarioCommandFactory.hpp>
 #include <iscore/tools/ModelPath.hpp>
+#include <iscore/tools/SettableIdentifier.hpp>
 
-class ConstraintModel;
 class DataStreamInput;
 class DataStreamOutput;
-class EventModel;
-class StateModel;
-class TimeNodeModel;
-namespace Scenario {
-class ScenarioModel;
-}  // namespace Scenario
-#include <iscore/tools/SettableIdentifier.hpp>
 
 namespace Scenario
 {
+class EventModel;
+class ConstraintModel;
+class StateModel;
+class TimeNodeModel;
+class ScenarioModel;
 namespace Command
 {
 class CreateSequence final : public iscore::SerializableCommand

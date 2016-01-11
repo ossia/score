@@ -5,19 +5,17 @@
 #include <nano_signal_slot.hpp>
 #include <QPoint>
 #include <QString>
+#include <iscore/tools/SettableIdentifier.hpp>
+#include <iscore_plugin_scenario_export.h>
 
+namespace Scenario
+{
 class ConstraintHeader;
 class ConstraintModel;
 class ConstraintView;
 class ConstraintViewModel;
-class QObject;
 class RackModel;
 class RackPresenter;
-#include <iscore/tools/SettableIdentifier.hpp>
-#include <iscore_plugin_scenario_export.h>
-namespace iscore
-{
-}
 
 class ISCORE_PLUGIN_SCENARIO_EXPORT ConstraintPresenter : public NamedObject, public Nano::Observer
 {
@@ -125,4 +123,5 @@ template<typename T>
 typename T::view_type& view(T& obj)
 {
     return static_cast<typename T::view_type&>(*obj.view());
+}
 }

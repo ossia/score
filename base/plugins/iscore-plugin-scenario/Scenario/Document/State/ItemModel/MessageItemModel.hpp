@@ -9,7 +9,6 @@
 
 class QMimeData;
 class QObject;
-class StateModel;
 namespace iscore {
 class CommandStackFacade;
 }  // namespace iscore
@@ -18,6 +17,9 @@ namespace State
 struct Message;
 }
 
+namespace Scenario
+{
+class StateModel;
 /**
  * @brief The MessageItemModel class
  *
@@ -81,3 +83,4 @@ class ISCORE_PLUGIN_SCENARIO_EXPORT MessageItemModel final : public TreeNodeBase
 
         iscore::CommandStackFacade& m_stack;
 };
+}

@@ -10,7 +10,7 @@
 template <typename T> class Reader;
 template <typename T> class Writer;
 
-template<> void Visitor<Reader<DataStream>>::readFrom(const ConstraintDurations& durs)
+template<> void Visitor<Reader<DataStream>>::readFrom(const Scenario::ConstraintDurations& durs)
 {
     m_stream
             << durs.m_defaultDuration
@@ -21,7 +21,7 @@ template<> void Visitor<Reader<DataStream>>::readFrom(const ConstraintDurations&
             << durs.m_isMaxInfinite;
 }
 
-template<> void Visitor<Writer<DataStream>>::writeTo(ConstraintDurations& durs)
+template<> void Visitor<Writer<DataStream>>::writeTo(Scenario::ConstraintDurations& durs)
 {
     m_stream
             >> durs.m_defaultDuration
@@ -32,7 +32,7 @@ template<> void Visitor<Writer<DataStream>>::writeTo(ConstraintDurations& durs)
             >> durs.m_isMaxInfinite;
 }
 
-template<> void Visitor<Reader<JSONObject>>::readFrom(const ConstraintDurations& durs)
+template<> void Visitor<Reader<JSONObject>>::readFrom(const Scenario::ConstraintDurations& durs)
 {
     m_obj["DefaultDuration"] = toJsonValue(durs.m_defaultDuration);
     m_obj["MinDuration"] = toJsonValue(durs.m_minDuration);
@@ -42,7 +42,7 @@ template<> void Visitor<Reader<JSONObject>>::readFrom(const ConstraintDurations&
     m_obj["MaxInf"] = durs.m_isMaxInfinite;
 }
 
-template<> void Visitor<Writer<JSONObject>>::writeTo(ConstraintDurations& durs)
+template<> void Visitor<Writer<JSONObject>>::writeTo(Scenario::ConstraintDurations& durs)
 {
     durs.m_defaultDuration = fromJsonValue<TimeValue> (m_obj["DefaultDuration"]);
     durs.m_minDuration = fromJsonValue<TimeValue> (m_obj["MinDuration"]);

@@ -3,7 +3,8 @@
 #include <Scenario/Application/Menus/ScenarioActions.hpp>
 #include <iscore/menu/MenuInterface.hpp>
 #include <iscore/command/Dispatchers/CommandDispatcher.hpp>
-
+namespace Scenario
+{
 class EventActions final : public ScenarioActions
 {
     public:
@@ -24,3 +25,4 @@ class EventActions final : public ScenarioActions
         QAction *m_removeTrigger{};
 
 };
+}

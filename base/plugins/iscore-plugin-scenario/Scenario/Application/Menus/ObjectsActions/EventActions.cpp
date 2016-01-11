@@ -17,7 +17,8 @@
 #include <QMenu>
 
 using namespace iscore;
-
+namespace Scenario
+{
 EventActions::EventActions(iscore::ToplevelMenuElement menuElt,
                ScenarioApplicationPlugin* parent):
      ScenarioActions(menuElt, parent)
@@ -108,4 +109,5 @@ CommandDispatcher<> EventActions::dispatcher()
 {
     CommandDispatcher<> disp{m_parent->currentDocument()->context().commandStack};
     return disp;
+}
 }

@@ -10,8 +10,11 @@
 #include <iscore/tools/TreeNode.hpp>
 
 using namespace iscore;
-using namespace Scenario::Command;
 
+namespace Scenario
+{
+namespace Command
+{
 
 SetTrigger::SetTrigger(Path<TimeNodeModel>&& timeNodePath,
                        State::Trigger trigger) :
@@ -47,4 +50,7 @@ void SetTrigger::serializeImpl(DataStreamInput& s) const
 void SetTrigger::deserializeImpl(DataStreamOutput& s)
 {
     s >> m_path >> m_trigger >> m_previousTrigger;
+}
+
+}
 }

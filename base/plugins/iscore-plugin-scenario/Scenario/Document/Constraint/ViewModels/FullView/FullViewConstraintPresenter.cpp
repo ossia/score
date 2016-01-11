@@ -12,6 +12,8 @@
 
 class QObject;
 
+namespace Scenario
+{
 FullViewConstraintPresenter::FullViewConstraintPresenter(
         const FullViewConstraintViewModel& cstr_model,
         QGraphicsItem*parentobject,
@@ -47,4 +49,5 @@ FullViewConstraintPresenter::~FullViewConstraintPresenter()
 
         ::view(this)->deleteLater();
     }
+}
 }

@@ -4,6 +4,8 @@
 #include <Scenario/Document/CommentBlock/CommentBlockModel.hpp>
 #include <Scenario/Document/CommentBlock/CommentBlockView.hpp>
 
+namespace Scenario
+{
 CommentBlockPresenter::CommentBlockPresenter(
         const CommentBlockModel& model,
         QGraphicsObject* parentView,
@@ -46,4 +48,4 @@ void CommentBlockPresenter::on_zoomRatioChanged(ZoomRatio newRatio)
     m_view->setPos(m_model.date().toPixels(newRatio), m_view->pos().y());
     m_view->update();
 }
-
+}

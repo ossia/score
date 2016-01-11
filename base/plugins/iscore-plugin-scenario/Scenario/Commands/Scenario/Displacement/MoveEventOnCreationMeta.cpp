@@ -9,12 +9,14 @@
 #include <iscore/application/ApplicationContext.hpp>
 #include <iscore/plugins/customfactory/StringFactoryKey.hpp>
 #include <iscore/serialization/DataStreamVisitor.hpp>
-
-class EventModel;
-namespace Scenario {
-class ScenarioModel;
-}  // namespace Scenario
 #include <iscore/tools/SettableIdentifier.hpp>
+
+namespace Scenario
+{
+class EventModel;
+class ScenarioModel;
+namespace Command
+{
 
 MoveEventOnCreationMeta::MoveEventOnCreationMeta(
         Path<Scenario::ScenarioModel>&& scenarioPath,
@@ -69,4 +71,6 @@ void MoveEventOnCreationMeta::update(const Path<Scenario::ScenarioModel>& scenar
                            ExpandMode mode)
 {
     m_moveEventImplementation->update(scenarioPath, eventId, newDate, mode);
+}
+}
 }

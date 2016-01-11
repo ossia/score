@@ -16,6 +16,8 @@
 #include <iscore/tools/SettableIdentifier.hpp>
 
 ISCORE_METADATA_IMPL(EventModel)
+namespace Scenario
+{
 EventModel::EventModel(
         const Id<EventModel>& id,
         const Id<TimeNodeModel>& timenode,
@@ -154,4 +156,5 @@ void EventModel::setCondition(const State::Condition& arg)
         m_condition = arg;
         emit conditionChanged(arg);
     }
+}
 }

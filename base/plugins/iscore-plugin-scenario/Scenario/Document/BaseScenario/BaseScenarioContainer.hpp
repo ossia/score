@@ -5,16 +5,20 @@
 #include <iscore/serialization/DataStreamVisitor.hpp>
 #include <iscore/serialization/JSONVisitor.hpp>
 #include <iscore/tools/std/IndirectContainer.hpp>
-
-class ConstraintModel;
-class DataStream;
-class EventModel;
-class JSONObject;
-class QObject;
-class StateModel;
-class TimeNodeModel;
 #include <iscore/tools/SettableIdentifier.hpp>
 #include <iscore_plugin_scenario_export.h>
+
+class DataStream;
+
+class JSONObject;
+class QObject;
+
+namespace Scenario
+{
+class ConstraintModel;
+class EventModel;
+class StateModel;
+class TimeNodeModel;
 class ISCORE_PLUGIN_SCENARIO_EXPORT BaseScenarioContainer : public ScenarioInterface
 {
         ISCORE_SERIALIZE_FRIENDS(BaseScenarioContainer, DataStream)
@@ -104,3 +108,5 @@ class ISCORE_PLUGIN_SCENARIO_EXPORT BaseScenarioContainer : public ScenarioInter
         QObject* m_parent{}; // Parent for the constraints, timenodes, etc.
         // If inheriting, m_parent should be this.
 };
+}
+

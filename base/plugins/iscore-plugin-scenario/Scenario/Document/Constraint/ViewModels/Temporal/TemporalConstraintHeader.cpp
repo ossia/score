@@ -19,6 +19,8 @@ class QGraphicsSceneMouseEvent;
 class QStyleOptionGraphicsItem;
 class QWidget;
 
+namespace Scenario
+{
 QRectF TemporalConstraintHeader::boundingRect() const
 {
     return {0, 0, m_width, ConstraintHeader::headerHeight()};
@@ -98,4 +100,5 @@ void TemporalConstraintHeader::paint(
 void TemporalConstraintHeader::mouseDoubleClickEvent(QGraphicsSceneMouseEvent* event)
 {
     emit doubleClicked();
+}
 }

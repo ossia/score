@@ -7,9 +7,12 @@
 #include <iscore/serialization/JSONVisitor.hpp>
 #include <iscore_plugin_scenario_export.h>
 
-class ConstraintModel;
 class DataStream;
 class JSONObject;
+
+namespace Scenario
+{
+class ConstraintModel;
 
 // A container class to separate management of the duration of a constraint.
 class ISCORE_PLUGIN_SCENARIO_EXPORT ConstraintDurations final : public QObject
@@ -126,3 +129,4 @@ class ISCORE_PLUGIN_SCENARIO_EXPORT ConstraintDurations final : public QObject
         bool m_isMinNull{false};
         bool m_isMaxInfinite{false};
 };
+}

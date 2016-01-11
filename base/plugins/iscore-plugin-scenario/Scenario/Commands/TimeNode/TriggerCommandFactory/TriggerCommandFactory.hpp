@@ -1,11 +1,16 @@
 #pragma once
 #include <iscore/plugins/customfactory/FactoryInterface.hpp>
 #include <iscore_plugin_scenario_export.h>
-class TimeNodeModel;
 namespace iscore
 {
 class SerializableCommand;
 }
+namespace Scenario
+{
+class TimeNodeModel;
+namespace Command
+{
+
 class ISCORE_PLUGIN_SCENARIO_EXPORT TriggerCommandFactory : public iscore::FactoryInterfaceBase
 {
         ISCORE_FACTORY_DECL("TriggerCommandFactory")
@@ -19,3 +24,5 @@ class ISCORE_PLUGIN_SCENARIO_EXPORT TriggerCommandFactory : public iscore::Facto
                 const TimeNodeModel& tn) const = 0;
 };
 
+}
+}
