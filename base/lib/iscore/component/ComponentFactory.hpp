@@ -2,6 +2,8 @@
 #include <iscore/plugins/customfactory/FactoryInterface.hpp>
 #include <iscore/plugins/customfactory/FactoryFamily.hpp>
 
+#define ISCORE_COMPONENT_FACTORY( AbstractFactory, ConcreteFactory )
+
 namespace iscore
 {
 struct DocumentContext;

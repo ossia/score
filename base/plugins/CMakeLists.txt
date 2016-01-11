@@ -32,3 +32,5 @@ if(ISCORE_USE_DEV_PLUGINS)
   add_subdirectory(iscore-plugin-library)
   add_subdirectory(iscore-plugin-network)
 endif()
+
+add_subdirectory(iscore-component-executor-automation)

@@ -11,7 +11,7 @@ class DeviceDocumentPlugin;
 class DeviceList;
 namespace State
 {
-class Address;
+struct Address;
 }
 namespace RecreateOnPlay
 {

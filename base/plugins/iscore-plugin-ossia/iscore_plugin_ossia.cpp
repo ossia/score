@@ -62,7 +62,6 @@ std::vector<std::unique_ptr<iscore::FactoryInterfaceBase>> iscore_plugin_ossia::
             FW<RecreateOnPlay::ProcessComponentFactory,
                  RecreateOnPlay::ScenarioComponentFactory,
                  RecreateOnPlay::LoopComponentFactory,
-                 RecreateOnPlay::AutomationComponentFactory,
                  RecreateOnPlay::MappingComponentFactory
             >,
             FW<Ossia::LocalTree::ProcessComponentFactory,
