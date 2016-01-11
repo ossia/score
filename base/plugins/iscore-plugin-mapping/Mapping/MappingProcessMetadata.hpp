@@ -2,6 +2,8 @@
 #include <Process/ProcessFactoryKey.hpp>
 #include <QString>
 
+namespace Mapping
+{
 struct MappingProcessMetadata
 {
         static const ProcessFactoryKey& factoryKey();
@@ -10,3 +12,4 @@ struct MappingProcessMetadata
 
         static QString factoryPrettyName();
 };
+}

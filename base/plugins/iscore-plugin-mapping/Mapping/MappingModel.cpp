@@ -17,6 +17,8 @@ namespace Process { class LayerModel; }
 class ProcessStateDataInterface;
 class QObject;
 
+namespace Mapping
+{
 MappingModel::MappingModel(
         const TimeValue& duration,
         const Id<Process::ProcessModel>& id,
@@ -222,4 +224,4 @@ void MappingModel::setTargetMax(double arg)
     emit targetMaxChanged(arg);
     emit m_curve->changed();
 }
-
+}

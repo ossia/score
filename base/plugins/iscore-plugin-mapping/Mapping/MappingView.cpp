@@ -9,6 +9,8 @@
 #include "MappingView.hpp"
 #include <Process/LayerView.hpp>
 
+namespace Mapping
+{
 MappingView::MappingView(QGraphicsItem* parent) :
     LayerView {parent}
 {
@@ -29,4 +31,5 @@ void MappingView::paint_impl(QPainter* painter) const
         painter->setPen(Qt::lightGray);
         painter->drawText(processNameRect, Qt::AlignRight, m_source + m_dest); // TODO
     }
+}
 }

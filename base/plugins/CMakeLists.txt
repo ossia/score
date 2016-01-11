@@ -33,3 +33,5 @@ add_subdirectory(iscore-plugin-cohesion)
 # endif()
 
 add_subdirectory(iscore-component-executor-automation)
+add_subdirectory(iscore-component-executor-mapping)
+add_subdirectory(iscore-component-executor-loop)

@@ -10,9 +10,7 @@
 #include <OSSIA/LocalTree/Scenario/ScenarioComponentFactory.hpp>
 #include <OSSIA/Executor/ProcessElement.hpp>
 #include <OSSIA/Executor/ScenarioElement.hpp>
-#include <OSSIA/Executor/LoopElement.hpp>
 #include <OSSIA/Executor/AutomationElement.hpp>
-#include <OSSIA/Executor/MappingElement.hpp>
 #include <Scenario/Application/Menus/Plugin/ScenarioActionsFactory.hpp>
 #include <iscore/plugins/customfactory/StringFactoryKey.hpp>
 #include "iscore_plugin_ossia.hpp"
@@ -60,9 +58,7 @@ std::vector<std::unique_ptr<iscore::FactoryInterfaceBase>> iscore_plugin_ossia::
             FW<ScenarioActionsFactory,
                  PlayContextMenuFactory>,
             FW<RecreateOnPlay::ProcessComponentFactory,
-                 RecreateOnPlay::ScenarioComponentFactory,
-                 RecreateOnPlay::LoopComponentFactory,
-                 RecreateOnPlay::MappingComponentFactory
+                 RecreateOnPlay::ScenarioComponentFactory
             >,
             FW<Ossia::LocalTree::ProcessComponentFactory,
                  Ossia::LocalTree::ScenarioComponentFactory>

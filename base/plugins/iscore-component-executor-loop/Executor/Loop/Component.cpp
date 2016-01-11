@@ -11,8 +11,8 @@
 #include "Editor/Loop.h"
 #include "Editor/TimeValue.h"
 #include "Editor/State.h"
-#include "Loop/LoopProcessModel.hpp"
-#include "LoopElement.hpp"
+#include <Loop/LoopProcessModel.hpp>
+#include "Component.hpp"
 #include <OSSIA/Executor/ConstraintElement.hpp>
 #include <OSSIA/Executor/EventElement.hpp>
 #include <OSSIA/Executor/ProcessElement.hpp>
@@ -31,9 +31,9 @@ class TimeProcess;
 }  // namespace OSSIA
 #include <iscore/tools/SettableIdentifier.hpp>
 
-RecreateOnPlay::LoopElement::LoopElement(
+RecreateOnPlay::Loop::Component::Component(
         RecreateOnPlay::ConstraintElement& parentConstraint,
-        Loop::ProcessModel& element,
+        ::Loop::ProcessModel& element,
         const Context& ctx,
         const Id<iscore::Component>& id,
         QObject* parent):
@@ -79,27 +79,27 @@ RecreateOnPlay::LoopElement::LoopElement(
     m_ossia_constraint = new ConstraintElement{loop->getPatternTimeConstraint(), element.constraint(), m_ctx, this};
 }
 
-RecreateOnPlay::LoopElement::~LoopElement()
+RecreateOnPlay::Loop::Component::~Component()
 {
 }
 
-void RecreateOnPlay::LoopElement::stop()
+void RecreateOnPlay::Loop::Component::stop()
 {
     ProcessComponent::stop();
-    static_cast<Loop::ProcessModel&>(m_iscore_process).constraint().duration.setPlayPercentage(0);
+    static_cast<::Loop::ProcessModel&>(m_iscore_process).constraint().duration.setPlayPercentage(0);
 }
 
-void RecreateOnPlay::LoopElement::startConstraintExecution(const Id<ConstraintModel>&)
+void RecreateOnPlay::Loop::Component::startConstraintExecution(const Id<ConstraintModel>&)
 {
     m_ossia_constraint->executionStarted();
 }
 
-void RecreateOnPlay::LoopElement::stopConstraintExecution(const Id<ConstraintModel>&)
+void RecreateOnPlay::Loop::Component::stopConstraintExecution(const Id<ConstraintModel>&)
 {
     m_ossia_constraint->executionStopped();
 }
 
-const iscore::Component::Key&RecreateOnPlay::LoopElement::key() const
+const iscore::Component::Key&RecreateOnPlay::Loop::Component::key() const
 {
     static iscore::Component::Key k("OSSIALoopElement");
     return k;
@@ -107,12 +107,15 @@ const iscore::Component::Key&RecreateOnPlay::LoopElement::key() const
 
 namespace RecreateOnPlay
 {
-LoopComponentFactory::~LoopComponentFactory()
+
+namespace Loop
+{
+ComponentFactory::~ComponentFactory()
 {
 
 }
 
-ProcessComponent* LoopComponentFactory::make(
+ProcessComponent* ComponentFactory::make(
         ConstraintElement& cst,
         Process::ProcessModel& proc,
         const Context& ctx,
@@ -120,25 +123,26 @@ ProcessComponent* LoopComponentFactory::make(
         QObject* parent) const
 {
 
-    return new LoopElement{
+    return new Component{
                 cst,
-                static_cast<Loop::ProcessModel&>(proc),
+                static_cast<::Loop::ProcessModel&>(proc),
                 ctx, id, parent};
 
 }
 
-const LoopComponentFactory::factory_key_type&
-LoopComponentFactory::key_impl() const
+const ComponentFactory::factory_key_type&
+ComponentFactory::key_impl() const
 {
-    static LoopComponentFactory::factory_key_type k("OSSIALoopElement");
+    static ComponentFactory::factory_key_type k("OSSIALoopElement");
     return k;
 }
 
-bool LoopComponentFactory::matches(
+bool ComponentFactory::matches(
         Process::ProcessModel& proc,
         const DocumentPlugin&,
         const iscore::DocumentContext&) const
 {
-    return dynamic_cast<Loop::ProcessModel*>(&proc);
+    return dynamic_cast<::Loop::ProcessModel*>(&proc);
+}
 }
 }

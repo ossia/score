@@ -16,6 +16,8 @@ class DeviceExplorerModel;
 class MappingModel;
 class QDoubleSpinBox;
 
+namespace Mapping
+{
 class MappingInspectorWidget :
         public ProcessInspectorWidgetDelegate_T<MappingModel>
 {
@@ -42,3 +44,4 @@ class MappingInspectorWidget :
 
         CommandDispatcher<> m_dispatcher;
 };
+}

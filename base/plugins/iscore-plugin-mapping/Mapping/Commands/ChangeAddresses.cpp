@@ -16,6 +16,8 @@
 #include <iscore/tools/ModelPathSerialization.hpp>
 #include <iscore/tools/TreeNode.hpp>
 
+namespace Mapping
+{
 // TODO try to template this to reuse it with ChangeAddress / ChangeTargetAddress
 // TODO why not use AddressSettings directly on Automations / Mapping ? It would simplify...
 ChangeSourceAddress::ChangeSourceAddress(
@@ -151,4 +153,5 @@ void ChangeTargetAddress::serializeImpl(DataStreamInput & s) const
 void ChangeTargetAddress::deserializeImpl(DataStreamOutput & s)
 {
     s >> m_path >> m_old >> m_new;
+}
 }

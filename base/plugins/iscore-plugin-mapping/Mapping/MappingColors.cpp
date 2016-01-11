@@ -12,6 +12,8 @@
 
 class QString;
 
+namespace Mapping
+{
 MappingColors::MappingColors()
 {
 #ifdef ISCORE_IEEE_SKIN
@@ -39,4 +41,5 @@ MappingColors::MappingColors()
         m_style.SegmentSelected = fromColor("SegmentSelected");
         m_style.SegmentDisabled = fromColor("SegmentDisabled");
     }
+}
 }

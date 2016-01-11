@@ -4,6 +4,8 @@
 #include "MappingProcessMetadata.hpp"
 #include <Process/ProcessFactoryKey.hpp>
 
+namespace Mapping
+{
 const ProcessFactoryKey&MappingProcessMetadata::factoryKey()
 {
     static const ProcessFactoryKey name{"Mapping"};
@@ -18,4 +20,5 @@ QString MappingProcessMetadata::processObjectName()
 QString MappingProcessMetadata::factoryPrettyName()
 {
     return QObject::tr("Mapping");
+}
 }

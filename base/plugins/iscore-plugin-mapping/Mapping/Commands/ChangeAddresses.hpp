@@ -6,11 +6,13 @@
 
 class DataStreamInput;
 class DataStreamOutput;
-class MappingModel;
 namespace State {
 struct Address;
 }  // namespace iscore
 
+namespace Mapping
+{
+class MappingModel;
 class ChangeSourceAddress final : public iscore::SerializableCommand
 {
         ISCORE_COMMAND_DECL(MappingCommandFactoryName(), ChangeSourceAddress, "ChangeSourceAddress")
@@ -32,6 +34,7 @@ class ChangeSourceAddress final : public iscore::SerializableCommand
         Device::FullAddressSettings m_old, m_new;
 };
 
+// TODO break me
 class ChangeTargetAddress final : public iscore::SerializableCommand
 {
         ISCORE_COMMAND_DECL(MappingCommandFactoryName(), ChangeTargetAddress, "ChangeTargetAddress")
@@ -52,6 +55,4 @@ class ChangeTargetAddress final : public iscore::SerializableCommand
         Path<MappingModel> m_path;
         Device::FullAddressSettings m_old, m_new;
 };
-
-
-
+}

@@ -6,6 +6,8 @@
 class QGraphicsItem;
 class QPainter;
 
+namespace Mapping
+{
 class MappingView final : public Process::LayerView
 {
     public:
@@ -23,3 +25,4 @@ class MappingView final : public Process::LayerView
         QString m_dest;
         bool m_showName{true};
 };
+}

@@ -8,6 +8,7 @@
 
 #include <OSSIA/Executor/ProcessElement.hpp>
 #include <OSSIA/Executor/ProcessWrapper.hpp>
+#include <iscore_plugin_ossia_export.h>
 
 class ConstraintModel;
 namespace Process { class ProcessModel; }
@@ -26,7 +27,7 @@ namespace RecreateOnPlay
 {
 struct Context;
 class DocumentPlugin;
-class ConstraintElement final : public QObject
+class ISCORE_PLUGIN_OSSIA_EXPORT ConstraintElement final : public QObject
 {
     public:
         ConstraintElement(

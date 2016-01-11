@@ -8,11 +8,9 @@
 #include <OSSIA/iscore2OSSIA.hpp>
 #include <utility>
 
-#include "AutomationElement.hpp"
 #include "ConstraintElement.hpp"
 #include "Editor/TimeValue.h"
 #include "Loop/LoopProcessModel.hpp"
-#include "LoopElement.hpp"
 #include <Process/Process.hpp>
 #include <Process/TimeValue.hpp>
 #include <OSSIA/Executor/ProcessElement.hpp>
@@ -25,11 +23,6 @@
 #include <OSSIA/Executor/ExecutorContext.hpp>
 #include <iscore/document/DocumentContext.hpp>
 
-#if defined(ISCORE_PLUGIN_MAPPING)
-#include <Mapping/MappingModel.hpp>
-
-#include "MappingElement.hpp"
-#endif
 namespace RecreateOnPlay
 {
 ConstraintElement::ConstraintElement(

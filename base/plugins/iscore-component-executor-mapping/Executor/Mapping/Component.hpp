@@ -1,5 +1,6 @@
 #pragma once
-#include "ProcessElement.hpp"
+#include <OSSIA/Executor/ProcessElement.hpp>
+
 #include <State/Address.hpp>
 #include <QPointer>
 #include <API/Headers/Editor/Value.h>
@@ -9,19 +10,24 @@ namespace OSSIA
     class CurveAbstract;
 }
 
+namespace Mapping
+{
 class MappingModel;
+}
 class DeviceList;
 class ConstraintElement;
 
 
 namespace RecreateOnPlay
 {
-class MappingElement final : public ProcessComponent
+namespace Mapping
+{
+class Component final : public ProcessComponent
 {
     public:
-        MappingElement(
+        Component(
                 ConstraintElement& parentConstraint,
-                MappingModel& element,
+                ::Mapping::MappingModel& element,
                 const Context& ctx,
                 const Id<iscore::Component>& id,
                 QObject* parent);
@@ -49,11 +55,12 @@ class MappingElement final : public ProcessComponent
 };
 
 
-class MappingComponentFactory final :
+class ComponentFactory final :
         public ProcessComponentFactory
 {
+        ISCORE_COMPONENT_FACTORY(RecreateOnPlay::ProcessComponentFactory, RecreateOnPlay::Mapping::ComponentFactory)
     public:
-        virtual ~MappingComponentFactory();
+        virtual ~ComponentFactory();
         virtual ProcessComponent* make(
                 ConstraintElement& cst,
                 Process::ProcessModel& proc,
@@ -68,4 +75,5 @@ class MappingComponentFactory final :
                 const DocumentPlugin&,
                 const iscore::DocumentContext &) const override;
 };
+}
 }

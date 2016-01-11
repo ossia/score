@@ -19,7 +19,7 @@ template <typename T> class Reader;
 template <typename T> class Writer;
 
 template<>
-void Visitor<Reader<DataStream>>::readFrom(const MappingModel& autom)
+void Visitor<Reader<DataStream>>::readFrom(const Mapping::MappingModel& autom)
 {
     readFrom(*autom.pluginModelList); // TODO it is unbearable to save / load these every time
 
@@ -37,7 +37,7 @@ void Visitor<Reader<DataStream>>::readFrom(const MappingModel& autom)
 }
 
 template<>
-void Visitor<Writer<DataStream>>::writeTo(MappingModel& autom)
+void Visitor<Writer<DataStream>>::writeTo(Mapping::MappingModel& autom)
 {
     autom.pluginModelList = new iscore::ElementPluginModelList{*this, &autom};
 
@@ -69,7 +69,7 @@ void Visitor<Writer<DataStream>>::writeTo(MappingModel& autom)
 
 
 template<>
-void Visitor<Reader<JSONObject>>::readFrom(const MappingModel& autom)
+void Visitor<Reader<JSONObject>>::readFrom(const Mapping::MappingModel& autom)
 {
     m_obj["PluginsMetadata"] = toJsonValue(*autom.pluginModelList);
 
@@ -85,7 +85,7 @@ void Visitor<Reader<JSONObject>>::readFrom(const MappingModel& autom)
 }
 
 template<>
-void Visitor<Writer<JSONObject>>::writeTo(MappingModel& autom)
+void Visitor<Writer<JSONObject>>::writeTo(Mapping::MappingModel& autom)
 {
     Deserializer<JSONValue> elementPluginDeserializer(m_obj["PluginsMetadata"]);
     autom.pluginModelList = new iscore::ElementPluginModelList{elementPluginDeserializer, &autom};
@@ -105,12 +105,12 @@ void Visitor<Writer<JSONObject>>::writeTo(MappingModel& autom)
 
 
 
-void MappingModel::serialize(const VisitorVariant& vis) const
+void Mapping::MappingModel::serialize(const VisitorVariant& vis) const
 {
     serialize_dyn(vis, *this);
 }
 
-Process::LayerModel* MappingModel::loadLayer_impl(
+Process::LayerModel* Mapping::MappingModel::loadLayer_impl(
         const VisitorVariant& vis,
         QObject* parent)
 {
