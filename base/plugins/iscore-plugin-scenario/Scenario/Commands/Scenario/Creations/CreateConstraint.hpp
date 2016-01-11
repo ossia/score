@@ -8,59 +8,58 @@
 #include <QString>
 
 #include <iscore_plugin_scenario_export.h>
-class ConstraintModel;
-class ConstraintViewModel;
 class DataStreamInput;
 class DataStreamOutput;
-class StateModel;
-namespace Scenario {
-class ScenarioModel;
-}  // namespace Scenario
 
 namespace Scenario
 {
-    namespace Command
-    {
-        /**
+class StateModel;
+class ConstraintModel;
+class ConstraintViewModel;
+class ScenarioModel;
+
+namespace Command
+{
+/**
         * @brief The CreateEventAfterEventCommand class
         *
         * This Command creates a constraint and another event in a scenario,
         * starting from an event selected by the user.
         */
-        class ISCORE_PLUGIN_SCENARIO_EXPORT CreateConstraint final : public iscore::SerializableCommand
-        {
-                ISCORE_COMMAND_DECL(ScenarioCommandFactoryName(), CreateConstraint,"Create a constraint")
-            public:
-                CreateConstraint(
-                    Path<Scenario::ScenarioModel>&& scenarioPath,
-                    const Id<StateModel>& startState,
-                    const Id<StateModel>& endState);
-                CreateConstraint& operator= (CreateConstraint &&) = default;
+class ISCORE_PLUGIN_SCENARIO_EXPORT CreateConstraint final : public iscore::SerializableCommand
+{
+        ISCORE_COMMAND_DECL(ScenarioCommandFactoryName(), CreateConstraint,"Create a constraint")
+        public:
+            CreateConstraint(
+                Path<Scenario::ScenarioModel>&& scenarioPath,
+                const Id<StateModel>& startState,
+                const Id<StateModel>& endState);
+        CreateConstraint& operator= (CreateConstraint &&) = default;
 
-                const Path<Scenario::ScenarioModel>& scenarioPath() const
-                { return m_path; }
+        const Path<Scenario::ScenarioModel>& scenarioPath() const
+        { return m_path; }
 
-                void undo() const override;
-                void redo() const override;
+        void undo() const override;
+        void redo() const override;
 
-                const Id<ConstraintModel>& createdConstraint() const
-                { return m_createdConstraintId; }
+        const Id<ConstraintModel>& createdConstraint() const
+        { return m_createdConstraintId; }
 
-            protected:
-                void serializeImpl(DataStreamInput&) const override;
-                void deserializeImpl(DataStreamOutput&) override;
+    protected:
+        void serializeImpl(DataStreamInput&) const override;
+        void deserializeImpl(DataStreamOutput&) override;
 
-            private:
-                Path<Scenario::ScenarioModel> m_path;
-                QString m_createdName;
+    private:
+        Path<Scenario::ScenarioModel> m_path;
+        QString m_createdName;
 
-                Id<ConstraintModel> m_createdConstraintId {};
+        Id<ConstraintModel> m_createdConstraintId {};
 
-                Id<StateModel> m_startStateId {};
-                Id<StateModel> m_endStateId {};
+        Id<StateModel> m_startStateId {};
+        Id<StateModel> m_endStateId {};
 
-                ConstraintViewModelIdMap m_createdConstraintViewModelIDs;
-                Id<ConstraintViewModel> m_createdConstraintFullViewId {};
-        };
-    }
+        ConstraintViewModelIdMap m_createdConstraintViewModelIDs;
+        Id<ConstraintViewModel> m_createdConstraintFullViewId {};
+};
+}
 }

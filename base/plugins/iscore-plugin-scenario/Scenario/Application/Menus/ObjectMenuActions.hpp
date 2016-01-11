@@ -12,19 +12,19 @@
 class QAction;
 class QMenu;
 class QToolBar;
+
+namespace iscore {
+class MenubarManager;
+}  // namespace iscore
+
+namespace Scenario
+{
+struct Point;
 class ScenarioApplicationPlugin;
 class TemporalScenarioPresenter;
 class EventActions;
 class ConstraintActions;
 class StateActions;
-
-namespace Scenario {
-struct Point;
-}  // namespace Scenario
-namespace iscore {
-class MenubarManager;
-}  // namespace iscore
-
 class ObjectMenuActions final : public ScenarioActions
 {
     public:
@@ -55,3 +55,4 @@ class ObjectMenuActions final : public ScenarioActions
         QAction *m_pasteContent{};
         QAction *m_elementsToJson{};
 };
+}

@@ -28,8 +28,12 @@
 #include <iscore/tools/SettableIdentifier.hpp>
 
 using namespace iscore;
-using namespace Scenario::Command;
 
+
+namespace Scenario
+{
+namespace Command
+{
 CreateConstraint::CreateConstraint(
         Path<Scenario::ScenarioModel>&& scenarioPath,
         const Id<StateModel>& startState,
@@ -103,4 +107,6 @@ void CreateConstraint::deserializeImpl(DataStreamOutput& s)
             >> m_endStateId
             >> m_createdConstraintViewModelIDs
             >> m_createdConstraintFullViewId;
+}
+}
 }

@@ -8,8 +8,13 @@
 
 class DataStreamInput;
 class DataStreamOutput;
+
+namespace Scenario
+{
 class MessageItemModel;
 
+namespace Command
+{
 class RemoveMessageNodes final : public iscore::SerializableCommand
 {
         ISCORE_COMMAND_DECL(ScenarioCommandFactoryName(), RemoveMessageNodes, "Remove user messages")
@@ -31,3 +36,5 @@ class RemoveMessageNodes final : public iscore::SerializableCommand
         MessageNode m_oldState;
         MessageNode m_newState;
 };
+}
+}

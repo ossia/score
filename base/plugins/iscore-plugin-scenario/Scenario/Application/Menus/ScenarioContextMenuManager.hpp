@@ -5,8 +5,6 @@ namespace Process { class LayerPresenter; }
 class QMenu;
 class QPoint;
 class QPointF;
-class SlotPresenter;
-class TemporalScenarioPresenter;
 class QAction;
 
 namespace iscore
@@ -14,6 +12,10 @@ namespace iscore
 struct DocumentContext;
 }
 
+namespace Scenario
+{
+class SlotPresenter;
+class TemporalScenarioPresenter;
 class ScenarioContextMenuManager final : public QObject
 {
     public:
@@ -36,3 +38,4 @@ class ScenarioContextMenuManager final : public QObject
                 const Process::LayerPresenter& pres);
 
 };
+}

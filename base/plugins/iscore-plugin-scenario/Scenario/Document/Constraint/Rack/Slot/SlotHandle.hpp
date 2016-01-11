@@ -7,6 +7,9 @@
 class QPainter;
 class QStyleOptionGraphicsItem;
 class QWidget;
+
+namespace Scenario
+{
 class SlotView;
 
 class ISCORE_PLUGIN_SCENARIO_EXPORT SlotHandle final : public QGraphicsItem
@@ -42,3 +45,4 @@ class ISCORE_PLUGIN_SCENARIO_EXPORT SlotHandle final : public QGraphicsItem
         qreal m_width {};
         QPen m_pen;
 };
+}

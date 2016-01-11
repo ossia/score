@@ -20,9 +20,10 @@
 #include <iscore/tools/ModelPathSerialization.hpp>
 #include <iscore/tools/NotifyingMap.hpp>
 
-using namespace Scenario::Command;
-
-
+namespace Scenario
+{
+namespace Command
+{
 SplitEvent::SplitEvent(const Path<Scenario::ScenarioModel> &scenario,
                        const Id<EventModel> &event,
                        const QVector<Id<StateModel>> &movingstates):
@@ -93,4 +94,6 @@ void SplitEvent::deserializeImpl(DataStreamOutput & s)
       >> m_newEvent
       >> m_createdName
       >> m_movingStates;
+}
+}
 }

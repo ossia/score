@@ -8,7 +8,11 @@
 #include <iscore/tools/ModelPathSerialization.hpp>
 
 using namespace iscore;
-using namespace Scenario::Command;
+
+namespace Scenario
+{
+namespace Command
+{
 
 HideRackInViewModel::HideRackInViewModel(
         Path<ConstraintViewModel>&& path) :
@@ -47,4 +51,7 @@ void HideRackInViewModel::deserializeImpl(DataStreamOutput& s)
 {
     s >> m_constraintViewPath
             >> m_constraintPreviousId;
+}
+
+}
 }

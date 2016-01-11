@@ -6,7 +6,8 @@
 #include "TextDialog.hpp"
 
 class QWidget;
-
+namespace Scenario
+{
 TextDialog::TextDialog(const QString &s, QWidget *parent):
     QDialog{parent}
 {
@@ -18,4 +19,5 @@ TextDialog::TextDialog(const QString &s, QWidget *parent):
     layout()->addWidget(buttonBox);
 
     connect(buttonBox, &QDialogButtonBox::accepted, this, &QDialog::accept);
+}
 }

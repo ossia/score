@@ -17,7 +17,7 @@ namespace Process
 template<>
 LayerModel* createLayerModel(
         Deserializer<DataStream>& deserializer,
-        const ConstraintModel& constraint,
+        const Scenario::ConstraintModel& constraint,
         QObject* parent)
 {
     Id<ProcessModel> sharedProcessId;
@@ -36,7 +36,7 @@ LayerModel* createLayerModel(
 template<>
 LayerModel* createLayerModel(
         Deserializer<JSONObject>& deserializer,
-        const ConstraintModel& constraint,
+        const Scenario::ConstraintModel& constraint,
         QObject* parent)
 {
     auto& process = constraint.processes.at(

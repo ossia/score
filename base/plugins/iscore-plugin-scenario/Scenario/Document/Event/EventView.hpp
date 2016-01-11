@@ -9,8 +9,6 @@
 
 #include "ExecutionStatus.hpp"
 #include <iscore_plugin_scenario_export.h>
-class ConditionView;
-class EventPresenter;
 class QGraphicsSceneDragDropEvent;
 class QGraphicsSceneHoverEvent;
 class QGraphicsSceneMouseEvent;
@@ -19,6 +17,10 @@ class QPainter;
 class QStyleOptionGraphicsItem;
 class QWidget;
 
+namespace Scenario
+{
+class ConditionView;
+class EventPresenter;
 class ISCORE_PLUGIN_SCENARIO_EXPORT EventView final : public QGraphicsObject
 {
         Q_OBJECT
@@ -87,4 +89,4 @@ class ISCORE_PLUGIN_SCENARIO_EXPORT EventView final : public QGraphicsObject
 
         ConditionView* m_conditionItem{};
 };
-
+}

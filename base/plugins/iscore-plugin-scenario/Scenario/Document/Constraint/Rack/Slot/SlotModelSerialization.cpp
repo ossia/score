@@ -20,9 +20,9 @@ template <typename T> class Reader;
 template <typename T> class Writer;
 template <typename model> class IdentifiedObject;
 
-template<> void Visitor<Reader<DataStream>>::readFrom(const SlotModel& slot)
+template<> void Visitor<Reader<DataStream>>::readFrom(const Scenario::SlotModel& slot)
 {
-    readFrom(static_cast<const IdentifiedObject<SlotModel>&>(slot));
+    readFrom(static_cast<const IdentifiedObject<Scenario::SlotModel>&>(slot));
 
     m_stream << slot.m_frontLayerModelId;
 
@@ -39,7 +39,7 @@ template<> void Visitor<Reader<DataStream>>::readFrom(const SlotModel& slot)
     insertDelimiter();
 }
 
-template<> void Visitor<Writer<DataStream>>::writeTo(SlotModel& slot)
+template<> void Visitor<Writer<DataStream>>::writeTo(Scenario::SlotModel& slot)
 {
     Id<Process::LayerModel> editedProcessId;
     m_stream >> editedProcessId;
@@ -68,9 +68,9 @@ template<> void Visitor<Writer<DataStream>>::writeTo(SlotModel& slot)
 
 
 
-template<> void Visitor<Reader<JSONObject>>::readFrom(const SlotModel& slot)
+template<> void Visitor<Reader<JSONObject>>::readFrom(const Scenario::SlotModel& slot)
 {
-    readFrom(static_cast<const IdentifiedObject<SlotModel>&>(slot));
+    readFrom(static_cast<const IdentifiedObject<Scenario::SlotModel>&>(slot));
 
     m_obj["EditedProcess"] = toJsonValue(slot.m_frontLayerModelId);
     m_obj["Height"] = slot.height();
@@ -85,7 +85,7 @@ template<> void Visitor<Reader<JSONObject>>::readFrom(const SlotModel& slot)
     m_obj["LayerModels"] = arr;
 }
 
-template<> void Visitor<Writer<JSONObject>>::writeTo(SlotModel& slot)
+template<> void Visitor<Writer<JSONObject>>::writeTo(Scenario::SlotModel& slot)
 {
     QJsonArray arr = m_obj["LayerModels"].toArray();
 

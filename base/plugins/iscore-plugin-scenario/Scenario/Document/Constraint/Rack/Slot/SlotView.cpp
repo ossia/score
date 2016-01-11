@@ -11,6 +11,8 @@
 class QStyleOptionGraphicsItem;
 class QWidget;
 
+namespace Scenario
+{
 SlotView::SlotView(const SlotPresenter &pres, QGraphicsObject* parent) :
     QGraphicsObject {parent},
     presenter{pres},
@@ -111,4 +113,5 @@ void SlotView::contextMenuEvent(
         QGraphicsSceneContextMenuEvent* event)
 {
     emit askContextMenu(event->screenPos(), event->scenePos());
+}
 }

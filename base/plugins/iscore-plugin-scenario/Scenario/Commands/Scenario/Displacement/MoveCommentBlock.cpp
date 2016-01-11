@@ -6,8 +6,11 @@
 #include <iscore/serialization/DataStreamVisitor.hpp>
 #include <iscore/tools/ModelPathSerialization.hpp>
 
-using namespace Scenario::Command;
 
+namespace Scenario
+{
+namespace Command
+{
 MoveCommentBlock::MoveCommentBlock(const Path<Scenario::ScenarioModel>& scenarPath,
         const Id<CommentBlockModel>& id,
         const TimeValue& newDate,
@@ -49,4 +52,6 @@ void Scenario::Command::MoveCommentBlock::serializeImpl(DataStreamInput& s) cons
 void Scenario::Command::MoveCommentBlock::deserializeImpl(DataStreamOutput& s)
 {
     s >> m_path >> m_id >> m_newDate >> m_oldDate >> m_newY >> m_oldY;
+}
+}
 }

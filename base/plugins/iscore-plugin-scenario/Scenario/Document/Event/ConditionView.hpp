@@ -8,6 +8,9 @@ class QPainter;
 class QStyleOptionGraphicsItem;
 class QWidget;
 
+namespace Scenario
+{
+
 class ConditionView final : public QGraphicsItem
 {
     public:
@@ -31,3 +34,5 @@ class ConditionView final : public QGraphicsItem
         qreal m_width{40};
         qreal m_CHeight{27};
 };
+
+}

@@ -11,8 +11,10 @@
 
 
 using namespace iscore;
-using namespace Scenario::Command;
-
+namespace Scenario
+{
+namespace Command
+{
 MoveNewEvent::MoveNewEvent(
         Path<Scenario::ScenarioModel>&& scenarioPath,
         const Id<ConstraintModel>& constraintId,
@@ -77,3 +79,7 @@ void MoveNewEvent::deserializeImpl(DataStreamOutput & s)
 
     m_cmd.deserialize(a);
 }
+
+}
+}
+

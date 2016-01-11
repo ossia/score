@@ -12,6 +12,10 @@
 #include <iscore/tools/ModelPathSerialization.hpp>
 #include <iscore/tools/TreeNode.hpp>
 
+namespace Scenario
+{
+namespace Command
+{
 
 InsertContentInState::InsertContentInState(
         const QJsonObject& stateData,
@@ -55,4 +59,6 @@ void InsertContentInState::serializeImpl(DataStreamInput& s) const
 void InsertContentInState::deserializeImpl(DataStreamOutput& s)
 {
     s >> m_oldNode >> m_newNode >> m_state;
+}
+}
 }

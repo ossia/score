@@ -6,28 +6,28 @@
 
 class DataStreamInput;
 class DataStreamOutput;
-class StateModel;
-
 namespace Scenario
 {
-    namespace Command
-    {
-        class ClearState final : public iscore::SerializableCommand
-        {
-                ISCORE_COMMAND_DECL(ScenarioCommandFactoryName(), ClearState, "Clear a state")
-            public:
-                ClearState(Path<StateModel>&& path);
-                void undo() const override;
-                void redo() const override;
+class StateModel;
 
-            protected:
-                void serializeImpl(DataStreamInput&) const override;
-                void deserializeImpl(DataStreamOutput&) override;
+namespace Command
+{
+class ClearState final : public iscore::SerializableCommand
+{
+        ISCORE_COMMAND_DECL(ScenarioCommandFactoryName(), ClearState, "Clear a state")
+        public:
+            ClearState(Path<StateModel>&& path);
+        void undo() const override;
+        void redo() const override;
 
-            private:
-                Path<StateModel> m_path;
+    protected:
+        void serializeImpl(DataStreamInput&) const override;
+        void deserializeImpl(DataStreamOutput&) override;
 
-                QByteArray m_serializedStates;
-        };
-    }
+    private:
+        Path<StateModel> m_path;
+
+        QByteArray m_serializedStates;
+};
+}
 }

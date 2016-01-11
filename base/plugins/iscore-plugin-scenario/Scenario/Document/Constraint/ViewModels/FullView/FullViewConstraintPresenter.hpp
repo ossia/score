@@ -12,7 +12,8 @@ class QObject;
 namespace iscore
 {
 }
-
+namespace Scenario
+{
 /**
  * @brief The FullViewConstraintPresenter class
  *
@@ -36,4 +37,4 @@ class FullViewConstraintPresenter final : public ConstraintPresenter
     signals:
         void constraintSelected(ConstraintModel&);
 };
-
+}

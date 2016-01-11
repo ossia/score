@@ -10,12 +10,14 @@
 #include <iscore/tools/NotifyingMap.hpp>
 #include <iscore/tools/SettableIdentifier.hpp>
 
-class ConstraintViewModel;
 namespace Process {
 class LayerModelPanelProxy;
 }
 class QObject;
 
+namespace Scenario
+{
+class ConstraintViewModel;
 TemporalScenarioLayerModel::TemporalScenarioLayerModel(
         const Id<LayerModel>& viewModelId,
         const QMap<Id<ConstraintModel>, Id<ConstraintViewModel> >& constraintIds,
@@ -93,4 +95,5 @@ void TemporalScenarioLayerModel::on_constraintRemoved(const ConstraintModel& cst
             return;
         }
     }
+}
 }

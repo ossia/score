@@ -2,8 +2,9 @@
 
 #include <QGraphicsTextItem>
 
+namespace Scenario
+{
 class CommentBlockPresenter;
-
 class CommentBlockView final : public QGraphicsObject
 {
         Q_OBJECT
@@ -44,3 +45,4 @@ class CommentBlockView final : public QGraphicsObject
         QGraphicsTextItem* m_textItem{};
         bool m_selected{false};
 };
+}

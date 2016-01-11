@@ -8,8 +8,11 @@
 #include <iscore/tools/ModelPathSerialization.hpp>
 
 using namespace iscore;
-using namespace Scenario::Command;
 
+namespace Scenario
+{
+namespace Command
+{
 ShowRackInViewModel::ShowRackInViewModel(
         Path<ConstraintViewModel>&& constraint_path,
         const Id<RackModel>& rackId) :
@@ -63,3 +66,6 @@ void ShowRackInViewModel::deserializeImpl(DataStreamOutput& s)
             >> m_rackId
             >> m_previousRackId;
 }
+}
+}
+''

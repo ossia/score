@@ -5,9 +5,10 @@
 #include <iscore/plugins/customfactory/FactoryMap.hpp>
 #include <Scenario/Application/Menus/Plugin/ScenarioActionsFactory.hpp>
 
+namespace Scenario
+{
 class ScenarioContextMenuPluginList final : public iscore::FactoryListInterface
 {
         ISCORE_FACTORY_LIST_DECL(ScenarioActionsFactory)
 };
-
-
+}

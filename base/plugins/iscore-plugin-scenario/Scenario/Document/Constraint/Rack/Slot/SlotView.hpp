@@ -10,6 +10,9 @@ class QGraphicsSceneContextMenuEvent;
 class QPainter;
 class QStyleOptionGraphicsItem;
 class QWidget;
+
+namespace Scenario
+{
 class SlotHandle;
 class SlotOverlay;
 class SlotPresenter;
@@ -55,3 +58,4 @@ class ISCORE_PLUGIN_SCENARIO_EXPORT SlotView final : public QGraphicsObject
         bool m_focus{false};
         QString m_frontProcessName{};
 };
+}

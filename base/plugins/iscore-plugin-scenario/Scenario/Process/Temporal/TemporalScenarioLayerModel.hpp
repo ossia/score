@@ -7,8 +7,6 @@
 #include <Scenario/Process/ScenarioModel.hpp>
 #include <iscore/serialization/VisitorInterface.hpp>
 
-class ConstraintModel;
-class ConstraintViewModel;
 namespace Process {
 class LayerModel;
 class LayerModelPanelProxy;
@@ -18,7 +16,8 @@ class QObject;
 
 namespace Scenario
 {
-}
+class ConstraintModel;
+class ConstraintViewModel;
 class TemporalScenarioLayerModel final : public AbstractScenarioLayerModel
 {
         Q_OBJECT
@@ -67,3 +66,4 @@ class TemporalScenarioLayerModel final : public AbstractScenarioLayerModel
         void on_constraintRemoved(const ConstraintModel&) override;
 
 };
+}

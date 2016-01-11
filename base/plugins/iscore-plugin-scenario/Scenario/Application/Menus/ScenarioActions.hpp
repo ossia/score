@@ -8,12 +8,14 @@
 class QAction;
 class QMenu;
 class QToolBar;
-class ScenarioApplicationPlugin;
-class TemporalScenarioPresenter;
 namespace iscore {
 class MenubarManager;
 }  // namespace iscore
 
+namespace Scenario
+{
+class ScenarioApplicationPlugin;
+class TemporalScenarioPresenter;
 class ISCORE_PLUGIN_SCENARIO_EXPORT ScenarioActions : public QObject
 {
         Q_OBJECT
@@ -39,4 +41,4 @@ class ISCORE_PLUGIN_SCENARIO_EXPORT ScenarioActions : public QObject
         ScenarioApplicationPlugin* m_parent{};
         iscore::ToplevelMenuElement m_menuElt;
 };
-
+}

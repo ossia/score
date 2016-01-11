@@ -12,6 +12,9 @@ class QMimeData;
 class QPainter;
 class QStyleOptionGraphicsItem;
 class QWidget;
+
+namespace Scenario
+{
 class StatePresenter;
 
 class ISCORE_PLUGIN_SCENARIO_EXPORT  StateView final : public QGraphicsObject
@@ -63,5 +66,5 @@ class ISCORE_PLUGIN_SCENARIO_EXPORT  StateView final : public QGraphicsObject
 
         static const constexpr qreal m_radiusFull = 7.;
         static const constexpr qreal m_radiusVoid = 3.;
-
 };
+}

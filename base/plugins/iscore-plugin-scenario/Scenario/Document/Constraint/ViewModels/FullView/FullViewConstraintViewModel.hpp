@@ -4,10 +4,13 @@
 #include <QPoint>
 #include <QString>
 
-class ConstraintModel;
 class QObject;
 #include <iscore/tools/SettableIdentifier.hpp>
 
+
+namespace Scenario
+{
+class ConstraintModel;
 /**
  * @brief The FullViewConstraintViewModel class
  *
@@ -61,3 +64,4 @@ class FullViewConstraintViewModel final : public ConstraintViewModel
         ZoomRatio m_zoom{-1};
         QPointF m_center{0,0};
 };
+}

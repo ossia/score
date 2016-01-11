@@ -14,6 +14,10 @@
 #include <iscore/tools/ModelPathSerialization.hpp>
 #include <iscore/tools/TreeNode.hpp>
 
+namespace Scenario
+{
+namespace Command
+{
 AddMessagesToState::AddMessagesToState(
         Path<MessageItemModel> &&device_tree,
         const State::MessageList& messages):
@@ -107,4 +111,6 @@ void AddMessagesToState::deserializeImpl(DataStreamOutput &d)
       >> m_newState
       >> m_previousBackup
       >> m_followingBackup;
+}
+}
 }

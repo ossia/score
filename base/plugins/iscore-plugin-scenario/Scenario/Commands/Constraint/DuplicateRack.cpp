@@ -12,8 +12,10 @@
 #include <iscore/tools/NotifyingMap.hpp>
 
 using namespace iscore;
-using namespace Scenario::Command;
-
+namespace Scenario
+{
+namespace Command
+{
 DuplicateRack::DuplicateRack(ObjectPath&& rackToCopy) :
     m_rackPath {rackToCopy}
 {
@@ -49,4 +51,7 @@ void DuplicateRack::serializeImpl(DataStreamInput& s) const
 void DuplicateRack::deserializeImpl(DataStreamOutput& s)
 {
     s >> m_rackPath >> m_newRackId;
+}
+
+}
 }

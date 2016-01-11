@@ -24,16 +24,20 @@
 #include <iscore/tools/NotifyingMap.hpp>
 #include <iscore/tools/SettableIdentifier.hpp>
 
+namespace Scenario
+{
 class StateModel;
+}
+
 template <typename T> class IdentifiedObject;
 template <typename T> class Reader;
 template <typename T> class Writer;
 
 // Note : comment gérer le cas d'un process shared model qui ne sait se sérializer qu'en binaire, dans du json?
 // Faire passer l'info en base64 ?
-template<> void Visitor<Reader<DataStream>>::readFrom(const ConstraintModel& constraint)
+template<> void Visitor<Reader<DataStream>>::readFrom(const Scenario::ConstraintModel& constraint)
 {
-    readFrom(static_cast<const IdentifiedObject<ConstraintModel>&>(constraint));
+    readFrom(static_cast<const IdentifiedObject<Scenario::ConstraintModel>&>(constraint));
 
     // Metadata
     readFrom(constraint.metadata);
@@ -69,7 +73,7 @@ template<> void Visitor<Reader<DataStream>>::readFrom(const ConstraintModel& con
     insertDelimiter();
 }
 
-template<> void Visitor<Writer<DataStream>>::writeTo(ConstraintModel& constraint)
+template<> void Visitor<Writer<DataStream>>::writeTo(Scenario::ConstraintModel& constraint)
 {
     writeTo(constraint.metadata);
 
@@ -89,14 +93,14 @@ template<> void Visitor<Writer<DataStream>>::writeTo(ConstraintModel& constraint
 
     for(; rack_count -- > 0;)
     {
-        constraint.racks.add(new RackModel(*this, &constraint));
+        constraint.racks.add(new Scenario::RackModel(*this, &constraint));
     }
 
     // Full view
-    Id<ConstraintModel> savedConstraintId;
+    Id<Scenario::ConstraintModel> savedConstraintId;
     m_stream >> savedConstraintId; // Necessary because it is saved; however it is not required here.
     //(todo how to fix this ?)
-    constraint.setFullView(new FullViewConstraintViewModel {*this, constraint, &constraint});
+    constraint.setFullView(new Scenario::FullViewConstraintViewModel {*this, constraint, &constraint});
 
     // Common data
     m_stream >> constraint.duration
@@ -115,9 +119,9 @@ template<> void Visitor<Writer<DataStream>>::writeTo(ConstraintModel& constraint
 
 
 
-template<> void Visitor<Reader<JSONObject>>::readFrom(const ConstraintModel& constraint)
+template<> void Visitor<Reader<JSONObject>>::readFrom(const Scenario::ConstraintModel& constraint)
 {
-    readFrom(static_cast<const IdentifiedObject<ConstraintModel>&>(constraint));
+    readFrom(static_cast<const IdentifiedObject<Scenario::ConstraintModel>&>(constraint));
     m_obj["Metadata"] = toJsonObject(constraint.metadata);
 
     // Processes
@@ -145,7 +149,7 @@ template<> void Visitor<Reader<JSONObject>>::readFrom(const ConstraintModel& con
     m_obj["PluginsMetadata"] = toJsonValue(constraint.pluginModelList);
 }
 
-template<> void Visitor<Writer<JSONObject>>::writeTo(ConstraintModel& constraint)
+template<> void Visitor<Writer<JSONObject>>::writeTo(Scenario::ConstraintModel& constraint)
 {
     constraint.metadata = fromJsonObject<ModelMetadata>(m_obj["Metadata"].toObject());
 
@@ -162,17 +166,17 @@ template<> void Visitor<Writer<JSONObject>>::writeTo(ConstraintModel& constraint
     for(const auto& json_vref : rack_array)
     {
         Deserializer<JSONObject> deserializer {json_vref.toObject() };
-        constraint.racks.add(new RackModel(deserializer, &constraint));
+        constraint.racks.add(new Scenario::RackModel(deserializer, &constraint));
     }
 
-    constraint.setFullView(new FullViewConstraintViewModel {
+    constraint.setFullView(new Scenario::FullViewConstraintViewModel {
                                Deserializer<JSONObject>{m_obj["FullView"].toObject() },
                                constraint,
                                &constraint});
 
     writeTo(constraint.duration);
-    constraint.m_startState = fromJsonValue<Id<StateModel>> (m_obj["StartState"]);
-    constraint.m_endState = fromJsonValue<Id<StateModel>> (m_obj["EndState"]);
+    constraint.m_startState = fromJsonValue<Id<Scenario::StateModel>> (m_obj["StartState"]);
+    constraint.m_endState = fromJsonValue<Id<Scenario::StateModel>> (m_obj["EndState"]);
 
     constraint.m_startDate = fromJsonValue<TimeValue> (m_obj["StartDate"]);
     constraint.m_heightPercentage = m_obj["HeightPercentage"].toDouble();

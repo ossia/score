@@ -15,7 +15,7 @@ template <typename T> class Reader;
 template <typename T> class Writer;
 
 
-template<> void Visitor<Reader<DataStream>>::readFrom(const BaseScenarioContainer& base_scenario)
+template<> void Visitor<Reader<DataStream>>::readFrom(const Scenario::BaseScenarioContainer& base_scenario)
 {
     readFrom(*base_scenario.m_constraint);
 
@@ -29,7 +29,7 @@ template<> void Visitor<Reader<DataStream>>::readFrom(const BaseScenarioContaine
     readFrom(*base_scenario.m_endState);
 }
 
-template<> void Visitor<Writer<DataStream>>::writeTo(BaseScenarioContainer& base_scenario)
+template<> void Visitor<Writer<DataStream>>::writeTo(Scenario::BaseScenarioContainer& base_scenario)
 {
     base_scenario.m_constraint = new ConstraintModel{*this, base_scenario.m_parent};
 
@@ -45,7 +45,7 @@ template<> void Visitor<Writer<DataStream>>::writeTo(BaseScenarioContainer& base
 }
 
 
-template<> void Visitor<Reader<JSONObject>>::readFrom(const BaseScenarioContainer& base_scenario)
+template<> void Visitor<Reader<JSONObject>>::readFrom(const Scenario::BaseScenarioContainer& base_scenario)
 {
     m_obj["Constraint"] = toJsonObject(*base_scenario.m_constraint);
 
@@ -60,7 +60,7 @@ template<> void Visitor<Reader<JSONObject>>::readFrom(const BaseScenarioContaine
 }
 
 
-template<> void Visitor<Writer<JSONObject>>::writeTo(BaseScenarioContainer& base_scenario)
+template<> void Visitor<Writer<JSONObject>>::writeTo(Scenario::BaseScenarioContainer& base_scenario)
 {
     base_scenario.m_constraint = new ConstraintModel{
                                  Deserializer<JSONObject>{m_obj["Constraint"].toObject() },

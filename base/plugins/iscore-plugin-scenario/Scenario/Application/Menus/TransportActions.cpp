@@ -11,6 +11,9 @@
 #include <iscore/menu/MenuInterface.hpp>
 
 class QMenu;
+
+namespace Scenario
+{
 class TemporalScenarioPresenter;
 
 TransportActions::TransportActions(
@@ -114,4 +117,4 @@ void TransportActions::stop()
 {
     m_stop->trigger();
 }
-
+}

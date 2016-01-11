@@ -6,6 +6,8 @@ class QObject;
 #include <iscore/tools/SettableIdentifier.hpp>
 
 ISCORE_METADATA_IMPL(TriggerModel)
+namespace Scenario
+{
 TriggerModel::TriggerModel(const Id<TriggerModel>& id, QObject* parent):
     IdentifiedObject<TriggerModel>{id, className.c_str(), parent}
 {
@@ -36,4 +38,5 @@ void TriggerModel::setActive(bool active)
         return;
     m_active = active;
     emit activeChanged();
+}
 }

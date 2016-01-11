@@ -112,7 +112,7 @@ void Visitor<Writer<DataStream>>::writeTo(Scenario::ScenarioModel& scenario)
 
     for(; constraint_count -- > 0;)
     {
-        auto constraint = new ConstraintModel {*this, &scenario};
+        auto constraint = new Scenario::ConstraintModel {*this, &scenario};
         scenario.constraints.add(constraint);
     }
 

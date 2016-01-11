@@ -19,8 +19,12 @@
 #include <iscore/tools/NotifyingMap.hpp>
 
 using namespace iscore;
-using namespace Scenario::Command;
 
+
+namespace Scenario
+{
+namespace Command
+{
 
 SplitTimeNode::SplitTimeNode(
         Path<TimeNodeModel>&& path,
@@ -83,4 +87,7 @@ void SplitTimeNode::serializeImpl(DataStreamInput & s) const
 void SplitTimeNode::deserializeImpl(DataStreamOutput & s)
 {
     s >> m_path >> m_originalTimeNodeId >> m_eventsInNewTimeNode >> m_newTimeNodeId ;
+}
+
+}
 }

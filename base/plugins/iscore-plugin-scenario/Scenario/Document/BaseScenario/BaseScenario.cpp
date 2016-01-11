@@ -17,7 +17,9 @@
 
 class QObject;
 
-ISCORE_METADATA_IMPL(BaseScenario)
+ISCORE_METADATA_IMPL(Scenario::BaseScenario)
+namespace Scenario
+{
 BaseScenario::BaseScenario(const Id<BaseScenario>& id, QObject* parent):
     IdentifiedObject<BaseScenario>{id, "BaseScenario", parent},
     BaseScenarioContainer{this},
@@ -53,4 +55,5 @@ const QVector<Id<ConstraintModel> > constraintsBeforeTimeNode(
         return {scen.constraint().id()};
     }
     return {};
+}
 }

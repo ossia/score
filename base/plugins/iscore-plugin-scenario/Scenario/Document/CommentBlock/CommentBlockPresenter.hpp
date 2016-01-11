@@ -5,11 +5,13 @@
 #include <QPoint>
 #include <Process/TimeValue.hpp>
 
-class CommentBlockView;
-class CommentBlockModel;
 class QGraphicsObject;
 class QTextDocument;
 
+namespace Scenario
+{
+class CommentBlockView;
+class CommentBlockModel;
 class CommentBlockPresenter final :  public NamedObject
 {
         Q_OBJECT
@@ -54,3 +56,5 @@ class CommentBlockPresenter final :  public NamedObject
         QPointF m_origin{0,0};
         QPointF m_clickedPoint{m_origin};
 };
+
+}

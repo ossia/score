@@ -15,10 +15,13 @@
 #include <Scenario/Document/Constraint/ViewModels/ConstraintViewModel.hpp>
 #include <iscore/tools/Todo.hpp>
 
+
+ISCORE_METADATA_IMPL(ConstraintModel)
+namespace Scenario
+{
 class StateModel;
 class TimeNodeModel;
 
-ISCORE_METADATA_IMPL(ConstraintModel)
 ConstraintModel::ConstraintModel(
         const Id<ConstraintModel>& id,
         const Id<ConstraintViewModel>& fullViewId,
@@ -235,3 +238,6 @@ void ConstraintModel::setHeightPercentage(double arg)
         emit heightPercentageChanged(arg);
     }
 }
+
+}
+

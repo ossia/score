@@ -37,6 +37,8 @@
 #include <iscore/tools/SettableIdentifier.hpp>
 #include <iscore/tools/TreeNode.hpp>
 
+namespace Scenario
+{
 void InterpolateStates(const QList<const ConstraintModel*>& selected_constraints,
                        iscore::CommandStackFacade& stack)
 {
@@ -138,6 +140,4 @@ void InterpolateStates(const QList<const ConstraintModel*>& selected_constraints
     CommandDispatcher<> disp{stack};
     disp.submitCommand(big_macro);
 }
-
-
-
+}

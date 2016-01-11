@@ -4,8 +4,11 @@
 #include <iscore/serialization/DataStreamVisitor.hpp>
 #include <iscore/tools/ModelPathSerialization.hpp>
 
-using namespace Scenario::Command;
 
+namespace Scenario
+{
+namespace Command
+{
 SetCommentText::SetCommentText(Path<CommentBlockModel> path,
                                QString newComment):
     m_path{path},
@@ -35,4 +38,7 @@ void SetCommentText::serializeImpl(DataStreamInput& s) const
 void SetCommentText::deserializeImpl(DataStreamOutput& s)
 {
     s >> m_path >> m_newComment >> m_oldComment;
+}
+
+}
 }

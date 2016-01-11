@@ -24,6 +24,8 @@
 */
 
 ISCORE_METADATA_IMPL(StateModel)
+namespace Scenario
+{
 StateModel::StateModel(
         const Id<StateModel>& id,
         const Id<EventModel>& eventId,
@@ -156,4 +158,5 @@ void StateModel::setStatus(ExecutionStatus status)
 
     m_status.set(status);
     emit statusChanged(status);
+}
 }

@@ -8,10 +8,8 @@ class QGraphicsObject;
 class QObject;
 
 
-namespace iscore
+namespace Scenario
 {
-}
-
 class ISCORE_PLUGIN_SCENARIO_EXPORT TemporalConstraintPresenter final : public ConstraintPresenter
 {
         Q_OBJECT
@@ -30,4 +28,4 @@ class ISCORE_PLUGIN_SCENARIO_EXPORT TemporalConstraintPresenter final : public C
         void constraintHoverEnter();
         void constraintHoverLeave();
 };
-
+}

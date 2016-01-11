@@ -11,14 +11,12 @@
 #include "Slot/SlotPresenter.hpp"
 
 class QObject;
-class RackModel;
-class RackView;
 #include <iscore/tools/SettableIdentifier.hpp>
 
-namespace iscore
+namespace Scenario
 {
-}
-
+class RackModel;
+class RackView;
 class RackPresenter final : public NamedObject, public Nano::Observer
 {
         Q_OBJECT
@@ -74,4 +72,4 @@ class RackPresenter final : public NamedObject, public Nano::Observer
         ZoomRatio m_zoomRatio{};
         TimeValue m_duration {};
 };
-
+}

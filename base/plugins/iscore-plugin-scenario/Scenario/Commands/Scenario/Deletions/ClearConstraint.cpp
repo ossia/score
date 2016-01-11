@@ -21,8 +21,11 @@
 #include <iscore/tools/NotifyingMap.hpp>
 
 using namespace iscore;
-using namespace Scenario::Command;
 
+namespace Scenario
+{
+namespace Command
+{
 ClearConstraint::ClearConstraint(Path<ConstraintModel>&& constraintPath) :
     m_path {std::move(constraintPath) }
 {
@@ -106,4 +109,6 @@ void ClearConstraint::serializeImpl(DataStreamInput& s) const
 void ClearConstraint::deserializeImpl(DataStreamOutput& s)
 {
     s >> m_path >> m_serializedRackes >> m_serializedProcesses >> m_rackMappings;
+}
+}
 }

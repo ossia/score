@@ -13,7 +13,11 @@
 #include <iscore/tools/NotifyingMap.hpp>
 
 using namespace iscore;
-using namespace Scenario::Command;
+
+namespace Scenario
+{
+namespace Command
+{
 
 CopySlot::CopySlot(Path<SlotModel>&& slotToCopy,
                    Path<RackModel>&& targetRackPath) :
@@ -50,4 +54,6 @@ void CopySlot::serializeImpl(DataStreamInput& s) const
 void CopySlot::deserializeImpl(DataStreamOutput& s)
 {
     s >> m_slotPath >> m_targetRackPath >> m_newSlotId;
+}
+}
 }

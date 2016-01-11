@@ -9,8 +9,13 @@
 #include <Scenario/Commands/Constraint/AddRackToConstraint.hpp>
 #include <Scenario/Commands/Constraint/Rack/AddSlotToRack.hpp>
 
+#include <iscore/tools/SettableIdentifierGeneration.hpp>
 #include <iscore/tools/std/Algorithms.hpp>
 
+namespace Scenario
+{
+namespace Command
+{
 // RENAMEME
 // One InterpolateMacro per constraint
 class AddMultipleProcessesToMultipleConstraintsMacro final : public iscore::AggregateCommand
@@ -32,7 +37,7 @@ class AddMultipleProcessesToConstraintMacro final : public iscore::AggregateComm
             auto cmd_rack = new Scenario::Command::AddRackToConstraint{Path<ConstraintModel>{cstpath}};
             addCommand(cmd_rack);
 
-            auto createdRackPath = cstpath.extend(RackModel::className.c_str(), cmd_rack->createdRack());
+            auto createdRackPath = cstpath.extend(Scenario::RackModel::className.c_str(), cmd_rack->createdRack());
 
             // Then create a slot in this rack
             auto cmd_slot = new Scenario::Command::AddSlotToRack{Path<RackModel>{createdRackPath}};
@@ -155,7 +160,6 @@ class AddMultipleProcessesToConstraintMacro final : public iscore::AggregateComm
 };
 
 
-#include <iscore/tools/SettableIdentifierGeneration.hpp>
 inline std::tuple<
     AddMultipleProcessesToConstraintMacro*,
     std::vector<std::vector<std::pair<Path<SlotModel>, Id<Process::LayerModel>>>>
@@ -199,4 +203,6 @@ makeAddProcessMacro(
     }
 
     return std::make_tuple(macro, std::move(bigLayerVec));
+}
+}
 }

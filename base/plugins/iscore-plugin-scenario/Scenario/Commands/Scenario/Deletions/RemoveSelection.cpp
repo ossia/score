@@ -33,8 +33,11 @@
 #include <iscore/document/DocumentContext.hpp>
 
 using namespace iscore;
-using namespace Scenario::Command;
 
+namespace Scenario
+{
+namespace Command
+{
 RemoveSelection::RemoveSelection(Path<Scenario::ScenarioModel>&& scenarioPath, Selection sel):
     m_path {std::move(scenarioPath) }
 {
@@ -390,4 +393,6 @@ void RemoveSelection::deserializeImpl(DataStreamOutput& s)
       >> m_removedConstraints
       >> m_removedStates
       >> m_removedComments;
+}
+}
 }

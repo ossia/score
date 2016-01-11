@@ -2,10 +2,13 @@
 #include <Scenario/Document/Constraint/ViewModels/ConstraintViewModel.hpp>
 #include <QString>
 
-class ConstraintModel;
 class QObject;
 #include <iscore/tools/SettableIdentifier.hpp>
 
+
+namespace Scenario
+{
+class ConstraintModel;
 /**
  * @brief The TemporalConstraintViewModel class
  *
@@ -46,3 +49,4 @@ class ISCORE_PLUGIN_SCENARIO_EXPORT TemporalConstraintViewModel final : public C
     signals:
         void eventSelected(const QString&);
 };
+}

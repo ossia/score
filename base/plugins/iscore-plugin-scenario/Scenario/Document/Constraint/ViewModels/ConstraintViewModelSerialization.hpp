@@ -9,11 +9,11 @@
 #include <Process/LayerModel.hpp>
 #include <iscore/tools/SettableIdentifier.hpp>
 
-class ConstraintModel;
-namespace Scenario {
-class ScenarioModel;
-}  // namespace Scenario
 template <typename VisitorType> class Visitor;
+namespace Scenario
+{
+class ScenarioModel;
+class ConstraintModel;
 
 // Load a single constraint view model.
 template<typename ScenarioViewModelType>
@@ -75,3 +75,4 @@ SerializedConstraintViewModels serializeConstraintViewModels(
 void deserializeConstraintViewModels(
         const SerializedConstraintViewModels& vms,
         const Scenario::ScenarioModel& scenar);
+}

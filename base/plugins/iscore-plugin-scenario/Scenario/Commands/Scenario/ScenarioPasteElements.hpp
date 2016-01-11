@@ -10,16 +10,19 @@
 #include <iscore/tools/ModelPath.hpp>
 #include <iscore/tools/SettableIdentifier.hpp>
 
-class ConstraintModel;
 class DataStreamInput;
 class DataStreamOutput;
+
+namespace Scenario
+{
+struct Point;
 class EventModel;
 class StateModel;
 class TemporalScenarioLayerModel;
 class TimeNodeModel;
-namespace Scenario {
-struct Point;
-}  // namespace Scenario
+class ConstraintModel;
+namespace Command
+{
 
 class ScenarioPasteElements final : public iscore::SerializableCommand
 {
@@ -54,3 +57,5 @@ class ScenarioPasteElements final : public iscore::SerializableCommand
         // TODO std::map...
         QMap<Id<ConstraintModel>, ConstraintViewModelIdMap> m_constraintViewModels;
 };
+}
+}

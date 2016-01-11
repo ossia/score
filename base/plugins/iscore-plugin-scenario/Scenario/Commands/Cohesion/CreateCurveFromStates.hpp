@@ -6,17 +6,21 @@
 #include <iscore/command/SerializableCommand.hpp>
 #include <utility>
 #include <vector>
+#include <iscore/tools/SettableIdentifier.hpp>
 
-class ConstraintModel;
+#include <Process/ProcessList.hpp>
+#include <Automation/AutomationProcessMetadata.hpp>
+
 class DataStreamInput;
 class DataStreamOutput;
 namespace Process { class LayerModel; }
 namespace Process { class ProcessModel; }
-class SlotModel;
 template <typename Object> class Path;
-#include <iscore/tools/SettableIdentifier.hpp>
 
-#include <Process/ProcessList.hpp>
+namespace Scenario
+{
+class ConstraintModel;
+class SlotModel;
 template<typename ProcessMetadata_T>
 class ISCORE_PLUGIN_SCENARIO_EXPORT CreateProcessAndLayers : public iscore::SerializableCommand
 {
@@ -89,7 +93,6 @@ class ISCORE_PLUGIN_SCENARIO_EXPORT CreateProcessAndLayers : public iscore::Seri
 };
 
 
-#include <Automation/AutomationProcessMetadata.hpp>
 class ISCORE_PLUGIN_SCENARIO_EXPORT CreateCurveFromStates final : public CreateProcessAndLayers<Automation::ProcessMetadata>
 {
          ISCORE_COMMAND_DECL(ScenarioCommandFactoryName(), CreateCurveFromStates, "CreateCurveFromStates")
@@ -116,3 +119,4 @@ class ISCORE_PLUGIN_SCENARIO_EXPORT CreateCurveFromStates final : public CreateP
         double m_min{}, m_max{};
 
 };
+}

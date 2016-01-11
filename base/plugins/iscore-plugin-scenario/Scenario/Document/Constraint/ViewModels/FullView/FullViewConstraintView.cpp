@@ -14,6 +14,8 @@
 class QStyleOptionGraphicsItem;
 class QWidget;
 
+namespace Scenario
+{
 FullViewConstraintView::FullViewConstraintView(FullViewConstraintPresenter& presenter,
                                                QGraphicsItem *parent) :
     ConstraintView {presenter, parent}
@@ -87,4 +89,5 @@ void FullViewConstraintView::paint(QPainter* painter,
 
     painter->drawLine(max_w, 0, max_w + 200, 0);
     */
+}
 }

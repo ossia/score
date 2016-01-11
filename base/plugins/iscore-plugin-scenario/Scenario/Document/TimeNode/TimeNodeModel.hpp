@@ -16,8 +16,11 @@
 #include <iscore_plugin_scenario_export.h>
 #include <iscore/component/Component.hpp>
 class DataStream;
-class EventModel;
 class JSONObject;
+
+namespace Scenario
+{
+class EventModel;
 class ScenarioInterface;
 class TriggerModel;
 
@@ -87,3 +90,4 @@ class ISCORE_PLUGIN_SCENARIO_EXPORT TimeNodeModel final : public IdentifiedObjec
 
         QVector<Id<EventModel>> m_events;
 };
+}

@@ -28,7 +28,11 @@
 #include <iscore/tools/NotifyingMap.hpp>
 
 using namespace iscore;
-using namespace Scenario::Command;
+
+namespace Scenario
+{
+namespace Command
+{
 
 InsertContentInConstraint::InsertContentInConstraint(
         QJsonObject&& sourceConstraint,
@@ -158,4 +162,7 @@ void InsertContentInConstraint::deserializeImpl(DataStreamOutput& s)
     int mode;
     s >> m_source >> m_target >> m_rackIds >> m_processIds >> mode;
     m_mode = static_cast<ExpandMode>(mode);
+}
+
+}
 }

@@ -12,9 +12,13 @@
 #include <iscore/tools/NotifyingMap.hpp>
 
 using namespace iscore;
-using namespace Scenario::Command;
 
 
+
+namespace Scenario
+{
+namespace Command
+{
 MoveConstraint::MoveConstraint(
         Path<Scenario::ScenarioModel>&& scenarioPath,
         const Id<ConstraintModel>& id,
@@ -68,4 +72,6 @@ void MoveConstraint::deserializeImpl(DataStreamOutput& s)
       >> m_constraint
       >> m_oldHeight
       >> m_newHeight;
+}
+}
 }

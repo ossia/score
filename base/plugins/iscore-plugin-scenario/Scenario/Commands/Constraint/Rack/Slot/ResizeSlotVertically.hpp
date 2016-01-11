@@ -5,42 +5,42 @@
 #include <iscore_plugin_scenario_export.h>
 class DataStreamInput;
 class DataStreamOutput;
-class SlotModel;
 
 namespace Scenario
 {
-    namespace Command
-    {
-        /**
+class SlotModel;
+namespace Command
+{
+/**
          * @brief The ResizeSlotVerticallyCommand class
          *
          * Changes a slot's vertical size
          */
-        class ISCORE_PLUGIN_SCENARIO_EXPORT ResizeSlotVertically final : public iscore::SerializableCommand
+class ISCORE_PLUGIN_SCENARIO_EXPORT ResizeSlotVertically final : public iscore::SerializableCommand
+{
+        ISCORE_COMMAND_DECL(ScenarioCommandFactoryName(), ResizeSlotVertically, "Resize a slot")
+        public:
+            ResizeSlotVertically(
+                Path<SlotModel>&& slotPath,
+                double newSize);
+
+        void undo() const override;
+        void redo() const override;
+
+        void update(const Path<SlotModel>&, double size)
         {
-                ISCORE_COMMAND_DECL(ScenarioCommandFactoryName(), ResizeSlotVertically, "Resize a slot")
-            public:
-                ResizeSlotVertically(
-                    Path<SlotModel>&& slotPath,
-                    double newSize);
+            m_newSize = size;
+        }
 
-                void undo() const override;
-                void redo() const override;
+    protected:
+        void serializeImpl(DataStreamInput&) const override;
+        void deserializeImpl(DataStreamOutput&) override;
 
-                void update(const Path<SlotModel>&, double size)
-                {
-                    m_newSize = size;
-                }
+    private:
+        Path<SlotModel> m_path;
 
-            protected:
-                void serializeImpl(DataStreamInput&) const override;
-                void deserializeImpl(DataStreamOutput&) override;
-
-            private:
-                Path<SlotModel> m_path;
-
-                double m_originalSize {};
-                double m_newSize {};
-        };
-    }
+        double m_originalSize {};
+        double m_newSize {};
+};
+}
 }

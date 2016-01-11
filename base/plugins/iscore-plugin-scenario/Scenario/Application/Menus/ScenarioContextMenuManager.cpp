@@ -47,6 +47,8 @@
 #include <iscore/tools/NotifyingMap.hpp>
 #include <iscore/tools/SettableIdentifier.hpp>
 
+namespace Scenario
+{
 void ScenarioContextMenuManager::createSlotContextMenu(
         const iscore::DocumentContext& ctx,
         QMenu& menu,
@@ -249,4 +251,5 @@ void ScenarioContextMenuManager::createScenarioContextMenu(
     });
 
     menu.addAction(createCommentAct);
+}
 }

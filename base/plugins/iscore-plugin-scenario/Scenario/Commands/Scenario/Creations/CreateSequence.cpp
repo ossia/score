@@ -41,8 +41,11 @@ namespace Process { class LayerModel; }
 namespace Process { class ProcessModel; }
 class SlotModel;
 
-using namespace Scenario::Command;
 
+namespace Scenario
+{
+namespace Command
+{
 CreateSequence::CreateSequence(
         const Scenario::ScenarioModel& scenario,
         const Id<StateModel>& startState,
@@ -212,4 +215,6 @@ void CreateSequence::deserializeImpl(DataStreamOutput& s)
       >> m_addedProcessCount;
     m_command.deserialize(command);
     m_interpolations.deserialize(interp);
+}
+}
 }

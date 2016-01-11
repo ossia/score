@@ -8,6 +8,8 @@ class QPainter;
 class QStyleOptionGraphicsItem;
 class QWidget;
 
+namespace Scenario
+{
 class TriggerView final : public QGraphicsObject
 {
         Q_OBJECT
@@ -32,3 +34,4 @@ class TriggerView final : public QGraphicsObject
     private:
         QGraphicsSvgItem* m_item{};
 };
+}

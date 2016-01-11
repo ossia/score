@@ -15,12 +15,14 @@
 #include <iscore/tools/IdentifiedObject.hpp>
 #include <iscore/tools/SettableIdentifier.hpp>
 #include <iscore_plugin_scenario_export.h>
-class ConstraintModel;
 class DataStream;
 class JSONObject;
 namespace Process { class ProcessModel; }
-class RackModel;
 
+namespace Scenario
+{
+class ConstraintModel;
+class RackModel;
 // Note : the SlotModel is assumed to be in a Rack, itself in a Constraint.
 class ISCORE_PLUGIN_SCENARIO_EXPORT SlotModel final : public IdentifiedObject<SlotModel>, public Nano::Observer
 {
@@ -109,3 +111,4 @@ class ISCORE_PLUGIN_SCENARIO_EXPORT SlotModel final : public IdentifiedObject<Sl
  * @return A pointer to the parent constraint if there is one, or nullptr.
  */
 ConstraintModel* parentConstraint(Process::LayerModel* lm);
+}

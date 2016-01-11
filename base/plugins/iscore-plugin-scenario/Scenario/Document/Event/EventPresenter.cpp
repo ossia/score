@@ -27,9 +27,12 @@
 class QObject;
 #include <iscore/tools/SettableIdentifier.hpp>
 
-EventPresenter::EventPresenter(const EventModel& model,
-                               QGraphicsObject* parentview,
-                               QObject* parent) :
+namespace Scenario
+{
+EventPresenter::EventPresenter(
+        const EventModel& model,
+        QGraphicsObject* parentview,
+        QObject* parent) :
     NamedObject {"EventPresenter", parent},
     m_model {model},
     m_view {new EventView{*this, parentview}},
@@ -103,11 +106,11 @@ void EventPresenter::handleDrop(const QPointF& pos, const QMimeData *mime)
         State::MessageList ml = des.deserialize();
 
         auto cmd = new Scenario::Command::AddStateWithData{
-                *scenar,
-                m_model.id(),
-                pos.y() / m_view->parentItem()->boundingRect().size().height(),
-                std::move(ml)};
+                   *scenar,
+                   m_model.id(),
+                   pos.y() / m_view->parentItem()->boundingRect().size().height(),
+                   std::move(ml)};
         m_dispatcher.submitCommand(cmd);
     }
 }
-
+}

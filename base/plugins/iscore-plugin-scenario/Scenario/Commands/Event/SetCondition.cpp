@@ -9,8 +9,11 @@
 #include <iscore/tools/TreeNode.hpp>
 
 using namespace iscore;
-using namespace Scenario::Command;
 
+namespace Scenario
+{
+namespace Command
+{
 SetCondition::SetCondition(
         Path<EventModel>&& eventPath,
         State::Condition&& cond) :
@@ -42,4 +45,6 @@ void SetCondition::serializeImpl(DataStreamInput& s) const
 void SetCondition::deserializeImpl(DataStreamOutput& s)
 {
     s >> m_path >> m_condition >> m_previousCondition;
+}
+}
 }

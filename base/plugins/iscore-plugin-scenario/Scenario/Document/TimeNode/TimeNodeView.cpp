@@ -16,6 +16,8 @@
 class QStyleOptionGraphicsItem;
 class QWidget;
 
+namespace Scenario
+{
 TimeNodeView::TimeNodeView(TimeNodePresenter& presenter,
                            QGraphicsObject* parent) :
     QGraphicsObject {parent},
@@ -100,4 +102,5 @@ void TimeNodeView::mouseMoveEvent(QGraphicsSceneMouseEvent* event)
 void TimeNodeView::mouseReleaseEvent(QGraphicsSceneMouseEvent* event)
 {
     emit m_presenter.released(event->scenePos());
+}
 }

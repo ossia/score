@@ -4,6 +4,8 @@
 #include "ConstraintPresenter.hpp"
 #include "ConstraintView.hpp"
 
+namespace Scenario
+{
 ConstraintView::ConstraintView(
         ConstraintPresenter& presenter,
         QGraphicsItem *parent) :
@@ -95,5 +97,6 @@ bool ConstraintView::warning() const
 void ConstraintView::setWarning(bool warning)
 {
     m_warning = warning;
+}
 }
 

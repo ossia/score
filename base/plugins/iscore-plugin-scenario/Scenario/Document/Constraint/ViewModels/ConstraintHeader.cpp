@@ -2,7 +2,8 @@
 #include "ConstraintView.hpp"
 
 class QGraphicsSceneMouseEvent;
-
+namespace Scenario
+{
 void ConstraintHeader::setWidth(double width)
 {
     prepareGeometryChange();
@@ -28,4 +29,5 @@ void ConstraintHeader::mouseMoveEvent(QGraphicsSceneMouseEvent* event)
 void ConstraintHeader::mouseReleaseEvent(QGraphicsSceneMouseEvent* event)
 {
     m_view->mouseReleaseEvent(event);
+}
 }

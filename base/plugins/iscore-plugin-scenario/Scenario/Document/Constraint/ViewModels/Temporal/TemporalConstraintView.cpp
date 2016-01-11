@@ -17,6 +17,8 @@ class QGraphicsSceneHoverEvent;
 class QStyleOptionGraphicsItem;
 class QWidget;
 
+namespace Scenario
+{
 TemporalConstraintView::TemporalConstraintView(TemporalConstraintPresenter &presenter,
                                                QGraphicsObject* parent) :
     ConstraintView {presenter, parent},
@@ -218,4 +220,4 @@ void TemporalConstraintView::setShadow(bool shadow)
     m_shadow = shadow;
     update();
 }
-
+}

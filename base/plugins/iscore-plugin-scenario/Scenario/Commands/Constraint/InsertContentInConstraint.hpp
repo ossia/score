@@ -8,39 +8,39 @@
 
 #include <iscore/tools/SettableIdentifier.hpp>
 
-class ConstraintModel;
 class DataStreamInput;
 class DataStreamOutput;
 namespace Process { class ProcessModel; }
-class RackModel;
-
 namespace Scenario
 {
-    namespace Command
-    {
-        class InsertContentInConstraint final : public iscore::SerializableCommand
-        {
-                ISCORE_COMMAND_DECL(ScenarioCommandFactoryName(), InsertContentInConstraint, "Insert content in a constraint")
-            public:
-                InsertContentInConstraint(
-                    QJsonObject&& sourceConstraint,
-                    Path<ConstraintModel>&&  targetConstraint,
-                    ExpandMode mode);
+class RackModel;
+class ConstraintModel;
 
-                void undo() const override;
-                void redo() const override;
+namespace Command
+{
+class InsertContentInConstraint final : public iscore::SerializableCommand
+{
+        ISCORE_COMMAND_DECL(ScenarioCommandFactoryName(), InsertContentInConstraint, "Insert content in a constraint")
+        public:
+            InsertContentInConstraint(
+                QJsonObject&& sourceConstraint,
+                Path<ConstraintModel>&&  targetConstraint,
+                ExpandMode mode);
 
-            protected:
-                void serializeImpl(DataStreamInput&) const override;
-                void deserializeImpl(DataStreamOutput&) override;
+        void undo() const override;
+        void redo() const override;
 
-            private:
-                QJsonObject m_source;
-                Path<ConstraintModel> m_target;
-                ExpandMode m_mode{ExpandMode::GrowShrink};
+    protected:
+        void serializeImpl(DataStreamInput&) const override;
+        void deserializeImpl(DataStreamOutput&) override;
 
-                QMap<Id<RackModel>, Id<RackModel>> m_rackIds;
-                QMap<Id<Process::ProcessModel>, Id<Process::ProcessModel>> m_processIds;
-        };
-    }
+    private:
+        QJsonObject m_source;
+        Path<ConstraintModel> m_target;
+        ExpandMode m_mode{ExpandMode::GrowShrink};
+
+        QMap<Id<RackModel>, Id<RackModel>> m_rackIds;
+        QMap<Id<Process::ProcessModel>, Id<Process::ProcessModel>> m_processIds;
+};
+}
 }

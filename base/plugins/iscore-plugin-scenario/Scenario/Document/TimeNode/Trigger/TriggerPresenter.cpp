@@ -5,6 +5,8 @@
 #include "TriggerView.hpp"
 #include <iscore/tools/Todo.hpp>
 
+namespace Scenario
+{
 TriggerPresenter::TriggerPresenter(
         const TriggerModel& model,
         QGraphicsObject* parentView,
@@ -25,3 +27,4 @@ TriggerPresenter::TriggerPresenter(
             &m_model, &TriggerModel::triggered);
 }
 
+}

@@ -288,7 +288,7 @@ namespace Scenario
 const QVector<Id<ConstraintModel>> constraintsBeforeTimeNode(
         const Scenario::ScenarioModel&,
         const Id<TimeNodeModel>& timeNodeId);
-}
 
 const StateModel* furthestSelectedState(const Scenario::ScenarioModel& scenario);
 const StateModel* furthestSelectedStateWithoutFollowingConstraint(const Scenario::ScenarioModel& scenario);
+}

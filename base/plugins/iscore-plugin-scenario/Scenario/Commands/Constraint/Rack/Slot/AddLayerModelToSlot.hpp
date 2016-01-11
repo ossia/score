@@ -11,52 +11,52 @@ class DataStreamInput;
 class DataStreamOutput;
 namespace Process { class LayerModel; }
 namespace Process { class ProcessModel; }
-class SlotModel;
 
 namespace Scenario
 {
-    namespace Command
-    {
-        /**
+class SlotModel;
+namespace Command
+{
+/**
          * @brief The AddLayerToSlot class
          *
          * Adds a process view to a slot.
          */
-        class ISCORE_PLUGIN_SCENARIO_EXPORT AddLayerModelToSlot final : public iscore::SerializableCommand
-        {
-                ISCORE_COMMAND_DECL(ScenarioCommandFactoryName(), AddLayerModelToSlot, "Add a layer to a slot")
-            public:
-                // Use this constructor when the process already exists
-                AddLayerModelToSlot(
-                    Path<SlotModel>&& slot,
-                    Path<Process::ProcessModel>&& process);
+class ISCORE_PLUGIN_SCENARIO_EXPORT AddLayerModelToSlot final : public iscore::SerializableCommand
+{
+        ISCORE_COMMAND_DECL(ScenarioCommandFactoryName(), AddLayerModelToSlot, "Add a layer to a slot")
+        public:
+            // Use this constructor when the process already exists
+            AddLayerModelToSlot(
+                Path<SlotModel>&& slot,
+                Path<Process::ProcessModel>&& process);
 
-                // Use this constructor when the process isn't created yet
-                AddLayerModelToSlot(
-                    Path<SlotModel>&& slot,
-                    Path<Process::ProcessModel>&& process,
-                    const QByteArray& processConstructionData);
+        // Use this constructor when the process isn't created yet
+        AddLayerModelToSlot(
+                Path<SlotModel>&& slot,
+                Path<Process::ProcessModel>&& process,
+                const QByteArray& processConstructionData);
 
-                AddLayerModelToSlot(
-                        Path<SlotModel>&& slot,
-                        const Id<Process::LayerModel>& layerid,
-                        Path<Process::ProcessModel>&& process,
-                        const QByteArray& processConstructionData);
+        AddLayerModelToSlot(
+                Path<SlotModel>&& slot,
+                const Id<Process::LayerModel>& layerid,
+                Path<Process::ProcessModel>&& process,
+                const QByteArray& processConstructionData);
 
-                void undo() const override;
-                void redo() const override;
+        void undo() const override;
+        void redo() const override;
 
-            protected:
-                void serializeImpl(DataStreamInput&) const override;
-                void deserializeImpl(DataStreamOutput&) override;
+    protected:
+        void serializeImpl(DataStreamInput&) const override;
+        void deserializeImpl(DataStreamOutput&) override;
 
-            private:
-                Path<SlotModel> m_slotPath;
-                Path<Process::ProcessModel> m_processPath;
+    private:
+        Path<SlotModel> m_slotPath;
+        Path<Process::ProcessModel> m_processPath;
 
-                QByteArray m_processData;
+        QByteArray m_processData;
 
-                Id<Process::LayerModel> m_createdLayerId {};
-        };
-    }
+        Id<Process::LayerModel> m_createdLayerId {};
+};
+}
 }

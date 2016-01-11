@@ -9,7 +9,8 @@
 class ScenarioActions;
 class ScenarioApplicationPlugin;
 
-
+namespace Scenario
+{
 QList<ScenarioActions *> ScenarioCommonActionsFactory::make(ScenarioApplicationPlugin *ctrl)
 {
     return QList<ScenarioActions *>{
@@ -23,4 +24,5 @@ const ScenarioActionsFactoryKey&ScenarioCommonActionsFactory::key_impl() const
 {
     static const ScenarioActionsFactoryKey fact{"ScenarioCommonActionsFactory"};
     return fact;
+}
 }

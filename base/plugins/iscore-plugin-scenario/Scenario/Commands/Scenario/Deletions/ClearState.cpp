@@ -8,7 +8,11 @@
 
 
 using namespace iscore;
-using namespace Scenario::Command;
+
+namespace Scenario
+{
+namespace Command
+{
 
 ClearState::ClearState(Path<StateModel>&& path) :
     m_path {std::move(path) }
@@ -52,4 +56,6 @@ void ClearState::serializeImpl(DataStreamInput& s) const
 void ClearState::deserializeImpl(DataStreamOutput& s)
 {
     s >> m_path >> m_serializedStates;
+}
+}
 }

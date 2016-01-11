@@ -4,6 +4,8 @@
 class QObject;
 #include <iscore/tools/SettableIdentifier.hpp>
 
+namespace Scenario
+{
 TemporalConstraintViewModel::TemporalConstraintViewModel(
         const Id<ConstraintViewModel>& id,
         const ConstraintModel& model,
@@ -31,4 +33,5 @@ TemporalConstraintViewModel* TemporalConstraintViewModel::clone(
 QString TemporalConstraintViewModel::type() const
 {
     return "Temporal";
+}
 }

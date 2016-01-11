@@ -9,6 +9,9 @@ class QGraphicsSceneMouseEvent;
 class QPainter;
 class QStyleOptionGraphicsItem;
 class QWidget;
+
+namespace Scenario
+{
 class TimeNodePresenter;
 
 class ISCORE_PLUGIN_SCENARIO_EXPORT TimeNodeView final : public QGraphicsObject
@@ -63,3 +66,4 @@ class ISCORE_PLUGIN_SCENARIO_EXPORT TimeNodeView final : public QGraphicsObject
         QColor m_color;
         bool m_selected{};
 };
+}

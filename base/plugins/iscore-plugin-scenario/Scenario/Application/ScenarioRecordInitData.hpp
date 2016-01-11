@@ -3,6 +3,9 @@
 #include <QMetaType>
 
 namespace Process { class LayerPresenter; }
+
+namespace Scenario
+{
 struct ScenarioRecordInitData
 {
         ScenarioRecordInitData() {}
@@ -15,4 +18,5 @@ struct ScenarioRecordInitData
         const Process::LayerPresenter* presenter{};
         QPointF point;
 };
+}
 Q_DECLARE_METATYPE(ScenarioRecordInitData)

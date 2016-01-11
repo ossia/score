@@ -4,14 +4,17 @@
 
 #include <Process/ExpandMode.hpp>
 #include <Process/TimeValue.hpp>
+#include <iscore/tools/SettableIdentifier.hpp>
 
-class EventModel;
-class SerializableMoveEvent;
+template <typename Object> class Path;
+
 namespace Scenario {
 class ScenarioModel;
-}  // namespace Scenario
-template <typename Object> class Path;
-#include <iscore/tools/SettableIdentifier.hpp>
+class EventModel;
+
+namespace Command
+{
+class SerializableMoveEvent;
 
 class MoveEventClassicFactory final : public MoveEventFactoryInterface
 {
@@ -40,3 +43,5 @@ public:
 
     const MoveEventFactoryKey& key_impl() const override;
 };
+}
+}

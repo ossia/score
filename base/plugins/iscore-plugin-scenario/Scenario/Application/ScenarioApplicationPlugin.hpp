@@ -11,21 +11,19 @@ namespace Process {
 class LayerPresenter;
 class ProcessFocusManager;
 }
-class ObjectMenuActions;
-class QAction;
-class ScenarioActions;
-class TemporalScenarioPresenter;
-class ToolMenuActions;
-namespace Scenario {
-class ScenarioModel;
-}
 namespace iscore {
-
 class Document;
 class MenubarManager;
 struct OrderedToolbar;
 }  // namespace iscore
 
+class QAction;
+namespace Scenario {
+class ObjectMenuActions;
+class ScenarioActions;
+class TemporalScenarioPresenter;
+class ToolMenuActions;
+class ScenarioModel;
 
 class ISCORE_PLUGIN_SCENARIO_EXPORT ScenarioApplicationPlugin final :
         public QObject,
@@ -85,3 +83,4 @@ class ISCORE_PLUGIN_SCENARIO_EXPORT ScenarioApplicationPlugin final :
         void on_presenterFocused(Process::LayerPresenter* lm);
         void on_presenterDefocused(Process::LayerPresenter* lm);
 };
+}

@@ -25,6 +25,8 @@
 
 static const constexpr int slotSpacing = 0;
 
+namespace Scenario
+{
 RackPresenter::RackPresenter(const RackModel& model,
                            RackView* view,
                            QObject* parent):
@@ -207,4 +209,5 @@ void RackPresenter::on_zoomRatioChanged(ZoomRatio val)
 void RackPresenter::on_slotPositionsChanged()
 {
     updateShape();
+}
 }

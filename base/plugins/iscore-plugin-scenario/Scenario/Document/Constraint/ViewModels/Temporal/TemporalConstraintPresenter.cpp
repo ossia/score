@@ -19,6 +19,8 @@ class QColor;
 class QObject;
 class QString;
 
+namespace Scenario
+{
 TemporalConstraintPresenter::TemporalConstraintPresenter(
         const TemporalConstraintViewModel& cstr_model,
         QGraphicsObject *parentobject,
@@ -82,4 +84,5 @@ TemporalConstraintPresenter::~TemporalConstraintPresenter()
 
         ::view(this)->deleteLater();
     }
+}
 }

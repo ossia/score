@@ -9,6 +9,11 @@
 #include <iscore/serialization/DataStreamVisitor.hpp>
 #include <iscore/tools/ModelPathSerialization.hpp>
 
+namespace Scenario
+{
+namespace Command
+{
+
 ShowRackInAllViewModels::ShowRackInAllViewModels(
         Path<ConstraintModel>&& constraint_path,
         const Id<RackModel>& rackId) :
@@ -62,4 +67,6 @@ void ShowRackInAllViewModels::deserializeImpl(DataStreamOutput& s)
     s >> m_constraintPath
             >> m_rackId
             >> m_previousRacks;
+}
+}
 }

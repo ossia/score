@@ -6,6 +6,10 @@
 #include <iscore/plugins/customfactory/FactoryFamily.hpp>
 #include <iscore/plugins/customfactory/FactoryInterface.hpp>
 
+namespace Scenario
+{
+namespace Command
+{
 
 class MoveEventList final : public iscore::FactoryListInterface
 {
@@ -43,3 +47,6 @@ class MoveEventList final : public iscore::FactoryListInterface
     private:
         std::vector<std::unique_ptr<MoveEventFactoryInterface>> m_list;
 };
+
+}
+}

@@ -2,6 +2,9 @@
 #include <QObject>
 
 class QGraphicsObject;
+
+namespace Scenario
+{
 class TriggerModel;
 class TriggerView;
 
@@ -17,3 +20,4 @@ class TriggerPresenter final : public QObject
         const TriggerModel& m_model;
         TriggerView* m_view{};
 };
+}

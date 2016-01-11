@@ -8,7 +8,8 @@ namespace Process
 {
 class ProcessList;
 }
-
+namespace Scenario
+{
 class AddProcessDialog final : public QWidget
 {
         Q_OBJECT
@@ -27,3 +28,4 @@ class AddProcessDialog final : public QWidget
         const Process::ProcessList& m_factoryList;
 
 };
+}

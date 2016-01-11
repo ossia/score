@@ -5,7 +5,8 @@
 #include <iscore/tools/ModelPath.hpp>
 
 #include <iscore/tools/SettableIdentifier.hpp>
-
+namespace Scenario
+{
 PutLayerModelToFront::PutLayerModelToFront(
         Path<SlotModel>&& slotPath,
         const Id<Process::LayerModel>& pid):
@@ -18,4 +19,5 @@ PutLayerModelToFront::PutLayerModelToFront(
 void PutLayerModelToFront::redo() const
 {
     m_slotPath.find().putToFront(m_pid);
+}
 }

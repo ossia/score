@@ -10,40 +10,40 @@
 #include <iscore/tools/SettableIdentifier.hpp>
 #include <iscore_plugin_scenario_export.h>
 
-class ConstraintModel;
-class ConstraintViewModel;
+
 class DataStreamInput;
 class DataStreamOutput;
-class RackModel;
-
 namespace Scenario
 {
-    namespace Command
-    {
-        /**
+class ConstraintModel;
+class ConstraintViewModel;
+class RackModel;
+namespace Command
+{
+/**
          * @brief The ClearConstraint class
          *
          * Removes all the processes and the rackes of a constraint.
          */
-        class ISCORE_PLUGIN_SCENARIO_EXPORT ClearConstraint final : public iscore::SerializableCommand
-        {
-                ISCORE_COMMAND_DECL(ScenarioCommandFactoryName(), ClearConstraint, "Clear a constraint")
-            public:
-                ClearConstraint(Path<ConstraintModel>&& constraintPath);
-                void undo() const override;
-                void redo() const override;
+class ISCORE_PLUGIN_SCENARIO_EXPORT ClearConstraint final : public iscore::SerializableCommand
+{
+        ISCORE_COMMAND_DECL(ScenarioCommandFactoryName(), ClearConstraint, "Clear a constraint")
+        public:
+            ClearConstraint(Path<ConstraintModel>&& constraintPath);
+        void undo() const override;
+        void redo() const override;
 
-            protected:
-                void serializeImpl(DataStreamInput&) const override;
-                void deserializeImpl(DataStreamOutput&) override;
+    protected:
+        void serializeImpl(DataStreamInput&) const override;
+        void deserializeImpl(DataStreamOutput&) override;
 
-            private:
-                Path<ConstraintModel> m_path;
+    private:
+        Path<ConstraintModel> m_path;
 
-                QVector<QByteArray> m_serializedRackes;
-                QVector<QByteArray> m_serializedProcesses;
+        QVector<QByteArray> m_serializedRackes;
+        QVector<QByteArray> m_serializedProcesses;
 
-                QMap<Id<ConstraintViewModel>, Id<RackModel>> m_rackMappings;
-        };
-    }
+        QMap<Id<ConstraintViewModel>, Id<RackModel>> m_rackMappings;
+};
+}
 }

@@ -10,6 +10,8 @@
 class QStyleOptionGraphicsItem;
 class QWidget;
 
+namespace Scenario
+{
 SlotHandle::SlotHandle(const SlotView &slotView, QGraphicsItem *parent):
     QGraphicsItem{parent},
     m_slotView{slotView},
@@ -40,4 +42,5 @@ void SlotHandle::setWidth(qreal width)
 {
     m_width = width;
     prepareGeometryChange();
+}
 }

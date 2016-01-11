@@ -13,6 +13,8 @@
 #include <iscore/tools/SettableIdentifier.hpp>
 
 ISCORE_METADATA_IMPL(TimeNodeModel)
+namespace Scenario
+{
 TimeNodeModel::TimeNodeModel(
         const Id<TimeNodeModel>& id,
         const VerticalExtent& extent,
@@ -108,4 +110,4 @@ void TimeNodeModel::setExtent(const VerticalExtent &extent)
     m_extent = extent;
     emit extentChanged(m_extent);
 }
-
+}

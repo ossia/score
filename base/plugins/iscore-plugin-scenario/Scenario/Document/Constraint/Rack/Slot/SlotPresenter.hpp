@@ -9,8 +9,6 @@
 #include <iscore/document/DocumentContext.hpp>
 
 class QObject;
-class SlotModel;
-class SlotView;
 #include <iscore/tools/SettableIdentifier.hpp>
 #include <iscore_plugin_scenario_export.h>
 
@@ -21,8 +19,12 @@ class LayerView;
 class LayerModel;
 class LayerPresenter;
 }
-class RackView;
 
+namespace Scenario
+{
+class RackView;
+class SlotModel;
+class SlotView;
 struct SlotProcessData
 {
         using ProcessPair = std::pair<Process::LayerPresenter*, Process::LayerView*>;
@@ -107,4 +109,4 @@ class ISCORE_PLUGIN_SCENARIO_EXPORT SlotPresenter final : public NamedObject, pu
         bool m_enabled{true};
         bool m_looping{false};
 };
-
+}

@@ -10,6 +10,10 @@
 #include <iscore/serialization/DataStreamVisitor.hpp>
 #include <iscore/tools/ModelPath.hpp>
 #include <iscore/tools/ModelPathSerialization.hpp>
+namespace Scenario
+{
+namespace Command
+{
 
 bool ScenarioTriggerCommandFactory::matches(const TimeNodeModel& tn) const
 {
@@ -32,4 +36,6 @@ iscore::SerializableCommand*ScenarioTriggerCommandFactory::make_removeTriggerCom
     return new Scenario::Command::RemoveTrigger<Scenario::ScenarioModel>(tn);
   }
   return nullptr;
+}
+}
 }

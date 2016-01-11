@@ -13,6 +13,8 @@ class QStyleOptionGraphicsItem;
 class QWidget;
 class TemporalConstraintPresenter;
 
+namespace Scenario
+{
 class ISCORE_PLUGIN_SCENARIO_EXPORT TemporalConstraintView final : public ConstraintView
 {
         Q_OBJECT
@@ -70,3 +72,4 @@ class ISCORE_PLUGIN_SCENARIO_EXPORT TemporalConstraintView final : public Constr
         QColor m_labelColor;
         QColor m_bgColor;
 };
+}

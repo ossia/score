@@ -23,6 +23,8 @@
 class QObject;
 #include <iscore/tools/SettableIdentifier.hpp>
 
+namespace Scenario
+{
 StatePresenter::StatePresenter(
         const StateModel &model,
         QGraphicsItem *parentview,
@@ -98,4 +100,4 @@ void StatePresenter::updateStateView()
 {
     m_view->setContainMessage(m_model.messages().rootNode().hasChildren());
 }
-
+}

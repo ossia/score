@@ -53,6 +53,9 @@
 #include <iscore/menu/MenuInterface.hpp>
 
 using namespace iscore;
+
+namespace Scenario
+{
 ObjectMenuActions::ObjectMenuActions(
         iscore::ToplevelMenuElement menuElt,
         ScenarioApplicationPlugin* parent) :
@@ -330,4 +333,4 @@ QList<QAction*> ObjectMenuActions::actions() const
     lst.append(m_stateActions->actions());
     return lst;
 }
-
+}

@@ -7,17 +7,16 @@
 #include <iscore/tools/ModelPath.hpp>
 #include <iscore/tools/SettableIdentifier.hpp>
 
-class ConstraintModel;
 class DataStreamInput;
 class DataStreamOutput;
-class EventModel;
-class StateModel;
-namespace Scenario {
-class ScenarioModel;
-}  // namespace Scenario
 
 namespace Scenario
 {
+class ScenarioModel;
+class EventModel;
+class StateModel;
+class ConstraintModel;
+
 namespace Command
 {
 class ISCORE_PLUGIN_SCENARIO_EXPORT CreateConstraint_State final : public iscore::SerializableCommand

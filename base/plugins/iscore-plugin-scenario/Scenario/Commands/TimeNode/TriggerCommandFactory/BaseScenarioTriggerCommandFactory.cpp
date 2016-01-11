@@ -11,6 +11,10 @@
 #include <iscore/tools/ModelPath.hpp>
 #include <iscore/tools/ModelPathSerialization.hpp>
 
+namespace Scenario
+{
+namespace Command
+{
 bool BaseScenarioTriggerCommandFactory::matches(
         const TimeNodeModel& tn) const
 {
@@ -35,4 +39,7 @@ iscore::SerializableCommand* BaseScenarioTriggerCommandFactory::make_removeTrigg
     return new Scenario::Command::RemoveTrigger<BaseScenario>(tn);
   }
   return nullptr;
+}
+
+}
 }

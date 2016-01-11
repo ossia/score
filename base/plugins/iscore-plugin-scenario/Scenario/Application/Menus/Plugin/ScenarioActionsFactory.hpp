@@ -4,13 +4,14 @@
 
 #include <iscore/plugins/customfactory/StringFactoryKey.hpp>
 #include <iscore_plugin_scenario_export.h>
+
+namespace Scenario
+{
 class ScenarioActions;
 class ScenarioApplicationPlugin;
 
 class ScenarioActionsTag{};
 using ScenarioActionsFactoryKey = StringKey<ScenarioActionsTag>;
-Q_DECLARE_METATYPE(ScenarioActionsFactoryKey)
-
 class ISCORE_PLUGIN_SCENARIO_EXPORT ScenarioActionsFactory :
         public iscore::GenericFactoryInterface<ScenarioActionsFactoryKey>
 {
@@ -20,4 +21,6 @@ class ISCORE_PLUGIN_SCENARIO_EXPORT ScenarioActionsFactory :
         virtual ~ScenarioActionsFactory() ;
         virtual QList<ScenarioActions*> make(ScenarioApplicationPlugin*) = 0;
 };
+}
 
+Q_DECLARE_METATYPE(ScenarioActionsFactoryKey)

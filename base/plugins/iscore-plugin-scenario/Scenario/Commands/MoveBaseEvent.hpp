@@ -17,9 +17,9 @@
 /*
  * Command to change a constraint duration by moving event. Vertical move is not allowed.
  */
-class BaseScenario;
 namespace Scenario
 {
+class BaseScenario;
 namespace Command
 {
 template<typename SimpleScenario_T>

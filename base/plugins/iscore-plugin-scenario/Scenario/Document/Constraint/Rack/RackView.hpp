@@ -7,6 +7,8 @@ class QPainter;
 class QStyleOptionGraphicsItem;
 class QWidget;
 
+namespace Scenario
+{
 class RackView final : public QGraphicsObject
 {
         Q_OBJECT
@@ -37,3 +39,4 @@ class RackView final : public QGraphicsObject
         qreal m_height {};
         qreal m_width {};
 };
+}

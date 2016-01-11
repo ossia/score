@@ -18,6 +18,8 @@
 class QStyleOptionGraphicsItem;
 class QWidget;
 
+namespace Scenario
+{
 EventView::EventView(EventPresenter& presenter,
                      QGraphicsObject* parent) :
     QGraphicsObject {parent},
@@ -170,4 +172,5 @@ void EventView::hoverLeaveEvent(QGraphicsSceneHoverEvent *h)
 void EventView::dropEvent(QGraphicsSceneDragDropEvent *event)
 {
     emit dropReceived(event->scenePos(), event->mimeData());
+}
 }

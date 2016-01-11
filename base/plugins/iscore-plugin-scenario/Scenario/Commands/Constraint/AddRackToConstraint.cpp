@@ -14,8 +14,10 @@
 #include <iscore/tools/NotifyingMap.hpp>
 
 using namespace iscore;
-using namespace Scenario::Command;
-
+namespace Scenario
+{
+namespace Command
+{
 AddRackToConstraint::AddRackToConstraint(Path<ConstraintModel>&& constraintPath) :
     m_path {constraintPath}
 {
@@ -62,3 +64,7 @@ void AddRackToConstraint::deserializeImpl(DataStreamOutput& s)
 {
     s >> m_path >> m_createdRackId;
 }
+}
+}
+
+

@@ -4,43 +4,43 @@
 #include <iscore/command/SerializableCommand.hpp>
 #include <iscore/tools/ModelPath.hpp>
 #include <iscore_plugin_scenario_export.h>
-class ConstraintModel;
 class DataStreamInput;
 class DataStreamOutput;
 
 namespace Scenario
 {
-    namespace Command
-    {
-        /**
+class ConstraintModel;
+namespace Command
+{
+/**
          * @brief The SetRigidity class
          *
          * Sets the rigidity of a constraint
          */
-        class ISCORE_PLUGIN_SCENARIO_EXPORT SetRigidity final : public iscore::SerializableCommand
-        {
-                ISCORE_COMMAND_DECL(ScenarioCommandFactoryName(), SetRigidity, "Change constraint rigidity")
+class ISCORE_PLUGIN_SCENARIO_EXPORT SetRigidity final : public iscore::SerializableCommand
+{
+        ISCORE_COMMAND_DECL(ScenarioCommandFactoryName(), SetRigidity, "Change constraint rigidity")
 
-            public:
-                SetRigidity(
-                    Path<ConstraintModel>&& constraintPath,
-                    bool rigid);
+        public:
+            SetRigidity(
+                Path<ConstraintModel>&& constraintPath,
+                bool rigid);
 
-                void undo() const override;
-                void redo() const override;
+        void undo() const override;
+        void redo() const override;
 
-            protected:
-                void serializeImpl(DataStreamInput&) const override;
-                void deserializeImpl(DataStreamOutput&) override;
+    protected:
+        void serializeImpl(DataStreamInput&) const override;
+        void deserializeImpl(DataStreamOutput&) override;
 
-            private:
-                Path<ConstraintModel> m_path;
+    private:
+        Path<ConstraintModel> m_path;
 
-                bool m_rigidity {};
+        bool m_rigidity {};
 
-                // Unused if the constraint was rigid // NOTE Why ??
-                TimeValue m_oldMinDuration;
-                TimeValue m_oldMaxDuration;
-        };
-    }
+        // Unused if the constraint was rigid // NOTE Why ??
+        TimeValue m_oldMinDuration;
+        TimeValue m_oldMaxDuration;
+};
+}
 }

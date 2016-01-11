@@ -7,6 +7,8 @@
 #include <iscore/tools/Todo.hpp>
 
 ISCORE_METADATA_IMPL(RackModel)
+namespace Scenario
+{
 RackModel::RackModel(const Id<RackModel>& id, QObject* parent) :
     IdentifiedObject<RackModel> {id, className.c_str(), parent}
 {
@@ -70,4 +72,5 @@ void RackModel::swapSlots(const Id<SlotModel>& firstslot,
 void RackModel::initConnections()
 {
     slotmodels.removing.connect<RackModel, &RackModel::on_slotRemoved>(this);
+}
 }

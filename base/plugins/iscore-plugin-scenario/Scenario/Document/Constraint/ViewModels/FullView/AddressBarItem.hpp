@@ -5,12 +5,14 @@
 
 #include <iscore/tools/ObjectPath.hpp>
 
-class ConstraintModel;
-class ClickableLabelItem;
 class QPainter;
 class QStyleOptionGraphicsItem;
 class QWidget;
 
+namespace Scenario
+{
+class ConstraintModel;
+class ClickableLabelItem;
 class AddressBarItem final : public QGraphicsObject
 {
         Q_OBJECT
@@ -34,3 +36,4 @@ class AddressBarItem final : public QGraphicsObject
 
         double m_width{};
 };
+}

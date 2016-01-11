@@ -6,6 +6,9 @@ class QPainter;
 class QStyleOptionGraphicsItem;
 class QWidget;
 
+
+namespace Scenario
+{
 RackView::RackView(QGraphicsObject* parent) :
     QGraphicsObject {parent}
 {
@@ -25,4 +28,5 @@ void RackView::paint(QPainter* ,
                     const QStyleOptionGraphicsItem* ,
                     QWidget* )
 {
+}
 }

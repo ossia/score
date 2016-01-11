@@ -9,38 +9,37 @@
 
 class DataStreamInput;
 class DataStreamOutput;
-class RackModel;
-class SlotModel;
-
 namespace Scenario
 {
-    namespace Command
-    {
-        /**
+class RackModel;
+class SlotModel;
+namespace Command
+{
+/**
          * @brief The RemoveSlotFromRack class
          *
          * Removes a slot. All the function views will be deleted.
          */
-        class RemoveSlotFromRack final : public iscore::SerializableCommand
-        {
-                ISCORE_COMMAND_DECL(ScenarioCommandFactoryName(), RemoveSlotFromRack, "Remove a slot")
-            public:
-                RemoveSlotFromRack(Path<SlotModel>&& slotPath);
-                RemoveSlotFromRack(Path<RackModel>&& rackPath, Id<SlotModel> slotId);
+class RemoveSlotFromRack final : public iscore::SerializableCommand
+{
+        ISCORE_COMMAND_DECL(ScenarioCommandFactoryName(), RemoveSlotFromRack, "Remove a slot")
+        public:
+            RemoveSlotFromRack(Path<SlotModel>&& slotPath);
+        RemoveSlotFromRack(Path<RackModel>&& rackPath, Id<SlotModel> slotId);
 
-                void undo() const override;
-                void redo() const override;
+        void undo() const override;
+        void redo() const override;
 
-            protected:
-                void serializeImpl(DataStreamInput&) const override;
-                void deserializeImpl(DataStreamOutput&) override;
+    protected:
+        void serializeImpl(DataStreamInput&) const override;
+        void deserializeImpl(DataStreamOutput&) override;
 
-            private:
-                Path<RackModel> m_path;
-                Id<SlotModel> m_slotId {};
-                int m_position {};
+    private:
+        Path<RackModel> m_path;
+        Id<SlotModel> m_slotId {};
+        int m_position {};
 
-                QByteArray m_serializedSlotData; // Should be done in the constructor
-        };
-    }
+        QByteArray m_serializedSlotData; // Should be done in the constructor
+};
+}
 }
