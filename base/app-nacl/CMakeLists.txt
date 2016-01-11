@@ -1,5 +1,5 @@
 cmake_minimum_required(VERSION 3.0)
-project(iscore_app)
+project(iscore_app LANGUAGES CXX)
 
 enable_testing()
 set(APPNAME "i-score-pnacl")
@@ -28,7 +28,7 @@ set(SRCS
 add_executable(${APPNAME} ${SRCS})
 
 target_compile_options(${APPNAME} PUBLIC -Wl,--undefined=PSUserCreateInstance)
-target_link_libraries(${APPNAME}
+target_link_libraries(${APPNAME} PRIVATE
     iscore_lib_base
     ${ISCORE_PLUGINS_LIST}
     Qt5::Core Qt5::Gui Qt5::Widgets Qt5::Network Qt5::Svg Qt5::Xml

@@ -1,6 +1,6 @@
 cmake_minimum_required(VERSION 3.0)
 
-project(iscore_base)
+project(iscore_base LANGUAGES CXX)
 enable_testing()
 
 include_directories(lib)

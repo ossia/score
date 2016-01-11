@@ -1,5 +1,3 @@
-#include <Automation/AutomationModel.hpp>
-#include <Curve/CurveModel.hpp>
 #include <Scenario/Document/BaseScenario/BaseScenario.hpp>
 #include <Scenario/Document/Constraint/ConstraintModel.hpp>
 #include <Scenario/Document/Event/EventModel.hpp>
@@ -17,7 +15,6 @@
 #include <QString>
 #include <sstream>
 #include <Scenario/Process/Algorithms/Accessors.hpp>
-#include <Curve/Segment/CurveSegmentData.hpp>
 #include <Process/Process.hpp>
 #include <Process/State/MessageNode.hpp>
 #include <Scenario/Document/Constraint/ConstraintDurations.hpp>

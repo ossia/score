@@ -1,5 +1,5 @@
-cmake_minimum_required(VERSION 2.8)
-project(iscore_plugin_js)
+cmake_minimum_required(VERSION 3.1)
+project(iscore_plugin_js LANGUAGES CXX)
 
 iscore_common_setup()
 
@@ -34,8 +34,8 @@ add_library(${PROJECT_NAME} ${SRCS} ${HDRS})
 # TODO make this automatic in some way, and extend to other components
 iscore_generate_command_list_file(${PROJECT_NAME} "${HDRS}")
 
-target_link_libraries(${PROJECT_NAME}
+target_link_libraries(${PROJECT_NAME} PRIVATE
                      Qt5::Core Qt5::Widgets Qt5::Qml
-                     iscore_lib_base iscore_plugin_ossia iscore_lib_dummyprocess)
+                     iscore_lib_base iscore_plugin_ossia iscore_lib_process iscore_lib_inspector iscore_lib_device iscore_plugin_deviceexplorer iscore_lib_dummyprocess)
 
 setup_iscore_plugin(${PROJECT_NAME})

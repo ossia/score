@@ -55,7 +55,7 @@ function(iscore_set_msvc_compile_options theTarget)
 endfunction()
 
 function(iscore_set_apple_compile_options theTarget)
-    target_link_libraries(${theTarget} "-Wl,-fatal_warnings")
+    target_link_libraries(${theTarget} PRIVATE "-Wl,-fatal_warnings")
 endfunction()
 
 function(iscore_set_gcc_compile_options theTarget)

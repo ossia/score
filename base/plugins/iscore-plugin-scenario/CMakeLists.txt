@@ -1,5 +1,5 @@
 cmake_minimum_required(VERSION 3.0)
-project(iscore_plugin_scenario)
+project(iscore_plugin_scenario LANGUAGES CXX)
 iscore_common_setup()
 
 option(DEFINE_ISCORE_SCENARIO_DEBUG_RECTS "Enable to have debug rects around elements of a scenario" OFF)
@@ -310,20 +310,20 @@ endif()
 add_library(iscore_plugin_scenario ${SRCS} ${HDRS} ${QRCS})
 iscore_generate_command_list_file(iscore_plugin_scenario "${HDRS}")
 
-target_link_libraries(iscore_plugin_scenario Qt5::Core Qt5::Widgets Qt5::Svg
+target_link_libraries(iscore_plugin_scenario PRIVATE Qt5::Core Qt5::Widgets Qt5::Svg
                      iscore_lib_base
-                     iscore_lib_process iscore_plugin_deviceexplorer iscore_lib_state iscore_plugin_curve iscore_plugin_automation pthread)
+                     iscore_lib_process iscore_lib_device iscore_plugin_deviceexplorer iscore_lib_state iscore_plugin_curve iscore_plugin_automation pthread)
 
 if(ISCORE_OPENGL)
-target_link_libraries(iscore_plugin_scenario Qt5::OpenGL)
+target_link_libraries(iscore_plugin_scenario PRIVATE Qt5::OpenGL)
 endif()
 
 if(ISCORE_WEBSOCKETS)
-target_link_libraries(iscore_plugin_scenario Qt5::WebSockets)
+target_link_libraries(iscore_plugin_scenario PRIVATE Qt5::WebSockets)
 endif()
 
 if(TARGET iscore_lib_inspector)
-    target_link_libraries(iscore_plugin_scenario iscore_lib_inspector)
+    target_link_libraries(iscore_plugin_scenario PRIVATE iscore_lib_inspector)
 endif()
 
 setup_iscore_plugin(iscore_plugin_scenario)

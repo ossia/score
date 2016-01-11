@@ -55,8 +55,8 @@ private:
     void onMinDurationChanged(const TimeValue& min);
     void onMaxDurationChanged(const TimeValue& max);
 
-    void onProcessCreated(const Process& process);
-    void onProcessRemoved(const Process& process);
+    void onProcessCreated(const Process::ProcessModel& process);
+    void onProcessRemoved(const Process::ProcessModel& process);
 
-    QHash<Id<Process>, CSPScenario*> m_subScenarios;
+    QHash<Id<Process::ProcessModel>, CSPScenario*> m_subScenarios;
 };

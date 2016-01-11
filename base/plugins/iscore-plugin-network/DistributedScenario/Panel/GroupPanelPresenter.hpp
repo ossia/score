@@ -15,7 +15,9 @@ class GroupPanelPresenter : public iscore::PanelPresenter
                 QObject* parent);
 
         int panelId() const override;
-        void on_modelChanged() override;
+        void on_modelChanged(
+                iscore::PanelModel* oldm,
+                iscore::PanelModel* newm) override;
 
     private:
         void on_update();

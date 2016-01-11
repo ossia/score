@@ -1,5 +1,5 @@
 cmake_minimum_required(VERSION 3.0)
-project(iscore_testapp)
+project(iscore_testapp LANGUAGES CXX)
 
 enable_testing()
 set(CMAKE_RUNTIME_OUTPUT_DIRECTORY "${CMAKE_BINARY_DIR}")
@@ -16,7 +16,7 @@ set(SRCS
 
 add_executable(iscore_testapp ${SRCS})
 
-target_link_libraries(iscore_testapp iscore_lib_base)
+target_link_libraries(iscore_testapp PRIVATE iscore_lib_base)
 
 setup_iscore_common_features(iscore_testapp)
 

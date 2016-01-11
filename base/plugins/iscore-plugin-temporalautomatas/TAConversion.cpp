@@ -8,7 +8,6 @@
 #include <Scenario/Document/TimeNode/Trigger/TriggerModel.hpp>
 #include <Scenario/Process/ScenarioModel.hpp>
 #include <Scenario/Process/Algorithms/Accessors.hpp>
-#include <Automation/AutomationModel.hpp>
 #include <iscore/tools/std/Algorithms.hpp>
 
 #include <QFile>

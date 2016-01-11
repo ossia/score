@@ -43,6 +43,6 @@ if(ISCORE_UNITY_BUILD)
                 PRIVATE "${CMAKE_SOURCE_DIR}/base/plugins/iscore-plugin-pluginsettings"
                 PRIVATE "${CMAKE_SOURCE_DIR}/base/plugins/iscore-plugin-space"
                 PRIVATE "${CMAKE_SOURCE_DIR}/base/plugins/iscore-plugin-ossia")
-        target_link_libraries(IscoreCustomUnity Qt5::Core Qt5::Gui Qt5::Widgets Qt5::Network Qt5::Svg Qt5::WebSockets Qt5::Xml Qt5::Qml QRecentFilesMenu )
+        target_link_libraries(IscoreCustomUnity PRIVATE Qt5::Core Qt5::Gui Qt5::Widgets Qt5::Network Qt5::Svg Qt5::WebSockets Qt5::Xml Qt5::Qml QRecentFilesMenu )
         cotire(IscoreCustomUnity)
 endif()

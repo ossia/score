@@ -1,5 +1,5 @@
 cmake_minimum_required(VERSION 3.0)
-project(iscore_plugin_ossia_simpleprocess)
+project(iscore_plugin_ossia_simpleprocess LANGUAGES CXX)
 
 if(DEPLOYMENT_BUILD)
 return()
@@ -30,7 +30,7 @@ set(SRCS
 
 
 add_library(iscore_plugin_ossia_simpleprocess ${HDRS} ${SRCS})
-target_link_libraries(iscore_plugin_ossia_simpleprocess
-    Qt5::Core Qt5::Widgets iscore_plugin_ossia iscore_lib_dummyprocess)
+target_link_libraries(iscore_plugin_ossia_simpleprocess PRIVATE
+    Qt5::Core Qt5::Widgets iscore_plugin_ossia iscore_lib_process iscore_lib_device iscore_lib_dummyprocess)
 
 setup_iscore_plugin(iscore_plugin_ossia_simpleprocess)

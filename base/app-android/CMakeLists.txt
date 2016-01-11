@@ -1,6 +1,6 @@
 cmake_minimum_required(VERSION 3.0)
  
-project(iscore_app_android)
+project(iscore_app_android LANGUAGES CXX)
 
 find_package(Qt5 5.3 REQUIRED COMPONENTS Core Widgets Xml Network Test)
 #~ 

@@ -20,6 +20,7 @@
 #include <OSSIA/Protocols/OSSIADevice.hpp>
 #include <OSSIA/Executor/ProcessElement.hpp>
 #include <State/Address.hpp>
+#include <OSSIA/CurveConversion.hpp>
 #include <iscore/document/DocumentInterface.hpp>
 #include <iscore/plugins/customfactory/StringFactoryKey.hpp>
 #include <OSSIA/iscore2OSSIA.hpp>
