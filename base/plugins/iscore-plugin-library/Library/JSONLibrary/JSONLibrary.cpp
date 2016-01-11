@@ -7,6 +7,10 @@
 #include <State/MessageListSerialization.hpp>
 #include <State/StateMimeTypes.hpp>
 #include <Explorer/Explorer/DeviceExplorerMimeTypes.hpp>
+
+#include <iostream>
+namespace Library
+{
 enum class LibraryColumns
 {
     Name, Category, Tags, Json
@@ -181,7 +185,6 @@ QMimeData *JSONModel::mimeData(const QModelIndexList &indexes) const
     return mimeData;
 }
 
-#include <iostream>
 bool JSONModel::canDropMimeData(
         const QMimeData *data,
         Qt::DropAction action,
@@ -231,4 +234,5 @@ Qt::DropActions JSONModel::supportedDropActions() const
 Qt::DropActions JSONModel::supportedDragActions() const
 {
     return Qt::CopyAction;
+}
 }

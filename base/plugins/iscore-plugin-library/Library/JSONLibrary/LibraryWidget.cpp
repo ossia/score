@@ -1,6 +1,9 @@
 #include "LibraryWidget.hpp"
 #include <QStandardItemModel>
 #include <QVBoxLayout>
+
+namespace Library
+{
 LibraryWidget::LibraryWidget(QWidget* parent):
     QWidget{parent}
 {
@@ -15,4 +18,5 @@ LibraryWidget::LibraryWidget(QWidget* parent):
     m_tbl.setDragEnabled(true);
     m_tbl.setAcceptDrops(true);
     m_tbl.setDropIndicatorShown(true);
+}
 }

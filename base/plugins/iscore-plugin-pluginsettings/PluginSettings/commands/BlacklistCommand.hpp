@@ -7,6 +7,8 @@
 class DataStreamInput;
 class DataStreamOutput;
 
+namespace PluginSettings
+{
 class BlacklistCommand : public iscore::SerializableCommand
 {
         // QUndoCommand interface
@@ -29,3 +31,4 @@ class BlacklistCommand : public iscore::SerializableCommand
         const CommandFactoryKey& key() const override;
         QString description() const override;
 };
+}

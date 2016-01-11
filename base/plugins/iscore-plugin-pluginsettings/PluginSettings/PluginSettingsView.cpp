@@ -8,6 +8,8 @@ class QObject;
 
 using namespace iscore;
 
+namespace PluginSettings
+{
 PluginSettingsView::PluginSettingsView(QObject* parent) :
     iscore::SettingsDelegateViewInterface {parent}
 {
@@ -35,4 +37,5 @@ void PluginSettingsView::doConnections()
 PluginSettingsPresenter* PluginSettingsView::presenter()
 {
     return static_cast<PluginSettingsPresenter*>(m_presenter);
+}
 }

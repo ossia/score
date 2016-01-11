@@ -6,6 +6,8 @@
 using namespace iscore;
 
 
+namespace Library
+{
 int LibraryPanelFactory::panelId() const
 {
     return LIBRARY_PANEL_ID;
@@ -37,5 +39,6 @@ iscore::PanelModel* LibraryPanelFactory::makeModel(
         QObject* parent)
 {
     return new LibraryPanelModel {parent};
+}
 }
 

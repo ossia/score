@@ -3,6 +3,8 @@
 #include "LibraryPanelView.hpp"
 #include "LibraryPanelId.hpp"
 
+namespace Library
+{
 LibraryPanelPresenter::LibraryPanelPresenter(
         iscore::PanelView* view,
         QObject* parent) :
@@ -42,4 +44,5 @@ void LibraryPanelPresenter::on_modelChanged(
         disconnect(m_mvConnection);
         */
     }
+}
 }

@@ -19,6 +19,8 @@ class SettingsPresenter;
 
 using namespace iscore;
 
+namespace PluginSettings
+{
 PluginSettingsPresenter::PluginSettingsPresenter(SettingsPresenter* parent,
         SettingsDelegateModelInterface* model,
         SettingsDelegateViewInterface* view) :
@@ -85,4 +87,5 @@ void PluginSettingsPresenter::setBlacklistCommand(BlacklistCommand* cmd)
 QIcon PluginSettingsPresenter::settingsIcon()
 {
     return QApplication::style()->standardIcon(QStyle::SP_CommandLink);
+}
 }

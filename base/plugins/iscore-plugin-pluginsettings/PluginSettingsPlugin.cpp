@@ -12,6 +12,6 @@ iscore::SettingsDelegateFactoryInterface_QtInterface {}
 //////////////////////////
 iscore::SettingsDelegateFactoryInterface* iscore_plugin_pluginsettings::settings_make()
 {
-    return new PluginSettings;
+    return new PluginSettings::PluginSettingsFactory;
 }
 

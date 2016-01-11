@@ -2,6 +2,8 @@
 #include "LibraryPanelId.hpp"
 
 
+namespace Library
+{
 LibraryPanelModel::LibraryPanelModel(QObject* parent) :
     iscore::PanelModel {"LibraryPanelModel", parent}
 {
@@ -11,4 +13,5 @@ LibraryPanelModel::LibraryPanelModel(QObject* parent) :
 int LibraryPanelModel::panelId() const
 {
     return LIBRARY_PANEL_ID;
+}
 }

@@ -1,6 +1,8 @@
 #pragma once
 #include <iscore/plugins/panel/PanelFactory.hpp>
 
+namespace Library
+{
 class LibraryPanelFactory : public iscore::PanelFactory
 {
     public:
@@ -17,3 +19,4 @@ class LibraryPanelFactory : public iscore::PanelFactory
                 const iscore::DocumentContext& ctx,
                 QObject* parent) override;
 };
+}

@@ -4,6 +4,8 @@
 #include <QAbstractItemModel>
 #include "LibraryElement.hpp"
 
+namespace Library
+{
 class JSONModel : public QAbstractItemModel
 {
     public:
@@ -33,3 +35,4 @@ class JSONModel : public QAbstractItemModel
     private:
         QVector<LibraryElement> elements;
 };
+}

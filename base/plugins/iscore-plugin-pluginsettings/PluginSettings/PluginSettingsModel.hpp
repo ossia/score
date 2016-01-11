@@ -7,6 +7,9 @@ class QStandardItemModel;
 namespace iscore
 {
 }
+
+namespace PluginSettings
+{
 class BlacklistCommand;
 
 class PluginSettingsModel : public iscore::SettingsDelegateModelInterface
@@ -29,3 +32,4 @@ class PluginSettingsModel : public iscore::SettingsDelegateModelInterface
     private:
         QStandardItemModel* m_plugins {};
 };
+}

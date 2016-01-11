@@ -2,6 +2,9 @@
 #include <QTableView>
 #include <QStandardItemModel>
 #include "JSONLibrary.hpp"
+
+namespace Library
+{
 class LibraryWidget : public QWidget
 {
     private:
@@ -11,3 +14,4 @@ class LibraryWidget : public QWidget
         LibraryWidget(QWidget* parent);
 
 };
+}
