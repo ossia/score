@@ -2,11 +2,9 @@
 #include <iscore/plugins/panel/PanelView.hpp>
 
 #include <QTabWidget>
-namespace iscore
-{
-    
-}
 
+namespace Library
+{
 class LibraryPanelView : public iscore::PanelView
 {
     public:
@@ -20,3 +18,4 @@ class LibraryPanelView : public iscore::PanelView
     private:
         QTabWidget* m_widget{};
 };
+}

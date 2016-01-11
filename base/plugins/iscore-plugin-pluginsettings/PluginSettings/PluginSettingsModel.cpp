@@ -13,6 +13,8 @@
 
 using namespace iscore;
 
+namespace PluginSettings
+{
 PluginSettingsModel::PluginSettingsModel() :
     iscore::SettingsDelegateModelInterface {}
 {
@@ -70,4 +72,5 @@ void PluginSettingsModel::on_itemChanged(QStandardItem* it)
     qDebug() << name << it->checkState();
 
     emit blacklistCommand(new BlacklistCommand(it->text(), it->checkState()));
+}
 }

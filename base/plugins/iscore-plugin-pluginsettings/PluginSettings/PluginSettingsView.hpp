@@ -3,9 +3,11 @@
 #include <QListView>
 #include <QWidget>
 
-class PluginSettingsPresenter;
 class QObject;
 
+namespace PluginSettings
+{
+class PluginSettingsPresenter;
 class PluginSettingsView : public iscore::SettingsDelegateViewInterface
 {
         Q_OBJECT
@@ -27,3 +29,4 @@ class PluginSettingsView : public iscore::SettingsDelegateViewInterface
         QWidget* m_widget {new QWidget};
         QListView* m_listView {new QListView{m_widget}};
 };
+}

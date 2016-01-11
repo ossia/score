@@ -5,6 +5,9 @@ namespace iscore
 {
     class DocumentModel;
 }
+
+namespace Library
+{
 class LibraryPanelModel : public iscore::PanelModel
 {
         Q_OBJECT
@@ -12,3 +15,4 @@ class LibraryPanelModel : public iscore::PanelModel
         LibraryPanelModel(QObject* parent);
         int panelId() const override;
 };
+}

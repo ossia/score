@@ -8,6 +8,8 @@ class DataStreamOutput;
 
 using namespace iscore;
 
+namespace PluginSettings
+{
 BlacklistCommand::BlacklistCommand(QString name, bool value) :
 m_blacklistedState {{name, value}}
 {
@@ -92,4 +94,5 @@ QString BlacklistCommand::description() const
 {
     ISCORE_TODO;
     return {};
+}
 }

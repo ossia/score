@@ -9,7 +9,8 @@ namespace iscore {
 class SettingsPresenter;
 }  // namespace iscore
 
-
+namespace PluginSettings
+{
 /**
  * @brief The PluginSettings class
  *
@@ -17,11 +18,11 @@ class SettingsPresenter;
  * Format : save on the config the name of each blacklisted plugin.
  * If a name is not there the plug-in is not blacklisted. Takes effect on next restart ?
  */
-class PluginSettings : public iscore::SettingsDelegateFactoryInterface
+class PluginSettingsFactory : public iscore::SettingsDelegateFactoryInterface
 {
     public:
-        PluginSettings();
-        virtual ~PluginSettings() = default;
+        PluginSettingsFactory();
+        virtual ~PluginSettingsFactory() = default;
 
         // SettingsGroup interface
     public:
@@ -32,3 +33,4 @@ class PluginSettings : public iscore::SettingsDelegateFactoryInterface
         iscore::SettingsDelegateModelInterface* makeModel() override;
 };
 
+}

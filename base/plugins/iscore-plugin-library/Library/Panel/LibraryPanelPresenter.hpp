@@ -1,6 +1,8 @@
 #pragma once
 #include <iscore/plugins/panel/PanelPresenter.hpp>
 
+namespace Library
+{
 class LibraryPanelPresenter : public iscore::PanelPresenter
 {
     public:
@@ -17,3 +19,4 @@ class LibraryPanelPresenter : public iscore::PanelPresenter
     private:
         QMetaObject::Connection m_mvConnection;
 };
+}

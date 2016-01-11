@@ -12,5 +12,5 @@ iscore_plugin_library::iscore_plugin_library() :
 
 std::vector<iscore::PanelFactory*> iscore_plugin_library::panels()
 {
-    return {new LibraryPanelFactory};
+    return {new Library::LibraryPanelFactory};
 }

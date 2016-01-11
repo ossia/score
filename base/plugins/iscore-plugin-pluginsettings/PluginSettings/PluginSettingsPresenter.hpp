@@ -4,9 +4,6 @@
 
 #include <QString>
 
-class BlacklistCommand;
-class PluginSettingsModel;
-class PluginSettingsView;
 namespace iscore {
 class Command;
 class SettingsDelegateModelInterface;
@@ -14,6 +11,11 @@ class SettingsDelegateViewInterface;
 class SettingsPresenter;
 }  // namespace iscore
 
+namespace PluginSettings
+{
+class BlacklistCommand;
+class PluginSettingsModel;
+class PluginSettingsView;
 class PluginSettingsPresenter : public iscore::SettingsDelegatePresenterInterface
 {
         Q_OBJECT
@@ -44,3 +46,4 @@ class PluginSettingsPresenter : public iscore::SettingsDelegatePresenterInterfac
         // S'il y avait plusieurs contrôles chaque contrôle devrait avoir sa "commande".
         iscore::Command* m_blacklistCommand {nullptr};
 };
+}

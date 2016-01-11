@@ -9,16 +9,18 @@ class SettingsPresenter;
 
 using namespace iscore;
 
-PluginSettings::PluginSettings()
+namespace PluginSettings
+{
+PluginSettingsFactory::PluginSettingsFactory()
 {
 }
 
-SettingsDelegateViewInterface* PluginSettings::makeView()
+SettingsDelegateViewInterface* PluginSettingsFactory::makeView()
 {
     return new PluginSettingsView(nullptr);
 }
 
-SettingsDelegatePresenterInterface* PluginSettings::makePresenter(SettingsPresenter* p,
+SettingsDelegatePresenterInterface* PluginSettingsFactory::makePresenter(SettingsPresenter* p,
         SettingsDelegateModelInterface* m,
         SettingsDelegateViewInterface* v)
 {
@@ -32,7 +34,8 @@ SettingsDelegatePresenterInterface* PluginSettings::makePresenter(SettingsPresen
     return pres;
 }
 
-SettingsDelegateModelInterface* PluginSettings::makeModel()
+SettingsDelegateModelInterface* PluginSettingsFactory::makeModel()
 {
     return new PluginSettingsModel();
+}
 }
