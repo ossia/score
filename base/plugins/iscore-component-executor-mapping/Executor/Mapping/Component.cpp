@@ -1,4 +1,4 @@
-#include "MappingElement.hpp"
+#include "Component.hpp"
 
 #include <API/Headers/Editor/Mapper.h>
 #include <API/Headers/Editor/State.h>
@@ -11,7 +11,8 @@
 #include <core/document/Document.hpp>
 #include <Explorer/DocumentPlugin/DeviceDocumentPlugin.hpp>
 #include <OSSIA/Protocols/OSSIADevice.hpp>
-#include "ConstraintElement.hpp"
+#include <OSSIA/Executor/ConstraintElement.hpp>
+
 
 #include <Curve/CurveModel.hpp>
 #include <Curve/Segment/Linear/LinearCurveSegmentModel.hpp>
@@ -29,9 +30,12 @@
 #include <OSSIA/Executor/DocumentPlugin.hpp>
 namespace RecreateOnPlay
 {
-MappingElement::MappingElement(
+
+namespace Mapping
+{
+Component::Component(
         ConstraintElement& parentConstraint,
-        MappingModel& element,
+        ::Mapping::MappingModel& element,
         const Context& ctx,
         const Id<iscore::Component>& id,
         QObject *parent):
@@ -41,16 +45,16 @@ MappingElement::MappingElement(
     recreate();
 }
 
-const MappingElement::Key& MappingElement::key() const
+const Component::Key& Component::key() const
 {
     static iscore::Component::Key k("OSSIAMappingElement");
     return k;
 }
 
 template<typename X_T, typename Y_T>
-std::shared_ptr<OSSIA::CurveAbstract> MappingElement::on_curveChanged_impl2()
+std::shared_ptr<OSSIA::CurveAbstract> Component::on_curveChanged_impl2()
 {
-    auto& iscore_mapping = static_cast<MappingModel&>(m_iscore_process);
+    auto& iscore_mapping = static_cast<::Mapping::MappingModel&>(m_iscore_process);
     if(iscore_mapping.curve().segments().size() == 0)
         return {};
 
@@ -77,7 +81,7 @@ std::shared_ptr<OSSIA::CurveAbstract> MappingElement::on_curveChanged_impl2()
 }
 
 template<typename X_T>
-std::shared_ptr<OSSIA::CurveAbstract> MappingElement::on_curveChanged_impl()
+std::shared_ptr<OSSIA::CurveAbstract> Component::on_curveChanged_impl()
 {
     switch(m_targetAddressType)
     {
@@ -95,7 +99,7 @@ std::shared_ptr<OSSIA::CurveAbstract> MappingElement::on_curveChanged_impl()
     return {};
 }
 
-std::shared_ptr<OSSIA::CurveAbstract> MappingElement::rebuildCurve()
+std::shared_ptr<OSSIA::CurveAbstract> Component::rebuildCurve()
 {
     m_ossia_curve.reset();
     switch(m_sourceAddressType)
@@ -114,9 +118,9 @@ std::shared_ptr<OSSIA::CurveAbstract> MappingElement::rebuildCurve()
     return m_ossia_curve;
 }
 
-void MappingElement::recreate()
+void Component::recreate()
 {
-    auto& iscore_mapping = static_cast<MappingModel&>(m_iscore_process);
+    auto& iscore_mapping = static_cast<::Mapping::MappingModel&>(m_iscore_process);
     auto iscore_source_addr = iscore_mapping.sourceAddress();
     auto iscore_target_addr = iscore_mapping.targetAddress();
 
@@ -188,12 +192,12 @@ curve_cleanup_label:
 
 
 
-MappingComponentFactory::~MappingComponentFactory()
+ComponentFactory::~ComponentFactory()
 {
 
 }
 
-ProcessComponent* MappingComponentFactory::make(
+ProcessComponent* ComponentFactory::make(
         ConstraintElement& cst,
         Process::ProcessModel& proc,
         const Context& ctx,
@@ -201,25 +205,26 @@ ProcessComponent* MappingComponentFactory::make(
         QObject* parent) const
 {
 
-    return new MappingElement{
+    return new Component{
                 cst,
-                static_cast<MappingModel&>(proc),
+                static_cast<::Mapping::MappingModel&>(proc),
                 ctx, id, parent};
 
 }
 
-const MappingComponentFactory::factory_key_type&
-MappingComponentFactory::key_impl() const
+const ComponentFactory::factory_key_type&
+ComponentFactory::key_impl() const
 {
-    static MappingComponentFactory::factory_key_type k("OSSIAMappingElement");
+    static ComponentFactory::factory_key_type k("OSSIAMappingElement");
     return k;
 }
 
-bool MappingComponentFactory::matches(
+bool ComponentFactory::matches(
         Process::ProcessModel& proc,
         const DocumentPlugin&,
         const iscore::DocumentContext&) const
 {
-    return dynamic_cast<MappingModel*>(&proc);
+    return dynamic_cast<::Mapping::MappingModel*>(&proc);
+}
 }
 }

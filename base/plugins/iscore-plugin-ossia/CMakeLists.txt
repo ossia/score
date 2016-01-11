@@ -130,24 +130,6 @@ set(SRCS
 "${CMAKE_CURRENT_SOURCE_DIR}/iscore_plugin_ossia.cpp"
 )
 
-if(TARGET iscore_plugin_mapping)
-    set(SRCS ${SRCS}
-        "${CMAKE_CURRENT_SOURCE_DIR}/OSSIA/Executor/MappingElement.cpp"
-)
-    set(HDRS ${HDRS}
-        "${CMAKE_CURRENT_SOURCE_DIR}/OSSIA/Executor/MappingElement.hpp"
-)
-endif()
-
-if(TARGET iscore_plugin_loop)
-    set(SRCS ${SRCS}
-        "${CMAKE_CURRENT_SOURCE_DIR}/OSSIA/Executor/LoopElement.cpp"
-)
-    set(HDRS ${HDRS}
-        "${CMAKE_CURRENT_SOURCE_DIR}/OSSIA/Executor/LoopElement.hpp"
-)
-endif()
-
 add_library(${PROJECT_NAME} ${SRCS} ${HDRS})
 target_link_libraries(${PROJECT_NAME}
         PUBLIC  APIJamoma
@@ -155,9 +137,6 @@ target_link_libraries(${PROJECT_NAME}
                 iscore_lib_base iscore_lib_device iscore_lib_process iscore_plugin_scenario iscore_plugin_curve iscore_plugin_automation iscore_plugin_deviceexplorer
 )
 
-if(TARGET iscore_plugin_mapping)
-    target_link_libraries(${PROJECT_NAME} PRIVATE iscore_plugin_mapping)
-endif()
 if(TARGET iscore_plugin_loop)
     target_link_libraries(${PROJECT_NAME} PRIVATE iscore_plugin_loop)
 endif()

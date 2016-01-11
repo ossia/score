@@ -1,6 +1,8 @@
 #pragma once
 #include <Curve/CurveStyle.hpp>
 
+namespace Mapping
+{
 class MappingColors
 {
     public:
@@ -12,3 +14,4 @@ class MappingColors
     private:
         Curve::Style m_style;
 };
+}

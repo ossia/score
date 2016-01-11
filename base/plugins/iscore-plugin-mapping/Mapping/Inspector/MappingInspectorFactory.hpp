@@ -3,6 +3,8 @@
 #include <Mapping/Inspector/MappingInspectorWidget.hpp>
 #include <Mapping/MappingModel.hpp>
 
+namespace Mapping
+{
 class MappingInspectorFactory final : public ProcessInspectorWidgetDelegateFactory
 {
     public:
@@ -25,3 +27,4 @@ class MappingInspectorFactory final : public ProcessInspectorWidgetDelegateFacto
         }
 
 };
+}

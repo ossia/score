@@ -8,6 +8,8 @@
 
 #include <Process/ProcessContext.hpp>
 
+namespace Mapping
+{
 class MappingPresenter :
         public Curve::CurveProcessPresenter<
             MappingLayerModel,
@@ -25,3 +27,4 @@ class MappingPresenter :
           ISCORE_TODO;
         }
 };
+}

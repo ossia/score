@@ -7,7 +7,9 @@ class LayerModelPanelProxy;
 class QObject;
 #include <iscore/tools/SettableIdentifier.hpp>
 
-ISCORE_METADATA_IMPL(MappingLayerModel)
+ISCORE_METADATA_IMPL(Mapping::MappingLayerModel)
+namespace Mapping
+{
 MappingLayerModel::MappingLayerModel(
         MappingModel& model,
         const Id<LayerModel>& id,
@@ -47,4 +49,5 @@ void MappingLayerModel::serialize(const VisitorVariant&) const
 const MappingModel& MappingLayerModel::model() const
 {
     return static_cast<const MappingModel&>(processModel());
+}
 }

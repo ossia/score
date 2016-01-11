@@ -26,6 +26,8 @@
 #include <iscore/tools/ModelPath.hpp>
 #include <iscore/tools/Todo.hpp>
 
+namespace Mapping
+{
 MappingInspectorWidget::MappingInspectorWidget(
         const MappingModel& mappingModel,
         const iscore::DocumentContext& doc,
@@ -213,4 +215,5 @@ void MappingInspectorWidget::on_targetMaxValueChanged()
 
         m_dispatcher.submitCommand(cmd);
     }
+}
 }

@@ -17,12 +17,12 @@
 #include <Curve/Process/CurveProcessFactory.hpp>
 DEFINE_CURVE_PROCESS_FACTORY(
         MappingFactory,
-        MappingProcessMetadata,
-        MappingModel,
-        MappingLayerModel,
-        MappingPresenter,
-        MappingView,
-        MappingColors)
+        Mapping::MappingProcessMetadata,
+        Mapping::MappingModel,
+        Mapping::MappingLayerModel,
+        Mapping::MappingPresenter,
+        Mapping::MappingView,
+        Mapping::MappingColors)
 
 
 #if defined(ISCORE_LIB_INSPECTOR)
@@ -40,6 +40,7 @@ std::vector<std::unique_ptr<iscore::FactoryInterfaceBase>> iscore_plugin_mapping
         const iscore::ApplicationContext& ctx,
         const iscore::FactoryBaseKey& key) const
 {
+    using namespace Mapping;
     return instantiate_factories<
             iscore::ApplicationContext,
             TL<
@@ -52,6 +53,7 @@ std::vector<std::unique_ptr<iscore::FactoryInterfaceBase>> iscore_plugin_mapping
 
 std::pair<const CommandParentFactoryKey, CommandGeneratorMap> iscore_plugin_mapping::make_commands()
 {
+    using namespace Mapping;
     std::pair<const CommandParentFactoryKey, CommandGeneratorMap> cmds{MappingCommandFactoryName(), CommandGeneratorMap{}};
 
     using Types = TypeList<

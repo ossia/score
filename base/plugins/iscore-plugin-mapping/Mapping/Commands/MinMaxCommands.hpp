@@ -2,6 +2,8 @@
 #include <Mapping/Commands/MappingCommandFactory.hpp>
 #include <iscore/command/PropertyCommand.hpp>
 
+namespace Mapping
+{
 class MappingModel;
 class SetMappingSourceMin final : public iscore::PropertyCommand
 {
@@ -46,3 +48,4 @@ class SetMappingTargetMax final : public iscore::PropertyCommand
 
         }
 };
+}

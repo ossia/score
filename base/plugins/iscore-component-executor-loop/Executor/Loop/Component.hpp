@@ -1,6 +1,7 @@
 #pragma once
 #include <OSSIA/Executor/ProcessElement.hpp>
 #include <memory>
+#include <iscore/tools/SettableIdentifier.hpp>
 
 class ConstraintModel;
 class DeviceList;
@@ -18,25 +19,26 @@ class EventElement;
 class StateElement;
 class TimeNodeElement;
 }  // namespace RecreateOnPlay
-#include <iscore/tools/SettableIdentifier.hpp>
 
 
 namespace RecreateOnPlay
 {
 class ConstraintElement;
 
+namespace Loop
+{
 // TODO see if this can be used for the base scenario model too.
-class LoopElement final : public ProcessComponent
+class Component final : public ProcessComponent
 {
     public:
-        LoopElement(
+        Component(
                 ConstraintElement& parentConstraint,
-                Loop::ProcessModel& element,
+                ::Loop::ProcessModel& element,
                 const Context& ctx,
                 const Id<iscore::Component>& id,
                 QObject* parent);
 
-        virtual ~LoopElement();
+        virtual ~Component();
 
         void stop() override;
 
@@ -62,11 +64,12 @@ class LoopElement final : public ProcessComponent
 };
 
 
-class LoopComponentFactory final :
+class ComponentFactory final :
         public ProcessComponentFactory
 {
+        ISCORE_COMPONENT_FACTORY(RecreateOnPlay::ProcessComponentFactory, RecreateOnPlay::Loop::ComponentFactory)
     public:
-        virtual ~LoopComponentFactory();
+        virtual ~ComponentFactory();
         virtual ProcessComponent* make(
                 ConstraintElement& cst,
                 Process::ProcessModel& proc,
@@ -81,4 +84,5 @@ class LoopComponentFactory final :
                 const DocumentPlugin&,
                 const iscore::DocumentContext &) const override;
 };
+}
 }

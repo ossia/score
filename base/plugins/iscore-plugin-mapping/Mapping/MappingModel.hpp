@@ -18,10 +18,12 @@ class ProcessStateDataInterface;
 class QObject;
 #include <iscore/tools/SettableIdentifier.hpp>
 
+namespace Mapping
+{
 class ISCORE_PLUGIN_MAPPING_EXPORT MappingModel : public Curve::CurveProcessModel
 {
-        ISCORE_SERIALIZE_FRIENDS(MappingModel, DataStream)
-        ISCORE_SERIALIZE_FRIENDS(MappingModel, JSONObject)
+        ISCORE_SERIALIZE_FRIENDS(Mapping::MappingModel, DataStream)
+        ISCORE_SERIALIZE_FRIENDS(Mapping::MappingModel, JSONObject)
 
         Q_OBJECT
 
@@ -118,3 +120,4 @@ class ISCORE_PLUGIN_MAPPING_EXPORT MappingModel : public Curve::CurveProcessMode
         double m_targetMin{};
         double m_targetMax{};
 };
+}

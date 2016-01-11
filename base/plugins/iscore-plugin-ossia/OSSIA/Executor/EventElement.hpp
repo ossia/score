@@ -1,6 +1,7 @@
 #pragma once
 #include <QObject>
 #include <memory>
+#include <iscore_plugin_ossia_export.h>
 
 class DeviceList;
 class EventModel;
@@ -12,7 +13,7 @@ namespace OSSIA
 
 namespace RecreateOnPlay
 {
-class EventElement final : public QObject
+class ISCORE_PLUGIN_OSSIA_EXPORT EventElement final : public QObject
 {
     public:
         EventElement(

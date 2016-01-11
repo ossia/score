@@ -5,13 +5,15 @@
 
 #include <iscore/serialization/VisitorInterface.hpp>
 
-class MappingModel;
 class QObject;
 #include <iscore/tools/SettableIdentifier.hpp>
 
+namespace Mapping
+{
+class MappingModel;
 class MappingLayerModel : public Process::LayerModel
 {
-        ISCORE_METADATA(MappingLayerModel)
+        ISCORE_METADATA(Mapping::MappingLayerModel)
         public:
             MappingLayerModel(
                 MappingModel& model,
@@ -41,3 +43,4 @@ class MappingLayerModel : public Process::LayerModel
 
         const MappingModel& model() const;
 };
+}
