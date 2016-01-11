@@ -9,7 +9,7 @@
 #include "PluginSettingsView.hpp"
 #include <iscore/command/Command.hpp>
 #include <iscore/plugins/settingsdelegate/SettingsDelegatePresenterInterface.hpp>
-#include "settings_impl/commands/BlacklistCommand.hpp"
+#include "PluginSettings/commands/BlacklistCommand.hpp"
 
 namespace iscore {
 class SettingsDelegateModelInterface;
