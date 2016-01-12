@@ -1,13 +1,15 @@
 #pragma once
 #include <QList>
-class ConstraintModel;
 namespace iscore
 {
 class CommandStackFacade;
 struct DocumentContext;
 }
-
+namespace Scenario
+{
+class ConstraintModel;
+}
 
 void CreateCurves(
-        const QList<const ConstraintModel*>& selected_constraints,
+        const QList<const Scenario::ConstraintModel*>& selected_constraints,
         iscore::CommandStackFacade& stack);

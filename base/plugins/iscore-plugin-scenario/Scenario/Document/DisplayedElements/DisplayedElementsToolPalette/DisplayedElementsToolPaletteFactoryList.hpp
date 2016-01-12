@@ -3,6 +3,9 @@
 #include <iscore/plugins/customfactory/FactoryFamily.hpp>
 #include <iscore/tools/std/Algorithms.hpp>
 
+
+namespace Scenario
+{
 class DisplayedElementsToolPaletteFactoryList final : public iscore::FactoryListInterface
 {
     public:
@@ -39,3 +42,4 @@ class DisplayedElementsToolPaletteFactoryList final : public iscore::FactoryList
     private:
       std::vector<std::unique_ptr<DisplayedElementsToolPaletteFactory>> m_list;
 };
+}

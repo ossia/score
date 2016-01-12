@@ -34,15 +34,15 @@ ProcessModel::ProcessModel(
         const Id<Process::ProcessModel>& id,
         QObject* parent):
     Process::ProcessModel{duration, id, ProcessMetadata::processObjectName(), parent},
-    BaseScenarioContainer{this}
+    Scenario::BaseScenarioContainer{this}
 {
     pluginModelList = new iscore::ElementPluginModelList{
                       iscore::IDocument::documentContext(*parent),
                       this};
 
-    BaseScenarioContainer::init();
+    Scenario::BaseScenarioContainer::init();
 
-    ConstraintDurations::Algorithms::changeAllDurations(constraint(), duration);
+    Scenario::ConstraintDurations::Algorithms::changeAllDurations(constraint(), duration);
     endEvent().setDate(duration);
     endTimeNode().setDate(duration);
 
@@ -196,9 +196,9 @@ Process::LayerModel* ProcessModel::cloneLayer_impl(
     return new Layer{safe_cast<const Layer&>(source), *this, newId, parent};
 }
 
-const QVector<Id<ConstraintModel> > constraintsBeforeTimeNode(
+const QVector<Id<Scenario::ConstraintModel> > constraintsBeforeTimeNode(
         const ProcessModel& scen,
-        const Id<TimeNodeModel>& timeNodeId)
+        const Id<Scenario::TimeNodeModel>& timeNodeId)
 {
     if(timeNodeId == scen.endTimeNode().id())
     {

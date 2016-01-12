@@ -13,6 +13,8 @@ class DocumentView;
 }  // namespace iscore
 struct VisitorVariant;
 
+namespace Scenario
+{
 class ScenarioDocumentFactory final : public iscore::DocumentDelegateFactoryInterface
 {
     public:
@@ -32,3 +34,4 @@ class ScenarioDocumentFactory final : public iscore::DocumentDelegateFactoryInte
                 const VisitorVariant&,
                 iscore::DocumentModel* parent) override;
 };
+}

@@ -12,15 +12,15 @@ public:
 
     CSPDisplacementPolicy() = default;
 
-    CSPDisplacementPolicy(Scenario::ScenarioModel& scenario, const QVector<Id<TimeNodeModel>>& draggedElements);
+    CSPDisplacementPolicy(Scenario::ScenarioModel& scenario, const QVector<Id<Scenario::TimeNodeModel>>& draggedElements);
 
     static
     void
     computeDisplacement(
             Scenario::ScenarioModel& scenario,
-            const QVector<Id<TimeNodeModel>>& draggedElements,
+            const QVector<Id<Scenario::TimeNodeModel>>& draggedElements,
             const TimeValue& deltaTime,
-            ElementsProperties& elementsProperties);
+            Scenario::ElementsProperties& elementsProperties);
 
     static QString name()
     {
@@ -30,14 +30,14 @@ public:
     template<typename... Args>
     static void updatePositions(Args&&... args)
     {
-        CommonDisplacementPolicy::updatePositions(std::forward<Args>(args)...);
+        Scenario::CommonDisplacementPolicy::updatePositions(std::forward<Args>(args)...);
     }
 
     template<typename... Args>
     static void revertPositions(Args&&... args)
     {
-        CommonDisplacementPolicy::revertPositions(std::forward<Args>(args)...);
+        Scenario::CommonDisplacementPolicy::revertPositions(std::forward<Args>(args)...);
     }
 protected:
-    static void refreshStays(CSPScenario& cspScenario, const QVector<Id<TimeNodeModel> >& draggedElements);
+    static void refreshStays(CSPScenario& cspScenario, const QVector<Id<Scenario::TimeNodeModel> >& draggedElements);
 };

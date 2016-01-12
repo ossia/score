@@ -18,7 +18,7 @@ const iscore::Component::Key&ConstraintComponent::key() const
 ConstraintComponent::ConstraintComponent(
         OSSIA::Node& parent,
         const Id<iscore::Component>& id,
-        ConstraintModel& constraint,
+        Scenario::ConstraintModel& constraint,
         const ConstraintComponent::system_t& doc,
         const iscore::DocumentContext& ctx,
         QObject* parent_comp):
@@ -27,6 +27,7 @@ ConstraintComponent::ConstraintComponent(
     m_processesNode{add_node(thisNode(), "processes")},
     m_baseComponent{*this, constraint, doc, ctx, this}
 {
+    using namespace Scenario;
     using tv_t = ::TimeValue;
     make_metadata_node(constraint.metadata, thisNode(), m_properties, this);
 

@@ -10,6 +10,8 @@
 #include <Process/TimeValue.hpp>
 #include <iscore/tools/SettableIdentifier.hpp>
 #include <iscore/document/DocumentContext.hpp>
+namespace Scenario
+{
 class ConstraintViewModel;
 
 BaseScenarioContainer::~BaseScenarioContainer()
@@ -189,4 +191,5 @@ StateModel& BaseScenarioContainer::startState() const
 StateModel& BaseScenarioContainer::endState() const
 {
     return *m_endState;
+}
 }

@@ -6,6 +6,8 @@
 
 class QObject;
 
+namespace Scenario
+{
 bool ConstraintViewModel::isRackShown() const
 {
     return bool (m_shownRack.val());
@@ -75,4 +77,5 @@ ConstraintViewModel::~ConstraintViewModel()
 const ConstraintModel& ConstraintViewModel::model() const
 {
     return m_model;
+}
 }

@@ -5,9 +5,10 @@
 #include <iscore/command/Dispatchers/CommandDispatcher.hpp>
 #include <Process/ProcessFactoryKey.hpp>
 
-class AddProcessDialog;
 namespace Scenario
 {
+
+class AddProcessDialog;
 class ConstraintActions final : public ScenarioActions
 {
     public:

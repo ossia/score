@@ -33,7 +33,8 @@ namespace iscore {
 class PanelView;
 
 }  // namespace iscore
-
+namespace Scenario
+{
 ProcessPanelPresenter::ProcessPanelPresenter(
         const Process::ProcessList& plist,
         iscore::PanelView* view,
@@ -105,4 +106,5 @@ void ProcessPanelPresenter::cleanup()
 {
     m_layerModel = nullptr;
     delete m_proxy;
+}
 }

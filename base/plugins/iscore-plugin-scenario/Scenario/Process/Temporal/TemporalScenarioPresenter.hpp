@@ -28,9 +28,6 @@ namespace Process { class ProcessModel; }
 class QEvent;
 class QMenu;
 class QMimeData;
-namespace Scenario {
-class EditionSettings;
-}  // namespace Scenario
 namespace iscore {
 struct DocumentContext;
 }  // namespace iscore
@@ -38,11 +35,16 @@ struct DocumentContext;
 namespace iscore
 {
 }
-class ConstraintViewModel;
 namespace Process {
 class LayerModel;
 class LayerView;
 }
+
+namespace Scenario
+{
+
+class EditionSettings;
+class ConstraintViewModel;
 class TemporalConstraintViewModel;
 class TemporalScenarioLayerModel;
 class TemporalScenarioView;
@@ -179,3 +181,4 @@ class ISCORE_PLUGIN_SCENARIO_EXPORT TemporalScenarioPresenter final :
         LayerContext m_context;
         Scenario::ToolPalette m_sm;
 };
+}

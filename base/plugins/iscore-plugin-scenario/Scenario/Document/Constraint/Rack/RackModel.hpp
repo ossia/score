@@ -31,7 +31,7 @@ class ConstraintModel;
 class ISCORE_PLUGIN_SCENARIO_EXPORT RackModel final : public IdentifiedObject<RackModel>, public Nano::Observer
 {
         Q_OBJECT
-        ISCORE_METADATA(RackModel)
+        ISCORE_METADATA(Scenario::RackModel)
 
     public:
         ModelMetadata metadata;

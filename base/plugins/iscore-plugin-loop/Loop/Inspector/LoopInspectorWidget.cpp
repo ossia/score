@@ -24,7 +24,7 @@ LoopInspectorWidget::LoopInspectorWidget(
 {
     // FIXME URGENT add implemented virtual destructors to every class that inherits from a virtual.
     auto& appContext = doc.app.components;
-    auto& constraintWidgetFactory = appContext.factory<ConstraintInspectorDelegateFactoryList>();
+    auto& constraintWidgetFactory = appContext.factory<Scenario::ConstraintInspectorDelegateFactoryList>();
 
     auto& constraint = object.constraint();
 
@@ -36,7 +36,7 @@ LoopInspectorWidget::LoopInspectorWidget(
     this->setLayout(lay);
     auto& widgetFact = appContext.factory<InspectorWidgetList>();
     auto& processFact = appContext.factory<Process::ProcessList>();
-    lay->addWidget(new ConstraintInspectorWidget{
+    lay->addWidget(new Scenario::ConstraintInspectorWidget{
                        widgetFact,
                        processFact,
                        constraint,

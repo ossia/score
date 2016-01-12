@@ -3,16 +3,16 @@
 #include <iscore/tools/NamedObject.hpp>
 #include <QPoint>
 #include <iscore_plugin_scenario_export.h>
+#include <iscore/tools/SettableIdentifier.hpp>
 
 class QGraphicsItem;
 class QMimeData;
 class QObject;
-class StateModel;
-class StateView;
-#include <iscore/tools/SettableIdentifier.hpp>
 
 namespace Scenario
 {
+class StateModel;
+class StateView;
 class ISCORE_PLUGIN_SCENARIO_EXPORT StatePresenter final : public NamedObject
 {
         Q_OBJECT

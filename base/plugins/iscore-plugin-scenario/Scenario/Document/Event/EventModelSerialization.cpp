@@ -85,7 +85,7 @@ template<> void Visitor<Writer<JSONObject>>::writeTo(Scenario::EventModel& ev)
 
     fromJsonObject(m_obj["Condition"].toObject(), ev.m_condition);
 
-    ev.m_extent = fromJsonValue<VerticalExtent>(m_obj["Extent"]);
+    ev.m_extent = fromJsonValue<Scenario::VerticalExtent>(m_obj["Extent"]);
     ev.m_date = fromJsonValue<TimeValue>(m_obj["Date"]);
 
     Deserializer<JSONValue> elementPluginDeserializer(m_obj["PluginsMetadata"]);

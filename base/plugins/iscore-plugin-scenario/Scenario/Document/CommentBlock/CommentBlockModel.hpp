@@ -21,8 +21,8 @@ class CommentBlockModel final : public IdentifiedObject<CommentBlockModel>
 
         ISCORE_METADATA(CommentBlockModel)
 
-        ISCORE_SERIALIZE_FRIENDS(CommentBlockModel, DataStream)
-        ISCORE_SERIALIZE_FRIENDS(CommentBlockModel, JSONObject)
+        ISCORE_SERIALIZE_FRIENDS(Scenario::CommentBlockModel, DataStream)
+        ISCORE_SERIALIZE_FRIENDS(Scenario::CommentBlockModel, JSONObject)
 
         static QString description()
         { return QObject::tr("Comment Block"); }

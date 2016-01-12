@@ -401,7 +401,7 @@ static void visit_node(
 
 std::shared_ptr<OSSIA::State> state(
         std::shared_ptr<OSSIA::State> ossia_state,
-        const StateModel& iscore_state,
+        const Scenario::StateModel& iscore_state,
         const DeviceList& deviceList)
 {
     auto& elts = ossia_state->stateElements();
@@ -440,7 +440,7 @@ std::shared_ptr<OSSIA::State> state(
 
 
 std::shared_ptr<OSSIA::State> state(
-        const StateModel& iscore_state,
+        const Scenario::StateModel& iscore_state,
         const DeviceList& deviceList)
 {
     return state(OSSIA::State::create(), iscore_state, deviceList);

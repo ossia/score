@@ -1,13 +1,13 @@
 #pragma once
+#include <iscore/tools/SettableIdentifier.hpp>
+
+namespace Scenario
+{
 class ConstraintModel;
 class EventModel;
 class StateModel;
-class CommentBlockModel;
-namespace Scenario {
 class ScenarioModel;
-}  // namespace Scenario
-#include <iscore/tools/SettableIdentifier.hpp>
-
+class CommentBlockModel;
 namespace StandardRemovalPolicy
 {
     void removeConstraint(
@@ -25,4 +25,5 @@ namespace StandardRemovalPolicy
     void removeEventStatesAndConstraints(
             Scenario::ScenarioModel& scenario,
             const Id<EventModel>& eventId);
+}
 }

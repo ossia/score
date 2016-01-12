@@ -5,6 +5,8 @@
 #include <Scenario/Document/TimeNode/TimeNodeModel.hpp>
 
 // Constraints
+namespace Scenario
+{
 template<typename Scenario_T>
 auto& startState(
         const ConstraintModel& cst,
@@ -160,5 +162,4 @@ auto previousConstraints(
 
     return constraints;
 }
-
-
+}

@@ -8,7 +8,7 @@ namespace LocalTree
 EventComponent::EventComponent(
         OSSIA::Node& parent,
         const Id<iscore::Component>& id,
-        EventModel& event,
+        Scenario::EventModel& event,
         const EventComponent::system_t& doc,
         const iscore::DocumentContext& ctx,
         QObject* parent_comp):

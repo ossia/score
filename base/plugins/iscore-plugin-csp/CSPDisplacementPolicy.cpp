@@ -10,7 +10,9 @@
 #define STAY_TNODE_STRENGTH kiwi::strength::medium
 #define STAY_DRAGGED_TNODE_STRENGTH kiwi::strength::strong + 1.0 //not so sure that its working
 
-CSPDisplacementPolicy::CSPDisplacementPolicy(Scenario::ScenarioModel& scenario, const QVector<Id<TimeNodeModel> >& draggedElements)
+CSPDisplacementPolicy::CSPDisplacementPolicy(
+        Scenario::ScenarioModel& scenario,
+        const QVector<Id<Scenario::TimeNodeModel>>& draggedElements)
 {
     if(CSPScenario* cspScenario = scenario.findChild<CSPScenario*>("CSPScenario", Qt::FindDirectChildrenOnly))
     {
@@ -26,9 +28,9 @@ CSPDisplacementPolicy::CSPDisplacementPolicy(Scenario::ScenarioModel& scenario, 
 
 void CSPDisplacementPolicy::computeDisplacement(
         Scenario::ScenarioModel& scenario,
-        const QVector<Id<TimeNodeModel>>& draggedElements,
+        const QVector<Id<Scenario::TimeNodeModel>>& draggedElements,
         const TimeValue& deltaTime,
-        ElementsProperties& elementsProperties)
+        Scenario::ElementsProperties& elementsProperties)
 {
     // get the csp scenario
 
@@ -78,7 +80,7 @@ void CSPDisplacementPolicy::computeDisplacement(
         // look for changes // TODO : maybe find a more efficient way of doing that
 
         // - in timenodes :
-        QHashIterator<Id<TimeNodeModel>, CSPTimeNode*> timeNodeIterator(cspScenario->m_timeNodes);
+        QHashIterator<Id<Scenario::TimeNodeModel>, CSPTimeNode*> timeNodeIterator(cspScenario->m_timeNodes);
         while (timeNodeIterator.hasNext())
         {
             timeNodeIterator.next();
@@ -92,7 +94,7 @@ void CSPDisplacementPolicy::computeDisplacement(
                 // if timenode NOT already in element properties, create new element properties and set the old date
                 if(! elementsProperties.timenodes.contains(curTimeNodeId))
                 {
-                    elementsProperties.timenodes[curTimeNodeId] = TimenodeProperties{};
+                    elementsProperties.timenodes[curTimeNodeId] = Scenario::TimenodeProperties{};
                     elementsProperties.timenodes[curTimeNodeId].oldDate = *(curCspTimenode->m_iscoreDate);
                 }
 
@@ -102,7 +104,7 @@ void CSPDisplacementPolicy::computeDisplacement(
         }
 
         // - in time relations :
-        QHashIterator<Id<ConstraintModel>, CSPTimeRelation*> timeRelationIterator(cspScenario->m_timeRelations);
+        QHashIterator<Id<Scenario::ConstraintModel>, CSPTimeRelation*> timeRelationIterator(cspScenario->m_timeRelations);
         while(timeRelationIterator.hasNext())
         {
             timeRelationIterator.next();
@@ -117,7 +119,7 @@ void CSPDisplacementPolicy::computeDisplacement(
                 // if timenode NOT already in element properties, create new element properties and set the old values
                 if(! elementsProperties.constraints.contains(curTimeRelationId))
                 {
-                    elementsProperties.constraints[curTimeRelationId] = ConstraintProperties{};
+                    elementsProperties.constraints[curTimeRelationId] = Scenario::ConstraintProperties{};
                     elementsProperties.constraints[curTimeRelationId].oldMin = curCspTimerelation->m_iscoreMin;
                     elementsProperties.constraints[curTimeRelationId].oldMax = curCspTimerelation->m_iscoreMax;
 
@@ -128,8 +130,8 @@ void CSPDisplacementPolicy::computeDisplacement(
 
                     // Save for each view model of this constraint
                     // the identifier of the rack that was displayed
-                    QMap<Id<ConstraintViewModel>, Id<RackModel>> map;
-                    for(const ConstraintViewModel* vm : curConstraint.viewModels())
+                    QMap<Id<Scenario::ConstraintViewModel>, Id<Scenario::RackModel>> map;
+                    for(const Scenario::ConstraintViewModel* vm : curConstraint.viewModels())
                     {
                         map[vm->id()] = vm->shownRack();
                     }
@@ -157,11 +159,13 @@ void CSPDisplacementPolicy::computeDisplacement(
     }
 }
 
-void CSPDisplacementPolicy::refreshStays(CSPScenario& cspScenario, const QVector<Id<TimeNodeModel> >& draggedElements)
+void CSPDisplacementPolicy::refreshStays(
+        CSPScenario& cspScenario,
+        const QVector<Id<Scenario::TimeNodeModel> >& draggedElements)
 {
     // time relations stays
     auto& scenario = *cspScenario.getScenario();
-    QHashIterator<Id<ConstraintModel>, CSPTimeRelation*> timeRelationIterator(cspScenario.m_timeRelations);
+    QHashIterator<Id<Scenario::ConstraintModel>, CSPTimeRelation*> timeRelationIterator(cspScenario.m_timeRelations);
     while(timeRelationIterator.hasNext())
     {
         timeRelationIterator.next();
@@ -198,7 +202,7 @@ void CSPDisplacementPolicy::refreshStays(CSPScenario& cspScenario, const QVector
 
     //time node stays
     // - in timenodes :
-    QHashIterator<Id<TimeNodeModel>, CSPTimeNode*> timeNodeIterator(cspScenario.m_timeNodes);
+    QHashIterator<Id<Scenario::TimeNodeModel>, CSPTimeNode*> timeNodeIterator(cspScenario.m_timeNodes);
     while (timeNodeIterator.hasNext())
     {
         timeNodeIterator.next();

@@ -10,8 +10,12 @@
 #include <Process/LayerModel.hpp>
 #include <iscore/tools/SettableIdentifier.hpp>
 
+namespace Scenario
+{
 class ConstraintViewModel;
+}
 namespace Process { class LayerModelPanelProxy; }
+
 class QObject;
 
 ISCORE_METADATA_IMPL(Loop::Layer)
@@ -23,8 +27,8 @@ Layer::Layer(
         QObject* parent) :
     LayerModel {id, Layer::className.c_str(), model, parent}
 {
-    m_constraint = model.constraint().makeConstraintViewModel<TemporalConstraintViewModel>(
-                Id<ConstraintViewModel>{0},
+    m_constraint = model.constraint().makeConstraintViewModel<Scenario::TemporalConstraintViewModel>(
+                Id<Scenario::ConstraintViewModel>{0},
                 this);
 }
 

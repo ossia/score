@@ -44,6 +44,8 @@ class QObject;
 #endif
 #include <Process/Style/ScenarioStyle.hpp>
 
+namespace Scenario
+{
 ScenarioDocumentView::ScenarioDocumentView(
         const iscore::ApplicationContext& ctx,
         QObject* parent) :
@@ -174,4 +176,5 @@ void ScenarioDocumentView::update()
 
 void ScenarioDocumentView::newLocalTimeRuler()
 {
+}
 }

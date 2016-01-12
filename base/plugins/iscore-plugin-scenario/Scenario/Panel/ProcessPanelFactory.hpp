@@ -13,6 +13,8 @@ class DocumentModel;
 
 }  // namespace iscore
 
+namespace Scenario
+{
 class ProcessPanelFactory final : public iscore::PanelFactory
 {
     public:
@@ -30,3 +32,4 @@ class ProcessPanelFactory final : public iscore::PanelFactory
                 const iscore::DocumentContext&,
                 QObject* parent) override;
 };
+}

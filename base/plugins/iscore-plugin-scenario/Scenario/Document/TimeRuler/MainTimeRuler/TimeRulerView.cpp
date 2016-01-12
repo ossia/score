@@ -4,6 +4,8 @@
 #include <Scenario/Document/TimeRuler/AbstractTimeRulerView.hpp>
 #include "TimeRulerView.hpp"
 
+namespace Scenario
+{
 TimeRulerView::TimeRulerView() :
     AbstractTimeRulerView{}
 {
@@ -15,4 +17,5 @@ TimeRulerView::TimeRulerView() :
 QRectF TimeRulerView::boundingRect() const
 {
     return QRectF{0, -m_height, m_width * 2, m_height};
+}
 }

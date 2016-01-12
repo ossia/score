@@ -353,7 +353,6 @@ const QVector<Id<ConstraintModel> > constraintsBeforeTimeNode(
 
     return cstrs;
 }
-}
 
 const StateModel* furthestSelectedState(const Scenario::ScenarioModel& scenar)
 {
@@ -483,4 +482,6 @@ const StateModel* furthestSelectedStateWithoutFollowingConstraint(const Scenario
     }
 
     return nullptr;
+}
+
 }

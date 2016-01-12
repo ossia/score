@@ -5,6 +5,8 @@
 #include <QString>
 #include <unordered_map>
 
+namespace Scenario
+{
 class AddSlotWidget;
 class ConstraintInspectorWidget;
 class RackModel;
@@ -40,3 +42,4 @@ class RackInspectorSection final : public InspectorSectionWidget, public Nano::O
 
         std::unordered_map<Id<SlotModel>, SlotInspectorSection*, id_hash<SlotModel>> slotmodelsSectionWidgets;
 };
+}

@@ -30,7 +30,7 @@ struct VisitorVariant;
 class ScenarioFindConstraintVisitor
 {
     public:
-        std::vector<ConstraintModel*> constraints;
+        std::vector<Scenario::ConstraintModel*> constraints;
 
         void visit(Scenario::ScenarioModel& s)
         {
@@ -42,7 +42,7 @@ class ScenarioFindConstraintVisitor
             }
         }
 
-        void visit(ConstraintModel& c)
+        void visit(Scenario::ConstraintModel& c)
         {
             for(auto& proc : c.processes)
             {
@@ -58,9 +58,9 @@ class ScenarioFindConstraintVisitor
 class ScenarioFindEventVisitor
 {
     public:
-        std::vector<EventModel*> events;
+        std::vector<Scenario::EventModel*> events;
 
-        void visit(ConstraintModel& c)
+        void visit(Scenario::ConstraintModel& c)
         {
             for(auto& proc : c.processes)
             {
@@ -101,11 +101,11 @@ NetworkDocumentPlugin::NetworkDocumentPlugin(
     groupManager()->addGroup(baseGroup);
 
     // Create it for each constraint / event.
-    ScenarioDocumentModel* bem = safe_cast<ScenarioDocumentModel*>(&doc.model().modelDelegate());
+    Scenario::ScenarioDocumentModel* bem = safe_cast<Scenario::ScenarioDocumentModel*>(&doc.model().modelDelegate());
     {
         ScenarioFindConstraintVisitor v;
         v.visit(bem->baseConstraint());// TODO this doesn't match baseconstraint
-        for(ConstraintModel* constraint : v.constraints)
+        for(Scenario::ConstraintModel* constraint : v.constraints)
         {
             for(const auto& plugid : elementPlugins())
             {
@@ -122,7 +122,7 @@ NetworkDocumentPlugin::NetworkDocumentPlugin(
         ScenarioFindEventVisitor v;
         v.visit(bem->baseConstraint());
 
-        for(EventModel* event : v.events)
+        for(Scenario::EventModel* event : v.events)
         {
             for(const auto& plugid : elementPlugins())
             {

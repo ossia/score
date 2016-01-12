@@ -29,16 +29,16 @@ class BaseScenarioPresenter
         IndirectContainer<std::vector, ConstraintPresenter_T> constraints() const
         { return {m_constraintPresenter}; }
 
-        IndirectContainer<std::vector, StatePresenter> states() const
+        IndirectContainer<std::vector, Scenario::StatePresenter> states() const
         { return {m_startStatePresenter, m_endStatePresenter}; }
 
-        IndirectContainer<std::vector, EventPresenter> events() const
+        IndirectContainer<std::vector, Scenario::EventPresenter> events() const
         { return {m_startEventPresenter, m_endEventPresenter}; }
 
-        IndirectContainer<std::vector, TimeNodePresenter> timeNodes() const
+        IndirectContainer<std::vector, Scenario::TimeNodePresenter> timeNodes() const
         { return {m_startNodePresenter, m_endNodePresenter}; }
 
-        const EventPresenter& event(const Id<EventModel>& id) const
+        const Scenario::EventPresenter& event(const Id<Scenario::EventModel>& id) const
         {
             if(id == m_model.startEvent().id())
                 return *m_startEventPresenter;
@@ -46,7 +46,7 @@ class BaseScenarioPresenter
                 return *m_endEventPresenter;
             ISCORE_ABORT;
         }
-        const TimeNodePresenter& timeNode(const Id<TimeNodeModel>& id) const
+        const Scenario::TimeNodePresenter& timeNode(const Id<Scenario::TimeNodeModel>& id) const
         {
             if(id == m_model.startTimeNode().id())
                 return *m_startNodePresenter;
@@ -54,13 +54,13 @@ class BaseScenarioPresenter
                 return *m_endNodePresenter;
             ISCORE_ABORT;
         }
-        const ConstraintPresenter_T& constraint(const Id<ConstraintModel>& id) const
+        const ConstraintPresenter_T& constraint(const Id<Scenario::ConstraintModel>& id) const
         {
             if(id == m_model.constraint().id())
                 return *m_constraintPresenter;
             ISCORE_ABORT;
         }
-        const StatePresenter& state(const Id<StateModel>& id) const
+        const Scenario::StatePresenter& state(const Id<Scenario::StateModel>& id) const
         {
             if(id == m_model.startState().id())
                 return *m_startStatePresenter;
@@ -69,7 +69,7 @@ class BaseScenarioPresenter
             ISCORE_ABORT;
         }
 
-        const TimeNodeModel& startTimeNode() const
+        const Scenario::TimeNodeModel& startTimeNode() const
         { return m_startNodePresenter->model(); }
 
         ConstraintPresenter_T* constraintPresenter() const
@@ -80,11 +80,11 @@ class BaseScenarioPresenter
         const Model_T& m_model;
 
         ConstraintPresenter_T* m_constraintPresenter{};
-        StatePresenter* m_startStatePresenter{};
-        StatePresenter* m_endStatePresenter{};
-        EventPresenter* m_startEventPresenter{};
-        EventPresenter* m_endEventPresenter{};
-        TimeNodePresenter* m_startNodePresenter{};
-        TimeNodePresenter* m_endNodePresenter{};
+        Scenario::StatePresenter* m_startStatePresenter{};
+        Scenario::StatePresenter* m_endStatePresenter{};
+        Scenario::EventPresenter* m_startEventPresenter{};
+        Scenario::EventPresenter* m_endEventPresenter{};
+        Scenario::TimeNodePresenter* m_startNodePresenter{};
+        Scenario::TimeNodePresenter* m_endNodePresenter{};
 
 };

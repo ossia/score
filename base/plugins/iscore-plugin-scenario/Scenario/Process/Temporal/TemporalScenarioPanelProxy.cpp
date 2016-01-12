@@ -3,11 +3,13 @@
 #include "TemporalScenarioPanelProxy.hpp"
 
 class QObject;
-
+namespace Scenario
+{
 TemporalScenarioPanelProxy::TemporalScenarioPanelProxy(
         const TemporalScenarioLayerModel& lm,
         QObject* parent):
     GraphicsViewLayerModelPanelProxy{lm, parent}
 {
 
+}
 }

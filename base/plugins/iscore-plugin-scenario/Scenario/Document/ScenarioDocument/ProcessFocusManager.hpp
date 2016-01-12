@@ -6,8 +6,10 @@
 namespace Process { class LayerModel; }
 namespace Process { class LayerPresenter; }
 namespace Process { class ProcessModel; }
+namespace Scenario
+{
 class ScenarioDocumentPresenter;
-
+}
 // Keeps the focused elements in memory for use by the scenario application plugin.
 // Note : focus should not be lost when switching documents. Hence, this
 // should more be part of the per-document part.
@@ -23,7 +25,7 @@ class ProcessFocusManager final : public QObject
         LayerPresenter* focusedPresenter() const;
 
         void focus(QPointer<Process::LayerPresenter>);
-        void focus(ScenarioDocumentPresenter*);
+        void focus(Scenario::ScenarioDocumentPresenter*);
 
         void focusNothing();
 

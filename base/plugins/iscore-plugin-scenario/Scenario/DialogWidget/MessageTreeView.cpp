@@ -83,7 +83,7 @@ void MessageTreeView::removeNodes()
             nodes.append(&n);
     }
 
-    auto cmd = new RemoveMessageNodes(
+    auto cmd = new Command::RemoveMessageNodes(
                       model(),
                       Device::filterUniqueParents(nodes));
 

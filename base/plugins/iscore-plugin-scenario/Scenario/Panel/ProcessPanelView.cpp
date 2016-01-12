@@ -4,7 +4,8 @@
 #include <QVBoxLayout>
 #include <QWidget>
 
-
+namespace Scenario
+{
 ProcessPanelView::ProcessPanelView(QObject* parent):
     iscore::PanelView{parent}
 {
@@ -29,4 +30,5 @@ static const iscore::DefaultPanelStatus status{false, Qt::BottomDockWidgetArea, 
 const iscore::DefaultPanelStatus &ProcessPanelView::defaultPanelStatus() const
 {
     return status;
+}
 }

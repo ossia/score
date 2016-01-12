@@ -4,17 +4,17 @@
 #include <Scenario/Commands/Scenario/Displacement/MoveEventList.hpp>
 
 
-class MoveEventCSPFlexFactory : public MoveEventFactoryInterface
+class MoveEventCSPFlexFactory : public Scenario::Command::MoveEventFactoryInterface
 {
         // MoveEventFactory interface
     public:
-        SerializableMoveEvent* make(
+        Scenario::Command::SerializableMoveEvent* make(
                 Path<Scenario::ScenarioModel> &&scenarioPath,
-                const Id<EventModel> &eventId,
+                const Id<Scenario::EventModel> &eventId,
                 const TimeValue &newDate,
                 ExpandMode mode) override;
 
-        SerializableMoveEvent* make() override;
+        Scenario::Command::SerializableMoveEvent* make() override;
 
         int priority(MoveEventFactoryInterface::Strategy strategy) override
         {
@@ -33,5 +33,5 @@ class MoveEventCSPFlexFactory : public MoveEventFactoryInterface
         }
 
 
-        const MoveEventFactoryKey& key_impl() const override;
+        const Scenario::Command::MoveEventFactoryKey& key_impl() const override;
 };

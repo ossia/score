@@ -4,7 +4,8 @@
 #include <Scenario/Document/Event/EventModel.hpp>
 #include <Scenario/Document/State/StateModel.hpp>
 #include <Scenario/Document/TimeNode/TimeNodeModel.hpp>
-
+namespace Scenario
+{
 class TimeNodeModel;
 struct DisplayedElementsContainer {
 
@@ -37,3 +38,4 @@ struct DisplayedElementsContainer {
     QPointer<const TimeNodeModel> startNode{};
     QPointer<const TimeNodeModel> endNode{};
 };
+}

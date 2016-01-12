@@ -41,7 +41,7 @@ Ossia::LocalTree::DocumentPlugin::DocumentPlugin(
     iscore::DocumentPluginModel{doc, "LocalTree::DocumentPlugin", parent},
     m_localDevice{localDev}
 {
-    auto scenar = dynamic_cast<ScenarioDocumentModel*>(
+    auto scenar = dynamic_cast<Scenario::ScenarioDocumentModel*>(
                       &m_context.document.model().modelDelegate());
     ISCORE_ASSERT(scenar);
     auto& cstr = scenar->baseScenario().constraint();

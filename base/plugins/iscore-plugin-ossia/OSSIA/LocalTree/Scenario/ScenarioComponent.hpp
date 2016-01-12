@@ -42,19 +42,19 @@ class ScenarioComponent final : public ProcessComponent
                QObject* parent);
 
         void removing(
-                const ConstraintModel& elt,
+                const Scenario::ConstraintModel& elt,
                 const ConstraintComponent& comp);
 
         void removing(
-                const EventModel& elt,
+                const Scenario::EventModel& elt,
                 const EventComponent& comp);
 
         void removing(
-                const TimeNodeModel& elt,
+                const Scenario::TimeNodeModel& elt,
                 const TimeNodeComponent& comp);
 
         void removing(
-                const StateModel& elt,
+                const Scenario::StateModel& elt,
                 const StateComponent& comp);
 
     private:

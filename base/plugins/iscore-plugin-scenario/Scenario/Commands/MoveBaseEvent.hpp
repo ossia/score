@@ -223,5 +223,5 @@ class MoveBaseEvent final : public iscore::SerializableCommand
 }
 }
 
-ISCORE_COMMAND_DECL_T(MoveBaseEvent<BaseScenario>)
+ISCORE_COMMAND_DECL_T(MoveBaseEvent<Scenario::BaseScenario>)
 

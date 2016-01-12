@@ -39,6 +39,8 @@
 #include <iscore/tools/SettableIdentifier.hpp>
 #include <iscore/tools/Todo.hpp>
 
+namespace Scenario
+{
 EventInspectorWidget::EventInspectorWidget(
         const EventModel& object,
         const iscore::DocumentContext& doc,
@@ -98,7 +100,7 @@ EventInspectorWidget::EventInspectorWidget(
     // Trigger
     auto& tn = scenar->timeNode(m_model.timeNode());
     m_triggerWidg = new TriggerInspectorWidget{
-                    doc.app.components.factory<TriggerCommandFactoryList>(),
+                    doc.app.components.factory<Command::TriggerCommandFactoryList>(),
                     tn,
                     this};
     m_properties.push_back(new QLabel{tr("Trigger")});
@@ -212,4 +214,5 @@ void EventInspectorWidget::on_conditionChanged()
 void EventInspectorWidget::modelDateChanged()
 {
     m_date->setText(m_model.date().toString());
+}
 }

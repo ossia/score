@@ -61,11 +61,12 @@
 #include <iscore/widgets/SpinBoxes.hpp>
 #include <iscore/plugins/customfactory/StringFactoryKeySerialization.hpp>
 
-using namespace Scenario::Command;
+
 using namespace iscore;
 using namespace iscore::IDocument;
 
-
+namespace Scenario
+{
 ConstraintInspectorWidget::ConstraintInspectorWidget(
         const InspectorWidgetList& widg,
         const Process::ProcessList& pl,
@@ -123,7 +124,7 @@ ConstraintInspectorWidget::ConstraintInspectorWidget(
     loop->setChecked(m_model.looping());
     connect(loop, &QCheckBox::clicked,
             this, [this] (bool checked){
-        auto cmd = new SetLooping{m_model, checked};
+        auto cmd = new Command::SetLooping{m_model, checked};
         commandDispatcher()->submitCommand(cmd);
     });
     m_properties.push_back(loop);
@@ -253,13 +254,13 @@ void ConstraintInspectorWidget::updateDisplayedValues()
 
 void ConstraintInspectorWidget::createProcess(const ProcessFactoryKey& processName)
 {
-    auto cmd = make_AddProcessToConstraint(model(), processName);
+    auto cmd = Command::make_AddProcessToConstraint(model(), processName);
     commandDispatcher()->submitCommand(cmd);
 }
 
 void ConstraintInspectorWidget::createRack()
 {
-    auto cmd = new AddRackToConstraint{model()};
+    auto cmd = new Command::AddRackToConstraint{model()};
     commandDispatcher()->submitCommand(cmd);
 }
 
@@ -267,7 +268,7 @@ void ConstraintInspectorWidget::createLayerInNewSlot(QString processName)
 {
     // TODO this will bite us when the name does not contain the id anymore.
     // We will have to stock the id's somewhere.
-    auto cmd = new AddLayerInNewSlot{model(), Id<Process::ProcessModel>(processName.toInt())};
+    auto cmd = new Command::AddLayerInNewSlot{model(), Id<Process::ProcessModel>(processName.toInt())};
 
     commandDispatcher()->submitCommand(cmd);
 }
@@ -282,7 +283,7 @@ void ConstraintInspectorWidget::activeRackChanged(QString rack, ConstraintViewMo
     {
         if(vm->isRackShown())
         {
-            auto cmd = new HideRackInViewModel(*vm);
+            auto cmd = new Command::HideRackInViewModel(*vm);
             emit commandDispatcher()->submitCommand(cmd);
         }
     }
@@ -293,7 +294,7 @@ void ConstraintInspectorWidget::activeRackChanged(QString rack, ConstraintViewMo
             if(r.metadata.name() == rack)
             {
                 auto id = r.id();
-                auto cmd = new ShowRackInViewModel(*vm, id);
+                auto cmd = new Command::ShowRackInViewModel(*vm, id);
                 emit commandDispatcher()->submitCommand(cmd);
             }
         }
@@ -353,7 +354,7 @@ void ConstraintInspectorWidget::displaySharedProcess(const Process::ProcessModel
     });
     connect(durWidg, &TimeSpinBox::editingFinished,
         this, [&,durWidg] {
-        auto cmd = new SetProcessDuration{process, TimeValue(durWidg->time())};
+        auto cmd = new Command::SetProcessDuration{process, TimeValue(durWidg->time())};
         commandDispatcher()->submitCommand(cmd);
     });
     stateLayout->addRow(tr("Duration"), durWidg);
@@ -362,7 +363,7 @@ void ConstraintInspectorWidget::displaySharedProcess(const Process::ProcessModel
     auto deleteButton = new QPushButton{tr("Delete")};
     connect(deleteButton, &QPushButton::pressed, this, [=,id=process.id()] ()
     {
-        auto cmd = new RemoveProcessFromConstraint{iscore::IDocument::path(model()), id};
+        auto cmd = new Command::RemoveProcessFromConstraint{iscore::IDocument::path(model()), id};
         emit commandDispatcher()->submitCommand(cmd);
     });
     newProc->addContent(deleteButton);
@@ -388,7 +389,7 @@ void ConstraintInspectorWidget::ask_processNameChanged(const Process::ProcessMod
 {
     if(s != p.metadata.name())
     {
-        auto cmd = new ChangeElementName<Process::ProcessModel>{path(p), s};
+        auto cmd = new Command::ChangeElementName<Process::ProcessModel>{path(p), s};
         emit commandDispatcher()->submitCommand(cmd);
     }
 }
@@ -467,4 +468,5 @@ void ConstraintInspectorWidget::on_constraintViewModelRemoved(const QObject*)
 {
     // OPTIMIZEME
     m_rackWidget->viewModelsChanged();
+}
 }

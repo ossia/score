@@ -20,7 +20,7 @@ class Group;
 GroupMetadata* getGroupMetadata(QObject* obj)
 {
     using namespace boost::range;
-    if(auto cstr = dynamic_cast<ConstraintModel*>(obj))
+    if(auto cstr = dynamic_cast<Scenario::ConstraintModel*>(obj))
     {
         auto& plugs = cstr->pluginModelList.list();
         auto plug_it = find_if(plugs, [] (iscore::ElementPluginModel* elt)
@@ -29,7 +29,7 @@ GroupMetadata* getGroupMetadata(QObject* obj)
 
         return static_cast<GroupMetadata*>(*plug_it);
     }
-    else if(auto ev = dynamic_cast<EventModel*>(obj))
+    else if(auto ev = dynamic_cast<Scenario::EventModel*>(obj))
     {
         auto& plugs = ev->pluginModelList.list();
         auto plug_it = find_if(plugs, [] (iscore::ElementPluginModel* elt)

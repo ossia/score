@@ -10,6 +10,8 @@
 #include <iscore/tools/NotifyingMap.hpp>
 #include <iscore/tools/SettableIdentifier.hpp>
 
+namespace Scenario
+{
 bool ScenarioDisplayedElementsProvider::matches(
         const ConstraintModel& cst) const
 {
@@ -37,4 +39,5 @@ DisplayedElementsContainer ScenarioDisplayedElementsProvider::make(
     }
 
     return {};
+}
 }

@@ -20,7 +20,7 @@ class MoveConstraintInScenario_StateWrapper
             /// Constraint
             /// //TODO remove useless arguments to ctor
             auto moveConstraint =
-                    new MoveConstraintState<MoveConstraint, Scenario_T, ToolPalette_T>{
+                    new MoveConstraintState<Scenario::Command::MoveConstraint, Scenario_T, ToolPalette_T>{
                         palette,
                         palette.model(),
                         palette.context().commandStack,
@@ -46,7 +46,7 @@ class MoveEventInScenario_StateWrapper
         {
             /// Event
             auto moveEvent =
-                    new MoveEventState<MoveEventMeta, Scenario_T, ToolPalette_T>{
+                    new MoveEventState<Scenario::Command::MoveEventMeta, Scenario_T, ToolPalette_T>{
                         palette,
                         palette.model(),
                         palette.context().commandStack,
@@ -76,7 +76,7 @@ class MoveTimeNodeInScenario_StateWrapper
         {
             /// TimeNode
             auto moveTimeNode =
-                    new MoveTimeNodeState<MoveEventMeta, Scenario_T, ToolPalette_T>{
+                    new MoveTimeNodeState<Scenario::Command::MoveEventMeta, Scenario_T, ToolPalette_T>{
                 palette,
                         palette.model(),
                         palette.context().commandStack,

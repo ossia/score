@@ -29,6 +29,8 @@
 #include <iscore/document/DocumentContext.hpp>
 class QWidget;
 
+namespace Scenario
+{
 BaseConstraintInspectorDelegate::BaseConstraintInspectorDelegate(
         const ConstraintModel& cst):
     ConstraintInspectorDelegate{cst}
@@ -50,7 +52,7 @@ void BaseConstraintInspectorDelegate::addWidgets_pre(
     auto& ctx = iscore::IDocument::documentContext(scenario);
     auto& tn = endTimeNode(m_model, scenario);
     m_triggerLine = new TriggerInspectorWidget{
-                    ctx.app.components.factory<TriggerCommandFactoryList>(),
+                    ctx.app.components.factory<Command::TriggerCommandFactoryList>(),
                     tn,
                     parent};
     m_triggerLine->HideRmButton();
@@ -67,7 +69,7 @@ void BaseConstraintInspectorDelegate::addWidgets_post(
     auto& tn = endTimeNode(m_model, scenario);
 
     auto trWidg = new TriggerInspectorWidget{
-                  ctx.app.components.factory<TriggerCommandFactoryList>(),
+                  ctx.app.components.factory<Command::TriggerCommandFactoryList>(),
                   tn,
                   parent};
     trWidg->HideRmButton();
@@ -80,9 +82,10 @@ void BaseConstraintInspectorDelegate::on_defaultDurationChanged(
         ExpandMode expandmode) const
 {
     auto& scenario = *safe_cast<BaseScenario*>(m_model.parent());
-    dispatcher.submitCommand<MoveBaseEvent<BaseScenario>>(
+    dispatcher.submitCommand<Command::MoveBaseEvent<BaseScenario>>(
                 scenario,
                 scenario.endEvent().id(),
                 val,
                 expandmode);
+}
 }

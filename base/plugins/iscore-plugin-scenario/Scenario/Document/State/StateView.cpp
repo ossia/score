@@ -10,7 +10,8 @@
 
 class QStyleOptionGraphicsItem;
 class QWidget;
-
+namespace Scenario
+{
 StateView::StateView(StatePresenter& pres, QGraphicsItem* parent) :
     QGraphicsObject(parent),
     m_presenter{pres}
@@ -101,4 +102,4 @@ void StateView::dropEvent(QGraphicsSceneDragDropEvent *event)
 {
     emit dropReceived(event->mimeData());
 }
-
+}

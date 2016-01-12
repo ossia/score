@@ -6,7 +6,7 @@
 #include <iscore/tools/SettableIdentifier.hpp>
 #include <iscore/tools/Todo.hpp>
 
-ISCORE_METADATA_IMPL(RackModel)
+ISCORE_METADATA_IMPL(Scenario::RackModel)
 namespace Scenario
 {
 RackModel::RackModel(const Id<RackModel>& id, QObject* parent) :

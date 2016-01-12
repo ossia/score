@@ -12,10 +12,10 @@
 #include <iscore/command/Dispatchers/CommandDispatcher.hpp>
 #include <iscore/tools/ModelPath.hpp>
 
-using namespace Scenario::Command;
-
+namespace Scenario
+{
 TriggerInspectorWidget::TriggerInspectorWidget(
-        const TriggerCommandFactoryList& fact,
+        const Command::TriggerCommandFactoryList& fact,
         const TimeNodeModel& object,
         InspectorWidgetBase* parent):
     QWidget{parent},
@@ -99,4 +99,4 @@ void TriggerInspectorWidget::updateExpression(const State::Trigger& expr)
 {
     m_exprEditor->setExpression(expr);
 }
-
+}

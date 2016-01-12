@@ -16,7 +16,7 @@
 #include <iscore/tools/Todo.hpp>
 
 
-ISCORE_METADATA_IMPL(ConstraintModel)
+ISCORE_METADATA_IMPL(Scenario::ConstraintModel)
 namespace Scenario
 {
 class StateModel;

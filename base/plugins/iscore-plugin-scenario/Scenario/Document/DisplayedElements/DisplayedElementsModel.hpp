@@ -3,6 +3,9 @@
 #include <iscore/selection/Selection.hpp>
 #include <tuple>
 
+
+namespace Scenario
+{
 class ConstraintModel;
 class EventModel;
 class StateModel;
@@ -44,3 +47,4 @@ class DisplayedElementsModel
         DisplayedElementsContainer m_elements;
         bool m_initialized = false;
 };
+}

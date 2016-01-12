@@ -5,11 +5,14 @@
 #include <Process/ExpandMode.hpp>
 #include <Process/TimeValue.hpp>
 
-class ConstraintInspectorWidget;
-class ConstraintModel;
 class OngoingCommandDispatcher;
 class QWidget;
+
+namespace Scenario
+{
 class TriggerInspectorWidget;
+class ConstraintInspectorWidget;
+class ConstraintModel;
 
 class BaseConstraintInspectorDelegate final : public ConstraintInspectorDelegate
 {
@@ -28,3 +31,4 @@ class BaseConstraintInspectorDelegate final : public ConstraintInspectorDelegate
     private:
         TriggerInspectorWidget* m_triggerLine{};
 };
+}

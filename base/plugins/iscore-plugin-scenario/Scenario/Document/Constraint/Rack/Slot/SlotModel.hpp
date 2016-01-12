@@ -27,7 +27,7 @@ class RackModel;
 class ISCORE_PLUGIN_SCENARIO_EXPORT SlotModel final : public IdentifiedObject<SlotModel>, public Nano::Observer
 {
         Q_OBJECT
-        ISCORE_METADATA(SlotModel)
+        ISCORE_METADATA(Scenario::SlotModel)
         ISCORE_SERIALIZE_FRIENDS(SlotModel, DataStream)
         ISCORE_SERIALIZE_FRIENDS(SlotModel, JSONObject)
 

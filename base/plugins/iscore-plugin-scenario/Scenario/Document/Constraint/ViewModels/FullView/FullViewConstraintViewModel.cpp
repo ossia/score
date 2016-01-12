@@ -9,16 +9,19 @@
 #include <iscore/document/DocumentInterface.hpp>
 #include <iscore/tools/SettableIdentifier.hpp>
 
-class QObject;
 
+#include <iscore/document/DocumentContext.hpp>
+class QObject;
+namespace Scenario
+{
 FullViewConstraintViewModel::FullViewConstraintViewModel(
         const Id<ConstraintViewModel>& id,
         const ConstraintModel& model,
         QObject* parent) :
     ConstraintViewModel {id,
-                                "FullViewConstraintViewModel",
-                                model,
-                                parent
+                         "FullViewConstraintViewModel",
+                         model,
+                         parent
 }
 {
 
@@ -60,12 +63,11 @@ void FullViewConstraintViewModel::setCenter(const QPointF& value)
     m_center = value;
 }
 
-#include <iscore/document/DocumentContext.hpp>
-
 bool FullViewConstraintViewModel::isActive()
 {
     auto& ctx = iscore::IDocument::documentContext(model());
     auto& baseElt = iscore::IDocument::get<ScenarioDocumentModel>(ctx.document);
 
     return (this->model().id() == baseElt.displayedElements.constraint().id());
+}
 }

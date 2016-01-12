@@ -3,19 +3,20 @@
 #include <Process/TimeValue.hpp>
 #include <iscore/command/Dispatchers/OngoingCommandDispatcher.hpp>
 
-class ConstraintInspectorDelegate;
-class ConstraintInspectorWidget;
-class ConstraintModel;
 class QCheckBox;
 class QGridLayout;
 class QLabel;
-namespace Scenario {
-class EditionSettings;
-}  // namespace Scenario
+
 namespace iscore {
 class TimeSpinBox;
 }  // namespace iscore
 
+namespace Scenario
+{
+class EditionSettings;
+class ConstraintInspectorDelegate;
+class ConstraintInspectorWidget;
+class ConstraintModel;
 class DurationSectionWidget final : public InspectorSectionWidget
 {
     public:
@@ -67,3 +68,4 @@ class DurationSectionWidget final : public InspectorSectionWidget
         const Scenario::EditionSettings& m_editionSettings;
         const ConstraintInspectorDelegate& m_delegate;
 };
+}

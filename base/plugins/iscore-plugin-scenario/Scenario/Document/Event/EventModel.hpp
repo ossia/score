@@ -27,10 +27,10 @@ class TimeNodeModel;
 class ISCORE_PLUGIN_SCENARIO_EXPORT EventModel final : public IdentifiedObject<EventModel>
 {
         Q_OBJECT
-        ISCORE_METADATA(EventModel)
+        ISCORE_METADATA(Scenario::EventModel)
 
-        ISCORE_SERIALIZE_FRIENDS(EventModel, DataStream)
-        ISCORE_SERIALIZE_FRIENDS(EventModel, JSONObject)
+        ISCORE_SERIALIZE_FRIENDS(Scenario::EventModel, DataStream)
+        ISCORE_SERIALIZE_FRIENDS(Scenario::EventModel, JSONObject)
 
     public:
         /** Public properties of the class **/

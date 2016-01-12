@@ -2,6 +2,9 @@
 #include <Scenario/Document/DisplayedElements/DisplayedElementsContainer.hpp>
 #include <iscore/plugins/customfactory/FactoryInterface.hpp>
 
+
+namespace Scenario
+{
 class ConstraintModel;
 
 class DisplayedElementsProvider : public iscore::FactoryInterfaceBase
@@ -12,3 +15,4 @@ class DisplayedElementsProvider : public iscore::FactoryInterfaceBase
         virtual bool matches(const ConstraintModel& cst) const = 0;
         virtual DisplayedElementsContainer make(const ConstraintModel& cst) const = 0;
 };
+}

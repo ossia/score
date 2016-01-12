@@ -4,17 +4,20 @@
 #include <list>
 #include <vector>
 
-class EventShortCut;
 class InspectorSectionWidget;
-class MetadataWidget;
 class QLabel;
 class QWidget;
-class TimeNodeModel;
-class TriggerInspectorWidget;
 namespace iscore {
 class Document;
 }  // namespace iscore
 
+
+namespace Scenario
+{
+class MetadataWidget;
+class TriggerInspectorWidget;
+class EventShortCut;
+class TimeNodeModel;
 /*!
  * \brief The TimeNodeInspectorWidget class
  *      Inherits from InspectorWidgetInterface. Manages an inteface for an TimeNode (Timebox) element.
@@ -44,3 +47,4 @@ class TimeNodeInspectorWidget final : public InspectorWidgetBase
         TriggerInspectorWidget* m_trigwidg{};
 
 };
+}

@@ -3,6 +3,8 @@
 #include <iscore/statemachine/GraphicsSceneToolPalette.hpp>
 #include <memory>
 
+namespace Scenario
+{
 class ConstraintModel;
 class ScenarioDocumentPresenter;
 
@@ -19,3 +21,4 @@ class DisplayedElementsToolPaletteFactory : public iscore::FactoryInterfaceBase
                  ScenarioDocumentPresenter& pres,
                  const ConstraintModel& constraint) = 0;
 };
+}

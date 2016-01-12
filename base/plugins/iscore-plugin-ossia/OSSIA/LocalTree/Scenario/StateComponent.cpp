@@ -9,7 +9,7 @@ namespace LocalTree
 StateComponent::StateComponent(
         OSSIA::Node& parent,
         const Id<iscore::Component>& id,
-        StateModel& state,
+        Scenario::StateModel& state,
         const StateComponent::system_t& doc,
         const iscore::DocumentContext& ctx,
         QObject* parent_comp):

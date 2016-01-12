@@ -51,10 +51,10 @@ class ProcessStateWrapper : public QObject
 class ISCORE_PLUGIN_SCENARIO_EXPORT StateModel final : public IdentifiedObject<StateModel>, public Nano::Observer
 {
         Q_OBJECT
-        ISCORE_METADATA(StateModel)
+        ISCORE_METADATA(Scenario::StateModel)
 
-        ISCORE_SERIALIZE_FRIENDS(StateModel, DataStream)
-        ISCORE_SERIALIZE_FRIENDS(StateModel, JSONObject)
+        ISCORE_SERIALIZE_FRIENDS(Scenario::StateModel, DataStream)
+        ISCORE_SERIALIZE_FRIENDS(Scenario::StateModel, JSONObject)
     public:
         using ProcessVector = std::list<ProcessStateWrapper>;
         iscore::Components components;

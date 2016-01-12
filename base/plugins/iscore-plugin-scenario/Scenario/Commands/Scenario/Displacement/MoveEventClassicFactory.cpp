@@ -10,13 +10,15 @@
 #include <iscore/serialization/DataStreamVisitor.hpp>
 #include <iscore/tools/ModelPath.hpp>
 #include <iscore/tools/ModelPathSerialization.hpp>
-
-class EventModel;
-class SerializableMoveEvent;
-namespace Scenario {
-class ScenarioModel;
-}  // namespace Scenario
 #include <iscore/tools/SettableIdentifier.hpp>
+
+namespace Scenario
+{
+class ScenarioModel;
+class EventModel;
+namespace Command
+{
+class SerializableMoveEvent;
 
 SerializableMoveEvent* MoveEventClassicFactory::make(
         Path<Scenario::ScenarioModel>&& scenarioPath,
@@ -36,4 +38,6 @@ const MoveEventFactoryKey& MoveEventClassicFactory::key_impl() const
 {
     static const MoveEventFactoryKey str{"Classic"};
     return str;
+}
+}
 }

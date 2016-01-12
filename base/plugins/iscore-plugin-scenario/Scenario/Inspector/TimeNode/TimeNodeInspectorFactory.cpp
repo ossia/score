@@ -12,7 +12,8 @@ class Document;
 }  // namespace iscore
 
 //using namespace iscore;
-
+namespace Scenario
+{
 InspectorWidgetBase* TimeNodeInspectorFactory::makeWidget(
         const QObject& sourceElement,
         const iscore::DocumentContext& doc,
@@ -26,4 +27,5 @@ const QList<QString>& TimeNodeInspectorFactory::key_impl() const
 {
     static const QList<QString> list{"TimeNodeModel"};
     return list;
+}
 }

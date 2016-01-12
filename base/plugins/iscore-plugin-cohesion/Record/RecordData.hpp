@@ -6,9 +6,9 @@ class ScenarioModel;
 namespace Command
 {
 class AddLayerModelToSlot;
-}
-}
 class AddOnlyProcessToConstraint;
+}
+}
 namespace Curve
 {
 class Model;
@@ -19,7 +19,7 @@ class DeviceExplorerModel;
 struct RecordData
 {
         RecordData(
-                AddOnlyProcessToConstraint* cmd_proc,
+                Scenario::Command::AddOnlyProcessToConstraint* cmd_proc,
                 Scenario::Command::AddLayerModelToSlot* cmd_lay,
                 Curve::Model& cm,
                 Curve::PointArraySegment& seg):
@@ -29,7 +29,7 @@ struct RecordData
             segment{seg}
         { }
 
-        AddOnlyProcessToConstraint* addProcCmd{};
+        Scenario::Command::AddOnlyProcessToConstraint* addProcCmd{};
         Scenario::Command::AddLayerModelToSlot* addLayCmd{};
 
         Curve::Model& curveModel;

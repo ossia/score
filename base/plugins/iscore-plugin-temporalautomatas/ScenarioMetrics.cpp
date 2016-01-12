@@ -84,7 +84,7 @@ class LanguageVisitor<Scenario::ScenarioModel>
             return QString(T::description()) + QString::number(c.id_val());
         }
 
-        QString duration(const ConstraintModel& c)
+        QString duration(const Scenario::ConstraintModel& c)
         {
             QString s;
             if(c.duration.isRigid())
@@ -108,7 +108,7 @@ class LanguageVisitor<Scenario::ScenarioModel>
             return s;
         }
 
-        void visit(const ConstraintModel& c)
+        void visit(const Scenario::ConstraintModel& c)
         {
             text += "constraint "   + id(c)
                     + " after " + id(startState(c, m_scenar))
@@ -129,7 +129,7 @@ class LanguageVisitor<Scenario::ScenarioModel>
             }
         }
 
-        void visit(const EventModel& e)
+        void visit(const Scenario::EventModel& e)
         {
             text += "event " + id(e)
                     + " of " + id(parentTimeNode(e, m_scenar))
@@ -144,7 +144,7 @@ class LanguageVisitor<Scenario::ScenarioModel>
             }
         }
 
-        void visit(const TimeNodeModel& tn)
+        void visit(const Scenario::TimeNodeModel& tn)
         {
             text += "timenode " + id(tn)
                     + QString("\n");
@@ -157,7 +157,7 @@ class LanguageVisitor<Scenario::ScenarioModel>
             }
         }
 
-        void visit(const StateModel& st)
+        void visit(const Scenario::StateModel& st)
         {
             if(st.previousConstraint())
             {
@@ -312,7 +312,7 @@ class HalsteadVisitor<Scenario::ScenarioModel>
             return QString(T::description()) + QString::number(c.id_val());
         }
 
-        void duration(const ConstraintModel& c)
+        void duration(const Scenario::ConstraintModel& c)
         {
             if(c.duration.isRigid())
             {
@@ -324,7 +324,7 @@ class HalsteadVisitor<Scenario::ScenarioModel>
             }
         }
 
-        void visit(const ConstraintModel& c)
+        void visit(const Scenario::ConstraintModel& c)
         {
             f.operators.constraint += 1;
             f.operands.variables[id(c)] += 1;
@@ -348,7 +348,7 @@ class HalsteadVisitor<Scenario::ScenarioModel>
             }
         }
 
-        void visit(const EventModel& e)
+        void visit(const Scenario::EventModel& e)
         {
             f.operators.event += 1;
             f.operands.variables[id(e)] += 1;
@@ -364,7 +364,7 @@ class HalsteadVisitor<Scenario::ScenarioModel>
             }
         }
 
-        void visit(const TimeNodeModel& tn)
+        void visit(const Scenario::TimeNodeModel& tn)
         {
             f.operators.timenode += 1;
             f.operands.variables[id(tn)] += 1;
@@ -378,7 +378,7 @@ class HalsteadVisitor<Scenario::ScenarioModel>
             }
         }
 
-        void visit(const StateModel& st)
+        void visit(const Scenario::StateModel& st)
         {
             if(st.previousConstraint())
             {
@@ -577,10 +577,10 @@ struct MarkedConstraints
 
 struct Program
 {
-        std::vector<Id<ConstraintModel>> constraints;
-        std::vector<Id<EventModel>> events;
-        std::vector<Id<TimeNodeModel>> nodes;
-        std::vector<Id<StateModel>> states;
+        std::vector<Id<Scenario::ConstraintModel>> constraints;
+        std::vector<Id<Scenario::EventModel>> events;
+        std::vector<Id<Scenario::TimeNodeModel>> nodes;
+        std::vector<Id<Scenario::StateModel>> states;
 };
 
 using Mark = int;
@@ -590,10 +590,10 @@ class ProgramVisitor
 {
         Mark currentMark = 0;
 
-        std::map<Id<ConstraintModel>, Mark> constraints;
-        std::map<Id<EventModel>, Mark> events;
-        std::map<Id<TimeNodeModel>, Mark> nodes;
-        std::map<Id<StateModel>, Mark> states;
+        std::map<Id<Scenario::ConstraintModel>, Mark> constraints;
+        std::map<Id<Scenario::EventModel>, Mark> events;
+        std::map<Id<Scenario::TimeNodeModel>, Mark> nodes;
+        std::map<Id<Scenario::StateModel>, Mark> states;
 
         const Scenario::ScenarioModel& m_scenar;
     public:
@@ -675,7 +675,7 @@ class ProgramVisitor
         }
 
     private:
-        void mark(const Id<ConstraintModel>& cid, Mark m)
+        void mark(const Id<Scenario::ConstraintModel>& cid, Mark m)
         {
             ISCORE_ASSERT(constraints.at(cid) == m || constraints.at(cid) == NoMark);
             if(constraints.at(cid) == m)
@@ -724,7 +724,7 @@ class ProgramVisitor
 
 auto startingTimeNodes(const Program& program, const Scenario::ScenarioModel& scenario)
 {
-    std::list<Id<TimeNodeModel>> startingNodes;
+    std::list<Id<Scenario::TimeNodeModel>> startingNodes;
     for(const auto& node_id : program.nodes)
     {
         const auto& node = scenario.timeNodes.at(node_id);
@@ -748,9 +748,9 @@ struct BaseBlock
 {
         BaseBlock(int b): block{b} {}
         int block{};
-        std::vector<Id<ConstraintModel>> constraints;
-        std::vector<Id<EventModel>> events;
-        std::vector<Id<TimeNodeModel>> nodes;
+        std::vector<Id<Scenario::ConstraintModel>> constraints;
+        std::vector<Id<Scenario::EventModel>> events;
+        std::vector<Id<Scenario::TimeNodeModel>> nodes;
 };
 
 class CyclomaticVisitor
@@ -758,9 +758,9 @@ class CyclomaticVisitor
         // Here the mark refers to the block id of the group of elements.
         Mark maxMark = 0;
 
-        std::map<Id<ConstraintModel>, Mark> constraints;
-        std::map<Id<EventModel>, Mark> events;
-        std::map<Id<TimeNodeModel>, Mark> nodes;
+        std::map<Id<Scenario::ConstraintModel>, Mark> constraints;
+        std::map<Id<Scenario::EventModel>, Mark> events;
+        std::map<Id<Scenario::TimeNodeModel>, Mark> nodes;
 
     public:
         const Program& m_program;
@@ -772,6 +772,7 @@ class CyclomaticVisitor
             m_program{program},
             m_scenar{scenar}
         {
+            using namespace Scenario;
 
             for(const auto& elt : scenar.constraints)
             {
@@ -858,11 +859,11 @@ class CyclomaticVisitor
             }
             return blocks;
         }
-        std::pair<std::set<Id<TimeNodeModel>>, std::set<Id<EventModel>>> computeEvent(
-                const Id<EventModel>& event,
+        std::pair<std::set<Id<Scenario::TimeNodeModel>>, std::set<Id<Scenario::EventModel>>> computeEvent(
+                const Id<Scenario::EventModel>& event,
                 Mark m)
         {
-
+            using namespace Scenario;
             std::set<Id<TimeNodeModel>> notSame,   prev_notSame;
             std::set<Id<TimeNodeModel>> notSure,   prev_notSure;
             std::set<Id<EventModel>> notSameEvent, prev_notSameEvent;
@@ -876,10 +877,11 @@ class CyclomaticVisitor
             return iterate(m, notSame, notSure, notSameEvent);
         }
 
-        std::pair<std::set<Id<TimeNodeModel>>, std::set<Id<EventModel>>> computeNode(
-                const Id<TimeNodeModel>& node,
+        std::pair<std::set<Id<Scenario::TimeNodeModel>>, std::set<Id<Scenario::EventModel>>> computeNode(
+                const Id<Scenario::TimeNodeModel>& node,
                 Mark m)
         {
+            using namespace Scenario;
             std::set<Id<TimeNodeModel>> notSame;
             std::set<Id<TimeNodeModel>> notSure;
             std::set<Id<EventModel>> notSameEvent;
@@ -887,12 +889,13 @@ class CyclomaticVisitor
             return iterate(m, notSame, notSure, notSameEvent);
         }
 
-        std::pair<std::set<Id<TimeNodeModel>>, std::set<Id<EventModel>>> iterate(
+        std::pair<std::set<Id<Scenario::TimeNodeModel>>, std::set<Id<Scenario::EventModel>>> iterate(
                 Mark m,
-                std::set<Id<TimeNodeModel>>& notSame,
-                std::set<Id<TimeNodeModel>>& notSure,
-                std::set<Id<EventModel>>& notSameEvent)
+                std::set<Id<Scenario::TimeNodeModel>>& notSame,
+                std::set<Id<Scenario::TimeNodeModel>>& notSure,
+                std::set<Id<Scenario::EventModel>>& notSameEvent)
         {
+            using namespace Scenario;
             std::set<Id<TimeNodeModel>> prev_notSame;
             std::set<Id<TimeNodeModel>> prev_notSure;
             std::set<Id<EventModel>> prev_notSameEvent;
@@ -938,7 +941,7 @@ class CyclomaticVisitor
         //  not sure (some constraints are unmarked),
         //  not in same block
         enum class NodeInBlock { Same, NotSure, NotSame} ;
-        NodeInBlock timeNodeIsInSameBlock(const TimeNodeModel& tn, Mark mark)
+        NodeInBlock timeNodeIsInSameBlock(const Scenario::TimeNodeModel& tn, Mark mark)
         {
             // True if no condition,
             // or if previous constraints are from different blocks
@@ -966,16 +969,16 @@ class CyclomaticVisitor
             }
         }
 
-        bool eventIsInSameBlock(const EventModel& ev)
+        bool eventIsInSameBlock(const Scenario::EventModel& ev)
         {
             return !ev.condition().hasChildren();
         }
 
-        void mark(const Id<TimeNodeModel>& id,
+        void mark(const Id<Scenario::TimeNodeModel>& id,
                   Mark m,
-                  std::set<Id<TimeNodeModel>>& notSame,
-                  std::set<Id<TimeNodeModel>>& notSure,
-                  std::set<Id<EventModel>>& notSameEvent)
+                  std::set<Id<Scenario::TimeNodeModel>>& notSame,
+                  std::set<Id<Scenario::TimeNodeModel>>& notSure,
+                  std::set<Id<Scenario::EventModel>>& notSameEvent)
         {
             // We flow for as long as we can and stop once
             // new blocks are encountered
@@ -990,11 +993,11 @@ class CyclomaticVisitor
         }
 
 
-        void mark(const Id<EventModel>& event_id,
+        void mark(const Id<Scenario::EventModel>& event_id,
                   Mark m,
-                  std::set<Id<TimeNodeModel>>& notSame,
-                  std::set<Id<TimeNodeModel>>& notSure,
-                  std::set<Id<EventModel>>& notSameEvent)
+                  std::set<Id<Scenario::TimeNodeModel>>& notSame,
+                  std::set<Id<Scenario::TimeNodeModel>>& notSure,
+                  std::set<Id<Scenario::EventModel>>& notSameEvent)
         {
             // We flow for as long as we can and stop once
             // new blocks are encountered
@@ -1014,11 +1017,11 @@ class CyclomaticVisitor
 
         }
 
-        void mark(const Id<ConstraintModel>& id,
+        void mark(const Id<Scenario::ConstraintModel>& id,
                   Mark m,
-                  std::set<Id<TimeNodeModel>>& notSame,
-                  std::set<Id<TimeNodeModel>>& notSure,
-                  std::set<Id<EventModel>>& notSameEvent)
+                  std::set<Id<Scenario::TimeNodeModel>>& notSame,
+                  std::set<Id<Scenario::TimeNodeModel>>& notSure,
+                  std::set<Id<Scenario::EventModel>>& notSameEvent)
         {
             const auto& cst = m_scenar.constraints.at(id);
             constraints.at(id) = m;
@@ -1041,7 +1044,8 @@ class CyclomaticVisitor
 };
 
 Scenario::Metrics::Cyclomatic::Factors
-Scenario::Metrics::Cyclomatic::ComputeFactors(const Scenario::ScenarioModel& scenar)
+Scenario::Metrics::Cyclomatic::ComputeFactors(
+        const Scenario::ScenarioModel& scenar)
 {
     ProgramVisitor v(scenar);
     auto programs = v.programs();
@@ -1059,7 +1063,8 @@ Scenario::Metrics::Cyclomatic::ComputeFactors(const Scenario::ScenarioModel& sce
     return Scenario::Metrics::Cyclomatic::Factors{E_events + E_nodes, N, (int)programs.size()};
 }
 
-Scenario::Metrics::Cyclomatic::Factors Scenario::Metrics::Cyclomatic::ComputeFactors2(const Scenario::ScenarioModel& scenar)
+Scenario::Metrics::Cyclomatic::Factors Scenario::Metrics::Cyclomatic::ComputeFactors2(
+        const Scenario::ScenarioModel& scenar)
 {
     ProgramVisitor v(scenar);
     auto programs = v.programs();

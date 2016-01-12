@@ -5,11 +5,13 @@
 
 class InspectorSectionWidget;
 class QWidget;
-class StateModel;
 namespace iscore {
 struct DocumentContext;
 }  // namespace iscore
 
+namespace Scenario
+{
+class StateModel;
 class StateInspectorWidget final : public InspectorWidgetBase
 {
     public:
@@ -28,3 +30,4 @@ class StateInspectorWidget final : public InspectorWidgetBase
 
         InspectorSectionWidget* m_stateSection{};
 };
+}

@@ -8,6 +8,9 @@
 #include <iscore/plugins/customfactory/FactoryInterface.hpp>
 #include <iscore/tools/std/Algorithms.hpp>
 #include <iscore_plugin_scenario_export.h>
+
+namespace Scenario
+{
 class ConstraintModel;
 
 class ISCORE_PLUGIN_SCENARIO_EXPORT ConstraintInspectorDelegateFactory : public iscore::FactoryInterfaceBase
@@ -52,3 +55,4 @@ class ISCORE_PLUGIN_SCENARIO_EXPORT ConstraintInspectorDelegateFactoryList final
     private:
       std::vector<std::unique_ptr<ConstraintInspectorDelegateFactory>> m_list;
 };
+}

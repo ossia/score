@@ -4,7 +4,8 @@
 
 #include "EventShortcut.hpp"
 
-
+namespace Scenario
+{
 EventShortCut::EventShortCut(QString eventId, QWidget* parent) :
     QWidget {parent}
 {
@@ -39,4 +40,5 @@ bool EventShortCut::isChecked()
 QString EventShortCut::eventName()
 {
     return m_eventBtn->text();
+}
 }

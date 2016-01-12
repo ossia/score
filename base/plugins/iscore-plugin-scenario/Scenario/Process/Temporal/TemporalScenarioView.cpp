@@ -11,7 +11,8 @@
 
 #include <Process/LayerView.hpp>
 #include "TemporalScenarioView.hpp"
-
+namespace Scenario
+{
 TemporalScenarioView::TemporalScenarioView(QGraphicsItem* parent) :
     LayerView {parent}
 {
@@ -92,4 +93,5 @@ void TemporalScenarioView::keyReleaseEvent(QKeyEvent *event)
 void TemporalScenarioView::dropEvent(QGraphicsSceneDragDropEvent *event)
 {
     emit dropReceived(event->scenePos(), event->mimeData());
+}
 }

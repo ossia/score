@@ -22,6 +22,8 @@
 #include <iscore/tools/NotifyingMap.hpp>
 #include <iscore/tools/SettableIdentifier.hpp>
 
+namespace Scenario
+{
 AddLayerModelWidget::AddLayerModelWidget(SlotInspectorSection* parentSlot) :
     QWidget {parentSlot}
 {
@@ -88,4 +90,5 @@ AddLayerModelWidget::AddLayerModelWidget(SlotInspectorSection* parentSlot) :
                 parentSlot->createLayerModel(Id<Process::ProcessModel> {available_models[process_name] });
         }
     });
+}
 }

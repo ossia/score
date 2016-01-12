@@ -87,7 +87,7 @@ void Visitor<Writer<JSONObject>>::writeTo(Scenario::TimeNodeModel& timenode)
     timenode.metadata = fromJsonObject<ModelMetadata>(m_obj["Metadata"].toObject());
 
     timenode.m_date = fromJsonValue<TimeValue> (m_obj["Date"]);
-    timenode.m_extent = fromJsonValue<VerticalExtent>(m_obj["Extent"]);
+    timenode.m_extent = fromJsonValue<Scenario::VerticalExtent>(m_obj["Extent"]);
 
     fromJsonValueArray(m_obj["Events"].toArray(), timenode.m_events);
 

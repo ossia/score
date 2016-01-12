@@ -10,6 +10,8 @@
 #include <iscore/plugins/customfactory/StringFactoryKey.hpp>
 #include "ProcessPanelId.hpp"
 
+namespace Scenario
+{
 int ProcessPanelFactory::panelId() const
 {
     return PROCESS_PANEL_ID;
@@ -41,4 +43,5 @@ iscore::PanelModel*ProcessPanelFactory::makeModel(
         QObject* parent)
 {
     return new ProcessPanelModel{parent};
+}
 }

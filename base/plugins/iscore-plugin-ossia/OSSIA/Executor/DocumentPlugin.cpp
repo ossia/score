@@ -35,7 +35,7 @@ DocumentPlugin::~DocumentPlugin()
     }
 }
 
-void DocumentPlugin::reload(BaseScenario& doc)
+void DocumentPlugin::reload(Scenario::BaseScenario& doc)
 {
     if(m_base)
     {

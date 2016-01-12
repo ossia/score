@@ -35,9 +35,8 @@
 #include <iscore/tools/SettableIdentifier.hpp>
 #include <iscore/tools/Todo.hpp>
 
-using namespace Scenario::Command;
-
-
+namespace Scenario
+{
 TimeNodeInspectorWidget::TimeNodeInspectorWidget(
         const TimeNodeModel& object,
         const iscore::DocumentContext& ctx,
@@ -60,7 +59,7 @@ TimeNodeInspectorWidget::TimeNodeInspectorWidget(
 
     // Trigger
     m_trigwidg = new TriggerInspectorWidget{
-                 ctx.app.components.factory<TriggerCommandFactoryList>(),
+                 ctx.app.components.factory<Command::TriggerCommandFactoryList>(),
                  m_model, this};
 
 
@@ -146,7 +145,7 @@ void TimeNodeInspectorWidget::on_splitTimeNodeClicked()
 
     if (eventGroup.size() < int(m_events.size()))
     {
-        auto cmd = new SplitTimeNode{m_model,
+        auto cmd = new Command::SplitTimeNode{m_model,
                                      eventGroup};
 
         commandDispatcher()->submitCommand(cmd);
@@ -154,3 +153,5 @@ void TimeNodeInspectorWidget::on_splitTimeNodeClicked()
 
     updateDisplayedValues();
 }
+}
+

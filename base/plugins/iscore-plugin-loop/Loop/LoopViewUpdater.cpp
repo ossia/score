@@ -32,7 +32,8 @@ ViewUpdater::ViewUpdater(LayerPresenter& presenter):
 
 }
 
-void ViewUpdater::updateEvent(const EventPresenter& event)
+void ViewUpdater::updateEvent(
+        const Scenario::EventPresenter& event)
 {
     auto h = m_presenter.m_view->boundingRect().height();
 
@@ -55,13 +56,14 @@ void ViewUpdater::updateEvent(const EventPresenter& event)
 
 }
 
-void ViewUpdater::updateConstraint(const TemporalConstraintPresenter& pres)
+void ViewUpdater::updateConstraint(
+        const Scenario::TemporalConstraintPresenter& pres)
 {
     auto rect = m_presenter.m_view->boundingRect();
     auto msPerPixel = m_presenter.m_zoomRatio;
 
     const auto& cstr_model = pres.model();
-    TemporalConstraintView& cstr_view = ::view(pres);
+    Scenario::TemporalConstraintView& cstr_view = Scenario::view(pres);
 
     auto startPos = cstr_model.startDate().toPixels(msPerPixel);
     auto delta = cstr_view.x() - startPos;
@@ -86,7 +88,8 @@ void ViewUpdater::updateConstraint(const TemporalConstraintPresenter& pres)
     m_presenter.m_view->update();
 }
 
-void ViewUpdater::updateTimeNode(const TimeNodePresenter& timenode)
+void ViewUpdater::updateTimeNode(
+        const Scenario::TimeNodePresenter& timenode)
 {
     auto h = m_presenter.m_view->boundingRect().height();
     timenode.view()->setExtent(timenode.model().extent() * h);
@@ -97,7 +100,8 @@ void ViewUpdater::updateTimeNode(const TimeNodePresenter& timenode)
     m_presenter.m_view->update();
 }
 
-void ViewUpdater::updateState(const StatePresenter& state)
+void ViewUpdater::updateState(
+        const Scenario::StatePresenter& state)
 {
     auto rect = m_presenter.m_view->boundingRect();
 

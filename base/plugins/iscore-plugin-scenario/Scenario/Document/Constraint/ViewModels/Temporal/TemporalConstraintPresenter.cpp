@@ -31,35 +31,36 @@ TemporalConstraintPresenter::TemporalConstraintPresenter(
                          new TemporalConstraintHeader,
                          parent}
 {
-    connect(::view(this), &TemporalConstraintView::constraintHoverEnter,
-            this,       &TemporalConstraintPresenter::constraintHoverEnter);
+    auto& v = *Scenario::view(this);
+    con(v, &TemporalConstraintView::constraintHoverEnter,
+        this,       &TemporalConstraintPresenter::constraintHoverEnter);
 
-    connect(::view(this), &TemporalConstraintView::constraintHoverLeave,
-            this,       &TemporalConstraintPresenter::constraintHoverLeave);
+    con(v, &TemporalConstraintView::constraintHoverLeave,
+        this,       &TemporalConstraintPresenter::constraintHoverLeave);
 
     const auto& metadata = m_viewModel.model().metadata;
     con(metadata, &ModelMetadata::labelChanged,
-            ::view(this), &TemporalConstraintView::setLabel);
+        &v, &TemporalConstraintView::setLabel);
 
     con(metadata,   &ModelMetadata::colorChanged,
-            ::view(this), [&] (const QColor& c) {
-        ::view(this)->setLabelColor(c);
-        ::view(this)->setColor(c);
+        &v, [&] (const QColor& c) {
+        v.setLabelColor(c);
+        v.setColor(c);
     });
 
     con(metadata, &ModelMetadata::nameChanged,
         this, [&] (const QString& name) { m_header->setText(name); });
 
 
-    ::view(this)->setLabel(metadata.label());
-    ::view(this)->setLabelColor(metadata.color());
-    ::view(this)->setColor(metadata.color());
+    v.setLabel(metadata.label());
+    v.setLabelColor(metadata.color());
+    v.setColor(metadata.color());
     m_header->setText(metadata.name());
 
     con(m_viewModel.model().selection, &Selectable::changed,
-        ::view(this), &TemporalConstraintView::setFocused);
+        &v, &TemporalConstraintView::setFocused);
     con(m_viewModel.model(), &ConstraintModel::focusChanged,
-        ::view(this), &TemporalConstraintView::setFocused);
+        &v, &TemporalConstraintView::setFocused);
 
     // Change to full view when header is double-clicked
     connect(static_cast<TemporalConstraintHeader*>(m_header), &TemporalConstraintHeader::doubleClicked,
@@ -73,16 +74,19 @@ TemporalConstraintPresenter::TemporalConstraintPresenter(
 
 TemporalConstraintPresenter::~TemporalConstraintPresenter()
 {
-    if(::view(this))
-    {
-        auto sc = ::view(this)->scene();
 
-        if(sc && sc->items().contains(::view(this)))
+    auto view = Scenario::view(this);
+    // TODO deleteGraphicsObject
+    if(view)
+    {
+        auto sc = view->scene();
+
+        if(sc && sc->items().contains(view))
         {
-            sc->removeItem(::view(this));
+            sc->removeItem(view);
         }
 
-        ::view(this)->deleteLater();
+        view->deleteLater();
     }
 }
 }

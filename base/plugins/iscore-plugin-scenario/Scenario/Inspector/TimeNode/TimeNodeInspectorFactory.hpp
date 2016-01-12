@@ -10,7 +10,8 @@ namespace iscore {
 class Document;
 }  // namespace iscore
 
-
+namespace Scenario
+{
 class TimeNodeInspectorFactory final : public InspectorWidgetFactory
 {
     public:
@@ -27,3 +28,4 @@ class TimeNodeInspectorFactory final : public InspectorWidgetFactory
 
         const QList<QString>& key_impl() const override;
 };
+}

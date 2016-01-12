@@ -13,7 +13,7 @@ CSPDocumentPlugin::CSPDocumentPlugin(iscore::Document& doc, QObject* parent):
 
 void CSPDocumentPlugin::reload(iscore::DocumentModel& document)
 {
-    auto scenar = dynamic_cast<ScenarioDocumentModel*>(&document.modelDelegate());
+    auto scenar = dynamic_cast<Scenario::ScenarioDocumentModel*>(&document.modelDelegate());
     if(!scenar)
         return;
 

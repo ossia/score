@@ -37,10 +37,10 @@ class ScenarioComponentHierarchyManager : public Nano::Observer
             m_context{ctx},
             m_parentObject{parentcomp}
         {
-            setup<ConstraintModel>();
-            setup<EventModel>();
-            setup<TimeNodeModel>();
-            setup<StateModel>();
+            setup<Scenario::ConstraintModel>();
+            setup<Scenario::EventModel>();
+            setup<Scenario::TimeNodeModel>();
+            setup<Scenario::StateModel>();
         }
 
         ~ScenarioComponentHierarchyManager()
@@ -57,23 +57,23 @@ class ScenarioComponentHierarchyManager : public Nano::Observer
 
     private:
         struct ConstraintPair {
-                using element_t = ConstraintModel;
-                ConstraintModel& element;
+                using element_t = Scenario::ConstraintModel;
+                Scenario::ConstraintModel& element;
                 ConstraintComponent_T& component;
         };
         struct EventPair {
-                using element_t = EventModel;
-                EventModel& element;
+                using element_t = Scenario::EventModel;
+                Scenario::EventModel& element;
                 EventComponent_T& component;
         };
         struct TimeNodePair {
-                using element_t = TimeNodeModel;
-                TimeNodeModel& element;
+                using element_t = Scenario::TimeNodeModel;
+                Scenario::TimeNodeModel& element;
                 TimeNodeComponent_T& component;
         };
         struct StatePair {
-                using element_t = StateModel;
-                StateModel& element;
+                using element_t = Scenario::StateModel;
+                Scenario::StateModel& element;
                 StateComponent_T& component;
         };
 
@@ -156,28 +156,28 @@ class ScenarioComponentHierarchyManager : public Nano::Observer
         std::list<StatePair> m_states;
 
         template<bool dummy>
-        struct MatchingComponent<ConstraintModel, dummy> {
+        struct MatchingComponent<Scenario::ConstraintModel, dummy> {
                 using type = ConstraintComponent_T;
                 using pair_type = ConstraintPair;
                 static const constexpr auto local_container = &ScenarioComponentHierarchyManager::m_constraints;
                 static const constexpr auto scenario_container = &Scenario::ScenarioModel::constraints;
         };
         template<bool dummy>
-        struct MatchingComponent<EventModel, dummy> {
+        struct MatchingComponent<Scenario::EventModel, dummy> {
                 using type = EventComponent_T;
                 using pair_type = EventPair;
                 static const constexpr auto local_container = &ScenarioComponentHierarchyManager::m_events;
                 static const constexpr auto scenario_container = &Scenario::ScenarioModel::events;
         };
         template<bool dummy>
-        struct MatchingComponent<TimeNodeModel, dummy> {
+        struct MatchingComponent<Scenario::TimeNodeModel, dummy> {
                 using type = TimeNodeComponent_T;
                 using pair_type = TimeNodePair;
                 static const constexpr auto local_container = &ScenarioComponentHierarchyManager::m_timeNodes;
                 static const constexpr auto scenario_container = &Scenario::ScenarioModel::timeNodes;
         };
         template<bool dummy>
-        struct MatchingComponent<StateModel, dummy> {
+        struct MatchingComponent<Scenario::StateModel, dummy> {
                 using type = StateComponent_T;
                 using pair_type = StatePair;
                 static const constexpr auto local_container = &ScenarioComponentHierarchyManager::m_states;

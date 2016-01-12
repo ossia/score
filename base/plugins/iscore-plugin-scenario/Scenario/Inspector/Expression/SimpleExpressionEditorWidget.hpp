@@ -11,6 +11,9 @@ class QComboBox;
 class QLabel;
 class QLineEdit;
 
+namespace Scenario
+{
+// TODO move in plugin state
 class SimpleExpressionEditorWidget final : public QWidget
 {
     Q_OBJECT
@@ -52,4 +55,4 @@ class SimpleExpressionEditorWidget final : public QWidget
 
         QMap<State::Relation::Operator, QString> m_comparatorList;
 };
-
+}

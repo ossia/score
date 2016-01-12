@@ -5,6 +5,8 @@ class QObject;
 class QVBoxLayout;
 class QWidget;
 
+namespace Scenario
+{
 class ProcessPanelView final : public iscore::PanelView
 {
         Q_OBJECT
@@ -24,3 +26,4 @@ class ProcessPanelView final : public iscore::PanelView
         QWidget* m_widget{};
         QVBoxLayout* m_lay{};
 };
+}

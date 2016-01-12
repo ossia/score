@@ -65,7 +65,7 @@ OSSIAApplicationPlugin::OSSIAApplicationPlugin(const iscore::ApplicationContext&
     // Another part that, at execution time, creates structures corresponding
     // to the Scenario plug-in with the OSSIA API.
 
-    auto& ctrl = ctx.components.applicationPlugin<ScenarioApplicationPlugin>();
+    auto& ctrl = ctx.components.applicationPlugin<Scenario::ScenarioApplicationPlugin>();
     auto acts = ctrl.actions();
     for(const auto& act : acts)
     {
@@ -193,7 +193,7 @@ void OSSIAApplicationPlugin::on_play(bool b, ::TimeValue t)
         auto plugmodel = doc->context().findPlugin<RecreateOnPlay::DocumentPlugin>();
         if(!plugmodel)
             return;
-        auto scenar = dynamic_cast<ScenarioDocumentModel*>(&doc->model().modelDelegate());
+        auto scenar = dynamic_cast<Scenario::ScenarioDocumentModel*>(&doc->model().modelDelegate());
         if(!scenar)
             return;
 

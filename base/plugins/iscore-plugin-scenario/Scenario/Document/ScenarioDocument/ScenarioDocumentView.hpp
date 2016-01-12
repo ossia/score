@@ -8,12 +8,15 @@ class QGraphicsView;
 class QObject;
 class QWidget;
 class ProcessGraphicsView;
-class TimeRulerView;
 
 namespace iscore
 {
 struct ApplicationContext;
 }
+
+namespace Scenario
+{
+class TimeRulerView;
 class ScenarioDocumentView final : public iscore::DocumentDelegateViewInterface
 {
         Q_OBJECT
@@ -63,5 +66,4 @@ class ScenarioDocumentView final : public iscore::DocumentDelegateViewInterface
 
         DoubleSlider* m_zoomSlider {};
 };
-
-
+}

@@ -22,10 +22,11 @@
 #include <iscore/tools/SettableIdentifier.hpp>
 #include <iscore/tools/Todo.hpp>
 
-using namespace Scenario::Command;
 #include <Scenario/Commands/Constraint/RemoveRackFromConstraint.hpp>
 #include <algorithm>
 
+namespace Scenario
+{
 RackInspectorSection::RackInspectorSection(
         const QString& name,
         const RackModel& rack,
@@ -60,7 +61,7 @@ RackInspectorSection::RackInspectorSection(
     auto deleteButton = new QPushButton{"Delete"};
     connect(deleteButton, &QPushButton::pressed, this, [=] ()
     {
-        auto cmd = new RemoveRackFromConstraint{
+        auto cmd = new Command::RemoveRackFromConstraint{
                    parentConstraint->model(),
                    m_model.id()};
         emit m_parent->commandDispatcher()->submitCommand(cmd);
@@ -73,7 +74,7 @@ RackInspectorSection::RackInspectorSection(
 
 void RackInspectorSection::createSlot()
 {
-    auto cmd = new AddSlotToRack{m_model};
+    auto cmd = new Command::AddSlotToRack{m_model};
 
     emit m_parent->commandDispatcher()->submitCommand(cmd);
 }
@@ -82,7 +83,7 @@ void RackInspectorSection::ask_changeName(QString newName)
 {
     if(newName != m_model.metadata.name())
     {
-        auto cmd = new ChangeElementName<RackModel>{m_model, newName};
+        auto cmd = new Command::ChangeElementName<RackModel>{m_model, newName};
         emit m_parent->commandDispatcher()->submitCommand(cmd);
     }
 }
@@ -116,4 +117,5 @@ void RackInspectorSection::on_slotRemoved(const SlotModel& slot)
     {
         ptr->deleteLater();
     }
+}
 }

@@ -5,6 +5,8 @@
 
 class QObject;
 
+namespace Scenario
+{
 class TemporalScenarioPanelProxy final :
         public Process::GraphicsViewLayerModelPanelProxy
 {
@@ -13,3 +15,4 @@ class TemporalScenarioPanelProxy final :
                 const TemporalScenarioLayerModel& lm,
                 QObject* parent);
 };
+}

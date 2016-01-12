@@ -8,21 +8,23 @@
 #include <iscore/selection/Selection.hpp>
 #include <iscore/serialization/VisitorInterface.hpp>
 
-class BaseScenario;
-class ConstraintModel;
-class DataStream;
-class FullViewConstraintViewModel;
 class JSONObject;
+class DataStream;
 namespace Process { class LayerModel; }
 namespace Process { class LayerPresenter; }
 class QObject;
 
+namespace Scenario
+{
+class BaseScenario;
+class ConstraintModel;
+class FullViewConstraintViewModel;
 class ISCORE_PLUGIN_SCENARIO_EXPORT ScenarioDocumentModel final :
         public iscore::DocumentDelegateModelInterface
 {
         Q_OBJECT
-        ISCORE_SERIALIZE_FRIENDS(ScenarioDocumentModel, DataStream)
-        ISCORE_SERIALIZE_FRIENDS(ScenarioDocumentModel, JSONObject)
+        ISCORE_SERIALIZE_FRIENDS(Scenario::ScenarioDocumentModel, DataStream)
+        ISCORE_SERIALIZE_FRIENDS(Scenario::ScenarioDocumentModel, JSONObject)
     public:
         ScenarioDocumentModel(QObject* parent);
 
@@ -73,4 +75,4 @@ class ISCORE_PLUGIN_SCENARIO_EXPORT ScenarioDocumentModel final :
     public:
         DisplayedElementsModel displayedElements;
 };
-
+}

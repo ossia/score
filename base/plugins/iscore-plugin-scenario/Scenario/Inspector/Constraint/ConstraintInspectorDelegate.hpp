@@ -2,12 +2,15 @@
 #include <Process/ExpandMode.hpp>
 #include <Process/TimeValue.hpp>
 #include <list>
+#include <iscore_plugin_scenario_export.h>
 
-class ConstraintInspectorWidget;
-class ConstraintModel;
 class OngoingCommandDispatcher;
 class QWidget;
-#include <iscore_plugin_scenario_export.h>
+
+namespace Scenario
+{
+class ConstraintInspectorWidget;
+class ConstraintModel;
 class ISCORE_PLUGIN_SCENARIO_EXPORT ConstraintInspectorDelegate
 {
     protected:
@@ -31,3 +34,4 @@ class ISCORE_PLUGIN_SCENARIO_EXPORT ConstraintInspectorDelegate
                 const TimeValue& val,
                 ExpandMode e) const = 0;
 };
+}

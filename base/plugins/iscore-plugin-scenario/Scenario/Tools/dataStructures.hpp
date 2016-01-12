@@ -11,6 +11,8 @@ This file is used to define simple data structure to simplify the code when need
 #include <QMap>
 #include <QPair>
 
+namespace Scenario
+{
 class ConstraintModel;
 class ConstraintViewModel;
 class RackModel;
@@ -42,3 +44,4 @@ struct ElementsProperties {
     QMap<Id<TimeNodeModel>, TimenodeProperties> timenodes;
     QMap<Id<ConstraintModel>, ConstraintProperties> constraints;
 };
+}

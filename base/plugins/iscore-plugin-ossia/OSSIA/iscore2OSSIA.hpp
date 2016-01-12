@@ -8,8 +8,13 @@
 
 #include <State/Value.hpp>
 #include <iscore_plugin_ossia_export.h>
+namespace Scenario
+{
 class StateModel;
+}
+
 class DeviceList;
+
 namespace OSSIA {
 class Address;
 class Device;
@@ -80,10 +85,10 @@ ISCORE_PLUGIN_OSSIA_EXPORT inline OSSIA::TimeValue time(const TimeValue& t)
 
 ISCORE_PLUGIN_OSSIA_EXPORT std::shared_ptr<OSSIA::State> state(
         std::shared_ptr<OSSIA::State> ossia_state,
-        const StateModel& iscore_state,
+        const Scenario::StateModel& iscore_state,
         const DeviceList& deviceList);
 ISCORE_PLUGIN_OSSIA_EXPORT std::shared_ptr<OSSIA::State> state(
-        const StateModel& iscore_state,
+        const Scenario::StateModel& iscore_state,
         const DeviceList& deviceList);
 
 

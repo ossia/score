@@ -4,19 +4,21 @@
 #include <list>
 #include <vector>
 
-class EventModel;
-class ExpressionEditorWidget;
-class MetadataWidget;
 class QLabel;
 class QLineEdit;
 class QWidget;
-class StateModel;
-class TriggerInspectorWidget;
 namespace iscore {
 class Document;
 }  // namespace iscore
 
 
+namespace Scenario
+{
+class StateModel;
+class EventModel;
+class ExpressionEditorWidget;
+class MetadataWidget;
+class TriggerInspectorWidget;
 /*!
  * \brief The EventInspectorWidget class
  *      Inherits from InspectorWidgetInterface. Manages an inteface for an Event (Timebox) element.
@@ -54,3 +56,4 @@ class EventInspectorWidget final : public InspectorWidgetBase
 
         ExpressionEditorWidget* m_exprEditor{};
 };
+}

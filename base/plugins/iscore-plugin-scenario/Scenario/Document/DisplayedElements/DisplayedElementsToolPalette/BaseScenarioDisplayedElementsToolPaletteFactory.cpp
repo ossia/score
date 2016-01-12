@@ -6,6 +6,8 @@
 #include "BaseScenarioDisplayedElementsToolPaletteFactory.hpp"
 #include <iscore/statemachine/GraphicsSceneToolPalette.hpp>
 
+namespace Scenario
+{
 class ScenarioDocumentPresenter;
 
 std::unique_ptr<GraphicsSceneToolPalette> BaseScenarioDisplayedElementsToolPaletteFactory::make(
@@ -19,4 +21,5 @@ bool BaseScenarioDisplayedElementsToolPaletteFactory::matches(
         const ConstraintModel& constraint) const
 {
     return dynamic_cast<BaseScenario*>(constraint.parent());
+}
 }

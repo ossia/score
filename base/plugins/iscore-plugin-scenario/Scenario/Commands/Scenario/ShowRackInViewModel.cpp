@@ -68,4 +68,3 @@ void ShowRackInViewModel::deserializeImpl(DataStreamOutput& s)
 }
 }
 }
-''

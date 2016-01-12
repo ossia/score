@@ -30,6 +30,8 @@ namespace iscore {
 class Document;
 }  // namespace iscore
 
+namespace Scenario
+{
 StateInspectorWidget::StateInspectorWidget(
         const StateModel& object,
         const iscore::DocumentContext& doc,
@@ -123,8 +125,6 @@ void StateInspectorWidget::updateDisplayedValues()
     m_stateSection->expand();
 }
 
-using namespace Scenario;
-
 void StateInspectorWidget::splitEvent()
 {
     auto scenar = dynamic_cast<const Scenario::ScenarioModel*>(m_model.parent());
@@ -141,4 +141,6 @@ void StateInspectorWidget::splitEvent()
             commandDispatcher()->submitCommand(cmd);
         }
     }
+}
+
 }

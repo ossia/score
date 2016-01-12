@@ -27,7 +27,8 @@ std::vector<std::unique_ptr<iscore::FactoryInterfaceBase>> iscore_plugin_loop::f
         const iscore::ApplicationContext& ctx,
         const iscore::FactoryBaseKey& key) const
 {
-
+    using namespace Scenario;
+    using namespace Scenario::Command;
     return instantiate_factories<
             iscore::ApplicationContext,
             TL<

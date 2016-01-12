@@ -20,6 +20,9 @@ class QObject;
 class QPushButton;
 class QToolButton;
 
+namespace Scenario
+{
+// TODO move me in Process
 class MetadataWidget final : public QWidget
 {
         Q_OBJECT
@@ -95,3 +98,4 @@ class MetadataWidget final : public QWidget
 
 //        QString m_scriptingName;
 };
+}

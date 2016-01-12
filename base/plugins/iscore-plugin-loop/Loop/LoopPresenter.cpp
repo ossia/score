@@ -29,8 +29,10 @@ namespace Process { class LayerModel; }
 namespace Process { class ProcessModel; }
 class QMenu;
 class QObject;
+namespace Scenario
+{
 struct VerticalExtent;
-
+}
 namespace Loop
 {
 LayerPresenter::LayerPresenter(
@@ -39,7 +41,7 @@ LayerPresenter::LayerPresenter(
         LayerView* view,
         QObject* parent):
     Process::LayerPresenter{"LayerPresenter", parent},
-    BaseScenarioPresenter<Loop::ProcessModel, TemporalConstraintPresenter>{layer.model()},
+    BaseScenarioPresenter<Loop::ProcessModel, Scenario::TemporalConstraintPresenter>{layer.model()},
     m_layer{layer},
     m_view{view},
     m_viewUpdater{*this},
@@ -47,6 +49,7 @@ LayerPresenter::LayerPresenter(
     m_context{context, *this, m_focusDispatcher},
     m_palette{m_layer.model(), *this, m_context, *m_view}
 {
+    using namespace Scenario;
     m_constraintPresenter = new TemporalConstraintPresenter{
             layer.constraint(), view, this};
     m_startStatePresenter = new StatePresenter{

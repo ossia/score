@@ -9,15 +9,16 @@
 #include <Scenario/Palette/Tools/SmartTool.hpp>
 
 class BaseGraphicsObject;
+namespace Scenario
+{
+class EditionSettings;
+
 class BaseScenario;
 class DisplayedElementsPresenter;
 class MoveConstraintInBaseScenario_StateWrapper;
 class MoveEventInBaseScenario_StateWrapper;
 class MoveTimeNodeInBaseScenario_StateWrapper;
 class ScenarioDocumentPresenter;
-namespace Scenario {
-class EditionSettings;
-}  // namespace Scenario
 
 class BaseScenarioDisplayedElementsToolPalette final : public GraphicsSceneToolPalette
 {
@@ -60,4 +61,4 @@ class BaseScenarioDisplayedElementsToolPalette final : public GraphicsSceneToolP
                ScenarioDocumentPresenter
             > m_inputDisp;
 };
-
+}

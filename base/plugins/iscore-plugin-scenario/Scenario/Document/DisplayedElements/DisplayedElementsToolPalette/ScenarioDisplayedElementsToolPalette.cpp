@@ -22,9 +22,9 @@
 #include <iscore/tools/SettableIdentifier.hpp>
 #include <Scenario/Document/ScenarioDocument/ProcessFocusManager.hpp>
 
-namespace Scenario {
+namespace Scenario
+{
 class EditionSettings;
-}  // namespace Scenario
 
 Scenario::Point ScenarioDisplayedElementsToolPalette::ScenePointToScenarioPoint(QPointF point)
 {
@@ -105,4 +105,5 @@ void ScenarioDisplayedElementsToolPalette::on_released(QPointF point)
 void ScenarioDisplayedElementsToolPalette::on_cancel()
 {
     m_state.on_cancel();
+}
 }

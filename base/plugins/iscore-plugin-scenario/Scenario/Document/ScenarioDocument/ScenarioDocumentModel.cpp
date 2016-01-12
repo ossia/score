@@ -37,9 +37,6 @@
 #include <iscore/tools/SettableIdentifier.hpp>
 #include <iscore/tools/Todo.hpp>
 
-namespace Process { class LayerPresenter; }
-
-using namespace Scenario;
 
 #include <Scenario/Document/DisplayedElements/DisplayedElementsProviderList.hpp>
 #include <iscore/tools/SettableIdentifierGeneration.hpp>
@@ -49,6 +46,9 @@ using namespace Scenario;
 #include <algorithm>
 #include <chrono>
 
+namespace Process { class LayerPresenter; }
+namespace Scenario
+{
 ScenarioDocumentModel::ScenarioDocumentModel(QObject* parent) :
     iscore::DocumentDelegateModelInterface {
         Id<iscore::DocumentDelegateModelInterface>(iscore::id_generator::getFirstId()),
@@ -259,4 +259,5 @@ void ScenarioDocumentModel::setDisplayedConstraint(const ConstraintModel& constr
     }
 
     emit displayedConstraintChanged();
+}
 }

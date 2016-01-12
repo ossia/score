@@ -40,11 +40,6 @@ Selection BaseScenario::selectedChildren() const
     return s;
 }
 
-template<>
-QString NameInUndo<BaseScenario>()
-{
-    return "BaseScenario";
-}
 
 const QVector<Id<ConstraintModel> > constraintsBeforeTimeNode(
         const BaseScenario& scen,
@@ -56,4 +51,10 @@ const QVector<Id<ConstraintModel> > constraintsBeforeTimeNode(
     }
     return {};
 }
+}
+
+template<>
+QString NameInUndo<Scenario::BaseScenario>()
+{
+    return "BaseScenario";
 }

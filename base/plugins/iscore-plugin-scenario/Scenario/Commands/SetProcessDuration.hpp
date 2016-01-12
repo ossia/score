@@ -9,6 +9,10 @@ class DataStreamInput;
 class DataStreamOutput;
 namespace Process { class ProcessModel; }
 
+namespace Scenario
+{
+namespace Command
+{
 class SetProcessDuration final : public iscore::SerializableCommand
 {
         ISCORE_COMMAND_DECL(ScenarioCommandFactoryName(), SetProcessDuration, "Change a process duration")
@@ -31,3 +35,6 @@ class SetProcessDuration final : public iscore::SerializableCommand
         TimeValue m_old;
         TimeValue m_new;
 };
+
+}
+}

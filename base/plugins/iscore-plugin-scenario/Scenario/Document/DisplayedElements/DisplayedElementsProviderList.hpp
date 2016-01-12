@@ -3,6 +3,9 @@
 #include <iscore/plugins/customfactory/FactoryFamily.hpp>
 #include <iscore/tools/std/Algorithms.hpp>
 
+
+namespace Scenario
+{
 class DisplayedElementsProviderList final : public iscore::FactoryListInterface
 {
     public:
@@ -37,3 +40,4 @@ class DisplayedElementsProviderList final : public iscore::FactoryListInterface
     private:
       std::vector<std::unique_ptr<DisplayedElementsProvider>> m_list;
 };
+}

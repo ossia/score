@@ -41,9 +41,10 @@ namespace iscore {
 class MenubarManager;
 }  // namespace iscore
 
-PlayContextMenu::PlayContextMenu(ScenarioApplicationPlugin *parent):
-    ScenarioActions(iscore::ToplevelMenuElement::AboutMenu, parent)
+PlayContextMenu::PlayContextMenu(Scenario::ScenarioApplicationPlugin *parent):
+    Scenario::ScenarioActions(iscore::ToplevelMenuElement::AboutMenu, parent)
 {
+    using namespace Scenario;
     m_playStates = new QAction{tr("Play (States)"), this};
     connect(m_playStates, &QAction::triggered,
             [=]()
@@ -127,10 +128,11 @@ void PlayContextMenu::fillMenuBar(iscore::MenubarManager *menu)
 void PlayContextMenu::fillContextMenu(
         QMenu *menu,
         const Selection & s,
-        const TemporalScenarioPresenter& pres,
+        const Scenario::TemporalScenarioPresenter& pres,
         const QPoint& pt,
         const QPointF& scenept)
 {
+    using namespace Scenario;
     menu->addAction(m_playFromHere);
     auto scenPoint = Scenario::ConvertToScenarioPoint(scenept, pres.zoomRatio(), pres.view().height());
     m_playFromHere->setData(QVariant::fromValue(scenPoint.date));
@@ -142,7 +144,7 @@ void PlayContextMenu::fillContextMenu(
     }
     else
     {
-        if(std::any_of(s.cbegin(), s.cend(), [] (auto obj) { return dynamic_cast<const StateModel*>(obj.data());}))
+        if(std::any_of(s.cbegin(), s.cend(), [] (auto obj) { return dynamic_cast<const Scenario::StateModel*>(obj.data());}))
         {
             menu->addAction(m_playStates);
         }

@@ -31,6 +31,8 @@
 #include <QApplication>
 
 using namespace iscore;
+namespace Scenario
+{
 ConstraintActions::ConstraintActions(
         iscore::ToplevelMenuElement menuElt,
         ScenarioApplicationPlugin* parent):
@@ -172,4 +174,5 @@ CommandDispatcher<> ConstraintActions::dispatcher()
 {
     CommandDispatcher<> disp{m_parent->currentDocument()->context().commandStack};
     return disp;
+}
 }

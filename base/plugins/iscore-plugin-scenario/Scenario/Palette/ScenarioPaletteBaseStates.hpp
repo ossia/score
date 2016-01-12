@@ -9,14 +9,14 @@
 #include <QAbstractTransition>
 #include <QPointF>
 
+
+namespace Scenario
+{
 class EventModel;
 class TimeNodeModel;
 class ConstraintModel;
 class StateModel;
 class SlotModel;
-
-namespace Scenario
-{
 // OPTIMIZEME this when we have all the tools
 template<typename Scenario_T>
 class StateBase : public QState

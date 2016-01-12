@@ -4,6 +4,8 @@
 
 class QObject;
 
+namespace Scenario
+{
 ProcessPanelModel::ProcessPanelModel(QObject* parent):
     iscore::PanelModel{"ProcessPanelModel", parent}
 {
@@ -17,4 +19,5 @@ int ProcessPanelModel::panelId() const
 
 void ProcessPanelModel::setNewSelection(const Selection&)
 {
+}
 }

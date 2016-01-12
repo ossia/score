@@ -3,6 +3,9 @@
 
 #include <Scenario/Document/DisplayedElements/DisplayedElementsContainer.hpp>
 
+
+namespace Scenario
+{
 class ConstraintModel;
 
 class ScenarioDisplayedElementsProvider final : public DisplayedElementsProvider
@@ -13,3 +16,4 @@ class ScenarioDisplayedElementsProvider final : public DisplayedElementsProvider
         virtual DisplayedElementsContainer make(
                 const ConstraintModel& cst) const override;
 };
+}

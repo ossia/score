@@ -49,6 +49,9 @@
 
 class MessageItemModel;
 class QMenu;
+
+namespace Scenario
+{
 struct VerticalExtent;
 
 TemporalScenarioPresenter::TemporalScenarioPresenter(
@@ -265,7 +268,7 @@ void TemporalScenarioPresenter::on_constraintViewModelRemoved(
     for(auto& pres : m_constraints)
     {
         // OPTIMIZEME add an index in the map on viewmodel id ?
-        if(::viewModel(pres).id() == cvm.id())
+        if(Scenario::viewModel(pres).id() == cvm.id())
         {
             auto cid = pres.id();
             auto it = m_constraints.find(cid);
@@ -542,4 +545,5 @@ void TemporalScenarioPresenter::handleDrop(const QPointF &pos, const QMimeData *
 
         m.commit();
     }
+}
 }

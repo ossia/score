@@ -22,12 +22,15 @@
 #include <iscore/tools/TreeNode.hpp>
 #include <iscore/tools/TreeNodeItemModel.hpp>
 
-class StateModel;
 namespace iscore {
 class CommandStackFacade;
 }  // namespace iscore
 
 using namespace iscore;
+
+namespace Scenario
+{
+class StateModel;
 MessageItemModel::MessageItemModel(
         CommandStackFacade& stack,
         const StateModel& sm,
@@ -220,7 +223,7 @@ bool MessageItemModel::dropMimeData(
                 QJsonDocument::fromJson(data->data(iscore::mime::messagelist())).array(),
                 ml);
 
-    auto cmd = new AddMessagesToState{*this, ml};
+    auto cmd = new Command::AddMessagesToState{*this, ml};
 
     CommandDispatcher<> disp(m_stack);
     disp.submitCommand(cmd);
@@ -286,7 +289,7 @@ bool MessageItemModel::setData(
             {
                 State::convert::convert(*current_val, value);
             }
-            auto cmd = new AddMessagesToState{*this,
+            auto cmd = new Command::AddMessagesToState{*this,
                                      State::MessageList{{address(n), value}}};
 
             CommandDispatcher<> disp(m_stack);
@@ -296,4 +299,5 @@ bool MessageItemModel::setData(
     }
 
     return false;
+}
 }

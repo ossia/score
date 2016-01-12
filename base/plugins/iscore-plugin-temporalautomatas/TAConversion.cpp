@@ -200,7 +200,7 @@ void insert(TA::ScenarioContent& source, TA::ScenarioContent& dest)
 
 template<typename T>
 void visitProcesses(
-        const ConstraintModel& c,
+        const Scenario::ConstraintModel& c,
         const T& ta_cst,
         TA::ScenarioContent& content)
 {
@@ -222,8 +222,9 @@ void visitProcesses(
     }
 }
 
-QString makeScenario(const ConstraintModel &c)
+QString makeScenario(const Scenario::ConstraintModel &c)
 {
+    using namespace Scenario;
     // Our register of elements
     ScenarioContent baseContent;
 
@@ -300,26 +301,10 @@ const char* TAVisitor::space() const
     return qPrintable(QString(depth, '-'));
 }
 
-void TAVisitor::visit(const AutomationModel &automation)
-{
-    /*
-    automation.duration(); // In ms
-    automation.address();
-    automation.min();
-    automation.max();
 
-    for(const auto& segment : Curve::orderedSegments(automation.curve()))
-    {
-        //segment.start; // x, y
-        //segment.end;
-        //segment.previous; // id of previous segment
-        //segment.following; // id of following segment
-    }
-    */
-}
-
-void TAVisitor::visit(const TimeNodeModel &timenode)
+void TAVisitor::visit(const Scenario::TimeNodeModel &timenode)
 {
+    using namespace Scenario;
     // First we create a point for the timenode. The ingoing
     // constraints will end on this point.
 
@@ -453,8 +438,9 @@ void TAVisitor::visit(const TimeNodeModel &timenode)
     scenario.points.push_back(tn_point);
 }
 
-void TAVisitor::visit(const EventModel &event)
+void TAVisitor::visit(const Scenario::EventModel &event)
 {
+    using namespace Scenario;
     const auto& timenode = parentTimeNode(event, scenario.iscore_scenario);
     QString tn_name = name(timenode);
     auto it = find_if(scenario.points, [&] (const auto& point ) { return point.name == tn_name; });
@@ -510,12 +496,13 @@ void TAVisitor::visit(const EventModel &event)
     // the end of the flexible created in the timenode pass
 }
 
-void TAVisitor::visit(const StateModel &state)
+void TAVisitor::visit(const Scenario::StateModel &state)
 {
 }
 
 void TAVisitor::visit(const Scenario::ScenarioModel &s)
 {
+    using namespace Scenario;
     const auto& eev = s.endEvent();
     const auto& eev_id = eev.id();
     const auto& etn_id = eev.timeNode();
@@ -542,8 +529,9 @@ void TAVisitor::visit(const Scenario::ScenarioModel &s)
     }
 }
 
-void TAVisitor::visit(const ConstraintModel &c)
+void TAVisitor::visit(const Scenario::ConstraintModel &c)
 {
+    using namespace Scenario;
     QString start_event_name = name(startEvent(c, scenario.iscore_scenario));
 
     const TimeNodeModel& end_node = endTimeNode(c, scenario.iscore_scenario);

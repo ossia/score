@@ -21,9 +21,9 @@
 #include <iscore/statemachine/GraphicsSceneToolPalette.hpp>
 #include <iscore/tools/SettableIdentifier.hpp>
 
-namespace Scenario {
+namespace Scenario
+{
 class EditionSettings;
-}  // namespace Scenario
 
 Scenario::Point BaseScenarioDisplayedElementsToolPalette::ScenePointToScenarioPoint(QPointF point)
 {
@@ -98,4 +98,5 @@ void BaseScenarioDisplayedElementsToolPalette::on_released(QPointF point)
 void BaseScenarioDisplayedElementsToolPalette::on_cancel()
 {
     m_state.on_cancel();
+}
 }

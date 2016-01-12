@@ -22,7 +22,7 @@
 
 #include <Automation/AutomationModel.hpp>
 void CreateCurves(
-        const QList<const ConstraintModel*>& selected_constraints,
+        const QList<const Scenario::ConstraintModel*>& selected_constraints,
         iscore::CommandStackFacade& stack)
 {
     if(selected_constraints.empty())
@@ -62,18 +62,18 @@ void CreateCurves(
 
     int added_processes = 0;
     // Then create the commands
-    auto big_macro = new AddMultipleProcessesToMultipleConstraintsMacro;
+    auto big_macro = new Scenario::Command::AddMultipleProcessesToMultipleConstraintsMacro;
 
     for(const auto& constraint : selected_constraints)
     {
         // Generate brand new ids for the processes
         auto process_ids = getStrongIdRange<Process::ProcessModel>(addresses.size(), constraint->processes);
-        auto macro_tuple = makeAddProcessMacro(*constraint, addresses.size());
+        auto macro_tuple = Scenario::Command::makeAddProcessMacro(*constraint, addresses.size());
         auto macro = std::get<0>(macro_tuple);
         auto& bigLayerVec = std::get<1>(macro_tuple);
 
-        Path<ConstraintModel> constraintPath{*constraint};
-        const StateModel& ss = startState(*constraint, *scenar);
+        Path<Scenario::ConstraintModel> constraintPath{*constraint};
+        const Scenario::StateModel& ss = startState(*constraint, *scenar);
         const auto& es = endState(*constraint, *scenar);
 
         std::vector<State::Address> existing_automations;
@@ -131,8 +131,8 @@ void CreateCurves(
             }
 
             // Send the command.
-            macro->addCommand(new CreateCurveFromStates{
-                                  Path<ConstraintModel>{constraintPath},
+            macro->addCommand(new Scenario::Command::CreateCurveFromStates{
+                                  Path<Scenario::ConstraintModel>{constraintPath},
                                   bigLayerVec[i],
                                   process_ids[i],
                                   as.address,

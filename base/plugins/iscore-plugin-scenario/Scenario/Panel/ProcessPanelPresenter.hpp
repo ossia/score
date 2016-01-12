@@ -14,6 +14,8 @@ namespace iscore {
 class PanelView;
 }  // namespace iscore
 
+namespace Scenario
+{
 class ProcessPanelPresenter final : public iscore::PanelPresenter
 {
     public:
@@ -37,3 +39,4 @@ class ProcessPanelPresenter final : public iscore::PanelPresenter
         Process::LayerModelPanelProxy* m_proxy{};
 
 };
+}

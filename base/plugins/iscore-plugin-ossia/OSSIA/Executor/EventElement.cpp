@@ -11,7 +11,7 @@ namespace RecreateOnPlay
 {
 EventElement::EventElement(
         std::shared_ptr<OSSIA::TimeEvent> event,
-        const EventModel &element,
+        const Scenario::EventModel &element,
         const DeviceList& deviceList,
         QObject* parent):
     QObject{parent},

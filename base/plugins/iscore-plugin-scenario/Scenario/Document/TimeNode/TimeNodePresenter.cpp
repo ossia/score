@@ -12,6 +12,8 @@
 class QObject;
 #include <iscore/tools/SettableIdentifier.hpp>
 
+namespace Scenario
+{
 TimeNodePresenter::TimeNodePresenter(const TimeNodeModel& model,
                                      QGraphicsObject *parentview,
                                      QObject* parent) :
@@ -58,5 +60,5 @@ void TimeNodePresenter::on_eventAdded(const Id<EventModel>& eventId)
 {
     emit eventAdded(eventId, m_model.id());
 }
-
+}
 

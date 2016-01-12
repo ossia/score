@@ -9,6 +9,8 @@
 
 #include <Scenario/Document/CommentBlock/CommentBlockPresenter.hpp>
 
+namespace Scenario
+{
 CommentBlockView::CommentBlockView(
         CommentBlockPresenter& presenter,
         QGraphicsObject* parent):
@@ -106,4 +108,4 @@ void CommentBlockView::SetTextInteraction(bool on, bool selectAll)
         emit m_presenter.editFinished(m_textItem->document()->toHtml());
     }
 }
-
+}

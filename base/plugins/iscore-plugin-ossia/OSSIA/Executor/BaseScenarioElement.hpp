@@ -3,7 +3,10 @@
 #include <QObject>
 
 
+namespace Scenario
+{
 class BaseScenario;
+}
 class DeviceList;
 namespace RecreateOnPlay {
 class ConstraintElement;
@@ -20,7 +23,7 @@ class BaseScenarioElement final : public QObject
 {
     public:
         BaseScenarioElement(
-                const BaseScenario& element,
+                const Scenario::BaseScenario& element,
                 const Context&,
                 QObject* parent);
 

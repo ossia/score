@@ -40,12 +40,12 @@ void Visitor<Writer<DataStream>>::writeTo(Loop::Layer& lm)
 
     // Deserialize the identifier - it's not required since
     // we know the constraint but we have to advance the stream
-    Id<ConstraintModel> constraint_model_id;
+    Id<Scenario::ConstraintModel> constraint_model_id;
     m_stream >> constraint_model_id;
     auto& constraint = lm.model().constraint();
 
     // Make it
-    auto viewmodel =  new TemporalConstraintViewModel{
+    auto viewmodel =  new Scenario::TemporalConstraintViewModel{
             *this,
             constraint,
             &lm};
@@ -76,7 +76,7 @@ void Visitor<Writer<JSONObject>>::writeTo(Loop::Layer& lm)
     auto& constraint = lm.model().constraint();
 
     // Make it
-    auto viewmodel = new TemporalConstraintViewModel{
+    auto viewmodel = new Scenario::TemporalConstraintViewModel{
             deserializer,
             constraint,
             &lm};

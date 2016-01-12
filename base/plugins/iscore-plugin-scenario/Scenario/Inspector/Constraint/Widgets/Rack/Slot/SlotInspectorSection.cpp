@@ -30,8 +30,8 @@
 #include <iscore/tools/SettableIdentifier.hpp>
 #include <iscore/tools/Todo.hpp>
 
-using namespace Scenario::Command;
-
+namespace Scenario
+{
 SlotInspectorSection::SlotInspectorSection(
         const QString& name,
         const SlotModel& slot,
@@ -69,7 +69,7 @@ SlotInspectorSection::SlotInspectorSection(
     auto deleteButton = new QPushButton{"Delete"};
     connect(deleteButton, &QPushButton::pressed, this, [&] ()
     {
-        auto cmd = new RemoveSlotFromRack{m_model};
+        auto cmd = new Command::RemoveSlotFromRack{m_model};
         emit m_parent->commandDispatcher()->submitCommand(cmd);
     });
 
@@ -82,7 +82,7 @@ SlotInspectorSection::SlotInspectorSection(
 void SlotInspectorSection::createLayerModel(
         const Id<Process::ProcessModel>& sharedProcessModelId)
 {
-    auto cmd = new AddLayerModelToSlot{
+    auto cmd = new Command::AddLayerModelToSlot{
                 m_model,
                 m_model.parentConstraint().processes.at(sharedProcessModelId)};
 
@@ -122,7 +122,7 @@ void SlotInspectorSection::displayLayerModel(const Process::LayerModel& lm)
     auto deleteButton = new QPushButton{{tr("Delete")}};
     connect(deleteButton, &QPushButton::pressed, this, [=] ()
     {
-        auto cmd = new RemoveLayerModelFromSlot{m_model, lm_id};
+        auto cmd = new Command::RemoveLayerModelFromSlot{m_model, lm_id};
         emit m_parent->commandDispatcher()->submitCommand(cmd);
     });
     lay->addWidget(deleteButton, 1, 1);
@@ -162,7 +162,8 @@ void SlotInspectorSection::ask_changeName(QString newName)
 
     if(newName != m_model.metadata.name())
     {
-        auto cmd = new ChangeElementName<SlotModel>{m_model, newName};
+        auto cmd = new Command::ChangeElementName<SlotModel>{m_model, newName};
         emit m_parent->commandDispatcher()->submitCommand(cmd);
     }
+}
 }
