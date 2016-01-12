@@ -29,6 +29,8 @@ option(DEFINE_ISCORE_SCENARIO_DEBUG_RECTS "Enable to have debug rects around ele
 
 option(ISCORE_COVERAGE "Enable coverage" OFF)
 
+include("${ISCORE_CONFIGURATION}")
+
 if(ISCORE_STATIC_EVERYTHING)
   set(ISCORE_STATIC_QT True)
   if(UNIX AND NOT APPLE)
