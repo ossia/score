@@ -11,5 +11,5 @@ export CTEST_OUTPUT_ON_FAILURE=1
 mkdir build
 cd build
 
-source "configs/$CONF.sh"
+source "tools/travis/configs/$CONF.sh"
 
