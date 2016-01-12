@@ -2,7 +2,7 @@ cmake_minimum_required(VERSION 3.1)
 project(iscore_component_executor_loop LANGUAGES CXX)
 
 iscore_common_setup()
-set(Dependencies
+set(DEPS
       iscore_lib_base
       iscore_lib_process
       iscore_lib_device
@@ -11,12 +11,6 @@ set(Dependencies
       iscore_plugin_scenario
       iscore_plugin_loop
       )
-foreach(target ${Dependencies})
-  if(NOT TARGET ${target})
-    return()
-  endif()
-endforeach()
-
 
 set(HDRS
 "${CMAKE_CURRENT_SOURCE_DIR}/Executor/Loop/Component.hpp"
@@ -25,13 +19,4 @@ set(SRCS
 "${CMAKE_CURRENT_SOURCE_DIR}/Executor/Loop/Component.cpp"
 )
 
-iscore_generate_plugin_file(${PROJECT_NAME} ${HDRS})
-add_library(${PROJECT_NAME}
-    ${SRCS} ${HDRS}
-    "${CMAKE_CURRENT_BINARY_DIR}/${PROJECT_NAME}_plugin.cpp"
-    "${CMAKE_CURRENT_BINARY_DIR}/${PROJECT_NAME}_plugin.hpp"
-    )
-
-target_link_libraries(${PROJECT_NAME} PRIVATE ${Dependencies})
-
-setup_iscore_plugin(${PROJECT_NAME})
+iscore_add_component("${PROJECT_NAME}" "${SRCS}" "${HDRS}" "${DEPS}")

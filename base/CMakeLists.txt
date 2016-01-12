@@ -6,6 +6,10 @@ enable_testing()
 add_subdirectory(lib)
 add_subdirectory(plugins)
 
+if(ISCORE_MERGE_COMPONENTS)
+  add_subdirectory(component-wrapper)
+endif()
+
 if(ANDROID)
     add_subdirectory(app-android)
 elseif(NACL)

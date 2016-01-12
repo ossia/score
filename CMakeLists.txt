@@ -34,6 +34,7 @@ add_subdirectory("${3RDPARTY_FOLDER}/QProgressIndicator")
 add_subdirectory("${3RDPARTY_FOLDER}/QRecentFilesMenu")
 
 set(ISCORE_PLUGINS_LIST CACHE INTERNAL "List of plugins") # todo libraries, components ?
+set(ISCORE_GLOBAL_COMPONENTS_LIST CACHE INTERNAL "List of components") # todo libraries, components ?
 
 add_subdirectory(base)
 
