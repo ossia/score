@@ -7,8 +7,10 @@
 #include <kiwi/kiwi.h>
 #include <Scenario/Process/Algorithms/Accessors.hpp>
 
-CSPTimeRelation::CSPTimeRelation(CSPScenario& cspScenario, const Id<ConstraintModel>& constraintId)
-    :CSPConstraintHolder::CSPConstraintHolder(cspScenario.getSolver(), &cspScenario)
+CSPTimeRelation::CSPTimeRelation(
+        CSPScenario& cspScenario,
+        const Id<Scenario::ConstraintModel>& constraintId):
+    CSPConstraintHolder::CSPConstraintHolder(cspScenario.getSolver(), &cspScenario)
 {
     qDebug("coucou");
     this->setParent(&cspScenario);
@@ -56,8 +58,10 @@ CSPTimeRelation::CSPTimeRelation(CSPScenario& cspScenario, const Id<ConstraintMo
     }
 
     // watch over durations edits
-    con(constraint.duration, &ConstraintDurations::minDurationChanged, this, &CSPTimeRelation::onMinDurationChanged);
-    con(constraint.duration, &ConstraintDurations::maxDurationChanged, this, &CSPTimeRelation::onMaxDurationChanged);
+    con(constraint.duration, &Scenario::ConstraintDurations::minDurationChanged,
+        this, &CSPTimeRelation::onMinDurationChanged);
+    con(constraint.duration, &Scenario::ConstraintDurations::maxDurationChanged,
+        this, &CSPTimeRelation::onMaxDurationChanged);
 
     // watch over potential subscenarios
     constraint.processes.added.connect<CSPTimeRelation, &CSPTimeRelation::onProcessCreated>(this);

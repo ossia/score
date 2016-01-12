@@ -10,6 +10,9 @@ class QGraphicsSceneMouseEvent;
 class QKeyEvent;
 class QMimeData;
 class QPainter;
+
+namespace Scenario
+{
 class TemporalScenarioPresenter;
 
 class TemporalScenarioView final :
@@ -78,3 +81,4 @@ class TemporalScenarioView final :
         bool m_lock {};
         TemporalScenarioPresenter* m_pres{};
 };
+}

@@ -19,7 +19,7 @@ class ConstraintComponentHierarchyManager : public Nano::Observer
     public:
         ConstraintComponentHierarchyManager(
                 Component_T& component,
-                ConstraintModel& cst,
+                Scenario::ConstraintModel& cst,
                 const System_T& doc,
                 const iscore::DocumentContext& ctx,
                 QObject* component_as_parent):
@@ -90,7 +90,7 @@ class ConstraintComponentHierarchyManager : public Nano::Observer
         }
 
     private:
-        ConstraintModel& m_constraint;
+        Scenario::ConstraintModel& m_constraint;
         Component_T& m_component;
         const ProcessComponentFactoryList_T& m_componentFactory;
         const System_T& m_system;

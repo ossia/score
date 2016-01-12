@@ -5,18 +5,22 @@
 #include <Scenario/Document/TimeRuler/LocalTimeRuler/LocalTimeRulerView.hpp>
 
 class QObject;
-
-LocalTimeRulerPresenter::LocalTimeRulerPresenter(LocalTimeRulerView *view, QObject *parent) :
+namespace Scenario
+{
+LocalTimeRulerPresenter::LocalTimeRulerPresenter(
+        LocalTimeRulerView *view,
+        QObject *parent) :
     AbstractTimeRuler{view, parent}
 {
 
 }
 
-LocalTimeRulerPresenter::LocalTimeRulerPresenter(LocalTimeRulerView *view,
-                                                 TimeValue startDate,
-                                                 TimeValue duration,
-                                                 double pixPerMillis,
-                                                 QObject *parent) :
+LocalTimeRulerPresenter::LocalTimeRulerPresenter(
+        LocalTimeRulerView *view,
+        TimeValue startDate,
+        TimeValue duration,
+        double pixPerMillis,
+        QObject *parent) :
     LocalTimeRulerPresenter{view, parent}
 {
     m_startPoint = startDate;
@@ -36,4 +40,4 @@ void LocalTimeRulerPresenter::setStartPoint(TimeValue dur)
         m_view->setX((m_startPoint).msec() * m_pixelPerMillis + m_totalScroll);
     }
 }
-
+}

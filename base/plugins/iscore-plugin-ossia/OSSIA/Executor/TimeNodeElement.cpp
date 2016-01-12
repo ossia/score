@@ -12,7 +12,7 @@ namespace RecreateOnPlay
 {
 TimeNodeElement::TimeNodeElement(
         std::shared_ptr<OSSIA::TimeNode> ossia_tn,
-        const TimeNodeModel& element,
+        const Scenario::TimeNodeModel& element,
         const DeviceList& devlist,
         QObject* parent):
     QObject{parent},
@@ -32,7 +32,7 @@ TimeNodeElement::TimeNodeElement(
         m_ossia_node->setExpression(OSSIA::Expression::create(true));
     }
 
-    connect(m_iscore_node.trigger(), &TriggerModel::triggered,
+    connect(m_iscore_node.trigger(), &Scenario::TriggerModel::triggered,
             this, [&] () {
         try {
         m_ossia_node->trigger();

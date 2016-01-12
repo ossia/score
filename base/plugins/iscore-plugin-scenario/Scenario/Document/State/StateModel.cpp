@@ -23,7 +23,7 @@
 
 */
 
-ISCORE_METADATA_IMPL(StateModel)
+ISCORE_METADATA_IMPL(Scenario::StateModel)
 namespace Scenario
 {
 StateModel::StateModel(

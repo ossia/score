@@ -10,7 +10,6 @@
 #include <OSSIA/Executor/ProcessWrapper.hpp>
 #include <iscore_plugin_ossia_export.h>
 
-class ConstraintModel;
 namespace Process { class ProcessModel; }
 namespace iscore
 {
@@ -22,6 +21,10 @@ class Loop;
 class StateElement;
 class TimeConstraint;
 }
+namespace Scenario
+{
+class ConstraintModel;
+}
 
 namespace RecreateOnPlay
 {
@@ -32,12 +35,12 @@ class ISCORE_PLUGIN_OSSIA_EXPORT ConstraintElement final : public QObject
     public:
         ConstraintElement(
                 std::shared_ptr<OSSIA::TimeConstraint> ossia_cst,
-                ConstraintModel& iscore_cst,
+                Scenario::ConstraintModel& iscore_cst,
                 const Context &ctx,
                 QObject* parent);
 
         std::shared_ptr<OSSIA::TimeConstraint> OSSIAConstraint() const;
-        ConstraintModel& iscoreConstraint() const;
+        Scenario::ConstraintModel& iscoreConstraint() const;
 
         void play(TimeValue t = TimeValue::zero());
         void stop();
@@ -53,7 +56,7 @@ class ISCORE_PLUGIN_OSSIA_EXPORT ConstraintElement final : public QObject
                 const OSSIA::TimeValue& date,
                 const std::shared_ptr<OSSIA::StateElement>& state);
 
-        ConstraintModel& m_iscore_constraint;
+        Scenario::ConstraintModel& m_iscore_constraint;
         std::shared_ptr<OSSIA::TimeConstraint> m_ossia_constraint;
 
         std::map<Id<Process::ProcessModel>, OSSIAProcess> m_processes;

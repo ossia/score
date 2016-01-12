@@ -6,8 +6,6 @@
 #include <QString>
 #include <memory>
 
-class ConstraintInspectorDelegate;
-class ConstraintModel;
 class InspectorWidgetBase;
 class QObject;
 class QWidget;
@@ -15,17 +13,24 @@ namespace iscore {
 class Document;
 }  // namespace iscore
 
+namespace Scenario
+{
+class ConstraintInspectorDelegate;
+class ConstraintModel;
+}
 namespace Loop
 {
 // TODO Clean this file
-class ConstraintInspectorDelegateFactory : public ::ConstraintInspectorDelegateFactory
+class ConstraintInspectorDelegateFactory : public Scenario::ConstraintInspectorDelegateFactory
 {
     public:
         virtual ~ConstraintInspectorDelegateFactory();
 
-        std::unique_ptr<::ConstraintInspectorDelegate> make(const ConstraintModel& constraint) override;
+        std::unique_ptr<Scenario::ConstraintInspectorDelegate> make(
+                const Scenario::ConstraintModel& constraint) override;
 
-        bool matches(const ConstraintModel& constraint) const override;
+        bool matches(
+                const Scenario::ConstraintModel& constraint) const override;
 };
 
 class InspectorFactory final : public ProcessInspectorWidgetDelegateFactory

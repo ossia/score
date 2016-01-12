@@ -46,6 +46,8 @@ class DocumentPresenter;
 
 using namespace iscore;
 
+namespace Scenario
+{
 const ScenarioDocumentModel& ScenarioDocumentPresenter::model() const
 {
     return static_cast<const ScenarioDocumentModel&>(m_model);
@@ -317,4 +319,5 @@ void ScenarioDocumentPresenter::updateZoom(ZoomRatio newZoom, QPointF focus)
     // TODO should call displayedElementsPresenter instead??
     displayedConstraint().fullView()->setZoom(m_zoomRatio);
     displayedConstraint().fullView()->setCenter(new_visible_scene_rect.center());
+}
 }

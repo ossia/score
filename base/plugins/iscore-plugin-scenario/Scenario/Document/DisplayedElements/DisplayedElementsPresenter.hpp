@@ -6,13 +6,15 @@
 
 #include <vector>
 
+namespace Process { class LayerPresenter; }
+
 class BaseGraphicsObject;
+namespace Scenario
+{
+class FullViewConstraintPresenter;
+class ScenarioDocumentPresenter;
 class ConstraintModel;
 class DisplayedElementsModel;
-class FullViewConstraintPresenter;
-namespace Process { class LayerPresenter; }
-class ScenarioDocumentPresenter;
-
 // Contains the elements that are shown (not necessarily the ones in
 // BaseScenarioModel)
 class DisplayedElementsPresenter final :
@@ -45,3 +47,4 @@ class DisplayedElementsPresenter final :
 
         std::vector<QMetaObject::Connection> m_connections;
 };
+}

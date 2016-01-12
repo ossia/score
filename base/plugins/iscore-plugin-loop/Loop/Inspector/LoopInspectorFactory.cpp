@@ -35,14 +35,14 @@ class QWidget;
 // TODO cleanup this file
 namespace Loop
 {
-class ConstraintInspectorDelegate final : public ::ConstraintInspectorDelegate
+class ConstraintInspectorDelegate final : public Scenario::ConstraintInspectorDelegate
 {
     public:
-        ConstraintInspectorDelegate(const ConstraintModel& cst);
+        ConstraintInspectorDelegate(const Scenario::ConstraintModel& cst);
 
         void updateElements() override;
-        void addWidgets_pre(std::list<QWidget*>& widgets, ConstraintInspectorWidget* parent) override;
-        void addWidgets_post(std::list<QWidget*>& widgets, ConstraintInspectorWidget* parent) override;
+        void addWidgets_pre(std::list<QWidget*>& widgets, Scenario::ConstraintInspectorWidget* parent) override;
+        void addWidgets_post(std::list<QWidget*>& widgets, Scenario::ConstraintInspectorWidget* parent) override;
 
         void on_defaultDurationChanged(
                 OngoingCommandDispatcher& dispatcher,
@@ -52,8 +52,8 @@ class ConstraintInspectorDelegate final : public ::ConstraintInspectorDelegate
 
 
 ConstraintInspectorDelegate::ConstraintInspectorDelegate(
-        const ConstraintModel& cst):
-    ::ConstraintInspectorDelegate{cst}
+        const Scenario::ConstraintModel& cst):
+    Scenario::ConstraintInspectorDelegate{cst}
 {
 }
 
@@ -63,13 +63,13 @@ void ConstraintInspectorDelegate::updateElements()
 
 void ConstraintInspectorDelegate::addWidgets_pre(
         std::list<QWidget*>& widgets,
-        ConstraintInspectorWidget* parent)
+        Scenario::ConstraintInspectorWidget* parent)
 {
 }
 
 void ConstraintInspectorDelegate::addWidgets_post(
         std::list<QWidget*>& widgets,
-        ConstraintInspectorWidget* parent)
+        Scenario::ConstraintInspectorWidget* parent)
 {
 }
 
@@ -79,7 +79,7 @@ void ConstraintInspectorDelegate::on_defaultDurationChanged(
         ExpandMode expandmode) const
 {
     auto& loop = *safe_cast<Loop::ProcessModel*>(m_model.parent());
-    dispatcher.submitCommand<MoveBaseEvent<Loop::ProcessModel>>(
+    dispatcher.submitCommand<Scenario::Command::MoveBaseEvent<Loop::ProcessModel>>(
             loop,
             loop.state(m_model.endState()).eventId(),
             m_model.startDate() + val,
@@ -95,14 +95,14 @@ ConstraintInspectorDelegateFactory::~ConstraintInspectorDelegateFactory()
 
 }
 
-std::unique_ptr<::ConstraintInspectorDelegate> ConstraintInspectorDelegateFactory::make(
-        const ConstraintModel& constraint)
+std::unique_ptr<Scenario::ConstraintInspectorDelegate> ConstraintInspectorDelegateFactory::make(
+        const Scenario::ConstraintModel& constraint)
 {
-    return std::make_unique<ConstraintInspectorDelegate>(constraint);
+    return std::make_unique<Loop::ConstraintInspectorDelegate>(constraint);
 }
 
 bool ConstraintInspectorDelegateFactory::matches(
-        const ConstraintModel& constraint) const
+        const Scenario::ConstraintModel& constraint) const
 {
     return dynamic_cast<Loop::ProcessModel*>(constraint.parent());
 }

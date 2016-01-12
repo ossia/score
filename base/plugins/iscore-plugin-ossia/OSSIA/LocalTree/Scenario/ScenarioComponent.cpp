@@ -24,9 +24,9 @@ ScenarioComponent::ScenarioComponent(
 }
 
 template<>
-ConstraintComponent* ScenarioComponent::make<ConstraintComponent, ConstraintModel>(
+ConstraintComponent* ScenarioComponent::make<ConstraintComponent, Scenario::ConstraintModel>(
         const Id<iscore::Component>& id,
-        ConstraintModel& elt,
+        Scenario::ConstraintModel& elt,
         const ScenarioComponent::system_t& doc,
         const iscore::DocumentContext& ctx,
         QObject* parent)
@@ -35,9 +35,9 @@ ConstraintComponent* ScenarioComponent::make<ConstraintComponent, ConstraintMode
 }
 
 template<>
-EventComponent* ScenarioComponent::make<EventComponent, EventModel>(
+EventComponent* ScenarioComponent::make<EventComponent, Scenario::EventModel>(
         const Id<iscore::Component>& id,
-        EventModel& elt,
+        Scenario::EventModel& elt,
         const ScenarioComponent::system_t& doc,
         const iscore::DocumentContext& ctx,
         QObject* parent)
@@ -46,9 +46,9 @@ EventComponent* ScenarioComponent::make<EventComponent, EventModel>(
 }
 
 template<>
-TimeNodeComponent* ScenarioComponent::make<TimeNodeComponent, TimeNodeModel>(
+TimeNodeComponent* ScenarioComponent::make<TimeNodeComponent, Scenario::TimeNodeModel>(
         const Id<iscore::Component>& id,
-        TimeNodeModel& elt,
+        Scenario::TimeNodeModel& elt,
         const ScenarioComponent::system_t& doc,
         const iscore::DocumentContext& ctx,
         QObject* parent)
@@ -57,9 +57,9 @@ TimeNodeComponent* ScenarioComponent::make<TimeNodeComponent, TimeNodeModel>(
 }
 
 template<>
-StateComponent* ScenarioComponent::make<StateComponent, StateModel>(
+StateComponent* ScenarioComponent::make<StateComponent, Scenario::StateModel>(
         const Id<iscore::Component>& id,
-        StateModel& elt,
+        Scenario::StateModel& elt,
         const ScenarioComponent::system_t& doc,
         const iscore::DocumentContext& ctx,
         QObject* parent)
@@ -67,7 +67,7 @@ StateComponent* ScenarioComponent::make<StateComponent, StateModel>(
     return new StateComponent{*m_statesNode, id, elt, doc, ctx, parent};
 }
 
-void ScenarioComponent::removing(const ConstraintModel& elt, const ConstraintComponent& comp)
+void ScenarioComponent::removing(const Scenario::ConstraintModel& elt, const ConstraintComponent& comp)
 {
     auto it = find_if(m_constraintsNode->children(), [&] (const auto& node)
     { return node == comp.node(); });
@@ -76,7 +76,7 @@ void ScenarioComponent::removing(const ConstraintModel& elt, const ConstraintCom
     m_constraintsNode->eraseAndNotify(it);
 }
 
-void ScenarioComponent::removing(const EventModel& elt, const EventComponent& comp)
+void ScenarioComponent::removing(const Scenario::EventModel& elt, const EventComponent& comp)
 {
     auto it = find_if(m_eventsNode->children(), [&] (const auto& node)
     { return node == comp.node(); });
@@ -85,7 +85,7 @@ void ScenarioComponent::removing(const EventModel& elt, const EventComponent& co
     m_eventsNode->eraseAndNotify(it);
 }
 
-void ScenarioComponent::removing(const TimeNodeModel& elt, const TimeNodeComponent& comp)
+void ScenarioComponent::removing(const Scenario::TimeNodeModel& elt, const TimeNodeComponent& comp)
 {
     auto it = find_if(m_timeNodesNode->children(), [&] (const auto& node)
     { return node == comp.node(); });
@@ -94,7 +94,7 @@ void ScenarioComponent::removing(const TimeNodeModel& elt, const TimeNodeCompone
     m_timeNodesNode->eraseAndNotify(it);
 }
 
-void ScenarioComponent::removing(const StateModel& elt, const StateComponent& comp)
+void ScenarioComponent::removing(const Scenario::StateModel& elt, const StateComponent& comp)
 {
     auto it = find_if(m_statesNode->children(), [&] (const auto& node)
     { return node == comp.node(); });

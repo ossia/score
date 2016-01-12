@@ -19,7 +19,10 @@
 #include "RackWidget.hpp"
 #include <iscore/tools/SettableIdentifier.hpp>
 
+namespace Scenario
+{
 const QString RackWidget::hiddenText{ QObject::tr("Hide")};
+
 
 RackWidget::RackWidget(ConstraintInspectorWidget* parent) :
     QWidget {parent},
@@ -130,4 +133,5 @@ void RackWidget::updateComboBox(LambdaFriendlyQComboBox* combobox, ConstraintVie
             }
         }
     });
+}
 }

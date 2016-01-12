@@ -12,7 +12,7 @@
 #include <iscore/tools/IdentifiedObject.hpp>
 #include <iscore/tools/SettableIdentifier.hpp>
 
-ISCORE_METADATA_IMPL(TimeNodeModel)
+ISCORE_METADATA_IMPL(Scenario::TimeNodeModel)
 namespace Scenario
 {
 TimeNodeModel::TimeNodeModel(

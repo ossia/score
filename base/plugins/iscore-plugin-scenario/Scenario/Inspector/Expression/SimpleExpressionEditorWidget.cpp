@@ -12,6 +12,8 @@
 #include <Scenario/Inspector/ExpressionValidator.hpp>
 #include "SimpleExpressionEditorWidget.hpp"
 
+namespace Scenario
+{
 SimpleExpressionEditorWidget::SimpleExpressionEditorWidget(int index, QWidget* parent):
     QWidget(parent),
     id{index}
@@ -242,4 +244,4 @@ QString SimpleExpressionEditorWidget::currentOperator()
 {
     return m_binOperator->currentText();
 }
-
+}

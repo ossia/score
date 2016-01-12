@@ -11,6 +11,8 @@ namespace iscore {
 class Document;
 }  // namespace iscore
 
+namespace Scenario
+{
 InspectorWidgetBase* EventInspectorFactory::makeWidget(
         const QObject& sourceElement,
         const iscore::DocumentContext& doc,
@@ -26,4 +28,5 @@ const QList<QString>&EventInspectorFactory::key_impl() const
 {
     static const QList<QString> list{"EventModel"};
     return list;
+}
 }

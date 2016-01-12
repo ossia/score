@@ -9,9 +9,9 @@ class DataStreamOutput;
 
 namespace Scenario
 {
+class EventModel;
 namespace Command
 {
-class EventModel;
 class SetCondition final : public iscore::SerializableCommand
 {
         ISCORE_COMMAND_DECL(ScenarioCommandFactoryName(), SetCondition, "Set an Event's condition")

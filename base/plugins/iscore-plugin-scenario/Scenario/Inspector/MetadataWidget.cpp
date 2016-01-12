@@ -16,7 +16,8 @@
 
 class QObject;
 
-
+namespace Scenario
+{
 MetadataWidget::MetadataWidget(
         const ModelMetadata* metadata,
         CommandDispatcher<>* m,
@@ -150,4 +151,5 @@ void MetadataWidget::updateAsked()
     m_colorButtonPixmap.fill(m_metadata->color());
     m_colorButton->setIcon(QIcon(m_colorButtonPixmap));
     // m_currentColor = newColor;
+}
 }

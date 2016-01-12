@@ -7,10 +7,11 @@
 #include "ScenarioConstraintInspectorDelegate.hpp"
 #include <iscore/command/Dispatchers/OngoingCommandDispatcher.hpp>
 
-class ConstraintInspectorWidget;
 class QWidget;
 
-
+namespace Scenario
+{
+class ConstraintInspectorWidget;
 ScenarioConstraintInspectorDelegate::ScenarioConstraintInspectorDelegate(
         const ConstraintModel& cst):
     ConstraintInspectorDelegate{cst}
@@ -39,10 +40,10 @@ void ScenarioConstraintInspectorDelegate::on_defaultDurationChanged(
         ExpandMode expandmode) const
 {
     auto& scenario = *safe_cast<Scenario::ScenarioModel*>(m_model.parent());
-    dispatcher.submitCommand<MoveEventMeta>(
+    dispatcher.submitCommand<Command::MoveEventMeta>(
             scenario,
             scenario.state(m_model.endState()).eventId(),
             m_model.startDate() + val,
             expandmode);
 }
-
+}

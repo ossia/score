@@ -29,6 +29,8 @@
 
 using namespace iscore;
 
+namespace Scenario
+{
 DurationSectionWidget::DurationSectionWidget(
         const Scenario::EditionSettings& set,
         const ConstraintInspectorDelegate& delegate,
@@ -202,7 +204,7 @@ void DurationSectionWidget::on_modelMinDurationChanged(const TimeValue& dur)
 }
 
 void DurationSectionWidget::on_modelMaxDurationChanged(const TimeValue& dur)
-{   
+{
     if (dur.toQTime() == m_maxSpin->time())
         return;
 
@@ -265,4 +267,6 @@ void DurationSectionWidget::on_maxFiniteToggled(bool val)
 
 DurationSectionWidget::~DurationSectionWidget()
 {
+}
+
 }

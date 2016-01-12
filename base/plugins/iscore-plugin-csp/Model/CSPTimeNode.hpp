@@ -12,7 +12,10 @@
 
 class CSPDisplacementPolicy;
 
+namespace Scenario
+{
 class TimeNodeModel;
+}
 
 class CSPTimeNode : public CSPConstraintHolder
 {
@@ -20,7 +23,7 @@ class CSPTimeNode : public CSPConstraintHolder
     friend class CSPFlexDisplacementPolicy;
 
 public:
-    CSPTimeNode(CSPScenario& cspScenario, const Id<TimeNodeModel>& timeNodeId);
+    CSPTimeNode(CSPScenario& cspScenario, const Id<Scenario::TimeNodeModel>& timeNodeId);
 
     CSPTimeNode() = default;
 

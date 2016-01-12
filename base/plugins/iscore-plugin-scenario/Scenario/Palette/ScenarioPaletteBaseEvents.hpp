@@ -4,13 +4,6 @@
 
 #include <iscore/tools/Clamp.hpp>
 
-class TimeNodeModel;
-class EventModel;
-class ConstraintModel;
-class StateModel;
-class SlotModel;
-class TriggerModel;
-
 namespace iscore
 {
 template<>
@@ -33,6 +26,13 @@ struct PositionedEvent<Scenario::Point> : public QEvent
 
 namespace Scenario
 {
+class TimeNodeModel;
+class EventModel;
+class ConstraintModel;
+class StateModel;
+class SlotModel;
+class TriggerModel;
+
 
 // We avoid virtual inheritance (with Numbered event);
 // this replicates a tiny bit of code.

@@ -4,7 +4,8 @@
 #include <iscore/selection/Selection.hpp>
 
 class QObject;
-
+namespace Scenario
+{
 class ProcessPanelModel final : public iscore::PanelModel
 {
     public:
@@ -13,3 +14,4 @@ class ProcessPanelModel final : public iscore::PanelModel
 
         void setNewSelection(const Selection&) override;
 };
+}

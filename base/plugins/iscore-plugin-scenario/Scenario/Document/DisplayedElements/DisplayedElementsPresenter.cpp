@@ -39,6 +39,8 @@
 #include <iscore/tools/std/StdlibWrapper.hpp>
 #include <iscore/tools/std/Algorithms.hpp>
 
+namespace Scenario
+{
 class DisplayedElementsModel;
 
 DisplayedElementsPresenter::DisplayedElementsPresenter(ScenarioDocumentPresenter *parent):
@@ -185,4 +187,5 @@ void DisplayedElementsPresenter::updateLength(double length)
     m_endStatePresenter->view()->setPos({length, 0});
     m_endEventPresenter->view()->setPos({length, 0});
     m_endNodePresenter->view()->setPos({length, 0});
+}
 }

@@ -44,7 +44,7 @@ TemporalAutomatas::ApplicationPlugin::ApplicationPlugin(const iscore::Applicatio
         auto doc = currentDocument();
         if(!doc)
             return;
-        ScenarioDocumentModel& base = iscore::IDocument::get<ScenarioDocumentModel>(*doc);
+        Scenario::ScenarioDocumentModel& base = iscore::IDocument::get<Scenario::ScenarioDocumentModel>(*doc);
 
         const auto& baseConstraint = base.baseScenario().constraint();
         if(baseConstraint.processes.size() == 0)
@@ -89,10 +89,10 @@ TemporalAutomatas::ApplicationPlugin::ApplicationPlugin(const iscore::Applicatio
         auto doc = currentDocument();
         if(!doc)
             return;
-        ScenarioDocumentModel& base = iscore::IDocument::get<ScenarioDocumentModel>(*doc);
+        Scenario::ScenarioDocumentModel& base = iscore::IDocument::get<Scenario::ScenarioDocumentModel>(*doc);
 
         QString text = TA::makeScenario(base.baseScenario().constraint());
-        TextDialog dial(text, qApp->activeWindow());
+        Scenario::TextDialog dial(text, qApp->activeWindow());
         dial.exec();
 
         QFile f("model-output.xml");
@@ -108,7 +108,7 @@ TemporalAutomatas::ApplicationPlugin::ApplicationPlugin(const iscore::Applicatio
         if(!doc)
             return;
 
-        ScenarioDocumentModel& base = iscore::IDocument::get<ScenarioDocumentModel>(*doc);
+        Scenario::ScenarioDocumentModel& base = iscore::IDocument::get<Scenario::ScenarioDocumentModel>(*doc);
         auto& baseScenario = static_cast<Scenario::ScenarioModel&>(*base.baseScenario().constraint().processes.begin());
 
         using namespace Scenario::Metrics;
@@ -130,7 +130,7 @@ TemporalAutomatas::ApplicationPlugin::ApplicationPlugin(const iscore::Applicatio
             str += "Cyclomatic1 = " + QString::number(Cyclomatic::Complexity(factors));
         }
         // Display
-        TextDialog dial(str, qApp->activeWindow());
+        Scenario::TextDialog dial(str, qApp->activeWindow());
         dial.exec();
     });
 }

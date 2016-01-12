@@ -57,7 +57,7 @@ void ProcessFocusManager::focus(QPointer<Process::LayerPresenter> p)
     }
 }
 
-void ProcessFocusManager::focus(ScenarioDocumentPresenter*)
+void ProcessFocusManager::focus(Scenario::ScenarioDocumentPresenter*)
 {
     focusNothing();
 }

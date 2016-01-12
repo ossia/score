@@ -8,12 +8,14 @@
 #include <QPoint>
 #include <QString>
 
-class AbstractTimeRuler;
 class QGraphicsSceneMouseEvent;
 class QPainter;
 class QStyleOptionGraphicsItem;
 class QWidget;
 
+namespace Scenario
+{
+class AbstractTimeRuler;
 class AbstractTimeRulerView : public QGraphicsObject
 {
         Q_OBJECT
@@ -63,3 +65,4 @@ class AbstractTimeRulerView : public QGraphicsObject
 
         QMap<double, QTime> m_marks;
 };
+}

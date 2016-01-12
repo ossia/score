@@ -26,6 +26,7 @@ namespace iscore {
 IScoreCohesionApplicationPlugin::IScoreCohesionApplicationPlugin(const iscore::ApplicationContext& ctx) :
     iscore::GUIApplicationContextPlugin {ctx, "IScoreCohesionApplicationPlugin", nullptr}
 {
+    using namespace Scenario;
     // Since we have declared the dependency, we can assume
     // that ScenarioApplicationPlugin is instantiated already.
     auto& appPlugin = ctx.components.applicationPlugin<ScenarioApplicationPlugin>();

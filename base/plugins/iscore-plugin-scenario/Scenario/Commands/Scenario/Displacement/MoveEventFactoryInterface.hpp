@@ -4,20 +4,21 @@
 #include <Process/TimeValue.hpp>
 #include <iscore/plugins/customfactory/FactoryInterface.hpp>
 #include <iscore/plugins/customfactory/StringFactoryKey.hpp>
-template <typename Object> class Path;
 #include <iscore/tools/SettableIdentifier.hpp>
 #include <iscore_plugin_scenario_export.h>
 
+template <typename Object> class Path;
 namespace Scenario
 {
+class ScenarioModel;
+class EventModel;
+class ScenarioModel;
 namespace Command
 {
 class MoveEventTag{};
 using MoveEventFactoryKey = StringKey<MoveEventTag>;
 
 class SerializableMoveEvent;
-class ScenarioModel;
-class EventModel;
 
 
 class ISCORE_PLUGIN_SCENARIO_EXPORT MoveEventFactoryInterface : public iscore::GenericFactoryInterface<MoveEventFactoryKey>

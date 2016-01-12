@@ -19,7 +19,7 @@ class TimeNodeComponent final :
         TimeNodeComponent(
                 OSSIA::Node& parent,
                 const Id<iscore::Component>& id,
-                TimeNodeModel& timeNode,
+                Scenario::TimeNodeModel& timeNode,
                 const system_t& doc,
                 const iscore::DocumentContext& ctx,
                 QObject* parent_comp);

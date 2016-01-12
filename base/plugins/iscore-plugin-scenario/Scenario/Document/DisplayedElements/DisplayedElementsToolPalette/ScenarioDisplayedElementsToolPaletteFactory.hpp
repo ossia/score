@@ -2,8 +2,11 @@
 #include <Scenario/Document/DisplayedElements/DisplayedElementsToolPalette/DisplayedElementsToolPaletteFactory.hpp>
 #include <memory>
 
-class ConstraintModel;
 class GraphicsSceneToolPalette;
+
+namespace Scenario
+{
+class ConstraintModel;
 class ScenarioDocumentPresenter;
 
 class ScenarioDisplayedElementsToolPaletteFactory final : public DisplayedElementsToolPaletteFactory
@@ -16,3 +19,4 @@ class ScenarioDisplayedElementsToolPaletteFactory final : public DisplayedElemen
                 ScenarioDocumentPresenter& pres,
                 const ConstraintModel& constraint) override;
 };
+}

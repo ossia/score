@@ -10,7 +10,8 @@ template <typename T> class Reader;
 template <typename T> class Writer;
 
 template<>
-void Visitor<Reader<DataStream>>::readFrom(const TimenodeProperties& timenodeProperties)
+void Visitor<Reader<DataStream>>::readFrom(
+        const Scenario::TimenodeProperties& timenodeProperties)
 {
     m_stream << timenodeProperties.oldDate
              << timenodeProperties.newDate;
@@ -19,7 +20,8 @@ void Visitor<Reader<DataStream>>::readFrom(const TimenodeProperties& timenodePro
 }
 
 template<>
-void Visitor<Writer<DataStream>>::writeTo(TimenodeProperties& timenodeProperties)
+void Visitor<Writer<DataStream>>::writeTo(
+        Scenario::TimenodeProperties& timenodeProperties)
 {
 
     m_stream >> timenodeProperties.oldDate
@@ -31,7 +33,8 @@ void Visitor<Writer<DataStream>>::writeTo(TimenodeProperties& timenodeProperties
 //----------
 
 template<>
-void Visitor<Reader<DataStream>>::readFrom(const ConstraintProperties& constraintProperties)
+void Visitor<Reader<DataStream>>::readFrom(
+        const Scenario::ConstraintProperties& constraintProperties)
 {
     m_stream << constraintProperties.oldMin
              << constraintProperties.newMin
@@ -43,7 +46,8 @@ void Visitor<Reader<DataStream>>::readFrom(const ConstraintProperties& constrain
 }
 
 template<>
-void Visitor<Writer<DataStream>>::writeTo(ConstraintProperties& constraintProperties)
+void Visitor<Writer<DataStream>>::writeTo(
+        Scenario::ConstraintProperties& constraintProperties)
 {
 
     m_stream >> constraintProperties.oldMin
@@ -57,7 +61,8 @@ void Visitor<Writer<DataStream>>::writeTo(ConstraintProperties& constraintProper
 
 //----------
 template<>
-ISCORE_PLUGIN_SCENARIO_EXPORT void Visitor<Reader<DataStream>>::readFrom(const ElementsProperties& elementsProperties)
+ISCORE_PLUGIN_SCENARIO_EXPORT void Visitor<Reader<DataStream>>::readFrom(
+        const Scenario::ElementsProperties& elementsProperties)
 {
     m_stream << elementsProperties.timenodes
              << elementsProperties.constraints;
@@ -68,7 +73,8 @@ ISCORE_PLUGIN_SCENARIO_EXPORT void Visitor<Reader<DataStream>>::readFrom(const E
 
 
 template<>
-ISCORE_PLUGIN_SCENARIO_EXPORT void Visitor<Writer<DataStream>>::writeTo(ElementsProperties& elementsProperties)
+ISCORE_PLUGIN_SCENARIO_EXPORT void Visitor<Writer<DataStream>>::writeTo(
+        Scenario::ElementsProperties& elementsProperties)
 {
 
     m_stream >> elementsProperties.timenodes

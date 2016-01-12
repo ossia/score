@@ -15,7 +15,10 @@ namespace Process { class LayerModel; }
 namespace Process { class ProcessModel; }
 class QMenu;
 class QObject;
+namespace Scenario
+{
 class TemporalConstraintPresenter;
+}
 namespace Loop {
 class Layer;
 class LayerView;
@@ -44,7 +47,7 @@ namespace Loop
 {
 class LayerPresenter :
         public Process::LayerPresenter,
-        public BaseScenarioPresenter<Loop::ProcessModel, TemporalConstraintPresenter>
+        public BaseScenarioPresenter<Loop::ProcessModel, Scenario::TemporalConstraintPresenter>
 {
         Q_OBJECT
         friend class ViewUpdater;
@@ -59,7 +62,7 @@ class LayerPresenter :
         LayerView& view() const
         { return *m_view; }
 
-        using BaseScenarioPresenter<Loop::ProcessModel, TemporalConstraintPresenter>::event;
+        using BaseScenarioPresenter<Loop::ProcessModel, Scenario::TemporalConstraintPresenter>::event;
         using QObject::event;
 
         void setWidth(qreal width) override;

@@ -19,8 +19,9 @@ class QWidget;
 
 namespace Scenario
 {
-TemporalConstraintView::TemporalConstraintView(TemporalConstraintPresenter &presenter,
-                                               QGraphicsObject* parent) :
+TemporalConstraintView::TemporalConstraintView(
+        TemporalConstraintPresenter &presenter,
+        QGraphicsObject* parent) :
     ConstraintView {presenter, parent},
     m_labelColor{ScenarioStyle::instance().ConstraintDefaultLabel},
     m_bgColor{ScenarioStyle::instance().ConstraintDefaultBackground}

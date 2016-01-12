@@ -21,6 +21,8 @@ namespace Scenario
 {
 class ConstraintModel;
 class SlotModel;
+namespace Command
+{
 template<typename ProcessMetadata_T>
 class ISCORE_PLUGIN_SCENARIO_EXPORT CreateProcessAndLayers : public iscore::SerializableCommand
 {
@@ -119,4 +121,5 @@ class ISCORE_PLUGIN_SCENARIO_EXPORT CreateCurveFromStates final : public CreateP
         double m_min{}, m_max{};
 
 };
+}
 }

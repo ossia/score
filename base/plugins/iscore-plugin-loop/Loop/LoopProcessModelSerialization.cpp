@@ -7,14 +7,13 @@
 #include <iscore/serialization/JSONValueVisitor.hpp>
 #include <iscore/serialization/JSONVisitor.hpp>
 
-class BaseScenarioContainer;
 template <typename T> class Reader;
 template <typename T> class Writer;
 
 template<>
 void Visitor<Reader<DataStream>>::readFrom(const Loop::ProcessModel& proc)
 {
-    readFrom(static_cast<const BaseScenarioContainer&>(proc));
+    readFrom(static_cast<const Scenario::BaseScenarioContainer&>(proc));
 
     readFrom(*proc.pluginModelList);
 
@@ -24,7 +23,7 @@ void Visitor<Reader<DataStream>>::readFrom(const Loop::ProcessModel& proc)
 template<>
 void Visitor<Writer<DataStream>>::writeTo(Loop::ProcessModel& proc)
 {
-    writeTo(static_cast<BaseScenarioContainer&>(proc));
+    writeTo(static_cast<Scenario::BaseScenarioContainer&>(proc));
 
     proc.pluginModelList = new iscore::ElementPluginModelList{*this, &proc};
     checkDelimiter();
@@ -33,7 +32,7 @@ void Visitor<Writer<DataStream>>::writeTo(Loop::ProcessModel& proc)
 template<>
 void Visitor<Reader<JSONObject>>::readFrom(const Loop::ProcessModel& proc)
 {
-    readFrom(static_cast<const BaseScenarioContainer&>(proc));
+    readFrom(static_cast<const Scenario::BaseScenarioContainer&>(proc));
 
     m_obj["PluginsMetadata"] = toJsonValue(*proc.pluginModelList);
 }
@@ -41,7 +40,7 @@ void Visitor<Reader<JSONObject>>::readFrom(const Loop::ProcessModel& proc)
 template<>
 void Visitor<Writer<JSONObject>>::writeTo(Loop::ProcessModel& proc)
 {
-    writeTo(static_cast<BaseScenarioContainer&>(proc));
+    writeTo(static_cast<Scenario::BaseScenarioContainer&>(proc));
 
     Deserializer<JSONValue> elementPluginDeserializer(m_obj["PluginsMetadata"]);
     proc.pluginModelList = new iscore::ElementPluginModelList{elementPluginDeserializer, &proc};

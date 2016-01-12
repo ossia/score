@@ -1,6 +1,8 @@
 #pragma once
 #include <QWidget>
 
+namespace Scenario
+{
 class SlotInspectorSection;
 
 class AddLayerModelWidget final : public QWidget
@@ -11,3 +13,4 @@ class AddLayerModelWidget final : public QWidget
     private:
 
 };
+}

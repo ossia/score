@@ -6,6 +6,8 @@
 #include <QPoint>
 #include <QVector>
 
+namespace Scenario
+{
 class AbstractTimeRulerView;
 
 class AbstractTimeRuler : public QObject
@@ -40,3 +42,4 @@ class AbstractTimeRuler : public QObject
         double m_pixelPerMillis {0.01};
         int m_totalScroll{};
 };
+}

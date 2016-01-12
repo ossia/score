@@ -1,6 +1,11 @@
 #pragma once
 #include <Process/TimeValue.hpp>
+#include <iscore/tools/SettableIdentifier.hpp>
 
+
+
+namespace Scenario
+{
 class ConstraintModel;
 class ConstraintViewModel;
 class EventModel;
@@ -8,14 +13,10 @@ class StateModel;
 class CommentBlockModel;
 
 class TimeNodeModel;
-namespace Scenario {
 class ScenarioModel;
-}  // namespace Scenario
 struct VerticalExtent;
 template<typename T>
 class ScenarioCreate;
-#include <iscore/tools/SettableIdentifier.hpp>
-
 template<>
 class ScenarioCreate<CommentBlockModel>
 {
@@ -93,4 +94,5 @@ class ScenarioCreate<ConstraintModel>
                 Scenario::ScenarioModel& s);
 };
 
+}  // namespace Scenario
 

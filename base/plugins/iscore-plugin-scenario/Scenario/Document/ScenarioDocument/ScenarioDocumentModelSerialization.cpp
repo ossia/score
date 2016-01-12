@@ -20,7 +20,7 @@ template <typename T> class Writer;
 template <typename model> class IdentifiedObject;
 
 template<>
-void Visitor<Reader<DataStream>>::readFrom(const ScenarioDocumentModel& obj)
+void Visitor<Reader<DataStream>>::readFrom(const Scenario::ScenarioDocumentModel& obj)
 {
     readFrom(static_cast<const IdentifiedObject<iscore::DocumentDelegateModelInterface>&>(obj));
     readFrom(*obj.m_baseScenario);
@@ -29,30 +29,30 @@ void Visitor<Reader<DataStream>>::readFrom(const ScenarioDocumentModel& obj)
 }
 
 template<>
-void Visitor<Writer<DataStream>>::writeTo(ScenarioDocumentModel& obj)
+void Visitor<Writer<DataStream>>::writeTo(Scenario::ScenarioDocumentModel& obj)
 {
-    obj.m_baseScenario = new BaseScenario{*this, &obj};
+    obj.m_baseScenario = new Scenario::BaseScenario{*this, &obj};
 
     checkDelimiter();
 }
 
 template<>
-void Visitor<Reader<JSONObject>>::readFrom(const ScenarioDocumentModel& obj)
+void Visitor<Reader<JSONObject>>::readFrom(const Scenario::ScenarioDocumentModel& obj)
 {
     readFrom(static_cast<const IdentifiedObject<iscore::DocumentDelegateModelInterface>&>(obj));
     m_obj["BaseScenario"] = toJsonObject(*obj.m_baseScenario);
 }
 
 template<>
-void Visitor<Writer<JSONObject>>::writeTo(ScenarioDocumentModel& obj)
+void Visitor<Writer<JSONObject>>::writeTo(Scenario::ScenarioDocumentModel& obj)
 {
     writeTo(static_cast<IdentifiedObject<iscore::DocumentDelegateModelInterface>&>(obj));
-    obj.m_baseScenario = new BaseScenario{
+    obj.m_baseScenario = new Scenario::BaseScenario{
                         Deserializer<JSONObject>{m_obj["BaseScenario"].toObject()},
                         &obj};
 }
 
-void ScenarioDocumentModel::serialize(const VisitorVariant& vis) const
+void Scenario::ScenarioDocumentModel::serialize(const VisitorVariant& vis) const
 {
     serialize_dyn(vis, *this);
 }

@@ -1,20 +1,23 @@
 #pragma once
 #include <Scenario/Commands/TimeNode/TriggerCommandFactory/TriggerCommandFactory.hpp>
 
+namespace Scenario
+{
 class TimeNodeModel;
+}
 namespace iscore {
 class SerializableCommand;
 }  // namespace iscore
 
-class LoopTriggerCommandFactory : public TriggerCommandFactory
+class LoopTriggerCommandFactory : public Scenario::Command::TriggerCommandFactory
 {
     public:
         bool matches(
-                const TimeNodeModel& tn) const override;
+                const Scenario::TimeNodeModel& tn) const override;
 
         iscore::SerializableCommand* make_addTriggerCommand(
-                const TimeNodeModel& tn) const override;
+                const Scenario::TimeNodeModel& tn) const override;
 
         iscore::SerializableCommand* make_removeTriggerCommand(
-                const TimeNodeModel& tn) const override;
+                const Scenario::TimeNodeModel& tn) const override;
 };

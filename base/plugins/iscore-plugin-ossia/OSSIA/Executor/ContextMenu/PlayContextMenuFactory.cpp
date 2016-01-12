@@ -1,6 +1,8 @@
 #include "PlayContextMenu.hpp"
 #include "PlayContextMenuFactory.hpp"
 
+namespace Scenario
+{
 class ScenarioActions;
 class ScenarioApplicationPlugin;
 
@@ -13,4 +15,5 @@ const ScenarioActionsFactoryKey&PlayContextMenuFactory::key_impl() const
 QList<ScenarioActions *> PlayContextMenuFactory::make(ScenarioApplicationPlugin *ctrl)
 {
     return {new PlayContextMenu(ctrl)};
+}
 }

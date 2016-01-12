@@ -16,6 +16,8 @@
 #include <iscore/tools/NotifyingMap.hpp>
 #include <iscore/tools/SettableIdentifier.hpp>
 
+namespace Scenario
+{
 void ScenarioCreate<CommentBlockModel>::undo(
         const Id<CommentBlockModel> &id,
         Scenario::ScenarioModel &s)
@@ -162,4 +164,5 @@ ConstraintModel& ScenarioCreate<ConstraintModel>::redo(
     }
 
     return *constraint;
+}
 }

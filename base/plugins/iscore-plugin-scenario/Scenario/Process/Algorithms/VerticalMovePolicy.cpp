@@ -13,6 +13,8 @@
 #include <iscore/tools/NotifyingMap.hpp>
 #include <iscore/tools/SettableIdentifier.hpp>
 
+namespace Scenario
+{
 void updateEventExtent(const Id<EventModel> &id, Scenario::ScenarioModel& s)
 {
     auto& ev = s.event(id);
@@ -91,3 +93,5 @@ void updateConstraintVerticalPos(double y, const Id<ConstraintModel> &id, Scenar
     }
 
 }
+}
+

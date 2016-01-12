@@ -19,7 +19,7 @@ iscore_plugin_csp::factories(
         const iscore::ApplicationContext&,
         const iscore::FactoryBaseKey& factoryName) const
 {
-    if(factoryName == MoveEventFactoryInterface::staticFactoryKey())
+    if(factoryName == Scenario::Command::MoveEventFactoryInterface::staticFactoryKey())
     {
         return make_ptr_vector<iscore::FactoryInterfaceBase,
                 MoveEventCSPFactory,

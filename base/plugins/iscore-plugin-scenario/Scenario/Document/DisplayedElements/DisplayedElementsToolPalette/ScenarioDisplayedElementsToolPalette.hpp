@@ -10,16 +10,17 @@
 #include <iscore/document/DocumentContext.hpp>
 
 class BaseGraphicsObject;
-class DisplayedElementsModel;
-class DisplayedElementsPresenter;
-class ScenarioDocumentPresenter;
-namespace Scenario {
+
+namespace Scenario
+{
 class EditionSettings;
 class MoveConstraintInScenario_StateWrapper;
 class MoveEventInScenario_StateWrapper;
 class MoveTimeNodeInScenario_StateWrapper;
 class ScenarioModel;
-}  // namespace Scenario
+class DisplayedElementsModel;
+class DisplayedElementsPresenter;
+class ScenarioDocumentPresenter;
 
 class ScenarioDisplayedElementsToolPalette final : public GraphicsSceneToolPalette
 {
@@ -69,4 +70,4 @@ class ScenarioDisplayedElementsToolPalette final : public GraphicsSceneToolPalet
                ScenarioDocumentPresenter
             > m_inputDisp;
 };
-
+}

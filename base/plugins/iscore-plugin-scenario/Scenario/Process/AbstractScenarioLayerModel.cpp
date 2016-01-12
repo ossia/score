@@ -13,6 +13,8 @@
 #include <iscore/tools/SettableIdentifier.hpp>
 #include <iscore/tools/utilsCPP11.hpp>
 
+namespace Scenario
+{
 ConstraintViewModel& AbstractScenarioLayerModel::constraint(
         const Id<ConstraintViewModel>& id) const
 {
@@ -124,4 +126,5 @@ std::vector<ConstraintViewModel*> getConstraintViewModels(
     }
 
     return vec;
+}
 }

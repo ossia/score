@@ -7,14 +7,17 @@
 
 #include <Scenario/Palette/Tool.hpp>
 
-class MoveConstraintInBaseScenario_StateWrapper;
-class MoveEventInBaseScenario_StateWrapper;
-class MoveTimeNodeInBaseScenario_StateWrapper;
 namespace Scenario {
 class EditionSettings;
 }  // namespace Scenario
 struct LayerContext;
 
+namespace Scenario
+{
+class MoveConstraintInBaseScenario_StateWrapper;
+class MoveEventInBaseScenario_StateWrapper;
+class MoveTimeNodeInBaseScenario_StateWrapper;
+}
 namespace Loop
 {
 class ProcessModel;
@@ -57,9 +60,9 @@ class ToolPalette final : public GraphicsSceneToolPalette
             Loop::ProcessModel,
             ToolPalette,
             LayerView,
-            MoveConstraintInBaseScenario_StateWrapper,
-            MoveEventInBaseScenario_StateWrapper,
-            MoveTimeNodeInBaseScenario_StateWrapper
+            Scenario::MoveConstraintInBaseScenario_StateWrapper,
+            Scenario::MoveEventInBaseScenario_StateWrapper,
+            Scenario::MoveTimeNodeInBaseScenario_StateWrapper
         >  m_state;
 
         ToolPaletteInputDispatcher<

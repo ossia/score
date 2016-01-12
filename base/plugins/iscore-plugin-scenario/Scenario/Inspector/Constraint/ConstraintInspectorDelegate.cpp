@@ -1,5 +1,6 @@
 #include "ConstraintInspectorDelegate.hpp"
-ConstraintInspectorDelegate::~ConstraintInspectorDelegate()
+
+Scenario::ConstraintInspectorDelegate::~ConstraintInspectorDelegate()
 {
 
 }

@@ -5,11 +5,13 @@
 #include <Process/ExpandMode.hpp>
 #include <Process/TimeValue.hpp>
 
-class ConstraintInspectorWidget;
-class ConstraintModel;
 class OngoingCommandDispatcher;
 class QWidget;
 
+namespace Scenario
+{
+class ConstraintInspectorWidget;
+class ConstraintModel;
 class ScenarioConstraintInspectorDelegate final : public ConstraintInspectorDelegate
 {
     public:
@@ -24,3 +26,4 @@ class ScenarioConstraintInspectorDelegate final : public ConstraintInspectorDele
                 const TimeValue& val,
                 ExpandMode) const override;
 };
+}

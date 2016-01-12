@@ -12,6 +12,8 @@ class DocumentPresenter;
 }  // namespace iscore
 struct VisitorVariant;
 
+namespace Scenario
+{
 iscore::DocumentDelegateViewInterface*
 ScenarioDocumentFactory::makeView(
         const iscore::ApplicationContext& ctx,
@@ -42,4 +44,6 @@ iscore::DocumentDelegateModelInterface* ScenarioDocumentFactory::loadModel(
 
     return deserialize_dyn(vis, [&] (auto&& deserializer)
     { return new ScenarioDocumentModel{deserializer, parent};});
+}
+
 }

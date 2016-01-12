@@ -4,6 +4,8 @@
 
 #include "ExecutionStatus.hpp"
 
+namespace Scenario
+{
 const QColor& ExecutionStatusProperty::eventStatusColor()
 {
     static const QColor error = Qt::magenta;
@@ -32,4 +34,5 @@ const QColor& ExecutionStatusProperty::stateStatusColor()
         case ExecutionStatus::Disposed: return col.EventDisposed;
         default: return error;
     }
+}
 }

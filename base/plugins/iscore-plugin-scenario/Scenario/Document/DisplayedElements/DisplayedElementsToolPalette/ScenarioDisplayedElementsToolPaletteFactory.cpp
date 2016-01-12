@@ -10,6 +10,9 @@
 #include <iscore/document/DocumentInterface.hpp>
 #include <iscore/statemachine/GraphicsSceneToolPalette.hpp>
 
+
+namespace Scenario
+{
 std::unique_ptr<GraphicsSceneToolPalette> ScenarioDisplayedElementsToolPaletteFactory::make(
         ScenarioDocumentPresenter& pres,
         const ConstraintModel& constraint)
@@ -25,4 +28,5 @@ bool ScenarioDisplayedElementsToolPaletteFactory::matches(
         const ConstraintModel& constraint) const
 {
     return dynamic_cast<Scenario::ScenarioModel*>(constraint.parent());
+}
 }

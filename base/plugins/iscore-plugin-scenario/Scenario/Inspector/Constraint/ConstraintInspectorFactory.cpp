@@ -16,6 +16,8 @@ class InspectorWidgetBase;
 class QObject;
 class QWidget;
 
+namespace Scenario
+{
 InspectorWidgetBase* ConstraintInspectorFactory::makeWidget(
         const QObject& sourceElement,
         const iscore::DocumentContext& doc,
@@ -37,4 +39,6 @@ const QList<QString>&ConstraintInspectorFactory::key_impl() const
 {
     static const QList<QString> list{"ConstraintModel", "BaseConstraintModel"};
     return list;
+}
+
 }

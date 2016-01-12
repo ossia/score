@@ -18,6 +18,8 @@
 #include <iscore/tools/NotifyingMap.hpp>
 #include <iscore/tools/SettableIdentifier.hpp>
 
+namespace Scenario
+{
 static void removeEventFromTimeNode(
         Scenario::ScenarioModel& scenario,
         const Id<EventModel>& eventId)
@@ -103,4 +105,5 @@ void StandardRemovalPolicy::removeEventStatesAndConstraints(
 void StandardRemovalPolicy::removeComment(Scenario::ScenarioModel& scenario, CommentBlockModel& cmt)
 {
     scenario.comments.remove(&cmt);
+}
 }

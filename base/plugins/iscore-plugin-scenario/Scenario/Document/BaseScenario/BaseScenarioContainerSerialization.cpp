@@ -31,6 +31,7 @@ template<> void Visitor<Reader<DataStream>>::readFrom(const Scenario::BaseScenar
 
 template<> void Visitor<Writer<DataStream>>::writeTo(Scenario::BaseScenarioContainer& base_scenario)
 {
+    using namespace Scenario;
     base_scenario.m_constraint = new ConstraintModel{*this, base_scenario.m_parent};
 
     base_scenario.m_startNode = new TimeNodeModel{*this, base_scenario.m_parent};
@@ -62,6 +63,7 @@ template<> void Visitor<Reader<JSONObject>>::readFrom(const Scenario::BaseScenar
 
 template<> void Visitor<Writer<JSONObject>>::writeTo(Scenario::BaseScenarioContainer& base_scenario)
 {
+    using namespace Scenario;
     base_scenario.m_constraint = new ConstraintModel{
                                  Deserializer<JSONObject>{m_obj["Constraint"].toObject() },
                                  base_scenario.m_parent};

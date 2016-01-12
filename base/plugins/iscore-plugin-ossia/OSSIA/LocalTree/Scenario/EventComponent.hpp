@@ -19,7 +19,7 @@ class EventComponent final :
         EventComponent(
                 OSSIA::Node& parent,
                 const Id<Component>& id,
-                EventModel& event,
+                Scenario::EventModel& event,
                 const system_t& doc,
                 const iscore::DocumentContext& ctx,
                 QObject* parent_comp);

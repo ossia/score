@@ -25,15 +25,16 @@ template <typename T> class Reader;
 template<>
 void Visitor<Reader<DataStream>>::readFrom(const Scenario::TemporalConstraintViewModel& constraint)
 {
-    readFrom(static_cast<const ConstraintViewModel&>(constraint));
+    readFrom(static_cast<const Scenario::ConstraintViewModel&>(constraint));
 }
 
 template<>
 void Visitor<Reader<JSONObject>>::readFrom(const Scenario::TemporalConstraintViewModel& constraint)
 {
-    readFrom(static_cast<const ConstraintViewModel&>(constraint));
+    readFrom(static_cast<const Scenario::ConstraintViewModel&>(constraint));
 }
-
+namespace Scenario
+{
 SerializedConstraintViewModels serializeConstraintViewModels(
         const ConstraintModel& constraint,
         const Scenario::ScenarioModel& scenario)
@@ -42,12 +43,12 @@ SerializedConstraintViewModels serializeConstraintViewModels(
     // The other constraint view models are in their respective scenario view models
     for(const auto& viewModel : layers(scenario))
     {
-        const ConstraintViewModel& cstrVM = viewModel->constraint(constraint.id());
+        const auto& cstrVM = viewModel->constraint(constraint.id());
 
         auto lm_id = iscore::IDocument::path(*viewModel);
         QByteArray arr;
 
-        if(const auto& temporalCstrVM = dynamic_cast<const TemporalConstraintViewModel*>(&cstrVM))
+        if(const auto& temporalCstrVM = dynamic_cast<const Scenario::TemporalConstraintViewModel*>(&cstrVM))
         {
             Serializer<DataStream> cvmReader{&arr};
             cvmReader.readFrom(*temporalCstrVM);
@@ -93,4 +94,5 @@ void deserializeConstraintViewModels(
             ISCORE_TODO;
         }
     }
+}
 }

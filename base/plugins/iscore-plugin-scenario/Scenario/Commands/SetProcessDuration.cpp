@@ -6,6 +6,11 @@
 #include <iscore/serialization/DataStreamVisitor.hpp>
 #include <iscore/tools/ModelPathSerialization.hpp>
 
+namespace Scenario
+{
+namespace Command
+{
+
 SetProcessDuration::SetProcessDuration(
         Path<Process::ProcessModel>&& path,
         const TimeValue& newVal) :
@@ -33,4 +38,7 @@ void SetProcessDuration::serializeImpl(DataStreamInput& s) const
 void SetProcessDuration::deserializeImpl(DataStreamOutput& s)
 {
     s >> m_path >> m_old >> m_new;
+}
+
+}
 }

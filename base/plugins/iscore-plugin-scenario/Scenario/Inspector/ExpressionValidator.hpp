@@ -3,6 +3,7 @@
 #include <QValidator>
 #include <State/Expression.hpp>
 
+// TODO move in state plugin
 template<typename T>
 class ExpressionValidator final : public QValidator
 {

@@ -15,14 +15,14 @@ inline auto add_node(OSSIA::Node& n, const std::string& name)
 
 
 class ModelMetadata;
+
+namespace Scenario
+{
+class ScenarioModel;
 class ConstraintModel;
 class EventModel;
 class TimeNodeModel;
 class StateModel;
-namespace Scenario
-{
-class ScenarioModel;
-
 }
 namespace Ossia
 {

@@ -27,10 +27,10 @@ void SnapshotParametersInStates(const iscore::DocumentContext& doc)
             selectionStack.
             currentSelection();
 
-    QList<const StateModel*> selected_states;
+    QList<const Scenario::StateModel*> selected_states;
     for(auto obj : sel)
     {
-        if(auto st = dynamic_cast<const StateModel*>(obj.data()))
+        if(auto st = dynamic_cast<const Scenario::StateModel*>(obj.data()))
             if(st->selection.get()) // TODO this should not be necessary?
                 selected_states.push_back(st);
     }
@@ -44,7 +44,7 @@ void SnapshotParametersInStates(const iscore::DocumentContext& doc)
                 doc.commandStack};
     for(auto& state : selected_states)
     {
-        auto cmd = new AddMessagesToState{
+        auto cmd = new Scenario::Command::AddMessagesToState{
                 state->messages(),
                 messages};
         macro.submitCommand(cmd);

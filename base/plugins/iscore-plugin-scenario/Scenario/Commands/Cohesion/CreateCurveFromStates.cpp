@@ -32,6 +32,8 @@ struct Address;
 namespace Scenario
 {
 class SlotModel;
+namespace Command
+{
 CreateCurveFromStates::CreateCurveFromStates(
         Path<ConstraintModel>&& constraint,
         const std::vector<std::pair<Path<SlotModel>, Id<Process::LayerModel> > >& slotList,
@@ -92,4 +94,6 @@ void CreateCurveFromStates::deserializeImpl(DataStreamOutput& s)
     CreateProcessAndLayers<Automation::ProcessMetadata>::deserializeImpl(s);
     s >> m_address >> m_start >> m_end >> m_min >> m_max;
 }
+}
+
 }

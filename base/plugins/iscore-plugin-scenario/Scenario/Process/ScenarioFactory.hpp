@@ -20,7 +20,7 @@ struct VisitorVariant;
 namespace Scenario
 {
 class EditionSettings;
-}
+
 class ScenarioFactory final :
         public Process::ProcessFactory
 {
@@ -53,3 +53,4 @@ class ScenarioFactory final :
         Scenario::EditionSettings& m_editionSettings;
 
 };
+}

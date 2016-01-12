@@ -4,7 +4,8 @@
 #include <Scenario/Document/ModelConsistency.hpp>
 
 #define TIME_TOLERANCE_MSEC 0.5
-
+namespace Scenario
+{
 ConstraintDurations &ConstraintDurations::operator=(const ConstraintDurations &other)
 {
     m_defaultDuration = other.m_defaultDuration;
@@ -133,4 +134,5 @@ void ConstraintDurations::Algorithms::changeAllDurations(ConstraintModel &cstr, 
         cstr.duration.setMinDuration(cstr.duration.minDuration() + delta);
         cstr.duration.setMaxDuration(cstr.duration.maxDuration() + delta);
     }
+}
 }

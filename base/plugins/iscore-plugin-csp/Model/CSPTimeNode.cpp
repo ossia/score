@@ -5,7 +5,9 @@
 #include <Scenario/Process/ScenarioInterface.hpp>
 
 
-CSPTimeNode::CSPTimeNode(CSPScenario& cspScenario, const Id<TimeNodeModel>& timeNodeId)
+CSPTimeNode::CSPTimeNode(
+        CSPScenario& cspScenario,
+        const Id<Scenario::TimeNodeModel>& timeNodeId)
     :CSPConstraintHolder::CSPConstraintHolder(cspScenario.getSolver(), &cspScenario)
 {
     auto& solver = cspScenario.getSolver();
@@ -32,7 +34,7 @@ CSPTimeNode::CSPTimeNode(CSPScenario& cspScenario, const Id<TimeNodeModel>& time
     }
 
     // watch over date edits
-    con(timeNodeModel, &TimeNodeModel::dateChanged, this, &CSPTimeNode::onDateChanged);
+    con(timeNodeModel, &Scenario::TimeNodeModel::dateChanged, this, &CSPTimeNode::onDateChanged);
 }
 
 kiwi::Variable& CSPTimeNode::getDate()

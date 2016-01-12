@@ -10,6 +10,7 @@
 
 std::pair<const CommandParentFactoryKey, CommandGeneratorMap> iscore_plugin_scenario::make_commands()
 {
+    using namespace Scenario;
     using namespace Scenario::Command;
     std::pair<const CommandParentFactoryKey, CommandGeneratorMap> cmds{ScenarioCommandFactoryName(), CommandGeneratorMap{}};
 

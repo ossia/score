@@ -6,6 +6,8 @@
 #include "ScenarioConstraintInspectorDelegate.hpp"
 #include "ScenarioConstraintInspectorDelegateFactory.hpp"
 
+namespace Scenario
+{
 ScenarioConstraintInspectorDelegateFactory::~ScenarioConstraintInspectorDelegateFactory()
 {
 
@@ -21,4 +23,5 @@ bool ScenarioConstraintInspectorDelegateFactory::matches(
         const ConstraintModel& constraint) const
 {
     return dynamic_cast<Scenario::ScenarioModel*>(constraint.parent());
+}
 }

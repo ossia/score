@@ -10,15 +10,17 @@
 
 class CSPDisplacementPolicy;
 
+namespace Scenario
+{
 class ConstraintModel;
-
+}
 class CSPTimeRelation : public CSPConstraintHolder, public Nano::Observer
 {
     friend class CSPDisplacementPolicy;
     friend class CSPFlexDisplacementPolicy;
 
 public:
-    CSPTimeRelation(CSPScenario& scenario, const Id<ConstraintModel>& constraintId);
+    CSPTimeRelation(CSPScenario& scenario, const Id<Scenario::ConstraintModel>& constraintId);
 
     CSPTimeRelation() = default;
 

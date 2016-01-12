@@ -39,6 +39,8 @@
 
 namespace Scenario
 {
+namespace Command
+{
 void InterpolateStates(const QList<const ConstraintModel*>& selected_constraints,
                        iscore::CommandStackFacade& stack)
 {
@@ -51,7 +53,7 @@ void InterpolateStates(const QList<const ConstraintModel*>& selected_constraints
     auto& devPlugin = iscore::IDocument::documentContext(*scenar).plugin<DeviceDocumentPlugin>();
     auto& rootNode = devPlugin.rootNode();
 
-    auto big_macro = new AddMultipleProcessesToMultipleConstraintsMacro;
+    auto big_macro = new Command::AddMultipleProcessesToMultipleConstraintsMacro;
     for(auto& constraint : selected_constraints)
     {
         const auto& startState = scenar->state(constraint->startState());
@@ -99,7 +101,7 @@ void InterpolateStates(const QList<const ConstraintModel*>& selected_constraints
         {
             // Generate brand new ids for the processes
             auto process_ids = getStrongIdRange<Process::ProcessModel>(matchingMessages.size(), constraint->processes);
-            auto macro_tuple = makeAddProcessMacro(*constraint, matchingMessages.size());
+            auto macro_tuple = Command::makeAddProcessMacro(*constraint, matchingMessages.size());
             auto macro = std::get<0>(macro_tuple);
             auto& bigLayerVec = std::get<1>(macro_tuple);
 
@@ -139,5 +141,6 @@ void InterpolateStates(const QList<const ConstraintModel*>& selected_constraints
 
     CommandDispatcher<> disp{stack};
     disp.submitCommand(big_macro);
+}
 }
 }

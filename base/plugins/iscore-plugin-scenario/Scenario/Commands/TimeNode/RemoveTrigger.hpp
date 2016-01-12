@@ -105,4 +105,4 @@ class RemoveTrigger final : public iscore::SerializableCommand
 ISCORE_COMMAND_DECL_T(Scenario::Command::RemoveTrigger<Scenario::ScenarioModel>)
 
 #include <Scenario/Document/BaseScenario/BaseScenario.hpp>
-ISCORE_COMMAND_DECL_T(Scenario::Command::RemoveTrigger<BaseScenario>)
+ISCORE_COMMAND_DECL_T(Scenario::Command::RemoveTrigger<Scenario::BaseScenario>)

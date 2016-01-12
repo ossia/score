@@ -6,18 +6,22 @@
 
 class QAction;
 class QMenu;
+namespace Scenario
+{
 class ScenarioApplicationPlugin;
 class TemporalScenarioPresenter;
-namespace iscore {
+}
+namespace iscore
+{
 class MenubarManager;
 }  // namespace iscore
 
-class PlayContextMenu final : public ScenarioActions
+class PlayContextMenu final : public Scenario::ScenarioActions
 {
     public:
-        PlayContextMenu(ScenarioApplicationPlugin* parent);
+        PlayContextMenu(Scenario::ScenarioApplicationPlugin* parent);
         void fillMenuBar(iscore::MenubarManager *menu) override;
-        void fillContextMenu(QMenu* menu, const Selection&, const TemporalScenarioPresenter& pres, const QPoint&, const QPointF&) override;
+        void fillContextMenu(QMenu* menu, const Selection&, const Scenario::TemporalScenarioPresenter& pres, const QPoint&, const QPointF&) override;
 
         void setEnabled(bool) override;
 

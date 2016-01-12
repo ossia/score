@@ -2,22 +2,22 @@
 #include <CSPDisplacementPolicy.hpp>
 #include <Scenario/Commands/Scenario/Displacement/MoveEvent.hpp>
 
-SerializableMoveEvent* MoveEventCSPFactory::make(
+Scenario::Command::SerializableMoveEvent* MoveEventCSPFactory::make(
         Path<Scenario::ScenarioModel> &&scenarioPath,
-        const Id<EventModel> &eventId,
+        const Id<Scenario::EventModel> &eventId,
         const TimeValue &newDate,
         ExpandMode mode)
 {
-    return new MoveEvent<CSPDisplacementPolicy>(std::move(scenarioPath), eventId, newDate, mode);
+    return new Scenario::Command::MoveEvent<CSPDisplacementPolicy>(std::move(scenarioPath), eventId, newDate, mode);
 }
 
-SerializableMoveEvent* MoveEventCSPFactory::make()
+Scenario::Command::SerializableMoveEvent* MoveEventCSPFactory::make()
 {
-    return new MoveEvent<CSPDisplacementPolicy>();
+    return new Scenario::Command::MoveEvent<CSPDisplacementPolicy>();
 }
 
-const MoveEventFactoryKey& MoveEventCSPFactory::key_impl() const
+const Scenario::Command::MoveEventFactoryKey& MoveEventCSPFactory::key_impl() const
 {
-    static const MoveEventFactoryKey str{"CSPFlex"};
+    static const Scenario::Command::MoveEventFactoryKey str{"CSPFlex"};
     return str;
 }

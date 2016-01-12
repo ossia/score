@@ -4,6 +4,8 @@
 
 #include "BaseScenarioDisplayedElementsProvider.hpp"
 
+namespace Scenario
+{
 bool BaseScenarioDisplayedElementsProvider::matches(
         const ConstraintModel& cst) const
 {
@@ -29,4 +31,5 @@ DisplayedElementsContainer BaseScenarioDisplayedElementsProvider::make(
     }
 
     return {};
+}
 }

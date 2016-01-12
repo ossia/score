@@ -17,9 +17,11 @@
 #include <iscore/tools/NotifyingMap.hpp>
 #include <iscore/tools/SettableIdentifier.hpp>
 
-class RackModel;
 template <typename T> class Reader;
 
+namespace Scenario
+{
+class RackModel;
 void
 GoodOldDisplacementPolicy::computeDisplacement(
         Scenario::ScenarioModel& scenario,
@@ -161,4 +163,5 @@ void GoodOldDisplacementPolicy::getRelatedTimeNodes(
             }
         }
     }
+}
 }

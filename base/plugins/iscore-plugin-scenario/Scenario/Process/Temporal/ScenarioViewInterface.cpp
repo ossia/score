@@ -33,6 +33,8 @@
 
 #include <iscore/tools/SettableIdentifier.hpp>
 
+namespace Scenario
+{
 ScenarioViewInterface::ScenarioViewInterface(const TemporalScenarioPresenter& presenter) :
     m_presenter{presenter}
 {
@@ -149,4 +151,5 @@ void ScenarioViewInterface::on_hoverOnEvent(const Id<EventModel>& eventId, bool 
         cstrView->setShadow(enter);
     }
     */
+}
 }

@@ -27,10 +27,10 @@ class TriggerModel;
 class ISCORE_PLUGIN_SCENARIO_EXPORT TimeNodeModel final : public IdentifiedObject<TimeNodeModel>
 {
         Q_OBJECT
-        ISCORE_METADATA(TimeNodeModel)
+        ISCORE_METADATA(Scenario::TimeNodeModel)
 
-        ISCORE_SERIALIZE_FRIENDS(TimeNodeModel, DataStream)
-        ISCORE_SERIALIZE_FRIENDS(TimeNodeModel, JSONObject)
+        ISCORE_SERIALIZE_FRIENDS(Scenario::TimeNodeModel, DataStream)
+        ISCORE_SERIALIZE_FRIENDS(Scenario::TimeNodeModel, JSONObject)
 
     public:
         /** Properties of the class **/

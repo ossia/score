@@ -10,13 +10,16 @@
 class CSPTimeNode;
 class CSPTimeRelation;
 
+namespace Scenario
+{
 class ConstraintModel;
 class TimeNodeModel;
 class EventModel;
 class StateModel;
-namespace Scenario { class ScenarioModel; }
+class ScenarioModel;
 class ScenarioInterface;
 class BaseScenario;
+}
 
 class CSPScenario : public QObject, public Nano::Observer
 {
@@ -28,22 +31,24 @@ public:
     //using QObject::QObject;
 
     CSPScenario(const Scenario::ScenarioModel& scenario, QObject *parent);
-    CSPScenario(const BaseScenario& baseScenario, QObject *parent);
+    CSPScenario(const Scenario::BaseScenario& baseScenario, QObject *parent);
 
     ~CSPScenario();
 
-    void on_constraintCreated(const ConstraintModel&);
-    void on_stateCreated(const StateModel&);
-    void on_eventCreated(const EventModel&);
-    void on_timeNodeCreated(const TimeNodeModel&);
+    void on_constraintCreated(const Scenario::ConstraintModel&);
+    void on_stateCreated(const Scenario::StateModel&);
+    void on_eventCreated(const Scenario::EventModel&);
+    void on_timeNodeCreated(const Scenario::TimeNodeModel&);
 
-    void on_constraintRemoved(const ConstraintModel&);
-    void on_stateRemoved(const StateModel&);
-    void on_eventRemoved(const EventModel&);
-    void on_timeNodeRemoved(const TimeNodeModel&);
+    void on_constraintRemoved(const Scenario::ConstraintModel&);
+    void on_stateRemoved(const Scenario::StateModel&);
+    void on_eventRemoved(const Scenario::EventModel&);
+    void on_timeNodeRemoved(const Scenario::TimeNodeModel&);
 
 
-    const CSPTimeNode& getInsertTimenode(ScenarioInterface& scenario, const Id<TimeNodeModel>& timeNodeId);
+    const CSPTimeNode& getInsertTimenode(
+            Scenario::ScenarioInterface& scenario,
+            const Id<Scenario::TimeNodeModel>& timeNodeId);
 
     kiwi::Solver& getSolver();
 
@@ -51,18 +56,20 @@ public:
 
     CSPTimeNode* getEndTimeNode() const;
 
-    const ScenarioInterface* getScenario() const;
+    const Scenario::ScenarioInterface* getScenario() const;
 
-    CSPTimeNode* insertTimenode(const Id<TimeNodeModel>& timeNodeId);
+    CSPTimeNode* insertTimenode(
+            const Id<Scenario::TimeNodeModel>& timeNodeId);
 
-    CSPTimeRelation* getTimeRelation(const Id<ConstraintModel>& ConstraintId);
+    CSPTimeRelation* getTimeRelation(
+            const Id<Scenario::ConstraintModel>& ConstraintId);
 
-    QHash<Id<TimeNodeModel>,CSPTimeNode*> m_timeNodes;
-    QHash<Id<ConstraintModel>,CSPTimeRelation*> m_timeRelations;
+    QHash<Id<Scenario::TimeNodeModel>,CSPTimeNode*> m_timeNodes;
+    QHash<Id<Scenario::ConstraintModel>,CSPTimeRelation*> m_timeRelations;
 
 private:
 
-    const ScenarioInterface* m_scenario;
+    const Scenario::ScenarioInterface* m_scenario;
 
     CSPTimeNode* m_startTimeNode;
     CSPTimeNode* m_endTimeNode;

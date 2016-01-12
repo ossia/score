@@ -31,7 +31,6 @@ class JSONObject;
 namespace Process { class LayerModel; }
 class ProcessStateDataInterface;
 class QEvent;
-class ScenarioFactory;
 
 namespace OSSIA
 {
@@ -45,6 +44,7 @@ namespace OSSIA
  */
 namespace Scenario
 {
+class ScenarioFactory;
 class ISCORE_PLUGIN_SCENARIO_EXPORT ScenarioModel final :
         public Process::ProcessModel,
         public ScenarioInterface
@@ -54,7 +54,7 @@ class ISCORE_PLUGIN_SCENARIO_EXPORT ScenarioModel final :
         ISCORE_METADATA(ScenarioModel)
         ISCORE_SERIALIZE_FRIENDS(Scenario::ScenarioModel, DataStream)
         ISCORE_SERIALIZE_FRIENDS(Scenario::ScenarioModel, JSONObject)
-        friend class ::ScenarioFactory;
+        friend class ScenarioFactory;
 
     public:
         using layer_type = AbstractScenarioLayerModel;

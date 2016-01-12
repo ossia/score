@@ -20,8 +20,8 @@
 
 #include <Scenario/Tools/dataStructures.hpp>
 
-using namespace Scenario::Command;
-
+namespace Scenario
+{
 /**
  * @brief The displacementPolicy class
  * This class allows to implement multiple displacement behaviors.
@@ -152,7 +152,7 @@ class CommonDisplacementPolicy
 
                 // 1. Clear the constraint
                 // TODO Don't use a command since it serializes a ton of unused stuff.
-                ClearConstraint clear_cmd{Path<ConstraintModel>{savedConstraintData.first.first}};
+                Command::ClearConstraint clear_cmd{Path<ConstraintModel>{savedConstraintData.first.first}};
                 clear_cmd.redo();
 
                 auto& constraint = savedConstraintData.first.first.find();
@@ -216,3 +216,5 @@ class CommonDisplacementPolicy
             }
         }
 };
+
+}

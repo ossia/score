@@ -8,6 +8,8 @@
 #include "ExpressionEditorWidget.hpp"
 #include <Scenario/Inspector/Expression/SimpleExpressionEditorWidget.hpp>
 
+namespace Scenario
+{
 ExpressionEditorWidget::ExpressionEditorWidget(QWidget *parent) :
     QWidget(parent)
 {
@@ -208,4 +210,4 @@ void ExpressionEditorWidget::removeRelation(int index)
     delete m_relations.at(index);
     m_relations.removeAt(index);
 }
-
+}

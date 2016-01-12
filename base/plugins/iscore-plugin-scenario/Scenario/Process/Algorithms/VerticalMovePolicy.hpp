@@ -1,12 +1,15 @@
 #pragma once
-class ConstraintModel;
-class EventModel;
-class TimeNodeModel;
-namespace Scenario {
-class ScenarioModel;
-}  // namespace Scenario
+
 #include <iscore/tools/SettableIdentifier.hpp>
 #include <iscore_plugin_scenario_export.h>
+
+
+namespace Scenario
+{
+class ConstraintModel;
+class EventModel;
+class ScenarioModel;
+class TimeNodeModel;
 ISCORE_PLUGIN_SCENARIO_EXPORT void updateTimeNodeExtent(
         const Id<TimeNodeModel>& id,
         Scenario::ScenarioModel& s);
@@ -21,3 +24,4 @@ ISCORE_PLUGIN_SCENARIO_EXPORT void updateConstraintVerticalPos(
         double y,
         const Id<ConstraintModel>& id,
         Scenario::ScenarioModel& s);
+}

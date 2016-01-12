@@ -14,7 +14,7 @@
 #include <iscore/tools/NotifyingMap.hpp>
 #include <iscore/tools/Todo.hpp>
 
-ISCORE_METADATA_IMPL(SlotModel)
+ISCORE_METADATA_IMPL(Scenario::SlotModel)
 namespace Scenario
 {
 SlotModel::SlotModel(

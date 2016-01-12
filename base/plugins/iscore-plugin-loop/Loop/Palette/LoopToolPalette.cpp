@@ -33,7 +33,7 @@ ToolPalette::ToolPalette(
     m_presenter{presenter},
     m_context{ctx},
     m_view{view},
-    m_editionSettings{m_context.app.components.applicationPlugin<ScenarioApplicationPlugin>().editionSettings()},
+    m_editionSettings{m_context.app.components.applicationPlugin<Scenario::ScenarioApplicationPlugin>().editionSettings()},
     m_state{*this},
     m_inputDisp{m_presenter, *this, m_context}
 {

@@ -10,11 +10,8 @@
 #include <Scenario/Document/Constraint/ConstraintModel.hpp>
 
 class DeviceList;
-class EventModel;
 namespace Process { class ProcessModel; }
 class QObject;
-class StateModel;
-class TimeNodeModel;
 namespace OSSIA {
 class TimeProcess;
 }  // namespace OSSIA
@@ -25,6 +22,9 @@ class TimeNodeElement;
 }  // namespace RecreateOnPlay
 namespace Scenario {
 class ScenarioModel;
+class EventModel;
+class StateModel;
+class TimeNodeModel;
 }  // namespace Scenario
 
 namespace OSSIA
@@ -59,13 +59,13 @@ class ScenarioElement final : public ProcessComponent
         void stop() override;
 
     private:
-        void on_constraintCreated(const ConstraintModel&);
-        void on_stateCreated(const StateModel&);
-        void on_eventCreated(const EventModel&);
-        void on_timeNodeCreated(const TimeNodeModel&);
+        void on_constraintCreated(const Scenario::ConstraintModel&);
+        void on_stateCreated(const Scenario::StateModel&);
+        void on_eventCreated(const Scenario::EventModel&);
+        void on_timeNodeCreated(const Scenario::TimeNodeModel&);
 
-        void startConstraintExecution(const Id<ConstraintModel>&);
-        void stopConstraintExecution(const Id<ConstraintModel>&);
+        void startConstraintExecution(const Id<Scenario::ConstraintModel>&);
+        void stopConstraintExecution(const Id<Scenario::ConstraintModel>&);
 
         void eventCallback(
                 EventElement& ev,
@@ -74,12 +74,12 @@ class ScenarioElement final : public ProcessComponent
     private:
         const Key &key() const override;
         // TODO use IdContainer
-        std::map<Id<ConstraintModel>, ConstraintElement*> m_ossia_constraints;
-        std::map<Id<StateModel>, StateElement*> m_ossia_states;
-        std::map<Id<TimeNodeModel>, TimeNodeElement*> m_ossia_timenodes;
-        std::map<Id<EventModel>, EventElement*> m_ossia_timeevents;
+        std::map<Id<Scenario::ConstraintModel>, ConstraintElement*> m_ossia_constraints;
+        std::map<Id<Scenario::StateModel>, StateElement*> m_ossia_states;
+        std::map<Id<Scenario::TimeNodeModel>, TimeNodeElement*> m_ossia_timenodes;
+        std::map<Id<Scenario::EventModel>, EventElement*> m_ossia_timeevents;
 
-        IdContainer<ConstraintModel> m_executingConstraints;
+        IdContainer<Scenario::ConstraintModel> m_executingConstraints;
 
         const Context& m_ctx;
 };

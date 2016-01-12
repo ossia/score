@@ -19,8 +19,8 @@ class TimeNodeModel;
 class BaseScenario final : public IdentifiedObject<BaseScenario>, public BaseScenarioContainer
 {
         ISCORE_METADATA(Scenario::BaseScenario)
-        ISCORE_SERIALIZE_FRIENDS(BaseScenario, DataStream)
-        ISCORE_SERIALIZE_FRIENDS(BaseScenario, JSONObject)
+        ISCORE_SERIALIZE_FRIENDS(Scenario::BaseScenario, DataStream)
+        ISCORE_SERIALIZE_FRIENDS(Scenario::BaseScenario, JSONObject)
 
     public:
         iscore::ElementPluginModelList pluginModelList;

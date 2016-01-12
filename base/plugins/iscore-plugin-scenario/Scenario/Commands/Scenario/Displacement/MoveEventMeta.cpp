@@ -10,17 +10,15 @@
 #include <iscore/plugins/customfactory/StringFactoryKey.hpp>
 #include <iscore/serialization/DataStreamVisitor.hpp>
 
-namespace Scenario {
-}  // namespace Scenario
 #include <iscore/tools/SettableIdentifier.hpp>
 
 
 namespace Scenario
 {
-namespace Command
-{
 class EventModel;
 class ScenarioModel;
+namespace Command
+{
 MoveEventMeta::MoveEventMeta(
         Path<Scenario::ScenarioModel>&& scenarioPath,
         const Id<EventModel>& eventId,

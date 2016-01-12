@@ -3,6 +3,9 @@
 #include <Scenario/Document/TimeRuler/AbstractTimeRuler.hpp>
 
 class QObject;
+
+namespace Scenario
+{
 class TimeRulerView;
 
 class TimeRulerPresenter final : public AbstractTimeRuler
@@ -15,3 +18,4 @@ class TimeRulerPresenter final : public AbstractTimeRuler
         TimeRulerView* view();
 
 };
+}

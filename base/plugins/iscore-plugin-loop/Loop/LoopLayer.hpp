@@ -6,11 +6,15 @@
 
 #include <iscore/serialization/DataStreamVisitor.hpp>
 #include <iscore/serialization/JSONVisitor.hpp>
+#include <iscore/tools/SettableIdentifier.hpp>
+
 
 namespace Process { class LayerModelPanelProxy; }
 class QObject;
+namespace Scenario
+{
 class TemporalConstraintViewModel;
-#include <iscore/tools/SettableIdentifier.hpp>
+}
 
 namespace Loop{
     class ProcessModel;
@@ -52,12 +56,12 @@ class Layer final : public Process::LayerModel
 
         const Loop::ProcessModel& model() const;
 
-        const TemporalConstraintViewModel& constraint() const
+        const Scenario::TemporalConstraintViewModel& constraint() const
         {
             return *m_constraint;
         }
 
     private:
-        TemporalConstraintViewModel* m_constraint{};
+        Scenario::TemporalConstraintViewModel* m_constraint{};
 };
 }

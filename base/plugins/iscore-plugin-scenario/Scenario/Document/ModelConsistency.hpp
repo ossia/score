@@ -2,6 +2,8 @@
 #include <QObject>
 #include <iscore_plugin_scenario_export.h>
 
+namespace Scenario
+{
 class ISCORE_PLUGIN_SCENARIO_EXPORT ModelConsistency final : public QObject
 {
         Q_OBJECT
@@ -28,4 +30,4 @@ class ISCORE_PLUGIN_SCENARIO_EXPORT ModelConsistency final : public QObject
         void warningChanged(bool warning);
 
 };
-
+}

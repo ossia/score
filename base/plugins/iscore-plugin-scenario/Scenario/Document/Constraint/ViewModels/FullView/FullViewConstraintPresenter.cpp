@@ -38,16 +38,17 @@ FullViewConstraintPresenter::FullViewConstraintPresenter(
 
 FullViewConstraintPresenter::~FullViewConstraintPresenter()
 {
-    if(::view(this))
+    // TODO deleteGraphicsObject ?
+    if(Scenario::view(this))
     {
-        auto sc = ::view(this)->scene();
+        auto sc = Scenario::view(this)->scene();
 
-        if(sc && sc->items().contains(::view(this)))
+        if(sc && sc->items().contains(Scenario::view(this)))
         {
-            sc->removeItem(::view(this));
+            sc->removeItem(Scenario::view(this));
         }
 
-        ::view(this)->deleteLater();
+        Scenario::view(this)->deleteLater();
     }
 }
 }

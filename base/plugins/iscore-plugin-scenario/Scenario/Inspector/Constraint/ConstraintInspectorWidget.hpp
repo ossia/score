@@ -14,8 +14,6 @@
 #include <Process/ProcessFactoryKey.hpp>
 #include <iscore/tools/SettableIdentifier.hpp>
 #include <iscore_plugin_scenario_export.h>
-class ConstraintModel;
-class ConstraintViewModel;
 class InspectorSectionWidget;
 class InspectorWidgetList;
 class MetadataWidget;
@@ -25,15 +23,19 @@ class ProcessList;
 }
 class QObject;
 class QWidget;
+
+namespace iscore {
+class Document;
+}
+
+namespace Scenario
+{
+class ConstraintModel;
+class ConstraintViewModel;
 class RackInspectorSection;
 class RackModel;
 class RackWidget;
-namespace Scenario {
 class ScenarioModel;
-}  // namespace Scenario
-namespace iscore {
-class Document;
-}  // namespace iscore
 
 /*!
  * \brief The ConstraintInspectorWidget class
@@ -108,3 +110,4 @@ class ISCORE_PLUGIN_SCENARIO_EXPORT ConstraintInspectorWidget final : public Ins
         std::unique_ptr<ConstraintInspectorDelegate> m_delegate;
 
 };
+}

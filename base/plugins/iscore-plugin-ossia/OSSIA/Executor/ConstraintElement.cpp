@@ -27,7 +27,7 @@ namespace RecreateOnPlay
 {
 ConstraintElement::ConstraintElement(
         std::shared_ptr<OSSIA::TimeConstraint> ossia_cst,
-        ConstraintModel& iscore_cst,
+        Scenario::ConstraintModel& iscore_cst,
         const Context&ctx,
         QObject* parent):
     QObject{parent},
@@ -65,7 +65,7 @@ std::shared_ptr<OSSIA::TimeConstraint> ConstraintElement::OSSIAConstraint() cons
     return m_ossia_constraint;
 }
 
-ConstraintModel&ConstraintElement::iscoreConstraint() const
+Scenario::ConstraintModel& ConstraintElement::iscoreConstraint() const
 {
     return m_iscore_constraint;
 }

@@ -16,6 +16,11 @@
 #include <iscore/command/Dispatchers/CommandDispatcher.hpp>
 #include <iscore/selection/SelectionStack.hpp>
 
+namespace Scenario
+{
+namespace Command
+{
+
 void RefreshStates(const iscore::DocumentContext& doc)
 {
     using namespace std;
@@ -52,4 +57,7 @@ void RefreshStates(
 
     CommandDispatcher<> disp{stack};
     disp.submitCommand(macro);
+}
+
+}
 }

@@ -16,8 +16,12 @@
  * ****************************************************************/
 
 class QVBoxLayout;
+
+namespace Scenario
+{
 class SimpleExpressionEditorWidget;
 
+// TODO move in State lib
 class ExpressionEditorWidget : public QWidget
 {
         Q_OBJECT
@@ -49,4 +53,4 @@ class ExpressionEditorWidget : public QWidget
 
         QString m_expression{};
 };
-
+}

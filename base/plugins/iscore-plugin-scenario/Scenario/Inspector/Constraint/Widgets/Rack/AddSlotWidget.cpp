@@ -6,6 +6,8 @@
 #include "AddSlotWidget.hpp"
 #include "RackInspectorSection.hpp"
 
+namespace Scenario
+{
 AddSlotWidget::AddSlotWidget(RackInspectorSection* parent) :
     QWidget {parent}
 {
@@ -30,4 +32,5 @@ AddSlotWidget::AddSlotWidget(RackInspectorSection* parent) :
     {
         parent->createSlot();
     });
+}
 }

@@ -19,4 +19,4 @@ struct ScenarioRecordInitData
         QPointF point;
 };
 }
-Q_DECLARE_METATYPE(ScenarioRecordInitData)
+Q_DECLARE_METATYPE(Scenario::ScenarioRecordInitData)

@@ -27,7 +27,7 @@ class ConstraintComponent final :
         ConstraintComponent(
                 OSSIA::Node& parent,
                 const Id<Component>& id,
-                ConstraintModel& constraint,
+                Scenario::ConstraintModel& constraint,
                 const system_t& doc,
                 const iscore::DocumentContext& ctx,
                 QObject* parent_comp);

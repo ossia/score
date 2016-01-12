@@ -68,6 +68,7 @@ iscore_plugin_scenario::iscore_plugin_scenario() :
         iscore::FactoryList_QtInterface {},
         iscore::FactoryInterface_QtInterface {}
 {
+    using namespace Scenario;
     QMetaType::registerComparators<State::Value>();
     QMetaType::registerComparators<State::Message>();
     QMetaType::registerComparators<State::MessageList>();
@@ -107,6 +108,7 @@ std::vector<iscore::PanelFactory*> iscore_plugin_scenario::panels()
 std::vector<std::unique_ptr<iscore::FactoryListInterface>> iscore_plugin_scenario::factoryFamilies()
 {
     using namespace Scenario;
+    using namespace Scenario::Command;
     return make_ptr_vector<iscore::FactoryListInterface,
             Process::ProcessList,
             Process::StateProcessList,
@@ -120,11 +122,11 @@ std::vector<std::unique_ptr<iscore::FactoryListInterface>> iscore_plugin_scenari
 }
 
 template<>
-struct FactoryBuilder<iscore::ApplicationContext, ScenarioFactory>
+struct FactoryBuilder<iscore::ApplicationContext, Scenario::ScenarioFactory>
 {
-        using namespace Scenario;
         static auto make(const iscore::ApplicationContext& ctx)
         {
+            using namespace Scenario;
             auto& appPlugin = ctx.components.applicationPlugin<ScenarioApplicationPlugin>();
             return std::make_unique<ScenarioFactory>(appPlugin.editionSettings());
         }
@@ -135,6 +137,7 @@ std::vector<std::unique_ptr<iscore::FactoryInterfaceBase>> iscore_plugin_scenari
         const iscore::FactoryBaseKey& key) const
 {
     using namespace Scenario;
+    using namespace Scenario::Command;
     /*
         if(key == ScenarioActionsFactory::staticFactoryKey())
         {

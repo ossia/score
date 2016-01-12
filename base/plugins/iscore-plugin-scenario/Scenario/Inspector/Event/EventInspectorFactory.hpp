@@ -9,8 +9,8 @@ class QWidget;
 namespace iscore {
 class Document;
 }  // namespace iscore
-
-
+namespace Scenario
+{
 class EventInspectorFactory final : public InspectorWidgetFactory
 {
     public:
@@ -28,3 +28,4 @@ class EventInspectorFactory final : public InspectorWidgetFactory
         const QList<QString>& key_impl() const override;
 
 };
+}

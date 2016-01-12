@@ -6,13 +6,14 @@
 #include <set>
 #include <eggs/variant.hpp>
 
-class AutomationModel;
+namespace Scenario
+{
 class TimeNodeModel;
 class EventModel;
 class ConstraintModel;
 class StateModel;
-namespace Scenario
-{ class ScenarioModel; }
+class ScenarioModel;
+}
 namespace TA
 { struct TAScenario; }
 
@@ -256,19 +257,17 @@ private:
     const char* space() const;
 
     void visit(
-            const AutomationModel& automation);
+            const Scenario::TimeNodeModel& timenode);
     void visit(
-            const TimeNodeModel& timenode);
+            const Scenario::EventModel& event);
     void visit(
-            const EventModel& event);
+            const Scenario::ConstraintModel& c);
     void visit(
-            const ConstraintModel& c);
-    void visit(
-            const StateModel& state);
+            const Scenario::StateModel& state);
     void visit(
             const Scenario::ScenarioModel& s);
 };
 namespace TA
 {
-QString makeScenario(const ConstraintModel& s);
+QString makeScenario(const Scenario::ConstraintModel& s);
 }

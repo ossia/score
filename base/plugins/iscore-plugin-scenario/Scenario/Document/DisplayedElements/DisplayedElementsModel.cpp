@@ -11,6 +11,8 @@
 #include <iscore/tools/std/StdlibWrapper.hpp>
 #include <iscore/tools/std/Algorithms.hpp>
 
+namespace Scenario
+{
 void DisplayedElementsModel::setSelection(
         const Selection & s)
 {
@@ -59,4 +61,5 @@ const StateModel &DisplayedElementsModel::startState() const
 const StateModel &DisplayedElementsModel::endState() const
 {
     return *m_elements.endState;
+}
 }

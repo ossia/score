@@ -192,7 +192,7 @@ void RecordManager::recordInNewBox(Scenario::ScenarioModel& scenar, Scenario::Po
     m_dispatcher->submitCommand(cmd_end);
 
     auto& cstr = scenar.constraints.at(cmd_end->createdConstraint());
-    Path<ConstraintModel> cstr_path{cstr};
+    Path<Scenario::ConstraintModel> cstr_path{cstr};
 
     auto cmd_move = new Scenario::Command::MoveNewEvent(
                 scenar,
@@ -228,8 +228,8 @@ void RecordManager::recordInNewBox(Scenario::ScenarioModel& scenar, Scenario::Po
         {
             // Note : since we directly create the IDs here, we don't have to worry
             // about their generation.
-            auto cmd_proc = new AddOnlyProcessToConstraint{
-                    Path<ConstraintModel>(cstr_path),
+            auto cmd_proc = new Scenario::Command::AddOnlyProcessToConstraint{
+                    Path<Scenario::ConstraintModel>(cstr_path),
                     Automation::ProcessMetadata::factoryKey()};
             cmd_proc->redo();
             auto& proc = cstr.processes.at(cmd_proc->processId());
@@ -299,7 +299,7 @@ void RecordManager::recordInNewBox(Scenario::ScenarioModel& scenar, Scenario::Po
         int msecs = std::chrono::duration_cast<std::chrono::milliseconds>(current_time_pt - start_time_pt).count();
         cmd_move->update(
                     Path<Scenario::ScenarioModel>{},
-                    Id<ConstraintModel>{},
+                    Id<Scenario::ConstraintModel>{},
                     cmd_end->createdEvent(),
                     pt.date + TimeValue::fromMsecs(msecs),
                     0,

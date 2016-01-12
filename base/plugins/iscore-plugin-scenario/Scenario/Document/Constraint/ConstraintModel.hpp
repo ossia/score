@@ -31,7 +31,7 @@ class FullViewConstraintViewModel;
 class ISCORE_PLUGIN_SCENARIO_EXPORT ConstraintModel final : public IdentifiedObject<ConstraintModel>, public Nano::Observer
 {
         Q_OBJECT
-        ISCORE_METADATA(ConstraintModel)
+        ISCORE_METADATA(Scenario::ConstraintModel)
 
         ISCORE_SERIALIZE_FRIENDS(Scenario::ConstraintModel, DataStream)
         ISCORE_SERIALIZE_FRIENDS(Scenario::ConstraintModel, JSONObject)

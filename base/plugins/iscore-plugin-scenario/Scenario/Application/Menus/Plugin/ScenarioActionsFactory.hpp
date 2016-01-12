@@ -23,4 +23,4 @@ class ISCORE_PLUGIN_SCENARIO_EXPORT ScenarioActionsFactory :
 };
 }
 
-Q_DECLARE_METATYPE(ScenarioActionsFactoryKey)
+Q_DECLARE_METATYPE(Scenario::ScenarioActionsFactoryKey)

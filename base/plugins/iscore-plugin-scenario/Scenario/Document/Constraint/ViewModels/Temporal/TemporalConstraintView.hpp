@@ -11,17 +11,18 @@ class QGraphicsSceneHoverEvent;
 class QPainter;
 class QStyleOptionGraphicsItem;
 class QWidget;
-class TemporalConstraintPresenter;
-
 namespace Scenario
 {
+class TemporalConstraintPresenter;
+
 class ISCORE_PLUGIN_SCENARIO_EXPORT TemporalConstraintView final : public ConstraintView
 {
         Q_OBJECT
 
     public:
-        TemporalConstraintView(TemporalConstraintPresenter& presenter,
-                               QGraphicsObject* parent);
+        TemporalConstraintView(
+                TemporalConstraintPresenter& presenter,
+                QGraphicsObject* parent);
 
         QRectF boundingRect() const override
         {

@@ -8,13 +8,13 @@
 
 #include <Process/TimeValue.hpp>
 
-class TimeNodeModel;
-namespace Scenario {
-class ScenarioModel;
-}  // namespace Scenario
-struct ElementsProperties;
 #include <iscore/tools/SettableIdentifier.hpp>
 
+namespace Scenario
+{
+struct ElementsProperties;
+class TimeNodeModel;
+class ScenarioModel;
 class GoodOldDisplacementPolicy
 {
 public:
@@ -51,3 +51,4 @@ public:
         CommonDisplacementPolicy::revertPositions(std::forward<Args>(args)...);
     }
 };
+}

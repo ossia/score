@@ -15,7 +15,7 @@
 #include <iscore/tools/IdentifiedObject.hpp>
 #include <iscore/tools/SettableIdentifier.hpp>
 
-ISCORE_METADATA_IMPL(EventModel)
+ISCORE_METADATA_IMPL(Scenario::EventModel)
 namespace Scenario
 {
 EventModel::EventModel(

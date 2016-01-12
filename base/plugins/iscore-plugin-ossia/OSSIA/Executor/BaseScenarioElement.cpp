@@ -40,7 +40,7 @@ static void baseScenarioConstraintCallback(const OSSIA::TimeValue&,
 }
 
 BaseScenarioElement::BaseScenarioElement(
-        const BaseScenario& element,
+        const Scenario::BaseScenario& element,
         const Context& ctx,
         QObject *parent):
     QObject{parent},

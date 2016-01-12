@@ -7,7 +7,8 @@
 #include <Scenario/Process/Algorithms/Accessors.hpp>
 #include <Process/State/ProcessStateDataInterface.hpp>
 #include <iscore/tools/std/Algorithms.hpp>
-
+namespace Scenario
+{
 static void AddProcessBeforeState(
         StateModel& statemodel,
         const Process::ProcessModel& proc)
@@ -176,4 +177,5 @@ void SetNoNextConstraint(StateModel& state)
         state.followingProcesses().clear();
         state.setNextConstraint(Id<ConstraintModel>{});
     }
+}
 }

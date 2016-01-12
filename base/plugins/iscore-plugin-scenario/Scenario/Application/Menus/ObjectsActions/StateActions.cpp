@@ -25,7 +25,7 @@ StateActions::StateActions(iscore::ToplevelMenuElement menuElt,
     m_updateStates->setWhatsThis(MenuInterface::name(iscore::ContextMenu::State));
     connect(m_updateStates, &QAction::triggered,
         this, [&] () {
-    RefreshStates(m_parent->currentDocument()->context());
+    Command::RefreshStates(m_parent->currentDocument()->context());
     });
 
 }

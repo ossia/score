@@ -1,4 +1,8 @@
 #pragma once
+#include <iscore/tools/SettableIdentifier.hpp>
+
+namespace Scenario
+{
 class ConstraintModel;
 class EventModel;
 class EventPresenter;
@@ -7,8 +11,6 @@ class TemporalConstraintPresenter;
 class TemporalScenarioPresenter;
 class TimeNodePresenter;
 class CommentBlockPresenter;
-#include <iscore/tools/SettableIdentifier.hpp>
-
 class ScenarioViewInterface
 {
     public:
@@ -26,3 +28,4 @@ class ScenarioViewInterface
     private:
         const TemporalScenarioPresenter& m_presenter;
 };
+}

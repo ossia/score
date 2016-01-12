@@ -10,15 +10,6 @@
 #include <Process/ProcessContext.hpp>
 #include <Scenario/Palette/ScenarioPoint.hpp>
 
-class TemporalScenarioPresenter;
-class TemporalScenarioView;
-namespace Scenario {
-class EditionSettings;
-class MoveConstraintInScenario_StateWrapper;
-class MoveEventInScenario_StateWrapper;
-class MoveTimeNodeInScenario_StateWrapper;
-class ScenarioModel;
-}  // namespace Scenario
 
 namespace iscore
 {
@@ -28,6 +19,13 @@ namespace iscore
 
 namespace Scenario
 {
+class EditionSettings;
+class TemporalScenarioPresenter;
+class TemporalScenarioView;
+class MoveConstraintInScenario_StateWrapper;
+class MoveEventInScenario_StateWrapper;
+class MoveTimeNodeInScenario_StateWrapper;
+class ScenarioModel;
 class ToolPalette final : public GraphicsSceneToolPalette
 {
     public:

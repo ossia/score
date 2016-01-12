@@ -8,7 +8,6 @@
 #include <Process/ZoomHelper.hpp>
 #include <iscore/selection/Selection.hpp>
 
-class DisplayedElementsPresenter;
 class GraphicsSceneToolPalette;
 class ObjectPath;
 class QSize;
@@ -18,10 +17,10 @@ class DocumentDelegateViewInterface;
 class DocumentPresenter;
 }  // namespace iscore
 
-namespace iscore
-{
-}
 
+namespace Scenario
+{
+class DisplayedElementsPresenter;
 class ConstraintModel;
 class ScenarioDocumentModel;
 class ScenarioDocumentView;
@@ -97,3 +96,4 @@ class ScenarioDocumentPresenter final : public iscore::DocumentDelegatePresenter
         ZoomRatio m_zoomRatio;
 
 };
+}

@@ -6,15 +6,20 @@
 
 class InspectorWidgetBase;
 class QPushButton;
+
+namespace Scenario
+{
 class ExpressionEditorWidget;
 class TimeNodeModel;
+namespace Command
+{
 class TriggerCommandFactoryList;
-
+}
 class TriggerInspectorWidget final : public QWidget
 {
     public:
         TriggerInspectorWidget(
-                const TriggerCommandFactoryList& fact,
+                const Command::TriggerCommandFactoryList& fact,
                 const TimeNodeModel& object,
                 InspectorWidgetBase* parent);
 
@@ -29,7 +34,7 @@ class TriggerInspectorWidget final : public QWidget
         void updateExpression(const State::Trigger&);
 
     private:
-        const TriggerCommandFactoryList& m_triggerCommandFactory;
+        const Command::TriggerCommandFactoryList& m_triggerCommandFactory;
         const TimeNodeModel& m_model;
 
         InspectorWidgetBase* m_parent;
@@ -39,3 +44,4 @@ class TriggerInspectorWidget final : public QWidget
 
         ExpressionEditorWidget* m_exprEditor{};
 };
+}

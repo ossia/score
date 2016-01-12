@@ -16,13 +16,15 @@
 #include <iscore/serialization/DataStreamVisitor.hpp>
 #include <iscore/tools/SettableIdentifier.hpp>
 
-class ConstraintModel;
-class ConstraintViewModel;
 namespace Process { class LayerPresenter; }
 class LayerView;
 class QGraphicsItem;
 class QObject;
 
+namespace Scenario
+{
+class ConstraintModel;
+class ConstraintViewModel;
 ScenarioFactory::ScenarioFactory(Scenario::EditionSettings& e):
     m_editionSettings{e}
 {
@@ -88,4 +90,5 @@ QByteArray ScenarioFactory::makeStaticLayerConstructionData() const
     s << map;
 
     return arr;
+}
 }

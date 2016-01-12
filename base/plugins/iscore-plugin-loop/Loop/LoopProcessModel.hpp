@@ -10,22 +10,25 @@
 #include <Process/TimeValue.hpp>
 #include <iscore/selection/Selection.hpp>
 #include <iscore/serialization/VisitorInterface.hpp>
+#include <iscore/tools/SettableIdentifier.hpp>
+#include <iscore_plugin_loop_export.h>
 
-class ConstraintModel;
 class DataStream;
 class JSONObject;
 namespace Process { class LayerModel; }
 class ProcessStateDataInterface;
 class QObject;
+namespace Scenario
+{
 class TimeNodeModel;
-#include <iscore/tools/SettableIdentifier.hpp>
-#include <iscore_plugin_loop_export.h>
+class ConstraintModel;
+}
 
 namespace Loop
 {
 class ISCORE_PLUGIN_LOOP_EXPORT ProcessModel final :
         public Process::ProcessModel,
-        public BaseScenarioContainer
+        public Scenario::BaseScenarioContainer
 {
         ISCORE_METADATA(Loop::ProcessModel)
         ISCORE_SERIALIZE_FRIENDS(Loop::ProcessModel, DataStream)
@@ -101,7 +104,7 @@ class ISCORE_PLUGIN_LOOP_EXPORT ProcessModel final :
 };
 
 
-const QVector<Id<ConstraintModel> > constraintsBeforeTimeNode(
+const QVector<Id<Scenario::ConstraintModel> > constraintsBeforeTimeNode(
         const Loop::ProcessModel& scen,
-        const Id<TimeNodeModel>& timeNodeId);
+        const Id<Scenario::TimeNodeModel>& timeNodeId);
 }
