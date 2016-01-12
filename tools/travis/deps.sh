@@ -6,7 +6,7 @@ case "$TRAVIS_OS_NAME" in
   linux)
     sudo add-apt-repository --yes ppa:ubuntu-toolchain-r/test
 
-    if [[ "$CONF" != "staticqt-release" ]];
+    if [[ "$CONF" != "linux-package" ]];
     then
       sudo add-apt-repository --yes ppa:beineri/opt-qt551-trusty
     fi
@@ -14,7 +14,7 @@ case "$TRAVIS_OS_NAME" in
     sudo apt-get update -qq
     sudo apt-get install -qq g++-5 libboost1.55-dev libavahi-compat-libdnssd-dev libportmidi-dev ninja-build gcovr lcov
 
-    if [[ "$CONF" == "staticqt-release" ]];
+    if [[ "$CONF" == "linux-package" ]];
     then
       sudo wget https://www.dropbox.com/s/vjh9lm1n3sody2c/qt5-static-linux-release.tar.xz?dl=1 -O /opt/qt5-static-linux-release.tar.xz
       (cd /opt; sudo tar xaf qt5-static-linux-release.tar.xz)

@@ -1,4 +1,3 @@
-message("${CMAKE_PREFIX_PATH}")
 set(CMAKE_MODULE_PATH
   "${CMAKE_MODULE_PATH}"
   "${CMAKE_CURRENT_SOURCE_DIR}/CMake"
@@ -11,11 +10,9 @@ if(NOT ISCORE_CONFIGURATION)
   set(ISCORE_CONFIGURATION developer)
 endif()
 include("${ISCORE_CONFIGURATION}")
-message("${CMAKE_PREFIX_PATH}")
 
 project(iscore LANGUAGES CXX)
 cmake_minimum_required(VERSION 3.1 FATAL_ERROR)
-message("${CMAKE_PREFIX_PATH}")
 
 
 set(ISCORE_VERSION_MAJOR 1)
