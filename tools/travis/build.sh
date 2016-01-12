@@ -8,8 +8,9 @@ CMAKE_BIN=/usr/local/bin/cmake
 export CMAKE_COMMON_FLAGS="-GNinja"
 export CTEST_OUTPUT_ON_FAILURE=1
 
-mkdir build
+mkdir -p build
 cd build
 
-source "tools/travis/configs/$CONF.sh"
+export CONFIG_FOLDER=$(pwd)/../tools/travis/configs/
+source "$CONFIG_FOLDER/$CONF.sh"
 
