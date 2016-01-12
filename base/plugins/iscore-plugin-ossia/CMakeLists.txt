@@ -50,13 +50,10 @@ set(HDRS
     "${CMAKE_CURRENT_SOURCE_DIR}/OSSIA/Executor/ProcessElement.hpp"
     "${CMAKE_CURRENT_SOURCE_DIR}/OSSIA/Executor/StateElement.hpp"
     "${CMAKE_CURRENT_SOURCE_DIR}/OSSIA/Executor/ProcessWrapper.hpp"
-    "${CMAKE_CURRENT_SOURCE_DIR}/OSSIA/Executor/AutomationElement.hpp"
     "${CMAKE_CURRENT_SOURCE_DIR}/OSSIA/Executor/DocumentPlugin.hpp"
     "${CMAKE_CURRENT_SOURCE_DIR}/OSSIA/Executor/TimeNodeElement.hpp"
     "${CMAKE_CURRENT_SOURCE_DIR}/OSSIA/Executor/ConstraintElement.hpp"
 
-    "${CMAKE_CURRENT_SOURCE_DIR}/OSSIA/Executor/ProcessModel/ProcessModel.hpp"
-    "${CMAKE_CURRENT_SOURCE_DIR}/OSSIA/Executor/ProcessModel/ProcessModelElement.hpp"
 
     "${CMAKE_CURRENT_SOURCE_DIR}/OSSIA/LocalTree/LocalTreeDocumentPlugin.hpp"
     "${CMAKE_CURRENT_SOURCE_DIR}/OSSIA/LocalTree/BaseProperty.hpp"
@@ -108,7 +105,6 @@ set(SRCS
 "${CMAKE_CURRENT_SOURCE_DIR}/OSSIA/Executor/EventElement.cpp"
 "${CMAKE_CURRENT_SOURCE_DIR}/OSSIA/Executor/ScenarioElement.cpp"
 "${CMAKE_CURRENT_SOURCE_DIR}/OSSIA/Executor/StateElement.cpp"
-"${CMAKE_CURRENT_SOURCE_DIR}/OSSIA/Executor/AutomationElement.cpp"
 "${CMAKE_CURRENT_SOURCE_DIR}/OSSIA/Executor/DocumentPlugin.cpp"
 "${CMAKE_CURRENT_SOURCE_DIR}/OSSIA/Executor/TimeNodeElement.cpp"
 "${CMAKE_CURRENT_SOURCE_DIR}/OSSIA/Executor/ConstraintElement.cpp"

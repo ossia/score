@@ -3,7 +3,6 @@
 #include <iscore/tools/IdentifiedObjectMap.hpp>
 #include "Area/AreaModel.hpp"
 #include "Computation/ComputationModel.hpp"
-#include <OSSIA/Executor/ProcessModel/ProcessModel.hpp>
 #include <iscore/tools/NotifyingMap.hpp>
 
 #include <OSSIA/LocalTree/Scenario/ProcessComponent.hpp>

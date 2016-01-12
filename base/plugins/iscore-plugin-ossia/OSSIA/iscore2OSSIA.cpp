@@ -41,7 +41,6 @@
 #include <OSSIA/iscore2OSSIA.hpp>
 #include <Scenario/Document/State/StateModel.hpp>
 #include <Scenario/Document/State/ItemModel/MessageItemModel.hpp>
-#include <OSSIA/Executor/ProcessModel/ProcessModel.hpp>
 
 
 class NodeNotFoundException : public std::exception

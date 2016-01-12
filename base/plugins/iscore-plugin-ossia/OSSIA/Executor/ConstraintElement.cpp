@@ -1,8 +1,6 @@
 #include <API/Headers/Editor/TimeConstraint.h>
 #include <Automation/AutomationModel.hpp>
 #include <OSSIA/OSSIA2iscore.hpp>
-#include <OSSIA/Executor/ProcessModel/ProcessModel.hpp>
-#include <OSSIA/Executor/ProcessModel/ProcessModelElement.hpp>
 #include <Scenario/Document/Constraint/ConstraintModel.hpp>
 #include <Scenario/Process/ScenarioModel.hpp>
 #include <OSSIA/iscore2OSSIA.hpp>
