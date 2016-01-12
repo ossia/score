@@ -228,12 +228,12 @@ function(setup_iscore_library PluginName)
   if(ISCORE_BUILD_FOR_PACKAGE_MANAGER)
   install(TARGETS "${PluginName}"
           LIBRARY DESTINATION lib
-          ARCHIVE DESTINATION lib
+#          ARCHIVE DESTINATION lib
           CONFIGURATIONS DynamicRelease)
   else()
   install(TARGETS "${PluginName}"
           LIBRARY DESTINATION .
-          ARCHIVE DESTINATION static_lib/
+#          ARCHIVE DESTINATION static_lib/
           CONFIGURATIONS DynamicRelease)
   endif()
   iscore_cotire_post("${PluginName}")
@@ -249,12 +249,12 @@ function(setup_iscore_plugin PluginName)
   if(ISCORE_BUILD_FOR_PACKAGE_MANAGER)
   install(TARGETS "${PluginName}"
           LIBRARY DESTINATION lib/i-score
-          ARCHIVE DESTINATION lib/i-score
+#          ARCHIVE DESTINATION lib/i-score
           CONFIGURATIONS DynamicRelease)
   else()
   install(TARGETS "${PluginName}"
           LIBRARY DESTINATION plugins
-          ARCHIVE DESTINATION static_plugins
+#          ARCHIVE DESTINATION static_plugins
           CONFIGURATIONS DynamicRelease)
   endif()
   iscore_cotire_post("${PluginName}")

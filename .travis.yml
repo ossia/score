@@ -3,7 +3,7 @@ os:
   - osx
   - linux
 
-osx_image: xcode7.1
+osx_image: xcode7.2
 
 dist: trusty
 sudo: required
@@ -26,32 +26,31 @@ matrix:
     - os: osx
 
   include:
-  # GCOV
     - os: linux
-      env: BUILD_TYPE=Debug   STATIC_PLUGINS=False DEPLOYMENT=False CAN_DEPLOY=False USE_COVERITY=False STATIC_QT=False USE_GCOV=True
+      env: CONFIG=linux-gcov CAN_DEPLOY=False
 
     - os: osx
-      env: BUILD_TYPE=Release STATIC_PLUGINS=True  DEPLOYMENT=True  CAN_DEPLOY=True  USE_COVERITY=False STATIC_QT=False USE_GCOV=False
+      env: CONFIG=osx-package CAN_DEPLOY=True
     - os: linux
-      env: BUILD_TYPE=Release STATIC_PLUGINS=True  DEPLOYMENT=True  CAN_DEPLOY=True  USE_COVERITY=False STATIC_QT=True  USE_GCOV=False
+      env: CONFIG=linux-package CAN_DEPLOY=True
 
     - os: osx
-      env: BUILD_TYPE=Debug   STATIC_PLUGINS=False DEPLOYMENT=False CAN_DEPLOY=False USE_COVERITY=False STATIC_QT=False USE_GCOV=False
+      env: CONFIG=osx-debug CAN_DEPLOY=False
     - os: osx
-      env: BUILD_TYPE=Debug   STATIC_PLUGINS=True  DEPLOYMENT=False CAN_DEPLOY=False USE_COVERITY=False STATIC_QT=False USE_GCOV=False
+      env: CONFIG=osx-static-debug CAN_DEPLOY=False
     - os: osx
-      env: BUILD_TYPE=Release STATIC_PLUGINS=False DEPLOYMENT=True  CAN_DEPLOY=False USE_COVERITY=False STATIC_QT=False USE_GCOV=False
+      env: CONFIG=osx-release CAN_DEPLOY=False
 
     - os: linux
-      env: BUILD_TYPE=Debug   STATIC_PLUGINS=False DEPLOYMENT=False CAN_DEPLOY=False USE_COVERITY=False STATIC_QT=False USE_GCOV=False
+      env: CONFIG=linux-debug CAN_DEPLOY=False
     - os: linux
-      env: BUILD_TYPE=Debug   STATIC_PLUGINS=True  DEPLOYMENT=False CAN_DEPLOY=False USE_COVERITY=False STATIC_QT=False USE_GCOV=False
+      env: CONFIG=linux-static-debug CAN_DEPLOY=False
     - os: linux
-      env: BUILD_TYPE=Release STATIC_PLUGINS=False DEPLOYMENT=True  CAN_DEPLOY=False USE_COVERITY=False STATIC_QT=False USE_GCOV=False
+      env: CONFIG=linux-release CAN_DEPLOY=False
 
 # Coverity
 #    - os: linux
-#      env: BUILD_TYPE=Debug     STATIC_PLUGINS=False DEPLOYMENT=False CAN_DEPLOY=False USE_COVERITY=True STATIC_QT=False
+#      env: CONFIG=linux-coverity CAN_DEPLOY=False
 
 before_install:
 - "./tools/travis/deps.sh"
