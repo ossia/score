@@ -20,7 +20,13 @@ function(iscore_add_component Name Sources Headers Dependencies)
 
   iscore_parse_components(${Name} ${Headers})
 
-  if(NOT ISCORE_MERGE_COMPONENTS)
+  if(ISCORE_MERGE_COMPONENTS)
+
+    add_library(${Name} INTERFACE)
+    target_include_directories(${Name} INTERFACE ${CMAKE_CURRENT_SOURCE_DIR})
+    target_sources(${Name} INTERFACE ${Sources} ${Headers})
+    target_link_libraries(${Name} INTERFACE ${Dependencies})
+  else()
     iscore_generate_plugin_file(${Name} ${Headers})
     add_library(${Name}
         ${Sources} ${Headers}

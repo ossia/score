@@ -1,5 +1,5 @@
 #pragma once
-#include <API/Headers/Editor/Value.h>
+#include <Editor/Value.h>
 #include <OSSIA/Executor/ProcessElement.hpp>
 #include <memory>
 

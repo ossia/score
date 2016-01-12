@@ -1,5 +1,5 @@
 #pragma once
-#include <API/Headers/Editor/TimeValue.h>
+#include <Editor/TimeValue.h>
 #include <Process/State/MessageNode.hpp>
 #include <Process/TimeValue.hpp>
 #include <State/Expression.hpp>
