@@ -1,7 +1,13 @@
+set(CMAKE_MODULE_PATH "${CMAKE_MODULE_PATH};${CMAKE_CURRENT_SOURCE_DIR}/CMake;${CMAKE_CURRENT_SOURCE_DIR}/CMake/modules;${CMAKE_CURRENT_SOURCE_DIR}/CMake/Configurations;${CMAKE_CURRENT_SOURCE_DIR}/CMake/modules/cmake-modules")
+
+if(NOT ISCORE_CONFIGURATION)
+  set(ISCORE_CONFIGURATION developer)
+endif()
+include("${ISCORE_CONFIGURATION}")
+
 project(iscore LANGUAGES CXX)
 cmake_minimum_required(VERSION 3.1 FATAL_ERROR)
 
-set(CMAKE_MODULE_PATH "${CMAKE_MODULE_PATH};${CMAKE_CURRENT_SOURCE_DIR}/CMake;${CMAKE_CURRENT_SOURCE_DIR}/CMake/modules;${CMAKE_CURRENT_SOURCE_DIR}/CMake/modules/cmake-modules")
 
 set(ISCORE_VERSION_MAJOR 1)
 set(ISCORE_VERSION_MINOR 0)
@@ -37,6 +43,7 @@ set(ISCORE_PLUGINS_LIST CACHE INTERNAL "List of plugins") # todo libraries, comp
 set(ISCORE_GLOBAL_COMPONENTS_LIST CACHE INTERNAL "List of components") # todo libraries, components ?
 
 add_subdirectory(base)
+
 
 #if(INTEGRATION_TESTING)
 
