@@ -18,7 +18,8 @@ add_subdirectory(iscore-plugin-ossia)
 add_subdirectory(iscore-plugin-js)
 add_subdirectory(iscore-plugin-cohesion)
 
-if(ISCORE_USE_DEV_PLUGINS)
+
+#if(ISCORE_USE_DEV_PLUGINS)
   add_subdirectory(iscore-plugin-pluginsettings)
   add_subdirectory(iscore-plugin-mapping)
   add_subdirectory(iscore-component-executor-mapping)
@@ -29,7 +30,7 @@ if(ISCORE_USE_DEV_PLUGINS)
   add_subdirectory(iscore-plugin-csp)
   add_subdirectory(iscore-plugin-library)
   add_subdirectory(iscore-plugin-network)
-endif()
+#endif()
 
 add_subdirectory(iscore-component-executor-automation)
 add_subdirectory(iscore-component-executor-loop)

@@ -1,5 +1,4 @@
 #pragma once
-#include <OSSIA/Executor/ProcessModel/ProcessModel.hpp>
 #include <Process/Process.hpp>
 #include <QByteArray>
 #include <QString>

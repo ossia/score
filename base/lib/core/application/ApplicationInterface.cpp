@@ -13,8 +13,9 @@ ApplicationInterface& ApplicationInterface::instance()
     return *m_instance;
 }
 
-const ApplicationContext& AppContext()
+}
+
+ISCORE_LIB_BASE_EXPORT const iscore::ApplicationContext& iscore::AppContext()
 {
     return ApplicationInterface::instance().context();
-}
 }

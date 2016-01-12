@@ -38,7 +38,6 @@ set(PROCESS_HDRS
 "${CMAKE_CURRENT_SOURCE_DIR}/Process/Inspector/ProcessInspectorWidgetDelegateFactoryList.hpp"
 "${CMAKE_CURRENT_SOURCE_DIR}/Process/Inspector/ProcessInspectorWidgetDelegate.hpp"
 "${CMAKE_CURRENT_SOURCE_DIR}/Process/Inspector/ProcessInspectorWidget.hpp"
-"${CMAKE_CURRENT_SOURCE_DIR}/Process/Inspector/ProcessInspectorWidgetFactory.hpp"
 )
 set(PROCESS_SRCS
 "${CMAKE_CURRENT_SOURCE_DIR}/Process/TimeValueSerialization.cpp"
@@ -67,10 +66,8 @@ set(PROCESS_SRCS
 "${CMAKE_CURRENT_SOURCE_DIR}/Process/Tools/ProcessPanelGraphicsProxy.cpp"
 
 "${CMAKE_CURRENT_SOURCE_DIR}/Process/Inspector/ProcessInspectorWidgetDelegateFactory.cpp"
-"${CMAKE_CURRENT_SOURCE_DIR}/Process/Inspector/ProcessInspectorWidgetDelegateFactoryList.cpp"
 "${CMAKE_CURRENT_SOURCE_DIR}/Process/Inspector/ProcessInspectorWidgetDelegate.cpp"
 "${CMAKE_CURRENT_SOURCE_DIR}/Process/Inspector/ProcessInspectorWidget.cpp"
-"${CMAKE_CURRENT_SOURCE_DIR}/Process/Inspector/ProcessInspectorWidgetFactory.cpp"
 )
 
 add_library(iscore_lib_process ${PROCESS_HDRS} ${PROCESS_SRCS} )

@@ -1,7 +1,6 @@
 #include "iscore_plugin_space.hpp"
 
 #include "SpaceProcessFactory.hpp"
-#include "SpaceApplicationPlugin.hpp"
 #include "Area/AreaFactory.hpp"
 #include "Area/SingletonAreaFactoryList.hpp"
 

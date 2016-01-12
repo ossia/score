@@ -29,13 +29,10 @@ set(SRCS
 "${CMAKE_CURRENT_SOURCE_DIR}/Autom3D/Autom3DSerialization.cpp"
 "${CMAKE_CURRENT_SOURCE_DIR}/Autom3D/Autom3DLayerSerialization.cpp"
 
-"${CMAKE_CURRENT_SOURCE_DIR}/Autom3D/Autom3DView.cpp"
 "${CMAKE_CURRENT_SOURCE_DIR}/Autom3D/Autom3DModel.cpp"
-"${CMAKE_CURRENT_SOURCE_DIR}/Autom3D/Autom3DFactory.cpp"
 "${CMAKE_CURRENT_SOURCE_DIR}/Autom3D/Autom3DLayerModel.cpp"
 "${CMAKE_CURRENT_SOURCE_DIR}/Autom3D/Autom3DPanelProxy.cpp"
 
-"${CMAKE_CURRENT_SOURCE_DIR}/Autom3D/Commands/InitAutom3D.cpp"
 "${CMAKE_CURRENT_SOURCE_DIR}/Autom3D/Commands/ChangeAddress.cpp"
 "${CMAKE_CURRENT_SOURCE_DIR}/Autom3D/Commands/Autom3DCommandFactory.cpp"
 
@@ -49,7 +46,6 @@ set(SRCS
 "${CMAKE_CURRENT_SOURCE_DIR}/Autom3D/Panel/AutomWidget.hpp"
 "${CMAKE_CURRENT_SOURCE_DIR}/Autom3D/Panel/AutomWidget.ui"
 
-"${CMAKE_CURRENT_SOURCE_DIR}/Autom3D/Autom3DColors.cpp"
 "${CMAKE_CURRENT_SOURCE_DIR}/Autom3D/Autom3DProcessMetadata.cpp"
 "${CMAKE_CURRENT_SOURCE_DIR}/iscore_plugin_autom3d.cpp"
 )
@@ -60,8 +56,6 @@ if(TARGET iscore_lib_inspector)
 "${CMAKE_CURRENT_SOURCE_DIR}/Autom3D/Inspector/Autom3DStateInspector.cpp"
 "${CMAKE_CURRENT_SOURCE_DIR}/Autom3D/Inspector/Autom3DStateInspectorFactory.cpp"
 "${CMAKE_CURRENT_SOURCE_DIR}/Autom3D/Inspector/Autom3DInspectorWidget.cpp"
-"${CMAKE_CURRENT_SOURCE_DIR}/Autom3D/Inspector/CurvePointInspectorWidget.cpp"
-"${CMAKE_CURRENT_SOURCE_DIR}/Autom3D/Inspector/CurvePointInspectorFactory.cpp"
     )
 
     set(SRCS ${SRCS} ${INSPECTOR_SRCS})

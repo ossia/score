@@ -1,8 +1,5 @@
-#include <Autom3D/Autom3DColors.hpp>
 #include <Autom3D/Autom3DLayerModel.hpp>
 #include <Autom3D/Autom3DModel.hpp>
-#include <Autom3D/Autom3DPresenter.hpp>
-#include <Autom3D/Autom3DView.hpp>
 #include <unordered_map>
 
 #include <Autom3D/Autom3DProcessMetadata.hpp>
@@ -18,7 +15,6 @@
 #if defined(ISCORE_LIB_INSPECTOR)
 #include <Autom3D/Inspector/Autom3DInspectorFactory.hpp>
 #include <Autom3D/Inspector/Autom3DStateInspectorFactory.hpp>
-#include <Autom3D/Inspector/CurvePointInspectorFactory.hpp>
 #endif
 #include <iscore_plugin_autom3d_commands_files.hpp>
 #include <Autom3D/Autom3DFactory.hpp>

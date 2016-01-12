@@ -43,7 +43,6 @@ set(SRCS
 "${CMAKE_CURRENT_SOURCE_DIR}/src/Area/AreaModel.cpp"
 "${CMAKE_CURRENT_SOURCE_DIR}/src/Area/AreaPresenter.cpp"
 "${CMAKE_CURRENT_SOURCE_DIR}/src/Area/AreaFactory.cpp"
-"${CMAKE_CURRENT_SOURCE_DIR}/src/Area/SingletonAreaFactoryList.cpp"
 
 "${CMAKE_CURRENT_SOURCE_DIR}/src/Area/Generic/GenericAreaFactory.cpp"
 "${CMAKE_CURRENT_SOURCE_DIR}/src/Area/Generic/GenericAreaModel.cpp"
@@ -87,7 +86,6 @@ set(SRCS
 "${CMAKE_CURRENT_SOURCE_DIR}/src/LocalTree/GenericAreaComponentFactory.cpp"
 "${CMAKE_CURRENT_SOURCE_DIR}/src/LocalTree/GenericComputationComponentFactory.cpp"
 
-"${CMAKE_CURRENT_SOURCE_DIR}/src/SpaceApplicationPlugin.cpp"
 "${CMAKE_CURRENT_SOURCE_DIR}/src/iscore_plugin_space.cpp"
 )
 
