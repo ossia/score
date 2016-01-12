@@ -1,4 +1,4 @@
-#include <API/Headers/Editor/Automation.h>
+#include <Editor/Automation.h>
 #include <Automation/AutomationModel.hpp>
 #include <Explorer/DocumentPlugin/DeviceDocumentPlugin.hpp>
 #include <QDebug>

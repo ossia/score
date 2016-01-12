@@ -1,9 +1,9 @@
 #include "Component.hpp"
 
-#include <API/Headers/Editor/Mapper.h>
-#include <API/Headers/Editor/State.h>
-#include <API/Headers/Editor/Message.h>
-#include <API/Headers/Editor/Value.h>
+#include <Editor/Mapper.h>
+#include <Editor/State.h>
+#include <Editor/Message.h>
+#include <Editor/Value.h>
 #include <Mapping/MappingModel.hpp>
 #include <OSSIA/iscore2OSSIA.hpp>
 
@@ -23,9 +23,9 @@
 #include <OSSIA/iscore2OSSIA.hpp>
 #include <OSSIA/CurveConversion.hpp>
 #include <OSSIA/Protocols/OSSIADevice.hpp>
-#include <API/Headers/Editor/Curve.h>
-#include <API/Headers/Editor/CurveSegment/CurveSegmentLinear.h>
-#include <API/Headers/Editor/CurveSegment/CurveSegmentPower.h>
+#include <Editor/Curve.h>
+#include <Editor/CurveSegment/CurveSegmentLinear.h>
+#include <Editor/CurveSegment/CurveSegmentPower.h>
 #include <OSSIA/Executor/ExecutorContext.hpp>
 #include <OSSIA/Executor/DocumentPlugin.hpp>
 namespace RecreateOnPlay

@@ -3,7 +3,7 @@
 
 #include <State/Address.hpp>
 #include <QPointer>
-#include <API/Headers/Editor/Value.h>
+#include <Editor/Value.h>
 namespace OSSIA
 {
     class Mapper;

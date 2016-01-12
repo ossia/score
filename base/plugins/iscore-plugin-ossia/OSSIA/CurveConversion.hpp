@@ -1,8 +1,8 @@
 #pragma once
 
-#include <API/Headers/Editor/Curve.h>
-#include <API/Headers/Editor/CurveSegment/CurveSegmentLinear.h>
-#include <API/Headers/Editor/CurveSegment/CurveSegmentPower.h>
+#include <Editor/Curve.h>
+#include <Editor/CurveSegment/CurveSegmentLinear.h>
+#include <Editor/CurveSegment/CurveSegmentPower.h>
 #include <Curve/Segment/Linear/LinearCurveSegmentModel.hpp>
 #include <Curve/Segment/Power/PowerCurveSegmentModel.hpp>
 #include <Curve/Segment/CurveSegmentFactoryKey.hpp>

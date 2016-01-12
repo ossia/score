@@ -1,5 +1,5 @@
-#include <API/Headers/Editor/TimeEvent.h>
-#include <API/Headers/Editor/TimeNode.h>
+#include <Editor/TimeEvent.h>
+#include <Editor/TimeNode.h>
 #include <Explorer/DocumentPlugin/DeviceDocumentPlugin.hpp>
 #include <Scenario/Document/Constraint/ConstraintModel.hpp>
 #include <core/document/Document.hpp>
