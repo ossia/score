@@ -2,7 +2,6 @@ cmake_minimum_required(VERSION 3.0)
 
 project(iscore_base LANGUAGES CXX)
 enable_testing()
-set(ISCORE_MERGE_COMPONENTS True)
 add_subdirectory(lib)
 add_subdirectory(plugins)
 

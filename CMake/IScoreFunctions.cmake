@@ -21,12 +21,23 @@ function(iscore_add_component Name Sources Headers Dependencies)
   iscore_parse_components(${Name} ${Headers})
 
   if(ISCORE_MERGE_COMPONENTS)
-
+    # We create a fake library that will be instantiated in component-wrapper
     add_library(${Name} INTERFACE)
     target_include_directories(${Name} INTERFACE ${CMAKE_CURRENT_SOURCE_DIR})
     target_sources(${Name} INTERFACE ${Sources} ${Headers})
     target_link_libraries(${Name} INTERFACE ${Dependencies})
+
+    get_property(ComponentAbstractFactoryList GLOBAL PROPERTY ISCORE_${Name}_AbstractFactoryList)
+    get_property(ComponentFactoryList GLOBAL PROPERTY ISCORE_${Name}_ConcreteFactoryList)
+    get_property(ComponentFactoryFileList GLOBAL PROPERTY ISCORE_${Name}_FactoryFileList)
+
+    set_target_properties(${Name} PROPERTIES
+      INTERFACE_ISCORE_COMPONENT_AbstractFactory_List ${ComponentAbstractFactoryList}
+      INTERFACE_ISCORE_COMPONENT_ConcreteFactory_List ${ComponentFactoryList}
+      INTERFACE_ISCORE_COMPONENT_Factory_Files ${ComponentFactoryFileList}
+      )
   else()
+    # concrete library
     iscore_generate_plugin_file(${Name} ${Headers})
     add_library(${Name}
         ${Sources} ${Headers}
@@ -75,21 +86,21 @@ function(iscore_parse_components TargetName Headers)
   endforeach()
 
   set_property(GLOBAL PROPERTY ISCORE_${TargetName}_AbstractFactoryList ${ComponentAbstractFactoryList})
-  set_property(GLOBAL PROPERTY ISCORE_${TargetName}_FactoryList ${ComponentFactoryList})
+  set_property(GLOBAL PROPERTY ISCORE_${TargetName}_ConcreteFactoryList ${ComponentFactoryList})
   set_property(GLOBAL PROPERTY ISCORE_${TargetName}_FactoryFileList ${ComponentFactoryFileList})
 endfunction()
 
 function(iscore_generate_plugin_file TargetName Headers)
     get_property(ComponentAbstractFactoryList GLOBAL PROPERTY ISCORE_${TargetName}_AbstractFactoryList)
-    get_property(ComponentFactoryList GLOBAL PROPERTY ISCORE_${TargetName}_FactoryList)
+    get_property(ComponentFactoryList GLOBAL PROPERTY ISCORE_${TargetName}_ConcreteFactoryList)
     get_property(ComponentFactoryFileList GLOBAL PROPERTY ISCORE_${TargetName}_FactoryFileList)
 
     set(FactoryCode)
     set(CleanedAbstractFactoryList ${ComponentAbstractFactoryList})
-    list(LENGTH ComponentAbstractFactoryList LengthComponents)
-    math(EXPR NumComponents ${LengthComponents}-1)
     list(REMOVE_DUPLICATES CleanedAbstractFactoryList)
 
+    list(LENGTH ComponentAbstractFactoryList LengthComponents)
+    math(EXPR NumComponents ${LengthComponents}-1)
 
     foreach(AbstractClassName ${CleanedAbstractFactoryList})
         set(CurrentCode "FW<${AbstractClassName}")
