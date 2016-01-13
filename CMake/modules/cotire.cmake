@@ -2578,7 +2578,7 @@ function (cotire_choose_target_languages _target _targetLanguagesVar _wholeTarge
 			set (${_targetLanguagesVar} "" PARENT_SCOPE)
 			return()
 		endif()
-		if (_targetUsePCH AND "${_language}" MATCHES "^C|CXX$")
+		if (_targetUsePCH AND "${_language}" MATCHES "^C|CXX$" AND NOT "${CMAKE_${_language}_COMPILER_ID}" STREQUAL "")
 			cotire_check_precompiled_header_support("${_language}" "${_target}" _disableMsg)
 			if (_disableMsg)
 				set (_targetUsePCH FALSE)
