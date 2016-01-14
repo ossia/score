@@ -5,7 +5,6 @@
 #include <algorithm>
 #include <vector>
 #include <iscore_lib_base_export.h>
-class CommandStack;
 class QRecentFilesMenu;
 namespace iscore {
 class Document;
