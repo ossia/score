@@ -58,10 +58,9 @@ std::vector<std::unique_ptr<iscore::FactoryInterfaceBase>> iscore_plugin_ossia::
             FW<ScenarioActionsFactory,
                  PlayContextMenuFactory>,
             FW<RecreateOnPlay::ProcessComponentFactory,
-                 RecreateOnPlay::ScenarioComponentFactory
-            >,
+                 RecreateOnPlay::ScenarioComponentFactory> /* ,
             FW<Ossia::LocalTree::ProcessComponentFactory,
-                 Ossia::LocalTree::ScenarioComponentFactory>
+                 Ossia::LocalTree::ScenarioComponentFactory>*/
             >
             >(ctx, key);
 }
