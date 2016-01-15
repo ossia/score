@@ -4,6 +4,7 @@ project(iscore_base LANGUAGES CXX)
 enable_testing()
 add_subdirectory(lib)
 add_subdirectory(plugins)
+add_subdirectory(addons)
 
 if(ISCORE_MERGE_COMPONENTS)
   add_subdirectory(component-wrapper)
