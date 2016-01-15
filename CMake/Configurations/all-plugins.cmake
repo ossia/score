@@ -17,10 +17,7 @@ iscore-plugin-cohesion
 
 iscore-plugin-pluginsettings
 iscore-plugin-mapping
-iscore-plugin-space
-iscore-plugin-autom3d
 iscore-plugin-temporalautomatas
-iscore-plugin-audio
 iscore-plugin-csp
 iscore-plugin-library
 iscore-plugin-network
