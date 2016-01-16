@@ -12,7 +12,8 @@ case "$TRAVIS_OS_NAME" in
     fi
 
     sudo apt-get update -qq
-    sudo apt-get install -qq g++-5 libboost1.55-dev libavahi-compat-libdnssd-dev libportmidi-dev ninja-build gcovr lcov
+    sudo apt-get install -qq libboost1.55-dev libavahi-compat-libdnssd-dev libportmidi-dev ninja-build gcovr lcov
+
 
     if [[ "$CONF" == "linux-package" ]];
     then
@@ -23,13 +24,16 @@ case "$TRAVIS_OS_NAME" in
       sudo apt-get install -qq qt55-meta-full
     fi
 
+	wget https://www.dropbox.com/s/fiujf6l95g9nrjl/gcc5.3.deb?dl=1 -O gcc.deb
+	sudo dpkg --force-overwrite -i gcc.deb
+
     wget https://www.dropbox.com/s/ysnozd2sqre7x2d/cmake-3.4.1-Linux-x86_64.deb?dl=1 -O cmake.deb
     sudo dpkg --force-overwrite -i cmake.deb
 
     wget https://www.dropbox.com/s/0pmy14zlpqpyaq6/JamomaCore-0.6-dev-Linux.deb?dl=1 -O jamoma.deb
     sudo dpkg -i jamoma.deb
 
-    sudo update-alternatives --install /usr/bin/g++ g++ /usr/bin/g++-5 1000
+    # sudo update-alternatives --install /usr/bin/g++ g++ /usr/bin/g++-5 1000
   ;;
   osx)
     set +e
