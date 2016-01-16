@@ -1,4 +1,4 @@
-#include <API/Headers/Network/Device.h>
+#include <Network/Device.h>
 #include <QDebug>
 #include <QString>
 #include <QVariant>

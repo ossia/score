@@ -1,4 +1,4 @@
-#include <API/Headers/Editor/TimeConstraint.h>
+#include <Editor/TimeConstraint.h>
 #include <Automation/AutomationModel.hpp>
 #include <OSSIA/OSSIA2iscore.hpp>
 #include <Scenario/Document/Constraint/ConstraintModel.hpp>

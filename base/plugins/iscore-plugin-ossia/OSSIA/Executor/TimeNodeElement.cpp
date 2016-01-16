@@ -1,4 +1,4 @@
-#include <API/Headers/Editor/TimeNode.h>
+#include <Editor/TimeNode.h>
 #include <Scenario/Document/TimeNode/TimeNodeModel.hpp>
 #include <Scenario/Document/TimeNode/Trigger/TriggerModel.hpp>
 #include <OSSIA/iscore2OSSIA.hpp>
