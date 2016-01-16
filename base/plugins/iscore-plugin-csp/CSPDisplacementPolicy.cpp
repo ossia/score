@@ -180,24 +180,8 @@ void CSPDisplacementPolicy::refreshStays(
         curTimeRelation->removeStays();
 
         //ad new stays
-        // - if constraint preceed dragged element
-        const auto& endTimeNodeId = endTimeNode(scenario.constraint(curTimeRelationId), scenario).id();
-        if( draggedElements.contains(endTimeNodeId) )
-        {
-            auto endTimenode = cspScenario.m_timeNodes[endTimeNodeId];
-            auto endDateMsec = endTimenode->m_iscoreDate->msec();
-            auto distanceFromMinToDate = endDateMsec - curTimeRelation->m_iscoreMin.msec();
-            auto distanceFromMaxToDate = endDateMsec - curTimeRelation->m_iscoreMax.msec();
-
-            // keep min and max around default duration
-            curTimeRelation->addStay(new kiwi::Constraint(endTimenode->m_date - curTimeRelation->m_min == distanceFromMinToDate, STAY_MINMAXFROMDATEONCREATION_STRENGTH));
-            curTimeRelation->addStay(new kiwi::Constraint(endTimenode->m_date - curTimeRelation->m_max == distanceFromMaxToDate, STAY_MINMAXFROMDATEONCREATION_STRENGTH));
-
-        }else
-        {
-            curTimeRelation->addStay(new kiwi::Constraint(curTimeRelation->m_min == initialMin.msec(), STAY_MINMAX_STRENGTH));
-            curTimeRelation->addStay(new kiwi::Constraint(curTimeRelation->m_max == initialMax.msec(), STAY_MINMAX_STRENGTH));
-        }
+        curTimeRelation->addStay(new kiwi::Constraint(curTimeRelation->m_min == initialMin.msec(), STAY_MINMAX_STRENGTH));
+        curTimeRelation->addStay(new kiwi::Constraint(curTimeRelation->m_max == initialMax.msec(), STAY_MINMAX_STRENGTH));
     }
 
     //time node stays

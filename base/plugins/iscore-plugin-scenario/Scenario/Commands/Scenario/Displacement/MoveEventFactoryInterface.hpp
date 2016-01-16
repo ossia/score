@@ -25,7 +25,7 @@ class ISCORE_PLUGIN_SCENARIO_EXPORT MoveEventFactoryInterface : public iscore::G
 {
         ISCORE_FACTORY_DECL("MoveEvent")
 public:
-            enum Strategy{ MOVING, CREATION, EXTRA };
+            enum Strategy{ MOVING, CREATION };
 
     virtual SerializableMoveEvent* make(
             Path<Scenario::ScenarioModel>&& scenarioPath,

@@ -26,7 +26,7 @@ MoveEventOnCreationMeta::MoveEventOnCreationMeta(
     :SerializableMoveEvent{},
      m_moveEventImplementation(
          context.components.factory<MoveEventList>()
-         .get(MoveEventFactoryInterface::Strategy::MOVING)
+         .get(MoveEventFactoryInterface::Strategy::CREATION)
          ->make(std::move(scenarioPath), eventId, newDate, mode))
 {
 }
