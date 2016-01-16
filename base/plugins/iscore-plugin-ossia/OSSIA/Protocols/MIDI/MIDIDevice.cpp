@@ -1,5 +1,5 @@
-#include <API/Headers/Network/Device.h>
-#include <API/Headers/Network/Protocol/MIDI.h>
+#include <Network/Device.h>
+#include <Network/Protocol/MIDI.h>
 #include <QString>
 #include <memory>
 

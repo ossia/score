@@ -1,4 +1,4 @@
-#include <API/Headers/Editor/TimeEvent.h>
+#include <Editor/TimeEvent.h>
 #include <Scenario/Document/Event/EventModel.hpp>
 #include <OSSIA/iscore2OSSIA.hpp>
 #include <QDebug>

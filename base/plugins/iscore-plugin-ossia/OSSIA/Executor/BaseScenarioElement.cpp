@@ -1,6 +1,6 @@
-#include <API/Headers/Editor/TimeConstraint.h>
-#include <API/Headers/Editor/TimeEvent.h>
-#include <API/Headers/Editor/TimeNode.h>
+#include <Editor/TimeConstraint.h>
+#include <Editor/TimeEvent.h>
+#include <Editor/TimeNode.h>
 #include <Explorer/DocumentPlugin/DeviceDocumentPlugin.hpp>
 #include <Scenario/Document/BaseScenario/BaseScenario.hpp>
 #include <iscore/document/DocumentInterface.hpp>

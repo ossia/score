@@ -1,6 +1,6 @@
 #pragma once
-#include <API/Headers/Editor/TimeValue.h>
-#include <API/Headers/Network/Address.h>
+#include <Editor/TimeValue.h>
+#include <Network/Address.h>
 #include <Process/TimeValue.hpp>
 
 #include <Device/Address/AddressSettings.hpp>

@@ -33,7 +33,6 @@ endfunction()
 ### Call at the beginning of a plug-in cmakelists ###
 function(iscore_common_setup)
   enable_testing()
-  include_directories("${ISCORE_ROOT_SOURCE_DIR}")
   include_directories("${CMAKE_CURRENT_SOURCE_DIR}")
   set(CMAKE_INCLUDE_CURRENT_DIR ON)
   set(CMAKE_POSITION_INDEPENDENT_CODE ON)

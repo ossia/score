@@ -1,6 +1,6 @@
-#include <API/Headers/Editor/TimeConstraint.h>
-#include <API/Headers/Network/Device.h>
-#include <API/Headers/Network/Protocol/Local.h>
+#include <Editor/TimeConstraint.h>
+#include <Network/Device.h>
+#include <Network/Protocol/Local.h>
 #include <Explorer/Explorer/DeviceExplorerModel.hpp>
 #include <Network/Protocol/OSC.h>
 #include <OSSIA/Executor/BaseScenarioElement.hpp>
