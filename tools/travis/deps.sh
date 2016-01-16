@@ -42,7 +42,7 @@ case "$TRAVIS_OS_NAME" in
     brew install wget gnu-tar
     wget https://www.dropbox.com/s/ycl6tmct75po1n6/homebrew-cache.tar.gz?dl=1 -O homebrew-cache.tar.gz
     gtar xhzf homebrew-cache.tar.gz --directory /usr/local/Cellar
-    brew link boost cmake ninja qt5 wget
+    brew link --force boost cmake ninja qt5 wget
 
     # ./tools/travis/dl-homebrew.sh
 
