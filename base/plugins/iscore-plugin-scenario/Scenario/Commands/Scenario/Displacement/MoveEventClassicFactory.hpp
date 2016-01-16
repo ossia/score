@@ -34,7 +34,6 @@ public:
         {
             case MoveEventFactoryInterface::Strategy::CREATION:
             case MoveEventFactoryInterface::Strategy::MOVING:
-            case MoveEventFactoryInterface::Strategy::EXTRA:
             default:
                 return 0;// not suited for other strategies
                 break;

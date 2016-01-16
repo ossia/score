@@ -7,7 +7,7 @@ iscore_common_setup()
 find_package(Qt5 5.3 REQUIRED COMPONENTS Core)
 
 # Files & main target
-include_directories("${3RDPARTY_FOLDER}kiwi")
+include_directories(SYSTEM "${3RDPARTY_FOLDER}kiwi")
 
 file(GLOB_RECURSE HDRS "${CMAKE_CURRENT_SOURCE_DIR}/*.hpp")
 file(GLOB_RECURSE SRCS "${CMAKE_CURRENT_SOURCE_DIR}/*.cpp")
