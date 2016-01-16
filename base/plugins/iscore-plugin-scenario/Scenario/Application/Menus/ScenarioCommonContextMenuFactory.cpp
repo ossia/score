@@ -6,8 +6,6 @@
 #include "ScenarioCommonContextMenuFactory.hpp"
 #include <iscore/menu/MenuInterface.hpp>
 
-class ScenarioActions;
-class ScenarioApplicationPlugin;
 
 namespace Scenario
 {
