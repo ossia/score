@@ -1,6 +1,6 @@
 #!/bin/bash -eux
 
-git submodule init
+git submodule update --init --recursive
 
 case "$TRAVIS_OS_NAME" in
   linux)
@@ -24,8 +24,8 @@ case "$TRAVIS_OS_NAME" in
       sudo apt-get install -qq qt55-meta-full
     fi
 
-	wget https://www.dropbox.com/s/fiujf6l95g9nrjl/gcc5.3.deb?dl=1 -O gcc.deb
-	sudo dpkg --force-overwrite -i gcc.deb
+  wget https://www.dropbox.com/s/fiujf6l95g9nrjl/gcc5.3.deb?dl=1 -O gcc.deb
+  sudo dpkg --force-overwrite -i gcc.deb
 
     wget https://www.dropbox.com/s/ysnozd2sqre7x2d/cmake-3.4.1-Linux-x86_64.deb?dl=1 -O cmake.deb
     sudo dpkg --force-overwrite -i cmake.deb
@@ -37,13 +37,21 @@ case "$TRAVIS_OS_NAME" in
   ;;
   osx)
     set +e
-    brew update
-    brew install wget
+
+    ./tools/travis/dl-homebrew.sh
+
+    if [ ! -f ~/travis-cache/homebrew-cache.tar.gz ]; then
+      brew update
+      brew install wget
+      brew install cmake qt5 ninja
+      brew upgrade boost
+    fi
+
+    ./tools/travis/cache-homebrew.sh
+
     wget https://www.dropbox.com/s/t155m8wt2cp075k/JamomaDarwin20151108.zip?dl=1 -O JamomaDarwin20151108.zip
     unzip JamomaDarwin20151108.zip
     mv JamomaDarwin20151108 Jamoma
-    brew install cmake qt5 ninja
-    brew upgrade boost
     set -e
   ;;
 esac
