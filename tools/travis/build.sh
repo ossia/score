@@ -4,7 +4,7 @@ export PS4='+ ${FUNCNAME[0]:+${FUNCNAME[0]}():}line ${LINENO}: '
 # Note : to make the tests work under travis, they have to be changed in order not to require QApplication but only QCoreApplication
 #    - LD_LIBRARY_PATH=/usr/lib64 make ExperimentalTest
 
-CMAKE_BIN=/usr/local/bin/cmake
+export CMAKE_BIN=$(which cmake)
 export CMAKE_COMMON_FLAGS="-GNinja"
 export CTEST_OUTPUT_ON_FAILURE=1
 

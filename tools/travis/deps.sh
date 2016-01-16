@@ -23,8 +23,8 @@ case "$TRAVIS_OS_NAME" in
       sudo apt-get install -qq qt55-meta-full
     fi
 
-    wget https://www.dropbox.com/s/3xot58gakn6w898/cmake_3.2.3-3.2.3_amd64.deb?dl=1 -O cmake_3.2.3-3.2.3_amd64.deb
-    sudo dpkg --force-overwrite -i cmake_3.2.3-3.2.3_amd64.deb
+    wget https://www.dropbox.com/s/ysnozd2sqre7x2d/cmake-3.4.1-Linux-x86_64.deb?dl=1 -O cmake.deb
+    sudo dpkg --force-overwrite -i cmake.deb
 
     wget https://www.dropbox.com/s/0pmy14zlpqpyaq6/JamomaCore-0.6-dev-Linux.deb?dl=1 -O jamoma.deb
     sudo dpkg -i jamoma.deb
