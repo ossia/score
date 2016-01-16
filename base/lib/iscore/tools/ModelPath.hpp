@@ -169,6 +169,11 @@ class Path
         {
             return m_impl;
         }
+        auto& unsafePath_ref()
+        {
+            // Due to a bug in unity build with gcc 5.3
+            return m_impl;
+        }
         auto&& unsafePath() &&
         {
             return std::move(m_impl);
