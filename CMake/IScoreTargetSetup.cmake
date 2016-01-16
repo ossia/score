@@ -5,7 +5,7 @@ include(DebugMode)
 
 function(iscore_cotire_pre TheTarget)
 if(ISCORE_COTIRE)
-    set_property(TARGET ${TheTarget} PROPERTY COTIRE_ADD_UNITY_BUILD FALSE)
+    #set_property(TARGET ${TheTarget} PROPERTY COTIRE_ADD_UNITY_BUILD FALSE)
     if(ISCORE_COTIRE_ALL_HEADERS)
         set_target_properties(${TheTarget} PROPERTIES COTIRE_PREFIX_HEADER_IGNORE_PATH "")
     endif()

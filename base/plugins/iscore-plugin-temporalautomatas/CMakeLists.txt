@@ -7,7 +7,7 @@ iscore_common_setup()
 set(HDRS
 "${CMAKE_CURRENT_SOURCE_DIR}/ScenarioMetrics.hpp"
 "${CMAKE_CURRENT_SOURCE_DIR}/ScenarioVisitor.hpp"
-"${CMAKE_CURRENT_SOURCE_DIR}/ScenarioGenerator.cpp"
+"${CMAKE_CURRENT_SOURCE_DIR}/ScenarioGenerator.hpp"
 "${CMAKE_CURRENT_SOURCE_DIR}/TAConversion.hpp"
 "${CMAKE_CURRENT_SOURCE_DIR}/iscore_plugin_temporalautomatas.hpp"
 )

@@ -16,7 +16,6 @@
 #include <iscore_plugin_scenario_export.h>
 class InspectorSectionWidget;
 class InspectorWidgetList;
-class MetadataWidget;
 namespace Process {
 class ProcessModel;
 class ProcessList;
@@ -30,6 +29,7 @@ class Document;
 
 namespace Scenario
 {
+class MetadataWidget;
 class ConstraintModel;
 class ConstraintViewModel;
 class RackInspectorSection;
