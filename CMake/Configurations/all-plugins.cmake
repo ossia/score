@@ -18,7 +18,6 @@ iscore-plugin-cohesion
 iscore-plugin-pluginsettings
 iscore-plugin-mapping
 iscore-plugin-temporalautomatas
-iscore-plugin-csp
 iscore-plugin-library
 iscore-plugin-network
 
