@@ -195,6 +195,7 @@ endfunction()
 ### Initialization of common stuff ###
 function(setup_iscore_common_exe_features TheTarget)
     setup_iscore_common_features("${TheTarget}")
+	iscore_cotire_post("${TheTarget}")
 endfunction()
 
 function(setup_iscore_common_test_features TheTarget)
