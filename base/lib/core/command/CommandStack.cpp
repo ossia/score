@@ -4,8 +4,8 @@
 
 #include <iscore/command/SerializableCommand.hpp>
 
-using namespace iscore;
-
+namespace iscore
+{
 CommandStack::CommandStack(QObject* parent) :
     QObject {}
 {
@@ -134,4 +134,5 @@ void CommandStack::pushQuiet(SerializableCommand* cmd)
 void CommandStack::setSavedIndex(int index)
 {
     m_savedIndex = index;
+}
 }

@@ -10,9 +10,6 @@ class DocumentModel;
 
 }  // namespace iscore
 
-using namespace iscore;
-
-
 namespace InspectorPanel
 {
 int InspectorPanelFactory::panelId() const

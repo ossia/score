@@ -11,8 +11,6 @@ namespace iscore {
 class Document;
 }  // namespace iscore
 
-//using namespace iscore;
-
 namespace JS
 {
 

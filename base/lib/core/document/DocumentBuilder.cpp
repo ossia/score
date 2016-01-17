@@ -18,8 +18,9 @@
 
 #include <iscore/tools/SettableIdentifier.hpp>
 #include <iscore/tools/RandomNameProvider.hpp>
-using namespace iscore;
 
+namespace iscore
+{
 DocumentBuilder::DocumentBuilder(
         QObject* parentPresenter,
         QWidget* parentView):
@@ -132,4 +133,5 @@ void DocumentBuilder::setBackupManager(Document* doc)
     m_backupManager->updateBackupData();
     doc->setBackupMgr(m_backupManager);
     m_backupManager = nullptr;
+}
 }

@@ -12,8 +12,6 @@ namespace iscore {
 class Document;
 }  // namespace iscore
 
-//using namespace iscore;
-
 ProcessInspectorWidgetDelegate* ScenarioInspectorFactory::make(
         const Process::ProcessModel& process,
         const iscore::DocumentContext&,

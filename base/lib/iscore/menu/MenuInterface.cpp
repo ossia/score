@@ -1,7 +1,6 @@
 #include <QObject>
 #include "MenuInterface.hpp"
 
-using namespace iscore;
 
 namespace iscore
 {
@@ -102,7 +101,6 @@ namespace iscore
     {
         return m_contextMap.at(elt);
     }
-}
 
 const std::map<ToplevelMenuElement, QString> MenuInterface::m_map
 {
@@ -176,3 +174,4 @@ const std::map<ContextMenu, QString> MenuInterface::m_contextMap
     {ContextMenu::Event, QObject::tr("Event") },
     {ContextMenu::State, QObject::tr("State") },
 };
+}

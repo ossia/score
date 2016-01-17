@@ -20,8 +20,8 @@ class QWidget;
 class Selection;
 #include <iscore/tools/SettableIdentifier.hpp>
 
-using namespace iscore;
-
+namespace iscore
+{
 DocumentContext::DocumentContext(Document& d):
     app{iscore::AppContext()},
     document{d},
@@ -121,4 +121,5 @@ void Document::bindPanelPresenter(PanelPresenter* pres)
     ISCORE_ASSERT(localmodel != end(model().panels()));
 
     pres->setModel(*localmodel);
+}
 }

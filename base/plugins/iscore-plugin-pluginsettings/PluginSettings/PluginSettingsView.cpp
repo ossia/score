@@ -6,8 +6,6 @@
 
 class QObject;
 
-using namespace iscore;
-
 namespace PluginSettings
 {
 PluginSettingsView::PluginSettingsView(QObject* parent) :

@@ -5,9 +5,8 @@
 #include "CommandBackupFile.hpp"
 #include <iscore/command/SerializableCommand.hpp>
 
-using namespace iscore;
-
-
+namespace iscore
+{
 CommandStackBackup::CommandStackBackup(const CommandStack& stack)
 {
     // Load initial state
@@ -128,4 +127,5 @@ void CommandBackupFile::commit()
     ser.readFrom(m_stack);
 
     m_file.flush();
+}
 }

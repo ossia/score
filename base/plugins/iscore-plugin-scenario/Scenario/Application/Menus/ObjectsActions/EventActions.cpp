@@ -16,13 +16,13 @@
 #include <QAction>
 #include <QMenu>
 
-using namespace iscore;
 namespace Scenario
 {
 EventActions::EventActions(iscore::ToplevelMenuElement menuElt,
                ScenarioApplicationPlugin* parent):
      ScenarioActions(menuElt, parent)
 {
+    using namespace iscore;
     m_addTrigger = new QAction{tr("Add Trigger"), this};
     m_addTrigger->setWhatsThis(MenuInterface::name(ContextMenu::Event));
     connect(m_addTrigger, &QAction::triggered,
@@ -35,7 +35,7 @@ EventActions::EventActions(iscore::ToplevelMenuElement menuElt,
 }
 
 
-void EventActions::fillMenuBar(MenubarManager* menu)
+void EventActions::fillMenuBar(iscore::MenubarManager* menu)
 {
     menu->insertActionIntoToplevelMenu(m_menuElt, m_addTrigger);
     menu->insertActionIntoToplevelMenu(m_menuElt, m_removeTrigger);
@@ -48,6 +48,7 @@ void EventActions::fillContextMenu(
     const QPoint&,
     const QPointF&)
 {
+    using namespace iscore;
     if(!sel.empty())
     {
         if(std::any_of(sel.cbegin(),

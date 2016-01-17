@@ -22,7 +22,6 @@
 #include <QStyleFactory>
 #include <QFileInfo>
 
-using namespace iscore;
 #include <iscore/tools/SettableIdentifierGeneration.hpp>
 #include <algorithm>
 #include <vector>
@@ -126,7 +125,7 @@ Application::Application(int& argc, char** argv) :
 }
 
 Application::Application(
-        const ApplicationSettings& appSettings,
+        const iscore::ApplicationSettings& appSettings,
         int& argc,
         char** argv) :
     NamedObject {"Application", nullptr},
@@ -148,11 +147,11 @@ Application::~Application()
     delete m_view;
     delete m_presenter;
 
-    DocumentBackups::clear();
+    iscore::DocumentBackups::clear();
     delete m_app;
 }
 
-const ApplicationContext& Application::context() const
+const iscore::ApplicationContext& Application::context() const
 {
     return m_presenter->applicationContext();
 }
@@ -168,14 +167,14 @@ void Application::init()
 
     this->setObjectName("Application");
     this->setParent(qApp);
-    setQApplicationSettings(*qApp);
+    iscore::setQApplicationSettings(*qApp);
 
     // Settings
-    m_settings = std::make_unique<Settings> (this);
+    m_settings = std::make_unique<iscore::Settings> (this);
 
     // MVP
-    m_view = new View{this};
-    m_presenter = new Presenter{m_applicationSettings, m_view, this};
+    m_view = new iscore::View{this};
+    m_presenter = new iscore::Presenter{m_applicationSettings, m_view, this};
 
     // Plugins
     loadPluginData();
@@ -212,7 +211,7 @@ void Application::initDocuments()
     }
 
     // Try to reload if there was a crash
-    if(m_applicationSettings.tryToRestore && DocumentBackups::canRestoreDocuments())
+    if(m_applicationSettings.tryToRestore && iscore::DocumentBackups::canRestoreDocuments())
     {
         m_presenter->documentManager().restoreDocuments(ctx);
     }
@@ -221,7 +220,7 @@ void Application::initDocuments()
         if(!m_presenter->applicationComponents().availableDocuments().empty())
             m_presenter->documentManager().newDocument(
                         ctx,
-                        Id<DocumentModel>{iscore::random_id_generator::getRandomId()}, // TODO crashes if loaded twice by chance
+                        Id<iscore::DocumentModel>{iscore::random_id_generator::getRandomId()}, // TODO crashes if loaded twice by chance
                         m_presenter->applicationComponents().availableDocuments().front());
     }
 }
@@ -229,7 +228,7 @@ void Application::initDocuments()
 void Application::loadPluginData()
 {
     auto& ctx = m_presenter->applicationContext();
-    ApplicationRegistrar registrar{
+    iscore::ApplicationRegistrar registrar{
         m_presenter->components(),
                 ctx,
                 *m_view,
@@ -238,9 +237,9 @@ void Application::loadPluginData()
                 m_presenter->toolbars(),
                 m_presenter};
 
-    PluginLoader::loadPlugins(registrar, ctx);
+    iscore::PluginLoader::loadPlugins(registrar, ctx);
 
-    registrar.registerApplicationContextPlugin(new UndoApplicationPlugin{ctx, m_presenter});
+    registrar.registerApplicationContextPlugin(new iscore::UndoApplicationPlugin{ctx, m_presenter});
     registrar.registerPanel(new UndoPanelFactory);
 
     std::sort(m_presenter->toolbars().begin(), m_presenter->toolbars().end());

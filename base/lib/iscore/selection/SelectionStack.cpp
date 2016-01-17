@@ -8,8 +8,8 @@
 #include "SelectionStack.hpp"
 #include <iscore/selection/Selection.hpp>
 
-using namespace iscore;
-
+namespace iscore
+{
 SelectionStack::SelectionStack()
 {
     connect(this, &SelectionStack::pushNewSelection, this, &SelectionStack::push, Qt::QueuedConnection);
@@ -141,4 +141,5 @@ void SelectionStack::prune(IdentifiedObjectAbstract* p)
         m_unselectable.push(Selection{});
 
     emit currentSelectionChanged(m_unselectable.top());
+}
 }

@@ -1,9 +1,8 @@
 #include "PanelPresenter.hpp"
 #include <core/presenter/Presenter.hpp>
 
-using namespace iscore;
-
-
+namespace iscore
+{
 PanelPresenter::PanelPresenter(
         PanelView* view,
         QObject* parent) :
@@ -30,7 +29,8 @@ PanelView*PanelPresenter::view() const
     return m_view;
 }
 
-iscore::PanelPresenter::~PanelPresenter()
+PanelPresenter::~PanelPresenter()
 {
 
+}
 }

@@ -23,8 +23,8 @@
 
 class QObject;
 
-using namespace iscore;
-
+namespace iscore
+{
 View::View(QObject* parent) :
     QMainWindow {},
     m_tabWidget{new QTabWidget}
@@ -171,4 +171,5 @@ void View::changeEvent(QEvent* ev)
     }
 
     QMainWindow::changeEvent(ev);
+}
 }

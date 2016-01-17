@@ -40,9 +40,9 @@
 class QObject;
 class QWidget;
 
-using namespace iscore;
 
-
+namespace iscore
+{
 QByteArray Document::saveDocumentModelAsByteArray()
 {
     QByteArray arr;
@@ -243,4 +243,5 @@ DocumentModel::DocumentModel(
     {
         ISCORE_ABORT;
     }
+}
 }

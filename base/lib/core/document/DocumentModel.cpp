@@ -10,8 +10,8 @@ class QObject;
 #include <iscore/tools/SettableIdentifier.hpp>
 #include <iscore/plugins/panel/PanelModel.hpp>
 
-using namespace iscore;
-
+namespace iscore
+{
 DocumentModel::DocumentModel(
         const Id<DocumentModel>& id,
         DocumentDelegateFactoryInterface* fact,
@@ -54,4 +54,5 @@ void DocumentModel::addPluginModel(DocumentPluginModel *m)
 void DocumentModel::setNewSelection(const Selection& s)
 {
     m_model->setNewSelection(s);
+}
 }

@@ -25,8 +25,9 @@
 #include <iscore/plugins/customfactory/StringFactoryKey.hpp>
 #include <iscore/tools/std/Algorithms.hpp>
 
-using namespace iscore;
 
+namespace iscore
+{
 /**
  * @brief pluginsDir
  * @return The folder where i-score should look for plug-ins, static for now.
@@ -225,5 +226,6 @@ QStringList PluginLoader::pluginsBlacklist()
 {
     QSettings s;
     return s.value("PluginSettings/Blacklist", QStringList {}).toStringList();
+}
 }
 

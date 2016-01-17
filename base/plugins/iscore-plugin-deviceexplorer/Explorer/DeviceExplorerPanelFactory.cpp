@@ -6,11 +6,7 @@
 
 namespace iscore {
 class DocumentModel;
-
-
 }  // namespace iscore
-
-using namespace iscore;
 
 
 namespace DeviceExplorer

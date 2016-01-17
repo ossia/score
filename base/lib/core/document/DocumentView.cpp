@@ -7,8 +7,9 @@
 
 #include <iscore/document/DocumentContext.hpp>
 
-using namespace iscore;
 
+namespace iscore
+{
 DocumentView::DocumentView(DocumentDelegateFactoryInterface* fact,
                            const Document& doc,
                            QWidget* parent) :
@@ -21,4 +22,5 @@ DocumentView::DocumentView(DocumentDelegateFactoryInterface* fact,
     setLayout(new QGridLayout{this});
     layout()->setContentsMargins(0, 0, 0, 0);
     layout()->addWidget(m_view->getWidget());
+}
 }

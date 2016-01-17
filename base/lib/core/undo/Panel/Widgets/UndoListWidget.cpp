@@ -4,8 +4,8 @@
 #include "UndoListWidget.hpp"
 #include <iscore/command/SerializableCommand.hpp>
 
-using namespace iscore;
-
+namespace iscore
+{
 UndoListWidget::UndoListWidget(iscore::CommandStack* s):
     m_stack{s}
 {
@@ -36,4 +36,5 @@ void UndoListWidget::on_stackChanged()
     this->setCurrentRow(m_stack->currentIndex(), QItemSelectionModel::SelectionFlag::ClearAndSelect);
 
     this->blockSignals(false);
+}
 }

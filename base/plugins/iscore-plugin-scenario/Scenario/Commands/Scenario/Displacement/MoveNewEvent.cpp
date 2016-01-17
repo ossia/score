@@ -9,8 +9,6 @@
 #include <iscore/serialization/DataStreamVisitor.hpp>
 #include <iscore/tools/ModelPathSerialization.hpp>
 
-
-using namespace iscore;
 namespace Scenario
 {
 namespace Command

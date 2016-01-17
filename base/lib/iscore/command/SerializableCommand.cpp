@@ -5,8 +5,8 @@
 
 #include <iscore/serialization/DataStreamVisitor.hpp>
 
-using namespace iscore;
-
+namespace iscore
+{
 SerializableCommand::~SerializableCommand()
 {
 }
@@ -38,4 +38,5 @@ void SerializableCommand::deserialize(const QByteArray& arr)
 
     DataStreamOutput outp{s};
     deserializeImpl(outp);
+}
 }

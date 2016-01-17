@@ -11,8 +11,6 @@
 #include <iscore/tools/NotifyingMap.hpp>
 #include <iscore/tools/ObjectIdentifier.hpp>
 
-using namespace iscore;
-
 namespace Scenario
 {
 namespace Command

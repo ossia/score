@@ -27,9 +27,6 @@
 #include <iscore/tools/ObjectPath.hpp>
 #include <iscore/tools/SettableIdentifier.hpp>
 
-using namespace iscore;
-
-
 namespace Scenario
 {
 namespace Command

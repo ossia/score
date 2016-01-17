@@ -32,8 +32,6 @@
 #include <iscore/tools/SettableIdentifier.hpp>
 #include <iscore/document/DocumentContext.hpp>
 
-using namespace iscore;
-
 namespace Scenario
 {
 namespace Command

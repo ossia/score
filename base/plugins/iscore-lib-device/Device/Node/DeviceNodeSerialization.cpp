@@ -11,10 +11,7 @@ template <typename T> class Reader;
 template <typename T> class TypeToName;
 template <typename T> class Writer;
 
-// Move me
-using namespace iscore;
 
-using namespace iscore;
 template<>
 void Visitor<Reader<DataStream>>::readFrom(const Device::DeviceExplorerNode& n)
 {

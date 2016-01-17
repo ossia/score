@@ -7,9 +7,8 @@
 
 class QObject;
 
-
-using namespace iscore;
-
+namespace iscore
+{
 DocumentPresenter::DocumentPresenter(DocumentDelegateFactoryInterface* fact,
                                      const DocumentModel& m,
                                      DocumentView& v,
@@ -22,4 +21,4 @@ DocumentPresenter::DocumentPresenter(DocumentDelegateFactoryInterface* fact,
                                             m_view.viewDelegate())}
 {
 }
-
+}

@@ -7,22 +7,21 @@ namespace iscore {
 class SettingsPresenter;
 }  // namespace iscore
 
-using namespace iscore;
-
 namespace PluginSettings
 {
 PluginSettingsFactory::PluginSettingsFactory()
 {
 }
 
-SettingsDelegateViewInterface* PluginSettingsFactory::makeView()
+iscore::SettingsDelegateViewInterface* PluginSettingsFactory::makeView()
 {
     return new PluginSettingsView(nullptr);
 }
 
-SettingsDelegatePresenterInterface* PluginSettingsFactory::makePresenter(SettingsPresenter* p,
-        SettingsDelegateModelInterface* m,
-        SettingsDelegateViewInterface* v)
+iscore::SettingsDelegatePresenterInterface* PluginSettingsFactory::makePresenter(
+        iscore::SettingsPresenter* p,
+        iscore::SettingsDelegateModelInterface* m,
+        iscore::SettingsDelegateViewInterface* v)
 {
     auto pres = new PluginSettingsPresenter(p, m, v);
 
@@ -34,7 +33,7 @@ SettingsDelegatePresenterInterface* PluginSettingsFactory::makePresenter(Setting
     return pres;
 }
 
-SettingsDelegateModelInterface* PluginSettingsFactory::makeModel()
+iscore::SettingsDelegateModelInterface* PluginSettingsFactory::makeModel()
 {
     return new PluginSettingsModel();
 }

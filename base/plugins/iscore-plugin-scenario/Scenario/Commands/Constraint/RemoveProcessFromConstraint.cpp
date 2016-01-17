@@ -23,9 +23,6 @@
 #include <iscore/tools/NotifyingMap.hpp>
 #include <iscore/tools/ObjectPath.hpp>
 
-using namespace iscore;
-
-
 namespace Scenario
 {
 namespace Command

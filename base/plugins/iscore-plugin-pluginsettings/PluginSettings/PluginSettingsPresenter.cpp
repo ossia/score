@@ -17,13 +17,12 @@ class SettingsDelegateViewInterface;
 class SettingsPresenter;
 }  // namespace iscore
 
-using namespace iscore;
-
 namespace PluginSettings
 {
-PluginSettingsPresenter::PluginSettingsPresenter(SettingsPresenter* parent,
-        SettingsDelegateModelInterface* model,
-        SettingsDelegateViewInterface* view) :
+PluginSettingsPresenter::PluginSettingsPresenter(
+        iscore::SettingsPresenter* parent,
+        iscore::SettingsDelegateModelInterface* model,
+        iscore::SettingsDelegateViewInterface* view) :
     SettingsDelegatePresenterInterface {parent, model, view}
 {
     auto ps_model = static_cast<PluginSettingsModel*>(model);

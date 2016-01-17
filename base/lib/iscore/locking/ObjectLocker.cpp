@@ -5,7 +5,9 @@
 #include <iscore/serialization/DataStreamVisitor.hpp>
 #include <iscore/tools/ObjectPath.hpp>
 
-using namespace iscore;
+namespace iscore
+{
+
 //// Locking / unlocking ////
 
 ObjectLocker::ObjectLocker(QObject* parent)
@@ -95,4 +97,5 @@ void LockHelper::unlock()
 {
     emit m_locker.unlock(m_serializedPath);
     m_locked = false;
+}
 }

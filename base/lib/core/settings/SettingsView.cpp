@@ -4,9 +4,8 @@
 #include <QSize>
 #include <QWidget>
 
-using namespace iscore;
-
-
+namespace iscore
+{
 SettingsView::SettingsView(QWidget* parent) :
     QDialog {parent}
 {
@@ -44,4 +43,5 @@ void SettingsView::addSettingsView(SettingsDelegateViewInterface* view)
     m_stackedWidget->addWidget(view->getWidget());
 
     m_pluginViews.insert(view);
+}
 }

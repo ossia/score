@@ -5,7 +5,6 @@
 #include <iscore/tools/ModelPath.hpp>
 #include <iscore/tools/ModelPathSerialization.hpp>
 
-using namespace iscore;
 namespace Scenario
 {
 namespace Command
