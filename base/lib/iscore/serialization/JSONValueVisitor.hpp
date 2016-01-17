@@ -174,3 +174,32 @@ void fromJsonValueArray(const QJsonArray&& json_arr, T<Id<V>>& arr)
         arr.push_back(fromJsonValue<Id<V>>(elt));
     }
 }
+
+
+template<typename Container>
+QJsonArray toJsonValueArray(const Container& c)
+{
+    QJsonArray arr;
+
+    for(const auto& elt : c)
+    {
+        arr.push_back(toJsonValue(elt));
+    }
+
+    return arr;
+}
+
+
+template<typename Container>
+Container fromJsonValueArray(const QJsonArray& json_arr)
+{
+    Container c;
+    c.reserve(json_arr.size());
+
+    for(const auto& elt : json_arr)
+    {
+        c.push_back(fromJsonValue<typename Container::value_type>(elt));
+    }
+
+    return c;
+}
