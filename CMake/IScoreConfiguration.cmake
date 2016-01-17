@@ -155,4 +155,6 @@ iscore_write_file("${CMAKE_CURRENT_BINARY_DIR}/iscore_git_info.hpp"
 #define ISCORE_VERSION_EXTRA \"${ISCORE_VERSION_EXTRA}\"
 #define ISCORE_CODENAME \"${ISCORE_CODENAME}\"
 ")
+
+set(COTIRE_UNITY_SOURCE_MAXIMUM_NUMBER_OF_INCLUDES "-j")
 include(cotire)

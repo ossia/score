@@ -31,6 +31,7 @@ ApplicationComponentsData::~ApplicationComponentsData()
         delete elt;
     }
 
+    // FIXME do not delete static plug-ins ?
     for(auto& elt : plugins)
     {
         if(elt)

@@ -228,17 +228,18 @@ function(setup_iscore_library PluginName)
 
   set(ISCORE_LIBRARIES_LIST ${ISCORE_LIBRARIES_LIST} "${PluginName}" CACHE INTERNAL "List of libraries")
 
-  if(ISCORE_BUILD_FOR_PACKAGE_MANAGER)
-  install(TARGETS "${PluginName}"
-          LIBRARY DESTINATION lib
-          ARCHIVE DESTINATION lib
-          CONFIGURATIONS DynamicRelease)
-  else()
-  install(TARGETS "${PluginName}"
-          LIBRARY DESTINATION .
-          ARCHIVE DESTINATION static_lib/
-          CONFIGURATIONS DynamicRelease)
+  if(NOT ISCORE_STATIC_PLUGINS)
+    if(ISCORE_BUILD_FOR_PACKAGE_MANAGER)
+      install(TARGETS "${PluginName}"
+        LIBRARY DESTINATION lib
+        ARCHIVE DESTINATION lib)
+    else()
+      install(TARGETS "${PluginName}"
+        LIBRARY DESTINATION .
+        ARCHIVE DESTINATION static_lib)
+    endif()
   endif()
+
   iscore_cotire_post("${PluginName}")
 endfunction()
 
@@ -249,16 +250,17 @@ function(setup_iscore_plugin PluginName)
 
   set(ISCORE_PLUGINS_LIST ${ISCORE_PLUGINS_LIST} "${PluginName}" CACHE INTERNAL "List of plugins")
 
-  if(ISCORE_BUILD_FOR_PACKAGE_MANAGER)
-  install(TARGETS "${PluginName}"
-          LIBRARY DESTINATION lib/i-score
-          ARCHIVE DESTINATION lib/i-score
-          CONFIGURATIONS DynamicRelease)
-  else()
-  install(TARGETS "${PluginName}"
-          LIBRARY DESTINATION plugins
-          ARCHIVE DESTINATION static_plugins
-          CONFIGURATIONS DynamicRelease)
+  if(NOT ISCORE_STATIC_PLUGINS)
+    if(ISCORE_BUILD_FOR_PACKAGE_MANAGER)
+      install(TARGETS "${PluginName}"
+        LIBRARY DESTINATION lib/i-score
+        ARCHIVE DESTINATION lib/i-score)
+    else()
+      install(TARGETS "${PluginName}"
+        LIBRARY DESTINATION plugins
+        ARCHIVE DESTINATION static_plugins)
+    endif()
   endif()
+
   iscore_cotire_post("${PluginName}")
 endfunction()
