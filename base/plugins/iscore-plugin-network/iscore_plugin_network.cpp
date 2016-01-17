@@ -14,7 +14,7 @@ class PanelFactory;
 
 #define PROCESS_NAME "Network Process"
 
-iscore_plugin_network::iscore_plugin_network() :
+iscore_addon_network::iscore_addon_network() :
     QObject {},
         iscore::GUIApplicationContextPlugin_QtInterface {}//,
         //iscore::SettingsDelegateFactoryInterface_QtInterface {}
@@ -29,12 +29,12 @@ iscore::SettingsDelegateFactoryInterface* iscore_plugin_network::settings_make()
     return new NetworkSettings;
 }
 */
-iscore::GUIApplicationContextPlugin* iscore_plugin_network::make_applicationPlugin(const iscore::ApplicationContext& app)
+iscore::GUIApplicationContextPlugin* iscore_addon_network::make_applicationPlugin(const iscore::ApplicationContext& app)
 {
     return new Network::NetworkApplicationPlugin{app};
 }
 
-std::vector<iscore::PanelFactory*> iscore_plugin_network::panels()
+std::vector<iscore::PanelFactory*> iscore_addon_network::panels()
 {
     return {new Network::GroupPanelFactory};
 }
@@ -43,7 +43,7 @@ std::vector<iscore::PanelFactory*> iscore_plugin_network::panels()
 #include <iscore/command/CommandGeneratorMap.hpp>
 #include <unordered_map>
 
-std::pair<const CommandParentFactoryKey, CommandGeneratorMap> iscore_plugin_network::make_commands()
+std::pair<const CommandParentFactoryKey, CommandGeneratorMap> iscore_addon_network::make_commands()
 {
     using namespace Network;
     using namespace Network::Command;

@@ -1,5 +1,5 @@
 cmake_minimum_required(VERSION 3.0)
-project(iscore_plugin_network LANGUAGES CXX)
+project(iscore_addon_network LANGUAGES CXX)
 
 if(ANDROID)
     message("TODO FIXME ON ANDROID")
@@ -112,10 +112,10 @@ target_link_libraries(${PROJECT_NAME} PUBLIC
 
 if(CAN_USE_KDNSSD)
     target_compile_definitions(${PROJECT_NAME} PUBLIC USE_ZEROCONF)
-	target_link_libraries(${PROJECT_NAME} PUBLIC KF5::DNSSD)
+  target_link_libraries(${PROJECT_NAME} PUBLIC KF5::DNSSD)
 
     if(NOT APPLE AND NOT WIN32)
-		target_link_libraries(${PROJECT_NAME} PUBLIC dns_sd)
+    target_link_libraries(${PROJECT_NAME} PUBLIC dns_sd)
     endif()
 endif()
 
