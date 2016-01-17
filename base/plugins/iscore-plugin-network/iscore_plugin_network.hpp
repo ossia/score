@@ -15,7 +15,7 @@ namespace iscore {
 class PanelFactory;
 }  // namespace iscore
 
-class iscore_plugin_network :
+class iscore_addon_network :
         public QObject,
         public iscore::GUIApplicationContextPlugin_QtInterface,
         public iscore::CommandFactory_QtInterface,
@@ -31,7 +31,7 @@ class iscore_plugin_network :
                 iscore::PanelFactory_QtInterface)
 
     public:
-        iscore_plugin_network();
+        iscore_addon_network();
 
         //iscore::SettingsDelegateFactoryInterface* settings_make() override;
 
