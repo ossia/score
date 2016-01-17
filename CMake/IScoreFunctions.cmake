@@ -45,7 +45,7 @@ function(iscore_add_component Name Sources Headers Dependencies)
         "${CMAKE_CURRENT_BINARY_DIR}/${Name}_plugin.hpp"
         )
 
-    target_link_libraries(${Name} PRIVATE ${Dependencies})
+	target_link_libraries(${Name} PUBLIC ${Dependencies})
 
     setup_iscore_plugin(${Name})
   endif()

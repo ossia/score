@@ -305,9 +305,11 @@ endif()
 add_library(iscore_plugin_scenario ${SRCS} ${HDRS} ${QRCS})
 iscore_generate_command_list_file(iscore_plugin_scenario "${HDRS}")
 
-target_link_libraries(iscore_plugin_scenario PRIVATE Qt5::Core Qt5::Widgets Qt5::Svg
-                     iscore_lib_base
-                     iscore_lib_process iscore_lib_device iscore_plugin_deviceexplorer iscore_lib_state iscore_plugin_curve iscore_plugin_automation pthread)
+target_link_libraries(iscore_plugin_scenario
+	PUBLIC
+		Qt5::Core Qt5::Widgets Qt5::Svg
+		iscore_lib_base
+		iscore_lib_process iscore_lib_device iscore_plugin_deviceexplorer iscore_lib_state iscore_plugin_curve iscore_plugin_automation pthread)
 
 if(ISCORE_OPENGL)
 target_link_libraries(iscore_plugin_scenario PRIVATE Qt5::OpenGL)
@@ -318,7 +320,7 @@ target_link_libraries(iscore_plugin_scenario PRIVATE Qt5::WebSockets)
 endif()
 
 if(TARGET iscore_lib_inspector)
-    target_link_libraries(iscore_plugin_scenario PRIVATE iscore_lib_inspector)
+	target_link_libraries(iscore_plugin_scenario PUBLIC iscore_lib_inspector)
 endif()
 
 setup_iscore_plugin(iscore_plugin_scenario)

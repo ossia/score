@@ -102,7 +102,7 @@ endif()
 add_library(${PROJECT_NAME} ${SRCS} ${HDRS} ${ZEROCONF_SRCS})
 iscore_generate_command_list_file(${PROJECT_NAME} "${HDRS}")
 
-target_link_libraries(${PROJECT_NAME} PRIVATE
+target_link_libraries(${PROJECT_NAME} PUBLIC
                                     iscore_lib_base
                                     iscore_plugin_scenario
                                     iscore_lib_process
@@ -112,10 +112,10 @@ target_link_libraries(${PROJECT_NAME} PRIVATE
 
 if(CAN_USE_KDNSSD)
     target_compile_definitions(${PROJECT_NAME} PUBLIC USE_ZEROCONF)
-    target_link_libraries(${PROJECT_NAME} PRIVATE KF5::DNSSD)
+	target_link_libraries(${PROJECT_NAME} PUBLIC KF5::DNSSD)
 
     if(NOT APPLE AND NOT WIN32)
-        target_link_libraries(${PROJECT_NAME} PRIVATE dns_sd)
+		target_link_libraries(${PROJECT_NAME} PUBLIC dns_sd)
     endif()
 endif()
 

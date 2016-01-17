@@ -31,12 +31,12 @@ endif()
 # qt5_add_resources(DUMMYPROCESS_QRCS "${CMAKE_CURRENT_SOURCE_DIR}/resources/DummyResources.qrc")
 
 add_library(iscore_lib_dummyprocess ${DUMMYPROCESS_HDRS} ${DUMMYPROCESS_SRCS}  ${DUMMYPROCESS_QRCS})
-target_link_libraries(iscore_lib_dummyprocess PRIVATE
+target_link_libraries(iscore_lib_dummyprocess PUBLIC
     Qt5::Core Qt5::Widgets # Qt5::QuickWidgets
     iscore_lib_base iscore_lib_state iscore_lib_process)
 
 if(TARGET iscore_lib_inspector)
-    target_link_libraries(iscore_lib_dummyprocess PRIVATE iscore_lib_inspector)
+	target_link_libraries(iscore_lib_dummyprocess PUBLIC iscore_lib_inspector)
 endif()
 
 setup_iscore_library(iscore_lib_dummyprocess)

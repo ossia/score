@@ -24,7 +24,7 @@ set(SOURCE_FILES
 )
 
 add_library(${PROJECT_NAME} ${HEADER_FILES} ${SOURCE_FILES})
-target_link_libraries(${PROJECT_NAME} PRIVATE
+target_link_libraries(${PROJECT_NAME} PUBLIC
                         Qt5::Core Qt5::Widgets
                         iscore_lib_base)
 

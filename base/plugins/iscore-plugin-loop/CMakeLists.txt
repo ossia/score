@@ -33,7 +33,7 @@ set(SRCS
 
 add_library(${PROJECT_NAME} ${SRCS} ${HDRS})
 iscore_generate_command_list_file(${PROJECT_NAME} "${HDRS}")
-target_link_libraries(${PROJECT_NAME} PRIVATE
+target_link_libraries(${PROJECT_NAME} PUBLIC
                      Qt5::Core Qt5::Widgets
                      iscore_lib_base iscore_lib_process iscore_plugin_scenario iscore_lib_dummyprocess iscore_lib_inspector)
 
