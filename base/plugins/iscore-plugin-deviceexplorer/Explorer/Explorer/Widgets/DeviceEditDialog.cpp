@@ -22,7 +22,7 @@
 namespace DeviceExplorer
 {
 DeviceEditDialog::DeviceEditDialog(
-        const DynamicProtocolList& pl,
+        const Device::DynamicProtocolList& pl,
         QWidget* parent)
     : QDialog(parent),
       m_protocolList{pl},
@@ -88,7 +88,7 @@ DeviceEditDialog::initAvailableProtocols()
     {
         m_protocolCBox->addItem(
                     prot.second->prettyName(),
-                    QVariant::fromValue(prot.second->key<ProtocolFactoryKey>()));
+                    QVariant::fromValue(prot.second->key<Device::ProtocolFactoryKey>()));
 
         m_previousSettings.append(prot.second->defaultSettings());
     }
@@ -114,7 +114,7 @@ DeviceEditDialog::updateProtocolWidget()
 
     m_index = m_protocolCBox->currentIndex();
 
-    auto protocol = m_protocolCBox->currentData().value<ProtocolFactoryKey>();
+    auto protocol = m_protocolCBox->currentData().value<Device::ProtocolFactoryKey>();
     m_protocolWidget = m_protocolList.list().get(protocol)->makeSettingsWidget();
 
     if(m_protocolWidget)
@@ -135,7 +135,7 @@ Device::DeviceSettings DeviceEditDialog::getSettings() const
     }
 
     // TODO after set the protocol in getSettings instead.
-    settings.protocol = m_protocolCBox->currentData().value<ProtocolFactoryKey>();
+    settings.protocol = m_protocolCBox->currentData().value<Device::ProtocolFactoryKey>();
 
     return settings;
 }

@@ -14,7 +14,10 @@ namespace DeviceExplorer
 {
 class DeviceDocumentPlugin;
 }
+namespace Device
+{
 class DeviceList;
+}
 namespace RecreateOnPlay
 {
 class ConstraintElement;
@@ -54,7 +57,7 @@ class ProcessExecutor final :
 
 
     private:
-        const DeviceList& m_devices;
+        const Device::DeviceList& m_devices;
         QJSEngine m_engine;
         QJSValue m_tickFun;
 

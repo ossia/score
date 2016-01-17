@@ -322,7 +322,7 @@ State::Value NodeUpdateProxy::refreshRemoteValue(const State::Address& addr) con
     return n.value;
 }
 
-void rec_refreshRemoteValues(Device::Node& n, DeviceInterface& dev)
+void rec_refreshRemoteValues(Device::Node& n, Device::DeviceInterface& dev)
 {
     // OPTIMIZEME
     auto val = dev.refresh(Device::address(n));

@@ -28,7 +28,7 @@ DeviceExplorerPanelView::DeviceExplorerPanelView(
         QObject* parent) :
     iscore::PanelView {parent},
     m_widget {new DeviceExplorerWidget{
-              ctx.components.factory<DynamicProtocolList>(),
+              ctx.components.factory<Device::DynamicProtocolList>(),
               nullptr}}
 {
 }

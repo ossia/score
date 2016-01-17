@@ -12,9 +12,10 @@ namespace Scenario
 {
 class StateModel;
 }
-
+namespace Device
+{
 class DeviceList;
-
+}
 namespace OSSIA {
 class Address;
 class Device;
@@ -86,19 +87,19 @@ ISCORE_PLUGIN_OSSIA_EXPORT inline OSSIA::TimeValue time(const TimeValue& t)
 ISCORE_PLUGIN_OSSIA_EXPORT std::shared_ptr<OSSIA::State> state(
         std::shared_ptr<OSSIA::State> ossia_state,
         const Scenario::StateModel& iscore_state,
-        const DeviceList& deviceList);
+        const Device::DeviceList& deviceList);
 ISCORE_PLUGIN_OSSIA_EXPORT std::shared_ptr<OSSIA::State> state(
         const Scenario::StateModel& iscore_state,
-        const DeviceList& deviceList);
+        const Device::DeviceList& deviceList);
 
 
 ISCORE_PLUGIN_OSSIA_EXPORT std::shared_ptr<OSSIA::Message> message(
         const State::Message& mess,
-        const DeviceList&);
+        const Device::DeviceList&);
 
 ISCORE_PLUGIN_OSSIA_EXPORT std::shared_ptr<OSSIA::Expression> expression(
         const State::Expression& expr,
-        const DeviceList&);
+        const Device::DeviceList&);
 
 
 }

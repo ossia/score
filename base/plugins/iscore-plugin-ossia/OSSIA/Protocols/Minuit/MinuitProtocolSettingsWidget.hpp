@@ -8,7 +8,8 @@ class QLineEdit;
 class QSpinBox;
 class QWidget;
 
-class MinuitProtocolSettingsWidget : public ProtocolSettingsWidget
+class MinuitProtocolSettingsWidget :
+        public Device::ProtocolSettingsWidget
 {
     public:
         MinuitProtocolSettingsWidget(QWidget* parent = nullptr);

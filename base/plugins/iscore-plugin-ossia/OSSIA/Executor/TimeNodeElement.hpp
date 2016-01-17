@@ -3,10 +3,13 @@
 #include <memory>
 #include <iscore_plugin_ossia_export.h>
 
+namespace Device
+{
 class DeviceList;
+}
 namespace OSSIA
 {
-    class TimeNode;
+class TimeNode;
 }
 namespace Scenario
 {
@@ -21,7 +24,7 @@ class ISCORE_PLUGIN_OSSIA_EXPORT TimeNodeElement final : public QObject
         TimeNodeElement(
                 std::shared_ptr<OSSIA::TimeNode> ossia_tn,
                 const Scenario::TimeNodeModel& element,
-                const DeviceList& devlist,
+                const Device::DeviceList& devlist,
                 QObject* parent);
 
         std::shared_ptr<OSSIA::TimeNode> OSSIATimeNode() const;
@@ -30,7 +33,7 @@ class ISCORE_PLUGIN_OSSIA_EXPORT TimeNodeElement final : public QObject
         std::shared_ptr<OSSIA::TimeNode> m_ossia_node;
         const Scenario::TimeNodeModel& m_iscore_node;
 
-        const DeviceList& m_deviceList;
+        const Device::DeviceList& m_deviceList;
 };
 
 }

@@ -6,7 +6,8 @@ class QComboBox;
 class QRadioButton;
 class QWidget;
 
-class MIDIProtocolSettingsWidget : public ProtocolSettingsWidget
+class MIDIProtocolSettingsWidget :
+        public Device::ProtocolSettingsWidget
 {
         Q_OBJECT
 

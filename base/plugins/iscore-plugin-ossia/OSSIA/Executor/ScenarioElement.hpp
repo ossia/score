@@ -9,7 +9,10 @@
 #include "ProcessElement.hpp"
 #include <Scenario/Document/Constraint/ConstraintModel.hpp>
 
+namespace Device
+{
 class DeviceList;
+}
 namespace Process { class ProcessModel; }
 class QObject;
 namespace OSSIA {

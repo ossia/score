@@ -7,8 +7,12 @@
 #include "MIDIProtocolSettingsWidget.hpp"
 #include <OSSIA/Protocols/MIDI/MIDISpecificSettings.hpp>
 
+namespace Device
+{
 class DeviceInterface;
 class ProtocolSettingsWidget;
+}
+
 struct VisitorVariant;
 
 QString MIDIProtocolFactory::prettyName() const
@@ -16,13 +20,13 @@ QString MIDIProtocolFactory::prettyName() const
     return QObject::tr("MIDI");
 }
 
-const ProtocolFactoryKey&MIDIProtocolFactory::key_impl() const
+const Device::ProtocolFactoryKey& MIDIProtocolFactory::key_impl() const
 {
-    static const ProtocolFactoryKey name{"MIDI"};
+    static const Device::ProtocolFactoryKey name{"MIDI"};
     return name;
 }
 
-DeviceInterface*MIDIProtocolFactory::makeDevice(
+Device::DeviceInterface* MIDIProtocolFactory::makeDevice(
         const Device::DeviceSettings& settings,
         const iscore::DocumentContext& ctx)
 {
@@ -42,7 +46,7 @@ const Device::DeviceSettings& MIDIProtocolFactory::defaultSettings() const
     return settings;
 }
 
-ProtocolSettingsWidget*MIDIProtocolFactory::makeSettingsWidget()
+Device::ProtocolSettingsWidget* MIDIProtocolFactory::makeSettingsWidget()
 {
     return new MIDIProtocolSettingsWidget;
 }

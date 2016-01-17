@@ -3,7 +3,10 @@
 #include <memory>
 #include <iscore_plugin_ossia_export.h>
 
+namespace Device
+{
 class DeviceList;
+}
 
 namespace OSSIA
 {
@@ -21,7 +24,7 @@ class ISCORE_PLUGIN_OSSIA_EXPORT StateElement final : public QObject
         StateElement(
                 const Scenario::StateModel& element,
                 std::shared_ptr<OSSIA::State> root,
-                const DeviceList& deviceList,
+                const Device::DeviceList& deviceList,
                 QObject* parent);
 
         const Scenario::StateModel& iscoreState() const;
@@ -34,6 +37,6 @@ class ISCORE_PLUGIN_OSSIA_EXPORT StateElement final : public QObject
         const Scenario::StateModel& m_iscore_state;
         std::shared_ptr<OSSIA::State> m_ossia_state;
 
-        const DeviceList& m_deviceList;
+        const Device::DeviceList& m_deviceList;
 };
 }

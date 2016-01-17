@@ -9,8 +9,12 @@
 class QComboBox;
 class QGridLayout;
 class QWidget;
+
+namespace Device
+{
 class DynamicProtocolList;
 class ProtocolSettingsWidget;
+}
 namespace DeviceExplorer
 {
 class DeviceEditDialog final : public QDialog
@@ -19,7 +23,7 @@ class DeviceEditDialog final : public QDialog
 
     public:
         explicit DeviceEditDialog(
-                const DynamicProtocolList& pl,
+                const Device::DynamicProtocolList& pl,
                 QWidget* parent);
         ~DeviceEditDialog();
 
@@ -44,10 +48,10 @@ class DeviceEditDialog final : public QDialog
         void initAvailableProtocols();
 
     protected:
-        const DynamicProtocolList& m_protocolList;
+        const Device::DynamicProtocolList& m_protocolList;
 
         QComboBox* m_protocolCBox;
-        ProtocolSettingsWidget* m_protocolWidget;
+        Device::ProtocolSettingsWidget* m_protocolWidget;
         QGridLayout* m_gLayout;
         QList<Device::DeviceSettings> m_previousSettings;
         int m_index;

@@ -24,7 +24,7 @@ class ExplorationWorkerWrapper final : public QObject
         template<typename OnSuccess_t>
         ExplorationWorkerWrapper(OnSuccess_t&& success,
                                  DeviceExplorerWidget& widg,
-                                 DeviceInterface& dev):
+                                 Device::DeviceInterface& dev):
             worker{new ExplorationWorker{dev}},
             m_widget{widg},
             m_success{std::move(success)}
@@ -97,7 +97,7 @@ class ExplorationWorkerWrapper final : public QObject
 template<typename OnSuccess_t>
 static auto make_worker(OnSuccess_t&& success,
                         DeviceExplorerWidget& widg,
-                        DeviceInterface& dev)
+                        Device::DeviceInterface& dev)
 {
     return new ExplorationWorkerWrapper<OnSuccess_t>{
         std::move(success),

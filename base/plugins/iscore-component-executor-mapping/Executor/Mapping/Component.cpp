@@ -137,7 +137,7 @@ void Component::recreate()
     {
         // Look for the real node in the device
         auto dev_it = std::find_if(devices.begin(), devices.end(),
-                                   [&] (DeviceInterface* dev) {
+                                   [&] (Device::DeviceInterface* dev) {
             return dev->settings().name == addr.device;
         });
 

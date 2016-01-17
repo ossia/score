@@ -34,10 +34,10 @@ class ISCORE_PLUGIN_DEVICEEXPLORER_EXPORT DeviceDocumentPlugin final : public is
         const Device::Node& rootNode() const
         { return m_rootNode; }
 
-        DeviceList& list()
+        Device::DeviceList& list()
         { return m_list; }
 
-        const DeviceList& list() const
+        const Device::DeviceList& list() const
         { return m_list; }
 
         // TODO make functions that take an address and call list().device(...).TheRelevantMethod
@@ -54,8 +54,8 @@ class ISCORE_PLUGIN_DEVICEEXPLORER_EXPORT DeviceDocumentPlugin final : public is
         void setConnection(bool);
 
     private:
-        void initDevice(DeviceInterface&);
+        void initDevice(Device::DeviceInterface&);
         Device::Node m_rootNode;
-        DeviceList m_list;
+        Device::DeviceList m_list;
 };
 }

@@ -7,8 +7,12 @@
 #include "MinuitProtocolSettingsWidget.hpp"
 #include <OSSIA/Protocols/Minuit/MinuitSpecificSettings.hpp>
 
+namespace Device
+{
 class DeviceInterface;
 class ProtocolSettingsWidget;
+}
+
 struct VisitorVariant;
 
 QString MinuitProtocolFactory::prettyName() const
@@ -16,13 +20,13 @@ QString MinuitProtocolFactory::prettyName() const
     return QObject::tr("Minuit");
 }
 
-const ProtocolFactoryKey&MinuitProtocolFactory::key_impl() const
+const Device::ProtocolFactoryKey& MinuitProtocolFactory::key_impl() const
 {
-    static const ProtocolFactoryKey name{"Minuit"};
+    static const Device::ProtocolFactoryKey name{"Minuit"};
     return name;
 }
 
-DeviceInterface*MinuitProtocolFactory::makeDevice(
+Device::DeviceInterface* MinuitProtocolFactory::makeDevice(
         const Device::DeviceSettings& settings,
         const iscore::DocumentContext& ctx)
 {
@@ -42,7 +46,7 @@ const Device::DeviceSettings& MinuitProtocolFactory::defaultSettings() const
     return settings;
 }
 
-ProtocolSettingsWidget*MinuitProtocolFactory::makeSettingsWidget()
+Device::ProtocolSettingsWidget* MinuitProtocolFactory::makeSettingsWidget()
 {
     return new MinuitProtocolSettingsWidget;
 }

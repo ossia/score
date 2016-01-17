@@ -7,13 +7,14 @@
 #include <Device/Protocol/ProtocolFactoryKey.hpp>
 #include <iscore_lib_device_export.h>
 
-class DeviceInterface;
-class ProtocolSettingsWidget;
-namespace Device {
-struct DeviceSettings;
-}  // namespace iscore
 struct VisitorVariant;
 
+
+namespace Device
+{
+struct DeviceSettings;
+class DeviceInterface;
+class ProtocolSettingsWidget;
 class ISCORE_LIB_DEVICE_EXPORT ProtocolFactory : public iscore::GenericFactoryInterface<ProtocolFactoryKey>
 {
         ISCORE_FACTORY_DECL("Protocol")
@@ -57,3 +58,4 @@ class ISCORE_LIB_DEVICE_EXPORT ProtocolFactory : public iscore::GenericFactoryIn
                 const Device::DeviceSettings& a,
                 const Device::DeviceSettings& b) const = 0;
 };
+}

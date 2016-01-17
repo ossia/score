@@ -1,6 +1,8 @@
 #include <Device/Protocol/DeviceInterface.hpp>
 #include "DeviceList.hpp"
 
+namespace Device
+{
 template<typename TheList>
 static auto get_device_iterator_by_name(
         const QString& name,
@@ -42,4 +44,5 @@ void DeviceList::removeDevice(const QString &name)
 const std::vector<DeviceInterface *> &DeviceList::devices() const
 {
     return m_devices;
+}
 }

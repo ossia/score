@@ -11,6 +11,9 @@
 #include <State/Value.hpp>
 #include "XMLDeviceLoader.hpp"
 
+
+namespace Device
+{
 static State::Value stringToVal(const QString& str, const QString& type)
 {
     State::Value val;
@@ -185,4 +188,5 @@ void loadDeviceFromXML(const QString &filePath, Device::Node &node)
         convertFromDomElement(dom_node, node);
         dom_node = dom_node.nextSiblingElement("");
     }
+}
 }

@@ -6,6 +6,8 @@
 
 #include <Device/Protocol/DeviceSettings.hpp>
 
+namespace Device
+{
 class ISCORE_LIB_DEVICE_EXPORT DeviceList
 {
     public:
@@ -36,3 +38,4 @@ class ISCORE_LIB_DEVICE_EXPORT DeviceList
     private:
         std::vector<DeviceInterface*> m_devices;
 };
+}

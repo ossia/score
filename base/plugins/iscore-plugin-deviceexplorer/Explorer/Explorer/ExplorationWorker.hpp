@@ -3,8 +3,10 @@
 #include <QObject>
 #include <QString>
 
-
+namespace Device
+{
 class DeviceInterface;
+}
 
 namespace DeviceExplorer
 {
@@ -18,10 +20,10 @@ class ExplorationWorker final : public QObject
 {
         Q_OBJECT
     public:
-        DeviceInterface& dev;
+        Device::DeviceInterface& dev;
         Device::Node node; // Result
 
-        explicit ExplorationWorker(DeviceInterface& dev);
+        explicit ExplorationWorker(Device::DeviceInterface& dev);
 
     signals:
         void finished();

@@ -31,7 +31,8 @@ class DeviceDocumentPlugin;
 class DeviceEditDialog;
 class DeviceExplorerView;
 
-class ISCORE_PLUGIN_DEVICEEXPLORER_EXPORT DeviceExplorerModel final : public NodeBasedItemModel
+class ISCORE_PLUGIN_DEVICEEXPLORER_EXPORT DeviceExplorerModel final :
+        public Device::NodeBasedItemModel
 {
         Q_OBJECT
 

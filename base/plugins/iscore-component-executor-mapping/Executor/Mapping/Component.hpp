@@ -14,7 +14,11 @@ namespace Mapping
 {
 class MappingModel;
 }
+
+namespace Device
+{
 class DeviceList;
+}
 class ConstraintElement;
 
 
@@ -47,7 +51,7 @@ class Component final : public ProcessComponent
 
         std::shared_ptr<OSSIA::CurveAbstract> m_ossia_curve;
 
-        const DeviceList& m_deviceList;
+        const Device::DeviceList& m_deviceList;
 
         // Component interface
     public:
