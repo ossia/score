@@ -37,7 +37,8 @@ setup_iscore_common_exe_features(${APPNAME})
 
 install(TARGETS ${APPNAME}
   BUNDLE DESTINATION .
-  RUNTIME DESTINATION bin)
+  RUNTIME DESTINATION bin
+  CONFIGURATIONS StaticRelease DynamicRelease)
 
 include(TestSetup.cmake)
 include(UnityApp.cmake)
