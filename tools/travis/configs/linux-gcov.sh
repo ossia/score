@@ -2,7 +2,7 @@
 source "$CONFIG_FOLDER/linux-source-qt.sh"
 
 $CMAKE_BIN -DISCORE_CONFIGURATION=linux-gcov ..
-$CMAKE_BIN --build . --target all_unity
+$CMAKE_BIN --build . --target all_unity -- -j2
 
 echo "$PWD"
 gem install coveralls-lcov
