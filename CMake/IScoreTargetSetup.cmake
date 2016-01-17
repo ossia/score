@@ -4,24 +4,27 @@ include(LinkerWarnings)
 include(DebugMode)
 
 function(iscore_cotire_pre TheTarget)
-if(ISCORE_COTIRE)
-    #set_property(TARGET ${TheTarget} PROPERTY COTIRE_ADD_UNITY_BUILD FALSE)
+  if(ISCORE_COTIRE)
+    if(ISCORE_COTIRE_DISABLE_UNITY)
+      set_property(TARGET ${TheTarget} PROPERTY COTIRE_ADD_UNITY_BUILD FALSE)
+    endif()
+
     if(ISCORE_COTIRE_ALL_HEADERS)
-        set_target_properties(${TheTarget} PROPERTIES COTIRE_PREFIX_HEADER_IGNORE_PATH "")
+      set_target_properties(${TheTarget} PROPERTIES COTIRE_PREFIX_HEADER_IGNORE_PATH "")
     endif()
 
     # FIXME on windows
     set_target_properties(${TheTarget} PROPERTIES
-                          COTIRE_PREFIX_HEADER_IGNORE_PATH "${COTIRE_PREFIX_HEADER_IGNORE_PATH};/usr/include/boost/preprocessor/")
+      COTIRE_PREFIX_HEADER_IGNORE_PATH "${COTIRE_PREFIX_HEADER_IGNORE_PATH};/usr/include/boost/preprocessor/")
 
     if(NOT ${TheTarget} STREQUAL "iscore_lib_base")
-        # We reuse the same prefix header
+      # We reuse the same prefix header
 
-        get_target_property(ISCORE_COMMON_PREFIX_HEADER iscore_lib_base COTIRE_CXX_PREFIX_HEADER)
-        set_target_properties(${TheTarget} PROPERTIES COTIRE_CXX_PREFIX_HEADER_INIT "${ISCORE_COMMON_PREFIX_HEADER}")
+      get_target_property(ISCORE_COMMON_PREFIX_HEADER iscore_lib_base COTIRE_CXX_PREFIX_HEADER)
+      set_target_properties(${TheTarget} PROPERTIES COTIRE_CXX_PREFIX_HEADER_INIT "${ISCORE_COMMON_PREFIX_HEADER}")
     endif()
 
-endif()
+  endif()
 endfunction()
 
 function(iscore_cotire_post TheTarget)
@@ -195,7 +198,7 @@ endfunction()
 ### Initialization of common stuff ###
 function(setup_iscore_common_exe_features TheTarget)
     setup_iscore_common_features("${TheTarget}")
-	iscore_cotire_post("${TheTarget}")
+  iscore_cotire_post("${TheTarget}")
 endfunction()
 
 function(setup_iscore_common_test_features TheTarget)
