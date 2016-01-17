@@ -21,20 +21,20 @@ if(NOT ISCORE_STATIC_PLUGINS)
         add_custom_command(
           TARGET ${APPNAME} POST_BUILD
           COMMAND ${CMAKE_COMMAND} -E copy $<TARGET_FILE:${theTarget}> ${ISCORE_BUNDLE_PLUGINS_FOLDER})
-		if(TARGET ${APPNAME}_unity)
-		  add_custom_command(
-			TARGET ${APPNAME}_unity POST_BUILD
-			COMMAND ${CMAKE_COMMAND} -E copy $<TARGET_FILE:${theTarget}_unity> ${ISCORE_BUNDLE_PLUGINS_FOLDER})
-		endif()
+    if(TARGET ${APPNAME}_unity)
+      add_custom_command(
+      TARGET ${APPNAME}_unity POST_BUILD
+      COMMAND ${CMAKE_COMMAND} -E copy $<TARGET_FILE:${theTarget}_unity> ${ISCORE_BUNDLE_PLUGINS_FOLDER})
+    endif()
     endfunction()
 
     # Copy iscore plugins into the app bundle
     add_custom_command(TARGET ${APPNAME} POST_BUILD
                        COMMAND mkdir -p ${CMAKE_INSTALL_PREFIX}/${APPNAME}.app/Contents/MacOS/plugins/)
-	if(TARGET ${APPNAME}_unity)
-		add_custom_command(TARGET ${APPNAME}_unity POST_BUILD
-						   COMMAND mkdir -p ${CMAKE_INSTALL_PREFIX}/${APPNAME}.app/Contents/MacOS/plugins/)
-	endif()
+  if(TARGET ${APPNAME}_unity)
+    add_custom_command(TARGET ${APPNAME}_unity POST_BUILD
+               COMMAND mkdir -p ${CMAKE_INSTALL_PREFIX}/${APPNAME}.app/Contents/MacOS/plugins/)
+  endif()
 
     foreach(plugin ${ISCORE_PLUGINS_LIST})
       iscore_copy_osx_plugin(${plugin})
@@ -70,7 +70,7 @@ Plugins = PlugIns
 #Translations = Resources/translations
 #Data = Resources
 
-if(ISCORE_STATIC_PLUGINS)  
+if(ISCORE_STATIC_PLUGINS)
     install(CODE "
         file(GLOB_RECURSE QTPLUGINS
             \"\${CMAKE_INSTALL_PREFIX}/${plugin_dest_dir}/*.dylib\")
@@ -95,13 +95,13 @@ else()
         include(BundleUtilities)
         fixup_bundle(
            \"${CMAKE_INSTALL_PREFIX}/i-score.app\"
-           \"\${QTPLUGINS};${ISCORE_BUNDLE_INSTALLED_PLUGINS}\" 
-		   \"${QT_LIBRARY_DIR};${JAMOMA_LIBRARY_DIR};${CMAKE_BINARY_DIR}/plugins;${CMAKE_INSTALL_PREFIX}/plugins;${CMAKE_BINARY_DIR}/API/Implementations/Jamoma;${CMAKE_BINARY_DIR}/base/lib;${CMAKE_INSTALL_PREFIX}/${APPNAME}.app/Contents/MacOS/plugins/\"
+           \"\${QTPLUGINS};${ISCORE_BUNDLE_INSTALLED_PLUGINS}\"
+       \"${QT_LIBRARY_DIR};${JAMOMA_LIBRARY_DIR};${CMAKE_BINARY_DIR}/plugins;${CMAKE_INSTALL_PREFIX}/plugins;${CMAKE_BINARY_DIR}/API/Implementations/Jamoma;${CMAKE_BINARY_DIR}/base/lib;${CMAKE_INSTALL_PREFIX}/${APPNAME}.app/Contents/MacOS/plugins/\"
         )
-message(\"${ISCORE_ROOT_SOURCE_DIR}/CMake/Deployment/OSX/set_rpath.sh\" 
+message(\"${ISCORE_ROOT_SOURCE_DIR}/CMake/Deployment/OSX/set_rpath.sh\"
           \"${CMAKE_INSTALL_PREFIX}/i-score.app/Contents/MacOS/plugins\")
-execute_process(COMMAND 
-          \"${ISCORE_ROOT_SOURCE_DIR}/CMake/Deployment/OSX/set_rpath.sh\" 
+execute_process(COMMAND
+          \"${ISCORE_ROOT_SOURCE_DIR}/CMake/Deployment/OSX/set_rpath.sh\"
           \"${CMAKE_INSTALL_PREFIX}/i-score.app/Contents/MacOS/plugins\")
       ")
 endif()
