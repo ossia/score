@@ -17,12 +17,15 @@ namespace Inspector
 {
 class InspectorWidgetList;
 }
+
 class QTabWidget;
 class QVBoxLayout;
 namespace iscore {
 class SelectionStack;
 }  // namespace iscore
 
+namespace InspectorPanel
+{
 namespace bmi = boost::multi_index;
 using InspectorWidgetMap = bmi::multi_index_container<
     Inspector::InspectorWidgetBase*,
@@ -36,12 +39,6 @@ using InspectorWidgetMap = bmi::multi_index_container<
         >
     >
 >;
-namespace iscore
-{
-}
-namespace Ui
-{
-}
 
 /*!
  * \brief The InspectorPanel class manages the main panel.
@@ -49,13 +46,13 @@ namespace Ui
  *  It creates and displays the view for each inspected element.
  */
 
-
-class InspectorPanel : public QWidget
+// TODO rename file
+class InspectorPanelWidget : public QWidget
 {
         Q_OBJECT
 
     public:
-        explicit InspectorPanel(
+        explicit InspectorPanelWidget(
                 const Inspector::InspectorWidgetList& list,
                 iscore::SelectionStack& s,
                 QWidget* parent);
@@ -80,3 +77,4 @@ class InspectorPanel : public QWidget
         iscore::SelectionDispatcher m_selectionDispatcher;
         QList<const IdentifiedObjectAbstract*> m_currentSel;
 };
+}

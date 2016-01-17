@@ -14,7 +14,9 @@ namespace iscore {
 class SelectionStack;
 }  // namespace iscore
 
-InspectorPanel::InspectorPanel(
+namespace InspectorPanel
+{
+InspectorPanelWidget::InspectorPanelWidget(
         const Inspector::InspectorWidgetList& list,
         iscore::SelectionStack& s,
         QWidget* parent) :
@@ -30,10 +32,10 @@ InspectorPanel::InspectorPanel(
     m_layout->addWidget(m_tabWidget);
 
     connect(m_tabWidget,    &QTabWidget::tabCloseRequested,
-            this, &InspectorPanel::on_tabClose);
+            this, &InspectorPanelWidget::on_tabClose);
 }
 
-void InspectorPanel::newItemsInspected(const Selection& objects)
+void InspectorPanelWidget::newItemsInspected(const Selection& objects)
 {
     // Ignore items in both
     // Create items in objects and not in current
@@ -81,7 +83,7 @@ void InspectorPanel::newItemsInspected(const Selection& objects)
     m_currentSel = objects.toList();
 }
 
-void InspectorPanel::on_tabClose(int index)
+void InspectorPanelWidget::on_tabClose(int index)
 {
     auto inspector_widget = static_cast<Inspector::InspectorWidgetBase*>(m_tabWidget->widget(index));
     // TODO need m_tabWidget.movable() = false !
@@ -90,4 +92,5 @@ void InspectorPanel::on_tabClose(int index)
     sel.removeAll(inspector_widget->inspectedObject_addr());
 
     m_selectionDispatcher.setAndCommit(sel);
+}
 }

@@ -11,9 +11,11 @@ namespace iscore
     class Document;
 
 }
-class InspectorPanel;
+namespace InspectorPanel
+{
 class SelectionStackWidget;
 
+class InspectorPanelWidget;
 class InspectorPanelView : public iscore::PanelView
 {
         Q_OBJECT
@@ -33,9 +35,10 @@ class InspectorPanelView : public iscore::PanelView
     private:
         QWidget* m_widget{};
         SelectionStackWidget* m_stack{};
-        InspectorPanel* m_inspectorPanel {};
+        InspectorPanelWidget* m_inspectorPanel {};
         iscore::Document* m_currentDocument{};
 
         QMetaObject::Connection m_selectionConnection,
                                 m_commandConnection;
 };
+}

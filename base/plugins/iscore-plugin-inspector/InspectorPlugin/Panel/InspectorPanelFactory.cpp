@@ -13,6 +13,8 @@ class DocumentModel;
 using namespace iscore;
 
 
+namespace InspectorPanel
+{
 int InspectorPanelFactory::panelId() const
 {
     return INSPECTOR_PANEL_ID;
@@ -44,4 +46,4 @@ iscore::PanelModel* InspectorPanelFactory::makeModel(
 {
     return new InspectorPanelModel {parent};
 }
-
+}

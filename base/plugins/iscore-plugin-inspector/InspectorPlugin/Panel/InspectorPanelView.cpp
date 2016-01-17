@@ -18,6 +18,9 @@
 #include <iscore/selection/Selection.hpp>
 #include <iscore/selection/SelectionStack.hpp>
 
+
+namespace InspectorPanel
+{
 static const iscore::DefaultPanelStatus status{true, Qt::RightDockWidgetArea, 10, QObject::tr("Inspector")};
 
 const iscore::DefaultPanelStatus &InspectorPanelView::defaultPanelStatus() const
@@ -52,7 +55,7 @@ void InspectorPanelView::setCurrentDocument(iscore::Document* doc)
         auto& appContext = doc->context().app;
         auto& fact = appContext.components.factory<Inspector::InspectorWidgetList>();
         m_stack = new SelectionStackWidget{doc->selectionStack(), m_widget};
-        m_inspectorPanel = new InspectorPanel{fact, doc->context().selectionStack, m_widget};
+        m_inspectorPanel = new InspectorPanelWidget{fact, doc->context().selectionStack, m_widget};
 
         m_widget->layout()->addWidget(m_stack);
         m_widget->layout()->addWidget(m_inspectorPanel);
@@ -64,4 +67,5 @@ void InspectorPanelView::setCurrentDocument(iscore::Document* doc)
 void InspectorPanelView::setNewSelection(const Selection& s)
 {
     m_inspectorPanel->newItemsInspected(s);
+}
 }

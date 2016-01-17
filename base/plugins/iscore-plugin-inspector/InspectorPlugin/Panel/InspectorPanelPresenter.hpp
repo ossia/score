@@ -8,6 +8,8 @@ class PanelView;
 
 }  // namespace iscore
 
+namespace InspectorPanel
+{
 class InspectorPanelPresenter : public iscore::PanelPresenter
 {
     public:
@@ -25,3 +27,4 @@ class InspectorPanelPresenter : public iscore::PanelPresenter
         QMetaObject::Connection m_mvConnection;
 
 };
+}

@@ -8,6 +8,9 @@ namespace iscore
 {
     class DocumentModel;
 }
+
+namespace InspectorPanel
+{
 /**
  * @brief The InspectorPanelModel class
  *
@@ -27,3 +30,4 @@ class InspectorPanelModel : public iscore::PanelModel
         void setNewSelection(const Selection& s) override;
 
 };
+}

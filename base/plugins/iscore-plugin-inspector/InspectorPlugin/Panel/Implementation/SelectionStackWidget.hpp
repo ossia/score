@@ -8,6 +8,8 @@ namespace iscore{
 
 class QToolButton;
 
+namespace InspectorPanel
+{
 class SelectionStackWidget : public QWidget
 {
     public:
@@ -21,3 +23,4 @@ class SelectionStackWidget : public QWidget
         QToolButton* m_next{};
         iscore::SelectionStack& m_stack;
 };
+}
