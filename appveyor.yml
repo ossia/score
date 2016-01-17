@@ -1,8 +1,8 @@
 environment:
   QTDIR: C:\Qt\5.5\mingw492_32
   MINGW: C:\Qt\Tools\mingw492_32
-  BOOST_ROOT: c:\Libraries\boost
-  BOOST_LIBRARYDIR: c:\Libraries\boost\stage\lib
+  BOOST_ROOT: c:\Libraries\boost_1_59_0
+  BOOST_LIBRARYDIR: c:\Libraries\boost_1_59_0\stage\lib
   JAMOMA_ROOT: c:\Jamoma
   CHOCO_PATH: c:\ProgramData\chocolatey\bin
   CMAKE_PATH: c:\projects\i-score\cmake-3.4.1-win32-x86
