@@ -5,6 +5,9 @@ namespace iscore {
 struct DeviceSettings;
 }  // namespace iscore
 
+
+namespace Ossia
+{
 class MIDIDevice final : public OSSIADevice
 {
     public:
@@ -12,3 +15,4 @@ class MIDIDevice final : public OSSIADevice
 
         bool reconnect() override;
 };
+}

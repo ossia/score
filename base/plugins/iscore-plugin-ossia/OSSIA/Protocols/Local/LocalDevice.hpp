@@ -6,9 +6,8 @@ namespace iscore {
 struct DeviceSettings;
 }  // namespace iscore
 
-namespace OSSIA
+namespace Ossia
 {
-}
 class LocalDevice final : public OSSIADevice
 {
     public:
@@ -33,3 +32,4 @@ class LocalDevice final : public OSSIADevice
         OSSIA::CallbackContainer<OSSIA::Device::RemovingNodeCallback>::iterator m_removedNodeCb;
         OSSIA::CallbackContainer<OSSIA::Device::NameChangesDeviceCallback>::iterator m_nameChangesCb;
 };
+}

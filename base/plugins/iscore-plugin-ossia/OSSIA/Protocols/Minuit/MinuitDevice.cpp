@@ -8,6 +8,8 @@
 #include "Network/Protocol/Minuit.h"
 #include <OSSIA/Protocols/Minuit/MinuitSpecificSettings.hpp>
 
+namespace Ossia
+{
 MinuitDevice::MinuitDevice(const Device::DeviceSettings &settings):
     OSSIADevice{settings}
 {
@@ -35,4 +37,5 @@ bool MinuitDevice::reconnect()
     }
 
     return connected();
+}
 }

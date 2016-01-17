@@ -14,6 +14,8 @@ class ProtocolSettingsWidget;
 }
 struct VisitorVariant;
 
+namespace Ossia
+{
 QString OSCProtocolFactory::prettyName() const
 {
     return QObject::tr("OSC");
@@ -65,4 +67,5 @@ bool OSCProtocolFactory::checkCompatibility(const Device::DeviceSettings& a, con
     auto a_p = a.deviceSpecificSettings.value<OSCSpecificSettings>();
     auto b_p = b.deviceSpecificSettings.value<OSCSpecificSettings>();
     return a.name != b.name && a_p.inputPort != b_p.inputPort && a_p.outputPort != b_p.outputPort;
+}
 }

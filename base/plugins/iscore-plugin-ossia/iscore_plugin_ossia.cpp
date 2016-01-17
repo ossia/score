@@ -47,6 +47,8 @@ std::vector<std::unique_ptr<iscore::FactoryInterfaceBase>> iscore_plugin_ossia::
         const iscore::FactoryBaseKey& key) const
 {
     using namespace Scenario;
+    using namespace Ossia;
+    using namespace RecreateOnPlay;
 
     return instantiate_factories<
             iscore::ApplicationContext,

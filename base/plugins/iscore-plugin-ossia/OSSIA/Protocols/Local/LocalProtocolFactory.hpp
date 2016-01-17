@@ -14,6 +14,8 @@ struct DeviceSettings;
 }  // namespace iscore
 struct VisitorVariant;
 
+namespace Ossia
+{
 class LocalProtocolFactory final :
         public Device::ProtocolFactory
 {
@@ -38,3 +40,4 @@ class LocalProtocolFactory final :
                 const Device::DeviceSettings& a,
                 const Device::DeviceSettings& b) const override;
 };
+}

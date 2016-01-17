@@ -1,18 +1,16 @@
 #include "PlayContextMenu.hpp"
 #include "PlayContextMenuFactory.hpp"
 
-namespace Scenario
+namespace RecreateOnPlay
 {
-class ScenarioActions;
-class ScenarioApplicationPlugin;
-
-const ScenarioActionsFactoryKey&PlayContextMenuFactory::key_impl() const
+const Scenario::ScenarioActionsFactoryKey& PlayContextMenuFactory::key_impl() const
 {
-    static const ScenarioActionsFactoryKey fact{"PlayContextMenuFactory"};
+    static const Scenario::ScenarioActionsFactoryKey fact{"PlayContextMenuFactory"};
     return fact;
 }
 
-QList<ScenarioActions *> PlayContextMenuFactory::make(ScenarioApplicationPlugin *ctrl)
+QList<Scenario::ScenarioActions *> PlayContextMenuFactory::make(
+        Scenario::ScenarioApplicationPlugin *ctrl)
 {
     return {new PlayContextMenu(ctrl)};
 }

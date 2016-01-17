@@ -13,6 +13,8 @@
 
 class QWidget;
 
+namespace Ossia
+{
 MinuitProtocolSettingsWidget::MinuitProtocolSettingsWidget(QWidget* parent)
     : ProtocolSettingsWidget(parent)
 {
@@ -97,4 +99,5 @@ MinuitProtocolSettingsWidget::setSettings(const Device::DeviceSettings &settings
         m_portOutputSBox->setValue(minuit.outputPort);
         m_localHostEdit->setText(minuit.host);
     }
+}
 }

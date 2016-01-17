@@ -8,6 +8,8 @@ class QLineEdit;
 class QSpinBox;
 class QWidget;
 
+namespace Ossia
+{
 class LocalProtocolSettingsWidget final :
         public Device::ProtocolSettingsWidget
 {
@@ -19,3 +21,4 @@ class LocalProtocolSettingsWidget final :
         void setSettings(const Device::DeviceSettings& settings) override;
 };
 
+}

@@ -8,6 +8,8 @@ class QLineEdit;
 class QSpinBox;
 class QWidget;
 
+namespace Ossia
+{
 class MinuitProtocolSettingsWidget :
         public Device::ProtocolSettingsWidget
 {
@@ -30,4 +32,4 @@ class MinuitProtocolSettingsWidget :
         QLineEdit* m_localHostEdit;
 
 };
-
+}

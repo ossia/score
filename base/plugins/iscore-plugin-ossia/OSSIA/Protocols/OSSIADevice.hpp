@@ -28,6 +28,8 @@ namespace OSSIA
     class Device;
 }
 
+namespace Ossia
+{
 class ISCORE_PLUGIN_OSSIA_EXPORT OSSIADevice :
         public Device::DeviceInterface
 {
@@ -79,3 +81,4 @@ class ISCORE_PLUGIN_OSSIA_EXPORT OSSIADevice :
     private:
         void removeListening_impl(OSSIA::Node &node, State::Address addr);
 };
+}

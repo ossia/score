@@ -368,7 +368,7 @@ std::shared_ptr<OSSIA::Message> message(
     if(!dev.connected())
         return {};
 
-    if(auto casted_dev = dynamic_cast<const OSSIADevice*>(&dev))
+    if(auto casted_dev = dynamic_cast<const Ossia::OSSIADevice*>(&dev))
     {
         auto ossia_node = iscore::convert::findNodeFromPath(
                     mess.address.path,
@@ -468,7 +468,7 @@ OSSIA::Value* expressionOperand(
                 throw NodeNotFoundException(addr);
             }
 
-            if(auto casted_dev = dynamic_cast<const OSSIADevice*>(&device))
+            if(auto casted_dev = dynamic_cast<const Ossia::OSSIADevice*>(&device))
             {
                 auto n = findNodeFromPath(addr.path, casted_dev->impl_ptr());
                 if(n)

@@ -11,7 +11,12 @@
 #include <Device/Protocol/ProtocolSettingsWidget.hpp>
 #include "OSCProtocolSettingsWidget.hpp"
 
+#include "OSCSpecificSettings.hpp"
 
+class QWidget;
+
+namespace Ossia
+{
 OSCProtocolSettingsWidget::OSCProtocolSettingsWidget(QWidget* parent)
     : ProtocolSettingsWidget(parent)
 {
@@ -74,10 +79,6 @@ OSCProtocolSettingsWidget::setDefaults()
     m_localHostEdit->setText("127.0.0.1");
 }
 
-#include "OSCSpecificSettings.hpp"
-
-class QWidget;
-
 Device::DeviceSettings OSCProtocolSettingsWidget::getSettings() const
 {
     Device::DeviceSettings s;
@@ -129,4 +130,5 @@ OSCProtocolSettingsWidget::openFileDialog()
     {
         m_namespaceFilePathEdit->setText(fileName);
     }
+}
 }

@@ -6,6 +6,8 @@
 #include <Device/Protocol/DeviceSettings.hpp>
 #include "MIDIDevice.hpp"
 
+namespace Ossia
+{
 MIDIDevice::MIDIDevice(const Device::DeviceSettings &settings):
     OSSIADevice{settings}
 {
@@ -26,4 +28,5 @@ bool MIDIDevice::reconnect()
     }
 
     return connected();
+}
 }

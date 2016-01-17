@@ -16,6 +16,8 @@ namespace iscore
 class MenubarManager;
 }  // namespace iscore
 
+namespace RecreateOnPlay
+{
 class PlayContextMenu final : public Scenario::ScenarioActions
 {
     public:
@@ -36,3 +38,4 @@ class PlayContextMenu final : public Scenario::ScenarioActions
 
         QAction* m_playFromHere{};
 };
+}

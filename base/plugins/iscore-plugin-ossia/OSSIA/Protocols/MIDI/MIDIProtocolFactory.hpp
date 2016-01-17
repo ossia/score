@@ -15,6 +15,8 @@ struct DeviceSettings;
 }  // namespace iscore
 struct VisitorVariant;
 
+namespace Ossia
+{
 class MIDIProtocolFactory final :
         public Device::ProtocolFactory
 {
@@ -42,3 +44,4 @@ class MIDIProtocolFactory final :
                 const Device::DeviceSettings& a,
                 const Device::DeviceSettings& b) const override;
 };
+}

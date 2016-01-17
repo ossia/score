@@ -15,6 +15,8 @@ class ProtocolSettingsWidget;
 
 struct VisitorVariant;
 
+namespace Ossia
+{
 QString MinuitProtocolFactory::prettyName() const
 {
     return QObject::tr("Minuit");
@@ -68,4 +70,5 @@ bool MinuitProtocolFactory::checkCompatibility(const Device::DeviceSettings& a, 
     auto a_p = a.deviceSpecificSettings.value<MinuitSpecificSettings>();
     auto b_p = b.deviceSpecificSettings.value<MinuitSpecificSettings>();
     return a.name != b.name && a_p.inputPort != b_p.inputPort && a_p.outputPort != b_p.outputPort;
+}
 }

@@ -15,6 +15,9 @@ class ProtocolSettingsWidget;
 }
 struct VisitorVariant;
 
+
+namespace Ossia
+{
 QString LocalProtocolFactory::prettyName() const
 {
     return QObject::tr("Local");
@@ -65,4 +68,5 @@ void LocalProtocolFactory::serializeProtocolSpecificSettings(const QVariant& dat
 bool LocalProtocolFactory::checkCompatibility(const Device::DeviceSettings& a, const Device::DeviceSettings& b) const
 {
     return a.name != b.name;
+}
 }

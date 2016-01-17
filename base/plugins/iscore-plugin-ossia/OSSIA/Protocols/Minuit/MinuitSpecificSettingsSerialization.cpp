@@ -11,21 +11,21 @@ template <typename T> class Writer;
 
 
 template<>
-void Visitor<Reader<DataStream>>::readFrom(const MinuitSpecificSettings& n)
+void Visitor<Reader<DataStream>>::readFrom(const Ossia::MinuitSpecificSettings& n)
 {
     m_stream << n.host <<  n.inputPort << n.outputPort;
     insertDelimiter();
 }
 
 template<>
-void Visitor<Writer<DataStream>>::writeTo(MinuitSpecificSettings& n)
+void Visitor<Writer<DataStream>>::writeTo(Ossia::MinuitSpecificSettings& n)
 {
     m_stream >> n.host >> n.inputPort >> n.outputPort;
     checkDelimiter();
 }
 
 template<>
-void Visitor<Reader<JSONObject>>::readFrom(const MinuitSpecificSettings& n)
+void Visitor<Reader<JSONObject>>::readFrom(const Ossia::MinuitSpecificSettings& n)
 {
     m_obj["InPort"] = n.inputPort;
     m_obj["OutPort"] = n.outputPort;
@@ -33,7 +33,7 @@ void Visitor<Reader<JSONObject>>::readFrom(const MinuitSpecificSettings& n)
 }
 
 template<>
-void Visitor<Writer<JSONObject>>::writeTo(MinuitSpecificSettings& n)
+void Visitor<Writer<JSONObject>>::writeTo(Ossia::MinuitSpecificSettings& n)
 {
     n.inputPort = m_obj["InPort"].toInt();
     n.outputPort = m_obj["OutPort"].toInt();
