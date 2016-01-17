@@ -9,6 +9,8 @@
 #include "GroupWidget.hpp"
 #include <iscore/tools/SettableIdentifier.hpp>
 
+namespace Network
+{
 GroupListWidget::GroupListWidget(const GroupManager* mgr, QWidget* parent):
     QWidget{parent},
     m_mgr{mgr}
@@ -42,4 +44,5 @@ void GroupListWidget::removeGroup(const Id<Group>& id)
 
     m_widgets.removeOne(*it);
     delete *it;
+}
 }

@@ -4,6 +4,8 @@
 #include <iscore/serialization/DataStreamVisitor.hpp>
 #include <iscore/serialization/JSONVisitor.hpp>
 
+namespace Network
+{
 class Client : public IdentifiedObject<Client>
 {
         Q_OBJECT
@@ -46,4 +48,4 @@ class Client : public IdentifiedObject<Client>
     private:
         QString m_name;
 };
-
+}

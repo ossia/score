@@ -8,6 +8,10 @@
 #include <iscore/tools/ObjectPath.hpp>
 
 
+namespace Network
+{
+namespace Command
+{
 AddClientToGroup::AddClientToGroup(ObjectPath&& groupMgrPath,
                                    Id<Client> client,
                                    Id<Group> group):
@@ -35,4 +39,6 @@ void AddClientToGroup::serializeImpl(DataStreamInput& s) const
 void AddClientToGroup::deserializeImpl(DataStreamOutput& s)
 {
     s >> m_path >> m_client >> m_group;
+}
+}
 }

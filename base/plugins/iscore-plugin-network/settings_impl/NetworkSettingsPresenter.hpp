@@ -4,17 +4,20 @@
 
 #include <QString>
 
-class ClientNameChangedCommand;
-class ClientPortChangedCommand;
-class MasterPortChangedCommand;
-class NetworkSettingsModel;
-class NetworkSettingsView;
 namespace iscore {
 class Command;
 class SettingsDelegateModelInterface;
 class SettingsDelegateViewInterface;
 class SettingsPresenter;
 }  // namespace iscore
+
+namespace Network
+{
+class ClientNameChangedCommand;
+class ClientPortChangedCommand;
+class MasterPortChangedCommand;
+class NetworkSettingsModel;
+class NetworkSettingsView;
 
 class NetworkSettingsPresenter : public iscore::SettingsDelegatePresenterInterface
 {
@@ -53,3 +56,4 @@ class NetworkSettingsPresenter : public iscore::SettingsDelegatePresenterInterfa
         iscore::Command* m_clientportCommand {nullptr};
         iscore::Command* m_clientnameCommand {nullptr};
 };
+}

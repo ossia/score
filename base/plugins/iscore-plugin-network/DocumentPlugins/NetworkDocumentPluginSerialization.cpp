@@ -10,7 +10,8 @@ template <typename T> class Writer;
 
 
 template<>
-void Visitor<Reader<DataStream>>::readFrom(const NetworkDocumentPlugin& elt)
+void Visitor<Reader<DataStream>>::readFrom(
+        const Network::NetworkDocumentPlugin& elt)
 {
     readFrom(*elt.groupManager());
     readFrom(*elt.policy());
@@ -20,16 +21,18 @@ void Visitor<Reader<DataStream>>::readFrom(const NetworkDocumentPlugin& elt)
 }
 
 template<>
-void Visitor<Writer<DataStream>>::writeTo(NetworkDocumentPlugin& elt)
+void Visitor<Writer<DataStream>>::writeTo(
+        Network::NetworkDocumentPlugin& elt)
 {
-    elt.m_groups = new GroupManager{*this, &elt};
-    elt.m_policy = new PlaceholderNetworkPolicy{*this, &elt};
+    elt.m_groups = new Network::GroupManager{*this, &elt};
+    elt.m_policy = new Network::PlaceholderNetworkPolicy{*this, &elt};
 
     checkDelimiter();
 }
 
 template<>
-void Visitor<Reader<JSONObject>>::readFrom(const NetworkDocumentPlugin& elt)
+void Visitor<Reader<JSONObject>>::readFrom(
+        const Network::NetworkDocumentPlugin& elt)
 {
     readFrom(*elt.groupManager());
     readFrom(*elt.policy());
@@ -37,8 +40,9 @@ void Visitor<Reader<JSONObject>>::readFrom(const NetworkDocumentPlugin& elt)
 
 
 template<>
-void Visitor<Writer<JSONObject>>::writeTo(NetworkDocumentPlugin& elt)
+void Visitor<Writer<JSONObject>>::writeTo(
+        Network::NetworkDocumentPlugin& elt)
 {
-    elt.m_groups = new GroupManager{*this, &elt};
-    elt.m_policy = new PlaceholderNetworkPolicy{*this, &elt};
+    elt.m_groups = new Network::GroupManager{*this, &elt};
+    elt.m_policy = new Network::PlaceholderNetworkPolicy{*this, &elt};
 }

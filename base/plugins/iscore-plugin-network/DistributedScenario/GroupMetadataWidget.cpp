@@ -20,8 +20,10 @@
 #include <iscore/document/DocumentContext.hpp>
 
 
-Q_DECLARE_METATYPE(Id<Group>)
+Q_DECLARE_METATYPE(Id<Network::Group>)
 
+namespace Network
+{
 GroupMetadataWidget::GroupMetadataWidget(
         const GroupMetadata& groupmetadata,
         const GroupManager* mgr,
@@ -65,7 +67,7 @@ void GroupMetadataWidget::on_indexChanged(int)
     {
         CommandDispatcher<> dispatcher{iscore::IDocument::documentContext(*m_groups).commandStack};
         dispatcher.submitCommand(
-                    new ChangeGroup{
+                    new Command::ChangeGroup{
                         iscore::IDocument::unsafe_path(m_object.element()),
                                                 data});
     }
@@ -91,4 +93,5 @@ void GroupMetadataWidget::updateLabel(const Id<Group>& currentGroup)
             this, &GroupMetadataWidget::on_indexChanged);
 
     this->layout()->addWidget(m_combo);
+}
 }

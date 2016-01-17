@@ -3,13 +3,8 @@
 
 #include "Session.hpp"
 
-class Client;
-class LocalClient;
 class QObject;
 class QTcpSocket;
-class RemoteClient;
-class RemoteClientBuilder;
-struct NetworkMessage;
 #include <iscore/tools/SettableIdentifier.hpp>
 
 namespace iscore {
@@ -23,6 +18,14 @@ namespace KDNSSD
 }
 #endif
 
+
+namespace Network
+{
+class Client;
+class LocalClient;
+class RemoteClient;
+class RemoteClientBuilder;
+struct NetworkMessage;
 class MasterSession : public Session
 {
            Q_OBJECT
@@ -51,3 +54,5 @@ class MasterSession : public Session
 #endif
 
 };
+
+}

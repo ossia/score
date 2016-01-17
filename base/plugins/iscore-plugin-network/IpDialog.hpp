@@ -2,10 +2,12 @@
 #include <QDialog>
 #include <QString>
 
-class IpWidget;
 class QSpinBox;
 class QWidget;
 
+namespace Network
+{
+class IpWidget;
 class IpDialog : public QDialog
 {
     public:
@@ -24,3 +26,4 @@ class IpDialog : public QDialog
         int m_port{};
         QString m_ip;
 };
+}

@@ -4,6 +4,8 @@
 
 #include "GroupTableCheckbox.hpp"
 
+namespace Network
+{
 GroupTableCheckbox::GroupTableCheckbox()
 {
     m_cb = new QCheckBox;
@@ -26,4 +28,5 @@ void GroupTableCheckbox::setState(int state)
     {
         m_cb->setCheckState(Qt::CheckState(state));
     }
+}
 }

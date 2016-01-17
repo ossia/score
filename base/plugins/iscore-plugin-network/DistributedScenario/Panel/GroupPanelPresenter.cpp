@@ -9,6 +9,8 @@ class PanelView;
 
 }  // namespace iscore
 
+namespace Network
+{
 GroupPanelPresenter::GroupPanelPresenter(
         iscore::PanelView* view,
         QObject* parent):
@@ -47,4 +49,5 @@ void GroupPanelPresenter::on_update()
     {
         gview->setEmptyView();
     }
+}
 }

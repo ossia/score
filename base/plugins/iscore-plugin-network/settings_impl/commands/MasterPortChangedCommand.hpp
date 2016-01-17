@@ -2,7 +2,8 @@
 
 #include <iscore/command/Command.hpp>
 #include <QApplication>
-
+namespace Network
+{
 class MasterPortChangedCommand : public iscore::Command
 {
         // QUndoCommand interface
@@ -45,3 +46,4 @@ class MasterPortChangedCommand : public iscore::Command
         int m_oldval;
         int m_newval;
 };
+}

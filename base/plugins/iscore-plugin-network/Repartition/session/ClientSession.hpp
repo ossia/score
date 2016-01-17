@@ -1,11 +1,13 @@
 #pragma once
 #include "Session.hpp"
 
-class LocalClient;
 class QObject;
-class RemoteClient;
 #include <iscore/tools/SettableIdentifier.hpp>
 
+namespace Network
+{
+class LocalClient;
+class RemoteClient;
 class ClientSession : public Session
 {
     public:
@@ -23,4 +25,4 @@ class ClientSession : public Session
     private:
         RemoteClient* m_master{};
 };
-
+}

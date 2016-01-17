@@ -8,7 +8,8 @@ class SettingsPresenter;
 }  // namespace iscore
 
 using namespace iscore;
-
+namespace Network
+{
 NetworkSettings::NetworkSettings()
 {
 }
@@ -35,4 +36,5 @@ SettingsDelegatePresenterInterface* NetworkSettings::makePresenter(SettingsPrese
 SettingsDelegateModelInterface* NetworkSettings::makeModel()
 {
     return new NetworkSettingsModel();
+}
 }

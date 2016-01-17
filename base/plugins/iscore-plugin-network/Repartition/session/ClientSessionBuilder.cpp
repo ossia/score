@@ -19,6 +19,8 @@
 #include "DocumentPlugins/NetworkDocumentPlugin.hpp"
 #include "DocumentPlugins/NetworkClientDocumentPlugin.hpp"
 
+namespace Network
+{
 ClientSessionBuilder::ClientSessionBuilder(
         const iscore::ApplicationContext& ctx,
         QString ip,
@@ -122,4 +124,5 @@ void ClientSessionBuilder::on_messageReceived(const NetworkMessage& m)
 
         emit sessionReady();
     }
+}
 }

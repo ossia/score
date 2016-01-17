@@ -1,7 +1,13 @@
 #include "DistributedScenarioCommandFactory.hpp"
 #include <iscore/command/SerializableCommand.hpp>
 
-const CommandParentFactoryKey&DistributedScenarioCommandFactoryName() {
+namespace Network
+{
+namespace Command
+{
+const CommandParentFactoryKey& DistributedScenarioCommandFactoryName() {
     static const CommandParentFactoryKey key{"DistributedScenario"};
     return key;
+}
+}
 }

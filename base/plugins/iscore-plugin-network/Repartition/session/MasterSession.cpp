@@ -15,10 +15,13 @@
 #include "session/RemoteClientBuilder.hpp"
 #include "session/Session.hpp"
 
-class Client;
 class QObject;
 class QTcpSocket;
 
+
+namespace Network
+{
+class Client;
 MasterSession::MasterSession(iscore::Document* doc, LocalClient* theclient, Id<Session> id, QObject* parent):
     Session{theclient, id, parent},
     m_document{doc}
@@ -68,4 +71,5 @@ void MasterSession::on_clientReady(RemoteClientBuilder* bldr, RemoteClient* clt)
             this, &Session::validateMessage, Qt::QueuedConnection);
 
     addClient(clt);
+}
 }

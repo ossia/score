@@ -1,12 +1,15 @@
 #pragma once
 #include <QWidget>
 
-class Group;
-class GroupManager;
-class GroupMetadata;
 class QComboBox;
 #include <iscore/tools/SettableIdentifier.hpp>
 
+
+namespace Network
+{
+class Group;
+class GroupManager;
+class GroupMetadata;
 class GroupMetadataWidget : public QWidget
 {
         Q_OBJECT
@@ -28,3 +31,4 @@ class GroupMetadataWidget : public QWidget
         const GroupManager* m_groups{};
         QComboBox* m_combo{};
 };
+}

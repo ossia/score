@@ -5,12 +5,15 @@
 
 #include <iscore/tools/SettableIdentifier.hpp>
 
+class QTcpSocket;
+
+namespace Network
+{
+class RemoteClient;
+struct NetworkMessage;
 class Client;
 class MasterSession;
 class NetworkSocket;
-class QTcpSocket;
-class RemoteClient;
-struct NetworkMessage;
 
 class RemoteClientBuilder : public QObject
 {
@@ -33,3 +36,4 @@ class RemoteClientBuilder : public QObject
         Id<Client> m_clientId;
         QString m_clientName;
 };
+}

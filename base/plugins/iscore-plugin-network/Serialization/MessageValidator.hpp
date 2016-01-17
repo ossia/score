@@ -1,4 +1,7 @@
 #pragma once
+
+namespace Network
+{
 class MessageMapper;
 class Session;
 struct NetworkMessage;
@@ -14,3 +17,4 @@ class MessageValidator
         Session& m_session;
         MessageMapper& m_mapper;
 };
+}

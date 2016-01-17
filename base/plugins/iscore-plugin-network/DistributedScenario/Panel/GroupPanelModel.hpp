@@ -4,6 +4,9 @@ namespace iscore {
 class DocumentModel;
 struct DocumentContext;
 }
+
+namespace Network
+{
 class GroupManager;
 class Session;
 class GroupPanelModel : public iscore::PanelModel
@@ -28,3 +31,4 @@ class GroupPanelModel : public iscore::PanelModel
         GroupManager* m_currentManager{};
         Session* m_currentSession{};
 };
+}

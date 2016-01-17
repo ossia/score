@@ -9,8 +9,13 @@
 
 class DataStreamInput;
 class DataStreamOutput;
+
+namespace Network
+{
 class Group;
 
+namespace Command
+{
 class CreateGroup : public iscore::SerializableCommand
 {
         ISCORE_COMMAND_DECL(DistributedScenarioCommandFactoryName(), CreateGroup, "CreateGroup")
@@ -28,3 +33,5 @@ class CreateGroup : public iscore::SerializableCommand
         QString m_name;
         Id<Group> m_newGroupId;
 };
+}
+}

@@ -8,6 +8,8 @@
 
 class QObject;
 
+namespace Network
+{
 GroupManager::GroupManager(QObject* parent):
     IdentifiedObject<GroupManager>{Id<GroupManager>{0}, "GroupManager", parent}
 {
@@ -45,4 +47,5 @@ Id<Group> GroupManager::defaultGroup() const
 const std::vector<Group*>& GroupManager::groups() const
 {
     return m_groups;
+}
 }

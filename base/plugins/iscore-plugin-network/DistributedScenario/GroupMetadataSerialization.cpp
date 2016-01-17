@@ -10,21 +10,22 @@
 #include <iscore/serialization/JSONVisitor.hpp>
 #include <iscore/tools/SettableIdentifier.hpp>
 
-class Group;
 template <typename T> class Reader;
 template <typename T> class Writer;
 
 template<>
-void Visitor<Reader<DataStream>>::readFrom(const GroupMetadata& elt)
+void Visitor<Reader<DataStream>>::readFrom(
+        const Network::GroupMetadata& elt)
 {
     readFrom(elt.group());
     insertDelimiter();
 }
 
 template<>
-void Visitor<Writer<DataStream>>::writeTo(GroupMetadata& elt)
+void Visitor<Writer<DataStream>>::writeTo(
+        Network::GroupMetadata& elt)
 {
-    Id<Group> id;
+    Id<Network::Group> id;
     m_stream >> id;
     elt.setGroup(id);
 
@@ -33,13 +34,15 @@ void Visitor<Writer<DataStream>>::writeTo(GroupMetadata& elt)
 
 
 template<>
-void Visitor<Reader<JSONObject>>::readFrom(const GroupMetadata& elt)
+void Visitor<Reader<JSONObject>>::readFrom(
+        const Network::GroupMetadata& elt)
 {
     m_obj["Group"] = toJsonValue(elt.group());
 }
 
 template<>
-void Visitor<Writer<JSONObject>>::writeTo(GroupMetadata& elt)
+void Visitor<Writer<JSONObject>>::writeTo(
+        Network::GroupMetadata& elt)
 {
-    elt.setGroup(fromJsonValue<Id<Group>>(m_obj["Group"]));
+    elt.setGroup(fromJsonValue<Id<Network::Group>>(m_obj["Group"]));
 }

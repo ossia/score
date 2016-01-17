@@ -17,9 +17,10 @@ template <typename model> class IdentifiedObject;
 
 
 template<>
-void Visitor<Reader<DataStream>>::readFrom(const GroupManager& elt)
+void Visitor<Reader<DataStream>>::readFrom(
+        const Network::GroupManager& elt)
 {
-    readFrom(static_cast<const IdentifiedObject<GroupManager>&>(elt));
+    readFrom(static_cast<const IdentifiedObject<Network::GroupManager>&>(elt));
     const auto& groups = elt.groups();
     m_stream << (int32_t) groups.size();
     for(const auto& group : groups)
@@ -31,33 +32,36 @@ void Visitor<Reader<DataStream>>::readFrom(const GroupManager& elt)
 }
 
 template<>
-void Visitor<Writer<DataStream>>::writeTo(GroupManager& elt)
+void Visitor<Writer<DataStream>>::writeTo(
+        Network::GroupManager& elt)
 {
     int32_t size;
     m_stream >> size;
     for(auto i = size; i --> 0; )
     {
-        elt.addGroup(new Group{*this, &elt});
+        elt.addGroup(new Network::Group{*this, &elt});
     }
     checkDelimiter();
 }
 
 
 template<>
-void Visitor<Reader<JSONObject>>::readFrom(const GroupManager& elt)
+void Visitor<Reader<JSONObject>>::readFrom(
+        const Network::GroupManager& elt)
 {
-    readFrom(static_cast<const IdentifiedObject<GroupManager>&>(elt));
+    readFrom(static_cast<const IdentifiedObject<Network::GroupManager>&>(elt));
     m_obj["GroupList"] = toJsonArray(elt.groups());
 }
 
 
 template<>
-void Visitor<Writer<JSONObject>>::writeTo(GroupManager& elt)
+void Visitor<Writer<JSONObject>>::writeTo(
+        Network::GroupManager& elt)
 {
     auto arr = m_obj["GroupList"].toArray();
     for(const auto& json_vref : arr)
     {
         Deserializer<JSONObject> deserializer {json_vref.toObject()};
-        elt.addGroup(new Group{deserializer, &elt});
+        elt.addGroup(new Network::Group{deserializer, &elt});
     }
 }

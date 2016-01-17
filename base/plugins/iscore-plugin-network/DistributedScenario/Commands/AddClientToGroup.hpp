@@ -6,11 +6,15 @@
 
 #include <iscore/tools/SettableIdentifier.hpp>
 
-class Client;
 class DataStreamInput;
 class DataStreamOutput;
-class Group;
 
+namespace Network
+{
+class Client;
+class Group;
+namespace Command
+{
 class AddClientToGroup : public iscore::SerializableCommand
 {
         ISCORE_COMMAND_DECL(DistributedScenarioCommandFactoryName(), AddClientToGroup, "AddClientToGroup")
@@ -30,3 +34,5 @@ class AddClientToGroup : public iscore::SerializableCommand
         Id<Client> m_client;
         Id<Group> m_group;
 };
+}
+}

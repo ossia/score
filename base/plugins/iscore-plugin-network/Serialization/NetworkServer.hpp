@@ -4,6 +4,8 @@
 class QTcpServer;
 class QTcpSocket;
 
+namespace Network
+{
 class NetworkServer : public QObject
 {
         Q_OBJECT
@@ -17,4 +19,5 @@ class NetworkServer : public QObject
     private:
         QTcpServer* m_tcpServer{};
 };
+}
 

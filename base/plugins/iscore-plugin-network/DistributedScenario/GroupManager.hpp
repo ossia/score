@@ -3,9 +3,11 @@
 #include <vector>
 
 #include <iscore/tools/SettableIdentifier.hpp>
-
-class Group;
 class QObject;
+
+namespace Network
+{
+class Group;
 
 class GroupManager : public IdentifiedObject<GroupManager>
 {
@@ -34,3 +36,4 @@ class GroupManager : public IdentifiedObject<GroupManager>
     private:
         std::vector<Group*> m_groups;
 };
+}

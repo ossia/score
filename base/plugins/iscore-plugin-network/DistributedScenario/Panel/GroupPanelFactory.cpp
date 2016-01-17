@@ -12,6 +12,8 @@ class DocumentModel;
 }  // namespace iscore
 // TODO review if it is really useful to make the panel view with iscore::View
 
+namespace Network
+{
 int GroupPanelFactory::panelId() const
 {
     return GROUP_PANEL_ID;
@@ -43,4 +45,5 @@ iscore::PanelModel* GroupPanelFactory::makeModel(
 {
     return new GroupPanelModel{
         ctx, parent};
+}
 }

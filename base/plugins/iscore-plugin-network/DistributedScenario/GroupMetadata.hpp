@@ -7,8 +7,11 @@
 #include <iscore/plugins/documentdelegate/plugin/ElementPluginModel.hpp>
 #include <iscore/tools/SettableIdentifier.hpp>
 
-class Group;
 struct VisitorVariant;
+
+namespace Network
+{
+class Group;
 
 // Goes into the constraints, events, etc.
 class GroupMetadata : public iscore::ElementPluginModel
@@ -58,3 +61,4 @@ class GroupMetadata : public iscore::ElementPluginModel
         const QObject* const m_element;
         Id<Group> m_id;
 };
+}

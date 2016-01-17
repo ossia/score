@@ -12,7 +12,6 @@
 
 #include <iscore/tools/IdentifiedObject.hpp>
 
-class CommentEdit;
 class ModelMetadata;
 class QLabel;
 class QLineEdit;
@@ -22,6 +21,9 @@ class QToolButton;
 
 namespace Scenario
 {
+
+class CommentEdit;
+
 // TODO move me in Process
 class MetadataWidget final : public QWidget
 {

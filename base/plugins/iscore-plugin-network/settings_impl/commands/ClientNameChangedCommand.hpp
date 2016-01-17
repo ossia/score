@@ -2,7 +2,8 @@
 
 #include <iscore/command/Command.hpp>
 #include <QApplication>
-
+namespace Network
+{
 class ClientNameChangedCommand : public iscore::Command
 {
         // QUndoCommand interface
@@ -44,3 +45,4 @@ class ClientNameChangedCommand : public iscore::Command
         QString m_oldval;
         QString m_newval;
 };
+}

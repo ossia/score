@@ -6,9 +6,11 @@
 #include "session/../client/RemoteClient.hpp"
 #include "session/Session.hpp"
 
-class LocalClient;
 class QObject;
 
+namespace Network
+{
+class LocalClient;
 ClientSession::ClientSession(RemoteClient* master,
                              LocalClient* client,
                              Id<Session> id,
@@ -19,4 +21,5 @@ ClientSession::ClientSession(RemoteClient* master,
     addClient(master);
     connect(master, &RemoteClient::messageReceived,
             this, &Session::validateMessage, Qt::QueuedConnection);
+}
 }

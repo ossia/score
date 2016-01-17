@@ -3,6 +3,9 @@
 #include <iscore/tools/SettableIdentifier.hpp>
 #include <QTableWidget>
 
+
+namespace Network
+{
 class Client;
 
 class SessionHeaderItem : public QTableWidgetItem
@@ -12,3 +15,4 @@ class SessionHeaderItem : public QTableWidgetItem
 
         const Id<Client> client;
 };
+}

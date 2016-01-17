@@ -2,6 +2,8 @@
 #include "Client.hpp"
 #include <Serialization/NetworkServer.hpp>
 // Has a TCP server to receive incoming connections from other clients.
+namespace Network
+{
 class LocalClient : public Client
 {
         Q_OBJECT
@@ -33,3 +35,4 @@ class LocalClient : public Client
     private:
         NetworkServer* m_server{};
 };
+}

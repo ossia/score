@@ -15,8 +15,13 @@
 #include <iscore/serialization/DataStreamVisitor.hpp>
 #include <iscore/tools/ObjectPath.hpp>
 
+
+namespace Network
+{
 class Group;
 
+namespace Command
+{
 GroupMetadata* getGroupMetadata(QObject* obj)
 {
     using namespace boost::range;
@@ -68,4 +73,6 @@ void ChangeGroup::serializeImpl(DataStreamInput &s) const
 void ChangeGroup::deserializeImpl(DataStreamOutput &s)
 {
     s >> m_path >> m_newGroup >> m_oldGroup;
+}
+}
 }

@@ -3,13 +3,15 @@
 #include <iscore/tools/ObjectPath.hpp>
 #include <QWidget>
 
+class QTableWidget;
+#include <iscore/tools/SettableIdentifier.hpp>
+
+namespace Network
+{
+class Session;
 class Client;
 class GroupManager;
 class GroupTableCheckbox;
-class QTableWidget;
-class Session;
-#include <iscore/tools/SettableIdentifier.hpp>
-
 class GroupTableWidget : public QWidget
 {
     public:
@@ -29,3 +31,4 @@ class GroupTableWidget : public QWidget
         ObjectPath m_managerPath;
         CommandDispatcher<> m_dispatcher;
 };
+}

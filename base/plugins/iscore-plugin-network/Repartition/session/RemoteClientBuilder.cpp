@@ -19,6 +19,9 @@
 #include "session/../client/LocalClient.hpp"
 #include "session/../client/RemoteClient.hpp"
 
+
+namespace Network
+{
 class Client;
 
 RemoteClientBuilder::RemoteClientBuilder(MasterSession& session, QTcpSocket* sock):
@@ -70,4 +73,5 @@ void RemoteClientBuilder::on_messageReceived(const NetworkMessage& m)
         m_remoteClient->setName(m_clientName);
         emit clientReady(this, m_remoteClient);
     }
+}
 }

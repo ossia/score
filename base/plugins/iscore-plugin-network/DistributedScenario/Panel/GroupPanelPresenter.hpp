@@ -7,6 +7,9 @@ class PanelView;
 
 }  // namespace iscore
 
+
+namespace Network
+{
 class GroupPanelPresenter : public iscore::PanelPresenter
 {
     public:
@@ -22,3 +25,4 @@ class GroupPanelPresenter : public iscore::PanelPresenter
     private:
         void on_update();
 };
+}

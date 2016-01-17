@@ -7,7 +7,8 @@
 
 #include "NetworkSocket.hpp"
 #include "Serialization/NetworkMessage.hpp"
-
+namespace Network
+{
 NetworkSocket::NetworkSocket(QTcpSocket* sock,
                              QObject* parent):
     QObject{parent},
@@ -52,4 +53,5 @@ void NetworkSocket::init()
 
         emit messageReceived(m);
     });
+}
 }

@@ -15,6 +15,8 @@
 class QObject;
 class QWidget;
 
+namespace Network
+{
 IpWidget::IpWidget(QWidget *parent) : QFrame(parent)
 {
     setFrameShape( QFrame::StyledPanel );
@@ -178,4 +180,5 @@ void IpWidget::MovePrevLineEdit(int i)
         lineEdits[i-1]->setCursorPosition( lineEdits[i-1]->text().size() );
         //m_pLineEdit[i-1]->selectAll();
     }
+}
 }

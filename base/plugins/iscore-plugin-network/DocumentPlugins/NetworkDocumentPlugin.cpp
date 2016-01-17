@@ -25,6 +25,8 @@
 class QWidget;
 struct VisitorVariant;
 
+namespace Network
+{
 
 // TODO refactor me
 class ScenarioFindConstraintVisitor
@@ -86,7 +88,7 @@ class ScenarioFindEventVisitor
 };
 
 NetworkDocumentPlugin::NetworkDocumentPlugin(
-        iscore_plugin_networkPolicy *policy,
+        NetworkPolicyInterface *policy,
         iscore::Document& doc):
     iscore::DocumentPluginModel{doc, "NetworkDocumentPlugin", &doc.model()},
     m_policy{policy},
@@ -151,7 +153,7 @@ void NetworkDocumentPlugin::serialize(const VisitorVariant & vis) const
     serialize_dyn(vis, *this);
 }
 
-void NetworkDocumentPlugin::setPolicy(iscore_plugin_networkPolicy * pol)
+void NetworkDocumentPlugin::setPolicy(NetworkPolicyInterface * pol)
 {
     delete m_policy;
     m_policy = pol;
@@ -246,5 +248,6 @@ QWidget *NetworkDocumentPlugin::makeElementPluginWidget(
 {
     return new GroupMetadataWidget{
                 static_cast<const GroupMetadata&>(*var), m_groups, widg};
+}
 }
 

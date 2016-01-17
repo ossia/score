@@ -2,14 +2,16 @@
 #include "NetworkDocumentPlugin.hpp"
 
 class QObject;
-class Session;
 
-class PlaceholderNetworkPolicy : public iscore_plugin_networkPolicy
+namespace Network
+{
+class Session;
+class PlaceholderNetworkPolicy : public NetworkPolicyInterface
 {
     public:
         template<typename Deserializer>
         PlaceholderNetworkPolicy(Deserializer&& vis, QObject* parent) :
-            iscore_plugin_networkPolicy{parent}
+            NetworkPolicyInterface{parent}
         {
             vis.writeTo(*this);
         }
@@ -19,3 +21,4 @@ class PlaceholderNetworkPolicy : public iscore_plugin_networkPolicy
 
         Session* m_session{};
 };
+}

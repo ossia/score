@@ -11,10 +11,13 @@
 #include <iscore/tools/IdentifiedObject.hpp>
 #include <iscore/tools/SettableIdentifier.hpp>
 
-class MessageMapper;
-class MessageValidator;
 class QObject;
 
+
+namespace Network
+{
+class MessageMapper;
+class MessageValidator;
 class Session : public IdentifiedObject<Session>
 {
         Q_OBJECT
@@ -95,3 +98,4 @@ class Session : public IdentifiedObject<Session>
         MessageValidator* m_validator{};
         QList<RemoteClient*> m_remoteClients;
 };
+}

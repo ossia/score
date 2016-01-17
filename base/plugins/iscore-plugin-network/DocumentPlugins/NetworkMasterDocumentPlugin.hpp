@@ -7,10 +7,10 @@ namespace iscore {
 struct DocumentContext;
 }  // namespace iscore
 
-namespace iscore
+namespace Network
 {
-}
-class MasterNetworkPolicy : public iscore_plugin_networkPolicy
+
+class MasterNetworkPolicy : public NetworkPolicyInterface
 {
     public:
         MasterNetworkPolicy(MasterSession* s,
@@ -22,3 +22,4 @@ class MasterNetworkPolicy : public iscore_plugin_networkPolicy
     private:
         MasterSession* m_session{};
 };
+}
