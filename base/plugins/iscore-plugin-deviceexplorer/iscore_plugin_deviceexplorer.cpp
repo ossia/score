@@ -26,7 +26,7 @@ iscore::PanelFactory_QtInterface {}
 
 std::vector<PanelFactory*> iscore_plugin_deviceexplorer::panels()
 {
-    return {new DeviceExplorerPanelFactory};
+    return {new DeviceExplorer::DeviceExplorerPanelFactory};
 }
 
 
@@ -40,7 +40,7 @@ std::vector<std::unique_ptr<iscore::FactoryListInterface>> iscore_plugin_devicee
 GUIApplicationContextPlugin *iscore_plugin_deviceexplorer::make_applicationPlugin(
         const iscore::ApplicationContext& app)
 {
-    return new DeviceExplorerApplicationPlugin{app};
+    return new DeviceExplorer::DeviceExplorerApplicationPlugin{app};
 }
 
 

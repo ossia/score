@@ -127,7 +127,7 @@ void RecordManager::recordInNewBox(Scenario::ScenarioModel& scenar, Scenario::Po
     //// Device tree management ////
 
     // Get all the selected nodes
-    m_explorer = &deviceExplorerFromContext(doc);
+    m_explorer = &DeviceExplorer::deviceExplorerFromContext(doc);
     auto indices = m_explorer->selectedIndexes(); // TODO maybe filterUniqueParents and then recurse on the listening ??
 
     // Disable listening for everything

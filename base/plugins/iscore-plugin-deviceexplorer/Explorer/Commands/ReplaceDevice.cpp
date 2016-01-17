@@ -12,8 +12,11 @@
 #include <iscore/tools/ModelPathSerialization.hpp>
 #include <iscore/tools/TreeNode.hpp>
 
-using namespace DeviceExplorer::Command;
-using namespace iscore;
+
+namespace DeviceExplorer
+{
+namespace Command
+{
 // TODO fix this to use NodeUpdateProxy. Maybe it should be a Remove() followed by
 // a LoadDevice() ?
 ReplaceDevice::ReplaceDevice(Path<DeviceExplorerModel>&& device_tree,
@@ -61,4 +64,6 @@ void ReplaceDevice::serializeImpl(DataStreamInput& d) const
 void ReplaceDevice::deserializeImpl(DataStreamOutput& d)
 {
     d >> m_deviceTree >> m_deviceIndex >> m_deviceNode >> m_savedNode;
+}
+}
 }

@@ -10,10 +10,12 @@
 #include <iscore/serialization/DataStreamVisitor.hpp>
 #include <iscore/tools/ModelPath.hpp>
 
+
+namespace DeviceExplorer
+{
 class DeviceDocumentPlugin;
-
-using namespace DeviceExplorer::Command;
-
+namespace Command
+{
 Remove::Remove(Path<DeviceDocumentPlugin> device_tree, Device::NodePath&& path):
     m_device{false},
     m_cmd{new RemoveAddress{
@@ -69,4 +71,6 @@ void Remove::deserializeImpl(DataStreamOutput& d)
     }
 
     m_cmd->deserialize(cmd_data);
+}
+}
 }

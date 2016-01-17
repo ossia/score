@@ -6,13 +6,13 @@
 
 #include <Device/Protocol/DeviceSettings.hpp>
 
-class DynamicProtocolList;
-class ProtocolSettingsWidget;
 class QComboBox;
 class QGridLayout;
 class QWidget;
-
-
+class DynamicProtocolList;
+class ProtocolSettingsWidget;
+namespace DeviceExplorer
+{
 class DeviceEditDialog final : public QDialog
 {
         Q_OBJECT
@@ -54,4 +54,5 @@ class DeviceEditDialog final : public QDialog
 
         bool m_invalidState{false};
 };
+}
 

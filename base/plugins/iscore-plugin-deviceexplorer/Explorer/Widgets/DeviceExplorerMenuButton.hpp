@@ -1,11 +1,15 @@
 #pragma once
 #include <QWidget>
 
-class DeviceExplorerModel;
 
 namespace State{
 struct Address;
 }
+
+
+namespace DeviceExplorer
+{
+class DeviceExplorerModel;
 class DeviceExplorerMenuButton final : public QWidget
 {
         Q_OBJECT
@@ -15,3 +19,4 @@ class DeviceExplorerMenuButton final : public QWidget
     signals:
         void addressChosen(const State::Address&);
 };
+}

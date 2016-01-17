@@ -19,6 +19,8 @@
 #include <iscore/plugins/customfactory/FactoryMap.hpp>
 #include <iscore/plugins/customfactory/StringFactoryKey.hpp>
 
+namespace DeviceExplorer
+{
 DeviceEditDialog::DeviceEditDialog(
         const DynamicProtocolList& pl,
         QWidget* parent)
@@ -181,4 +183,5 @@ void DeviceEditDialog::setEditingInvalidState(bool st)
 
         m_invalidState = st;
     }
+}
 }

@@ -4,6 +4,10 @@
 #include <iscore_lib_device_export.h>
 
 class AddressLineEdit;
+
+
+namespace DeviceExplorer
+{
 class DeviceExplorerModel;
 
 /**
@@ -13,6 +17,7 @@ class DeviceExplorerModel;
  * A device explorer model is used for completion.
  *
  */
+
 class ISCORE_LIB_DEVICE_EXPORT AddressEditWidget final : public QWidget
 {
         Q_OBJECT
@@ -31,3 +36,4 @@ class ISCORE_LIB_DEVICE_EXPORT AddressEditWidget final : public QWidget
         AddressLineEdit* m_lineEdit{};
         State::Address m_address;
 };
+}

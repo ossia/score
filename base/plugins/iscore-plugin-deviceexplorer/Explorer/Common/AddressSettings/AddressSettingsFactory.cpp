@@ -12,6 +12,8 @@
 #include "Widgets/AddressTupleSettingsWidget.hpp"
 
 
+namespace DeviceExplorer
+{
 using AddressIntSettingsWidget = AddressNumericSettingsWidget<int>;
 using AddressFloatSettingsWidget = AddressNumericSettingsWidget<float>;
 
@@ -78,4 +80,5 @@ AddressSettingsFactory::getValueTypeWidget(const QString& valueType) const
 AddressSettingsWidgetFactoryMethod::~AddressSettingsWidgetFactoryMethod()
 {
 
+}
 }

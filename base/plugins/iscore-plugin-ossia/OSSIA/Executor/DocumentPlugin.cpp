@@ -21,7 +21,7 @@ DocumentPlugin::DocumentPlugin(
     iscore::DocumentPluginModel{doc, "OSSIADocumentPlugin", parent},
     m_ctx{doc.context(),
           *this,
-          doc.context().plugin<DeviceDocumentPlugin>(),
+          doc.context().plugin<DeviceExplorer::DeviceDocumentPlugin>(),
           doc.context().app.components.factory<ProcessComponentFactoryList>()
           }
 {

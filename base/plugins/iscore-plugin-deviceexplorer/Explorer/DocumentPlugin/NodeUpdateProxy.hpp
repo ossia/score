@@ -5,8 +5,6 @@
 #include <State/Value.hpp>
 #include <iscore_plugin_deviceexplorer_export.h>
 
-class DeviceDocumentPlugin;
-class DeviceExplorerModel;
 namespace State {
 struct Address;
 }
@@ -16,6 +14,12 @@ namespace Device
 struct AddressSettings;
 struct DeviceSettings;
 }
+
+
+namespace DeviceExplorer
+{
+class DeviceDocumentPlugin;
+class DeviceExplorerModel;
 /**
  * @brief The NodeUpdateProxy class
  *
@@ -116,3 +120,4 @@ class ISCORE_PLUGIN_DEVICEEXPLORER_EXPORT NodeUpdateProxy
                 const Device::Node& node,
                 int row);
 };
+}

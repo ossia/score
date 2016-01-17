@@ -10,6 +10,8 @@ class Document;
 }  // namespace iscore
 struct VisitorVariant;
 
+namespace DeviceExplorer
+{
 class DeviceExplorerApplicationPlugin final : public iscore::GUIApplicationContextPlugin
 {
     public:
@@ -26,3 +28,4 @@ class DeviceExplorerApplicationPlugin final : public iscore::GUIApplicationConte
                 iscore::Document* olddoc,
                 iscore::Document* newdoc) override;
 };
+}

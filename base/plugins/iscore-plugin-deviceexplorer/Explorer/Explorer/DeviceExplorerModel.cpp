@@ -50,10 +50,10 @@
 #include <State/MessageListSerialization.hpp>
 #include <Device/Node/NodeListMimeSerialization.hpp>
 
-using namespace DeviceExplorer::Command;
-using namespace iscore;
+#include <Explorer/PanelBase/DeviceExplorerPanelModel.hpp>
 
-
+namespace DeviceExplorer
+{
 static const QMap<DeviceExplorerModel::Column, QString> HEADERS{
     {DeviceExplorerModel::Column::Name, QObject::tr("Address")},
     {DeviceExplorerModel::Column::Value, QObject::tr("Value")},
@@ -900,7 +900,7 @@ DeviceExplorerModel::dropMimeData(const QMimeData* mimeData,
             }
 
             // Perform the loading
-            auto cmd = new LoadDevice{
+            auto cmd = new Command::LoadDevice{
                        deviceModel(),
                        std::move(n)};
 
@@ -991,7 +991,6 @@ State::MessageList getSelectionSnapshot(DeviceExplorerModel& model)
 }
 
 
-#include <Explorer/PanelBase/DeviceExplorerPanelModel.hpp>
 
 DeviceExplorerModel* try_deviceExplorerFromObject(const QObject& obj)
 {
@@ -1021,4 +1020,5 @@ DeviceExplorerModel& deviceExplorerFromContext(const iscore::DocumentContext& ct
     auto expl = try_deviceExplorerFromContext(ctx);
     ISCORE_ASSERT(expl);
     return *expl;
+}
 }

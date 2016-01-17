@@ -11,6 +11,8 @@
 
 class QWidget;
 
+namespace DeviceExplorer
+{
 AddressBoolSettingsWidget::AddressBoolSettingsWidget(QWidget* parent)
     : AddressSettingsWidget(parent)
 {
@@ -35,4 +37,5 @@ void AddressBoolSettingsWidget::setSettings(const Device::AddressSettings& setti
 {
     setCommonSettings(settings);
     m_cb->setCurrentIndex(State::convert::value<bool>(settings.value));
+}
 }

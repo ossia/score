@@ -15,6 +15,8 @@
 #include <Device/Address/ClipMode.hpp>
 #include <Device/Address/IOType.hpp>
 
+namespace DeviceExplorer
+{
 AddressSettingsWidget::AddressSettingsWidget(QWidget *parent) :
     QWidget(parent),
     m_layout{new QFormLayout},
@@ -118,4 +120,5 @@ void AddressSettingsWidget::setCommonSettings(const Device::AddressSettings & se
         m_clipModeCBox->setCurrentIndex(clipModeIndex);
     }
     m_tagsEdit->addItems(settings.tags);
+}
 }

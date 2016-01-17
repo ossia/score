@@ -172,7 +172,7 @@ class CreationState : public CreationStateBase<Scenario_T>
                 }
             }
 
-            auto device_explorer = this->m_parentSM.context().template plugin<DeviceDocumentPlugin>().updateProxy.deviceExplorer;
+            auto device_explorer = this->m_parentSM.context().template plugin<DeviceExplorer::DeviceDocumentPlugin>().updateProxy.deviceExplorer;
 
             State::MessageList messages = getSelectionSnapshot(*device_explorer);
             if(messages.empty())

@@ -50,7 +50,7 @@ void InterpolateStates(const QList<const ConstraintModel*>& selected_constraints
     Scenario::ScenarioModel* scenar = dynamic_cast<Scenario::ScenarioModel*>(
                                 selected_constraints.first()->parent());
 
-    auto& devPlugin = iscore::IDocument::documentContext(*scenar).plugin<DeviceDocumentPlugin>();
+    auto& devPlugin = iscore::IDocument::documentContext(*scenar).plugin<DeviceExplorer::DeviceDocumentPlugin>();
     auto& rootNode = devPlugin.rootNode();
 
     auto big_macro = new Command::AddMultipleProcessesToMultipleConstraintsMacro;

@@ -10,6 +10,9 @@
 #include <QFormLayout>
 #include <State/ValueConversion.hpp>
 
+
+namespace DeviceExplorer
+{
 template<typename T>
 class AddressNumericSettingsWidget final : public AddressSettingsWidget
 {
@@ -57,4 +60,5 @@ class AddressNumericSettingsWidget final : public AddressSettingsWidget
         typename iscore::TemplatedSpinBox<T>::spinbox_type* m_minSBox;
         typename iscore::TemplatedSpinBox<T>::spinbox_type* m_maxSBox;
 };
+}
 

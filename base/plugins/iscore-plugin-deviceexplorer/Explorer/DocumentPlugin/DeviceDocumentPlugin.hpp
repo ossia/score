@@ -12,6 +12,8 @@ class Document;
 }  // namespace iscore
 struct VisitorVariant;
 
+namespace DeviceExplorer
+{
 class ISCORE_PLUGIN_DEVICEEXPLORER_EXPORT DeviceDocumentPlugin final : public iscore::DocumentPluginModel
 {
         Q_OBJECT
@@ -56,4 +58,4 @@ class ISCORE_PLUGIN_DEVICEEXPLORER_EXPORT DeviceDocumentPlugin final : public is
         Device::Node m_rootNode;
         DeviceList m_list;
 };
-
+}

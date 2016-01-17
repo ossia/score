@@ -26,7 +26,7 @@ ChangeSourceAddress::ChangeSourceAddress(
     m_path{path}
 {
     auto& mapping = m_path.find();
-    auto& deviceexplorer = deviceExplorerFromObject(mapping);
+    auto& deviceexplorer = DeviceExplorer::deviceExplorerFromObject(mapping);
 
     // Note : since we change the address, we also have to update the min / max if possible.
     // To do this, we must go and check into the device explorer.
@@ -96,7 +96,7 @@ ChangeTargetAddress::ChangeTargetAddress(
     m_path{path}
 {
     auto& mapping = m_path.find();
-    auto& deviceexplorer = deviceExplorerFromObject(mapping);
+    auto& deviceexplorer = DeviceExplorer::deviceExplorerFromObject(mapping);
 
     // Note : since we change the address, we also have to update the min / max if possible.
     // To do this, we must go and check into the device explorer.

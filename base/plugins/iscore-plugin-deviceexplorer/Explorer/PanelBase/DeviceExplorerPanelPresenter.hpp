@@ -6,6 +6,8 @@ class PanelView;
 
 }  // namespace iscore
 
+namespace DeviceExplorer
+{
 class DeviceExplorerPanelPresenter final : public iscore::PanelPresenter
 {
     public:
@@ -18,3 +20,4 @@ class DeviceExplorerPanelPresenter final : public iscore::PanelPresenter
         int panelId() const override;
 
 };
+}

@@ -6,8 +6,12 @@
 
 class DataStreamInput;
 class DataStreamOutput;
-class DeviceDocumentPlugin;
 
+namespace DeviceExplorer
+{
+class DeviceDocumentPlugin;
+namespace Command
+{
 // Note : could also be used for loading from the library
 class LoadDevice final : public iscore::SerializableCommand
 {
@@ -29,3 +33,5 @@ class LoadDevice final : public iscore::SerializableCommand
         Path<DeviceDocumentPlugin> m_devicesModel;
         Device::Node m_deviceNode;
 };
+}
+}

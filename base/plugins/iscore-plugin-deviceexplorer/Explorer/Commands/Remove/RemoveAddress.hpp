@@ -6,8 +6,12 @@
 
 class DataStreamInput;
 class DataStreamOutput;
-class DeviceDocumentPlugin;
 
+namespace DeviceExplorer
+{
+class DeviceDocumentPlugin;
+namespace Command
+{
 /**
  * @brief The RemoveAddress class
  *
@@ -33,3 +37,5 @@ class RemoveAddress final : public iscore::SerializableCommand
         Device::NodePath m_nodePath;
         Device::Node m_savedNode;
 };
+}
+}

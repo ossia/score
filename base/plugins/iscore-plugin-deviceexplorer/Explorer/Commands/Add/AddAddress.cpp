@@ -10,8 +10,10 @@
 #include <iscore/tools/ModelPathSerialization.hpp>
 #include <iscore/tools/TreeNode.hpp>
 
-using namespace DeviceExplorer::Command;
-
+namespace DeviceExplorer
+{
+namespace Command
+{
 AddAddress::AddAddress(
         Path<DeviceDocumentPlugin>&& device_tree,
         const Device::NodePath& nodePath,
@@ -65,3 +67,6 @@ void AddAddress::deserializeImpl(DataStreamOutput &s)
       >> m_parentNodePath
       >> m_addressSettings;
 }
+}
+}
+

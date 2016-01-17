@@ -8,6 +8,9 @@
 #include "DeviceExplorerMenuButton.hpp"
 #include <State/Address.hpp>
 
+
+namespace DeviceExplorer
+{
 AddressEditWidget::AddressEditWidget(DeviceExplorerModel* model, QWidget* parent):
     QWidget{parent}
 {
@@ -46,4 +49,5 @@ void AddressEditWidget::setAddress(const State::Address& addr)
 {
     m_address = addr;
     m_lineEdit->setText(m_address.toString());
+}
 }

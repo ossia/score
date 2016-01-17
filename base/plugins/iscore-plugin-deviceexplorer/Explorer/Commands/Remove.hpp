@@ -6,10 +6,10 @@
 
 class DataStreamInput;
 class DataStreamOutput;
-class DeviceDocumentPlugin;
 
 namespace DeviceExplorer
 {
+class DeviceDocumentPlugin;
 namespace Command
 {
 // TODO split this command.

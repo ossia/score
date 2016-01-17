@@ -13,6 +13,11 @@
 #include <iscore/tools/TreeNode.hpp>
 #include <iscore/tools/TreePath.hpp>
 
+
+namespace DeviceExplorer
+{
+namespace Command
+{
 RemoveAddress::RemoveAddress(
         Path<DeviceDocumentPlugin>&& device_tree,
         const Device::NodePath& nodePath):
@@ -58,4 +63,6 @@ void RemoveAddress::deserializeImpl(DataStreamOutput &s)
     s >> m_devicesModel
       >> m_nodePath
       >> m_savedNode;
+}
+}
 }

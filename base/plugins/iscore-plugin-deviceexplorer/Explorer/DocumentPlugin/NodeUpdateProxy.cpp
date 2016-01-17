@@ -17,6 +17,9 @@
 #include <iscore/tools/TreeNode.hpp>
 #include <iscore/tools/std/Algorithms.hpp>
 
+
+namespace DeviceExplorer
+{
 NodeUpdateProxy::NodeUpdateProxy(DeviceDocumentPlugin& root):
     devModel{root}
 {
@@ -406,4 +409,5 @@ void NodeUpdateProxy::removeLocalNode(const State::Address& addr)
             }
         }
     }
+}
 }

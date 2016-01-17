@@ -6,6 +6,8 @@
 
 class QObject;
 
+namespace DeviceExplorer
+{
 DeviceExplorerFilterProxyModel::DeviceExplorerFilterProxyModel(QObject* parent)
     : QSortFilterProxyModel(parent),
       m_col(0)
@@ -92,4 +94,5 @@ DeviceExplorerFilterProxyModel::hasAcceptedChildren(int srcRow, const QModelInde
     }
 
     return false;
+}
 }

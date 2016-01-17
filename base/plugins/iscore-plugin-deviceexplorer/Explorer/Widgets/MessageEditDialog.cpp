@@ -23,6 +23,8 @@
 
 class QWidget;
 
+namespace DeviceExplorer
+{
 MessageEditDialog::MessageEditDialog(const State::Message &mess, DeviceExplorerModel *model, QWidget *parent):
     QDialog{parent},
     m_message(mess)
@@ -108,4 +110,5 @@ void MessageEditDialog::on_typeChanged(int t)
             ISCORE_ABORT;
             throw;
     }
+}
 }

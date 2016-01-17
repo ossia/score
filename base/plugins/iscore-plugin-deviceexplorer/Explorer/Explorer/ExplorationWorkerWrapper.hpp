@@ -3,6 +3,9 @@
 #include <QMessageBox>
 #include <QApplication>
 #include "ExplorationWorker.hpp"
+
+namespace DeviceExplorer
+{
 class DeviceExplorerWidget;
 
 /**
@@ -100,4 +103,6 @@ static auto make_worker(OnSuccess_t&& success,
         std::move(success),
                 widg,
                 dev};
+}
+
 }

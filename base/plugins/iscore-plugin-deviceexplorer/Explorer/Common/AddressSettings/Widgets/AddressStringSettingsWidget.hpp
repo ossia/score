@@ -6,6 +6,8 @@
 class QLineEdit;
 class QWidget;
 
+namespace DeviceExplorer
+{
 class AddressStringSettingsWidget final : public AddressSettingsWidget
 {
     public:
@@ -18,3 +20,4 @@ class AddressStringSettingsWidget final : public AddressSettingsWidget
         QLineEdit* m_valueEdit;
 
 };
+}

@@ -5,6 +5,8 @@ class QWidget;
 
 
 
+namespace DeviceExplorer
+{
 AddressNoneSettingsWidget::AddressNoneSettingsWidget(QWidget* parent)
     : AddressSettingsWidget(AddressSettingsWidget::no_widgets_t{}, parent)
 {
@@ -39,4 +41,5 @@ Device::AddressSettings AddressImpulseSettingsWidget::getSettings() const
 void AddressImpulseSettingsWidget::setSettings(const Device::AddressSettings& settings)
 {
     setCommonSettings(settings);
+}
 }

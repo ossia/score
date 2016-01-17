@@ -14,8 +14,10 @@ namespace Curve
 class Model;
 class PointArraySegment;
 }
+namespace DeviceExplorer
+{
 class DeviceExplorerModel;
-
+}
 struct RecordData
 {
         RecordData(

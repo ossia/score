@@ -10,11 +10,14 @@ struct Address;
 struct Message;
 }
 
-class AddressEditWidget;
-class DeviceExplorerModel;
 class QComboBox;
 class QFormLayout;
 class ValueWidget;
+
+namespace DeviceExplorer
+{
+class AddressEditWidget;
+class DeviceExplorerModel;
 
 /**
  * @brief The MessageEditDialog class
@@ -49,3 +52,4 @@ class MessageEditDialog final : public QDialog
         QComboBox* m_typeCombo{};
         WidgetWrapper<ValueWidget>* m_val{};
 };
+}

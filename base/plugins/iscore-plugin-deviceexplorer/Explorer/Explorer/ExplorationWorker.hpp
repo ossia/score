@@ -3,8 +3,11 @@
 #include <QObject>
 #include <QString>
 
+
 class DeviceInterface;
 
+namespace DeviceExplorer
+{
 /**
  * @brief The ExplorationWorker class
  *
@@ -24,3 +27,4 @@ class ExplorationWorker final : public QObject
         void finished();
         void failed(QString);
 };
+}

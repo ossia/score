@@ -11,8 +11,12 @@ namespace State
 {
 struct Address;
 }
+
+namespace DeviceExplorer
+{
 class AddressEditWidget;
 class DeviceExplorerModel;
+}
 class MappingModel;
 class QDoubleSpinBox;
 
@@ -36,10 +40,10 @@ class MappingInspectorWidget :
         void on_targetMinValueChanged();
         void on_targetMaxValueChanged();
     private:
-        AddressEditWidget* m_sourceLineEdit{};
+        DeviceExplorer::AddressEditWidget* m_sourceLineEdit{};
         QDoubleSpinBox* m_sourceMin{}, *m_sourceMax{};
 
-        AddressEditWidget* m_targetLineEdit{};
+        DeviceExplorer::AddressEditWidget* m_targetLineEdit{};
         QDoubleSpinBox* m_targetMin{}, *m_targetMax{};
 
         CommandDispatcher<> m_dispatcher;

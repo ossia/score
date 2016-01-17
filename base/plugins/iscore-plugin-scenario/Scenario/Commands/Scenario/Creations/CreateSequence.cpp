@@ -67,7 +67,7 @@ CreateSequence::CreateSequence(
     std::transform(startMessages.begin(), startMessages.end(), std::back_inserter(endAddresses),
                    [] (const auto& mess) { return Device::FullAddressSettings::make(mess); });
 
-    auto& devPlugin = iscore::IDocument::documentContext(scenario).plugin<DeviceDocumentPlugin>();
+    auto& devPlugin = iscore::IDocument::documentContext(scenario).plugin<DeviceExplorer::DeviceDocumentPlugin>();
     auto& rootNode = devPlugin.rootNode();
 
     auto it = endAddresses.begin();

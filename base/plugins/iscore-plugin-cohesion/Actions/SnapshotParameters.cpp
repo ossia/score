@@ -36,7 +36,7 @@ void SnapshotParametersInStates(const iscore::DocumentContext& doc)
     }
 
     // Fetch the selected DeviceExplorer elements
-    State::MessageList messages = getSelectionSnapshot(deviceExplorerFromContext(doc));
+    State::MessageList messages = DeviceExplorer::getSelectionSnapshot(DeviceExplorer::deviceExplorerFromContext(doc));
     if(messages.empty())
         return;
 

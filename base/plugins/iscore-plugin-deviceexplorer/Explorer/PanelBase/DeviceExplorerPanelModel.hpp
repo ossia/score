@@ -5,6 +5,9 @@ namespace iscore
 {
     struct DocumentContext;
 }
+
+namespace DeviceExplorer
+{
 class DeviceExplorerModel;
 
 class DeviceExplorerPanelModel final : public iscore::PanelModel
@@ -23,3 +26,4 @@ class DeviceExplorerPanelModel final : public iscore::PanelModel
         DeviceExplorerModel* m_model {};
 
 };
+}

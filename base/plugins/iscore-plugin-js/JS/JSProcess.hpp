@@ -10,7 +10,10 @@
 #include <iscore/document/DocumentInterface.hpp>
 #include "Editor/TimeValue.h"
 
+namespace DeviceExplorer
+{
 class DeviceDocumentPlugin;
+}
 class DeviceList;
 namespace RecreateOnPlay
 {
@@ -30,7 +33,8 @@ class ProcessExecutor final :
         public TimeProcessWithConstraint
 {
     public:
-        ProcessExecutor(const DeviceDocumentPlugin& devices);
+        ProcessExecutor(
+                const DeviceExplorer::DeviceDocumentPlugin& devices);
 
         void setTickFun(const QString& val);
 

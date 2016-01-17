@@ -211,7 +211,7 @@ void OSSIAApplicationPlugin::on_play(bool b, ::TimeValue t)
             {
                 // Here we stop the listening when we start playing the scenario.
                 // Get all the selected nodes
-                auto explorer = try_deviceExplorerFromObject(*doc);
+                auto explorer = DeviceExplorer::try_deviceExplorerFromObject(*doc);
                 // Disable listening for everything
                 if(explorer)
                     m_savedListening = explorer->deviceModel().pauseListening();
@@ -254,7 +254,7 @@ void OSSIAApplicationPlugin::on_stop()
         }
 
         // If we can we resume listening
-        auto explorer = try_deviceExplorerFromObject(*doc);
+        auto explorer = DeviceExplorer::try_deviceExplorerFromObject(*doc);
         if(explorer)
             explorer->deviceModel().resumeListening(m_savedListening);
     }

@@ -7,10 +7,10 @@
 
 class DataStreamInput;
 class DataStreamOutput;
-class DeviceDocumentPlugin;
 
 namespace DeviceExplorer
 {
+class DeviceDocumentPlugin;
 namespace Command
 {
 class UpdateDeviceSettings final : public iscore::SerializableCommand

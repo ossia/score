@@ -21,6 +21,8 @@
 
 class QWidget;
 
+namespace DeviceExplorer
+{
 AddressEditDialog::AddressEditDialog(
         QWidget* parent):
     AddressEditDialog{makeDefaultSettings(), parent}
@@ -129,4 +131,5 @@ void AddressEditDialog::setValueSettings()
     ISCORE_ASSERT(index != -1);
     ISCORE_ASSERT(index < m_valueTypeCBox->count());
     m_valueTypeCBox->setCurrentIndex(index);  //will emit currentIndexChanged(int) & call slot
+}
 }
