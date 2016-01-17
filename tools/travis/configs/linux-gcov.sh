@@ -10,6 +10,6 @@ export DISPLAY=:99.0
 sh -e /etc/init.d/xvfb start
 sleep 3
 cp -rf ../Tests/testdata .
-ninja iscore_test_coverage
+$CMAKE_BIN --build . --target iscore_test_coverage
 lcov --compat-libtool --directory .. --capture --output-file coverage.info --no-external
 coveralls-lcov --repo-token jjoMcOyOg9R05XT3aVysqTcsL1gyAc9tF coverage.info
