@@ -7,8 +7,11 @@
 #include "OSCProtocolSettingsWidget.hpp"
 #include <OSSIA/Protocols/OSC/OSCSpecificSettings.hpp>
 
+namespace Device
+{
 class DeviceInterface;
 class ProtocolSettingsWidget;
+}
 struct VisitorVariant;
 
 QString OSCProtocolFactory::prettyName() const
@@ -16,20 +19,20 @@ QString OSCProtocolFactory::prettyName() const
     return QObject::tr("OSC");
 }
 
-const ProtocolFactoryKey&OSCProtocolFactory::key_impl() const
+const Device::ProtocolFactoryKey& OSCProtocolFactory::key_impl() const
 {
-    static const ProtocolFactoryKey name{"OSC"};
+    static const Device::ProtocolFactoryKey name{"OSC"};
     return name;
 }
 
-DeviceInterface*OSCProtocolFactory::makeDevice(
+Device::DeviceInterface* OSCProtocolFactory::makeDevice(
         const Device::DeviceSettings& settings,
         const iscore::DocumentContext& ctx)
 {
     return new OSCDevice{settings};
 }
 
-const Device::DeviceSettings&OSCProtocolFactory::defaultSettings() const
+const Device::DeviceSettings& OSCProtocolFactory::defaultSettings() const
 {
     static const Device::DeviceSettings settings = [&] () {
         Device::DeviceSettings s;
@@ -42,7 +45,7 @@ const Device::DeviceSettings&OSCProtocolFactory::defaultSettings() const
     return settings;
 }
 
-ProtocolSettingsWidget*OSCProtocolFactory::makeSettingsWidget()
+Device::ProtocolSettingsWidget* OSCProtocolFactory::makeSettingsWidget()
 {
     return new OSCProtocolSettingsWidget;
 }

@@ -51,7 +51,7 @@ std::vector<std::unique_ptr<iscore::FactoryInterfaceBase>> iscore_plugin_ossia::
     return instantiate_factories<
             iscore::ApplicationContext,
             TL<
-            FW<ProtocolFactory,
+            FW<Device::ProtocolFactory,
                  LocalProtocolFactory,
                  OSCProtocolFactory,
                  MinuitProtocolFactory>,

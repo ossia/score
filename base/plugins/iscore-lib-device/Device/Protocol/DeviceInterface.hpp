@@ -14,9 +14,10 @@ namespace State
 {
 struct Message;
 }
-namespace Device {
+namespace Device
+{
 struct FullAddressSettings;
-}  // namespace iscore
+
 
 struct ISCORE_LIB_DEVICE_EXPORT DeviceCapas
 {
@@ -86,3 +87,4 @@ class ISCORE_LIB_DEVICE_EXPORT DeviceInterface : public QObject
         Device::DeviceSettings m_settings;
         DeviceCapas m_capas;
 };
+}

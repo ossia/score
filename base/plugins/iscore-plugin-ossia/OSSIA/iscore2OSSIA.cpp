@@ -357,7 +357,7 @@ OSSIA::Value* toOSSIAValue(
 
 std::shared_ptr<OSSIA::Message> message(
         const State::Message& mess,
-        const DeviceList& deviceList)
+        const Device::DeviceList& deviceList)
 {
     if(!deviceList.hasDevice(mess.address.device))
         return {};
@@ -401,7 +401,7 @@ static void visit_node(
 std::shared_ptr<OSSIA::State> state(
         std::shared_ptr<OSSIA::State> ossia_state,
         const Scenario::StateModel& iscore_state,
-        const DeviceList& deviceList)
+        const Device::DeviceList& deviceList)
 {
     auto& elts = ossia_state->stateElements();
 
@@ -440,7 +440,7 @@ std::shared_ptr<OSSIA::State> state(
 
 std::shared_ptr<OSSIA::State> state(
         const Scenario::StateModel& iscore_state,
-        const DeviceList& deviceList)
+        const Device::DeviceList& deviceList)
 {
     return state(OSSIA::State::create(), iscore_state, deviceList);
 }
@@ -449,7 +449,7 @@ std::shared_ptr<OSSIA::State> state(
 
 OSSIA::Value* expressionOperand(
         const State::RelationMember& relm,
-        const DeviceList& devlist)
+        const Device::DeviceList& devlist)
 {
     using namespace eggs::variants;
     switch(relm.which())
@@ -521,7 +521,7 @@ OSSIA::ExpressionAtom::Operator expressionOperator(State::Relation::Operator op)
 // State::Relation -> OSSIA::ExpressionAtom
 std::shared_ptr<OSSIA::ExpressionAtom> expressionAtom(
         const State::Relation& rel,
-        const DeviceList& dev)
+        const Device::DeviceList& dev)
 {
     using namespace eggs::variants;
 
@@ -540,7 +540,7 @@ static const QMap<State::BinaryOperator, OSSIA::ExpressionComposition::Operator>
 
 std::shared_ptr<OSSIA::Expression> expression(
         const State::Expression& expr,
-        const DeviceList& devlist)
+        const Device::DeviceList& devlist)
 {
     if(expr.is<InvisibleRootNodeTag>())
     {

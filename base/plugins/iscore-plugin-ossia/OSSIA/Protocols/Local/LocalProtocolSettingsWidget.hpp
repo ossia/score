@@ -8,7 +8,8 @@ class QLineEdit;
 class QSpinBox;
 class QWidget;
 
-class LocalProtocolSettingsWidget final : public ProtocolSettingsWidget
+class LocalProtocolSettingsWidget final :
+        public Device::ProtocolSettingsWidget
 {
     public:
         LocalProtocolSettingsWidget(QWidget* parent = nullptr);

@@ -6,7 +6,8 @@ class QLineEdit;
 class QSpinBox;
 class QWidget;
 
-class OSCProtocolSettingsWidget : public ProtocolSettingsWidget
+class OSCProtocolSettingsWidget :
+        public Device::ProtocolSettingsWidget
 {
         Q_OBJECT
 

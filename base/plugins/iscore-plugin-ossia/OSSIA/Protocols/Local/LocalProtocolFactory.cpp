@@ -8,8 +8,11 @@
 #include <OSSIA/Protocols/Local/LocalSpecificSettings.hpp>
 #include <OSSIA/OSSIAApplicationPlugin.hpp>
 
+namespace Device
+{
 class DeviceInterface;
 class ProtocolSettingsWidget;
+}
 struct VisitorVariant;
 
 QString LocalProtocolFactory::prettyName() const
@@ -17,13 +20,13 @@ QString LocalProtocolFactory::prettyName() const
     return QObject::tr("Local");
 }
 
-const ProtocolFactoryKey& LocalProtocolFactory::key_impl() const
+const Device::ProtocolFactoryKey& LocalProtocolFactory::key_impl() const
 {
-    static const ProtocolFactoryKey name{"Local"};
+    static const Device::ProtocolFactoryKey name{"Local"};
     return name;
 }
 
-DeviceInterface*LocalProtocolFactory::makeDevice(
+Device::DeviceInterface* LocalProtocolFactory::makeDevice(
         const Device::DeviceSettings& settings,
         const iscore::DocumentContext& ctx)
 {
@@ -44,7 +47,7 @@ const Device::DeviceSettings& LocalProtocolFactory::defaultSettings() const
     return settings;
 }
 
-ProtocolSettingsWidget* LocalProtocolFactory::makeSettingsWidget()
+Device::ProtocolSettingsWidget* LocalProtocolFactory::makeSettingsWidget()
 {
     return new LocalProtocolSettingsWidget;
 }

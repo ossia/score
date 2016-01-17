@@ -242,7 +242,7 @@ bool DeviceExplorerModel::checkDeviceInstantiatable(
     // Request from the protocol factory the protocol to see
     // if it is compatible.
     auto& context = m_devicePlugin.context().app.components;
-    auto prot = context.factory<DynamicProtocolList>().list().get(n.protocol);
+    auto prot = context.factory<Device::DynamicProtocolList>().list().get(n.protocol);
     if(!prot)
         return false;
 
@@ -893,7 +893,7 @@ DeviceExplorerModel::dropMimeData(const QMimeData* mimeData,
             {
                 // We ask the user to fix the incompatibilities by himself.
                 DeviceEditDialog dial{
-                    m_devicePlugin.context().app.components.factory<DynamicProtocolList>(),
+                    m_devicePlugin.context().app.components.factory<Device::DynamicProtocolList>(),
                             QApplication::activeWindow()};
                 if(!tryDeviceInstantiation(n.get<Device::DeviceSettings>(), dial))
                     return false;

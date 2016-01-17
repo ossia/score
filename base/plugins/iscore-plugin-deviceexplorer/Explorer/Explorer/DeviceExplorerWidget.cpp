@@ -62,7 +62,7 @@
 namespace DeviceExplorer
 {
 DeviceExplorerWidget::DeviceExplorerWidget(
-        const DynamicProtocolList& pl,
+        const Device::DynamicProtocolList& pl,
         QWidget* parent)
     : QWidget(parent),
       m_protocolList{pl},

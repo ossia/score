@@ -28,7 +28,8 @@ namespace OSSIA
     class Device;
 }
 
-class ISCORE_PLUGIN_OSSIA_EXPORT OSSIADevice : public DeviceInterface
+class ISCORE_PLUGIN_OSSIA_EXPORT OSSIADevice :
+        public Device::DeviceInterface
 {
     public:
         virtual ~OSSIADevice();

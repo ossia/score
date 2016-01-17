@@ -13,7 +13,7 @@ namespace RecreateOnPlay
 TimeNodeElement::TimeNodeElement(
         std::shared_ptr<OSSIA::TimeNode> ossia_tn,
         const Scenario::TimeNodeModel& element,
-        const DeviceList& devlist,
+        const Device::DeviceList& devlist,
         QObject* parent):
     QObject{parent},
     m_ossia_node{ossia_tn},

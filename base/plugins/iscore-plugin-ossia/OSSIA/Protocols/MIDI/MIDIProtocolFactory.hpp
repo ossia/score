@@ -5,27 +5,31 @@
 
 #include <Device/Protocol/ProtocolFactoryKey.hpp>
 
+namespace Device
+{
 class DeviceInterface;
 class ProtocolSettingsWidget;
+}
 namespace iscore {
 struct DeviceSettings;
 }  // namespace iscore
 struct VisitorVariant;
 
-class MIDIProtocolFactory final : public ProtocolFactory
+class MIDIProtocolFactory final :
+        public Device::ProtocolFactory
 {
         // Implement with OSSIA::Device
         QString prettyName() const override;
 
-        const ProtocolFactoryKey& key_impl() const override;
+        const Device::ProtocolFactoryKey& key_impl() const override;
 
-        DeviceInterface* makeDevice(
+        Device::DeviceInterface* makeDevice(
                 const Device::DeviceSettings& settings,
                 const iscore::DocumentContext& ctx) override;
 
         const Device::DeviceSettings& defaultSettings() const override;
 
-        ProtocolSettingsWidget* makeSettingsWidget() override;
+        Device::ProtocolSettingsWidget* makeSettingsWidget() override;
 
         QVariant makeProtocolSpecificSettings(
                 const VisitorVariant& visitor) const override;

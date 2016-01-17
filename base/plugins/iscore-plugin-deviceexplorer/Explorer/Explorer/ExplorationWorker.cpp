@@ -2,7 +2,8 @@
 
 namespace DeviceExplorer
 {
-ExplorationWorker::ExplorationWorker(DeviceInterface &theDev):
+ExplorationWorker::ExplorationWorker(
+        Device::DeviceInterface &theDev):
     dev{theDev}
 {
 

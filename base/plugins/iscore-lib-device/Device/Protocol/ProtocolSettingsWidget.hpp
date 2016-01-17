@@ -5,6 +5,8 @@
 #include <QString>
 #include <QWidget>
 
+namespace Device
+{
 class ISCORE_LIB_DEVICE_EXPORT ProtocolSettingsWidget : public QWidget
 {
     public:
@@ -18,4 +20,4 @@ class ISCORE_LIB_DEVICE_EXPORT ProtocolSettingsWidget : public QWidget
         }
         virtual void setSettings(const Device::DeviceSettings& settings) = 0;
 };
-
+}

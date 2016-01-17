@@ -71,7 +71,7 @@ void DeviceDocumentPlugin::serialize(const VisitorVariant& vis) const
 Device::Node DeviceDocumentPlugin::createDeviceFromNode(const Device::Node & node)
 {
     try {
-        auto& fact = m_context.app.components.factory<DynamicProtocolList>();
+        auto& fact = m_context.app.components.factory<Device::DynamicProtocolList>();
 
         // Instantiate a real device.
         auto proto = fact.list().get(node.get<Device::DeviceSettings>().protocol);
@@ -106,7 +106,7 @@ Device::Node DeviceDocumentPlugin::loadDeviceFromNode(const Device::Node & node)
 {
     try {
         // Instantiate a real device.
-        auto& fact = m_context.app.components.factory<DynamicProtocolList>();
+        auto& fact = m_context.app.components.factory<Device::DynamicProtocolList>();
         auto proto = fact.list().get(node.get<Device::DeviceSettings>().protocol);
         auto newdev = proto->makeDevice(node.get<Device::DeviceSettings>(), context());
 
@@ -190,14 +190,14 @@ void DeviceDocumentPlugin::setConnection(bool b)
     }
 }
 
-void DeviceDocumentPlugin::initDevice(DeviceInterface& newdev)
+void DeviceDocumentPlugin::initDevice(Device::DeviceInterface& newdev)
 {
-    con(newdev, &DeviceInterface::valueUpdated,
+    con(newdev, &Device::DeviceInterface::valueUpdated,
         this, [&] (const State::Address& addr, const State::Value& v) {
         updateProxy.updateLocalValue(addr, v);
     });
 
-    con(newdev, &DeviceInterface::pathAdded,
+    con(newdev, &Device::DeviceInterface::pathAdded,
         this, [&] (const State::Address& newaddr) {
         auto parentAddr = newaddr;
         parentAddr.path.removeLast();
@@ -211,12 +211,12 @@ void DeviceDocumentPlugin::initDevice(DeviceInterface& newdev)
         }
     });
 
-    con(newdev, &DeviceInterface::pathRemoved,
+    con(newdev, &Device::DeviceInterface::pathRemoved,
         this, [&] (const State::Address& addr) {
         updateProxy.removeLocalNode(addr);
     });
 
-    con(newdev, &DeviceInterface::pathUpdated,
+    con(newdev, &Device::DeviceInterface::pathUpdated,
         this, [&] (
             const State::Address& addr,
             const Device::AddressSettings& set) {

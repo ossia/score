@@ -2,9 +2,9 @@
 #include <Device/Node/DeviceNode.hpp>
 #include "DeviceInterface.hpp"
 
-namespace Device {
+namespace Device
+{
 struct DeviceSettings;
-}  // namespace iscore
 
 
 DeviceInterface::DeviceInterface(const Device::DeviceSettings &s):
@@ -36,4 +36,5 @@ void DeviceInterface::addNode(const Device::Node& n)
     {
         addNode(child);
     }
+}
 }

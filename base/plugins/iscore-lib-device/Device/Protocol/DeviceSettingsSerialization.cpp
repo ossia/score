@@ -30,7 +30,7 @@ ISCORE_LIB_DEVICE_EXPORT void Visitor<Reader<DataStream>>::readFrom(const Device
     // TODO try to see if this pattern is refactorable with the similar thing
     // usef for CurveSegmentData.
 
-    auto& pl = context.components.factory<DynamicProtocolList>();
+    auto& pl = context.components.factory<Device::DynamicProtocolList>();
     auto prot = pl.list().get(n.protocol);
     if(prot)
     {
@@ -50,7 +50,7 @@ ISCORE_LIB_DEVICE_EXPORT void Visitor<Writer<DataStream>>::writeTo(Device::Devic
     m_stream >> n.name
              >> n.protocol;
 
-    auto& pl = context.components.factory<DynamicProtocolList>();
+    auto& pl = context.components.factory<Device::DynamicProtocolList>();
     auto prot = pl.list().get(n.protocol);
     if(prot)
     {
@@ -69,7 +69,7 @@ ISCORE_LIB_DEVICE_EXPORT void Visitor<Reader<JSONObject>>::readFrom(const Device
     m_obj["Name"] = n.name;
     m_obj["Protocol"] = toJsonValue(n.protocol);
 
-    auto& pl = context.components.factory<DynamicProtocolList>();
+    auto& pl = context.components.factory<Device::DynamicProtocolList>();
     auto prot = pl.list().get(n.protocol);
     if(prot)
     {
@@ -85,9 +85,9 @@ template<>
 ISCORE_LIB_DEVICE_EXPORT void Visitor<Writer<JSONObject>>::writeTo(Device::DeviceSettings& n)
 {
     n.name = m_obj["Name"].toString();
-    n.protocol = fromJsonValue<ProtocolFactoryKey>(m_obj["Protocol"]);
+    n.protocol = fromJsonValue<Device::ProtocolFactoryKey>(m_obj["Protocol"]);
 
-    auto& pl = context.components.factory<DynamicProtocolList>();
+    auto& pl = context.components.factory<Device::DynamicProtocolList>();
     auto prot = pl.list().get(n.protocol);
     if(prot)
     {

@@ -16,8 +16,11 @@ class QStackedLayout;
 class QComboBox;
 class QLineEdit;
 
-class DynamicProtocolList;
 
+namespace Device
+{
+class DynamicProtocolList;
+}
 
 namespace DeviceExplorer
 {
@@ -31,7 +34,7 @@ class DeviceExplorerWidget final : public QWidget
 
     public:
         explicit DeviceExplorerWidget(
-                const DynamicProtocolList&,
+                const Device::DynamicProtocolList&,
                 QWidget* parent);
 
         void setModel(DeviceExplorerModel* model);
@@ -87,7 +90,7 @@ class DeviceExplorerWidget final : public QWidget
         void contextMenuEvent(QContextMenuEvent* event) override;
 
 
-        const DynamicProtocolList& m_protocolList;
+        const Device::DynamicProtocolList& m_protocolList;
 
         DeviceExplorerView* m_ntView{};
         DeviceExplorerFilterProxyModel* m_proxyModel{};

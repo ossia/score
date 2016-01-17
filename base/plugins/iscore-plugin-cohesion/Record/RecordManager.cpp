@@ -274,7 +274,7 @@ void RecordManager::recordInNewBox(Scenario::ScenarioModel& scenar, Scenario::Po
         dev.replaceListening(vec);
         // Add a custom callback.
         m_recordCallbackConnections.push_back(
-                    connect(&dev, &DeviceInterface::valueUpdated,
+                    connect(&dev, &Device::DeviceInterface::valueUpdated,
                 this, [=] (const State::Address& addr, const State::Value& val) {
             auto current_time_pt = std::chrono::steady_clock::now();
 
