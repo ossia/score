@@ -9,8 +9,11 @@
 #include <iscore/tools/ModelPathSerialization.hpp>
 #include <iscore/tools/TreeNode.hpp>
 
-using namespace iscore;
-using namespace DeviceExplorer::Command;
+
+namespace DeviceExplorer
+{
+namespace Command
+{
 UpdateAddressSettings::UpdateAddressSettings(
         Path<DeviceDocumentPlugin>&& device_tree,
         const Device::NodePath& node,
@@ -52,4 +55,6 @@ void UpdateAddressSettings::deserializeImpl(DataStreamOutput& d)
       >> m_node
       >> m_oldParameters
       >> m_newParameters;
+}
+}
 }

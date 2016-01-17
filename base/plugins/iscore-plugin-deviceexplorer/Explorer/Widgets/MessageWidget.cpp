@@ -7,6 +7,8 @@
 
 class QWidget;
 
+namespace DeviceExplorer
+{
 MessageWidget::MessageWidget(
         State::Message& mess,
         DeviceExplorerModel* model,
@@ -32,4 +34,5 @@ void MessageWidget::on_clicked()
 
         this->setText(m_message.toString());
     }
+}
 }

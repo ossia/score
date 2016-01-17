@@ -3,14 +3,17 @@
 #include <QAbstractItemModel>
 #include <QList>
 #include <QTreeView>
-
-class DeviceExplorerFilterProxyModel;
-class DeviceExplorerModel;
 class QAction;
 class QItemSelection;
 class QPoint;
 class QWidget;
 
+
+
+namespace DeviceExplorer
+{
+class DeviceExplorerFilterProxyModel;
+class DeviceExplorerModel;
 class DeviceExplorerView final : public QTreeView
 {
         Q_OBJECT
@@ -54,4 +57,4 @@ class DeviceExplorerView final : public QTreeView
         bool m_hasProxy;
 
 };
-
+}

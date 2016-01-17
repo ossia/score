@@ -15,6 +15,8 @@ class PanelView;
 
 }  // namespace iscore
 
+namespace DeviceExplorer
+{
 DeviceExplorerPanelPresenter::DeviceExplorerPanelPresenter(
         iscore::PanelView* view,
         QObject* parent) :
@@ -51,6 +53,6 @@ int DeviceExplorerPanelPresenter::panelId() const
 {
     return DEVICEEXPLORER_PANEL_ID;
 }
-
+}
 
 

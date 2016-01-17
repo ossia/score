@@ -36,6 +36,9 @@ struct Value;
 }  // namespace iscore
 struct VisitorVariant;
 
+
+namespace DeviceExplorer
+{
 DeviceDocumentPlugin::DeviceDocumentPlugin(
         iscore::Document& ctx,
         QObject* parent):
@@ -222,4 +225,5 @@ void DeviceDocumentPlugin::initDevice(DeviceInterface& newdev)
 
     m_list.addDevice(&newdev);
     newdev.setParent(this);
+}
 }

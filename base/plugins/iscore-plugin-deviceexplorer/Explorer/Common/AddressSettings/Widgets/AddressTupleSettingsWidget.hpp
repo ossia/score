@@ -4,6 +4,8 @@
 
 class QWidget;
 
+namespace DeviceExplorer
+{
 class AddressTupleSettingsWidget final : public AddressSettingsWidget
 {
     public:
@@ -13,3 +15,4 @@ class AddressTupleSettingsWidget final : public AddressSettingsWidget
 
         void setSettings(const Device::AddressSettings& settings) override;
 };
+}

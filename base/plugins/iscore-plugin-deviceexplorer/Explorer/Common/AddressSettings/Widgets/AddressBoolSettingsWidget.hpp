@@ -5,6 +5,8 @@
 class QComboBox;
 class QWidget;
 
+namespace DeviceExplorer
+{
 class AddressBoolSettingsWidget final : public AddressSettingsWidget
 {
     public:
@@ -17,3 +19,4 @@ class AddressBoolSettingsWidget final : public AddressSettingsWidget
     private:
         QComboBox* m_cb{};
 };
+}

@@ -38,7 +38,7 @@ void CreateCurves(
 
 
     // First get the addresses
-    auto& device_explorer = deviceExplorerFromContext(doc);
+    auto& device_explorer = DeviceExplorer::deviceExplorerFromContext(doc);
 
     std::vector<Device::FullAddressSettings> addresses;
     for(const auto& index : device_explorer.selectedIndexes())

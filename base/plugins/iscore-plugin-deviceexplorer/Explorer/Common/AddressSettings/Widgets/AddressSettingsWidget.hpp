@@ -7,6 +7,9 @@
 class QComboBox;
 class QFormLayout;
 
+
+namespace DeviceExplorer
+{
 class ISCORE_LIB_DEVICE_EXPORT AddressSettingsWidget : public QWidget
 {
     public:
@@ -28,5 +31,5 @@ class ISCORE_LIB_DEVICE_EXPORT AddressSettingsWidget : public QWidget
         QComboBox* m_clipModeCBox;
         QComboBox* m_tagsEdit;
 };
-
+}
 

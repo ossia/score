@@ -31,7 +31,7 @@ ChangeAddress::ChangeAddress(
     m_old.domain.max.val = autom.max();
 
 
-    if(auto deviceexplorer = try_deviceExplorerFromObject(autom))
+    if(auto deviceexplorer = DeviceExplorer::try_deviceExplorerFromObject(autom))
     {
         // Note : since we change the address, we also have to update the min / max if possible.
         // To do this, we must go and check into the device explorer.

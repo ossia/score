@@ -3,6 +3,8 @@
 
 class QWidget;
 
+namespace DeviceExplorer
+{
 AddressTupleSettingsWidget::AddressTupleSettingsWidget(QWidget* parent)
     : AddressSettingsWidget(parent)
 {
@@ -21,4 +23,5 @@ Device::AddressSettings AddressTupleSettingsWidget::getSettings() const
 void AddressTupleSettingsWidget::setSettings(const Device::AddressSettings& settings)
 {
     setCommonSettings(settings);
+}
 }

@@ -3,12 +3,15 @@
 #include <Explorer/Widgets/ValueWrapper.hpp>
 #include <QDialog>
 
-class AddressSettingsWidget;
 class QComboBox;
 class QFormLayout;
 class QLineEdit;
 class QWidget;
 
+namespace DeviceExplorer
+{
+
+class AddressSettingsWidget;
 class AddressEditDialog final : public QDialog
 {
         Q_OBJECT
@@ -38,5 +41,4 @@ class AddressEditDialog final : public QDialog
         WidgetWrapper<AddressSettingsWidget>* m_addressWidget{};
         QFormLayout* m_layout{};
 };
-
-
+}

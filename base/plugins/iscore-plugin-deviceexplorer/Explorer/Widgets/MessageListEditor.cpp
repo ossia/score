@@ -13,6 +13,8 @@
 
 class QWidget;
 
+namespace DeviceExplorer
+{
 MessageListEditor::MessageListEditor(
         const State::MessageList& m,
         DeviceExplorerModel* model,
@@ -75,4 +77,5 @@ void MessageListEditor::updateLayout()
                 this, [=] { removeMessage(i); });
         i++;
     }
+}
 }

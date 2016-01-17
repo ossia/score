@@ -5,6 +5,8 @@
 #include "DeviceExplorerPanelModel.hpp"
 #include <iscore/plugins/panel/PanelModel.hpp>
 
+namespace DeviceExplorer
+{
 DeviceExplorerPanelModel::DeviceExplorerPanelModel(
         const iscore::DocumentContext& ctx,
         QObject* parent) :
@@ -24,4 +26,5 @@ DeviceExplorerModel* DeviceExplorerPanelModel::deviceExplorer()
 int DeviceExplorerPanelModel::panelId() const
 {
     return DEVICEEXPLORER_PANEL_ID;
+}
 }

@@ -8,24 +8,23 @@
 #include <Device/Node/DeviceNode.hpp>
 #include <iscore/tools/TreePath.hpp>
 
-class DeviceEditDialog;
-class DeviceExplorerFilterProxyModel;
-class DeviceExplorerModel;
-class DeviceExplorerView;
-class DynamicProtocolList;
 class QAction;
 class QContextMenuEvent;
 class QProgressIndicator;
 class QStackedLayout;
 
-namespace iscore
-{
-}
-
 class QComboBox;
 class QLineEdit;
 
+class DynamicProtocolList;
 
+
+namespace DeviceExplorer
+{
+class DeviceEditDialog;
+class DeviceExplorerFilterProxyModel;
+class DeviceExplorerModel;
+class DeviceExplorerView;
 class DeviceExplorerWidget final : public QWidget
 {
         Q_OBJECT
@@ -114,4 +113,4 @@ class DeviceExplorerWidget final : public QWidget
         QProgressIndicator* m_refreshIndicator{};
         QStackedLayout* m_lay{};
 };
-
+}

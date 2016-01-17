@@ -13,6 +13,8 @@ class DocumentModel;
 using namespace iscore;
 
 
+namespace DeviceExplorer
+{
 QString DeviceExplorerPanelFactory::panelName() const
 {
     return "DeviceExplorer";
@@ -43,4 +45,5 @@ iscore::PanelModel* DeviceExplorerPanelFactory::makeModel(
         QObject* parent)
 {
     return new DeviceExplorerPanelModel{ctx, parent};
+}
 }

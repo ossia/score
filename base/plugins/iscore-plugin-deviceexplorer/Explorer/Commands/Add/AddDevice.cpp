@@ -10,6 +10,11 @@ namespace Device {
 struct DeviceSettings;
 }  // namespace iscore
 
+
+namespace DeviceExplorer
+{
+namespace Command
+{
 AddDevice::AddDevice(
         Path<DeviceDocumentPlugin>&& device_tree,
         const Device::DeviceSettings& parameters):
@@ -41,4 +46,6 @@ void AddDevice::deserializeImpl(DataStreamOutput& d)
 {
     d >> m_devicesModel;
     d >> m_parameters;
+}
+}
 }

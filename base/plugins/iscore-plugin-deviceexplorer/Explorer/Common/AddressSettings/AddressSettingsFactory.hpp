@@ -3,6 +3,8 @@
 #include <QMap>
 #include <QString>
 
+namespace DeviceExplorer
+{
 class AddressSettingsWidget;
 
 class AddressSettingsWidgetFactoryMethod
@@ -34,3 +36,4 @@ class AddressSettingsFactory
         typedef QMap<QString, AddressSettingsWidgetFactoryMethod*> AddressSettingsWidgetFactory;
         AddressSettingsWidgetFactory m_addressSettingsWidgetFactory;
 };
+}

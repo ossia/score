@@ -11,6 +11,9 @@
 
 class QObject;
 
+
+namespace DeviceExplorer
+{
 DeviceCompleter::DeviceCompleter(DeviceExplorerModel* treemodel,
                                  QObject* parent) :
     QCompleter {parent}
@@ -58,4 +61,5 @@ QStringList DeviceCompleter::splitPath(const QString& path) const
     QStringList split = p2.split("/");
     split.first().remove(":");
     return split;
+}
 }

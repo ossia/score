@@ -2,10 +2,13 @@
 #include <State/Message.hpp>
 #include <QDialog>
 
-class DeviceExplorerModel;
 class QGridLayout;
 class QWidget;
 
+
+namespace DeviceExplorer
+{
+class DeviceExplorerModel;
 /**
  * @brief The MessageListEditor class
  *
@@ -38,3 +41,4 @@ class MessageListEditor final : public QDialog
         QGridLayout* m_messageListLayout{};
         State::MessageList m_messages;
 };
+}

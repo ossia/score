@@ -3,7 +3,7 @@
 #include <QValidator>
 #include <State/Address.hpp>
 
-
+// TODO MOVEME libstate
 class AddressFragmentValidator : public QValidator
 {
     public:

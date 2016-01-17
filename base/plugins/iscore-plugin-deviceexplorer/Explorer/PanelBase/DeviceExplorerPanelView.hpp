@@ -6,10 +6,8 @@
 
 class QWidget;
 
-namespace iscore
+namespace DeviceExplorer
 {
-    
-}
 class DeviceExplorerWidget;
 
 class DeviceExplorerPanelView final : public iscore::PanelView
@@ -28,3 +26,4 @@ class DeviceExplorerPanelView final : public iscore::PanelView
     private:
         DeviceExplorerWidget* m_widget {};
 };
+}

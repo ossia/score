@@ -10,6 +10,9 @@
 class QAbstractItemModel;
 class QModelIndex;
 
+
+namespace DeviceExplorer
+{
 DeviceExplorerMenuButton::DeviceExplorerMenuButton(DeviceExplorerModel *model)
 {
     auto lay = new QGridLayout;
@@ -29,4 +32,5 @@ DeviceExplorerMenuButton::DeviceExplorerMenuButton(DeviceExplorerModel *model)
 
     pb->setMenu(menuview);
     this->layout()->addWidget(pb);
+}
 }

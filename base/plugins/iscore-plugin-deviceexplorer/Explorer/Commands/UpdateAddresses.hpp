@@ -10,41 +10,41 @@
 
 class DataStreamInput;
 class DataStreamOutput;
-class DeviceExplorerModel;
 
 
 namespace DeviceExplorer
 {
-    namespace Command
-    {
-    // TODO Moveme
-        class UpdateAddressesValues final : public iscore::SerializableCommand
-        {
-            ISCORE_COMMAND_DECL(DeviceExplorerCommandFactoryName(), UpdateAddressesValues, "Update addresses values")
-            public:
-                UpdateAddressesValues(Path<DeviceExplorerModel>&& device_tree,
-                              const QList<QPair<const Device::Node*, State::Value>>& nodes);
+class DeviceExplorerModel;
+namespace Command
+{
+// TODO Moveme
+class UpdateAddressesValues final : public iscore::SerializableCommand
+{
+        ISCORE_COMMAND_DECL(DeviceExplorerCommandFactoryName(), UpdateAddressesValues, "Update addresses values")
+        public:
+            UpdateAddressesValues(Path<DeviceExplorerModel>&& device_tree,
+                                  const QList<QPair<const Device::Node*, State::Value>>& nodes);
 
-                void undo() const override;
-                void redo() const override;
+        void undo() const override;
+        void redo() const override;
 
-            protected:
-                void serializeImpl(DataStreamInput&) const override;
-                void deserializeImpl(DataStreamOutput&) override;
+    protected:
+        void serializeImpl(DataStreamInput&) const override;
+        void deserializeImpl(DataStreamOutput&) override;
 
-            private:
-                Path<DeviceExplorerModel> m_deviceTree;
+    private:
+        Path<DeviceExplorerModel> m_deviceTree;
 
-                QList<
-                    QPair<
-                        Device::NodePath,
-                        QPair< // First is old, second is new
-                            State::Value,
-                            State::Value
-                        >
-                    >
-                > m_data;
-        };
-    }
+        QList<
+        QPair<
+        Device::NodePath,
+        QPair< // First is old, second is new
+        State::Value,
+        State::Value
+        >
+        >
+        > m_data;
+};
+}
 }
 

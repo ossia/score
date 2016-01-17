@@ -10,6 +10,11 @@
 #include <iscore/tools/ModelPathSerialization.hpp>
 #include <iscore/tools/TreeNode.hpp>
 
+
+namespace DeviceExplorer
+{
+namespace Command
+{
 LoadDevice::LoadDevice(
         Path<DeviceDocumentPlugin>&& device_tree,
         Device::Node&& node):
@@ -40,4 +45,6 @@ void LoadDevice::deserializeImpl(DataStreamOutput& d)
 {
     d >> m_devicesModel;
     d >> m_deviceNode;
+}
+}
 }

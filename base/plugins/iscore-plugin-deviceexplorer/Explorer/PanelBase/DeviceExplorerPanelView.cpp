@@ -12,6 +12,8 @@
 
 class QWidget;
 
+namespace DeviceExplorer
+{
 static const iscore::DefaultPanelStatus status{
     true,
     Qt::LeftDockWidgetArea,
@@ -34,4 +36,5 @@ DeviceExplorerPanelView::DeviceExplorerPanelView(
 QWidget* DeviceExplorerPanelView::getWidget()
 {
     return m_widget;
+}
 }

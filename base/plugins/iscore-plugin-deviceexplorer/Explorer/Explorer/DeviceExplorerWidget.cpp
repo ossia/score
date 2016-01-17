@@ -58,10 +58,9 @@
 #include <iscore/tools/ModelPath.hpp>
 #include <iscore/tools/TreeNode.hpp>
 
-class DynamicProtocolList;
 
-
-
+namespace DeviceExplorer
+{
 DeviceExplorerWidget::DeviceExplorerWidget(
         const DynamicProtocolList& pl,
         QWidget* parent)
@@ -631,13 +630,13 @@ DeviceExplorerWidget::addDevice()
         auto devplug_path = iscore::IDocument::path(model()->deviceModel());
         if(path.isEmpty())
         {
-            m_cmdDispatcher->submitCommand(new AddDevice{std::move(devplug_path), deviceSettings});
+            m_cmdDispatcher->submitCommand(new Command::AddDevice{std::move(devplug_path), deviceSettings});
         }
         else
         {
             Device::Node n{deviceSettings, nullptr};
             loadDeviceFromXML(path, n);
-            m_cmdDispatcher->submitCommand(new LoadDevice{std::move(devplug_path), std::move(n)});
+            m_cmdDispatcher->submitCommand(new Command::LoadDevice{std::move(devplug_path), std::move(n)});
         }
 
         blockGUI(false);
@@ -672,7 +671,7 @@ void DeviceExplorerWidget::removeNodes()
             nodes.append(&n);
     }
 
-    auto cmd = new RemoveNodes;
+    auto cmd = new Command::RemoveNodes;
     auto dev_model_path = iscore::IDocument::path(model()->deviceModel());
 
     // If two nodes have the same parent,
@@ -822,4 +821,5 @@ DeviceExplorerWidget::filterChanged()
 
     m_proxyModel->setFilterRegExp(regExp);
     m_proxyModel->setColumn(m_columnCBox->currentIndex());
+}
 }

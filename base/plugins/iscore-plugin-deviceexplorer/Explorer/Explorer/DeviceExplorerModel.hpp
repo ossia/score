@@ -19,15 +19,17 @@ namespace iscore
 {
     class CommandStackFacade;
 }
-
-class DeviceDocumentPlugin;
-class DeviceEditDialog;
-class DeviceExplorerView;
-
 namespace Device {
 struct DeviceSettings;
 struct AddressSettings;
 }
+
+
+namespace DeviceExplorer
+{
+class DeviceDocumentPlugin;
+class DeviceEditDialog;
+class DeviceExplorerView;
 
 class ISCORE_PLUGIN_DEVICEEXPLORER_EXPORT DeviceExplorerModel final : public NodeBasedItemModel
 {
@@ -174,3 +176,4 @@ ISCORE_PLUGIN_DEVICEEXPLORER_EXPORT DeviceExplorerModel& deviceExplorerFromObjec
 ISCORE_PLUGIN_DEVICEEXPLORER_EXPORT DeviceExplorerModel* try_deviceExplorerFromObject(const QObject&);
 ISCORE_PLUGIN_DEVICEEXPLORER_EXPORT DeviceExplorerModel* try_deviceExplorerFromContext(const iscore::DocumentContext& ctx);
 ISCORE_PLUGIN_DEVICEEXPLORER_EXPORT DeviceExplorerModel& deviceExplorerFromContext(const iscore::DocumentContext& ctx);
+}

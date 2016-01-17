@@ -35,6 +35,7 @@ MappingInspectorWidget::MappingInspectorWidget(
     ProcessInspectorWidgetDelegate_T {mappingModel, parent},
     m_dispatcher{doc.commandStack}
 {
+    using namespace DeviceExplorer;
     setObjectName("MappingInspectorWidget");
     setParent(parent);
 

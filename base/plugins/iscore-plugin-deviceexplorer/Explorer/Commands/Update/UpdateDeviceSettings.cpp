@@ -11,9 +11,12 @@
 #include <iscore/tools/ModelPathSerialization.hpp>
 #include <iscore/tools/TreeNode.hpp>
 
-using namespace iscore;
-using namespace DeviceExplorer::Command;
 
+
+namespace DeviceExplorer
+{
+namespace Command
+{
 UpdateDeviceSettings::UpdateDeviceSettings(
         Path<DeviceDocumentPlugin>&& device_tree,
         const QString &name,
@@ -56,4 +59,6 @@ void UpdateDeviceSettings::deserializeImpl(DataStreamOutput& d)
     d >> m_devicesModel
       >> m_oldParameters
       >> m_newParameters;
+}
+}
 }

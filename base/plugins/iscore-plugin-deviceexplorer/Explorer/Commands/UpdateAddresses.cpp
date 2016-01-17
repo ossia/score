@@ -13,9 +13,10 @@
 #include <iscore/tools/TreeNode.hpp>
 #include <iscore/tools/TreePath.hpp>
 
-using namespace DeviceExplorer::Command;
-using namespace iscore;
-
+namespace DeviceExplorer
+{
+namespace Command
+{
 // TODO this should not be a command, values can be updated without undo-ability.
 UpdateAddressesValues::UpdateAddressesValues(
         Path<DeviceExplorerModel>&& device_tree,
@@ -51,4 +52,6 @@ void UpdateAddressesValues::serializeImpl(DataStreamInput& d) const
 void UpdateAddressesValues::deserializeImpl(DataStreamOutput& d)
 {
     d >> m_deviceTree >> m_data;
+}
+}
 }

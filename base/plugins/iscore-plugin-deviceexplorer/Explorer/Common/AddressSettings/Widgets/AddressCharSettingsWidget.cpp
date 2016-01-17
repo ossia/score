@@ -11,6 +11,8 @@
 
 class QWidget;
 
+namespace DeviceExplorer
+{
 AddressCharSettingsWidget::AddressCharSettingsWidget(QWidget* parent)
     : AddressSettingsWidget(parent)
 {
@@ -33,4 +35,4 @@ AddressCharSettingsWidget::setSettings(const Device::AddressSettings &settings)
     setCommonSettings(settings);
     m_valueEdit->setText(State::convert::value<QChar>(settings.value));
 }
-
+}

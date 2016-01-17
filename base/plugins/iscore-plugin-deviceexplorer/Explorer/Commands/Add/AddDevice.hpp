@@ -6,8 +6,12 @@
 
 class DataStreamInput;
 class DataStreamOutput;
-class DeviceDocumentPlugin;
 
+namespace DeviceExplorer
+{
+class DeviceDocumentPlugin;
+namespace Command
+{
 class AddDevice final : public iscore::SerializableCommand
 {
         ISCORE_COMMAND_DECL(DeviceExplorerCommandFactoryName(), AddDevice, "Add a device")
@@ -27,3 +31,5 @@ class AddDevice final : public iscore::SerializableCommand
         Path<DeviceDocumentPlugin> m_devicesModel;
         Device::DeviceSettings m_parameters;
 };
+}
+}

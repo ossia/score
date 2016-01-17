@@ -13,6 +13,8 @@ class DocumentModel;
 
 }  // namespace iscore
 
+namespace DeviceExplorer
+{
 class DeviceExplorerPanelFactory final : public iscore::PanelFactory
 {
     public:
@@ -32,3 +34,4 @@ class DeviceExplorerPanelFactory final : public iscore::PanelFactory
                 const iscore::DocumentContext& ctx,
                 QObject* parent) override;
 };
+}

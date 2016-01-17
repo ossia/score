@@ -11,7 +11,10 @@
 #include "RecordData.hpp"
 #include <State/Address.hpp>
 
+namespace DeviceExplorer
+{
 class DeviceExplorerModel;
+}
 namespace RedoStrategy {
 struct Quiet;
 }  // namespace RedoStrategy
@@ -42,10 +45,10 @@ class RecordManager final : public QObject
 
     private:
         std::unique_ptr<RecordCommandDispatcher> m_dispatcher;
-        ListeningState m_savedListening;
+        DeviceExplorer::ListeningState m_savedListening;
         std::vector<QMetaObject::Connection> m_recordCallbackConnections;
 
-        DeviceExplorerModel* m_explorer{};
+        DeviceExplorer::DeviceExplorerModel* m_explorer{};
 
         QTimer m_recordTimer;
         std::chrono::steady_clock::time_point start_time_pt;

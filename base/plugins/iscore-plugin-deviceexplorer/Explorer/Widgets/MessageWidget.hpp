@@ -9,6 +9,8 @@ namespace State
 struct Message;
 }
 
+namespace DeviceExplorer
+{
 class DeviceExplorerModel;
 
 /**
@@ -31,3 +33,4 @@ class MessageWidget final : public QPushButton
         DeviceExplorerModel* m_model{};
         State::Message& m_message;
 };
+}

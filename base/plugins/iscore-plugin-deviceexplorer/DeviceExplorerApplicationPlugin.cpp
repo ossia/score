@@ -8,11 +8,10 @@
 #include <iscore/plugins/application/GUIApplicationContextPlugin.hpp>
 #include <core/document/DocumentModel.hpp>
 
-namespace iscore {
-
-}  // namespace iscore
 struct VisitorVariant;
 
+namespace DeviceExplorer
+{
 DeviceExplorerApplicationPlugin::DeviceExplorerApplicationPlugin(const iscore::ApplicationContext& app) :
     GUIApplicationContextPlugin {app, "DeviceExplorerApplicationPlugin", nullptr}
 {
@@ -51,5 +50,6 @@ void DeviceExplorerApplicationPlugin::on_documentChanged(
         auto& doc_plugin = newdoc->context().plugin<DeviceDocumentPlugin>();
         doc_plugin.setConnection(true);
     }
+}
 }
 

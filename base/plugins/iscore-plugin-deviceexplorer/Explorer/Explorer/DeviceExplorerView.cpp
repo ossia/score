@@ -32,6 +32,8 @@ namespace
     const QString HeaderViewSetting("DeviceExplorerView/HeaderView");
 }
 
+namespace DeviceExplorer
+{
 DeviceExplorerView::DeviceExplorerView(QWidget* parent)
     : QTreeView(parent),
       m_hasProxy(false)
@@ -322,4 +324,5 @@ DeviceExplorerView::setSelectedIndex(const QModelIndex& index)
     {
         return setCurrentIndex(static_cast<const QAbstractProxyModel*>(QTreeView::model())->mapFromSource(index));
     }
+}
 }
