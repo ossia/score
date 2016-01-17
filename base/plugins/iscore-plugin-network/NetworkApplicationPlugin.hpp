@@ -5,8 +5,6 @@
 #include <iscore/plugins/documentdelegate/plugin/DocumentDelegatePluginModel.hpp>
 #include <memory>
 
-class ClientSession;
-class ClientSessionBuilder;
 namespace iscore {
 
 class Document;
@@ -15,14 +13,15 @@ class MenubarManager;
 }  // namespace iscore
 struct VisitorVariant;
 
-namespace iscore
-{
-}
 
+namespace Network
+{
 #ifdef USE_ZEROCONF
 class ZeroconfBrowser;
 #endif
 
+class ClientSession;
+class ClientSessionBuilder;
 class NetworkApplicationPlugin : public QObject, public iscore::GUIApplicationContextPlugin
 {
         Q_OBJECT
@@ -46,3 +45,4 @@ class NetworkApplicationPlugin : public QObject, public iscore::GUIApplicationCo
         ZeroconfBrowser* m_zeroconfBrowser{};
 #endif
 };
+}

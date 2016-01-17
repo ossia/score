@@ -19,6 +19,8 @@
 #include "session/../client/RemoteClient.hpp"
 #include "session/ClientSession.hpp"
 
+namespace Network
+{
 
 ClientNetworkPolicy::ClientNetworkPolicy(
         ClientSession* s,
@@ -103,4 +105,5 @@ ClientNetworkPolicy::ClientNetworkPolicy(
         stream >> data;
         m_document->locker().on_unlock(data);
     });
+}
 }

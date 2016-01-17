@@ -1,7 +1,8 @@
 #pragma once
 #include "Client.hpp"
 #include <Serialization/NetworkSocket.hpp>
-
+namespace Network
+{
 // Has a TCP socket for exchange with this client.
 class RemoteClient : public Client
 {
@@ -35,3 +36,4 @@ class RemoteClient : public Client
         NetworkSocket* m_socket{};
 };
 
+}

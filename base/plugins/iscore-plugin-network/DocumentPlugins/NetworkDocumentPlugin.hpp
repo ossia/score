@@ -9,11 +9,8 @@
 #include <iscore/serialization/JSONVisitor.hpp>
 
 class DataStream;
-class GroupManager;
-class GroupMetadata;
 class JSONObject;
 class QWidget;
-class Session;
 struct VisitorVariant;
 
 namespace iscore
@@ -21,7 +18,12 @@ namespace iscore
     class Document;
 }
 
-class iscore_plugin_networkPolicy : public QObject
+namespace Network
+{
+class Session;
+class GroupManager;
+class GroupMetadata;
+class NetworkPolicyInterface : public QObject
 {
     public:
         using QObject::QObject;
@@ -35,12 +37,12 @@ class NetworkDocumentPlugin : public iscore::DocumentPluginModel
         ISCORE_SERIALIZE_FRIENDS(NetworkDocumentPlugin, DataStream)
         ISCORE_SERIALIZE_FRIENDS(NetworkDocumentPlugin, JSONObject)
     public:
-        NetworkDocumentPlugin(iscore_plugin_networkPolicy* policy, iscore::Document& doc);
+        NetworkDocumentPlugin(NetworkPolicyInterface* policy, iscore::Document& doc);
 
         // Loading has to be in two steps since the plugin policy is different from the client
         // and server.
         NetworkDocumentPlugin(const VisitorVariant& loader, iscore::Document& doc);
-        void setPolicy(iscore_plugin_networkPolicy*);
+        void setPolicy(NetworkPolicyInterface*);
 
         std::vector<iscore::ElementPluginModelType> elementPlugins() const override;
 
@@ -68,7 +70,7 @@ class NetworkDocumentPlugin : public iscore::DocumentPluginModel
         GroupManager* groupManager() const
         { return m_groups; }
 
-        iscore_plugin_networkPolicy* policy() const
+        NetworkPolicyInterface* policy() const
         { return m_policy; }
 
     signals:
@@ -77,8 +79,9 @@ class NetworkDocumentPlugin : public iscore::DocumentPluginModel
     private:
         void setupGroupPlugin(GroupMetadata* grp);
 
-        iscore_plugin_networkPolicy* m_policy{};
+        NetworkPolicyInterface* m_policy{};
         GroupManager* m_groups{};
 
 };
+}
 

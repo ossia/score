@@ -3,6 +3,8 @@
 
 class QCheckBox;
 
+namespace Network
+{
 class GroupTableCheckbox : public QWidget
 {
         Q_OBJECT
@@ -21,3 +23,4 @@ class GroupTableCheckbox : public QWidget
         QCheckBox* m_cb;
 
 };
+}

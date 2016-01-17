@@ -3,6 +3,9 @@
 #include <iscore/tools/SettableIdentifier.hpp>
 #include <QTableWidget>
 
+
+namespace Network
+{
 class Group;
 
 class GroupHeaderItem : public QTableWidgetItem
@@ -12,3 +15,4 @@ class GroupHeaderItem : public QTableWidgetItem
 
         const Id<Group> group;
 };
+}

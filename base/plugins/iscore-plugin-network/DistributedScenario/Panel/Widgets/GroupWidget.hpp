@@ -2,6 +2,9 @@
 #include <iscore/tools/SettableIdentifier.hpp>
 #include <QWidget>
 
+
+namespace Network
+{
 class Group;
 
 class GroupWidget : public QWidget
@@ -14,3 +17,4 @@ class GroupWidget : public QWidget
     private:
         Group* m_group;
 };
+}

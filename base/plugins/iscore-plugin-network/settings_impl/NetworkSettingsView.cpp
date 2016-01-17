@@ -7,8 +7,8 @@
 
 class QObject;
 
-using namespace iscore;
-
+namespace Network
+{
 NetworkSettingsView::NetworkSettingsView(QObject* parent) :
     iscore::SettingsDelegateViewInterface {parent}
 {
@@ -115,4 +115,5 @@ void NetworkSettingsView::on_clientNameChanged()
 NetworkSettingsPresenter* NetworkSettingsView::presenter()
 {
     return static_cast<NetworkSettingsPresenter*>(m_presenter);
+}
 }

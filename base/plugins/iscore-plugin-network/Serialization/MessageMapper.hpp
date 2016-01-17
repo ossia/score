@@ -4,6 +4,8 @@
 #include <QString>
 #include <functional>
 
+namespace Network
+{
 struct NetworkMessage;
 
 class MessageMapper
@@ -16,3 +18,4 @@ class MessageMapper
     private:
         QMap<QString, std::function<void(NetworkMessage)>> m_handlers;
 };
+}

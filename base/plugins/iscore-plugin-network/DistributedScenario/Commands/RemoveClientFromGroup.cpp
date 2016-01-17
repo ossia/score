@@ -7,7 +7,10 @@
 #include <iscore/serialization/DataStreamVisitor.hpp>
 #include <iscore/tools/ObjectPath.hpp>
 
-
+namespace Network
+{
+namespace Command
+{
 RemoveClientFromGroup::RemoveClientFromGroup(ObjectPath&& groupMgrPath, Id<Client> client, Id<Group> group):
     m_path{std::move(groupMgrPath)},
     m_client{client},
@@ -33,4 +36,6 @@ void RemoveClientFromGroup::serializeImpl(DataStreamInput& s) const
 void RemoveClientFromGroup::deserializeImpl(DataStreamOutput& s)
 {
     s >> m_path >> m_client >> m_group;
+}
+}
 }

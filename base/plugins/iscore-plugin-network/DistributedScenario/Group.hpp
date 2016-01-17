@@ -8,12 +8,15 @@
 #include <iscore/serialization/DataStreamVisitor.hpp>
 #include <iscore/serialization/JSONVisitor.hpp>
 
-class Client;
 class DataStream;
 class JSONObject;
 class QObject;
 
 
+namespace Network
+{
+
+class Client;
 // Groups : registered in the session
 // Permissions ? for now we will just have, for each constraint in a score,
 // a chosen group.
@@ -57,3 +60,4 @@ class Group : public IdentifiedObject<Group>
 
         QVector<Id<Client>> m_executingClients;
 };
+}

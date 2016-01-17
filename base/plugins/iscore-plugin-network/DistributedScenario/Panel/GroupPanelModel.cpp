@@ -8,6 +8,8 @@
 #include <core/document/DocumentModel.hpp>
 
 
+namespace Network
+{
 GroupPanelModel::GroupPanelModel(
         const iscore::DocumentContext& ctx,
         QObject* parent):
@@ -61,4 +63,5 @@ void GroupPanelModel::scanPlugins(const iscore::DocumentContext& ctx)
 int GroupPanelModel::panelId() const
 {
     return GROUP_PANEL_ID;
+}
 }

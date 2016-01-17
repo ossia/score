@@ -3,6 +3,9 @@
 #include "MessageMapper.hpp"
 #include "Serialization/NetworkMessage.hpp"
 
+namespace Network
+{
+
 void MessageMapper::addHandler(QString addr, std::function<void(NetworkMessage)> fun)
 {
     ISCORE_ASSERT(!m_handlers.contains(addr));
@@ -23,4 +26,5 @@ void MessageMapper::map(NetworkMessage m)
 QList<QString> MessageMapper::addresses() const
 {
     return m_handlers.keys();
+}
 }

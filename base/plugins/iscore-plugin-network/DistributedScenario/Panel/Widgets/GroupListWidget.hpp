@@ -1,12 +1,15 @@
 #pragma once
 #include <QList>
 #include <QWidget>
+#include <iscore/tools/SettableIdentifier.hpp>
+
+
+namespace Network
+{
 
 class Group;
 class GroupManager;
 class GroupWidget;
-#include <iscore/tools/SettableIdentifier.hpp>
-
 class GroupListWidget : public QWidget
 {
     public:
@@ -19,3 +22,4 @@ class GroupListWidget : public QWidget
         const GroupManager* m_mgr{};
         QList<GroupWidget*> m_widgets;
 };
+}

@@ -9,7 +9,8 @@ namespace iscore {
 class SettingsPresenter;
 }  // namespace iscore
 
-
+namespace Network
+{
 class NetworkSettings : public iscore::SettingsDelegateFactoryInterface
 {
     public:
@@ -24,4 +25,4 @@ class NetworkSettings : public iscore::SettingsDelegateFactoryInterface
                 iscore::SettingsDelegateViewInterface* v) override;
         iscore::SettingsDelegateModelInterface* makeModel() override;
 };
-
+}

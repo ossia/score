@@ -9,6 +9,9 @@
 #include <QPair>
 #include <QString>
 
+
+namespace Network
+{
 class Client;
 class ClientSession;
 class NetworkSocket;
@@ -49,3 +52,4 @@ class ClientSessionBuilder : public QObject
 
         ClientSession* m_session{};
 };
+}

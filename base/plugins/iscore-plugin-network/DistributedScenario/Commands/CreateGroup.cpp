@@ -9,6 +9,10 @@
 #include <iscore/tools/ObjectPath.hpp>
 
 
+namespace Network
+{
+namespace Command
+{
 CreateGroup::CreateGroup(ObjectPath&& groupMgrPath, QString groupName):
     m_path{groupMgrPath},
     m_name{groupName}
@@ -36,4 +40,6 @@ void CreateGroup::serializeImpl(DataStreamInput& s) const
 void CreateGroup::deserializeImpl(DataStreamOutput& s)
 {
     s >> m_path >> m_name >> m_newGroupId;
+}
+}
 }

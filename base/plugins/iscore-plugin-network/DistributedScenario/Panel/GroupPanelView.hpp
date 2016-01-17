@@ -3,14 +3,14 @@
 
 #include <QString>
 
-class GroupManager;
 class QObject;
 class QWidget;
-class Session;
 
-namespace iscore
+
+namespace Network
 {
-}
+class Session;
+class GroupManager;
 
 class GroupPanelView : public iscore::PanelView
 {
@@ -30,3 +30,4 @@ class GroupPanelView : public iscore::PanelView
     private:
         QWidget* m_widget{}, *m_subWidget{};
 };
+}

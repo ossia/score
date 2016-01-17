@@ -4,6 +4,9 @@
 #include <QMetaType>
 
 class QDataStream;
+namespace Network
+{
+
 class Session;
 
 struct NetworkMessage
@@ -19,6 +22,6 @@ struct NetworkMessage
         int clientId{};
         QByteArray data;
 };
+}
 
-
-Q_DECLARE_METATYPE(NetworkMessage)
+Q_DECLARE_METATYPE(Network::NetworkMessage)

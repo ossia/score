@@ -19,6 +19,9 @@
 #include <core/document/Document.hpp>
 #include "session/MasterSession.hpp"
 
+namespace Network
+{
+
 class Client;
 
 MasterNetworkPolicy::MasterNetworkPolicy(MasterSession* s,
@@ -115,5 +118,6 @@ MasterNetworkPolicy::MasterNetworkPolicy(MasterSession* s,
         c.objectLocker.on_unlock(data);
         m_session->transmit(Id<Client>(m.clientId), m);
     });
+}
 }
 

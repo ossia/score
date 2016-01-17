@@ -5,7 +5,8 @@
 #include <iscore/plugins/settingsdelegate/SettingsDelegateModelInterface.hpp>
 
 using namespace iscore;
-
+namespace Network
+{
 NetworkSettingsModel::NetworkSettingsModel() :
     iscore::SettingsDelegateModelInterface {}
 {
@@ -72,4 +73,5 @@ void NetworkSettingsModel::setFirstTimeSettings()
     s.setValue(SETTINGS_CLIENTNAME, "i-score client");
     s.setValue(SETTINGS_CLIENTPORT, 7888);
     s.setValue(SETTINGS_MASTERPORT, 5678);
+}
 }

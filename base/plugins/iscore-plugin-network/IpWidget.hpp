@@ -7,6 +7,9 @@ class QLineEdit;
 class QObject;
 class QWidget;
 
+
+namespace Network
+{
 // Found on stackoverflow :
 // http://stackoverflow.com/questions/9306335/an-ip-address-widget-for-qt-similar-to-mfcs-ip-address-control
 class IpWidget : public QFrame
@@ -36,3 +39,4 @@ class IpWidget : public QFrame
         void MovePrevLineEdit (int i);
 };
 
+}

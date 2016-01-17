@@ -10,6 +10,8 @@
 #include "GroupWidget.hpp"
 #include <iscore/tools/SettableIdentifier.hpp>
 
+namespace Network
+{
 GroupWidget::GroupWidget(Group* group, QWidget* parent):
     QWidget{parent},
     m_group{group}
@@ -29,4 +31,5 @@ GroupWidget::GroupWidget(Group* group, QWidget* parent):
 Id<Group> GroupWidget::id() const
 {
     return m_group->id();
+}
 }

@@ -11,6 +11,8 @@ namespace iscore
 #define SETTINGS_MASTERPORT "iscore_plugin_network/MasterPort"
 #define SETTINGS_CLIENTNAME "iscore_plugin_network/ClientName"
 
+namespace Network
+{
 class NetworkSettingsModel : public iscore::SettingsDelegateModelInterface
 {
         Q_OBJECT
@@ -37,3 +39,4 @@ class NetworkSettingsModel : public iscore::SettingsDelegateModelInterface
         int clientPort;
         QString clientName;
 };
+}

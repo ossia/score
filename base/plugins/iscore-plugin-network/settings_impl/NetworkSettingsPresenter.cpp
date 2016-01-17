@@ -16,6 +16,8 @@ class SettingsPresenter;
 
 using namespace iscore;
 
+namespace Network
+{
 NetworkSettingsPresenter::NetworkSettingsPresenter(SettingsPresenter* parent,
         SettingsDelegateModelInterface* model,
         SettingsDelegateViewInterface* view) :
@@ -164,4 +166,5 @@ NetworkSettingsView* NetworkSettingsPresenter::view()
 QIcon NetworkSettingsPresenter::settingsIcon()
 {
     return QApplication::style()->standardIcon(QStyle::SP_DriveNetIcon);
+}
 }

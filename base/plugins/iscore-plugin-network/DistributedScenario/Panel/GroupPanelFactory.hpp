@@ -13,6 +13,8 @@ class DocumentModel;
 
 }  // namespace iscore
 
+namespace Network
+{
 class GroupPanelFactory : public iscore::PanelFactory
 {
     public:
@@ -29,3 +31,4 @@ class GroupPanelFactory : public iscore::PanelFactory
                 const iscore::DocumentContext& ctx,
                 QObject* parent) override;
 };
+}

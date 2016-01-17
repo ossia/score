@@ -8,8 +8,12 @@
 
 class DataStreamInput;
 class DataStreamOutput;
-class Group;
 
+namespace Network
+{
+class Group;
+namespace Command
+{
 class ChangeGroup : public iscore::SerializableCommand
 {
         ISCORE_COMMAND_DECL(DistributedScenarioCommandFactoryName(), ChangeGroup, "Change the group of an element")
@@ -27,3 +31,5 @@ class ChangeGroup : public iscore::SerializableCommand
         ObjectPath m_path;
         Id<Group> m_newGroup, m_oldGroup;
 };
+}
+}

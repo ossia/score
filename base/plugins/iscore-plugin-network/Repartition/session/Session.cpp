@@ -8,6 +8,8 @@
 
 class QObject;
 
+namespace Network
+{
 Session::Session(LocalClient* client, Id<Session> id, QObject* parent):
     IdentifiedObject<Session>{id, "Session", parent},
     m_client{client},
@@ -38,4 +40,5 @@ void Session::validateMessage(NetworkMessage m)
 {
     if(validator().validate(m))
         mapper().map(m);
+}
 }

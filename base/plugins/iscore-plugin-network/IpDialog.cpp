@@ -10,6 +10,8 @@
 #include "IpDialog.hpp"
 #include "IpWidget.hpp"
 
+namespace Network
+{
 IpDialog::IpDialog(QWidget *parent)
 {
     setLayout(new QVBoxLayout);
@@ -52,4 +54,5 @@ void IpDialog::rejected()
 {
     m_port = 0;
     reject();
+}
 }

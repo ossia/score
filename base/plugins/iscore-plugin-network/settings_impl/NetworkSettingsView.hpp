@@ -5,9 +5,10 @@
 #include <QString>
 #include <QWidget>
 
-class NetworkSettingsPresenter;
 class QObject;
-
+namespace Network
+{
+class NetworkSettingsPresenter;
 class NetworkSettingsView : public iscore::SettingsDelegateViewInterface
 {
         Q_OBJECT
@@ -41,3 +42,4 @@ class NetworkSettingsView : public iscore::SettingsDelegateViewInterface
         QString m_previousClientName {};
 
 };
+}

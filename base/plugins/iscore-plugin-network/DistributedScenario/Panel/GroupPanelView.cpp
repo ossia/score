@@ -17,7 +17,12 @@
 #include <iscore/plugins/panel/PanelView.hpp>
 #include <iscore/tools/ObjectPath.hpp>
 #include <iscore/document/DocumentContext.hpp>
+#include "DistributedScenario/GroupManager.hpp"
+#include "Repartition/session/Session.hpp"
 
+
+namespace Network
+{
 static const iscore::DefaultPanelStatus status{false, Qt::RightDockWidgetArea, 1, QObject::tr("Groups")};
 const iscore::DefaultPanelStatus &GroupPanelView::defaultPanelStatus() const
 {
@@ -36,9 +41,6 @@ QWidget*GroupPanelView::getWidget()
 {
     return m_widget;
 }
-
-#include "DistributedScenario/GroupManager.hpp"
-#include "Repartition/session/Session.hpp"
 
 void GroupPanelView::setView(const GroupManager* mgr,
                              const Session* session)
@@ -66,7 +68,7 @@ void GroupPanelView::setView(const GroupManager* mgr,
                                              tr("Group name:"), QLineEdit::Normal, "", &ok);
         if (ok && !text.isEmpty())
         {
-            auto cmd = new CreateGroup{ObjectPath{mgrpath}, text};
+            auto cmd = new Command::CreateGroup{ObjectPath{mgrpath}, text};
 
             CommandDispatcher<> dispatcher{
                 iscore::IDocument::documentContext(*mgr).commandStack
@@ -84,4 +86,5 @@ void GroupPanelView::setEmptyView()
 {
     delete m_subWidget;
     m_subWidget = nullptr;
+}
 }

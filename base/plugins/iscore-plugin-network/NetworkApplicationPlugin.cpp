@@ -32,11 +32,13 @@
 
 #include "IpDialog.hpp"
 
-class Client;
-class Session;
+
 struct VisitorVariant;
 
-using namespace iscore;
+namespace Network
+{
+class Client;
+class Session;
 
 NetworkApplicationPlugin::NetworkApplicationPlugin(const iscore::ApplicationContext& app) :
     GUIApplicationContextPlugin {app, "NetworkApplicationPlugin", nullptr}
@@ -48,8 +50,9 @@ NetworkApplicationPlugin::NetworkApplicationPlugin(const iscore::ApplicationCont
 #endif
 }
 
-void NetworkApplicationPlugin::populateMenus(MenubarManager* menu)
+void NetworkApplicationPlugin::populateMenus(iscore::MenubarManager* menu)
 {
+    using namespace iscore;
 #ifdef USE_ZEROCONF
     menu->insertActionIntoToplevelMenu(ToplevelMenuElement::FileMenu,
                                        FileMenuElement::Separator_Load,
@@ -108,12 +111,14 @@ void NetworkApplicationPlugin::setupClientConnection(QString ip, int port)
     m_sessionBuilder->initiateConnection();
 }
 
-DocumentPluginModel *NetworkApplicationPlugin::loadDocumentPlugin(const QString &name,
-                                                                const VisitorVariant &var,
-                                                                iscore::Document* parent)
+iscore::DocumentPluginModel *NetworkApplicationPlugin::loadDocumentPlugin(
+        const QString &name,
+        const VisitorVariant &var,
+        iscore::Document* parent)
 {
     if(name != NetworkDocumentPlugin::staticMetaObject.className())
         return nullptr;
 
     return new NetworkDocumentPlugin{var, *parent};
+}
 }

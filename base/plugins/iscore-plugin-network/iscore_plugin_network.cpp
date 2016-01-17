@@ -31,12 +31,12 @@ iscore::SettingsDelegateFactoryInterface* iscore_plugin_network::settings_make()
 */
 iscore::GUIApplicationContextPlugin* iscore_plugin_network::make_applicationPlugin(const iscore::ApplicationContext& app)
 {
-    return new NetworkApplicationPlugin{app};
+    return new Network::NetworkApplicationPlugin{app};
 }
 
 std::vector<iscore::PanelFactory*> iscore_plugin_network::panels()
 {
-    return {new GroupPanelFactory};
+    return {new Network::GroupPanelFactory};
 }
 
 
@@ -45,7 +45,10 @@ std::vector<iscore::PanelFactory*> iscore_plugin_network::panels()
 
 std::pair<const CommandParentFactoryKey, CommandGeneratorMap> iscore_plugin_network::make_commands()
 {
-    std::pair<const CommandParentFactoryKey, CommandGeneratorMap> cmds{DistributedScenarioCommandFactoryName(), CommandGeneratorMap{}};
+    using namespace Network;
+    using namespace Network::Command;
+    std::pair<const CommandParentFactoryKey, CommandGeneratorMap> cmds{
+        DistributedScenarioCommandFactoryName(), CommandGeneratorMap{}};
 
     using Types = TypeList<
 #include <iscore_plugin_network_commands.hpp>

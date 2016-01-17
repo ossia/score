@@ -25,6 +25,8 @@
 #include "session/../client/RemoteClient.hpp"
 #include "session/Session.hpp"
 
+namespace Network
+{
 GroupTableWidget::GroupTableWidget(
         const GroupManager* mgr,
         const Session* session,
@@ -129,13 +131,14 @@ void GroupTableWidget::on_checkboxChanged(int i, int j, int state)
     if(state)
     {
         if(client_is_in_group) return;
-        auto cmd = new AddClientToGroup(ObjectPath{m_managerPath}, client, group);
+        auto cmd = new Command::AddClientToGroup(ObjectPath{m_managerPath}, client, group);
         m_dispatcher.submitCommand(cmd);
     }
     else
     {
         if(!client_is_in_group) return;
-        auto cmd = new RemoveClientFromGroup(ObjectPath{m_managerPath}, client, group);
+        auto cmd = new Command::RemoveClientFromGroup(ObjectPath{m_managerPath}, client, group);
         m_dispatcher.submitCommand(cmd);
     }
+}
 }

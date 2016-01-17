@@ -8,6 +8,8 @@ class Client;
 class QObject;
 
 
+namespace Network
+{
 Group::Group(QString name, Id<Group> id, QObject* parent):
     IdentifiedObject<Group>{id, "Group", parent},
     m_name{name}
@@ -42,4 +44,5 @@ void Group::removeClient(Id<Client> clt)
 
     m_executingClients.erase(it);
     emit clientRemoved(clt);
+}
 }

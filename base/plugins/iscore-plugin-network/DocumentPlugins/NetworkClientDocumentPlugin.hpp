@@ -8,7 +8,9 @@ class Document;
 }  // namespace iscore
 
 // MOVEME
-class ClientNetworkPolicy : public iscore_plugin_networkPolicy
+namespace Network
+{
+class ClientNetworkPolicy : public NetworkPolicyInterface
 {
     public:
         ClientNetworkPolicy(ClientSession* s, iscore::Document* doc);
@@ -20,5 +22,4 @@ class ClientNetworkPolicy : public iscore_plugin_networkPolicy
         ClientSession* m_session{};
         iscore::Document* m_document{};
 };
-
-
+}

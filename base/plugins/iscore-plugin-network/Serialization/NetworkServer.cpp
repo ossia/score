@@ -7,7 +7,8 @@
 
 #include "NetworkServer.hpp"
 
-
+namespace Network
+{
 NetworkServer::NetworkServer(int port, QObject* parent):
     QObject{parent}
 {
@@ -51,4 +52,5 @@ NetworkServer::NetworkServer(int port, QObject* parent):
 int NetworkServer::port() const
 {
     return m_tcpServer->serverPort();
+}
 }
