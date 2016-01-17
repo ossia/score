@@ -4,9 +4,7 @@ set(ISCORE_PLUGINS_TO_BUILD
 
 iscore-plugin-pluginsettings
 iscore-plugin-mapping
-iscore-plugin-staticanalysis
 iscore-plugin-library
-iscore-plugin-network
 
 iscore-component-executor-mapping
 )
