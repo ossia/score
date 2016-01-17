@@ -12,7 +12,7 @@ class Document;
 
 namespace Scenario
 {
-class TimeNodeInspectorFactory final : public InspectorWidgetFactory
+class TimeNodeInspectorFactory final : public Inspector::InspectorWidgetFactory
 {
     public:
         TimeNodeInspectorFactory() :
@@ -21,7 +21,7 @@ class TimeNodeInspectorFactory final : public InspectorWidgetFactory
 
         }
 
-        InspectorWidgetBase* makeWidget(
+        Inspector::InspectorWidgetBase* makeWidget(
                 const QObject& sourceElement,
                 const iscore::DocumentContext& doc,
                 QWidget* parent) const override;

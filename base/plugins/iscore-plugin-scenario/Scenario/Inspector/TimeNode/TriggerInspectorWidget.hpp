@@ -4,7 +4,10 @@
 
 #include <State/Expression.hpp>
 
+namespace Inspector
+{
 class InspectorWidgetBase;
+}
 class QPushButton;
 
 namespace Scenario
@@ -21,7 +24,7 @@ class TriggerInspectorWidget final : public QWidget
         TriggerInspectorWidget(
                 const Command::TriggerCommandFactoryList& fact,
                 const TimeNodeModel& object,
-                InspectorWidgetBase* parent);
+                Inspector::InspectorWidgetBase* parent);
 
         void on_triggerChanged();
 
@@ -37,7 +40,7 @@ class TriggerInspectorWidget final : public QWidget
         const Command::TriggerCommandFactoryList& m_triggerCommandFactory;
         const TimeNodeModel& m_model;
 
-        InspectorWidgetBase* m_parent;
+        Inspector::InspectorWidgetBase* m_parent;
 
         QPushButton* m_addTrigBtn{};
         QPushButton* m_rmTrigBtn{};

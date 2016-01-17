@@ -2,7 +2,6 @@
 #include <Inspector/InspectorWidgetFactoryInterface.hpp>
 #include <QList>
 
-class InspectorWidgetBase;
 class QObject;
 class QString;
 class QWidget;
@@ -13,12 +12,12 @@ class Document;
 
 namespace Automation
 {
-class StateInspectorFactory final : public InspectorWidgetFactory
+class StateInspectorFactory final : public Inspector::InspectorWidgetFactory
 {
     public:
         StateInspectorFactory();
 
-        InspectorWidgetBase* makeWidget(
+        Inspector::InspectorWidgetBase* makeWidget(
                 const QObject& sourceElement,
                 const iscore::DocumentContext& doc,
                 QWidget* parent) const override;

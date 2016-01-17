@@ -4,6 +4,8 @@
 
 #include "Separator.hpp"
 
+namespace Inspector
+{
 Separator::Separator(QWidget *parent) :
     QWidget {parent}
 {
@@ -18,4 +20,5 @@ Separator::Separator(QWidget *parent) :
 Separator::~Separator()
 {
 
+}
 }

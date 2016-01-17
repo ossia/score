@@ -4,7 +4,6 @@
 #include <QString>
 #include <iscore_lib_inspector_export.h>
 
-class InspectorWidgetBase;
 class QObject;
 class QWidget;
 template <typename T> class QList;
@@ -15,6 +14,9 @@ struct DocumentContext;
 }
 
 
+namespace Inspector
+{
+class InspectorWidgetBase;
 /**
      * @brief The InspectorWidgetFactoryInterface class
      *
@@ -45,3 +47,4 @@ class ISCORE_LIB_INSPECTOR_EXPORT InspectorWidgetFactory : public iscore::Generi
 
         bool matches(const QString& objectName) const;
 };
+}

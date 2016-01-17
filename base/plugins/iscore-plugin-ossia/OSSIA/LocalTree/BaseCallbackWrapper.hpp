@@ -1,6 +1,10 @@
 #pragma once
 #include "BaseProperty.hpp"
 
+namespace Ossia
+{
+namespace LocalTree
+{
 class ISCORE_PLUGIN_OSSIA_EXPORT BaseCallbackWrapper : public BaseProperty
 {
     public:
@@ -12,3 +16,5 @@ class ISCORE_PLUGIN_OSSIA_EXPORT BaseCallbackWrapper : public BaseProperty
 
         OSSIA::Address::iterator callbackIt{};
 };
+}
+}

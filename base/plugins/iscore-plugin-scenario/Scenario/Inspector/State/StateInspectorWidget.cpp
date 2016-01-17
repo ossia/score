@@ -64,7 +64,7 @@ void StateInspectorWidget::updateDisplayedValues()
     auto event = m_model.eventId();
 
     // State setup
-    m_stateSection = new InspectorSectionWidget{"States", false, this};
+    m_stateSection = new Inspector::InspectorSectionWidget{"States", false, this};
     auto tv = new MessageTreeView{m_model,
                                 m_stateSection};
 

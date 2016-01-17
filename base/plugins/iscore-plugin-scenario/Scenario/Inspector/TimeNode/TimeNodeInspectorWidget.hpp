@@ -4,7 +4,10 @@
 #include <list>
 #include <vector>
 
+namespace Inspector
+{
 class InspectorSectionWidget;
+}
 class QLabel;
 class QWidget;
 namespace iscore {
@@ -22,7 +25,7 @@ class TimeNodeModel;
  * \brief The TimeNodeInspectorWidget class
  *      Inherits from InspectorWidgetInterface. Manages an inteface for an TimeNode (Timebox) element.
  */
-class TimeNodeInspectorWidget final : public InspectorWidgetBase
+class TimeNodeInspectorWidget final : public Inspector::InspectorWidgetBase
 {
     public:
         explicit TimeNodeInspectorWidget(
@@ -39,7 +42,7 @@ class TimeNodeInspectorWidget final : public InspectorWidgetBase
 
         const TimeNodeModel& m_model;
 
-        InspectorSectionWidget* m_eventList {};
+        Inspector::InspectorSectionWidget* m_eventList {};
         QLabel* m_date {};
 
         MetadataWidget* m_metadata {};

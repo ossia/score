@@ -3,6 +3,11 @@
 #include <OSSIA/iscore2OSSIA.hpp>
 #include <OSSIA/OSSIA2iscore.hpp>
 
+
+namespace Ossia
+{
+namespace LocalTree
+{
 template<
         typename T,
         typename Object,
@@ -94,4 +99,6 @@ auto add_getProperty(
                                             OSSIA::AccessMode::GET);
 
     return make_getProperty(node, node->getAddress(), QtGetProperty<T, Object, PropGet, PropChanged>{*obj, get, chgd}, context);
+}
+}
 }

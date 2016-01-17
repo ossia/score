@@ -7,6 +7,9 @@
 
 class QWidget;
 
+
+namespace Inspector
+{
 InspectorWidgetBase* InspectorWidgetList::makeInspectorWidget(
         const QString& name,
         const IdentifiedObjectAbstract& model,
@@ -26,4 +29,5 @@ InspectorWidgetBase* InspectorWidgetList::makeInspectorWidget(
 
     // When no factory is found.
     return new InspectorWidgetBase{model, doc, nullptr};
+}
 }

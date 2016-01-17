@@ -168,7 +168,7 @@ std::vector<std::unique_ptr<iscore::FactoryInterfaceBase>> iscore_plugin_scenari
         BaseScenarioDisplayedElementsProvider>
 #if defined(ISCORE_LIB_INSPECTOR)
     ,
-    FW<InspectorWidgetFactory,
+    FW<Inspector::InspectorWidgetFactory,
         ConstraintInspectorFactory,
         StateInspectorFactory,
         EventInspectorFactory,

@@ -15,7 +15,7 @@ struct DummyFactory
         using view = DummyLayerView;
 };
 
-class DummyInspectorWidget final : public InspectorWidgetBase
+class DummyInspectorWidget final : public Inspector::InspectorWidgetBase
 {
 
 };

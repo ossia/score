@@ -3,7 +3,10 @@
 #include <Network/Node.h>
 #include <iscore_plugin_ossia_export.h>
 
-
+namespace Ossia
+{
+namespace LocalTree
+{
 class ISCORE_PLUGIN_OSSIA_EXPORT BaseProperty
 {
     public:
@@ -21,3 +24,5 @@ class ISCORE_PLUGIN_OSSIA_EXPORT BaseProperty
 
         virtual ~BaseProperty();
 };
+}
+}

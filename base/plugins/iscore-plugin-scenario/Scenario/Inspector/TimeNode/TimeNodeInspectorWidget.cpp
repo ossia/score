@@ -64,7 +64,7 @@ TimeNodeInspectorWidget::TimeNodeInspectorWidget(
 
 
     // Events ids list
-    m_eventList = new InspectorSectionWidget{"Events", false, this};
+    m_eventList = new Inspector::InspectorSectionWidget{"Events", false, this};
 
     m_properties.push_back(dateWid);
     m_properties.push_back(new QLabel{tr("Trigger")});

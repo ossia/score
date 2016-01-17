@@ -11,7 +11,7 @@ class Document;
 namespace Automation
 {
 class ProcessState;
-class StateInspectorWidget final : public InspectorWidgetBase
+class StateInspectorWidget final : public Inspector::InspectorWidgetBase
 {
     public:
         explicit StateInspectorWidget(

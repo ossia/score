@@ -3,6 +3,10 @@
 #include <OSSIA/iscore2OSSIA.hpp>
 #include <OSSIA/OSSIA2iscore.hpp>
 
+namespace Ossia
+{
+namespace LocalTree
+{
 template<typename T, typename SetFun>
 struct SetPropertyWrapper : public BaseCallbackWrapper
 {
@@ -44,4 +48,6 @@ auto add_setProperty(OSSIA::Node& n, const std::string& name, Callback cb)
                                             OSSIA::AccessMode::SET);
 
     return make_setProperty<T>(node, node->getAddress(), cb);
+}
+}
 }

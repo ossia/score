@@ -14,9 +14,12 @@ namespace iscore
 {
 }
 
+namespace Inspector
+{
 class InspectorWidgetBase;
 
-class ISCORE_LIB_INSPECTOR_EXPORT InspectorWidgetList final : public iscore::FactoryListInterface
+class ISCORE_LIB_INSPECTOR_EXPORT InspectorWidgetList final :
+        public iscore::FactoryListInterface
 {
     public:
         static const iscore::FactoryBaseKey& staticFactoryKey() {
@@ -42,3 +45,4 @@ class ISCORE_LIB_INSPECTOR_EXPORT InspectorWidgetList final : public iscore::Fac
     private:
         OwningVector<InspectorWidgetFactory> m_list;
 };
+}

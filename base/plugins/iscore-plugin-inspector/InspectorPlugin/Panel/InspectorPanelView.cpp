@@ -50,7 +50,7 @@ void InspectorPanelView::setCurrentDocument(iscore::Document* doc)
     if(doc)
     {
         auto& appContext = doc->context().app;
-        auto& fact = appContext.components.factory<InspectorWidgetList>();
+        auto& fact = appContext.components.factory<Inspector::InspectorWidgetList>();
         m_stack = new SelectionStackWidget{doc->selectionStack(), m_widget};
         m_inspectorPanel = new InspectorPanel{fact, doc->context().selectionStack, m_widget};
 

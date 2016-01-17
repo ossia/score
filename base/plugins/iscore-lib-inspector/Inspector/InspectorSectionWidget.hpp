@@ -8,9 +8,8 @@ class QPushButton;
 class QToolButton;
 class QVBoxLayout;
 
-namespace iscore
+namespace Inspector
 {
-}
 /** @brief InspectorSectionWidget is widget that can fold or unfold his content.
  *
  * A header with a name is always displayed.
@@ -60,3 +59,4 @@ class ISCORE_LIB_INSPECTOR_EXPORT InspectorSectionWidget : public QWidget
 
         bool m_isUnfolded;
 };
+}

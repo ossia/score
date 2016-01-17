@@ -3,7 +3,10 @@
 #include <Inspector/InspectorWidgetBase.hpp>
 #include <list>
 
+namespace Inspector
+{
 class InspectorSectionWidget;
+}
 class QWidget;
 namespace iscore {
 struct DocumentContext;
@@ -12,7 +15,7 @@ struct DocumentContext;
 namespace Scenario
 {
 class StateModel;
-class StateInspectorWidget final : public InspectorWidgetBase
+class StateInspectorWidget final : public Inspector::InspectorWidgetBase
 {
     public:
         explicit StateInspectorWidget(
@@ -28,6 +31,6 @@ class StateInspectorWidget final : public InspectorWidgetBase
 
         const StateModel& m_model;
 
-        InspectorSectionWidget* m_stateSection{};
+        Inspector::InspectorSectionWidget* m_stateSection{};
 };
 }
