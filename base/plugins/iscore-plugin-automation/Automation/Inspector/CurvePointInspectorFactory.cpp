@@ -3,7 +3,6 @@
 #include "CurvePointInspectorFactory.hpp"
 #include "CurvePointInspectorWidget.hpp"
 #include <Curve/Point/CurvePointModel.hpp>
-class InspectorWidgetBase;
 class QObject;
 class QWidget;
 namespace iscore {
@@ -13,7 +12,7 @@ class Document;
 
 namespace Automation
 {
-InspectorWidgetBase* PointInspectorFactory::makeWidget(
+Inspector::InspectorWidgetBase* PointInspectorFactory::makeWidget(
         const QObject& sourceElement,
         const iscore::DocumentContext& doc,
         QWidget* parent) const

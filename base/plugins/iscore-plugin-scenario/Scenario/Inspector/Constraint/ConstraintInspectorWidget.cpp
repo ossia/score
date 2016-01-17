@@ -68,7 +68,7 @@ using namespace iscore::IDocument;
 namespace Scenario
 {
 ConstraintInspectorWidget::ConstraintInspectorWidget(
-        const InspectorWidgetList& widg,
+        const Inspector::InspectorWidgetList& widg,
         const Process::ProcessList& pl,
         const ConstraintModel& object,
         std::unique_ptr<ConstraintInspectorDelegate> del,
@@ -114,7 +114,7 @@ ConstraintInspectorWidget::ConstraintInspectorWidget(
     }
 
     // Separator
-    m_properties.push_back(new Separator {this});
+    m_properties.push_back(new Inspector::Separator {this});
 
     // Durations
     auto& ctrl = ctx.app.components.applicationPlugin<ScenarioApplicationPlugin>();
@@ -130,10 +130,10 @@ ConstraintInspectorWidget::ConstraintInspectorWidget(
     m_properties.push_back(loop);
 
     // Separator
-    m_properties.push_back(new Separator {this});
+    m_properties.push_back(new Inspector::Separator {this});
 
     // Processes
-    m_processSection = new InspectorSectionWidget("Processes", false, this);
+    m_processSection = new Inspector::InspectorSectionWidget("Processes", false, this);
     m_processSection->setObjectName("Processes");
 
     m_properties.push_back(m_processSection);
@@ -164,10 +164,10 @@ ConstraintInspectorWidget::ConstraintInspectorWidget(
             this, &ConstraintInspectorWidget::createProcess);
 
     // Separator
-    m_properties.push_back(new Separator {this});
+    m_properties.push_back(new Inspector::Separator {this});
 
     // Rackes
-    m_rackSection = new InspectorSectionWidget {"Rackes", false, this};
+    m_rackSection = new Inspector::InspectorSectionWidget {"Rackes", false, this};
     m_rackSection->setObjectName("Rackes");
     m_rackSection->expand();
 
@@ -303,14 +303,14 @@ void ConstraintInspectorWidget::activeRackChanged(QString rack, ConstraintViewMo
 
 void ConstraintInspectorWidget::displaySharedProcess(const Process::ProcessModel& process)
 {
-    auto newProc = new InspectorSectionWidget(process.metadata.name(), true);
-    connect(newProc, &InspectorSectionWidget::nameChanged,
+    auto newProc = new Inspector::InspectorSectionWidget(process.metadata.name(), true);
+    connect(newProc, &Inspector::InspectorSectionWidget::nameChanged,
             this, [&] (QString s)
     {
         ask_processNameChanged(process, s);
     });
     con(process.metadata, &ModelMetadata::nameChanged,
-        newProc, &InspectorSectionWidget::renameSection);
+        newProc, &Inspector::InspectorSectionWidget::renameSection);
 
     // Process
     const auto& fact = context().app.components.factory<ProcessInspectorWidgetDelegateFactoryList>();

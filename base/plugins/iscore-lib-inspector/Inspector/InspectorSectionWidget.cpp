@@ -9,6 +9,8 @@
 
 #include "InspectorSectionWidget.hpp"
 
+namespace Inspector
+{
 InspectorSectionWidget::InspectorSectionWidget(bool editable, QWidget* parent) :
     QWidget(parent)
 {
@@ -128,4 +130,5 @@ void InspectorSectionWidget::removeAll()
 QWidget* InspectorSectionWidget::titleWidget()
 {
     return m_buttonTitle;
+}
 }

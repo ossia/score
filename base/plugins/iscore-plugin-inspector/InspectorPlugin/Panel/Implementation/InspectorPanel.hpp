@@ -13,7 +13,10 @@
 #include <iscore/selection/Selection.hpp>
 
 class IdentifiedObjectAbstract;
+namespace Inspector
+{
 class InspectorWidgetList;
+}
 class QTabWidget;
 class QVBoxLayout;
 namespace iscore {
@@ -22,13 +25,13 @@ class SelectionStack;
 
 namespace bmi = boost::multi_index;
 using InspectorWidgetMap = bmi::multi_index_container<
-    InspectorWidgetBase*,
+    Inspector::InspectorWidgetBase*,
     bmi::indexed_by<
         bmi::hashed_unique<
             bmi::const_mem_fun<
-                InspectorWidgetBase,
+                Inspector::InspectorWidgetBase,
                 const IdentifiedObjectAbstract*,
-                &InspectorWidgetBase::inspectedObject_addr
+                &Inspector::InspectorWidgetBase::inspectedObject_addr
             >
         >
     >
@@ -53,7 +56,7 @@ class InspectorPanel : public QWidget
 
     public:
         explicit InspectorPanel(
-                const InspectorWidgetList& list,
+                const Inspector::InspectorWidgetList& list,
                 iscore::SelectionStack& s,
                 QWidget* parent);
 
@@ -73,7 +76,7 @@ class InspectorPanel : public QWidget
         QTabWidget* m_tabWidget{};
         InspectorWidgetMap m_map;
 
-        const InspectorWidgetList& m_list;
+        const Inspector::InspectorWidgetList& m_list;
         iscore::SelectionDispatcher m_selectionDispatcher;
         QList<const IdentifiedObjectAbstract*> m_currentSel;
 };

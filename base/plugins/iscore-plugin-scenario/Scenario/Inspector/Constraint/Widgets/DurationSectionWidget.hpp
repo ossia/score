@@ -17,7 +17,7 @@ class EditionSettings;
 class ConstraintInspectorDelegate;
 class ConstraintInspectorWidget;
 class ConstraintModel;
-class DurationSectionWidget final : public InspectorSectionWidget
+class DurationSectionWidget final : public Inspector::InspectorSectionWidget
 {
     public:
         DurationSectionWidget(

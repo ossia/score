@@ -8,12 +8,13 @@ namespace OSSIA
 class Node;
 }
 class QObject;
-class BaseProperty;
 
 namespace Ossia
 {
 namespace LocalTree
 {
+class BaseProperty;
+
 ISCORE_PLUGIN_OSSIA_EXPORT
 void make_metadata_node(
         ModelMetadata& metadata,

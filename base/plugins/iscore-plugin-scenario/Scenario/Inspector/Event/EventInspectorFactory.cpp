@@ -4,7 +4,6 @@
 #include "EventInspectorFactory.hpp"
 #include "EventInspectorWidget.hpp"
 
-class InspectorWidgetBase;
 class QObject;
 class QWidget;
 namespace iscore {
@@ -13,7 +12,7 @@ class Document;
 
 namespace Scenario
 {
-InspectorWidgetBase* EventInspectorFactory::makeWidget(
+Inspector::InspectorWidgetBase* EventInspectorFactory::makeWidget(
         const QObject& sourceElement,
         const iscore::DocumentContext& doc,
         QWidget* parentWidget) const

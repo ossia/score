@@ -18,6 +18,9 @@ namespace iscore
     class SelectionDispatcher;
 }
 
+
+namespace Inspector
+{
 /*!
  * \brief The InspectorWidgetBase class
  * Set the global structuration for an inspected element. Inherited by class that implement specific type
@@ -86,3 +89,4 @@ class ISCORE_LIB_INSPECTOR_EXPORT InspectorWidgetBase : public QWidget
         QVBoxLayout* m_layout {};
 };
 
+}

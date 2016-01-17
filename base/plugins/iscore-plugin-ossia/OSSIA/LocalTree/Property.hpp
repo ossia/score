@@ -3,6 +3,10 @@
 #include <OSSIA/iscore2OSSIA.hpp>
 #include <OSSIA/OSSIA2iscore.hpp>
 
+namespace Ossia
+{
+namespace LocalTree
+{
 template<
         typename T,
         typename Object,
@@ -111,4 +115,6 @@ auto add_property(
                          node->getAddress(),
                          QtProperty<T, Object, PropGet, PropSet, PropChanged>{*obj, get, set, chgd},
                          context);
+}
+}
 }

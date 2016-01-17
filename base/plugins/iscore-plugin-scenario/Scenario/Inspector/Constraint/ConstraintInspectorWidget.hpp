@@ -14,9 +14,13 @@
 #include <Process/ProcessFactoryKey.hpp>
 #include <iscore/tools/SettableIdentifier.hpp>
 #include <iscore_plugin_scenario_export.h>
+namespace Inspector
+{
 class InspectorSectionWidget;
 class InspectorWidgetList;
-namespace Process {
+}
+namespace Process
+{
 class ProcessModel;
 class ProcessList;
 }
@@ -42,11 +46,11 @@ class ScenarioModel;
  *
  * Inherits from InspectorWidgetInterface. Manages an inteface for an Constraint (Timerack) element.
  */
-class ISCORE_PLUGIN_SCENARIO_EXPORT ConstraintInspectorWidget final : public InspectorWidgetBase, public Nano::Observer
+class ISCORE_PLUGIN_SCENARIO_EXPORT ConstraintInspectorWidget final : public Inspector::InspectorWidgetBase, public Nano::Observer
 {
     public:
         explicit ConstraintInspectorWidget(
-                const InspectorWidgetList& list,
+                const Inspector::InspectorWidgetList& list,
                 const Process::ProcessList& pl,
                 const ConstraintModel& object,
                 std::unique_ptr<ConstraintInspectorDelegate> del,
@@ -89,17 +93,17 @@ class ISCORE_PLUGIN_SCENARIO_EXPORT ConstraintInspectorWidget final : public Ins
 
         QWidget* makeStatesWidget(Scenario::ScenarioModel*);
 
-        const InspectorWidgetList& m_widgetList;
+        const Inspector::InspectorWidgetList& m_widgetList;
         const Process::ProcessList& m_processList;
         const ConstraintModel& m_model;
 
         //InspectorSectionWidget* m_eventsSection {};
-        InspectorSectionWidget* m_durationSection {};
+        Inspector::InspectorSectionWidget* m_durationSection {};
 
-        InspectorSectionWidget* m_processSection {};
-        std::vector<InspectorSectionWidget*> m_processesSectionWidgets;
+        Inspector::InspectorSectionWidget* m_processSection {};
+        std::vector<Inspector::InspectorSectionWidget*> m_processesSectionWidgets;
 
-        InspectorSectionWidget* m_rackSection {};
+        Inspector::InspectorSectionWidget* m_rackSection {};
         RackWidget* m_rackWidget {};
         std::unordered_map<Id<RackModel>, RackInspectorSection*, id_hash<RackModel>> m_rackesSectionWidgets;
 

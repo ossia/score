@@ -8,6 +8,8 @@
 #include <iscore/selection/SelectionDispatcher.hpp>
 #include <iscore/tools/IdentifiedObjectAbstract.hpp>
 
+namespace Inspector
+{
 InspectorWidgetBase::InspectorWidgetBase(
         const IdentifiedObjectAbstract& inspectedObj,
         const iscore::DocumentContext& ctx,
@@ -93,4 +95,5 @@ void InspectorWidgetBase::addHeader(QWidget* header)
 const IdentifiedObjectAbstract& InspectorWidgetBase::inspectedObject() const
 {
     return m_inspectedObject;
+}
 }

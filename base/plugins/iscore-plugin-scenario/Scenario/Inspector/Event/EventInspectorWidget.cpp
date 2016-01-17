@@ -107,7 +107,7 @@ EventInspectorWidget::EventInspectorWidget(
     m_properties.push_back(m_triggerWidg);
 
     // Separator
-    m_properties.push_back(new Separator {this});
+    m_properties.push_back(new Inspector::Separator {this});
 
     // Condition
     m_exprEditor = new ExpressionEditorWidget{this};
@@ -120,7 +120,7 @@ EventInspectorWidget::EventInspectorWidget(
     m_properties.push_back(m_exprEditor);
 
     // State
-    m_properties.push_back(new Separator {this});
+    m_properties.push_back(new Inspector::Separator {this});
     m_statesWidget = new QWidget{this};
     auto dispLayout = new QVBoxLayout{m_statesWidget};
     m_statesWidget->setLayout(dispLayout);
@@ -129,7 +129,7 @@ EventInspectorWidget::EventInspectorWidget(
     m_properties.push_back(m_statesWidget);
 
     // Separator
-    m_properties.push_back(new Separator {this});
+    m_properties.push_back(new Inspector::Separator {this});
 
     // Plugins (TODO factorize with ConstraintInspectorWidget)
     for(auto& plugdata : m_model.pluginModelList.list())

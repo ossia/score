@@ -2,7 +2,6 @@
 #include <Inspector/InspectorWidgetFactoryInterface.hpp>
 #include <QList>
 
-class InspectorWidgetBase;
 class QObject;
 class QString;
 class QWidget;
@@ -12,7 +11,7 @@ class Document;
 
 namespace Scenario
 {
-class ConstraintInspectorFactory final : public InspectorWidgetFactory
+class ConstraintInspectorFactory final : public Inspector::InspectorWidgetFactory
 {
     public:
         ConstraintInspectorFactory() :
@@ -21,7 +20,7 @@ class ConstraintInspectorFactory final : public InspectorWidgetFactory
 
         }
 
-        InspectorWidgetBase* makeWidget(
+        Inspector::InspectorWidgetBase* makeWidget(
                 const QObject& sourceElement,
                 const iscore::DocumentContext& doc,
                 QWidget* parent) const override;

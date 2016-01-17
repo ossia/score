@@ -14,7 +14,9 @@ class SlotInspectorSection;
 class SlotModel;
 
 // Contains a single rack which can contain multiple slots and a Add Slot button.
-class RackInspectorSection final : public InspectorSectionWidget, public Nano::Observer
+class RackInspectorSection final :
+        public Inspector::InspectorSectionWidget,
+        public Nano::Observer
 {
     public:
         RackInspectorSection(

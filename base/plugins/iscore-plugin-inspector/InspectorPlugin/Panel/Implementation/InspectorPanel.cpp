@@ -15,7 +15,7 @@ class SelectionStack;
 }  // namespace iscore
 
 InspectorPanel::InspectorPanel(
-        const InspectorWidgetList& list,
+        const Inspector::InspectorWidgetList& list,
         iscore::SelectionStack& s,
         QWidget* parent) :
     QWidget {parent},
@@ -83,7 +83,7 @@ void InspectorPanel::newItemsInspected(const Selection& objects)
 
 void InspectorPanel::on_tabClose(int index)
 {
-    auto inspector_widget = static_cast<InspectorWidgetBase*>(m_tabWidget->widget(index));
+    auto inspector_widget = static_cast<Inspector::InspectorWidgetBase*>(m_tabWidget->widget(index));
     // TODO need m_tabWidget.movable() = false !
 
     Selection sel = Selection::fromList(m_currentSel);

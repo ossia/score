@@ -1,6 +1,8 @@
 #pragma once
 #include <QTextEdit>
 
+namespace Scenario
+{
 class CommentEdit final : public QTextEdit
 {
     Q_OBJECT
@@ -21,3 +23,4 @@ class CommentEdit final : public QTextEdit
     signals:
         void editingFinished();
 };
+}

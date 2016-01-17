@@ -4,7 +4,6 @@
 #include "AutomationStateInspectorFactory.hpp"
 #include <Inspector/InspectorWidgetFactoryInterface.hpp>
 #include <Automation/State/AutomationState.hpp>
-class InspectorWidgetBase;
 class QObject;
 class QWidget;
 namespace iscore {
@@ -19,7 +18,7 @@ StateInspectorFactory::StateInspectorFactory() :
 
 }
 
-InspectorWidgetBase* StateInspectorFactory::makeWidget(
+Inspector::InspectorWidgetBase* StateInspectorFactory::makeWidget(
         const QObject& sourceElement,
         const iscore::DocumentContext& doc,
         QWidget* parent) const

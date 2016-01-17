@@ -27,6 +27,6 @@ std::vector<iscore::PanelFactory*> iscore_plugin_inspector::panels()
 std::vector<std::unique_ptr<FactoryListInterface>> iscore_plugin_inspector::factoryFamilies()
 {
     return make_ptr_vector<FactoryListInterface,
-            InspectorWidgetList>();
+            Inspector::InspectorWidgetList>();
 }
 

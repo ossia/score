@@ -17,7 +17,7 @@ namespace Scenario
 TriggerInspectorWidget::TriggerInspectorWidget(
         const Command::TriggerCommandFactoryList& fact,
         const TimeNodeModel& object,
-        InspectorWidgetBase* parent):
+        Inspector::InspectorWidgetBase* parent):
     QWidget{parent},
     m_triggerCommandFactory{fact},
     m_model {object},

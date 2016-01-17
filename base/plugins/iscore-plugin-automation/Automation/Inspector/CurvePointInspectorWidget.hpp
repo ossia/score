@@ -16,7 +16,7 @@ class PointModel;
 
 namespace Automation
 {
-class PointInspectorWidget final : public InspectorWidgetBase
+class PointInspectorWidget final : public Inspector::InspectorWidgetBase
 {
     public:
         explicit PointInspectorWidget(

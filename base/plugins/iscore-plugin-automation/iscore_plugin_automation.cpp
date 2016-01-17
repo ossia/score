@@ -49,7 +49,7 @@ std::vector<std::unique_ptr<iscore::FactoryInterfaceBase>> iscore_plugin_automat
         FW<Process::ProcessFactory,
              Automation::AutomationFactory>,
 #if defined(ISCORE_LIB_INSPECTOR)
-        FW<InspectorWidgetFactory,
+        FW<Inspector::InspectorWidgetFactory,
              Automation::StateInspectorFactory,
              Automation::PointInspectorFactory>,
 #endif

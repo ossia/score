@@ -4,17 +4,15 @@
 #include "TimeNodeInspectorFactory.hpp"
 #include "TimeNodeInspectorWidget.hpp"
 
-class InspectorWidgetBase;
 class QObject;
 class QWidget;
 namespace iscore {
 class Document;
 }  // namespace iscore
 
-//using namespace iscore;
 namespace Scenario
 {
-InspectorWidgetBase* TimeNodeInspectorFactory::makeWidget(
+Inspector::InspectorWidgetBase* TimeNodeInspectorFactory::makeWidget(
         const QObject& sourceElement,
         const iscore::DocumentContext& doc,
         QWidget* parent) const

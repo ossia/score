@@ -12,19 +12,18 @@
 #include <iscore/document/DocumentContext.hpp>
 #include <iscore/plugins/customfactory/StringFactoryKey.hpp>
 
-class InspectorWidgetBase;
 class QObject;
 class QWidget;
 
 namespace Scenario
 {
-InspectorWidgetBase* ConstraintInspectorFactory::makeWidget(
+Inspector::InspectorWidgetBase* ConstraintInspectorFactory::makeWidget(
         const QObject& sourceElement,
         const iscore::DocumentContext& doc,
         QWidget* parent) const
 {
     auto& appContext = doc.app;
-    auto& widgetFact = appContext.components.factory<InspectorWidgetList>();
+    auto& widgetFact = appContext.components.factory<Inspector::InspectorWidgetList>();
     auto& processFact = appContext.components.factory<Process::ProcessList>();
     auto& constraintWidgetFactory = appContext.components.factory<ConstraintInspectorDelegateFactoryList>();
 
