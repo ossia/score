@@ -15,8 +15,10 @@ class Document;
 }  // namespace iscore
 struct VisitorVariant;
 
-using namespace iscore;
 
+
+namespace iscore
+{
 
 GUIApplicationContextPlugin::GUIApplicationContextPlugin(
         const iscore::ApplicationContext& app,
@@ -93,4 +95,5 @@ void GUIApplicationContextPlugin::on_newDocument(iscore::Document* doc)
 void GUIApplicationContextPlugin::on_loadedDocument(iscore::Document *doc)
 {
 
+}
 }

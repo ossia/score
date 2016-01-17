@@ -20,8 +20,6 @@
 #include <iscore/tools/ModelPathSerialization.hpp>
 #include <iscore/tools/NotifyingMap.hpp>
 
-using namespace iscore;
-
 namespace Scenario
 {
 namespace Command

@@ -2,8 +2,8 @@
 #include "SelectionStack.hpp"
 #include <iscore/selection/Selection.hpp>
 
-using namespace iscore;
-
+namespace iscore
+{
 void SelectionDispatcher::setAndCommit(const Selection& s)
 {
     m_stack.pushNewSelection(s);
@@ -12,4 +12,5 @@ void SelectionDispatcher::setAndCommit(const Selection& s)
 iscore::SelectionStack &SelectionDispatcher::stack() const
 {
     return m_stack;
+}
 }

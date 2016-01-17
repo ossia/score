@@ -11,8 +11,6 @@
 #include "commands/BlacklistCommand.hpp"
 #include <iscore/plugins/settingsdelegate/SettingsDelegateModelInterface.hpp>
 
-using namespace iscore;
-
 namespace PluginSettings
 {
 PluginSettingsModel::PluginSettingsModel() :

@@ -27,8 +27,6 @@
 #include <iscore/widgets/SpinBoxes.hpp>
 #include <iscore/tools/ModelPathSerialization.hpp>
 
-using namespace iscore;
-
 namespace Scenario
 {
 DurationSectionWidget::DurationSectionWidget(
@@ -42,6 +40,7 @@ DurationSectionWidget::DurationSectionWidget(
     m_editionSettings{set},
     m_delegate{delegate}
 {
+    using namespace iscore;
     auto widg = new QWidget{this};
     m_grid = new QGridLayout{widg};
     m_grid->setContentsMargins(0, 0, 0, 0);

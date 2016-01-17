@@ -61,10 +61,6 @@
 #include <iscore/widgets/SpinBoxes.hpp>
 #include <iscore/plugins/customfactory/StringFactoryKeySerialization.hpp>
 
-
-using namespace iscore;
-using namespace iscore::IDocument;
-
 namespace Scenario
 {
 ConstraintInspectorWidget::ConstraintInspectorWidget(
@@ -80,6 +76,8 @@ ConstraintInspectorWidget::ConstraintInspectorWidget(
     m_model{object},
     m_delegate{std::move(del)}
 {
+    using namespace iscore;
+    using namespace iscore::IDocument;
     setObjectName("Constraint");
 
     ////// HEADER
@@ -303,6 +301,7 @@ void ConstraintInspectorWidget::activeRackChanged(QString rack, ConstraintViewMo
 
 void ConstraintInspectorWidget::displaySharedProcess(const Process::ProcessModel& process)
 {
+    using namespace iscore;
     auto newProc = new Inspector::InspectorSectionWidget(process.metadata.name(), true);
     connect(newProc, &Inspector::InspectorSectionWidget::nameChanged,
             this, [&] (QString s)
@@ -389,7 +388,7 @@ void ConstraintInspectorWidget::ask_processNameChanged(const Process::ProcessMod
 {
     if(s != p.metadata.name())
     {
-        auto cmd = new Command::ChangeElementName<Process::ProcessModel>{path(p), s};
+        auto cmd = new Command::ChangeElementName<Process::ProcessModel>{iscore::IDocument::path(p), s};
         emit commandDispatcher()->submitCommand(cmd);
     }
 }

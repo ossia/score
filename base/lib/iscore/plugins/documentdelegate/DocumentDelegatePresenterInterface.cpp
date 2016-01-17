@@ -3,9 +3,8 @@
 #include "DocumentDelegatePresenterInterface.hpp"
 #include <iscore/tools/NamedObject.hpp>
 
-using namespace iscore;
-
-
+namespace iscore
+{
 DocumentDelegatePresenterInterface::DocumentDelegatePresenterInterface(
         DocumentPresenter* parent_presenter,
         const QString& object_name,
@@ -22,4 +21,5 @@ DocumentDelegatePresenterInterface::DocumentDelegatePresenterInterface(
 iscore::DocumentDelegatePresenterInterface::~DocumentDelegatePresenterInterface()
 {
 
+}
 }

@@ -9,8 +9,6 @@
 #include <iscore/tools/ModelPathSerialization.hpp>
 #include <iscore/tools/TreeNode.hpp>
 
-using namespace iscore;
-
 namespace Scenario
 {
 namespace Command

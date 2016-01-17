@@ -6,8 +6,6 @@
 class DataStreamInput;
 class DataStreamOutput;
 
-using namespace iscore;
-
 namespace PluginSettings
 {
 BlacklistCommand::BlacklistCommand(QString name, bool value) :

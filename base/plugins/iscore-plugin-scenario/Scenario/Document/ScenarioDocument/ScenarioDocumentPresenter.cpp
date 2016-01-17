@@ -44,8 +44,6 @@ class DocumentDelegateViewInterface;
 class DocumentPresenter;
 }  // namespace iscore
 
-using namespace iscore;
-
 namespace Scenario
 {
 const ScenarioDocumentModel& ScenarioDocumentPresenter::model() const
@@ -63,17 +61,20 @@ ScenarioDocumentView& ScenarioDocumentPresenter::view() const
     return safe_cast<ScenarioDocumentView&>(m_view);
 }
 
-ScenarioDocumentPresenter::ScenarioDocumentPresenter(DocumentPresenter* parent_presenter,
-                                           const DocumentDelegateModelInterface& delegate_model,
-                                           DocumentDelegateViewInterface& delegate_view) :
+ScenarioDocumentPresenter::ScenarioDocumentPresenter(
+        iscore::DocumentPresenter* parent_presenter,
+        const iscore::DocumentDelegateModelInterface& delegate_model,
+        iscore::DocumentDelegateViewInterface& delegate_view) :
     DocumentDelegatePresenterInterface {parent_presenter,
                                         "ScenarioDocumentPresenter",
                                         delegate_model,
                                         delegate_view},
     m_scenarioPresenter{new DisplayedElementsPresenter{this}},
-    m_selectionDispatcher{IDocument::documentContext(model()).selectionStack},
+    m_selectionDispatcher{iscore::IDocument::documentContext(model()).selectionStack},
     m_mainTimeRuler{new TimeRulerPresenter{view().timeRuler(), this}}
 {
+    using namespace iscore;
+
     // Setup the connections
     con((m_selectionDispatcher.stack()), &SelectionStack::currentSelectionChanged,
         this,                            &ScenarioDocumentPresenter::on_newSelection);
@@ -181,6 +182,7 @@ void ScenarioDocumentPresenter::setMillisPerPixel(ZoomRatio newRatio)
 
 void ScenarioDocumentPresenter::on_newSelection(const Selection& sel)
 {
+    using namespace iscore;
     auto editMenu = iscore::AppContext().menuBar.menuAt(ToplevelMenuElement::ObjectMenu);
 
     bool ev = std::any_of(sel.cbegin(),

@@ -7,8 +7,8 @@
 #include <core/presenter/Action.hpp>
 #include <iscore/menu/MenuInterface.hpp>
 
-using namespace iscore;
-
+namespace iscore
+{
 MenubarManager::MenubarManager(QMenuBar* bar, QObject* parent) :
     QObject(parent),
     m_menuBar {bar}
@@ -108,5 +108,4 @@ void MenubarManager::insertActionIntoToplevelMenu(ToplevelMenuElement tl, QActio
 {
     m_menusMap[tl]->insertAction(before, act);
 }
-
-
+}

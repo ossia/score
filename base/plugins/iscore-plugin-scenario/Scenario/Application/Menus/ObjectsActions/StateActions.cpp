@@ -10,7 +10,6 @@
 #include <QAction>
 #include <QMenu>
 
-using namespace iscore;
 namespace Scenario
 {
 StateActions::StateActions(iscore::ToplevelMenuElement menuElt,
@@ -22,7 +21,7 @@ StateActions::StateActions(iscore::ToplevelMenuElement menuElt,
     m_updateStates->setShortcutContext(Qt::ApplicationShortcut);
     m_updateStates->setShortcut(tr("Ctrl+U"));
     m_updateStates->setToolTip(tr("Ctrl+U"));
-    m_updateStates->setWhatsThis(MenuInterface::name(iscore::ContextMenu::State));
+    m_updateStates->setWhatsThis(iscore::MenuInterface::name(iscore::ContextMenu::State));
     connect(m_updateStates, &QAction::triggered,
         this, [&] () {
     Command::RefreshStates(m_parent->currentDocument()->context());
@@ -44,6 +43,7 @@ void StateActions::fillContextMenu(
     const QPoint&,
     const QPointF&)
 {
+    using namespace iscore;
     if(!sel.empty())
     {
     if(std::any_of(sel.cbegin(),

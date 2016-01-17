@@ -3,8 +3,6 @@
 #include "LibraryPanelModel.hpp"
 #include "LibraryPanelPresenter.hpp"
 #include "LibraryPanelId.hpp"
-using namespace iscore;
-
 
 namespace Library
 {

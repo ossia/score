@@ -1,8 +1,8 @@
 #include "PanelModel.hpp"
 #include <iscore/selection/Selection.hpp>
 
-using namespace iscore;
-
+namespace iscore
+{
 void PanelModel::setNewSelection(const Selection&)
 {
 
@@ -11,4 +11,5 @@ void PanelModel::setNewSelection(const Selection&)
 iscore::PanelModel::~PanelModel()
 {
 
+}
 }

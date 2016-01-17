@@ -14,8 +14,8 @@
 #include <iscore/serialization/DataStreamVisitor.hpp>
 #include <iscore/tools/std/StdlibWrapper.hpp>
 
-using namespace iscore;
-
+namespace iscore
+{
 AggregateCommand::~AggregateCommand()
 {
 
@@ -62,4 +62,5 @@ void AggregateCommand::deserializeImpl(DataStreamOutput& s)
         auto cmd = context.components.instantiateUndoCommand(cmd_pack);
         m_cmds.push_back(cmd);
     }
+}
 }

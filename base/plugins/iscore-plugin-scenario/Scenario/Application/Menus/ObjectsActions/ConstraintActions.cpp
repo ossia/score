@@ -30,7 +30,6 @@
 
 #include <QApplication>
 
-using namespace iscore;
 namespace Scenario
 {
 ConstraintActions::ConstraintActions(
@@ -81,6 +80,7 @@ void ConstraintActions::fillContextMenu(
     const QPoint&,
     const QPointF&)
 {
+    using namespace iscore;
     if(!sel.empty())
     {
         QList<const ConstraintModel*> selectedConstraints = filterSelectionByType<ConstraintModel>(sel);

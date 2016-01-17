@@ -52,8 +52,6 @@
 #include <Scenario/Commands/Cohesion/DoForSelectedConstraints.hpp>
 #include <iscore/menu/MenuInterface.hpp>
 
-using namespace iscore;
-
 namespace Scenario
 {
 ObjectMenuActions::ObjectMenuActions(
@@ -61,7 +59,7 @@ ObjectMenuActions::ObjectMenuActions(
         ScenarioApplicationPlugin* parent) :
     ScenarioActions(menuElt, parent)
 {
-
+    using namespace iscore;
     m_eventActions = new EventActions{menuElt, parent};
     m_cstrActions = new ConstraintActions{menuElt, parent};
     m_stateActions = new StateActions{menuElt, parent};
@@ -171,6 +169,8 @@ void ObjectMenuActions::fillContextMenu(
         const QPoint& p,
         const QPointF& scenePoint)
 {
+    using namespace iscore;
+
     m_eventActions->fillContextMenu(menu, sel, pres, p, scenePoint );
     m_cstrActions->fillContextMenu(menu, sel, pres, p, scenePoint );
     m_stateActions->fillContextMenu(menu, sel, pres, p ,scenePoint);

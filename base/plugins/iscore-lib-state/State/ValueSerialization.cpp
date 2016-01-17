@@ -16,7 +16,6 @@
 template <typename T> class Reader;
 template <typename T> class Writer;
 
-using namespace iscore;
 // TODO clean this file
 template<>
 ISCORE_LIB_STATE_EXPORT void Visitor<Reader<DataStream>>::readFrom(const State::ValueImpl& value)

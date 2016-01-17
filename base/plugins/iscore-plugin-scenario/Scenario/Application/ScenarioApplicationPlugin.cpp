@@ -61,14 +61,6 @@
 #include <iscore/tools/NotifyingMap.hpp>
 #include <iscore/tools/SettableIdentifier.hpp>
 #include <iscore/widgets/OrderedToolbar.hpp>
-
-class QPoint;
-class QPointF;
-namespace iscore {
-
-}  // namespace iscore
-
-using namespace iscore;
 #include <Scenario/Application/Menus/ScenarioCommonContextMenuFactory.hpp>
 #include <algorithm>
 #include <core/presenter/Presenter.hpp>
@@ -99,6 +91,7 @@ ScenarioApplicationPlugin::ScenarioApplicationPlugin(const iscore::ApplicationCo
 
 void ScenarioApplicationPlugin::populateMenus(iscore::MenubarManager *menu)
 {
+    using namespace iscore;
     ///// Edit /////
 
     ///// View /////
@@ -139,7 +132,7 @@ void ScenarioApplicationPlugin::populateMenus(iscore::MenubarManager *menu)
     }
 }
 
-std::vector<OrderedToolbar> ScenarioApplicationPlugin::makeToolbars()
+std::vector<iscore::OrderedToolbar> ScenarioApplicationPlugin::makeToolbars()
 {
     QToolBar *bar = new QToolBar;
 
@@ -159,7 +152,7 @@ std::vector<OrderedToolbar> ScenarioApplicationPlugin::makeToolbars()
     }
 
 
-    return std::vector<OrderedToolbar>{OrderedToolbar(1, bar)};
+    return std::vector<iscore::OrderedToolbar>{iscore::OrderedToolbar(1, bar)};
 }
 
 std::vector<QAction*> ScenarioApplicationPlugin::actions()
@@ -246,6 +239,7 @@ void ScenarioApplicationPlugin::on_documentChanged(
         iscore::Document* olddoc,
         iscore::Document* newdoc)
 {
+    using namespace iscore;
     // TODO the context menu connection should be reviewed, too.
     this->disconnect(m_focusConnection);
     this->disconnect(m_defocusConnection);

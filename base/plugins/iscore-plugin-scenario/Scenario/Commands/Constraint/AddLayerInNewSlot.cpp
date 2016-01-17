@@ -17,8 +17,6 @@
 #include <iscore/tools/NotifyingMap.hpp>
 
 
-using namespace iscore;
-
 namespace Scenario
 {
 namespace Command

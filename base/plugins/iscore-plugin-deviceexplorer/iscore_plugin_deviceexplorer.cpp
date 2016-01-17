@@ -5,7 +5,6 @@
 #include <iscore_plugin_deviceexplorer_commands_files.hpp>
 #include "iscore_plugin_deviceexplorer.hpp"
 
-using namespace iscore;
 #include <Device/Protocol/ProtocolList.hpp>
 #include <unordered_map>
 
@@ -24,7 +23,7 @@ iscore::PanelFactory_QtInterface {}
     QMetaType::registerComparators<Device::ProtocolFactoryKey>();
 }
 
-std::vector<PanelFactory*> iscore_plugin_deviceexplorer::panels()
+std::vector<iscore::PanelFactory*> iscore_plugin_deviceexplorer::panels()
 {
     return {new DeviceExplorer::DeviceExplorerPanelFactory};
 }
@@ -33,11 +32,12 @@ std::vector<PanelFactory*> iscore_plugin_deviceexplorer::panels()
 
 std::vector<std::unique_ptr<iscore::FactoryListInterface>> iscore_plugin_deviceexplorer::factoryFamilies()
 {
-    return make_ptr_vector<FactoryListInterface, Device::DynamicProtocolList>();
+    return make_ptr_vector<iscore::FactoryListInterface,
+            Device::DynamicProtocolList>();
 
 }
 
-GUIApplicationContextPlugin *iscore_plugin_deviceexplorer::make_applicationPlugin(
+iscore::GUIApplicationContextPlugin *iscore_plugin_deviceexplorer::make_applicationPlugin(
         const iscore::ApplicationContext& app)
 {
     return new DeviceExplorer::DeviceExplorerApplicationPlugin{app};

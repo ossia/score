@@ -8,8 +8,6 @@ class FactoryListInterface;
 class PanelFactory;
 }  // namespace iscore
 
-using namespace iscore;
-
 #include <Inspector/InspectorWidgetList.hpp>
 
 iscore_plugin_inspector::iscore_plugin_inspector() :
@@ -24,9 +22,9 @@ std::vector<iscore::PanelFactory*> iscore_plugin_inspector::panels()
     return {new InspectorPanel::InspectorPanelFactory};
 }
 
-std::vector<std::unique_ptr<FactoryListInterface>> iscore_plugin_inspector::factoryFamilies()
+std::vector<std::unique_ptr<iscore::FactoryListInterface>> iscore_plugin_inspector::factoryFamilies()
 {
-    return make_ptr_vector<FactoryListInterface,
+    return make_ptr_vector<iscore::FactoryListInterface,
             Inspector::InspectorWidgetList>();
 }
 

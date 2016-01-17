@@ -26,13 +26,11 @@ namespace iscore {
 class CommandStackFacade;
 }  // namespace iscore
 
-using namespace iscore;
-
 namespace Scenario
 {
 class StateModel;
 MessageItemModel::MessageItemModel(
-        CommandStackFacade& stack,
+        iscore::CommandStackFacade& stack,
         const StateModel& sm,
         QObject* parent):
     TreeNodeBasedItemModel<MessageNode>{parent},

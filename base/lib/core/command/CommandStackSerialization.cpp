@@ -17,11 +17,11 @@
 template <typename T> class Reader;
 template <typename T> class Writer;
 
-using namespace iscore;
 template<>
-void Visitor<Reader<DataStream>>::readFrom(const CommandStack& stack)
+void Visitor<Reader<DataStream>>::readFrom(
+        const iscore::CommandStack& stack)
 {
-    std::vector<CommandData> undoStack, redoStack;
+    std::vector<iscore::CommandData> undoStack, redoStack;
     for(const auto& cmd : stack.undoable())
     {
         undoStack.emplace_back(*cmd);
