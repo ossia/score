@@ -15,6 +15,9 @@ class ProtocolSettingsWidget;
 
 struct VisitorVariant;
 
+
+namespace Ossia
+{
 QString MIDIProtocolFactory::prettyName() const
 {
     return QObject::tr("MIDI");
@@ -64,4 +67,5 @@ void MIDIProtocolFactory::serializeProtocolSpecificSettings(const QVariant& data
 bool MIDIProtocolFactory::checkCompatibility(const Device::DeviceSettings& a, const Device::DeviceSettings& b) const
 {
     return a.name != b.name;
+}
 }

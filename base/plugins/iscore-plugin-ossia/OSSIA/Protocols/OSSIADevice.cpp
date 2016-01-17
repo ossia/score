@@ -22,6 +22,8 @@ class Value;
 using namespace iscore::convert;
 using namespace Ossia::convert;
 
+namespace Ossia
+{
 OSSIADevice::~OSSIADevice()
 {
     if(connected())
@@ -356,4 +358,5 @@ OSSIA::Device& OSSIADevice::impl() const
 {
     ISCORE_ASSERT(connected());
     return *m_dev;
+}
 }

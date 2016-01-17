@@ -7,6 +7,8 @@
 
 class QWidget;
 
+namespace Ossia
+{
 LocalProtocolSettingsWidget::LocalProtocolSettingsWidget(QWidget* parent)
     : ProtocolSettingsWidget(parent)
 {
@@ -32,4 +34,5 @@ LocalProtocolSettingsWidget::setSettings(const Device::DeviceSettings &settings)
     if(settings.deviceSpecificSettings.canConvert<LocalSpecificSettings>())
     {
     }
+}
 }

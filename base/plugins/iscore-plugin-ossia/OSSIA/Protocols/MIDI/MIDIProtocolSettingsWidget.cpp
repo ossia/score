@@ -12,6 +12,8 @@
 
 class QWidget;
 
+namespace Ossia
+{
 MIDIProtocolSettingsWidget::MIDIProtocolSettingsWidget(QWidget* parent)
     : ProtocolSettingsWidget(parent)
 {
@@ -111,4 +113,5 @@ void
 MIDIProtocolSettingsWidget::updateOutputDevices()
 {
     m_deviceCBox->clear();
+}
 }

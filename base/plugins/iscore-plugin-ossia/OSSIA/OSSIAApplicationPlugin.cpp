@@ -81,7 +81,7 @@ OSSIAApplicationPlugin::OSSIAApplicationPlugin(const iscore::ApplicationContext&
                     this, &OSSIAApplicationPlugin::on_stop);
         }
     }
-    auto playCM = new PlayContextMenu{&ctrl};
+    auto playCM = new RecreateOnPlay::PlayContextMenu{&ctrl};
     ctrl.pluginActions().push_back(playCM);
 
     con(playCM->playFromHereAction(), &QAction::triggered,

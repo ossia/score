@@ -10,6 +10,8 @@
 #include <OSSIA/OSSIA2iscore.hpp>
 #include <OSSIA/iscore2OSSIA.hpp>
 
+namespace Ossia
+{
 LocalDevice::LocalDevice(
         const iscore::DocumentContext& ctx,
         const std::shared_ptr<OSSIA::Device>& dev,
@@ -78,4 +80,5 @@ Device::Node LocalDevice::refresh()
     iscore_device.get<Device::DeviceSettings>().name = QString::fromStdString(m_dev->getName());
 
     return iscore_device;
+}
 }

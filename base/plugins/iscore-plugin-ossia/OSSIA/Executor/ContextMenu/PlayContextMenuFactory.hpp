@@ -3,15 +3,13 @@
 
 #include <Scenario/Application/Menus/Plugin/ScenarioActionsFactory.hpp>
 
-namespace Scenario
+namespace RecreateOnPlay
 {
-class ScenarioActions;
-class ScenarioApplicationPlugin;
-
-class PlayContextMenuFactory final : public ScenarioActionsFactory
+class PlayContextMenuFactory final :
+        public Scenario::ScenarioActionsFactory
 {
     public:
-        const ScenarioActionsFactoryKey& key_impl() const override;
-        QList<ScenarioActions*> make(ScenarioApplicationPlugin* ctrl) override;
+        const Scenario::ScenarioActionsFactoryKey& key_impl() const override;
+        QList<Scenario::ScenarioActions*> make(Scenario::ScenarioApplicationPlugin* ctrl) override;
 };
 }

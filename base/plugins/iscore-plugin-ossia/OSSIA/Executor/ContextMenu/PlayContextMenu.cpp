@@ -41,6 +41,8 @@ namespace iscore {
 class MenubarManager;
 }  // namespace iscore
 
+namespace RecreateOnPlay
+{
 PlayContextMenu::PlayContextMenu(Scenario::ScenarioApplicationPlugin *parent):
     Scenario::ScenarioActions(iscore::ToplevelMenuElement::AboutMenu, parent)
 {
@@ -165,4 +167,5 @@ void PlayContextMenu::fillContextMenu(
 void PlayContextMenu::setEnabled(bool b)
 {
     m_playStates->setEnabled(b);
+}
 }

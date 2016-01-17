@@ -9,6 +9,8 @@
 #include "OSCDevice.hpp"
 #include <OSSIA/Protocols/OSC/OSCSpecificSettings.hpp>
 
+namespace Ossia
+{
 OSCDevice::OSCDevice(const Device::DeviceSettings &settings):
     OSSIADevice{settings}
 {
@@ -34,4 +36,5 @@ bool OSCDevice::reconnect()
     }
 
     return connected();
+}
 }

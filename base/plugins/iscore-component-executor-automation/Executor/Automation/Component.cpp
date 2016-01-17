@@ -67,7 +67,7 @@ void Component::recreate()
     auto addr = iscore_autom.address();
     std::shared_ptr<OSSIA::Address> address;
     OSSIA::Node* node{};
-    OSSIADevice* dev{};
+    Ossia::OSSIADevice* dev{};
 
     m_ossia_curve.reset(); // It will be remade after.
 
@@ -83,7 +83,7 @@ void Component::recreate()
     if(dev_it == devices.end())
         goto curve_cleanup_label;
 
-    dev = dynamic_cast<OSSIADevice*>(*dev_it);
+    dev = dynamic_cast<Ossia::OSSIADevice*>(*dev_it);
     if(!dev)
         goto curve_cleanup_label;
 

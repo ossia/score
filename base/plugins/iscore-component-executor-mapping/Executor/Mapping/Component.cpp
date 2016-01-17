@@ -144,7 +144,7 @@ void Component::recreate()
         if(dev_it == devices.end())
             return {};
 
-        auto dev = dynamic_cast<OSSIADevice*>(*dev_it);
+        auto dev = dynamic_cast<Ossia::OSSIADevice*>(*dev_it);
         if(!dev)
             return {};
 

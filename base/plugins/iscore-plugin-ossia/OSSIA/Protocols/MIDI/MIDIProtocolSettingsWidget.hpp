@@ -6,6 +6,8 @@ class QComboBox;
 class QRadioButton;
 class QWidget;
 
+namespace Ossia
+{
 class MIDIProtocolSettingsWidget :
         public Device::ProtocolSettingsWidget
 {
@@ -31,4 +33,4 @@ class MIDIProtocolSettingsWidget :
         QComboBox* m_deviceCBox;
 
 };
-
+}
