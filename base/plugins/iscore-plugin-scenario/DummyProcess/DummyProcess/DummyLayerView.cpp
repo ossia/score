@@ -15,6 +15,9 @@
 class QGraphicsItem;
 #include <QPushButton>
 */
+
+namespace Dummy
+{
 DummyLayerView::DummyLayerView(QGraphicsItem* parent):
     LayerView{parent}
 {
@@ -47,4 +50,5 @@ void DummyLayerView::paint_impl(QPainter* painter) const
 void DummyLayerView::mousePressEvent(QGraphicsSceneMouseEvent*)
 {
     emit pressed();
+}
 }

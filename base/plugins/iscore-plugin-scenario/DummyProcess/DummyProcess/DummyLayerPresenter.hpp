@@ -7,12 +7,14 @@
 #include <iscore_lib_dummyprocess_export.h>
 #include <Process/Focus/FocusDispatcher.hpp>
 
-class DummyLayerView;
 namespace Process { class LayerModel; }
 namespace Process { class ProcessModel; }
 class QMenu;
 class QObject;
 
+namespace Dummy
+{
+class DummyLayerView;
 class ISCORE_LIB_DUMMYPROCESS_EXPORT DummyLayerPresenter final :
         public Process::LayerPresenter
 {
@@ -45,3 +47,4 @@ class ISCORE_LIB_DUMMYPROCESS_EXPORT DummyLayerPresenter final :
         DummyLayerView* m_view{};
         FocusDispatcher m_focusDispatcher;
 };
+}

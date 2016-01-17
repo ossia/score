@@ -4,6 +4,8 @@
 namespace Process { class LayerModel; }
 class QObject;
 
+namespace Dummy
+{
 DummyLayerPanelProxy::DummyLayerPanelProxy(
         const Process::LayerModel& vm,
         QObject* parent):
@@ -21,4 +23,5 @@ const Process::LayerModel& DummyLayerPanelProxy::layer()
 QWidget* DummyLayerPanelProxy::widget() const
 {
     return m_widget;
+}
 }

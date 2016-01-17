@@ -15,6 +15,9 @@
 
 #include <iscore/plugins/customfactory/FactorySetup.hpp>
 #include <Curve/Process/CurveProcessFactory.hpp>
+
+namespace Mapping
+{
 DEFINE_CURVE_PROCESS_FACTORY(
         MappingFactory,
         Mapping::MappingProcessMetadata,
@@ -23,6 +26,7 @@ DEFINE_CURVE_PROCESS_FACTORY(
         Mapping::MappingPresenter,
         Mapping::MappingView,
         Mapping::MappingColors)
+}
 
 
 #if defined(ISCORE_LIB_INSPECTOR)
@@ -45,7 +49,7 @@ std::vector<std::unique_ptr<iscore::FactoryInterfaceBase>> iscore_plugin_mapping
             iscore::ApplicationContext,
             TL<
             FW<Process::ProcessFactory,
-                MappingFactory>,
+                Mapping::MappingFactory>,
             FW<ProcessInspectorWidgetDelegateFactory,
                 MappingInspectorFactory>
             >>(ctx, key);

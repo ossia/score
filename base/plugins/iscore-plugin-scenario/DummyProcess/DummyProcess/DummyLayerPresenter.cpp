@@ -10,6 +10,8 @@ class QMenu;
 class QObject;
 
 
+namespace Dummy
+{
 DummyLayerPresenter::DummyLayerPresenter(
         const Process::LayerModel& model,
         DummyLayerView* view,
@@ -69,4 +71,5 @@ void DummyLayerPresenter::fillContextMenu(
         const QPoint&,
         const QPointF&) const
 {
+}
 }

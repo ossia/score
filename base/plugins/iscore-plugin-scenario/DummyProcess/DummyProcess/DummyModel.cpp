@@ -12,6 +12,8 @@ class QObject;
 #include <iscore/tools/SettableIdentifier.hpp>
 
 
+namespace Dummy
+{
 DummyModel::DummyModel(
         const TimeValue& duration,
         const Id<ProcessModel>& id,
@@ -136,4 +138,5 @@ Process::LayerModel* DummyModel::cloneLayer_impl(
         QObject* parent)
 {
     return new DummyLayerModel{safe_cast<const DummyLayerModel&>(source), *this, newId, parent};
+}
 }

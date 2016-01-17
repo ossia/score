@@ -15,6 +15,8 @@ class QObject;
 #include <iscore/tools/SettableIdentifier.hpp>
 #include <iscore_lib_dummyprocess_export.h>
 
+namespace Dummy
+{
 class ISCORE_LIB_DUMMYPROCESS_EXPORT DummyLayerModel final : public Process::LayerModel
 {
         ISCORE_SERIALIZE_FRIENDS(DummyLayerModel, DataStream)
@@ -47,3 +49,4 @@ class ISCORE_LIB_DUMMYPROCESS_EXPORT DummyLayerModel final : public Process::Lay
         void serialize(const VisitorVariant&) const override;
         Process::LayerModelPanelProxy* make_panelProxy(QObject* parent) const override;
 };
+}

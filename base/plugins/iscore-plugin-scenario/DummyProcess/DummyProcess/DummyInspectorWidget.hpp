@@ -4,6 +4,9 @@
 
 // TODO make factories, too.
 // TODO Generic process factory like  Curve
+
+namespace Dummy
+{
 struct DummyFactory
 {
         using model = DummyModel;
@@ -16,3 +19,4 @@ class DummyInspectorWidget final : public InspectorWidgetBase
 {
 
 };
+}
