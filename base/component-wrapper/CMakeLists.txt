@@ -10,6 +10,12 @@ foreach(Name ${ISCORE_GLOBAL_COMPONENTS_LIST})
   set(CleanedAbstractFactoryList ${CleanedAbstractFactoryList} ${AbstractFactory_List})
 endforeach()
 
+# No factories -> nothing to build
+list(LENGTH CleanedAbstractFactoryList NumberOfFactories)
+if(${NumberOfFactories} EQUAL 0)
+  return()
+endif()
+
 list(REMOVE_DUPLICATES CleanedAbstractFactoryList)
 
 # For each abstract component instantiate
