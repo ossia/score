@@ -67,10 +67,11 @@ add_library(${PROJECT_NAME}
       ${EXPLORER_RESOURCES_RCC})
 iscore_generate_command_list_file(${PROJECT_NAME} "${HDRS}")
 
-target_link_libraries(iscore_plugin_deviceexplorer PRIVATE
-                      Qt5::Core Qt5::Widgets
-                      iscore_lib_base iscore_lib_state iscore_lib_device
-                      QProgressIndicator)
+target_link_libraries(iscore_plugin_deviceexplorer
+	PUBLIC
+		iscore_lib_device
+	PRIVATE
+		QProgressIndicator)
 
 setup_iscore_plugin(iscore_plugin_deviceexplorer)
 setup_iscore_tests(Tests)
