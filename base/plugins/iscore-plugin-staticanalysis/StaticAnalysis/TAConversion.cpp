@@ -11,6 +11,8 @@
 #include <iscore/tools/std/Algorithms.hpp>
 
 #include <QFile>
+namespace stal
+{
 namespace TA
 {
 template<typename Container, typename Stream>
@@ -299,7 +301,6 @@ QString makeScenario(const Scenario::ConstraintModel &c)
     return print(baseContent);
 }
 
-}
 
 const char* TAVisitor::space() const
 {
@@ -625,4 +626,7 @@ void TAVisitor::visit(const Scenario::ConstraintModel &c)
 
         visitProcesses(c, flexible, scenario);
     }
+}
+
+}
 }

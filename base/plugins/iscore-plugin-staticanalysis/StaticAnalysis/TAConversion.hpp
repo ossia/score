@@ -14,8 +14,11 @@ class ConstraintModel;
 class StateModel;
 class ScenarioModel;
 }
+namespace stal
+{
 namespace TA
-{ struct TAScenario; }
+{
+struct TAScenario;
 
 template<typename Object>
 QString name(const Object& obj)
@@ -39,9 +42,6 @@ QString name(const Object& obj)
 
     return path.toString().replace('/', "_").replace('.', "").prepend('_');
 }
-
-namespace TA
-{
 
 using BroadcastVariable = QString;
 using BoolVariable = QString;
@@ -244,8 +244,6 @@ struct TAScenario : public ScenarioContent
     const TA::BroadcastVariable kill;// = "kill_S" + name(iscore_scenario);
 };
 
-}
-
 struct TAVisitor
 {
     TA::TAScenario scenario;
@@ -271,7 +269,7 @@ private:
     void visit(
             const Scenario::ScenarioModel& s);
 };
-namespace TA
-{
+
 QString makeScenario(const Scenario::ConstraintModel& s);
+}
 }

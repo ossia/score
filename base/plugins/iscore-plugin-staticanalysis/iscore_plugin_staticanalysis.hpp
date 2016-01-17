@@ -8,10 +8,10 @@ namespace iscore {
 
 }  // namespace iscore
 
-namespace TemporalAutomatas
+namespace TA
 {
 }
-class iscore_plugin_temporalautomatas final:
+class iscore_addon_staticanalysis final:
         public QObject,
         public iscore::GUIApplicationContextPlugin_QtInterface
 {
@@ -22,8 +22,8 @@ class iscore_plugin_temporalautomatas final:
                 )
 
     public:
-        iscore_plugin_temporalautomatas();
-        virtual ~iscore_plugin_temporalautomatas() = default;
+        iscore_addon_staticanalysis();
+        virtual ~iscore_addon_staticanalysis() = default;
 
         iscore::GUIApplicationContextPlugin* make_applicationPlugin(
                 const iscore::ApplicationContext& app) override;

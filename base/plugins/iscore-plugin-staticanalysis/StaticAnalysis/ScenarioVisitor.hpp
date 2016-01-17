@@ -7,7 +7,7 @@ namespace iscore {
 class MenubarManager;
 }  // namespace iscore
 // RENAMEME
-namespace TemporalAutomatas
+namespace stal
 {
 class ApplicationPlugin :
         public QObject,

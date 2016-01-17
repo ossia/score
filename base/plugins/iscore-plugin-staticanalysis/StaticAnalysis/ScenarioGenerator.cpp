@@ -8,7 +8,8 @@
 #include  <iterator>
 // http://stackoverflow.com/a/16421677/1495627
 // https://gist.github.com/cbsmith/5538174
-
+namespace stal
+{
 
 template <typename RandomGenerator = std::default_random_engine>
 struct random_selector
@@ -39,10 +40,13 @@ struct random_selector
     private:
         RandomGenerator gen;
 };
-namespace Scenario
+
+void generateScenario(
+        const Scenario::ScenarioModel& scenar,
+        int N,
+        CommandDispatcher<>& disp)
 {
-void generateScenario(const Scenario::ScenarioModel& scenar, int N, CommandDispatcher<>& disp)
-{
+    using namespace Scenario;
     disp.submitCommand(new Command::CreateState(scenar, scenar.startEvent().id(), 0.5));
 
     random_selector<> selector{};
