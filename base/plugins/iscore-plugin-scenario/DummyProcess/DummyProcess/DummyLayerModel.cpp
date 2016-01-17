@@ -9,6 +9,8 @@ namespace Process { class ProcessModel; }
 class QObject;
 #include <iscore/tools/SettableIdentifier.hpp>
 
+namespace Dummy
+{
 DummyLayerModel::DummyLayerModel(
         Process::ProcessModel& model,
         const Id<LayerModel>& id,
@@ -35,4 +37,5 @@ void DummyLayerModel::serialize(const VisitorVariant& vis) const
 Process::LayerModelPanelProxy* DummyLayerModel::make_panelProxy(QObject* parent) const
 {
     return new DummyLayerPanelProxy{*this, parent};
+}
 }

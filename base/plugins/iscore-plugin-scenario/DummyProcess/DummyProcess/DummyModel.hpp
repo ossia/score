@@ -18,6 +18,8 @@ class ProcessStateDataInterface;
 class QObject;
 #include <iscore/tools/SettableIdentifier.hpp>
 
+namespace Dummy
+{
 class ISCORE_LIB_DUMMYPROCESS_EXPORT DummyModel final :
         public Process::ProcessModel
 {
@@ -78,3 +80,4 @@ class ISCORE_LIB_DUMMYPROCESS_EXPORT DummyModel final :
         mutable DummyState m_startState{*this, nullptr};
         mutable DummyState m_endState{*this, nullptr};
 };
+}

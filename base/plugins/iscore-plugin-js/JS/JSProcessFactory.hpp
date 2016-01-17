@@ -47,14 +47,14 @@ class ProcessFactory final : public Process::ProcessFactory
                 Process::LayerView* v,
                 QObject* parent) override
         {
-            return new DummyLayerPresenter{model, dynamic_cast<DummyLayerView*>(v), parent};
+            return new Dummy::DummyLayerPresenter{model, dynamic_cast<Dummy::DummyLayerView*>(v), parent};
         }
 
         Process::LayerView* makeLayerView(
                 const Process::LayerModel&,
                 QGraphicsItem* parent) override
         {
-            return new DummyLayerView{parent};
+            return new Dummy::DummyLayerView{parent};
         }
 };
 }

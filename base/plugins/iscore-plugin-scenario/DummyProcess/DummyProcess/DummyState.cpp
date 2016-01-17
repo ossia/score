@@ -5,6 +5,8 @@
 namespace Process { class ProcessModel; }
 class QObject;
 
+namespace Dummy
+{
 DummyState::DummyState(
         Process::ProcessModel& model,
         QObject* parent):
@@ -39,4 +41,5 @@ State::MessageList DummyState::setMessages(
         const MessageNode&)
 {
     return {};
+}
 }

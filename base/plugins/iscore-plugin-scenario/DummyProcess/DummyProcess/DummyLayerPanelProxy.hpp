@@ -6,6 +6,8 @@
 namespace Process { class LayerModel; }
 class QObject;
 
+namespace Dummy
+{
 class ISCORE_LIB_DUMMYPROCESS_EXPORT DummyLayerPanelProxy final :
         public Process::LayerModelPanelProxy
 {
@@ -22,3 +24,4 @@ class ISCORE_LIB_DUMMYPROCESS_EXPORT DummyLayerPanelProxy final :
         const Process::LayerModel& m_layer;
         QWidget* m_widget{};
 };
+}

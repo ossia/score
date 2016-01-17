@@ -14,6 +14,8 @@ namespace State {
 struct Address;
 }  // namespace iscore
 
+namespace Dummy
+{
 class ISCORE_LIB_DUMMYPROCESS_EXPORT DummyState final : public ProcessStateDataInterface
 {
     public:
@@ -27,3 +29,4 @@ class ISCORE_LIB_DUMMYPROCESS_EXPORT DummyState final : public ProcessStateDataI
                 const State::MessageList& newMessages,
                 const MessageNode& currentState) override;
 };
+}

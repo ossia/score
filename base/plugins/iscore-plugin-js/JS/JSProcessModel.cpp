@@ -133,7 +133,7 @@ Process::LayerModel* ProcessModel::makeLayer_impl(
         const QByteArray& constructionData,
         QObject* parent)
 {
-    auto lay = new DummyLayerModel{*this, viewModelId, parent};
+    auto lay = new Dummy::DummyLayerModel{*this, viewModelId, parent};
     lay->setObjectName("JSProcessLayerModel");
     return lay;
 }
@@ -144,7 +144,7 @@ Process::LayerModel* ProcessModel::loadLayer_impl(
 {
     return deserialize_dyn(vis, [&] (auto&& deserializer)
     {
-        auto autom = new DummyLayerModel{
+        auto autom = new Dummy::DummyLayerModel{
                         deserializer, *this, parent};
         autom->setObjectName("JSProcessLayerModel");
         return autom;
@@ -156,7 +156,7 @@ Process::LayerModel* ProcessModel::cloneLayer_impl(
         const Process::LayerModel& source,
         QObject* parent)
 {
-    auto lay = new DummyLayerModel{safe_cast<const DummyLayerModel&>(source), *this, newId, parent};
+    auto lay = new Dummy::DummyLayerModel{safe_cast<const Dummy::DummyLayerModel&>(source), *this, newId, parent};
     lay->setObjectName("JSProcessLayerModel");
     return lay;
 }

@@ -119,7 +119,7 @@ Process::LayerModel* SimpleProcessModel::makeLayer_impl(
         const QByteArray& constructionData,
         QObject* parent)
 {
-    return new DummyLayerModel{*this, viewModelId, parent};
+    return new Dummy::DummyLayerModel{*this, viewModelId, parent};
 }
 
 Process::LayerModel* SimpleProcessModel::loadLayer_impl(
@@ -128,7 +128,7 @@ Process::LayerModel* SimpleProcessModel::loadLayer_impl(
 {
     return deserialize_dyn(vis, [&] (auto&& deserializer)
     {
-        auto autom = new DummyLayerModel{
+        auto autom = new Dummy::DummyLayerModel{
                         deserializer, *this, parent};
 
         return autom;
@@ -140,7 +140,7 @@ Process::LayerModel* SimpleProcessModel::cloneLayer_impl(
         const Process::LayerModel& source,
         QObject* parent)
 {
-    return new DummyLayerModel{safe_cast<const DummyLayerModel&>(source), *this, newId, parent};
+    return new Dummy::DummyLayerModel{safe_cast<const Dummy::DummyLayerModel&>(source), *this, newId, parent};
 }
 
 

@@ -8,6 +8,8 @@ class QGraphicsItem;
 class QPainter;
 //class QQuickWidget;
 
+namespace Dummy
+{
 class ISCORE_LIB_DUMMYPROCESS_EXPORT DummyLayerView final : public Process::LayerView
 {
         Q_OBJECT
@@ -30,3 +32,4 @@ class ISCORE_LIB_DUMMYPROCESS_EXPORT DummyLayerView final : public Process::Laye
         QString m_text;
         //QQuickWidget* m_widg{};
 };
+}
