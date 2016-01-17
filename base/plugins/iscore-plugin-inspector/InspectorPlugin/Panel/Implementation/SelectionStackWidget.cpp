@@ -7,6 +7,9 @@
 #include "SelectionStackWidget.hpp"
 #include <iscore/selection/Selection.hpp>
 
+
+namespace InspectorPanel
+{
 SelectionStackWidget::SelectionStackWidget(
         iscore::SelectionStack& s,
         QWidget* parent):
@@ -40,4 +43,5 @@ void SelectionStackWidget::selectionChanged(const Selection& s)
 {
     m_prev->setEnabled(m_stack.canUnselect());
     m_next->setEnabled(m_stack.canReselect());
+}
 }

@@ -13,6 +13,8 @@ class DocumentModel;
 
 }  // namespace iscore
 
+namespace InspectorPanel
+{
 class InspectorPanelFactory : public iscore::PanelFactory
 {
     public:
@@ -29,3 +31,4 @@ class InspectorPanelFactory : public iscore::PanelFactory
                 const iscore::DocumentContext& ctx,
                 QObject* parent) override;
 };
+}

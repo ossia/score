@@ -11,6 +11,9 @@ class PanelView;
 
 }  // namespace iscore
 
+
+namespace InspectorPanel
+{
 InspectorPanelPresenter::InspectorPanelPresenter(
         iscore::PanelView* view,
         QObject* parent) :
@@ -47,4 +50,5 @@ void InspectorPanelPresenter::on_modelChanged(
 
         disconnect(m_mvConnection);
     }
+}
 }
