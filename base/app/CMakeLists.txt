@@ -39,13 +39,6 @@ install(
   TARGETS ${APPNAME}
   BUNDLE DESTINATION .
   RUNTIME DESTINATION bin)
-if(NOT ISCORE_COTIRE_DISABLE_UNITY)
-  install(
-    TARGETS ${APPNAME}_unity
-    BUNDLE DESTINATION .
-    RUNTIME DESTINATION bin
-    COMPONENT unity)
-endif()
 
 include(TestSetup.cmake)
 include(UnityApp.cmake)
