@@ -23,7 +23,6 @@ build_script:
   - cd build
   - set PATH=%CMAKE_PATH%\bin;%QTDIR%\bin;%MINGW%\bin;C:\Qt\Tools\QtCreator\bin
   - cmake -G"MinGW Makefiles" -DCMAKE_TOOLCHAIN_FILE=CMake/Configurations/travis/appveyor-mingw-static-release.toolchain -DISCORE_CONFIGURATION=appveyor-mingw-static-release  ..
- # -DCMAKE_PREFIX_PATH="%QTDIR%/lib/cmake/Qt5;%JAMOMA_ROOT%\share\cmake\jamoma" -DBOOST_ROOT="%BOOST_ROOT%" -DBOOST_LIBRARYDIR="%BOOST_LIBRARYDIR%"
   - mingw32-make -j2
   - cpack
 
