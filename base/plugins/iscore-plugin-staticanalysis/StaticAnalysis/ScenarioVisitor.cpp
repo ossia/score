@@ -19,7 +19,7 @@
 #include <Process/State/MessageNode.hpp>
 #include <Scenario/Document/Constraint/ConstraintDurations.hpp>
 #include <Scenario/Document/State/ItemModel/MessageItemModel.hpp>
-#include "ScenarioVisitor.hpp"
+#include <StaticAnalysis/ScenarioVisitor.hpp>
 #include <State/Message.hpp>
 #include <State/Value.hpp>
 #include <core/presenter/MenubarManager.hpp>
@@ -32,11 +32,11 @@
 #include <QApplication>
 #include <QJsonDocument>
 #include <QFile>
-#include "TAConversion.hpp"
+#include <StaticAnalysis/TAConversion.hpp>
 #include <Scenario/Application/Menus/TextDialog.hpp>
-#include <ScenarioMetrics.hpp>
-#include <ScenarioGenerator.hpp>
-TemporalAutomatas::ApplicationPlugin::ApplicationPlugin(const iscore::ApplicationContext& app):
+#include <StaticAnalysis/ScenarioMetrics.hpp>
+#include <StaticAnalysis/ScenarioGenerator.hpp>
+stal::ApplicationPlugin::ApplicationPlugin(const iscore::ApplicationContext& app):
     iscore::GUIApplicationContextPlugin(app, "TemporalAutomatasApplicationPlugin", nullptr)
 {
     m_generate = new QAction{tr("Generate random score"), nullptr};
@@ -62,7 +62,7 @@ TemporalAutomatas::ApplicationPlugin::ApplicationPlugin(const iscore::Applicatio
                 while(doc->commandStack().canUndo())
                     doc->commandStack().undo();
 
-                Scenario::generateScenario(*firstScenario, n, disp);
+                stal::generateScenario(*firstScenario, n, disp);
 
                 QString baseName = "data/" + QString::number(set) + "/" + QString::number(n);
                 {
@@ -111,7 +111,7 @@ TemporalAutomatas::ApplicationPlugin::ApplicationPlugin(const iscore::Applicatio
         Scenario::ScenarioDocumentModel& base = iscore::IDocument::get<Scenario::ScenarioDocumentModel>(*doc);
         auto& baseScenario = static_cast<Scenario::ScenarioModel&>(*base.baseScenario().constraint().processes.begin());
 
-        using namespace Scenario::Metrics;
+        using namespace stal::Metrics;
         // Language
         QString str = toScenarioLanguage(baseScenario);
 
@@ -135,7 +135,7 @@ TemporalAutomatas::ApplicationPlugin::ApplicationPlugin(const iscore::Applicatio
     });
 }
 
-void TemporalAutomatas::ApplicationPlugin::populateMenus(iscore::MenubarManager* menus)
+void stal::ApplicationPlugin::populateMenus(iscore::MenubarManager* menus)
 {
     menus->insertActionIntoToplevelMenu(
                 iscore::ToplevelMenuElement::FileMenu,

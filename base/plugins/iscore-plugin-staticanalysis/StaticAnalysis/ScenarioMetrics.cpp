@@ -7,8 +7,8 @@
 #include <Scenario/Document/TimeNode/Trigger/TriggerModel.hpp>
 #include <Scenario/Process/Algorithms/Accessors.hpp>
 #include <iscore/tools/std/Algorithms.hpp>
-
-
+namespace stal
+{
 template<class>
 class LanguageVisitor;
 
@@ -395,17 +395,17 @@ class HalsteadVisitor<Scenario::ScenarioModel>
         }
 };
 
-QString Scenario::Metrics::toScenarioLanguage(
+QString stal::Metrics::toScenarioLanguage(
         const Scenario::ScenarioModel& s)
 {
     return LanguageVisitor<Scenario::ScenarioModel>{s}.text;
 }
 
-Scenario::Metrics::Halstead::Factors
-Scenario::Metrics::Halstead::ComputeFactors(const Scenario::ScenarioModel& scenar)
+stal::Metrics::Halstead::Factors
+stal::Metrics::Halstead::ComputeFactors(const Scenario::ScenarioModel& scenar)
 {
     auto sf = HalsteadVisitor<Scenario::ScenarioModel>{scenar}.f;
-    Scenario::Metrics::Halstead::Factors factors;
+    stal::Metrics::Halstead::Factors factors;
     factors.eta1 = sum_unique(sf.operators.toVector());
     factors.eta2 = sum_unique(sf.operands.toVector());
     factors.N1 = sum_all(sf.operators.toVector());
@@ -1043,8 +1043,8 @@ class CyclomaticVisitor
         }
 };
 
-Scenario::Metrics::Cyclomatic::Factors
-Scenario::Metrics::Cyclomatic::ComputeFactors(
+stal::Metrics::Cyclomatic::Factors
+stal::Metrics::Cyclomatic::ComputeFactors(
         const Scenario::ScenarioModel& scenar)
 {
     ProgramVisitor v(scenar);
@@ -1060,10 +1060,10 @@ Scenario::Metrics::Cyclomatic::ComputeFactors(
     int E_nodes = std::accumulate(programs.begin(), programs.end(), 0,
                                   [] (int size, const Program& program) { return size + program.nodes.size(); });
 
-    return Scenario::Metrics::Cyclomatic::Factors{E_events + E_nodes, N, (int)programs.size()};
+    return stal::Metrics::Cyclomatic::Factors{E_events + E_nodes, N, (int)programs.size()};
 }
 
-Scenario::Metrics::Cyclomatic::Factors Scenario::Metrics::Cyclomatic::ComputeFactors2(
+stal::Metrics::Cyclomatic::Factors stal::Metrics::Cyclomatic::ComputeFactors2(
         const Scenario::ScenarioModel& scenar)
 {
     ProgramVisitor v(scenar);
@@ -1139,5 +1139,6 @@ Scenario::Metrics::Cyclomatic::Factors Scenario::Metrics::Cyclomatic::ComputeFac
     //  - if the range is infinite :
     //  - else it does not change.
 
-    return  Scenario::Metrics::Cyclomatic::Factors{E, N, P};
+    return  stal::Metrics::Cyclomatic::Factors{E, N, P};
+}
 }
