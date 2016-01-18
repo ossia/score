@@ -12,6 +12,7 @@
 
 #include <State/Value.hpp>
 #include "ValueConversion.hpp"
+#include "Expression.hpp"
 
 namespace State
 {
@@ -322,7 +323,14 @@ tuple_t value(const State::Value& val)
             return_type operator()(bool b) const {
                 return {b};
             }
-            return_type operator()(const QString& s) const { return {s}; }
+            return_type operator()(const QString& s) const {
+                auto v = parseValue(s);
+
+                if(v && v->val.is<tuple_t>())
+                    return v->val.get<State::tuple_t>();
+
+                return {s};
+            }
             return_type operator()(const QChar& c) const { return {c}; }
             return_type operator()(const State::tuple_t& t) const { return t; }
     } visitor{};
