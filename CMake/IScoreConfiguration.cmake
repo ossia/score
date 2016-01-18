@@ -57,7 +57,7 @@ if(ANDROID)
   include_directories("/opt/android-toolchain/arm-linux-androideabi/include")
 else()
   find_package(Boost REQUIRED)
-  include_directories("${Boost_INCLUDE_DIRS}")
+  include_directories(SYSTEM "${Boost_INCLUDE_DIRS}")
 endif()
 
 if(UNIX AND NOT APPLE AND DEPLOYMENT_BUILD)
