@@ -168,7 +168,7 @@ struct Value_parser : qi::grammar<Iterator, State::Value()>
         char_parser %= "'" >> (char_ - "'") >> "'";
         str_parser %= '"' >> qi::lexeme [ *(char_ - '"') ] >> '"';
 
-        tuple_parser %= skip(boost::spirit::ascii::space) [ "[" >> (variant % ",") >> "]" ];
+        tuple_parser %= skip(boost::spirit::ascii::space) [ "[" >> variant % "," >> "]" ];
         variant %=  real_parser<float, boost::spirit::qi::strict_real_policies<float> >()
                 | int_
                 | bool_parser

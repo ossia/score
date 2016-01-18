@@ -25,7 +25,7 @@ Inspector::InspectorWidgetBase* EventInspectorFactory::makeWidget(
 
 const QList<QString>&EventInspectorFactory::key_impl() const
 {
-    static const QList<QString> list{"EventModel"};
+    static const QList<QString> list{QString::fromStdString(EventModel::className)};
     return list;
 }
 }
