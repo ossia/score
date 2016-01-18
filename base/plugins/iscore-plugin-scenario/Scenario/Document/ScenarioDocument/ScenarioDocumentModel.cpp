@@ -56,8 +56,13 @@ ScenarioDocumentModel::ScenarioDocumentModel(QObject* parent) :
         parent},
     m_baseScenario{new BaseScenario{Id<BaseScenario>{0}, this}}
 {
+    TimeValue dur{std::chrono::minutes{3}};
+#ifdef ISCORE_DEBUG
+    dur = std::chrono::seconds{30};
+#endif
+
     m_baseScenario->constraint().duration.setRigid(false);
-    ConstraintDurations::Algorithms::changeAllDurations(m_baseScenario->constraint(), std::chrono::minutes{3});
+    ConstraintDurations::Algorithms::changeAllDurations(m_baseScenario->constraint(), dur);
     m_baseScenario->endEvent().setDate(m_baseScenario->constraint().duration.defaultDuration());
     m_baseScenario->endTimeNode().setDate(m_baseScenario->constraint().duration.defaultDuration());
     m_baseScenario->constraint().setObjectName("BaseConstraintModel");
