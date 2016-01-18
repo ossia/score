@@ -23,7 +23,7 @@ build_script:
   - cd build
   - set PATH=%CMAKE_PATH%\bin;%QTDIR%\bin;%MINGW%\bin;C:\Qt\Tools\QtCreator\bin
   - cmake -G"MinGW Makefiles" -DCMAKE_TOOLCHAIN_FILE=CMake/Configurations/travis/appveyor-mingw-static-release.toolchain -DISCORE_CONFIGURATION=appveyor-mingw-static-release  ..
-  - mingw32-make -j2
+  - cmake --build . --target all_unity -- -j2
   - cpack
 
 artifacts:
