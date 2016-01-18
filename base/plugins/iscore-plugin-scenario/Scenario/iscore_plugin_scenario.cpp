@@ -101,7 +101,7 @@ iscore::GUIApplicationContextPlugin* iscore_plugin_scenario::make_applicationPlu
 std::vector<iscore::PanelFactory*> iscore_plugin_scenario::panels()
 {
     return {
-        //new ProcessPanelFactory
+        new Scenario::ProcessPanelFactory
     };
 }
 

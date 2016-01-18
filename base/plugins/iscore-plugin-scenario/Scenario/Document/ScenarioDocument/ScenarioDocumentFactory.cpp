@@ -14,6 +14,13 @@ struct VisitorVariant;
 
 namespace Scenario
 {
+const iscore::DocumentDelegateFactoryInterface::factory_key_type&
+ScenarioDocumentFactory::key_impl() const
+{
+    static factory_key_type k("Scenario");
+    return k;
+}
+
 iscore::DocumentDelegateViewInterface*
 ScenarioDocumentFactory::makeView(
         const iscore::ApplicationContext& ctx,

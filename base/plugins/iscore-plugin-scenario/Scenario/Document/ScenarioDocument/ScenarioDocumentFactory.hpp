@@ -15,9 +15,13 @@ struct VisitorVariant;
 
 namespace Scenario
 {
-class ScenarioDocumentFactory final : public iscore::DocumentDelegateFactoryInterface
+class ScenarioDocumentFactory final :
+        public iscore::DocumentDelegateFactoryInterface
 {
     public:
+        const ScenarioDocumentFactory::factory_key_type&
+        key_impl() const override;
+
         iscore::DocumentDelegateViewInterface* makeView(
                 const iscore::ApplicationContext& ctx,
                 QObject* parent) override;
