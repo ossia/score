@@ -24,7 +24,7 @@ EventModel::EventModel(
         const VerticalExtent &extent,
         const TimeValue &date,
         QObject* parent):
-    IdentifiedObject<EventModel> {id, "EventModel", parent},
+    IdentifiedObject<EventModel> {id, className.c_str(), parent},
     pluginModelList{iscore::IDocument::documentContext(*parent), this},
     m_timeNode{timenode},
     m_extent{extent},
@@ -37,7 +37,7 @@ EventModel::EventModel(
 EventModel::EventModel(const EventModel& source,
                        const Id<EventModel>& id,
                        QObject* parent) :
-    IdentifiedObject<EventModel> {id, "EventModel", parent},
+    IdentifiedObject<EventModel> {id, className.c_str(), parent},
     metadata{source.metadata},
     pluginModelList{source.pluginModelList, this},
     m_timeNode{source.m_timeNode},

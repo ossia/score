@@ -23,7 +23,7 @@ Inspector::InspectorWidgetBase* TimeNodeInspectorFactory::makeWidget(
 
 const QList<QString>& TimeNodeInspectorFactory::key_impl() const
 {
-    static const QList<QString> list{"TimeNodeModel"};
+    static const QList<QString> list{QString::fromStdString(TimeNodeModel::className)};
     return list;
 }
 }

@@ -25,7 +25,7 @@ Inspector::InspectorWidgetBase* StateInspectorFactory::makeWidget(
 
 const QList<QString>& StateInspectorFactory::key_impl() const
 {
-    static const QList<QString> list{"StateModel"};
+    static const QList<QString> list{QString::fromStdString(StateModel::className)};
     return list;
 }
 }
