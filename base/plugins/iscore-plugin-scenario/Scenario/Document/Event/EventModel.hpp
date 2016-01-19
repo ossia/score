@@ -99,7 +99,7 @@ class ISCORE_PLUGIN_SCENARIO_EXPORT EventModel final : public IdentifiedObject<E
 
         void statesChanged();
 
-        void statusChanged(ExecutionStatus status);
+        void statusChanged(Scenario::ExecutionStatus status);
 
     private:
         Id<TimeNodeModel> m_timeNode;
