@@ -123,7 +123,7 @@ class ISCORE_PLUGIN_SCENARIO_EXPORT StateModel final : public IdentifiedObject<S
     signals:
         void sig_statesUpdated();
         void heightPercentageChanged();
-        void statusChanged(ExecutionStatus);
+        void statusChanged(Scenario::ExecutionStatus);
 
     private:
         void statesUpdated_slt();
