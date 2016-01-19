@@ -23,36 +23,48 @@ LocalDevice::LocalDevice(
     m_capas.canAddNode = false;
     m_capas.canRemoveNode = false;
 
-    m_addedNodeCb = m_dev->addNodeCallbacks.addCallback(
-                        [this] (const OSSIA::Node& n) {
-        emit pathAdded(Ossia::convert::ToAddress(n));
+    m_addedNodeCb = m_dev->addCallback(
+                        [this] (const OSSIA::Node& n, OSSIA::NodeChange chg)
+    {
+        if(chg == OSSIA::NodeChange::EMPLACED)
+        {
+            emit pathAdded(Ossia::convert::ToAddress(n));
+        }
     });
 
-    m_removedNodeCb = m_dev->removeNodeCallbacks.addCallback(
-                          [this] (const OSSIA::Node& n) {
-        emit pathRemoved(Ossia::convert::ToAddress(n));
+    m_removedNodeCb = m_dev->addCallback(
+                          [this] (const OSSIA::Node& n, OSSIA::NodeChange chg)
+    {
+        if(chg == OSSIA::NodeChange::ERASED)
+        {
+            emit pathRemoved(Ossia::convert::ToAddress(n));
+        }
     });
 
-    m_nameChangesCb = m_dev->nameChangesDeviceCallbacks.addCallback(
-                          [this] (
-                              const OSSIA::Node& node,
-                              const std::string& oldName,
-                              const std::string& newName) {
-        State::Address currentAddress = Ossia::convert::ToAddress(*node.getParent());
-        currentAddress.path.push_back(QString::fromStdString(oldName));
+    m_nameChangesCb = m_dev->addCallback(
+                          [this] (const OSSIA::Node& node, OSSIA::NodeChange chg)
+    {
+        if(chg == OSSIA::NodeChange::RENAMED)
+        {
+            ISCORE_TODO;
+            /*
+            State::Address currentAddress = Ossia::convert::ToAddress(*node.getParent());
+            currentAddress.path.push_back(m_settings.name);
 
-        Device::AddressSettings as = Ossia::convert::ToAddressSettings(node);
-        as.name = QString::fromStdString(newName);
-        emit pathUpdated(currentAddress, as);
+            Device::AddressSettings as = Ossia::convert::ToAddressSettings(node);
+            as.name = QString::fromStdString(newName);
+            emit pathUpdated(currentAddress, as);
+            */
+        }
     });
 }
 
 LocalDevice::~LocalDevice()
 {
     ISCORE_ASSERT(m_dev.get());
-    m_dev->addNodeCallbacks.removeCallback(m_addedNodeCb);
-    m_dev->removeNodeCallbacks.removeCallback(m_removedNodeCb);
-    m_dev->nameChangesDeviceCallbacks.removeCallback(m_nameChangesCb);
+    m_dev->removeCallback(m_addedNodeCb);
+    m_dev->removeCallback(m_removedNodeCb);
+    m_dev->removeCallback(m_nameChangesCb);
 }
 
 void LocalDevice::disconnect()

@@ -41,7 +41,7 @@ template<typename T, typename Callback>
 auto add_setProperty(OSSIA::Node& n, const std::string& name, Callback cb)
 {
     constexpr const auto t = Ossia::convert::MatchingType<T>::val;
-    std::shared_ptr<OSSIA::Node> node = *n.emplaceAndNotify(
+    std::shared_ptr<OSSIA::Node> node = *n.emplace(
                                             n.children().end(),
                                             name,
                                             t,

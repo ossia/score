@@ -92,7 +92,7 @@ auto add_getProperty(
         QObject* context)
 {
     constexpr const auto t = Ossia::convert::MatchingType<T>::val;
-    std::shared_ptr<OSSIA::Node> node = *n.emplaceAndNotify(
+    std::shared_ptr<OSSIA::Node> node = *n.emplace(
                                             n.children().end(),
                                             name,
                                             t,

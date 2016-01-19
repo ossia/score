@@ -28,8 +28,8 @@ class LocalDevice final : public OSSIADevice
 
         using OSSIADevice::refresh;
 
-        OSSIA::CallbackContainer<OSSIA::Device::AddedNodeCallback>::iterator m_addedNodeCb;
-        OSSIA::CallbackContainer<OSSIA::Device::RemovingNodeCallback>::iterator m_removedNodeCb;
-        OSSIA::CallbackContainer<OSSIA::Device::NameChangesDeviceCallback>::iterator m_nameChangesCb;
+        OSSIA::CallbackContainer<OSSIA::NodeChangeCallback>::iterator m_addedNodeCb;
+        OSSIA::CallbackContainer<OSSIA::NodeChangeCallback>::iterator m_removedNodeCb;
+        OSSIA::CallbackContainer<OSSIA::NodeChangeCallback>::iterator m_nameChangesCb;
 };
 }

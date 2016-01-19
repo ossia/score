@@ -88,7 +88,7 @@ void ConstraintComponent::removing(
     { return node == comp.node(); });
     ISCORE_ASSERT(it != m_processesNode->children().end());
 
-    m_processesNode->eraseAndNotify(it);
+    m_processesNode->erase(it);
 }
 
 

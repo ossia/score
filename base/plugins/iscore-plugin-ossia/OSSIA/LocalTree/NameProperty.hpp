@@ -5,7 +5,7 @@
 class MetadataNamePropertyWrapper
 {
         ModelMetadata& metadata;
-        OSSIA::CallbackContainer<OSSIA::Node::NameChangesCallback>::iterator m_callbackIt;
+        OSSIA::CallbackContainer<OSSIA::NodeChangeCallback>::iterator m_callbackIt;
 
     public:
         std::shared_ptr<OSSIA::Node> node;
@@ -17,16 +17,19 @@ class MetadataNamePropertyWrapper
                 ):
             metadata{arg_metadata}
         {
-            node = *parent.emplaceAndNotify(
+            node = *parent.emplace(
                        parent.children().end(),
                        arg_metadata.name().toStdString());
 
             m_callbackIt =
-                    node->nameChangesCallbacks.addCallback(
-                        [=] (const std::string& newName) {
-                auto str = QString::fromStdString(newName);
-                if(str != metadata.name())
-                    metadata.setName(str);
+                    node->addCallback(
+                        [=] (const OSSIA::Node& node, OSSIA::NodeChange t) {
+                if(t == OSSIA::NodeChange::RENAMED)
+                {
+                    auto str = QString::fromStdString(node.getName());
+                    if(str != metadata.name())
+                        metadata.setName(str);
+                }
             });
 
             auto setNameFun = [=] (const QString& newName_qstring) {
@@ -55,6 +58,6 @@ class MetadataNamePropertyWrapper
 
         ~MetadataNamePropertyWrapper()
         {
-            node->nameChangesCallbacks.removeCallback(m_callbackIt);
+            node->removeCallback(m_callbackIt);
         }
 };
