@@ -33,6 +33,8 @@ public:
         switch(strategy)
         {
             case MoveEventFactoryInterface::Strategy::CREATION:
+                return 0;
+                break;
             case MoveEventFactoryInterface::Strategy::MOVING:
             default:
                 return 0;// not suited for other strategies
