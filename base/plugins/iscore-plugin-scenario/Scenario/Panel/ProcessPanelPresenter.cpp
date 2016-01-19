@@ -106,5 +106,6 @@ void ProcessPanelPresenter::cleanup()
 {
     m_layerModel = nullptr;
     delete m_proxy;
+    m_proxy = nullptr;
 }
 }
