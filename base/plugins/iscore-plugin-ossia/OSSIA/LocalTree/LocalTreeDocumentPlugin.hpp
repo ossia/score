@@ -10,7 +10,7 @@
 
 inline auto add_node(OSSIA::Node& n, const std::string& name)
 {
-    return *n.emplaceAndNotify(n.children().end(), name);
+    return *n.emplace(n.children().end(), name);
 }
 
 
