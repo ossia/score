@@ -237,6 +237,12 @@ class TimeValue_T
             return res;
         }
 
+        TimeValue_T operator+= (const TimeValue_T& other)
+        {
+            *this = *this + other;
+            return *this;
+        }
+
     private:
         boost::optional<T> m_impl {0}; // TODO std::isinf instead.
 };
