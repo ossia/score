@@ -42,7 +42,7 @@ namespace DeviceExplorer
 DeviceDocumentPlugin::DeviceDocumentPlugin(
         iscore::Document& ctx,
         QObject* parent):
-    iscore::DocumentPluginModel{ctx, "DeviceDocumentPlugin", parent}
+    iscore::DocumentPluginModel{ctx, "DeviceExplorer::DeviceDocumentPlugin", parent}
 {
 
 }
@@ -51,7 +51,7 @@ DeviceDocumentPlugin::DeviceDocumentPlugin(
         iscore::Document& ctx,
         const VisitorVariant& vis,
         QObject* parent):
-    iscore::DocumentPluginModel{ctx, "DeviceDocumentPlugin", parent}
+    iscore::DocumentPluginModel{ctx, "DeviceExplorer::DeviceDocumentPlugin", parent}
 {
     deserialize_dyn(vis, m_rootNode);
 
