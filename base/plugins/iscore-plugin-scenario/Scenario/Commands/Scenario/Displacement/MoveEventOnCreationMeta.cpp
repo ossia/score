@@ -60,7 +60,7 @@ void MoveEventOnCreationMeta::deserializeImpl(DataStreamOutput& qDataStream)
 
     m_moveEventImplementation =
             context.components.factory<MoveEventList>()
-            .get(MoveEventFactoryInterface::Strategy::MOVING)->make();
+            .get(MoveEventFactoryInterface::Strategy::MOVING_CLASSIC)->make();
 
     m_moveEventImplementation->deserialize(cmdData);
 }

@@ -6,6 +6,7 @@
 #include <Process/TimeValue.hpp>
 #include <Scenario/Commands/ScenarioCommandFactory.hpp>
 #include <iscore/tools/ModelPath.hpp>
+#include "MoveEventFactoryInterface.hpp"
 
 #include <iscore/tools/SettableIdentifier.hpp>
 class DataStreamInput;
@@ -17,6 +18,7 @@ class EventModel;
 class ScenarioModel;
 namespace Command
 {
+
 class MoveEventMeta final : public SerializableMoveEvent
 {
         ISCORE_COMMAND_DECL(ScenarioCommandFactoryName(), MoveEventMeta, "Move an event")
@@ -40,6 +42,9 @@ protected:
     void deserializeImpl(DataStreamOutput&) override;
 
 private:
+    // TODO : make a UI to change that
+    MoveEventFactoryInterface::Strategy m_strategy{};
+
     SerializableMoveEvent* m_moveEventImplementation;
 
     // SerializableMoveEvent interface
