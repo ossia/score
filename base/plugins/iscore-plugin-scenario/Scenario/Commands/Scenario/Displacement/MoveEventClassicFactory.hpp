@@ -39,7 +39,7 @@ public:
                 return 0;
                 break;
             default:
-                return -2;// not suited for other strategies
+                return 0;// not suited for other strategies
                 break;
         }
     }

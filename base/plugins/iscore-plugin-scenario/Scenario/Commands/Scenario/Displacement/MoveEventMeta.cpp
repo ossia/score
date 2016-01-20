@@ -24,7 +24,7 @@ MoveEventMeta::MoveEventMeta(
         const TimeValue& newDate,
         ExpandMode mode)
     :SerializableMoveEvent{},
-     m_strategy{MoveEventFactoryInterface::Strategy::MOVING_LESS},
+     m_strategy{MoveEventFactoryInterface::Strategy::MOVING_CLASSIC},
      m_moveEventImplementation(
          context.components.factory<MoveEventList>()
          .get(m_strategy)
