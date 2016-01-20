@@ -38,7 +38,7 @@ const QList<QString>&ConstraintInspectorFactory::key_impl() const
 {
     static const QList<QString> list{
         QString::fromStdString(ConstraintModel::className),
-        "Scenario::BaseConstraintModel" // TODO dangerous
+        "BaseConstraintModel" // TODO dangerous
     };
     return list;
 }
