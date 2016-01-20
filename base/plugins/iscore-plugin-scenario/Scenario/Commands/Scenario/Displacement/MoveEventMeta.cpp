@@ -3,7 +3,6 @@
 #include <QByteArray>
 #include <algorithm>
 
-#include "MoveEventFactoryInterface.hpp"
 #include "MoveEventMeta.hpp"
 #include <Scenario/Commands/Scenario/Displacement/SerializableMoveEvent.hpp>
 #include <iscore/application/ApplicationContext.hpp>
@@ -25,9 +24,10 @@ MoveEventMeta::MoveEventMeta(
         const TimeValue& newDate,
         ExpandMode mode)
     :SerializableMoveEvent{},
+     m_strategy{MoveEventFactoryInterface::Strategy::MOVING_LESS},
      m_moveEventImplementation(
          context.components.factory<MoveEventList>()
-         .get(MoveEventFactoryInterface::Strategy::MOVING)
+         .get(m_strategy)
          ->make(std::move(scenarioPath), eventId, newDate, mode))
 {
 }
@@ -60,7 +60,7 @@ void MoveEventMeta::deserializeImpl(DataStreamOutput& qDataStream)
 
     m_moveEventImplementation =
             context.components.factory<MoveEventList>()
-            .get(MoveEventFactoryInterface::Strategy::MOVING)->make();
+            .get(m_strategy)->make();
 
     m_moveEventImplementation->deserialize(cmdData);
 }

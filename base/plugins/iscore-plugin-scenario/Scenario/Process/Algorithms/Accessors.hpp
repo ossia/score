@@ -109,7 +109,7 @@ auto nextConstraints(
     std::list<Id<ConstraintModel>> constraints;
     for(const Id<StateModel>& state : ev.states())
     {
-        const StateModel& st = scenario.states.at(state);
+        const StateModel& st = scenario.state(state);
         if(const auto& cst_id = st.nextConstraint())
             constraints.push_back(cst_id);
     }
@@ -130,6 +130,7 @@ auto previousConstraints(
     return constraints;
 }
 
+// TimeNodes
 template<typename Scenario_T>
 auto nextConstraints(
         const TimeNodeModel& tn,
@@ -138,7 +139,7 @@ auto nextConstraints(
     std::list<Id<ConstraintModel>> constraints;
     for(const Id<EventModel>& event_id : tn.events())
     {
-        const EventModel& event = scenario.events.at(event_id);
+        const EventModel& event = scenario.event(event_id);
         auto prev = nextConstraints(event, scenario);
         constraints.splice(constraints.end(), prev);
     }
