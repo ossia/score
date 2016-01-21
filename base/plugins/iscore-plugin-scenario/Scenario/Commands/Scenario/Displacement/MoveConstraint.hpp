@@ -46,6 +46,8 @@ class MoveConstraint final : public iscore::SerializableCommand
         Id<ConstraintModel> m_constraint;
         double m_oldHeight{},
         m_newHeight{};
+
+        QList<QPair<Id<ConstraintModel>, double>> m_selectedConstraints;
 };
 }
 }
