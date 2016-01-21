@@ -122,7 +122,7 @@ void StateInspectorWidget::updateDisplayedValues()
     m_properties.push_back(widget);
 
     updateAreaLayout(m_properties);
-    m_stateSection->expand();
+//    m_stateSection->expand();
 }
 
 void StateInspectorWidget::splitEvent()

@@ -28,7 +28,7 @@ InspectorPanelWidget::InspectorPanelWidget(
 {
     m_tabWidget->setTabsClosable(true);
     m_layout->setContentsMargins(0, 0, 0, 0);
-    setMinimumWidth(300);
+    setMinimumWidth(350);
     m_layout->addWidget(m_tabWidget);
 
     connect(m_tabWidget,    &QTabWidget::tabCloseRequested,
