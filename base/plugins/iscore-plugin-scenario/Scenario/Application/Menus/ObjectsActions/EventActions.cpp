@@ -1,6 +1,7 @@
 #include "EventActions.hpp"
 
 #include <Scenario/Application/ScenarioApplicationPlugin.hpp>
+#include <Scenario/Process/Algorithms/Accessors.hpp>
 
 #include <Scenario/Commands/TimeNode/AddTrigger.hpp>
 #include <Scenario/Commands/TimeNode/RemoveTrigger.hpp>
@@ -89,8 +90,15 @@ void EventActions::addTriggerToTimeNode()
     auto selectedTimeNodes = selectedElements(m_parent->focusedScenarioModel()->timeNodes);
 
     if(selectedTimeNodes.isEmpty())
-    return;
-    qDebug() << "TODO : Need a trigger selected, not an event";
+    {
+        // take tn from a selected event
+        auto selectedEvents = selectedElements(m_parent->focusedScenarioModel()->events);
+        auto ev = selectedEvents.first();
+        auto scenar = static_cast<Scenario::ScenarioModel*>(ev->parent());
+        auto& tn = Scenario::parentTimeNode(*ev, *scenar);
+        selectedTimeNodes.append(&tn);
+    }
+
     auto cmd = new Scenario::Command::AddTrigger<Scenario::ScenarioModel>{**selectedTimeNodes.begin()};
     emit dispatcher().submitCommand(cmd);
 }
@@ -99,8 +107,13 @@ void EventActions::removeTriggerFromTimeNode()
 {
     auto selectedTimeNodes = selectedElements(m_parent->focusedScenarioModel()->timeNodes);
     if(selectedTimeNodes.isEmpty())
-    return;
-    qDebug() << "TODO : Need a trigger selected, not an event";
+    {
+        auto selectedEvents = selectedElements(m_parent->focusedScenarioModel()->events);
+        auto ev = selectedEvents.first();
+        auto scenar = static_cast<Scenario::ScenarioModel*>(ev->parent());
+        auto& tn = Scenario::parentTimeNode(*ev, *scenar);
+        selectedTimeNodes.append(&tn);
+    }
 
     auto cmd = new Scenario::Command::RemoveTrigger<Scenario::ScenarioModel>{**selectedTimeNodes.begin()};
     emit dispatcher().submitCommand(cmd);
