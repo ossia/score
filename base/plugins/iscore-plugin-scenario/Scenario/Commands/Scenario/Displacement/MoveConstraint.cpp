@@ -27,6 +27,13 @@ MoveConstraint::MoveConstraint(
     auto& scenar = m_path.find();
     auto& cst = scenar.constraints.at(m_constraint);
 
+    auto list = selectedElements(scenar.constraints);
+
+    for (auto& elt : list)
+    {
+        m_selectedConstraints.append({elt->id(), elt->heightPercentage()});
+    }
+
     m_oldHeight = cst.heightPercentage();
 }
 
@@ -40,18 +47,26 @@ void MoveConstraint::update(const Path<Scenario::ScenarioModel>& path,
 
 void MoveConstraint::undo() const
 {
-    updateConstraintVerticalPos(
-                m_oldHeight,
-                m_constraint,
-                m_path.find());
+    auto& scenar = m_path.find();
+    for (auto cstr : m_selectedConstraints)
+    {
+        updateConstraintVerticalPos(
+                    cstr.second,
+                    cstr.first,
+                    scenar);
+    }
 }
 
 void MoveConstraint::redo() const
 {
-    updateConstraintVerticalPos(
-                m_newHeight,
-                m_constraint,
-                m_path.find());
+    auto& scenar = m_path.find();
+    for (auto cstr : m_selectedConstraints)
+    {
+        updateConstraintVerticalPos(
+                    cstr.second + m_newHeight - m_oldHeight,
+                    cstr.first,
+                    scenar);
+    }
 }
 
 void MoveConstraint::serializeImpl(DataStreamInput& s) const
@@ -59,7 +74,8 @@ void MoveConstraint::serializeImpl(DataStreamInput& s) const
     s << m_path
       << m_constraint
       << m_oldHeight
-      << m_newHeight;
+      << m_newHeight
+      << m_selectedConstraints;
 }
 
 void MoveConstraint::deserializeImpl(DataStreamOutput& s)
@@ -67,7 +83,8 @@ void MoveConstraint::deserializeImpl(DataStreamOutput& s)
     s >> m_path
       >> m_constraint
       >> m_oldHeight
-      >> m_newHeight;
+      >> m_newHeight
+      >> m_selectedConstraints;
 }
 }
 }
