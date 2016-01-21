@@ -26,6 +26,7 @@ MoveConstraint::MoveConstraint(
 {
     auto& scenar = m_path.find();
     auto& cst = scenar.constraints.at(m_constraint);
+    m_oldHeight = cst.heightPercentage();
 
     auto list = selectedElements(scenar.constraints);
 
@@ -34,7 +35,9 @@ MoveConstraint::MoveConstraint(
         m_selectedConstraints.append({elt->id(), elt->heightPercentage()});
     }
 
-    m_oldHeight = cst.heightPercentage();
+    if(m_selectedConstraints.empty())
+        m_selectedConstraints.append({m_constraint, m_oldHeight});
+
 }
 
 void MoveConstraint::update(const Path<Scenario::ScenarioModel>& path,
