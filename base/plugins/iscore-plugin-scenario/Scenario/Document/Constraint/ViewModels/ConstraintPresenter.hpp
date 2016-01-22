@@ -59,9 +59,9 @@ class ISCORE_PLUGIN_SCENARIO_EXPORT ConstraintPresenter : public NamedObject, pu
         void updateHeight();
 
     signals:
-        void pressed(QPointF);
-        void moved(QPointF);
-        void released(QPointF);
+        void pressed(QPointF) const;
+        void moved(QPointF) const;
+        void released(QPointF) const;
 
         void askUpdate();
         void heightChanged(); // The vertical size
