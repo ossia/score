@@ -14,6 +14,7 @@ class QWidget;
 namespace Scenario
 {
 class TemporalConstraintPresenter;
+class ConstraintBrace;
 
 class ISCORE_PLUGIN_SCENARIO_EXPORT TemporalConstraintView final : public ConstraintView
 {
@@ -72,5 +73,8 @@ class ISCORE_PLUGIN_SCENARIO_EXPORT TemporalConstraintView final : public Constr
         QString m_label{};
         QColor m_labelColor;
         QColor m_bgColor;
+
+        ConstraintBrace* m_leftBrace{};
+        ConstraintBrace* m_rightBrace{};
 };
 }
