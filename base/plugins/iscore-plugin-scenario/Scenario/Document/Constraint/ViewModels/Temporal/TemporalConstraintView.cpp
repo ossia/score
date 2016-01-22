@@ -12,6 +12,7 @@
 #include <Scenario/Document/Constraint/ViewModels/ConstraintView.hpp>
 #include "TemporalConstraintPresenter.hpp"
 #include "TemporalConstraintView.hpp"
+#include <Scenario/Document/Constraint/ViewModels/Temporal/ConstraintBrace.hpp>
 
 class QGraphicsSceneHoverEvent;
 class QStyleOptionGraphicsItem;
@@ -29,6 +30,14 @@ TemporalConstraintView::TemporalConstraintView(
     this->setParentItem(parent);
 
     this->setZValue(3);
+    m_leftBrace = new ConstraintBrace{*this, this};
+    m_leftBrace->setX(minWidth());
+    m_leftBrace->setZValue(10);
+
+    m_rightBrace = new ConstraintBrace{*this, this};
+    m_rightBrace->setX(maxWidth());
+    m_rightBrace->setRotation(180);
+    m_rightBrace->setZValue(10);
 }
 
 
@@ -43,6 +52,9 @@ void TemporalConstraintView::paint(
     qreal max_w = maxWidth();
     qreal def_w = defaultWidth();
     qreal play_w = playWidth();
+
+    m_leftBrace->setX(min_w);
+    m_rightBrace->setX(max_w);
 
     // Draw the stuff present if there is a rack *in the model* ?
     if(presenter().rack())
@@ -71,9 +83,11 @@ void TemporalConstraintView::paint(
         {
             solidPath.lineTo(min_w, 0);
 
-            leftBrace.moveTo(min_w, -10);
-            leftBrace.arcTo(min_w - 10, -10, 20, 20, 90, 180);
+//            leftBrace.moveTo(min_w, -10);
+//            leftBrace.arcTo(min_w - 10, -10, 20, 20, 90, 180);
+            m_leftBrace->show();
         }
+        m_rightBrace->hide();
 
         // TODO end state should be hidden
         dashedPath.moveTo(min_w, 0);
@@ -82,6 +96,8 @@ void TemporalConstraintView::paint(
     else if(min_w == max_w) // TODO rigid()
     {
         solidPath.lineTo(def_w, 0);
+        m_leftBrace->hide();
+        m_rightBrace->hide();
     }
     else
     {
@@ -91,6 +107,9 @@ void TemporalConstraintView::paint(
         dashedPath.moveTo(min_w, 0);
         dashedPath.lineTo(max_w, 0);
 
+        m_leftBrace->show();
+        m_rightBrace->show();
+/*
         leftBrace.moveTo(min_w + 10, -10);
         leftBrace.arcTo(min_w, -10, 20, 20, 90, 180);
         leftBrace.closeSubpath();
@@ -99,6 +118,7 @@ void TemporalConstraintView::paint(
         rightBrace.arcTo(max_w - 10, -10, 20, 20, 270, 180);
         rightBrace.closeSubpath();
         rightBrace.translate(-10, 0); // TODO bleh.
+*/
     }
 
     QPainterPath playedPath;
@@ -139,10 +159,10 @@ void TemporalConstraintView::paint(
     painter->setPen(m_solidPen);
     if(!solidPath.isEmpty())
         painter->drawPath(solidPath);
-    if(!leftBrace.isEmpty())
-        painter->drawPath(leftBrace);
-    if(!rightBrace.isEmpty())
-        painter->drawPath(rightBrace);
+//    if(!leftBrace.isEmpty())
+//        painter->drawPath(leftBrace);
+//    if(!rightBrace.isEmpty())
+//        painter->drawPath(rightBrace);
 
     painter->setPen(m_dashPen);
     if(!dashedPath.isEmpty())
@@ -156,8 +176,8 @@ void TemporalConstraintView::paint(
     QColor blueish = m_solidPen.color().lighter();
     blueish.setAlphaF(0.3);
     painter->setBrush(blueish);
-    painter->drawPath(leftBrace);
-    painter->drawPath(rightBrace);
+//    painter->drawPath(leftBrace);
+//    painter->drawPath(rightBrace);
 
     static const QPen playedPen{
         QBrush{ScenarioStyle::instance().ConstraintPlayFill},
