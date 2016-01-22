@@ -23,7 +23,9 @@ class ISCORE_PLUGIN_SCENARIO_EXPORT ConstraintBrace : public QGraphicsObject
                  const QStyleOptionGraphicsItem* option,
                  QWidget* widget) override;
 
-    signals:
+      void mousePressEvent(QGraphicsSceneMouseEvent *event) final override;
+      void mouseMoveEvent(QGraphicsSceneMouseEvent *event) final override;
+      void mouseReleaseEvent(QGraphicsSceneMouseEvent *event) final override;
 
     private:
         const TemporalConstraintView& m_parent;
