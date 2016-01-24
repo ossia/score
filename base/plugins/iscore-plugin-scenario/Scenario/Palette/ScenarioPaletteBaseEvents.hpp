@@ -109,6 +109,7 @@ using ClickOnState_Event = PositionedWithId_ScenarioEvent<StateModel, ClickOnSta
 using ClickOnSlotOverlay_Event = iscore::NumberedWithPath_Event<SlotModel, ClickOnSlotOverlay>;
 using ClickOnSlotHandle_Event = iscore::NumberedWithPath_Event<SlotModel, ClickOnSlotHandle>;
 using ClickOnTrigger_Event = iscore::NumberedWithPath_Event<TriggerModel, ClickOnTrigger>;
+using ClickOnLeftBrace_Event = PositionedWithId_ScenarioEvent<ConstraintModel, ClickOnLeftBrace>;
 
 /* move on */
 using MoveOnNothing_Event = PositionedScenarioEvent<MoveOnNothing>;
@@ -119,6 +120,7 @@ using MoveOnState_Event = PositionedWithId_ScenarioEvent<StateModel, MoveOnState
 using MoveOnSlot_Event = iscore::NumberedWithPath_Event<SlotModel, MoveOnSlotOverlay>;
 using MoveOnSlotHandle_Event = iscore::NumberedWithPath_Event<SlotModel, MoveOnSlotHandle>;
 using MoveOnTrigger_Event = iscore::NumberedWithPath_Event<TriggerModel, MoveOnTrigger>;
+using MoveOnLeftBrace_Event = PositionedWithId_ScenarioEvent<ConstraintModel, MoveOnLeftBrace>;
 
 /* release on */
 using ReleaseOnNothing_Event = PositionedScenarioEvent<ReleaseOnNothing>;
@@ -129,6 +131,7 @@ using ReleaseOnState_Event = PositionedWithId_ScenarioEvent<StateModel, ReleaseO
 using ReleaseOnSlot_Event = iscore::NumberedWithPath_Event<SlotModel, ReleaseOnSlotOverlay>;
 using ReleaseOnSlotHandle_Event = iscore::NumberedWithPath_Event<SlotModel, ReleaseOnSlotHandle>;
 using ReleaseOnTrigger_Event = iscore::NumberedWithPath_Event<TriggerModel, ReleaseOnTrigger>;
+using ReleaseOnLeftBrace_Event = PositionedWithId_ScenarioEvent<ConstraintModel, ReleaseOnLeftBrace>;
 
 template<int N>
 QString debug_StateMachineIDs()

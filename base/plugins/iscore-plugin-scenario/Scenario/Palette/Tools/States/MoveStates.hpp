@@ -91,6 +91,68 @@ class MoveConstraintState final : public StateBase<Scenario_T>
 };
 
 template<
+        typename MoveBraceCommand_T, // SetMinDuration
+        typename Scenario_T,
+        typename ToolPalette_T>
+class MoveConstraintBraceState final : public StateBase<Scenario_T>
+{
+    public:
+        MoveConstraintBraceState(const ToolPalette_T& stateMachine,
+                                const Path<Scenario_T>& scenarioPath,
+                                iscore::CommandStackFacade& stack,
+                                iscore::ObjectLocker& locker,
+                                QState* parent):
+            StateBase<Scenario_T>{scenarioPath, parent},
+            m_dispatcher{stack}
+    {
+            this->setObjectName("MoveConstraintBraceState");
+            using namespace Scenario::Command ;
+            auto finalState = new QFinalState{this};
+
+            QState* mainState = new QState{this};
+            {
+                QState* pressed = new QState{mainState};
+                QState* released = new QState{mainState};
+                QState* moving = new QState{mainState};
+
+                QObject::connect(pressed, &QState::entered, [&] ()
+                {
+                    this->m_initialDate = this->currentPoint.date;
+                });
+
+                QObject::connect(moving, &QState::entered, [&] ()
+                {
+                    this->m_dispatcher.submitCommand(
+                                Path<ConstraintModel>(this->clickedConstraint),
+                                this->currentPoint.date - *m_initialDate,
+                                false);
+                });
+
+                QObject::connect(released, &QState::entered, [&] ()
+                {
+                    this->m_dispatcher.commit();
+                });
+            }
+
+            QState* rollbackState = new QState{this};
+            iscore::make_transition<iscore::Cancel_Transition>(mainState, rollbackState);
+            rollbackState->addTransition(finalState);
+            QObject::connect(rollbackState, &QState::entered, [&] ()
+            {
+                m_dispatcher.rollback();
+            });
+
+            this->setInitialState(mainState);
+
+    }
+        SingleOngoingCommandDispatcher<MoveBraceCommand_T> m_dispatcher;
+
+    private:
+        boost::optional<TimeValue> m_initialDate;
+
+};
+
+template<
         typename MoveEventCommand_T, // MoveEventMeta
         typename Scenario_T,
         typename ToolPalette_T>
