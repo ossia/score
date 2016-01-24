@@ -15,6 +15,7 @@ struct LayerContext;
 namespace Scenario
 {
 class MoveConstraintInBaseScenario_StateWrapper;
+class MoveBraceInBaseScenario_StateWrapper;
 class MoveEventInBaseScenario_StateWrapper;
 class MoveTimeNodeInBaseScenario_StateWrapper;
 }
@@ -61,6 +62,7 @@ class ToolPalette final : public GraphicsSceneToolPalette
             ToolPalette,
             LayerView,
             Scenario::MoveConstraintInBaseScenario_StateWrapper,
+            Scenario::MoveBraceInBaseScenario_StateWrapper,
             Scenario::MoveEventInBaseScenario_StateWrapper,
             Scenario::MoveTimeNodeInBaseScenario_StateWrapper
         >  m_state;

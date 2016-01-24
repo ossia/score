@@ -17,6 +17,11 @@ class ISCORE_PLUGIN_SCENARIO_EXPORT ConstraintBrace : public QGraphicsObject
     public:
       ConstraintBrace(const TemporalConstraintView& parentCstr, QGraphicsItem* parent);
 
+      static constexpr int static_type()
+      { return QGraphicsItem::UserType + 7; }
+      int type() const override
+      { return static_type(); }
+
       QRectF boundingRect() const override;
 
       void paint(QPainter* painter,

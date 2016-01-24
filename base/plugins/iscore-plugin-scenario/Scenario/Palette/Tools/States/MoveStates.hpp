@@ -122,10 +122,15 @@ class MoveConstraintBraceState final : public StateBase<Scenario_T>
 
                 QObject::connect(moving, &QState::entered, [&] ()
                 {
+                    auto& scenar = stateMachine.model();
+                    auto& cstr = scenar.constraint(this->clickedConstraint);
+                    auto date = this->currentPoint.date - *m_initialDate;
+//*
                     this->m_dispatcher.submitCommand(
-                                Path<ConstraintModel>(this->clickedConstraint),
-                                this->currentPoint.date - *m_initialDate,
+                                Path<ConstraintModel>{cstr},
+                                date,
                                 false);
+                                //*/
                 });
 
                 QObject::connect(released, &QState::entered, [&] ()

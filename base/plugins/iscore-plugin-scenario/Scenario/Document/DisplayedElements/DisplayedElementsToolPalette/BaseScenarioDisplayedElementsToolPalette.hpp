@@ -16,6 +16,7 @@ class EditionSettings;
 class BaseScenario;
 class DisplayedElementsPresenter;
 class MoveConstraintInBaseScenario_StateWrapper;
+class MoveBraceInBaseScenario_StateWrapper;
 class MoveEventInBaseScenario_StateWrapper;
 class MoveTimeNodeInBaseScenario_StateWrapper;
 class ScenarioDocumentPresenter;
@@ -50,6 +51,7 @@ class BaseScenarioDisplayedElementsToolPalette final : public GraphicsSceneToolP
                 BaseScenarioDisplayedElementsToolPalette,
                 BaseGraphicsObject,
                 MoveConstraintInBaseScenario_StateWrapper,
+                MoveBraceInBaseScenario_StateWrapper,
                 MoveEventInBaseScenario_StateWrapper,
                 MoveTimeNodeInBaseScenario_StateWrapper
             >  m_state;
