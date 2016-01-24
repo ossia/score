@@ -116,6 +116,9 @@ class CreationTool final : public ToolBase<ToolPalette_T>
             // Press a Constraint
             [&] (const Id<ConstraintModel>&)
             { },
+            // Press a Brace
+            [&] (const Id<ConstraintModel>&)
+            { },
 
             // Press a slot handle
             [&] (const SlotModel&)

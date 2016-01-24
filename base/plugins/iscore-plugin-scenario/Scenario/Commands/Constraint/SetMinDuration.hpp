@@ -51,11 +51,11 @@ class SetMinDuration final : public iscore::SerializableCommand
     protected:
         void serializeImpl(DataStreamInput& s) const override
         {
-            s << m_path << m_oldVal << m_newVal << m_newMinNull;
+            s << m_path << m_oldVal << m_newVal << m_oldMinNull << m_newMinNull;
         }
         void deserializeImpl(DataStreamOutput& s) override
         {
-            s >> m_path >> m_oldVal >> m_newVal >> m_oldMinNull;
+            s >> m_path >> m_oldVal >> m_newVal >> m_oldMinNull >> m_newMinNull;
         }
 
     private:

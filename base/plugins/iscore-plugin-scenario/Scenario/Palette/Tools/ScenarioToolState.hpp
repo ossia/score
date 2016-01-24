@@ -31,6 +31,7 @@
 #include <Scenario/Document/Constraint/ViewModels/ConstraintPresenter.hpp>
 #include <Scenario/Document/Constraint/ViewModels/ConstraintViewModel.hpp>
 
+#include <Scenario/Document/Constraint/ViewModels/Temporal/ConstraintBrace.hpp>
 #include <Scenario/Document/Constraint/ViewModels/ConstraintHeader.hpp>
 
 
@@ -118,6 +119,7 @@ class ToolBase : public GraphicsSceneTool<Scenario::Point>
                  typename StateFun,
                  typename TimeNodeFun,
                  typename ConstraintFun,
+                 typename BraceFun,
                  typename SlotHandleFun,
                  typename NothingFun>
         void mapTopItem(
@@ -126,6 +128,7 @@ class ToolBase : public GraphicsSceneTool<Scenario::Point>
                 EventFun ev_fun,
                 TimeNodeFun tn_fun,
                 ConstraintFun cst_fun,
+                BraceFun brace_fun,
                 SlotHandleFun handle_fun,
                 NothingFun nothing_fun) const
         {
@@ -180,6 +183,13 @@ class ToolBase : public GraphicsSceneTool<Scenario::Point>
                     tryFun(cst_fun, itemToConstraintId(item->parentItem()));
                     break;
                 }
+
+                case ConstraintBrace::static_type(): // Constraint Brace
+                {
+                    tryFun(brace_fun, itemToConstraintId(item->parentItem()));
+                    break;
+                }
+
                 default:
                     nothing_fun();
                     break;
