@@ -19,6 +19,7 @@ template<
         typename ToolPalette_T,
         typename View_T,
         typename MoveConstraintWrapper_T,
+        typename MoveBraceWrapper_T,
         typename MoveEventWrapper_T,
         typename MoveTimeNodeWrapper_T
         >
@@ -44,6 +45,7 @@ class SmartTool final : public ToolBase<ToolPalette_T>
                 actionsState->setInitialState(waitState);
 
                 MoveConstraintWrapper_T::template make<Scenario_T, ToolPalette_T>(this->m_parentSM, waitState, *actionsState);
+                MoveBraceWrapper_T::template make<Scenario_T, ToolPalette_T>(this->m_parentSM, waitState, *actionsState);
                 MoveEventWrapper_T::template make<Scenario_T, ToolPalette_T>(this->m_parentSM, waitState, *actionsState);
                 MoveTimeNodeWrapper_T::template make<Scenario_T, ToolPalette_T>(this->m_parentSM, waitState, *actionsState);
 
