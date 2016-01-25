@@ -28,4 +28,9 @@ const QList<QString>& StateInspectorFactory::key_impl() const
     static const QList<QString> list{QString::fromStdString(StateModel::className)};
     return list;
 }
+
+bool StateInspectorFactory::matches(const QObject& object) const
+{
+    return dynamic_cast<const StateModel*>(&object);
+}
 }

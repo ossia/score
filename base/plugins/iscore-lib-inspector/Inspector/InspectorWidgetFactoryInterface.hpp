@@ -29,7 +29,8 @@ class InspectorWidgetBase;
      * in the inspector.
      *
      */
-class ISCORE_LIB_INSPECTOR_EXPORT InspectorWidgetFactory : public iscore::GenericFactoryInterface<QList<QString>>
+class ISCORE_LIB_INSPECTOR_EXPORT InspectorWidgetFactory :
+        public iscore::GenericFactoryInterface<QList<QString>>
 {
         ISCORE_FACTORY_DECL("Inspector")
     public:
@@ -45,6 +46,6 @@ class ISCORE_LIB_INSPECTOR_EXPORT InspectorWidgetFactory : public iscore::Generi
                 const iscore::DocumentContext& doc,
                 QWidget* parent) const = 0;
 
-        bool matches(const QString& objectName) const;
+        virtual bool matches(const QObject& object) const = 0;
 };
 }

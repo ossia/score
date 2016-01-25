@@ -27,5 +27,7 @@ class PointInspectorFactory final :
         QWidget* parent) const override;
 
     const QList<QString>& key_impl() const override;
+
+    bool matches(const QObject& object) const override;
 };
 }
