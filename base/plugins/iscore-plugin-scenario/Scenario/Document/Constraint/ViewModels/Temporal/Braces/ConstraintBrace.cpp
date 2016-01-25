@@ -1,7 +1,10 @@
 #include "ConstraintBrace.hpp"
 #include <QPen>
 #include <QPainter>
+#include <QGraphicsSceneEvent>
+
 #include <Process/Style/ScenarioStyle.hpp>
+#include <Scenario/Document/Constraint/ViewModels/ConstraintPresenter.hpp>
 
 using namespace Scenario;
 
@@ -12,7 +15,6 @@ ConstraintBrace::ConstraintBrace(const TemporalConstraintView& parentCstr, QGrap
     m_path.moveTo(10, -10);
     m_path.arcTo(0, -10, 20, 20, 90, 180);
     m_path.closeSubpath();
-    setFlag(ItemStacksBehindParent, true);
 }
 
 QRectF ConstraintBrace::boundingRect() const
@@ -52,4 +54,21 @@ void ConstraintBrace::paint(QPainter* painter,
     painter->setPen(pen);
 
     painter->drawPath(m_path);
+}
+
+void ConstraintBrace::mousePressEvent(QGraphicsSceneMouseEvent* event)
+{
+    if(event->button() == Qt::MouseButton::LeftButton)
+        emit m_parent.presenter().pressed(event->scenePos());
+}
+
+void ConstraintBrace::mouseMoveEvent(QGraphicsSceneMouseEvent* event)
+{
+        emit m_parent.presenter().moved(event->scenePos());
+
+}
+
+void ConstraintBrace::mouseReleaseEvent(QGraphicsSceneMouseEvent* event)
+{
+        emit m_parent.presenter().released(event->scenePos());
 }

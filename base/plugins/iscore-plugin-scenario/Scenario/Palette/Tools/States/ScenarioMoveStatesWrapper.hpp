@@ -2,6 +2,8 @@
 #include <Scenario/Palette/Tools/States/MoveStates.hpp>
 #include <Scenario/Commands/Scenario/Displacement/MoveConstraint.hpp>
 #include <Scenario/Commands/Scenario/Displacement/MoveEventMeta.hpp>
+#include <Scenario/Commands/Constraint/SetMinDuration.hpp>
+#include <Scenario/Commands/Constraint/SetMaxDuration.hpp>
 
 #include <Scenario/Palette/Transitions/ConstraintTransitions.hpp>
 #include <Scenario/Palette/Transitions/EventTransitions.hpp>
@@ -33,6 +35,54 @@ class MoveConstraintInScenario_StateWrapper
             moveConstraint->addTransition(moveConstraint,
                                           finishedState(),
                                           waitState);
+        }
+};
+
+class MoveLeftBraceInScenario_StateWrapper
+{
+    public:
+        template<
+                typename Scenario_T,
+                typename ToolPalette_T>
+        static void make(const ToolPalette_T& palette, QState* waitState, QState& parent)
+        {
+            auto moveBrace =
+                    new MoveConstraintBraceState<Scenario::Command::SetMinDuration, Scenario_T, ToolPalette_T>{
+                        palette,
+                        palette.model(),
+                        palette.context().commandStack,
+                        palette.context().objectLocker,
+                        &parent};
+            iscore::make_transition<ClickOnLeftBrace_Transition<Scenario_T>>(waitState,
+                                      moveBrace,
+                                      *moveBrace);
+            moveBrace->addTransition(moveBrace,
+                                     finishedState(),
+                                     waitState);
+        }
+};
+
+class MoveRightBraceInScenario_StateWrapper
+{
+    public:
+        template<
+                typename Scenario_T,
+                typename ToolPalette_T>
+        static void make(const ToolPalette_T& palette, QState* waitState, QState& parent)
+        {
+            auto moveBrace =
+                    new MoveConstraintBraceState<Scenario::Command::SetMaxDuration, Scenario_T, ToolPalette_T>{
+                        palette,
+                        palette.model(),
+                        palette.context().commandStack,
+                        palette.context().objectLocker,
+                        &parent};
+            iscore::make_transition<ClickOnRightBrace_Transition<Scenario_T>>(waitState,
+                                      moveBrace,
+                                      *moveBrace);
+            moveBrace->addTransition(moveBrace,
+                                     finishedState(),
+                                     waitState);
         }
 };
 
