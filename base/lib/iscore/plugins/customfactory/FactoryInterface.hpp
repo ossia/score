@@ -65,15 +65,16 @@ class ISCORE_LIB_BASE_EXPORT GenericFactoryInterface : public GenericFactoryInte
 
 }
 
-#define ISCORE_FACTORY_DECL(Str) \
+#define ISCORE_FACTORY_DECL(Type, Uuid) \
     public: \
     static const iscore::FactoryBaseKey& staticFactoryKey() { \
-        static const iscore::FactoryBaseKey s{Str}; \
+        static const iscore::FactoryBaseKey s{Uuid}; \
         return s; \
     } \
     \
     const iscore::FactoryBaseKey& factoryKey() const final override { \
         return staticFactoryKey(); \
     } \
+    using object_type = Type; \
     private:
 

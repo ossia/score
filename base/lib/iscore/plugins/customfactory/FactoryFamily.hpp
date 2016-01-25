@@ -115,6 +115,9 @@ auto make_ptr_vector(const Context_T& context)
     } \
     const auto& list() const \
     { return m_list; }\
+    \
+    using factory_type = FactoryType; \
+    using object_type = typename FactoryType::object_type; \
   private:
 
 

@@ -33,7 +33,8 @@ void Visitor<Writer<JSONValue>>::writeTo(QPointF& pt)
 
 
 template<>
-ISCORE_LIB_BASE_EXPORT void Visitor<Reader<DataStream>>::readFrom(const boost::optional<double>& obj)
+ISCORE_LIB_BASE_EXPORT void Visitor<Reader<DataStream>>::readFrom(
+        const boost::optional<double>& obj)
 {
     m_stream << bool (obj);
 
@@ -44,7 +45,8 @@ ISCORE_LIB_BASE_EXPORT void Visitor<Reader<DataStream>>::readFrom(const boost::o
 }
 
 template<>
-ISCORE_LIB_BASE_EXPORT void Visitor<Writer<DataStream>>::writeTo(boost::optional<double>& obj)
+ISCORE_LIB_BASE_EXPORT void Visitor<Writer<DataStream>>::writeTo(
+        boost::optional<double>& obj)
 {
     bool b {};
     m_stream >> b;
@@ -61,4 +63,3 @@ ISCORE_LIB_BASE_EXPORT void Visitor<Writer<DataStream>>::writeTo(boost::optional
         reset(obj);
     }
 }
-

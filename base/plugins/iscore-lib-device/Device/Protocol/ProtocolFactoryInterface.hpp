@@ -17,7 +17,8 @@ class DeviceInterface;
 class ProtocolSettingsWidget;
 class ISCORE_LIB_DEVICE_EXPORT ProtocolFactory : public iscore::GenericFactoryInterface<ProtocolFactoryKey>
 {
-        ISCORE_FACTORY_DECL("Protocol")
+        ISCORE_FACTORY_DECL(DeviceInterface,
+                            "3f69d72e-318d-42dc-b48c-a806036592f1")
 
     public:
             using factory_key_type = ProtocolFactoryKey;

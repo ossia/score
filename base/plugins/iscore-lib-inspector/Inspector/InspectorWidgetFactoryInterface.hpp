@@ -32,7 +32,9 @@ class InspectorWidgetBase;
 class ISCORE_LIB_INSPECTOR_EXPORT InspectorWidgetFactory :
         public iscore::GenericFactoryInterface<QList<QString>>
 {
-        ISCORE_FACTORY_DECL("Inspector")
+        ISCORE_FACTORY_DECL(
+                InspectorWidgetBase,
+                "e7098592-7e2f-400d-9b71-2628d7276f99")
     public:
         virtual ~InspectorWidgetFactory();
 

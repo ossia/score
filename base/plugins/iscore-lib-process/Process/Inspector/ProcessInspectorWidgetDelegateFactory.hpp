@@ -9,7 +9,9 @@ struct DocumentContext;
 }
 class ISCORE_LIB_PROCESS_EXPORT ProcessInspectorWidgetDelegateFactory : public iscore::FactoryInterfaceBase
 {
-         ISCORE_FACTORY_DECL("ProcessInspectorWidgetDelegate")
+         ISCORE_FACTORY_DECL(
+                 ProcessInspectorWidgetDelegate,
+                 "75a45c5e-24ab-4ebb-ba57-195254a6847f")
     public:
         virtual ~ProcessInspectorWidgetDelegateFactory();
         virtual ProcessInspectorWidgetDelegate* make(

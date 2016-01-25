@@ -10,7 +10,9 @@ class ScenarioDocumentPresenter;
 
 class DisplayedElementsToolPaletteFactory : public iscore::FactoryInterfaceBase
 {
-         ISCORE_FACTORY_DECL("DisplayedElementsToolPaletteFactory")
+         ISCORE_FACTORY_DECL(
+                 GraphicsSceneToolPalette,
+                 "0884edb9-81e4-44ff-856f-fbc772f6d683")
     public:
         virtual ~DisplayedElementsToolPaletteFactory();
 

@@ -15,7 +15,9 @@ class ConstraintModel;
 
 class ISCORE_PLUGIN_SCENARIO_EXPORT ConstraintInspectorDelegateFactory : public iscore::FactoryInterfaceBase
 {
-         ISCORE_FACTORY_DECL("ConstraintInspectorDelegate")
+         ISCORE_FACTORY_DECL(
+                 ConstraintInspectorDelegate,
+                 "e9ae0303-b616-4953-b148-88d2dda5ac45")
     public:
         virtual ~ConstraintInspectorDelegateFactory();
         virtual std::unique_ptr<ConstraintInspectorDelegate> make(const ConstraintModel& constraint) = 0;

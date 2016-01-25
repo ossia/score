@@ -6,6 +6,7 @@ class QObject;
 namespace Process {
 
 class ProcessList;
+class ProcessModel;
 template<typename T>
 ISCORE_LIB_PROCESS_EXPORT Process::ProcessModel* createProcess(
         const ProcessList&,
