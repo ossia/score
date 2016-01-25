@@ -36,6 +36,8 @@ class EventInspectorWidget final : public Inspector::InspectorWidgetBase
         void focusState(const StateModel* state);
 
     private:
+        QString tabName() override;
+
         void updateDisplayedValues();
         void on_conditionChanged();
         void modelDateChanged();

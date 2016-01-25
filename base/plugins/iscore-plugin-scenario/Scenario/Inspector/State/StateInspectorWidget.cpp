@@ -45,6 +45,11 @@ StateInspectorWidget::StateInspectorWidget(
     updateDisplayedValues();
 }
 
+QString StateInspectorWidget::tabName()
+{
+    return tr("State");
+}
+
 void StateInspectorWidget::updateDisplayedValues()
 {
     // Cleanup

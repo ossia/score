@@ -218,6 +218,10 @@ const ConstraintModel& ConstraintInspectorWidget::model() const
     return m_model;
 }
 
+QString ConstraintInspectorWidget::tabName()
+{
+    return tr("Constraint");
+}
 void ConstraintInspectorWidget::updateDisplayedValues()
 {
     // Cleanup the widgets
@@ -331,15 +335,13 @@ void ConstraintInspectorWidget::displaySharedProcess(const Process::ProcessModel
 
     if(auto start = process.startStateData())
     {
-        auto startWidg = m_widgetList.makeInspectorWidget(
-                             start->stateName(), *start, newProc);
+        auto startWidg = m_widgetList.makeInspectorWidget(*start, newProc);
         stateLayout->addRow(tr("Start state"), startWidg);
     }
 
     if(auto end = process.endStateData())
     {
-        auto endWidg = m_widgetList.makeInspectorWidget(
-                           end->stateName(), *end, newProc);
+        auto endWidg = m_widgetList.makeInspectorWidget(*end, newProc);
         stateLayout->addRow(tr("End state"), endWidg);
     }
     newProc->addContent(stateWidget);

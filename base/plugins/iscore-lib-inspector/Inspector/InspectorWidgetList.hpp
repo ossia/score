@@ -38,7 +38,6 @@ class ISCORE_LIB_INSPECTOR_EXPORT InspectorWidgetList final :
         { return m_list; }
 
         InspectorWidgetBase* makeInspectorWidget(
-                const QString& name,
                 const IdentifiedObjectAbstract& model,
                 QWidget* parent) const;
 
