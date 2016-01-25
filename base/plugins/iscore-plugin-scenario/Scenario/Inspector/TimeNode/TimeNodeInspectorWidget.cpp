@@ -96,6 +96,11 @@ TimeNodeInspectorWidget::TimeNodeInspectorWidget(
             this,       &TimeNodeInspectorWidget::on_splitTimeNodeClicked);
 }
 
+QString TimeNodeInspectorWidget::tabName()
+{
+    return tr("TimeNode");
+}
+
 
 void TimeNodeInspectorWidget::updateDisplayedValues()
 {

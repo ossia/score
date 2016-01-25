@@ -28,4 +28,9 @@ const QList<QString>&PointInspectorFactory::key_impl() const
     static const QList<QString>& lst{"CurvePointModel"};
     return lst;
 }
+
+bool PointInspectorFactory::matches(const QObject& object) const
+{
+    return dynamic_cast<const Curve::PointModel*>(&object);
+}
 }

@@ -152,6 +152,11 @@ EventInspectorWidget::EventInspectorWidget(
     updateAreaLayout(m_properties);
 }
 
+QString EventInspectorWidget::tabName()
+{
+    return tr("Event");
+}
+
 void EventInspectorWidget::addState(const StateModel& state)
 {
     auto sw = new StateInspectorWidget{state, context(), this};

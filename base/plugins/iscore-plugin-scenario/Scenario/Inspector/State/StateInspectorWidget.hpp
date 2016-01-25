@@ -24,6 +24,8 @@ class StateInspectorWidget final : public Inspector::InspectorWidgetBase
                 QWidget* parent);
 
     private:
+        QString tabName() override;
+
         void updateDisplayedValues();
         void splitEvent();
 

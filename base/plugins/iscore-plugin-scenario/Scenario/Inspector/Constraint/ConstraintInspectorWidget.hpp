@@ -65,6 +65,8 @@ class ISCORE_PLUGIN_SCENARIO_EXPORT ConstraintInspectorWidget final : public Ins
         void activeRackChanged(QString rack, ConstraintViewModel* vm);
 
     private:
+        QString tabName() override;
+
         void updateDisplayedValues();
 
         // These methods ask for creation and the signals originate from other parts of the inspector

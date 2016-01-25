@@ -12,7 +12,8 @@ class Document;
 
 namespace Automation
 {
-class StateInspectorFactory final : public Inspector::InspectorWidgetFactory
+class StateInspectorFactory final :
+        public Inspector::InspectorWidgetFactory
 {
     public:
         StateInspectorFactory();
@@ -23,6 +24,8 @@ class StateInspectorFactory final : public Inspector::InspectorWidgetFactory
                 QWidget* parent) const override;
 
         const QList<QString>& key_impl() const override;
+
+        bool matches(const QObject& object) const override;
 };
 
 }
