@@ -67,9 +67,12 @@ QJsonObject Document::saveAsJson()
 
     for(const auto& plugin : model().pluginModels())
     {
-        Serializer<JSONObject> s;
-        plugin->serialize(s.toVariant());
-        json_plugins[plugin->objectName()] = s.m_obj;
+        if(auto serializable_plugin = dynamic_cast<SerializableInterface*>(plugin))
+        {
+            Serializer<JSONObject> s;
+            serializable_plugin->serialize(s.toVariant());
+            json_plugins[plugin->objectName()] = s.m_obj;
+        }
     }
 
     complete["Plugins"] = json_plugins;
@@ -91,19 +94,17 @@ QByteArray Document::saveAsByteArray()
 
     // Save the document plug-ins
     QVector<QPair<QString, QByteArray>> documentPluginModels;
-    std::transform(begin(model().pluginModels()),
-                   end(model().pluginModels()),
-                   std::back_inserter(documentPluginModels),
-                   [] (DocumentPluginModel* plugin)
-    {
-        QByteArray arr;
-        Serializer<DataStream> s{&arr};
-        plugin->serialize(s.toVariant());
 
-        return QPair<QString, QByteArray>{
-            plugin->objectName(),
-            arr};
-    });
+    for(const auto& plugin : model().pluginModels())
+    {
+        if(auto serializable_plugin = dynamic_cast<SerializableInterface*>(plugin))
+        {
+            QByteArray arr;
+            Serializer<DataStream> s{&arr};
+            serializable_plugin->serialize(s.toVariant());
+            documentPluginModels.push_back({plugin->objectName(), arr});
+        }
+    }
 
     writer << docByteArray << documentPluginModels;
 

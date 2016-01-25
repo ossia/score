@@ -2,6 +2,7 @@
 #include <iscore/document/DocumentContext.hpp>
 #include <iscore/plugins/documentdelegate/plugin/ElementPluginModel.hpp>
 #include <iscore/tools/NamedObject.hpp>
+#include <iscore/plugins/customfactory/SerializableInterface.hpp>
 #include <QString>
 #include <vector>
 
@@ -12,9 +13,11 @@ class Document;
 }  // namespace iscore
 struct VisitorVariant;
 
+// TODO rename file
 namespace iscore
 {
-class ISCORE_LIB_BASE_EXPORT DocumentPluginModel : public NamedObject
+class ISCORE_LIB_BASE_EXPORT DocumentPluginModel :
+        public NamedObject
 {
         Q_OBJECT
     public:
@@ -43,8 +46,6 @@ class ISCORE_LIB_BASE_EXPORT DocumentPluginModel : public NamedObject
         virtual QWidget* makeElementPluginWidget(
                 const ElementPluginModel*,
                 QWidget* parent) const { return nullptr; }
-
-        virtual void serialize(const VisitorVariant&) const {}
 
         auto& context() const
         { return m_context; }

@@ -16,7 +16,9 @@ class SegmentModel;
 struct SegmentData;
 class SegmentFactory : public iscore::GenericFactoryInterface<SegmentFactoryKey>
 {
-        ISCORE_FACTORY_DECL("CurveSegment")
+        ISCORE_FACTORY_DECL(
+                Curve::SegmentModel,
+                "608ecec9-d8bc-4b6b-8e9e-31867a310f1e")
     public:
             using factory_key_type = SegmentFactoryKey;
         virtual ~SegmentFactory();

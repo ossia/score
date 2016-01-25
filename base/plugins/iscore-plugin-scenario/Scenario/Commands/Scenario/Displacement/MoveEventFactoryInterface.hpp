@@ -21,9 +21,12 @@ using MoveEventFactoryKey = StringKey<MoveEventTag>;
 class SerializableMoveEvent;
 
 
-class ISCORE_PLUGIN_SCENARIO_EXPORT MoveEventFactoryInterface : public iscore::GenericFactoryInterface<MoveEventFactoryKey>
+class ISCORE_PLUGIN_SCENARIO_EXPORT MoveEventFactoryInterface :
+        public iscore::GenericFactoryInterface<MoveEventFactoryKey>
 {
-        ISCORE_FACTORY_DECL("MoveEvent")
+        ISCORE_FACTORY_DECL(
+                SerializableMoveEvent,
+                "69dc1f79-5cb9-4a36-b382-8c099f7abf57")
 public:
             enum Strategy{ CREATION, MOVING_CLASSIC, MOVING_BOUNDED, MOVING_LESS };
 

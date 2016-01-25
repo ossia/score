@@ -27,7 +27,9 @@ class ProcessModel;
 class ISCORE_LIB_PROCESS_EXPORT ProcessFactory :
         public iscore::GenericFactoryInterface<ProcessFactoryKey>
 {
-        ISCORE_FACTORY_DECL("Process")
+        ISCORE_FACTORY_DECL(
+                ProcessModel,
+                "507ae654-f3b8-4aae-afc3-7ab8e1a3a86f")
     public:
             using factory_key_type = ProcessFactoryKey;
         virtual ~ProcessFactory();

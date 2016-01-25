@@ -63,9 +63,14 @@ DeviceDocumentPlugin::DeviceDocumentPlugin(
     }
 }
 
-void DeviceDocumentPlugin::serialize(const VisitorVariant& vis) const
+void DeviceDocumentPlugin::serialize_impl(const VisitorVariant& vis) const
 {
     serialize_dyn(vis, m_rootNode);
+}
+
+iscore::uuid_t DeviceDocumentPlugin::uuid() const
+{
+    ISCORE_RETURN_UUID(5af7954a-d5cf-4732-a2c4-7074f0aa020d)
 }
 
 Device::Node DeviceDocumentPlugin::createDeviceFromNode(const Device::Node & node)
