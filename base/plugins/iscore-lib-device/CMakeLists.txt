@@ -32,6 +32,7 @@ set(SRCS
 
 "${CMAKE_CURRENT_SOURCE_DIR}/Device/QMenuView/qmenuview.cpp" # TODO move in 3rdparty
 "${CMAKE_CURRENT_SOURCE_DIR}/Device/XML/XMLDeviceLoader.cpp"
+"${CMAKE_CURRENT_SOURCE_DIR}/Device/XML/JSONDeviceLoader.cpp"
 )
 
 add_library(iscore_lib_device ${SRCS} ${HEADERS})
