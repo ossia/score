@@ -6,6 +6,7 @@
 #include <tests/helpers/ForwardDeclaration.hpp>
 #include <Process/TimeValue.hpp>
 #include <Scenario/Document/Constraint/ConstraintModel.hpp>
+#include <iscore/tools/ModelPathSerialization.hpp>
 
 namespace Scenario
 {
@@ -21,6 +22,7 @@ class SetMinDuration final : public iscore::SerializableCommand
 {
         ISCORE_COMMAND_DECL(ScenarioCommandFactoryName(), SetMinDuration, "Set constraint minimum")
     public:
+            static const constexpr auto corresponding_member = &ConstraintDurations::minDuration;
 
         SetMinDuration(Path<ConstraintModel>&& path, const TimeValue& newval, bool isMinNull):
         m_path{std::move(path)},

@@ -15,7 +15,6 @@ ConstraintBrace::ConstraintBrace(const TemporalConstraintView& parentCstr, QGrap
     m_path.moveTo(10, -10);
     m_path.arcTo(0, -10, 20, 20, 90, 180);
     m_path.closeSubpath();
-    setFlag(ItemStacksBehindParent, true);
 }
 
 QRectF ConstraintBrace::boundingRect() const
@@ -65,14 +64,11 @@ void ConstraintBrace::mousePressEvent(QGraphicsSceneMouseEvent* event)
 
 void ConstraintBrace::mouseMoveEvent(QGraphicsSceneMouseEvent* event)
 {
-    if(event->button() == Qt::MouseButton::LeftButton)
         emit m_parent.presenter().moved(event->scenePos());
 
 }
 
 void ConstraintBrace::mouseReleaseEvent(QGraphicsSceneMouseEvent* event)
 {
-    if(event->button() == Qt::MouseButton::LeftButton)
         emit m_parent.presenter().released(event->scenePos());
-
 }

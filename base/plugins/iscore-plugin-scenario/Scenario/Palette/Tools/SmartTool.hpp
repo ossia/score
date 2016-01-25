@@ -19,7 +19,8 @@ template<
         typename ToolPalette_T,
         typename View_T,
         typename MoveConstraintWrapper_T,
-        typename MoveBraceWrapper_T,
+        typename MoveLeftBraceWrapper_T,
+        typename MoveRightBraceWrapper_T,
         typename MoveEventWrapper_T,
         typename MoveTimeNodeWrapper_T
         >
@@ -45,7 +46,8 @@ class SmartTool final : public ToolBase<ToolPalette_T>
                 actionsState->setInitialState(waitState);
 
                 MoveConstraintWrapper_T::template make<Scenario_T, ToolPalette_T>(this->m_parentSM, waitState, *actionsState);
-                MoveBraceWrapper_T::template make<Scenario_T, ToolPalette_T>(this->m_parentSM, waitState, *actionsState);
+                MoveLeftBraceWrapper_T::template make<Scenario_T, ToolPalette_T>(this->m_parentSM, waitState, *actionsState);
+                MoveRightBraceWrapper_T::template make<Scenario_T, ToolPalette_T>(this->m_parentSM, waitState, *actionsState);
                 MoveEventWrapper_T::template make<Scenario_T, ToolPalette_T>(this->m_parentSM, waitState, *actionsState);
                 MoveTimeNodeWrapper_T::template make<Scenario_T, ToolPalette_T>(this->m_parentSM, waitState, *actionsState);
 
@@ -94,9 +96,14 @@ class SmartTool final : public ToolBase<ToolPalette_T>
                 this->localSM().postEvent(new ClickOnConstraint_Event{id, sp});
                 m_nothingPressed = false;
             },
-            [&] (const Id<ConstraintModel>& id) // Brace
+            [&] (const Id<ConstraintModel>& id) // LeftBrace
             {
                 this->localSM().postEvent((new ClickOnLeftBrace_Event{id, sp}));
+                m_nothingPressed = false;
+            },
+            [&] (const Id<ConstraintModel>& id) // RightBrace
+            {
+                this->localSM().postEvent((new ClickOnRightBrace_Event{id, sp}));
                 m_nothingPressed = false;
             },
             [&] (const SlotModel& slot) // Slot handle
@@ -121,15 +128,17 @@ class SmartTool final : public ToolBase<ToolPalette_T>
             {
                 this->mapTopItem(this->itemUnderMouse(scene),
                            [&] (const Id<StateModel>& id)
-                { this->localSM().postEvent(new MoveOnState_Event{id, sp}); },
+                { this->localSM().postEvent(new MoveOnState_Event{id, sp}); }, // state
                 [&] (const Id<EventModel>& id)
-                { this->localSM().postEvent(new MoveOnEvent_Event{id, sp}); },
+                { this->localSM().postEvent(new MoveOnEvent_Event{id, sp}); }, // event
                 [&] (const Id<TimeNodeModel>& id)
-                { this->localSM().postEvent(new MoveOnTimeNode_Event{id, sp}); },
+                { this->localSM().postEvent(new MoveOnTimeNode_Event{id, sp}); }, // timenode
                 [&] (const Id<ConstraintModel>& id)
-                { this->localSM().postEvent(new MoveOnConstraint_Event{id, sp}); },
-                [&] (const Id<ConstraintModel>& id) // Brace
-                { this->localSM().postEvent(new MoveOnLeftBrace_Event{id, sp}); },
+                { this->localSM().postEvent(new MoveOnConstraint_Event{id, sp}); }, // constraint
+                [&] (const Id<ConstraintModel>& id)
+                { this->localSM().postEvent(new MoveOnLeftBrace_Event{id, sp}); }, // LeftBrace
+                [&] (const Id<ConstraintModel>& id)
+                { this->localSM().postEvent(new MoveOnRightBrace_Event{id, sp}); }, // RightBrace
                 [&] (const SlotModel& slot) // Slot handle
                 { /* do nothing, we aren't in this part but in m_nothingPressed == true part */ },
                 [&] ()
@@ -188,7 +197,7 @@ class SmartTool final : public ToolBase<ToolPalette_T>
 
                 this->localSM().postEvent(new ReleaseOnConstraint_Event{id, sp});
             },
-            [&] (const Id<ConstraintModel>& id) // Brace
+            [&] (const Id<ConstraintModel>& id) // LeftBrace
             {
                 const auto& elt = this->m_parentSM.presenter().constraint(id);
 
@@ -197,6 +206,16 @@ class SmartTool final : public ToolBase<ToolPalette_T>
                                                                   m_state->multiSelection()));
 
                 this->localSM().postEvent(new ReleaseOnLeftBrace_Event{id, sp});
+            },
+            [&] (const Id<ConstraintModel>& id) // RightBrace
+            {
+                const auto& elt = this->m_parentSM.presenter().constraint(id);
+
+                m_state->dispatcher.setAndCommit(filterSelections(&elt.model(),
+                                                                  this->m_parentSM.model().selectedChildren(),
+                                                                  m_state->multiSelection()));
+
+                this->localSM().postEvent(new ReleaseOnRightBrace_Event{id, sp});
             },
             [&] (const SlotModel& slot) // Slot handle
             {

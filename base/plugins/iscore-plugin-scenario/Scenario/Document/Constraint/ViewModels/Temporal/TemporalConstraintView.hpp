@@ -11,10 +11,13 @@ class QGraphicsSceneHoverEvent;
 class QPainter;
 class QStyleOptionGraphicsItem;
 class QWidget;
+
 namespace Scenario
 {
 class TemporalConstraintPresenter;
-class ConstraintBrace;
+
+class LeftBraceView;
+class RightBraceView;
 
 class ISCORE_PLUGIN_SCENARIO_EXPORT TemporalConstraintView final : public ConstraintView
 {
@@ -74,7 +77,7 @@ class ISCORE_PLUGIN_SCENARIO_EXPORT TemporalConstraintView final : public Constr
         QColor m_labelColor;
         QColor m_bgColor;
 
-        ConstraintBrace* m_leftBrace{};
-        ConstraintBrace* m_rightBrace{};
+        LeftBraceView* m_leftBrace{};
+        RightBraceView* m_rightBrace{};
 };
 }

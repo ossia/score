@@ -17,11 +17,6 @@ class ISCORE_PLUGIN_SCENARIO_EXPORT ConstraintBrace : public QGraphicsObject
     public:
       ConstraintBrace(const TemporalConstraintView& parentCstr, QGraphicsItem* parent);
 
-      static constexpr int static_type()
-      { return QGraphicsItem::UserType + 7; }
-      int type() const override
-      { return static_type(); }
-
       QRectF boundingRect() const override;
 
       void paint(QPainter* painter,
@@ -32,9 +27,11 @@ class ISCORE_PLUGIN_SCENARIO_EXPORT ConstraintBrace : public QGraphicsObject
       void mouseMoveEvent(QGraphicsSceneMouseEvent *event) final override;
       void mouseReleaseEvent(QGraphicsSceneMouseEvent *event) final override;
 
+    protected:
+      const TemporalConstraintView& m_parent;
+      QPainterPath m_path;
+
     private:
-        const TemporalConstraintView& m_parent;
-        QPainterPath m_path;
 
 };
 
