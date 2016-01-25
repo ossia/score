@@ -72,7 +72,7 @@ class ComponentFactory final :
                 const Id<iscore::Component>& id,
                 QObject* parent) const override;
 
-        const factory_key_type& key_impl() const override;
+        const factory_key_type& concreteFactoryKey() const override;
 
         bool matches(
                 Process::ProcessModel&,

@@ -14,6 +14,7 @@ namespace Scenario
 {
 class TimeNodeInspectorFactory final : public Inspector::InspectorWidgetFactory
 {
+        ISCORE_CONCRETE_FACTORY_DECL("ff1d130b-caaa-4217-868b-cf09bf75823a")
     public:
         TimeNodeInspectorFactory() :
             InspectorWidgetFactory {}
@@ -25,9 +26,6 @@ class TimeNodeInspectorFactory final : public Inspector::InspectorWidgetFactory
                 const QObject& sourceElement,
                 const iscore::DocumentContext& doc,
                 QWidget* parent) const override;
-
-        const QList<QString>& key_impl() const override;
-
 
         bool matches(const QObject& object) const override;
 };

@@ -21,7 +21,7 @@ struct FW_T
         static bool visit(Matcher_T& matcher)
         {
             static_assert(assert_baseof<Factory_T, Types_T...>(), "A type is not child of the parent.");
-            if(matcher.fact == Factory_T::staticFactoryKey())
+            if(matcher.fact == Factory_T::static_abstractFactoryKey())
             {
                 matcher.vec = make_ptr_vector<
                         std::remove_const_t<std::remove_reference_t<decltype(matcher.ctx)>>,
@@ -47,7 +47,7 @@ struct ApplicationContext;
 struct FactoryMatcher
 {
         const iscore::ApplicationContext& ctx;
-        const iscore::FactoryBaseKey& fact;
+        const iscore::AbstractFactoryKey& fact;
         std::vector<std::unique_ptr<iscore::FactoryInterfaceBase>>& vec;
 
         template<typename FactoryList_T> bool visit_if() const
@@ -59,7 +59,7 @@ struct FactoryMatcher
 template<typename Context_T, typename Factories_T>
 auto instantiate_factories(
         const Context_T& ctx,
-        const iscore::FactoryBaseKey& key)
+        const iscore::AbstractFactoryKey& key)
 {
     std::vector<std::unique_ptr<iscore::FactoryInterfaceBase>> vec;
 

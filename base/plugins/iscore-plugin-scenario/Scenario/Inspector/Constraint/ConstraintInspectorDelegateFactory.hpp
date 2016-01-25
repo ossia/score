@@ -15,7 +15,7 @@ class ConstraintModel;
 
 class ISCORE_PLUGIN_SCENARIO_EXPORT ConstraintInspectorDelegateFactory : public iscore::FactoryInterfaceBase
 {
-         ISCORE_FACTORY_DECL(
+         ISCORE_ABSTRACT_FACTORY_DECL(
                  ConstraintInspectorDelegate,
                  "e9ae0303-b616-4953-b148-88d2dda5ac45")
     public:
@@ -27,12 +27,12 @@ class ISCORE_PLUGIN_SCENARIO_EXPORT ConstraintInspectorDelegateFactory : public 
 class ISCORE_PLUGIN_SCENARIO_EXPORT ConstraintInspectorDelegateFactoryList final : public iscore::FactoryListInterface
 {
     public:
-      static const iscore::FactoryBaseKey& staticFactoryKey() {
-          return ConstraintInspectorDelegateFactory::staticFactoryKey();
+      static const iscore::AbstractFactoryKey& static_abstractFactoryKey() {
+          return ConstraintInspectorDelegateFactory::static_abstractFactoryKey();
       }
 
-      iscore::FactoryBaseKey name() const final override {
-          return ConstraintInspectorDelegateFactory::staticFactoryKey();
+      iscore::AbstractFactoryKey name() const final override {
+          return ConstraintInspectorDelegateFactory::static_abstractFactoryKey();
       }
 
       void insert(std::unique_ptr<iscore::FactoryInterfaceBase> e) final override

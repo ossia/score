@@ -44,7 +44,7 @@ public:
         }
     }
 
-    const MoveEventFactoryKey& key_impl() const override;
+    const MoveEventFactoryKey& concreteFactoryKey() const override;
 };
 }
 }

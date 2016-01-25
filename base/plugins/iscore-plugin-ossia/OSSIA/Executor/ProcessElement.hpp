@@ -13,6 +13,7 @@ namespace OSSIA
     class TimeProcess;
 }
 
+// TODO RENAMEME
 namespace RecreateOnPlay
 {
 struct Context;
@@ -54,6 +55,9 @@ class ISCORE_PLUGIN_OSSIA_EXPORT ProcessComponentFactory :
             RecreateOnPlay::DocumentPlugin,
             RecreateOnPlay::ProcessComponent>
 {
+        ISCORE_ABSTRACT_FACTORY_DECL(
+                RecreateOnPlay::ProcessComponent,
+                "d0f714de-c832-42d8-a605-60f5ffd0b7af")
     public:
         virtual ~ProcessComponentFactory();
         virtual ProcessComponent* make(

@@ -35,13 +35,13 @@ class ISCORE_PLUGIN_SCENARIO_EXPORT CreateProcessAndLayers : public iscore::Seri
             m_addProcessCmd{
                 std::move(constraint),
                 procId,
-                ProcessMetadata_T::factoryKey()}
+                ProcessMetadata_T::abstractFactoryKey()}
         {
             auto proc = m_addProcessCmd.constraintPath().extend(ProcessMetadata_T::processObjectName(), procId);
 
             m_slotsCmd.reserve(slotList.size());
 
-            auto fact = context.components.factory<Process::ProcessList>().list().get(ProcessMetadata_T::factoryKey());
+            auto fact = context.components.factory<Process::ProcessList>().list().get(ProcessMetadata_T::abstractFactoryKey());
             ISCORE_ASSERT(fact);
             auto procData = fact->makeStaticLayerConstructionData();
 

@@ -105,7 +105,7 @@ void ApplicationRegistrar::registerCommands(
 
 ISCORE_LIB_BASE_EXPORT
 void ApplicationRegistrar::registerFactories(
-        std::unordered_map<iscore::FactoryBaseKey, std::unique_ptr<FactoryListInterface>>&& facts)
+        std::unordered_map<iscore::AbstractFactoryKey, std::unique_ptr<FactoryListInterface>>&& facts)
 {
     m_components.factories = std::move(facts);
 }

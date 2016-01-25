@@ -20,7 +20,7 @@ class ScenarioDocumentFactory final :
 {
     public:
         const ScenarioDocumentFactory::factory_key_type&
-        key_impl() const override;
+        concreteFactoryKey() const override;
 
         iscore::DocumentDelegateViewInterface* makeView(
                 const iscore::ApplicationContext& ctx,

@@ -12,7 +12,7 @@ class SimpleStateProcessFactory : public Process::StateProcessFactory
         QString prettyName() const override
         { return QObject::tr("toto"); }
 
-        const StateProcessFactoryKey& key_impl() const override
+        const StateProcessFactoryKey& concreteFactoryKey() const override
         {
             static const StateProcessFactoryKey name{"toto"};
             return name;

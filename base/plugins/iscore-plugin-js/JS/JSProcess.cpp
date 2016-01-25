@@ -95,7 +95,7 @@ RecreateOnPlay::ProcessComponent* ProcessComponentFactory::make(
 }
 
 const ProcessComponentFactory::factory_key_type&
-ProcessComponentFactory::key_impl() const
+ProcessComponentFactory::concreteFactoryKey() const
 {
     static factory_key_type k("JSComponent");
     return k;

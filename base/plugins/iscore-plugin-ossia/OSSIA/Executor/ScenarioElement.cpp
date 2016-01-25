@@ -260,7 +260,7 @@ ProcessComponent *ScenarioComponentFactory::make(
     return new ScenarioElement{cst, static_cast<Scenario::ScenarioModel&>(proc), ctx, id, parent};
 }
 
-const ScenarioComponentFactory::factory_key_type& ScenarioComponentFactory::key_impl() const
+const ScenarioComponentFactory::factory_key_type& ScenarioComponentFactory::concreteFactoryKey() const
 {
     static ScenarioComponentFactory::factory_key_type k("OSSIAScenarioElement");
     return k;

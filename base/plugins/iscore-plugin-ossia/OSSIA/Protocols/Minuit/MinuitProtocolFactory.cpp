@@ -22,7 +22,7 @@ QString MinuitProtocolFactory::prettyName() const
     return QObject::tr("Minuit");
 }
 
-const Device::ProtocolFactoryKey& MinuitProtocolFactory::key_impl() const
+const Device::ProtocolFactoryKey& MinuitProtocolFactory::concreteFactoryKey() const
 {
     static const Device::ProtocolFactoryKey name{"Minuit"};
     return name;
@@ -39,7 +39,7 @@ const Device::DeviceSettings& MinuitProtocolFactory::defaultSettings() const
 {
     static const Device::DeviceSettings settings = [&] () {
         Device::DeviceSettings s;
-        s.protocol = key_impl();
+        s.protocol = concreteFactoryKey();
         s.name = "Minuit";
         MinuitSpecificSettings specif;
         s.deviceSpecificSettings = QVariant::fromValue(specif);

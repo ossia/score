@@ -30,7 +30,7 @@ iscore_plugin_curve::iscore_plugin_curve() :
 
 std::vector<std::unique_ptr<iscore::FactoryInterfaceBase>> iscore_plugin_curve::factories(
         const iscore::ApplicationContext& ctx,
-        const iscore::FactoryBaseKey& factoryName) const
+        const iscore::AbstractFactoryKey& factoryName) const
 {
     /*
      * new GammaCurveSegmentFactory,

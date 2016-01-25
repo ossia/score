@@ -44,7 +44,7 @@ std::vector<std::unique_ptr<iscore::FactoryListInterface>> iscore_plugin_ossia::
 
 std::vector<std::unique_ptr<iscore::FactoryInterfaceBase>> iscore_plugin_ossia::factories(
         const iscore::ApplicationContext& ctx,
-        const iscore::FactoryBaseKey& key) const
+        const iscore::AbstractFactoryKey& key) const
 {
     using namespace Scenario;
     using namespace Ossia;
