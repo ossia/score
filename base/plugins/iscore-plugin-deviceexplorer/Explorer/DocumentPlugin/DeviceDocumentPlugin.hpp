@@ -15,8 +15,7 @@ struct VisitorVariant;
 namespace DeviceExplorer
 {
 class ISCORE_PLUGIN_DEVICEEXPLORER_EXPORT DeviceDocumentPlugin final :
-        public iscore::DocumentPluginModel,
-        public iscore::SerializableInterface
+        public iscore::SerializableDocumentPluginModel
 {
         Q_OBJECT
     public:
@@ -55,7 +54,7 @@ class ISCORE_PLUGIN_DEVICEEXPLORER_EXPORT DeviceDocumentPlugin final :
 
     private:
         void serialize_impl(const VisitorVariant&) const override;
-        iscore::uuid_t uuid() const override;
+        ConcreteFactoryKey uuid() const override;
 
         void initDevice(Device::DeviceInterface&);
         Device::Node m_rootNode;

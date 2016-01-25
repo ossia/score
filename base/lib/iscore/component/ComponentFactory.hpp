@@ -23,19 +23,6 @@ class GenericComponentFactory :
     public:
         using factory_key_type = ComponentFactoryKey<Model_T, System_T, Component_T>;
 
-        static const iscore::FactoryBaseKey& staticFactoryKey() {
-            static const iscore::FactoryBaseKey s{
-                "ComponentFactory<" +
-                System_T::className +
-                Component_T::className + ">"
-            };
-            return s;
-        }
-
-        const iscore::FactoryBaseKey& factoryKey() const final override {
-            return staticFactoryKey();
-        }
-
         virtual bool matches(
                 Model_T&,
                 const System_T&,
@@ -55,12 +42,12 @@ class GenericComponentFactoryList final :
 
     public:
         using factory_t = Factory_T;
-        static const iscore::FactoryBaseKey& staticFactoryKey() {
-            return Factory_T::staticFactoryKey();
+        static const iscore::AbstractFactoryKey& static_abstractFactoryKey() {
+            return Factory_T::static_abstractFactoryKey();
         }
 
-        iscore::FactoryBaseKey name() const final override {
-            return Factory_T::staticFactoryKey();
+        iscore::AbstractFactoryKey name() const final override {
+            return Factory_T::static_abstractFactoryKey();
         }
 
         void insert(std::unique_ptr<iscore::FactoryInterfaceBase> e) final override

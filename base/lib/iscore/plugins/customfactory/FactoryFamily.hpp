@@ -23,7 +23,7 @@ class ISCORE_LIB_BASE_EXPORT FactoryListInterface
         virtual ~FactoryListInterface();
 
         // Example : InspectorWidgetFactory
-        virtual iscore::FactoryBaseKey name() const = 0;
+        virtual iscore::AbstractFactoryKey name() const = 0;
 
         // This function is called whenever a new factory interface
         // is added to this family.
@@ -101,12 +101,12 @@ auto make_ptr_vector(const Context_T& context)
   private: \
      GenericFactoryMap_T<FactoryType, FactoryType::factory_key_type> m_list;\
   public: \
-    static const iscore::FactoryBaseKey& staticFactoryKey() { \
-        return FactoryType::staticFactoryKey(); \
+    static const iscore::AbstractFactoryKey& static_abstractFactoryKey() { \
+        return FactoryType::static_abstractFactoryKey(); \
     } \
     \
-    iscore::FactoryBaseKey name() const final override { \
-        return FactoryType::staticFactoryKey(); \
+    iscore::AbstractFactoryKey name() const final override { \
+        return FactoryType::static_abstractFactoryKey(); \
     } \
     void insert(std::unique_ptr<iscore::FactoryInterfaceBase> e) final override \
     { \
@@ -129,7 +129,7 @@ Q_DECLARE_METATYPE(FactorizedElementName ## FactoryKey) \
 class FactorizedElementName ## Factory : \
         public iscore::GenericFactoryInterface<FactorizedElementName ## FactoryKey> \
 { \
-        ISCORE_FACTORY_DECL(#FactorizedElementName) \
+        ISCORE_ABSTRACT_FACTORY_DECL(#FactorizedElementName) \
     public: \
             using factory_key_type = FactorizedElementName ## FactoryKey; \
         virtual std::unique_ptr<FactorizedElementName> make() = 0; \

@@ -11,7 +11,7 @@ class ScenarioApplicationPlugin;
 class ScenarioCommonActionsFactory final : public ScenarioActionsFactory
 {
     public:
-        const ScenarioActionsFactoryKey& key_impl() const override;
+        const ScenarioActionsFactoryKey& concreteFactoryKey() const override;
 
         QList<ScenarioActions*> make(ScenarioApplicationPlugin* ctrl) override;
 };

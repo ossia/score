@@ -14,7 +14,7 @@ class StateProcess;
 class ISCORE_LIB_PROCESS_EXPORT StateProcessFactory :
         public iscore::GenericFactoryInterface<StateProcessFactoryKey>
 {
-        ISCORE_FACTORY_DECL(
+        ISCORE_ABSTRACT_FACTORY_DECL(
                 StateProcess,
                 "262852da-8662-482e-a7be-ee7896d13866")
 

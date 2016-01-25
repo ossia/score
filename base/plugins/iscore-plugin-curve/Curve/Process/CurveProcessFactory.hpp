@@ -70,8 +70,8 @@ class ISCORE_PLUGIN_CURVE_EXPORT CurveProcessFactory_T : public Process::Process
 class Name final : public Curve::CurveProcessFactory_T<Model, Layer, Presenter, View, Colors> \
 { \
     using Curve::CurveProcessFactory_T<Model, Layer, Presenter, View, Colors>::CurveProcessFactory_T; \
-    const ProcessFactoryKey& key_impl() const override \
-    { return ProcessMetadata::factoryKey(); } \
+    const ProcessFactoryKey& concreteFactoryKey() const override \
+    { return ProcessMetadata::abstractFactoryKey(); } \
     \
     QString prettyName() const override \
     { return ProcessMetadata::factoryPrettyName(); } \

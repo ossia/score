@@ -23,7 +23,7 @@ QString MIDIProtocolFactory::prettyName() const
     return QObject::tr("MIDI");
 }
 
-const Device::ProtocolFactoryKey& MIDIProtocolFactory::key_impl() const
+const Device::ProtocolFactoryKey& MIDIProtocolFactory::concreteFactoryKey() const
 {
     static const Device::ProtocolFactoryKey name{"MIDI"};
     return name;
@@ -40,7 +40,7 @@ const Device::DeviceSettings& MIDIProtocolFactory::defaultSettings() const
 {
     static const Device::DeviceSettings settings = [&] () {
         Device::DeviceSettings s;
-        s.protocol = key_impl();
+        s.protocol = concreteFactoryKey();
         s.name = "Midi";
         MIDISpecificSettings specif;
         s.deviceSpecificSettings = QVariant::fromValue(specif);

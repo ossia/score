@@ -18,7 +18,7 @@ QList<ScenarioActions *> ScenarioCommonActionsFactory::make(ScenarioApplicationP
     };
 }
 
-const ScenarioActionsFactoryKey&ScenarioCommonActionsFactory::key_impl() const
+const ScenarioActionsFactoryKey&ScenarioCommonActionsFactory::concreteFactoryKey() const
 {
     static const ScenarioActionsFactoryKey fact{"ScenarioCommonActionsFactory"};
     return fact;

@@ -100,7 +100,7 @@ void ScenarioDocumentModel::initializeNewDocument(const FullViewConstraintViewMo
 
     AddOnlyProcessToConstraint cmd1{
         iscore::IDocument::path(m_baseScenario->constraint()),
-        ScenarioProcessMetadata::factoryKey()
+        ScenarioProcessMetadata::abstractFactoryKey()
     };
     cmd1.redo();
 

@@ -61,9 +61,9 @@ ScenarioFactory::makeLayerPresenter(
     return nullptr;
 }
 
-const ProcessFactoryKey& ScenarioFactory::key_impl() const
+const ProcessFactoryKey& ScenarioFactory::concreteFactoryKey() const
 {
-    return ScenarioProcessMetadata::factoryKey();
+    return ScenarioProcessMetadata::abstractFactoryKey();
 }
 
 QString ScenarioFactory::prettyName() const

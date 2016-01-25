@@ -36,6 +36,9 @@ class ISCORE_PLUGIN_OSSIA_EXPORT ProcessComponentFactory :
             LocalTree::DocumentPlugin,
             LocalTree::ProcessComponent>
 {
+        ISCORE_ABSTRACT_FACTORY_DECL(
+                LocalTree::ProcessComponent,
+                "0732ab51-a052-4e2e-a1f7-9bf2926c199c")
     public:
         virtual ~ProcessComponentFactory();
         virtual ProcessComponent* make(

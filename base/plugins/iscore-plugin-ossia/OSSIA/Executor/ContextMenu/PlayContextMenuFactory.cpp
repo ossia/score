@@ -3,7 +3,7 @@
 
 namespace RecreateOnPlay
 {
-const Scenario::ScenarioActionsFactoryKey& PlayContextMenuFactory::key_impl() const
+const Scenario::ScenarioActionsFactoryKey& PlayContextMenuFactory::concreteFactoryKey() const
 {
     static const Scenario::ScenarioActionsFactoryKey fact{"PlayContextMenuFactory"};
     return fact;

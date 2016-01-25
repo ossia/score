@@ -7,7 +7,7 @@ namespace LocalTree
 {
 
 const ScenarioComponentFactory::factory_key_type&
-ScenarioComponentFactory::key_impl() const
+ScenarioComponentFactory::concreteFactoryKey() const
 {
     static const factory_key_type name{"ScenarioComponentFactory"};
     return name;

@@ -23,12 +23,6 @@ Inspector::InspectorWidgetBase* EventInspectorFactory::makeWidget(
                 parentWidget};
 }
 
-const QList<QString>&EventInspectorFactory::key_impl() const
-{
-    static const QList<QString> list{QString::fromStdString(EventModel::className)};
-    return list;
-}
-
 bool EventInspectorFactory::matches(const QObject& object) const
 {
     return dynamic_cast<const EventModel*>(&object);

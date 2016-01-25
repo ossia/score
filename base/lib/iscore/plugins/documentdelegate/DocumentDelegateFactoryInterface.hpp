@@ -24,7 +24,7 @@ namespace iscore
     class ISCORE_LIB_BASE_EXPORT DocumentDelegateFactoryInterface :
             public iscore::GenericFactoryInterface<DocumentDelegateFactoryKey>
     {
-            ISCORE_FACTORY_DECL(
+            ISCORE_ABSTRACT_FACTORY_DECL(
                     DocumentDelegateModelInterface,
                     "127ea824-f623-4f68-8deb-7c8c930a262b")
         public:

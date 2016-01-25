@@ -12,12 +12,12 @@ class TriggerCommandFactoryList final : public iscore::FactoryListInterface
 {
     public:
         // TODO refactor this with constraint inspector blablabli
-      static const iscore::FactoryBaseKey& staticFactoryKey() {
-          return TriggerCommandFactory::staticFactoryKey();
+      static const iscore::AbstractFactoryKey& static_abstractFactoryKey() {
+          return TriggerCommandFactory::static_abstractFactoryKey();
       }
 
-      iscore::FactoryBaseKey name() const final override {
-          return TriggerCommandFactory::staticFactoryKey();
+      iscore::AbstractFactoryKey name() const final override {
+          return TriggerCommandFactory::static_abstractFactoryKey();
       }
 
       void insert(std::unique_ptr<iscore::FactoryInterfaceBase> e) final override

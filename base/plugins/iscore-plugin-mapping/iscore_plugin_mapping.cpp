@@ -42,7 +42,7 @@ iscore_plugin_mapping::iscore_plugin_mapping() :
 
 std::vector<std::unique_ptr<iscore::FactoryInterfaceBase>> iscore_plugin_mapping::factories(
         const iscore::ApplicationContext& ctx,
-        const iscore::FactoryBaseKey& key) const
+        const iscore::AbstractFactoryKey& key) const
 {
     using namespace Mapping;
     return instantiate_factories<

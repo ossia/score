@@ -15,7 +15,7 @@ using ScenarioActionsFactoryKey = StringKey<ScenarioActionsTag>;
 class ISCORE_PLUGIN_SCENARIO_EXPORT ScenarioActionsFactory :
         public iscore::GenericFactoryInterface<ScenarioActionsFactoryKey>
 {
-        ISCORE_FACTORY_DECL(
+        ISCORE_ABSTRACT_FACTORY_DECL(
                 ScenarioActions,
                 "30a08ebc-bab7-444f-8d8c-860bd7bfe5c7")
     public:

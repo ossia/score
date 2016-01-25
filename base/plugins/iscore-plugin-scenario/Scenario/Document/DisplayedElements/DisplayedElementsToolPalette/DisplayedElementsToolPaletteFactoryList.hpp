@@ -10,12 +10,12 @@ class DisplayedElementsToolPaletteFactoryList final : public iscore::FactoryList
 {
     public:
 
-      static const iscore::FactoryBaseKey& staticFactoryKey() {
-          return DisplayedElementsToolPaletteFactory::staticFactoryKey();
+      static const iscore::AbstractFactoryKey& static_abstractFactoryKey() {
+          return DisplayedElementsToolPaletteFactory::static_abstractFactoryKey();
       }
 
-      iscore::FactoryBaseKey name() const final override {
-          return DisplayedElementsToolPaletteFactory::staticFactoryKey();
+      iscore::AbstractFactoryKey name() const final override {
+          return DisplayedElementsToolPaletteFactory::static_abstractFactoryKey();
       }
 
       void insert(std::unique_ptr<iscore::FactoryInterfaceBase> e) final override

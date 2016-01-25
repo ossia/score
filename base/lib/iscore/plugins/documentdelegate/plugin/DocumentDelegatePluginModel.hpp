@@ -54,4 +54,14 @@ class ISCORE_LIB_BASE_EXPORT DocumentPluginModel :
         iscore::DocumentContext m_context;
 };
 
+
+class ISCORE_LIB_BASE_EXPORT SerializableDocumentPluginModel :
+        public DocumentPluginModel,
+        public SerializableInterface<SerializableDocumentPluginModel>
+{
+    protected:
+        using DocumentPluginModel::DocumentPluginModel;
+        using ConcreteFactoryKey = UuidKey<SerializableDocumentPluginModel>;
+
+};
 }

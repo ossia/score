@@ -16,7 +16,7 @@ class SegmentModel;
 struct SegmentData;
 class SegmentFactory : public iscore::GenericFactoryInterface<SegmentFactoryKey>
 {
-        ISCORE_FACTORY_DECL(
+        ISCORE_ABSTRACT_FACTORY_DECL(
                 Curve::SegmentModel,
                 "608ecec9-d8bc-4b6b-8e9e-31867a310f1e")
     public:
@@ -91,7 +91,7 @@ class SegmentFactory_T : public SegmentFactory
     virtual ~Name() = default; \
     \
     private: \
-    const Curve::SegmentFactoryKey& key_impl() const override { \
+    const Curve::SegmentFactoryKey& concreteFactoryKey() const override { \
         static const Curve::SegmentFactoryKey name{DynName}; \
         return name; \
     } \

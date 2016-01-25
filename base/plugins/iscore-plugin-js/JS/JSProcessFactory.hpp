@@ -17,9 +17,9 @@ class ProcessFactory final : public Process::ProcessFactory
             return ProcessMetadata::factoryPrettyName();
         }
 
-        const ProcessFactoryKey& key_impl() const override
+        const ProcessFactoryKey& concreteFactoryKey() const override
         {
-            return ProcessMetadata::factoryKey();
+            return ProcessMetadata::abstractFactoryKey();
         }
 
 

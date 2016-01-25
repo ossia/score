@@ -12,14 +12,14 @@ ${PLUGIN_NAME}::~${PLUGIN_NAME}()
 {
 }
 
-std::vector<std::unique_ptr<iscore::FactoryInterfaceBase>> 
+std::vector<std::unique_ptr<iscore::FactoryInterfaceBase>>
     ${PLUGIN_NAME}::factories(
         const iscore::ApplicationContext& ctx,
-        const iscore::FactoryBaseKey& key) const
+        const iscore::AbstractFactoryKey& key) const
 {
     return instantiate_factories<
             iscore::ApplicationContext,
     TL<
-		${FactoryCode}
+        ${FactoryCode}
     >>(ctx, key);
 }

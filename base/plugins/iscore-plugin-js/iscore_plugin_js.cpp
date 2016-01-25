@@ -19,7 +19,7 @@ iscore_plugin_js::iscore_plugin_js() :
 
 std::vector<std::unique_ptr<iscore::FactoryInterfaceBase>> iscore_plugin_js::factories(
         const iscore::ApplicationContext& ctx,
-        const iscore::FactoryBaseKey& key) const
+        const iscore::AbstractFactoryKey& key) const
 {
     return instantiate_factories<
             iscore::ApplicationContext,

@@ -14,6 +14,7 @@ namespace Automation
 class PointInspectorFactory final :
         public Inspector::InspectorWidgetFactory
 {
+        ISCORE_CONCRETE_FACTORY_DECL("c2fc4c5b-641f-41e3-8734-5caf77b27de8")
     public:
     PointInspectorFactory() :
         InspectorWidgetFactory {}
@@ -25,8 +26,6 @@ class PointInspectorFactory final :
         const QObject& sourceElement,
         const iscore::DocumentContext& doc,
         QWidget* parent) const override;
-
-    const QList<QString>& key_impl() const override;
 
     bool matches(const QObject& object) const override;
 };

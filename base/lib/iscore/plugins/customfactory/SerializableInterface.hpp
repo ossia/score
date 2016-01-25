@@ -1,60 +1,47 @@
 #pragma once
-#include <boost/uuid/uuid.hpp>
-#include <boost/uuid/string_generator.hpp>
-#include <iscore/serialization/VisitorInterface.hpp>
-#include <iscore_lib_base_export.h>
-class DataStream;
-class JSONObject;
+#include <iscore/plugins/customfactory/UuidKey.hpp>
+
+#include <iscore/serialization/JSONVisitor.hpp>
+
 namespace iscore
 {
-using uuid_t = boost::uuids::uuid;
+template<typename T>
 class ISCORE_LIB_BASE_EXPORT SerializableInterface
 {
     public:
-        SerializableInterface();
+        SerializableInterface() = default;
+        virtual ~SerializableInterface() = default;
+        virtual UuidKey<T> uuid() const = 0;
+        void serialize(const VisitorVariant& vis) const
+        {
+            switch(vis.identifier)
+            {
+                case DataStream::type():
+                {
+                    auto& v = static_cast<DataStream::Serializer&>(vis.visitor);
+                    v.readFrom(uuid().impl());
+                    break;
+                }
+                case JSONObject::type():
+                {
+                    auto& v = static_cast<JSONObject::Serializer&>(vis.visitor);
+                    v.m_obj["uuid"] = toJsonValue(uuid().impl());
+                    break;
+                }
+                default:
+                    ISCORE_ABORT;
+            }
 
-        virtual ~SerializableInterface();
-        virtual uuid_t uuid() const = 0;
-        void serialize(const VisitorVariant& vis) const;
+            serialize_impl(vis);
+        }
 
     protected:
-        virtual void serialize_impl(const VisitorVariant& vis) const;
+        virtual void serialize_impl(const VisitorVariant& vis) const
+        {
+
+        }
 };
 }
-
-#define ISCORE_RETURN_UUID(Uuid) \
-    static const auto id = boost::uuids::string_generator{}(#Uuid); \
-    return id;
-
-
-template<typename Tag>
-class ISCORE_LIB_BASE_EXPORT UuidKey : iscore::uuid_t
-{
-        using this_type = UuidKey<Tag>;
-
-        friend struct std::hash<this_type>;
-        friend bool operator==(const this_type& lhs, const this_type& rhs) {
-            return static_cast<const iscore::uuid_t&>(lhs) == static_cast<const iscore::uuid_t&>(rhs);
-        }
-
-        friend bool operator<(const this_type& lhs, const this_type& rhs) {
-            return static_cast<const iscore::uuid_t&>(lhs) < static_cast<const iscore::uuid_t&>(rhs);
-        }
-
-    public:
-        using iscore::uuid_t::uuid_t;
-};
-
-namespace std
-{
-template<typename T>
-struct hash<UuidKey<T>>
-{
-        std::size_t operator()(const UuidKey<T>& kagi) const noexcept
-        { return boost::hash<iscore::uuid_t>()(static_cast<const iscore::uuid_t&>(kagi)); }
-};
-}
-
 
 template<typename Type>
 UuidKey<Type> deserialize_key(Deserializer<JSONObject>& des)
@@ -71,6 +58,7 @@ UuidKey<Type> deserialize_key(Deserializer<DataStream>& des)
     return uid;
 
 }
+
 
 template<typename FactoryList_T, typename Deserializer, typename... Args>
 auto deserialize_interface(
@@ -89,4 +77,5 @@ auto deserialize_interface(
     // Create the object
     return concrete_factory->load(des.toVariant(), std::forward<Args>(args)...);
 }
+
 

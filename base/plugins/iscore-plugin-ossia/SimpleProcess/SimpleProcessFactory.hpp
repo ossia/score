@@ -13,7 +13,7 @@ class SimpleProcessFactory : public Process::ProcessFactory
         QString prettyName() const override
         { return QObject::tr("SimpleProcess"); }
 
-        const ProcessFactoryKey& key_impl() const override
+        const ProcessFactoryKey& concreteFactoryKey() const override
         {
             static const ProcessFactoryKey name{"SimpleProcessModel"};
             return name;

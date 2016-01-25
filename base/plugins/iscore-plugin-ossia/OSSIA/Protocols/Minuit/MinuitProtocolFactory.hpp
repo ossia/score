@@ -23,7 +23,7 @@ class MinuitProtocolFactory final :
         // Implement with OSSIA::Device
         QString prettyName() const override;
 
-        const Device::ProtocolFactoryKey& key_impl() const override;
+        const Device::ProtocolFactoryKey& concreteFactoryKey() const override;
 
         Device::DeviceInterface* makeDevice(
                 const Device::DeviceSettings& settings,
