@@ -10,6 +10,6 @@ class ISCORE_LIB_BASE_EXPORT SerializableInterface
     public:
         virtual ~SerializableInterface();
         virtual boost::uuids::uuid uuid() = 0;
-        void serialize(const VisitorVariant& vis) const = 0;
+        virtual void serialize(const VisitorVariant& vis) const = 0;
 };
 }
