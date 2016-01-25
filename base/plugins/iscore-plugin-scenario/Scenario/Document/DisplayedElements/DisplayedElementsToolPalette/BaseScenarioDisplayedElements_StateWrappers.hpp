@@ -22,7 +22,18 @@ class MoveConstraintInBaseScenario_StateWrapper
         }
 };
 
-class MoveBraceInBaseScenario_StateWrapper
+class MoveLeftBraceInBaseScenario_StateWrapper
+{
+    public:
+        template<
+                typename Scenario_T,
+                typename ToolPalette_T>
+        static void make(const ToolPalette_T& palette, QState* waitState, QState& sm)
+        {
+            // TODO : something to do here ?
+        }
+};
+class MoveRightBraceInBaseScenario_StateWrapper
 {
     public:
         template<

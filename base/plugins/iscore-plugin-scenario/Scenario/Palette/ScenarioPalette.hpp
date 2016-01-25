@@ -23,7 +23,8 @@ class EditionSettings;
 class TemporalScenarioPresenter;
 class TemporalScenarioView;
 class MoveConstraintInScenario_StateWrapper;
-class MoveBraceInScenario_StateWrapper;
+class MoveLeftBraceInScenario_StateWrapper;
+class MoveRightBraceInScenario_StateWrapper;
 class MoveEventInScenario_StateWrapper;
 class MoveTimeNodeInScenario_StateWrapper;
 class ScenarioModel;
@@ -63,7 +64,8 @@ class ToolPalette final : public GraphicsSceneToolPalette
             Scenario::ToolPalette,
             TemporalScenarioView,
             Scenario::MoveConstraintInScenario_StateWrapper,
-            Scenario::MoveBraceInScenario_StateWrapper,
+            Scenario::MoveLeftBraceInScenario_StateWrapper,
+            Scenario::MoveRightBraceInScenario_StateWrapper,
             Scenario::MoveEventInScenario_StateWrapper,
             Scenario::MoveTimeNodeInScenario_StateWrapper> m_selectTool;
         MoveSlotTool m_moveSlotTool;

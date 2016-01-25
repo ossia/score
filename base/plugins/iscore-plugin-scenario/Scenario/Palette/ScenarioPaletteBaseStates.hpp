@@ -66,17 +66,4 @@ class SlotState : public QState
         double m_originalHeight{};
 };
 
-class BraceState : public QState
-{
-    public:
-        BraceState(QState* parent):
-            QState{parent}
-        {}
-        Path<ConstraintModel> currentConstraint;
-
-        QPointF m_originalPoint;
-        double m_originalX{};
-        bool m_leftBrace;
-};
-
 }

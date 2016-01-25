@@ -22,6 +22,7 @@ class SetMaxDuration final : public iscore::SerializableCommand
 {
         ISCORE_COMMAND_DECL(ScenarioCommandFactoryName(), SetMaxDuration, "Set constraint maximum")
     public:
+            static const constexpr auto corresponding_member = &ConstraintDurations::maxDuration; // used by state machine (MoveState.hpp)
 
         SetMaxDuration(Path<ConstraintModel>&& path, const TimeValue& newval, bool isInfinite):
         m_path{std::move(path)},
