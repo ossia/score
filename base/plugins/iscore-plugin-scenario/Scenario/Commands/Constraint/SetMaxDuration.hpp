@@ -37,6 +37,9 @@ class SetMaxDuration final : public iscore::SerializableCommand
         void update(const Path<ConstraintModel>&, const TimeValue &newval, bool isInfinite)
         {
             m_newVal = newval;
+            auto& cstrDuration = m_path.find().duration;
+            if(m_newVal < cstrDuration.defaultDuration())
+                m_newVal = cstrDuration.defaultDuration();
         }
 
         void undo() const override

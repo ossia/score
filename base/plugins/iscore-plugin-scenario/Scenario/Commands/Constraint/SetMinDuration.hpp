@@ -36,18 +36,25 @@ class SetMinDuration final : public iscore::SerializableCommand
         void update(const Path<ConstraintModel>&, const TimeValue &newval, bool isMinNull)
         {
             m_newVal = newval;
+            auto& cstrDuration = m_path.find().duration;
+            if(m_newVal < TimeValue::zero())
+                m_newVal = TimeValue::zero();
+            if(m_newVal > cstrDuration.defaultDuration())
+                m_newVal = cstrDuration.defaultDuration();
         }
 
         void undo() const override
         {
-            m_path.find().duration.setMinNull(m_oldMinNull);
-            m_path.find().duration.setMinDuration(m_oldVal);
+            auto& cstrDuration = m_path.find().duration;
+            cstrDuration.setMinNull(m_oldMinNull);
+            cstrDuration.setMinDuration(m_newVal);
         }
 
         void redo() const override
         {
-            m_path.find().duration.setMinNull(m_newMinNull);
-            m_path.find().duration.setMinDuration(m_newVal);
+            auto& cstrDuration = m_path.find().duration;
+            cstrDuration.setMinNull(m_newMinNull);
+            cstrDuration.setMinDuration(m_newVal);
         }
 
     protected:
