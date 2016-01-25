@@ -64,7 +64,7 @@ struct PositionedWithId_ScenarioEvent final : public PositionedScenarioEvent<N>
 ////////////
 // Events
 enum ScenarioElement {
-    Nothing, TimeNode, Event, Constraint, State, SlotOverlay_e, SlotHandle_e, Trigger
+    Nothing, TimeNode, Event, Constraint, State, SlotOverlay_e, SlotHandle_e, Trigger, LeftBrace, RightBrace
 };
 
 static const constexpr int ClickOnNothing     = ScenarioElement::Nothing       + iscore::Modifier::Click_tag::value;
@@ -75,6 +75,8 @@ static const constexpr int ClickOnState       = ScenarioElement::State         +
 static const constexpr int ClickOnSlotOverlay = ScenarioElement::SlotOverlay_e + iscore::Modifier::Click_tag::value;
 static const constexpr int ClickOnSlotHandle  = ScenarioElement::SlotHandle_e  + iscore::Modifier::Click_tag::value;
 static const constexpr int ClickOnTrigger     = ScenarioElement::Trigger       + iscore::Modifier::Click_tag::value;
+static const constexpr int ClickOnLeftBrace   = ScenarioElement::LeftBrace     + iscore::Modifier::Click_tag::value;
+static const constexpr int ClickOnRightBrace  = ScenarioElement::RightBrace    + iscore::Modifier::Click_tag::value;
 
 static const constexpr int MoveOnNothing     = ScenarioElement::Nothing       + iscore::Modifier::Move_tag::value;
 static const constexpr int MoveOnTimeNode    = ScenarioElement::TimeNode      + iscore::Modifier::Move_tag::value;
@@ -84,6 +86,8 @@ static const constexpr int MoveOnState       = ScenarioElement::State         + 
 static const constexpr int MoveOnSlotOverlay = ScenarioElement::SlotOverlay_e + iscore::Modifier::Move_tag::value;
 static const constexpr int MoveOnSlotHandle  = ScenarioElement::SlotHandle_e  + iscore::Modifier::Move_tag::value;
 static const constexpr int MoveOnTrigger     = ScenarioElement::Trigger       + iscore::Modifier::Move_tag::value;
+static const constexpr int MoveOnLeftBrace   = ScenarioElement::LeftBrace     + iscore::Modifier::Move_tag::value;
+static const constexpr int MoveOnRightBrace  = ScenarioElement::RightBrace    + iscore::Modifier::Move_tag::value;
 
 static const constexpr int ReleaseOnNothing     = ScenarioElement::Nothing       + iscore::Modifier::Release_tag::value;
 static const constexpr int ReleaseOnTimeNode    = ScenarioElement::TimeNode      + iscore::Modifier::Release_tag::value;
@@ -93,6 +97,8 @@ static const constexpr int ReleaseOnState       = ScenarioElement::State        
 static const constexpr int ReleaseOnSlotOverlay = ScenarioElement::SlotOverlay_e + iscore::Modifier::Release_tag::value;
 static const constexpr int ReleaseOnSlotHandle  = ScenarioElement::SlotHandle_e  + iscore::Modifier::Release_tag::value;
 static const constexpr int ReleaseOnTrigger     = ScenarioElement::Trigger       + iscore::Modifier::Release_tag::value;
+static const constexpr int ReleaseOnLeftBrace   = ScenarioElement::LeftBrace     + iscore::Modifier::Release_tag::value;
+static const constexpr int ReleaseOnRightBrace  = ScenarioElement::RightBrace    + iscore::Modifier::Release_tag::value;
 
 /* click */
 using ClickOnNothing_Event = PositionedScenarioEvent<ClickOnNothing>;
@@ -103,6 +109,8 @@ using ClickOnState_Event = PositionedWithId_ScenarioEvent<StateModel, ClickOnSta
 using ClickOnSlotOverlay_Event = iscore::NumberedWithPath_Event<SlotModel, ClickOnSlotOverlay>;
 using ClickOnSlotHandle_Event = iscore::NumberedWithPath_Event<SlotModel, ClickOnSlotHandle>;
 using ClickOnTrigger_Event = iscore::NumberedWithPath_Event<TriggerModel, ClickOnTrigger>;
+using ClickOnLeftBrace_Event = PositionedWithId_ScenarioEvent<ConstraintModel, ClickOnLeftBrace>;
+using ClickOnRightBrace_Event = PositionedWithId_ScenarioEvent<ConstraintModel, ClickOnRightBrace>;
 
 /* move on */
 using MoveOnNothing_Event = PositionedScenarioEvent<MoveOnNothing>;
@@ -113,6 +121,8 @@ using MoveOnState_Event = PositionedWithId_ScenarioEvent<StateModel, MoveOnState
 using MoveOnSlot_Event = iscore::NumberedWithPath_Event<SlotModel, MoveOnSlotOverlay>;
 using MoveOnSlotHandle_Event = iscore::NumberedWithPath_Event<SlotModel, MoveOnSlotHandle>;
 using MoveOnTrigger_Event = iscore::NumberedWithPath_Event<TriggerModel, MoveOnTrigger>;
+using MoveOnLeftBrace_Event = PositionedWithId_ScenarioEvent<ConstraintModel, MoveOnLeftBrace>;
+using MoveOnRightBrace_Event = PositionedWithId_ScenarioEvent<ConstraintModel, MoveOnRightBrace>;
 
 /* release on */
 using ReleaseOnNothing_Event = PositionedScenarioEvent<ReleaseOnNothing>;
@@ -123,6 +133,8 @@ using ReleaseOnState_Event = PositionedWithId_ScenarioEvent<StateModel, ReleaseO
 using ReleaseOnSlot_Event = iscore::NumberedWithPath_Event<SlotModel, ReleaseOnSlotOverlay>;
 using ReleaseOnSlotHandle_Event = iscore::NumberedWithPath_Event<SlotModel, ReleaseOnSlotHandle>;
 using ReleaseOnTrigger_Event = iscore::NumberedWithPath_Event<TriggerModel, ReleaseOnTrigger>;
+using ReleaseOnLeftBrace_Event = PositionedWithId_ScenarioEvent<ConstraintModel, ReleaseOnLeftBrace>;
+using ReleaseOnRightBrace_Event = PositionedWithId_ScenarioEvent<ConstraintModel, ReleaseOnRightBrace>;
 
 template<int N>
 QString debug_StateMachineIDs()
@@ -169,6 +181,12 @@ QString debug_StateMachineIDs()
             break;
         case ScenarioElement::Trigger:
             txt += "Trigger";
+            break;
+        case ScenarioElement::LeftBrace:
+            txt += "LeftBrace";
+            break;
+        case ScenarioElement::RightBrace:
+            txt += "RightBrace";
             break;
     }
 

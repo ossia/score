@@ -91,6 +91,89 @@ class MoveConstraintState final : public StateBase<Scenario_T>
 };
 
 template<
+        typename MoveBraceCommand_T, // SetMinDuration or setMaxDuration
+        typename Scenario_T,
+        typename ToolPalette_T>
+class MoveConstraintBraceState final : public StateBase<Scenario_T>
+{
+    public:
+        MoveConstraintBraceState(const ToolPalette_T& stateMachine,
+                                const Path<Scenario_T>& scenarioPath,
+                                iscore::CommandStackFacade& stack,
+                                iscore::ObjectLocker& locker,
+                                QState* parent):
+            StateBase<Scenario_T>{scenarioPath, parent},
+            m_dispatcher{stack}
+    {
+            this->setObjectName("MoveConstraintBraceState");
+            using namespace Scenario::Command ;
+            auto finalState = new QFinalState{this};
+
+            QState* mainState = new QState{this};
+            {
+                QState* pressed = new QState{mainState};
+                QState* released = new QState{mainState};
+                QState* moving = new QState{mainState};
+
+                mainState->setInitialState(pressed);
+                released->addTransition(finalState);
+
+
+                iscore::make_transition<MoveOnAnything_Transition<Scenario_T>>(
+                            pressed, moving, *this);
+                iscore::make_transition<ReleaseOnAnything_Transition>(
+                            pressed, finalState);
+
+                iscore::make_transition<MoveOnAnything_Transition<Scenario_T>>(
+                            moving , moving , *this);
+                iscore::make_transition<ReleaseOnAnything_Transition>(
+                            moving , released);
+
+                QObject::connect(pressed, &QState::entered, [&] ()
+                {
+                    this->m_initialDate = this->currentPoint.date;
+                    auto& scenar = stateMachine.model();
+                    auto& cstr = scenar.constraint(this->clickedConstraint);
+                    this->m_initialDuration = ((cstr.duration).*MoveBraceCommand_T::corresponding_member)(); // = constraint MinDuration or maxDuration
+                });
+
+                QObject::connect(moving, &QState::entered, [&] ()
+                {
+                    auto& scenar = stateMachine.model();
+                    auto& cstr = scenar.constraint(this->clickedConstraint);
+                    auto date = this->currentPoint.date - *m_initialDate + *m_initialDuration;
+                    this->m_dispatcher.submitCommand(
+                                Path<ConstraintModel>{cstr},
+                                date,
+                                false);
+                });
+
+                QObject::connect(released, &QState::entered, [&] ()
+                {
+                    this->m_dispatcher.commit();
+                });
+            }
+
+            QState* rollbackState = new QState{this};
+            iscore::make_transition<iscore::Cancel_Transition>(mainState, rollbackState);
+            rollbackState->addTransition(finalState);
+            QObject::connect(rollbackState, &QState::entered, [&] ()
+            {
+                m_dispatcher.rollback();
+            });
+
+            this->setInitialState(mainState);
+
+    }
+        SingleOngoingCommandDispatcher<MoveBraceCommand_T> m_dispatcher;
+
+    private:
+        boost::optional<TimeValue> m_initialDate;
+        boost::optional<TimeValue> m_initialDuration;
+
+};
+
+template<
         typename MoveEventCommand_T, // MoveEventMeta
         typename Scenario_T,
         typename ToolPalette_T>
