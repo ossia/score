@@ -34,6 +34,8 @@ class TimeNodeInspectorWidget final : public Inspector::InspectorWidgetBase
                 QWidget* parent);
 
     private:
+        QString tabName() override;
+
         void updateDisplayedValues();
         void on_splitTimeNodeClicked();
 

@@ -15,6 +15,8 @@ namespace Scenario
 {
 class EditionSettings;
 class MoveConstraintInScenario_StateWrapper;
+class MoveLeftBraceInScenario_StateWrapper;
+class MoveRightBraceInScenario_StateWrapper;
 class MoveEventInScenario_StateWrapper;
 class MoveTimeNodeInScenario_StateWrapper;
 class ScenarioModel;
@@ -59,6 +61,8 @@ class ScenarioDisplayedElementsToolPalette final : public GraphicsSceneToolPalet
             ScenarioDisplayedElementsToolPalette,
             BaseGraphicsObject,
             Scenario::MoveConstraintInScenario_StateWrapper,
+            Scenario::MoveLeftBraceInScenario_StateWrapper,
+            Scenario::MoveRightBraceInScenario_StateWrapper,
             Scenario::MoveEventInScenario_StateWrapper,
             Scenario::MoveTimeNodeInScenario_StateWrapper
         >  m_state;

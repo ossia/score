@@ -65,4 +65,5 @@ class SlotState : public QState
         QPointF m_originalPoint;
         double m_originalHeight{};
 };
+
 }

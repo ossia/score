@@ -26,5 +26,7 @@ class EventInspectorFactory final : public Inspector::InspectorWidgetFactory
 
         const QList<QString>& key_impl() const override;
 
+        bool matches(const QObject& object) const override;
+
 };
 }

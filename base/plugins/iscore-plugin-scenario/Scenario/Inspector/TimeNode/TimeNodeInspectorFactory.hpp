@@ -27,5 +27,8 @@ class TimeNodeInspectorFactory final : public Inspector::InspectorWidgetFactory
                 QWidget* parent) const override;
 
         const QList<QString>& key_impl() const override;
+
+
+        bool matches(const QObject& object) const override;
 };
 }

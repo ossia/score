@@ -43,4 +43,9 @@ const QList<QString>&ConstraintInspectorFactory::key_impl() const
     return list;
 }
 
+bool ConstraintInspectorFactory::matches(const QObject& object) const
+{
+    return dynamic_cast<const ConstraintModel*>(&object);
+}
+
 }

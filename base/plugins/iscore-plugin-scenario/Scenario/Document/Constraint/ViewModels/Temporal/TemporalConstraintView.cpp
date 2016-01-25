@@ -12,7 +12,8 @@
 #include <Scenario/Document/Constraint/ViewModels/ConstraintView.hpp>
 #include "TemporalConstraintPresenter.hpp"
 #include "TemporalConstraintView.hpp"
-#include <Scenario/Document/Constraint/ViewModels/Temporal/ConstraintBrace.hpp>
+#include <Scenario/Document/Constraint/ViewModels/Temporal/Braces/LeftBrace.hpp>
+#include <Scenario/Document/Constraint/ViewModels/Temporal/Braces/RightBrace.hpp>
 
 class QGraphicsSceneHoverEvent;
 class QStyleOptionGraphicsItem;
@@ -30,13 +31,12 @@ TemporalConstraintView::TemporalConstraintView(
     this->setParentItem(parent);
 
     this->setZValue(3);
-    m_leftBrace = new ConstraintBrace{*this, this};
+    m_leftBrace = new LeftBraceView{*this, this};
     m_leftBrace->setX(minWidth());
     m_leftBrace->setZValue(10);
 
-    m_rightBrace = new ConstraintBrace{*this, this};
+    m_rightBrace = new RightBraceView{*this, this};
     m_rightBrace->setX(maxWidth());
-    m_rightBrace->setRotation(180);
     m_rightBrace->setZValue(10);
 }
 
