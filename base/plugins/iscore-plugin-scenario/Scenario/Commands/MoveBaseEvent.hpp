@@ -49,10 +49,10 @@ class MoveBaseEvent final : public iscore::SerializableCommand
         const CommandFactoryKey& key() const override
         { return static_key(); }
         QString description() const override
-        { return QObject::tr("Move a %1 event").arg(NameInUndo<SimpleScenario_T>()); }
+        { return QObject::tr("Move a %1 event").arg(Metadata<UndoName_k, SimpleScenario_T>::get()); }
         static const CommandFactoryKey& static_key()
         {
-            static const CommandFactoryKey kagi{"MoveBaseEvent_"_CS + SimpleScenario_T::className};
+            static const CommandFactoryKey kagi{QString("MoveBaseEvent_") + Metadata<ObjectKey_k, SimpleScenario_T>::get()};
             return kagi;
         }
 

@@ -20,7 +20,7 @@ class ChangeElementName final : public iscore::SerializableCommand
         }
         static const CommandFactoryKey& static_key()
         {
-            auto name = "ChangeElementName_"_CS + T::className;
+            auto name = QString("ChangeElementName_")  + Metadata<ObjectKey_k, T>::get();
             static const CommandFactoryKey kagi{std::move(name)};
             return kagi;
         }
@@ -30,7 +30,7 @@ class ChangeElementName final : public iscore::SerializableCommand
         }
         QString description() const override
         {
-            return QObject::tr("Change %1 name").arg(T::description());
+            return QObject::tr("Change %1 name").arg(Metadata<Description_k, T>::get());
         }
 
         ChangeElementName() = default;

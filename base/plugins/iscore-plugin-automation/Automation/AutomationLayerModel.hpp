@@ -13,7 +13,6 @@ namespace Automation
 class ProcessModel;
 class LayerModel final : public Process::LayerModel
 {
-        ISCORE_METADATA(Automation::LayerModel)
     public:
         LayerModel(
                 ProcessModel& model,
@@ -44,3 +43,5 @@ class LayerModel final : public Process::LayerModel
         const ProcessModel& model() const;
 };
 }
+
+DEFAULT_MODEL_METADATA(Automation::LayerModel, "Automation layer")

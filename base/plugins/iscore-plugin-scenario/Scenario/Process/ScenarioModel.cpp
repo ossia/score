@@ -33,11 +33,10 @@ class ProcessStateDataInterface;
 namespace Scenario
 {
 
-ISCORE_METADATA_IMPL(ScenarioModel)
 ScenarioModel::ScenarioModel(const TimeValue& duration,
                              const Id<ProcessModel>& id,
                              QObject* parent) :
-    ProcessModel {duration, id, ScenarioProcessMetadata::processObjectName(), parent},
+    ProcessModel {duration, id, Metadata<ObjectKey_k, Scenario::ProcessModel>::get(), parent},
     m_startTimeNodeId{Scenario::startId<TimeNodeModel>()},
     m_endTimeNodeId{Scenario::endId<TimeNodeModel>()},
     m_startEventId{Scenario::startId<EventModel>()},
@@ -61,7 +60,7 @@ ScenarioModel::ScenarioModel(
         const Scenario::ScenarioModel& source,
         const Id<ProcessModel>& id,
         QObject* parent) :
-    ProcessModel {source, id, ScenarioProcessMetadata::processObjectName(), parent},
+    ProcessModel {source, id, Metadata<ObjectKey_k, Scenario::ProcessModel>::get(), parent},
     m_startTimeNodeId{source.m_startTimeNodeId},
     m_endTimeNodeId{source.m_endTimeNodeId},
     m_startEventId{source.m_startEventId},
@@ -156,7 +155,7 @@ Process::LayerModel* ScenarioModel::cloneLayer_impl(
 
 const ProcessFactoryKey& ScenarioModel::key() const
 {
-    return ScenarioProcessMetadata::concreteFactoryKey();
+    return Metadata<ConcreteFactoryKey_k, Scenario::ProcessModel>::get();
 }
 
 QString ScenarioModel::prettyName() const

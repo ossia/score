@@ -28,7 +28,7 @@ class AddLayerInNewSlot final : public iscore::SerializableCommand
         public:
             AddLayerInNewSlot(
                 Path<ConstraintModel>&& constraintPath,
-                const Id<Process::ProcessModel>& process);
+                const Id<Process::ProcessModel>& process); // maybe should we pass the viewmodel too, if many available ?
 
         void undo() const override;
         void redo() const override;

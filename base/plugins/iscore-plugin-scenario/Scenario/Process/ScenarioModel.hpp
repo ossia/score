@@ -51,7 +51,6 @@ class ISCORE_PLUGIN_SCENARIO_EXPORT ScenarioModel final :
 {
         Q_OBJECT
 
-        ISCORE_METADATA(ScenarioModel)
         ISCORE_SERIALIZE_FRIENDS(Scenario::ScenarioModel, DataStream)
         ISCORE_SERIALIZE_FRIENDS(Scenario::ScenarioModel, JSONObject)
         friend class ScenarioFactory;
@@ -292,3 +291,5 @@ const QVector<Id<ConstraintModel>> constraintsBeforeTimeNode(
 const StateModel* furthestSelectedState(const Scenario::ScenarioModel& scenario);
 const StateModel* furthestSelectedStateWithoutFollowingConstraint(const Scenario::ScenarioModel& scenario);
 }
+
+DEFAULT_MODEL_METADATA(Scenario::ScenarioModel, "Scenario")

@@ -20,7 +20,7 @@ class ChangeElementComments final : public iscore::SerializableCommand
         }
         static const CommandFactoryKey& static_key()
         {
-            auto name = "ChangeElementComments_"_CS + T::className;
+            auto name = QString("ChangeElementComments_")  + Metadata<ObjectKey_k, T>::get();
             static const CommandFactoryKey kagi{std::move(name)};
             return kagi;
         }
@@ -30,7 +30,7 @@ class ChangeElementComments final : public iscore::SerializableCommand
         }
         QString description() const override
         {
-            return QObject::tr("Change %1 comments").arg(T::description());
+            return QObject::tr("Change %1 comments").arg(Metadata<Description_k, T>::get());
         }
 
         ChangeElementComments() = default;

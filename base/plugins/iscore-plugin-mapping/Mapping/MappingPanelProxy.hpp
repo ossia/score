@@ -5,9 +5,9 @@
 
 namespace Mapping
 {
-class MappingPanelProxy : public Curve::CurveProcessPanelProxy<MappingLayerModel>
+class MappingPanelProxy : public Curve::CurveProcessPanelProxy<LayerModel>
 {
     public:
-        using CurveProcessPanelProxy<MappingLayerModel>::CurveProcessPanelProxy;
+        using CurveProcessPanelProxy<LayerModel>::CurveProcessPanelProxy;
 };
 }

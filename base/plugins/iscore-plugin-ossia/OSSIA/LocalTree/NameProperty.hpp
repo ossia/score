@@ -23,7 +23,7 @@ class MetadataNamePropertyWrapper
 
             m_callbackIt =
                     node->addCallback(
-                        [=] (const OSSIA::Node& node, OSSIA::NodeChange t) {
+                        [=] (const OSSIA::Node& node, const std::string& name, OSSIA::NodeChange t) {
                 if(t == OSSIA::NodeChange::RENAMED)
                 {
                     auto str = QString::fromStdString(node.getName());

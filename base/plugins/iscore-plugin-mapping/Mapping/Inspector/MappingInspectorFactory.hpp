@@ -17,13 +17,13 @@ class MappingInspectorFactory final : public ProcessInspectorWidgetDelegateFacto
                 QWidget* parent) const override
         {
             return new MappingInspectorWidget{
-                static_cast<const MappingModel&>(process), doc, parent};
+                static_cast<const ProcessModel&>(process), doc, parent};
 
         }
 
         bool matches(const Process::ProcessModel& process) const override
         {
-            return dynamic_cast<const MappingModel*>(&process);
+            return dynamic_cast<const ProcessModel*>(&process);
         }
 
 };

@@ -26,7 +26,6 @@ namespace Automation
 {
 DEFINE_CURVE_PROCESS_FACTORY(
         AutomationFactory,
-        Automation::ProcessMetadata,
         Automation::ProcessModel,
         Automation::LayerModel,
         Automation::LayerPresenter,

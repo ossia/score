@@ -14,12 +14,12 @@ class ProcessFactory final : public Process::ProcessFactory
     public:
         QString prettyName() const override
         { // In factory list
-            return ProcessMetadata::factoryPrettyName();
+            return Metadata<PrettyName_k, ProcessModel>::get();
         }
 
         const ProcessFactoryKey& concreteFactoryKey() const override
         {
-            return ProcessMetadata::concreteFactoryKey();
+            return Metadata<ConcreteFactoryKey_k, ProcessModel>::get();
         }
 
 

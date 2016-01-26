@@ -59,6 +59,7 @@
 #include <iscore/tools/NotifyingMap.hpp>
 #include <iscore/tools/Todo.hpp>
 #include <iscore/widgets/SpinBoxes.hpp>
+#include <iscore/widgets/MarginLess.hpp>
 #include <iscore/plugins/customfactory/StringFactoryKeySerialization.hpp>
 
 namespace Scenario
@@ -266,11 +267,9 @@ void ConstraintInspectorWidget::createRack()
     commandDispatcher()->submitCommand(cmd);
 }
 
-void ConstraintInspectorWidget::createLayerInNewSlot(QString processName)
+void ConstraintInspectorWidget::createLayerInNewSlot(const Id<Process::ProcessModel>& processId)
 {
-    // TODO this will bite us when the name does not contain the id anymore.
-    // We will have to stock the id's somewhere.
-    auto cmd = new Command::AddLayerInNewSlot{model(), Id<Process::ProcessModel>(processName.toInt())};
+    auto cmd = new Command::AddLayerInNewSlot{model(), processId};
 
     commandDispatcher()->submitCommand(cmd);
 }
@@ -315,7 +314,10 @@ void ConstraintInspectorWidget::displaySharedProcess(const Process::ProcessModel
     con(process.metadata, &ModelMetadata::nameChanged,
         newProc, &Inspector::InspectorSectionWidget::renameSection);
 
+    // ***********************
     // Process
+
+        // add view in new slot
     const auto& fact = context().app.components.factory<ProcessInspectorWidgetDelegateFactoryList>();
     if(auto widg = fact.make(process, context(), newProc))
     {
@@ -325,6 +327,14 @@ void ConstraintInspectorWidget::displaySharedProcess(const Process::ProcessModel
         connect(processWidget, &ProcessInspectorWidget::createViewInNewSlot,
                 this, &ConstraintInspectorWidget::createLayerInNewSlot);
     }
+        // delete process
+    newProc->showDeleteButton(true);
+    connect(newProc, &Inspector::InspectorSectionWidget::deletePressed, this, [=,id=process.id()] ()
+    {
+        auto cmd = new Command::RemoveProcessFromConstraint{iscore::IDocument::path(model()), id};
+        emit commandDispatcher()->submitCommand(cmd);
+    });
+
 
     // Start & end state
     QWidget* stateWidget = new QWidget;
@@ -336,13 +346,13 @@ void ConstraintInspectorWidget::displaySharedProcess(const Process::ProcessModel
     if(auto start = process.startStateData())
     {
         auto startWidg = m_widgetList.makeInspectorWidget(*start, newProc);
-        stateLayout->addRow(tr("Start state"), startWidg);
+        stateLayout->addRow(tr("Start "), startWidg);
     }
 
     if(auto end = process.endStateData())
     {
         auto endWidg = m_widgetList.makeInspectorWidget(*end, newProc);
-        stateLayout->addRow(tr("End state"), endWidg);
+        stateLayout->addRow(tr("End   "), endWidg);
     }
     newProc->addContent(stateWidget);
 
@@ -360,14 +370,6 @@ void ConstraintInspectorWidget::displaySharedProcess(const Process::ProcessModel
     });
     stateLayout->addRow(tr("Duration"), durWidg);
 
-    // Delete button
-    auto deleteButton = new QPushButton{tr("Delete")};
-    connect(deleteButton, &QPushButton::pressed, this, [=,id=process.id()] ()
-    {
-        auto cmd = new Command::RemoveProcessFromConstraint{iscore::IDocument::path(model()), id};
-        emit commandDispatcher()->submitCommand(cmd);
-    });
-    newProc->addContent(deleteButton);
 
     // Global setup
     m_processesSectionWidgets.push_back(newProc);
@@ -398,8 +400,8 @@ void ConstraintInspectorWidget::ask_processNameChanged(const Process::ProcessMod
 QWidget* ConstraintInspectorWidget::makeStatesWidget(Scenario::ScenarioModel* scenar)
 {
     QWidget* eventWid = new QWidget{this};
-    QFormLayout* eventLay = new QFormLayout {eventWid};
-    eventLay->setVerticalSpacing(0);
+    auto eventLay = new iscore::MarginLess<QHBoxLayout>;
+    eventWid->setLayout(eventLay);
 
     if(auto sst = m_model.startState())
     {

@@ -8,37 +8,44 @@
 class QObject;
 #include <iscore/tools/SettableIdentifier.hpp>
 
-ISCORE_METADATA_IMPL(Automation::LayerModel)
 // TODO refactor with mapping ?
 namespace Automation
 {
 LayerModel::LayerModel(
-            ProcessModel& model,
-            const Id<Process::LayerModel>& id,
-            QObject* parent) :
-    Process::LayerModel {id, LayerModel::className.c_str(), model, parent}
+        ProcessModel& model,
+        const Id<Process::LayerModel>& id,
+        QObject* parent) :
+    Process::LayerModel {
+        id,
+        Metadata<ObjectKey_k, LayerModel>::get(),
+        model,
+        parent}
 {
 
 }
 
 LayerModel::LayerModel(
-            const LayerModel& source,
-            ProcessModel& model,
-            const Id<Process::LayerModel>& id,
-            QObject* parent) :
-    Process::LayerModel {id, LayerModel::className.c_str(), model, parent}
+        const LayerModel& source,
+        ProcessModel& model,
+        const Id<Process::LayerModel>& id,
+        QObject* parent) :
+    Process::LayerModel {
+        id,
+        Metadata<ObjectKey_k, LayerModel>::get(),
+        model,
+        parent}
 {
     // Nothing to copy
 }
 
 Process::LayerModelPanelProxy* LayerModel::make_panelProxy(
-            QObject* parent) const
+        QObject* parent) const
 {
     return new PanelProxy{*this, parent};
 }
 
 void LayerModel::serialize(
-            const VisitorVariant&) const
+        const VisitorVariant&) const
 {
     // Nothing to save
 }

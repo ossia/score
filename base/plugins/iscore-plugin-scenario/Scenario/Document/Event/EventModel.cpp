@@ -15,7 +15,6 @@
 #include <iscore/tools/IdentifiedObject.hpp>
 #include <iscore/tools/SettableIdentifier.hpp>
 
-ISCORE_METADATA_IMPL(Scenario::EventModel)
 namespace Scenario
 {
 EventModel::EventModel(
@@ -24,7 +23,7 @@ EventModel::EventModel(
         const VerticalExtent &extent,
         const TimeValue &date,
         QObject* parent):
-    IdentifiedObject<EventModel> {id, className.c_str(), parent},
+    IdentifiedObject<EventModel> {id, Metadata<ObjectKey_k, EventModel>::get(), parent},
     pluginModelList{iscore::IDocument::documentContext(*parent), this},
     m_timeNode{timenode},
     m_extent{extent},
@@ -37,7 +36,7 @@ EventModel::EventModel(
 EventModel::EventModel(const EventModel& source,
                        const Id<EventModel>& id,
                        QObject* parent) :
-    IdentifiedObject<EventModel> {id, className.c_str(), parent},
+    IdentifiedObject<EventModel> {id, Metadata<ObjectKey_k, EventModel>::get(), parent},
     metadata{source.metadata},
     pluginModelList{source.pluginModelList, this},
     m_timeNode{source.m_timeNode},
@@ -115,8 +114,6 @@ void EventModel::reset()
 
 
 // TODO Maybe remove the need for this by passing to the scenario instead ?
-QString EventModel::description()
-{ return QObject::tr("Event"); }
 
 void EventModel::addState(const Id<StateModel> &ds)
 {

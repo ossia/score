@@ -66,13 +66,13 @@ class ISCORE_PLUGIN_CURVE_EXPORT CurveProcessFactory_T : public Process::Process
 
 }
 // See AutomationProcessMetadata.
-#define DEFINE_CURVE_PROCESS_FACTORY(Name, ProcessMetadata, Model, Layer, Presenter, View, Colors) \
+#define DEFINE_CURVE_PROCESS_FACTORY(Name, Model, Layer, Presenter, View, Colors) \
 class Name final : public Curve::CurveProcessFactory_T<Model, Layer, Presenter, View, Colors> \
 { \
     using Curve::CurveProcessFactory_T<Model, Layer, Presenter, View, Colors>::CurveProcessFactory_T; \
     const ProcessFactoryKey& concreteFactoryKey() const override \
-    { return ProcessMetadata::concreteFactoryKey(); } \
+    { return Metadata<ConcreteFactoryKey_k, ProcessModel>::get(); } \
     \
     QString prettyName() const override \
-    { return ProcessMetadata::factoryPrettyName(); } \
+    { return Metadata<PrettyName_k, ProcessModel>::get(); } \
 };

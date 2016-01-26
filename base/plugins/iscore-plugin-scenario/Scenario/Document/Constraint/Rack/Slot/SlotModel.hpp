@@ -24,10 +24,11 @@ namespace Scenario
 class ConstraintModel;
 class RackModel;
 // Note : the SlotModel is assumed to be in a Rack, itself in a Constraint.
-class ISCORE_PLUGIN_SCENARIO_EXPORT SlotModel final : public IdentifiedObject<SlotModel>, public Nano::Observer
+class ISCORE_PLUGIN_SCENARIO_EXPORT SlotModel final :
+        public IdentifiedObject<SlotModel>,
+        public Nano::Observer
 {
         Q_OBJECT
-        ISCORE_METADATA(Scenario::SlotModel)
         ISCORE_SERIALIZE_FRIENDS(SlotModel, DataStream)
         ISCORE_SERIALIZE_FRIENDS(SlotModel, JSONObject)
 
@@ -55,8 +56,6 @@ class ISCORE_PLUGIN_SCENARIO_EXPORT SlotModel final : public IdentifiedObject<Sl
         RackModel& rack() const;
 
         static void copyViewModelsInSameConstraint(const SlotModel&, SlotModel&);
-        static QString description()
-        { return QObject::tr("Slot"); }
 
         template<typename Impl>
         SlotModel(Deserializer<Impl>& vis, QObject* parent) :
@@ -112,3 +111,5 @@ class ISCORE_PLUGIN_SCENARIO_EXPORT SlotModel final : public IdentifiedObject<Sl
  */
 ConstraintModel* parentConstraint(Process::LayerModel* lm);
 }
+
+DEFAULT_MODEL_METADATA(Scenario::SlotModel, "Slot")

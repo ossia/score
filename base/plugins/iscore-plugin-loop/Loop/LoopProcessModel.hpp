@@ -30,7 +30,6 @@ class ISCORE_PLUGIN_LOOP_EXPORT ProcessModel final :
         public Process::ProcessModel,
         public Scenario::BaseScenarioContainer
 {
-        ISCORE_METADATA(Loop::ProcessModel)
         ISCORE_SERIALIZE_FRIENDS(Loop::ProcessModel, DataStream)
         ISCORE_SERIALIZE_FRIENDS(Loop::ProcessModel, JSONObject)
 
@@ -65,7 +64,7 @@ class ISCORE_PLUGIN_LOOP_EXPORT ProcessModel final :
 
         const ProcessFactoryKey& key() const override
         {
-            return ProcessMetadata::concreteFactoryKey();
+            return Metadata<ConcreteFactoryKey_k, ProcessModel>::get();
         }
 
         QString prettyName() const override;

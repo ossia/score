@@ -22,7 +22,6 @@ class ConstraintElement;
 class ISCORE_PLUGIN_OSSIA_EXPORT ProcessComponent :
         public iscore::Component
 {
-        ISCORE_METADATA(RecreateOnPlay::ProcessComponent)
     public:
         ProcessComponent(
                 ConstraintElement& cst,

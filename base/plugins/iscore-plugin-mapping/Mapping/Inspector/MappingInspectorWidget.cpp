@@ -29,7 +29,7 @@
 namespace Mapping
 {
 MappingInspectorWidget::MappingInspectorWidget(
-        const MappingModel& mappingModel,
+        const ProcessModel& mappingModel,
         const iscore::DocumentContext& doc,
         QWidget* parent) :
     ProcessInspectorWidgetDelegate_T {mappingModel, parent},
@@ -59,7 +59,7 @@ MappingInspectorWidget::MappingInspectorWidget(
         m_sourceLineEdit = new AddressEditWidget{explorer, this};
 
         m_sourceLineEdit->setAddress(process().sourceAddress());
-        con(process(), &MappingModel::sourceAddressChanged,
+        con(process(), &ProcessModel::sourceAddressChanged,
             m_sourceLineEdit, &AddressEditWidget::setAddress);
 
         connect(m_sourceLineEdit, &AddressEditWidget::addressChanged,
@@ -81,9 +81,9 @@ MappingInspectorWidget::MappingInspectorWidget(
         minmaxlay->addRow(tr("Min"), m_sourceMin);
         minmaxlay->addRow(tr("Max"), m_sourceMax);
 
-        con(process(), &MappingModel::sourceMinChanged,
+        con(process(), &ProcessModel::sourceMinChanged,
             m_sourceMin, &QDoubleSpinBox::setValue);
-        con(process(), &MappingModel::sourceMaxChanged,
+        con(process(), &ProcessModel::sourceMaxChanged,
             m_sourceMax, &QDoubleSpinBox::setValue);
 
         connect(m_sourceMin, &QAbstractSpinBox::editingFinished,
@@ -107,7 +107,7 @@ MappingInspectorWidget::MappingInspectorWidget(
         m_targetLineEdit = new AddressEditWidget{explorer, this};
 
         m_targetLineEdit->setAddress(process().targetAddress());
-        con(process(), &MappingModel::targetAddressChanged,
+        con(process(), &ProcessModel::targetAddressChanged,
             m_targetLineEdit, &AddressEditWidget::setAddress);
 
         connect(m_targetLineEdit, &AddressEditWidget::addressChanged,
@@ -129,9 +129,9 @@ MappingInspectorWidget::MappingInspectorWidget(
         minmaxlay->addRow(tr("Min"), m_targetMin);
         minmaxlay->addRow(tr("Max"), m_targetMax);
 
-        con(process(), &MappingModel::targetMinChanged,
+        con(process(), &ProcessModel::targetMinChanged,
             m_targetMin, &QDoubleSpinBox::setValue);
-        con(process(), &MappingModel::targetMaxChanged,
+        con(process(), &ProcessModel::targetMaxChanged,
             m_targetMax, &QDoubleSpinBox::setValue);
 
         connect(m_targetMin, &QAbstractSpinBox::editingFinished,

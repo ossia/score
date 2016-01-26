@@ -21,8 +21,6 @@ namespace Loop{
 
 class Layer final : public Process::LayerModel
 {
-        ISCORE_METADATA(Loop::Layer)
-
         ISCORE_SERIALIZE_FRIENDS(Layer, DataStream)
         ISCORE_SERIALIZE_FRIENDS(Layer, JSONObject)
 
@@ -65,3 +63,5 @@ class Layer final : public Process::LayerModel
         Scenario::TemporalConstraintViewModel* m_constraint{};
 };
 }
+
+DEFAULT_MODEL_METADATA(Loop::Layer, "Loop layer")
