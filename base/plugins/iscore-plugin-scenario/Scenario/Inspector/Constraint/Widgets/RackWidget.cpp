@@ -69,7 +69,7 @@ void RackWidget::viewModelsChanged()
     int i = 0;
 
     lay->addWidget(new QLabel{"View Model"}, i, 0);
-    lay->addWidget(new QLabel{"Displayed Rack"}, i, 1);
+    lay->addWidget(new QLabel{"Rack Used"}, i, 1);
     i++;
 
     for(auto vm : m_model.viewModels())

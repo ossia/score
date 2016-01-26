@@ -59,6 +59,7 @@
 #include <iscore/tools/NotifyingMap.hpp>
 #include <iscore/tools/Todo.hpp>
 #include <iscore/widgets/SpinBoxes.hpp>
+#include <iscore/widgets/MarginLess.hpp>
 #include <iscore/plugins/customfactory/StringFactoryKeySerialization.hpp>
 
 namespace Scenario
@@ -347,13 +348,13 @@ void ConstraintInspectorWidget::displaySharedProcess(const Process::ProcessModel
     if(auto start = process.startStateData())
     {
         auto startWidg = m_widgetList.makeInspectorWidget(*start, newProc);
-        stateLayout->addRow(tr("Start state"), startWidg);
+        stateLayout->addRow(tr("Start "), startWidg);
     }
 
     if(auto end = process.endStateData())
     {
         auto endWidg = m_widgetList.makeInspectorWidget(*end, newProc);
-        stateLayout->addRow(tr("End state"), endWidg);
+        stateLayout->addRow(tr("End   "), endWidg);
     }
     newProc->addContent(stateWidget);
 
@@ -401,8 +402,8 @@ void ConstraintInspectorWidget::ask_processNameChanged(const Process::ProcessMod
 QWidget* ConstraintInspectorWidget::makeStatesWidget(Scenario::ScenarioModel* scenar)
 {
     QWidget* eventWid = new QWidget{this};
-    QFormLayout* eventLay = new QFormLayout {eventWid};
-    eventLay->setVerticalSpacing(0);
+    auto eventLay = new iscore::MarginLess<QHBoxLayout>;
+    eventWid->setLayout(eventLay);
 
     if(auto sst = m_model.startState())
     {
