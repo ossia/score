@@ -31,7 +31,8 @@ namespace Process
  *
  * Interface to implement to make a process.
  */
-class ISCORE_LIB_PROCESS_EXPORT ProcessModel: public IdentifiedObject<ProcessModel>
+class ISCORE_LIB_PROCESS_EXPORT ProcessModel:
+        public IdentifiedObject<ProcessModel>
 {
         Q_OBJECT
         ISCORE_METADATA(Process::ProcessModel)
@@ -142,9 +143,6 @@ class ISCORE_LIB_PROCESS_EXPORT ProcessModel: public IdentifiedObject<ProcessMod
         virtual Selection selectedChildren() const = 0;
         virtual void setSelection(const Selection& s) const = 0;
 
-        // protected:
-        virtual void serialize(const VisitorVariant& vis) const = 0;
-
     signals:
         // True if the execution is running.
         void execution(bool);
@@ -152,6 +150,7 @@ class ISCORE_LIB_PROCESS_EXPORT ProcessModel: public IdentifiedObject<ProcessMod
         void useParentDurationChanged(bool);
 
     protected:
+        virtual void serialize(const VisitorVariant& vis) const = 0;
         // Clone
         ProcessModel(
                 const ProcessModel& other,

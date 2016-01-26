@@ -54,7 +54,7 @@ class ISCORE_PLUGIN_DEVICEEXPLORER_EXPORT DeviceDocumentPlugin final :
 
     private:
         void serialize_impl(const VisitorVariant&) const override;
-        ConcreteFactoryKey uuid() const override;
+        ConcreteFactoryKey concreteFactoryKey() const override;
 
         void initDevice(Device::DeviceInterface&);
         Device::Node m_rootNode;
