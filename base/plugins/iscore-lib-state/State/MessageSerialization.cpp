@@ -1,5 +1,4 @@
 #include <iscore/serialization/DataStreamVisitor.hpp>
-#include <iscore/serialization/JSONVisitor.hpp>
 #include <QDataStream>
 #include <QtGlobal>
 #include <QJsonArray>
@@ -45,18 +44,4 @@ ISCORE_LIB_STATE_EXPORT void Visitor<Writer<JSONObject>>::writeTo(State::Message
 {
     mess.address = fromJsonObject<State::Address>(m_obj["Address"].toObject());
     mess.value = State::convert::toValue(m_obj["Value"], m_obj["Type"].toString());
-}
-
-template<>
-void Visitor<Reader<JSONObject>>::readFrom(const State::MessageList& mess)
-{
-    m_obj["Data"] = toJsonArray(mess);
-}
-
-template<>
-void Visitor<Writer<JSONObject>>::writeTo(State::MessageList& mess)
-{
-    State::MessageList t;
-    fromJsonArray(m_obj["Data"].toArray(), t);
-    mess = t;
 }

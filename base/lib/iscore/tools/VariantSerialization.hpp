@@ -92,28 +92,6 @@ QJsonValue readFrom_eggs_impl(const T& res)
     return toJsonValue(res);
 }
 
-template<typename... Args>
-void Visitor<Reader<JSONObject>>::readFrom(const eggs::variant<Args...>& var)
-{
-    if((quint64)var.which() != (quint64)var.npos)
-    {
-        bool done = false;
-        using typelist = boost::mpl::list<Args...>;
-        boost::mpl::for_each<typelist>([&] (auto&& elt) {
-            if(done)
-                return;
-
-            using current_type = typename std::remove_reference<decltype(elt)>::type;
-
-            if(auto res = var.template target<current_type>())
-            {
-                this->m_obj[TypeToName<current_type>::name()] = readFrom_eggs_impl(*res);
-                done = true;
-            }
-        });
-    }
-}
-
 /**
  * These two methods are because enum's don't need full-fledged objects.
  */
@@ -128,22 +106,52 @@ auto writeTo_eggs_impl(const QJsonValue& res)
     return fromJsonValue<T>(res);
 }
 
+
 template<typename... Args>
-void Visitor<Writer<JSONObject>>::writeTo(eggs::variant<Args...>& var)
+struct TSerializer<JSONObject, eggs::variant<Args...>>
 {
-    bool done = false;
-    using typelist = boost::mpl::list<Args...>;
-    boost::mpl::for_each<typelist>([&] (auto&& elt) {
-        if(done)
-            return;
-        using current_type = typename std::remove_reference<decltype(elt)>::type;
-
-        if(m_obj.contains(TypeToName<current_type>::name()))
+        static void readFrom(
+                JSONObject::Serializer& s,
+                const eggs::variant<Args...>& var)
         {
-            current_type data = writeTo_eggs_impl<current_type>(m_obj[TypeToName<current_type>::name()]);
+            if((quint64)var.which() != (quint64)var.npos)
+            {
+                bool done = false;
+                using typelist = boost::mpl::list<Args...>;
+                boost::mpl::for_each<typelist>([&] (auto&& elt) {
+                    if(done)
+                        return;
 
-            var = data;
-            done = true;
+                    using current_type = typename std::remove_reference<decltype(elt)>::type;
+
+                    if(auto res = var.template target<current_type>())
+                    {
+                        s.m_obj[TypeToName<current_type>::name()] = readFrom_eggs_impl(*res);
+                        done = true;
+                    }
+                });
+            }
         }
-    });
-}
+
+
+        static void writeTo(
+                JSONObject::Deserializer& s,
+                eggs::variant<Args...>& var)
+        {
+            bool done = false;
+            using typelist = boost::mpl::list<Args...>;
+            boost::mpl::for_each<typelist>([&] (auto&& elt) {
+                if(done)
+                    return;
+                using current_type = typename std::remove_reference<decltype(elt)>::type;
+
+                if(s.m_obj.contains(TypeToName<current_type>::name()))
+                {
+                    current_type data = writeTo_eggs_impl<current_type>(s.m_obj[TypeToName<current_type>::name()]);
+
+                    var = data;
+                    done = true;
+                }
+            });
+        }
+};

@@ -254,23 +254,32 @@ struct TSerializer<DataStream, TreeNode<T>>
         }
 };
 
-template<typename T>
-void Visitor<Reader<JSONObject>>::readFrom(const TreeNode<T>& n)
-{
-    readFrom(static_cast<const T&>(n));
-    m_obj["Children"] = toJsonArray(n);
-}
 
 template<typename T>
-void Visitor<Writer<JSONObject>>::writeTo(TreeNode<T>& n)
+struct TSerializer<JSONObject, TreeNode<T>>
 {
-    writeTo(static_cast<T&>(n));
-    for (const auto& val : m_obj["Children"].toArray())
-    {
-        TreeNode<T> child;
-        Deserializer<JSONObject> nodeWriter(val.toObject());
+        static void readFrom(
+                JSONObject::Serializer& s,
+                const TreeNode<T>& n)
+        {
+            s.readFrom(static_cast<const T&>(n));
+            s.m_obj["Children"] = toJsonArray(n);
+        }
 
-        nodeWriter.writeTo(child);
-        n.push_back(std::move(child));
-    }
-}
+
+        static void writeTo(
+                JSONObject::Deserializer& s,
+                TreeNode<T>& n)
+        {
+            s.writeTo(static_cast<T&>(n));
+            auto children = s.m_obj["Children"].toArray();
+            for (const auto& val : children)
+            {
+                TreeNode<T> child;
+                Deserializer<JSONObject> nodeWriter(val.toObject());
+
+                nodeWriter.writeTo(child);
+                n.push_back(std::move(child));
+            }
+        }
+};
