@@ -25,7 +25,7 @@ QString MIDIProtocolFactory::prettyName() const
 
 const Device::ProtocolFactoryKey& MIDIProtocolFactory::concreteFactoryKey() const
 {
-    static const Device::ProtocolFactoryKey name{"MIDI"};
+    static const Device::ProtocolFactoryKey name{"94a362a1-9411-4ee9-b94d-4bc79b1427cf"};
     return name;
 }
 

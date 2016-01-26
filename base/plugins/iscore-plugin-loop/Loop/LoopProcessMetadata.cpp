@@ -8,7 +8,7 @@ namespace Loop
 {
 const ProcessFactoryKey& ProcessMetadata::concreteFactoryKey()
 {
-    static const ProcessFactoryKey name{"Loop"};
+    static const ProcessFactoryKey name{"995d41a8-0f10-4152-971d-e4c033579a02"};
     return name;
 }
 

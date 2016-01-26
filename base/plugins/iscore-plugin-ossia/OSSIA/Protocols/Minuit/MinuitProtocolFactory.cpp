@@ -24,7 +24,7 @@ QString MinuitProtocolFactory::prettyName() const
 
 const Device::ProtocolFactoryKey& MinuitProtocolFactory::concreteFactoryKey() const
 {
-    static const Device::ProtocolFactoryKey name{"Minuit"};
+    static const Device::ProtocolFactoryKey name{"d305c12e-31f0-46e3-8c9b-3b8744092fc4"};
     return name;
 }
 

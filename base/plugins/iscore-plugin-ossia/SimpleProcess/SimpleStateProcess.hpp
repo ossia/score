@@ -64,7 +64,7 @@ class SimpleStateProcessModel : public Process::StateProcess
 
         const StateProcessFactoryKey&key() const override
         {
-            static const StateProcessFactoryKey name{"toto"};
+            static const StateProcessFactoryKey name{"40517cca-3cbe-42bf-9bd4-982bc4696516"};
             return name;
         }
 

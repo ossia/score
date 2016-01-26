@@ -48,7 +48,7 @@ SegmentModel*PointArraySegment::clone(
 
 const SegmentFactoryKey& PointArraySegment::key() const
 {
-    static const SegmentFactoryKey name{"PointArray"};
+    static const SegmentFactoryKey name{"c598b840-db67-4c8f-937a-46cfac87cb59"};
     return name;
 }
 

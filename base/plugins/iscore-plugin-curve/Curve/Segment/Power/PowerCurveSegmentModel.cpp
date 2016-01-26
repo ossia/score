@@ -112,7 +112,7 @@ boost::optional<double> PowerSegment::verticalParameter() const
 
 const SegmentFactoryKey&PowerSegmentData::key()
 {
-    static const SegmentFactoryKey name{"Power"};
+    static const SegmentFactoryKey name{"1e7cb83f-4e47-4b14-814d-2242a9c75991"};
     return name;
 }
 }

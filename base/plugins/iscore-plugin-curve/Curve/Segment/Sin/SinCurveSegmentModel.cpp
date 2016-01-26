@@ -42,7 +42,7 @@ SegmentModel*SinSegment::clone(
 
 const SegmentFactoryKey& SinSegment::key() const
 {
-    static const SegmentFactoryKey name{"Sin"};
+    static const SegmentFactoryKey name{"c16dad6a-a422-4fb7-8bd5-850cbe8c3f28"};
     return name;
 }
 
