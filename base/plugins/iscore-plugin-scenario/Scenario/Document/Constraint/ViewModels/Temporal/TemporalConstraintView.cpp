@@ -33,11 +33,9 @@ TemporalConstraintView::TemporalConstraintView(
     this->setZValue(3);
     m_leftBrace = new LeftBraceView{*this, this};
     m_leftBrace->setX(minWidth());
-    m_leftBrace->setZValue(10);
 
     m_rightBrace = new RightBraceView{*this, this};
     m_rightBrace->setX(maxWidth());
-    m_rightBrace->setZValue(10);
 }
 
 
