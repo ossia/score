@@ -212,10 +212,10 @@ ProcessComponent* ComponentFactory::make(
 
 }
 
-const ComponentFactory::factory_key_type&
+const ComponentFactory::ConcreteFactoryKey&
 ComponentFactory::concreteFactoryKey() const
 {
-    static ComponentFactory::factory_key_type k("OSSIAMappingElement");
+    static ComponentFactory::ConcreteFactoryKey k("e6d2980e-b1d4-4993-9f98-782727f6143b");
     return k;
 }
 

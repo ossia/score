@@ -14,8 +14,7 @@ namespace iscore
     class DocumentView;
     struct ApplicationContext;
 
-    class DocumentDelegateFactoryInterface;
-    using DocumentDelegateFactoryKey = StringKey<DocumentDelegateFactoryInterface>;
+    using DocumentDelegateFactoryKey = UuidKey<DocumentDelegateModelInterface>;
     /**
      * @brief The DocumentDelegateFactoryInterface class
      *
@@ -28,7 +27,6 @@ namespace iscore
                     DocumentDelegateModelInterface,
                     "127ea824-f623-4f68-8deb-7c8c930a262b")
         public:
-                using factory_key_type = DocumentDelegateFactoryKey;
             virtual ~DocumentDelegateFactoryInterface();
 
             virtual DocumentDelegateViewInterface* makeView(

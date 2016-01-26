@@ -4,7 +4,7 @@
 
 namespace Device
 {
-class ProtocolTag{};
-using ProtocolFactoryKey = UuidKey<ProtocolTag>;
+class DeviceInterface;
+using ProtocolFactoryKey = UuidKey<DeviceInterface>;
 }
 Q_DECLARE_METATYPE(Device::ProtocolFactoryKey)

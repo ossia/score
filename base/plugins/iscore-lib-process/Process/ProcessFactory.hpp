@@ -31,7 +31,6 @@ class ISCORE_LIB_PROCESS_EXPORT ProcessFactory :
                 ProcessModel,
                 "507ae654-f3b8-4aae-afc3-7ab8e1a3a86f")
     public:
-            using factory_key_type = ProcessFactoryKey;
         virtual ~ProcessFactory();
         virtual QString prettyName() const = 0;
 

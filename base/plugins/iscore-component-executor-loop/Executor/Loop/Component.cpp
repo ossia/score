@@ -130,10 +130,10 @@ ProcessComponent* ComponentFactory::make(
 
 }
 
-const ComponentFactory::factory_key_type&
+const ComponentFactory::ConcreteFactoryKey&
 ComponentFactory::concreteFactoryKey() const
 {
-    static ComponentFactory::factory_key_type k("OSSIALoopElement");
+    static ComponentFactory::ConcreteFactoryKey k("60e3b412-559d-4385-9a58-bdcd19bb9fa7");
     return k;
 }
 
