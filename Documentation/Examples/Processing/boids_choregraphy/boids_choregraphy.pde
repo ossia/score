@@ -9,7 +9,7 @@
  * Use i-score control the sketch via OSC:
  *
  * - /flock/clear : delete all existing boids
- * - /flock/add i i : message to add a new boid at a position
+ * - /flock/add f f : message to add a new boid at a position
  * - /flock/avoidance f : parameter to control avoidance weight (default 1.)
  * - /flock/alignment f : parameter to control alignment weight (default 1.)
  * - /flock/cohesion f : parameter to control cohesion weight (default 1.)
@@ -19,8 +19,7 @@
  * - /flock/follow/rate f : parameter to control how much boids follow the destination (default 0.)
  * - /mouse/x i : returns mouse x position on screen
  * - /mouse/y i : returns mouse y position on screen
- * - /mouse/pressed : returned when mouse is pressed
- * - /mouse/released : returned when mouse is released
+ * - /mouse/click : return 1 when mouse is pressed and 0 when released
  */
  
 import oscP5.*;
@@ -91,19 +90,19 @@ void mouseReleased()
 
 void oscEvent(OscMessage osc_msg)
 {
+  // debug
+  println(osc_msg.addrPattern() + "[" + osc_msg.typetag() + "]");
+      
   if (osc_msg.checkAddrPattern("/flock/clear")) 
   {
       flock.clear();
   }
   else if (osc_msg.checkAddrPattern("/flock/add")) 
   {
-    if (osc_msg.checkTypetag("ii")) 
+    if (osc_msg.checkTypetag("ff")) 
     {
-      // debug
-      println(osc_msg.addrPattern() + "[" + osc_msg.typetag() + "]");
-
-      int x = osc_msg.get(0).intValue();
-      int y = osc_msg.get(1).intValue();
+      float x = osc_msg.get(0).floatValue();
+      float y = osc_msg.get(1).floatValue();
       flock.addBoid(new Boid(x, y));
     }
   }
@@ -151,9 +150,6 @@ void oscEvent(OscMessage osc_msg)
   {
     if (osc_msg.checkTypetag("ii")) 
     {
-      // debug
-      println(osc_msg.addrPattern() + "[" + osc_msg.typetag() + "]");
-
       int x = osc_msg.get(0).intValue();
       int y = osc_msg.get(1).intValue();
       flock.setFollowDestination(x, y);
