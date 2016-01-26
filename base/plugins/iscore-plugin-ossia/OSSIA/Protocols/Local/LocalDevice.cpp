@@ -24,7 +24,7 @@ LocalDevice::LocalDevice(
     m_capas.canRemoveNode = false;
 
     m_addedNodeCb = m_dev->addCallback(
-                        [this] (const OSSIA::Node& n, OSSIA::NodeChange chg)
+                        [this] (const OSSIA::Node& n, const std::string& name, OSSIA::NodeChange chg)
     {
         if(chg == OSSIA::NodeChange::EMPLACED)
         {
@@ -33,7 +33,7 @@ LocalDevice::LocalDevice(
     });
 
     m_removedNodeCb = m_dev->addCallback(
-                          [this] (const OSSIA::Node& n, OSSIA::NodeChange chg)
+                          [this] (const OSSIA::Node& n, const std::string& name, OSSIA::NodeChange chg)
     {
         if(chg == OSSIA::NodeChange::ERASED)
         {
@@ -42,7 +42,7 @@ LocalDevice::LocalDevice(
     });
 
     m_nameChangesCb = m_dev->addCallback(
-                          [this] (const OSSIA::Node& node, OSSIA::NodeChange chg)
+                          [this] (const OSSIA::Node& node, const std::string& name, OSSIA::NodeChange chg)
     {
         if(chg == OSSIA::NodeChange::RENAMED)
         {
