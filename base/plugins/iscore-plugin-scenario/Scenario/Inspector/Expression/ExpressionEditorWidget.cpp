@@ -4,6 +4,7 @@
 #include <QtGlobal>
 #include <QStringList>
 #include <QPushButton>
+#include <iscore/widgets/MarginLess.hpp>
 
 #include "ExpressionEditorWidget.hpp"
 #include <Scenario/Inspector/Expression/SimpleExpressionEditorWidget.hpp>
@@ -13,15 +14,12 @@ namespace Scenario
 ExpressionEditorWidget::ExpressionEditorWidget(QWidget *parent) :
     QWidget(parent)
 {
-    m_mainLayout = new QVBoxLayout{this};
-
-    m_mainLayout->setSpacing(0);
-    m_mainLayout->setContentsMargins(0, 0, 0, 0);
+    m_mainLayout = new iscore::MarginLess<QVBoxLayout>;
+    this->setLayout(m_mainLayout);
 
     auto btnWidg = new QWidget{this};
-    auto btnLay = new QHBoxLayout{btnWidg};
-    btnLay->setSpacing(0);
-    btnLay->setContentsMargins(0, 0, 0, 0);
+    auto btnLay = new iscore::MarginLess<QHBoxLayout>;
+    btnWidg->setLayout(btnLay);
 
     auto validBtn = new QPushButton{"OK",btnWidg};
     auto cancelBtn = new QPushButton{tr("Cancel"),btnWidg};

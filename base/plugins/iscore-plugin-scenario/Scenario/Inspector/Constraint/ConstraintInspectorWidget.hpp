@@ -71,7 +71,7 @@ class ISCORE_PLUGIN_SCENARIO_EXPORT ConstraintInspectorWidget final : public Ins
 
         // These methods ask for creation and the signals originate from other parts of the inspector
         void createProcess(const ProcessFactoryKey& processName);
-        void createLayerInNewSlot(QString processName);
+        void createLayerInNewSlot(const Id<Process::ProcessModel>& processId);
 
 
         // Interface of Constraint

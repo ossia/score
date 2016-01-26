@@ -9,6 +9,7 @@
 #include <Scenario/Inspector/SelectionButton.hpp>
 #include <Scenario/Inspector/State/StateInspectorWidget.hpp>
 #include <Scenario/Inspector/TimeNode/TriggerInspectorWidget.hpp>
+#include <Inspector/InspectorSectionWidget.hpp>
 
 #include <iscore/widgets/MarginLess.hpp>
 #include <QBoxLayout>
@@ -103,8 +104,11 @@ EventInspectorWidget::EventInspectorWidget(
                     doc.app.components.factory<Command::TriggerCommandFactoryList>(),
                     tn,
                     this};
-    m_properties.push_back(new QLabel{tr("Trigger")});
-    m_properties.push_back(m_triggerWidg);
+
+    auto trigSection = new Inspector::InspectorSectionWidget{"Trigger", false, this};
+    trigSection->expand();
+    trigSection->addContent(m_triggerWidg);
+    m_properties.push_back(trigSection);
 
     // Separator
     m_properties.push_back(new Inspector::Separator {this});
@@ -116,8 +120,10 @@ EventInspectorWidget::EventInspectorWidget(
     con(m_model, &EventModel::conditionChanged,
         m_exprEditor, &ExpressionEditorWidget::setExpression);
 
-    m_properties.push_back(new QLabel{tr("Condition")});
-    m_properties.push_back(m_exprEditor);
+    auto condSection = new Inspector::InspectorSectionWidget{"Condition", false, this};
+    condSection->expand();
+    condSection->addContent(m_exprEditor);
+    m_properties.push_back(condSection);
 
     // State
     m_properties.push_back(new Inspector::Separator {this});
@@ -160,9 +166,13 @@ QString EventInspectorWidget::tabName()
 void EventInspectorWidget::addState(const StateModel& state)
 {
     auto sw = new StateInspectorWidget{state, context(), this};
+    sw->hide(); // TODO UGLY : we create a state (inspectorbase) just to extract the section ...
+    auto& section = sw->stateSection();
+    section.showDeleteButton(true);
 
     m_states.push_back(sw);
-    m_statesWidget->layout()->addWidget(sw);
+    m_statesWidget->layout()->addWidget(&section);
+    m_states.push_back(&section);
 }
 
 void EventInspectorWidget::removeState(const StateModel& state)

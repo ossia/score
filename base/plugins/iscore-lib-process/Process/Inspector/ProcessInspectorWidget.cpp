@@ -23,7 +23,7 @@ ProcessInspectorWidget::ProcessInspectorWidget(
     connect(displayBtn, &QPushButton::clicked,
             [=] ()
     {
-        emit createViewInNewSlot(QString::number(m_delegate->process().id_val()));
+        emit createViewInNewSlot(m_delegate->process().id());
     });
 
     setLayout(lay);

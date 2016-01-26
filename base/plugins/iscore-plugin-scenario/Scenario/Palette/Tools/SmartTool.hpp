@@ -19,6 +19,8 @@ template<
         typename ToolPalette_T,
         typename View_T,
         typename MoveConstraintWrapper_T,
+        typename MoveLeftBraceWrapper_T,
+        typename MoveRightBraceWrapper_T,
         typename MoveEventWrapper_T,
         typename MoveTimeNodeWrapper_T
         >
@@ -44,6 +46,8 @@ class SmartTool final : public ToolBase<ToolPalette_T>
                 actionsState->setInitialState(waitState);
 
                 MoveConstraintWrapper_T::template make<Scenario_T, ToolPalette_T>(this->m_parentSM, waitState, *actionsState);
+                MoveLeftBraceWrapper_T::template make<Scenario_T, ToolPalette_T>(this->m_parentSM, waitState, *actionsState);
+                MoveRightBraceWrapper_T::template make<Scenario_T, ToolPalette_T>(this->m_parentSM, waitState, *actionsState);
                 MoveEventWrapper_T::template make<Scenario_T, ToolPalette_T>(this->m_parentSM, waitState, *actionsState);
                 MoveTimeNodeWrapper_T::template make<Scenario_T, ToolPalette_T>(this->m_parentSM, waitState, *actionsState);
 
@@ -92,6 +96,16 @@ class SmartTool final : public ToolBase<ToolPalette_T>
                 this->localSM().postEvent(new ClickOnConstraint_Event{id, sp});
                 m_nothingPressed = false;
             },
+            [&] (const Id<ConstraintModel>& id) // LeftBrace
+            {
+                this->localSM().postEvent((new ClickOnLeftBrace_Event{id, sp}));
+                m_nothingPressed = false;
+            },
+            [&] (const Id<ConstraintModel>& id) // RightBrace
+            {
+                this->localSM().postEvent((new ClickOnRightBrace_Event{id, sp}));
+                m_nothingPressed = false;
+            },
             [&] (const SlotModel& slot) // Slot handle
             {
                 this->localSM().postEvent(new ClickOnSlotHandle_Event{slot});
@@ -102,6 +116,8 @@ class SmartTool final : public ToolBase<ToolPalette_T>
                 this->localSM().postEvent(new iscore::Press_Event);
                 m_nothingPressed = true;
             });
+
+            m_moved = false;
         }
 
         void on_moved(QPointF scene, Scenario::Point sp)
@@ -112,15 +128,20 @@ class SmartTool final : public ToolBase<ToolPalette_T>
             }
             else
             {
+                m_moved = true;
                 this->mapTopItem(this->itemUnderMouse(scene),
                            [&] (const Id<StateModel>& id)
-                { this->localSM().postEvent(new MoveOnState_Event{id, sp}); },
+                { this->localSM().postEvent(new MoveOnState_Event{id, sp}); }, // state
                 [&] (const Id<EventModel>& id)
-                { this->localSM().postEvent(new MoveOnEvent_Event{id, sp}); },
+                { this->localSM().postEvent(new MoveOnEvent_Event{id, sp}); }, // event
                 [&] (const Id<TimeNodeModel>& id)
-                { this->localSM().postEvent(new MoveOnTimeNode_Event{id, sp}); },
+                { this->localSM().postEvent(new MoveOnTimeNode_Event{id, sp}); }, // timenode
                 [&] (const Id<ConstraintModel>& id)
-                { this->localSM().postEvent(new MoveOnConstraint_Event{id, sp}); },
+                { this->localSM().postEvent(new MoveOnConstraint_Event{id, sp}); }, // constraint
+                [&] (const Id<ConstraintModel>& id)
+                { this->localSM().postEvent(new MoveOnLeftBrace_Event{id, sp}); }, // LeftBrace
+                [&] (const Id<ConstraintModel>& id)
+                { this->localSM().postEvent(new MoveOnRightBrace_Event{id, sp}); }, // RightBrace
                 [&] (const SlotModel& slot) // Slot handle
                 { /* do nothing, we aren't in this part but in m_nothingPressed == true part */ },
                 [&] ()
@@ -129,11 +150,17 @@ class SmartTool final : public ToolBase<ToolPalette_T>
         }
 
         void on_released(QPointF scene, Scenario::Point sp)
-        {
+        {                
             if(m_nothingPressed)
             {
                 this->localSM().postEvent(new iscore::Release_Event); // select
                 m_nothingPressed = false;
+
+                return;
+            }
+            if(m_moved) // then don't change selection
+            {
+                this->localSM().postEvent(new ReleaseOnNothing_Event{sp});
 
                 return;
             }
@@ -179,6 +206,26 @@ class SmartTool final : public ToolBase<ToolPalette_T>
 
                 this->localSM().postEvent(new ReleaseOnConstraint_Event{id, sp});
             },
+            [&] (const Id<ConstraintModel>& id) // LeftBrace
+            {
+                const auto& elt = this->m_parentSM.presenter().constraint(id);
+
+                m_state->dispatcher.setAndCommit(filterSelections(&elt.model(),
+                                                                  this->m_parentSM.model().selectedChildren(),
+                                                                  m_state->multiSelection()));
+
+                this->localSM().postEvent(new ReleaseOnLeftBrace_Event{id, sp});
+            },
+            [&] (const Id<ConstraintModel>& id) // RightBrace
+            {
+                const auto& elt = this->m_parentSM.presenter().constraint(id);
+
+                m_state->dispatcher.setAndCommit(filterSelections(&elt.model(),
+                                                                  this->m_parentSM.model().selectedChildren(),
+                                                                  m_state->multiSelection()));
+
+                this->localSM().postEvent(new ReleaseOnRightBrace_Event{id, sp});
+            },
             [&] (const SlotModel& slot) // Slot handle
             {
                 this->localSM().postEvent(new iscore::Release_Event); // select
@@ -195,5 +242,6 @@ class SmartTool final : public ToolBase<ToolPalette_T>
         SelectionState<ToolPalette_T, View_T>* m_state{};
 
         bool m_nothingPressed{true};
+        bool m_moved{false};
 };
 }

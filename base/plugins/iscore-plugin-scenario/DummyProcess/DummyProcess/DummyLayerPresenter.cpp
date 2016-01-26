@@ -26,6 +26,11 @@ DummyLayerPresenter::DummyLayerPresenter(
             this, [&] () {
         m_focusDispatcher.focus(this);
     });
+    con(model.processModel().metadata, &ModelMetadata::nameChanged,
+            this, [&] (QString s)
+    {
+        putToFront();
+    });
 }
 
 void DummyLayerPresenter::setWidth(qreal val)

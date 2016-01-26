@@ -23,6 +23,9 @@ class StateInspectorWidget final : public Inspector::InspectorWidgetBase
                 const iscore::DocumentContext& context,
                 QWidget* parent);
 
+        Inspector::InspectorSectionWidget& stateSection()
+        { return *m_stateSection; }
+
     private:
         QString tabName() override;
 

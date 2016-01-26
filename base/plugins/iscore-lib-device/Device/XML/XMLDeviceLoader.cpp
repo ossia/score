@@ -168,18 +168,22 @@ void loadDeviceFromXML(const QString &filePath, Device::Node &node)
     {
         qDebug() << "Erreur : Impossible d'ouvrir le ficher XML";
         doc_xml.close();
+        return;
     }
-    QDomDocument* domDoc = new QDomDocument;
-    if(!domDoc->setContent(&doc_xml))
+
+    QDomDocument domDoc;
+    if(!domDoc.setContent(&doc_xml))
     {
         qDebug() << "Erreur : Impossible de charger le ficher XML";
         doc_xml.close();
+        return;
     }
+
     doc_xml.close();
 
     // extraction des données
 
-    QDomElement doc = domDoc->documentElement();
+    QDomElement doc = domDoc.documentElement();
     QDomElement application = doc.firstChildElement("application");
     QDomElement dom_node = application.firstChildElement("");
 
