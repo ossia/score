@@ -116,6 +116,8 @@ class SmartTool final : public ToolBase<ToolPalette_T>
                 this->localSM().postEvent(new iscore::Press_Event);
                 m_nothingPressed = true;
             });
+
+            m_moved = false;
         }
 
         void on_moved(QPointF scene, Scenario::Point sp)
@@ -126,6 +128,7 @@ class SmartTool final : public ToolBase<ToolPalette_T>
             }
             else
             {
+                m_moved = true;
                 this->mapTopItem(this->itemUnderMouse(scene),
                            [&] (const Id<StateModel>& id)
                 { this->localSM().postEvent(new MoveOnState_Event{id, sp}); }, // state
@@ -147,11 +150,17 @@ class SmartTool final : public ToolBase<ToolPalette_T>
         }
 
         void on_released(QPointF scene, Scenario::Point sp)
-        {
+        {                
             if(m_nothingPressed)
             {
                 this->localSM().postEvent(new iscore::Release_Event); // select
                 m_nothingPressed = false;
+
+                return;
+            }
+            if(m_moved) // then don't change selection
+            {
+                this->localSM().postEvent(new ReleaseOnNothing_Event{sp});
 
                 return;
             }
@@ -233,5 +242,6 @@ class SmartTool final : public ToolBase<ToolPalette_T>
         SelectionState<ToolPalette_T, View_T>* m_state{};
 
         bool m_nothingPressed{true};
+        bool m_moved{false};
 };
 }
