@@ -105,7 +105,7 @@ void CommentBlockView::SetTextInteraction(bool on, bool selectAll)
         c.clearSelection();
         m_textItem->setTextCursor(c);
         clearFocus();
-        emit m_presenter.editFinished(m_textItem->document()->toHtml());
+        emit m_presenter.editFinished(m_textItem->toHtml());
     }
 }
 }
