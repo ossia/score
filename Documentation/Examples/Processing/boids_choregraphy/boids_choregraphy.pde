@@ -8,6 +8,7 @@
  * 
  * Use i-score control the sketch via OSC:
  *
+ * - /flock/clear : delete all existing boids
  * - /flock/add i i : message to add a new boid at a position
  * - /flock/avoidance f : parameter to control avoidance weight (default 1.)
  * - /flock/alignment f : parameter to control alignment weight (default 1.)
@@ -76,19 +77,25 @@ void draw()
 
 void mousePressed()
 {
-  OscMessage osc_msg = new OscMessage("/mouse/pressed");
+  OscMessage osc_msg = new OscMessage("/mouse/click");
+  osc_msg.add(1);
   osc_in.send(osc_msg, osc_out);
 }
 
 void mouseReleased()
 {
-  OscMessage osc_msg = new OscMessage("/mouse/released");
+  OscMessage osc_msg = new OscMessage("/mouse/click");
+  osc_msg.add(0);
   osc_in.send(osc_msg, osc_out);
 }
 
 void oscEvent(OscMessage osc_msg)
 {
-  if (osc_msg.checkAddrPattern("/flock/add")) 
+  if (osc_msg.checkAddrPattern("/flock/clear")) 
+  {
+      flock.clear();
+  }
+  else if (osc_msg.checkAddrPattern("/flock/add")) 
   {
     if (osc_msg.checkTypetag("ii")) 
     {

@@ -12,6 +12,11 @@ class Flock
   {
     return boids.size();
   }
+  
+  void clear() 
+  {
+    boids.clear();
+  }
 
   void run() 
   {
