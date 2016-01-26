@@ -12,7 +12,6 @@ namespace Process
 class ISCORE_LIB_PROCESS_EXPORT StateProcess: public IdentifiedObject<StateProcess>
 {
         Q_OBJECT
-        ISCORE_METADATA(StateProcess)
 
         ISCORE_SERIALIZE_FRIENDS(StateProcess, DataStream)
         ISCORE_SERIALIZE_FRIENDS(StateProcess, JSONObject)
@@ -44,6 +43,7 @@ class ISCORE_LIB_PROCESS_EXPORT StateProcess: public IdentifiedObject<StateProce
 
         // A user-friendly text to show to the users
         virtual QString prettyName() const = 0;
-        static QString description() {return "StateProcess";}
 };
 }
+
+DEFAULT_MODEL_METADATA(Process::StateProcess, "State process")

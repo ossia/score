@@ -35,7 +35,6 @@ class ISCORE_LIB_PROCESS_EXPORT ProcessModel:
         public IdentifiedObject<ProcessModel>
 {
         Q_OBJECT
-        ISCORE_METADATA(Process::ProcessModel)
 
         ISCORE_SERIALIZE_FRIENDS(Process::ProcessModel, DataStream)
         ISCORE_SERIALIZE_FRIENDS(Process::ProcessModel, JSONObject)
@@ -69,8 +68,6 @@ class ISCORE_LIB_PROCESS_EXPORT ProcessModel:
 
         // A user-friendly text to show to the users
         virtual QString prettyName() const = 0;
-
-        static QString description() {return "Process";}
 
         //// View models interface
         // For deterministic operation in a command,
@@ -211,5 +208,4 @@ std::vector<typename T::layer_type*> layers(const T& processModel)
     return v;
 }
 
-template<typename T>
-QString NameInUndo();
+DEFAULT_MODEL_METADATA(Process::ProcessModel, "Process")

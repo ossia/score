@@ -19,6 +19,7 @@ DeviceExplorerMenuButton::DeviceExplorerMenuButton(DeviceExplorerModel *model)
     this->setLayout(lay);
     lay->setSpacing(0);
     lay->setContentsMargins(0,0,0,0);
+    this->setSizePolicy(QSizePolicy::Minimum, QSizePolicy::Minimum);
 
     // Menu button
     auto pb = new QPushButton {"/", this};

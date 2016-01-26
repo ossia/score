@@ -5,6 +5,8 @@
 #include <Scenario/Commands/Scenario/Creations/CreateState.hpp>
 #include <Scenario/Document/Event/EventModel.hpp>
 #include <Scenario/Document/State/StateModel.hpp>
+#include <Scenario/Document/State/ItemModel/MessageItemModel.hpp>
+
 namespace Scenario
 {
 namespace Command
@@ -23,8 +25,8 @@ class AddStateWithData final : public iscore::AggregateCommand
 
             // We create the path of the to-be state
             auto path = createStateCmd->scenarioPath()
-                        .extend(StateModel::className.c_str(), createStateCmd->createdState())
-                        .extend("MessageItemModel", Id<MessageItemModel>{});
+                        .extend(createStateCmd->createdState())
+                        .extend(Id<MessageItemModel>{});
 
             addCommand(createStateCmd);
             addCommand(new AddMessagesToState{

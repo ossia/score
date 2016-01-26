@@ -10,28 +10,27 @@ class QObject;
 
 namespace Mapping
 {
-class MappingModel;
-class MappingLayerModel : public Process::LayerModel
+class ProcessModel;
+class LayerModel : public Process::LayerModel
 {
-        ISCORE_METADATA(Mapping::MappingLayerModel)
         public:
-            MappingLayerModel(
-                MappingModel& model,
+            LayerModel(
+                ProcessModel& model,
                 const Id<Process::LayerModel>& id,
                 QObject* parent);
 
         // Copy
-        MappingLayerModel(
-                const MappingLayerModel& source,
-                MappingModel& model,
+        LayerModel(
+                const LayerModel& source,
+                ProcessModel& model,
                 const Id<Process::LayerModel>& id,
                 QObject* parent);
 
         // Load
         template<typename Impl>
-        MappingLayerModel(
+        LayerModel(
                 Deserializer<Impl>& vis,
-                MappingModel& model,
+                ProcessModel& model,
                 QObject* parent) :
             Process::LayerModel {vis, model, parent}
         {
@@ -41,6 +40,8 @@ class MappingLayerModel : public Process::LayerModel
         Process::LayerModelPanelProxy* make_panelProxy(QObject* parent) const override;
         void serialize(const VisitorVariant&) const override;
 
-        const MappingModel& model() const;
+        const ProcessModel& model() const;
 };
 }
+
+DEFAULT_MODEL_METADATA(Mapping::LayerModel, "Mapping layer")

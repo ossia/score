@@ -28,12 +28,11 @@ class QObject;
 namespace Loop
 {
 
-ISCORE_METADATA_IMPL(Loop::ProcessModel)
 ProcessModel::ProcessModel(
         const TimeValue& duration,
         const Id<Process::ProcessModel>& id,
         QObject* parent):
-    Process::ProcessModel{duration, id, ProcessMetadata::processObjectName(), parent},
+    Process::ProcessModel{duration, id, Metadata<ObjectKey_k, ProcessModel>::get(), parent},
     Scenario::BaseScenarioContainer{this}
 {
     pluginModelList = new iscore::ElementPluginModelList{
@@ -62,7 +61,7 @@ ProcessModel::ProcessModel(
         const Loop::ProcessModel& source,
         const Id<Process::ProcessModel>& id,
         QObject* parent):
-    Process::ProcessModel{source.duration(), id, ProcessMetadata::processObjectName(), parent},
+    Process::ProcessModel{source.duration(), id, Metadata<ObjectKey_k, ProcessModel>::get(), parent},
     BaseScenarioContainer{this}
 {
     pluginModelList = new iscore::ElementPluginModelList{
@@ -207,10 +206,4 @@ const QVector<Id<Scenario::ConstraintModel> > constraintsBeforeTimeNode(
     return {};
 }
 
-}
-
-template<>
-QString NameInUndo<Loop::ProcessModel>()
-{
-    return "Loop";
 }

@@ -12,7 +12,7 @@ namespace OSSIA
 
 namespace Mapping
 {
-class MappingModel;
+class ProcessModel;
 }
 
 namespace Device
@@ -31,7 +31,7 @@ class Component final : public ProcessComponent
     public:
         Component(
                 ConstraintElement& parentConstraint,
-                ::Mapping::MappingModel& element,
+                ::Mapping::ProcessModel& element,
                 const Context& ctx,
                 const Id<iscore::Component>& id,
                 QObject* parent);

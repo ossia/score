@@ -31,6 +31,7 @@ MetadataWidget::MetadataWidget(
     auto metadataLayout = new QVBoxLayout{this};
     metadataLayout->setContentsMargins(0,0,0,0);
     metadataLayout->setSpacing(1);
+    metadataLayout->setSizeConstraint(QLayout::SetMinimumSize);
 
     // btn
     auto btnLay = new QVBoxLayout{};

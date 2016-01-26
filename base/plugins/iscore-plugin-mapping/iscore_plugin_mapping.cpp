@@ -20,9 +20,8 @@ namespace Mapping
 {
 DEFINE_CURVE_PROCESS_FACTORY(
         MappingFactory,
-        Mapping::MappingProcessMetadata,
-        Mapping::MappingModel,
-        Mapping::MappingLayerModel,
+        Mapping::ProcessModel,
+        Mapping::LayerModel,
         Mapping::MappingPresenter,
         Mapping::MappingView,
         Mapping::MappingColors)

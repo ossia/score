@@ -23,7 +23,6 @@
 
 */
 
-ISCORE_METADATA_IMPL(Scenario::StateModel)
 namespace Scenario
 {
 StateModel::StateModel(
@@ -32,7 +31,7 @@ StateModel::StateModel(
         double yPos,
         iscore::CommandStackFacade& stack,
         QObject *parent):
-    IdentifiedObject<StateModel> {id, className.c_str(), parent},
+    IdentifiedObject<StateModel> {id, Metadata<ObjectKey_k, StateModel>::get(), parent},
     m_stack{stack},
     m_eventId{eventId},
     m_heightPercentage{yPos},
@@ -56,7 +55,7 @@ StateModel::StateModel(
         const Id<StateModel> &id,
         iscore::CommandStackFacade& stack,
         QObject *parent):
-    IdentifiedObject<StateModel> {id, className.c_str(), parent},
+    IdentifiedObject<StateModel> {id, Metadata<ObjectKey_k, StateModel>::get(), parent},
     m_stack{stack},
     m_eventId{source.eventId()},
     m_previousConstraint{source.previousConstraint()},

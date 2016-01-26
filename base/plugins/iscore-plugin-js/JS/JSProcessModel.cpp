@@ -23,7 +23,7 @@ ProcessModel::ProcessModel(
         const TimeValue& duration,
         const Id<Process::ProcessModel>& id,
         QObject* parent):
-    Process::ProcessModel{duration, id, ProcessMetadata::processObjectName(), parent}
+    Process::ProcessModel{duration, id, Metadata<ObjectKey_k, ProcessModel>::get(), parent}
 {
     pluginModelList = new iscore::ElementPluginModelList{
                       iscore::IDocument::documentContext(*parent),
@@ -35,13 +35,15 @@ ProcessModel::ProcessModel(
                "     obj[\"value\"] = t + iscore.value('OSCdevice:/millumin/layer/y/instance'); \n"
                "     return [ obj ]; \n"
                "});";
+
+    metadata.setName(QString("JavaScript.%1").arg(*this->id().val()));
 }
 
 ProcessModel::ProcessModel(
         const ProcessModel& source,
         const Id<Process::ProcessModel>& id,
         QObject* parent):
-    Process::ProcessModel{source.duration(), id, ProcessMetadata::processObjectName(), parent},
+    Process::ProcessModel{source.duration(), id, Metadata<ObjectKey_k, ProcessModel>::get(), parent},
     m_script{source.m_script}
 {
     pluginModelList = new iscore::ElementPluginModelList{
@@ -64,7 +66,8 @@ Process::ProcessModel* ProcessModel::clone(
 
 QString ProcessModel::prettyName() const
 {
-    return "Javascript Process";
+    auto name = this->metadata.name();
+    return name;
 }
 
 QByteArray ProcessModel::makeLayerConstructionData() const

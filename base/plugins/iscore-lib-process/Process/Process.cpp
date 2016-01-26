@@ -12,8 +12,6 @@
 #include <iscore/tools/std/StdlibWrapper.hpp>
 #include <iscore/tools/std/Algorithms.hpp>
 
-
-ISCORE_METADATA_IMPL(Process::ProcessModel)
 namespace Process
 {
 ProcessModel::ProcessModel(

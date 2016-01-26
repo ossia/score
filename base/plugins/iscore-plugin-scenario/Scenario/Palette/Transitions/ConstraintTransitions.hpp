@@ -41,4 +41,45 @@ class Transition_T<Scenario_T, MoveOnConstraint> final :
 };
 template<typename Scenario_T>
 using MoveOnConstraint_Transition = Transition_T<Scenario_T, MoveOnConstraint>;
-}
+
+template<typename Scenario_T>
+class Transition_T<Scenario_T, ClickOnLeftBrace> final :
+        public MatchedTransition<Scenario_T, ClickOnLeftBrace_Event>
+{
+    public:
+        using MatchedTransition<Scenario_T, ClickOnLeftBrace_Event>::MatchedTransition;
+
+    protected:
+        void onTransition(QEvent * ev) override
+        {
+            auto qev = static_cast<ClickOnLeftBrace_Event*>(ev);
+            this->state().clear();
+
+            this->state().clickedConstraint = qev->id;
+            this->state().currentPoint = qev->point;
+        }
+};
+template<typename Scenario_T>
+using ClickOnLeftBrace_Transition = Transition_T<Scenario_T, ClickOnLeftBrace>;
+
+template<typename Scenario_T>
+class Transition_T<Scenario_T, ClickOnRightBrace> final :
+        public MatchedTransition<Scenario_T, ClickOnRightBrace_Event>
+{
+    public:
+        using MatchedTransition<Scenario_T, ClickOnRightBrace_Event>::MatchedTransition;
+
+    protected:
+        void onTransition(QEvent * ev) override
+        {
+            auto qev = static_cast<ClickOnRightBrace_Event*>(ev);
+            this->state().clear();
+
+            this->state().clickedConstraint = qev->id;
+            this->state().currentPoint = qev->point;
+        }
+};
+template<typename Scenario_T>
+using ClickOnRightBrace_Transition = Transition_T<Scenario_T, ClickOnRightBrace>;
+
+} // namespace Scenario

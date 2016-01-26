@@ -84,3 +84,5 @@ class ISCORE_PLUGIN_SCENARIO_EXPORT MessageItemModel final : public TreeNodeBase
         iscore::CommandStackFacade& m_stack;
 };
 }
+
+DEFAULT_MODEL_METADATA(Scenario::MessageItemModel, "Message item model")

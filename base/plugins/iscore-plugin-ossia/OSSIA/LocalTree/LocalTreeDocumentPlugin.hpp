@@ -32,7 +32,6 @@ namespace LocalTree
 class ISCORE_PLUGIN_OSSIA_EXPORT DocumentPlugin : public iscore::DocumentPluginModel
 {
         std::shared_ptr<OSSIA::Device> m_localDevice;
-        ISCORE_METADATA(Ossia::LocalTree::DocumentPlugin)
 
     public:
         DocumentPlugin(

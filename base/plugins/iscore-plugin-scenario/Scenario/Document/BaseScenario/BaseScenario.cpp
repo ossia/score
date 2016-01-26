@@ -17,7 +17,6 @@
 
 class QObject;
 
-ISCORE_METADATA_IMPL(Scenario::BaseScenario)
 namespace Scenario
 {
 BaseScenario::BaseScenario(const Id<BaseScenario>& id, QObject* parent):
@@ -51,10 +50,4 @@ const QVector<Id<ConstraintModel> > constraintsBeforeTimeNode(
     }
     return {};
 }
-}
-
-template<>
-QString NameInUndo<Scenario::BaseScenario>()
-{
-    return "BaseScenario";
 }

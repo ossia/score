@@ -11,7 +11,6 @@ namespace LocalTree
 {
 class ISCORE_PLUGIN_OSSIA_EXPORT ProcessComponent : public iscore::Component
 {
-        ISCORE_METADATA(Ossia::LocalTree::ProcessComponent)
     public:
         ProcessComponent(
                 OSSIA::Node& node,

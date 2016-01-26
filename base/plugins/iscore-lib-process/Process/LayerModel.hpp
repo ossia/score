@@ -20,7 +20,6 @@ class ProcessModel;
  */
 class ISCORE_LIB_PROCESS_EXPORT LayerModel: public IdentifiedObject<LayerModel>
 {
-        ISCORE_METADATA(LayerModel)
     public:
         virtual ~LayerModel();
         ProcessModel& processModel() const;
@@ -69,3 +68,5 @@ typename T::model_type& model(const T& viewModel)
 {
     return static_cast<typename T::model_type&>(viewModel.processModel());
 }
+
+DEFAULT_MODEL_METADATA(Process::LayerModel, "LayerModel")

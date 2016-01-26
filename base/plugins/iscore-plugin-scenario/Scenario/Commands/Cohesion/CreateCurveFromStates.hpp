@@ -23,7 +23,7 @@ class ConstraintModel;
 class SlotModel;
 namespace Command
 {
-template<typename ProcessMetadata_T>
+template<typename ProcessModel_T>
 class ISCORE_PLUGIN_SCENARIO_EXPORT CreateProcessAndLayers : public iscore::SerializableCommand
 {
     public:
@@ -35,13 +35,14 @@ class ISCORE_PLUGIN_SCENARIO_EXPORT CreateProcessAndLayers : public iscore::Seri
             m_addProcessCmd{
                 std::move(constraint),
                 procId,
-                ProcessMetadata_T::concreteFactoryKey()}
+                Metadata<ConcreteFactoryKey_k, ProcessModel_T>::get()}
         {
-            auto proc = m_addProcessCmd.constraintPath().extend(ProcessMetadata_T::processObjectName(), procId);
+            auto proc = m_addProcessCmd.constraintPath().extend(procId);
 
             m_slotsCmd.reserve(slotList.size());
 
-            auto fact = context.components.factory<Process::ProcessList>().list().get(ProcessMetadata_T::concreteFactoryKey());
+            auto fact = context.components.factory<Process::ProcessList>().list().get(
+                        Metadata<ConcreteFactoryKey_k, ProcessModel_T>::get());
             ISCORE_ASSERT(fact);
             auto procData = fact->makeStaticLayerConstructionData();
 
@@ -95,7 +96,8 @@ class ISCORE_PLUGIN_SCENARIO_EXPORT CreateProcessAndLayers : public iscore::Seri
 };
 
 
-class ISCORE_PLUGIN_SCENARIO_EXPORT CreateCurveFromStates final : public CreateProcessAndLayers<Automation::ProcessMetadata>
+class ISCORE_PLUGIN_SCENARIO_EXPORT CreateCurveFromStates final :
+        public CreateProcessAndLayers<Automation::ProcessModel>
 {
          ISCORE_COMMAND_DECL(ScenarioCommandFactoryName(), CreateCurveFromStates, "CreateCurveFromStates")
     public:
