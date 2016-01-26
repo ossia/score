@@ -56,7 +56,7 @@ class SimpleProcessModel final : public Process::ProcessModel
 
         const ProcessFactoryKey& key() const override
         {
-            static const ProcessFactoryKey name{"SimpleProcessModel"};
+            static const ProcessFactoryKey name{"0107dfb7-dcab-45c3-b7b8-e824c0fe49a1"};
             return name;
         }
 

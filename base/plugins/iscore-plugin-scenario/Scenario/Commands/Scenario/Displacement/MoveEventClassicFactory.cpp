@@ -36,7 +36,7 @@ SerializableMoveEvent* MoveEventClassicFactory::make()
 
 const MoveEventFactoryKey& MoveEventClassicFactory::concreteFactoryKey() const
 {
-    static const MoveEventFactoryKey str{"Classic"};
+    static const MoveEventFactoryKey str{"644a6f8d-de63-4951-b28b-33b5e2c71ac8"};
     return str;
 }
 }

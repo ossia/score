@@ -1,5 +1,5 @@
 #pragma once
-#include <iscore/plugins/customfactory/StringFactoryKey.hpp>
+#include <iscore/plugins/customfactory/UuidKey.hpp>
 #include <QMetaType>
 
 namespace Device

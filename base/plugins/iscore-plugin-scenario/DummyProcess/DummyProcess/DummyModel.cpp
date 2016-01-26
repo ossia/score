@@ -41,7 +41,7 @@ DummyModel* DummyModel::clone(
 
 const ProcessFactoryKey& DummyModel::key() const
 {
-    static const ProcessFactoryKey key{"Dummy"};
+    static const ProcessFactoryKey key{"7db45400-6033-425e-9ded-d60a35d4c4b2"};
     return key;
 }
 
