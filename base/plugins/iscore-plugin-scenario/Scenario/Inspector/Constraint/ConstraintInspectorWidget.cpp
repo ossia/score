@@ -315,7 +315,10 @@ void ConstraintInspectorWidget::displaySharedProcess(const Process::ProcessModel
     con(process.metadata, &ModelMetadata::nameChanged,
         newProc, &Inspector::InspectorSectionWidget::renameSection);
 
+    // ***********************
     // Process
+
+        // add view in new slot
     const auto& fact = context().app.components.factory<ProcessInspectorWidgetDelegateFactoryList>();
     if(auto widg = fact.make(process, context(), newProc))
     {
@@ -325,6 +328,14 @@ void ConstraintInspectorWidget::displaySharedProcess(const Process::ProcessModel
         connect(processWidget, &ProcessInspectorWidget::createViewInNewSlot,
                 this, &ConstraintInspectorWidget::createLayerInNewSlot);
     }
+        // delete process
+    newProc->showDeleteButton(true);
+    connect(newProc, &Inspector::InspectorSectionWidget::deletePressed, this, [=,id=process.id()] ()
+    {
+        auto cmd = new Command::RemoveProcessFromConstraint{iscore::IDocument::path(model()), id};
+        emit commandDispatcher()->submitCommand(cmd);
+    });
+
 
     // Start & end state
     QWidget* stateWidget = new QWidget;
@@ -360,14 +371,6 @@ void ConstraintInspectorWidget::displaySharedProcess(const Process::ProcessModel
     });
     stateLayout->addRow(tr("Duration"), durWidg);
 
-    // Delete button
-    auto deleteButton = new QPushButton{tr("Delete")};
-    connect(deleteButton, &QPushButton::pressed, this, [=,id=process.id()] ()
-    {
-        auto cmd = new Command::RemoveProcessFromConstraint{iscore::IDocument::path(model()), id};
-        emit commandDispatcher()->submitCommand(cmd);
-    });
-    newProc->addContent(deleteButton);
 
     // Global setup
     m_processesSectionWidgets.push_back(newProc);

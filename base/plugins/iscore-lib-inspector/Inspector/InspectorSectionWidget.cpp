@@ -15,13 +15,13 @@ InspectorSectionWidget::InspectorSectionWidget(bool editable, QWidget* parent) :
     QWidget(parent)
 {
     // HEADER : arrow button and name
-    auto title = new QWidget;
+    auto title = new QWidget{this};
     auto titleLayout = new iscore::MarginLess<QHBoxLayout>;
 
-    m_btn = new QToolButton;
-    m_btn->setAutoRaise(true);
+    m_unfoldBtn = new QToolButton{title};
+    m_unfoldBtn->setAutoRaise(true);
 
-    m_buttonTitle = new QPushButton;
+    m_buttonTitle = new QPushButton{title};
     m_buttonTitle->setFlat(true);
     m_buttonTitle->setText("section name");
     m_buttonTitle->setStyleSheet("text-align: left;");
@@ -34,12 +34,18 @@ InspectorSectionWidget::InspectorSectionWidget(bool editable, QWidget* parent) :
     {
         emit nameChanged(m_sectionTitle->text());
     });
-
-    titleLayout->addWidget(m_btn);
     if(editable)
-        titleLayout->addWidget(m_sectionTitle);
+        m_buttonTitle->hide();
     else
-        titleLayout->addWidget(m_buttonTitle);
+        m_sectionTitle->hide();
+
+    m_deleteBtn = new QToolButton{title};
+    m_deleteBtn->setHidden(true);
+
+    titleLayout->addWidget(m_unfoldBtn);
+    titleLayout->addWidget(m_sectionTitle);
+    titleLayout->addWidget(m_buttonTitle);
+    titleLayout->addWidget(m_deleteBtn);
 
     title->setLayout(titleLayout);
 
@@ -56,16 +62,17 @@ InspectorSectionWidget::InspectorSectionWidget(bool editable, QWidget* parent) :
     globalLayout->addWidget(m_container);
     this->setContentsMargins(0,0,0,0);
 
-    connect(m_btn, &QAbstractButton::released,
+    connect(m_unfoldBtn, &QAbstractButton::released,
             this, &InspectorSectionWidget::expand);
     connect(m_buttonTitle, &QAbstractButton::clicked,
             this, &InspectorSectionWidget::expand);
+    connect(m_deleteBtn, &QToolButton::released,
+            this, &InspectorSectionWidget::deletePressed);
 
     // INIT
     m_isUnfolded = true;
-    m_btn->setArrowType(Qt::DownArrow);
-    //   expend();
-
+    m_unfoldBtn->setArrowType(Qt::DownArrow);
+    m_deleteBtn->setText("X");
     setLayout(globalLayout);
     renameSection("Section Name");
 }
@@ -89,11 +96,11 @@ void InspectorSectionWidget::expand()
 
     if(m_isUnfolded)
     {
-        m_btn->setArrowType(Qt::DownArrow);
+        m_unfoldBtn->setArrowType(Qt::DownArrow);
     }
     else
     {
-        m_btn->setArrowType(Qt::RightArrow);
+        m_unfoldBtn->setArrowType(Qt::RightArrow);
     }
 }
 
@@ -125,6 +132,11 @@ void InspectorSectionWidget::removeAll()
 
         delete item;
     }
+}
+
+void InspectorSectionWidget::showDeleteButton(bool b)
+{
+    m_deleteBtn->setHidden(!b);
 }
 
 QWidget* InspectorSectionWidget::titleWidget()

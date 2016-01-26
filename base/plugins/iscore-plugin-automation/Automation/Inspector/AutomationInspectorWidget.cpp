@@ -6,6 +6,7 @@
 
 #include <QPushButton>
 #include <QSpinBox>
+#include <QLabel>
 #include <QStringList>
 #include <QWidget>
 #include <algorithm>
@@ -62,7 +63,7 @@ InspectorWidget::InspectorWidget(
 
     // Min / max
     auto minmaxwid = new QWidget;
-    auto minmaxlay = new QFormLayout{minmaxwid};
+    auto minmaxlay = new QHBoxLayout{minmaxwid};
     vlay->addWidget(minmaxwid);
     minmaxlay->setSpacing(0);
     minmaxlay->setContentsMargins(0, 0, 0, 0);
@@ -71,8 +72,16 @@ InspectorWidget::InspectorWidget(
     m_maxsb = new iscore::SpinBox<float>;
     m_minsb->setValue(process().min());
     m_maxsb->setValue(process().max());
-    minmaxlay->addRow(tr("Min"), m_minsb);
-    minmaxlay->addRow(tr("Max"), m_maxsb);
+
+    auto minLab = new QLabel{tr("Min")};
+    minLab->setAlignment(Qt::AlignRight | Qt::AlignCenter);
+    auto maxLab = new QLabel{tr("Max")};
+    maxLab->setAlignment(Qt::AlignRight | Qt::AlignCenter);
+
+    minmaxlay->addWidget(minLab);
+    minmaxlay->addWidget(m_minsb);
+    minmaxlay->addWidget(maxLab);
+    minmaxlay->addWidget(m_maxsb);
 
     con(process(), &ProcessModel::minChanged, m_minsb, &QDoubleSpinBox::setValue);
     con(process(), &ProcessModel::maxChanged, m_maxsb, &QDoubleSpinBox::setValue);
