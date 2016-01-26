@@ -42,8 +42,11 @@ class ISCORE_LIB_INSPECTOR_EXPORT InspectorSectionWidget : public QWidget
 
         void removeAll();
 
+        void showDeleteButton(bool b);
+
     signals:
         void nameChanged(QString newName);
+        void deletePressed();
 
     protected:
         virtual QWidget* titleWidget();
@@ -53,9 +56,10 @@ class ISCORE_LIB_INSPECTOR_EXPORT InspectorSectionWidget : public QWidget
         QWidget* m_container = nullptr;
         QVBoxLayout* m_containerLayout = nullptr; /*!< main layout */
 
-        QToolButton* m_btn = nullptr; /*!< button for the fold/unfold action */
+        QToolButton* m_unfoldBtn = nullptr; /*!< button for the fold/unfold action */
 
         QPushButton* m_buttonTitle;
+        QToolButton* m_deleteBtn;
 
         bool m_isUnfolded;
 };

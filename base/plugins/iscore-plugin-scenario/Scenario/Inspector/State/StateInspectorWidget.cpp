@@ -9,6 +9,7 @@
 #include <iscore/widgets/MarginLess.hpp>
 #include <QtAlgorithms>
 #include <QFormLayout>
+#include <QHBoxLayout>
 #include <QObject>
 #include <QPushButton>
 #include <QString>
@@ -76,38 +77,44 @@ void StateInspectorWidget::updateDisplayedValues()
     m_stateSection->addContent(tv);
     m_properties.push_back(m_stateSection);
 
+    auto linkWidget = new QWidget;
+    auto linkLay = new iscore::MarginLess<QHBoxLayout>;
+
     if(event)
     {
         auto btn = SelectionButton::make(
-                    tr("Parent Event"),
+                    tr("Event"),
                 &scenar->event(event),
                 selectionDispatcher(),
                 this);
 
-        m_stateSection->addContent(btn);
+        linkLay->addWidget(btn);
     }
 
     // Constraints setup
     if(m_model.previousConstraint())
     {
         auto btn = SelectionButton::make(
-                    tr("Previous Constraint"),
+                    tr("Prev. Cstr"),
                 &scenar->constraint(m_model.previousConstraint()),
                 selectionDispatcher(),
                 this);
 
-        m_stateSection->addContent(btn);
+        linkLay->addWidget(btn);
     }
     if(m_model.nextConstraint())
     {
         auto btn = SelectionButton::make(
-                    tr("Next Constraint"),
+                    tr("Next Cstr"),
                 &scenar->constraint(m_model.nextConstraint()),
                 selectionDispatcher(),
                 this);
 
-        m_stateSection->addContent(btn);
+        linkLay->addWidget(btn);
     }
+
+    linkWidget->setLayout(linkLay);
+    m_stateSection->addContent(linkWidget);
 
     auto scenarModel = dynamic_cast<const Scenario::ScenarioModel*>(m_model.parent());
     if(scenarModel)
@@ -116,10 +123,7 @@ void StateInspectorWidget::updateDisplayedValues()
 
         if(parentEvent.states().size() > 1)
         {
-            auto newEvBtn = new QPushButton{"Split"};
-            lay->addWidget(newEvBtn);
-
-            connect(newEvBtn, &QPushButton::pressed,
+            connect(m_stateSection, &Inspector::InspectorSectionWidget::deletePressed,
                     this,   &StateInspectorWidget::splitEvent);
         }
     }

@@ -14,7 +14,7 @@ namespace DeviceExplorer
 AddressEditWidget::AddressEditWidget(DeviceExplorerModel* model, QWidget* parent):
     QWidget{parent}
 {
-    auto lay = new iscore::MarginLess<QVBoxLayout>;
+    auto lay = new iscore::MarginLess<QHBoxLayout>;
 
     m_lineEdit = new AddressLineEdit{this};
 
@@ -24,7 +24,6 @@ AddressEditWidget::AddressEditWidget(DeviceExplorerModel* model, QWidget* parent
         emit addressChanged(m_address);
     });
 
-    lay->addWidget(m_lineEdit);
 
     if(model)
     {
@@ -41,6 +40,8 @@ AddressEditWidget::AddressEditWidget(DeviceExplorerModel* model, QWidget* parent
 
         lay->addWidget(pb);
     }
+
+    lay->addWidget(m_lineEdit);
 
     this->setLayout(lay);
 }

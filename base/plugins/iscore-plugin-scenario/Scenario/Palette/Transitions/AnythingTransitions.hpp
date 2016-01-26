@@ -17,7 +17,9 @@ class MoveOnAnything_Transition final : public GenericTransition<Scenario_T, QAb
                 QEvent::Type(QEvent::User + MoveOnState_Event::user_type),
                 QEvent::Type(QEvent::User + MoveOnEvent_Event::user_type),
                 QEvent::Type(QEvent::User + MoveOnTimeNode_Event::user_type),
-                QEvent::Type(QEvent::User + MoveOnConstraint_Event::user_type)};
+                QEvent::Type(QEvent::User + MoveOnConstraint_Event::user_type),
+                QEvent::Type(QEvent::User + MoveOnLeftBrace_Event::user_type),
+                QEvent::Type(QEvent::User + MoveOnRightBrace_Event::user_type)};
 
             return find(begin(types), end(types), e->type()) != end(types);
         }
@@ -41,7 +43,9 @@ class ReleaseOnAnything_Transition final : public QAbstractTransition
                 QEvent::Type(QEvent::User + ReleaseOnState_Event::user_type),
                 QEvent::Type(QEvent::User + ReleaseOnEvent_Event::user_type),
                 QEvent::Type(QEvent::User + ReleaseOnTimeNode_Event::user_type),
-                QEvent::Type(QEvent::User + ReleaseOnConstraint_Event::user_type)};
+                QEvent::Type(QEvent::User + ReleaseOnConstraint_Event::user_type),
+                QEvent::Type(QEvent::User + ReleaseOnLeftBrace_Event::user_type),
+                QEvent::Type(QEvent::User + ReleaseOnRightBrace_Event::user_type)};
 
             return find(begin(types), end(types), e->type()) != end(types);
         }

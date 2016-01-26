@@ -1,6 +1,8 @@
 #pragma once
 #include <QWidget>
 #include <iscore_lib_process_export.h>
+#include <Process/Process.hpp>
+
 namespace iscore
 {
 struct DocumentContext;
@@ -18,7 +20,7 @@ class ISCORE_LIB_PROCESS_EXPORT ProcessInspectorWidget final : public QWidget
                 QWidget* parent);
 
     signals:
-        void createViewInNewSlot(QString);
+        void createViewInNewSlot(const Id<Process::ProcessModel>&);
 
     private:
         ProcessInspectorWidgetDelegate* m_delegate{};

@@ -41,6 +41,15 @@ RackInspectorSection::RackInspectorSection(
     framewidg->setFrameShape(QFrame::StyledPanel);
     addContent(framewidg);
 
+    this->showDeleteButton(true);
+    connect(this, &RackInspectorSection::deletePressed, this, [=] ()
+    {
+        auto cmd = new Command::RemoveRackFromConstraint{
+                   parentConstraint->model(),
+                   m_model.id()};
+        emit m_parent->commandDispatcher()->submitCommand(cmd);
+    });
+
     // Slots
     m_slotSection = new InspectorSectionWidget{"Slots", false, this};  // TODO Make a custom widget.
     m_slotSection->setObjectName("Slots");
@@ -56,17 +65,6 @@ RackInspectorSection::RackInspectorSection(
     m_slotWidget = new AddSlotWidget{this};
     lay->addWidget(m_slotSection);
     lay->addWidget(m_slotWidget);
-
-    // Delete button
-    auto deleteButton = new QPushButton{"Delete"};
-    connect(deleteButton, &QPushButton::pressed, this, [=] ()
-    {
-        auto cmd = new Command::RemoveRackFromConstraint{
-                   parentConstraint->model(),
-                   m_model.id()};
-        emit m_parent->commandDispatcher()->submitCommand(cmd);
-    });
-    lay->addWidget(deleteButton);
 
     connect(this, &InspectorSectionWidget::nameChanged,
         this, &RackInspectorSection::ask_changeName);

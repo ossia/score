@@ -48,6 +48,13 @@ SlotInspectorSection::SlotInspectorSection(
     framewidg->setFrameShape(QFrame::StyledPanel);
     addContent(framewidg);
 
+    this->showDeleteButton(true);
+    connect(this, &SlotInspectorSection::deletePressed, this, [&] ()
+    {
+        auto cmd = new Command::RemoveSlotFromRack{m_model};
+        emit m_parent->commandDispatcher()->submitCommand(cmd);
+    });
+
     // View model list
     m_lmSection = new InspectorSectionWidget{"Process View Models", false, this};
     m_lmSection->setObjectName("LayerModels");
@@ -63,17 +70,6 @@ SlotInspectorSection::SlotInspectorSection(
     m_addLmWidget = new AddLayerModelWidget{this};
     lay->addWidget(m_lmSection);
     lay->addWidget(m_addLmWidget);
-
-
-    // Delete button
-    auto deleteButton = new QPushButton{"Delete"};
-    connect(deleteButton, &QPushButton::pressed, this, [&] ()
-    {
-        auto cmd = new Command::RemoveSlotFromRack{m_model};
-        emit m_parent->commandDispatcher()->submitCommand(cmd);
-    });
-
-    lay->addWidget(deleteButton);
 
     connect(this, &InspectorSectionWidget::nameChanged,
             this, &SlotInspectorSection::ask_changeName);
