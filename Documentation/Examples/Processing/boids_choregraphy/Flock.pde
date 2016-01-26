@@ -34,11 +34,11 @@ class Flock
     }
   }
   
-  void setAlignement(float alignement) 
+  void setAlignment(float alignment) 
   {
     for (Boid b : boids) 
     {
-      b.alignement = alignement;
+      b.alignment = alignment;
     }
   }
   

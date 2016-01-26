@@ -45,8 +45,9 @@ void setup()
   
   flock = new Flock();
   
-  for (int i = 0; i < 50 ; i++)
-    flock.addBoid(new Boid(width/2, height/2));
+  // debug
+  //for (int i = 0; i < 50 ; i++)
+  //  flock.addBoid(new Boid(width/2, height/2));
 }
 
 void draw()
@@ -112,7 +113,7 @@ void oscEvent(OscMessage osc_msg)
     if (osc_msg.checkTypetag("f")) 
     {
       float alignment = osc_msg.get(0).floatValue();
-      flock.setAlignement(alignment);
+      flock.setAlignment(alignment);
     }
   }
   else if (osc_msg.checkAddrPattern("/flock/cohesion"))

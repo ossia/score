@@ -11,7 +11,7 @@ class Boid
   float maxspeed;    // Maximum speed
   
   float avoidance = 1.0;
-  float alignement = 1.0;
+  float alignment = 1.0;
   float cohesion = 1.0;
   float follow_rate = 0.0;
   
@@ -56,7 +56,7 @@ class Boid
     
     // weight those forces
     avo.mult(avoidance);
-    ali.mult(alignement);
+    ali.mult(alignment);
     coh.mult(cohesion);
     fol.mult(follow_rate);
     
