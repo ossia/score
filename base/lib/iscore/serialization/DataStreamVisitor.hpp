@@ -337,7 +337,7 @@ struct TSerializer<DataStream, QList<T>>
 
         static void writeTo(
                 DataStream::Deserializer& s,
-                boost::optional<T>& obj)
+                QList<T>& obj)
         {
             s.stream() >> obj;
         }

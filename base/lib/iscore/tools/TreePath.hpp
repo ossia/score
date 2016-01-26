@@ -101,14 +101,21 @@ struct TSerializer<DataStream, TreePath<T>>
         }
 };
 
-template<typename T>
-void Visitor<Reader<JSONObject>>::readFrom(const TreePath<T>& path)
-{
-    m_obj["Path"] = toJsonArray(static_cast<const QList<int>&>(path));
-}
 
 template<typename T>
-void Visitor<Writer<JSONObject>>::writeTo(TreePath<T>& path)
+struct TSerializer<JSONObject, TreePath<T>>
 {
-    fromJsonArray(m_obj["Path"].toArray(), static_cast<QList<int>&>(path));
-}
+        static void readFrom(
+                JSONObject::Serializer& s,
+                const TreePath<T>& path)
+        {
+            s.m_obj["Path"] = toJsonArray(static_cast<const QList<int>&>(path));
+        }
+
+        static void writeTo(
+                JSONObject::Deserializer& s,
+                TreePath<T>& path)
+        {
+            fromJsonArray(s.m_obj["Path"].toArray(), static_cast<QList<int>&>(path));
+        }
+};

@@ -62,23 +62,15 @@ class ISCORE_LIB_BASE_EXPORT Visitor<Reader<JSONObject>> final : public Abstract
             return reader.m_obj;
         }
 
-        template<typename T>
-        void readFrom(const T&);
-
-        template<typename T>
-        void readFrom(const TreeNode<T>&);
-        template<typename T>
-        void readFrom(const TreePath<T>&);
-
-        template<typename... Args>
-        void readFrom(const eggs::variants::variant<Args...>&);
-
-        template<typename T>
-        void readFrom(const IdentifiedObject<T>& obj)
+        template<template<class...> class T, typename... Args>
+        void readFrom(const T<Args...>& obj, typename std::enable_if<is_template<T<Args...>>::value, void>::type * = 0)
         {
-            readFrom(static_cast<const NamedObject&>(obj));
-            readFrom(obj.id().val());
+            TSerializer<JSONObject, T<Args...>>::readFrom(*this, obj);
         }
+
+        template<typename T,
+                 std::enable_if_t<!is_template<T>::value, void>* = nullptr>
+        void readFrom(const T&);
 
         QJsonObject m_obj;
 
@@ -109,16 +101,17 @@ class ISCORE_LIB_BASE_EXPORT Visitor<Writer<JSONObject>> : public AbstractVisito
             return data;
         }
 
-        template<typename T>
+        template<typename T,
+                 std::enable_if_t<!is_template<T>::value, void>* = nullptr>
         void writeTo(T&);
 
-        template<typename T>
-        void writeTo(TreeNode<T>&);
-        template<typename T>
-        void writeTo(TreePath<T>&);
-
-        template<typename... Args>
-        void writeTo(eggs::variants::variant<Args...>&);
+        template<
+                template<class...> class T,
+                typename... Args>
+        void writeTo(T<Args...>& obj, typename std::enable_if<is_template<T<Args...>>::value, void>::type * = 0)
+        {
+            TSerializer<JSONObject, T<Args...>>::writeTo(*this, obj);
+        }
 
         template<typename T>
         T writeTo()
@@ -128,18 +121,69 @@ class ISCORE_LIB_BASE_EXPORT Visitor<Writer<JSONObject>> : public AbstractVisito
             return val;
         }
 
-        template<typename T>
-        void writeTo(IdentifiedObject<T>& obj)
+        const QJsonObject m_obj;
+        const iscore::ApplicationContext& context;
+};
+
+
+template<typename T>
+struct TSerializer<JSONObject, IdentifiedObject<T>>
+{
+        static void readFrom(
+                JSONObject::Serializer& s,
+                const IdentifiedObject<T>& obj)
+        {
+            s.readFrom(static_cast<const NamedObject&>(obj));
+            s.readFrom(obj.id().val());
+        }
+
+        static void writeTo(
+                JSONObject::Deserializer& s,
+                IdentifiedObject<T>& obj)
         {
             typename Id<T>::value_type id_impl;
-            writeTo(id_impl);
+            s.writeTo(id_impl);
             Id<T> id;
             id.setVal(std::move(id_impl));
             obj.setId(std::move(id));
         }
 
-        const QJsonObject m_obj;
-        const iscore::ApplicationContext& context;
+};
+
+
+
+template<>
+struct TSerializer<JSONObject, boost::optional<int32_t>>
+{
+        // TODO should not be used. Save as optional json value instead.
+
+        static void readFrom(
+                JSONObject::Serializer& s,
+                const boost::optional<int32_t>& obj)
+        {
+            if(obj)
+            {
+                s.m_obj["id"] = get(obj);
+            }
+            else
+            {
+                s.m_obj["id"] = "none";
+            }
+        }
+
+        static void writeTo(
+                JSONObject::Deserializer& s,
+                boost::optional<int32_t>& obj)
+        {
+            if(s.m_obj["id"].toString() == "none")
+            {
+                obj.reset();
+            }
+            else
+            {
+                obj =s.m_obj["id"].toInt();
+            }
+        }
 };
 
 template<typename T>
