@@ -6,7 +6,7 @@ namespace Mapping
 {
 struct MappingProcessMetadata
 {
-        static const ProcessFactoryKey& abstractFactoryKey();
+        static const ProcessFactoryKey& concreteFactoryKey();
 
         static QString processObjectName();
 

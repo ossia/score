@@ -31,6 +31,11 @@ class ISCORE_LIB_BASE_EXPORT UuidKey : iscore::uuid_t
         }
 
     public:
+        UuidKey() = default;
+        UuidKey(const UuidKey& other) = default;
+        UuidKey(UuidKey&& other) = default;
+        UuidKey& operator=(const UuidKey& other) = default;
+        UuidKey& operator=(UuidKey&& other) = default;
         UuidKey(iscore::uuid_t other):
             iscore::uuid_t{other}
         {

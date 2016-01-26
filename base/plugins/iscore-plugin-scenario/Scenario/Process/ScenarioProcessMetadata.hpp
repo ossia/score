@@ -3,7 +3,7 @@
 
 struct ScenarioProcessMetadata
 {
-        static const ProcessFactoryKey& abstractFactoryKey()
+        static const ProcessFactoryKey& concreteFactoryKey()
         {
             static const ProcessFactoryKey name{"Scenario"};
             return name;

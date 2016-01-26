@@ -7,7 +7,7 @@ namespace Automation
 {
 struct ISCORE_PLUGIN_AUTOMATION_EXPORT ProcessMetadata
 {
-        static const ProcessFactoryKey& abstractFactoryKey();
+        static const ProcessFactoryKey& concreteFactoryKey();
 
         static QString processObjectName();
 

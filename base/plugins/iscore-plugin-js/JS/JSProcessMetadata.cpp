@@ -6,7 +6,7 @@
 
 namespace JS
 {
-const ProcessFactoryKey& ProcessMetadata::abstractFactoryKey()
+const ProcessFactoryKey& ProcessMetadata::concreteFactoryKey()
 {
     static const ProcessFactoryKey name{"Javascript"};
     return name;

@@ -156,7 +156,7 @@ Process::LayerModel* ScenarioModel::cloneLayer_impl(
 
 const ProcessFactoryKey& ScenarioModel::key() const
 {
-    return ScenarioProcessMetadata::abstractFactoryKey();
+    return ScenarioProcessMetadata::concreteFactoryKey();
 }
 
 QString ScenarioModel::prettyName() const

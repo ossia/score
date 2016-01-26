@@ -57,7 +57,7 @@ class ProcessModel final : public Process::ProcessModel
 
         const ProcessFactoryKey& key() const override
         {
-            return ProcessMetadata::abstractFactoryKey();
+            return ProcessMetadata::concreteFactoryKey();
         }
 
         QString prettyName() const override;

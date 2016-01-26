@@ -6,7 +6,7 @@ namespace JS
 {
 struct ProcessMetadata
 {
-        static const ProcessFactoryKey& abstractFactoryKey();
+        static const ProcessFactoryKey& concreteFactoryKey();
 
         static QString processObjectName();
 

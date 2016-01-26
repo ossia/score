@@ -16,7 +16,7 @@ class ScenarioModel;
 namespace Command
 {
 class MoveEventTag{};
-using MoveEventFactoryKey = StringKey<MoveEventTag>;
+using MoveEventFactoryKey = UuidKey<MoveEventTag>;
 
 class SerializableMoveEvent;
 

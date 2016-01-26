@@ -230,7 +230,7 @@ void RecordManager::recordInNewBox(Scenario::ScenarioModel& scenar, Scenario::Po
             // about their generation.
             auto cmd_proc = new Scenario::Command::AddOnlyProcessToConstraint{
                     Path<Scenario::ConstraintModel>(cstr_path),
-                    Automation::ProcessMetadata::abstractFactoryKey()};
+                    Automation::ProcessMetadata::concreteFactoryKey()};
             cmd_proc->redo();
             auto& proc = cstr.processes.at(cmd_proc->processId());
             auto& autom = static_cast<Automation::ProcessModel&>(proc);

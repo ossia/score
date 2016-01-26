@@ -19,7 +19,7 @@ class ProcessFactory final : public Process::ProcessFactory
 
         const ProcessFactoryKey& concreteFactoryKey() const override
         {
-            return ProcessMetadata::abstractFactoryKey();
+            return ProcessMetadata::concreteFactoryKey();
         }
 
 

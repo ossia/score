@@ -65,7 +65,7 @@ class ISCORE_PLUGIN_LOOP_EXPORT ProcessModel final :
 
         const ProcessFactoryKey& key() const override
         {
-            return ProcessMetadata::abstractFactoryKey();
+            return ProcessMetadata::concreteFactoryKey();
         }
 
         QString prettyName() const override;
