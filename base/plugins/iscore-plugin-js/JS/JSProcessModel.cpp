@@ -35,6 +35,8 @@ ProcessModel::ProcessModel(
                "     obj[\"value\"] = t + iscore.value('OSCdevice:/millumin/layer/y/instance'); \n"
                "     return [ obj ]; \n"
                "});";
+
+    metadata.setName(QString("JavaScript.%1").arg(*this->id().val()));
 }
 
 ProcessModel::ProcessModel(
@@ -64,7 +66,8 @@ Process::ProcessModel* ProcessModel::clone(
 
 QString ProcessModel::prettyName() const
 {
-    return "Javascript Process";
+    auto name = this->metadata.name();
+    return name;
 }
 
 QByteArray ProcessModel::makeLayerConstructionData() const

@@ -267,11 +267,9 @@ void ConstraintInspectorWidget::createRack()
     commandDispatcher()->submitCommand(cmd);
 }
 
-void ConstraintInspectorWidget::createLayerInNewSlot(QString processName)
+void ConstraintInspectorWidget::createLayerInNewSlot(const Id<Process::ProcessModel>& processId)
 {
-    // TODO this will bite us when the name does not contain the id anymore.
-    // We will have to stock the id's somewhere.
-    auto cmd = new Command::AddLayerInNewSlot{model(), Id<Process::ProcessModel>(processName.toInt())};
+    auto cmd = new Command::AddLayerInNewSlot{model(), processId};
 
     commandDispatcher()->submitCommand(cmd);
 }
