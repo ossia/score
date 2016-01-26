@@ -3,32 +3,36 @@
 #include <iscore/serialization/DataStreamVisitor.hpp>
 
 // TODO refactor this with objects like is_trivially_serializable<T> { ... } and enable_if...
-template<typename T>
-void readFrom_vector_obj_impl(
-        Visitor<Reader<DataStream>>& reader,
-        const std::vector<T>& vec)
+
+template<typename... Args>
+struct TSerializer<DataStream, std::vector<Args...>>
 {
-    reader.m_stream << (int32_t)vec.size();
-    for(const auto& elt : vec)
-        reader.readFrom(elt);
+        static void readFrom(
+                DataStream::Serializer& s,
+                const std::vector<Args...>& vec)
+        {
+            s.stream() << (int32_t)vec.size();
+            for(const auto& elt : vec)
+                s.readFrom(elt);
 
-    reader.insertDelimiter();
-}
+            s.insertDelimiter();
+        }
 
-template<typename T>
-void writeTo_vector_obj_impl(
-        Visitor<Writer<DataStream>>& writer,
-        std::vector<T>& vec)
-{
-    int32_t n = 0;
-    writer.m_stream >> n;
+        static void writeTo(
+                DataStream::Deserializer& s,
+                std::vector<Args...>& vec)
+        {
+            int32_t n = 0;
+            s.stream() >> n;
 
-    vec.clear();
-    vec.resize(n);
-    for(int i = 0; i < n; i++)
-    {
-        writer.writeTo(vec[i]);
-    }
+            vec.clear();
+            vec.resize(n);
+            for(int i = 0; i < n; i++)
+            {
+                s.writeTo(vec[i]);
+            }
 
-    writer.checkDelimiter();
-}
+            s.checkDelimiter();
+        }
+
+};

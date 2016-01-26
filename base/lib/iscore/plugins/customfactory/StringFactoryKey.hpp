@@ -42,3 +42,23 @@ struct hash<StringKey<T>>
         { return std::hash<OpaqueString>()(static_cast<const OpaqueString&>(kagi)); }
 };
 }
+
+#include <iscore/serialization/DataStreamVisitor.hpp>
+#include <iscore/serialization/JSONValueVisitor.hpp>
+template<typename U>
+struct TSerializer<DataStream, StringKey<U>>
+{
+        static void readFrom(
+                DataStream::Serializer& s,
+                const StringKey<U>& key)
+        {
+            s.stream() << key.toString();
+        }
+
+        static void writeTo(
+                DataStream::Deserializer& s,
+                StringKey<U>& key)
+        {
+            s.stream() >> key.toString();
+        }
+};

@@ -27,7 +27,7 @@ class JSONValue
 };
 
 template<>
-class ISCORE_LIB_BASE_EXPORT Visitor<Reader<JSONValue>> final : public AbstractVisitor
+class ISCORE_LIB_BASE_EXPORT Visitor<Reader<JSONValue>>  : public AbstractVisitor
 {
     public:
         using is_visitor_tag = std::integral_constant<bool, true>;
@@ -38,23 +38,21 @@ class ISCORE_LIB_BASE_EXPORT Visitor<Reader<JSONValue>> final : public AbstractV
 
         VisitorVariant toVariant() { return {*this, JSONValue::type()}; }
 
-        template<typename T, std::enable_if_t<!std::is_enum<T>::value>* = nullptr>
+
+        template<template<class...> class T, typename... Args>
+        void readFrom(const T<Args...>& obj, typename std::enable_if<is_template<T<Args...>>::value, void>::type * = 0)
+        {
+            TSerializer<JSONValue, T<Args...>>::readFrom(*this, obj);
+        }
+
+        template<typename T, std::enable_if_t<!std::is_enum<T>::value && !is_template<T>::value>* = nullptr>
         void readFrom(const T&);
 
-        template<typename T, std::enable_if_t<std::is_enum<T>::value>* = nullptr>
+        template<typename T, std::enable_if_t<std::is_enum<T>::value && !is_template<T>::value>* = nullptr>
         void readFrom(const T& elt)
         {
             val = (int32_t) elt;
         }
-
-        template<typename T>
-        void readFrom(const Id<T>& obj)
-        {
-            readFrom(obj.val());
-        }
-
-        template<typename T>
-        void readFrom(const StringKey<T>&);
 
         QJsonValue val;
 };
@@ -77,27 +75,79 @@ class ISCORE_LIB_BASE_EXPORT Visitor<Writer<JSONValue>> : public AbstractVisitor
         Visitor<Writer<JSONValue>> (QJsonValue&& obj) :
                                val{std::move(obj) }  {}
 
-        template<typename T, std::enable_if_t<!std::is_enum<T>::value>* = nullptr>
-        void writeTo(T&);
 
-        template<typename T, std::enable_if_t<std::is_enum<T>::value>* = nullptr>
+        template<
+                template<class...> class T,
+                typename... Args>
+        void writeTo(T<Args...>& obj, typename std::enable_if<is_template<T<Args...>>::value, void>::type * = 0)
+        {
+            TSerializer<JSONValue, T<Args...>>::writeTo(*this, obj);
+        }
+
+        template<typename T,
+                 std::enable_if_t<!std::is_enum<T>::value && !is_template<T>::value>* = nullptr >
+        void writeTo(T&);
+        template<typename T, std::enable_if_t<std::is_enum<T>::value && !is_template<T>::value>* = nullptr>
         void writeTo(T& elt)
         {
             elt = static_cast<T>(val.toInt());
         }
 
-        template<typename T>
-        void writeTo(StringKey<T>&);
-
-        template<typename T>
-        void writeTo(Id<T>& obj)
-        {
-            typename Id<T>::value_type id_impl;
-            writeTo(id_impl);
-            obj.setVal(std::move(id_impl));
-        }
 
         QJsonValue val;
+};
+
+template<>
+struct TSerializer<JSONValue, boost::optional<int32_t>>
+{
+    static void readFrom(
+            JSONValue::Serializer& s,
+            const boost::optional<int32_t>& obj)
+    {
+        if(obj)
+        {
+            s.val = get(obj);
+        }
+        else
+        {
+            s.val = "none";
+        }
+    }
+
+    static void writeTo(
+            JSONValue::Deserializer& s,
+            boost::optional<int32_t>& obj)
+    {
+        if(s.val.toString() == "none")
+        {
+            obj.reset();
+        }
+        else
+        {
+            obj = s.val.toInt();
+        }
+    }
+};
+
+
+template<typename U>
+struct TSerializer<JSONValue, Id<U>>
+{
+    static void readFrom(
+            JSONValue::Serializer& s,
+            const Id<U>& obj)
+    {
+        s.readFrom(obj.val());
+    }
+
+    static void writeTo(
+            JSONValue::Deserializer& s,
+            Id<U>& obj)
+    {
+        typename Id<U>::value_type id_impl;
+        s.writeTo(id_impl);
+        obj.setVal(std::move(id_impl));
+    }
 };
 
 

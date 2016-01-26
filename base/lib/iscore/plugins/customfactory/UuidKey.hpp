@@ -4,7 +4,7 @@
 #include <boost/functional/hash.hpp>
 #include <iscore_lib_base_export.h>
 
-class DataStream;
+#include <iscore/serialization/DataStreamVisitor.hpp>
 class JSONObject;
 
 namespace iscore
@@ -36,13 +36,16 @@ class ISCORE_LIB_BASE_EXPORT UuidKey : iscore::uuid_t
         UuidKey(UuidKey&& other) = default;
         UuidKey& operator=(const UuidKey& other) = default;
         UuidKey& operator=(UuidKey&& other) = default;
-        UuidKey(iscore::uuid_t other):
-            iscore::uuid_t{other}
+
+        template<int N>
+        UuidKey(const char txt[N]):
+            iscore::uuid_t{boost::uuids::string_generator{}(txt)}
         {
 
         }
 
-        iscore::uuid_t impl() const { return *this; }
+        const iscore::uuid_t& impl() const { return *this; }
+        iscore::uuid_t& impl() { return *this; }
 };
 
 namespace std
@@ -54,3 +57,43 @@ struct hash<UuidKey<T>>
         { return boost::hash<boost::uuids::uuid>()(static_cast<const iscore::uuid_t&>(kagi)); }
 };
 }
+
+template<typename U>
+struct TSerializer<DataStream, UuidKey<U>>
+{
+        static void readFrom(
+                DataStream::Serializer& s,
+                const UuidKey<U>& uid)
+        {
+            for(auto val : uid.impl().data)
+                s.stream() << val;
+        }
+
+        static void writeTo(
+                DataStream::Deserializer& s,
+                UuidKey<U>& uid)
+        {
+            for(auto& val : uid.impl().data)
+                s.stream() >> val;
+        }
+};
+
+
+#include <iscore/serialization/JSONValueVisitor.hpp>
+template<typename U>
+struct TSerializer<JSONValue, UuidKey<U>>
+{
+        static void readFrom(
+                JSONValue::Serializer& s,
+                const UuidKey<U>& uid)
+        {
+            s.readFrom(uid.impl());
+        }
+
+        static void writeTo(
+                JSONValue::Deserializer& s,
+                UuidKey<U>& uid)
+        {
+            s.writeTo(uid.impl());
+        }
+};
