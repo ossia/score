@@ -5,56 +5,62 @@
 #include <boost/mpl/list.hpp>
 #include <boost/mpl/for_each.hpp>
 #include <QDebug>
+
 template<typename... Args>
-void Visitor<Reader<DataStream>>::readFrom(const eggs::variant<Args...>& var)
+struct TSerializer<DataStream, eggs::variant<Args...>>
 {
-    m_stream << (quint64)var.which();
+        static void readFrom(
+                DataStream::Serializer& s,
+                const eggs::variant<Args...>& var)
+        {
+            s.stream() << (quint64)var.which();
 
-    // TODO this should be an assert.
-    if((quint64)var.which() != (quint64)var.npos)
-    {
-        // This trickery iterates over all the types in Args...
-        // A single type should be serialized, even if we cannot break.
-        bool done = false;
-        using typelist = boost::mpl::list<Args...>;
-        boost::mpl::for_each<typelist>([&] (auto&& elt) {
-            if(done)
-                return;
-
-            if(auto res = var.template target<typename std::remove_reference<decltype(elt)>::type>())
+            // TODO this should be an assert.
+            if((quint64)var.which() != (quint64)var.npos)
             {
-                m_stream << *res;
-                done = true;
+                // This trickery iterates over all the types in Args...
+                // A single type should be serialized, even if we cannot break.
+                bool done = false;
+                using typelist = boost::mpl::list<Args...>;
+                boost::mpl::for_each<typelist>([&] (auto&& elt) {
+                    if(done)
+                        return;
+
+                    if(auto res = var.template target<typename std::remove_reference<decltype(elt)>::type>())
+                    {
+                        s.stream() << *res;
+                        done = true;
+                    }
+                });
             }
-        });
-    }
 
-    insertDelimiter();
-}
+            s.insertDelimiter();
+        }
 
+        static void writeTo(
+                DataStream::Deserializer& s,
+                eggs::variant<Args...>& var)
+        {
+            quint64 which;
+            s.stream() >> which;
 
-template<typename... Args>
-void Visitor<Writer<DataStream>>::writeTo(eggs::variant<Args...>& var)
-{
-    quint64 which;
-    m_stream >> which;
+            if(which != (quint64)var.npos)
+            {
+                // Here we iterate until we are on the correct type, and we deserialize it.
+                quint64 i = 0;
+                using typelist = boost::mpl::list<Args...>;
+                boost::mpl::for_each<typelist>([&] (auto&& elt) {
+                    if(i++ != which)
+                        return;
 
-    if(which != (quint64)var.npos)
-    {
-        // Here we iterate until we are on the correct type, and we deserialize it.
-        quint64 i = 0;
-        using typelist = boost::mpl::list<Args...>;
-        boost::mpl::for_each<typelist>([&] (auto&& elt) {
-            if(i++ != which)
-                return;
-
-            typename std::remove_reference<decltype(elt)>::type data;
-            m_stream >> data;
-            var = data;
-        });
-    }
-    checkDelimiter();
-}
+                    typename std::remove_reference<decltype(elt)>::type data;
+                    s.stream() >> data;
+                    var = data;
+                });
+            }
+            s.checkDelimiter();
+        }
+};
 
 
 template<typename T>

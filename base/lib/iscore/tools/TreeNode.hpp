@@ -217,36 +217,42 @@ class TreeNode : public DataType
 
 
 template<typename T>
-void Visitor<Reader<DataStream>>::readFrom(const TreeNode<T>& n)
+struct TSerializer<DataStream, TreeNode<T>>
 {
-    readFrom(static_cast<const T&>(n));
+        static void readFrom(
+                DataStream::Serializer& s,
+                const TreeNode<T>& n)
+        {
+            s.readFrom(static_cast<const T&>(n));
 
-    m_stream << n.childCount();
-    for(const auto& child : n)
-    {
-        readFrom(child);
-    }
+            s.stream() << n.childCount();
+            for(const auto& child : n)
+            {
+                s.readFrom(child);
+            }
 
-    insertDelimiter();
-}
+            s.insertDelimiter();
+        }
 
 
-template<typename T>
-void Visitor<Writer<DataStream>>::writeTo(TreeNode<T>& n)
-{
-    writeTo(static_cast<T&>(n));
+        static void writeTo(
+                DataStream::Deserializer& s,
+                TreeNode<T>& n)
+        {
+            s.writeTo(static_cast<T&>(n));
 
-    int childCount;
-    m_stream >> childCount;
-    for (int i = 0; i < childCount; ++i)
-    {
-        TreeNode<T> child;
-        writeTo(child);
-        n.push_back(std::move(child));
-    }
+            int childCount;
+            s.stream() >> childCount;
+            for (int i = 0; i < childCount; ++i)
+            {
+                TreeNode<T> child;
+                s.writeTo(child);
+                n.push_back(std::move(child));
+            }
 
-    checkDelimiter();
-}
+            s.checkDelimiter();
+        }
+};
 
 template<typename T>
 void Visitor<Reader<JSONObject>>::readFrom(const TreeNode<T>& n)

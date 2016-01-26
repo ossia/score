@@ -296,5 +296,76 @@ inline const TimeValue& max(const TimeValue& lhs, const TimeValue& rhs)
         return lhs;
 }
 
+#include <iscore/serialization/DataStreamVisitor.hpp>
+template<>
+struct TSerializer<DataStream, TimeValue>
+{
+        static void readFrom(
+                DataStream::Serializer& s,
+                const TimeValue& tv)
+        {
+            s.stream() << tv.isInfinite();
+
+            if(!tv.isInfinite())
+            {
+                s.stream() << tv.msec();
+            }
+        }
+
+        static void writeTo(
+                DataStream::Deserializer& s,
+                TimeValue& tv)
+        {
+            bool inf;
+            s.stream() >> inf;
+
+            if(!inf)
+            {
+                double msec;
+                s.stream() >> msec;
+                tv.setMSecs(msec);
+            }
+            else
+            {
+                tv = TimeValue {PositiveInfinity{}};
+            }
+        }
+};
+
+#include <iscore/serialization/JSONValueVisitor.hpp>
+
+
+template<>
+struct TSerializer<JSONValue, TimeValue>
+{
+    static void readFrom(
+            JSONValue::Serializer& s,
+            const TimeValue& tv)
+    {
+        if(tv.isInfinite())
+        {
+            s.val = "inf";
+        }
+        else
+        {
+            s.val = tv.msec();
+        }
+    }
+
+    static void writeTo(
+            JSONValue::Deserializer& s,
+            TimeValue& tv)
+    {
+        if(s.val.toString() == "inf")
+        {
+            tv = TimeValue {PositiveInfinity{}};
+        }
+        else
+        {
+            tv.setMSecs(s.val.toDouble());
+        }
+    }
+};
+
 
 Q_DECLARE_METATYPE(TimeValue)

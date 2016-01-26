@@ -46,7 +46,7 @@ class ISCORE_LIB_BASE_EXPORT SerializableInterface
 template<typename Type>
 UuidKey<Type> deserialize_key(Deserializer<JSONObject>& des)
 {
-    return fromJsonValue<boost::uuids::uuid>(des.m_obj["uuid"]);
+    return fromJsonValue<boost::uuids::uuid>(des.m_obj["uuid"]);;
 
 }
 

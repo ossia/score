@@ -55,23 +55,6 @@ void Visitor<Writer<DataStream>>::writeTo(State::impulse_t& value)
 }
 
 template<>
-void Visitor<Reader<DataStream>>::readFrom(const State::tuple_t& value)
-{
-    readFrom_vector_obj_impl(*this, value);
-    insertDelimiter();
-}
-
-
-template<>
-void Visitor<Writer<DataStream>>::writeTo(State::tuple_t& value)
-{
-    writeTo_vector_obj_impl(*this, value);
-    checkDelimiter();
-}
-
-
-
-template<>
 ISCORE_LIB_STATE_EXPORT void Visitor<Reader<DataStream>>::readFrom(const State::Value& value)
 {
     readFrom(value.val);
@@ -103,33 +86,3 @@ ISCORE_LIB_STATE_EXPORT void Visitor<Writer<JSONObject>>::writeTo(State::Value& 
     val = State::convert::toValue(m_obj["Value"], m_obj["Type"].toString());
 }
 
-// TODO refactor with generic Optional Serialization somewhere else
-template<>
-ISCORE_LIB_STATE_EXPORT void Visitor<Reader<DataStream>>::readFrom(const State::OptionalValue& obj)
-{
-    m_stream << static_cast<bool>(obj);
-
-    if(obj)
-    {
-        m_stream << *obj;
-    }
-}
-
-template<>
-ISCORE_LIB_STATE_EXPORT void Visitor<Writer<DataStream>>::writeTo(State::OptionalValue& obj)
-{
-    bool b {};
-    m_stream >> b;
-
-    if(b)
-    {
-        State::Value val;
-        m_stream >> val;
-
-        obj = val;
-    }
-    else
-    {
-        reset(obj);
-    }
-}

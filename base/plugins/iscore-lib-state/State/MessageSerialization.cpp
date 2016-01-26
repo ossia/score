@@ -47,26 +47,10 @@ ISCORE_LIB_STATE_EXPORT void Visitor<Writer<JSONObject>>::writeTo(State::Message
     mess.value = State::convert::toValue(m_obj["Value"], m_obj["Type"].toString());
 }
 
-
-
-template<>
-void Visitor<Reader<DataStream>>::readFrom(const State::MessageList& mess)
-{
-    m_stream << mess;
-    insertDelimiter();
-}
-
 template<>
 void Visitor<Reader<JSONObject>>::readFrom(const State::MessageList& mess)
 {
     m_obj["Data"] = toJsonArray(mess);
-}
-
-template<>
-void Visitor<Writer<DataStream>>::writeTo(State::MessageList& mess)
-{
-    m_stream >> mess;
-    checkDelimiter();
 }
 
 template<>

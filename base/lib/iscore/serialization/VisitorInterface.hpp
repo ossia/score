@@ -31,6 +31,9 @@ using Serializer = Visitor<Reader<T>>;
 template<typename T>
 using Deserializer = Visitor<Writer<T>>;
 
+template<typename Serializer_T, typename... Args>
+struct TSerializer;
+
 using SerializationIdentifier = int;
 
 /**
@@ -80,4 +83,10 @@ struct is_value_t
      || is_value_tag<T>::value
     };
 };
+
+template <class>
+struct is_template : std::false_type {};
+
+template <template <class...> class T, typename ...Args>
+struct is_template<T<Args...>> : std::true_type {};
 

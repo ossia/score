@@ -18,10 +18,10 @@ class FactoryListInterface;
 
 namespace Curve
 {
-DEFINE_CURVE_SEGMENT_FACTORY(LinearCurveSegmentFactory, "Linear", Curve::LinearSegment)
-DEFINE_CURVE_SEGMENT_FACTORY(PowerCurveSegmentFactory, "Power", Curve::PowerSegment)
-DEFINE_CURVE_SEGMENT_FACTORY(SinCurveSegmentFactory, "Sin", Curve::SinSegment)
-DEFINE_CURVE_SEGMENT_FACTORY(GammaCurveSegmentFactory, "Gamma", Curve::GammaSegment)
+DEFINE_CURVE_SEGMENT_FACTORY(LinearCurveSegmentFactory, "96dc1fe6-e50e-4f8b-8d1a-fa65c8b8ad80", Curve::LinearSegment)
+DEFINE_CURVE_SEGMENT_FACTORY(PowerCurveSegmentFactory, "a07fff09-58f7-4bec-8737-cd65eee02b42", Curve::PowerSegment)
+DEFINE_CURVE_SEGMENT_FACTORY(SinCurveSegmentFactory, "60d5c403-a338-4f8c-8dc0-19d6fd27bbf0", Curve::SinSegment)
+DEFINE_CURVE_SEGMENT_FACTORY(GammaCurveSegmentFactory, "745a0522-d562-4da2-a98a-542d03b94e6a", Curve::GammaSegment)
 }
 iscore_plugin_curve::iscore_plugin_curve() :
     QObject {}
