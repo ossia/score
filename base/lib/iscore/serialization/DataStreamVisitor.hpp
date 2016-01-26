@@ -9,6 +9,7 @@
 
 #include <iscore/tools/NamedObject.hpp>
 #include <iscore/tools/SettableIdentifier.hpp>
+#include <iscore/plugins/customfactory/UuidKey.hpp>
 
 class QIODevice;
 class QStringList;
@@ -139,6 +140,11 @@ class ISCORE_LIB_BASE_EXPORT Visitor<Reader<DataStream>> final : public Abstract
         void readFrom(const TreePath<T>&);
         template<typename T>
         void readFrom(const StringKey<T>&);
+        template<typename T>
+        void readFrom(const UuidKey<T>& obj)
+        {
+            readFrom(obj.impl());
+        }
 
         template<typename... Args>
         void readFrom(const eggs::variants::variant<Args...>&);
@@ -227,6 +233,13 @@ class ISCORE_LIB_BASE_EXPORT Visitor<Writer<DataStream>> : public AbstractVisito
         void writeTo(TreePath<T>&);
         template<typename T>
         void writeTo(StringKey<T>&);
+        template<typename T>
+        void writeTo(UuidKey<T>& other)
+        {
+            boost::uuids::uuid uid;
+            writeTo(uid);
+            other = uid;
+        }
 
         template<typename... Args>
         void writeTo(eggs::variants::variant<Args...>&);

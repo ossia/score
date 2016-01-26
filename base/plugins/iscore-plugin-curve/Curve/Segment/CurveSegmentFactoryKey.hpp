@@ -4,7 +4,7 @@
 namespace Curve
 {
 class SegmentTag{};
-using SegmentFactoryKey = StringKey<SegmentTag>;
+using SegmentFactoryKey = UuidKey<SegmentTag>;
 }
 
 Q_DECLARE_METATYPE(Curve::SegmentFactoryKey)

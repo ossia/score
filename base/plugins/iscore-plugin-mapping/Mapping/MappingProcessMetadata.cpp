@@ -6,7 +6,7 @@
 
 namespace Mapping
 {
-const ProcessFactoryKey&MappingProcessMetadata::abstractFactoryKey()
+const ProcessFactoryKey&MappingProcessMetadata::concreteFactoryKey()
 {
     static const ProcessFactoryKey name{"Mapping"};
     return name;

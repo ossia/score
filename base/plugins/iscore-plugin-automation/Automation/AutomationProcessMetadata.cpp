@@ -6,7 +6,7 @@
 
 namespace Automation
 {
-const ProcessFactoryKey& ProcessMetadata::abstractFactoryKey()
+const ProcessFactoryKey& ProcessMetadata::concreteFactoryKey()
 {
     static const ProcessFactoryKey name{"Automation"};
     return name;

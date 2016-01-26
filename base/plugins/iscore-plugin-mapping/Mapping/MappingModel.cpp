@@ -69,7 +69,7 @@ Process::ProcessModel* MappingModel::clone(
 
 const ProcessFactoryKey& MappingModel::key() const
 {
-    return MappingProcessMetadata::abstractFactoryKey();
+    return MappingProcessMetadata::concreteFactoryKey();
 }
 
 

@@ -11,7 +11,7 @@ class ScenarioActions;
 class ScenarioApplicationPlugin;
 
 class ScenarioActionsTag{};
-using ScenarioActionsFactoryKey = StringKey<ScenarioActionsTag>;
+using ScenarioActionsFactoryKey = UuidKey<ScenarioActionsTag>;
 class ISCORE_PLUGIN_SCENARIO_EXPORT ScenarioActionsFactory :
         public iscore::GenericFactoryInterface<ScenarioActionsFactoryKey>
 {
