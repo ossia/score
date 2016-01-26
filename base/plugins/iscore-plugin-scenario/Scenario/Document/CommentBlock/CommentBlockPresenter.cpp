@@ -15,10 +15,20 @@ CommentBlockPresenter::CommentBlockPresenter(
     m_view{new CommentBlockView{*this, parentView}}
 {
     con(m_model.selection, &Selectable::changed,
-            m_view, &CommentBlockView::setSelected);
+        this, [&] (bool b)
+    // ensure that connection is broken when presenter is delete
+    // (may crash otherwise)
+    {
+            m_view->setSelected(b);
+    });
 
     con(m_model, &CommentBlockModel::contentChanged,
-            m_view, &CommentBlockView::setHtmlContent);
+        this, [&] (QString s)
+    // ensure that connection is broken when presenter is delete
+    // (may crash otherwise)
+    {
+            m_view->setHtmlContent(s);
+    });
 
     m_view->setHtmlContent(m_model.content());
 }
