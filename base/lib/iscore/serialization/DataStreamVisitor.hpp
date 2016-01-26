@@ -235,7 +235,9 @@ QDataStream& operator>> (QDataStream& stream, T& obj)
 template<typename U>
 struct TSerializer<DataStream, Id<U>>
 {
-    static void readFrom(DataStream::Serializer& s, const Id<U>& obj)
+    static void readFrom(
+            DataStream::Serializer& s,
+            const Id<U>& obj)
     {
         s.stream() << bool (obj.val());
 
@@ -245,7 +247,9 @@ struct TSerializer<DataStream, Id<U>>
         }
     }
 
-    static void writeTo(DataStream::Deserializer& s, Id<U>& obj)
+    static void writeTo(
+            DataStream::Deserializer& s,
+            Id<U>& obj)
     {
         bool init {};
         int32_t val {};

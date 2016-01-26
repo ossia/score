@@ -43,6 +43,12 @@ class ISCORE_LIB_BASE_EXPORT UuidKey : iscore::uuid_t
 
         }
 
+        UuidKey(const char* txt):
+            iscore::uuid_t{boost::uuids::string_generator{}(txt)}
+        {
+
+        }
+
         template<int N>
         UuidKey(const char txt[N]):
             iscore::uuid_t{boost::uuids::string_generator{}(txt)}

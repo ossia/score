@@ -71,7 +71,7 @@ class Name final : public Curve::CurveProcessFactory_T<Model, Layer, Presenter, 
 { \
     using Curve::CurveProcessFactory_T<Model, Layer, Presenter, View, Colors>::CurveProcessFactory_T; \
     const ProcessFactoryKey& concreteFactoryKey() const override \
-    { return ProcessMetadata::abstractFactoryKey(); } \
+    { return ProcessMetadata::concreteFactoryKey(); } \
     \
     QString prettyName() const override \
     { return ProcessMetadata::factoryPrettyName(); } \

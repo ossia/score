@@ -32,7 +32,7 @@ template <typename T> class Writer;
 template <typename VisitorType> class Visitor;
 
 template<>
-void Visitor<Reader<DataStream>>::readFrom(const Curve::SegmentData& segmt)
+ISCORE_PLUGIN_CURVE_EXPORT void Visitor<Reader<DataStream>>::readFrom(const Curve::SegmentData& segmt)
 {
     m_stream << segmt.id
              << segmt.start << segmt.end
@@ -49,7 +49,7 @@ void Visitor<Reader<DataStream>>::readFrom(const Curve::SegmentData& segmt)
 }
 
 template<>
-void Visitor<Writer<DataStream>>::writeTo(Curve::SegmentData& segmt)
+ISCORE_PLUGIN_CURVE_EXPORT void Visitor<Writer<DataStream>>::writeTo(Curve::SegmentData& segmt)
 {
     m_stream >> segmt.id
              >> segmt.start >> segmt.end
@@ -62,21 +62,6 @@ void Visitor<Writer<DataStream>>::writeTo(Curve::SegmentData& segmt)
     segmt.specificSegmentData = segmt_fact->makeCurveSegmentData(this->toVariant());
 
     checkDelimiter();
-}
-
-
-template<>
-ISCORE_PLUGIN_CURVE_EXPORT void Visitor<Reader<DataStream>>::readFrom(
-        const std::vector<Curve::SegmentData>& segmt)
-{
-    readFrom_vector_obj_impl(*this, segmt);
-}
-
-template<>
-ISCORE_PLUGIN_CURVE_EXPORT void Visitor<Writer<DataStream>>::writeTo(
-        std::vector<Curve::SegmentData>& segmt)
-{
-    writeTo_vector_obj_impl(*this, segmt);
 }
 
 template<>
