@@ -14,6 +14,7 @@ class Document;
 struct VisitorVariant;
 
 // TODO rename file
+// TODO DocumentPlugin -> system
 namespace iscore
 {
 class ISCORE_LIB_BASE_EXPORT DocumentPluginModel :
@@ -59,9 +60,38 @@ class ISCORE_LIB_BASE_EXPORT SerializableDocumentPluginModel :
         public DocumentPluginModel,
         public SerializableInterface<SerializableDocumentPluginModel>
 {
+        ISCORE_SERIALIZE_FRIENDS(SerializableDocumentPluginModel, DataStream)
+        ISCORE_SERIALIZE_FRIENDS(SerializableDocumentPluginModel, JSONObject)
+
     protected:
         using DocumentPluginModel::DocumentPluginModel;
         using ConcreteFactoryKey = UuidKey<SerializableDocumentPluginModel>;
 
+    virtual ~SerializableDocumentPluginModel();
+};
+
+
+class ISCORE_LIB_BASE_EXPORT DocumentPluginModelFactory :
+        public iscore::GenericFactoryInterface<UuidKey<DocumentPluginModel>>
+{
+        ISCORE_ABSTRACT_FACTORY_DECL(
+                DocumentPluginModel,
+                "570faa0b-f100-4039-a2f0-b60347c4e581")
+    public:
+        virtual ~DocumentPluginModelFactory();
+
+        virtual DocumentPluginModel* makeModel(
+                const iscore::DocumentContext& doc,
+                QObject* parent) = 0;
+
+        virtual DocumentPluginModel* loadModel(
+                const VisitorVariant& var,
+                const iscore::DocumentContext& doc,
+                QObject* parent) = 0;
+
+};
+class ISCORE_LIB_BASE_EXPORT DocumentPluginModelFactoryList final : public iscore::FactoryListInterface
+{
+        ISCORE_FACTORY_LIST_DECL(iscore::DocumentPluginModelFactory)
 };
 }

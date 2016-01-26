@@ -11,30 +11,41 @@ class ISCORE_LIB_BASE_EXPORT SerializableInterface
     public:
         SerializableInterface() = default;
         virtual ~SerializableInterface() = default;
-        virtual UuidKey<T> uuid() const = 0;
+        virtual UuidKey<T> concreteFactoryKey() const = 0;
+/*
+        void serialize(DataStream::Serializer& vis) const
+        {
+            vis.readFrom(concreteFactoryKey().impl());
+
+            serialize_impl(vis.toVariant());
+        }
+
+        void serialize(JSONObject::Serializer& vis) const
+        {
+            vis.m_obj["uuid"] = toJsonValue(concreteFactoryKey().impl());
+
+            serialize_impl(vis.toVariant());
+        }
+
         void serialize(const VisitorVariant& vis) const
         {
             switch(vis.identifier)
             {
                 case DataStream::type():
                 {
-                    auto& v = static_cast<DataStream::Serializer&>(vis.visitor);
-                    v.readFrom(uuid().impl());
+                    serialize(static_cast<DataStream::Serializer&>(vis.visitor));
                     break;
                 }
                 case JSONObject::type():
                 {
-                    auto& v = static_cast<JSONObject::Serializer&>(vis.visitor);
-                    v.m_obj["uuid"] = toJsonValue(uuid().impl());
+                    serialize(static_cast<JSONObject::Serializer&>(vis.visitor));
                     break;
                 }
                 default:
                     ISCORE_ABORT;
             }
-
-            serialize_impl(vis);
         }
-
+*/
     protected:
         virtual void serialize_impl(const VisitorVariant& vis) const
         {
