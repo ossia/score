@@ -10,8 +10,7 @@ namespace Scenario
 class ScenarioActions;
 class ScenarioApplicationPlugin;
 
-class ScenarioActionsTag{};
-using ScenarioActionsFactoryKey = UuidKey<ScenarioActionsTag>;
+using ScenarioActionsFactoryKey = UuidKey<ScenarioActions>;
 class ISCORE_PLUGIN_SCENARIO_EXPORT ScenarioActionsFactory :
         public iscore::GenericFactoryInterface<ScenarioActionsFactoryKey>
 {
@@ -19,7 +18,6 @@ class ISCORE_PLUGIN_SCENARIO_EXPORT ScenarioActionsFactory :
                 ScenarioActions,
                 "30a08ebc-bab7-444f-8d8c-860bd7bfe5c7")
     public:
-            using factory_key_type = ScenarioActionsFactoryKey;
         virtual ~ScenarioActionsFactory() ;
         virtual QList<ScenarioActions*> make(ScenarioApplicationPlugin*) = 0;
 };

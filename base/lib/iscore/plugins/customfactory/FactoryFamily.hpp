@@ -99,7 +99,7 @@ auto make_ptr_vector(const Context_T& context)
 
 #define ISCORE_FACTORY_LIST_DECL(FactoryType) \
   private: \
-     GenericFactoryMap_T<FactoryType, FactoryType::factory_key_type> m_list;\
+     GenericFactoryMap_T<FactoryType, FactoryType::ConcreteFactoryKey> m_list;\
   public: \
     static const iscore::AbstractFactoryKey& static_abstractFactoryKey() { \
         return FactoryType::static_abstractFactoryKey(); \
@@ -131,7 +131,7 @@ class FactorizedElementName ## Factory : \
 { \
         ISCORE_ABSTRACT_FACTORY_DECL(#FactorizedElementName) \
     public: \
-            using factory_key_type = FactorizedElementName ## FactoryKey; \
+            using ConcreteFactoryKey = FactorizedElementName ## FactoryKey; \
         virtual std::unique_ptr<FactorizedElementName> make() = 0; \
 }; \
 class FactorizedElementName ## FactoryList final : public iscore::FactoryListInterface \

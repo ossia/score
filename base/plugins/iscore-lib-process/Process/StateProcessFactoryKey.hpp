@@ -1,6 +1,8 @@
 #pragma once
-#include <iscore/plugins/customfactory/StringFactoryKey.hpp>
+#include <iscore/plugins/customfactory/UuidKey.hpp>
 
-class StateProcessTag{};
-using StateProcessFactoryKey = UuidKey<StateProcessTag>;
+namespace Process {
+class StateProcess;
+}
+using StateProcessFactoryKey = UuidKey<Process::StateProcess>;
 Q_DECLARE_METATYPE(StateProcessFactoryKey)

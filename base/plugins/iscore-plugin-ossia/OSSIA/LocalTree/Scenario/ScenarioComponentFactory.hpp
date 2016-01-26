@@ -10,7 +10,7 @@ class ScenarioComponentFactory final :
         public ProcessComponentFactory
 {
     public:
-        const factory_key_type& concreteFactoryKey() const override;
+        const ConcreteFactoryKey& concreteFactoryKey() const override;
 
         bool matches(
                 Process::ProcessModel& p,
