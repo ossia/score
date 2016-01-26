@@ -6,6 +6,7 @@
 #include <iscore/serialization/DataStreamVisitor.hpp>
 #include <iscore/tools/ModelPath.hpp>
 #include <iscore/tools/ModelPathSerialization.hpp>
+#include <iscore/tools/std/StdlibWrapper.hpp>
 
 namespace Curve
 {
