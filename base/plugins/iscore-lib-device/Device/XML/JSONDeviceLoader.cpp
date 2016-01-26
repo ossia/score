@@ -1,4 +1,4 @@
-#include "JSONDeviceLoader.hpp"
+/*#include "JSONDeviceLoader.hpp"
 #include <QFile>
 #include <rapidjson/document.h>
 #include <rapidjson/error/en.h>
@@ -89,9 +89,9 @@ void loadDeviceFromJSON(
         convertFromDomElement(dom_node, node);
         dom_node = dom_node.nextSiblingElement("");
     }
-    */
+    */ /*
 }
 }
-
+*/
 // static Device::Node node;
 //  static int f = (loadDeviceFromJSON("/home/jcelerier/Téléchargements/exemple_preset.json", node), 1);
