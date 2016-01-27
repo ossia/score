@@ -24,13 +24,6 @@ class Flock
 
   void run() 
   { 
-    // debug
-    if (new_boids.size() > 0)
-    {
-      print(new_boids.size());
-      println(" boid(s) to add");
-    }
-    
     // handle clear request before new boids
     if (clear_request)
     {
