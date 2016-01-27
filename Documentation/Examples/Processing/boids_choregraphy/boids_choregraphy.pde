@@ -33,8 +33,7 @@ Flock flock;
 
 int last_mouse_x;  // to filter repetitions
 int last_mouse_y;  // to filter repetitions
-
-Boid new_boid = null; // to avoid deadlock  
+ 
 boolean info = true;
 
 void setup() 
@@ -55,13 +54,6 @@ void draw()
   OscMessage osc_msg;
   
   background(50);
-
-  // add a new boid if requested
-  if (new_boid != null)
-  {
-    flock.addBoid(new_boid);
-    new_boid = null;
-  }
 
   // update flock
   flock.run();
@@ -144,7 +136,7 @@ void oscEvent(OscMessage osc_msg)
     {
       float x = osc_msg.get(0).floatValue();
       float y = osc_msg.get(1).floatValue();
-      new_boid = new Boid(x, y);
+      flock.addBoid(new Boid(x, y));
     }
   } else if (osc_msg.checkAddrPattern("/flock/avoidance"))
   {
@@ -215,7 +207,7 @@ void keyPressed()
     }
   case 'a':
     {
-      new_boid = new Boid(mouseX, mouseY);
+      flock.addBoid(new Boid(mouseX, mouseY));
       break;
     }
   case 'f':

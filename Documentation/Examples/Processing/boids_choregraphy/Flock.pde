@@ -1,25 +1,56 @@
 // The Flock (a list of Boid objects)
 class Flock 
 {
-  private ArrayList<Boid> boids; // An ArrayList for all the boids
+  private ArrayList<Boid> boids;     // An ArrayList for all existing boids
+  private ArrayList<Boid> new_boids; // An ArrayList for all boids to add the next time
+  private boolean new_boids_locked;
+  private boolean clear_request;
+  
   private PVector deviation;
 
   Flock() 
   {
-    boids = new ArrayList<Boid>(); // Initialize the ArrayList
+    boids = new ArrayList<Boid>();
+    new_boids = new ArrayList<Boid>();
+    new_boids_locked = false;
+    clear_request = false;
     deviation = new PVector(0, 0);
   }
 
   void clear() 
   {
-    boids.clear();
+    clear_request = true;
   }
 
   void run() 
-  {      
+  { 
+    // debug
+    if (new_boids.size() > 0)
+    {
+      print(new_boids.size());
+      println(" boid(s) to add");
+    }
+    
+    // handle clear request before new boids
+    if (clear_request)
+    {
+       boids.clear();
+       clear_request = false; 
+    }
+    
+    // add all new boids
+    new_boids_locked = true;
+    for (Boid b : new_boids) 
+    {
+      boids.add(b);
+    }
+    new_boids.clear();
+    new_boids_locked = false;
+    
+    // update all existing boids
     for (Boid b : boids) 
     {
-      b.run(boids);  // Passing the entire list of boids to each boid individually
+      b.run(boids);
     }
     
     processDeviation();
@@ -57,7 +88,10 @@ class Flock
     text("dist max :", 10, 75);
     text(getDistanceMax(), 85, 75);
     
-    // display flock analysis
+    // display flock statistics
+    text("size :", 10, 315);
+    text(boids.size(), 50, 315);
+    
     text("deviation :", 10, 330);
     text(deviation.x, 85, 330);
     text(deviation.y, 85, 345);
@@ -65,7 +99,10 @@ class Flock
 
   void addBoid(Boid b) 
   {
-    boids.add(b);
+    if (!new_boids_locked)
+      new_boids.add(b);
+    else
+      println("new_boids_locked");
   }
 
   void setAvoidance(float avoidance) 

@@ -6,13 +6,13 @@
                 "EndState": 1,
                 "FullView": {
                     "CenterOn": [
-                        263,
-                        292
+                        261,
+                        197.5
                     ],
                     "ConstraintId": 0,
                     "ObjectName": "FullViewConstraintViewModel",
                     "ShownRack": 1,
-                    "Zoom": 49.376791482967917,
+                    "Zoom": 56.164221323261629,
                     "id": 0
                 },
                 "HeightPercentage": 0,
@@ -117,7 +117,7 @@
                                 "Processes": [
                                     {
                                         "Constraint": {
-                                            "DefaultDuration": 100,
+                                            "DefaultDuration": 50.095840811363686,
                                             "EndState": 1,
                                             "FullView": {
                                                 "CenterOn": [
@@ -132,7 +132,7 @@
                                             },
                                             "HeightPercentage": 0.14999999999999999,
                                             "Looping": false,
-                                            "MaxDuration": 100,
+                                            "MaxDuration": 50.095840811363686,
                                             "MaxInf": false,
                                             "Metadata": {
                                                 "Color": [
@@ -144,7 +144,7 @@
                                                 "Label": "",
                                                 "ScriptingName": "Loop pattern"
                                             },
-                                            "MinDuration": 100,
+                                            "MinDuration": 50.095840811363686,
                                             "MinNull": false,
                                             "ObjectName": "Scenario::ConstraintModel",
                                             "PluginsMetadata": [
@@ -166,7 +166,7 @@
                                                 "RootNode": {
                                                 }
                                             },
-                                            "Date": 100,
+                                            "Date": 50.095840811363686,
                                             "Extent": [
                                                 0.14999999999999999,
                                                 0.20000000000000001
@@ -225,7 +225,7 @@
                                             "id": 1
                                         },
                                         "EndTimeNode": {
-                                            "Date": 100,
+                                            "Date": 50.095840811363686,
                                             "Events": [
                                                 1
                                             ],
