@@ -4,7 +4,7 @@ class Boid
   PVector location;
   PVector velocity;
   PVector acceleration;
-  PVector destination;
+  PVector follow_destination;
   
   float size;
   float maxforce;    // Maximum steering force
@@ -15,13 +15,13 @@ class Boid
   float cohesion = 1.0;
   float follow_rate = 0.0;
   
-  float neighbor_distance_min = 25.0;
-  float neighbor_distance_max = 50.0;
+  float neighbor_distance_min = 50.0;
+  float neighbor_distance_max = 75.0;
   
   Boid(float x, float y) 
   {
     acceleration = new PVector(0, 0);
-    destination = new PVector(0, 0);
+    follow_destination = new PVector(0, 0);
 
     // This is a new PVector method not yet implemented in JS
     // velocity = PVector.random2D();
@@ -31,7 +31,7 @@ class Boid
     velocity = new PVector(cos(angle), sin(angle));
 
     location = new PVector(x, y);
-    size = 2.0;
+    size = 3.0;
     maxspeed = 2;
     maxforce = 0.03;
   }
@@ -43,9 +43,7 @@ class Boid
     borders();
     render();
   }
-
-
-
+  
   // We accumulate a new acceleration each time based on three rules
   void flock(ArrayList<Boid> boids) 
   {
@@ -105,8 +103,8 @@ class Boid
     float theta = velocity.heading2D() + radians(90);
     // heading2D() above is now heading() but leaving old syntax until Processing.js catches up
 
-    fill(200, 100);
-    stroke(255);
+    fill(100, 200, 100);
+    stroke(100, 200, 100);
     pushMatrix();
     translate(location.x, location.y);
     rotate(theta);
@@ -242,6 +240,6 @@ class Boid
   // Follow
   PVector follow()
   {
-    return seek(destination);
+    return seek(follow_destination);
   }
 }

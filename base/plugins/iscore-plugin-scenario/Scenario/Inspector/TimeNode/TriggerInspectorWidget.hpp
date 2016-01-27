@@ -22,6 +22,7 @@ class TriggerInspectorWidget final : public QWidget
 {
     public:
         TriggerInspectorWidget(
+                const iscore::DocumentContext&,
                 const Command::TriggerCommandFactoryList& fact,
                 const TimeNodeModel& object,
                 Inspector::InspectorWidgetBase* parent);
