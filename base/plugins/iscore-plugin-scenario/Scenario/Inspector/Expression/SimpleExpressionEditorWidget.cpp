@@ -11,10 +11,14 @@
 
 #include <Scenario/Inspector/ExpressionValidator.hpp>
 #include "SimpleExpressionEditorWidget.hpp"
+#include <Explorer/Widgets/AddressEditWidget.hpp>
+#include <Explorer/Explorer/DeviceExplorerModel.hpp>
+#include <Explorer/DocumentPlugin/DeviceDocumentPlugin.hpp>
 
 namespace Scenario
 {
-SimpleExpressionEditorWidget::SimpleExpressionEditorWidget(int index, QWidget* parent):
+SimpleExpressionEditorWidget::SimpleExpressionEditorWidget(
+        const iscore::DocumentContext& doc, int index, QWidget* parent):
     QWidget(parent),
     id{index}
 {
@@ -31,7 +35,12 @@ SimpleExpressionEditorWidget::SimpleExpressionEditorWidget(int index, QWidget* p
 
     binLay->addWidget(m_binOperator);
 
-    m_address = new QLineEdit{this};
+    auto plug = doc.findPlugin<DeviceExplorer::DeviceDocumentPlugin>();
+    DeviceExplorer::DeviceExplorerModel* explorer{};
+    if(plug)
+        explorer = plug->updateProxy.deviceExplorer;
+
+    m_address = new DeviceExplorer::AddressEditWidget{explorer, this};
     m_ok = new QLabel{"/!\\ ", this};
 
 
@@ -84,8 +93,11 @@ SimpleExpressionEditorWidget::SimpleExpressionEditorWidget(int index, QWidget* p
     });
 
     /// EDIT FINSHED
-    connect(m_address, &QLineEdit::editingFinished,
-            this, &SimpleExpressionEditorWidget::on_editFinished);
+    connect(m_address, &DeviceExplorer::AddressEditWidget::addressChanged,
+            this, [&] ()
+    {
+        on_editFinished();
+    });
     connect(m_comparator, &QComboBox::currentTextChanged,
             this, [&] (QString) {on_editFinished();} );
     connect(m_value, &QLineEdit::editingFinished,
@@ -143,7 +155,7 @@ State::BinaryOperator SimpleExpressionEditorWidget::binOperator()
 
 void SimpleExpressionEditorWidget::setRelation(State::Relation r)
 {
-    m_address->setText(r.relMemberToString(r.lhs));
+    m_address->setAddressString(r.relMemberToString(r.lhs));
 
     auto s = r.relMemberToString(r.rhs);
     /*
@@ -215,7 +227,7 @@ void SimpleExpressionEditorWidget::on_comparatorChanged(int i)
 
 QString SimpleExpressionEditorWidget::currentRelation()
 {
-    QString expr =  m_address->text();
+    QString expr =  m_address->addressString();
     if(m_comparator->currentText() != m_comparatorList[Comparator::None])
     {
         expr += " ";
