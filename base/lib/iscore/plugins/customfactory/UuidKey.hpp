@@ -34,7 +34,7 @@ class ISCORE_LIB_BASE_EXPORT UuidKey : iscore::uuid_t
         UuidKey& operator=(UuidKey&& other) = default;
 
         UuidKey(iscore::uuid_t other):
-            iscore::uuid_t{other}
+            iscore::uuid_t(other)
         {
 
         }
