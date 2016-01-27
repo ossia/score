@@ -1,5 +1,6 @@
 #pragma once
 #include <iscore/plugins/customfactory/FactoryInterface.hpp>
+#include <iscore/plugins/customfactory/FactoryMap.hpp>
 #include <iscore/tools/ForEachType.hpp>
 #include <iscore/tools/std/Pointer.hpp>
 #include <iscore_lib_base_export.h>
