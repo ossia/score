@@ -80,7 +80,7 @@ class Path
 
 
         template<typename U>
-        [[deprecated]] auto extend(const QString& name, const Id<U>& id) const &
+        auto extend(const QString& name, const Id<U>& id) const &
         {
             Path<U> p{this->m_impl.vec()};
             p.m_impl.vec().push_back({name, id});
@@ -88,7 +88,7 @@ class Path
         }
 
         template<typename U>
-        [[deprecated]] auto extend(const QString& name, const Id<U>& id) &&
+        auto extend(const QString& name, const Id<U>& id) &&
         {
             Path<U> p{std::move(this->m_impl.vec())};
             p.m_impl.vec().push_back({name, id});

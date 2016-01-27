@@ -37,7 +37,9 @@ class ISCORE_PLUGIN_SCENARIO_EXPORT CreateProcessAndLayers : public iscore::Seri
                 procId,
                 Metadata<ConcreteFactoryKey_k, ProcessModel_T>::get()}
         {
-            auto proc = m_addProcessCmd.constraintPath().extend(procId);
+            auto proc = m_addProcessCmd.constraintPath().extend(
+                        Metadata<ObjectKey_k, ProcessModel_T>::get(),
+                        procId);
 
             m_slotsCmd.reserve(slotList.size());
 
