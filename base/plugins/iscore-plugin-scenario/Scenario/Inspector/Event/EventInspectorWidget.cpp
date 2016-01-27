@@ -101,6 +101,7 @@ EventInspectorWidget::EventInspectorWidget(
     // Trigger
     auto& tn = scenar->timeNode(m_model.timeNode());
     m_triggerWidg = new TriggerInspectorWidget{
+                    doc,
                     doc.app.components.factory<Command::TriggerCommandFactoryList>(),
                     tn,
                     this};
@@ -114,7 +115,7 @@ EventInspectorWidget::EventInspectorWidget(
     m_properties.push_back(new Inspector::Separator {this});
 
     // Condition
-    m_exprEditor = new ExpressionEditorWidget{this};
+    m_exprEditor = new ExpressionEditorWidget{this->context(), this};
     connect(m_exprEditor, &ExpressionEditorWidget::editingFinished,
             this, &EventInspectorWidget::on_conditionChanged);
     con(m_model, &EventModel::conditionChanged,

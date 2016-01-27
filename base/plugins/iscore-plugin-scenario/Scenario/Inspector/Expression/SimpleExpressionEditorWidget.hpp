@@ -10,6 +10,8 @@
 class QComboBox;
 class QLabel;
 class QLineEdit;
+namespace DeviceExplorer {
+class AddressEditWidget; }
 
 namespace Scenario
 {
@@ -18,7 +20,7 @@ class SimpleExpressionEditorWidget final : public QWidget
 {
     Q_OBJECT
     public:
-        SimpleExpressionEditorWidget(int index, QWidget* parent = 0);
+        SimpleExpressionEditorWidget(const iscore::DocumentContext&, int index, QWidget* parent = 0);
 
         State::Expression relation();
         State::BinaryOperator binOperator();
@@ -44,7 +46,7 @@ class SimpleExpressionEditorWidget final : public QWidget
 
         QLabel* m_ok{};
 
-        QLineEdit* m_address{};
+        DeviceExplorer::AddressEditWidget* m_address{};
         QComboBox* m_comparator{};
         QLineEdit * m_value{};
         QComboBox* m_binOperator{};

@@ -51,4 +51,12 @@ void AddressEditWidget::setAddress(const State::Address& addr)
     m_address = addr;
     m_lineEdit->setText(m_address.toString());
 }
+
+void AddressEditWidget::setAddressString(const QString s)
+{
+    m_lineEdit->setText(s);
+    State::Address addr{};
+    m_address = addr.fromString(s);
+}
+
 }
