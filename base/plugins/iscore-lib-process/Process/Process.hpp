@@ -14,6 +14,7 @@
 #include <iscore/serialization/VisitorInterface.hpp>
 #include <iscore/serialization/DataStreamVisitor.hpp>
 #include <iscore/serialization/JSONVisitor.hpp>
+#include <iscore/plugins/customfactory/SerializableInterface.hpp>
 
 namespace Process { class LayerModel; }
 class ProcessStateDataInterface;
@@ -32,7 +33,8 @@ namespace Process
  * Interface to implement to make a process.
  */
 class ISCORE_LIB_PROCESS_EXPORT ProcessModel:
-        public IdentifiedObject<ProcessModel>
+        public IdentifiedObject<ProcessModel>,
+        public iscore::SerializableInterface<ProcessModel>
 {
         Q_OBJECT
 
@@ -63,8 +65,6 @@ class ISCORE_LIB_PROCESS_EXPORT ProcessModel:
         virtual ProcessModel* clone(
                 const Id<ProcessModel>& newId,
                 QObject* newParent) const = 0;
-
-        virtual const ProcessFactoryKey& key() const = 0;
 
         // A user-friendly text to show to the users
         virtual QString prettyName() const = 0;
@@ -147,7 +147,6 @@ class ISCORE_LIB_PROCESS_EXPORT ProcessModel:
         void useParentDurationChanged(bool);
 
     protected:
-        virtual void serialize(const VisitorVariant& vis) const = 0;
         // Clone
         ProcessModel(
                 const ProcessModel& other,

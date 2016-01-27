@@ -70,7 +70,7 @@ QJsonObject Document::saveAsJson()
         if(auto serializable_plugin = dynamic_cast<SerializableDocumentPlugin*>(plugin))
         {
             Serializer<JSONObject> s;
-            s.readFromDynamic(*serializable_plugin);
+            s.readFrom(*serializable_plugin);
             json_plugins[serializable_plugin->objectName()] = s.m_obj;
         }
     }
@@ -101,7 +101,7 @@ QByteArray Document::saveAsByteArray()
         {
             QByteArray arr;
             Serializer<DataStream> s{&arr};
-            s.readFromDynamic(*serializable_plugin);
+            s.readFrom(*serializable_plugin);
             documentPluginModels.push_back({plugin->objectName(), arr});
         }
     }

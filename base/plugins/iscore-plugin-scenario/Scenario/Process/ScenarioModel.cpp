@@ -153,7 +153,7 @@ Process::LayerModel* ScenarioModel::cloneLayer_impl(
     return scen;
 }
 
-const ProcessFactoryKey& ScenarioModel::key() const
+ProcessFactoryKey ScenarioModel::concreteFactoryKey() const
 {
     return Metadata<ConcreteFactoryKey_k, Scenario::ProcessModel>::get();
 }

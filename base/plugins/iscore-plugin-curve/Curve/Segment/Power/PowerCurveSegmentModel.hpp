@@ -15,6 +15,10 @@ struct SegmentData;
 struct ISCORE_PLUGIN_CURVE_EXPORT PowerSegmentData
 {
         static const SegmentFactoryKey& static_concreteFactoryKey();
+
+        static const QString prettyName()
+        { return QObject::tr("Power"); }
+
         double gamma;
 };
 

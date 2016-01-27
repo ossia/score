@@ -44,7 +44,7 @@ class ISCORE_LIB_PROCESS_EXPORT ProcessFactory :
         virtual QByteArray makeStaticLayerConstructionData() const = 0;
 
         // throws if the serialization method is not implemented by the subclass
-        virtual ProcessModel* loadModel(
+        virtual ProcessModel* load(
                 const VisitorVariant&,
                 QObject* parent) = 0;
 

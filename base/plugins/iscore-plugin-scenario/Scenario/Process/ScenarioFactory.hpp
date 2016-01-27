@@ -34,7 +34,7 @@ class ScenarioFactory final :
                 const Id<Process::ProcessModel>& id,
                 QObject* parent) override;
 
-        Process::ProcessModel* loadModel(
+        Process::ProcessModel* load(
                 const VisitorVariant&,
                 QObject* parent) override;
 

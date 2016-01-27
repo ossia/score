@@ -15,6 +15,10 @@ namespace Curve
 struct GammaSegmentData
 {
     double gamma;
+
+    static const SegmentFactoryKey& static_concreteFactoryKey();
+    static const QString prettyName()
+    { return QObject::tr("Gamma"); }
 };
 
 class GammaSegment final : public SegmentModel

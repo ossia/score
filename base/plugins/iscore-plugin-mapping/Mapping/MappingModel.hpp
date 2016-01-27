@@ -87,7 +87,7 @@ class ISCORE_PLUGIN_MAPPING_EXPORT ProcessModel : public Curve::CurveProcessMode
                 QObject* newParent) const override;
 
         //// ProcessModel ////
-        const ProcessFactoryKey& key() const override;
+        ProcessFactoryKey concreteFactoryKey() const override;
 
         QString prettyName() const override;
 
@@ -103,7 +103,7 @@ class ISCORE_PLUGIN_MAPPING_EXPORT ProcessModel : public Curve::CurveProcessMode
         void setDurationAndGrow(const TimeValue& newDuration) override;
         void setDurationAndShrink(const TimeValue& newDuration) override;
 
-        void serialize(const VisitorVariant& vis) const override;
+        void serialize_impl(const VisitorVariant& vis) const override;
 
         /// States
         ProcessStateDataInterface* startStateData() const override;

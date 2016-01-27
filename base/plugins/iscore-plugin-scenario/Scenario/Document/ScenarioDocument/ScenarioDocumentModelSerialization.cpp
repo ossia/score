@@ -20,7 +20,8 @@ template <typename T> class Writer;
 template <typename model> class IdentifiedObject;
 
 template<>
-void Visitor<Reader<DataStream>>::readFrom(const Scenario::ScenarioDocumentModel& obj)
+void Visitor<Reader<DataStream>>::readFrom_impl(
+        const Scenario::ScenarioDocumentModel& obj)
 {
     readFrom(static_cast<const IdentifiedObject<iscore::DocumentDelegateModelInterface>&>(obj));
     readFrom(*obj.m_baseScenario);
@@ -37,7 +38,8 @@ void Visitor<Writer<DataStream>>::writeTo(Scenario::ScenarioDocumentModel& obj)
 }
 
 template<>
-void Visitor<Reader<JSONObject>>::readFrom(const Scenario::ScenarioDocumentModel& obj)
+void Visitor<Reader<JSONObject>>::readFrom_impl(
+        const Scenario::ScenarioDocumentModel& obj)
 {
     readFrom(static_cast<const IdentifiedObject<iscore::DocumentDelegateModelInterface>&>(obj));
     m_obj["BaseScenario"] = toJsonObject(*obj.m_baseScenario);

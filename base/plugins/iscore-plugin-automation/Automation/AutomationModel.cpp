@@ -72,7 +72,7 @@ Process::ProcessModel* ProcessModel::clone(
     return new ProcessModel {*this, newId, newParent};
 }
 
-const ProcessFactoryKey& ProcessModel::key() const
+ProcessFactoryKey ProcessModel::concreteFactoryKey() const
 {
     return Metadata<ConcreteFactoryKey_k, ProcessModel>::get();
 }

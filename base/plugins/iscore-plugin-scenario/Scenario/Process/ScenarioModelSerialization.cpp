@@ -32,7 +32,8 @@ template <typename T> class Reader;
 template <typename T> class Writer;
 
 template<>
-void Visitor<Reader<DataStream>>::readFrom(const Scenario::ScenarioModel& scenario)
+void Visitor<Reader<DataStream>>::readFrom_impl(
+        const Scenario::ScenarioModel& scenario)
 {
     readFrom(*scenario.pluginModelList);
 
@@ -93,7 +94,8 @@ void Visitor<Reader<DataStream>>::readFrom(const Scenario::ScenarioModel& scenar
 }
 
 template<>
-void Visitor<Writer<DataStream>>::writeTo(Scenario::ScenarioModel& scenario)
+void Visitor<Writer<DataStream>>::writeTo(
+        Scenario::ScenarioModel& scenario)
 {
     scenario.pluginModelList = new iscore::ElementPluginModelList{*this, &scenario};
 
@@ -163,7 +165,8 @@ void Visitor<Writer<DataStream>>::writeTo(Scenario::ScenarioModel& scenario)
 
 
 template<>
-void Visitor<Reader<JSONObject>>::readFrom(const Scenario::ScenarioModel& scenario)
+void Visitor<Reader<JSONObject>>::readFrom_impl(
+        const Scenario::ScenarioModel& scenario)
 {
     m_obj["PluginsMetadata"] = toJsonValue(*scenario.pluginModelList);
     m_obj["Metadata"] = toJsonObject(scenario.metadata);
@@ -182,7 +185,8 @@ void Visitor<Reader<JSONObject>>::readFrom(const Scenario::ScenarioModel& scenar
 }
 
 template<>
-void Visitor<Writer<JSONObject>>::writeTo(Scenario::ScenarioModel& scenario)
+void Visitor<Writer<JSONObject>>::writeTo(
+        Scenario::ScenarioModel& scenario)
 {
     Deserializer<JSONValue> elementPluginDeserializer(m_obj["PluginsMetadata"]);
     scenario.pluginModelList = new iscore::ElementPluginModelList{elementPluginDeserializer, &scenario};
@@ -243,12 +247,12 @@ void Visitor<Writer<JSONObject>>::writeTo(Scenario::ScenarioModel& scenario)
 }
 
 
-void Scenario::ScenarioModel::serialize(const VisitorVariant& vis) const
+void Scenario::ScenarioModel::serialize_impl(const VisitorVariant& vis) const
 {
     serialize_dyn(vis, *this);
 }
 
-Process::ProcessModel* Scenario::ScenarioFactory::loadModel(
+Process::ProcessModel* Scenario::ScenarioFactory::load(
         const VisitorVariant& vis,
         QObject* parent)
 {

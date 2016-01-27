@@ -46,11 +46,12 @@ class ISCORE_LIB_DUMMYPROCESS_EXPORT DummyModel final :
             vis.writeTo(*this);
         }
 
+    private:
         DummyModel* clone(
                 const Id<ProcessModel>& newId,
                 QObject* newParent) const override;
 
-        const ProcessFactoryKey& key() const override;
+        ProcessFactoryKey concreteFactoryKey() const override;
         QString prettyName() const override;
         QByteArray makeLayerConstructionData() const override;
 
@@ -69,14 +70,12 @@ class ISCORE_LIB_DUMMYPROCESS_EXPORT DummyModel final :
         Selection selectedChildren() const override;
         void setSelection(const Selection& s) const override;
 
-        void serialize(const VisitorVariant& vis) const override;
+        void serialize_impl(const VisitorVariant& vis) const override;
 
-    protected:
         Process::LayerModel* makeLayer_impl(const Id<Process::LayerModel>& viewModelId, const QByteArray& constructionData, QObject* parent) override;
         Process::LayerModel* loadLayer_impl(const VisitorVariant&, QObject* parent) override;
         Process::LayerModel* cloneLayer_impl(const Id<Process::LayerModel>& newId, const Process::LayerModel& source, QObject* parent) override;
 
-    private:
         mutable DummyState m_startState{*this, nullptr};
         mutable DummyState m_endState{*this, nullptr};
 };

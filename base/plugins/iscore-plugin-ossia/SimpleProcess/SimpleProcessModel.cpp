@@ -109,7 +109,7 @@ void SimpleProcessModel::setSelection(const Selection&) const
 {
 }
 
-void SimpleProcessModel::serialize(const VisitorVariant& s) const
+void SimpleProcessModel::serialize_impl(const VisitorVariant& s) const
 {
     serialize_dyn(s, *this);
 }
@@ -145,7 +145,7 @@ Process::LayerModel* SimpleProcessModel::cloneLayer_impl(
 
 
 template<>
-void Visitor<Reader<DataStream>>::readFrom(const SimpleProcessModel& proc)
+void Visitor<Reader<DataStream>>::readFrom_impl(const SimpleProcessModel& proc)
 {
     readFrom(*proc.pluginModelList);
 
@@ -161,7 +161,7 @@ void Visitor<Writer<DataStream>>::writeTo(SimpleProcessModel& proc)
 }
 
 template<>
-void Visitor<Reader<JSONObject>>::readFrom(const SimpleProcessModel& proc)
+void Visitor<Reader<JSONObject>>::readFrom_impl(const SimpleProcessModel& proc)
 {
     m_obj["PluginsMetadata"] = toJsonValue(*proc.pluginModelList);
 }

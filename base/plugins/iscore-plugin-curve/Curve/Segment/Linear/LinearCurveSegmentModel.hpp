@@ -13,6 +13,9 @@ namespace Curve
 struct ISCORE_PLUGIN_CURVE_EXPORT LinearSegmentData
 {
         static const SegmentFactoryKey& static_concreteFactoryKey();
+
+        static const QString prettyName()
+        { return QObject::tr("Linear"); }
 };
 
 

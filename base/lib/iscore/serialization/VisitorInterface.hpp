@@ -66,6 +66,7 @@ using enable_if_deserializer = typename std::enable_if_t<std::decay<Deserializer
 // Declaration of common friends for classes that serialize themselves
 #define ISCORE_SERIALIZE_FRIENDS(Type, Serializer) \
     friend void Visitor<Reader< Serializer >>::readFrom< Type > (const Type &); \
+    friend void Visitor<Reader< Serializer >>::readFrom_impl< Type > (const Type &); \
     friend void Visitor<Writer< Serializer >>::writeTo< Type > (Type &);
 
 

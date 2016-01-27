@@ -33,14 +33,14 @@ DocumentPluginFactory::~DocumentPluginFactory()
 }
 
 template<>
-void Visitor<Reader<DataStream>>::readFrom(
+void Visitor<Reader<DataStream>>::readFrom_impl(
         const iscore::SerializableDocumentPlugin& dpm)
 {
     // Nothing to save
 }
 
 template<>
-void Visitor<Reader<JSONObject>>::readFrom(
+void Visitor<Reader<JSONObject>>::readFrom_impl(
         const iscore::SerializableDocumentPlugin& dpm)
 {
     // Nothing to save

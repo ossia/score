@@ -3,6 +3,35 @@
 
 #include <iscore/serialization/JSONVisitor.hpp>
 
+template<typename T>
+struct AbstractSerializer<DataStream, T>
+{
+    static void readFrom(
+            DataStream::Serializer& s,
+            const T& obj)
+    {
+        s.readFrom(obj.concreteFactoryKey().impl());
+        s.readFrom_impl(obj);
+        obj.serialize_impl(s.toVariant());
+        s.insertDelimiter();
+    }
+};
+
+
+
+template<typename T>
+struct AbstractSerializer<JSONObject, T>
+{
+    static void readFrom(
+            JSONObject::Serializer& s,
+            const T& obj)
+    {
+        s.m_obj["uuid"] = toJsonValue(obj.concreteFactoryKey().impl());
+        s.readFrom_impl(obj);
+        obj.serialize_impl(s.toVariant());
+    }
+};
+
 namespace iscore
 {
 struct concrete { using is_concrete_tag = std::integral_constant<bool, true>; };
@@ -60,10 +89,12 @@ auto deserialize_interface(
     if(auto concrete_factory = factories.get(k))
     {
         // Create the object
-        return concrete_factory->load(des.toVariant(), std::forward<Args>(args)...);
-    }
+        auto obj = concrete_factory->load(des.toVariant(), std::forward<Args>(args)...);
 
-    deserialize_check(des);
+        deserialize_check(des);
+
+        return obj;
+    }
 
     return nullptr;
 }
