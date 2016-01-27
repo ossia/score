@@ -22,5 +22,5 @@ class ${PLUGIN_NAME} final:
 
         std::vector<std::unique_ptr<iscore::FactoryInterfaceBase>> factories(
                 const iscore::ApplicationContext& ctx,
-                const iscore::FactoryBaseKey& factoryName) const override;
+                const iscore::AbstractFactoryKey& factoryName) const override;
 };

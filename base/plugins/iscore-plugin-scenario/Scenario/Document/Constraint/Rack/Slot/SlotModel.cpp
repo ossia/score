@@ -14,13 +14,12 @@
 #include <iscore/tools/NotifyingMap.hpp>
 #include <iscore/tools/Todo.hpp>
 
-ISCORE_METADATA_IMPL(Scenario::SlotModel)
 namespace Scenario
 {
 SlotModel::SlotModel(
         const Id<SlotModel>& id,
         RackModel* parent) :
-    IdentifiedObject<SlotModel> {id, className.c_str(), parent}
+    IdentifiedObject<SlotModel> {id, Metadata<ObjectKey_k, SlotModel>::get(), parent}
 {
     initConnections();
     metadata.setName(QString{"Slot.%1"}.arg(*id.val()));
@@ -31,7 +30,7 @@ SlotModel::SlotModel(
         const SlotModel& source,
         const Id<SlotModel>& id,
         RackModel *parent):
-    IdentifiedObject<SlotModel> {id, className.c_str(), parent},
+    IdentifiedObject<SlotModel> {id, Metadata<ObjectKey_k, RackModel>::get(), parent},
     m_frontLayerModelId{Id<Process::LayerModel>{source.m_frontLayerModelId.val()}},
     m_height {source.height() }
 {

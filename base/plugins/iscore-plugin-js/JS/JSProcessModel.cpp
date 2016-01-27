@@ -23,7 +23,7 @@ ProcessModel::ProcessModel(
         const TimeValue& duration,
         const Id<Process::ProcessModel>& id,
         QObject* parent):
-    Process::ProcessModel{duration, id, ProcessMetadata::processObjectName(), parent}
+    Process::ProcessModel{duration, id, Metadata<ObjectKey_k, ProcessModel>::get(), parent}
 {
     pluginModelList = new iscore::ElementPluginModelList{
                       iscore::IDocument::documentContext(*parent),
@@ -43,7 +43,7 @@ ProcessModel::ProcessModel(
         const ProcessModel& source,
         const Id<Process::ProcessModel>& id,
         QObject* parent):
-    Process::ProcessModel{source.duration(), id, ProcessMetadata::processObjectName(), parent},
+    Process::ProcessModel{source.duration(), id, Metadata<ObjectKey_k, ProcessModel>::get(), parent},
     m_script{source.m_script}
 {
     pluginModelList = new iscore::ElementPluginModelList{
@@ -126,7 +126,7 @@ void ProcessModel::setSelection(const Selection&) const
 {
 }
 
-void ProcessModel::serialize(const VisitorVariant& s) const
+void ProcessModel::serialize_impl(const VisitorVariant& s) const
 {
     serialize_dyn(s, *this);
 }

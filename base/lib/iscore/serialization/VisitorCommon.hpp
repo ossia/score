@@ -12,12 +12,12 @@ void serialize_dyn(const VisitorVariant& vis, const TheClass& s)
 {
     if(vis.identifier == DataStream::type())
     {
-        static_cast<DataStream::Serializer&>(vis.visitor).readFrom(s);
+        static_cast<DataStream::Serializer&>(vis.visitor).readFrom_impl(s);
         return;
     }
     else if(vis.identifier == JSONObject::type())
     {
-        static_cast<JSONObject::Serializer&>(vis.visitor).readFrom(s);
+        static_cast<JSONObject::Serializer&>(vis.visitor).readFrom_impl(s);
         return;
     }
 

@@ -36,13 +36,43 @@ struct Value;
 }  // namespace iscore
 struct VisitorVariant;
 
+// MOVEME
+template<>
+void Visitor<Reader<DataStream>>::readFrom_impl(
+        const DeviceExplorer::DeviceDocumentPlugin& dev)
+{
+    readFrom(dev.rootNode());
+}
+
+
+template<>
+void Visitor<Reader<JSONObject>>::readFrom_impl(
+        const DeviceExplorer::DeviceDocumentPlugin& dev)
+{
+    readFrom(dev.rootNode());
+}
+
+template<>
+void Visitor<Writer<DataStream>>::writeTo(
+        DeviceExplorer::DeviceDocumentPlugin& dev)
+{
+    writeTo(dev.rootNode());
+}
+
+
+template<>
+void Visitor<Writer<JSONObject>>::writeTo(
+        DeviceExplorer::DeviceDocumentPlugin& dev)
+{
+    writeTo(dev.rootNode());
+}
 
 namespace DeviceExplorer
 {
 DeviceDocumentPlugin::DeviceDocumentPlugin(
         iscore::Document& ctx,
         QObject* parent):
-    iscore::DocumentPluginModel{ctx, "DeviceExplorer::DeviceDocumentPlugin", parent}
+    iscore::SerializableDocumentPlugin{ctx, "DeviceExplorer::DeviceDocumentPlugin", parent}
 {
 
 }
@@ -51,9 +81,9 @@ DeviceDocumentPlugin::DeviceDocumentPlugin(
         iscore::Document& ctx,
         const VisitorVariant& vis,
         QObject* parent):
-    iscore::DocumentPluginModel{ctx, "DeviceExplorer::DeviceDocumentPlugin", parent}
+    iscore::SerializableDocumentPlugin{ctx, "DeviceExplorer::DeviceDocumentPlugin", parent}
 {
-    deserialize_dyn(vis, m_rootNode);
+    deserialize_dyn(vis, *this);
 
     // Here we recreate the correct structures in term of devices,
     // given what's present in the node hierarchy
@@ -63,9 +93,14 @@ DeviceDocumentPlugin::DeviceDocumentPlugin(
     }
 }
 
-void DeviceDocumentPlugin::serialize(const VisitorVariant& vis) const
+void DeviceDocumentPlugin::serialize_impl(const VisitorVariant& vis) const
 {
-    serialize_dyn(vis, m_rootNode);
+    serialize_dyn(vis, *this);
+}
+
+auto DeviceDocumentPlugin::concreteFactoryKey() const -> ConcreteFactoryKey
+{
+    return DocumentPluginFactory::static_concreteFactoryKey();
 }
 
 Device::Node DeviceDocumentPlugin::createDeviceFromNode(const Device::Node & node)

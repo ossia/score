@@ -1,7 +1,6 @@
 #include "ProcessElement.hpp"
 
 #include <OSSIA/Executor/DocumentPlugin.hpp>
-ISCORE_METADATA_IMPL(RecreateOnPlay::ProcessComponent)
 namespace RecreateOnPlay
 {
 

@@ -31,7 +31,6 @@ class FullViewConstraintViewModel;
 class ISCORE_PLUGIN_SCENARIO_EXPORT ConstraintModel final : public IdentifiedObject<ConstraintModel>, public Nano::Observer
 {
         Q_OBJECT
-        ISCORE_METADATA(Scenario::ConstraintModel)
 
         ISCORE_SERIALIZE_FRIENDS(Scenario::ConstraintModel, DataStream)
         ISCORE_SERIALIZE_FRIENDS(Scenario::ConstraintModel, JSONObject)
@@ -51,9 +50,6 @@ class ISCORE_PLUGIN_SCENARIO_EXPORT ConstraintModel final : public IdentifiedObj
         ConstraintDurations duration{*this};
 
         iscore::ElementPluginModelList pluginModelList;
-
-        static QString description()
-        { return QObject::tr("Constraint"); }
 
         /** The class **/
         ConstraintModel(const Id<ConstraintModel>&,
@@ -165,3 +161,5 @@ class ISCORE_PLUGIN_SCENARIO_EXPORT ConstraintModel final : public IdentifiedObj
         bool m_looping{false};
 };
 }
+
+DEFAULT_MODEL_METADATA(Scenario::ConstraintModel, "Constraint")

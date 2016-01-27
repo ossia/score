@@ -11,7 +11,7 @@ template <typename T> class Reader;
 template <typename T> class Writer;
 
 template<>
-void Visitor<Reader<DataStream>>::readFrom(
+void Visitor<Reader<DataStream>>::readFrom_impl(
         const Dummy::DummyModel& proc)
 {
     readFrom(*proc.pluginModelList);
@@ -29,7 +29,7 @@ void Visitor<Writer<DataStream>>::writeTo(
 }
 
 template<>
-void Visitor<Reader<JSONObject>>::readFrom(
+void Visitor<Reader<JSONObject>>::readFrom_impl(
         const Dummy::DummyModel& proc)
 {
     m_obj["PluginsMetadata"] = toJsonValue(*proc.pluginModelList);

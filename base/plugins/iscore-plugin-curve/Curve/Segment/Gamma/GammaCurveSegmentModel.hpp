@@ -15,6 +15,10 @@ namespace Curve
 struct GammaSegmentData
 {
     double gamma;
+
+    static const SegmentFactoryKey& static_concreteFactoryKey();
+    static const QString prettyName()
+    { return QObject::tr("Gamma"); }
 };
 
 class GammaSegment final : public SegmentModel
@@ -37,8 +41,8 @@ class GammaSegment final : public SegmentModel
                 const Id<SegmentModel>& id,
                 QObject* parent) const override;
 
-        const SegmentFactoryKey& key() const override;
-        void serialize(const VisitorVariant& vis) const override;
+        SegmentFactoryKey concreteFactoryKey() const override;
+        void serialize_impl(const VisitorVariant& vis) const override;
         void on_startChanged() override;
         void on_endChanged() override;
 

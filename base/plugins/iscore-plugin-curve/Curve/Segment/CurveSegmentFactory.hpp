@@ -16,9 +16,10 @@ class SegmentModel;
 struct SegmentData;
 class SegmentFactory : public iscore::GenericFactoryInterface<SegmentFactoryKey>
 {
-        ISCORE_FACTORY_DECL("CurveSegment")
+        ISCORE_ABSTRACT_FACTORY_DECL(
+                Curve::SegmentModel,
+                "608ecec9-d8bc-4b6b-8e9e-31867a310f1e")
     public:
-            using factory_key_type = SegmentFactoryKey;
         virtual ~SegmentFactory();
 
         virtual QString prettyName() const = 0;
@@ -82,19 +83,18 @@ class SegmentFactory_T : public SegmentFactory
 };
 
 }
-#define DEFINE_CURVE_SEGMENT_FACTORY(Name, DynName, Model) \
+#define DEFINE_CURVE_SEGMENT_FACTORY(Name, Model) \
     class Name final : public Curve::SegmentFactory_T<Model> \
 { \
     public: \
     virtual ~Name() = default; \
     \
     private: \
-    const Curve::SegmentFactoryKey& key_impl() const override { \
-        static const Curve::SegmentFactoryKey name{DynName}; \
-        return name; \
+    const Curve::SegmentFactoryKey& concreteFactoryKey() const override { \
+        return Model::data_type::static_concreteFactoryKey();\
     } \
     \
     QString prettyName() const override { \
-        return QObject::tr(DynName); \
+        return Model::data_type::prettyName(); \
     } \
 };

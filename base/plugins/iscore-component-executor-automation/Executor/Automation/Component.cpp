@@ -182,10 +182,10 @@ ProcessComponent* ComponentFactory::make(
 
 }
 
-const ComponentFactory::factory_key_type&
-ComponentFactory::key_impl() const
+const ComponentFactory::ConcreteFactoryKey&
+ComponentFactory::concreteFactoryKey() const
 {
-    static ComponentFactory::factory_key_type k("OSSIAComponent");
+    static ComponentFactory::ConcreteFactoryKey k("d85c0412-69b9-4ad3-973e-0f6e400599db");
     return k;
 }
 

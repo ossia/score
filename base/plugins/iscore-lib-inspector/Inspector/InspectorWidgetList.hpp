@@ -22,12 +22,12 @@ class ISCORE_LIB_INSPECTOR_EXPORT InspectorWidgetList final :
         public iscore::FactoryListInterface
 {
     public:
-        static const iscore::FactoryBaseKey& staticFactoryKey() {
-            return InspectorWidgetFactory::staticFactoryKey();
+        static const iscore::AbstractFactoryKey& static_abstractFactoryKey() {
+            return InspectorWidgetFactory::static_abstractFactoryKey();
         }
 
-        iscore::FactoryBaseKey name() const final override {
-            return InspectorWidgetFactory::staticFactoryKey();
+        iscore::AbstractFactoryKey abstractFactoryKey() const final override {
+            return InspectorWidgetFactory::static_abstractFactoryKey();
         }
         void insert(std::unique_ptr<iscore::FactoryInterfaceBase> e) final override
         {

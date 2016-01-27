@@ -7,7 +7,7 @@ class Document;
 class CommandStack;
 class SelectionStack;
 class ObjectLocker;
-class DocumentPluginModel;
+class DocumentPlugin;
 
 struct ISCORE_LIB_BASE_EXPORT DocumentContext
 {
@@ -23,7 +23,7 @@ struct ISCORE_LIB_BASE_EXPORT DocumentContext
         iscore::SelectionStack& selectionStack;
         iscore::ObjectLocker& objectLocker;
 
-        const std::vector<DocumentPluginModel*>& pluginModels() const;
+        const std::vector<DocumentPlugin*>& pluginModels() const;
 
         template<typename T>
         T& plugin() const
@@ -32,7 +32,7 @@ struct ISCORE_LIB_BASE_EXPORT DocumentContext
             const auto& pms = this->pluginModels();
             auto it = find_if(begin(pms),
                               end(pms),
-                              [&](DocumentPluginModel * pm)
+                              [&](DocumentPlugin * pm)
             { return dynamic_cast<T*>(pm); });
 
             ISCORE_ASSERT(it != end(pms));
@@ -46,7 +46,7 @@ struct ISCORE_LIB_BASE_EXPORT DocumentContext
             const auto& pms = this->pluginModels();
             auto it = find_if(begin(pms),
                               end(pms),
-                              [&](DocumentPluginModel * pm)
+                              [&](DocumentPlugin * pm)
             { return dynamic_cast<T*>(pm); });
 
             if(it != end(pms))

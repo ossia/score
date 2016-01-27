@@ -46,13 +46,13 @@ SegmentModel*PointArraySegment::clone(
     return cs;
 }
 
-const SegmentFactoryKey& PointArraySegment::key() const
+SegmentFactoryKey PointArraySegment::concreteFactoryKey() const
 {
-    static const SegmentFactoryKey name{"PointArray"};
+    static const SegmentFactoryKey name{"c598b840-db67-4c8f-937a-46cfac87cb59"};
     return name;
 }
 
-void PointArraySegment::serialize(const VisitorVariant& vis) const
+void PointArraySegment::serialize_impl(const VisitorVariant& vis) const
 {
     serialize_dyn(vis, *this);
 }
@@ -198,7 +198,7 @@ std::vector<SegmentData> PointArraySegment::toLinearSegments() const
     vec.emplace_back(Id<SegmentModel>{0},
                      pts[0], pts[1],
                      Id<SegmentModel>{}, Id<SegmentModel>{},
-                     LinearSegmentData::key(), QVariant::fromValue(LinearSegmentData{}));
+                     LinearSegmentData::static_concreteFactoryKey(), QVariant::fromValue(LinearSegmentData{}));
 
     int size = pts.size();
     for(int i = 1; i < size - 1; i++)
@@ -208,7 +208,7 @@ std::vector<SegmentData> PointArraySegment::toLinearSegments() const
         vec.emplace_back(Id<SegmentModel>{i},
                          pts[i], pts[i+1],
                          Id<SegmentModel>{i-1}, Id<SegmentModel>{},
-                         LinearSegmentData::key(), QVariant::fromValue(LinearSegmentData()));
+                         LinearSegmentData::static_concreteFactoryKey(), QVariant::fromValue(LinearSegmentData()));
     }
 
     return vec;

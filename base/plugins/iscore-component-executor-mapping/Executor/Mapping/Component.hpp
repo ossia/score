@@ -12,7 +12,7 @@ namespace OSSIA
 
 namespace Mapping
 {
-class MappingModel;
+class ProcessModel;
 }
 
 namespace Device
@@ -31,7 +31,7 @@ class Component final : public ProcessComponent
     public:
         Component(
                 ConstraintElement& parentConstraint,
-                ::Mapping::MappingModel& element,
+                ::Mapping::ProcessModel& element,
                 const Context& ctx,
                 const Id<iscore::Component>& id,
                 QObject* parent);
@@ -72,7 +72,7 @@ class ComponentFactory final :
                 const Id<iscore::Component>& id,
                 QObject* parent) const override;
 
-        const factory_key_type& key_impl() const override;
+        const ConcreteFactoryKey& concreteFactoryKey() const override;
 
         bool matches(
                 Process::ProcessModel&,

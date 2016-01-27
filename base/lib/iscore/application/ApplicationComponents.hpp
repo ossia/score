@@ -17,7 +17,8 @@
 
 namespace iscore
 {
-class DocumentDelegateFactoryInterface;
+class DocumentDelegateFactory;
+class DocumentPluginFactory;
 class FactoryListInterface;
 class GUIApplicationContextPlugin;
 class PanelFactory;
@@ -35,8 +36,9 @@ struct ISCORE_LIB_BASE_EXPORT ApplicationComponentsData
         QStringList pluginFiles;
         std::vector<QObject*> plugins;
         std::vector<GUIApplicationContextPlugin*> appPlugins;
-        std::vector<DocumentDelegateFactoryInterface*> availableDocuments;
-        std::unordered_map<iscore::FactoryBaseKey, std::unique_ptr<FactoryListInterface>> factories;
+        std::vector<DocumentDelegateFactory*> availableDocuments;
+
+        std::unordered_map<iscore::AbstractFactoryKey, std::unique_ptr<FactoryListInterface>> factories;
         std::unordered_map<CommandParentFactoryKey, CommandGeneratorMap> commands;
 
         // TODO instead put the factory as a member function?
@@ -94,7 +96,7 @@ class ISCORE_LIB_BASE_EXPORT ApplicationComponents
         const T& factory() const
         {
             static_assert(T::factory_list_tag, "This needs to be called with a factory list class");
-            auto it = m_data.factories.find(T::staticFactoryKey());
+            auto it = m_data.factories.find(T::static_abstractFactoryKey());
             if(it != m_data.factories.end())
             {
                 return *safe_cast<T*>(it->second.get());

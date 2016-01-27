@@ -11,9 +11,12 @@ class TimeNodeModel;
 namespace Command
 {
 
-class ISCORE_PLUGIN_SCENARIO_EXPORT TriggerCommandFactory : public iscore::FactoryInterfaceBase
+class ISCORE_PLUGIN_SCENARIO_EXPORT TriggerCommandFactory :
+        public iscore::FactoryInterfaceBase
 {
-        ISCORE_FACTORY_DECL("TriggerCommandFactory")
+        ISCORE_ABSTRACT_FACTORY_DECL(
+                iscore::SerializableCommand,
+                "d6b7385e-b6c4-4cc2-8fc6-1041a43d98fa")
     public:
         virtual ~TriggerCommandFactory();
         virtual bool matches(

@@ -50,15 +50,6 @@ std::vector<QAction*> GUIApplicationContextPlugin::actions()
     return {};
 }
 
-
-DocumentPluginModel*GUIApplicationContextPlugin::loadDocumentPlugin(
-        const QString& name,
-        const VisitorVariant& var,
-        Document* parent)
-{
-    return nullptr;
-}
-
 Document*GUIApplicationContextPlugin::currentDocument() const
 {
     return context.documents.currentDocument();

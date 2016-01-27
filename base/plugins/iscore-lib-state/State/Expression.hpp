@@ -50,7 +50,6 @@ struct ISCORE_LIB_STATE_EXPORT ExprData :
 // TODO bouefff
 using State::ExprData;
 
-template<>
 /**
  * @brief The TreeNode<ExprData> class
  *
@@ -60,10 +59,11 @@ template<>
  *
  * TODO enforce the invariant of children.size <= 2 (since it's a binary tree)
  */
+template<>
 class ISCORE_LIB_STATE_EXPORT TreeNode<ExprData> final : public ExprData
 {
-        ISCORE_SERIALIZE_FRIENDS(TreeNode<ExprData>, DataStream)
-        ISCORE_SERIALIZE_FRIENDS(TreeNode<ExprData>, JSONObject)
+        friend struct TSerializer<DataStream, TreeNode<ExprData>>;
+        friend struct TSerializer<JSONObject, TreeNode<ExprData>>;
 
         friend bool operator!=(const TreeNode<ExprData>& lhs, const TreeNode<ExprData>& rhs)
         {

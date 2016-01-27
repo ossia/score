@@ -5,12 +5,12 @@
 class ProcessInspectorWidgetDelegateFactoryList final : public iscore::FactoryListInterface
 {
     public:
-      static const iscore::FactoryBaseKey& staticFactoryKey() {
-          return ProcessInspectorWidgetDelegateFactory::staticFactoryKey();
+      static const iscore::AbstractFactoryKey& static_abstractFactoryKey() {
+          return ProcessInspectorWidgetDelegateFactory::static_abstractFactoryKey();
       }
 
-      iscore::FactoryBaseKey name() const final override {
-          return ProcessInspectorWidgetDelegateFactory::staticFactoryKey();
+      iscore::AbstractFactoryKey abstractFactoryKey() const final override {
+          return ProcessInspectorWidgetDelegateFactory::static_abstractFactoryKey();
       }
 
       void insert(std::unique_ptr<iscore::FactoryInterfaceBase> e) final override

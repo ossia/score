@@ -27,7 +27,7 @@ class ISCORE_PLUGIN_CURVE_EXPORT CurveProcessFactory_T : public Process::Process
             return new Model_T{duration, id, parent};
         }
 
-        Model_T* loadModel(
+        Model_T* load(
                 const VisitorVariant& vis,
                 QObject* parent) override
         {
@@ -66,13 +66,13 @@ class ISCORE_PLUGIN_CURVE_EXPORT CurveProcessFactory_T : public Process::Process
 
 }
 // See AutomationProcessMetadata.
-#define DEFINE_CURVE_PROCESS_FACTORY(Name, ProcessMetadata, Model, Layer, Presenter, View, Colors) \
+#define DEFINE_CURVE_PROCESS_FACTORY(Name, Model, Layer, Presenter, View, Colors) \
 class Name final : public Curve::CurveProcessFactory_T<Model, Layer, Presenter, View, Colors> \
 { \
     using Curve::CurveProcessFactory_T<Model, Layer, Presenter, View, Colors>::CurveProcessFactory_T; \
-    const ProcessFactoryKey& key_impl() const override \
-    { return ProcessMetadata::factoryKey(); } \
+    const ProcessFactoryKey& concreteFactoryKey() const override \
+    { return Metadata<ConcreteFactoryKey_k, ProcessModel>::get(); } \
     \
     QString prettyName() const override \
-    { return ProcessMetadata::factoryPrettyName(); } \
+    { return Metadata<PrettyName_k, ProcessModel>::get(); } \
 };

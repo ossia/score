@@ -5,7 +5,7 @@
 namespace iscore
 {
     class Document;
-    class DocumentDelegateFactoryInterface;
+    class DocumentDelegateFactory;
     class DocumentDelegateViewInterface;
     class PanelView;
 
@@ -18,7 +18,7 @@ namespace iscore
     class DocumentView final : public QWidget
     {
         public:
-            DocumentView(DocumentDelegateFactoryInterface* viewDelegate,
+            DocumentView(DocumentDelegateFactory* viewDelegate,
                          const Document& doc,
                          QWidget* parent);
 

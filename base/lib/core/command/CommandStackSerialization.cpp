@@ -26,13 +26,13 @@ void Visitor<Reader<DataStream>>::readFrom(
     {
         undoStack.emplace_back(*cmd);
     }
-    readFrom_vector_obj_impl(*this, undoStack);
+    readFrom(undoStack);
 
     for(const auto& cmd : stack.redoable())
     {
         redoStack.emplace_back(*cmd);
     }
-    readFrom_vector_obj_impl(*this, redoStack);
+    readFrom(redoStack);
 
     insertDelimiter();
 }

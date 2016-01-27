@@ -16,9 +16,10 @@ namespace Scenario
 {
 class ConstraintModel;
 class TimeNodeModel;
-class BaseScenario final : public IdentifiedObject<BaseScenario>, public BaseScenarioContainer
+class BaseScenario final :
+        public IdentifiedObject<BaseScenario>,
+        public BaseScenarioContainer
 {
-        ISCORE_METADATA(Scenario::BaseScenario)
         ISCORE_SERIALIZE_FRIENDS(Scenario::BaseScenario, DataStream)
         ISCORE_SERIALIZE_FRIENDS(Scenario::BaseScenario, JSONObject)
 
@@ -46,3 +47,6 @@ const QVector<Id<ConstraintModel>> constraintsBeforeTimeNode(
         const BaseScenario&,
         const Id<TimeNodeModel>& timeNodeId);
 }
+
+DEFAULT_MODEL_METADATA(Scenario::BaseScenario, "Base Scenario")
+UNDO_NAME_METADATA(EMPTY_MACRO, Scenario::BaseScenario, "Base Scenario")

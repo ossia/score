@@ -6,11 +6,10 @@
 #include <iscore/tools/SettableIdentifier.hpp>
 #include <iscore/tools/Todo.hpp>
 
-ISCORE_METADATA_IMPL(Scenario::RackModel)
 namespace Scenario
 {
 RackModel::RackModel(const Id<RackModel>& id, QObject* parent) :
-    IdentifiedObject<RackModel> {id, className.c_str(), parent}
+    IdentifiedObject<RackModel> {id, Metadata<ObjectKey_k, RackModel>::get(), parent}
 {
     initConnections();
     metadata.setName(QString{"Rack.%1"} .arg(*id.val()));
@@ -20,7 +19,7 @@ RackModel::RackModel(const RackModel& source,
                    const Id<RackModel>& id,
                    std::function<void(const SlotModel&, SlotModel&)> lmCopyMethod,
                    QObject *parent) :
-    IdentifiedObject<RackModel> {id, className.c_str(), parent}
+    IdentifiedObject<RackModel> {id, Metadata<ObjectKey_k, RackModel>::get(), parent}
 {
     initConnections();
     for(const auto& slot : source.slotmodels)

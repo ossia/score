@@ -2,6 +2,7 @@
 #include <QDataStream>
 #include <iscore/document/DocumentInterface.hpp>
 #include <iscore/tools/IdentifiedObjectAbstract.hpp>
+#include <iscore/tools/Metadata.hpp>
 
 template<typename T, typename U>
 struct in_relationship
@@ -94,6 +95,22 @@ class Path
             return p;
         }
 
+
+        template<typename U>
+        auto extend(const Id<U>& id) const &
+        {
+            Path<U> p{this->m_impl.vec()};
+            p.m_impl.vec().push_back({Metadata<ObjectKey_k, U>::get(), id});
+            return p;
+        }
+
+        template<typename U>
+        auto extend(const Id<U>& id) &&
+        {
+            Path<U> p{std::move(this->m_impl.vec())};
+            p.m_impl.vec().push_back({Metadata<ObjectKey_k, U>::get(), id});
+            return p;
+        }
 
         template<typename U>
         auto splitLast() const &

@@ -26,7 +26,6 @@ namespace Automation
 {
 DEFINE_CURVE_PROCESS_FACTORY(
         AutomationFactory,
-        Automation::ProcessMetadata,
         Automation::ProcessModel,
         Automation::LayerModel,
         Automation::LayerPresenter,
@@ -41,7 +40,7 @@ iscore_plugin_automation::iscore_plugin_automation() :
 
 std::vector<std::unique_ptr<iscore::FactoryInterfaceBase>> iscore_plugin_automation::factories(
         const iscore::ApplicationContext& ctx,
-        const iscore::FactoryBaseKey& key) const
+        const iscore::AbstractFactoryKey& key) const
 {
     return instantiate_factories<
             iscore::ApplicationContext,

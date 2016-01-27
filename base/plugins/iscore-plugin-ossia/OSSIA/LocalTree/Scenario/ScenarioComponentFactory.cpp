@@ -6,10 +6,10 @@ namespace Ossia
 namespace LocalTree
 {
 
-const ScenarioComponentFactory::factory_key_type&
-ScenarioComponentFactory::key_impl() const
+const ScenarioComponentFactory::ConcreteFactoryKey&
+ScenarioComponentFactory::concreteFactoryKey() const
 {
-    static const factory_key_type name{"ScenarioComponentFactory"};
+    static const ConcreteFactoryKey name{"ffc0aaed-9197-4956-a966-3f54afdfb762"};
     return name;
 }
 

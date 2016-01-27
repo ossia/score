@@ -23,5 +23,5 @@ class iscore_plugin_ossia_simpleprocess:
         // Process & inspector
         std::vector<std::unique_ptr<iscore::FactoryInterfaceBase>> factories(
                 const iscore::ApplicationContext&,
-                const iscore::FactoryBaseKey& factoryName) const override;
+                const iscore::AbstractFactoryKey& factoryName) const override;
 };

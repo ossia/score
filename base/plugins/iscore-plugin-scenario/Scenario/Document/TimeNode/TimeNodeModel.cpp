@@ -12,7 +12,6 @@
 #include <iscore/tools/IdentifiedObject.hpp>
 #include <iscore/tools/SettableIdentifier.hpp>
 
-ISCORE_METADATA_IMPL(Scenario::TimeNodeModel)
 namespace Scenario
 {
 TimeNodeModel::TimeNodeModel(
@@ -20,7 +19,7 @@ TimeNodeModel::TimeNodeModel(
         const VerticalExtent& extent,
         const TimeValue& date,
         QObject* parent):
-    IdentifiedObject<TimeNodeModel> {id, "TimeNodeModel", parent},
+    IdentifiedObject<TimeNodeModel> {id, Metadata<ObjectKey_k, TimeNodeModel>::get(), parent},
     pluginModelList{iscore::IDocument::documentContext(*parent), this},
     m_extent{extent},
     m_date{date},
@@ -35,7 +34,7 @@ TimeNodeModel::TimeNodeModel(
         const TimeNodeModel &source,
         const Id<TimeNodeModel>& id,
         QObject* parent):
-    IdentifiedObject<TimeNodeModel> {id, "TimeNodeModel", parent},
+    IdentifiedObject<TimeNodeModel> {id, Metadata<ObjectKey_k, TimeNodeModel>::get(), parent},
     metadata{source.metadata},
     pluginModelList{source.pluginModelList, this},
     m_extent{source.m_extent},

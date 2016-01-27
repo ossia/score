@@ -21,7 +21,7 @@ namespace Mapping
 // TODO try to template this to reuse it with ChangeAddress / ChangeTargetAddress
 // TODO why not use AddressSettings directly on Automations / Mapping ? It would simplify...
 ChangeSourceAddress::ChangeSourceAddress(
-        Path<MappingModel> &&path,
+        Path<ProcessModel> &&path,
         const State::Address &newval):
     m_path{path}
 {
@@ -91,7 +91,7 @@ void ChangeSourceAddress::deserializeImpl(DataStreamOutput & s)
 
 
 ChangeTargetAddress::ChangeTargetAddress(
-        Path<MappingModel> &&path,
+        Path<ProcessModel> &&path,
         const State::Address &newval):
     m_path{path}
 {

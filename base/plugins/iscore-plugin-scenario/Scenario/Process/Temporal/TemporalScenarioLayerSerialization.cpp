@@ -16,7 +16,8 @@ template <typename T> class Reader;
 template <typename T> class Writer;
 
 template<>
-void Visitor<Reader<DataStream>>::readFrom(const Scenario::TemporalScenarioLayerModel& lm)
+void Visitor<Reader<DataStream>>::readFrom_impl(
+        const Scenario::TemporalScenarioLayerModel& lm)
 {
     auto constraints = constraintsViewModels(lm);
 
@@ -31,7 +32,8 @@ void Visitor<Reader<DataStream>>::readFrom(const Scenario::TemporalScenarioLayer
 }
 
 template<>
-void Visitor<Writer<DataStream>>::writeTo(Scenario::TemporalScenarioLayerModel& lm)
+void Visitor<Writer<DataStream>>::writeTo(
+        Scenario::TemporalScenarioLayerModel& lm)
 {
     int count;
     m_stream >> count;
@@ -48,7 +50,8 @@ void Visitor<Writer<DataStream>>::writeTo(Scenario::TemporalScenarioLayerModel& 
 
 
 template<>
-void Visitor<Reader<JSONObject>>::readFrom(const Scenario::TemporalScenarioLayerModel& lm)
+void Visitor<Reader<JSONObject>>::readFrom_impl(
+        const Scenario::TemporalScenarioLayerModel& lm)
 {
     QJsonArray arr;
 
@@ -61,7 +64,8 @@ void Visitor<Reader<JSONObject>>::readFrom(const Scenario::TemporalScenarioLayer
 }
 
 template<>
-void Visitor<Writer<JSONObject>>::writeTo(Scenario::TemporalScenarioLayerModel& lm)
+void Visitor<Writer<JSONObject>>::writeTo(
+        Scenario::TemporalScenarioLayerModel& lm)
 {
     QJsonArray arr = m_obj["Constraints"].toArray();
 

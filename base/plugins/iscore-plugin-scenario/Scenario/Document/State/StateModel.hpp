@@ -51,7 +51,6 @@ class ProcessStateWrapper : public QObject
 class ISCORE_PLUGIN_SCENARIO_EXPORT StateModel final : public IdentifiedObject<StateModel>, public Nano::Observer
 {
         Q_OBJECT
-        ISCORE_METADATA(Scenario::StateModel)
 
         ISCORE_SERIALIZE_FRIENDS(Scenario::StateModel, DataStream)
         ISCORE_SERIALIZE_FRIENDS(Scenario::StateModel, JSONObject)
@@ -86,8 +85,6 @@ class ISCORE_PLUGIN_SCENARIO_EXPORT StateModel final : public IdentifiedObject<S
             init();
         }
 
-        static QString description()
-        { return "State"; }
         double heightPercentage() const;
 
         MessageItemModel &messages() const;
@@ -144,3 +141,5 @@ class ISCORE_PLUGIN_SCENARIO_EXPORT StateModel final : public IdentifiedObject<S
         ExecutionStatusProperty m_status{};
 };
 }
+
+DEFAULT_MODEL_METADATA(Scenario::StateModel, "State")

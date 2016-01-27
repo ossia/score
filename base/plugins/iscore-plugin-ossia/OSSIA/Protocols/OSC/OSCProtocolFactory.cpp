@@ -21,9 +21,9 @@ QString OSCProtocolFactory::prettyName() const
     return QObject::tr("OSC");
 }
 
-const Device::ProtocolFactoryKey& OSCProtocolFactory::key_impl() const
+const Device::ProtocolFactoryKey& OSCProtocolFactory::concreteFactoryKey() const
 {
-    static const Device::ProtocolFactoryKey name{"OSC"};
+    static const Device::ProtocolFactoryKey name{"9a42de4b-f6eb-4bca-9564-01b975f601b9"};
     return name;
 }
 
@@ -38,7 +38,7 @@ const Device::DeviceSettings& OSCProtocolFactory::defaultSettings() const
 {
     static const Device::DeviceSettings settings = [&] () {
         Device::DeviceSettings s;
-        s.protocol = key_impl();
+        s.protocol = concreteFactoryKey();
         s.name = "OSC";
         OSCSpecificSettings specif;
         s.deviceSpecificSettings = QVariant::fromValue(specif);

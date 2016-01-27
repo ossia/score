@@ -10,12 +10,12 @@ class DisplayedElementsProviderList final : public iscore::FactoryListInterface
 {
     public:
       // TODO refactor this with constraint inspector blablabli and triggercommandfactory blablabla
-      static const iscore::FactoryBaseKey& staticFactoryKey() {
-          return DisplayedElementsProvider::staticFactoryKey();
+      static const iscore::AbstractFactoryKey& static_abstractFactoryKey() {
+          return DisplayedElementsProvider::static_abstractFactoryKey();
       }
 
-      iscore::FactoryBaseKey name() const final override {
-          return DisplayedElementsProvider::staticFactoryKey();
+      iscore::AbstractFactoryKey abstractFactoryKey() const final override {
+          return DisplayedElementsProvider::static_abstractFactoryKey();
       }
 
       void insert(std::unique_ptr<iscore::FactoryInterfaceBase> e) final override

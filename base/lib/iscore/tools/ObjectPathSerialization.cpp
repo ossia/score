@@ -13,13 +13,13 @@ template <typename T> class Writer;
 template<>
 void Visitor<Reader<DataStream>>::readFrom(const ObjectPath& path)
 {
-    readFrom_vector_obj_impl(*this, path.vec());
+    readFrom(path.vec());
 }
 
 template<>
 void Visitor<Writer<DataStream>>::writeTo(ObjectPath& path)
 {
-    writeTo_vector_obj_impl(*this, path.vec());
+    writeTo(path.vec());
 }
 
 template<>

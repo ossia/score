@@ -31,7 +31,7 @@ DocumentContext::DocumentContext(Document& d):
 {
 }
 
-const std::vector<DocumentPluginModel*>&DocumentContext::pluginModels() const
+const std::vector<DocumentPlugin*>&DocumentContext::pluginModels() const
 {
     return document.model().pluginModels();
 }
@@ -40,7 +40,7 @@ const std::vector<DocumentPluginModel*>&DocumentContext::pluginModels() const
 Document::Document(
         const QString& name,
         const Id<DocumentModel>& id,
-        DocumentDelegateFactoryInterface* factory,
+        DocumentDelegateFactory* factory,
         QWidget* parentview,
         QObject* parent) :
     NamedObject {"Document", parent},

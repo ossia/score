@@ -32,7 +32,7 @@ class AddTrigger final : public iscore::SerializableCommand
         { return QObject::tr("Add a trigger"); }
         static const CommandFactoryKey& static_key()
         {
-            static const CommandFactoryKey kagi{"AddTrigger_"_CS + Scenario_T::className};
+            static const CommandFactoryKey kagi{QString("AddTrigger_") + Metadata<ObjectKey_k, Scenario_T>::get()};
             return kagi;
         }
 

@@ -31,7 +31,6 @@ class ConstraintModel;
 class ISCORE_PLUGIN_SCENARIO_EXPORT RackModel final : public IdentifiedObject<RackModel>, public Nano::Observer
 {
         Q_OBJECT
-        ISCORE_METADATA(Scenario::RackModel)
 
     public:
         ModelMetadata metadata;
@@ -56,9 +55,6 @@ class ISCORE_PLUGIN_SCENARIO_EXPORT RackModel final : public IdentifiedObject<Ra
 
         void addSlot(SlotModel* m, int position);
         void addSlot(SlotModel* m);  // No position : at the end
-
-        static QString description()
-        { return QObject::tr("Rack"); }
 
         void swapSlots(const Id<SlotModel>& firstslot,
                        const Id<SlotModel>& secondslot);
@@ -86,3 +82,4 @@ class ISCORE_PLUGIN_SCENARIO_EXPORT RackModel final : public IdentifiedObject<Ra
         QList<Id<SlotModel>> m_positions;
 };
 }
+DEFAULT_MODEL_METADATA(Scenario::RackModel, "Rack")

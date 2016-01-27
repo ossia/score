@@ -4,9 +4,8 @@
 class QObject;
 namespace iscore {
 class Document;
-}  // namespace iscore
 
-iscore::DocumentPluginModel::DocumentPluginModel(
+DocumentPlugin::DocumentPlugin(
         iscore::Document& ctx,
         const QString& name,
         QObject* parent):
@@ -16,7 +15,34 @@ iscore::DocumentPluginModel::DocumentPluginModel(
 
 }
 
-iscore::DocumentPluginModel::~DocumentPluginModel()
+DocumentPlugin::~DocumentPlugin()
 {
 
 }
+
+SerializableDocumentPlugin::~SerializableDocumentPlugin()
+{
+
+}
+
+DocumentPluginFactory::~DocumentPluginFactory()
+{
+
+}
+
+}
+
+template<>
+void Visitor<Reader<DataStream>>::readFrom_impl(
+        const iscore::SerializableDocumentPlugin& dpm)
+{
+    // Nothing to save
+}
+
+template<>
+void Visitor<Reader<JSONObject>>::readFrom_impl(
+        const iscore::SerializableDocumentPlugin& dpm)
+{
+    // Nothing to save
+}
+

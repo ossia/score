@@ -16,11 +16,11 @@ struct VisitorVariant;
 namespace Scenario
 {
 class ScenarioDocumentFactory final :
-        public iscore::DocumentDelegateFactoryInterface
+        public iscore::DocumentDelegateFactory
 {
     public:
-        const ScenarioDocumentFactory::factory_key_type&
-        key_impl() const override;
+        const ScenarioDocumentFactory::ConcreteFactoryKey&
+        concreteFactoryKey() const override;
 
         iscore::DocumentDelegateViewInterface* makeView(
                 const iscore::ApplicationContext& ctx,

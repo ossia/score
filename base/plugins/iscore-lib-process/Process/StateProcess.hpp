@@ -6,13 +6,15 @@
 #include <Process/StateProcessFactoryKey.hpp>
 #include <iscore_lib_process_export.h>
 #include <iscore/tools/Metadata.hpp>
+#include <iscore/plugins/customfactory/SerializableInterface.hpp>
 
 namespace Process
 {
-class ISCORE_LIB_PROCESS_EXPORT StateProcess: public IdentifiedObject<StateProcess>
+class ISCORE_LIB_PROCESS_EXPORT StateProcess:
+        public IdentifiedObject<StateProcess>,
+        public iscore::SerializableInterface<StateProcess>
 {
         Q_OBJECT
-        ISCORE_METADATA(StateProcess)
 
         ISCORE_SERIALIZE_FRIENDS(StateProcess, DataStream)
         ISCORE_SERIALIZE_FRIENDS(StateProcess, JSONObject)
@@ -37,13 +39,9 @@ class ISCORE_LIB_PROCESS_EXPORT StateProcess: public IdentifiedObject<StateProce
                 const Id<StateProcess>& newId,
                 QObject* newParent) const = 0;
 
-        virtual void serialize(const VisitorVariant& vis) const = 0;
-
-
-        virtual const StateProcessFactoryKey& key() const = 0;
-
         // A user-friendly text to show to the users
         virtual QString prettyName() const = 0;
-        static QString description() {return "StateProcess";}
 };
 }
+
+DEFAULT_MODEL_METADATA(Process::StateProcess, "State process")

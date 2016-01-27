@@ -15,9 +15,9 @@ class QObject;
 
 namespace iscore
 {
-class DocumentDelegateFactoryInterface;
+class DocumentDelegateFactory;
 class DocumentDelegateModelInterface;
-class DocumentPluginModel;
+class DocumentPlugin;
 class PanelModel;
 struct ApplicationContext;
 
@@ -33,12 +33,12 @@ class ISCORE_LIB_BASE_EXPORT DocumentModel final : public IdentifiedObject<Docum
     public:
         DocumentModel(
                 const Id<DocumentModel>& id,
-                DocumentDelegateFactoryInterface* fact,
+                DocumentDelegateFactory* fact,
                 QObject* parent);
         DocumentModel(
-                const iscore::ApplicationContext& ctx,
+                iscore::DocumentContext& ctx,
                 const QVariant &data,
-                DocumentDelegateFactoryInterface* fact,
+                DocumentDelegateFactory* fact,
                 QObject* parent);
         ~DocumentModel();
 
@@ -65,8 +65,8 @@ class ISCORE_LIB_BASE_EXPORT DocumentModel final : public IdentifiedObject<Docum
         }
 
         // Plugin models
-        void addPluginModel(DocumentPluginModel* m);
-        const std::vector<DocumentPluginModel*>& pluginModels() { return m_pluginModels; }
+        void addPluginModel(DocumentPlugin* m);
+        const std::vector<DocumentPlugin*>& pluginModels() { return m_pluginModels; }
 
     signals:
         void pluginModelsChanged();
@@ -76,16 +76,16 @@ class ISCORE_LIB_BASE_EXPORT DocumentModel final : public IdentifiedObject<Docum
 
     private:
         void loadDocumentAsJson(
-                const iscore::ApplicationContext& ctx,
+                iscore::DocumentContext& ctx,
                 const QJsonObject&,
-                DocumentDelegateFactoryInterface* fact);
+                DocumentDelegateFactory* fact);
         void loadDocumentAsByteArray(
-                const iscore::ApplicationContext& ctx,
+                iscore::DocumentContext& ctx,
                 const QByteArray&,
-                DocumentDelegateFactoryInterface* fact);
+                DocumentDelegateFactory* fact);
 
         std::vector<PanelModel*> m_panelModels;
-        std::vector<DocumentPluginModel*> m_pluginModels;
+        std::vector<DocumentPlugin*> m_pluginModels;
         DocumentDelegateModelInterface* m_model{}; // note : this *has* to be last due to init order
 };
 }

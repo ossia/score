@@ -18,10 +18,10 @@ class FactoryListInterface;
 
 namespace Curve
 {
-DEFINE_CURVE_SEGMENT_FACTORY(LinearCurveSegmentFactory, "Linear", Curve::LinearSegment)
-DEFINE_CURVE_SEGMENT_FACTORY(PowerCurveSegmentFactory, "Power", Curve::PowerSegment)
-DEFINE_CURVE_SEGMENT_FACTORY(SinCurveSegmentFactory, "Sin", Curve::SinSegment)
-DEFINE_CURVE_SEGMENT_FACTORY(GammaCurveSegmentFactory, "Gamma", Curve::GammaSegment)
+DEFINE_CURVE_SEGMENT_FACTORY(LinearCurveSegmentFactory, Curve::LinearSegment)
+DEFINE_CURVE_SEGMENT_FACTORY(PowerCurveSegmentFactory, Curve::PowerSegment)
+DEFINE_CURVE_SEGMENT_FACTORY(SinCurveSegmentFactory, Curve::SinSegment)
+DEFINE_CURVE_SEGMENT_FACTORY(GammaCurveSegmentFactory, Curve::GammaSegment)
 }
 iscore_plugin_curve::iscore_plugin_curve() :
     QObject {}
@@ -30,13 +30,8 @@ iscore_plugin_curve::iscore_plugin_curve() :
 
 std::vector<std::unique_ptr<iscore::FactoryInterfaceBase>> iscore_plugin_curve::factories(
         const iscore::ApplicationContext& ctx,
-        const iscore::FactoryBaseKey& factoryName) const
+        const iscore::AbstractFactoryKey& factoryName) const
 {
-    /*
-     * new GammaCurveSegmentFactory,
-     * new SinCurveSegmentFactory
-    */
-
     return instantiate_factories<
        iscore::ApplicationContext,
        TL<

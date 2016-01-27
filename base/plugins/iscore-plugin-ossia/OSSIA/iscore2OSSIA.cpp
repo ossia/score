@@ -41,6 +41,7 @@
 #include <OSSIA/iscore2OSSIA.hpp>
 #include <Scenario/Document/State/StateModel.hpp>
 #include <Scenario/Document/State/ItemModel/MessageItemModel.hpp>
+#include <iscore/tools/std/Algorithms.hpp>
 
 
 class NodeNotFoundException : public std::exception
@@ -72,8 +73,7 @@ OSSIA::Node *createNodeFromPath(const QStringList &path, OSSIA::Device *dev)
     for(int i = 0; i < path.size(); i++)
     {
         const auto& children = node->children();
-        auto it = boost::range::find_if(
-                    children,
+        auto it = find_if(children,
                     [&] (const auto& ossia_node) { return ossia_node->getName() == path[i].toStdString(); });
 
         if(it == children.end())

@@ -35,13 +35,12 @@ SegmentModel*GammaSegment::clone(
     return cs;
 }
 
-const SegmentFactoryKey& GammaSegment::key() const
+SegmentFactoryKey GammaSegment::concreteFactoryKey() const
 {
-    static const SegmentFactoryKey name{"Gamma"};
-    return name;
+    return data_type::static_concreteFactoryKey();
 }
 
-void GammaSegment::serialize(const VisitorVariant& vis) const
+void GammaSegment::serialize_impl(const VisitorVariant& vis) const
 {
     serialize_dyn(vis, *this);
 }
@@ -93,4 +92,11 @@ boost::optional<double> GammaSegment::verticalParameter() const
 {
     return gamma;
 }
+
+const SegmentFactoryKey &GammaSegmentData::static_concreteFactoryKey()
+{
+    static const SegmentFactoryKey name{"a8bd14e2-d7e4-47cd-b76a-6a88fa11f0d2"};
+    return name;
+}
+
 }

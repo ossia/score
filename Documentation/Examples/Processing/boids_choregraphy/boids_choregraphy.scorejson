@@ -291,7 +291,7 @@
                                         "ObjectName": "Loop",
                                         "PluginsMetadata": [
                                         ],
-                                        "ProcessName": "Loop",
+                                        "uuid": "995d41a8-0f10-4152-971d-e4c033579a02",
                                         "StartEvent": {
                                             "Condition": {
                                                 "Children": [
@@ -887,7 +887,7 @@
                         "ObjectName": "Scenario",
                         "PluginsMetadata": [
                         ],
-                        "ProcessName": "Scenario",
+                        "uuid": "de035912-5b03-49a8-bc4d-b2cba68e21d9",
                         "StartEventId": 0,
                         "StartStateId": "none",
                         "StartTimeNodeId": 0,
@@ -2065,7 +2065,7 @@
                 },
                 "id": 1
             },
-            "ObjectName": "BaseScenario",
+            "ObjectName": "Scenario::BaseScenario",
             "PluginsMetadata": [
             ],
             "StartEvent": {
@@ -2169,11 +2169,13 @@
             "id": 0
         },
         "DocumentId": 0,
-        "ObjectName": "ScenarioDocumentModel",
+        "ObjectName": "Scenario::ScenarioDocumentModel",
         "id": 1
     },
     "Plugins": {
         "DeviceExplorer::DeviceDocumentPlugin": {
+        
+            "uuid": "6e610e1f-9de2-4c36-90dd-0ef570002a21",
             "Children": [
                 {
                     "Children": [
@@ -2665,16 +2667,12 @@
                         "InputPort": 12001,
                         "Name": "Processing",
                         "OutputPort": 12002,
-                        "Protocol": "OSC"
+                        "Protocol": "9a42de4b-f6eb-4bca-9564-01b975f601b9"
                     }
                 }
             ],
             "RootNode": {
             }
-        },
-        "LocalTree::DocumentPlugin": {
-        },
-        "OSSIADocumentPlugin": {
         }
     }
 }

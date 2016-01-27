@@ -37,11 +37,6 @@ class OSSIAApplicationPlugin final :
 
         void populateMenus(iscore::MenubarManager*) override;
 
-        iscore::DocumentPluginModel*loadDocumentPlugin(
-                const QString& name,
-                const VisitorVariant& var,
-                iscore::Document* parent) override;
-
         bool handleStartup() override;
 
         void on_newDocument(iscore::Document* doc) override;

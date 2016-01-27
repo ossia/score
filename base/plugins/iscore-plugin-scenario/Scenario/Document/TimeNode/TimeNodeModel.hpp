@@ -27,7 +27,6 @@ class TriggerModel;
 class ISCORE_PLUGIN_SCENARIO_EXPORT TimeNodeModel final : public IdentifiedObject<TimeNodeModel>
 {
         Q_OBJECT
-        ISCORE_METADATA(Scenario::TimeNodeModel)
 
         ISCORE_SERIALIZE_FRIENDS(Scenario::TimeNodeModel, DataStream)
         ISCORE_SERIALIZE_FRIENDS(Scenario::TimeNodeModel, JSONObject)
@@ -38,10 +37,6 @@ class ISCORE_PLUGIN_SCENARIO_EXPORT TimeNodeModel final : public IdentifiedObjec
         Selectable selection;
         ModelMetadata metadata;
         iscore::ElementPluginModelList pluginModelList;
-
-        static QString description()
-        { return QObject::tr("Time Node"); }
-
 
         /** The class **/
         TimeNodeModel(
@@ -91,3 +86,5 @@ class ISCORE_PLUGIN_SCENARIO_EXPORT TimeNodeModel final : public IdentifiedObjec
         QVector<Id<EventModel>> m_events;
 };
 }
+
+DEFAULT_MODEL_METADATA(Scenario::TimeNodeModel, "Time Node")

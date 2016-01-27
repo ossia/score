@@ -36,6 +36,8 @@
 #include <iscore/tools/NamedObject.hpp>
 #include <iscore/tools/ObjectIdentifier.hpp>
 #include <iscore/tools/SettableIdentifier.hpp>
+#include <iscore/plugins/documentdelegate/DocumentDelegateFactoryInterface.hpp>
+#include <iscore/plugins/documentdelegate/plugin/DocumentDelegatePluginModel.hpp>
 #include <iscore/widgets/OrderedToolbar.hpp>
 #include "iscore_git_info.hpp"
 
@@ -46,7 +48,7 @@ static void setQApplicationSettings(QApplication &m_app)
 {
     QFontDatabase::addApplicationFont(":/APCCourierBold.otf"); // APCCourier-Bold
     QFontDatabase::addApplicationFont(":/Ubuntu-R.ttf"); // Ubuntu
-    m_app.setFont(QFont{"Ubuntu", 10, QFont::Normal});
+    m_app.setFont(QFont{"Ubuntu", 8, QFont::Normal});
 
     QCoreApplication::setOrganizationName("OSSIA");
     QCoreApplication::setOrganizationDomain("i-score.org");
@@ -237,10 +239,15 @@ void Application::loadPluginData()
                 m_presenter->toolbars(),
                 m_presenter};
 
+
+    registrar.registerFactory(std::make_unique<iscore::DocumentDelegateList>());
+    registrar.registerFactory(std::make_unique<iscore::DocumentPluginFactoryList>());
+
     iscore::PluginLoader::loadPlugins(registrar, ctx);
 
     registrar.registerApplicationContextPlugin(new iscore::UndoApplicationPlugin{ctx, m_presenter});
     registrar.registerPanel(new UndoPanelFactory);
+
 
     std::sort(m_presenter->toolbars().begin(), m_presenter->toolbars().end());
     for(auto& toolbar : m_presenter->toolbars())

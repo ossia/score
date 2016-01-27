@@ -10,7 +10,7 @@
 #include <iscore_lib_base_export.h>
 namespace iscore
 {
-class DocumentDelegateFactoryInterface;
+class DocumentDelegateFactory;
 class FactoryListInterface;
 class GUIApplicationContextPlugin;
 class PanelFactory;
@@ -37,10 +37,10 @@ class ISCORE_LIB_BASE_EXPORT ApplicationRegistrar : public QObject
         void registerPlugins(const QStringList&, const std::vector<QObject*>& vec);
         void registerApplicationContextPlugin(GUIApplicationContextPlugin*);
         void registerPanel(PanelFactory*);
-        void registerDocumentDelegate(DocumentDelegateFactoryInterface*);
+        void registerDocumentDelegate(DocumentDelegateFactory*);
         void registerCommands(std::unordered_map<CommandParentFactoryKey, CommandGeneratorMap>&& cmds);
         void registerCommands(std::pair<CommandParentFactoryKey, CommandGeneratorMap>&& cmds);
-        void registerFactories(std::unordered_map<iscore::FactoryBaseKey,std::unique_ptr<FactoryListInterface>>&& cmds);
+        void registerFactories(std::unordered_map<iscore::AbstractFactoryKey, std::unique_ptr<FactoryListInterface>>&& cmds);
         void registerFactory(std::unique_ptr<FactoryListInterface> cmds);
         void registerSettings(SettingsDelegateFactoryInterface*);
 

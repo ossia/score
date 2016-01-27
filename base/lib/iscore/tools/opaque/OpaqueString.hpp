@@ -1,5 +1,5 @@
 #pragma once
-
+#include <QString>
 #include <string>
 #include <functional>
 
@@ -25,6 +25,7 @@ class OpaqueString
 #endif
         explicit OpaqueString(const char* str): impl{str} {}
         explicit OpaqueString(const std::string& str): impl{str} {}
+        explicit OpaqueString(const QString& str): impl{str.toStdString()} {}
         explicit OpaqueString(std::string&& str): impl{std::move(str)} {}
 
         explicit OpaqueString(const OpaqueString& str): impl{str.impl} {}

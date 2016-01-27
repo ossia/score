@@ -1,5 +1,4 @@
 #pragma once
-#include <iscore/application/ApplicationContext.hpp>
 #include <iscore/serialization/VisitorInterface.hpp>
 #include <QByteArray>
 #include <QDataStream>
@@ -9,7 +8,10 @@
 
 #include <iscore/tools/NamedObject.hpp>
 #include <iscore/tools/SettableIdentifier.hpp>
-
+namespace iscore
+{
+struct ApplicationContext;
+}
 class QIODevice;
 class QStringList;
 template <typename model> class IdentifiedObject;
@@ -75,21 +77,9 @@ class DataStream
             return 2;
         }
 };
-template<class>
-class TreeNode;
-template<class>
-class StringKey;
-template<class>
-class TreePath;
 
-namespace eggs{
-namespace variants {
-template<class...>
-class variant;
-}
-}
 template<>
-class ISCORE_LIB_BASE_EXPORT Visitor<Reader<DataStream>> final : public AbstractVisitor
+class ISCORE_LIB_BASE_EXPORT Visitor<Reader<DataStream>> : public AbstractVisitor
 {
     public:
         using is_visitor_tag = std::integral_constant<bool, true>;
@@ -112,38 +102,41 @@ class ISCORE_LIB_BASE_EXPORT Visitor<Reader<DataStream>> final : public Abstract
             return arr;
         }
 
-        template<typename T>
-        void readFrom(const Id<T>& obj)
+        template<template<class...> class T,
+                 typename... Args>
+        void readFrom(
+                const T<Args...>& obj,
+                typename std::enable_if_t<
+                    is_template<T<Args...>>::value &&
+                    !is_abstract_base<T<Args...>>::value> * = 0)
         {
-            m_stream << bool (obj.val());
+            TSerializer<DataStream, T<Args...>>::readFrom(*this, obj);
+        }
 
-            if(obj.val())
-            {
-                m_stream << *obj.val();
-            }
+        template<typename T,
+                 std::enable_if_t<
+                     is_abstract_base<T>::value
+                     >* = nullptr>
+        void readFrom(const T& obj)
+        {
+            AbstractSerializer<DataStream, T>::readFrom(*this, obj);
         }
 
         template<typename T>
-        void readFrom(const IdentifiedObject<T>& obj)
-        {
-            readFrom(static_cast<const NamedObject&>(obj));
-            readFrom(obj.id());
-        }
+        void readFrom_impl(const T&);
 
-        template<typename T, std::enable_if_t<!std::is_enum<T>::value>* = nullptr>
+        template<typename T,
+                 std::enable_if_t<
+                     !std::is_enum<T>::value &&
+                     !is_template<T>::value &&
+                     !is_abstract_base<T>::value
+                     >* = nullptr>
         void readFrom(const T&);
 
-        template<typename T>
-        void readFrom(const TreeNode<T>&);
-        template<typename T>
-        void readFrom(const TreePath<T>&);
-        template<typename T>
-        void readFrom(const StringKey<T>&);
-
-        template<typename... Args>
-        void readFrom(const eggs::variants::variant<Args...>&);
-
-        template<typename T, std::enable_if_t<std::is_enum<T>::value>* = nullptr>
+        template<typename T,
+                 std::enable_if_t<
+                     std::is_enum<T>::value &&
+                     !is_template<T>::value>* = nullptr>
         void readFrom(const T& elt)
         {
             m_stream << (int32_t) elt;
@@ -159,6 +152,7 @@ class ISCORE_LIB_BASE_EXPORT Visitor<Reader<DataStream>> final : public Abstract
             m_stream << int32_t (0xDEADBEEF);
         }
 
+        auto& stream() { return m_stream; }
     private:
         QDataStream m_stream_impl;
 
@@ -192,46 +186,22 @@ class ISCORE_LIB_BASE_EXPORT Visitor<Writer<DataStream>> : public AbstractVisito
             return data;
         }
 
-        template<typename T>
-        void writeTo(Id<T>& obj)
+        template<
+                template<class...> class T,
+                typename... Args>
+        void writeTo(
+                T<Args...>& obj,
+                typename std::enable_if<is_template<T<Args...>>::value, void>::type * = 0)
         {
-            bool init {};
-            int32_t val {};
-            m_stream >> init;
-
-            if(init)
-            {
-                m_stream >> val;
-                obj.setVal(val);
-            }
-            else
-            {
-                obj.unset();
-            }
+            TSerializer<DataStream, T<Args...>>::writeTo(*this, obj);
         }
 
-        template<typename T>
-        void writeTo(IdentifiedObject<T>& obj)
-        {
-            Id<T> id;
-            writeTo(id);
-            obj.setId(std::move(id));
-        }
-
-        template<typename T, std::enable_if_t<!std::is_enum<T>::value>* = nullptr>
+        template<typename T,
+                 std::enable_if_t<!std::is_enum<T>::value && !is_template<T>::value>* = nullptr >
         void writeTo(T&);
 
-        template<typename T>
-        void writeTo(TreeNode<T>&);
-        template<typename T>
-        void writeTo(TreePath<T>&);
-        template<typename T>
-        void writeTo(StringKey<T>&);
-
-        template<typename... Args>
-        void writeTo(eggs::variants::variant<Args...>&);
-
-        template<typename T, std::enable_if_t<std::is_enum<T>::value>* = nullptr>
+        template<typename T,
+                 std::enable_if_t<std::is_enum<T>::value && !is_template<T>::value>* = nullptr>
         void writeTo(T& elt)
         {
             int32_t e;
@@ -257,6 +227,7 @@ class ISCORE_LIB_BASE_EXPORT Visitor<Writer<DataStream>> : public AbstractVisito
             }
         }
 
+        auto& stream() { return m_stream; }
     private:
         QDataStream m_stream_impl;
 
@@ -290,6 +261,116 @@ QDataStream& operator>> (QDataStream& stream, T& obj)
     return stream;
 }
 
+template<typename U>
+struct TSerializer<DataStream, Id<U>>
+{
+    static void readFrom(
+            DataStream::Serializer& s,
+            const Id<U>& obj)
+    {
+        s.stream() << bool (obj.val());
+
+        if(obj.val())
+        {
+            s.stream() << *obj.val();
+        }
+    }
+
+    static void writeTo(
+            DataStream::Deserializer& s,
+            Id<U>& obj)
+    {
+        bool init {};
+        int32_t val {};
+        s.stream() >> init;
+
+        if(init)
+        {
+            s.stream() >> val;
+            obj.setVal(val);
+        }
+        else
+        {
+            obj.unset();
+        }
+    }
+};
+
+
+template<typename T>
+struct TSerializer<DataStream, IdentifiedObject<T>>
+{
+        static void readFrom(
+                DataStream::Serializer& s,
+                const IdentifiedObject<T>& obj)
+        {
+            s.readFrom(static_cast<const NamedObject&>(obj));
+            s.readFrom(obj.id());
+        }
+
+        static void writeTo(
+                DataStream::Deserializer& s,
+                IdentifiedObject<T>& obj)
+        {
+            Id<T> id;
+            s.writeTo(id);
+            obj.setId(std::move(id));
+        }
+
+};
+#include <boost/optional.hpp>
+template<typename T>
+struct TSerializer<DataStream, boost::optional<T>>
+{
+        static void readFrom(
+                DataStream::Serializer& s,
+                const boost::optional<T>& obj)
+        {
+            s.stream() << static_cast<bool>(obj);
+
+            if(obj)
+            {
+                s.stream() << get(obj);
+            }
+        }
+
+        static void writeTo(
+                DataStream::Deserializer& s,
+                boost::optional<T>& obj)
+        {
+            bool b {};
+            s.stream() >> b;
+
+            if(b)
+            {
+                T val;
+                s.stream() >> val;
+                obj = val;
+            }
+            else
+            {
+                obj.reset();
+            }
+        }
+};
+
+template<typename T>
+struct TSerializer<DataStream, QList<T>>
+{
+        static void readFrom(
+                DataStream::Serializer& s,
+                const QList<T>& obj)
+        {
+            s.stream() << obj;
+        }
+
+        static void writeTo(
+                DataStream::Deserializer& s,
+                QList<T>& obj)
+        {
+            s.stream() >> obj;
+        }
+};
 
 Q_DECLARE_METATYPE(Visitor<Reader<DataStream>>*)
 Q_DECLARE_METATYPE(Visitor<Writer<DataStream>>*)

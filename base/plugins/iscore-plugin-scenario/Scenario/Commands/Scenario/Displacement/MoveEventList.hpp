@@ -14,12 +14,12 @@ namespace Command
 class MoveEventList final : public iscore::FactoryListInterface
 {
     public:
-        static const iscore::FactoryBaseKey& staticFactoryKey() {
-            return MoveEventFactoryInterface::staticFactoryKey();
+        static const iscore::AbstractFactoryKey& static_abstractFactoryKey() {
+            return MoveEventFactoryInterface::static_abstractFactoryKey();
         }
 
-        iscore::FactoryBaseKey name() const final override {
-            return MoveEventFactoryInterface::staticFactoryKey();
+        iscore::AbstractFactoryKey abstractFactoryKey() const final override {
+            return MoveEventFactoryInterface::static_abstractFactoryKey();
         }
 
         /**

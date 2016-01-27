@@ -16,7 +16,6 @@
 #include <iscore/tools/Todo.hpp>
 
 
-ISCORE_METADATA_IMPL(Scenario::ConstraintModel)
 namespace Scenario
 {
 class StateModel;
@@ -27,7 +26,7 @@ ConstraintModel::ConstraintModel(
         const Id<ConstraintViewModel>& fullViewId,
         double yPos,
         QObject* parent) :
-    IdentifiedObject<ConstraintModel> {id, className.c_str(), parent},
+    IdentifiedObject<ConstraintModel> {id, Metadata<ObjectKey_k, ConstraintModel>::get(), parent},
     pluginModelList{iscore::IDocument::documentContext(*parent), this},
     m_fullViewModel{new FullViewConstraintViewModel{fullViewId, *this, this}}
 {
@@ -50,7 +49,7 @@ ConstraintModel::ConstraintModel(
         const ConstraintModel& source,
         const Id<ConstraintModel>& id,
         QObject* parent):
-    IdentifiedObject<ConstraintModel> {id, className.c_str(), parent},
+    IdentifiedObject<ConstraintModel> {id, Metadata<ObjectKey_k, ConstraintModel>::get(), parent},
     pluginModelList{source.pluginModelList, this}
 {
     initConnections();
