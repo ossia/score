@@ -85,7 +85,6 @@ void View::setupPanelView(PanelView* v)
     // Note : this only has meaning at initialisation time.
     auto dock = v->defaultPanelStatus().dock;
 
-    qDebug() << v->defaultPanelStatus().prettyName;
     this->addDockWidget(dock, dial);
     if(dock == Qt::LeftDockWidgetArea)
     {
