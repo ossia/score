@@ -60,8 +60,8 @@ class ISCORE_LIB_BASE_EXPORT SerializableDocumentPlugin :
         public DocumentPlugin,
         public SerializableInterface<DocumentPlugin>
 {
-        ISCORE_SERIALIZE_FRIENDS(SerializableDocumentPlugin, DataStream)
-        ISCORE_SERIALIZE_FRIENDS(SerializableDocumentPlugin, JSONObject)
+        //ISCORE_SERIALIZE_FRIENDS(SerializableDocumentPlugin, DataStream)
+        //ISCORE_SERIALIZE_FRIENDS(SerializableDocumentPlugin, JSONObject)
 
     protected:
         using DocumentPlugin::DocumentPlugin;
@@ -91,4 +91,31 @@ class ISCORE_LIB_BASE_EXPORT DocumentPluginFactoryList final :
 {
         ISCORE_FACTORY_LIST_DECL(iscore::DocumentPluginFactory)
 };
+
 }
+
+template<typename T>
+struct AbstractSerializer<DataStream, T>
+{
+    static void readFrom(
+            DataStream::Serializer& s,
+            const T& obj)
+    {
+        s.readFrom(obj.concreteFactoryKey().impl());
+        obj.serialize_impl(s.toVariant());
+    }
+};
+
+
+
+template<typename T>
+struct AbstractSerializer<JSONObject, T>
+{
+    static void readFrom(
+            JSONObject::Serializer& s,
+            const T& obj)
+    {
+        s.m_obj["uuid"] = toJsonValue(obj.concreteFactoryKey().impl());
+        obj.serialize_impl(s.toVariant());
+    }
+};

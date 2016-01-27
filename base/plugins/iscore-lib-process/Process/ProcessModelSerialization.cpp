@@ -59,7 +59,7 @@ template<>
 void Visitor<Reader<JSONObject>>::readFrom(const Process::ProcessModel& process)
 {
     // To allow recration using createProcess
-    m_obj["ProcessName"] = toJsonValue(process.key());
+    m_obj["uuid"] = toJsonValue(process.key());
 
     readFrom(static_cast<const IdentifiedObject<Process::ProcessModel>&>(process));
 
@@ -118,7 +118,7 @@ template<>
 void Visitor<Reader<JSONObject>>::readFrom(const Process::StateProcess& process)
 {
     // To allow recration using createProcess
-    m_obj["StateProcessName"] = toJsonValue(process.key());
+    m_obj["uuid"] = toJsonValue(process.key());
 
     readFrom(static_cast<const IdentifiedObject<Process::StateProcess>&>(process));
 
@@ -166,7 +166,7 @@ ISCORE_LIB_PROCESS_EXPORT Process::ProcessModel* createProcess(
         QObject* parent)
 {
     auto model = pl.list().get(
-                     fromJsonValue<ProcessFactoryKey>(deserializer.m_obj["ProcessName"]))
+                     fromJsonValue<ProcessFactoryKey>(deserializer.m_obj["uuid"]))
                         ->loadModel(
                             deserializer.toVariant(),
                             parent);
@@ -202,7 +202,7 @@ ISCORE_LIB_PROCESS_EXPORT Process::StateProcess* createStateProcess(
         QObject* parent)
 {
     auto model = pl.list().get(
-                     fromJsonValue<StateProcessFactoryKey>(deserializer.m_obj["StateProcessName"]))
+                     fromJsonValue<StateProcessFactoryKey>(deserializer.m_obj["uuid"]))
                         ->load(
                             deserializer.toVariant(),
                             parent);
