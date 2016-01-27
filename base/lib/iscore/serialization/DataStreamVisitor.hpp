@@ -79,7 +79,7 @@ class DataStream
 };
 
 template<>
-class ISCORE_LIB_BASE_EXPORT Visitor<Reader<DataStream>> final : public AbstractVisitor
+class ISCORE_LIB_BASE_EXPORT Visitor<Reader<DataStream>> : public AbstractVisitor
 {
     public:
         using is_visitor_tag = std::integral_constant<bool, true>;
@@ -102,16 +102,46 @@ class ISCORE_LIB_BASE_EXPORT Visitor<Reader<DataStream>> final : public Abstract
             return arr;
         }
 
-        template<template<class...> class T, typename... Args>
-        void readFrom(const T<Args...>& obj, typename std::enable_if<is_template<T<Args...>>::value, void>::type * = 0)
+        template<template<class...> class T,
+                 typename... Args>
+        void readFrom(
+                const T<Args...>& obj,
+                typename std::enable_if<is_template<T<Args...>>::value, void>::type * = 0)
         {
             TSerializer<DataStream, T<Args...>>::readFrom(*this, obj);
         }
 
-        template<typename T, std::enable_if_t<!std::is_enum<T>::value && !is_template<T>::value>* = nullptr>
+        template<typename T>
+        void readFrom(
+                const T& obj,
+                enable_if_abstract_base<T>* = nullptr)
+        {
+            AbstractSerializer<DataStream, T>::readFrom(*this, obj);
+        }
+
+        template<typename T>
+        void readFrom(
+                const T& obj,
+                enable_if_concrete<T>* = nullptr)
+        {
+            ConcreteSerializer<DataStream, T>::readFrom(*this, obj);
+        }
+
+        template<typename T,
+                 std::enable_if_t<
+                     !std::is_enum<T>::value &&
+                     !is_template<T>::value &&
+                     !is_abstract_base<T>::value &&
+                     !is_concrete<T>::value
+                     >* = nullptr>
         void readFrom(const T&);
 
-        template<typename T, std::enable_if_t<std::is_enum<T>::value && !is_template<T>::value>* = nullptr>
+        template<typename T,
+                 std::enable_if_t<
+                     std::is_enum<T>::value &&
+                     !is_template<T>::value &&
+                     !is_abstract_base<T>::value &&
+                     !is_concrete<T>::value>* = nullptr>
         void readFrom(const T& elt)
         {
             m_stream << (int32_t) elt;
@@ -164,7 +194,9 @@ class ISCORE_LIB_BASE_EXPORT Visitor<Writer<DataStream>> : public AbstractVisito
         template<
                 template<class...> class T,
                 typename... Args>
-        void writeTo(T<Args...>& obj, typename std::enable_if<is_template<T<Args...>>::value, void>::type * = 0)
+        void writeTo(
+                T<Args...>& obj,
+                typename std::enable_if<is_template<T<Args...>>::value, void>::type * = 0)
         {
             TSerializer<DataStream, T<Args...>>::writeTo(*this, obj);
         }
@@ -172,7 +204,9 @@ class ISCORE_LIB_BASE_EXPORT Visitor<Writer<DataStream>> : public AbstractVisito
         template<typename T,
                  std::enable_if_t<!std::is_enum<T>::value && !is_template<T>::value>* = nullptr >
         void writeTo(T&);
-        template<typename T, std::enable_if_t<std::is_enum<T>::value && !is_template<T>::value>* = nullptr>
+
+        template<typename T,
+                 std::enable_if_t<std::is_enum<T>::value && !is_template<T>::value>* = nullptr>
         void writeTo(T& elt)
         {
             int32_t e;

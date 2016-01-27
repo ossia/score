@@ -9,44 +9,12 @@ template<typename T>
 class ISCORE_LIB_BASE_EXPORT SerializableInterface
 {
     public:
+        using is_abstract_base_tag = std::integral_constant<bool, true>;
+
         SerializableInterface() = default;
         virtual ~SerializableInterface() = default;
         virtual UuidKey<T> concreteFactoryKey() const = 0;
-/*
-        void serialize(DataStream::Serializer& vis) const
-        {
-            vis.readFrom(concreteFactoryKey().impl());
 
-            serialize_impl(vis.toVariant());
-        }
-
-        void serialize(JSONObject::Serializer& vis) const
-        {
-            vis.m_obj["uuid"] = toJsonValue(concreteFactoryKey().impl());
-
-            serialize_impl(vis.toVariant());
-        }
-
-        void serialize(const VisitorVariant& vis) const
-        {
-            switch(vis.identifier)
-            {
-                case DataStream::type():
-                {
-                    serialize(static_cast<DataStream::Serializer&>(vis.visitor));
-                    break;
-                }
-                case JSONObject::type():
-                {
-                    serialize(static_cast<JSONObject::Serializer&>(vis.visitor));
-                    break;
-                }
-                default:
-                    ISCORE_ABORT;
-            }
-        }
-*/
-    protected:
         virtual void serialize_impl(const VisitorVariant& vis) const
         {
 
@@ -58,7 +26,6 @@ template<typename Type>
 Type deserialize_key(Deserializer<JSONObject>& des)
 {
     return fromJsonValue<boost::uuids::uuid>(des.m_obj["uuid"]);;
-
 }
 
 template<typename Type>
@@ -67,7 +34,6 @@ Type deserialize_key(Deserializer<DataStream>& des)
     boost::uuids::uuid uid;
     des.writeTo(uid);
     return uid;
-
 }
 
 
@@ -90,5 +56,3 @@ auto deserialize_interface(
 
     return nullptr;
 }
-
-

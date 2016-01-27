@@ -43,7 +43,7 @@ class variant;
 }
 
 template<>
-class ISCORE_LIB_BASE_EXPORT Visitor<Reader<JSONObject>> final : public AbstractVisitor
+class ISCORE_LIB_BASE_EXPORT Visitor<Reader<JSONObject>> : public AbstractVisitor
 {
     public:
         using is_visitor_tag = std::integral_constant<bool, true>;
@@ -63,13 +63,34 @@ class ISCORE_LIB_BASE_EXPORT Visitor<Reader<JSONObject>> final : public Abstract
         }
 
         template<template<class...> class T, typename... Args>
-        void readFrom(const T<Args...>& obj, typename std::enable_if<is_template<T<Args...>>::value, void>::type * = 0)
+        void readFrom(
+                const T<Args...>& obj,
+                typename std::enable_if<is_template<T<Args...>>::value, void>::type * = 0)
         {
             TSerializer<JSONObject, T<Args...>>::readFrom(*this, obj);
         }
 
+        template<typename T>
+        void readFrom(
+                const T& obj,
+                enable_if_abstract_base<T>* = nullptr)
+        {
+            AbstractSerializer<JSONObject, T>::readFrom(*this, obj);
+        }
+
+        template<typename T>
+        void readFrom(
+                const T& obj,
+                enable_if_concrete<T>* = nullptr)
+        {
+            ConcreteSerializer<JSONObject, T>::readFrom(*this, obj);
+        }
+
         template<typename T,
-                 std::enable_if_t<!is_template<T>::value, void>* = nullptr>
+                 std::enable_if_t<
+                     !is_template<T>::value &&
+                     !is_abstract_base<T>::value &&
+                     !is_concrete<T>::value>* = nullptr>
         void readFrom(const T&);
 
         QJsonObject m_obj;
