@@ -85,6 +85,7 @@ void View::setupPanelView(PanelView* v)
     // Note : this only has meaning at initialisation time.
     auto dock = v->defaultPanelStatus().dock;
 
+    qDebug() << v->defaultPanelStatus().prettyName;
     this->addDockWidget(dock, dial);
     if(dock == Qt::LeftDockWidgetArea)
     {
@@ -97,8 +98,8 @@ void View::setupPanelView(PanelView* v)
                                   [] (const auto& lhs, const auto& rhs)
             { return lhs.first->defaultPanelStatus().priority < rhs.first->defaultPanelStatus().priority; });
 
-            tabifyDockWidget(it->second, dial);
             it->second->raise();
+            tabifyDockWidget(dial, it->second);
         }
     }
     else if(dock == Qt::RightDockWidgetArea)
@@ -112,8 +113,9 @@ void View::setupPanelView(PanelView* v)
                                   end(m_rightWidgets),
                                   [] (const auto& lhs, const auto& rhs)
             { return lhs.first->defaultPanelStatus().priority < rhs.first->defaultPanelStatus().priority; });
-            tabifyDockWidget(it->second, dial);
+
             it->second->raise();
+            tabifyDockWidget(dial, it->second);
         }
     }
 
