@@ -12,15 +12,11 @@ struct VisitorVariant;
 
 namespace DeviceExplorer
 {
-class DeviceExplorerApplicationPlugin final : public iscore::GUIApplicationContextPlugin
+class DeviceExplorerApplicationPlugin final :
+        public iscore::GUIApplicationContextPlugin
 {
     public:
         DeviceExplorerApplicationPlugin(const iscore::ApplicationContext& app);
-
-        virtual iscore::DocumentPluginModel* loadDocumentPlugin(
-                const QString& name,
-                const VisitorVariant& var,
-                iscore::Document *parent) override;
 
     protected:
         void on_newDocument(iscore::Document* doc) override;

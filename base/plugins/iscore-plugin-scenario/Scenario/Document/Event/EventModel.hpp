@@ -27,7 +27,6 @@ class TimeNodeModel;
 class ISCORE_PLUGIN_SCENARIO_EXPORT EventModel final : public IdentifiedObject<EventModel>
 {
         Q_OBJECT
-        ISCORE_METADATA(Scenario::EventModel)
 
         ISCORE_SERIALIZE_FRIENDS(Scenario::EventModel, DataStream)
         ISCORE_SERIALIZE_FRIENDS(Scenario::EventModel, JSONObject)
@@ -38,8 +37,6 @@ class ISCORE_PLUGIN_SCENARIO_EXPORT EventModel final : public IdentifiedObject<E
         Selectable selection;
         ModelMetadata metadata;
         iscore::ElementPluginModelList pluginModelList;
-
-        static QString description();
 
         /** The class **/
         EventModel(const Id<EventModel>&,
@@ -114,3 +111,5 @@ class ISCORE_PLUGIN_SCENARIO_EXPORT EventModel final : public IdentifiedObject<E
         ExecutionStatusProperty m_status{};
 };
 }
+
+DEFAULT_MODEL_METADATA(Scenario::EventModel, "Event")

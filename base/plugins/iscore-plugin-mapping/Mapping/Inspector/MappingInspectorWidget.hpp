@@ -17,17 +17,17 @@ namespace DeviceExplorer
 class AddressEditWidget;
 class DeviceExplorerModel;
 }
-class MappingModel;
 class QDoubleSpinBox;
 
 namespace Mapping
 {
+class ProcessModel;
 class MappingInspectorWidget :
-        public ProcessInspectorWidgetDelegate_T<MappingModel>
+        public ProcessInspectorWidgetDelegate_T<ProcessModel>
 {
     public:
         explicit MappingInspectorWidget(
-                const MappingModel& object,
+                const ProcessModel& object,
                 const iscore::DocumentContext& context,
                 QWidget* parent);
 

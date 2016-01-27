@@ -1,16 +1,17 @@
 #pragma once
-#include <Process/ProcessFactoryKey.hpp>
+#include <Process/ProcessMetadata.hpp>
 #include <QString>
 #include <iscore_plugin_automation_export.h>
 
 namespace Automation
 {
-struct ISCORE_PLUGIN_AUTOMATION_EXPORT ProcessMetadata
-{
-        static const ProcessFactoryKey& factoryKey();
-
-        static QString processObjectName();
-
-        static QString factoryPrettyName();
-};
+class ProcessModel;
 }
+
+PROCESS_METADATA(
+        ISCORE_PLUGIN_AUTOMATION_EXPORT,
+        Automation::ProcessModel,
+        "d2a67bd8-5d3f-404e-b6e9-e350cf2a833f",
+        "Automation",
+        "Automation"
+        )

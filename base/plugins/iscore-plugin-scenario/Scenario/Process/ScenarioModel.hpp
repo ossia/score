@@ -51,7 +51,6 @@ class ISCORE_PLUGIN_SCENARIO_EXPORT ScenarioModel final :
 {
         Q_OBJECT
 
-        ISCORE_METADATA(ScenarioModel)
         ISCORE_SERIALIZE_FRIENDS(Scenario::ScenarioModel, DataStream)
         ISCORE_SERIALIZE_FRIENDS(Scenario::ScenarioModel, JSONObject)
         friend class ScenarioFactory;
@@ -66,35 +65,7 @@ class ISCORE_PLUGIN_SCENARIO_EXPORT ScenarioModel final :
                 QObject* newParent) const override;
         ~ScenarioModel();
 
-        //// ProcessModel specifics ////
-        QByteArray makeLayerConstructionData() const override;
-        Process::LayerModel* makeLayer_impl(
-                const Id<Process::LayerModel>& viewModelId,
-                const QByteArray& constructionData,
-                QObject* parent) override;
-
-        Process::LayerModel* cloneLayer_impl(
-                const Id<Process::LayerModel>& newId,
-                const Process::LayerModel& source,
-                QObject* parent) override;
-
-        const ProcessFactoryKey& key() const override;
         QString prettyName() const override;
-
-        void setDurationAndScale(const TimeValue& newDuration) override;
-        void setDurationAndGrow(const TimeValue& newDuration) override;
-        void setDurationAndShrink(const TimeValue& newDuration) override;
-
-        void startExecution() override;
-        void stopExecution() override;
-        void reset() override;
-
-        Selection selectableChildren() const override;
-        Selection selectedChildren() const override;
-        void setSelection(const Selection& s) const override;
-
-        ProcessStateDataInterface* startStateData() const override;
-        ProcessStateDataInterface* endStateData() const override;
 
         //// ScenarioModel specifics ////
 
@@ -204,7 +175,37 @@ class ISCORE_PLUGIN_SCENARIO_EXPORT ScenarioModel final :
             emit unlocked();
         }
 
-    protected:
+
+    private:
+        //// ProcessModel specifics ////
+        QByteArray makeLayerConstructionData() const override;
+        Process::LayerModel* makeLayer_impl(
+                const Id<Process::LayerModel>& viewModelId,
+                const QByteArray& constructionData,
+                QObject* parent) override;
+
+        Process::LayerModel* cloneLayer_impl(
+                const Id<Process::LayerModel>& newId,
+                const Process::LayerModel& source,
+                QObject* parent) override;
+
+        ProcessFactoryKey concreteFactoryKey() const override;
+
+        void setDurationAndScale(const TimeValue& newDuration) override;
+        void setDurationAndGrow(const TimeValue& newDuration) override;
+        void setDurationAndShrink(const TimeValue& newDuration) override;
+
+        void startExecution() override;
+        void stopExecution() override;
+        void reset() override;
+
+        Selection selectableChildren() const override;
+public: Selection selectedChildren() const override;
+private:void setSelection(const Selection& s) const override;
+
+        ProcessStateDataInterface* startStateData() const override;
+        ProcessStateDataInterface* endStateData() const override;
+
         template<typename Impl>
         ScenarioModel(Deserializer<Impl>& vis, QObject* parent) :
             ProcessModel {vis, parent}
@@ -216,7 +217,7 @@ class ISCORE_PLUGIN_SCENARIO_EXPORT ScenarioModel final :
                 const VisitorVariant& vis,
                 QObject* parent) override;
 
-        void serialize(const VisitorVariant&) const override;
+        void serialize_impl(const VisitorVariant&) const override;
 
         // To prevent warnings in Clang
         bool event(QEvent* e) override
@@ -292,3 +293,5 @@ const QVector<Id<ConstraintModel>> constraintsBeforeTimeNode(
 const StateModel* furthestSelectedState(const Scenario::ScenarioModel& scenario);
 const StateModel* furthestSelectedStateWithoutFollowingConstraint(const Scenario::ScenarioModel& scenario);
 }
+
+DEFAULT_MODEL_METADATA(Scenario::ScenarioModel, "Scenario")

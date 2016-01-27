@@ -35,7 +35,7 @@ namespace Mapping
 {
 Component::Component(
         ConstraintElement& parentConstraint,
-        ::Mapping::MappingModel& element,
+        ::Mapping::ProcessModel& element,
         const Context& ctx,
         const Id<iscore::Component>& id,
         QObject *parent):
@@ -54,7 +54,7 @@ const Component::Key& Component::key() const
 template<typename X_T, typename Y_T>
 std::shared_ptr<OSSIA::CurveAbstract> Component::on_curveChanged_impl2()
 {
-    auto& iscore_mapping = static_cast<::Mapping::MappingModel&>(m_iscore_process);
+    auto& iscore_mapping = static_cast<::Mapping::ProcessModel&>(m_iscore_process);
     if(iscore_mapping.curve().segments().size() == 0)
         return {};
 
@@ -120,7 +120,7 @@ std::shared_ptr<OSSIA::CurveAbstract> Component::rebuildCurve()
 
 void Component::recreate()
 {
-    auto& iscore_mapping = static_cast<::Mapping::MappingModel&>(m_iscore_process);
+    auto& iscore_mapping = static_cast<::Mapping::ProcessModel&>(m_iscore_process);
     auto iscore_source_addr = iscore_mapping.sourceAddress();
     auto iscore_target_addr = iscore_mapping.targetAddress();
 
@@ -207,15 +207,15 @@ ProcessComponent* ComponentFactory::make(
 
     return new Component{
                 cst,
-                static_cast<::Mapping::MappingModel&>(proc),
+                static_cast<::Mapping::ProcessModel&>(proc),
                 ctx, id, parent};
 
 }
 
-const ComponentFactory::factory_key_type&
-ComponentFactory::key_impl() const
+const ComponentFactory::ConcreteFactoryKey&
+ComponentFactory::concreteFactoryKey() const
 {
-    static ComponentFactory::factory_key_type k("OSSIAMappingElement");
+    static ComponentFactory::ConcreteFactoryKey k("e6d2980e-b1d4-4993-9f98-782727f6143b");
     return k;
 }
 
@@ -224,7 +224,7 @@ bool ComponentFactory::matches(
         const DocumentPlugin&,
         const iscore::DocumentContext&) const
 {
-    return dynamic_cast<::Mapping::MappingModel*>(&proc);
+    return dynamic_cast<::Mapping::ProcessModel*>(&proc);
 }
 }
 }

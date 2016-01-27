@@ -10,7 +10,7 @@ template <typename T> class Reader;
 template <typename T> class Writer;
 
 template<>
-void Visitor<Reader<DataStream>>::readFrom(const Curve::PointArraySegment& segmt)
+void Visitor<Reader<DataStream>>::readFrom_impl(const Curve::PointArraySegment& segmt)
 {
     ISCORE_TODO;
 }
@@ -22,7 +22,7 @@ void Visitor<Writer<DataStream>>::writeTo(Curve::PointArraySegment& segmt)
 }
 
 template<>
-void Visitor<Reader<JSONObject>>::readFrom(const Curve::PointArraySegment& segmt)
+void Visitor<Reader<JSONObject>>::readFrom_impl(const Curve::PointArraySegment& segmt)
 {
     ISCORE_TODO;
 }
@@ -34,7 +34,7 @@ void Visitor<Writer<JSONObject>>::writeTo(Curve::PointArraySegment& segmt)
 }
 
 template<>
-void Visitor<Reader<DataStream>>::readFrom(const Curve::PointArraySegmentData& segmt)
+void Visitor<Reader<DataStream>>::readFrom_impl(const Curve::PointArraySegmentData& segmt)
 {
     ISCORE_TODO;
 }
@@ -46,7 +46,7 @@ void Visitor<Writer<DataStream>>::writeTo(Curve::PointArraySegmentData& segmt)
 }
 
 template<>
-void Visitor<Reader<JSONObject>>::readFrom(const Curve::PointArraySegmentData& segmt)
+void Visitor<Reader<JSONObject>>::readFrom_impl(const Curve::PointArraySegmentData& segmt)
 {
     ISCORE_TODO;
 }

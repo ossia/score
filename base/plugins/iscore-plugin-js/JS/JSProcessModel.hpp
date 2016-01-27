@@ -55,9 +55,9 @@ class ProcessModel final : public Process::ProcessModel
                 const Id<Process::ProcessModel>& newId,
                 QObject* newParent) const override;
 
-        const ProcessFactoryKey& key() const override
+        ProcessFactoryKey concreteFactoryKey() const override
         {
-            return ProcessMetadata::factoryKey();
+            return Metadata<ConcreteFactoryKey_k, ProcessModel>::get();
         }
 
         QString prettyName() const override;
@@ -78,7 +78,7 @@ class ProcessModel final : public Process::ProcessModel
         Selection selectedChildren() const override;
         void setSelection(const Selection& s) const override;
 
-        void serialize(const VisitorVariant& vis) const override;
+        void serialize_impl(const VisitorVariant& vis) const override;
 
     signals:
         void scriptChanged(QString);

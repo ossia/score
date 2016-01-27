@@ -34,15 +34,6 @@ Inspector::InspectorWidgetBase* ConstraintInspectorFactory::makeWidget(
     return new ConstraintInspectorWidget{widgetFact, processFact, constraint, constraintWidgetFactory.make(constraint),doc, parent};
 }
 
-const QList<QString>&ConstraintInspectorFactory::key_impl() const
-{
-    static const QList<QString> list{
-        QString::fromStdString(ConstraintModel::className),
-        "BaseConstraintModel" // TODO dangerous
-    };
-    return list;
-}
-
 bool ConstraintInspectorFactory::matches(const QObject& object) const
 {
     return dynamic_cast<const ConstraintModel*>(&object);

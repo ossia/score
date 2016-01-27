@@ -217,54 +217,69 @@ class TreeNode : public DataType
 
 
 template<typename T>
-void Visitor<Reader<DataStream>>::readFrom(const TreeNode<T>& n)
+struct TSerializer<DataStream, TreeNode<T>>
 {
-    readFrom(static_cast<const T&>(n));
+        static void readFrom(
+                DataStream::Serializer& s,
+                const TreeNode<T>& n)
+        {
+            s.readFrom(static_cast<const T&>(n));
 
-    m_stream << n.childCount();
-    for(const auto& child : n)
-    {
-        readFrom(child);
-    }
+            s.stream() << n.childCount();
+            for(const auto& child : n)
+            {
+                s.readFrom(child);
+            }
 
-    insertDelimiter();
-}
+            s.insertDelimiter();
+        }
+
+
+        static void writeTo(
+                DataStream::Deserializer& s,
+                TreeNode<T>& n)
+        {
+            s.writeTo(static_cast<T&>(n));
+
+            int childCount;
+            s.stream() >> childCount;
+            for (int i = 0; i < childCount; ++i)
+            {
+                TreeNode<T> child;
+                s.writeTo(child);
+                n.push_back(std::move(child));
+            }
+
+            s.checkDelimiter();
+        }
+};
 
 
 template<typename T>
-void Visitor<Writer<DataStream>>::writeTo(TreeNode<T>& n)
+struct TSerializer<JSONObject, TreeNode<T>>
 {
-    writeTo(static_cast<T&>(n));
+        static void readFrom(
+                JSONObject::Serializer& s,
+                const TreeNode<T>& n)
+        {
+            s.readFrom(static_cast<const T&>(n));
+            s.m_obj["Children"] = toJsonArray(n);
+        }
 
-    int childCount;
-    m_stream >> childCount;
-    for (int i = 0; i < childCount; ++i)
-    {
-        TreeNode<T> child;
-        writeTo(child);
-        n.push_back(std::move(child));
-    }
 
-    checkDelimiter();
-}
+        static void writeTo(
+                JSONObject::Deserializer& s,
+                TreeNode<T>& n)
+        {
+            s.writeTo(static_cast<T&>(n));
+            auto children = s.m_obj["Children"].toArray();
+            for (const auto& val : children)
+            {
+                TreeNode<T> child;
+                Deserializer<JSONObject> nodeWriter(val.toObject());
 
-template<typename T>
-void Visitor<Reader<JSONObject>>::readFrom(const TreeNode<T>& n)
-{
-    readFrom(static_cast<const T&>(n));
-    m_obj["Children"] = toJsonArray(n);
-}
-
-template<typename T>
-void Visitor<Writer<JSONObject>>::writeTo(TreeNode<T>& n)
-{
-    writeTo(static_cast<T&>(n));
-    for (const auto& val : m_obj["Children"].toArray())
-    {
-        TreeNode<T> child;
-        Deserializer<JSONObject> nodeWriter(val.toObject());
-
-        nodeWriter.writeTo(child);
-        n.push_back(std::move(child));
-    }
-}
+                nodeWriter.writeTo(child);
+                n.push_back(std::move(child));
+            }
+        }
+};

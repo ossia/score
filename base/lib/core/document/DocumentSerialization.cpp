@@ -67,9 +67,12 @@ QJsonObject Document::saveAsJson()
 
     for(const auto& plugin : model().pluginModels())
     {
-        Serializer<JSONObject> s;
-        plugin->serialize(s.toVariant());
-        json_plugins[plugin->objectName()] = s.m_obj;
+        if(auto serializable_plugin = dynamic_cast<SerializableDocumentPlugin*>(plugin))
+        {
+            Serializer<JSONObject> s;
+            s.readFrom(*serializable_plugin);
+            json_plugins[serializable_plugin->objectName()] = s.m_obj;
+        }
     }
 
     complete["Plugins"] = json_plugins;
@@ -91,19 +94,17 @@ QByteArray Document::saveAsByteArray()
 
     // Save the document plug-ins
     QVector<QPair<QString, QByteArray>> documentPluginModels;
-    std::transform(begin(model().pluginModels()),
-                   end(model().pluginModels()),
-                   std::back_inserter(documentPluginModels),
-                   [] (DocumentPluginModel* plugin)
-    {
-        QByteArray arr;
-        Serializer<DataStream> s{&arr};
-        plugin->serialize(s.toVariant());
 
-        return QPair<QString, QByteArray>{
-            plugin->objectName(),
-            arr};
-    });
+    for(const auto& plugin : model().pluginModels())
+    {
+        if(auto serializable_plugin = dynamic_cast<SerializableDocumentPlugin*>(plugin))
+        {
+            QByteArray arr;
+            Serializer<DataStream> s{&arr};
+            s.readFrom(*serializable_plugin);
+            documentPluginModels.push_back({plugin->objectName(), arr});
+        }
+    }
 
     writer << docByteArray << documentPluginModels;
 
@@ -118,7 +119,7 @@ QByteArray Document::saveAsByteArray()
 
 // Load document
 Document::Document(const QVariant& data,
-                   DocumentDelegateFactoryInterface* factory,
+                   DocumentDelegateFactory* factory,
                    QWidget* parentview,
                    QObject* parent):
     NamedObject {"Document", parent},
@@ -129,7 +130,7 @@ Document::Document(const QVariant& data,
     m_model = allocator.allocate(1);
     try
     {
-        allocator.construct(m_model, m_context.app, data, factory, this);
+        allocator.construct(m_model, m_context, data, factory, this);
     }
     catch(...)
     {
@@ -146,9 +147,9 @@ Document::Document(const QVariant& data,
 }
 
 void DocumentModel::loadDocumentAsByteArray(
-        const iscore::ApplicationContext& ctx,
+        iscore::DocumentContext& ctx,
         const QByteArray& data,
-        DocumentDelegateFactoryInterface* fact)
+        DocumentDelegateFactory* fact)
 {
     // Deserialize the first parts
     QByteArray doc;
@@ -172,18 +173,19 @@ void DocumentModel::loadDocumentAsByteArray(
     // document that requires the plugin models to be loaded
     // in order to be deserialized. (e.g. the groups for the network)
     // First load the plugin models
+    auto& plugin_factories = ctx.app.components.factory<DocumentPluginFactoryList>();
     for(const auto& plugin_raw : documentPluginModels)
     {
         DataStream::Deserializer plug_writer{plugin_raw.second};
-        for(iscore::GUIApplicationContextPlugin* appPlug : ctx.components.applicationPlugins())
+        auto plug = deserialize_interface(
+                    plugin_factories,
+                    plug_writer,
+                    ctx,
+                    this);
+
+        if(plug)
         {
-            if(auto loaded_plug = appPlug->loadDocumentPlugin(
-                        plugin_raw.first,
-                        plug_writer.toVariant(),
-                        safe_cast<iscore::Document*>(parent())))
-            {
-                addPluginModel(loaded_plug);
-            }
+            addPluginModel(plug);
         }
     }
 
@@ -197,23 +199,27 @@ void DocumentModel::loadDocumentAsByteArray(
 }
 
 void DocumentModel::loadDocumentAsJson(
-        const iscore::ApplicationContext& ctx,
+        iscore::DocumentContext& ctx,
         const QJsonObject& json,
-        DocumentDelegateFactoryInterface* fact)
+        DocumentDelegateFactory* fact)
 {
     this->setId(fromJsonValue<Id<DocumentModel>>(json["DocumentId"]));
 
     // Load the plug-in models
     auto json_plugins = json["Plugins"].toObject();
+    auto& plugin_factories = ctx.app.components.factory<DocumentPluginFactoryList>();
     for(const auto& key : json_plugins.keys())
     {
         JSONObject::Deserializer plug_writer{json_plugins[key].toObject()};
-        for(iscore::GUIApplicationContextPlugin* appPlug : ctx.components.applicationPlugins())
+        auto plug = deserialize_interface(
+                    plugin_factories,
+                    plug_writer,
+                    ctx,
+                    this);
+
+        if(plug)
         {
-            if(auto loaded_plug = appPlug->loadDocumentPlugin(key, plug_writer.toVariant(), safe_cast<iscore::Document*>(parent())))
-            {
-                addPluginModel(loaded_plug);
-            }
+            addPluginModel(plug);
         }
     }
 
@@ -224,9 +230,9 @@ void DocumentModel::loadDocumentAsJson(
 
 // Load document model
 DocumentModel::DocumentModel(
-        const iscore::ApplicationContext& ctx,
+        iscore::DocumentContext& ctx,
         const QVariant& data,
-        DocumentDelegateFactoryInterface* fact,
+        DocumentDelegateFactory* fact,
         QObject* parent) :
     IdentifiedObject {Id<DocumentModel>(iscore::id_generator::getFirstId()), "DocumentModel", parent}
 {

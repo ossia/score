@@ -14,12 +14,12 @@ class ProcessFactory final : public Process::ProcessFactory
     public:
         QString prettyName() const override
         { // In factory list
-            return ProcessMetadata::factoryPrettyName();
+            return Metadata<PrettyName_k, ProcessModel>::get();
         }
 
-        const ProcessFactoryKey& key_impl() const override
+        const ProcessFactoryKey& concreteFactoryKey() const override
         {
-            return ProcessMetadata::factoryKey();
+            return Metadata<ConcreteFactoryKey_k, ProcessModel>::get();
         }
 
 
@@ -36,7 +36,7 @@ class ProcessFactory final : public Process::ProcessFactory
             return {};
         }
 
-        Process::ProcessModel* loadModel(const VisitorVariant& vis, QObject* parent) override
+        Process::ProcessModel* load(const VisitorVariant& vis, QObject* parent) override
         {
             return deserialize_dyn(vis, [&] (auto&& deserializer)
             { return new JS::ProcessModel{deserializer, parent};});

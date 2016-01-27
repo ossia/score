@@ -13,9 +13,9 @@ class SimpleProcessFactory : public Process::ProcessFactory
         QString prettyName() const override
         { return QObject::tr("SimpleProcess"); }
 
-        const ProcessFactoryKey& key_impl() const override
+        const ProcessFactoryKey& concreteFactoryKey() const override
         {
-            static const ProcessFactoryKey name{"SimpleProcessModel"};
+            static const ProcessFactoryKey name{"0107dfb7-dcab-45c3-b7b8-e824c0fe49a1"};
             return name;
         }
 
@@ -32,7 +32,7 @@ class SimpleProcessFactory : public Process::ProcessFactory
             return {};
         }
 
-        Process::ProcessModel* loadModel(const VisitorVariant& vis, QObject* parent) override
+        Process::ProcessModel* load(const VisitorVariant& vis, QObject* parent) override
         {
             return deserialize_dyn(vis, [&] (auto&& deserializer)
             { return new SimpleProcessModel{deserializer, parent};});

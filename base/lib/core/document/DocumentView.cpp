@@ -10,7 +10,7 @@
 
 namespace iscore
 {
-DocumentView::DocumentView(DocumentDelegateFactoryInterface* fact,
+DocumentView::DocumentView(DocumentDelegateFactory* fact,
                            const Document& doc,
                            QWidget* parent) :
     QWidget {parent},

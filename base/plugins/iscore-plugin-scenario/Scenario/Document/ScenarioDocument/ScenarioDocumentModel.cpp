@@ -52,7 +52,7 @@ namespace Scenario
 ScenarioDocumentModel::ScenarioDocumentModel(QObject* parent) :
     iscore::DocumentDelegateModelInterface {
         Id<iscore::DocumentDelegateModelInterface>(iscore::id_generator::getFirstId()),
-        "ScenarioDocumentModel",
+        "Scenario::ScenarioDocumentModel",
         parent},
     m_baseScenario{new BaseScenario{Id<BaseScenario>{0}, this}}
 {
@@ -65,7 +65,6 @@ ScenarioDocumentModel::ScenarioDocumentModel(QObject* parent) :
     ConstraintDurations::Algorithms::changeAllDurations(m_baseScenario->constraint(), dur);
     m_baseScenario->endEvent().setDate(m_baseScenario->constraint().duration.defaultDuration());
     m_baseScenario->endTimeNode().setDate(m_baseScenario->constraint().duration.defaultDuration());
-    m_baseScenario->constraint().setObjectName("BaseConstraintModel");
 
     auto& doc_metadata = iscore::IDocument::documentContext(*parent).document.metadata;
     m_baseScenario->constraint().metadata.setName(doc_metadata.fileName());
@@ -100,7 +99,7 @@ void ScenarioDocumentModel::initializeNewDocument(const FullViewConstraintViewMo
 
     AddOnlyProcessToConstraint cmd1{
         iscore::IDocument::path(m_baseScenario->constraint()),
-        ScenarioProcessMetadata::factoryKey()
+        Metadata<ConcreteFactoryKey_k, Scenario::ProcessModel>::get()
     };
     cmd1.redo();
 

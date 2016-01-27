@@ -29,7 +29,7 @@ class iscore_plugin_automation final :
         // Process & inspector
         std::vector<std::unique_ptr<iscore::FactoryInterfaceBase>> factories(
                 const iscore::ApplicationContext& ctx,
-                const iscore::FactoryBaseKey& factoryName) const override;
+                const iscore::AbstractFactoryKey& factoryName) const override;
 
         // CommandFactory_QtInterface interface
         std::pair<const CommandParentFactoryKey, CommandGeneratorMap> make_commands() override;

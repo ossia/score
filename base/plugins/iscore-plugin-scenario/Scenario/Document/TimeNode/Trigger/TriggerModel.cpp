@@ -5,11 +5,10 @@
 class QObject;
 #include <iscore/tools/SettableIdentifier.hpp>
 
-ISCORE_METADATA_IMPL(Scenario::TriggerModel)
 namespace Scenario
 {
 TriggerModel::TriggerModel(const Id<TriggerModel>& id, QObject* parent):
-    IdentifiedObject<TriggerModel>{id, className.c_str(), parent}
+    IdentifiedObject<TriggerModel>{id, Metadata<ObjectKey_k, TriggerModel>::get(), parent}
 {
 
 }

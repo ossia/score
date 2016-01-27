@@ -48,10 +48,28 @@ class ISCORE_PLUGIN_AUTOMATION_EXPORT ProcessModel final : public Curve::CurvePr
             vis.writeTo(*this);
         }
 
-        //// ProcessModel ////
-        const ProcessFactoryKey& key() const override;
+
+        ::State::Address address() const;
+
+        double value(const TimeValue& time);
+
+        double min() const;
+        double max() const;
+
+        void setAddress(const ::State::Address& arg);
+        void setMin(double arg);
+        void setMax(double arg);
 
         QString prettyName() const override;
+
+    signals:
+        void addressChanged(const ::State::Address&);
+        void minChanged(double);
+        void maxChanged(double);
+
+    private:
+        //// ProcessModel ////
+        ProcessFactoryKey concreteFactoryKey() const override;
 
         Process::LayerModel* makeLayer_impl(
                 const Id<Process::LayerModel>& viewModelId,
@@ -65,32 +83,12 @@ class ISCORE_PLUGIN_AUTOMATION_EXPORT ProcessModel final : public Curve::CurvePr
         void setDurationAndGrow(const TimeValue& newDuration) override;
         void setDurationAndShrink(const TimeValue& newDuration) override;
 
-        void serialize(const VisitorVariant& vis) const override;
+        void serialize_impl(const VisitorVariant& vis) const override;
 
         /// States
         ProcessState* startStateData() const override;
         ProcessState* endStateData() const override;
 
-        //// AutomationModel specifics ////
-        ::State::Address address() const;
-
-        double value(const TimeValue& time);
-
-        double min() const;
-        double max() const;
-
-        void setAddress(const ::State::Address& arg);
-
-        void setMin(double arg);
-        void setMax(double arg);
-    signals:
-        void addressChanged(const ::State::Address& arg);
-
-        void minChanged(double arg);
-
-        void maxChanged(double arg);
-
-    protected:
         ProcessModel(const ProcessModel& source,
                         const Id<Process::ProcessModel>& id,
                         QObject* parent);
@@ -99,7 +97,7 @@ class ISCORE_PLUGIN_AUTOMATION_EXPORT ProcessModel final : public Curve::CurvePr
                 const Process::LayerModel& source,
                 QObject* parent) override;
 
-    private:
+
         void setCurve_impl() override;
         ::State::Address m_address;
 

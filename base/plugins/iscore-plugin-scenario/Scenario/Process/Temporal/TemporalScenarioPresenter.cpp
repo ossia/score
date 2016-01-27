@@ -32,6 +32,7 @@
 #include <Scenario/Document/Constraint/ViewModels/ConstraintPresenter.hpp>
 #include <Scenario/Document/Constraint/ViewModels/ConstraintViewModel.hpp>
 #include <Scenario/Document/Constraint/ViewModels/Temporal/TemporalConstraintPresenter.hpp>
+#include <Scenario/Document/State/ItemModel/MessageItemModel.hpp>
 #include <Scenario/Palette/Tool.hpp>
 #include <Scenario/Process/AbstractScenarioLayerModel.hpp>
 #include <Scenario/Process/ScenarioModel.hpp>
@@ -47,6 +48,8 @@
 #include <iscore/tools/NotifyingMap.hpp>
 #include <iscore/tools/Todo.hpp>
 
+#include <Scenario/Commands/Scenario/Creations/CreateConstraint_State_Event_TimeNode.hpp>
+#include <algorithm>
 class MessageItemModel;
 class QMenu;
 
@@ -480,8 +483,6 @@ void TemporalScenarioPresenter::updateAllElements()
 */
 }
 
-#include <Scenario/Commands/Scenario/Creations/CreateConstraint_State_Event_TimeNode.hpp>
-#include <algorithm>
 
 void TemporalScenarioPresenter::handleDrop(const QPointF &pos, const QMimeData *mime)
 {
@@ -533,8 +534,8 @@ void TemporalScenarioPresenter::handleDrop(const QPointF &pos, const QMimeData *
         }
 
         auto state_path = make_path(scenar)
-                .extend(StateModel::className.c_str(), createdState)
-                .extend("MessageItemModel", Id<MessageItemModel>{});
+                .extend(createdState)
+                .extend(Id<MessageItemModel>{});
 
         auto cmd2 = new AddMessagesToState{
                    std::move(state_path),

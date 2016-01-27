@@ -32,7 +32,8 @@ template <typename T> class Writer;
 template <typename VisitorType> class Visitor;
 
 template<>
-void Visitor<Reader<DataStream>>::readFrom(const Curve::SegmentData& segmt)
+ISCORE_PLUGIN_CURVE_EXPORT void Visitor<Reader<DataStream>>::readFrom(
+        const Curve::SegmentData& segmt)
 {
     m_stream << segmt.id
              << segmt.start << segmt.end
@@ -49,7 +50,8 @@ void Visitor<Reader<DataStream>>::readFrom(const Curve::SegmentData& segmt)
 }
 
 template<>
-void Visitor<Writer<DataStream>>::writeTo(Curve::SegmentData& segmt)
+ISCORE_PLUGIN_CURVE_EXPORT void Visitor<Writer<DataStream>>::writeTo(
+        Curve::SegmentData& segmt)
 {
     m_stream >> segmt.id
              >> segmt.start >> segmt.end
@@ -64,39 +66,16 @@ void Visitor<Writer<DataStream>>::writeTo(Curve::SegmentData& segmt)
     checkDelimiter();
 }
 
-
 template<>
-ISCORE_PLUGIN_CURVE_EXPORT void Visitor<Reader<DataStream>>::readFrom(
-        const std::vector<Curve::SegmentData>& segmt)
-{
-    readFrom_vector_obj_impl(*this, segmt);
-}
-
-template<>
-ISCORE_PLUGIN_CURVE_EXPORT void Visitor<Writer<DataStream>>::writeTo(
-        std::vector<Curve::SegmentData>& segmt)
-{
-    writeTo_vector_obj_impl(*this, segmt);
-}
-
-template<>
-void Visitor<Reader<DataStream>>::readFrom(
+void Visitor<Reader<DataStream>>::readFrom_impl(
         const Curve::SegmentModel& segmt)
 {
-    // To allow recration using createProcess
-    readFrom(segmt.key());
-
     // Save the parent class
     readFrom(static_cast<const IdentifiedObject<Curve::SegmentModel>&>(segmt));
 
     // Save this class (this will be loaded by writeTo(*this) in CurveSegmentModel ctor
     m_stream << segmt.previous() << segmt.following()
              << segmt.start() << segmt.end();
-
-    // Save the subclass
-    segmt.serialize(toVariant());
-
-    insertDelimiter();
 }
 
 template<>
@@ -109,17 +88,13 @@ void Visitor<Writer<DataStream>>::writeTo(
     // Note : don't call setStart/setEnd here since they
     // call virtual methods and this may be called from
     // CurveSegmentModel's constructor.
-
-    // Note : delimiter checked in createCurveSegment
 }
 
 template<>
-void Visitor<Reader<JSONObject>>::readFrom(
+void Visitor<Reader<JSONObject>>::readFrom_impl(
         const Curve::SegmentModel& segmt)
 {
     using namespace Curve;
-    // To allow recration using createProcess
-    m_obj["Name"] = toJsonValue(segmt.key());
 
     // Save the parent class
     readFrom(static_cast<const IdentifiedObject<SegmentModel>&>(segmt));
@@ -129,9 +104,6 @@ void Visitor<Reader<JSONObject>>::readFrom(
     m_obj["Following"] = toJsonValue(segmt.following());
     m_obj["Start"] = toJsonValue(segmt.start());
     m_obj["End"] = toJsonValue(segmt.end());
-
-    // Save the subclass
-    segmt.serialize(toVariant());
 }
 
 template<>
@@ -148,33 +120,6 @@ void Visitor<Writer<JSONObject>>::writeTo(
 
 namespace Curve
 {
-Curve::SegmentModel* createCurveSegment(
-        const Curve::SegmentList& csl,
-        Deserializer<DataStream>& deserializer,
-        QObject* parent)
-{
-    SegmentFactoryKey name;
-    deserializer.writeTo(name);
-
-    auto fact = csl.list().get(name);
-    auto model = fact->load(deserializer.toVariant(), parent);
-
-    deserializer.checkDelimiter();
-    return model;
-}
-
-Curve::SegmentModel* createCurveSegment(
-        const Curve::SegmentList& csl,
-        Deserializer<JSONObject>& deserializer,
-        QObject* parent)
-{
-    auto fact = csl.list().get(fromJsonValue<SegmentFactoryKey>(deserializer.m_obj["Name"]));
-    auto model = fact->load(deserializer.toVariant(), parent);
-
-    return model;
-}
-
-
 Curve::SegmentModel* createCurveSegment(
         const Curve::SegmentList& csl,
         const Curve::SegmentData& dat,

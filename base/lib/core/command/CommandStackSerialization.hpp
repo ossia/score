@@ -13,8 +13,8 @@ void loadCommandStack(
         RedoFun redo_fun)
 {
     std::vector<iscore::CommandData> undoStack, redoStack;
-    writeTo_vector_obj_impl(writer, undoStack);
-    writeTo_vector_obj_impl(writer, redoStack);
+    writer.writeTo(undoStack);
+    writer.writeTo(redoStack);
 
     writer.checkDelimiter();
 

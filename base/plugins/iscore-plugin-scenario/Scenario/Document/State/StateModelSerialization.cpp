@@ -76,7 +76,7 @@ template<> void Visitor<Writer<DataStream>>::writeTo(Scenario::StateModel& s)
     auto& pl = context.components.factory<Process::StateProcessList>();
     for(; process_count -- > 0;)
     {
-        s.stateProcesses.add(Process::createStateProcess(pl, *this, &s));
+        s.stateProcesses.add(deserialize_interface(pl, *this, &s));
     }
 
 
@@ -122,6 +122,6 @@ template<> void Visitor<Writer<JSONObject>>::writeTo(Scenario::StateModel& s)
     for(const auto& json_vref : process_array)
     {
         Deserializer<JSONObject> deserializer{json_vref.toObject()};
-        s.stateProcesses.add(createStateProcess(pl, deserializer, &s));
+        s.stateProcesses.add(deserialize_interface(pl, deserializer, &s));
     }
 }

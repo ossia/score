@@ -13,7 +13,6 @@ namespace Scenario
 class ISCORE_PLUGIN_SCENARIO_EXPORT TriggerModel final : public IdentifiedObject<TriggerModel>
 {
         Q_OBJECT
-        ISCORE_METADATA(Scenario::TriggerModel)
 
     public:
         TriggerModel(const Id<TriggerModel>& id, QObject* parent);
@@ -40,3 +39,5 @@ class ISCORE_PLUGIN_SCENARIO_EXPORT TriggerModel final : public IdentifiedObject
         bool m_active {false};
 };
 }
+
+DEFAULT_MODEL_METADATA(Scenario::TriggerModel, "Trigger")

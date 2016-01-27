@@ -21,12 +21,6 @@ Inspector::InspectorWidgetBase* TimeNodeInspectorFactory::makeWidget(
     return new TimeNodeInspectorWidget{timeNode, doc, parent};
 }
 
-const QList<QString>& TimeNodeInspectorFactory::key_impl() const
-{
-    static const QList<QString> list{QString::fromStdString(TimeNodeModel::className)};
-    return list;
-}
-
 bool TimeNodeInspectorFactory::matches(const QObject& object) const
 {
     return dynamic_cast<const TimeNodeModel*>(&object);

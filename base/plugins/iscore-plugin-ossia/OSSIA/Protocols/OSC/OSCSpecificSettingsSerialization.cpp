@@ -11,7 +11,7 @@ template <typename T> class Writer;
 
 
 template<>
-void Visitor<Reader<DataStream>>::readFrom(const Ossia::OSCSpecificSettings& n)
+void Visitor<Reader<DataStream>>::readFrom_impl(const Ossia::OSCSpecificSettings& n)
 {
     // TODO put it in the right order before 1.0 final.
     // TODO same for minuit, etc..
@@ -31,7 +31,7 @@ void Visitor<Writer<DataStream>>::writeTo(Ossia::OSCSpecificSettings& n)
 }
 
 template<>
-void Visitor<Reader<JSONObject>>::readFrom(const Ossia::OSCSpecificSettings& n)
+void Visitor<Reader<JSONObject>>::readFrom_impl(const Ossia::OSCSpecificSettings& n)
 {
     m_obj["OutputPort"] = n.outputPort;
     m_obj["InputPort"] = n.inputPort;

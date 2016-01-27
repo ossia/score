@@ -41,7 +41,7 @@
 
 namespace iscore {
 
-class DocumentDelegateFactoryInterface;
+class DocumentDelegateFactory;
 class FactoryListInterface;
 class PanelFactory;
 }
@@ -85,7 +85,7 @@ iscore_plugin_scenario::iscore_plugin_scenario() :
 }
 
 // Interfaces implementations :
-std::vector<iscore::DocumentDelegateFactoryInterface*> iscore_plugin_scenario::documents()
+std::vector<iscore::DocumentDelegateFactory*> iscore_plugin_scenario::documents()
 {
     using namespace Scenario;
     return {new ScenarioDocumentFactory};
@@ -134,12 +134,12 @@ struct FactoryBuilder<iscore::ApplicationContext, Scenario::ScenarioFactory>
 
 std::vector<std::unique_ptr<iscore::FactoryInterfaceBase>> iscore_plugin_scenario::factories(
         const iscore::ApplicationContext& ctx,
-        const iscore::FactoryBaseKey& key) const
+        const iscore::AbstractFactoryKey& key) const
 {
     using namespace Scenario;
     using namespace Scenario::Command;
     /*
-        if(key == ScenarioActionsFactory::staticFactoryKey())
+        if(key == ScenarioActionsFactory::static_abstractFactoryKey())
         {
             // new ScenarioCommonActionsFactory is instantiated in ScenarioApplicationPlugin
             // because other plug ins need it.

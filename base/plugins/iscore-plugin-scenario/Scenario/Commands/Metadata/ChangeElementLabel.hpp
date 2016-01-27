@@ -20,7 +20,7 @@ class ChangeElementLabel final : public iscore::SerializableCommand
         }
         static const CommandFactoryKey& static_key()
         {
-            auto name = "ChangeElementLabel_"_CS + T::className;
+            auto name = QString("ChangeElementLabel_")  + Metadata<ObjectKey_k, T>::get();
             static const CommandFactoryKey kagi{std::move(name)};
             return kagi;
         }
@@ -30,7 +30,7 @@ class ChangeElementLabel final : public iscore::SerializableCommand
         }
         QString description() const override
         {
-            return QObject::tr("Change %1 label").arg(T::description());
+            return QObject::tr("Change %1 label").arg(Metadata<Description_k, T>::get());
         }
 
         ChangeElementLabel() = default;

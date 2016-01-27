@@ -14,6 +14,7 @@
 #include <iscore/serialization/VisitorInterface.hpp>
 #include <iscore/serialization/DataStreamVisitor.hpp>
 #include <iscore/serialization/JSONVisitor.hpp>
+#include <iscore/plugins/customfactory/SerializableInterface.hpp>
 
 namespace Process { class LayerModel; }
 class ProcessStateDataInterface;
@@ -31,10 +32,11 @@ namespace Process
  *
  * Interface to implement to make a process.
  */
-class ISCORE_LIB_PROCESS_EXPORT ProcessModel: public IdentifiedObject<ProcessModel>
+class ISCORE_LIB_PROCESS_EXPORT ProcessModel:
+        public IdentifiedObject<ProcessModel>,
+        public iscore::SerializableInterface<ProcessModel>
 {
         Q_OBJECT
-        ISCORE_METADATA(Process::ProcessModel)
 
         ISCORE_SERIALIZE_FRIENDS(Process::ProcessModel, DataStream)
         ISCORE_SERIALIZE_FRIENDS(Process::ProcessModel, JSONObject)
@@ -64,12 +66,8 @@ class ISCORE_LIB_PROCESS_EXPORT ProcessModel: public IdentifiedObject<ProcessMod
                 const Id<ProcessModel>& newId,
                 QObject* newParent) const = 0;
 
-        virtual const ProcessFactoryKey& key() const = 0;
-
         // A user-friendly text to show to the users
         virtual QString prettyName() const = 0;
-
-        static QString description() {return "Process";}
 
         //// View models interface
         // For deterministic operation in a command,
@@ -142,9 +140,6 @@ class ISCORE_LIB_PROCESS_EXPORT ProcessModel: public IdentifiedObject<ProcessMod
         virtual Selection selectedChildren() const = 0;
         virtual void setSelection(const Selection& s) const = 0;
 
-        // protected:
-        virtual void serialize(const VisitorVariant& vis) const = 0;
-
     signals:
         // True if the execution is running.
         void execution(bool);
@@ -212,5 +207,4 @@ std::vector<typename T::layer_type*> layers(const T& processModel)
     return v;
 }
 
-template<typename T>
-QString NameInUndo();
+DEFAULT_MODEL_METADATA(Process::ProcessModel, "Process")

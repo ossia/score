@@ -19,7 +19,8 @@ template <typename T> class Reader;
 template <typename T> class Writer;
 
 template<>
-void Visitor<Reader<DataStream>>::readFrom(const Mapping::MappingModel& autom)
+void Visitor<Reader<DataStream>>::readFrom_impl(
+        const Mapping::ProcessModel& autom)
 {
     readFrom(*autom.pluginModelList); // TODO it is unbearable to save / load these every time
 
@@ -37,7 +38,8 @@ void Visitor<Reader<DataStream>>::readFrom(const Mapping::MappingModel& autom)
 }
 
 template<>
-void Visitor<Writer<DataStream>>::writeTo(Mapping::MappingModel& autom)
+void Visitor<Writer<DataStream>>::writeTo(
+        Mapping::ProcessModel& autom)
 {
     autom.pluginModelList = new iscore::ElementPluginModelList{*this, &autom};
 
@@ -69,7 +71,8 @@ void Visitor<Writer<DataStream>>::writeTo(Mapping::MappingModel& autom)
 
 
 template<>
-void Visitor<Reader<JSONObject>>::readFrom(const Mapping::MappingModel& autom)
+void Visitor<Reader<JSONObject>>::readFrom_impl(
+        const Mapping::ProcessModel& autom)
 {
     m_obj["PluginsMetadata"] = toJsonValue(*autom.pluginModelList);
 
@@ -85,7 +88,7 @@ void Visitor<Reader<JSONObject>>::readFrom(const Mapping::MappingModel& autom)
 }
 
 template<>
-void Visitor<Writer<JSONObject>>::writeTo(Mapping::MappingModel& autom)
+void Visitor<Writer<JSONObject>>::writeTo(Mapping::ProcessModel& autom)
 {
     Deserializer<JSONValue> elementPluginDeserializer(m_obj["PluginsMetadata"]);
     autom.pluginModelList = new iscore::ElementPluginModelList{elementPluginDeserializer, &autom};
@@ -105,18 +108,18 @@ void Visitor<Writer<JSONObject>>::writeTo(Mapping::MappingModel& autom)
 
 
 
-void Mapping::MappingModel::serialize(const VisitorVariant& vis) const
+void Mapping::ProcessModel::serialize_impl(const VisitorVariant& vis) const
 {
     serialize_dyn(vis, *this);
 }
 
-Process::LayerModel* Mapping::MappingModel::loadLayer_impl(
+Process::LayerModel* Mapping::ProcessModel::loadLayer_impl(
         const VisitorVariant& vis,
         QObject* parent)
 {
     return deserialize_dyn(vis, [&] (auto&& deserializer)
     {
-        auto autom = new MappingLayerModel{
+        auto autom = new LayerModel{
                         deserializer, *this, parent};
 
         return autom;

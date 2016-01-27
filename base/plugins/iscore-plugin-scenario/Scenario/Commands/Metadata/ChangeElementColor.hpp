@@ -20,7 +20,7 @@ class ChangeElementColor final : public iscore::SerializableCommand
         }
         static const CommandFactoryKey& static_key()
         {
-            auto name = "ChangeElementColor_"_CS + T::className;
+            auto name = QString("ChangeElementColor_")  + Metadata<ObjectKey_k, T>::get();
             static const CommandFactoryKey kagi{std::move(name)};
             return kagi;
         }
@@ -30,7 +30,7 @@ class ChangeElementColor final : public iscore::SerializableCommand
         }
         QString description() const override
         {
-            return QObject::tr("Change %1 color").arg(T::description());
+            return QObject::tr("Change %1 color").arg(Metadata<Description_k, T>::get());
         }
 
         ChangeElementColor() = default;

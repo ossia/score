@@ -62,5 +62,26 @@ inline bool operator<(const State::MessageList&, const State::MessageList&)
 }
 }
 
+#include <iscore/serialization/JSONVisitor.hpp>
+template<>
+struct TSerializer<JSONObject, State::MessageList>
+{
+        static void readFrom(
+                JSONObject::Serializer& s,
+                const State::MessageList& obj)
+        {
+            s.m_obj["Data"] = toJsonArray(obj);
+        }
+
+        static void writeTo(
+                JSONObject::Deserializer& s,
+                State::MessageList& obj)
+        {
+            State::MessageList t;
+            fromJsonArray(s.m_obj["Data"].toArray(), t);
+            obj = t;
+        }
+};
+
 Q_DECLARE_METATYPE(State::Message)
 Q_DECLARE_METATYPE(State::MessageList)

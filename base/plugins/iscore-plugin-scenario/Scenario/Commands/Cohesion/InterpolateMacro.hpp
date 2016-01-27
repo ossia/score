@@ -37,13 +37,13 @@ class AddMultipleProcessesToConstraintMacro final : public iscore::AggregateComm
             auto cmd_rack = new Scenario::Command::AddRackToConstraint{Path<ConstraintModel>{cstpath}};
             addCommand(cmd_rack);
 
-            auto createdRackPath = cstpath.extend(Scenario::RackModel::className.c_str(), cmd_rack->createdRack());
+            auto createdRackPath = cstpath.extend(cmd_rack->createdRack());
 
             // Then create a slot in this rack
             auto cmd_slot = new Scenario::Command::AddSlotToRack{Path<RackModel>{createdRackPath}};
             addCommand(cmd_slot);
 
-            auto createdSlotPath = createdRackPath.extend(SlotModel::className.c_str(), cmd_slot->createdSlot());
+            auto createdSlotPath = createdRackPath.extend(cmd_slot->createdSlot());
             slotsToUse.push_back({std::move(createdSlotPath), {}});
 
             // Finally show the rack.
@@ -60,12 +60,12 @@ class AddMultipleProcessesToConstraintMacro final : public iscore::AggregateComm
                 auto cmd_rack = new Scenario::Command::AddRackToConstraint{constraint};
                 addCommand(cmd_rack);
 
-                auto createdRackPath = cstpath.extend(RackModel::className.c_str(), cmd_rack->createdRack());
+                auto createdRackPath = cstpath.extend(cmd_rack->createdRack());
 
                 auto cmd_slot = new Scenario::Command::AddSlotToRack{Path<RackModel>{createdRackPath}};
                 addCommand(cmd_slot);
 
-                auto createdSlotPath = createdRackPath.extend(SlotModel::className.c_str(), cmd_slot->createdSlot());
+                auto createdSlotPath = createdRackPath.extend(cmd_slot->createdSlot());
                 slotsToUse.push_back({std::move(createdSlotPath), {}});
 
 
@@ -102,12 +102,12 @@ class AddMultipleProcessesToConstraintMacro final : public iscore::AggregateComm
                 {
                     addCommand(cmd_rack);
 
-                    auto createdRackPath = cstpath.extend(RackModel::className.c_str(), cmd_rack->createdRack());
+                    auto createdRackPath = cstpath.extend(cmd_rack->createdRack());
 
                     auto cmd_slot = new Scenario::Command::AddSlotToRack{Path<RackModel>{createdRackPath}};
                     addCommand(cmd_slot);
 
-                    auto createdSlotPath = createdRackPath.extend(SlotModel::className.c_str(), cmd_slot->createdSlot());
+                    auto createdSlotPath = createdRackPath.extend(cmd_slot->createdSlot());
                     slotsToUse.push_back({std::move(createdSlotPath), {}});
                 }
 
@@ -137,7 +137,7 @@ class AddMultipleProcessesToConstraintMacro final : public iscore::AggregateComm
                             auto cmd_slot = new Scenario::Command::AddSlotToRack{Path<RackModel>{rackPath}};
                             addCommand(cmd_slot);
 
-                            auto createdSlotPath = rackPath.extend(SlotModel::className.c_str(), cmd_slot->createdSlot());
+                            auto createdSlotPath = rackPath.extend(cmd_slot->createdSlot());
                             slotsToUse.push_back({std::move(createdSlotPath), {}});
                         }
                     }

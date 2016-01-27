@@ -9,7 +9,7 @@ class PlayContextMenuFactory final :
         public Scenario::ScenarioActionsFactory
 {
     public:
-        const Scenario::ScenarioActionsFactoryKey& key_impl() const override;
+        const Scenario::ScenarioActionsFactoryKey& concreteFactoryKey() const override;
         QList<Scenario::ScenarioActions*> make(Scenario::ScenarioApplicationPlugin* ctrl) override;
 };
 }

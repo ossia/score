@@ -18,14 +18,13 @@ namespace Process { class LayerModelPanelProxy; }
 
 class QObject;
 
-ISCORE_METADATA_IMPL(Loop::Layer)
 namespace Loop
 {
 Layer::Layer(
         Loop::ProcessModel& model,
         const Id<LayerModel>& id,
         QObject* parent) :
-    LayerModel {id, Layer::className.c_str(), model, parent}
+    LayerModel {id, Metadata<ObjectKey_k, Layer>::get(), model, parent}
 {
     m_constraint = model.constraint().makeConstraintViewModel<Scenario::TemporalConstraintViewModel>(
                 Id<Scenario::ConstraintViewModel>{0},
@@ -37,7 +36,7 @@ Layer::Layer(
         Loop::ProcessModel& model,
         const Id<LayerModel>& id,
         QObject* parent) :
-    LayerModel {id, Layer::className.c_str(), model, parent}
+    LayerModel {id, Metadata<ObjectKey_k, Layer>::get(), model, parent}
 {
     m_constraint = source.m_constraint->clone(
                 source.constraint().id(),

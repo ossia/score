@@ -12,7 +12,7 @@ template <typename T> class Writer;
 
 
 template<>
-void Visitor<Reader<DataStream>>::readFrom(const Ossia::MIDISpecificSettings& n)
+void Visitor<Reader<DataStream>>::readFrom_impl(const Ossia::MIDISpecificSettings& n)
 {
     m_stream << n.io << n.endpoint;
     insertDelimiter();
@@ -26,7 +26,7 @@ void Visitor<Writer<DataStream>>::writeTo(Ossia::MIDISpecificSettings& n)
 }
 
 template<>
-void Visitor<Reader<JSONObject>>::readFrom(const Ossia::MIDISpecificSettings& n)
+void Visitor<Reader<JSONObject>>::readFrom_impl(const Ossia::MIDISpecificSettings& n)
 {
     m_obj["IO"] = toJsonValue(n.io);
 }

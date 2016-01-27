@@ -29,12 +29,6 @@ Inspector::InspectorWidgetBase* StateInspectorFactory::makeWidget(
                 parent};
 }
 
-const QList<QString>& StateInspectorFactory::key_impl() const
-{
-    static const QList<QString> lst{"AutomationState"};
-    return lst;
-}
-
 bool StateInspectorFactory::matches(const QObject& object) const
 {
     return dynamic_cast<const ProcessState*>(&object);

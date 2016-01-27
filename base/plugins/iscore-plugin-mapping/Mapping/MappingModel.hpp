@@ -20,10 +20,10 @@ class QObject;
 
 namespace Mapping
 {
-class ISCORE_PLUGIN_MAPPING_EXPORT MappingModel : public Curve::CurveProcessModel
+class ISCORE_PLUGIN_MAPPING_EXPORT ProcessModel : public Curve::CurveProcessModel
 {
-        ISCORE_SERIALIZE_FRIENDS(Mapping::MappingModel, DataStream)
-        ISCORE_SERIALIZE_FRIENDS(Mapping::MappingModel, JSONObject)
+        ISCORE_SERIALIZE_FRIENDS(Mapping::ProcessModel, DataStream)
+        ISCORE_SERIALIZE_FRIENDS(Mapping::ProcessModel, JSONObject)
 
         Q_OBJECT
 
@@ -35,13 +35,13 @@ class ISCORE_PLUGIN_MAPPING_EXPORT MappingModel : public Curve::CurveProcessMode
         Q_PROPERTY(double targetMin READ targetMin WRITE setTargetMin NOTIFY targetMinChanged)
         Q_PROPERTY(double targetMax READ targetMax WRITE setTargetMax NOTIFY targetMaxChanged)
     public:
-        MappingModel(
+        ProcessModel(
                 const TimeValue& duration,
                 const Id<Process::ProcessModel>& id,
                 QObject* parent);
 
         template<typename Impl>
-        MappingModel(Deserializer<Impl>& vis, QObject* parent) :
+        ProcessModel(Deserializer<Impl>& vis, QObject* parent) :
             CurveProcessModel{vis, parent}
         {
             vis.writeTo(*this);
@@ -74,7 +74,7 @@ class ISCORE_PLUGIN_MAPPING_EXPORT MappingModel : public Curve::CurveProcessMode
         void targetMaxChanged(double arg);
 
     private:
-        MappingModel(const MappingModel& source,
+        ProcessModel(const ProcessModel& source,
                         const Id<Process::ProcessModel>& id,
                         QObject* parent);
         Process::LayerModel* cloneLayer_impl(
@@ -87,7 +87,7 @@ class ISCORE_PLUGIN_MAPPING_EXPORT MappingModel : public Curve::CurveProcessMode
                 QObject* newParent) const override;
 
         //// ProcessModel ////
-        const ProcessFactoryKey& key() const override;
+        ProcessFactoryKey concreteFactoryKey() const override;
 
         QString prettyName() const override;
 
@@ -103,7 +103,7 @@ class ISCORE_PLUGIN_MAPPING_EXPORT MappingModel : public Curve::CurveProcessMode
         void setDurationAndGrow(const TimeValue& newDuration) override;
         void setDurationAndShrink(const TimeValue& newDuration) override;
 
-        void serialize(const VisitorVariant& vis) const override;
+        void serialize_impl(const VisitorVariant& vis) const override;
 
         /// States
         ProcessStateDataInterface* startStateData() const override;

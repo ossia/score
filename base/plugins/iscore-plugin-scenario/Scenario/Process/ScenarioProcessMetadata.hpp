@@ -1,21 +1,17 @@
 #pragma once
-#include <Process/ProcessFactoryKey.hpp>
+#include <Process/ProcessMetadata.hpp>
+#include <QString>
+#include <iscore_plugin_scenario_export.h>
 
-struct ScenarioProcessMetadata
+namespace Scenario
 {
-        static const ProcessFactoryKey& factoryKey()
-        {
-            static const ProcessFactoryKey name{"Scenario"};
-            return name;
-        }
+class ProcessModel;
+}
 
-        static QString processObjectName()
-        {
-            return "Scenario";
-        }
-
-        static QString factorydescription()
-        {
-            return QObject::tr("Scenario");
-        }
-};
+PROCESS_METADATA(
+        ISCORE_PLUGIN_SCENARIO_EXPORT,
+        Scenario::ProcessModel,
+        "de035912-5b03-49a8-bc4d-b2cba68e21d9",
+        "Scenario",
+        "Scenario"
+        )

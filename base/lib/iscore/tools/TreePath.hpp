@@ -84,25 +84,38 @@ class TreePath : public QList<int>
 };
 
 template<typename T>
-void Visitor<Reader<DataStream>>::readFrom(const TreePath<T>& path)
+struct TSerializer<DataStream, TreePath<T>>
 {
-    m_stream << static_cast<const QList<int>&>(path);
-}
+        static void readFrom(
+                DataStream::Serializer& s,
+                const TreePath<T>& path)
+        {
+            s.stream() << static_cast<const QList<int>&>(path);
+        }
+
+        static void writeTo(
+                DataStream::Deserializer& s,
+                TreePath<T>& path)
+        {
+            s.stream() >> static_cast<QList<int>&>(path);
+        }
+};
+
 
 template<typename T>
-void Visitor<Writer<DataStream>>::writeTo(TreePath<T>& path)
+struct TSerializer<JSONObject, TreePath<T>>
 {
-    m_stream >> static_cast<QList<int>&>(path);
-}
+        static void readFrom(
+                JSONObject::Serializer& s,
+                const TreePath<T>& path)
+        {
+            s.m_obj["Path"] = toJsonArray(static_cast<const QList<int>&>(path));
+        }
 
-template<typename T>
-void Visitor<Reader<JSONObject>>::readFrom(const TreePath<T>& path)
-{
-    m_obj["Path"] = toJsonArray(static_cast<const QList<int>&>(path));
-}
-
-template<typename T>
-void Visitor<Writer<JSONObject>>::writeTo(TreePath<T>& path)
-{
-    fromJsonArray(m_obj["Path"].toArray(), static_cast<QList<int>&>(path));
-}
+        static void writeTo(
+                JSONObject::Deserializer& s,
+                TreePath<T>& path)
+        {
+            fromJsonArray(s.m_obj["Path"].toArray(), static_cast<QList<int>&>(path));
+        }
+};
