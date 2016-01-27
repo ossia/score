@@ -27,7 +27,7 @@ class ISCORE_LIB_DEVICE_EXPORT NodeBasedItemModel : public TreeNodeBasedItemMode
             else if(n.is<Device::DeviceSettings>())
             {
                 ISCORE_ASSERT(n.parent());
-                return index(n.parent()->indexOfChild(&n), 0, QModelIndex());
+                return createIndex(n.parent()->indexOfChild(&n), 0, &n);
             }
             else
             {
