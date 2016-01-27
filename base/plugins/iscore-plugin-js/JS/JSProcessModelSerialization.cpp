@@ -12,7 +12,7 @@ template <typename T> class Reader;
 template <typename T> class Writer;
 
 template<>
-void Visitor<Reader<DataStream>>::readFrom(const JS::ProcessModel& proc)
+void Visitor<Reader<DataStream>>::readFrom_impl(const JS::ProcessModel& proc)
 {
     readFrom(*proc.pluginModelList);
 
@@ -34,7 +34,7 @@ void Visitor<Writer<DataStream>>::writeTo(JS::ProcessModel& proc)
 }
 
 template<>
-void Visitor<Reader<JSONObject>>::readFrom(const JS::ProcessModel& proc)
+void Visitor<Reader<JSONObject>>::readFrom_impl(const JS::ProcessModel& proc)
 {
     m_obj["PluginsMetadata"] = toJsonValue(*proc.pluginModelList);
     m_obj["Script"] = proc.script();

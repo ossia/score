@@ -58,11 +58,11 @@ class SimpleStateProcessModel : public Process::StateProcess
             return nullptr;
         }
 
-        void serialize(const VisitorVariant& vis) const override
+        void serialize_impl(const VisitorVariant& vis) const override
         {
         }
 
-        const StateProcessFactoryKey&key() const override
+        StateProcessFactoryKey concreteFactoryKey() const override
         {
             static const StateProcessFactoryKey name{"40517cca-3cbe-42bf-9bd4-982bc4696516"};
             return name;

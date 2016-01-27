@@ -62,7 +62,7 @@ class ISCORE_PLUGIN_LOOP_EXPORT ProcessModel final :
                 const Id<Process::ProcessModel>& newId,
                 QObject* newParent) const override;
 
-        const ProcessFactoryKey& key() const override
+        ProcessFactoryKey concreteFactoryKey() const override
         {
             return Metadata<ConcreteFactoryKey_k, ProcessModel>::get();
         }
@@ -85,7 +85,7 @@ class ISCORE_PLUGIN_LOOP_EXPORT ProcessModel final :
         Selection selectedChildren() const override;
         void setSelection(const Selection& s) const override;
 
-        void serialize(const VisitorVariant& vis) const override;
+        void serialize_impl(const VisitorVariant& vis) const override;
 
     protected:
         Process::LayerModel* makeLayer_impl(

@@ -19,7 +19,8 @@ template <typename T> class Reader;
 template <typename T> class Writer;
 
 template<>
-void Visitor<Reader<DataStream>>::readFrom(const Mapping::ProcessModel& autom)
+void Visitor<Reader<DataStream>>::readFrom_impl(
+        const Mapping::ProcessModel& autom)
 {
     readFrom(*autom.pluginModelList); // TODO it is unbearable to save / load these every time
 
@@ -37,7 +38,8 @@ void Visitor<Reader<DataStream>>::readFrom(const Mapping::ProcessModel& autom)
 }
 
 template<>
-void Visitor<Writer<DataStream>>::writeTo(Mapping::ProcessModel& autom)
+void Visitor<Writer<DataStream>>::writeTo(
+        Mapping::ProcessModel& autom)
 {
     autom.pluginModelList = new iscore::ElementPluginModelList{*this, &autom};
 
@@ -69,7 +71,8 @@ void Visitor<Writer<DataStream>>::writeTo(Mapping::ProcessModel& autom)
 
 
 template<>
-void Visitor<Reader<JSONObject>>::readFrom(const Mapping::ProcessModel& autom)
+void Visitor<Reader<JSONObject>>::readFrom_impl(
+        const Mapping::ProcessModel& autom)
 {
     m_obj["PluginsMetadata"] = toJsonValue(*autom.pluginModelList);
 
@@ -105,7 +108,7 @@ void Visitor<Writer<JSONObject>>::writeTo(Mapping::ProcessModel& autom)
 
 
 
-void Mapping::ProcessModel::serialize(const VisitorVariant& vis) const
+void Mapping::ProcessModel::serialize_impl(const VisitorVariant& vis) const
 {
     serialize_dyn(vis, *this);
 }

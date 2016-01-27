@@ -83,7 +83,7 @@ class SegmentFactory_T : public SegmentFactory
 };
 
 }
-#define DEFINE_CURVE_SEGMENT_FACTORY(Name, DynName, Model) \
+#define DEFINE_CURVE_SEGMENT_FACTORY(Name, Model) \
     class Name final : public Curve::SegmentFactory_T<Model> \
 { \
     public: \
@@ -91,11 +91,10 @@ class SegmentFactory_T : public SegmentFactory
     \
     private: \
     const Curve::SegmentFactoryKey& concreteFactoryKey() const override { \
-        static const Curve::SegmentFactoryKey name{DynName}; \
-        return name; \
+        return Model::data_type::static_concreteFactoryKey();\
     } \
     \
     QString prettyName() const override { \
-        return QObject::tr(DynName); \
+        return Model::data_type::prettyName(); \
     } \
 };

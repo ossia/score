@@ -19,7 +19,8 @@ template <typename T> class Reader;
 template <typename T> class Writer;
 
 template<>
-void Visitor<Reader<DataStream>>::readFrom(const Automation::ProcessModel& autom)
+void Visitor<Reader<DataStream>>::readFrom_impl(
+        const Automation::ProcessModel& autom)
 {
     readFrom(*autom.pluginModelList);
 
@@ -33,7 +34,8 @@ void Visitor<Reader<DataStream>>::readFrom(const Automation::ProcessModel& autom
 }
 
 template<>
-void Visitor<Writer<DataStream>>::writeTo(Automation::ProcessModel& autom)
+void Visitor<Writer<DataStream>>::writeTo(
+        Automation::ProcessModel& autom)
 {
     autom.pluginModelList = new iscore::ElementPluginModelList{*this, &autom};
 
@@ -55,7 +57,8 @@ void Visitor<Writer<DataStream>>::writeTo(Automation::ProcessModel& autom)
 
 
 template<>
-void Visitor<Reader<JSONObject>>::readFrom(const Automation::ProcessModel& autom)
+void Visitor<Reader<JSONObject>>::readFrom_impl(
+        const Automation::ProcessModel& autom)
 {
     m_obj["PluginsMetadata"] = toJsonValue(*autom.pluginModelList);
 
@@ -66,7 +69,8 @@ void Visitor<Reader<JSONObject>>::readFrom(const Automation::ProcessModel& autom
 }
 
 template<>
-void Visitor<Writer<JSONObject>>::writeTo(Automation::ProcessModel& autom)
+void Visitor<Writer<JSONObject>>::writeTo(
+        Automation::ProcessModel& autom)
 {
     Deserializer<JSONValue> elementPluginDeserializer(m_obj["PluginsMetadata"]);
     autom.pluginModelList = new iscore::ElementPluginModelList{elementPluginDeserializer, &autom};
@@ -83,7 +87,7 @@ void Visitor<Writer<JSONObject>>::writeTo(Automation::ProcessModel& autom)
 // Dynamic stuff
 namespace Automation
 {
-void ProcessModel::serialize(const VisitorVariant& vis) const
+void ProcessModel::serialize_impl(const VisitorVariant& vis) const
 {
     serialize_dyn(vis, *this);
 }

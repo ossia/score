@@ -161,7 +161,7 @@ void ProcessModel::setSelection(const Selection& s) const
     });
 }
 
-void ProcessModel::serialize(const VisitorVariant& s) const
+void ProcessModel::serialize_impl(const VisitorVariant& s) const
 {
     serialize_dyn(s, *this);
 }

@@ -39,7 +39,7 @@ DummyModel* DummyModel::clone(
     return new DummyModel{*this, newId, newParent};
 }
 
-const ProcessFactoryKey& DummyModel::key() const
+ProcessFactoryKey DummyModel::concreteFactoryKey() const
 {
     static const ProcessFactoryKey key{"7db45400-6033-425e-9ded-d60a35d4c4b2"};
     return key;
@@ -106,7 +106,7 @@ void DummyModel::setSelection(const Selection&) const
 {
 }
 
-void DummyModel::serialize(const VisitorVariant& s) const
+void DummyModel::serialize_impl(const VisitorVariant& s) const
 {
     serialize_dyn(s, *this);
 }

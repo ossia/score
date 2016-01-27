@@ -38,7 +38,7 @@ struct VisitorVariant;
 
 // MOVEME
 template<>
-void Visitor<Reader<DataStream>>::readFrom(
+void Visitor<Reader<DataStream>>::readFrom_impl(
         const DeviceExplorer::DeviceDocumentPlugin& dev)
 {
     readFrom(dev.rootNode());
@@ -46,7 +46,7 @@ void Visitor<Reader<DataStream>>::readFrom(
 
 
 template<>
-void Visitor<Reader<JSONObject>>::readFrom(
+void Visitor<Reader<JSONObject>>::readFrom_impl(
         const DeviceExplorer::DeviceDocumentPlugin& dev)
 {
     readFrom(dev.rootNode());

@@ -62,7 +62,7 @@ void ClearConstraint::undo() const
     for(auto& serializedProcess : m_serializedProcesses)
     {
         Deserializer<DataStream> s {serializedProcess};
-        AddProcess(constraint, createProcess(fact, s, &constraint));
+        AddProcess(constraint, deserialize_interface(fact, s, &constraint));
     }
 
     for(auto& serializedRack : m_serializedRackes)

@@ -11,7 +11,7 @@ template <typename T> class Reader;
 template <typename T> class Writer;
 
 template<>
-ISCORE_LIB_DUMMYPROCESS_EXPORT void Visitor<Reader<DataStream>>::readFrom(
+ISCORE_LIB_DUMMYPROCESS_EXPORT void Visitor<Reader<DataStream>>::readFrom_impl(
         const Dummy::DummyLayerModel& lm)
 {
 }
@@ -25,7 +25,7 @@ ISCORE_LIB_DUMMYPROCESS_EXPORT void Visitor<Writer<DataStream>>::writeTo(
 
 
 template<>
-ISCORE_LIB_DUMMYPROCESS_EXPORT void Visitor<Reader<JSONObject>>::readFrom(
+ISCORE_LIB_DUMMYPROCESS_EXPORT void Visitor<Reader<JSONObject>>::readFrom_impl(
         const Dummy::DummyLayerModel& lm)
 {
 }

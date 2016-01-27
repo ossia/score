@@ -67,7 +67,7 @@ ISCORE_PLUGIN_CURVE_EXPORT void Visitor<Writer<DataStream>>::writeTo(
 }
 
 template<>
-void Visitor<Reader<DataStream>>::readFrom(
+void Visitor<Reader<DataStream>>::readFrom_impl(
         const Curve::SegmentModel& segmt)
 {
     // Save the parent class
@@ -91,7 +91,7 @@ void Visitor<Writer<DataStream>>::writeTo(
 }
 
 template<>
-void Visitor<Reader<JSONObject>>::readFrom(
+void Visitor<Reader<JSONObject>>::readFrom_impl(
         const Curve::SegmentModel& segmt)
 {
     using namespace Curve;

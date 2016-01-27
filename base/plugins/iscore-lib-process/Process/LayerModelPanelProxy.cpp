@@ -48,7 +48,7 @@ Process::GraphicsViewLayerModelPanelProxy::GraphicsViewLayerModelPanelProxy(
 
     // Setup the model
     auto& sharedmodel = m_layer.processModel();
-    auto fact = iscore::AppContext().components.factory<ProcessList>().list().get(sharedmodel.key());
+    auto fact = iscore::AppContext().components.factory<ProcessList>().list().get(sharedmodel.concreteFactoryKey());
 
 
     m_obj = new ProcessPanelGraphicsProxy{};

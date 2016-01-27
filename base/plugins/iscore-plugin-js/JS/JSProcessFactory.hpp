@@ -36,7 +36,7 @@ class ProcessFactory final : public Process::ProcessFactory
             return {};
         }
 
-        Process::ProcessModel* loadModel(const VisitorVariant& vis, QObject* parent) override
+        Process::ProcessModel* load(const VisitorVariant& vis, QObject* parent) override
         {
             return deserialize_dyn(vis, [&] (auto&& deserializer)
             { return new JS::ProcessModel{deserializer, parent};});

@@ -38,7 +38,7 @@ MessageItemModel::MessageItemModel(
     m_rootNode{},
     m_stack{stack}
 {
-    this->setObjectName("MessageItemModel");
+    this->setObjectName("Scenario::MessageItemModel");
 }
 
 MessageItemModel &MessageItemModel::operator=(const MessageItemModel & other)

@@ -54,7 +54,7 @@ class SimpleProcessModel final : public Process::ProcessModel
         QString prettyName() const override;
         QByteArray makeLayerConstructionData() const override;
 
-        const ProcessFactoryKey& key() const override
+        ProcessFactoryKey concreteFactoryKey() const override
         {
             static const ProcessFactoryKey name{"0107dfb7-dcab-45c3-b7b8-e824c0fe49a1"};
             return name;
@@ -75,7 +75,7 @@ class SimpleProcessModel final : public Process::ProcessModel
         Selection selectedChildren() const override;
         void setSelection(const Selection& s) const override;
 
-        void serialize(const VisitorVariant& vis) const override;
+        void serialize_impl(const VisitorVariant& vis) const override;
 
     protected:
         Process::LayerModel* makeLayer_impl(

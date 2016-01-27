@@ -65,22 +65,32 @@ class ISCORE_LIB_BASE_EXPORT Visitor<Reader<JSONObject>> : public AbstractVisito
         template<template<class...> class T, typename... Args>
         void readFrom(
                 const T<Args...>& obj,
-                typename std::enable_if<
-                    is_template<T<Args...>>::value, void>::type * = 0)
+                typename std::enable_if_t<
+                    is_template<T<Args...>>::value &&
+                   !is_abstract_base<T<Args...>>::value> * = 0)
         {
             TSerializer<JSONObject, T<Args...>>::readFrom(*this, obj);
         }
 
-        template<typename T>
-        void readFromDynamic(
-                const T& obj)
+
+        template<typename T,
+                 std::enable_if_t<
+                     is_abstract_base<T>::value &&
+                     !is_concrete<T>::value
+                     >* = nullptr>
+        void readFrom(const T& obj)
         {
             AbstractSerializer<JSONObject, T>::readFrom(*this, obj);
         }
 
+
+        template<typename T>
+        void readFrom_impl(const T&);
+
         template<typename T,
                  std::enable_if_t<
-                     !is_template<T>::value>* = nullptr>
+                     !is_template<T>::value &&
+                     !is_abstract_base<T>::value>* = nullptr>
         void readFrom(const T&);
 
         QJsonObject m_obj;

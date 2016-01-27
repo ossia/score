@@ -94,32 +94,4 @@ class ISCORE_LIB_BASE_EXPORT DocumentPluginFactoryList final :
 
 }
 
-template<typename T>
-struct AbstractSerializer<DataStream, T>
-{
-    static void readFrom(
-            DataStream::Serializer& s,
-            const T& obj)
-    {
-        s.readFrom(obj.concreteFactoryKey().impl());
-        s.readFrom(obj);
-        obj.serialize_impl(s.toVariant());
-        s.insertDelimiter();
-    }
-};
-
-
-
-template<typename T>
-struct AbstractSerializer<JSONObject, T>
-{
-    static void readFrom(
-            JSONObject::Serializer& s,
-            const T& obj)
-    {
-        s.m_obj["uuid"] = toJsonValue(obj.concreteFactoryKey().impl());
-        s.readFrom(obj);
-        obj.serialize_impl(s.toVariant());
-    }
-};
 

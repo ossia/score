@@ -16,6 +16,12 @@ struct SinSegmentData
 {
     double freq;
     double ampl;
+
+
+    static const QString prettyName()
+    { return QObject::tr("Sin"); }
+
+    static const SegmentFactoryKey& static_concreteFactoryKey();
 };
 
 class ISCORE_PLUGIN_CURVE_EXPORT SinSegment final : public SegmentModel

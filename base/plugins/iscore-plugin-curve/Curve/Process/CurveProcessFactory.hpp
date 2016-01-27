@@ -27,7 +27,7 @@ class ISCORE_PLUGIN_CURVE_EXPORT CurveProcessFactory_T : public Process::Process
             return new Model_T{duration, id, parent};
         }
 
-        Model_T* loadModel(
+        Model_T* load(
                 const VisitorVariant& vis,
                 QObject* parent) override
         {
