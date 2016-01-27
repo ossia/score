@@ -98,7 +98,10 @@ void View::setupPanelView(PanelView* v)
             { return lhs.first->defaultPanelStatus().priority < rhs.first->defaultPanelStatus().priority; });
 
             it->second->raise();
-            tabifyDockWidget(dial, it->second);
+            if(dial != it->second)
+            {
+                tabifyDockWidget(dial, it->second);
+            }
         }
     }
     else if(dock == Qt::RightDockWidgetArea)
@@ -114,7 +117,10 @@ void View::setupPanelView(PanelView* v)
             { return lhs.first->defaultPanelStatus().priority < rhs.first->defaultPanelStatus().priority; });
 
             it->second->raise();
-            tabifyDockWidget(dial, it->second);
+            if(dial != it->second)
+            {
+                tabifyDockWidget(dial, it->second);
+            }
         }
     }
 
