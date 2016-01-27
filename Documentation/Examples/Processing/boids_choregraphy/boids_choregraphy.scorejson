@@ -1,0 +1,1949 @@
+{
+    "Document": {
+        "BaseScenario": {
+            "Constraint": {
+                "DefaultDuration": 30000,
+                "EndState": 1,
+                "FullView": {
+                    "CenterOn": [
+                        263,
+                        292
+                    ],
+                    "ConstraintId": 0,
+                    "ObjectName": "FullViewConstraintViewModel",
+                    "ShownRack": 1,
+                    "Zoom": 49.376791482967917,
+                    "id": 0
+                },
+                "HeightPercentage": 0,
+                "Looping": false,
+                "MaxDuration": 30000,
+                "MaxInf": false,
+                "Metadata": {
+                    "Color": [
+                        0,
+                        127,
+                        229
+                    ],
+                    "Comment": "",
+                    "Label": "",
+                    "ScriptingName": "boids_choregraphy"
+                },
+                "MinDuration": 30000,
+                "MinNull": false,
+                "ObjectName": "BaseConstraintModel",
+                "PluginsMetadata": [
+                ],
+                "Processes": [
+                    {
+                        "Comments": [
+                        ],
+                        "Constraints": [
+                            {
+                                "DefaultDuration": 3397.6241591886392,
+                                "EndState": 2,
+                                "FullView": {
+                                    "CenterOn": [
+                                        0,
+                                        0
+                                    ],
+                                    "ConstraintId": 1,
+                                    "ObjectName": "FullViewConstraintViewModel",
+                                    "ShownRack": "none",
+                                    "Zoom": -1,
+                                    "id": 2
+                                },
+                                "HeightPercentage": 0.069472277889111561,
+                                "Looping": false,
+                                "MaxDuration": "inf",
+                                "MaxInf": true,
+                                "Metadata": {
+                                    "Color": [
+                                        0,
+                                        127,
+                                        229
+                                    ],
+                                    "Comment": "",
+                                    "Label": "",
+                                    "ScriptingName": "subfusc54misuser27"
+                                },
+                                "MinDuration": 1994.2472783184612,
+                                "MinNull": true,
+                                "ObjectName": "Scenario::ConstraintModel",
+                                "PluginsMetadata": [
+                                ],
+                                "Processes": [
+                                ],
+                                "Rackes": [
+                                ],
+                                "Rigidity": false,
+                                "StartDate": 0,
+                                "StartState": 1,
+                                "id": 1
+                            },
+                            {
+                                "DefaultDuration": 21382.873784458934,
+                                "EndState": 4,
+                                "FullView": {
+                                    "CenterOn": [
+                                        0,
+                                        0
+                                    ],
+                                    "ConstraintId": 2,
+                                    "ObjectName": "FullViewConstraintViewModel",
+                                    "ShownRack": 1,
+                                    "Zoom": -1,
+                                    "id": 3
+                                },
+                                "HeightPercentage": 0.092852371409485684,
+                                "Looping": false,
+                                "MaxDuration": 21382.873784458934,
+                                "MaxInf": false,
+                                "Metadata": {
+                                    "Color": [
+                                        0,
+                                        127,
+                                        229
+                                    ],
+                                    "Comment": "",
+                                    "Label": "",
+                                    "ScriptingName": "Boid creation"
+                                },
+                                "MinDuration": 21382.873784458934,
+                                "MinNull": false,
+                                "ObjectName": "Scenario::ConstraintModel",
+                                "PluginsMetadata": [
+                                ],
+                                "Processes": [
+                                    {
+                                        "Constraint": {
+                                            "DefaultDuration": 100,
+                                            "EndState": 1,
+                                            "FullView": {
+                                                "CenterOn": [
+                                                    0,
+                                                    0
+                                                ],
+                                                "ConstraintId": 0,
+                                                "ObjectName": "FullViewConstraintViewModel",
+                                                "ShownRack": "none",
+                                                "Zoom": -1,
+                                                "id": 0
+                                            },
+                                            "HeightPercentage": 0.14999999999999999,
+                                            "Looping": false,
+                                            "MaxDuration": 100,
+                                            "MaxInf": false,
+                                            "Metadata": {
+                                                "Color": [
+                                                    255,
+                                                    255,
+                                                    0
+                                                ],
+                                                "Comment": "",
+                                                "Label": "",
+                                                "ScriptingName": "Loop pattern"
+                                            },
+                                            "MinDuration": 100,
+                                            "MinNull": false,
+                                            "ObjectName": "Scenario::ConstraintModel",
+                                            "PluginsMetadata": [
+                                            ],
+                                            "Processes": [
+                                            ],
+                                            "Rackes": [
+                                            ],
+                                            "Rigidity": true,
+                                            "StartDate": 0,
+                                            "StartState": 0,
+                                            "id": 0
+                                        },
+                                        "Duration": 21382.873784458934,
+                                        "EndEvent": {
+                                            "Condition": {
+                                                "Children": [
+                                                ],
+                                                "RootNode": {
+                                                }
+                                            },
+                                            "Date": 100,
+                                            "Extent": [
+                                                0.14999999999999999,
+                                                0.20000000000000001
+                                            ],
+                                            "Metadata": {
+                                                "Color": [
+                                                    255,
+                                                    255,
+                                                    255
+                                                ],
+                                                "Comment": "",
+                                                "Label": "",
+                                                "ScriptingName": "Event.1"
+                                            },
+                                            "ObjectName": "Scenario::EventModel",
+                                            "PluginsMetadata": [
+                                            ],
+                                            "States": [
+                                                1
+                                            ],
+                                            "TimeNode": 1,
+                                            "id": 1
+                                        },
+                                        "EndState": {
+                                            "Event": 1,
+                                            "HeightPercentage": 0.14999999999999999,
+                                            "Messages": {
+                                                "Children": [
+                                                ],
+                                                "Following": [
+                                                ],
+                                                "Name": "",
+                                                "Previous": [
+                                                ],
+                                                "Priorities": [
+                                                    1,
+                                                    2,
+                                                    0
+                                                ]
+                                            },
+                                            "Metadata": {
+                                                "Color": [
+                                                    160,
+                                                    160,
+                                                    164
+                                                ],
+                                                "Comment": "",
+                                                "Label": "",
+                                                "ScriptingName": "State.1"
+                                            },
+                                            "NextConstraint": "none",
+                                            "ObjectName": "Scenario::StateModel",
+                                            "PreviousConstraint": 0,
+                                            "StateProcesses": [
+                                            ],
+                                            "id": 1
+                                        },
+                                        "EndTimeNode": {
+                                            "Date": 100,
+                                            "Events": [
+                                                1
+                                            ],
+                                            "Extent": [
+                                                0.14999999999999999,
+                                                1
+                                            ],
+                                            "Metadata": {
+                                                "Color": [
+                                                    70,
+                                                    70,
+                                                    70
+                                                ],
+                                                "Comment": "",
+                                                "Label": "TimeNode",
+                                                "ScriptingName": "TimeNode.1"
+                                            },
+                                            "ObjectName": "TimeNodeModel",
+                                            "PluginsMetadata": [
+                                            ],
+                                            "Trigger": {
+                                                "Active": false,
+                                                "Expression": {
+                                                    "Children": [
+                                                    ],
+                                                    "RootNode": {
+                                                    }
+                                                }
+                                            },
+                                            "id": 1
+                                        },
+                                        "Metadata": {
+                                            "Color": [
+                                                160,
+                                                160,
+                                                164
+                                            ],
+                                            "Comment": "",
+                                            "Label": "",
+                                            "ScriptingName": "Process.1"
+                                        },
+                                        "ObjectName": "Loop",
+                                        "PluginsMetadata": [
+                                        ],
+                                        "ProcessName": "Loop",
+                                        "StartEvent": {
+                                            "Condition": {
+                                                "Children": [
+                                                ],
+                                                "RootNode": {
+                                                }
+                                            },
+                                            "Date": 0,
+                                            "Extent": [
+                                                0.14999999999999999,
+                                                0.20000000000000001
+                                            ],
+                                            "Metadata": {
+                                                "Color": [
+                                                    255,
+                                                    255,
+                                                    255
+                                                ],
+                                                "Comment": "",
+                                                "Label": "",
+                                                "ScriptingName": "Event.0"
+                                            },
+                                            "ObjectName": "Scenario::EventModel",
+                                            "PluginsMetadata": [
+                                            ],
+                                            "States": [
+                                                0
+                                            ],
+                                            "TimeNode": 0,
+                                            "id": 0
+                                        },
+                                        "StartState": {
+                                            "Event": 0,
+                                            "HeightPercentage": 0.14999999999999999,
+                                            "Messages": {
+                                                "Children": [
+                                                    {
+                                                        "Children": [
+                                                            {
+                                                                "Children": [
+                                                                    {
+                                                                        "Children": [
+                                                                        ],
+                                                                        "Following": [
+                                                                        ],
+                                                                        "Name": "add",
+                                                                        "Previous": [
+                                                                        ],
+                                                                        "Priorities": [
+                                                                            1,
+                                                                            2,
+                                                                            0
+                                                                        ],
+                                                                        "User": {
+                                                                            "Type": "Tuple",
+                                                                            "Value": [
+                                                                                {
+                                                                                    "Type": "Int",
+                                                                                    "Value": 320
+                                                                                },
+                                                                                {
+                                                                                    "Type": "Int",
+                                                                                    "Value": 180
+                                                                                }
+                                                                            ]
+                                                                        }
+                                                                    }
+                                                                ],
+                                                                "Following": [
+                                                                ],
+                                                                "Name": "flock",
+                                                                "Previous": [
+                                                                ],
+                                                                "Priorities": [
+                                                                    1,
+                                                                    2,
+                                                                    0
+                                                                ]
+                                                            }
+                                                        ],
+                                                        "Following": [
+                                                        ],
+                                                        "Name": "Processing",
+                                                        "Previous": [
+                                                        ],
+                                                        "Priorities": [
+                                                            1,
+                                                            2,
+                                                            0
+                                                        ]
+                                                    }
+                                                ],
+                                                "Following": [
+                                                ],
+                                                "Name": "",
+                                                "Previous": [
+                                                ],
+                                                "Priorities": [
+                                                    1,
+                                                    2,
+                                                    0
+                                                ]
+                                            },
+                                            "Metadata": {
+                                                "Color": [
+                                                    160,
+                                                    160,
+                                                    164
+                                                ],
+                                                "Comment": "",
+                                                "Label": "",
+                                                "ScriptingName": "State.0"
+                                            },
+                                            "NextConstraint": 0,
+                                            "ObjectName": "Scenario::StateModel",
+                                            "PreviousConstraint": "none",
+                                            "StateProcesses": [
+                                            ],
+                                            "id": 0
+                                        },
+                                        "StartTimeNode": {
+                                            "Date": 0,
+                                            "Events": [
+                                                0
+                                            ],
+                                            "Extent": [
+                                                0.14999999999999999,
+                                                1
+                                            ],
+                                            "Metadata": {
+                                                "Color": [
+                                                    70,
+                                                    70,
+                                                    70
+                                                ],
+                                                "Comment": "",
+                                                "Label": "TimeNode",
+                                                "ScriptingName": "TimeNode.0"
+                                            },
+                                            "ObjectName": "TimeNodeModel",
+                                            "PluginsMetadata": [
+                                            ],
+                                            "Trigger": {
+                                                "Active": false,
+                                                "Expression": {
+                                                    "Children": [
+                                                    ],
+                                                    "RootNode": {
+                                                    }
+                                                }
+                                            },
+                                            "id": 0
+                                        },
+                                        "id": 1
+                                    }
+                                ],
+                                "Rackes": [
+                                    {
+                                        "ObjectName": "Scenario::RackModel",
+                                        "Slots": [
+                                            {
+                                                "EditedProcess": 1,
+                                                "Height": 57,
+                                                "LayerModels": [
+                                                    {
+                                                        "Constraint": {
+                                                            "ConstraintId": 0,
+                                                            "ObjectName": "TemporalConstraintViewModel",
+                                                            "ShownRack": "none",
+                                                            "id": 0
+                                                        },
+                                                        "ObjectName": "Loop::Layer",
+                                                        "SharedProcessId": 1,
+                                                        "id": 1
+                                                    }
+                                                ],
+                                                "ObjectName": "Scenario::SlotModel",
+                                                "id": 1
+                                            }
+                                        ],
+                                        "SlotsPositions": [
+                                            1
+                                        ],
+                                        "id": 1
+                                    }
+                                ],
+                                "Rigidity": true,
+                                "StartDate": 3397.6241591886392,
+                                "StartState": 3,
+                                "id": 2
+                            }
+                        ],
+                        "Duration": 30000,
+                        "EndEventId": 1,
+                        "EndTimeNodeId": 1,
+                        "Events": [
+                            {
+                                "Condition": {
+                                    "Children": [
+                                    ],
+                                    "RootNode": {
+                                    }
+                                },
+                                "Date": 0,
+                                "Extent": [
+                                    0.069472277889111561,
+                                    0.5
+                                ],
+                                "Metadata": {
+                                    "Color": [
+                                        255,
+                                        255,
+                                        255
+                                    ],
+                                    "Comment": "",
+                                    "Label": "",
+                                    "ScriptingName": "Event.0"
+                                },
+                                "ObjectName": "Scenario::EventModel",
+                                "PluginsMetadata": [
+                                ],
+                                "States": [
+                                    0,
+                                    1
+                                ],
+                                "TimeNode": 0,
+                                "id": 0
+                            },
+                            {
+                                "Condition": {
+                                    "Children": [
+                                    ],
+                                    "RootNode": {
+                                    }
+                                },
+                                "Date": 30000,
+                                "Extent": [
+                                    0.40000000000000002,
+                                    0.59999999999999998
+                                ],
+                                "Metadata": {
+                                    "Color": [
+                                        255,
+                                        255,
+                                        255
+                                    ],
+                                    "Comment": "",
+                                    "Label": "",
+                                    "ScriptingName": "Event.1"
+                                },
+                                "ObjectName": "Scenario::EventModel",
+                                "PluginsMetadata": [
+                                ],
+                                "States": [
+                                ],
+                                "TimeNode": 1,
+                                "id": 1
+                            },
+                            {
+                                "Condition": {
+                                    "Children": [
+                                    ],
+                                    "RootNode": {
+                                    }
+                                },
+                                "Date": 3397.6241591886392,
+                                "Extent": [
+                                    0.069472277889111561,
+                                    0.092852371409485684
+                                ],
+                                "Metadata": {
+                                    "Color": [
+                                        255,
+                                        255,
+                                        255
+                                    ],
+                                    "Comment": "",
+                                    "Label": "",
+                                    "ScriptingName": "ambiency20wifely57"
+                                },
+                                "ObjectName": "Scenario::EventModel",
+                                "PluginsMetadata": [
+                                ],
+                                "States": [
+                                    2,
+                                    3
+                                ],
+                                "TimeNode": 2,
+                                "id": 2
+                            },
+                            {
+                                "Condition": {
+                                    "Children": [
+                                    ],
+                                    "RootNode": {
+                                    }
+                                },
+                                "Date": 24780.497943647573,
+                                "Extent": [
+                                    0.092852371409485684,
+                                    0.092852371409485684
+                                ],
+                                "Metadata": {
+                                    "Color": [
+                                        255,
+                                        255,
+                                        255
+                                    ],
+                                    "Comment": "",
+                                    "Label": "",
+                                    "ScriptingName": "colluder87rumpad58"
+                                },
+                                "ObjectName": "Scenario::EventModel",
+                                "PluginsMetadata": [
+                                ],
+                                "States": [
+                                    4
+                                ],
+                                "TimeNode": 3,
+                                "id": 3
+                            },
+                            {
+                                "Condition": {
+                                    "Children": [
+                                    ],
+                                    "RootNode": {
+                                    }
+                                },
+                                "Date": 32173.496510199293,
+                                "Extent": [
+                                    0.15898463593854378,
+                                    0.15898463593854378
+                                ],
+                                "Metadata": {
+                                    "Color": [
+                                        255,
+                                        255,
+                                        255
+                                    ],
+                                    "Comment": "",
+                                    "Label": "",
+                                    "ScriptingName": "colluder87rumpad58"
+                                },
+                                "ObjectName": "Scenario::EventModel",
+                                "PluginsMetadata": [
+                                ],
+                                "States": [
+                                    9
+                                ],
+                                "TimeNode": 7,
+                                "id": 7
+                            }
+                        ],
+                        "Metadata": {
+                            "Color": [
+                                160,
+                                160,
+                                164
+                            ],
+                            "Comment": "",
+                            "Label": "",
+                            "ScriptingName": "Scenario.1"
+                        },
+                        "ObjectName": "Scenario",
+                        "PluginsMetadata": [
+                        ],
+                        "ProcessName": "Scenario",
+                        "StartEventId": 0,
+                        "StartStateId": 0,
+                        "StartTimeNodeId": 0,
+                        "States": [
+                            {
+                                "Event": 0,
+                                "HeightPercentage": 0.5,
+                                "Messages": {
+                                    "Children": [
+                                    ],
+                                    "Following": [
+                                    ],
+                                    "Name": "",
+                                    "Previous": [
+                                    ],
+                                    "Priorities": [
+                                        1,
+                                        2,
+                                        0
+                                    ]
+                                },
+                                "Metadata": {
+                                    "Color": [
+                                        160,
+                                        160,
+                                        164
+                                    ],
+                                    "Comment": "",
+                                    "Label": "",
+                                    "ScriptingName": "State.0"
+                                },
+                                "NextConstraint": "none",
+                                "ObjectName": "Scenario::StateModel",
+                                "PreviousConstraint": "none",
+                                "StateProcesses": [
+                                ],
+                                "id": 0
+                            },
+                            {
+                                "Event": 0,
+                                "HeightPercentage": 0.069472277889111561,
+                                "Messages": {
+                                    "Children": [
+                                        {
+                                            "Children": [
+                                                {
+                                                    "Children": [
+                                                        {
+                                                            "Children": [
+                                                            ],
+                                                            "Following": [
+                                                            ],
+                                                            "Name": "clear",
+                                                            "Previous": [
+                                                            ],
+                                                            "Priorities": [
+                                                                1,
+                                                                2,
+                                                                0
+                                                            ],
+                                                            "User": {
+                                                                "Type": "Impulse",
+                                                                "Value": null
+                                                            }
+                                                        },
+                                                        {
+                                                            "Children": [
+                                                            ],
+                                                            "Following": [
+                                                            ],
+                                                            "Name": "cohesion",
+                                                            "Previous": [
+                                                            ],
+                                                            "Priorities": [
+                                                                1,
+                                                                2,
+                                                                0
+                                                            ],
+                                                            "User": {
+                                                                "Type": "Float",
+                                                                "Value": 1
+                                                            }
+                                                        },
+                                                        {
+                                                            "Children": [
+                                                            ],
+                                                            "Following": [
+                                                            ],
+                                                            "Name": "alignment",
+                                                            "Previous": [
+                                                            ],
+                                                            "Priorities": [
+                                                                1,
+                                                                2,
+                                                                0
+                                                            ],
+                                                            "User": {
+                                                                "Type": "Float",
+                                                                "Value": 1
+                                                            }
+                                                        },
+                                                        {
+                                                            "Children": [
+                                                            ],
+                                                            "Following": [
+                                                            ],
+                                                            "Name": "avoidance",
+                                                            "Previous": [
+                                                            ],
+                                                            "Priorities": [
+                                                                1,
+                                                                2,
+                                                                0
+                                                            ],
+                                                            "User": {
+                                                                "Type": "Float",
+                                                                "Value": 1
+                                                            }
+                                                        },
+                                                        {
+                                                            "Children": [
+                                                                {
+                                                                    "Children": [
+                                                                    ],
+                                                                    "Following": [
+                                                                    ],
+                                                                    "Name": "rate",
+                                                                    "Previous": [
+                                                                    ],
+                                                                    "Priorities": [
+                                                                        1,
+                                                                        2,
+                                                                        0
+                                                                    ],
+                                                                    "User": {
+                                                                        "Type": "Float",
+                                                                        "Value": 0
+                                                                    }
+                                                                },
+                                                                {
+                                                                    "Children": [
+                                                                    ],
+                                                                    "Following": [
+                                                                    ],
+                                                                    "Name": "destination",
+                                                                    "Previous": [
+                                                                    ],
+                                                                    "Priorities": [
+                                                                        1,
+                                                                        2,
+                                                                        0
+                                                                    ],
+                                                                    "User": {
+                                                                        "Type": "Tuple",
+                                                                        "Value": [
+                                                                            {
+                                                                                "Type": "Float",
+                                                                                "Value": 0
+                                                                            },
+                                                                            {
+                                                                                "Type": "Float",
+                                                                                "Value": 0
+                                                                            }
+                                                                        ]
+                                                                    }
+                                                                }
+                                                            ],
+                                                            "Following": [
+                                                            ],
+                                                            "Name": "follow",
+                                                            "Previous": [
+                                                            ],
+                                                            "Priorities": [
+                                                                1,
+                                                                2,
+                                                                0
+                                                            ]
+                                                        },
+                                                        {
+                                                            "Children": [
+                                                                {
+                                                                    "Children": [
+                                                                    ],
+                                                                    "Following": [
+                                                                    ],
+                                                                    "Name": "max",
+                                                                    "Previous": [
+                                                                    ],
+                                                                    "Priorities": [
+                                                                        1,
+                                                                        2,
+                                                                        0
+                                                                    ],
+                                                                    "User": {
+                                                                        "Type": "Float",
+                                                                        "Value": 75
+                                                                    }
+                                                                },
+                                                                {
+                                                                    "Children": [
+                                                                    ],
+                                                                    "Following": [
+                                                                    ],
+                                                                    "Name": "min",
+                                                                    "Previous": [
+                                                                    ],
+                                                                    "Priorities": [
+                                                                        1,
+                                                                        2,
+                                                                        0
+                                                                    ],
+                                                                    "User": {
+                                                                        "Type": "Float",
+                                                                        "Value": 50
+                                                                    }
+                                                                }
+                                                            ],
+                                                            "Following": [
+                                                            ],
+                                                            "Name": "distance",
+                                                            "Previous": [
+                                                            ],
+                                                            "Priorities": [
+                                                                1,
+                                                                2,
+                                                                0
+                                                            ]
+                                                        }
+                                                    ],
+                                                    "Following": [
+                                                    ],
+                                                    "Name": "flock",
+                                                    "Previous": [
+                                                    ],
+                                                    "Priorities": [
+                                                        1,
+                                                        2,
+                                                        0
+                                                    ]
+                                                }
+                                            ],
+                                            "Following": [
+                                            ],
+                                            "Name": "Processing",
+                                            "Previous": [
+                                            ],
+                                            "Priorities": [
+                                                1,
+                                                2,
+                                                0
+                                            ]
+                                        }
+                                    ],
+                                    "Following": [
+                                    ],
+                                    "Name": "",
+                                    "Previous": [
+                                    ],
+                                    "Priorities": [
+                                        1,
+                                        2,
+                                        0
+                                    ]
+                                },
+                                "Metadata": {
+                                    "Color": [
+                                        160,
+                                        160,
+                                        164
+                                    ],
+                                    "Comment": "",
+                                    "Label": "",
+                                    "ScriptingName": "State.1"
+                                },
+                                "NextConstraint": 1,
+                                "ObjectName": "Scenario::StateModel",
+                                "PreviousConstraint": "none",
+                                "StateProcesses": [
+                                ],
+                                "id": 1
+                            },
+                            {
+                                "Event": 2,
+                                "HeightPercentage": 0.069472277889111561,
+                                "Messages": {
+                                    "Children": [
+                                    ],
+                                    "Following": [
+                                    ],
+                                    "Name": "",
+                                    "Previous": [
+                                    ],
+                                    "Priorities": [
+                                        1,
+                                        2,
+                                        0
+                                    ]
+                                },
+                                "Metadata": {
+                                    "Color": [
+                                        160,
+                                        160,
+                                        164
+                                    ],
+                                    "Comment": "",
+                                    "Label": "",
+                                    "ScriptingName": "State.2"
+                                },
+                                "NextConstraint": "none",
+                                "ObjectName": "Scenario::StateModel",
+                                "PreviousConstraint": 1,
+                                "StateProcesses": [
+                                ],
+                                "id": 2
+                            },
+                            {
+                                "Event": 2,
+                                "HeightPercentage": 0.092852371409485684,
+                                "Messages": {
+                                    "Children": [
+                                    ],
+                                    "Following": [
+                                    ],
+                                    "Name": "",
+                                    "Previous": [
+                                    ],
+                                    "Priorities": [
+                                        1,
+                                        2,
+                                        0
+                                    ]
+                                },
+                                "Metadata": {
+                                    "Color": [
+                                        160,
+                                        160,
+                                        164
+                                    ],
+                                    "Comment": "",
+                                    "Label": "",
+                                    "ScriptingName": "State.3"
+                                },
+                                "NextConstraint": 2,
+                                "ObjectName": "Scenario::StateModel",
+                                "PreviousConstraint": "none",
+                                "StateProcesses": [
+                                ],
+                                "id": 3
+                            },
+                            {
+                                "Event": 3,
+                                "HeightPercentage": 0.092852371409485684,
+                                "Messages": {
+                                    "Children": [
+                                    ],
+                                    "Following": [
+                                    ],
+                                    "Name": "",
+                                    "Previous": [
+                                    ],
+                                    "Priorities": [
+                                        1,
+                                        2,
+                                        0
+                                    ]
+                                },
+                                "Metadata": {
+                                    "Color": [
+                                        160,
+                                        160,
+                                        164
+                                    ],
+                                    "Comment": "",
+                                    "Label": "",
+                                    "ScriptingName": "State.4"
+                                },
+                                "NextConstraint": "none",
+                                "ObjectName": "Scenario::StateModel",
+                                "PreviousConstraint": 2,
+                                "StateProcesses": [
+                                ],
+                                "id": 4
+                            },
+                            {
+                                "Event": 7,
+                                "HeightPercentage": 0.15898463593854378,
+                                "Messages": {
+                                    "Children": [
+                                    ],
+                                    "Following": [
+                                    ],
+                                    "Name": "",
+                                    "Previous": [
+                                    ],
+                                    "Priorities": [
+                                        1,
+                                        2,
+                                        0
+                                    ]
+                                },
+                                "Metadata": {
+                                    "Color": [
+                                        160,
+                                        160,
+                                        164
+                                    ],
+                                    "Comment": "",
+                                    "Label": "",
+                                    "ScriptingName": ""
+                                },
+                                "NextConstraint": "none",
+                                "ObjectName": "Scenario::StateModel",
+                                "PreviousConstraint": "none",
+                                "StateProcesses": [
+                                ],
+                                "id": 9
+                            }
+                        ],
+                        "TimeNodes": [
+                            {
+                                "Date": 0,
+                                "Events": [
+                                    0
+                                ],
+                                "Extent": [
+                                    0.069472277889111561,
+                                    0.5
+                                ],
+                                "Metadata": {
+                                    "Color": [
+                                        70,
+                                        70,
+                                        70
+                                    ],
+                                    "Comment": "",
+                                    "Label": "TimeNode",
+                                    "ScriptingName": "TimeNode.0"
+                                },
+                                "ObjectName": "TimeNodeModel",
+                                "PluginsMetadata": [
+                                ],
+                                "Trigger": {
+                                    "Active": false,
+                                    "Expression": {
+                                        "Children": [
+                                        ],
+                                        "RootNode": {
+                                        }
+                                    }
+                                },
+                                "id": 0
+                            },
+                            {
+                                "Date": 30000,
+                                "Events": [
+                                    1
+                                ],
+                                "Extent": [
+                                    0.20000000000000001,
+                                    0.80000000000000004
+                                ],
+                                "Metadata": {
+                                    "Color": [
+                                        70,
+                                        70,
+                                        70
+                                    ],
+                                    "Comment": "",
+                                    "Label": "TimeNode",
+                                    "ScriptingName": "TimeNode.1"
+                                },
+                                "ObjectName": "TimeNodeModel",
+                                "PluginsMetadata": [
+                                ],
+                                "Trigger": {
+                                    "Active": false,
+                                    "Expression": {
+                                        "Children": [
+                                        ],
+                                        "RootNode": {
+                                        }
+                                    }
+                                },
+                                "id": 1
+                            },
+                            {
+                                "Date": 3397.6241591886392,
+                                "Events": [
+                                    2
+                                ],
+                                "Extent": [
+                                    0.069472277889111561,
+                                    0.092852371409485684
+                                ],
+                                "Metadata": {
+                                    "Color": [
+                                        70,
+                                        70,
+                                        70
+                                    ],
+                                    "Comment": "",
+                                    "Label": "TimeNode",
+                                    "ScriptingName": "saphenal32palliate20"
+                                },
+                                "ObjectName": "TimeNodeModel",
+                                "PluginsMetadata": [
+                                ],
+                                "Trigger": {
+                                    "Active": true,
+                                    "Expression": {
+                                        "Children": [
+                                            {
+                                                "Children": [
+                                                    {
+                                                        "Children": [
+                                                        ],
+                                                        "Relation": {
+                                                            "LHS": {
+                                                                "Address": {
+                                                                    "Device": "Processing",
+                                                                    "Path": "mouse/click"
+                                                                }
+                                                            },
+                                                            "Op": 0,
+                                                            "RHS": {
+                                                                "Value": {
+                                                                    "Type": "Int",
+                                                                    "Value": 1
+                                                                }
+                                                            }
+                                                        }
+                                                    }
+                                                ],
+                                                "RootNode": {
+                                                }
+                                            }
+                                        ],
+                                        "RootNode": {
+                                        }
+                                    }
+                                },
+                                "id": 2
+                            },
+                            {
+                                "Date": 24780.497943647573,
+                                "Events": [
+                                    3
+                                ],
+                                "Extent": [
+                                    0.092852371409485684,
+                                    0.092852371409485684
+                                ],
+                                "Metadata": {
+                                    "Color": [
+                                        70,
+                                        70,
+                                        70
+                                    ],
+                                    "Comment": "",
+                                    "Label": "TimeNode",
+                                    "ScriptingName": "anilao15handle10"
+                                },
+                                "ObjectName": "TimeNodeModel",
+                                "PluginsMetadata": [
+                                ],
+                                "Trigger": {
+                                    "Active": false,
+                                    "Expression": {
+                                        "Children": [
+                                        ],
+                                        "RootNode": {
+                                        }
+                                    }
+                                },
+                                "id": 3
+                            },
+                            {
+                                "Date": 32173.496510199293,
+                                "Events": [
+                                    7
+                                ],
+                                "Extent": [
+                                    0.15898463593854378,
+                                    0.15898463593854378
+                                ],
+                                "Metadata": {
+                                    "Color": [
+                                        70,
+                                        70,
+                                        70
+                                    ],
+                                    "Comment": "",
+                                    "Label": "TimeNode",
+                                    "ScriptingName": "anilao15handle10"
+                                },
+                                "ObjectName": "TimeNodeModel",
+                                "PluginsMetadata": [
+                                ],
+                                "Trigger": {
+                                    "Active": false,
+                                    "Expression": {
+                                        "Children": [
+                                        ],
+                                        "RootNode": {
+                                        }
+                                    }
+                                },
+                                "id": 7
+                            }
+                        ],
+                        "id": 1
+                    }
+                ],
+                "Rackes": [
+                    {
+                        "ObjectName": "Scenario::RackModel",
+                        "Slots": [
+                            {
+                                "EditedProcess": 1,
+                                "Height": 1500,
+                                "LayerModels": [
+                                    {
+                                        "Constraints": [
+                                            {
+                                                "ConstraintId": 1,
+                                                "ObjectName": "TemporalConstraintViewModel",
+                                                "ShownRack": "none",
+                                                "id": 1
+                                            },
+                                            {
+                                                "ConstraintId": 2,
+                                                "ObjectName": "TemporalConstraintViewModel",
+                                                "ShownRack": 1,
+                                                "id": 2
+                                            }
+                                        ],
+                                        "ObjectName": "TemporalScenarioLayer",
+                                        "SharedProcessId": 1,
+                                        "id": 1
+                                    }
+                                ],
+                                "ObjectName": "Scenario::SlotModel",
+                                "id": 1
+                            }
+                        ],
+                        "SlotsPositions": [
+                            1
+                        ],
+                        "id": 1
+                    }
+                ],
+                "Rigidity": false,
+                "StartDate": 0,
+                "StartState": 0,
+                "id": 0
+            },
+            "EndEvent": {
+                "Condition": {
+                    "Children": [
+                    ],
+                    "RootNode": {
+                    }
+                },
+                "Date": 30000,
+                "Extent": [
+                    0.40000000000000002,
+                    0.59999999999999998
+                ],
+                "Metadata": {
+                    "Color": [
+                        255,
+                        255,
+                        255
+                    ],
+                    "Comment": "",
+                    "Label": "",
+                    "ScriptingName": "Event.1"
+                },
+                "ObjectName": "Scenario::EventModel",
+                "PluginsMetadata": [
+                ],
+                "States": [
+                    1
+                ],
+                "TimeNode": 1,
+                "id": 1
+            },
+            "EndState": {
+                "Event": 1,
+                "HeightPercentage": 0,
+                "Messages": {
+                    "Children": [
+                    ],
+                    "Following": [
+                    ],
+                    "Name": "",
+                    "Previous": [
+                    ],
+                    "Priorities": [
+                        1,
+                        2,
+                        0
+                    ]
+                },
+                "Metadata": {
+                    "Color": [
+                        160,
+                        160,
+                        164
+                    ],
+                    "Comment": "",
+                    "Label": "",
+                    "ScriptingName": "State.1"
+                },
+                "NextConstraint": "none",
+                "ObjectName": "Scenario::StateModel",
+                "PreviousConstraint": 0,
+                "StateProcesses": [
+                ],
+                "id": 1
+            },
+            "EndTimeNode": {
+                "Date": 30000,
+                "Events": [
+                    1
+                ],
+                "Extent": [
+                    0.20000000000000001,
+                    0.80000000000000004
+                ],
+                "Metadata": {
+                    "Color": [
+                        70,
+                        70,
+                        70
+                    ],
+                    "Comment": "",
+                    "Label": "TimeNode",
+                    "ScriptingName": "TimeNode.1"
+                },
+                "ObjectName": "TimeNodeModel",
+                "PluginsMetadata": [
+                ],
+                "Trigger": {
+                    "Active": true,
+                    "Expression": {
+                        "Children": [
+                        ],
+                        "RootNode": {
+                        }
+                    }
+                },
+                "id": 1
+            },
+            "ObjectName": "BaseScenario",
+            "PluginsMetadata": [
+            ],
+            "StartEvent": {
+                "Condition": {
+                    "Children": [
+                    ],
+                    "RootNode": {
+                    }
+                },
+                "Date": 0,
+                "Extent": [
+                    0.40000000000000002,
+                    0.59999999999999998
+                ],
+                "Metadata": {
+                    "Color": [
+                        255,
+                        255,
+                        255
+                    ],
+                    "Comment": "",
+                    "Label": "",
+                    "ScriptingName": "Event.0"
+                },
+                "ObjectName": "Scenario::EventModel",
+                "PluginsMetadata": [
+                ],
+                "States": [
+                    0
+                ],
+                "TimeNode": 0,
+                "id": 0
+            },
+            "StartState": {
+                "Event": 0,
+                "HeightPercentage": 0,
+                "Messages": {
+                    "Children": [
+                    ],
+                    "Following": [
+                    ],
+                    "Name": "",
+                    "Previous": [
+                    ],
+                    "Priorities": [
+                        1,
+                        2,
+                        0
+                    ]
+                },
+                "Metadata": {
+                    "Color": [
+                        160,
+                        160,
+                        164
+                    ],
+                    "Comment": "",
+                    "Label": "",
+                    "ScriptingName": "State.0"
+                },
+                "NextConstraint": 0,
+                "ObjectName": "Scenario::StateModel",
+                "PreviousConstraint": "none",
+                "StateProcesses": [
+                ],
+                "id": 0
+            },
+            "StartTimeNode": {
+                "Date": 0,
+                "Events": [
+                    0
+                ],
+                "Extent": [
+                    0.20000000000000001,
+                    0.80000000000000004
+                ],
+                "Metadata": {
+                    "Color": [
+                        70,
+                        70,
+                        70
+                    ],
+                    "Comment": "",
+                    "Label": "TimeNode",
+                    "ScriptingName": "TimeNode.0"
+                },
+                "ObjectName": "TimeNodeModel",
+                "PluginsMetadata": [
+                ],
+                "Trigger": {
+                    "Active": false,
+                    "Expression": {
+                        "Children": [
+                        ],
+                        "RootNode": {
+                        }
+                    }
+                },
+                "id": 0
+            },
+            "id": 0
+        },
+        "DocumentId": 0,
+        "ObjectName": "ScenarioDocumentModel",
+        "id": 1
+    },
+    "Plugins": {
+        "DeviceExplorer::DeviceDocumentPlugin": {
+            "Children": [
+                {
+                    "Children": [
+                        {
+                            "AddressSettings": {
+                                "ClipMode": "Clip",
+                                "Domain": {
+                                    "Max": null,
+                                    "Min": null,
+                                    "Values": [
+                                    ]
+                                },
+                                "Name": "flock",
+                                "Priority": 0,
+                                "RefreshRate": 0,
+                                "RepetitionFilter": false,
+                                "Tags": [
+                                ],
+                                "Type": "None",
+                                "Unit": "",
+                                "Value": null,
+                                "ioType": ""
+                            },
+                            "Children": [
+                                {
+                                    "AddressSettings": {
+                                        "ClipMode": "Clip",
+                                        "Domain": {
+                                            "Max": [
+                                            ],
+                                            "Min": [
+                                            ],
+                                            "Values": [
+                                            ]
+                                        },
+                                        "Name": "deviation",
+                                        "Priority": 0,
+                                        "RefreshRate": 0,
+                                        "RepetitionFilter": false,
+                                        "Tags": [
+                                        ],
+                                        "Type": "Tuple",
+                                        "Unit": "",
+                                        "Value": [
+                                            {
+                                                "Type": "Float",
+                                                "Value": 162.06986999511719
+                                            },
+                                            {
+                                                "Type": "Float",
+                                                "Value": 104.12877655029297
+                                            }
+                                        ],
+                                        "ioType": "<-"
+                                    },
+                                    "Children": [
+                                    ]
+                                },
+                                {
+                                    "AddressSettings": {
+                                        "ClipMode": "Clip",
+                                        "Domain": {
+                                            "Max": 10,
+                                            "Min": 0,
+                                            "Values": [
+                                            ]
+                                        },
+                                        "Name": "cohesion",
+                                        "Priority": 0,
+                                        "RefreshRate": 0,
+                                        "RepetitionFilter": false,
+                                        "Tags": [
+                                        ],
+                                        "Type": "Float",
+                                        "Unit": "",
+                                        "Value": 0.5,
+                                        "ioType": "<->"
+                                    },
+                                    "Children": [
+                                    ]
+                                },
+                                {
+                                    "AddressSettings": {
+                                        "ClipMode": "Clip",
+                                        "Domain": {
+                                            "Max": 10,
+                                            "Min": 0,
+                                            "Values": [
+                                            ]
+                                        },
+                                        "Name": "alignment",
+                                        "Priority": 0,
+                                        "RefreshRate": 0,
+                                        "RepetitionFilter": false,
+                                        "Tags": [
+                                        ],
+                                        "Type": "Float",
+                                        "Unit": "",
+                                        "Value": 1,
+                                        "ioType": "<->"
+                                    },
+                                    "Children": [
+                                    ]
+                                },
+                                {
+                                    "AddressSettings": {
+                                        "ClipMode": "Clip",
+                                        "Domain": {
+                                            "Max": 10,
+                                            "Min": 0,
+                                            "Values": [
+                                            ]
+                                        },
+                                        "Name": "avoidance",
+                                        "Priority": 0,
+                                        "RefreshRate": 0,
+                                        "RepetitionFilter": false,
+                                        "Tags": [
+                                        ],
+                                        "Type": "Float",
+                                        "Unit": "",
+                                        "Value": 1,
+                                        "ioType": "<->"
+                                    },
+                                    "Children": [
+                                    ]
+                                },
+                                {
+                                    "AddressSettings": {
+                                        "ClipMode": "Clip",
+                                        "Domain": {
+                                            "Max": [
+                                            ],
+                                            "Min": [
+                                            ],
+                                            "Values": [
+                                            ]
+                                        },
+                                        "Name": "add",
+                                        "Priority": 0,
+                                        "RefreshRate": 0,
+                                        "RepetitionFilter": false,
+                                        "Tags": [
+                                        ],
+                                        "Type": "Tuple",
+                                        "Unit": "",
+                                        "Value": [
+                                            {
+                                                "Type": "Int",
+                                                "Value": 0
+                                            },
+                                            {
+                                                "Type": "Int",
+                                                "Value": 0
+                                            }
+                                        ],
+                                        "ioType": "->"
+                                    },
+                                    "Children": [
+                                    ]
+                                },
+                                {
+                                    "AddressSettings": {
+                                        "ClipMode": "Clip",
+                                        "Domain": {
+                                            "Max": null,
+                                            "Min": null,
+                                            "Values": [
+                                            ]
+                                        },
+                                        "Name": "clear",
+                                        "Priority": 0,
+                                        "RefreshRate": 0,
+                                        "RepetitionFilter": false,
+                                        "Tags": [
+                                        ],
+                                        "Type": "Impulse",
+                                        "Unit": "",
+                                        "Value": null,
+                                        "ioType": "->"
+                                    },
+                                    "Children": [
+                                    ]
+                                },
+                                {
+                                    "AddressSettings": {
+                                        "ClipMode": "Clip",
+                                        "Domain": {
+                                            "Max": null,
+                                            "Min": null,
+                                            "Values": [
+                                            ]
+                                        },
+                                        "Name": "follow",
+                                        "Priority": 0,
+                                        "RefreshRate": 0,
+                                        "RepetitionFilter": false,
+                                        "Tags": [
+                                        ],
+                                        "Type": "None",
+                                        "Unit": "",
+                                        "Value": null,
+                                        "ioType": ""
+                                    },
+                                    "Children": [
+                                        {
+                                            "AddressSettings": {
+                                                "ClipMode": "Clip",
+                                                "Domain": {
+                                                    "Max": 10,
+                                                    "Min": 0,
+                                                    "Values": [
+                                                    ]
+                                                },
+                                                "Name": "rate",
+                                                "Priority": 0,
+                                                "RefreshRate": 0,
+                                                "RepetitionFilter": false,
+                                                "Tags": [
+                                                ],
+                                                "Type": "Float",
+                                                "Unit": "",
+                                                "Value": 0,
+                                                "ioType": "<->"
+                                            },
+                                            "Children": [
+                                            ]
+                                        },
+                                        {
+                                            "AddressSettings": {
+                                                "ClipMode": "Clip",
+                                                "Domain": {
+                                                    "Max": [
+                                                    ],
+                                                    "Min": [
+                                                    ],
+                                                    "Values": [
+                                                    ]
+                                                },
+                                                "Name": "destination",
+                                                "Priority": 0,
+                                                "RefreshRate": 0,
+                                                "RepetitionFilter": false,
+                                                "Tags": [
+                                                ],
+                                                "Type": "Tuple",
+                                                "Unit": "",
+                                                "Value": [
+                                                    {
+                                                        "Type": "Float",
+                                                        "Value": 0
+                                                    },
+                                                    {
+                                                        "Type": "Float",
+                                                        "Value": 0
+                                                    }
+                                                ],
+                                                "ioType": "<->"
+                                            },
+                                            "Children": [
+                                            ]
+                                        }
+                                    ]
+                                },
+                                {
+                                    "AddressSettings": {
+                                        "ClipMode": "Clip",
+                                        "Domain": {
+                                            "Max": null,
+                                            "Min": null,
+                                            "Values": [
+                                            ]
+                                        },
+                                        "Name": "distance",
+                                        "Priority": 0,
+                                        "RefreshRate": 0,
+                                        "RepetitionFilter": false,
+                                        "Tags": [
+                                        ],
+                                        "Type": "None",
+                                        "Unit": "",
+                                        "Value": null,
+                                        "ioType": ""
+                                    },
+                                    "Children": [
+                                        {
+                                            "AddressSettings": {
+                                                "ClipMode": "Clip",
+                                                "Domain": {
+                                                    "Max": 500,
+                                                    "Min": 0,
+                                                    "Values": [
+                                                    ]
+                                                },
+                                                "Name": "max",
+                                                "Priority": 0,
+                                                "RefreshRate": 0,
+                                                "RepetitionFilter": false,
+                                                "Tags": [
+                                                ],
+                                                "Type": "Float",
+                                                "Unit": "",
+                                                "Value": 75,
+                                                "ioType": "<->"
+                                            },
+                                            "Children": [
+                                            ]
+                                        },
+                                        {
+                                            "AddressSettings": {
+                                                "ClipMode": "Clip",
+                                                "Domain": {
+                                                    "Max": 500,
+                                                    "Min": 0,
+                                                    "Values": [
+                                                    ]
+                                                },
+                                                "Name": "min",
+                                                "Priority": 0,
+                                                "RefreshRate": 0,
+                                                "RepetitionFilter": false,
+                                                "Tags": [
+                                                ],
+                                                "Type": "Float",
+                                                "Unit": "",
+                                                "Value": 50,
+                                                "ioType": "<->"
+                                            },
+                                            "Children": [
+                                            ]
+                                        }
+                                    ]
+                                }
+                            ]
+                        },
+                        {
+                            "AddressSettings": {
+                                "ClipMode": "Clip",
+                                "Domain": {
+                                    "Max": null,
+                                    "Min": null,
+                                    "Values": [
+                                    ]
+                                },
+                                "Name": "mouse",
+                                "Priority": 0,
+                                "RefreshRate": 0,
+                                "RepetitionFilter": false,
+                                "Tags": [
+                                ],
+                                "Type": "None",
+                                "Unit": "",
+                                "Value": null,
+                                "ioType": ""
+                            },
+                            "Children": [
+                                {
+                                    "AddressSettings": {
+                                        "ClipMode": "Free",
+                                        "Domain": {
+                                            "Max": 100,
+                                            "Min": 0,
+                                            "Values": [
+                                            ]
+                                        },
+                                        "Name": "y",
+                                        "Priority": 0,
+                                        "RefreshRate": 0,
+                                        "RepetitionFilter": false,
+                                        "Tags": [
+                                        ],
+                                        "Type": "Int",
+                                        "Unit": "",
+                                        "Value": 6,
+                                        "ioType": "<-"
+                                    },
+                                    "Children": [
+                                    ]
+                                },
+                                {
+                                    "AddressSettings": {
+                                        "ClipMode": "Free",
+                                        "Domain": {
+                                            "Max": 100,
+                                            "Min": 0,
+                                            "Values": [
+                                            ]
+                                        },
+                                        "Name": "x",
+                                        "Priority": 0,
+                                        "RefreshRate": 0,
+                                        "RepetitionFilter": false,
+                                        "Tags": [
+                                        ],
+                                        "Type": "Int",
+                                        "Unit": "",
+                                        "Value": 442,
+                                        "ioType": "<-"
+                                    },
+                                    "Children": [
+                                    ]
+                                },
+                                {
+                                    "AddressSettings": {
+                                        "ClipMode": "Clip",
+                                        "Domain": {
+                                            "Max": false,
+                                            "Min": false,
+                                            "Values": [
+                                            ]
+                                        },
+                                        "Name": "click",
+                                        "Priority": 0,
+                                        "RefreshRate": 0,
+                                        "RepetitionFilter": false,
+                                        "Tags": [
+                                        ],
+                                        "Type": "Bool",
+                                        "Unit": "",
+                                        "Value": false,
+                                        "ioType": "<-"
+                                    },
+                                    "Children": [
+                                    ]
+                                }
+                            ]
+                        }
+                    ],
+                    "DeviceSettings": {
+                        "Host": "127.0.0.1",
+                        "InputPort": 12001,
+                        "Name": "Processing",
+                        "OutputPort": 12002,
+                        "Protocol": "OSC"
+                    }
+                }
+            ],
+            "RootNode": {
+            }
+        },
+        "LocalTree::DocumentPlugin": {
+        },
+        "OSSIADocumentPlugin": {
+        }
+    }
+}
