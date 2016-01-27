@@ -15,6 +15,7 @@
 namespace Scenario
 {
 TriggerInspectorWidget::TriggerInspectorWidget(
+        const iscore::DocumentContext& doc,
         const Command::TriggerCommandFactoryList& fact,
         const TimeNodeModel& object,
         Inspector::InspectorWidgetBase* parent):
@@ -25,7 +26,7 @@ TriggerInspectorWidget::TriggerInspectorWidget(
 {
     auto triglay = new QHBoxLayout{this};
 
-    m_exprEditor = new ExpressionEditorWidget{this};
+    m_exprEditor = new ExpressionEditorWidget{doc, this};
     connect(m_exprEditor, &ExpressionEditorWidget::editingFinished,
             this, &TriggerInspectorWidget::on_triggerChanged);
     connect(m_model.trigger(), &TriggerModel::triggerChanged,

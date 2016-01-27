@@ -52,6 +52,7 @@ void BaseConstraintInspectorDelegate::addWidgets_pre(
     auto& ctx = iscore::IDocument::documentContext(scenario);
     auto& tn = endTimeNode(m_model, scenario);
     m_triggerLine = new TriggerInspectorWidget{
+                    ctx,
                     ctx.app.components.factory<Command::TriggerCommandFactoryList>(),
                     tn,
                     parent};
@@ -69,6 +70,7 @@ void BaseConstraintInspectorDelegate::addWidgets_post(
     auto& tn = endTimeNode(m_model, scenario);
 
     auto trWidg = new TriggerInspectorWidget{
+                  ctx,
                   ctx.app.components.factory<Command::TriggerCommandFactoryList>(),
                   tn,
                   parent};
