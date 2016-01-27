@@ -42,6 +42,7 @@ set(SRCS
 "${CMAKE_CURRENT_SOURCE_DIR}/Explorer/Explorer/Widgets/AddressEditDialog.cpp"
 "${CMAKE_CURRENT_SOURCE_DIR}/Explorer/Explorer/DeviceExplorerModel.cpp"
 "${CMAKE_CURRENT_SOURCE_DIR}/Explorer/Explorer/DeviceExplorerWidget.cpp"
+"${CMAKE_CURRENT_SOURCE_DIR}/Explorer/Explorer/ListeningManager.cpp"
 "${CMAKE_CURRENT_SOURCE_DIR}/Explorer/PanelBase/DeviceExplorerPanelModel.cpp"
 "${CMAKE_CURRENT_SOURCE_DIR}/Explorer/PanelBase/DeviceExplorerPanelPresenter.cpp"
 "${CMAKE_CURRENT_SOURCE_DIR}/Explorer/PanelBase/DeviceExplorerPanelView.cpp"
@@ -68,10 +69,10 @@ add_library(${PROJECT_NAME}
 iscore_generate_command_list_file(${PROJECT_NAME} "${HDRS}")
 
 target_link_libraries(iscore_plugin_deviceexplorer
-	PUBLIC
-		iscore_lib_device
-	PRIVATE
-		QProgressIndicator)
+        PUBLIC
+                iscore_lib_device
+        PRIVATE
+                QProgressIndicator)
 
 setup_iscore_plugin(iscore_plugin_deviceexplorer)
 setup_iscore_tests(Tests)

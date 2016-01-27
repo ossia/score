@@ -31,6 +31,9 @@ class TreeNodeBasedItemModel : public QAbstractItemModel
 
         QModelIndex parent(const QModelIndex &index) const final override
         {
+            if(!index.isValid())
+                return QModelIndex();
+
             const auto& node = nodeFromModelIndex(index);
             auto parentNode = node.parent();
 

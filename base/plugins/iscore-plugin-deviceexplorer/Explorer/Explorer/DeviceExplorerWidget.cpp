@@ -57,6 +57,7 @@
 #include <iscore/tools/InvisibleRootNode.hpp>
 #include <iscore/tools/ModelPath.hpp>
 #include <iscore/tools/TreeNode.hpp>
+#include <iscore/tools/std/Algorithms.hpp>
 
 
 namespace DeviceExplorer
@@ -67,15 +68,16 @@ DeviceExplorerWidget::DeviceExplorerWidget(
     : QWidget(parent),
       m_protocolList{pl},
       m_proxyModel(nullptr),
-      m_deviceDialog(nullptr)
+      m_deviceDialog(nullptr),
+      m_listeningManager{*this}
 {
     buildGUI();
 
     // Set the expansion signals
     connect(m_ntView, &QTreeView::expanded,
-            this, [&] (const QModelIndex& idx) { setListening(idx, true); });
+            this, [&] (const QModelIndex& idx) { m_listeningManager.setListening(idx, true); });
     connect(m_ntView, &QTreeView::collapsed,
-            this,[&] (const QModelIndex& idx) { setListening(idx, false); });
+            this,[&] (const QModelIndex& idx) { m_listeningManager.setListening(idx, false); });
 }
 
 void
@@ -239,11 +241,19 @@ void DeviceExplorerWidget::blockGUI(bool b)
     }
 }
 
-QModelIndex DeviceExplorerWidget::sourceIndex(QModelIndex index)
+QModelIndex DeviceExplorerWidget::sourceIndex(QModelIndex index) const
 {
     if (m_ntView->hasProxy())
         index = static_cast<const QAbstractProxyModel*>(m_ntView->QTreeView::model())->mapToSource(index);
     return index;
+}
+
+QModelIndex DeviceExplorerWidget::proxyIndex(QModelIndex index) const
+{
+    if (m_ntView->hasProxy())
+        index = static_cast<const QAbstractProxyModel*>(m_ntView->QTreeView::model())->mapFromSource(index);
+    return index;
+
 }
 
 void
@@ -383,69 +393,15 @@ DeviceExplorerWidget::updateActions()
     }
 }
 
-void DeviceExplorerWidget::setListening_rec(const Device::Node& node, bool b)
-{
-    if(node.is<Device::AddressSettings>())
-    {
-        auto addr = Device::address(node);
-        auto& dev = model()->deviceModel().list().device(addr.device);
-        dev.setListening(addr, b);
-    }
-
-    for(const auto& child : node)
-    {
-        setListening_rec(child, b);
-    }
-}
-
-void DeviceExplorerWidget::setListening_rec2(const QModelIndex& index, bool b)
-{
-    const auto& node = model()->nodeFromModelIndex(sourceIndex(index));
-
-    int i = 0;
-    for(const auto& child : node)
-    {
-        if(child.is<Device::AddressSettings>())
-        {
-            auto addr = Device::address(child);
-            auto& dev = model()->deviceModel().list().device(addr.device);
-            dev.setListening(addr, b);
-        }
-
-        // TODO check this
-        auto childIndex = index.child(i, 0);
-
-        if(m_ntView->isExpanded(childIndex))
-        {
-            setListening_rec2(childIndex, b);
-        }
-        i++;
-    }
-}
-
-
-void DeviceExplorerWidget::setListening(const QModelIndex& idx, bool b)
-{
-    // OPTIMIZEME with the knowledge that a child
-    // will have the same device as its parent
-    if(b)
-    {
-        setListening_rec2(idx, b);
-    }
-    else
-    {
-        const auto& node = model()->nodeFromModelIndex(sourceIndex(idx));
-        for(const auto& child : node)
-        {
-            setListening_rec(child, false);
-        }
-    }
-}
-
 DeviceExplorerModel*
 DeviceExplorerWidget::model() const
 {
     return m_ntView->model();
+}
+
+DeviceExplorerView* DeviceExplorerWidget::view() const
+{
+    return m_ntView;
 }
 
 DeviceExplorerFilterProxyModel*
@@ -795,12 +751,26 @@ DeviceExplorerWidget::addAddress(InsertMode insert)
         if(!model()->checkAddressInstantiatable(*parent, stgs))
             return;
 
+        bool parent_is_expanded = m_ntView->isExpanded(proxyIndex(m_ntView->model()->modelIndexFromNode(*parent, 0)));
+
         m_cmdDispatcher->submitCommand(
                         new DeviceExplorer::Command::AddAddress{
                             model()->deviceModel(),
                             Device::NodePath{index},
                             insert,
                             stgs});
+
+
+        // If the node is going to be visible, we have to start listening to it.
+        if(parent_is_expanded)
+        {
+            auto child_it = find_if(*parent, [&] (const auto& child) {
+                return child.template get<Device::AddressSettings>().name == stgs.name;
+            });
+            ISCORE_ASSERT(child_it != parent->end());
+
+            m_listeningManager.enableListening(*child_it);
+        }
         updateActions();
     }
 }
