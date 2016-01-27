@@ -16,7 +16,9 @@ namespace Scenario
 {
 class ConstraintModel;
 class TimeNodeModel;
-class BaseScenario final : public IdentifiedObject<BaseScenario>, public BaseScenarioContainer
+class BaseScenario final :
+        public IdentifiedObject<BaseScenario>,
+        public BaseScenarioContainer
 {
         ISCORE_SERIALIZE_FRIENDS(Scenario::BaseScenario, DataStream)
         ISCORE_SERIALIZE_FRIENDS(Scenario::BaseScenario, JSONObject)
