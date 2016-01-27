@@ -231,6 +231,11 @@ class Flock
     }
   }
   
+  int getSize()
+  {
+    return boids.size();
+  }
+  
   // note : deviation is meaningless as boids are mirrored when crossing a border
   // but we can know when all boids are together if deviation is small
   PVector getDeviation()

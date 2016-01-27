@@ -2,22 +2,22 @@
     "Document": {
         "BaseScenario": {
             "Constraint": {
-                "DefaultDuration": 30000,
+                "DefaultDuration": 30122.573927530197,
                 "EndState": 1,
                 "FullView": {
                     "CenterOn": [
                         261,
-                        197.5
+                        299.5
                     ],
                     "ConstraintId": 0,
                     "ObjectName": "FullViewConstraintViewModel",
                     "ShownRack": 1,
-                    "Zoom": 56.164221323261629,
+                    "Zoom": 61.349437734277387,
                     "id": 0
                 },
                 "HeightPercentage": 0,
                 "Looping": false,
-                "MaxDuration": 30000,
+                "MaxDuration": 30122.573927530197,
                 "MaxInf": false,
                 "Metadata": {
                     "Color": [
@@ -29,7 +29,7 @@
                     "Label": "",
                     "ScriptingName": "boids_choregraphy"
                 },
-                "MinDuration": 30000,
+                "MinDuration": 30122.573927530197,
                 "MinNull": false,
                 "ObjectName": "BaseConstraintModel",
                 "PluginsMetadata": [
@@ -37,10 +37,24 @@
                 "Processes": [
                     {
                         "Comments": [
+                            {
+                                "Date": 2950.7827520845894,
+                                "HTMLContent": "<!DOCTYPE HTML PUBLIC \"-//W3C//DTD HTML 4.0//EN\" \"http://www.w3.org/TR/REC-html40/strict.dtd\">\n<html><head><meta name=\"qrichtext\" content=\"1\" /><style type=\"text/css\">\np, li { white-space: pre-wrap; }\n</style></head><body style=\" font-family:'Ubuntu'; font-size:10pt; font-weight:400; font-style:normal;\">\n<p style=\" margin-top:0px; margin-bottom:0px; margin-left:0px; margin-right:0px; -qt-block-indent:0; text-indent:0px;\">wait for a mouse click into Processing render window</p></body></html>",
+                                "HeightPercentage": 0.034736138944555781,
+                                "ObjectName": "CommentBlockModel",
+                                "id": 1
+                            },
+                            {
+                                "Date": 13190.129112869638,
+                                "HTMLContent": "<!DOCTYPE HTML PUBLIC \"-//W3C//DTD HTML 4.0//EN\" \"http://www.w3.org/TR/REC-html40/strict.dtd\">\n<html><head><meta name=\"qrichtext\" content=\"1\" /><style type=\"text/css\">\np, li { white-space: pre-wrap; }\n</style></head><body style=\" font-family:'Ubuntu'; font-size:10pt; font-weight:400; font-style:normal;\">\n<p style=\" margin-top:0px; margin-bottom:0px; margin-left:0px; margin-right:0px; -qt-block-indent:0; text-indent:0px;\">loop until the flock size reaches 300 boids</p></body></html>",
+                                "HeightPercentage": 0.11022044088176353,
+                                "ObjectName": "CommentBlockModel",
+                                "id": 2
+                            }
                         ],
                         "Constraints": [
                             {
-                                "DefaultDuration": 3397.6241591886392,
+                                "DefaultDuration": 3411.5061637707468,
                                 "EndState": 2,
                                 "FullView": {
                                     "CenterOn": [
@@ -82,7 +96,7 @@
                                 "id": 1
                             },
                             {
-                                "DefaultDuration": 21382.873784458934,
+                                "DefaultDuration": 21470.239878513701,
                                 "EndState": 4,
                                 "FullView": {
                                     "CenterOn": [
@@ -95,10 +109,10 @@
                                     "Zoom": -1,
                                     "id": 3
                                 },
-                                "HeightPercentage": 0.092852371409485684,
+                                "HeightPercentage": 0.14562458249833005,
                                 "Looping": false,
-                                "MaxDuration": 21382.873784458934,
-                                "MaxInf": false,
+                                "MaxDuration": "inf",
+                                "MaxInf": true,
                                 "Metadata": {
                                     "Color": [
                                         0,
@@ -109,8 +123,8 @@
                                     "Label": "",
                                     "ScriptingName": "Boid creation"
                                 },
-                                "MinDuration": 21382.873784458934,
-                                "MinNull": false,
+                                "MinDuration": 17106.299027567147,
+                                "MinNull": true,
                                 "ObjectName": "Scenario::ConstraintModel",
                                 "PluginsMetadata": [
                                 ],
@@ -158,7 +172,7 @@
                                             "StartState": 0,
                                             "id": 0
                                         },
-                                        "Duration": 21382.873784458934,
+                                        "Duration": 21470.239878513701,
                                         "EndEvent": {
                                             "Condition": {
                                                 "Children": [
@@ -457,13 +471,13 @@
                                         "id": 1
                                     }
                                 ],
-                                "Rigidity": true,
-                                "StartDate": 3397.6241591886392,
+                                "Rigidity": false,
+                                "StartDate": 3411.5061637707468,
                                 "StartState": 3,
                                 "id": 2
                             }
                         ],
-                        "Duration": 30000,
+                        "Duration": 30122.573927530197,
                         "EndEventId": 1,
                         "EndTimeNodeId": 1,
                         "Events": [
@@ -506,7 +520,7 @@
                                     "RootNode": {
                                     }
                                 },
-                                "Date": 30000,
+                                "Date": 30122.573927530204,
                                 "Extent": [
                                     0.40000000000000002,
                                     0.59999999999999998
@@ -536,10 +550,10 @@
                                     "RootNode": {
                                     }
                                 },
-                                "Date": 3397.6241591886392,
+                                "Date": 3411.5061637707468,
                                 "Extent": [
                                     0.069472277889111561,
-                                    0.092852371409485684
+                                    0.14562458249833005
                                 ],
                                 "Metadata": {
                                     "Color": [
@@ -568,10 +582,10 @@
                                     "RootNode": {
                                     }
                                 },
-                                "Date": 24780.497943647573,
+                                "Date": 24881.746042284482,
                                 "Extent": [
-                                    0.092852371409485684,
-                                    0.092852371409485684
+                                    0.14562458249833005,
+                                    0.14562458249833005
                                 ],
                                 "Metadata": {
                                     "Color": [
@@ -599,7 +613,7 @@
                                     "RootNode": {
                                     }
                                 },
-                                "Date": 32173.496510199293,
+                                "Date": 32304.950904520429,
                                 "Extent": [
                                     0.15898463593854378,
                                     0.15898463593854378
@@ -955,7 +969,7 @@
                             },
                             {
                                 "Event": 2,
-                                "HeightPercentage": 0.092852371409485684,
+                                "HeightPercentage": 0.14562458249833005,
                                 "Messages": {
                                     "Children": [
                                     ],
@@ -989,7 +1003,7 @@
                             },
                             {
                                 "Event": 3,
-                                "HeightPercentage": 0.092852371409485684,
+                                "HeightPercentage": 0.14562458249833005,
                                 "Messages": {
                                     "Children": [
                                     ],
@@ -1091,7 +1105,7 @@
                                 "id": 0
                             },
                             {
-                                "Date": 30000,
+                                "Date": 30122.573927530204,
                                 "Events": [
                                     1
                                 ],
@@ -1124,13 +1138,13 @@
                                 "id": 1
                             },
                             {
-                                "Date": 3397.6241591886392,
+                                "Date": 3411.5061637707468,
                                 "Events": [
                                     2
                                 ],
                                 "Extent": [
                                     0.069472277889111561,
-                                    0.092852371409485684
+                                    0.14562458249833005
                                 ],
                                 "Metadata": {
                                     "Color": [
@@ -1182,13 +1196,13 @@
                                 "id": 2
                             },
                             {
-                                "Date": 24780.497943647573,
+                                "Date": 24881.746042284482,
                                 "Events": [
                                     3
                                 ],
                                 "Extent": [
-                                    0.092852371409485684,
-                                    0.092852371409485684
+                                    0.14562458249833005,
+                                    0.14562458249833005
                                 ],
                                 "Metadata": {
                                     "Color": [
@@ -1204,9 +1218,34 @@
                                 "PluginsMetadata": [
                                 ],
                                 "Trigger": {
-                                    "Active": false,
+                                    "Active": true,
                                     "Expression": {
                                         "Children": [
+                                            {
+                                                "Children": [
+                                                    {
+                                                        "Children": [
+                                                        ],
+                                                        "Relation": {
+                                                            "LHS": {
+                                                                "Address": {
+                                                                    "Device": "Processing",
+                                                                    "Path": "flock/size"
+                                                                }
+                                                            },
+                                                            "Op": 4,
+                                                            "RHS": {
+                                                                "Value": {
+                                                                    "Type": "Int",
+                                                                    "Value": 300
+                                                                }
+                                                            }
+                                                        }
+                                                    }
+                                                ],
+                                                "RootNode": {
+                                                }
+                                            }
                                         ],
                                         "RootNode": {
                                         }
@@ -1215,7 +1254,7 @@
                                 "id": 3
                             },
                             {
-                                "Date": 32173.496510199293,
+                                "Date": 32304.950904520429,
                                 "Events": [
                                     7
                                 ],
@@ -1301,7 +1340,7 @@
                     "RootNode": {
                     }
                 },
-                "Date": 30000,
+                "Date": 30122.573927530197,
                 "Extent": [
                     0.40000000000000002,
                     0.59999999999999998
@@ -1360,7 +1399,7 @@
                 "id": 1
             },
             "EndTimeNode": {
-                "Date": 30000,
+                "Date": 30122.573927530197,
                 "Events": [
                     1
                 ],
@@ -1527,6 +1566,29 @@
                             "Children": [
                                 {
                                     "AddressSettings": {
+                                        "ClipMode": "Free",
+                                        "Domain": {
+                                            "Max": 1000,
+                                            "Min": 0,
+                                            "Values": [
+                                            ]
+                                        },
+                                        "Name": "size",
+                                        "Priority": 0,
+                                        "RefreshRate": 0,
+                                        "RepetitionFilter": false,
+                                        "Tags": [
+                                        ],
+                                        "Type": "Int",
+                                        "Unit": "",
+                                        "Value": 319,
+                                        "ioType": "<-"
+                                    },
+                                    "Children": [
+                                    ]
+                                },
+                                {
+                                    "AddressSettings": {
                                         "ClipMode": "Clip",
                                         "Domain": {
                                             "Max": [
@@ -1547,11 +1609,11 @@
                                         "Value": [
                                             {
                                                 "Type": "Float",
-                                                "Value": 162.06986999511719
+                                                "Value": 233.1724853515625
                                             },
                                             {
                                                 "Type": "Float",
-                                                "Value": 104.12877655029297
+                                                "Value": 108.29727172851562
                                             }
                                         ],
                                         "ioType": "<-"
@@ -1649,12 +1711,12 @@
                                         "Unit": "",
                                         "Value": [
                                             {
-                                                "Type": "Int",
-                                                "Value": 0
+                                                "Type": "Float",
+                                                "Value": 320
                                             },
                                             {
-                                                "Type": "Int",
-                                                "Value": 0
+                                                "Type": "Float",
+                                                "Value": 180
                                             }
                                         ],
                                         "ioType": "->"
@@ -1874,7 +1936,7 @@
                                         ],
                                         "Type": "Int",
                                         "Unit": "",
-                                        "Value": 6,
+                                        "Value": 22,
                                         "ioType": "<-"
                                     },
                                     "Children": [
@@ -1897,7 +1959,7 @@
                                         ],
                                         "Type": "Int",
                                         "Unit": "",
-                                        "Value": 442,
+                                        "Value": 242,
                                         "ioType": "<-"
                                     },
                                     "Children": [

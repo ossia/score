@@ -31,8 +31,9 @@ NetAddress osc_out;
 
 Flock flock;
 
-int last_mouse_x;  // to filter repetitions
-int last_mouse_y;  // to filter repetitions
+int last_mouse_x;    // to filter repetitions
+int last_mouse_y;    // to filter repetitions
+int last_flock_size; // to filter repetitions
  
 boolean info = true;
 
@@ -61,6 +62,11 @@ void draw()
   // draw flock informations
   if (info)
     flock.draw_info();
+    
+  // send OSC message for flock size
+  osc_msg = new OscMessage("/flock/size");
+  osc_msg.add(flock.getSize());
+  osc_in.send(osc_msg, osc_out);
 
   // send OSC message for flock deviation
   osc_msg = new OscMessage("/flock/deviation");
