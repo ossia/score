@@ -47,7 +47,7 @@ AddressEditDialog::AddressEditDialog(
     // Value type
     m_valueTypeCBox = new QComboBox(this);
     m_valueTypeCBox->addItems(AddressSettingsFactory::instance().getAvailableValueTypes());
-    //m_valueTypeCBox->setEnabled(false); // Note : the day where the OSSIA API will be able to change the type of an address.
+
     connect(m_valueTypeCBox, static_cast<void (QComboBox::*)(int)>(&QComboBox::currentIndexChanged),
             this, &AddressEditDialog::updateType);
 
@@ -130,6 +130,14 @@ void AddressEditDialog::setValueSettings()
     const int index = m_valueTypeCBox->findText(State::convert::prettyType(m_originalSettings.value));
     ISCORE_ASSERT(index != -1);
     ISCORE_ASSERT(index < m_valueTypeCBox->count());
-    m_valueTypeCBox->setCurrentIndex(index);  //will emit currentIndexChanged(int) & call slot
+    if(m_valueTypeCBox->currentIndex() == index)
+    {
+        m_valueTypeCBox->currentIndexChanged(index);
+    }
+    else
+    {
+        m_valueTypeCBox->setCurrentIndex(index);  //will emit currentIndexChanged(int) & call slot
+    }
+
 }
 }

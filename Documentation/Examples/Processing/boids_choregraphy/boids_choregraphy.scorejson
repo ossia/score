@@ -573,7 +573,7 @@
                                                         0.5
                                                     ],
                                                     "Following": "none",
-                                                    "Name": "Power",
+                                                    "uuid": "1e7cb83f-4e47-4b14-814d-2242a9c75991",
                                                     "ObjectName": "CurveSegmentModel",
                                                     "Power": 12.050000000000001,
                                                     "Previous": "none",
@@ -602,7 +602,7 @@
                                         "ObjectName": "Automation",
                                         "PluginsMetadata": [
                                         ],
-                                        "ProcessName": "Automation",
+                                        "uuid": "d2a67bd8-5d3f-404e-b6e9-e350cf2a833f",
                                         "id": 1
                                     }
                                 ],
