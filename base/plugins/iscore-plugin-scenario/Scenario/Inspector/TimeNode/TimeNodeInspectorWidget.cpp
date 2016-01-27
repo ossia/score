@@ -59,6 +59,7 @@ TimeNodeInspectorWidget::TimeNodeInspectorWidget(
 
     // Trigger
     m_trigwidg = new TriggerInspectorWidget{
+                 ctx,
                  ctx.app.components.factory<Command::TriggerCommandFactoryList>(),
                  m_model, this};
 
