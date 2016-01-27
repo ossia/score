@@ -31,7 +31,7 @@ class ISCORE_PLUGIN_SCENARIO_EXPORT ConstraintInspectorDelegateFactoryList final
           return ConstraintInspectorDelegateFactory::static_abstractFactoryKey();
       }
 
-      iscore::AbstractFactoryKey name() const final override {
+      iscore::AbstractFactoryKey abstractFactoryKey() const final override {
           return ConstraintInspectorDelegateFactory::static_abstractFactoryKey();
       }
 

@@ -14,7 +14,7 @@ class DisplayedElementsToolPaletteFactoryList final : public iscore::FactoryList
           return DisplayedElementsToolPaletteFactory::static_abstractFactoryKey();
       }
 
-      iscore::AbstractFactoryKey name() const final override {
+      iscore::AbstractFactoryKey abstractFactoryKey() const final override {
           return DisplayedElementsToolPaletteFactory::static_abstractFactoryKey();
       }
 

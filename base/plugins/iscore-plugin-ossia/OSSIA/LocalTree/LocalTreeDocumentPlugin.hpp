@@ -29,7 +29,7 @@ namespace Ossia
 namespace LocalTree
 {
 
-class ISCORE_PLUGIN_OSSIA_EXPORT DocumentPlugin : public iscore::DocumentPluginModel
+class ISCORE_PLUGIN_OSSIA_EXPORT DocumentPlugin : public iscore::DocumentPlugin
 {
         std::shared_ptr<OSSIA::Device> m_localDevice;
 

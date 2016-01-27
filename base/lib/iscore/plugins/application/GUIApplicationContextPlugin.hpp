@@ -16,7 +16,7 @@ struct VisitorVariant;
 
 namespace iscore
 {
-    class DocumentPluginModel;
+    class DocumentPlugin;
     class MenubarManager;
 
     /**
@@ -46,11 +46,6 @@ namespace iscore
             virtual void populateMenus(iscore::MenubarManager*);
             virtual std::vector<iscore::OrderedToolbar> makeToolbars();
             virtual std::vector<QAction*> actions();
-
-            virtual DocumentPluginModel* loadDocumentPlugin(
-                    const QString& name,
-                    const VisitorVariant& var,
-                    iscore::Document *parent);
 
             const ApplicationContext& context;
             Document* currentDocument() const;

@@ -14,7 +14,7 @@ namespace iscore
 {
 DocumentModel::DocumentModel(
         const Id<DocumentModel>& id,
-        DocumentDelegateFactoryInterface* fact,
+        DocumentDelegateFactory* fact,
         QObject* parent) :
     IdentifiedObject {id, "DocumentModel", parent},
     m_model{fact->makeModel(this)}
@@ -42,7 +42,7 @@ void DocumentModel::addPanel(PanelModel *m)
 
 
 
-void DocumentModel::addPluginModel(DocumentPluginModel *m)
+void DocumentModel::addPluginModel(DocumentPlugin *m)
 {
     m->setParent(this);
     m_pluginModels.push_back(m);

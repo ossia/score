@@ -7,7 +7,9 @@
 
 #include <Device/Protocol/ProtocolList.hpp>
 #include <unordered_map>
+#include <iscore/plugins/customfactory/FactorySetup.hpp>
 
+#include <Explorer/DocumentPlugin/DeviceDocumentPlugin.hpp>
 #include "DeviceExplorerApplicationPlugin.hpp"
 
 namespace iscore {
@@ -35,6 +37,20 @@ std::vector<std::unique_ptr<iscore::FactoryListInterface>> iscore_plugin_devicee
     return make_ptr_vector<iscore::FactoryListInterface,
             Device::DynamicProtocolList>();
 
+}
+
+
+std::vector<std::unique_ptr<iscore::FactoryInterfaceBase>>
+iscore_plugin_deviceexplorer::factories(
+        const iscore::ApplicationContext& ctx,
+        const iscore::AbstractFactoryKey& key) const
+{
+    return instantiate_factories<
+            iscore::ApplicationContext,
+    TL<
+        FW<iscore::DocumentPluginFactory,
+             DeviceExplorer::DocumentPluginFactory>
+    >>(ctx, key);
 }
 
 iscore::GUIApplicationContextPlugin *iscore_plugin_deviceexplorer::make_applicationPlugin(

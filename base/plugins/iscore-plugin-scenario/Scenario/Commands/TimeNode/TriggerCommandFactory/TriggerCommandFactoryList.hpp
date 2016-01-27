@@ -16,7 +16,7 @@ class TriggerCommandFactoryList final : public iscore::FactoryListInterface
           return TriggerCommandFactory::static_abstractFactoryKey();
       }
 
-      iscore::AbstractFactoryKey name() const final override {
+      iscore::AbstractFactoryKey abstractFactoryKey() const final override {
           return TriggerCommandFactory::static_abstractFactoryKey();
       }
 

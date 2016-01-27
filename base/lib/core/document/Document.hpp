@@ -20,7 +20,7 @@ class DocumentBackupManager;
 
 namespace iscore
 {
-class DocumentDelegateFactoryInterface;
+class DocumentDelegateFactory;
 class DocumentModel;
 class DocumentPresenter;
 class DocumentView;
@@ -86,13 +86,13 @@ class ISCORE_LIB_BASE_EXPORT Document final : public NamedObject
         Document(
                 const QString& name,
                 const Id<DocumentModel>& id,
-                DocumentDelegateFactoryInterface* type,
+                DocumentDelegateFactory* type,
                 QWidget* parentview,
                 QObject* parent);
 
         Document(
                 const QVariant& data,
-                DocumentDelegateFactoryInterface* type,
+                DocumentDelegateFactory* type,
                 QWidget* parentview,
                 QObject* parent);
 

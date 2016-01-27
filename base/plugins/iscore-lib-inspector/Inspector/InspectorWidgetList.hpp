@@ -26,7 +26,7 @@ class ISCORE_LIB_INSPECTOR_EXPORT InspectorWidgetList final :
             return InspectorWidgetFactory::static_abstractFactoryKey();
         }
 
-        iscore::AbstractFactoryKey name() const final override {
+        iscore::AbstractFactoryKey abstractFactoryKey() const final override {
             return InspectorWidgetFactory::static_abstractFactoryKey();
         }
         void insert(std::unique_ptr<iscore::FactoryInterfaceBase> e) final override

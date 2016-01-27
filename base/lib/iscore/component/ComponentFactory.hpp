@@ -44,7 +44,7 @@ class GenericComponentFactoryList final :
             return Factory_T::static_abstractFactoryKey();
         }
 
-        iscore::AbstractFactoryKey name() const final override {
+        iscore::AbstractFactoryKey abstractFactoryKey() const final override {
             return Factory_T::static_abstractFactoryKey();
         }
 

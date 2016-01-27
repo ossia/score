@@ -17,7 +17,8 @@
 
 namespace iscore
 {
-class DocumentDelegateFactoryInterface;
+class DocumentDelegateFactory;
+class DocumentPluginFactory;
 class FactoryListInterface;
 class GUIApplicationContextPlugin;
 class PanelFactory;
@@ -35,7 +36,8 @@ struct ISCORE_LIB_BASE_EXPORT ApplicationComponentsData
         QStringList pluginFiles;
         std::vector<QObject*> plugins;
         std::vector<GUIApplicationContextPlugin*> appPlugins;
-        std::vector<DocumentDelegateFactoryInterface*> availableDocuments;
+        std::vector<DocumentDelegateFactory*> availableDocuments;
+
         std::unordered_map<iscore::AbstractFactoryKey, std::unique_ptr<FactoryListInterface>> factories;
         std::unordered_map<CommandParentFactoryKey, CommandGeneratorMap> commands;
 

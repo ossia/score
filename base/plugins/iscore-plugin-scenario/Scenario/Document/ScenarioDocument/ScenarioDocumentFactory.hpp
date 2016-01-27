@@ -16,7 +16,7 @@ struct VisitorVariant;
 namespace Scenario
 {
 class ScenarioDocumentFactory final :
-        public iscore::DocumentDelegateFactoryInterface
+        public iscore::DocumentDelegateFactory
 {
     public:
         const ScenarioDocumentFactory::ConcreteFactoryKey&

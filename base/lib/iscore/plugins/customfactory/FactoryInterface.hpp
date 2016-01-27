@@ -83,7 +83,7 @@ class ISCORE_LIB_BASE_EXPORT GenericFactoryInterface : public GenericFactoryInte
 
 // ConcreteFactoryKey should be defined in the subclass
 #define ISCORE_CONCRETE_FACTORY_DECL(Uuid) \
-    private: \
+    public: \
     static const auto& static_concreteFactoryKey() { \
         static const ConcreteFactoryKey id{boost::uuids::string_generator{}(Uuid)}; \
         return id; \
@@ -91,5 +91,6 @@ class ISCORE_LIB_BASE_EXPORT GenericFactoryInterface : public GenericFactoryInte
     \
     const ConcreteFactoryKey& concreteFactoryKey() const final override { \
         return static_concreteFactoryKey(); \
-    }
+    }\
+    private:
 

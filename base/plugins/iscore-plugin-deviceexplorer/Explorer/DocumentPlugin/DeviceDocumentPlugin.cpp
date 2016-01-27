@@ -70,7 +70,7 @@ namespace DeviceExplorer
 DeviceDocumentPlugin::DeviceDocumentPlugin(
         iscore::Document& ctx,
         QObject* parent):
-    iscore::SerializableDocumentPluginModel{ctx, "DeviceExplorer::DeviceDocumentPlugin", parent}
+    iscore::SerializableDocumentPlugin{ctx, "DeviceExplorer::DeviceDocumentPlugin", parent}
 {
 
 }
@@ -79,7 +79,7 @@ DeviceDocumentPlugin::DeviceDocumentPlugin(
         iscore::Document& ctx,
         const VisitorVariant& vis,
         QObject* parent):
-    iscore::SerializableDocumentPluginModel{ctx, "DeviceExplorer::DeviceDocumentPlugin", parent}
+    iscore::SerializableDocumentPlugin{ctx, "DeviceExplorer::DeviceDocumentPlugin", parent}
 {
     deserialize_dyn(vis, *this);
 
@@ -98,7 +98,7 @@ void DeviceDocumentPlugin::serialize_impl(const VisitorVariant& vis) const
 
 auto DeviceDocumentPlugin::concreteFactoryKey() const -> ConcreteFactoryKey
 {
-    ISCORE_RETURN_UUID(5af7954a-d5cf-4732-a2c4-7074f0aa020d)
+    return DocumentPluginFactory::static_concreteFactoryKey();
 }
 
 Device::Node DeviceDocumentPlugin::createDeviceFromNode(const Device::Node & node)

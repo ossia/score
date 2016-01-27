@@ -18,7 +18,7 @@ class MoveEventList final : public iscore::FactoryListInterface
             return MoveEventFactoryInterface::static_abstractFactoryKey();
         }
 
-        iscore::AbstractFactoryKey name() const final override {
+        iscore::AbstractFactoryKey abstractFactoryKey() const final override {
             return MoveEventFactoryInterface::static_abstractFactoryKey();
         }
 

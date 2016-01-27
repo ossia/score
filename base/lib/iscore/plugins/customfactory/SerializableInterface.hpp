@@ -55,14 +55,14 @@ class ISCORE_LIB_BASE_EXPORT SerializableInterface
 }
 
 template<typename Type>
-UuidKey<Type> deserialize_key(Deserializer<JSONObject>& des)
+Type deserialize_key(Deserializer<JSONObject>& des)
 {
     return fromJsonValue<boost::uuids::uuid>(des.m_obj["uuid"]);;
 
 }
 
 template<typename Type>
-UuidKey<Type> deserialize_key(Deserializer<DataStream>& des)
+Type deserialize_key(Deserializer<DataStream>& des)
 {
     boost::uuids::uuid uid;
     des.writeTo(uid);
@@ -76,17 +76,19 @@ auto deserialize_interface(
         const FactoryList_T& factories,
         Deserializer& des,
         Args&&... args)
+    -> typename FactoryList_T::object_type*
 {
     // Deserialize the interface identifier
-    auto k = deserialize_key<typename FactoryList_T::factory_type>(des);
+    auto k = deserialize_key<typename FactoryList_T::factory_type::ConcreteFactoryKey>(des);
 
     // Get the factory
-    auto concrete_factory = factories.get(k);
-    if(!concrete_factory)
-        return nullptr;
+    if(auto concrete_factory = factories.get(k))
+    {
+        // Create the object
+        return concrete_factory->load(des.toVariant(), std::forward<Args>(args)...);
+    }
 
-    // Create the object
-    return concrete_factory->load(des.toVariant(), std::forward<Args>(args)...);
+    return nullptr;
 }
 
 
