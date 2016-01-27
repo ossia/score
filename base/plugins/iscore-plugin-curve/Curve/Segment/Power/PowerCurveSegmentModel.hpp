@@ -14,7 +14,7 @@ namespace Curve
 struct SegmentData;
 struct ISCORE_PLUGIN_CURVE_EXPORT PowerSegmentData
 {
-        static const SegmentFactoryKey& key();
+        static const SegmentFactoryKey& static_concreteFactoryKey();
         double gamma;
 };
 
@@ -34,12 +34,14 @@ class ISCORE_PLUGIN_CURVE_EXPORT PowerSegment final : public SegmentModel
             vis.writeTo(*this);
         }
 
+        double gamma = 12.05; // TODO private
+    private:
         SegmentModel* clone(
                 const Id<SegmentModel>& id,
                 QObject* parent) const override;
 
-        const SegmentFactoryKey& key() const override;
-        void serialize(const VisitorVariant& vis) const override;
+        SegmentFactoryKey concreteFactoryKey() const override;
+        void serialize_impl(const VisitorVariant& vis) const override;
         void on_startChanged() override;
         void on_endChanged() override;
 
@@ -54,7 +56,6 @@ class ISCORE_PLUGIN_CURVE_EXPORT PowerSegment final : public SegmentModel
             return QVariant::fromValue(PowerSegmentData{gamma});
         }
 
-        double gamma = 12.05; // TODO private
 };
 }
 Q_DECLARE_METATYPE(Curve::PowerSegmentData)

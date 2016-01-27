@@ -38,8 +38,8 @@ class ISCORE_PLUGIN_CURVE_EXPORT SinSegment final : public SegmentModel
                 const Id<SegmentModel>& id,
                 QObject* parent) const override;
 
-        const SegmentFactoryKey& key() const override;
-        void serialize(const VisitorVariant& vis) const override;
+        SegmentFactoryKey concreteFactoryKey() const override;
+        void serialize_impl(const VisitorVariant& vis) const override;
         void on_startChanged() override;
         void on_endChanged() override;
 

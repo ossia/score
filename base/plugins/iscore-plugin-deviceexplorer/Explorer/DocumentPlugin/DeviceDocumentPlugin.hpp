@@ -16,7 +16,8 @@ struct VisitorVariant;
 namespace DeviceExplorer
 {
 class ISCORE_PLUGIN_DEVICEEXPLORER_EXPORT DeviceDocumentPlugin final :
-        public iscore::SerializableDocumentPlugin
+        public iscore::SerializableDocumentPlugin,
+        public iscore::concrete
 {
         Q_OBJECT
     public:

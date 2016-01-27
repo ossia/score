@@ -5,6 +5,7 @@
 
 namespace iscore
 {
+struct concrete { using is_concrete_tag = std::integral_constant<bool, true>; };
 template<typename T>
 class ISCORE_LIB_BASE_EXPORT SerializableInterface
 {
@@ -36,6 +37,14 @@ Type deserialize_key(Deserializer<DataStream>& des)
     return uid;
 }
 
+inline void deserialize_check(Deserializer<JSONObject>& des)
+{
+}
+
+inline void deserialize_check(Deserializer<DataStream>& des)
+{
+    des.checkDelimiter();
+}
 
 template<typename FactoryList_T, typename Deserializer, typename... Args>
 auto deserialize_interface(
@@ -53,6 +62,8 @@ auto deserialize_interface(
         // Create the object
         return concrete_factory->load(des.toVariant(), std::forward<Args>(args)...);
     }
+
+    deserialize_check(des);
 
     return nullptr;
 }

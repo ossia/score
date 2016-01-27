@@ -106,42 +106,29 @@ class ISCORE_LIB_BASE_EXPORT Visitor<Reader<DataStream>> : public AbstractVisito
                  typename... Args>
         void readFrom(
                 const T<Args...>& obj,
-                typename std::enable_if<is_template<T<Args...>>::value, void>::type * = 0)
+                typename std::enable_if<
+                    is_template<T<Args...>>::value, void>::type * = 0)
         {
             TSerializer<DataStream, T<Args...>>::readFrom(*this, obj);
         }
 
         template<typename T>
-        void readFrom(
-                const T& obj,
-                enable_if_abstract_base<T>* = nullptr)
+        void readFromDynamic(const T& obj)
         {
             AbstractSerializer<DataStream, T>::readFrom(*this, obj);
-        }
-
-        template<typename T>
-        void readFrom(
-                const T& obj,
-                enable_if_concrete<T>* = nullptr)
-        {
-            ConcreteSerializer<DataStream, T>::readFrom(*this, obj);
         }
 
         template<typename T,
                  std::enable_if_t<
                      !std::is_enum<T>::value &&
-                     !is_template<T>::value &&
-                     !is_abstract_base<T>::value &&
-                     !is_concrete<T>::value
+                     !is_template<T>::value
                      >* = nullptr>
         void readFrom(const T&);
 
         template<typename T,
                  std::enable_if_t<
                      std::is_enum<T>::value &&
-                     !is_template<T>::value &&
-                     !is_abstract_base<T>::value &&
-                     !is_concrete<T>::value>* = nullptr>
+                     !is_template<T>::value>* = nullptr>
         void readFrom(const T& elt)
         {
             m_stream << (int32_t) elt;

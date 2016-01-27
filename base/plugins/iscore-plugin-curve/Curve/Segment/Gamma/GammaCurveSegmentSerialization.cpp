@@ -55,12 +55,12 @@ template<>
 void Visitor<Reader<JSONObject>>::readFrom(
         const Curve::GammaSegmentData& segmt)
 {
-    m_obj["Power"] = segmt.gamma;
+    m_obj["Gamma"] = segmt.gamma;
 }
 
 template<>
 void Visitor<Writer<JSONObject>>::writeTo(
         Curve::GammaSegmentData& segmt)
 {
-    segmt.gamma = m_obj["Power"].toDouble();
+    segmt.gamma = m_obj["Gamma"].toDouble();
 }

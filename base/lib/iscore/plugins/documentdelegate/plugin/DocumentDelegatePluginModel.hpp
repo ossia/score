@@ -102,7 +102,9 @@ struct AbstractSerializer<DataStream, T>
             const T& obj)
     {
         s.readFrom(obj.concreteFactoryKey().impl());
+        s.readFrom(obj);
         obj.serialize_impl(s.toVariant());
+        s.insertDelimiter();
     }
 };
 
@@ -116,6 +118,8 @@ struct AbstractSerializer<JSONObject, T>
             const T& obj)
     {
         s.m_obj["uuid"] = toJsonValue(obj.concreteFactoryKey().impl());
+        s.readFrom(obj);
         obj.serialize_impl(s.toVariant());
     }
 };
+

@@ -32,3 +32,17 @@ DocumentPluginFactory::~DocumentPluginFactory()
 
 }
 
+template<>
+void Visitor<Reader<DataStream>>::readFrom(
+        const iscore::SerializableDocumentPlugin& dpm)
+{
+    // Nothing to save
+}
+
+template<>
+void Visitor<Reader<JSONObject>>::readFrom(
+        const iscore::SerializableDocumentPlugin& dpm)
+{
+    // Nothing to save
+}
+
