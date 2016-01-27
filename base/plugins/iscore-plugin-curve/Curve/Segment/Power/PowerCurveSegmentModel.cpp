@@ -36,12 +36,12 @@ SegmentModel*PowerSegment::clone(
     return cs;
 }
 
-const SegmentFactoryKey& PowerSegment::key() const
+SegmentFactoryKey PowerSegment::concreteFactoryKey() const
 {
-    return PowerSegmentData::key();
+    return PowerSegmentData::static_concreteFactoryKey();
 }
 
-void PowerSegment::serialize(const VisitorVariant& vis) const
+void PowerSegment::serialize_impl(const VisitorVariant& vis) const
 {
     serialize_dyn(vis, *this);
 }
@@ -110,7 +110,7 @@ boost::optional<double> PowerSegment::verticalParameter() const
     return gamma / 6. - 1;
 }
 
-const SegmentFactoryKey&PowerSegmentData::key()
+const SegmentFactoryKey&PowerSegmentData::static_concreteFactoryKey()
 {
     static const SegmentFactoryKey name{"1e7cb83f-4e47-4b14-814d-2242a9c75991"};
     return name;

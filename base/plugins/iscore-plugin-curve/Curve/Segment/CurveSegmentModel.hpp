@@ -4,6 +4,7 @@
 #include <boost/optional/optional.hpp>
 #include <iscore/selection/Selectable.hpp>
 #include <iscore/tools/IdentifiedObject.hpp>
+#include <iscore/plugins/customfactory/SerializableInterface.hpp>
 #include <QPoint>
 #include <QVariant>
 #include <vector>
@@ -24,7 +25,8 @@ class PowerSegment;
 
 // Gives the data.
 class ISCORE_PLUGIN_CURVE_EXPORT SegmentModel :
-        public IdentifiedObject<SegmentModel>
+        public IdentifiedObject<SegmentModel>,
+        public iscore::SerializableInterface<SegmentModel>
 {
         Q_OBJECT
 
@@ -52,9 +54,6 @@ class ISCORE_PLUGIN_CURVE_EXPORT SegmentModel :
 
         virtual ~SegmentModel();
 
-
-        virtual const SegmentFactoryKey& key() const = 0;
-        virtual void serialize(const VisitorVariant&) const = 0;
         virtual void updateData(int numInterp) const = 0; // Will interpolate.
         virtual double valueAt(double x) const = 0;
 
@@ -90,7 +89,7 @@ class ISCORE_PLUGIN_CURVE_EXPORT SegmentModel :
                 id(),
                 start(), end(),
                 previous(), following(),
-                key(), toSegmentSpecificData()};
+                concreteFactoryKey(), toSegmentSpecificData()};
         }
 
     signals:

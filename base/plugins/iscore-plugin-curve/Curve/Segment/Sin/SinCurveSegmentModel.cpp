@@ -40,13 +40,13 @@ SegmentModel*SinSegment::clone(
     return cs;
 }
 
-const SegmentFactoryKey& SinSegment::key() const
+SegmentFactoryKey SinSegment::concreteFactoryKey() const
 {
     static const SegmentFactoryKey name{"c16dad6a-a422-4fb7-8bd5-850cbe8c3f28"};
     return name;
 }
 
-void SinSegment::serialize(const VisitorVariant& vis) const
+void SinSegment::serialize_impl(const VisitorVariant& vis) const
 {
     serialize_dyn(vis, *this);
 }

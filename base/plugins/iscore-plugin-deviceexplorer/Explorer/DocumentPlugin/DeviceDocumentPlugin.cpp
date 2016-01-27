@@ -44,12 +44,6 @@ void Visitor<Reader<DataStream>>::readFrom(
     readFrom(dev.rootNode());
 }
 
-template<>
-void Visitor<Writer<DataStream>>::writeTo(
-        DeviceExplorer::DeviceDocumentPlugin& dev)
-{
-    writeTo(dev.rootNode());
-}
 
 template<>
 void Visitor<Reader<JSONObject>>::readFrom(
@@ -57,6 +51,14 @@ void Visitor<Reader<JSONObject>>::readFrom(
 {
     readFrom(dev.rootNode());
 }
+
+template<>
+void Visitor<Writer<DataStream>>::writeTo(
+        DeviceExplorer::DeviceDocumentPlugin& dev)
+{
+    writeTo(dev.rootNode());
+}
+
 
 template<>
 void Visitor<Writer<JSONObject>>::writeTo(

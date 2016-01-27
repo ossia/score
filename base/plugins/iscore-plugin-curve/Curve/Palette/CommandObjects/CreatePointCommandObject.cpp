@@ -169,7 +169,7 @@ void CreatePointCommandObject::createPoint(std::vector<SegmentData> &segments)
             segments.push_back(newLeftSegment);
         }
         SegmentData& newLeftSegment = segments.back();
-        newLeftSegment.type = PowerSegmentData::key();
+        newLeftSegment.type = PowerSegmentData::static_concreteFactoryKey();
         newLeftSegment.specificSegmentData = QVariant::fromValue(PowerSegmentData{0});
         newLeftSegment.start = {seg_closest_from_left_x, 0.};
         newLeftSegment.end = m_state->currentPoint;
@@ -180,7 +180,7 @@ void CreatePointCommandObject::createPoint(std::vector<SegmentData> &segments)
             segments.push_back(newRightSegment);
         }
         SegmentData& newRightSegment = segments.back();
-        newRightSegment.type = PowerSegmentData::key();
+        newRightSegment.type = PowerSegmentData::static_concreteFactoryKey();
         newRightSegment.specificSegmentData = QVariant::fromValue(PowerSegmentData{0});
         newRightSegment.start = m_state->currentPoint;
         newRightSegment.end = {seg_closest_from_right_x, 0.};
