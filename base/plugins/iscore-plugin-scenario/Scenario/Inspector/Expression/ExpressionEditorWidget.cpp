@@ -11,8 +11,9 @@
 
 namespace Scenario
 {
-ExpressionEditorWidget::ExpressionEditorWidget(QWidget *parent) :
-    QWidget(parent)
+ExpressionEditorWidget::ExpressionEditorWidget(const iscore::DocumentContext& doc, QWidget *parent) :
+    QWidget(parent),
+    m_context{doc}
 {
     m_mainLayout = new iscore::MarginLess<QVBoxLayout>;
     this->setLayout(m_mainLayout);
@@ -184,7 +185,7 @@ QString ExpressionEditorWidget::currentExpr()
 
 void ExpressionEditorWidget::addNewRelation()
 {
-    auto relationEditor = new SimpleExpressionEditorWidget{m_relations.size(), this};
+    auto relationEditor = new SimpleExpressionEditorWidget{m_context, m_relations.size(), this};
     m_relations.push_back(relationEditor);
 
     m_mainLayout->addWidget(relationEditor);

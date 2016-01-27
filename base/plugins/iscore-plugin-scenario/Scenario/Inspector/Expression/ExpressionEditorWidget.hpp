@@ -26,7 +26,7 @@ class ExpressionEditorWidget : public QWidget
 {
         Q_OBJECT
     public:
-        explicit ExpressionEditorWidget(QWidget *parent = 0);
+        explicit ExpressionEditorWidget(const iscore::DocumentContext&doc, QWidget *parent = 0);
 
         State::Expression expression();
         void setExpression(State::Expression e);
@@ -45,6 +45,8 @@ class ExpressionEditorWidget : public QWidget
         QString currentExpr();
         void addNewRelation();
         void removeRelation(int index);
+
+        const iscore::DocumentContext& m_context;
         QVector<SimpleExpressionEditorWidget*> m_relations;
 
         QVBoxLayout* m_mainLayout{};
