@@ -36,13 +36,13 @@ class ObjectMenuActions final : public ScenarioActions
 
 
         QList<QAction*> actions() const override;
+        CommandDispatcher<> dispatcher() const;
     private:
         QJsonObject copySelectedElementsToJson();
         QJsonObject cutSelectedElementsToJson();
         void pasteElements(const QJsonObject& obj, const Scenario::Point& origin);
         void writeJsonToSelectedElements(const QJsonObject &obj);
 
-        CommandDispatcher<> dispatcher();
 
         EventActions* m_eventActions{};
         ConstraintActions* m_cstrActions{};

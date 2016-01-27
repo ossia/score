@@ -271,17 +271,32 @@ void ObjectMenuActions::pasteElements(
     dispatcher().submitCommand(cmd);
 }
 
-void ObjectMenuActions::writeJsonToSelectedElements(const QJsonObject &obj)
+static auto& getConstraints(const ScenarioModel& target)
 {
-    auto pres = m_parent->focusedPresenter();
-    if(!pres)
-        return;
+    return target.constraints;
+}
+static auto& getStates(const ScenarioModel& target)
+{
+    return target.states;
+}
+static auto getConstraints(const BaseScenarioContainer& target)
+{
+    return target.constraints();
+}
+static auto getStates(const BaseScenarioContainer& target)
+{
+    return target.states();
+}
 
-    auto sm = m_parent->focusedScenarioModel();
-
-    MacroCommandDispatcher dispatcher{new ScenarioPasteContent, this->dispatcher().stack()};
-    auto selectedConstraints = selectedElements(sm->constraints);
-    auto expandMode = pres->editionSettings().expandMode();
+template<typename Scenario_T>
+static void writeJsonToScenario(
+        const Scenario_T& scen,
+        const ObjectMenuActions& self,
+        const QJsonObject& obj)
+{
+    MacroCommandDispatcher dispatcher{new ScenarioPasteContent, self.dispatcher().stack()};
+    auto selectedConstraints = selectedElements(getConstraints(scen));
+    auto expandMode = self.appPlugin()->editionSettings().expandMode();
     for(const auto& json_vref : obj["Constraints"].toArray())
     {
         for(const auto& constraint : selectedConstraints)
@@ -295,7 +310,7 @@ void ObjectMenuActions::writeJsonToSelectedElements(const QJsonObject &obj)
         }
     }
 
-    auto selectedStates = selectedElements(sm->states);
+    auto selectedStates = selectedElements(getStates(scen));
     for(const auto& json_vref : obj["States"].toArray())
     {
         for(const auto& state : selectedStates)
@@ -311,7 +326,17 @@ void ObjectMenuActions::writeJsonToSelectedElements(const QJsonObject &obj)
     dispatcher.commit();
 }
 
-CommandDispatcher<> ObjectMenuActions::dispatcher()
+void ObjectMenuActions::writeJsonToSelectedElements(const QJsonObject &obj)
+{
+    auto si = m_parent->focusedScenarioInterface();
+    if(auto sm = dynamic_cast<const Scenario::ScenarioModel*>(si))
+        writeJsonToScenario(*sm, *this, obj);
+    else if(auto bsm = dynamic_cast<const Scenario::BaseScenarioContainer*>(si))
+        writeJsonToScenario(*bsm, *this, obj);
+
+}
+
+CommandDispatcher<> ObjectMenuActions::dispatcher() const
 {
     CommandDispatcher<> disp{m_parent->currentDocument()->context().commandStack};
     return disp;

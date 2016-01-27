@@ -24,6 +24,7 @@ class ScenarioActions;
 class TemporalScenarioPresenter;
 class ToolMenuActions;
 class ScenarioModel;
+class ScenarioInterface;
 
 class ISCORE_PLUGIN_SCENARIO_EXPORT ScenarioApplicationPlugin final :
         public QObject,
@@ -42,6 +43,7 @@ class ISCORE_PLUGIN_SCENARIO_EXPORT ScenarioApplicationPlugin final :
         { return m_pluginActions; }
 
         const Scenario::ScenarioModel* focusedScenarioModel() const;
+        const Scenario::ScenarioInterface* focusedScenarioInterface() const;
         TemporalScenarioPresenter* focusedPresenter() const;
 
         void reinit_tools();

@@ -32,6 +32,7 @@ class IndirectArray
 {
         std::array<T*, N> array;
     public:
+        using value_type = T;
         template<typename... Args>
         IndirectArray(Args&&... args):
             array{{std::forward<Args>(args)...}}

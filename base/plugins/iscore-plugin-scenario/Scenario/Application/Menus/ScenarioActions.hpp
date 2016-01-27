@@ -37,6 +37,9 @@ class ISCORE_PLUGIN_SCENARIO_EXPORT ScenarioActions : public QObject
         // TODO reimplement me for all the classes
         virtual QList<QAction*> actions() const;
 
+        auto appPlugin() const
+        { return m_parent; }
+
     protected:
         ScenarioApplicationPlugin* m_parent{};
         iscore::ToplevelMenuElement m_menuElt;

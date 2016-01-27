@@ -399,6 +399,15 @@ const Scenario::ScenarioModel* ScenarioApplicationPlugin::focusedScenarioModel()
     return nullptr;
 }
 
+const Scenario::ScenarioInterface* ScenarioApplicationPlugin::focusedScenarioInterface() const
+{
+    if(auto focusManager = processFocusManager())
+    {
+        return dynamic_cast<const Scenario::ScenarioInterface*>(focusManager->focusedModel());
+    }
+    return nullptr;
+}
+
 TemporalScenarioPresenter* ScenarioApplicationPlugin::focusedPresenter() const
 {
     if(auto focusManager = processFocusManager())
