@@ -37,7 +37,7 @@ Ossia::LocalTree::DocumentPlugin::DocumentPlugin(
         std::shared_ptr<OSSIA::Device> localDev,
         iscore::Document& doc,
         QObject* parent):
-    iscore::DocumentPluginModel{doc, "LocalTree::DocumentPlugin", parent},
+    iscore::DocumentPlugin{doc, "LocalTree::DocumentPlugin", parent},
     m_localDevice{localDev}
 {
     auto scenar = dynamic_cast<Scenario::ScenarioDocumentModel*>(

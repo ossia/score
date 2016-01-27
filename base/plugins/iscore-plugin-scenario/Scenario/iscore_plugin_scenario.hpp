@@ -18,7 +18,7 @@
 
 namespace iscore {
 
-class DocumentDelegateFactoryInterface;
+class DocumentDelegateFactory;
 class FactoryListInterface;
 class PanelFactory;
 }  // namespace iscore
@@ -48,7 +48,7 @@ class iscore_plugin_scenario final :
         iscore_plugin_scenario();
 
         // Docpanel interface
-        std::vector<iscore::DocumentDelegateFactoryInterface*> documents() override;
+        std::vector<iscore::DocumentDelegateFactory*> documents() override;
 
         // Application plugin interface
         iscore::GUIApplicationContextPlugin* make_applicationPlugin(const iscore::ApplicationContext& app) override;

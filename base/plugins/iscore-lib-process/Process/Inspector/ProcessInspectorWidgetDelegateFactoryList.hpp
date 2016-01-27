@@ -9,7 +9,7 @@ class ProcessInspectorWidgetDelegateFactoryList final : public iscore::FactoryLi
           return ProcessInspectorWidgetDelegateFactory::static_abstractFactoryKey();
       }
 
-      iscore::AbstractFactoryKey name() const final override {
+      iscore::AbstractFactoryKey abstractFactoryKey() const final override {
           return ProcessInspectorWidgetDelegateFactory::static_abstractFactoryKey();
       }
 

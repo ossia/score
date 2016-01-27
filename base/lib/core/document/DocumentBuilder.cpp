@@ -34,7 +34,7 @@ ISCORE_LIB_BASE_EXPORT
 Document* DocumentBuilder::newDocument(
         const iscore::ApplicationContext& ctx,
         const Id<DocumentModel>& id,
-        DocumentDelegateFactoryInterface* doctype)
+        DocumentDelegateFactory* doctype)
 {
     QString docName = "Untitled." + RandomNameProvider::generateRandomName();
     auto doc = new Document{docName, id, doctype, m_parentView, m_parentPresenter};
@@ -59,7 +59,7 @@ template<
 Document* DocumentBuilder::loadDocument_impl(
         const iscore::ApplicationContext& ctx,
         const QVariant &docData,
-        iscore::DocumentDelegateFactoryInterface* doctype,
+        iscore::DocumentDelegateFactory* doctype,
         InitFun&& initfun,
         BackupFun&& backupfun)
 {
@@ -93,7 +93,7 @@ Document* DocumentBuilder::loadDocument_impl(
 Document* DocumentBuilder::loadDocument(
         const iscore::ApplicationContext& ctx,
         const QVariant& docData,
-        DocumentDelegateFactoryInterface* doctype)
+        DocumentDelegateFactory* doctype)
 {
     return loadDocument_impl(
                 ctx,
@@ -108,7 +108,7 @@ Document* DocumentBuilder::restoreDocument(
         const iscore::ApplicationContext& ctx,
         const QByteArray& docData,
         const QByteArray& cmdData,
-        DocumentDelegateFactoryInterface* doctype)
+        DocumentDelegateFactory* doctype)
 {
     return loadDocument_impl(
                 ctx,

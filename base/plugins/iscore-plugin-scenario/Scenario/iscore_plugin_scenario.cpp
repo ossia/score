@@ -41,7 +41,7 @@
 
 namespace iscore {
 
-class DocumentDelegateFactoryInterface;
+class DocumentDelegateFactory;
 class FactoryListInterface;
 class PanelFactory;
 }
@@ -85,7 +85,7 @@ iscore_plugin_scenario::iscore_plugin_scenario() :
 }
 
 // Interfaces implementations :
-std::vector<iscore::DocumentDelegateFactoryInterface*> iscore_plugin_scenario::documents()
+std::vector<iscore::DocumentDelegateFactory*> iscore_plugin_scenario::documents()
 {
     using namespace Scenario;
     return {new ScenarioDocumentFactory};

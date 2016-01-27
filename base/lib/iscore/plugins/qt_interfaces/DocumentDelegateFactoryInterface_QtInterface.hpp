@@ -5,13 +5,13 @@
 
 namespace iscore
 {
-    class DocumentDelegateFactoryInterface;
+    class DocumentDelegateFactory;
 
     class ISCORE_LIB_BASE_EXPORT DocumentDelegateFactoryInterface_QtInterface
     {
         public:
             virtual ~DocumentDelegateFactoryInterface_QtInterface();
-            virtual std::vector<DocumentDelegateFactoryInterface*> documents() = 0;
+            virtual std::vector<DocumentDelegateFactory*> documents() = 0;
     };
 }
 

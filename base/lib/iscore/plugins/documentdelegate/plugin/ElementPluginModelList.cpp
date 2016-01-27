@@ -44,7 +44,7 @@ iscore::ElementPluginModelList::ElementPluginModelList(
     iscore::Document* doc = iscore::IDocument::documentFromObject(m_parent);
     for(ElementPluginModel* elt : source.m_list)
     {
-        for(DocumentPluginModel* plugin : doc->model().pluginModels())
+        for(DocumentPlugin* plugin : doc->model().pluginModels())
         {
             if(contains(plugin->elementPlugins(), elt->elementPluginId()))
             {

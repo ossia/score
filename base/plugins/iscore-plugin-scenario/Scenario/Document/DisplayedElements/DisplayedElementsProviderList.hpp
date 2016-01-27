@@ -14,7 +14,7 @@ class DisplayedElementsProviderList final : public iscore::FactoryListInterface
           return DisplayedElementsProvider::static_abstractFactoryKey();
       }
 
-      iscore::AbstractFactoryKey name() const final override {
+      iscore::AbstractFactoryKey abstractFactoryKey() const final override {
           return DisplayedElementsProvider::static_abstractFactoryKey();
       }
 

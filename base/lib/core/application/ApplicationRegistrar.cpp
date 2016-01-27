@@ -84,7 +84,7 @@ void ApplicationRegistrar::registerPanel(
 
 ISCORE_LIB_BASE_EXPORT
 void ApplicationRegistrar::registerDocumentDelegate(
-        DocumentDelegateFactoryInterface* docpanel)
+        DocumentDelegateFactory* docpanel)
 {
     m_components.availableDocuments.push_back(docpanel);
 }
@@ -113,7 +113,7 @@ void ApplicationRegistrar::registerFactories(
 ISCORE_LIB_BASE_EXPORT
 void ApplicationRegistrar::registerFactory(std::unique_ptr<FactoryListInterface> cmds)
 {
-    m_components.factories.insert(std::make_pair(cmds->name(), std::move(cmds)));
+    m_components.factories.insert(std::make_pair(cmds->abstractFactoryKey(), std::move(cmds)));
 }
 
 ISCORE_LIB_BASE_EXPORT

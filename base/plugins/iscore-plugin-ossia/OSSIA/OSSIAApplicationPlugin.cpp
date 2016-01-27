@@ -125,15 +125,6 @@ void OSSIAApplicationPlugin::populateMenus(iscore::MenubarManager* menu)
 {
 }
 
-iscore::DocumentPluginModel*OSSIAApplicationPlugin::loadDocumentPlugin(
-        const QString& name,
-        const VisitorVariant& var,
-        iscore::Document* model)
-{
-    // We don't have anything to load; it's easier to just recreate.
-    return nullptr;
-}
-
 bool OSSIAApplicationPlugin::handleStartup()
 {
     if(!context.documents.documents().empty())

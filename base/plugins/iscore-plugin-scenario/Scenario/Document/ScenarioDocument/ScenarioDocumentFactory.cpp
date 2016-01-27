@@ -14,7 +14,7 @@ struct VisitorVariant;
 
 namespace Scenario
 {
-const iscore::DocumentDelegateFactoryInterface::ConcreteFactoryKey&
+const iscore::DocumentDelegateFactory::ConcreteFactoryKey&
 ScenarioDocumentFactory::concreteFactoryKey() const
 {
     static ConcreteFactoryKey k("2bca3373-d858-4288-b054-5960d3e5902c");

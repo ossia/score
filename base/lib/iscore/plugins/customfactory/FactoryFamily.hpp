@@ -23,7 +23,7 @@ class ISCORE_LIB_BASE_EXPORT FactoryListInterface
         virtual ~FactoryListInterface();
 
         // Example : InspectorWidgetFactory
-        virtual iscore::AbstractFactoryKey name() const = 0;
+        virtual iscore::AbstractFactoryKey abstractFactoryKey() const = 0;
 
         // This function is called whenever a new factory interface
         // is added to this family.
@@ -105,7 +105,7 @@ auto make_ptr_vector(const Context_T& context)
         return FactoryType::static_abstractFactoryKey(); \
     } \
     \
-    iscore::AbstractFactoryKey name() const final override { \
+    iscore::AbstractFactoryKey abstractFactoryKey() const final override { \
         return FactoryType::static_abstractFactoryKey(); \
     } \
     void insert(std::unique_ptr<iscore::FactoryInterfaceBase> e) final override \
@@ -115,6 +115,8 @@ auto make_ptr_vector(const Context_T& context)
     } \
     const auto& list() const \
     { return m_list; }\
+    auto get(const FactoryType::ConcreteFactoryKey& k) const \
+    { return m_list.get(k); }\
     \
     using factory_type = FactoryType; \
     using object_type = typename FactoryType::object_type; \

@@ -9,7 +9,7 @@ class QObject;
 
 namespace iscore
 {
-DocumentPresenter::DocumentPresenter(DocumentDelegateFactoryInterface* fact,
+DocumentPresenter::DocumentPresenter(DocumentDelegateFactory* fact,
                                      const DocumentModel& m,
                                      DocumentView& v,
                                      QObject* parent) :

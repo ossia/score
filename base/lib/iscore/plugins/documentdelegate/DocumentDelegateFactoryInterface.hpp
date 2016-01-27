@@ -20,14 +20,14 @@ namespace iscore
      *
      * The interface required to create a custom main document (like MS Word's main page)
      */
-    class ISCORE_LIB_BASE_EXPORT DocumentDelegateFactoryInterface :
+    class ISCORE_LIB_BASE_EXPORT DocumentDelegateFactory :
             public iscore::GenericFactoryInterface<DocumentDelegateFactoryKey>
     {
             ISCORE_ABSTRACT_FACTORY_DECL(
                     DocumentDelegateModelInterface,
                     "127ea824-f623-4f68-8deb-7c8c930a262b")
         public:
-            virtual ~DocumentDelegateFactoryInterface();
+            virtual ~DocumentDelegateFactory();
 
             virtual DocumentDelegateViewInterface* makeView(
                     const iscore::ApplicationContext& ctx,
@@ -46,10 +46,11 @@ namespace iscore
     };
 
 
+    // TODO use me
     class ISCORE_LIB_BASE_EXPORT DocumentDelegateList final :
             public iscore::FactoryListInterface
     {
-            ISCORE_FACTORY_LIST_DECL(iscore::DocumentDelegateFactoryInterface)
+            ISCORE_FACTORY_LIST_DECL(iscore::DocumentDelegateFactory)
     };
 
 }

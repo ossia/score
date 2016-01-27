@@ -17,17 +17,17 @@ struct VisitorVariant;
 // TODO DocumentPlugin -> system
 namespace iscore
 {
-class ISCORE_LIB_BASE_EXPORT DocumentPluginModel :
+class ISCORE_LIB_BASE_EXPORT DocumentPlugin :
         public NamedObject
 {
         Q_OBJECT
     public:
-        DocumentPluginModel(
+        DocumentPlugin(
                 iscore::Document&,
                 const QString& name,
                 QObject* parent);
 
-        virtual ~DocumentPluginModel();
+        virtual ~DocumentPlugin();
 
         virtual std::vector<ElementPluginModelType> elementPlugins() const { return {}; }
         virtual ElementPluginModel* makeElementPlugin(
@@ -56,42 +56,39 @@ class ISCORE_LIB_BASE_EXPORT DocumentPluginModel :
 };
 
 
-class ISCORE_LIB_BASE_EXPORT SerializableDocumentPluginModel :
-        public DocumentPluginModel,
-        public SerializableInterface<SerializableDocumentPluginModel>
+class ISCORE_LIB_BASE_EXPORT SerializableDocumentPlugin :
+        public DocumentPlugin,
+        public SerializableInterface<DocumentPlugin>
 {
-        ISCORE_SERIALIZE_FRIENDS(SerializableDocumentPluginModel, DataStream)
-        ISCORE_SERIALIZE_FRIENDS(SerializableDocumentPluginModel, JSONObject)
+        ISCORE_SERIALIZE_FRIENDS(SerializableDocumentPlugin, DataStream)
+        ISCORE_SERIALIZE_FRIENDS(SerializableDocumentPlugin, JSONObject)
 
     protected:
-        using DocumentPluginModel::DocumentPluginModel;
-        using ConcreteFactoryKey = UuidKey<SerializableDocumentPluginModel>;
+        using DocumentPlugin::DocumentPlugin;
+        using ConcreteFactoryKey = UuidKey<DocumentPlugin>;
 
-    virtual ~SerializableDocumentPluginModel();
+    virtual ~SerializableDocumentPlugin();
 };
 
 
-class ISCORE_LIB_BASE_EXPORT DocumentPluginModelFactory :
-        public iscore::GenericFactoryInterface<UuidKey<DocumentPluginModel>>
+class ISCORE_LIB_BASE_EXPORT DocumentPluginFactory :
+        public iscore::GenericFactoryInterface<UuidKey<DocumentPlugin>>
 {
         ISCORE_ABSTRACT_FACTORY_DECL(
-                DocumentPluginModel,
+                DocumentPlugin,
                 "570faa0b-f100-4039-a2f0-b60347c4e581")
     public:
-        virtual ~DocumentPluginModelFactory();
+        virtual ~DocumentPluginFactory();
 
-        virtual DocumentPluginModel* makeModel(
-                const iscore::DocumentContext& doc,
-                QObject* parent) = 0;
-
-        virtual DocumentPluginModel* loadModel(
+        virtual DocumentPlugin* load(
                 const VisitorVariant& var,
-                const iscore::DocumentContext& doc,
+                iscore::DocumentContext& doc,
                 QObject* parent) = 0;
 
 };
-class ISCORE_LIB_BASE_EXPORT DocumentPluginModelFactoryList final : public iscore::FactoryListInterface
+class ISCORE_LIB_BASE_EXPORT DocumentPluginFactoryList final :
+        public iscore::FactoryListInterface
 {
-        ISCORE_FACTORY_LIST_DECL(iscore::DocumentPluginModelFactory)
+        ISCORE_FACTORY_LIST_DECL(iscore::DocumentPluginFactory)
 };
 }

@@ -12,10 +12,6 @@ namespace iscore
 using uuid_t = boost::uuids::uuid;
 }
 
-#define ISCORE_RETURN_UUID(Uuid) \
-    static const ConcreteFactoryKey id{boost::uuids::string_generator{}(#Uuid)}; \
-    return id;
-
 template<typename Tag>
 class ISCORE_LIB_BASE_EXPORT UuidKey : iscore::uuid_t
 {

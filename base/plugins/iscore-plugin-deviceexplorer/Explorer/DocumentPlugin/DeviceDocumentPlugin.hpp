@@ -5,6 +5,7 @@
 #include <Explorer/DocumentPlugin/NodeUpdateProxy.hpp>
 #include <iscore/plugins/documentdelegate/plugin/DocumentDelegatePluginModel.hpp>
 #include <iscore_plugin_deviceexplorer_export.h>
+#include <core/document/Document.hpp>
 
 class QObject;
 namespace iscore {
@@ -15,7 +16,7 @@ struct VisitorVariant;
 namespace DeviceExplorer
 {
 class ISCORE_PLUGIN_DEVICEEXPLORER_EXPORT DeviceDocumentPlugin final :
-        public iscore::SerializableDocumentPluginModel
+        public iscore::SerializableDocumentPlugin
 {
         Q_OBJECT
     public:
@@ -59,5 +60,21 @@ class ISCORE_PLUGIN_DEVICEEXPLORER_EXPORT DeviceDocumentPlugin final :
         void initDevice(Device::DeviceInterface&);
         Device::Node m_rootNode;
         Device::DeviceList m_list;
+};
+
+class DocumentPluginFactory final :
+        public iscore::DocumentPluginFactory
+{
+        ISCORE_CONCRETE_FACTORY_DECL("6e610e1f-9de2-4c36-90dd-0ef570002a21")
+
+    public:
+        iscore::DocumentPlugin* load(
+                const VisitorVariant& var,
+                iscore::DocumentContext& doc,
+                QObject* parent) override
+        {
+            // TODO smell
+            return new DeviceDocumentPlugin{doc.document, var, parent};
+        }
 };
 }
