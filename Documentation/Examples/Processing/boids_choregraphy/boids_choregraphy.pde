@@ -18,6 +18,9 @@
  * (-) /flock/distance/max f : parameter to control maximal distance between boids (default 75.)
  * (f) /flock/follow/destination i i : parameter to make boids to follow a destination (default 0. 0.)
  * (-) /flock/follow/rate f : parameter to control how much boids follow the destination (default 0.)
+ * (-) /flock/size : returns the number of boids
+ * (-) /flock/deviation/x : returns horizontal deviation of the flock
+ * (-) /flock/deviation/y : returns vertical deviation of the flock
  * (-) /mouse/x i : returns mouse x position on screen
  * (-) /mouse/y i : returns mouse y position on screen
  * (-) /mouse/click : returns 1 when mouse is pressed and 0 when released
@@ -34,6 +37,7 @@ Flock flock;
 int last_mouse_x;    // to filter repetitions
 int last_mouse_y;    // to filter repetitions
 int last_flock_size; // to filter repetitions
+int last_parameter_date; // to filter while i-score cannot do it
  
 boolean info = true;
 
@@ -68,11 +72,16 @@ void draw()
   osc_msg.add(flock.getSize());
   osc_in.send(osc_msg, osc_out);
 
-  // send OSC message for flock deviation
-  osc_msg = new OscMessage("/flock/deviation");
+  // send OSC message for flock deviation x
+  osc_msg = new OscMessage("/flock/deviation/x");
   osc_msg.add(flock.getDeviation().x);
+  osc_in.send(osc_msg, osc_out);
+
+  // send OSC message for flock deviation y
+  osc_msg = new OscMessage("/flock/deviation/y");
   osc_msg.add(flock.getDeviation().y);
   osc_in.send(osc_msg, osc_out);
+
 
   // send OSC message for mouseX
   if (mouseX != last_mouse_x)
@@ -124,9 +133,6 @@ void mouseReleased()
 
 void oscEvent(OscMessage osc_msg)
 {
-  // debug
-  println(osc_msg.addrPattern() + "[" + osc_msg.typetag() + "]");
-
   if (osc_msg.checkAddrPattern("/flock/info")) 
   {
     if (osc_msg.checkTypetag("i")) 
@@ -144,7 +150,16 @@ void oscEvent(OscMessage osc_msg)
       float y = osc_msg.get(1).floatValue();
       flock.addBoid(new Boid(x, y));
     }
-  } else if (osc_msg.checkAddrPattern("/flock/avoidance"))
+  }
+  
+  // note : here we need to filter parameters automation in time
+  // because it is still not possible to setup constraint granularity in i-score
+  if (millis() - last_parameter_date < 40)
+    return;
+  
+  last_parameter_date = millis();
+  
+  if (osc_msg.checkAddrPattern("/flock/avoidance"))
   {
     if (osc_msg.checkTypetag("f")) 
     {
