@@ -46,7 +46,6 @@ set(SRCS
 "${CMAKE_CURRENT_SOURCE_DIR}/Explorer/PanelBase/DeviceExplorerPanelModel.cpp"
 "${CMAKE_CURRENT_SOURCE_DIR}/Explorer/PanelBase/DeviceExplorerPanelPresenter.cpp"
 "${CMAKE_CURRENT_SOURCE_DIR}/Explorer/PanelBase/DeviceExplorerPanelView.cpp"
-"${CMAKE_CURRENT_SOURCE_DIR}/Explorer/Widgets/DeviceExplorerMenuButton.cpp"
 "${CMAKE_CURRENT_SOURCE_DIR}/Explorer/Widgets/DeviceCompleter.cpp"
 "${CMAKE_CURRENT_SOURCE_DIR}/Explorer/Widgets/MessageWidget.cpp"
 "${CMAKE_CURRENT_SOURCE_DIR}/Explorer/Widgets/MessageListEditor.cpp"

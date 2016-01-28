@@ -6,13 +6,13 @@
                 "EndState": 1,
                 "FullView": {
                     "CenterOn": [
-                        503.5,
-                        229
+                        231.5,
+                        209.5
                     ],
                     "ConstraintId": 0,
                     "ObjectName": "FullViewConstraintViewModel",
                     "ShownRack": 1,
-                    "Zoom": 148.4353742957488,
+                    "Zoom": 197.91642399234911,
                     "id": 0
                 },
                 "HeightPercentage": 0,
@@ -1861,6 +1861,24 @@
                                                                 2,
                                                                 0
                                                             ]
+                                                        },
+                                                        {
+                                                            "Children": [
+                                                            ],
+                                                            "Following": [
+                                                            ],
+                                                            "Name": "avoidance",
+                                                            "Previous": [
+                                                            ],
+                                                            "Priorities": [
+                                                                1,
+                                                                2,
+                                                                0
+                                                            ],
+                                                            "User": {
+                                                                "Type": "Float",
+                                                                "Value": 1.5
+                                                            }
                                                         }
                                                     ],
                                                     "Following": [
@@ -2959,7 +2977,7 @@
                                         ],
                                         "Type": "Float",
                                         "Unit": "",
-                                        "Value": 1,
+                                        "Value": 1.5,
                                         "ioType": "<->"
                                     },
                                     "Children": [
