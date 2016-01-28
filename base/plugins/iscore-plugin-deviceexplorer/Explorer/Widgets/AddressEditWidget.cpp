@@ -5,14 +5,18 @@
 
 #include "AddressEditWidget.hpp"
 #include "DeviceCompleter.hpp"
-#include "DeviceExplorerMenuButton.hpp"
 #include <State/Address.hpp>
 
+#include <Explorer/Explorer/DeviceExplorerModel.hpp>
+#include <Device/Node/DeviceNode.hpp>
+#include <Device/QMenuView/qmenuview.h>
+#include <QContextMenuEvent>
 
 namespace DeviceExplorer
 {
 AddressEditWidget::AddressEditWidget(DeviceExplorerModel* model, QWidget* parent):
-    QWidget{parent}
+    QWidget{parent},
+    m_model{model}
 {
     auto lay = new iscore::MarginLess<QHBoxLayout>;
 
@@ -24,21 +28,13 @@ AddressEditWidget::AddressEditWidget(DeviceExplorerModel* model, QWidget* parent
         emit addressChanged(m_address);
     });
 
-
+    m_lineEdit->setContextMenuPolicy(Qt::CustomContextMenu);
+    connect(m_lineEdit, &QLineEdit::customContextMenuRequested,
+            this, &AddressEditWidget::customContextMenuEvent);
     if(model)
     {
         // LineEdit completion
         m_lineEdit->setCompleter(new DeviceCompleter {model, this});
-
-        auto pb = new DeviceExplorerMenuButton{model};
-        connect(pb, &DeviceExplorerMenuButton::addressChosen,
-                this, [&] (const State::Address& addr)
-        {
-            setAddress(addr);
-            emit addressChanged(addr);
-        });
-
-        lay->addWidget(pb);
     }
 
     lay->addWidget(m_lineEdit);
@@ -57,6 +53,23 @@ void AddressEditWidget::setAddressString(const QString s)
     m_lineEdit->setText(s);
     State::Address addr{};
     m_address = addr.fromString(s);
+}
+
+void AddressEditWidget::customContextMenuEvent(const QPoint& p)
+{
+    auto device_menu = new QMenuView{m_lineEdit};
+    device_menu->setModel(reinterpret_cast<QAbstractItemModel*>(m_model));
+    connect(device_menu, &QMenuView::triggered,
+            this, [&](const QModelIndex & m)
+    {
+        auto addr = Device::address(m_model->nodeFromModelIndex(m));
+        setAddress(addr);
+        qDebug() << addr.toString();
+         emit addressChanged(addr);
+    });
+
+    device_menu->exec(m_lineEdit->mapToGlobal(p));
+    delete device_menu;
 }
 
 }
