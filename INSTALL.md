@@ -5,9 +5,9 @@
 
 ### Packages : 
 
-On debian-like systems :
+#### On debian-like systesms
     
-   sudo apt-get install cmake qtbase5-dev qtdeclarative5-dev qttools5-dev libboost-dev build-essentials g++
+    sudo apt-get install cmake qtbase5-dev qtdeclarative5-dev qttools5-dev libboost-dev build-essentials g++
 
 ### Build : 
   
