@@ -14,6 +14,21 @@ set_target_properties(
     MACOSX_BUNDLE_INFO_PLIST "${CMAKE_CURRENT_SOURCE_DIR}/Info.plist.in"
 )
 
+if(TARGET ${APPNAME}_unity)
+set_target_properties(
+  ${APPNAME}_unity
+  PROPERTIES
+    MACOSX_BUNDLE_INFO_STRING "i-score, an interactive sequencer for the intermedia arts"
+    MACOSX_BUNDLE_GUI_IDENTIFIER "org.i-score"
+    MACOSX_BUNDLE_LONG_VERSION_STRING "${ISCORE_VERSION}"
+    MACOSX_BUNDLE_BUNDLE_NAME "i-score"
+    MACOSX_BUNDLE_SHORT_VERSION_STRING "${ISCORE_VERSION}"
+    MACOSX_BUNDLE_BUNDLE_VERSION "${ISCORE_VERSION}"
+    MACOSX_BUNDLE_COPYRIGHT "The i-score team"
+    MACOSX_BUNDLE_ICON_FILE "i-score.icns"
+    MACOSX_BUNDLE_INFO_PLIST "${CMAKE_CURRENT_SOURCE_DIR}/Info.plist.in"
+)
+endif()
 # Copy our dylibs if necessary
 if(NOT ISCORE_STATIC_PLUGINS)
     set(ISCORE_BUNDLE_PLUGINS_FOLDER "${CMAKE_INSTALL_PREFIX}/${APPNAME}.app/Contents/MacOS/plugins/")
