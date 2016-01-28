@@ -3,9 +3,9 @@
 #include <State/Message.hpp>
 #include <eggs/variant/variant.hpp>
 #include <QChar>
-#include <QJSEngine>
-#include <QJSValue>
-#include <QJSValueIterator>
+#include <QtQml/QJSEngine>
+#include <QtQml/QJSValue>
+#include <QtQml/QJSValueIterator>
 #include <QObject>
 #include <QString>
 
