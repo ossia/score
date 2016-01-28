@@ -14,11 +14,8 @@ namespace Scenario
 class ConditionView final : public QGraphicsItem
 {
     public:
-        enum class State {
-            Disabled, Waiting, True, False
-        };
 
-        ConditionView(QGraphicsItem* parent);
+        ConditionView(const QColor& color, QGraphicsItem* parent);
 
         using QGraphicsItem::QGraphicsItem;
         QRectF boundingRect() const override;
@@ -26,8 +23,13 @@ class ConditionView final : public QGraphicsItem
                    const QStyleOptionGraphicsItem *option,
                    QWidget *widget) override;
         void changeHeight(qreal newH);
+
+        void setColor(const QColor& c)
+        { m_color = c;  update();}
+
     private:
-        State m_currentState{State::Waiting};
+
+        QColor m_color{Qt::magenta};
         QPainterPath m_trianglePath;
         QPainterPath m_Cpath;
         qreal m_height{0};

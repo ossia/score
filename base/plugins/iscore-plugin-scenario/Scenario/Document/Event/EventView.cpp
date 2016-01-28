@@ -27,7 +27,9 @@ EventView::EventView(EventPresenter& presenter,
 {
     setAcceptDrops(true);
 
-    m_conditionItem = new ConditionView(this);
+    m_color = presenter.model().metadata.color();
+
+    m_conditionItem = new ConditionView(m_color, this);
     m_conditionItem->setVisible(false);
     m_conditionItem->setPos(-13.5, -13.5);
 
@@ -37,7 +39,6 @@ EventView::EventView(EventPresenter& presenter,
     this->setZValue(2);
     this->setAcceptHoverEvents(true);
 
-    m_color = presenter.model().metadata.color();
 }
 
 
@@ -61,8 +62,6 @@ void EventView::setTrigger(const QString &trig)
     if(m_trigger == trig)
         return;
     m_trigger = trig;
-//    m_triggerItem->setVisible(!trig.isEmpty());
-//    m_triggerItem->setToolTip(m_condition);
 }
 
 bool EventView::hasTrigger() const
@@ -120,6 +119,11 @@ void EventView::setExtent(VerticalExtent &&extent)
 void EventView::setStatus(ExecutionStatus s)
 {
     m_status.set(s);
+    if(s != ExecutionStatus::Editing)
+        m_conditionItem->setColor(m_status.eventStatusColor());
+    else
+        m_conditionItem->setColor(m_color);
+
     update();
 }
 
@@ -138,6 +142,8 @@ bool EventView::isSelected() const
 void EventView::changeColor(QColor newColor)
 {
     m_color = newColor;
+    if(m_status.get() == ExecutionStatus::Editing)
+        m_conditionItem->setColor(m_color);
     this->update();
 }
 
