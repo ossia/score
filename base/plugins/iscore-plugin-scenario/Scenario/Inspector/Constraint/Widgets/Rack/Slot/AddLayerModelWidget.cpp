@@ -21,15 +21,14 @@
 #include "SlotInspectorSection.hpp"
 #include <iscore/tools/NotifyingMap.hpp>
 #include <iscore/tools/SettableIdentifier.hpp>
+#include <iscore/widgets/MarginLess.hpp>
 
 namespace Scenario
 {
 AddLayerModelWidget::AddLayerModelWidget(SlotInspectorSection* parentSlot) :
     QWidget {parentSlot}
 {
-    QHBoxLayout* layout = new QHBoxLayout;
-    layout->setContentsMargins(0, 0, 0 , 0);
-    this->setLayout(layout);
+    QHBoxLayout* layout = new iscore::MarginLess<QHBoxLayout>(this);
 
     // Button
     QToolButton* addButton = new QToolButton;

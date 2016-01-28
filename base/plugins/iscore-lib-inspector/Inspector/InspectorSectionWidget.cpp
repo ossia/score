@@ -16,7 +16,7 @@ InspectorSectionWidget::InspectorSectionWidget(bool editable, QWidget* parent) :
 {
     // HEADER : arrow button and name
     auto title = new QWidget{this};
-    auto titleLayout = new iscore::MarginLess<QHBoxLayout>;
+    auto titleLayout = new iscore::MarginLess<QHBoxLayout>{title};
 
     m_unfoldBtn = new QToolButton{title};
     m_unfoldBtn->setAutoRaise(true);
@@ -25,8 +25,6 @@ InspectorSectionWidget::InspectorSectionWidget(bool editable, QWidget* parent) :
     m_buttonTitle->setFlat(true);
     m_buttonTitle->setText("section name");
     m_buttonTitle->setStyleSheet("text-align: left;");
-    auto buttontitle_lay = new iscore::MarginLess<QVBoxLayout>;
-    m_buttonTitle->setLayout(buttontitle_lay);
 
     m_sectionTitle = new QLineEdit{tr("Section Name")};
     connect(m_sectionTitle, &QLineEdit::editingFinished,
@@ -47,17 +45,14 @@ InspectorSectionWidget::InspectorSectionWidget(bool editable, QWidget* parent) :
     titleLayout->addWidget(m_buttonTitle);
     titleLayout->addWidget(m_deleteBtn);
 
-    title->setLayout(titleLayout);
-
     // CONTENT
     m_container = new QWidget;
     m_container->setContentsMargins(0,0,0,0);
-    m_containerLayout = new iscore::MarginLess<QVBoxLayout>;
+    m_containerLayout = new iscore::MarginLess<QVBoxLayout>{m_container};
     m_containerLayout->addStretch();
-    m_container->setLayout(m_containerLayout);
 
     // GENERAL
-    auto globalLayout = new iscore::MarginLess<QVBoxLayout>;
+    auto globalLayout = new iscore::MarginLess<QVBoxLayout>{this};
     globalLayout->addWidget(title);
     globalLayout->addWidget(m_container);
     this->setContentsMargins(0,0,0,0);
@@ -73,7 +68,6 @@ InspectorSectionWidget::InspectorSectionWidget(bool editable, QWidget* parent) :
     m_isUnfolded = true;
     m_unfoldBtn->setArrowType(Qt::DownArrow);
     m_deleteBtn->setText("X");
-    setLayout(globalLayout);
     renameSection("Section Name");
 }
 

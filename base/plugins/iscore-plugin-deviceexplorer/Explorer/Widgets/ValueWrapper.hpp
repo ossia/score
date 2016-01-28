@@ -17,8 +17,7 @@ class WidgetWrapper final : public QWidget
         explicit WidgetWrapper(QWidget* parent):
             QWidget{parent}
         {
-            m_lay = new iscore::MarginLess<QGridLayout>;
-            this->setLayout(m_lay);
+            m_lay = new iscore::MarginLess<QGridLayout>{this};
         }
 
         void setWidget(Widget* widg)

@@ -11,13 +11,12 @@ class QWidget;
 CharValueWidget::CharValueWidget(QChar value, QWidget *parent)
     : ValueWidget{parent}
 {
-    auto lay = new iscore::MarginLess<QGridLayout>;
+    auto lay = new iscore::MarginLess<QGridLayout>{this};
     m_value = new QLineEdit;
     m_value->setMaxLength(1);
 
     lay->addWidget(m_value);
     m_value->setText(value);
-    this->setLayout(lay);
 }
 
 State::Value CharValueWidget::value() const

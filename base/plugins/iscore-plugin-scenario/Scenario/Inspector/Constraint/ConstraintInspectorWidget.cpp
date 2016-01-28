@@ -192,8 +192,7 @@ void ConstraintInspectorWidget::updateDisplayedValues()
 QWidget* ConstraintInspectorWidget::makeStatesWidget(Scenario::ScenarioModel* scenar)
 {
     QWidget* eventWid = new QWidget{this};
-    auto eventLay = new iscore::MarginLess<QHBoxLayout>;
-    eventWid->setLayout(eventLay);
+    auto eventLay = new iscore::MarginLess<QHBoxLayout>{eventWid};
 
     if(auto sst = m_model.startState())
     {

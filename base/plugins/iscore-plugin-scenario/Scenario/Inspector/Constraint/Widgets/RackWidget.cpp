@@ -18,6 +18,7 @@
 #include "LambdaFriendlyQComboBox.hpp"
 #include "RackWidget.hpp"
 #include <iscore/tools/SettableIdentifier.hpp>
+#include <iscore/widgets/MarginLess.hpp>
 
 namespace Scenario
 {
@@ -33,9 +34,7 @@ RackWidget::RackWidget(ProcessViewTabWidget* parentTabWidget, QWidget* parent) :
     QWidget* mainWidg = new QWidget;
     mainLay->addWidget(mainWidg);
 
-    QGridLayout* lay = new QGridLayout{mainWidg};
-    lay->setContentsMargins(1, 1, 0, 0);
-    mainWidg->setLayout(lay);
+    QGridLayout* lay = new iscore::MarginLess<QGridLayout>{mainWidg};
 
     // Button
     QToolButton* addButton = new QToolButton{this};

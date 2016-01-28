@@ -15,12 +15,10 @@ ExpressionEditorWidget::ExpressionEditorWidget(const iscore::DocumentContext& do
     QWidget(parent),
     m_context{doc}
 {
-    m_mainLayout = new iscore::MarginLess<QVBoxLayout>;
-    this->setLayout(m_mainLayout);
+    m_mainLayout = new iscore::MarginLess<QVBoxLayout>{this};
 
     auto btnWidg = new QWidget{this};
-    auto btnLay = new iscore::MarginLess<QHBoxLayout>;
-    btnWidg->setLayout(btnLay);
+    auto btnLay = new iscore::MarginLess<QHBoxLayout>{btnWidg};
 
     auto validBtn = new QPushButton{"OK",btnWidg};
     auto cancelBtn = new QPushButton{tr("Cancel"),btnWidg};

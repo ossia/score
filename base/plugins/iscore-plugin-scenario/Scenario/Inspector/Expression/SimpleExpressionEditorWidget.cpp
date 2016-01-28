@@ -15,6 +15,8 @@
 #include <Explorer/Explorer/DeviceExplorerModel.hpp>
 #include <Explorer/DocumentPlugin/DeviceDocumentPlugin.hpp>
 
+#include <iscore/widgets/MarginLess.hpp>
+
 namespace Scenario
 {
 SimpleExpressionEditorWidget::SimpleExpressionEditorWidget(
@@ -22,15 +24,12 @@ SimpleExpressionEditorWidget::SimpleExpressionEditorWidget(
     QWidget(parent),
     id{index}
 {
-    auto mainLay = new QHBoxLayout{this};
-    mainLay->setSpacing(1);
-    mainLay->setContentsMargins(0,0,0,0);
+    auto mainLay = new iscore::MarginLess<QHBoxLayout>{this};
 
     // TODO : this f*ck'n Widget is here because QCombobox doesnt let itself resize correctly
     auto binWidg = new QWidget{this};
-    auto binLay = new QHBoxLayout{binWidg};
+    auto binLay = new iscore::MarginLess<QHBoxLayout>{binWidg};
     m_binOperator = new QComboBox{binWidg};
-    binLay->setContentsMargins(0,0,0,0);
     binWidg->setMaximumWidth(30);
 
     binLay->addWidget(m_binOperator);
@@ -46,9 +45,8 @@ SimpleExpressionEditorWidget::SimpleExpressionEditorWidget(
 
     // Again ugly thing
     auto opWidg = new QWidget{this};
-    auto opLay = new QHBoxLayout{opWidg};
+    auto opLay = new iscore::MarginLess<QHBoxLayout>{opWidg};
     m_comparator = new QComboBox{opWidg};
-    opLay->setContentsMargins(0,0,0,0);
     opWidg->setMaximumWidth(25);
 
     opLay->addWidget(m_comparator);
@@ -56,9 +54,7 @@ SimpleExpressionEditorWidget::SimpleExpressionEditorWidget(
     m_value = new QLineEdit{this};
 
     auto btnWidg = new QWidget{this};
-    auto btnLay = new QVBoxLayout{btnWidg};
-    btnLay->setContentsMargins(0,0,0,0);
-    btnLay->setSpacing(0);
+    auto btnLay = new iscore::MarginLess<QVBoxLayout>{btnWidg};
     auto addBtn = new QToolButton{btnWidg};
     addBtn->setText("+");
     auto rmBtn = new QToolButton{btnWidg};
@@ -79,8 +75,6 @@ SimpleExpressionEditorWidget::SimpleExpressionEditorWidget(
     mainLay->addWidget(m_value, 2);
 
     mainLay->addWidget(btnWidg);
-
-    mainLay->setContentsMargins(0,0,0,0);
 
     // Connections
 

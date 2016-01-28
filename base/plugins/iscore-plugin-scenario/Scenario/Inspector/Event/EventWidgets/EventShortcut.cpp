@@ -3,16 +3,14 @@
 #include <QPushButton>
 
 #include "EventShortcut.hpp"
+#include <iscore/widgets/MarginLess.hpp>
 
 namespace Scenario
 {
 EventShortCut::EventShortCut(QString eventId, QWidget* parent) :
     QWidget {parent}
 {
-    auto groupLay = new QHBoxLayout{};
-    this->setLayout(groupLay);
-    this->setContentsMargins(0,0,0,0);
-    groupLay->setContentsMargins(5,0,0,0);
+    auto groupLay = new iscore::MarginLess<QHBoxLayout>{this};
 
     // browser button
     m_eventBtn = new QPushButton{this};

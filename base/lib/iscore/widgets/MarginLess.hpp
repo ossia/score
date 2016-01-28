@@ -1,5 +1,7 @@
 #pragma once
 
+#include <QWidget>
+
 namespace iscore
 {
 /**
@@ -11,6 +13,12 @@ template<typename Layout>
 class MarginLess final : public Layout
 {
     public:
+        MarginLess(QWidget* widg)
+        {
+            this->setContentsMargins(0, 0, 0, 0);
+            this->setSpacing(0);
+            widg->setLayout(this);
+        }
         MarginLess()
         {
             this->setContentsMargins(0, 0, 0, 0);

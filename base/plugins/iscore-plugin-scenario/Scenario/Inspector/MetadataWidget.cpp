@@ -13,6 +13,7 @@
 #include <Inspector/InspectorSectionWidget.hpp>
 #include "MetadataWidget.hpp"
 #include <iscore/command/Dispatchers/CommandDispatcher.hpp>
+#include <iscore/widgets/MarginLess.hpp>
 
 class QObject;
 
@@ -28,24 +29,18 @@ MetadataWidget::MetadataWidget(
     m_commandDispatcher{m}
 {
     // main
-    auto metadataLayout = new QVBoxLayout{this};
-    metadataLayout->setContentsMargins(0,0,0,0);
-    metadataLayout->setSpacing(1);
+    auto metadataLayout = new iscore::MarginLess<QVBoxLayout>{this};
     metadataLayout->setSizeConstraint(QLayout::SetMinimumSize);
 
     // btn
-    auto btnLay = new QVBoxLayout{};
-    btnLay->setContentsMargins(0,0,0,0);
-    btnLay->setSpacing(1);
+    auto btnLay = new iscore::MarginLess<QVBoxLayout>;
 
     // header
-    auto headerLay = new QHBoxLayout{};
-    headerLay->setContentsMargins(0,0,0,0);
-    headerLay->setSpacing(1);
+    auto headerLay = new iscore::MarginLess<QHBoxLayout>;
 
     // Name(s)
     QWidget* descriptionWidget = new QWidget {this};
-    QFormLayout* descriptionLay = new QFormLayout;
+    QFormLayout* descriptionLay = new iscore::MarginLess<QFormLayout>{descriptionWidget};
 
     m_scriptingNameLine = new QLineEdit{metadata->name(), this};
     m_labelLine = new QLineEdit{metadata->label(), this};
@@ -54,8 +49,6 @@ MetadataWidget::MetadataWidget(
     descriptionLay->addRow("Label", m_labelLine);
 
     descriptionWidget->setObjectName("Description");
-
-    descriptionWidget->setLayout(descriptionLay);
 
      // color
     m_colorButton = new QPushButton{};

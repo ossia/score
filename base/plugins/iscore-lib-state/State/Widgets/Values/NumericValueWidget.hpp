@@ -14,11 +14,10 @@ class ISCORE_LIB_STATE_EXPORT  NumericValueWidget : public ValueWidget
                 QWidget* parent = nullptr)
             : ValueWidget{parent}
         {
-            auto lay = new iscore::MarginLess<QGridLayout>;
+            auto lay = new iscore::MarginLess<QGridLayout>{this};
             m_valueSBox = new iscore::SpinBox<T>(this);
             lay->addWidget(m_valueSBox);
             m_valueSBox->setValue(value);
-            this->setLayout(lay);
         }
 
         State::Value value() const override

@@ -39,8 +39,7 @@ RackInspectorSection::RackInspectorSection(
     m_model {rack}
 {
     auto framewidg = new QFrame;
-    auto lay = new iscore::MarginLess<QVBoxLayout>;
-    framewidg->setLayout(lay);
+    auto lay = new iscore::MarginLess<QVBoxLayout>{framewidg};
     framewidg->setFrameShape(QFrame::StyledPanel);
     addContent(framewidg);
 
@@ -67,8 +66,7 @@ RackInspectorSection::RackInspectorSection(
 
     // add indention in section
     auto indentWidg = new QWidget{this};
-    auto indentLay = new iscore::MarginLess<QHBoxLayout>;
-    indentWidg->setLayout(indentLay);
+    auto indentLay = new iscore::MarginLess<QHBoxLayout>{indentWidg};
 
     indentLay->addWidget(new Inspector::VSeparator{this});
     indentLay->addWidget(m_slotSection);

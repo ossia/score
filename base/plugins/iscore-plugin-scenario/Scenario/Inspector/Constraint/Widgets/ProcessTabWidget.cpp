@@ -33,8 +33,7 @@ ProcessTabWidget::ProcessTabWidget(const ConstraintInspectorWidget& parentCstr, 
     // CREATION
 
     // main layout
-    auto processesLay = new iscore::MarginLess<QVBoxLayout>;
-    this->setLayout(processesLay);
+    auto processesLay = new iscore::MarginLess<QVBoxLayout>{this};
 
     // usefull ?
     m_processSection = new Inspector::InspectorSectionWidget("Processes", false, this);
@@ -42,8 +41,7 @@ ProcessTabWidget::ProcessTabWidget(const ConstraintInspectorWidget& parentCstr, 
 
     // add new process widget
     QWidget* addProc = new QWidget(this);
-    QHBoxLayout* addProcLayout = new iscore::MarginLess<QHBoxLayout>;
-    addProc->setLayout(addProcLayout);
+    QHBoxLayout* addProcLayout = new iscore::MarginLess<QHBoxLayout>{addProc};
 
     QToolButton* addProcButton = new QToolButton;
     addProcButton->setText("+");
@@ -120,8 +118,7 @@ void ProcessTabWidget::displaySharedProcess(const Process::ProcessModel& process
 
     // Start & end state
     QWidget* stateWidget = new QWidget;
-    QFormLayout* stateLayout = new iscore::MarginLess<QFormLayout>;
-    stateWidget->setLayout(stateLayout);
+    QFormLayout* stateLayout = new iscore::MarginLess<QFormLayout>{stateWidget};
 
     if(auto start = process.startStateData())
     {

@@ -16,7 +16,7 @@ DoubleSlider::DoubleSlider(QWidget* parent):
     m_slider->setMinimum(0);
     m_slider->setMaximum(std::numeric_limits<int>::max() / 16384);
 
-    auto lay = new iscore::MarginLess<QGridLayout>;
+    auto lay = new iscore::MarginLess<QGridLayout>(this);
     lay->addWidget(m_slider);
     setLayout(lay);
 

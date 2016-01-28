@@ -44,10 +44,7 @@ SlotInspectorSection::SlotInspectorSection(
     m_parent{parentRack->constraintInspector()}
 {
     auto framewidg = new QFrame;
-    auto lay = new QVBoxLayout;
-    lay->setContentsMargins(0, 0, 0, 0);
-    lay->setSpacing(0);
-    framewidg->setLayout(lay);
+    auto lay = new iscore::MarginLess<QVBoxLayout>(framewidg);
     framewidg->setFrameShape(QFrame::StyledPanel);
     addContent(framewidg);
 
@@ -72,8 +69,7 @@ SlotInspectorSection::SlotInspectorSection(
 
     // add indention in section
     auto indentWidg = new QWidget{this};
-    auto indentLay = new iscore::MarginLess<QHBoxLayout>;
-    indentWidg->setLayout(indentLay);
+    auto indentLay = new iscore::MarginLess<QHBoxLayout>{indentWidg};
 
     indentLay->addWidget(new Inspector::VSeparator{this});
     indentLay->addWidget(m_lmSection);
@@ -103,8 +99,7 @@ void SlotInspectorSection::displayLayerModel(const Process::LayerModel& lm)
 
     // Layout
     auto frame = new QFrame;
-    auto lay = new iscore::MarginLess<QHBoxLayout>;
-    frame->setLayout(lay);
+    auto lay = new iscore::MarginLess<QHBoxLayout>{frame};
     frame->setFrameShape(QFrame::StyledPanel);
 
     // LM label
@@ -116,7 +111,6 @@ void SlotInspectorSection::displayLayerModel(const Process::LayerModel& lm)
 
     // To front button
     auto pb = new QPushButton {tr("Front")};
-    pb->setContentsMargins(0,0,0,0);
 
     connect(pb, &QPushButton::clicked,
             [=]() {

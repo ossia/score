@@ -16,7 +16,7 @@ SelectionButton::SelectionButton(
     QWidget{parent},
     m_dispatcher{disp}
 {
-    auto lay = new iscore::MarginLess<QHBoxLayout>;
+    auto lay = new iscore::MarginLess<QHBoxLayout>{this};
 
     m_button = new QPushButton{tr("None")};
     m_button->setIcon(QIcon(":/images/forward.svg"));
@@ -35,5 +35,4 @@ SelectionButton::SelectionButton(
     });
 
     lay->addWidget(m_button);
-    this->setLayout(lay);
 }
