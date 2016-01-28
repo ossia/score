@@ -4,6 +4,8 @@ i-score
 
 i-score is an interactive intermedia sequencer - read more on http://i-score.org/
 
+![i-score screenshot](/Documentation/iscore.png?raw=true)
+
 Easiest way is to grab a release in Github releases.
 
 In order to build i-score, follow the instructions in INSTALL.md.
