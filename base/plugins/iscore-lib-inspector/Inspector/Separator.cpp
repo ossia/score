@@ -6,7 +6,7 @@
 
 namespace Inspector
 {
-Separator::Separator(QWidget *parent) :
+HSeparator::HSeparator(QWidget *parent) :
     QWidget {parent}
 {
     this->setLayout(new QVBoxLayout);
@@ -17,7 +17,23 @@ Separator::Separator(QWidget *parent) :
     f->setLineWidth(2);
 }
 
-Separator::~Separator()
+HSeparator::~HSeparator()
+{
+
+}
+
+VSeparator::VSeparator(QWidget *parent) :
+    QWidget {parent}
+{
+    this->setLayout(new QHBoxLayout);
+    QFrame* f = new QFrame;
+    this->layout()->addWidget(f);
+
+    f->setFrameShape(QFrame::VLine);
+    f->setLineWidth(2);
+}
+
+VSeparator::~VSeparator()
 {
 
 }

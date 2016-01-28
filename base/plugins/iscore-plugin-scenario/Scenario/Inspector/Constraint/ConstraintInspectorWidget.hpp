@@ -36,11 +36,10 @@ namespace Scenario
 class MetadataWidget;
 class ConstraintModel;
 class ConstraintViewModel;
-class RackInspectorSection;
 class RackModel;
-class RackWidget;
 class ScenarioModel;
 class ProcessTabWidget;
+class ProcessViewTabWidget;
 
 /*!
  * \brief The ConstraintInspectorWidget class
@@ -62,9 +61,6 @@ class ISCORE_PLUGIN_SCENARIO_EXPORT ConstraintInspectorWidget final : public Ins
 
         const ConstraintModel& model() const;
 
-        void createRack();
-        void activeRackChanged(QString rack, ConstraintViewModel* vm);
-
         const Inspector::InspectorWidgetList& widgetList() const
         { return m_widgetList; }
 
@@ -78,13 +74,9 @@ class ISCORE_PLUGIN_SCENARIO_EXPORT ConstraintInspectorWidget final : public Ins
         // Interface of Constraint
 
         // These methods are used to display created things
-        void setupRack(const RackModel&);
 
         void on_processCreated(const Process::ProcessModel&);
         void on_processRemoved(const Process::ProcessModel&);
-
-        void on_rackCreated(const RackModel&);
-        void on_rackRemoved(const RackModel&);
 
         void on_constraintViewModelCreated(const ConstraintViewModel&);
         void on_constraintViewModelRemoved(const QObject*);
@@ -99,10 +91,7 @@ class ISCORE_PLUGIN_SCENARIO_EXPORT ConstraintInspectorWidget final : public Ins
         Inspector::InspectorSectionWidget* m_durationSection {};
 
         Scenario::ProcessTabWidget* m_processesTabPage {};
-
-        Inspector::InspectorSectionWidget* m_rackSection {};
-        RackWidget* m_rackWidget {};
-        std::unordered_map<Id<RackModel>, RackInspectorSection*, id_hash<RackModel>> m_rackesSectionWidgets;
+        Scenario::ProcessViewTabWidget* m_viewTabPage{};
 
         std::list<QWidget*> m_properties;
 

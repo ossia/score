@@ -5,10 +5,17 @@
 
 namespace Inspector
 {
-class ISCORE_LIB_BASE_EXPORT Separator : public QWidget
+class ISCORE_LIB_BASE_EXPORT HSeparator : public QWidget
 {
     public:
-        explicit Separator(QWidget* parent);
-        ~Separator();
+        explicit HSeparator(QWidget* parent);
+        ~HSeparator();
+};
+
+class ISCORE_LIB_BASE_EXPORT VSeparator : public QWidget
+{
+    public:
+        explicit VSeparator(QWidget* parent);
+        ~VSeparator();
 };
 }

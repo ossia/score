@@ -2,7 +2,7 @@
 #include <Scenario/Document/Constraint/Rack/RackModel.hpp>
 #include <Scenario/Document/Constraint/ViewModels/ConstraintViewModel.hpp>
 #include <Scenario/Document/Constraint/ViewModels/FullView/FullViewConstraintViewModel.hpp>
-#include <Scenario/Inspector/Constraint/ConstraintInspectorWidget.hpp>
+#include <Scenario/Inspector/Constraint/Widgets/ProcessViewTabWidget.hpp>
 #include <boost/optional/optional.hpp>
 #include <QBoxLayout>
 #include <QGridLayout>
@@ -24,10 +24,10 @@ namespace Scenario
 const QString RackWidget::hiddenText{ QObject::tr("Hide")};
 
 
-RackWidget::RackWidget(ConstraintInspectorWidget* parentCstr, QWidget* parent) :
+RackWidget::RackWidget(ProcessViewTabWidget* parentTabWidget, QWidget* parent) :
     QWidget {parent},
-        m_model {parentCstr->model() },
-        m_parent {parentCstr}
+        m_model {parentTabWidget->parentConstraint().model() },
+        m_parent {parentTabWidget}
 {
     QVBoxLayout* mainLay = new QVBoxLayout{this};
     QWidget* mainWidg = new QWidget;
@@ -42,7 +42,7 @@ RackWidget::RackWidget(ConstraintInspectorWidget* parentCstr, QWidget* parent) :
     addButton->setText("+");
 
     connect(addButton, &QToolButton::pressed,
-            [ = ]() { parentCstr->createRack(); });
+            [ = ]() { parentTabWidget->createRack(); });
     // Text
     auto addText = new QLabel{"Add Rack", this};
     addText->setStyleSheet(QString{"text-align : left;"});
