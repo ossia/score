@@ -165,7 +165,10 @@ void ConstraintPresenter::on_maxDurationChanged(const TimeValue& max)
 
 void ConstraintPresenter::on_playPercentageChanged(double t)
 {
-    m_view->setPlayWidth(m_view->maxWidth() * t);
+    if(!m_view->infinite())
+        m_view->setPlayWidth(m_view->maxWidth() * t);
+    else
+        m_view->setPlayWidth(m_view->defaultWidth() * t);
 }
 
 void ConstraintPresenter::updateHeight()

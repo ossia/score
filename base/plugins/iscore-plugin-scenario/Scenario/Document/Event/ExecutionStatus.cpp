@@ -27,7 +27,7 @@ const QColor& ExecutionStatusProperty::stateStatusColor()
     const auto& col = ScenarioStyle::instance();
     switch(m_status)
     {
-        case ExecutionStatus::Editing:  return col.Background;
+        case ExecutionStatus::Editing:  return col.StateOutline;
         case ExecutionStatus::Waiting:  return col.EventWaiting;
         case ExecutionStatus::Pending:  return col.EventPending;
         case ExecutionStatus::Happened: return col.EventHappened;

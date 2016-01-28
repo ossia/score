@@ -27,15 +27,14 @@ StateView::StateView(StatePresenter& pres, QGraphicsItem* parent) :
 void StateView::paint(QPainter *painter, const QStyleOptionGraphicsItem *option, QWidget *widget)
 {
     QPen statePen = m_baseColor;
+
+    QBrush stateBrush = m_containMessage ? m_baseColor : ScenarioStyle::instance().Background;
+
+    if(m_status.get() != ExecutionStatus::Editing)
+        statePen= m_status.stateStatusColor();
+
     statePen.setWidth(2);
     painter->setPen(statePen);
-
-    QBrush stateBrush;
-    if(m_status.get() == ExecutionStatus::Editing)
-        stateBrush = m_containMessage ? m_baseColor : ScenarioStyle::instance().Background;
-    else
-        stateBrush = m_status.stateStatusColor();
-
     painter->setBrush(stateBrush);
 
     QPen highlightPen = ScenarioStyle::instance().StateSelected;
