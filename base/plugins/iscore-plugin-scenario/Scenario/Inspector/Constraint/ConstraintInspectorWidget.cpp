@@ -1,17 +1,11 @@
 #include <Inspector/InspectorWidgetList.hpp>
 #include <Inspector/Separator.hpp>
 #include <Process/Process.hpp>
-#include <Process/State/ProcessStateDataInterface.hpp>
 #include <Scenario/Application/ScenarioApplicationPlugin.hpp>
-#include <Scenario/Commands/Constraint/AddLayerInNewSlot.hpp>
-#include <Scenario/Commands/Constraint/AddProcessToConstraint.hpp>
 #include <Scenario/Commands/Constraint/AddRackToConstraint.hpp>
-#include <Scenario/Commands/Constraint/RemoveProcessFromConstraint.hpp>
 #include <Scenario/Commands/Constraint/SetLooping.hpp>
 #include <Scenario/Commands/Scenario/HideRackInViewModel.hpp>
 #include <Scenario/Commands/Scenario/ShowRackInViewModel.hpp>
-#include <Scenario/Commands/SetProcessDuration.hpp>
-#include <Scenario/DialogWidget/AddProcessDialog.hpp>
 #include <Scenario/Document/Constraint/ConstraintModel.hpp>
 #include <Scenario/Document/Constraint/Rack/RackModel.hpp>
 #include <Scenario/Document/ScenarioDocument/ScenarioDocumentModel.hpp>
@@ -32,21 +26,19 @@
 #include <QPushButton>
 #include <QToolButton>
 #include <QWidget>
+#include <QTabWidget>
 #include <utility>
 
 #include "ConstraintInspectorWidget.hpp"
 #include <Inspector/InspectorSectionWidget.hpp>
 #include <Inspector/InspectorWidgetBase.hpp>
-#include <Process/ModelMetadata.hpp>
 #include <Process/TimeValue.hpp>
-#include <Scenario/Commands/Metadata/ChangeElementName.hpp>
 #include <Scenario/Document/Constraint/ViewModels/ConstraintViewModel.hpp>
 #include <Scenario/Document/State/StateModel.hpp>
 #include "Widgets/DurationSectionWidget.hpp"
 #include "Widgets/Rack/RackInspectorSection.hpp"
 #include "Widgets/RackWidget.hpp"
-#include <Process/Inspector/ProcessInspectorWidget.hpp>
-#include <Process/Inspector/ProcessInspectorWidgetDelegateFactoryList.hpp>
+#include <Scenario/Inspector/Constraint/Widgets/ProcessTabWidget.hpp>
 #include <iscore/application/ApplicationContext.hpp>
 #include <iscore/document/DocumentContext.hpp>
 #include <iscore/command/Dispatchers/CommandDispatcher.hpp>
@@ -132,48 +124,31 @@ ConstraintInspectorWidget::ConstraintInspectorWidget(
     m_properties.push_back(new Inspector::Separator {this});
 
     // Processes
-    m_processSection = new Inspector::InspectorSectionWidget("Processes", false, this);
-    m_processSection->setObjectName("Processes");
-
-    m_properties.push_back(m_processSection);
-
-    QWidget* addProc = new QWidget(this);
-    QHBoxLayout* addProcLayout = new QHBoxLayout;
-    addProcLayout->setContentsMargins(0, 0, 0 , 0);
-    addProc->setLayout(addProcLayout);
-    // Button
-    QToolButton* addProcButton = new QToolButton;
-    addProcButton->setText("+");
-    addProcButton->setObjectName("addAProcess");
-
-    // Text
-    auto addProcText = new QLabel("Add Process");
-    addProcText->setStyleSheet(QString("text-align : left;"));
-
-    addProcLayout->addWidget(addProcButton);
-    addProcLayout->addWidget(addProcText);
-    auto addProcess = new AddProcessDialog {m_processList, this};
-
-    connect(addProcButton,  &QToolButton::pressed,
-            addProcess, &AddProcessDialog::launchWindow);
-
-    m_properties.push_back(addProc);
-
-    connect(addProcess, &AddProcessDialog::okPressed,
-            this, &ConstraintInspectorWidget::createProcess);
+    m_processesTabPage = new ProcessTabWidget{ *this, this};
 
     // Separator
-    m_properties.push_back(new Inspector::Separator {this});
+ //   m_properties.push_back(new Inspector::Separator {this});
 
     // Rackes
-    m_rackSection = new Inspector::InspectorSectionWidget {"Rackes", false, this};
+    auto viewTab = new QWidget{this};
+    auto viewLay = new iscore::MarginLess<QVBoxLayout>;
+    viewTab->setLayout(viewLay);
+
+    m_rackSection = new Inspector::InspectorSectionWidget {"Rackes", false, viewTab};
     m_rackSection->setObjectName("Rackes");
     m_rackSection->expand();
 
-    m_rackWidget = new RackWidget {this};
+    m_rackWidget = new RackWidget {this, viewTab};
 
-    m_properties.push_back(m_rackSection);
-    m_properties.push_back(m_rackWidget);
+    viewLay->addWidget(m_rackSection);
+    viewLay->addWidget(m_rackWidget);
+//    m_properties.push_back(viewTab);
+
+    auto tabWidget = new QTabWidget{this};
+    tabWidget->addTab(m_processesTabPage, tr("Processes"));
+    tabWidget->addTab(viewTab, tr("View"));
+
+    m_properties.push_back(tabWidget);
 
     // Plugins
     for(auto& plugdata : m_model.pluginModelList.list())
@@ -226,12 +201,8 @@ QString ConstraintInspectorWidget::tabName()
 void ConstraintInspectorWidget::updateDisplayedValues()
 {
     // Cleanup the widgets
-    for(auto& process : m_processesSectionWidgets)
-    {
-        m_processSection->removeContent(process);
-    }
 
-    m_processesSectionWidgets.clear();
+    m_processesTabPage->updateDisplayedValues();
 
     for(auto& rack_pair : m_rackesSectionWidgets)
     {
@@ -239,12 +210,6 @@ void ConstraintInspectorWidget::updateDisplayedValues()
     }
 
     m_rackesSectionWidgets.clear();
-
-    // Processes
-    for(const auto& process : model().processes)
-    {
-        displaySharedProcess(process);
-    }
 
     // Rack
     for(const auto& rack : model().racks)
@@ -255,22 +220,9 @@ void ConstraintInspectorWidget::updateDisplayedValues()
     m_delegate->updateElements();
 }
 
-void ConstraintInspectorWidget::createProcess(const ProcessFactoryKey& processName)
-{
-    auto cmd = Command::make_AddProcessToConstraint(model(), processName);
-    commandDispatcher()->submitCommand(cmd);
-}
-
 void ConstraintInspectorWidget::createRack()
 {
     auto cmd = new Command::AddRackToConstraint{model()};
-    commandDispatcher()->submitCommand(cmd);
-}
-
-void ConstraintInspectorWidget::createLayerInNewSlot(const Id<Process::ProcessModel>& processId)
-{
-    auto cmd = new Command::AddLayerInNewSlot{model(), processId};
-
     commandDispatcher()->submitCommand(cmd);
 }
 
@@ -302,80 +254,6 @@ void ConstraintInspectorWidget::activeRackChanged(QString rack, ConstraintViewMo
     }
 }
 
-void ConstraintInspectorWidget::displaySharedProcess(const Process::ProcessModel& process)
-{
-    using namespace iscore;
-    auto newProc = new Inspector::InspectorSectionWidget(process.metadata.name(), true);
-    connect(newProc, &Inspector::InspectorSectionWidget::nameChanged,
-            this, [&] (QString s)
-    {
-        ask_processNameChanged(process, s);
-    });
-    con(process.metadata, &ModelMetadata::nameChanged,
-        newProc, &Inspector::InspectorSectionWidget::renameSection);
-
-    // ***********************
-    // Process
-
-        // add view in new slot
-    const auto& fact = context().app.components.factory<ProcessInspectorWidgetDelegateFactoryList>();
-    if(auto widg = fact.make(process, context(), newProc))
-    {
-        auto processWidget = new ProcessInspectorWidget{widg, context(), newProc};
-        newProc->addContent(processWidget);
-
-        connect(processWidget, &ProcessInspectorWidget::createViewInNewSlot,
-                this, &ConstraintInspectorWidget::createLayerInNewSlot);
-    }
-        // delete process
-    newProc->showDeleteButton(true);
-    connect(newProc, &Inspector::InspectorSectionWidget::deletePressed, this, [=,id=process.id()] ()
-    {
-        auto cmd = new Command::RemoveProcessFromConstraint{iscore::IDocument::path(model()), id};
-        emit commandDispatcher()->submitCommand(cmd);
-    });
-
-
-    // Start & end state
-    QWidget* stateWidget = new QWidget;
-    QFormLayout* stateLayout = new QFormLayout;
-    stateLayout->setSpacing(0);
-    stateLayout->setContentsMargins(0, 0, 0, 0);
-    stateWidget->setLayout(stateLayout);
-
-    if(auto start = process.startStateData())
-    {
-        auto startWidg = m_widgetList.makeInspectorWidget(*start, newProc);
-        stateLayout->addRow(tr("Start "), startWidg);
-    }
-
-    if(auto end = process.endStateData())
-    {
-        auto endWidg = m_widgetList.makeInspectorWidget(*end, newProc);
-        stateLayout->addRow(tr("End   "), endWidg);
-    }
-    newProc->addContent(stateWidget);
-
-    QPointer<TimeSpinBox> durWidg = new TimeSpinBox;
-    durWidg->setTime(process.duration().toQTime());
-    con(process, &Process::ProcessModel::durationChanged,
-        this, [=] (const TimeValue& tv) {
-        if(durWidg)
-            durWidg->setTime(tv.toQTime());
-    });
-    connect(durWidg, &TimeSpinBox::editingFinished,
-        this, [&,durWidg] {
-        auto cmd = new Command::SetProcessDuration{process, TimeValue(durWidg->time())};
-        commandDispatcher()->submitCommand(cmd);
-    });
-    stateLayout->addRow(tr("Duration"), durWidg);
-
-
-    // Global setup
-    m_processesSectionWidgets.push_back(newProc);
-    m_processSection->addContent(newProc);
-}
-
 void ConstraintInspectorWidget::setupRack(const RackModel& rack)
 {
     // Display the widget
@@ -386,15 +264,6 @@ void ConstraintInspectorWidget::setupRack(const RackModel& rack)
 
     m_rackesSectionWidgets[rack.id()] = newRack;
     m_rackSection->addContent(newRack);
-}
-
-void ConstraintInspectorWidget::ask_processNameChanged(const Process::ProcessModel& p, QString s)
-{
-    if(s != p.metadata.name())
-    {
-        auto cmd = new Command::ChangeElementName<Process::ProcessModel>{iscore::IDocument::path(p), s};
-        emit commandDispatcher()->submitCommand(cmd);
-    }
 }
 
 QWidget* ConstraintInspectorWidget::makeStatesWidget(Scenario::ScenarioModel* scenar)
@@ -430,14 +299,14 @@ void ConstraintInspectorWidget::on_processCreated(
         const Process::ProcessModel&)
 {
     // OPTIMIZEME
-    updateDisplayedValues();
+    m_processesTabPage->updateDisplayedValues();
 }
 
 void ConstraintInspectorWidget::on_processRemoved(
         const Process::ProcessModel&)
 {
     // OPTIMIZEME
-    updateDisplayedValues();
+    m_processesTabPage->updateDisplayedValues();
 }
 
 

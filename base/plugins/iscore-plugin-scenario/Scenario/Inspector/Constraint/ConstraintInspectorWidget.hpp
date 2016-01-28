@@ -40,6 +40,7 @@ class RackInspectorSection;
 class RackModel;
 class RackWidget;
 class ScenarioModel;
+class ProcessTabWidget;
 
 /*!
  * \brief The ConstraintInspectorWidget class
@@ -64,25 +65,20 @@ class ISCORE_PLUGIN_SCENARIO_EXPORT ConstraintInspectorWidget final : public Ins
         void createRack();
         void activeRackChanged(QString rack, ConstraintViewModel* vm);
 
+        const Inspector::InspectorWidgetList& widgetList() const
+        { return m_widgetList; }
+
+         const Process::ProcessList& processList() const { return m_processList; }
+
     private:
         QString tabName() override;
 
         void updateDisplayedValues();
 
-        // These methods ask for creation and the signals originate from other parts of the inspector
-        void createProcess(const ProcessFactoryKey& processName);
-        void createLayerInNewSlot(const Id<Process::ProcessModel>& processId);
-
-
         // Interface of Constraint
 
         // These methods are used to display created things
-        void displaySharedProcess(const Process::ProcessModel&);
         void setupRack(const RackModel&);
-
-        void ask_processNameChanged(const Process::ProcessModel& p, QString s);
-
-
 
         void on_processCreated(const Process::ProcessModel&);
         void on_processRemoved(const Process::ProcessModel&);
@@ -102,8 +98,7 @@ class ISCORE_PLUGIN_SCENARIO_EXPORT ConstraintInspectorWidget final : public Ins
         //InspectorSectionWidget* m_eventsSection {};
         Inspector::InspectorSectionWidget* m_durationSection {};
 
-        Inspector::InspectorSectionWidget* m_processSection {};
-        std::vector<Inspector::InspectorSectionWidget*> m_processesSectionWidgets;
+        Scenario::ProcessTabWidget* m_processesTabPage {};
 
         Inspector::InspectorSectionWidget* m_rackSection {};
         RackWidget* m_rackWidget {};

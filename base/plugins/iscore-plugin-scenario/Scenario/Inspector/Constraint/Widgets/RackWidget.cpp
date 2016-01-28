@@ -24,10 +24,10 @@ namespace Scenario
 const QString RackWidget::hiddenText{ QObject::tr("Hide")};
 
 
-RackWidget::RackWidget(ConstraintInspectorWidget* parent) :
+RackWidget::RackWidget(ConstraintInspectorWidget* parentCstr, QWidget* parent) :
     QWidget {parent},
-        m_model {parent->model() },
-        m_parent {parent}
+        m_model {parentCstr->model() },
+        m_parent {parentCstr}
 {
     QVBoxLayout* mainLay = new QVBoxLayout{this};
     QWidget* mainWidg = new QWidget;
@@ -42,7 +42,7 @@ RackWidget::RackWidget(ConstraintInspectorWidget* parent) :
     addButton->setText("+");
 
     connect(addButton, &QToolButton::pressed,
-            [ = ]() { parent->createRack(); });
+            [ = ]() { parentCstr->createRack(); });
     // Text
     auto addText = new QLabel{"Add Rack", this};
     addText->setStyleSheet(QString{"text-align : left;"});
