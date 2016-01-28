@@ -150,10 +150,12 @@ void oscEvent(OscMessage osc_msg)
     if (osc_msg.checkTypetag("i")) 
     {
       info = osc_msg.get(0).intValue() == 1;
+      println("### " + osc_msg.addrPattern());
     }
   } else if (osc_msg.checkAddrPattern("/flock/clear")) 
   {
     flock.clear();
+    println("### " + osc_msg.addrPattern());
   } else if (osc_msg.checkAddrPattern("/flock/add")) 
   {
     if (osc_msg.checkTypetag("ff")) 
@@ -161,15 +163,9 @@ void oscEvent(OscMessage osc_msg)
       float x = osc_msg.get(0).floatValue();
       float y = osc_msg.get(1).floatValue();
       flock.addBoid(new Boid(x, y));
+      println("### " + osc_msg.addrPattern());
     }
   }
-  
-  // note : here we need to filter parameters automation in time
-  // because it is still not possible to setup constraint granularity in i-score
-  if (millis() - last_parameter_date < 40)
-    return;
-  
-  last_parameter_date = millis();
   
   if (osc_msg.checkAddrPattern("/flock/avoidance"))
   {
@@ -177,6 +173,7 @@ void oscEvent(OscMessage osc_msg)
     {
       float avoidance = osc_msg.get(0).floatValue();
       flock.setAvoidance(avoidance);
+      println("### " + osc_msg.addrPattern());
     }
   } else if (osc_msg.checkAddrPattern("/flock/alignment"))
   {
@@ -184,6 +181,7 @@ void oscEvent(OscMessage osc_msg)
     {
       float alignment = osc_msg.get(0).floatValue();
       flock.setAlignment(alignment);
+      println("### " + osc_msg.addrPattern());
     }
   } else if (osc_msg.checkAddrPattern("/flock/cohesion"))
   {
@@ -198,6 +196,7 @@ void oscEvent(OscMessage osc_msg)
     {
       float distance_min = osc_msg.get(0).floatValue();
       flock.setDistanceMin(distance_min);
+      println("### " + osc_msg.addrPattern());
     }
   } else if (osc_msg.checkAddrPattern("/flock/distance/max"))
   {
@@ -205,6 +204,7 @@ void oscEvent(OscMessage osc_msg)
     {
       float distance_max = osc_msg.get(0).floatValue();
       flock.setDistanceMax(distance_max);
+      println("### " + osc_msg.addrPattern());
     }
   } else  if (osc_msg.checkAddrPattern("/flock/follow/destination")) 
   {
@@ -213,6 +213,7 @@ void oscEvent(OscMessage osc_msg)
       int x = osc_msg.get(0).intValue();
       int y = osc_msg.get(1).intValue();
       flock.setFollowDestination(x, y);
+      println("### " + osc_msg.addrPattern());
     }
   } else  if (osc_msg.checkAddrPattern("/flock/follow/rate")) 
   {
@@ -220,6 +221,7 @@ void oscEvent(OscMessage osc_msg)
     {
       float follow_rate = osc_msg.get(0).floatValue();
       flock.setFollowRate(follow_rate);
+      println("### " + osc_msg.addrPattern());
     }
   }
 }
