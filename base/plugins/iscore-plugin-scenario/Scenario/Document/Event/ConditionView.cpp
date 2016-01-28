@@ -15,9 +15,9 @@ class QWidget;
 
 namespace Scenario
 {
-ConditionView::ConditionView(QGraphicsItem *parent):
+ConditionView::ConditionView(const QColor& color, QGraphicsItem *parent):
     QGraphicsItem{parent},
-    m_currentState{State::Waiting}
+    m_color{color}
 {
     setFlag(ItemStacksBehindParent, true);
 
@@ -40,25 +40,7 @@ void ConditionView::paint(
         const QStyleOptionGraphicsItem *option,
         QWidget *widget)
 {
-    QPen pen;
-    switch(m_currentState)
-    {
-        case State::Waiting:
-            pen = ScenarioStyle::instance().ConditionWaiting;
-            break;
-        case State::Disabled:
-            pen = ScenarioStyle::instance().ConditionDisabled;
-            break;
-        case State::False:
-            pen = ScenarioStyle::instance().ConditionFalse;
-            break;
-        case State::True:
-            pen = ScenarioStyle::instance().ConditionTrue;
-            break;
-        default:
-            pen = QColor(Qt::magenta);
-            break;
-    }
+    QPen pen{m_color};
 
     pen.setWidth(2);
     painter->setPen(pen);
