@@ -59,8 +59,7 @@ void StateInspectorWidget::updateDisplayedValues()
     m_properties.clear();
 
     auto widget = new QWidget;
-    auto lay = new iscore::MarginLess<QFormLayout>;
-    widget->setLayout(lay);
+    auto lay = new iscore::MarginLess<QFormLayout>{widget};
     // State id
     //lay->addRow("Id", new QLabel{QString::number(m_model.id().val().get())});
 
@@ -78,7 +77,7 @@ void StateInspectorWidget::updateDisplayedValues()
     m_properties.push_back(m_stateSection);
 
     auto linkWidget = new QWidget;
-    auto linkLay = new iscore::MarginLess<QHBoxLayout>;
+    auto linkLay = new iscore::MarginLess<QHBoxLayout>{linkWidget};
 
     if(event)
     {
@@ -113,7 +112,6 @@ void StateInspectorWidget::updateDisplayedValues()
         linkLay->addWidget(btn);
     }
 
-    linkWidget->setLayout(linkLay);
     m_stateSection->addContent(linkWidget);
 
     auto scenarModel = dynamic_cast<const Scenario::ScenarioModel*>(m_model.parent());

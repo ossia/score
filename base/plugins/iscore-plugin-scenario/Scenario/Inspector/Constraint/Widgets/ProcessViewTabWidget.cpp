@@ -23,8 +23,7 @@ ProcessViewTabWidget::ProcessViewTabWidget(
     m_constraintWidget{parentCstr},
     m_commandDispatcher{m_constraintWidget.commandDispatcher()}
 {
-    auto viewLay = new iscore::MarginLess<QVBoxLayout>;
-    this->setLayout(viewLay);
+    auto viewLay = new iscore::MarginLess<QVBoxLayout>{this};
 
     m_rackSection = new Inspector::InspectorSectionWidget {"Rackes", false, this};
     m_rackSection->setObjectName("Rackes");

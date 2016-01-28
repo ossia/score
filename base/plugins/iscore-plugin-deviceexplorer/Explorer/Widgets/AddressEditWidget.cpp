@@ -18,7 +18,7 @@ AddressEditWidget::AddressEditWidget(DeviceExplorerModel* model, QWidget* parent
     QWidget{parent},
     m_model{model}
 {
-    auto lay = new iscore::MarginLess<QHBoxLayout>;
+    auto lay = new iscore::MarginLess<QHBoxLayout>{this};
 
     m_lineEdit = new AddressLineEdit{this};
 
@@ -38,8 +38,6 @@ AddressEditWidget::AddressEditWidget(DeviceExplorerModel* model, QWidget* parent
     }
 
     lay->addWidget(m_lineEdit);
-
-    this->setLayout(lay);
 }
 
 void AddressEditWidget::setAddress(const State::Address& addr)

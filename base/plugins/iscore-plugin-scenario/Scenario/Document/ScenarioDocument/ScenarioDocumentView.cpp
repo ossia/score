@@ -30,6 +30,7 @@
 #include "ScenarioDocumentView.hpp"
 #include <iscore/widgets/DoubleSlider.hpp>
 #include <iscore/widgets/GraphicsProxyObject.hpp>
+#include <iscore/widgets/MarginLess.hpp>
 
 #include <iscore/application/ApplicationContext.hpp>
 #include <iscore/plugins/documentdelegate/DocumentDelegateViewInterface.hpp>
@@ -113,7 +114,7 @@ ScenarioDocumentView::ScenarioDocumentView(
 
     // Transport
     auto transportWidget = new QWidget{m_widget};
-    auto transportLayout = new QGridLayout;
+    auto transportLayout = new iscore::MarginLess<QGridLayout>{transportWidget};
 
     QToolBar* transportButtons = new QToolBar;
     // See : http://stackoverflow.com/questions/21363350/remove-gradient-from-qtoolbar-in-os-x
@@ -143,9 +144,6 @@ ScenarioDocumentView::ScenarioDocumentView(
 
     transportLayout->addWidget(new QLabel{tr("Zoom") }, 0, 1);
     transportLayout->addWidget(m_zoomSlider, 0, 2);
-    transportLayout->setContentsMargins(0, 0, 0, 0);
-
-    transportWidget->setLayout(transportLayout);
 
     // view layout
     m_scene->addItem(m_timeRuler);

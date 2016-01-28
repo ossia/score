@@ -5,15 +5,14 @@
 
 #include "AddSlotWidget.hpp"
 #include "RackInspectorSection.hpp"
+#include <iscore/widgets/MarginLess.hpp>
 
 namespace Scenario
 {
 AddSlotWidget::AddSlotWidget(RackInspectorSection* parent) :
     QWidget {parent}
 {
-    QHBoxLayout* layout = new QHBoxLayout;
-    layout->setContentsMargins(0, 0, 0 , 0);
-    this->setLayout(layout);
+    QHBoxLayout* layout = new iscore::MarginLess<QHBoxLayout>(this);
 
     // Button
     QToolButton* addButton = new QToolButton;

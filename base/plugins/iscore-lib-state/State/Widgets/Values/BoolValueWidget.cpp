@@ -12,13 +12,12 @@ class QWidget;
 BoolValueWidget::BoolValueWidget(bool value, QWidget *parent)
     : ValueWidget{parent}
 {
-    auto lay = new iscore::MarginLess<QGridLayout>;
+    auto lay = new iscore::MarginLess<QGridLayout>{this};
     m_value = new QComboBox;
     m_value->addItems({tr("false"), tr("true")});
 
     lay->addWidget(m_value);
     m_value->setCurrentIndex(value ? 1 : 0);
-    this->setLayout(lay);
 }
 
 State::Value BoolValueWidget::value() const

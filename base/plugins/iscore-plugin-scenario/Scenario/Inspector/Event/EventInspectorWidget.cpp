@@ -70,8 +70,7 @@ EventInspectorWidget::EventInspectorWidget(
     ////// BODY
     /// Information
     auto infoWidg = new QWidget;
-    auto infoLay = new iscore::MarginLess<QFormLayout>;
-    infoWidg->setLayout(infoLay);
+    auto infoLay = new iscore::MarginLess<QFormLayout>{infoWidg};
 
     // timeNode
     auto timeNode = m_model.timeNode();
@@ -88,8 +87,7 @@ EventInspectorWidget::EventInspectorWidget(
 
     // date
     auto datewidg = new QWidget;
-    auto dateLay = new iscore::MarginLess<QHBoxLayout>;
-    datewidg->setLayout(dateLay);
+    auto dateLay = new iscore::MarginLess<QHBoxLayout>{datewidg};
     m_date = new QLabel{(m_model.date().toString())};
 
     dateLay->addWidget(new QLabel(tr("Default date")));

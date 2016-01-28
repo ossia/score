@@ -25,6 +25,7 @@
 #include <iscore/tools/SettableIdentifier.hpp>
 #include <iscore/tools/Todo.hpp>
 #include <iscore/widgets/SpinBoxes.hpp>
+#include <iscore/widgets/MarginLess.hpp>
 #include <iscore/tools/ModelPathSerialization.hpp>
 
 namespace Scenario
@@ -42,10 +43,7 @@ DurationSectionWidget::DurationSectionWidget(
 {
     using namespace iscore;
     auto widg = new QWidget{this};
-    m_grid = new QGridLayout{widg};
-    m_grid->setContentsMargins(0, 0, 0, 0);
-    m_grid->setVerticalSpacing(0);
-    widg->setLayout(m_grid);
+    m_grid = new iscore::MarginLess<QGridLayout>{widg};
 
     // SPINBOXES
     m_minSpin = new TimeSpinBox{this};
