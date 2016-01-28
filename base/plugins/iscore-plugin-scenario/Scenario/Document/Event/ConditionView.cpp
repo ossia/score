@@ -1,16 +1,27 @@
-#include "ConditionView.hpp"
-#include <QPainter>
 #include <Process/Style/ScenarioStyle.hpp>
+#include <QColor>
+#include <qnamespace.h>
+#include <QPainter>
+#include <QPen>
+#include <QPoint>
+#include <QPolygon>
+#include <QSize>
+#include <QVector>
+
+#include "ConditionView.hpp"
+
+class QStyleOptionGraphicsItem;
+class QWidget;
+
+namespace Scenario
+{
 ConditionView::ConditionView(QGraphicsItem *parent):
     QGraphicsItem{parent},
     m_currentState{State::Waiting}
 {
     setFlag(ItemStacksBehindParent, true);
-    QRectF square(boundingRect().topLeft(), QSize(boundingRect().height(),
-                                                  boundingRect().height()));
 
-    m_Cpath.moveTo(boundingRect().height() / 2., 0);
-    m_Cpath.arcTo(square, 60, 230);
+    changeHeight(0);
 
     m_trianglePath.addPolygon(QVector<QPointF>{
                                   QPointF(25, 5),
@@ -21,7 +32,7 @@ ConditionView::ConditionView(QGraphicsItem *parent):
 
 QRectF ConditionView::boundingRect() const
 {
-    return  QRectF{0, 0, 40, 27};
+    return  QRectF{0, 0, m_width, m_height + m_CHeight};
 }
 
 void ConditionView::paint(
@@ -59,4 +70,24 @@ void ConditionView::paint(
     painter->setPen(pen);
     painter->setBrush(pen.color());
     painter->drawPath(m_trianglePath);
+}
+
+void ConditionView::changeHeight(qreal newH)
+{
+    prepareGeometryChange();
+    m_height = newH;
+
+    m_Cpath = QPainterPath();
+
+    QRectF rect(boundingRect().topLeft(), QSize(m_CHeight,
+                                                  m_CHeight));
+    QRectF bottomRect(QPointF(boundingRect().bottomLeft().x(), boundingRect().bottomLeft().y() - m_CHeight),
+                              QSize(m_CHeight,m_CHeight));
+
+    m_Cpath.moveTo(boundingRect().width() / 2., 2);
+    m_Cpath.arcTo(rect, 60, 120);
+    m_Cpath.lineTo(0, m_height + m_CHeight/2);
+    m_Cpath.arcTo(bottomRect, -180, 120);
+    this->update();
+}
 }

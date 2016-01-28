@@ -1,49 +1,59 @@
-#include "EventInspectorWidget.hpp"
-
+#include <Inspector/Separator.hpp>
+#include <Scenario/Commands/Event/SetCondition.hpp>
+#include <Scenario/Commands/TimeNode/TriggerCommandFactory/TriggerCommandFactoryList.hpp>
 #include <Scenario/Document/Event/EventModel.hpp>
 #include <Scenario/Document/TimeNode/TimeNodeModel.hpp>
 #include <Scenario/Document/TimeNode/Trigger/TriggerModel.hpp>
-#include <Scenario/Document/Constraint/ConstraintModel.hpp>
-
-#include <Scenario/Commands/Event/SetCondition.hpp>
-
-#include <Inspector/InspectorSectionWidget.hpp>
-#include <Inspector/Separator.hpp>
-#include <Inspector/InspectorWidgetList.hpp>
-
+#include <Scenario/Inspector/Expression/ExpressionEditorWidget.hpp>
 #include <Scenario/Inspector/MetadataWidget.hpp>
 #include <Scenario/Inspector/SelectionButton.hpp>
 #include <Scenario/Inspector/State/StateInspectorWidget.hpp>
 #include <Scenario/Inspector/TimeNode/TriggerInspectorWidget.hpp>
-
-#include <Explorer/Explorer/DeviceExplorerModel.hpp>
-#include <Explorer/Widgets/DeviceCompleter.hpp>
-#include <Explorer/Widgets/DeviceExplorerMenuButton.hpp>
-
-#include <QLabel>
-#include <QLineEdit>
-#include <QLayout>
-#include <QPushButton>
-#include <QScrollArea>
-#include <QFormLayout>
-#include <QCompleter>
-
-#include <Scenario/Process/ScenarioModel.hpp>
+#include <Inspector/InspectorSectionWidget.hpp>
 
 #include <iscore/widgets/MarginLess.hpp>
-#include <iscore/document/DocumentInterface.hpp>
-#include <core/document/Document.hpp>
-#include <core/document/DocumentModel.hpp>
+#include <QBoxLayout>
+#include <QColor>
+#include <QDebug>
+#include <QFormLayout>
+#include <QLabel>
+#include <QLayout>
 
+#include <QString>
+#include <QWidget>
+#include <algorithm>
+
+#include "EventInspectorWidget.hpp"
+#include <Inspector/InspectorWidgetBase.hpp>
+#include <Process/TimeValue.hpp>
+#include <Scenario/Process/ScenarioInterface.hpp>
+#include <State/Expression.hpp>
+#include <iscore/application/ApplicationContext.hpp>
+#include <iscore/document/DocumentContext.hpp>
+#include <iscore/command/Dispatchers/CommandDispatcher.hpp>
+#include <iscore/plugins/customfactory/StringFactoryKey.hpp>
+#include <iscore/plugins/documentdelegate/plugin/DocumentDelegatePluginModel.hpp>
+#include <iscore/plugins/documentdelegate/plugin/ElementPluginModelList.hpp>
+#include <iscore/serialization/DataStreamVisitor.hpp>
+#include <iscore/tools/IdentifiedObject.hpp>
+#include <iscore/tools/ModelPathSerialization.hpp>
+#include <iscore/tools/SettableIdentifier.hpp>
+#include <iscore/tools/Todo.hpp>
+
+namespace Scenario
+{
 EventInspectorWidget::EventInspectorWidget(
         const EventModel& object,
-        iscore::Document& doc,
+        const iscore::DocumentContext& doc,
         QWidget* parent) :
     InspectorWidgetBase {object, doc, parent},
     m_model {object}
 {
     setObjectName("EventInspectorWidget");
     setParent(parent);
+
+    auto scenar = dynamic_cast<ScenarioInterface*>(m_model.parent());
+    ISCORE_ASSERT(scenar);
 
     con(m_model, &EventModel::statesChanged,
             this,    &EventInspectorWidget::updateDisplayedValues);
@@ -53,7 +63,6 @@ EventInspectorWidget::EventInspectorWidget(
     ////// HEADER
     // metadata
     m_metadata = new MetadataWidget{&m_model.metadata, commandDispatcher(), &m_model, this};
-    m_metadata->setType(EventModel::prettyName());
     m_metadata->setupConnections(m_model);
 
     addHeader(m_metadata);
@@ -68,7 +77,6 @@ EventInspectorWidget::EventInspectorWidget(
     auto timeNode = m_model.timeNode();
     if(timeNode)
     {
-        auto scenar = m_model.parentScenario();
         auto tnBtn = SelectionButton::make(
                     tr("Parent TimeNode"),
                     &scenar->timeNode(timeNode),
@@ -91,30 +99,35 @@ EventInspectorWidget::EventInspectorWidget(
     m_properties.push_back(infoWidg);
 
     // Trigger
-    auto& tn = m_model.parentScenario()->timeNode(m_model.timeNode());
-    m_triggerWidg = new TriggerInspectorWidget{tn, this};
-    m_properties.push_back(new QLabel{tr("Trigger")});
-    m_properties.push_back(m_triggerWidg);
+    auto& tn = scenar->timeNode(m_model.timeNode());
+    m_triggerWidg = new TriggerInspectorWidget{
+                    doc,
+                    doc.app.components.factory<Command::TriggerCommandFactoryList>(),
+                    tn,
+                    this};
+
+    auto trigSection = new Inspector::InspectorSectionWidget{"Trigger", false, this};
+    trigSection->expand();
+    trigSection->addContent(m_triggerWidg);
+    m_properties.push_back(trigSection);
 
     // Separator
-    m_properties.push_back(new Separator {this});
+    m_properties.push_back(new Inspector::Separator {this});
 
     // Condition
-    m_conditionLineEdit = new QLineEdit{this};
-    m_conditionLineEdit->setValidator(&m_validator);
-
-    connect(m_conditionLineEdit, &QLineEdit::editingFinished,
+    m_exprEditor = new ExpressionEditorWidget{this->context(), this};
+    connect(m_exprEditor, &ExpressionEditorWidget::editingFinished,
             this, &EventInspectorWidget::on_conditionChanged);
     con(m_model, &EventModel::conditionChanged,
-        this, [this] (const iscore::Condition& c) {
-        m_conditionLineEdit->setText(c.toString());
-    });
+        m_exprEditor, &ExpressionEditorWidget::setExpression);
 
-    m_properties.push_back(new QLabel{tr("Condition")});
-    m_properties.push_back(m_conditionLineEdit);
+    auto condSection = new Inspector::InspectorSectionWidget{"Condition", false, this};
+    condSection->expand();
+    condSection->addContent(m_exprEditor);
+    m_properties.push_back(condSection);
 
     // State
-    m_properties.push_back(new Separator {this});
+    m_properties.push_back(new Inspector::Separator {this});
     m_statesWidget = new QWidget{this};
     auto dispLayout = new QVBoxLayout{m_statesWidget};
     m_statesWidget->setLayout(dispLayout);
@@ -123,12 +136,12 @@ EventInspectorWidget::EventInspectorWidget(
     m_properties.push_back(m_statesWidget);
 
     // Separator
-    m_properties.push_back(new Separator {this});
+    m_properties.push_back(new Inspector::Separator {this});
 
     // Plugins (TODO factorize with ConstraintInspectorWidget)
     for(auto& plugdata : m_model.pluginModelList.list())
     {
-        for(iscore::DocumentDelegatePluginModel* plugin : doc.model().pluginModels())
+        for(auto plugin : doc.pluginModels())
         {
             auto md = plugin->makeElementPluginWidget(plugdata, this);
             if(md)
@@ -146,12 +159,21 @@ EventInspectorWidget::EventInspectorWidget(
     updateAreaLayout(m_properties);
 }
 
+QString EventInspectorWidget::tabName()
+{
+    return tr("Event");
+}
+
 void EventInspectorWidget::addState(const StateModel& state)
 {
-    auto sw = new StateInspectorWidget{state, doc(), this};
+    auto sw = new StateInspectorWidget{state, context(), this};
+    sw->hide(); // TODO UGLY : we create a state (inspectorbase) just to extract the section ...
+    auto& section = sw->stateSection();
+    section.showDeleteButton(true);
 
     m_states.push_back(sw);
-    m_statesWidget->layout()->addWidget(sw);
+    m_statesWidget->layout()->addWidget(&section);
+    m_states.push_back(&section);
 }
 
 void EventInspectorWidget::removeState(const StateModel& state)
@@ -178,15 +200,16 @@ void EventInspectorWidget::updateDisplayedValues()
 
     m_date->setText(m_model.date().toString());
 
-    const auto& scenar = m_model.parentScenario();
+    auto scenar = dynamic_cast<ScenarioInterface*>(m_model.parent());
+    ISCORE_ASSERT(scenar);
     for(const auto& state : m_model.states())
     {
         addState(scenar->state(state));
     }
 
-    m_conditionLineEdit->setText(m_model.condition().toString());
-    auto& tn = m_model.parentScenario()->timeNode(m_model.timeNode());
-    m_triggerWidg->updateExpression(tn.trigger()->expression().toString());
+    m_exprEditor->setExpression(m_model.condition());
+    auto& tn = scenar->timeNode(m_model.timeNode());
+    m_triggerWidg->updateExpression(tn.trigger()->expression());
 }
 
 
@@ -195,11 +218,11 @@ using namespace Scenario;
 
 void EventInspectorWidget::on_conditionChanged()
 {
-    auto cond = m_validator.get();
+    auto cond = m_exprEditor->expression();
 
-    if(*cond != m_model.condition())
+    if(cond != m_model.condition())
     {
-        auto cmd = new Scenario::Command::SetCondition{path(m_model), std::move(*cond)};
+        auto cmd = new Scenario::Command::SetCondition{path(m_model), std::move(cond)};
         emit commandDispatcher()->submitCommand(cmd);
     }
 }
@@ -207,4 +230,5 @@ void EventInspectorWidget::on_conditionChanged()
 void EventInspectorWidget::modelDateChanged()
 {
     m_date->setText(m_model.date().toString());
+}
 }

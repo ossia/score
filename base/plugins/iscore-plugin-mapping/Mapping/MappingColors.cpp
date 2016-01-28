@@ -1,9 +1,19 @@
-#include "MappingColors.hpp"
+#include <QByteArray>
+#include <QColor>
+#include <QFile>
+#include <QIODevice>
+#include <QJsonArray>
 #include <QJsonDocument>
 #include <QJsonObject>
-#include <QJsonArray>
-#include <QFile>
+#include <QJsonValue>
 
+#include <Curve/CurveStyle.hpp>
+#include "MappingColors.hpp"
+
+class QString;
+
+namespace Mapping
+{
 MappingColors::MappingColors()
 {
 #ifdef ISCORE_IEEE_SKIN
@@ -13,7 +23,7 @@ MappingColors::MappingColors()
 #endif
     if(cols.open(QFile::ReadOnly))
     {
-        // TODO refactor with ScenarioControl
+        // TODO refactor with ScenarioApplicationPlugin
         auto obj = QJsonDocument::fromJson(cols.readAll()).object();
         auto fromColor = [&] (const QString& key) {
             auto arr = obj[key].toArray();
@@ -31,4 +41,5 @@ MappingColors::MappingColors()
         m_style.SegmentSelected = fromColor("SegmentSelected");
         m_style.SegmentDisabled = fromColor("SegmentDisabled");
     }
+}
 }

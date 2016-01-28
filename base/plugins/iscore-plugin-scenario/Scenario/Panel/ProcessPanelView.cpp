@@ -1,35 +1,24 @@
 #include "ProcessPanelView.hpp"
-#include <QHBoxLayout>
-#include <QGraphicsScene>
-#include <Scenario/Document/BaseElement/Widgets/ScenarioBaseGraphicsView.hpp>
-#include <Scenario/Document/BaseElement/Widgets/DoubleSlider.hpp>
 
+#include <iscore/widgets/ClearLayout.hpp>
+#include <QVBoxLayout>
+#include <QWidget>
 
+namespace Scenario
+{
 ProcessPanelView::ProcessPanelView(QObject* parent):
     iscore::PanelView{parent}
 {
     m_widget = new QWidget;
-    m_scene = new QGraphicsScene(this);
-    m_scene->setItemIndexMethod(QGraphicsScene::NoIndex);
+    m_lay = new QVBoxLayout;
+    m_widget->setLayout(m_lay);
+}
 
-    m_widget->setLayout(new QVBoxLayout);
-    m_view = new ScenarioBaseGraphicsView{m_scene};
-
-    m_widget->layout()->addWidget(m_view);
-
-    //m_view->setHorizontalScrollBarPolicy(Qt::ScrollBarAlwaysOff);
-    m_view->setVerticalScrollBarPolicy(Qt::ScrollBarAlwaysOff);
-    connect(m_view, &ScenarioBaseGraphicsView::sizeChanged,
-            this,   &ProcessPanelView::sizeChanged);
-
-
-    m_zoomSlider = new DoubleSlider{m_widget};
-    m_zoomSlider->setValue(0.03); // 30 seconds by default on an average screen
-
-    connect(m_zoomSlider, &DoubleSlider::valueChanged,
-            this,         &ProcessPanelView::horizontalZoomChanged);
-    m_widget->layout()->addWidget(m_zoomSlider);
-    m_view->show();
+void ProcessPanelView::setInnerWidget(QWidget* widg)
+{
+    iscore::clearLayout(m_lay);
+    if(widg)
+        m_lay->addWidget(widg);
 }
 
 QWidget* ProcessPanelView::getWidget()
@@ -42,10 +31,4 @@ const iscore::DefaultPanelStatus &ProcessPanelView::defaultPanelStatus() const
 {
     return status;
 }
-
-
-QGraphicsScene*ProcessPanelView::scene() const
-{return m_scene;}
-
-ScenarioBaseGraphicsView*ProcessPanelView::view() const
-{ return m_view; }
+}

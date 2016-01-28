@@ -1,7 +1,9 @@
 #pragma once
 #include <iscore/selection/Selection.hpp>
+#include <QObject>
 #include <QStack>
-#include <QDebug>
+
+class IdentifiedObjectAbstract;
 
 namespace iscore
 {
@@ -13,7 +15,7 @@ namespace iscore
  * it should be added to this stack using SelectionDispatcher.
  * This way, the user will be able to browse through his previous selections.
  */
-class SelectionStack final : public QObject
+class ISCORE_LIB_BASE_EXPORT SelectionStack final : public QObject
 {
         Q_OBJECT
     public:

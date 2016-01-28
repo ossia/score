@@ -1,5 +1,6 @@
 #pragma once
 #include <iscore_compiler_detection.hpp>
+#include <iscore_lib_base_export.h>
 #include <exception>
 #include <typeinfo>
 #include <QDebug>
@@ -70,8 +71,6 @@ catch(std::bad_cast& e)
 #else
 #define safe_cast static_cast
 #endif
-
-#define ISCORE_METADATA(str) public: static constexpr const char className[]{ str }; private:
 
 /**
  * @brief The ptr struct

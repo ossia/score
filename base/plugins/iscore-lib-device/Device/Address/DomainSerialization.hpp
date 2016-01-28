@@ -1,5 +1,12 @@
 #pragma once
-#include "AddressSettings.hpp"
 
-QJsonObject DomainToJson(const iscore::Domain& d);
-iscore::Domain JsonToDomain(const QJsonObject& obj, const QString& t);
+#include <QJsonObject>
+#include <QString>
+
+#include <Device/Address/Domain.hpp>
+
+namespace Device
+{
+QJsonObject DomainToJson(const Device::Domain& d);
+Device::Domain JsonToDomain(const QJsonObject& obj, const QString& t);
+}

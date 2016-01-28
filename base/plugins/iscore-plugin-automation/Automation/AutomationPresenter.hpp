@@ -7,27 +7,35 @@
 
 #include <Process/ProcessContext.hpp>
 
-class AutomationPresenter final :
-        public CurveProcessPresenter<
-            AutomationLayerModel,
-            AutomationView>
+namespace Automation
+{
+class LayerPresenter final :
+        public Curve::CurveProcessPresenter<
+            LayerModel,
+            LayerView>
 {
     public:
-        AutomationPresenter(
-                iscore::DocumentContext& context,
+        LayerPresenter(
+                const iscore::DocumentContext& context,
                 const Curve::Style& style,
-                const AutomationLayerModel& layer,
-                AutomationView* view,
+                const LayerModel& layer,
+                LayerView* view,
                 QObject* parent):
             CurveProcessPresenter{context, style, layer, view, parent}
         {
-            con(m_layer.model(), &AutomationModel::addressChanged,
+            con(m_layer.model(), &ProcessModel::addressChanged,
                 this, [&] (const auto&)
             {
                 m_view->setDisplayedName(m_layer.model().prettyName());
+            });
+            con(m_layer.model().metadata, &ModelMetadata::nameChanged,
+                this, [&] (QString s)
+            {
+                m_view->setDisplayedName(s);
             });
 
             m_view->setDisplayedName(m_layer.model().prettyName());
             m_view->showName(true);
         }
 };
+}

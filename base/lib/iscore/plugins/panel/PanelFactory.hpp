@@ -1,22 +1,25 @@
 #pragma once
-#include <iscore/serialization/VisitorInterface.hpp>
+#include <iscore_lib_base_export.h>
 #include <QString>
+class QObject;
 
 namespace iscore
 {
-    class PanelPresenter;
-    class PanelModel;
-    class PanelView;
-    class Presenter;
     class DocumentModel;
-    class View;
+    class PanelModel;
+    class PanelPresenter;
+    class PanelView;
+    
+    
+    struct ApplicationContext;
+    struct DocumentContext;
 
     /**
      * @brief The PanelFactory class
      *
      * Factory for a side panel. Think of the palettes in photoshop.
      */
-    class PanelFactory
+    class ISCORE_LIB_BASE_EXPORT PanelFactory
     {
         public:
             virtual QString panelName() const = 0;
@@ -24,13 +27,16 @@ namespace iscore
 
             virtual ~PanelFactory();
             virtual PanelView* makeView(
-                    View* parent) = 0;
+                    const iscore::ApplicationContext& ctx,
+                    QObject* parent) = 0;
 
             virtual PanelPresenter* makePresenter(
-                    Presenter* parent_presenter,
-                    PanelView* view) = 0;
+                    const iscore::ApplicationContext& ctx,
+                    iscore::PanelView* view,
+                    QObject* parent) = 0;
 
             virtual PanelModel* makeModel(
-                    DocumentModel* parent) = 0;
+                    const iscore::DocumentContext& ctx,
+                    QObject* parent) = 0;
     };
 }

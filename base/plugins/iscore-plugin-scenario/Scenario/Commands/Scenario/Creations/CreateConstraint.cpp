@@ -1,21 +1,38 @@
-#include "CreateConstraint.hpp"
-
-#include <Scenario/Document/Constraint/Rack/Slot/SlotModel.hpp>
-#include <Scenario/Process/ScenarioModel.hpp>
-#include <Scenario/Document/Event/EventModel.hpp>
 #include <Scenario/Document/Constraint/ConstraintModel.hpp>
-#include <Scenario/Document/Constraint/ViewModels/Temporal/TemporalConstraintViewModel.hpp>
-#include <Scenario/Process/Temporal/TemporalScenarioLayerModel.hpp>
 #include <Scenario/Process/Algorithms/StandardCreationPolicy.hpp>
-#include <Scenario/Process/Algorithms/StandardRemovalPolicy.hpp>
-#include <iscore/document/DocumentInterface.hpp>
-#include <iscore/tools/SettableIdentifierGeneration.hpp>
-#include <Scenario/Tools/RandomNameProvider.hpp>
-using namespace iscore;
-using namespace Scenario::Command;
+#include <Scenario/Process/ScenarioModel.hpp>
+#include <iscore/tools/RandomNameProvider.hpp>
 
+#include <boost/iterator/iterator_facade.hpp>
+#include <boost/multi_index/detail/hash_index_iterator.hpp>
+#include <iscore/tools/SettableIdentifierGeneration.hpp>
+#include <QDataStream>
+#include <QtGlobal>
+#include <QList>
+#include <QVector>
+#include <algorithm>
+#include <vector>
+
+#include <Scenario/Document/Constraint/ViewModels/ConstraintViewModel.hpp>
+#include "CreateConstraint.hpp"
+#include <Process/ModelMetadata.hpp>
+#include <Process/Process.hpp>
+#include <Scenario/Document/Constraint/ViewModels/ConstraintViewModelIdMap.hpp>
+#include <Scenario/Document/State/StateModel.hpp>
+#include <Scenario/Process/AbstractScenarioLayerModel.hpp>
+#include <iscore/serialization/DataStreamVisitor.hpp>
+#include <iscore/tools/ModelPath.hpp>
+#include <iscore/tools/ModelPathSerialization.hpp>
+#include <iscore/tools/NotifyingMap.hpp>
+#include <iscore/tools/ObjectPath.hpp>
+#include <iscore/tools/SettableIdentifier.hpp>
+
+namespace Scenario
+{
+namespace Command
+{
 CreateConstraint::CreateConstraint(
-        Path<ScenarioModel>&& scenarioPath,
+        Path<Scenario::ScenarioModel>&& scenarioPath,
         const Id<StateModel>& startState,
         const Id<StateModel>& endState) :
     m_path {std::move(scenarioPath) },
@@ -87,4 +104,6 @@ void CreateConstraint::deserializeImpl(DataStreamOutput& s)
             >> m_endStateId
             >> m_createdConstraintViewModelIDs
             >> m_createdConstraintFullViewId;
+}
+}
 }

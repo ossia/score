@@ -1,9 +1,12 @@
 #pragma once
-#include <QMap>
+#include <iscore_lib_device_export.h>
+class QString;
+template <class Key, class T> class QMap;
 
-namespace iscore {
+namespace Device {
 enum class IOType : int { Invalid, In, Out, InOut };
-const QMap<IOType, QString>& IOTypeStringMap();
+
+ISCORE_LIB_DEVICE_EXPORT const QMap<IOType, QString>& IOTypeStringMap();
 
 inline bool hasInput(IOType t)
 { return t == IOType::InOut || t == IOType::In; }

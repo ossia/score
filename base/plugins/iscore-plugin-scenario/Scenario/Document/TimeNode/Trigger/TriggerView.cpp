@@ -1,16 +1,21 @@
-#include "TriggerView.hpp"
 #include <QGraphicsSvgItem>
-#include <QSvgRenderer>
-#include <QGraphicsSceneMouseEvent>
-#include <QDebug>
-#include <QPainter>
 
+#include "TriggerView.hpp"
+
+class QGraphicsSceneMouseEvent;
+#include<QPainter>
+
+class QStyleOptionGraphicsItem;
+class QWidget;
+
+namespace Scenario
+{
 TriggerView::TriggerView(QGraphicsItem *parent):
     QGraphicsObject{parent}
 {
     setFlag(ItemStacksBehindParent, true);
     m_item = new QGraphicsSvgItem(":/images/trigger.svg");
-
+    m_item->setCacheMode(QGraphicsItem::NoCache);
     m_item->setScale(1.5);
     m_item->setParentItem(this);
 
@@ -47,4 +52,5 @@ void TriggerView::paint(QPainter *painter, const QStyleOptionGraphicsItem *optio
 void TriggerView::mousePressEvent(QGraphicsSceneMouseEvent* ev)
 {
     emit pressed();
+}
 }

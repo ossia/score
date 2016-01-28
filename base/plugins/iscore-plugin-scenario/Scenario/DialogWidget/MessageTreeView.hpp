@@ -1,10 +1,15 @@
 #pragma once
-#include <QTreeView>
 #include <iscore/command/Dispatchers/CommandDispatcher.hpp>
+#include <QTreeView>
 
-class StateModel;
-class DeviceExplorerModel;
+class QAction;
+class QContextMenuEvent;
+class QResizeEvent;
+class QWidget;
+namespace Scenario
+{
 class MessageItemModel;
+class StateModel;
 class MessageTreeView final : public QTreeView
 {
     public:
@@ -16,6 +21,9 @@ class MessageTreeView final : public QTreeView
 
         void removeNodes();
 
+    protected:
+        void resizeEvent(QResizeEvent* ev) override;
+
     private:
         //void mouseDoubleClickEvent(QMouseEvent* ev) override;
         void contextMenuEvent(QContextMenuEvent*) override;
@@ -24,4 +32,6 @@ class MessageTreeView final : public QTreeView
         const StateModel& m_model;
 
         CommandDispatcher<> m_dispatcher;
+        float m_valueColumnSize{0.15};
 };
+}

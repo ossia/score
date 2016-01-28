@@ -1,25 +1,26 @@
 #pragma once
 #include <iscore/tools/NamedObject.hpp>
+#include <QString>
 
 namespace iscore
 {
-    class DocumentPresenter;
     class DocumentDelegateModelInterface;
     class DocumentDelegateViewInterface;
+    class DocumentPresenter;
 
-    class DocumentDelegatePresenterInterface : public NamedObject
+    class ISCORE_LIB_BASE_EXPORT DocumentDelegatePresenterInterface : public NamedObject
     {
         public:
             DocumentDelegatePresenterInterface(DocumentPresenter* parent_presenter,
                                                const QString& object_name,
-                                               DocumentDelegateModelInterface* model,
-                                               DocumentDelegateViewInterface* view);
+                                               const DocumentDelegateModelInterface& model,
+                                               DocumentDelegateViewInterface& view);
 
             virtual ~DocumentDelegatePresenterInterface();
 
         protected:
-            DocumentDelegateModelInterface* m_model;
-            DocumentDelegateViewInterface* m_view;
-            DocumentPresenter* m_parentPresenter;
+            const DocumentDelegateModelInterface& m_model;
+            DocumentDelegateViewInterface& m_view;
+            DocumentPresenter* m_parentPresenter{};
     };
 }

@@ -1,26 +1,23 @@
 #pragma once
-#include <iscore/tools/SettableIdentifier.hpp>
-#include <iscore/tools/NamedObject.hpp>
-#include <iscore/selection/Selection.hpp>
-#include <vector>
-
 #include <Process/TimeValue.hpp>
 #include <Process/ZoomHelper.hpp>
+#include <iscore/tools/NamedObject.hpp>
+#include <nano_signal_slot.hpp>
+#include <QPoint>
+#include <QString>
+#include <iscore/tools/SettableIdentifier.hpp>
+#include <iscore_plugin_scenario_export.h>
 
-class ConstraintViewModel;
-class ConstraintView;
-class RackPresenter;
-class RackModel;
-class ConstraintModel;
-class Process;
-class ConstraintHeader;
-namespace iscore
+namespace Scenario
 {
-    class SerializableCommand;
-}
-class LayerPresenter;
+class ConstraintHeader;
+class ConstraintModel;
+class ConstraintView;
+class ConstraintViewModel;
+class RackModel;
+class RackPresenter;
 
-class ConstraintPresenter : public NamedObject
+class ISCORE_PLUGIN_SCENARIO_EXPORT ConstraintPresenter : public NamedObject, public Nano::Observer
 {
         Q_OBJECT
 
@@ -39,7 +36,8 @@ class ConstraintPresenter : public NamedObject
         RackPresenter* rack() const;
 
         const ConstraintModel& model() const;
-        const ConstraintViewModel& abstractConstraintViewModel() const;
+        const ConstraintViewModel& abstractConstraintViewModel() const
+        { return m_viewModel; }
 
         ConstraintView* view() const;
 
@@ -48,16 +46,6 @@ class ConstraintPresenter : public NamedObject
 
         const Id<ConstraintModel>& id() const;
 
-    signals:
-        void pressed(const QPointF&);
-        void moved(const QPointF&);
-        void released(const QPointF&);
-
-        void askUpdate();
-        void heightChanged(); // The vertical size
-        void heightPercentageChanged(); // The vertical position
-
-    public slots:
         void on_defaultDurationChanged(const TimeValue&);
         void on_minDurationChanged(const TimeValue&);
         void on_maxDurationChanged(const TimeValue&);
@@ -70,6 +58,16 @@ class ConstraintPresenter : public NamedObject
 
         void updateHeight();
 
+    signals:
+        void pressed(QPointF) const;
+        void moved(QPointF) const;
+        void released(QPointF) const;
+
+        void askUpdate();
+        void heightChanged(); // The vertical size
+        void heightPercentageChanged(); // The vertical position
+
+
     protected:
         // Process presenters are in the slot presenters.
         const ConstraintViewModel& m_viewModel;
@@ -80,6 +78,7 @@ class ConstraintPresenter : public NamedObject
         void updateChildren();
         void createRackPresenter(const RackModel&);
         void clearRackPresenter();
+        void on_rackRemoved(const RackModel&);
 
         ZoomRatio m_zoomRatio {};
         RackPresenter* m_rack {};
@@ -124,4 +123,5 @@ template<typename T>
 typename T::view_type& view(T& obj)
 {
     return static_cast<typename T::view_type&>(*obj.view());
+}
 }

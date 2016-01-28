@@ -1,9 +1,14 @@
-#include "ResizeSlotVertically.hpp"
-
 #include <Scenario/Document/Constraint/Rack/Slot/SlotModel.hpp>
 
-using namespace iscore;
-using namespace Scenario::Command;
+#include "ResizeSlotVertically.hpp"
+#include <iscore/serialization/DataStreamVisitor.hpp>
+#include <iscore/tools/ModelPath.hpp>
+#include <iscore/tools/ModelPathSerialization.hpp>
+
+namespace Scenario
+{
+namespace Command
+{
 
 ResizeSlotVertically::ResizeSlotVertically(
         Path<SlotModel>&& slotPath,
@@ -38,4 +43,7 @@ void ResizeSlotVertically::serializeImpl(DataStreamInput& s) const
 void ResizeSlotVertically::deserializeImpl(DataStreamOutput& s)
 {
     s >> m_path >> m_originalSize >> m_newSize;
+}
+
+}
 }

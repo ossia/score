@@ -1,94 +1,106 @@
+#include <QObject>
 #include "MenuInterface.hpp"
-using namespace iscore;
+
 
 namespace iscore
 {
     template<>
-    std::map<ToplevelMenuElement, QString> MenuInterface::map()
+    ISCORE_LIB_BASE_EXPORT std::map<ToplevelMenuElement, QString> MenuInterface::map()
     {
         return m_map;
     }
 
     template<>
-    std::map<FileMenuElement, QString> MenuInterface::map()
+    ISCORE_LIB_BASE_EXPORT std::map<FileMenuElement, QString> MenuInterface::map()
     {
         return m_fileMap;
     }
 
     template<>
-    std::map<EditMenuElement, QString> MenuInterface::map()
+    ISCORE_LIB_BASE_EXPORT std::map<EditMenuElement, QString> MenuInterface::map()
     {
         return m_editMap;
     }
 
     template<>
-    std::map<ToolMenuElement, QString> MenuInterface::map()
+    ISCORE_LIB_BASE_EXPORT std::map<ToolMenuElement, QString> MenuInterface::map()
     {
         return m_toolMap;
     }
 
     template<>
-    std::map<ViewMenuElement, QString> MenuInterface::map()
+    ISCORE_LIB_BASE_EXPORT std::map<ViewMenuElement, QString> MenuInterface::map()
     {
         return m_viewMap;
     }
 
     template<>
-    std::map<SettingsMenuElement, QString> MenuInterface::map()
+    ISCORE_LIB_BASE_EXPORT std::map<SettingsMenuElement, QString> MenuInterface::map()
     {
         return m_settingsMap;
     }
 
     template<>
-    std::map<AboutMenuElement, QString> MenuInterface::map()
+    ISCORE_LIB_BASE_EXPORT std::map<AboutMenuElement, QString> MenuInterface::map()
     {
         return m_aboutMap;
+    }
+
+    template<>
+    ISCORE_LIB_BASE_EXPORT std::map<ContextMenu, QString> MenuInterface::map()
+    {
+        return m_contextMap;
     }
 
 
 
     template<>
-    QString MenuInterface::name(ToplevelMenuElement elt)
+    ISCORE_LIB_BASE_EXPORT QString MenuInterface::name(ToplevelMenuElement elt)
     {
         return m_map.at(elt);
     }
 
     template<>
-    QString MenuInterface::name(FileMenuElement elt)
+    ISCORE_LIB_BASE_EXPORT QString MenuInterface::name(FileMenuElement elt)
     {
         return m_fileMap.at(elt);
     }
 
     template<>
-    QString MenuInterface::name(EditMenuElement elt)
+    ISCORE_LIB_BASE_EXPORT QString MenuInterface::name(EditMenuElement elt)
     {
         return m_editMap.at(elt);
     }
 
     template<>
-    QString MenuInterface::name(ToolMenuElement elt)
+    ISCORE_LIB_BASE_EXPORT QString MenuInterface::name(ToolMenuElement elt)
     {
         return m_toolMap.at(elt);
     }
 
     template<>
-    QString MenuInterface::name(ViewMenuElement elt)
+    ISCORE_LIB_BASE_EXPORT QString MenuInterface::name(ViewMenuElement elt)
     {
         return m_viewMap.at(elt);
     }
 
     template<>
-    QString MenuInterface::name(SettingsMenuElement elt)
+    ISCORE_LIB_BASE_EXPORT QString MenuInterface::name(SettingsMenuElement elt)
     {
         return m_settingsMap.at(elt);
     }
 
     template<>
-    QString MenuInterface::name(AboutMenuElement elt)
+    ISCORE_LIB_BASE_EXPORT QString MenuInterface::name(AboutMenuElement elt)
     {
         return m_aboutMap.at(elt);
     }
-}
+
+    template<>
+    ISCORE_LIB_BASE_EXPORT QString MenuInterface::name(ContextMenu elt)
+    {
+        return m_contextMap.at(elt);
+    }
 
 const std::map<ToplevelMenuElement, QString> MenuInterface::m_map
 {
@@ -114,7 +126,10 @@ const std::map<FileMenuElement, QString> MenuInterface::m_fileMap
     {FileMenuElement::Separator_Export, QObject::tr("Separator_Export") },
     {FileMenuElement::Export, QObject::tr("Export") },
     {FileMenuElement::Separator_Quit, QObject::tr("Separator_Quit") },
-    {FileMenuElement::Quit, QObject::tr("Quit") }
+    {FileMenuElement::Close, QObject::tr("Close") },
+    {FileMenuElement::Quit, QObject::tr("Quit") },
+    {FileMenuElement::SaveCommands, QObject::tr("Save_Cmds") },
+    {FileMenuElement::LoadCommands, QObject::tr("Load_Cmds") }
 };
 
 const std::map<EditMenuElement, QString> MenuInterface::m_editMap
@@ -148,3 +163,15 @@ const std::map<AboutMenuElement, QString> MenuInterface::m_aboutMap
     {AboutMenuElement::Help, QObject::tr("Help") },
     {AboutMenuElement::About, QObject::tr("About") },
 };
+
+const std::map<ContextMenu, QString> MenuInterface::m_contextMap
+{
+    {ContextMenu::Object, QObject::tr("Object") },
+    {ContextMenu::Constraint, QObject::tr("Constraint") },
+    {ContextMenu::Process, QObject::tr("Process") },
+    {ContextMenu::Slot, QObject::tr("Slot") },
+    {ContextMenu::Rack, QObject::tr("Rack") },
+    {ContextMenu::Event, QObject::tr("Event") },
+    {ContextMenu::State, QObject::tr("State") },
+};
+}

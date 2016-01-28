@@ -1,21 +1,47 @@
-#include "RemoveSelection.hpp"
-
-#include <Scenario/Document/TimeNode/TimeNodeModel.hpp>
-#include <Scenario/Document/Event/EventModel.hpp>
-#include <Scenario/Document/Constraint/Rack/Slot/SlotModel.hpp>
-#include <Scenario/Document/Constraint/ViewModels/Temporal/TemporalConstraintViewModel.hpp>
-#include <Scenario/Process/Temporal/TemporalScenarioLayerModel.hpp>
 #include <Scenario/Process/Algorithms/StandardRemovalPolicy.hpp>
 
-using namespace iscore;
-using namespace Scenario::Command;
+#include <boost/iterator/indirect_iterator.hpp>
+#include <boost/iterator/iterator_facade.hpp>
+#include <boost/multi_index/detail/hash_index_iterator.hpp>
+#include <QDataStream>
+#include <QtGlobal>
+#include <QList>
+#include <QPointer>
+#include <QSet>
+#include <QString>
+#include <algorithm>
+#include <iterator>
 
-RemoveSelection::RemoveSelection(Path<ScenarioModel>&& scenarioPath, Selection sel):
+#include "RemoveSelection.hpp"
+#include <Scenario/Document/Constraint/ConstraintModel.hpp>
+#include <Scenario/Document/Constraint/ViewModels/ConstraintViewModelSerialization.hpp>
+#include <Scenario/Document/State/StateModel.hpp>
+#include <Scenario/Document/Event/EventModel.hpp>
+#include <Scenario/Document/TimeNode/TimeNodeModel.hpp>
+#include <Scenario/Document/CommentBlock/CommentBlockModel.hpp>
+#include <Scenario/Process/ScenarioModel.hpp>
+#include <Scenario/Process/Algorithms/ProcessPolicy.hpp>
+#include <Scenario/Process/Algorithms/Accessors.hpp>
+#include <iscore/serialization/DataStreamVisitor.hpp>
+#include <iscore/tools/IdentifiedObject.hpp>
+#include <iscore/tools/IdentifiedObjectAbstract.hpp>
+#include <iscore/tools/IdentifiedObjectMap.hpp>
+#include <iscore/tools/ModelPath.hpp>
+#include <iscore/tools/ModelPathSerialization.hpp>
+#include <iscore/tools/NotifyingMap.hpp>
+#include <iscore/tools/SettableIdentifier.hpp>
+#include <iscore/document/DocumentContext.hpp>
+
+namespace Scenario
+{
+namespace Command
+{
+RemoveSelection::RemoveSelection(Path<Scenario::ScenarioModel>&& scenarioPath, Selection sel):
     m_path {std::move(scenarioPath) }
 {
     auto& scenar = m_path.find();
 
-    // Serialize all the events and constraints and timenodes and states.
+    // Serialize all the events and constraints and timenodes and states and comments
     // For each removed event, we also add its states to the selection.
     // For each removed state, we add the constraints.
 
@@ -118,6 +144,14 @@ RemoveSelection::RemoveSelection(Path<ScenarioModel>&& scenarioPath, Selection s
             }
         }
 
+        if(auto cmt = dynamic_cast<const CommentBlockModel*>(obj))
+        {
+            QByteArray arr;
+            Serializer<DataStream> s{&arr};
+            s.readFrom(*cmt);
+            m_removedComments.push_back({cmt->id(), arr});
+        }
+
         if(auto constraint = dynamic_cast<const ConstraintModel*>(obj))
         {
             QByteArray arr;
@@ -148,6 +182,7 @@ RemoveSelection::RemoveSelection(Path<ScenarioModel>&& scenarioPath, Selection s
 void RemoveSelection::undo() const
 {
     auto& scenar = m_path.find();
+    auto& stack = iscore::IDocument::documentContext(scenar).commandStack;
     // First instantiate everything
 
     QList<StateModel*> states;
@@ -157,7 +192,7 @@ void RemoveSelection::undo() const
                    [&] (const auto& data)
     {
         Deserializer<DataStream> s{data.second};
-        return new StateModel{s, &scenar};
+        return new StateModel{s, stack, &scenar};
     });
 
     QList<EventModel*> events;
@@ -178,6 +213,16 @@ void RemoveSelection::undo() const
     {
         Deserializer<DataStream> s{tndata.second};
         return new TimeNodeModel{s, &scenar};
+    });
+
+    QList<CommentBlockModel*> comments;
+    std::transform(m_removedComments.begin(),
+                   m_removedComments.end(),
+                   std::back_inserter(comments),
+                   [&] (const auto& cmtdata)
+    {
+        Deserializer<DataStream> s{cmtdata.second};
+        return new CommentBlockModel(s, &scenar);
     });
 
 
@@ -263,6 +308,12 @@ void RemoveSelection::undo() const
     for(const auto& state : states)
     {
         scenar.states.add(state);
+        scenar.event(state->eventId()).addState(state->id());
+    }
+
+    for(const auto& cmt : comments)
+    {
+        scenar.comments.add(cmt);
     }
 
     // And then all the constraints.
@@ -274,11 +325,8 @@ void RemoveSelection::undo() const
         scenar.constraints.add(cstr);
 
         // Set-up the start / end events correctly.
-        auto& sst = scenar.state(cstr->startState());
-        sst.setNextConstraint(cstr->id());
-
-        auto& est = scenar.state(cstr->endState());
-        est.setPreviousConstraint(cstr->id());
+        SetNextConstraint(startState(*cstr, scenar), *cstr);
+        SetPreviousConstraint(endState(*cstr, scenar), *cstr);
     }
 
     // And finally the constraint's view models
@@ -304,6 +352,14 @@ void RemoveSelection::redo() const
         StandardRemovalPolicy::removeEventStatesAndConstraints(scenar, ev.first);
     }
 
+    for(const auto& cmt : m_removedComments)
+    {
+
+        auto it = scenar.comments.find(cmt.first);
+        if(it != scenar.comments.end())
+            StandardRemovalPolicy::removeComment(scenar, *it);
+    }
+
     // Finally if there are remaining states
     for(const auto& st : m_removedStates)
     {
@@ -321,7 +377,9 @@ void RemoveSelection::serializeImpl(DataStreamInput& s) const
       << m_maybeRemovedTimeNodes
       << m_removedEvents
       << m_removedTimeNodes
-      << m_removedConstraints;
+      << m_removedConstraints
+      << m_removedStates
+      << m_removedComments;
 }
 
 void RemoveSelection::deserializeImpl(DataStreamOutput& s)
@@ -330,5 +388,9 @@ void RemoveSelection::deserializeImpl(DataStreamOutput& s)
       >> m_maybeRemovedTimeNodes
       >> m_removedEvents
       >> m_removedTimeNodes
-      >> m_removedConstraints;
+      >> m_removedConstraints
+      >> m_removedStates
+      >> m_removedComments;
+}
+}
 }

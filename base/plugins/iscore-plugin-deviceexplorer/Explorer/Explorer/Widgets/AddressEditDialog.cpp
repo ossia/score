@@ -1,17 +1,28 @@
-#include "AddressEditDialog.hpp"
-
-#include <QComboBox>
-#include <QDialogButtonBox>
-#include <QFormLayout>
-#include <QLabel>
-#include <QLineEdit>
-
 #include <Explorer/Common/AddressSettings/AddressSettingsFactory.hpp>
 #include <Explorer/Common/AddressSettings/Widgets/AddressSettingsWidget.hpp>
-
 #include <Explorer/Widgets/AddressFragmentLineEdit.hpp>
-
 #include <State/ValueConversion.hpp>
+#include <QComboBox>
+#include <QDebug>
+#include <QDialogButtonBox>
+#include <QFlags>
+#include <QFormLayout>
+#include <QLineEdit>
+#include <qnamespace.h>
+
+#include <QString>
+
+#include "AddressEditDialog.hpp"
+#include <Device/Address/AddressSettings.hpp>
+#include <Device/Address/Domain.hpp>
+#include <Device/Address/IOType.hpp>
+#include <Explorer/Widgets/ValueWrapper.hpp>
+#include <State/Value.hpp>
+
+class QWidget;
+
+namespace DeviceExplorer
+{
 AddressEditDialog::AddressEditDialog(
         QWidget* parent):
     AddressEditDialog{makeDefaultSettings(), parent}
@@ -19,7 +30,7 @@ AddressEditDialog::AddressEditDialog(
 }
 
 AddressEditDialog::AddressEditDialog(
-        const iscore::AddressSettings& addr,
+        const Device::AddressSettings& addr,
         QWidget* parent)
     : QDialog{parent},
       m_originalSettings{addr}
@@ -33,36 +44,28 @@ AddressEditDialog::AddressEditDialog(
 
     setNodeSettings();
 
+    // Value type
+    m_valueTypeCBox = new QComboBox(this);
+    m_valueTypeCBox->addItems(AddressSettingsFactory::instance().getAvailableValueTypes());
 
-    if(m_originalSettings.ioType != iscore::IOType::Invalid)
-    {
-        // Value type
-        m_valueTypeCBox = new QComboBox(this);
-        m_valueTypeCBox->addItems(AddressSettingsFactory::instance().getAvailableValueTypes());
-        m_valueTypeCBox->setEnabled(false); // Note : the day where the OSSIA API will be able to change the type of an address.
-        connect(m_valueTypeCBox, static_cast<void (QComboBox::*)(int)>(&QComboBox::currentIndexChanged),
-                this, &AddressEditDialog::updateType);
+    connect(m_valueTypeCBox, static_cast<void (QComboBox::*)(int)>(&QComboBox::currentIndexChanged),
+            this, &AddressEditDialog::updateType);
 
-        m_layout->addRow(tr("Value type"), m_valueTypeCBox);
+    m_layout->addRow(tr("Value type"), m_valueTypeCBox);
 
-        // AddressWidget
-        m_addressWidget = new WidgetWrapper<AddressSettingsWidget>{this};
-        m_layout->addWidget(m_addressWidget);
+    // AddressWidget
+    m_addressWidget = new WidgetWrapper<AddressSettingsWidget>{this};
+    m_layout->addWidget(m_addressWidget);
 
-        setValueSettings();
-    }
-    else
-    {
-        // TODO Make a way to add addresses when there are none.
-        // e. g. "Add address" and "Remove address" button.
-        ISCORE_TODO;
-    }
+    setValueSettings();
 
     // Ok / Cancel
     auto buttonBox = new QDialogButtonBox{QDialogButtonBox::Ok
             | QDialogButtonBox::Cancel, Qt::Horizontal, this};
-    connect(buttonBox, SIGNAL(accepted()), this, SLOT(accept()));
-    connect(buttonBox, SIGNAL(rejected()), this, SLOT(reject()));
+    connect(buttonBox, &QDialogButtonBox::accepted,
+            this, &QDialog::accept);
+    connect(buttonBox, &QDialogButtonBox::rejected,
+            this, &QDialog::reject);
 
     m_layout->addWidget(buttonBox);
 }
@@ -76,13 +79,15 @@ void AddressEditDialog::updateType()
 {
     const QString valueType = m_valueTypeCBox->currentText();
     m_addressWidget->setWidget(AddressSettingsFactory::instance().getValueTypeWidget(valueType));
+    if(m_originalSettings.ioType == Device::IOType::Invalid)
+        m_originalSettings.ioType = Device::IOType::InOut;
     m_addressWidget->widget()->setSettings(m_originalSettings);
 }
 
 
-iscore::AddressSettings AddressEditDialog::getSettings() const
+Device::AddressSettings AddressEditDialog::getSettings() const
 {
-    iscore::AddressSettings settings;
+    Device::AddressSettings settings;
 
     if(m_addressWidget && m_addressWidget->widget())
     {
@@ -99,15 +104,15 @@ iscore::AddressSettings AddressEditDialog::getSettings() const
     return settings;
 }
 
-iscore::AddressSettings AddressEditDialog::makeDefaultSettings()
+Device::AddressSettings AddressEditDialog::makeDefaultSettings()
 {
-    static iscore::AddressSettings defaultSettings
+    static Device::AddressSettings defaultSettings
             = [] () {
-        iscore::AddressSettings s;
-        s.value = iscore::Value::fromValue(0);
-        s.domain.min = iscore::Value::fromValue(0);
-        s.domain.max = iscore::Value::fromValue(100);
-        s.ioType = iscore::IOType::InOut;
+        Device::AddressSettings s;
+        s.value = State::Value::fromValue(0);
+        s.domain.min = State::Value::fromValue(0);
+        s.domain.max = State::Value::fromValue(100);
+        s.ioType = Device::IOType::InOut;
         return s;
     }();
 
@@ -122,8 +127,17 @@ void AddressEditDialog::setNodeSettings()
 
 void AddressEditDialog::setValueSettings()
 {
-    const int index = m_valueTypeCBox->findText(iscore::convert::prettyType(m_originalSettings.value));
+    const int index = m_valueTypeCBox->findText(State::convert::prettyType(m_originalSettings.value));
     ISCORE_ASSERT(index != -1);
     ISCORE_ASSERT(index < m_valueTypeCBox->count());
-    m_valueTypeCBox->setCurrentIndex(index);  //will emit currentIndexChanged(int) & call slot
+    if(m_valueTypeCBox->currentIndex() == index)
+    {
+        m_valueTypeCBox->currentIndexChanged(index);
+    }
+    else
+    {
+        m_valueTypeCBox->setCurrentIndex(index);  //will emit currentIndexChanged(int) & call slot
+    }
+
+}
 }

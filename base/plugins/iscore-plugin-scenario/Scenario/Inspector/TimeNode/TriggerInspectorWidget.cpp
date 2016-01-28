@@ -1,40 +1,41 @@
-#include "TriggerInspectorWidget.hpp"
-#include <iscore/document/DocumentInterface.hpp>
-
-#include <Scenario/Document/TimeNode/Trigger/TriggerModel.hpp>
-
-#include <QLabel>
-#include <QLineEdit>
-#include <QLayout>
-#include <QPushButton>
-
 #include <Scenario/Commands/TimeNode/SetTrigger.hpp>
-#include <Scenario/Commands/TimeNode/AddTrigger.hpp>
-#include <Scenario/Commands/TimeNode/RemoveTrigger.hpp>
+#include <Scenario/Document/TimeNode/Trigger/TriggerModel.hpp>
+#include <QBoxLayout>
+#include <QPushButton>
+#include <algorithm>
 
-using namespace Scenario::Command;
+#include <Inspector/InspectorWidgetBase.hpp>
+#include <Scenario/Commands/TimeNode/TriggerCommandFactory/TriggerCommandFactoryList.hpp>
+#include <Scenario/Document/TimeNode/TimeNodeModel.hpp>
+#include <Scenario/Inspector/Expression/ExpressionEditorWidget.hpp>
+#include "TriggerInspectorWidget.hpp"
+#include <iscore/command/Dispatchers/CommandDispatcher.hpp>
+#include <iscore/tools/ModelPath.hpp>
 
-TriggerInspectorWidget::TriggerInspectorWidget(const TimeNodeModel& object, InspectorWidgetBase* parent):
-     m_model {object},
-     m_parent{parent}
+namespace Scenario
+{
+TriggerInspectorWidget::TriggerInspectorWidget(
+        const iscore::DocumentContext& doc,
+        const Command::TriggerCommandFactoryList& fact,
+        const TimeNodeModel& object,
+        Inspector::InspectorWidgetBase* parent):
+    QWidget{parent},
+    m_triggerCommandFactory{fact},
+    m_model {object},
+    m_parent{parent}
 {
     auto triglay = new QHBoxLayout{this};
 
-    m_triggerLineEdit = new QLineEdit{};
-    m_triggerLineEdit->setValidator(&m_validator);
-
-    connect(m_triggerLineEdit, &QLineEdit::editingFinished,
+    m_exprEditor = new ExpressionEditorWidget{doc, this};
+    connect(m_exprEditor, &ExpressionEditorWidget::editingFinished,
             this, &TriggerInspectorWidget::on_triggerChanged);
-
     connect(m_model.trigger(), &TriggerModel::triggerChanged,
-        this, [this] (const iscore::Trigger& t) {
-        m_triggerLineEdit->setText(t.toString());
-    });
+            m_exprEditor, &ExpressionEditorWidget::setExpression);
 
     m_addTrigBtn = new QPushButton{"Add Trigger"};
     m_rmTrigBtn = new QPushButton{"X"};
 
-    triglay->addWidget(m_triggerLineEdit);
+    triglay->addWidget(m_exprEditor);
     triglay->addWidget(m_rmTrigBtn);
     triglay->addWidget(m_addTrigBtn);
 
@@ -51,39 +52,41 @@ TriggerInspectorWidget::TriggerInspectorWidget(const TimeNodeModel& object, Insp
 
 void TriggerInspectorWidget::on_triggerChanged()
 {
-    auto trig = m_validator.get();
+    auto trig = m_exprEditor->expression();
 
-    if(*trig != m_model.trigger()->expression())
+    if(trig != m_model.trigger()->expression())
     {
-        auto cmd = new Scenario::Command::SetTrigger{m_model, std::move(*trig)};
+        auto cmd = new Scenario::Command::SetTrigger{m_model, std::move(trig)};
         m_parent->commandDispatcher()->submitCommand(cmd);
     }
 }
 
 void TriggerInspectorWidget::createTrigger()
 {
-    m_triggerLineEdit->setVisible(true);
+    m_exprEditor->setVisible(true);
     m_rmTrigBtn->setVisible(true);
     m_addTrigBtn->setVisible(false);
 
-    auto cmd = new Scenario::Command::AddTrigger{m_model};
-    m_parent->commandDispatcher()->submitCommand(cmd);
+    auto cmd = m_triggerCommandFactory.make_addTriggerCommand(m_model);
+    if(cmd)
+        m_parent->commandDispatcher()->submitCommand(cmd);
 }
 
 void TriggerInspectorWidget::removeTrigger()
 {
-    m_triggerLineEdit->setVisible(false);
+    m_exprEditor->setVisible(false);
     m_rmTrigBtn->setVisible(false);
     m_addTrigBtn->setVisible(true);
 
-    auto cmd = new Scenario::Command::RemoveTrigger{m_model};
-    m_parent->commandDispatcher()->submitCommand(cmd);
+    auto cmd = m_triggerCommandFactory.make_removeTriggerCommand(m_model);
+    if(cmd)
+        m_parent->commandDispatcher()->submitCommand(cmd);
 }
 
 void TriggerInspectorWidget::on_triggerActiveChanged()
 {
     bool v = m_model.trigger()->active();
-    m_triggerLineEdit->setVisible(v);
+    m_exprEditor->setVisible(v);
     m_rmTrigBtn->setVisible(v);
     m_addTrigBtn->setVisible(!v);
 }
@@ -93,8 +96,8 @@ void TriggerInspectorWidget::HideRmButton()
     m_rmTrigBtn->setVisible(false);
 }
 
-void TriggerInspectorWidget::updateExpression(QString str)
+void TriggerInspectorWidget::updateExpression(const State::Trigger& expr)
 {
-    m_triggerLineEdit->setText(str);
+    m_exprEditor->setExpression(expr);
 }
-
+}

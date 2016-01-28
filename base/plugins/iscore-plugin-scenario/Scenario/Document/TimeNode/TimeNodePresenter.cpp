@@ -1,14 +1,19 @@
-#include "TimeNodePresenter.hpp"
-
 #include <Scenario/Document/TimeNode/TimeNodeModel.hpp>
 #include <Scenario/Document/TimeNode/TimeNodeView.hpp>
 #include <Scenario/Document/TimeNode/Trigger/TriggerPresenter.hpp>
-#include <Scenario/Document/TimeNode/Trigger/TriggerModel.hpp>
-
-#include <QGraphicsScene>
-#include <QGraphicsObject>
 #include <iscore/widgets/GraphicsItem.hpp>
 
+#include <Process/ModelMetadata.hpp>
+#include "TimeNodePresenter.hpp"
+#include <iscore/selection/Selectable.hpp>
+#include <iscore/tools/NamedObject.hpp>
+#include <iscore/tools/Todo.hpp>
+
+class QObject;
+#include <iscore/tools/SettableIdentifier.hpp>
+
+namespace Scenario
+{
 TimeNodePresenter::TimeNodePresenter(const TimeNodeModel& model,
                                      QGraphicsObject *parentview,
                                      QObject* parent) :
@@ -55,7 +60,5 @@ void TimeNodePresenter::on_eventAdded(const Id<EventModel>& eventId)
 {
     emit eventAdded(eventId, m_model.id());
 }
-
-
-#include <iscore/tools/NotifyingMap.hpp>
+}
 

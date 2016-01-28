@@ -1,7 +1,17 @@
 #pragma once
-#include <QObject>
-#include <iscore/plugins/qt_interfaces/PluginControlInterface_QtInterface.hpp>
+#include <iscore/plugins/qt_interfaces/GUIApplicationContextPlugin_QtInterface.hpp>
 #include <iscore/plugins/qt_interfaces/PluginRequirements_QtInterface.hpp>
+#include <QObject>
+#include <QStringList>
+#include <utility>
+
+#include <iscore/command/CommandGeneratorMap.hpp>
+#include <iscore/command/SerializableCommand.hpp>
+#include <iscore/plugins/application/GUIApplicationContextPlugin.hpp>
+
+namespace iscore {
+
+}  // namespace iscore
 
 /**
  * @brief The IScoreCohesion class
@@ -13,14 +23,14 @@
  */
 class iscore_plugin_cohesion final :
         public QObject,
-        public iscore::PluginControlInterface_QtInterface,
+        public iscore::GUIApplicationContextPlugin_QtInterface,
         public iscore::CommandFactory_QtInterface,
         public iscore::PluginRequirementslInterface_QtInterface
 {
         Q_OBJECT
-        Q_PLUGIN_METADATA(IID PluginControlInterface_QtInterface_iid)
+        Q_PLUGIN_METADATA(IID GUIApplicationContextPlugin_QtInterface_iid)
         Q_INTERFACES(
-                iscore::PluginControlInterface_QtInterface
+                iscore::GUIApplicationContextPlugin_QtInterface
                 iscore::CommandFactory_QtInterface
                 iscore::PluginRequirementslInterface_QtInterface
                 )
@@ -29,8 +39,8 @@ class iscore_plugin_cohesion final :
         iscore_plugin_cohesion();
         ~iscore_plugin_cohesion() = default;
 
-        iscore::PluginControlInterface* make_control(
-                iscore::Application& app) override;
+        iscore::GUIApplicationContextPlugin* make_applicationPlugin(
+                const iscore::ApplicationContext& app) override;
 
         std::pair<const CommandParentFactoryKey, CommandGeneratorMap> make_commands() override;
 

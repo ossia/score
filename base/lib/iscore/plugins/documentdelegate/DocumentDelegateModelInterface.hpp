@@ -1,9 +1,13 @@
 #pragma once
 #include <iscore/tools/IdentifiedObject.hpp>
-#include <iscore/selection/SelectionStack.hpp>
+
+#include <iscore/selection/Selection.hpp>
+
+struct VisitorVariant;
+
 namespace iscore
 {
-    class DocumentDelegateModelInterface : public IdentifiedObject<DocumentDelegateModelInterface>
+    class ISCORE_LIB_BASE_EXPORT DocumentDelegateModelInterface : public IdentifiedObject<DocumentDelegateModelInterface>
     {
             Q_OBJECT
         public:

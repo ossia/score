@@ -1,17 +1,19 @@
+
+#include <QDebug>
+#include <algorithm>
+
 #include "MergeTimeNodes.hpp"
+#include <Scenario/Process/ScenarioModel.hpp>
+#include <iscore/serialization/DataStreamVisitor.hpp>
+#include <iscore/tools/ModelPath.hpp>
+#include <iscore/tools/ModelPathSerialization.hpp>
 
-#include "Scenario/Process/ScenarioModel.hpp"
-#include <Scenario/Process/Algorithms/StandardDisplacementPolicy.hpp>
+namespace Scenario
+{
+namespace Command
+{
 
-#include <Scenario/Document/TimeNode/TimeNodeModel.hpp>
-#include <Scenario/Document/Event/EventModel.hpp>
-#include <Scenario/Process/Algorithms/StandardRemovalPolicy.hpp>
-#include <Scenario/Process/Algorithms/StandardCreationPolicy.hpp>
-
-using namespace iscore;
-using namespace Scenario::Command;
-
-MergeTimeNodes::MergeTimeNodes( Path<ScenarioModel> &&path,
+MergeTimeNodes::MergeTimeNodes( Path<Scenario::ScenarioModel> &&path,
                                 Id<TimeNodeModel> aimedTimeNode,
                                 Id<TimeNodeModel> movingTimeNode):
     m_path {std::move(path) },
@@ -90,4 +92,6 @@ void MergeTimeNodes::serializeImpl(DataStreamInput & s) const
 void MergeTimeNodes::deserializeImpl(DataStreamOutput & s)
 {
     s >> m_path >> m_aimedTimeNodeId >> m_movingTimeNodeId >> m_serializedTimeNode;
+}
+}
 }

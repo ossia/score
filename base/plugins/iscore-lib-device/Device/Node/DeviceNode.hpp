@@ -1,22 +1,28 @@
 #pragma once
-#include <QString>
-#include <QList>
-#include <QJsonObject>
-
 #include <State/Message.hpp>
-
-#include <Device/Protocol/DeviceSettings.hpp>
-#include <Device/Address/AddressSettings.hpp>
-
 #include <iscore/tools/TreeNode.hpp>
-#include <iscore/tools/VariantBasedNode.hpp>
-
 #include <iscore/tools/TreePath.hpp>
-namespace iscore
-{
-class DeviceExplorerNode : public VariantBasedNode<
-        iscore::DeviceSettings,
-        iscore::AddressSettings>
+#include <iscore/tools/VariantBasedNode.hpp>
+#include <Device/Address/AddressSettings.hpp>
+#include <Device/Protocol/DeviceSettings.hpp>
+#include <QList>
+#include <QString>
+#include <QStringList>
+#include <algorithm>
+
+#include <State/Address.hpp>
+#include <iscore_lib_device_export.h>
+
+class DataStream;
+class JSONObject;
+
+namespace Device {
+struct AddressSettings;
+struct DeviceSettings;
+
+class ISCORE_LIB_DEVICE_EXPORT DeviceExplorerNode : public iscore::VariantBasedNode<
+        Device::DeviceSettings,
+        Device::AddressSettings>
 {
         ISCORE_SERIALIZE_FRIENDS(DeviceExplorerNode, DataStream)
         ISCORE_SERIALIZE_FRIENDS(DeviceExplorerNode, JSONObject)
@@ -43,48 +49,49 @@ class DeviceExplorerNode : public VariantBasedNode<
 };
 
 using Node = TreeNode<DeviceExplorerNode>;
-using NodePath = TreePath<iscore::Node>;
+using NodePath = TreePath<Device::Node>;
 
 // TODO reflist may be a better name.
-using NodeList = QList<iscore::Node*>;
+using NodeList = QList<Device::Node*>;
 
 // TODO add specifications & tests to these functions
-iscore::Address address(const Node& treeNode);
+ISCORE_LIB_DEVICE_EXPORT State::Address address(const Node& treeNode);
 
-iscore::Message message(const iscore::Node& node);
+ISCORE_LIB_DEVICE_EXPORT State::Message message(const Device::Node& node);
 
 // Note : this one takes an output reference as an optimization
 // because of its use in DeviceExplorerModel::indexesToMime
-void messageList(const Node& treeNode,
-                 MessageList& ml);
+ISCORE_LIB_DEVICE_EXPORT void messageList(
+        const Node& treeNode,
+        State::MessageList& ml);
 
 // TODO have all these guys return references
-iscore::Node& getNodeFromAddress(iscore::Node& root, const iscore::Address&);
-iscore::Node* getNodeFromString(iscore::Node& n, QStringList&& str); // Fails if not present.
+ISCORE_LIB_DEVICE_EXPORT Device::Node& getNodeFromAddress(Device::Node& root, const State::Address&);
+ISCORE_LIB_DEVICE_EXPORT Device::Node* getNodeFromString(Device::Node& n, QStringList&& str); // Fails if not present.
 
 
 
 /**
  * @brief dumpTree An utility to print trees
- * of iscore::Nodes
+ * of Device::Nodes
  */
-void dumpTree(const iscore::Node& node, QString rec);
+ISCORE_LIB_DEVICE_EXPORT void dumpTree(const Device::Node& node, QString rec);
 
 
 
 
-iscore::Node merge(
-        iscore::Node base,
-        const iscore::MessageList& other);
+ISCORE_LIB_DEVICE_EXPORT Device::Node merge(
+        Device::Node base,
+        const State::MessageList& other);
 
-void merge(
-        iscore::Node& base,
-        const iscore::Message& message);
+ISCORE_LIB_DEVICE_EXPORT void merge(
+        Device::Node& base,
+        const State::Message& message);
 
 
 // True if gramps is a parent, grand-parent, etc. of node.
 template<typename Node_T>
-bool isAncestor(const Node_T& gramps, const Node_T* node)
+ISCORE_LIB_DEVICE_EXPORT bool isAncestor(const Node_T& gramps, const Node_T* node)
 {
     auto parent = node->parent();
     if(!parent)
@@ -118,7 +125,7 @@ bool isAncestor(const Node_T& gramps, const Node_T* node)
  * TESTME
  */
 template<typename Node_T>
-QList<Node_T*> filterUniqueParents(const QList<Node_T*>& nodes)
+ISCORE_LIB_DEVICE_EXPORT QList<Node_T*> filterUniqueParents(const QList<Node_T*>& nodes)
 {
     // OPTIMIZEME this horrible lazy algorithm.
     auto nodes_cpy = nodes.toSet().toList(); // Remove duplicates
@@ -149,7 +156,7 @@ QList<Node_T*> filterUniqueParents(const QList<Node_T*>& nodes)
 
 // Generic algorithms for DeviceExplorerNode-like structures.
 template<typename Node_T>
-Node_T* try_getNodeFromString(Node_T& n, QStringList&& parts)
+ISCORE_LIB_DEVICE_EXPORT Node_T* try_getNodeFromString(Node_T& n, QStringList&& parts)
 {
     if(parts.size() == 0)
         return &n;
@@ -167,14 +174,14 @@ Node_T* try_getNodeFromString(Node_T& n, QStringList&& parts)
 }
 
 template<typename Node_T>
-Node_T* try_getNodeFromAddress(Node_T& root, const iscore::Address& addr)
+ISCORE_LIB_DEVICE_EXPORT Node_T* try_getNodeFromAddress(Node_T& root, const State::Address& addr)
 {
     if(addr.device.isEmpty())
         return &root;
 
     auto dev = std::find_if(root.begin(), root.end(), [&] (const Node_T& n)
-    { return n.template is<DeviceSettings>()
-          && n.template get<DeviceSettings>().name == addr.device; });
+    { return n.template is<Device::DeviceSettings>()
+          && n.template get<Device::DeviceSettings>().name == addr.device; });
 
     if(dev == root.end())
         return nullptr;

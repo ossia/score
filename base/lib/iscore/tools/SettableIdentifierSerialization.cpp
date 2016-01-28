@@ -1,89 +1,13 @@
+#include <boost/optional/optional.hpp>
 #include <iscore/serialization/DataStreamVisitor.hpp>
-#include <iscore/serialization/JSONVisitor.hpp>
 #include <iscore/serialization/JSONValueVisitor.hpp>
-#include "SettableIdentifier.hpp"
+#include <iscore/serialization/JSONVisitor.hpp>
+#include <QJsonObject>
+#include <QJsonValue>
+#include <QString>
+#include <iscore/tools/std/Optional.hpp>
+#include <sys/types.h>
 
-// TODO refactor with OptionalValue serialization.
-template<>
-void Visitor<Reader<DataStream>>::readFrom(const boost::optional<int32_t>& obj)
-{
-    m_stream << static_cast<bool>(obj);
+template <typename T> class Reader;
+template <typename T> class Writer;
 
-    if(obj)
-    {
-        m_stream << get(obj);
-    }
-}
-
-template<>
-void Visitor<Writer<DataStream>>::writeTo(boost::optional<int32_t>& obj)
-{
-    bool b {};
-    m_stream >> b;
-
-    if(b)
-    {
-        int32_t val;
-        m_stream >> val;
-
-        obj = val;
-    }
-    else
-    {
-        obj = boost::none_t {};
-    }
-}
-
-// TODO should not be used. Save as optional json value instead.
-template<>
-void Visitor<Reader<JSONObject>>::readFrom(const boost::optional<int32_t>& obj)
-{
-    if(obj)
-    {
-        m_obj["id"] = get(obj);
-    }
-    else
-    {
-        m_obj["id"] = "none";
-    }
-}
-
-template<>
-void Visitor<Writer<JSONObject>>::writeTo(boost::optional<int32_t>& obj)
-{
-    if(m_obj["id"].toString() == "none")
-    {
-        obj = boost::none_t {};
-    }
-    else
-    {
-        obj = m_obj["id"].toInt();
-    }
-}
-
-
-template<>
-void Visitor<Reader<JSONValue>>::readFrom(const boost::optional<int32_t>& obj)
-{
-    if(obj)
-    {
-        val = get(obj);
-    }
-    else
-    {
-        val = "none";
-    }
-}
-
-template<>
-void Visitor<Writer<JSONValue>>::writeTo(boost::optional<int32_t>& obj)
-{
-    if(val.toString() == "none")
-    {
-        obj = boost::none_t {};
-    }
-    else
-    {
-        obj = val.toInt();
-    }
-}

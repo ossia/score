@@ -1,5 +1,5 @@
 cmake_minimum_required(VERSION 3.0)
-project(iscore_plugin_deviceexplorer)
+project(iscore_plugin_deviceexplorer LANGUAGES CXX)
 
 iscore_common_setup()
 
@@ -32,13 +32,14 @@ set(SRCS
 
 "${CMAKE_CURRENT_SOURCE_DIR}/Device/QMenuView/qmenuview.cpp" # TODO move in 3rdparty
 "${CMAKE_CURRENT_SOURCE_DIR}/Device/XML/XMLDeviceLoader.cpp"
+"${CMAKE_CURRENT_SOURCE_DIR}/Device/XML/JSONDeviceLoader.cpp"
 )
 
 add_library(iscore_lib_device ${SRCS} ${HEADERS})
 
 target_link_libraries(iscore_lib_device
-                      Qt5::Core Qt5::Widgets Qt5::Xml
-                      iscore_lib_base iscore_lib_state)
+    PUBLIC Qt5::Core Qt5::Widgets iscore_lib_base iscore_lib_state
+    PRIVATE Qt5::Xml)
 
 setup_iscore_library(iscore_lib_device)
 

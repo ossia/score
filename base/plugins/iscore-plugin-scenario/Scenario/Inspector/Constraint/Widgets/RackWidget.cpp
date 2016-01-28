@@ -1,19 +1,28 @@
-#include "RackWidget.hpp"
-
-#include <Scenario/Inspector/Constraint/ConstraintInspectorWidget.hpp>
-
 #include <Scenario/Document/Constraint/ConstraintModel.hpp>
 #include <Scenario/Document/Constraint/Rack/RackModel.hpp>
 #include <Scenario/Document/Constraint/ViewModels/ConstraintViewModel.hpp>
 #include <Scenario/Document/Constraint/ViewModels/FullView/FullViewConstraintViewModel.hpp>
+#include <Scenario/Inspector/Constraint/ConstraintInspectorWidget.hpp>
+#include <boost/optional/optional.hpp>
+#include <QBoxLayout>
+#include <QGridLayout>
+#include <QLabel>
+#include <QLayout>
+#include <QList>
+#include <QObject>
+
+#include <QString>
+#include <QStringList>
+#include <QToolButton>
 
 #include "LambdaFriendlyQComboBox.hpp"
-#include <QtWidgets/QGridLayout>
-#include <QtWidgets/QToolButton>
-#include <QtWidgets/QLabel>
-#include <QtWidgets/QInputDialog>
+#include "RackWidget.hpp"
+#include <iscore/tools/SettableIdentifier.hpp>
 
+namespace Scenario
+{
 const QString RackWidget::hiddenText{ QObject::tr("Hide")};
+
 
 RackWidget::RackWidget(ConstraintInspectorWidget* parent) :
     QWidget {parent},
@@ -60,7 +69,7 @@ void RackWidget::viewModelsChanged()
     int i = 0;
 
     lay->addWidget(new QLabel{"View Model"}, i, 0);
-    lay->addWidget(new QLabel{"Displayed Rack"}, i, 1);
+    lay->addWidget(new QLabel{"Rack Used"}, i, 1);
     i++;
 
     for(auto vm : m_model.viewModels())
@@ -93,9 +102,7 @@ void RackWidget::updateComboBox(LambdaFriendlyQComboBox* combobox, ConstraintVie
 
     for(const auto& rack : m_model.racks)
     {
-        auto id = *rack.id().val();
-        combobox->addItem(QString::number(id));
-        // TODO check that
+        combobox->addItem(rack.metadata.name());
         if(vm->shownRack() == rack.id())
         {
             combobox->setCurrentIndex(combobox->count() - 1);
@@ -107,20 +114,24 @@ void RackWidget::updateComboBox(LambdaFriendlyQComboBox* combobox, ConstraintVie
 
     connect(vm, &ConstraintViewModel::rackHidden,
             combobox, [=] () { combobox->setCurrentIndex(0); });
+    connect(vm, &ConstraintViewModel::lastRackRemoved,
+            combobox, [=] () { combobox->setCurrentIndex(0); });
 
     connect(vm, &ConstraintViewModel::rackShown,
             combobox, [=] (Id<RackModel> id)
     {
         using namespace std;
         auto elts = combobox->elements();
+        auto r = m_model.racks.find(id);
 
         for(int i = 0; i < elts.size(); ++i)
         {
-            if(elts[i] == QString::number(id.val().get()))
+            if(elts[i] == (*r).metadata.name())
             {
                 combobox->setCurrentIndex(i);
                 break;
             }
         }
     });
+}
 }

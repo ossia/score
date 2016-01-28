@@ -1,12 +1,21 @@
 #pragma once
 #include <Scenario/Commands/ScenarioCommandFactory.hpp>
 #include <iscore/command/SerializableCommand.hpp>
-#include <Process/TimeValue.hpp>
 
+#include <iscore/tools/ModelPath.hpp>
+
+class DataStreamInput;
+class DataStreamOutput;
+
+
+namespace Scenario
+{
 class ConstraintModel;
+namespace Command
+{
 class SetLooping final : public iscore::SerializableCommand
 {
-        ISCORE_COMMAND_DECL(ScenarioCommandFactoryName(), SetLooping, "SetLooping")
+        ISCORE_COMMAND_DECL(ScenarioCommandFactoryName(), SetLooping, "Change looping status")
 
     public:
 
@@ -25,4 +34,5 @@ class SetLooping final : public iscore::SerializableCommand
         Path<ConstraintModel> m_path;
         bool m_looping{};
 };
-
+}
+}

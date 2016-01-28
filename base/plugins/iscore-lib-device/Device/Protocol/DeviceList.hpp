@@ -1,9 +1,14 @@
 #pragma once
-#include <QList>
-#include <QDebug>
 #include <Device/Protocol/DeviceInterface.hpp>
+#include <QString>
+#include <algorithm>
+#include <vector>
 
-class DeviceList
+#include <Device/Protocol/DeviceSettings.hpp>
+
+namespace Device
+{
+class ISCORE_LIB_DEVICE_EXPORT DeviceList
 {
     public:
         DeviceList() = default;
@@ -33,3 +38,4 @@ class DeviceList
     private:
         std::vector<DeviceInterface*> m_devices;
 };
+}

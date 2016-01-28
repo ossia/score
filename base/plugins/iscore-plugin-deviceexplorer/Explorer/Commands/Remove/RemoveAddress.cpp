@@ -1,9 +1,26 @@
-#include "RemoveAddress.hpp"
 #include <Explorer/DocumentPlugin/DeviceDocumentPlugin.hpp>
+#include <QDataStream>
+#include <QtGlobal>
+#include <algorithm>
 
+#include <Device/Address/AddressSettings.hpp>
+#include <Device/Node/DeviceNode.hpp>
+#include <Explorer/DocumentPlugin/NodeUpdateProxy.hpp>
+#include "RemoveAddress.hpp"
+#include <iscore/serialization/DataStreamVisitor.hpp>
+#include <iscore/tools/ModelPath.hpp>
+#include <iscore/tools/ModelPathSerialization.hpp>
+#include <iscore/tools/TreeNode.hpp>
+#include <iscore/tools/TreePath.hpp>
+
+
+namespace DeviceExplorer
+{
+namespace Command
+{
 RemoveAddress::RemoveAddress(
         Path<DeviceDocumentPlugin>&& device_tree,
-        const iscore::NodePath& nodePath):
+        const Device::NodePath& nodePath):
     m_devicesModel{device_tree},
     m_nodePath{nodePath}
 {
@@ -11,7 +28,7 @@ RemoveAddress::RemoveAddress(
 
     auto n = nodePath.toNode(&devplug.rootNode());
     ISCORE_ASSERT(n);
-    ISCORE_ASSERT(n->is<iscore::AddressSettings>());
+    ISCORE_ASSERT(n->is<Device::AddressSettings>());
     m_savedNode = *n;
 }
 
@@ -31,7 +48,7 @@ void RemoveAddress::redo() const
     parentPath.removeLast();
     devplug.updateProxy.removeNode(
                 parentPath,
-                m_savedNode.get<iscore::AddressSettings>());
+                m_savedNode.get<Device::AddressSettings>());
 }
 
 void RemoveAddress::serializeImpl(DataStreamInput &s) const
@@ -46,4 +63,6 @@ void RemoveAddress::deserializeImpl(DataStreamOutput &s)
     s >> m_devicesModel
       >> m_nodePath
       >> m_savedNode;
+}
+}
 }

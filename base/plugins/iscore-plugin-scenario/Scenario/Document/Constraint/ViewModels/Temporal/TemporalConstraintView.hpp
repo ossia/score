@@ -1,18 +1,40 @@
 #pragma once
 #include <Scenario/Document/Constraint/ViewModels/ConstraintView.hpp>
-#include <QPainter>
+#include <QColor>
+#include <QtGlobal>
+#include <QPoint>
+#include <QRect>
+#include <QString>
+
+class QGraphicsObject;
+class QGraphicsSceneHoverEvent;
+class QPainter;
+class QStyleOptionGraphicsItem;
+class QWidget;
+
+namespace Scenario
+{
 class TemporalConstraintPresenter;
 
-class TemporalConstraintView final : public ConstraintView
+class LeftBraceView;
+class RightBraceView;
+
+class ISCORE_PLUGIN_SCENARIO_EXPORT TemporalConstraintView final : public ConstraintView
 {
         Q_OBJECT
 
     public:
-        TemporalConstraintView(TemporalConstraintPresenter& presenter,
-                               QGraphicsObject* parent);
+        TemporalConstraintView(
+                TemporalConstraintPresenter& presenter,
+                QGraphicsObject* parent);
 
         QRectF boundingRect() const override
-        { return {0, -15, qreal(maxWidth()), qreal(constraintHeight()) }; }
+        {
+            qreal x = std::min(0., minWidth());
+            qreal rectW = infinite() ? defaultWidth() : maxWidth();
+            rectW -= x;
+            return {x, -15, rectW, qreal(constraintHeight()) };
+        }
 
         void paint(QPainter* painter,
                    const QStyleOptionGraphicsItem* option,
@@ -54,4 +76,8 @@ class TemporalConstraintView final : public ConstraintView
         QString m_label{};
         QColor m_labelColor;
         QColor m_bgColor;
+
+        LeftBraceView* m_leftBrace{};
+        RightBraceView* m_rightBrace{};
 };
+}

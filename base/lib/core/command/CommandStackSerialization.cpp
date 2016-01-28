@@ -1,60 +1,38 @@
-#include "CommandStack.hpp"
 #include <iscore/serialization/DataStreamVisitor.hpp>
+#include <QByteArray>
+#include <QDataStream>
+#include <QtGlobal>
+#include <QList>
+#include <QPair>
+#include <QStack>
 
+#include "CommandStack.hpp"
+#include <iscore/application/ApplicationComponents.hpp>
+#include <iscore/application/ApplicationContext.hpp>
+#include <iscore/command/SerializableCommand.hpp>
+#include <iscore/plugins/customfactory/StringFactoryKey.hpp>
 #include <iscore/tools/std/StdlibWrapper.hpp>
-#include <core/presenter/Presenter.hpp>
+#include <iscore/plugins/customfactory/StringFactoryKeySerialization.hpp>
 
-using namespace iscore;
+template <typename T> class Reader;
+template <typename T> class Writer;
+
 template<>
-void Visitor<Reader<DataStream>>::readFrom(const CommandStack& stack)
+void Visitor<Reader<DataStream>>::readFrom(
+        const iscore::CommandStack& stack)
 {
-    QList<QPair <QPair <CommandParentFactoryKey, CommandFactoryKey>, QByteArray> > undoStack, redoStack;
-    for(const auto& cmd : stack.m_undoable)
+    std::vector<iscore::CommandData> undoStack, redoStack;
+    for(const auto& cmd : stack.undoable())
     {
-        undoStack.push_back({{cmd->parentKey(), cmd->key()}, cmd->serialize()});
+        undoStack.emplace_back(*cmd);
     }
-    for(const auto& cmd : stack.m_redoable)
-    {
-        redoStack.push_back({{cmd->parentKey(), cmd->key()}, cmd->serialize()});
-    }
+    readFrom(undoStack);
 
-    m_stream << undoStack << redoStack;
+    for(const auto& cmd : stack.redoable())
+    {
+        redoStack.emplace_back(*cmd);
+    }
+    readFrom(redoStack);
 
     insertDelimiter();
-}
-
-template<>
-void Visitor<Writer<DataStream>>::writeTo(CommandStack& stack)
-{
-    QList<QPair <QPair <CommandParentFactoryKey, CommandFactoryKey>, QByteArray> > undoStack, redoStack;
-    m_stream >> undoStack >> redoStack;
-
-    checkDelimiter();
-
-
-    stack.updateStack([&] ()
-    {
-        stack.setSavedIndex(-1);
-
-        for(const auto& elt : undoStack)
-        {
-            auto cmd = context.components.instantiateUndoCommand(
-                        elt.first.first,
-                        elt.first.second,
-                        elt.second);
-
-            cmd->redo();
-            stack.m_undoable.push(cmd);
-        }
-
-        for(const auto& elt : redoStack)
-        {
-            auto cmd = context.components.instantiateUndoCommand(
-                        elt.first.first,
-                        elt.first.second,
-                        elt.second);
-
-            stack.m_redoable.push(cmd);
-        }
-    });
 }

@@ -1,12 +1,12 @@
 #pragma once
-#include <map>
 #include <QString>
-#include <QObject>
+#include <map>
+#include <iscore_lib_base_export.h>
 
 // TODO faire un script qui génère ça automatiquement
 namespace iscore
 {
-    enum class ToplevelMenuElement
+    enum class ToplevelMenuElement : int // ISCORE_LIB_BASE_EXPORT
     {
         FileMenu,
         EditMenu,
@@ -18,7 +18,7 @@ namespace iscore
         AboutMenu
     };
 
-    enum class FileMenuElement
+    enum class FileMenuElement : int // ISCORE_LIB_BASE_EXPORT
     {
         New,
         Separator_Load,
@@ -29,10 +29,13 @@ namespace iscore
         Separator_Export,
         Export,
         Separator_Quit,
-        Quit
+        Close,
+        Quit,
+        SaveCommands,
+        LoadCommands
     };
 
-    enum class EditMenuElement
+    enum class EditMenuElement : int // ISCORE_LIB_BASE_EXPORT
     {
         Separator_Copy,
         Copy,
@@ -43,28 +46,40 @@ namespace iscore
         Redo
     };
 
-    enum class ToolMenuElement
+    enum class ToolMenuElement : int // ISCORE_LIB_BASE_EXPORT
     {
         Separator_Tool
     };
 
-    enum class ViewMenuElement
+    enum class ViewMenuElement : int // ISCORE_LIB_BASE_EXPORT
     {
         Windows
     };
 
-    enum class SettingsMenuElement
+    enum class SettingsMenuElement : int // ISCORE_LIB_BASE_EXPORT
     {
         Settings
     };
 
 
-    enum class AboutMenuElement
+    enum class AboutMenuElement : int // ISCORE_LIB_BASE_EXPORT
     {
         Help,
         About
     };
 
+    // this is used to create sub context menu
+    // and to enable actions in ObjectMenu
+    enum class ContextMenu : int
+    {
+        Object,
+        Constraint,
+        Process,
+        Slot,
+        Rack,
+        Event,
+        State
+    };
     /**
      * @brief The MenuInterface class
      *
@@ -73,7 +88,7 @@ namespace iscore
      *
      * The strings are not directly available to the plug-ins because they have to be translated.
      */
-    class MenuInterface
+    class ISCORE_LIB_BASE_EXPORT MenuInterface
     {
         public:
             template<typename MenuType>
@@ -90,5 +105,6 @@ namespace iscore
             static const std::map<ViewMenuElement, QString> m_viewMap;
             static const std::map<SettingsMenuElement, QString> m_settingsMap;
             static const std::map<AboutMenuElement, QString> m_aboutMap;
+            static const std::map<ContextMenu, QString> m_contextMap;
     };
 }

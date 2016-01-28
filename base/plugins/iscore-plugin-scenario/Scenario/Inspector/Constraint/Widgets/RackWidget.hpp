@@ -1,20 +1,16 @@
 #pragma once
 #include <QWidget>
-#include <QMetaObject>
 
-#include <QMap>
+class LambdaFriendlyQComboBox;
+class QString;
 
-class QComboBox;
-
+namespace Scenario
+{
 class ConstraintInspectorWidget;
 class ConstraintModel;
 class ConstraintViewModel;
-class LambdaFriendlyQComboBox;
-
 class RackWidget final : public QWidget
 {
-        Q_OBJECT
-
     public:
         RackWidget(ConstraintInspectorWidget* parent);
 
@@ -32,3 +28,4 @@ class RackWidget final : public QWidget
         ConstraintInspectorWidget* m_parent {};
 
 };
+}

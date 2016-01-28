@@ -15,6 +15,7 @@ class TreeNodeBasedItemModel : public QAbstractItemModel
         using node_type = NodeType;
 
         using QAbstractItemModel::QAbstractItemModel;
+        virtual ~TreeNodeBasedItemModel() = default;
         virtual NodeType& rootNode() = 0;
         virtual const NodeType& rootNode() const = 0;
 
@@ -30,6 +31,9 @@ class TreeNodeBasedItemModel : public QAbstractItemModel
 
         QModelIndex parent(const QModelIndex &index) const final override
         {
+            if(!index.isValid())
+                return QModelIndex();
+
             const auto& node = nodeFromModelIndex(index);
             auto parentNode = node.parent();
 

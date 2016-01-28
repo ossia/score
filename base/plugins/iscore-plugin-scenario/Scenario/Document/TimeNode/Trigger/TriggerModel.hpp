@@ -1,22 +1,24 @@
 #pragma once
-#include <iscore/tools/IdentifiedObject.hpp>
-#include <iscore/tools/SettableIdentifier.hpp>
+#include <iscore/tools/Metadata.hpp>
 #include <Scenario/Document/Event/ExecutionStatus.hpp>
-
 #include <State/Expression.hpp>
+#include <iscore/tools/IdentifiedObject.hpp>
 
-using namespace iscore;
+class QObject;
+#include <iscore/tools/SettableIdentifier.hpp>
+#include <iscore_plugin_scenario_export.h>
 
-class TriggerModel final : public IdentifiedObject<TriggerModel>
+namespace Scenario
+{
+class ISCORE_PLUGIN_SCENARIO_EXPORT TriggerModel final : public IdentifiedObject<TriggerModel>
 {
         Q_OBJECT
-        ISCORE_METADATA("TriggerModel")
 
     public:
         TriggerModel(const Id<TriggerModel>& id, QObject* parent);
 
-        iscore::Trigger expression() const;
-        void setExpression(const iscore::Trigger& expression);
+        State::Trigger expression() const;
+        void setExpression(const State::Trigger& expression);
         bool isVoid();
 
         bool active() const;
@@ -24,15 +26,18 @@ class TriggerModel final : public IdentifiedObject<TriggerModel>
 
         // Note : this is for API -> UI communication.
         // To trigger by hand we have the triggered() signal.
-        ExecutionStatusProperty executionStatus; // TODO serialize me
+        ExecutionStatusProperty executionStatus; // TODO serialize me ?
 
     signals:
-        void triggerChanged(const iscore::Trigger&);
+        void triggerChanged(const State::Trigger&);
         void activeChanged();
 
         void triggered() const;
 
     private:
-        iscore::Trigger m_expression;
+        State::Trigger m_expression;
         bool m_active {false};
 };
+}
+
+DEFAULT_MODEL_METADATA(Scenario::TriggerModel, "Trigger")

@@ -1,13 +1,20 @@
-#include "SetCondition.hpp"
-
 #include <Scenario/Document/Event/EventModel.hpp>
+#include <algorithm>
 
-using namespace iscore;
-using namespace Scenario::Command;
+#include "SetCondition.hpp"
+#include <State/Expression.hpp>
+#include <iscore/serialization/DataStreamVisitor.hpp>
+#include <iscore/tools/ModelPath.hpp>
+#include <iscore/tools/ModelPathSerialization.hpp>
+#include <iscore/tools/TreeNode.hpp>
 
+namespace Scenario
+{
+namespace Command
+{
 SetCondition::SetCondition(
         Path<EventModel>&& eventPath,
-        iscore::Condition&& cond) :
+        State::Condition&& cond) :
     m_path {std::move(eventPath) },
     m_condition(std::move(cond))
 {
@@ -36,4 +43,6 @@ void SetCondition::serializeImpl(DataStreamInput& s) const
 void SetCondition::deserializeImpl(DataStreamOutput& s)
 {
     s >> m_path >> m_condition >> m_previousCondition;
+}
+}
 }

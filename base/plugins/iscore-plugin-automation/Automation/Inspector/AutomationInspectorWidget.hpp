@@ -1,33 +1,47 @@
 #pragma once
+#include <Process/Inspector/ProcessInspectorWidgetDelegate.hpp>
+#include <Automation/AutomationModel.hpp>
+#include <QString>
+#include <iscore/command/Dispatchers/CommandDispatcher.hpp>
 
-#include <Inspector/InspectorWidgetBase.hpp>
+class QWidget;
+
 namespace iscore{
+class Document;
+struct DocumentContext;
+}
+namespace State
+{
 struct Address;
 }
-class DeviceExplorerModel;
-class AutomationModel;
-class QDoubleSpinBox;
-class AddressEditWidget;
-class AutomationInspectorWidget final : public InspectorWidgetBase
+namespace DeviceExplorer
 {
-        Q_OBJECT
+class AddressEditWidget;
+class DeviceExplorerModel;
+}
+class QDoubleSpinBox;
+
+namespace Automation
+{
+class ProcessModel;
+class InspectorWidget final :
+        public ProcessInspectorWidgetDelegate_T<Automation::ProcessModel>
+{
     public:
-        explicit AutomationInspectorWidget(
-                const AutomationModel& object,
-                iscore::Document& doc,
+        explicit InspectorWidget(
+                const ProcessModel& object,
+                const iscore::DocumentContext& context,
                 QWidget* parent);
 
-    signals:
-        void createViewInNewSlot(QString);
-
     public slots:
-        void on_addressChange(const iscore::Address& newText);
+        void on_addressChange(const ::State::Address& newText);
         void on_minValueChanged();
         void on_maxValueChanged();
 
     private:
-        DeviceExplorerModel* m_explorer{};
-        AddressEditWidget* m_lineEdit{};
+        DeviceExplorer::AddressEditWidget* m_lineEdit{};
         QDoubleSpinBox* m_minsb{}, *m_maxsb{};
-        const AutomationModel& m_model;
+
+        CommandDispatcher<> m_dispatcher;
 };
+}

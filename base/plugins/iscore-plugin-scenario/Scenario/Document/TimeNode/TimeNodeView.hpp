@@ -1,10 +1,20 @@
 #pragma once
-#include <QGraphicsObject>
-#include <QMouseEvent>
 #include <Scenario/Document/VerticalExtent.hpp>
+#include <QColor>
+#include <QGraphicsItem>
+#include <QPoint>
+#include <QRect>
+#include <iscore_plugin_scenario_export.h>
+class QGraphicsSceneMouseEvent;
+class QPainter;
+class QStyleOptionGraphicsItem;
+class QWidget;
 
+namespace Scenario
+{
 class TimeNodePresenter;
-class TimeNodeView final : public QGraphicsObject
+
+class ISCORE_PLUGIN_SCENARIO_EXPORT TimeNodeView final : public QGraphicsObject
 {
         Q_OBJECT
 
@@ -13,8 +23,10 @@ class TimeNodeView final : public QGraphicsObject
                      QGraphicsObject* parent);
         ~TimeNodeView() = default;
 
-        int type() const override
+        static constexpr int static_type()
         { return QGraphicsItem::UserType + 3; }
+        int type() const override
+        { return static_type(); }
 
         const TimeNodePresenter& presenter() const
         { return m_presenter;}
@@ -39,7 +51,6 @@ class TimeNodeView final : public QGraphicsObject
             return m_selected;
         }
 
-    public slots:
         void changeColor(QColor);
 
     protected:
@@ -55,3 +66,4 @@ class TimeNodeView final : public QGraphicsObject
         QColor m_color;
         bool m_selected{};
 };
+}

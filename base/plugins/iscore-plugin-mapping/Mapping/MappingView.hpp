@@ -1,8 +1,14 @@
 #pragma once
 
 #include <Process/LayerView.hpp>
+#include <QString>
 
-class MappingView final : public LayerView
+class QGraphicsItem;
+class QPainter;
+
+namespace Mapping
+{
+class MappingView final : public Process::LayerView
 {
     public:
         explicit MappingView(QGraphicsItem *parent);
@@ -19,3 +25,4 @@ class MappingView final : public LayerView
         QString m_dest;
         bool m_showName{true};
 };
+}

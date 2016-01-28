@@ -1,15 +1,20 @@
 #pragma once
 #include <Scenario/Document/Constraint/ViewModels/ConstraintViewModel.hpp>
+#include <QString>
+
+class QObject;
+#include <iscore/tools/SettableIdentifier.hpp>
 
 
+namespace Scenario
+{
 class ConstraintModel;
-
 /**
  * @brief The TemporalConstraintViewModel class
  *
  * The ViewModel of a Constraint shown inside a temporal view of a scenario
  */
-class TemporalConstraintViewModel final : public ConstraintViewModel
+class ISCORE_PLUGIN_SCENARIO_EXPORT TemporalConstraintViewModel final : public ConstraintViewModel
 {
         Q_OBJECT
 
@@ -44,3 +49,4 @@ class TemporalConstraintViewModel final : public ConstraintViewModel
     signals:
         void eventSelected(const QString&);
 };
+}

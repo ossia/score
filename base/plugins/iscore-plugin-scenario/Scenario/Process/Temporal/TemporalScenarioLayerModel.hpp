@@ -1,49 +1,53 @@
 #pragma once
 
 #include <QMap>
-#include <QPointer>
-#include "Scenario/Process/AbstractScenarioLayerModel.hpp"
-class ScenarioModel;
-class RackModel;
-class TemporalConstraintViewModel;
-class TemporalScenarioPresenter;
 
-class ConstraintModel;
+#include <Scenario/Document/Constraint/ViewModels/Temporal/TemporalConstraintViewModel.hpp>
+#include <Scenario/Process/AbstractScenarioLayerModel.hpp>
+#include <Scenario/Process/ScenarioModel.hpp>
+#include <iscore/serialization/VisitorInterface.hpp>
+
+namespace Process {
+class LayerModel;
+class LayerModelPanelProxy;
+}
+class QObject;
+#include <iscore/tools/SettableIdentifier.hpp>
 
 namespace Scenario
 {
-class ToolPalette;
-}
+class ConstraintModel;
+class ConstraintViewModel;
 class TemporalScenarioLayerModel final : public AbstractScenarioLayerModel
 {
         Q_OBJECT
     public:
-        using model_type = ScenarioModel;
+        using model_type = Scenario::ScenarioModel;
         using constraint_layer_type = TemporalConstraintViewModel;
 
         TemporalScenarioLayerModel(const Id<LayerModel>& id,
                               const QMap<Id<ConstraintModel>,
                               Id<ConstraintViewModel>>& constraintIds,
-                              ScenarioModel& model,
+                              Scenario::ScenarioModel& model,
                               QObject* parent);
 
         // Copy
         TemporalScenarioLayerModel(const TemporalScenarioLayerModel& source,
                               const Id<LayerModel>& id,
-                              ScenarioModel& model,
+                              Scenario::ScenarioModel& model,
                               QObject* parent);
 
         // Load
         template<typename Impl>
         TemporalScenarioLayerModel(Deserializer<Impl>& vis,
-                              ScenarioModel& model,
+                              Scenario::ScenarioModel& model,
                               QObject* parent) :
             AbstractScenarioLayerModel {vis, model, parent}
         {
             vis.writeTo(*this);
         }
 
-        LayerModelPanelProxy* make_panelProxy(QObject* parent) const override;
+        Process::LayerModelPanelProxy* make_panelProxy(QObject* parent) const override;
 
         ~TemporalScenarioLayerModel() = default;
 
@@ -62,3 +66,4 @@ class TemporalScenarioLayerModel final : public AbstractScenarioLayerModel
         void on_constraintRemoved(const ConstraintModel&) override;
 
 };
+}

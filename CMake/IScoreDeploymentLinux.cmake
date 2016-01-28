@@ -41,10 +41,6 @@ else()
     set(CPACK_GENERATOR "TGZ")
 endif()
 
-install(PROGRAMS "${CMAKE_SOURCE_DIR}/base/app/i-score.sh"
-        DESTINATION bin
-        CONFIGURATIONS DynamicRelease)
-
 if(ISCORE_STATIC_QT)
 configure_file (
   "${CMAKE_CURRENT_LIST_DIR}/Deployment/Linux/i-score.static.desktop.in"
@@ -58,6 +54,9 @@ configure_file (
 
 endif()
 
+
+install(PROGRAMS "${CMAKE_SOURCE_DIR}/base/app/i-score.sh"
+        DESTINATION bin)
 install(FILES "${PROJECT_BINARY_DIR}/i-score.desktop"
         DESTINATION share/applications)
 install(FILES "${CMAKE_SOURCE_DIR}/base/lib/resources/i-score.png"

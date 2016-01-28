@@ -1,12 +1,27 @@
 #pragma once
-#include <QGraphicsObject>
-#include <QMouseEvent>
-#include <QKeyEvent>
 #include <Scenario/Document/VerticalExtent.hpp>
+#include <QColor>
+#include <QtGlobal>
+#include <QGraphicsItem>
+#include <QPoint>
+#include <QRect>
+#include <QString>
+
 #include "ExecutionStatus.hpp"
-class EventPresenter;
+#include <iscore_plugin_scenario_export.h>
+class QGraphicsSceneDragDropEvent;
+class QGraphicsSceneHoverEvent;
+class QGraphicsSceneMouseEvent;
+class QMimeData;
+class QPainter;
+class QStyleOptionGraphicsItem;
+class QWidget;
+
+namespace Scenario
+{
 class ConditionView;
-class EventView final : public QGraphicsObject
+class EventPresenter;
+class ISCORE_PLUGIN_SCENARIO_EXPORT EventView final : public QGraphicsObject
 {
         Q_OBJECT
 
@@ -14,10 +29,13 @@ class EventView final : public QGraphicsObject
         EventView(EventPresenter& presenter, QGraphicsObject* parent);
         virtual ~EventView() = default;
 
-        int type() const override
+        static constexpr int static_type()
         { return QGraphicsItem::UserType + 1; }
+        int type() const override
+        { return static_type(); }
 
-        const EventPresenter& presenter() const;
+        const EventPresenter& presenter() const
+        { return m_presenter; }
 
         QRectF boundingRect() const override
         { return {-5, -10., 10, qreal(m_extent.bottom() - m_extent.top() + 20)};  }
@@ -40,14 +58,12 @@ class EventView final : public QGraphicsObject
 
         void setStatus(ExecutionStatus s);
 
+        void changeColor(QColor);
     signals:
         void eventHoverEnter();
         void eventHoverLeave();
 
         void dropReceived(const QPointF& pos, const QMimeData*);
-
-    public slots:
-        void changeColor(QColor);
 
     protected:
         void mousePressEvent(QGraphicsSceneMouseEvent *event) override;
@@ -66,11 +82,11 @@ class EventView final : public QGraphicsObject
         QPointF m_clickedPoint;
         QColor m_color;
 
-        ExecutionStatus m_status{ExecutionStatus::Editing};
+        ExecutionStatusProperty m_status{};
         bool m_selected{};
 
         VerticalExtent m_extent;
 
         ConditionView* m_conditionItem{};
 };
-
+}

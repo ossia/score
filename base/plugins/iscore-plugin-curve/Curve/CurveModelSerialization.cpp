@@ -1,16 +1,28 @@
-#include "CurveModel.hpp"
+#include <Curve/Segment/CurveSegmentList.hpp>
+#include <Curve/Segment/CurveSegmentModelSerialization.hpp>
+
 
 #include <iscore/serialization/DataStreamVisitor.hpp>
 #include <iscore/serialization/JSONVisitor.hpp>
-#include <Curve/Segment/CurveSegmentModelSerialization.hpp>
-#include <Curve/Point/CurvePointModel.hpp>
-#include <core/application/ApplicationComponents.hpp>
-#include <Curve/Segment/CurveSegmentList.hpp>
+#include <QJsonArray>
+#include <QJsonObject>
+#include <QJsonValue>
+#include <sys/types.h>
+
+#include "CurveModel.hpp"
+#include <iscore/application/ApplicationContext.hpp>
+#include <iscore/plugins/customfactory/StringFactoryKey.hpp>
+#include <iscore/tools/IdentifiedObjectMap.hpp>
+
+template <typename T> class Reader;
+template <typename T> class Writer;
+template <typename model> class IdentifiedObject;
 
 template<>
-void Visitor<Reader<DataStream>>::readFrom(const CurveModel& curve)
+ISCORE_PLUGIN_CURVE_EXPORT void Visitor<Reader<DataStream>>::readFrom(
+        const Curve::Model& curve)
 {
-    readFrom(static_cast<const IdentifiedObject<CurveModel>&>(curve));
+    readFrom(static_cast<const IdentifiedObject<Curve::Model>&>(curve));
 
     const auto& segments = curve.segments();
 
@@ -23,15 +35,16 @@ void Visitor<Reader<DataStream>>::readFrom(const CurveModel& curve)
 }
 
 template<>
-void Visitor<Writer<DataStream>>::writeTo(CurveModel& curve)
+ISCORE_PLUGIN_CURVE_EXPORT void Visitor<Writer<DataStream>>::writeTo(
+        Curve::Model& curve)
 {
     int32_t size;
     m_stream >> size;
 
-    auto& csl = context.components.factory<DynamicCurveSegmentList>();
+    auto& csl = context.components.factory<Curve::SegmentList>();
     for(; size --> 0;)
     {
-        curve.addSegment(createCurveSegment(csl, *this, &curve));
+        curve.addSegment(deserialize_interface(csl, *this, &curve));
     }
 
     curve.changed();
@@ -39,21 +52,23 @@ void Visitor<Writer<DataStream>>::writeTo(CurveModel& curve)
 }
 
 template<>
-void Visitor<Reader<JSONObject>>::readFrom(const CurveModel& curve)
+ISCORE_PLUGIN_CURVE_EXPORT void Visitor<Reader<JSONObject>>::readFrom(
+        const Curve::Model& curve)
 {
-    readFrom(static_cast<const IdentifiedObject<CurveModel>&>(curve));
+    readFrom(static_cast<const IdentifiedObject<Curve::Model>&>(curve));
 
     m_obj["Segments"] = toJsonArray(curve.segments());
 }
 
 template<>
-void Visitor<Writer<JSONObject>>::writeTo(CurveModel& curve)
+ISCORE_PLUGIN_CURVE_EXPORT void Visitor<Writer<JSONObject>>::writeTo(
+        Curve::Model& curve)
 {
-    auto& csl = context.components.factory<DynamicCurveSegmentList>();
+    auto& csl = context.components.factory<Curve::SegmentList>();
     for(const auto& segment : m_obj["Segments"].toArray())
     {
         Deserializer<JSONObject> segment_deser{segment.toObject()};
-        curve.addSegment(createCurveSegment(csl, segment_deser, &curve));
+        curve.addSegment(deserialize_interface(csl, segment_deser, &curve));
     }
 
     curve.changed();

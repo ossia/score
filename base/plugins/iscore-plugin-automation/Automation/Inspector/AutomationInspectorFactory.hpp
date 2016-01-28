@@ -1,22 +1,28 @@
 #pragma once
-#include <QObject>
-#include <Inspector/InspectorWidgetFactoryInterface.hpp>
+#include <Process/Inspector/ProcessInspectorWidgetDelegateFactory.hpp>
+
+class InspectorWidgetBase;
+class QObject;
+class QString;
+class QWidget;
+namespace iscore {
+struct DocumentContext;
+}  // namespace iscore
 
 
-class AutomationInspectorFactory final : public InspectorWidgetFactory
+namespace Automation
+{
+class InspectorFactory final : public ProcessInspectorWidgetDelegateFactory
 {
     public:
-        AutomationInspectorFactory() :
-            InspectorWidgetFactory {}
-        {
-
-        }
-
-        InspectorWidgetBase* makeWidget(
-                const QObject& sourceElement,
-                iscore::Document& doc,
-                QWidget* parent) override;
+        InspectorFactory() = default;
 
     private:
-        const QList<QString>& key_impl() const override;
+        ProcessInspectorWidgetDelegate* make(
+                const Process::ProcessModel&,
+                const iscore::DocumentContext& doc,
+                QWidget* parent) const override;
+        bool matches(const Process::ProcessModel&) const override;
+
 };
+}

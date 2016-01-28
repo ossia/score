@@ -1,11 +1,11 @@
 #include <core/settings/SettingsView.hpp>
 #include <iscore/plugins/settingsdelegate/SettingsDelegatePresenterInterface.hpp>
 #include <iscore/plugins/settingsdelegate/SettingsDelegateViewInterface.hpp>
-#include <QListWidgetItem>
-#include <QStyle>
-using namespace iscore;
+#include <QSize>
+#include <QWidget>
 
-
+namespace iscore
+{
 SettingsView::SettingsView(QWidget* parent) :
     QDialog {parent}
 {
@@ -22,8 +22,8 @@ SettingsView::SettingsView(QWidget* parent) :
         this->setLayout(m_vertLayout);
     }
 
-    connect(m_settingsList, SIGNAL(currentRowChanged(int)),
-    m_stackedWidget, SLOT(setCurrentIndex(int)));
+    connect(m_settingsList, &QListWidget::currentRowChanged,
+    m_stackedWidget, &QStackedWidget::setCurrentIndex);
 
     connect(m_buttons, &QDialogButtonBox::accepted,
     this,	   &SettingsView::accept);
@@ -43,4 +43,5 @@ void SettingsView::addSettingsView(SettingsDelegateViewInterface* view)
     m_stackedWidget->addWidget(view->getWidget());
 
     m_pluginViews.insert(view);
+}
 }

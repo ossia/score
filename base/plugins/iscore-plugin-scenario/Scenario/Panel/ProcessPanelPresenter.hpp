@@ -1,41 +1,42 @@
 #pragma once
-#include <iscore/plugins/panel/PanelPresenter.hpp>
-#include <Process/ProcessList.hpp>
-#include "ProcessPanelGraphicsProxy.hpp"
-
 #include <Process/ZoomHelper.hpp>
-class BaseElementModel;
-class LayerView;
-class LayerPresenter;
+#include <iscore/plugins/panel/PanelPresenter.hpp>
+namespace Process
+{
+class ProcessList;
 class LayerModel;
+class LayerModelPanelProxy;
+}
+class ProcessPanelGraphicsProxy;
+class QSize;
+
+namespace iscore {
+class PanelView;
+}  // namespace iscore
+
+namespace Scenario
+{
 class ProcessPanelPresenter final : public iscore::PanelPresenter
 {
-        Q_OBJECT
     public:
         ProcessPanelPresenter(
-                const DynamicProcessList& plist,
-                iscore::Presenter* parent_presenter,
-                iscore::PanelView* view);
+                const Process::ProcessList& plist,
+                iscore::PanelView* view,
+                QObject* parent);
 
         int panelId() const override;
-        void on_modelChanged() override;
+        void on_modelChanged(
+                iscore::PanelModel* oldm,
+                iscore::PanelModel* newm) override;
 
-        ZoomRatio zoomRatio() const
-        { return m_zoomRatio; }
-
-    private slots:
-        void on_focusedViewModelChanged(const LayerModel*);
-        void on_sizeChanged(const QSize& size);
-        void on_zoomChanged(ZoomRatio ratio);
 
     private:
+        void on_focusedViewModelChanged(const Process::LayerModel*);
+
         void cleanup();
 
-        const DynamicProcessList& m_processList;
-        ProcessPanelGraphicsProxy* m_obj{};
-        const LayerModel* m_layerModel{};
-        LayerPresenter* m_processPresenter{};
-        LayerView* m_layer{};
+        const Process::LayerModel* m_layerModel{};
+        Process::LayerModelPanelProxy* m_proxy{};
 
-        ZoomRatio m_zoomRatio{};
 };
+}

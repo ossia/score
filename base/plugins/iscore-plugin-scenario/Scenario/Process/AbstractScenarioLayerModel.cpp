@@ -1,11 +1,20 @@
-#include "AbstractScenarioLayerModel.hpp"
-#include <Scenario/Document/Constraint/ViewModels/ConstraintViewModel.hpp>
 #include <Scenario/Document/Constraint/ConstraintModel.hpp>
-#include <Scenario/Document/Constraint/Rack/Slot/SlotModel.hpp>
-
+#include <Scenario/Document/Constraint/ViewModels/ConstraintViewModel.hpp>
 #include <Scenario/Process/ScenarioModel.hpp>
-#include <iscore/document/DocumentInterface.hpp>
+#include <boost/optional/optional.hpp>
+#include <algorithm>
+#include <iterator>
 
+#include "AbstractScenarioLayerModel.hpp"
+#include <Process/Process.hpp>
+#include <Scenario/Document/Constraint/ViewModels/ConstraintViewModelIdMap.hpp>
+#include <iscore/tools/IdentifiedObject.hpp>
+#include <iscore/tools/ObjectPath.hpp>
+#include <iscore/tools/SettableIdentifier.hpp>
+#include <iscore/tools/utilsCPP11.hpp>
+
+namespace Scenario
+{
 ConstraintViewModel& AbstractScenarioLayerModel::constraint(
         const Id<ConstraintViewModel>& id) const
 {
@@ -82,7 +91,7 @@ ConstraintViewModel& AbstractScenarioLayerModel::constraint(
 
 void createConstraintViewModels(const ConstraintViewModelIdMap& idMap,
                                 const Id<ConstraintModel>& constraintId,
-                                const ScenarioModel& scenario)
+                                const Scenario::ScenarioModel& scenario)
 {
     // Creation of all the constraint view models
     for(auto& viewModel : layers(scenario))
@@ -103,7 +112,7 @@ void createConstraintViewModels(const ConstraintViewModelIdMap& idMap,
 
 std::vector<ConstraintViewModel*> getConstraintViewModels(
         const Id<ConstraintModel>& constraintId,
-        const ScenarioModel& scenario)
+        const Scenario::ScenarioModel& scenario)
 {
     const auto& lays = layers(scenario);
 
@@ -117,4 +126,5 @@ std::vector<ConstraintViewModel*> getConstraintViewModels(
     }
 
     return vec;
+}
 }

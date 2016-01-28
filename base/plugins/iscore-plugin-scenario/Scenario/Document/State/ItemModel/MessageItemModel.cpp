@@ -1,12 +1,36 @@
-#include "MessageItemModel.hpp"
-
+#include <Scenario/Commands/State/AddMessagesToState.hpp>
 #include <State/MessageListSerialization.hpp>
-#include <iscore/document/DocumentInterface.hpp>
 
-#include <Scenario/Commands/State/UpdateState.hpp>
-using namespace iscore;
+#include <boost/optional/optional.hpp>
+#include <QFlags>
+#include <QJsonDocument>
+#include <QMap>
+#include <QMimeData>
+#include <QObject>
+
+#include <QString>
+#include <algorithm>
+
+#include "MessageItemModel.hpp"
+#include <Process/State/MessageNode.hpp>
+#include <State/Message.hpp>
+#include <State/StateMimeTypes.hpp>
+#include <State/ValueConversion.hpp>
+#include <iscore/command/Dispatchers/CommandDispatcher.hpp>
+#include <iscore/serialization/JSONVisitor.hpp>
+#include <iscore/tools/ModelPath.hpp>
+#include <iscore/tools/TreeNode.hpp>
+#include <iscore/tools/TreeNodeItemModel.hpp>
+
+namespace iscore {
+class CommandStackFacade;
+}  // namespace iscore
+
+namespace Scenario
+{
+class StateModel;
 MessageItemModel::MessageItemModel(
-        CommandStack& stack,
+        iscore::CommandStackFacade& stack,
         const StateModel& sm,
         QObject* parent):
     TreeNodeBasedItemModel<MessageNode>{parent},
@@ -14,7 +38,7 @@ MessageItemModel::MessageItemModel(
     m_rootNode{},
     m_stack{stack}
 {
-    this->setObjectName("MessageItemModel");
+    this->setObjectName("Scenario::MessageItemModel");
 }
 
 MessageItemModel &MessageItemModel::operator=(const MessageItemModel & other)
@@ -60,9 +84,20 @@ QVariant valueColumnData(const MessageItemModel::node_type& node, int role)
 {
     if(role == Qt::DisplayRole || role == Qt::EditRole)
     {
-        const auto& val = node.value();
-        if(val)
-            return iscore::convert::value<QVariant>(*val);
+        const auto& opt_val = node.value();
+        if(opt_val)
+        {
+            auto& val = *opt_val;
+            if(val.val.is<State::tuple_t>())
+            {
+                // TODO a nice editor for tuples.
+                return State::convert::toPrettyString(val);
+            }
+            else
+            {
+                return State::convert::value<QVariant>(val);
+            }
+        }
         return QVariant{};
     }
 
@@ -181,12 +216,12 @@ bool MessageItemModel::dropMimeData(
         return false;
     }
 
-    iscore::MessageList ml;
+    State::MessageList ml;
     fromJsonArray(
                 QJsonDocument::fromJson(data->data(iscore::mime::messagelist())).array(),
                 ml);
 
-    auto cmd = new AddMessagesToState{*this, ml};
+    auto cmd = new Command::AddMessagesToState{*this, ml};
 
     CommandDispatcher<> disp(m_stack);
     disp.submitCommand(cmd);
@@ -246,14 +281,14 @@ bool MessageItemModel::setData(
     {
         if(col == Column::Value)
         {
-            auto value = iscore::convert::toValue(value_received);
+            auto value = State::convert::toValue(value_received);
             auto current_val = n.value();
             if(current_val)
             {
-                iscore::convert::convert(*current_val, value);
+                State::convert::convert(*current_val, value);
             }
-            auto cmd = new AddMessagesToState{*this,
-                                     iscore::MessageList{{address(n), value}}};
+            auto cmd = new Command::AddMessagesToState{*this,
+                                     State::MessageList{{address(n), value}}};
 
             CommandDispatcher<> disp(m_stack);
             disp.submitCommand(cmd);
@@ -262,4 +297,5 @@ bool MessageItemModel::setData(
     }
 
     return false;
+}
 }

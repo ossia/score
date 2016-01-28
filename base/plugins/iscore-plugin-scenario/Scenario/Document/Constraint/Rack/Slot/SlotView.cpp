@@ -1,12 +1,18 @@
-#include "SlotView.hpp"
-#include "SlotOverlay.hpp"
-#include "SlotHandle.hpp"
-#include <iscore/tools/NamedObject.hpp>
-
-#include <QGraphicsScene>
-#include <QApplication>
-#include <QPainter>
 #include <Process/Style/ScenarioStyle.hpp>
+#include <QGraphicsSceneEvent>
+#include <qnamespace.h>
+#include <QPainter>
+#include <QPen>
+
+#include "SlotHandle.hpp"
+#include "SlotOverlay.hpp"
+#include "SlotView.hpp"
+
+class QStyleOptionGraphicsItem;
+class QWidget;
+
+namespace Scenario
+{
 SlotView::SlotView(const SlotPresenter &pres, QGraphicsObject* parent) :
     QGraphicsObject {parent},
     presenter{pres},
@@ -103,9 +109,9 @@ void SlotView::setFrontProcessName(const QString& s)
     m_frontProcessName = s;
 }
 
-#include <QGraphicsSceneContextMenuEvent>
 void SlotView::contextMenuEvent(
         QGraphicsSceneContextMenuEvent* event)
 {
     emit askContextMenu(event->screenPos(), event->scenePos());
+}
 }

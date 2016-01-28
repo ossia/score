@@ -1,10 +1,12 @@
 #include <core/settings/Settings.hpp>
 #include <core/settings/SettingsModel.hpp>
-#include <core/settings/SettingsView.hpp>
 #include <core/settings/SettingsPresenter.hpp>
-#include <core/application/Application.hpp>
-using namespace iscore;
+#include <core/settings/SettingsView.hpp>
 
+#include <iscore/plugins/settingsdelegate/SettingsDelegateFactoryInterface.hpp>
+
+namespace iscore
+{
 Settings::Settings(QObject* parent) :
     QObject {parent},
 m_settingsModel {new SettingsModel(this) },
@@ -32,4 +34,5 @@ void Settings::setupSettingsPlugin(SettingsDelegateFactoryInterface* plugin)
             view));
     m_settingsModel->addSettingsModel(model);
     m_settingsView->addSettingsView(view);
+}
 }

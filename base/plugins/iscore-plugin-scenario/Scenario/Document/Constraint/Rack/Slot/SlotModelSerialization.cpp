@@ -1,13 +1,28 @@
-#include "SlotModel.hpp"
-#include <Process/LayerModel.hpp>
 #include <Scenario/Document/Constraint/LayerModelLoader.hpp>
-#include <iscore/serialization/JSONVisitor.hpp>
+
+#include <boost/optional/optional.hpp>
+#include <QtGlobal>
+#include <QJsonArray>
+#include <QJsonObject>
+#include <QJsonValue>
+#include <sys/types.h>
+#include <algorithm>
+
+#include "SlotModel.hpp"
 #include <iscore/serialization/DataStreamVisitor.hpp>
 #include <iscore/serialization/JSONValueVisitor.hpp>
+#include <iscore/serialization/JSONVisitor.hpp>
+#include <iscore/tools/NotifyingMap.hpp>
+#include <iscore/tools/SettableIdentifier.hpp>
 
-template<> void Visitor<Reader<DataStream>>::readFrom(const SlotModel& slot)
+namespace Process { class LayerModel; }
+template <typename T> class Reader;
+template <typename T> class Writer;
+template <typename model> class IdentifiedObject;
+
+template<> void Visitor<Reader<DataStream>>::readFrom(const Scenario::SlotModel& slot)
 {
-    readFrom(static_cast<const IdentifiedObject<SlotModel>&>(slot));
+    readFrom(static_cast<const IdentifiedObject<Scenario::SlotModel>&>(slot));
 
     m_stream << slot.m_frontLayerModelId;
 
@@ -24,9 +39,9 @@ template<> void Visitor<Reader<DataStream>>::readFrom(const SlotModel& slot)
     insertDelimiter();
 }
 
-template<> void Visitor<Writer<DataStream>>::writeTo(SlotModel& slot)
+template<> void Visitor<Writer<DataStream>>::writeTo(Scenario::SlotModel& slot)
 {
-    Id<LayerModel> editedProcessId;
+    Id<Process::LayerModel> editedProcessId;
     m_stream >> editedProcessId;
 
     int32_t lm_size;
@@ -36,7 +51,7 @@ template<> void Visitor<Writer<DataStream>>::writeTo(SlotModel& slot)
 
     for(int i = 0; i < lm_size; i++)
     {
-        auto lm = createLayerModel(*this, cstr, &slot);
+        auto lm = Process::createLayerModel(*this, cstr, &slot);
         slot.layers.add(lm);
     }
 
@@ -53,9 +68,9 @@ template<> void Visitor<Writer<DataStream>>::writeTo(SlotModel& slot)
 
 
 
-template<> void Visitor<Reader<JSONObject>>::readFrom(const SlotModel& slot)
+template<> void Visitor<Reader<JSONObject>>::readFrom(const Scenario::SlotModel& slot)
 {
-    readFrom(static_cast<const IdentifiedObject<SlotModel>&>(slot));
+    readFrom(static_cast<const IdentifiedObject<Scenario::SlotModel>&>(slot));
 
     m_obj["EditedProcess"] = toJsonValue(slot.m_frontLayerModelId);
     m_obj["Height"] = slot.height();
@@ -70,7 +85,7 @@ template<> void Visitor<Reader<JSONObject>>::readFrom(const SlotModel& slot)
     m_obj["LayerModels"] = arr;
 }
 
-template<> void Visitor<Writer<JSONObject>>::writeTo(SlotModel& slot)
+template<> void Visitor<Writer<JSONObject>>::writeTo(Scenario::SlotModel& slot)
 {
     QJsonArray arr = m_obj["LayerModels"].toArray();
 
@@ -79,7 +94,7 @@ template<> void Visitor<Writer<JSONObject>>::writeTo(SlotModel& slot)
     for(const auto& json_vref : arr)
     {
         Deserializer<JSONObject> deserializer {json_vref.toObject() };
-        auto lm = createLayerModel(deserializer,
+        auto lm = Process::createLayerModel(deserializer,
                                           cstr,
                                           &slot);
         slot.layers.add(lm);
@@ -87,6 +102,6 @@ template<> void Visitor<Writer<JSONObject>>::writeTo(SlotModel& slot)
 
     slot.setHeight(static_cast<qreal>(m_obj["Height"].toDouble()));
     slot.putToFront(
-                fromJsonValue<Id<LayerModel>>(
+                fromJsonValue<Id<Process::LayerModel>>(
                     m_obj["EditedProcess"]));
 }

@@ -1,17 +1,27 @@
 #pragma once
 #include <State/Message.hpp>
-#include <Process/Process.hpp>
+
+#include <boost/optional/optional.hpp>
 #include <iscore/tools/TreeNode.hpp>
+#include <QString>
+#include <QStringList>
 #include <QVector>
-#include <QPointer>
+#include <algorithm>
 #include <array>
 
+#include <State/Address.hpp>
+#include <State/Value.hpp>
+#include <State/ValueConversion.hpp>
+#include <iscore/serialization/JSONVisitor.hpp>
+#include <iscore/tools/SettableIdentifier.hpp>
+#include <iscore_lib_process_export.h>
 
-class StateModel;
+namespace Process { class ProcessModel; }
+
 struct ProcessStateData
 {
-        Id<Process> process;
-        iscore::OptionalValue value;
+        Id<Process::ProcessModel> process;
+        State::OptionalValue value;
 };
 
 enum class PriorityPolicy {
@@ -20,10 +30,15 @@ enum class PriorityPolicy {
 
 struct StateNodeValues
 {
+        bool empty() const
+        {
+            return previousProcessValues.isEmpty() && followingProcessValues.isEmpty() && !userValue;
+        }
+
         // TODO use lists or queues instead to manage the priorities
         QVector<ProcessStateData> previousProcessValues;
         QVector<ProcessStateData> followingProcessValues;
-        iscore::OptionalValue userValue;
+        State::OptionalValue userValue;
 
 
         std::array<PriorityPolicy, 3> priorities{{
@@ -55,7 +70,7 @@ struct StateNodeValues
 
         // TODO here we have to choose a policy
         // if we have both previous and following processes ?
-        iscore::OptionalValue value() const
+        State::OptionalValue value() const
         {
             for(const auto& prio : priorities)
             {
@@ -97,7 +112,7 @@ struct StateNodeValues
         {
             auto val = value();
             if(val)
-                return iscore::convert::value<QString>(*val);
+                return State::convert::value<QString>(*val);
             return {};
         }
 
@@ -105,7 +120,7 @@ struct StateNodeValues
 
 struct StateNodeMessage
 {
-        iscore::Address addr; // device + path
+        State::Address addr; // device + path
         StateNodeValues values;
 };
 
@@ -120,15 +135,16 @@ struct StateNodeData
         bool hasValue() const
         { return values.hasValue(); }
 
-        iscore::OptionalValue value() const
+        State::OptionalValue value() const
         { return values.value(); }
+
 };
 
 using MessageNode = TreeNode<StateNodeData>;
 using MessageNodePath = TreePath<MessageNode>;
 
-iscore::Address address(const MessageNode& treeNode);
-iscore::Message message(const MessageNode& node);
-QStringList toStringList(const iscore::Address& addr);
+ISCORE_LIB_PROCESS_EXPORT State::Address address(const MessageNode& treeNode);
+ISCORE_LIB_PROCESS_EXPORT State::Message message(const MessageNode& node);
+ISCORE_LIB_PROCESS_EXPORT QStringList toStringList(const State::Address& addr);
 
-iscore::MessageList flatten(const MessageNode&);
+ISCORE_LIB_PROCESS_EXPORT State::MessageList flatten(const MessageNode&);

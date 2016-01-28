@@ -1,7 +1,11 @@
 #include <core/command/CommandStack.hpp>
+#include <QtAlgorithms>
+#include <QVector>
 
-using namespace iscore;
+#include <iscore/command/SerializableCommand.hpp>
 
+namespace iscore
+{
 CommandStack::CommandStack(QObject* parent) :
     QObject {}
 {
@@ -25,7 +29,7 @@ const SerializableCommand* CommandStack::command(int index) const
 }
 
 
-void CommandStack::setIndex(int index)
+void CommandStack::setIndexQuiet(int index)
 {
     while(index >= 0 && currentIndex() != index)
     {
@@ -36,6 +40,15 @@ void CommandStack::setIndex(int index)
     }
 
     emit sig_indexChanged();
+}
+
+void CommandStack::setIndex(int index)
+{
+    if(index != currentIndex())
+    {
+        setIndexQuiet(index);
+        emit localIndexChanged(index);
+    }
 }
 
 void CommandStack::undoQuiet()
@@ -121,4 +134,5 @@ void CommandStack::pushQuiet(SerializableCommand* cmd)
 void CommandStack::setSavedIndex(int index)
 {
     m_savedIndex = index;
+}
 }

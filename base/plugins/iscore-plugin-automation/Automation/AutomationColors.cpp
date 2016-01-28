@@ -1,10 +1,20 @@
-#include "AutomationColors.hpp"
+#include <QByteArray>
+#include <QColor>
+#include <QFile>
+#include <QIODevice>
+#include <QJsonArray>
 #include <QJsonDocument>
 #include <QJsonObject>
-#include <QJsonArray>
-#include <QFile>
+#include <QJsonValue>
 
-AutomationColors::AutomationColors()
+#include "AutomationColors.hpp"
+#include <Curve/CurveStyle.hpp>
+
+class QString;
+
+namespace Automation
+{
+Colors::Colors()
 {
 #ifdef ISCORE_IEEE_SKIN
     QFile cols(":/AutomationColors-IEEE.json");
@@ -13,7 +23,7 @@ AutomationColors::AutomationColors()
 #endif
     if(cols.open(QFile::ReadOnly))
     {
-        // TODO refactor with ScenarioControl
+        // TODO refactor with ScenarioApplicationPlugin
         auto obj = QJsonDocument::fromJson(cols.readAll()).object();
         auto fromColor = [&] (const QString& key) {
             auto arr = obj[key].toArray();
@@ -31,4 +41,5 @@ AutomationColors::AutomationColors()
         m_style.SegmentSelected = fromColor("SegmentSelected");
         m_style.SegmentDisabled = fromColor("SegmentDisabled");
     }
+}
 }

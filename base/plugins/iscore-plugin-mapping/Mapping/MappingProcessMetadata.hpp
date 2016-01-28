@@ -1,11 +1,17 @@
 #pragma once
-#include <Process/ProcessFactoryKey.hpp>
+#include <Process/ProcessMetadata.hpp>
+#include <QString>
+#include <iscore_plugin_mapping_export.h>
 
-struct MappingProcessMetadata
+namespace Mapping
 {
-        static const ProcessFactoryKey& factoryKey();
+class ProcessModel;
+}
 
-        static QString processObjectName();
-
-        static QString factoryPrettyName();
-};
+PROCESS_METADATA(
+        ISCORE_PLUGIN_MAPPING_EXPORT,
+        Mapping::ProcessModel,
+        "12a5d9b8-823e-4303-99f8-34db37c448b4",
+        "Mapping",
+        "Mapping"
+        )

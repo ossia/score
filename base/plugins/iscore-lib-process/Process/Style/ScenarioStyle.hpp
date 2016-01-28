@@ -1,7 +1,10 @@
 #pragma once
-#include <QColor>
 
-struct ScenarioStyle
+#include <QColor>
+#include <qnamespace.h>
+#include <iscore_lib_process_export.h>
+
+struct ISCORE_LIB_PROCESS_EXPORT ScenarioStyle
 {
         ScenarioStyle(const ScenarioStyle&) = delete;
         ScenarioStyle(ScenarioStyle&&) = delete;

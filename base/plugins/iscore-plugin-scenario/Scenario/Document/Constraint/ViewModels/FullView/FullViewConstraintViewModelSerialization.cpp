@@ -1,24 +1,34 @@
-#include "FullViewConstraintViewModel.hpp"
+#include <QJsonArray>
+#include <QJsonObject>
+#include <QJsonValue>
+#include <QPoint>
 
-#include <Scenario/Document/Constraint/ViewModels/ConstraintViewModelSerialization.hpp>
+#include "FullViewConstraintViewModel.hpp"
+#include <iscore/serialization/DataStreamVisitor.hpp>
+#include <iscore/serialization/JSONValueVisitor.hpp>
+#include <iscore/serialization/JSONVisitor.hpp>
+
+
+template <typename T> class Reader;
+template <typename T> class Writer;
 
 template<>
-void Visitor<Reader<DataStream>>::readFrom(const FullViewConstraintViewModel& constraint)
+void Visitor<Reader<DataStream>>::readFrom(const Scenario::FullViewConstraintViewModel& constraint)
 {
-    readFrom(static_cast<const ConstraintViewModel&>(constraint));
+    readFrom(static_cast<const Scenario::ConstraintViewModel&>(constraint));
     m_stream << constraint.zoom() << constraint.center();
 }
 
 template<>
-void Visitor<Reader<JSONObject>>::readFrom(const FullViewConstraintViewModel& constraint)
+void Visitor<Reader<JSONObject>>::readFrom(const Scenario::FullViewConstraintViewModel& constraint)
 {
-    readFrom(static_cast<const ConstraintViewModel&>(constraint));
+    readFrom(static_cast<const Scenario::ConstraintViewModel&>(constraint));
     m_obj["Zoom"] = constraint.zoom();
     m_obj["CenterOn"] = toJsonValue(constraint.center());
 }
 
 template<>
-void Visitor<Writer<DataStream>>::writeTo(FullViewConstraintViewModel& cvm)
+void Visitor<Writer<DataStream>>::writeTo(Scenario::FullViewConstraintViewModel& cvm)
 {
     double z;
     QPointF c;
@@ -28,7 +38,7 @@ void Visitor<Writer<DataStream>>::writeTo(FullViewConstraintViewModel& cvm)
 }
 
 template<>
-void Visitor<Writer<JSONObject>>::writeTo(FullViewConstraintViewModel& cvm)
+void Visitor<Writer<JSONObject>>::writeTo(Scenario::FullViewConstraintViewModel& cvm)
 {
     auto z = m_obj["Zoom"].toDouble();
     auto c = m_obj["CenterOn"].toArray();

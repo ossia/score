@@ -1,18 +1,27 @@
-#include "SplitTimeNode.hpp"
-
-#include "Scenario/Process/ScenarioModel.hpp"
-#include <iscore/tools/SettableIdentifierGeneration.hpp>
-
 #include <Scenario/Document/TimeNode/TimeNodeModel.hpp>
 #include <Scenario/Process/Algorithms/StandardCreationPolicy.hpp>
-#include <Scenario/Document/Event/EventModel.hpp>
-#include <Scenario/Process/Algorithms/StandardRemovalPolicy.hpp>
-
-#include <iscore/tools/SettableIdentifierGeneration.hpp>
 #include <Scenario/Process/Algorithms/VerticalMovePolicy.hpp>
-using namespace iscore;
-using namespace Scenario::Command;
 
+#include <boost/iterator/iterator_facade.hpp>
+#include <boost/multi_index/detail/hash_index_iterator.hpp>
+#include <iscore/tools/SettableIdentifierGeneration.hpp>
+#include <QDataStream>
+#include <QtGlobal>
+#include <algorithm>
+#include <vector>
+
+#include <Scenario/Document/VerticalExtent.hpp>
+#include <Scenario/Process/ScenarioModel.hpp>
+#include "SplitTimeNode.hpp"
+#include <iscore/serialization/DataStreamVisitor.hpp>
+#include <iscore/tools/ModelPath.hpp>
+#include <iscore/tools/ModelPathSerialization.hpp>
+#include <iscore/tools/NotifyingMap.hpp>
+
+namespace Scenario
+{
+namespace Command
+{
 
 SplitTimeNode::SplitTimeNode(
         Path<TimeNodeModel>&& path,
@@ -23,13 +32,13 @@ SplitTimeNode::SplitTimeNode(
     auto& originalTN = m_path.find();
     m_originalTimeNodeId = originalTN.id();
 
-    auto scenar = static_cast<ScenarioModel*>(originalTN.parent());
+    auto scenar = static_cast<Scenario::ScenarioModel*>(originalTN.parent());
     m_newTimeNodeId = getStrongId(scenar->timeNodes);
 }
 
 void SplitTimeNode::undo() const
 {
-    auto& scenar = static_cast<ScenarioModel&>(*m_path.find().parent());
+    auto& scenar = static_cast<Scenario::ScenarioModel&>(*m_path.find().parent());
     auto& originalTN = scenar.timeNode(m_originalTimeNodeId);
     auto& newTN = scenar.timeNode(m_newTimeNodeId);
 
@@ -47,7 +56,7 @@ void SplitTimeNode::undo() const
 
 void SplitTimeNode::redo() const
 {
-    auto& scenar = static_cast<ScenarioModel&>(*m_path.find().parent());
+    auto& scenar = static_cast<Scenario::ScenarioModel&>(*m_path.find().parent());
     auto& originalTN = scenar.timeNode(m_originalTimeNodeId);
 
     // TODO set the correct position here.
@@ -75,4 +84,7 @@ void SplitTimeNode::serializeImpl(DataStreamInput & s) const
 void SplitTimeNode::deserializeImpl(DataStreamOutput & s)
 {
     s >> m_path >> m_originalTimeNodeId >> m_eventsInNewTimeNode >> m_newTimeNodeId ;
+}
+
+}
 }

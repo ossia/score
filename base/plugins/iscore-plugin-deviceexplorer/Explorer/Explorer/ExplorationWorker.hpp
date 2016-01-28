@@ -1,8 +1,15 @@
 #pragma once
-#include <QObject>
-class DeviceInterface;
 #include <Device/Node/DeviceNode.hpp>
+#include <QObject>
+#include <QString>
 
+namespace Device
+{
+class DeviceInterface;
+}
+
+namespace DeviceExplorer
+{
 /**
  * @brief The ExplorationWorker class
  *
@@ -13,12 +20,13 @@ class ExplorationWorker final : public QObject
 {
         Q_OBJECT
     public:
-        DeviceInterface& dev;
-        iscore::Node node; // Result
+        Device::DeviceInterface& dev;
+        Device::Node node; // Result
 
-        explicit ExplorationWorker(DeviceInterface& dev);
+        explicit ExplorationWorker(Device::DeviceInterface& dev);
 
     signals:
         void finished();
         void failed(QString);
 };
+}

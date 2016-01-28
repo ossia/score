@@ -1,11 +1,13 @@
 #pragma once
 #include <iscore/tools/SettableIdentifier.hpp>
+#include <iscore_plugin_scenario_export.h>
+namespace Scenario
+{
 class ConstraintModel;
 class EventModel;
-class TimeNodeModel;
 class StateModel;
-
-class ScenarioInterface
+class TimeNodeModel;
+class ISCORE_PLUGIN_SCENARIO_EXPORT ScenarioInterface
 {
     public:
         virtual ~ScenarioInterface();
@@ -23,4 +25,14 @@ class ScenarioInterface
         virtual TimeNodeModel& endTimeNode() const = 0;
 };
 
-
+template<typename T>
+static auto startId()
+{
+    return Id<T>{0};
+}
+template<typename T>
+static auto endId()
+{
+    return Id<T>{1};
+}
+}

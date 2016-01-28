@@ -1,10 +1,18 @@
-#include "UpdateCurve.hpp"
-#include "Curve/CurveModel.hpp"
-#include "Curve/Segment/CurveSegmentModelSerialization.hpp"
+#include <algorithm>
 
+#include <Curve/CurveModel.hpp>
+#include <Curve/Segment/CurveSegmentData.hpp>
+#include "UpdateCurve.hpp"
+#include <iscore/serialization/DataStreamVisitor.hpp>
+#include <iscore/tools/ModelPath.hpp>
+#include <iscore/tools/ModelPathSerialization.hpp>
+#include <iscore/tools/std/StdlibWrapper.hpp>
+
+namespace Curve
+{
 UpdateCurve::UpdateCurve(
-        Path<CurveModel>&& model,
-        std::vector<CurveSegmentData>&& segments):
+        Path<Model>&& model,
+        std::vector<SegmentData>&& segments):
     m_model{std::move(model)},
     m_newCurveData{std::move(segments)}
 {
@@ -25,8 +33,8 @@ void UpdateCurve::redo() const
 }
 
 void UpdateCurve::update(
-        const Path<CurveModel>& model,
-        std::vector<CurveSegmentData>&& segments)
+        const Path<Model>& model,
+        std::vector<SegmentData>&& segments)
 {
     m_newCurveData = std::move(segments);
 }
@@ -43,4 +51,5 @@ void UpdateCurve::serializeImpl(DataStreamInput& s) const
 void UpdateCurve::deserializeImpl(DataStreamOutput& s)
 {
     s >> m_model >> m_oldCurveData >> m_newCurveData;
+}
 }

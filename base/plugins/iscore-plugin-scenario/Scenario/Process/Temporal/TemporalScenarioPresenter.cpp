@@ -1,61 +1,80 @@
-#include "TemporalScenarioPresenter.hpp"
-
-#include "Scenario/Process/ScenarioModel.hpp"
-#include "Scenario/Process/Temporal/TemporalScenarioLayerModel.hpp"
-#include "Scenario/Process/Temporal/TemporalScenarioView.hpp"
-
-#include <Scenario/Document/Constraint/ViewModels/Temporal/TemporalConstraintView.hpp>
-#include <Scenario/Document/Constraint/ViewModels/Temporal/TemporalConstraintPresenter.hpp>
-#include <Scenario/Document/Constraint/ViewModels/Temporal/TemporalConstraintViewModel.hpp>
-#include <Scenario/Document/Constraint/ConstraintModel.hpp>
-#include <Scenario/Document/Constraint/Rack/RackPresenter.hpp>
-
-#include <Scenario/Document/Event/EventModel.hpp>
-#include <Scenario/Document/Event/EventPresenter.hpp>
-#include <Scenario/Document/Event/EventView.hpp>
-
-#include <Scenario/Document/TimeNode/TimeNodeModel.hpp>
-#include <Scenario/Document/TimeNode/TimeNodeView.hpp>
-#include <Scenario/Document/TimeNode/TimeNodePresenter.hpp>
-
-#include <Scenario/Document/TimeNode/Trigger/TriggerModel.hpp>
-#include <Scenario/Document/TimeNode/Trigger/TriggerView.hpp>
-
-#include <Scenario/Document/State/StateModel.hpp>
-
-#include "ScenarioViewInterface.hpp"
-#include <Scenario/Control/ScenarioControl.hpp>
-
-#include <QGraphicsScene>
-
-#include <State/StateMimeTypes.hpp>
-#include <State/MessageListSerialization.hpp>
-#include <QMimeData>
-#include <iscore/widgets/GraphicsItem.hpp>
-#include <QJsonDocument>
-#include <iscore/command/Dispatchers/MacroCommandDispatcher.hpp>
-#include <core/document/Document.hpp>
-#include <Scenario/Commands/State/UpdateState.hpp>
-#include <Scenario/Commands/Scenario/Creations/CreateTimeNode_Event_State.hpp>
 #include <Scenario/Commands/Scenario/Creations/CreateStateMacro.hpp>
-#include <Scenario/Document/BaseElement/BaseElementModel.hpp>
+#include <Scenario/Commands/Scenario/Creations/CreateTimeNode_Event_State.hpp>
+#include <Scenario/Commands/Scenario/Displacement/MoveCommentBlock.hpp>
+#include <Scenario/Commands/Comment/SetCommentText.hpp>
+#include <Scenario/Document/Constraint/ViewModels/Temporal/TemporalConstraintViewModel.hpp>
+#include <Scenario/Process/Temporal/TemporalScenarioLayerModel.hpp>
+#include <Scenario/Process/Temporal/TemporalScenarioView.hpp>
+#include <State/MessageListSerialization.hpp>
+
+#include <boost/iterator/indirect_iterator.hpp>
+#include <boost/iterator/iterator_facade.hpp>
+#include <boost/multi_index/detail/hash_index_iterator.hpp>
+#include <boost/multi_index/hashed_index.hpp>
+#include <boost/operators.hpp>
+#include <iscore/command/Dispatchers/MacroCommandDispatcher.hpp>
+#include <iscore/widgets/GraphicsItem.hpp>
+#include <QGraphicsItem>
+#include <QMimeData>
+#include <QRect>
+#include <QSize>
+#include <QStringList>
+
+#include <Process/LayerModel.hpp>
+#include <Process/LayerPresenter.hpp>
+#include <Process/Process.hpp>
+#include <Process/ProcessContext.hpp>
+#include <Process/TimeValue.hpp>
+#include <Scenario/Application/Menus/ScenarioContextMenuManager.hpp>
+#include <Scenario/Application/ScenarioEditionSettings.hpp>
+#include <Scenario/Commands/Scenario/Creations/CreateState.hpp>
+#include <Scenario/Commands/State/AddMessagesToState.hpp>
+#include <Scenario/Document/Constraint/ViewModels/ConstraintPresenter.hpp>
+#include <Scenario/Document/Constraint/ViewModels/ConstraintViewModel.hpp>
+#include <Scenario/Document/Constraint/ViewModels/Temporal/TemporalConstraintPresenter.hpp>
+#include <Scenario/Document/State/ItemModel/MessageItemModel.hpp>
+#include <Scenario/Palette/Tool.hpp>
+#include <Scenario/Process/AbstractScenarioLayerModel.hpp>
+#include <Scenario/Process/ScenarioModel.hpp>
+#include <Scenario/Process/Temporal/ScenarioViewInterface.hpp>
+#include <State/Message.hpp>
+#include "TemporalScenarioPresenter.hpp"
+#include <iscore/document/DocumentContext.hpp>
+#include <iscore/document/DocumentInterface.hpp>
+#include <iscore/serialization/MimeVisitor.hpp>
+#include <iscore/tools/IdentifiedObject.hpp>
+#include <iscore/tools/IdentifiedObjectMap.hpp>
+#include <iscore/tools/ModelPath.hpp>
+#include <iscore/tools/NotifyingMap.hpp>
+#include <iscore/tools/Todo.hpp>
+
+#include <Scenario/Commands/Scenario/Creations/CreateConstraint_State_Event_TimeNode.hpp>
+#include <algorithm>
+class MessageItemModel;
+class QMenu;
+
+namespace Scenario
+{
+struct VerticalExtent;
 
 TemporalScenarioPresenter::TemporalScenarioPresenter(
-        iscore::DocumentContext& context,
+        const iscore::DocumentContext& context,
         Scenario::EditionSettings& e,
         const TemporalScenarioLayerModel& process_view_model,
-        LayerView* view,
+        Process::LayerView* view,
         QObject* parent) :
     LayerPresenter {"TemporalScenarioPresenter", parent},
     m_layer {process_view_model},
     m_view {static_cast<TemporalScenarioView*>(view)},
-    m_viewInterface{new ScenarioViewInterface{this}},
+    m_viewInterface{*this},
     m_editionSettings{e},
+    m_ongoingDispatcher{context.commandStack},
     m_focusDispatcher{context.document},
+    m_selectionDispatcher{context.selectionStack},
     m_context{context, *this, m_focusDispatcher},
     m_sm{m_context, *this}
 {
-    const ScenarioModel& scenario = model(m_layer);
+    const Scenario::ScenarioModel& scenario = model(m_layer);
     /////// Setup of existing data
     // For each constraint & event, display' em
     for(const auto& state_model : scenario.states)
@@ -73,6 +92,11 @@ TemporalScenarioPresenter::TemporalScenarioPresenter(
         on_timeNodeCreated(tn_model);
     }
 
+    for(const auto& cmt_model : scenario.comments)
+    {
+        on_commentBlockCreated(cmt_model);
+    }
+
     for(const auto& constraint_view_model : constraintsViewModels(m_layer))
     {
         on_constraintViewModelCreated(*constraint_view_model);
@@ -84,6 +108,11 @@ TemporalScenarioPresenter::TemporalScenarioPresenter(
         this, &TemporalScenarioPresenter::on_stateCreated);
     con(m_layer, &TemporalScenarioLayerModel::stateRemoved,
         this, &TemporalScenarioPresenter::on_stateRemoved);
+
+    con(m_layer, &TemporalScenarioLayerModel::commentCreated,
+        this, &TemporalScenarioPresenter::on_commentBlockCreated);
+    con(m_layer, &TemporalScenarioLayerModel::commentRemoved,
+        this, &TemporalScenarioPresenter::on_commentBlockRemoved);
 
     con(m_layer, &TemporalScenarioLayerModel::eventCreated,
         this, &TemporalScenarioPresenter::on_eventCreated);
@@ -110,42 +139,51 @@ TemporalScenarioPresenter::TemporalScenarioPresenter(
     connect(m_view, &TemporalScenarioView::dropReceived,
             this,   &TemporalScenarioPresenter::handleDrop);
 
-    con(model(m_layer), &ScenarioModel::locked,
-            m_view,             &TemporalScenarioView::lock);
-    con(model(m_layer), &ScenarioModel::unlocked,
-            m_view,             &TemporalScenarioView::unlock);
+    con(model(m_layer), &Scenario::ScenarioModel::locked,
+            m_view,     &TemporalScenarioView::lock);
+    con(model(m_layer), &Scenario::ScenarioModel::unlocked,
+            m_view,     &TemporalScenarioView::unlock);
 
-    connect(&layerModel().processModel(), &Process::execution,
+    connect(&layerModel().processModel(), &Process::ProcessModel::execution,
             this, [&] (bool b) {
-            editionSettings().setTool(
-                        b ? Scenario::Tool::Playing
-                          : Scenario::Tool::Select); // TODO see curvepresenter
+                if(b) {
+                    editionSettings().setTool(
+                                b ? Scenario::Tool::Playing
+                                  : Scenario::Tool::Select); // TODO see curvepresenter
+                    editionSettings().setExecution(true); // tool locked
+                }
+                else
+                {
+                    editionSettings().setExecution(false); // tool unlock
+                    editionSettings().setTool(
+                                b ? Scenario::Tool::Playing
+                                  : Scenario::Tool::Select); // TODO see curvepresenter
+                }
+
     });
 }
 
 TemporalScenarioPresenter::~TemporalScenarioPresenter()
 {
-    delete m_viewInterface;
-
     deleteGraphicsObject(m_view);
 }
 
-const LayerModel& TemporalScenarioPresenter::layerModel() const
+const Process::LayerModel& TemporalScenarioPresenter::layerModel() const
 {
     return m_layer;
 }
 
-const Id<Process>& TemporalScenarioPresenter::modelId() const
+const Id<Process::ProcessModel>& TemporalScenarioPresenter::modelId() const
 {
     return m_layer.processModel().id();
 }
 
-void TemporalScenarioPresenter::setWidth(int width)
+void TemporalScenarioPresenter::setWidth(qreal width)
 {
     m_view->setWidth(width);
 }
 
-void TemporalScenarioPresenter::setHeight(int height)
+void TemporalScenarioPresenter::setHeight(qreal height)
 {
     m_view->setHeight(height);
 }
@@ -175,6 +213,10 @@ void TemporalScenarioPresenter::on_zoomRatioChanged(ZoomRatio val)
     for(auto& constraint : m_constraints)
     {
         constraint.on_zoomRatioChanged(m_zoomRatio);
+    }
+    for(auto& comment : m_comments)
+    {
+        comment.on_zoomRatioChanged(m_zoomRatio);
     }
 }
 
@@ -229,7 +271,7 @@ void TemporalScenarioPresenter::on_constraintViewModelRemoved(
     for(auto& pres : m_constraints)
     {
         // OPTIMIZEME add an index in the map on viewmodel id ?
-        if(::viewModel(pres).id() == cvm.id())
+        if(Scenario::viewModel(pres).id() == cvm.id())
         {
             auto cid = pres.id();
             auto it = m_constraints.find(cid);
@@ -243,6 +285,12 @@ void TemporalScenarioPresenter::on_constraintViewModelRemoved(
             break;
         }
     }
+}
+
+void TemporalScenarioPresenter::on_commentBlockRemoved(
+        const CommentBlockModel& cmt)
+{
+    removeElement(m_comments.get(), cmt.id());
 }
 
 /////////////////////////////////////////////////////////////////////
@@ -271,17 +319,17 @@ void TemporalScenarioPresenter::on_eventCreated(const EventModel& event_model)
                            this};
     m_events.insert(ev_pres);
 
-    m_viewInterface->on_eventMoved(*ev_pres);
+    m_viewInterface.on_eventMoved(*ev_pres);
 
     con(event_model, &EventModel::extentChanged,
-            this, [=] (const VerticalExtent&) { m_viewInterface->on_eventMoved(*ev_pres); });
+            this, [=] (const VerticalExtent&) { m_viewInterface.on_eventMoved(*ev_pres); });
     con(event_model, &EventModel::dateChanged,
-            this, [=] (const TimeValue&) { m_viewInterface->on_eventMoved(*ev_pres); });
+            this, [=] (const TimeValue&) { m_viewInterface.on_eventMoved(*ev_pres); });
 
     connect(ev_pres, &EventPresenter::eventHoverEnter,
-            this, [=] () { m_viewInterface->on_hoverOnEvent(ev_pres->id(), true); });
+            this, [=] () { m_viewInterface.on_hoverOnEvent(ev_pres->id(), true); });
     connect(ev_pres, &EventPresenter::eventHoverLeave,
-            this, [=] () { m_viewInterface->on_hoverOnEvent(ev_pres->id(), false); });
+            this, [=] () { m_viewInterface.on_hoverOnEvent(ev_pres->id(), false); });
 
     // For the state machine
     connect(ev_pres, &EventPresenter::pressed, m_view, &TemporalScenarioView::pressed);
@@ -294,12 +342,12 @@ void TemporalScenarioPresenter::on_timeNodeCreated(const TimeNodeModel& timeNode
     auto tn_pres = new TimeNodePresenter {timeNode_model, m_view, this};
     m_timeNodes.insert(tn_pres);
 
-    m_viewInterface->on_timeNodeMoved(*tn_pres);
+    m_viewInterface.on_timeNodeMoved(*tn_pres);
 
     con(timeNode_model, &TimeNodeModel::extentChanged,
-            this, [=] (const VerticalExtent&) { m_viewInterface->on_timeNodeMoved(*tn_pres); });
+            this, [=] (const VerticalExtent&) { m_viewInterface.on_timeNodeMoved(*tn_pres); });
     con(timeNode_model, &TimeNodeModel::dateChanged,
-            this, [=] (const TimeValue&) { m_viewInterface->on_timeNodeMoved(*tn_pres); });
+            this, [=] (const TimeValue&) { m_viewInterface.on_timeNodeMoved(*tn_pres); });
 
     // For the state machine
     connect(tn_pres, &TimeNodePresenter::pressed, m_view, &TemporalScenarioView::pressed);
@@ -312,10 +360,10 @@ void TemporalScenarioPresenter::on_stateCreated(const StateModel &state)
     auto st_pres = new StatePresenter{state, m_view, this};
     m_states.insert(st_pres);
 
-    m_viewInterface->on_stateMoved(*st_pres);
+    m_viewInterface.on_stateMoved(*st_pres);
 
     con(state, &StateModel::heightPercentageChanged,
-            this, [=] () { m_viewInterface->on_stateMoved(*st_pres); });
+            this, [=] () { m_viewInterface.on_stateMoved(*st_pres); });
 
     // For the state machine
     connect(st_pres, &StatePresenter::pressed, m_view, &TemporalScenarioView::pressed);
@@ -332,19 +380,19 @@ void TemporalScenarioPresenter::on_constraintViewModelCreated(const TemporalCons
     m_constraints.insert(cst_pres);
     cst_pres->on_zoomRatioChanged(m_zoomRatio);
 
-    m_viewInterface->on_constraintMoved(*cst_pres);
+    m_viewInterface.on_constraintMoved(*cst_pres);
 
     connect(cst_pres, &TemporalConstraintPresenter::heightPercentageChanged,
-            this, [=] () { m_viewInterface->on_constraintMoved(*cst_pres); });
+            this, [=] () { m_viewInterface.on_constraintMoved(*cst_pres); });
     con(constraint_view_model.model(), &ConstraintModel::startDateChanged,
-            this, [=] (const TimeValue&) { m_viewInterface->on_constraintMoved(*cst_pres); });
+            this, [=] (const TimeValue&) { m_viewInterface.on_constraintMoved(*cst_pres); });
     connect(cst_pres, &TemporalConstraintPresenter::askUpdate,
             this,     &TemporalScenarioPresenter::on_askUpdate);
 
     connect(cst_pres, &TemporalConstraintPresenter::constraintHoverEnter,
-            [=] () { m_viewInterface->on_hoverOnConstraint(cst_pres->model().id(), true); });
+            [=] () { m_viewInterface.on_hoverOnConstraint(cst_pres->model().id(), true); });
     connect(cst_pres, &TemporalConstraintPresenter::constraintHoverLeave,
-            [=] () { m_viewInterface->on_hoverOnConstraint(cst_pres->model().id(), false); });
+            [=] () { m_viewInterface.on_hoverOnConstraint(cst_pres->model().id(), false); });
 
     // For the state machine
     connect(cst_pres, &TemporalConstraintPresenter::pressed, m_view, &TemporalScenarioView::pressed);
@@ -352,43 +400,103 @@ void TemporalScenarioPresenter::on_constraintViewModelCreated(const TemporalCons
     connect(cst_pres, &TemporalConstraintPresenter::released, m_view, &TemporalScenarioView::released);
 }
 
+void TemporalScenarioPresenter::on_commentBlockCreated(const CommentBlockModel& comment_block_model)
+{
+    auto cmt_pres = new CommentBlockPresenter{
+                    comment_block_model,
+                    m_view,
+                    this};
+
+    m_comments.insert(cmt_pres);
+    m_viewInterface.on_commentMoved(*cmt_pres);
+
+    con(comment_block_model, &CommentBlockModel::dateChanged,
+            this, [=] (const TimeValue&) { m_viewInterface.on_commentMoved(*cmt_pres); });
+    con(comment_block_model, &CommentBlockModel::heightPercentageChanged,
+            this, [=] (double y) { m_viewInterface.on_commentMoved(*cmt_pres);});
+
+
+    // Selection
+    connect(cmt_pres, &CommentBlockPresenter::doubleClicked,
+            this, [&] ()
+    {
+        m_selectionDispatcher.setAndCommit({&comment_block_model});
+    });
+
+
+    // Commands
+    connect(cmt_pres, &CommentBlockPresenter::moved,
+            this, [&] (QPointF scenPos)
+    {
+        auto& scenarModel = static_cast<Scenario::ScenarioModel&>(this->layerModel().processModel());
+        auto pos = Scenario::ConvertToScenarioPoint(scenPos, m_zoomRatio, m_view->height());
+        m_ongoingDispatcher.submitCommand<MoveCommentBlock>(
+                    scenarModel,
+                    comment_block_model.id(),
+                    pos.date,
+                    pos.y );
+    });
+    connect(cmt_pres, &CommentBlockPresenter::released,
+            this, [&] (QPointF scenPos)
+    {
+        m_ongoingDispatcher.commit();
+    });
+
+    connect(cmt_pres, &CommentBlockPresenter::editFinished,
+            this, [&] (const QString& doc)
+    {
+        if(focused() && doc != comment_block_model.content())
+        {
+            CommandDispatcher<> c {m_context.commandStack};
+            c.submitCommand(new SetCommentText{{comment_block_model}, doc}) ;
+        }
+    });
+}
+
+
 void TemporalScenarioPresenter::updateAllElements()
 {
     for(auto& constraint : m_constraints)
     {
-        m_viewInterface->on_constraintMoved(constraint);
+        m_viewInterface.on_constraintMoved(constraint);
     }
 
     for(auto& event : m_events)
     {
-        m_viewInterface->on_eventMoved(event);
+        m_viewInterface.on_eventMoved(event);
     }
 
     for(auto& timenode : m_timeNodes)
     {
-        m_viewInterface->on_timeNodeMoved(timenode);
+        m_viewInterface.on_timeNodeMoved(timenode);
     }
-
+    for(auto& comment : m_comments)
+    {
+        m_viewInterface.on_commentMoved(comment);
+    }
+/*
+    // They are updated by the event.
     for(auto& state : m_states)
     {
-        m_viewInterface->on_stateMoved(state);
+        m_viewInterface.on_stateMoved(state);
     }
+*/
 }
 
-#include <Scenario/Commands/Scenario/Creations/CreateConstraint_State_Event_TimeNode.hpp>
+
 void TemporalScenarioPresenter::handleDrop(const QPointF &pos, const QMimeData *mime)
 {
     // If the mime data has states in it we can handle it.
     if(mime->formats().contains(iscore::mime::messagelist()))
     {
-        Mime<iscore::MessageList>::Deserializer des{*mime};
-        iscore::MessageList ml = des.deserialize();
+        Mime<State::MessageList>::Deserializer des{*mime};
+        State::MessageList ml = des.deserialize();
 
         MacroCommandDispatcher m(
                     new  Scenario::Command::CreateStateMacro,
                     m_context.commandStack);
 
-        const ScenarioModel& scenar = ::model(m_layer);
+        const Scenario::ScenarioModel& scenar = ::model(m_layer);
         Id<StateModel> createdState;
         auto t = TimeValue::fromMsecs(pos.x() * zoomRatio());
         auto y = pos.y() / (m_view->boundingRect().size().height() + 150);
@@ -426,8 +534,8 @@ void TemporalScenarioPresenter::handleDrop(const QPointF &pos, const QMimeData *
         }
 
         auto state_path = make_path(scenar)
-                .extend(StateModel::className, createdState)
-                .extend("MessageItemModel", Id<MessageItemModel>{});
+                .extend(createdState)
+                .extend(Id<MessageItemModel>{});
 
         auto cmd2 = new AddMessagesToState{
                    std::move(state_path),
@@ -438,4 +546,5 @@ void TemporalScenarioPresenter::handleDrop(const QPointF &pos, const QMimeData *
 
         m.commit();
     }
+}
 }

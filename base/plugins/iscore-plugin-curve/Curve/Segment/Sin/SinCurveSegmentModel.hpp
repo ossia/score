@@ -1,36 +1,51 @@
 #pragma once
-#include "Curve/Segment/CurveSegmentModel.hpp"
+#include <boost/optional/optional.hpp>
+#include <QVariant>
 
-struct SinCurveSegmentData
+#include <Curve/Segment/CurveSegmentFactoryKey.hpp>
+#include <Curve/Segment/CurveSegmentModel.hpp>
+#include <iscore/serialization/VisitorInterface.hpp>
+
+class QObject;
+struct CurveSegmentData;
+#include <iscore/tools/SettableIdentifier.hpp>
+
+namespace Curve
+{
+struct SinSegmentData
 {
     double freq;
     double ampl;
+
+
+    static const QString prettyName()
+    { return QObject::tr("Sin"); }
+
+    static const SegmentFactoryKey& static_concreteFactoryKey();
 };
 
-Q_DECLARE_METATYPE(SinCurveSegmentData)
-
-class SinCurveSegmentModel final : public CurveSegmentModel
+class ISCORE_PLUGIN_CURVE_EXPORT SinSegment final : public SegmentModel
 {
     public:
-        using data_type = SinCurveSegmentData;
-        using CurveSegmentModel::CurveSegmentModel;
-        SinCurveSegmentModel(
-                const CurveSegmentData& dat,
+        using data_type = SinSegmentData;
+        using SegmentModel::SegmentModel;
+        SinSegment(
+                const SegmentData& dat,
                 QObject* parent);
 
         template<typename Impl>
-        SinCurveSegmentModel(Deserializer<Impl>& vis, QObject* parent) :
-            CurveSegmentModel {vis, parent}
+        SinSegment(Deserializer<Impl>& vis, QObject* parent) :
+            SegmentModel {vis, parent}
         {
             vis.writeTo(*this);
         }
 
-        CurveSegmentModel* clone(
-                const Id<CurveSegmentModel>& id,
+        SegmentModel* clone(
+                const Id<SegmentModel>& id,
                 QObject* parent) const override;
 
-        const CurveSegmentFactoryKey& key() const override;
-        void serialize(const VisitorVariant& vis) const override;
+        SegmentFactoryKey concreteFactoryKey() const override;
+        void serialize_impl(const VisitorVariant& vis) const override;
         void on_startChanged() override;
         void on_endChanged() override;
 
@@ -47,7 +62,10 @@ class SinCurveSegmentModel final : public CurveSegmentModel
 
         QVariant toSegmentSpecificData() const override
         {
-            return QVariant::fromValue(SinCurveSegmentData{freq, ampl});
+            return QVariant::fromValue(SinSegmentData{freq, ampl});
         }
 
 };
+}
+
+Q_DECLARE_METATYPE(Curve::SinSegmentData)

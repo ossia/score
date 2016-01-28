@@ -2,9 +2,10 @@
 
 #include <Process/TimeValue.hpp>
 #include <Scenario/Process/ScenarioModel.hpp>
-
+namespace Scenario
+{
 inline
-TimeValue getDate(const ScenarioModel& scenario, const Id<StateModel>& state)
+TimeValue getDate(const Scenario::ScenarioModel& scenario, const Id<StateModel>& state)
 {
     return scenario.timeNodes.at(
                 scenario.events.at(
@@ -14,7 +15,7 @@ TimeValue getDate(const ScenarioModel& scenario, const Id<StateModel>& state)
 }
 
 inline
-TimeValue getDate(const ScenarioModel& scenario, const Id<EventModel>& event)
+TimeValue getDate(const Scenario::ScenarioModel& scenario, const Id<EventModel>& event)
 {
     return scenario.timeNodes.at(
                 scenario.events.at(event).timeNode()
@@ -22,7 +23,8 @@ TimeValue getDate(const ScenarioModel& scenario, const Id<EventModel>& event)
 }
 
 inline
-TimeValue getDate(const ScenarioModel& scenario, const Id<TimeNodeModel>& timenode)
+TimeValue getDate(const Scenario::ScenarioModel& scenario, const Id<TimeNodeModel>& timenode)
 {
     return scenario.timeNodes.at(timenode).date();
+}
 }

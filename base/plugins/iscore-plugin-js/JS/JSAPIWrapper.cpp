@@ -1,9 +1,11 @@
-#include "JSAPIWrapper.hpp"
-#include <Device/Protocol/DeviceList.hpp>
-#include <Device/Protocol/DeviceInterface.hpp>
 #include <Explorer/DocumentPlugin/DeviceDocumentPlugin.hpp>
 
-QJSValue JSAPIWrapper::value(QJSValue address)
+#include <Explorer/DocumentPlugin/NodeUpdateProxy.hpp>
+#include "JSAPIWrapper.hpp"
+
+namespace JS
+{
+QJSValue APIWrapper::value(QJSValue address)
 {
     // TODO optional class that moves on first use ?
     auto engine = qjsEngine(this);
@@ -11,12 +13,13 @@ QJSValue JSAPIWrapper::value(QJSValue address)
         return {};
 
     auto addr_str = address.toString();
-    if(iscore::Address::validateString(addr_str))
+    if(State::Address::validateString(addr_str))
     {
-        return iscore::convert::js::value(
+        return iscore::convert::JS::value(
                     *engine,
-                    devices.updateProxy.refreshRemoteValue(iscore::Address::fromString(addr_str)));
+                    devices.updateProxy.refreshRemoteValue(State::Address::fromString(addr_str)));
     }
 
     return {};
+}
 }

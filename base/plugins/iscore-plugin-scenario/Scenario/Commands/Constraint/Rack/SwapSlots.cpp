@@ -1,8 +1,17 @@
-#include "SwapSlots.hpp"
 #include <Scenario/Document/Constraint/Rack/RackModel.hpp>
-using namespace Scenario::Command;
+
+#include <algorithm>
+
+#include "SwapSlots.hpp"
+#include <iscore/serialization/DataStreamVisitor.hpp>
+#include <iscore/tools/ModelPath.hpp>
+#include <iscore/tools/ModelPathSerialization.hpp>
 
 
+namespace Scenario
+{
+namespace Command
+{
 SwapSlots::SwapSlots(
         Path<RackModel>&& rack,
         const Id<SlotModel>& first,
@@ -37,4 +46,6 @@ void SwapSlots::serializeImpl(DataStreamInput& s) const
 void SwapSlots::deserializeImpl(DataStreamOutput& s)
 {
     s >> m_rackPath >> m_first >> m_second;
+}
+}
 }

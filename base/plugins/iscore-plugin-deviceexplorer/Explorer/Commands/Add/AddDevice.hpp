@@ -1,16 +1,23 @@
 #pragma once
+#include <Device/Protocol/DeviceSettings.hpp>
 #include <Explorer/Commands/DeviceExplorerCommandFactory.hpp>
 #include <iscore/command/SerializableCommand.hpp>
 #include <iscore/tools/ModelPath.hpp>
-#include <Device/Protocol/DeviceSettings.hpp>
 
+class DataStreamInput;
+class DataStreamOutput;
+
+namespace DeviceExplorer
+{
 class DeviceDocumentPlugin;
+namespace Command
+{
 class AddDevice final : public iscore::SerializableCommand
 {
-        ISCORE_COMMAND_DECL(DeviceExplorerCommandFactoryName(), AddDevice, "AddDevice")
+        ISCORE_COMMAND_DECL(DeviceExplorerCommandFactoryName(), AddDevice, "Add a device")
         public:
         AddDevice(Path<DeviceDocumentPlugin>&& device_tree,
-                  const iscore::DeviceSettings& parameters);
+                  const Device::DeviceSettings& parameters);
 
 
         void undo() const override;
@@ -22,5 +29,7 @@ class AddDevice final : public iscore::SerializableCommand
 
     private:
         Path<DeviceDocumentPlugin> m_devicesModel;
-        iscore::DeviceSettings m_parameters;
+        Device::DeviceSettings m_parameters;
 };
+}
+}

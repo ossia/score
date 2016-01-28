@@ -1,21 +1,38 @@
-#include "SimpleProcessModel.hpp"
 #include <DummyProcess/DummyLayerModel.hpp>
+#include <QJsonObject>
+#include <QJsonValue>
+#include <algorithm>
+
+#include "SimpleProcess.hpp"
+#include "SimpleProcessModel.hpp"
+#include <iscore/document/DocumentInterface.hpp>
+#include <iscore/plugins/documentdelegate/plugin/ElementPluginModelList.hpp>
+#include <iscore/serialization/DataStreamVisitor.hpp>
+#include <iscore/serialization/JSONValueVisitor.hpp>
+#include <iscore/serialization/JSONVisitor.hpp>
+#include <iscore/serialization/VisitorCommon.hpp>
+
+namespace Process { class LayerModel; }
+namespace Process { class ProcessModel; }
+class ProcessStateDataInterface;
+class QObject;
+#include <iscore/tools/SettableIdentifier.hpp>
 
 SimpleProcessModel::SimpleProcessModel(
         const TimeValue& duration,
-        const Id<Process>& id,
+        const Id<ProcessModel>& id,
         QObject* parent):
-    OSSIAProcessModel{duration, id, "SimpleProcessModel", parent},
+    Process::ProcessModel{duration, id, "SimpleProcessModel", parent},
     m_ossia_process{std::make_shared<SimpleProcess>()}
 {
     pluginModelList = new iscore::ElementPluginModelList{
-                      iscore::IDocument::documentFromObject(parent),
+                      iscore::IDocument::documentContext(*parent),
                       this};
 }
 
 SimpleProcessModel::SimpleProcessModel(
         const SimpleProcessModel& source,
-        const Id<Process>& id,
+        const Id<ProcessModel>& id,
         QObject* parent):
     SimpleProcessModel{source.duration(), id, parent}
 {
@@ -25,7 +42,7 @@ SimpleProcessModel::SimpleProcessModel(
 }
 
 SimpleProcessModel* SimpleProcessModel::clone(
-        const Id<Process>& newId,
+        const Id<ProcessModel>& newId,
         QObject* newParent) const
 {
     return new SimpleProcessModel{*this, newId, newParent};
@@ -68,12 +85,12 @@ void SimpleProcessModel::reset()
 {
 }
 
-ProcessStateDataInterface* SimpleProcessModel::startState() const
+ProcessStateDataInterface* SimpleProcessModel::startStateData() const
 {
     return nullptr;
 }
 
-ProcessStateDataInterface* SimpleProcessModel::endState() const
+ProcessStateDataInterface* SimpleProcessModel::endStateData() const
 {
     return nullptr;
 }
@@ -92,44 +109,43 @@ void SimpleProcessModel::setSelection(const Selection&) const
 {
 }
 
-void SimpleProcessModel::serialize(const VisitorVariant& s) const
+void SimpleProcessModel::serialize_impl(const VisitorVariant& s) const
 {
     serialize_dyn(s, *this);
 }
 
-LayerModel* SimpleProcessModel::makeLayer_impl(
-        const Id<LayerModel>& viewModelId,
+Process::LayerModel* SimpleProcessModel::makeLayer_impl(
+        const Id<Process::LayerModel>& viewModelId,
         const QByteArray& constructionData,
         QObject* parent)
 {
-    return new DummyLayerModel{*this, viewModelId, parent};
+    return new Dummy::DummyLayerModel{*this, viewModelId, parent};
 }
 
-LayerModel* SimpleProcessModel::loadLayer_impl(
+Process::LayerModel* SimpleProcessModel::loadLayer_impl(
         const VisitorVariant& vis,
         QObject* parent)
 {
     return deserialize_dyn(vis, [&] (auto&& deserializer)
     {
-        auto autom = new DummyLayerModel{
+        auto autom = new Dummy::DummyLayerModel{
                         deserializer, *this, parent};
 
         return autom;
     });
 }
 
-LayerModel* SimpleProcessModel::cloneLayer_impl(
-        const Id<LayerModel>& newId,
-        const LayerModel& source,
+Process::LayerModel* SimpleProcessModel::cloneLayer_impl(
+        const Id<Process::LayerModel>& newId,
+        const Process::LayerModel& source,
         QObject* parent)
 {
-    return new DummyLayerModel{safe_cast<const DummyLayerModel&>(source), *this, newId, parent};
+    return new Dummy::DummyLayerModel{safe_cast<const Dummy::DummyLayerModel&>(source), *this, newId, parent};
 }
 
 
-// MOVEME
 template<>
-void Visitor<Reader<DataStream>>::readFrom(const SimpleProcessModel& proc)
+void Visitor<Reader<DataStream>>::readFrom_impl(const SimpleProcessModel& proc)
 {
     readFrom(*proc.pluginModelList);
 
@@ -145,7 +161,7 @@ void Visitor<Writer<DataStream>>::writeTo(SimpleProcessModel& proc)
 }
 
 template<>
-void Visitor<Reader<JSONObject>>::readFrom(const SimpleProcessModel& proc)
+void Visitor<Reader<JSONObject>>::readFrom_impl(const SimpleProcessModel& proc)
 {
     m_obj["PluginsMetadata"] = toJsonValue(*proc.pluginModelList);
 }

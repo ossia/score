@@ -1,36 +1,42 @@
-#include "SlotInspectorSection.hpp"
-
-#include <Scenario/Inspector/Constraint/Widgets/Rack/Slot/AddLayerModelWidget.hpp>
-
+#include <Scenario/Commands/Constraint/Rack/RemoveSlotFromRack.hpp>
+#include <Scenario/Commands/Constraint/Rack/Slot/AddLayerModelToSlot.hpp>
+#include <Scenario/Commands/Constraint/Rack/Slot/RemoveLayerModelFromSlot.hpp>
+#include <Scenario/Commands/Metadata/ChangeElementName.hpp>
+#include <Scenario/Document/Constraint/ConstraintModel.hpp>
 #include <Scenario/Inspector/Constraint/ConstraintInspectorWidget.hpp>
 #include <Scenario/Inspector/Constraint/Widgets/Rack/RackInspectorSection.hpp>
-
-#include <Scenario/Document/Constraint/ConstraintModel.hpp>
-#include <Scenario/Document/Constraint/Rack/RackModel.hpp>
-#include <Scenario/Document/Constraint/Rack/Slot/SlotModel.hpp>
-
-#include <Scenario/Commands/Constraint/Rack/Slot/AddLayerModelToSlot.hpp>
-
-#include <Process/LayerModel.hpp>
-#include <Process/Process.hpp>
-
-#include <Scenario/Commands/Constraint/Rack/RemoveSlotFromRack.hpp>
-#include <Scenario/Commands/Constraint/Rack/Slot/RemoveLayerModelFromSlot.hpp>
-
+#include <Scenario/Inspector/Constraint/Widgets/Rack/Slot/AddLayerModelWidget.hpp>
 #include <Scenario/ViewCommands/PutLayerModelToFront.hpp>
-
-#include <iscore/document/DocumentInterface.hpp>
-#include <core/document/Document.hpp>
+#include <boost/optional/optional.hpp>
+#include <QBoxLayout>
+#include <QFrame>
+#include <QGridLayout>
+#include <QLabel>
 
 #include <QPushButton>
-#include <QLabel>
-using namespace Scenario::Command;
+#include <algorithm>
 
+#include <Inspector/InspectorSectionWidget.hpp>
+#include <Process/LayerModel.hpp>
+#include <Process/ModelMetadata.hpp>
+#include <Process/Process.hpp>
+#include <Scenario/Document/Constraint/Rack/Slot/SlotModel.hpp>
+#include "SlotInspectorSection.hpp"
+#include <iscore/command/Dispatchers/CommandDispatcher.hpp>
+#include <iscore/serialization/DataStreamVisitor.hpp>
+#include <iscore/tools/ModelPath.hpp>
+#include <iscore/tools/ModelPathSerialization.hpp>
+#include <iscore/tools/NotifyingMap.hpp>
+#include <iscore/tools/SettableIdentifier.hpp>
+#include <iscore/tools/Todo.hpp>
+
+namespace Scenario
+{
 SlotInspectorSection::SlotInspectorSection(
         const QString& name,
         const SlotModel& slot,
         RackInspectorSection* parentRack) :
-    InspectorSectionWidget {name, parentRack},
+    InspectorSectionWidget {name, false, parentRack},
     m_model {slot},
     m_parent{parentRack->constraintInspector()}
 {
@@ -42,15 +48,19 @@ SlotInspectorSection::SlotInspectorSection(
     framewidg->setFrameShape(QFrame::StyledPanel);
     addContent(framewidg);
 
+    this->showDeleteButton(true);
+    connect(this, &SlotInspectorSection::deletePressed, this, [&] ()
+    {
+        auto cmd = new Command::RemoveSlotFromRack{m_model};
+        emit m_parent->commandDispatcher()->submitCommand(cmd);
+    });
+
     // View model list
-    m_lmSection = new InspectorSectionWidget{"Process View Models", this};
+    m_lmSection = new InspectorSectionWidget{"Process View Models", false, this};
     m_lmSection->setObjectName("LayerModels");
 
-    con(m_model.layers, &NotifyingMap<LayerModel>::added,
-        this, &SlotInspectorSection::on_layerModelCreated);
-
-    con(m_model.layers, &NotifyingMap<LayerModel>::removed,
-        this, &SlotInspectorSection::on_layerModelRemoved);
+    m_model.layers.added.connect<SlotInspectorSection, &SlotInspectorSection::on_layerModelCreated>(this);
+    m_model.layers.removed.connect<SlotInspectorSection, &SlotInspectorSection::on_layerModelRemoved>(this);
 
     for(const auto& lm : m_model.layers)
     {
@@ -61,29 +71,21 @@ SlotInspectorSection::SlotInspectorSection(
     lay->addWidget(m_lmSection);
     lay->addWidget(m_addLmWidget);
 
-
-    // Delete button
-    auto deleteButton = new QPushButton{"Delete"};
-    connect(deleteButton, &QPushButton::pressed, this, [&] ()
-    {
-        auto cmd = new RemoveSlotFromRack{m_model};
-        emit m_parent->commandDispatcher()->submitCommand(cmd);
-    });
-
-    lay->addWidget(deleteButton);
+    connect(this, &InspectorSectionWidget::nameChanged,
+            this, &SlotInspectorSection::ask_changeName);
 }
 
 void SlotInspectorSection::createLayerModel(
-        const Id<Process>& sharedProcessModelId)
+        const Id<Process::ProcessModel>& sharedProcessModelId)
 {
-    auto cmd = new AddLayerModelToSlot{
+    auto cmd = new Command::AddLayerModelToSlot{
                 m_model,
                 m_model.parentConstraint().processes.at(sharedProcessModelId)};
 
     m_parent->commandDispatcher()->submitCommand(cmd);
 }
 
-void SlotInspectorSection::displayLayerModel(const LayerModel& lm)
+void SlotInspectorSection::displayLayerModel(const Process::LayerModel& lm)
 {
     auto lm_id = lm.id();
 
@@ -116,7 +118,7 @@ void SlotInspectorSection::displayLayerModel(const LayerModel& lm)
     auto deleteButton = new QPushButton{{tr("Delete")}};
     connect(deleteButton, &QPushButton::pressed, this, [=] ()
     {
-        auto cmd = new RemoveLayerModelFromSlot{m_model, lm_id};
+        auto cmd = new Command::RemoveLayerModelFromSlot{m_model, lm_id};
         emit m_parent->commandDispatcher()->submitCommand(cmd);
     });
     lay->addWidget(deleteButton, 1, 1);
@@ -127,12 +129,12 @@ void SlotInspectorSection::displayLayerModel(const LayerModel& lm)
 
 
 void SlotInspectorSection::on_layerModelCreated(
-        const LayerModel& lm)
+        const Process::LayerModel& lm)
 {
     displayLayerModel(lm);
 }
 
-void SlotInspectorSection::on_layerModelRemoved(const LayerModel& removed)
+void SlotInspectorSection::on_layerModelRemoved(const Process::LayerModel& removed)
 {
     // OPTIMIZEME
     m_lmSection->removeAll();
@@ -149,4 +151,15 @@ void SlotInspectorSection::on_layerModelRemoved(const LayerModel& removed)
 const SlotModel&SlotInspectorSection::model() const
 {
     return m_model;
+}
+
+void SlotInspectorSection::ask_changeName(QString newName)
+{
+
+    if(newName != m_model.metadata.name())
+    {
+        auto cmd = new Command::ChangeElementName<SlotModel>{m_model, newName};
+        emit m_parent->commandDispatcher()->submitCommand(cmd);
+    }
+}
 }

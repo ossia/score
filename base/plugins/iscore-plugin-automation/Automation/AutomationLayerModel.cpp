@@ -1,37 +1,57 @@
+
+
 #include "AutomationLayerModel.hpp"
 #include "AutomationModel.hpp"
 #include "AutomationPanelProxy.hpp"
+#include <Process/LayerModel.hpp>
+
+class QObject;
+#include <iscore/tools/SettableIdentifier.hpp>
 
 // TODO refactor with mapping ?
-constexpr const char AutomationLayerModel::className[];
-AutomationLayerModel::AutomationLayerModel(AutomationModel& model,
-                                         const Id<LayerModel>& id,
-                                         QObject* parent) :
-    LayerModel {id, AutomationLayerModel::staticMetaObject.className(), model, parent}
+namespace Automation
+{
+LayerModel::LayerModel(
+        ProcessModel& model,
+        const Id<Process::LayerModel>& id,
+        QObject* parent) :
+    Process::LayerModel {
+        id,
+        Metadata<ObjectKey_k, LayerModel>::get(),
+        model,
+        parent}
 {
 
 }
 
-AutomationLayerModel::AutomationLayerModel(const AutomationLayerModel& source,
-                                         AutomationModel& model,
-                                         const Id<LayerModel>& id,
-                                         QObject* parent) :
-    LayerModel {id, AutomationLayerModel::staticMetaObject.className(), model, parent}
+LayerModel::LayerModel(
+        const LayerModel& source,
+        ProcessModel& model,
+        const Id<Process::LayerModel>& id,
+        QObject* parent) :
+    Process::LayerModel {
+        id,
+        Metadata<ObjectKey_k, LayerModel>::get(),
+        model,
+        parent}
 {
     // Nothing to copy
 }
 
-LayerModelPanelProxy* AutomationLayerModel::make_panelProxy(QObject* parent) const
+Process::LayerModelPanelProxy* LayerModel::make_panelProxy(
+        QObject* parent) const
 {
-    return new AutomationPanelProxy{*this, parent};
+    return new PanelProxy{*this, parent};
 }
 
-void AutomationLayerModel::serialize(const VisitorVariant&) const
+void LayerModel::serialize(
+        const VisitorVariant&) const
 {
     // Nothing to save
 }
 
-const AutomationModel& AutomationLayerModel::model() const
+const ProcessModel& LayerModel::model() const
 {
-    return static_cast<const AutomationModel&>(processModel());
+    return static_cast<const ProcessModel&>(processModel());
+}
 }

@@ -1,11 +1,18 @@
 #pragma once
+
+
+#include <QHash>
+#include <QList>
+#include <QString>
 #include <QStringList>
+#include <cstddef>
+#include <string>
+#include <unordered_map>
 #include <QMetaType>
+#include <QMetaObject>
+#include <iscore_lib_state_export.h>
 
-// For qRegisterDataStreamOperators...
-#include <iscore/serialization/DataStreamVisitor.hpp>
-
-namespace iscore
+namespace State
 {
 /**
  * @brief The Address struct
@@ -15,13 +22,13 @@ namespace iscore
  *  aDevice:/aNode/anotherNode
  *
  */
-struct Address
+struct ISCORE_LIB_STATE_EXPORT Address
 {
         // Data
         QString device; // No device means that this is the invisible root node.
 
         QStringList path; // Note : path is empty if address is root: "device:/"
-        // In terms of iscore::Node, this means that the node is the device node.
+        // In terms of Device::Node, this means that the node is the device node.
 
         // Check that the given string is a valid address
         // Note: a "maybe" concept would help here.
@@ -44,14 +51,19 @@ struct Address
             return !(*this == a);
         }
 };
+
+inline QStringList stringList(const State::Address& addr)
+{
+    return QStringList{} << addr.device << addr.path;
+}
 }
 
 namespace std {
 
   template <>
-  struct hash<iscore::Address>
+  struct hash<State::Address>
   {
-    std::size_t operator()(const iscore::Address& k) const
+    std::size_t operator()(const State::Address& k) const
     {
       using std::size_t;
       using std::hash;
@@ -75,4 +87,4 @@ namespace std {
   };
 
 }
-Q_DECLARE_METATYPE(iscore::Address)
+Q_DECLARE_METATYPE(State::Address)

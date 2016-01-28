@@ -1,9 +1,12 @@
-#include "DocumentInterface.hpp"
 #include <core/document/Document.hpp>
 #include <core/document/DocumentModel.hpp>
 #include <core/document/DocumentPresenter.hpp>
-#include <iscore/plugins/documentdelegate/DocumentDelegateModelInterface.hpp>
-#include <iscore/plugins/panel/PanelModel.hpp>
+#include <QObject>
+#include <QString>
+#include <stdexcept>
+
+#include "DocumentInterface.hpp"
+#include <iscore/tools/ObjectPath.hpp>
 
 iscore::Document* iscore::IDocument::documentFromObject(const QObject* obj)
 {
@@ -47,15 +50,9 @@ iscore::DocumentDelegatePresenterInterface& iscore::IDocument::presenterDelegate
     return *d.presenter().presenterDelegate();
 }
 
-
-iscore::DocumentDelegateModelInterface* iscore::IDocument::try_modelDelegate_generic(const Document& d)
-{
-    return d.model().modelDelegate();
-}
-
 iscore::DocumentDelegateModelInterface& iscore::IDocument::modelDelegate_generic(const Document& d)
 {
-    return *try_modelDelegate_generic(d);
+    return d.model().modelDelegate();
 }
 
 
@@ -64,13 +61,9 @@ const std::vector<iscore::PanelModel*>& iscore::IDocument::panels(const iscore::
     return d->model().panels();
 }
 
-
-iscore::CommandStack &iscore::IDocument::commandStack(const QObject &obj)
+ISCORE_LIB_BASE_EXPORT const iscore::DocumentContext&iscore::IDocument::documentContext(const QObject& obj)
 {
-    return documentFromObject(obj)->commandStack();
-}
-
-iscore::DocumentContext&iscore::IDocument::documentContext(const QObject& obj)
-{
-    return documentFromObject(obj)->context();
+    auto doc = documentFromObject(obj);
+    ISCORE_ASSERT(doc);
+    return doc->context();
 }

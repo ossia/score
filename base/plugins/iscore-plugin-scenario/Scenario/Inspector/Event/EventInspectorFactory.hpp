@@ -1,10 +1,18 @@
 #pragma once
-#include <QObject>
 #include <Inspector/InspectorWidgetFactoryInterface.hpp>
+#include <QList>
 
-
-class EventInspectorFactory final : public InspectorWidgetFactory
+class QObject;
+class QString;
+class QWidget;
+namespace iscore {
+class Document;
+}  // namespace iscore
+namespace Scenario
 {
+class EventInspectorFactory final : public Inspector::InspectorWidgetFactory
+{
+        ISCORE_CONCRETE_FACTORY_DECL("f71c6643-cf85-4e35-a76a-b1d365416f33")
     public:
         EventInspectorFactory() :
             InspectorWidgetFactory {}
@@ -12,11 +20,12 @@ class EventInspectorFactory final : public InspectorWidgetFactory
 
         }
 
-        InspectorWidgetBase* makeWidget(
+        Inspector::InspectorWidgetBase* makeWidget(
                 const QObject& sourceElement,
-                iscore::Document& doc,
-                QWidget* parent) override;
+                const iscore::DocumentContext& doc,
+                QWidget* parent) const override;
 
-        const QList<QString>& key_impl() const override;
+        bool matches(const QObject& object) const override;
 
 };
+}

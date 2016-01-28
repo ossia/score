@@ -1,21 +1,14 @@
 #pragma once
-#include <Curve/Segment/CurveSegmentData.hpp>
 
-#include <iscore/serialization/DataStreamVisitor.hpp>
-#include <iscore/serialization/JSONVisitor.hpp>
+class QObject;
+namespace Curve
+{
+class SegmentModel;
+class SegmentList;
+struct SegmentData;
 
-class DynamicCurveSegmentList;
-CurveSegmentModel* createCurveSegment(
-        const DynamicCurveSegmentList& csl,
-        Deserializer<DataStream>& deserializer,
+SegmentModel* createCurveSegment(
+        const SegmentList& csl,
+        const SegmentData& dat,
         QObject* parent);
-
-CurveSegmentModel* createCurveSegment(
-        const DynamicCurveSegmentList& csl,
-        Deserializer<JSONObject>& deserializer,
-        QObject* parent);
-
-CurveSegmentModel* createCurveSegment(
-        const DynamicCurveSegmentList& csl,
-        const CurveSegmentData& dat,
-        QObject* parent);
+}

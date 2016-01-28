@@ -1,16 +1,22 @@
-#include "RemoveLayerModelFromSlot.hpp"
-
-#include <Scenario/Document/Constraint/Rack/Slot/SlotModel.hpp>
-#include <Process/Process.hpp>
 #include <Process/LayerModel.hpp>
 #include <Scenario/Document/Constraint/LayerModelLoader.hpp>
+#include <Scenario/Document/Constraint/Rack/Slot/SlotModel.hpp>
 
-using namespace iscore;
-using namespace Scenario::Command;
+
+#include "RemoveLayerModelFromSlot.hpp"
+#include <iscore/serialization/DataStreamVisitor.hpp>
+#include <iscore/tools/ModelPath.hpp>
+#include <iscore/tools/ModelPathSerialization.hpp>
+#include <iscore/tools/NotifyingMap.hpp>
+
+namespace Scenario
+{
+namespace Command
+{
 
 RemoveLayerModelFromSlot::RemoveLayerModelFromSlot(
         Path<SlotModel>&& rackPath,
-        const Id<LayerModel>& layerId) :
+        const Id<Process::LayerModel>& layerId) :
     m_path {rackPath},
     m_layerId {layerId}
 {
@@ -25,7 +31,7 @@ void RemoveLayerModelFromSlot::undo() const
     auto& slot = m_path.find();
     Deserializer<DataStream> s {m_serializedLayerData};
 
-    auto lm = createLayerModel(s,
+    auto lm = Process::createLayerModel(s,
                                slot.parentConstraint(),
                                &slot);
     slot.layers.add(lm);
@@ -45,4 +51,7 @@ void RemoveLayerModelFromSlot::serializeImpl(DataStreamInput& s) const
 void RemoveLayerModelFromSlot::deserializeImpl(DataStreamOutput& s)
 {
     s >> m_path >> m_layerId >> m_serializedLayerData;
+}
+
+}
 }

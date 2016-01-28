@@ -1,44 +1,42 @@
 #pragma once
+#include <iscore/tools/Metadata.hpp>
 #include <Process/ModelMetadata.hpp>
+#include <Process/TimeValue.hpp>
+#include <Scenario/Document/Event/ExecutionStatus.hpp>
 #include <Scenario/Document/VerticalExtent.hpp>
-
+#include <State/Expression.hpp>
+#include <boost/optional/optional.hpp>
+#include <iscore/plugins/documentdelegate/plugin/ElementPluginModelList.hpp>
+#include <iscore/selection/Selectable.hpp>
 #include <iscore/tools/IdentifiedObject.hpp>
 #include <iscore/tools/SettableIdentifier.hpp>
-#include <iscore/serialization/DataStreamVisitor.hpp>
-#include <iscore/serialization/JSONVisitor.hpp>
-#include <iscore/selection/Selectable.hpp>
-#include <Process/TimeValue.hpp>
+#include <QString>
+#include <QVector>
+#include <iscore_plugin_scenario_export.h>
+#include <iscore/component/Component.hpp>
+class DataStream;
+class JSONObject;
+class QObject;
 
-#include <State/Expression.hpp>
-
-#include <Scenario/Document/State/StateModel.hpp>
-#include <Scenario/Document/Event/ExecutionStatus.hpp>
-#include <iscore/plugins/documentdelegate/plugin/ElementPluginModelList.hpp>
-namespace OSSIA
+namespace Scenario
 {
-    class TimeNode;
-}
-class ConstraintModel;
-class TimeNodeModel;
+class StateModel;
 class ScenarioInterface;
+class TimeNodeModel;
 
-class EventModel final : public IdentifiedObject<EventModel>
+class ISCORE_PLUGIN_SCENARIO_EXPORT EventModel final : public IdentifiedObject<EventModel>
 {
         Q_OBJECT
-        ISCORE_METADATA("EventModel")
 
-        ISCORE_SERIALIZE_FRIENDS(EventModel, DataStream)
-        ISCORE_SERIALIZE_FRIENDS(EventModel, JSONObject)
+        ISCORE_SERIALIZE_FRIENDS(Scenario::EventModel, DataStream)
+        ISCORE_SERIALIZE_FRIENDS(Scenario::EventModel, JSONObject)
 
     public:
         /** Public properties of the class **/
+        iscore::Components components;
         Selectable selection;
         ModelMetadata metadata;
         iscore::ElementPluginModelList pluginModelList;
-
-        static QString prettyName();
-
-        ScenarioInterface* parentScenario() const;
 
         /** The class **/
         EventModel(const Id<EventModel>&,
@@ -72,7 +70,7 @@ class EventModel final : public IdentifiedObject<EventModel>
 
 
         // Other properties
-        const iscore::Condition& condition() const;
+        const State::Condition& condition() const;
 
         VerticalExtent extent() const;
 
@@ -82,8 +80,8 @@ class EventModel final : public IdentifiedObject<EventModel>
         ExecutionStatus status() const;
         void reset();
 
-    public slots:
-        void setCondition(const iscore::Condition& arg);
+
+        void setCondition(const State::Condition& arg);
 
         void setExtent(const VerticalExtent &extent);
         void setDate(const TimeValue& date);
@@ -94,21 +92,24 @@ class EventModel final : public IdentifiedObject<EventModel>
         void extentChanged(const VerticalExtent&);
         void dateChanged(const TimeValue&);
 
-        void conditionChanged(const iscore::Condition&);
+        void conditionChanged(const State::Condition&);
 
         void statesChanged();
 
-        void statusChanged(ExecutionStatus status);
+        void statusChanged(Scenario::ExecutionStatus status);
 
     private:
         Id<TimeNodeModel> m_timeNode;
 
         QVector<Id<StateModel>> m_states;
 
-        iscore::Condition m_condition;
+        State::Condition m_condition;
 
         VerticalExtent m_extent;
         TimeValue m_date{TimeValue::zero()};
 
-        ExecutionStatus m_status{ExecutionStatus::Editing};
+        ExecutionStatusProperty m_status{};
 };
+}
+
+DEFAULT_MODEL_METADATA(Scenario::EventModel, "Event")

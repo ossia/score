@@ -1,36 +1,51 @@
 #pragma once
-#include "Curve/Segment/CurveSegmentModel.hpp"
+#include <boost/optional/optional.hpp>
+#include <QVariant>
 
-struct PowerCurveSegmentData
+#include <Curve/Segment/CurveSegmentFactoryKey.hpp>
+#include <Curve/Segment/CurveSegmentModel.hpp>
+#include <iscore/serialization/VisitorInterface.hpp>
+
+class QObject;
+#include <iscore/tools/SettableIdentifier.hpp>
+
+namespace Curve
 {
-        static const CurveSegmentFactoryKey& key();
+struct SegmentData;
+struct ISCORE_PLUGIN_CURVE_EXPORT PowerSegmentData
+{
+        static const SegmentFactoryKey& static_concreteFactoryKey();
+
+        static const QString prettyName()
+        { return QObject::tr("Power"); }
+
         double gamma;
 };
 
-Q_DECLARE_METATYPE(PowerCurveSegmentData)
-
-class PowerCurveSegmentModel final : public CurveSegmentModel
+class ISCORE_PLUGIN_CURVE_EXPORT PowerSegment final : public SegmentModel
 {
     public:
-        using data_type = PowerCurveSegmentData;
-        using CurveSegmentModel::CurveSegmentModel;
-        PowerCurveSegmentModel(
-                const CurveSegmentData& dat,
+        using data_type = PowerSegmentData;
+        using SegmentModel::SegmentModel;
+        PowerSegment(
+                const SegmentData& dat,
                 QObject* parent);
 
         template<typename Impl>
-        PowerCurveSegmentModel(Deserializer<Impl>& vis, QObject* parent) :
-            CurveSegmentModel {vis, parent}
+        PowerSegment(Deserializer<Impl>& vis, QObject* parent) :
+            SegmentModel {vis, parent}
         {
             vis.writeTo(*this);
         }
 
-        CurveSegmentModel* clone(
-                const Id<CurveSegmentModel>& id,
+        double gamma = 12.05; // TODO private
+    private:
+        SegmentModel* clone(
+                const Id<SegmentModel>& id,
                 QObject* parent) const override;
 
-        const CurveSegmentFactoryKey& key() const override;
-        void serialize(const VisitorVariant& vis) const override;
+        SegmentFactoryKey concreteFactoryKey() const override;
+        void serialize_impl(const VisitorVariant& vis) const override;
         void on_startChanged() override;
         void on_endChanged() override;
 
@@ -42,8 +57,9 @@ class PowerCurveSegmentModel final : public CurveSegmentModel
 
         QVariant toSegmentSpecificData() const override
         {
-            return QVariant::fromValue(PowerCurveSegmentData{gamma});
+            return QVariant::fromValue(PowerSegmentData{gamma});
         }
 
-        double gamma = 12.05; // TODO private
 };
+}
+Q_DECLARE_METATYPE(Curve::PowerSegmentData)

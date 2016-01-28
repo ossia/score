@@ -1,16 +1,22 @@
-#include "MessageListEditor.hpp"
+#include <iscore/widgets/ClearLayout.hpp>
+#include <QDialogButtonBox>
+#include <QFlags>
+#include <QGridLayout>
+
+#include <QPushButton>
+#include <QString>
 
 #include "MessageEditDialog.hpp"
+#include "MessageListEditor.hpp"
 #include "MessageWidget.hpp"
+#include <State/Message.hpp>
 
-#include <iscore/widgets/ClearLayout.hpp>
+class QWidget;
 
-#include <QDialogButtonBox>
-#include <QGridLayout>
-#include <QPushButton>
-
+namespace DeviceExplorer
+{
 MessageListEditor::MessageListEditor(
-        const iscore::MessageList& m,
+        const State::MessageList& m,
         DeviceExplorerModel* model,
         QWidget* parent):
     m_model{model},
@@ -39,12 +45,12 @@ MessageListEditor::MessageListEditor(
 
 void MessageListEditor::addMessage()
 {
-    MessageEditDialog dial(iscore::Message(), m_model, this);
+    MessageEditDialog dial(State::Message(), m_model, this);
     int res = dial.exec();
 
     if(res)
     {
-        m_messages.push_back(iscore::Message(dial.address(), dial.value()));
+        m_messages.push_back(State::Message(dial.address(), dial.value()));
     }
 
     updateLayout();
@@ -71,4 +77,5 @@ void MessageListEditor::updateLayout()
                 this, [=] { removeMessage(i); });
         i++;
     }
+}
 }

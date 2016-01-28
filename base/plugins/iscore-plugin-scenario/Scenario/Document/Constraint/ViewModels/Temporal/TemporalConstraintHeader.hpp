@@ -1,6 +1,16 @@
 #pragma once
 #include <Scenario/Document/Constraint/ViewModels/ConstraintHeader.hpp>
+#include <QGraphicsItem>
+#include <qnamespace.h>
+#include <QRect>
 
+class QGraphicsSceneMouseEvent;
+class QPainter;
+class QStyleOptionGraphicsItem;
+class QWidget;
+
+namespace Scenario
+{
 class TemporalConstraintHeader final : public ConstraintHeader
 {
         Q_OBJECT
@@ -16,10 +26,6 @@ class TemporalConstraintHeader final : public ConstraintHeader
         void paint(QPainter *painter,
                    const QStyleOptionGraphicsItem *option,
                    QWidget *widget) override;
-
-
-        int type() const override
-        { return QGraphicsItem::UserType + 6; }
     signals:
         void doubleClicked();
 
@@ -29,3 +35,4 @@ class TemporalConstraintHeader final : public ConstraintHeader
     private:
         int m_previous_x{};
 };
+}

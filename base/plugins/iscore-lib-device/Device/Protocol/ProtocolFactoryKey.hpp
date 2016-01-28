@@ -1,7 +1,10 @@
 #pragma once
-#include <iscore/plugins/customfactory/StringFactoryKey.hpp>
+#include <iscore/plugins/customfactory/UuidKey.hpp>
 #include <QMetaType>
 
-class ProtocolTag{};
-using ProtocolFactoryKey = StringKey<ProtocolTag>;
-Q_DECLARE_METATYPE(ProtocolFactoryKey)
+namespace Device
+{
+class DeviceInterface;
+using ProtocolFactoryKey = UuidKey<DeviceInterface>;
+}
+Q_DECLARE_METATYPE(Device::ProtocolFactoryKey)

@@ -1,6 +1,25 @@
-#include <QApplication>
-#include <iscore/tools/IdentifiedObject.hpp>
+#include <boost/optional/optional.hpp>
+
 #include <iscore/tools/ObjectPath.hpp>
+#include <QApplication>
+#include <QByteArray>
+#include <QDebug>
+#include <QList>
+#include <qnamespace.h>
+#include <QObject>
+#include <sys/types.h>
+#include <iterator>
+#include <stdexcept>
+#include <typeinfo>
+
+#include <iscore/tools/IdentifiedObjectAbstract.hpp>
+#include <iscore/tools/NamedObject.hpp>
+#include <iscore/tools/ObjectIdentifier.hpp>
+#include <core/document/Document.hpp>
+#include <core/document/DocumentModel.hpp>
+#include <core/presenter/DocumentManager.hpp>
+#include <iscore/tools/std/Algorithms.hpp>
+#include <iscore/application/ApplicationContext.hpp>
 
 ObjectPath ObjectPath::pathBetweenObjects(
         const QObject* const parent_obj,
@@ -17,6 +36,7 @@ ObjectPath ObjectPath::pathBetweenObjects(
             v.push_back({ptr->objectName(), {}});
     };
 
+    // TODO only do this in debug mode
     QString debug_objectnames;
     // Recursively go through the object and all the parents
     while(current_obj != parent_obj)
@@ -116,15 +136,29 @@ typename Container::value_type findById_weak_unsafe(const Container& c, int32_t 
 
 QObject* ObjectPath::find_impl() const
 {
-    auto parent_name = m_objectIdentifiers.at(0).objectName();
+    QObject* obj{};
+
+    const auto& docs = iscore::AppContext().documents.documents();
+    auto parent_doc_it = find_if(docs,
+                            [&] (iscore::Document* doc) {
+            return doc->model().id().val() == m_objectIdentifiers.at(0).id();
+    });
+
+    if(parent_doc_it != docs.end())
+    {
+        obj = &(*parent_doc_it)->model();
+    }
+    else
+    {
+        auto parent_name = m_objectIdentifiers.at(0).objectName();
+        auto objs = qApp->findChildren<IdentifiedObjectAbstract*> (parent_name);
+        obj = findById_weak_safe(objs, *m_objectIdentifiers.at(0).id());
+    }
+
     std::vector<ObjectIdentifier> children(m_objectIdentifiers.size() - 1);
     std::copy(std::begin(m_objectIdentifiers) + 1,
               std::end(m_objectIdentifiers),
               std::begin(children));
-
-    auto objs = qApp->findChildren<IdentifiedObjectAbstract*> (parent_name);
-    NamedObject* obj = findById_weak_safe(objs, *m_objectIdentifiers.at(0).id());
-
     for(const auto& currentObjIdentifier : children)
     {
         if(currentObjIdentifier.id())
@@ -137,7 +171,7 @@ QObject* ObjectPath::find_impl() const
         }
         else
         {
-            auto child = obj->findChild<NamedObject*> (currentObjIdentifier.objectName(),
+            auto child = obj->findChild<QObject*> (currentObjIdentifier.objectName(),
                          Qt::FindDirectChildrenOnly);
 
             if(!child)
@@ -156,17 +190,31 @@ QObject* ObjectPath::find_impl() const
 
 QObject* ObjectPath::find_impl_unsafe() const
 {
-    auto parent_name = m_objectIdentifiers.at(0).objectName();
+    QObject* obj{};
+
+    const auto& docs = iscore::AppContext().documents.documents();
+    auto parent_doc_it = find_if(docs,
+                            [&] (iscore::Document* doc) {
+            return doc->model().id().val() == m_objectIdentifiers.at(0).id();
+    });
+
+    if(parent_doc_it != docs.end())
+    {
+        obj = &(*parent_doc_it)->model();
+    }
+    else
+    {
+        auto parent_name = m_objectIdentifiers.at(0).objectName();
+        auto objs = qApp->findChildren<IdentifiedObjectAbstract*> (parent_name);
+        obj = findById_weak_unsafe(objs, *m_objectIdentifiers.at(0).id());
+        if(!obj)
+            return nullptr;
+    }
+
     std::vector<ObjectIdentifier> children(m_objectIdentifiers.size() - 1);
     std::copy(std::begin(m_objectIdentifiers) + 1,
               std::end(m_objectIdentifiers),
               std::begin(children));
-
-    auto objs = qApp->findChildren<IdentifiedObjectAbstract*> (parent_name);
-    NamedObject* obj = findById_weak_unsafe(objs, *m_objectIdentifiers.at(0).id());
-    if(!obj)
-        return nullptr;
-
     for(const auto& currentObjIdentifier : children)
     {
         if(currentObjIdentifier.id())
@@ -182,7 +230,7 @@ QObject* ObjectPath::find_impl_unsafe() const
         }
         else
         {
-            auto child = obj->findChild<NamedObject*> (currentObjIdentifier.objectName(),
+            auto child = obj->findChild<QObject*> (currentObjIdentifier.objectName(),
                          Qt::FindDirectChildrenOnly);
 
             if(!child)

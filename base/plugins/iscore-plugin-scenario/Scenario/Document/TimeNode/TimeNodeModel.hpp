@@ -1,35 +1,42 @@
 #pragma once
-#include <iscore/tools/IdentifiedObject.hpp>
-#include <iscore/tools/SettableIdentifier.hpp>
-#include <Scenario/Document/VerticalExtent.hpp>
+#include <iscore/tools/Metadata.hpp>
 #include <Process/ModelMetadata.hpp>
 #include <Process/TimeValue.hpp>
-
-#include <iscore/serialization/DataStreamVisitor.hpp>
-#include <iscore/serialization/JSONVisitor.hpp>
-#include <iscore/selection/Selectable.hpp>
-
+#include <Scenario/Document/VerticalExtent.hpp>
+#include <boost/optional/optional.hpp>
 #include <iscore/plugins/documentdelegate/plugin/ElementPluginModelList.hpp>
+#include <iscore/selection/Selectable.hpp>
+#include <iscore/tools/IdentifiedObject.hpp>
+#include <iscore/tools/SettableIdentifier.hpp>
+#include <QObject>
+
+#include <QString>
+#include <QVector>
+#include <chrono>
+#include <iscore_plugin_scenario_export.h>
+#include <iscore/component/Component.hpp>
+class DataStream;
+class JSONObject;
+
+namespace Scenario
+{
 class EventModel;
-class TriggerModel;
 class ScenarioInterface;
-class TimeNodeModel final : public IdentifiedObject<TimeNodeModel>
+class TriggerModel;
+
+class ISCORE_PLUGIN_SCENARIO_EXPORT TimeNodeModel final : public IdentifiedObject<TimeNodeModel>
 {
         Q_OBJECT
-        ISCORE_METADATA("TimeNodeModel")
 
-        ISCORE_SERIALIZE_FRIENDS(TimeNodeModel, DataStream)
-        ISCORE_SERIALIZE_FRIENDS(TimeNodeModel, JSONObject)
+        ISCORE_SERIALIZE_FRIENDS(Scenario::TimeNodeModel, DataStream)
+        ISCORE_SERIALIZE_FRIENDS(Scenario::TimeNodeModel, JSONObject)
 
     public:
         /** Properties of the class **/
+        iscore::Components components;
         Selectable selection;
         ModelMetadata metadata;
         iscore::ElementPluginModelList pluginModelList;
-
-        static QString prettyName()
-        { return QObject::tr("Time Node"); }
-
 
         /** The class **/
         TimeNodeModel(
@@ -49,10 +56,6 @@ class TimeNodeModel final : public IdentifiedObject<TimeNodeModel>
                 const TimeNodeModel& source,
                 const Id<TimeNodeModel>& id,
                 QObject* parent);
-
-
-        // Utility
-        ScenarioInterface* parentScenario() const;
 
         // Data of the TimeNode
         const VerticalExtent& extent() const;
@@ -82,3 +85,6 @@ class TimeNodeModel final : public IdentifiedObject<TimeNodeModel>
 
         QVector<Id<EventModel>> m_events;
 };
+}
+
+DEFAULT_MODEL_METADATA(Scenario::TimeNodeModel, "Time Node")

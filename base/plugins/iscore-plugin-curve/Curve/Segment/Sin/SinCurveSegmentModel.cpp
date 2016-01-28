@@ -1,23 +1,35 @@
-#include "SinCurveSegmentModel.hpp"
 #include <iscore/serialization/VisitorCommon.hpp>
+#include <QDebug>
+#include <QPoint>
 #include <cmath>
+#include <cstddef>
+#include <vector>
 
-SinCurveSegmentModel::SinCurveSegmentModel(
-        const CurveSegmentData& dat,
-        QObject* parent):
-    CurveSegmentModel{dat, parent}
+#include <Curve/Palette/CurvePoint.hpp>
+#include <Curve/Segment/CurveSegmentData.hpp>
+#include "SinCurveSegmentModel.hpp"
+
+class QObject;
+#include <iscore/tools/SettableIdentifier.hpp>
+
+namespace Curve
 {
-    const auto& sin_data = dat.specificSegmentData.value<SinCurveSegmentData>();
+SinSegment::SinSegment(
+        const SegmentData& dat,
+        QObject* parent):
+    SegmentModel{dat, parent}
+{
+    const auto& sin_data = dat.specificSegmentData.value<SinSegmentData>();
     freq = sin_data.freq;
     ampl = sin_data.ampl;
 }
 
 
-CurveSegmentModel*SinCurveSegmentModel::clone(
-        const Id<CurveSegmentModel>& id,
+SegmentModel*SinSegment::clone(
+        const Id<SegmentModel>& id,
         QObject* parent) const
 {
-    auto cs = new SinCurveSegmentModel{id, parent};
+    auto cs = new SinSegment{id, parent};
     cs->setStart(this->start());
     cs->setEnd(this->end());
 
@@ -28,28 +40,28 @@ CurveSegmentModel*SinCurveSegmentModel::clone(
     return cs;
 }
 
-const CurveSegmentFactoryKey& SinCurveSegmentModel::key() const
+SegmentFactoryKey SinSegment::concreteFactoryKey() const
 {
-    static const CurveSegmentFactoryKey name{"Sin"};
-    return name;
+    return data_type::static_concreteFactoryKey();
 }
 
-void SinCurveSegmentModel::serialize(const VisitorVariant& vis) const
+
+void SinSegment::serialize_impl(const VisitorVariant& vis) const
 {
     serialize_dyn(vis, *this);
 }
 
-void SinCurveSegmentModel::on_startChanged()
+void SinSegment::on_startChanged()
 {
     emit dataChanged();
 }
 
-void SinCurveSegmentModel::on_endChanged()
+void SinSegment::on_endChanged()
 {
     emit dataChanged();
 }
 
-void SinCurveSegmentModel::updateData(int numInterp) const
+void SinSegment::updateData(int numInterp) const
 {
     if(std::size_t(2 * numInterp + 1) != m_data.size())
         m_valid = false;
@@ -69,32 +81,40 @@ void SinCurveSegmentModel::updateData(int numInterp) const
     }
 }
 
-double SinCurveSegmentModel::valueAt(double x) const
+double SinSegment::valueAt(double x) const
 {
     ISCORE_TODO;
     return -1;
 }
 
-void SinCurveSegmentModel::setVerticalParameter(double p)
+void SinSegment::setVerticalParameter(double p)
 {
     // From -1; 1 to 0;1
     ampl = (p + 1) / 2.;
     emit dataChanged();
 }
 
-void SinCurveSegmentModel::setHorizontalParameter(double p)
+void SinSegment::setHorizontalParameter(double p)
 {
     // From -1; 1 to 1; 15
     freq = (p + 1) * 7 + 1;
     emit dataChanged();
 }
 
-boost::optional<double> SinCurveSegmentModel::verticalParameter() const
+boost::optional<double> SinSegment::verticalParameter() const
 {
     return 2. * ampl - 1.;
 }
 
-boost::optional<double> SinCurveSegmentModel::horizontalParameter() const
+boost::optional<double> SinSegment::horizontalParameter() const
 {
     return (freq - 1.) / 7. - 1.;
+}
+
+
+const SegmentFactoryKey& SinSegmentData::static_concreteFactoryKey()
+{
+    static const SegmentFactoryKey name{"c16dad6a-a422-4fb7-8bd5-850cbe8c3f28"};
+    return name;
+}
 }

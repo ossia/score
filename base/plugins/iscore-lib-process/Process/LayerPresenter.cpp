@@ -1,5 +1,6 @@
 #include "LayerPresenter.hpp"
-
+namespace Process
+{
 LayerPresenter::~LayerPresenter()
 {
 
@@ -19,4 +20,5 @@ void LayerPresenter::setFocus(bool focus)
 void LayerPresenter::on_focusChanged()
 {
 
+}
 }

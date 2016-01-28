@@ -1,17 +1,78 @@
-#include "DeviceDocumentPlugin.hpp"
-#include <iscore/serialization/VisitorCommon.hpp>
-
 #include <Device/Protocol/ProtocolFactoryInterface.hpp>
-
-#include <core/application/ApplicationComponents.hpp>
 #include <Device/Protocol/ProtocolList.hpp>
-#include <QMessageBox>
-#include <QApplication>
 
+
+#include <QApplication>
+#include <QJsonArray>
+#include <QJsonObject>
+#include <QMessageBox>
+#include <QObject>
+
+#include <QString>
+#include <algorithm>
+#include <stdexcept>
+#include <vector>
+
+#include <Device/Node/DeviceNode.hpp>
+#include <Device/Protocol/DeviceInterface.hpp>
+#include <Device/Protocol/DeviceList.hpp>
+#include <Device/Protocol/DeviceSettings.hpp>
+#include "DeviceDocumentPlugin.hpp"
+#include <Explorer/DocumentPlugin/ListeningState.hpp>
+#include <Explorer/DocumentPlugin/NodeUpdateProxy.hpp>
+#include <State/Address.hpp>
+#include <iscore/application/ApplicationContext.hpp>
+#include <iscore/document/DocumentContext.hpp>
+#include <iscore/plugins/customfactory/FactoryFamily.hpp>
+#include <iscore/plugins/customfactory/FactoryMap.hpp>
+#include <iscore/plugins/customfactory/StringFactoryKey.hpp>
+#include <iscore/plugins/documentdelegate/plugin/DocumentDelegatePluginModel.hpp>
+#include <iscore/serialization/VisitorCommon.hpp>
+#include <iscore/tools/TreeNode.hpp>
+
+namespace iscore {
+class Document;
+struct Value;
+}  // namespace iscore
+struct VisitorVariant;
+
+// MOVEME
+template<>
+void Visitor<Reader<DataStream>>::readFrom_impl(
+        const DeviceExplorer::DeviceDocumentPlugin& dev)
+{
+    readFrom(dev.rootNode());
+}
+
+
+template<>
+void Visitor<Reader<JSONObject>>::readFrom_impl(
+        const DeviceExplorer::DeviceDocumentPlugin& dev)
+{
+    readFrom(dev.rootNode());
+}
+
+template<>
+void Visitor<Writer<DataStream>>::writeTo(
+        DeviceExplorer::DeviceDocumentPlugin& dev)
+{
+    writeTo(dev.rootNode());
+}
+
+
+template<>
+void Visitor<Writer<JSONObject>>::writeTo(
+        DeviceExplorer::DeviceDocumentPlugin& dev)
+{
+    writeTo(dev.rootNode());
+}
+
+namespace DeviceExplorer
+{
 DeviceDocumentPlugin::DeviceDocumentPlugin(
         iscore::Document& ctx,
         QObject* parent):
-    iscore::DocumentDelegatePluginModel{ctx, "DeviceDocumentPlugin", parent}
+    iscore::SerializableDocumentPlugin{ctx, "DeviceExplorer::DeviceDocumentPlugin", parent}
 {
 
 }
@@ -20,9 +81,9 @@ DeviceDocumentPlugin::DeviceDocumentPlugin(
         iscore::Document& ctx,
         const VisitorVariant& vis,
         QObject* parent):
-    iscore::DocumentDelegatePluginModel{ctx, "DeviceDocumentPlugin", parent}
+    iscore::SerializableDocumentPlugin{ctx, "DeviceExplorer::DeviceDocumentPlugin", parent}
 {
-    deserialize_dyn(vis, m_rootNode);
+    deserialize_dyn(vis, *this);
 
     // Here we recreate the correct structures in term of devices,
     // given what's present in the node hierarchy
@@ -32,26 +93,28 @@ DeviceDocumentPlugin::DeviceDocumentPlugin(
     }
 }
 
-void DeviceDocumentPlugin::serialize(const VisitorVariant& vis) const
+void DeviceDocumentPlugin::serialize_impl(const VisitorVariant& vis) const
 {
-    serialize_dyn(vis, m_rootNode);
+    serialize_dyn(vis, *this);
 }
 
-iscore::Node DeviceDocumentPlugin::createDeviceFromNode(const iscore::Node & node)
+auto DeviceDocumentPlugin::concreteFactoryKey() const -> ConcreteFactoryKey
+{
+    return DocumentPluginFactory::static_concreteFactoryKey();
+}
+
+Device::Node DeviceDocumentPlugin::createDeviceFromNode(const Device::Node & node)
 {
     try {
-        auto& fact = m_context.app.components.factory<DynamicProtocolList>();
+        auto& fact = m_context.app.components.factory<Device::DynamicProtocolList>();
 
         // Instantiate a real device.
-        auto proto = fact.list().get(node.get<iscore::DeviceSettings>().protocol);
-        auto newdev = proto->makeDevice(node.get<iscore::DeviceSettings>());
-        connect(newdev, &DeviceInterface::valueUpdated,
-                this, [&] (const iscore::Address& addr, const iscore::Value& v) { updateProxy.updateLocalValue(addr, v); });
+        auto proto = fact.list().get(node.get<Device::DeviceSettings>().protocol);
+        auto newdev = proto->makeDevice(node.get<Device::DeviceSettings>(), context());
 
-        m_list.addDevice(newdev);
-        newdev->setParent(this);
+        initDevice(*newdev);
 
-        if(newdev->canRefresh())
+        if(newdev->capabilities().canRefresh)
         {
             return newdev->refresh();
         }
@@ -68,24 +131,22 @@ iscore::Node DeviceDocumentPlugin::createDeviceFromNode(const iscore::Node & nod
     {
         QMessageBox::warning(QApplication::activeWindow(),
                              QObject::tr("Error loading device"),
-                             node.get<iscore::DeviceSettings>().name + ": " + QString::fromLatin1(e.what()));
+                             node.get<Device::DeviceSettings>().name + ": " + QString::fromLatin1(e.what()));
     }
 
     return node;
 }
 
-iscore::Node DeviceDocumentPlugin::loadDeviceFromNode(const iscore::Node & node)
+Device::Node DeviceDocumentPlugin::loadDeviceFromNode(const Device::Node & node)
 {
     try {
         // Instantiate a real device.
-        auto& fact = m_context.app.components.factory<DynamicProtocolList>();
-        auto proto = fact.list().get(node.get<iscore::DeviceSettings>().protocol);
-        auto newdev = proto->makeDevice(node.get<iscore::DeviceSettings>());
-        connect(newdev, &DeviceInterface::valueUpdated,
-                this, [&] (const iscore::Address& addr, const iscore::Value& v) { updateProxy.updateLocalValue(addr, v); });
+        auto& fact = m_context.app.components.factory<Device::DynamicProtocolList>();
+        auto proto = fact.list().get(node.get<Device::DeviceSettings>().protocol);
+        auto newdev = proto->makeDevice(node.get<Device::DeviceSettings>(), context());
 
-        m_list.addDevice(newdev);
-        newdev->setParent(this);
+        initDevice(*newdev);
+
         for(auto& child : node)
         {
             newdev->addNode(child);
@@ -97,7 +158,7 @@ iscore::Node DeviceDocumentPlugin::loadDeviceFromNode(const iscore::Node & node)
     {
         QMessageBox::warning(QApplication::activeWindow(),
                              QObject::tr("Error loading device"),
-                             node.get<iscore::DeviceSettings>().name + ": " + QString::fromLatin1(e.what()));
+                             node.get<Device::DeviceSettings>().name + ": " + QString::fromLatin1(e.what()));
     }
 
     return node;
@@ -149,7 +210,7 @@ void DeviceDocumentPlugin::setConnection(bool b)
         {
             dev->reconnect();
             auto it = std::find_if(m_rootNode.cbegin(), m_rootNode.cend(), [&] (const auto& dev_node) {
-                return dev_node.template get<iscore::DeviceSettings>().name == dev->settings().name;
+                return dev_node.template get<Device::DeviceSettings>().name == dev->settings().name;
             });
 
             ISCORE_ASSERT(it != m_rootNode.cend());
@@ -162,4 +223,42 @@ void DeviceDocumentPlugin::setConnection(bool b)
         else
             dev->disconnect();
     }
+}
+
+void DeviceDocumentPlugin::initDevice(Device::DeviceInterface& newdev)
+{
+    con(newdev, &Device::DeviceInterface::valueUpdated,
+        this, [&] (const State::Address& addr, const State::Value& v) {
+        updateProxy.updateLocalValue(addr, v);
+    });
+
+    con(newdev, &Device::DeviceInterface::pathAdded,
+        this, [&] (const State::Address& newaddr) {
+        auto parentAddr = newaddr;
+        parentAddr.path.removeLast();
+
+        auto parent = Device::try_getNodeFromAddress(m_rootNode, parentAddr);
+        if(parent)
+        {
+            updateProxy.addLocalNode(
+                        *parent,
+                        newdev.getNode(newaddr));
+        }
+    });
+
+    con(newdev, &Device::DeviceInterface::pathRemoved,
+        this, [&] (const State::Address& addr) {
+        updateProxy.removeLocalNode(addr);
+    });
+
+    con(newdev, &Device::DeviceInterface::pathUpdated,
+        this, [&] (
+            const State::Address& addr,
+            const Device::AddressSettings& set) {
+        updateProxy.updateLocalSettings(addr, set);
+    });
+
+    m_list.addDevice(&newdev);
+    newdev.setParent(this);
+}
 }

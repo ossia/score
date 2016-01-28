@@ -1,22 +1,33 @@
 #pragma once
-#include <Scenario/Document/Constraint/ViewModels/ConstraintViewModelIdMap.hpp>
 #include <Process/LayerModel.hpp>
-#include <iscore/tools/ModelPath.hpp>
+#include <Scenario/Document/Constraint/ViewModels/ConstraintViewModelIdMap.hpp>
+#include <QString>
+#include <QVector>
+#include <vector>
+#include <nano_signal_slot.hpp>
+
+#include <Scenario/Process/ScenarioModel.hpp>
+#include <iscore/serialization/VisitorInterface.hpp>
 #include <iscore/tools/SettableIdentifier.hpp>
-#include <iscore/serialization/DataStreamVisitor.hpp>
-class ScenarioModel;
-class ConstraintViewModel;
-class ConstraintModel;
-class TimeNodeModel;
+
+namespace Process { class ProcessModel; }
+class QObject;
+namespace Scenario
+{
 class StateModel;
-
+class TimeNodeModel;
+class ConstraintModel;
+class ConstraintViewModel;
 class EventModel;
+class ScenarioModel;
 
-class AbstractScenarioLayerModel : public LayerModel
+class AbstractScenarioLayerModel :
+        public Process::LayerModel,
+        public Nano::Observer
 {
         Q_OBJECT
     public:
-        using model_type = ScenarioModel;
+        using model_type = Scenario::ScenarioModel;
 
         virtual void makeConstraintViewModel(
                 const Id<ConstraintModel>& constraintModelId,
@@ -46,8 +57,12 @@ class AbstractScenarioLayerModel : public LayerModel
         void timeNodeCreated(const TimeNodeModel&);
         void timeNodeRemoved(const TimeNodeModel&);
 
+        void commentCreated(const CommentBlockModel&);
+        void commentRemoved(const CommentBlockModel&);
+
         void eventMoved(const EventModel&);
         void constraintMoved(const ConstraintModel&);
+        void commentMoved(const CommentBlockModel&);
 
     public slots:
         virtual void on_constraintRemoved(const ConstraintModel&) = 0;
@@ -55,7 +70,7 @@ class AbstractScenarioLayerModel : public LayerModel
     protected:
         AbstractScenarioLayerModel(const Id<LayerModel>& viewModelId,
                               const QString& name,
-                              Process& sharedProcess,
+                              Process::ProcessModel& sharedProcess,
                               QObject* parent) :
             LayerModel {viewModelId,
                         name,
@@ -69,7 +84,7 @@ class AbstractScenarioLayerModel : public LayerModel
         AbstractScenarioLayerModel(const AbstractScenarioLayerModel& source,
                               const Id<LayerModel>& viewModelId,
                               const QString& name,
-                              Process& sharedProcess,
+                              Process::ProcessModel& sharedProcess,
                               QObject* parent) :
             LayerModel {viewModelId,
                         name,
@@ -81,7 +96,7 @@ class AbstractScenarioLayerModel : public LayerModel
         // Load
         template<typename Impl>
         AbstractScenarioLayerModel(Deserializer<Impl>& vis,
-                              Process& sharedProcess,
+                              Process::ProcessModel& sharedProcess,
                               QObject* parent) :
             LayerModel {vis,
                         sharedProcess,
@@ -119,9 +134,10 @@ QVector<typename T::constraint_layer_type*> constraintsViewModels(const T& scena
 
 void createConstraintViewModels(const ConstraintViewModelIdMap& idMap,
                                 const Id<ConstraintModel>& constraint,
-                                const ScenarioModel& scenario);
+                                const Scenario::ScenarioModel& scenario);
 
 // Note : the view models can also be more easily accessed using the viewModels methods of ConstraintModel
 std::vector<ConstraintViewModel*> getConstraintViewModels(
         const Id<ConstraintModel>& constraintId,
-        const ScenarioModel& scenario);
+        const Scenario::ScenarioModel& scenario);
+}

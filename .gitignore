@@ -25,3 +25,4 @@ Makefile
 *kde*
 cppcheck-html
 
+base/addons/*

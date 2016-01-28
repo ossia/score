@@ -1,6 +1,12 @@
 #include <iscore/command/SerializableCommand.hpp>
-using namespace iscore;
+#include <QDataStream>
+#include <QtGlobal>
+#include <QIODevice>
 
+#include <iscore/serialization/DataStreamVisitor.hpp>
+
+namespace iscore
+{
 SerializableCommand::~SerializableCommand()
 {
 }
@@ -32,4 +38,5 @@ void SerializableCommand::deserialize(const QByteArray& arr)
 
     DataStreamOutput outp{s};
     deserializeImpl(outp);
+}
 }

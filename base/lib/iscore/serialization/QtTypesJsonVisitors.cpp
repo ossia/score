@@ -1,7 +1,17 @@
+#include <boost/none_t.hpp>
+#include <boost/optional/optional.hpp>
+#include <QJsonArray>
+#include <QJsonValue>
+#include <QPoint>
+
+#include <iscore/tools/std/Optional.hpp>
 #include "DataStreamVisitor.hpp"
 #include "JSONValueVisitor.hpp"
-#include <QPointF>
 
+template <typename T> class Reader;
+template <typename T> class Writer;
+
+// TODO RENAME FILE
 template<>
 void Visitor<Reader<JSONValue>>::readFrom(const QPointF& pt)
 {
@@ -19,36 +29,3 @@ void Visitor<Writer<JSONValue>>::writeTo(QPointF& pt)
     pt.setX(arr[0].toDouble());
     pt.setY(arr[1].toDouble());
 }
-
-
-
-template<>
-void Visitor<Reader<DataStream>>::readFrom(const boost::optional<double>& obj)
-{
-    m_stream << bool (obj);
-
-    if(obj)
-    {
-        m_stream << get(obj);
-    }
-}
-
-template<>
-void Visitor<Writer<DataStream>>::writeTo(boost::optional<double>& obj)
-{
-    bool b {};
-    m_stream >> b;
-
-    if(b)
-    {
-        double val;
-        m_stream >> val;
-
-        obj = val;
-    }
-    else
-    {
-        obj = boost::none_t {};
-    }
-}
-

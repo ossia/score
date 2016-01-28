@@ -1,31 +1,43 @@
 #pragma once
-#include "Curve/Segment/CurveSegmentModel.hpp"
-struct LinearCurveSegmentData
+#include <QVariant>
+
+#include <Curve/Segment/CurveSegmentFactoryKey.hpp>
+#include <Curve/Segment/CurveSegmentModel.hpp>
+#include <iscore/serialization/VisitorInterface.hpp>
+
+class QObject;
+#include <iscore/tools/SettableIdentifier.hpp>
+
+namespace Curve
 {
-        static const CurveSegmentFactoryKey& key();
+struct ISCORE_PLUGIN_CURVE_EXPORT LinearSegmentData
+{
+        static const SegmentFactoryKey& static_concreteFactoryKey();
+
+        static const QString prettyName()
+        { return QObject::tr("Linear"); }
 };
 
-Q_DECLARE_METATYPE(LinearCurveSegmentData)
 
-class LinearCurveSegmentModel final : public CurveSegmentModel
+class ISCORE_PLUGIN_CURVE_EXPORT LinearSegment final : public SegmentModel
 {
     public:
-        using data_type = LinearCurveSegmentData;
-        using CurveSegmentModel::CurveSegmentModel;
+        using data_type = LinearSegmentData;
+        using SegmentModel::SegmentModel;
 
         template<typename Impl>
-        LinearCurveSegmentModel(Deserializer<Impl>& vis, QObject* parent) :
-            CurveSegmentModel {vis, parent}
+        LinearSegment(Deserializer<Impl>& vis, QObject* parent) :
+            SegmentModel {vis, parent}
         {
             vis.writeTo(*this);
         }
 
-        CurveSegmentModel* clone(
-                const Id<CurveSegmentModel>& id,
+        SegmentModel* clone(
+                const Id<SegmentModel>& id,
                 QObject* parent) const override;
 
-        const CurveSegmentFactoryKey& key() const override;
-        void serialize(const VisitorVariant& vis) const override;
+        SegmentFactoryKey concreteFactoryKey() const override;
+        void serialize_impl(const VisitorVariant& vis) const override;
         void on_startChanged() override;
         void on_endChanged() override;
 
@@ -34,3 +46,6 @@ class LinearCurveSegmentModel final : public CurveSegmentModel
 
         QVariant toSegmentSpecificData() const override;
 };
+}
+
+Q_DECLARE_METATYPE(Curve::LinearSegmentData)

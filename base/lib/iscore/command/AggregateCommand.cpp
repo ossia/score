@@ -1,10 +1,21 @@
-#include "AggregateCommand.hpp"
-#include <core/application/ApplicationComponents.hpp>
-#include <iscore/tools/std/StdlibWrapper.hpp>
-#include <QApplication>
+#include <boost/concept/usage.hpp>
 #include <boost/range/adaptor/reversed.hpp>
-using namespace iscore;
+#include <iscore/application/ApplicationComponents.hpp>
+#include <QByteArray>
+#include <QDataStream>
+#include <QtGlobal>
+#include <QList>
+#include <QPair>
 
+#include "AggregateCommand.hpp"
+#include <iscore/application/ApplicationContext.hpp>
+#include <iscore/command/SerializableCommand.hpp>
+#include <iscore/plugins/customfactory/StringFactoryKey.hpp>
+#include <iscore/serialization/DataStreamVisitor.hpp>
+#include <iscore/tools/std/StdlibWrapper.hpp>
+
+namespace iscore
+{
 AggregateCommand::~AggregateCommand()
 {
 
@@ -28,44 +39,28 @@ void AggregateCommand::redo() const
 
 void AggregateCommand::serializeImpl(DataStreamInput& s) const
 {
-    // Meta-data : {{parent name, command name}, command data}
-    QList<
-            QPair<
-                QPair<
-            CommandParentFactoryKey,
-            CommandFactoryKey
-                >,
-                QByteArray
-            >
-    > serializedCommands;
+    std::vector<CommandData> serializedCommands;
+    serializedCommands.reserve(m_cmds.size());
 
     for(auto& cmd : m_cmds)
     {
-        serializedCommands.push_back({{cmd->parentKey(), cmd->key() }, cmd->serialize()});
+        serializedCommands.emplace_back(*cmd);
     }
 
-    s << serializedCommands;
+    Visitor<Reader<DataStream>> reader{s.stream().device()};
+    reader.readFrom(serializedCommands);
 }
 
 void AggregateCommand::deserializeImpl(DataStreamOutput& s)
 {
-    QList<
-            QPair<
-                QPair<
-                    CommandParentFactoryKey,
-                    CommandFactoryKey
-                >,
-                QByteArray
-            >
-    > serializedCommands;
-    s >> serializedCommands;
+    std::vector<CommandData> serializedCommands;
+    Visitor<Writer<DataStream>> writer{s.stream().device()};
+    writer.writeTo(serializedCommands);
 
-    for(auto& cmd_pack : serializedCommands)
+    for(const auto& cmd_pack : serializedCommands)
     {
-        auto cmd = context.components.instantiateUndoCommand(
-                       cmd_pack.first.first,
-                       cmd_pack.first.second,
-                       cmd_pack.second);
+        auto cmd = context.components.instantiateUndoCommand(cmd_pack);
         m_cmds.push_back(cmd);
     }
+}
 }

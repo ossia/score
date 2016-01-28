@@ -1,19 +1,25 @@
+#include <Curve/Palette/CurvePoint.hpp>
+#include <Curve/Segment/CurveSegmentData.hpp>
 #include "CurveSegmentModel.hpp"
+#include <iscore/tools/IdentifiedObject.hpp>
 
+class QObject;
 
-CurveSegmentModel::CurveSegmentModel(
-        const Id<CurveSegmentModel>& id,
+namespace Curve
+{
+SegmentModel::SegmentModel(
+        const Id<SegmentModel>& id,
         QObject* parent):
-    IdentifiedObject<CurveSegmentModel>{id, "CurveSegmentModel", parent}
+    IdentifiedObject<SegmentModel>{id, "CurveSegmentModel", parent}
 
 {
 
 }
 
-CurveSegmentModel::CurveSegmentModel(
-        const CurveSegmentData& data,
+SegmentModel::SegmentModel(
+        const SegmentData& data,
         QObject* parent):
-    IdentifiedObject<CurveSegmentModel>{data.id, "CurveSegmentModel", parent},
+    IdentifiedObject<SegmentModel>{data.id, "CurveSegmentModel", parent},
     m_start{data.start},
     m_end{data.end},
     m_previous{data.previous},
@@ -21,14 +27,14 @@ CurveSegmentModel::CurveSegmentModel(
 {
 }
 
-CurveSegmentModel::~CurveSegmentModel()
+SegmentModel::~SegmentModel()
 {
 
 }
 
 
 
-void CurveSegmentModel::setPrevious(const Id<CurveSegmentModel>& previous)
+void SegmentModel::setPrevious(const Id<SegmentModel>& previous)
 {
     if(previous != m_previous)
     {
@@ -37,12 +43,12 @@ void CurveSegmentModel::setPrevious(const Id<CurveSegmentModel>& previous)
     }
 }
 
-void CurveSegmentModel::setVerticalParameter(double p)
+void SegmentModel::setVerticalParameter(double p)
 {
 
 }
 
-void CurveSegmentModel::setFollowing(const Id<CurveSegmentModel>& following)
+void SegmentModel::setFollowing(const Id<SegmentModel>& following)
 {
     if(following != m_following)
     {
@@ -51,22 +57,22 @@ void CurveSegmentModel::setFollowing(const Id<CurveSegmentModel>& following)
     }
 }
 
-void CurveSegmentModel::setHorizontalParameter(double p)
+void SegmentModel::setHorizontalParameter(double p)
 {
 
 }
 
-boost::optional<double> CurveSegmentModel::verticalParameter() const
-{
-    return {};
-}
-
-boost::optional<double> CurveSegmentModel::horizontalParameter() const
+boost::optional<double> SegmentModel::verticalParameter() const
 {
     return {};
 }
 
-void CurveSegmentModel::setStart(const Curve::Point& pt)
+boost::optional<double> SegmentModel::horizontalParameter() const
+{
+    return {};
+}
+
+void SegmentModel::setStart(const Curve::Point& pt)
 {
     if(pt != m_start)
     {
@@ -78,7 +84,7 @@ void CurveSegmentModel::setStart(const Curve::Point& pt)
     }
 }
 
-void CurveSegmentModel::setEnd(const Curve::Point& pt)
+void SegmentModel::setEnd(const Curve::Point& pt)
 {
     if(pt != m_end)
     {
@@ -88,4 +94,5 @@ void CurveSegmentModel::setEnd(const Curve::Point& pt)
 
         emit endChanged();
     }
+}
 }

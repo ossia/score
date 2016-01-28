@@ -14,10 +14,10 @@ inline constexpr const char * nodelist() { return "application/x-iscore-nodelist
 
 
 template<>
-struct Visitor<Reader<Mime<iscore::NodeList>>> : public MimeDataReader
+struct Visitor<Reader<Mime<Device::NodeList>>> : public MimeDataReader
 {
         using MimeDataReader::MimeDataReader;
-        void serialize(const iscore::NodeList& lst) const
+        void serialize(const Device::NodeList& lst) const
         {
             m_mime.setData(
                         iscore::mime::nodelist(),
@@ -26,12 +26,12 @@ struct Visitor<Reader<Mime<iscore::NodeList>>> : public MimeDataReader
 };
 
 template<>
-struct Visitor<Writer<Mime<iscore::NodeList>>> : public MimeDataWriter
+struct Visitor<Writer<Mime<Device::NodeList>>> : public MimeDataWriter
 {
         using MimeDataWriter::MimeDataWriter;
         auto deserialize()
         {
-            iscore::NodeList ml;
+            Device::NodeList ml;
             fromJsonArray(
                         QJsonDocument::fromJson(m_mime.data(iscore::mime::nodelist())).array(),
                         ml);

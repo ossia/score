@@ -19,7 +19,7 @@
 #include <Process/AbstractScenarioLayerModel.hpp>
 
 #include <Process/ProcessList.hpp>
-#include "iscore/document/DocumentInterface.hpp"
+#include <iscore/document/DocumentInterface.hpp>
 #include <core/command/CommandStack.hpp>
 
 
@@ -52,7 +52,7 @@ class ShowRackInViewModelTest: public QObject
             }, "Scenario");
             stack.redoAndPush(cmd_proc);
             auto scenarioId = cmd_proc->m_createdProcessId;
-            auto scenario = static_cast<ScenarioModel*>(constraint->process(scenarioId));
+            auto scenario = static_cast<Scenario::ScenarioModel*>(constraint->process(scenarioId));
 
 
             // Creation of a way to visualize what happens in the original constraint

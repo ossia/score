@@ -1,57 +1,89 @@
 #pragma once
+#include <iscore/tools/Metadata.hpp>
 #include <Process/ModelMetadata.hpp>
-
+#include <Process/StateProcess.hpp>
+#include <Scenario/Document/Event/ExecutionStatus.hpp>
+#include <boost/optional/optional.hpp>
+#include <iscore/selection/Selectable.hpp>
 #include <iscore/tools/IdentifiedObject.hpp>
 #include <iscore/tools/SettableIdentifier.hpp>
-#include <iscore/serialization/DataStreamVisitor.hpp>
-#include <iscore/serialization/JSONVisitor.hpp>
-#include <iscore/selection/Selectable.hpp>
+#include <iscore/tools/NotifyingMap.hpp>
+#include <nano_signal_slot.hpp>
 
-#include <Scenario/Document/State/ItemModel/MessageItemModel.hpp>
 #include <set>
-#include "StateView.hpp"
-#include <Scenario/Document/Event/ExecutionStatus.hpp>
+#include <vector>
 
-class ConstraintView;
-class ScenarioInterface;
-class EventModel;
-class ConstraintModel;
-class Process;
+#include <iscore/serialization/VisitorInterface.hpp>
+#include <iscore/tools/Todo.hpp>
+#include <iscore_plugin_scenario_export.h>
+#include <iscore/component/Component.hpp>
+class DataStream;
+class JSONObject;
+namespace Process { class ProcessModel; }
 class ProcessStateDataInterface;
 
+namespace iscore
+{
+class CommandStackFacade;
+}
+
+namespace Scenario
+{
+class EventModel;
+class ConstraintModel;
+class MessageItemModel;
+class ProcessStateWrapper : public QObject
+{
+    private:
+        ProcessStateDataInterface* m_proc;
+
+    public:
+        ProcessStateWrapper(ProcessStateDataInterface* proc):
+            m_proc{proc}
+        {
+
+        }
+
+        ProcessStateDataInterface& process() const { return *m_proc; }
+};
+
 // Model for the graphical state in a scenario.
-class StateModel final : public IdentifiedObject<StateModel>
+class ISCORE_PLUGIN_SCENARIO_EXPORT StateModel final : public IdentifiedObject<StateModel>, public Nano::Observer
 {
         Q_OBJECT
-        ISCORE_METADATA("StateModel")
 
-        ISCORE_SERIALIZE_FRIENDS(StateModel, DataStream)
-        ISCORE_SERIALIZE_FRIENDS(StateModel, JSONObject)
+        ISCORE_SERIALIZE_FRIENDS(Scenario::StateModel, DataStream)
+        ISCORE_SERIALIZE_FRIENDS(Scenario::StateModel, JSONObject)
     public:
+        using ProcessVector = std::list<ProcessStateWrapper>;
+        iscore::Components components;
         Selectable selection;
         ModelMetadata metadata;
 
         StateModel(const Id<StateModel>& id,
                    const Id<EventModel>& eventId,
                    double yPos,
+                   iscore::CommandStackFacade& stack,
                    QObject* parent);
 
         // Copy
         StateModel(const StateModel& source,
                    const Id<StateModel>&,
+                   iscore::CommandStackFacade& stack,
                    QObject* parent);
 
         // Load
         template<typename DeserializerVisitor,
                  enable_if_deserializer<DeserializerVisitor>* = nullptr>
-        StateModel(DeserializerVisitor&& vis, QObject* parent) :
-            IdentifiedObject{vis, parent}
+        StateModel(DeserializerVisitor&& vis,
+                   iscore::CommandStackFacade& stack,
+                   QObject* parent) :
+            IdentifiedObject{vis, parent},
+            m_stack{stack}
         {
             vis.writeTo(*this);
             init();
         }
-
-        const ScenarioInterface* parentScenario() const;
 
         double heightPercentage() const;
 
@@ -68,34 +100,35 @@ class StateModel final : public IdentifiedObject<StateModel>
         void setNextConstraint(const Id<ConstraintModel>&);
         void setPreviousConstraint(const Id<ConstraintModel>&);
 
-        const auto& previousProcesses() const
+        ProcessVector& previousProcesses()
         { return m_previousProcesses; }
-        const auto& followingProcesses() const
+        ProcessVector& followingProcesses()
+        { return m_nextProcesses; }
+        const ProcessVector& previousProcesses() const
+        { return m_previousProcesses; }
+        const ProcessVector& followingProcesses() const
         { return m_nextProcesses; }
 
         void setStatus(ExecutionStatus);
         ExecutionStatus status() const
-        { return m_status; }
+        { return m_status.get(); }
+
+        NotifyingMap<Process::StateProcess> stateProcesses;
+
+        void setHeightPercentage(double y);
 
     signals:
         void sig_statesUpdated();
         void heightPercentageChanged();
-        void statusChanged(ExecutionStatus);
-
-    public slots:
-        void setHeightPercentage(double y);
+        void statusChanged(Scenario::ExecutionStatus);
 
     private:
         void statesUpdated_slt();
         void init(); // TODO check if other model elements need an init method too.
-        void setConstraint_impl(const Id<ConstraintModel>& id);
-        void on_nextProcessAdded(const Process&);
-        void on_nextProcessRemoved(const Process&);
-        void on_previousProcessAdded(const Process&);
-        void on_previousProcessRemoved(const Process&);
+        iscore::CommandStackFacade& m_stack;
 
-        std::set<ProcessStateDataInterface*> m_previousProcesses;
-        std::set<ProcessStateDataInterface*> m_nextProcesses;
+        ProcessVector m_previousProcesses;
+        ProcessVector m_nextProcesses;
         Id<EventModel> m_eventId;
 
         // OPTIMIZEME if we shift to Id = int, put this Optional
@@ -105,8 +138,8 @@ class StateModel final : public IdentifiedObject<StateModel>
         double m_heightPercentage{0.5}; // In the whole scenario
 
         ptr<MessageItemModel> m_messageItemModel;
-        ExecutionStatus m_status{ExecutionStatus::Editing};
-
-        std::vector<QMetaObject::Connection> m_prevConnections;
-        std::vector<QMetaObject::Connection> m_nextConnections;
+        ExecutionStatusProperty m_status{};
 };
+}
+
+DEFAULT_MODEL_METADATA(Scenario::StateModel, "State")

@@ -1,15 +1,26 @@
-#include "InitAutomation.hpp"
 #include <Automation/AutomationModel.hpp>
 #include <Curve/CurveModel.hpp>
-#include "Curve/Segment/CurveSegmentModelSerialization.hpp"
+#include <algorithm>
 
+#include <Curve/Segment/CurveSegmentData.hpp>
+#include "InitAutomation.hpp"
+#include <iscore/serialization/DataStreamVisitor.hpp>
+#include <iscore/tools/ModelPath.hpp>
+#include <iscore/tools/ModelPathSerialization.hpp>
+#include <iscore/tools/std/StdlibWrapper.hpp>
 
+namespace State {
+struct Address;
+}  // namespace iscore
+
+namespace Automation
+{
 InitAutomation::InitAutomation(
-        Path<AutomationModel>&& path,
-        const iscore::Address& newaddr,
+        Path<ProcessModel>&& path,
+        const ::State::Address& newaddr,
         double newmin,
         double newmax,
-        std::vector<CurveSegmentData>&& segments):
+        std::vector<Curve::SegmentData>&& segments):
     m_path{std::move(path)},
     m_addr(newaddr),
     m_newMin{newmin},
@@ -44,4 +55,5 @@ void InitAutomation::serializeImpl(DataStreamInput& s) const
 void InitAutomation::deserializeImpl(DataStreamOutput& s)
 {
     s >> m_path >> m_addr >> m_newMin >> m_newMax >> m_segments;
+}
 }

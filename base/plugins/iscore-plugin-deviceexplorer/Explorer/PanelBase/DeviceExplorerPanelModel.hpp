@@ -3,15 +3,20 @@
 
 namespace iscore
 {
-    class DocumentModel;
+    struct DocumentContext;
 }
+
+namespace DeviceExplorer
+{
 class DeviceExplorerModel;
 
 class DeviceExplorerPanelModel final : public iscore::PanelModel
 {
         friend class DeviceExplorerPanelPresenter;
     public:
-        explicit DeviceExplorerPanelModel(iscore::DocumentModel* parent);
+        explicit DeviceExplorerPanelModel(
+                const iscore::DocumentContext&,
+                QObject* parent);
 
         int panelId() const override;
 
@@ -21,3 +26,4 @@ class DeviceExplorerPanelModel final : public iscore::PanelModel
         DeviceExplorerModel* m_model {};
 
 };
+}

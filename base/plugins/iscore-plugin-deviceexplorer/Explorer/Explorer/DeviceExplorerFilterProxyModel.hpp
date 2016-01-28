@@ -2,6 +2,12 @@
 
 #include <QSortFilterProxyModel>
 
+class QModelIndex;
+class QObject;
+
+
+namespace DeviceExplorer
+{
 class DeviceExplorerFilterProxyModel final : public QSortFilterProxyModel
 {
     public:
@@ -19,3 +25,4 @@ class DeviceExplorerFilterProxyModel final : public QSortFilterProxyModel
         int m_col;
 
 };
+}

@@ -1,5 +1,13 @@
+#include <algorithm>
+
 #include "ObjectLocker.hpp"
-using namespace iscore;
+#include <iscore/document/DocumentInterface.hpp>
+#include <iscore/serialization/DataStreamVisitor.hpp>
+#include <iscore/tools/ObjectPath.hpp>
+
+namespace iscore
+{
+
 //// Locking / unlocking ////
 
 ObjectLocker::ObjectLocker(QObject* parent)
@@ -89,4 +97,5 @@ void LockHelper::unlock()
 {
     emit m_locker.unlock(m_serializedPath);
     m_locked = false;
+}
 }

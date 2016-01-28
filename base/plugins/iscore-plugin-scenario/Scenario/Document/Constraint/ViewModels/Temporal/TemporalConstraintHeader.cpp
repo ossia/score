@@ -1,13 +1,26 @@
-#include "TemporalConstraintHeader.hpp"
-#include <iscore/document/DocumentInterface.hpp>
-#include <QFont>
-#include <QPainter>
-#include <QGraphicsView>
-#include <QGraphicsScene>
-#include <QApplication>
 #include <Process/Style/ProcessFonts.hpp>
 #include <Process/Style/ScenarioStyle.hpp>
+#include <QBrush>
+#include <QFont>
+#include <QFontMetrics>
+#include <QGraphicsScene>
+#include <QGraphicsView>
+#include <QList>
+#include <QPainter>
+#include <QPen>
+#include <QPoint>
+#include <algorithm>
 #include <cmath>
+
+#include <Scenario/Document/Constraint/ViewModels/ConstraintHeader.hpp>
+#include "TemporalConstraintHeader.hpp"
+
+class QGraphicsSceneMouseEvent;
+class QStyleOptionGraphicsItem;
+class QWidget;
+
+namespace Scenario
+{
 QRectF TemporalConstraintHeader::boundingRect() const
 {
     return {0, 0, m_width, ConstraintHeader::headerHeight()};
@@ -33,7 +46,7 @@ void TemporalConstraintHeader::paint(
     }
 
     // Header
-    auto font = ProcessFonts::Sans();
+    auto font = Process::Fonts::Sans();
     font.setPointSize(10);
     font.setBold(true);
 
@@ -87,4 +100,5 @@ void TemporalConstraintHeader::paint(
 void TemporalConstraintHeader::mouseDoubleClickEvent(QGraphicsSceneMouseEvent* event)
 {
     emit doubleClicked();
+}
 }

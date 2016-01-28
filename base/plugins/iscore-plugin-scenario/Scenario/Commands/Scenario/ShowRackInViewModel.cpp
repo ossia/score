@@ -1,11 +1,16 @@
-#include "ShowRackInViewModel.hpp"
 #include <Scenario/Document/Constraint/ViewModels/ConstraintViewModel.hpp>
-#include "iscore/document/DocumentInterface.hpp"
+
 #include <iscore/serialization/DataStreamVisitor.hpp>
+#include <algorithm>
 
-using namespace iscore;
-using namespace Scenario::Command;
+#include "ShowRackInViewModel.hpp"
+#include <iscore/tools/ModelPath.hpp>
+#include <iscore/tools/ModelPathSerialization.hpp>
 
+namespace Scenario
+{
+namespace Command
+{
 ShowRackInViewModel::ShowRackInViewModel(
         Path<ConstraintViewModel>&& constraint_path,
         const Id<RackModel>& rackId) :
@@ -58,4 +63,6 @@ void ShowRackInViewModel::deserializeImpl(DataStreamOutput& s)
     s >> m_constraintViewPath
             >> m_rackId
             >> m_previousRackId;
+}
+}
 }

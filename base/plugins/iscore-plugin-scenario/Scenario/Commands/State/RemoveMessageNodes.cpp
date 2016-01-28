@@ -1,6 +1,16 @@
-#include "RemoveMessageNodes.hpp"
-#include <iscore/serialization/VisitorCommon.hpp>
 #include <Scenario/Document/State/ItemModel/MessageItemModelAlgorithms.hpp>
+#include <algorithm>
+
+#include "RemoveMessageNodes.hpp"
+#include <Scenario/Document/State/ItemModel/MessageItemModel.hpp>
+#include <iscore/serialization/DataStreamVisitor.hpp>
+#include <iscore/tools/ModelPath.hpp>
+#include <iscore/tools/ModelPathSerialization.hpp>
+#include <iscore/tools/TreeNode.hpp>
+namespace Scenario
+{
+namespace Command
+{
 
 RemoveMessageNodes::RemoveMessageNodes(
         Path<MessageItemModel>&& device_tree,
@@ -16,7 +26,7 @@ RemoveMessageNodes::RemoveMessageNodes(
     m_newState = m_oldState;
     for(const auto& node : nodes)
     {
-        updateTreeWithRemovedUserMessage(m_newState, message(*node));
+        updateTreeWithRemovedNode(m_newState, address(*node));
     }
 }
 
@@ -40,4 +50,6 @@ void RemoveMessageNodes::serializeImpl(DataStreamInput &d) const
 void RemoveMessageNodes::deserializeImpl(DataStreamOutput &d)
 {
     d >> m_path >> m_oldState >> m_newState;
+}
+}
 }

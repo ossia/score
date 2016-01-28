@@ -1,18 +1,21 @@
 #pragma once
 #include <iscore/tools/NamedObject.hpp>
 #include <iscore/tools/SettableIdentifier.hpp>
-#include <Scenario/Document/Constraint/ConstraintModel.hpp>
+#include <QPoint>
+#include <sys/types.h>
+#include <iscore_plugin_scenario_export.h>
 
-#include <QObject>
-#include <QMap>
-
-class TimeNodeView;
-class TimeNodeModel;
-class EventModel;
 class QGraphicsObject;
+class QObject;
+
+namespace Scenario
+{
+class EventModel;
+class TimeNodeModel;
+class TimeNodeView;
 class TriggerPresenter;
 
-class TimeNodePresenter final :  public NamedObject
+class ISCORE_PLUGIN_SCENARIO_EXPORT TimeNodePresenter final :  public NamedObject
 {
         Q_OBJECT
     public:
@@ -45,3 +48,4 @@ class TimeNodePresenter final :  public NamedObject
         TimeNodeView* m_view {};
         TriggerPresenter* m_triggerPres;
  };
+}

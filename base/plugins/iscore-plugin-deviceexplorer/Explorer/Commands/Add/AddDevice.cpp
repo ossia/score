@@ -1,12 +1,23 @@
-#include "AddDevice.hpp"
-#include <Device/Node/DeviceNode.hpp>
-
 #include <Explorer/DocumentPlugin/DeviceDocumentPlugin.hpp>
 
-using namespace iscore;
+#include "AddDevice.hpp"
+#include <Explorer/DocumentPlugin/NodeUpdateProxy.hpp>
+#include <iscore/serialization/DataStreamVisitor.hpp>
+#include <iscore/tools/ModelPath.hpp>
+#include <iscore/tools/ModelPathSerialization.hpp>
+
+namespace Device {
+struct DeviceSettings;
+}  // namespace iscore
+
+
+namespace DeviceExplorer
+{
+namespace Command
+{
 AddDevice::AddDevice(
         Path<DeviceDocumentPlugin>&& device_tree,
-        const DeviceSettings& parameters):
+        const Device::DeviceSettings& parameters):
     m_devicesModel{device_tree},
     m_parameters(parameters)
 {
@@ -35,4 +46,6 @@ void AddDevice::deserializeImpl(DataStreamOutput& d)
 {
     d >> m_devicesModel;
     d >> m_parameters;
+}
+}
 }

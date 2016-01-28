@@ -1,5 +1,5 @@
-cmake_minimum_required(VERSION 2.8)
-project(iscore_plugin_ossia)
+cmake_minimum_required(VERSION 3.1)
+project(iscore_plugin_ossia LANGUAGES CXX)
 
 iscore_common_setup()
 
@@ -14,89 +14,127 @@ endif()
 
 # Files & main target
 set(HDRS
-    "${CMAKE_CURRENT_SOURCE_DIR}/OSSIA2iscore.hpp"
-    "${CMAKE_CURRENT_SOURCE_DIR}/Protocols/Minuit/MinuitProtocolSettingsWidget.hpp"
-    "${CMAKE_CURRENT_SOURCE_DIR}/Protocols/Minuit/MinuitDevice.hpp"
-    "${CMAKE_CURRENT_SOURCE_DIR}/Protocols/Minuit/MinuitSpecificSettings.hpp"
-    "${CMAKE_CURRENT_SOURCE_DIR}/Protocols/Minuit/MinuitProtocolFactory.hpp"
-    "${CMAKE_CURRENT_SOURCE_DIR}/Protocols/OSSIADevice.hpp"
-    "${CMAKE_CURRENT_SOURCE_DIR}/Protocols/OSC/OSCDevice.hpp"
-    "${CMAKE_CURRENT_SOURCE_DIR}/Protocols/OSC/OSCProtocolFactory.hpp"
-    "${CMAKE_CURRENT_SOURCE_DIR}/Protocols/OSC/OSCProtocolSettingsWidget.hpp"
-    "${CMAKE_CURRENT_SOURCE_DIR}/Protocols/OSC/OSCSpecificSettings.hpp"
-    "${CMAKE_CURRENT_SOURCE_DIR}/Protocols/MIDI/MIDIProtocolFactory.hpp"
-    "${CMAKE_CURRENT_SOURCE_DIR}/Protocols/MIDI/MIDIDevice.hpp"
-    "${CMAKE_CURRENT_SOURCE_DIR}/Protocols/MIDI/MIDIProtocolSettingsWidget.hpp"
-    "${CMAKE_CURRENT_SOURCE_DIR}/Protocols/MIDI/MIDISpecificSettings.hpp"
-    "${CMAKE_CURRENT_SOURCE_DIR}/OSSIAControl.hpp"
+    "${CMAKE_CURRENT_SOURCE_DIR}/OSSIA/CurveConversion.hpp"
+    "${CMAKE_CURRENT_SOURCE_DIR}/OSSIA/OSSIA2iscore.hpp"
+    "${CMAKE_CURRENT_SOURCE_DIR}/OSSIA/Protocols/Minuit/MinuitProtocolSettingsWidget.hpp"
+    "${CMAKE_CURRENT_SOURCE_DIR}/OSSIA/Protocols/Minuit/MinuitDevice.hpp"
+    "${CMAKE_CURRENT_SOURCE_DIR}/OSSIA/Protocols/Minuit/MinuitSpecificSettings.hpp"
+    "${CMAKE_CURRENT_SOURCE_DIR}/OSSIA/Protocols/Minuit/MinuitProtocolFactory.hpp"
+    "${CMAKE_CURRENT_SOURCE_DIR}/OSSIA/Protocols/Local/LocalProtocolSettingsWidget.hpp"
+    "${CMAKE_CURRENT_SOURCE_DIR}/OSSIA/Protocols/Local/LocalDevice.hpp"
+    "${CMAKE_CURRENT_SOURCE_DIR}/OSSIA/Protocols/Local/LocalSpecificSettings.hpp"
+    "${CMAKE_CURRENT_SOURCE_DIR}/OSSIA/Protocols/Local/LocalProtocolFactory.hpp"
+    "${CMAKE_CURRENT_SOURCE_DIR}/OSSIA/Protocols/OSSIADevice.hpp"
+    "${CMAKE_CURRENT_SOURCE_DIR}/OSSIA/Protocols/OSC/OSCDevice.hpp"
+    "${CMAKE_CURRENT_SOURCE_DIR}/OSSIA/Protocols/OSC/OSCProtocolFactory.hpp"
+    "${CMAKE_CURRENT_SOURCE_DIR}/OSSIA/Protocols/OSC/OSCProtocolSettingsWidget.hpp"
+    "${CMAKE_CURRENT_SOURCE_DIR}/OSSIA/Protocols/OSC/OSCSpecificSettings.hpp"
+    "${CMAKE_CURRENT_SOURCE_DIR}/OSSIA/Protocols/MIDI/MIDIProtocolFactory.hpp"
+    "${CMAKE_CURRENT_SOURCE_DIR}/OSSIA/Protocols/MIDI/MIDIDevice.hpp"
+    "${CMAKE_CURRENT_SOURCE_DIR}/OSSIA/Protocols/MIDI/MIDIProtocolSettingsWidget.hpp"
+    "${CMAKE_CURRENT_SOURCE_DIR}/OSSIA/Protocols/MIDI/MIDISpecificSettings.hpp"
+    "${CMAKE_CURRENT_SOURCE_DIR}/OSSIA/OSSIAApplicationPlugin.hpp"
+    "${CMAKE_CURRENT_SOURCE_DIR}/OSSIA/ProcessModel/TimeProcessWithConstraint.hpp"
+    "${CMAKE_CURRENT_SOURCE_DIR}/OSSIA/iscore2OSSIA.hpp"
+
+    "${CMAKE_CURRENT_SOURCE_DIR}/OSSIA/Executor/ContextMenu/PlayContextMenu.hpp"
+    "${CMAKE_CURRENT_SOURCE_DIR}/OSSIA/Executor/ContextMenu/PlayContextMenuFactory.hpp"
+
+    "${CMAKE_CURRENT_SOURCE_DIR}/OSSIA/Executor/ExecutorContext.hpp"
+
+    "${CMAKE_CURRENT_SOURCE_DIR}/OSSIA/Executor/BasicProcessWrapper.hpp"
+    "${CMAKE_CURRENT_SOURCE_DIR}/OSSIA/Executor/LoopingProcessWrapper.hpp"
+    "${CMAKE_CURRENT_SOURCE_DIR}/OSSIA/Executor/BaseScenarioElement.hpp"
+    "${CMAKE_CURRENT_SOURCE_DIR}/OSSIA/Executor/EventElement.hpp"
+    "${CMAKE_CURRENT_SOURCE_DIR}/OSSIA/Executor/ScenarioElement.hpp"
+    "${CMAKE_CURRENT_SOURCE_DIR}/OSSIA/Executor/ProcessElement.hpp"
+    "${CMAKE_CURRENT_SOURCE_DIR}/OSSIA/Executor/StateElement.hpp"
+    "${CMAKE_CURRENT_SOURCE_DIR}/OSSIA/Executor/ProcessWrapper.hpp"
+    "${CMAKE_CURRENT_SOURCE_DIR}/OSSIA/Executor/DocumentPlugin.hpp"
+    "${CMAKE_CURRENT_SOURCE_DIR}/OSSIA/Executor/TimeNodeElement.hpp"
+    "${CMAKE_CURRENT_SOURCE_DIR}/OSSIA/Executor/ConstraintElement.hpp"
+
+
+    "${CMAKE_CURRENT_SOURCE_DIR}/OSSIA/LocalTree/LocalTreeDocumentPlugin.hpp"
+    "${CMAKE_CURRENT_SOURCE_DIR}/OSSIA/LocalTree/BaseProperty.hpp"
+    "${CMAKE_CURRENT_SOURCE_DIR}/OSSIA/LocalTree/Property.hpp"
+    "${CMAKE_CURRENT_SOURCE_DIR}/OSSIA/LocalTree/SetProperty.hpp"
+    "${CMAKE_CURRENT_SOURCE_DIR}/OSSIA/LocalTree/GetProperty.hpp"
+    "${CMAKE_CURRENT_SOURCE_DIR}/OSSIA/LocalTree/NameProperty.hpp"
+    "${CMAKE_CURRENT_SOURCE_DIR}/OSSIA/LocalTree/BaseCallbackWrapper.hpp"
+
+    "${CMAKE_CURRENT_SOURCE_DIR}/OSSIA/LocalTree/Scenario/ProcessComponent.hpp"
+    "${CMAKE_CURRENT_SOURCE_DIR}/OSSIA/LocalTree/Scenario/ScenarioComponent.hpp"
+    "${CMAKE_CURRENT_SOURCE_DIR}/OSSIA/LocalTree/Scenario/ScenarioComponentFactory.hpp"
+    "${CMAKE_CURRENT_SOURCE_DIR}/OSSIA/LocalTree/Scenario/ConstraintComponent.hpp"
+    "${CMAKE_CURRENT_SOURCE_DIR}/OSSIA/LocalTree/Scenario/EventComponent.hpp"
+    "${CMAKE_CURRENT_SOURCE_DIR}/OSSIA/LocalTree/Scenario/TimeNodeComponent.hpp"
+    "${CMAKE_CURRENT_SOURCE_DIR}/OSSIA/LocalTree/Scenario/StateComponent.hpp"
+    "${CMAKE_CURRENT_SOURCE_DIR}/OSSIA/LocalTree/Scenario/MetadataParameters.hpp"
+
     "${CMAKE_CURRENT_SOURCE_DIR}/iscore_plugin_ossia.hpp"
-    "${CMAKE_CURRENT_SOURCE_DIR}/ProcessModel/OSSIAProcessModel.hpp"
-    "${CMAKE_CURRENT_SOURCE_DIR}/ProcessModel/OSSIAProcessModelElement.hpp"
-    "${CMAKE_CURRENT_SOURCE_DIR}/ProcessModel/TimeProcessWithConstraint.hpp"
-    "${CMAKE_CURRENT_SOURCE_DIR}/iscore2OSSIA.hpp"
-    "${CMAKE_CURRENT_SOURCE_DIR}/DocumentPlugin/LoopingProcessWrapper.hpp"
-    "${CMAKE_CURRENT_SOURCE_DIR}/DocumentPlugin/OSSIABaseScenarioElement.hpp"
-    "${CMAKE_CURRENT_SOURCE_DIR}/DocumentPlugin/OSSIAEventElement.hpp"
-    "${CMAKE_CURRENT_SOURCE_DIR}/DocumentPlugin/OSSIAScenarioElement.hpp"
-    "${CMAKE_CURRENT_SOURCE_DIR}/DocumentPlugin/OSSIAProcessElement.hpp"
-    "${CMAKE_CURRENT_SOURCE_DIR}/DocumentPlugin/OSSIAStateElement.hpp"
-    "${CMAKE_CURRENT_SOURCE_DIR}/DocumentPlugin/ContextMenu/PlayContextMenu.hpp"
-    "${CMAKE_CURRENT_SOURCE_DIR}/DocumentPlugin/ContextMenu/PlayContextMenuFactory.hpp"
-    "${CMAKE_CURRENT_SOURCE_DIR}/DocumentPlugin/BasicProcessWrapper.hpp"
-    "${CMAKE_CURRENT_SOURCE_DIR}/DocumentPlugin/ProcessWrapper.hpp"
-    "${CMAKE_CURRENT_SOURCE_DIR}/DocumentPlugin/OSSIAAutomationElement.hpp"
-    "${CMAKE_CURRENT_SOURCE_DIR}/DocumentPlugin/OSSIADocumentPlugin.hpp"
-    "${CMAKE_CURRENT_SOURCE_DIR}/DocumentPlugin/OSSIATimeNodeElement.hpp"
-    "${CMAKE_CURRENT_SOURCE_DIR}/DocumentPlugin/OSSIAConstraintElement.hpp"
     )
 set(SRCS
-"${CMAKE_CURRENT_SOURCE_DIR}/Protocols/MIDI/MIDIProtocolSettingsWidget.cpp"
-"${CMAKE_CURRENT_SOURCE_DIR}/Protocols/MIDI/MIDIDevice.cpp"
-"${CMAKE_CURRENT_SOURCE_DIR}/Protocols/MIDI/MIDIProtocolFactory.cpp"
-"${CMAKE_CURRENT_SOURCE_DIR}/Protocols/MIDI/MIDISpecificSettingsSerialization.cpp"
-"${CMAKE_CURRENT_SOURCE_DIR}/Protocols/Minuit/MinuitSpecificSettingsSerialization.cpp"
-"${CMAKE_CURRENT_SOURCE_DIR}/Protocols/Minuit/MinuitProtocolSettingsWidget.cpp"
-"${CMAKE_CURRENT_SOURCE_DIR}/Protocols/Minuit/MinuitDevice.cpp"
-"${CMAKE_CURRENT_SOURCE_DIR}/Protocols/Minuit/MinuitProtocolFactory.cpp"
-"${CMAKE_CURRENT_SOURCE_DIR}/Protocols/OSC/OSCSpecificSettingsSerialization.cpp"
-"${CMAKE_CURRENT_SOURCE_DIR}/Protocols/OSC/OSCProtocolSettingsWidget.cpp"
-"${CMAKE_CURRENT_SOURCE_DIR}/Protocols/OSC/OSCDevice.cpp"
-"${CMAKE_CURRENT_SOURCE_DIR}/Protocols/OSC/OSCProtocolFactory.cpp"
-"${CMAKE_CURRENT_SOURCE_DIR}/Protocols/OSSIADevice.cpp"
+"${CMAKE_CURRENT_SOURCE_DIR}/OSSIA/Protocols/MIDI/MIDIProtocolSettingsWidget.cpp"
+"${CMAKE_CURRENT_SOURCE_DIR}/OSSIA/Protocols/MIDI/MIDIDevice.cpp"
+"${CMAKE_CURRENT_SOURCE_DIR}/OSSIA/Protocols/MIDI/MIDIProtocolFactory.cpp"
+"${CMAKE_CURRENT_SOURCE_DIR}/OSSIA/Protocols/MIDI/MIDISpecificSettingsSerialization.cpp"
+"${CMAKE_CURRENT_SOURCE_DIR}/OSSIA/Protocols/Minuit/MinuitSpecificSettingsSerialization.cpp"
+"${CMAKE_CURRENT_SOURCE_DIR}/OSSIA/Protocols/Minuit/MinuitProtocolSettingsWidget.cpp"
+"${CMAKE_CURRENT_SOURCE_DIR}/OSSIA/Protocols/Minuit/MinuitDevice.cpp"
+"${CMAKE_CURRENT_SOURCE_DIR}/OSSIA/Protocols/Minuit/MinuitProtocolFactory.cpp"
+"${CMAKE_CURRENT_SOURCE_DIR}/OSSIA/Protocols/Local/LocalSpecificSettingsSerialization.cpp"
+"${CMAKE_CURRENT_SOURCE_DIR}/OSSIA/Protocols/Local/LocalProtocolSettingsWidget.cpp"
+"${CMAKE_CURRENT_SOURCE_DIR}/OSSIA/Protocols/Local/LocalDevice.cpp"
+"${CMAKE_CURRENT_SOURCE_DIR}/OSSIA/Protocols/Local/LocalProtocolFactory.cpp"
+"${CMAKE_CURRENT_SOURCE_DIR}/OSSIA/Protocols/OSC/OSCSpecificSettingsSerialization.cpp"
+"${CMAKE_CURRENT_SOURCE_DIR}/OSSIA/Protocols/OSC/OSCProtocolSettingsWidget.cpp"
+"${CMAKE_CURRENT_SOURCE_DIR}/OSSIA/Protocols/OSC/OSCDevice.cpp"
+"${CMAKE_CURRENT_SOURCE_DIR}/OSSIA/Protocols/OSC/OSCProtocolFactory.cpp"
+"${CMAKE_CURRENT_SOURCE_DIR}/OSSIA/Protocols/OSSIADevice.cpp"
+"${CMAKE_CURRENT_SOURCE_DIR}/OSSIA/OSSIA2iscore.cpp"
+"${CMAKE_CURRENT_SOURCE_DIR}/OSSIA/OSSIAApplicationPlugin.cpp"
+
+"${CMAKE_CURRENT_SOURCE_DIR}/OSSIA/Executor/ContextMenu/PlayContextMenu.cpp"
+"${CMAKE_CURRENT_SOURCE_DIR}/OSSIA/Executor/ContextMenu/PlayContextMenuFactory.cpp"
+
+"${CMAKE_CURRENT_SOURCE_DIR}/OSSIA/Executor/BasicProcessWrapper.cpp"
+"${CMAKE_CURRENT_SOURCE_DIR}/OSSIA/Executor/LoopingProcessWrapper.cpp"
+"${CMAKE_CURRENT_SOURCE_DIR}/OSSIA/Executor/ProcessComponent.cpp"
+"${CMAKE_CURRENT_SOURCE_DIR}/OSSIA/Executor/BaseScenarioElement.cpp"
+"${CMAKE_CURRENT_SOURCE_DIR}/OSSIA/Executor/EventElement.cpp"
+"${CMAKE_CURRENT_SOURCE_DIR}/OSSIA/Executor/ScenarioElement.cpp"
+"${CMAKE_CURRENT_SOURCE_DIR}/OSSIA/Executor/StateElement.cpp"
+"${CMAKE_CURRENT_SOURCE_DIR}/OSSIA/Executor/DocumentPlugin.cpp"
+"${CMAKE_CURRENT_SOURCE_DIR}/OSSIA/Executor/TimeNodeElement.cpp"
+"${CMAKE_CURRENT_SOURCE_DIR}/OSSIA/Executor/ConstraintElement.cpp"
+
+"${CMAKE_CURRENT_SOURCE_DIR}/OSSIA/LocalTree/LocalTreeDocumentPlugin.cpp"
+"${CMAKE_CURRENT_SOURCE_DIR}/OSSIA/LocalTree/BaseProperty.cpp"
+
+"${CMAKE_CURRENT_SOURCE_DIR}/OSSIA/LocalTree/Scenario/ProcessComponent.cpp"
+"${CMAKE_CURRENT_SOURCE_DIR}/OSSIA/LocalTree/Scenario/ScenarioComponent.cpp"
+"${CMAKE_CURRENT_SOURCE_DIR}/OSSIA/LocalTree/Scenario/ScenarioComponentFactory.cpp"
+"${CMAKE_CURRENT_SOURCE_DIR}/OSSIA/LocalTree/Scenario/ConstraintComponent.cpp"
+"${CMAKE_CURRENT_SOURCE_DIR}/OSSIA/LocalTree/Scenario/EventComponent.cpp"
+"${CMAKE_CURRENT_SOURCE_DIR}/OSSIA/LocalTree/Scenario/TimeNodeComponent.cpp"
+"${CMAKE_CURRENT_SOURCE_DIR}/OSSIA/LocalTree/Scenario/StateComponent.cpp"
+"${CMAKE_CURRENT_SOURCE_DIR}/OSSIA/LocalTree/Scenario/MetadataParameters.cpp"
+
+"${CMAKE_CURRENT_SOURCE_DIR}/OSSIA/iscore2OSSIA.cpp"
+
 "${CMAKE_CURRENT_SOURCE_DIR}/iscore_plugin_ossia.cpp"
-"${CMAKE_CURRENT_SOURCE_DIR}/OSSIA2iscore.cpp"
-"${CMAKE_CURRENT_SOURCE_DIR}/OSSIAControl.cpp"
-"${CMAKE_CURRENT_SOURCE_DIR}/DocumentPlugin/BasicProcessWrapper.cpp"
-"${CMAKE_CURRENT_SOURCE_DIR}/DocumentPlugin/LoopingProcessWrapper.cpp"
-"${CMAKE_CURRENT_SOURCE_DIR}/DocumentPlugin/OSSIAScenarioElement.cpp"
-"${CMAKE_CURRENT_SOURCE_DIR}/DocumentPlugin/OSSIAStateElement.cpp"
-"${CMAKE_CURRENT_SOURCE_DIR}/DocumentPlugin/OSSIATimeNodeElement.cpp"
-"${CMAKE_CURRENT_SOURCE_DIR}/DocumentPlugin/OSSIAAutomationElement.cpp"
-"${CMAKE_CURRENT_SOURCE_DIR}/DocumentPlugin/OSSIABaseScenarioElement.cpp"
-"${CMAKE_CURRENT_SOURCE_DIR}/DocumentPlugin/ContextMenu/PlayContextMenu.cpp"
-"${CMAKE_CURRENT_SOURCE_DIR}/DocumentPlugin/ContextMenu/PlayContextMenuFactory.cpp"
-"${CMAKE_CURRENT_SOURCE_DIR}/DocumentPlugin/OSSIADocumentPlugin.cpp"
-"${CMAKE_CURRENT_SOURCE_DIR}/DocumentPlugin/OSSIAConstraintElement.cpp"
-"${CMAKE_CURRENT_SOURCE_DIR}/DocumentPlugin/OSSIAEventElement.cpp"
-"${CMAKE_CURRENT_SOURCE_DIR}/iscore2OSSIA.cpp"
 )
-
-if(TARGET iscore_plugin_mapping)
-    set(SRCS ${SRCS}
-        "${CMAKE_CURRENT_SOURCE_DIR}/DocumentPlugin/OSSIAMappingElement.cpp")
-    set(HDRS ${HDRS}
-        "${CMAKE_CURRENT_SOURCE_DIR}/DocumentPlugin/OSSIAMappingElement.hpp")
-endif()
-
 
 add_library(${PROJECT_NAME} ${SRCS} ${HDRS})
 target_link_libraries(${PROJECT_NAME}
-                        Qt5::Core Qt5::Widgets
-                        iscore_lib_base iscore_plugin_scenario iscore_plugin_curve iscore_plugin_automation iscore_plugin_deviceexplorer
-                        APIJamoma)
+        PUBLIC  APIJamoma Jamoma::Foundation Jamoma::Modular
+				Qt5::Core Qt5::Widgets
+                iscore_lib_base iscore_lib_device iscore_lib_process iscore_plugin_scenario iscore_plugin_curve iscore_plugin_automation iscore_plugin_deviceexplorer
+)
 
-if(TARGET iscore_plugin_mapping)
-    target_link_libraries(${PROJECT_NAME} iscore_plugin_mapping)
+if(TARGET iscore_plugin_loop)
+	target_link_libraries(${PROJECT_NAME} PUBLIC iscore_plugin_loop)
 endif()
 
 setup_iscore_plugin(${PROJECT_NAME})

@@ -1,11 +1,10 @@
-#include <iscore/plugins/settingsdelegate/SettingsDelegatePresenterInterface.hpp>
 #include <core/settings/SettingsPresenter.hpp>
 #include <core/settings/SettingsView.hpp>
-#include <core/settings/SettingsModel.hpp>
+#include <iscore/plugins/settingsdelegate/SettingsDelegatePresenterInterface.hpp>
 
 
-using namespace iscore;
-
+namespace iscore
+{
 SettingsPresenter::SettingsPresenter(SettingsModel* model, SettingsView* view, QObject* parent) :
     QObject {parent},
         m_model {model},
@@ -36,4 +35,5 @@ void SettingsPresenter::on_reject()
     {
         presenter->on_reject();
     }
+}
 }

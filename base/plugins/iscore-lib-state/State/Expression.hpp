@@ -1,19 +1,31 @@
 #pragma once
 #include <State/Relation.hpp>
-#include <iscore/tools/TreeNode.hpp>
+#include <boost/optional/optional.hpp>
+#include <eggs/variant/variant.hpp>
+
 #include <iscore/tools/VariantBasedNode.hpp>
-#include <boost/optional.hpp>
-#include <boost/iterator/indirect_iterator.hpp>
-namespace iscore
+#include <QString>
+#include <algorithm>
+#include <cstddef>
+#include <vector>
+
+#include <iscore/tools/InvisibleRootNode.hpp>
+
+class DataStream;
+class JSONObject;
+template <typename DataType> class TreeNode;
+
+namespace State
 {
 enum class BinaryOperator {
-    And, Or, Xor
+    And, Or, Xor, None
 };
 enum class UnaryOperator {
-    Not
+    Not, None
 };
 
-struct ExprData : public VariantBasedNode<Relation, BinaryOperator, UnaryOperator>
+struct ISCORE_LIB_STATE_EXPORT ExprData :
+        public iscore::VariantBasedNode<Relation, BinaryOperator, UnaryOperator>
 {
         ISCORE_SERIALIZE_FRIENDS(ExprData, DataStream)
         ISCORE_SERIALIZE_FRIENDS(ExprData, JSONObject)
@@ -35,22 +47,23 @@ struct ExprData : public VariantBasedNode<Relation, BinaryOperator, UnaryOperato
 };
 
 }
-using iscore::ExprData;
+// TODO bouefff
+using State::ExprData;
 
-template<>
 /**
  * @brief The TreeNode<ExprData> class
  *
  * This class is specialized from TreeNode<T>
  * because we want to have an additional check :
- * a node is a leaf iff a node is a iscore::Relation
+ * a node is a leaf iff a node is a State::Relation
  *
  * TODO enforce the invariant of children.size <= 2 (since it's a binary tree)
  */
-class TreeNode<ExprData> final : public ExprData
+template<>
+class ISCORE_LIB_STATE_EXPORT TreeNode<ExprData> final : public ExprData
 {
-        ISCORE_SERIALIZE_FRIENDS(TreeNode<ExprData>, DataStream)
-        ISCORE_SERIALIZE_FRIENDS(TreeNode<ExprData>, JSONObject)
+        friend struct TSerializer<DataStream, TreeNode<ExprData>>;
+        friend struct TSerializer<JSONObject, TreeNode<ExprData>>;
 
         friend bool operator!=(const TreeNode<ExprData>& lhs, const TreeNode<ExprData>& rhs)
         {
@@ -84,10 +97,12 @@ class TreeNode<ExprData> final : public ExprData
         auto begin() { return m_children.begin(); }
         auto begin() const { return m_children.cbegin(); }
         auto cbegin() const { return m_children.cbegin(); }
+        auto& front() { return m_children.front(); }
 
         auto end() { return m_children.end(); }
         auto end() const { return m_children.cend(); }
         auto cend() const { return m_children.cend(); }
+        auto& back() { return m_children.back(); }
 
         TreeNode() = default;
 
@@ -169,6 +184,7 @@ class TreeNode<ExprData> final : public ExprData
             cld.setParent(this);
         }
 
+        // OPTIMIZEME : the last arg will be this. Is it possible to optimize that ?
         template<typename... Args>
         auto& emplace_back(Args&&... args)
         {
@@ -238,7 +254,7 @@ class TreeNode<ExprData> final : public ExprData
 
         void setParent(TreeNode* parent)
         {
-            ISCORE_ASSERT(!m_parent || (m_parent && !m_parent->is<iscore::Relation>()));
+            ISCORE_ASSERT(!m_parent || (m_parent && !m_parent->is<State::Relation>()));
             m_parent = parent;
         }
 
@@ -247,12 +263,13 @@ class TreeNode<ExprData> final : public ExprData
         std::vector<TreeNode> m_children;
 };
 
-namespace iscore
+namespace State
 {
 using Expression = TreeNode<ExprData>;
 using Condition = Expression;
 using Trigger = Expression;
 
-boost::optional<iscore::Expression> parse(const QString& str);
+ISCORE_LIB_STATE_EXPORT boost::optional<State::Expression> parseExpression(const QString& str);
+ISCORE_LIB_STATE_EXPORT boost::optional<State::Value> parseValue(const QString& str);
 }
 

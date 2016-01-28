@@ -1,44 +1,52 @@
 #include "MappingLayerModel.hpp"
 #include "MappingModel.hpp"
 #include "MappingPanelProxy.hpp"
+#include <Process/LayerModel.hpp>
 
-constexpr const char MappingLayerModel::className[];
-MappingLayerModel::MappingLayerModel(
-        MappingModel& model,
-        const Id<LayerModel>& id,
+class LayerModelPanelProxy;
+class QObject;
+#include <iscore/tools/SettableIdentifier.hpp>
+
+namespace Mapping
+{
+LayerModel::LayerModel(
+        ProcessModel& model,
+        const Id<Process::LayerModel>& id,
         QObject* parent) :
-    LayerModel {id,
-                className,
+    Process::LayerModel {id,
+                Metadata<ObjectKey_k, LayerModel>::get(),
                 model,
                 parent}
 {
 
 }
 
-MappingLayerModel::MappingLayerModel(
-        const MappingLayerModel& source,
-        MappingModel& model,
-        const Id<LayerModel>& id,
+LayerModel::LayerModel(
+        const LayerModel& source,
+        ProcessModel& model,
+        const Id<Process::LayerModel>& id,
         QObject* parent) :
-    LayerModel {id,
-                className,
+    Process::LayerModel {id,
+                Metadata<ObjectKey_k, LayerModel>::get(),
                 model,
                 parent}
 {
     // Nothing to copy
 }
 
-LayerModelPanelProxy* MappingLayerModel::make_panelProxy(QObject* parent) const
+Process::LayerModelPanelProxy* LayerModel::make_panelProxy(
+        QObject* parent) const
 {
     return new MappingPanelProxy{*this, parent};
 }
 
-void MappingLayerModel::serialize(const VisitorVariant&) const
+void LayerModel::serialize(const VisitorVariant&) const
 {
     // Nothing to save
 }
 
-const MappingModel& MappingLayerModel::model() const
+const ProcessModel& LayerModel::model() const
 {
-    return static_cast<const MappingModel&>(processModel());
+    return static_cast<const ProcessModel&>(processModel());
+}
 }

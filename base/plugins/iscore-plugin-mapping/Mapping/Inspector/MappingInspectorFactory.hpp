@@ -1,33 +1,30 @@
 #pragma once
-#include <QObject>
-#include <Inspector/InspectorWidgetFactoryInterface.hpp>
+#include <Process/Inspector/ProcessInspectorWidgetDelegateFactory.hpp>
 #include <Mapping/Inspector/MappingInspectorWidget.hpp>
 #include <Mapping/MappingModel.hpp>
 
-class MappingInspectorFactory final : public InspectorWidgetFactory
+namespace Mapping
+{
+class MappingInspectorFactory final : public ProcessInspectorWidgetDelegateFactory
 {
     public:
-        MappingInspectorFactory() :
-            InspectorWidgetFactory {}
-        {
+        MappingInspectorFactory() = default;
 
-        }
-
-        InspectorWidgetBase* makeWidget(
-                const QObject& sourceElement,
-                iscore::Document& doc,
-                QWidget* parent) override
+    private:
+        ProcessInspectorWidgetDelegate* make(
+                const Process::ProcessModel& process,
+                const iscore::DocumentContext& doc,
+                QWidget* parent) const override
         {
             return new MappingInspectorWidget{
-                        safe_cast<const MappingModel&>(sourceElement),
-                        doc,
-                        parent};
+                static_cast<const ProcessModel&>(process), doc, parent};
+
         }
 
-
-        const QList<QString>& key_impl() const override
+        bool matches(const Process::ProcessModel& process) const override
         {
-            static const QList<QString> list{MappingProcessMetadata::processObjectName()};
-            return list;
+            return dynamic_cast<const ProcessModel*>(&process);
         }
+
 };
+}

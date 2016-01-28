@@ -1,12 +1,20 @@
 #pragma once
-#include <QVariant>
-#include <iscore/tools/Todo.hpp>
-#include <iscore/serialization/VisitorCommon.hpp>
-#include <boost/optional.hpp>
+#include <iscore/serialization/DataStreamVisitor.hpp>
+#include <iscore/serialization/JSONVisitor.hpp>
+#include <iscore_lib_state_export.h>
+#include <boost/optional/optional.hpp>
 #include <eggs/variant.hpp>
+#include <QChar>
+#include <QList>
+#include <QString>
+#include <algorithm>
+#include <vector>
 
+class DataStream;
+class JSONObject;
+class QDebug;
 
-namespace iscore
+namespace State
 {
 struct no_value_t {};
 inline bool operator==(no_value_t, no_value_t) { return true; }
@@ -16,10 +24,11 @@ inline bool operator==(impulse_t, impulse_t) { return true; }
 inline bool operator!=(impulse_t, impulse_t) { return false; }
 
 class ValueImpl;
+
 using tuple_t = std::vector<ValueImpl>;
 enum class ValueType { Impulse, Int, Float, Bool, String, Char, Tuple, NoValue };
 
-class ValueImpl
+class ISCORE_LIB_STATE_EXPORT ValueImpl
 {
         ISCORE_SERIALIZE_FRIENDS(ValueImpl, DataStream)
         ISCORE_SERIALIZE_FRIENDS(ValueImpl, JSONObject)
@@ -85,7 +94,7 @@ class ValueImpl
  * A variant used to represent the data that can be in a message.
  *
  */
-struct Value
+struct ISCORE_LIB_STATE_EXPORT Value
 {
         using value_type = ValueImpl;
         value_type val{};
@@ -93,7 +102,7 @@ struct Value
         template<typename Val>
         static Value fromValue(Val&& val)
         {
-            return iscore::Value{std::forward<Val>(val)};
+            return State::Value{std::forward<Val>(val)};
         }
 
         Value() = default;
@@ -110,9 +119,11 @@ struct Value
 };
 
 using ValueList = QList<Value>;
-using OptionalValue = boost::optional<iscore::Value>;
+using OptionalValue = boost::optional<State::Value>;
 }
 
-Q_DECLARE_METATYPE(iscore::Value)
-Q_DECLARE_METATYPE(iscore::ValueList)
+Q_DECLARE_METATYPE(State::no_value_t)
+Q_DECLARE_METATYPE(State::impulse_t)
+Q_DECLARE_METATYPE(State::Value)
+Q_DECLARE_METATYPE(State::ValueList)
 

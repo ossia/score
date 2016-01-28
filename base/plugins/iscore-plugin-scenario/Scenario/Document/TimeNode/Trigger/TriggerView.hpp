@@ -1,7 +1,15 @@
 #pragma once
 #include <QGraphicsItem>
-class QGraphicsSvgItem;
+#include <QRect>
 
+class QGraphicsSceneMouseEvent;
+class QGraphicsSvgItem;
+class QPainter;
+class QStyleOptionGraphicsItem;
+class QWidget;
+
+namespace Scenario
+{
 class TriggerView final : public QGraphicsObject
 {
         Q_OBJECT
@@ -12,8 +20,10 @@ class TriggerView final : public QGraphicsObject
                    const QStyleOptionGraphicsItem *option,
                    QWidget *widget) override;
 
-        int type() const override
+        static constexpr int static_type()
         { return QGraphicsItem::UserType + 7; }
+        int type() const override
+        { return static_type(); }
 
     signals:
         void pressed();
@@ -24,3 +34,4 @@ class TriggerView final : public QGraphicsObject
     private:
         QGraphicsSvgItem* m_item{};
 };
+}

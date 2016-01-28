@@ -1,4 +1,10 @@
 #include "AddressTupleSettingsWidget.hpp"
+#include <Explorer/Common/AddressSettings/Widgets/AddressSettingsWidget.hpp>
+
+class QWidget;
+
+namespace DeviceExplorer
+{
 AddressTupleSettingsWidget::AddressTupleSettingsWidget(QWidget* parent)
     : AddressSettingsWidget(parent)
 {
@@ -7,13 +13,15 @@ AddressTupleSettingsWidget::AddressTupleSettingsWidget(QWidget* parent)
     // we have to separate the global and per-tuple settings widgets...
 }
 
-iscore::AddressSettings AddressTupleSettingsWidget::getSettings() const
+Device::AddressSettings AddressTupleSettingsWidget::getSettings() const
 {
     auto settings = getCommonSettings();
+    settings.value.val = State::tuple_t{};
     return settings;
 }
 
-void AddressTupleSettingsWidget::setSettings(const iscore::AddressSettings& settings)
+void AddressTupleSettingsWidget::setSettings(const Device::AddressSettings& settings)
 {
     setCommonSettings(settings);
+}
 }

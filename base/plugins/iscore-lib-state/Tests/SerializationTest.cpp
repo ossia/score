@@ -1,12 +1,9 @@
-#include <QTest>
 #include <State/Message.hpp>
-#include <iscore/serialization/DataStreamVisitor.hpp>
-#include <iscore/serialization/JSONVisitor.hpp>
 #include <iscore/serialization/VisitorCommon.hpp>
+#include <QtTest/QtTest>
+#include <QMetaType>
+#include <QObject>
 
-namespace iscore {
-    class State;
-}
 using namespace iscore;
 class SerializationTest: public QObject
 {
@@ -18,21 +15,21 @@ class SerializationTest: public QObject
         void serializationTest()
         {
             using namespace iscore;
-            QMetaType::registerComparators<Message>();
-            qRegisterMetaTypeStreamOperators<Message>();
-            qRegisterMetaTypeStreamOperators<MessageList>();
-            qRegisterMetaTypeStreamOperators<iscore::Value>();
-            Message m;
+            QMetaType::registerComparators<State::Message>();
+            qRegisterMetaTypeStreamOperators<State::Message>();
+            qRegisterMetaTypeStreamOperators<State::MessageList>();
+            qRegisterMetaTypeStreamOperators<State::Value>();
+            State::Message m;
             m.address = {"dada", {"bilou", "yadaa", "zoo"}};
             m.value.val = 5.5f;
 
             {
                 auto json = marshall<JSONObject>(m);
-                auto mess_json = unmarshall<iscore::Message>(json);
+                auto mess_json = unmarshall<State::Message>(json);
                 ISCORE_ASSERT(m == mess_json);
 
                 auto barray = marshall<DataStream>(m);
-                auto mess_array = unmarshall<iscore::Message>(barray);
+                auto mess_array = unmarshall<State::Message>(barray);
                 ISCORE_ASSERT(m == mess_array);
 
             }
@@ -41,3 +38,8 @@ class SerializationTest: public QObject
 
 QTEST_APPLESS_MAIN(SerializationTest)
 #include "SerializationTest.moc"
+#include <State/Address.hpp>
+#include <State/Value.hpp>
+
+class DataStream;
+class JSONObject;

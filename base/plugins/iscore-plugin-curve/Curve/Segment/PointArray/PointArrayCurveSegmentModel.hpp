@@ -1,42 +1,52 @@
 #pragma once
-#include <memory>
 #include <boost/container/flat_map.hpp>
+#include <QPoint>
+#include <QVariant>
+#include <QVector>
+#include <memory>
+#include <utility>
+#include <vector>
 
-#include "Curve/Segment/CurveSegmentModel.hpp"
-#include "Curve/Segment/Linear/LinearCurveSegmentModel.hpp"
+#include <Curve/Segment/CurveSegmentFactoryKey.hpp>
+#include <Curve/Segment/CurveSegmentModel.hpp>
+#include <iscore/serialization/VisitorInterface.hpp>
 
-struct PointArrayCurveSegmentData
+class QObject;
+#include <iscore/tools/SettableIdentifier.hpp>
+
+namespace Curve
+{
+class LinearSegment;
+struct SegmentData;
+struct PointArraySegmentData
 {
     double min_x, max_x;
     double min_y, max_y;
     QVector<QPointF> m_points;
 };
-
-Q_DECLARE_METATYPE(PointArrayCurveSegmentData)
-
-class PointArrayCurveSegmentModel final : public CurveSegmentModel
+class ISCORE_PLUGIN_CURVE_EXPORT PointArraySegment final : public SegmentModel
 {
         Q_OBJECT
     public:
-        using data_type = PointArrayCurveSegmentData;
-        using CurveSegmentModel::CurveSegmentModel;
-        PointArrayCurveSegmentModel(
-                const CurveSegmentData& dat,
+        using data_type = PointArraySegmentData;
+        using SegmentModel::SegmentModel;
+        PointArraySegment(
+                const SegmentData& dat,
                 QObject* parent);
 
         template<typename Impl>
-        PointArrayCurveSegmentModel(Deserializer<Impl>& vis, QObject* parent) :
-            CurveSegmentModel {vis, parent}
+        PointArraySegment(Deserializer<Impl>& vis, QObject* parent) :
+            SegmentModel {vis, parent}
         {
             vis.writeTo(*this);
         }
 
-        CurveSegmentModel* clone(
-                const Id<CurveSegmentModel>& id,
+        SegmentModel* clone(
+                const Id<SegmentModel>& id,
                 QObject* parent) const override;
 
-        const CurveSegmentFactoryKey& key() const override;
-        void serialize(const VisitorVariant& vis) const override;
+        SegmentFactoryKey concreteFactoryKey() const override;
+        void serialize_impl(const VisitorVariant& vis) const override;
         void on_startChanged() override;
         void on_endChanged() override;
 
@@ -45,15 +55,15 @@ class PointArrayCurveSegmentModel final : public CurveSegmentModel
 
         void addPoint(double, double);
         void simplify();
-        [[ deprecated ]] std::vector<std::unique_ptr<LinearCurveSegmentModel>> piecewise() const;
-        std::vector<CurveSegmentData> toLinearSegments() const;
+        [[ deprecated ]] std::vector<std::unique_ptr<LinearSegment>> piecewise() const;
+        std::vector<SegmentData> toLinearSegments() const;
 
         double min() { return min_y; }
         double max() { return max_y; }
 
         QVariant toSegmentSpecificData() const override
         {
-            PointArrayCurveSegmentData dat{
+            PointArraySegmentData dat{
                            min_x, max_x,
                            min_y, max_y, {}};
 
@@ -75,3 +85,8 @@ class PointArrayCurveSegmentModel final : public CurveSegmentModel
 
         boost::container::flat_map<double, double> m_points;
 };
+}
+
+
+Q_DECLARE_METATYPE(Curve::PointArraySegmentData)
+

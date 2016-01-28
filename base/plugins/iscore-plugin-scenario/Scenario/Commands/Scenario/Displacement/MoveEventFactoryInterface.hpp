@@ -1,32 +1,37 @@
 #pragma once
 
-#include <iscore/plugins/customfactory/FactoryInterface.hpp>
-//#include <iscore/command/SerializableCommand.hpp>
-#include <Scenario/Commands/Scenario/Displacement/SerializableMoveEvent.hpp>
-
-#include <iscore/tools/SettableIdentifier.hpp>
-#include <iscore/tools/ModelPath.hpp>
-#include <Process/TimeValue.hpp>
 #include <Process/ExpandMode.hpp>
-
+#include <Process/TimeValue.hpp>
+#include <iscore/plugins/customfactory/FactoryInterface.hpp>
 #include <iscore/plugins/customfactory/StringFactoryKey.hpp>
+#include <iscore/tools/SettableIdentifier.hpp>
+#include <iscore_plugin_scenario_export.h>
 
-class MoveEventTag{};
-using MoveEventFactoryKey = StringKey<MoveEventTag>;
-Q_DECLARE_METATYPE(MoveEventFactoryKey)
-
+template <typename Object> class Path;
+namespace Scenario
+{
 class ScenarioModel;
 class EventModel;
-
-
-class MoveEventFactoryInterface : public iscore::GenericFactoryInterface<MoveEventFactoryKey>
+class ScenarioModel;
+namespace Command
 {
-        ISCORE_FACTORY_DECL("MoveEvent")
+class MoveEventTag{};
+using MoveEventFactoryKey = UuidKey<MoveEventTag>;
+
+class SerializableMoveEvent;
+
+
+class ISCORE_PLUGIN_SCENARIO_EXPORT MoveEventFactoryInterface :
+        public iscore::GenericFactoryInterface<MoveEventFactoryKey>
+{
+        ISCORE_ABSTRACT_FACTORY_DECL(
+                SerializableMoveEvent,
+                "69dc1f79-5cb9-4a36-b382-8c099f7abf57")
 public:
-            enum Strategy{ MOVING, CREATION, EXTRA };
+            enum Strategy{ CREATION, MOVING_CLASSIC, MOVING_BOUNDED, MOVING_LESS };
 
     virtual SerializableMoveEvent* make(
-            Path<ScenarioModel>&& scenarioPath,
+            Path<Scenario::ScenarioModel>&& scenarioPath,
             const Id<EventModel>& eventId,
             const TimeValue& newDate,
             ExpandMode mode) = 0;
@@ -46,3 +51,7 @@ public:
     virtual int priority(Strategy strategy) = 0;
 
 };
+}
+}
+
+Q_DECLARE_METATYPE(Scenario::Command::MoveEventFactoryKey)

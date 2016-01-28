@@ -9,37 +9,41 @@
 #include <Scenario/Commands/Constraint/AddRackToConstraint.hpp>
 #include <Scenario/Commands/Constraint/Rack/AddSlotToRack.hpp>
 
-// One InterpolateMacro per constraint
-class GenericInterpolateMacro final : public iscore::AggregateCommand
+#include <iscore/tools/SettableIdentifierGeneration.hpp>
+#include <iscore/tools/std/Algorithms.hpp>
+
+namespace Scenario
 {
-        ISCORE_COMMAND_DECL(ScenarioCommandFactoryName(),
-                            GenericInterpolateMacro,
-                            "GenericInterpolateMacro")
+namespace Command
+{
+// RENAMEME
+// One InterpolateMacro per constraint
+class AddMultipleProcessesToMultipleConstraintsMacro final : public iscore::AggregateCommand
+{
+        ISCORE_COMMAND_DECL(ScenarioCommandFactoryName(), AddMultipleProcessesToMultipleConstraintsMacro, "Add processes to constraints")
 };
 
-class InterpolateMacro final : public iscore::AggregateCommand
+class AddMultipleProcessesToConstraintMacro final : public iscore::AggregateCommand
 {
-        ISCORE_COMMAND_DECL(ScenarioCommandFactoryName(),
-                            InterpolateMacro,
-                            "InterpolateMacro")
+        ISCORE_COMMAND_DECL(ScenarioCommandFactoryName(), AddMultipleProcessesToConstraintMacro, "Add processes to constraint")
 
         public:
             auto& commands() { return m_cmds; }
 
         // Use this constructor when the constraint does not exist yet.
-        InterpolateMacro(const Path<ConstraintModel>& cstpath)
+        AddMultipleProcessesToConstraintMacro(const Path<ConstraintModel>& cstpath)
         {
             // First create a new rack
             auto cmd_rack = new Scenario::Command::AddRackToConstraint{Path<ConstraintModel>{cstpath}};
             addCommand(cmd_rack);
 
-            auto createdRackPath = cstpath.extend(RackModel::className, cmd_rack->createdRack());
+            auto createdRackPath = cstpath.extend(cmd_rack->createdRack());
 
             // Then create a slot in this rack
             auto cmd_slot = new Scenario::Command::AddSlotToRack{Path<RackModel>{createdRackPath}};
             addCommand(cmd_slot);
 
-            auto createdSlotPath = createdRackPath.extend(SlotModel::className, cmd_slot->createdSlot());
+            auto createdSlotPath = createdRackPath.extend(cmd_slot->createdSlot());
             slotsToUse.push_back({std::move(createdSlotPath), {}});
 
             // Finally show the rack.
@@ -47,7 +51,7 @@ class InterpolateMacro final : public iscore::AggregateCommand
         }
 
         // Use this constructor when the constraint already exists
-        InterpolateMacro(const ConstraintModel& constraint)
+        AddMultipleProcessesToConstraintMacro(const ConstraintModel& constraint)
         {
             Path<ConstraintModel> cstpath{constraint};
 
@@ -56,12 +60,12 @@ class InterpolateMacro final : public iscore::AggregateCommand
                 auto cmd_rack = new Scenario::Command::AddRackToConstraint{constraint};
                 addCommand(cmd_rack);
 
-                auto createdRackPath = cstpath.extend(RackModel::className, cmd_rack->createdRack());
+                auto createdRackPath = cstpath.extend(cmd_rack->createdRack());
 
                 auto cmd_slot = new Scenario::Command::AddSlotToRack{Path<RackModel>{createdRackPath}};
                 addCommand(cmd_slot);
 
-                auto createdSlotPath = createdRackPath.extend(SlotModel::className, cmd_slot->createdSlot());
+                auto createdSlotPath = createdRackPath.extend(cmd_slot->createdSlot());
                 slotsToUse.push_back({std::move(createdSlotPath), {}});
 
 
@@ -98,12 +102,12 @@ class InterpolateMacro final : public iscore::AggregateCommand
                 {
                     addCommand(cmd_rack);
 
-                    auto createdRackPath = cstpath.extend(RackModel::className, cmd_rack->createdRack());
+                    auto createdRackPath = cstpath.extend(cmd_rack->createdRack());
 
                     auto cmd_slot = new Scenario::Command::AddSlotToRack{Path<RackModel>{createdRackPath}};
                     addCommand(cmd_slot);
 
-                    auto createdSlotPath = createdRackPath.extend(SlotModel::className, cmd_slot->createdSlot());
+                    auto createdSlotPath = createdRackPath.extend(cmd_slot->createdSlot());
                     slotsToUse.push_back({std::move(createdSlotPath), {}});
                 }
 
@@ -114,16 +118,18 @@ class InterpolateMacro final : public iscore::AggregateCommand
                         auto& rack = constraint.racks.at(rackId);
                         if(rack.slotmodels.size() > 0)
                         {
+                            const auto& firstSlot = rack.slotmodels.at(rack.slotsPositions()[0]);
+
                             // Check if the rack / slot has already been added
-                            for(const auto& elt : slotsToUse)
-                            {
+                            bool used = any_of(slotsToUse, [&] (const auto& elt) {
                                 const ObjectIdentifierVector& vec = elt.first.unsafePath().vec();
-                                if(vec[vec.size() - 2].id() == rackId.val())
-                                    continue;
-                            }
+                                return (vec[vec.size() - 2].id() == rackId.val()) &&
+                                        (vec[vec.size() - 1].id() == firstSlot.id().val());
+                            });
 
                             // If not, we add it to the list
-                            slotsToUse.push_back({rack.slotmodels.at(rack.slotsPositions()[0]), {}});
+                            if(!used)
+                                slotsToUse.push_back({firstSlot, {}});
                         }
                         else
                         {
@@ -131,7 +137,7 @@ class InterpolateMacro final : public iscore::AggregateCommand
                             auto cmd_slot = new Scenario::Command::AddSlotToRack{Path<RackModel>{rackPath}};
                             addCommand(cmd_slot);
 
-                            auto createdSlotPath = rackPath.extend(SlotModel::className, cmd_slot->createdSlot());
+                            auto createdSlotPath = rackPath.extend(cmd_slot->createdSlot());
                             slotsToUse.push_back({std::move(createdSlotPath), {}});
                         }
                     }
@@ -150,5 +156,53 @@ class InterpolateMacro final : public iscore::AggregateCommand
             }
         }
 
-        std::vector<std::pair<Path<SlotModel>, std::vector<Id<LayerModel>>>> slotsToUse; // No need to save this, it is useful only for construction.
+        std::vector<std::pair<Path<SlotModel>, std::vector<Id<Process::LayerModel>>>> slotsToUse; // No need to save this, it is useful only for construction.
 };
+
+
+inline std::tuple<
+    AddMultipleProcessesToConstraintMacro*,
+    std::vector<std::vector<std::pair<Path<SlotModel>, Id<Process::LayerModel>>>>
+>
+makeAddProcessMacro(
+        const ConstraintModel& constraint,
+        int num_processes)
+{
+    auto macro = new AddMultipleProcessesToConstraintMacro{constraint}; // The constraint already exists
+
+    std::vector<std::pair<Path<SlotModel>, std::vector<Id<Process::LayerModel>>>> slotVec;
+    slotVec.reserve(macro->slotsToUse.size());
+    // For each slot we have to generate num_processes ids.
+    for(const auto& elt : macro->slotsToUse)
+    {
+        if(auto slot = elt.first.try_find())
+        {
+            slotVec.push_back({elt.first,
+                               getStrongIdRange<Process::LayerModel>(
+                                num_processes,
+                                slot->layers)});
+        }
+        else
+        {
+            slotVec.push_back({elt.first,
+                               getStrongIdRange<Process::LayerModel>(
+                                num_processes)});
+        }
+    }
+
+    std::vector<std::vector<std::pair<Path<SlotModel>, Id<Process::LayerModel>>>> bigLayerVec;
+    bigLayerVec.resize(num_processes);
+    for(int i = 0; i < num_processes; ++i)
+    {
+        auto& layerVec = bigLayerVec[i];
+        layerVec.reserve(macro->slotsToUse.size());
+        std::transform(slotVec.begin(), slotVec.end(), std::back_inserter(layerVec),
+                       [&] (const auto& slotVecElt) {
+           return std::make_pair(slotVecElt.first, slotVecElt.second[i]);
+        });
+    }
+
+    return std::make_tuple(macro, std::move(bigLayerVec));
+}
+}
+}

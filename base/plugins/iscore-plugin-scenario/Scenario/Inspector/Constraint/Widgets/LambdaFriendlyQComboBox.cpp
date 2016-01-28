@@ -1,11 +1,13 @@
+#include <QGridLayout>
+#include <QLayout>
+
 #include "LambdaFriendlyQComboBox.hpp"
 
-#include <QGridLayout>
 LambdaFriendlyQComboBox::LambdaFriendlyQComboBox(QWidget* parent):
     QWidget{parent}
 {
-    connect(&m_combobox, SIGNAL(activated(QString)),
-            this,        SIGNAL(activated(QString)));
+    connect(&m_combobox,  static_cast<void (QComboBox::*)(const QString&)>(&QComboBox::activated),
+            this,        &LambdaFriendlyQComboBox::activated);
 
    setLayout(new QGridLayout);
    layout()->addWidget(&m_combobox);

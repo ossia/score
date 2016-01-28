@@ -1,26 +1,39 @@
 #pragma once
+#include <boost/optional/optional.hpp>
 #include <iscore/command/SerializableCommand.hpp>
+#include <QString>
+
 #include "CreateState.hpp"
-class TimeNodeModel;
+#include <Scenario/Commands/ScenarioCommandFactory.hpp>
+#include <iscore/tools/ModelPath.hpp>
+#include <iscore/tools/SettableIdentifier.hpp>
+
+class DataStreamInput;
+class DataStreamOutput;
+
 namespace Scenario
 {
+class EventModel;
+class StateModel;
+class ScenarioModel;
+class TimeNodeModel;
 namespace Command
 {
-class CreateEvent_State final : public iscore::SerializableCommand
+class ISCORE_PLUGIN_SCENARIO_EXPORT CreateEvent_State final : public iscore::SerializableCommand
 {
-        ISCORE_COMMAND_DECL(ScenarioCommandFactoryName(), CreateEvent_State, "CreateEvent_State")
+        ISCORE_COMMAND_DECL(ScenarioCommandFactoryName(), CreateEvent_State, "Create an event and a state")
         public:
 
           CreateEvent_State(
-            const ScenarioModel& scenario,
+            const Scenario::ScenarioModel& scenario,
             const Id<TimeNodeModel>& timeNode,
             double stateY);
         CreateEvent_State(
-          const Path<ScenarioModel>& scenario,
+          const Path<Scenario::ScenarioModel>& scenario,
           const Id<TimeNodeModel>& timeNode,
           double stateY);
 
-        const Path<ScenarioModel>& scenarioPath() const
+        const Path<Scenario::ScenarioModel>& scenarioPath() const
         { return m_command.scenarioPath(); }
 
         const Id<StateModel>& createdState() const

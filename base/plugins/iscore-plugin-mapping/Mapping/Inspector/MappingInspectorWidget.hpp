@@ -1,41 +1,51 @@
 #pragma once
+#include <Process/Inspector/ProcessInspectorWidgetDelegate.hpp>
+#include <iscore/command/Dispatchers/CommandDispatcher.hpp>
+class QWidget;
 
-#include <Inspector/InspectorWidgetBase.hpp>
 namespace iscore{
+class Document;
+struct DocumentContext;
+}
+namespace State
+{
 struct Address;
 }
-class DeviceExplorerModel;
-class MappingModel;
-class QDoubleSpinBox;
-class AddressEditWidget;
 
-class MappingInspectorWidget : public InspectorWidgetBase
+namespace DeviceExplorer
 {
-        Q_OBJECT
+class AddressEditWidget;
+class DeviceExplorerModel;
+}
+class QDoubleSpinBox;
+
+namespace Mapping
+{
+class ProcessModel;
+class MappingInspectorWidget :
+        public ProcessInspectorWidgetDelegate_T<ProcessModel>
+{
     public:
         explicit MappingInspectorWidget(
-                const MappingModel& object,
-                iscore::Document& doc,
+                const ProcessModel& object,
+                const iscore::DocumentContext& context,
                 QWidget* parent);
 
-    signals:
-        void createViewInNewSlot(QString);
-
     public slots:
-        void on_sourceAddressChange(const iscore::Address& newText);
+        void on_sourceAddressChange(const State::Address& newText);
         void on_sourceMinValueChanged();
         void on_sourceMaxValueChanged();
 
-        void on_targetAddressChange(const iscore::Address& newText);
+        void on_targetAddressChange(const State::Address& newText);
         void on_targetMinValueChanged();
         void on_targetMaxValueChanged();
     private:
-        DeviceExplorerModel* m_explorer{};
-        AddressEditWidget* m_sourceLineEdit{};
+        DeviceExplorer::AddressEditWidget* m_sourceLineEdit{};
         QDoubleSpinBox* m_sourceMin{}, *m_sourceMax{};
 
-        AddressEditWidget* m_targetLineEdit{};
+        DeviceExplorer::AddressEditWidget* m_targetLineEdit{};
         QDoubleSpinBox* m_targetMin{}, *m_targetMax{};
 
-        const MappingModel& m_model;
+        CommandDispatcher<> m_dispatcher;
 };
+}

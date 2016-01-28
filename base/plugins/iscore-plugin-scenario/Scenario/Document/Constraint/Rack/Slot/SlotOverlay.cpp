@@ -1,14 +1,16 @@
+#include <Process/Style/ScenarioStyle.hpp>
+#include <QGraphicsSceneEvent>
+#include <QPainter>
+
 #include "SlotOverlay.hpp"
 #include "SlotPresenter.hpp"
 #include "SlotView.hpp"
-#include "SlotHandle.hpp"
 
-#include <QCursor>
-#include <QPainter>
-#include <QGraphicsSceneMouseEvent>
+class QStyleOptionGraphicsItem;
+class QWidget;
 
-#include <Process/Style/ScenarioStyle.hpp>
-
+namespace Scenario
+{
 SlotOverlay::SlotOverlay(SlotView *parent):
     QGraphicsItem{parent},
     m_slotView{*parent}
@@ -53,4 +55,5 @@ void SlotOverlay::mouseMoveEvent(QGraphicsSceneMouseEvent* event)
 void SlotOverlay::mouseReleaseEvent(QGraphicsSceneMouseEvent* event)
 {
     emit m_slotView.presenter.released(event->scenePos());
+}
 }

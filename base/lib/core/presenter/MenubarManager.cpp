@@ -1,8 +1,14 @@
-#include "MenubarManager.hpp"
+#include <QMenuBar>
+#include <QStringList>
 #include <functional>
+#include <utility>
 
-using namespace iscore;
+#include "MenubarManager.hpp"
+#include <core/presenter/Action.hpp>
+#include <iscore/menu/MenuInterface.hpp>
 
+namespace iscore
+{
 MenubarManager::MenubarManager(QMenuBar* bar, QObject* parent) :
     QObject(parent),
     m_menuBar {bar}
@@ -11,6 +17,12 @@ MenubarManager::MenubarManager(QMenuBar* bar, QObject* parent) :
     {
         m_menusMap[elt.first] = m_menuBar->addMenu(elt.second);
     }
+}
+
+MenubarManager::~MenubarManager()
+{
+    if(m_menuBar)
+        delete m_menuBar;
 }
 
 
@@ -96,5 +108,4 @@ void MenubarManager::insertActionIntoToplevelMenu(ToplevelMenuElement tl, QActio
 {
     m_menusMap[tl]->insertAction(before, act);
 }
-
-
+}

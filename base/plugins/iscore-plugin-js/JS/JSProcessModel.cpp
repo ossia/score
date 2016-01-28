@@ -1,24 +1,32 @@
-#include "JSProcessModel.hpp"
 #include <DummyProcess/DummyLayerModel.hpp>
-#include <core/document/Document.hpp>
 #include <Explorer/DocumentPlugin/DeviceDocumentPlugin.hpp>
-#include <core/document/DocumentModel.hpp>
+#include <core/document/Document.hpp>
+#include <algorithm>
+#include <vector>
 
+#include "JS/JSProcess.hpp"
+#include "JS/JSProcessMetadata.hpp"
+#include "JSProcessModel.hpp"
+#include <iscore/document/DocumentInterface.hpp>
+#include <iscore/plugins/documentdelegate/plugin/ElementPluginModelList.hpp>
+#include <iscore/serialization/VisitorCommon.hpp>
 
-std::shared_ptr<JSProcess> JSProcessModel::makeProcess() const
+namespace Process { class LayerModel; }
+namespace Process { class ProcessModel; }
+class ProcessStateDataInterface;
+class QObject;
+#include <iscore/tools/SettableIdentifier.hpp>
+
+namespace JS
 {
-    return std::make_shared<JSProcess>(*iscore::IDocument::documentFromObject(*this)->model().pluginModel<DeviceDocumentPlugin>());
-}
-
-JSProcessModel::JSProcessModel(
+ProcessModel::ProcessModel(
         const TimeValue& duration,
-        const Id<Process>& id,
+        const Id<Process::ProcessModel>& id,
         QObject* parent):
-    OSSIAProcessModel{duration, id, JSProcessMetadata::processObjectName(), parent},
-    m_ossia_process{makeProcess()}
+    Process::ProcessModel{duration, id, Metadata<ObjectKey_k, ProcessModel>::get(), parent}
 {
     pluginModelList = new iscore::ElementPluginModelList{
-                      iscore::IDocument::documentFromObject(parent),
+                      iscore::IDocument::documentContext(*parent),
                       this};
 
     m_script = "(function(t) { \n"
@@ -27,14 +35,15 @@ JSProcessModel::JSProcessModel(
                "     obj[\"value\"] = t + iscore.value('OSCdevice:/millumin/layer/y/instance'); \n"
                "     return [ obj ]; \n"
                "});";
+
+    metadata.setName(QString("JavaScript.%1").arg(*this->id().val()));
 }
 
-JSProcessModel::JSProcessModel(
-        const JSProcessModel& source,
-        const Id<Process>& id,
+ProcessModel::ProcessModel(
+        const ProcessModel& source,
+        const Id<Process::ProcessModel>& id,
         QObject* parent):
-    OSSIAProcessModel{source.duration(), id, JSProcessMetadata::processObjectName(), parent},
-    m_ossia_process{makeProcess()},
+    Process::ProcessModel{source.duration(), id, Metadata<ObjectKey_k, ProcessModel>::get(), parent},
     m_script{source.m_script}
 {
     pluginModelList = new iscore::ElementPluginModelList{
@@ -42,152 +51,117 @@ JSProcessModel::JSProcessModel(
                       this};
 }
 
-void JSProcessModel::setScript(const QString& script)
+void ProcessModel::setScript(const QString& script)
 {
     m_script = script;
-    m_ossia_process->setTickFun(m_script);
+    emit scriptChanged(script);
 }
 
-JSProcessModel* JSProcessModel::clone(
-        const Id<Process>& newId,
+Process::ProcessModel* ProcessModel::clone(
+        const Id<Process::ProcessModel>& newId,
         QObject* newParent) const
 {
-    return new JSProcessModel{*this, newId, newParent};
+    return new ProcessModel{*this, newId, newParent};
 }
 
-QString JSProcessModel::prettyName() const
+QString ProcessModel::prettyName() const
 {
-    return "Javascript Process";
+    auto name = this->metadata.name();
+    return name;
 }
 
-QByteArray JSProcessModel::makeLayerConstructionData() const
+QByteArray ProcessModel::makeLayerConstructionData() const
 {
     return {};
 }
 
-void JSProcessModel::setDurationAndScale(const TimeValue& newDuration)
+void ProcessModel::setDurationAndScale(const TimeValue& newDuration)
 {
     setDuration(newDuration);
 }
 
-void JSProcessModel::setDurationAndGrow(const TimeValue& newDuration)
+void ProcessModel::setDurationAndGrow(const TimeValue& newDuration)
 {
     setDuration(newDuration);
 }
 
-void JSProcessModel::setDurationAndShrink(const TimeValue& newDuration)
+void ProcessModel::setDurationAndShrink(const TimeValue& newDuration)
 {
     setDuration(newDuration);
 }
 
-void JSProcessModel::startExecution()
+void ProcessModel::startExecution()
 {
 }
 
-void JSProcessModel::stopExecution()
+void ProcessModel::stopExecution()
 {
 }
 
-void JSProcessModel::reset()
+void ProcessModel::reset()
 {
 }
 
-ProcessStateDataInterface* JSProcessModel::startState() const
+ProcessStateDataInterface* ProcessModel::startStateData() const
 {
     return nullptr;
 }
 
-ProcessStateDataInterface* JSProcessModel::endState() const
+ProcessStateDataInterface* ProcessModel::endStateData() const
 {
     return nullptr;
 }
 
-Selection JSProcessModel::selectableChildren() const
+Selection ProcessModel::selectableChildren() const
 {
     return {};
 }
 
-Selection JSProcessModel::selectedChildren() const
+Selection ProcessModel::selectedChildren() const
 {
     return {};
 }
 
-void JSProcessModel::setSelection(const Selection&) const
+void ProcessModel::setSelection(const Selection&) const
 {
 }
 
-void JSProcessModel::serialize(const VisitorVariant& s) const
+void ProcessModel::serialize_impl(const VisitorVariant& s) const
 {
     serialize_dyn(s, *this);
 }
 
-LayerModel* JSProcessModel::makeLayer_impl(
-        const Id<LayerModel>& viewModelId,
+Process::LayerModel* ProcessModel::makeLayer_impl(
+        const Id<Process::LayerModel>& viewModelId,
         const QByteArray& constructionData,
         QObject* parent)
 {
-    return new DummyLayerModel{*this, viewModelId, parent};
+    auto lay = new Dummy::DummyLayerModel{*this, viewModelId, parent};
+    lay->setObjectName("JSProcessLayerModel");
+    return lay;
 }
 
-LayerModel* JSProcessModel::loadLayer_impl(
+Process::LayerModel* ProcessModel::loadLayer_impl(
         const VisitorVariant& vis,
         QObject* parent)
 {
     return deserialize_dyn(vis, [&] (auto&& deserializer)
     {
-        auto autom = new DummyLayerModel{
+        auto autom = new Dummy::DummyLayerModel{
                         deserializer, *this, parent};
-
+        autom->setObjectName("JSProcessLayerModel");
         return autom;
     });
 }
 
-LayerModel* JSProcessModel::cloneLayer_impl(
-        const Id<LayerModel>& newId,
-        const LayerModel& source,
+Process::LayerModel* ProcessModel::cloneLayer_impl(
+        const Id<Process::LayerModel>& newId,
+        const Process::LayerModel& source,
         QObject* parent)
 {
-    return new DummyLayerModel{safe_cast<const DummyLayerModel&>(source), *this, newId, parent};
+    auto lay = new Dummy::DummyLayerModel{safe_cast<const Dummy::DummyLayerModel&>(source), *this, newId, parent};
+    lay->setObjectName("JSProcessLayerModel");
+    return lay;
 }
 
-
-
-// MOVEME
-template<>
-void Visitor<Reader<DataStream>>::readFrom(const JSProcessModel& proc)
-{
-    readFrom(*proc.pluginModelList);
-
-    m_stream << proc.m_script;
-
-    insertDelimiter();
 }
-
-template<>
-void Visitor<Writer<DataStream>>::writeTo(JSProcessModel& proc)
-{
-    proc.pluginModelList = new iscore::ElementPluginModelList{*this, &proc};
-
-    QString str;
-    m_stream >> str;
-    proc.setScript(str);
-
-    checkDelimiter();
-}
-
-template<>
-void Visitor<Reader<JSONObject>>::readFrom(const JSProcessModel& proc)
-{
-    m_obj["PluginsMetadata"] = toJsonValue(*proc.pluginModelList);
-    m_obj["Script"] = proc.script();
-}
-
-template<>
-void Visitor<Writer<JSONObject>>::writeTo(JSProcessModel& proc)
-{
-    Deserializer<JSONValue> elementPluginDeserializer(m_obj["PluginsMetadata"]);
-    proc.pluginModelList = new iscore::ElementPluginModelList{elementPluginDeserializer, &proc};
-
-    proc.setScript(m_obj["Script"].toString());
-}
-

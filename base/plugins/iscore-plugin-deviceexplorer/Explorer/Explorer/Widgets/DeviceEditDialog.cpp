@@ -1,13 +1,28 @@
-#include "DeviceEditDialog.hpp"
-
+#include <Device/Protocol/ProtocolFactoryInterface.hpp>
 #include <QComboBox>
 #include <QDialogButtonBox>
+#include <QFlags>
 #include <QGridLayout>
 #include <QLabel>
+#include <QLayoutItem>
+#include <qnamespace.h>
 
-#include <Device/Protocol/ProtocolFactoryInterface.hpp>
+#include <QVariant>
+#include <QWidget>
+#include <utility>
+
+#include <Device/Protocol/ProtocolFactoryKey.hpp>
+#include <Device/Protocol/ProtocolList.hpp>
+#include <Device/Protocol/ProtocolSettingsWidget.hpp>
+#include "DeviceEditDialog.hpp"
+#include <iscore/plugins/customfactory/FactoryFamily.hpp>
+#include <iscore/plugins/customfactory/FactoryMap.hpp>
+#include <iscore/plugins/customfactory/StringFactoryKey.hpp>
+
+namespace DeviceExplorer
+{
 DeviceEditDialog::DeviceEditDialog(
-        const DynamicProtocolList& pl,
+        const Device::DynamicProtocolList& pl,
         QWidget* parent)
     : QDialog(parent),
       m_protocolList{pl},
@@ -31,8 +46,10 @@ DeviceEditDialog::buildGUI()
 
     QDialogButtonBox* buttonBox = new QDialogButtonBox(QDialogButtonBox::Ok
             | QDialogButtonBox::Cancel, Qt::Horizontal, this);
-    connect(buttonBox, SIGNAL(accepted()), this, SLOT(accept()));
-    connect(buttonBox, SIGNAL(rejected()), this, SLOT(reject()));
+    connect(buttonBox, &QDialogButtonBox::accepted,
+            this, &QDialog::accept);
+    connect(buttonBox, &QDialogButtonBox::rejected,
+            this, &QDialog::reject);
 
 
     m_gLayout = new QGridLayout;
@@ -49,7 +66,8 @@ DeviceEditDialog::buildGUI()
 
     initAvailableProtocols(); //populate m_protocolCBox
 
-    connect(m_protocolCBox, SIGNAL(currentIndexChanged(int)), this, SLOT(updateProtocolWidget()));
+    connect(m_protocolCBox,  static_cast<void (QComboBox::*)(int)>(&QComboBox::currentIndexChanged),
+            this, &DeviceEditDialog::updateProtocolWidget);
 
     if(m_protocolCBox->count() > 0)
     {
@@ -63,15 +81,16 @@ DeviceEditDialog::initAvailableProtocols()
 {
     ISCORE_ASSERT(m_protocolCBox);
 
-    for(const auto& prot : m_protocolList.list().get())
-        m_protocolCBox->addItem(prot.second->prettyName(), QVariant::fromValue(prot.second->key<ProtocolFactoryKey>()));
-
     //initialize previous settings
     m_previousSettings.clear();
 
-    for(int i = 0; i < m_protocolCBox->count(); ++i)
+    for(const auto& prot : m_protocolList.list().get())
     {
-        m_previousSettings.append(iscore::DeviceSettings());
+        m_protocolCBox->addItem(
+                    prot.second->prettyName(),
+                    QVariant::fromValue(prot.second->key<Device::ProtocolFactoryKey>()));
+
+        m_previousSettings.append(prot.second->defaultSettings());
     }
 
     m_index = m_protocolCBox->currentIndex();
@@ -95,7 +114,7 @@ DeviceEditDialog::updateProtocolWidget()
 
     m_index = m_protocolCBox->currentIndex();
 
-    auto protocol = m_protocolCBox->currentData().value<ProtocolFactoryKey>();
+    auto protocol = m_protocolCBox->currentData().value<Device::ProtocolFactoryKey>();
     m_protocolWidget = m_protocolList.list().get(protocol)->makeSettingsWidget();
 
     if(m_protocolWidget)
@@ -106,16 +125,17 @@ DeviceEditDialog::updateProtocolWidget()
 
 }
 
-iscore::DeviceSettings DeviceEditDialog::getSettings() const
+Device::DeviceSettings DeviceEditDialog::getSettings() const
 {
-    iscore::DeviceSettings settings;
+    Device::DeviceSettings settings;
 
     if(m_protocolWidget)
     {
         settings = m_protocolWidget->getSettings();
     }
 
-    settings.protocol = m_protocolCBox->currentData().value<ProtocolFactoryKey>();
+    // TODO after set the protocol in getSettings instead.
+    settings.protocol = m_protocolCBox->currentData().value<Device::ProtocolFactoryKey>();
 
     return settings;
 }
@@ -126,7 +146,7 @@ QString DeviceEditDialog::getPath() const
 }
 
 void
-DeviceEditDialog::setSettings(const iscore::DeviceSettings &settings)
+DeviceEditDialog::setSettings(const Device::DeviceSettings &settings)
 {
     //auto proto = SingletonProtocolList::instance().get(settings.protocol);
     //if(proto)
@@ -163,4 +183,5 @@ void DeviceEditDialog::setEditingInvalidState(bool st)
 
         m_invalidState = st;
     }
+}
 }

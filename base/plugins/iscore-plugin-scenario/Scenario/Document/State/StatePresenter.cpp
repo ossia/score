@@ -1,18 +1,30 @@
-#include "StatePresenter.hpp"
-#include "StateModel.hpp"
-#include "StateView.hpp"
-
-#include <Scenario/Commands/Event/State/AddStateWithData.hpp>
-#include <State/StateMimeTypes.hpp>
 #include <State/MessageListSerialization.hpp>
-
 #include <iscore/document/DocumentInterface.hpp>
 #include <iscore/widgets/GraphicsItem.hpp>
-#include <core/document/Document.hpp>
-#include <QGraphicsScene>
 #include <QMimeData>
-#include <QJsonDocument>
+#include <QStringList>
 
+#include <Process/ModelMetadata.hpp>
+#include <Scenario/Commands/State/AddMessagesToState.hpp>
+#include <Scenario/Document/Event/ExecutionStatus.hpp>
+#include <Scenario/Document/State/ItemModel/MessageItemModel.hpp>
+#include <State/Message.hpp>
+#include "StateModel.hpp"
+#include "StatePresenter.hpp"
+#include "StateView.hpp"
+#include <iscore/document/DocumentContext.hpp>
+#include <iscore/command/Dispatchers/CommandDispatcher.hpp>
+#include <iscore/selection/Selectable.hpp>
+#include <iscore/serialization/MimeVisitor.hpp>
+#include <iscore/tools/IdentifiedObject.hpp>
+#include <iscore/tools/NamedObject.hpp>
+#include <iscore/tools/Todo.hpp>
+
+class QObject;
+#include <iscore/tools/SettableIdentifier.hpp>
+
+namespace Scenario
+{
 StatePresenter::StatePresenter(
         const StateModel &model,
         QGraphicsItem *parentview,
@@ -20,29 +32,27 @@ StatePresenter::StatePresenter(
     NamedObject {"StatePresenter", parent},
     m_model {model},
     m_view {new StateView{*this, parentview}},
-    m_dispatcher{iscore::IDocument::commandStack(m_model)}
+    m_dispatcher{iscore::IDocument::documentContext(m_model).commandStack}
 {
     // The scenario catches this :
     con(m_model.selection, &Selectable::changed,
-            m_view, &StateView::setSelected);
+        m_view, &StateView::setSelected);
 
     con(m_model.metadata,  &ModelMetadata::colorChanged,
         m_view, &StateView::changeColor);
+    m_view->changeColor(m_model.metadata.color());
 
     con(m_model, &StateModel::sig_statesUpdated,
             this, &StatePresenter::updateStateView);
 
     con(m_model, &StateModel::statusChanged,
-        this, [&] (ExecutionStatus e)
-    {
-        m_view->changeColor(eventStatusColor(e));
-    });
+        m_view, &StateView::setStatus);
+    m_view->setStatus(m_model.status());
 
     connect(m_view, &StateView::dropReceived,
             this, &StatePresenter::handleDrop);
 
     updateStateView();
-    m_view->changeColor(eventStatusColor(m_model.status()));
 }
 
 StatePresenter::~StatePresenter()
@@ -75,10 +85,10 @@ void StatePresenter::handleDrop(const QMimeData *mime)
     // If the mime data has states in it we can handle it.
     if(mime->formats().contains(iscore::mime::messagelist()))
     {
-        Mime<iscore::MessageList>::Deserializer des{*mime};
-        iscore::MessageList ml = des.deserialize();
+        Mime<State::MessageList>::Deserializer des{*mime};
+        State::MessageList ml = des.deserialize();
 
-        auto cmd = new AddMessagesToState{
+        auto cmd = new Command::AddMessagesToState{
                    iscore::IDocument::path(m_model.messages()),
                    ml};
 
@@ -90,4 +100,4 @@ void StatePresenter::updateStateView()
 {
     m_view->setContainMessage(m_model.messages().rootNode().hasChildren());
 }
-
+}

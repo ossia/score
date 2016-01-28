@@ -1,11 +1,13 @@
 #pragma once
 #include <QObject>
+#include <iscore_lib_base_export.h>
 
 namespace iscore
 {
     class SettingsDelegateFactoryInterface;
+
     // A plug-in can also offer global settings for everything it provides.
-    class SettingsDelegateFactoryInterface_QtInterface
+    class ISCORE_LIB_BASE_EXPORT SettingsDelegateFactoryInterface_QtInterface
     {
         public:
             virtual ~SettingsDelegateFactoryInterface_QtInterface();

@@ -1,9 +1,10 @@
 #pragma once
 #include <QObject>
+#include <iscore_plugin_scenario_export.h>
 
-
-
-class ModelConsistency final : public QObject
+namespace Scenario
+{
+class ISCORE_PLUGIN_SCENARIO_EXPORT ModelConsistency final : public QObject
 {
         Q_OBJECT
 
@@ -21,12 +22,12 @@ class ModelConsistency final : public QObject
         bool isValid() const;
         bool warning() const;
 
+        void setValid(bool arg);
+        void setWarning(bool warning);
+
     signals:
         void validChanged(bool arg);
         void warningChanged(bool warning);
 
-    public slots:
-        void setValid(bool arg);
-        void setWarning(bool warning);
 };
-
+}

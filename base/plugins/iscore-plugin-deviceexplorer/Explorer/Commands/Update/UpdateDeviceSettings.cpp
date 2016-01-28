@@ -1,27 +1,38 @@
-#include "UpdateDeviceSettings.hpp"
-
 #include <Explorer/DocumentPlugin/DeviceDocumentPlugin.hpp>
-#include <boost/range/algorithm/find_if.hpp>
+#include <algorithm>
+#include <vector>
 
-using namespace iscore;
-using namespace DeviceExplorer::Command;
+#include <Device/Node/DeviceNode.hpp>
+#include <Device/Protocol/DeviceSettings.hpp>
+#include <Explorer/DocumentPlugin/NodeUpdateProxy.hpp>
+#include "UpdateDeviceSettings.hpp"
+#include <iscore/serialization/DataStreamVisitor.hpp>
+#include <iscore/tools/ModelPath.hpp>
+#include <iscore/tools/ModelPathSerialization.hpp>
+#include <iscore/tools/TreeNode.hpp>
 
+
+
+namespace DeviceExplorer
+{
+namespace Command
+{
 UpdateDeviceSettings::UpdateDeviceSettings(
         Path<DeviceDocumentPlugin>&& device_tree,
         const QString &name,
-        const DeviceSettings& parameters):
+        const Device::DeviceSettings& parameters):
     m_devicesModel{device_tree},
     m_newParameters(parameters)
 {
     auto& devplug = m_devicesModel.find();
     auto it = std::find_if(devplug.rootNode().begin(),
                            devplug.rootNode().end(),
-                  [&] (const iscore::Node& n)
-    { return n.get<DeviceSettings>().name == name; });
+                  [&] (const Device::Node& n)
+    { return n.get<Device::DeviceSettings>().name == name; });
 
     ISCORE_ASSERT(it != devplug.rootNode().end());
 
-    m_oldParameters = (*it).get<DeviceSettings>();
+    m_oldParameters = (*it).get<Device::DeviceSettings>();
 }
 
 void UpdateDeviceSettings::undo() const
@@ -48,4 +59,6 @@ void UpdateDeviceSettings::deserializeImpl(DataStreamOutput& d)
     d >> m_devicesModel
       >> m_oldParameters
       >> m_newParameters;
+}
+}
 }

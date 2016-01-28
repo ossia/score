@@ -1,19 +1,27 @@
-#include "TemporalScenarioLayerModel.hpp"
-
-#include <Scenario/Document/Constraint/Rack/Slot/SlotModel.hpp>
 #include <Scenario/Document/Constraint/ConstraintModel.hpp>
-#include <Scenario/Process/ScenarioModel.hpp>
 #include <Scenario/Document/Constraint/ViewModels/Temporal/TemporalConstraintViewModel.hpp>
+#include <Scenario/Process/ScenarioModel.hpp>
+#include <boost/optional/optional.hpp>
+#include <QVector>
 
-#include <Process/LayerModelPanelProxy.hpp>
-#include <Scenario/Process/Temporal/StateMachines/ScenarioStateMachine.hpp>
-#include "TemporalScenarioPresenter.hpp"
+#include <Process/LayerModel.hpp>
+#include "TemporalScenarioLayerModel.hpp"
 #include "TemporalScenarioPanelProxy.hpp"
+#include <iscore/tools/NotifyingMap.hpp>
+#include <iscore/tools/SettableIdentifier.hpp>
 
+namespace Process {
+class LayerModelPanelProxy;
+}
+class QObject;
+
+namespace Scenario
+{
+class ConstraintViewModel;
 TemporalScenarioLayerModel::TemporalScenarioLayerModel(
         const Id<LayerModel>& viewModelId,
         const QMap<Id<ConstraintModel>, Id<ConstraintViewModel> >& constraintIds,
-        ScenarioModel& model,
+        Scenario::ScenarioModel& model,
         QObject* parent) :
     AbstractScenarioLayerModel {viewModelId,
                               "TemporalScenarioLayer",
@@ -29,7 +37,7 @@ TemporalScenarioLayerModel::TemporalScenarioLayerModel(
 TemporalScenarioLayerModel::TemporalScenarioLayerModel(
         const TemporalScenarioLayerModel& source,
         const Id<LayerModel>& id,
-        ScenarioModel& newScenario,
+        Scenario::ScenarioModel& newScenario,
         QObject* parent) :
     AbstractScenarioLayerModel {source,
                               id,
@@ -49,7 +57,7 @@ TemporalScenarioLayerModel::TemporalScenarioLayerModel(
     }
 }
 
-LayerModelPanelProxy* TemporalScenarioLayerModel::make_panelProxy(QObject* parent) const
+Process::LayerModelPanelProxy* TemporalScenarioLayerModel::make_panelProxy(QObject* parent) const
 {
     return new TemporalScenarioPanelProxy{*this, parent};
 }
@@ -87,4 +95,5 @@ void TemporalScenarioLayerModel::on_constraintRemoved(const ConstraintModel& cst
             return;
         }
     }
+}
 }

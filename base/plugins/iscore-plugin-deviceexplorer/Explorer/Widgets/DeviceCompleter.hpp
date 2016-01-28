@@ -1,7 +1,16 @@
 #pragma once
 #include <QCompleter>
-class DeviceExplorerModel;
+#include <QString>
+#include <QStringList>
 
+class QModelIndex;
+class QObject;
+
+
+namespace DeviceExplorer
+{
+
+class DeviceExplorerModel;
 /**
  * @brief The DeviceCompleter class
  *
@@ -17,3 +26,4 @@ class DeviceCompleter final : public QCompleter
         QString pathFromIndex(const QModelIndex& index) const override;
         QStringList splitPath(const QString& path) const override;
 };
+}

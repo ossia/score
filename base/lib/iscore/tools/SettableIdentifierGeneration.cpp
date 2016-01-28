@@ -1,10 +1,13 @@
+#include <cstdint>
+#include <limits>
+#include <random>
+
 #include "SettableIdentifierGeneration.hpp"
 
-#include <random>
 namespace iscore
 {
 #ifdef ISCORE_VALGRIND_IDS
-int32_t random_id_generation::getRandomId()
+int32_t random_id_generator::getRandomId()
 {
     static int x = 15;
     return x++;

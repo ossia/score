@@ -1,42 +1,46 @@
 #pragma once
 #include <Scenario/Commands/ScenarioCommandFactory.hpp>
+#include <boost/optional/optional.hpp>
 #include <iscore/command/SerializableCommand.hpp>
 #include <iscore/tools/ModelPath.hpp>
 
-#include <tests/helpers/ForwardDeclaration.hpp>
-class RackModel;
-class ConstraintModel;
+#include <iscore/tools/SettableIdentifier.hpp>
+#include <iscore_plugin_scenario_export.h>
+class DataStreamInput;
+class DataStreamOutput;
 namespace Scenario
 {
-    namespace Command
-    {
-        /**
+class RackModel;
+class ConstraintModel;
+
+namespace Command
+{
+/**
          * @brief The AddRackToConstraint class
          *
          * Adds an empty rack, with no slots, to a constraint.
          */
-        class AddRackToConstraint final : public iscore::SerializableCommand
-        {
-                ISCORE_COMMAND_DECL(ScenarioCommandFactoryName(), AddRackToConstraint, "AddRackToConstraint")
-#include <tests/helpers/FriendDeclaration.hpp>
+class ISCORE_PLUGIN_SCENARIO_EXPORT AddRackToConstraint final : public iscore::SerializableCommand
+{
+        ISCORE_COMMAND_DECL(ScenarioCommandFactoryName(), AddRackToConstraint, "Add a rack")
 
-            public:
-                AddRackToConstraint(Path<ConstraintModel>&& constraintPath);
+        public:
+            AddRackToConstraint(Path<ConstraintModel>&& constraintPath);
 
-                void undo() const override;
-                void redo() const override;
+        void undo() const override;
+        void redo() const override;
 
-                const auto& createdRack() const
-                { return m_createdRackId; }
+        const auto& createdRack() const
+        { return m_createdRackId; }
 
-            protected:
-                void serializeImpl(DataStreamInput&) const override;
-                void deserializeImpl(DataStreamOutput&) override;
+    protected:
+        void serializeImpl(DataStreamInput&) const override;
+        void deserializeImpl(DataStreamOutput&) override;
 
-            private:
-                Path<ConstraintModel> m_path;
+    private:
+        Path<ConstraintModel> m_path;
 
-                Id<RackModel> m_createdRackId {};
-        };
-    }
+        Id<RackModel> m_createdRackId {};
+};
+}
 }

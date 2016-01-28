@@ -1,13 +1,16 @@
 #pragma once
-#include <QDialog>
-#include <QList>
-#include <QString>
 #include <Device/Address/AddressSettings.hpp>
 #include <Explorer/Widgets/ValueWrapper.hpp>
+#include <QDialog>
 
 class QComboBox;
 class QFormLayout;
 class QLineEdit;
+class QWidget;
+
+namespace DeviceExplorer
+{
+
 class AddressSettingsWidget;
 class AddressEditDialog final : public QDialog
 {
@@ -20,23 +23,22 @@ class AddressEditDialog final : public QDialog
 
         // Edition of an address
         explicit AddressEditDialog(
-                const iscore::AddressSettings& addr,
+                const Device::AddressSettings& addr,
                 QWidget* parent);
         ~AddressEditDialog();
 
-        iscore::AddressSettings getSettings() const;
-        static iscore::AddressSettings makeDefaultSettings();
+        Device::AddressSettings getSettings() const;
+        static Device::AddressSettings makeDefaultSettings();
 
     protected:
         void setNodeSettings();
         void setValueSettings();
         void updateType();
 
-        iscore::AddressSettings m_originalSettings;
+        Device::AddressSettings m_originalSettings;
         QLineEdit* m_nameEdit{};
         QComboBox* m_valueTypeCBox{};
         WidgetWrapper<AddressSettingsWidget>* m_addressWidget{};
         QFormLayout* m_layout{};
 };
-
-
+}

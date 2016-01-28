@@ -1,9 +1,11 @@
-#include "UndoModel.hpp"
 #include <core/document/DocumentModel.hpp>
-#include "UndoPanelId.hpp"
 
-UndoModel::UndoModel(iscore::DocumentModel* model) :
-    iscore::PanelModel{"UndoPanelModel", model}
+#include "UndoModel.hpp"
+#include "UndoPanelId.hpp"
+#include <iscore/plugins/panel/PanelModel.hpp>
+
+UndoModel::UndoModel(QObject* parent) :
+    iscore::PanelModel{"UndoPanelModel", parent}
 {
 
 }

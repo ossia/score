@@ -1,16 +1,19 @@
 #pragma once
-#include <iscore/tools/NamedObject.hpp>
-#include <iscore/tools/SettableIdentifier.hpp>
 #include <iscore/command/Dispatchers/CommandDispatcher.hpp>
+#include <iscore/tools/NamedObject.hpp>
+#include <QPoint>
+#include <iscore_plugin_scenario_export.h>
+#include <iscore/tools/SettableIdentifier.hpp>
 
 class QGraphicsItem;
+class QMimeData;
+class QObject;
+
+namespace Scenario
+{
 class StateModel;
 class StateView;
-class TemporalScenarioPresenter;
-class QMimeData;
-class ConstraintModel;
-
-class StatePresenter final : public NamedObject
+class ISCORE_PLUGIN_SCENARIO_EXPORT StatePresenter final : public NamedObject
 {
         Q_OBJECT
 
@@ -47,4 +50,4 @@ class StatePresenter final : public NamedObject
 
         CommandDispatcher<> m_dispatcher;
 };
-
+}

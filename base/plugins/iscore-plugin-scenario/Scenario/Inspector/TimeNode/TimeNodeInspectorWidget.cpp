@@ -1,32 +1,47 @@
-#include "TimeNodeInspectorWidget.hpp"
-
-#include <Scenario/Document/TimeNode/TimeNodeModel.hpp>
-#include <Scenario/Document/Event/EventModel.hpp>
-#include <Scenario/Document/TimeNode/Trigger/TriggerModel.hpp>
-
-#include <Scenario/Process/ScenarioModel.hpp>
-
 #include <Inspector/InspectorSectionWidget.hpp>
-#include <Scenario/Inspector/MetadataWidget.hpp>
-#include <Scenario/Inspector/Event/EventWidgets/EventShortcut.hpp>
-#include <Scenario/Inspector/TimeNode/TriggerInspectorWidget.hpp>
-
 #include <Scenario/Commands/TimeNode/SplitTimeNode.hpp>
+#include <Scenario/Commands/TimeNode/TriggerCommandFactory/TriggerCommandFactoryList.hpp>
+#include <Scenario/Document/Event/EventModel.hpp>
+#include <Scenario/Document/TimeNode/TimeNodeModel.hpp>
+#include <Scenario/Document/TimeNode/Trigger/TriggerModel.hpp>
+#include <Scenario/Inspector/Event/EventWidgets/EventShortcut.hpp>
+#include <Scenario/Inspector/MetadataWidget.hpp>
+#include <Scenario/Inspector/TimeNode/TriggerInspectorWidget.hpp>
+#include <boost/optional/optional.hpp>
 
+#include <iscore/application/ApplicationContext.hpp>
+#include <iscore/document/DocumentContext.hpp>
+#include <QBoxLayout>
+#include <QColor>
 #include <QLabel>
-#include <QLineEdit>
-#include <QLayout>
+
 #include <QPushButton>
-#include <QCompleter>
+#include <QString>
+#include <QVector>
+#include <QWidget>
+#include <algorithm>
 
-using namespace Scenario::Command;
+#include <Inspector/InspectorWidgetBase.hpp>
+#include <Process/TimeValue.hpp>
+#include <Scenario/Process/ScenarioInterface.hpp>
+#include "TimeNodeInspectorWidget.hpp"
+#include <iscore/command/Dispatchers/CommandDispatcher.hpp>
+#include <iscore/plugins/customfactory/StringFactoryKey.hpp>
+#include <iscore/selection/Selection.hpp>
+#include <iscore/selection/SelectionDispatcher.hpp>
+#include <iscore/serialization/DataStreamVisitor.hpp>
+#include <iscore/tools/ModelPath.hpp>
+#include <iscore/tools/ModelPathSerialization.hpp>
+#include <iscore/tools/SettableIdentifier.hpp>
+#include <iscore/tools/Todo.hpp>
 
-
+namespace Scenario
+{
 TimeNodeInspectorWidget::TimeNodeInspectorWidget(
         const TimeNodeModel& object,
-        iscore::Document& doc,
+        const iscore::DocumentContext& ctx,
         QWidget* parent) :
-    InspectorWidgetBase {object, doc, parent},
+    InspectorWidgetBase {object, ctx, parent},
     m_model {object}
 {
     setObjectName("TimeNodeInspectorWidget");
@@ -43,11 +58,14 @@ TimeNodeInspectorWidget::TimeNodeInspectorWidget(
     dateLay->addWidget(m_date);
 
     // Trigger
-    m_trigwidg = new TriggerInspectorWidget{m_model, this};
+    m_trigwidg = new TriggerInspectorWidget{
+                 ctx,
+                 ctx.app.components.factory<Command::TriggerCommandFactoryList>(),
+                 m_model, this};
 
 
     // Events ids list
-    m_eventList = new InspectorSectionWidget{"Events", this};
+    m_eventList = new Inspector::InspectorSectionWidget{"Events", false, this};
 
     m_properties.push_back(dateWid);
     m_properties.push_back(new QLabel{tr("Trigger")});
@@ -62,7 +80,6 @@ TimeNodeInspectorWidget::TimeNodeInspectorWidget(
 
     // metadata
     m_metadata = new MetadataWidget{&m_model.metadata, commandDispatcher(), &m_model, this};
-    m_metadata->setType(TimeNodeModel::prettyName());
 
     m_metadata->setupConnections(m_model);
 
@@ -78,6 +95,11 @@ TimeNodeInspectorWidget::TimeNodeInspectorWidget(
 
     connect(splitBtn,   &QPushButton::clicked,
             this,       &TimeNodeInspectorWidget::on_splitTimeNodeClicked);
+}
+
+QString TimeNodeInspectorWidget::tabName()
+{
+    return tr("TimeNode");
 }
 
 
@@ -96,7 +118,8 @@ void TimeNodeInspectorWidget::updateDisplayedValues()
 
     for(const auto& event : m_model.events())
     {
-        auto scenar = m_model.parentScenario();
+        auto scenar = dynamic_cast<ScenarioInterface*>(m_model.parent());
+        ISCORE_ASSERT(scenar);
         EventModel* evModel = &scenar->event(event);
 
         auto eventWid = new EventShortCut(QString::number((*event.val())));
@@ -111,7 +134,7 @@ void TimeNodeInspectorWidget::updateDisplayedValues()
         });
     }
 
-    m_trigwidg->updateExpression(m_model.trigger()->expression().toString());
+    m_trigwidg->updateExpression(m_model.trigger()->expression());
 }
 
 void TimeNodeInspectorWidget::on_splitTimeNodeClicked()
@@ -128,7 +151,7 @@ void TimeNodeInspectorWidget::on_splitTimeNodeClicked()
 
     if (eventGroup.size() < int(m_events.size()))
     {
-        auto cmd = new SplitTimeNode{m_model,
+        auto cmd = new Command::SplitTimeNode{m_model,
                                      eventGroup};
 
         commandDispatcher()->submitCommand(cmd);
@@ -136,3 +159,5 @@ void TimeNodeInspectorWidget::on_splitTimeNodeClicked()
 
     updateDisplayedValues();
 }
+}
+

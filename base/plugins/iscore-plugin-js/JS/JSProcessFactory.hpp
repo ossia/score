@@ -7,27 +7,28 @@
 #include <iscore/serialization/VisitorCommon.hpp>
 #include <JS/JSProcessMetadata.hpp>
 
-
-class JSProcessFactory final : public ProcessFactory
+namespace JS
+{
+class ProcessFactory final : public Process::ProcessFactory
 {
     public:
         QString prettyName() const override
         { // In factory list
-            return JSProcessMetadata::factoryPrettyName();
+            return Metadata<PrettyName_k, ProcessModel>::get();
         }
 
-        const ProcessFactoryKey& key_impl() const override
+        const ProcessFactoryKey& concreteFactoryKey() const override
         {
-            return JSProcessMetadata::factoryKey();
+            return Metadata<ConcreteFactoryKey_k, ProcessModel>::get();
         }
 
 
-        Process* makeModel(
+        Process::ProcessModel* makeModel(
                 const TimeValue& duration,
-                const Id<Process>& id,
+                const Id<Process::ProcessModel>& id,
                 QObject* parent) override
         {
-            return new JSProcessModel{duration, id, parent};
+            return new JS::ProcessModel{duration, id, parent};
         }
 
         QByteArray makeStaticLayerConstructionData() const override
@@ -35,24 +36,25 @@ class JSProcessFactory final : public ProcessFactory
             return {};
         }
 
-        Process* loadModel(const VisitorVariant& vis, QObject* parent) override
+        Process::ProcessModel* load(const VisitorVariant& vis, QObject* parent) override
         {
             return deserialize_dyn(vis, [&] (auto&& deserializer)
-            { return new JSProcessModel{deserializer, parent};});
+            { return new JS::ProcessModel{deserializer, parent};});
         }
 
-        LayerPresenter* makeLayerPresenter(
-                const LayerModel& model,
-                LayerView* v,
+        Process::LayerPresenter* makeLayerPresenter(
+                const Process::LayerModel& model,
+                Process::LayerView* v,
                 QObject* parent) override
         {
-            return new DummyLayerPresenter{model, dynamic_cast<DummyLayerView*>(v), parent};
+            return new Dummy::DummyLayerPresenter{model, dynamic_cast<Dummy::DummyLayerView*>(v), parent};
         }
 
-        LayerView* makeLayerView(
-                const LayerModel&,
+        Process::LayerView* makeLayerView(
+                const Process::LayerModel&,
                 QGraphicsItem* parent) override
         {
-            return new DummyLayerView{parent};
+            return new Dummy::DummyLayerView{parent};
         }
 };
+}

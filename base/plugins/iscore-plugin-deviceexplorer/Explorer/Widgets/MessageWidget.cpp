@@ -1,19 +1,16 @@
-#include "MessageWidget.hpp"
+#include <State/Message.hpp>
 
 #include "MessageEditDialog.hpp"
+#include "MessageWidget.hpp"
+#include <State/Address.hpp>
+#include <State/Value.hpp>
 
-#include <State/Message.hpp>
-#include <Explorer/Widgets/AddressEditWidget.hpp>
-#include <iscore/widgets/MarginLess.hpp>
+class QWidget;
 
-#include <QDialog>
-#include <QLabel>
-#include <QFormLayout>
-#include <QComboBox>
-#include <QDialogButtonBox>
-
+namespace DeviceExplorer
+{
 MessageWidget::MessageWidget(
-        iscore::Message& mess,
+        State::Message& mess,
         DeviceExplorerModel* model,
         QWidget* parent):
     QPushButton{mess.toString(), parent},
@@ -37,4 +34,5 @@ void MessageWidget::on_clicked()
 
         this->setText(m_message.toString());
     }
+}
 }

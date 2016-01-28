@@ -1,5 +1,6 @@
 #include "ModelConsistency.hpp"
-
+namespace Scenario
+{
 ModelConsistency::ModelConsistency(QObject *parent) :
     QObject(parent),
     m_valid(true)
@@ -44,4 +45,5 @@ void ModelConsistency::setWarning(bool warning)
 
     m_warning = warning;
     emit warningChanged(warning);
+}
 }

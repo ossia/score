@@ -3,7 +3,11 @@ os:
   - osx
   - linux
 
-osx_image: xcode6.4
+cache:
+  directories:
+  - $HOME/travis-cache
+
+osx_image: xcode7.2
 
 dist: trusty
 sudo: required
@@ -26,28 +30,31 @@ matrix:
     - os: osx
 
   include:
+    - os: linux
+      env: CONF=linux-gcov CAN_DEPLOY=False
 
     - os: osx
-      env: BUILD_TYPE=Release   STATIC_PLUGINS=True  DEPLOYMENT=True  CAN_DEPLOY=True  USE_COVERITY=False STATIC_QT=False
+      env: CONF=osx-package CAN_DEPLOY=True
     - os: linux
-      env: BUILD_TYPE=Release   STATIC_PLUGINS=True  DEPLOYMENT=True  CAN_DEPLOY=True  USE_COVERITY=False STATIC_QT=True
+      env: CONF=linux-package CAN_DEPLOY=True
 
     - os: osx
-      env: BUILD_TYPE=Debug     STATIC_PLUGINS=False DEPLOYMENT=False CAN_DEPLOY=False USE_COVERITY=False STATIC_QT=False
+      env: CONF=osx-debug CAN_DEPLOY=False
     - os: osx
-      env: BUILD_TYPE=Debug     STATIC_PLUGINS=True  DEPLOYMENT=False CAN_DEPLOY=False USE_COVERITY=False STATIC_QT=False
+      env: CONF=osx-static-debug CAN_DEPLOY=False
     - os: osx
-      env: BUILD_TYPE=Release   STATIC_PLUGINS=False DEPLOYMENT=True  CAN_DEPLOY=False USE_COVERITY=False STATIC_QT=False
+      env: CONF=osx-release CAN_DEPLOY=False
 
     - os: linux
-      env: BUILD_TYPE=Debug     STATIC_PLUGINS=False DEPLOYMENT=False CAN_DEPLOY=False USE_COVERITY=False STATIC_QT=False
+      env: CONF=linux-debug CAN_DEPLOY=False
     - os: linux
-      env: BUILD_TYPE=Debug     STATIC_PLUGINS=True  DEPLOYMENT=False CAN_DEPLOY=False USE_COVERITY=False STATIC_QT=False
+      env: CONF=linux-static-debug CAN_DEPLOY=False
     - os: linux
-      env: BUILD_TYPE=Release   STATIC_PLUGINS=False DEPLOYMENT=True  CAN_DEPLOY=False USE_COVERITY=False STATIC_QT=False
-  # Coverity
+      env: CONF=linux-release CAN_DEPLOY=False
+
+# Coverity
 #    - os: linux
-#      env: BUILD_TYPE=Debug     STATIC_PLUGINS=False DEPLOYMENT=False CAN_DEPLOY=False USE_COVERITY=True STATIC_QT=False
+#      env: CONFIG=linux-coverity CAN_DEPLOY=False
 
 before_install:
 - "./tools/travis/deps.sh"

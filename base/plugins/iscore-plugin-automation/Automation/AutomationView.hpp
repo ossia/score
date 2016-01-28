@@ -1,11 +1,17 @@
 #pragma once
 
 #include <Process/LayerView.hpp>
+#include <QString>
 
-class AutomationView final : public LayerView
+class QGraphicsItem;
+class QPainter;
+
+namespace Automation
+{
+class LayerView final : public Process::LayerView
 {
     public:
-        explicit AutomationView(QGraphicsItem *parent);
+        explicit LayerView(QGraphicsItem *parent);
 
         void setDisplayedName(QString s) {m_displayedName = s;}
         void showName(bool b) {m_showName = b;}
@@ -17,3 +23,4 @@ class AutomationView final : public LayerView
         QString m_displayedName{};
         bool m_showName{true};
 };
+}

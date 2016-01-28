@@ -1,37 +1,50 @@
 #pragma once
-#include <iscore/tools/IdentifiedObject.hpp>
 #include <iscore/selection/Selection.hpp>
+#include <iscore/tools/IdentifiedObject.hpp>
+#include <QByteArray>
+#include <QJsonObject>
+
+#include <QString>
+#include <QVariant>
+#include <algorithm>
+#include <iterator>
+#include <vector>
+
+class QObject;
+#include <iscore/tools/SettableIdentifier.hpp>
 
 namespace iscore
 {
-struct ApplicationContext;
-class DocumentDelegateFactoryInterface;
+class DocumentDelegateFactory;
 class DocumentDelegateModelInterface;
-class DocumentDelegatePluginModel;
+class DocumentPlugin;
 class PanelModel;
+struct ApplicationContext;
+
 /**
      * @brief The DocumentModel class
      *
      * Drawbridge between the application and a model given by a plugin.
      * Contains all the "saveable" data.
      */
-class DocumentModel final : public IdentifiedObject<DocumentModel>
+class ISCORE_LIB_BASE_EXPORT DocumentModel final : public IdentifiedObject<DocumentModel>
 {
         Q_OBJECT
     public:
         DocumentModel(
                 const Id<DocumentModel>& id,
-                DocumentDelegateFactoryInterface* fact,
+                DocumentDelegateFactory* fact,
                 QObject* parent);
         DocumentModel(
-                iscore::ApplicationContext& ctx,
+                iscore::DocumentContext& ctx,
                 const QVariant &data,
-                DocumentDelegateFactoryInterface* fact,
+                DocumentDelegateFactory* fact,
                 QObject* parent);
+        ~DocumentModel();
 
-        DocumentDelegateModelInterface* modelDelegate() const
+        DocumentDelegateModelInterface& modelDelegate() const
         {
-            return m_model;
+            return *m_model;
         }
 
 
@@ -52,45 +65,27 @@ class DocumentModel final : public IdentifiedObject<DocumentModel>
         }
 
         // Plugin models
-        void addPluginModel(DocumentDelegatePluginModel* m);
-        const std::vector<DocumentDelegatePluginModel*>& pluginModels() { return m_pluginModels; }
-
-        template<typename T>
-        T* pluginModel() const
-        {
-            using namespace std;
-            auto it = find_if(begin(m_pluginModels),
-                              end(m_pluginModels),
-                              [&](DocumentDelegatePluginModel * pm)
-            { return qobject_cast<T*>(pm); });
-
-            return it != end(m_pluginModels) ? safe_cast<T*>(*it) : nullptr;
-        }
-
-        QString docFileName() const;
-        void setDocFileName(const QString &docFileName);
+        void addPluginModel(DocumentPlugin* m);
+        const std::vector<DocumentPlugin*>& pluginModels() { return m_pluginModels; }
 
     signals:
         void pluginModelsChanged();
-        void fileNameChanged(const QString&);
 
     public slots:
         void setNewSelection(const Selection&);
 
     private:
         void loadDocumentAsJson(
-                iscore::ApplicationContext& ctx,
+                iscore::DocumentContext& ctx,
                 const QJsonObject&,
-                DocumentDelegateFactoryInterface* fact);
+                DocumentDelegateFactory* fact);
         void loadDocumentAsByteArray(
-                iscore::ApplicationContext& ctx,
+                iscore::DocumentContext& ctx,
                 const QByteArray&,
-                DocumentDelegateFactoryInterface* fact);
-
-        QString m_docFileName{tr("Untitled")};
+                DocumentDelegateFactory* fact);
 
         std::vector<PanelModel*> m_panelModels;
-        std::vector<DocumentDelegatePluginModel*> m_pluginModels;
+        std::vector<DocumentPlugin*> m_pluginModels;
         DocumentDelegateModelInterface* m_model{}; // note : this *has* to be last due to init order
 };
 }

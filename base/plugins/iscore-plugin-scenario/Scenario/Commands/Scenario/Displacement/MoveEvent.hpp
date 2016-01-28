@@ -11,13 +11,8 @@
 #include <Scenario/Process/Algorithms/StandardDisplacementPolicy.hpp>
 #include <Scenario/Process/Algorithms/VerticalMovePolicy.hpp>
 #include <Scenario/Tools/elementFindingHelper.hpp>
+#include <iscore/tools/ModelPathSerialization.hpp>
 
-class EventModel;
-class TimeNodeModel;
-class ConstraintModel;
-class ConstraintViewModel;
-class RackModel;
-class ScenarioModel;
 struct ElementsProperties;
 
 #include <tests/helpers/ForwardDeclaration.hpp>
@@ -25,6 +20,12 @@ struct ElementsProperties;
 
 namespace Scenario
 {
+class EventModel;
+class TimeNodeModel;
+class ConstraintModel;
+class ConstraintViewModel;
+class RackModel;
+class ScenarioModel;
 namespace Command
 {
 /**
@@ -35,7 +36,6 @@ class MoveEvent final : public SerializableMoveEvent
 {
         // No ISCORE_COMMAND here since it's a template.
 
-        //#include <tests/helpers/FriendDeclaration.hpp>
     public:
         const CommandParentFactoryKey& parentKey() const override
         {
@@ -49,7 +49,7 @@ class MoveEvent final : public SerializableMoveEvent
         }
         QString description() const override
         {
-            return QObject::tr("Move Event With %1").arg(DisplacementPolicy::name());
+            return QObject::tr("Move an event with %1").arg(DisplacementPolicy::name());
         }
 
         MoveEvent()
@@ -64,7 +64,7 @@ class MoveEvent final : public SerializableMoveEvent
                  * @param mode
                  */
         MoveEvent(
-                Path<ScenarioModel>&& scenarioPath,
+                Path<Scenario::ScenarioModel>&& scenarioPath,
                 const Id<EventModel>& eventId,
                 const TimeValue& newDate,
                 ExpandMode mode)
@@ -88,7 +88,7 @@ class MoveEvent final : public SerializableMoveEvent
         }
 
         void update(
-                const Path<ScenarioModel>& scenarioPath,
+                const Path<Scenario::ScenarioModel>& scenarioPath,
                 const Id<EventModel>& eventId,
                 const TimeValue& newDate,
                 ExpandMode mode) override
@@ -115,7 +115,7 @@ class MoveEvent final : public SerializableMoveEvent
             // update positions using old stored dates
             DisplacementPolicy::revertPositions(
                         scenario,
-                        [&] (Process& p, const TimeValue& t){ p.expandProcess(m_mode, t); },
+                        [&] (Process::ProcessModel& p, const TimeValue& t){ p.setParentDuration(m_mode, t); },
             m_savedElementsProperties);
 
             updateEventExtent(m_eventId, scenario);
@@ -128,13 +128,13 @@ class MoveEvent final : public SerializableMoveEvent
             // update positions using new stored dates
             DisplacementPolicy::updatePositions(
                         scenario,
-                        [&] (Process& p, const TimeValue& t){ p.expandProcess(m_mode, t); },
+                        [&] (Process::ProcessModel& p, const TimeValue& t){ p.setParentDuration(m_mode, t); },
             m_savedElementsProperties);
 
             updateEventExtent(m_eventId, scenario);
         }
 
-        const Path<ScenarioModel>& path() const override
+        const Path<Scenario::ScenarioModel>& path() const override
         { return m_path; }
 
     protected:
@@ -162,7 +162,7 @@ class MoveEvent final : public SerializableMoveEvent
 
     private:
         ElementsProperties m_savedElementsProperties;
-        Path<ScenarioModel> m_path;
+        Path<Scenario::ScenarioModel> m_path;
 
         ExpandMode m_mode{ExpandMode::Scale};
         DisplacementPolicy m_displacementPolicy;

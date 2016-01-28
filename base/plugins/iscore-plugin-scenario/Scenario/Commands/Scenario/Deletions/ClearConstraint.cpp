@@ -1,19 +1,29 @@
-#include "ClearConstraint.hpp"
-
+#include <Process/ProcessList.hpp>
+#include <Process/ProcessModelSerialization.hpp>
 #include <Scenario/Document/Constraint/ConstraintModel.hpp>
 #include <Scenario/Document/Constraint/Rack/RackModel.hpp>
-#include <Scenario/Document/Constraint/Rack/Slot/SlotModel.hpp>
-#include <Scenario/Process/ScenarioModel.hpp>
-#include <Scenario/Process/Temporal/TemporalScenarioLayerModel.hpp>
-#include <Process/ProcessModelSerialization.hpp>
 #include <Scenario/Document/Constraint/ViewModels/ConstraintViewModel.hpp>
 
-#include <core/application/ApplicationComponents.hpp>
-#include <Process/ProcessList.hpp>
+#include <Scenario/Process/Algorithms/ProcessPolicy.hpp>
 
-using namespace iscore;
-using namespace Scenario::Command;
+#include <QDataStream>
+#include <QtGlobal>
+#include <algorithm>
 
+#include "ClearConstraint.hpp"
+#include <Process/Process.hpp>
+#include <iscore/application/ApplicationContext.hpp>
+#include <iscore/plugins/customfactory/StringFactoryKey.hpp>
+#include <iscore/serialization/DataStreamVisitor.hpp>
+#include <iscore/tools/IdentifiedObject.hpp>
+#include <iscore/tools/ModelPath.hpp>
+#include <iscore/tools/ModelPathSerialization.hpp>
+#include <iscore/tools/NotifyingMap.hpp>
+
+namespace Scenario
+{
+namespace Command
+{
 ClearConstraint::ClearConstraint(Path<ConstraintModel>&& constraintPath) :
     m_path {std::move(constraintPath) }
 {
@@ -45,14 +55,14 @@ ClearConstraint::ClearConstraint(Path<ConstraintModel>&& constraintPath) :
 
 void ClearConstraint::undo() const
 {
-    auto& fact = context.components.factory<DynamicProcessList>();
+    auto& fact = context.components.factory<Process::ProcessList>();
 
     auto& constraint = m_path.find();
 
     for(auto& serializedProcess : m_serializedProcesses)
     {
         Deserializer<DataStream> s {serializedProcess};
-        constraint.processes.add(createProcess(fact, s, &constraint));
+        AddProcess(constraint, deserialize_interface(fact, s, &constraint));
     }
 
     for(auto& serializedRack : m_serializedRackes)
@@ -79,7 +89,7 @@ void ClearConstraint::redo() const
     auto processes = constraint.processes.map();
     for(const auto& process : processes)
     {
-        constraint.processes.remove(process.id());
+        RemoveProcess(constraint, process.id());
     }
 
     auto rackes = constraint.racks.map();
@@ -97,4 +107,6 @@ void ClearConstraint::serializeImpl(DataStreamInput& s) const
 void ClearConstraint::deserializeImpl(DataStreamOutput& s)
 {
     s >> m_path >> m_serializedRackes >> m_serializedProcesses >> m_rackMappings;
+}
+}
 }

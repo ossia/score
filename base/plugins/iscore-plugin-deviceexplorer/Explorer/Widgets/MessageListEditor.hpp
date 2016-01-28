@@ -1,10 +1,14 @@
 #pragma once
-#include <QDialog>
 #include <State/Message.hpp>
+#include <QDialog>
 
-class DeviceExplorerModel;
 class QGridLayout;
+class QWidget;
 
+
+namespace DeviceExplorer
+{
+class DeviceExplorerModel;
 /**
  * @brief The MessageListEditor class
  *
@@ -19,7 +23,7 @@ class MessageListEditor final : public QDialog
 {
     public:
         MessageListEditor(
-                const iscore::MessageList& m,
+                const State::MessageList& m,
                 DeviceExplorerModel* model,
                 QWidget* parent);
 
@@ -35,5 +39,6 @@ class MessageListEditor final : public QDialog
         DeviceExplorerModel* m_model{};
 
         QGridLayout* m_messageListLayout{};
-        iscore::MessageList m_messages;
+        State::MessageList m_messages;
 };
+}

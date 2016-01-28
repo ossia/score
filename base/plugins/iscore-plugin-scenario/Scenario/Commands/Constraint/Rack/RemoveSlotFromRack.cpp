@@ -1,11 +1,20 @@
-#include "RemoveSlotFromRack.hpp"
-
 #include <Scenario/Document/Constraint/Rack/RackModel.hpp>
 #include <Scenario/Document/Constraint/Rack/Slot/SlotModel.hpp>
 
-using namespace iscore;
-using namespace Scenario::Command;
+#include <type_traits>
+#include <utility>
 
+#include "RemoveSlotFromRack.hpp"
+#include <iscore/serialization/DataStreamVisitor.hpp>
+#include <iscore/tools/ModelPath.hpp>
+#include <iscore/tools/ModelPathSerialization.hpp>
+#include <iscore/tools/NotifyingMap.hpp>
+#include <iscore/tools/ObjectIdentifier.hpp>
+
+namespace Scenario
+{
+namespace Command
+{
 RemoveSlotFromRack::RemoveSlotFromRack(Path<SlotModel>&& slotPath)
 {
     auto trimmedSlotPath = std::move(slotPath).splitLast<RackModel>();
@@ -54,4 +63,6 @@ void RemoveSlotFromRack::serializeImpl(DataStreamInput& s) const
 void RemoveSlotFromRack::deserializeImpl(DataStreamOutput& s)
 {
     s >> m_path >> m_slotId >> m_position >> m_serializedSlotData;
+}
+}
 }

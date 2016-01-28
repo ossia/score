@@ -1,6 +1,13 @@
-#include "DeviceExplorerFilterProxyModel.hpp"
+#include <QAbstractItemModel>
+#include <QString>
+#include <QVariant>
 #include <iscore/tools/Todo.hpp>
+#include "DeviceExplorerFilterProxyModel.hpp"
 
+class QObject;
+
+namespace DeviceExplorer
+{
 DeviceExplorerFilterProxyModel::DeviceExplorerFilterProxyModel(QObject* parent)
     : QSortFilterProxyModel(parent),
       m_col(0)
@@ -87,4 +94,5 @@ DeviceExplorerFilterProxyModel::hasAcceptedChildren(int srcRow, const QModelInde
     }
 
     return false;
+}
 }

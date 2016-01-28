@@ -1,6 +1,8 @@
 #pragma once
-#include <QWidget>
 #include <State/Value.hpp>
+#include <QWidget>
+#include <iscore_lib_state_export.h>
+
 /**
  * @brief The ValueWidget class
  *
@@ -12,10 +14,10 @@
  *  - Number : Q{Double}SpinBox
  * etc...
  */
-class ValueWidget : public QWidget
+class ISCORE_LIB_STATE_EXPORT ValueWidget : public QWidget
 {
     public:
         using QWidget::QWidget;
         virtual ~ValueWidget();
-        virtual iscore::Value value() const = 0;
+        virtual State::Value value() const = 0;
 };

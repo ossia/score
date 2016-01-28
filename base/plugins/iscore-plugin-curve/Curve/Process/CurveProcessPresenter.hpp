@@ -3,7 +3,7 @@
 #include <Curve/CurveModel.hpp>
 #include <Curve/CurvePresenter.hpp>
 #include <Curve/CurveView.hpp>
-#include <Curve/StateMachine/CurveStateMachine.hpp>
+#include <Curve/Palette/CurvePalette.hpp>
 
 #include <Process/LayerPresenter.hpp>
 #include <Process/Focus/FocusDispatcher.hpp>
@@ -12,24 +12,24 @@
 #include <iscore/document/DocumentInterface.hpp>
 #include <iscore/widgets/GraphicsItem.hpp>
 
-#include <core/document/Document.hpp>
-#include <core/application/ApplicationComponents.hpp>
 #include <Curve/Segment/CurveSegmentList.hpp>
 #include <QGraphicsSceneMouseEvent>
 #include <QGraphicsScene>
-
+#include <iscore_plugin_curve_export.h>
 
 class CurvePresenter;
 class LayerView;
 class CurveProcessView;
 
-
+namespace Curve
+{
 template<typename LayerModel_T, typename LayerView_T>
-class CurveProcessPresenter : public LayerPresenter
+class ISCORE_PLUGIN_CURVE_EXPORT CurveProcessPresenter :
+        public Process::LayerPresenter
 {
     public:
         CurveProcessPresenter(
-                iscore::DocumentContext& context,
+                const iscore::DocumentContext& context,
                 const Curve::Style& style,
                 const LayerModel_T& lm,
                 LayerView_T* view,
@@ -37,7 +37,7 @@ class CurveProcessPresenter : public LayerPresenter
             LayerPresenter {"CurveProcessPresenter", parent},
             m_layer{lm},
             m_view{static_cast<LayerView_T*>(view)},
-            m_curvepresenter{new CurvePresenter{context, style, m_layer.model().curve(), new CurveView{m_view}, this}},
+            m_curvepresenter{new Presenter{context, style, m_layer.model().curve(), new View{m_view}, this}},
             m_commandDispatcher{context.commandStack},
             m_focusDispatcher{context.document},
             m_context{context, *this, m_focusDispatcher},
@@ -46,10 +46,10 @@ class CurveProcessPresenter : public LayerPresenter
             con(m_layer.model(), &CurveProcessModel::curveChanged,
                 this, &CurveProcessPresenter::parentGeometryChanged);
 
-            connect(m_curvepresenter, &CurvePresenter::contextMenuRequested,
+            connect(m_curvepresenter, &Presenter::contextMenuRequested,
                     this, &LayerPresenter::contextMenuRequested);
 
-            con(m_layer.model(), &Process::execution,
+            con(m_layer.model(), &Process::ProcessModel::execution,
                 this, [&] (bool b) {
                 m_curvepresenter->editionSettings().setTool(
                             b ? Curve::Tool::Playing
@@ -75,12 +75,12 @@ class CurveProcessPresenter : public LayerPresenter
                                                           : Curve::Tool::Disabled);
         }
 
-        void setWidth(int width) override
+        void setWidth(qreal width) override
         {
             m_view->setWidth(width);
         }
 
-        void setHeight(int height) override
+        void setHeight(qreal height) override
         {
             m_view->setHeight(height);
         }
@@ -120,7 +120,7 @@ class CurveProcessPresenter : public LayerPresenter
             return m_layer;
         }
 
-        const Id<Process>& modelId() const override
+        const Id<Process::ProcessModel>& modelId() const override
         {
             return m_layer.model().id();
         }
@@ -137,7 +137,7 @@ class CurveProcessPresenter : public LayerPresenter
         const LayerModel_T& m_layer;
         LayerView_T* m_view{};
 
-        CurvePresenter* m_curvepresenter{};
+        Presenter* m_curvepresenter{};
 
         CommandDispatcher<> m_commandDispatcher;
         FocusDispatcher m_focusDispatcher;
@@ -147,4 +147,5 @@ class CurveProcessPresenter : public LayerPresenter
         LayerContext m_context;
         Curve::ToolPalette m_sm;
 };
+}
 

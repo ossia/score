@@ -1,7 +1,10 @@
 #include "MessageNode.hpp"
-iscore::Address address(const MessageNode& treeNode)
+#include <State/Message.hpp>
+#include <iscore/tools/TreeNode.hpp>
+
+State::Address address(const MessageNode& treeNode)
 {
-    iscore::Address addr;
+    State::Address addr;
     auto n = &treeNode;
     while(n->parent() && n->parent()->parent())
     {
@@ -15,9 +18,9 @@ iscore::Address address(const MessageNode& treeNode)
     return addr;
 }
 
-iscore::Message message(const MessageNode& node)
+State::Message message(const MessageNode& node)
 {
-    iscore::Message mess;
+    State::Message mess;
     mess.address = address(node);
 
     auto val = node.value();
@@ -27,7 +30,7 @@ iscore::Message message(const MessageNode& node)
     return mess;
 }
 
-QStringList toStringList(const iscore::Address& addr)
+QStringList toStringList(const State::Address& addr)
 {
     QStringList l;
     l.append(addr.device);
@@ -35,7 +38,7 @@ QStringList toStringList(const iscore::Address& addr)
 }
 
 // TESTME
-static void flatten_rec(iscore::MessageList& ml, const MessageNode& node)
+static void flatten_rec(State::MessageList& ml, const MessageNode& node)
 {
     if(node.hasValue())
     {
@@ -49,9 +52,9 @@ static void flatten_rec(iscore::MessageList& ml, const MessageNode& node)
 }
 
 
-iscore::MessageList flatten(const MessageNode& n)
+State::MessageList flatten(const MessageNode& n)
 {
-    iscore::MessageList ml;
+    State::MessageList ml;
     flatten_rec(ml, n);
     return ml;
 }

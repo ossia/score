@@ -1,42 +1,51 @@
 #pragma once
-#include <iscore/tools/NamedObject.hpp>
-#include <iscore/tools/SettableIdentifier.hpp>
 #include <Process/ZoomHelper.hpp>
-#include <Process/ProcessList.hpp>
+#include <iscore/tools/NamedObject.hpp>
+#include <QPoint>
+#include <utility>
+#include <vector>
 
+#include <nano_signal_slot.hpp>
+#include <iscore/document/DocumentContext.hpp>
+
+class QObject;
+#include <iscore/tools/SettableIdentifier.hpp>
+#include <iscore_plugin_scenario_export.h>
+
+namespace Process
+{
+class ProcessList;
+class LayerView;
+class LayerModel;
+class LayerPresenter;
+}
+
+namespace Scenario
+{
+class RackView;
 class SlotModel;
 class SlotView;
-namespace iscore
-{
-    class SerializableCommand;
-}
-class LayerPresenter;
-class Process;
-class LayerModel;
-class LayerView;
-class RackView;
-
 struct SlotProcessData
 {
-        using ProcessPair = std::pair<LayerPresenter*, LayerView*>;
+        using ProcessPair = std::pair<Process::LayerPresenter*, Process::LayerView*>;
 
         SlotProcessData() = default;
         SlotProcessData(const SlotProcessData&) = default;
         SlotProcessData(SlotProcessData&&) = default;
         SlotProcessData& operator=(const SlotProcessData&) = default;
         SlotProcessData& operator=(SlotProcessData&&) = default;
-        SlotProcessData(const LayerModel* m, std::vector<ProcessPair>&& procs):
+        SlotProcessData(const Process::LayerModel* m, std::vector<ProcessPair>&& procs):
             model(m),
             processes(std::move(procs))
         {
 
         }
 
-        const LayerModel* model{};
+        const Process::LayerModel* model{};
         std::vector<ProcessPair> processes;
 };
 
-class SlotPresenter final : public NamedObject
+class ISCORE_PLUGIN_SCENARIO_EXPORT SlotPresenter final : public NamedObject, public Nano::Observer
 {
         Q_OBJECT
 
@@ -52,7 +61,7 @@ class SlotPresenter final : public NamedObject
         const SlotModel& model() const;
         int height() const; // Return the height of the view
 
-        void setWidth(double w);
+        void setWidth(qreal w);
         void setVerticalPosition(double h);
 
         // Sets the enabled - disabled graphism for
@@ -77,17 +86,17 @@ class SlotPresenter final : public NamedObject
 
     private:
         // From Model
-        void on_layerModelCreated(const LayerModel&);
-        void on_layerModelDeleted(const LayerModel&);
-        void on_layerModelPutToFront(const LayerModel&);
+        void on_layerModelCreated(const Process::LayerModel&);
+        void on_layerModelRemoved(const Process::LayerModel&);
+        void on_layerModelPutToFront(const Process::LayerModel&);
 
-        void on_layerModelCreated_impl(const LayerModel&);
+        void on_layerModelCreated_impl(const Process::LayerModel&);
 
         void updateProcesses();
         void updateProcessShape(const SlotProcessData&);
         void updateProcessesShape();
 
-        const DynamicProcessList& m_processList;
+        const Process::ProcessList& m_processList;
         const SlotModel& m_model;
         SlotView* m_view{};
         std::vector<SlotProcessData> m_processes;
@@ -100,4 +109,4 @@ class SlotPresenter final : public NamedObject
         bool m_enabled{true};
         bool m_looping{false};
 };
-
+}

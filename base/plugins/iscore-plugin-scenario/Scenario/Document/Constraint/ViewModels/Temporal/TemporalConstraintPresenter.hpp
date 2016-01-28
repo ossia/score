@@ -1,18 +1,16 @@
 #pragma once
 #include <Scenario/Document/Constraint/ViewModels/ConstraintPresenter.hpp>
 
-class TemporalConstraintViewModel;
-class TemporalConstraintView;
+#include <Scenario/Document/Constraint/ViewModels/Temporal/TemporalConstraintView.hpp>
+#include <Scenario/Document/Constraint/ViewModels/Temporal/TemporalConstraintViewModel.hpp>
+#include <iscore_plugin_scenario_export.h>
 class QGraphicsObject;
+class QObject;
 
 
-namespace iscore
+namespace Scenario
 {
-    class SerializableCommand;
-}
-class LayerPresenter;
-
-class TemporalConstraintPresenter final : public ConstraintPresenter
+class ISCORE_PLUGIN_SCENARIO_EXPORT TemporalConstraintPresenter final : public ConstraintPresenter
 {
         Q_OBJECT
 
@@ -30,4 +28,4 @@ class TemporalConstraintPresenter final : public ConstraintPresenter
         void constraintHoverEnter();
         void constraintHoverLeave();
 };
-
+}

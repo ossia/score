@@ -2,19 +2,27 @@
 
 #include <Inspector/InspectorWidgetBase.hpp>
 
-class AutomationState;
-class AutomationStateInspector final : public InspectorWidgetBase
+class QLabel;
+class QWidget;
+namespace iscore {
+class Document;
+}  // namespace iscore
+
+namespace Automation
 {
-        Q_OBJECT
+class ProcessState;
+class StateInspectorWidget final : public Inspector::InspectorWidgetBase
+{
     public:
-        explicit AutomationStateInspector(
-                const AutomationState& object,
-                iscore::Document& doc,
+        explicit StateInspectorWidget(
+                const ProcessState& object,
+                const iscore::DocumentContext& context,
                 QWidget* parent = 0);
 
+    private:
         void on_stateChanged();
 
-    private:
-        const AutomationState& m_state;
+        const ProcessState& m_state;
         QLabel* m_label{};
 };
+}

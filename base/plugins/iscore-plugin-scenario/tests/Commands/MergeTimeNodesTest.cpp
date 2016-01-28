@@ -7,7 +7,7 @@
 #include <Scenario/Document/TimeNode/TimeNodeModel.hpp>
 #include <Scenario/Document/Event/EventData.hpp>
 #include <Scenario/Process/ScenarioModel.hpp>
-#include "iscore/document/DocumentInterface.hpp"
+#include <iscore/document/DocumentInterface.hpp>
 
 using namespace iscore;
 using namespace Scenario::Command;
@@ -19,7 +19,7 @@ class MergeTimeNodesTest: public QObject
         void mergeTest()
         {
             // A scenario, 2 events at same date
-            ScenarioModel* scenar = new ScenarioModel(std::chrono::seconds(15), Id<ProcessModel> {0}, qApp);
+            Scenario::ScenarioModel* scenar = new ScenarioModel(std::chrono::seconds(15), Id<ProcessModel> {0}, qApp);
 
             EventData data {};
             data.dDate.setMSecs(10);

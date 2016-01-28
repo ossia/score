@@ -1,9 +1,20 @@
-#include "SetSegmentParameters.hpp"
-#include "Curve/CurveModel.hpp"
-#include "Curve/Segment/CurveSegmentModel.hpp"
 
+#include <QDataStream>
+#include <QtGlobal>
+#include <algorithm>
+
+#include <Curve/CurveModel.hpp>
+#include <Curve/Segment/CurveSegmentModel.hpp>
+#include "SetSegmentParameters.hpp"
+#include <iscore/serialization/DataStreamVisitor.hpp>
+#include <iscore/tools/IdentifiedObjectMap.hpp>
+#include <iscore/tools/ModelPath.hpp>
+#include <iscore/tools/ModelPathSerialization.hpp>
+
+namespace Curve
+{
 SetSegmentParameters::SetSegmentParameters(
-        Path<CurveModel>&& model,
+        Path<Model>&& model,
         SegmentParameterMap&& parameters):
     m_model{std::move(model)},
     m_new{std::move(parameters)}
@@ -46,7 +57,7 @@ void SetSegmentParameters::redo() const
     curve.changed();
 }
 
-void SetSegmentParameters::update(Path<CurveModel>&& model, SegmentParameterMap &&segments)
+void SetSegmentParameters::update(Path<Model>&& model, SegmentParameterMap &&segments)
 {
     m_new = std::move(segments);
 }
@@ -59,4 +70,5 @@ void SetSegmentParameters::serializeImpl(DataStreamInput& s) const
 void SetSegmentParameters::deserializeImpl(DataStreamOutput& s)
 {
     s >> m_model >> m_old >> m_new;
+}
 }

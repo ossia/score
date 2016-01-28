@@ -1,9 +1,26 @@
-#include "MappingModel.hpp"
-#include "MappingLayerModel.hpp"
 #include <iscore/serialization/VisitorCommon.hpp>
+#include <QJsonObject>
+#include <QJsonValue>
+#include <algorithm>
+
+#include <Curve/CurveModel.hpp>
+#include "MappingLayerModel.hpp"
+#include "MappingModel.hpp"
+#include <State/Address.hpp>
+#include <iscore/plugins/documentdelegate/plugin/ElementPluginModelList.hpp>
+#include <iscore/serialization/DataStreamVisitor.hpp>
+#include <iscore/serialization/JSONValueVisitor.hpp>
+#include <iscore/serialization/JSONVisitor.hpp>
+
+namespace Process { class LayerModel; }
+class QObject;
+struct VisitorVariant;
+template <typename T> class Reader;
+template <typename T> class Writer;
 
 template<>
-void Visitor<Reader<DataStream>>::readFrom(const MappingModel& autom)
+void Visitor<Reader<DataStream>>::readFrom_impl(
+        const Mapping::ProcessModel& autom)
 {
     readFrom(*autom.pluginModelList); // TODO it is unbearable to save / load these every time
 
@@ -21,13 +38,14 @@ void Visitor<Reader<DataStream>>::readFrom(const MappingModel& autom)
 }
 
 template<>
-void Visitor<Writer<DataStream>>::writeTo(MappingModel& autom)
+void Visitor<Writer<DataStream>>::writeTo(
+        Mapping::ProcessModel& autom)
 {
     autom.pluginModelList = new iscore::ElementPluginModelList{*this, &autom};
 
-    autom.setCurve(new CurveModel{*this, &autom});
+    autom.setCurve(new Curve::Model{*this, &autom});
     { // Source
-        iscore::Address address;
+        State::Address address;
         double min, max;
 
         m_stream >> address >> min >> max;
@@ -37,7 +55,7 @@ void Visitor<Writer<DataStream>>::writeTo(MappingModel& autom)
         autom.setSourceMax(max);
     }
     { // Target
-        iscore::Address address;
+        State::Address address;
         double min, max;
 
         m_stream >> address >> min >> max;
@@ -53,7 +71,8 @@ void Visitor<Writer<DataStream>>::writeTo(MappingModel& autom)
 
 
 template<>
-void Visitor<Reader<JSONObject>>::readFrom(const MappingModel& autom)
+void Visitor<Reader<JSONObject>>::readFrom_impl(
+        const Mapping::ProcessModel& autom)
 {
     m_obj["PluginsMetadata"] = toJsonValue(*autom.pluginModelList);
 
@@ -69,19 +88,19 @@ void Visitor<Reader<JSONObject>>::readFrom(const MappingModel& autom)
 }
 
 template<>
-void Visitor<Writer<JSONObject>>::writeTo(MappingModel& autom)
+void Visitor<Writer<JSONObject>>::writeTo(Mapping::ProcessModel& autom)
 {
     Deserializer<JSONValue> elementPluginDeserializer(m_obj["PluginsMetadata"]);
     autom.pluginModelList = new iscore::ElementPluginModelList{elementPluginDeserializer, &autom};
 
     Deserializer<JSONObject> curve_deser{m_obj["Curve"].toObject()};
-    autom.setCurve(new CurveModel{curve_deser, &autom});
+    autom.setCurve(new Curve::Model{curve_deser, &autom});
 
-    autom.setSourceAddress(fromJsonObject<iscore::Address>(m_obj["SourceAddress"].toObject()));
+    autom.setSourceAddress(fromJsonObject<State::Address>(m_obj["SourceAddress"].toObject()));
     autom.setSourceMin(m_obj["SourceMin"].toDouble());
     autom.setSourceMax(m_obj["SourceMax"].toDouble());
 
-    autom.setTargetAddress(fromJsonObject<iscore::Address>(m_obj["TargetAddress"].toObject()));
+    autom.setTargetAddress(fromJsonObject<State::Address>(m_obj["TargetAddress"].toObject()));
     autom.setTargetMin(m_obj["TargetMin"].toDouble());
     autom.setTargetMax(m_obj["TargetMax"].toDouble());
 }
@@ -89,18 +108,18 @@ void Visitor<Writer<JSONObject>>::writeTo(MappingModel& autom)
 
 
 
-void MappingModel::serialize(const VisitorVariant& vis) const
+void Mapping::ProcessModel::serialize_impl(const VisitorVariant& vis) const
 {
     serialize_dyn(vis, *this);
 }
 
-LayerModel* MappingModel::loadLayer_impl(
+Process::LayerModel* Mapping::ProcessModel::loadLayer_impl(
         const VisitorVariant& vis,
         QObject* parent)
 {
     return deserialize_dyn(vis, [&] (auto&& deserializer)
     {
-        auto autom = new MappingLayerModel{
+        auto autom = new LayerModel{
                         deserializer, *this, parent};
 
         return autom;

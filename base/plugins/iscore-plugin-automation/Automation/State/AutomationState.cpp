@@ -1,12 +1,26 @@
-#include "AutomationState.hpp"
-#include "Automation/AutomationModel.hpp"
-#include "Curve/CurveModel.hpp"
-#include "Curve/Segment/CurveSegmentModel.hpp"
+#include <boost/iterator/indirect_iterator.hpp>
+#include <boost/iterator/iterator_facade.hpp>
+#include <boost/multi_index/detail/hash_index_iterator.hpp>
+#include <algorithm>
 
-#include "Curve/Segment/Linear/LinearCurveSegmentModel.hpp"
-#include "Curve/Segment/Power/PowerCurveSegmentModel.hpp"
-AutomationState::AutomationState(
-        AutomationModel& model,
+#include <Automation/AutomationModel.hpp>
+#include "AutomationState.hpp"
+#include <Curve/CurveModel.hpp>
+#include <Curve/Palette/CurvePoint.hpp>
+#include <Curve/Segment/CurveSegmentModel.hpp>
+#include <Process/State/ProcessStateDataInterface.hpp>
+#include <State/Address.hpp>
+#include <State/Message.hpp>
+#include <State/Value.hpp>
+#include <State/ValueConversion.hpp>
+#include <iscore/tools/IdentifiedObjectMap.hpp>
+#include <iscore/tools/Todo.hpp>
+
+class QObject;
+namespace Automation
+{
+ProcessState::ProcessState(
+        ProcessModel& model,
         double watchedPoint,
         QObject* parent):
     ProcessStateDataInterface{model, parent},
@@ -14,22 +28,22 @@ AutomationState::AutomationState(
 {
     ISCORE_ASSERT(0 <= watchedPoint && watchedPoint <= 1);
 
-    con(this->process(), &AutomationModel::curveChanged,
+    con(this->process(), &ProcessModel::curveChanged,
             this, &ProcessStateDataInterface::stateChanged);
 
-    con(this->process(), &AutomationModel::addressChanged,
+    con(this->process(), &ProcessModel::addressChanged,
             this, &ProcessStateDataInterface::stateChanged);
 }
 
-QString AutomationState::stateName() const
+QString ProcessState::stateName() const
 { return "AutomationState"; }
 
 // TESTME
-iscore::Message AutomationState::message() const
+::State::Message ProcessState::message() const
 {
-    iscore::Message m;
+    ::State::Message m;
     m.address = process().address();
-    for(const CurveSegmentModel& seg : process().curve().segments())
+    for(const auto& seg : process().curve().segments())
     {
         // OPTIMIZEME introduce another index on that has an ordering on curve segments
         // to make this fast (just checking for the first and the last).
@@ -43,20 +57,20 @@ iscore::Message AutomationState::message() const
     return {};
 }
 
-double AutomationState::point() const
+double ProcessState::point() const
 { return m_point; }
 
-AutomationState *AutomationState::clone(QObject* parent) const
+ProcessState *ProcessState::clone(QObject* parent) const
 {
-    return new AutomationState{process(), m_point, parent};
+    return new ProcessState{process(), m_point, parent};
 }
 
-AutomationModel& AutomationState::process() const
+ProcessModel& ProcessState::process() const
 {
-    return static_cast<AutomationModel&>(ProcessStateDataInterface::process());
+    return static_cast<ProcessModel&>(ProcessStateDataInterface::process());
 }
 
-std::vector<iscore::Address> AutomationState::matchingAddresses()
+std::vector<State::Address> ProcessState::matchingAddresses()
 {
     // TODO have a better check of "address validity"
     if(!process().address().device.isEmpty())
@@ -64,7 +78,7 @@ std::vector<iscore::Address> AutomationState::matchingAddresses()
     return {};
 }
 
-iscore::MessageList AutomationState::messages() const
+::State::MessageList ProcessState::messages() const
 {
     if(!process().address().device.isEmpty())
     {
@@ -77,7 +91,9 @@ iscore::MessageList AutomationState::messages() const
 }
 
 // TESTME
-iscore::MessageList AutomationState::setMessages(const iscore::MessageList& received, const MessageNode&)
+::State::MessageList ProcessState::setMessages(
+        const ::State::MessageList& received,
+        const MessageNode&)
 {
     if(m_point != 0 && m_point != 1)
         return messages();
@@ -89,7 +105,7 @@ iscore::MessageList AutomationState::setMessages(const iscore::MessageList& rece
         {
             // Scale min, max, and the value
             // TODO convert to the real type of the curve.
-            auto val = iscore::convert::value<float>(mess.value);
+            auto val = State::convert::value<float>(mess.value);
             if(val < process().min())
                 process().setMin(val);
             if(val > process().max())
@@ -104,7 +120,7 @@ iscore::MessageList AutomationState::setMessages(const iscore::MessageList& rece
                 auto seg_it = std::find_if(
                             segs.begin(),
                             segs.end(),
-                            [] (CurveSegmentModel& segt) {
+                            [] (Curve::SegmentModel& segt) {
                         return segt.start().x() == 0;
                 });
                 if(seg_it != segs.end())
@@ -121,7 +137,7 @@ iscore::MessageList AutomationState::setMessages(const iscore::MessageList& rece
                 auto seg_it = std::find_if(
                             segs.begin(),
                             segs.end(),
-                            [] (CurveSegmentModel& segt) {
+                            [] (Curve::SegmentModel& segt) {
                         return segt.end().x() == 1;
                 });
                 if(seg_it != segs.end())
@@ -134,4 +150,5 @@ iscore::MessageList AutomationState::setMessages(const iscore::MessageList& rece
         }
     }
     return messages();
+}
 }

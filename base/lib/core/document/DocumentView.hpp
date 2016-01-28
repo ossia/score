@@ -1,12 +1,13 @@
 #pragma once
+
 #include <QWidget>
 
 namespace iscore
 {
-    class DocumentDelegateViewInterface;
-    class DocumentDelegateFactoryInterface;
-    class PanelView;
     class Document;
+    class DocumentDelegateFactory;
+    class DocumentDelegateViewInterface;
+    class PanelView;
 
     /**
      * @brief The DocumentView class shows a document.
@@ -17,20 +18,20 @@ namespace iscore
     class DocumentView final : public QWidget
     {
         public:
-            DocumentView(DocumentDelegateFactoryInterface* viewDelegate,
-                         Document* doc,
+            DocumentView(DocumentDelegateFactory* viewDelegate,
+                         const Document& doc,
                          QWidget* parent);
 
-            DocumentDelegateViewInterface* viewDelegate() const
-            { return m_view; }
+            DocumentDelegateViewInterface& viewDelegate() const
+            { return *m_view; }
 
             void addPanel(PanelView*);
 
-            Document* document() const
+            const Document& document() const
             {return m_document;}
 
         private:
-            Document* m_document{};
+            const Document& m_document;
             DocumentDelegateViewInterface* m_view {};
     };
 }

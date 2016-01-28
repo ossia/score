@@ -1,20 +1,32 @@
 #pragma once
-#include <iscore/command/SerializableCommand.hpp>
 #include <Scenario/Commands/ScenarioCommandFactory.hpp>
-#include <Scenario/Process/Temporal/StateMachines/ScenarioPoint.hpp>
-
 #include <Scenario/Document/Constraint/ViewModels/ConstraintViewModelIdMap.hpp>
-class TemporalScenarioLayerModel;
-class ConstraintModel;
+#include <boost/optional/optional.hpp>
+#include <iscore/command/SerializableCommand.hpp>
+#include <QJsonObject>
+#include <QMap>
+#include <QVector>
+
+#include <iscore/tools/ModelPath.hpp>
+#include <iscore/tools/SettableIdentifier.hpp>
+
+class DataStreamInput;
+class DataStreamOutput;
+
+namespace Scenario
+{
+struct Point;
 class EventModel;
-class TimeNodeModel;
 class StateModel;
+class TemporalScenarioLayerModel;
+class TimeNodeModel;
+class ConstraintModel;
+namespace Command
+{
 
 class ScenarioPasteElements final : public iscore::SerializableCommand
 {
-        ISCORE_COMMAND_DECL(ScenarioCommandFactoryName(),
-                                         ScenarioPasteElements,
-                                         "ScenarioPasteElements")
+        ISCORE_COMMAND_DECL(ScenarioCommandFactoryName(), ScenarioPasteElements, "Paste elements in scenario")
     public:
         ScenarioPasteElements(
                 Path<TemporalScenarioLayerModel>&& path,
@@ -45,3 +57,5 @@ class ScenarioPasteElements final : public iscore::SerializableCommand
         // TODO std::map...
         QMap<Id<ConstraintModel>, ConstraintViewModelIdMap> m_constraintViewModels;
 };
+}
+}

@@ -1,24 +1,31 @@
 #pragma once
-#include <QWidget>
-#include <Process/ProcessFactory.hpp>
-#include <Process/ProcessList.hpp>
 
+#include <QWidget>
+
+#include <Process/ProcessFactoryKey.hpp>
+
+namespace Process
+{
+class ProcessList;
+}
+namespace Scenario
+{
 class AddProcessDialog final : public QWidget
 {
         Q_OBJECT
 
     public:
         AddProcessDialog(
-                const DynamicProcessList& plist,
+                const Process::ProcessList& plist,
                 QWidget* parent = 0);
 
-    public slots:
         void launchWindow();
 
     signals:
         void okPressed(const ProcessFactoryKey&);
 
     private:
-        const DynamicProcessList& m_factoryList;
+        const Process::ProcessList& m_factoryList;
 
 };
+}

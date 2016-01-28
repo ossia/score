@@ -1,14 +1,15 @@
 #pragma once
-#include <iscore/tools/SettableIdentifier.hpp>
-class QVariant;
 class QByteArray;
+class QVariant;
+#include <iscore/tools/SettableIdentifier.hpp>
+#include <iscore_lib_base_export.h>
 namespace iscore
 {
-class Presenter;
 class Document;
-class DocumentDelegateFactoryInterface;
 class DocumentBackupManager;
+class DocumentDelegateFactory;
 class DocumentModel;
+struct ApplicationContext;
 
 /**
  * @brief The DocumentBuilder class
@@ -19,21 +20,26 @@ class DocumentModel;
  * - Restoring a document after a crash.
  *
  */
-class DocumentBuilder
+class ISCORE_LIB_BASE_EXPORT DocumentBuilder
 {
     public:
-        explicit DocumentBuilder(Presenter& pres);
+        explicit DocumentBuilder(
+            QObject* parentPresenter,
+            QWidget* parentView);
 
         Document* newDocument(
+                const iscore::ApplicationContext& ctx,
                 const Id<DocumentModel>& id,
-                iscore::DocumentDelegateFactoryInterface* doctype);
+                iscore::DocumentDelegateFactory* doctype);
         Document* loadDocument(
+                const iscore::ApplicationContext& ctx,
                 const QVariant &data,
-                iscore::DocumentDelegateFactoryInterface* doctype);
+                iscore::DocumentDelegateFactory* doctype);
         Document* restoreDocument(
+                const iscore::ApplicationContext& ctx,
                 const QByteArray &docData,
                 const QByteArray &cmdData,
-                iscore::DocumentDelegateFactoryInterface* doctype);
+                iscore::DocumentDelegateFactory* doctype);
 
     private:
         void setBackupManager(Document* doc);
@@ -42,12 +48,15 @@ class DocumentBuilder
                 typename BackupFun // the model data to save
         >
         Document* loadDocument_impl(
+                const iscore::ApplicationContext& ctx,
                 const QVariant &data,
-                iscore::DocumentDelegateFactoryInterface* doctype,
+                iscore::DocumentDelegateFactory* doctype,
                 InitFun&& initfun,
                 BackupFun&& backupfun);
 
-        Presenter& m_presenter;
+        QObject* m_parentPresenter{};
+        QWidget* m_parentView{};
+
         DocumentBackupManager* m_backupManager{};
 };
 

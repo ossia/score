@@ -11,6 +11,7 @@
 #include <Scenario/Commands/Scenario/Deletions/ClearConstraint.hpp>
 #include <Scenario/Document/Constraint/Rack/RackModel.hpp>
 #include <Scenario/Document/Constraint/Rack/Slot/SlotModel.hpp>
+#include <Scenario/Process/Algorithms/ProcessPolicy.hpp>
 
 #include <Scenario/Document/Constraint/ViewModels/ConstraintViewModel.hpp>
 #include <Scenario/Process/Algorithms/StandardCreationPolicy.hpp>
@@ -19,9 +20,8 @@
 
 #include <Scenario/Tools/dataStructures.hpp>
 
-using namespace iscore;
-using namespace Scenario::Command;
-
+namespace Scenario
+{
 /**
  * @brief The displacementPolicy class
  * This class allows to implement multiple displacement behaviors.
@@ -34,7 +34,7 @@ class CommonDisplacementPolicy
         static
         void
         updatePositions(
-                ScenarioModel& scenario,
+                Scenario::ScenarioModel& scenario,
                 ProcessScaleMethod&& scaleMethod,
                 const ElementsProperties& elementsPropertiesToUpdate)
         {
@@ -98,7 +98,7 @@ class CommonDisplacementPolicy
         static
         void
         revertPositions(
-                ScenarioModel& scenario,
+                Scenario::ScenarioModel& scenario,
                 ProcessScaleMethod&& scaleMethod,
                 const ElementsProperties& elementsPropertiesToUpdate)
         {
@@ -152,7 +152,7 @@ class CommonDisplacementPolicy
 
                 // 1. Clear the constraint
                 // TODO Don't use a command since it serializes a ton of unused stuff.
-                ClearConstraint clear_cmd{Path<ConstraintModel>{savedConstraintData.first.first}};
+                Command::ClearConstraint clear_cmd{Path<ConstraintModel>{savedConstraintData.first.first}};
                 clear_cmd.redo();
 
                 auto& constraint = savedConstraintData.first.first.find();
@@ -165,7 +165,7 @@ class CommonDisplacementPolicy
                         Deserializer<DataStream>{savedConstraintData.first.second},
                         &constraint}; // Temporary parent
 
-                    std::map<const Process*, Process*> processPairs;
+                    std::map<const Process::ProcessModel*, Process::ProcessModel*> processPairs;
 
                     // Clone the processes
                     for(const auto& sourceproc : src_constraint.processes)
@@ -173,7 +173,7 @@ class CommonDisplacementPolicy
                         auto newproc = sourceproc.clone(sourceproc.id(), &constraint);
 
                         processPairs.insert(std::make_pair(&sourceproc, newproc));
-                        constraint.processes.add(newproc);
+                        AddProcess(constraint, newproc);
                     }
 
                     // Clone the rackes
@@ -192,7 +192,7 @@ class CommonDisplacementPolicy
                             for(const auto& lm : source.layers)
                             {
                                 // We can safely reuse the same id since it's in a different slot.
-                                Process* proc = processPairs[&lm.processModel()];
+                                Process::ProcessModel* proc = processPairs[&lm.processModel()];
                                 // TODO harmonize the order of parameters (source first, then new id)
                                 target.layers.add(proc->cloneLayer(lm.id(), lm, &target));
                             }
@@ -216,3 +216,5 @@ class CommonDisplacementPolicy
             }
         }
 };
+
+}

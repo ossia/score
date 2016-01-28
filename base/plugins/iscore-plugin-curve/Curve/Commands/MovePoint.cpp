@@ -1,9 +1,20 @@
+
+#include <QPoint>
+#include <algorithm>
+
+#include <Curve/CurveModel.hpp>
+#include <Curve/Point/CurvePointModel.hpp>
+#include <Curve/Segment/CurveSegmentModel.hpp>
 #include "MovePoint.hpp"
-#include "Curve/Segment/CurveSegmentModel.hpp"
+#include <iscore/serialization/DataStreamVisitor.hpp>
+#include <iscore/tools/IdentifiedObjectMap.hpp>
+#include <iscore/tools/ModelPath.hpp>
+#include <iscore/tools/ModelPathSerialization.hpp>
 
-
-MovePoint::MovePoint(Path<CurveModel>&& model,
-                     const Id<CurvePointModel>& pointId,
+namespace Curve
+{
+MovePoint::MovePoint(Path<Model>&& model,
+                     const Id<PointModel>& pointId,
                      Curve::Point newPoint):
     m_model{std::move(model)},
     m_pointId{pointId},
@@ -53,8 +64,8 @@ void MovePoint::redo() const
 }
 
 void MovePoint::update(
-        Path<CurveModel>&& model,
-        const Id<CurvePointModel>& pointId,
+        Path<Model>&& model,
+        const Id<PointModel>& pointId,
         const Curve::Point& newPoint)
 {
     m_newPoint = newPoint;
@@ -68,4 +79,5 @@ void MovePoint::serializeImpl(DataStreamInput& s) const
 void MovePoint::deserializeImpl(DataStreamOutput& s)
 {
     s >> m_model >> m_pointId >> m_newPoint >> m_oldPoint;
+}
 }

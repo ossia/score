@@ -1,18 +1,38 @@
-#include "ScenarioFactory.hpp"
-
 #include <Scenario/Process/ScenarioModel.hpp>
-#include <Scenario/Process/Temporal/TemporalScenarioView.hpp>
 #include <Scenario/Process/Temporal/TemporalScenarioLayerModel.hpp>
 #include <Scenario/Process/Temporal/TemporalScenarioPresenter.hpp>
+#include <Scenario/Process/Temporal/TemporalScenarioView.hpp>
 
+#include <boost/optional/optional.hpp>
+#include <QDataStream>
+#include <QIODevice>
+#include <QMap>
+
+#include <Process/LayerModel.hpp>
+#include <Process/Process.hpp>
+#include <Scenario/Process/ScenarioProcessMetadata.hpp>
+#include "ScenarioFactory.hpp"
+#include <iscore/document/DocumentInterface.hpp>
+#include <iscore/serialization/DataStreamVisitor.hpp>
+#include <iscore/tools/SettableIdentifier.hpp>
+
+namespace Process { class LayerPresenter; }
+class LayerView;
+class QGraphicsItem;
+class QObject;
+
+namespace Scenario
+{
+class ConstraintModel;
+class ConstraintViewModel;
 ScenarioFactory::ScenarioFactory(Scenario::EditionSettings& e):
     m_editionSettings{e}
 {
 
 }
 
-LayerView* ScenarioFactory::makeLayerView(
-        const LayerModel& viewmodel,
+Process::LayerView* ScenarioFactory::makeLayerView(
+        const Process::LayerModel& viewmodel,
         QGraphicsItem* parent)
 {
     if(dynamic_cast<const TemporalScenarioLayerModel*>(&viewmodel))
@@ -21,10 +41,10 @@ LayerView* ScenarioFactory::makeLayerView(
     return nullptr;
 }
 
-LayerPresenter*
+Process::LayerPresenter*
 ScenarioFactory::makeLayerPresenter(
-        const LayerModel& lm,
-        LayerView* view,
+        const Process::LayerModel& lm,
+        Process::LayerView* view,
         QObject* parent)
 {
     if(auto vm = dynamic_cast<const TemporalScenarioLayerModel*>(&lm))
@@ -41,22 +61,22 @@ ScenarioFactory::makeLayerPresenter(
     return nullptr;
 }
 
-const ProcessFactoryKey& ScenarioFactory::key_impl() const
+const ProcessFactoryKey& ScenarioFactory::concreteFactoryKey() const
 {
-    return ScenarioProcessMetadata::factoryKey();
+    return Metadata<ConcreteFactoryKey_k, Scenario::ProcessModel>::get();
 }
 
 QString ScenarioFactory::prettyName() const
 {
-    return ScenarioProcessMetadata::factoryPrettyName();
+    return Metadata<PrettyName_k, Scenario::ProcessModel>::get();
 }
 
-Process* ScenarioFactory::makeModel(
+Process::ProcessModel* ScenarioFactory::makeModel(
         const TimeValue& duration,
-        const Id<Process>& id,
+        const Id<Process::ProcessModel>& id,
         QObject* parent)
 {
-    return new ScenarioModel {duration, id, parent};
+    return new Scenario::ScenarioModel {duration, id, parent};
 }
 
 QByteArray ScenarioFactory::makeStaticLayerConstructionData() const
@@ -70,4 +90,5 @@ QByteArray ScenarioFactory::makeStaticLayerConstructionData() const
     s << map;
 
     return arr;
+}
 }

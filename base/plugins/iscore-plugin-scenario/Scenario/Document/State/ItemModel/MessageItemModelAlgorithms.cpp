@@ -1,8 +1,45 @@
-#include "MessageItemModelAlgorithms.hpp"
-#include <Process/State/MessageNode.hpp>
 #include <Device/Node/DeviceNode.hpp>
+#include <Process/State/MessageNode.hpp>
+#include <boost/optional/optional.hpp>
+#include <QtGlobal>
+#include <QList>
+#include <QString>
+#include <QStringList>
+#include <QTypeInfo>
+#include <QVector>
+#include <algorithm>
+#include <vector>
+#include <set>
 
-bool match(MessageNode& node, const iscore::Message& mess)
+#include "MessageItemModelAlgorithms.hpp"
+#include <State/Address.hpp>
+#include <State/Message.hpp>
+#include <State/Value.hpp>
+#include <iscore/tools/SettableIdentifier.hpp>
+#include <iscore/tools/Todo.hpp>
+#include <iscore/tools/TreeNode.hpp>
+#include <iscore/tools/std/Algorithms.hpp>
+
+bool removable(const MessageNode& node)
+{ return node.values.empty() && !node.hasChildren(); }
+
+void cleanupNode(MessageNode& rootNode)
+{
+    for(auto it = rootNode.begin(); it != rootNode.end(); )
+    {
+        auto& child = *it;
+        if(removable(child))
+        {
+            it = rootNode.erase(it);
+        }
+        else
+        {
+            it++;
+        }
+    }
+}
+
+bool match(MessageNode& node, const State::Message& mess)
 {
     MessageNode* n = &node;
 
@@ -30,8 +67,8 @@ bool match(MessageNode& node, const iscore::Message& mess)
 
 void updateNode(
         QVector<ProcessStateData>& vec,
-        const iscore::Value& val,
-        const Id<Process>& proc)
+        const State::Value& val,
+        const Id<Process::ProcessModel>& proc)
 {
     for(ProcessStateData& data : vec)
     {
@@ -56,7 +93,7 @@ void rec_delete(MessageNode& node)
             auto it = std::find_if(parent->begin(), parent->end(), [&] (const auto& other) { return &node == &other; });
             if(it != parent->end())
             {
-                parent->removeChild(it);
+                parent->erase(it);
                 rec_delete(*parent);
             }
         }
@@ -67,7 +104,7 @@ void rec_delete(MessageNode& node)
 // Returns true if this node is to be deleted.
 bool nodePruneAction_impl(
         MessageNode& node,
-        const Id<Process>& proc,
+        const Id<Process::ProcessModel>& proc,
         QVector<ProcessStateData>& vec,
         const QVector<ProcessStateData>& other_vec)
 {
@@ -108,19 +145,19 @@ bool nodePruneAction_impl(
 
 void nodePruneAction(
         MessageNode& node,
-        const Id<Process>& proc,
+        const Id<Process::ProcessModel>& proc,
         ProcessPosition pos
         )
 {
     // If there is no corresponding message in our list,
     // but there is a corresponding process in the tree,
     // we prune it
-    bool deleteMe = false;
+    bool deleteMe = node.childCount() == 0;
     switch(pos)
     {
         case ProcessPosition::Previous:
         {
-            deleteMe = nodePruneAction_impl(
+            deleteMe &= nodePruneAction_impl(
                         node, proc,
                         node.values.previousProcessValues,
                         node.values.followingProcessValues);
@@ -128,7 +165,7 @@ void nodePruneAction(
         }
         case ProcessPosition::Following:
         {
-            deleteMe = nodePruneAction_impl(
+            deleteMe &= nodePruneAction_impl(
                         node, proc,
                         node.values.followingProcessValues,
                         node.values.previousProcessValues);
@@ -141,24 +178,14 @@ void nodePruneAction(
 
     if(deleteMe)
     {
-        if(node.childCount() > 0)
-        {
-            // We just clear the data
-            node.values = StateNodeValues{};
-        }
-        else
-        {
-            // We can delete this node and recursively
-            // try to delete its empty parents
-            rec_delete(node);
-        }
+        node.values = StateNodeValues{};
     }
 }
 
 void nodeInsertAction(
         MessageNode& node,
-        iscore::MessageList& msg,
-        const Id<Process>& proc,
+        State::MessageList& msg,
+        const Id<Process::ProcessModel>& proc,
         ProcessPosition pos
         )
 {
@@ -197,8 +224,8 @@ void nodeInsertAction(
 
 void rec_updateTree(
         MessageNode& node,
-        iscore::MessageList& lst,
-        const Id<Process>& proc,
+        State::MessageList& lst,
+        const Id<Process::ProcessModel>& proc,
         ProcessPosition pos)
 {
     // If the message is in the tree, we add the process value.
@@ -213,6 +240,8 @@ void rec_updateTree(
     {
         rec_updateTree(child, lst, proc, pos);
     }
+
+    cleanupNode(node);
 }
 
 // TODO another one to refactor with merges
@@ -220,7 +249,7 @@ void rec_updateTree(
 template<typename MergeFun>
 void merge_impl(
         MessageNode& base,
-        const iscore::Address& addr,
+        const State::Address& addr,
         MergeFun merge)
 {
     QStringList path = toStringList(addr);
@@ -281,7 +310,7 @@ void merge_impl(
 
 void updateTreeWithMessageList(
         MessageNode& rootNode,
-        iscore::MessageList lst)
+        State::MessageList lst)
 {
     for(const auto& mess : lst)
     {
@@ -298,8 +327,8 @@ void updateTreeWithMessageList(
 
 void updateTreeWithMessageList(
         MessageNode& rootNode,
-        iscore::MessageList lst,
-        const Id<Process>& proc,
+        State::MessageList lst,
+        const Id<Process::ProcessModel>& proc,
         ProcessPosition pos)
 {
     // We go through the tree.
@@ -342,7 +371,7 @@ void updateTreeWithMessageList(
 
 void rec_pruneTree(
         MessageNode& node,
-        const Id<Process>& proc,
+        const Id<Process::ProcessModel>& proc,
         ProcessPosition pos)
 {
     // If the message is in the tree, we add the process value.
@@ -352,17 +381,22 @@ void rec_pruneTree(
     {
         rec_pruneTree(child, proc, pos);
     }
+
+    cleanupNode(node);
 }
+
 
 void updateTreeWithRemovedProcess(
         MessageNode& rootNode,
-        const Id<Process>& proc,
+        const Id<Process::ProcessModel>& proc,
         ProcessPosition pos)
 {
     for(auto& child : rootNode)
     {
         rec_pruneTree(child, proc, pos);
     }
+
+    cleanupNode(rootNode);
 }
 
 
@@ -377,17 +411,17 @@ void nodePruneAction(
     // If there is no corresponding message in our list,
     // but there is a corresponding process in the tree,
     // we prune it
-    bool deleteMe = false;
+    bool deleteMe = node.childCount() == 0;
     switch(pos)
     {
         case ProcessPosition::Previous:
         {
-            deleteMe = !node.values.userValue && node.values.followingProcessValues.isEmpty();
+            deleteMe &= !node.values.userValue && node.values.followingProcessValues.isEmpty();
             break;
         }
         case ProcessPosition::Following:
         {
-            deleteMe = !node.values.userValue && node.values.previousProcessValues.isEmpty();
+            deleteMe &= !node.values.userValue && node.values.previousProcessValues.isEmpty();
             break;
         }
         default:
@@ -397,17 +431,7 @@ void nodePruneAction(
 
     if(deleteMe)
     {
-        if(node.childCount() > 0)
-        {
-            // We just clear the data
-            node.values = StateNodeValues{};
-        }
-        else
-        {
-            // We can delete this node and recursively
-            // try to delete its empty parents
-            rec_delete(node);
-        }
+        node.values = StateNodeValues{};
     }
 }
 
@@ -421,6 +445,8 @@ void rec_pruneTree(
     {
         rec_pruneTree(child, pos);
     }
+
+    cleanupNode(node);
 }
 
 void updateTreeWithRemovedConstraint(MessageNode& rootNode, ProcessPosition pos)
@@ -431,17 +457,14 @@ void updateTreeWithRemovedConstraint(MessageNode& rootNode, ProcessPosition pos)
     }
 }
 
-void updateTreeWithRemovedUserMessage(MessageNode& rootNode, const iscore::Message& mess)
+void updateTreeWithRemovedUserMessage(MessageNode& rootNode, const State::Address& addr)
 {
     // Find the message node
-    QStringList s;
-    s += mess.address.device;
-    s = s + mess.address.path;
-    MessageNode* node = iscore::try_getNodeFromString(rootNode, std::move(s));
+    MessageNode* node = Device::try_getNodeFromString(rootNode, stringList(addr));
 
     if(node)
     {
-        node->values.userValue = iscore::OptionalValue{};
+        node->values.userValue = State::OptionalValue{};
 
         // If it is empty, delete it.
         if(node->values.previousProcessValues.isEmpty()
@@ -449,6 +472,74 @@ void updateTreeWithRemovedUserMessage(MessageNode& rootNode, const iscore::Messa
         && node->childCount() == 0)
         {
             rec_delete(*node);
+        }
+    }
+}
+
+
+
+void rec_removeUserValue(
+        MessageNode& node)
+{
+    // Recursively set the user value to nil.
+    node.values.userValue = State::OptionalValue{};
+
+    for(auto& child : node)
+    {
+        rec_removeUserValue(child);
+    }
+}
+
+bool rec_cleanup(
+        MessageNode& node)
+{
+    std::set<const MessageNode*> toRemove;
+    for(auto& child : node)
+    {
+        bool canEraseChild = rec_cleanup(child);
+        if(canEraseChild)
+        {
+            toRemove.insert(&child);
+        }
+    }
+
+    auto remove_it = remove_if(node,
+                               [&] (const auto& child) {
+        return toRemove.find(&child) != toRemove.end();
+    });
+    node.erase(remove_it, node.end());
+
+    if(node.values.previousProcessValues.isEmpty()
+    && node.values.followingProcessValues.isEmpty()
+    && node.childCount() == 0)
+    {
+        return true;
+    }
+
+    return false;
+}
+
+void updateTreeWithRemovedNode(
+        MessageNode& rootNode,
+        const State::Address& addr)
+{
+    // Find the message node
+    MessageNode* node = Device::try_getNodeFromString(rootNode, stringList(addr));
+
+    if(node)
+    {
+        // Recursively set the user value to nil.
+        rec_removeUserValue(*node);
+
+        // If it is empty, delete it
+        rec_cleanup(*node);
+
+
+        if(node->values.previousProcessValues.isEmpty()
+        && node->values.followingProcessValues.isEmpty()
+        && node->childCount() == 0)
+        {
+            node->parent()->erase(node->parent()->iterOfChild(node));
         }
     }
 }

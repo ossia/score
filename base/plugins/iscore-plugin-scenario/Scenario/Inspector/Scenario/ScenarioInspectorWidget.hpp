@@ -1,20 +1,23 @@
 #pragma once
+#include <Process/Inspector/ProcessInspectorWidgetDelegate.hpp>
+#include <QString>
 
-#include <Inspector/InspectorWidgetBase.hpp>
-
+class QWidget;
+namespace Process { class ProcessModel; }
+namespace Scenario {
 class ScenarioModel;
-class ScenarioInspectorWidget final : public InspectorWidgetBase
+}  // namespace Scenario
+namespace iscore {
+class Document;
+}  // namespace iscore
+
+
+
+class ScenarioInspectorWidget final :
+        public ProcessInspectorWidgetDelegate_T<Scenario::ScenarioModel>
 {
-        Q_OBJECT
     public:
         explicit ScenarioInspectorWidget(
-                const ScenarioModel& object,
-                iscore::Document& doc,
+                const Scenario::ScenarioModel& object,
                 QWidget* parent);
-
-    signals:
-        void createViewInNewSlot(QString); // TODO make a ProcessInspectorWidget
-
-    private:
-        const ScenarioModel& m_model;
 };

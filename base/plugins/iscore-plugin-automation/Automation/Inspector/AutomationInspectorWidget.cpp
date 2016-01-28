@@ -1,136 +1,131 @@
-#include "AutomationInspectorWidget.hpp"
-#include "Automation/AutomationModel.hpp"
-#include <Inspector/InspectorSectionWidget.hpp>
-#include "Automation/Commands/ChangeAddress.hpp"
-#include "Automation/Commands/SetCurveMin.hpp"
-#include "Automation/Commands/SetCurveMax.hpp"
-
-#include <Explorer/Widgets/DeviceCompleter.hpp>
-#include <Explorer/Widgets/DeviceExplorerMenuButton.hpp>
-#include <Explorer/Widgets/AddressEditWidget.hpp>
-#include <Explorer/Explorer/DeviceExplorerModel.hpp>
 #include <Explorer/PanelBase/DeviceExplorerPanelModel.hpp>
-
-#include <State/Widgets/AddressLineEdit.hpp>
-
-#include <iscore/document/DocumentInterface.hpp>
-#include <core/document/Document.hpp>
-#include <core/document/DocumentModel.hpp>
-
+#include <Explorer/Widgets/AddressEditWidget.hpp>
 #include <iscore/widgets/SpinBoxes.hpp>
-#include <QVBoxLayout>
-#include <QLineEdit>
-#include <QPushButton>
+#include <QBoxLayout>
 #include <QFormLayout>
-#include <QDoubleSpinBox>
-#include <QMessageBox>
-#include <QApplication>
 
-AutomationInspectorWidget::AutomationInspectorWidget(
-        const AutomationModel& automationModel,
-        iscore::Document& doc,
-        QWidget* parent) :
-    InspectorWidgetBase {automationModel, doc, parent},
-    m_model {automationModel}
+#include <QPushButton>
+#include <QSpinBox>
+#include <QLabel>
+#include <QStringList>
+#include <QWidget>
+#include <algorithm>
+#include <list>
+#include <vector>
+#include <Explorer/DocumentPlugin/DeviceDocumentPlugin.hpp>
+#include <Automation/AutomationModel.hpp>
+#include <Automation/Commands/ChangeAddress.hpp>
+#include <Automation/Commands/SetAutomationMax.hpp>
+#include <Automation/Commands/SetAutomationMin.hpp>
+#include "AutomationInspectorWidget.hpp"
+#include <Inspector/InspectorWidgetBase.hpp>
+#include <State/Address.hpp>
+#include <iscore/command/Dispatchers/CommandDispatcher.hpp>
+#include <iscore/document/DocumentInterface.hpp>
+#include <iscore/tools/ModelPath.hpp>
+#include <iscore/tools/Todo.hpp>
+
+namespace Automation
 {
+InspectorWidget::InspectorWidget(
+        const ProcessModel& automationModel,
+        const iscore::DocumentContext& doc,
+        QWidget* parent) :
+    ProcessInspectorWidgetDelegate_T {automationModel, parent},
+    m_dispatcher{doc.commandStack}
+{
+    using namespace DeviceExplorer;
     setObjectName("AutomationInspectorWidget");
     setParent(parent);
 
-    std::list<QWidget*> vec;
-
-    auto widg = new QWidget;
-    auto vlay = new QVBoxLayout{widg};
+    auto vlay = new QVBoxLayout;
     vlay->setSpacing(0);
     vlay->setContentsMargins(0,0,0,0);
-    auto hlay = new QHBoxLayout{};
-    hlay->setSpacing(0);
-    hlay->setContentsMargins(0,0,0,0);
-
-    vec.push_back(widg);
 
     // LineEdit
     // If there is a DeviceExplorer in the current document, use it
     // to make a widget.
-    m_explorer = iscore::IDocument::documentFromObject(m_model)->model().panel<DeviceExplorerPanelModel>()->deviceExplorer();
-    m_lineEdit = new AddressEditWidget{m_explorer, this};
+    // TODO instead of doing this, just make an address line edit factory.
+    auto plug = doc.findPlugin<DeviceDocumentPlugin>();
+    DeviceExplorerModel* explorer{};
+    if(plug)
+        explorer = plug->updateProxy.deviceExplorer;
+    m_lineEdit = new AddressEditWidget{explorer, this};
 
-    m_lineEdit->setAddress(m_model.address());
-    con(m_model, &AutomationModel::addressChanged,
+    m_lineEdit->setAddress(process().address());
+    con(process(), &ProcessModel::addressChanged,
             m_lineEdit, &AddressEditWidget::setAddress);
 
     connect(m_lineEdit, &AddressEditWidget::addressChanged,
-            this, &AutomationInspectorWidget::on_addressChange);
+            this, &InspectorWidget::on_addressChange);
 
     vlay->addWidget(m_lineEdit);
 
     // Min / max
     auto minmaxwid = new QWidget;
-    auto minmaxlay = new QFormLayout{minmaxwid};
-    vec.push_back(minmaxwid);
+    auto minmaxlay = new QHBoxLayout{minmaxwid};
+    vlay->addWidget(minmaxwid);
     minmaxlay->setSpacing(0);
     minmaxlay->setContentsMargins(0, 0, 0, 0);
 
     m_minsb = new iscore::SpinBox<float>;
     m_maxsb = new iscore::SpinBox<float>;
-    m_minsb->setValue(m_model.min());
-    m_maxsb->setValue(m_model.max());
-    minmaxlay->addRow(tr("Min"), m_minsb);
-    minmaxlay->addRow(tr("Max"), m_maxsb);
+    m_minsb->setValue(process().min());
+    m_maxsb->setValue(process().max());
 
-    con(m_model, SIGNAL(minChanged(double)), m_minsb, SLOT(setValue(double)));
-    con(m_model, SIGNAL(maxChanged(double)), m_maxsb, SLOT(setValue(double)));
+    auto minLab = new QLabel{tr("Min")};
+    minLab->setAlignment(Qt::AlignRight | Qt::AlignCenter);
+    auto maxLab = new QLabel{tr("Max")};
+    maxLab->setAlignment(Qt::AlignRight | Qt::AlignCenter);
 
-    connect(m_minsb, SIGNAL(editingFinished()), this, SLOT(on_minValueChanged()));
-    connect(m_maxsb, SIGNAL(editingFinished()), this, SLOT(on_maxValueChanged()));
+    minmaxlay->addWidget(minLab);
+    minmaxlay->addWidget(m_minsb);
+    minmaxlay->addWidget(maxLab);
+    minmaxlay->addWidget(m_maxsb);
 
+    con(process(), &ProcessModel::minChanged, m_minsb, &QDoubleSpinBox::setValue);
+    con(process(), &ProcessModel::maxChanged, m_maxsb, &QDoubleSpinBox::setValue);
 
-    // Add it to a new slot
-    auto display = new QPushButton{"~"};
-    hlay->addWidget(display);
-    connect(display,    &QPushButton::clicked,
-            [ = ]()
-    {
-        createViewInNewSlot(QString::number(m_model.id_val()));
-    });
+    connect(m_minsb, &QAbstractSpinBox::editingFinished,
+            this, &InspectorWidget::on_minValueChanged);
+    connect(m_maxsb, &QAbstractSpinBox::editingFinished,
+            this, &InspectorWidget::on_maxValueChanged);
 
-    vlay->addLayout(hlay);
-
-
-    updateSectionsView(safe_cast<QVBoxLayout*>(layout()), vec);
+    this->setLayout(vlay);
 }
 
-void AutomationInspectorWidget::on_addressChange(const iscore::Address& newAddr)
+void InspectorWidget::on_addressChange(const ::State::Address& newAddr)
 {
     // Various checks
-    if(newAddr == m_model.address())
+    if(newAddr == process().address())
         return;
 
     if(newAddr.path.isEmpty())
         return;
 
-    auto cmd = new ChangeAddress{m_model, newAddr};
+    auto cmd = new ChangeAddress{process(), newAddr};
 
-    commandDispatcher()->submitCommand(cmd);
+    m_dispatcher.submitCommand(cmd);
 }
-
-void AutomationInspectorWidget::on_minValueChanged()
+void InspectorWidget::on_minValueChanged()
 {
     auto newVal = m_minsb->value();
-    if(newVal != m_model.min())
+    if(newVal != process().min())
     {
-        auto cmd = new SetAutomationMin{m_model, newVal};
+        auto cmd = new SetMin{process(), newVal};
 
-        commandDispatcher()->submitCommand(cmd);
+        m_dispatcher.submitCommand(cmd);
     }
 }
 
-void AutomationInspectorWidget::on_maxValueChanged()
+void InspectorWidget::on_maxValueChanged()
 {
     auto newVal = m_maxsb->value();
-    if(newVal != m_model.max())
+    if(newVal != process().max())
     {
-        auto cmd = new SetAutomationMax{m_model, newVal};
+        auto cmd = new SetMax{process(), newVal};
 
-        commandDispatcher()->submitCommand(cmd);
+        m_dispatcher.submitCommand(cmd);
     }
+}
 }

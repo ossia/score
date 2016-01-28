@@ -1,18 +1,20 @@
 #pragma once
-#include <iscore/tools/NamedObject.hpp>
 #include <iscore/tools/ObjectPath.hpp>
+#include <type_traits>
+#include <vector>
+
+class QObject;
 //#include <iscore/tools/ModelPath.hpp>
 
 namespace iscore
 {
-class Document;
-class DocumentDelegatePresenterInterface;
-class DocumentDelegateModelInterface;
 class CommandStack;
-class SelectionStack;
+class Document;
+class DocumentDelegateModelInterface;
+class DocumentDelegatePresenterInterface;
 class PanelModel;
-class ObjectLocker;
 struct DocumentContext;
+
 namespace IDocument
 {
 /**
@@ -21,11 +23,9 @@ namespace IDocument
  *
  * @return the Document parent of the object or nullptr.
  */
-Document* documentFromObject(const QObject* obj);
-Document* documentFromObject(const QObject& obj);
-DocumentContext& documentContext(const QObject& obj);
-
-iscore::CommandStack& commandStack(const QObject& obj);
+ISCORE_LIB_BASE_EXPORT Document* documentFromObject(const QObject* obj);
+ISCORE_LIB_BASE_EXPORT Document* documentFromObject(const QObject& obj);
+ISCORE_LIB_BASE_EXPORT const DocumentContext& documentContext(const QObject& obj);
 
 /**
  * @brief pathFromDocument
@@ -36,15 +36,15 @@ iscore::CommandStack& commandStack(const QObject& obj);
  * These functions are not type-safe, hence use them only if there
  * is no other choice (e.g. storing the path to objects of different types)...
  */
-ObjectPath unsafe_path(QObject const * const& obj);
-ObjectPath unsafe_path(const QObject& obj);
+ISCORE_LIB_BASE_EXPORT ObjectPath unsafe_path(QObject const * const& obj);
+ISCORE_LIB_BASE_EXPORT ObjectPath unsafe_path(const QObject& obj);
 
 //// Various getters ////
 // Panel models
-const std::vector<PanelModel*>& panels(const Document* d);
+ISCORE_LIB_BASE_EXPORT const std::vector<PanelModel*>& panels(const Document* d);
 
 // Presenter of a document plugin.
-DocumentDelegatePresenterInterface& presenterDelegate_generic(const Document& d);
+ISCORE_LIB_BASE_EXPORT DocumentDelegatePresenterInterface& presenterDelegate_generic(const Document& d);
 
 template<typename T> T& presenterDelegate(const Document& d)
 {
@@ -61,7 +61,7 @@ T& get(const Document& d)
 
 // Model of a document plugin
 // First if we are sure
-DocumentDelegateModelInterface& modelDelegate_generic(const Document& d);
+ISCORE_LIB_BASE_EXPORT DocumentDelegateModelInterface& modelDelegate_generic(const Document& d);
 
 template<typename T> T& modelDelegate(const Document& d)
 {
@@ -76,15 +76,10 @@ T& get(const Document& d)
 }
 
 // And then if we are not
-DocumentDelegateModelInterface* try_modelDelegate_generic(const Document& d);
 
 template<typename T> T* try_modelDelegate(const Document& d)
 {
-    if(auto md = try_modelDelegate_generic(d))
-    {
-        return dynamic_cast<T*>(md);
-    }
-    return nullptr;
+    return dynamic_cast<T*>(&modelDelegate_generic(d));
 }
 
 template<typename T,

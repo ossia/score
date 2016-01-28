@@ -1,8 +1,11 @@
-#include "AbstractTimeRuler.hpp"
+#include <QString>
+#include <chrono>
 
+#include "AbstractTimeRuler.hpp"
 #include "AbstractTimeRulerView.hpp"
-#include <QGraphicsScene>
-#include <QGraphicsView>
+#include <Process/TimeValue.hpp>
+namespace Scenario
+{
 AbstractTimeRuler::AbstractTimeRuler(AbstractTimeRulerView* view, QObject* parent) :
     QObject{parent},
     m_view{view}
@@ -79,4 +82,5 @@ void AbstractTimeRuler::computeGraduationSpacing()
 const QVector<QPair<double, TimeValue> >& AbstractTimeRuler::graduationsSpacing() const
 {
     return m_graduationsSpacing;
+}
 }

@@ -1,17 +1,36 @@
 #pragma once
-#include <iscore/tools/SettableIdentifier.hpp>
 #include <Process/TimeValue.hpp>
+#include <iscore/tools/SettableIdentifier.hpp>
 
-class ScenarioModel;
-class EventModel;
+
+
+namespace Scenario
+{
 class ConstraintModel;
 class ConstraintViewModel;
-class TimeNodeModel;
+class EventModel;
 class StateModel;
-struct VerticalExtent;
+class CommentBlockModel;
 
+class TimeNodeModel;
+class ScenarioModel;
+struct VerticalExtent;
 template<typename T>
 class ScenarioCreate;
+template<>
+class ScenarioCreate<CommentBlockModel>
+{
+    public:
+        static void undo(
+                const Id<CommentBlockModel>& id,
+                Scenario::ScenarioModel& s);
+
+        static CommentBlockModel& redo(
+                const Id<CommentBlockModel>& id,
+                const TimeValue& date,
+                double y,
+                Scenario::ScenarioModel& s);
+};
 
 template<>
 class ScenarioCreate<TimeNodeModel>
@@ -19,13 +38,13 @@ class ScenarioCreate<TimeNodeModel>
     public:
         static void undo(
                 const Id<TimeNodeModel>& id,
-                ScenarioModel& s);
+                Scenario::ScenarioModel& s);
 
         static TimeNodeModel& redo(
                 const Id<TimeNodeModel>& id,
                 const VerticalExtent& extent,
                 const TimeValue& date,
-                ScenarioModel& s);
+                Scenario::ScenarioModel& s);
 };
 
 template<>
@@ -34,13 +53,13 @@ class ScenarioCreate<EventModel>
     public:
         static void undo(
                 const Id<EventModel>& id,
-                ScenarioModel& s);
+                Scenario::ScenarioModel& s);
 
         static EventModel& redo(
                 const Id<EventModel>& id,
                 TimeNodeModel& timenode,
                 const VerticalExtent& extent,
-                ScenarioModel& s);
+                Scenario::ScenarioModel& s);
 };
 
 template<>
@@ -49,13 +68,13 @@ class ScenarioCreate<StateModel>
     public:
         static void undo(
                 const Id<StateModel>& id,
-                ScenarioModel& s);
+                Scenario::ScenarioModel& s);
 
         static StateModel& redo(
                 const Id<StateModel>& id,
                 EventModel& ev,
                 double y,
-                ScenarioModel& s);
+                Scenario::ScenarioModel& s);
 };
 
 template<>
@@ -64,7 +83,7 @@ class ScenarioCreate<ConstraintModel>
     public:
         static void undo(
                 const Id<ConstraintModel>& id,
-                ScenarioModel& s);
+                Scenario::ScenarioModel& s);
 
         static ConstraintModel& redo(
                 const Id<ConstraintModel>& id,
@@ -72,5 +91,8 @@ class ScenarioCreate<ConstraintModel>
                 StateModel& sst,
                 StateModel& est,
                 double ypos,
-                ScenarioModel& s);
+                Scenario::ScenarioModel& s);
 };
+
+}  // namespace Scenario
+

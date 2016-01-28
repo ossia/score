@@ -1,11 +1,21 @@
 #pragma once
 #include <Process/TimeValue.hpp>
+#include <QObject>
+#include <chrono>
+
 #include <iscore/serialization/DataStreamVisitor.hpp>
 #include <iscore/serialization/JSONVisitor.hpp>
+#include <iscore_plugin_scenario_export.h>
 
+class DataStream;
+class JSONObject;
+
+namespace Scenario
+{
 class ConstraintModel;
+
 // A container class to separate management of the duration of a constraint.
-class ConstraintDurations final : public QObject
+class ISCORE_PLUGIN_SCENARIO_EXPORT ConstraintDurations final : public QObject
 {
         // These dates are relative to the beginning of the constraint.
         Q_PROPERTY(TimeValue minDuration
@@ -25,6 +35,14 @@ class ConstraintDurations final : public QObject
                    READ isRigid
                    WRITE setRigid
                    NOTIFY rigidityChanged)
+        Q_PROPERTY(bool isMinNul
+                   READ isMinNul
+                   WRITE setMinNull
+                   NOTIFY minNullChanged)
+        Q_PROPERTY(bool isMaxInfinite
+                   READ isMaxInfinite
+                   WRITE setMaxInfinite
+                   NOTIFY maxInfiniteChanged)
 
         ISCORE_SERIALIZE_FRIENDS(ConstraintDurations, DataStream)
         ISCORE_SERIALIZE_FRIENDS(ConstraintDurations, JSONObject)
@@ -41,10 +59,18 @@ class ConstraintDurations final : public QObject
 
         const TimeValue& defaultDuration() const
         { return m_defaultDuration; }
-        const TimeValue& minDuration() const
-        { return m_minDuration; }
-        const TimeValue& maxDuration() const
-        { return m_maxDuration; }
+        TimeValue minDuration() const
+        {
+            if(m_isMinNull)
+                return TimeValue::zero();
+            return m_minDuration;
+        }
+        TimeValue maxDuration() const
+        {
+            if(m_isMaxInfinite)
+                return PositiveInfinity{};
+            return m_maxDuration;
+        }
         double playPercentage() const
         { return m_playPercentage; }
 
@@ -61,6 +87,24 @@ class ConstraintDurations final : public QObject
             static void changeAllDurations(ConstraintModel& cstr, const TimeValue& time);
         };
 
+        bool isMinNul() const
+        { return m_isMinNull; }
+
+        bool isMaxInfinite() const
+        { return m_isMaxInfinite; }
+
+        void setDefaultDuration(const TimeValue& arg);
+        void setMinDuration(const TimeValue& arg);
+        void setMaxDuration(const TimeValue& arg);
+
+        void setPlayPercentage(double arg);
+
+        void setRigid(bool arg);
+
+        void setMinNull(bool isMinNull);
+
+        void setMaxInfinite(bool isMaxInfinite);
+
     signals:
         void defaultDurationChanged(const TimeValue& arg);
         void minDurationChanged(const TimeValue& arg);
@@ -69,15 +113,9 @@ class ConstraintDurations final : public QObject
         void playPercentageChanged(double arg);
         void rigidityChanged(bool arg);
 
-    public slots:
-        void setDefaultDuration(const TimeValue& arg);
-        void setMinDuration(const TimeValue& arg);
-        void setMaxDuration(const TimeValue& arg);
+        void minNullChanged(bool isMinNul);
 
-        void setPlayPercentage(double arg);
-
-        // TODO make a class that manages all the durations + rigidity in a coherent manner
-        void setRigid(bool arg);
+        void maxInfiniteChanged(bool isMaxInfinite);
 
     private:
         ConstraintModel& m_model;
@@ -88,4 +126,7 @@ class ConstraintDurations final : public QObject
 
         double m_playPercentage{}; // Between 0 and 1.
         bool m_rigidity{true};
+        bool m_isMinNull{false};
+        bool m_isMaxInfinite{false};
 };
+}

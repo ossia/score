@@ -1,9 +1,20 @@
 #pragma once
+#include <boost/optional/optional.hpp>
 #include <iscore/tools/IdentifiedObject.hpp>
+#include <QString>
+#include <nano_signal_slot.hpp>
 
-class ConstraintModel;
+#include <iscore/tools/SettableIdentifier.hpp>
+#include <iscore_plugin_scenario_export.h>
+
+class QObject;
+namespace Scenario
+{
 class RackModel;
-class ConstraintViewModel : public IdentifiedObject<ConstraintViewModel>
+class ConstraintModel;
+class ISCORE_PLUGIN_SCENARIO_EXPORT ConstraintViewModel :
+        public IdentifiedObject<ConstraintViewModel>,
+        public Nano::Observer
 {
         Q_OBJECT
 
@@ -12,6 +23,8 @@ class ConstraintViewModel : public IdentifiedObject<ConstraintViewModel>
                             const QString& name,
                             const ConstraintModel& model,
                             QObject* parent);
+
+        virtual ~ConstraintViewModel();
 
         template<typename DeserializerVisitor>
         ConstraintViewModel(DeserializerVisitor&& vis,
@@ -37,13 +50,14 @@ class ConstraintViewModel : public IdentifiedObject<ConstraintViewModel>
         void hideRack();
         void showRack(const Id<RackModel>& rackId);
 
+        virtual void on_rackRemoval(const RackModel&);
+
     signals:
-        void rackRemoved();
+        void lastRackRemoved();
         void rackHidden();
         void rackShown(const Id<RackModel>&);
 
-    public slots:
-        virtual void on_rackRemoved(const RackModel&);
+        void aboutToBeDeleted(ConstraintViewModel*);
 
     private:
         // A view model cannot be constructed without a model
@@ -52,3 +66,4 @@ class ConstraintViewModel : public IdentifiedObject<ConstraintViewModel>
 
         Id<RackModel> m_shownRack {};
 };
+}

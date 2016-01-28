@@ -1,13 +1,14 @@
 #pragma once
 #include <QObject>
 #include <QStringList>
+#include <iscore_lib_base_export.h>
 
 namespace iscore
 {
 
     // Used to declare which plug-ins require to
-    // have their Control loaded prior to this one.
-    class PluginRequirementslInterface_QtInterface
+    // have their ApplicationPlugin loaded prior to this one.
+    class ISCORE_LIB_BASE_EXPORT PluginRequirementslInterface_QtInterface
     {
         public:
             virtual ~PluginRequirementslInterface_QtInterface();

@@ -1,10 +1,17 @@
 #pragma once
+#include <boost/optional/optional.hpp>
+#include <boost/range/algorithm/find.hpp>
 #include <iscore/tools/SettableIdentifier.hpp>
-#include <boost/range/algorithm.hpp>
+#include <sys/types.h>
+#include <algorithm>
+#include <cstddef>
+#include <iterator>
+#include <type_traits>
+#include <vector>
 
 namespace iscore
 {
-struct random_id_generator
+struct ISCORE_LIB_BASE_EXPORT random_id_generator
 {
 /**
  * @brief getNextId
@@ -35,7 +42,7 @@ static auto getNextId(const Vector& ids)
 }
 };
 
-struct linear_id_generator
+struct ISCORE_LIB_BASE_EXPORT linear_id_generator
 {
         static int32_t getFirstId() { return 1; }
 
