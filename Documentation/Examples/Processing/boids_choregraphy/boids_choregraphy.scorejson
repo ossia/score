@@ -6,13 +6,13 @@
                 "EndState": 1,
                 "FullView": {
                     "CenterOn": [
-                        594.5,
-                        230
+                        503.5,
+                        229
                     ],
                     "ConstraintId": 0,
                     "ObjectName": "FullViewConstraintViewModel",
                     "ShownRack": 1,
-                    "Zoom": 129.4158539887105,
+                    "Zoom": 148.4353742957488,
                     "id": 0
                 },
                 "HeightPercentage": 0,
@@ -3211,7 +3211,7 @@
                                         ],
                                         "Type": "Int",
                                         "Unit": "",
-                                        "Value": 206,
+                                        "Value": 51,
                                         "ioType": "<-"
                                     },
                                     "Children": [
@@ -3234,7 +3234,7 @@
                                         ],
                                         "Type": "Int",
                                         "Unit": "",
-                                        "Value": 55,
+                                        "Value": 432,
                                         "ioType": "<-"
                                     },
                                     "Children": [
