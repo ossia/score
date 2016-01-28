@@ -200,7 +200,10 @@ class APIWrapper : public QObject
 {
         Q_OBJECT
     public:
-        APIWrapper(const DeviceExplorer::DeviceDocumentPlugin& devs):
+        APIWrapper(
+                QJSEngine& engine,
+                const DeviceExplorer::DeviceDocumentPlugin& devs):
+            m_engine{engine},
             devices{devs}
         {
 
@@ -209,6 +212,7 @@ class APIWrapper : public QObject
     public slots:
         QJSValue value(QJSValue address);
     private:
+        QJSEngine& m_engine;
         const DeviceExplorer::DeviceDocumentPlugin& devices;
 
 };
