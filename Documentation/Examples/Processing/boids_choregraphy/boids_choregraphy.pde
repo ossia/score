@@ -41,6 +41,8 @@ int last_parameter_date; // to filter while i-score cannot do it
  
 boolean info = true;
 
+boolean follow_mouse = false; // while mappings are not possible in i-score
+
 void setup() 
 {
   size(640, 360);
@@ -82,7 +84,6 @@ void draw()
   osc_msg.add(flock.getDeviation().y);
   osc_in.send(osc_msg, osc_out);
 
-
   // send OSC message for mouseX
   if (mouseX != last_mouse_x)
   {
@@ -115,6 +116,11 @@ void draw()
       }
     };
   }
+  
+  // while mappings are not possible in i-score
+  // note : /follow/destination/rate needs to be set to 1.
+  if (follow_mouse)
+    flock.setFollowDestination(mouseX, mouseY);
 }
 
 void mousePressed()
@@ -122,6 +128,9 @@ void mousePressed()
   OscMessage osc_msg = new OscMessage("/mouse/click");
   osc_msg.add(1);
   osc_in.send(osc_msg, osc_out);
+  
+  // while mappings are not possible in i-score
+  follow_mouse = true;
 }
 
 void mouseReleased()
@@ -129,6 +138,9 @@ void mouseReleased()
   OscMessage osc_msg = new OscMessage("/mouse/click");
   osc_msg.add(0);
   osc_in.send(osc_msg, osc_out);
+  
+  // while mappings are not possible in i-score
+  follow_mouse = false;
 }
 
 void oscEvent(OscMessage osc_msg)

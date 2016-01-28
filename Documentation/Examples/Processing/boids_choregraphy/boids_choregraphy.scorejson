@@ -6,13 +6,13 @@
                 "EndState": 1,
                 "FullView": {
                     "CenterOn": [
-                        358.5,
-                        219.5
+                        594.5,
+                        230
                     ],
                     "ConstraintId": 0,
                     "ObjectName": "FullViewConstraintViewModel",
                     "ShownRack": 1,
-                    "Zoom": 97.242431775350084,
+                    "Zoom": 129.4158539887105,
                     "id": 0
                 },
                 "HeightPercentage": 0,
@@ -59,11 +59,25 @@
                                 "id": 3
                             },
                             {
-                                "Date": 31798.275190539476,
+                                "Date": 30218.598556214172,
                                 "HTMLContent": "<!DOCTYPE HTML PUBLIC \"-//W3C//DTD HTML 4.0//EN\" \"http://www.w3.org/TR/REC-html40/strict.dtd\">\n<html><head><meta name=\"qrichtext\" content=\"1\" /><style type=\"text/css\">\np, li { white-space: pre-wrap; }\n</style></head><body style=\" font-family:'Ubuntu'; font-size:8pt; font-weight:400; font-style:normal;\">\n<p style=\" margin-top:0px; margin-bottom:0px; margin-left:0px; margin-right:0px; -qt-block-indent:0; text-indent:0px;\">let the flock to spread all over the screen during 25 s</p></body></html>",
                                 "HeightPercentage": 0.19372077488309952,
                                 "ObjectName": "CommentBlockModel",
                                 "id": 4
+                            },
+                            {
+                                "Date": 53483.337476442532,
+                                "HTMLContent": "<!DOCTYPE HTML PUBLIC \"-//W3C//DTD HTML 4.0//EN\" \"http://www.w3.org/TR/REC-html40/strict.dtd\">\n<html><head><meta name=\"qrichtext\" content=\"1\" /><style type=\"text/css\">\np, li { white-space: pre-wrap; }\n</style></head><body style=\" font-family:'Ubuntu'; font-size:8pt; font-weight:400; font-style:normal;\">\n<p style=\" margin-top:0px; margin-bottom:0px; margin-left:0px; margin-right:0px; -qt-block-indent:0; text-indent:0px;\"><span style=\" font-size:10pt;\">then reduce the distance between boids ...</span></p></body></html>",
+                                "HeightPercentage": 0.16232464929859719,
+                                "ObjectName": "CommentBlockModel",
+                                "id": 5
+                            },
+                            {
+                                "Date": 64766.742007337612,
+                                "HTMLContent": "<!DOCTYPE HTML PUBLIC \"-//W3C//DTD HTML 4.0//EN\" \"http://www.w3.org/TR/REC-html40/strict.dtd\">\n<html><head><meta name=\"qrichtext\" content=\"1\" /><style type=\"text/css\">\np, li { white-space: pre-wrap; }\n</style></head><body style=\" font-family:'Ubuntu'; font-size:8pt; font-weight:400; font-style:normal;\">\n<p style=\" margin-top:0px; margin-bottom:0px; margin-left:0px; margin-right:0px; -qt-block-indent:0; text-indent:0px;\"><span style=\" font-size:10pt;\">... and wait at least 10 s to start to follow the mouse while the click is not released</span></p></body></html>",
+                                "HeightPercentage": 0.24181696726786908,
+                                "ObjectName": "CommentBlockModel",
+                                "id": 6
                             }
                         ],
                         "Constraints": [
@@ -685,6 +699,132 @@
                                 "StartDate": 28961.016682928759,
                                 "StartState": 14,
                                 "id": 5
+                            },
+                            {
+                                "DefaultDuration": 27158.128941816125,
+                                "EndState": 16,
+                                "FullView": {
+                                    "CenterOn": [
+                                        0,
+                                        0
+                                    ],
+                                    "ConstraintId": 6,
+                                    "ObjectName": "FullViewConstraintViewModel",
+                                    "ShownRack": "none",
+                                    "Zoom": -1,
+                                    "id": 7
+                                },
+                                "HeightPercentage": 0.18704074816299254,
+                                "Looping": false,
+                                "MaxDuration": 32589.754730179349,
+                                "MaxInf": true,
+                                "Metadata": {
+                                    "Color": [
+                                        0,
+                                        127,
+                                        229
+                                    ],
+                                    "Comment": "",
+                                    "Label": "",
+                                    "ScriptingName": "merkin9saphenal70"
+                                },
+                                "MinDuration": 10000,
+                                "MinNull": false,
+                                "ObjectName": "Scenario::ConstraintModel",
+                                "PluginsMetadata": [
+                                ],
+                                "Processes": [
+                                ],
+                                "Rackes": [
+                                ],
+                                "Rigidity": false,
+                                "StartDate": 53969.549635319294,
+                                "StartState": 15,
+                                "id": 6
+                            },
+                            {
+                                "DefaultDuration": 26290.332556985479,
+                                "EndState": 17,
+                                "FullView": {
+                                    "CenterOn": [
+                                        0,
+                                        0
+                                    ],
+                                    "ConstraintId": 7,
+                                    "ObjectName": "FullViewConstraintViewModel",
+                                    "ShownRack": 1,
+                                    "Zoom": -1,
+                                    "id": 8
+                                },
+                                "HeightPercentage": 0.18704074816299254,
+                                "Looping": false,
+                                "MaxDuration": "inf",
+                                "MaxInf": true,
+                                "Metadata": {
+                                    "Color": [
+                                        0,
+                                        127,
+                                        229
+                                    ],
+                                    "Comment": "",
+                                    "Label": "",
+                                    "ScriptingName": "follow the mouse"
+                                },
+                                "MinDuration": 16067.568051994558,
+                                "MinNull": true,
+                                "ObjectName": "Scenario::ConstraintModel",
+                                "PluginsMetadata": [
+                                ],
+                                "Processes": [
+                                    {
+                                        "Duration": 26290.332556985479,
+                                        "Metadata": {
+                                            "Color": [
+                                                160,
+                                                160,
+                                                164
+                                            ],
+                                            "Comment": "",
+                                            "Label": "",
+                                            "ScriptingName": "mapping_script"
+                                        },
+                                        "ObjectName": "Javascript",
+                                        "PluginsMetadata": [
+                                        ],
+                                        "Script": "(function(t) \n{ \n     var obj = new Object; \n     obj[\"address\"] = 'Processing:/flock/follow/destination';\n     obj[\"value\"] = [ iscore.value('Processing:/mouse/x''), iscore.value('Processing:/mouse/y'') ];\n     return [ obj ]; \n});",
+                                        "UseParentDuration": false,
+                                        "id": 1,
+                                        "uuid": "846a5de5-47f9-46c5-a898-013cb20951d0"
+                                    }
+                                ],
+                                "Rackes": [
+                                    {
+                                        "ObjectName": "Scenario::RackModel",
+                                        "Slots": [
+                                            {
+                                                "EditedProcess": 1,
+                                                "Height": 41,
+                                                "LayerModels": [
+                                                    {
+                                                        "ObjectName": "JSProcessLayerModel",
+                                                        "SharedProcessId": 1,
+                                                        "id": 1
+                                                    }
+                                                ],
+                                                "ObjectName": "Scenario::SlotModel",
+                                                "id": 1
+                                            }
+                                        ],
+                                        "SlotsPositions": [
+                                            1
+                                        ],
+                                        "id": 1
+                                    }
+                                ],
+                                "Rigidity": false,
+                                "StartDate": 81127.678577135419,
+                                "StartState": 16,
+                                "id": 7
                             }
                         ],
                         "Duration": 307566.63186892646,
@@ -881,6 +1021,68 @@
                                 ],
                                 "TimeNode": 9,
                                 "id": 9
+                            },
+                            {
+                                "Condition": {
+                                    "Children": [
+                                    ],
+                                    "RootNode": {
+                                    }
+                                },
+                                "Date": 81127.678577135419,
+                                "Extent": [
+                                    0.18704074816299254,
+                                    0.18704074816299254
+                                ],
+                                "Metadata": {
+                                    "Color": [
+                                        255,
+                                        255,
+                                        255
+                                    ],
+                                    "Comment": "",
+                                    "Label": "",
+                                    "ScriptingName": "steroid69pupilate59"
+                                },
+                                "ObjectName": "Scenario::EventModel",
+                                "PluginsMetadata": [
+                                ],
+                                "States": [
+                                    16
+                                ],
+                                "TimeNode": 10,
+                                "id": 10
+                            },
+                            {
+                                "Condition": {
+                                    "Children": [
+                                    ],
+                                    "RootNode": {
+                                    }
+                                },
+                                "Date": 107418.0111341209,
+                                "Extent": [
+                                    0.18704074816299254,
+                                    0.18704074816299254
+                                ],
+                                "Metadata": {
+                                    "Color": [
+                                        255,
+                                        255,
+                                        255
+                                    ],
+                                    "Comment": "",
+                                    "Label": "",
+                                    "ScriptingName": "knoblike5Riksmal49"
+                                },
+                                "ObjectName": "Scenario::EventModel",
+                                "PluginsMetadata": [
+                                ],
+                                "States": [
+                                    17
+                                ],
+                                "TimeNode": 11,
+                                "id": 11
                             }
                         ],
                         "Metadata": {
@@ -1606,6 +1808,84 @@
                                 "HeightPercentage": 0.18704074816299254,
                                 "Messages": {
                                     "Children": [
+                                        {
+                                            "Children": [
+                                                {
+                                                    "Children": [
+                                                        {
+                                                            "Children": [
+                                                                {
+                                                                    "Children": [
+                                                                    ],
+                                                                    "Following": [
+                                                                    ],
+                                                                    "Name": "max",
+                                                                    "Previous": [
+                                                                    ],
+                                                                    "Priorities": [
+                                                                        1,
+                                                                        2,
+                                                                        0
+                                                                    ],
+                                                                    "User": {
+                                                                        "Type": "Float",
+                                                                        "Value": 20
+                                                                    }
+                                                                },
+                                                                {
+                                                                    "Children": [
+                                                                    ],
+                                                                    "Following": [
+                                                                    ],
+                                                                    "Name": "min",
+                                                                    "Previous": [
+                                                                    ],
+                                                                    "Priorities": [
+                                                                        1,
+                                                                        2,
+                                                                        0
+                                                                    ],
+                                                                    "User": {
+                                                                        "Type": "Float",
+                                                                        "Value": 10
+                                                                    }
+                                                                }
+                                                            ],
+                                                            "Following": [
+                                                            ],
+                                                            "Name": "distance",
+                                                            "Previous": [
+                                                            ],
+                                                            "Priorities": [
+                                                                1,
+                                                                2,
+                                                                0
+                                                            ]
+                                                        }
+                                                    ],
+                                                    "Following": [
+                                                    ],
+                                                    "Name": "flock",
+                                                    "Previous": [
+                                                    ],
+                                                    "Priorities": [
+                                                        1,
+                                                        2,
+                                                        0
+                                                    ]
+                                                }
+                                            ],
+                                            "Following": [
+                                            ],
+                                            "Name": "Processing",
+                                            "Previous": [
+                                            ],
+                                            "Priorities": [
+                                                1,
+                                                2,
+                                                0
+                                            ]
+                                        }
                                     ],
                                     "Following": [
                                     ],
@@ -1628,12 +1908,200 @@
                                     "Label": "",
                                     "ScriptingName": "State.15"
                                 },
-                                "NextConstraint": "none",
+                                "NextConstraint": 6,
                                 "ObjectName": "Scenario::StateModel",
                                 "PreviousConstraint": 5,
                                 "StateProcesses": [
                                 ],
                                 "id": 15
+                            },
+                            {
+                                "Event": 10,
+                                "HeightPercentage": 0.18704074816299254,
+                                "Messages": {
+                                    "Children": [
+                                        {
+                                            "Children": [
+                                                {
+                                                    "Children": [
+                                                        {
+                                                            "Children": [
+                                                                {
+                                                                    "Children": [
+                                                                    ],
+                                                                    "Following": [
+                                                                    ],
+                                                                    "Name": "rate",
+                                                                    "Previous": [
+                                                                    ],
+                                                                    "Priorities": [
+                                                                        1,
+                                                                        2,
+                                                                        0
+                                                                    ],
+                                                                    "User": {
+                                                                        "Type": "Float",
+                                                                        "Value": 1
+                                                                    }
+                                                                }
+                                                            ],
+                                                            "Following": [
+                                                            ],
+                                                            "Name": "follow",
+                                                            "Previous": [
+                                                            ],
+                                                            "Priorities": [
+                                                                1,
+                                                                2,
+                                                                0
+                                                            ]
+                                                        }
+                                                    ],
+                                                    "Following": [
+                                                    ],
+                                                    "Name": "flock",
+                                                    "Previous": [
+                                                    ],
+                                                    "Priorities": [
+                                                        1,
+                                                        2,
+                                                        0
+                                                    ]
+                                                }
+                                            ],
+                                            "Following": [
+                                            ],
+                                            "Name": "Processing",
+                                            "Previous": [
+                                            ],
+                                            "Priorities": [
+                                                1,
+                                                2,
+                                                0
+                                            ]
+                                        }
+                                    ],
+                                    "Following": [
+                                    ],
+                                    "Name": "",
+                                    "Previous": [
+                                    ],
+                                    "Priorities": [
+                                        1,
+                                        2,
+                                        0
+                                    ]
+                                },
+                                "Metadata": {
+                                    "Color": [
+                                        160,
+                                        160,
+                                        164
+                                    ],
+                                    "Comment": "",
+                                    "Label": "",
+                                    "ScriptingName": "State.16"
+                                },
+                                "NextConstraint": 7,
+                                "ObjectName": "Scenario::StateModel",
+                                "PreviousConstraint": 6,
+                                "StateProcesses": [
+                                ],
+                                "id": 16
+                            },
+                            {
+                                "Event": 11,
+                                "HeightPercentage": 0.18704074816299254,
+                                "Messages": {
+                                    "Children": [
+                                        {
+                                            "Children": [
+                                                {
+                                                    "Children": [
+                                                        {
+                                                            "Children": [
+                                                                {
+                                                                    "Children": [
+                                                                    ],
+                                                                    "Following": [
+                                                                    ],
+                                                                    "Name": "rate",
+                                                                    "Previous": [
+                                                                    ],
+                                                                    "Priorities": [
+                                                                        1,
+                                                                        2,
+                                                                        0
+                                                                    ],
+                                                                    "User": {
+                                                                        "Type": "Float",
+                                                                        "Value": 0
+                                                                    }
+                                                                }
+                                                            ],
+                                                            "Following": [
+                                                            ],
+                                                            "Name": "follow",
+                                                            "Previous": [
+                                                            ],
+                                                            "Priorities": [
+                                                                1,
+                                                                2,
+                                                                0
+                                                            ]
+                                                        }
+                                                    ],
+                                                    "Following": [
+                                                    ],
+                                                    "Name": "flock",
+                                                    "Previous": [
+                                                    ],
+                                                    "Priorities": [
+                                                        1,
+                                                        2,
+                                                        0
+                                                    ]
+                                                }
+                                            ],
+                                            "Following": [
+                                            ],
+                                            "Name": "Processing",
+                                            "Previous": [
+                                            ],
+                                            "Priorities": [
+                                                1,
+                                                2,
+                                                0
+                                            ]
+                                        }
+                                    ],
+                                    "Following": [
+                                    ],
+                                    "Name": "",
+                                    "Previous": [
+                                    ],
+                                    "Priorities": [
+                                        1,
+                                        2,
+                                        0
+                                    ]
+                                },
+                                "Metadata": {
+                                    "Color": [
+                                        160,
+                                        160,
+                                        164
+                                    ],
+                                    "Comment": "",
+                                    "Label": "",
+                                    "ScriptingName": "State.17"
+                                },
+                                "NextConstraint": "none",
+                                "ObjectName": "Scenario::StateModel",
+                                "PreviousConstraint": 7,
+                                "StateProcesses": [
+                                ],
+                                "id": 17
                             }
                         ],
                         "TimeNodes": [
@@ -1860,8 +2328,8 @@
                                                             "Op": 3,
                                                             "RHS": {
                                                                 "Value": {
-                                                                    "Type": "Float",
-                                                                    "Value": 20
+                                                                    "Type": "Int",
+                                                                    "Value": 50
                                                                 }
                                                             }
                                                         }
@@ -1909,6 +2377,122 @@
                                     }
                                 },
                                 "id": 9
+                            },
+                            {
+                                "Date": 81127.678577135419,
+                                "Events": [
+                                    10
+                                ],
+                                "Extent": [
+                                    0.18704074816299254,
+                                    0.18704074816299254
+                                ],
+                                "Metadata": {
+                                    "Color": [
+                                        70,
+                                        70,
+                                        70
+                                    ],
+                                    "Comment": "",
+                                    "Label": "TimeNode",
+                                    "ScriptingName": "Mobilian79unfull76"
+                                },
+                                "ObjectName": "Scenario::TimeNodeModel",
+                                "PluginsMetadata": [
+                                ],
+                                "Trigger": {
+                                    "Active": true,
+                                    "Expression": {
+                                        "Children": [
+                                            {
+                                                "Children": [
+                                                    {
+                                                        "Children": [
+                                                        ],
+                                                        "Relation": {
+                                                            "LHS": {
+                                                                "Address": {
+                                                                    "Device": "Processing",
+                                                                    "Path": "mouse/click"
+                                                                }
+                                                            },
+                                                            "Op": 0,
+                                                            "RHS": {
+                                                                "Value": {
+                                                                    "Type": "Int",
+                                                                    "Value": 1
+                                                                }
+                                                            }
+                                                        }
+                                                    }
+                                                ],
+                                                "RootNode": {
+                                                }
+                                            }
+                                        ],
+                                        "RootNode": {
+                                        }
+                                    }
+                                },
+                                "id": 10
+                            },
+                            {
+                                "Date": 107418.0111341209,
+                                "Events": [
+                                    11
+                                ],
+                                "Extent": [
+                                    0.18704074816299254,
+                                    0.18704074816299254
+                                ],
+                                "Metadata": {
+                                    "Color": [
+                                        70,
+                                        70,
+                                        70
+                                    ],
+                                    "Comment": "",
+                                    "Label": "TimeNode",
+                                    "ScriptingName": "lustrous93vulture25"
+                                },
+                                "ObjectName": "Scenario::TimeNodeModel",
+                                "PluginsMetadata": [
+                                ],
+                                "Trigger": {
+                                    "Active": true,
+                                    "Expression": {
+                                        "Children": [
+                                            {
+                                                "Children": [
+                                                    {
+                                                        "Children": [
+                                                        ],
+                                                        "Relation": {
+                                                            "LHS": {
+                                                                "Address": {
+                                                                    "Device": "Processing",
+                                                                    "Path": "mouse/click"
+                                                                }
+                                                            },
+                                                            "Op": 0,
+                                                            "RHS": {
+                                                                "Value": {
+                                                                    "Type": "Int",
+                                                                    "Value": 0
+                                                                }
+                                                            }
+                                                        }
+                                                    }
+                                                ],
+                                                "RootNode": {
+                                                }
+                                            }
+                                        ],
+                                        "RootNode": {
+                                        }
+                                    }
+                                },
+                                "id": 11
                             }
                         ],
                         "UseParentDuration": false,
@@ -1955,6 +2539,18 @@
                                                 "ObjectName": "TemporalConstraintViewModel",
                                                 "ShownRack": "none",
                                                 "id": 5
+                                            },
+                                            {
+                                                "ConstraintId": 6,
+                                                "ObjectName": "TemporalConstraintViewModel",
+                                                "ShownRack": "none",
+                                                "id": 6
+                                            },
+                                            {
+                                                "ConstraintId": 7,
+                                                "ObjectName": "TemporalConstraintViewModel",
+                                                "ShownRack": 1,
+                                                "id": 7
                                             }
                                         ],
                                         "ObjectName": "TemporalScenarioLayer",
@@ -2269,7 +2865,7 @@
                                                 ],
                                                 "Type": "Float",
                                                 "Unit": "",
-                                                "Value": 105.49371337890625,
+                                                "Value": 102.39385986328125,
                                                 "ioType": "<-"
                                             },
                                             "Children": [
@@ -2292,7 +2888,7 @@
                                                 ],
                                                 "Type": "Float",
                                                 "Unit": "",
-                                                "Value": 188.27212524414062,
+                                                "Value": 92.283447265625,
                                                 "ioType": "<-"
                                             },
                                             "Children": [
@@ -2544,7 +3140,7 @@
                                                 ],
                                                 "Type": "Float",
                                                 "Unit": "",
-                                                "Value": 75,
+                                                "Value": 20,
                                                 "ioType": "<->"
                                             },
                                             "Children": [
@@ -2567,7 +3163,7 @@
                                                 ],
                                                 "Type": "Float",
                                                 "Unit": "",
-                                                "Value": 50,
+                                                "Value": 10,
                                                 "ioType": "<->"
                                             },
                                             "Children": [
@@ -2615,7 +3211,7 @@
                                         ],
                                         "Type": "Int",
                                         "Unit": "",
-                                        "Value": 35,
+                                        "Value": 206,
                                         "ioType": "<-"
                                     },
                                     "Children": [
@@ -2638,7 +3234,7 @@
                                         ],
                                         "Type": "Int",
                                         "Unit": "",
-                                        "Value": 168,
+                                        "Value": 55,
                                         "ioType": "<-"
                                     },
                                     "Children": [
