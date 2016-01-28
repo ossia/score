@@ -37,7 +37,6 @@ Flock flock;
 int last_mouse_x;    // to filter repetitions
 int last_mouse_y;    // to filter repetitions
 int last_flock_size; // to filter repetitions
-int last_parameter_date; // to filter while i-score cannot do it
  
 boolean info = true;
 
