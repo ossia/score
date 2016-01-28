@@ -1,7 +1,6 @@
 #include <Scenario/Commands/Constraint/Rack/AddSlotToRack.hpp>
 #include <Scenario/Commands/Metadata/ChangeElementName.hpp>
 #include <Scenario/Document/Constraint/ConstraintModel.hpp>
-#include <Scenario/Inspector/Constraint/ConstraintInspectorWidget.hpp>
 #include <boost/optional/optional.hpp>
 #include <QBoxLayout>
 #include <QFrame>
@@ -21,6 +20,9 @@
 #include <iscore/tools/NotifyingMap.hpp>
 #include <iscore/tools/SettableIdentifier.hpp>
 #include <iscore/tools/Todo.hpp>
+#include <iscore/widgets/MarginLess.hpp>
+
+#include <Inspector/Separator.hpp>
 
 #include <Scenario/Commands/Constraint/RemoveRackFromConstraint.hpp>
 #include <algorithm>
@@ -30,13 +32,14 @@ namespace Scenario
 RackInspectorSection::RackInspectorSection(
         const QString& name,
         const RackModel& rack,
-        ConstraintInspectorWidget* parentConstraint) :
-    InspectorSectionWidget {name, false, parentConstraint},
+        const ConstraintInspectorWidget& parentConstraint,
+        QWidget* parent) :
+    InspectorSectionWidget {name, false, parent},
     m_parent{parentConstraint},
     m_model {rack}
 {
     auto framewidg = new QFrame;
-    auto lay = new QVBoxLayout; lay->setContentsMargins(0, 0, 0, 0); lay->setSpacing(0);
+    auto lay = new iscore::MarginLess<QVBoxLayout>;
     framewidg->setLayout(lay);
     framewidg->setFrameShape(QFrame::StyledPanel);
     addContent(framewidg);
@@ -45,9 +48,9 @@ RackInspectorSection::RackInspectorSection(
     connect(this, &RackInspectorSection::deletePressed, this, [=] ()
     {
         auto cmd = new Command::RemoveRackFromConstraint{
-                   parentConstraint->model(),
+                   m_parent.model(),
                    m_model.id()};
-        emit m_parent->commandDispatcher()->submitCommand(cmd);
+        emit m_parent.commandDispatcher()->submitCommand(cmd);
     });
 
     // Slots
@@ -62,8 +65,17 @@ RackInspectorSection::RackInspectorSection(
         addSlotInspectorSection(slot);
     }
 
+    // add indention in section
+    auto indentWidg = new QWidget{this};
+    auto indentLay = new iscore::MarginLess<QHBoxLayout>;
+    indentWidg->setLayout(indentLay);
+
+    indentLay->addWidget(new Inspector::VSeparator{this});
+    indentLay->addWidget(m_slotSection);
+    indentLay->setStretchFactor(m_slotSection, 10);
+
     m_slotWidget = new AddSlotWidget{this};
-    lay->addWidget(m_slotSection);
+    lay->addWidget(indentWidg);
     lay->addWidget(m_slotWidget);
 
     connect(this, &InspectorSectionWidget::nameChanged,
@@ -74,7 +86,7 @@ void RackInspectorSection::createSlot()
 {
     auto cmd = new Command::AddSlotToRack{m_model};
 
-    emit m_parent->commandDispatcher()->submitCommand(cmd);
+    emit m_parent.commandDispatcher()->submitCommand(cmd);
 }
 
 void RackInspectorSection::ask_changeName(QString newName)
@@ -82,7 +94,7 @@ void RackInspectorSection::ask_changeName(QString newName)
     if(newName != m_model.metadata.name())
     {
         auto cmd = new Command::ChangeElementName<RackModel>{m_model, newName};
-        emit m_parent->commandDispatcher()->submitCommand(cmd);
+        emit m_parent.commandDispatcher()->submitCommand(cmd);
     }
 }
 

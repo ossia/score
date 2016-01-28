@@ -279,6 +279,7 @@ if(TARGET iscore_lib_inspector)
 "${CMAKE_CURRENT_SOURCE_DIR}/Scenario/Inspector/Constraint/Widgets/RackWidget.cpp"
 "${CMAKE_CURRENT_SOURCE_DIR}/Scenario/Inspector/Constraint/Widgets/DurationSectionWidget.cpp"
 "${CMAKE_CURRENT_SOURCE_DIR}/Scenario/Inspector/Constraint/Widgets/ProcessTabWidget.cpp"
+"${CMAKE_CURRENT_SOURCE_DIR}/Scenario/Inspector/Constraint/Widgets/ProcessViewTabWidget.cpp"
 "${CMAKE_CURRENT_SOURCE_DIR}/Scenario/Inspector/Constraint/ConstraintInspectorWidget.cpp"
 "${CMAKE_CURRENT_SOURCE_DIR}/Scenario/Inspector/Constraint/ConstraintInspectorDelegate.cpp"
 "${CMAKE_CURRENT_SOURCE_DIR}/Scenario/Inspector/Constraint/BaseConstraintInspectorDelegate.cpp"

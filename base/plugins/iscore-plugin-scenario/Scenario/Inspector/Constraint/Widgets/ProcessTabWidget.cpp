@@ -164,7 +164,7 @@ void ProcessTabWidget::updateDisplayedValues()
 {
     for(auto& process : m_processesSectionWidgets)
     {
-    m_processSection->removeContent(process);
+        m_processSection->removeContent(process);
     }
     m_processesSectionWidgets.clear();
 

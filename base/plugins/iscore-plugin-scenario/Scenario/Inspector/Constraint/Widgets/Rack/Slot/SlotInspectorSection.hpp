@@ -3,6 +3,7 @@
 #include <QString>
 #include <iscore/tools/SettableIdentifier.hpp>
 #include <nano_signal_slot.hpp>
+#include <Scenario/Inspector/Constraint/ConstraintInspectorWidget.hpp>
 
 namespace Process { class LayerModel; }
 namespace Process { class ProcessModel; }
@@ -13,7 +14,6 @@ namespace Scenario
 class AddLayerModelWidget;
 class RackInspectorSection;
 class SlotModel;
-class ConstraintInspectorWidget;
 // Contains a single rack which can contain multiple slots and a Add Slot button.
 class SlotInspectorSection final : public Inspector::InspectorSectionWidget, public Nano::Observer
 {
@@ -37,7 +37,7 @@ class SlotInspectorSection final : public Inspector::InspectorSectionWidget, pub
 
         const SlotModel& m_model;
 
-        ConstraintInspectorWidget* m_parent{};
+        const ConstraintInspectorWidget& m_parent;
         InspectorSectionWidget* m_lmSection {};
         AddLayerModelWidget* m_addLmWidget {};
         //std::vector<InspectorSectionWidget*> m_lmsSectionWidgets;

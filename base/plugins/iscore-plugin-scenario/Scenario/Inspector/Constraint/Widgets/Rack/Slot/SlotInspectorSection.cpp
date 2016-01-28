@@ -3,7 +3,6 @@
 #include <Scenario/Commands/Constraint/Rack/Slot/RemoveLayerModelFromSlot.hpp>
 #include <Scenario/Commands/Metadata/ChangeElementName.hpp>
 #include <Scenario/Document/Constraint/ConstraintModel.hpp>
-#include <Scenario/Inspector/Constraint/ConstraintInspectorWidget.hpp>
 #include <Scenario/Inspector/Constraint/Widgets/Rack/RackInspectorSection.hpp>
 #include <Scenario/Inspector/Constraint/Widgets/Rack/Slot/AddLayerModelWidget.hpp>
 #include <Scenario/ViewCommands/PutLayerModelToFront.hpp>
@@ -30,6 +29,10 @@
 #include <iscore/tools/SettableIdentifier.hpp>
 #include <iscore/tools/Todo.hpp>
 
+#include <iscore/widgets/MarginLess.hpp>
+
+#include <Inspector/Separator.hpp>
+
 namespace Scenario
 {
 SlotInspectorSection::SlotInspectorSection(
@@ -52,7 +55,7 @@ SlotInspectorSection::SlotInspectorSection(
     connect(this, &SlotInspectorSection::deletePressed, this, [&] ()
     {
         auto cmd = new Command::RemoveSlotFromRack{m_model};
-        emit m_parent->commandDispatcher()->submitCommand(cmd);
+        emit m_parent.commandDispatcher()->submitCommand(cmd);
     });
 
     // View model list
@@ -67,8 +70,17 @@ SlotInspectorSection::SlotInspectorSection(
         displayLayerModel(lm);
     }
 
+    // add indention in section
+    auto indentWidg = new QWidget{this};
+    auto indentLay = new iscore::MarginLess<QHBoxLayout>;
+    indentWidg->setLayout(indentLay);
+
+    indentLay->addWidget(new Inspector::VSeparator{this});
+    indentLay->addWidget(m_lmSection);
+    indentLay->setStretchFactor(m_lmSection, 10);
+
     m_addLmWidget = new AddLayerModelWidget{this};
-    lay->addWidget(m_lmSection);
+    lay->addWidget(indentWidg);
     lay->addWidget(m_addLmWidget);
 
     connect(this, &InspectorSectionWidget::nameChanged,
@@ -82,7 +94,7 @@ void SlotInspectorSection::createLayerModel(
                 m_model,
                 m_model.parentConstraint().processes.at(sharedProcessModelId)};
 
-    m_parent->commandDispatcher()->submitCommand(cmd);
+    m_parent.commandDispatcher()->submitCommand(cmd);
 }
 
 void SlotInspectorSection::displayLayerModel(const Process::LayerModel& lm)
@@ -119,7 +131,7 @@ void SlotInspectorSection::displayLayerModel(const Process::LayerModel& lm)
     connect(deleteButton, &QPushButton::pressed, this, [=] ()
     {
         auto cmd = new Command::RemoveLayerModelFromSlot{m_model, lm_id};
-        emit m_parent->commandDispatcher()->submitCommand(cmd);
+        emit m_parent.commandDispatcher()->submitCommand(cmd);
     });
     lay->addWidget(deleteButton, 1, 1);
 
@@ -159,7 +171,7 @@ void SlotInspectorSection::ask_changeName(QString newName)
     if(newName != m_model.metadata.name())
     {
         auto cmd = new Command::ChangeElementName<SlotModel>{m_model, newName};
-        emit m_parent->commandDispatcher()->submitCommand(cmd);
+        emit m_parent.commandDispatcher()->submitCommand(cmd);
     }
 }
 }

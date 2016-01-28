@@ -2,10 +2,7 @@
 #include <Inspector/Separator.hpp>
 #include <Process/Process.hpp>
 #include <Scenario/Application/ScenarioApplicationPlugin.hpp>
-#include <Scenario/Commands/Constraint/AddRackToConstraint.hpp>
 #include <Scenario/Commands/Constraint/SetLooping.hpp>
-#include <Scenario/Commands/Scenario/HideRackInViewModel.hpp>
-#include <Scenario/Commands/Scenario/ShowRackInViewModel.hpp>
 #include <Scenario/Document/Constraint/ConstraintModel.hpp>
 #include <Scenario/Document/Constraint/Rack/RackModel.hpp>
 #include <Scenario/Document/ScenarioDocument/ScenarioDocumentModel.hpp>
@@ -39,6 +36,7 @@
 #include "Widgets/Rack/RackInspectorSection.hpp"
 #include "Widgets/RackWidget.hpp"
 #include <Scenario/Inspector/Constraint/Widgets/ProcessTabWidget.hpp>
+#include <Scenario/Inspector/Constraint/Widgets/ProcessViewTabWidget.hpp>
 #include <iscore/application/ApplicationContext.hpp>
 #include <iscore/document/DocumentContext.hpp>
 #include <iscore/command/Dispatchers/CommandDispatcher.hpp>
@@ -105,7 +103,7 @@ ConstraintInspectorWidget::ConstraintInspectorWidget(
     }
 
     // Separator
-    m_properties.push_back(new Inspector::Separator {this});
+    m_properties.push_back(new Inspector::HSeparator {this});
 
     // Durations
     auto& ctrl = ctx.app.components.applicationPlugin<ScenarioApplicationPlugin>();
@@ -121,32 +119,15 @@ ConstraintInspectorWidget::ConstraintInspectorWidget(
     m_properties.push_back(loop);
 
     // Separator
-    m_properties.push_back(new Inspector::Separator {this});
+    m_properties.push_back(new Inspector::HSeparator {this});
 
-    // Processes
-    m_processesTabPage = new ProcessTabWidget{ *this, this};
-
-    // Separator
- //   m_properties.push_back(new Inspector::Separator {this});
-
-    // Rackes
-    auto viewTab = new QWidget{this};
-    auto viewLay = new iscore::MarginLess<QVBoxLayout>;
-    viewTab->setLayout(viewLay);
-
-    m_rackSection = new Inspector::InspectorSectionWidget {"Rackes", false, viewTab};
-    m_rackSection->setObjectName("Rackes");
-    m_rackSection->expand();
-
-    m_rackWidget = new RackWidget {this, viewTab};
-
-    viewLay->addWidget(m_rackSection);
-    viewLay->addWidget(m_rackWidget);
-//    m_properties.push_back(viewTab);
-
+    // tab Processes/View
     auto tabWidget = new QTabWidget{this};
+    m_processesTabPage = new ProcessTabWidget{ *this, this};
+    m_viewTabPage = new ProcessViewTabWidget{*this, this};
+
     tabWidget->addTab(m_processesTabPage, tr("Processes"));
-    tabWidget->addTab(viewTab, tr("View"));
+    tabWidget->addTab(m_viewTabPage, tr("View"));
 
     m_properties.push_back(tabWidget);
 
@@ -167,8 +148,8 @@ ConstraintInspectorWidget::ConstraintInspectorWidget(
     // Constraint interface
     model().processes.added.connect<ConstraintInspectorWidget, &ConstraintInspectorWidget::on_processCreated>(this);
     model().processes.removed.connect<ConstraintInspectorWidget, &ConstraintInspectorWidget::on_processRemoved>(this);
-    model().racks.added.connect<ConstraintInspectorWidget, &ConstraintInspectorWidget::on_rackCreated>(this);
-    model().racks.removed.connect<ConstraintInspectorWidget, &ConstraintInspectorWidget::on_rackRemoved>(this);
+    model().racks.added.connect<ProcessViewTabWidget, &ProcessViewTabWidget::on_rackCreated>(m_viewTabPage); // todo maybe not working ...
+    model().racks.removed.connect<ProcessViewTabWidget, &ProcessViewTabWidget::on_rackRemoved>(m_viewTabPage);
 
     con(model(), &ConstraintModel::viewModelCreated,
         this, &ConstraintInspectorWidget::on_constraintViewModelCreated);
@@ -203,67 +184,9 @@ void ConstraintInspectorWidget::updateDisplayedValues()
     // Cleanup the widgets
 
     m_processesTabPage->updateDisplayedValues();
-
-    for(auto& rack_pair : m_rackesSectionWidgets)
-    {
-        m_rackSection->removeContent(rack_pair.second);
-    }
-
-    m_rackesSectionWidgets.clear();
-
-    // Rack
-    for(const auto& rack : model().racks)
-    {
-        setupRack(rack);
-    }
+    m_viewTabPage->updateDisplayedValues();
 
     m_delegate->updateElements();
-}
-
-void ConstraintInspectorWidget::createRack()
-{
-    auto cmd = new Command::AddRackToConstraint{model()};
-    commandDispatcher()->submitCommand(cmd);
-}
-
-void ConstraintInspectorWidget::activeRackChanged(QString rack, ConstraintViewModel* vm)
-{
-    // TODO mettre à jour l'inspecteur si la rack affichée change (i.e. via une commande réseau).
-    if (m_rackWidget == nullptr)
-        return;
-
-    if(rack == m_rackWidget->hiddenText)
-    {
-        if(vm->isRackShown())
-        {
-            auto cmd = new Command::HideRackInViewModel(*vm);
-            emit commandDispatcher()->submitCommand(cmd);
-        }
-    }
-    else
-    {
-        for (auto& r : m_model.racks)
-        {
-            if(r.metadata.name() == rack)
-            {
-                auto id = r.id();
-                auto cmd = new Command::ShowRackInViewModel(*vm, id);
-                emit commandDispatcher()->submitCommand(cmd);
-            }
-        }
-    }
-}
-
-void ConstraintInspectorWidget::setupRack(const RackModel& rack)
-{
-    // Display the widget
-    RackInspectorSection* newRack = new RackInspectorSection {
-                                    rack.metadata.name(),
-                                    rack,
-                                    this};
-
-    m_rackesSectionWidgets[rack.id()] = newRack;
-    m_rackSection->addContent(newRack);
 }
 
 QWidget* ConstraintInspectorWidget::makeStatesWidget(Scenario::ScenarioModel* scenar)
@@ -309,36 +232,15 @@ void ConstraintInspectorWidget::on_processRemoved(
     m_processesTabPage->updateDisplayedValues();
 }
 
-
-void ConstraintInspectorWidget::on_rackCreated(
-        const RackModel& rack)
-{
-    setupRack(rack);
-    m_rackWidget->viewModelsChanged();
-}
-
-void ConstraintInspectorWidget::on_rackRemoved(const RackModel& rack)
-{
-    auto ptr = m_rackesSectionWidgets[rack.id()];
-    m_rackesSectionWidgets.erase(rack.id());
-
-    if(ptr)
-    {
-        ptr->deleteLater();
-    }
-
-    m_rackWidget->viewModelsChanged();
-}
-
 void ConstraintInspectorWidget::on_constraintViewModelCreated(const ConstraintViewModel&)
 {
     // OPTIMIZEME
-    m_rackWidget->viewModelsChanged();
+    m_viewTabPage->rackWidget()->viewModelsChanged();
 }
 
 void ConstraintInspectorWidget::on_constraintViewModelRemoved(const QObject*)
 {
     // OPTIMIZEME
-    m_rackWidget->viewModelsChanged();
+    m_viewTabPage->rackWidget()->viewModelsChanged();
 }
 }

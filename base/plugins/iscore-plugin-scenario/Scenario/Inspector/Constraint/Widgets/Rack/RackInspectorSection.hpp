@@ -5,10 +5,11 @@
 #include <QString>
 #include <unordered_map>
 
+#include <Scenario/Inspector/Constraint/ConstraintInspectorWidget.hpp>
+
 namespace Scenario
 {
 class AddSlotWidget;
-class ConstraintInspectorWidget;
 class RackModel;
 class SlotInspectorSection;
 class SlotModel;
@@ -22,22 +23,23 @@ class RackInspectorSection final :
         RackInspectorSection(
                 const QString& name,
                 const RackModel& model,
-                ConstraintInspectorWidget* parent);
+                const ConstraintInspectorWidget& parentCstr,
+                QWidget* parent);
 
         void addSlotInspectorSection(const SlotModel&);
         void createSlot();
 
-        auto constraintInspector() const
+        const ConstraintInspectorWidget& constraintInspector() const
         { return m_parent; }
 
     private:
-        void ask_changeName(QString newName);
+        const ConstraintInspectorWidget& m_parent;
+        const RackModel& m_model;
 
-        ConstraintInspectorWidget* m_parent{};
+        void ask_changeName(QString newName);
 
         void on_slotCreated(const SlotModel&);
         void on_slotRemoved(const SlotModel&);
-        const RackModel& m_model;
 
         InspectorSectionWidget* m_slotSection {};
         AddSlotWidget* m_slotWidget {};

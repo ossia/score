@@ -6,13 +6,13 @@ class QString;
 
 namespace Scenario
 {
-class ConstraintInspectorWidget;
+class ProcessViewTabWidget;
 class ConstraintModel;
 class ConstraintViewModel;
 class RackWidget final : public QWidget
 {
     public:
-        RackWidget(ConstraintInspectorWidget* parentCstr, QWidget* parent);
+        RackWidget(ProcessViewTabWidget* parentTabWidget, QWidget* parent);
 
         ~RackWidget();
 
@@ -25,7 +25,7 @@ class RackWidget final : public QWidget
     private:
         QWidget* m_comboBoxesWidget{};
         const ConstraintModel& m_model;
-        ConstraintInspectorWidget* m_parent {};
+        ProcessViewTabWidget* m_parent {};
 
 };
 }
