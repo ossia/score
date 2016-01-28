@@ -1,7 +1,13 @@
 # BUILD INSTRUCTIONS 
 
-  * i-score requirements : Qt5.4, CMake 3.0, boost
+  * i-score requirements : Qt >= 5.3, CMake >= 3.1, boost >= 1.55
   * Network plug-in requirements : libkf5-kdnssd for Bonjour
+
+### Packages : 
+
+On debian-like systems :
+    
+   sudo apt-get install cmake qtbase5-dev qtdeclarative5-dev qttools5-dev libboost-dev build-essentials g++
 
 ### Build : 
   
