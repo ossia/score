@@ -7,16 +7,11 @@ namespace JS
 {
 QJSValue APIWrapper::value(QJSValue address)
 {
-    // TODO optional class that moves on first use ?
-    auto engine = qjsEngine(this);
-    if(!engine)
-        return {};
-
     auto addr_str = address.toString();
     if(State::Address::validateString(addr_str))
     {
         return iscore::convert::JS::value(
-                    *engine,
+                    m_engine,
                     devices.updateProxy.refreshRemoteValue(State::Address::fromString(addr_str)));
     }
 
