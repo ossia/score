@@ -3,7 +3,6 @@
         <file>Ubuntu-R.ttf</file>
         <file>APCCourierBold.otf</file>
         <file>i-score.png</file>
-        <file>stylesheet.qss</file>
         <file>dict.txt</file>
     </qresource>
     <qresource prefix="/qss_icons">
