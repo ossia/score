@@ -64,7 +64,6 @@ void AddressEditWidget::customContextMenuEvent(const QPoint& p)
     {
         auto addr = Device::address(m_model->nodeFromModelIndex(m));
         setAddress(addr);
-        qDebug() << addr.toString();
          emit addressChanged(addr);
     });
 
