@@ -1,20 +1,32 @@
 #pragma once
-#include <QObject>
 #include <Inspector/InspectorWidgetFactoryInterface.hpp>
+#include <QList>
 
-class CurvePointInspectorFactory final : public InspectorWidgetFactory
+class QObject;
+class QString;
+class QWidget;
+namespace iscore {
+class Document;
+}  // namespace iscore
+
+namespace Automation
 {
+class PointInspectorFactory final :
+        public Inspector::InspectorWidgetFactory
+{
+        ISCORE_CONCRETE_FACTORY_DECL("c2fc4c5b-641f-41e3-8734-5caf77b27de8")
     public:
-    CurvePointInspectorFactory() :
+    PointInspectorFactory() :
         InspectorWidgetFactory {}
     {
 
     }
 
-    virtual InspectorWidgetBase* makeWidget(
+    Inspector::InspectorWidgetBase* makeWidget(
         const QObject& sourceElement,
-        iscore::Document& doc,
-        QWidget* parent) override;
+        const iscore::DocumentContext& doc,
+        QWidget* parent) const override;
 
-    virtual const QList<QString>& key_impl() const override;
+    bool matches(const QObject& object) const override;
 };
+}

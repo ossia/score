@@ -1,18 +1,46 @@
-#include "ScenarioPasteElements.hpp"
-#include <iscore/tools/SettableIdentifierGeneration.hpp>
+#include <Scenario/Document/Constraint/ConstraintModel.hpp>
 #include <Scenario/Document/Event/EventModel.hpp>
 #include <Scenario/Document/State/StateModel.hpp>
 #include <Scenario/Document/TimeNode/TimeNodeModel.hpp>
-#include <Scenario/Document/Constraint/ConstraintModel.hpp>
-
-#include <Scenario/Document/Constraint/ViewModels/Temporal/TemporalConstraintViewModel.hpp>
+#include <Scenario/Process/Algorithms/VerticalMovePolicy.hpp>
 #include <Scenario/Process/ScenarioModel.hpp>
 #include <Scenario/Process/Temporal/TemporalScenarioLayerModel.hpp>
-#include <core/document/Document.hpp>
-#include <Scenario/Process/Algorithms/VerticalMovePolicy.hpp>
 
+#include <boost/iterator/iterator_facade.hpp>
+#include <boost/multi_index/detail/hash_index_iterator.hpp>
 #include <iscore/tools/Clamp.hpp>
+#include <iscore/tools/SettableIdentifierGeneration.hpp>
+#include <QDataStream>
+#include <QtGlobal>
+#include <QHash>
+#include <QJsonArray>
+#include <QJsonValue>
+#include <algorithm>
+#include <cstddef>
+#include <iterator>
+#include <limits>
+#include <vector>
 
+#include <iscore/document/DocumentContext.hpp>
+#include <Process/LayerModel.hpp>
+#include <Process/Process.hpp>
+#include <Process/TimeValue.hpp>
+#include <Scenario/Document/Constraint/Rack/RackModel.hpp>
+#include <Scenario/Document/Constraint/ViewModels/ConstraintViewModel.hpp>
+#include <Scenario/Document/Constraint/ViewModels/ConstraintViewModelIdMap.hpp>
+#include <Scenario/Palette/ScenarioPoint.hpp>
+#include <Scenario/Process/AbstractScenarioLayerModel.hpp>
+#include <Scenario/Process/Algorithms/ProcessPolicy.hpp>
+#include "ScenarioPasteElements.hpp"
+#include <iscore/document/DocumentInterface.hpp>
+#include <iscore/serialization/DataStreamVisitor.hpp>
+#include <iscore/serialization/JSONVisitor.hpp>
+#include <iscore/serialization/VisitorCommon.hpp>
+#include <iscore/tools/ModelPathSerialization.hpp>
+#include <iscore/tools/NotifyingMap.hpp>
+#include <iscore/tools/ObjectPath.hpp>
+#include <iscore/tools/std/Algorithms.hpp>
+#include <core/document/Document.hpp>
 // Needed for copy since we want to generate IDs that are neither
 // in the scenario in which we are copying into, nor in the elements
 // that we copied because it may cause conflicts.
@@ -51,7 +79,10 @@ auto getStrongIdRangePtr(std::size_t s, const Vector& existing)
     return std::vector<Id<T>>(vec.begin() + existing.size(), vec.end());
 }
 
-
+namespace Scenario
+{
+namespace Command
+{
 ScenarioPasteElements::ScenarioPasteElements(
         Path<TemporalScenarioLayerModel>&& path,
         const QJsonObject& obj,
@@ -61,12 +92,10 @@ ScenarioPasteElements::ScenarioPasteElements(
     // We assign new ids WRT the elements of the scenario - these ids can
     // be easily mapped.
     const auto& tsModel = m_ts.find();
-    const ScenarioModel& scenario = ::model(tsModel);
+    const Scenario::ScenarioModel& scenario = ::model(tsModel);
 
-    // TODO the elements are child of the document
-    // because else the State cannot be constructed properly
-    // (it calls iscore::IDocument::commandStack...). This is ugly.
-    auto doc = iscore::IDocument::documentFromObject(scenario);
+    auto& doc = iscore::IDocument::documentContext(scenario);
+    auto& stack = iscore::IDocument::documentContext(scenario).commandStack;
 
 
     std::vector<TimeNodeModel*> timenodes;
@@ -80,7 +109,7 @@ ScenarioPasteElements::ScenarioPasteElements(
         constraints.reserve(json_arr.size());
         for(const auto& element : json_arr)
         {
-            constraints.emplace_back(new ConstraintModel{Deserializer<JSONObject>{element.toObject()}, doc});
+            constraints.emplace_back(new ConstraintModel{Deserializer<JSONObject>{element.toObject()}, &doc.document});
         }
     }
     {
@@ -88,7 +117,7 @@ ScenarioPasteElements::ScenarioPasteElements(
         timenodes.reserve(json_arr.size());
         for(const auto& element : json_arr)
         {
-            timenodes.emplace_back(new TimeNodeModel{Deserializer<JSONObject>{element.toObject()}, doc});
+            timenodes.emplace_back(new TimeNodeModel{Deserializer<JSONObject>{element.toObject()}, nullptr});
         }
     }
     {
@@ -96,7 +125,7 @@ ScenarioPasteElements::ScenarioPasteElements(
         events.reserve(json_arr.size());
         for(const auto& element : json_arr)
         {
-            events.emplace_back(new EventModel{Deserializer<JSONObject>{element.toObject()}, doc});
+            events.emplace_back(new EventModel{Deserializer<JSONObject>{element.toObject()}, nullptr});
         }
     }
     {
@@ -104,7 +133,7 @@ ScenarioPasteElements::ScenarioPasteElements(
         states.reserve(json_arr.size());
         for(const auto& element : json_arr)
         {
-            states.emplace_back(new StateModel{Deserializer<JSONObject>{element.toObject()}, doc});
+            states.emplace_back(new StateModel{Deserializer<JSONObject>{element.toObject()}, stack, nullptr});
         }
     }
 
@@ -190,19 +219,21 @@ ScenarioPasteElements::ScenarioPasteElements(
         int i = 0;
         for(ConstraintModel* constraint : constraints)
         {
-            for(StateModel* state : states)
-            {
-                if(state->id() == constraint->startState())
-                {
-                    state->setNextConstraint(constraint_ids[i]);
-                }
-                else if(state->id() == constraint->endState())
-                {
-                    state->setPreviousConstraint(constraint_ids[i]);
-                }
-            }
-
             constraint->setId(constraint_ids[i]);
+            {
+                auto start_state_id = find_if(states, [&] (auto state) {
+                    return state->id() == constraint->startState();
+                });
+                if(start_state_id != states.end())
+                    SetNextConstraint(**start_state_id, *constraint);
+            }
+            {
+                auto end_state_id = find_if(states, [&] (auto state) {
+                    return state->id() == constraint->endState();
+                });
+                if(end_state_id != states.end())
+                    SetPreviousConstraint(**end_state_id, *constraint);
+            }
             i++;
         }
     }
@@ -338,7 +369,7 @@ ScenarioPasteElements::ScenarioPasteElements(
 void ScenarioPasteElements::undo() const
 {
     auto& tsModel = m_ts.find();
-    ScenarioModel& scenario = ::model(tsModel);
+    Scenario::ScenarioModel& scenario = ::model(tsModel);
 
     for(const auto& elt : m_ids_timenodes)
     {
@@ -361,7 +392,7 @@ void ScenarioPasteElements::undo() const
 void ScenarioPasteElements::redo() const
 {
     auto& tsModel = m_ts.find();
-    ScenarioModel& scenario = ::model(tsModel);
+    Scenario::ScenarioModel& scenario = ::model(tsModel);
 
     std::vector<TimeNodeModel*> addedTimeNodes;
     addedTimeNodes.reserve(m_json_timenodes.size());
@@ -381,9 +412,10 @@ void ScenarioPasteElements::redo() const
         addedEvents.push_back(ev);
     }
 
+    auto& stack = iscore::IDocument::documentContext(scenario).commandStack;
     for(const auto& state : m_json_states)
     {
-        scenario.states.add(new StateModel(Deserializer<JSONObject>{state}, &scenario));
+        scenario.states.add(new StateModel(Deserializer<JSONObject>{state}, stack, &scenario));
     }
 
     for(const auto& constraint : m_json_constraints)
@@ -448,4 +480,7 @@ void ScenarioPasteElements::deserializeImpl(DataStreamOutput& s)
       >> m_json_constraints
 
       >> m_constraintViewModels;
+}
+
+}
 }

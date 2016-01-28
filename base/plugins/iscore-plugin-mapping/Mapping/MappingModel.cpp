@@ -1,40 +1,51 @@
-#include "MappingModel.hpp"
-#include "MappingLayerModel.hpp"
 #include <Curve/CurveModel.hpp>
-#include <Curve/Segment/Linear/LinearCurveSegmentModel.hpp>
 #include <Curve/Segment/Power/PowerCurveSegmentModel.hpp>
-#include <Curve/Point/CurvePointModel.hpp>
-
+#include <boost/optional/optional.hpp>
 #include <iscore/document/DocumentInterface.hpp>
 
-#include <Curve/Segment/PointArray/PointArrayCurveSegmentModel.hpp>
-MappingModel::MappingModel(
-        const TimeValue& duration,
-        const Id<Process>& id,
-        QObject* parent) :
-    CurveProcessModel {duration, id, MappingProcessMetadata::processObjectName(), parent}
+#include <Curve/Process/CurveProcessModel.hpp>
+#include <Curve/Segment/CurveSegmentModel.hpp>
+#include <Mapping/MappingProcessMetadata.hpp>
+#include "MappingLayerModel.hpp"
+#include "MappingModel.hpp"
+#include <Process/ModelMetadata.hpp>
+#include <State/Address.hpp>
+#include <iscore/plugins/documentdelegate/plugin/ElementPluginModelList.hpp>
+#include <iscore/tools/SettableIdentifier.hpp>
+
+namespace Process { class LayerModel; }
+class ProcessStateDataInterface;
+class QObject;
+
+namespace Mapping
 {
-    pluginModelList = new iscore::ElementPluginModelList{iscore::IDocument::documentFromObject(parent), this};
+ProcessModel::ProcessModel(
+        const TimeValue& duration,
+        const Id<Process::ProcessModel>& id,
+        QObject* parent) :
+    Curve::CurveProcessModel {duration, id, Metadata<ObjectKey_k, ProcessModel>::get(), parent}
+{
+    pluginModelList = new iscore::ElementPluginModelList{iscore::IDocument::documentContext(*parent), this};
 
     // Named shall be enough ?
-    setCurve(new CurveModel{Id<CurveModel>(45345), this});
+    setCurve(new Curve::Model{Id<Curve::Model>(45345), this});
 
-    auto s1 = new DefaultCurveSegmentModel(Id<CurveSegmentModel>(1), m_curve);
+    auto s1 = new Curve::DefaultCurveSegmentModel(Id<Curve::SegmentModel>(1), m_curve);
     s1->setStart({0., 0.0});
     s1->setEnd({1., 1.});
 
     m_curve->addSegment(s1);
-    connect(m_curve, &CurveModel::changed,
-            this, &MappingModel::curveChanged);
+    connect(m_curve, &Curve::Model::changed,
+            this, &ProcessModel::curveChanged);
 
     metadata.setName(QString("Mapping.%1").arg(*this->id().val()));
 }
 
-MappingModel::MappingModel(
-        const MappingModel& source,
-        const Id<Process>& id,
+ProcessModel::ProcessModel(
+        const ProcessModel& source,
+        const Id<Process::ProcessModel>& id,
         QObject* parent):
-    CurveProcessModel{source, id, MappingProcessMetadata::processObjectName(), parent},
+    CurveProcessModel{source, id, Metadata<ObjectKey_k, ProcessModel>::get(), parent},
     m_sourceAddress(source.sourceAddress()),
     m_targetAddress(source.targetAddress()),
     m_sourceMin{source.sourceMin()},
@@ -44,96 +55,96 @@ MappingModel::MappingModel(
 {
     setCurve(source.curve().clone(source.curve().id(), this));
     pluginModelList = new iscore::ElementPluginModelList(*source.pluginModelList, this);
-    connect(m_curve, &CurveModel::changed,
-            this, &MappingModel::curveChanged);
+    connect(m_curve, &Curve::Model::changed,
+            this, &ProcessModel::curveChanged);
     metadata.setName(QString("Mapping.%1").arg(*this->id().val()));
 }
 
-Process* MappingModel::clone(
-        const Id<Process>& newId,
+Process::ProcessModel* ProcessModel::clone(
+        const Id<Process::ProcessModel>& newId,
         QObject* newParent) const
 {
-    return new MappingModel {*this, newId, newParent};
+    return new ProcessModel {*this, newId, newParent};
 }
 
-const ProcessFactoryKey& MappingModel::key() const
+ProcessFactoryKey ProcessModel::concreteFactoryKey() const
 {
-    return MappingProcessMetadata::factoryKey();
+    return Metadata<ConcreteFactoryKey_k, ProcessModel>::get();
 }
 
 
-QString MappingModel::prettyName() const
+QString ProcessModel::prettyName() const
 {
     return metadata.name() + " : " + sourceAddress().toString();
 }
 
-void MappingModel::setDurationAndScale(const TimeValue& newDuration)
+void ProcessModel::setDurationAndScale(const TimeValue& newDuration)
 {
     // Whatever happens we want to keep the same curve.
     setDuration(newDuration);
     m_curve->changed();
 }
 
-void MappingModel::setDurationAndGrow(const TimeValue& newDuration)
+void ProcessModel::setDurationAndGrow(const TimeValue& newDuration)
 {
     setDuration(newDuration);
     m_curve->changed();
 }
 
-void MappingModel::setDurationAndShrink(const TimeValue& newDuration)
+void ProcessModel::setDurationAndShrink(const TimeValue& newDuration)
 {
     setDuration(newDuration);
     m_curve->changed();
 }
 
-LayerModel* MappingModel::makeLayer_impl(
-        const Id<LayerModel>& viewModelId,
+Process::LayerModel* ProcessModel::makeLayer_impl(
+        const Id<Process::LayerModel>& viewModelId,
         const QByteArray& constructionData,
         QObject* parent)
 {
-    auto vm = new MappingLayerModel{*this, viewModelId, parent};
+    auto vm = new LayerModel{*this, viewModelId, parent};
     return vm;
 }
 
-LayerModel* MappingModel::cloneLayer_impl(
-        const Id<LayerModel>& newId,
-        const LayerModel& source,
+Process::LayerModel* ProcessModel::cloneLayer_impl(
+        const Id<Process::LayerModel>& newId,
+        const Process::LayerModel& source,
         QObject* parent)
 {
-    auto vm = new MappingLayerModel {
-              static_cast<const MappingLayerModel&>(source), *this, newId, parent};
+    auto vm = new LayerModel {
+              static_cast<const LayerModel&>(source), *this, newId, parent};
     return vm;
 }
 
 
-ProcessStateDataInterface* MappingModel::startState() const
+ProcessStateDataInterface* ProcessModel::startStateData() const
 {
     return nullptr;
 }
 
-ProcessStateDataInterface* MappingModel::endState() const
+ProcessStateDataInterface* ProcessModel::endStateData() const
 {
     return nullptr;
 }
 
 
 
-iscore::Address MappingModel::sourceAddress() const
+State::Address ProcessModel::sourceAddress() const
 {
     return m_sourceAddress;
 }
 
-double MappingModel::sourceMin() const
+double ProcessModel::sourceMin() const
 {
     return m_sourceMin;
 }
 
-double MappingModel::sourceMax() const
+double ProcessModel::sourceMax() const
 {
     return m_sourceMax;
 }
 
-void MappingModel::setSourceAddress(const iscore::Address& arg)
+void ProcessModel::setSourceAddress(const State::Address& arg)
 {
     if(m_sourceAddress == arg)
     {
@@ -145,7 +156,7 @@ void MappingModel::setSourceAddress(const iscore::Address& arg)
     emit m_curve->changed();
 }
 
-void MappingModel::setSourceMin(double arg)
+void ProcessModel::setSourceMin(double arg)
 {
     if (m_sourceMin == arg)
         return;
@@ -155,7 +166,7 @@ void MappingModel::setSourceMin(double arg)
     emit m_curve->changed();
 }
 
-void MappingModel::setSourceMax(double arg)
+void ProcessModel::setSourceMax(double arg)
 {
     if (m_sourceMax == arg)
         return;
@@ -167,22 +178,22 @@ void MappingModel::setSourceMax(double arg)
 
 
 
-iscore::Address MappingModel::targetAddress() const
+State::Address ProcessModel::targetAddress() const
 {
     return m_targetAddress;
 }
 
-double MappingModel::targetMin() const
+double ProcessModel::targetMin() const
 {
     return m_targetMin;
 }
 
-double MappingModel::targetMax() const
+double ProcessModel::targetMax() const
 {
     return m_targetMax;
 }
 
-void MappingModel::setTargetAddress(const iscore::Address& arg)
+void ProcessModel::setTargetAddress(const State::Address& arg)
 {
     if(m_targetAddress == arg)
     {
@@ -194,7 +205,7 @@ void MappingModel::setTargetAddress(const iscore::Address& arg)
     emit m_curve->changed();
 }
 
-void MappingModel::setTargetMin(double arg)
+void ProcessModel::setTargetMin(double arg)
 {
     if (m_targetMin == arg)
         return;
@@ -204,7 +215,7 @@ void MappingModel::setTargetMin(double arg)
     emit m_curve->changed();
 }
 
-void MappingModel::setTargetMax(double arg)
+void ProcessModel::setTargetMax(double arg)
 {
     if (m_targetMax == arg)
         return;
@@ -213,4 +224,4 @@ void MappingModel::setTargetMax(double arg)
     emit targetMaxChanged(arg);
     emit m_curve->changed();
 }
-
+}

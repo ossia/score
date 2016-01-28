@@ -1,12 +1,17 @@
 #pragma once
+#include <Device/Node/DeviceNode.hpp>
 #include <Explorer/Commands/DeviceExplorerCommandFactory.hpp>
 #include <iscore/command/SerializableCommand.hpp>
 #include <iscore/tools/ModelPath.hpp>
 
-#include <Explorer/Explorer/DeviceExplorerModel.hpp>
+class DataStreamInput;
+class DataStreamOutput;
 
-#include <Device/Node/DeviceNode.hpp>
-
+namespace DeviceExplorer
+{
+class DeviceDocumentPlugin;
+namespace Command
+{
 /**
  * @brief The RemoveAddress class
  *
@@ -14,11 +19,11 @@
  */
 class RemoveAddress final : public iscore::SerializableCommand
 {
-    ISCORE_COMMAND_DECL(DeviceExplorerCommandFactoryName(), RemoveAddress, "RemoveAddress")
+    ISCORE_COMMAND_DECL(DeviceExplorerCommandFactoryName(), RemoveAddress, "Remove an address")
     public:
         RemoveAddress(
                    Path<DeviceDocumentPlugin>&& device_tree,
-                   const iscore::NodePath &nodePath);
+                   const Device::NodePath &nodePath);
 
         void undo() const override;
         void redo() const override;
@@ -29,6 +34,8 @@ class RemoveAddress final : public iscore::SerializableCommand
 
     private:
         Path<DeviceDocumentPlugin> m_devicesModel;
-        iscore::NodePath m_nodePath;
-        iscore::Node m_savedNode;
+        Device::NodePath m_nodePath;
+        Device::Node m_savedNode;
 };
+}
+}

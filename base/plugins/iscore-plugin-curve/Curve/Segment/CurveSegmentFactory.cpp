@@ -1,6 +1,8 @@
 #include "CurveSegmentFactory.hpp"
-
-CurveSegmentFactory::~CurveSegmentFactory()
+namespace Curve
+{
+SegmentFactory::~SegmentFactory()
 {
 
+}
 }

@@ -1,36 +1,46 @@
-#include "Relation.hpp"
 #include <State/ValueConversion.hpp>
+#include <QMap>
 
+#include "Relation.hpp"
 
-QString iscore::Relation::toString() const
+namespace State {
+struct Address;
+struct Value;
+}  // namespace iscore
+
+QString State::Relation::relMemberToString(State::RelationMember m) const
 {
     using namespace eggs::variants;
-    static const auto relMemberToString = [] (const auto& m) -> QString
+    switch(m.which())
     {
-        switch(m.which())
-        {
-            case 0:
-                return get<iscore::Address>(m).toString();
-            case 1:
-                return iscore::convert::toPrettyString(get<iscore::Value>(m));
-            default:
-                return "ERROR";
-        }
-    };
+        case 0:
+            return get<State::Address>(m).toString();
+        case 1:
+            return State::convert::toPrettyString(get<State::Value>(m));
+        default:
+            return "ERROR";
+    }
+}
 
-    // todo boost.bimap
-    static const QMap<iscore::Relation::Operator, QString> opToString
-    {
-        {iscore::Relation::Operator::LowerEqual,    "<="},
-        {iscore::Relation::Operator::GreaterEqual,  ">="},
-        {iscore::Relation::Operator::Lower,         "<"},
-        {iscore::Relation::Operator::Greater,       ">"},
-        {iscore::Relation::Operator::Different,     "!="},
-        {iscore::Relation::Operator::Equal,         "=="}
-    };
+QString State::Relation::toString() const
+{
+    using namespace eggs::variants;
 
     return QString("%1 %2 %3")
             .arg(relMemberToString(lhs))
-            .arg(opToString[op])
+            .arg(opToString()[op])
             .arg(relMemberToString(rhs));
+}
+
+const QMap<State::Relation::Operator, QString> State::opToString()
+{
+    return {
+        {State::Relation::Operator::LowerEqual,    "<="},
+        {State::Relation::Operator::GreaterEqual,  ">="},
+        {State::Relation::Operator::Lower,         "<"},
+        {State::Relation::Operator::Greater,       ">"},
+        {State::Relation::Operator::Different,     "!="},
+        {State::Relation::Operator::Equal,         "=="},
+        {State::Relation::Operator::None,          ""}
+    };
 }

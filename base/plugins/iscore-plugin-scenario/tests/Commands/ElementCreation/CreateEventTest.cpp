@@ -20,7 +20,7 @@ class CreateEventTest: public QObject
 
         void CreateTest()
         {
-            ScenarioModel* scenar = new ScenarioModel(std::chrono::seconds(15), Id<ProcessModel> {0}, qApp);
+            Scenario::ScenarioModel* scenar = new ScenarioModel(std::chrono::seconds(15), Id<ProcessModel> {0}, qApp);
             EventData data {};
             // data.id = 0; unused here
             data.dDate.setMSecs(10);
@@ -56,7 +56,7 @@ class CreateEventTest: public QObject
         }
         void CreateOnTimeNodeTest()
         {
-            ScenarioModel* scenar = new ScenarioModel(std::chrono::seconds(15), Id<ProcessModel> {0}, qApp);
+            Scenario::ScenarioModel* scenar = new ScenarioModel(std::chrono::seconds(15), Id<ProcessModel> {0}, qApp);
             EventData data {};
             data.dDate.setMSecs(10);
             data.relativeY = 0.6;

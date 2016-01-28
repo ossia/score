@@ -1,8 +1,13 @@
 #pragma once
 
-#include <QObject>
 #include <Process/TimeValue.hpp>
+#include <QObject>
+#include <QPair>
+#include <QPoint>
+#include <QVector>
 
+namespace Scenario
+{
 class AbstractTimeRulerView;
 
 class AbstractTimeRuler : public QObject
@@ -19,12 +24,11 @@ class AbstractTimeRuler : public QObject
         { return m_pixelPerMillis; }
         const QVector<QPair<double, TimeValue>>& graduationsSpacing() const;
 
-    signals:
-        void drag(QPointF origin, QPointF current);
-
-    public slots:
         virtual void setStartPoint(TimeValue dur);
         void setPixelPerMillis(double factor);
+
+    signals:
+        void drag(QPointF origin, QPointF current);
 
     protected:
         void computeGraduationSpacing();
@@ -38,3 +42,4 @@ class AbstractTimeRuler : public QObject
         double m_pixelPerMillis {0.01};
         int m_totalScroll{};
 };
+}

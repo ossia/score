@@ -1,11 +1,21 @@
-#include "CopySlot.hpp"
-
 #include <Scenario/Document/Constraint/Rack/RackModel.hpp>
 #include <Scenario/Document/Constraint/Rack/Slot/SlotModel.hpp>
-#include <iscore/tools/SettableIdentifierGeneration.hpp>
 
-using namespace iscore;
-using namespace Scenario::Command;
+#include <boost/iterator/iterator_facade.hpp>
+#include <boost/multi_index/detail/hash_index_iterator.hpp>
+#include <iscore/tools/SettableIdentifierGeneration.hpp>
+#include <vector>
+
+#include "CopySlot.hpp"
+#include <iscore/serialization/DataStreamVisitor.hpp>
+#include <iscore/tools/ModelPath.hpp>
+#include <iscore/tools/ModelPathSerialization.hpp>
+#include <iscore/tools/NotifyingMap.hpp>
+
+namespace Scenario
+{
+namespace Command
+{
 
 CopySlot::CopySlot(Path<SlotModel>&& slotToCopy,
                    Path<RackModel>&& targetRackPath) :
@@ -42,4 +52,6 @@ void CopySlot::serializeImpl(DataStreamInput& s) const
 void CopySlot::deserializeImpl(DataStreamOutput& s)
 {
     s >> m_slotPath >> m_targetRackPath >> m_newSlotId;
+}
+}
 }

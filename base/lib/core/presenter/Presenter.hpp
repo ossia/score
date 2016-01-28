@@ -1,25 +1,19 @@
 #pragma once
-#include <core/presenter/MenubarManager.hpp>
-
-#include <set>
-#include <core/document/Document.hpp>
+#include <iscore/application/ApplicationComponents.hpp>
+#include <iscore/application/ApplicationContext.hpp>
 #include <core/presenter/DocumentManager.hpp>
-
+#include <core/presenter/MenubarManager.hpp>
 #include <iscore/tools/NamedObject.hpp>
-#include <iscore/tools/ObjectPath.hpp>
-
 #include <iscore/widgets/OrderedToolbar.hpp>
-#include <iscore/command/CommandGeneratorMap.hpp>
-#include <core/application/ApplicationComponents.hpp>
-#include <unordered_map>
+#include <vector>
+
+#include <iscore_lib_base_export.h>
+class QObject;
 
 
 namespace iscore
 {
-    class SerializableCommand;
     class View;
-    class Presenter;
-
 
     /**
      * @brief The Presenter class
@@ -30,11 +24,14 @@ namespace iscore
      * It is also able to instantiate a Command from serialized Undo/Redo data.
      * (this should go in the DocumentPresenter maybe ?)
      */
-    class Presenter final : public NamedObject
+    class ISCORE_LIB_BASE_EXPORT Presenter final : public NamedObject
     {
             Q_OBJECT
         public:
-            Presenter(iscore::View* view, QObject* parent);
+            Presenter(
+                    const iscore::ApplicationSettings& app,
+                    iscore::View* view,
+                    QObject* parent);
 
             // Exit i-score
             bool exit();
@@ -53,6 +50,8 @@ namespace iscore
             { return m_docManager; }
             const ApplicationComponents& applicationComponents()
             { return m_components_readonly; }
+            const ApplicationContext& applicationContext()
+            { return m_context; }
 
             auto& components()
             { return m_components; }
@@ -65,6 +64,7 @@ namespace iscore
             ApplicationComponents m_components_readonly;
 
             MenubarManager m_menubar;
+            ApplicationContext m_context;
 
             std::vector<OrderedToolbar> m_toolbars;
 

@@ -1,24 +1,23 @@
 #pragma once
-#include "Slot/SlotPresenter.hpp"
-#include "Slot/SlotModel.hpp"
-
-#include <iscore/tools/NamedObject.hpp>
-#include <iscore/tools/IdentifiedObjectMap.hpp>
 #include <Process/TimeValue.hpp>
 #include <Process/ZoomHelper.hpp>
+#include <iscore/tools/IdentifiedObjectMap.hpp>
+#include <iscore/tools/NamedObject.hpp>
+#include <QtGlobal>
+#include <QPoint>
 
-class Process;
-class SlotPresenter;
+#include <nano_signal_slot.hpp>
+#include "Slot/SlotModel.hpp"
+#include "Slot/SlotPresenter.hpp"
+
+class QObject;
+#include <iscore/tools/SettableIdentifier.hpp>
+
+namespace Scenario
+{
 class RackModel;
 class RackView;
-class SlotModel;
-
-namespace iscore
-{
-    class SerializableCommand;
-}
-
-class RackPresenter final : public NamedObject
+class RackPresenter final : public NamedObject, public Nano::Observer
 {
         Q_OBJECT
 
@@ -43,6 +42,12 @@ class RackPresenter final : public NamedObject
         void setDisabledSlotState();
         void setEnabledSlotState();
 
+        void on_durationChanged(const TimeValue&);
+
+        void on_askUpdate();
+
+        void on_zoomRatioChanged(ZoomRatio);
+        void on_slotPositionsChanged();
 
     signals:
         void askUpdate();
@@ -50,15 +55,6 @@ class RackPresenter final : public NamedObject
         void pressed(const QPointF&);
         void moved(const QPointF&);
         void released(const QPointF&);
-
-
-    public slots:
-        void on_durationChanged(const TimeValue&);
-
-        void on_askUpdate();
-
-        void on_zoomRatioChanged(ZoomRatio);
-        void on_slotPositionsChanged();
 
     private:
         void on_slotCreated(const SlotModel&);
@@ -76,4 +72,4 @@ class RackPresenter final : public NamedObject
         ZoomRatio m_zoomRatio{};
         TimeValue m_duration {};
 };
-
+}

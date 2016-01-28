@@ -1,31 +1,46 @@
 #pragma once
-#include <iscore/tools/NamedObject.hpp>
-#include <iscore/selection/SelectionStack.hpp>
-#include <iscore/locking/ObjectLocker.hpp>
 #include <core/command/CommandStack.hpp>
-#include <core/document/DocumentContext.hpp>
+#include <iscore/document/DocumentContext.hpp>
+#include <iscore/locking/ObjectLocker.hpp>
+#include <iscore/selection/SelectionStack.hpp>
+#include <iscore/tools/NamedObject.hpp>
+#include <core/document/DocumentMetadata.hpp>
+#include <QByteArray>
+#include <QJsonObject>
+#include <QString>
+#include <QVariant>
 
-#include <core/document/DocumentBackupManager.hpp>
+class QObject;
+class QWidget;
+namespace iscore {
+class DocumentBackupManager;
+}  // namespace iscore
+#include <iscore/tools/SettableIdentifier.hpp>
+#include <iscore_lib_base_export.h>
 
 namespace iscore
 {
+class DocumentDelegateFactory;
 class DocumentModel;
 class DocumentPresenter;
 class DocumentView;
-class DocumentDelegateFactoryInterface;
 class PanelFactory;
 class PanelPresenter;
+
 /**
      * @brief The Document class is the central part of the software.
      *
      * It is similar to the opened file in Word for instance, this is the
      * data on which i-score operates, further defined by the plugins.
      */
-class Document final : public NamedObject
+class ISCORE_LIB_BASE_EXPORT Document final : public NamedObject
 {
         Q_OBJECT
         friend class DocumentBuilder;
+        friend struct DocumentContext;
     public:
+        DocumentMetadata metadata;
+
         ~Document();
 
         const Id<DocumentModel>& id() const;
@@ -39,7 +54,7 @@ class Document final : public NamedObject
         ObjectLocker& locker()
         { return m_objectLocker; }
 
-        DocumentContext& context()
+        const DocumentContext& context() const
         { return m_context; }
 
         DocumentModel& model() const
@@ -66,29 +81,26 @@ class Document final : public NamedObject
 
         void setBackupMgr(DocumentBackupManager* backupMgr);
 
-        QString docFileName() const;
-        void setDocFileName(const QString &docFileName);
-
-    signals:
-        void fileNameChanged(const QString& newName);
-
     private:
         // These are to be constructed by DocumentBuilder.
         Document(
+                const QString& name,
                 const Id<DocumentModel>& id,
-                DocumentDelegateFactoryInterface* type,
+                DocumentDelegateFactory* type,
                 QWidget* parentview,
                 QObject* parent);
 
         Document(
                 const QVariant& data,
-                DocumentDelegateFactoryInterface* type,
+                DocumentDelegateFactory* type,
                 QWidget* parentview,
                 QObject* parent);
 
         void init();
 
         CommandStack m_commandStack;
+        CommandStackFacade m_commandStackFacade{m_commandStack};
+
         SelectionStack m_selectionStack;
         ObjectLocker m_objectLocker;
 

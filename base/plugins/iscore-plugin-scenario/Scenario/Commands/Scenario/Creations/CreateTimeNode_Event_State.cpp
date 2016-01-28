@@ -1,13 +1,26 @@
-#include "CreateTimeNode_Event_State.hpp"
-
 #include <Scenario/Process/Algorithms/StandardCreationPolicy.hpp>
 #include <Scenario/Process/ScenarioModel.hpp>
 
+#include <boost/iterator/iterator_facade.hpp>
+#include <boost/multi_index/detail/hash_index_iterator.hpp>
 #include <iscore/tools/SettableIdentifierGeneration.hpp>
+#include <QByteArray>
+#include <vector>
 
-using namespace Scenario::Command;
+#include "CreateTimeNode_Event_State.hpp"
+#include <Process/TimeValue.hpp>
+#include <Scenario/Commands/Scenario/Creations/CreateEvent_State.hpp>
+#include <Scenario/Document/TimeNode/TimeNodeModel.hpp>
+#include <iscore/serialization/DataStreamVisitor.hpp>
+#include <iscore/tools/NotifyingMap.hpp>
+
+
+namespace Scenario
+{
+namespace Command
+{
 CreateTimeNode_Event_State::CreateTimeNode_Event_State(
-        const ScenarioModel& scenario,
+        const Scenario::ScenarioModel& scenario,
         const TimeValue& date,
         double stateY):
     m_newTimeNode{getStrongId(scenario.timeNodes)},
@@ -20,7 +33,7 @@ CreateTimeNode_Event_State::CreateTimeNode_Event_State(
 }
 
 CreateTimeNode_Event_State::CreateTimeNode_Event_State(
-        const Path<ScenarioModel>&scenario,
+        const Path<Scenario::ScenarioModel>&scenario,
         const TimeValue& date,
         double stateY):
     CreateTimeNode_Event_State{scenario.find(),
@@ -65,4 +78,6 @@ void CreateTimeNode_Event_State::deserializeImpl(DataStreamOutput& s)
     s >> m_newTimeNode >> m_date >> b;
 
     m_command.deserialize(b);
+}
+}
 }

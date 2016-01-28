@@ -1,7 +1,12 @@
-#include "CharValueWidget.hpp"
 #include <iscore/widgets/MarginLess.hpp>
-#include <QLineEdit>
 #include <QGridLayout>
+#include <QLineEdit>
+#include <QString>
+
+#include "CharValueWidget.hpp"
+#include <State/Widgets/Values/ValueWidget.hpp>
+
+class QWidget;
 
 CharValueWidget::CharValueWidget(QChar value, QWidget *parent)
     : ValueWidget{parent}
@@ -15,8 +20,8 @@ CharValueWidget::CharValueWidget(QChar value, QWidget *parent)
     this->setLayout(lay);
 }
 
-iscore::Value CharValueWidget::value() const
+State::Value CharValueWidget::value() const
 {
     auto txt = m_value->text();
-    return iscore::Value{txt.length() > 0 ? txt[0] : QChar{}};
+    return State::Value{txt.length() > 0 ? txt[0] : QChar{}};
 }

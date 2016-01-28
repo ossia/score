@@ -6,6 +6,6 @@ class DocumentModel;
 class UndoModel final : public iscore::PanelModel
 {
     public:
-        explicit UndoModel(iscore::DocumentModel *model);
+        explicit UndoModel(QObject* parent);
         int panelId() const override;
 };

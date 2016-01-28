@@ -1,12 +1,13 @@
 #pragma once
 #include <QObject>
+#include <iscore_lib_base_export.h>
 
 /**
  * @brief The Selectable class
  *
  * A component that allows a class to be selected (or not).
  */
-class Selectable final : public QObject
+class ISCORE_LIB_BASE_EXPORT Selectable final : public QObject
 {
         Q_OBJECT
     public:

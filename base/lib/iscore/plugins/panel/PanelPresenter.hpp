@@ -1,18 +1,21 @@
 #pragma once
 #include <QObject>
-#include <core/presenter/Presenter.hpp>
+#include <iscore_lib_base_export.h>
+
+namespace iscore {
+
+}  // namespace iscore
+
 namespace iscore
 {
     class PanelModel;
     class PanelView;
-    class SerializableCommand;
 
-    class PanelPresenter : public QObject
+    class ISCORE_LIB_BASE_EXPORT PanelPresenter : public QObject
     {
             Q_OBJECT
         public:
-            PanelPresenter(Presenter* parent_presenter,
-                                    PanelView* view);
+            PanelPresenter(PanelView* view, QObject* parent);
 
             virtual ~PanelPresenter();
 
@@ -22,14 +25,14 @@ namespace iscore
             PanelModel* model() const;
 
         protected:
-            virtual void on_modelChanged() = 0;
+            virtual void on_modelChanged(
+                    PanelModel* oldm,
+                    PanelModel* newm) = 0;
 
             PanelView* view() const;
-            Presenter* presenter() const;
 
         private:
             PanelModel* m_model{};
             PanelView* m_view{};
-            Presenter* m_parentPresenter{};
     };
 }

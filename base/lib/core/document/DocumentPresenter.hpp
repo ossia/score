@@ -1,14 +1,14 @@
 #pragma once
-#include <memory>
 #include <iscore/tools/NamedObject.hpp>
-#include <iscore/tools/ObjectPath.hpp>
+
+class QObject;
 
 namespace iscore
 {
+    class DocumentDelegateFactory;
+    class DocumentDelegatePresenterInterface;
     class DocumentModel;
     class DocumentView;
-    class DocumentDelegatePresenterInterface;
-    class DocumentDelegateFactoryInterface;
 
     /**
      * @brief The DocumentPresenter class
@@ -19,9 +19,9 @@ namespace iscore
     {
             Q_OBJECT
         public:
-            DocumentPresenter(DocumentDelegateFactoryInterface*,
-                              DocumentModel*,
-                              DocumentView*,
+            DocumentPresenter(DocumentDelegateFactory*,
+                              const DocumentModel&,
+                              DocumentView&,
                               QObject* parent);
 
 
@@ -29,8 +29,8 @@ namespace iscore
             { return m_presenter; }
 
 
-            DocumentView* m_view {};
-            DocumentModel* m_model {};
+            DocumentView& m_view;
+            const DocumentModel& m_model;
             DocumentDelegatePresenterInterface* m_presenter {};
     };
 }

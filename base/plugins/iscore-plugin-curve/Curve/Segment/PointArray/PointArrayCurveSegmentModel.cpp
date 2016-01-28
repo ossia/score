@@ -1,14 +1,27 @@
-#include "PointArrayCurveSegmentModel.hpp"
 #include <Curve/Segment/Linear/LinearCurveSegmentModel.hpp>
+#include <boost/optional/optional.hpp>
+
 #include <iscore/serialization/VisitorCommon.hpp>
+#include <QDebug>
+#include <cstddef>
+#include <functional>
+#include <iterator>
+
+#include <Curve/Palette/CurvePoint.hpp>
+#include <Curve/Segment/CurveSegmentData.hpp>
+#include "PointArrayCurveSegmentModel.hpp"
+#include <iscore/tools/SettableIdentifier.hpp>
 #include "psimpl.h"
 
-PointArrayCurveSegmentModel::PointArrayCurveSegmentModel(
-        const CurveSegmentData& dat,
-        QObject* parent):
-    CurveSegmentModel{dat, parent}
+class QObject;
+namespace Curve
 {
-    const auto& pa_data = dat.specificSegmentData.value<PointArrayCurveSegmentData>();
+PointArraySegment::PointArraySegment(
+        const SegmentData& dat,
+        QObject* parent):
+    SegmentModel{dat, parent}
+{
+    const auto& pa_data = dat.specificSegmentData.value<PointArraySegmentData>();
     min_x = pa_data.min_x;
     max_x = pa_data.max_x;
     min_y = pa_data.min_y;
@@ -21,11 +34,11 @@ PointArrayCurveSegmentModel::PointArrayCurveSegmentModel(
 }
 
 
-CurveSegmentModel*PointArrayCurveSegmentModel::clone(
-        const Id<CurveSegmentModel>& id,
+SegmentModel*PointArraySegment::clone(
+        const Id<SegmentModel>& id,
         QObject *parent) const
 {
-    auto cs = new PointArrayCurveSegmentModel{id, parent};
+    auto cs = new PointArraySegment{id, parent};
     cs->setStart(this->start());
     cs->setEnd(this->end());
 
@@ -33,28 +46,28 @@ CurveSegmentModel*PointArrayCurveSegmentModel::clone(
     return cs;
 }
 
-const CurveSegmentFactoryKey& PointArrayCurveSegmentModel::key() const
+SegmentFactoryKey PointArraySegment::concreteFactoryKey() const
 {
-    static const CurveSegmentFactoryKey name{"PointArray"};
+    static const SegmentFactoryKey name{"c598b840-db67-4c8f-937a-46cfac87cb59"};
     return name;
 }
 
-void PointArrayCurveSegmentModel::serialize(const VisitorVariant& vis) const
+void PointArraySegment::serialize_impl(const VisitorVariant& vis) const
 {
     serialize_dyn(vis, *this);
 }
 
-void PointArrayCurveSegmentModel::on_startChanged()
+void PointArraySegment::on_startChanged()
 {
     emit dataChanged();
 }
 
-void PointArrayCurveSegmentModel::on_endChanged()
+void PointArraySegment::on_endChanged()
 {
     emit dataChanged();
 }
 
-void PointArrayCurveSegmentModel::updateData(int numInterp) const
+void PointArraySegment::updateData(int numInterp) const
 {
     if(!m_valid)
     {
@@ -75,13 +88,13 @@ void PointArrayCurveSegmentModel::updateData(int numInterp) const
     }
 }
 
-double PointArrayCurveSegmentModel::valueAt(double x) const
+double PointArraySegment::valueAt(double x) const
 {
     ISCORE_TODO;
     return 0;
 }
 
-void PointArrayCurveSegmentModel::addPoint(double x, double y)
+void PointArraySegment::addPoint(double x, double y)
 {
     // If x < start.x() or x > end.x(), we update start / end
     // The points must keep their apparent position.
@@ -119,7 +132,7 @@ void PointArrayCurveSegmentModel::addPoint(double x, double y)
     emit dataChanged();
 }
 
-void PointArrayCurveSegmentModel::simplify()
+void PointArraySegment::simplify()
 {
     double tolerance = (max_y - min_y) / 10.;
 
@@ -148,24 +161,24 @@ void PointArrayCurveSegmentModel::simplify()
     }
 }
 
-std::vector<std::unique_ptr<LinearCurveSegmentModel> > PointArrayCurveSegmentModel::piecewise() const
+std::vector<std::unique_ptr<LinearSegment> > PointArraySegment::piecewise() const
 {
     m_valid = false;
     updateData(0);
     const auto& pts = data();
-    std::vector<std::unique_ptr<LinearCurveSegmentModel> > vec;
+    std::vector<std::unique_ptr<LinearSegment> > vec;
     vec.reserve(pts.size() - 1);
 
 
     for(std::size_t i = 0; i < pts.size() - 1; i++)
     {
-        auto cmd = std::make_unique<LinearCurveSegmentModel>(Id<CurveSegmentModel>(i), nullptr);
+        auto cmd = std::make_unique<LinearSegment>(Id<SegmentModel>(i), nullptr);
         cmd->setStart(pts[i]);
         cmd->setEnd(pts[i+1]);
         if(i > 0)
         {
-            cmd->setPrevious(Id<CurveSegmentModel>(i-1));
-            vec.back()->setFollowing(Id<CurveSegmentModel>(i));
+            cmd->setPrevious(Id<SegmentModel>(i-1));
+            vec.back()->setFollowing(Id<SegmentModel>(i));
         }
         vec.push_back(std::move(cmd));
 
@@ -174,29 +187,30 @@ std::vector<std::unique_ptr<LinearCurveSegmentModel> > PointArrayCurveSegmentMod
     return vec;
 }
 
-std::vector<CurveSegmentData> PointArrayCurveSegmentModel::toLinearSegments() const
+std::vector<SegmentData> PointArraySegment::toLinearSegments() const
 {
     m_valid = false;
     updateData(0);
     const auto& pts = data();
-    std::vector<CurveSegmentData> vec;
+    std::vector<SegmentData> vec;
     vec.reserve(pts.size() - 1);
 
-    vec.emplace_back(Id<CurveSegmentModel>{0},
+    vec.emplace_back(Id<SegmentModel>{0},
                      pts[0], pts[1],
-                     Id<CurveSegmentModel>{}, Id<CurveSegmentModel>{},
-                     LinearCurveSegmentData::key(), QVariant::fromValue(LinearCurveSegmentData{}));
+                     Id<SegmentModel>{}, Id<SegmentModel>{},
+                     LinearSegmentData::static_concreteFactoryKey(), QVariant::fromValue(LinearSegmentData{}));
 
     int size = pts.size();
     for(int i = 1; i < size - 1; i++)
     {
-        vec.back().following = Id<CurveSegmentModel>{i};
+        vec.back().following = Id<SegmentModel>{i};
 
-        vec.emplace_back(Id<CurveSegmentModel>{i},
+        vec.emplace_back(Id<SegmentModel>{i},
                          pts[i], pts[i+1],
-                         Id<CurveSegmentModel>{i-1}, Id<CurveSegmentModel>{},
-                         LinearCurveSegmentData::key(), QVariant::fromValue(LinearCurveSegmentData()));
+                         Id<SegmentModel>{i-1}, Id<SegmentModel>{},
+                         LinearSegmentData::static_concreteFactoryKey(), QVariant::fromValue(LinearSegmentData()));
     }
 
     return vec;
+}
 }

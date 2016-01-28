@@ -1,13 +1,45 @@
-#include "StandardCreationPolicy.hpp"
+#include <Scenario/Document/TimeNode/Trigger/TriggerModel.hpp>
 #include <Scenario/Process/ScenarioModel.hpp>
+#include <boost/optional/optional.hpp>
+
+#include <Process/TimeValue.hpp>
+#include <Scenario/Document/Constraint/ConstraintDurations.hpp>
 #include <Scenario/Document/Constraint/ConstraintModel.hpp>
 #include <Scenario/Document/Event/EventModel.hpp>
+#include <Scenario/Document/State/StateModel.hpp>
 #include <Scenario/Document/TimeNode/TimeNodeModel.hpp>
-#include <Scenario/Document/TimeNode/Trigger/TriggerModel.hpp>
+#include <Scenario/Document/VerticalExtent.hpp>
+#include <Scenario/Process/Algorithms/ProcessPolicy.hpp>
+#include <Scenario/Process/Algorithms/Accessors.hpp>
+#include "StandardCreationPolicy.hpp"
+#include <iscore/document/DocumentContext.hpp>
+#include <iscore/tools/NotifyingMap.hpp>
+#include <iscore/tools/SettableIdentifier.hpp>
+
+namespace Scenario
+{
+void ScenarioCreate<CommentBlockModel>::undo(
+        const Id<CommentBlockModel> &id,
+        Scenario::ScenarioModel &s)
+{
+    s.comments.remove(id);
+}
+
+CommentBlockModel& ScenarioCreate<CommentBlockModel>::redo(
+        const Id<CommentBlockModel> &id,
+        const TimeValue &date,
+        double y,
+        Scenario::ScenarioModel &s)
+{
+    auto comment = new CommentBlockModel{id, date, y, &s};
+    s.comments.add(comment);
+
+    return *comment;
+}
 
 void ScenarioCreate<TimeNodeModel>::undo(
         const Id<TimeNodeModel>& id,
-        ScenarioModel& s)
+        Scenario::ScenarioModel& s)
 {
     s.timeNodes.remove(id);
 }
@@ -16,7 +48,7 @@ TimeNodeModel& ScenarioCreate<TimeNodeModel>::redo(
         const Id<TimeNodeModel>& id,
         const VerticalExtent& extent,
         const TimeValue& date,
-        ScenarioModel& s)
+        Scenario::ScenarioModel& s)
 {
     auto timeNode = new TimeNodeModel{id, extent, date, &s};
     s.timeNodes.add(timeNode);
@@ -26,7 +58,7 @@ TimeNodeModel& ScenarioCreate<TimeNodeModel>::redo(
 
 void ScenarioCreate<EventModel>::undo(
         const Id<EventModel>& id,
-        ScenarioModel& s)
+        Scenario::ScenarioModel& s)
 {
     auto& ev = s.event(id);
     s.timeNode(ev.timeNode()).removeEvent(id);
@@ -37,7 +69,7 @@ EventModel& ScenarioCreate<EventModel>::redo(
         const Id<EventModel>& id,
         TimeNodeModel& timenode,
         const VerticalExtent& extent,
-        ScenarioModel& s)
+        Scenario::ScenarioModel& s)
 {
     auto ev = new EventModel{id, timenode.id(), extent, timenode.date(), &s};
 
@@ -50,7 +82,7 @@ EventModel& ScenarioCreate<EventModel>::redo(
 
 void ScenarioCreate<StateModel>::undo(
         const Id<StateModel> &id,
-        ScenarioModel &s)
+        Scenario::ScenarioModel& s)
 {
     auto& state = s.state(id);
     auto& ev = s.event(state.eventId());
@@ -64,12 +96,14 @@ StateModel &ScenarioCreate<StateModel>::redo(
         const Id<StateModel> &id,
         EventModel &ev,
         double y,
-        ScenarioModel &s)
+        Scenario::ScenarioModel& s)
 {
+    auto& stack = iscore::IDocument::documentContext(s).commandStack;
     auto state = new StateModel{
             id,
             ev.id(),
             y,
+            stack,
             &s};
 
     s.states.add(state);
@@ -80,15 +114,12 @@ StateModel &ScenarioCreate<StateModel>::redo(
 
 void ScenarioCreate<ConstraintModel>::undo(
         const Id<ConstraintModel>& id,
-        ScenarioModel& s)
+        Scenario::ScenarioModel& s)
 {
     auto& cst = s.constraints.at(id);
 
-    auto& sev = s.states.at(cst.startState());
-    auto& eev = s.states.at(cst.endState());
-
-    sev.setNextConstraint(Id<ConstraintModel>{});
-    eev.setPreviousConstraint(Id<ConstraintModel>{});
+    SetNoNextConstraint(startState(cst, s));
+    SetNoPreviousConstraint(endState(cst, s));
 
     s.constraints.remove(&cst);
 }
@@ -99,7 +130,7 @@ ConstraintModel& ScenarioCreate<ConstraintModel>::redo(
         StateModel& sst,
         StateModel& est,
         double ypos,
-        ScenarioModel& s)
+        Scenario::ScenarioModel& s)
 {
     auto constraint = new ConstraintModel {
                       id,
@@ -112,8 +143,8 @@ ConstraintModel& ScenarioCreate<ConstraintModel>::redo(
 
     s.constraints.add(constraint);
 
-    sst.setNextConstraint(id);
-    est.setPreviousConstraint(id);
+    SetNextConstraint(sst, *constraint);
+    SetPreviousConstraint(est, *constraint);
 
     const auto& sev = s.event(sst.eventId());
     const auto& eev = s.event(est.eventId());
@@ -133,4 +164,5 @@ ConstraintModel& ScenarioCreate<ConstraintModel>::redo(
     }
 
     return *constraint;
+}
 }

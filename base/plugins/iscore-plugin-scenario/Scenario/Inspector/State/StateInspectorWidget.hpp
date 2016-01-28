@@ -1,28 +1,41 @@
 #pragma once
 
 #include <Inspector/InspectorWidgetBase.hpp>
-class StateModel;
-class QFormLayout;
-class StateWidget;
-class StateInspectorWidget final : public InspectorWidgetBase
+#include <list>
+
+namespace Inspector
 {
-        Q_OBJECT
+class InspectorSectionWidget;
+}
+class QWidget;
+namespace iscore {
+struct DocumentContext;
+}  // namespace iscore
+
+namespace Scenario
+{
+class StateModel;
+class StateInspectorWidget final : public Inspector::InspectorWidgetBase
+{
     public:
         explicit StateInspectorWidget(
                 const StateModel& object,
-                iscore::Document& doc,
+                const iscore::DocumentContext& context,
                 QWidget* parent);
 
-    public slots:
-        void updateDisplayedValues();
-
-    private slots:
-        void splitEvent();
+        Inspector::InspectorSectionWidget& stateSection()
+        { return *m_stateSection; }
 
     private:
+        QString tabName() override;
+
+        void updateDisplayedValues();
+        void splitEvent();
+
         std::list<QWidget*> m_properties;
 
         const StateModel& m_model;
 
-        InspectorSectionWidget* m_stateSection{};
+        Inspector::InspectorSectionWidget* m_stateSection{};
 };
+}

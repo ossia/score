@@ -1,16 +1,43 @@
-#include <Scenario/Document/Constraint/ConstraintModel.hpp>
 #include <Process/Process.hpp>
 #include <Process/ProcessModelSerialization.hpp>
-#include <core/application/ApplicationComponents.hpp>
+#include <Scenario/Document/Constraint/ConstraintModel.hpp>
 #include <Scenario/Document/Constraint/Rack/RackModel.hpp>
 #include <Scenario/Document/Constraint/ViewModels/FullView/FullViewConstraintViewModel.hpp>
-#include <iscore/plugins/documentdelegate/plugin/ElementPluginModelSerialization.hpp>
+
+#include <boost/optional/optional.hpp>
+
+#include <QJsonArray>
+#include <QJsonObject>
+#include <QJsonValue>
+#include <sys/types.h>
+#include <algorithm>
+
+#include <Process/ModelMetadata.hpp>
+#include <Process/ProcessList.hpp>
+#include <Process/TimeValue.hpp>
+#include <iscore/application/ApplicationContext.hpp>
+#include <iscore/plugins/customfactory/StringFactoryKey.hpp>
+#include <iscore/plugins/documentdelegate/plugin/ElementPluginModelList.hpp>
+#include <iscore/serialization/DataStreamVisitor.hpp>
+#include <iscore/serialization/JSONValueVisitor.hpp>
+#include <iscore/serialization/JSONVisitor.hpp>
+#include <iscore/tools/NotifyingMap.hpp>
+#include <iscore/tools/SettableIdentifier.hpp>
+
+namespace Scenario
+{
+class StateModel;
+}
+
+template <typename T> class IdentifiedObject;
+template <typename T> class Reader;
+template <typename T> class Writer;
 
 // Note : comment gérer le cas d'un process shared model qui ne sait se sérializer qu'en binaire, dans du json?
 // Faire passer l'info en base64 ?
-template<> void Visitor<Reader<DataStream>>::readFrom(const ConstraintModel& constraint)
+template<> void Visitor<Reader<DataStream>>::readFrom(const Scenario::ConstraintModel& constraint)
 {
-    readFrom(static_cast<const IdentifiedObject<ConstraintModel>&>(constraint));
+    readFrom(static_cast<const IdentifiedObject<Scenario::ConstraintModel>&>(constraint));
 
     // Metadata
     readFrom(constraint.metadata);
@@ -46,7 +73,7 @@ template<> void Visitor<Reader<DataStream>>::readFrom(const ConstraintModel& con
     insertDelimiter();
 }
 
-template<> void Visitor<Writer<DataStream>>::writeTo(ConstraintModel& constraint)
+template<> void Visitor<Writer<DataStream>>::writeTo(Scenario::ConstraintModel& constraint)
 {
     writeTo(constraint.metadata);
 
@@ -54,10 +81,10 @@ template<> void Visitor<Writer<DataStream>>::writeTo(ConstraintModel& constraint
     int32_t process_count;
     m_stream >> process_count;
 
-    auto& pl = context.components.factory<DynamicProcessList>();
+    auto& pl = context.components.factory<Process::ProcessList>();
     for(; process_count -- > 0;)
     {
-        constraint.processes.add(createProcess(pl, *this, &constraint));
+        constraint.processes.add(deserialize_interface(pl, *this, &constraint));
     }
 
     // Rackes
@@ -66,14 +93,14 @@ template<> void Visitor<Writer<DataStream>>::writeTo(ConstraintModel& constraint
 
     for(; rack_count -- > 0;)
     {
-        constraint.racks.add(new RackModel(*this, &constraint));
+        constraint.racks.add(new Scenario::RackModel(*this, &constraint));
     }
 
     // Full view
-    Id<ConstraintModel> savedConstraintId;
+    Id<Scenario::ConstraintModel> savedConstraintId;
     m_stream >> savedConstraintId; // Necessary because it is saved; however it is not required here.
     //(todo how to fix this ?)
-    constraint.setFullView(new FullViewConstraintViewModel {*this, constraint, &constraint});
+    constraint.setFullView(new Scenario::FullViewConstraintViewModel {*this, constraint, &constraint});
 
     // Common data
     m_stream >> constraint.duration
@@ -92,9 +119,9 @@ template<> void Visitor<Writer<DataStream>>::writeTo(ConstraintModel& constraint
 
 
 
-template<> void Visitor<Reader<JSONObject>>::readFrom(const ConstraintModel& constraint)
+template<> void Visitor<Reader<JSONObject>>::readFrom(const Scenario::ConstraintModel& constraint)
 {
-    readFrom(static_cast<const IdentifiedObject<ConstraintModel>&>(constraint));
+    readFrom(static_cast<const IdentifiedObject<Scenario::ConstraintModel>&>(constraint));
     m_obj["Metadata"] = toJsonObject(constraint.metadata);
 
     // Processes
@@ -122,34 +149,34 @@ template<> void Visitor<Reader<JSONObject>>::readFrom(const ConstraintModel& con
     m_obj["PluginsMetadata"] = toJsonValue(constraint.pluginModelList);
 }
 
-template<> void Visitor<Writer<JSONObject>>::writeTo(ConstraintModel& constraint)
+template<> void Visitor<Writer<JSONObject>>::writeTo(Scenario::ConstraintModel& constraint)
 {
     constraint.metadata = fromJsonObject<ModelMetadata>(m_obj["Metadata"].toObject());
 
-    auto& pl = context.components.factory<DynamicProcessList>();
+    auto& pl = context.components.factory<Process::ProcessList>();
 
     QJsonArray process_array = m_obj["Processes"].toArray();
     for(const auto& json_vref : process_array)
     {
         Deserializer<JSONObject> deserializer{json_vref.toObject()};
-        constraint.processes.add(createProcess(pl, deserializer, &constraint));
+        constraint.processes.add(deserialize_interface(pl, deserializer, &constraint));
     }
 
     QJsonArray rack_array = m_obj["Rackes"].toArray();
     for(const auto& json_vref : rack_array)
     {
         Deserializer<JSONObject> deserializer {json_vref.toObject() };
-        constraint.racks.add(new RackModel(deserializer, &constraint));
+        constraint.racks.add(new Scenario::RackModel(deserializer, &constraint));
     }
 
-    constraint.setFullView(new FullViewConstraintViewModel {
+    constraint.setFullView(new Scenario::FullViewConstraintViewModel {
                                Deserializer<JSONObject>{m_obj["FullView"].toObject() },
                                constraint,
                                &constraint});
 
     writeTo(constraint.duration);
-    constraint.m_startState = fromJsonValue<Id<StateModel>> (m_obj["StartState"]);
-    constraint.m_endState = fromJsonValue<Id<StateModel>> (m_obj["EndState"]);
+    constraint.m_startState = fromJsonValue<Id<Scenario::StateModel>> (m_obj["StartState"]);
+    constraint.m_endState = fromJsonValue<Id<Scenario::StateModel>> (m_obj["EndState"]);
 
     constraint.m_startDate = fromJsonValue<TimeValue> (m_obj["StartDate"]);
     constraint.m_heightPercentage = m_obj["HeightPercentage"].toDouble();

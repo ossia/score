@@ -1,15 +1,18 @@
-#include "TemporalScenarioView.hpp"
-
+#include <QColor>
+#include <QEvent>
+#include <QFlags>
+#include <QGraphicsItem>
+#include <QGraphicsSceneEvent>
+#include <qnamespace.h>
 #include <QPainter>
-#include <QGraphicsScene>
-#include <QGraphicsSceneMouseEvent>
+#include <QPen>
+#include <QCursor>
 #include <QKeyEvent>
-#include <QMenu>
 
-#include <QMimeData>
-
-#include "TemporalScenarioPresenter.hpp"
-
+#include <Process/LayerView.hpp>
+#include "TemporalScenarioView.hpp"
+namespace Scenario
+{
 TemporalScenarioView::TemporalScenarioView(QGraphicsItem* parent) :
     LayerView {parent}
 {
@@ -72,10 +75,7 @@ void TemporalScenarioView::keyPressEvent(QKeyEvent* event)
     {
         emit escPressed();
     }
-
-    emit keyPressed(event->key());
-
-    if(event->key() == Qt::Key_Shift || event->key() == Qt::Key_Control)
+    else if(event->key() == Qt::Key_Shift || event->key() == Qt::Key_Control)
     {
         emit keyPressed(event->key());
     }
@@ -93,4 +93,5 @@ void TemporalScenarioView::keyReleaseEvent(QKeyEvent *event)
 void TemporalScenarioView::dropEvent(QGraphicsSceneDragDropEvent *event)
 {
     emit dropReceived(event->scenePos(), event->mimeData());
+}
 }

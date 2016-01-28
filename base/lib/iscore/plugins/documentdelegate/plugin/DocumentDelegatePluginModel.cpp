@@ -1,6 +1,11 @@
 #include "DocumentDelegatePluginModel.hpp"
-#include <core/document/Document.hpp>
-iscore::DocumentDelegatePluginModel::DocumentDelegatePluginModel(
+#include <iscore/tools/NamedObject.hpp>
+
+class QObject;
+namespace iscore {
+class Document;
+
+DocumentPlugin::DocumentPlugin(
         iscore::Document& ctx,
         const QString& name,
         QObject* parent):
@@ -10,7 +15,34 @@ iscore::DocumentDelegatePluginModel::DocumentDelegatePluginModel(
 
 }
 
-iscore::DocumentDelegatePluginModel::~DocumentDelegatePluginModel()
+DocumentPlugin::~DocumentPlugin()
 {
 
 }
+
+SerializableDocumentPlugin::~SerializableDocumentPlugin()
+{
+
+}
+
+DocumentPluginFactory::~DocumentPluginFactory()
+{
+
+}
+
+}
+
+template<>
+void Visitor<Reader<DataStream>>::readFrom_impl(
+        const iscore::SerializableDocumentPlugin& dpm)
+{
+    // Nothing to save
+}
+
+template<>
+void Visitor<Reader<JSONObject>>::readFrom_impl(
+        const iscore::SerializableDocumentPlugin& dpm)
+{
+    // Nothing to save
+}
+

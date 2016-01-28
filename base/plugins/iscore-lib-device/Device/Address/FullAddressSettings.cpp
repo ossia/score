@@ -1,13 +1,18 @@
-#include "AddressSettings.hpp"
+#include <QStringList>
 
-namespace iscore
+#include "AddressSettings.hpp"
+#include <State/Address.hpp>
+#include <State/Message.hpp>
+#include <State/Value.hpp>
+
+namespace Device
 {
 
     // Second argument should be the address of the parent.
     template<>
-    FullAddressSettings FullAddressSettings::make<FullAddressSettings::as_parent>(
-            const iscore::AddressSettings& other,
-            const iscore::Address& addr)
+    ISCORE_LIB_DEVICE_EXPORT FullAddressSettings FullAddressSettings::make<FullAddressSettings::as_parent>(
+            const Device::AddressSettings& other,
+            const State::Address& addr)
     {
         FullAddressSettings as;
         static_cast<AddressSettingsCommon&>(as) = other;
@@ -20,9 +25,9 @@ namespace iscore
 
     // Second argument should be the address of the resulting FullAddressSettings.
     template<>
-    FullAddressSettings FullAddressSettings::make<FullAddressSettings::as_child>(
-            const iscore::AddressSettings& other,
-            const iscore::Address& addr)
+    ISCORE_LIB_DEVICE_EXPORT FullAddressSettings FullAddressSettings::make<FullAddressSettings::as_child>(
+            const Device::AddressSettings& other,
+            const State::Address& addr)
     {
         FullAddressSettings as;
         static_cast<AddressSettingsCommon&>(as) = other;
@@ -32,8 +37,8 @@ namespace iscore
         return as;
     }
 
-    FullAddressSettings FullAddressSettings::make(
-            const iscore::Message& mess)
+    ISCORE_LIB_DEVICE_EXPORT FullAddressSettings FullAddressSettings::make(
+            const State::Message& mess)
     {
         FullAddressSettings as;
 

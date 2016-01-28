@@ -1,0 +1,1455 @@
+{
+    "Document": {
+        "BaseScenario": {
+            "Constraint": {
+                "DefaultDuration": 180000,
+                "EndState": 1,
+                "FullView": {
+                    "CenterOn": [
+                        286,
+                        401.5
+                    ],
+                    "ConstraintId": 0,
+                    "ObjectName": "FullViewConstraintViewModel",
+                    "ShownRack": 1,
+                    "Zoom": 336.16298811544999,
+                    "id": 0
+                },
+                "HeightPercentage": 0,
+                "Looping": false,
+                "MaxDuration": 180000,
+                "MaxInf": false,
+                "Metadata": {
+                    "Color": [
+                        0,
+                        127,
+                        229
+                    ],
+                    "Comment": "",
+                    "Label": "",
+                    "ScriptingName": "Constraint.0"
+                },
+                "MinDuration": 180000,
+                "MinNull": false,
+                "ObjectName": "BaseConstraintModel",
+                "PluginsMetadata": [
+                ],
+                "Processes": [
+                    {
+                        "Comments": [
+                        ],
+                        "Constraints": [
+                            {
+                                "DefaultDuration": 22859.083191850601,
+                                "EndState": 2,
+                                "FullView": {
+                                    "CenterOn": [
+                                        0,
+                                        0
+                                    ],
+                                    "ConstraintId": 1,
+                                    "ObjectName": "FullViewConstraintViewModel",
+                                    "ShownRack": "none",
+                                    "Zoom": -1,
+                                    "id": 2
+                                },
+                                "HeightPercentage": 0.13026052104208416,
+                                "Looping": false,
+                                "MaxDuration": "inf",
+                                "MaxInf": true,
+                                "Metadata": {
+                                    "Color": [
+                                        0,
+                                        127,
+                                        229
+                                    ],
+                                    "Comment": "",
+                                    "Label": "",
+                                    "ScriptingName": "oreweed2whaler81"
+                                },
+                                "MinDuration": 20438.709677419363,
+                                "MinNull": true,
+                                "ObjectName": "ConstraintModel",
+                                "PluginsMetadata": [
+                                ],
+                                "Processes": [
+                                ],
+                                "Rackes": [
+                                ],
+                                "Rigidity": false,
+                                "StartDate": 0,
+                                "StartState": 1,
+                                "id": 1
+                            },
+                            {
+                                "DefaultDuration": 101857.38539898134,
+                                "EndState": 3,
+                                "FullView": {
+                                    "CenterOn": [
+                                        293.5,
+                                        299.5
+                                    ],
+                                    "ConstraintId": 2,
+                                    "ObjectName": "FullViewConstraintViewModel",
+                                    "ShownRack": 1,
+                                    "Zoom": 188.32668837263631,
+                                    "id": 3
+                                },
+                                "HeightPercentage": 0.13026052104208416,
+                                "Looping": false,
+                                "MaxDuration": 101857.38539898134,
+                                "MaxInf": false,
+                                "Metadata": {
+                                    "Color": [
+                                        0,
+                                        127,
+                                        229
+                                    ],
+                                    "Comment": "",
+                                    "Label": "",
+                                    "ScriptingName": "gaiting65Campine61"
+                                },
+                                "MinDuration": 101857.38539898134,
+                                "MinNull": false,
+                                "ObjectName": "ConstraintModel",
+                                "PluginsMetadata": [
+                                ],
+                                "Processes": [
+                                    {
+                                        "Address": {
+                                            "Device": "Processing",
+                                            "Path": "speed"
+                                        },
+                                        "Curve": {
+                                            "ObjectName": "CurveModel",
+                                            "Segments": [
+                                                {
+                                                    "End": [
+                                                        0.048072055634539319,
+                                                        0.31472081218274117
+                                                    ],
+                                                    "Following": 1502291326,
+                                                    "Name": "Power",
+                                                    "ObjectName": "CurveSegmentModel",
+                                                    "Power": 12.050000000000001,
+                                                    "Previous": "none",
+                                                    "Start": [
+                                                        0,
+                                                        0.5
+                                                    ],
+                                                    "id": -2061275635
+                                                },
+                                                {
+                                                    "End": [
+                                                        0.09799303648579169,
+                                                        0.67005076142131981
+                                                    ],
+                                                    "Following": 1205395428,
+                                                    "Name": "Power",
+                                                    "ObjectName": "CurveSegmentModel",
+                                                    "Power": 12.050000000000001,
+                                                    "Previous": -2061275635,
+                                                    "Start": [
+                                                        0.048072055634539319,
+                                                        0.31472081218274117
+                                                    ],
+                                                    "id": 1502291326
+                                                },
+                                                {
+                                                    "End": [
+                                                        0.70074265713424622,
+                                                        0.56345177664974622
+                                                    ],
+                                                    "Following": -1339299798,
+                                                    "Name": "Power",
+                                                    "ObjectName": "CurveSegmentModel",
+                                                    "Power": 12.050000000000001,
+                                                    "Previous": -951244592,
+                                                    "Start": [
+                                                        0.64527490063285475,
+                                                        0.45685279187817263
+                                                    ],
+                                                    "id": -435518348
+                                                },
+                                                {
+                                                    "End": [
+                                                        0.14051831647019186,
+                                                        0.30456852791878175
+                                                    ],
+                                                    "Following": 1197287365,
+                                                    "Name": "Power",
+                                                    "ObjectName": "CurveSegmentModel",
+                                                    "Power": 12.050000000000001,
+                                                    "Previous": 1502291326,
+                                                    "Start": [
+                                                        0.09799303648579169,
+                                                        0.67005076142131981
+                                                    ],
+                                                    "id": 1205395428
+                                                },
+                                                {
+                                                    "End": [
+                                                        0.19043929732144424,
+                                                        0.6649746192893401
+                                                    ],
+                                                    "Following": 58876071,
+                                                    "Name": "Power",
+                                                    "ObjectName": "CurveSegmentModel",
+                                                    "Power": 12.050000000000001,
+                                                    "Previous": 1205395428,
+                                                    "Start": [
+                                                        0.14051831647019186,
+                                                        0.30456852791878175
+                                                    ],
+                                                    "id": 1197287365
+                                                },
+                                                {
+                                                    "End": [
+                                                        0.52879261197993255,
+                                                        0.63451776649746194
+                                                    ],
+                                                    "Following": -1893236760,
+                                                    "Name": "Power",
+                                                    "ObjectName": "CurveSegmentModel",
+                                                    "Power": 12.050000000000001,
+                                                    "Previous": 1355892239,
+                                                    "Start": [
+                                                        0.50845443459608897,
+                                                        0.37055837563451777
+                                                    ],
+                                                    "id": 1296119996
+                                                },
+                                                {
+                                                    "End": [
+                                                        0.2218710260055661,
+                                                        0.30456852791878175
+                                                    ],
+                                                    "Following": 2146025596,
+                                                    "Name": "Power",
+                                                    "ObjectName": "CurveSegmentModel",
+                                                    "Power": 12.050000000000001,
+                                                    "Previous": 1197287365,
+                                                    "Start": [
+                                                        0.19043929732144424,
+                                                        0.6649746192893401
+                                                    ],
+                                                    "id": 58876071
+                                                },
+                                                {
+                                                    "End": [
+                                                        0.57316681718104578,
+                                                        0.43147208121827407
+                                                    ],
+                                                    "Following": 1380563458,
+                                                    "Name": "Power",
+                                                    "ObjectName": "CurveSegmentModel",
+                                                    "Power": 12.050000000000001,
+                                                    "Previous": 1296119996,
+                                                    "Start": [
+                                                        0.52879261197993255,
+                                                        0.63451776649746194
+                                                    ],
+                                                    "id": -1893236760
+                                                },
+                                                {
+                                                    "End": [
+                                                        0.26994308164010544,
+                                                        0.68020304568527923
+                                                    ],
+                                                    "Following": 1446966013,
+                                                    "Name": "Power",
+                                                    "ObjectName": "CurveSegmentModel",
+                                                    "Power": 12.050000000000001,
+                                                    "Previous": 58876071,
+                                                    "Start": [
+                                                        0.2218710260055661,
+                                                        0.30456852791878175
+                                                    ],
+                                                    "id": 2146025596
+                                                },
+                                                {
+                                                    "End": [
+                                                        0.28288555815709676,
+                                                        0.28934010152284262
+                                                    ],
+                                                    "Following": 1071322560,
+                                                    "Name": "Power",
+                                                    "ObjectName": "CurveSegmentModel",
+                                                    "Power": 12.050000000000001,
+                                                    "Previous": 2146025596,
+                                                    "Start": [
+                                                        0.26994308164010544,
+                                                        0.68020304568527923
+                                                    ],
+                                                    "id": 1446966013
+                                                },
+                                                {
+                                                    "End": [
+                                                        0.30877051119107951,
+                                                        0.89340101522842641
+                                                    ],
+                                                    "Following": 1572117767,
+                                                    "Name": "Power",
+                                                    "ObjectName": "CurveSegmentModel",
+                                                    "Power": 12.050000000000001,
+                                                    "Previous": 1446966013,
+                                                    "Start": [
+                                                        0.28288555815709676,
+                                                        0.28934010152284262
+                                                    ],
+                                                    "id": 1071322560
+                                                },
+                                                {
+                                                    "End": [
+                                                        0.87454162750527298,
+                                                        0.46192893401015234
+                                                    ],
+                                                    "Following": -1836205750,
+                                                    "Name": "Power",
+                                                    "ObjectName": "CurveSegmentModel",
+                                                    "Power": 12.050000000000001,
+                                                    "Previous": -2002828330,
+                                                    "Start": [
+                                                        0.81722494578716842,
+                                                        0.57868020304568524
+                                                    ],
+                                                    "id": 1344796527
+                                                },
+                                                {
+                                                    "End": [
+                                                        0.41231032332701034,
+                                                        0.90355329949238583
+                                                    ],
+                                                    "Following": -451511185,
+                                                    "Name": "Power",
+                                                    "ObjectName": "CurveSegmentModel",
+                                                    "Power": 12.050000000000001,
+                                                    "Previous": 314449471,
+                                                    "Start": [
+                                                        0.38272751985960152,
+                                                        0.10152284263959388
+                                                    ],
+                                                    "id": -2009543384
+                                                },
+                                                {
+                                                    "End": [
+                                                        0.32910868857492304,
+                                                        0.10152284263959388
+                                                    ],
+                                                    "Following": -1704653711,
+                                                    "Name": "Power",
+                                                    "ObjectName": "CurveSegmentModel",
+                                                    "Power": 12.050000000000001,
+                                                    "Previous": 1071322560,
+                                                    "Start": [
+                                                        0.30877051119107951,
+                                                        0.89340101522842641
+                                                    ],
+                                                    "id": 1572117767
+                                                },
+                                                {
+                                                    "End": [
+                                                        0.35684256682561882,
+                                                        0.90862944162436543
+                                                    ],
+                                                    "Following": 314449471,
+                                                    "Name": "Power",
+                                                    "ObjectName": "CurveSegmentModel",
+                                                    "Power": 12.050000000000001,
+                                                    "Previous": 1572117767,
+                                                    "Start": [
+                                                        0.32910868857492304,
+                                                        0.10152284263959388
+                                                    ],
+                                                    "id": -1704653711
+                                                },
+                                                {
+                                                    "End": [
+                                                        0.38272751985960152,
+                                                        0.10152284263959388
+                                                    ],
+                                                    "Following": -2009543384,
+                                                    "Name": "Power",
+                                                    "ObjectName": "CurveSegmentModel",
+                                                    "Power": 12.050000000000001,
+                                                    "Previous": -1704653711,
+                                                    "Start": [
+                                                        0.35684256682561882,
+                                                        0.90862944162436543
+                                                    ],
+                                                    "id": 314449471
+                                                },
+                                                {
+                                                    "End": [
+                                                        0.43264850071085387,
+                                                        0.11675126903553301
+                                                    ],
+                                                    "Following": 192774154,
+                                                    "Name": "Power",
+                                                    "ObjectName": "CurveSegmentModel",
+                                                    "Power": 12.050000000000001,
+                                                    "Previous": -2009543384,
+                                                    "Start": [
+                                                        0.41231032332701034,
+                                                        0.90355329949238583
+                                                    ],
+                                                    "id": -451511185
+                                                },
+                                                {
+                                                    "End": [
+                                                        0.47517378069525407,
+                                                        0.70558375634517767
+                                                    ],
+                                                    "Following": 1355892239,
+                                                    "Name": "Power",
+                                                    "ObjectName": "CurveSegmentModel",
+                                                    "Power": 12.050000000000001,
+                                                    "Previous": -451511185,
+                                                    "Start": [
+                                                        0.43264850071085387,
+                                                        0.11675126903553301
+                                                    ],
+                                                    "id": 192774154
+                                                },
+                                                {
+                                                    "End": [
+                                                        0.50845443459608897,
+                                                        0.37055837563451777
+                                                    ],
+                                                    "Following": 1296119996,
+                                                    "Name": "Power",
+                                                    "ObjectName": "CurveSegmentModel",
+                                                    "Power": 12.050000000000001,
+                                                    "Previous": 192774154,
+                                                    "Start": [
+                                                        0.47517378069525407,
+                                                        0.70558375634517767
+                                                    ],
+                                                    "id": 1355892239
+                                                },
+                                                {
+                                                    "End": [
+                                                        0.60644747108188068,
+                                                        0.59390862944162437
+                                                    ],
+                                                    "Following": -951244592,
+                                                    "Name": "Power",
+                                                    "ObjectName": "CurveSegmentModel",
+                                                    "Power": 12.050000000000001,
+                                                    "Previous": -1893236760,
+                                                    "Start": [
+                                                        0.57316681718104578,
+                                                        0.43147208121827407
+                                                    ],
+                                                    "id": 1380563458
+                                                },
+                                                {
+                                                    "End": [
+                                                        0.64527490063285475,
+                                                        0.45685279187817263
+                                                    ],
+                                                    "Following": -435518348,
+                                                    "Name": "Power",
+                                                    "ObjectName": "CurveSegmentModel",
+                                                    "Power": 12.050000000000001,
+                                                    "Previous": 1380563458,
+                                                    "Start": [
+                                                        0.60644747108188068,
+                                                        0.59390862944162437
+                                                    ],
+                                                    "id": -951244592
+                                                },
+                                                {
+                                                    "End": [
+                                                        0.94664971095708206,
+                                                        0.52791878172588835
+                                                    ],
+                                                    "Following": 1,
+                                                    "Name": "Power",
+                                                    "ObjectName": "CurveSegmentModel",
+                                                    "Power": 12.050000000000001,
+                                                    "Previous": 1344796527,
+                                                    "Start": [
+                                                        0.87454162750527298,
+                                                        0.46192893401015234
+                                                    ],
+                                                    "id": -1836205750
+                                                },
+                                                {
+                                                    "End": [
+                                                        0.74881471276878553,
+                                                        0.45177664974619292
+                                                    ],
+                                                    "Following": -2002828330,
+                                                    "Name": "Power",
+                                                    "ObjectName": "CurveSegmentModel",
+                                                    "Power": 12.050000000000001,
+                                                    "Previous": -435518348,
+                                                    "Start": [
+                                                        0.70074265713424622,
+                                                        0.56345177664974622
+                                                    ],
+                                                    "id": -1339299798
+                                                },
+                                                {
+                                                    "End": [
+                                                        0.81722494578716842,
+                                                        0.57868020304568524
+                                                    ],
+                                                    "Following": 1344796527,
+                                                    "Name": "Power",
+                                                    "ObjectName": "CurveSegmentModel",
+                                                    "Power": 12.050000000000001,
+                                                    "Previous": -1339299798,
+                                                    "Start": [
+                                                        0.74881471276878553,
+                                                        0.45177664974619292
+                                                    ],
+                                                    "id": -2002828330
+                                                },
+                                                {
+                                                    "End": [
+                                                        1,
+                                                        0.5
+                                                    ],
+                                                    "Following": "none",
+                                                    "Name": "Power",
+                                                    "ObjectName": "CurveSegmentModel",
+                                                    "Power": 12.050000000000001,
+                                                    "Previous": -1836205750,
+                                                    "Start": [
+                                                        0.94664971095708206,
+                                                        0.52791878172588835
+                                                    ],
+                                                    "id": 1
+                                                }
+                                            ],
+                                            "id": 45345
+                                        },
+                                        "Duration": 101857.38539898134,
+                                        "Max": 1,
+                                        "Metadata": {
+                                            "Color": [
+                                                160,
+                                                160,
+                                                164
+                                            ],
+                                            "Comment": "",
+                                            "Label": "",
+                                            "ScriptingName": "Automation.1"
+                                        },
+                                        "Min": -1,
+                                        "ObjectName": "Automation",
+                                        "PluginsMetadata": [
+                                        ],
+                                        "ProcessName": "Automation",
+                                        "id": 1
+                                    }
+                                ],
+                                "Rackes": [
+                                    {
+                                        "ObjectName": "RackModel",
+                                        "Slots": [
+                                            {
+                                                "EditedProcess": 1,
+                                                "Height": 200,
+                                                "LayerModels": [
+                                                    {
+                                                        "ObjectName": "AutomationLayerModel",
+                                                        "SharedProcessId": 1,
+                                                        "id": 1
+                                                    }
+                                                ],
+                                                "ObjectName": "SlotModel",
+                                                "id": 1
+                                            }
+                                        ],
+                                        "SlotsPositions": [
+                                            1
+                                        ],
+                                        "id": 1
+                                    }
+                                ],
+                                "Rigidity": true,
+                                "StartDate": 22859.083191850601,
+                                "StartState": 2,
+                                "id": 2
+                            }
+                        ],
+                        "Duration": 180000,
+                        "EndEventId": 1,
+                        "EndTimeNodeId": 1,
+                        "Events": [
+                            {
+                                "Condition": {
+                                    "Children": [
+                                    ],
+                                    "RootNode": {
+                                    }
+                                },
+                                "Date": 0,
+                                "Extent": [
+                                    0.13026052104208416,
+                                    0.13026052104208416
+                                ],
+                                "Metadata": {
+                                    "Color": [
+                                        255,
+                                        255,
+                                        255
+                                    ],
+                                    "Comment": "",
+                                    "Label": "",
+                                    "ScriptingName": "Event.0"
+                                },
+                                "ObjectName": "EventModel",
+                                "PluginsMetadata": [
+                                ],
+                                "States": [
+                                    1
+                                ],
+                                "TimeNode": 0,
+                                "id": 0
+                            },
+                            {
+                                "Condition": {
+                                    "Children": [
+                                    ],
+                                    "RootNode": {
+                                    }
+                                },
+                                "Date": 180000,
+                                "Extent": [
+                                    0.40000000000000002,
+                                    0.59999999999999998
+                                ],
+                                "Metadata": {
+                                    "Color": [
+                                        255,
+                                        255,
+                                        255
+                                    ],
+                                    "Comment": "",
+                                    "Label": "",
+                                    "ScriptingName": "Event.1"
+                                },
+                                "ObjectName": "EventModel",
+                                "PluginsMetadata": [
+                                ],
+                                "States": [
+                                ],
+                                "TimeNode": 1,
+                                "id": 1
+                            },
+                            {
+                                "Condition": {
+                                    "Children": [
+                                    ],
+                                    "RootNode": {
+                                    }
+                                },
+                                "Date": 22859.083191850601,
+                                "Extent": [
+                                    0.13026052104208416,
+                                    0.13026052104208416
+                                ],
+                                "Metadata": {
+                                    "Color": [
+                                        255,
+                                        255,
+                                        255
+                                    ],
+                                    "Comment": "",
+                                    "Label": "",
+                                    "ScriptingName": "killcrop59unretted62"
+                                },
+                                "ObjectName": "EventModel",
+                                "PluginsMetadata": [
+                                ],
+                                "States": [
+                                    2
+                                ],
+                                "TimeNode": 2,
+                                "id": 2
+                            },
+                            {
+                                "Condition": {
+                                    "Children": [
+                                    ],
+                                    "RootNode": {
+                                    }
+                                },
+                                "Date": 124716.46859083194,
+                                "Extent": [
+                                    0.13026052104208416,
+                                    0.13026052104208416
+                                ],
+                                "Metadata": {
+                                    "Color": [
+                                        255,
+                                        255,
+                                        255
+                                    ],
+                                    "Comment": "",
+                                    "Label": "",
+                                    "ScriptingName": "pilework39teathe7"
+                                },
+                                "ObjectName": "EventModel",
+                                "PluginsMetadata": [
+                                ],
+                                "States": [
+                                    3
+                                ],
+                                "TimeNode": 3,
+                                "id": 3
+                            }
+                        ],
+                        "Metadata": {
+                            "Color": [
+                                160,
+                                160,
+                                164
+                            ],
+                            "Comment": "",
+                            "Label": "",
+                            "ScriptingName": "Scenario.1"
+                        },
+                        "ObjectName": "Scenario",
+                        "PluginsMetadata": [
+                        ],
+                        "ProcessName": "Scenario",
+                        "StartEventId": 0,
+                        "StartTimeNodeId": 0,
+                        "States": [
+                            {
+                                "Event": 0,
+                                "HeightPercentage": 0.13026052104208416,
+                                "Messages": {
+                                    "Children": [
+                                        {
+                                            "Children": [
+                                                {
+                                                    "Children": [
+                                                    ],
+                                                    "Following": [
+                                                    ],
+                                                    "Name": "number",
+                                                    "Previous": [
+                                                    ],
+                                                    "Priorities": [
+                                                        1,
+                                                        2,
+                                                        0
+                                                    ],
+                                                    "User": {
+                                                        "Type": "Int",
+                                                        "Value": 20
+                                                    }
+                                                },
+                                                {
+                                                    "Children": [
+                                                    ],
+                                                    "Following": [
+                                                    ],
+                                                    "Name": "speed",
+                                                    "Previous": [
+                                                    ],
+                                                    "Priorities": [
+                                                        1,
+                                                        2,
+                                                        0
+                                                    ],
+                                                    "User": {
+                                                        "Type": "Float",
+                                                        "Value": 0
+                                                    }
+                                                }
+                                            ],
+                                            "Following": [
+                                            ],
+                                            "Name": "Processing",
+                                            "Previous": [
+                                            ],
+                                            "Priorities": [
+                                                1,
+                                                2,
+                                                0
+                                            ]
+                                        }
+                                    ],
+                                    "Following": [
+                                    ],
+                                    "Name": "",
+                                    "Previous": [
+                                    ],
+                                    "Priorities": [
+                                        1,
+                                        2,
+                                        0
+                                    ]
+                                },
+                                "Metadata": {
+                                    "Color": [
+                                        160,
+                                        160,
+                                        164
+                                    ],
+                                    "Comment": "",
+                                    "Label": "",
+                                    "ScriptingName": ""
+                                },
+                                "NextConstraint": 1,
+                                "ObjectName": "StateModel",
+                                "PreviousConstraint": "none",
+                                "StateProcesses": [
+                                ],
+                                "id": 1
+                            },
+                            {
+                                "Event": 2,
+                                "HeightPercentage": 0.13026052104208416,
+                                "Messages": {
+                                    "Children": [
+                                        {
+                                            "Children": [
+                                                {
+                                                    "Children": [
+                                                    ],
+                                                    "Following": [
+                                                        {
+                                                            "Process": 1,
+                                                            "Value": {
+                                                                "Type": "Float",
+                                                                "Value": 0
+                                                            }
+                                                        }
+                                                    ],
+                                                    "Name": "speed",
+                                                    "Previous": [
+                                                    ],
+                                                    "Priorities": [
+                                                        1,
+                                                        2,
+                                                        0
+                                                    ],
+                                                    "User": {
+                                                        "Type": "Float",
+                                                        "Value": 0
+                                                    }
+                                                }
+                                            ],
+                                            "Following": [
+                                            ],
+                                            "Name": "Processing",
+                                            "Previous": [
+                                            ],
+                                            "Priorities": [
+                                                1,
+                                                2,
+                                                0
+                                            ]
+                                        }
+                                    ],
+                                    "Following": [
+                                    ],
+                                    "Name": "",
+                                    "Previous": [
+                                    ],
+                                    "Priorities": [
+                                        1,
+                                        2,
+                                        0
+                                    ]
+                                },
+                                "Metadata": {
+                                    "Color": [
+                                        160,
+                                        160,
+                                        164
+                                    ],
+                                    "Comment": "",
+                                    "Label": "",
+                                    "ScriptingName": ""
+                                },
+                                "NextConstraint": 2,
+                                "ObjectName": "StateModel",
+                                "PreviousConstraint": 1,
+                                "StateProcesses": [
+                                ],
+                                "id": 2
+                            },
+                            {
+                                "Event": 3,
+                                "HeightPercentage": 0.13026052104208416,
+                                "Messages": {
+                                    "Children": [
+                                        {
+                                            "Children": [
+                                                {
+                                                    "Children": [
+                                                    ],
+                                                    "Following": [
+                                                    ],
+                                                    "Name": "speed",
+                                                    "Previous": [
+                                                        {
+                                                            "Process": 1,
+                                                            "Value": {
+                                                                "Type": "Float",
+                                                                "Value": 0
+                                                            }
+                                                        }
+                                                    ],
+                                                    "Priorities": [
+                                                        1,
+                                                        2,
+                                                        0
+                                                    ],
+                                                    "User": {
+                                                        "Type": "Float",
+                                                        "Value": 0.5
+                                                    }
+                                                }
+                                            ],
+                                            "Following": [
+                                            ],
+                                            "Name": "Processing",
+                                            "Previous": [
+                                            ],
+                                            "Priorities": [
+                                                1,
+                                                2,
+                                                0
+                                            ]
+                                        }
+                                    ],
+                                    "Following": [
+                                    ],
+                                    "Name": "",
+                                    "Previous": [
+                                    ],
+                                    "Priorities": [
+                                        1,
+                                        2,
+                                        0
+                                    ]
+                                },
+                                "Metadata": {
+                                    "Color": [
+                                        160,
+                                        160,
+                                        164
+                                    ],
+                                    "Comment": "",
+                                    "Label": "",
+                                    "ScriptingName": ""
+                                },
+                                "NextConstraint": "none",
+                                "ObjectName": "StateModel",
+                                "PreviousConstraint": 2,
+                                "StateProcesses": [
+                                ],
+                                "id": 3
+                            }
+                        ],
+                        "TimeNodes": [
+                            {
+                                "Date": 0,
+                                "Events": [
+                                    0
+                                ],
+                                "Extent": [
+                                    0.13026052104208416,
+                                    0.13026052104208416
+                                ],
+                                "Metadata": {
+                                    "Color": [
+                                        70,
+                                        70,
+                                        70
+                                    ],
+                                    "Comment": "",
+                                    "Label": "TimeNode",
+                                    "ScriptingName": "TimeNode.0"
+                                },
+                                "ObjectName": "TimeNodeModel",
+                                "PluginsMetadata": [
+                                ],
+                                "Trigger": {
+                                    "Active": false,
+                                    "Expression": {
+                                        "Children": [
+                                        ],
+                                        "RootNode": {
+                                        }
+                                    }
+                                },
+                                "id": 0
+                            },
+                            {
+                                "Date": 180000,
+                                "Events": [
+                                    1
+                                ],
+                                "Extent": [
+                                    0.20000000000000001,
+                                    0.80000000000000004
+                                ],
+                                "Metadata": {
+                                    "Color": [
+                                        70,
+                                        70,
+                                        70
+                                    ],
+                                    "Comment": "",
+                                    "Label": "TimeNode",
+                                    "ScriptingName": "TimeNode.1"
+                                },
+                                "ObjectName": "TimeNodeModel",
+                                "PluginsMetadata": [
+                                ],
+                                "Trigger": {
+                                    "Active": false,
+                                    "Expression": {
+                                        "Children": [
+                                        ],
+                                        "RootNode": {
+                                        }
+                                    }
+                                },
+                                "id": 1
+                            },
+                            {
+                                "Date": 22859.083191850601,
+                                "Events": [
+                                    2
+                                ],
+                                "Extent": [
+                                    0.13026052104208416,
+                                    0.13026052104208416
+                                ],
+                                "Metadata": {
+                                    "Color": [
+                                        70,
+                                        70,
+                                        70
+                                    ],
+                                    "Comment": "",
+                                    "Label": "TimeNode",
+                                    "ScriptingName": "twanger0spurlet97"
+                                },
+                                "ObjectName": "TimeNodeModel",
+                                "PluginsMetadata": [
+                                ],
+                                "Trigger": {
+                                    "Active": true,
+                                    "Expression": {
+                                        "Children": [
+                                            {
+                                                "Children": [
+                                                    {
+                                                        "Children": [
+                                                        ],
+                                                        "Relation": {
+                                                            "LHS": {
+                                                                "Address": {
+                                                                    "Device": "Processing",
+                                                                    "Path": "click"
+                                                                }
+                                                            },
+                                                            "Op": 0,
+                                                            "RHS": {
+                                                                "Value": {
+                                                                    "Type": "String",
+                                                                    "Value": ""
+                                                                }
+                                                            }
+                                                        }
+                                                    }
+                                                ],
+                                                "RootNode": {
+                                                }
+                                            }
+                                        ],
+                                        "RootNode": {
+                                        }
+                                    }
+                                },
+                                "id": 2
+                            },
+                            {
+                                "Date": 124716.46859083194,
+                                "Events": [
+                                    3
+                                ],
+                                "Extent": [
+                                    0.13026052104208416,
+                                    0.13026052104208416
+                                ],
+                                "Metadata": {
+                                    "Color": [
+                                        70,
+                                        70,
+                                        70
+                                    ],
+                                    "Comment": "",
+                                    "Label": "TimeNode",
+                                    "ScriptingName": "astrain29carabao10"
+                                },
+                                "ObjectName": "TimeNodeModel",
+                                "PluginsMetadata": [
+                                ],
+                                "Trigger": {
+                                    "Active": false,
+                                    "Expression": {
+                                        "Children": [
+                                        ],
+                                        "RootNode": {
+                                        }
+                                    }
+                                },
+                                "id": 3
+                            }
+                        ],
+                        "id": 1
+                    }
+                ],
+                "Rackes": [
+                    {
+                        "ObjectName": "RackModel",
+                        "Slots": [
+                            {
+                                "EditedProcess": 1,
+                                "Height": 1500,
+                                "LayerModels": [
+                                    {
+                                        "Constraints": [
+                                            {
+                                                "ConstraintId": 1,
+                                                "ObjectName": "TemporalConstraintViewModel",
+                                                "ShownRack": "none",
+                                                "id": 1
+                                            },
+                                            {
+                                                "ConstraintId": 2,
+                                                "ObjectName": "TemporalConstraintViewModel",
+                                                "ShownRack": 1,
+                                                "id": 2
+                                            }
+                                        ],
+                                        "ObjectName": "TemporalScenarioLayer",
+                                        "SharedProcessId": 1,
+                                        "id": 1
+                                    }
+                                ],
+                                "ObjectName": "SlotModel",
+                                "id": 1
+                            }
+                        ],
+                        "SlotsPositions": [
+                            1
+                        ],
+                        "id": 1
+                    }
+                ],
+                "Rigidity": false,
+                "StartDate": 0,
+                "StartState": 0,
+                "id": 0
+            },
+            "EndEvent": {
+                "Condition": {
+                    "Children": [
+                    ],
+                    "RootNode": {
+                    }
+                },
+                "Date": 180000,
+                "Extent": [
+                    0.40000000000000002,
+                    0.59999999999999998
+                ],
+                "Metadata": {
+                    "Color": [
+                        255,
+                        255,
+                        255
+                    ],
+                    "Comment": "",
+                    "Label": "",
+                    "ScriptingName": "Event.1"
+                },
+                "ObjectName": "EventModel",
+                "PluginsMetadata": [
+                ],
+                "States": [
+                    1
+                ],
+                "TimeNode": 1,
+                "id": 1
+            },
+            "EndState": {
+                "Event": 1,
+                "HeightPercentage": 0,
+                "Messages": {
+                    "Children": [
+                    ],
+                    "Following": [
+                    ],
+                    "Name": "",
+                    "Previous": [
+                    ],
+                    "Priorities": [
+                        1,
+                        2,
+                        0
+                    ]
+                },
+                "Metadata": {
+                    "Color": [
+                        160,
+                        160,
+                        164
+                    ],
+                    "Comment": "",
+                    "Label": "",
+                    "ScriptingName": ""
+                },
+                "NextConstraint": "none",
+                "ObjectName": "StateModel",
+                "PreviousConstraint": 0,
+                "StateProcesses": [
+                ],
+                "id": 1
+            },
+            "EndTimeNode": {
+                "Date": 180000,
+                "Events": [
+                    1
+                ],
+                "Extent": [
+                    0.20000000000000001,
+                    0.80000000000000004
+                ],
+                "Metadata": {
+                    "Color": [
+                        70,
+                        70,
+                        70
+                    ],
+                    "Comment": "",
+                    "Label": "TimeNode",
+                    "ScriptingName": "TimeNode.1"
+                },
+                "ObjectName": "TimeNodeModel",
+                "PluginsMetadata": [
+                ],
+                "Trigger": {
+                    "Active": true,
+                    "Expression": {
+                        "Children": [
+                        ],
+                        "RootNode": {
+                        }
+                    }
+                },
+                "id": 1
+            },
+            "ObjectName": "BaseScenario",
+            "PluginsMetadata": [
+            ],
+            "StartEvent": {
+                "Condition": {
+                    "Children": [
+                    ],
+                    "RootNode": {
+                    }
+                },
+                "Date": 0,
+                "Extent": [
+                    0.40000000000000002,
+                    0.59999999999999998
+                ],
+                "Metadata": {
+                    "Color": [
+                        255,
+                        255,
+                        255
+                    ],
+                    "Comment": "",
+                    "Label": "",
+                    "ScriptingName": "Event.0"
+                },
+                "ObjectName": "EventModel",
+                "PluginsMetadata": [
+                ],
+                "States": [
+                    0
+                ],
+                "TimeNode": 0,
+                "id": 0
+            },
+            "StartState": {
+                "Event": 0,
+                "HeightPercentage": 0,
+                "Messages": {
+                    "Children": [
+                    ],
+                    "Following": [
+                    ],
+                    "Name": "",
+                    "Previous": [
+                    ],
+                    "Priorities": [
+                        1,
+                        2,
+                        0
+                    ]
+                },
+                "Metadata": {
+                    "Color": [
+                        160,
+                        160,
+                        164
+                    ],
+                    "Comment": "",
+                    "Label": "",
+                    "ScriptingName": ""
+                },
+                "NextConstraint": 0,
+                "ObjectName": "StateModel",
+                "PreviousConstraint": "none",
+                "StateProcesses": [
+                ],
+                "id": 0
+            },
+            "StartTimeNode": {
+                "Date": 0,
+                "Events": [
+                    0
+                ],
+                "Extent": [
+                    0.20000000000000001,
+                    0.80000000000000004
+                ],
+                "Metadata": {
+                    "Color": [
+                        70,
+                        70,
+                        70
+                    ],
+                    "Comment": "",
+                    "Label": "TimeNode",
+                    "ScriptingName": "TimeNode.0"
+                },
+                "ObjectName": "TimeNodeModel",
+                "PluginsMetadata": [
+                ],
+                "Trigger": {
+                    "Active": false,
+                    "Expression": {
+                        "Children": [
+                        ],
+                        "RootNode": {
+                        }
+                    }
+                },
+                "id": 0
+            },
+            "id": 0
+        },
+        "DocumentId": 0,
+        "ObjectName": "ScenarioDocumentModel",
+        "id": 1
+    },
+    "Plugins": {
+        "DeviceDocumentPlugin": {
+            "Children": [
+                {
+                    "Children": [
+                        {
+                            "AddressSettings": {
+                                "ClipMode": "Clip",
+                                "Domain": {
+                                    "Max": 100,
+                                    "Min": 0,
+                                    "Values": [
+                                    ]
+                                },
+                                "Name": "number",
+                                "Priority": 0,
+                                "RefreshRate": 0,
+                                "RepetitionFilter": false,
+                                "Tags": [
+                                ],
+                                "Type": "Int",
+                                "Unit": "",
+                                "Value": 20,
+                                "ioType": "<->"
+                            },
+                            "Children": [
+                            ]
+                        },
+                        {
+                            "AddressSettings": {
+                                "ClipMode": "Clip",
+                                "Domain": {
+                                    "Max": 1,
+                                    "Min": -1,
+                                    "Values": [
+                                    ]
+                                },
+                                "Name": "speed",
+                                "Priority": 0,
+                                "RefreshRate": 0,
+                                "RepetitionFilter": false,
+                                "Tags": [
+                                ],
+                                "Type": "Float",
+                                "Unit": "",
+                                "Value": 0,
+                                "ioType": "<->"
+                            },
+                            "Children": [
+                            ]
+                        },
+                        {
+                            "AddressSettings": {
+                                "ClipMode": "Clip",
+                                "Domain": {
+                                    "Max": null,
+                                    "Min": null,
+                                    "Values": [
+                                    ]
+                                },
+                                "Name": "click",
+                                "Priority": 0,
+                                "RefreshRate": 0,
+                                "RepetitionFilter": false,
+                                "Tags": [
+                                ],
+                                "Type": "Impulse",
+                                "Unit": "",
+                                "Value": null,
+                                "ioType": "<-"
+                            },
+                            "Children": [
+                            ]
+                        }
+                    ],
+                    "DeviceSettings": {
+                        "Host": "127.0.0.1",
+                        "InputPort": 12001,
+                        "Name": "Processing",
+                        "OutputPort": 12002,
+                        "Protocol": "OSC"
+                    }
+                }
+            ],
+            "RootNode": {
+            }
+        },
+        "OSSIADocumentPlugin": {
+        }
+    }
+}

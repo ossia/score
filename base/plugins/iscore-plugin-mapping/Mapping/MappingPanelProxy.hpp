@@ -2,8 +2,12 @@
 #include <Curve/Process/CurveProcessPanelProxy.hpp>
 
 #include "MappingLayerModel.hpp"
-class MappingPanelProxy : public CurveProcessPanelProxy<MappingLayerModel>
+
+namespace Mapping
+{
+class MappingPanelProxy : public Curve::CurveProcessPanelProxy<LayerModel>
 {
     public:
-        using CurveProcessPanelProxy<MappingLayerModel>::CurveProcessPanelProxy;
+        using CurveProcessPanelProxy<LayerModel>::CurveProcessPanelProxy;
 };
+}

@@ -1,6 +1,19 @@
-#include "SetProcessDuration.hpp"
 #include <Process/Process.hpp>
-SetProcessDuration::SetProcessDuration(Path<Process>&& path, const TimeValue& newVal) :
+#include <algorithm>
+
+#include <Process/TimeValue.hpp>
+#include "SetProcessDuration.hpp"
+#include <iscore/serialization/DataStreamVisitor.hpp>
+#include <iscore/tools/ModelPathSerialization.hpp>
+
+namespace Scenario
+{
+namespace Command
+{
+
+SetProcessDuration::SetProcessDuration(
+        Path<Process::ProcessModel>&& path,
+        const TimeValue& newVal) :
     m_path {std::move(path)},
     m_new {newVal}
 {
@@ -25,4 +38,7 @@ void SetProcessDuration::serializeImpl(DataStreamInput& s) const
 void SetProcessDuration::deserializeImpl(DataStreamOutput& s)
 {
     s >> m_path >> m_old >> m_new;
+}
+
+}
 }

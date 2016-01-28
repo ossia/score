@@ -1,10 +1,11 @@
+#include <QBoxLayout>
+#include <QCheckBox>
+#include <QPushButton>
+
 #include "EventShortcut.hpp"
 
-#include <QPushButton>
-#include <QCheckBox>
-#include <QHBoxLayout>
-
-
+namespace Scenario
+{
 EventShortCut::EventShortCut(QString eventId, QWidget* parent) :
     QWidget {parent}
 {
@@ -39,4 +40,5 @@ bool EventShortCut::isChecked()
 QString EventShortCut::eventName()
 {
     return m_eventBtn->text();
+}
 }

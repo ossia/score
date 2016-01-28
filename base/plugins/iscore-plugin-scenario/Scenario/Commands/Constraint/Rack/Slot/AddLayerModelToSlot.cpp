@@ -1,19 +1,25 @@
-#include "AddLayerModelToSlot.hpp"
-
-#include <Scenario/Document/Constraint/Rack/Slot/SlotModel.hpp>
 #include <Process/Process.hpp>
-#include <Process/LayerModel.hpp>
-#include <Scenario/Document/Constraint/LayerModelLoader.hpp>
+#include <Scenario/Document/Constraint/Rack/Slot/SlotModel.hpp>
+
+#include <boost/iterator/iterator_facade.hpp>
+#include <boost/multi_index/detail/hash_index_iterator.hpp>
 #include <iscore/tools/SettableIdentifierGeneration.hpp>
-#include <Process/ProcessFactory.hpp>
-#include <Process/ProcessList.hpp>
-using namespace iscore;
-using namespace Scenario::Command;
+#include <algorithm>
+#include <vector>
 
+#include "AddLayerModelToSlot.hpp"
+#include <iscore/serialization/DataStreamVisitor.hpp>
+#include <iscore/tools/ModelPath.hpp>
+#include <iscore/tools/ModelPathSerialization.hpp>
+#include <iscore/tools/NotifyingMap.hpp>
 
+namespace Scenario
+{
+namespace Command
+{
 AddLayerModelToSlot::AddLayerModelToSlot(
         Path<SlotModel>&& slotPath,
-        Path<Process>&& processPath) :
+        Path<Process::ProcessModel>&& processPath) :
     m_slotPath {std::move(slotPath)},
     m_processPath {std::move(processPath)},
     m_processData{m_processPath.find().makeLayerConstructionData()},
@@ -23,7 +29,7 @@ AddLayerModelToSlot::AddLayerModelToSlot(
 
 AddLayerModelToSlot::AddLayerModelToSlot(
         Path<SlotModel>&& slotPath,
-        Path<Process>&& processPath,
+        Path<Process::ProcessModel>&& processPath,
         const QByteArray& processData) :
     m_slotPath {std::move(slotPath)},
     m_processPath {std::move(processPath)},
@@ -34,8 +40,8 @@ AddLayerModelToSlot::AddLayerModelToSlot(
 
 AddLayerModelToSlot::AddLayerModelToSlot(
         Path<SlotModel>&& slot,
-        const Id<LayerModel>& layerid,
-        Path<Process>&& process,
+        const Id<Process::LayerModel>& layerid,
+        Path<Process::ProcessModel>&& process,
         const QByteArray& processData):
     m_slotPath{std::move(slot)},
     m_processPath{std::move(process)},
@@ -66,4 +72,6 @@ void AddLayerModelToSlot::serializeImpl(DataStreamInput& s) const
 void AddLayerModelToSlot::deserializeImpl(DataStreamOutput& s)
 {
     s >> m_slotPath >> m_processPath >> m_processData >> m_createdLayerId;
+}
+}
 }

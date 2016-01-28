@@ -8,16 +8,18 @@
 
 #include <Process/ProcessContext.hpp>
 
+namespace Mapping
+{
 class MappingPresenter :
-        public CurveProcessPresenter<
-            MappingLayerModel,
+        public Curve::CurveProcessPresenter<
+            LayerModel,
             MappingView>
 {
     public:
         MappingPresenter(
-                iscore::DocumentContext& context,
+                const iscore::DocumentContext& context,
                 const Curve::Style& style,
-                const MappingLayerModel& layer,
+                const LayerModel& layer,
                 MappingView* view,
                 QObject* parent):
             CurveProcessPresenter{context, style, layer, view, parent}
@@ -25,3 +27,4 @@ class MappingPresenter :
           ISCORE_TODO;
         }
 };
+}

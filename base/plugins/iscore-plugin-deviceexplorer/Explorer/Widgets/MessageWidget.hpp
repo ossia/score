@@ -1,14 +1,18 @@
 #pragma once
-#include <QPushButton>
-#include <iscore/command/Dispatchers/CommandDispatcher.hpp>
-#include <State/Message.hpp>
 
-namespace iscore
+#include <QPushButton>
+
+class QWidget;
+
+namespace State
 {
 struct Message;
 }
 
+namespace DeviceExplorer
+{
 class DeviceExplorerModel;
+
 /**
  * @brief The MessageWidget class
  *
@@ -19,7 +23,7 @@ class MessageWidget final : public QPushButton
 {
     public:
         MessageWidget(
-                iscore::Message& m,
+                State::Message& m,
                 DeviceExplorerModel* model,
                 QWidget* parent);
 
@@ -27,5 +31,6 @@ class MessageWidget final : public QPushButton
         void on_clicked();
 
         DeviceExplorerModel* m_model{};
-        iscore::Message& m_message;
+        State::Message& m_message;
 };
+}

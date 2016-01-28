@@ -1,5 +1,7 @@
-#include <QTest>
 #include <State/Message.hpp>
+#include <QtTest/QtTest>
+#include <QMetaType>
+#include <QObject>
 
 using namespace iscore;
 class EqualityTest: public QObject
@@ -11,14 +13,15 @@ class EqualityTest: public QObject
 
         void equalityTest()
         {
+            using namespace State;
             using namespace iscore;
-            qRegisterMetaTypeStreamOperators<Address>();
+            qRegisterMetaTypeStreamOperators<State::Address>();
 
-            QMetaType::registerComparators<Message>();
-            QMetaType::registerComparators<MessageList>();
-            qRegisterMetaTypeStreamOperators<Message>();
-            qRegisterMetaTypeStreamOperators<MessageList>();
-            qRegisterMetaTypeStreamOperators<iscore::Value>();
+            QMetaType::registerComparators<State::Message>();
+            QMetaType::registerComparators<State::MessageList>();
+            qRegisterMetaTypeStreamOperators<State::Message>();
+            qRegisterMetaTypeStreamOperators<State::MessageList>();
+            qRegisterMetaTypeStreamOperators<State::Value>();
             Message m;
             m.address = {"dada", {"bilou", "yadaa", "zoo"}};
             ISCORE_ASSERT(m == m);
@@ -56,3 +59,5 @@ class EqualityTest: public QObject
 
 QTEST_APPLESS_MAIN(EqualityTest)
 #include "EqualityTest.moc"
+#include <State/Address.hpp>
+#include <State/Value.hpp>

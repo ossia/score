@@ -1,8 +1,12 @@
 #pragma once
 #include <QObject>
+
+class QGraphicsObject;
+
+namespace Scenario
+{
 class TriggerModel;
 class TriggerView;
-class QGraphicsObject;
 
 class TriggerPresenter final : public QObject
 {
@@ -16,3 +20,4 @@ class TriggerPresenter final : public QObject
         const TriggerModel& m_model;
         TriggerView* m_view{};
 };
+}

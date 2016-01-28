@@ -1,23 +1,35 @@
 #pragma once
-#include <QObject>
-#include <Inspector/InspectorWidgetFactoryInterface.hpp>
+#include <Process/Inspector/ProcessInspectorWidgetDelegateFactory.hpp>
 #include <JS/JSProcessMetadata.hpp>
+#include <QList>
+#include <QString>
+namespace JS
+{
+class ProcessModel;
+}
+class InspectorWidgetBase;
+class QObject;
+class QWidget;
+namespace iscore {
+class Document;
+}  // namespace iscore
 
+namespace JS
+{
 
-class JSInspectorFactory final : public InspectorWidgetFactory
+class InspectorFactory final :
+        public ProcessInspectorWidgetDelegateFactory
 {
     public:
-        JSInspectorFactory();
-        virtual ~JSInspectorFactory();
+        InspectorFactory();
+        virtual ~InspectorFactory();
 
-        InspectorWidgetBase* makeWidget(
-                const QObject& sourceElement,
-                iscore::Document& doc,
-                QWidget* parent) override;
-
-        const QList<QString>& key_impl() const override
-        {
-            static const QList<QString> list{JSProcessMetadata::processObjectName()};
-            return list;
-        }
+    private:
+        ProcessInspectorWidgetDelegate* make(
+                const Process::ProcessModel&,
+                const iscore::DocumentContext&,
+                QWidget* parent) const override;
+        bool matches(const Process::ProcessModel&) const override;
 };
+
+}

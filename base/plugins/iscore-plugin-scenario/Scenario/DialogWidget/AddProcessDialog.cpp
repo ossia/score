@@ -1,12 +1,21 @@
-#include "AddProcessDialog.hpp"
-
 #include <Process/ProcessList.hpp>
-
-#include <QtWidgets/QHBoxLayout>
-#include <QtWidgets/QInputDialog>
 #include <QApplication>
+#include <QInputDialog>
+
+#include <QString>
+#include <QStringList>
+#include <algorithm>
+#include <utility>
+#include <vector>
+
+#include "AddProcessDialog.hpp"
+#include <Process/ProcessFactory.hpp>
+#include <iscore/plugins/customfactory/FactoryFamily.hpp>
+#include <iscore/plugins/customfactory/FactoryMap.hpp>
+namespace Scenario
+{
 AddProcessDialog::AddProcessDialog(
-        const DynamicProcessList& plist,
+        const Process::ProcessList& plist,
         QWidget *parent) :
     QWidget {parent},
     m_factoryList{plist}
@@ -59,4 +68,5 @@ void AddProcessDialog::launchWindow()
         ISCORE_ASSERT(it != sortedFactoryList.end());
         emit okPressed(it->second);
     }
+}
 }

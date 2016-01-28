@@ -1,7 +1,9 @@
-#include <QtTest/QtTest>
-#include <iscore/serialization/DataStreamVisitor.hpp>
-#include <iscore/serialization/JSONVisitor.hpp>
 #include <Device/Node/DeviceNode.hpp>
+#include <QObject>
+#include <QString>
+#include <algorithm>
+#include <QtTest/QtTest>
+
 class NodeTest: public QObject
 {
         Q_OBJECT
@@ -9,12 +11,12 @@ class NodeTest: public QObject
     private slots:
         void NodeTest_1()
         {
-            iscore::Node root;
+            Device::Node root;
 
             ISCORE_ASSERT(root.is<InvisibleRootNodeTag>());
 
             {
-                iscore::Node child(iscore::AddressSettings{}, nullptr);
+                Device::Node child(Device::AddressSettings{}, nullptr);
                 root.push_back(child);
 
                 ISCORE_ASSERT(root.childCount() == 1);
@@ -22,7 +24,7 @@ class NodeTest: public QObject
             }
 
             {
-                iscore::Node child(iscore::AddressSettings{},&root);
+                Device::Node child(Device::AddressSettings{},&root);
                 root.push_back(child);
 
                 ISCORE_ASSERT(root.childCount() == 2);
@@ -30,7 +32,7 @@ class NodeTest: public QObject
             }
 
             {
-                iscore::Node child(iscore::DeviceSettings{}, &root);
+                Device::Node child(Device::DeviceSettings{}, &root);
                 root.push_back(child);
 
                 ISCORE_ASSERT(root.childCount() == 3);
@@ -38,7 +40,7 @@ class NodeTest: public QObject
             }
 
             {
-                iscore::Node root_copy(root);
+                Device::Node root_copy(root);
 
                 ISCORE_ASSERT(root.childCount() == 3);
                 ISCORE_ASSERT(root_copy.childCount() == 3);
@@ -56,7 +58,7 @@ class NodeTest: public QObject
             }
 
             {
-                iscore::Node root_copy;
+                Device::Node root_copy;
                 root_copy = root;
                 root_copy = root;
                 root_copy = root;
@@ -77,7 +79,7 @@ class NodeTest: public QObject
             }
 
             {
-                iscore::Node root_copy(std::move(root));
+                Device::Node root_copy(std::move(root));
 
                 ISCORE_ASSERT(root.childCount() == 0);
                 ISCORE_ASSERT(root_copy.childCount() == 3);
@@ -87,9 +89,9 @@ class NodeTest: public QObject
                     ISCORE_ASSERT(child.parent() == &root_copy);
                 }
 
-                ISCORE_ASSERT(root_copy.children().at(0).is<iscore::AddressSettings>());
-                ISCORE_ASSERT(root_copy.children().at(1).is<iscore::AddressSettings>());
-                ISCORE_ASSERT(root_copy.children().at(2).is<iscore::DeviceSettings>());
+                ISCORE_ASSERT(root_copy.children().at(0).is<Device::AddressSettings>());
+                ISCORE_ASSERT(root_copy.children().at(1).is<Device::AddressSettings>());
+                ISCORE_ASSERT(root_copy.children().at(2).is<Device::DeviceSettings>());
 
                 root = std::move(root_copy);
 
@@ -101,18 +103,18 @@ class NodeTest: public QObject
                     ISCORE_ASSERT(child.parent() == &root);
                 }
 
-                ISCORE_ASSERT(root.children().at(0).is<iscore::AddressSettings>());
-                ISCORE_ASSERT(root.children().at(1).is<iscore::AddressSettings>());
-                ISCORE_ASSERT(root.children().at(2).is<iscore::DeviceSettings>());
+                ISCORE_ASSERT(root.children().at(0).is<Device::AddressSettings>());
+                ISCORE_ASSERT(root.children().at(1).is<Device::AddressSettings>());
+                ISCORE_ASSERT(root.children().at(2).is<Device::DeviceSettings>());
             }
         }
 
 
         void NodeTest_2()
         {
-            iscore::Node root;
+            Device::Node root;
 
-            iscore::DeviceSettings dev_base{ProtocolFactoryKey{"NoProtocol"}, "ADevice", {}};
+            Device::DeviceSettings dev_base{Device::ProtocolFactoryKey{"NoProtocol"}, "ADevice", {}};
             auto& dev = root.emplace_back(std::move(dev_base), nullptr);
 
             ISCORE_ASSERT(root.childCount() == 1);
@@ -120,11 +122,11 @@ class NodeTest: public QObject
             ISCORE_ASSERT(&dev == &root.children()[0]);
             ISCORE_ASSERT(&dev == &root.childAt(0));
 
-            auto& dev_2 = root.emplace_back(iscore::DeviceSettings{ProtocolFactoryKey{"Bla"}, "OtherDevice", {}}, nullptr);
+            auto& dev_2 = root.emplace_back(Device::DeviceSettings{Device::ProtocolFactoryKey{"Bla"}, "OtherDevice", {}}, nullptr);
             ISCORE_ASSERT(root.childCount() == 2);
             ISCORE_ASSERT(dev_2.parent() == &root);
 
-            iscore::Node child(iscore::AddressSettings{}, &dev_2);
+            Device::Node child(Device::AddressSettings{}, &dev_2);
             dev_2.push_back(child);
 
             ISCORE_ASSERT(root.childCount() == 2);
@@ -132,7 +134,7 @@ class NodeTest: public QObject
             ISCORE_ASSERT(dev_2.childCount() == 1);
 
             {
-                iscore::Node root_copy(root);
+                Device::Node root_copy(root);
 
                 ISCORE_ASSERT(root.childCount() == 2);
                 ISCORE_ASSERT(root_copy.childCount() == 2);
@@ -151,7 +153,7 @@ class NodeTest: public QObject
                 ISCORE_ASSERT(root_copy.childAt(0).childCount() == 0);
                 ISCORE_ASSERT(root_copy.childAt(1).childCount() == 1);
 
-                ISCORE_ASSERT(root_copy.childAt(1).childAt(0).is<iscore::AddressSettings>());
+                ISCORE_ASSERT(root_copy.childAt(1).childAt(0).is<Device::AddressSettings>());
                 ISCORE_ASSERT(root_copy.childAt(1).childAt(0).parent() == &root_copy.childAt(1));
             }
 
@@ -161,5 +163,9 @@ class NodeTest: public QObject
 };
 
 QTEST_MAIN(NodeTest)
+#include <Device/Address/AddressSettings.hpp>
+#include <Device/Protocol/DeviceSettings.hpp>
+#include <Device/Protocol/ProtocolFactoryKey.hpp>
 #include "NodeTest.moc"
+#include <iscore/tools/TreeNode.hpp>
 

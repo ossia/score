@@ -1,12 +1,26 @@
-#include "AutomationModel.hpp"
-#include "AutomationLayerModel.hpp"
-#include "Curve/CurveModel.hpp"
-
 #include <iscore/serialization/DataStreamVisitor.hpp>
 #include <iscore/serialization/JSONVisitor.hpp>
+#include <QJsonObject>
+#include <QJsonValue>
+#include <algorithm>
+
+#include "AutomationLayerModel.hpp"
+#include "AutomationModel.hpp"
+#include <Curve/CurveModel.hpp>
+#include <State/Address.hpp>
+#include <iscore/plugins/documentdelegate/plugin/ElementPluginModelList.hpp>
+#include <iscore/serialization/JSONValueVisitor.hpp>
+#include <iscore/serialization/VisitorCommon.hpp>
+
+namespace Process { class LayerModel; }
+class QObject;
+struct VisitorVariant;
+template <typename T> class Reader;
+template <typename T> class Writer;
 
 template<>
-void Visitor<Reader<DataStream>>::readFrom(const AutomationModel& autom)
+void Visitor<Reader<DataStream>>::readFrom_impl(
+        const Automation::ProcessModel& autom)
 {
     readFrom(*autom.pluginModelList);
 
@@ -20,13 +34,14 @@ void Visitor<Reader<DataStream>>::readFrom(const AutomationModel& autom)
 }
 
 template<>
-void Visitor<Writer<DataStream>>::writeTo(AutomationModel& autom)
+void Visitor<Writer<DataStream>>::writeTo(
+        Automation::ProcessModel& autom)
 {
     autom.pluginModelList = new iscore::ElementPluginModelList{*this, &autom};
 
-    autom.setCurve(new CurveModel{*this, &autom});
+    autom.setCurve(new Curve::Model{*this, &autom});
 
-    iscore::Address address;
+    State::Address address;
     double min, max;
 
     m_stream >> address >> min >> max;
@@ -42,7 +57,8 @@ void Visitor<Writer<DataStream>>::writeTo(AutomationModel& autom)
 
 
 template<>
-void Visitor<Reader<JSONObject>>::readFrom(const AutomationModel& autom)
+void Visitor<Reader<JSONObject>>::readFrom_impl(
+        const Automation::ProcessModel& autom)
 {
     m_obj["PluginsMetadata"] = toJsonValue(*autom.pluginModelList);
 
@@ -53,35 +69,39 @@ void Visitor<Reader<JSONObject>>::readFrom(const AutomationModel& autom)
 }
 
 template<>
-void Visitor<Writer<JSONObject>>::writeTo(AutomationModel& autom)
+void Visitor<Writer<JSONObject>>::writeTo(
+        Automation::ProcessModel& autom)
 {
     Deserializer<JSONValue> elementPluginDeserializer(m_obj["PluginsMetadata"]);
     autom.pluginModelList = new iscore::ElementPluginModelList{elementPluginDeserializer, &autom};
 
     Deserializer<JSONObject> curve_deser{m_obj["Curve"].toObject()};
-    autom.setCurve(new CurveModel{curve_deser, &autom});
+    autom.setCurve(new Curve::Model{curve_deser, &autom});
 
-    autom.setAddress(fromJsonObject<iscore::Address>(m_obj["Address"].toObject()));
+    autom.setAddress(fromJsonObject<State::Address>(m_obj["Address"].toObject()));
     autom.setMin(m_obj["Min"].toDouble());
     autom.setMax(m_obj["Max"].toDouble());
 }
 
 
 // Dynamic stuff
-void AutomationModel::serialize(const VisitorVariant& vis) const
+namespace Automation
+{
+void ProcessModel::serialize_impl(const VisitorVariant& vis) const
 {
     serialize_dyn(vis, *this);
 }
 
-LayerModel* AutomationModel::loadLayer_impl(
+Process::LayerModel* ProcessModel::loadLayer_impl(
         const VisitorVariant& vis,
         QObject* parent)
 {
     return deserialize_dyn(vis, [&] (auto&& deserializer)
     {
-        auto autom = new AutomationLayerModel{
+        auto autom = new LayerModel{
                         deserializer, *this, parent};
 
         return autom;
     });
+}
 }

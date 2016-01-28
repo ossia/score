@@ -12,8 +12,8 @@ namespace iscore
 class MissingCommandException : public std::runtime_error
 {
     public:
-        MissingCommandException(const CommandParentFactoryKey& control, const CommandFactoryKey& command):
-            std::runtime_error{("Could not find " + command.toString() + " in " + control.toString())}
+        MissingCommandException(const CommandParentFactoryKey& parent, const CommandFactoryKey& command):
+            std::runtime_error{("Could not find " + command.toString() + " in " + parent.toString())}
         {
 
         }

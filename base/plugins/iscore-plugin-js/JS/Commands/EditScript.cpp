@@ -1,13 +1,18 @@
-#include "EditScript.hpp"
 #include <JS/JSProcessModel.hpp>
+#include <algorithm>
 
+#include "EditScript.hpp"
+#include <iscore/serialization/DataStreamVisitor.hpp>
+#include <iscore/tools/ModelPathSerialization.hpp>
+namespace JS
+{
 EditScript::EditScript(
-    Path<JSProcessModel>&& model,
+    Path<ProcessModel>&& model,
     const QString& text):
   m_model{std::move(model)},
   m_new{text}
 {
-	m_old = m_model.find().script();
+    m_old = m_model.find().script();
 }
 
 void EditScript::undo() const
@@ -29,4 +34,5 @@ void EditScript::serializeImpl(DataStreamInput& s) const
 void EditScript::deserializeImpl(DataStreamOutput& s)
 {
     s >> m_model >> m_old >> m_new;
+}
 }

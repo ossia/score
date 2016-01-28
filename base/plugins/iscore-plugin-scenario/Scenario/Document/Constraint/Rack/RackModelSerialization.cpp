@@ -1,11 +1,27 @@
+
+#include <boost/optional/optional.hpp>
 #include <iscore/serialization/DataStreamVisitor.hpp>
 #include <iscore/serialization/JSONVisitor.hpp>
+#include <QDataStream>
+#include <QtGlobal>
+#include <QJsonArray>
+#include <QJsonObject>
+#include <QJsonValue>
+#include <QList>
+#include <sys/types.h>
+
 #include "RackModel.hpp"
 #include "Slot/SlotModel.hpp"
+#include <iscore/tools/NotifyingMap.hpp>
+#include <iscore/tools/SettableIdentifier.hpp>
 
-template<> void Visitor<Reader<DataStream>>::readFrom(const RackModel& rack)
+template <typename T> class Reader;
+template <typename T> class Writer;
+template <typename model> class IdentifiedObject;
+
+template<> void Visitor<Reader<DataStream>>::readFrom(const Scenario::RackModel& rack)
 {
-    readFrom(static_cast<const IdentifiedObject<RackModel>&>(rack));
+    readFrom(static_cast<const IdentifiedObject<Scenario::RackModel>&>(rack));
 
     m_stream << rack.slotsPositions();
 
@@ -20,17 +36,17 @@ template<> void Visitor<Reader<DataStream>>::readFrom(const RackModel& rack)
     insertDelimiter();
 }
 
-template<> void Visitor<Writer<DataStream>>::writeTo(RackModel& rack)
+template<> void Visitor<Writer<DataStream>>::writeTo(Scenario::RackModel& rack)
 {
     int32_t slots_size;
-    QList<Id<SlotModel>> positions;
+    QList<Id<Scenario::SlotModel>> positions;
     m_stream >> positions;
 
     m_stream >> slots_size;
 
     for(; slots_size -- > 0 ;)
     {
-        auto slot = new SlotModel(*this, &rack);
+        auto slot = new Scenario::SlotModel(*this, &rack);
         rack.addSlot(slot, positions.indexOf(slot->id()));
     }
 
@@ -38,9 +54,9 @@ template<> void Visitor<Writer<DataStream>>::writeTo(RackModel& rack)
 }
 
 
-template<> void Visitor<Reader<JSONObject>>::readFrom(const RackModel& rack)
+template<> void Visitor<Reader<JSONObject>>::readFrom(const Scenario::RackModel& rack)
 {
-    readFrom(static_cast<const IdentifiedObject<RackModel>&>(rack));
+    readFrom(static_cast<const IdentifiedObject<Scenario::RackModel>&>(rack));
 
     QJsonArray arr;
     for(const auto& slot : rack.slotmodels)
@@ -60,21 +76,21 @@ template<> void Visitor<Reader<JSONObject>>::readFrom(const RackModel& rack)
     m_obj["SlotsPositions"] = positions;
 }
 
-template<> void Visitor<Writer<JSONObject>>::writeTo(RackModel& rack)
+template<> void Visitor<Writer<JSONObject>>::writeTo(Scenario::RackModel& rack)
 {
     QJsonArray theSlots = m_obj["Slots"].toArray();
     QJsonArray slotsPositions = m_obj["SlotsPositions"].toArray();
-    QList<Id<SlotModel>> list;
+    QList<Id<Scenario::SlotModel>> list;
 
     for(auto elt : slotsPositions)
     {
-        list.push_back(Id<SlotModel> {elt.toInt() });
+        list.push_back(Id<Scenario::SlotModel> {elt.toInt() });
     }
 
     for(const auto& json_slot : theSlots)
     {
         Deserializer<JSONObject> deserializer {json_slot.toObject()};
-        auto slot = new SlotModel {deserializer, &rack};
+        auto slot = new Scenario::SlotModel {deserializer, &rack};
         rack.addSlot(slot, list.indexOf(slot->id()));
     }
 }

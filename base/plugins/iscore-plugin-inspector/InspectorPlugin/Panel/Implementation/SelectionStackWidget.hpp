@@ -1,11 +1,15 @@
 #pragma once
-#include <QWidget>
 #include <iscore/selection/Selection.hpp>
+#include <QWidget>
+
 namespace iscore{
     class SelectionStack;
 }
 
 class QToolButton;
+
+namespace InspectorPanel
+{
 class SelectionStackWidget : public QWidget
 {
     public:
@@ -19,3 +23,4 @@ class SelectionStackWidget : public QWidget
         QToolButton* m_next{};
         iscore::SelectionStack& m_stack;
 };
+}

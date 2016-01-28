@@ -1,13 +1,15 @@
 #pragma once
 #include <QTextEdit>
 
+namespace Scenario
+{
 class CommentEdit final : public QTextEdit
 {
     Q_OBJECT
     public:
         template<typename... Args>
         CommentEdit(Args&&... args):
-            QTextEdit{std::forward<Args&&>(args)...}
+            QTextEdit{std::forward<Args>(args)...}
         {
             setMouseTracking(true);
         }
@@ -21,3 +23,4 @@ class CommentEdit final : public QTextEdit
     signals:
         void editingFinished();
 };
+}

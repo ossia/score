@@ -1,17 +1,23 @@
-#include "MetadataWidget.hpp"
-
-#include <Process//ModelMetadata.hpp>
-#include "Inspector/InspectorSectionWidget.hpp"
-#include "CommentEdit.hpp"
-
-#include <QLabel>
-#include <QPushButton>
-#include <QLineEdit>
-#include <QFormLayout>
-
+#include <QBoxLayout>
 #include <QColorDialog>
+#include <QFormLayout>
+#include <QIcon>
+#include <QLabel>
+#include <QLineEdit>
+#include <QPushButton>
+#include <QToolButton>
+#include <QSize>
+#include <Process//ModelMetadata.hpp>
 
+#include "CommentEdit.hpp"
+#include <Inspector/InspectorSectionWidget.hpp>
+#include "MetadataWidget.hpp"
+#include <iscore/command/Dispatchers/CommandDispatcher.hpp>
 
+class QObject;
+
+namespace Scenario
+{
 MetadataWidget::MetadataWidget(
         const ModelMetadata* metadata,
         CommandDispatcher<>* m,
@@ -21,14 +27,23 @@ MetadataWidget::MetadataWidget(
     m_metadata {metadata},
     m_commandDispatcher{m}
 {
-    QVBoxLayout* metadataLayout = new QVBoxLayout{this};
-    setLayout(metadataLayout);
+    // main
+    auto metadataLayout = new QVBoxLayout{this};
+    metadataLayout->setContentsMargins(0,0,0,0);
+    metadataLayout->setSpacing(1);
+    metadataLayout->setSizeConstraint(QLayout::SetMinimumSize);
 
-    QHBoxLayout* typeLay = new QHBoxLayout{};
-    // type
-    m_typeLb = new QLabel("type");
+    // btn
+    auto btnLay = new QVBoxLayout{};
+    btnLay->setContentsMargins(0,0,0,0);
+    btnLay->setSpacing(1);
 
-    // LABEL : label + lineEdit in a container
+    // header
+    auto headerLay = new QHBoxLayout{};
+    headerLay->setContentsMargins(0,0,0,0);
+    headerLay->setSpacing(1);
+
+    // Name(s)
     QWidget* descriptionWidget = new QWidget {this};
     QFormLayout* descriptionLay = new QFormLayout;
 
@@ -49,18 +64,33 @@ MetadataWidget::MetadataWidget(
     m_colorButtonPixmap.fill(metadata->color());
     m_colorButton->setIcon(QIcon(m_colorButtonPixmap));
 
-    typeLay->addWidget(m_colorButton);
-    typeLay->addWidget(m_typeLb);
 
     // comments
     m_comments = new CommentEdit{metadata->comment(), this};
-    InspectorSectionWidget* comments = new InspectorSectionWidget("Comments");
-    comments->addContent(m_comments);
-    comments->expand(); // todo à enlever par la suite
+    m_comments->setVisible(false);
 
-    metadataLayout->addLayout(typeLay);
-    metadataLayout->addWidget(descriptionWidget);
-    metadataLayout->addWidget(comments);
+    m_cmtBtn = new QToolButton{};
+    m_cmtBtn->setArrowType(Qt::RightArrow);
+
+    btnLay->addWidget(m_colorButton);
+    btnLay->addWidget(m_cmtBtn);
+
+    headerLay->addWidget(descriptionWidget);
+    headerLay->addLayout(btnLay);
+
+    metadataLayout->addLayout(headerLay);
+    metadataLayout->addWidget(m_comments);
+
+    connect(m_cmtBtn, &QToolButton::released,
+            this,  [&] ()
+    {
+        m_cmtExpanded = !m_cmtExpanded;
+        m_comments->setVisible(m_cmtExpanded);
+        if(m_cmtExpanded)
+            m_cmtBtn->setArrowType(Qt::DownArrow);
+        else
+            m_cmtBtn->setArrowType(Qt::RightArrow);
+    });
 
     connect(m_scriptingNameLine, &QLineEdit::editingFinished,
             [ = ]()
@@ -113,11 +143,6 @@ void MetadataWidget::changeColor()
     }
 }
 
-void MetadataWidget::setType(QString type)
-{
-    m_typeLb->setText(type);
-}
-
 void MetadataWidget::updateAsked()
 {
     m_scriptingNameLine->setText(m_metadata->name());
@@ -127,4 +152,5 @@ void MetadataWidget::updateAsked()
     m_colorButtonPixmap.fill(m_metadata->color());
     m_colorButton->setIcon(QIcon(m_colorButtonPixmap));
     // m_currentColor = newColor;
+}
 }

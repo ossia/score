@@ -1,12 +1,13 @@
-#include "AddSlotWidget.hpp"
+#include <QBoxLayout>
+#include <QLabel>
+#include <QString>
+#include <QToolButton>
 
+#include "AddSlotWidget.hpp"
 #include "RackInspectorSection.hpp"
 
-#include <QtWidgets/QHBoxLayout>
-#include <QtWidgets/QToolButton>
-#include <QtWidgets/QLabel>
-#include <QtWidgets/QInputDialog>
-
+namespace Scenario
+{
 AddSlotWidget::AddSlotWidget(RackInspectorSection* parent) :
     QWidget {parent}
 {
@@ -31,4 +32,5 @@ AddSlotWidget::AddSlotWidget(RackInspectorSection* parent) :
     {
         parent->createSlot();
     });
+}
 }

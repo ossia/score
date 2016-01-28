@@ -1,16 +1,15 @@
+#include <Process/LayerModelPanelProxy.hpp>
+#include <Scenario/Process/Temporal/TemporalScenarioLayerModel.hpp>
 #include "TemporalScenarioPanelProxy.hpp"
-#include "TemporalScenarioLayerModel.hpp"
 
+class QObject;
+namespace Scenario
+{
 TemporalScenarioPanelProxy::TemporalScenarioPanelProxy(
         const TemporalScenarioLayerModel& lm,
         QObject* parent):
-    LayerModelPanelProxy{parent},
-    m_viewModel{lm}
+    GraphicsViewLayerModelPanelProxy{lm, parent}
 {
 
 }
-
-const TemporalScenarioLayerModel& TemporalScenarioPanelProxy::layer()
-{
-    return m_viewModel;
 }

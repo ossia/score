@@ -1,9 +1,10 @@
 #pragma once
 
 #include <Scenario/Document/TimeRuler/AbstractTimeRulerView.hpp>
-#include <Process/TimeValue.hpp>
+#include <QRect>
 
-
+namespace Scenario
+{
 class TimeRulerView final : public AbstractTimeRulerView
 {
     public:
@@ -11,3 +12,4 @@ class TimeRulerView final : public AbstractTimeRulerView
         QRectF boundingRect() const override;
 
 };
+}

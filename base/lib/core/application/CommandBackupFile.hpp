@@ -1,10 +1,23 @@
 #pragma once
-#include <QTemporaryFile>
-#include <QStack>
 #include <iscore/command/SerializableCommand.hpp>
+#include <iscore/command/CommandData.hpp>
+#include <QByteArray>
+#include <QObject>
+#include <QPair>
+#include <QStack>
+#include <QString>
+#include <QTemporaryFile>
+
 namespace iscore
 {
     class CommandStack;
+    struct CommandStackBackup
+    {
+            CommandStackBackup(const iscore::CommandStack& stack);
+
+            QStack<CommandData> savedUndo;
+            QStack<CommandData> savedRedo;
+    };
 
     /**
      * @brief The CommandBackupFile class
@@ -31,9 +44,10 @@ namespace iscore
             void commit();
 
             const iscore::CommandStack& m_stack;
+            CommandStackBackup m_backup;
+
             QTemporaryFile m_file;
 
-            int m_previousIndex{};
-            QStack<QPair <QPair <CommandParentFactoryKey, CommandFactoryKey>, QByteArray> > m_savedUndo, m_savedRedo;
+            //int m_previousIndex{};
     };
 }

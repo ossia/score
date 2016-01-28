@@ -1,7 +1,11 @@
-#include "UndoListWidget.hpp"
 #include <core/command/CommandStack.hpp>
-using namespace iscore;
+#include <QItemSelectionModel>
 
+#include "UndoListWidget.hpp"
+#include <iscore/command/SerializableCommand.hpp>
+
+namespace iscore
+{
 UndoListWidget::UndoListWidget(iscore::CommandStack* s):
     m_stack{s}
 {
@@ -20,6 +24,7 @@ UndoListWidget::~UndoListWidget()
 
 void UndoListWidget::on_stackChanged()
 {
+    this->blockSignals(true);
     clear();
     addItem("<Clean state>");
     for(int i = 0; i < m_stack->size(); i++)
@@ -29,4 +34,7 @@ void UndoListWidget::on_stackChanged()
     }
 
     this->setCurrentRow(m_stack->currentIndex(), QItemSelectionModel::SelectionFlag::ClearAndSelect);
+
+    this->blockSignals(false);
+}
 }

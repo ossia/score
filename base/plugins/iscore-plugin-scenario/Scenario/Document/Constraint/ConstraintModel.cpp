@@ -1,24 +1,33 @@
-#include "ConstraintModel.hpp"
-
-#include <Scenario/Process/ScenarioModel.hpp>
-#include <Scenario/Document/Constraint/ViewModels/FullView/FullViewConstraintViewModel.hpp>
+#include <Process/LayerModel.hpp>
+#include <Process/Style/ScenarioStyle.hpp>
 #include <Scenario/Document/Constraint/Rack/RackModel.hpp>
 #include <Scenario/Document/Constraint/Rack/Slot/SlotModel.hpp>
-#include <Scenario/Document/Event/EventModel.hpp>
-
-#include <Process/LayerModel.hpp>
-
+#include <Scenario/Document/Constraint/ViewModels/FullView/FullViewConstraintViewModel.hpp>
 #include <iscore/document/DocumentInterface.hpp>
-#include <Process/Style/ScenarioStyle.hpp>
+#include <map>
+#include <utility>
 
-constexpr const char ConstraintModel::className[];
+#include "ConstraintModel.hpp"
+#include <Process/ModelMetadata.hpp>
+#include <Process/Process.hpp>
+#include <Process/TimeValue.hpp>
+#include <Scenario/Document/Constraint/ConstraintDurations.hpp>
+#include <Scenario/Document/Constraint/ViewModels/ConstraintViewModel.hpp>
+#include <iscore/tools/Todo.hpp>
+
+
+namespace Scenario
+{
+class StateModel;
+class TimeNodeModel;
+
 ConstraintModel::ConstraintModel(
         const Id<ConstraintModel>& id,
         const Id<ConstraintViewModel>& fullViewId,
         double yPos,
         QObject* parent) :
-    IdentifiedObject<ConstraintModel> {id, "ConstraintModel", parent},
-    pluginModelList{iscore::IDocument::documentFromObject(parent), this},
+    IdentifiedObject<ConstraintModel> {id, Metadata<ObjectKey_k, ConstraintModel>::get(), parent},
+    pluginModelList{iscore::IDocument::documentContext(*parent), this},
     m_fullViewModel{new FullViewConstraintViewModel{fullViewId, *this, this}}
 {
     initConnections();
@@ -28,11 +37,19 @@ ConstraintModel::ConstraintModel(
     setHeightPercentage(yPos);
 }
 
+ConstraintModel::~ConstraintModel()
+{
+    for(auto elt : racks.map().get())
+        delete elt;
+    for(auto elt : processes.map().get())
+        delete elt;
+}
+
 ConstraintModel::ConstraintModel(
         const ConstraintModel& source,
         const Id<ConstraintModel>& id,
         QObject* parent):
-    IdentifiedObject<ConstraintModel> {id, "ConstraintModel", parent},
+    IdentifiedObject<ConstraintModel> {id, Metadata<ObjectKey_k, ConstraintModel>::get(), parent},
     pluginModelList{source.pluginModelList, this}
 {
     initConnections();
@@ -47,7 +64,7 @@ ConstraintModel::ConstraintModel(
     m_heightPercentage = source.heightPercentage();
 
     // For an explanation of this, see ReplaceConstraintContent command
-    std::map<const Process*, Process*> processPairs;
+    std::map<const Process::ProcessModel*, Process::ProcessModel*> processPairs;
 
     // Clone the processes
     for(const auto& process : source.processes)
@@ -85,34 +102,20 @@ ConstraintModel::ConstraintModel(
     m_fullViewModel = source.fullView()->clone(source.fullView()->id(), *this, this);
 }
 
-ScenarioInterface* ConstraintModel::parentScenario() const
-{
-    return dynamic_cast<ScenarioInterface*>(parent());
-}
-
-
-
 void ConstraintModel::setupConstraintViewModel(ConstraintViewModel* viewmodel)
 {
-    con(racks, &NotifyingMap<RackModel>::removed,
-        viewmodel, &ConstraintViewModel::on_rackRemoved);
+    racks.removing.connect<ConstraintViewModel, &ConstraintViewModel::on_rackRemoval>(viewmodel);
 
-    connect(viewmodel, &QObject::destroyed,
+    connect(viewmodel, &ConstraintViewModel::aboutToBeDeleted,
             this, &ConstraintModel::on_destroyedViewModel);
 
     m_constraintViewModels.push_back(viewmodel);
     emit viewModelCreated(*viewmodel);
 }
 
-void ConstraintModel::on_destroyedViewModel(QObject* obj)
+void ConstraintModel::on_destroyedViewModel(ConstraintViewModel* obj)
 {
-    // Note : don't change into a dynamic/safe cast
-    // because the ConstraintViewModel part already was deleted
-    // at this point.
-    // TODO : make ConstraintViewModel send a signal
-    // at the beginning of its destructor instead.
-    int index = m_constraintViewModels.indexOf(
-                    static_cast<ConstraintViewModel*>(obj));
+    int index = m_constraintViewModels.indexOf(obj);
 
     if(index != -1)
     {
@@ -123,14 +126,12 @@ void ConstraintModel::on_destroyedViewModel(QObject* obj)
 
 void ConstraintModel::initConnections()
 {
-    con(racks, &NotifyingMap<RackModel>::added,
-        this, &ConstraintModel::on_rackAdded);
+    racks.added.connect<ConstraintModel, &ConstraintModel::on_rackAdded>(this);
 }
 
 void ConstraintModel::on_rackAdded(const RackModel& rack)
 {
-    con(processes, &NotifyingMap<Process>::removed,
-        &rack, &RackModel::on_deleteSharedProcessModel);
+    processes.removed.connect<RackModel, &RackModel::on_deleteSharedProcessModel>(const_cast<RackModel&>(rack));
     con(duration, &ConstraintDurations::defaultDurationChanged,
         &rack, &RackModel::on_durationChanged);
 }
@@ -160,15 +161,6 @@ void ConstraintModel::setStartState(const Id<StateModel>& e)
     m_startState = e;
 }
 
-const Id<TimeNodeModel> &ConstraintModel::startTimeNode() const
-{
-    return parentScenario()->timeNode(
-                parentScenario()->event(
-                    parentScenario()->state(startState()
-                                            ).eventId()
-                    ).timeNode()).id();
-}
-
 const Id<StateModel> &ConstraintModel::endState() const
 {
     return m_endState;
@@ -177,15 +169,6 @@ const Id<StateModel> &ConstraintModel::endState() const
 void ConstraintModel::setEndState(const Id<StateModel> &endState)
 {
     m_endState = endState;
-}
-
-const Id<TimeNodeModel> &ConstraintModel::endTimeNode() const
-{
-    return parentScenario()->timeNode(
-                parentScenario()->event(
-                    parentScenario()->state(endState()
-                                            ).eventId()
-                    ).timeNode()).id();
 }
 
 const TimeValue& ConstraintModel::startDate() const
@@ -221,7 +204,7 @@ void ConstraintModel::setFullView(FullViewConstraintViewModel* fv)
 // Should go in an "execution" object.
 void ConstraintModel::startExecution()
 {
-    for(Process& proc : processes)
+    for(Process::ProcessModel& proc : processes)
     {
         proc.startExecution(); // prevents editing
     }
@@ -229,7 +212,7 @@ void ConstraintModel::startExecution()
 }
 void ConstraintModel::stopExecution()
 {
-    for(Process& proc : processes)
+    for(Process::ProcessModel& proc : processes)
     {
         proc.stopExecution();
     }
@@ -239,7 +222,7 @@ void ConstraintModel::reset()
 {
     duration.setPlayPercentage(0);
 
-    for(Process& proc : processes)
+    for(Process::ProcessModel& proc : processes)
     {
         proc.reset();
         proc.stopExecution();
@@ -254,3 +237,6 @@ void ConstraintModel::setHeightPercentage(double arg)
         emit heightPercentageChanged(arg);
     }
 }
+
+}
+

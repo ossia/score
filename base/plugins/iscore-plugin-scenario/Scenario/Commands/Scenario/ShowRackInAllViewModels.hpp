@@ -1,17 +1,27 @@
 #pragma once
 #include <Scenario/Commands/ScenarioCommandFactory.hpp>
+#include <boost/optional/optional.hpp>
 #include <iscore/command/SerializableCommand.hpp>
+#include <QMap>
 
-class ConstraintModel;
+#include <iscore/tools/ModelPath.hpp>
+#include <iscore/tools/SettableIdentifier.hpp>
+
+class DataStreamInput;
+class DataStreamOutput;
+
+namespace Scenario
+{
 class RackModel;
+class ConstraintModel;
 class ConstraintViewModel;
+
+namespace Command
+{
 
 class ShowRackInAllViewModels final : public iscore::SerializableCommand
 {
-        ISCORE_COMMAND_DECL(
-                ScenarioCommandFactoryName(),
-                ShowRackInAllViewModels,
-                "ShowRackInAllViewModels")
+        ISCORE_COMMAND_DECL(ScenarioCommandFactoryName(), ShowRackInAllViewModels, "Show a rack everywhere")
     public:
         ShowRackInAllViewModels(
                 Path<ConstraintModel>&& constraint_path,
@@ -31,3 +41,7 @@ class ShowRackInAllViewModels final : public iscore::SerializableCommand
         QMap<Id<ConstraintViewModel>, Id<RackModel>> m_previousRacks;
 
 };
+
+}
+
+}

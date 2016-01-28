@@ -1,21 +1,25 @@
+#include <Process/ModelMetadata.hpp>
 #include "RackModel.hpp"
-
 #include <Scenario/Document/Constraint/ConstraintModel.hpp>
+#include <Scenario/Document/Constraint/Rack/Slot/SlotModel.hpp>
+#include <iscore/tools/NotifyingMap.hpp>
+#include <iscore/tools/SettableIdentifier.hpp>
+#include <iscore/tools/Todo.hpp>
 
-constexpr const char RackModel::className[];
-
-
+namespace Scenario
+{
 RackModel::RackModel(const Id<RackModel>& id, QObject* parent) :
-    IdentifiedObject<RackModel> {id, className, parent}
+    IdentifiedObject<RackModel> {id, Metadata<ObjectKey_k, RackModel>::get(), parent}
 {
     initConnections();
+    metadata.setName(QString{"Rack.%1"} .arg(*id.val()));
 }
 
 RackModel::RackModel(const RackModel& source,
                    const Id<RackModel>& id,
                    std::function<void(const SlotModel&, SlotModel&)> lmCopyMethod,
                    QObject *parent) :
-    IdentifiedObject<RackModel> {id, className, parent}
+    IdentifiedObject<RackModel> {id, Metadata<ObjectKey_k, RackModel>::get(), parent}
 {
     initConnections();
     for(const auto& slot : source.slotmodels)
@@ -66,6 +70,6 @@ void RackModel::swapSlots(const Id<SlotModel>& firstslot,
 
 void RackModel::initConnections()
 {
-    con(slotmodels, &NotifyingMap<SlotModel>::removed,
-        this, &RackModel::on_slotRemoved);
+    slotmodels.removing.connect<RackModel, &RackModel::on_slotRemoved>(this);
+}
 }

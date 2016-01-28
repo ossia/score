@@ -1,11 +1,24 @@
-#include "AutomationStateInspector.hpp"
-#include "Automation/State/AutomationState.hpp"
 #include <QLabel>
-#include <QHBoxLayout>
+#include <list>
+#include <QVBoxLayout>
 
-AutomationStateInspector::AutomationStateInspector(
-        const AutomationState& object,
-        iscore::Document& doc,
+#include <Automation/State/AutomationState.hpp>
+#include "AutomationStateInspector.hpp"
+#include <Inspector/InspectorWidgetBase.hpp>
+#include <Process/State/ProcessStateDataInterface.hpp>
+#include <State/Message.hpp>
+#include <iscore/tools/Todo.hpp>
+
+class QWidget;
+namespace iscore {
+class Document;
+}  // namespace iscore
+
+namespace Automation
+{
+StateInspectorWidget::StateInspectorWidget(
+        const ProcessState& object,
+        const iscore::DocumentContext& doc,
         QWidget* parent):
     InspectorWidgetBase{object, doc, parent},
     m_state{object},
@@ -16,14 +29,15 @@ AutomationStateInspector::AutomationStateInspector(
 
 
     con(m_state, &ProcessStateDataInterface::stateChanged,
-        this,    &AutomationStateInspector::on_stateChanged);
+        this,    &StateInspectorWidget::on_stateChanged);
 
     on_stateChanged();
 
     updateSectionsView(safe_cast<QVBoxLayout*>(layout()), vec);
 }
 
-void AutomationStateInspector::on_stateChanged()
+void StateInspectorWidget::on_stateChanged()
 {
     m_label->setText(m_state.message().toString());
+}
 }

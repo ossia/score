@@ -1,62 +1,81 @@
 #pragma once
 
-#include <Curve/Process/CurveProcessModel.hpp>
-#include <iscore/serialization/DataStreamVisitor.hpp>
-#include <iscore/serialization/JSONVisitor.hpp>
-
 #include <Automation/State/AutomationState.hpp>
-#include <Automation/AutomationProcessMetadata.hpp>
+#include <Curve/Process/CurveProcessModel.hpp>
 #include <State/Address.hpp>
+#include <QByteArray>
+#include <QString>
 
-/**
- * @brief The AutomationModel class
- *
- * Points are in relative coordinates :
- *	x is between  0 and 1,
- *  y is between -1 and 1.
- *
- * The duration is the time between x=0 and x=1.
- *
- */
-class CurveModel;
-class AutomationState;
-class AutomationModel final : public CurveProcessModel
+#include <Process/ProcessFactoryKey.hpp>
+#include <Process/TimeValue.hpp>
+#include <iscore/serialization/VisitorInterface.hpp>
+
+class DataStream;
+class JSONObject;
+namespace Process { class LayerModel; }
+namespace Process { class ProcessModel; }
+class QObject;
+#include <iscore/tools/SettableIdentifier.hpp>
+#include <iscore_plugin_automation_export.h>
+
+
+namespace Automation
 {
-        ISCORE_SERIALIZE_FRIENDS(AutomationModel, DataStream)
-        ISCORE_SERIALIZE_FRIENDS(AutomationModel, JSONObject)
+class ISCORE_PLUGIN_AUTOMATION_EXPORT ProcessModel final : public Curve::CurveProcessModel
+{
+        ISCORE_SERIALIZE_FRIENDS(ProcessModel, DataStream)
+        ISCORE_SERIALIZE_FRIENDS(ProcessModel, JSONObject)
 
         Q_OBJECT
-        Q_PROPERTY(iscore::Address address READ address WRITE setAddress NOTIFY addressChanged)
+        Q_PROPERTY(::State::Address address READ address WRITE setAddress NOTIFY addressChanged)
         // Min and max to scale the curve with at execution
         Q_PROPERTY(double min READ min WRITE setMin NOTIFY minChanged)
         Q_PROPERTY(double max READ max WRITE setMax NOTIFY maxChanged)
 
     public:
-        AutomationModel(const TimeValue& duration,
-                        const Id<Process>& id,
-                        QObject* parent);
-        Process* clone(const Id<Process>& newId,
-                                           QObject* newParent) const override;
+        ProcessModel(const TimeValue& duration,
+                     const Id<Process::ProcessModel>& id,
+                     QObject* parent);
+        Process::ProcessModel* clone(const Id<Process::ProcessModel>& newId,
+                            QObject* newParent) const override;
 
         template<typename Impl>
-        AutomationModel(Deserializer<Impl>& vis, QObject* parent) :
+        ProcessModel(Deserializer<Impl>& vis, QObject* parent) :
             CurveProcessModel{vis, parent},
-            m_startState{new AutomationState{*this, 0., this}},
-            m_endState{new AutomationState{*this, 1., this}}
+            m_startState{new ProcessState{*this, 0., this}},
+            m_endState{new ProcessState{*this, 1., this}}
         {
             vis.writeTo(*this);
         }
 
-        //// ProcessModel ////
-        const ProcessFactoryKey& key() const override;
+
+        ::State::Address address() const;
+
+        double value(const TimeValue& time);
+
+        double min() const;
+        double max() const;
+
+        void setAddress(const ::State::Address& arg);
+        void setMin(double arg);
+        void setMax(double arg);
 
         QString prettyName() const override;
 
-        LayerModel* makeLayer_impl(
-                const Id<LayerModel>& viewModelId,
+    signals:
+        void addressChanged(const ::State::Address&);
+        void minChanged(double);
+        void maxChanged(double);
+
+    private:
+        //// ProcessModel ////
+        ProcessFactoryKey concreteFactoryKey() const override;
+
+        Process::LayerModel* makeLayer_impl(
+                const Id<Process::LayerModel>& viewModelId,
                 const QByteArray& constructionData,
                 QObject* parent) override;
-        LayerModel* loadLayer_impl(
+        Process::LayerModel* loadLayer_impl(
                 const VisitorVariant&,
                 QObject* parent) override;
 
@@ -64,49 +83,28 @@ class AutomationModel final : public CurveProcessModel
         void setDurationAndGrow(const TimeValue& newDuration) override;
         void setDurationAndShrink(const TimeValue& newDuration) override;
 
-        void serialize(const VisitorVariant& vis) const override;
+        void serialize_impl(const VisitorVariant& vis) const override;
 
         /// States
-        AutomationState* startState() const override;
-        AutomationState* endState() const override;
+        ProcessState* startStateData() const override;
+        ProcessState* endStateData() const override;
 
-        //// AutomationModel specifics ////
-        iscore::Address address() const;
-
-        double value(const TimeValue& time);
-
-        double min() const;
-        double max() const;
-
-    signals:
-        void addressChanged(const iscore::Address& arg);
-
-        void minChanged(double arg);
-
-        void maxChanged(double arg);
-
-    public slots:
-        void setAddress(const iscore::Address& arg);
-
-        void setMin(double arg);
-        void setMax(double arg);
-
-    protected:
-        AutomationModel(const AutomationModel& source,
-                        const Id<Process>& id,
+        ProcessModel(const ProcessModel& source,
+                        const Id<Process::ProcessModel>& id,
                         QObject* parent);
-        LayerModel* cloneLayer_impl(
-                const Id<LayerModel>& newId,
-                const LayerModel& source,
+        Process::LayerModel* cloneLayer_impl(
+                const Id<Process::LayerModel>& newId,
+                const Process::LayerModel& source,
                 QObject* parent) override;
 
-    private:
+
         void setCurve_impl() override;
-        iscore::Address m_address;
+        ::State::Address m_address;
 
         double m_min{};
         double m_max{};
 
-        AutomationState* m_startState{};
-        AutomationState* m_endState{};
+        ProcessState* m_startState{};
+        ProcessState* m_endState{};
 };
+}

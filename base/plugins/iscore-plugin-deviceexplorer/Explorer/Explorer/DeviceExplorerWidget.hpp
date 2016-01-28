@@ -1,44 +1,53 @@
 #pragma once
 
-#include <QWidget>
 #include <iscore/command/Dispatchers/CommandDispatcher.hpp>
-#include <Device/Protocol/ProtocolList.hpp>
+#include <QAbstractItemModel>
+#include <QWidget>
+#include <memory>
 
-#include <QStackedLayout>
-#include <QThread>
-#include "DeviceExplorerModel.hpp"
+#include <Device/Node/DeviceNode.hpp>
+#include <Explorer/Explorer/ListeningManager.hpp>
+#include <iscore/tools/TreePath.hpp>
+
+class QAction;
+class QContextMenuEvent;
 class QProgressIndicator;
-class DeviceExplorerView;
-class DeviceExplorerModel;
-class DeviceExplorerFilterProxyModel;
-class DeviceEditDialog;
-class AddressEditDialog;
-namespace iscore
-{
-    class CommandStack;
-}
+class QStackedLayout;
 
 class QComboBox;
 class QLineEdit;
 
 
+namespace Device
+{
+class DynamicProtocolList;
+}
+
+namespace DeviceExplorer
+{
+class DeviceEditDialog;
+class DeviceExplorerFilterProxyModel;
+class DeviceExplorerModel;
+class DeviceExplorerView;
 class DeviceExplorerWidget final : public QWidget
 {
         Q_OBJECT
 
     public:
         explicit DeviceExplorerWidget(
-                const DynamicProtocolList&,
+                const Device::DynamicProtocolList&,
                 QWidget* parent);
 
         void setModel(DeviceExplorerModel* model);
         DeviceExplorerModel* model() const;
+        DeviceExplorerView* view() const;
 
         // Will block the GUI when refreshing.
         void blockGUI(bool);
 
+        QModelIndex sourceIndex(QModelIndex) const;
+        QModelIndex proxyIndex(QModelIndex) const;
     private:
-        QModelIndex sourceIndex(QModelIndex);
         // User commands
         void edit();
         void refresh();
@@ -59,21 +68,6 @@ class DeviceExplorerWidget final : public QWidget
 
         void updateActions();
 
-        void setListening(const QModelIndex&, bool);
-
-        /**
-         * @brief setListening_rec Simple recursion to enable / disable listening
-         * on all child nodes.
-         */
-        void setListening_rec(const iscore::Node& node, bool b);
-
-        /**
-         * @brief setListening_rec2 Recursion that checks the "expanded" state
-         * of nodes.
-         */
-        void setListening_rec2(const QModelIndex& index, bool b);
-
-
         // Utilities
         DeviceExplorerFilterProxyModel* proxyModel();
 
@@ -84,7 +78,7 @@ class DeviceExplorerWidget final : public QWidget
         void contextMenuEvent(QContextMenuEvent* event) override;
 
 
-        const DynamicProtocolList& m_protocolList;
+        const Device::DynamicProtocolList& m_protocolList;
 
         DeviceExplorerView* m_ntView{};
         DeviceExplorerFilterProxyModel* m_proxyModel{};
@@ -109,5 +103,7 @@ class DeviceExplorerWidget final : public QWidget
 
         QProgressIndicator* m_refreshIndicator{};
         QStackedLayout* m_lay{};
-};
 
+        ListeningManager m_listeningManager;
+};
+}

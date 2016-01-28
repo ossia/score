@@ -1,23 +1,30 @@
 #pragma once
 
-#include <QWidget>
-#include <iscore/tools/ModelPath.hpp>
-#include <iscore/document/DocumentInterface.hpp>
-
-#include <iscore/command/Dispatchers/CommandDispatcher.hpp>
-
+#include <Scenario/Commands/Metadata/ChangeElementColor.hpp>
+#include <Scenario/Commands/Metadata/ChangeElementComments.hpp>
 #include <Scenario/Commands/Metadata/ChangeElementLabel.hpp>
 #include <Scenario/Commands/Metadata/ChangeElementName.hpp>
-#include <Scenario/Commands/Metadata/ChangeElementComments.hpp>
-#include <Scenario/Commands/Metadata/ChangeElementColor.hpp>
+#include <iscore/command/Dispatchers/CommandDispatcher.hpp>
+#include <QColor>
+#include <QPixmap>
+#include <QString>
+#include <QWidget>
 
-class QVBoxLayout;
-class QLineEdit;
-class QLabel;
-class CommentEdit;
-class QPushButton;
+#include <iscore/tools/IdentifiedObject.hpp>
+
 class ModelMetadata;
+class QLabel;
+class QLineEdit;
+class QObject;
+class QPushButton;
+class QToolButton;
 
+namespace Scenario
+{
+
+class CommentEdit;
+
+// TODO move me in Process
 class MetadataWidget final : public QWidget
 {
         Q_OBJECT
@@ -65,13 +72,8 @@ class MetadataWidget final : public QWidget
             });
         }
 
-    public slots:
         void setScriptingName(QString arg);
-
         void changeColor();
-
-        void setType(QString type);
-
         void updateAsked();
 
     signals:
@@ -84,7 +86,6 @@ class MetadataWidget final : public QWidget
         const ModelMetadata* m_metadata;
         CommandDispatcher<>* m_commandDispatcher;
 
-        QLabel* m_typeLb {};
         QLineEdit* m_scriptingNameLine {};
         QLineEdit* m_labelLine {};
         QPushButton* m_colorButton {};
@@ -94,6 +95,9 @@ class MetadataWidget final : public QWidget
         {
             21
         };
+        bool m_cmtExpanded{false};
+        QToolButton* m_cmtBtn{};
 
 //        QString m_scriptingName;
 };
+}

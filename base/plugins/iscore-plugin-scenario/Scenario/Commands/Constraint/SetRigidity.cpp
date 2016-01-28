@@ -1,10 +1,16 @@
-#include "SetRigidity.hpp"
-
 #include <Scenario/Document/Constraint/ConstraintModel.hpp>
 
-using namespace iscore;
-using namespace Scenario::Command;
+#include <Process/TimeValue.hpp>
+#include <Scenario/Document/Constraint/ConstraintDurations.hpp>
+#include "SetRigidity.hpp"
+#include <iscore/serialization/DataStreamVisitor.hpp>
+#include <iscore/tools/ModelPath.hpp>
+#include <iscore/tools/ModelPathSerialization.hpp>
 
+namespace Scenario
+{
+namespace Command
+{
 // Rigid constraint == end TimeNode has a trigger
 
 SetRigidity::SetRigidity(
@@ -68,4 +74,6 @@ void SetRigidity::serializeImpl(DataStreamInput& s) const
 void SetRigidity::deserializeImpl(DataStreamOutput& s)
 {
     s >> m_path >> m_rigidity >> m_oldMinDuration >> m_oldMaxDuration;
+}
+}
 }

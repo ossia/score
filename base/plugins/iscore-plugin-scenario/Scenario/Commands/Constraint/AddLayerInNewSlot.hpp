@@ -1,60 +1,59 @@
 #pragma once
 #include <Scenario/Commands/ScenarioCommandFactory.hpp>
+#include <boost/optional/optional.hpp>
 #include <iscore/command/SerializableCommand.hpp>
 #include <iscore/tools/ModelPath.hpp>
+#include <QByteArray>
 
-#include <QString>
+#include <iscore/tools/SettableIdentifier.hpp>
 
-#include <tests/helpers/ForwardDeclaration.hpp>
-class Process;
-class RackModel;
-class SlotModel;
-class LayerModel;
-class ConstraintModel;
+class DataStreamInput;
+class DataStreamOutput;
+namespace Process { class LayerModel; }
+namespace Process { class ProcessModel; }
 
 namespace Scenario
 {
-    namespace Command
-    {
-        /**
+class ConstraintModel;
+class RackModel;
+class SlotModel;
+namespace Command
+{
+/**
         * @brief The AddLayerInNewSlot class
         */
-        class AddLayerInNewSlot final : public iscore::SerializableCommand
+class AddLayerInNewSlot final : public iscore::SerializableCommand
+{
+        ISCORE_COMMAND_DECL(ScenarioCommandFactoryName(), AddLayerInNewSlot, "Add a new layer")
+        public:
+            AddLayerInNewSlot(
+                Path<ConstraintModel>&& constraintPath,
+                const Id<Process::ProcessModel>& process); // maybe should we pass the viewmodel too, if many available ?
+
+        void undo() const override;
+        void redo() const override;
+
+        Id<Process::ProcessModel> processId() const
         {
-                ISCORE_COMMAND_DECL(
-                        ScenarioCommandFactoryName(),
-                        AddLayerInNewSlot,
-                        "AddLayerInNewSlot")
-#include <tests/helpers/FriendDeclaration.hpp>
-            public:
-                AddLayerInNewSlot(
-                    Path<ConstraintModel>&& constraintPath,
-                    const Id<Process>& process);
+            return m_processId;
+        }
 
-                void undo() const override;
-                void redo() const override;
+    protected:
+        void serializeImpl(DataStreamInput&) const override;
+        void deserializeImpl(DataStreamOutput&) override;
 
-                Id<Process> processId() const
-                {
-                    return m_processId;
-                }
+    private:
+        Path<ConstraintModel> m_path;
 
-            protected:
-                void serializeImpl(DataStreamInput&) const override;
-                void deserializeImpl(DataStreamOutput&) override;
+        bool m_existingRack {};
 
-            private:
-                Path<ConstraintModel> m_path;
+        Id<Process::ProcessModel> m_processId {};
+        Id<RackModel> m_createdRackId {};
+        Id<SlotModel> m_createdSlotId {};
+        Id<Process::LayerModel> m_createdLayerId {};
+        Id<Process::ProcessModel> m_sharedProcessModelId {};
 
-                bool m_existingRack {};
-
-                Id<Process> m_processId {};
-                Id<RackModel> m_createdRackId {};
-                Id<SlotModel> m_createdSlotId {};
-                Id<LayerModel> m_createdLayerId {};
-                Id<Process> m_sharedProcessModelId {};
-
-                QByteArray m_processData;
-        };
-    }
+        QByteArray m_processData;
+};
+}
 }

@@ -1,23 +1,29 @@
-#include "TemporalConstraintView.hpp"
-
-#include "TemporalConstraintViewModel.hpp"
-#include "TemporalConstraintPresenter.hpp"
-#include "TemporalConstraintHeader.hpp"
-#include <Scenario/Document/Constraint/Rack/RackPresenter.hpp>
-#include <Scenario/Document/Constraint/Rack/RackView.hpp>
-#include <Scenario/Document/State/StateView.hpp>
 #include <Process/Style/ProcessFonts.hpp>
-#include <QPainter>
-#include <QGraphicsScene>
-#include <QGraphicsView>
-#include <QGraphicsSceneMouseEvent>
-#include <QApplication>
 #include <Process/Style/ScenarioStyle.hpp>
+#include <QBrush>
+#include <QFont>
+#include <QGraphicsItem>
+#include <qnamespace.h>
+#include <QPainter>
+#include <QPainterPath>
+#include <QPen>
 
-#include <thread>
-#include <chrono>
-TemporalConstraintView::TemporalConstraintView(TemporalConstraintPresenter &presenter,
-                                               QGraphicsObject* parent) :
+#include <Scenario/Document/Constraint/ViewModels/ConstraintPresenter.hpp>
+#include <Scenario/Document/Constraint/ViewModels/ConstraintView.hpp>
+#include "TemporalConstraintPresenter.hpp"
+#include "TemporalConstraintView.hpp"
+#include <Scenario/Document/Constraint/ViewModels/Temporal/Braces/LeftBrace.hpp>
+#include <Scenario/Document/Constraint/ViewModels/Temporal/Braces/RightBrace.hpp>
+
+class QGraphicsSceneHoverEvent;
+class QStyleOptionGraphicsItem;
+class QWidget;
+
+namespace Scenario
+{
+TemporalConstraintView::TemporalConstraintView(
+        TemporalConstraintPresenter &presenter,
+        QGraphicsObject* parent) :
     ConstraintView {presenter, parent},
     m_labelColor{ScenarioStyle::instance().ConstraintDefaultLabel},
     m_bgColor{ScenarioStyle::instance().ConstraintDefaultBackground}
@@ -25,6 +31,11 @@ TemporalConstraintView::TemporalConstraintView(TemporalConstraintPresenter &pres
     this->setParentItem(parent);
 
     this->setZValue(3);
+    m_leftBrace = new LeftBraceView{*this, this};
+    m_leftBrace->setX(minWidth());
+
+    m_rightBrace = new RightBraceView{*this, this};
+    m_rightBrace->setX(maxWidth());
 }
 
 
@@ -39,6 +50,9 @@ void TemporalConstraintView::paint(
     qreal max_w = maxWidth();
     qreal def_w = defaultWidth();
     qreal play_w = playWidth();
+
+    m_leftBrace->setX(min_w);
+    m_rightBrace->setX(max_w);
 
     // Draw the stuff present if there is a rack *in the model* ?
     if(presenter().rack())
@@ -67,9 +81,9 @@ void TemporalConstraintView::paint(
         {
             solidPath.lineTo(min_w, 0);
 
-            leftBrace.moveTo(min_w, -10);
-            leftBrace.arcTo(min_w - 10, -10, 20, 20, 90, 180);
+            m_leftBrace->show();
         }
+        m_rightBrace->hide();
 
         // TODO end state should be hidden
         dashedPath.moveTo(min_w, 0);
@@ -78,6 +92,8 @@ void TemporalConstraintView::paint(
     else if(min_w == max_w) // TODO rigid()
     {
         solidPath.lineTo(def_w, 0);
+        m_leftBrace->hide();
+        m_rightBrace->hide();
     }
     else
     {
@@ -87,14 +103,9 @@ void TemporalConstraintView::paint(
         dashedPath.moveTo(min_w, 0);
         dashedPath.lineTo(max_w, 0);
 
-        leftBrace.moveTo(min_w + 10, -10);
-        leftBrace.arcTo(min_w, -10, 20, 20, 90, 180);
-        leftBrace.closeSubpath();
+        m_leftBrace->show();
+        m_rightBrace->show();
 
-        rightBrace.moveTo(max_w, 10);
-        rightBrace.arcTo(max_w - 10, -10, 20, 20, 270, 180);
-        rightBrace.closeSubpath();
-        rightBrace.translate(-10, 0); // TODO bleh.
     }
 
     QPainterPath playedPath;
@@ -135,10 +146,6 @@ void TemporalConstraintView::paint(
     painter->setPen(m_solidPen);
     if(!solidPath.isEmpty())
         painter->drawPath(solidPath);
-    if(!leftBrace.isEmpty())
-        painter->drawPath(leftBrace);
-    if(!rightBrace.isEmpty())
-        painter->drawPath(rightBrace);
 
     painter->setPen(m_dashPen);
     if(!dashedPath.isEmpty())
@@ -152,8 +159,7 @@ void TemporalConstraintView::paint(
     QColor blueish = m_solidPen.color().lighter();
     blueish.setAlphaF(0.3);
     painter->setBrush(blueish);
-    painter->drawPath(leftBrace);
-    painter->drawPath(rightBrace);
+
 
     static const QPen playedPen{
         QBrush{ScenarioStyle::instance().ConstraintPlayFill},
@@ -170,7 +176,7 @@ void TemporalConstraintView::paint(
 
     static const int fontSize = 12;
     QRectF labelRect{0,0, defaultWidth(), (-fontSize - 2.)};
-    auto f = ProcessFonts::Sans();
+    auto f = Process::Fonts::Sans();
     f.setPointSize(fontSize);
 
     painter->setFont(f);
@@ -217,4 +223,4 @@ void TemporalConstraintView::setShadow(bool shadow)
     m_shadow = shadow;
     update();
 }
-
+}

@@ -1,6 +1,14 @@
 #pragma once
-#include <QGraphicsObject>
 
+#include <QGraphicsItem>
+#include <QRect>
+
+class QPainter;
+class QStyleOptionGraphicsItem;
+class QWidget;
+
+namespace Scenario
+{
 class RackView final : public QGraphicsObject
 {
         Q_OBJECT
@@ -15,19 +23,20 @@ class RackView final : public QGraphicsObject
                            const QStyleOptionGraphicsItem* option,
                            QWidget* widget) override;
 
-        void setHeight(int height)
+        void setHeight(qreal height)
         {
             prepareGeometryChange();
             m_height = height;
         }
 
-        void setWidth(int width)
+        void setWidth(qreal width)
         {
             prepareGeometryChange();
             m_width = width;
         }
 
     private:
-        int m_height {};
-        int m_width {};
+        qreal m_height {};
+        qreal m_width {};
 };
+}

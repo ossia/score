@@ -1,12 +1,27 @@
-#include "StandardRemovalPolicy.hpp"
+#include <Scenario/Document/TimeNode/TimeNodeModel.hpp>
+#include <Scenario/Process/Algorithms/StandardCreationPolicy.hpp>
 #include <Scenario/Process/ScenarioModel.hpp>
+
+#include <boost/iterator/indirect_iterator.hpp>
+#include <boost/iterator/iterator_facade.hpp>
+#include <boost/multi_index/detail/hash_index_iterator.hpp>
+#include <boost/optional/optional.hpp>
+#include <QDebug>
+#include <QVector>
+
 #include <Scenario/Document/Constraint/ConstraintModel.hpp>
 #include <Scenario/Document/Event/EventModel.hpp>
-#include <Scenario/Document/TimeNode/TimeNodeModel.hpp>
-#include "StandardCreationPolicy.hpp"
+#include <Scenario/Document/State/StateModel.hpp>
+#include <Scenario/Process/Algorithms/Accessors.hpp>
+#include <Scenario/Process/Algorithms/ProcessPolicy.hpp>
+#include "StandardRemovalPolicy.hpp"
+#include <iscore/tools/NotifyingMap.hpp>
+#include <iscore/tools/SettableIdentifier.hpp>
 
+namespace Scenario
+{
 static void removeEventFromTimeNode(
-        ScenarioModel& scenario,
+        Scenario::ScenarioModel& scenario,
         const Id<EventModel>& eventId)
 {
     // We have to make a copy else the iterator explodes.
@@ -29,18 +44,16 @@ static void removeEventFromTimeNode(
 
 
 void StandardRemovalPolicy::removeConstraint(
-        ScenarioModel& scenario,
+        Scenario::ScenarioModel& scenario,
         const Id<ConstraintModel>& constraintId)
 {
     auto cstr_it = scenario.constraints.find(constraintId);
     if(cstr_it != scenario.constraints.end())
     {
         ConstraintModel& cstr =  *cstr_it;
-        auto& sst = scenario.state(cstr.startState());
-        sst.setNextConstraint(Id<ConstraintModel>{});
 
-        auto& est = scenario.state(cstr.endState());
-        est.setPreviousConstraint(Id<ConstraintModel>{});
+        SetNoNextConstraint(startState(cstr, scenario));
+        SetNoPreviousConstraint(endState(cstr, scenario));
 
         scenario.constraints.remove(&cstr);
     }
@@ -52,7 +65,7 @@ void StandardRemovalPolicy::removeConstraint(
 
 
 void StandardRemovalPolicy::removeState(
-        ScenarioModel& scenario,
+        Scenario::ScenarioModel& scenario,
         StateModel& state)
 {
     if(state.previousConstraint())
@@ -71,7 +84,7 @@ void StandardRemovalPolicy::removeState(
 }
 
 void StandardRemovalPolicy::removeEventStatesAndConstraints(
-        ScenarioModel& scenario,
+        Scenario::ScenarioModel& scenario,
         const Id<EventModel>& eventId)
 {
     auto& ev = scenario.event(eventId);
@@ -87,4 +100,10 @@ void StandardRemovalPolicy::removeEventStatesAndConstraints(
     removeEventFromTimeNode(scenario, eventId);
 
     scenario.events.remove(&ev);
+}
+
+void StandardRemovalPolicy::removeComment(Scenario::ScenarioModel& scenario, CommentBlockModel& cmt)
+{
+    scenario.comments.remove(&cmt);
+}
 }

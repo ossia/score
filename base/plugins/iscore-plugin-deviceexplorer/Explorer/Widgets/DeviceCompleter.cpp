@@ -1,9 +1,19 @@
-#include "DeviceCompleter.hpp"
-#include <Explorer/Explorer/DeviceExplorerModel.hpp>
 #include <Device/Node/DeviceNode.hpp>
-#include <QStringList>
-#include <QApplication>
+#include <Explorer/Explorer/DeviceExplorerModel.hpp>
+#include <QAbstractItemModel>
+#include <QChar>
+#include <qnamespace.h>
+#include <QVariant>
 
+#include <Device/Protocol/DeviceSettings.hpp>
+#include "DeviceCompleter.hpp"
+#include <iscore/tools/TreeNode.hpp>
+
+class QObject;
+
+
+namespace DeviceExplorer
+{
 DeviceCompleter::DeviceCompleter(DeviceExplorerModel* treemodel,
                                  QObject* parent) :
     QCompleter {parent}
@@ -23,8 +33,8 @@ QString DeviceCompleter::pathFromIndex(const QModelIndex& index) const
 
     while(iter.isValid())
     {
-        auto node = static_cast<iscore::Node*>(iter.internalPointer());
-        if(node && node->is<iscore::DeviceSettings>())
+        auto node = static_cast<Device::Node*>(iter.internalPointer());
+        if(node && node->is<Device::DeviceSettings>())
         {
             path = QString {"%1:/"} .arg(iter.data(0).toString()) + path;
         }
@@ -51,4 +61,5 @@ QStringList DeviceCompleter::splitPath(const QString& path) const
     QStringList split = p2.split("/");
     split.first().remove(":");
     return split;
+}
 }

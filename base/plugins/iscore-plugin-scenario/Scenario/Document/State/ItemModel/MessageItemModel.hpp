@@ -1,11 +1,25 @@
 #pragma once
-#include <State/StateMimeTypes.hpp>
-#include <State/Message.hpp>
-#include <iscore/command/Dispatchers/CommandDispatcher.hpp>
-
-#include <iscore/tools/TreeNodeItemModel.hpp>
-#include <QModelIndex>
 #include <Process/State/MessageNode.hpp>
+#include <iscore/tools/TreeNodeItemModel.hpp>
+#include <QAbstractItemModel>
+#include <qnamespace.h>
+#include <QStringList>
+#include <QVariant>
+#include <iscore_plugin_scenario_export.h>
+
+class QMimeData;
+class QObject;
+namespace iscore {
+class CommandStackFacade;
+}  // namespace iscore
+namespace State
+{
+struct Message;
+}
+
+namespace Scenario
+{
+class StateModel;
 /**
  * @brief The MessageItemModel class
  *
@@ -13,7 +27,7 @@
  * the Qt way.
  *
  */
-class MessageItemModel final : public TreeNodeBasedItemModel<MessageNode>
+class ISCORE_PLUGIN_SCENARIO_EXPORT MessageItemModel final : public TreeNodeBasedItemModel<MessageNode>
 {
         Q_OBJECT
 
@@ -28,16 +42,16 @@ class MessageItemModel final : public TreeNodeBasedItemModel<MessageNode>
         };
 
         MessageItemModel(
-                iscore::CommandStack& stack,
+                iscore::CommandStackFacade& stack,
                 const StateModel&,
                 QObject* parent);
         MessageItemModel& operator=(const MessageItemModel&);
         MessageItemModel& operator=(const node_type&);
         MessageItemModel& operator=(node_type&&);
 
-        const node_type& rootNode() const override
+        const MessageNode& rootNode() const override
         { return m_rootNode; }
-        node_type& rootNode() override
+        MessageNode& rootNode() override
         { return m_rootNode; }
 
         // AbstractItemModel interface
@@ -62,10 +76,13 @@ class MessageItemModel final : public TreeNodeBasedItemModel<MessageNode>
         const StateModel& stateModel;
 
     signals:
-        void userMessage(const iscore::Message&);
+        void userMessage(const State::Message&);
 
     private:
         node_type m_rootNode;
 
-        iscore::CommandStack& m_stack;
+        iscore::CommandStackFacade& m_stack;
 };
+}
+
+DEFAULT_MODEL_METADATA(Scenario::MessageItemModel, "Message item model")

@@ -1,32 +1,46 @@
-#include "SlotPresenter.hpp"
-
+#include <Process/LayerModel.hpp>
+#include <Process/LayerPresenter.hpp>
+#include <Process/LayerView.hpp>
+#include <Process/Process.hpp>
+#include <Process/ProcessFactory.hpp>
+#include <Process/ProcessList.hpp>
+#include <Scenario/Document/Constraint/ConstraintModel.hpp>
+#include <Scenario/Document/Constraint/Rack/RackView.hpp>
 #include <Scenario/Document/Constraint/Rack/Slot/SlotModel.hpp>
 #include <Scenario/Document/Constraint/Rack/Slot/SlotView.hpp>
-#include <Scenario/Document/Constraint/ConstraintModel.hpp>
-#include <Scenario/Commands/Constraint/Rack/Slot/ResizeSlotVertically.hpp>
-#include <Scenario/Control/ScenarioControl.hpp>
+#include <boost/optional/optional.hpp>
 
-#include <Process/ProcessList.hpp>
-#include <Process/LayerPresenter.hpp>
-#include <Process/LayerModel.hpp>
-#include <Process/LayerView.hpp>
-#include <Process/ProcessFactory.hpp>
-#include <Process/Process.hpp>
-
-#include <Scenario/Document/Constraint/Rack/RackView.hpp>
-#include "SlotHandle.hpp"
 #include <iscore/widgets/GraphicsItem.hpp>
-#include <QGraphicsScene>
+#include <QMenu>
+#include <algorithm>
 
-using namespace Scenario;
+#include <Process/TimeValue.hpp>
+#include <Process/ZoomHelper.hpp>
+#include <Scenario/Application/Menus/ScenarioContextMenuManager.hpp>
+#include "SlotHandle.hpp"
+#include "SlotPresenter.hpp"
 
+#include <iscore/application/ApplicationContext.hpp>
+#include <iscore/plugins/customfactory/FactoryFamily.hpp>
+#include <iscore/plugins/customfactory/FactoryMap.hpp>
+#include <iscore/plugins/customfactory/StringFactoryKey.hpp>
+#include <iscore/tools/NamedObject.hpp>
+#include <iscore/tools/NotifyingMap.hpp>
+#include <iscore/tools/SettableIdentifier.hpp>
+#include <iscore/tools/Todo.hpp>
+#include <iscore/tools/utilsCPP11.hpp>
+
+class QObject;
+
+namespace Scenario
+{
 SlotPresenter::SlotPresenter(
         const iscore::DocumentContext& doc,
         const SlotModel& model,
         RackView *view,
         QObject* par) :
     NamedObject {"SlotPresenter", par},
-    m_processList{doc.app.components.factory<DynamicProcessList>()},
+    m_processList{doc.app.components.factory<Process::ProcessList>()},
     m_model {model},
     m_view {new SlotView{*this, view}}
 {
@@ -37,10 +51,8 @@ SlotPresenter::SlotPresenter(
         on_layerModelCreated_impl(proc_vm);
     }
 
-    con(m_model.layers, &NotifyingMap<LayerModel>::added,
-        this, &SlotPresenter::on_layerModelCreated);
-    con(m_model.layers, &NotifyingMap<LayerModel>::removed,
-        this, &SlotPresenter::on_layerModelDeleted);
+    m_model.layers.added.connect<SlotPresenter, &SlotPresenter::on_layerModelCreated>(this);
+    m_model.layers.removed.connect<SlotPresenter, &SlotPresenter::on_layerModelRemoved>(this);
 
     con(m_model, &SlotModel::layerModelPutToFront,
         this, &SlotPresenter::on_layerModelPutToFront);
@@ -86,7 +98,7 @@ int SlotPresenter::height() const
     return m_view->height();
 }
 
-void SlotPresenter::setWidth(double w)
+void SlotPresenter::setWidth(qreal w)
 {
     m_view->setWidth(w);
 
@@ -137,13 +149,13 @@ void SlotPresenter::disable()
 
 
 void SlotPresenter::on_layerModelCreated(
-        const LayerModel& layerModel)
+        const Process::LayerModel& layerModel)
 {
     on_layerModelCreated_impl(layerModel);
 }
 
-void SlotPresenter::on_layerModelDeleted(
-        const LayerModel& layerModel)
+void SlotPresenter::on_layerModelRemoved(
+        const Process::LayerModel& layerModel)
 {
     vec_erase_remove_if(m_processes,
                         [&](auto& elt)
@@ -153,8 +165,12 @@ void SlotPresenter::on_layerModelDeleted(
         if(to_delete)
         {
             // No need to delete the view, the process presenters already do it.
+
             for(const auto& pair : elt.processes)
+            {
                 delete pair.first;
+                deleteGraphicsObject(pair.second);
+            }
         }
 
         return to_delete;
@@ -166,7 +182,7 @@ void SlotPresenter::on_layerModelDeleted(
 }
 
 void SlotPresenter::on_layerModelPutToFront(
-        const LayerModel& layer)
+        const Process::LayerModel& layer)
 {
     // Put the selected one at z+1 and the others at -z; set "disabled" graphics mode.
     // OPTIMIZEME by saving the previous to front and just switching...
@@ -224,9 +240,9 @@ void SlotPresenter::on_loopingChanged(bool b)
 }
 
 void SlotPresenter::on_layerModelCreated_impl(
-        const LayerModel& proc_vm)
+        const Process::LayerModel& proc_vm)
 {
-    auto& procKey = proc_vm.processModel().key();
+    const auto& procKey = proc_vm.processModel().concreteFactoryKey();
 
     auto factory = m_processList.list().get(procKey);
     ISCORE_ASSERT(factory);
@@ -246,14 +262,16 @@ void SlotPresenter::on_layerModelCreated_impl(
 
     m_processes.push_back(SlotProcessData(&proc_vm, std::move(vec)));
 
-    con(proc_vm.processModel(), &Process::durationChanged,
+    con(proc_vm.processModel(), &Process::ProcessModel::durationChanged,
         this, [&] (const TimeValue&) {
         // TODO index instead
         auto it = std::find_if(m_processes.begin(), m_processes.end(), [&] (const auto& elt) {
             return elt.model->processModel().id() == proc_vm.processModel().id();
         });
-        ISCORE_ASSERT(it != m_processes.end());
-        updateProcessShape(*it);
+
+        // TODO this should be an assert but it sometimes causes crashes.
+        if(it != m_processes.end())
+            updateProcessShape(*it);
     });
 
     if(m_enabled)
@@ -289,7 +307,7 @@ void SlotPresenter::updateProcesses()
         {
             if(proc_size < numproc)
             {
-                auto procKey = proc.model->processModel().key();
+                auto procKey = proc.model->processModel().concreteFactoryKey();
                 auto factory = m_processList.list().get(procKey);
                 ISCORE_ASSERT(factory);
 
@@ -359,4 +377,5 @@ void SlotPresenter::updateProcessesShape()
     {
         updateProcessShape(elt);
     }
+}
 }

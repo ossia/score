@@ -1,14 +1,18 @@
 #pragma once
-#include <QObject>
-#include <QAction>
-#include <QMenuBar>
-#include <map>
 #include <core/presenter/Action.hpp>
 #include <iscore/menu/MenuInterface.hpp>
-#include <QDebug>
+#include <QAction>
+#include <QList>
+#include <QMenu>
+#include <QMenuBar>
+#include <QObject>
+#include <QString>
+#include <QPointer>
+#include <algorithm>
+#include <map>
+#include <type_traits>
 
 class QMenuBar;
-class QMenu;
 
 namespace iscore
 {
@@ -18,12 +22,12 @@ namespace iscore
      * These are mainly convenience methods to add elements in a non-anarchic way
      * to the menu bar, using the information in \c{MenuInterface}.
      */
-    class MenubarManager final : public QObject
+    class ISCORE_LIB_BASE_EXPORT MenubarManager final : public QObject
     {
             Q_OBJECT
         public:
             explicit MenubarManager(QMenuBar* bar, QObject* parent = nullptr);
-
+            ~MenubarManager();
             QMenuBar* menuBar() const
             {
                 return m_menuBar;
@@ -99,7 +103,7 @@ namespace iscore
             void insertActionIntoMenubar(PositionedMenuAction);
 
         private:
-            QMenuBar* m_menuBar {};
+            QPointer<QMenuBar> m_menuBar {};
             std::map<ToplevelMenuElement, QMenu*> m_menusMap;
     };
 }

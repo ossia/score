@@ -1,20 +1,30 @@
+#include <QString>
+
 #include "CurvePointInspectorFactory.hpp"
 #include "CurvePointInspectorWidget.hpp"
 #include <Curve/Point/CurvePointModel.hpp>
+class QObject;
+class QWidget;
+namespace iscore {
+class Document;
+}  // namespace iscore
 
-InspectorWidgetBase* CurvePointInspectorFactory::makeWidget(
-        const QObject& sourceElement,
-        iscore::Document& doc,
-        QWidget* parent)
+
+namespace Automation
 {
-    return new CurvePointInspectorWidget{
-        safe_cast<const CurvePointModel&>(sourceElement),
+Inspector::InspectorWidgetBase* PointInspectorFactory::makeWidget(
+        const QObject& sourceElement,
+        const iscore::DocumentContext& doc,
+        QWidget* parent) const
+{
+    return new PointInspectorWidget{
+        safe_cast<const Curve::PointModel&>(sourceElement),
                 doc,
                 parent};
 }
 
-const QList<QString>&CurvePointInspectorFactory::key_impl() const
+bool PointInspectorFactory::matches(const QObject& object) const
 {
-    static const QList<QString>& lst{"CurvePointModel"};
-    return lst;
+    return dynamic_cast<const Curve::PointModel*>(&object);
+}
 }

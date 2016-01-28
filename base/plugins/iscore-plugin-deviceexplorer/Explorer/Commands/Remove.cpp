@@ -1,29 +1,37 @@
-#include "Remove.hpp"
+#include <QByteArray>
+#include <algorithm>
 
-#include "Remove/RemoveAddress.hpp"
 #include "Add/LoadDevice.hpp"
-using namespace DeviceExplorer::Command;
+#include <Device/Address/AddressSettings.hpp>
+#include <Device/Node/DeviceNode.hpp>
+#include "Remove.hpp"
+#include "Remove/RemoveAddress.hpp"
+#include <iscore/command/SerializableCommand.hpp>
+#include <iscore/serialization/DataStreamVisitor.hpp>
+#include <iscore/tools/ModelPath.hpp>
 
-Remove::Remove(
-        Path<DeviceDocumentPlugin> device_tree,
-        const iscore::Node& node)
+
+namespace DeviceExplorer
 {
-    ISCORE_ASSERT(!node.is<InvisibleRootNodeTag>());
+class DeviceDocumentPlugin;
+namespace Command
+{
+Remove::Remove(Path<DeviceDocumentPlugin> device_tree, Device::NodePath&& path):
+    m_device{false},
+    m_cmd{new RemoveAddress{
+          std::move(device_tree),
+          std::move(path)}}
+{
 
-    if (node.is<iscore::AddressSettings>())
-    {
-        m_device = false;
-        m_cmd = new RemoveAddress{
-                    std::move(device_tree),
-                    iscore::NodePath{node}};
-    }
-    else
-    {
-        m_device = true;
-        m_cmd = new LoadDevice{
-                    std::move(device_tree),
-                    iscore::Node{node}};
-    }
+}
+
+Remove::Remove(Path<DeviceDocumentPlugin> device_tree, const Device::Node& node):
+    m_device{true},
+    m_cmd{new LoadDevice{
+          std::move(device_tree),
+          Device::Node{node}}}
+{
+
 }
 
 Remove::~Remove()
@@ -63,4 +71,6 @@ void Remove::deserializeImpl(DataStreamOutput& d)
     }
 
     m_cmd->deserialize(cmd_data);
+}
+}
 }

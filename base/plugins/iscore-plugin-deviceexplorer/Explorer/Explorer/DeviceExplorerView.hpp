@@ -1,10 +1,19 @@
 #pragma once
 
+#include <QAbstractItemModel>
+#include <QList>
 #include <QTreeView>
+class QAction;
+class QItemSelection;
+class QPoint;
+class QWidget;
 
-class DeviceExplorerModel;
+
+
+namespace DeviceExplorer
+{
 class DeviceExplorerFilterProxyModel;
-
+class DeviceExplorerModel;
 class DeviceExplorerView final : public QTreeView
 {
         Q_OBJECT
@@ -48,4 +57,4 @@ class DeviceExplorerView final : public QTreeView
         bool m_hasProxy;
 
 };
-
+}

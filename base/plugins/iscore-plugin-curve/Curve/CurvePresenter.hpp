@@ -1,45 +1,39 @@
 #pragma once
-#include <Curve/Segment/CurveSegmentFactory.hpp>
-#include <Curve/Segment/CurveSegmentModel.hpp>
+#include <Curve/Palette/CurveEditionSettings.hpp>
 #include <Curve/Point/CurvePointModel.hpp>
-
 #include <Curve/Point/CurvePointView.hpp>
+#include <Curve/Segment/CurveSegmentModel.hpp>
 #include <Curve/Segment/CurveSegmentView.hpp>
-#include <Curve/StateMachine/CurveEditionSettings.hpp>
-#include <Curve/StateMachine/CurveStateMachine.hpp>
-
 #include <iscore/command/Dispatchers/CommandDispatcher.hpp>
 #include <iscore/selection/SelectionDispatcher.hpp>
 #include <iscore/tools/IdentifiedObjectMap.hpp>
+#include <QObject>
+#include <QPoint>
+#include <QRect>
 
-#include <QStateMachine>
-#include <QPointF>
-#include <QVector>
+#include <Curve/Segment/CurveSegmentFactoryKey.hpp>
+#include <iscore/document/DocumentContext.hpp>
+#include <iscore_plugin_curve_export.h>
 
-class DynamicCurveSegmentList;
-namespace Curve
-{
-class ToolPalette;
-}
-class CurveModel;
-class CurveView;
-class CurvePointView;
-class CurveSegmentView;
-class QAction;
-class QMenu;
 class QActionGroup;
+class QMenu;
+namespace Curve {
+class SegmentList;
+struct Style;
+class View;
+class Model;
 
-class CurvePresenter : public QObject
+class ISCORE_PLUGIN_CURVE_EXPORT Presenter : public QObject
 {
         Q_OBJECT
     public:
-        CurvePresenter(
+        Presenter(
                 const iscore::DocumentContext& lst,
                 const Curve::Style&,
-                const CurveModel&,
-                CurveView*,
+                const Model&,
+                View*,
                 QObject* parent);
-        virtual ~CurvePresenter();
+        virtual ~Presenter();
 
         const auto& points() const
         { return m_points; }
@@ -49,9 +43,9 @@ class CurvePresenter : public QObject
         // Removes all the points & segments
         void clear();
 
-        const CurveModel& model() const
+        const Model& model() const
         { return m_model; }
-        CurveView& view() const
+        View& view() const
         { return *m_view; }
 
         void setRect(const QRectF& rect);
@@ -77,39 +71,38 @@ class CurvePresenter : public QObject
 
     private:
         // Context menu actions
-        void updateSegmentsType(const CurveSegmentFactoryKey& segment);
+        void updateSegmentsType(const SegmentFactoryKey& segment);
 
         // Setup utilities
-        void setPos(CurvePointView&);
-        void setPos(CurveSegmentView&);
+        void setPos(PointView&);
+        void setPos(SegmentView&);
         void setupSignals();
         void setupView();
         void setupStateMachine();
 
         // Adding
-        void addPoint(CurvePointView*);
-        void addSegment(CurveSegmentView*);
+        void addPoint(PointView*);
+        void addSegment(SegmentView*);
 
-        void addPoint_impl(CurvePointView*);
-        void addSegment_impl(CurveSegmentView*);
+        void addPoint_impl(PointView*);
+        void addSegment_impl(SegmentView*);
 
-        void setupPointConnections(CurvePointView*);
-        void setupSegmentConnections(CurveSegmentView*);
+        void setupPointConnections(PointView*);
+        void setupSegmentConnections(SegmentView*);
 
         void modelReset();
 
-        const DynamicCurveSegmentList& m_curveSegments;
+        const SegmentList& m_curveSegments;
         Curve::EditionSettings m_editionSettings;
 
-        const CurveModel& m_model;
-        CurveView* m_view{};
+        const Model& m_model;
+        View* m_view{};
 
-        IdContainer<CurvePointView, CurvePointModel> m_points;
-        IdContainer<CurveSegmentView, CurveSegmentModel> m_segments;
+        IdContainer<PointView, PointModel> m_points;
+        IdContainer<SegmentView, SegmentModel> m_segments;
 
         // Required dispatchers
         CommandDispatcher<> m_commandDispatcher;
-        iscore::SelectionDispatcher m_selectionDispatcher;
 
         const Curve::Style& m_style;
 
@@ -118,3 +111,4 @@ class CurvePresenter : public QObject
 
         bool m_enabled = true;
 };
+}

@@ -1,11 +1,23 @@
-#include "InspectorPanel.hpp"
-#include <Inspector/InspectorSectionWidget.hpp>
 #include <Inspector/InspectorWidgetList.hpp>
-
+#include <boost/operators.hpp>
+#include <QVBoxLayout>
+#include <QPointer>
 #include <QTabWidget>
+#include <algorithm>
 
-InspectorPanel::InspectorPanel(
-        const InspectorWidgetList& list,
+#include <Inspector/InspectorWidgetBase.hpp>
+#include "InspectorPanel.hpp"
+#include <iscore/selection/SelectionDispatcher.hpp>
+#include <iscore/tools/IdentifiedObjectAbstract.hpp>
+
+namespace iscore {
+class SelectionStack;
+}  // namespace iscore
+
+namespace InspectorPanel
+{
+InspectorPanelWidget::InspectorPanelWidget(
+        const Inspector::InspectorWidgetList& list,
         iscore::SelectionStack& s,
         QWidget* parent) :
     QWidget {parent},
@@ -16,14 +28,14 @@ InspectorPanel::InspectorPanel(
 {
     m_tabWidget->setTabsClosable(true);
     m_layout->setContentsMargins(0, 0, 0, 0);
-    setMinimumWidth(300);
+    setMinimumWidth(350);
     m_layout->addWidget(m_tabWidget);
 
     connect(m_tabWidget,    &QTabWidget::tabCloseRequested,
-            this, &InspectorPanel::on_tabClose);
+            this, &InspectorPanelWidget::on_tabClose);
 }
 
-void InspectorPanel::newItemsInspected(const Selection& objects)
+void InspectorPanelWidget::newItemsInspected(const Selection& objects)
 {
     // Ignore items in both
     // Create items in objects and not in current
@@ -61,7 +73,6 @@ void InspectorPanel::newItemsInspected(const Selection& objects)
     for(const auto& object : toCreate)
     {
         auto widget = m_list.makeInspectorWidget(
-                    object->objectName(),
                     *object,
                     m_tabWidget);
         m_tabWidget->addTab(widget, widget->tabName());
@@ -71,13 +82,14 @@ void InspectorPanel::newItemsInspected(const Selection& objects)
     m_currentSel = objects.toList();
 }
 
-void InspectorPanel::on_tabClose(int index)
+void InspectorPanelWidget::on_tabClose(int index)
 {
-    auto inspector_widget = static_cast<InspectorWidgetBase*>(m_tabWidget->widget(index));
+    auto inspector_widget = static_cast<Inspector::InspectorWidgetBase*>(m_tabWidget->widget(index));
     // TODO need m_tabWidget.movable() = false !
 
     Selection sel = Selection::fromList(m_currentSel);
     sel.removeAll(inspector_widget->inspectedObject_addr());
 
     m_selectionDispatcher.setAndCommit(sel);
+}
 }

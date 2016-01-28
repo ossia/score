@@ -1,11 +1,13 @@
 #pragma once
 #include <QObject>
-#include <QStringList>
+#include <vector>
+#include <iscore_lib_base_export.h>
 
 namespace iscore
 {
     class PanelFactory;
-    class PanelFactory_QtInterface
+
+    class ISCORE_LIB_BASE_EXPORT PanelFactory_QtInterface
     {
         public:
             virtual ~PanelFactory_QtInterface();

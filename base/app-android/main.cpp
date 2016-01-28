@@ -3,7 +3,7 @@
 
 #define APPNAME "i-score3"
 #if defined(ISCORE_STATIC_PLUGINS)
-Q_IMPORT_PLUGIN(ScenarioPlugin)
+Q_IMPORT_PLUGIN(iscore_plugin_scenario)
 Q_IMPORT_PLUGIN(InspectorPlugin)
 Q_IMPORT_PLUGIN(DeviceExplorerPlugin)
 Q_IMPORT_PLUGIN(PluginSettingsPlugin)  // static plug-ins should not be displayed.

@@ -1,18 +1,34 @@
-#include "GraphicsItem.hpp"
-#include <QGraphicsScene>
 #include <QGraphicsItem>
+#include <QGraphicsScene>
+
+#include "GraphicsItem.hpp"
 
 void deleteGraphicsObject(QGraphicsObject* item)
 {
-	if(item)
-	{
-		auto sc = item->scene();
+    if(item)
+    {
+        auto sc = item->scene();
 
-		if(sc)
-		{
-			sc->removeItem(item);
-		}
+        if(sc)
+        {
+            sc->removeItem(item);
+        }
 
-		item->deleteLater();
-	}
+        item->deleteLater();
+    }
+}
+
+void deleteGraphicsItem(QGraphicsItem* item)
+{
+    if(item)
+    {
+        auto sc = item->scene();
+
+        if(sc)
+        {
+            sc->removeItem(item);
+        }
+
+        delete item;
+    }
 }

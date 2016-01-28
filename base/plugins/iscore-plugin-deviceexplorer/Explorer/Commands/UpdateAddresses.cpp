@@ -1,19 +1,32 @@
+#include <QDataStream>
+#include <QtGlobal>
+#include <qnamespace.h>
+#include <algorithm>
+
+#include <Device/Address/AddressSettings.hpp>
+#include <Device/Node/DeviceNode.hpp>
+#include <Explorer/Explorer/DeviceExplorerModel.hpp>
 #include "UpdateAddresses.hpp"
-#include <Explorer/DocumentPlugin/DeviceDocumentPlugin.hpp>
+#include <iscore/serialization/DataStreamVisitor.hpp>
+#include <iscore/tools/ModelPath.hpp>
+#include <iscore/tools/ModelPathSerialization.hpp>
+#include <iscore/tools/TreeNode.hpp>
+#include <iscore/tools/TreePath.hpp>
 
-using namespace DeviceExplorer::Command;
-using namespace iscore;
-
+namespace DeviceExplorer
+{
+namespace Command
+{
 // TODO this should not be a command, values can be updated without undo-ability.
 UpdateAddressesValues::UpdateAddressesValues(
         Path<DeviceExplorerModel>&& device_tree,
-        const QList<QPair<const Node *, iscore::Value> > &nodes):
+        const QList<QPair<const Device::Node *, State::Value> > &nodes):
     m_deviceTree{std::move(device_tree)}
 {
     for(const auto& elt : nodes)
     {
-        ISCORE_ASSERT(!elt.first->is<DeviceSettings>());
-        m_data.append({*elt.first, {elt.first->get<AddressSettings>().value, elt.second}});
+        ISCORE_ASSERT(!elt.first->is<Device::DeviceSettings>());
+        m_data.append({*elt.first, {elt.first->get<Device::AddressSettings>().value, elt.second}});
     }
 }
 
@@ -39,4 +52,6 @@ void UpdateAddressesValues::serializeImpl(DataStreamInput& d) const
 void UpdateAddressesValues::deserializeImpl(DataStreamOutput& d)
 {
     d >> m_deviceTree >> m_data;
+}
+}
 }

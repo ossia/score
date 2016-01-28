@@ -1,5 +1,30 @@
-#include "MessageNode.hpp"
+
 #include <iscore/serialization/VisitorCommon.hpp>
+#include <QDataStream>
+#include <QtGlobal>
+#include <QJsonArray>
+#include <QJsonObject>
+#include <QJsonValue>
+#include <QString>
+#include <QVector>
+#include <algorithm>
+#include <array>
+#include <cstddef>
+
+#include "MessageNode.hpp"
+#include <State/Value.hpp>
+#include <iscore/serialization/DataStreamVisitor.hpp>
+#include <iscore/serialization/JSONValueVisitor.hpp>
+#include <iscore/serialization/JSONVisitor.hpp>
+#include <iscore/tools/SettableIdentifier.hpp>
+
+namespace Process { class ProcessModel; }
+namespace boost {
+template <class T> class optional;
+}  // namespace boost
+template <typename T> class Reader;
+template <typename T> class Writer;
+
 template<typename T>
 void toJsonValue(
         QJsonObject& object,
@@ -43,7 +68,7 @@ void fromJsonValue(
     auto it = object.find(name);
     if(it != object.end())
     {
-        value = unmarshall<iscore::Value>((*it).toObject());
+        value = unmarshall<State::Value>((*it).toObject());
     }
     else
     {
@@ -90,7 +115,7 @@ void Visitor<Reader<JSONObject>>::readFrom(const ProcessStateData& val)
 template<>
 void Visitor<Writer<JSONObject>>::writeTo(ProcessStateData& val)
 {
-    val.process = fromJsonValue<Id<Process>>(m_obj["Process"]);
+    val.process = fromJsonValue<Id<Process::ProcessModel>>(m_obj["Process"]);
     fromJsonValue(m_obj, "Value", val.value);
 }
 
@@ -127,28 +152,28 @@ void Visitor<Writer<JSONObject>>::writeTo(StateNodeValues& val)
 
 
 template<>
-void Visitor<Reader<DataStream>>::readFrom(const StateNodeData& node)
+ISCORE_LIB_PROCESS_EXPORT void Visitor<Reader<DataStream>>::readFrom(const StateNodeData& node)
 {
     m_stream << node.name << node.values;
     insertDelimiter();
 }
 
 template<>
-void Visitor<Writer<DataStream>>::writeTo(StateNodeData& node)
+ISCORE_LIB_PROCESS_EXPORT void Visitor<Writer<DataStream>>::writeTo(StateNodeData& node)
 {
     m_stream >> node.name >> node.values;
     checkDelimiter();
 }
 
 template<>
-void Visitor<Reader<JSONObject>>::readFrom(const StateNodeData& node)
+ISCORE_LIB_PROCESS_EXPORT void Visitor<Reader<JSONObject>>::readFrom(const StateNodeData& node)
 {
     m_obj["Name"] = node.name;
     readFrom(node.values);
 }
 
 template<>
-void Visitor<Writer<JSONObject>>::writeTo(StateNodeData& node)
+ISCORE_LIB_PROCESS_EXPORT void Visitor<Writer<JSONObject>>::writeTo(StateNodeData& node)
 {
     node.name = m_obj["Name"].toString();
     writeTo(node.values);

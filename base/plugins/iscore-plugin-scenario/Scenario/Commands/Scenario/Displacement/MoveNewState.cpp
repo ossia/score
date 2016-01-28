@@ -1,9 +1,22 @@
-#include "MoveNewState.hpp"
 #include <Scenario/Process/Algorithms/VerticalMovePolicy.hpp>
 #include <Scenario/Process/ScenarioModel.hpp>
 
+#include <algorithm>
+
+#include "MoveNewState.hpp"
+#include <Scenario/Document/State/StateModel.hpp>
+#include <iscore/serialization/DataStreamVisitor.hpp>
+#include <iscore/tools/ModelPath.hpp>
+#include <iscore/tools/ModelPathSerialization.hpp>
+
+#include <iscore/tools/SettableIdentifier.hpp>
+
+namespace Scenario
+{
+namespace Command
+{
 Scenario::Command::MoveNewState::MoveNewState(
-        Path<ScenarioModel>&& scenarioPath,
+        Path<Scenario::ScenarioModel>&& scenarioPath,
         const Id<StateModel>& stateId,
         const double y):
     m_path(std::move(scenarioPath)),
@@ -40,4 +53,7 @@ void Scenario::Command::MoveNewState::serializeImpl(DataStreamInput & s) const
 void Scenario::Command::MoveNewState::deserializeImpl(DataStreamOutput & s)
 {
     s >> m_path >> m_stateId >> m_oldy >> m_y;
+}
+
+}
 }

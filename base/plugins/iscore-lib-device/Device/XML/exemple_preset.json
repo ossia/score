@@ -1,0 +1,68 @@
+var preset = {
+    "TestApp":
+	{
+        "security":
+		{
+            "log": "true"
+        },
+        "network":
+		{
+            "server_ip": "localhost",
+            "server_port": "9999",
+            "is_master": "false"
+        },
+        "languages":
+		{
+            "main": "FR",
+            "second": "EN",
+            "third": "IT",
+            "enable_lsf": "false"
+        },
+        "screen":
+		{
+            "w": "1920",
+            "h": "1080",
+            "fullscreen": "true",
+            "hideCursor": "true"
+        },
+        "/input/mouse_wheel_delta_intro": "1",
+		"/input/mouse_wheel_delta_timeline": {":value" : "1", ":range" : "0 1"},
+		"/input/sensor_speed_intro": "1",
+		"/input/sensor_speed_timeline": "1",
+		"/input/sensor_lookup_table": "1",
+		"/input/variable_speed": "1",
+		"/sound/effects/display_welcome_screen" :
+		{
+            "filepath": "medias/sons/demarrer01.mp3",
+            "volume": "50"
+		},
+        "/sound/effects/quit_welcome_screen":
+		{
+            "filepath": "medias/sons/reprise-rupture-time-out01.mp3",
+            "volume": "50"
+        },
+        "/sound/effects/sensor_rotation":
+		[
+			"0" :
+			{
+            	"filepath":  "medias/sons/Chrono_rotation01.mp3",
+            	"volume":  "50"
+        	},
+			"1" :
+			{
+            	"filepath":  "medias/sons/Chrono_rotation02.mp3",
+            	"volume":  "70"
+        	},
+			"left" :
+			{
+            	"filepath":  "medias/sons/Chrono_rotation02.mp3",
+            	"volume":  "70"
+        	},
+			"right" :
+			{
+            	"filepath":  "medias/sons/Chrono_rotation02.mp3",
+            	"volume":  "70"
+        	}
+		]
+    }
+}

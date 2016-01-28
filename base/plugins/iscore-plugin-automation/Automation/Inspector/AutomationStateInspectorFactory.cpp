@@ -1,26 +1,36 @@
-#include "AutomationStateInspectorFactory.hpp"
-#include "AutomationStateInspector.hpp"
-#include <Automation/State/AutomationState.hpp>
+#include <QString>
 
-AutomationStateInspectorFactory::AutomationStateInspectorFactory() :
+#include "AutomationStateInspector.hpp"
+#include "AutomationStateInspectorFactory.hpp"
+#include <Inspector/InspectorWidgetFactoryInterface.hpp>
+#include <Automation/State/AutomationState.hpp>
+class QObject;
+class QWidget;
+namespace iscore {
+class Document;
+}  // namespace iscore
+
+namespace Automation
+{
+StateInspectorFactory::StateInspectorFactory() :
     InspectorWidgetFactory {}
 {
 
 }
 
-InspectorWidgetBase* AutomationStateInspectorFactory::makeWidget(
+Inspector::InspectorWidgetBase* StateInspectorFactory::makeWidget(
         const QObject& sourceElement,
-        iscore::Document& doc,
-        QWidget* parent)
+        const iscore::DocumentContext& doc,
+        QWidget* parent) const
 {
-    return new AutomationStateInspector{
-                safe_cast<const AutomationState&>(sourceElement),
+    return new StateInspectorWidget{
+                safe_cast<const ProcessState&>(sourceElement),
                 doc,
                 parent};
 }
 
-const QList<QString>&AutomationStateInspectorFactory::key_impl() const
+bool StateInspectorFactory::matches(const QObject& object) const
 {
-    static const QList<QString> lst{"AutomationState"};
-    return lst;
+    return dynamic_cast<const ProcessState*>(&object);
+}
 }

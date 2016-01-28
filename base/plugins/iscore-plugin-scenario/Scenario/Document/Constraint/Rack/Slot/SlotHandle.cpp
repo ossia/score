@@ -1,9 +1,17 @@
+#include <Process/Style/ScenarioStyle.hpp>
+#include <qnamespace.h>
+#include <QPainter>
+#include <QPoint>
+#include <QCursor>
+
 #include "SlotHandle.hpp"
 #include "SlotView.hpp"
-#include <QCursor>
-#include <QPainter>
-#include <Process/Style/ScenarioStyle.hpp>
 
+class QStyleOptionGraphicsItem;
+class QWidget;
+
+namespace Scenario
+{
 SlotHandle::SlotHandle(const SlotView &slotView, QGraphicsItem *parent):
     QGraphicsItem{parent},
     m_slotView{slotView},
@@ -34,4 +42,5 @@ void SlotHandle::setWidth(qreal width)
 {
     m_width = width;
     prepareGeometryChange();
+}
 }

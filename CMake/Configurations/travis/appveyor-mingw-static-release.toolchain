@@ -1,0 +1,4 @@
+set(MINGW_PATH "C:/Qt/Tools/mingw492_32/bin")
+set(CMAKE_C_COMPILER "${MINGW_PATH}/gcc.exe")
+set(CMAKE_CXX_COMPILER "${MINGW_PATH}/g++.exe")
+set(CMAKE_MAKE_PROGRAM "${MINGW_PATH}/mingw32-make.exe")

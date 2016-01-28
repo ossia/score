@@ -1,21 +1,29 @@
-#include "AddLayerInNewSlot.hpp"
-
+#include <Process/Process.hpp>
 #include <Scenario/Document/Constraint/ConstraintModel.hpp>
 #include <Scenario/Document/Constraint/Rack/RackModel.hpp>
 #include <Scenario/Document/Constraint/Rack/Slot/SlotModel.hpp>
-#include <Scenario/Document/Constraint/ViewModels/FullView/FullViewConstraintViewModel.hpp>
 
-#include <Process/Process.hpp>
-#include <Process/LayerModel.hpp>
+#include <boost/iterator/iterator_facade.hpp>
+#include <boost/multi_index/detail/hash_index_iterator.hpp>
 #include <iscore/tools/SettableIdentifierGeneration.hpp>
+#include <algorithm>
+#include <vector>
+
+#include "AddLayerInNewSlot.hpp"
+#include <Scenario/Document/Constraint/ViewModels/ConstraintViewModel.hpp>
+#include <iscore/serialization/DataStreamVisitor.hpp>
+#include <iscore/tools/ModelPath.hpp>
+#include <iscore/tools/ModelPathSerialization.hpp>
+#include <iscore/tools/NotifyingMap.hpp>
 
 
-using namespace iscore;
-using namespace Scenario::Command;
-
+namespace Scenario
+{
+namespace Command
+{
 AddLayerInNewSlot::AddLayerInNewSlot(
         Path<ConstraintModel>&& constraintPath,
-        const Id<Process>& process) :
+        const Id<Process::ProcessModel>& process) :
     m_path {std::move(constraintPath) },
     m_sharedProcessModelId{process}
 {
@@ -35,7 +43,7 @@ AddLayerInNewSlot::AddLayerInNewSlot(
         m_createdSlotId = getStrongId(rack.slotmodels);
     }
 
-    m_createdLayerId = Id<LayerModel> (iscore::id_generator::getFirstId());
+    m_createdLayerId = Id<Process::LayerModel> (iscore::id_generator::getFirstId());
     m_processData = constraint.processes.at(m_sharedProcessModelId).makeLayerConstructionData();
 }
 
@@ -112,4 +120,6 @@ void AddLayerInNewSlot::deserializeImpl(DataStreamOutput& s)
       >> m_createdLayerId
       >> m_sharedProcessModelId
       >> m_processData;
+}
+}
 }

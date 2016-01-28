@@ -1,27 +1,42 @@
+#include <Inspector/InspectorWidgetFactoryInterface.hpp>
 #include "JSInspectorFactory.hpp"
+#include "JS/JSProcessModel.hpp"
 #include "JSInspectorWidget.hpp"
-#include <JS/JSProcessModel.hpp>
 
-//using namespace iscore;
+class InspectorWidgetBase;
+class JSProcessModel;
+class QObject;
+class QWidget;
+namespace iscore {
+class Document;
+}  // namespace iscore
 
-JSInspectorFactory::JSInspectorFactory() :
-    InspectorWidgetFactory {}
+namespace JS
+{
+
+InspectorFactory::InspectorFactory()
 {
 
 }
 
-JSInspectorFactory::~JSInspectorFactory()
+InspectorFactory::~InspectorFactory()
 {
 
 }
 
-InspectorWidgetBase* JSInspectorFactory::makeWidget(
-        const QObject& sourceElement,
-        iscore::Document& doc,
-        QWidget* parent)
+ProcessInspectorWidgetDelegate* InspectorFactory::make(
+        const Process::ProcessModel& process,
+        const iscore::DocumentContext& doc,
+        QWidget* parent) const
 {
-    return new JSInspectorWidget{
-                safe_cast<const JSProcessModel&>(sourceElement),
+    return new InspectorWidget{
+        static_cast<const JS::ProcessModel&>(process),
                 doc,
                 parent};
+}
+
+bool InspectorFactory::matches(const Process::ProcessModel& process) const
+{
+    return dynamic_cast<const JS::ProcessModel*>(&process);
+}
 }

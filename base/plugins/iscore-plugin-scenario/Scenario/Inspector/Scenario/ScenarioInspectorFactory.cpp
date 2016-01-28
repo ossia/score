@@ -1,22 +1,28 @@
+#include <Scenario/Process/ScenarioModel.hpp>
+#include <QString>
+
+#include <Scenario/Process/ScenarioProcessMetadata.hpp>
 #include "ScenarioInspectorFactory.hpp"
 #include "ScenarioInspectorWidget.hpp"
-#include <Scenario/Process/ScenarioModel.hpp>
 
-//using namespace iscore;
+class InspectorWidgetBase;
+class QObject;
+class QWidget;
+namespace iscore {
+class Document;
+}  // namespace iscore
 
-InspectorWidgetBase* ScenarioInspectorFactory::makeWidget(
-        const QObject& sourceElement,
-        iscore::Document& doc,
-        QWidget* parent)
+ProcessInspectorWidgetDelegate* ScenarioInspectorFactory::make(
+        const Process::ProcessModel& process,
+        const iscore::DocumentContext&,
+        QWidget* parent) const
 {
     return new ScenarioInspectorWidget{
-        static_cast<const ScenarioModel&>(sourceElement),
-                doc,
+        static_cast<const Scenario::ScenarioModel&>(process),
                 parent};
 }
 
-const QList<QString>&ScenarioInspectorFactory::key_impl() const
+bool ScenarioInspectorFactory::matches(const Process::ProcessModel& process) const
 {
-    static const QList<QString> list{ScenarioProcessMetadata::processObjectName()};
-    return list;
+    return dynamic_cast<const Scenario::ScenarioModel*>(&process);
 }

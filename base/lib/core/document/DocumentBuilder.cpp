@@ -1,30 +1,48 @@
-#include "DocumentBuilder.hpp"
-#include <core/presenter/Presenter.hpp>
 #include <core/document/Document.hpp>
 #include <core/document/DocumentBackupManager.hpp>
-#include <iscore/plugins/plugincontrol/PluginControlInterface.hpp>
+#include <core/presenter/Presenter.hpp>
 #include <core/view/View.hpp>
-
+#include <iscore/plugins/application/GUIApplicationContextPlugin.hpp>
 #include <QByteArray>
 #include <QMessageBox>
-using namespace iscore;
+#include <QObject>
 
-DocumentBuilder::DocumentBuilder(iscore::Presenter& pres):
-    m_presenter{pres}
+#include <QString>
+#include <QVariant>
+#include <stdexcept>
+
+#include "DocumentBuilder.hpp"
+#include <iscore/application/ApplicationComponents.hpp>
+#include <iscore/serialization/DataStreamVisitor.hpp>
+#include <core/command/CommandStackSerialization.hpp>
+
+#include <iscore/tools/SettableIdentifier.hpp>
+#include <iscore/tools/RandomNameProvider.hpp>
+
+namespace iscore
+{
+DocumentBuilder::DocumentBuilder(
+        QObject* parentPresenter,
+        QWidget* parentView):
+    m_parentPresenter{parentPresenter},
+    m_parentView{parentView}
 {
 
 }
 
+ISCORE_LIB_BASE_EXPORT
 Document* DocumentBuilder::newDocument(
+        const iscore::ApplicationContext& ctx,
         const Id<DocumentModel>& id,
-        DocumentDelegateFactoryInterface* doctype)
+        DocumentDelegateFactory* doctype)
 {
-    auto doc = new Document{id, doctype, m_presenter.view(), &m_presenter};
+    QString docName = "Untitled." + RandomNameProvider::generateRandomName();
+    auto doc = new Document{docName, id, doctype, m_parentView, m_parentPresenter};
 
     m_backupManager = new DocumentBackupManager{*doc};
-    for(auto& control: m_presenter.applicationComponents().controls())
+    for(auto& appPlug: ctx.components.applicationPlugins())
     {
-        control->on_newDocument(doc);
+        appPlug->on_newDocument(doc);
     }
 
     // First save
@@ -39,8 +57,9 @@ template<
         typename BackupFun // the model data to save
 >
 Document* DocumentBuilder::loadDocument_impl(
+        const iscore::ApplicationContext& ctx,
         const QVariant &docData,
-        iscore::DocumentDelegateFactoryInterface* doctype,
+        iscore::DocumentDelegateFactory* doctype,
         InitFun&& initfun,
         BackupFun&& backupfun)
 {
@@ -48,13 +67,13 @@ Document* DocumentBuilder::loadDocument_impl(
     Document* doc = nullptr;
     try
     {
-        doc = new Document{docData, doctype, m_presenter.view(), &m_presenter};
+        doc = new Document{docData, doctype, m_parentView, m_parentPresenter};
         initfun(doc);
         m_backupManager =  new DocumentBackupManager{*doc};
 
-        for(auto& control: m_presenter.applicationComponents().controls())
+        for(auto& appPlug: ctx.components.applicationPlugins())
         {
-            control->on_loadedDocument(doc);
+            appPlug->on_loadedDocument(doc);
         }
 
         m_backupManager->saveModelData(backupfun(doc));
@@ -64,7 +83,7 @@ Document* DocumentBuilder::loadDocument_impl(
     }
     catch(std::runtime_error& e)
     {
-        QMessageBox::warning(m_presenter.view(), QObject::tr("Error"), e.what());
+        QMessageBox::warning(m_parentView, QObject::tr("Error"), e.what());
         delete doc;
         return nullptr;
     }
@@ -72,10 +91,12 @@ Document* DocumentBuilder::loadDocument_impl(
 
 
 Document* DocumentBuilder::loadDocument(
+        const iscore::ApplicationContext& ctx,
         const QVariant& docData,
-        DocumentDelegateFactoryInterface* doctype)
+        DocumentDelegateFactory* doctype)
 {
     return loadDocument_impl(
+                ctx,
                 docData,
                 doctype,
                 [] (iscore::Document*) { },
@@ -84,17 +105,24 @@ Document* DocumentBuilder::loadDocument(
 }
 
 Document* DocumentBuilder::restoreDocument(
+        const iscore::ApplicationContext& ctx,
         const QByteArray& docData,
         const QByteArray& cmdData,
-        DocumentDelegateFactoryInterface* doctype)
+        DocumentDelegateFactory* doctype)
 {
     return loadDocument_impl(
+                ctx,
                 docData,
                 doctype,
                 [&] (iscore::Document* doc) {
         // We restore the pre-crash command stack.
         Deserializer<DataStream> writer(cmdData);
-        writer.writeTo(doc->commandStack());
+        loadCommandStack(
+                    ctx.components,
+                    writer,
+                    doc->commandStack(),
+                    [] (auto cmd) { cmd->redo(); }
+        );
     },
                 [&] (iscore::Document*) { return docData; }
 );
@@ -105,4 +133,5 @@ void DocumentBuilder::setBackupManager(Document* doc)
     m_backupManager->updateBackupData();
     doc->setBackupMgr(m_backupManager);
     m_backupManager = nullptr;
+}
 }

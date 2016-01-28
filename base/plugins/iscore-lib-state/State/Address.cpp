@@ -1,6 +1,9 @@
+#include <algorithm>
+
 #include "Address.hpp"
-#include <QDataStream>
-namespace iscore
+#include <iscore/tools/Todo.hpp>
+
+namespace State
 {
     bool Address::validateString(const QString &str)
     {
@@ -25,7 +28,7 @@ namespace iscore
 
     bool Address::validateFragment(const QString& s)
     {
-        // TODO refactor with ExpressionParser.cpp (auto base = +qi::char_("a-zA-Z0-9_~().");)
+        // TODO refactor with ExpressionParser.cpp (auto base = +qi::char_("a-zA-Z0-9_~().-");)
         return std::all_of(s.cbegin(), s.cend(), [] (auto uc) {
             auto c = uc.toLatin1();
             return (c >= 'a' && c <= 'z')
@@ -35,7 +38,9 @@ namespace iscore
                     || (c == '~')
                     || (c == '_')
                     || (c == '(')
-                    || (c == ')');
+                    || (c == ')')
+                    || (c == '-')
+                    ;
         });
     }
 

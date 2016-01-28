@@ -1,19 +1,25 @@
 #pragma once
 #include <iscore/plugins/documentdelegate/plugin/ElementPluginModel.hpp>
-#include <iscore/plugins/documentdelegate/plugin/DocumentDelegatePluginModel.hpp>
+#include <iscore/serialization/VisitorInterface.hpp>
+#include <type_traits>
+#include <vector>
 
+class QObject;
 namespace iscore
 {
-    class Document;
+    struct DocumentContext;
+
     // The owner of the elements is the class that contains the ElementPluginModelList.
-    class ElementPluginModelList
+    class ISCORE_LIB_BASE_EXPORT ElementPluginModelList
     {
         public:
             ElementPluginModelList() = default; // For safe serialization.
             // Note: we could instead call the deserialization ctor in the Element ctor...
 
             ElementPluginModelList(const ElementPluginModelList& source, QObject* parent);
-            ElementPluginModelList(iscore::Document *doc, QObject* parent);
+            ElementPluginModelList(
+                    const iscore::DocumentContext& doc,
+                    QObject* parent);
             ~ElementPluginModelList();
 
             ElementPluginModelList& operator=(ElementPluginModelList&& other);
@@ -21,16 +27,7 @@ namespace iscore
             QObject* parent();
 
             template<typename DeserializerType,
-                     std::enable_if_t<
-                         ! std::is_same<
-                             typename std::decay<DeserializerType>::type,
-                             iscore::ElementPluginModelList
-                         >::value
-                         &&
-                         ! std::is_same<
-                             typename std::decay<DeserializerType>::type,
-                             iscore::ElementPluginModelList*
-                         >::value>* = nullptr>
+                     enable_if_deserializer<DeserializerType>* = nullptr>
             ElementPluginModelList(DeserializerType&& vis, QObject* parent):
                 m_parent{parent}
             {

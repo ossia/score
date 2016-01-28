@@ -1,14 +1,17 @@
 #pragma once
 #include <QObject>
+#include <vector>
+#include <iscore_lib_base_export.h>
 
 namespace iscore
 {
-    class DocumentDelegateFactoryInterface;
-    class DocumentDelegateFactoryInterface_QtInterface
+    class DocumentDelegateFactory;
+
+    class ISCORE_LIB_BASE_EXPORT DocumentDelegateFactoryInterface_QtInterface
     {
         public:
             virtual ~DocumentDelegateFactoryInterface_QtInterface();
-            virtual std::vector<DocumentDelegateFactoryInterface*> documents() = 0;
+            virtual std::vector<DocumentDelegateFactory*> documents() = 0;
     };
 }
 

@@ -1,14 +1,15 @@
 #pragma once
-#include <QGraphicsObject>
-#include <QGraphicsProxyWidget>
-#include <QPointF>
+#include <QBrush>
+#include <QGraphicsItem>
+#include <qnamespace.h>
 #include <QPen>
-#include <Process/TimeValue.hpp>
+#include <iscore_plugin_scenario_export.h>
+class QGraphicsSceneMouseEvent;
 
-class ConstraintViewModel;
+namespace Scenario
+{
 class ConstraintPresenter;
-class StateView;
-class ConstraintView : public QGraphicsObject
+class ISCORE_PLUGIN_SCENARIO_EXPORT ConstraintView : public QGraphicsObject
 {
         Q_OBJECT
 
@@ -17,8 +18,10 @@ class ConstraintView : public QGraphicsObject
                                QGraphicsItem* parent);
         virtual ~ConstraintView();
 
-        int type() const final override
+        static constexpr int static_type()
         { return QGraphicsItem::UserType + 2; }
+        int type() const final override
+        { return static_type(); }
 
         const ConstraintPresenter& presenter() const
         { return m_presenter;}
@@ -119,3 +122,4 @@ class ConstraintView : public QGraphicsObject
         bool m_validConstraint{true};
         bool m_warning{false};
 };
+}

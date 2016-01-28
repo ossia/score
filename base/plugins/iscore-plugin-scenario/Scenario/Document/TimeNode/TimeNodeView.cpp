@@ -1,10 +1,23 @@
-#include "TimeNodeView.hpp"
-
-#include <QGraphicsSceneMouseEvent>
-#include <QPainter>
-#include <QCursor>
 #include <Process/Style/ScenarioStyle.hpp>
+#include <QBrush>
+#include <QGraphicsSceneEvent>
+#include <qnamespace.h>
+#include <QPainter>
+#include <QPen>
+#include <algorithm>
+
+#include <Process/ModelMetadata.hpp>
+#include <Scenario/Document/TimeNode/TimeNodeModel.hpp>
+#include <Scenario/Document/VerticalExtent.hpp>
 #include "TimeNodePresenter.hpp"
+#include "TimeNodeView.hpp"
+#include <QCursor>
+
+class QStyleOptionGraphicsItem;
+class QWidget;
+
+namespace Scenario
+{
 TimeNodeView::TimeNodeView(TimeNodePresenter& presenter,
                            QGraphicsObject* parent) :
     QGraphicsObject {parent},
@@ -89,4 +102,5 @@ void TimeNodeView::mouseMoveEvent(QGraphicsSceneMouseEvent* event)
 void TimeNodeView::mouseReleaseEvent(QGraphicsSceneMouseEvent* event)
 {
     emit m_presenter.released(event->scenePos());
+}
 }

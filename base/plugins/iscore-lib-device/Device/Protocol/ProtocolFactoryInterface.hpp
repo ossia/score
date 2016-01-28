@@ -1,27 +1,35 @@
 #pragma once
 #include <iscore/plugins/customfactory/FactoryInterface.hpp>
-#include <Device/Protocol/ProtocolSettingsWidget.hpp>
-#include <Device/Protocol/DeviceSettings.hpp>
-
 #include <iscore/serialization/VisitorCommon.hpp>
 #include <QString>
 #include <QVariant>
 
-class DeviceInterface;
+#include <Device/Protocol/ProtocolFactoryKey.hpp>
+#include <iscore_lib_device_export.h>
 
-class ProtocolFactory : public iscore::GenericFactoryInterface<ProtocolFactoryKey>
+struct VisitorVariant;
+
+
+namespace Device
 {
-        ISCORE_FACTORY_DECL("Protocol")
+struct DeviceSettings;
+class DeviceInterface;
+class ProtocolSettingsWidget;
+class ISCORE_LIB_DEVICE_EXPORT ProtocolFactory : public iscore::GenericFactoryInterface<ProtocolFactoryKey>
+{
+        ISCORE_ABSTRACT_FACTORY_DECL(DeviceInterface,
+                            "3f69d72e-318d-42dc-b48c-a806036592f1")
 
     public:
-            using factory_key_type = ProtocolFactoryKey;
         virtual ~ProtocolFactory();
 
         virtual QString prettyName() const = 0;
 
         virtual DeviceInterface* makeDevice(
-                const iscore::DeviceSettings& settings) = 0;
+                const Device::DeviceSettings& settings,
+                const iscore::DocumentContext& ctx) = 0;
         virtual ProtocolSettingsWidget* makeSettingsWidget() = 0;
+        virtual const Device::DeviceSettings& defaultSettings() const = 0;
 
         // Save
         virtual void serializeProtocolSpecificSettings(
@@ -47,6 +55,7 @@ class ProtocolFactory : public iscore::GenericFactoryInterface<ProtocolFactoryKe
 
         // Returns true if the two devicesettings can coexist at the same time.
         virtual bool checkCompatibility(
-                const iscore::DeviceSettings& a,
-                const iscore::DeviceSettings& b) const = 0;
+                const Device::DeviceSettings& a,
+                const Device::DeviceSettings& b) const = 0;
 };
+}

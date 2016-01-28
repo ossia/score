@@ -1,8 +1,17 @@
 #pragma once
-#include <QGraphicsObject>
+#include <QGraphicsItem>
 #include <QList>
-#include <iscore/tools/ModelPath.hpp>
+#include <QRect>
 
+#include <iscore/tools/ObjectPath.hpp>
+
+class QPainter;
+class QStyleOptionGraphicsItem;
+class QWidget;
+
+namespace Scenario
+{
+class ConstraintModel;
 class ClickableLabelItem;
 class AddressBarItem final : public QGraphicsObject
 {
@@ -17,13 +26,14 @@ class AddressBarItem final : public QGraphicsObject
         void paint(QPainter *painter, const QStyleOptionGraphicsItem *option, QWidget *widget) override;
 
     signals:
-        void objectSelected(ObjectPath path);
+        void needRedraw();
+        void constraintSelected(ConstraintModel& cst);
 
     private:
-        void on_elementClicked(ClickableLabelItem*);
-
+        void redraw();
         QList<QGraphicsItem*> m_items;
         ObjectPath m_currentPath;
 
         double m_width{};
 };
+}

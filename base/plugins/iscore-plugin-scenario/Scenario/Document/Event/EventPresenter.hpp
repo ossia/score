@@ -1,15 +1,19 @@
 #pragma once
-#include <iscore/tools/NamedObject.hpp>
-#include <iscore/tools/SettableIdentifier.hpp>
 #include <iscore/command/Dispatchers/CommandDispatcher.hpp>
-
+#include <iscore/tools/NamedObject.hpp>
+#include <QPoint>
+#include <QString>
+#include <iscore_plugin_scenario_export.h>
 class QGraphicsObject;
+class QMimeData;
+class QObject;
+#include <iscore/tools/SettableIdentifier.hpp>
+
+namespace Scenario
+{
 class EventModel;
 class EventView;
-class TemporalScenarioPresenter;
-class QMimeData;
-class ConstraintModel;
-class EventPresenter final : public NamedObject
+class ISCORE_PLUGIN_SCENARIO_EXPORT EventPresenter final : public NamedObject
 {
         Q_OBJECT
 
@@ -36,13 +40,11 @@ class EventPresenter final : public NamedObject
         void eventHoverEnter();
         void eventHoverLeave();
 
-    private slots:
-        void triggerSetted(QString);
-
     private:
+        void triggerSetted(QString);
         const EventModel& m_model;
         EventView* m_view {};
 
         CommandDispatcher<> m_dispatcher;
 };
-
+}

@@ -1,7 +1,7 @@
 #pragma once
 namespace iscore
 {
-    class CommandStack;
+    class CommandStackFacade;
 }
 
 /**
@@ -18,17 +18,17 @@ namespace iscore
 class ICommandDispatcher
 {
     public:
-        ICommandDispatcher(iscore::CommandStack& stack):
+        ICommandDispatcher(iscore::CommandStackFacade& stack):
             m_stack{stack}
         {
 
         }
 
-        iscore::CommandStack& stack() const
+        iscore::CommandStackFacade& stack() const
         {
             return m_stack;
         }
 
     private:
-        iscore::CommandStack& m_stack;
+        iscore::CommandStackFacade& m_stack;
 };

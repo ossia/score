@@ -1,8 +1,11 @@
 #pragma once
 
 #include <Scenario/Document/TimeRuler/AbstractTimeRuler.hpp>
-#include <Process/TimeValue.hpp>
 
+class QObject;
+
+namespace Scenario
+{
 class TimeRulerView;
 
 class TimeRulerPresenter final : public AbstractTimeRuler
@@ -15,3 +18,4 @@ class TimeRulerPresenter final : public AbstractTimeRuler
         TimeRulerView* view();
 
 };
+}

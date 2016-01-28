@@ -1,12 +1,25 @@
 #pragma once
-#include <QGraphicsItem>
 
-class CurveView final : public QGraphicsObject
+#include <QGraphicsItem>
+#include <QPoint>
+#include <QRect>
+#include <iscore_plugin_curve_export.h>
+
+class QGraphicsSceneContextMenuEvent;
+class QGraphicsSceneMouseEvent;
+class QKeyEvent;
+class QPainter;
+class QStyleOptionGraphicsItem;
+class QWidget;
+
+namespace Curve
+{
+class ISCORE_PLUGIN_CURVE_EXPORT View final : public QGraphicsObject
 {
         Q_OBJECT
     public:
-        explicit CurveView(QGraphicsItem* parent);
-        virtual ~CurveView();
+        explicit View(QGraphicsItem* parent);
+        virtual ~View();
 
         void setRect(const QRectF& theRect);
 
@@ -47,4 +60,5 @@ class CurveView final : public QGraphicsObject
         QRectF m_rect; // The rect in which the whole curve must fit.
         QRectF m_selectArea;
 };
+}
 

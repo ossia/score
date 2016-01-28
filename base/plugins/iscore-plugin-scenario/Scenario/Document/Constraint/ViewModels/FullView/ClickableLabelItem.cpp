@@ -1,12 +1,22 @@
-#include "ClickableLabelItem.hpp"
 #include <Process/Style/ProcessFonts.hpp>
-#include <Scenario/Document/Constraint/ViewModels/ConstraintHeader.hpp>
+#include <QFont>
+#include <qnamespace.h>
+#include <algorithm>
 #include <QBrush>
+
+#include "ClickableLabelItem.hpp"
+#include <Process/ModelMetadata.hpp>
+
+class QGraphicsSceneHoverEvent;
+class QGraphicsSceneMouseEvent;
+
+namespace Scenario
+{
 
 SeparatorItem::SeparatorItem(QGraphicsItem *parent):
     QGraphicsSimpleTextItem{"/", parent}
 {
-    auto font = ProcessFonts::Sans();
+    auto font = Process::Fonts::Sans();
     font.setPointSize(10);
     font.setBold(true);
     this->setFont(font);
@@ -15,13 +25,20 @@ SeparatorItem::SeparatorItem(QGraphicsItem *parent):
 
 
 ClickableLabelItem::ClickableLabelItem(
+        ModelMetadata& metadata,
         ClickHandler&& onClick,
         const QString &text,
         QGraphicsItem *parent):
     QGraphicsSimpleTextItem{text, parent},
     m_onClick{std::move(onClick)}
 {
-    auto font = ProcessFonts::Sans();
+    connect(&metadata, &ModelMetadata::nameChanged,
+            this, [&] (const QString& name) {
+        setText(name);
+        emit textChanged();
+    });
+
+    auto font = Process::Fonts::Sans();
     font.setPointSize(10);
     font.setBold(true);
     this->setFont(font);
@@ -57,4 +74,6 @@ int ClickableLabelItem::index() const
 void ClickableLabelItem::setIndex(int index)
 {
     m_index = index;
+}
+
 }

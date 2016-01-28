@@ -1,15 +1,27 @@
-#include "FullViewConstraintHeader.hpp"
-#include "AddressBarItem.hpp"
-
-#include <QPainter>
 #include <QGraphicsScene>
 #include <QGraphicsView>
+#include <QList>
+#include <QPoint>
 #include <cmath>
+
+#include "AddressBarItem.hpp"
+#include "FullViewConstraintHeader.hpp"
+#include <Scenario/Document/Constraint/ViewModels/ConstraintHeader.hpp>
+
+class QGraphicsItem;
+class QPainter;
+class QStyleOptionGraphicsItem;
+class QWidget;
+
+namespace Scenario
+{
 FullViewConstraintHeader::FullViewConstraintHeader(QGraphicsItem * parent):
     ConstraintHeader{parent},
     m_bar{new AddressBarItem(this)}
 {
     m_bar->setPos(10, 5);
+    connect(m_bar, &AddressBarItem::needRedraw,
+            this, [&] () { update(); });
 }
 
 AddressBarItem *FullViewConstraintHeader::bar() const
@@ -55,4 +67,6 @@ void FullViewConstraintHeader::paint(
 
     if(std::abs(m_bar->pos().x() - x) > 1)
         m_bar->setPos(x, 5);
+}
+
 }

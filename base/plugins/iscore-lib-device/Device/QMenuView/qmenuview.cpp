@@ -38,8 +38,23 @@ qmenuview.h qmenuview.cpp, qmenuview_p.h.
 J'ai apporté quelques modifications en plus.
 */
 
-#include "qmenuview_p.h"
+#include <QAbstractItemModel>
+#include <QAction>
+#include <QEvent>
+#include <QIcon>
+#include <QMenu>
+#include <qnamespace.h>
+#include <QObject>
+#include <QScopedPointer>
+#include <QString>
+#include <QVariant>
 #include <QMouseEvent>
+
+#include <Device/QMenuView/qmenuview.h>
+#include "qmenuview_p.h"
+
+class QWidget;
+
 Q_DECLARE_METATYPE(QModelIndex)
 
 
@@ -76,7 +91,6 @@ QAction* QMenuViewPrivate::makeAction(const QModelIndex& index)
     return action;
 }
 
-#include <QDebug>
 void QMenuViewPrivate::triggered(QAction* action)
 {
     QVariant v = action->data();

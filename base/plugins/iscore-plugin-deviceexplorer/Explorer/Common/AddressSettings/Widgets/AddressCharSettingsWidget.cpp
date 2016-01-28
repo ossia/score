@@ -1,7 +1,18 @@
-#include "AddressCharSettingsWidget.hpp"
-#include <QLineEdit>
+#include <QChar>
 #include <QFormLayout>
+#include <QLineEdit>
 
+#include <QString>
+
+#include "AddressCharSettingsWidget.hpp"
+#include <Explorer/Common/AddressSettings/Widgets/AddressSettingsWidget.hpp>
+#include <State/Value.hpp>
+#include <State/ValueConversion.hpp>
+
+class QWidget;
+
+namespace DeviceExplorer
+{
 AddressCharSettingsWidget::AddressCharSettingsWidget(QWidget* parent)
     : AddressSettingsWidget(parent)
 {
@@ -10,7 +21,7 @@ AddressCharSettingsWidget::AddressCharSettingsWidget(QWidget* parent)
     m_layout->insertRow(0, tr("Character"), m_valueEdit);
 }
 
-iscore::AddressSettings AddressCharSettingsWidget::getSettings() const
+Device::AddressSettings AddressCharSettingsWidget::getSettings() const
 {
     auto settings = getCommonSettings();
     auto txt = m_valueEdit->text();
@@ -19,9 +30,9 @@ iscore::AddressSettings AddressCharSettingsWidget::getSettings() const
 }
 
 void
-AddressCharSettingsWidget::setSettings(const iscore::AddressSettings &settings)
+AddressCharSettingsWidget::setSettings(const Device::AddressSettings &settings)
 {
     setCommonSettings(settings);
-    m_valueEdit->setText(iscore::convert::value<QChar>(settings.value));
+    m_valueEdit->setText(State::convert::value<QChar>(settings.value));
 }
-
+}

@@ -1,7 +1,11 @@
+#include <Process/Style/ScenarioStyle.hpp>
+#include <QColor>
+
+#include <Scenario/Document/TimeRuler/AbstractTimeRulerView.hpp>
 #include "TimeRulerView.hpp"
 
-#include <Process/Style/ScenarioStyle.hpp>
-
+namespace Scenario
+{
 TimeRulerView::TimeRulerView() :
     AbstractTimeRulerView{}
 {
@@ -13,4 +17,5 @@ TimeRulerView::TimeRulerView() :
 QRectF TimeRulerView::boundingRect() const
 {
     return QRectF{0, -m_height, m_width * 2, m_height};
+}
 }

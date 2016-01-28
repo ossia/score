@@ -1,7 +1,15 @@
 #pragma once
 #include <iscore/tools/ObjectIdentifier.hpp>
-#include <vector>
+#include <QHash>
 #include <QPointer>
+#include <QString>
+#include <algorithm>
+#include <initializer_list>
+#include <type_traits>
+#include <vector>
+#include <iscore_lib_base_export.h>
+
+class QObject;
 
 /**
  * @brief The ObjectPath class
@@ -18,7 +26,7 @@
  *
  * Note : this class is mostly superseded by Path<T> which adds type-safety.
 */
-class ObjectPath
+class ISCORE_LIB_BASE_EXPORT ObjectPath
 {
         friend ObjectIdentifierVector::iterator begin(ObjectPath& path)
         {

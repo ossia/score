@@ -1,11 +1,11 @@
 
 /*
-bool checkLeaves(const iscore::Expression* e)
+bool checkLeaves(const State::Expression* e)
 {
     auto c = e->children(); // TODO see why this isn't a const ref return.
     if(c.isEmpty())
     {
-        return e->is<iscore::Relation>();
+        return e->is<State::Relation>();
     }
     else
     {
@@ -17,16 +17,33 @@ bool checkLeaves(const iscore::Expression* e)
     }
 }
 
-bool validate(const iscore::Expression& expr)
+bool validate(const State::Expression& expr)
 {
     // Check that all the leaves are relations.
     return checkLeaves(&expr);
 }
 */
 #include <State/Expression.hpp>
+#include <boost/proto/operators.hpp>
+#include <boost/spirit/home/qi/detail/parse_auto.hpp>
+#include <boost/spirit/home/qi/operator/expect.hpp>
+#include <boost/spirit/home/qi/parse.hpp>
+#include <boost/spirit/home/qi/parse_attr.hpp>
+#include <boost/spirit/home/support/common_terminals.hpp>
+#include <boost/variant/detail/apply_visitor_unary.hpp>
+#include <eggs/variant/variant.hpp>
+#include <QDebug>
+#include <QObject>
+#include <QString>
+#include <QStringList>
+#include <QtTest/QtTest>
 using namespace iscore;
 #include <State/ExpressionParser.cpp>
 #include <State/ValueConversion.hpp>
+#include <iterator>
+#include <list>
+#include <string>
+#include <vector>
 
 
 /*
@@ -62,94 +79,100 @@ void test_parse_expr()
 }*/
 
 
-QDebug operator<<(QDebug dbg, const iscore::Address& a)
+QDebug operator<<(QDebug dbg, const State::Address& a)
 {
     dbg << a.toString();
     return dbg;
 }
 
-QDebug operator<<(QDebug dbg, const iscore::RelationMember& v)
+QDebug operator<<(QDebug dbg, const State::RelationMember& v)
 {
     using namespace eggs::variants;
     switch(v.which())
     {
         case 0:
-            dbg << get<iscore::Address>(v);
+            dbg << get<State::Address>(v);
             break;
         case 1:
-            dbg << get<iscore::Value>(v);
+            dbg << get<State::Value>(v);
             break;
     }
 
     return dbg;
 }
 
-QDebug operator<<(QDebug dbg, const iscore::Relation::Operator& v)
+QDebug operator<<(QDebug dbg, const State::Relation::Operator& v)
 {
     switch(v)
     {
-        case iscore::Relation::Operator::Different:
+        case State::Relation::Operator::Different:
             dbg << "!="; break;
-        case iscore::Relation::Operator::Equal:
+        case State::Relation::Operator::Equal:
             dbg << "=="; break;
-        case iscore::Relation::Operator::Greater:
+        case State::Relation::Operator::Greater:
             dbg << ">"; break;
-        case iscore::Relation::Operator::GreaterEqual:
+        case State::Relation::Operator::GreaterEqual:
             dbg << ">="; break;
-        case iscore::Relation::Operator::Lower:
+        case State::Relation::Operator::Lower:
             dbg << "<"; break;
-        case iscore::Relation::Operator::LowerEqual:
+        case State::Relation::Operator::LowerEqual:
             dbg << "<="; break;
+        case State::Relation::Operator::None:
+            dbg << "none"; break;
     }
     return dbg;
 }
 
-QDebug operator<<(QDebug dbg, const iscore::Relation& v)
+QDebug operator<<(QDebug dbg, const State::Relation& v)
 {
     dbg << v.lhs << v.op << v.rhs;
     return dbg;
 }
 
-QDebug operator<<(QDebug dbg, const iscore::BinaryOperator& v)
+QDebug operator<<(QDebug dbg, const State::BinaryOperator& v)
 {
     switch(v)
     {
-        case iscore::BinaryOperator::And:
+        case State::BinaryOperator::And:
             dbg << "and"; break;
-        case iscore::BinaryOperator::Or:
+        case State::BinaryOperator::Or:
             dbg << "or"; break;
-        case iscore::BinaryOperator::Xor:
+        case State::BinaryOperator::Xor:
             dbg << "xor"; break;
+        case State::BinaryOperator::None:
+            dbg << "none"; break;
     }
     return dbg;
 }
 
-QDebug operator<<(QDebug dbg, const iscore::UnaryOperator& v)
+QDebug operator<<(QDebug dbg, const State::UnaryOperator& v)
 {
     switch(v)
     {
-        case iscore::UnaryOperator::Not:
+        case State::UnaryOperator::Not:
             dbg << "not"; break;
+        case State::UnaryOperator::None:
+            dbg << "none"; break;
     }
     return dbg;
 }
 
-QDebug operator<<(QDebug dbg, const iscore::ExprData& v)
+QDebug operator<<(QDebug dbg, const State::ExprData& v)
 {
-    if(v.is<iscore::Relation>())
-        dbg << v.get<iscore::Relation>();
-    else if(v.is<iscore::BinaryOperator>())
-        dbg << v.get<iscore::BinaryOperator>();
-    else if(v.is<iscore::UnaryOperator>())
-        dbg << v.get<iscore::UnaryOperator>();
+    if(v.is<State::Relation>())
+        dbg << v.get<State::Relation>();
+    else if(v.is<State::BinaryOperator>())
+        dbg << v.get<State::BinaryOperator>();
+    else if(v.is<State::UnaryOperator>())
+        dbg << v.get<State::UnaryOperator>();
 
     return dbg;
 }
 
-QDebug operator<<(QDebug dbg, const iscore::Expression& v)
+QDebug operator<<(QDebug dbg, const State::Expression& v)
 {
     dbg << "(";
-    dbg << static_cast<const iscore::ExprData&>(v);
+    dbg << static_cast<const State::ExprData&>(v);
     for(auto& child : v.children())
     {
         dbg << child;
@@ -159,8 +182,6 @@ QDebug operator<<(QDebug dbg, const iscore::Expression& v)
 }
 
 
-
-#include <QTest>
 
 using namespace iscore;
 class ExpressionParsingTests: public QObject
@@ -187,7 +208,7 @@ class ExpressionParsingTests: public QObject
 
             Address_parser<iterator_type> parser;
             auto first = str.cbegin(), last = str.cend();
-            iscore::Address addr;
+            State::Address addr;
             bool r = parse(first, last, parser, addr);
 
             qDebug() << "parsed?" << r;
@@ -220,7 +241,7 @@ class ExpressionParsingTests: public QObject
 
                 Value_parser<iterator_type> parser;
                 auto first = str.cbegin(), last = str.cend();
-                iscore::Value val;
+                State::Value val;
                 bool r = parse(first, last, parser, val);
 
                 qDebug() << str.c_str() << r << val.val << "                    ";
@@ -242,7 +263,7 @@ class ExpressionParsingTests: public QObject
 
                 RelationMember_parser<iterator_type> parser;
                 auto first = str.cbegin(), last = str.cend();
-                iscore::RelationMember val;
+                State::RelationMember val;
                 bool r = parse(first, last, parser, val);
 
                 qDebug() << str.c_str() << r << val.which();
@@ -263,13 +284,13 @@ class ExpressionParsingTests: public QObject
 
                 Relation_parser<iterator_type> parser;
                 auto first = str.cbegin(), last = str.cend();
-                iscore::Relation val;
+                State::Relation val;
                 bool r = parse(first, last, parser, val);
 
                 qDebug() << str.c_str()
                          << r
-                         << val.lhs.target<iscore::Address>()->path
-                         << iscore::convert::toPrettyString(*val.rhs.target<iscore::Value>());
+                         << val.lhs.target<State::Address>()->path
+                         << State::convert::toPrettyString(*val.rhs.target<State::Value>());
             }
         }
 
@@ -293,7 +314,7 @@ class ExpressionParsingTests: public QObject
                         return;
                     }
 
-                    iscore::Expression e;
+                    State::Expression e;
 
                     Expression_builder bldr{&e};
                     boost::apply_visitor(bldr, result);
@@ -314,4 +335,7 @@ class ExpressionParsingTests: public QObject
 
 QTEST_APPLESS_MAIN(ExpressionParsingTests)
 #include "ExpressionParsingTests.moc"
+#include <State/Address.hpp>
+#include <State/Relation.hpp>
+#include <State/Value.hpp>
 

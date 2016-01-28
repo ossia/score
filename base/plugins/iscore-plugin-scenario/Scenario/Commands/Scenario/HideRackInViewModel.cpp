@@ -1,10 +1,16 @@
-#include "HideRackInViewModel.hpp"
 #include <Scenario/Document/Constraint/ViewModels/ConstraintViewModel.hpp>
-#include <iscore/document/DocumentInterface.hpp>
-#include <iscore/serialization/DataStreamVisitor.hpp>
 
-using namespace iscore;
-using namespace Scenario::Command;
+#include <iscore/serialization/DataStreamVisitor.hpp>
+#include <algorithm>
+
+#include "HideRackInViewModel.hpp"
+#include <iscore/tools/ModelPath.hpp>
+#include <iscore/tools/ModelPathSerialization.hpp>
+
+namespace Scenario
+{
+namespace Command
+{
 
 HideRackInViewModel::HideRackInViewModel(
         Path<ConstraintViewModel>&& path) :
@@ -43,4 +49,7 @@ void HideRackInViewModel::deserializeImpl(DataStreamOutput& s)
 {
     s >> m_constraintViewPath
             >> m_constraintPreviousId;
+}
+
+}
 }

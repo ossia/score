@@ -1,14 +1,19 @@
-#include "AddressSettingsFactory.hpp"
+#include <QObject>
 
+
+#include "AddressSettingsFactory.hpp"
+#include <Device/Address/AddressSettings.hpp>
+#include "Widgets/AddressBoolSettingsWidget.hpp"
+#include "Widgets/AddressCharSettingsWidget.hpp"
+#include "Widgets/AddressNoneSettingsWidget.hpp"
 //value types
 #include "Widgets/AddressNumericSettingsWidget.hpp"
 #include "Widgets/AddressStringSettingsWidget.hpp"
-#include "Widgets/AddressCharSettingsWidget.hpp"
 #include "Widgets/AddressTupleSettingsWidget.hpp"
-#include "Widgets/AddressBoolSettingsWidget.hpp"
-#include "Widgets/AddressNoneSettingsWidget.hpp"
 
 
+namespace DeviceExplorer
+{
 using AddressIntSettingsWidget = AddressNumericSettingsWidget<int>;
 using AddressFloatSettingsWidget = AddressNumericSettingsWidget<float>;
 
@@ -29,6 +34,10 @@ AddressSettingsFactory AddressSettingsFactory::m_instance;
 
 AddressSettingsFactory::AddressSettingsFactory()
 {
+    // TODO important these strings must be the same than ValueTypesArray in ValueConversion.
+    // Change this by storing keys instead (or the ValueType enum).
+    m_addressSettingsWidgetFactory.insert(QObject::tr("None"),
+                                          new AddressSettingsWidgetFactoryMethodT<AddressNoneSettingsWidget>);
     m_addressSettingsWidgetFactory.insert(QObject::tr("Int"),
                                           new AddressSettingsWidgetFactoryMethodT<AddressIntSettingsWidget>);
     m_addressSettingsWidgetFactory.insert(QObject::tr("Float"),
@@ -42,7 +51,7 @@ AddressSettingsFactory::AddressSettingsFactory()
     m_addressSettingsWidgetFactory.insert(QObject::tr("Char"),
                                           new AddressSettingsWidgetFactoryMethodT<AddressCharSettingsWidget>);
     m_addressSettingsWidgetFactory.insert(QObject::tr("Impulse"),
-                                          new AddressSettingsWidgetFactoryMethodT<AddressNoneSettingsWidget>);
+                                          new AddressSettingsWidgetFactoryMethodT<AddressImpulseSettingsWidget>);
 }
 
 
@@ -71,4 +80,5 @@ AddressSettingsFactory::getValueTypeWidget(const QString& valueType) const
 AddressSettingsWidgetFactoryMethod::~AddressSettingsWidgetFactoryMethod()
 {
 
+}
 }

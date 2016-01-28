@@ -1,12 +1,26 @@
 #pragma once
-#include <ProcessModel/OSSIAProcessModel.hpp>
-#include <iscore/serialization/DataStreamVisitor.hpp>
-#include <iscore/serialization/JSONVisitor.hpp>
-#include <iscore/serialization/VisitorCommon.hpp>
+#include <Process/Process.hpp>
+#include <QByteArray>
+#include <QString>
+#include <memory>
+
+#include <Process/ProcessFactoryKey.hpp>
+#include <Process/TimeValue.hpp>
 #include "SimpleProcess/SimpleProcess.hpp"
+#include <iscore/selection/Selection.hpp>
+#include <iscore/serialization/VisitorInterface.hpp>
+
+class DataStream;
+class JSONObject;
+namespace Process { class LayerModel; }
+namespace Process { class ProcessModel; }
+class ProcessStateDataInterface;
+class QObject;
+class TimeProcessWithConstraint;
+#include <iscore/tools/SettableIdentifier.hpp>
 
 
-class SimpleProcessModel final : public OSSIAProcessModel
+class SimpleProcessModel final : public Process::ProcessModel
 {
         ISCORE_SERIALIZE_FRIENDS(SimpleProcessModel, DataStream)
         ISCORE_SERIALIZE_FRIENDS(SimpleProcessModel, JSONObject)
@@ -14,19 +28,19 @@ class SimpleProcessModel final : public OSSIAProcessModel
     public:
         explicit SimpleProcessModel(
                 const TimeValue& duration,
-                const Id<Process>& id,
+                const Id<ProcessModel>& id,
                 QObject* parent);
 
         explicit SimpleProcessModel(
                 const SimpleProcessModel& source,
-                const Id<Process>& id,
+                const Id<ProcessModel>& id,
                 QObject* parent);
 
         template<typename Impl>
         explicit SimpleProcessModel(
                 Deserializer<Impl>& vis,
                 QObject* parent) :
-            OSSIAProcessModel{vis, parent},
+            Process::ProcessModel{vis, parent},
             m_ossia_process{std::make_shared<SimpleProcess>()}
         {
             vis.writeTo(*this);
@@ -34,15 +48,15 @@ class SimpleProcessModel final : public OSSIAProcessModel
 
         // Process interface
         SimpleProcessModel* clone(
-                const Id<Process>& newId,
+                const Id<ProcessModel>& newId,
                 QObject* newParent) const override;
 
         QString prettyName() const override;
         QByteArray makeLayerConstructionData() const override;
 
-        const ProcessFactoryKey& key() const override
+        ProcessFactoryKey concreteFactoryKey() const override
         {
-            static const ProcessFactoryKey name{"SimpleProcessModel"};
+            static const ProcessFactoryKey name{"0107dfb7-dcab-45c3-b7b8-e824c0fe49a1"};
             return name;
         }
 
@@ -54,25 +68,27 @@ class SimpleProcessModel final : public OSSIAProcessModel
         void stopExecution() override;
         void reset() override;
 
-        ProcessStateDataInterface* startState() const override;
-        ProcessStateDataInterface* endState() const override;
+        ProcessStateDataInterface* startStateData() const override;
+        ProcessStateDataInterface* endStateData() const override;
 
         Selection selectableChildren() const override;
         Selection selectedChildren() const override;
         void setSelection(const Selection& s) const override;
 
-        void serialize(const VisitorVariant& vis) const override;
-
-        // OSSIAProcessModel interface
-        std::shared_ptr<TimeProcessWithConstraint> process() const override
-        {
-            return m_ossia_process;
-        }
+        void serialize_impl(const VisitorVariant& vis) const override;
 
     protected:
-        LayerModel* makeLayer_impl(const Id<LayerModel>& viewModelId, const QByteArray& constructionData, QObject* parent) override;
-        LayerModel* loadLayer_impl(const VisitorVariant&, QObject* parent) override;
-        LayerModel* cloneLayer_impl(const Id<LayerModel>& newId, const LayerModel& source, QObject* parent) override;
+        Process::LayerModel* makeLayer_impl(
+                const Id<Process::LayerModel>& viewModelId,
+                const QByteArray& constructionData,
+                QObject* parent) override;
+        Process::LayerModel* loadLayer_impl(
+                const VisitorVariant&,
+                QObject* parent) override;
+        Process::LayerModel* cloneLayer_impl(
+                const Id<Process::LayerModel>& newId,
+                const Process::LayerModel& source,
+                QObject* parent) override;
 
     private:
         std::shared_ptr<TimeProcessWithConstraint> m_ossia_process;

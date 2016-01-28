@@ -1,6 +1,8 @@
 #pragma once
 #include <iscore/tools/NamedObject.hpp>
-class IdentifiedObjectAbstract : public NamedObject
+#include <sys/types.h>
+
+class ISCORE_LIB_BASE_EXPORT IdentifiedObjectAbstract : public NamedObject
 {
         Q_OBJECT
     public:

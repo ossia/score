@@ -1,24 +1,25 @@
-#include "Expression.hpp"
-#include <algorithm>
+#include <QMap>
 
+#include "Expression.hpp"
+#include <State/Relation.hpp>
 
 QString ExprData::toString() const
 {
-    static const QMap<iscore::BinaryOperator, QString> binopMap{
-      { iscore::BinaryOperator::And, "and" },
-      { iscore::BinaryOperator::Or, "or" },
-      { iscore::BinaryOperator::Xor, "xor" },
+    static const QMap<State::BinaryOperator, QString> binopMap{
+      { State::BinaryOperator::And, "and" },
+      { State::BinaryOperator::Or, "or" },
+      { State::BinaryOperator::Xor, "xor" },
     };
-    static const QMap<iscore::UnaryOperator, QString> unopMap{
-        { iscore::UnaryOperator::Not, "not" },
+    static const QMap<State::UnaryOperator, QString> unopMap{
+        { State::UnaryOperator::Not, "not" },
     };
 
-    if(is<iscore::Relation>())
-        return get<iscore::Relation>().toString();
-    else if(is<iscore::BinaryOperator>())
-         return binopMap[(get<iscore::BinaryOperator>())];
-    else if(is<iscore::UnaryOperator>())
-        return unopMap[(get<iscore::UnaryOperator>())];
+    if(is<State::Relation>())
+        return get<State::Relation>().toString();
+    else if(is<State::BinaryOperator>())
+         return binopMap[(get<State::BinaryOperator>())];
+    else if(is<State::UnaryOperator>())
+        return unopMap[(get<State::UnaryOperator>())];
     else if(is<InvisibleRootNodeTag>())
         return "";
     else
@@ -29,7 +30,7 @@ QString TreeNode<ExprData>::toString() const
 {
     QString s;
 
-    auto exprstr = static_cast<const iscore::ExprData&>(*this).toString();
+    auto exprstr = static_cast<const State::ExprData&>(*this).toString();
     if(m_children.size() == 0) // Relation
     {
         if(is<InvisibleRootNodeTag>())

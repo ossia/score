@@ -1,29 +1,42 @@
 #pragma once
+#include <boost/optional/optional.hpp>
 #include <iscore/command/SerializableCommand.hpp>
+#include <QString>
+
 #include "CreateConstraint_State.hpp"
-class TimeNodeModel;
+#include <Scenario/Commands/ScenarioCommandFactory.hpp>
+#include <iscore/tools/ModelPath.hpp>
+#include <iscore/tools/SettableIdentifier.hpp>
+
+class DataStreamInput;
+class DataStreamOutput;
 namespace Scenario
 {
+class ScenarioModel;
+class EventModel;
+class StateModel;
+class TimeNodeModel;
+class ConstraintModel;
 namespace Command
 {
-class CreateConstraint_State_Event final : public iscore::SerializableCommand
+class ISCORE_PLUGIN_SCENARIO_EXPORT CreateConstraint_State_Event final : public iscore::SerializableCommand
 {
-        ISCORE_COMMAND_DECL(ScenarioCommandFactoryName(), CreateConstraint_State_Event, "CreateConstraint_State_Event")
+        ISCORE_COMMAND_DECL(ScenarioCommandFactoryName(), CreateConstraint_State_Event, "Create a constraint, a state and an event")
         public:
 
           CreateConstraint_State_Event(
-            const ScenarioModel& scenario,
+            const Scenario::ScenarioModel& scenario,
             const Id<StateModel>& startState,
             const Id<TimeNodeModel>& endTimeNode,
             double endStateY);
 
         CreateConstraint_State_Event(
-          const Path<ScenarioModel>& scenario,
+          const Path<Scenario::ScenarioModel>& scenario,
           const Id<StateModel>& startState,
           const Id<TimeNodeModel>& endTimeNode,
           double endStateY);
 
-        const Path<ScenarioModel>& scenarioPath() const
+        const Path<Scenario::ScenarioModel>& scenarioPath() const
         { return m_command.scenarioPath(); }
 
         const double& endStateY() const

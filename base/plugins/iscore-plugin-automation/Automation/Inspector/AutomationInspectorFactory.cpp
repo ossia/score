@@ -1,22 +1,29 @@
+#include <QString>
+
+#include <Automation/AutomationProcessMetadata.hpp>
 #include "AutomationInspectorFactory.hpp"
 #include "AutomationInspectorWidget.hpp"
 #include <Automation/AutomationModel.hpp>
-
-//using namespace iscore;
-
-InspectorWidgetBase* AutomationInspectorFactory::makeWidget(
-        const QObject& sourceElement,
-        iscore::Document& doc,
-        QWidget* parent)
-{
-    return new AutomationInspectorWidget{
-                safe_cast<const AutomationModel&>(sourceElement),
-                doc,
-                parent};
+class InspectorWidgetBase;
+class QObject;
+class QWidget;
+namespace iscore {
+class Document;
 }
 
-const QList<QString>& AutomationInspectorFactory::key_impl() const
+namespace Automation
 {
-    static const QList<QString> lst{AutomationProcessMetadata::processObjectName()};
-    return lst;
+ProcessInspectorWidgetDelegate* InspectorFactory::make(
+        const Process::ProcessModel& process,
+        const iscore::DocumentContext& doc,
+        QWidget* parent) const
+{
+    return new InspectorWidget{
+        static_cast<const ProcessModel&>(process), doc, parent};
+}
+
+bool InspectorFactory::matches(const Process::ProcessModel& process) const
+{
+    return dynamic_cast<const ProcessModel*>(&process);
+}
 }

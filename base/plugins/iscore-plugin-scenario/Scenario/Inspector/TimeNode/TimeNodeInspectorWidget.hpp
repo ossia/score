@@ -1,42 +1,50 @@
 #pragma once
 
 #include <Inspector/InspectorWidgetBase.hpp>
+#include <list>
+#include <vector>
 
-#include <Scenario/Inspector/ExpressionValidator.hpp>
-class TimeNodeModel;
+namespace Inspector
+{
+class InspectorSectionWidget;
+}
+class QLabel;
+class QWidget;
+namespace iscore {
+class Document;
+}  // namespace iscore
 
-class QFormLayout;
+
+namespace Scenario
+{
 class MetadataWidget;
-class EventShortCut;
 class TriggerInspectorWidget;
-
+class EventShortCut;
+class TimeNodeModel;
 /*!
  * \brief The TimeNodeInspectorWidget class
  *      Inherits from InspectorWidgetInterface. Manages an inteface for an TimeNode (Timebox) element.
  */
-class TimeNodeInspectorWidget final : public InspectorWidgetBase
+class TimeNodeInspectorWidget final : public Inspector::InspectorWidgetBase
 {
-        Q_OBJECT
     public:
         explicit TimeNodeInspectorWidget(
                 const TimeNodeModel& object,
-                iscore::Document& doc,
+                const iscore::DocumentContext& context,
                 QWidget* parent);
-    signals:
-
-    public slots:
-        void updateDisplayedValues();
-
-        void on_splitTimeNodeClicked();
-
 
     private:
+        QString tabName() override;
+
+        void updateDisplayedValues();
+        void on_splitTimeNodeClicked();
+
         std::list<QWidget*> m_properties;
         std::vector<EventShortCut*> m_events;
 
         const TimeNodeModel& m_model;
 
-        InspectorSectionWidget* m_eventList {};
+        Inspector::InspectorSectionWidget* m_eventList {};
         QLabel* m_date {};
 
         MetadataWidget* m_metadata {};
@@ -44,3 +52,4 @@ class TimeNodeInspectorWidget final : public InspectorWidgetBase
         TriggerInspectorWidget* m_trigwidg{};
 
 };
+}

@@ -8,7 +8,7 @@ find_package(Jamoma)
 if(${Jamoma_FOUND})
     copy_in_folder_jamoma(${ISCORE_BIN_INSTALL_DIR} "${JAMOMA_LIBS}" "${JAMOMA_PLUGINS}")
 endif()
-
+### TODO InstallRequiredSystemLibraries ###
  # Compiler Runtime DLLs
 if (MSVC)
    # Visual Studio

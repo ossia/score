@@ -1,6 +1,9 @@
 #pragma once
 #include <QStringList>
-struct ApplicationSettings
+#include <iscore_lib_base_export.h>
+namespace iscore
+{
+struct ISCORE_LIB_BASE_EXPORT ApplicationSettings
 {
         bool tryToRestore = true;
         bool gui = true;
@@ -9,3 +12,4 @@ struct ApplicationSettings
 
         void parse();
 };
+}

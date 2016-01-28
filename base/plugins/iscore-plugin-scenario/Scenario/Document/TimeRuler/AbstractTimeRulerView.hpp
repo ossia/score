@@ -1,8 +1,20 @@
 #pragma once
-#include <QGraphicsObject>
-#include <Process/TimeValue.hpp>
+#include <QColor>
+#include <QDateTime>
+#include <QtGlobal>
+#include <QGraphicsItem>
+#include <QMap>
+#include <QPainterPath>
+#include <QPoint>
+#include <QString>
 
-class QPainterPath;
+class QGraphicsSceneMouseEvent;
+class QPainter;
+class QStyleOptionGraphicsItem;
+class QWidget;
+
+namespace Scenario
+{
 class AbstractTimeRuler;
 class AbstractTimeRulerView : public QGraphicsObject
 {
@@ -18,20 +30,18 @@ class AbstractTimeRulerView : public QGraphicsObject
         void setHeight(qreal newHeight);
         void setWidth(qreal newWidth);
 
-        qreal graduationSpacing() const {return m_intervalsBeetwenMark * m_graduationsSpacing;}
+        qreal graduationSpacing() const {return m_intervalsBetweenMark * m_graduationsSpacing;}
 
         qreal width() const
         {
             return m_width;
         }
 
-    signals:
-        void drag(QPointF, QPointF);
-
-    public slots:
         void setGraduationsStyle(double size, int delta, QString format, int mark);
         void setFormat(QString);
 
+    signals:
+        void drag(QPointF, QPointF);
 
     protected:
         void mousePressEvent(QGraphicsSceneMouseEvent*) final override;
@@ -45,7 +55,7 @@ class AbstractTimeRulerView : public QGraphicsObject
         qreal m_graduationsSpacing {};
         int m_graduationDelta {};
         QString m_timeFormat{};
-        int m_intervalsBeetwenMark {};
+        uint32_t m_intervalsBetweenMark {};
 
         qreal m_textPosition{};
         int m_graduationHeight {};
@@ -55,3 +65,4 @@ class AbstractTimeRulerView : public QGraphicsObject
 
         QMap<double, QTime> m_marks;
 };
+}

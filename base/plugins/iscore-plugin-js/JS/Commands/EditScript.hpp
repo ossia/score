@@ -1,17 +1,22 @@
 #pragma once
 #include <JS/Commands/JSCommandFactory.hpp>
 #include <iscore/command/SerializableCommand.hpp>
+#include <QString>
 
-class JSProcessModel;
+#include <iscore/tools/ModelPath.hpp>
+
+class DataStreamInput;
+class DataStreamOutput;
+namespace JS
+{
+class ProcessModel;
+
 class EditScript final : public iscore::SerializableCommand
 {
-        ISCORE_COMMAND_DECL(
-                JSCommandFactoryName(),
-                EditScript,
-                "EditScript")
+        ISCORE_COMMAND_DECL(JS::CommandFactoryName(), EditScript, "Edit a JS script")
     public:
         EditScript(
-                Path<JSProcessModel>&& model,
+                Path<ProcessModel>&& model,
                 const QString& text);
 
         void undo() const override;
@@ -22,6 +27,7 @@ class EditScript final : public iscore::SerializableCommand
         void deserializeImpl(DataStreamOutput & s) override;
 
     private:
-        Path<JSProcessModel> m_model;
+        Path<ProcessModel> m_model;
         QString m_old, m_new;
 };
+}

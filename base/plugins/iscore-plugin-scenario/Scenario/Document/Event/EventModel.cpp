@@ -1,17 +1,30 @@
-#include "EventModel.hpp"
-#include <Scenario/Document/TimeNode/TimeNodeModel.hpp>
-#include <Scenario/Process/ScenarioModel.hpp>
-
-#include <iscore/document/DocumentInterface.hpp>
 #include <Process/Style/ScenarioStyle.hpp>
+#include <iscore/document/DocumentInterface.hpp>
+#include <QObject>
+
+#include <QPoint>
+
+#include "EventModel.hpp"
+#include <Process/ModelMetadata.hpp>
+#include <Process/TimeValue.hpp>
+#include <Scenario/Document/Event/ExecutionStatus.hpp>
+#include <Scenario/Document/State/StateModel.hpp>
+#include <Scenario/Document/VerticalExtent.hpp>
+#include <Scenario/Process/ScenarioInterface.hpp>
+#include <State/Expression.hpp>
+#include <iscore/tools/IdentifiedObject.hpp>
+#include <iscore/tools/SettableIdentifier.hpp>
+
+namespace Scenario
+{
 EventModel::EventModel(
         const Id<EventModel>& id,
         const Id<TimeNodeModel>& timenode,
         const VerticalExtent &extent,
         const TimeValue &date,
         QObject* parent):
-    IdentifiedObject<EventModel> {id, "EventModel", parent},
-    pluginModelList{iscore::IDocument::documentFromObject(parent), this},
+    IdentifiedObject<EventModel> {id, Metadata<ObjectKey_k, EventModel>::get(), parent},
+    pluginModelList{iscore::IDocument::documentContext(*parent), this},
     m_timeNode{timenode},
     m_extent{extent},
     m_date{date}
@@ -23,7 +36,7 @@ EventModel::EventModel(
 EventModel::EventModel(const EventModel& source,
                        const Id<EventModel>& id,
                        QObject* parent) :
-    IdentifiedObject<EventModel> {id, "EventModel", parent},
+    IdentifiedObject<EventModel> {id, Metadata<ObjectKey_k, EventModel>::get(), parent},
     metadata{source.metadata},
     pluginModelList{source.pluginModelList, this},
     m_timeNode{source.m_timeNode},
@@ -69,13 +82,15 @@ void EventModel::setDate(const TimeValue& date)
 
 void EventModel::setStatus(ExecutionStatus status)
 {
-    if (m_status == status)
+    if (m_status.get() == status)
         return;
 
-    m_status = status;
+    m_status.set(status);
     emit statusChanged(status);
 
-    auto scenar = parentScenario();
+    auto scenar = dynamic_cast<ScenarioInterface*>(parent());
+    ISCORE_ASSERT(scenar);
+
     for(auto& state : m_states)
     {
         scenar->state(state).setStatus(status);
@@ -89,7 +104,7 @@ void EventModel::translate(const TimeValue& deltaTime)
 
 ExecutionStatus EventModel::status() const
 {
-    return m_status;
+    return m_status.get();
 }
 
 void EventModel::reset()
@@ -99,16 +114,12 @@ void EventModel::reset()
 
 
 // TODO Maybe remove the need for this by passing to the scenario instead ?
-QString EventModel::prettyName()
-{ return QObject::tr("Event"); }
-
-ScenarioInterface* EventModel::parentScenario() const
-{
-    return dynamic_cast<ScenarioInterface*>(parent());
-}
 
 void EventModel::addState(const Id<StateModel> &ds)
 {
+    auto idx = m_states.indexOf(ds, 0);
+    if(idx != -1)
+        return;
     m_states.append(ds);
     emit statesChanged();
 }
@@ -117,8 +128,10 @@ void EventModel::removeState(const Id<StateModel> &ds)
 {
     auto idx = m_states.indexOf(ds, 0);
     if(idx != -1)
+    {
         m_states.remove(idx);
-    emit statesChanged();
+        emit statesChanged();
+    }
 }
 
 const QVector<Id<StateModel> > &EventModel::states() const
@@ -128,16 +141,17 @@ const QVector<Id<StateModel> > &EventModel::states() const
 
 
 
-const iscore::Condition& EventModel::condition() const
+const State::Condition& EventModel::condition() const
 {
     return m_condition;
 }
 
-void EventModel::setCondition(const iscore::Condition& arg)
+void EventModel::setCondition(const State::Condition& arg)
 {
     if(m_condition != arg)
     {
         m_condition = arg;
         emit conditionChanged(arg);
     }
+}
 }

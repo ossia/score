@@ -1,17 +1,17 @@
 #pragma once
-#include <QObject>
 #include "Selection.hpp"
 
 namespace iscore
 {
 class SelectionStack;
+
 /**
  * @brief The SelectionDispatcher class
  *
  * Sends new selections to the document so that they
  * can be shown in the inspector and other places that work with selections.
  */
-class SelectionDispatcher
+class ISCORE_LIB_BASE_EXPORT SelectionDispatcher
 {
     public:
         explicit SelectionDispatcher(SelectionStack& s):

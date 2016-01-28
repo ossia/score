@@ -1,6 +1,6 @@
 #pragma once
 #include <unordered_map>
-
+#include <memory>
 /*
 concept FactoryList
 {
@@ -16,19 +16,19 @@ class GenericFactoryMap_T
     public:
         using key_t = Key;
         // TODO delete the factories in the end. Or unique_ptr ?
-        void inscribe(T* reg)
+        void inscribe(std::unique_ptr<T> reg)
         {
             auto it = m_factories.find(reg->template key<Key>());
             if(it == m_factories.end())
             {
-                m_factories.insert(std::make_pair(reg->template key<Key>(), reg)); // MULTI_INDEX....
+                m_factories.insert(std::make_pair(reg->template key<Key>(), std::move(reg))); // MULTI_INDEX....
             }
         }
 
         T* get(const Key& str) const
         {
             auto it = m_factories.find(str);
-            return (it != m_factories.end()) ? it->second : nullptr;
+            return (it != m_factories.end()) ? it->second.get() : nullptr;
         }
 
         const auto& get() const
@@ -37,5 +37,5 @@ class GenericFactoryMap_T
         }
 
     private:
-        std::unordered_map<Key, T*> m_factories;
+        std::unordered_map<Key, std::unique_ptr<T>> m_factories;
 };

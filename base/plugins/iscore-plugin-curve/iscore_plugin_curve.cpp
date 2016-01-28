@@ -1,60 +1,64 @@
+#include <unordered_map>
+
+#include <Curve/Commands/CurveCommandFactory.hpp>
+#include <Curve/Segment/CurveSegmentFactory.hpp>
+#include <Curve/Segment/CurveSegmentList.hpp>
+#include <Curve/Segment/Linear/LinearCurveSegmentModel.hpp>
+#include <Curve/Segment/Power/PowerCurveSegmentModel.hpp>
+#include <Curve/Segment/Sin/SinCurveSegmentModel.hpp>
+#include <Curve/Segment/Gamma/GammaCurveSegmentModel.hpp>
+#include <iscore/plugins/customfactory/StringFactoryKey.hpp>
 #include "iscore_plugin_curve.hpp"
+#include <iscore_plugin_curve_commands_files.hpp>
+#include <iscore/plugins/customfactory/FactorySetup.hpp>
 
-#include "Curve/Segment/CurveSegmentList.hpp"
+namespace iscore {
+class FactoryListInterface;
+}  // namespace iscore
 
-#include "Curve/Segment/Power/PowerCurveSegmentModel.hpp"
-#include "Curve/Segment/Linear/LinearCurveSegmentModel.hpp"
-#include "Curve/Segment/Sin/SinCurveSegmentModel.hpp"
-#include "Curve/Segment/Gamma/GammaCurveSegmentModel.hpp"
-
-DEFINE_CURVE_SEGMENT_FACTORY(LinearCurveSegmentFactory, "Linear", LinearCurveSegmentModel)
-DEFINE_CURVE_SEGMENT_FACTORY(PowerCurveSegmentFactory, "Power", PowerCurveSegmentModel)
-DEFINE_CURVE_SEGMENT_FACTORY(SinCurveSegmentFactory, "Sin", SinCurveSegmentModel)
-DEFINE_CURVE_SEGMENT_FACTORY(GammaCurveSegmentFactory, "Gamma", GammaCurveSegmentModel)
-
-#include <Curve/Commands/MovePoint.hpp>
-#include "Curve/Commands/UpdateCurve.hpp"
-#include "Curve/Commands/SetSegmentParameters.hpp"
-
+namespace Curve
+{
+DEFINE_CURVE_SEGMENT_FACTORY(LinearCurveSegmentFactory, Curve::LinearSegment)
+DEFINE_CURVE_SEGMENT_FACTORY(PowerCurveSegmentFactory, Curve::PowerSegment)
+DEFINE_CURVE_SEGMENT_FACTORY(SinCurveSegmentFactory, Curve::SinSegment)
+DEFINE_CURVE_SEGMENT_FACTORY(GammaCurveSegmentFactory, Curve::GammaSegment)
+}
 iscore_plugin_curve::iscore_plugin_curve() :
     QObject {}
 {
 }
 
-std::vector<iscore::FactoryInterfaceBase*> iscore_plugin_curve::factories(
+std::vector<std::unique_ptr<iscore::FactoryInterfaceBase>> iscore_plugin_curve::factories(
         const iscore::ApplicationContext& ctx,
-        const iscore::FactoryBaseKey& factoryName) const
+        const iscore::AbstractFactoryKey& factoryName) const
 {
-    if(factoryName == CurveSegmentFactory::staticFactoryKey())
-    {
-        // TODO make matching factories for OSSIA.
-        return {new LinearCurveSegmentFactory,
-                new PowerCurveSegmentFactory/*,
-                new GammaCurveSegmentFactory,
-                new SinCurveSegmentFactory*/};
-    }
-
-    return {};
+    return instantiate_factories<
+       iscore::ApplicationContext,
+       TL<
+         FW<Curve::SegmentFactory,
+             Curve::LinearCurveSegmentFactory,
+             Curve::PowerCurveSegmentFactory>>>(ctx, factoryName);
 }
 
 
 
-std::vector<iscore::FactoryListInterface*> iscore_plugin_curve::factoryFamilies()
+std::vector<std::unique_ptr<iscore::FactoryListInterface>> iscore_plugin_curve::factoryFamilies()
 {
-    return {new DynamicCurveSegmentList};
+    return make_ptr_vector<iscore::FactoryListInterface,
+            Curve::SegmentList>();
 }
 
 std::pair<const CommandParentFactoryKey, CommandGeneratorMap> iscore_plugin_curve::make_commands()
 {
-    std::pair<const CommandParentFactoryKey, CommandGeneratorMap> cmds{CurveCommandFactoryName(), CommandGeneratorMap{}};
-    boost::mpl::for_each<
-            boost::mpl::list<
-                UpdateCurve,
-                SetSegmentParameters,
-                MovePoint
-            >,
-            boost::type<boost::mpl::_>
-            >(CommandGeneratorMapInserter{cmds.second});
+    using namespace Curve;
+    std::pair<const CommandParentFactoryKey, CommandGeneratorMap> cmds{
+        Curve::CommandFactoryName(),
+                CommandGeneratorMap{}};
+
+    using Types = TypeList<
+#include <iscore_plugin_curve_commands.hpp>
+      >;
+    for_each_type<Types>(iscore::commands::FactoryInserter{cmds.second});
 
     return cmds;
 }

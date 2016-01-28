@@ -1,15 +1,27 @@
 #pragma once
+#include <QtGlobal>
 #include <QGraphicsItem>
 #include <QPen>
+#include <QRect>
+#include <iscore_plugin_scenario_export.h>
+class QPainter;
+class QStyleOptionGraphicsItem;
+class QWidget;
+
+namespace Scenario
+{
 class SlotView;
-class SlotHandle final : public QGraphicsItem
+
+class ISCORE_PLUGIN_SCENARIO_EXPORT SlotHandle final : public QGraphicsItem
 {
     public:
         SlotHandle(const SlotView& slotView,
                    QGraphicsItem* parent);
 
-        int type() const override
+        static constexpr int static_type()
         { return QGraphicsItem::UserType + 5; }
+        int type() const override
+        { return static_type(); }
 
         static constexpr double handleHeight()
         {
@@ -33,3 +45,4 @@ class SlotHandle final : public QGraphicsItem
         qreal m_width {};
         QPen m_pen;
 };
+}

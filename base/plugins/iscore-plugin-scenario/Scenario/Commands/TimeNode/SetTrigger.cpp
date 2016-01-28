@@ -1,19 +1,21 @@
-#include "SetTrigger.hpp"
-
 #include <Scenario/Document/TimeNode/TimeNodeModel.hpp>
 #include <Scenario/Document/TimeNode/Trigger/TriggerModel.hpp>
+#include <algorithm>
 
-#include <Scenario/Document/Constraint/ConstraintModel.hpp>
-#include <Scenario/Process/ScenarioModel.hpp>
+#include "SetTrigger.hpp"
+#include <State/Expression.hpp>
+#include <iscore/serialization/DataStreamVisitor.hpp>
+#include <iscore/tools/ModelPath.hpp>
+#include <iscore/tools/ModelPathSerialization.hpp>
+#include <iscore/tools/TreeNode.hpp>
 
-#include "iscore/document/DocumentInterface.hpp"
-
-using namespace iscore;
-using namespace Scenario::Command;
-
+namespace Scenario
+{
+namespace Command
+{
 
 SetTrigger::SetTrigger(Path<TimeNodeModel>&& timeNodePath,
-                       Trigger trigger) :
+                       State::Trigger trigger) :
 m_path {std::move(timeNodePath) },
 m_trigger(std::move(trigger))
 {
@@ -46,4 +48,7 @@ void SetTrigger::serializeImpl(DataStreamInput& s) const
 void SetTrigger::deserializeImpl(DataStreamOutput& s)
 {
     s >> m_path >> m_trigger >> m_previousTrigger;
+}
+
+}
 }

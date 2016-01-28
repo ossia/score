@@ -1,34 +1,37 @@
 #pragma once
 #include <Scenario/Commands/ScenarioCommandFactory.hpp>
+#include <boost/optional/optional.hpp>
 #include <iscore/command/SerializableCommand.hpp>
 #include <iscore/tools/ModelPath.hpp>
-class ScenarioModel;
-class EventModel;
-class StateModel;
+
+#include <iscore/tools/SettableIdentifier.hpp>
+
+class DataStreamInput;
+class DataStreamOutput;
 
 namespace Scenario
 {
+class ScenarioModel;
+class EventModel;
+class StateModel;
 namespace Command
 {
-class CreateState final : public iscore::SerializableCommand
+class ISCORE_PLUGIN_SCENARIO_EXPORT CreateState final : public iscore::SerializableCommand
 {
-        ISCORE_COMMAND_DECL(
-                ScenarioCommandFactoryName(),
-                CreateState,
-                "CreateState")
+        ISCORE_COMMAND_DECL(ScenarioCommandFactoryName(), CreateState, "Create a state")
         public:
 
         CreateState(
-            const ScenarioModel& scenario,
+            const Scenario::ScenarioModel& scenario,
             const Id<EventModel>& event,
             double stateY);
 
         CreateState(
-                const Path<ScenarioModel> &scenarioPath,
+                const Path<Scenario::ScenarioModel> &scenarioPath,
                 const Id<EventModel>& event,
                 double stateY);
 
-        const Path<ScenarioModel>& scenarioPath() const
+        const Path<Scenario::ScenarioModel>& scenarioPath() const
         { return m_path; }
 
         const double& endStateY() const
@@ -46,7 +49,7 @@ class CreateState final : public iscore::SerializableCommand
         void deserializeImpl(DataStreamOutput&) override;
 
     private:
-        Path<ScenarioModel> m_path;
+        Path<Scenario::ScenarioModel> m_path;
 
         Id<StateModel> m_newState;
         Id<EventModel> m_event;

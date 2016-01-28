@@ -1,7 +1,21 @@
 #pragma once
 #include <QObject>
-#include "LayerModel.hpp"
-class LayerModelPanelProxy : public QObject
+#include <iscore_lib_process_export.h>
+
+#include <QGraphicsScene>
+#include <QGraphicsView>
+#include <Process/ZoomHelper.hpp>
+class ProcessGraphicsView;
+class DoubleSlider;
+class ProcessPanelGraphicsProxy;
+namespace Process {
+class LayerModel;
+class LayerPresenter;
+class LayerView;
+}
+namespace Process
+{
+class ISCORE_LIB_PROCESS_EXPORT LayerModelPanelProxy : public QObject
 {
     public:
         using QObject::QObject;
@@ -9,4 +23,35 @@ class LayerModelPanelProxy : public QObject
 
         // Can return the same view model, or a new one.
         virtual const LayerModel& layer() = 0;
+        virtual QWidget* widget() const = 0;
 };
+class ISCORE_LIB_PROCESS_EXPORT GraphicsViewLayerModelPanelProxy : public LayerModelPanelProxy
+{
+    public:
+        GraphicsViewLayerModelPanelProxy(const LayerModel& model, QObject* parent);
+
+        virtual ~GraphicsViewLayerModelPanelProxy();
+
+        // Can return the same view model, or a new one.
+        const LayerModel& layer() final override;
+        QWidget* widget() const final override;
+
+        void on_sizeChanged(const QSize& size);
+        void on_zoomChanged(ZoomRatio newzoom);
+
+    private:
+        const LayerModel& m_layer;
+        QWidget* m_widget{};
+
+        QGraphicsScene* m_scene{};
+        ProcessGraphicsView* m_view{};
+        ProcessPanelGraphicsProxy* m_obj{};
+        DoubleSlider* m_zoomSlider{};
+
+        Process::LayerPresenter* m_processPresenter{};
+        Process::LayerView* m_layerView{};
+
+        ZoomRatio m_zoomRatio{};
+};
+
+}

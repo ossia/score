@@ -1,23 +1,40 @@
-#include "MessageTreeView.hpp"
-
-#include <Scenario/Document/State/StateModel.hpp>
-#include <Explorer/Widgets/MessageListEditor.hpp>
-#include <iscore/document/DocumentInterface.hpp>
-#include <Scenario/Document/State/ItemModel/MessageItemModel.hpp>
-#include <core/document/Document.hpp>
-
 #include <Scenario/Commands/State/RemoveMessageNodes.hpp>
-#include <QContextMenuEvent>
-#include <QHeaderView>
-#include <QMenu>
+#include <Scenario/Document/State/ItemModel/MessageItemModel.hpp>
+#include <Scenario/Document/State/StateModel.hpp>
 #include <iscore/command/Dispatchers/CommandDispatcher.hpp>
+#include <iscore/document/DocumentInterface.hpp>
+#include <QAbstractItemView>
 #include <QAction>
+#include <QEvent>
+#include <QFlags>
+#include <QHeaderView>
+#include <QKeySequence>
+#include <QList>
+#include <QMenu>
+#include <QResizeEvent>
+#include <QContextMenuEvent>
+#include <qnamespace.h>
+
+#include <QSet>
+#include <QString>
+
+#include <Device/Node/DeviceNode.hpp>
+#include "MessageTreeView.hpp"
+#include <Process/State/MessageNode.hpp>
+#include <iscore/document/DocumentContext.hpp>
+#include <iscore/tools/ModelPath.hpp>
+#include <iscore/tools/Todo.hpp>
+#include <iscore/tools/TreeNode.hpp>
+
+class QWidget;
+namespace Scenario
+{
 MessageTreeView::MessageTreeView(
         const StateModel& model,
         QWidget* parent):
     QTreeView{parent},
-    m_model{model}, // TODO sorry o lord for I have sinned
-    m_dispatcher{iscore::IDocument::commandStack(model)}
+    m_model{model},
+    m_dispatcher{iscore::IDocument::documentContext(model).commandStack}
 {
     setAllColumnsShowFocus(true);
     setSelectionBehavior(QAbstractItemView::SelectRows);
@@ -45,7 +62,8 @@ MessageTreeView::MessageTreeView(
     con(m_model.messages(), &MessageItemModel::modelReset,
         this, &QTreeView::expandAll);
 
-    header()->resizeSection((int)MessageItemModel::Column::Name, 300);
+    header()->resizeSection((int)MessageItemModel::Column::Name, (1-m_valueColumnSize - 0.1)*this->width());
+    header()->resizeSection((int)MessageItemModel::Column::Value, m_valueColumnSize*this->width());
 }
 
 MessageItemModel& MessageTreeView::model() const
@@ -65,12 +83,19 @@ void MessageTreeView::removeNodes()
             nodes.append(&n);
     }
 
-    auto cmd = new RemoveMessageNodes(
+    auto cmd = new Command::RemoveMessageNodes(
                       model(),
-                      iscore::filterUniqueParents(nodes));
+                      Device::filterUniqueParents(nodes));
 
     CommandDispatcher<> dispatcher{iscore::IDocument::documentContext(m_model).commandStack};
     dispatcher.submitCommand(cmd);
+}
+
+void MessageTreeView::resizeEvent(QResizeEvent* ev)
+{
+    ev->ignore();
+    header()->resizeSection((int)MessageItemModel::Column::Name, (1-m_valueColumnSize - 0.1)*this->width());
+    header()->resizeSection((int)MessageItemModel::Column::Value, m_valueColumnSize*this->width());
 }
 
 void MessageTreeView::contextMenuEvent(QContextMenuEvent* event)
@@ -80,4 +105,4 @@ void MessageTreeView::contextMenuEvent(QContextMenuEvent* event)
     contextMenu.addAction(m_removeNodesAction);
     contextMenu.exec(event->globalPos());
 }
-
+}

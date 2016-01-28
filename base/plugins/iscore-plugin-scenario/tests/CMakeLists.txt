@@ -1,5 +1,5 @@
 cmake_minimum_required(VERSION 3.0)
-project(ScenarioTests)
+project(ScenarioTests LANGUAGES CXX)
 enable_testing()
 
 include_directories("${ISCORE_ROOT_SOURCE_DIR}/base")
@@ -8,7 +8,7 @@ find_package(Qt5 5.3 REQUIRED COMPONENTS Core Test)
 
 function(addIScoreQtTest TESTNAME TESTSRCS)
                 add_executable(${TESTNAME} ${TESTSRCS})
-                target_link_libraries(${TESTNAME} Qt5::Core Qt5::Test iscore_lib_base scenario_process DeviceExplorerLibrary StateLibrary)
+                target_link_libraries(${TESTNAME} PRIVATE Qt5::Core Qt5::Test iscore_lib_base scenario_process DeviceExplorerLibrary StateLibrary)
                 add_test(${TESTNAME}_target ${TESTNAME})
 endFunction()
 

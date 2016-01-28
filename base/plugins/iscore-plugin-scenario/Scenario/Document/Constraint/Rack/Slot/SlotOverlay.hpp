@@ -1,11 +1,25 @@
 #pragma once
+#include <QtGlobal>
 #include <QGraphicsItem>
+#include <QRect>
+
+class QGraphicsSceneMouseEvent;
+class QPainter;
+class QStyleOptionGraphicsItem;
+class QWidget;
+
+namespace Scenario
+{
 class SlotView;
-class SlotHandle;
 class SlotOverlay final : public QGraphicsItem
 {
     public:
         SlotOverlay(SlotView* parent);
+
+        static constexpr int static_type()
+        { return QGraphicsItem::UserType + 8; }
+        int type() const override
+        { return static_type(); }
 
         const SlotView& slotView() const
         { return m_slotView; }
@@ -26,3 +40,4 @@ class SlotOverlay final : public QGraphicsItem
     private:
         const SlotView&m_slotView;
 };
+}

@@ -1,19 +1,30 @@
+#include <boost/optional/optional.hpp>
+#include <QByteArray>
+#include <QMap>
+#include <QPair>
+
 #include "GoodOldDisplacementPolicy.hpp"
-
-#include <Process/TimeValue.hpp>
-
-#include <Scenario/Process/ScenarioModel.hpp>
+#include <Scenario/Document/Constraint/ConstraintDurations.hpp>
 #include <Scenario/Document/Constraint/ConstraintModel.hpp>
+#include <Scenario/Document/Constraint/ViewModels/ConstraintViewModel.hpp>
 #include <Scenario/Document/Event/EventModel.hpp>
+#include <Scenario/Document/State/StateModel.hpp>
 #include <Scenario/Document/TimeNode/TimeNodeModel.hpp>
-
+#include <Scenario/Process/ScenarioModel.hpp>
 #include <Scenario/Tools/dataStructures.hpp>
+#include <iscore/serialization/DataStreamVisitor.hpp>
+#include <iscore/tools/ModelPath.hpp>
+#include <iscore/tools/NotifyingMap.hpp>
+#include <iscore/tools/SettableIdentifier.hpp>
 
+template <typename T> class Reader;
 
-
+namespace Scenario
+{
+class RackModel;
 void
 GoodOldDisplacementPolicy::computeDisplacement(
-        ScenarioModel& scenario,
+        Scenario::ScenarioModel& scenario,
         const QVector<Id<TimeNodeModel>>& draggedElements,
         const TimeValue& deltaTime,
         ElementsProperties& elementsProperties)
@@ -119,7 +130,7 @@ GoodOldDisplacementPolicy::computeDisplacement(
 }
 
 void GoodOldDisplacementPolicy::getRelatedTimeNodes(
-        ScenarioModel& scenario,
+        Scenario::ScenarioModel& scenario,
         const Id<TimeNodeModel>& firstTimeNodeMovedId,
         std::vector<Id<TimeNodeModel> >& translatedTimeNodes)
 {
@@ -152,4 +163,5 @@ void GoodOldDisplacementPolicy::getRelatedTimeNodes(
             }
         }
     }
+}
 }

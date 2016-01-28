@@ -1,8 +1,8 @@
 #pragma once
-#include <QObject>
 #include <iscore/tools/ObjectPath.hpp>
-#include <iscore/document/DocumentInterface.hpp>
-#include <iscore/serialization/DataStreamVisitor.hpp>
+#include <QByteArray>
+#include <QObject>
+#include <vector>
 
 namespace iscore
 {
@@ -15,7 +15,7 @@ namespace iscore
  * For instance, if user A starts moving a constraint in a scenario, the
  * other users won't be able to change the scenario.
  */
-class ObjectLocker : public QObject
+class ISCORE_LIB_BASE_EXPORT ObjectLocker : public QObject
 {
         Q_OBJECT
     public:

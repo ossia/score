@@ -5,7 +5,7 @@
 
 #include <Device/Protocol/ProtocolFactoryKey.hpp>
 
-namespace iscore {
+namespace Device {
 struct DeviceSettings
 {
         ProtocolFactoryKey protocol;

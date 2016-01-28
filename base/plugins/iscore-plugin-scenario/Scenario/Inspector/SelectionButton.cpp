@@ -1,9 +1,13 @@
-#include "SelectionButton.hpp"
-#include <QHBoxLayout>
-#include <QPushButton>
 #include <iscore/selection/SelectionDispatcher.hpp>
 #include <iscore/widgets/MarginLess.hpp>
+#include <QBoxLayout>
 #include <QIcon>
+
+#include <QPushButton>
+
+#include "SelectionButton.hpp"
+#include <iscore/selection/Selection.hpp>
+
 SelectionButton::SelectionButton(
         const QString &text,
         Selection target,

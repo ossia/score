@@ -1,8 +1,13 @@
 #pragma once
-#include <QWidget>
 #include <State/Address.hpp>
+#include <QWidget>
+#include <iscore_lib_device_export.h>
 
 class AddressLineEdit;
+
+
+namespace DeviceExplorer
+{
 class DeviceExplorerModel;
 
 /**
@@ -12,21 +17,27 @@ class DeviceExplorerModel;
  * A device explorer model is used for completion.
  *
  */
-class AddressEditWidget final : public QWidget
+
+class ISCORE_LIB_DEVICE_EXPORT AddressEditWidget final : public QWidget
 {
         Q_OBJECT
     public:
         AddressEditWidget(DeviceExplorerModel* model, QWidget* parent);
 
-        void setAddress(const iscore::Address& addr);
+        void setAddress(const State::Address& addr);
+        void setAddressString(const QString);
 
-        const iscore::Address& address() const
+        const State::Address& address() const
         { return m_address; }
 
+        QString addressString() const
+        { return m_address.toString(); }
+
     signals:
-        void addressChanged(const iscore::Address&);
+        void addressChanged(const State::Address&);
 
     private:
         AddressLineEdit* m_lineEdit{};
-        iscore::Address m_address;
+        State::Address m_address;
 };
+}

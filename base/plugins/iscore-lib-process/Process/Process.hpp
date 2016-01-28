@@ -1,57 +1,70 @@
 #pragma once
-#include <Process/TimeValue.hpp>
 #include <Process/ExpandMode.hpp>
 #include <Process/ProcessFactoryKey.hpp>
-
-#include <iscore/tools/IdentifiedObject.hpp>
-#include <iscore/plugins/documentdelegate/plugin/ElementPluginModelList.hpp>
+#include <Process/TimeValue.hpp>
 #include <iscore/selection/Selection.hpp>
+#include <iscore/tools/IdentifiedObject.hpp>
+#include <QByteArray>
+#include <QString>
+#include <vector>
+
+#include <iscore/component/Component.hpp>
+#include <iscore/tools/Metadata.hpp>
+#include "ModelMetadata.hpp"
+#include <iscore/serialization/VisitorInterface.hpp>
 #include <iscore/serialization/DataStreamVisitor.hpp>
 #include <iscore/serialization/JSONVisitor.hpp>
-#include "ModelMetadata.hpp"
+#include <iscore/plugins/customfactory/SerializableInterface.hpp>
 
-class DataStream;
-class JSONObject;
+namespace Process { class LayerModel; }
 class ProcessStateDataInterface;
-class LayerModel;
+class QObject;
+
+namespace iscore {
+class ElementPluginModelList;
+}  // namespace iscore
+#include <iscore/tools/SettableIdentifier.hpp>
+
+namespace Process
+{
 /**
  * @brief The Process class
  *
  * Interface to implement to make a process.
  */
-class Process: public IdentifiedObject<Process>
+class ISCORE_LIB_PROCESS_EXPORT ProcessModel:
+        public IdentifiedObject<ProcessModel>,
+        public iscore::SerializableInterface<ProcessModel>
 {
         Q_OBJECT
-        ISCORE_METADATA("Process")
 
-        ISCORE_SERIALIZE_FRIENDS(Process, DataStream)
-        ISCORE_SERIALIZE_FRIENDS(Process, JSONObject)
+        ISCORE_SERIALIZE_FRIENDS(Process::ProcessModel, DataStream)
+        ISCORE_SERIALIZE_FRIENDS(Process::ProcessModel, JSONObject)
 
     public:
+        iscore::Components components;
         iscore::ElementPluginModelList* pluginModelList{}; // Note: has to be initialized by the sub-classes.
         ModelMetadata metadata;
 
-        using IdentifiedObject<Process>::IdentifiedObject;
-        Process(
+        using IdentifiedObject<ProcessModel>::IdentifiedObject;
+        ProcessModel(
                 const TimeValue& duration,
-                const Id<Process>& id,
+                const Id<ProcessModel>& id,
                 const QString& name,
                 QObject* parent);
 
         template<typename Impl>
-        Process(Deserializer<Impl>& vis, QObject* parent) :
+        ProcessModel(Deserializer<Impl>& vis, QObject* parent) :
             IdentifiedObject {vis, parent}
         {
             vis.writeTo(*this);
         }
 
-        virtual ~Process();
+        virtual ~ProcessModel();
 
-        virtual Process* clone(
-                const Id<Process>& newId,
+        virtual ProcessModel* clone(
+                const Id<ProcessModel>& newId,
                 QObject* newParent) const = 0;
-
-        virtual const ProcessFactoryKey& key() const = 0;
 
         // A user-friendly text to show to the users
         virtual QString prettyName() const = 0;
@@ -91,20 +104,21 @@ class Process: public IdentifiedObject<Process>
 
         //// Features of a process
         /// Duration
-        // Used to scale the process.
-        // This should be commutative :
-        //   setDurationWithScale(2); setDurationWithScale(3);
-        // yields the same result as :
-        //   setDurationWithScale(3); setDurationWithScale(2);
-        virtual void setDurationAndScale(const TimeValue& newDuration) = 0;
+        void setParentDuration(ExpandMode mode, const TimeValue& t);
 
-        // Does nothing if newDuration < currentDuration
-        virtual void setDurationAndGrow(const TimeValue& newDuration) = 0;
+        void setUseParentDuration(bool b)
+        {
+            if(m_useParentDuration != b)
+            {
+                m_useParentDuration = b;
+                emit useParentDurationChanged(b);
+            }
+        }
 
-        // Does nothing if newDuration > currentDuration
-        virtual void setDurationAndShrink(const TimeValue& newDuration) = 0;
-
-        void expandProcess(ExpandMode mode, const TimeValue& t);
+        bool useParentDuration() const
+        {
+            return m_useParentDuration;
+        }
 
         // TODO might not be useful... put in protected ?
         // Constructor needs it, too.
@@ -118,27 +132,25 @@ class Process: public IdentifiedObject<Process>
         virtual void reset() = 0;
 
         /// States. The process has ownership.
-        virtual ProcessStateDataInterface* startState() const = 0;
-        virtual ProcessStateDataInterface* endState() const = 0;
+        virtual ProcessStateDataInterface* startStateData() const = 0;
+        virtual ProcessStateDataInterface* endStateData() const = 0;
 
         /// Selection
         virtual Selection selectableChildren() const = 0;
         virtual Selection selectedChildren() const = 0;
         virtual void setSelection(const Selection& s) const = 0;
 
-        // protected:
-        virtual void serialize(const VisitorVariant& vis) const = 0;
-
     signals:
         // True if the execution is running.
         void execution(bool);
         void durationChanged(const TimeValue&);
+        void useParentDurationChanged(bool);
 
     protected:
         // Clone
-        Process(
-                const Process& other,
-                const Id<Process>& id,
+        ProcessModel(
+                const ProcessModel& other,
+                const Id<ProcessModel>& id,
                 const QString& name,
                 QObject* parent);
 
@@ -154,6 +166,18 @@ class Process: public IdentifiedObject<Process>
                 const LayerModel& source,
                 QObject* parent) = 0;
 
+        // Used to scale the process.
+        // This should be commutative :
+        //   setDurationWithScale(2); setDurationWithScale(3);
+        // yields the same result as :
+        //   setDurationWithScale(3); setDurationWithScale(2);
+        virtual void setDurationAndScale(const TimeValue& newDuration) = 0;
+
+        // Does nothing if newDuration < currentDuration
+        virtual void setDurationAndGrow(const TimeValue& newDuration) = 0;
+
+        // Does nothing if newDuration > currentDuration
+        virtual void setDurationAndShrink(const TimeValue& newDuration) = 0;
 
     private:
         void addLayer(LayerModel* m);
@@ -163,8 +187,13 @@ class Process: public IdentifiedObject<Process>
         // A process view is never displayed alone, it is always in a view, which is in a rack.
         std::vector<LayerModel*> m_layers;
         TimeValue m_duration;
+        bool m_useParentDuration{};
 };
 
+ISCORE_LIB_PROCESS_EXPORT ProcessModel* parentProcess(QObject* obj);
+ISCORE_LIB_PROCESS_EXPORT const ProcessModel* parentProcess(const QObject* obj);
+
+}
 template<typename T>
 std::vector<typename T::layer_type*> layers(const T& processModel)
 {
@@ -178,5 +207,4 @@ std::vector<typename T::layer_type*> layers(const T& processModel)
     return v;
 }
 
-Process* parentProcess(QObject* obj);
-const Process* parentProcess(const QObject* obj);
+DEFAULT_MODEL_METADATA(Process::ProcessModel, "Process")

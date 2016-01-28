@@ -1,26 +1,34 @@
 #pragma once
-#include <iscore/tools/SettableIdentifier.hpp>
 #include <QGraphicsItem>
-class CurvePointModel;
+#include <QPoint>
+#include <QRect>
+
+class QGraphicsSceneContextMenuEvent;
+class QPainter;
+class QStyleOptionGraphicsItem;
+class QWidget;
+#include <iscore/tools/SettableIdentifier.hpp>
+
 namespace Curve
 {
+class PointModel;
 struct Style;
-}
-
-class CurvePointView final : public QGraphicsObject
+class PointView final : public QGraphicsObject
 {
         Q_OBJECT
     public:
-        CurvePointView(
-                const CurvePointModel* model,
+        PointView(
+                const PointModel* model,
                 const Curve::Style& style,
                 QGraphicsItem* parent);
 
-        const CurvePointModel& model() const;
-        const Id<CurvePointModel>& id() const;
+        const PointModel& model() const;
+        const Id<PointModel>& id() const;
 
-        int type() const override
+        static constexpr int static_type()
         { return QGraphicsItem::UserType + 10; }
+        int type() const override
+        { return static_type(); }
 
         QRectF boundingRect() const override;
         void paint(QPainter *painter,
@@ -32,7 +40,7 @@ class CurvePointView final : public QGraphicsObject
         void enable();
         void disable();
 
-        void setModel(const CurvePointModel* model);
+        void setModel(const PointModel* model);
 
     signals:
         void contextMenuRequested(const QPoint&, const QPointF&);
@@ -42,8 +50,10 @@ class CurvePointView final : public QGraphicsObject
 
 
     private:
-        const CurvePointModel* m_model;
+        const PointModel* m_model;
         const Curve::Style& m_style;
         bool m_selected{};
         bool m_enabled{true};
 };
+
+}

@@ -73,7 +73,6 @@ install(FILES
 # Qt helper script
 
 install(PROGRAMS "${CMAKE_SOURCE_DIR}/base/app/i-score.sh"
-        DESTINATION "."
-        CONFIGURATIONS DynamicRelease)
+        DESTINATION ".")
 
 endif()

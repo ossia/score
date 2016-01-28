@@ -1,16 +1,18 @@
 #pragma once
-#include <iscore/tools/NamedObject.hpp>
-#include <iscore/tools/SettableIdentifier.hpp>
 #include <Process/ZoomHelper.hpp>
+#include <iscore/tools/NamedObject.hpp>
+#include <iscore_lib_process_export.h>
+
+#include <iscore/tools/SettableIdentifier.hpp>
 
 class QMenu;
-class Process;
-class LayerModel;
-namespace iscore
+class QPoint;
+class QPointF;
+namespace Process
 {
-    class SerializableCommand;
-}
-class LayerPresenter : public NamedObject
+class ProcessModel;
+class LayerModel;
+class ISCORE_LIB_PROCESS_EXPORT LayerPresenter : public NamedObject
 {
         Q_OBJECT
         bool m_focus{false};
@@ -25,8 +27,8 @@ class LayerPresenter : public NamedObject
         virtual void on_focusChanged();
 
 
-        virtual void setWidth(int width) = 0;
-        virtual void setHeight(int height) = 0;
+        virtual void setWidth(qreal width) = 0;
+        virtual void setHeight(qreal height) = 0;
 
         virtual void putToFront() = 0;
         virtual void putBehind() = 0;
@@ -35,7 +37,7 @@ class LayerPresenter : public NamedObject
         virtual void parentGeometryChanged() = 0;
 
         virtual const LayerModel& layerModel() const = 0;
-        virtual const Id<Process>& modelId() const = 0;
+        virtual const Id<ProcessModel>& modelId() const = 0;
 
         virtual void fillContextMenu(QMenu*,
                                      const QPoint& pos,
@@ -44,3 +46,5 @@ class LayerPresenter : public NamedObject
         void contextMenuRequested(const QPoint&, const QPointF&);
 
 };
+
+}

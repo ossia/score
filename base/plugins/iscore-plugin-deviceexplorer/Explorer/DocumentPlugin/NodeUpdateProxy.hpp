@@ -1,14 +1,25 @@
 #pragma once
-#include <QString>
 #include <Device/Node/DeviceNode.hpp>
-class DeviceExplorerModel;
-class DeviceDocumentPlugin;
+#include <QString>
 
-namespace iscore
-{
-struct DeviceSettings;
-struct AddressSettings;
+#include <State/Value.hpp>
+#include <iscore_plugin_deviceexplorer_export.h>
+
+namespace State {
+struct Address;
 }
+
+namespace Device
+{
+struct AddressSettings;
+struct DeviceSettings;
+}
+
+
+namespace DeviceExplorer
+{
+class DeviceDocumentPlugin;
+class DeviceExplorerModel;
 /**
  * @brief The NodeUpdateProxy class
  *
@@ -21,22 +32,26 @@ struct AddressSettings;
  * to use its methods (that calls beginAddRows, etc.) to prevent a full refresh
  * which would be laggy.
  */
-class NodeUpdateProxy
+class ISCORE_PLUGIN_DEVICEEXPLORER_EXPORT NodeUpdateProxy
 {
     public:
         DeviceDocumentPlugin& devModel;
         DeviceExplorerModel* deviceExplorer{};
 
         explicit NodeUpdateProxy(DeviceDocumentPlugin& root);
+        NodeUpdateProxy(const NodeUpdateProxy&) = delete;
+        NodeUpdateProxy(NodeUpdateProxy&&) = delete;
+        NodeUpdateProxy& operator=(const NodeUpdateProxy&) = delete;
+        NodeUpdateProxy& operator=(NodeUpdateProxy&&) = delete;
 
-        void addDevice(const iscore::DeviceSettings& dev);
-        void loadDevice(const iscore::Node& node);
+        void addDevice(const Device::DeviceSettings& dev);
+        void loadDevice(const Device::Node& node);
 
         void updateDevice(
                 const QString& name,
-                const iscore::DeviceSettings& dev);
+                const Device::DeviceSettings& dev);
 
-        void removeDevice(const iscore::DeviceSettings& dev);
+        void removeDevice(const Device::DeviceSettings& dev);
 
         /**
          * @brief addAddress Adds a single address in the tree
@@ -46,8 +61,8 @@ class NodeUpdateProxy
          * Used to add a new address (after input from user for instance)
          */
         void addAddress(
-                const iscore::NodePath& parentPath,
-                const iscore::AddressSettings& settings,
+                const Device::NodePath& parentPath,
+                const Device::AddressSettings& settings,
                 int row);
 
         /**
@@ -56,33 +71,53 @@ class NodeUpdateProxy
          * @param node The node to insert.
          */
         void addNode(
-                const iscore::NodePath& parentPath,
-                const iscore::Node& node,
+                const Device::NodePath& parentPath,
+                const Device::Node& node,
                 int row);
 
         void updateAddress(
-                const iscore::NodePath& nodePath,
-                const iscore::AddressSettings& settings);
+                const Device::NodePath& nodePath,
+                const Device::AddressSettings& settings);
 
         void removeNode(
-                const iscore::NodePath& parentPath,
-                const iscore::AddressSettings& settings);
+                const Device::NodePath& parentPath,
+                const Device::AddressSettings& settings);
 
+
+        // Local : the Device::Node structure
+        // Remote : what's behind a DeviceInterface
+        void addLocalAddress(
+                Device::Node& parent,
+                const Device::AddressSettings& data,
+                int row);
+
+        void addLocalNode(
+                Device::Node& parent,
+                Device::Node&& node);
+
+        void removeLocalNode(
+                const State::Address&);
         void updateLocalValue(
-                const iscore::Address&,
-                const iscore::Value&);
-        void updateRemoteValue(
-                const iscore::Address&,
-                const iscore::Value&);
+                const State::Address&,
+                const State::Value&);
+        void updateLocalSettings(
+                const State::Address&,
+                const Device::AddressSettings&);
 
-        iscore::Value refreshRemoteValue(
-                const iscore::Address&);
+        void updateRemoteValue(
+                const State::Address&,
+                const State::Value&);
+
+        State::Value refreshRemoteValue(
+                const State::Address&) const;
         void refreshRemoteValues(
-                const iscore::NodeList&);
+                const Device::NodeList&);
+
 
     private:
         void rec_addNode(
-                iscore::NodePath parentPath,
-                const iscore::Node& node,
+                Device::NodePath parentPath,
+                const Device::Node& node,
                 int row);
 };
+}

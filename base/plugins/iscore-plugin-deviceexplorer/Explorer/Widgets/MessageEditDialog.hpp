@@ -1,19 +1,24 @@
 #pragma once
-#include <QDialog>
 #include <State/Value.hpp>
-#include "ValueWrapper.hpp"
+#include <QDialog>
+#include <Explorer/Widgets/ValueWrapper.hpp>
 
-namespace iscore
+class QWidget;
+namespace State
 {
 struct Address;
 struct Message;
 }
 
-class DeviceExplorerModel;
-class AddressEditWidget;
-class QFormLayout;
 class QComboBox;
+class QFormLayout;
 class ValueWidget;
+
+namespace DeviceExplorer
+{
+class AddressEditWidget;
+class DeviceExplorerModel;
+
 /**
  * @brief The MessageEditDialog class
  *
@@ -27,19 +32,19 @@ class MessageEditDialog final : public QDialog
 {
     public:
         MessageEditDialog(
-                const iscore::Message& mess,
+                const State::Message& mess,
                 DeviceExplorerModel* model,
                 QWidget* parent);
 
-        const iscore::Address& address() const;
+        const State::Address& address() const;
 
-        iscore::Value value() const;
+        State::Value value() const;
 
     private:
         void initTypeCombo();
         void on_typeChanged(int t);
 
-        const iscore::Message& m_message;
+        const State::Message& m_message;
 
         AddressEditWidget* m_addr{};
 
@@ -47,3 +52,4 @@ class MessageEditDialog final : public QDialog
         QComboBox* m_typeCombo{};
         WidgetWrapper<ValueWidget>* m_val{};
 };
+}

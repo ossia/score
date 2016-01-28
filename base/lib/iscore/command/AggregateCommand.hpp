@@ -1,15 +1,17 @@
 #pragma once
 #include <iscore/command/SerializableCommand.hpp>
-#include <iscore/tools/ObjectPath.hpp>
-#include <vector>
-#include <QPair>
+#include <algorithm>
+#include <list>
+
+class DataStreamInput;
+class DataStreamOutput;
 
 namespace iscore
 {
     /**
     * @brief AggregateCommand: allows for grouping of multiple commands.
     */
-    class AggregateCommand : public iscore::SerializableCommand
+    class ISCORE_LIB_BASE_EXPORT AggregateCommand : public iscore::SerializableCommand
     {
         public:
             AggregateCommand() = default;

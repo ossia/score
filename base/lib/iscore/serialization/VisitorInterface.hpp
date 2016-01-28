@@ -31,6 +31,14 @@ using Serializer = Visitor<Reader<T>>;
 template<typename T>
 using Deserializer = Visitor<Writer<T>>;
 
+template<typename Serializer_T, typename... Args>
+struct TSerializer;
+
+template<typename Serializer_T, typename T>
+struct AbstractSerializer;
+template<typename Serializer_T, typename T>
+struct ConcreteSerializer;
+
 using SerializationIdentifier = int;
 
 /**
@@ -58,6 +66,7 @@ using enable_if_deserializer = typename std::enable_if_t<std::decay<Deserializer
 // Declaration of common friends for classes that serialize themselves
 #define ISCORE_SERIALIZE_FRIENDS(Type, Serializer) \
     friend void Visitor<Reader< Serializer >>::readFrom< Type > (const Type &); \
+    friend void Visitor<Reader< Serializer >>::readFrom_impl< Type > (const Type &); \
     friend void Visitor<Writer< Serializer >>::writeTo< Type > (Type &);
 
 
@@ -80,4 +89,30 @@ struct is_value_t
      || is_value_tag<T>::value
     };
 };
+
+template <class>
+struct is_template : std::false_type {};
+
+template <template <class...> class T, typename ...Args>
+struct is_template<T<Args...>> : std::true_type {};
+
+// see SerializableInterface
+template<typename T>
+using enable_if_abstract_base = typename std::enable_if_t<std::decay<T>::type::is_abstract_base_tag::value>;
+
+template <class, class Enable = void>
+struct is_abstract_base : std::false_type {};
+
+template <class T>
+struct is_abstract_base<T, enable_if_abstract_base<T> > : std::true_type {};
+
+template<typename T>
+using enable_if_concrete = typename std::enable_if_t<std::decay<T>::type::is_concrete_tag::value>;
+
+template <class, class Enable = void>
+struct is_concrete : std::false_type {};
+
+template <class T>
+struct is_concrete<T, enable_if_concrete<T> > : std::true_type {};
+
 

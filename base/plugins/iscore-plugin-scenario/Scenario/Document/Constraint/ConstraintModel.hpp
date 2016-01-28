@@ -1,45 +1,39 @@
 #pragma once
+#include <iscore/tools/Metadata.hpp>
+#include <Process/ModelMetadata.hpp>
+#include <Process/Process.hpp>
+#include <Process/TimeValue.hpp>
 #include <Scenario/Document/Constraint/ConstraintDurations.hpp>
 #include <Scenario/Document/Constraint/Rack/RackModel.hpp>
-#include <Process/Process.hpp>
-
-#include <Process/ModelMetadata.hpp>
 #include <Scenario/Document/ModelConsistency.hpp>
-#include <Scenario/Document/State/StateModel.hpp>
-#include <Scenario/Document/TimeNode/TimeNodeModel.hpp>
-#include <Scenario/Document/Event/EventModel.hpp>
-
-#include <iscore/tools/IdentifiedObjectMap.hpp>
-#include <iscore/serialization/VisitorInterface.hpp>
-#include <Process/TimeValue.hpp>
-
-#include <iscore/selection/Selectable.hpp>
-
+#include <boost/optional/optional.hpp>
 #include <iscore/plugins/documentdelegate/plugin/ElementPluginModelList.hpp>
-#include <QColor>
-#include <vector>
+#include <iscore/selection/Selectable.hpp>
+#include <QObject>
+#include <nano_signal_slot.hpp>
 
-namespace OSSIA
+#include <QString>
+#include <QVector>
+
+#include <iscore/tools/IdentifiedObject.hpp>
+#include <iscore/tools/NotifyingMap.hpp>
+#include <iscore/tools/SettableIdentifier.hpp>
+#include <iscore/component/Component.hpp>
+class DataStream;
+class JSONObject;
+
+namespace Scenario
 {
-    class TimeRack;
-}
-
-class Process;
+class StateModel;
 class ConstraintViewModel;
 class FullViewConstraintViewModel;
 
-class RackModel;
-class EventModel;
-class TimeRack;
-class ScenarioInterface;
-
-class ConstraintModel final : public IdentifiedObject<ConstraintModel>
+class ISCORE_PLUGIN_SCENARIO_EXPORT ConstraintModel final : public IdentifiedObject<ConstraintModel>, public Nano::Observer
 {
         Q_OBJECT
-        ISCORE_METADATA("ConstraintModel")
 
-        ISCORE_SERIALIZE_FRIENDS(ConstraintModel, DataStream)
-        ISCORE_SERIALIZE_FRIENDS(ConstraintModel, JSONObject)
+        ISCORE_SERIALIZE_FRIENDS(Scenario::ConstraintModel, DataStream)
+        ISCORE_SERIALIZE_FRIENDS(Scenario::ConstraintModel, JSONObject)
 
         // TODO must go in view model
         Q_PROPERTY(double heightPercentage
@@ -49,6 +43,7 @@ class ConstraintModel final : public IdentifiedObject<ConstraintModel>
 
     public:
         /** Properties of the class **/
+        iscore::Components components;
         Selectable selection;
         ModelMetadata metadata;
         ModelConsistency consistency;
@@ -56,15 +51,13 @@ class ConstraintModel final : public IdentifiedObject<ConstraintModel>
 
         iscore::ElementPluginModelList pluginModelList;
 
-        static QString prettyName()
-        { return QObject::tr("Constraint"); }
-
         /** The class **/
         ConstraintModel(const Id<ConstraintModel>&,
                         const Id<ConstraintViewModel>& fullViewId,
                         double yPos,
                         QObject* parent);
 
+        ~ConstraintModel();
 
         // Copy
         ConstraintModel(const ConstraintModel &source,
@@ -91,19 +84,14 @@ class ConstraintModel final : public IdentifiedObject<ConstraintModel>
             return viewmodel;
         }
 
-        // If the constraint is in a scenario, then returns the scenario
-        ScenarioInterface* parentScenario() const;
-
         // Note : the Constraint does not have ownership (it's generally the Slot)
         void setupConstraintViewModel(ConstraintViewModel* viewmodel);
 
         const Id<StateModel>& startState() const;
         void setStartState(const Id<StateModel>& eventId);
-        const Id<TimeNodeModel>& startTimeNode() const;
 
         const Id<StateModel>& endState() const;
         void setEndState(const Id<StateModel> &endState);
-        const Id<TimeNodeModel>& endTimeNode() const;
 
         // Here we won't remove / add things from the outside so it is safe to
         // return a reference
@@ -131,12 +119,13 @@ class ConstraintModel final : public IdentifiedObject<ConstraintModel>
         // Resets the execution display recursively
         void reset();
 
-        NotifyingMap<RackModel> racks; // No content -> Phantom ?
-        NotifyingMap<Process> processes;
+        NotifyingMap<RackModel> racks;
+        NotifyingMap<Process::ProcessModel> processes;
 
         bool looping() const;
         void setLooping(bool looping);
 
+        void setHeightPercentage(double arg);
     signals:
         void viewModelCreated(const ConstraintViewModel&);
         void viewModelRemoved(const QObject*);
@@ -148,13 +137,8 @@ class ConstraintModel final : public IdentifiedObject<ConstraintModel>
         void focusChanged(bool);
         void loopingChanged(bool);
 
-    public slots:
-        void setHeightPercentage(double arg);
-
-    private slots:
-        void on_destroyedViewModel(QObject*);
-
     private:
+        void on_destroyedViewModel(ConstraintViewModel* obj);
         void initConnections();
         void on_rackAdded(const RackModel& rack);
 
@@ -176,3 +160,6 @@ class ConstraintModel final : public IdentifiedObject<ConstraintModel>
 
         bool m_looping{false};
 };
+}
+
+DEFAULT_MODEL_METADATA(Scenario::ConstraintModel, "Constraint")

@@ -1,40 +1,66 @@
-#include "ScenarioModel.hpp"
-
-#include "Algorithms/StandardCreationPolicy.hpp"
-#include "Algorithms/StandardDisplacementPolicy.hpp"
 #include <Scenario/Process/Temporal/TemporalScenarioLayerModel.hpp>
 
-#include <Scenario/Document/Event/EventModel.hpp>
-#include <Scenario/Document/Constraint/ConstraintModel.hpp>
-#include <Scenario/Document/TimeNode/TimeNodeModel.hpp>
-
-#include <boost/range/algorithm.hpp>
 #include <iscore/tools/SettableIdentifierGeneration.hpp>
+#include <QDataStream>
+#include <QDebug>
+#include <QtGlobal>
+#include <QIODevice>
+#include <QMap>
+#include <vector>
+
+#include "Algorithms/StandardCreationPolicy.hpp"
+#include <Process/ModelMetadata.hpp>
+#include <Process/Process.hpp>
+#include <Process/TimeValue.hpp>
+#include <Scenario/Document/Constraint/ConstraintDurations.hpp>
+#include <Scenario/Document/Constraint/ConstraintModel.hpp>
+#include <Scenario/Document/Event/EventModel.hpp>
+#include <Scenario/Document/State/StateModel.hpp>
+#include <Scenario/Document/TimeNode/TimeNodeModel.hpp>
+#include <Scenario/Document/CommentBlock/CommentBlockModel.hpp>
+#include <Scenario/Process/ScenarioProcessMetadata.hpp>
+#include "ScenarioModel.hpp"
+#include <iscore/document/DocumentInterface.hpp>
+#include <iscore/plugins/documentdelegate/plugin/ElementPluginModelList.hpp>
+#include <iscore/selection/Selectable.hpp>
+#include <iscore/serialization/DataStreamVisitor.hpp>
+#include <iscore/tools/NotifyingMap.hpp>
+#include <iscore/tools/Todo.hpp>
+#include <iscore/document/DocumentContext.hpp>
+namespace Process { class LayerModel; }
+class ProcessStateDataInterface;
+
+namespace Scenario
+{
 
 ScenarioModel::ScenarioModel(const TimeValue& duration,
-                             const Id<Process>& id,
+                             const Id<ProcessModel>& id,
                              QObject* parent) :
-    Process {duration, id, ScenarioProcessMetadata::processObjectName(), parent},
-    m_startTimeNodeId{0},
-    m_endTimeNodeId{1},
-    m_startEventId{0},
-    m_endEventId{1}
+    ProcessModel {duration, id, Metadata<ObjectKey_k, Scenario::ProcessModel>::get(), parent},
+    m_startTimeNodeId{Scenario::startId<TimeNodeModel>()},
+    m_endTimeNodeId{Scenario::endId<TimeNodeModel>()},
+    m_startEventId{Scenario::startId<EventModel>()},
+    m_endEventId{Scenario::endId<EventModel>()},
+    m_startStateId{Scenario::startId<StateModel>()}
 {
     auto& start_tn = ScenarioCreate<TimeNodeModel>::redo(m_startTimeNodeId, {0.2, 0.8}, TimeValue::zero(), *this);
     auto& end_tn = ScenarioCreate<TimeNodeModel>::redo(m_endTimeNodeId, {0.2, 0.8}, duration, *this);
 
-    ScenarioCreate<EventModel>::redo(m_startEventId, start_tn, {0.4, 0.6}, *this);
+    auto& start_ev = ScenarioCreate<EventModel>::redo(m_startEventId, start_tn, {0.4, 0.6}, *this);
     ScenarioCreate<EventModel>::redo(m_endEventId, end_tn, {0.4, 0.6}, *this);
 
+    ScenarioCreate<StateModel>::redo(m_startStateId, start_ev, 0.5, *this);
+
     // At the end because plug-ins depend on the start/end timenode & al being here
-    pluginModelList = new iscore::ElementPluginModelList{iscore::IDocument::documentFromObject(parent), this};
+    pluginModelList = new iscore::ElementPluginModelList{iscore::IDocument::documentContext(*parent), this};
     metadata.setName(QString("Scenario.%1").arg(*this->id().val()));
 }
 
-ScenarioModel::ScenarioModel(const ScenarioModel& source,
-                             const Id<Process>& id,
-                             QObject* parent) :
-    Process {source, id, ScenarioProcessMetadata::processObjectName(), parent},
+ScenarioModel::ScenarioModel(
+        const Scenario::ScenarioModel& source,
+        const Id<ProcessModel>& id,
+        QObject* parent) :
+    ProcessModel {source, id, Metadata<ObjectKey_k, Scenario::ProcessModel>::get(), parent},
     m_startTimeNodeId{source.m_startTimeNodeId},
     m_endTimeNodeId{source.m_endTimeNodeId},
     m_startEventId{source.m_startEventId},
@@ -45,19 +71,37 @@ ScenarioModel::ScenarioModel(const ScenarioModel& source,
     // This almost terrifying piece of code will simply clone
     // all the elements (constraint, etc...) from the source to this class
     // without duplicating code too much.
-    apply([&] (const auto& m) {
+    auto clone = [&] (const auto& m) {
         using the_class = typename remove_qualifs_t<decltype(this->*m)>::value_type;
         for(const auto& elt : source.*m)
             (this->*m).add(new the_class{elt, elt.id(), this});
-    });
+    };
+    clone(&ScenarioModel::timeNodes);
+    clone(&ScenarioModel::events);
+    clone(&ScenarioModel::constraints);
+    clone(&ScenarioModel::comments);
+    auto& stack = iscore::IDocument::documentContext(*this).commandStack;
+    for(const auto& elt : source.states)
+    {
+        auto st = new StateModel{elt, elt.id(), stack, this};
+        states.add(st);
+    }
     metadata.setName(QString("Scenario.%1").arg(*this->id().val()));
 }
 
-ScenarioModel* ScenarioModel::clone(
-        const Id<Process>& newId,
+Scenario::ScenarioModel* ScenarioModel::clone(
+        const Id<ProcessModel>& newId,
         QObject* newParent) const
 {
     return new ScenarioModel {*this, newId, newParent};
+}
+
+ScenarioModel::~ScenarioModel()
+{
+    apply([&] (const auto& m) {
+        for(auto elt : (this->*m).map().get())
+            delete elt;
+    });
 }
 
 QByteArray ScenarioModel::makeLayerConstructionData() const
@@ -80,8 +124,8 @@ QByteArray ScenarioModel::makeLayerConstructionData() const
     return arr;
 }
 
-LayerModel* ScenarioModel::makeLayer_impl(
-        const Id<LayerModel>& viewModelId,
+Process::LayerModel* ScenarioModel::makeLayer_impl(
+        const Id<Process::LayerModel>& viewModelId,
         const QByteArray& constructionData,
         QObject* parent)
 {
@@ -95,9 +139,9 @@ LayerModel* ScenarioModel::makeLayer_impl(
 }
 
 
-LayerModel* ScenarioModel::cloneLayer_impl(
-        const Id<LayerModel>& newId,
-        const LayerModel& source,
+Process::LayerModel* ScenarioModel::cloneLayer_impl(
+        const Id<Process::LayerModel>& newId,
+        const Process::LayerModel& source,
         QObject* parent)
 {
     auto scen = new TemporalScenarioLayerModel{
@@ -109,9 +153,9 @@ LayerModel* ScenarioModel::cloneLayer_impl(
     return scen;
 }
 
-const ProcessFactoryKey& ScenarioModel::key() const
+ProcessFactoryKey ScenarioModel::concreteFactoryKey() const
 {
-    return ScenarioProcessMetadata::factoryKey();
+    return Metadata<ConcreteFactoryKey_k, Scenario::ProcessModel>::get();
 }
 
 QString ScenarioModel::prettyName() const
@@ -135,19 +179,23 @@ void ScenarioModel::setDurationAndScale(const TimeValue& newDuration)
         event.setDate(event.date() * scale);
         emit eventMoved(event);
     }
+    for(auto& cmt : comments)
+    {
+        cmt.setDate(cmt.date() * scale);
+    }
 
     for(auto& constraint : constraints)
     {
         constraint.setStartDate(constraint.startDate() * scale);
         // Note : scale the min / max.
 
+        auto newdur = constraint.duration.defaultDuration() * scale;
         ConstraintDurations::Algorithms::changeAllDurations(
-                    constraint,
-                    constraint.duration.defaultDuration() * scale);
+                    constraint, newdur);
 
         for(auto& process : constraint.processes)
         {
-            process.setDurationAndScale(constraint.duration.defaultDuration() * scale);
+            process.setParentDuration(ExpandMode::Scale, newdur);
         }
 
         emit constraintMoved(constraint);
@@ -158,14 +206,7 @@ void ScenarioModel::setDurationAndScale(const TimeValue& newDuration)
 
 void ScenarioModel::setDurationAndGrow(const TimeValue& newDuration)
 {
-    ///* Should work but does not ?
-    /*StandardDisplacementPolicy::setEventPosition(*this,
-                                                 endEvent()->id(),
-                                                 newDuration,
-                                                 endEvent()->heightPercentage(),
-                                                 [&] (ProcessModel* p, const TimeValue& t)
-     { p->expandProcess(ExpandMode::Grow, t); }); */
-
+    // TODO what happens when there are constraints linked here ?
     auto& eev = endEvent();
 
     eev.setDate(newDuration);
@@ -177,29 +218,14 @@ void ScenarioModel::setDurationAndGrow(const TimeValue& newDuration)
 void ScenarioModel::setDurationAndShrink(const TimeValue& newDuration)
 {
     return; // Disabled by Asana
-
-    ///* Should work but does not ?
-    /* StandardDisplacementPolicy::setEventPosition(*this,
-                                                 endEvent()->id(),
-                                                 newDuration,
-                                                 endEvent()->heightPercentage(),
-                                                 [&] (ProcessModel* p, const TimeValue& t)
-     { p->expandProcess(ExpandMode::Grow, t); }); */
-
-    /*
-    auto& eev = endEvent();
-
-    eev.setDate(newDuration);
-    timeNode(eev.timeNode()).setDate(newDuration);
-    emit eventMoved(eev.id());
-    this->setDuration(newDuration);
-    */
 }
 
 void ScenarioModel::startExecution()
 {
+    // TODO this is called for each process!!
+    // But it should be done only once at the global level.
     emit execution(true);
-    for(auto& constraint : constraints)
+    for(ConstraintModel& constraint : constraints)
     {
         constraint.startExecution();
     }
@@ -208,6 +234,10 @@ void ScenarioModel::startExecution()
 void ScenarioModel::stopExecution()
 {
     emit execution(false);
+    for(ConstraintModel& constraint : constraints)
+    {
+        constraint.stopExecution();
+    }
 }
 
 void ScenarioModel::reset()
@@ -261,67 +291,69 @@ void ScenarioModel::setSelection(const Selection& s) const
     });
 }
 
-ProcessStateDataInterface* ScenarioModel::startState() const
+ProcessStateDataInterface* ScenarioModel::startStateData() const
 {
     ISCORE_TODO;
     return nullptr;
 }
 
-ProcessStateDataInterface* ScenarioModel::endState() const
+ProcessStateDataInterface* ScenarioModel::endStateData() const
 {
     ISCORE_TODO;
     return nullptr;
 }
-
-const QVector<Id<ConstraintModel> > ScenarioModel::constraintsBeforeTimeNode(const Id<TimeNodeModel>& timeNodeId) const
-{
-    QVector<Id<ConstraintModel>> cstrs;
-    auto& tn = timeNode(timeNodeId);
-    for(auto& ev : tn.events())
-    {
-        auto& evM = event(ev);
-        for (auto& st : evM.states())
-        {
-            auto& stM = state(st);
-            if(stM.previousConstraint())
-                cstrs.push_back(stM.previousConstraint());
-        }
-    }
-    return cstrs;
-}
-
 
 void ScenarioModel::makeLayer_impl(AbstractScenarioLayerModel* scen)
 {
     // There is no ConstraintCreated connection to the layer,
     // because the constraints view models are created
     // from the commands, since they require ids too.
-    con(constraints, &NotifyingMap<ConstraintModel>::removed,
-        scen, &AbstractScenarioLayerModel::on_constraintRemoved);
+    constraints.removed.connect<AbstractScenarioLayerModel, &AbstractScenarioLayerModel::on_constraintRemoved>(scen);
 
-    con(states, &NotifyingMap<StateModel>::added,
-        scen, &AbstractScenarioLayerModel::stateCreated);
-    con(states, &NotifyingMap<StateModel>::removed,
-        scen, &AbstractScenarioLayerModel::stateRemoved);
+    states.added.connect<AbstractScenarioLayerModel, &AbstractScenarioLayerModel::stateCreated>(scen);
+    states.removed.connect<AbstractScenarioLayerModel, &AbstractScenarioLayerModel::stateRemoved>(scen);
 
-    con(events, &NotifyingMap<EventModel>::added,
-        scen, &AbstractScenarioLayerModel::eventCreated);
-    con(events, &NotifyingMap<EventModel>::removed,
-        scen, &AbstractScenarioLayerModel::eventRemoved);
+    events.added.connect<AbstractScenarioLayerModel, &AbstractScenarioLayerModel::eventCreated>(scen);
+    events.removed.connect<AbstractScenarioLayerModel, &AbstractScenarioLayerModel::eventRemoved>(scen);
 
-    con(timeNodes, &NotifyingMap<TimeNodeModel>::added,
-        scen, &AbstractScenarioLayerModel::timeNodeCreated);
-    con(timeNodes, &NotifyingMap<TimeNodeModel>::removed,
-        scen, &AbstractScenarioLayerModel::timeNodeRemoved);
+    timeNodes.added.connect<AbstractScenarioLayerModel, &AbstractScenarioLayerModel::timeNodeCreated>(scen);
+    timeNodes.removed.connect<AbstractScenarioLayerModel, &AbstractScenarioLayerModel::timeNodeRemoved>(scen);
+
+    comments.added.connect<AbstractScenarioLayerModel, &AbstractScenarioLayerModel::commentCreated>(scen);
+    comments.removed.connect<AbstractScenarioLayerModel, &AbstractScenarioLayerModel::commentRemoved>(scen);
 
     connect(this, &ScenarioModel::eventMoved,
             scen, &AbstractScenarioLayerModel::eventMoved);
 
     connect(this, &ScenarioModel::constraintMoved,
             scen, &AbstractScenarioLayerModel::constraintMoved);
+
+    connect(this, &ScenarioModel::commentMoved,
+            scen, &AbstractScenarioLayerModel::commentMoved);
 }
 
-const StateModel* furthestSelectedState(const ScenarioModel& scenar)
+
+const QVector<Id<ConstraintModel> > constraintsBeforeTimeNode(
+        const Scenario::ScenarioModel& scenar,
+        const Id<TimeNodeModel>& timeNodeId)
+{
+    QVector<Id<ConstraintModel>> cstrs;
+    const auto& tn = scenar.timeNodes.at(timeNodeId);
+    for(const auto& ev : tn.events())
+    {
+        const auto& evM = scenar.events.at(ev);
+        for (const auto& st : evM.states())
+        {
+            const auto& stM = scenar.states.at(st);
+            if(stM.previousConstraint())
+                cstrs.push_back(stM.previousConstraint());
+        }
+    }
+
+    return cstrs;
+}
+
+const StateModel* furthestSelectedState(const Scenario::ScenarioModel& scenar)
 {
     const StateModel* furthest_state{};
     {
@@ -384,7 +416,7 @@ const StateModel* furthestSelectedState(const ScenarioModel& scenar)
     return nullptr;
 }
 
-const StateModel*furthestSelectedStateWithoutFollowingConstraint(const ScenarioModel& scenar)
+const StateModel* furthestSelectedStateWithoutFollowingConstraint(const Scenario::ScenarioModel& scenar)
 {
     const StateModel* furthest_state{};
     {
@@ -449,4 +481,6 @@ const StateModel*furthestSelectedStateWithoutFollowingConstraint(const ScenarioM
     }
 
     return nullptr;
+}
+
 }

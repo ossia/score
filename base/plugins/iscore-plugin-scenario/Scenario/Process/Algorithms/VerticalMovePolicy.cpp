@@ -1,12 +1,21 @@
-#include "VerticalMovePolicy.hpp"
-
 #include <Scenario/Process/ScenarioModel.hpp>
+
+#include <boost/optional/optional.hpp>
+#include <QSet>
+#include <limits>
+
 #include <Scenario/Document/Constraint/ConstraintModel.hpp>
 #include <Scenario/Document/Event/EventModel.hpp>
+#include <Scenario/Document/State/StateModel.hpp>
 #include <Scenario/Document/TimeNode/TimeNodeModel.hpp>
+#include <Scenario/Document/VerticalExtent.hpp>
+#include "VerticalMovePolicy.hpp"
+#include <iscore/tools/NotifyingMap.hpp>
+#include <iscore/tools/SettableIdentifier.hpp>
 
-
-void updateEventExtent(const Id<EventModel> &id, ScenarioModel &s)
+namespace Scenario
+{
+void updateEventExtent(const Id<EventModel> &id, Scenario::ScenarioModel& s)
 {
     auto& ev = s.event(id);
     double min = std::numeric_limits<double>::max();
@@ -26,7 +35,7 @@ void updateEventExtent(const Id<EventModel> &id, ScenarioModel &s)
 }
 
 
-void updateTimeNodeExtent(const Id<TimeNodeModel>& id, ScenarioModel &s)
+void updateTimeNodeExtent(const Id<TimeNodeModel>& id, Scenario::ScenarioModel& s)
 {
     auto& tn = s.timeNodes.at(id);
     double min = std::numeric_limits<double>::max();
@@ -41,10 +50,9 @@ void updateTimeNodeExtent(const Id<TimeNodeModel>& id, ScenarioModel &s)
     }
 
     tn.setExtent({min, max});
-    // TODO what happens if no event on timenode / no state on event??
 }
 
-void updateConstraintVerticalPos(double y, const Id<ConstraintModel> &id, ScenarioModel &s)
+void updateConstraintVerticalPos(double y, const Id<ConstraintModel> &id, Scenario::ScenarioModel& s)
 {
     auto& cst = s.constraints.at(id);
 
@@ -85,3 +93,5 @@ void updateConstraintVerticalPos(double y, const Id<ConstraintModel> &id, Scenar
     }
 
 }
+}
+

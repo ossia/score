@@ -1,11 +1,23 @@
 #pragma once
-#include <QGraphicsObject>
+#include <QtGlobal>
+#include <QGraphicsItem>
+#include <QPoint>
+#include <QRect>
+#include <QString>
 
-class SlotPresenter;
-class SlotOverlay;
+#include <iscore_plugin_scenario_export.h>
+class QGraphicsSceneContextMenuEvent;
+class QPainter;
+class QStyleOptionGraphicsItem;
+class QWidget;
+
+namespace Scenario
+{
 class SlotHandle;
+class SlotOverlay;
+class SlotPresenter;
 
-class SlotView final : public QGraphicsObject
+class ISCORE_PLUGIN_SCENARIO_EXPORT SlotView final : public QGraphicsObject
 {
         Q_OBJECT
 
@@ -46,3 +58,4 @@ class SlotView final : public QGraphicsObject
         bool m_focus{false};
         QString m_frontProcessName{};
 };
+}

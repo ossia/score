@@ -1,58 +1,68 @@
-#include "InterpolateStates.hpp"
-
+#include <Automation/AutomationModel.hpp>
+#include <Device/Address/AddressSettings.hpp>
+#include <Explorer/DocumentPlugin/DeviceDocumentPlugin.hpp>
 #include <Scenario/Commands/Cohesion/CreateCurveFromStates.hpp>
 #include <Scenario/Commands/Cohesion/InterpolateMacro.hpp>
-
-#include <Automation/AutomationModel.hpp>
 #include <Scenario/Document/Constraint/ConstraintModel.hpp>
 #include <Scenario/Process/ScenarioModel.hpp>
-
-#include <iscore/command/Dispatchers/MacroCommandDispatcher.hpp>
-#include <iscore/tools/SettableIdentifierGeneration.hpp>
-
-#include <core/document/Document.hpp>
-#include <Device/Address/AddressSettings.hpp>
-
+#include <boost/iterator/indirect_iterator.hpp>
+#include <boost/iterator/iterator_facade.hpp>
+#include <boost/multi_index/detail/hash_index_iterator.hpp>
 #include <iscore/document/DocumentInterface.hpp>
-#include <core/document/Document.hpp>
-#include <core/document/DocumentModel.hpp>
-#include <Explorer/DocumentPlugin/DeviceDocumentPlugin.hpp>
+#include <iscore/tools/SettableIdentifierGeneration.hpp>
+#include <QObject>
+#include <QString>
+#include <algorithm>
+#include <iterator>
+#include <utility>
+#include <vector>
 
-void InterpolateStates(iscore::Document* doc)
+#include <Device/Address/Domain.hpp>
+#include <Device/Node/DeviceNode.hpp>
+#include "InterpolateStates.hpp"
+#include <Process/LayerModel.hpp>
+#include <Process/Process.hpp>
+#include <Process/State/MessageNode.hpp>
+#include <Scenario/Document/Constraint/Rack/Slot/SlotModel.hpp>
+#include <Scenario/Document/State/ItemModel/MessageItemModel.hpp>
+#include <Scenario/Document/State/StateModel.hpp>
+#include <State/Address.hpp>
+#include <State/Message.hpp>
+#include <State/Value.hpp>
+#include <State/ValueConversion.hpp>
+#include <iscore/command/Dispatchers/CommandDispatcher.hpp>
+#include <iscore/selection/SelectionStack.hpp>
+#include <iscore/tools/ModelPath.hpp>
+#include <iscore/tools/NotifyingMap.hpp>
+#include <iscore/tools/SettableIdentifier.hpp>
+#include <iscore/tools/TreeNode.hpp>
+
+namespace Scenario
 {
-    using namespace std;
-
-    // Fetch the selected constraints
-    auto selected_constraints = filterSelectionByType<ConstraintModel>(doc->selectionStack().currentSelection());
-
-    if(selected_constraints.empty())
-        return;
-
-    InterpolateStates(selected_constraints, doc->commandStack());
-}
-
+namespace Command
+{
 void InterpolateStates(const QList<const ConstraintModel*>& selected_constraints,
-                       iscore::CommandStack& stack)
+                       iscore::CommandStackFacade& stack)
 {
     // For each constraint, interpolate between the states in its start event and end event.
 
     // They should all be in the same scenario so we can select the first.
-    ScenarioModel* scenar = dynamic_cast<ScenarioModel*>(
+    Scenario::ScenarioModel* scenar = dynamic_cast<Scenario::ScenarioModel*>(
                                 selected_constraints.first()->parent());
 
-    auto& devPlugin = *iscore::IDocument::documentFromObject(*scenar)->model().pluginModel<DeviceDocumentPlugin>();
+    auto& devPlugin = iscore::IDocument::documentContext(*scenar).plugin<DeviceExplorer::DeviceDocumentPlugin>();
     auto& rootNode = devPlugin.rootNode();
 
-    auto big_macro = new GenericInterpolateMacro;
+    auto big_macro = new Command::AddMultipleProcessesToMultipleConstraintsMacro;
     for(auto& constraint : selected_constraints)
     {
         const auto& startState = scenar->state(constraint->startState());
         const auto& endState = scenar->state(constraint->endState());
 
-        iscore::MessageList startMessages = flatten(startState.messages().rootNode());
-        iscore::MessageList endMessages = flatten(endState.messages().rootNode());
+        State::MessageList startMessages = flatten(startState.messages().rootNode());
+        State::MessageList endMessages = flatten(endState.messages().rootNode());
 
-        std::vector<std::pair<const iscore::Message*, const iscore::Message*>> matchingMessages;
+        std::vector<std::pair<const State::Message*, const State::Message*>> matchingMessages;
 
         for(auto& message : startMessages)
         {
@@ -61,7 +71,7 @@ void InterpolateStates(const QList<const ConstraintModel*>& selected_constraints
 
             auto it = std::find_if(std::begin(endMessages),
                                    std::end(endMessages),
-                                   [&] (const iscore::Message& arg) {
+                                   [&] (const State::Message& arg) {
                 return message.address == arg.address
                         && arg.value.val.isNumeric()
                         // TODO see CreateSequence (and refactor this) && message.value.val.impl().which() == arg.value.val.impl().which()
@@ -73,8 +83,8 @@ void InterpolateStates(const QList<const ConstraintModel*>& selected_constraints
                 auto has_existing_curve = std::find_if(
                             constraint->processes.begin(),
                             constraint->processes.end(),
-                            [&] (const Process& proc) {
-                    auto ptr = dynamic_cast<const AutomationModel*>(&proc);
+                            [&] (const Process::ProcessModel& proc) {
+                    auto ptr = dynamic_cast<const Automation::ProcessModel*>(&proc);
                     if(ptr && ptr->address() == message.address)
                         return true;
                     return false;
@@ -89,56 +99,35 @@ void InterpolateStates(const QList<const ConstraintModel*>& selected_constraints
 
         if(!matchingMessages.empty())
         {
-            Path<ConstraintModel> constraintPath{*constraint};
-            auto macro = new InterpolateMacro{*constraint}; // The constraint already exists
-
             // Generate brand new ids for the processes
-            auto process_ids = getStrongIdRange<Process>(matchingMessages.size(), constraint->processes);
+            auto process_ids = getStrongIdRange<Process::ProcessModel>(matchingMessages.size(), constraint->processes);
+            auto macro_tuple = Command::makeAddProcessMacro(*constraint, matchingMessages.size());
+            auto macro = std::get<0>(macro_tuple);
+            auto& bigLayerVec = std::get<1>(macro_tuple);
 
-            std::vector<std::pair<Path<SlotModel>, std::vector<Id<LayerModel>>>> slotVec;
-            slotVec.reserve(macro->slotsToUse.size());
-            // For each slot we have to generate matchingMessages.size() ids.
-            for(const auto& elt : macro->slotsToUse)
-            {
-                if(auto slot = elt.first.try_find())
-                {
-                    slotVec.push_back({elt.first, getStrongIdRange<LayerModel>(matchingMessages.size(), slot->layers)});
-                }
-                else
-                {
-                    slotVec.push_back({elt.first, getStrongIdRange<LayerModel>(matchingMessages.size())});
-                }
-            }
+            Path<ConstraintModel> constraintPath{*constraint};
 
             int i = 0;
             for(const auto& elt : matchingMessages)
             {
-                std::vector<std::pair<Path<SlotModel>, Id<LayerModel>>> layerVec;
-                layerVec.reserve(macro->slotsToUse.size());
-                std::transform(slotVec.begin(), slotVec.end(), std::back_inserter(layerVec),
-                               [&] (const auto& slotVecElt) {
-                   return std::make_pair(slotVecElt.first, slotVecElt.second[i]);
-                });
-
-
-                double start = iscore::convert::value<double>(elt.first->value);
-                double end = iscore::convert::value<double>(elt.second->value);
+                double start = State::convert::value<double>(elt.first->value);
+                double end = State::convert::value<double>(elt.second->value);
 
                 double min = std::min(start, end);
                 double max = std::max(start, end);
-                if(auto node = iscore::try_getNodeFromAddress(rootNode, elt.first->address))
+                if(auto node = Device::try_getNodeFromAddress(rootNode, elt.first->address))
                 {
-                    const iscore::AddressSettings& as = node->get<iscore::AddressSettings>();
+                    const Device::AddressSettings& as = node->get<Device::AddressSettings>();
                     if(as.domain.min.val.isNumeric())
-                        min = std::min(min, iscore::convert::value<double>(as.domain.min));
+                        min = std::min(min, State::convert::value<double>(as.domain.min));
 
                     if(as.domain.max.val.isNumeric())
-                        max = std::max(max, iscore::convert::value<double>(as.domain.max));
+                        max = std::max(max, State::convert::value<double>(as.domain.max));
                 }
 
                 macro->addCommand(new CreateCurveFromStates{
                                       Path<ConstraintModel>{constraintPath},
-                                      layerVec,
+                                      bigLayerVec[i],
                                       process_ids[i],
                                       elt.first->address,
                                       start, end, min, max
@@ -152,4 +141,6 @@ void InterpolateStates(const QList<const ConstraintModel*>& selected_constraints
 
     CommandDispatcher<> disp{stack};
     disp.submitCommand(big_macro);
+}
+}
 }

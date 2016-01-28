@@ -15,7 +15,7 @@
  *
  */
 template<typename model>
-class IdentifiedObject : public IdentifiedObjectAbstract
+class ISCORE_LIB_BASE_EXPORT IdentifiedObject : public IdentifiedObjectAbstract
 {
     public:
         using model_type = model;

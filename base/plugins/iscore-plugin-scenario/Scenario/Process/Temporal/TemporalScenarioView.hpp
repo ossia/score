@@ -1,12 +1,22 @@
 #pragma once
 #include <Process/LayerView.hpp>
+#include <QPoint>
+#include <QRect>
 
-#include <QAction>
-#include <QEvent>
-
+class QGraphicsItem;
+class QGraphicsSceneContextMenuEvent;
+class QGraphicsSceneDragDropEvent;
+class QGraphicsSceneMouseEvent;
+class QKeyEvent;
 class QMimeData;
+class QPainter;
+
+namespace Scenario
+{
 class TemporalScenarioPresenter;
-class TemporalScenarioView final : public LayerView
+
+class TemporalScenarioView final :
+        public Process::LayerView
 {
         Q_OBJECT
 
@@ -71,3 +81,4 @@ class TemporalScenarioView final : public LayerView
         bool m_lock {};
         TemporalScenarioPresenter* m_pres{};
 };
+}

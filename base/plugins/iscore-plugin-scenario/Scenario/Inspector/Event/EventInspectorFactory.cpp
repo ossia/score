@@ -1,12 +1,21 @@
+#include <Scenario/Document/Event/EventModel.hpp>
+#include <QString>
+
 #include "EventInspectorFactory.hpp"
 #include "EventInspectorWidget.hpp"
 
-#include <Scenario/Document/Event/EventModel.hpp>
+class QObject;
+class QWidget;
+namespace iscore {
+class Document;
+}  // namespace iscore
 
-InspectorWidgetBase* EventInspectorFactory::makeWidget(
+namespace Scenario
+{
+Inspector::InspectorWidgetBase* EventInspectorFactory::makeWidget(
         const QObject& sourceElement,
-        iscore::Document& doc,
-        QWidget* parentWidget)
+        const iscore::DocumentContext& doc,
+        QWidget* parentWidget) const
 {
     return new EventInspectorWidget{
         static_cast<const EventModel&>(sourceElement),
@@ -14,8 +23,8 @@ InspectorWidgetBase* EventInspectorFactory::makeWidget(
                 parentWidget};
 }
 
-const QList<QString>&EventInspectorFactory::key_impl() const
+bool EventInspectorFactory::matches(const QObject& object) const
 {
-    static const QList<QString> list{"EventModel"};
-    return list;
+    return dynamic_cast<const EventModel*>(&object);
+}
 }

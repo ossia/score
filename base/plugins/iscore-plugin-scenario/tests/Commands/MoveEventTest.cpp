@@ -20,7 +20,7 @@ class MoveEventTest: public QObject
 
         void MoveCommandTest()
         {
-            ScenarioModel* scenar = new ScenarioModel(std::chrono::seconds(15), Id<ProcessModel> {0}, qApp);
+            Scenario::ScenarioModel* scenar = new ScenarioModel(std::chrono::seconds(15), Id<ProcessModel> {0}, qApp);
             // 1. Create a new event (the first one cannot move since it does not have
             // predecessors ?)
 

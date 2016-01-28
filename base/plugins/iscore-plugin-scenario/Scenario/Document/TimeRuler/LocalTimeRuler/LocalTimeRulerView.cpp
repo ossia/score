@@ -1,8 +1,12 @@
-#include "LocalTimeRulerView.hpp"
-
-#include <QApplication>
 #include <Process/Style/ScenarioStyle.hpp>
+#include <QColor>
+#include <QString>
 
+#include "LocalTimeRulerView.hpp"
+#include <Scenario/Document/TimeRuler/AbstractTimeRulerView.hpp>
+
+namespace Scenario
+{
 LocalTimeRulerView::LocalTimeRulerView():
     AbstractTimeRulerView()
 {
@@ -22,4 +26,5 @@ LocalTimeRulerView::~LocalTimeRulerView()
 QRectF LocalTimeRulerView::boundingRect() const
 {
     return QRectF{0, 0, m_width * 2, m_height};
+}
 }

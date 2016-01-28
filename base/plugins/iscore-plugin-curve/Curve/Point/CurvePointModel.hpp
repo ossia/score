@@ -1,22 +1,28 @@
 #pragma once
-#include <iscore/tools/IdentifiedObject.hpp>
+#include <boost/optional/optional.hpp>
 #include <iscore/selection/Selectable.hpp>
-#include "Curve/StateMachine/CurvePoint.hpp"
+#include <iscore/tools/IdentifiedObject.hpp>
 
-class CurveSegmentModel;
+#include <Curve/Palette/CurvePoint.hpp>
+#include <iscore/tools/SettableIdentifier.hpp>
+#include <iscore_plugin_curve_export.h>
 
-class CurvePointModel final : public IdentifiedObject<CurvePointModel>
+class QObject;
+namespace Curve
+{
+class SegmentModel;
+class ISCORE_PLUGIN_CURVE_EXPORT PointModel final : public IdentifiedObject<PointModel>
 {
         Q_OBJECT
     public:
         Selectable selection;
-        CurvePointModel(const Id<CurvePointModel>& id, QObject* parent);
+        PointModel(const Id<PointModel>& id, QObject* parent);
 
-        const Id<CurveSegmentModel>& previous() const;
-        void setPrevious(const Id<CurveSegmentModel> &previous);
+        const Id<SegmentModel>& previous() const;
+        void setPrevious(const Id<SegmentModel> &previous);
 
-        const Id<CurveSegmentModel> &following() const;
-        void setFollowing(const Id<CurveSegmentModel> &following);
+        const Id<SegmentModel> &following() const;
+        void setFollowing(const Id<SegmentModel> &following);
 
         Curve::Point pos() const;
         void setPos(const Curve::Point &pos);
@@ -25,7 +31,8 @@ class CurvePointModel final : public IdentifiedObject<CurvePointModel>
         void posChanged();
 
     private:
-        Id<CurveSegmentModel> m_previous, m_following;
+        Id<SegmentModel> m_previous, m_following;
 
         Curve::Point m_pos;
 };
+}

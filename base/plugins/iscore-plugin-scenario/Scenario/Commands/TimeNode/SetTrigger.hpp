@@ -1,36 +1,35 @@
 #pragma once
 #include <Scenario/Commands/ScenarioCommandFactory.hpp>
+#include <State/Expression.hpp>
 #include <iscore/command/SerializableCommand.hpp>
 #include <iscore/tools/ModelPath.hpp>
 
-#include <Scenario/Commands/Constraint/SetRigidity.hpp>
-
-#include <State/Expression.hpp>
-
-class TimeNodeModel;
+class DataStreamInput;
+class DataStreamOutput;
 
 namespace Scenario
 {
-    namespace Command
-    {
-        class SetTrigger final : public iscore::SerializableCommand
-        {
-                ISCORE_COMMAND_DECL(ScenarioCommandFactoryName(), SetTrigger, "SetTrigger")
-            public:
-                SetTrigger(Path<TimeNodeModel>&& timeNodePath, iscore::Trigger trigger);
-                ~SetTrigger();
+class TimeNodeModel;
+namespace Command
+{
+class SetTrigger final : public iscore::SerializableCommand
+{
+        ISCORE_COMMAND_DECL(ScenarioCommandFactoryName(), SetTrigger, "Change a trigger")
+        public:
+            SetTrigger(Path<TimeNodeModel>&& timeNodePath, State::Trigger trigger);
+        ~SetTrigger();
 
-                void undo() const override;
-                void redo() const override;
+        void undo() const override;
+        void redo() const override;
 
-            protected:
-                void serializeImpl(DataStreamInput&) const override;
-                void deserializeImpl(DataStreamOutput&) override;
+    protected:
+        void serializeImpl(DataStreamInput&) const override;
+        void deserializeImpl(DataStreamOutput&) override;
 
-            private:
-                Path<TimeNodeModel> m_path;
-                iscore::Trigger m_trigger;
-                iscore::Trigger m_previousTrigger;
-        };
-    }
+    private:
+        Path<TimeNodeModel> m_path;
+        State::Trigger m_trigger;
+        State::Trigger m_previousTrigger;
+};
+}
 }

@@ -1,43 +1,59 @@
-#include "JSInspectorWidget.hpp"
 #include <JS/JSProcessModel.hpp>
-#include <Inspector/InspectorSectionWidget.hpp>
+#include "NotifyingPlainTextEdit.hpp"
+#include <algorithm>
+
+#include <Inspector/InspectorWidgetBase.hpp>
 #include "JS/Commands/EditScript.hpp"
-
-#include <iscore/document/DocumentInterface.hpp>
-#include <core/document/Document.hpp>
-#include <core/document/DocumentModel.hpp>
-
-#include <iscore/widgets/SpinBoxes.hpp>
+#include "JSInspectorWidget.hpp"
+#include <iscore/command/Dispatchers/CommandDispatcher.hpp>
+#include <iscore/tools/ModelPath.hpp>
+#include <iscore/document/DocumentContext.hpp>
 #include <QVBoxLayout>
-#include <QLineEdit>
-#include <QPushButton>
-#include <QFormLayout>
-#include <QDoubleSpinBox>
-#include <QMessageBox>
-#include <QApplication>
 
-JSInspectorWidget::JSInspectorWidget(
-        const JSProcessModel& JSModel,
-        iscore::Document& doc,
+class QVBoxLayout;
+class QWidget;
+namespace iscore {
+class Document;
+}  // namespace iscore
+namespace JS
+{
+InspectorWidget::InspectorWidget(
+        const JS::ProcessModel& JSModel,
+        const iscore::DocumentContext& doc,
         QWidget* parent) :
-    InspectorWidgetBase {JSModel, doc, parent},
-    m_model {JSModel}
+    ProcessInspectorWidgetDelegate_T {JSModel, parent},
+    m_dispatcher{doc.commandStack}
 {
     setObjectName("JSInspectorWidget");
     setParent(parent);
+    auto lay = new QVBoxLayout;
 
-    m_edit = new QPlainTextEdit{JSModel.script()};
-    connect(m_edit, &QPlainTextEdit::textChanged,
-            this, [&] () {
-        on_textChange(m_edit->toPlainText()); // TODO timer before validating ? TimerCommandDispatcher ?
-    });
+    m_edit = new NotifyingPlainTextEdit{JSModel.script()};
+    connect(m_edit, &NotifyingPlainTextEdit::editingFinished,
+            this, &InspectorWidget::on_textChange);
 
-    updateSectionsView(safe_cast<QVBoxLayout*>(layout()), {m_edit});
+    con(process(), &JS::ProcessModel::scriptChanged,
+            this, &InspectorWidget::on_modelChanged);
+
+    m_script = m_edit->toPlainText();
+
+    lay->addWidget(m_edit);
+    this->setLayout(lay);
 }
 
-void JSInspectorWidget::on_textChange(const QString& newTxt)
+void InspectorWidget::on_modelChanged(const QString& script)
 {
-    auto cmd = new EditScript{m_model, newTxt};
+    m_script = script;
+    m_edit->setPlainText(script);
+}
 
-    commandDispatcher()->submitCommand(cmd);
+void InspectorWidget::on_textChange(const QString& newTxt)
+{
+    if(newTxt == m_script)
+        return;
+
+    auto cmd = new JS::EditScript{process(), newTxt};
+
+    m_dispatcher.submitCommand(cmd);
+}
 }

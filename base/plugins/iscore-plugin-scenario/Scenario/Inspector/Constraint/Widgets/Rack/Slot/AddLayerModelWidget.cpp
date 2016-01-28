@@ -1,16 +1,29 @@
-#include "AddLayerModelWidget.hpp"
-
-#include "SlotInspectorSection.hpp"
+#include <Process/LayerModel.hpp>
+#include <Process/Process.hpp>
 #include <Scenario/Document/Constraint/ConstraintModel.hpp>
 #include <Scenario/Document/Constraint/Rack/Slot/SlotModel.hpp>
-#include <Process/Process.hpp>
-#include <Process/LayerModel.hpp>
+#include <boost/iterator/indirect_iterator.hpp>
+#include <boost/iterator/iterator_facade.hpp>
+#include <boost/multi_index/detail/hash_index_iterator.hpp>
+#include <boost/optional/optional.hpp>
+#include <QBoxLayout>
+#include <QInputDialog>
+#include <QLabel>
+#include <QList>
+#include <QObject>
 
-#include <QtWidgets/QHBoxLayout>
-#include <QtWidgets/QToolButton>
-#include <QtWidgets/QLabel>
-#include <QtWidgets/QInputDialog>
+#include <QString>
+#include <QStringList>
+#include <QToolButton>
+#include <algorithm>
 
+#include "AddLayerModelWidget.hpp"
+#include "SlotInspectorSection.hpp"
+#include <iscore/tools/NotifyingMap.hpp>
+#include <iscore/tools/SettableIdentifier.hpp>
+
+namespace Scenario
+{
 AddLayerModelWidget::AddLayerModelWidget(SlotInspectorSection* parentSlot) :
     QWidget {parentSlot}
 {
@@ -32,7 +45,8 @@ AddLayerModelWidget::AddLayerModelWidget(SlotInspectorSection* parentSlot) :
     connect(addButton, &QToolButton::pressed,
             [ = ]()
     {
-        QStringList available_models;
+        QMap<QString, int> available_models;
+        QStringList modelList;
 
         // 1. List the processes in the model.
         const auto& shared_process_list = parentSlot->model().parentConstraint().processes;
@@ -47,12 +61,14 @@ AddLayerModelWidget::AddLayerModelWidget(SlotInspectorSection* parentSlot) :
             auto end_it = already_displayed_processes.cend();
             auto it = std::find_if(beg_it,
                                    end_it,
-                                   [&process](const LayerModel& lm)
+                                   [&process](const Process::LayerModel& lm)
             { return lm.processModel().id() == process.id(); });
 
             if(it == end_it)
             {
-                available_models += QString::number(*process.id().val());
+                QString name = process.prettyName();
+                available_models[name] = *process.id().val();
+                modelList += name;
             }
         }
 
@@ -63,15 +79,16 @@ AddLayerModelWidget::AddLayerModelWidget(SlotInspectorSection* parentSlot) :
             auto process_name =
                     QInputDialog::getItem(
                         this,
-                        QObject::tr("Choose a process id"),
-                        QObject::tr("Choose a process id"),
-                        available_models,
+                        QObject::tr("Choose a process"),
+                        QObject::tr("Choose a process"),
+                        modelList,
                         0,
                         false,
                         &ok);
 
             if(ok)
-                parentSlot->createLayerModel(Id<Process> {process_name.toInt() });
+                parentSlot->createLayerModel(Id<Process::ProcessModel> {available_models[process_name] });
         }
     });
+}
 }

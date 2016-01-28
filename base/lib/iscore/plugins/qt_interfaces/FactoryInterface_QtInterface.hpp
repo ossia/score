@@ -1,20 +1,22 @@
 #pragma once
-#include <QObject>
-#include <vector>
 #include <iscore/plugins/customfactory/FactoryInterface.hpp>
+#include <vector>
+#include <iscore_lib_base_export.h>
+#include <memory>
 
 namespace iscore
 {
 struct ApplicationContext;
+
 // Reimplement in plug-in if the plug-in offers an IMPLEMENTATION of an abstract type offered in another plug-in.
 // Example : the Scenario plug-in provides inspector widget factories implementations for Interval and event
-class FactoryInterface_QtInterface
+class ISCORE_LIB_BASE_EXPORT FactoryInterface_QtInterface
 {
     public:
         virtual ~FactoryInterface_QtInterface();
-        virtual std::vector<FactoryInterfaceBase*> factories(
+        virtual std::vector<std::unique_ptr<FactoryInterfaceBase>> factories(
                 const iscore::ApplicationContext& ctx,
-                const iscore::FactoryBaseKey& matchingName) const = 0;
+                const iscore::AbstractFactoryKey& matchingName) const = 0;
 };
 }
 

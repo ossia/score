@@ -1,5 +1,5 @@
 cmake_minimum_required(VERSION 3.0)
-project(iscore_plugin_deviceexplorer)
+project(iscore_plugin_deviceexplorer LANGUAGES CXX)
 
 iscore_common_setup()
 
@@ -8,9 +8,8 @@ find_package(Qt5 5.3 REQUIRED COMPONENTS Core Widgets Test Xml)
 
 # Files & main target
 ### Plugin ###
-file(GLOB_RECURSE HEADERS
-    "${CMAKE_CURRENT_SOURCE_DIR}/Explorer/*.hpp"
-    "${CMAKE_CURRENT_SOURCE_DIR}/Device/*.hpp")
+file(GLOB_RECURSE HDRS
+    "${CMAKE_CURRENT_SOURCE_DIR}/Explorer/*.hpp")
 
 set(SRCS
 "${CMAKE_CURRENT_SOURCE_DIR}/Explorer/Commands/Add/AddAddress.cpp"
@@ -43,6 +42,7 @@ set(SRCS
 "${CMAKE_CURRENT_SOURCE_DIR}/Explorer/Explorer/Widgets/AddressEditDialog.cpp"
 "${CMAKE_CURRENT_SOURCE_DIR}/Explorer/Explorer/DeviceExplorerModel.cpp"
 "${CMAKE_CURRENT_SOURCE_DIR}/Explorer/Explorer/DeviceExplorerWidget.cpp"
+"${CMAKE_CURRENT_SOURCE_DIR}/Explorer/Explorer/ListeningManager.cpp"
 "${CMAKE_CURRENT_SOURCE_DIR}/Explorer/PanelBase/DeviceExplorerPanelModel.cpp"
 "${CMAKE_CURRENT_SOURCE_DIR}/Explorer/PanelBase/DeviceExplorerPanelPresenter.cpp"
 "${CMAKE_CURRENT_SOURCE_DIR}/Explorer/PanelBase/DeviceExplorerPanelView.cpp"
@@ -54,7 +54,7 @@ set(SRCS
 "${CMAKE_CURRENT_SOURCE_DIR}/Explorer/Widgets/AddressEditWidget.cpp"
 
 "${CMAKE_CURRENT_SOURCE_DIR}/iscore_plugin_deviceexplorer.cpp"
-"${CMAKE_CURRENT_SOURCE_DIR}/DeviceExplorerControl.cpp"
+"${CMAKE_CURRENT_SOURCE_DIR}/DeviceExplorerApplicationPlugin.cpp"
 
 #"${CMAKE_CURRENT_SOURCE_DIR}/Explorer/ModelTest/dynamictreemodel.cpp"
 #"${CMAKE_CURRENT_SOURCE_DIR}/Explorer/ModelTest/modeltest.cpp"
@@ -63,14 +63,16 @@ set(SRCS
 )
 qt5_add_resources(EXPLORER_RESOURCES_RCC "${CMAKE_CURRENT_SOURCE_DIR}/Explorer/DeviceExplorer.qrc")
 
-add_library(iscore_plugin_deviceexplorer
-      ${SRCS} ${HEADERS}
+add_library(${PROJECT_NAME}
+      ${SRCS} ${HDRS}
       ${EXPLORER_RESOURCES_RCC})
+iscore_generate_command_list_file(${PROJECT_NAME} "${HDRS}")
 
 target_link_libraries(iscore_plugin_deviceexplorer
-                      Qt5::Core Qt5::Widgets
-                      iscore_lib_base iscore_lib_state iscore_lib_device
-                      QProgressIndicator)
+        PUBLIC
+                iscore_lib_device
+        PRIVATE
+                QProgressIndicator)
 
 setup_iscore_plugin(iscore_plugin_deviceexplorer)
 setup_iscore_tests(Tests)

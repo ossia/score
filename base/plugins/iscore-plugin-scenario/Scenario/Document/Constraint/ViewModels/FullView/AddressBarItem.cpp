@@ -1,13 +1,25 @@
-#include "AddressBarItem.hpp"
-#include "ClickableLabelItem.hpp"
-
-#include <QGraphicsLayout>
-#include <QPainter>
-
 #include <Scenario/Document/Constraint/ConstraintModel.hpp>
 #include <Scenario/Process/ScenarioModel.hpp>
-#include <Scenario/Process/ScenarioInterface.hpp>
 
+#include <QtAlgorithms>
+#include <QMap>
+#include <QObject>
+#include <QString>
+#include <algorithm>
+#include <cstddef>
+#include <vector>
+
+#include "AddressBarItem.hpp"
+#include "ClickableLabelItem.hpp"
+#include <Process/ModelMetadata.hpp>
+#include <iscore/tools/ObjectIdentifier.hpp>
+
+class QPainter;
+class QStyleOptionGraphicsItem;
+class QWidget;
+
+namespace Scenario
+{
 AddressBarItem::AddressBarItem(QGraphicsItem *parent):
     QGraphicsObject{parent}
 {
@@ -35,9 +47,9 @@ void AddressBarItem::setTargetObject(ObjectPath && path)
 
         name[j] = (cstr->metadata.name());
 
-        auto scenar = dynamic_cast<ScenarioModel*>(cstr->parentScenario());
-        if(scenar != 0)
-        cstr = dynamic_cast<ConstraintModel*>(scenar->parent());
+        auto scenar = dynamic_cast<Scenario::ScenarioModel*>(cstr->parent());
+        if(scenar)
+            cstr = safe_cast<ConstraintModel*>(scenar->parent());
     }
 
 
@@ -47,14 +59,24 @@ void AddressBarItem::setTargetObject(ObjectPath && path)
         if(!identifier.objectName().contains("ConstraintModel"))
             continue;
 
+        auto thisPath = m_currentPath;
+        auto& pathVec = thisPath.vec();
+        pathVec.resize(i + 1);
+        ConstraintModel& thisObj = thisPath.find<ConstraintModel>();
+
         QString txt = name.value(i);
 
         auto lab = new ClickableLabelItem{
-                [&] (ClickableLabelItem* item) { on_elementClicked(item); },
+                   thisObj.metadata,
+                [&] (ClickableLabelItem* item) {
+                    emit constraintSelected(thisObj);
+                },
                 txt,
                 this};
 
         lab->setIndex(i);
+        connect(lab, &ClickableLabelItem::textChanged,
+               this, &AddressBarItem::redraw);
 
         m_items.append(lab);
         lab->setPos(currentWidth, 0);
@@ -70,18 +92,7 @@ void AddressBarItem::setTargetObject(ObjectPath && path)
     m_width = currentWidth;
 }
 
-void AddressBarItem::on_elementClicked(ClickableLabelItem * clicked)
-{
-    std::size_t index = clicked->index();
 
-    if(index < m_currentPath.vec().size())
-    {
-        auto vec = m_currentPath.vec();
-        vec.resize(index + 1);
-
-        emit objectSelected(ObjectPath(std::move(vec)));
-    }
-}
 double AddressBarItem::width() const
 {
     return m_width;
@@ -96,4 +107,17 @@ QRectF AddressBarItem::boundingRect() const
 
 void AddressBarItem::paint(QPainter *painter, const QStyleOptionGraphicsItem *option, QWidget *widget)
 {
+}
+
+void AddressBarItem::redraw()
+{
+    double currentWidth = 0;
+    for(auto obj : m_items)
+    {
+        obj->setPos(currentWidth, 0);
+        currentWidth += 10 + obj->boundingRect().width();
+    }
+
+    emit needRedraw();
+}
 }

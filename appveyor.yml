@@ -1,11 +1,11 @@
 environment:
   QTDIR: C:\Qt\5.5\mingw492_32
   MINGW: C:\Qt\Tools\mingw492_32
-  BOOST_ROOT: c:\Libraries\boost
-  BOOST_LIBRARYDIR: c:\Libraries\boost\stage\lib
+  BOOST_ROOT: c:\Libraries\boost_1_59_0
+  BOOST_LIBRARYDIR: c:\Libraries\boost_1_59_0\stage\lib
   JAMOMA_ROOT: c:\Jamoma
   CHOCO_PATH: c:\ProgramData\chocolatey\bin
-  CMAKE_PATH: c:\projects\i-score\cmake-3.3.0-rc4-win32-x86
+  CMAKE_PATH: c:\projects\i-score\cmake-3.4.1-win32-x86
 
 configuration: Release
 
@@ -14,17 +14,17 @@ install:
   - Jamoma.exe /S /D=%JAMOMA_ROOT%
   - appveyor DownloadFile "https://unsis.googlecode.com/files/nsis-2.46.5-Unicode-setup.exe" -FileName nsis.exe
   - nsis.exe /S
-  - appveyor DownloadFile "http://www.cmake.org/files/v3.3/cmake-3.3.0-rc4-win32-x86.zip"
-  - 7z x cmake-3.3.0-rc4-win32-x86.zip -y > nul
+  - appveyor DownloadFile "https://cmake.org/files/v3.4/cmake-3.4.1-win32-x86.zip"
+  - 7z x cmake-3.4.1-win32-x86.zip -y > nul
 
 build_script:
   - git submodule update --init
   - mkdir build
   - cd build
   - set PATH=%CMAKE_PATH%\bin;%QTDIR%\bin;%MINGW%\bin;C:\Qt\Tools\QtCreator\bin
-  - cmake -G"MinGW Makefiles" -DISCORE_STATIC_PLUGINS:Bool=True -DDEPLOYMENT_BUILD:Bool=True -DCMAKE_C_COMPILER=gcc -DCMAKE_CXX_COMPILER=g++ -DCMAKE_MAKE_PROGRAM=mingw32-make.exe -DCMAKE_PREFIX_PATH="%QTDIR%/lib/cmake/Qt5;%JAMOMA_ROOT%\share\cmake\jamoma" -DBOOST_ROOT="%BOOST_ROOT%" -DBOOST_LIBRARYDIR="%BOOST_LIBRARYDIR%" -DBoost_USE_STATIC_LIBS="ON" ..
-  - mingw32-make -j2
-  - cpack 
+  - cmake -G"MinGW Makefiles" -DCMAKE_TOOLCHAIN_FILE=CMake/Configurations/travis/appveyor-mingw-static-release.toolchain -DISCORE_CONFIGURATION=appveyor-mingw-static-release  ..
+  - cmake --build . --target all_unity -- -j2
+  - cpack
 
 artifacts:
   - name: Installer
@@ -34,7 +34,7 @@ deploy:
   release: $(APPVEYOR_REPO_TAG_NAME)
   provider: GitHub
   artifact: /.*\.exe/
-  auth_token: 
+  auth_token:
     secure: j0nBV9xVItdG3j6d0gHoyvrzi7TOhAy9/QIeyCbFeP8PTqq7DPr1oYwL5WIkPaXe
   draft: false
   prerelease: false

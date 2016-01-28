@@ -1,61 +1,91 @@
 #pragma once
 
 #include <Inspector/InspectorWidgetBase.hpp>
-#include <Process/ProcessFactory.hpp>
-#include <unordered_map>
+#include <Scenario/Inspector/Constraint/ConstraintInspectorDelegate.hpp>
 
-class ConstraintModel;
-class TemporalConstraintViewModel;
-class ConstraintViewModel;
-class RackModel;
-class SlotModel;
-class ScenarioModel;
-class Process;
-class TriggerInspectorWidget;
+#include <nano_signal_slot.hpp>
+#include <QString>
+#include <QVector>
+#include <list>
+#include <memory>
+#include <unordered_map>
+#include <vector>
+
+#include <Process/ProcessFactoryKey.hpp>
+#include <iscore/tools/SettableIdentifier.hpp>
+#include <iscore_plugin_scenario_export.h>
+namespace Inspector
+{
+class InspectorSectionWidget;
 class InspectorWidgetList;
-class DynamicProcessList;
-class RackWidget;
-class RackInspectorSection;
-class QFormLayout;
+}
+namespace Process
+{
+class ProcessModel;
+class ProcessList;
+}
+class QObject;
+class QWidget;
+
+namespace iscore {
+class Document;
+}
+
+namespace Scenario
+{
 class MetadataWidget;
+class ConstraintModel;
+class ConstraintViewModel;
+class RackInspectorSection;
+class RackModel;
+class RackWidget;
+class ScenarioModel;
 
 /*!
  * \brief The ConstraintInspectorWidget class
  *
  * Inherits from InspectorWidgetInterface. Manages an inteface for an Constraint (Timerack) element.
  */
-class ConstraintInspectorWidget final : public InspectorWidgetBase
+class ISCORE_PLUGIN_SCENARIO_EXPORT ConstraintInspectorWidget final : public Inspector::InspectorWidgetBase, public Nano::Observer
 {
-        Q_OBJECT
     public:
         explicit ConstraintInspectorWidget(
-                const InspectorWidgetList& list,
-                const DynamicProcessList& pl,
+                const Inspector::InspectorWidgetList& list,
+                const Process::ProcessList& pl,
                 const ConstraintModel& object,
-                iscore::Document& doc,
+                std::unique_ptr<ConstraintInspectorDelegate> del,
+                const iscore::DocumentContext& context,
                 QWidget* parent = 0);
+
+        ~ConstraintInspectorWidget();
 
         const ConstraintModel& model() const;
 
-    public slots:
+        void createRack();
+        void activeRackChanged(QString rack, ConstraintViewModel* vm);
+
+    private:
+        QString tabName() override;
+
         void updateDisplayedValues();
 
         // These methods ask for creation and the signals originate from other parts of the inspector
         void createProcess(const ProcessFactoryKey& processName);
-        void createRack();
-        void createLayerInNewSlot(QString processName);
+        void createLayerInNewSlot(const Id<Process::ProcessModel>& processId);
 
-        void activeRackChanged(QString rack, ConstraintViewModel* vm);
 
         // Interface of Constraint
 
         // These methods are used to display created things
-        void displaySharedProcess(const Process&);
+        void displaySharedProcess(const Process::ProcessModel&);
         void setupRack(const RackModel&);
 
-    private:
-        void on_processCreated(const Process&);
-        void on_processRemoved(const Process&);
+        void ask_processNameChanged(const Process::ProcessModel& p, QString s);
+
+
+
+        void on_processCreated(const Process::ProcessModel&);
+        void on_processRemoved(const Process::ProcessModel&);
 
         void on_rackCreated(const RackModel&);
         void on_rackRemoved(const RackModel&);
@@ -63,22 +93,19 @@ class ConstraintInspectorWidget final : public InspectorWidgetBase
         void on_constraintViewModelCreated(const ConstraintViewModel&);
         void on_constraintViewModelRemoved(const QObject*);
 
-        QWidget* makeStatesWidget(ScenarioModel*);
+        QWidget* makeStatesWidget(Scenario::ScenarioModel*);
 
-        const InspectorWidgetList& m_widgetList;
-        const DynamicProcessList& m_processList;
+        const Inspector::InspectorWidgetList& m_widgetList;
+        const Process::ProcessList& m_processList;
         const ConstraintModel& m_model;
-        QVector<QMetaObject::Connection> m_connections;
 
-        InspectorSectionWidget* m_eventsSection {};
-        InspectorSectionWidget* m_durationSection {};
+        //InspectorSectionWidget* m_eventsSection {};
+        Inspector::InspectorSectionWidget* m_durationSection {};
 
-        InspectorSectionWidget* m_processSection {};
-        std::vector<InspectorSectionWidget*> m_processesSectionWidgets;
+        Inspector::InspectorSectionWidget* m_processSection {};
+        std::vector<Inspector::InspectorSectionWidget*> m_processesSectionWidgets;
 
-        TriggerInspectorWidget* m_triggerLine{};
-
-        InspectorSectionWidget* m_rackSection {};
+        Inspector::InspectorSectionWidget* m_rackSection {};
         RackWidget* m_rackWidget {};
         std::unordered_map<Id<RackModel>, RackInspectorSection*, id_hash<RackModel>> m_rackesSectionWidgets;
 
@@ -86,4 +113,7 @@ class ConstraintInspectorWidget final : public InspectorWidgetBase
 
         MetadataWidget* m_metadata {};
 
+        std::unique_ptr<ConstraintInspectorDelegate> m_delegate;
+
 };
+}

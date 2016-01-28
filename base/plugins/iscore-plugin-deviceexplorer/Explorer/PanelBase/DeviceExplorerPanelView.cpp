@@ -1,11 +1,19 @@
-#include "DeviceExplorerPanelView.hpp"
-#include <Explorer/Explorer/DeviceExplorerWidget.hpp>
-
-#include <core/view/View.hpp>
-#include <core/application/Application.hpp>
-#include <core/presenter/Presenter.hpp>
 #include <Device/Protocol/ProtocolList.hpp>
-#include <core/application/Application.hpp>
+#include <Explorer/Explorer/DeviceExplorerWidget.hpp>
+#include <core/view/View.hpp>
+#include <qnamespace.h>
+#include <QObject>
+
+#include "DeviceExplorerPanelView.hpp"
+
+#include <iscore/application/ApplicationContext.hpp>
+#include <iscore/plugins/customfactory/StringFactoryKey.hpp>
+#include <iscore/plugins/panel/PanelView.hpp>
+
+class QWidget;
+
+namespace DeviceExplorer
+{
 static const iscore::DefaultPanelStatus status{
     true,
     Qt::LeftDockWidgetArea,
@@ -15,17 +23,18 @@ static const iscore::DefaultPanelStatus status{
 const iscore::DefaultPanelStatus &DeviceExplorerPanelView::defaultPanelStatus() const
 { return status; }
 
-DeviceExplorerPanelView::DeviceExplorerPanelView(iscore::View* parent) :
+DeviceExplorerPanelView::DeviceExplorerPanelView(
+        const iscore::ApplicationContext& ctx,
+        QObject* parent) :
     iscore::PanelView {parent},
     m_widget {new DeviceExplorerWidget{
-              iscore::Application::instance()
-                .presenter()
-                .applicationComponents().factory<DynamicProtocolList>(),
-              parent}}
+              ctx.components.factory<Device::DynamicProtocolList>(),
+              nullptr}}
 {
 }
 
 QWidget* DeviceExplorerPanelView::getWidget()
 {
     return m_widget;
+}
 }

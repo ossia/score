@@ -1,12 +1,21 @@
+#include <Scenario/Document/State/StateModel.hpp>
+#include <QString>
+
 #include "StateInspectorFactory.hpp"
 #include "StateInspectorWidget.hpp"
 
-#include <Scenario/Document/State/StateModel.hpp>
+class QObject;
+class QWidget;
+namespace iscore {
+class Document;
+}  // namespace iscore
 
-InspectorWidgetBase* StateInspectorFactory::makeWidget(
+namespace Scenario
+{
+Inspector::InspectorWidgetBase* StateInspectorFactory::makeWidget(
         const QObject& sourceElement,
-        iscore::Document& doc,
-        QWidget* parentWidget)
+        const iscore::DocumentContext& doc,
+        QWidget* parentWidget) const
 {
     return new StateInspectorWidget{
         static_cast<const StateModel&>(sourceElement),
@@ -14,8 +23,8 @@ InspectorWidgetBase* StateInspectorFactory::makeWidget(
                 parentWidget};
 }
 
-const QList<QString>& StateInspectorFactory::key_impl() const
+bool StateInspectorFactory::matches(const QObject& object) const
 {
-    static const QList<QString> list{"StateModel"};
-    return list;
+    return dynamic_cast<const StateModel*>(&object);
+}
 }

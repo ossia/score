@@ -1,5 +1,5 @@
 cmake_minimum_required(VERSION 3.0)
-project(iscore_lib_base)
+project(iscore_lib_base LANGUAGES CXX)
 iscore_common_setup()
 
 # Packages
@@ -18,19 +18,30 @@ set(SRCS
 "${CMAKE_CURRENT_SOURCE_DIR}/iscore/tools/ObjectPathSerialization.cpp"
 "${CMAKE_CURRENT_SOURCE_DIR}/iscore/tools/SettableIdentifierSerialization.cpp"
 "${CMAKE_CURRENT_SOURCE_DIR}/iscore/tools/SettableIdentifierGeneration.cpp"
+"${CMAKE_CURRENT_SOURCE_DIR}/iscore/command/CommandDataSerialization.cpp"
 
 "${CMAKE_CURRENT_SOURCE_DIR}/iscore/plugins/customfactory/FactoryInterface.cpp"
 "${CMAKE_CURRENT_SOURCE_DIR}/iscore/plugins/customfactory/FactoryFamily.cpp"
+"${CMAKE_CURRENT_SOURCE_DIR}/iscore/plugins/customfactory/SerializableInterface.cpp"
 
 "${CMAKE_CURRENT_SOURCE_DIR}/iscore/plugins/documentdelegate/plugin/ElementPluginModelSerialization.cpp"
 "${CMAKE_CURRENT_SOURCE_DIR}/iscore/plugins/documentdelegate/plugin/ElementPluginModelListSerialization.cpp"
 "${CMAKE_CURRENT_SOURCE_DIR}/iscore/command/AggregateCommand.cpp"
 "${CMAKE_CURRENT_SOURCE_DIR}/iscore/command/Command.cpp"
+"${CMAKE_CURRENT_SOURCE_DIR}/iscore/command/CommandData.cpp"
 "${CMAKE_CURRENT_SOURCE_DIR}/iscore/command/CommandGeneratorMap.cpp"
 "${CMAKE_CURRENT_SOURCE_DIR}/iscore/command/PropertyCommand.cpp"
 "${CMAKE_CURRENT_SOURCE_DIR}/iscore/command/SerializableCommand.cpp"
+
+"${CMAKE_CURRENT_SOURCE_DIR}/iscore/component/Component.cpp"
+
+"${CMAKE_CURRENT_SOURCE_DIR}/iscore/application/ApplicationContext.cpp"
+"${CMAKE_CURRENT_SOURCE_DIR}/iscore/application/ApplicationComponents.cpp"
+
 "${CMAKE_CURRENT_SOURCE_DIR}/iscore/document/DocumentInterface.cpp"
+
 "${CMAKE_CURRENT_SOURCE_DIR}/iscore/locking/ObjectLocker.cpp"
+
 "${CMAKE_CURRENT_SOURCE_DIR}/iscore/plugins/documentdelegate/DocumentDelegateFactoryInterface.cpp"
 "${CMAKE_CURRENT_SOURCE_DIR}/iscore/plugins/documentdelegate/DocumentDelegateModelInterface.cpp"
 "${CMAKE_CURRENT_SOURCE_DIR}/iscore/plugins/documentdelegate/DocumentDelegateViewInterface.cpp"
@@ -38,7 +49,7 @@ set(SRCS
 "${CMAKE_CURRENT_SOURCE_DIR}/iscore/plugins/documentdelegate/plugin/DocumentDelegatePluginModel.cpp"
 "${CMAKE_CURRENT_SOURCE_DIR}/iscore/plugins/documentdelegate/plugin/ElementPluginModel.cpp"
 "${CMAKE_CURRENT_SOURCE_DIR}/iscore/plugins/documentdelegate/plugin/ElementPluginModelList.cpp"
-"${CMAKE_CURRENT_SOURCE_DIR}/iscore/plugins/plugincontrol/PluginControlInterface.cpp"
+"${CMAKE_CURRENT_SOURCE_DIR}/iscore/plugins/application/GUIApplicationContextPlugin.cpp"
 "${CMAKE_CURRENT_SOURCE_DIR}/iscore/plugins/panel/PanelFactory.cpp"
 "${CMAKE_CURRENT_SOURCE_DIR}/iscore/plugins/panel/PanelModel.cpp"
 "${CMAKE_CURRENT_SOURCE_DIR}/iscore/plugins/panel/PanelPresenter.cpp"
@@ -48,7 +59,7 @@ set(SRCS
 "${CMAKE_CURRENT_SOURCE_DIR}/iscore/plugins/qt_interfaces/FactoryFamily_QtInterface.cpp"
 "${CMAKE_CURRENT_SOURCE_DIR}/iscore/plugins/qt_interfaces/FactoryInterface_QtInterface.cpp"
 "${CMAKE_CURRENT_SOURCE_DIR}/iscore/plugins/qt_interfaces/PanelFactoryInterface_QtInterface.cpp"
-"${CMAKE_CURRENT_SOURCE_DIR}/iscore/plugins/qt_interfaces/PluginControlInterface_QtInterface.cpp"
+"${CMAKE_CURRENT_SOURCE_DIR}/iscore/plugins/qt_interfaces/GUIApplicationContextPlugin_QtInterface.cpp"
 "${CMAKE_CURRENT_SOURCE_DIR}/iscore/plugins/qt_interfaces/PluginRequirements_QtInterface.cpp"
 "${CMAKE_CURRENT_SOURCE_DIR}/iscore/plugins/qt_interfaces/SettingsDelegateFactoryInterface_QtInterface.cpp"
 
@@ -61,16 +72,16 @@ set(SRCS
 "${CMAKE_CURRENT_SOURCE_DIR}/iscore/tools/NamedObjectSerialization.cpp"
 "${CMAKE_CURRENT_SOURCE_DIR}/iscore/tools/ObjectIdentifierSerialization.cpp"
 "${CMAKE_CURRENT_SOURCE_DIR}/iscore/tools/IdentifiedObjectAbstract.cpp"
+"${CMAKE_CURRENT_SOURCE_DIR}/iscore/tools/NamedObject.cpp"
 "${CMAKE_CURRENT_SOURCE_DIR}/iscore/tools/ObjectPath.cpp"
-"${CMAKE_CURRENT_SOURCE_DIR}/iscore/statemachine/BaseStateMachine.cpp"
+"${CMAKE_CURRENT_SOURCE_DIR}/iscore/tools/RandomNameProvider.cpp"
+"${CMAKE_CURRENT_SOURCE_DIR}/iscore/statemachine/GraphicsSceneToolPalette.cpp"
 "${CMAKE_CURRENT_SOURCE_DIR}/iscore/statemachine/CommonSelectionState.cpp"
-"${CMAKE_CURRENT_SOURCE_DIR}/iscore/statemachine/ToolState.cpp"
 "${CMAKE_CURRENT_SOURCE_DIR}/iscore/widgets/GraphicsItem.cpp"
 "${CMAKE_CURRENT_SOURCE_DIR}/iscore/widgets/ClearLayout.cpp"
+"${CMAKE_CURRENT_SOURCE_DIR}/iscore/widgets/DoubleSlider.cpp"
 
-"${CMAKE_CURRENT_SOURCE_DIR}/core/application/Application.cpp"
-"${CMAKE_CURRENT_SOURCE_DIR}/core/application/ApplicationContext.cpp"
-"${CMAKE_CURRENT_SOURCE_DIR}/core/application/ApplicationComponents.cpp"
+"${CMAKE_CURRENT_SOURCE_DIR}/core/application/ApplicationInterface.cpp"
 "${CMAKE_CURRENT_SOURCE_DIR}/core/application/ApplicationRegistrar.cpp"
 "${CMAKE_CURRENT_SOURCE_DIR}/core/application/ApplicationSettings.cpp"
 "${CMAKE_CURRENT_SOURCE_DIR}/core/command/CommandStackSerialization.cpp"
@@ -82,6 +93,7 @@ set(SRCS
 "${CMAKE_CURRENT_SOURCE_DIR}/core/document/DocumentBackupManager.cpp"
 "${CMAKE_CURRENT_SOURCE_DIR}/core/document/DocumentBackups.cpp"
 "${CMAKE_CURRENT_SOURCE_DIR}/core/document/DocumentBuilder.cpp"
+"${CMAKE_CURRENT_SOURCE_DIR}/core/document/DocumentMetadata.cpp"
 "${CMAKE_CURRENT_SOURCE_DIR}/core/document/Document.cpp"
 "${CMAKE_CURRENT_SOURCE_DIR}/core/document/DocumentModel.cpp"
 "${CMAKE_CURRENT_SOURCE_DIR}/core/document/DocumentSerialization.cpp"
@@ -97,13 +109,16 @@ set(SRCS
 "${CMAKE_CURRENT_SOURCE_DIR}/core/undo/Panel/UndoPanelFactory.cpp"
 "${CMAKE_CURRENT_SOURCE_DIR}/core/undo/Panel/UndoPresenter.cpp"
 "${CMAKE_CURRENT_SOURCE_DIR}/core/undo/Panel/UndoView.cpp"
-"${CMAKE_CURRENT_SOURCE_DIR}/core/undo/UndoControl.cpp"
+"${CMAKE_CURRENT_SOURCE_DIR}/core/undo/UndoApplicationPlugin.cpp"
 "${CMAKE_CURRENT_SOURCE_DIR}/core/view/View.cpp"
 
 )
 
 add_library(iscore_lib_base ${SRCS} ${HEADERS} ${QRCS})
-target_link_libraries(iscore_lib_base Qt5::Core Qt5::Widgets Qt5::Svg QRecentFilesMenu)
+
+target_link_libraries(iscore_lib_base
+    PUBLIC Qt5::Core Qt5::Widgets
+    PRIVATE Qt5::Svg QRecentFilesMenu)
 
 set_property(TARGET iscore_lib_base PROPERTY COTIRE_CXX_PREFIX_HEADER_INIT "${CMAKE_CURRENT_SOURCE_DIR}/iscore/prefix.hpp")
 setup_iscore_library(iscore_lib_base)

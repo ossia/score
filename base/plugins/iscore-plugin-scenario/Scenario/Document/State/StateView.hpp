@@ -1,20 +1,36 @@
 #pragma once
-#include <QGraphicsObject>
+#include <QColor>
+#include <QtGlobal>
+#include <QGraphicsItem>
+#include <QRect>
 
+#include <Scenario/Document/Event/ExecutionStatus.hpp>
+#include <iscore_plugin_scenario_export.h>
+class QGraphicsSceneDragDropEvent;
+class QGraphicsSceneMouseEvent;
 class QMimeData;
+class QPainter;
+class QStyleOptionGraphicsItem;
+class QWidget;
+
+namespace Scenario
+{
 class StatePresenter;
 
-class StateView final : public QGraphicsObject
+class ISCORE_PLUGIN_SCENARIO_EXPORT  StateView final : public QGraphicsObject
 {
         Q_OBJECT
     public:
         StateView(StatePresenter &presenter, QGraphicsItem *parent = 0);
         virtual ~StateView() = default;
 
-        int type() const override
+        static constexpr int static_type()
         { return QGraphicsItem::UserType + 4; }
+        int type() const override
+        { return static_type(); }
 
-        const StatePresenter& presenter() const;
+        const StatePresenter& presenter() const
+        { return m_presenter; }
 
         QRectF boundingRect() const override
         { return {-m_radiusFull, -m_radiusFull, 2*m_radiusFull, 2*m_radiusFull }; }
@@ -27,6 +43,7 @@ class StateView final : public QGraphicsObject
         void setSelected(bool arg);
 
         void changeColor(const QColor&);
+        void setStatus(ExecutionStatus);
 
     signals:
         void dropReceived(const QMimeData*);
@@ -45,7 +62,9 @@ class StateView final : public QGraphicsObject
 
         QColor m_baseColor;
 
+        ExecutionStatusProperty m_status{};
+
         static const constexpr qreal m_radiusFull = 7.;
         static const constexpr qreal m_radiusVoid = 3.;
-
 };
+}

@@ -43,7 +43,7 @@ if (NOT CMAKE_SCRIPT_MODE_FILE)
 endif()
 
 set (COTIRE_CMAKE_MODULE_FILE "${CMAKE_CURRENT_LIST_FILE}")
-set (COTIRE_CMAKE_MODULE_VERSION "1.7.5")
+set (COTIRE_CMAKE_MODULE_VERSION "1.7.6")
 
 # activate select policies
 if (POLICY CMP0025)
@@ -1157,7 +1157,6 @@ function (cotire_scan_includes _includesVar)
 	if (NOT _option_COMPILER_VERSION)
 		set (_option_COMPILER_VERSION "${CMAKE_${_option_LANGUAGE}_COMPILER_VERSION}")
 	endif()
-	set (_cmd "${_option_COMPILER_EXECUTABLE}" ${_option_COMPILER_ARG1})
 	cotire_init_compile_cmd(_cmd "${_option_LANGUAGE}" "${_option_COMPILER_EXECUTABLE}" "${_option_COMPILER_ARG1}")
 	cotire_add_definitions_to_cmd(_cmd "${_option_LANGUAGE}" ${_option_COMPILE_DEFINITIONS})
 	cotire_add_compile_flags_to_cmd(_cmd ${_option_COMPILE_FLAGS})
@@ -2042,14 +2041,6 @@ function (cotire_get_prefix_header_dependencies _language _target _dependencySou
 	# depend on target source files marked with custom COTIRE_DEPENDENCY property
 	get_target_property(_targetSourceFiles ${_target} SOURCES)
 	cotire_get_objects_with_property_on(_dependencySources COTIRE_DEPENDENCY SOURCE ${_targetSourceFiles})
-	if (CMAKE_${_language}_COMPILER_ID MATCHES "GNU|Clang")
-		# GCC and clang raise a fatal error if a file is not found during preprocessing
-		# thus we depend on target's generated source files for prefix header generation
-		cotire_get_objects_with_property_on(_generatedSources GENERATED SOURCE ${_targetSourceFiles})
-		if (_generatedSources)
-			list (APPEND _dependencySources ${_generatedSources})
-		endif()
-	endif()
 	if (COTIRE_DEBUG AND _dependencySources)
 		message (STATUS "${_language} ${_target} prefix header dependencies: ${_dependencySources}")
 	endif()
@@ -2407,6 +2398,22 @@ function (cotire_setup_prefix_generation_command _language _target _targetScript
 	else()
 		set (_comment "Generating ${_language} prefix header ${_prefixFileRelPath}")
 	endif()
+	# prevent pre-processing errors upon generating the prefix header when a target's generated include file does not yet exist
+	# we do not add a file-level dependency for the target's generated files though, because we only want to depend on their existence
+	# thus we make the prefix header generation depend on a custom helper target which triggers the generation of the files
+	set (_preTargetName "${_target}${COTIRE_PCH_TARGET_SUFFIX}_pre")
+	if (TARGET ${_preTargetName})
+		# custom helper target has already been generated while processing a different language
+		list (APPEND _dependencySources ${_preTargetName})
+	else()
+		get_target_property(_targetSourceFiles ${_target} SOURCES)
+		cotire_get_objects_with_property_on(_generatedSources GENERATED SOURCE ${_targetSourceFiles})
+		if (_generatedSources)
+			add_custom_target("${_preTargetName}" DEPENDS ${_generatedSources})
+			cotire_init_target("${_preTargetName}")
+			list (APPEND _dependencySources ${_preTargetName})
+		endif()
+	endif()
 	add_custom_command(
 		OUTPUT "${_prefixFile}" "${_prefixFile}.log"
 		COMMAND ${_prefixCmd}
@@ -2571,7 +2578,7 @@ function (cotire_choose_target_languages _target _targetLanguagesVar _wholeTarge
 			set (${_targetLanguagesVar} "" PARENT_SCOPE)
 			return()
 		endif()
-		if (_targetUsePCH AND "${_language}" MATCHES "^C|CXX$")
+		if (_targetUsePCH AND "${_language}" MATCHES "^C|CXX$" AND NOT "${CMAKE_${_language}_COMPILER_ID}" STREQUAL "")
 			cotire_check_precompiled_header_support("${_language}" "${_target}" _disableMsg)
 			if (_disableMsg)
 				set (_targetUsePCH FALSE)
@@ -2920,6 +2927,8 @@ function (cotire_setup_unity_build_target _languages _configurations _target)
 		INCLUDE_DIRECTORIES
 		INTERPROCEDURAL_OPTIMIZATION INTERPROCEDURAL_OPTIMIZATION_<CONFIG>
 		POSITION_INDEPENDENT_CODE
+		C_COMPILER_LAUNCHER CXX_COMPILER_LAUNCHER
+		C_INCLUDE_WHAT_YOU_USE CXX_INCLUDE_WHAT_YOU_USE
 		C_VISIBILITY_PRESET CXX_VISIBILITY_PRESET VISIBILITY_INLINES_HIDDEN)
 	# copy compile features
 	cotire_copy_set_properites("${_configurations}" TARGET ${_target} ${_unityTargetName}
@@ -2949,22 +2958,31 @@ function (cotire_setup_unity_build_target _languages _configurations _target)
 		IMPLICIT_DEPENDS_INCLUDE_TRANSFORM RULE_LAUNCH_COMPILE RULE_LAUNCH_CUSTOM RULE_LAUNCH_LINK)
 	# copy Apple platform specific stuff
 	cotire_copy_set_properites("${_configurations}" TARGET ${_target} ${_unityTargetName}
-		BUNDLE BUNDLE_EXTENSION FRAMEWORK INSTALL_NAME_DIR MACOSX_BUNDLE MACOSX_BUNDLE_INFO_PLIST
-		MACOSX_FRAMEWORK_INFO_PLIST MACOSX_RPATH OSX_ARCHITECTURES
-		OSX_ARCHITECTURES_<CONFIG> PRIVATE_HEADER PUBLIC_HEADER RESOURCE)
+		BUNDLE BUNDLE_EXTENSION FRAMEWORK FRAMEWORK_VERSION INSTALL_NAME_DIR
+		MACOSX_BUNDLE MACOSX_BUNDLE_INFO_PLIST MACOSX_FRAMEWORK_INFO_PLIST MACOSX_RPATH
+		OSX_ARCHITECTURES OSX_ARCHITECTURES_<CONFIG> PRIVATE_HEADER PUBLIC_HEADER RESOURCE XCTEST)
 	# copy Windows platform specific stuff
 	cotire_copy_set_properites("${_configurations}" TARGET ${_target} ${_unityTargetName}
 		GNUtoMS
 		COMPILE_PDB_NAME COMPILE_PDB_NAME_<CONFIG>
 		COMPILE_PDB_OUTPUT_DIRECTORY COMPILE_PDB_OUTPUT_DIRECTORY_<CONFIG>
 		PDB_NAME PDB_NAME_<CONFIG> PDB_OUTPUT_DIRECTORY PDB_OUTPUT_DIRECTORY_<CONFIG>
-		VS_DOTNET_REFERENCES VS_GLOBAL_KEYWORD VS_GLOBAL_PROJECT_TYPES VS_GLOBAL_ROOTNAMESPACE
-		VS_KEYWORD VS_SCC_AUXPATH VS_SCC_LOCALPATH VS_SCC_PROJECTNAME VS_SCC_PROVIDER
-		VS_WINRT_EXTENSIONS VS_WINRT_REFERENCES VS_WINRT_COMPONENT
-		VS_DOTNET_TARGET_FRAMEWORK_VERSION WIN32_EXECUTABLE)
+		VS_DESKTOP_EXTENSIONS_VERSION VS_DOTNET_REFERENCES VS_DOTNET_TARGET_FRAMEWORK_VERSION
+		VS_GLOBAL_KEYWORD VS_GLOBAL_PROJECT_TYPES VS_GLOBAL_ROOTNAMESPACE
+		VS_IOT_EXTENSIONS_VERSION VS_IOT_STARTUP_TASK
+		VS_KEYWORD VS_MOBILE_EXTENSIONS_VERSION
+		VS_SCC_AUXPATH VS_SCC_LOCALPATH VS_SCC_PROJECTNAME VS_SCC_PROVIDER
+		VS_WINDOWS_TARGET_PLATFORM_MIN_VERSION
+		VS_WINRT_COMPONENT VS_WINRT_EXTENSIONS VS_WINRT_REFERENCES
+		WIN32_EXECUTABLE WINDOWS_EXPORT_ALL_SYMBOLS)
 	# copy Android platform specific stuff
 	cotire_copy_set_properites("${_configurations}" TARGET ${_target} ${_unityTargetName}
-		ANDROID_API ANDROID_API_MIN ANDROID_GUI)
+		ANDROID_API ANDROID_API_MIN ANDROID_GUI
+		ANDROID_ANT_ADDITIONAL_OPTIONS ANDROID_ARCH ANDROID_ASSETS_DIRECTORIES
+		ANDROID_JAR_DEPENDENCIES ANDROID_JAR_DIRECTORIES ANDROID_JAVA_SOURCE_DIR
+		ANDROID_NATIVE_LIB_DEPENDENCIES ANDROID_NATIVE_LIB_DIRECTORIES
+		ANDROID_PROCESS_MAX ANDROID_PROGUARD ANDROID_PROGUARD_CONFIG_PATH
+		ANDROID_SECURE_PROPS_PATH ANDROID_SKIP_ANT_STEP ANDROID_STL_TYPE)
 	# use output name from original target
 	get_target_property(_targetOutputName ${_unityTargetName} OUTPUT_NAME)
 	if (NOT _targetOutputName)

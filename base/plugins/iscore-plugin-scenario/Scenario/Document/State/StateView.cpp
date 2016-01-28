@@ -1,12 +1,17 @@
-#include "StateView.hpp"
-#include "StatePresenter.hpp"
-#include <iscore/tools/Todo.hpp>
-#include <QPainter>
-#include <QGraphicsSceneMouseEvent>
-#include <QCursor>
-#include <QDebug>
 #include <Process/Style/ScenarioStyle.hpp>
+#include <QBrush>
+#include <QGraphicsSceneEvent>
+#include <qnamespace.h>
+#include <QPainter>
+#include <QPen>
 
+#include "StatePresenter.hpp"
+#include "StateView.hpp"
+
+class QStyleOptionGraphicsItem;
+class QWidget;
+namespace Scenario
+{
 StateView::StateView(StatePresenter& pres, QGraphicsItem* parent) :
     QGraphicsObject(parent),
     m_presenter{pres}
@@ -16,29 +21,34 @@ StateView::StateView(StatePresenter& pres, QGraphicsItem* parent) :
     this->setZValue(5);
     this->setAcceptDrops(true);
     this->setAcceptHoverEvents(true);
+    m_baseColor = ScenarioStyle::instance().StateOutline;
 }
-
-const StatePresenter &StateView::presenter() const
-{
-    return m_presenter;
-}
-
-
 
 void StateView::paint(QPainter *painter, const QStyleOptionGraphicsItem *option, QWidget *widget)
 {
-    QPen statePen = ScenarioStyle::instance().StateOutline;
+    QPen statePen = m_baseColor;
     statePen.setWidth(2);
-    QBrush stateBrush = m_baseColor;
-    QColor highlight = ScenarioStyle::instance().StateSelected;
-
     painter->setPen(statePen);
-    painter->setBrush(stateBrush);
-    if(m_selected)
-        painter->setBrush(highlight);
 
-    qreal radius = m_containMessage ? m_radiusFull : m_radiusVoid;
-    painter->drawEllipse({0., 0.}, radius, radius);
+    QBrush stateBrush;
+    if(m_status.get() == ExecutionStatus::Editing)
+        stateBrush = m_containMessage ? m_baseColor : ScenarioStyle::instance().Background;
+    else
+        stateBrush = m_status.stateStatusColor();
+
+    painter->setBrush(stateBrush);
+
+    QPen highlightPen = ScenarioStyle::instance().StateSelected;
+    highlightPen.setWidth(4);
+
+
+    if(m_selected)
+        painter->setPen(highlightPen);
+
+    painter->drawEllipse({0., 0.}, m_radiusFull, m_radiusFull);
+
+
+
 #if defined(ISCORE_SCENARIO_DEBUG_RECTS)
     painter->setBrush(Qt::NoBrush);
     painter->setPen(Qt::darkYellow);
@@ -64,6 +74,14 @@ void StateView::changeColor(const QColor & c)
     update();
 }
 
+void StateView::setStatus(ExecutionStatus status)
+{
+    if(m_status.get() == status)
+        return;
+    m_status.set(status);
+    update();
+}
+
 void StateView::mousePressEvent(QGraphicsSceneMouseEvent *event)
 {
     if(event->button() == Qt::MouseButton::LeftButton)
@@ -84,4 +102,4 @@ void StateView::dropEvent(QGraphicsSceneDragDropEvent *event)
 {
     emit dropReceived(event->mimeData());
 }
-
+}

@@ -1,6 +1,13 @@
 #pragma once
 #include <iscore/command/SerializableCommand.hpp>
 #include <iscore/tools/ObjectPath.hpp>
+#include <QByteArray>
+#include <QObject>
+#include <QString>
+#include <QVariant>
+
+class DataStreamInput;
+class DataStreamOutput;
 
 namespace iscore
 {
@@ -13,7 +20,7 @@ namespace iscore
  * It will save the current state and switch between the current and new
  * state upon undo / redo.
  */
-class PropertyCommand : public SerializableCommand
+class ISCORE_LIB_BASE_EXPORT PropertyCommand : public SerializableCommand
 {
     public:
         using SerializableCommand::SerializableCommand;

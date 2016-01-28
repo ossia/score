@@ -1,10 +1,18 @@
-#include "CommonSelectionState.hpp"
-#include <QKeyEventTransition>
-#include <QGraphicsObject>
+#include <QAbstractState>
+#include <QAbstractTransition>
+#include <qcoreevent.h>
 #include <QFinalState>
+#include <QGraphicsItem>
+#include <QKeyEventTransition>
+#include <qnamespace.h>
+
+#include "CommonSelectionState.hpp"
 #include "StateMachineUtils.hpp"
 
-CommonSelectionState::CommonSelectionState(iscore::SelectionStack &stack, QGraphicsObject *process_view, QState *parent):
+CommonSelectionState::CommonSelectionState(
+        iscore::SelectionStack &stack,
+        QGraphicsObject *process_view,
+        QState *parent):
     QState{parent},
     dispatcher{stack}
 {
@@ -43,7 +51,7 @@ CommonSelectionState::CommonSelectionState(iscore::SelectionStack &stack, QGraph
             selectionAreaState->setObjectName("selectionAreaState");
 
             iscore::make_transition<iscore::Press_Transition>(m_waitState, selectionAreaState);
-            selectionAreaState->addTransition(selectionAreaState, SIGNAL(finished()), m_waitState);
+            selectionAreaState->addTransition(selectionAreaState, finishedState(), m_waitState);
             {
                 // States
                 auto pressAreaSelection = new QState{selectionAreaState};
@@ -80,13 +88,14 @@ CommonSelectionState::CommonSelectionState(iscore::SelectionStack &stack, QGraph
                     this, &CommonSelectionState::on_deselect);
 
             // Actions on selected elements
+            //NOTE : see ObjectMenuActions too.
             auto t_delete = new QKeyEventTransition(
-                                process_view, QEvent::KeyPress, Qt::Key_Delete, m_waitState);
+                                process_view, QEvent::KeyPress, Qt::Key_Backspace, m_waitState);
             connect(t_delete, &QAbstractTransition::triggered,
                     this, &CommonSelectionState::on_delete);
 
             auto t_deleteContent = new QKeyEventTransition(
-                                       process_view, QEvent::KeyPress, Qt::Key_Backspace, m_waitState);
+                                       process_view, QEvent::KeyPress, Qt::Key_Delete, m_waitState);
             connect(t_deleteContent, &QAbstractTransition::triggered,
                     this, &CommonSelectionState::on_deleteContent);
         }

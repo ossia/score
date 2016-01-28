@@ -1,17 +1,26 @@
 #pragma once
-#include <iscore/command/SerializableCommand.hpp>
 #include <Process/TimeValue.hpp>
 #include <Scenario/Commands/ScenarioCommandFactory.hpp>
+#include <iscore/command/SerializableCommand.hpp>
 
-class Process;
+#include <iscore/tools/ModelPath.hpp>
+
+class DataStreamInput;
+class DataStreamOutput;
+namespace Process { class ProcessModel; }
+
+namespace Scenario
+{
+namespace Command
+{
 class SetProcessDuration final : public iscore::SerializableCommand
 {
-        ISCORE_COMMAND_DECL(ScenarioCommandFactoryName(), SetProcessDuration, "SetProcessDuration")
+        ISCORE_COMMAND_DECL(ScenarioCommandFactoryName(), SetProcessDuration, "Change a process duration")
 
     public:
 
         SetProcessDuration(
-                Path<Process>&& path,
+                Path<Process::ProcessModel>&& path,
                 const TimeValue& newVal);
 
         void undo() const override;
@@ -22,7 +31,10 @@ class SetProcessDuration final : public iscore::SerializableCommand
         void deserializeImpl(DataStreamOutput& s) override;
 
     private:
-        Path<Process> m_path;
+        Path<Process::ProcessModel> m_path;
         TimeValue m_old;
         TimeValue m_new;
 };
+
+}
+}

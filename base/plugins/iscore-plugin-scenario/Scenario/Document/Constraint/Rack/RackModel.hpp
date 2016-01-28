@@ -1,26 +1,39 @@
 #pragma once
-#include "Slot/SlotModel.hpp"
+#include <iscore/tools/Metadata.hpp>
 #include <Process/ModelMetadata.hpp>
-
 #include <Process/TimeValue.hpp>
-#include <iscore/tools/NotifyingMap.hpp>
+#include <boost/optional/optional.hpp>
 #include <iscore/serialization/VisitorInterface.hpp>
+#include <iscore/tools/NotifyingMap.hpp>
+#include <iscore/tools/SettableIdentifier.hpp>
+#include <QList>
+#include <QObject>
+#include <nano_signal_slot.hpp>
 
+#include <QString>
+#include <functional>
+
+#include "Slot/SlotModel.hpp"
+#include <iscore/tools/IdentifiedObject.hpp>
+#include <iscore_plugin_scenario_export.h>
+namespace Process { class ProcessModel; }
+
+
+namespace Scenario
+{
 class ConstraintModel;
-class Process;
-
 /**
  * @brief The RackModel class
  *
  * A Rack is a slot container.
  * A Rack is always found in a Constraint.
  */
-class RackModel final : public IdentifiedObject<RackModel>
+class ISCORE_PLUGIN_SCENARIO_EXPORT RackModel final : public IdentifiedObject<RackModel>, public Nano::Observer
 {
         Q_OBJECT
-        ISCORE_METADATA("RackModel") // TODO use this everywhere.
 
     public:
+        ModelMetadata metadata;
         RackModel(const Id<RackModel>& id, QObject* parent);
 
         // Copy
@@ -58,7 +71,7 @@ class RackModel final : public IdentifiedObject<RackModel>
     signals:
         void slotPositionsChanged();
 
-        void on_deleteSharedProcessModel(const Process&);
+        void on_deleteSharedProcessModel(const Process::ProcessModel&);
         void on_durationChanged(const TimeValue&);
 
     private:
@@ -68,4 +81,5 @@ class RackModel final : public IdentifiedObject<RackModel>
         // Positions of the slots. First is topmost.
         QList<Id<SlotModel>> m_positions;
 };
-
+}
+DEFAULT_MODEL_METADATA(Scenario::RackModel, "Rack")

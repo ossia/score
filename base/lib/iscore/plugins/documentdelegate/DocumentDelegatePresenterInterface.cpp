@@ -1,13 +1,15 @@
-#include "DocumentDelegatePresenterInterface.hpp"
 #include <core/document/DocumentPresenter.hpp>
-using namespace iscore;
 
+#include "DocumentDelegatePresenterInterface.hpp"
+#include <iscore/tools/NamedObject.hpp>
 
+namespace iscore
+{
 DocumentDelegatePresenterInterface::DocumentDelegatePresenterInterface(
         DocumentPresenter* parent_presenter,
         const QString& object_name,
-        DocumentDelegateModelInterface* model,
-        DocumentDelegateViewInterface* view) :
+        const DocumentDelegateModelInterface& model,
+        DocumentDelegateViewInterface& view) :
     NamedObject {object_name, parent_presenter},
     m_model {model},
     m_view {view},
@@ -19,4 +21,5 @@ DocumentDelegatePresenterInterface::DocumentDelegatePresenterInterface(
 iscore::DocumentDelegatePresenterInterface::~DocumentDelegatePresenterInterface()
 {
 
+}
 }

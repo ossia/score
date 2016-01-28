@@ -13,6 +13,7 @@ class TimeValue_T
 {
     public:
         static constexpr TimeValue_T zero() {return ZeroTime{}; }
+        static constexpr TimeValue_T infinite() {return PositiveInfinity{}; }
         static TimeValue_T fromMsecs(T msecs)
         {
             TimeValue_T time;
@@ -72,7 +73,9 @@ class TimeValue_T
 
         double toPixels(ZoomRatio ratio) const
         {
-            return *m_impl / ratio;
+            return ratio > 0
+                    ? *m_impl / ratio
+                    : 0;
         }
 
         QTime toQTime() const
@@ -234,10 +237,15 @@ class TimeValue_T
             return res;
         }
 
+        TimeValue_T operator+= (const TimeValue_T& other)
+        {
+            *this = *this + other;
+            return *this;
+        }
+
     private:
         boost::optional<T> m_impl {0}; // TODO std::isinf instead.
 };
-
 
 /*
 template<>
@@ -280,5 +288,84 @@ inline QDebug operator<< (QDebug d, const TimeValue& tv)
 
     return d;
 }
+inline const TimeValue& max(const TimeValue& lhs, const TimeValue& rhs)
+{
+    if(lhs < rhs)
+        return rhs;
+    else
+        return lhs;
+}
+
+#include <iscore/serialization/DataStreamVisitor.hpp>
+template<>
+struct TSerializer<DataStream, TimeValue>
+{
+        static void readFrom(
+                DataStream::Serializer& s,
+                const TimeValue& tv)
+        {
+            s.stream() << tv.isInfinite();
+
+            if(!tv.isInfinite())
+            {
+                s.stream() << tv.msec();
+            }
+        }
+
+        static void writeTo(
+                DataStream::Deserializer& s,
+                TimeValue& tv)
+        {
+            bool inf;
+            s.stream() >> inf;
+
+            if(!inf)
+            {
+                double msec;
+                s.stream() >> msec;
+                tv.setMSecs(msec);
+            }
+            else
+            {
+                tv = TimeValue {PositiveInfinity{}};
+            }
+        }
+};
+
+#include <iscore/serialization/JSONValueVisitor.hpp>
+
+
+template<>
+struct TSerializer<JSONValue, TimeValue>
+{
+    static void readFrom(
+            JSONValue::Serializer& s,
+            const TimeValue& tv)
+    {
+        if(tv.isInfinite())
+        {
+            s.val = "inf";
+        }
+        else
+        {
+            s.val = tv.msec();
+        }
+    }
+
+    static void writeTo(
+            JSONValue::Deserializer& s,
+            TimeValue& tv)
+    {
+        if(s.val.toString() == "inf")
+        {
+            tv = TimeValue {PositiveInfinity{}};
+        }
+        else
+        {
+            tv.setMSecs(s.val.toDouble());
+        }
+    }
+};
+
 
 Q_DECLARE_METATYPE(TimeValue)

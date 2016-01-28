@@ -1,36 +1,46 @@
-#include <core/application/Application.hpp>
 #include <core/document/Document.hpp>
 #include <core/document/DocumentModel.hpp>
-#include <core/document/DocumentView.hpp>
 #include <core/document/DocumentPresenter.hpp>
-
-#include <iscore/plugins/panel/PanelFactory.hpp>
-#include <iscore/plugins/panel/PanelPresenter.hpp>
+#include <core/document/DocumentView.hpp>
 #include <iscore/plugins/panel/PanelModel.hpp>
+#include <iscore/plugins/panel/PanelPresenter.hpp>
+#include <QObject>
+#include <algorithm>
+#include <iterator>
+#include <vector>
 
-#include <iscore/plugins/documentdelegate/DocumentDelegateFactoryInterface.hpp>
+#include <core/document/DocumentBackupManager.hpp>
+#include <iscore/document/DocumentContext.hpp>
+#include <iscore/plugins/panel/PanelFactory.hpp>
+#include <iscore/selection/SelectionStack.hpp>
+#include <iscore/tools/NamedObject.hpp>
+#include <iscore/tools/Todo.hpp>
 
-#include <core/application/OpenDocumentsFile.hpp>
-#include <QLayout>
-#include <QStandardPaths>
-#include <QSettings>
+class QWidget;
+class Selection;
+#include <iscore/tools/SettableIdentifier.hpp>
 
-using namespace iscore;
-
+namespace iscore
+{
 DocumentContext::DocumentContext(Document& d):
-    app{*safe_cast<iscore::Application*>(d.parent()->parent())},
+    app{iscore::AppContext()},
     document{d},
-    commandStack{d.commandStack()},
+    commandStack{d.m_commandStackFacade},
     selectionStack{d.selectionStack()},
     objectLocker{d.locker()}
 {
+}
 
+const std::vector<DocumentPlugin*>&DocumentContext::pluginModels() const
+{
+    return document.model().pluginModels();
 }
 
 
 Document::Document(
+        const QString& name,
         const Id<DocumentModel>& id,
-        DocumentDelegateFactoryInterface* factory,
+        DocumentDelegateFactory* factory,
         QWidget* parentview,
         QObject* parent) :
     NamedObject {"Document", parent},
@@ -38,6 +48,7 @@ Document::Document(
     m_backupMgr{new DocumentBackupManager{*this}},
     m_context{*this}
 {
+    metadata.setFileName(name);
     /// Construction of the document model
 
     // Note : we have to separate allocation
@@ -46,10 +57,10 @@ Document::Document(
     std::allocator<DocumentModel> allocator;
     m_model = allocator.allocate(1);
     allocator.construct(m_model, id, factory, this);
-    m_view = new DocumentView{factory, this, parentview};
+    m_view = new DocumentView{factory, *this, parentview};
     m_presenter = new DocumentPresenter{factory,
-            m_model,
-            m_view,
+            *m_model,
+            *m_view,
             this};
 
     init();
@@ -77,16 +88,6 @@ void Document::setBackupMgr(DocumentBackupManager* backupMgr)
     m_backupMgr = backupMgr;
 }
 
-QString Document::docFileName() const
-{
-    return model().docFileName();
-}
-
-void Document::setDocFileName(const QString &docFileName)
-{
-    m_model->setDocFileName(docFileName);
-}
-
 Document::~Document()
 {
     // We need a custom destructor because
@@ -105,7 +106,7 @@ const Id<DocumentModel>&Document::id() const
 
 void Document::setupNewPanel(PanelFactory* factory)
 {
-    m_model->addPanel(factory->makeModel(m_model));
+    m_model->addPanel(factory->makeModel(m_context, m_model));
 }
 
 void Document::bindPanelPresenter(PanelPresenter* pres)
@@ -120,4 +121,5 @@ void Document::bindPanelPresenter(PanelPresenter* pres)
     ISCORE_ASSERT(localmodel != end(model().panels()));
 
     pres->setModel(*localmodel);
+}
 }

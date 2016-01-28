@@ -1,7 +1,9 @@
-#include "ClearLayout.hpp"
-#include <QLayout>
-#include <QWidget>
 #include <QApplication>
+#include <QLayout>
+#include <QLayoutItem>
+#include <QWidget>
+
+#include "ClearLayout.hpp"
 
 void iscore::clearLayout(QLayout *layout)
 {

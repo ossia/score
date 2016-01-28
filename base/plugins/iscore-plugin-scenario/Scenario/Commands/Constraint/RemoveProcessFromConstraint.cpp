@@ -1,24 +1,36 @@
-#include "RemoveProcessFromConstraint.hpp"
-
+#include <Process/Process.hpp>
+#include <Process/ProcessModelSerialization.hpp>
 #include <Scenario/Document/Constraint/ConstraintModel.hpp>
+#include <Scenario/Document/Constraint/LayerModelLoader.hpp>
 #include <Scenario/Document/Constraint/Rack/RackModel.hpp>
 #include <Scenario/Document/Constraint/Rack/Slot/SlotModel.hpp>
+#include <Scenario/Process/Algorithms/ProcessPolicy.hpp>
 
 
-#include <Process/Process.hpp>
-#include <Process/LayerModel.hpp>
-#include <Process/ProcessModelSerialization.hpp>
-#include <Scenario/Document/Constraint/LayerModelLoader.hpp>
 
-#include <iscore/document/DocumentInterface.hpp>
-#include <core/application/ApplicationComponents.hpp>
+#include <QDataStream>
+#include <QtGlobal>
+#include <algorithm>
+#include <vector>
 
-using namespace iscore;
-using namespace Scenario::Command;
+#include <Process/ProcessList.hpp>
+#include "RemoveProcessFromConstraint.hpp"
+#include <iscore/application/ApplicationContext.hpp>
+#include <iscore/plugins/customfactory/StringFactoryKey.hpp>
+#include <iscore/serialization/DataStreamVisitor.hpp>
+#include <iscore/tools/ModelPath.hpp>
+#include <iscore/tools/ModelPathSerialization.hpp>
+#include <iscore/tools/NotifyingMap.hpp>
+#include <iscore/tools/ObjectPath.hpp>
+
+namespace Scenario
+{
+namespace Command
+{
 
 RemoveProcessFromConstraint::RemoveProcessFromConstraint(
         Path<ConstraintModel>&& constraintPath,
-        const Id<Process>& processId) :
+        const Id<Process::ProcessModel>& processId) :
     m_path {std::move(constraintPath) },
     m_processId {processId}
 {
@@ -44,8 +56,8 @@ void RemoveProcessFromConstraint::undo() const
 {
     auto& constraint = m_path.find();
     Deserializer<DataStream> s {m_serializedProcessData};
-    auto& fact = context.components.factory<DynamicProcessList>();
-    constraint.processes.add(createProcess(fact, s, &constraint));
+    auto& fact = context.components.factory<Process::ProcessList>();
+    AddProcess(constraint, deserialize_interface(fact, s, &constraint));
 
     // Restore the view models
     for(const auto& it : m_serializedViewModels)
@@ -57,7 +69,7 @@ void RemoveProcessFromConstraint::undo() const
                 .slotmodels.at(Id<SlotModel>(path.at(path.size() - 2).id()));
 
         Deserializer<DataStream> stream {it.second};
-        auto lm = createLayerModel(stream,
+        auto lm = Process::createLayerModel(stream,
                                    slot.parentConstraint(),
                                    &slot);
         slot.layers.add(lm);
@@ -67,7 +79,7 @@ void RemoveProcessFromConstraint::undo() const
 void RemoveProcessFromConstraint::redo() const
 {
     auto& constraint = m_path.find();
-    constraint.processes.remove(m_processId);
+    RemoveProcess(constraint, m_processId);
 
     // The view models will be deleted accordingly.
 }
@@ -80,4 +92,6 @@ void RemoveProcessFromConstraint::serializeImpl(DataStreamInput& s) const
 void RemoveProcessFromConstraint::deserializeImpl(DataStreamOutput& s)
 {
     s >> m_path >> m_processId >> m_serializedProcessData >> m_serializedViewModels;
+}
+}
 }

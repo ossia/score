@@ -2,6 +2,8 @@
 #include <QPointF>
 #include <QDebug>
 
+namespace Scenario
+{
 /**
  * @brief The VerticalExtent struct
  *
@@ -40,4 +42,5 @@ inline QDebug operator<< (QDebug d, const VerticalExtent& ve)
 {
     d << static_cast<QPointF>(ve);
     return d;
+}
 }

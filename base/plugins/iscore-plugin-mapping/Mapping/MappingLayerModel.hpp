@@ -1,37 +1,47 @@
 #pragma once
 
+#include <iscore/tools/Metadata.hpp>
 #include <Process/LayerModel.hpp>
 
-class MappingModel;
-class MappingLayerModel : public LayerModel
+#include <iscore/serialization/VisitorInterface.hpp>
+
+class QObject;
+#include <iscore/tools/SettableIdentifier.hpp>
+
+namespace Mapping
 {
-        ISCORE_METADATA("MappingLayerModel")
+class ProcessModel;
+class LayerModel : public Process::LayerModel
+{
         public:
-            MappingLayerModel(
-                MappingModel& model,
-                const Id<LayerModel>& id,
+            LayerModel(
+                ProcessModel& model,
+                const Id<Process::LayerModel>& id,
                 QObject* parent);
 
         // Copy
-        MappingLayerModel(
-                const MappingLayerModel& source,
-                MappingModel& model,
-                const Id<LayerModel>& id,
+        LayerModel(
+                const LayerModel& source,
+                ProcessModel& model,
+                const Id<Process::LayerModel>& id,
                 QObject* parent);
 
         // Load
         template<typename Impl>
-        MappingLayerModel(
+        LayerModel(
                 Deserializer<Impl>& vis,
-                MappingModel& model,
+                ProcessModel& model,
                 QObject* parent) :
-            LayerModel {vis, model, parent}
+            Process::LayerModel {vis, model, parent}
         {
             vis.writeTo(*this);
         }
 
-        LayerModelPanelProxy* make_panelProxy(QObject* parent) const override;
+        Process::LayerModelPanelProxy* make_panelProxy(QObject* parent) const override;
         void serialize(const VisitorVariant&) const override;
 
-        const MappingModel& model() const;
+        const ProcessModel& model() const;
 };
+}
+
+DEFAULT_MODEL_METADATA(Mapping::LayerModel, "Mapping layer")

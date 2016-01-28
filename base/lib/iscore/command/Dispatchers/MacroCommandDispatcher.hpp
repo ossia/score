@@ -2,6 +2,7 @@
 #include <iscore/command/Dispatchers/ICommandDispatcher.hpp>
 #include <iscore/command/Dispatchers/SendStrategy.hpp>
 #include <iscore/command/AggregateCommand.hpp>
+#include <memory>
 
 /**
  * @brief The MacroCommandDispatcher class

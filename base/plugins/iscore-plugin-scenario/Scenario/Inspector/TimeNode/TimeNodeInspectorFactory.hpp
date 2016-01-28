@@ -1,10 +1,20 @@
 #pragma once
-#include <QObject>
 #include <Inspector/InspectorWidgetFactoryInterface.hpp>
+#include <QList>
 
+class InspectorWidgetBase;
+class QObject;
+class QString;
+class QWidget;
+namespace iscore {
+class Document;
+}  // namespace iscore
 
-class TimeNodeInspectorFactory final : public InspectorWidgetFactory
+namespace Scenario
 {
+class TimeNodeInspectorFactory final : public Inspector::InspectorWidgetFactory
+{
+        ISCORE_CONCRETE_FACTORY_DECL("ff1d130b-caaa-4217-868b-cf09bf75823a")
     public:
         TimeNodeInspectorFactory() :
             InspectorWidgetFactory {}
@@ -12,10 +22,11 @@ class TimeNodeInspectorFactory final : public InspectorWidgetFactory
 
         }
 
-        InspectorWidgetBase* makeWidget(
+        Inspector::InspectorWidgetBase* makeWidget(
                 const QObject& sourceElement,
-                iscore::Document& doc,
-                QWidget* parent) override;
+                const iscore::DocumentContext& doc,
+                QWidget* parent) const override;
 
-        const QList<QString>& key_impl() const override;
+        bool matches(const QObject& object) const override;
 };
+}

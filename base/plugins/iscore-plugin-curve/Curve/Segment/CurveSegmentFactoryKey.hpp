@@ -1,7 +1,10 @@
 #pragma once
-#include <iscore/plugins/customfactory/StringFactoryKey.hpp>
+#include <iscore/plugins/customfactory/UuidKey.hpp>
 #include <QMetaType>
+namespace Curve
+{
+class SegmentModel;
+using SegmentFactoryKey = UuidKey<Curve::SegmentModel>;
+}
 
-class CurveSegmentTag{};
-using CurveSegmentFactoryKey = StringKey<CurveSegmentTag>;
-Q_DECLARE_METATYPE(CurveSegmentFactoryKey)
+Q_DECLARE_METATYPE(Curve::SegmentFactoryKey)

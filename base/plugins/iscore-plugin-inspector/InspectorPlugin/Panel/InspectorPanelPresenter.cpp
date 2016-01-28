@@ -1,12 +1,23 @@
-#include "InspectorPanelPresenter.hpp"
 #include "InspectorPanelModel.hpp"
+#include "InspectorPanelPresenter.hpp"
 #include "InspectorPanelView.hpp"
+#include <iscore/document/DocumentInterface.hpp>
+#include <iscore/plugins/panel/PanelModel.hpp>
+#include <iscore/plugins/panel/PanelPresenter.hpp>
 #include "InspectorPanelId.hpp"
 
-#include <core/document/DocumentPresenter.hpp>
-InspectorPanelPresenter::InspectorPanelPresenter(iscore::Presenter* parent,
-        iscore::PanelView* view) :
-    iscore::PanelPresenter {parent, view}
+namespace iscore {
+class PanelView;
+
+}  // namespace iscore
+
+
+namespace InspectorPanel
+{
+InspectorPanelPresenter::InspectorPanelPresenter(
+        iscore::PanelView* view,
+        QObject* parent) :
+    iscore::PanelPresenter {view, parent}
 {
 
 }
@@ -16,7 +27,9 @@ int InspectorPanelPresenter::panelId() const
     return INSPECTOR_PANEL_ID;
 }
 
-void InspectorPanelPresenter::on_modelChanged()
+void InspectorPanelPresenter::on_modelChanged(
+        iscore::PanelModel* oldm,
+        iscore::PanelModel* newm)
 {
     using namespace iscore;
     if(model())
@@ -37,4 +50,5 @@ void InspectorPanelPresenter::on_modelChanged()
 
         disconnect(m_mvConnection);
     }
+}
 }

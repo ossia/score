@@ -1,37 +1,47 @@
 #pragma once
 
+#include <iscore/tools/Metadata.hpp>
 #include <Process/LayerModel.hpp>
 
-class AutomationModel;
-class AutomationLayerModel final : public LayerModel
+#include <iscore/serialization/VisitorInterface.hpp>
+#include <iscore/tools/SettableIdentifier.hpp>
+
+class QObject;
+
+namespace Automation
 {
-        ISCORE_METADATA("AutomationLayerModel")
+class ProcessModel;
+class LayerModel final : public Process::LayerModel
+{
     public:
-        AutomationLayerModel(
-                AutomationModel& model,
-                const Id<LayerModel>& id,
+        LayerModel(
+                ProcessModel& model,
+                const Id<Process::LayerModel>& id,
                 QObject* parent);
 
         // Copy
-        AutomationLayerModel(
-                const AutomationLayerModel& source,
-                AutomationModel& model,
-                const Id<LayerModel>& id,
+        LayerModel(
+                const LayerModel& source,
+                ProcessModel& model,
+                const Id<Process::LayerModel>& id,
                 QObject* parent);
 
         // Load
         template<typename Impl>
-        AutomationLayerModel(
+        LayerModel(
                 Deserializer<Impl>& vis,
-                AutomationModel& model,
+                ProcessModel& model,
                 QObject* parent) :
-            LayerModel {vis, model, parent}
+            Process::LayerModel {vis, model, parent}
         {
             vis.writeTo(*this);
         }
 
-        LayerModelPanelProxy* make_panelProxy(QObject* parent) const override;
+        Process::LayerModelPanelProxy* make_panelProxy(QObject* parent) const override;
         void serialize(const VisitorVariant&) const override;
 
-        const AutomationModel& model() const;
+        const ProcessModel& model() const;
 };
+}
+
+DEFAULT_MODEL_METADATA(Automation::LayerModel, "Automation layer")

@@ -1,9 +1,13 @@
-#include "BoolValueWidget.hpp"
-
 #include <iscore/widgets/MarginLess.hpp>
-
 #include <QComboBox>
 #include <QGridLayout>
+
+#include <QString>
+
+#include "BoolValueWidget.hpp"
+#include <State/Widgets/Values/ValueWidget.hpp>
+
+class QWidget;
 
 BoolValueWidget::BoolValueWidget(bool value, QWidget *parent)
     : ValueWidget{parent}
@@ -17,7 +21,7 @@ BoolValueWidget::BoolValueWidget(bool value, QWidget *parent)
     this->setLayout(lay);
 }
 
-iscore::Value BoolValueWidget::value() const
+State::Value BoolValueWidget::value() const
 {
-    return iscore::Value{bool(m_value->currentIndex())};
+    return State::Value{bool(m_value->currentIndex())};
 }

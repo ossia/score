@@ -1,19 +1,22 @@
 #pragma once
-#include <QStringList>
-#include <QObject>
-#include <QByteArray>
-#include <iscore/plugins/customfactory/FactoryInterface.hpp>
-#include <iscore/serialization/VisitorInterface.hpp>
-#include <iscore/tools/SettableIdentifier.hpp>
 #include <Process/ProcessFactoryKey.hpp>
-
 #include <Process/TimeValue.hpp>
-class LayerModel;
-class Process;
-class LayerView;
-class LayerPresenter;
-class QGraphicsItem;
+#include <iscore/plugins/customfactory/FactoryInterface.hpp>
+#include <QByteArray>
+#include <QString>
+#include <iscore_lib_process_export.h>
+#include <iscore/tools/SettableIdentifier.hpp>
 
+class QGraphicsItem;
+class QObject;
+struct VisitorVariant;
+
+namespace Process
+{
+class LayerModel;
+class LayerPresenter;
+class LayerView;
+class ProcessModel;
 
 /**
      * @brief The ProcessFactory class
@@ -21,18 +24,19 @@ class QGraphicsItem;
      * Interface to make processes, like Scenario, Automation...
      */
 
-class ProcessFactory :
+class ISCORE_LIB_PROCESS_EXPORT ProcessFactory :
         public iscore::GenericFactoryInterface<ProcessFactoryKey>
 {
-        ISCORE_FACTORY_DECL("Process")
+        ISCORE_ABSTRACT_FACTORY_DECL(
+                ProcessModel,
+                "507ae654-f3b8-4aae-afc3-7ab8e1a3a86f")
     public:
-            using factory_key_type = ProcessFactoryKey;
         virtual ~ProcessFactory();
         virtual QString prettyName() const = 0;
 
-        virtual Process* makeModel(
+        virtual ProcessModel* makeModel(
                 const TimeValue& duration,
-                const Id<Process>& id,
+                const Id<ProcessModel>& id,
                 QObject* parent) = 0;
 
         // The layers may need some specific static data to construct,
@@ -40,7 +44,7 @@ class ProcessFactory :
         virtual QByteArray makeStaticLayerConstructionData() const = 0;
 
         // throws if the serialization method is not implemented by the subclass
-        virtual Process* loadModel(
+        virtual ProcessModel* load(
                 const VisitorVariant&,
                 QObject* parent) = 0;
 
@@ -55,3 +59,4 @@ class ProcessFactory :
                 const LayerModel& view,
                 QGraphicsItem* parent) = 0;
 };
+}

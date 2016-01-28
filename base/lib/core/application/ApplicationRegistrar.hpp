@@ -1,32 +1,47 @@
 #pragma once
-#include <vector>
-#include <unordered_map>
 #include <iscore/command/CommandGeneratorMap.hpp>
-#include <iscore/plugins/customfactory/FactoryFamily.hpp>
+#include <QObject>
+#include <unordered_map>
+#include <utility>
 
+#include <iscore/command/SerializableCommand.hpp>
+#include <iscore/plugins/customfactory/FactoryInterface.hpp>
+
+#include <iscore_lib_base_export.h>
 namespace iscore
 {
-class DocumentDelegateFactoryInterface;
-class PluginControlInterface;
-class PanelFactory;
+class DocumentDelegateFactory;
 class FactoryListInterface;
-class PanelPresenter;
-class Presenter;
-struct ApplicationComponentsData;
+class GUIApplicationContextPlugin;
+class PanelFactory;
 class SettingsDelegateFactoryInterface;
+struct ApplicationComponentsData;
+class View;
+class MenubarManager;
+struct OrderedToolbar;
+class Settings;
 
-class ApplicationRegistrar : public QObject
+class ISCORE_LIB_BASE_EXPORT ApplicationRegistrar : public QObject
 {
     public:
-        ApplicationRegistrar(ApplicationComponentsData&, iscore::Application&);
+        ApplicationRegistrar(
+                ApplicationComponentsData&,
+                const iscore::ApplicationContext&,
+                iscore::View&,
+                Settings&,
+                MenubarManager&,
+                std::vector<OrderedToolbar>&,
+                QObject* panelPresenterParent);
+
         // Register data from plugins
-        void registerPluginControl(PluginControlInterface*);
+        void registerPlugins(const QStringList&, const std::vector<QObject*>& vec);
+        void registerApplicationContextPlugin(GUIApplicationContextPlugin*);
         void registerPanel(PanelFactory*);
-        void registerDocumentDelegate(DocumentDelegateFactoryInterface*);
+        void registerDocumentDelegate(DocumentDelegateFactory*);
         void registerCommands(std::unordered_map<CommandParentFactoryKey, CommandGeneratorMap>&& cmds);
         void registerCommands(std::pair<CommandParentFactoryKey, CommandGeneratorMap>&& cmds);
-        void registerFactories(std::unordered_map<iscore::FactoryBaseKey, FactoryListInterface*>&& cmds);
-        void registerFactory(FactoryListInterface* cmds);
+        void registerFactories(std::unordered_map<iscore::AbstractFactoryKey, std::unique_ptr<FactoryListInterface>>&& cmds);
+        void registerFactory(std::unique_ptr<FactoryListInterface> cmds);
         void registerSettings(SettingsDelegateFactoryInterface*);
 
         auto& components() const
@@ -34,6 +49,11 @@ class ApplicationRegistrar : public QObject
 
     private:
         ApplicationComponentsData& m_components;
-        Application& m_app;
+        const iscore::ApplicationContext& m_context;
+        iscore::View& m_view;
+        Settings& m_settings;
+        MenubarManager& m_menubar;
+        std::vector<OrderedToolbar>& m_toolbars;
+        QObject* m_panelPresenterParent{};
 };
 }

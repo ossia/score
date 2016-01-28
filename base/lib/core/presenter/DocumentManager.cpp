@@ -1,33 +1,62 @@
-#include "DocumentManager.hpp"
-#include <iscore/plugins/plugincontrol/PluginControlInterface.hpp>
-#include <iscore/plugins/panel/PanelPresenter.hpp>
-
+#include <boost/optional/optional.hpp>
 #include <core/document/DocumentBackups.hpp>
+#include <core/document/DocumentModel.hpp>
 #include <core/presenter/Presenter.hpp>
 #include <core/view/View.hpp>
-#include <core/document/DocumentModel.hpp>
-
-#include <QJsonDocument>
-#include <QJsonObject>
+#include <iscore/plugins/application/GUIApplicationContextPlugin.hpp>
+#include <iscore/plugins/panel/PanelPresenter.hpp>
+#include <iscore/tools/SettableIdentifierGeneration.hpp>
+#include <QByteArray>
+#include <QFile>
 #include <QFileDialog>
-#include <QSaveFile>
+#include <QFlags>
+#include <QIODevice>
+#include <QJsonDocument>
 #include <QMessageBox>
+
+#include <QSaveFile>
 #include <QSettings>
+#include <QStringList>
+#include <QVariant>
+#include <utility>
+
+#include "DocumentManager.hpp"
+#include "QRecentFilesMenu.h"
+#include <iscore/application/ApplicationComponents.hpp>
+#include <core/command/CommandStack.hpp>
+#include <core/command/CommandStackSerialization.hpp>
+#include <core/document/Document.hpp>
+#include <iscore/tools/SettableIdentifier.hpp>
+#include <iscore/tools/std/StdlibWrapper.hpp>
+#include <iscore/tools/std/Algorithms.hpp>
+
 namespace iscore
 {
-DocumentManager::DocumentManager(Presenter& p):
-    m_presenter{p},
-    m_builder{p}
+DocumentManager::DocumentManager(
+        iscore::View& view,
+        QObject* parentPresenter):
+    m_view{view},
+    m_builder{parentPresenter, &view}
 {
-    connect(m_presenter.view(), &View::activeDocumentChanged,
-            this,   [&] (Document* doc) {
-        prepareNewDocument();
-        setCurrentDocument(doc);
+
+}
+
+void DocumentManager::init(const ApplicationContext& ctx)
+{
+    con(m_view, &View::activeDocumentChanged,
+        this, [&] (const Id<DocumentModel>& doc) {
+        prepareNewDocument(ctx);
+        auto it = find_if(m_documents, [&] (auto other) { return other->model().id() == doc; });
+        setCurrentDocument(ctx, it != m_documents.end() ? *it : nullptr);
     });
 
 
-    connect(m_presenter.view(), &View::closeRequested,
-            this,   &DocumentManager::closeDocument);
+    con(m_view, &View::closeRequested,
+        this, [&] (const Id<DocumentModel>& doc) {
+        auto it = find_if(m_documents, [&] (auto other) { return other->model().id() == doc; });
+        ISCORE_ASSERT(it != m_documents.end());
+        closeDocument(ctx, **it);
+    });
 
     m_recentFiles = new QRecentFilesMenu{tr("Recent files"), nullptr};
 
@@ -35,7 +64,7 @@ DocumentManager::DocumentManager(Presenter& p):
     m_recentFiles->restoreState(settings.value("RecentFiles").toByteArray());
 
     connect(m_recentFiles, &QRecentFilesMenu::recentFileTriggered,
-            this, [&] (const QString& f) { loadFile(f); });
+            this, [&] (const QString& f) { loadFile(ctx, f); });
 
 }
 
@@ -44,38 +73,45 @@ DocumentManager::~DocumentManager()
     QSettings settings("OSSIA", "i-score");
     settings.setValue("RecentFiles", m_recentFiles->saveState());
 
-    // The documents have to be deleted before the plug-in controls.
-    // This is because the Local device has to be deleted last in OSSIAControl.
+    // The documents have to be deleted before the application context plug-ins.
+    // This is because the Local device has to be deleted last in OSSIAApplicationPlugin.
     for(auto document : m_documents)
     {
-        delete document;
+        document->deleteLater();
     }
 
     m_documents.clear();
     m_currentDocument = nullptr;
+    if(m_recentFiles)
+        delete m_recentFiles;
 }
 
-Document* DocumentManager::setupDocument(Document* doc)
+ISCORE_LIB_BASE_EXPORT
+Document* DocumentManager::setupDocument(
+        const iscore::ApplicationContext& ctx,
+        Document* doc)
 {
     if(doc)
     {
-        for(auto& panel : m_presenter.applicationComponents().panelPresenters())
+        for(auto& panel : ctx.components.panelPresenters())
         {
             doc->setupNewPanel(panel.second);
         }
 
         m_documents.push_back(doc);
-        m_presenter.view()->addDocumentView(&doc->view());
-        setCurrentDocument(doc);
-        connect(&doc->model(), &DocumentModel::fileNameChanged,
+        m_view.addDocumentView(&doc->view());
+        setCurrentDocument(ctx, doc);
+        connect(&doc->metadata, &DocumentMetadata::fileNameChanged,
                 this, [=] (const QString& s)
         {
-            m_presenter.view()->on_fileNameChanged(&doc->view(), s);
+            m_view.on_fileNameChanged(&doc->view(), s);
         });
     }
     else
     {
-        setCurrentDocument(m_documents.empty() ? nullptr : m_documents.front());
+        setCurrentDocument(
+                    ctx,
+                    m_documents.empty() ? nullptr : m_documents.front());
     }
 
     return doc;
@@ -86,12 +122,14 @@ Document *DocumentManager::currentDocument() const
     return m_currentDocument;
 }
 
-void DocumentManager::setCurrentDocument(Document* doc)
+void DocumentManager::setCurrentDocument(
+        const iscore::ApplicationContext& ctx,
+        Document* doc)
 {
     auto old = m_currentDocument;
     m_currentDocument = doc;
 
-    for(auto& pair : m_presenter.applicationComponents().panelPresenters())
+    for(auto& pair : ctx.components.panelPresenters())
     {
         if(doc)
             m_currentDocument->bindPanelPresenter(pair.first);
@@ -99,18 +137,18 @@ void DocumentManager::setCurrentDocument(Document* doc)
             pair.first->setModel(nullptr);
     }
 
-    for(auto& ctrl : m_presenter.applicationComponents().controls())
+    for(auto& ctrl : ctx.components.applicationPlugins())
     {
-        emit ctrl->documentChanged(old, m_currentDocument);
+        ctrl->on_documentChanged(old, m_currentDocument);
     }
-
-    emit currentDocumentChanged(doc);
 }
 
-bool DocumentManager::closeDocument(Document* doc)
+bool DocumentManager::closeDocument(
+        const iscore::ApplicationContext& ctx,
+        Document& doc)
 {
     // Warn the user if he might loose data
-    if(!doc->commandStack().isAtSavedIndex())
+    if(!doc.commandStack().isAtSavedIndex())
     {
         QMessageBox msgBox;
         msgBox.setText(tr("The document has been modified."));
@@ -137,17 +175,26 @@ bool DocumentManager::closeDocument(Document* doc)
     }
 
     // Close operation
-    m_presenter.view()->closeDocument(&doc->view());
-    remove_one(m_documents, doc);
-    setCurrentDocument(m_documents.size() > 0 ? m_documents.back() : nullptr);
-
-    delete doc;
+    forceCloseDocument(ctx, doc);
     return true;
 }
 
-bool DocumentManager::saveDocument(Document * doc)
+void DocumentManager::forceCloseDocument(
+        const ApplicationContext& ctx,
+        Document& doc)
 {
-    auto savename = doc->docFileName();
+    m_view.closeDocument(&doc.view());
+    remove_one(m_documents, &doc);
+    setCurrentDocument(
+                ctx,
+                m_documents.size() > 0 ? m_documents.back() : nullptr);
+
+    delete &doc;
+}
+
+bool DocumentManager::saveDocument(Document& doc)
+{
+    auto savename = doc.metadata.fileName();
 
     if(savename == tr("Untitled"))
     {
@@ -158,11 +205,11 @@ bool DocumentManager::saveDocument(Document * doc)
         QSaveFile f{savename};
         f.open(QIODevice::WriteOnly);
         if(savename.indexOf(".scorebin") != -1)
-            f.write(doc->saveAsByteArray());
+            f.write(doc.saveAsByteArray());
         else
         {
             QJsonDocument json_doc;
-            json_doc.setObject(doc->saveAsJson());
+            json_doc.setObject(doc.saveAsJson());
 
             f.write(json_doc.toJson());
         }
@@ -172,9 +219,9 @@ bool DocumentManager::saveDocument(Document * doc)
     return true;
 }
 
-bool DocumentManager::saveDocumentAs(Document * doc)
+bool DocumentManager::saveDocumentAs(Document& doc)
 {
-    QFileDialog d{m_presenter.view(), tr("Save Document As")};
+    QFileDialog d{&m_view, tr("Save Document As")};
     QString binFilter{tr("Binary (*.scorebin)")};
     QString jsonFilter{tr("JSON (*.scorejson)")};
     QStringList filters;
@@ -206,13 +253,13 @@ bool DocumentManager::saveDocumentAs(Document * doc)
 
             QSaveFile f{savename};
             f.open(QIODevice::WriteOnly);
-            doc->setDocFileName(savename);
+            doc.metadata.setFileName(savename);
             if(savename.indexOf(".scorebin") != -1)
-                f.write(doc->saveAsByteArray());
+                f.write(doc.saveAsByteArray());
             else
             {
                 QJsonDocument json_doc;
-                json_doc.setObject(doc->saveAsJson());
+                json_doc.setObject(doc.saveAsJson());
 
                 f.write(json_doc.toJson());
             }
@@ -223,13 +270,94 @@ bool DocumentManager::saveDocumentAs(Document * doc)
     return false;
 }
 
-Document* DocumentManager::loadFile()
+bool DocumentManager::saveStack()
 {
-    QString loadname = QFileDialog::getOpenFileName(m_presenter.view(), tr("Open"), QString(), "*.scorebin *.scorejson");
-    return loadFile(loadname);
+    QFileDialog d{&m_view, tr("Save Stack As")};
+    d.setNameFilters({".stack"});
+    d.setConfirmOverwrite(true);
+    d.setFileMode(QFileDialog::AnyFile);
+    d.setAcceptMode(QFileDialog::AcceptSave);
+
+    if(d.exec())
+    {
+        QString savename = d.selectedFiles().first();
+        if(!savename.isEmpty())
+        {
+            if(!savename.contains(".stack"))
+                savename += ".stack";
+
+            QSaveFile f{savename};
+            f.open(QIODevice::WriteOnly);
+
+            f.reset();
+            Serializer<DataStream> ser(&f);
+            ser.readFrom(currentDocument()->id());
+            ser.readFrom(currentDocument()->commandStack());
+            f.commit();
+        }
+        return true;
+    }
+    return false;
 }
 
-Document* DocumentManager::loadFile(const QString& fileName)
+Document* DocumentManager::loadStack(
+        const iscore::ApplicationContext& ctx)
+{
+    QString loadname = QFileDialog::getOpenFileName(&m_view, tr("Open Stack"), QString(), "*.stack");
+    if(!loadname.isEmpty()
+        && (loadname.indexOf(".stack") != -1) )
+    {
+        return loadStack(ctx, loadname);
+    }
+
+    return nullptr;
+}
+
+Document* DocumentManager::loadStack(
+        const ApplicationContext &ctx,
+        const QString& loadname)
+{
+    QFile cmdF{loadname};
+
+    if(cmdF.open(QIODevice::ReadOnly))
+    {
+        QByteArray cmdArr {cmdF.readAll()};
+        cmdF.close();
+
+        Deserializer<DataStream> writer(cmdArr);
+
+        Id<DocumentModel> id; //getStrongId(documents())
+        writer.writeTo(id);
+
+        prepareNewDocument(ctx);
+        auto doc = m_builder.newDocument(ctx,
+                                         id,
+                                         ctx.components.availableDocuments().front());
+        setupDocument(ctx, doc);
+
+        loadCommandStack(
+                    ctx.components,
+                    writer,
+                    doc->commandStack(),
+                    [] (auto cmd) { cmd->redo(); }
+        );
+        return doc;
+    }
+
+    return nullptr;
+}
+
+ISCORE_LIB_BASE_EXPORT
+Document* DocumentManager::loadFile(
+        const iscore::ApplicationContext& ctx)
+{
+    QString loadname = QFileDialog::getOpenFileName(&m_view, tr("Open"), QString(), "*.scorebin *.scorejson");
+    return loadFile(ctx, loadname);
+}
+
+Document* DocumentManager::loadFile(
+        const iscore::ApplicationContext& ctx,
+        const QString& fileName)
 {
     Document* doc{};
     if(!fileName.isEmpty()
@@ -241,15 +369,15 @@ Document* DocumentManager::loadFile(const QString& fileName)
         {
             if (fileName.indexOf(".scorebin") != -1)
             {
-                doc = loadDocument(f.readAll(), m_presenter.applicationComponents().availableDocuments().front());
+                doc = loadDocument(ctx, f.readAll(), ctx.components.availableDocuments().front());
             }
             else if (fileName.indexOf(".scorejson") != -1)
             {
                 auto json = QJsonDocument::fromJson(f.readAll());
-                doc = loadDocument(json.object(), m_presenter.applicationComponents().availableDocuments().front());
+                doc = loadDocument(ctx, json.object(), ctx.components.availableDocuments().front());
             }
 
-            m_currentDocument->setDocFileName(fileName);
+            m_currentDocument->metadata.setFileName(fileName);
             m_recentFiles->addRecentFile(fileName);
         }
     }
@@ -257,19 +385,22 @@ Document* DocumentManager::loadFile(const QString& fileName)
     return doc;
 }
 
-void DocumentManager::prepareNewDocument()
+ISCORE_LIB_BASE_EXPORT
+void DocumentManager::prepareNewDocument(
+        const iscore::ApplicationContext& ctx)
 {
-    for(PluginControlInterface* control : m_presenter.applicationComponents().pluginControls())
+    for(GUIApplicationContextPlugin* appPlugin : ctx.components.applicationPlugins())
     {
-        control->prepareNewDocument();
+        appPlugin->prepareNewDocument();
     }
 }
 
-bool DocumentManager::closeAllDocuments()
+bool DocumentManager::closeAllDocuments(
+        const iscore::ApplicationContext& ctx)
 {
     while(!m_documents.empty())
     {
-        bool b = closeDocument(m_documents.back());
+        bool b = closeDocument(ctx, *m_documents.back());
         if(!b)
             return false;
     }
@@ -278,13 +409,30 @@ bool DocumentManager::closeAllDocuments()
 }
 
 
-
-void DocumentManager::restoreDocuments()
+ISCORE_LIB_BASE_EXPORT
+void DocumentManager::restoreDocuments(
+        const iscore::ApplicationContext& ctx)
 {
     for(const auto& backup : DocumentBackups::restorableDocuments())
     {
-        restoreDocument(backup.first, backup.second, m_presenter.applicationComponents().availableDocuments().front());
+        restoreDocument(ctx, backup.first, backup.second, ctx.components.availableDocuments().front());
     }
 }
 
+}
+
+Id<iscore::DocumentModel> getStrongId(const std::vector<iscore::Document*>& v)
+{
+    using namespace std;
+    vector<int32_t> ids(v.size());   // Map reduce
+
+    transform(v.begin(),
+              v.end(),
+              ids.begin(),
+              [](const auto elt)
+    {
+        return * (elt->id().val());
+    });
+
+    return Id<iscore::DocumentModel>{iscore::id_generator::getNextId(ids)};
 }

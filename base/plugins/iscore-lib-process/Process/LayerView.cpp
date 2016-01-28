@@ -1,7 +1,12 @@
-#include "LayerView.hpp"
-#include <QPainter>
 #include <Process/Style/ScenarioStyle.hpp>
+#include <QPainter>
 
+#include "LayerView.hpp"
+
+class QStyleOptionGraphicsItem;
+class QWidget;
+namespace Process
+{
 LayerView::~LayerView()
 {
 
@@ -27,6 +32,7 @@ void LayerView::setHeight(qreal height)
 {
     prepareGeometryChange();
     m_height = height;
+    emit heightChanged();
 }
 
 
@@ -40,10 +46,12 @@ void LayerView::setWidth(qreal width)
 {
     prepareGeometryChange();
     m_width = width;
+    emit widthChanged();
 }
 
 
 qreal LayerView::width() const
 {
     return m_width;
+}
 }

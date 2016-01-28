@@ -1,5 +1,5 @@
-cmake_minimum_required(VERSION 2.8)
-project(iscore_plugin_js)
+cmake_minimum_required(VERSION 3.1)
+project(iscore_plugin_js LANGUAGES CXX)
 
 iscore_common_setup()
 
@@ -17,6 +17,7 @@ set(SRCS
 "${CMAKE_CURRENT_SOURCE_DIR}/JS/JSAPIWrapper.cpp"
 "${CMAKE_CURRENT_SOURCE_DIR}/JS/JSProcess.cpp"
 "${CMAKE_CURRENT_SOURCE_DIR}/JS/JSProcessModel.cpp"
+"${CMAKE_CURRENT_SOURCE_DIR}/JS/JSProcessModelSerialization.cpp"
 "${CMAKE_CURRENT_SOURCE_DIR}/JS/JSProcessMetadata.cpp"
 
 "${CMAKE_CURRENT_SOURCE_DIR}/JS/Commands/EditScript.cpp"
@@ -24,13 +25,17 @@ set(SRCS
 
 "${CMAKE_CURRENT_SOURCE_DIR}/JS/Inspector/JSInspectorFactory.cpp"
 "${CMAKE_CURRENT_SOURCE_DIR}/JS/Inspector/JSInspectorWidget.cpp"
+"${CMAKE_CURRENT_SOURCE_DIR}/JS/Inspector/NotifyingPlainTextEdit.cpp"
 
 "${CMAKE_CURRENT_SOURCE_DIR}/iscore_plugin_js.cpp"
 )
 
 add_library(${PROJECT_NAME} ${SRCS} ${HDRS})
-target_link_libraries(${PROJECT_NAME}
+# TODO make this automatic in some way, and extend to other components
+iscore_generate_command_list_file(${PROJECT_NAME} "${HDRS}")
+
+target_link_libraries(${PROJECT_NAME} PUBLIC
                      Qt5::Core Qt5::Widgets Qt5::Qml
-                     iscore_lib_base iscore_plugin_ossia iscore_lib_dummyprocess)
+                     iscore_lib_base iscore_plugin_ossia iscore_lib_process iscore_lib_inspector iscore_lib_device iscore_plugin_deviceexplorer iscore_lib_dummyprocess)
 
 setup_iscore_plugin(${PROJECT_NAME})

@@ -1,7 +1,17 @@
 #pragma once
-#include <QGraphicsObject>
 
-class LayerView : public QGraphicsObject
+#include <QtGlobal>
+#include <QGraphicsItem>
+#include <QRect>
+#include <iscore_lib_process_export.h>
+
+class QPainter;
+class QStyleOptionGraphicsItem;
+class QWidget;
+
+namespace Process
+{
+class ISCORE_LIB_PROCESS_EXPORT LayerView : public QGraphicsObject
 {
     public:
         using QGraphicsObject::QGraphicsObject;
@@ -25,3 +35,4 @@ class LayerView : public QGraphicsObject
         qreal m_height {};
         qreal m_width {};
 };
+}
