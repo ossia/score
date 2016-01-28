@@ -12,7 +12,7 @@ class ConstraintViewModel;
 class RackWidget final : public QWidget
 {
     public:
-        RackWidget(ConstraintInspectorWidget* parent);
+        RackWidget(ConstraintInspectorWidget* parentCstr, QWidget* parent);
 
         ~RackWidget();
 

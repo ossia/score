@@ -36,8 +36,12 @@ class ISCORE_LIB_DEVICE_EXPORT AddressEditWidget final : public QWidget
     signals:
         void addressChanged(const State::Address&);
 
+    protected:
+        void customContextMenuEvent(const QPoint& p);
+
     private:
         AddressLineEdit* m_lineEdit{};
         State::Address m_address;
+        DeviceExplorerModel* m_model;
 };
 }

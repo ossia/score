@@ -45,7 +45,7 @@ class ISCORE_LIB_INSPECTOR_EXPORT InspectorWidgetBase : public QWidget
         // By default returns the name of the object.
         virtual QString tabName();
 
-        const iscore::DocumentContext& context()
+        const iscore::DocumentContext& context() const
         { return m_context; }
 
         void updateSectionsView(QVBoxLayout* layout, const std::list<QWidget*>& contents);
