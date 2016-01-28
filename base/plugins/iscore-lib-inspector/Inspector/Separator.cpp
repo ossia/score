@@ -30,7 +30,7 @@ VSeparator::VSeparator(QWidget *parent) :
     this->layout()->addWidget(f);
 
     f->setFrameShape(QFrame::VLine);
-    f->setLineWidth(2);
+    f->setLineWidth(1);
 }
 
 VSeparator::~VSeparator()
