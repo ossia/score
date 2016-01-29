@@ -20,8 +20,8 @@ MappingView::MappingView(QGraphicsItem* parent) :
 
 void MappingView::paint_impl(QPainter* painter) const
 {
-    static const int fontSize = 10;
-    QRectF processNameRect{0, this->height() - 2*fontSize, 0.95 * this->width(), fontSize + 2 };
+    static const int fontSize = 8;
+    QRectF processNameRect{10, fontSize, 0.95 * this->width(), fontSize * 6 };
 
     if(m_showName)
     {
@@ -29,7 +29,7 @@ void MappingView::paint_impl(QPainter* painter) const
         f.setPointSize(fontSize);
         painter->setFont(f);
         painter->setPen(Qt::lightGray);
-        painter->drawText(processNameRect, Qt::AlignRight, m_source + m_dest); // TODO
+        painter->drawText(processNameRect, Qt::AlignLeft, m_displayedName);
     }
 }
 }

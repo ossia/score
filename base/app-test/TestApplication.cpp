@@ -7,6 +7,10 @@
 #include <core/plugin/PluginManager.hpp>
 #include <core/undo/UndoApplicationPlugin.hpp>
 #include <core/undo/Panel/UndoPanelFactory.hpp>
+
+#include <iscore/plugins/documentdelegate/DocumentDelegateFactoryInterface.hpp>
+#include <iscore/plugins/documentdelegate/plugin/DocumentDelegatePluginModel.hpp>
+
 TestApplication::TestApplication(int &argc, char **argv):
     NamedObject{"toto", nullptr}
 {
@@ -31,6 +35,9 @@ TestApplication::TestApplication(int &argc, char **argv):
                 m_presenter->menuBar(),
                 m_presenter->toolbars(),
                 m_presenter};
+
+    registrar.registerFactory(std::make_unique<iscore::DocumentDelegateList>());
+    registrar.registerFactory(std::make_unique<iscore::DocumentPluginFactoryList>());
 
     iscore::PluginLoader::loadPlugins(registrar, ctx);
 

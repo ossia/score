@@ -14,7 +14,8 @@ class TestObject : public QObject
         const iscore::ApplicationContext& m_context;
         Q_OBJECT
     public:
-        TestObject(const iscore::ApplicationContext& ctx):m_context{ctx}
+        TestObject(const iscore::ApplicationContext& ctx):
+            m_context{ctx}
         {
             QTimer::singleShot(1000, this, SIGNAL(appStarting()));
             connect(this, SIGNAL(appStarting()),
