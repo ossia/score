@@ -2,6 +2,7 @@
 #ifndef Q_MOC_RUN
 #include <boost/spirit/include/qi.hpp>
 #include <boost/spirit/include/qi_real.hpp>
+#include <boost/spirit/include/qi_lit.hpp>
 #include <boost/spirit/include/phoenix.hpp>
 #include <boost/spirit/include/phoenix_operator.hpp>
 #include <boost/variant/recursive_wrapper.hpp>
@@ -40,6 +41,7 @@ RelationOp		:= '<=' || '<' || '>=' || '>' || '==' || '!=';
 
 Relation		:= RelationMember, RelationOp, RelationMember;
 
+Pulse           := 'impulse(' , Address , ')'
 
 # Boolean operations
 
@@ -110,6 +112,11 @@ BOOST_FUSION_ADAPT_STRUCT(
         (State::RelationMember, lhs)
         (State::Relation::Operator, op)
         (State::RelationMember, rhs)
+        )
+
+BOOST_FUSION_ADAPT_STRUCT(
+        State::Pulse,
+        (State::Address, address)
         )
 namespace {
 /// Address parsing.
@@ -218,6 +225,7 @@ struct RelationOperation_map : qi::symbols<char, State::Relation::Operator>
         }
 };
 
+
 template <typename Iterator>
 struct Relation_parser : qi::grammar<Iterator, State::Relation()>
 {
@@ -233,6 +241,21 @@ struct Relation_parser : qi::grammar<Iterator, State::Relation()>
     RelationMember_parser<Iterator> rm_parser;
     RelationOperation_map op_map;
     qi::rule<Iterator, State::Relation()> start;
+};
+
+template <typename Iterator>
+struct Pulse_parser : qi::grammar<Iterator, State::Pulse()>
+{
+    Pulse_parser() : Pulse_parser::base_type(start)
+    {
+        using boost::spirit::qi::skip;
+        using boost::spirit::qi::lit;
+        using boost::spirit::ascii::string;
+        start %= ("impulse(" >> addr >> ')');
+    }
+
+    Address_parser<Iterator> addr;
+    qi::rule<Iterator, State::Pulse()> start;
 };
 
 
@@ -253,7 +276,9 @@ typedef std::string var;
 template <typename tag> struct binop;
 template <typename tag> struct unop;
 
-using expr_raw = boost::variant<State::Relation,
+using expr_raw = boost::variant<
+        State::Relation,
+        State::Pulse,
         boost::recursive_wrapper<unop <op_not> >,
         boost::recursive_wrapper<binop<op_and> >,
         boost::recursive_wrapper<binop<op_xor> >,
@@ -286,11 +311,12 @@ template <typename It, typename Skipper = qi::space_type>
         and_ = (not_ >> "and" >> and_) [ _val = phx::construct<binop<op_and>>(_1, _2) ] | not_   [ _val = _1 ];
         not_ = ("not" > simple       ) [ _val = phx::construct<unop <op_not>>(_1)     ] | simple [ _val = _1 ];
 
-        simple = (('(' > expr_ > ')') | var_);
+        simple = (('(' > expr_ > ')') | relation_ | pulse_);
     }
 
   private:
-    Relation_parser<It> var_;
+    Relation_parser<It> relation_;
+    Pulse_parser<It> pulse_;
     qi::rule<It, expr_raw(), Skipper> not_, and_, xor_, or_, simple, expr_;
 };
 
@@ -300,6 +326,11 @@ struct Expression_builder : boost::static_visitor<void>
         State::Expression* m_current{};
 
         void operator()(const State::Relation& rel)
+        {
+            m_current->emplace_back(rel, nullptr);
+        }
+
+        void operator()(const State::Pulse& rel)
         {
             m_current->emplace_back(rel, nullptr);
         }

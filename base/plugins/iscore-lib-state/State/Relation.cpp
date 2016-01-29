@@ -6,6 +6,12 @@
 namespace State {
 struct Address;
 struct Value;
+
+QString Pulse::toString() const
+{
+    return "impulse(" + address.toString() + ")";
+}
+
 }  // namespace iscore
 
 QString State::Relation::relMemberToString(State::RelationMember m) const

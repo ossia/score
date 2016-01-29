@@ -12,6 +12,35 @@ template <typename T> class Reader;
 template <typename T> class TypeToName;
 template <typename T> class Writer;
 
+
+template<>
+void Visitor<Reader<DataStream>>::readFrom(const State::Pulse& rel)
+{
+    m_stream << rel.address;
+
+    insertDelimiter();
+}
+
+template<>
+void Visitor<Reader<JSONObject>>::readFrom(const State::Pulse& rel)
+{
+    m_obj["Address"] = toJsonObject(rel.address);
+}
+
+template<>
+void Visitor<Writer<DataStream>>::writeTo(State::Pulse& rel)
+{
+    m_stream >> rel.address;
+
+    checkDelimiter();
+}
+
+template<>
+void Visitor<Writer<JSONObject>>::writeTo(State::Pulse& rel)
+{
+    fromJsonObject(m_obj["Address"].toObject(), rel.address);
+}
+
 template<>
 void Visitor<Reader<DataStream>>::readFrom(const State::Relation& rel)
 {
@@ -49,6 +78,7 @@ void Visitor<Writer<JSONObject>>::writeTo(State::Relation& rel)
     fromJsonValue(m_obj["Op"], rel.op);
 }
 
+// TODO URGENT Replace this by Metadata<> instances.
 template<> class TypeToName<State::Address>
 { public: static constexpr const char * name() { return "Address"; } };
 
@@ -57,6 +87,9 @@ template<> class TypeToName<State::Value>
 
 template<> class TypeToName<State::Relation>
 { public: static constexpr const char * name() { return "Relation"; } };
+
+template<> class TypeToName<State::Pulse>
+{ public: static constexpr const char * name() { return "Pulse"; } };
 
 template<> class TypeToName<State::BinaryOperator>
 { public: static constexpr const char * name() { return "BinOp"; } };
