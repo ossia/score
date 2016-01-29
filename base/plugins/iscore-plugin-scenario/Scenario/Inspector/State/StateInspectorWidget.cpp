@@ -86,7 +86,7 @@ void StateInspectorWidget::updateDisplayedValues()
                 &scenar->event(event),
                 selectionDispatcher(),
                 this);
-
+        linkLay->addStretch(1);
         linkLay->addWidget(btn);
     }
 
@@ -111,6 +111,7 @@ void StateInspectorWidget::updateDisplayedValues()
 
         linkLay->addWidget(btn);
     }
+    linkLay->addStretch(1);
 
     m_stateSection->addContent(linkWidget);
 

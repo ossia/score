@@ -43,6 +43,7 @@ InspectorSectionWidget::InspectorSectionWidget(bool editable, QWidget* parent) :
     titleLayout->addWidget(m_unfoldBtn);
     titleLayout->addWidget(m_sectionTitle);
     titleLayout->addWidget(m_buttonTitle);
+    titleLayout->addStretch(1);
     titleLayout->addWidget(m_deleteBtn);
 
     // CONTENT

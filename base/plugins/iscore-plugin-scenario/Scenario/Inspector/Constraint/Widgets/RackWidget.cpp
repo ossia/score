@@ -22,7 +22,7 @@
 
 namespace Scenario
 {
-const QString RackWidget::hiddenText{ QObject::tr("Hide")};
+const QString RackWidget::hiddenText{ QObject::tr("None")};
 
 
 RackWidget::RackWidget(ProcessViewTabWidget* parentTabWidget, QWidget* parent) :
@@ -34,7 +34,7 @@ RackWidget::RackWidget(ProcessViewTabWidget* parentTabWidget, QWidget* parent) :
     QWidget* mainWidg = new QWidget;
     mainLay->addWidget(mainWidg);
 
-    QGridLayout* lay = new iscore::MarginLess<QGridLayout>{mainWidg};
+    auto lay = new iscore::MarginLess<QHBoxLayout>{mainWidg};
 
     // Button
     QToolButton* addButton = new QToolButton{this};
@@ -50,10 +50,10 @@ RackWidget::RackWidget(ProcessViewTabWidget* parentTabWidget, QWidget* parent) :
     viewModelsChanged();
 
     // Layout setup
-    lay->addWidget(addButton, 0, 0);
-    lay->addWidget(addText, 0, 1);
-    //lay->addWidget(m_rackList, 1, 0, 1, 2);
+    lay->addWidget(addButton);
+    lay->addWidget(addText);
 
+    mainLay->addStretch(1);
 }
 
 RackWidget::~RackWidget()
@@ -64,11 +64,16 @@ void RackWidget::viewModelsChanged()
 {
     delete m_comboBoxesWidget;
     m_comboBoxesWidget = new QWidget{this};
-    auto lay = new QGridLayout;
+    auto lay = new iscore::MarginLess<QGridLayout>{m_comboBoxesWidget};
     int i = 0;
 
-    lay->addWidget(new QLabel{"View Model"}, i, 0);
-    lay->addWidget(new QLabel{"Rack Used"}, i, 1);
+    auto rackUsed = new QLabel{"Rack Used"};
+    rackUsed->setAlignment(Qt::AlignHCenter);
+
+    lay->addWidget(new QWidget{m_comboBoxesWidget}, i, 0);
+    lay->addWidget(new QLabel{"View Model"}, i, 1);
+    lay->addWidget(rackUsed, i, 2);
+    lay->addWidget(new QWidget{m_comboBoxesWidget}, i, 3);
     i++;
 
     for(auto vm : m_model.viewModels())
@@ -80,17 +85,20 @@ void RackWidget::viewModelsChanged()
         }
         else
         {
-            label = new QLabel{QString::number(vm->id().val().get()), m_comboBoxesWidget};
+//            label = new QLabel{QString::number(vm->id().val().get()), m_comboBoxesWidget};
+            //TODO until we have others viewmodel, display a name instead of Id
+            label = new QLabel{tr("Reduce view"), m_comboBoxesWidget};
         }
         auto rack = new LambdaFriendlyQComboBox{m_comboBoxesWidget};
         updateComboBox(rack, vm);
 
-        lay->addWidget(label, i, 0);
-        lay->addWidget(rack, i, 1);
+        lay->addWidget(new QWidget{m_comboBoxesWidget}, i, 0);
+        lay->addWidget(label, i, 1);
+        lay->addWidget(rack, i, 2);
+        lay->addWidget(new QWidget{m_comboBoxesWidget}, i, 3);
         i++;
     }
 
-    m_comboBoxesWidget->setLayout(lay);
     this->layout()->addWidget(m_comboBoxesWidget);
 }
 
