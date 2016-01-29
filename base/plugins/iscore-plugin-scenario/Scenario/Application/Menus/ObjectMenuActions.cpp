@@ -51,6 +51,7 @@
 #include <iscore/tools/NotifyingMap.hpp>
 #include <Scenario/Commands/Cohesion/DoForSelectedConstraints.hpp>
 #include <iscore/menu/MenuInterface.hpp>
+#include <Scenario/Process/Algorithms/ContainersAccessors.hpp>
 
 namespace Scenario
 {
@@ -224,17 +225,23 @@ bool ObjectMenuActions::populateToolBar(QToolBar* tb)
 
 QJsonObject ObjectMenuActions::copySelectedElementsToJson()
 {
-    if (auto sm = m_parent->focusedScenarioModel())
+    auto si = m_parent->focusedScenarioInterface();
+    auto si_obj = dynamic_cast<QObject*>(const_cast<ScenarioInterface*>(si));
+    if(auto sm = dynamic_cast<const Scenario::ScenarioModel*>(si))
     {
         return copySelectedScenarioElements(*sm);
+    }
+    else if(auto bsm = dynamic_cast<const Scenario::BaseScenarioContainer*>(si))
+    {
+        return copySelectedScenarioElements(*bsm, si_obj);
     }
     else
     {
         // Full-view copy
-        auto& bem = iscore::IDocument::modelDelegate<ScenarioDocumentModel>(*m_parent->currentDocument());
-        if(bem.baseConstraint().selection.get())
+        auto& bem = iscore::IDocument::modelDelegate<Scenario::ScenarioDocumentModel>(*m_parent->currentDocument());
+        if(!bem.baseScenario().selectedChildren().empty())
         {
-            return copySelectedScenarioElements(bem.baseScenario());
+            return copySelectedScenarioElements(bem.baseScenario(), &bem.baseScenario());
         }
     }
 
@@ -269,23 +276,6 @@ void ObjectMenuActions::pasteElements(
     auto cmd = new ScenarioPasteElements(sm, obj, origin);
 
     dispatcher().submitCommand(cmd);
-}
-
-static auto& getConstraints(const ScenarioModel& target)
-{
-    return target.constraints;
-}
-static auto& getStates(const ScenarioModel& target)
-{
-    return target.states;
-}
-static auto getConstraints(const BaseScenarioContainer& target)
-{
-    return target.constraints();
-}
-static auto getStates(const BaseScenarioContainer& target)
-{
-    return target.states();
 }
 
 template<typename Scenario_T>
@@ -330,9 +320,24 @@ void ObjectMenuActions::writeJsonToSelectedElements(const QJsonObject &obj)
 {
     auto si = m_parent->focusedScenarioInterface();
     if(auto sm = dynamic_cast<const Scenario::ScenarioModel*>(si))
+    {
         writeJsonToScenario(*sm, *this, obj);
+    }
     else if(auto bsm = dynamic_cast<const Scenario::BaseScenarioContainer*>(si))
+    {
         writeJsonToScenario(*bsm, *this, obj);
+    }
+    else
+    {
+        ISCORE_TODO;
+        /*
+        // Full-view paste
+        auto& bem = iscore::IDocument::modelDelegate<ScenarioDocumentModel>(*m_parent->currentDocument());
+        if(bem.baseConstraint().selection.get())
+        {
+            return copySelectedScenarioElements(bem.baseScenario());
+        }*/
+    }
 
 }
 
