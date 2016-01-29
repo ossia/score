@@ -194,6 +194,7 @@ QWidget* ConstraintInspectorWidget::makeStatesWidget(Scenario::ScenarioModel* sc
     QWidget* eventWid = new QWidget{this};
     auto eventLay = new iscore::MarginLess<QHBoxLayout>{eventWid};
 
+    eventLay->addStretch(1);
     if(auto sst = m_model.startState())
     {
         auto btn = SelectionButton::make(
@@ -213,6 +214,7 @@ QWidget* ConstraintInspectorWidget::makeStatesWidget(Scenario::ScenarioModel* sc
                        this);
         eventLay->addWidget(btn);
     }
+    eventLay->addStretch(1);
 
     return eventWid;
 }

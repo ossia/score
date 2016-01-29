@@ -62,10 +62,6 @@ SlotInspectorSection::SlotInspectorSection(
     m_model.layers.added.connect<SlotInspectorSection, &SlotInspectorSection::on_layerModelCreated>(this);
     m_model.layers.removed.connect<SlotInspectorSection, &SlotInspectorSection::on_layerModelRemoved>(this);
 
-    for(const auto& lm : m_model.layers)
-    {
-        displayLayerModel(lm);
-    }
 
     // add indention in section
     auto indentWidg = new QWidget{this};
@@ -79,8 +75,19 @@ SlotInspectorSection::SlotInspectorSection(
     lay->addWidget(indentWidg);
     lay->addWidget(m_addLmWidget);
 
+    auto frame = new QFrame;
+    m_lmGridLayout = new iscore::MarginLess<QGridLayout>{frame};
+    frame->setFrameShape(QFrame::StyledPanel);
+    m_lmSection->addContent(frame);
+
+
     connect(this, &InspectorSectionWidget::nameChanged,
             this, &SlotInspectorSection::ask_changeName);
+
+    for(const auto& lm : m_model.layers)
+    {
+        displayLayerModel(lm);
+    }
 }
 
 void SlotInspectorSection::createLayerModel(
@@ -97,17 +104,14 @@ void SlotInspectorSection::displayLayerModel(const Process::LayerModel& lm)
 {
     auto lm_id = lm.id();
 
-    // Layout
-    auto frame = new QFrame;
-    auto lay = new iscore::MarginLess<QHBoxLayout>{frame};
-    frame->setFrameShape(QFrame::StyledPanel);
-
     // LM label
     QString name = lm.objectName();
     name.resize(name.indexOf("Layer"));
     auto id = lm.processModel().id();
 
-    lay->addWidget(new QLabel {QString{name + ".%1"} .arg(*id.val()) });
+    auto row = m_lmGridLayout->rowCount();
+
+    m_lmGridLayout->addWidget(new QLabel {QString{name + ".%1"} .arg(*id.val()) }, row ,0);
 
     // To front button
     auto pb = new QPushButton {tr("Front")};
@@ -117,8 +121,9 @@ void SlotInspectorSection::displayLayerModel(const Process::LayerModel& lm)
         PutLayerModelToFront cmd{m_model, lm_id};
         cmd.redo();
     });
-    lay->addStretch(1);
-    lay->addWidget(pb);
+    m_lmGridLayout->addWidget(new QWidget{this}, row, 1);
+    m_lmGridLayout->addWidget(pb, row, 2);
+    m_lmGridLayout->addWidget(new QWidget{this}, row, 3);
 
     // Delete button
     auto deleteButton = new QPushButton{{tr("Delete")}};
@@ -127,11 +132,8 @@ void SlotInspectorSection::displayLayerModel(const Process::LayerModel& lm)
         auto cmd = new Command::RemoveLayerModelFromSlot{m_model, lm_id};
         emit m_parent.commandDispatcher()->submitCommand(cmd);
     });
-    lay->addStretch(1);
-    lay->addWidget(deleteButton);
-    lay->addStretch(1);
-
-    m_lmSection->addContent(frame);
+    m_lmGridLayout->addWidget(deleteButton, row, 4);
+    m_lmGridLayout->addWidget(new QWidget{this}, row, 5);
 }
 
 

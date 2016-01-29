@@ -8,6 +8,7 @@
 namespace Process { class LayerModel; }
 namespace Process { class ProcessModel; }
 
+class QGridLayout;
 
 namespace Scenario
 {
@@ -40,6 +41,7 @@ class SlotInspectorSection final : public Inspector::InspectorSectionWidget, pub
         const ConstraintInspectorWidget& m_parent;
         InspectorSectionWidget* m_lmSection {};
         AddLayerModelWidget* m_addLmWidget {};
+        QGridLayout* m_lmGridLayout{};
         //std::vector<InspectorSectionWidget*> m_lmsSectionWidgets;
 };
 }
