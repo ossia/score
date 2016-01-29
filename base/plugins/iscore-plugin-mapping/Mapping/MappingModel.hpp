@@ -64,6 +64,8 @@ class ISCORE_PLUGIN_MAPPING_EXPORT ProcessModel : public Curve::CurveProcessMode
         void setTargetMin(double arg);
         void setTargetMax(double arg);
 
+        QString prettyName() const override;
+
     signals:
         void sourceAddressChanged(const State::Address& arg);
         void sourceMinChanged(double arg);
@@ -88,8 +90,6 @@ class ISCORE_PLUGIN_MAPPING_EXPORT ProcessModel : public Curve::CurveProcessMode
 
         //// ProcessModel ////
         ProcessFactoryKey concreteFactoryKey() const override;
-
-        QString prettyName() const override;
 
         Process::LayerModel* makeLayer_impl(
                 const Id<Process::LayerModel>& viewModelId,
