@@ -11,13 +11,24 @@ set(SRCS
     "${CMAKE_CURRENT_SOURCE_DIR}/TestApplication.cpp"
     )
 
+
+
 add_executable(iscore_testapp ${SRCS})
 
-target_link_libraries(iscore_testapp PRIVATE iscore_lib_base)
+target_link_libraries(iscore_testapp PRIVATE iscore_lib_base   ${ISCORE_PLUGINS_LIST}
+    Qt5::Core Qt5::Widgets Qt5::Gui Qt5::Network Qt5::Xml Qt5::Svg Qt5::Test)
 
-setup_iscore_common_features(iscore_testapp)
+setup_iscore_common_exe_features(iscore_testapp)
 
 setup_target_for_coverage(
     iscore_test_coverage
     iscore_testapp
     coverage_out)
+
+
+if(TARGET iscore_testapp_unity)
+    setup_target_for_coverage(
+        iscore_test_coverage_unity
+        iscore_testapp_unity
+        coverage)
+endif()
