@@ -75,7 +75,7 @@ ProcessFactoryKey ProcessModel::concreteFactoryKey() const
 
 QString ProcessModel::prettyName() const
 {
-    return metadata.name() + " : " + sourceAddress().toString();
+    return metadata.name() + " : \n  " + sourceAddress().toString() + " ->\n  " + targetAddress().toString();
 }
 
 void ProcessModel::setDurationAndScale(const TimeValue& newDuration)

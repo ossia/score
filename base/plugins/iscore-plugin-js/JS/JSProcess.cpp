@@ -24,7 +24,7 @@ ProcessExecutor::ProcessExecutor(
     m_start{OSSIA::State::create()},
     m_end{OSSIA::State::create()}
 {
-    m_engine.globalObject().setProperty("iscore", m_engine.newQObject(new JS::APIWrapper{devices}));
+    m_engine.globalObject().setProperty("iscore", m_engine.newQObject(new JS::APIWrapper{m_engine, devices}));
 }
 
 void ProcessExecutor::setTickFun(const QString& val)
