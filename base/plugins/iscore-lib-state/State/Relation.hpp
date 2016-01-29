@@ -34,6 +34,18 @@ struct ISCORE_LIB_STATE_EXPORT Relation
         QString toString() const;
 };
 
+struct ISCORE_LIB_STATE_EXPORT Pulse
+{
+        State::Address address;
+
+        friend bool operator==(const Pulse& lhs, const Pulse& rhs)
+        {
+            return lhs.address == rhs.address;
+        }
+
+        QString toString() const;
+};
+
 ISCORE_LIB_STATE_EXPORT const QMap<State::Relation::Operator, QString> opToString();
 
 }

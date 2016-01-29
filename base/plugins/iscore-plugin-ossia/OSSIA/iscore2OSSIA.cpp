@@ -29,6 +29,7 @@
 #include "Editor/Message.h"
 #include "Editor/State.h"
 #include "Editor/Value.h"
+#include <Editor/ExpressionPulse.h>
 #include "Network/Address.h"
 #include "Network/Device.h"
 #include "Network/Node.h"
@@ -446,6 +447,38 @@ std::shared_ptr<OSSIA::State> state(
 }
 
 
+OSSIA::Destination* expressionAddress(
+        const State::Address& addr,
+        const Device::DeviceList& devlist)
+{
+    if(!devlist.hasDevice(addr.device))
+    {
+        throw NodeNotFoundException(addr);
+    }
+
+    auto& device = devlist.device(addr.device);
+    if(!device.connected())
+    {
+        throw NodeNotFoundException(addr);
+    }
+
+    if(auto casted_dev = dynamic_cast<const Ossia::OSSIADevice*>(&device))
+    {
+        auto n = findNodeFromPath(addr.path, casted_dev->impl_ptr());
+        if(n)
+        {
+            return new OSSIA::Destination(n);
+        }
+        else
+        {
+            throw NodeNotFoundException(addr);
+        }
+    }
+    else
+    {
+        throw NodeNotFoundException(addr);
+    }
+}
 
 OSSIA::Value* expressionOperand(
         const State::RelationMember& relm,
@@ -457,34 +490,7 @@ OSSIA::Value* expressionOperand(
         case 0:
         {
             const auto& addr = get<State::Address>(relm);
-            if(!devlist.hasDevice(addr.device))
-            {
-                throw NodeNotFoundException(addr);
-            }
-
-            auto& device = devlist.device(addr.device);
-            if(!device.connected())
-            {
-                throw NodeNotFoundException(addr);
-            }
-
-            if(auto casted_dev = dynamic_cast<const Ossia::OSSIADevice*>(&device))
-            {
-                auto n = findNodeFromPath(addr.path, casted_dev->impl_ptr());
-                if(n)
-                {
-                    return new OSSIA::Destination(n);
-                }
-                else
-                {
-                    throw NodeNotFoundException(addr);
-                }
-            }
-            else
-            {
-                throw NodeNotFoundException(addr);
-            }
-
+            return expressionAddress(addr, devlist);
             break;
         }
         case 1:
@@ -531,6 +537,15 @@ std::shared_ptr<OSSIA::ExpressionAtom> expressionAtom(
                 expressionOperand(rel.rhs, dev));
 }
 
+std::shared_ptr<OSSIA::ExpressionPulse> expressionPulse(
+        const State::Pulse& rel,
+        const Device::DeviceList& dev)
+{
+    using namespace eggs::variants;
+
+    return OSSIA::ExpressionPulse::create(expressionAddress(rel.address, dev));
+}
+
 static const QMap<State::BinaryOperator, OSSIA::ExpressionComposition::Operator> comp_map
 {
     {State::BinaryOperator::And, OSSIA::ExpressionComposition::Operator::AND},
@@ -561,6 +576,10 @@ std::shared_ptr<OSSIA::Expression> expression(
     else if(expr.is<State::Relation>())
     {
         return expressionAtom(expr.get<State::Relation>(), devlist);
+    }
+    else if(expr.is<State::Pulse>())
+    {
+        return expressionPulse(expr.get<State::Pulse>(), devlist);
     }
     else if(expr.is<State::BinaryOperator>())
     {

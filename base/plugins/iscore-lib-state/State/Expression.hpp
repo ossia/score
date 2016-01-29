@@ -25,7 +25,7 @@ enum class UnaryOperator {
 };
 
 struct ISCORE_LIB_STATE_EXPORT ExprData :
-        public iscore::VariantBasedNode<Relation, BinaryOperator, UnaryOperator>
+        public iscore::VariantBasedNode<Relation, Pulse, BinaryOperator, UnaryOperator>
 {
         ISCORE_SERIALIZE_FRIENDS(ExprData, DataStream)
         ISCORE_SERIALIZE_FRIENDS(ExprData, JSONObject)
