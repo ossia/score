@@ -23,19 +23,20 @@ class LayerPresenter final :
                 QObject* parent):
             CurveProcessPresenter{context, style, layer, view, parent}
         {
+            // TODO instead have a prettyNameChanged signal.
             con(m_layer.model(), &ProcessModel::addressChanged,
-                this, [&] (const auto&)
-            {
-                m_view->setDisplayedName(m_layer.model().prettyName());
-            });
+                this, &LayerPresenter::on_nameChanges);
             con(m_layer.model().metadata, &ModelMetadata::nameChanged,
-                this, [&] (QString s)
-            {
-                m_view->setDisplayedName(s);
-            });
+                this, &LayerPresenter::on_nameChanges);
 
             m_view->setDisplayedName(m_layer.model().prettyName());
             m_view->showName(true);
+        }
+
+    private:
+        void on_nameChanges()
+        {
+            m_view->setDisplayedName(m_layer.model().prettyName());
         }
 };
 }

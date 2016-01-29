@@ -20,7 +20,7 @@ LayerView::LayerView(QGraphicsItem* parent) :
 
 void LayerView::paint_impl(QPainter* painter) const
 {
-    static const int fontSize = 10;
+    static const int fontSize = 8;
     QRectF processNameRect{0, this->height() - 2*fontSize, 0.95 * this->width(), fontSize + 2 };
 
 #if !defined(ISCORE_IEEE_SKIN)
