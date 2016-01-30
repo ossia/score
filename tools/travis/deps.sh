@@ -14,7 +14,6 @@ case "$TRAVIS_OS_NAME" in
     sudo apt-get update -qq
     sudo apt-get install -qq g++-5 libboost1.55-dev libavahi-compat-libdnssd-dev libportmidi-dev ninja-build gcovr lcov
 
-
     if [[ "$CONF" == "linux-package" ]];
     then
       sudo wget https://www.dropbox.com/s/vjh9lm1n3sody2c/qt5-static-linux-release.tar.xz?dl=1 -O /opt/qt5-static-linux-release.tar.xz
