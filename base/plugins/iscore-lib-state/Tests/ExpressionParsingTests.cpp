@@ -161,6 +161,8 @@ QDebug operator<<(QDebug dbg, const State::ExprData& v)
 {
     if(v.is<State::Relation>())
         dbg << v.get<State::Relation>();
+    else if(v.is<State::Pulse>())
+        dbg << v.get<State::Pulse>();
     else if(v.is<State::BinaryOperator>())
         dbg << v.get<State::BinaryOperator>();
     else if(v.is<State::UnaryOperator>())

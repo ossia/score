@@ -376,10 +376,16 @@ QString toPrettyString(const State::Value& val)
             {
                 QString s{"["};
 
-                for(const auto& elt : t)
+                auto n = t.size();
+                if(n >= 1)
                 {
-                    s += eggs::variants::apply(*this, elt.impl());
+                    s += eggs::variants::apply(*this, t[0].impl());
+                }
+
+                for(std::size_t i = 1; i < n; i++)
+                {
                     s += ", ";
+                    s += eggs::variants::apply(*this, t[i].impl());
                 }
 
                 s+= "]";

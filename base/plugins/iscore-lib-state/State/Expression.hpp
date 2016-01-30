@@ -254,7 +254,11 @@ class ISCORE_LIB_STATE_EXPORT TreeNode<ExprData> final : public ExprData
 
         void setParent(TreeNode* parent)
         {
-            ISCORE_ASSERT(!m_parent || (m_parent && !m_parent->is<State::Relation>()));
+            ISCORE_ASSERT(
+                        !m_parent ||
+                        (m_parent && !m_parent->is<State::Relation>()) ||
+                        (m_parent && !m_parent->is<State::Pulse>())
+                        );
             m_parent = parent;
         }
 
