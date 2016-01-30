@@ -554,10 +554,10 @@ static const QMap<State::BinaryOperator, OSSIA::ExpressionComposition::Operator>
 };
 
 std::shared_ptr<OSSIA::Expression> expression(
-        const State::Expression& expr,
+        const State::Expression& e,
         const Device::DeviceList& list)
 {
-    static const struct {
+    const struct {
             const State::Expression& expr;
             const Device::DeviceList& devlist;
             using return_type = std::shared_ptr<OSSIA::Expression>;
@@ -601,9 +601,9 @@ std::shared_ptr<OSSIA::Expression> expression(
                 }
             }
 
-    } visitor{expr, list};
+    } visitor{e, list};
 
-    return eggs::variants::apply(visitor, expr.impl());
+    return eggs::variants::apply(visitor, e.impl());
 }
 
 void removeOSSIAAddress(OSSIA::Node* n)
