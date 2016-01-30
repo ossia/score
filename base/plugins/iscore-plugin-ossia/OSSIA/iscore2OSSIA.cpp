@@ -555,52 +555,55 @@ static const QMap<State::BinaryOperator, OSSIA::ExpressionComposition::Operator>
 
 std::shared_ptr<OSSIA::Expression> expression(
         const State::Expression& expr,
-        const Device::DeviceList& devlist)
+        const Device::DeviceList& list)
 {
-    if(expr.is<InvisibleRootNodeTag>())
-    {
-        if(expr.childCount() == 0)
-        {
-            // By default no expression == true
-            return OSSIA::Expression::create(true);
-        }
-        else if(expr.childCount() == 1)
-        {
-            return expression(expr.childAt(0), devlist);
-        }
-        else
-        {
-            ISCORE_ABORT;
-        }
-    }
-    else if(expr.is<State::Relation>())
-    {
-        return expressionAtom(expr.get<State::Relation>(), devlist);
-    }
-    else if(expr.is<State::Pulse>())
-    {
-        return expressionPulse(expr.get<State::Pulse>(), devlist);
-    }
-    else if(expr.is<State::BinaryOperator>())
-    {
-        const auto& lhs = expr.childAt(0);
-        const auto& rhs = expr.childAt(1);
-        return OSSIA::ExpressionComposition::create(
-                    expression(lhs, devlist),
-                    comp_map[expr.get<State::BinaryOperator>()],
-                    expression(rhs, devlist)
-                    );
+    static const struct {
+            const State::Expression& expr;
+            const Device::DeviceList& devlist;
+            using return_type = std::shared_ptr<OSSIA::Expression>;
+            return_type operator()(const State::Relation& rel) const
+            {
+                return expressionAtom(rel, devlist);
+            }
+            return_type operator()(const State::Pulse& rel) const
+            {
+                return expressionPulse(rel, devlist);
+            }
 
-    }
-    else if(expr.is<State::UnaryOperator>())
-    {
-        return OSSIA::ExpressionNot::create(expression(expr.childAt(0), devlist));
-    }
-    else
-    {
-        ISCORE_ABORT;
-        return {};
-    }
+            return_type operator()(const State::BinaryOperator rel) const
+            {
+                const auto& lhs = expr.childAt(0);
+                const auto& rhs = expr.childAt(1);
+                return OSSIA::ExpressionComposition::create(
+                            expression(lhs, devlist),
+                            comp_map[rel],
+                            expression(rhs, devlist)
+                            );
+            }
+            return_type operator()(const State::UnaryOperator) const
+            {
+                return OSSIA::ExpressionNot::create(expression(expr.childAt(0), devlist));
+            }
+            return_type operator()(const InvisibleRootNodeTag) const
+            {
+                if(expr.childCount() == 0)
+                {
+                    // By default no expression == true
+                    return OSSIA::Expression::create(true);
+                }
+                else if(expr.childCount() == 1)
+                {
+                    return expression(expr.childAt(0), devlist);
+                }
+                else
+                {
+                    ISCORE_ABORT;
+                }
+            }
+
+    } visitor{expr, list};
+
+    return eggs::variants::apply(visitor, expr.impl());
 }
 
 void removeOSSIAAddress(OSSIA::Node* n)

@@ -61,6 +61,7 @@ class VariantBasedNode
         auto which() const
         { return m_data.which(); }
 
+        auto& impl() const { return m_data; }
     protected:
         eggs::variant<InvisibleRootNodeTag, Args...> m_data;
 };

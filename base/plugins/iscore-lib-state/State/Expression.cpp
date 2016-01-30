@@ -14,16 +14,29 @@ QString ExprData::toString() const
         { State::UnaryOperator::Not, "not" },
     };
 
-    if(is<State::Relation>())
-        return get<State::Relation>().toString();
-    else if(is<State::BinaryOperator>())
-         return binopMap[(get<State::BinaryOperator>())];
-    else if(is<State::UnaryOperator>())
-        return unopMap[(get<State::UnaryOperator>())];
-    else if(is<InvisibleRootNodeTag>())
-        return "";
-    else
-        ISCORE_ABORT;
+    static const constexpr struct {
+        public:
+            using return_type = QString;
+            return_type operator()(const State::Relation& rel) const {
+                return rel.toString();
+            }
+            return_type operator()(const State::Pulse& rel) const {
+                return rel.toString();
+            }
+
+            return_type operator()(const State::BinaryOperator rel) const {
+                return binopMap[rel];
+            }
+            return_type operator()(const State::UnaryOperator rel) const {
+                return unopMap[rel];
+            }
+            return_type operator()(const InvisibleRootNodeTag rel) const {
+                return "";
+            }
+
+    } visitor{};
+
+    return eggs::variants::apply(visitor, m_data);
 }
 
 QString TreeNode<ExprData>::toString() const
