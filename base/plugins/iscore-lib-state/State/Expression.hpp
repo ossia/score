@@ -62,8 +62,8 @@ using State::ExprData;
 template<>
 class ISCORE_LIB_STATE_EXPORT TreeNode<ExprData> final : public ExprData
 {
-        friend struct TSerializer<DataStream, TreeNode<ExprData>>;
-        friend struct TSerializer<JSONObject, TreeNode<ExprData>>;
+        friend struct TSerializer<DataStream, void, TreeNode<ExprData>>;
+        friend struct TSerializer<JSONObject, void, TreeNode<ExprData>>;
 
         friend bool operator!=(const TreeNode<ExprData>& lhs, const TreeNode<ExprData>& rhs)
         {

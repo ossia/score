@@ -46,7 +46,7 @@ struct hash<StringKey<T>>
 #include <iscore/serialization/DataStreamVisitor.hpp>
 #include <iscore/serialization/JSONValueVisitor.hpp>
 template<typename U>
-struct TSerializer<DataStream, StringKey<U>>
+struct TSerializer<DataStream, void, StringKey<U>>
 {
         static void readFrom(
                 DataStream::Serializer& s,

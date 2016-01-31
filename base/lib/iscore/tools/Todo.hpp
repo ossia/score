@@ -43,6 +43,8 @@
 
 template<typename T>
 using remove_qualifs_t = std::decay_t<std::remove_pointer_t<std::decay_t<T>>>;
+template<int N, typename... Ts> using NthTypeOf =
+typename std::tuple_element<N, std::tuple<Ts...>>::type;
 
 #ifdef ISCORE_DEBUG
 template<typename T,

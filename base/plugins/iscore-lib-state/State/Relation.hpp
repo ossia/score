@@ -7,7 +7,28 @@
 
 namespace State
 {
-using RelationMember = eggs::variant<State::Address, State::Value>;
+struct ISCORE_LIB_STATE_EXPORT AddressAccessor
+{
+        State::Address address;
+        std::vector<unsigned int> accessors;
+
+        // Utility
+        QString toString() const;
+
+        bool operator==(const AddressAccessor& other) const
+        {
+            return address == other.address && accessors == other.accessors;
+        }
+        bool operator!=(const AddressAccessor& a) const
+        {
+            return !(*this == a);
+        }
+};
+
+using RelationMember = eggs::variant<
+    State::Address,
+    State::AddressAccessor,
+    State::Value>;
 
 struct ISCORE_LIB_STATE_EXPORT Relation
 {

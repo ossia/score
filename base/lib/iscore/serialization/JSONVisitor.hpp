@@ -411,7 +411,8 @@ void fromJsonArray(QJsonArray&& json_arr, Container<T>& arr)
     }
 }
 
-template<template<typename U, typename V> class Container, typename T1, typename T2>
+template<template<typename U, typename V> class Container, typename T1, typename T2,
+         std::enable_if_t<!std::is_arithmetic<T1>::value>* = nullptr>
 void fromJsonArray(QJsonArray&& json_arr, Container<T1, T2>& arr)
 {
     for(const auto& elt : json_arr)
@@ -422,6 +423,30 @@ void fromJsonArray(QJsonArray&& json_arr, Container<T1, T2>& arr)
     }
 }
 
+
+template<template<typename U, typename V> class Container, typename T1, typename T2,
+         std::enable_if_t<std::is_integral<T1>::value>* = nullptr>
+void fromJsonArray(QJsonArray&& json_arr, Container<T1, T2>& arr)
+{
+    int n = json_arr.size();
+    arr.resize(n);
+    for(int i = 0; i < n; i++)
+    {
+        arr[i] = json_arr[i].toInt();
+    }
+}
+
+template<template<typename U, typename V> class Container, typename T1, typename T2,
+         std::enable_if_t<std::is_floating_point<T1>::value>* = nullptr>
+void fromJsonArray(QJsonArray&& json_arr, Container<T1, T2>& arr)
+{
+    int n = json_arr.size();
+    arr.resize(n);
+    for(int i = 0; i < n; i++)
+    {
+        arr[i] = json_arr[i].toDouble();
+    }
+}
 
 Q_DECLARE_METATYPE(Visitor<Reader<JSONObject>>*)
 Q_DECLARE_METATYPE(Visitor<Writer<JSONObject>>*)

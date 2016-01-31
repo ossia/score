@@ -7,7 +7,7 @@
 #include <QDebug>
 
 template<typename... Args>
-struct TSerializer<DataStream, eggs::variant<Args...>>
+struct TSerializer<DataStream, void, eggs::variant<Args...>>
 {
         static void readFrom(
                 DataStream::Serializer& s,

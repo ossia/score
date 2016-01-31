@@ -14,6 +14,37 @@ template <typename T> class Writer;
 
 
 template<>
+void Visitor<Reader<DataStream>>::readFrom(const State::AddressAccessor& rel)
+{
+    m_stream << rel.address << rel.accessors;
+
+    insertDelimiter();
+}
+
+template<>
+void Visitor<Reader<JSONObject>>::readFrom(const State::AddressAccessor& rel)
+{
+    m_obj["Address"] = toJsonObject(rel.address);
+    m_obj["Accessors"] = toJsonArray(rel.accessors);
+}
+
+template<>
+void Visitor<Writer<DataStream>>::writeTo(State::AddressAccessor& rel)
+{
+    m_stream >> rel.address >> rel.accessors;
+
+    checkDelimiter();
+}
+
+template<>
+void Visitor<Writer<JSONObject>>::writeTo(State::AddressAccessor& rel)
+{
+    fromJsonObject(m_obj["Address"].toObject(), rel.address);
+    fromJsonArray(m_obj["Accessors"].toArray(), rel.accessors);
+}
+
+
+template<>
 void Visitor<Reader<DataStream>>::readFrom(const State::Pulse& rel)
 {
     m_stream << rel.address;
@@ -81,6 +112,9 @@ void Visitor<Writer<JSONObject>>::writeTo(State::Relation& rel)
 // TODO URGENT Replace this by Metadata<> instances.
 template<> class TypeToName<State::Address>
 { public: static constexpr const char * name() { return "Address"; } };
+
+template<> class TypeToName<State::AddressAccessor>
+{ public: static constexpr const char * name() { return "AddressAccessor"; } };
 
 template<> class TypeToName<State::Value>
 { public: static constexpr const char * name() { return "Value"; } };
