@@ -31,7 +31,7 @@ using Serializer = Visitor<Reader<T>>;
 template<typename T>
 using Deserializer = Visitor<Writer<T>>;
 
-template<typename Serializer_T, typename... Args>
+template<typename Serializer_T, typename Enable, typename... Args>
 struct TSerializer;
 
 template<typename Serializer_T, typename T>

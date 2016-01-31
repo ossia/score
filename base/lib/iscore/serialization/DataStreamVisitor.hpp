@@ -5,13 +5,31 @@
 #include <sys/types.h>
 #include <stdexcept>
 #include <type_traits>
+#include <vector>
 
 #include <iscore/tools/NamedObject.hpp>
 #include <iscore/tools/SettableIdentifier.hpp>
+#include <boost/optional.hpp>
 namespace iscore
 {
 struct ApplicationContext;
 }
+
+template<typename T>
+using enable_if_QDataStreamSerializable =
+    typename std::enable_if_t<
+        std::is_arithmetic<T>::value ||
+        std::is_same<T, QStringList>::value
+>;
+
+template <class, class Enable = void>
+struct is_QDataStreamSerializable : std::false_type {};
+
+template <class T>
+struct is_QDataStreamSerializable<T, enable_if_QDataStreamSerializable<T> > : std::true_type {};
+
+
+
 class QIODevice;
 class QStringList;
 template <typename model> class IdentifiedObject;
@@ -110,7 +128,7 @@ class ISCORE_LIB_BASE_EXPORT Visitor<Reader<DataStream>> : public AbstractVisito
                     is_template<T<Args...>>::value &&
                     !is_abstract_base<T<Args...>>::value> * = 0)
         {
-            TSerializer<DataStream, T<Args...>>::readFrom(*this, obj);
+            TSerializer<DataStream, void, T<Args...>>::readFrom(*this, obj);
         }
 
         template<typename T,
@@ -193,7 +211,7 @@ class ISCORE_LIB_BASE_EXPORT Visitor<Writer<DataStream>> : public AbstractVisito
                 T<Args...>& obj,
                 typename std::enable_if<is_template<T<Args...>>::value, void>::type * = 0)
         {
-            TSerializer<DataStream, T<Args...>>::writeTo(*this, obj);
+            TSerializer<DataStream, void, T<Args...>>::writeTo(*this, obj);
         }
 
         template<typename T,
@@ -262,7 +280,7 @@ QDataStream& operator>> (QDataStream& stream, T& obj)
 }
 
 template<typename U>
-struct TSerializer<DataStream, Id<U>>
+struct TSerializer<DataStream, void, Id<U>>
 {
     static void readFrom(
             DataStream::Serializer& s,
@@ -298,7 +316,7 @@ struct TSerializer<DataStream, Id<U>>
 
 
 template<typename T>
-struct TSerializer<DataStream, IdentifiedObject<T>>
+struct TSerializer<DataStream, void, IdentifiedObject<T>>
 {
         static void readFrom(
                 DataStream::Serializer& s,
@@ -318,9 +336,9 @@ struct TSerializer<DataStream, IdentifiedObject<T>>
         }
 
 };
-#include <boost/optional.hpp>
+
 template<typename T>
-struct TSerializer<DataStream, boost::optional<T>>
+struct TSerializer<DataStream, void, boost::optional<T>>
 {
         static void readFrom(
                 DataStream::Serializer& s,
@@ -355,7 +373,7 @@ struct TSerializer<DataStream, boost::optional<T>>
 };
 
 template<typename T>
-struct TSerializer<DataStream, QList<T>>
+struct TSerializer<DataStream, void, QList<T>>
 {
         static void readFrom(
                 DataStream::Serializer& s,
@@ -371,6 +389,77 @@ struct TSerializer<DataStream, QList<T>>
             s.stream() >> obj;
         }
 };
+
+template<typename... Args>
+struct TSerializer<
+        DataStream,
+        std::enable_if_t<!is_QDataStreamSerializable<typename std::vector<Args...>::value_type>::value>,
+        std::vector<Args...>>
+{
+        static void readFrom(
+                DataStream::Serializer& s,
+                const std::vector<Args...>& vec)
+        {
+            s.stream() << (int32_t)vec.size();
+            for(const auto& elt : vec)
+                s.readFrom(elt);
+
+            s.insertDelimiter();
+        }
+
+        static void writeTo(
+                DataStream::Deserializer& s,
+                std::vector<Args...>& vec)
+        {
+            int32_t n = 0;
+            s.stream() >> n;
+
+            vec.clear();
+            vec.resize(n);
+            for(int i = 0; i < n; i++)
+            {
+                s.writeTo(vec[i]);
+            }
+
+            s.checkDelimiter();
+        }
+};
+
+template<typename... Args>
+struct TSerializer<
+        DataStream,
+        std::enable_if_t<is_QDataStreamSerializable<typename std::vector<Args...>::value_type>::value>,
+        std::vector<Args...>>
+{
+        static void readFrom(
+                DataStream::Serializer& s,
+                const std::vector<Args...>& vec)
+        {
+            s.stream() << (int32_t)vec.size();
+            for(const auto& elt : vec)
+                s.stream() << elt;
+
+            s.insertDelimiter();
+        }
+
+        static void writeTo(
+                DataStream::Deserializer& s,
+                std::vector<Args...>& vec)
+        {
+            int32_t n = 0;
+            s.stream() >> n;
+
+            vec.clear();
+            vec.resize(n);
+            for(int i = 0; i < n; i++)
+            {
+                s.stream() >> vec[i];
+            }
+
+            s.checkDelimiter();
+        }
+};
+
 
 Q_DECLARE_METATYPE(Visitor<Reader<DataStream>>*)
 Q_DECLARE_METATYPE(Visitor<Writer<DataStream>>*)

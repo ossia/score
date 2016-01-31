@@ -67,7 +67,7 @@ struct hash<UuidKey<T>>
 }
 
 template<typename U>
-struct TSerializer<DataStream, UuidKey<U>>
+struct TSerializer<DataStream, void, UuidKey<U>>
 {
         static void readFrom(
                 DataStream::Serializer& s,
