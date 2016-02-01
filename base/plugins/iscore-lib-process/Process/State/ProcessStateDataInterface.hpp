@@ -56,7 +56,7 @@ class ISCORE_LIB_PROCESS_EXPORT ProcessStateDataInterface : public IdentifiedObj
          */
         virtual State::MessageList setMessages(
                 const State::MessageList& newMessages,
-                const MessageNode& currentState)
+                const Process::MessageNode& currentState)
         {
             return messages();
         }

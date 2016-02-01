@@ -5,6 +5,9 @@
 #include <iscore/serialization/DataStreamVisitor.hpp>
 #include <iscore/tools/ModelPath.hpp>
 #include <iscore/tools/ModelPathSerialization.hpp>
+#include <iscore/serialization/VisitorCommon.hpp>
+#include <Scenario/Document/State/StateModel.hpp>
+#include <Scenario/Document/State/ItemModel/MessageItemModel.hpp>
 
 namespace Scenario
 {
@@ -14,20 +17,16 @@ namespace Command
 ClearState::ClearState(Path<StateModel>&& path) :
     m_path {std::move(path) }
 {
-    ISCORE_TODO;
-    /*
     const auto& state = m_path.find();
 
     m_serializedStates = marshall<DataStream>(state.messages().rootNode());
-    */
 }
 
 void ClearState::undo() const
 {
-    ISCORE_TODO;
     /*
     auto& state = m_path.find();
-    Device::Node states;
+    Process::MessageNode states;
     QDataStream s(m_serializedStates);
     s >> states;
 
@@ -37,7 +36,6 @@ void ClearState::undo() const
 
 void ClearState::redo() const
 {
-    ISCORE_TODO;
     /*
     auto& state = m_path.find();
 

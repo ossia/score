@@ -65,7 +65,7 @@ template<> void Visitor<Writer<DataStream>>::writeTo(Scenario::StateModel& s)
             >> s.m_heightPercentage;
 
     // Message tree
-    MessageNode n;
+    Process::MessageNode n;
     m_stream >> n;
     s.m_messageItemModel = new Scenario::MessageItemModel{s.m_stack, s, &s};
     s.messages() = n;
@@ -113,7 +113,7 @@ template<> void Visitor<Writer<JSONObject>>::writeTo(Scenario::StateModel& s)
 
     // Message tree
     s.m_messageItemModel = new Scenario::MessageItemModel{s.m_stack, s, &s};
-    s.messages() = fromJsonObject<MessageNode>(m_obj["Messages"].toObject());
+    s.messages() = fromJsonObject<Process::MessageNode>(m_obj["Messages"].toObject());
 
     // Processes plugins
     auto& pl = context.components.factory<Process::StateProcessList>();

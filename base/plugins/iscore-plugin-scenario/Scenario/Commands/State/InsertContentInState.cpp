@@ -35,7 +35,7 @@ InsertContentInState::InsertContentInState(
     m_newNode = m_oldNode;
     updateTreeWithMessageList(
                 m_newNode,
-                flatten(unmarshall<MessageNode>(stateData["Messages"].toObject()))
+                flatten(unmarshall<Process::MessageNode>(stateData["Messages"].toObject()))
             );
 }
 
