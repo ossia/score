@@ -12,7 +12,9 @@ namespace Scenario {
 class RackWidget;
 class RackInspectorSection;
 
-class ProcessViewTabWidget : public QWidget
+class ProcessViewTabWidget :
+        public QWidget,
+        public Nano::Observer
 {
         Q_OBJECT
     public:

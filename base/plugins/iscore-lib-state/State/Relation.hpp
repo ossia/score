@@ -30,6 +30,8 @@ using RelationMember = eggs::variant<
     State::AddressAccessor,
     State::Value>;
 
+ISCORE_LIB_STATE_EXPORT QString toString(const RelationMember&);
+
 struct ISCORE_LIB_STATE_EXPORT Relation
 {
         enum Operator {
@@ -50,10 +52,9 @@ struct ISCORE_LIB_STATE_EXPORT Relation
         {
             return eq_lhs.lhs == eq_rhs.lhs && eq_lhs.rhs == eq_rhs.rhs && eq_lhs.op == eq_rhs.op;
         }
-
-        QString relMemberToString(RelationMember) const;
-        QString toString() const;
 };
+
+ISCORE_LIB_STATE_EXPORT QString toString(const Relation&);
 
 struct ISCORE_LIB_STATE_EXPORT Pulse
 {
@@ -64,9 +65,8 @@ struct ISCORE_LIB_STATE_EXPORT Pulse
             return lhs.address == rhs.address;
         }
 
-        QString toString() const;
 };
-
+ISCORE_LIB_STATE_EXPORT QString toString(const Pulse&);
 ISCORE_LIB_STATE_EXPORT const QMap<State::Relation::Operator, QString> opToString();
 
 }
