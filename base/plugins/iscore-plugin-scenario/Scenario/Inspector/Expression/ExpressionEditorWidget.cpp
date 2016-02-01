@@ -124,55 +124,57 @@ void ExpressionEditorWidget::on_editFinished()
     emit editingFinished();
 }
 
-void ExpressionEditorWidget::exploreExpression(State::Expression e)
+void ExpressionEditorWidget::exploreExpression(State::Expression expr)
 {
-    int c = e.childCount();
-    switch (c)
-    {
-    case 2: {
-        auto a = e.childAt(0);
-        auto b = e.childAt(1);
-        if(a.hasChildren())
-            exploreExpression(a);
-        else
-        {
-            addNewRelation();
-            m_relations.back()->setRelation( a.get<State::Relation>() );
-        }
+    const struct {
+        public:
+            const State::Expression& e;
+            ExpressionEditorWidget& widg;
+            using return_type = void;
 
-        if(b.hasChildren())
-        {
-            exploreExpression(b);
-            if(e.is<State::BinaryOperator>())
+            return_type operator()(const State::Relation& rel) const
             {
-                for(int i = 1; i<m_relations.size(); i++)
+                widg.addNewRelation();
+                widg.m_relations.back()->setRelation(rel);
+            }
+
+            return_type operator()(const State::Pulse&) const
+            {
+                ISCORE_TODO;
+            }
+
+            return_type operator()(const State::BinaryOperator op) const
+            {
+                auto a = e.childAt(0);
+                auto b = e.childAt(1);
+
+                widg.exploreExpression(a);
+                widg.exploreExpression(b);
+
+                for(int i = 1; i < widg.m_relations.size(); i++)
                 {
-                    if(m_relations.at(i)->binOperator() == State::BinaryOperator::None )
-                        m_relations.at(i)->setOperator( e.get<State::BinaryOperator>() );
+                    if(widg.m_relations.at(i)->binOperator() == State::BinaryOperator::None )
+                        widg.m_relations.at(i)->setOperator( op );
                 }
+
+                widg.m_relations.back()->setOperator( op );
             }
-        }
-        else
-        {
-            if(e.is<State::BinaryOperator>())
+
+            return_type operator()(const State::UnaryOperator) const
             {
-                addNewRelation();
-                m_relations.back()->setOperator( e.get<State::BinaryOperator>() );
-                m_relations.back()->setRelation( b.get<State::Relation>() );
+                ISCORE_TODO_("Implement unary operator");
+                widg.exploreExpression(e.childAt(0));
             }
-        }
-    }
-        break;
-    case 1:
-        qDebug() << "no unary op for now"; exploreExpression(e.childAt(0)); break;
-    case 0:
-        addNewRelation();
-        if(e.is<State::Relation>())
-            m_relations.back()->setRelation(e.get<State::Relation>());
-        break;
-    default:
-        qDebug() << "unexpected child count"; break;
-    }
+
+            return_type operator()(const InvisibleRootNodeTag) const
+            {
+                if(e.childCount() > 0)
+                    widg.exploreExpression(e.childAt(0));
+            }
+
+    } visitor{expr, *this};
+
+    return eggs::variants::apply(visitor, expr.impl());
 }
 
 QString ExpressionEditorWidget::currentExpr()
