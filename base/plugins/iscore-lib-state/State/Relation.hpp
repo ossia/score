@@ -10,7 +10,7 @@ namespace State
 struct ISCORE_LIB_STATE_EXPORT AddressAccessor
 {
         State::Address address;
-        std::vector<unsigned int> accessors;
+        std::vector<int32_t> accessors;
 
         // Utility
         QString toString() const;

@@ -226,7 +226,9 @@ void fromJsonValueArray(const QJsonArray&& json_arr, T<Id<V>>& arr)
 }
 
 
-template<typename Container>
+template<
+        typename Container,
+        std::enable_if_t<!std::is_arithmetic<typename Container::value_type>::value>* = nullptr>
 QJsonArray toJsonValueArray(const Container& c)
 {
     QJsonArray arr;
@@ -239,6 +241,20 @@ QJsonArray toJsonValueArray(const Container& c)
     return arr;
 }
 
+template<
+        typename Container,
+        std::enable_if_t<std::is_arithmetic<typename Container::value_type>::value>* = nullptr>
+QJsonArray toJsonValueArray(const Container& c)
+{
+    QJsonArray arr;
+
+    for(auto elt : c)
+    {
+        arr.push_back(elt);
+    }
+
+    return arr;
+}
 
 template<typename Container>
 Container fromJsonValueArray(const QJsonArray& json_arr)

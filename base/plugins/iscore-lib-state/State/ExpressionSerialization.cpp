@@ -25,7 +25,7 @@ template<>
 void Visitor<Reader<JSONObject>>::readFrom(const State::AddressAccessor& rel)
 {
     m_obj["Address"] = toJsonObject(rel.address);
-    m_obj["Accessors"] = toJsonArray(rel.accessors);
+    m_obj["Accessors"] = toJsonValueArray(rel.accessors);
 }
 
 template<>

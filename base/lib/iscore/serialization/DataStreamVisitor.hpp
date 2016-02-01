@@ -19,14 +19,17 @@ template<typename T>
 using enable_if_QDataStreamSerializable =
     typename std::enable_if_t<
         std::is_arithmetic<T>::value ||
-        std::is_same<T, QStringList>::value
+        std::is_same<T, QStringList>::value ||
+        std::is_same<T, QVector3D>::value ||
+        std::is_same<T, QPointF>::value ||
+        std::is_same<T, QPoint>::value
 >;
 
 template <class, class Enable = void>
 struct is_QDataStreamSerializable : std::false_type {};
 
 template <class T>
-struct is_QDataStreamSerializable<T, enable_if_QDataStreamSerializable<T> > : std::true_type {};
+struct is_QDataStreamSerializable<T, enable_if_QDataStreamSerializable<typename std::decay<T>::type> > : std::true_type {};
 
 
 

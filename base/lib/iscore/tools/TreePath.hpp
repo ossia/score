@@ -84,7 +84,7 @@ class TreePath : public QList<int>
 };
 
 template<typename T>
-struct TSerializer<DataStream, TreePath<T>>
+struct TSerializer<DataStream, void, TreePath<T>>
 {
         static void readFrom(
                 DataStream::Serializer& s,
