@@ -2,7 +2,7 @@
 #include <Scenario/Commands/ScenarioCommandFactory.hpp>
 #include <iscore/command/SerializableCommand.hpp>
 #include <iscore/tools/ModelPath.hpp>
-#include <QByteArray>
+#include <State/Message.hpp>
 
 class DataStreamInput;
 class DataStreamOutput;
@@ -27,7 +27,7 @@ class ClearState final : public iscore::SerializableCommand
     private:
         Path<StateModel> m_path;
 
-        QByteArray m_serializedStates;
+        State::MessageList m_oldState;
 };
 }
 }

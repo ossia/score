@@ -47,7 +47,19 @@ static void AddProcessBeforeState(
     emit statemodel.sig_statesUpdated();
 }
 
-static void AddProcessAfterState(StateModel& statemodel, const Process::ProcessModel& proc)
+struct MessageNodeDebugVisitor
+{
+        QString spacing;
+        void visit(Process::MessageNode& n)
+        {
+            qDebug() << n.name << n;
+
+        }
+};
+
+static void AddProcessAfterState(
+        StateModel& statemodel,
+        const Process::ProcessModel& proc)
 {
     ProcessStateDataInterface* state = proc.startStateData();
     if(!state)
@@ -55,6 +67,7 @@ static void AddProcessAfterState(StateModel& statemodel, const Process::ProcessM
 
     auto next_proc_fun = [&] (const State::MessageList& ml) {
         auto& messages = statemodel.messages();
+        qDebug() << "Messages being added : " << ml << "\n";
 
         auto node = messages.rootNode();
         updateTreeWithMessageList(node, ml, proc.id(), ProcessPosition::Following);

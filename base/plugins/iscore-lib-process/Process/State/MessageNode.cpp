@@ -20,6 +20,17 @@ State::Address address(const Process::MessageNode& treeNode)
     return addr;
 }
 
+State::Message userMessage(const Process::MessageNode& node)
+{
+    State::Message mess;
+    mess.address = Process::address(node);
+
+    ISCORE_ASSERT(bool(node.values.userValue));
+    mess.value = *node.values.userValue;
+
+    return mess;
+}
+
 State::Message message(const Process::MessageNode& node)
 {
     State::Message mess;
@@ -62,4 +73,27 @@ State::MessageList flatten(const Process::MessageNode& n)
     flatten_rec(ml, n);
     return ml;
 }
+
+static void getUserMessages_rec(
+        State::MessageList& ml,
+        const Process::MessageNode& node)
+{
+    if(node.hasValue() && node.values.userValue)
+    {
+        ml.append(Process::userMessage(node));
+    }
+
+    for(const auto& child : node)
+    {
+        getUserMessages_rec(ml, child);
+    }
+}
+
+State::MessageList getUserMessages(const MessageNode& n)
+{
+    State::MessageList ml;
+    getUserMessages_rec(ml, n);
+    return ml;
+}
+
 }

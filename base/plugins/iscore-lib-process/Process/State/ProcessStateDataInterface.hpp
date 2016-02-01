@@ -13,15 +13,12 @@
 namespace Process { class ProcessModel; }
 class QObject;
 
-class ISCORE_LIB_PROCESS_EXPORT ProcessStateDataInterface : public IdentifiedObject<ProcessStateDataInterface>
+class ISCORE_LIB_PROCESS_EXPORT ProcessStateDataInterface :
+        public IdentifiedObject<ProcessStateDataInterface>
 {
         Q_OBJECT
     public:
-        ProcessStateDataInterface(Process::ProcessModel& model, QObject* parent):
-            IdentifiedObject{Id<ProcessStateDataInterface>{}, "", parent},
-            m_model{model}
-        {
-        }
+        ProcessStateDataInterface(Process::ProcessModel& model, QObject* parent);
 
         virtual ~ProcessStateDataInterface();
 

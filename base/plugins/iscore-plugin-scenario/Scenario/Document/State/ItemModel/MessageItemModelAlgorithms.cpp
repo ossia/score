@@ -435,6 +435,8 @@ void nodePruneAction(
     }
 }
 
+
+
 void rec_pruneTree(
         Process::MessageNode& node,
         ProcessPosition pos)
@@ -449,7 +451,9 @@ void rec_pruneTree(
     cleanupNode(node);
 }
 
-void updateTreeWithRemovedConstraint(Process::MessageNode& rootNode, ProcessPosition pos)
+void updateTreeWithRemovedConstraint(
+        Process::MessageNode& rootNode,
+        ProcessPosition pos)
 {
     for(auto& child : rootNode)
     {
@@ -457,7 +461,9 @@ void updateTreeWithRemovedConstraint(Process::MessageNode& rootNode, ProcessPosi
     }
 }
 
-void updateTreeWithRemovedUserMessage(Process::MessageNode& rootNode, const State::Address& addr)
+void updateTreeWithRemovedUserMessage(
+        Process::MessageNode& rootNode,
+        const State::Address& addr)
 {
     // Find the message node
     Process::MessageNode* node = Device::try_getNodeFromString(rootNode, stringList(addr));
@@ -542,4 +548,39 @@ void updateTreeWithRemovedNode(
             node->parent()->erase(node->parent()->iterOfChild(node));
         }
     }
+}
+
+
+/// Functions related to removal of user messages ///
+void nodePruneAction(
+        Process::MessageNode& node)
+{
+    node.values.userValue = State::OptionalValue{};
+}
+
+void rec_pruneTree(
+        Process::MessageNode& node)
+{
+    // First set all the user messages to "empty"
+    nodePruneAction(node);
+
+    // Recurse
+    for(auto& child : node)
+    {
+        rec_pruneTree(child);
+    }
+
+    // Then try removing everything that does not have a message.
+    cleanupNode(node);
+}
+
+void removeAllUserMessages(
+        Process::MessageNode &rootNode)
+{
+    for(auto& child : rootNode)
+    {
+        rec_pruneTree(child);
+    }
+
+    cleanupNode(rootNode);
 }
