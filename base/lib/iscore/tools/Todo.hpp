@@ -15,6 +15,7 @@
 #endif
 
 #define ISCORE_TODO do { qDebug() << "TODO"; } while (0)
+#define ISCORE_TODO_(Str) do { qDebug() << "TODO: " << Str; } while (0)
 #if defined(ISCORE_DEBUG)
 #define ISCORE_BREAKPOINT do { DEBUG_BREAK; } while (0)
 #else

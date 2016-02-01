@@ -42,19 +42,16 @@ LocalDevice::LocalDevice(
     });
 
     m_nameChangesCb = m_dev->addCallback(
-                          [this] (const OSSIA::Node& node, const std::string& name, OSSIA::NodeChange chg)
+                          [this] (const OSSIA::Node& node, const std::string& old_name, OSSIA::NodeChange chg)
     {
         if(chg == OSSIA::NodeChange::RENAMED)
         {
-            ISCORE_TODO;
-            /*
             State::Address currentAddress = Ossia::convert::ToAddress(*node.getParent());
-            currentAddress.path.push_back(m_settings.name);
+            currentAddress.path.push_back(QString::fromStdString(old_name));
 
             Device::AddressSettings as = Ossia::convert::ToAddressSettings(node);
-            as.name = QString::fromStdString(newName);
+            as.name = QString::fromStdString(node.getName());
             emit pathUpdated(currentAddress, as);
-            */
         }
     });
 }
