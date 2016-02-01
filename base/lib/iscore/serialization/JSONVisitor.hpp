@@ -238,13 +238,40 @@ QJsonArray toJsonArray(const Container<int>& array)
 {
     QJsonArray arr;
 
-    for(const auto& elt : array)
+    for(auto elt : array)
     {
         arr.append(elt);
     }
 
     return arr;
 }
+
+template<template<typename U> class Container>
+QJsonArray toJsonArray(const Container<unsigned int>& array)
+{
+    QJsonArray arr;
+
+    for(auto elt : array)
+    {
+        arr.append(elt);
+    }
+
+    return arr;
+}
+
+template<template<typename U, typename V> class Container, typename V>
+QJsonArray toJsonArray(const Container<unsigned int, V>& array)
+{
+    QJsonArray arr;
+
+    for(auto elt : array)
+    {
+        arr.append(elt);
+    }
+
+    return arr;
+}
+
 
 template<class Container>
 QJsonArray toJsonArray_sub(const Container& array, std::false_type)

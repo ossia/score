@@ -217,7 +217,7 @@ class TreeNode : public DataType
 
 
 template<typename T>
-struct TSerializer<DataStream, TreeNode<T>>
+struct TSerializer<DataStream, void, TreeNode<T>>
 {
         static void readFrom(
                 DataStream::Serializer& s,
