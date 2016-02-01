@@ -70,16 +70,15 @@ void updateNode(
         const State::Value& val,
         const Id<Process::ProcessModel>& proc)
 {
-    for(Process::ProcessStateData& data : vec)
+    auto it = find_if(vec, [&] (auto& data) { return data.process == proc; });
+    if(it != vec.end())
     {
-        if(data.process == proc)
-        {
-            data.value = val;
-            return;
-        }
+        it->value = val;
     }
-
-    vec.push_back({proc, val});
+    else
+    {
+        vec.push_back({proc, val});
+    }
 }
 
 void rec_delete(Process::MessageNode& node)
@@ -113,9 +112,8 @@ bool nodePruneAction_impl(
     {
         // We just remove the element
         // corresponding to this process.
-        auto it = std::find_if(vec.begin(),
-                               vec.end(),
-                               [&] (const auto& data) {
+        auto it = find_if(vec,
+                      [&] (const auto& data) {
             return data.process == proc;
         });
 
@@ -126,8 +124,11 @@ bool nodePruneAction_impl(
     }
     else if(vec_size == 1)
     {
-        // We are able to remove the whole node
-        if(vec.front().process == proc
+        // We may be able to remove the whole node
+        if(vec.front().process == proc)
+            vec.clear();
+
+        if(vec.isEmpty()
         && other_vec.isEmpty()
         && !node.values.userValue)
         {
@@ -135,7 +136,7 @@ bool nodePruneAction_impl(
         }
         else
         {
-            vec.clear();
+            // We must not remove anything
             return false;
         }
     }
@@ -374,7 +375,7 @@ void rec_pruneTree(
         const Id<Process::ProcessModel>& proc,
         ProcessPosition pos)
 {
-    // If the message is in the tree, we add the process value.
+    // If the message is in the tree, we remove the process value.
     nodePruneAction(node, proc, pos);
 
     for(auto& child : node)
@@ -416,11 +417,13 @@ void nodePruneAction(
     {
         case ProcessPosition::Previous:
         {
+            node.values.previousProcessValues.clear();
             deleteMe &= !node.values.userValue && node.values.followingProcessValues.isEmpty();
             break;
         }
         case ProcessPosition::Following:
         {
+            node.values.followingProcessValues.clear();
             deleteMe &= !node.values.userValue && node.values.previousProcessValues.isEmpty();
             break;
         }
