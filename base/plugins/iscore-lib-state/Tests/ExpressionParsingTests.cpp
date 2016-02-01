@@ -87,17 +87,7 @@ QDebug operator<<(QDebug dbg, const State::Address& a)
 
 QDebug operator<<(QDebug dbg, const State::RelationMember& v)
 {
-    using namespace eggs::variants;
-    switch(v.which())
-    {
-        case 0:
-            dbg << get<State::Address>(v);
-            break;
-        case 1:
-            dbg << get<State::Value>(v);
-            break;
-    }
-
+    return dbg << State::toString(v);
     return dbg;
 }
 
@@ -159,16 +149,7 @@ QDebug operator<<(QDebug dbg, const State::UnaryOperator& v)
 
 QDebug operator<<(QDebug dbg, const State::ExprData& v)
 {
-    if(v.is<State::Relation>())
-        dbg << v.get<State::Relation>();
-    else if(v.is<State::Pulse>())
-        dbg << v.get<State::Pulse>();
-    else if(v.is<State::BinaryOperator>())
-        dbg << v.get<State::BinaryOperator>();
-    else if(v.is<State::UnaryOperator>())
-        dbg << v.get<State::UnaryOperator>();
-
-    return dbg;
+    return dbg << v.toString();
 }
 
 QDebug operator<<(QDebug dbg, const State::Expression& v)

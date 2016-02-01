@@ -149,9 +149,9 @@ State::BinaryOperator SimpleExpressionEditorWidget::binOperator()
 
 void SimpleExpressionEditorWidget::setRelation(State::Relation r)
 {
-    m_address->setAddressString(r.relMemberToString(r.lhs));
+    m_address->setAddressString(State::toString(r.lhs));
 
-    auto s = r.relMemberToString(r.rhs);
+    auto s = State::toString(r.rhs);
     /*
     bool isDouble;
     s.toDouble(&isDouble);
@@ -164,7 +164,7 @@ void SimpleExpressionEditorWidget::setRelation(State::Relation r)
 
     m_comparator->setCurrentText(m_comparatorList[r.op]);
 
-    m_relation = r.toString();
+    m_relation = State::toString(r);
 
     int i;
     m_ok->setVisible(m_validator.validate(m_relation, i) != QValidator::State::Acceptable);

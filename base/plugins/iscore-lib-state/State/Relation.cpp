@@ -7,35 +7,47 @@ namespace State {
 struct Address;
 struct Value;
 
-QString Pulse::toString() const
+QString toString(const Pulse& pulse)
 {
-    return "impulse(" + address.toString() + ")";
+    return "impulse(" + pulse.address.toString() + ")";
 }
 
 }  // namespace iscore
 
-QString State::Relation::relMemberToString(State::RelationMember m) const
+QString State::toString(const State::RelationMember& m)
 {
-    using namespace eggs::variants;
-    switch(m.which())
-    {
-        case 0:
-            return get<State::Address>(m).toString();
-        case 1:
-            return State::convert::toPrettyString(get<State::Value>(m));
-        default:
-            return "ERROR";
-    }
+    static const constexpr struct {
+        public:
+            using return_type = QString;
+            return_type operator()(const State::Address& addr) const {
+                return addr.toString();
+            }
+
+            return_type operator()(const State::Value& val) const {
+                return State::convert::toPrettyString(val);
+            }
+
+            return_type operator()(const State::AddressAccessor& acc) const {
+                auto addr = acc.address.toString();
+                for(auto val : acc.accessors)
+                {
+                    addr += QString("[%1]").arg(val);
+                }
+                return addr;
+            }
+    } visitor{};
+
+    return eggs::variants::apply(visitor, m);
 }
 
-QString State::Relation::toString() const
+QString State::toString(const Relation& rel)
 {
     using namespace eggs::variants;
 
     return QString("%1 %2 %3")
-            .arg(relMemberToString(lhs))
-            .arg(opToString()[op])
-            .arg(relMemberToString(rhs));
+            .arg(toString(rel.lhs))
+            .arg(opToString()[rel.op])
+            .arg(toString(rel.rhs));
 }
 
 const QMap<State::Relation::Operator, QString> State::opToString()

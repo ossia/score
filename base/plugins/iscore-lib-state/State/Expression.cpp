@@ -18,10 +18,10 @@ QString ExprData::toString() const
         public:
             using return_type = QString;
             return_type operator()(const State::Relation& rel) const {
-                return rel.toString();
+                return State::toString(rel);
             }
             return_type operator()(const State::Pulse& rel) const {
-                return rel.toString();
+                return State::toString(rel);
             }
 
             return_type operator()(const State::BinaryOperator rel) const {

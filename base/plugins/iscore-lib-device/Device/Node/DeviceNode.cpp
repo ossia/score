@@ -16,21 +16,20 @@ namespace Device
 {
 QString DeviceExplorerNode::displayName() const
 {
-    switch(m_data.which())
-    {
-        case (int)Type::Device:
-            return get<Device::DeviceSettings>().name;
-            break;
-        case (int)Type::Address:
-            return get<Device::AddressSettings>().name;
-            break;
-        case (int)Type::RootNode:
-            return "Invisible Root DeviceExplorerNode";
-            break;
-        default:
-            return "==ERROR==";
-            break;
-    }
+    static const constexpr struct {
+        public:
+            using return_type = QString;
+            return_type operator()(const Device::DeviceSettings& dev) const
+            { return dev.name; }
+
+            return_type operator()(const Device::AddressSettings& addr) const
+            { return addr.name; }
+
+            return_type operator()(InvisibleRootNodeTag) const
+            { return "Invisible Root DeviceExplorerNode"; }
+    } visitor{};
+
+    return eggs::variants::apply(visitor, impl());
 }
 
 bool DeviceExplorerNode::isSelectable() const

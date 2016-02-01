@@ -482,25 +482,29 @@ OSSIA::Destination* expressionAddress(
 
 OSSIA::Value* expressionOperand(
         const State::RelationMember& relm,
-        const Device::DeviceList& devlist)
+        const Device::DeviceList& list)
 {
     using namespace eggs::variants;
-    switch(relm.which())
-    {
-        case 0:
-        {
-            const auto& addr = get<State::Address>(relm);
-            return expressionAddress(addr, devlist);
-            break;
-        }
-        case 1:
-        {
-            return toOSSIAValue( get<State::Value>(relm));
-            break;
-        }
-        default:
-            ISCORE_ABORT;
-    }
+
+    const struct {
+        public:
+            const Device::DeviceList& devlist;
+            using return_type = OSSIA::Value*;
+            return_type operator()(const State::Address& addr) const {
+                return expressionAddress(addr, devlist);
+            }
+
+            return_type operator()(const State::Value& val) const {
+                return toOSSIAValue(val);
+            }
+
+            return_type operator()(const State::AddressAccessor& acc) const {
+                ISCORE_TODO;
+                return expressionAddress(acc.address, devlist);
+            }
+    } visitor{list};
+
+    return eggs::variants::apply(visitor, relm);
 }
 
 OSSIA::ExpressionAtom::Operator expressionOperator(State::Relation::Operator op)
