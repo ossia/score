@@ -141,12 +141,29 @@ struct StateNodeData
 
 };
 
+inline QDebug operator<<(QDebug d, const ProcessStateData& mess)
+{
+    d << "{" << mess.process << State::convert::toPrettyString(*mess.value) << "}";
+    return d;
+}
+
+inline QDebug operator<<(QDebug d, const StateNodeData& mess)
+{
+    if(mess.values.userValue)
+        d << mess.name << mess.values.previousProcessValues << State::convert::toPrettyString(*mess.values.userValue) << mess.values.followingProcessValues;
+    else
+        d << mess.name<< mess.values.previousProcessValues << "-- no user value --" << mess.values.followingProcessValues;
+    return d;
+}
+
 using MessageNode = TreeNode<StateNodeData>;
 using MessageNodePath = TreePath<MessageNode>;
 
 ISCORE_LIB_PROCESS_EXPORT State::Address address(const MessageNode& treeNode);
 ISCORE_LIB_PROCESS_EXPORT State::Message message(const MessageNode& node);
+ISCORE_LIB_PROCESS_EXPORT State::Message userMessage(const MessageNode& node);
 ISCORE_LIB_PROCESS_EXPORT QStringList toStringList(const State::Address& addr);
 
 ISCORE_LIB_PROCESS_EXPORT State::MessageList flatten(const MessageNode&);
+ISCORE_LIB_PROCESS_EXPORT State::MessageList getUserMessages(const MessageNode&);
 }

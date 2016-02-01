@@ -52,6 +52,7 @@ class ISCORE_PLUGIN_SCENARIO_EXPORT MessageItemModel final :
 
         const Process::MessageNode& rootNode() const override
         { return m_rootNode; }
+
         Process::MessageNode& rootNode() override
         { return m_rootNode; }
 

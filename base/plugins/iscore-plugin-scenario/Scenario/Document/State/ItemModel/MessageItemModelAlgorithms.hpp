@@ -38,3 +38,6 @@ void updateTreeWithRemovedUserMessage(
 void updateTreeWithRemovedNode(
         Process::MessageNode& rootNode,
         const State::Address& addr);
+
+void removeAllUserMessages(
+        Process::MessageNode& rootNode);
