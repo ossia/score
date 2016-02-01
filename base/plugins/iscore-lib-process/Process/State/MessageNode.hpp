@@ -16,7 +16,8 @@
 #include <iscore/tools/SettableIdentifier.hpp>
 #include <iscore_lib_process_export.h>
 
-namespace Process { class ProcessModel; }
+namespace Process {
+class ProcessModel;
 
 struct ProcessStateData
 {
@@ -148,3 +149,4 @@ ISCORE_LIB_PROCESS_EXPORT State::Message message(const MessageNode& node);
 ISCORE_LIB_PROCESS_EXPORT QStringList toStringList(const State::Address& addr);
 
 ISCORE_LIB_PROCESS_EXPORT State::MessageList flatten(const MessageNode&);
+}

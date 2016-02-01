@@ -27,12 +27,13 @@ class StateModel;
  * the Qt way.
  *
  */
-class ISCORE_PLUGIN_SCENARIO_EXPORT MessageItemModel final : public TreeNodeBasedItemModel<MessageNode>
+class ISCORE_PLUGIN_SCENARIO_EXPORT MessageItemModel final :
+        public TreeNodeBasedItemModel<Process::MessageNode>
 {
         Q_OBJECT
 
     public:
-        using node_type = TreeNodeBasedItemModel<MessageNode>::node_type;
+        using node_type = TreeNodeBasedItemModel<Process::MessageNode>::node_type;
 
         enum class Column : int
         {
@@ -49,9 +50,9 @@ class ISCORE_PLUGIN_SCENARIO_EXPORT MessageItemModel final : public TreeNodeBase
         MessageItemModel& operator=(const node_type&);
         MessageItemModel& operator=(node_type&&);
 
-        const MessageNode& rootNode() const override
+        const Process::MessageNode& rootNode() const override
         { return m_rootNode; }
-        MessageNode& rootNode() override
+        Process::MessageNode& rootNode() override
         { return m_rootNode; }
 
         // AbstractItemModel interface

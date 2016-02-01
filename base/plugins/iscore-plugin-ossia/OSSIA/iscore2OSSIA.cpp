@@ -388,7 +388,7 @@ std::shared_ptr<OSSIA::Message> message(
 
 template<typename Fun>
 static void visit_node(
-        const MessageNode& root,
+        const Process::MessageNode& root,
         Fun f)
 {
     f(root);
@@ -409,7 +409,7 @@ std::shared_ptr<OSSIA::State> state(
     // For all elements where IOType != Invalid,
     // we add the elements to the state.
 
-    visit_node(iscore_state.messages().rootNode(), [&] (const MessageNode& n) {
+    visit_node(iscore_state.messages().rootNode(), [&] (const auto& n) {
             const auto& val = n.value();
             if(val)
             {

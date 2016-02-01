@@ -104,7 +104,7 @@ void CreateCurves(
             // start value / end value
             double start = std::min(min, max);
             double end = std::max(min, max);
-            MessageNode* s_node = Device::try_getNodeFromString(
+            Process::MessageNode* s_node = Device::try_getNodeFromString(
                         ss.messages().rootNode(),
                         stringList(as.address));
             if(s_node)
@@ -117,7 +117,7 @@ void CreateCurves(
                 }
             }
 
-            MessageNode* e_node = Device::try_getNodeFromString(
+            Process::MessageNode* e_node = Device::try_getNodeFromString(
                         es.messages().rootNode(),
                         stringList(as.address));
             if(e_node)

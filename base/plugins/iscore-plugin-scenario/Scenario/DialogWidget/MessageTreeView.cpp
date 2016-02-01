@@ -75,7 +75,7 @@ void MessageTreeView::removeNodes()
 {
     auto indexes = selectedIndexes();
 
-    QList<const MessageNode*> nodes;
+    QList<const Process::MessageNode*> nodes;
     for(auto index : indexes)
     {
         auto& n = model().nodeFromModelIndex(index);

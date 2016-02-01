@@ -34,8 +34,8 @@ class InsertContentInState final : public iscore::SerializableCommand
         void deserializeImpl(DataStreamOutput& s) override;
 
     private:
-        MessageNode m_oldNode;
-        MessageNode m_newNode;
+        Process::MessageNode m_oldNode;
+        Process::MessageNode m_newNode;
         Path<StateModel> m_state;
 };
 
