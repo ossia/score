@@ -27,6 +27,7 @@ InspectorSectionWidget::InspectorSectionWidget(bool editable, QWidget* parent) :
     m_buttonTitle->setStyleSheet("text-align: left;");
 
     m_sectionTitle = new QLineEdit{tr("Section Name")};
+    m_sectionTitle->setObjectName("SectionTitle");
     connect(m_sectionTitle, &QLineEdit::editingFinished,
             this, [=] ()
     {
@@ -48,6 +49,7 @@ InspectorSectionWidget::InspectorSectionWidget(bool editable, QWidget* parent) :
 
     // CONTENT
     m_container = new QWidget;
+    m_container->setObjectName("InspectorContainer");
     m_container->setContentsMargins(0,0,0,0);
     m_containerLayout = new iscore::MarginLess<QVBoxLayout>{m_container};
     m_containerLayout->addStretch();

@@ -350,7 +350,13 @@ QLineEdit
     border-style: solid;
     border: 1px solid #3A3939;
     border-radius: 2px;
+    padding: 0px;
+    margin-left: 2px;
     color: silver;
+}
+QLineEdit#SectionTitle
+{
+    font: bold;
 }
 
 QGroupBox {
@@ -370,7 +376,7 @@ QGroupBox::title {
 QAbstractScrollArea
 {
     border-radius: 2px;
-    border: 1px solid #3A3939;
+    /* border: 1px solid #3A3939; */
     background-color: transparent;
 }
 
@@ -619,6 +625,38 @@ QPushButton
     outline: none;
 }
 
+QToolButton
+{
+    color: silver;
+    background-color: #302F2F;
+    border-width: 1px;
+    border-color: #4A4949;
+    border-style: solid;
+    padding-top: 2px;
+    padding-bottom: 2px;
+    padding-left: 2px;
+    padding-right: 2px;
+    border-radius: 2px;
+    outline: none;
+}
+
+
+QToolButton:pressed
+{
+    color: silver;
+    background-color: #302F2F;
+    border-width: 1px;
+    border-color: #4A4949;
+    border-style: solid;
+    padding-top: 2px;
+    padding-bottom: 2px;
+    padding-left: 2px;
+    padding-right: 2px;
+    border-radius: 2px;
+    outline: none;
+}
+
+
 QPushButton:disabled
 {
     background-color: #302F2F;
@@ -645,7 +683,7 @@ QComboBox
     border-style: solid;
     border: 1px solid #3A3939;
     border-radius: 2px;
-    padding: 2px;
+    padding: 0px;
     min-width: 75px;
 }
 
@@ -706,8 +744,7 @@ QPushButton:pressed
 }
 
 QAbstractSpinBox {
-    padding-top: 2px;
-    padding-bottom: 2px;
+    padding: 0px;
     border: 1px solid #3A3939;
     background-color: #201F1F;
     color: silver;
