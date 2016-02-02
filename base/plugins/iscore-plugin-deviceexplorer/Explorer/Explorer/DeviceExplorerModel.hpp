@@ -31,6 +31,30 @@ class DeviceDocumentPlugin;
 class DeviceEditDialog;
 class DeviceExplorerView;
 
+/**
+ * @brief The SelectedNodes struct
+ *
+ * When we make a selection, we have to differentiate
+ * two things :
+ *  - we want to select recursively all the PARAMETERS of what
+ *    was selected by the user.
+ *  - we want to select non-recursively all the MESSAGES that were
+ *    explicitely selected by the user.
+ * This struct allows this separation.
+ */
+struct ISCORE_PLUGIN_DEVICEEXPLORER_EXPORT SelectedNodes
+{
+     /**
+     * @brief parents The topmost parents of the selected parameters
+     */
+    QList<Device::Node*> parents;
+
+    /**
+     * @brief messages The selected messages
+     */
+    QList<Device::Node*> messages;
+};
+
 class ISCORE_PLUGIN_DEVICEEXPLORER_EXPORT DeviceExplorerModel final :
         public Device::NodeBasedItemModel
 {
@@ -148,7 +172,7 @@ class ISCORE_PLUGIN_DEVICEEXPLORER_EXPORT DeviceExplorerModel final :
 
         QModelIndex convertPathToIndex(const Device::NodePath& path);
 
-        QList<Device::Node*> uniqueSelectedNodes(const QModelIndexList& indexes) const; // Note : filters so that only parents are given.
+        SelectedNodes uniqueSelectedNodes(const QModelIndexList& indexes) const; // Note : filters so that only parents are given.
 
     protected:
         void debug_printPath(const Device::NodePath& path);

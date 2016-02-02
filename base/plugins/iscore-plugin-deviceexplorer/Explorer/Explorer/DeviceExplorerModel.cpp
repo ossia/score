@@ -730,18 +730,35 @@ DeviceExplorerModel::mimeTypes() const
     return {iscore::mime::device(), iscore::mime::address()};
 }
 
-QList<Device::Node*> DeviceExplorerModel::uniqueSelectedNodes(const QModelIndexList& indexes) const
+SelectedNodes DeviceExplorerModel::uniqueSelectedNodes(
+        const QModelIndexList& indexes) const
 {
-    QList<Device::Node*> nodes;
+    SelectedNodes nodes;
     std::transform(indexes.begin(), indexes.end(),
-                   std::back_inserter(nodes),
+                   std::back_inserter(nodes.parents),
                    [&] (const QModelIndex& idx) {
         return &nodeFromModelIndex(idx);
     });
 
-    nodes.removeAll(&m_rootNode);
+    nodes.parents.removeAll(&m_rootNode);
 
-    return filterUniqueParents(nodes);
+    // Filter messages
+    for(auto node : nodes.parents)
+    {
+        if(node->is<Device::AddressSettings>())
+        {
+            auto& val = node->get<Device::AddressSettings>();
+            if(val.ioType == Device::IOType::Out)
+            {
+                nodes.messages.append(node);
+            }
+        }
+    }
+
+    // Filter parents
+    nodes.parents = filterUniqueParents(nodes.parents);
+
+    return nodes;
 }
 //method called when a drag is initiated
 QMimeData*
@@ -752,13 +769,17 @@ DeviceExplorerModel::mimeData(const QModelIndexList& indexes) const
     auto uniqueNodes = uniqueSelectedNodes(indexes);
 
     // Now we request an update to the device explorer.
-    m_devicePlugin.updateProxy.refreshRemoteValues(uniqueNodes);
+    m_devicePlugin.updateProxy.refreshRemoteValues(uniqueNodes.parents);
 
     // The "MessagesList" part.
     State::MessageList messages;
-    for(const auto& node : uniqueNodes)
+    for(const auto& node : uniqueNodes.parents)
     {
-        messageList(*node, messages);
+        Device::parametersList(*node, messages);
+    }
+    for(const auto& node : uniqueNodes.messages)
+    {
+        messages += Device::message(*node);
     }
 
     if(!messages.empty())
@@ -772,10 +793,10 @@ DeviceExplorerModel::mimeData(const QModelIndexList& indexes) const
     // each node in this case. For now it's useless.
     {
         Mime<Device::NodeList>::Serializer s{*mimeData};
-        s.serialize(uniqueNodes);
+        s.serialize(uniqueNodes.parents + uniqueNodes.messages);
     }
 
-    if(messages.empty() && uniqueNodes.empty())
+    if(messages.empty() && uniqueNodes.parents.empty() && uniqueNodes.messages.empty())
     {
         delete mimeData;
         return nullptr;
@@ -978,13 +999,17 @@ State::MessageList getSelectionSnapshot(DeviceExplorerModel& model)
     auto uniqueNodes = model.uniqueSelectedNodes(model.selectedIndexes());
 
     // Recursive refresh
-    model.deviceModel().updateProxy.refreshRemoteValues(uniqueNodes);
+    model.deviceModel().updateProxy.refreshRemoteValues(uniqueNodes.parents);
 
     // Conversion
     State::MessageList messages;
-    for(const auto& node : uniqueNodes)
+    for(const auto& node : uniqueNodes.parents)
     {
-        messageList(*node, messages);
+        Device::parametersList(*node, messages);
+    }
+    for(const auto& node : uniqueNodes.messages)
+    {
+        messages += Device::message(*node);
     }
 
     return messages;
