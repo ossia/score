@@ -219,9 +219,6 @@ DeviceExplorerWidget::buildGUI()
     refreshLay->addWidget(m_refreshIndicator);
     m_lay->addWidget(refreshParent);
     setLayout(m_lay);
-
-
-    installStyleSheet();
 }
 
 void DeviceExplorerWidget::blockGUI(bool b)
@@ -255,18 +252,6 @@ QModelIndex DeviceExplorerWidget::proxyIndex(QModelIndex index) const
     return index;
 
 }
-
-void
-DeviceExplorerWidget::installStyleSheet()
-{
-    setStyleSheet(
-        "* {"
-        // "background-color: #bababa;"
-        "}"
-    );
-}
-
-
 
 void
 DeviceExplorerWidget::contextMenuEvent(QContextMenuEvent* event)
