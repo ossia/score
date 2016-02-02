@@ -16,11 +16,11 @@ namespace iscore {
 }  // namespace iscore
 
 class iscore_plugin_ossia final :
-    public QObject,
-    public iscore::GUIApplicationContextPlugin_QtInterface,
+        public QObject,
+        public iscore::GUIApplicationContextPlugin_QtInterface,
         public iscore::FactoryList_QtInterface,
-    public iscore::FactoryInterface_QtInterface,
-        public iscore::PluginRequirementslInterface_QtInterface
+        public iscore::FactoryInterface_QtInterface,
+        public iscore::Plugin_QtInterface
 {
         Q_OBJECT
         Q_PLUGIN_METADATA(IID GUIApplicationContextPlugin_QtInterface_iid)
@@ -28,13 +28,14 @@ class iscore_plugin_ossia final :
             iscore::GUIApplicationContextPlugin_QtInterface
                 iscore::FactoryList_QtInterface
             iscore::FactoryInterface_QtInterface
-                iscore::PluginRequirementslInterface_QtInterface
+                iscore::Plugin_QtInterface
         )
 
     public:
         iscore_plugin_ossia();
-        virtual ~iscore_plugin_ossia() = default;
+        virtual ~iscore_plugin_ossia();
 
+    private:
         iscore::GUIApplicationContextPlugin* make_applicationPlugin(
                 const iscore::ApplicationContext& app) override;
 
@@ -46,5 +47,7 @@ class iscore_plugin_ossia final :
                 const iscore::AbstractFactoryKey& factoryName) const override;
 
         QStringList required() const override;
+        int32_t version() const override;
+        UuidKey<iscore::Plugin> key() const override;
 };
 

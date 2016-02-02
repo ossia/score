@@ -26,6 +26,11 @@ iscore_plugin_ossia::iscore_plugin_ossia() :
 {
 }
 
+iscore_plugin_ossia::~iscore_plugin_ossia()
+{
+
+}
+
 iscore::GUIApplicationContextPlugin* iscore_plugin_ossia::make_applicationPlugin(
         const iscore::ApplicationContext& app)
 {
@@ -71,4 +76,14 @@ std::vector<std::unique_ptr<iscore::FactoryInterfaceBase>> iscore_plugin_ossia::
 QStringList iscore_plugin_ossia::required() const
 {
     return {"Scenario"};
+}
+
+int32_t iscore_plugin_ossia::version() const
+{
+    return 1;
+}
+
+UuidKey<iscore::Plugin> iscore_plugin_ossia::key() const
+{
+    return "d4758f8d-64ac-41b4-8aaf-1cbd6f3feb91";
 }

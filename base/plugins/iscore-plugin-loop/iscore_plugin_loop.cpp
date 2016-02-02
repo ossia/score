@@ -23,6 +23,11 @@ iscore_plugin_loop::iscore_plugin_loop() :
 {
 }
 
+iscore_plugin_loop::~iscore_plugin_loop()
+{
+
+}
+
 std::vector<std::unique_ptr<iscore::FactoryInterfaceBase>> iscore_plugin_loop::factories(
         const iscore::ApplicationContext& ctx,
         const iscore::AbstractFactoryKey& key) const
@@ -55,4 +60,14 @@ std::pair<const CommandParentFactoryKey, CommandGeneratorMap> iscore_plugin_loop
 
 
     return cmds;
+}
+
+int32_t iscore_plugin_loop::version() const
+{
+    return 1;
+}
+
+UuidKey<iscore::Plugin> iscore_plugin_loop::key() const
+{
+    return "db40e6eb-add3-4b6d-8957-13690aec290b";
 }

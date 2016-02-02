@@ -1,4 +1,5 @@
 #pragma once
+#include <iscore/plugins/qt_interfaces/PluginRequirements_QtInterface.hpp>
 #include <iscore/plugins/qt_interfaces/FactoryFamily_QtInterface.hpp>
 #include <iscore/plugins/qt_interfaces/PanelFactoryInterface_QtInterface.hpp>
 #include <QObject>
@@ -12,12 +13,14 @@ class PanelFactory;
 // RENAMEME
 class iscore_plugin_inspector :
     public QObject,
+        public iscore::Plugin_QtInterface,
     public iscore::PanelFactory_QtInterface,
     public iscore::FactoryList_QtInterface
 {
         Q_OBJECT
         Q_PLUGIN_METADATA(IID PanelFactory_QtInterface_iid)
         Q_INTERFACES(
+                iscore::Plugin_QtInterface
                      iscore::PanelFactory_QtInterface
                      iscore::FactoryList_QtInterface)
 
@@ -29,4 +32,7 @@ class iscore_plugin_inspector :
 
         // Factory for inspector widgets
         std::vector<std::unique_ptr<iscore::FactoryListInterface>> factoryFamilies() override;
+
+        int32_t version() const override;
+        UuidKey<iscore::Plugin> key() const override;
 };

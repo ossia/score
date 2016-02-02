@@ -39,6 +39,11 @@ iscore_plugin_mapping::iscore_plugin_mapping() :
 {
 }
 
+iscore_plugin_mapping::~iscore_plugin_mapping()
+{
+
+}
+
 std::vector<std::unique_ptr<iscore::FactoryInterfaceBase>> iscore_plugin_mapping::factories(
         const iscore::ApplicationContext& ctx,
         const iscore::AbstractFactoryKey& key) const
@@ -65,4 +70,14 @@ std::pair<const CommandParentFactoryKey, CommandGeneratorMap> iscore_plugin_mapp
     for_each_type<Types>(iscore::commands::FactoryInserter{cmds.second});
 
     return cmds;
+}
+
+int32_t iscore_plugin_mapping::version() const
+{
+    return 1;
+}
+
+UuidKey<iscore::Plugin> iscore_plugin_mapping::key() const
+{
+    return "e097f02d-4676-492e-98b0-764963e1f792";
 }

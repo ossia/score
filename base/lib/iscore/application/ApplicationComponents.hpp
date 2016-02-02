@@ -20,6 +20,7 @@ namespace iscore
 class DocumentDelegateFactory;
 class DocumentPluginFactory;
 class FactoryListInterface;
+class Plugin_QtInterface;
 class GUIApplicationContextPlugin;
 class PanelFactory;
 class PanelPresenter;
@@ -34,7 +35,7 @@ struct ISCORE_LIB_BASE_EXPORT ApplicationComponentsData
         ApplicationComponentsData& operator=(ApplicationComponentsData&&) = delete;
 
         QStringList pluginFiles;
-        std::vector<QObject*> plugins;
+        std::vector<iscore::Plugin_QtInterface*> plugins;
         std::vector<GUIApplicationContextPlugin*> appPlugins;
         std::vector<DocumentDelegateFactory*> availableDocuments;
 
@@ -60,6 +61,8 @@ class ISCORE_LIB_BASE_EXPORT ApplicationComponents
         { return m_data.availableDocuments; }
         const auto& applicationPlugins() const
         { return m_data.appPlugins; }
+        const auto& plugins() const
+        { return m_data.plugins; }
 
         template<typename T>
         T& applicationPlugin() const
