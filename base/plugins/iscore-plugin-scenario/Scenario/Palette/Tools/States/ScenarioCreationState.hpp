@@ -158,6 +158,9 @@ class CreationState : public CreationStateBase<Scenario_T>
         void makeSnapshot()
         {
             using namespace Command;
+            if(m_parentSM.editionSettings().sequence())
+                return;
+
             if(this->createdStates.empty())
                 return;
 
