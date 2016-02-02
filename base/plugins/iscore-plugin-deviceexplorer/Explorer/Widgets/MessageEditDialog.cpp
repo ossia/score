@@ -23,7 +23,7 @@
 
 class QWidget;
 
-namespace DeviceExplorer
+namespace Explorer
 {
 MessageEditDialog::MessageEditDialog(const State::Message &mess, DeviceExplorerModel *model, QWidget *parent):
     QDialog{parent},

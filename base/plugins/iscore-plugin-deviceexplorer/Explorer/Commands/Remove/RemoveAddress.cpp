@@ -14,7 +14,7 @@
 #include <iscore/tools/TreePath.hpp>
 
 
-namespace DeviceExplorer
+namespace Explorer
 {
 namespace Command
 {

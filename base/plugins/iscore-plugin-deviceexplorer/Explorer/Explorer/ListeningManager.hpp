@@ -4,7 +4,7 @@ namespace Device
 {
 class DeviceInterface;
 }
-namespace DeviceExplorer
+namespace Explorer
 {
 class DeviceExplorerWidget;
 class ListeningManager

@@ -1,6 +1,6 @@
 #include "ExplorationWorker.hpp"
 
-namespace DeviceExplorer
+namespace Explorer
 {
 ExplorationWorker::ExplorationWorker(
         Device::DeviceInterface &theDev):

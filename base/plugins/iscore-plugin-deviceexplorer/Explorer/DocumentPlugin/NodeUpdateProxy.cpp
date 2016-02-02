@@ -18,7 +18,7 @@
 #include <iscore/tools/std/Algorithms.hpp>
 
 
-namespace DeviceExplorer
+namespace Explorer
 {
 NodeUpdateProxy::NodeUpdateProxy(DeviceDocumentPlugin& root):
     devModel{root}

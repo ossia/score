@@ -13,7 +13,7 @@
 
 
 
-namespace DeviceExplorer
+namespace Explorer
 {
 namespace Command
 {

@@ -21,7 +21,7 @@
 
 class QWidget;
 
-namespace DeviceExplorer
+namespace Explorer
 {
 AddressEditDialog::AddressEditDialog(
         QWidget* parent):

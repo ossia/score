@@ -13,7 +13,7 @@ class Document;
 }  // namespace iscore
 struct VisitorVariant;
 
-namespace DeviceExplorer
+namespace Explorer
 {
 class ISCORE_PLUGIN_DEVICEEXPLORER_EXPORT DeviceDocumentPlugin final :
         public iscore::SerializableDocumentPlugin,

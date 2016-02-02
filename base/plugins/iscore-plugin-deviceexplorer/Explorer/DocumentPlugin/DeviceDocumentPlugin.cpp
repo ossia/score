@@ -39,7 +39,7 @@ struct VisitorVariant;
 // MOVEME
 template<>
 void Visitor<Reader<DataStream>>::readFrom_impl(
-        const DeviceExplorer::DeviceDocumentPlugin& dev)
+        const Explorer::DeviceDocumentPlugin& dev)
 {
     readFrom(dev.rootNode());
 }
@@ -47,14 +47,14 @@ void Visitor<Reader<DataStream>>::readFrom_impl(
 
 template<>
 void Visitor<Reader<JSONObject>>::readFrom_impl(
-        const DeviceExplorer::DeviceDocumentPlugin& dev)
+        const Explorer::DeviceDocumentPlugin& dev)
 {
     readFrom(dev.rootNode());
 }
 
 template<>
 void Visitor<Writer<DataStream>>::writeTo(
-        DeviceExplorer::DeviceDocumentPlugin& dev)
+        Explorer::DeviceDocumentPlugin& dev)
 {
     writeTo(dev.rootNode());
 }
@@ -62,17 +62,17 @@ void Visitor<Writer<DataStream>>::writeTo(
 
 template<>
 void Visitor<Writer<JSONObject>>::writeTo(
-        DeviceExplorer::DeviceDocumentPlugin& dev)
+        Explorer::DeviceDocumentPlugin& dev)
 {
     writeTo(dev.rootNode());
 }
 
-namespace DeviceExplorer
+namespace Explorer
 {
 DeviceDocumentPlugin::DeviceDocumentPlugin(
         iscore::Document& ctx,
         QObject* parent):
-    iscore::SerializableDocumentPlugin{ctx, "DeviceExplorer::DeviceDocumentPlugin", parent}
+    iscore::SerializableDocumentPlugin{ctx, "Explorer::DeviceDocumentPlugin", parent}
 {
 
 }
@@ -81,7 +81,7 @@ DeviceDocumentPlugin::DeviceDocumentPlugin(
         iscore::Document& ctx,
         const VisitorVariant& vis,
         QObject* parent):
-    iscore::SerializableDocumentPlugin{ctx, "DeviceExplorer::DeviceDocumentPlugin", parent}
+    iscore::SerializableDocumentPlugin{ctx, "Explorer::DeviceDocumentPlugin", parent}
 {
     deserialize_dyn(vis, *this);
 

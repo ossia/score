@@ -11,7 +11,7 @@ struct DeviceSettings;
 }  // namespace iscore
 
 
-namespace DeviceExplorer
+namespace Explorer
 {
 namespace Command
 {

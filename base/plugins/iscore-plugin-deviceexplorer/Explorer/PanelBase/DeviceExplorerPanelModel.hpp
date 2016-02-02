@@ -6,7 +6,7 @@ namespace iscore
     struct DocumentContext;
 }
 
-namespace DeviceExplorer
+namespace Explorer
 {
 class DeviceExplorerModel;
 

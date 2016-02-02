@@ -10,7 +10,7 @@ class Document;
 }  // namespace iscore
 struct VisitorVariant;
 
-namespace DeviceExplorer
+namespace Explorer
 {
 class DeviceExplorerApplicationPlugin final :
         public iscore::GUIApplicationContextPlugin

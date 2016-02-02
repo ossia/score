@@ -11,7 +11,7 @@
 #include <iscore/tools/ModelPath.hpp>
 
 
-namespace DeviceExplorer
+namespace Explorer
 {
 class DeviceDocumentPlugin;
 namespace Command

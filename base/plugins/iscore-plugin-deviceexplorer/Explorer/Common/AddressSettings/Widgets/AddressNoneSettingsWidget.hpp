@@ -4,7 +4,7 @@
 
 class QWidget;
 
-namespace DeviceExplorer
+namespace Explorer
 {
 class AddressNoneSettingsWidget final : public AddressSettingsWidget
 {

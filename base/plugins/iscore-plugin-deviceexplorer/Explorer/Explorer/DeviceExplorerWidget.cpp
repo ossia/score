@@ -60,7 +60,7 @@
 #include <iscore/tools/std/Algorithms.hpp>
 
 
-namespace DeviceExplorer
+namespace Explorer
 {
 DeviceExplorerWidget::DeviceExplorerWidget(
         const Device::DynamicProtocolList& pl,
@@ -411,7 +411,7 @@ void DeviceExplorerWidget::edit()
 
         if(code == QDialog::Accepted)
         {
-            auto cmd = new DeviceExplorer::Command::UpdateDeviceSettings{
+            auto cmd = new Explorer::Command::UpdateDeviceSettings{
                     model()->deviceModel(),
                     set.name,
                     m_deviceDialog->getSettings()};
@@ -435,7 +435,7 @@ void DeviceExplorerWidget::edit()
             if(!model()->checkAddressEditable(*select.parent(), before, stgs))
                 return;
 
-            auto cmd = new DeviceExplorer::Command::UpdateAddressSettings{
+            auto cmd = new Explorer::Command::UpdateAddressSettings{
                     model()->deviceModel(),
                     Device::NodePath(select),
                     stgs};
@@ -463,7 +463,7 @@ void DeviceExplorerWidget::refresh()
 
         auto wrkr = make_worker(
             [=] (Device::Node&& node) {
-                auto cmd = new DeviceExplorer::Command::ReplaceDevice{
+                auto cmd = new Explorer::Command::ReplaceDevice{
                     *m,
                     m_ntView->selectedIndex().row(),
                     std::move(node)};
@@ -506,7 +506,7 @@ void DeviceExplorerWidget::refreshValue()
         return;
 
     // Send the command
-    auto cmd = new DeviceExplorer::Command::UpdateAddressesValues{
+    auto cmd = new Explorer::Command::UpdateAddressesValues{
             *model(),
             lst};
 
@@ -679,7 +679,7 @@ void DeviceExplorerWidget::removeNodes()
     {
         if (n->is<Device::DeviceSettings>())
         {
-            cmd->addCommand(new DeviceExplorer::Command::Remove{
+            cmd->addCommand(new Explorer::Command::Remove{
                                 dev_model_path,
                                 *n});
         }
@@ -697,7 +697,7 @@ void DeviceExplorerWidget::removeNodes()
     for(auto it = paths.rbegin(); it != paths.rend(); ++it)
     {
         cmd->addCommand(
-                    new DeviceExplorer::Command::Remove{
+                    new Explorer::Command::Remove{
                         dev_model_path,
                         Device::NodePath{*it}});
     }
@@ -739,7 +739,7 @@ DeviceExplorerWidget::addAddress(InsertMode insert)
         bool parent_is_expanded = m_ntView->isExpanded(proxyIndex(m_ntView->model()->modelIndexFromNode(*parent, 0)));
 
         m_cmdDispatcher->submitCommand(
-                        new DeviceExplorer::Command::AddAddress{
+                        new Explorer::Command::AddAddress{
                             model()->deviceModel(),
                             Device::NodePath{index},
                             insert,
@@ -775,6 +775,6 @@ DeviceExplorerWidget::filterChanged()
     QRegExp regExp(pattern, cs, syntax);
 
     m_proxyModel->setFilterRegExp(regExp);
-    m_proxyModel->setColumn(m_columnCBox->currentIndex());
+    m_proxyModel->setColumn((Explorer::Column)m_columnCBox->currentIndex());
 }
 }

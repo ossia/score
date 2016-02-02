@@ -190,7 +190,7 @@ inline State::MessageList messages(const QJSValue& val)
 }
 }
 
-namespace DeviceExplorer
+namespace Explorer
 {
 class DeviceDocumentPlugin;
 }
@@ -202,7 +202,7 @@ class APIWrapper : public QObject
     public:
         APIWrapper(
                 QJSEngine& engine,
-                const DeviceExplorer::DeviceDocumentPlugin& devs):
+                const Explorer::DeviceDocumentPlugin& devs):
             m_engine{engine},
             devices{devs}
         {
@@ -213,7 +213,7 @@ class APIWrapper : public QObject
         QJSValue value(QJSValue address);
     private:
         QJSEngine& m_engine;
-        const DeviceExplorer::DeviceDocumentPlugin& devices;
+        const Explorer::DeviceDocumentPlugin& devices;
 
 };
 }

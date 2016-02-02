@@ -5,7 +5,7 @@
 #include <Explorer/DocumentPlugin/DeviceDocumentPlugin.hpp>
 
 
-namespace DeviceExplorer
+namespace Explorer
 {
 
 ListeningManager::ListeningManager(

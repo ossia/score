@@ -27,7 +27,7 @@ iscore::PanelFactory_QtInterface {}
 
 std::vector<iscore::PanelFactory*> iscore_plugin_deviceexplorer::panels()
 {
-    return {new DeviceExplorer::DeviceExplorerPanelFactory};
+    return {new Explorer::DeviceExplorerPanelFactory};
 }
 
 
@@ -49,20 +49,20 @@ iscore_plugin_deviceexplorer::factories(
             iscore::ApplicationContext,
     TL<
         FW<iscore::DocumentPluginFactory,
-             DeviceExplorer::DocumentPluginFactory>
+             Explorer::DocumentPluginFactory>
     >>(ctx, key);
 }
 
 iscore::GUIApplicationContextPlugin *iscore_plugin_deviceexplorer::make_applicationPlugin(
         const iscore::ApplicationContext& app)
 {
-    return new DeviceExplorer::DeviceExplorerApplicationPlugin{app};
+    return new Explorer::DeviceExplorerApplicationPlugin{app};
 }
 
 
 std::pair<const CommandParentFactoryKey, CommandGeneratorMap> iscore_plugin_deviceexplorer::make_commands()
 {
-    using namespace DeviceExplorer::Command;
+    using namespace Explorer::Command;
     std::pair<const CommandParentFactoryKey, CommandGeneratorMap> cmds{DeviceExplorerCommandFactoryName(), CommandGeneratorMap{}};
 
     using Types = TypeList<

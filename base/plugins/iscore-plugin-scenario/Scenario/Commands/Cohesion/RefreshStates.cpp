@@ -40,7 +40,7 @@ void RefreshStates(
         return;
 
     auto& doc = iscore::IDocument::documentContext(*states.first());
-    auto& proxy = doc.plugin<DeviceExplorer::DeviceDocumentPlugin>().updateProxy;
+    auto& proxy = doc.plugin<Explorer::DeviceDocumentPlugin>().updateProxy;
 
     auto macro = new RefreshStatesMacro;
 

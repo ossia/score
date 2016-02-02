@@ -14,7 +14,7 @@ namespace Curve
 class Model;
 class PointArraySegment;
 }
-namespace DeviceExplorer
+namespace Explorer
 {
 class DeviceExplorerModel;
 }

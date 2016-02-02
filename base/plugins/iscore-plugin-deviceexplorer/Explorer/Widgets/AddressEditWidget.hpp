@@ -6,7 +6,7 @@
 class AddressLineEdit;
 
 
-namespace DeviceExplorer
+namespace Explorer
 {
 class DeviceExplorerModel;
 

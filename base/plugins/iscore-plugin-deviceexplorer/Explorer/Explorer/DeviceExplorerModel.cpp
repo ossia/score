@@ -52,15 +52,15 @@
 
 #include <Explorer/PanelBase/DeviceExplorerPanelModel.hpp>
 
-namespace DeviceExplorer
+namespace Explorer
 {
-static const QMap<DeviceExplorerModel::Column, QString> HEADERS{
-    {DeviceExplorerModel::Column::Name, QObject::tr("Address")},
-    {DeviceExplorerModel::Column::Value, QObject::tr("Value")},
-    {DeviceExplorerModel::Column::Get, QObject::tr("Get")},
-    {DeviceExplorerModel::Column::Set, QObject::tr("Set")},
-    {DeviceExplorerModel::Column::Min, QObject::tr("Min")},
-    {DeviceExplorerModel::Column::Max, QObject::tr("Max")}
+static const QMap<Explorer::Column, QString> HEADERS{
+    {Explorer::Column::Name, QObject::tr("Address")},
+    {Explorer::Column::Value, QObject::tr("Value")},
+    {Explorer::Column::Get, QObject::tr("Get")},
+    {Explorer::Column::Set, QObject::tr("Set")},
+    {Explorer::Column::Min, QObject::tr("Min")},
+    {Explorer::Column::Max, QObject::tr("Max")}
 };
 
 DeviceExplorerModel::DeviceExplorerModel(
@@ -478,7 +478,7 @@ bool DeviceExplorerModel::setData(
     if(!n.is<Device::AddressSettings>())
         return false;
 
-    auto col = DeviceExplorerModel::Column(index.column());
+    auto col = Explorer::Column(index.column());
 
     if(role == Qt::EditRole || role == Qt::CheckStateRole)
     {
@@ -595,7 +595,7 @@ bool DeviceExplorerModel::setData(
             if(settings != n.get<Device::AddressSettings>())
             {
                 // We changed
-                m_cmdQ->redoAndPush(new DeviceExplorer::Command::UpdateAddressSettings{
+                m_cmdQ->redoAndPush(new Explorer::Command::UpdateAddressSettings{
                                         this->deviceModel(),
                                         Device::NodePath{n},
                                         settings});
@@ -621,7 +621,7 @@ DeviceExplorerModel::setHeaderData(int, Qt::Orientation, const QVariant&, int)
  */
 void DeviceExplorerModel::editData(
         const Device::NodePath &path,
-        DeviceExplorerModel::Column column,
+        Explorer::Column column,
         const State::Value &value,
         int role)
 {

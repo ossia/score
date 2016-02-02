@@ -5,7 +5,7 @@ struct DocumentContext;
 template<typename T, typename U, typename V, typename W>
 class GenericComponentFactoryList;
 }
-namespace DeviceExplorer
+namespace Explorer
 {
 class DeviceDocumentPlugin;
 }
@@ -31,7 +31,7 @@ struct Context
 {
     const iscore::DocumentContext& doc;
     const DocumentPlugin& sys;
-    const DeviceExplorer::DeviceDocumentPlugin& devices;
+    const Explorer::DeviceDocumentPlugin& devices;
     const ProcessComponentFactoryList& processes;
 };
 }

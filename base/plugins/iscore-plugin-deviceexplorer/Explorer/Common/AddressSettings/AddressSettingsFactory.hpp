@@ -3,7 +3,7 @@
 #include <QMap>
 #include <QString>
 
-namespace DeviceExplorer
+namespace Explorer
 {
 class AddressSettingsWidget;
 

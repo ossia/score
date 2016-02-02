@@ -16,7 +16,7 @@ struct DeviceSettings;
 }
 
 
-namespace DeviceExplorer
+namespace Explorer
 {
 class DeviceDocumentPlugin;
 class DeviceExplorerModel;

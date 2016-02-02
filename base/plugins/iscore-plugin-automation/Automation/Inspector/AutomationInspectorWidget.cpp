@@ -34,7 +34,7 @@ InspectorWidget::InspectorWidget(
     ProcessInspectorWidgetDelegate_T {automationModel, parent},
     m_dispatcher{doc.commandStack}
 {
-    using namespace DeviceExplorer;
+    using namespace Explorer;
     setObjectName("AutomationInspectorWidget");
     setParent(parent);
 

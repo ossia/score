@@ -8,7 +8,7 @@ class QFormLayout;
 class QLineEdit;
 class QWidget;
 
-namespace DeviceExplorer
+namespace Explorer
 {
 
 class AddressSettingsWidget;

@@ -10,7 +10,7 @@
 class QComboBox;
 class QLabel;
 class QLineEdit;
-namespace DeviceExplorer {
+namespace Explorer {
 class AddressEditWidget; }
 
 namespace Scenario
@@ -46,7 +46,7 @@ class SimpleExpressionEditorWidget final : public QWidget
 
         QLabel* m_ok{};
 
-        DeviceExplorer::AddressEditWidget* m_address{};
+        Explorer::AddressEditWidget* m_address{};
         QComboBox* m_comparator{};
         QLineEdit * m_value{};
         QComboBox* m_binOperator{};

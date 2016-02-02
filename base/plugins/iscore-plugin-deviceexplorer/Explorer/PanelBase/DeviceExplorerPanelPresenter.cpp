@@ -15,7 +15,7 @@ class PanelView;
 
 }  // namespace iscore
 
-namespace DeviceExplorer
+namespace Explorer
 {
 DeviceExplorerPanelPresenter::DeviceExplorerPanelPresenter(
         iscore::PanelView* view,
