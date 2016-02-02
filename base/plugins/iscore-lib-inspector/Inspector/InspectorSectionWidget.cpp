@@ -5,13 +5,16 @@
 #include <qnamespace.h>
 
 #include <QPushButton>
+#include <QMenu>
 #include <QToolButton>
+#include <QAction>
 
 #include "InspectorSectionWidget.hpp"
-
 namespace Inspector
 {
-InspectorSectionWidget::InspectorSectionWidget(bool editable, QWidget* parent) :
+InspectorSectionWidget::InspectorSectionWidget(
+        bool editable,
+        QWidget* parent) :
     QWidget(parent)
 {
     // HEADER : arrow button and name
@@ -22,6 +25,8 @@ InspectorSectionWidget::InspectorSectionWidget(bool editable, QWidget* parent) :
     m_unfoldBtn->setAutoRaise(true);
 
     m_buttonTitle = new QPushButton{title};
+    m_buttonTitle->setObjectName("ButtonTitle");
+
     m_buttonTitle->setFlat(true);
     m_buttonTitle->setText("section name");
     m_buttonTitle->setStyleSheet("text-align: left;");
@@ -38,14 +43,18 @@ InspectorSectionWidget::InspectorSectionWidget(bool editable, QWidget* parent) :
     else
         m_sectionTitle->hide();
 
-    m_deleteBtn = new QToolButton{title};
-    m_deleteBtn->setHidden(true);
+    m_menuBtn = new QPushButton{"#", title};
+    m_menuBtn->setObjectName("SettingsMenu");
+    m_menuBtn->setHidden(true);
+    m_menu = new QMenu{m_menuBtn};
+    m_menuBtn->setMenu(m_menu);
+
 
     titleLayout->addWidget(m_unfoldBtn);
     titleLayout->addWidget(m_sectionTitle);
     titleLayout->addWidget(m_buttonTitle);
     titleLayout->addStretch(1);
-    titleLayout->addWidget(m_deleteBtn);
+    titleLayout->addWidget(m_menuBtn);
 
     // CONTENT
     m_container = new QWidget;
@@ -64,13 +73,10 @@ InspectorSectionWidget::InspectorSectionWidget(bool editable, QWidget* parent) :
             this, &InspectorSectionWidget::expand);
     connect(m_buttonTitle, &QAbstractButton::clicked,
             this, &InspectorSectionWidget::expand);
-    connect(m_deleteBtn, &QToolButton::released,
-            this, &InspectorSectionWidget::deletePressed);
 
     // INIT
     m_isUnfolded = true;
     m_unfoldBtn->setArrowType(Qt::DownArrow);
-    m_deleteBtn->setText("X");
     renameSection("Section Name");
 }
 
@@ -131,9 +137,16 @@ void InspectorSectionWidget::removeAll()
     }
 }
 
-void InspectorSectionWidget::showDeleteButton(bool b)
+void InspectorSectionWidget::enableDelete()
 {
-    m_deleteBtn->setHidden(!b);
+    QAction* act = m_menu->addAction(tr("Delete"));
+    connect(act, &QAction::triggered,
+            this, &InspectorSectionWidget::deletePressed, Qt::QueuedConnection);
+}
+
+void InspectorSectionWidget::showMenu(bool b)
+{
+    m_menuBtn->setHidden(!b);
 }
 
 QWidget* InspectorSectionWidget::titleWidget()
