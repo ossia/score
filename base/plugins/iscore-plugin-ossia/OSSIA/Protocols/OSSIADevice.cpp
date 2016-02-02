@@ -341,7 +341,7 @@ void OSSIADevice::sendMessage(const State::Message& mess)
 
     auto addr = node->getAddress();
     if(addr)
-        iscore::convert::setValue(*addr, mess.value);
+        addr->pushValue(iscore::convert::toOSSIAValue(mess.value));
 }
 
 

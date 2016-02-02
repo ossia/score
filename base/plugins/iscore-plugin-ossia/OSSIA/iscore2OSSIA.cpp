@@ -183,29 +183,6 @@ OSSIA::Node* getNodeFromPath(
     return node;
 }
 
-
-void setValue(OSSIA::Address& addr, const State::Value& val)
-{
-    addr.pushValue(iscore::convert::toOSSIAValue(val));
-    /*
-    if(auto orig_val = addr.getValue())
-    {
-        auto clone = orig_val->clone();
-        updateOSSIAValue(val.val, *clone);
-        addr.pushValue(clone);
-        delete clone;
-    }
-    else
-    {
-        OSSIA::Value* newval = iscore::convert::toOSSIAValue(val);
-        addr.setValueType(newval->getType());
-        addr.pushValue(newval);
-        delete newval;
-    }
-    */
-
-}
-
 void updateOSSIAAddress(
         const Device::FullAddressSettings &settings,
         const std::shared_ptr<OSSIA::Address> &addr)
