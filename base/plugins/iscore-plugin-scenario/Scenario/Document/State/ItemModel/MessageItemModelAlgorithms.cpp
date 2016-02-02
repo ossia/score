@@ -533,22 +533,23 @@ void updateTreeWithRemovedNode(
         const State::Address& addr)
 {
     // Find the message node
-    Process::MessageNode* node = Device::try_getNodeFromString(rootNode, stringList(addr));
+    Process::MessageNode* node_ptr = Device::try_getNodeFromString(rootNode, stringList(addr));
 
-    if(node)
+    if(node_ptr)
     {
+        auto& node = *node_ptr;
         // Recursively set the user value to nil.
-        rec_removeUserValue(*node);
+        rec_removeUserValue(node);
 
         // If it is empty, delete it
-        rec_cleanup(*node);
+        rec_cleanup(node);
 
 
-        if(node->values.previousProcessValues.isEmpty()
-        && node->values.followingProcessValues.isEmpty()
-        && node->childCount() == 0)
+        if(node.values.previousProcessValues.isEmpty()
+        && node.values.followingProcessValues.isEmpty()
+        && node.childCount() == 0)
         {
-            node->parent()->erase(node->parent()->iterOfChild(node));
+            rec_delete(node);
         }
     }
 }
