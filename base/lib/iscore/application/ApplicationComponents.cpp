@@ -5,6 +5,7 @@
 #include "ApplicationComponents.hpp"
 #include <iscore/command/CommandGeneratorMap.hpp>
 #include <iscore/plugins/application/GUIApplicationContextPlugin.hpp>
+#include <iscore/plugins/qt_interfaces/PluginRequirements_QtInterface.hpp>
 
 namespace iscore
 {
@@ -36,7 +37,7 @@ ApplicationComponentsData::~ApplicationComponentsData()
     {
         if(elt)
         {
-            elt->deleteLater();
+            dynamic_cast<QObject*>(elt)->deleteLater();
         }
     }
 }

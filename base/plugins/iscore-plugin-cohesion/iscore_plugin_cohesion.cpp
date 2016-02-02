@@ -16,6 +16,11 @@ iscore_plugin_cohesion::iscore_plugin_cohesion() :
 {
 }
 
+iscore_plugin_cohesion::~iscore_plugin_cohesion()
+{
+
+}
+
 iscore::GUIApplicationContextPlugin* iscore_plugin_cohesion::make_applicationPlugin(
         const iscore::ApplicationContext& app)
 {
@@ -37,4 +42,14 @@ std::pair<const CommandParentFactoryKey, CommandGeneratorMap> iscore_plugin_cohe
     for_each_type<Types>(iscore::commands::FactoryInserter{cmds.second});
 
     return cmds;
+}
+
+int32_t iscore_plugin_cohesion::version() const
+{
+    return 1;
+}
+
+UuidKey<iscore::Plugin> iscore_plugin_cohesion::key() const
+{
+    return "659ba25e-97e5-40d9-8db8-f7a8537035ad";
 }

@@ -9,6 +9,7 @@
 #include <iscore/plugins/qt_interfaces/GUIApplicationContextPlugin_QtInterface.hpp>
 #include <iscore/plugins/qt_interfaces/PanelFactoryInterface_QtInterface.hpp>
 #include <iscore/plugins/qt_interfaces/SettingsDelegateFactoryInterface_QtInterface.hpp>
+#include <iscore/plugins/qt_interfaces/PluginRequirements_QtInterface.hpp>
 #include <QCoreApplication>
 #include <QDebug>
 #include <QDir>
@@ -48,9 +49,9 @@ static QStringList pluginsDir()
 }
 
 ISCORE_LIB_BASE_EXPORT
-std::pair<QString, QObject*> PluginLoader::loadPlugin(
+std::pair<QString, iscore::Plugin_QtInterface*> PluginLoader::loadPlugin(
         const QString &fileName,
-        const std::vector<QObject*>& availablePlugins)
+        const std::vector<iscore::Plugin_QtInterface*>& availablePlugins)
 {
 #if !defined(ISCORE_STATIC_QT)
     auto blacklist = pluginsBlacklist();
@@ -58,11 +59,22 @@ std::pair<QString, QObject*> PluginLoader::loadPlugin(
 
     if(QObject* plugin = loader.instance())
     {
+        auto iscore_plugin = dynamic_cast<iscore::Plugin_QtInterface*>(plugin);
+        if(!iscore_plugin)
+        {
+            qDebug() << "Warning: plugin"
+                     << plugin->metaObject()->className()
+                     << "is not an i-score plug-in.";
+            return {};
+        }
+
         // Check if the plugin is not already loaded
-        if(find_if(availablePlugins,
-           [&] (QObject* obj)
-           { return obj->metaObject()->className() == plugin->metaObject()->className(); })
-                != availablePlugins.end())
+        auto plug_it =
+                find_if(availablePlugins,
+                        [&] (iscore::Plugin_QtInterface* obj)
+        { return obj->key() == iscore_plugin->key(); });
+
+        if(plug_it != availablePlugins.end())
         {
             qDebug() << "Warning: plugin"
                      << plugin->metaObject()->className()
@@ -72,16 +84,14 @@ std::pair<QString, QObject*> PluginLoader::loadPlugin(
         }
 
         // Check if it is blacklisted
-        if(!blacklist.contains(fileName))
-        {
-            return std::make_pair(fileName, plugin);
-        }
-        else
+        if(blacklist.contains(fileName))
         {
             plugin->deleteLater();
             return std::make_pair(fileName, nullptr);
         }
 
+        // We can load the plug-in
+        return std::make_pair(fileName, iscore_plugin);
     }
     else
     {
@@ -102,12 +112,13 @@ void PluginLoader::loadPlugins(
     auto folders = pluginsDir();
 
     // Here, the plug-ins that are effectively loaded.
-    std::vector<QObject*> availablePlugins;
+    std::vector<iscore::Plugin_QtInterface*> availablePlugins;
 
     // Load static plug-ins
     for(QObject* plugin : QPluginLoader::staticInstances())
     {
-        availablePlugins.push_back(plugin);
+        if(auto iscore_plug = dynamic_cast<iscore::Plugin_QtInterface*>(plugin))
+            availablePlugins.push_back(iscore_plug);
     }
 
     QSet<QString> pluginFiles;
@@ -143,9 +154,9 @@ void PluginLoader::loadPlugins(
     // because for instance a ApplicationPlugin from plugin B might require the factory
     // from plugin A to be loaded prior.
     // Load all the factories.
-    for(QObject* plugin : availablePlugins)
+    for(iscore::Plugin_QtInterface* plugin : availablePlugins)
     {
-        auto facfam_interface = qobject_cast<FactoryList_QtInterface*> (plugin);
+        auto facfam_interface = dynamic_cast<FactoryList_QtInterface*> (plugin);
 
         if(facfam_interface)
         {
@@ -159,13 +170,13 @@ void PluginLoader::loadPlugins(
     // Load all the application context plugins.
     // We have to order them according to their dependencies
     PluginDependencyGraph graph;
-    for(QObject* plugin : availablePlugins)
+    for(auto plugin : availablePlugins)
     {
-        graph.addNode(plugin);
+        graph.addNode(dynamic_cast<QObject*>(plugin));
     }
 
     graph.visit([&] (QObject* plugin) {
-        auto ctrl_plugin = qobject_cast<GUIApplicationContextPlugin_QtInterface*> (plugin);
+        auto ctrl_plugin = dynamic_cast<GUIApplicationContextPlugin_QtInterface*> (plugin);
         if(ctrl_plugin)
         {
             auto plug = ctrl_plugin->make_applicationPlugin(context);
@@ -174,15 +185,15 @@ void PluginLoader::loadPlugins(
     });
 
     // Load what the plug-ins have to offer.
-    for(QObject* plugin : availablePlugins)
+    for(auto plugin : availablePlugins)
     {
-        auto settings_plugin = qobject_cast<SettingsDelegateFactoryInterface_QtInterface*> (plugin);
+        auto settings_plugin = dynamic_cast<SettingsDelegateFactoryInterface_QtInterface*> (plugin);
         if(settings_plugin)
         {// TODO change the name in the correct order.
             registrar.registerSettings(settings_plugin->settings_make());
         }
 
-        auto panel_plugin = qobject_cast<PanelFactory_QtInterface*> (plugin);
+        auto panel_plugin = dynamic_cast<PanelFactory_QtInterface*> (plugin);
         if(panel_plugin)
         {
             auto panels = panel_plugin->panels();
@@ -192,7 +203,7 @@ void PluginLoader::loadPlugins(
             }
         }
 
-        auto docpanel_plugin = qobject_cast<DocumentDelegateFactoryInterface_QtInterface*> (plugin);
+        auto docpanel_plugin = dynamic_cast<DocumentDelegateFactoryInterface_QtInterface*> (plugin);
         if(docpanel_plugin)
         {
             auto docs = docpanel_plugin->documents();
@@ -202,13 +213,13 @@ void PluginLoader::loadPlugins(
             }
         }
 
-        auto commands_plugin = qobject_cast<CommandFactory_QtInterface*> (plugin);
+        auto commands_plugin = dynamic_cast<CommandFactory_QtInterface*> (plugin);
         if(commands_plugin)
         {
             registrar.registerCommands(commands_plugin->make_commands());
         }
 
-        auto factories_plugin = qobject_cast<FactoryInterface_QtInterface*> (plugin);
+        auto factories_plugin = dynamic_cast<FactoryInterface_QtInterface*> (plugin);
         if(factories_plugin)
         {
             for(auto& factory_family : registrar.components().factories)

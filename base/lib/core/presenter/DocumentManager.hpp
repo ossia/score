@@ -108,6 +108,14 @@ class ISCORE_LIB_BASE_EXPORT DocumentManager : public QObject
                 const iscore::ApplicationContext& ctx);
 
     private:
+        /**
+         * @brief checkAndUpdateJson
+         * @return boolean indicating if the document is loadable
+         */
+        bool checkAndUpdateJson(
+                QJsonDocument&,
+                const iscore::ApplicationContext& ctx);
+
         iscore::View& m_view;
 
         DocumentBuilder m_builder;

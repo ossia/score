@@ -84,6 +84,11 @@ iscore_plugin_scenario::iscore_plugin_scenario() :
     qRegisterMetaType<QPointer<Process::LayerPresenter>>();
 }
 
+iscore_plugin_scenario::~iscore_plugin_scenario()
+{
+
+}
+
 // Interfaces implementations :
 std::vector<iscore::DocumentDelegateFactory*> iscore_plugin_scenario::documents()
 {
@@ -189,4 +194,14 @@ QStringList iscore_plugin_scenario::required() const
 QStringList iscore_plugin_scenario::offered() const
 {
     return {"Scenario"};
+}
+
+int32_t iscore_plugin_scenario::version() const
+{
+    return 1;
+}
+
+UuidKey<iscore::Plugin> iscore_plugin_scenario::key() const
+{
+    return "8439ef6c-90c3-4e08-8185-6a0f3c87f8b4";
 }
