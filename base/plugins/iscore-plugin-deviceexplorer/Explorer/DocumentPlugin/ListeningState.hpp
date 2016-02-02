@@ -3,7 +3,7 @@
 #include <State/Address.hpp>
 
 
-namespace DeviceExplorer
+namespace Explorer
 {
 class ListeningState
 {

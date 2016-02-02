@@ -12,6 +12,7 @@
 #include <Device/Node/DeviceNode.hpp>
 #include <State/Message.hpp>
 #include <State/Value.hpp>
+#include <Explorer/Explorer/Column.hpp>
 #include <iscore_plugin_deviceexplorer_export.h>
 class QMimeData;
 class QObject;
@@ -25,7 +26,7 @@ struct AddressSettings;
 }
 
 
-namespace DeviceExplorer
+namespace Explorer
 {
 class DeviceDocumentPlugin;
 class DeviceEditDialog;
@@ -55,23 +56,13 @@ struct ISCORE_PLUGIN_DEVICEEXPLORER_EXPORT SelectedNodes
     QList<Device::Node*> messages;
 };
 
+
 class ISCORE_PLUGIN_DEVICEEXPLORER_EXPORT DeviceExplorerModel final :
         public Device::NodeBasedItemModel
 {
         Q_OBJECT
 
     public:
-        enum class Column : int
-        {
-            Name = 0,
-            Value,
-            Get,
-            Set,
-            Min,
-            Max,
-
-            Count //column count, always last
-        };
 
         explicit DeviceExplorerModel(
                 DeviceDocumentPlugin&,

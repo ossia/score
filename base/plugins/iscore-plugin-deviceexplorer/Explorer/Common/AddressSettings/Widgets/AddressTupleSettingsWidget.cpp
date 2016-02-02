@@ -3,7 +3,7 @@
 
 class QWidget;
 
-namespace DeviceExplorer
+namespace Explorer
 {
 AddressTupleSettingsWidget::AddressTupleSettingsWidget(QWidget* parent)
     : AddressSettingsWidget(parent)

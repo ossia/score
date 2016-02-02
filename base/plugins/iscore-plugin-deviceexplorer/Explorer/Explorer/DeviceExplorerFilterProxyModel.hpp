@@ -1,19 +1,20 @@
 #pragma once
 
 #include <QSortFilterProxyModel>
+#include <Explorer/Explorer/Column.hpp>
 
 class QModelIndex;
 class QObject;
 
 
-namespace DeviceExplorer
+namespace Explorer
 {
 class DeviceExplorerFilterProxyModel final : public QSortFilterProxyModel
 {
     public:
         explicit DeviceExplorerFilterProxyModel(QObject* parent = nullptr);
 
-        void setColumn(int col);
+        void setColumn(Explorer::Column col);
 
     protected:
         bool filterAcceptsRow(int sourceRow, const QModelIndex& sourceParent) const override;
@@ -22,7 +23,7 @@ class DeviceExplorerFilterProxyModel final : public QSortFilterProxyModel
         bool hasAcceptedChildren(int sourceRow, const QModelIndex& sourceParent) const;
 
     protected:
-        int m_col;
+        Explorer::Column m_col;
 
 };
 }

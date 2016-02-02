@@ -19,7 +19,7 @@ namespace JS
 namespace Executor
 {
 ProcessExecutor::ProcessExecutor(
-        const DeviceExplorer::DeviceDocumentPlugin& devices):
+        const Explorer::DeviceDocumentPlugin& devices):
     m_devices{devices.list()},
     m_start{OSSIA::State::create()},
     m_end{OSSIA::State::create()}

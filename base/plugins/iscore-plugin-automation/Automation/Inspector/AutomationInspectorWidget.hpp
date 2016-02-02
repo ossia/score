@@ -14,7 +14,7 @@ namespace State
 {
 struct Address;
 }
-namespace DeviceExplorer
+namespace Explorer
 {
 class AddressEditWidget;
 class DeviceExplorerModel;
@@ -39,7 +39,7 @@ class InspectorWidget final :
         void on_maxValueChanged();
 
     private:
-        DeviceExplorer::AddressEditWidget* m_lineEdit{};
+        Explorer::AddressEditWidget* m_lineEdit{};
         QDoubleSpinBox* m_minsb{}, *m_maxsb{};
 
         CommandDispatcher<> m_dispatcher;

@@ -59,7 +59,7 @@ PlayContextMenu::PlayContextMenu(Scenario::ScenarioApplicationPlugin *parent):
             {
                 auto ossia_state = iscore::convert::state(
                             *state,
-                            ctx.plugin<DeviceExplorer::DeviceDocumentPlugin>().list());
+                            ctx.plugin<Explorer::DeviceDocumentPlugin>().list());
                 ossia_state->launch();
             }
         }

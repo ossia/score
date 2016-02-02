@@ -15,7 +15,7 @@
 #include <Device/Address/ClipMode.hpp>
 #include <Device/Address/IOType.hpp>
 
-namespace DeviceExplorer
+namespace Explorer
 {
 AddressSettingsWidget::AddressSettingsWidget(QWidget *parent) :
     QWidget(parent),

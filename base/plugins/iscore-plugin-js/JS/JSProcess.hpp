@@ -10,7 +10,7 @@
 #include <iscore/document/DocumentInterface.hpp>
 #include "Editor/TimeValue.h"
 
-namespace DeviceExplorer
+namespace Explorer
 {
 class DeviceDocumentPlugin;
 }
@@ -37,7 +37,7 @@ class ProcessExecutor final :
 {
     public:
         ProcessExecutor(
-                const DeviceExplorer::DeviceDocumentPlugin& devices);
+                const Explorer::DeviceDocumentPlugin& devices);
 
         void setTickFun(const QString& val);
 

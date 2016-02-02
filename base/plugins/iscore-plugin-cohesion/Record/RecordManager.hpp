@@ -11,7 +11,7 @@
 #include "RecordData.hpp"
 #include <State/Address.hpp>
 
-namespace DeviceExplorer
+namespace Explorer
 {
 class DeviceExplorerModel;
 }
@@ -45,10 +45,10 @@ class RecordManager final : public QObject
 
     private:
         std::unique_ptr<RecordCommandDispatcher> m_dispatcher;
-        DeviceExplorer::ListeningState m_savedListening;
+        Explorer::ListeningState m_savedListening;
         std::vector<QMetaObject::Connection> m_recordCallbackConnections;
 
-        DeviceExplorer::DeviceExplorerModel* m_explorer{};
+        Explorer::DeviceExplorerModel* m_explorer{};
 
         QTimer m_recordTimer;
         std::chrono::steady_clock::time_point start_time_pt;

@@ -12,7 +12,7 @@
 #include <Device/QMenuView/qmenuview.h>
 #include <QContextMenuEvent>
 
-namespace DeviceExplorer
+namespace Explorer
 {
 AddressEditWidget::AddressEditWidget(DeviceExplorerModel* model, QWidget* parent):
     QWidget{parent},

@@ -11,7 +11,7 @@
 #include <State/ValueConversion.hpp>
 
 
-namespace DeviceExplorer
+namespace Explorer
 {
 template<typename T>
 class AddressNumericSettingsWidget final : public AddressSettingsWidget

@@ -60,5 +60,5 @@ class OSSIAApplicationPlugin final :
 
         bool m_playing{false};
 
-        DeviceExplorer::ListeningState m_savedListening;
+        Explorer::ListeningState m_savedListening;
 };

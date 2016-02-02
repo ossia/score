@@ -9,7 +9,7 @@ class DocumentModel;
 }  // namespace iscore
 
 
-namespace DeviceExplorer
+namespace Explorer
 {
 QString DeviceExplorerPanelFactory::panelName() const
 {

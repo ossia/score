@@ -23,7 +23,7 @@ namespace Device
 class DynamicProtocolList;
 }
 
-namespace DeviceExplorer
+namespace Explorer
 {
 class DeviceEditDialog;
 class DeviceExplorerFilterProxyModel;

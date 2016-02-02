@@ -4,7 +4,7 @@
 
 class QWidget;
 
-namespace DeviceExplorer
+namespace Explorer
 {
 class AddressTupleSettingsWidget final : public AddressSettingsWidget
 {

@@ -8,7 +8,7 @@
 class DataStreamInput;
 class DataStreamOutput;
 
-namespace DeviceExplorer
+namespace Explorer
 {
 class DeviceDocumentPlugin;
 namespace Command

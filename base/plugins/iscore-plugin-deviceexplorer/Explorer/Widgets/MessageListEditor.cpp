@@ -13,7 +13,7 @@
 
 class QWidget;
 
-namespace DeviceExplorer
+namespace Explorer
 {
 MessageListEditor::MessageListEditor(
         const State::MessageList& m,

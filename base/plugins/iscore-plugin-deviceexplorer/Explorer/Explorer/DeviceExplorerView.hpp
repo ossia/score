@@ -10,7 +10,7 @@ class QWidget;
 
 
 
-namespace DeviceExplorer
+namespace Explorer
 {
 class DeviceExplorerFilterProxyModel;
 class DeviceExplorerModel;

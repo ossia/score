@@ -6,7 +6,7 @@
 class QLineEdit;
 class QWidget;
 
-namespace DeviceExplorer
+namespace Explorer
 {
 class AddressCharSettingsWidget final : public AddressSettingsWidget
 {
