@@ -77,14 +77,15 @@ State::Address address(const Node &treeNode)
     return addr;
 }
 
-void messageList(const Node& n,
-                 State::MessageList& ml)
+void parametersList(
+        const Node& n,
+        State::MessageList& ml)
 {
     if(n.is<AddressSettings>())
     {
         const auto& stgs = n.get<AddressSettings>();
 
-        if(hasOutput(stgs.ioType))
+        if(stgs.ioType == IOType::InOut)
         {
             ml.push_back(message(n));
         }
@@ -92,7 +93,7 @@ void messageList(const Node& n,
 
     for(const auto& child : n.children())
     {
-        messageList(child, ml);
+        parametersList(child, ml);
     }
 }
 
