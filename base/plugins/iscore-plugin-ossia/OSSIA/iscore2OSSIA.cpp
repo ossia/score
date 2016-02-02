@@ -360,12 +360,13 @@ std::shared_ptr<OSSIA::Message> message(
         const State::Message& mess,
         const Device::DeviceList& deviceList)
 {
-    if(!deviceList.hasDevice(mess.address.device))
+    auto it = deviceList.find(mess.address.device);
+    if(it == deviceList.devices().end())
         return {};
 
     // OPTIMIZEME by sorting by device prior
     // to this.
-    const auto& dev = deviceList.device(mess.address.device);
+    const auto& dev = **it;
     if(!dev.connected())
         return {};
 
@@ -451,12 +452,11 @@ OSSIA::Destination* expressionAddress(
         const State::Address& addr,
         const Device::DeviceList& devlist)
 {
-    if(!devlist.hasDevice(addr.device))
-    {
+    auto it = devlist.find(addr.device);
+    if(it == devlist.devices().end())
         throw NodeNotFoundException(addr);
-    }
 
-    auto& device = devlist.device(addr.device);
+    auto& device = **it;
     if(!device.connected())
     {
         throw NodeNotFoundException(addr);

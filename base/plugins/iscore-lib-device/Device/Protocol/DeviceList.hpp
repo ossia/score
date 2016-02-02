@@ -18,8 +18,6 @@ class ISCORE_LIB_DEVICE_EXPORT DeviceList
         DeviceList& operator=(const DeviceList&) = delete;
         DeviceList& operator=(DeviceList&&) = delete;
 
-        bool hasDevice(const QString& name) const;
-
         auto find(const QString &name) const
         {
             return std::find_if(m_devices.cbegin(),
