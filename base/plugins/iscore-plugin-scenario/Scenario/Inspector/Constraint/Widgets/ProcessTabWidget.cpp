@@ -7,6 +7,7 @@
 #include <iscore/widgets/MarginLess.hpp>
 #include <iscore/document/DocumentContext.hpp>
 
+#include <QAction>
 #include <QBoxLayout>
 #include <QFormLayout>
 #include <QToolButton>
@@ -18,6 +19,7 @@
 #include <Scenario/Commands/Constraint/RemoveProcessFromConstraint.hpp>
 #include <Scenario/Commands/SetProcessDuration.hpp>
 #include <Scenario/Commands/Metadata/ChangeElementName.hpp>
+#include <Process/Inspector/ProcessInspectorWidgetDelegate.hpp>
 
 #include <Process/Process.hpp>
 #include <Process/State/ProcessStateDataInterface.hpp>
@@ -75,7 +77,6 @@ void ProcessTabWidget::createProcess(const ProcessFactoryKey& processName)
     auto cmd = Command::make_AddProcessToConstraint(m_constraintWidget.model(), processName);
     m_constraintWidget.commandDispatcher()->submitCommand(cmd);
 }
-
 void ProcessTabWidget::displaySharedProcess(const Process::ProcessModel& process)
 {
     using namespace iscore;
@@ -96,18 +97,21 @@ void ProcessTabWidget::displaySharedProcess(const Process::ProcessModel& process
     // PROCESS
 
     // add view in new slot
+    newProc->showMenu(true);
+
     const auto& fact = m_constraintWidget.context().app.components.factory<ProcessInspectorWidgetDelegateFactoryList>();
     if(auto widg = fact.make(process, m_constraintWidget.context(), newProc))
     {
-        auto processWidget = new ProcessInspectorWidget{widg, m_constraintWidget.context(), newProc};
-        newProc->addContent(processWidget);
+        newProc->addContent(widg);
 
-        connect(processWidget, &ProcessInspectorWidget::createViewInNewSlot,
-                this, &ProcessTabWidget::createLayerInNewSlot);
+        auto act = newProc->menu()->addAction(tr("Display in new slot"));
+
+        connect(act, &QAction::triggered,
+                this, [&] () { createLayerInNewSlot(process.id()); });
     }
 
     // delete process
-    newProc->showDeleteButton(true);
+    newProc->enableDelete();
     connect(newProc, &Inspector::InspectorSectionWidget::deletePressed,
             this, [=,id=process.id()] ()
         {

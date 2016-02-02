@@ -43,7 +43,8 @@ RackInspectorSection::RackInspectorSection(
     framewidg->setFrameShape(QFrame::StyledPanel);
     addContent(framewidg);
 
-    this->showDeleteButton(true);
+    this->showMenu(true);
+    this->enableDelete();
     connect(this, &RackInspectorSection::deletePressed, this, [=] ()
     {
         auto cmd = new Command::RemoveRackFromConstraint{

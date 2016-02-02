@@ -167,7 +167,8 @@ void EventInspectorWidget::addState(const StateModel& state)
     auto sw = new StateInspectorWidget{state, context(), this};
     sw->hide(); // TODO UGLY : we create a state (inspectorbase) just to extract the section ...
     auto& section = sw->stateSection();
-    section.showDeleteButton(true);
+    section.showMenu(true);
+    section.enableDelete();
 
     m_states.push_back(sw);
     m_statesWidget->layout()->addWidget(&section);
