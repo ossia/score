@@ -10,6 +10,7 @@ class DeviceList;
 namespace OSSIA
 {
 class TimeNode;
+class TimeValue;
 }
 namespace Scenario
 {
@@ -30,6 +31,7 @@ class ISCORE_PLUGIN_OSSIA_EXPORT TimeNodeElement final : public QObject
         std::shared_ptr<OSSIA::TimeNode> OSSIATimeNode() const;
 
     private:
+        void timeNodeCallBack(const OSSIA::TimeValue& date);
         std::shared_ptr<OSSIA::TimeNode> m_ossia_node;
         const Scenario::TimeNodeModel& m_iscore_node;
 
