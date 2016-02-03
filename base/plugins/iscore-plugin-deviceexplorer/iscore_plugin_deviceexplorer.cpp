@@ -9,6 +9,7 @@
 #include <unordered_map>
 #include <iscore/plugins/customfactory/FactorySetup.hpp>
 
+#include <Explorer/DocumentPlugin/DeviceDocumentPluginFactory.hpp>
 #include <Explorer/Listening/ListeningHandlerFactoryList.hpp>
 #include <Explorer/DocumentPlugin/DeviceDocumentPlugin.hpp>
 #include "DeviceExplorerApplicationPlugin.hpp"

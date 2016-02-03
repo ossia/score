@@ -16,11 +16,11 @@ PlayListeningHandlerFactory::concreteFactoryKey() const
     return k;
 }
 
-Explorer::ListeningHandler* PlayListeningHandlerFactory::make(
+std::unique_ptr<Explorer::ListeningHandler> PlayListeningHandlerFactory::make(
+        const Explorer::DeviceDocumentPlugin& plug,
         const iscore::DocumentContext &ctx)
 {
-    auto& doc = ctx.plugin<Explorer::DeviceDocumentPlugin>();
     auto& exe = ctx.plugin<RecreateOnPlay::DocumentPlugin>();
-    return new PlayListeningHandler{doc.list(), exe};
+    return std::make_unique<PlayListeningHandler>(plug.list(), exe);
 }
 }

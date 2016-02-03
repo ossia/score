@@ -41,6 +41,7 @@
 #include <Device/Protocol/DeviceInterface.hpp>
 #include <Device/Protocol/DeviceList.hpp>
 #include <Device/Protocol/DeviceSettings.hpp>
+#include <Explorer/Listening/ListeningHandler.hpp>
 #include "DeviceExplorerFilterProxyModel.hpp"
 #include "DeviceExplorerView.hpp"
 #include "DeviceExplorerWidget.hpp"
@@ -68,16 +69,21 @@ DeviceExplorerWidget::DeviceExplorerWidget(
     : QWidget(parent),
       m_protocolList{pl},
       m_proxyModel(nullptr),
-      m_deviceDialog(nullptr),
-      m_listeningManager{*this}
+      m_deviceDialog(nullptr)
 {
     buildGUI();
 
     // Set the expansion signals
     connect(m_ntView, &QTreeView::expanded,
-            this, [&] (const QModelIndex& idx) { m_listeningManager.setListening(idx, true); });
+            this, [&] (const QModelIndex& idx) {
+        if(m_listeningManager)
+            m_listeningManager->setListening(idx, true);
+    });
     connect(m_ntView, &QTreeView::collapsed,
-            this,[&] (const QModelIndex& idx) { m_listeningManager.setListening(idx, false); });
+            this,[&] (const QModelIndex& idx) {
+        if(m_listeningManager)
+            m_listeningManager->setListening(idx, false);
+    });
 }
 
 void
@@ -281,6 +287,7 @@ DeviceExplorerWidget::setModel(DeviceExplorerModel* model)
 {
     delete m_proxyModel;    //? will also delete previous model ??
     m_proxyModel = nullptr;
+    m_listeningManager.reset();
 
     if (model)
     {
@@ -289,6 +296,7 @@ DeviceExplorerWidget::setModel(DeviceExplorerModel* model)
         m_ntView->setModel(m_proxyModel);
         model->setView(m_ntView);
 
+        m_listeningManager = std::make_unique<ListeningManager>(*model, *this);
         m_cmdDispatcher = std::make_unique<CommandDispatcher<>>(
                 model->commandStack());
 
@@ -754,7 +762,8 @@ DeviceExplorerWidget::addAddress(InsertMode insert)
             });
             ISCORE_ASSERT(child_it != parent->end());
 
-            m_listeningManager.enableListening(*child_it);
+            if(m_listeningManager)
+                m_listeningManager->enableListening(*child_it);
         }
         updateActions();
     }

@@ -28,7 +28,7 @@ class ISCORE_PLUGIN_DEVICEEXPLORER_EXPORT ListeningHandler :
                 const std::vector<State::Address>& v) = 0;
 
     signals:
-        void restoreListening();
+        void restore();
 };
 
 

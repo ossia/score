@@ -12,11 +12,11 @@ DefaultListeningHandlerFactory::concreteFactoryKey() const
     return k;
 }
 
-ListeningHandler* DefaultListeningHandlerFactory::make(
+std::unique_ptr<Explorer::ListeningHandler> DefaultListeningHandlerFactory::make(
+        const DeviceDocumentPlugin& plug,
         const iscore::DocumentContext &ctx)
 {
-    auto& doc = ctx.plugin<Explorer::DeviceDocumentPlugin>();
-    return new DefaultListeningHandler{doc.list()};
+    return std::make_unique<Explorer::DefaultListeningHandler>(plug.list());
 }
 
 }

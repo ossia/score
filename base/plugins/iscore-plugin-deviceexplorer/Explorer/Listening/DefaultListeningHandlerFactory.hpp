@@ -11,7 +11,8 @@ class DefaultListeningHandlerFactory final :
         const ListeningHandlerFactoryKey&
         concreteFactoryKey() const override;
 
-        ListeningHandler* make(
+        std::unique_ptr<Explorer::ListeningHandler> make(
+                const DeviceDocumentPlugin& plug,
                 const iscore::DocumentContext& ctx) override;
 };
 }

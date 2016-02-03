@@ -391,10 +391,12 @@ ISCORE_LIB_BASE_EXPORT
 void DocumentManager::prepareNewDocument(
         const iscore::ApplicationContext& ctx)
 {
+    m_preparingNewDocument = true;
     for(GUIApplicationContextPlugin* appPlugin : ctx.components.applicationPlugins())
     {
         appPlugin->prepareNewDocument();
     }
+    m_preparingNewDocument = false;
 }
 
 bool DocumentManager::closeAllDocuments(
@@ -408,6 +410,11 @@ bool DocumentManager::closeAllDocuments(
     }
 
     return true;
+}
+
+bool DocumentManager::preparingNewDocument() const
+{
+    return m_preparingNewDocument;
 }
 
 struct PluginVersions
