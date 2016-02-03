@@ -16,6 +16,7 @@
 #include <iscore/plugins/customfactory/FactoryFamily.hpp>
 
 #include <OSSIA/Executor/DocumentPlugin.hpp>
+#include <OSSIA/Listening/PlayListeningHandlerFactory.hpp>
 #include <iscore/plugins/customfactory/FactorySetup.hpp>
 namespace iscore {
 
@@ -65,7 +66,9 @@ std::vector<std::unique_ptr<iscore::FactoryInterfaceBase>> iscore_plugin_ossia::
             FW<ScenarioActionsFactory,
                  PlayContextMenuFactory>,
             FW<RecreateOnPlay::ProcessComponentFactory,
-                 RecreateOnPlay::ScenarioComponentFactory> /* ,
+                 RecreateOnPlay::ScenarioComponentFactory>,
+            FW<Explorer::ListeningHandlerFactory,
+                Ossia::PlayListeningHandlerFactory>/* ,
             FW<Ossia::LocalTree::ProcessComponentFactory,
                  Ossia::LocalTree::ScenarioComponentFactory>*/
             >

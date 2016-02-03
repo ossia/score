@@ -9,6 +9,7 @@
 #include <unordered_map>
 #include <iscore/plugins/customfactory/FactorySetup.hpp>
 
+#include <Explorer/Listening/ListeningHandlerFactoryList.hpp>
 #include <Explorer/DocumentPlugin/DeviceDocumentPlugin.hpp>
 #include "DeviceExplorerApplicationPlugin.hpp"
 
@@ -40,7 +41,8 @@ std::vector<iscore::PanelFactory*> iscore_plugin_deviceexplorer::panels()
 std::vector<std::unique_ptr<iscore::FactoryListInterface>> iscore_plugin_deviceexplorer::factoryFamilies()
 {
     return make_ptr_vector<iscore::FactoryListInterface,
-            Device::DynamicProtocolList>();
+            Device::DynamicProtocolList,
+            Explorer::ListeningHandlerFactoryList>();
 
 }
 

@@ -54,6 +54,8 @@ set(HDRS
     "${CMAKE_CURRENT_SOURCE_DIR}/OSSIA/Executor/TimeNodeElement.hpp"
     "${CMAKE_CURRENT_SOURCE_DIR}/OSSIA/Executor/ConstraintElement.hpp"
 
+    "${CMAKE_CURRENT_SOURCE_DIR}/OSSIA/Listening/PlayListeningHandler.hpp"
+    "${CMAKE_CURRENT_SOURCE_DIR}/OSSIA/Listening/PlayListeningHandlerFactory.hpp"
 
     "${CMAKE_CURRENT_SOURCE_DIR}/OSSIA/LocalTree/LocalTreeDocumentPlugin.hpp"
     "${CMAKE_CURRENT_SOURCE_DIR}/OSSIA/LocalTree/BaseProperty.hpp"
@@ -108,6 +110,9 @@ set(SRCS
 "${CMAKE_CURRENT_SOURCE_DIR}/OSSIA/Executor/DocumentPlugin.cpp"
 "${CMAKE_CURRENT_SOURCE_DIR}/OSSIA/Executor/TimeNodeElement.cpp"
 "${CMAKE_CURRENT_SOURCE_DIR}/OSSIA/Executor/ConstraintElement.cpp"
+
+"${CMAKE_CURRENT_SOURCE_DIR}/OSSIA/Listening/PlayListeningHandler.cpp"
+"${CMAKE_CURRENT_SOURCE_DIR}/OSSIA/Listening/PlayListeningHandlerFactory.cpp"
 
 "${CMAKE_CURRENT_SOURCE_DIR}/OSSIA/LocalTree/LocalTreeDocumentPlugin.cpp"
 "${CMAKE_CURRENT_SOURCE_DIR}/OSSIA/LocalTree/BaseProperty.cpp"
