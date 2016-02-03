@@ -52,4 +52,9 @@ BaseScenarioElement *DocumentPlugin::baseScenario() const
 {
     return m_base.get();
 }
+
+bool DocumentPlugin::isPlaying() const
+{
+    return m_base.get();
+}
 }
