@@ -20,6 +20,7 @@ DeviceExplorerFilterProxyModel::setColumn(
         Explorer::Column col)
 {
     m_col = col;
+    invalidate();
 }
 
 /*
