@@ -20,6 +20,8 @@
 #include "DeviceDocumentPlugin.hpp"
 #include <Explorer/DocumentPlugin/ListeningState.hpp>
 #include <Explorer/DocumentPlugin/NodeUpdateProxy.hpp>
+#include <Explorer/DocumentPlugin/DeviceDocumentPluginFactory.hpp>
+#include <Explorer/Listening/ListeningHandlerFactoryList.hpp>
 #include <State/Address.hpp>
 #include <iscore/application/ApplicationContext.hpp>
 #include <iscore/document/DocumentContext.hpp>
@@ -70,15 +72,14 @@ void Visitor<Writer<JSONObject>>::writeTo(
 namespace Explorer
 {
 DeviceDocumentPlugin::DeviceDocumentPlugin(
-        iscore::Document& ctx,
+        const iscore::DocumentContext& ctx,
         QObject* parent):
     iscore::SerializableDocumentPlugin{ctx, "Explorer::DeviceDocumentPlugin", parent}
 {
-
 }
 
 DeviceDocumentPlugin::DeviceDocumentPlugin(
-        iscore::Document& ctx,
+        const iscore::DocumentContext& ctx,
         const VisitorVariant& vis,
         QObject* parent):
     iscore::SerializableDocumentPlugin{ctx, "Explorer::DeviceDocumentPlugin", parent}
@@ -223,6 +224,15 @@ void DeviceDocumentPlugin::setConnection(bool b)
         else
             dev->disconnect();
     }
+}
+
+ListeningHandler &DeviceDocumentPlugin::listening() const
+{
+    if(m_listening)
+        return *m_listening;
+
+    m_listening = context().app.components.factory<ListeningHandlerFactoryList>().make(*this, context());
+    return *m_listening;
 }
 
 void DeviceDocumentPlugin::initDevice(Device::DeviceInterface& newdev)

@@ -7,19 +7,21 @@ ListeningHandlerFactoryList::~ListeningHandlerFactoryList()
 
 }
 
-ListeningHandler *ListeningHandlerFactoryList::make(
-        const iscore::DocumentContext &ctx)
+std::unique_ptr<Explorer::ListeningHandler>
+ListeningHandlerFactoryList::make(
+        const Explorer::DeviceDocumentPlugin& plug,
+        const iscore::DocumentContext &ctx) const
 {
     if(m_list.get().empty())
     {
         DefaultListeningHandlerFactory fact;
-        return fact.make(ctx);
+        return fact.make(plug, ctx);
     }
     else
     {
         for(auto& fact : m_list.get())
         {
-            if(auto res = fact.second->make(ctx))
+            if(auto res = fact.second->make(plug, ctx))
                 return res;
         }
         return nullptr;

@@ -13,7 +13,8 @@ class ISCORE_PLUGIN_DEVICEEXPLORER_EXPORT ListeningHandlerFactoryList final :
         public:
             virtual ~ListeningHandlerFactoryList();
 
-        ListeningHandler* make(
-                const iscore::DocumentContext& ctx);
+        std::unique_ptr<Explorer::ListeningHandler> make(
+                const Explorer::DeviceDocumentPlugin& plug,
+                const iscore::DocumentContext& ctx) const;
 };
 }

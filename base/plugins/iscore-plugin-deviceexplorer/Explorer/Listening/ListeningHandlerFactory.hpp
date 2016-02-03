@@ -1,4 +1,5 @@
 #pragma once
+#include <Explorer/Listening/ListeningHandler.hpp>
 #include <iscore/plugins/customfactory/FactoryInterface.hpp>
 #include <iscore_plugin_deviceexplorer_export.h>
 namespace iscore
@@ -7,7 +8,7 @@ struct DocumentContext;
 }
 namespace Explorer
 {
-class ListeningHandler;
+class DeviceDocumentPlugin;
 using ListeningHandlerFactoryKey = UuidKey<ListeningHandler>;
 class ISCORE_PLUGIN_DEVICEEXPLORER_EXPORT ListeningHandlerFactory :
         public iscore::GenericFactoryInterface<ListeningHandlerFactoryKey>
@@ -19,7 +20,9 @@ class ISCORE_PLUGIN_DEVICEEXPLORER_EXPORT ListeningHandlerFactory :
     public:
         virtual ~ListeningHandlerFactory();
 
-        virtual ListeningHandler* make(const iscore::DocumentContext& ctx) = 0;
+        virtual std::unique_ptr<Explorer::ListeningHandler> make(
+                const DeviceDocumentPlugin& plug,
+                const iscore::DocumentContext& ctx) = 0;
 };
 }
 

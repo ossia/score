@@ -3,6 +3,7 @@
 #include <Device/Protocol/DeviceList.hpp>
 #include <Explorer/DocumentPlugin/ListeningState.hpp>
 #include <Explorer/DocumentPlugin/NodeUpdateProxy.hpp>
+#include <Explorer/Listening/ListeningHandler.hpp>
 #include <iscore/plugins/documentdelegate/plugin/DocumentDelegatePluginModel.hpp>
 #include <iscore_plugin_deviceexplorer_export.h>
 #include <core/document/Document.hpp>
@@ -22,11 +23,11 @@ class ISCORE_PLUGIN_DEVICEEXPLORER_EXPORT DeviceDocumentPlugin final :
         Q_OBJECT
     public:
         explicit DeviceDocumentPlugin(
-                iscore::Document& documentContext,
+                const iscore::DocumentContext& ctx,
                 QObject* parent);
 
         DeviceDocumentPlugin(
-                iscore::Document&,
+                const iscore::DocumentContext& ctx,
                 const VisitorVariant& loader,
                 QObject* parent);
 
@@ -54,6 +55,8 @@ class ISCORE_PLUGIN_DEVICEEXPLORER_EXPORT DeviceDocumentPlugin final :
 
         void setConnection(bool);
 
+        Explorer::ListeningHandler& listening() const;
+
     private:
         void serialize_impl(const VisitorVariant&) const override;
         ConcreteFactoryKey concreteFactoryKey() const override;
@@ -61,21 +64,8 @@ class ISCORE_PLUGIN_DEVICEEXPLORER_EXPORT DeviceDocumentPlugin final :
         void initDevice(Device::DeviceInterface&);
         Device::Node m_rootNode;
         Device::DeviceList m_list;
+
+        mutable std::unique_ptr<Explorer::ListeningHandler> m_listening;
 };
 
-class DocumentPluginFactory final :
-        public iscore::DocumentPluginFactory
-{
-        ISCORE_CONCRETE_FACTORY_DECL("6e610e1f-9de2-4c36-90dd-0ef570002a21")
-
-    public:
-        iscore::DocumentPlugin* load(
-                const VisitorVariant& var,
-                iscore::DocumentContext& doc,
-                QObject* parent) override
-        {
-            // TODO smell
-            return new DeviceDocumentPlugin{doc.document, var, parent};
-        }
-};
 }

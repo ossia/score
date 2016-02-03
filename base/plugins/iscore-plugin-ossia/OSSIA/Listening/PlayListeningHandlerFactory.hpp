@@ -11,7 +11,8 @@ class PlayListeningHandlerFactory final :
         const Explorer::ListeningHandlerFactoryKey&
         concreteFactoryKey() const override;
 
-        Explorer::ListeningHandler* make(
+        std::unique_ptr<Explorer::ListeningHandler> make(
+                const Explorer::DeviceDocumentPlugin& plug,
                 const iscore::DocumentContext& ctx) override;
 };
 }
