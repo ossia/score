@@ -13,6 +13,8 @@ struct ISCORE_LIB_PROCESS_EXPORT ScenarioStyle
 
         static ScenarioStyle& instance();
 
+// !!! a json file OVERRIDE (potentially) all that !!! (cf ScenarioApplicationPlugin.cpp:initColors()
+
         QColor ConstraintBase{3, 195, 221}; //Base
         QColor ConstraintSelected{QColor::fromRgbF(0.188235, 0.54902, 0.776471)};
         QColor ConstraintPlayFill{34, 224, 0};
@@ -54,6 +56,7 @@ struct ISCORE_LIB_PROCESS_EXPORT ScenarioStyle
 
         QColor StateOutline{Qt::white};
         QColor StateSelected{QColor::fromRgbF(0.188235, 0.54902, 0.776471)};
+        QColor StateDot{3, 195, 221};
 
         QColor Background{37, 41, 48};
         QColor ProcessPanelBackground{0, 127, 229, 76};
