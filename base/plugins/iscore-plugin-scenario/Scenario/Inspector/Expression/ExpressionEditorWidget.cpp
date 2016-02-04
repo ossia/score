@@ -112,6 +112,8 @@ void ExpressionEditorWidget::setExpression(State::Expression e)
     m_relations.clear();
 
     exploreExpression(e);
+    if(!e.hasChildren())
+        addNewRelation();
 }
 
 void ExpressionEditorWidget::on_editFinished()
