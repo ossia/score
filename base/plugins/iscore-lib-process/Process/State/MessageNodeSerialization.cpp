@@ -80,40 +80,46 @@ void fromJsonValue(
 
 
 template<>
-void Visitor<Reader<DataStream>>::readFrom(const std::array<PriorityPolicy, 3>& val)
+void Visitor<Reader<DataStream>>::readFrom(
+        const std::array<Process::PriorityPolicy, 3>& val)
 {
     for(int i = 0; i < 3; i++)
         m_stream << val[i];
 }
 
 template<>
-void Visitor<Writer<DataStream>>::writeTo(std::array<PriorityPolicy, 3>& val)
+void Visitor<Writer<DataStream>>::writeTo(
+        std::array<Process::PriorityPolicy, 3>& val)
 {
     for(int i = 0; i < 3; i++)
         m_stream >> val[i];
 }
 
 template<>
-void Visitor<Reader<DataStream>>::readFrom(const ProcessStateData& val)
+void Visitor<Reader<DataStream>>::readFrom(
+        const Process::ProcessStateData& val)
 {
     m_stream << val.process << val.value;
 }
 
 template<>
-void Visitor<Writer<DataStream>>::writeTo(ProcessStateData& val)
+void Visitor<Writer<DataStream>>::writeTo(
+        Process::ProcessStateData& val)
 {
     m_stream >> val.process >> val.value;
 }
 
 template<>
-void Visitor<Reader<JSONObject>>::readFrom(const ProcessStateData& val)
+void Visitor<Reader<JSONObject>>::readFrom(
+        const Process::ProcessStateData& val)
 {
     m_obj["Process"] = toJsonValue(val.process);
     toJsonValue(m_obj, "Value", val.value);
 }
 
 template<>
-void Visitor<Writer<JSONObject>>::writeTo(ProcessStateData& val)
+void Visitor<Writer<JSONObject>>::writeTo(
+        Process::ProcessStateData& val)
 {
     val.process = fromJsonValue<Id<Process::ProcessModel>>(m_obj["Process"]);
     fromJsonValue(m_obj, "Value", val.value);
@@ -121,19 +127,22 @@ void Visitor<Writer<JSONObject>>::writeTo(ProcessStateData& val)
 
 
 template<>
-void Visitor<Reader<DataStream>>::readFrom(const StateNodeValues& val)
+void Visitor<Reader<DataStream>>::readFrom(
+        const Process::StateNodeValues& val)
 {
     m_stream << val.previousProcessValues << val.followingProcessValues << val.userValue << val.priorities;
 }
 
 template<>
-void Visitor<Writer<DataStream>>::writeTo(StateNodeValues& val)
+void Visitor<Writer<DataStream>>::writeTo(
+        Process::StateNodeValues& val)
 {
     m_stream >> val.previousProcessValues >> val.followingProcessValues >> val.userValue >> val.priorities;
 }
 
 template<>
-void Visitor<Reader<JSONObject>>::readFrom(const StateNodeValues& val)
+void Visitor<Reader<JSONObject>>::readFrom(
+        const Process::StateNodeValues& val)
 {
     m_obj["Previous"] = toJsonArray(val.previousProcessValues);
     m_obj["Following"] = toJsonArray(val.followingProcessValues);
@@ -142,7 +151,8 @@ void Visitor<Reader<JSONObject>>::readFrom(const StateNodeValues& val)
 }
 
 template<>
-void Visitor<Writer<JSONObject>>::writeTo(StateNodeValues& val)
+void Visitor<Writer<JSONObject>>::writeTo(
+        Process::StateNodeValues& val)
 {
     fromJsonArray(m_obj["Previous"].toArray(), val.previousProcessValues);
     fromJsonArray(m_obj["Following"].toArray(), val.followingProcessValues);
@@ -152,28 +162,32 @@ void Visitor<Writer<JSONObject>>::writeTo(StateNodeValues& val)
 
 
 template<>
-ISCORE_LIB_PROCESS_EXPORT void Visitor<Reader<DataStream>>::readFrom(const StateNodeData& node)
+ISCORE_LIB_PROCESS_EXPORT void Visitor<Reader<DataStream>>::readFrom(
+        const Process::StateNodeData& node)
 {
     m_stream << node.name << node.values;
     insertDelimiter();
 }
 
 template<>
-ISCORE_LIB_PROCESS_EXPORT void Visitor<Writer<DataStream>>::writeTo(StateNodeData& node)
+ISCORE_LIB_PROCESS_EXPORT void Visitor<Writer<DataStream>>::writeTo(
+        Process::StateNodeData& node)
 {
     m_stream >> node.name >> node.values;
     checkDelimiter();
 }
 
 template<>
-ISCORE_LIB_PROCESS_EXPORT void Visitor<Reader<JSONObject>>::readFrom(const StateNodeData& node)
+ISCORE_LIB_PROCESS_EXPORT void Visitor<Reader<JSONObject>>::readFrom(
+        const Process::StateNodeData& node)
 {
     m_obj["Name"] = node.name;
     readFrom(node.values);
 }
 
 template<>
-ISCORE_LIB_PROCESS_EXPORT void Visitor<Writer<JSONObject>>::writeTo(StateNodeData& node)
+ISCORE_LIB_PROCESS_EXPORT void Visitor<Writer<JSONObject>>::writeTo(
+        Process::StateNodeData& node)
 {
     node.name = m_obj["Name"].toString();
     writeTo(node.values);

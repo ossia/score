@@ -18,7 +18,7 @@
 #include <iscore/tools/std/Algorithms.hpp>
 
 
-namespace DeviceExplorer
+namespace Explorer
 {
 NodeUpdateProxy::NodeUpdateProxy(DeviceDocumentPlugin& root):
     devModel{root}
@@ -290,13 +290,11 @@ void NodeUpdateProxy::updateRemoteValue(
         const State::Value& val)
 {
     // TODO add these checks everywhere.
-    if(devModel.list().hasDevice(addr.device))
+    auto it = devModel.list().find(addr.device);
+    if(it != devModel.list().devices().end())
     {
         // Update in the device implementation
-        devModel
-                .list()
-                .device(addr.device)
-                .sendMessage({addr, val});
+        (*it)->sendMessage({addr, val});
     }
 }
 

@@ -12,7 +12,7 @@
 class QObject;
 
 
-namespace DeviceExplorer
+namespace Explorer
 {
 DeviceCompleter::DeviceCompleter(DeviceExplorerModel* treemodel,
                                  QObject* parent) :

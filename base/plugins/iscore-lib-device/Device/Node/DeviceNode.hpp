@@ -59,9 +59,13 @@ ISCORE_LIB_DEVICE_EXPORT State::Address address(const Node& treeNode);
 
 ISCORE_LIB_DEVICE_EXPORT State::Message message(const Device::Node& node);
 
-// Note : this one takes an output reference as an optimization
-// because of its use in DeviceExplorerModel::indexesToMime
-ISCORE_LIB_DEVICE_EXPORT void messageList(
+/**
+ * @brief parametersList Recursive list of parameters in this node
+ *
+ * Note : this one takes an output reference as an optimization
+ * because of its use in DeviceExplorerModel::indexesToMime
+ */
+ISCORE_LIB_DEVICE_EXPORT void parametersList(
         const Node& treeNode,
         State::MessageList& ml);
 

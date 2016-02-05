@@ -83,7 +83,8 @@ State::Expression ExpressionEditorWidget::expression()
                 auto p = lastRel->parent();
                 // remove link between parent and current
                 auto oldC = p->back();
-                p->removeChild(p->end()--);
+                auto last_it = (++p->children().rbegin()).base();
+                p->removeChild(last_it);
 
                 // insert operator
                 p->emplace_back(op, p);
@@ -111,6 +112,8 @@ void ExpressionEditorWidget::setExpression(State::Expression e)
     m_relations.clear();
 
     exploreExpression(e);
+    if(!e.hasChildren())
+        addNewRelation();
 }
 
 void ExpressionEditorWidget::on_editFinished()

@@ -3,33 +3,41 @@
 #include <QVariant>
 #include <iscore/tools/Todo.hpp>
 #include "DeviceExplorerFilterProxyModel.hpp"
-
+#include <Explorer/Explorer/DeviceExplorerModel.hpp>
 class QObject;
 
-namespace DeviceExplorer
+namespace Explorer
 {
 DeviceExplorerFilterProxyModel::DeviceExplorerFilterProxyModel(QObject* parent)
     : QSortFilterProxyModel(parent),
-      m_col(0)
+      m_col(Explorer::Column::Name)
 {
 
 }
 
 void
-DeviceExplorerFilterProxyModel::setColumn(int col)
+DeviceExplorerFilterProxyModel::setColumn(
+        Explorer::Column col)
 {
     m_col = col;
+    invalidate();
 }
 
 /*
   Return true if the item must be included in the model.
 */
 bool
-DeviceExplorerFilterProxyModel::filterAcceptsRow(int srcRow,
+DeviceExplorerFilterProxyModel::filterAcceptsRow(
+        int srcRow,
         const QModelIndex& srcParent) const
 {
-    //inspired from http://qt-project.org/forums/viewthread/7782/
-    //The filter must accept rows that match themselves, that have a parent that matches (on its own),  or that have a child that matches. That is, if a parent node matches, it will show all its children, even if they themselves do not match, but if a a child node matches, it will show the parent, but not its (non-matching) siblings.
+    // inspired from http://qt-project.org/forums/viewthread/7782/
+    // The filter must accept rows that match themselves,
+    // that have a parent that matches (on its own),
+    // or that have a child that matches.
+    // That is, if a parent node matches, it will show all its children,
+    // even if they themselves do not match, but if a a child node matches,
+    // it will show the parent, but not its (non-matching) siblings.
 
     if(filterAcceptsRowItself(srcRow, srcParent))
     {
@@ -48,22 +56,60 @@ DeviceExplorerFilterProxyModel::filterAcceptsRow(int srcRow,
 }
 
 bool
-DeviceExplorerFilterProxyModel::filterAcceptsRowItself(int srcRow, const QModelIndex& srcParent) const
+DeviceExplorerFilterProxyModel::filterAcceptsRowItself(
+        int srcRow,
+        const QModelIndex& srcParent) const
 {
-    #if 1
-    const int col = m_col;
-    QModelIndex index = sourceModel()->index(srcRow, col, srcParent);
-    return sourceModel()->data(index).toString().contains(filterRegExp());
-    #else
-    return QSortFilterProxyModel::filterAcceptsRow(srcRow, srcParent);  //which col ???
-    #endif
+    static const QMap<QString, bool> values{
+        {
+            {"true", true},
+            {"True", true},
+            {"1", true},
+            {"y", true},
+            {"yes", true},
+            {"oui", true},
+            {"v", true},
+            {"vrai", true},
+            {"false", false},
+            {"False", false},
+            {"0", false},
+            {"n", false},
+            {"no", false},
+            {"non", false},
+            {"f", false},
+            {"faux", false},
+        }
+    };
+    const Explorer::Column col = m_col;
+    QModelIndex index = sourceModel()->index(srcRow, (int)col, srcParent);
+    switch(col)
+    {
+        case Explorer::Column::Name:
+        case Explorer::Column::Value:
+        case Explorer::Column::Min:
+        case Explorer::Column::Max:
+            return sourceModel()->data(index).toString().contains(filterRegExp());
+
+        case Explorer::Column::Get:
+        case Explorer::Column::Set:
+        {
+            auto data = sourceModel()->data(index, Qt::CheckStateRole).toBool();
+            auto it = values.find(filterRegExp().pattern());
+            if(it != values.end())
+            {
+                return it.value() == data;
+            }
+            return false;
+        }
+        default:
+            return false;
+    }
 }
 
 bool
 DeviceExplorerFilterProxyModel::hasAcceptedChildren(int srcRow, const QModelIndex& srcParent) const
 {
-    const int col = m_col;
-    QModelIndex index = sourceModel()->index(srcRow, col, srcParent);
+    QModelIndex index = sourceModel()->index(srcRow, 0, srcParent);
 
     if(! index.isValid())
     {

@@ -1,4 +1,5 @@
 #pragma once
+#include <iscore/plugins/qt_interfaces/PluginRequirements_QtInterface.hpp>
 #include <iscore/plugins/qt_interfaces/GUIApplicationContextPlugin_QtInterface.hpp>
 #include <iscore/plugins/qt_interfaces/PluginRequirements_QtInterface.hpp>
 #include <QObject>
@@ -23,27 +24,30 @@ namespace iscore {
  */
 class iscore_plugin_cohesion final :
         public QObject,
+        public iscore::Plugin_QtInterface,
         public iscore::GUIApplicationContextPlugin_QtInterface,
-        public iscore::CommandFactory_QtInterface,
-        public iscore::PluginRequirementslInterface_QtInterface
+        public iscore::CommandFactory_QtInterface
 {
         Q_OBJECT
         Q_PLUGIN_METADATA(IID GUIApplicationContextPlugin_QtInterface_iid)
         Q_INTERFACES(
+                iscore::Plugin_QtInterface
                 iscore::GUIApplicationContextPlugin_QtInterface
                 iscore::CommandFactory_QtInterface
-                iscore::PluginRequirementslInterface_QtInterface
                 )
 
     public:
         iscore_plugin_cohesion();
-        ~iscore_plugin_cohesion() = default;
+        virtual ~iscore_plugin_cohesion();
 
+    private:
         iscore::GUIApplicationContextPlugin* make_applicationPlugin(
                 const iscore::ApplicationContext& app) override;
 
         std::pair<const CommandParentFactoryKey, CommandGeneratorMap> make_commands() override;
 
         QStringList required() const override;
+        int32_t version() const override;
+        UuidKey<iscore::Plugin> key() const override;
 };
 

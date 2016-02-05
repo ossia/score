@@ -19,7 +19,7 @@
 #include <iscore/plugins/customfactory/FactoryMap.hpp>
 #include <iscore/plugins/customfactory/StringFactoryKey.hpp>
 
-namespace DeviceExplorer
+namespace Explorer
 {
 DeviceEditDialog::DeviceEditDialog(
         const Device::DynamicProtocolList& pl,

@@ -26,25 +26,38 @@ StateView::StateView(StatePresenter& pres, QGraphicsItem* parent) :
 
 void StateView::paint(QPainter *painter, const QStyleOptionGraphicsItem *option, QWidget *widget)
 {
-    QPen statePen = m_baseColor;
 
-    QBrush stateBrush = m_containMessage ? m_baseColor : ScenarioStyle::instance().Background;
+    QBrush temporalPointBrush = m_selected ? ScenarioStyle::instance().StateSelected : ScenarioStyle::instance().StateDot;
+    QBrush stateBrush = m_baseColor;
+    QPen statePen;
 
-    if(m_status.get() != ExecutionStatus::Editing)
-        statePen= m_status.stateStatusColor();
+    auto status = m_status.get();
+    switch (status)
+    {
+        case ExecutionStatus::Editing :
+            painter->setPen(Qt::NoPen);
+        break;
 
-    statePen.setWidth(2);
-    painter->setPen(statePen);
-    painter->setBrush(stateBrush);
+        default :
+            statePen = m_status.stateStatusColor();
+            statePen.setWidth(2.);
+            painter->setPen(statePen);
+        break;
+    }
 
-    QPen highlightPen = ScenarioStyle::instance().StateSelected;
-    highlightPen.setWidth(4);
+
+    if(m_containMessage)
+    {
+        painter->setBrush(stateBrush);
+        painter->drawEllipse({0., 0.}, m_radiusFull, m_radiusFull);
+    }
+
+    painter->setBrush(temporalPointBrush);
+    qreal r = m_radiusPoint;
+    painter->drawEllipse({0., 0.}, r, r);
 
 
-    if(m_selected)
-        painter->setPen(highlightPen);
-
-    painter->drawEllipse({0., 0.}, m_radiusFull, m_radiusFull);
+    this->setScale(m_dilatationFactor);
 
 
 
@@ -64,6 +77,7 @@ void StateView::setContainMessage(bool arg)
 void StateView::setSelected(bool arg)
 {
     m_selected = arg;
+    m_dilatationFactor = m_selected ? 1.5 : 1;
     update();
 }
 
@@ -95,6 +109,30 @@ void StateView::mouseMoveEvent(QGraphicsSceneMouseEvent *event)
 void StateView::mouseReleaseEvent(QGraphicsSceneMouseEvent *event)
 {
     emit m_presenter.released(event->scenePos());
+}
+
+void StateView::hoverEnterEvent(QGraphicsSceneHoverEvent* event)
+{
+//   m_dilatationFactor = 1.5;
+   update();
+}
+
+void StateView::hoverLeaveEvent(QGraphicsSceneHoverEvent* event)
+{
+//    m_dilatationFactor = m_selected ? 1.5 : 1;
+    update();
+}
+
+void StateView::dragEnterEvent(QGraphicsSceneDragDropEvent* event)
+{
+    m_dilatationFactor = 1.5;
+    update();
+}
+
+void StateView::dragLeaveEvent(QGraphicsSceneDragDropEvent* event)
+{
+    m_dilatationFactor = m_selected ? 1.5 : 1;
+    update();
 }
 
 void StateView::dropEvent(QGraphicsSceneDragDropEvent *event)

@@ -41,6 +41,7 @@
 #include <Device/Protocol/DeviceInterface.hpp>
 #include <Device/Protocol/DeviceList.hpp>
 #include <Device/Protocol/DeviceSettings.hpp>
+#include <Explorer/Listening/ListeningHandler.hpp>
 #include "DeviceExplorerFilterProxyModel.hpp"
 #include "DeviceExplorerView.hpp"
 #include "DeviceExplorerWidget.hpp"
@@ -60,7 +61,7 @@
 #include <iscore/tools/std/Algorithms.hpp>
 
 
-namespace DeviceExplorer
+namespace Explorer
 {
 DeviceExplorerWidget::DeviceExplorerWidget(
         const Device::DynamicProtocolList& pl,
@@ -68,16 +69,21 @@ DeviceExplorerWidget::DeviceExplorerWidget(
     : QWidget(parent),
       m_protocolList{pl},
       m_proxyModel(nullptr),
-      m_deviceDialog(nullptr),
-      m_listeningManager{*this}
+      m_deviceDialog(nullptr)
 {
     buildGUI();
 
     // Set the expansion signals
     connect(m_ntView, &QTreeView::expanded,
-            this, [&] (const QModelIndex& idx) { m_listeningManager.setListening(idx, true); });
+            this, [&] (const QModelIndex& idx) {
+        if(m_listeningManager)
+            m_listeningManager->setListening(idx, true);
+    });
     connect(m_ntView, &QTreeView::collapsed,
-            this,[&] (const QModelIndex& idx) { m_listeningManager.setListening(idx, false); });
+            this,[&] (const QModelIndex& idx) {
+        if(m_listeningManager)
+            m_listeningManager->setListening(idx, false);
+    });
 }
 
 void
@@ -219,9 +225,6 @@ DeviceExplorerWidget::buildGUI()
     refreshLay->addWidget(m_refreshIndicator);
     m_lay->addWidget(refreshParent);
     setLayout(m_lay);
-
-
-    installStyleSheet();
 }
 
 void DeviceExplorerWidget::blockGUI(bool b)
@@ -257,18 +260,6 @@ QModelIndex DeviceExplorerWidget::proxyIndex(QModelIndex index) const
 }
 
 void
-DeviceExplorerWidget::installStyleSheet()
-{
-    setStyleSheet(
-        "* {"
-        // "background-color: #bababa;"
-        "}"
-    );
-}
-
-
-
-void
 DeviceExplorerWidget::contextMenuEvent(QContextMenuEvent* event)
 {
     updateActions();
@@ -296,6 +287,7 @@ DeviceExplorerWidget::setModel(DeviceExplorerModel* model)
 {
     delete m_proxyModel;    //? will also delete previous model ??
     m_proxyModel = nullptr;
+    m_listeningManager.reset();
 
     if (model)
     {
@@ -304,6 +296,7 @@ DeviceExplorerWidget::setModel(DeviceExplorerModel* model)
         m_ntView->setModel(m_proxyModel);
         model->setView(m_ntView);
 
+        m_listeningManager = std::make_unique<ListeningManager>(*model, *this);
         m_cmdDispatcher = std::make_unique<CommandDispatcher<>>(
                 model->commandStack());
 
@@ -426,7 +419,7 @@ void DeviceExplorerWidget::edit()
 
         if(code == QDialog::Accepted)
         {
-            auto cmd = new DeviceExplorer::Command::UpdateDeviceSettings{
+            auto cmd = new Explorer::Command::UpdateDeviceSettings{
                     model()->deviceModel(),
                     set.name,
                     m_deviceDialog->getSettings()};
@@ -450,7 +443,7 @@ void DeviceExplorerWidget::edit()
             if(!model()->checkAddressEditable(*select.parent(), before, stgs))
                 return;
 
-            auto cmd = new DeviceExplorer::Command::UpdateAddressSettings{
+            auto cmd = new Explorer::Command::UpdateAddressSettings{
                     model()->deviceModel(),
                     Device::NodePath(select),
                     stgs};
@@ -478,7 +471,7 @@ void DeviceExplorerWidget::refresh()
 
         auto wrkr = make_worker(
             [=] (Device::Node&& node) {
-                auto cmd = new DeviceExplorer::Command::ReplaceDevice{
+                auto cmd = new Explorer::Command::ReplaceDevice{
                     *m,
                     m_ntView->selectedIndex().row(),
                     std::move(node)};
@@ -521,7 +514,7 @@ void DeviceExplorerWidget::refreshValue()
         return;
 
     // Send the command
-    auto cmd = new DeviceExplorer::Command::UpdateAddressesValues{
+    auto cmd = new Explorer::Command::UpdateAddressesValues{
             *model(),
             lst};
 
@@ -694,7 +687,7 @@ void DeviceExplorerWidget::removeNodes()
     {
         if (n->is<Device::DeviceSettings>())
         {
-            cmd->addCommand(new DeviceExplorer::Command::Remove{
+            cmd->addCommand(new Explorer::Command::Remove{
                                 dev_model_path,
                                 *n});
         }
@@ -712,7 +705,7 @@ void DeviceExplorerWidget::removeNodes()
     for(auto it = paths.rbegin(); it != paths.rend(); ++it)
     {
         cmd->addCommand(
-                    new DeviceExplorer::Command::Remove{
+                    new Explorer::Command::Remove{
                         dev_model_path,
                         Device::NodePath{*it}});
     }
@@ -754,7 +747,7 @@ DeviceExplorerWidget::addAddress(InsertMode insert)
         bool parent_is_expanded = m_ntView->isExpanded(proxyIndex(m_ntView->model()->modelIndexFromNode(*parent, 0)));
 
         m_cmdDispatcher->submitCommand(
-                        new DeviceExplorer::Command::AddAddress{
+                        new Explorer::Command::AddAddress{
                             model()->deviceModel(),
                             Device::NodePath{index},
                             insert,
@@ -769,7 +762,8 @@ DeviceExplorerWidget::addAddress(InsertMode insert)
             });
             ISCORE_ASSERT(child_it != parent->end());
 
-            m_listeningManager.enableListening(*child_it);
+            if(m_listeningManager)
+                m_listeningManager->enableListening(*child_it);
         }
         updateActions();
     }
@@ -790,6 +784,6 @@ DeviceExplorerWidget::filterChanged()
     QRegExp regExp(pattern, cs, syntax);
 
     m_proxyModel->setFilterRegExp(regExp);
-    m_proxyModel->setColumn(m_columnCBox->currentIndex());
+    m_proxyModel->setColumn((Explorer::Column)m_columnCBox->currentIndex());
 }
 }

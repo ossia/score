@@ -22,7 +22,7 @@ class RemoveMessageNodes final : public iscore::SerializableCommand
         public:
           RemoveMessageNodes(
             Path<MessageItemModel>&& ,
-            const QList<const MessageNode*>&);
+            const QList<const Process::MessageNode*>&);
 
         void undo() const override;
         void redo() const override;
@@ -33,8 +33,8 @@ class RemoveMessageNodes final : public iscore::SerializableCommand
 
     private:
         Path<MessageItemModel> m_path;
-        MessageNode m_oldState;
-        MessageNode m_newState;
+        Process::MessageNode m_oldState;
+        Process::MessageNode m_newState;
 };
 }
 }

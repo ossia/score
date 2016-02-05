@@ -36,7 +36,7 @@ class ProcessState final : public ProcessStateDataInterface
         ::State::MessageList messages() const override;
         ::State::MessageList setMessages(
                 const ::State::MessageList&,
-                const MessageNode&) override;
+                const Process::MessageNode&) override;
 
     private:
         double m_point{};

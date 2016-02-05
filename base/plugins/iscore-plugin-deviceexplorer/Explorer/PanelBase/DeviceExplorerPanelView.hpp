@@ -6,7 +6,7 @@
 
 class QWidget;
 
-namespace DeviceExplorer
+namespace Explorer
 {
 class DeviceExplorerWidget;
 

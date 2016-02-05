@@ -11,7 +11,7 @@
 
 class QWidget;
 
-namespace DeviceExplorer
+namespace Explorer
 {
 AddressCharSettingsWidget::AddressCharSettingsWidget(QWidget* parent)
     : AddressSettingsWidget(parent)

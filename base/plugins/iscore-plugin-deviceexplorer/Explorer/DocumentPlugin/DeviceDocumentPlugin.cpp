@@ -20,6 +20,8 @@
 #include "DeviceDocumentPlugin.hpp"
 #include <Explorer/DocumentPlugin/ListeningState.hpp>
 #include <Explorer/DocumentPlugin/NodeUpdateProxy.hpp>
+#include <Explorer/DocumentPlugin/DeviceDocumentPluginFactory.hpp>
+#include <Explorer/Listening/ListeningHandlerFactoryList.hpp>
 #include <State/Address.hpp>
 #include <iscore/application/ApplicationContext.hpp>
 #include <iscore/document/DocumentContext.hpp>
@@ -39,7 +41,7 @@ struct VisitorVariant;
 // MOVEME
 template<>
 void Visitor<Reader<DataStream>>::readFrom_impl(
-        const DeviceExplorer::DeviceDocumentPlugin& dev)
+        const Explorer::DeviceDocumentPlugin& dev)
 {
     readFrom(dev.rootNode());
 }
@@ -47,14 +49,14 @@ void Visitor<Reader<DataStream>>::readFrom_impl(
 
 template<>
 void Visitor<Reader<JSONObject>>::readFrom_impl(
-        const DeviceExplorer::DeviceDocumentPlugin& dev)
+        const Explorer::DeviceDocumentPlugin& dev)
 {
     readFrom(dev.rootNode());
 }
 
 template<>
 void Visitor<Writer<DataStream>>::writeTo(
-        DeviceExplorer::DeviceDocumentPlugin& dev)
+        Explorer::DeviceDocumentPlugin& dev)
 {
     writeTo(dev.rootNode());
 }
@@ -62,26 +64,25 @@ void Visitor<Writer<DataStream>>::writeTo(
 
 template<>
 void Visitor<Writer<JSONObject>>::writeTo(
-        DeviceExplorer::DeviceDocumentPlugin& dev)
+        Explorer::DeviceDocumentPlugin& dev)
 {
     writeTo(dev.rootNode());
 }
 
-namespace DeviceExplorer
+namespace Explorer
 {
 DeviceDocumentPlugin::DeviceDocumentPlugin(
-        iscore::Document& ctx,
+        const iscore::DocumentContext& ctx,
         QObject* parent):
-    iscore::SerializableDocumentPlugin{ctx, "DeviceExplorer::DeviceDocumentPlugin", parent}
+    iscore::SerializableDocumentPlugin{ctx, "Explorer::DeviceDocumentPlugin", parent}
 {
-
 }
 
 DeviceDocumentPlugin::DeviceDocumentPlugin(
-        iscore::Document& ctx,
+        const iscore::DocumentContext& ctx,
         const VisitorVariant& vis,
         QObject* parent):
-    iscore::SerializableDocumentPlugin{ctx, "DeviceExplorer::DeviceDocumentPlugin", parent}
+    iscore::SerializableDocumentPlugin{ctx, "Explorer::DeviceDocumentPlugin", parent}
 {
     deserialize_dyn(vis, *this);
 
@@ -223,6 +224,15 @@ void DeviceDocumentPlugin::setConnection(bool b)
         else
             dev->disconnect();
     }
+}
+
+ListeningHandler &DeviceDocumentPlugin::listening() const
+{
+    if(m_listening)
+        return *m_listening;
+
+    m_listening = context().app.components.factory<ListeningHandlerFactoryList>().make(*this, context());
+    return *m_listening;
 }
 
 void DeviceDocumentPlugin::initDevice(Device::DeviceInterface& newdev)

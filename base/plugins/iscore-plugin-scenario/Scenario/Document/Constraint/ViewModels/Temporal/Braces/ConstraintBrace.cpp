@@ -15,14 +15,13 @@ ConstraintBrace::ConstraintBrace(const TemporalConstraintView& parentCstr, QGrap
     this->setCursor(Qt::SizeHorCursor);
     this->setZValue(10);
 
-    m_path.moveTo(0, -10);
-    m_path.arcTo(-10, -10, 20, 20, 90, 180);
-    m_path.closeSubpath();
+    m_path.moveTo(10, -10);
+    m_path.arcTo(0, -10, 20, 20, 90, 180);
 }
 
 QRectF ConstraintBrace::boundingRect() const
 {
-    return {-10, -10, 10, 20};
+    return {0, -10, 10, 20};
 }
 
 void ConstraintBrace::paint(QPainter* painter,

@@ -21,7 +21,7 @@
 
 class QWidget;
 
-namespace DeviceExplorer
+namespace Explorer
 {
 AddressEditDialog::AddressEditDialog(
         QWidget* parent):
@@ -109,7 +109,7 @@ Device::AddressSettings AddressEditDialog::makeDefaultSettings()
     static Device::AddressSettings defaultSettings
             = [] () {
         Device::AddressSettings s;
-        s.value = State::Value::fromValue(0);
+        s.value = State::Value::fromValue(State::no_value_t{});
         s.domain.min = State::Value::fromValue(0);
         s.domain.max = State::Value::fromValue(100);
         s.ioType = Device::IOType::InOut;

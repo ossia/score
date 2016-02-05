@@ -12,29 +12,32 @@ enum class ProcessPosition {
 
 // User messages
 void updateTreeWithMessageList(
-        MessageNode& rootNode,
+        Process::MessageNode& rootNode,
         State::MessageList lst);
 
 // Messages from a process
 void updateTreeWithMessageList(
-        MessageNode& rootNode,
+        Process::MessageNode& rootNode,
         State::MessageList lst,
         const Id<Process::ProcessModel>& proc,
         ProcessPosition pos);
 
 void updateTreeWithRemovedProcess(
-        MessageNode& rootNode,
+        Process::MessageNode& rootNode,
         const Id<Process::ProcessModel>& proc,
         ProcessPosition pos);
 
 void updateTreeWithRemovedConstraint(
-        MessageNode& rootNode,
+        Process::MessageNode& rootNode,
         ProcessPosition pos);
 
 void updateTreeWithRemovedUserMessage(
-        MessageNode& rootNode,
+        Process::MessageNode& rootNode,
         const State::Address&);
 
 void updateTreeWithRemovedNode(
-        MessageNode& rootNode,
+        Process::MessageNode& rootNode,
         const State::Address& addr);
+
+void removeAllUserMessages(
+        Process::MessageNode& rootNode);

@@ -15,7 +15,7 @@ namespace Device
 class DynamicProtocolList;
 class ProtocolSettingsWidget;
 }
-namespace DeviceExplorer
+namespace Explorer
 {
 class DeviceEditDialog final : public QDialog
 {

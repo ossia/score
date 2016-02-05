@@ -12,7 +12,7 @@ class DataStreamInput;
 class DataStreamOutput;
 
 
-namespace DeviceExplorer
+namespace Explorer
 {
 class DeviceExplorerModel;
 namespace Command

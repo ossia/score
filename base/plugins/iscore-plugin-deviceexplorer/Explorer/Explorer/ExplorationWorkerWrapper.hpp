@@ -4,7 +4,7 @@
 #include <QApplication>
 #include "ExplorationWorker.hpp"
 
-namespace DeviceExplorer
+namespace Explorer
 {
 class DeviceExplorerWidget;
 

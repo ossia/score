@@ -92,9 +92,16 @@ QVariant valueColumnData(const Device::Node& node, int role)
     {
         const IOType ioType = node.get<AddressSettings>().ioType;
 
-        if(ioType == IOType::In || ioType == IOType::Out)
+        switch(ioType)
         {
-            return QBrush(Qt::black);
+            case IOType::In:
+                return QBrush(Qt::darkGray);
+                break;
+            case IOType::Out:
+                return QBrush(Qt::lightGray);
+                break;
+            default:
+                return {};
         }
     }
 
@@ -107,6 +114,7 @@ QVariant GetColumnData(const Device::Node& node, int role)
     if(node.is<DeviceSettings>())
         return {};
 
+    /*
     if(role == Qt::DisplayRole || role == Qt::EditRole)
     {
         switch(node.get<AddressSettings>().ioType)
@@ -118,6 +126,8 @@ QVariant GetColumnData(const Device::Node& node, int role)
             default:            return QVariant{};
         }
     }
+    */
+
     if(role == Qt::CheckStateRole)
     {
         switch(node.get<AddressSettings>().ioType)
@@ -138,6 +148,7 @@ QVariant SetColumnData(const Device::Node& node, int role)
     if(node.is<DeviceSettings>())
         return {};
 
+    /*
     if(role == Qt::DisplayRole || role == Qt::EditRole)
     {
         switch(node.get<AddressSettings>().ioType)
@@ -149,6 +160,8 @@ QVariant SetColumnData(const Device::Node& node, int role)
             default:            return QVariant{};
         }
     }
+    */
+
     if(role == Qt::CheckStateRole)
     {
         switch(node.get<AddressSettings>().ioType)

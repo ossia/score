@@ -6,7 +6,7 @@ class QGridLayout;
 class QWidget;
 
 
-namespace DeviceExplorer
+namespace Explorer
 {
 class DeviceExplorerModel;
 /**

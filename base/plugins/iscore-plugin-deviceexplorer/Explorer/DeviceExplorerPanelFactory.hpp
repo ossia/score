@@ -13,7 +13,7 @@ class DocumentModel;
 
 }  // namespace iscore
 
-namespace DeviceExplorer
+namespace Explorer
 {
 class DeviceExplorerPanelFactory final : public iscore::PanelFactory
 {

@@ -2,7 +2,7 @@
 #include <iscore/command/SerializableCommand.hpp>
 
 
-namespace DeviceExplorer
+namespace Explorer
 {
 namespace Command
 {

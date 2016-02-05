@@ -9,7 +9,7 @@ namespace State
 struct Message;
 }
 
-namespace DeviceExplorer
+namespace Explorer
 {
 class DeviceExplorerModel;
 

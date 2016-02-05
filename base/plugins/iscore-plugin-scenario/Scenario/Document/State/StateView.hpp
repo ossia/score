@@ -52,6 +52,10 @@ class ISCORE_PLUGIN_SCENARIO_EXPORT  StateView final : public QGraphicsObject
         void mousePressEvent(QGraphicsSceneMouseEvent *event) override;
         void mouseMoveEvent(QGraphicsSceneMouseEvent *event) override;
         void mouseReleaseEvent(QGraphicsSceneMouseEvent *event) override;
+        void hoverEnterEvent(QGraphicsSceneHoverEvent* event) override;
+        void hoverLeaveEvent(QGraphicsSceneHoverEvent* event) override;
+        void dragEnterEvent(QGraphicsSceneDragDropEvent *event) override;
+        void dragLeaveEvent(QGraphicsSceneDragDropEvent *event) override;
 
         void dropEvent(QGraphicsSceneDragDropEvent *event) override;
     private:
@@ -65,6 +69,7 @@ class ISCORE_PLUGIN_SCENARIO_EXPORT  StateView final : public QGraphicsObject
         ExecutionStatusProperty m_status{};
 
         static const constexpr qreal m_radiusFull = 7.;
-        static const constexpr qreal m_radiusVoid = 3.;
+        static const constexpr qreal m_radiusPoint = 3.5;
+        qreal m_dilatationFactor = 1;
 };
 }

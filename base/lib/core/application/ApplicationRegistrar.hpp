@@ -20,6 +20,7 @@ class View;
 class MenubarManager;
 struct OrderedToolbar;
 class Settings;
+class Plugin_QtInterface;
 
 class ISCORE_LIB_BASE_EXPORT ApplicationRegistrar : public QObject
 {
@@ -34,7 +35,7 @@ class ISCORE_LIB_BASE_EXPORT ApplicationRegistrar : public QObject
                 QObject* panelPresenterParent);
 
         // Register data from plugins
-        void registerPlugins(const QStringList&, const std::vector<QObject*>& vec);
+        void registerPlugins(const QStringList&, const std::vector<iscore::Plugin_QtInterface*>& vec);
         void registerApplicationContextPlugin(GUIApplicationContextPlugin*);
         void registerPanel(PanelFactory*);
         void registerDocumentDelegate(DocumentDelegateFactory*);

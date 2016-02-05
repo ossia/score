@@ -38,7 +38,7 @@ State::MessageList DummyState::messages() const
 
 State::MessageList DummyState::setMessages(
         const State::MessageList&,
-        const MessageNode&)
+        const Process::MessageNode&)
 {
     return {};
 }

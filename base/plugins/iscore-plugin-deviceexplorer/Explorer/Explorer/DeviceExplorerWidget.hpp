@@ -17,14 +17,14 @@ class QStackedLayout;
 class QComboBox;
 class QLineEdit;
 
-
 namespace Device
 {
 class DynamicProtocolList;
 }
 
-namespace DeviceExplorer
+namespace Explorer
 {
+class ListeningHandler;
 class DeviceEditDialog;
 class DeviceExplorerFilterProxyModel;
 class DeviceExplorerModel;
@@ -72,7 +72,6 @@ class DeviceExplorerWidget final : public QWidget
         DeviceExplorerFilterProxyModel* proxyModel();
 
         void buildGUI();
-        void installStyleSheet();
         void populateColumnCBox();
 
         void contextMenuEvent(QContextMenuEvent* event) override;
@@ -104,6 +103,6 @@ class DeviceExplorerWidget final : public QWidget
         QProgressIndicator* m_refreshIndicator{};
         QStackedLayout* m_lay{};
 
-        ListeningManager m_listeningManager;
+        std::unique_ptr<ListeningManager> m_listeningManager;
 };
 }

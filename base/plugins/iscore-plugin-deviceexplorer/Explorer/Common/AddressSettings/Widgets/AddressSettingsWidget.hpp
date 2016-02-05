@@ -8,7 +8,7 @@ class QComboBox;
 class QFormLayout;
 
 
-namespace DeviceExplorer
+namespace Explorer
 {
 class ISCORE_LIB_DEVICE_EXPORT AddressSettingsWidget : public QWidget
 {

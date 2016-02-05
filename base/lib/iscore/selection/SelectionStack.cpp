@@ -66,6 +66,9 @@ void SelectionStack::unselect()
 {
     m_reselectable.push(m_unselectable.pop());
 
+    if(m_unselectable.empty())
+        m_unselectable.push(Selection{});
+
     emit currentSelectionChanged(m_unselectable.top());
 }
 

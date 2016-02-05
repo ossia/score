@@ -12,7 +12,7 @@
 #include "Widgets/AddressTupleSettingsWidget.hpp"
 
 
-namespace DeviceExplorer
+namespace Explorer
 {
 using AddressIntSettingsWidget = AddressNumericSettingsWidget<int>;
 using AddressFloatSettingsWidget = AddressNumericSettingsWidget<float>;
