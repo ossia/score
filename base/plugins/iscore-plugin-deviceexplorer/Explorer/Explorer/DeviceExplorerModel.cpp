@@ -52,15 +52,15 @@
 
 #include <Explorer/PanelBase/DeviceExplorerPanelModel.hpp>
 
-namespace DeviceExplorer
+namespace Explorer
 {
-static const QMap<DeviceExplorerModel::Column, QString> HEADERS{
-    {DeviceExplorerModel::Column::Name, QObject::tr("Address")},
-    {DeviceExplorerModel::Column::Value, QObject::tr("Value")},
-    {DeviceExplorerModel::Column::Get, QObject::tr("Get")},
-    {DeviceExplorerModel::Column::Set, QObject::tr("Set")},
-    {DeviceExplorerModel::Column::Min, QObject::tr("Min")},
-    {DeviceExplorerModel::Column::Max, QObject::tr("Max")}
+static const QMap<Explorer::Column, QString> HEADERS{
+    {Explorer::Column::Name, QObject::tr("Address")},
+    {Explorer::Column::Value, QObject::tr("Value")},
+    {Explorer::Column::Get, QObject::tr("Get")},
+    {Explorer::Column::Set, QObject::tr("Set")},
+    {Explorer::Column::Min, QObject::tr("Min")},
+    {Explorer::Column::Max, QObject::tr("Max")}
 };
 
 DeviceExplorerModel::DeviceExplorerModel(
@@ -478,7 +478,7 @@ bool DeviceExplorerModel::setData(
     if(!n.is<Device::AddressSettings>())
         return false;
 
-    auto col = DeviceExplorerModel::Column(index.column());
+    auto col = Explorer::Column(index.column());
 
     if(role == Qt::EditRole || role == Qt::CheckStateRole)
     {
@@ -595,7 +595,7 @@ bool DeviceExplorerModel::setData(
             if(settings != n.get<Device::AddressSettings>())
             {
                 // We changed
-                m_cmdQ->redoAndPush(new DeviceExplorer::Command::UpdateAddressSettings{
+                m_cmdQ->redoAndPush(new Explorer::Command::UpdateAddressSettings{
                                         this->deviceModel(),
                                         Device::NodePath{n},
                                         settings});
@@ -621,7 +621,7 @@ DeviceExplorerModel::setHeaderData(int, Qt::Orientation, const QVariant&, int)
  */
 void DeviceExplorerModel::editData(
         const Device::NodePath &path,
-        DeviceExplorerModel::Column column,
+        Explorer::Column column,
         const State::Value &value,
         int role)
 {
@@ -730,18 +730,35 @@ DeviceExplorerModel::mimeTypes() const
     return {iscore::mime::device(), iscore::mime::address()};
 }
 
-QList<Device::Node*> DeviceExplorerModel::uniqueSelectedNodes(const QModelIndexList& indexes) const
+SelectedNodes DeviceExplorerModel::uniqueSelectedNodes(
+        const QModelIndexList& indexes) const
 {
-    QList<Device::Node*> nodes;
+    SelectedNodes nodes;
     std::transform(indexes.begin(), indexes.end(),
-                   std::back_inserter(nodes),
+                   std::back_inserter(nodes.parents),
                    [&] (const QModelIndex& idx) {
         return &nodeFromModelIndex(idx);
     });
 
-    nodes.removeAll(&m_rootNode);
+    nodes.parents.removeAll(&m_rootNode);
 
-    return filterUniqueParents(nodes);
+    // Filter messages
+    for(auto node : nodes.parents)
+    {
+        if(node->is<Device::AddressSettings>())
+        {
+            auto& val = node->get<Device::AddressSettings>();
+            if(val.ioType == Device::IOType::Out)
+            {
+                nodes.messages.append(node);
+            }
+        }
+    }
+
+    // Filter parents
+    nodes.parents = filterUniqueParents(nodes.parents);
+
+    return nodes;
 }
 //method called when a drag is initiated
 QMimeData*
@@ -752,13 +769,17 @@ DeviceExplorerModel::mimeData(const QModelIndexList& indexes) const
     auto uniqueNodes = uniqueSelectedNodes(indexes);
 
     // Now we request an update to the device explorer.
-    m_devicePlugin.updateProxy.refreshRemoteValues(uniqueNodes);
+    m_devicePlugin.updateProxy.refreshRemoteValues(uniqueNodes.parents);
 
     // The "MessagesList" part.
     State::MessageList messages;
-    for(const auto& node : uniqueNodes)
+    for(const auto& node : uniqueNodes.parents)
     {
-        messageList(*node, messages);
+        Device::parametersList(*node, messages);
+    }
+    for(const auto& node : uniqueNodes.messages)
+    {
+        messages += Device::message(*node);
     }
 
     if(!messages.empty())
@@ -772,10 +793,10 @@ DeviceExplorerModel::mimeData(const QModelIndexList& indexes) const
     // each node in this case. For now it's useless.
     {
         Mime<Device::NodeList>::Serializer s{*mimeData};
-        s.serialize(uniqueNodes);
+        s.serialize(uniqueNodes.parents + uniqueNodes.messages);
     }
 
-    if(messages.empty() && uniqueNodes.empty())
+    if(messages.empty() && uniqueNodes.parents.empty() && uniqueNodes.messages.empty())
     {
         delete mimeData;
         return nullptr;
@@ -978,13 +999,17 @@ State::MessageList getSelectionSnapshot(DeviceExplorerModel& model)
     auto uniqueNodes = model.uniqueSelectedNodes(model.selectedIndexes());
 
     // Recursive refresh
-    model.deviceModel().updateProxy.refreshRemoteValues(uniqueNodes);
+    model.deviceModel().updateProxy.refreshRemoteValues(uniqueNodes.parents);
 
     // Conversion
     State::MessageList messages;
-    for(const auto& node : uniqueNodes)
+    for(const auto& node : uniqueNodes.parents)
     {
-        messageList(*node, messages);
+        Device::parametersList(*node, messages);
+    }
+    for(const auto& node : uniqueNodes.messages)
+    {
+        messages += Device::message(*node);
     }
 
     return messages;

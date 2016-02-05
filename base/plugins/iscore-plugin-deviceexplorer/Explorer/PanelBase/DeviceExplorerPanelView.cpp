@@ -12,7 +12,7 @@
 
 class QWidget;
 
-namespace DeviceExplorer
+namespace Explorer
 {
 static const iscore::DefaultPanelStatus status{
     true,

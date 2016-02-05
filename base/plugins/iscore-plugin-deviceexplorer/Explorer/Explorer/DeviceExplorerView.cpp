@@ -32,7 +32,7 @@ namespace
     const QString HeaderViewSetting("DeviceExplorerView/HeaderView");
 }
 
-namespace DeviceExplorer
+namespace Explorer
 {
 DeviceExplorerView::DeviceExplorerView(QWidget* parent)
     : QTreeView(parent),
@@ -92,12 +92,12 @@ DeviceExplorerView::setInitialColumnsSizes()
 {
     ISCORE_ASSERT(model());
 
-    header()->resizeSection((int)DeviceExplorerModel::Column::Name, 220);
-    header()->resizeSection((int)DeviceExplorerModel::Column::Value, 50);
-    header()->resizeSection((int)DeviceExplorerModel::Column::Get, 36);
-    header()->resizeSection((int)DeviceExplorerModel::Column::Set, 36);
-    header()->resizeSection((int)DeviceExplorerModel::Column::Min, 50);
-    header()->resizeSection((int)DeviceExplorerModel::Column::Max, 50);
+    header()->resizeSection((int)Explorer::Column::Name, 220);
+    header()->resizeSection((int)Explorer::Column::Value, 50);
+    header()->resizeSection((int)Explorer::Column::Get, 36);
+    header()->resizeSection((int)Explorer::Column::Set, 36);
+    header()->resizeSection((int)Explorer::Column::Min, 50);
+    header()->resizeSection((int)Explorer::Column::Max, 50);
 }
 
 
@@ -241,7 +241,7 @@ DeviceExplorerView::selectionChanged(const QItemSelection& selected, const QItem
       QModelIndexList l = selectedIndexes();
       QModelIndexList l0;
       foreach (const QModelIndex &index, l) {
-      if (index.column() == (int)DeviceExplorerModel::Column::Name) {
+      if (index.column() == (int)Explorer::Column::Name) {
 
         if (!index.isValid())
           std::cerr<<" !!! invalid index in selection !!!\n";
@@ -268,7 +268,7 @@ DeviceExplorerView::selectedIndexes() const
     //We want only the indexes of the NAME column.
 
 
-    const int col = (int)DeviceExplorerModel::Column::Name;
+    const int col = (int)Explorer::Column::Name;
     QModelIndexList l = QTreeView::selectedIndexes();
 
     QModelIndexList l0;

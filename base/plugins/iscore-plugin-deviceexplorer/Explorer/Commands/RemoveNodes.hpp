@@ -3,7 +3,7 @@
 
 #include <iscore/command/AggregateCommand.hpp>
 
-namespace DeviceExplorer
+namespace Explorer
 {
 namespace Command
 {

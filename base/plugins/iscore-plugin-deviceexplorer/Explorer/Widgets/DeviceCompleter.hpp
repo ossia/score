@@ -7,7 +7,7 @@ class QModelIndex;
 class QObject;
 
 
-namespace DeviceExplorer
+namespace Explorer
 {
 
 class DeviceExplorerModel;

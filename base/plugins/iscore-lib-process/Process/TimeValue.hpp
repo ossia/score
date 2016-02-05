@@ -63,7 +63,10 @@ class TimeValue_T
 
         T msec() const
         {
-            return *m_impl;
+            if(!isInfinite())
+                return *m_impl;
+
+            return 0;
         }
 
         T sec() const

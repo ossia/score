@@ -34,11 +34,11 @@ InspectorWidget::InspectorWidget(
     ProcessInspectorWidgetDelegate_T {automationModel, parent},
     m_dispatcher{doc.commandStack}
 {
-    using namespace DeviceExplorer;
+    using namespace Explorer;
     setObjectName("AutomationInspectorWidget");
     setParent(parent);
 
-    auto vlay = new QVBoxLayout;
+    auto vlay = new QFormLayout;
     vlay->setSpacing(0);
     vlay->setContentsMargins(0,0,0,0);
 
@@ -59,29 +59,17 @@ InspectorWidget::InspectorWidget(
     connect(m_lineEdit, &AddressEditWidget::addressChanged,
             this, &InspectorWidget::on_addressChange);
 
-    vlay->addWidget(m_lineEdit);
+    vlay->addRow(tr("Address"), m_lineEdit);
 
     // Min / max
-    auto minmaxwid = new QWidget;
-    auto minmaxlay = new QHBoxLayout{minmaxwid};
-    vlay->addWidget(minmaxwid);
-    minmaxlay->setSpacing(0);
-    minmaxlay->setContentsMargins(0, 0, 0, 0);
 
     m_minsb = new iscore::SpinBox<float>;
     m_maxsb = new iscore::SpinBox<float>;
     m_minsb->setValue(process().min());
     m_maxsb->setValue(process().max());
 
-    auto minLab = new QLabel{tr("Min")};
-    minLab->setAlignment(Qt::AlignRight | Qt::AlignCenter);
-    auto maxLab = new QLabel{tr("Max")};
-    maxLab->setAlignment(Qt::AlignRight | Qt::AlignCenter);
-
-    minmaxlay->addWidget(minLab);
-    minmaxlay->addWidget(m_minsb);
-    minmaxlay->addWidget(maxLab);
-    minmaxlay->addWidget(m_maxsb);
+    vlay->addRow(tr("Min"), m_minsb);
+    vlay->addRow(tr("Max"), m_maxsb);
 
     con(process(), &ProcessModel::minChanged, m_minsb, &QDoubleSpinBox::setValue);
     con(process(), &ProcessModel::maxChanged, m_maxsb, &QDoubleSpinBox::setValue);

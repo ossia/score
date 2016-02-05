@@ -6,7 +6,7 @@ namespace iscore {
 class Document;
 
 DocumentPlugin::DocumentPlugin(
-        iscore::Document& ctx,
+        const iscore::DocumentContext& ctx,
         const QString& name,
         QObject* parent):
     NamedObject{name, parent},

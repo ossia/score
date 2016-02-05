@@ -7,7 +7,7 @@
 
 class QWidget;
 
-namespace DeviceExplorer
+namespace Explorer
 {
 MessageWidget::MessageWidget(
         State::Message& mess,

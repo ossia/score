@@ -72,10 +72,6 @@ ISCORE_PLUGIN_OSSIA_EXPORT void updateOSSIAValue(
 ISCORE_PLUGIN_OSSIA_EXPORT OSSIA::Value* toOSSIAValue(
         const State::Value&);
 
-ISCORE_PLUGIN_OSSIA_EXPORT void setValue(
-        OSSIA::Address& addr,
-        const State::Value& val);
-
 //// Other conversions
 ISCORE_PLUGIN_OSSIA_EXPORT inline OSSIA::TimeValue time(const TimeValue& t)
 {

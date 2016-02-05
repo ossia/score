@@ -65,17 +65,7 @@ void BaseConstraintInspectorDelegate::addWidgets_post(
         std::list<QWidget*>& widgets,
         ConstraintInspectorWidget* parent)
 {
-    auto& scenario = *safe_cast<BaseScenario*>(m_model.parent());
-    auto& ctx = iscore::IDocument::documentContext(scenario);
-    auto& tn = endTimeNode(m_model, scenario);
 
-    auto trWidg = new TriggerInspectorWidget{
-                  ctx,
-                  ctx.app.components.factory<Command::TriggerCommandFactoryList>(),
-                  tn,
-                  parent};
-    trWidg->HideRmButton();
-    widgets.push_back(trWidg);
 }
 
 void BaseConstraintInspectorDelegate::on_defaultDurationChanged(

@@ -183,29 +183,6 @@ OSSIA::Node* getNodeFromPath(
     return node;
 }
 
-
-void setValue(OSSIA::Address& addr, const State::Value& val)
-{
-    addr.pushValue(iscore::convert::toOSSIAValue(val));
-    /*
-    if(auto orig_val = addr.getValue())
-    {
-        auto clone = orig_val->clone();
-        updateOSSIAValue(val.val, *clone);
-        addr.pushValue(clone);
-        delete clone;
-    }
-    else
-    {
-        OSSIA::Value* newval = iscore::convert::toOSSIAValue(val);
-        addr.setValueType(newval->getType());
-        addr.pushValue(newval);
-        delete newval;
-    }
-    */
-
-}
-
 void updateOSSIAAddress(
         const Device::FullAddressSettings &settings,
         const std::shared_ptr<OSSIA::Address> &addr)
@@ -360,12 +337,13 @@ std::shared_ptr<OSSIA::Message> message(
         const State::Message& mess,
         const Device::DeviceList& deviceList)
 {
-    if(!deviceList.hasDevice(mess.address.device))
+    auto it = deviceList.find(mess.address.device);
+    if(it == deviceList.devices().end())
         return {};
 
     // OPTIMIZEME by sorting by device prior
     // to this.
-    const auto& dev = deviceList.device(mess.address.device);
+    const auto& dev = **it;
     if(!dev.connected())
         return {};
 
@@ -388,7 +366,7 @@ std::shared_ptr<OSSIA::Message> message(
 
 template<typename Fun>
 static void visit_node(
-        const MessageNode& root,
+        const Process::MessageNode& root,
         Fun f)
 {
     f(root);
@@ -409,7 +387,7 @@ std::shared_ptr<OSSIA::State> state(
     // For all elements where IOType != Invalid,
     // we add the elements to the state.
 
-    visit_node(iscore_state.messages().rootNode(), [&] (const MessageNode& n) {
+    visit_node(iscore_state.messages().rootNode(), [&] (const auto& n) {
             const auto& val = n.value();
             if(val)
             {
@@ -451,12 +429,11 @@ OSSIA::Destination* expressionAddress(
         const State::Address& addr,
         const Device::DeviceList& devlist)
 {
-    if(!devlist.hasDevice(addr.device))
-    {
+    auto it = devlist.find(addr.device);
+    if(it == devlist.devices().end())
         throw NodeNotFoundException(addr);
-    }
 
-    auto& device = devlist.device(addr.device);
+    auto& device = **it;
     if(!device.connected())
     {
         throw NodeNotFoundException(addr);

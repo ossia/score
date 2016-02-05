@@ -5,7 +5,7 @@
 #include "DeviceExplorerPanelModel.hpp"
 #include <iscore/plugins/panel/PanelModel.hpp>
 
-namespace DeviceExplorer
+namespace Explorer
 {
 DeviceExplorerPanelModel::DeviceExplorerPanelModel(
         const iscore::DocumentContext& ctx,

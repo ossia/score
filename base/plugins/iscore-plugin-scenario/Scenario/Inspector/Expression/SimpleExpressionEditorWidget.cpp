@@ -34,12 +34,12 @@ SimpleExpressionEditorWidget::SimpleExpressionEditorWidget(
 
     binLay->addWidget(m_binOperator);
 
-    auto plug = doc.findPlugin<DeviceExplorer::DeviceDocumentPlugin>();
-    DeviceExplorer::DeviceExplorerModel* explorer{};
+    auto plug = doc.findPlugin<Explorer::DeviceDocumentPlugin>();
+    Explorer::DeviceExplorerModel* explorer{};
     if(plug)
         explorer = plug->updateProxy.deviceExplorer;
 
-    m_address = new DeviceExplorer::AddressEditWidget{explorer, this};
+    m_address = new Explorer::AddressEditWidget{explorer, this};
     m_ok = new QLabel{"/!\\ ", this};
 
 
@@ -87,7 +87,7 @@ SimpleExpressionEditorWidget::SimpleExpressionEditorWidget(
     });
 
     /// EDIT FINSHED
-    connect(m_address, &DeviceExplorer::AddressEditWidget::addressChanged,
+    connect(m_address, &Explorer::AddressEditWidget::addressChanged,
             this, [&] ()
     {
         on_editFinished();

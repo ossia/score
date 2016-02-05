@@ -380,6 +380,7 @@ void ScenarioApplicationPlugin::initColors()
 
         instance.StateOutline = fromColor("StateOutline");
         instance.StateSelected = fromColor("StateSelected");
+        instance.StateDot = fromColor("StateDot");
 
         instance.Background = fromColor("Background");
         instance.ProcessPanelBackground = fromColor("ProcessPanelBackground");

@@ -27,6 +27,6 @@ class ISCORE_LIB_DUMMYPROCESS_EXPORT DummyState final : public ProcessStateDataI
         State::MessageList messages() const override;
         State::MessageList setMessages(
                 const State::MessageList& newMessages,
-                const MessageNode& currentState) override;
+                const Process::MessageNode& currentState) override;
 };
 }

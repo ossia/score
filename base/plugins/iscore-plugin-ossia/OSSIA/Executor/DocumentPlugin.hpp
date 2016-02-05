@@ -33,6 +33,8 @@ class ISCORE_PLUGIN_OSSIA_EXPORT DocumentPlugin final : public iscore::DocumentP
 
         BaseScenarioElement* baseScenario() const;
 
+        bool isPlaying() const;
+
     private:
         Context m_ctx;
         std::unique_ptr<BaseScenarioElement> m_base;

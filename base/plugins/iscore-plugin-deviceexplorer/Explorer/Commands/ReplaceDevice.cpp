@@ -13,7 +13,7 @@
 #include <iscore/tools/TreeNode.hpp>
 
 
-namespace DeviceExplorer
+namespace Explorer
 {
 namespace Command
 {

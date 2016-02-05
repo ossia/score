@@ -8,7 +8,7 @@ namespace Device
 class DeviceInterface;
 }
 
-namespace DeviceExplorer
+namespace Explorer
 {
 /**
  * @brief The ExplorationWorker class

@@ -33,7 +33,7 @@ MessageItemModel::MessageItemModel(
         iscore::CommandStackFacade& stack,
         const StateModel& sm,
         QObject* parent):
-    TreeNodeBasedItemModel<MessageNode>{parent},
+    TreeNodeBasedItemModel<Process::MessageNode>{parent},
     stateModel{sm},
     m_rootNode{},
     m_stack{stack}

@@ -21,12 +21,12 @@ struct PluginDependencyNode
             std::owner_less<std::weak_ptr<PluginDependencyNode>>
         > found_dependencies;
 
-        PluginRequirementslInterface_QtInterface*
+        Plugin_QtInterface*
         requirements() const
-        { return qobject_cast<PluginRequirementslInterface_QtInterface*> (plug); }
+        { return dynamic_cast<Plugin_QtInterface*> (plug); }
         GUIApplicationContextPlugin_QtInterface*
         applicationPlugin() const
-        { return qobject_cast<GUIApplicationContextPlugin_QtInterface*> (plug); }
+        { return dynamic_cast<GUIApplicationContextPlugin_QtInterface*> (plug); }
 
         bool checkDependencies()
         {

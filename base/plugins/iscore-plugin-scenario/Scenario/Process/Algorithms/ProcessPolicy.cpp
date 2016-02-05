@@ -47,7 +47,9 @@ static void AddProcessBeforeState(
     emit statemodel.sig_statesUpdated();
 }
 
-static void AddProcessAfterState(StateModel& statemodel, const Process::ProcessModel& proc)
+static void AddProcessAfterState(
+        StateModel& statemodel,
+        const Process::ProcessModel& proc)
 {
     ProcessStateDataInterface* state = proc.startStateData();
     if(!state)

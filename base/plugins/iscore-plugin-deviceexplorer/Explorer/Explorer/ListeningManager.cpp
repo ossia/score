@@ -5,14 +5,47 @@
 #include <Explorer/DocumentPlugin/DeviceDocumentPlugin.hpp>
 
 
-namespace DeviceExplorer
+namespace Explorer
 {
+Device::DeviceInterface& ListeningManager::deviceFromProxyModelIndex(
+        const QModelIndex& idx)
+{
+    return deviceFromNode(nodeFromProxyModelIndex(idx));
+}
+
+Device::DeviceInterface& ListeningManager::deviceFromModelIndex(
+        const QModelIndex& idx)
+{
+    return deviceFromNode(m_model.nodeFromModelIndex(idx));
+}
+
+Device::Node& ListeningManager::nodeFromProxyModelIndex(
+        const QModelIndex& idx)
+{
+    return m_model.nodeFromModelIndex(m_widget.sourceIndex(idx));
+}
+
+Device::Node& ListeningManager::nodeFromModelIndex(
+        const QModelIndex& idx)
+{
+    return m_model.nodeFromModelIndex(idx);
+}
+
 
 ListeningManager::ListeningManager(
+        DeviceExplorerModel& model,
         const DeviceExplorerWidget& widg):
-    m_widg{widg}
+    m_model{model},
+    m_widget{widg},
+    m_handler{m_model.deviceModel().listening()}
 {
-
+    connect(&m_handler, &ListeningHandler::restore,
+            this, [&] {
+        for(auto& device_node : model.rootNode())
+        {
+            resetListening(device_node);
+        }
+    });
 }
 
 void ListeningManager::enableListening(
@@ -21,28 +54,31 @@ void ListeningManager::enableListening(
     auto& dev = deviceFromNode(node);
 
     auto addr = Device::address(node);
-    dev.setListening(addr, true);
+    m_handler.setListening(dev, addr, true);
 }
 
 void ListeningManager::disableListening_rec(
         const Device::Node& node,
-        Device::DeviceInterface& dev)
+        Device::DeviceInterface& dev,
+        ListeningHandler& lm)
 {
     if(node.is<Device::AddressSettings>())
     {
         auto addr = Device::address(node);
-        dev.setListening(addr, false);
+
+        lm.setListening(dev, addr, false);
     }
 
     for(const auto& child : node)
     {
-        disableListening_rec(child, dev);
+        disableListening_rec(child, dev, lm);
     }
 }
 
 void ListeningManager::enableListening_rec(
         const QModelIndex& index,
-        Device::DeviceInterface& dev)
+        Device::DeviceInterface& dev,
+        ListeningHandler& lm)
 {
     int i = 0;
     for(const auto& child : nodeFromProxyModelIndex(index))
@@ -50,15 +86,15 @@ void ListeningManager::enableListening_rec(
         if(child.is<Device::AddressSettings>())
         {
             auto addr = Device::address(child);
-            dev.setListening(addr, true);
+            lm.setListening(dev, addr, true);
         }
 
         // TODO check this
         auto childIndex = index.child(i, 0);
 
-        if(m_widg.view()->isExpanded(childIndex))
+        if(m_widget.view()->isExpanded(childIndex))
         {
-            enableListening_rec(childIndex, dev);
+            enableListening_rec(childIndex, dev, lm);
         }
         i++;
     }
@@ -67,7 +103,7 @@ void ListeningManager::enableListening_rec(
 Device::DeviceInterface&ListeningManager::deviceFromNode(
         const Device::Node& node)
 {
-    auto& list = m_widg.model()->deviceModel().list();
+    auto& list = m_model.deviceModel().list();
     if(node.is<Device::AddressSettings>())
     {
         // OPTIMIZEME by just going to the top node
@@ -82,29 +118,6 @@ Device::DeviceInterface&ListeningManager::deviceFromNode(
     ISCORE_ABORT;
 }
 
-Device::DeviceInterface& ListeningManager::deviceFromProxyModelIndex(
-        const QModelIndex& idx)
-{
-    return deviceFromNode(nodeFromProxyModelIndex(idx));
-}
-
-Device::DeviceInterface& ListeningManager::deviceFromModelIndex(
-        const QModelIndex& idx)
-{
-    return deviceFromNode(m_widg.model()->nodeFromModelIndex(idx));
-}
-
-Device::Node& ListeningManager::nodeFromProxyModelIndex(
-        const QModelIndex& idx)
-{
-    return m_widg.model()->nodeFromModelIndex(m_widg.sourceIndex(idx));
-}
-
-Device::Node& ListeningManager::nodeFromModelIndex(
-        const QModelIndex& idx)
-{
-    return m_widg.model()->nodeFromModelIndex(idx);
-}
 
 void ListeningManager::setListening(
         const QModelIndex& idx, bool b)
@@ -112,13 +125,13 @@ void ListeningManager::setListening(
     auto& dev = deviceFromProxyModelIndex(idx);
     if(b)
     {
-        enableListening_rec(idx, dev);
+        enableListening_rec(idx, dev, m_handler);
     }
     else
     {
         for(const auto& child : nodeFromProxyModelIndex(idx))
         {
-            disableListening_rec(child, dev);
+            disableListening_rec(child, dev, m_handler);
         }
     }
 }
@@ -126,17 +139,18 @@ void ListeningManager::setListening(
 void ListeningManager::resetListening(
         Device::Node& node)
 {
-    auto idx = m_widg.model()->modelIndexFromNode(node, 0);
+    auto idx = m_model.modelIndexFromNode(node, 0);
     auto& dev = deviceFromModelIndex(idx);
 
     for(const auto& child : node)
     {
-        disableListening_rec(child, dev);
+        disableListening_rec(child, dev, m_handler);
     }
 
-    if(m_widg.view()->isExpanded(idx))
+    auto view_idx = m_widget.proxyIndex(idx);
+    if(m_widget.view()->isExpanded(view_idx))
     {
-        enableListening_rec(idx, dev);
+        enableListening_rec(view_idx, dev, m_handler);
     }
 }
 }

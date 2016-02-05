@@ -28,3 +28,12 @@ std::vector<std::unique_ptr<iscore::FactoryListInterface>> iscore_plugin_inspect
             Inspector::InspectorWidgetList>();
 }
 
+int32_t iscore_plugin_inspector::version() const
+{
+    return 1;
+}
+
+UuidKey<iscore::Plugin> iscore_plugin_inspector::key() const
+{
+    return "0ed1520f-e120-458e-a5a8-b3f05f3b6b6c";
+}

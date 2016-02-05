@@ -107,7 +107,16 @@ class ISCORE_LIB_BASE_EXPORT DocumentManager : public QObject
         bool closeAllDocuments(
                 const iscore::ApplicationContext& ctx);
 
+        bool preparingNewDocument() const;
     private:
+        /**
+         * @brief checkAndUpdateJson
+         * @return boolean indicating if the document is loadable
+         */
+        bool checkAndUpdateJson(
+                QJsonDocument&,
+                const iscore::ApplicationContext& ctx);
+
         iscore::View& m_view;
 
         DocumentBuilder m_builder;
@@ -115,6 +124,8 @@ class ISCORE_LIB_BASE_EXPORT DocumentManager : public QObject
         std::vector<Document*> m_documents;
         Document* m_currentDocument{};
         QPointer<QRecentFilesMenu> m_recentFiles{};
+
+        bool m_preparingNewDocument{};
 
 
 };

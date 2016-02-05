@@ -26,9 +26,11 @@
 #include <core/command/CommandStack.hpp>
 #include <core/command/CommandStackSerialization.hpp>
 #include <core/document/Document.hpp>
+#include <core/application/ApplicationSettings.hpp>
 #include <iscore/tools/SettableIdentifier.hpp>
 #include <iscore/tools/std/StdlibWrapper.hpp>
 #include <iscore/tools/std/Algorithms.hpp>
+#include <iscore/plugins/qt_interfaces/PluginRequirements_QtInterface.hpp>
 
 namespace iscore
 {
@@ -389,10 +391,12 @@ ISCORE_LIB_BASE_EXPORT
 void DocumentManager::prepareNewDocument(
         const iscore::ApplicationContext& ctx)
 {
+    m_preparingNewDocument = true;
     for(GUIApplicationContextPlugin* appPlugin : ctx.components.applicationPlugins())
     {
         appPlugin->prepareNewDocument();
     }
+    m_preparingNewDocument = false;
 }
 
 bool DocumentManager::closeAllDocuments(
@@ -406,6 +410,70 @@ bool DocumentManager::closeAllDocuments(
     }
 
     return true;
+}
+
+bool DocumentManager::preparingNewDocument() const
+{
+    return m_preparingNewDocument;
+}
+
+struct PluginVersions
+{
+        UuidKey<iscore::Plugin> plugin;
+        int32_t version{};
+};
+
+bool DocumentManager::checkAndUpdateJson(
+        QJsonDocument& json,
+        const iscore::ApplicationContext& ctx)
+{
+    if(!json.isObject())
+        return false;
+
+    // Check the version
+    auto obj = json.object();
+    int32_t version = 0;
+    auto it = obj.find("Version");
+    if(it != obj.end())
+        version = it->toInt();
+
+    std::vector<PluginVersions> local_plugins;
+    for(auto plug : ctx.components.plugins())
+    {
+        local_plugins.push_back(PluginVersions{plug->key(), plug->version()});
+    }
+
+    std::vector<PluginVersions> loading_plugins;
+    auto plugin_it = obj.find("Plugins");
+    if(plugin_it != obj.end())
+    {
+        const auto& plugins_obj = plugin_it->toObject();
+        for(const auto& plugin_val : plugins_obj)
+        {
+            const auto& plugin_obj = plugin_val.toObject();
+            auto plugin_key_it = plugin_obj.find("Key");
+            if(plugin_key_it == plugin_obj.end())
+                continue;
+            UuidKey<iscore::Plugin> plugin_key = plugin_key_it->toString().toUtf8().constData();
+
+            int32_t plugin_version = 0;
+            auto plugin_ver_it = plugin_obj.find("Version");
+            if(plugin_ver_it != plugin_obj.end())
+                plugin_version = plugin_ver_it->toInt();
+
+            loading_plugins.push_back({plugin_key, plugin_version});
+
+        }
+    }
+    // A file is loadable, if the main version
+    // and all the plugin versions are <= to the current version,
+    // and all the plug-ins are available.
+    bool mainLoadable = version <= ctx.settings.saveFormatVersion;
+
+
+
+    // Check the presence of all the plug-ins
+    return false;
 }
 
 

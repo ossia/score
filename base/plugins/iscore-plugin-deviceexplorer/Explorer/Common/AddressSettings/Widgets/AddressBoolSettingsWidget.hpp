@@ -5,7 +5,7 @@
 class QComboBox;
 class QWidget;
 
-namespace DeviceExplorer
+namespace Explorer
 {
 class AddressBoolSettingsWidget final : public AddressSettingsWidget
 {

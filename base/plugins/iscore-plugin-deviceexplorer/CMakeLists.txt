@@ -34,6 +34,7 @@ set(SRCS
 
 "${CMAKE_CURRENT_SOURCE_DIR}/Explorer/DeviceExplorerPanelFactory.cpp"
 "${CMAKE_CURRENT_SOURCE_DIR}/Explorer/DocumentPlugin/DeviceDocumentPlugin.cpp"
+"${CMAKE_CURRENT_SOURCE_DIR}/Explorer/DocumentPlugin/DeviceDocumentPluginFactory.cpp"
 "${CMAKE_CURRENT_SOURCE_DIR}/Explorer/DocumentPlugin/NodeUpdateProxy.cpp"
 "${CMAKE_CURRENT_SOURCE_DIR}/Explorer/Explorer/DeviceExplorerFilterProxyModel.cpp"
 "${CMAKE_CURRENT_SOURCE_DIR}/Explorer/Explorer/DeviceExplorerView.cpp"
@@ -51,6 +52,13 @@ set(SRCS
 "${CMAKE_CURRENT_SOURCE_DIR}/Explorer/Widgets/MessageListEditor.cpp"
 "${CMAKE_CURRENT_SOURCE_DIR}/Explorer/Widgets/MessageEditDialog.cpp"
 "${CMAKE_CURRENT_SOURCE_DIR}/Explorer/Widgets/AddressEditWidget.cpp"
+
+"${CMAKE_CURRENT_SOURCE_DIR}/Explorer/Listening/ListeningHandler.cpp"
+"${CMAKE_CURRENT_SOURCE_DIR}/Explorer/Listening/ListeningHandlerFactory.cpp"
+"${CMAKE_CURRENT_SOURCE_DIR}/Explorer/Listening/ListeningHandlerFactoryList.cpp"
+
+"${CMAKE_CURRENT_SOURCE_DIR}/Explorer/Listening/DefaultListeningHandler.cpp"
+"${CMAKE_CURRENT_SOURCE_DIR}/Explorer/Listening/DefaultListeningHandlerFactory.cpp"
 
 "${CMAKE_CURRENT_SOURCE_DIR}/iscore_plugin_deviceexplorer.cpp"
 "${CMAKE_CURRENT_SOURCE_DIR}/DeviceExplorerApplicationPlugin.cpp"

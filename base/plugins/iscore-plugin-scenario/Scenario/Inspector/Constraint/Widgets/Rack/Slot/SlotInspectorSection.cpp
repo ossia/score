@@ -48,7 +48,8 @@ SlotInspectorSection::SlotInspectorSection(
     framewidg->setFrameShape(QFrame::StyledPanel);
     addContent(framewidg);
 
-    this->showDeleteButton(true);
+    this->showMenu(true);
+    this->enableDelete();
     connect(this, &SlotInspectorSection::deletePressed, this, [&] ()
     {
         auto cmd = new Command::RemoveSlotFromRack{m_model};
@@ -75,7 +76,7 @@ SlotInspectorSection::SlotInspectorSection(
     lay->addWidget(indentWidg);
     lay->addWidget(m_addLmWidget);
 
-    auto frame = new QFrame;
+    auto frame = new QFrame{this};
     m_lmGridLayout = new iscore::MarginLess<QGridLayout>{frame};
     frame->setFrameShape(QFrame::StyledPanel);
     m_lmSection->addContent(frame);
@@ -111,7 +112,8 @@ void SlotInspectorSection::displayLayerModel(const Process::LayerModel& lm)
 
     auto row = m_lmGridLayout->rowCount();
 
-    m_lmGridLayout->addWidget(new QLabel {QString{name + ".%1"} .arg(*id.val()) }, row ,0);
+    auto label = new QLabel {QString{name + ".%1"} .arg(*id.val()), this};
+    m_lmGridLayout->addWidget(label, row ,0);
 
     // To front button
     auto pb = new QPushButton {tr("Front")};
@@ -147,6 +149,11 @@ void SlotInspectorSection::on_layerModelRemoved(const Process::LayerModel& remov
 {
     // OPTIMIZEME
     m_lmSection->removeAll();
+
+    auto frame = new QFrame{this};
+    m_lmGridLayout = new iscore::MarginLess<QGridLayout>{frame};
+    frame->setFrameShape(QFrame::StyledPanel);
+
     for (const auto& lm : m_model.layers)
     {
         if (lm.id() != removed.id())

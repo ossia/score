@@ -14,7 +14,7 @@ class QComboBox;
 class QFormLayout;
 class ValueWidget;
 
-namespace DeviceExplorer
+namespace Explorer
 {
 class AddressEditWidget;
 class DeviceExplorerModel;

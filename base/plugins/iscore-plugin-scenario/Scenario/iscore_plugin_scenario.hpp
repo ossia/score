@@ -31,7 +31,7 @@ class iscore_plugin_scenario final :
         public iscore::PanelFactory_QtInterface,
         public iscore::FactoryList_QtInterface,
         public iscore::FactoryInterface_QtInterface,
-        public iscore::PluginRequirementslInterface_QtInterface
+        public iscore::Plugin_QtInterface
 {
         Q_OBJECT
         Q_PLUGIN_METADATA(IID DocumentDelegateFactoryInterface_QtInterface_iid)
@@ -42,11 +42,13 @@ class iscore_plugin_scenario final :
                 iscore::PanelFactory_QtInterface
                 iscore::FactoryList_QtInterface
                 iscore::FactoryInterface_QtInterface
-                iscore::PluginRequirementslInterface_QtInterface)
+                iscore::Plugin_QtInterface)
 
     public:
         iscore_plugin_scenario();
+        virtual ~iscore_plugin_scenario();
 
+    private:
         // Docpanel interface
         std::vector<iscore::DocumentDelegateFactory*> documents() override;
 
@@ -69,5 +71,8 @@ class iscore_plugin_scenario final :
 
         QStringList required() const override;
         QStringList offered() const override;
+
+        int32_t version() const override;
+        UuidKey<iscore::Plugin> key() const override;
 
 };

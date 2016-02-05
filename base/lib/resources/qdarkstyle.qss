@@ -346,10 +346,30 @@ QTabWidget:focus, QCheckBox:focus, QRadioButton:focus, QSlider:focus
 QLineEdit
 {
     background-color: #201F1F;
-    padding: 2px;
     border-style: solid;
     border: 1px solid #3A3939;
     border-radius: 2px;
+    padding: 0px;
+    margin-left: 2px;
+    color: silver;
+}
+
+QPushButton#ButtonTitle
+{
+    font: bold;
+    background-color: #302F2F;
+    border: 1px solid #3A3939;
+    padding: 2px;
+    margin-left: 2px;
+    color: silver;
+}
+QLineEdit#SectionTitle
+{
+    font: bold;
+    background-color: #302F2F;
+    border: 1px solid #3A3939;
+    padding: 0px;
+    margin-left: 2px;
     color: silver;
 }
 
@@ -370,7 +390,7 @@ QGroupBox::title {
 QAbstractScrollArea
 {
     border-radius: 2px;
-    border: 1px solid #3A3939;
+    /* border: 1px solid #3A3939; */
     background-color: transparent;
 }
 
@@ -604,22 +624,31 @@ QToolBar::separator:vertical {
     image: url(:/qss_icons/rc/Vsepartoolbars.png);
 }
 
-QPushButton
+QPushButton,QToolButton
 {
     color: silver;
     background-color: #302F2F;
     border-width: 1px;
     border-color: #4A4949;
     border-style: solid;
-    padding-top: 2px;
-    padding-bottom: 2px;
-    padding-left: 2px;
-    padding-right: 2px;
     border-radius: 2px;
+    padding: 2px;
     outline: none;
 }
 
-QPushButton:disabled
+QPushButton#SettingsMenu {
+    color: silver;
+    background-color: #302F2F;
+    border-width: 0px;
+    padding: 0px;
+    outline: none;
+    font:bold;
+}
+QPushButton::menu-indicator#SettingsMenu {
+    image: url(none.jpg);
+}
+
+QPushButton:disabled,QToolButton:disabled
 {
     background-color: #302F2F;
     border-width: 1px;
@@ -645,7 +674,7 @@ QComboBox
     border-style: solid;
     border: 1px solid #3A3939;
     border-radius: 2px;
-    padding: 2px;
+    padding: 0px;
     min-width: 75px;
 }
 
@@ -654,7 +683,7 @@ QPushButton:checked{
     border-color: #6A6969;
 }
 
-QComboBox:hover,QPushButton:hover,QAbstractSpinBox:hover,QLineEdit:hover,QTextEdit:hover,QPlainTextEdit:hover,QAbstractView:hover,QTreeView:hover
+QComboBox:hover,QPushButton:hover,QToolButton:hover,QAbstractSpinBox:hover,QLineEdit:hover,QTextEdit:hover,QPlainTextEdit:hover,QAbstractView:hover,QTreeView:hover
 {
     border: 1px solid #78879b;
     color: silver;
@@ -706,8 +735,7 @@ QPushButton:pressed
 }
 
 QAbstractSpinBox {
-    padding-top: 2px;
-    padding-bottom: 2px;
+    padding: 0px;
     border: 1px solid #3A3939;
     background-color: #201F1F;
     color: silver;

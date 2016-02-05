@@ -93,7 +93,7 @@ std::vector<State::Address> ProcessState::matchingAddresses()
 // TESTME
 ::State::MessageList ProcessState::setMessages(
         const ::State::MessageList& received,
-        const MessageNode&)
+        const Process::MessageNode&)
 {
     if(m_point != 0 && m_point != 1)
         return messages();

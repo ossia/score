@@ -6,6 +6,7 @@
 class QLineEdit;
 class QPushButton;
 class QToolButton;
+class QMenu;
 class QVBoxLayout;
 
 namespace Inspector
@@ -23,6 +24,8 @@ class ISCORE_LIB_INSPECTOR_EXPORT InspectorSectionWidget : public QWidget
         explicit InspectorSectionWidget(bool editable = false, QWidget* parent = 0);
         InspectorSectionWidget(QString name, bool nameEditable = false, QWidget* parent = 0);
         virtual ~InspectorSectionWidget();
+
+        auto menu() const { return m_menu; }
 
     public slots:
 
@@ -42,7 +45,8 @@ class ISCORE_LIB_INSPECTOR_EXPORT InspectorSectionWidget : public QWidget
 
         void removeAll();
 
-        void showDeleteButton(bool b);
+        void enableDelete();
+        void showMenu(bool b);
 
     signals:
         void nameChanged(QString newName);
@@ -50,17 +54,18 @@ class ISCORE_LIB_INSPECTOR_EXPORT InspectorSectionWidget : public QWidget
 
     protected:
         virtual QWidget* titleWidget();
-        QLineEdit* m_sectionTitle = nullptr; /*!< header label editable ? */
+        QLineEdit* m_sectionTitle{}; /*!< header label editable ? */
 
     private:
-        QWidget* m_container = nullptr;
-        QVBoxLayout* m_containerLayout = nullptr; /*!< main layout */
+        QWidget* m_container{};
+        QVBoxLayout* m_containerLayout{}; /*!< main layout */
 
-        QToolButton* m_unfoldBtn = nullptr; /*!< button for the fold/unfold action */
+        QToolButton* m_unfoldBtn{}; /*!< button for the fold/unfold action */
 
-        QPushButton* m_buttonTitle;
-        QToolButton* m_deleteBtn;
+        QPushButton* m_buttonTitle{};
+        QMenu* m_menu{};
+        QPushButton* m_menuBtn{};
 
-        bool m_isUnfolded;
+        bool m_isUnfolded{};
 };
 }

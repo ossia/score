@@ -23,7 +23,7 @@ class ISCORE_LIB_BASE_EXPORT DocumentPlugin :
         Q_OBJECT
     public:
         DocumentPlugin(
-                iscore::Document&,
+                const iscore::DocumentContext&,
                 const QString& name,
                 QObject* parent);
 
@@ -52,7 +52,7 @@ class ISCORE_LIB_BASE_EXPORT DocumentPlugin :
         { return m_context; }
 
     protected:
-        iscore::DocumentContext m_context;
+        const iscore::DocumentContext& m_context;
 };
 
 

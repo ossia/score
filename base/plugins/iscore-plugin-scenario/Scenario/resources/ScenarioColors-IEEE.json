@@ -31,6 +31,7 @@
 "ConditionTrue" : [  90, 90, 90 ],
 "StateOutline" : [ 150, 150, 150 ],
 "StateSelected" : [ 160, 160, 160 ],
+"StateDot" : [0, 0, 0 ],
 "Background" : [ 255, 255, 255 ],
 "ProcessPanelBackground" : [ 255, 255, 255, 76 ],
 "TimeRulerBackground" : [ 255, 255, 255 ],

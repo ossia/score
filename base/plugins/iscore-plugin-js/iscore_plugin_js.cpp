@@ -17,6 +17,11 @@ iscore_plugin_js::iscore_plugin_js() :
 {
 }
 
+iscore_plugin_js::~iscore_plugin_js()
+{
+
+}
+
 std::vector<std::unique_ptr<iscore::FactoryInterfaceBase>> iscore_plugin_js::factories(
         const iscore::ApplicationContext& ctx,
         const iscore::AbstractFactoryKey& key) const
@@ -47,4 +52,14 @@ std::pair<const CommandParentFactoryKey, CommandGeneratorMap> iscore_plugin_js::
 
 
     return cmds;
+}
+
+int32_t iscore_plugin_js::version() const
+{
+    return 1;
+}
+
+UuidKey<iscore::Plugin> iscore_plugin_js::key() const
+{
+    return "0eb1db4b-a532-4961-ba1c-d9edbf08ef07";
 }

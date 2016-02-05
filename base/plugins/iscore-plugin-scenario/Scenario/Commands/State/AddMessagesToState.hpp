@@ -37,7 +37,7 @@ class ISCORE_PLUGIN_SCENARIO_EXPORT AddMessagesToState final : public iscore::Se
     private:
         Path<MessageItemModel> m_path;
 
-        MessageNode m_oldState, m_newState;
+        Process::MessageNode m_oldState, m_newState;
 
         QMap<Id<Process::ProcessModel>, State::MessageList> m_previousBackup;
         QMap<Id<Process::ProcessModel>, State::MessageList> m_followingBackup;

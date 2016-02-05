@@ -5,7 +5,7 @@ class QWidget;
 
 
 
-namespace DeviceExplorer
+namespace Explorer
 {
 AddressNoneSettingsWidget::AddressNoneSettingsWidget(QWidget* parent)
     : AddressSettingsWidget(AddressSettingsWidget::no_widgets_t{}, parent)
