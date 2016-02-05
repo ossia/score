@@ -21,7 +21,8 @@ std::shared_ptr<OSSIA::CurveAbstract> curve(
     auto curve = OSSIA::Curve<X_T, Y_T>::create();
     if(segments[0].start.x() == 0.)
     {
-        curve->setInitialValue(scale_y(segments[0].start.y()));
+        curve->setInitialPointAbscissa(scale_x(segments[0].start.x()));
+        curve->setInitialPointOrdinate(scale_y(segments[0].start.y()));
     }
 
     for(const auto& iscore_segment : segments)
