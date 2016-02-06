@@ -1,6 +1,7 @@
 #pragma once
 #include <QObject>
 #include <QStringList>
+#include <iscore/tools/Version.hpp>
 #include <iscore/plugins/customfactory/UuidKey.hpp>
 #include <iscore_lib_base_export.h>
 
@@ -17,8 +18,13 @@ namespace iscore
             virtual QStringList required() const { return {}; }
             virtual QStringList offered() const { return {}; }
 
-            virtual int32_t version() const { return 0; }
+            virtual Version version() const { return Version{0}; }
             virtual UuidKey<Plugin> key() const = 0;
+
+            virtual void updateSaveFile(
+                    QJsonObject& obj,
+                    Version obj_version,
+                    Version current_version) { }
     };
 }
 

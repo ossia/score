@@ -196,9 +196,9 @@ QStringList iscore_plugin_scenario::offered() const
     return {"Scenario"};
 }
 
-int32_t iscore_plugin_scenario::version() const
+iscore::Version iscore_plugin_scenario::version() const
 {
-    return 1;
+    return iscore::Version{1};
 }
 
 UuidKey<iscore::Plugin> iscore_plugin_scenario::key() const

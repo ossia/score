@@ -20,9 +20,9 @@ iscore::SettingsDelegateFactoryInterface* iscore_plugin_pluginsettings::settings
     return new PluginSettings::PluginSettingsFactory;
 }
 
-int32_t iscore_plugin_pluginsettings::version() const
+iscore::Version iscore_plugin_pluginsettings::version() const
 {
-    return 1;
+    return iscore::Version{1};
 }
 
 UuidKey<iscore::Plugin> iscore_plugin_pluginsettings::key() const

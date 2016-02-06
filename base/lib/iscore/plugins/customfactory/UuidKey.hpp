@@ -18,6 +18,7 @@ class ISCORE_LIB_BASE_EXPORT UuidKey : iscore::uuid_t
         using this_type = UuidKey<Tag>;
 
         friend struct std::hash<this_type>;
+        friend struct boost::hash<this_type>;
         friend bool operator==(const this_type& lhs, const this_type& rhs) {
             return static_cast<const iscore::uuid_t&>(lhs) == static_cast<const iscore::uuid_t&>(rhs);
         }
@@ -57,6 +58,16 @@ class ISCORE_LIB_BASE_EXPORT UuidKey : iscore::uuid_t
 };
 
 namespace std
+{
+template<typename T>
+struct hash<UuidKey<T>>
+{
+        std::size_t operator()(const UuidKey<T>& kagi) const noexcept
+        { return boost::hash<boost::uuids::uuid>()(static_cast<const iscore::uuid_t&>(kagi)); }
+};
+}
+
+namespace boost
 {
 template<typename T>
 struct hash<UuidKey<T>>
