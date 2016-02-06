@@ -7,5 +7,7 @@ namespace Curve
 class SegmentList final :
         public iscore::ConcreteFactoryList<SegmentFactory>
 {
+    public:
+        using object_type = Curve::SegmentModel;
 };
 }

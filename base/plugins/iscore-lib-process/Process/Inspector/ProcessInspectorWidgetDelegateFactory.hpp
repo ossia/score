@@ -7,7 +7,8 @@ namespace iscore
 {
 struct DocumentContext;
 }
-class ISCORE_LIB_PROCESS_EXPORT ProcessInspectorWidgetDelegateFactory : public iscore::FactoryInterfaceBase
+class ISCORE_LIB_PROCESS_EXPORT ProcessInspectorWidgetDelegateFactory :
+        public iscore::GenericFactoryInterface<UuidKey<ProcessInspectorWidgetDelegate>>
 {
          ISCORE_ABSTRACT_FACTORY_DECL(
                  ProcessInspectorWidgetDelegate,

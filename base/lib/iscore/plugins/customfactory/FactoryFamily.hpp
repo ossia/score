@@ -97,7 +97,6 @@ class ConcreteFactoryList :
 {
     public:
         using factory_type = FactoryType;
-        using object_type = typename FactoryType::object_type;
         using key_type = typename FactoryType::ConcreteFactoryKey;
 
         virtual ~ConcreteFactoryList() noexcept
