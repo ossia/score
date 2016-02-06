@@ -2,7 +2,8 @@
 #include <boost/iterator/iterator_facade.hpp>
 #include <boost/multi_index/detail/hash_index_iterator.hpp>
 #include <algorithm>
-
+#include <Explorer/DocumentPlugin/DeviceDocumentPlugin.hpp>
+#include <Explorer/Explorer/DeviceExplorerModel.hpp>
 #include <Automation/AutomationModel.hpp>
 #include "AutomationState.hpp"
 #include <Curve/CurveModel.hpp>
@@ -15,7 +16,8 @@
 #include <State/ValueConversion.hpp>
 #include <iscore/tools/IdentifiedObjectMap.hpp>
 #include <iscore/tools/Todo.hpp>
-
+#include <iscore/document/DocumentInterface.hpp>
+#include <iscore/document/DocumentContext.hpp>
 class QObject;
 namespace Automation
 {
@@ -41,15 +43,35 @@ QString ProcessState::stateName() const
 // TESTME
 ::State::Message ProcessState::message() const
 {
+    // Set-up a message
     ::State::Message m;
     m.address = process().address();
+
+    // Look in the tree if there is a corresponding node,
+    // so that we can get the type that we should convert to.
+    // Default is float.
+    State::Value treeValue = State::Value::fromValue(0.);
+    auto& ctx = iscore::IDocument::documentContext(process());
+    auto tree = ctx.findPlugin<Explorer::DeviceDocumentPlugin>();
+    if(tree)
+    {
+        auto node = Device::try_getNodeFromAddress(tree->rootNode(), m.address);
+        if(node && node->is<Device::AddressSettings>())
+        {
+            treeValue = node->get<Device::AddressSettings>().value;
+        }
+    }
+
     for(const auto& seg : process().curve().segments())
     {
         // OPTIMIZEME introduce another index on that has an ordering on curve segments
         // to make this fast (just checking for the first and the last).
         if(seg.start().x() <= m_point && seg.end().x() >= m_point)
         {
-            m.value.val = float(seg.valueAt(m_point) * (process().max() - process().min()) + process().min());
+            m.value.val = seg.valueAt(m_point) * (process().max() - process().min()) + process().min();
+
+            // Convert to the correct type.
+            State::convert::convert(treeValue, m.value);
             return m;
         }
     }
