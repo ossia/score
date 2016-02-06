@@ -31,7 +31,10 @@ Inspector::InspectorWidgetBase* ConstraintInspectorFactory::makeWidget(
 
     auto& constraint = static_cast<const ConstraintModel&>(sourceElement);
 
-    return new ConstraintInspectorWidget{widgetFact, processFact, constraint, constraintWidgetFactory.make(constraint),doc, parent};
+    return new ConstraintInspectorWidget{
+        widgetFact, processFact, constraint,
+                constraintWidgetFactory.make(&ConstraintInspectorDelegateFactory::make, constraint),
+                doc, parent};
 }
 
 bool ConstraintInspectorFactory::matches(const QObject& object) const

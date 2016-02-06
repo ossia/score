@@ -100,7 +100,8 @@ void ProcessTabWidget::displaySharedProcess(const Process::ProcessModel& process
     newProc->showMenu(true);
 
     const auto& fact = m_constraintWidget.context().app.components.factory<ProcessInspectorWidgetDelegateFactoryList>();
-    if(auto widg = fact.make(process, m_constraintWidget.context(), newProc))
+    if(auto widg = fact.make(&ProcessInspectorWidgetDelegateFactory::make,
+                             process, m_constraintWidget.context(), newProc))
     {
         newProc->addContent(widg);
 
