@@ -20,4 +20,12 @@ class ISCORE_LIB_PROCESS_EXPORT ProcessInspectorWidgetDelegateFactory :
                  const iscore::DocumentContext& doc,
                  QWidget* parent) const = 0;
         virtual bool matches(const Process::ProcessModel&) const = 0;
+
+         bool matches(
+                 const Process::ProcessModel& proc,
+                 const iscore::DocumentContext& doc,
+                 QWidget* parent) const
+         {
+             return matches(proc);
+         }
 };

@@ -67,7 +67,9 @@ void TriggerInspectorWidget::createTrigger()
     m_rmTrigBtn->setVisible(true);
     m_addTrigBtn->setVisible(false);
 
-    auto cmd = m_triggerCommandFactory.make_addTriggerCommand(m_model);
+    auto cmd = m_triggerCommandFactory.make(
+                   &Scenario::Command::TriggerCommandFactory::make_addTriggerCommand,
+                   m_model);
     if(cmd)
         m_parent->commandDispatcher()->submitCommand(cmd);
 }
@@ -78,7 +80,9 @@ void TriggerInspectorWidget::removeTrigger()
     m_rmTrigBtn->setVisible(false);
     m_addTrigBtn->setVisible(true);
 
-    auto cmd = m_triggerCommandFactory.make_removeTriggerCommand(m_model);
+    auto cmd = m_triggerCommandFactory.make(
+                   &Scenario::Command::TriggerCommandFactory::make_removeTriggerCommand,
+                   m_model);
     if(cmd)
         m_parent->commandDispatcher()->submitCommand(cmd);
 }

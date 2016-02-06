@@ -7,15 +7,7 @@
 namespace Scenario
 {
 class DisplayedElementsProviderList final :
-        public iscore::ConcreteFactoryList<DisplayedElementsProvider>
+        public iscore::MatchingFactory<DisplayedElementsProvider>
 {
-    public:
-      auto make(const ConstraintModel& cst) const
-      {
-          auto it = find_if(*this, [&] (const auto& elt) { return elt.matches(cst); });
-          return (it != end())
-                  ? it->make(cst)
-                  : DisplayedElementsContainer{};
-      }
 };
 }

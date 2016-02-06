@@ -3,6 +3,7 @@
 #include <iscore/plugins/customfactory/FactoryMap.hpp>
 #include <iscore/tools/ForEachType.hpp>
 #include <iscore/tools/std/Pointer.hpp>
+#include <iscore/tools/std/Algorithms.hpp>
 
 #include <boost/multi_index_container.hpp>
 #include <boost/multi_index/hashed_index.hpp>
@@ -133,7 +134,27 @@ class ConcreteFactoryList :
             return (it != this->map.end()) ? it->get() : nullptr;
         }
 };
+
+template<typename T>
+class MatchingFactory : public iscore::ConcreteFactoryList<T>
+{
+    public:
+        template<typename Fun, typename... Args>
+        auto make(Fun f, Args&&... args) const
+        {
+            auto it = find_if(
+                          *this,
+                          [&] (const auto& elt)
+            { return elt.matches(std::forward<Args>(args)...); });
+
+            return (it != this->end())
+                    ? ((*it).*f)(std::forward<Args>(args)...)
+                    : decltype(((*it).*f)(std::forward<Args>(args)...)){};
+        }
+};
+
 }
+
 
 template<typename Base_T,
          typename... Args>

@@ -26,15 +26,7 @@ class ISCORE_PLUGIN_SCENARIO_EXPORT ConstraintInspectorDelegateFactory :
 };
 
 class ISCORE_PLUGIN_SCENARIO_EXPORT ConstraintInspectorDelegateFactoryList final :
-        public iscore::ConcreteFactoryList<ConstraintInspectorDelegateFactory>
+        public iscore::MatchingFactory<ConstraintInspectorDelegateFactory>
 {
-    public:
-      auto make(const ConstraintModel& constraint) const
-      {
-          auto it = find_if(*this, [&] (const auto& elt) { return elt.matches(constraint); });
-          return  (it != end())
-                  ? it->make(constraint)
-                  : nullptr;
-      }
 };
 }

@@ -20,8 +20,17 @@ class DisplayedElementsToolPaletteFactory :
          virtual bool matches(
                  const ConstraintModel& constraint) const = 0;
 
+         bool matches(
+                 ScenarioDocumentPresenter& pres,
+                 const ConstraintModel& constraint) const
+         {
+             return matches(constraint);
+         }
+
         virtual std::unique_ptr<GraphicsSceneToolPalette> make(
                  ScenarioDocumentPresenter& pres,
                  const ConstraintModel& constraint) = 0;
+
+
 };
 }
