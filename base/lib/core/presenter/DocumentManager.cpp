@@ -551,6 +551,7 @@ bool DocumentManager::checkAndUpdateJson(
         }
     }
 
+    json.setObject(obj);
     return mainLoadable && pluginsAvailable && pluginsLoadable;
 }
 
