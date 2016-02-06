@@ -15,17 +15,12 @@ class EventModel;
 class ScenarioModel;
 namespace Command
 {
-class MoveEventTag{};
-using MoveEventFactoryKey = UuidKey<MoveEventTag>;
-
 class SerializableMoveEvent;
-
-
 class ISCORE_PLUGIN_SCENARIO_EXPORT MoveEventFactoryInterface :
-        public iscore::GenericFactoryInterface<MoveEventFactoryKey>
+        public iscore::GenericFactoryInterface<UuidKey<MoveEventFactoryInterface>>
 {
         ISCORE_ABSTRACT_FACTORY_DECL(
-                SerializableMoveEvent,
+                MoveEventFactoryInterface,
                 "69dc1f79-5cb9-4a36-b382-8c099f7abf57")
 public:
             enum Strategy{ CREATION, MOVING_CLASSIC, MOVING_BOUNDED, MOVING_LESS };
@@ -48,10 +43,9 @@ public:
      * the strategy for which we need a displacement policy;
      * @return
      */
-    virtual int priority(Strategy strategy) = 0;
+    virtual int priority(Strategy strategy) const = 0;
 
 };
 }
 }
 
-Q_DECLARE_METATYPE(Scenario::Command::MoveEventFactoryKey)

@@ -14,17 +14,16 @@ class DocumentPresenter;
 class DocumentView;
 struct ApplicationContext;
 
-using DocumentDelegateFactoryKey = UuidKey<DocumentDelegateModelInterface>;
 /**
      * @brief The DocumentDelegateFactoryInterface class
      *
      * The interface required to create a custom main document (like MS Word's main page)
      */
 class ISCORE_LIB_BASE_EXPORT DocumentDelegateFactory :
-        public iscore::GenericFactoryInterface<DocumentDelegateFactoryKey>
+        public iscore::GenericFactoryInterface<UuidKey<DocumentDelegateFactory>>
 {
         ISCORE_ABSTRACT_FACTORY_DECL(
-                DocumentDelegateModelInterface,
+                DocumentDelegateFactory,
                 "127ea824-f623-4f68-8deb-7c8c930a262b")
         public:
             virtual ~DocumentDelegateFactory();
@@ -50,8 +49,8 @@ class ISCORE_LIB_BASE_EXPORT DocumentDelegateFactory :
 class ISCORE_LIB_BASE_EXPORT DocumentDelegateList final :
         public ConcreteFactoryList<iscore::DocumentDelegateFactory>
 {
+    public:
+        using object_type = DocumentDelegateModelInterface;
 };
 
 }
-
-Q_DECLARE_METATYPE(iscore::DocumentDelegateFactoryKey)

@@ -8,10 +8,11 @@ namespace Scenario
 class ConstraintModel;
 class ScenarioDocumentPresenter;
 
-class DisplayedElementsToolPaletteFactory : public iscore::FactoryInterfaceBase
+class DisplayedElementsToolPaletteFactory :
+        public iscore::GenericFactoryInterface<UuidKey<DisplayedElementsToolPaletteFactory>>
 {
          ISCORE_ABSTRACT_FACTORY_DECL(
-                 GraphicsSceneToolPalette,
+                 DisplayedElementsToolPaletteFactory,
                  "0884edb9-81e4-44ff-856f-fbc772f6d683")
     public:
         virtual ~DisplayedElementsToolPaletteFactory();

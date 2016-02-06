@@ -81,7 +81,6 @@ class ISCORE_LIB_BASE_EXPORT GenericFactoryInterface : public GenericFactoryInte
     const iscore::AbstractFactoryKey& abstractFactoryKey() const final override { \
         return static_abstractFactoryKey(); \
     } \
-    using object_type = Type; \
     using ConcreteFactoryKey = UuidKey<Type>; \
     private:
 

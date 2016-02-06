@@ -21,11 +21,14 @@ class ConstraintModel;
 namespace Loop
 {
 // TODO Clean this file
-class ConstraintInspectorDelegateFactory : public Scenario::ConstraintInspectorDelegateFactory
+class ConstraintInspectorDelegateFactory :
+        public Scenario::ConstraintInspectorDelegateFactory
 {
+        ISCORE_CONCRETE_FACTORY_DECL("295245d4-2019-4849-9d49-10c1e21c209c")
     public:
         virtual ~ConstraintInspectorDelegateFactory();
 
+    private:
         std::unique_ptr<Scenario::ConstraintInspectorDelegate> make(
                 const Scenario::ConstraintModel& constraint) override;
 
@@ -35,6 +38,7 @@ class ConstraintInspectorDelegateFactory : public Scenario::ConstraintInspectorD
 
 class InspectorFactory final : public ProcessInspectorWidgetDelegateFactory
 {
+        ISCORE_CONCRETE_FACTORY_DECL("f45f98f2-f721-4ffa-9219-114832fe06bd")
     public:
         InspectorFactory();
         virtual ~InspectorFactory();
