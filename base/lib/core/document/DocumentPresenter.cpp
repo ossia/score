@@ -9,14 +9,14 @@ class QObject;
 
 namespace iscore
 {
-DocumentPresenter::DocumentPresenter(DocumentDelegateFactory* fact,
+DocumentPresenter::DocumentPresenter(DocumentDelegateFactory& fact,
                                      const DocumentModel& m,
                                      DocumentView& v,
                                      QObject* parent) :
     NamedObject {"DocumentPresenter", parent},
             m_view{v},
             m_model{m},
-            m_presenter{fact->makePresenter(this,
+            m_presenter{fact.makePresenter(this,
                                             m_model.modelDelegate(),
                                             m_view.viewDelegate())}
 {

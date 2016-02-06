@@ -57,8 +57,6 @@ class ISCORE_LIB_BASE_EXPORT ApplicationComponents
 
 
         // Getters for plugin-registered things
-        const auto& availableDocuments() const
-        { return m_data.availableDocuments; }
         const auto& applicationPlugins() const
         { return m_data.appPlugins; }
         const auto& plugins() const

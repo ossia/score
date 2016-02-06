@@ -41,7 +41,7 @@ ISCORE_PLUGIN_CURVE_EXPORT void Visitor<Reader<DataStream>>::readFrom(
              << segmt.type;
 
     auto& csl = context.components.factory<Curve::SegmentList>();
-    auto segmt_fact = csl.list().get(segmt.type);
+    auto segmt_fact = csl.get(segmt.type);
 
     ISCORE_ASSERT(segmt_fact);
     segmt_fact->serializeCurveSegmentData(segmt.specificSegmentData, this->toVariant());
@@ -59,7 +59,7 @@ ISCORE_PLUGIN_CURVE_EXPORT void Visitor<Writer<DataStream>>::writeTo(
              >> segmt.type;
 
     auto& csl = context.components.factory<Curve::SegmentList>();
-    auto segmt_fact = csl.list().get(segmt.type);
+    auto segmt_fact = csl.get(segmt.type);
     ISCORE_ASSERT(segmt_fact);
     segmt.specificSegmentData = segmt_fact->makeCurveSegmentData(this->toVariant());
 
@@ -125,7 +125,7 @@ Curve::SegmentModel* createCurveSegment(
         const Curve::SegmentData& dat,
         QObject* parent)
 {
-    auto fact = csl.list().get(dat.type);
+    auto fact = csl.get(dat.type);
     auto model = fact->load(dat, parent);
 
     return model;

@@ -26,6 +26,7 @@
 #include <core/presenter/Presenter.hpp>
 #include <core/settings/Settings.hpp>
 #include <core/settings/SettingsView.hpp>
+#include <iscore/plugins/documentdelegate/DocumentDelegateFactoryInterface.hpp>
 #include <iscore/menu/MenuInterface.hpp>
 #include <iscore/plugins/customfactory/StringFactoryKey.hpp>
 #include <iscore/tools/NamedObject.hpp>
@@ -78,7 +79,7 @@ void Presenter::setupMenus()
         m_docManager.newDocument(
                     m_context,
                     getStrongId(m_docManager.documents()),
-                    applicationComponents().availableDocuments().front());
+                    *applicationComponents().factory<iscore::DocumentDelegateList>().begin());
     });
 
     newAct->setShortcut(QKeySequence::New);

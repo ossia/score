@@ -45,7 +45,7 @@ StateModel::StateModel(
     init();
 /*
     auto ctx = iscore::IDocument::documentContext(*this);
-    auto& fact = *ctx.app.components.factory<StateProcessList>().list().get().begin()->second;
+    auto& fact = *ctx.app.components.factory<StateProcessList>().get().begin()->second;
     stateProcesses.add(fact.make(Id<StateProcess>{123}, this));
     */
 }

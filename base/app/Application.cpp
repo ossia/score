@@ -219,11 +219,11 @@ void Application::initDocuments()
     }
     else
     {
-        if(!m_presenter->applicationComponents().availableDocuments().empty())
+        if(!m_presenter->applicationComponents().factory<iscore::DocumentDelegateList>().empty())
             m_presenter->documentManager().newDocument(
                         ctx,
                         Id<iscore::DocumentModel>{iscore::random_id_generator::getRandomId()}, // TODO crashes if loaded twice by chance
-                        m_presenter->applicationComponents().availableDocuments().front());
+                        *m_presenter->applicationComponents().factory<iscore::DocumentDelegateList>().begin());
     }
 }
 

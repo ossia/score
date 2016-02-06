@@ -254,11 +254,11 @@ void Presenter::fillContextMenu(
     });
 
     auto typeMenu = menu->addMenu(tr("Type"));
-    for(const auto& seg : m_curveSegments.list().get())
+    for(const auto& seg : m_curveSegments.list())
     {
-        auto act = typeMenu->addAction(seg.second->prettyName());
+        auto act = typeMenu->addAction(seg->prettyName());
         connect(act, &QAction::triggered,
-                this, [this,key=seg.first] () {
+                this, [this,key=seg->concreteFactoryKey()] () {
             updateSegmentsType(key);
         });
     }
@@ -505,7 +505,7 @@ void Presenter::removeSelection()
 void Presenter::updateSegmentsType(const SegmentFactoryKey& segment)
 {
     // They keep their start / end and previous / following but change type.
-    auto factory = m_curveSegments.list().get(segment);
+    auto factory = m_curveSegments.get(segment);
     auto this_type_base_data = factory->makeCurveSegmentData();
     auto newSegments = model().toCurveData();
 

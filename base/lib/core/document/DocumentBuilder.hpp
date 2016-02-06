@@ -30,16 +30,16 @@ class ISCORE_LIB_BASE_EXPORT DocumentBuilder
         Document* newDocument(
                 const iscore::ApplicationContext& ctx,
                 const Id<DocumentModel>& id,
-                iscore::DocumentDelegateFactory* doctype);
+                iscore::DocumentDelegateFactory& doctype);
         Document* loadDocument(
                 const iscore::ApplicationContext& ctx,
                 const QVariant &data,
-                iscore::DocumentDelegateFactory* doctype);
+                iscore::DocumentDelegateFactory& doctype);
         Document* restoreDocument(
                 const iscore::ApplicationContext& ctx,
                 const QByteArray &docData,
                 const QByteArray &cmdData,
-                iscore::DocumentDelegateFactory* doctype);
+                iscore::DocumentDelegateFactory& doctype);
 
     private:
         void setBackupManager(Document* doc);
@@ -50,7 +50,7 @@ class ISCORE_LIB_BASE_EXPORT DocumentBuilder
         Document* loadDocument_impl(
                 const iscore::ApplicationContext& ctx,
                 const QVariant &data,
-                iscore::DocumentDelegateFactory* doctype,
+                iscore::DocumentDelegateFactory& doctype,
                 InitFun&& initfun,
                 BackupFun&& backupfun);
 

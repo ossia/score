@@ -170,7 +170,9 @@ std::vector<std::unique_ptr<iscore::FactoryInterfaceBase>> iscore_plugin_scenari
         BaseScenarioTriggerCommandFactory>,
     FW<DisplayedElementsProvider,
         ScenarioDisplayedElementsProvider,
-        BaseScenarioDisplayedElementsProvider>
+        BaseScenarioDisplayedElementsProvider>,
+    FW<iscore::DocumentDelegateFactory,
+        Scenario::ScenarioDocumentFactory>
 #if defined(ISCORE_LIB_INSPECTOR)
     ,
     FW<Inspector::InspectorWidgetFactory,
