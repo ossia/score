@@ -87,9 +87,8 @@ class ISCORE_LIB_BASE_EXPORT DocumentPluginFactory :
 
 };
 class ISCORE_LIB_BASE_EXPORT DocumentPluginFactoryList final :
-        public iscore::FactoryListInterface
+        public iscore::ConcreteFactoryList<iscore::DocumentPluginFactory>
 {
-        ISCORE_FACTORY_LIST_DECL(iscore::DocumentPluginFactory)
 };
 
 }

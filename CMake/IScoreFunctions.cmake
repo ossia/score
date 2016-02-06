@@ -9,14 +9,16 @@ include(IScoreTargetSetup)
 # soit générer un gros projet qui contient tout ? attention si des plug-ins ont
 # des dépendances sur d'autres plug-ins... (générer les deps automatiquement)
 
-function(iscore_add_component Name Sources Headers Dependencies)
+function(iscore_add_component Name Sources Headers Dependencies Version Uuid)
   foreach(target ${Dependencies})
     if(NOT TARGET ${target})
       return()
     endif()
   endforeach()
 
-  set(ISCORE_GLOBAL_COMPONENTS_LIST ${ISCORE_GLOBAL_COMPONENTS_LIST} ${Name} CACHE INTERNAL "List of components")
+  set(ISCORE_GLOBAL_COMPONENTS_LIST
+        ${ISCORE_GLOBAL_COMPONENTS_LIST} ${Name}
+        CACHE INTERNAL "List of components")
 
   iscore_parse_components(${Name} ${Headers})
 
@@ -27,25 +29,30 @@ function(iscore_add_component Name Sources Headers Dependencies)
     target_sources(${Name} INTERFACE ${Sources} ${Headers})
     target_link_libraries(${Name} INTERFACE ${Dependencies})
 
-    get_property(ComponentAbstractFactoryList GLOBAL PROPERTY ISCORE_${Name}_AbstractFactoryList)
-    get_property(ComponentFactoryList GLOBAL PROPERTY ISCORE_${Name}_ConcreteFactoryList)
-    get_property(ComponentFactoryFileList GLOBAL PROPERTY ISCORE_${Name}_FactoryFileList)
+    get_property(ComponentAbstractFactoryList GLOBAL
+                 PROPERTY ISCORE_${Name}_AbstractFactoryList)
+    get_property(ComponentFactoryList GLOBAL
+                 PROPERTY ISCORE_${Name}_ConcreteFactoryList)
+    get_property(ComponentFactoryFileList GLOBAL
+                 PROPERTY ISCORE_${Name}_FactoryFileList)
 
     set_target_properties(${Name} PROPERTIES
       INTERFACE_ISCORE_COMPONENT_AbstractFactory_List ${ComponentAbstractFactoryList}
       INTERFACE_ISCORE_COMPONENT_ConcreteFactory_List ${ComponentFactoryList}
       INTERFACE_ISCORE_COMPONENT_Factory_Files ${ComponentFactoryFileList}
+      INTERFACE_ISCORE_COMPONENT_Version ${Version}
+      INTERFACE_ISCORE_COMPONENT_Key ${Uuid}
       )
   else()
     # concrete library
-    iscore_generate_plugin_file(${Name} ${Headers})
+    iscore_generate_plugin_file(${Name} ${Headers} ${Version} ${Uuid})
     add_library(${Name}
         ${Sources} ${Headers}
         "${CMAKE_CURRENT_BINARY_DIR}/${Name}_plugin.cpp"
         "${CMAKE_CURRENT_BINARY_DIR}/${Name}_plugin.hpp"
         )
 
-      target_link_libraries(${Name} PUBLIC ${Dependencies})
+    target_link_libraries(${Name} PUBLIC ${Dependencies})
 
     setup_iscore_plugin(${Name})
   endif()
@@ -90,7 +97,7 @@ function(iscore_parse_components TargetName Headers)
   set_property(GLOBAL PROPERTY ISCORE_${TargetName}_FactoryFileList ${ComponentFactoryFileList})
 endfunction()
 
-function(iscore_generate_plugin_file TargetName Headers)
+function(iscore_generate_plugin_file TargetName Headers Version Uuid)
     get_property(ComponentAbstractFactoryList GLOBAL PROPERTY ISCORE_${TargetName}_AbstractFactoryList)
     get_property(ComponentFactoryList GLOBAL PROPERTY ISCORE_${TargetName}_ConcreteFactoryList)
     get_property(ComponentFactoryFileList GLOBAL PROPERTY ISCORE_${TargetName}_FactoryFileList)
@@ -123,7 +130,10 @@ function(iscore_generate_plugin_file TargetName Headers)
         set(FactoryFiles "${FactoryFiles}#include <${strippedheader}>\n")
     endforeach()
 
+    # Set the variables that will be replaces
     set(PLUGIN_NAME ${TargetName})
+    set(ISCORE_COMPONENT_Version ${Version})
+    set(ISCORE_COMPONENT_Uuid ${Uuid})
     configure_file(
         "${ISCORE_ROOT_SOURCE_DIR}/CMake/Components/iscore_component_plugin.hpp.in"
         "${CMAKE_CURRENT_BINARY_DIR}/${TargetName}_plugin.hpp")

@@ -31,7 +31,7 @@ ISCORE_LIB_DEVICE_EXPORT void Visitor<Reader<DataStream>>::readFrom(const Device
     // usef for CurveSegmentData.
 
     auto& pl = context.components.factory<Device::DynamicProtocolList>();
-    auto prot = pl.list().get(n.protocol);
+    auto prot = pl.get(n.protocol);
     if(prot)
     {
         prot->serializeProtocolSpecificSettings(n.deviceSpecificSettings, this->toVariant());
@@ -51,7 +51,7 @@ ISCORE_LIB_DEVICE_EXPORT void Visitor<Writer<DataStream>>::writeTo(Device::Devic
              >> n.protocol;
 
     auto& pl = context.components.factory<Device::DynamicProtocolList>();
-    auto prot = pl.list().get(n.protocol);
+    auto prot = pl.get(n.protocol);
     if(prot)
     {
         n.deviceSpecificSettings = prot->makeProtocolSpecificSettings(this->toVariant());
@@ -70,7 +70,7 @@ ISCORE_LIB_DEVICE_EXPORT void Visitor<Reader<JSONObject>>::readFrom(const Device
     m_obj["Protocol"] = toJsonValue(n.protocol);
 
     auto& pl = context.components.factory<Device::DynamicProtocolList>();
-    auto prot = pl.list().get(n.protocol);
+    auto prot = pl.get(n.protocol);
     if(prot)
     {
         prot->serializeProtocolSpecificSettings(n.deviceSpecificSettings, this->toVariant());
@@ -88,7 +88,7 @@ ISCORE_LIB_DEVICE_EXPORT void Visitor<Writer<JSONObject>>::writeTo(Device::Devic
     n.protocol = fromJsonValue<Device::ProtocolFactoryKey>(m_obj["Protocol"]);
 
     auto& pl = context.components.factory<Device::DynamicProtocolList>();
-    auto prot = pl.list().get(n.protocol);
+    auto prot = pl.get(n.protocol);
     if(prot)
     {
         n.deviceSpecificSettings = prot->makeProtocolSpecificSettings(this->toVariant());

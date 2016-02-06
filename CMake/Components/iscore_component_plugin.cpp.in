@@ -23,3 +23,13 @@ std::vector<std::unique_ptr<iscore::FactoryInterfaceBase>>
         ${FactoryCode}
     >>(ctx, key);
 }
+
+iscore::Version ${PLUGIN_NAME}::version() const
+{
+    return iscore::Version{${ISCORE_COMPONENT_Version}};
+}
+
+UuidKey<iscore::Plugin> ${PLUGIN_NAME}::key() const
+{
+    return "${ISCORE_COMPONENT_Uuid}";
+}

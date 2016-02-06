@@ -6,18 +6,15 @@
 #include <Process/StateProcessFactory.hpp>
 namespace Process
 {
-class ISCORE_LIB_PROCESS_EXPORT ProcessList final : public iscore::FactoryListInterface
+class ISCORE_LIB_PROCESS_EXPORT ProcessList final :
+        public iscore::ConcreteFactoryList<ProcessFactory>
 {
-        ISCORE_FACTORY_LIST_DECL(Process::ProcessFactory)
-
-        //public:
-        //    virtual ~ProcessList();
 };
 
 // MOVEME
-class ISCORE_LIB_PROCESS_EXPORT StateProcessList final : public iscore::FactoryListInterface
+class ISCORE_LIB_PROCESS_EXPORT StateProcessList final :
+        public iscore::ConcreteFactoryList<StateProcessFactory>
 {
-        ISCORE_FACTORY_LIST_DECL(StateProcessFactory)
 };
 
 }

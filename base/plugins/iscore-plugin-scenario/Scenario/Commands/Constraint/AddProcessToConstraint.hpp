@@ -162,7 +162,7 @@ class AddProcessDelegate<HasNoRacks>
             m_createdRackId = getStrongId(constraint.racks);
             m_createdSlotId = Id<SlotModel>(iscore::id_generator::getFirstId());
             m_createdLayerId = Id<Process::LayerModel> (iscore::id_generator::getFirstId());
-            m_layerConstructionData = fact.list().get(m_cmd.processKey())->makeStaticLayerConstructionData();
+            m_layerConstructionData = fact.get(m_cmd.processKey())->makeStaticLayerConstructionData();
         }
 
         void undo(ConstraintModel& constraint) const
@@ -247,7 +247,7 @@ class AddProcessDelegate<HasNoSlots, HasRacks, NotBaseConstraint>
         {
             m_createdSlotId = Id<SlotModel>(iscore::id_generator::getFirstId());
 
-            m_layerConstructionData = fact.list().get(m_cmd.processKey())->makeStaticLayerConstructionData();
+            m_layerConstructionData = fact.get(m_cmd.processKey())->makeStaticLayerConstructionData();
             m_createdLayerId = Id<Process::LayerModel> (iscore::id_generator::getFirstId());
         }
 
@@ -324,7 +324,7 @@ class AddProcessDelegate<HasSlots, HasRacks, NotBaseConstraint>
             ISCORE_ASSERT(!firstRack.slotmodels.empty());
             const auto& firstSlot = *firstRack.slotmodels.begin();
 
-            m_layerConstructionData = fact.list().get(m_cmd.processKey())->makeStaticLayerConstructionData();
+            m_layerConstructionData = fact.get(m_cmd.processKey())->makeStaticLayerConstructionData();
             m_createdLayerId = getStrongId(firstSlot.layers);
         }
 

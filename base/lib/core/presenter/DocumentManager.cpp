@@ -27,6 +27,7 @@
 #include <core/command/CommandStackSerialization.hpp>
 #include <core/document/Document.hpp>
 #include <core/application/ApplicationSettings.hpp>
+#include <iscore/plugins/documentdelegate/DocumentDelegateFactoryInterface.hpp>
 #include <iscore/tools/SettableIdentifier.hpp>
 #include <iscore/tools/std/StdlibWrapper.hpp>
 #include <iscore/tools/std/Algorithms.hpp>
@@ -384,7 +385,7 @@ Document* DocumentManager::loadStack(
         prepareNewDocument(ctx);
         auto doc = m_builder.newDocument(ctx,
                                          id,
-                                         ctx.components.availableDocuments().front());
+                                         *ctx.components.factory<DocumentDelegateList>().begin());
         setupDocument(ctx, doc);
 
         loadCommandStack(
@@ -421,12 +422,12 @@ Document* DocumentManager::loadFile(
         {
             if (fileName.indexOf(".scorebin") != -1)
             {
-                doc = loadDocument(ctx, f.readAll(), ctx.components.availableDocuments().front());
+                doc = loadDocument(ctx, f.readAll(), *ctx.components.factory<DocumentDelegateList>().begin());
             }
             else if (fileName.indexOf(".scorejson") != -1)
             {
                 auto json = QJsonDocument::fromJson(f.readAll());
-                doc = loadDocument(ctx, json.object(), ctx.components.availableDocuments().front());
+                doc = loadDocument(ctx, json.object(), *ctx.components.factory<DocumentDelegateList>().begin());
             }
 
             m_currentDocument->metadata.setFileName(fileName);
@@ -562,7 +563,7 @@ void DocumentManager::restoreDocuments(
 {
     for(const auto& backup : DocumentBackups::restorableDocuments())
     {
-        restoreDocument(ctx, backup.first, backup.second, ctx.components.availableDocuments().front());
+        restoreDocument(ctx, backup.first, backup.second, *ctx.components.factory<DocumentDelegateList>().begin());
     }
 }
 

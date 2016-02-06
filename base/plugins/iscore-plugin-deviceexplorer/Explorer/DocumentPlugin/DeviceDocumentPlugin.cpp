@@ -110,7 +110,7 @@ Device::Node DeviceDocumentPlugin::createDeviceFromNode(const Device::Node & nod
         auto& fact = m_context.app.components.factory<Device::DynamicProtocolList>();
 
         // Instantiate a real device.
-        auto proto = fact.list().get(node.get<Device::DeviceSettings>().protocol);
+        auto proto = fact.get(node.get<Device::DeviceSettings>().protocol);
         auto newdev = proto->makeDevice(node.get<Device::DeviceSettings>(), context());
 
         initDevice(*newdev);
@@ -143,7 +143,7 @@ Device::Node DeviceDocumentPlugin::loadDeviceFromNode(const Device::Node & node)
     try {
         // Instantiate a real device.
         auto& fact = m_context.app.components.factory<Device::DynamicProtocolList>();
-        auto proto = fact.list().get(node.get<Device::DeviceSettings>().protocol);
+        auto proto = fact.get(node.get<Device::DeviceSettings>().protocol);
         auto newdev = proto->makeDevice(node.get<Device::DeviceSettings>(), context());
 
         initDevice(*newdev);

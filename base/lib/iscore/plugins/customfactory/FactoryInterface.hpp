@@ -61,6 +61,12 @@ class ISCORE_LIB_BASE_EXPORT GenericFactoryInterface : public GenericFactoryInte
         {
             return static_cast<const FactoryKeyInterface<Key_T>*>(this)->concreteFactoryKey();
         }
+
+        template<typename Key_T>
+        Key_T key_value() const
+        {
+            return static_cast<const FactoryKeyInterface<Key_T>*>(this)->concreteFactoryKey();
+        }
 };
 
 }
