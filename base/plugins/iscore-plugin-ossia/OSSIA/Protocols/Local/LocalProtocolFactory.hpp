@@ -3,7 +3,6 @@
 #include <QString>
 #include <QVariant>
 
-#include <Device/Protocol/ProtocolFactoryKey.hpp>
 namespace Device
 {
 class DeviceInterface;
@@ -22,7 +21,7 @@ class LocalProtocolFactory final :
         // Implement with OSSIA::Device
         QString prettyName() const override;
 
-        const Device::ProtocolFactoryKey& concreteFactoryKey() const override;
+        const UuidKey<Device::ProtocolFactory>& concreteFactoryKey() const override;
 
         Device::DeviceInterface* makeDevice(
                 const Device::DeviceSettings& settings,

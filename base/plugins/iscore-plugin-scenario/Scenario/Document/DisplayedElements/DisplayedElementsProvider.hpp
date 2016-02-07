@@ -8,7 +8,7 @@ namespace Scenario
 class ConstraintModel;
 
 class DisplayedElementsProvider :
-        public iscore::GenericFactoryInterface<UuidKey<DisplayedElementsProvider>>
+        public iscore::AbstractFactory<DisplayedElementsProvider>
 {
         ISCORE_ABSTRACT_FACTORY_DECL(
                 DisplayedElementsProvider,

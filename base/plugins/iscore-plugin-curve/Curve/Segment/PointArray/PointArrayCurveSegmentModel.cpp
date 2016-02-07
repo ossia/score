@@ -46,9 +46,9 @@ SegmentModel*PointArraySegment::clone(
     return cs;
 }
 
-SegmentFactoryKey PointArraySegment::concreteFactoryKey() const
+UuidKey<Curve::SegmentFactory> PointArraySegment::concreteFactoryKey() const
 {
-    static const SegmentFactoryKey name{"c598b840-db67-4c8f-937a-46cfac87cb59"};
+    static const UuidKey<Curve::SegmentFactory> name{"c598b840-db67-4c8f-937a-46cfac87cb59"};
     return name;
 }
 

@@ -44,6 +44,10 @@
 
 template<typename T>
 using remove_qualifs_t = std::decay_t<std::remove_pointer_t<std::decay_t<T>>>;
+
+template<typename T>
+using add_cref_t = std::add_lvalue_reference_t<std::add_const_t<T>>;
+
 template<int N, typename... Ts> using NthTypeOf =
 typename std::tuple_element<N, std::tuple<Ts...>>::type;
 

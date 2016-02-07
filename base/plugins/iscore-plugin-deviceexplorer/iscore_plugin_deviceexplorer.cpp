@@ -24,7 +24,7 @@ iscore_plugin_deviceexplorer::iscore_plugin_deviceexplorer() :
     QObject {},
 iscore::PanelFactory_QtInterface {}
 {
-    QMetaType::registerComparators<Device::ProtocolFactoryKey>();
+    QMetaType::registerComparators<UuidKey<Device::ProtocolFactory>>();
 }
 
 iscore_plugin_deviceexplorer::~iscore_plugin_deviceexplorer()

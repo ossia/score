@@ -3,8 +3,6 @@
 #include <QString>
 #include <QVariant>
 
-#include <Device/Protocol/ProtocolFactoryKey.hpp>
-
 namespace Device
 {
 class DeviceInterface;

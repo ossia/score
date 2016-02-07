@@ -21,9 +21,9 @@ QString OSCProtocolFactory::prettyName() const
     return QObject::tr("OSC");
 }
 
-const Device::ProtocolFactoryKey& OSCProtocolFactory::concreteFactoryKey() const
+const UuidKey<Device::ProtocolFactory>& OSCProtocolFactory::concreteFactoryKey() const
 {
-    static const Device::ProtocolFactoryKey name{"9a42de4b-f6eb-4bca-9564-01b975f601b9"};
+    static const UuidKey<Device::ProtocolFactory> name{"9a42de4b-f6eb-4bca-9564-01b975f601b9"};
     return name;
 }
 

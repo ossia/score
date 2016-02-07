@@ -11,7 +11,7 @@
 #include <unordered_map>
 #include <vector>
 
-#include <Process/ProcessFactoryKey.hpp>
+
 #include <iscore/tools/SettableIdentifier.hpp>
 #include <iscore_plugin_scenario_export.h>
 namespace Inspector

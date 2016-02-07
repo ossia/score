@@ -11,7 +11,7 @@
 #include <Curve/Palette/CurvePoint.hpp>
 #include <Curve/Segment/CurveSegmentData.hpp>
 #include <Curve/Segment/CurveSegmentFactory.hpp>
-#include <Curve/Segment/CurveSegmentFactoryKey.hpp>
+
 #include "CurveSegmentList.hpp"
 #include "CurveSegmentModel.hpp"
 #include "CurveSegmentModelSerialization.hpp"

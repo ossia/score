@@ -12,7 +12,7 @@ namespace Command
 {
 
 class ISCORE_PLUGIN_SCENARIO_EXPORT TriggerCommandFactory :
-        public iscore::GenericFactoryInterface<UuidKey<TriggerCommandFactory>>
+        public iscore::AbstractFactory<TriggerCommandFactory>
 {
         ISCORE_ABSTRACT_FACTORY_DECL(
                 TriggerCommandFactory,

@@ -5,7 +5,7 @@
 #include <Editor/CurveSegment/CurveSegmentPower.h>
 #include <Curve/Segment/Linear/LinearCurveSegmentModel.hpp>
 #include <Curve/Segment/Power/PowerCurveSegmentModel.hpp>
-#include <Curve/Segment/CurveSegmentFactoryKey.hpp>
+
 
 namespace iscore
 {

@@ -18,9 +18,9 @@ QList<ScenarioActions *> ScenarioCommonActionsFactory::make(ScenarioApplicationP
     };
 }
 
-const ScenarioActionsFactoryKey&ScenarioCommonActionsFactory::concreteFactoryKey() const
+const UuidKey<ScenarioActionsFactory>& ScenarioCommonActionsFactory::concreteFactoryKey() const
 {
-    static const ScenarioActionsFactoryKey fact{"f6ac9feb-4ffd-4fab-93d4-b5834a078c6e"};
+    static const UuidKey<ScenarioActionsFactory> fact{"f6ac9feb-4ffd-4fab-93d4-b5834a078c6e"};
     return fact;
 }
 }

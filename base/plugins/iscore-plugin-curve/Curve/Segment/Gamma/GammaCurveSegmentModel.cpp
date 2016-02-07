@@ -35,7 +35,7 @@ SegmentModel*GammaSegment::clone(
     return cs;
 }
 
-SegmentFactoryKey GammaSegment::concreteFactoryKey() const
+UuidKey<Curve::SegmentFactory> GammaSegment::concreteFactoryKey() const
 {
     return data_type::static_concreteFactoryKey();
 }
@@ -93,9 +93,9 @@ boost::optional<double> GammaSegment::verticalParameter() const
     return gamma;
 }
 
-const SegmentFactoryKey &GammaSegmentData::static_concreteFactoryKey()
+const UuidKey<Curve::SegmentFactory> &GammaSegmentData::static_concreteFactoryKey()
 {
-    static const SegmentFactoryKey name{"a8bd14e2-d7e4-47cd-b76a-6a88fa11f0d2"};
+    static const UuidKey<Curve::SegmentFactory> name{"a8bd14e2-d7e4-47cd-b76a-6a88fa11f0d2"};
     return name;
 }
 

@@ -1,6 +1,6 @@
 #pragma once
 #include <Process/ExpandMode.hpp>
-#include <Process/ProcessFactoryKey.hpp>
+
 #include <Process/TimeValue.hpp>
 #include <iscore/selection/Selection.hpp>
 #include <iscore/tools/IdentifiedObject.hpp>
@@ -27,6 +27,7 @@ class ElementPluginModelList;
 
 namespace Process
 {
+class ProcessFactory;
 /**
  * @brief The Process class
  *
@@ -34,7 +35,7 @@ namespace Process
  */
 class ISCORE_LIB_PROCESS_EXPORT ProcessModel:
         public IdentifiedObject<ProcessModel>,
-        public iscore::SerializableInterface<ProcessModel>
+        public iscore::SerializableInterface<ProcessFactory>
 {
         Q_OBJECT
 

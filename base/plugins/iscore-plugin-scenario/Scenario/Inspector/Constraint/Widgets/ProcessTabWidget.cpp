@@ -72,7 +72,7 @@ ProcessTabWidget::ProcessTabWidget(const ConstraintInspectorWidget& parentCstr, 
     processesLay->addStretch(1);
 }
 
-void ProcessTabWidget::createProcess(const ProcessFactoryKey& processName)
+void ProcessTabWidget::createProcess(const UuidKey<Process::ProcessFactory>& processName)
 {
     auto cmd = Command::make_AddProcessToConstraint(m_constraintWidget.model(), processName);
     m_constraintWidget.commandDispatcher()->submitCommand(cmd);

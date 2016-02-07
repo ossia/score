@@ -2,7 +2,7 @@
 namespace iscore
 {
 struct DocumentContext;
-template<typename T, typename U, typename V, typename W>
+template<typename T, typename U, typename V>
 class GenericComponentFactoryList;
 }
 namespace Explorer
@@ -24,7 +24,6 @@ using ProcessComponentFactoryList =
     iscore::GenericComponentFactoryList<
             Process::ProcessModel,
             RecreateOnPlay::DocumentPlugin,
-            RecreateOnPlay::ProcessComponent,
             RecreateOnPlay::ProcessComponentFactory>;
 
 struct Context

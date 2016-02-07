@@ -7,9 +7,10 @@
 
 #include <Curve/Palette/CurvePoint.hpp>
 #include <iscore/tools/IdentifiedObject.hpp>
-#include <Curve/Segment/CurveSegmentFactoryKey.hpp>
+
 namespace Curve
 {
+class SegmentFactory;
 class SegmentModel;
 struct SegmentData;
 /* TODO it would maybe faster to have them on the heap and use QPointer for
@@ -68,7 +69,7 @@ struct SegmentData
                 const Id<SegmentModel>& i,
                 Curve::Point s, Curve::Point e,
                 const Id<SegmentModel>& prev, const Id<SegmentModel>&  foll,
-                const SegmentFactoryKey& t, const QVariant& data):
+                const UuidKey<Curve::SegmentFactory>& t, const QVariant& data):
             id(i),
             start(s),
             end(e),
@@ -85,7 +86,7 @@ struct SegmentData
         Curve::Point start, end;
         Id<SegmentModel> previous, following;
 
-        SegmentFactoryKey type;
+        UuidKey<Curve::SegmentFactory> type;
         QVariant specificSegmentData;
 
         double x() const {

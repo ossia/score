@@ -36,7 +36,7 @@ SegmentModel*PowerSegment::clone(
     return cs;
 }
 
-SegmentFactoryKey PowerSegment::concreteFactoryKey() const
+UuidKey<Curve::SegmentFactory> PowerSegment::concreteFactoryKey() const
 {
     return PowerSegmentData::static_concreteFactoryKey();
 }
@@ -110,9 +110,9 @@ boost::optional<double> PowerSegment::verticalParameter() const
     return gamma / 6. - 1;
 }
 
-const SegmentFactoryKey&PowerSegmentData::static_concreteFactoryKey()
+const UuidKey<Curve::SegmentFactory>&PowerSegmentData::static_concreteFactoryKey()
 {
-    static const SegmentFactoryKey name{"1e7cb83f-4e47-4b14-814d-2242a9c75991"};
+    static const UuidKey<Curve::SegmentFactory> name{"1e7cb83f-4e47-4b14-814d-2242a9c75991"};
     return name;
 }
 }

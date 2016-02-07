@@ -5,7 +5,7 @@
 #include <QByteArray>
 #include <QString>
 
-#include <Process/ProcessFactoryKey.hpp>
+
 #include <Process/TimeValue.hpp>
 #include <iscore/serialization/VisitorInterface.hpp>
 #include <iscore_plugin_mapping_export.h>
@@ -89,7 +89,7 @@ class ISCORE_PLUGIN_MAPPING_EXPORT ProcessModel : public Curve::CurveProcessMode
                 QObject* newParent) const override;
 
         //// ProcessModel ////
-        ProcessFactoryKey concreteFactoryKey() const override;
+        UuidKey<Process::ProcessFactory>concreteFactoryKey() const override;
 
         Process::LayerModel* makeLayer_impl(
                 const Id<Process::LayerModel>& viewModelId,

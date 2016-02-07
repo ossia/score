@@ -2,7 +2,7 @@
 #include <boost/optional/optional.hpp>
 #include <QVariant>
 
-#include <Curve/Segment/CurveSegmentFactoryKey.hpp>
+
 #include <Curve/Segment/CurveSegmentModel.hpp>
 #include <iscore/serialization/VisitorInterface.hpp>
 
@@ -16,7 +16,7 @@ struct GammaSegmentData
 {
     double gamma;
 
-    static const SegmentFactoryKey& static_concreteFactoryKey();
+    static const UuidKey<Curve::SegmentFactory>& static_concreteFactoryKey();
     static const QString prettyName()
     { return QObject::tr("Gamma"); }
 };
@@ -41,7 +41,7 @@ class GammaSegment final : public SegmentModel
                 const Id<SegmentModel>& id,
                 QObject* parent) const override;
 
-        SegmentFactoryKey concreteFactoryKey() const override;
+        UuidKey<Curve::SegmentFactory> concreteFactoryKey() const override;
         void serialize_impl(const VisitorVariant& vis) const override;
         void on_startChanged() override;
         void on_endChanged() override;
