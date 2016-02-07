@@ -6,6 +6,7 @@
 #include <boost/multi_index/mem_fun.hpp>
 
 #include <Curve/Palette/CurvePoint.hpp>
+#include <iscore/plugins/customfactory/UuidKey.hpp>
 #include <iscore/tools/IdentifiedObject.hpp>
 
 namespace Curve
