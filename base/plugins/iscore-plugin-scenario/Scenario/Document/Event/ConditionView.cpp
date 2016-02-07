@@ -47,11 +47,13 @@ void ConditionView::paint(
     painter->setBrush(Qt::transparent);
     painter->drawPath(m_Cpath);
 
+#if !defined(ISCORE_IEEE_SKIN)
     pen.setWidth(1);
     pen.setCosmetic(true);
     painter->setPen(pen);
     painter->setBrush(pen.color());
     painter->drawPath(m_trianglePath);
+#endif
 }
 
 void ConditionView::changeHeight(qreal newH)

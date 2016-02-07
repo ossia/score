@@ -23,6 +23,11 @@ bool BaseConstraintInspectorDelegateFactory::matches(
         const ConstraintModel& constraint) const
 {
     return dynamic_cast<BaseScenario*>(constraint.parent());
+}
 
+auto BaseConstraintInspectorDelegateFactory::concreteFactoryKey() const -> const ConcreteFactoryKey&
+{
+    static const ConcreteFactoryKey name{"dee3fedd-4c36-4d2f-8315-448ea593ad46"};
+    return name;
 }
 }

@@ -55,27 +55,27 @@ class ISCORE_LIB_BASE_EXPORT DocumentPlugin :
         const iscore::DocumentContext& m_context;
 };
 
-
+class DocumentPluginFactory;
 class ISCORE_LIB_BASE_EXPORT SerializableDocumentPlugin :
         public DocumentPlugin,
-        public SerializableInterface<DocumentPlugin>
+        public SerializableInterface<DocumentPluginFactory>
 {
         //ISCORE_SERIALIZE_FRIENDS(SerializableDocumentPlugin, DataStream)
         //ISCORE_SERIALIZE_FRIENDS(SerializableDocumentPlugin, JSONObject)
 
     protected:
         using DocumentPlugin::DocumentPlugin;
-        using ConcreteFactoryKey = UuidKey<DocumentPlugin>;
+        using ConcreteFactoryKey = UuidKey<DocumentPluginFactory>;
 
     virtual ~SerializableDocumentPlugin();
 };
 
 
 class ISCORE_LIB_BASE_EXPORT DocumentPluginFactory :
-        public iscore::GenericFactoryInterface<UuidKey<DocumentPlugin>>
+        public iscore::GenericFactoryInterface<UuidKey<DocumentPluginFactory>>
 {
         ISCORE_ABSTRACT_FACTORY_DECL(
-                DocumentPlugin,
+                DocumentPluginFactory,
                 "570faa0b-f100-4039-a2f0-b60347c4e581")
     public:
         virtual ~DocumentPluginFactory();
@@ -87,9 +87,10 @@ class ISCORE_LIB_BASE_EXPORT DocumentPluginFactory :
 
 };
 class ISCORE_LIB_BASE_EXPORT DocumentPluginFactoryList final :
-        public iscore::FactoryListInterface
+        public iscore::ConcreteFactoryList<iscore::DocumentPluginFactory>
 {
-        ISCORE_FACTORY_LIST_DECL(iscore::DocumentPluginFactory)
+    public:
+        using object_type = DocumentPlugin;
 };
 
 }

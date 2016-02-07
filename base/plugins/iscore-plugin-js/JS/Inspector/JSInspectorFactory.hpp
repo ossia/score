@@ -20,6 +20,7 @@ namespace JS
 class InspectorFactory final :
         public ProcessInspectorWidgetDelegateFactory
 {
+        ISCORE_CONCRETE_FACTORY_DECL("035923ae-1cbf-4ca8-97bd-cf6205ca396e")
     public:
         InspectorFactory();
         virtual ~InspectorFactory();

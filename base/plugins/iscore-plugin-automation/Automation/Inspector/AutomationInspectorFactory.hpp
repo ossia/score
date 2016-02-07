@@ -14,6 +14,7 @@ namespace Automation
 {
 class InspectorFactory final : public ProcessInspectorWidgetDelegateFactory
 {
+        ISCORE_CONCRETE_FACTORY_DECL("2c5410ba-d3df-45b8-8444-6d8578b4e1a8")
     public:
         InspectorFactory() = default;
 

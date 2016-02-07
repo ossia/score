@@ -24,6 +24,6 @@ class iscore_plugin_pluginsettings :
     private:
         iscore::SettingsDelegateFactoryInterface* settings_make() override;
 
-        int32_t version() const override;
+        iscore::Version version() const override;
         UuidKey<iscore::Plugin> key() const override;
 };

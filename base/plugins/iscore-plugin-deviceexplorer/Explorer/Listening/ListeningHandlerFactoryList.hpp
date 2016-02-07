@@ -6,10 +6,8 @@
 namespace Explorer
 {
 class ISCORE_PLUGIN_DEVICEEXPLORER_EXPORT ListeningHandlerFactoryList final :
-        public iscore::FactoryListInterface
+        public iscore::ConcreteFactoryList<Explorer::ListeningHandlerFactory>
 {
-        ISCORE_FACTORY_LIST_DECL(Explorer::ListeningHandlerFactory)
-
         public:
             virtual ~ListeningHandlerFactoryList();
 

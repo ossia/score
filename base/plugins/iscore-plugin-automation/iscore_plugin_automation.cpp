@@ -76,9 +76,9 @@ std::pair<const CommandParentFactoryKey, CommandGeneratorMap> iscore_plugin_auto
 }
 
 
-int32_t iscore_plugin_automation::version() const
+iscore::Version iscore_plugin_automation::version() const
 {
-    return 1;
+    return iscore::Version{1};
 }
 
 UuidKey<iscore::Plugin> iscore_plugin_automation::key() const

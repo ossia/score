@@ -81,9 +81,9 @@ QStringList iscore_plugin_ossia::required() const
     return {"Scenario"};
 }
 
-int32_t iscore_plugin_ossia::version() const
+iscore::Version iscore_plugin_ossia::version() const
 {
-    return 1;
+    return iscore::Version{1};
 }
 
 UuidKey<iscore::Plugin> iscore_plugin_ossia::key() const

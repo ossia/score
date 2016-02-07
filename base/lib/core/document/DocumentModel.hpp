@@ -33,12 +33,12 @@ class ISCORE_LIB_BASE_EXPORT DocumentModel final : public IdentifiedObject<Docum
     public:
         DocumentModel(
                 const Id<DocumentModel>& id,
-                DocumentDelegateFactory* fact,
+                DocumentDelegateFactory& fact,
                 QObject* parent);
         DocumentModel(
                 iscore::DocumentContext& ctx,
                 const QVariant &data,
-                DocumentDelegateFactory* fact,
+                DocumentDelegateFactory& fact,
                 QObject* parent);
         ~DocumentModel();
 
@@ -78,11 +78,11 @@ class ISCORE_LIB_BASE_EXPORT DocumentModel final : public IdentifiedObject<Docum
         void loadDocumentAsJson(
                 iscore::DocumentContext& ctx,
                 const QJsonObject&,
-                DocumentDelegateFactory* fact);
+                DocumentDelegateFactory& fact);
         void loadDocumentAsByteArray(
                 iscore::DocumentContext& ctx,
                 const QByteArray&,
-                DocumentDelegateFactory* fact);
+                DocumentDelegateFactory& fact);
 
         std::vector<PanelModel*> m_panelModels;
         std::vector<DocumentPlugin*> m_pluginModels;

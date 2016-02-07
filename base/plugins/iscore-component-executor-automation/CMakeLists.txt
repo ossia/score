@@ -19,4 +19,9 @@ set(SRCS
 "${CMAKE_CURRENT_SOURCE_DIR}/Executor/Automation/Component.cpp"
 )
 
-iscore_add_component("${PROJECT_NAME}" "${SRCS}" "${HDRS}" "${DEPS}")
+iscore_add_component(
+    "${PROJECT_NAME}"
+    "${SRCS}" "${HDRS}"
+    "${DEPS}"
+    1
+    "e235fe6c-ba3f-4d18-9ab4-c517c6aa6997")

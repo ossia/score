@@ -33,6 +33,6 @@ class iscore_plugin_inspector :
         // Factory for inspector widgets
         std::vector<std::unique_ptr<iscore::FactoryListInterface>> factoryFamilies() override;
 
-        int32_t version() const override;
+        iscore::Version version() const override;
         UuidKey<iscore::Plugin> key() const override;
 };
