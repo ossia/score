@@ -5,14 +5,6 @@ namespace Ossia
 {
 namespace LocalTree
 {
-
-const ScenarioComponentFactory::ConcreteFactoryKey&
-ScenarioComponentFactory::concreteFactoryKey() const
-{
-    static const ConcreteFactoryKey name{"ffc0aaed-9197-4956-a966-3f54afdfb762"};
-    return name;
-}
-
 bool ScenarioComponentFactory::matches(
         Process::ProcessModel& p,
         const DocumentPlugin&,

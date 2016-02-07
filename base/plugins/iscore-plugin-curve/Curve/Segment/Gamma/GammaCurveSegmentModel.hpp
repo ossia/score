@@ -15,10 +15,6 @@ namespace Curve
 struct GammaSegmentData
 {
     double gamma;
-
-    static const UuidKey<Curve::SegmentFactory>& static_concreteFactoryKey();
-    static const QString prettyName()
-    { return QObject::tr("Gamma"); }
 };
 
 class GammaSegment final : public SegmentModel
@@ -60,5 +56,11 @@ class GammaSegment final : public SegmentModel
         double gamma = 0.5;
 };
 }
+CURVE_SEGMENT_METADATA(
+        ISCORE_PLUGIN_CURVE_EXPORT,
+        Curve::GammaSegment,
+        "a8bd14e2-d7e4-47cd-b76a-6a88fa11f0d2",
+        "Gamma",
+        "Gamma")
 
 Q_DECLARE_METATYPE(Curve::GammaSegmentData)

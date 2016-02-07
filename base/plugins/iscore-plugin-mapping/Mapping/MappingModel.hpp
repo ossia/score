@@ -89,7 +89,7 @@ class ISCORE_PLUGIN_MAPPING_EXPORT ProcessModel : public Curve::CurveProcessMode
                 QObject* newParent) const override;
 
         //// ProcessModel ////
-        UuidKey<Process::ProcessFactory>concreteFactoryKey() const override;
+        UuidKey<Process::ProcessFactory> concreteFactoryKey() const override;
 
         Process::LayerModel* makeLayer_impl(
                 const Id<Process::LayerModel>& viewModelId,

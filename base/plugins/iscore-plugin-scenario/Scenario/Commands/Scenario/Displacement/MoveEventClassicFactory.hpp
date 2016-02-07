@@ -18,33 +18,31 @@ class SerializableMoveEvent;
 
 class MoveEventClassicFactory final : public MoveEventFactoryInterface
 {
-    // MoveEventFactory interface
-public:
-    SerializableMoveEvent* make(
-            Path<Scenario::ScenarioModel>&& scenarioPath,
-            const Id<EventModel>& eventId,
-            const TimeValue& newDate,
-            ExpandMode mode) override;
+        ISCORE_CONCRETE_FACTORY_DECL("644a6f8d-de63-4951-b28b-33b5e2c71ac8")
 
-    SerializableMoveEvent* make() override;
+        SerializableMoveEvent* make(
+                Path<Scenario::ScenarioModel>&& scenarioPath,
+                const Id<EventModel>& eventId,
+                const TimeValue& newDate,
+                ExpandMode mode) override;
 
-    int priority(MoveEventFactoryInterface::Strategy strategy) const override
-    {
-        switch(strategy)
+        SerializableMoveEvent* make() override;
+
+        int priority(MoveEventFactoryInterface::Strategy strategy) const override
         {
-            case MoveEventFactoryInterface::Strategy::CREATION:
-                return 0;
-                break;
-            case MoveEventFactoryInterface::Strategy::MOVING_CLASSIC:
-                return 0;
-                break;
-            default:
-                return 0;// not suited for other strategies
-                break;
+            switch(strategy)
+            {
+                case MoveEventFactoryInterface::Strategy::CREATION:
+                    return 0;
+                    break;
+                case MoveEventFactoryInterface::Strategy::MOVING_CLASSIC:
+                    return 0;
+                    break;
+                default:
+                    return 0;// not suited for other strategies
+                    break;
+            }
         }
-    }
-
-    const ConcreteFactoryKey& concreteFactoryKey() const override;
 };
 }
 }

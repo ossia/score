@@ -38,7 +38,7 @@ SegmentModel*PowerSegment::clone(
 
 UuidKey<Curve::SegmentFactory> PowerSegment::concreteFactoryKey() const
 {
-    return PowerSegmentData::static_concreteFactoryKey();
+    return Metadata<ConcreteFactoryKey_k, PowerSegment>::get();
 }
 
 void PowerSegment::serialize_impl(const VisitorVariant& vis) const
@@ -108,11 +108,5 @@ void PowerSegment::setVerticalParameter(double p)
 boost::optional<double> PowerSegment::verticalParameter() const
 {
     return gamma / 6. - 1;
-}
-
-const UuidKey<Curve::SegmentFactory>&PowerSegmentData::static_concreteFactoryKey()
-{
-    static const UuidKey<Curve::SegmentFactory> name{"1e7cb83f-4e47-4b14-814d-2242a9c75991"};
-    return name;
 }
 }

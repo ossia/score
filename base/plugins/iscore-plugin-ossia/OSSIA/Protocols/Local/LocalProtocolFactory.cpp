@@ -23,12 +23,6 @@ QString LocalProtocolFactory::prettyName() const
     return QObject::tr("Local");
 }
 
-const UuidKey<Device::ProtocolFactory>& LocalProtocolFactory::concreteFactoryKey() const
-{
-    static const UuidKey<Device::ProtocolFactory> name{"3fad3354-e103-4bc4-a34f-2d0cc4b02565"};
-    return name;
-}
-
 Device::DeviceInterface* LocalProtocolFactory::makeDevice(
         const Device::DeviceSettings& settings,
         const iscore::DocumentContext& ctx)

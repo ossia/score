@@ -92,10 +92,10 @@ class SegmentFactory_T : public SegmentFactory
     \
     private: \
     const UuidKey<Curve::SegmentFactory>& concreteFactoryKey() const override { \
-        return Model::data_type::static_concreteFactoryKey();\
+        return Metadata<ConcreteFactoryKey_k, Model>::get(); \
     } \
     \
     QString prettyName() const override { \
-        return Model::data_type::prettyName(); \
+        return Metadata<PrettyName_k, Model>::get(); \
     } \
 };

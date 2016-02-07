@@ -16,12 +16,6 @@ struct SinSegmentData
 {
     double freq;
     double ampl;
-
-
-    static const QString prettyName()
-    { return QObject::tr("Sin"); }
-
-    static const UuidKey<Curve::SegmentFactory>& static_concreteFactoryKey();
 };
 
 class ISCORE_PLUGIN_CURVE_EXPORT SinSegment final : public SegmentModel
@@ -67,5 +61,11 @@ class ISCORE_PLUGIN_CURVE_EXPORT SinSegment final : public SegmentModel
 
 };
 }
+CURVE_SEGMENT_METADATA(
+        ISCORE_PLUGIN_CURVE_EXPORT,
+        Curve::SinSegment,
+        "c16dad6a-a422-4fb7-8bd5-850cbe8c3f28",
+        "Sin",
+        "Sin")
 
 Q_DECLARE_METATYPE(Curve::SinSegmentData)

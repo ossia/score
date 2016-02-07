@@ -174,3 +174,31 @@ enum Segments { Hashed, Ordered };
 }
 
 Q_DECLARE_METATYPE(Curve::SegmentData)
+
+
+#define CURVE_SEGMENT_FACTORY_METADATA(Export, Model, Uuid) \
+template<> \
+struct Export Metadata< \
+        ConcreteFactoryKey_k, \
+        Model> \
+{ \
+        static const auto& get() \
+        { \
+            static const UuidKey<Curve::SegmentFactory> k{Uuid}; \
+            return k; \
+        } \
+};
+
+#define CURVE_SEGMENT_METADATA(Export, Model, Uuid, ObjectKey, PrettyName) \
+ OBJECTKEY_METADATA(Export, Model, ObjectKey) \
+ CURVE_SEGMENT_FACTORY_METADATA(Export, Model, Uuid) \
+template<> \
+struct Export Metadata< \
+        PrettyName_k, \
+        Model> \
+{ \
+        static auto get() \
+        { \
+            return QObject::tr(PrettyName); \
+        } \
+};

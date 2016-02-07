@@ -12,12 +12,7 @@ namespace Curve
 {
 struct ISCORE_PLUGIN_CURVE_EXPORT LinearSegmentData
 {
-        static const UuidKey<Curve::SegmentFactory>& static_concreteFactoryKey();
-
-        static const QString prettyName()
-        { return QObject::tr("Linear"); }
 };
-
 
 class ISCORE_PLUGIN_CURVE_EXPORT LinearSegment final : public SegmentModel
 {
@@ -47,5 +42,12 @@ class ISCORE_PLUGIN_CURVE_EXPORT LinearSegment final : public SegmentModel
         QVariant toSegmentSpecificData() const override;
 };
 }
+
+CURVE_SEGMENT_METADATA(
+        ISCORE_PLUGIN_CURVE_EXPORT,
+        Curve::LinearSegment,
+        "a8bd14e2-d7e4-47cd-b76a-6a88fa11f0d2",
+        "Linear",
+        "Linear")
 
 Q_DECLARE_METATYPE(Curve::LinearSegmentData)
