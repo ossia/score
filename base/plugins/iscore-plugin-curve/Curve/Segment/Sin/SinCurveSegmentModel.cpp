@@ -17,7 +17,7 @@ namespace Curve
 SinSegment::SinSegment(
         const SegmentData& dat,
         QObject* parent):
-    SegmentModel{dat, parent}
+    Segment<SinSegment>{dat, parent}
 {
     const auto& sin_data = dat.specificSegmentData.value<SinSegmentData>();
     freq = sin_data.freq;
@@ -39,12 +39,6 @@ SegmentModel*SinSegment::clone(
     // Previous and following shall be set afterwards by the cloner.
     return cs;
 }
-
-UuidKey<Curve::SegmentFactory> SinSegment::concreteFactoryKey() const
-{
-    return Metadata<ConcreteFactoryKey_k, SinSegment>::get();
-}
-
 
 void SinSegment::serialize_impl(const VisitorVariant& vis) const
 {

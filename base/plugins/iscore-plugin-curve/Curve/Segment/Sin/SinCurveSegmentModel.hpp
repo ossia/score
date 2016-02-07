@@ -18,18 +18,19 @@ struct SinSegmentData
     double ampl;
 };
 
-class ISCORE_PLUGIN_CURVE_EXPORT SinSegment final : public SegmentModel
+class ISCORE_PLUGIN_CURVE_EXPORT SinSegment final :
+        public Segment<SinSegment>
 {
     public:
         using data_type = SinSegmentData;
-        using SegmentModel::SegmentModel;
+        using Segment<SinSegment>::Segment;
         SinSegment(
                 const SegmentData& dat,
                 QObject* parent);
 
         template<typename Impl>
         SinSegment(Deserializer<Impl>& vis, QObject* parent) :
-            SegmentModel {vis, parent}
+            Segment<SinSegment> {vis, parent}
         {
             vis.writeTo(*this);
         }
@@ -38,7 +39,6 @@ class ISCORE_PLUGIN_CURVE_EXPORT SinSegment final : public SegmentModel
                 const Id<SegmentModel>& id,
                 QObject* parent) const override;
 
-        UuidKey<Curve::SegmentFactory> concreteFactoryKey() const override;
         void serialize_impl(const VisitorVariant& vis) const override;
         void on_startChanged() override;
         void on_endChanged() override;

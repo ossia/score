@@ -23,10 +23,7 @@ SegmentModel* LinearSegment::clone(
     return cs;
 }
 
-UuidKey<Curve::SegmentFactory> LinearSegment::concreteFactoryKey() const
-{
-    return Metadata<ConcreteFactoryKey_k, LinearSegment>::get();
-}
+
 
 void LinearSegment::serialize_impl(const VisitorVariant& vis) const
 {

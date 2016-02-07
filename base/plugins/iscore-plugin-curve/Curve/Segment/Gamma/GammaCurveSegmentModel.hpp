@@ -17,11 +17,12 @@ struct GammaSegmentData
     double gamma;
 };
 
-class GammaSegment final : public SegmentModel
+class GammaSegment final :
+        public Segment<GammaSegment>
 {
     public:
         using data_type = GammaSegmentData;
-        using SegmentModel::SegmentModel;
+        using Segment<GammaSegment>::Segment;
         GammaSegment(
                 const SegmentData& dat,
                 QObject* parent);
@@ -37,7 +38,6 @@ class GammaSegment final : public SegmentModel
                 const Id<SegmentModel>& id,
                 QObject* parent) const override;
 
-        UuidKey<Curve::SegmentFactory> concreteFactoryKey() const override;
         void serialize_impl(const VisitorVariant& vis) const override;
         void on_startChanged() override;
         void on_endChanged() override;
