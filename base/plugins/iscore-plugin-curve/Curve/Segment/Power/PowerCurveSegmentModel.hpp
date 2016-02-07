@@ -17,18 +17,19 @@ struct ISCORE_PLUGIN_CURVE_EXPORT PowerSegmentData
         double gamma;
 };
 
-class ISCORE_PLUGIN_CURVE_EXPORT PowerSegment final : public SegmentModel
+class ISCORE_PLUGIN_CURVE_EXPORT PowerSegment final :
+        public Segment<PowerSegment>
 {
     public:
         using data_type = PowerSegmentData;
-        using SegmentModel::SegmentModel;
+        using Segment<PowerSegment>::Segment;
         PowerSegment(
                 const SegmentData& dat,
                 QObject* parent);
 
         template<typename Impl>
         PowerSegment(Deserializer<Impl>& vis, QObject* parent) :
-            SegmentModel {vis, parent}
+             Segment<PowerSegment> {vis, parent}
         {
             vis.writeTo(*this);
         }
@@ -39,7 +40,6 @@ class ISCORE_PLUGIN_CURVE_EXPORT PowerSegment final : public SegmentModel
                 const Id<SegmentModel>& id,
                 QObject* parent) const override;
 
-        UuidKey<Curve::SegmentFactory> concreteFactoryKey() const override;
         void serialize_impl(const VisitorVariant& vis) const override;
         void on_startChanged() override;
         void on_endChanged() override;

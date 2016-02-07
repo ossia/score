@@ -1,7 +1,5 @@
 #pragma once
 #include <QVariant>
-
-
 #include <Curve/Segment/CurveSegmentModel.hpp>
 #include <iscore/serialization/VisitorInterface.hpp>
 
@@ -14,15 +12,16 @@ struct ISCORE_PLUGIN_CURVE_EXPORT LinearSegmentData
 {
 };
 
-class ISCORE_PLUGIN_CURVE_EXPORT LinearSegment final : public SegmentModel
+class ISCORE_PLUGIN_CURVE_EXPORT LinearSegment final :
+        public Segment<LinearSegment>
 {
     public:
         using data_type = LinearSegmentData;
-        using SegmentModel::SegmentModel;
+        using Segment<LinearSegment>::Segment;
 
         template<typename Impl>
         LinearSegment(Deserializer<Impl>& vis, QObject* parent) :
-            SegmentModel {vis, parent}
+            Segment<LinearSegment> {vis, parent}
         {
             vis.writeTo(*this);
         }
@@ -31,7 +30,6 @@ class ISCORE_PLUGIN_CURVE_EXPORT LinearSegment final : public SegmentModel
                 const Id<SegmentModel>& id,
                 QObject* parent) const override;
 
-        UuidKey<Curve::SegmentFactory> concreteFactoryKey() const override;
         void serialize_impl(const VisitorVariant& vis) const override;
         void on_startChanged() override;
         void on_endChanged() override;

@@ -17,7 +17,7 @@ namespace Curve
 PowerSegment::PowerSegment(
         const SegmentData& dat,
         QObject* parent):
-    SegmentModel{dat, parent},
+    Segment<PowerSegment>{dat, parent},
     gamma{dat.specificSegmentData.value<PowerSegmentData>().gamma}
 {
 
@@ -34,11 +34,6 @@ SegmentModel*PowerSegment::clone(
     cs->gamma = gamma;
     // Previous and following shall be set afterwards by the cloner.
     return cs;
-}
-
-UuidKey<Curve::SegmentFactory> PowerSegment::concreteFactoryKey() const
-{
-    return Metadata<ConcreteFactoryKey_k, PowerSegment>::get();
 }
 
 void PowerSegment::serialize_impl(const VisitorVariant& vis) const

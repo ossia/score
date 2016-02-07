@@ -115,6 +115,16 @@ class ISCORE_PLUGIN_CURVE_EXPORT SegmentModel :
         Id<SegmentModel> m_previous, m_following;
 };
 
+template<typename T>
+class Segment : public SegmentModel
+{
+    public:
+        UuidKey<SegmentFactory> concreteFactoryKey() const final override {
+            return Metadata<ConcreteFactoryKey_k, T>::get();
+        }
+
+        using SegmentModel::SegmentModel;
+};
 
 using DefaultCurveSegmentModel = PowerSegment;
 }
