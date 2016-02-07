@@ -10,12 +10,12 @@ class QWidget;
 
 namespace Inspector
 {
-InspectorWidgetBase* InspectorWidgetList::makeInspectorWidget(
+InspectorWidgetBase* InspectorWidgetList::make(
+        const iscore::DocumentContext& doc,
         const IdentifiedObjectAbstract& model,
         QWidget* parent) const
 {
-    auto& doc = iscore::IDocument::documentContext(model);
-    for(const InspectorWidgetFactory& factory : m_list)
+    for(const InspectorWidgetFactory& factory : *this)
     {
         if(factory.matches(model))
         {
