@@ -52,10 +52,10 @@ class ISCORE_PLUGIN_OSSIA_EXPORT ProcessComponentFactory :
         public iscore::GenericComponentFactory<
             Process::ProcessModel,
             RecreateOnPlay::DocumentPlugin,
-            RecreateOnPlay::ProcessComponent>
+            RecreateOnPlay::ProcessComponentFactory>
 {
         ISCORE_ABSTRACT_FACTORY_DECL(
-                RecreateOnPlay::ProcessComponent,
+                RecreateOnPlay::ProcessComponentFactory,
                 "d0f714de-c832-42d8-a605-60f5ffd0b7af")
     public:
         virtual ~ProcessComponentFactory();
@@ -71,7 +71,6 @@ using ProcessComponentFactoryList =
     iscore::GenericComponentFactoryList<
             Process::ProcessModel,
             RecreateOnPlay::DocumentPlugin,
-            RecreateOnPlay::ProcessComponent,
             RecreateOnPlay::ProcessComponentFactory>;
 
 

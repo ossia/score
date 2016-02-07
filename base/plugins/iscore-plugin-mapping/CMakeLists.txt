@@ -17,7 +17,6 @@ set(SRCS
 "${CMAKE_CURRENT_SOURCE_DIR}/Mapping/MappingView.cpp"
 "${CMAKE_CURRENT_SOURCE_DIR}/Mapping/MappingModel.cpp"
 "${CMAKE_CURRENT_SOURCE_DIR}/Mapping/MappingLayerModel.cpp"
-"${CMAKE_CURRENT_SOURCE_DIR}/Mapping/MappingProcessMetadata.cpp"
 
 "${CMAKE_CURRENT_SOURCE_DIR}/Mapping/Commands/ChangeAddresses.cpp"
 "${CMAKE_CURRENT_SOURCE_DIR}/Mapping/Commands/MappingCommandFactory.cpp"
@@ -49,7 +48,7 @@ target_link_libraries(${PROJECT_NAME} PUBLIC
                      iscore_lib_base iscore_lib_device iscore_plugin_deviceexplorer iscore_lib_process iscore_lib_state iscore_plugin_curve)
 
 if(TARGET iscore_lib_inspector)
-	target_link_libraries(${PROJECT_NAME} PUBLIC iscore_lib_inspector)
+  target_link_libraries(${PROJECT_NAME} PUBLIC iscore_lib_inspector)
 endif()
 
 setup_iscore_plugin(${PROJECT_NAME})

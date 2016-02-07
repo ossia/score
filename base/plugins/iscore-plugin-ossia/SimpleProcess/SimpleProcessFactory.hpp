@@ -13,9 +13,9 @@ class SimpleProcessFactory : public Process::ProcessFactory
         QString prettyName() const override
         { return QObject::tr("SimpleProcess"); }
 
-        const ProcessFactoryKey& concreteFactoryKey() const override
+        const UuidKey<Process::ProcessFactory>& concreteFactoryKey() const override
         {
-            static const ProcessFactoryKey name{"0107dfb7-dcab-45c3-b7b8-e824c0fe49a1"};
+            static const UuidKey<Process::ProcessFactory>name{"0107dfb7-dcab-45c3-b7b8-e824c0fe49a1"};
             return name;
         }
 

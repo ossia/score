@@ -2,11 +2,12 @@
 
 #include <QWidget>
 
-#include <Process/ProcessFactoryKey.hpp>
+
 
 namespace Process
 {
 class ProcessList;
+class ProcessFactory;
 }
 namespace Scenario
 {
@@ -22,7 +23,7 @@ class AddProcessDialog final : public QWidget
         void launchWindow();
 
     signals:
-        void okPressed(const ProcessFactoryKey&);
+        void okPressed(const UuidKey<Process::ProcessFactory>&);
 
     private:
         const Process::ProcessList& m_factoryList;

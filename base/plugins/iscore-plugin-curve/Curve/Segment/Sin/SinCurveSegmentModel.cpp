@@ -40,7 +40,7 @@ SegmentModel*SinSegment::clone(
     return cs;
 }
 
-SegmentFactoryKey SinSegment::concreteFactoryKey() const
+UuidKey<Curve::SegmentFactory> SinSegment::concreteFactoryKey() const
 {
     return data_type::static_concreteFactoryKey();
 }
@@ -112,9 +112,9 @@ boost::optional<double> SinSegment::horizontalParameter() const
 }
 
 
-const SegmentFactoryKey& SinSegmentData::static_concreteFactoryKey()
+const UuidKey<Curve::SegmentFactory>& SinSegmentData::static_concreteFactoryKey()
 {
-    static const SegmentFactoryKey name{"c16dad6a-a422-4fb7-8bd5-850cbe8c3f28"};
+    static const UuidKey<Curve::SegmentFactory> name{"c16dad6a-a422-4fb7-8bd5-850cbe8c3f28"};
     return name;
 }
 }

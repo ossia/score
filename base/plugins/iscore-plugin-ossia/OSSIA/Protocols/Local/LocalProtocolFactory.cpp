@@ -23,9 +23,9 @@ QString LocalProtocolFactory::prettyName() const
     return QObject::tr("Local");
 }
 
-const Device::ProtocolFactoryKey& LocalProtocolFactory::concreteFactoryKey() const
+const UuidKey<Device::ProtocolFactory>& LocalProtocolFactory::concreteFactoryKey() const
 {
-    static const Device::ProtocolFactoryKey name{"3fad3354-e103-4bc4-a34f-2d0cc4b02565"};
+    static const UuidKey<Device::ProtocolFactory> name{"3fad3354-e103-4bc4-a34f-2d0cc4b02565"};
     return name;
 }
 
