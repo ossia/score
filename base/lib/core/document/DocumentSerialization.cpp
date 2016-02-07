@@ -119,7 +119,7 @@ QByteArray Document::saveAsByteArray()
 
 // Load document
 Document::Document(const QVariant& data,
-                   DocumentDelegateFactory* factory,
+                   DocumentDelegateFactory& factory,
                    QWidget* parentview,
                    QObject* parent):
     NamedObject {"Document", parent},
@@ -149,7 +149,7 @@ Document::Document(const QVariant& data,
 void DocumentModel::loadDocumentAsByteArray(
         iscore::DocumentContext& ctx,
         const QByteArray& data,
-        DocumentDelegateFactory* fact)
+        DocumentDelegateFactory& fact)
 {
     // Deserialize the first parts
     QByteArray doc;
@@ -195,13 +195,13 @@ void DocumentModel::loadDocumentAsByteArray(
     DataStream::Deserializer doc_writer{doc};
     doc_writer.writeTo(docid);
     this->setId(std::move(docid));
-    m_model = fact->loadModel(doc_writer.toVariant(), this);
+    m_model = fact.loadModel(doc_writer.toVariant(), this);
 }
 
 void DocumentModel::loadDocumentAsJson(
         iscore::DocumentContext& ctx,
         const QJsonObject& json,
-        DocumentDelegateFactory* fact)
+        DocumentDelegateFactory& fact)
 {
     this->setId(fromJsonValue<Id<DocumentModel>>(json["DocumentId"]));
 
@@ -225,14 +225,14 @@ void DocumentModel::loadDocumentAsJson(
 
     // Load the model
     JSONObject::Deserializer doc_writer{json["Document"].toObject()};
-    m_model = fact->loadModel(doc_writer.toVariant(), this);
+    m_model = fact.loadModel(doc_writer.toVariant(), this);
 }
 
 // Load document model
 DocumentModel::DocumentModel(
         iscore::DocumentContext& ctx,
         const QVariant& data,
-        DocumentDelegateFactory* fact,
+        DocumentDelegateFactory& fact,
         QObject* parent) :
     IdentifiedObject {Id<DocumentModel>(iscore::id_generator::getFirstId()), "DocumentModel", parent}
 {

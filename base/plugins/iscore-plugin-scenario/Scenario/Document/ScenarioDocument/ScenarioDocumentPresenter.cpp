@@ -137,7 +137,7 @@ void ScenarioDocumentPresenter::on_displayedConstraintChanged()
     // Setup of the state machine.
     auto& ctx = iscore::IDocument::documentContext(model());
     const auto& fact = ctx.app.components.factory<DisplayedElementsToolPaletteFactoryList>();
-    m_stateMachine = fact.make(*this, cst);
+    m_stateMachine = fact.make(&DisplayedElementsToolPaletteFactory::make, *this, cst);
     m_scenarioPresenter->on_displayedConstraintChanged(cst);
     connect(m_scenarioPresenter->constraintPresenter(), &FullViewConstraintPresenter::constraintSelected,
             this, &ScenarioDocumentPresenter::requestDisplayedConstraintChange);

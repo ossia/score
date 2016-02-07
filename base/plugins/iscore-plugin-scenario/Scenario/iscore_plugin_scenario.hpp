@@ -72,7 +72,7 @@ class iscore_plugin_scenario final :
         QStringList required() const override;
         QStringList offered() const override;
 
-        int32_t version() const override;
+        iscore::Version version() const override;
         UuidKey<iscore::Plugin> key() const override;
 
 };

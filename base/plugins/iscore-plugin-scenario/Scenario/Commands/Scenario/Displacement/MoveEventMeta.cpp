@@ -28,7 +28,7 @@ MoveEventMeta::MoveEventMeta(
      m_moveEventImplementation(
          context.components.factory<MoveEventList>()
          .get(m_strategy)
-         ->make(std::move(scenarioPath), eventId, newDate, mode))
+         .make(std::move(scenarioPath), eventId, newDate, mode))
 {
 }
 
@@ -60,7 +60,7 @@ void MoveEventMeta::deserializeImpl(DataStreamOutput& qDataStream)
 
     m_moveEventImplementation =
             context.components.factory<MoveEventList>()
-            .get(m_strategy)->make();
+            .get(m_strategy).make();
 
     m_moveEventImplementation->deserialize(cmdData);
 }

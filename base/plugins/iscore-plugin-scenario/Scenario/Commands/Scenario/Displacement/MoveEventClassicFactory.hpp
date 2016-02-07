@@ -28,7 +28,7 @@ public:
 
     SerializableMoveEvent* make() override;
 
-    int priority(MoveEventFactoryInterface::Strategy strategy) override
+    int priority(MoveEventFactoryInterface::Strategy strategy) const override
     {
         switch(strategy)
         {
@@ -44,7 +44,7 @@ public:
         }
     }
 
-    const MoveEventFactoryKey& concreteFactoryKey() const override;
+    const ConcreteFactoryKey& concreteFactoryKey() const override;
 };
 }
 }

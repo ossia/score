@@ -18,7 +18,7 @@ namespace iscore
     class DocumentView final : public QWidget
     {
         public:
-            DocumentView(DocumentDelegateFactory* viewDelegate,
+            DocumentView(DocumentDelegateFactory& viewDelegate,
                          const Document& doc,
                          QWidget* parent);
 

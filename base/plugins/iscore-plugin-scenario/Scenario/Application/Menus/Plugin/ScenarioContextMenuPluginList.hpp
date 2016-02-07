@@ -7,8 +7,8 @@
 
 namespace Scenario
 {
-class ScenarioContextMenuPluginList final : public iscore::FactoryListInterface
+class ScenarioContextMenuPluginList final :
+        public iscore::ConcreteFactoryList<ScenarioActionsFactory>
 {
-        ISCORE_FACTORY_LIST_DECL(ScenarioActionsFactory)
 };
 }

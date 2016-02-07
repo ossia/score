@@ -170,7 +170,9 @@ std::vector<std::unique_ptr<iscore::FactoryInterfaceBase>> iscore_plugin_scenari
         BaseScenarioTriggerCommandFactory>,
     FW<DisplayedElementsProvider,
         ScenarioDisplayedElementsProvider,
-        BaseScenarioDisplayedElementsProvider>
+        BaseScenarioDisplayedElementsProvider>,
+    FW<iscore::DocumentDelegateFactory,
+        Scenario::ScenarioDocumentFactory>
 #if defined(ISCORE_LIB_INSPECTOR)
     ,
     FW<Inspector::InspectorWidgetFactory,
@@ -196,9 +198,9 @@ QStringList iscore_plugin_scenario::offered() const
     return {"Scenario"};
 }
 
-int32_t iscore_plugin_scenario::version() const
+iscore::Version iscore_plugin_scenario::version() const
 {
-    return 1;
+    return iscore::Version{1};
 }
 
 UuidKey<iscore::Plugin> iscore_plugin_scenario::key() const

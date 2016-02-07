@@ -19,4 +19,9 @@ set(SRCS
 "${CMAKE_CURRENT_SOURCE_DIR}/Executor/Loop/Component.cpp"
 )
 
-iscore_add_component("${PROJECT_NAME}" "${SRCS}" "${HDRS}" "${DEPS}")
+iscore_add_component(
+  "${PROJECT_NAME}"
+  "${SRCS}" "${HDRS}"
+  "${DEPS}"
+  1
+  "38807238-6ce7-493e-8df1-d5617fc01477")
