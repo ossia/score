@@ -24,11 +24,4 @@ bool ScenarioConstraintInspectorDelegateFactory::matches(
 {
     return dynamic_cast<Scenario::ScenarioModel*>(constraint.parent());
 }
-
-auto ScenarioConstraintInspectorDelegateFactory::concreteFactoryKey() const -> const ConcreteFactoryKey&
-{
-    static const ConcreteFactoryKey name{"48765a62-8869-4dbd-ba5d-9a786ce1666f"};
-    return name;
-}
-
 }

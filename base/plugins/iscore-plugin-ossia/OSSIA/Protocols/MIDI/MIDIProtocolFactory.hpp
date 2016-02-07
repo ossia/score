@@ -18,10 +18,10 @@ namespace Ossia
 class MIDIProtocolFactory final :
         public Device::ProtocolFactory
 {
+        ISCORE_CONCRETE_FACTORY_DECL("94a362a1-9411-4ee9-b94d-4bc79b1427cf")
+
         // Implement with OSSIA::Device
         QString prettyName() const override;
-
-        const UuidKey<Device::ProtocolFactory>& concreteFactoryKey() const override;
 
         Device::DeviceInterface* makeDevice(
                 const Device::DeviceSettings& settings,

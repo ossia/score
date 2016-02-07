@@ -33,11 +33,5 @@ SerializableMoveEvent* MoveEventClassicFactory::make()
 {
     return new MoveEvent<GoodOldDisplacementPolicy>();
 }
-
-auto MoveEventClassicFactory::concreteFactoryKey() const -> const ConcreteFactoryKey&
-{
-    static const ConcreteFactoryKey str{"644a6f8d-de63-4951-b28b-33b5e2c71ac8"};
-    return str;
-}
 }
 }

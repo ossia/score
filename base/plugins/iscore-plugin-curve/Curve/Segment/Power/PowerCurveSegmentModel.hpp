@@ -14,11 +14,6 @@ namespace Curve
 struct SegmentData;
 struct ISCORE_PLUGIN_CURVE_EXPORT PowerSegmentData
 {
-        static const UuidKey<Curve::SegmentFactory>& static_concreteFactoryKey();
-
-        static const QString prettyName()
-        { return QObject::tr("Power"); }
-
         double gamma;
 };
 
@@ -62,4 +57,11 @@ class ISCORE_PLUGIN_CURVE_EXPORT PowerSegment final : public SegmentModel
 
 };
 }
+CURVE_SEGMENT_METADATA(
+        ISCORE_PLUGIN_CURVE_EXPORT,
+        Curve::PowerSegment,
+        "1e7cb83f-4e47-4b14-814d-2242a9c75991",
+        "Power",
+        "Power")
+
 Q_DECLARE_METATYPE(Curve::PowerSegmentData)

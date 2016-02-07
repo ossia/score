@@ -18,10 +18,10 @@ namespace Ossia
 class LocalProtocolFactory final :
         public Device::ProtocolFactory
 {
+        ISCORE_CONCRETE_FACTORY_DECL("3fad3354-e103-4bc4-a34f-2d0cc4b02565")
+
         // Implement with OSSIA::Device
         QString prettyName() const override;
-
-        const UuidKey<Device::ProtocolFactory>& concreteFactoryKey() const override;
 
         Device::DeviceInterface* makeDevice(
                 const Device::DeviceSettings& settings,

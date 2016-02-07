@@ -23,12 +23,6 @@ QString MIDIProtocolFactory::prettyName() const
     return QObject::tr("MIDI");
 }
 
-const UuidKey<Device::ProtocolFactory>& MIDIProtocolFactory::concreteFactoryKey() const
-{
-    static const UuidKey<Device::ProtocolFactory> name{"94a362a1-9411-4ee9-b94d-4bc79b1427cf"};
-    return name;
-}
-
 Device::DeviceInterface* MIDIProtocolFactory::makeDevice(
         const Device::DeviceSettings& settings,
         const iscore::DocumentContext& ctx)

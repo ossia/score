@@ -37,7 +37,7 @@ SegmentModel*GammaSegment::clone(
 
 UuidKey<Curve::SegmentFactory> GammaSegment::concreteFactoryKey() const
 {
-    return data_type::static_concreteFactoryKey();
+    return Metadata<ConcreteFactoryKey_k, GammaSegment>::get();
 }
 
 void GammaSegment::serialize_impl(const VisitorVariant& vis) const
@@ -91,12 +91,6 @@ void GammaSegment::setVerticalParameter(double p)
 boost::optional<double> GammaSegment::verticalParameter() const
 {
     return gamma;
-}
-
-const UuidKey<Curve::SegmentFactory> &GammaSegmentData::static_concreteFactoryKey()
-{
-    static const UuidKey<Curve::SegmentFactory> name{"a8bd14e2-d7e4-47cd-b76a-6a88fa11f0d2"};
-    return name;
 }
 
 }
