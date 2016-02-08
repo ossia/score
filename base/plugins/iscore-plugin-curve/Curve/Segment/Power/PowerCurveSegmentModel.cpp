@@ -85,6 +85,8 @@ void PowerSegment::updateData(int numInterp) const
 
 double PowerSegment::valueAt(double x) const
 {
+    ISCORE_TODO;
+    // TODO nope nope, that's linear ... but ok for 0 and 1
     return start().y() + (end().y() - start().y()) * (x - start().x()) / (end().x() - start().x());
 
     return -1;
