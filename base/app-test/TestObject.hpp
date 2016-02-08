@@ -2,6 +2,7 @@
 #include <core/presenter/DocumentManager.hpp>
 #include <core/document/Document.hpp>
 #include <core/command/CommandStack.hpp>
+#include <iscore/plugins/documentdelegate/DocumentDelegateFactoryInterface.hpp>
 
 #include <QApplication>
 #include <QDir>
@@ -56,7 +57,7 @@ class TestObject : public QObject
                 auto json_arr = doc->saveAsJson();
                 QApplication::processEvents();
 
-                auto doctype = *m_context.components.availableDocuments().begin();
+                auto& doctype = *m_context.components.factory<iscore::DocumentDelegateList>().begin();
                 auto ba_doc = m_context.documents.loadDocument(m_context, byte_arr, doctype);
                 QApplication::processEvents();
                 auto json_doc = m_context.documents.loadDocument(m_context, json_arr, doctype);
