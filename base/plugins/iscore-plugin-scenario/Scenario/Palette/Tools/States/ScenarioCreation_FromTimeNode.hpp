@@ -8,7 +8,6 @@
 #include <Scenario/Commands/Scenario/Displacement/MoveNewEvent.hpp>
 
 #include <Scenario/Commands/Scenario/Creations/CreateConstraint.hpp>
-#include <Scenario/Commands/TimeNode/MergeTimeNodes.hpp>
 
 #include <Scenario/Palette/Transitions/NothingTransitions.hpp>
 #include <Scenario/Palette/Transitions/AnythingTransitions.hpp>
