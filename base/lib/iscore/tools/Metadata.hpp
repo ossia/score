@@ -9,6 +9,7 @@ class PrettyName_k;
 class UndoName_k;
 class Description_k;
 class ConcreteFactoryKey_k;
+class Json_k;
 
 #define TEXT_METADATA(Export, Model, Key, Text) \
     template<> \
@@ -24,10 +25,12 @@ class ConcreteFactoryKey_k;
 
 #define TR_TEXT_METADATA(Export, Model, Key, Text) \
     TEXT_METADATA(Export, Model, Key, QObject::tr(Text))
+#define LIT_TEXT_METADATA(Export, Model, Key, Text) \
+    TEXT_METADATA(Export, Model, Key, QStringLiteral(Text))
 
 
 #define OBJECTKEY_METADATA(Export, Model, ObjectKey) \
-    TEXT_METADATA(Export, Model, ObjectKey_k, ObjectKey)
+    LIT_TEXT_METADATA(Export, Model, ObjectKey_k, ObjectKey)
 
 #define DESCRIPTION_METADATA(Export, Model, Text) \
     TR_TEXT_METADATA(Export, Model, Description_k, Text)
@@ -39,3 +42,6 @@ class ConcreteFactoryKey_k;
 #define DEFAULT_MODEL_METADATA(Model, Description) \
     OBJECTKEY_METADATA(EMPTY_MACRO, Model, #Model) \
     DESCRIPTION_METADATA(EMPTY_MACRO, Model, Description)
+
+#define JSON_METADATA(Type, Text) \
+    LIT_TEXT_METADATA(, Type, Json_k, Text)

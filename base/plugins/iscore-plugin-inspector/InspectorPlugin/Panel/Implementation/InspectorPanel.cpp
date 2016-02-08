@@ -9,6 +9,7 @@
 #include "InspectorPanel.hpp"
 #include <iscore/selection/SelectionDispatcher.hpp>
 #include <iscore/tools/IdentifiedObjectAbstract.hpp>
+#include <iscore/document/DocumentInterface.hpp>
 
 namespace iscore {
 class SelectionStack;

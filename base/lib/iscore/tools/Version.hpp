@@ -12,12 +12,12 @@ class Version
         Version& operator=(const Version&) = default;
         Version& operator=(Version&&) = default;
 
-        bool operator==(Version other) { return m_impl == other.m_impl; }
-        bool operator!=(Version other) { return m_impl != other.m_impl; }
-        bool operator<(Version other) { return m_impl < other.m_impl; }
-        bool operator>(Version other) { return m_impl > other.m_impl; }
-        bool operator<=(Version other) { return m_impl <= other.m_impl; }
-        bool operator>=(Version other) { return m_impl >= other.m_impl; }
+        bool operator==(Version other) const { return m_impl == other.m_impl; }
+        bool operator!=(Version other) const { return m_impl != other.m_impl; }
+        bool operator<(Version other) const { return m_impl < other.m_impl; }
+        bool operator>(Version other) const { return m_impl > other.m_impl; }
+        bool operator<=(Version other) const { return m_impl <= other.m_impl; }
+        bool operator>=(Version other) const { return m_impl >= other.m_impl; }
 
     private:
         int32_t m_impl = 0;

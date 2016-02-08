@@ -288,7 +288,8 @@ bool DocumentManager::saveDocumentAs(Document& doc)
 
     if(d.exec())
     {
-        QString savename = d.selectedFiles().first();
+        auto files = d.selectedFiles();
+        QString savename = files.first();
         auto suf = d.selectedNameFilter();
 
         if(!savename.isEmpty())
@@ -333,7 +334,8 @@ bool DocumentManager::saveStack()
 
     if(d.exec())
     {
-        QString savename = d.selectedFiles().first();
+        auto files = d.selectedFiles();
+        QString savename = files.first();
         if(!savename.isEmpty())
         {
             if(!savename.contains(".stack"))
@@ -531,7 +533,7 @@ bool DocumentManager::checkAndUpdateJson(
     bool pluginsLoadable = true;
 
     auto& local_map = local_plugins.get<0>();
-    for(auto plug : loading_plugins)
+    for(const auto& plug : loading_plugins)
     {
         auto it = local_map.find(plug.plugin);
         if(it == local_map.end())

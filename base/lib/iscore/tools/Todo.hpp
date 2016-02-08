@@ -141,3 +141,22 @@ auto con(ptr<T> t, Args&&... args)
 {
     return QObject::connect(&*t, std::forward<Args&&>(args)...);
 }
+
+
+/**
+ * Used since it seems that
+ * this is the fastest way to iterate over
+ * a Qt container :
+ * http://blog.qt.io/blog/2009/01/23/iterating-efficiently/
+ */
+template<typename Array, typename F>
+void Foreach(
+        const Array& arr,
+        F fun)
+{
+    int n = arr.size();
+    for(int i = 0; i < n; i++)
+    {
+        fun(arr.at(i));
+    }
+}

@@ -174,7 +174,7 @@ void DocumentModel::loadDocumentAsByteArray(
     // in order to be deserialized. (e.g. the groups for the network)
     // First load the plugin models
     auto& plugin_factories = ctx.app.components.factory<DocumentPluginFactoryList>();
-    for(const auto& plugin_raw : documentPluginModels)
+    Foreach(documentPluginModels, [&] (const auto& plugin_raw)
     {
         DataStream::Deserializer plug_writer{plugin_raw.second};
         auto plug = deserialize_interface(
@@ -187,7 +187,7 @@ void DocumentModel::loadDocumentAsByteArray(
         {
             addPluginModel(plug);
         }
-    }
+    });
 
     // Load the document model
     Id<DocumentModel> docid;
@@ -208,7 +208,7 @@ void DocumentModel::loadDocumentAsJson(
     // Load the plug-in models
     auto json_plugins = json["Plugins"].toObject();
     auto& plugin_factories = ctx.app.components.factory<DocumentPluginFactoryList>();
-    for(const auto& key : json_plugins.keys())
+    Foreach(json_plugins.keys(), [&] (const auto& key)
     {
         JSONObject::Deserializer plug_writer{json_plugins[key].toObject()};
         auto plug = deserialize_interface(
@@ -221,7 +221,7 @@ void DocumentModel::loadDocumentAsJson(
         {
             addPluginModel(plug);
         }
-    }
+    });
 
     // Load the model
     JSONObject::Deserializer doc_writer{json["Document"].toObject()};

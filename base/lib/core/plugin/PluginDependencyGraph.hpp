@@ -144,7 +144,7 @@ struct PluginDependencyGraph
             };
 
             // First get rid of the plug-ins that don't have all their dependencies
-            for(auto node : nodes)
+            for(const auto& node : nodes)
             {
                 // Check that all the requirements are satisfied.
                 if(!node->checkDependencies())
@@ -196,7 +196,7 @@ struct PluginDependencyGraph
             if(ptr->mark)
                 return;
 
-            for(auto weak_dep : ptr->found_dependencies)
+            for(const auto& weak_dep : ptr->found_dependencies)
             {
                 auto dep = weak_dep.lock();
                 if(dep == orig)
