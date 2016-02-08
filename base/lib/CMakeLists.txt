@@ -13,6 +13,7 @@ file(GLOB_RECURSE HEADERS
 qt5_add_resources(QRCS "${CMAKE_CURRENT_SOURCE_DIR}/resources/iscore.qrc")
 set(SRCS
 
+"${CMAKE_CURRENT_SOURCE_DIR}/iscore/serialization/StringConstants.cpp"
 "${CMAKE_CURRENT_SOURCE_DIR}/iscore/menu/MenuInterface.cpp"
 "${CMAKE_CURRENT_SOURCE_DIR}/iscore/tools/InvisibleRootNodeSerialization.cpp"
 "${CMAKE_CURRENT_SOURCE_DIR}/iscore/tools/ObjectPathSerialization.cpp"

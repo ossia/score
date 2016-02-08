@@ -86,50 +86,50 @@ ISCORE_LIB_DEVICE_EXPORT void Visitor<Writer<DataStream>>::writeTo(Device::FullA
 template<>
 ISCORE_LIB_DEVICE_EXPORT void Visitor<Reader<JSONObject>>::readFrom(const Device::AddressSettings& n)
 {
-    m_obj["Name"] = n.name;
+    m_obj[iscore::StringConstant().Name] = n.name;
 
     // Metadata
-    m_obj["ioType"] = Device::IOTypeStringMap()[n.ioType];
-    m_obj["ClipMode"] = Device::ClipModeStringMap()[n.clipMode];
-    m_obj["Unit"] = n.unit;
+    m_obj[iscore::StringConstant().ioType] = Device::IOTypeStringMap()[n.ioType];
+    m_obj[iscore::StringConstant().ClipMode] = Device::ClipModeStringMap()[n.clipMode];
+    m_obj[iscore::StringConstant().Unit] = n.unit;
 
-    m_obj["RepetitionFilter"] = n.repetitionFilter;
-    m_obj["RefreshRate"] = n.rate;
+    m_obj[iscore::StringConstant().RepetitionFilter] = n.repetitionFilter;
+    m_obj[iscore::StringConstant().RefreshRate] = n.rate;
 
-    m_obj["Priority"] = n.priority;
+    m_obj[iscore::StringConstant().Priority] = n.priority;
 
     QJsonArray arr;
     for(auto& str : n.tags)
         arr.append(str);
-    m_obj["Tags"] = arr;
+    m_obj[iscore::StringConstant().Tags] = arr;
 
     // Value, domain and type
     readFrom(n.value);
-    m_obj["Domain"] = DomainToJson(n.domain);
+    m_obj[iscore::StringConstant().Domain] = DomainToJson(n.domain);
 }
 
 template<>
 ISCORE_LIB_DEVICE_EXPORT void Visitor<Writer<JSONObject>>::writeTo(Device::AddressSettings& n)
 {
-    n.name = m_obj["Name"].toString();
+    n.name = m_obj[iscore::StringConstant().Name].toString();
 
-    n.ioType = Device::IOTypeStringMap().key(m_obj["ioType"].toString());
-    n.clipMode = Device::ClipModeStringMap().key(m_obj["ClipMode"].toString());
-    n.unit = m_obj["Unit"].toString();
+    n.ioType = Device::IOTypeStringMap().key(m_obj[iscore::StringConstant().ioType].toString());
+    n.clipMode = Device::ClipModeStringMap().key(m_obj[iscore::StringConstant().ClipMode].toString());
+    n.unit = m_obj[iscore::StringConstant().Unit].toString();
 
-    n.repetitionFilter = m_obj["RepetitionFilter"].toBool();
-    n.rate = m_obj["RefreshRate"].toInt();
+    n.repetitionFilter = m_obj[iscore::StringConstant().RepetitionFilter].toBool();
+    n.rate = m_obj[iscore::StringConstant().RefreshRate].toInt();
 
-    n.priority = m_obj["Priority"].toInt();
+    n.priority = m_obj[iscore::StringConstant().Priority].toInt();
 
-    auto arr = m_obj["Tags"].toArray();
+    auto arr = m_obj[iscore::StringConstant().Tags].toArray();
     for(auto&& elt : arr)
         n.tags.append(elt.toString());
 
     writeTo(n.value);
     // TODO doesn't handle multi-type variants.
-    if(m_obj.contains("Type"))
+    if(m_obj.contains(iscore::StringConstant().Type))
     {
-        n.domain = Device::JsonToDomain(m_obj["Domain"].toObject(), m_obj["Type"].toString());
+        n.domain = Device::JsonToDomain(m_obj[iscore::StringConstant().Domain].toObject(), m_obj[iscore::StringConstant().Type].toString());
     }
 }

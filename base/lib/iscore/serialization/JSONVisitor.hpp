@@ -184,11 +184,11 @@ struct TSerializer<JSONObject, boost::optional<int32_t>>
         {
             if(obj)
             {
-                s.m_obj["id"] = get(obj);
+                s.m_obj[iscore::StringConstant().id] = get(obj);
             }
             else
             {
-                s.m_obj["id"] = "none";
+                s.m_obj[iscore::StringConstant().id] = iscore::StringConstant().none;
             }
         }
 
@@ -196,13 +196,13 @@ struct TSerializer<JSONObject, boost::optional<int32_t>>
                 JSONObject::Deserializer& s,
                 boost::optional<int32_t>& obj)
         {
-            if(s.m_obj["id"].toString() == "none")
+            if(s.m_obj[iscore::StringConstant().id].toString() == iscore::StringConstant().none)
             {
                 obj.reset();
             }
             else
             {
-                obj =s.m_obj["id"].toInt();
+                obj =s.m_obj[iscore::StringConstant().id].toInt();
             }
         }
 };
@@ -326,8 +326,8 @@ QJsonArray toJsonMap(const QMap<double, Value>& map)
     for(const auto& key : map.keys())
     {
         QJsonObject obj;
-        obj["k"] = key;
-        obj["v"] = map[key];
+        obj[iscore::StringConstant().k] = key;
+        obj[iscore::StringConstant().v] = map[key];
         arr.append(obj);
     }
 
@@ -342,8 +342,8 @@ QJsonArray toJsonMap(const QMap<Key, Value>& map)
     for(const auto& key : map.keys())
     {
         QJsonObject obj;
-        obj["k"] = *key.val();
-        obj["v"] = map[key];
+        obj[iscore::StringConstant().k] = *key.val();
+        obj[iscore::StringConstant().v] = map[key];
         arr.append(obj);
     }
 
@@ -360,7 +360,7 @@ QMap<Key, Value> fromJsonMap(const QJsonArray& array)
     for(const auto& value : array)
     {
         QJsonObject obj = value.toObject();
-        map[Key {obj["k"].toInt()}] = obj["v"].toBool();
+        map[Key {obj[iscore::StringConstant().k].toInt()}] = obj[iscore::StringConstant().v].toBool();
     }
 
     return map;
@@ -374,7 +374,7 @@ QMap<Key, double> fromJsonMap(const QJsonArray& array)
     for(const auto& value : array)
     {
         QJsonObject obj = value.toObject();
-        map[Key {obj["k"].toInt() }] = obj["v"].toDouble();
+        map[Key {obj[iscore::StringConstant().k].toInt() }] = obj[iscore::StringConstant().v].toDouble();
     }
 
     return map;
@@ -388,7 +388,7 @@ inline QMap<int32_t, double> fromJsonMap(const QJsonArray& array)
     for(const auto& value : array)
     {
         QJsonObject obj = value.toObject();
-        map[obj["k"].toInt()] = obj["v"].toDouble();
+        map[obj[iscore::StringConstant().k].toInt()] = obj[iscore::StringConstant().v].toDouble();
     }
 
     return map;
@@ -401,7 +401,7 @@ inline QMap<double, double> fromJsonMap(const QJsonArray& array)
     for(const auto& value : array)
     {
         QJsonObject obj = value.toObject();
-        map[obj["k"].toDouble()] = obj["v"].toDouble();
+        map[obj[iscore::StringConstant().k].toDouble()] = obj[iscore::StringConstant().v].toDouble();
     }
 
     return map;
@@ -410,44 +410,47 @@ inline QMap<double, double> fromJsonMap(const QJsonArray& array)
 template<template<typename U> class Container>
 void fromJsonArray(QJsonArray&& json_arr, Container<int>& arr)
 {
-    for(const auto& elt : json_arr)
+    int n = json_arr.size();
+    arr.resize(n);
+    for(int i = 0; i < n; i++)
     {
-        arr.push_back(elt.toInt());
+        arr[i] = json_arr.at(i).toInt();
     }
 }
 
 template<template<typename U> class Container>
 void fromJsonArray(QJsonArray&& json_arr, Container<QString>& arr)
 {
-    for(const auto& elt : json_arr)
+    arr.reserve(json_arr.size());
+    Foreach(json_arr, [&] (auto elt)
     {
         arr.push_back(elt.toString());
-    }
+    });
 }
-
-
 
 template<template<typename U> class Container, typename T>
 void fromJsonArray(QJsonArray&& json_arr, Container<T>& arr)
 {
-    for(const auto& elt : json_arr)
+    arr.reserve(json_arr.size());
+    Foreach(json_arr, [&] (auto elt)
     {
         T obj;
         fromJsonObject(elt.toObject(), obj);
         arr.push_back(obj);
-    }
+    });
 }
 
 template<template<typename U, typename V> class Container, typename T1, typename T2,
          std::enable_if_t<!std::is_arithmetic<T1>::value>* = nullptr>
 void fromJsonArray(QJsonArray&& json_arr, Container<T1, T2>& arr)
 {
-    for(const auto& elt : json_arr)
+    arr.reserve(json_arr.size());
+    Foreach(json_arr, [&] (auto elt)
     {
         T1 obj;
         fromJsonObject(elt.toObject(), obj);
         arr.push_back(obj);
-    }
+    });
 }
 
 
@@ -459,7 +462,7 @@ void fromJsonArray(QJsonArray&& json_arr, Container<T1, T2>& arr)
     arr.resize(n);
     for(int i = 0; i < n; i++)
     {
-        arr[i] = json_arr[i].toInt();
+        arr[i] = json_arr.at(i).toInt();
     }
 }
 
@@ -471,7 +474,7 @@ void fromJsonArray(QJsonArray&& json_arr, Container<T1, T2>& arr)
     arr.resize(n);
     for(int i = 0; i < n; i++)
     {
-        arr[i] = json_arr[i].toDouble();
+        arr[i] = json_arr.at(i).toDouble();
     }
 }
 

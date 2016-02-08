@@ -63,17 +63,15 @@ struct TSerializer<DataStream, void, eggs::variant<Args...>>
 };
 
 
-template<typename T>
-class TypeToName;
-
 // This part is required because it isn't as straightforward to save variant data
 // in JSON as it is to save it in a DataStream.
 // Basically, each variant member has an associated name that will be the
 // key in the JSON parent object. This name is defined by specializing
-// template<> class TypeToName<T>.
+// template<> class Metadata<Json_k, T>.
 // For instance:
-// template<> class TypeToName<iscore::Address>
-// { public: static constexpr const char * name() { return "Address"; } };
+// template<> class Metadata<Json_k, iscore::Address>
+// { public: static constexpr const char * get() { return "Address"; } };
+// A JSON_METADATA macro is provided for this.
 
 // This allows easy store and retrieval under a familiar name
 
@@ -126,7 +124,7 @@ struct TSerializer<JSONObject, eggs::variant<Args...>>
 
                     if(auto res = var.template target<current_type>())
                     {
-                        s.m_obj[TypeToName<current_type>::name()] = readFrom_eggs_impl(*res);
+                        s.m_obj[Metadata<Json_k, current_type>::get()] = readFrom_eggs_impl(*res);
                         done = true;
                     }
                 });
@@ -145,9 +143,10 @@ struct TSerializer<JSONObject, eggs::variant<Args...>>
                     return;
                 using current_type = typename std::remove_reference<decltype(elt)>::type;
 
-                if(s.m_obj.contains(TypeToName<current_type>::name()))
+                auto it = s.m_obj.constFind(Metadata<Json_k, current_type>::get());
+                if(it != s.m_obj.constEnd())
                 {
-                    current_type data = writeTo_eggs_impl<current_type>(s.m_obj[TypeToName<current_type>::name()]);
+                    current_type data = writeTo_eggs_impl<current_type>(*it);
 
                     var = data;
                     done = true;

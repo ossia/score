@@ -42,10 +42,10 @@ iscore::UndoApplicationPlugin::UndoApplicationPlugin(
 
 iscore::UndoApplicationPlugin::~UndoApplicationPlugin()
 {
-    for(auto& connection : m_connections)
+    Foreach(m_connections, [] (auto connection)
     {
         QObject::disconnect(connection);
-    }
+    });
 }
 
 void iscore::UndoApplicationPlugin::populateMenus(iscore::MenubarManager* menu)
@@ -77,8 +77,9 @@ void iscore::UndoApplicationPlugin::on_documentChanged(
     using namespace iscore;
 
     // Cleanup
-    for(auto& connection : m_connections)
+    Foreach(m_connections, [] (auto connection) {
         QObject::disconnect(connection);
+    });
     m_connections.clear();
 
     if(!newDoc)
