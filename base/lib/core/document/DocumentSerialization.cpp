@@ -185,7 +185,7 @@ void DocumentModel::loadDocumentAsByteArray(
 
         if(plug)
         {
-            addPluginModel(plug);
+            this->addPluginModel(plug);
         }
     });
 
@@ -219,7 +219,7 @@ void DocumentModel::loadDocumentAsJson(
 
         if(plug)
         {
-            addPluginModel(plug);
+            this->addPluginModel(plug);
         }
     });
 
