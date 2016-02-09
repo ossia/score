@@ -61,7 +61,6 @@ InspectorSectionWidget::InspectorSectionWidget(
     m_container->setObjectName("InspectorContainer");
     m_container->setContentsMargins(0,0,0,0);
     m_containerLayout = new iscore::MarginLess<QVBoxLayout>{m_container};
-    m_containerLayout->addStretch();
 
     // GENERAL
     auto globalLayout = new iscore::MarginLess<QVBoxLayout>{this};
