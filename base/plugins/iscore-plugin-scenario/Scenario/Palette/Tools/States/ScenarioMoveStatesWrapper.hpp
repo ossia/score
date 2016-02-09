@@ -1,5 +1,6 @@
 #pragma once
 #include <Scenario/Palette/Tools/States/MoveStates.hpp>
+#include <Scenario/Palette/Tools/States/MoveAndMergeState.hpp>
 #include <Scenario/Commands/Scenario/Displacement/MoveConstraint.hpp>
 #include <Scenario/Commands/Scenario/Displacement/MoveEventMeta.hpp>
 #include <Scenario/Commands/Constraint/SetMinDuration.hpp>
