@@ -1,6 +1,11 @@
 #pragma once
 #include <Scenario/Palette/ScenarioPaletteBaseStates.hpp>
 #include <Scenario/Palette/Transitions/AnythingTransitions.hpp>
+#include <Scenario/Palette/Transitions/NothingTransitions.hpp>
+#include <Scenario/Palette/Transitions/TimeNodeTransitions.hpp>
+#include <Scenario/Palette/Transitions/EventTransitions.hpp>
+#include <Scenario/Palette/Transitions/ConstraintTransitions.hpp>
+#include <Scenario/Palette/Tools/ScenarioRollbackStrategy.hpp>
 #include <Scenario/Process/Algorithms/Accessors.hpp>
 
 #include <iscore/command/Dispatchers/SingleOngoingCommandDispatcher.hpp>
@@ -9,8 +14,8 @@
 namespace Scenario
 {
 
-// TODO a nice refactor is doable here between the three classes.
-// TODO rename in MoveConstraint_State for hmoegeneity with ClickOnConstraint_Transition,  etc.
+// TODO a nice refactor is doable here between the four classes.
+// TODO rename in MoveConstraint_State for homoegeneity with ClickOnConstraint_Transition,  etc.
 template<
         typename MoveConstraintCommand_T, // MoveConstraint
         typename Scenario_T,
@@ -173,115 +178,6 @@ class MoveConstraintBraceState final : public StateBase<Scenario_T>
 
 };
 
-template<
-        typename MoveEventCommand_T, // MoveEventMeta
-        typename Scenario_T,
-        typename ToolPalette_T>
-class MoveEventState final : public StateBase<Scenario_T>
-{
-    public:
-        MoveEventState(const ToolPalette_T& stateMachine,
-                       const Path<Scenario_T>& scenarioPath,
-                       iscore::CommandStackFacade& stack,
-                       iscore::ObjectLocker& locker,
-                       QState* parent):
-            StateBase<Scenario_T>{scenarioPath, parent},
-            m_dispatcher{stack}
-        {
-            this->setObjectName("MoveEventState");
-            using namespace Scenario::Command ;
-            auto finalState = new QFinalState{this};
-
-            QState* mainState = new QState{this};
-            {
-                QState* pressed = new QState{mainState};
-                QState* released = new QState{mainState};
-                QState* moving = new QState{mainState};
-
-                // General setup
-                mainState->setInitialState(pressed);
-                released->addTransition(finalState);
-
-                iscore::make_transition<MoveOnAnything_Transition<Scenario_T>>(
-                            pressed, moving, *this);
-                iscore::make_transition<ReleaseOnAnything_Transition>(
-                            pressed, finalState);
-                iscore::make_transition<MoveOnAnything_Transition<Scenario_T>>(
-                            moving, moving, *this);
-                iscore::make_transition<ReleaseOnAnything_Transition>(
-                            moving, released);
-
-                // What happens in each state.
-                QObject::connect(pressed, &QState::entered, [&] ()
-                {
-                    auto& scenar = stateMachine.model();
-                    Id<EventModel> evId{this->clickedEvent};
-                    if(!bool(evId) && bool(this->clickedState))
-                    {
-                        evId = scenar.state(this->clickedState).eventId();
-                    }
-
-                    auto prev_csts = previousConstraints(scenar.event(evId), scenar);
-                    if(!prev_csts.empty())
-                    {
-                        // We find the one that starts the latest.
-                        TimeValue t = TimeValue::zero();
-                        for(const auto& cst_id : prev_csts)
-                        {
-                            const auto& other_date = scenar.constraint(cst_id).startDate();
-                            if(other_date > t)
-                                t = other_date;
-                        }
-                        this->m_pressedPrevious = t + TimeValue::fromMsecs(10);
-                    }
-                    else
-                    {
-                        this->m_pressedPrevious.reset();
-                    }
-
-                });
-
-                QObject::connect(moving, &QState::entered, [&] ()
-                {
-                    auto& scenar = stateMachine.model();
-                    // If we came here through a state.
-                    Id<EventModel> evId{this->clickedEvent};
-                    if(!bool(evId) && bool(this->clickedState))
-                    {
-                        evId = scenar.state(this->clickedState).eventId();
-                    }
-
-                    TimeValue date = this->m_pressedPrevious
-                            ? max(this->currentPoint.date, *this->m_pressedPrevious)
-                            : this->currentPoint.date;
-
-                    this->m_dispatcher.submitCommand(
-                                Path<Scenario_T>{this->m_scenarioPath},
-                                evId,
-                                date,
-                                stateMachine.editionSettings().expandMode());
-                });
-
-                QObject::connect(released, &QState::entered, [&] ()
-                {
-                    m_dispatcher.commit();
-                });
-            }
-
-            QState* rollbackState = new QState{this};
-            iscore::make_transition<iscore::Cancel_Transition>(mainState, rollbackState);
-            rollbackState->addTransition(finalState);
-            QObject::connect(rollbackState, &QState::entered, [&] ()
-            {
-                m_dispatcher.rollback();
-            });
-
-            this->setInitialState(mainState);
-        }
-
-        SingleOngoingCommandDispatcher<MoveEventCommand_T> m_dispatcher;
-        boost::optional<TimeValue> m_pressedPrevious;
-};
 
 template<
         typename MoveTimeNodeCommand_T, // MoveEventMeta
