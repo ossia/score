@@ -20,17 +20,17 @@ class SettingsPresenter;
 namespace PluginSettings
 {
 PluginSettingsPresenter::PluginSettingsPresenter(
-        iscore::SettingsPresenter* parent,
-        iscore::SettingsDelegateModelInterface* model,
-        iscore::SettingsDelegateViewInterface* view) :
-    SettingsDelegatePresenterInterface {parent, model, view}
+        iscore::SettingsDelegateModelInterface& model,
+        iscore::SettingsDelegateViewInterface& view,
+        QObject* parent) :
+    SettingsDelegatePresenterInterface {model, view, parent}
 {
-    auto ps_model = static_cast<PluginSettingsModel*>(model);
-    auto ps_view  = static_cast<PluginSettingsView*>(view);
+    auto& ps_model = static_cast<PluginSettingsModel&>(model);
+    auto& ps_view  = static_cast<PluginSettingsView&>(view);
 
-    ps_view->view()->setModel(ps_model->model());
+    ps_view.view()->setModel(ps_model.model());
 
-    connect(ps_model,	&PluginSettingsModel::blacklistCommand,
+    con(ps_model,	&PluginSettingsModel::blacklistCommand,
     this,		&PluginSettingsPresenter::setBlacklistCommand);
 }
 
@@ -53,17 +53,17 @@ void PluginSettingsPresenter::on_reject()
 
 void PluginSettingsPresenter::load()
 {
-    view()->load();
+    view().load();
 }
 
-PluginSettingsModel* PluginSettingsPresenter::model()
+PluginSettingsModel& PluginSettingsPresenter::model()
 {
-    return static_cast<PluginSettingsModel*>(m_model);
+    return static_cast<PluginSettingsModel&>(m_model);
 }
 
-PluginSettingsView* PluginSettingsPresenter::view()
+PluginSettingsView& PluginSettingsPresenter::view()
 {
-    return static_cast<PluginSettingsView*>(m_view);
+    return static_cast<PluginSettingsView&>(m_view);
 }
 
 

@@ -36,6 +36,7 @@
 #include <iscore/tools/NamedObject.hpp>
 #include <iscore/tools/ObjectIdentifier.hpp>
 #include <iscore/tools/SettableIdentifier.hpp>
+#include <iscore/plugins/settingsdelegate/SettingsDelegateFactoryInterface.hpp>
 #include <iscore/plugins/documentdelegate/DocumentDelegateFactoryInterface.hpp>
 #include <iscore/plugins/documentdelegate/plugin/DocumentDelegatePluginModel.hpp>
 #include <iscore/widgets/OrderedToolbar.hpp>
@@ -176,7 +177,7 @@ void Application::init()
 
     // MVP
     m_view = new iscore::View{this};
-    m_presenter = new iscore::Presenter{m_applicationSettings, m_view, this};
+    m_presenter = new iscore::Presenter{m_applicationSettings, *m_settings, m_view, this};
 
     // Plugins
     loadPluginData();
@@ -234,20 +235,24 @@ void Application::loadPluginData()
         m_presenter->components(),
                 ctx,
                 *m_view,
-                *m_settings,
                 m_presenter->menuBar(),
                 m_presenter->toolbars(),
                 m_presenter};
 
-
     registrar.registerFactory(std::make_unique<iscore::DocumentDelegateList>());
     registrar.registerFactory(std::make_unique<iscore::DocumentPluginFactoryList>());
+    registrar.registerFactory(std::make_unique<iscore::SettingsDelegateFactoryList>());
 
     iscore::PluginLoader::loadPlugins(registrar, ctx);
 
     registrar.registerApplicationContextPlugin(new iscore::UndoApplicationPlugin{ctx, m_presenter});
     registrar.registerPanel(new UndoPanelFactory);
 
+    // Load the settings
+    for(auto& elt : ctx.components.factory<iscore::SettingsDelegateFactoryList>())
+    {
+        m_settings->setupSettingsPlugin(elt);
+    }
 
     std::sort(m_presenter->toolbars().begin(), m_presenter->toolbars().end());
     for(auto& toolbar : m_presenter->toolbars())

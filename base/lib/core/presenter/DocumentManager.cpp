@@ -518,11 +518,11 @@ bool DocumentManager::checkAndUpdateJson(
 
     // Check the main document
     bool mainLoadable = true;
-    if(loaded_version > ctx.settings.saveFormatVersion)
+    if(loaded_version > ctx.applicationSettings.saveFormatVersion)
     {
         mainLoadable = false;
     }
-    else if(loaded_version < ctx.settings.saveFormatVersion)
+    else if(loaded_version < ctx.applicationSettings.saveFormatVersion)
     {
         // TODO update main
     }

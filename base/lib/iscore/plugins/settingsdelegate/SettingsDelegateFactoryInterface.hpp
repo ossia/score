@@ -1,5 +1,6 @@
 #pragma once
-
+#include <iscore/plugins/customfactory/FactoryFamily.hpp>
+#include <iscore_lib_base_export.h>
 namespace iscore
 {
     class SettingsPresenter;
@@ -8,18 +9,32 @@ namespace iscore
     class SettingsDelegateViewInterface;
 
     /**
-     * @brief The SettingsDelegateFactoryInterface class
+     * @brief The SettingsDelegateFactory class
      *
      * Reimplement in order to provide custom settings for the plug-in.
      */
-    class SettingsDelegateFactoryInterface
+    class ISCORE_LIB_BASE_EXPORT SettingsDelegateFactory :
+            public iscore::AbstractFactory<SettingsDelegateFactory>
+    {
+            ISCORE_ABSTRACT_FACTORY_DECL(
+                    SettingsDelegateFactory,
+                    "f18653bc-7ca9-44aa-a08b-4188d086b46e")
+
+        public:
+            virtual ~SettingsDelegateFactory();
+            virtual SettingsDelegateViewInterface* makeView() = 0;
+            virtual SettingsDelegatePresenterInterface* makePresenter(
+                    iscore::SettingsDelegateModelInterface& m,
+                    iscore::SettingsDelegateViewInterface& v,
+                    QObject* parent) = 0;
+            virtual SettingsDelegateModelInterface* makeModel() = 0;
+    };
+
+    class ISCORE_LIB_BASE_EXPORT SettingsDelegateFactoryList final :
+            public ConcreteFactoryList<iscore::SettingsDelegateFactory>
     {
         public:
-            virtual ~SettingsDelegateFactoryInterface() = default;
-            virtual SettingsDelegateViewInterface* makeView() = 0;
-            virtual SettingsDelegatePresenterInterface* makePresenter(SettingsPresenter*,
-                    SettingsDelegateModelInterface* m,
-                    SettingsDelegateViewInterface* v) = 0;
-            virtual SettingsDelegateModelInterface* makeModel() = 0; // Accédé par les commandes uniquement.
+        using object_type = SettingsDelegateFactory;
     };
+
 }

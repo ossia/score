@@ -126,11 +126,14 @@ EventInspectorWidget::EventInspectorWidget(
 
     // State
     m_properties.push_back(new Inspector::HSeparator {this});
+    m_properties.push_back(new QLabel{"States"});
+
     m_statesWidget = new QWidget{this};
     auto dispLayout = new QVBoxLayout{m_statesWidget};
     m_statesWidget->setLayout(dispLayout);
+    dispLayout->setSizeConstraint(QLayout::SetMinimumSize);
 
-    m_properties.push_back(new QLabel{"States"});
+
     m_properties.push_back(m_statesWidget);
 
     // Separator
@@ -151,7 +154,6 @@ EventInspectorWidget::EventInspectorWidget(
     }
 
     updateDisplayedValues();
-
 
     // Display data
     updateAreaLayout(m_properties);
