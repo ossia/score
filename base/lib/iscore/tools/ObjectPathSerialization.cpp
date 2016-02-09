@@ -25,11 +25,11 @@ void Visitor<Writer<DataStream>>::writeTo(ObjectPath& path)
 template<>
 void Visitor<Reader<JSONObject>>::readFrom(const ObjectPath& path)
 {
-    m_obj["Identifiers"] = toJsonArray(path.vec());
+    m_obj[iscore::StringConstant().Identifiers] = toJsonArray(path.vec());
 }
 
 template<>
 void Visitor<Writer<JSONObject>>::writeTo(ObjectPath& path)
 {
-    fromJsonArray(m_obj["Identifiers"].toArray(), path.vec());
+    fromJsonArray(m_obj[iscore::StringConstant().Identifiers].toArray(), path.vec());
 }

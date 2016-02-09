@@ -19,6 +19,8 @@ class Selection final : private QList<QPointer<const IdentifiedObjectAbstract>>
         using base_type::erase;
         using base_type::empty;
         using base_type::clear;
+        using base_type::size;
+        using base_type::at;
         using base_type::contains;
         using base_type::removeAll;
 
