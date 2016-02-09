@@ -70,7 +70,7 @@ class ISCORE_PLUGIN_SCENARIO_EXPORT MergeTimeNodes : public iscore::Serializable
 };
 
 template<>
-class MergeTimeNodes<ScenarioModel> : public iscore::SerializableCommand
+class ISCORE_PLUGIN_SCENARIO_EXPORT MergeTimeNodes<ScenarioModel> : public iscore::SerializableCommand
 {
         // No ISCORE_COMMAND here since it's a template.
     public:
@@ -127,14 +127,22 @@ class MergeTimeNodes<ScenarioModel> : public iscore::SerializableCommand
             auto recreatedTn = new TimeNodeModel{s, &scenar};
 
             auto events_in_timenode = recreatedTn->events();
+            // we remove and re-add events in recreated Tn
+            // to ensure correct parentship between elements.
             for(auto evId : events_in_timenode)
             {
+                recreatedTn->removeEvent(evId);
                 globalTn.removeEvent(evId);
+            }
+            for(auto evId : events_in_timenode)
+            {
+                recreatedTn->addEvent(evId);
             }
 
             scenar.timeNodes.add(recreatedTn);
 
             m_moveCommand->undo();
+            updateTimeNodeExtent(m_destinationTnId, scenar);
 
         }
         void redo() const override
@@ -152,6 +160,7 @@ class MergeTimeNodes<ScenarioModel> : public iscore::SerializableCommand
                 destinationTn.addEvent(evId);
             }
             scenar.timeNodes.remove(m_movingTnId);
+            updateTimeNodeExtent(m_destinationTnId, scenar);
         }
 
         void update(Path<ScenarioModel> scenar,
@@ -161,12 +170,19 @@ class MergeTimeNodes<ScenarioModel> : public iscore::SerializableCommand
     protected:
         void serializeImpl(DataStreamInput& s) const override
         {
-            s << m_scenarioPath << m_movingTnId << m_destinationTnId << m_serializedTimeNode;
+            s << m_scenarioPath << m_movingTnId << m_destinationTnId
+              << m_serializedTimeNode << m_moveCommand->serialize();
         }
 
         void deserializeImpl(DataStreamOutput& s) override
         {
-            s >> m_scenarioPath >> m_movingTnId >> m_destinationTnId >> m_serializedTimeNode;
+            QByteArray cmd;
+
+            s >> m_scenarioPath >> m_movingTnId >> m_destinationTnId
+                >> m_serializedTimeNode >> cmd;
+
+            m_moveCommand = new MoveEvent<GoodOldDisplacementPolicy>{};
+            m_moveCommand->deserialize(cmd);
         }
 
     private:
@@ -181,6 +197,6 @@ class MergeTimeNodes<ScenarioModel> : public iscore::SerializableCommand
 }
 }
 
-ISCORE_COMMAND_DECL_T(Scenario::Command::AddTrigger<Scenario::ScenarioModel>)
+ISCORE_COMMAND_DECL_T(Scenario::Command::MergeTimeNodes<Scenario::ScenarioModel>)
 #include <Scenario/Document/BaseScenario/BaseScenario.hpp>
-ISCORE_COMMAND_DECL_T(Scenario::Command::AddTrigger<Scenario::BaseScenario>)
+ISCORE_COMMAND_DECL_T(Scenario::Command::MergeTimeNodes<Scenario::BaseScenario>)
