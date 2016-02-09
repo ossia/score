@@ -214,19 +214,12 @@ class MoveEventState final : public StateBase<Scenario_T>
                 QState* rollbackTnMerging = new QState{mainState};
                 QState* rollbackEventMerging = new QState{mainState};
 
-                QState* releaseOnTn = new QState{mainState};
-                QState* releaseOnEvent = new QState{mainState};
-
                 // General setup
                 mainState->setInitialState(pressed);
                 released->addTransition(finalState);
 
                 rollbackTnMerging->addTransition(onlyMoving);
                 rollbackEventMerging->addTransition(onlyMoving);
-
-                releaseOnTn->addTransition(finalState);
-                releaseOnEvent->addTransition(finalState);
-
 
                 // ***************************************
                 // transitions
@@ -237,7 +230,7 @@ class MoveEventState final : public StateBase<Scenario_T>
                 iscore::make_transition<ReleaseOnAnything_Transition>(
                             pressed, finalState);
 
-                // only moving ---> something
+                // update commands
                 iscore::make_transition<MoveOnAnythingButPonctual_Transition<Scenario_T>>(
                             onlyMoving, onlyMoving, *this);
 
@@ -247,9 +240,6 @@ class MoveEventState final : public StateBase<Scenario_T>
                 iscore::make_transition<MoveOnEvent_Transition<Scenario_T>>(
                             onlyMoving, mergingOnEvent, *this);
 
-                iscore::make_transition<ReleaseOnAnything_Transition>(
-                            onlyMoving, released);
-
                 // rollback merging
                 iscore::make_transition<MoveOnAnythingButTimeNode_Transition<Scenario_T>>(
                             mergingOnTimeNode, rollbackTnMerging, *this);
@@ -258,9 +248,12 @@ class MoveEventState final : public StateBase<Scenario_T>
 
                 // commit merging
                 iscore::make_transition<ReleaseOnAnything_Transition>(
-                            mergingOnTimeNode, releaseOnTn);
+                            mergingOnTimeNode, released);
                 iscore::make_transition<ReleaseOnAnything_Transition>(
-                            mergingOnEvent, releaseOnEvent);
+                            mergingOnEvent, released);
+                iscore::make_transition<ReleaseOnAnything_Transition>(
+                            onlyMoving, released);
+
 
                 // ********************************************
                 // What happens in each state.
@@ -291,10 +284,6 @@ class MoveEventState final : public StateBase<Scenario_T>
                 {
                     m_mergingTnDispatcher.rollback();
                 });
-                QObject::connect(releaseOnTn, &QState::entered, [&] ()
-                {
-                    m_mergingTnDispatcher.commit();
-                });
 
                 QObject::connect(mergingOnEvent, &QState::entered, [&] ()
                 {
@@ -322,14 +311,11 @@ class MoveEventState final : public StateBase<Scenario_T>
                                     destinationEvId);
                     }
                 });
-                QObject::connect(rollbackTnMerging, &QState::entered, [&] ()
+                QObject::connect(rollbackEventMerging, &QState::entered, [&] ()
                 {
                     m_mergingEventDispatcher.rollback();
                 });
-                QObject::connect(releaseOnEvent, &QState::entered, [&] ()
-                {
-                    m_mergingEventDispatcher.commit();
-                });
+
 
                 QObject::connect(onlyMoving, &QState::entered, [&] ()
                 {
@@ -385,6 +371,8 @@ class MoveEventState final : public StateBase<Scenario_T>
                 QObject::connect(released, &QState::entered, [&] ()
                 {
                     m_movingDispatcher.commit();
+                    m_mergingEventDispatcher.commit();
+                    m_mergingTnDispatcher.commit();
                 });
             }
 
@@ -395,6 +383,7 @@ class MoveEventState final : public StateBase<Scenario_T>
             {
                 m_movingDispatcher.rollback();
                 m_mergingTnDispatcher.rollback();
+                m_mergingEventDispatcher.rollback();
             });
 
             this->setInitialState(mainState);
