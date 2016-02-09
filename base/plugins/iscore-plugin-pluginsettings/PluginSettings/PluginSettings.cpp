@@ -19,16 +19,16 @@ iscore::SettingsDelegateViewInterface* PluginSettingsFactory::makeView()
 }
 
 iscore::SettingsDelegatePresenterInterface* PluginSettingsFactory::makePresenter(
-        iscore::SettingsPresenter* p,
-        iscore::SettingsDelegateModelInterface* m,
-        iscore::SettingsDelegateViewInterface* v)
+        iscore::SettingsDelegateModelInterface& m,
+        iscore::SettingsDelegateViewInterface& v,
+        QObject* parent)
 {
-    auto pres = new PluginSettingsPresenter(p, m, v);
+    auto pres = new PluginSettingsPresenter(m, v, parent);
 
-    v->setPresenter(pres);
+    v.setPresenter(pres);
 
     pres->load();
-    pres->view()->doConnections();
+    pres->view().doConnections();
 
     return pres;
 }

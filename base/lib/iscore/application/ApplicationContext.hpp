@@ -5,6 +5,7 @@ namespace iscore
 {
 class ApplicationComponents;
 struct ApplicationSettings;
+class Settings;
 class DocumentManager;
 class MenubarManager;
 
@@ -12,6 +13,7 @@ struct ApplicationContext
 {
         explicit ApplicationContext(
                 const iscore::ApplicationSettings&,
+                const iscore::Settings&,
                 const ApplicationComponents&,
                 DocumentManager&,
                 iscore::MenubarManager&);
@@ -19,7 +21,8 @@ struct ApplicationContext
         ApplicationContext(ApplicationContext&&) = delete;
         ApplicationContext& operator=(const ApplicationContext&) = delete;
 
-        const iscore::ApplicationSettings& settings;
+        const iscore::ApplicationSettings& applicationSettings;
+        const iscore::Settings& settings;
         const iscore::ApplicationComponents& components;
         DocumentManager& documents;
         iscore::MenubarManager& menuBar;

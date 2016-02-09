@@ -1,15 +1,16 @@
 #pragma once
 #include <QWidget>
+#include <iscore_lib_base_export.h>
 
 namespace iscore
 {
     class SettingsDelegatePresenterInterface;
 
-    class SettingsDelegateViewInterface : public QObject
+    class ISCORE_LIB_BASE_EXPORT SettingsDelegateViewInterface : public QObject
     {
         public:
             using QObject::QObject;
-            virtual ~SettingsDelegateViewInterface() = default;
+            virtual ~SettingsDelegateViewInterface();
             virtual void setPresenter(SettingsDelegatePresenterInterface* presenter)
             {
                 m_presenter = presenter;

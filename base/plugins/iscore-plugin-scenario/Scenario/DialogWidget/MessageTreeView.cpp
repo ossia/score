@@ -64,6 +64,8 @@ MessageTreeView::MessageTreeView(
 
     header()->resizeSection((int)MessageItemModel::Column::Name, (1-m_valueColumnSize - 0.1)*this->width());
     header()->resizeSection((int)MessageItemModel::Column::Value, m_valueColumnSize*this->width());
+
+    this->setSizeAdjustPolicy(QAbstractScrollArea::AdjustToContents);
 }
 
 MessageItemModel& MessageTreeView::model() const

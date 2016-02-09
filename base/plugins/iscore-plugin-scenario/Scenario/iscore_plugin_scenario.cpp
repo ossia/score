@@ -61,12 +61,7 @@ struct Address;
 #include <Scenario/Inspector/TimeNode/TimeNodeInspectorFactory.hpp>
 #endif
 
-iscore_plugin_scenario::iscore_plugin_scenario() :
-    QObject {},
-        iscore::GUIApplicationContextPlugin_QtInterface {},
-        iscore::DocumentDelegateFactoryInterface_QtInterface {},
-        iscore::FactoryList_QtInterface {},
-        iscore::FactoryInterface_QtInterface {}
+iscore_plugin_scenario::iscore_plugin_scenario()
 {
     using namespace Scenario;
     QMetaType::registerComparators<State::Value>();
@@ -87,13 +82,6 @@ iscore_plugin_scenario::iscore_plugin_scenario() :
 iscore_plugin_scenario::~iscore_plugin_scenario()
 {
 
-}
-
-// Interfaces implementations :
-std::vector<iscore::DocumentDelegateFactory*> iscore_plugin_scenario::documents()
-{
-    using namespace Scenario;
-    return {new ScenarioDocumentFactory};
 }
 
 iscore::GUIApplicationContextPlugin* iscore_plugin_scenario::make_applicationPlugin(

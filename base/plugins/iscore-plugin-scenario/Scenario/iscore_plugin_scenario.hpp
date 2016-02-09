@@ -27,18 +27,16 @@ class iscore_plugin_scenario final :
         public QObject,
         public iscore::GUIApplicationContextPlugin_QtInterface,
         public iscore::CommandFactory_QtInterface,
-        public iscore::DocumentDelegateFactoryInterface_QtInterface,
         public iscore::PanelFactory_QtInterface,
         public iscore::FactoryList_QtInterface,
         public iscore::FactoryInterface_QtInterface,
         public iscore::Plugin_QtInterface
 {
         Q_OBJECT
-        Q_PLUGIN_METADATA(IID DocumentDelegateFactoryInterface_QtInterface_iid)
+        Q_PLUGIN_METADATA(IID GUIApplicationContextPlugin_QtInterface_iid)
         Q_INTERFACES(
                 iscore::GUIApplicationContextPlugin_QtInterface
                 iscore::CommandFactory_QtInterface
-                iscore::DocumentDelegateFactoryInterface_QtInterface
                 iscore::PanelFactory_QtInterface
                 iscore::FactoryList_QtInterface
                 iscore::FactoryInterface_QtInterface
@@ -49,9 +47,6 @@ class iscore_plugin_scenario final :
         virtual ~iscore_plugin_scenario();
 
     private:
-        // Docpanel interface
-        std::vector<iscore::DocumentDelegateFactory*> documents() override;
-
         // Application plugin interface
         iscore::GUIApplicationContextPlugin* make_applicationPlugin(const iscore::ApplicationContext& app) override;
 
