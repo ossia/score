@@ -113,16 +113,16 @@ template<>
 void Visitor<Reader<JSONObject>>::readFrom(
         const Process::ProcessStateData& val)
 {
-    m_obj["Process"] = toJsonValue(val.process);
-    toJsonValue(m_obj, "Value", val.value);
+    m_obj[iscore::StringConstant().Process] = toJsonValue(val.process);
+    toJsonValue(m_obj, iscore::StringConstant().Value, val.value);
 }
 
 template<>
 void Visitor<Writer<JSONObject>>::writeTo(
         Process::ProcessStateData& val)
 {
-    val.process = fromJsonValue<Id<Process::ProcessModel>>(m_obj["Process"]);
-    fromJsonValue(m_obj, "Value", val.value);
+    val.process = fromJsonValue<Id<Process::ProcessModel>>(m_obj[iscore::StringConstant().Process]);
+    fromJsonValue(m_obj, iscore::StringConstant().Value, val.value);
 }
 
 
@@ -144,20 +144,20 @@ template<>
 void Visitor<Reader<JSONObject>>::readFrom(
         const Process::StateNodeValues& val)
 {
-    m_obj["Previous"] = toJsonArray(val.previousProcessValues);
-    m_obj["Following"] = toJsonArray(val.followingProcessValues);
-    toJsonValue(m_obj, "User", val.userValue);
-    m_obj["Priorities"] = toJsonArray(val.priorities);
+    m_obj[iscore::StringConstant().Previous] = toJsonArray(val.previousProcessValues);
+    m_obj[iscore::StringConstant().Following] = toJsonArray(val.followingProcessValues);
+    toJsonValue(m_obj, iscore::StringConstant().User, val.userValue);
+    m_obj[iscore::StringConstant().Priorities] = toJsonArray(val.priorities);
 }
 
 template<>
 void Visitor<Writer<JSONObject>>::writeTo(
         Process::StateNodeValues& val)
 {
-    fromJsonArray(m_obj["Previous"].toArray(), val.previousProcessValues);
-    fromJsonArray(m_obj["Following"].toArray(), val.followingProcessValues);
-    fromJsonValue(m_obj, "User", val.userValue);
-    fromJsonArray(m_obj["Priorities"].toArray(), val.priorities);
+    fromJsonArray(m_obj[iscore::StringConstant().Previous].toArray(), val.previousProcessValues);
+    fromJsonArray(m_obj[iscore::StringConstant().Following].toArray(), val.followingProcessValues);
+    fromJsonValue(m_obj, iscore::StringConstant().User, val.userValue);
+    fromJsonArray(m_obj[iscore::StringConstant().Priorities].toArray(), val.priorities);
 }
 
 
@@ -181,7 +181,7 @@ template<>
 ISCORE_LIB_PROCESS_EXPORT void Visitor<Reader<JSONObject>>::readFrom(
         const Process::StateNodeData& node)
 {
-    m_obj["Name"] = node.name;
+    m_obj[iscore::StringConstant().Name] = node.name;
     readFrom(node.values);
 }
 
@@ -189,6 +189,6 @@ template<>
 ISCORE_LIB_PROCESS_EXPORT void Visitor<Writer<JSONObject>>::writeTo(
         Process::StateNodeData& node)
 {
-    node.name = m_obj["Name"].toString();
+    node.name = m_obj[iscore::StringConstant().Name].toString();
     writeTo(node.values);
 }
