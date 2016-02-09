@@ -5,7 +5,10 @@
 
 namespace iscore
 {
-SettingsPresenter::SettingsPresenter(SettingsModel* model, SettingsView* view, QObject* parent) :
+SettingsPresenter::SettingsPresenter(
+        SettingsModel* model,
+        SettingsView* view,
+        QObject* parent) :
     QObject {parent},
         m_model {model},
 m_view {view}

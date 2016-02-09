@@ -44,6 +44,7 @@ namespace iscore
 
 Presenter::Presenter(
         const iscore::ApplicationSettings& app,
+        const iscore::Settings& set,
         View* view,
         QObject* arg_parent) :
     NamedObject {"Presenter", arg_parent},
@@ -56,7 +57,7 @@ Presenter::Presenter(
   #else
     m_menubar {view->menuBar(), this},
   #endif
-    m_context{app, m_components_readonly, m_docManager, m_menubar}
+    m_context{app, set, m_components_readonly, m_docManager, m_menubar}
 {
     m_docManager.init(m_context); // It is necessary to break
     // this dependency cycle.
@@ -153,12 +154,9 @@ void Presenter::setupMenus()
                                       ViewMenuElement::Windows);
 
     ////// Settings //////
-    /*
     m_menubar.addActionIntoToplevelMenu(ToplevelMenuElement::SettingsMenu,
                                         SettingsMenuElement::Settings,
-                                        std::bind(&SettingsView::exec,
-                                                  qobject_cast<Application*> (parent())->settings()->view()));
-    */
+                                        [this] () { m_context.settings.view().exec(); });
     ////// About /////
     m_menubar.addActionIntoToplevelMenu(ToplevelMenuElement::AboutMenu,
                                         AboutMenuElement::About, [] () {

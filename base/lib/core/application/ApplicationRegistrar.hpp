@@ -14,7 +14,7 @@ class DocumentDelegateFactory;
 class FactoryListInterface;
 class GUIApplicationContextPlugin;
 class PanelFactory;
-class SettingsDelegateFactoryInterface;
+class SettingsDelegateFactory;
 struct ApplicationComponentsData;
 class View;
 class MenubarManager;
@@ -29,7 +29,6 @@ class ISCORE_LIB_BASE_EXPORT ApplicationRegistrar : public QObject
                 ApplicationComponentsData&,
                 const iscore::ApplicationContext&,
                 iscore::View&,
-                Settings&,
                 MenubarManager&,
                 std::vector<OrderedToolbar>&,
                 QObject* panelPresenterParent);
@@ -38,12 +37,10 @@ class ISCORE_LIB_BASE_EXPORT ApplicationRegistrar : public QObject
         void registerPlugins(const QStringList&, const std::vector<iscore::Plugin_QtInterface*>& vec);
         void registerApplicationContextPlugin(GUIApplicationContextPlugin*);
         void registerPanel(PanelFactory*);
-        void registerDocumentDelegate(DocumentDelegateFactory*);
         void registerCommands(std::unordered_map<CommandParentFactoryKey, CommandGeneratorMap>&& cmds);
         void registerCommands(std::pair<CommandParentFactoryKey, CommandGeneratorMap>&& cmds);
         void registerFactories(std::unordered_map<iscore::AbstractFactoryKey, std::unique_ptr<FactoryListInterface>>&& cmds);
         void registerFactory(std::unique_ptr<FactoryListInterface> cmds);
-        void registerSettings(SettingsDelegateFactoryInterface*);
 
         auto& components() const
         { return m_components; }
@@ -52,7 +49,6 @@ class ISCORE_LIB_BASE_EXPORT ApplicationRegistrar : public QObject
         ApplicationComponentsData& m_components;
         const iscore::ApplicationContext& m_context;
         iscore::View& m_view;
-        Settings& m_settings;
         MenubarManager& m_menubar;
         std::vector<OrderedToolbar>& m_toolbars;
         QObject* m_panelPresenterParent{};

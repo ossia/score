@@ -3,9 +3,7 @@
 
 #include <iscore/plugins/qt_interfaces/SettingsDelegateFactoryInterface_QtInterface.hpp>
 
-iscore_plugin_pluginsettings::iscore_plugin_pluginsettings() :
-    QObject {},
-iscore::SettingsDelegateFactoryInterface_QtInterface {}
+iscore_plugin_pluginsettings::iscore_plugin_pluginsettings()
 {
 }
 
@@ -15,10 +13,13 @@ iscore_plugin_pluginsettings::~iscore_plugin_pluginsettings()
 }
 
 //////////////////////////
+
+/*
 iscore::SettingsDelegateFactoryInterface* iscore_plugin_pluginsettings::settings_make()
 {
     return new PluginSettings::PluginSettingsFactory;
 }
+*/
 
 iscore::Version iscore_plugin_pluginsettings::version() const
 {
