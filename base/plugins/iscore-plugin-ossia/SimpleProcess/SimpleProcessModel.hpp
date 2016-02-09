@@ -4,7 +4,7 @@
 #include <QString>
 #include <memory>
 
-#include <Process/ProcessFactoryKey.hpp>
+
 #include <Process/TimeValue.hpp>
 #include "SimpleProcess/SimpleProcess.hpp"
 #include <iscore/selection/Selection.hpp>
@@ -54,9 +54,9 @@ class SimpleProcessModel final : public Process::ProcessModel
         QString prettyName() const override;
         QByteArray makeLayerConstructionData() const override;
 
-        ProcessFactoryKey concreteFactoryKey() const override
+        UuidKey<Process::ProcessFactory>concreteFactoryKey() const override
         {
-            static const ProcessFactoryKey name{"0107dfb7-dcab-45c3-b7b8-e824c0fe49a1"};
+            static const UuidKey<Process::ProcessFactory>name{"0107dfb7-dcab-45c3-b7b8-e824c0fe49a1"};
             return name;
         }
 

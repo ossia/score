@@ -3,7 +3,7 @@
 #include <QByteArray>
 #include <QString>
 
-#include <Process/ProcessFactoryKey.hpp>
+
 #include <Process/TimeValue.hpp>
 
 namespace Process {
@@ -26,7 +26,7 @@ class ScenarioFactory final :
 {
     public:
         ScenarioFactory(Scenario::EditionSettings&);
-        const ProcessFactoryKey& concreteFactoryKey() const override;
+        const UuidKey<Process::ProcessFactory>& concreteFactoryKey() const override;
         QString prettyName() const override;
 
         Process::ProcessModel* makeModel(

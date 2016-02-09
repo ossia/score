@@ -45,11 +45,12 @@ void SelectionStack::push(const Selection& selection)
             if(*it) ++it;
             else it = s.erase(it);
         }
-        for(const IdentifiedObjectAbstract* obj : s)
-        {
+
+        Foreach(s, [&] (auto obj) {
             connect(obj,  &IdentifiedObjectAbstract::identified_object_destroyed,
                     this, &SelectionStack::prune);
-        }
+        });
+
         m_unselectable.push(s);
 
         if(m_unselectable.size() > 50)
@@ -91,38 +92,47 @@ Selection SelectionStack::currentSelection() const
 
 void SelectionStack::prune(IdentifiedObjectAbstract* p)
 {
-    for(Selection& sel : m_unselectable)
-    { // OPTIMIZEME should be removeOne
-        sel.removeAll(p);
-
-        for(auto it = sel.begin(); it != sel.end();)
+    {
+        int n = m_unselectable.size();
+        for(int i = 0; i < n; i++)
         {
-            // We prune the QPointer that might have been invalidated.
-            // This is because if we remove multiple elements at the same time
-            // some might still be in the list after the first destroyed() call; they will be refreshed and may lead to crashes.
-            if((*it).isNull())
+            Selection& sel = m_unselectable[i];
+            // OPTIMIZEME should be removeOne
+            sel.removeAll(p);
+
+            for(auto it = sel.begin(); it != sel.end();)
             {
-                it = sel.erase(it);
-            }
-            else
-            {
-                ++it;
+                // We prune the QPointer that might have been invalidated.
+                // This is because if we remove multiple elements at the same time
+                // some might still be in the list after the first destroyed() call; they will be refreshed and may lead to crashes.
+                if((*it).isNull())
+                {
+                    it = sel.erase(it);
+                }
+                else
+                {
+                    ++it;
+                }
             }
         }
     }
 
-    for(Selection& sel : m_reselectable)
     {
-        sel.removeAll(p);
-        for(auto it = sel.begin(); it != sel.end();)
+        int n = m_reselectable.size();
+        for(int i = 0; i < n; i++)
         {
-            if((*it).isNull())
+            Selection& sel = m_reselectable[i];
+            sel.removeAll(p);
+            for(auto it = sel.begin(); it != sel.end();)
             {
-                it = sel.erase(it);
-            }
-            else
-            {
-                ++it;
+                if((*it).isNull())
+                {
+                    it = sel.erase(it);
+                }
+                else
+                {
+                    ++it;
+                }
             }
         }
     }

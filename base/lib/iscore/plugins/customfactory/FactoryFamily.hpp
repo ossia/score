@@ -4,6 +4,7 @@
 #include <iscore/tools/ForEachType.hpp>
 #include <iscore/tools/std/Pointer.hpp>
 #include <iscore/tools/std/Algorithms.hpp>
+#include <iscore/tools/Todo.hpp>
 
 #include <boost/multi_index_container.hpp>
 #include <boost/multi_index/hashed_index.hpp>
@@ -88,8 +89,8 @@ class ConcreteFactoryList :
                         bmi::hashed_unique<
                             bmi::const_mem_fun<
                                 iscore::GenericFactoryInterface<typename FactoryType::ConcreteFactoryKey>,
-                                typename FactoryType::ConcreteFactoryKey,
-                                &FactoryType::template key_value<typename FactoryType::ConcreteFactoryKey>
+                                add_cref_t<typename FactoryType::ConcreteFactoryKey>,
+                                &FactoryType::template key<typename FactoryType::ConcreteFactoryKey>
                             >
                         >
                     >

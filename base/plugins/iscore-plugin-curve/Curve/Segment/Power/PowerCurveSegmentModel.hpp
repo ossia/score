@@ -2,7 +2,7 @@
 #include <boost/optional/optional.hpp>
 #include <QVariant>
 
-#include <Curve/Segment/CurveSegmentFactoryKey.hpp>
+
 #include <Curve/Segment/CurveSegmentModel.hpp>
 #include <iscore/serialization/VisitorInterface.hpp>
 
@@ -14,26 +14,22 @@ namespace Curve
 struct SegmentData;
 struct ISCORE_PLUGIN_CURVE_EXPORT PowerSegmentData
 {
-        static const SegmentFactoryKey& static_concreteFactoryKey();
-
-        static const QString prettyName()
-        { return QObject::tr("Power"); }
-
         double gamma;
 };
 
-class ISCORE_PLUGIN_CURVE_EXPORT PowerSegment final : public SegmentModel
+class ISCORE_PLUGIN_CURVE_EXPORT PowerSegment final :
+        public Segment<PowerSegment>
 {
     public:
         using data_type = PowerSegmentData;
-        using SegmentModel::SegmentModel;
+        using Segment<PowerSegment>::Segment;
         PowerSegment(
                 const SegmentData& dat,
                 QObject* parent);
 
         template<typename Impl>
         PowerSegment(Deserializer<Impl>& vis, QObject* parent) :
-            SegmentModel {vis, parent}
+             Segment<PowerSegment> {vis, parent}
         {
             vis.writeTo(*this);
         }
@@ -44,7 +40,6 @@ class ISCORE_PLUGIN_CURVE_EXPORT PowerSegment final : public SegmentModel
                 const Id<SegmentModel>& id,
                 QObject* parent) const override;
 
-        SegmentFactoryKey concreteFactoryKey() const override;
         void serialize_impl(const VisitorVariant& vis) const override;
         void on_startChanged() override;
         void on_endChanged() override;
@@ -62,4 +57,11 @@ class ISCORE_PLUGIN_CURVE_EXPORT PowerSegment final : public SegmentModel
 
 };
 }
+CURVE_SEGMENT_METADATA(
+        ISCORE_PLUGIN_CURVE_EXPORT,
+        Curve::PowerSegment,
+        "1e7cb83f-4e47-4b14-814d-2242a9c75991",
+        "Power",
+        "Power")
+
 Q_DECLARE_METATYPE(Curve::PowerSegmentData)

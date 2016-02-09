@@ -17,10 +17,4 @@ QList<ScenarioActions *> ScenarioCommonActionsFactory::make(ScenarioApplicationP
         new TransportActions(iscore::ToplevelMenuElement::PlayMenu, ctrl)
     };
 }
-
-const ScenarioActionsFactoryKey&ScenarioCommonActionsFactory::concreteFactoryKey() const
-{
-    static const ScenarioActionsFactoryKey fact{"f6ac9feb-4ffd-4fab-93d4-b5834a078c6e"};
-    return fact;
-}
 }

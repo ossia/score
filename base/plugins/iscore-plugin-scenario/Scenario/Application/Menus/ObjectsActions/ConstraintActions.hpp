@@ -3,11 +3,13 @@
 #include <Scenario/Application/Menus/ScenarioActions.hpp>
 #include <iscore/menu/MenuInterface.hpp>
 #include <iscore/command/Dispatchers/CommandDispatcher.hpp>
-#include <Process/ProcessFactoryKey.hpp>
 
+namespace Process
+{
+class ProcessFactory;
+}
 namespace Scenario
 {
-
 class AddProcessDialog;
 class ConstraintActions final : public ScenarioActions
 {
@@ -21,7 +23,7 @@ class ConstraintActions final : public ScenarioActions
     QList<QAction*> actions() const override;
 
     private:
-    void addProcessInConstraint(const ProcessFactoryKey&);
+    void addProcessInConstraint(const UuidKey<Process::ProcessFactory>&);
 
     CommandDispatcher<> dispatcher();
 

@@ -6,7 +6,7 @@
 #include <QByteArray>
 #include <QString>
 
-#include <Process/ProcessFactoryKey.hpp>
+
 #include <Process/TimeValue.hpp>
 #include <iscore/serialization/VisitorInterface.hpp>
 
@@ -69,7 +69,7 @@ class ISCORE_PLUGIN_AUTOMATION_EXPORT ProcessModel final : public Curve::CurvePr
 
     private:
         //// ProcessModel ////
-        ProcessFactoryKey concreteFactoryKey() const override;
+        UuidKey<Process::ProcessFactory>concreteFactoryKey() const override;
 
         Process::LayerModel* makeLayer_impl(
                 const Id<Process::LayerModel>& viewModelId,

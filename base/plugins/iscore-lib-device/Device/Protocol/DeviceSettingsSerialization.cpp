@@ -8,7 +8,6 @@
 #include <QString>
 #include <QVariant>
 
-#include <Device/Protocol/ProtocolFactoryKey.hpp>
 #include "DeviceSettings.hpp"
 #include "ProtocolFactoryInterface.hpp"
 #include <iscore/application/ApplicationContext.hpp>
@@ -66,8 +65,8 @@ ISCORE_LIB_DEVICE_EXPORT void Visitor<Writer<DataStream>>::writeTo(Device::Devic
 template<>
 ISCORE_LIB_DEVICE_EXPORT void Visitor<Reader<JSONObject>>::readFrom(const Device::DeviceSettings& n)
 {
-    m_obj["Name"] = n.name;
-    m_obj["Protocol"] = toJsonValue(n.protocol);
+    m_obj[iscore::StringConstant().Name] = n.name;
+    m_obj[iscore::StringConstant().Protocol] = toJsonValue(n.protocol);
 
     auto& pl = context.components.factory<Device::DynamicProtocolList>();
     auto prot = pl.get(n.protocol);
@@ -84,8 +83,8 @@ ISCORE_LIB_DEVICE_EXPORT void Visitor<Reader<JSONObject>>::readFrom(const Device
 template<>
 ISCORE_LIB_DEVICE_EXPORT void Visitor<Writer<JSONObject>>::writeTo(Device::DeviceSettings& n)
 {
-    n.name = m_obj["Name"].toString();
-    n.protocol = fromJsonValue<Device::ProtocolFactoryKey>(m_obj["Protocol"]);
+    n.name = m_obj[iscore::StringConstant().Name].toString();
+    n.protocol = fromJsonValue<UuidKey<Device::ProtocolFactory>>(m_obj[iscore::StringConstant().Protocol]);
 
     auto& pl = context.components.factory<Device::DynamicProtocolList>();
     auto prot = pl.get(n.protocol);

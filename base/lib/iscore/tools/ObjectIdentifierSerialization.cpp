@@ -31,17 +31,17 @@ void Visitor<Writer<DataStream>>::writeTo(ObjectIdentifier& obj)
 template<>
 void Visitor<Reader<JSONObject>>::readFrom(const ObjectIdentifier& obj)
 {
-    m_obj["ObjectName"] = obj.objectName();
-    m_obj["ObjectId"] = toJsonObject(obj.id());
+    m_obj[iscore::StringConstant().ObjectName] = obj.objectName();
+    m_obj[iscore::StringConstant().ObjectId] = toJsonObject(obj.id());
 }
 
 template<>
 void Visitor<Writer<JSONObject>>::writeTo(ObjectIdentifier& obj)
 {
-    auto name = m_obj["ObjectName"].toString();
+    auto name = m_obj[iscore::StringConstant().ObjectName].toString();
 
     boost::optional<int32_t> id;
-    fromJsonObject(m_obj["ObjectId"].toObject(), id);
+    fromJsonObject(m_obj[iscore::StringConstant().ObjectId].toObject(), id);
 
     obj = ObjectIdentifier{name, id};
 }

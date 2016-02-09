@@ -14,10 +14,10 @@ namespace Scenario
 class ConstraintModel;
 
 class ISCORE_PLUGIN_SCENARIO_EXPORT ConstraintInspectorDelegateFactory :
-        public iscore::GenericFactoryInterface<UuidKey<ConstraintInspectorDelegate>>
+        public iscore::AbstractFactory<ConstraintInspectorDelegateFactory>
 {
          ISCORE_ABSTRACT_FACTORY_DECL(
-                 ConstraintInspectorDelegate,
+                 ConstraintInspectorDelegateFactory,
                  "e9ae0303-b616-4953-b148-88d2dda5ac45")
     public:
         virtual ~ConstraintInspectorDelegateFactory();

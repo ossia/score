@@ -9,7 +9,7 @@ class ConstraintModel;
 class ScenarioDocumentPresenter;
 
 class DisplayedElementsToolPaletteFactory :
-        public iscore::GenericFactoryInterface<UuidKey<DisplayedElementsToolPaletteFactory>>
+        public iscore::AbstractFactory<DisplayedElementsToolPaletteFactory>
 {
          ISCORE_ABSTRACT_FACTORY_DECL(
                  DisplayedElementsToolPaletteFactory,

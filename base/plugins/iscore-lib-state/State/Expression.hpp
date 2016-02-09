@@ -277,3 +277,10 @@ ISCORE_LIB_STATE_EXPORT boost::optional<State::Expression> parseExpression(const
 ISCORE_LIB_STATE_EXPORT boost::optional<State::Value> parseValue(const QString& str);
 }
 
+JSON_METADATA(State::Address, "Address")
+JSON_METADATA(State::AddressAccessor, "AddressAccessor")
+JSON_METADATA(State::Value, "Value")
+JSON_METADATA(State::Relation, "Relation")
+JSON_METADATA(State::Pulse, "Pulse")
+JSON_METADATA(State::UnaryOperator, "UnOp")
+JSON_METADATA(State::BinaryOperator, "BinOp")

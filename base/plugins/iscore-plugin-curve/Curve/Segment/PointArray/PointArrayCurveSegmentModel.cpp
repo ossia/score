@@ -46,9 +46,9 @@ SegmentModel*PointArraySegment::clone(
     return cs;
 }
 
-SegmentFactoryKey PointArraySegment::concreteFactoryKey() const
+UuidKey<Curve::SegmentFactory> PointArraySegment::concreteFactoryKey() const
 {
-    static const SegmentFactoryKey name{"c598b840-db67-4c8f-937a-46cfac87cb59"};
+    static const UuidKey<Curve::SegmentFactory> name{"c598b840-db67-4c8f-937a-46cfac87cb59"};
     return name;
 }
 
@@ -198,7 +198,8 @@ std::vector<SegmentData> PointArraySegment::toLinearSegments() const
     vec.emplace_back(Id<SegmentModel>{0},
                      pts[0], pts[1],
                      Id<SegmentModel>{}, Id<SegmentModel>{},
-                     LinearSegmentData::static_concreteFactoryKey(), QVariant::fromValue(LinearSegmentData{}));
+                     Metadata<ConcreteFactoryKey_k, LinearSegment>::get(),
+                     QVariant::fromValue(LinearSegmentData{}));
 
     int size = pts.size();
     for(int i = 1; i < size - 1; i++)
@@ -208,7 +209,8 @@ std::vector<SegmentData> PointArraySegment::toLinearSegments() const
         vec.emplace_back(Id<SegmentModel>{i},
                          pts[i], pts[i+1],
                          Id<SegmentModel>{i-1}, Id<SegmentModel>{},
-                         LinearSegmentData::static_concreteFactoryKey(), QVariant::fromValue(LinearSegmentData()));
+                         Metadata<ConcreteFactoryKey_k, LinearSegment>::get(),
+                         QVariant::fromValue(LinearSegmentData()));
     }
 
     return vec;

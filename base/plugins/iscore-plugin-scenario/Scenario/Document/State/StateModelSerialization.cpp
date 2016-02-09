@@ -10,7 +10,7 @@
 #include <algorithm>
 
 #include <Process/ProcessList.hpp>
-#include <Process/ProcessModelSerialization.hpp>
+
 #include <Process/ModelMetadata.hpp>
 #include <Process/State/MessageNode.hpp>
 #include <Scenario/Document/State/ItemModel/MessageItemModel.hpp>

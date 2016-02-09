@@ -2,7 +2,7 @@
 #include <boost/optional/optional.hpp>
 #include <QVariant>
 
-#include <Curve/Segment/CurveSegmentFactoryKey.hpp>
+
 #include <Curve/Segment/CurveSegmentModel.hpp>
 #include <iscore/serialization/VisitorInterface.hpp>
 
@@ -15,17 +15,14 @@ namespace Curve
 struct GammaSegmentData
 {
     double gamma;
-
-    static const SegmentFactoryKey& static_concreteFactoryKey();
-    static const QString prettyName()
-    { return QObject::tr("Gamma"); }
 };
 
-class GammaSegment final : public SegmentModel
+class GammaSegment final :
+        public Segment<GammaSegment>
 {
     public:
         using data_type = GammaSegmentData;
-        using SegmentModel::SegmentModel;
+        using Segment<GammaSegment>::Segment;
         GammaSegment(
                 const SegmentData& dat,
                 QObject* parent);
@@ -41,7 +38,6 @@ class GammaSegment final : public SegmentModel
                 const Id<SegmentModel>& id,
                 QObject* parent) const override;
 
-        SegmentFactoryKey concreteFactoryKey() const override;
         void serialize_impl(const VisitorVariant& vis) const override;
         void on_startChanged() override;
         void on_endChanged() override;
@@ -60,5 +56,11 @@ class GammaSegment final : public SegmentModel
         double gamma = 0.5;
 };
 }
+CURVE_SEGMENT_METADATA(
+        ISCORE_PLUGIN_CURVE_EXPORT,
+        Curve::GammaSegment,
+        "a8bd14e2-d7e4-47cd-b76a-6a88fa11f0d2",
+        "Gamma",
+        "Gamma")
 
 Q_DECLARE_METATYPE(Curve::GammaSegmentData)

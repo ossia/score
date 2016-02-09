@@ -16,14 +16,11 @@ set(PROCESS_HDRS
 "${CMAKE_CURRENT_SOURCE_DIR}/Process/ModelMetadata.hpp"
 "${CMAKE_CURRENT_SOURCE_DIR}/Process/ProcessContext.hpp"
 "${CMAKE_CURRENT_SOURCE_DIR}/Process/ProcessFactory.hpp"
-"${CMAKE_CURRENT_SOURCE_DIR}/Process/ProcessFactoryKey.hpp"
 "${CMAKE_CURRENT_SOURCE_DIR}/Process/Process.hpp"
 "${CMAKE_CURRENT_SOURCE_DIR}/Process/ProcessMetadata.hpp"
 "${CMAKE_CURRENT_SOURCE_DIR}/Process/ProcessList.hpp"
-"${CMAKE_CURRENT_SOURCE_DIR}/Process/ProcessModelSerialization.hpp"
 "${CMAKE_CURRENT_SOURCE_DIR}/Process/State/MessageNode.hpp"
 "${CMAKE_CURRENT_SOURCE_DIR}/Process/StateProcessFactory.hpp"
-"${CMAKE_CURRENT_SOURCE_DIR}/Process/StateProcessFactoryKey.hpp"
 "${CMAKE_CURRENT_SOURCE_DIR}/Process/StateProcess.hpp"
 "${CMAKE_CURRENT_SOURCE_DIR}/Process/State/ProcessStateDataInterface.hpp"
 "${CMAKE_CURRENT_SOURCE_DIR}/Process/Style/ProcessFonts.hpp"
@@ -41,7 +38,6 @@ set(PROCESS_HDRS
 "${CMAKE_CURRENT_SOURCE_DIR}/Process/Inspector/ProcessInspectorWidget.hpp"
 )
 set(PROCESS_SRCS
-"${CMAKE_CURRENT_SOURCE_DIR}/Process/TimeValueSerialization.cpp"
 "${CMAKE_CURRENT_SOURCE_DIR}/Process/ModelMetadataSerialization.cpp"
 "${CMAKE_CURRENT_SOURCE_DIR}/Process/ProcessModelSerialization.cpp"
 "${CMAKE_CURRENT_SOURCE_DIR}/Process/LayerModelSerialization.cpp"

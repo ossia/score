@@ -31,7 +31,6 @@
 #include <Device/ItemModels/NodeBasedItemModel.hpp>
 #include <Device/Protocol/DeviceList.hpp>
 #include <Device/Protocol/DeviceSettings.hpp>
-#include <Device/Protocol/ProtocolFactoryKey.hpp>
 #include "DeviceExplorerMimeTypes.hpp"
 #include "DeviceExplorerModel.hpp"
 #include "DeviceExplorerView.hpp"
