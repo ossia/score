@@ -22,14 +22,12 @@ ApplicationRegistrar::ApplicationRegistrar(
         ApplicationComponentsData& comp,
         const iscore::ApplicationContext& ctx,
         iscore::View& view,
-        Settings& set,
         MenubarManager& menubar,
         std::vector<OrderedToolbar>& toolbars,
         QObject* panelPresenterParent):
     m_components{comp},
     m_context{ctx},
     m_view{view},
-    m_settings{set},
     m_menubar{menubar},
     m_toolbars{toolbars},
     m_panelPresenterParent{panelPresenterParent}
@@ -83,13 +81,6 @@ void ApplicationRegistrar::registerPanel(
 }
 
 ISCORE_LIB_BASE_EXPORT
-void ApplicationRegistrar::registerDocumentDelegate(
-        DocumentDelegateFactory* docpanel)
-{
-    m_components.availableDocuments.push_back(docpanel);
-}
-
-ISCORE_LIB_BASE_EXPORT
 void ApplicationRegistrar::registerCommands(
         std::unordered_map<CommandParentFactoryKey, CommandGeneratorMap>&& cmds)
 {
@@ -115,13 +106,5 @@ void ApplicationRegistrar::registerFactory(std::unique_ptr<FactoryListInterface>
 {
     m_components.factories.insert(std::make_pair(cmds->abstractFactoryKey(), std::move(cmds)));
 }
-
-ISCORE_LIB_BASE_EXPORT
-void ApplicationRegistrar::registerSettings(SettingsDelegateFactoryInterface* set)
-{
-    m_settings.setupSettingsPlugin(set);
-}
-
-
 
 }

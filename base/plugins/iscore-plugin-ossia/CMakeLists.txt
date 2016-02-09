@@ -54,6 +54,11 @@ set(HDRS
     "${CMAKE_CURRENT_SOURCE_DIR}/OSSIA/Executor/TimeNodeElement.hpp"
     "${CMAKE_CURRENT_SOURCE_DIR}/OSSIA/Executor/ConstraintElement.hpp"
 
+    "${CMAKE_CURRENT_SOURCE_DIR}/OSSIA/Executor/Settings/Model.hpp"
+    "${CMAKE_CURRENT_SOURCE_DIR}/OSSIA/Executor/Settings/Presenter.hpp"
+    "${CMAKE_CURRENT_SOURCE_DIR}/OSSIA/Executor/Settings/View.hpp"
+    "${CMAKE_CURRENT_SOURCE_DIR}/OSSIA/Executor/Settings/Factory.hpp"
+
     "${CMAKE_CURRENT_SOURCE_DIR}/OSSIA/Listening/PlayListeningHandler.hpp"
     "${CMAKE_CURRENT_SOURCE_DIR}/OSSIA/Listening/PlayListeningHandlerFactory.hpp"
 
@@ -110,6 +115,11 @@ set(SRCS
 "${CMAKE_CURRENT_SOURCE_DIR}/OSSIA/Executor/DocumentPlugin.cpp"
 "${CMAKE_CURRENT_SOURCE_DIR}/OSSIA/Executor/TimeNodeElement.cpp"
 "${CMAKE_CURRENT_SOURCE_DIR}/OSSIA/Executor/ConstraintElement.cpp"
+
+"${CMAKE_CURRENT_SOURCE_DIR}/OSSIA/Executor/Settings/Model.cpp"
+"${CMAKE_CURRENT_SOURCE_DIR}/OSSIA/Executor/Settings/Presenter.cpp"
+"${CMAKE_CURRENT_SOURCE_DIR}/OSSIA/Executor/Settings/View.cpp"
+"${CMAKE_CURRENT_SOURCE_DIR}/OSSIA/Executor/Settings/Factory.cpp"
 
 "${CMAKE_CURRENT_SOURCE_DIR}/OSSIA/Listening/PlayListeningHandler.cpp"
 "${CMAKE_CURRENT_SOURCE_DIR}/OSSIA/Listening/PlayListeningHandlerFactory.cpp"

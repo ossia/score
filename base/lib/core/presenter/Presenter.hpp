@@ -30,6 +30,7 @@ namespace iscore
         public:
             Presenter(
                     const iscore::ApplicationSettings& app,
+                    const iscore::Settings& set,
                     iscore::View* view,
                     QObject* parent);
 

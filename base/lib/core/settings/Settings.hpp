@@ -3,7 +3,7 @@
 
 #include <iscore_lib_base_export.h>
 namespace iscore {
-class SettingsDelegateFactoryInterface;
+class SettingsDelegateFactory;
 class SettingsModel;
 class SettingsPresenter;
 class SettingsView;
@@ -32,19 +32,19 @@ namespace iscore
             Settings(QObject* parent);
             ~Settings();
 
-            void setupSettingsPlugin(SettingsDelegateFactoryInterface* plugin);
-            SettingsView*  view()
+            void setupSettingsPlugin(SettingsDelegateFactory& plugin);
+            SettingsView& view() const
             {
-                return m_settingsView;
+                return *m_settingsView;
             }
-            SettingsModel* model()
+            SettingsModel& model() const
             {
-                return m_settingsModel;
+                return *m_settingsModel;
             }
 
         private:
-            SettingsModel* m_settingsModel;
-            SettingsView* m_settingsView;
-            SettingsPresenter* m_settingsPresenter;
-    };
+            SettingsModel* m_settingsModel{};
+            SettingsView* m_settingsView{};
+            SettingsPresenter* m_settingsPresenter{};
+    } ;
 }
