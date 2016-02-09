@@ -168,7 +168,6 @@ class ISCORE_PLUGIN_SCENARIO_EXPORT MergeEvents<ScenarioModel> : public iscore::
         {
             movingEvent.removeState(stateId);
             destinationEvent.addState(stateId);
-            qDebug() << scenar.state(stateId).eventId();
             scenar.states.at(stateId).setEventId(m_destinationEventId);
         }
 
