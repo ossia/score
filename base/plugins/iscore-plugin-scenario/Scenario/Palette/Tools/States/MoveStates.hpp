@@ -16,8 +16,8 @@
 namespace Scenario
 {
 
-// TODO a nice refactor is doable here between the three classes.
-// TODO rename in MoveConstraint_State for hmoegeneity with ClickOnConstraint_Transition,  etc.
+// TODO a nice refactor is doable here between the four classes.
+// TODO rename in MoveConstraint_State for homoegeneity with ClickOnConstraint_Transition,  etc.
 template<
         typename MoveConstraintCommand_T, // MoveConstraint
         typename Scenario_T,
@@ -207,8 +207,9 @@ class MoveEventState final : public StateBase<Scenario_T>
 
                 QState* onlyMoving = new QState{mainState};
                 QState* mergingOnTimeNode = new QState{mainState};
-                QState* rollbackMerging = new QState{mainState};
                 QState* mergingOnEvent = new QState{mainState};
+
+                QState* rollbackMerging = new QState{mainState};
 
                 QState* releaseOnTn = new QState{mainState};
 
@@ -216,8 +217,8 @@ class MoveEventState final : public StateBase<Scenario_T>
                 mainState->setInitialState(pressed);
                 released->addTransition(finalState);
 
-                releaseOnTn->addTransition(finalState);
                 rollbackMerging->addTransition(onlyMoving);
+                releaseOnTn->addTransition(finalState);
 
 
                 // ***************************************
@@ -236,8 +237,8 @@ class MoveEventState final : public StateBase<Scenario_T>
                 iscore::make_transition<MoveOnTimeNode_Transition<Scenario_T>>(
                             onlyMoving, mergingOnTimeNode, *this);
 
-                iscore::make_transition<MoveOnEvent_Transition<Scenario_T>>(
-                            onlyMoving, mergingOnEvent, *this);
+//                iscore::make_transition<MoveOnEvent_Transition<Scenario_T>>(
+//                            onlyMoving, mergingOnEvent, *this);
 
                 iscore::make_transition<ReleaseOnAnything_Transition>(
                             onlyMoving, released);
@@ -259,7 +260,11 @@ class MoveEventState final : public StateBase<Scenario_T>
                 {
                     auto& scenar = stateMachine.model();
                     // If we came here through a state.
-                    Id<EventModel> evId = scenar.state(this->clickedState).eventId();
+                    Id<EventModel> evId{this->clickedEvent};
+                    if(!bool(evId) && bool(this->clickedState))
+                    {
+                        evId = scenar.state(this->clickedState).eventId();
+                    }
                     Id<TimeNodeModel> tnId = scenar.event(evId).timeNode();
 
                     if(tnId != this->hoveredTimeNode)
@@ -284,7 +289,6 @@ class MoveEventState final : public StateBase<Scenario_T>
 
                 QObject::connect(mergingOnEvent, &QState::entered, [&] ()
                 {
-                    m_movingDispatcher.rollback();
                     auto& scenar = stateMachine.model();
                     // If we came here through a state.
                     Id<EventModel> evId{this->clickedEvent};
@@ -294,7 +298,10 @@ class MoveEventState final : public StateBase<Scenario_T>
                     }
 
                     if(evId != this->hoveredEvent)
+                    {
+                        m_movingDispatcher.rollback();
                         qDebug() << "MEEEERGE on event :" << this->hoveredEvent ;
+                    }
                 });
 
                 QObject::connect(onlyMoving, &QState::entered, [&] ()
