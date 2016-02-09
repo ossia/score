@@ -9,8 +9,6 @@
 #include <Scenario/Commands/Scenario/Creations/CreateEvent_State.hpp>
 
 
-#include <Scenario/Commands/TimeNode/MergeTimeNodes.hpp>
-
 #include <Scenario/Palette/Transitions/NothingTransitions.hpp>
 #include <Scenario/Palette/Transitions/AnythingTransitions.hpp>
 #include <Scenario/Palette/Transitions/StateTransitions.hpp>
