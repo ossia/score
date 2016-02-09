@@ -198,5 +198,3 @@ class ISCORE_PLUGIN_SCENARIO_EXPORT MergeTimeNodes<ScenarioModel> : public iscor
 }
 
 ISCORE_COMMAND_DECL_T(Scenario::Command::MergeTimeNodes<Scenario::ScenarioModel>)
-#include <Scenario/Document/BaseScenario/BaseScenario.hpp>
-ISCORE_COMMAND_DECL_T(Scenario::Command::MergeTimeNodes<Scenario::BaseScenario>)

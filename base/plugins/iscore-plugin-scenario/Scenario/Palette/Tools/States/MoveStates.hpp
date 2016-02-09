@@ -9,6 +9,7 @@
 #include <Scenario/Process/Algorithms/Accessors.hpp>
 
 #include <Scenario/Commands/Scenario/Merge/MergeTimeNodes.hpp>
+#include <Scenario/Commands/Scenario/Merge/MergeEvents.hpp>
 
 #include <iscore/command/Dispatchers/SingleOngoingCommandDispatcher.hpp>
 #include <iscore/locking/ObjectLocker.hpp>
@@ -194,7 +195,8 @@ class MoveEventState final : public StateBase<Scenario_T>
                        QState* parent):
             StateBase<Scenario_T>{scenarioPath, parent},
             m_movingDispatcher{stack},
-            m_mergingTnDispatcher{stack}
+            m_mergingTnDispatcher{stack},
+            m_mergingEventDispatcher{stack}
         {
             this->setObjectName("MoveEventState");
             using namespace Scenario::Command ;
@@ -209,16 +211,21 @@ class MoveEventState final : public StateBase<Scenario_T>
                 QState* mergingOnTimeNode = new QState{mainState};
                 QState* mergingOnEvent = new QState{mainState};
 
-                QState* rollbackMerging = new QState{mainState};
+                QState* rollbackTnMerging = new QState{mainState};
+                QState* rollbackEventMerging = new QState{mainState};
 
                 QState* releaseOnTn = new QState{mainState};
+                QState* releaseOnEvent = new QState{mainState};
 
                 // General setup
                 mainState->setInitialState(pressed);
                 released->addTransition(finalState);
 
-                rollbackMerging->addTransition(onlyMoving);
+                rollbackTnMerging->addTransition(onlyMoving);
+                rollbackEventMerging->addTransition(onlyMoving);
+
                 releaseOnTn->addTransition(finalState);
+                releaseOnEvent->addTransition(finalState);
 
 
                 // ***************************************
@@ -237,21 +244,23 @@ class MoveEventState final : public StateBase<Scenario_T>
                 iscore::make_transition<MoveOnTimeNode_Transition<Scenario_T>>(
                             onlyMoving, mergingOnTimeNode, *this);
 
-//                iscore::make_transition<MoveOnEvent_Transition<Scenario_T>>(
-//                            onlyMoving, mergingOnEvent, *this);
+                iscore::make_transition<MoveOnEvent_Transition<Scenario_T>>(
+                            onlyMoving, mergingOnEvent, *this);
 
                 iscore::make_transition<ReleaseOnAnything_Transition>(
                             onlyMoving, released);
 
                 // rollback merging
                 iscore::make_transition<MoveOnAnythingButTimeNode_Transition<Scenario_T>>(
-                            mergingOnTimeNode, rollbackMerging, *this);
+                            mergingOnTimeNode, rollbackTnMerging, *this);
                 iscore::make_transition<MoveOnAnythingButEvent_Transition<Scenario_T>>(
-                            mergingOnEvent, onlyMoving, *this);
+                            mergingOnEvent, rollbackEventMerging, *this);
 
                 // commit merging
                 iscore::make_transition<ReleaseOnAnything_Transition>(
                             mergingOnTimeNode, releaseOnTn);
+                iscore::make_transition<ReleaseOnAnything_Transition>(
+                            mergingOnEvent, releaseOnEvent);
 
                 // ********************************************
                 // What happens in each state.
@@ -278,7 +287,7 @@ class MoveEventState final : public StateBase<Scenario_T>
                     }
 
                 });
-                QObject::connect(rollbackMerging, &QState::entered, [&] ()
+                QObject::connect(rollbackTnMerging, &QState::entered, [&] ()
                 {
                     m_mergingTnDispatcher.rollback();
                 });
@@ -291,17 +300,35 @@ class MoveEventState final : public StateBase<Scenario_T>
                 {
                     auto& scenar = stateMachine.model();
                     // If we came here through a state.
-                    Id<EventModel> evId{this->clickedEvent};
-                    if(!bool(evId) && bool(this->clickedState))
+                    Id<EventModel> clickedEvId{this->clickedEvent};
+                    if(!bool(clickedEvId) && bool(this->clickedState))
                     {
-                        evId = scenar.state(this->clickedState).eventId();
+                        clickedEvId = scenar.state(this->clickedState).eventId();
                     }
 
-                    if(evId != this->hoveredEvent)
+                    Id<EventModel> destinationEvId{this->hoveredEvent};
+                    if(!bool(destinationEvId) && bool(this->hoveredState))
+                    {
+                        destinationEvId = scenar.state(this->hoveredState).eventId();
+                    }
+
+                    if(clickedEvId != destinationEvId)
                     {
                         m_movingDispatcher.rollback();
-                        qDebug() << "MEEEERGE on event :" << this->hoveredEvent ;
+
+                        m_mergingEventDispatcher.submitCommand(
+                                    Path<Scenario_T>{this->m_scenarioPath},
+                                    clickedEvId,
+                                    destinationEvId);
                     }
+                });
+                QObject::connect(rollbackTnMerging, &QState::entered, [&] ()
+                {
+                    m_mergingEventDispatcher.rollback();
+                });
+                QObject::connect(releaseOnEvent, &QState::entered, [&] ()
+                {
+                    m_mergingEventDispatcher.commit();
                 });
 
                 QObject::connect(onlyMoving, &QState::entered, [&] ()
@@ -375,6 +402,8 @@ class MoveEventState final : public StateBase<Scenario_T>
 
         SingleOngoingCommandDispatcher<MoveEventCommand_T> m_movingDispatcher;
         SingleOngoingCommandDispatcher<Command::MergeTimeNodes<Scenario_T>> m_mergingTnDispatcher;
+        SingleOngoingCommandDispatcher<Command::MergeEvents<Scenario_T>> m_mergingEventDispatcher;
+
         boost::optional<TimeValue> m_pressedPrevious;
 };
 
