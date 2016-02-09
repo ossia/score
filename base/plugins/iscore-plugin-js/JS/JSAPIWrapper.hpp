@@ -81,8 +81,8 @@ inline QJSValue message(
         const State::Message& mess)
 {
     auto obj = engine.newObject();
-    obj.setProperty("address", address(mess.address));
-    obj.setProperty("value", value(engine, mess.value));
+    obj.setProperty(iscore::StringConstant().address, address(mess.address));
+    obj.setProperty(iscore::StringConstant().value, value(engine, mess.value));
     return obj;
 }
 
@@ -155,8 +155,8 @@ inline State::Message message(const QJSValue& val)
 {
     if(val.isObject())
     {
-        auto iscore_addr = val.property("address");
-        auto iscore_val = val.property("value");
+        auto iscore_addr = val.property(iscore::StringConstant().address);
+        auto iscore_val = val.property(iscore::StringConstant().value);
         if(iscore_addr.isString())
         {
             return {State::Address::fromString(iscore_addr.toString()), value(iscore_val)};

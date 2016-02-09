@@ -2,14 +2,16 @@
 #include <QString>
 #include <QVariant>
 #include <iscore/tools/Todo.hpp>
-
-#include <Device/Protocol/ProtocolFactoryKey.hpp>
-
+#include <iscore/tools/Metadata.hpp>
+#include <iscore/plugins/customfactory/UuidKey.hpp>
 namespace Device {
+class ProtocolFactory;
 struct DeviceSettings
 {
-        ProtocolFactoryKey protocol;
+        UuidKey<Device::ProtocolFactory> protocol;
         QString name;
         QVariant deviceSpecificSettings;
 };
 }
+
+JSON_METADATA(Device::DeviceSettings, "DeviceSettings")

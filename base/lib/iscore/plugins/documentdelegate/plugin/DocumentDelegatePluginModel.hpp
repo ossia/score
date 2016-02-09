@@ -72,7 +72,7 @@ class ISCORE_LIB_BASE_EXPORT SerializableDocumentPlugin :
 
 
 class ISCORE_LIB_BASE_EXPORT DocumentPluginFactory :
-        public iscore::GenericFactoryInterface<UuidKey<DocumentPluginFactory>>
+        public iscore::AbstractFactory<DocumentPluginFactory>
 {
         ISCORE_ABSTRACT_FACTORY_DECL(
                 DocumentPluginFactory,

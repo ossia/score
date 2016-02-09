@@ -29,12 +29,11 @@ class InspectorWidgetBase;
      * in the inspector.
      *
      */
-using InspectorWidgetKey = UuidKey<InspectorWidgetBase>;
 class ISCORE_LIB_INSPECTOR_EXPORT InspectorWidgetFactory :
-        public iscore::GenericFactoryInterface<InspectorWidgetKey>
+        public iscore::AbstractFactory<InspectorWidgetFactory>
 {
         ISCORE_ABSTRACT_FACTORY_DECL(
-                InspectorWidgetBase,
+                InspectorWidgetFactory,
                 "e7098592-7e2f-400d-9b71-2628d7276f99")
     public:
         virtual ~InspectorWidgetFactory();

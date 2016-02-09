@@ -91,21 +91,21 @@ class ScenarioElement final : public ProcessComponent
 class ScenarioComponentFactory final :
         public ProcessComponentFactory
 {
-    public:
-        virtual ~ScenarioComponentFactory();
-        virtual ProcessComponent* make(
+        ISCORE_CONCRETE_FACTORY_DECL("b2b19e28-cd49-470f-ba70-b1703689218f")
+        ProcessComponent* make(
                 ConstraintElement& cst,
                 Process::ProcessModel& proc,
                 const Context& ctx,
                 const Id<iscore::Component>& id,
                 QObject* parent) const override;
 
-        const ConcreteFactoryKey& concreteFactoryKey() const override;
-
         bool matches(
                 Process::ProcessModel&,
                 const DocumentPlugin&,
                 const iscore::DocumentContext &) const override;
+
+    public:
+        virtual ~ScenarioComponentFactory();
 };
 
 }

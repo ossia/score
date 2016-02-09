@@ -6,6 +6,7 @@
 #include "ClipMode.hpp"
 #include "Domain.hpp"
 #include <State/Message.hpp>
+#include <iscore/tools/Metadata.hpp>
 #include <iscore_lib_device_export.h>
 namespace Device
 {
@@ -75,3 +76,5 @@ inline bool operator!=(
     return !(lhs == rhs);
 }
 }
+
+JSON_METADATA(Device::AddressSettings, "AddressSettings")

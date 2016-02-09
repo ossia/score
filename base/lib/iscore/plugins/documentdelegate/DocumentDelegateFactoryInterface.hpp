@@ -20,7 +20,7 @@ struct ApplicationContext;
      * The interface required to create a custom main document (like MS Word's main page)
      */
 class ISCORE_LIB_BASE_EXPORT DocumentDelegateFactory :
-        public iscore::GenericFactoryInterface<UuidKey<DocumentDelegateFactory>>
+        public iscore::AbstractFactory<DocumentDelegateFactory>
 {
         ISCORE_ABSTRACT_FACTORY_DECL(
                 DocumentDelegateFactory,

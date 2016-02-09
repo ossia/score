@@ -8,6 +8,7 @@
 ////////////////////////////////////////////////
 class ISCORE_LIB_BASE_EXPORT NamedObject : public QObject
 {
+        Q_OBJECT
     public:
         template<typename... Args>
         NamedObject(const QString& name, QObject* parent, Args&& ... args) :

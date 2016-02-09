@@ -8,10 +8,10 @@ namespace iscore
 struct DocumentContext;
 }
 class ISCORE_LIB_PROCESS_EXPORT ProcessInspectorWidgetDelegateFactory :
-        public iscore::GenericFactoryInterface<UuidKey<ProcessInspectorWidgetDelegate>>
+        public iscore::AbstractFactory<ProcessInspectorWidgetDelegateFactory>
 {
          ISCORE_ABSTRACT_FACTORY_DECL(
-                 ProcessInspectorWidgetDelegate,
+                 ProcessInspectorWidgetDelegateFactory,
                  "75a45c5e-24ab-4ebb-ba57-195254a6847f")
     public:
         virtual ~ProcessInspectorWidgetDelegateFactory();

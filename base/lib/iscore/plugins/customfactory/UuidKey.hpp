@@ -2,6 +2,7 @@
 #include <boost/uuid/uuid.hpp>
 #include <boost/uuid/string_generator.hpp>
 #include <boost/functional/hash.hpp>
+#include <iscore/tools/Todo.hpp>
 #include <iscore_lib_base_export.h>
 
 #include <iscore/serialization/DataStreamVisitor.hpp>
@@ -19,6 +20,7 @@ class ISCORE_LIB_BASE_EXPORT UuidKey : iscore::uuid_t
 
         friend struct std::hash<this_type>;
         friend struct boost::hash<this_type>;
+        friend struct boost::hash<const this_type>;
         friend bool operator==(const this_type& lhs, const this_type& rhs) {
             return static_cast<const iscore::uuid_t&>(lhs) == static_cast<const iscore::uuid_t&>(rhs);
         }
@@ -71,6 +73,13 @@ namespace boost
 {
 template<typename T>
 struct hash<UuidKey<T>>
+{
+        std::size_t operator()(const UuidKey<T>& kagi) const noexcept
+        { return boost::hash<boost::uuids::uuid>()(static_cast<const iscore::uuid_t&>(kagi)); }
+};
+
+template<typename T>
+struct hash<const UuidKey<T>>
 {
         std::size_t operator()(const UuidKey<T>& kagi) const noexcept
         { return boost::hash<boost::uuids::uuid>()(static_cast<const iscore::uuid_t&>(kagi)); }

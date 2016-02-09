@@ -114,7 +114,7 @@ class NodeTest: public QObject
         {
             Device::Node root;
 
-            Device::DeviceSettings dev_base{Device::ProtocolFactoryKey{"NoProtocol"}, "ADevice", {}};
+            Device::DeviceSettings dev_base{UuidKey<Device::ProtocolFactory>{"NoProtocol"}, "ADevice", {}};
             auto& dev = root.emplace_back(std::move(dev_base), nullptr);
 
             ISCORE_ASSERT(root.childCount() == 1);
@@ -122,7 +122,7 @@ class NodeTest: public QObject
             ISCORE_ASSERT(&dev == &root.children()[0]);
             ISCORE_ASSERT(&dev == &root.childAt(0));
 
-            auto& dev_2 = root.emplace_back(Device::DeviceSettings{Device::ProtocolFactoryKey{"Bla"}, "OtherDevice", {}}, nullptr);
+            auto& dev_2 = root.emplace_back(Device::DeviceSettings{UuidKey<Device::ProtocolFactory>{"Bla"}, "OtherDevice", {}}, nullptr);
             ISCORE_ASSERT(root.childCount() == 2);
             ISCORE_ASSERT(dev_2.parent() == &root);
 
@@ -165,7 +165,6 @@ class NodeTest: public QObject
 QTEST_MAIN(NodeTest)
 #include <Device/Address/AddressSettings.hpp>
 #include <Device/Protocol/DeviceSettings.hpp>
-#include <Device/Protocol/ProtocolFactoryKey.hpp>
 #include "NodeTest.moc"
 #include <iscore/tools/TreeNode.hpp>
 

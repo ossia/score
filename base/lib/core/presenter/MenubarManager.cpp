@@ -82,7 +82,7 @@ void MenubarManager::insertActionIntoMenubar(PositionedMenuAction actionToInsert
         });
 
         // A submenu of a part of the name already exists.
-        if(act_it != menu->actions().end())
+        if(act_it != menu_actions.end())
         {
             QAction* act = *act_it;
             recurse(act->menu(), base_path_lst);

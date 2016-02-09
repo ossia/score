@@ -3,7 +3,7 @@
 #include <QList>
 #include <QPoint>
 
-#include <Process/ProcessFactoryKey.hpp>
+
 #include "ScenarioActions.hpp"
 #include <iscore/command/Dispatchers/CommandDispatcher.hpp>
 #include <iscore/menu/MenuInterface.hpp>

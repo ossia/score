@@ -6,7 +6,7 @@
 #include <QString>
 #include <memory>
 
-#include <Process/ProcessFactoryKey.hpp>
+
 #include <Process/TimeValue.hpp>
 #include <iscore/selection/Selection.hpp>
 #include <iscore/serialization/VisitorInterface.hpp>
@@ -55,7 +55,7 @@ class ProcessModel final : public Process::ProcessModel
                 const Id<Process::ProcessModel>& newId,
                 QObject* newParent) const override;
 
-        ProcessFactoryKey concreteFactoryKey() const override
+        UuidKey<Process::ProcessFactory>concreteFactoryKey() const override
         {
             return Metadata<ConcreteFactoryKey_k, ProcessModel>::get();
         }

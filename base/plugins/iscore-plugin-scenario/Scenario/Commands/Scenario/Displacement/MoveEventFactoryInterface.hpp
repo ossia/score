@@ -17,7 +17,7 @@ namespace Command
 {
 class SerializableMoveEvent;
 class ISCORE_PLUGIN_SCENARIO_EXPORT MoveEventFactoryInterface :
-        public iscore::GenericFactoryInterface<UuidKey<MoveEventFactoryInterface>>
+        public iscore::AbstractFactory<MoveEventFactoryInterface>
 {
         ISCORE_ABSTRACT_FACTORY_DECL(
                 MoveEventFactoryInterface,

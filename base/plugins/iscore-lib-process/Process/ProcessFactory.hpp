@@ -1,5 +1,5 @@
 #pragma once
-#include <Process/ProcessFactoryKey.hpp>
+
 #include <Process/TimeValue.hpp>
 #include <iscore/plugins/customfactory/FactoryInterface.hpp>
 #include <QByteArray>
@@ -25,10 +25,10 @@ class ProcessModel;
      */
 
 class ISCORE_LIB_PROCESS_EXPORT ProcessFactory :
-        public iscore::GenericFactoryInterface<ProcessFactoryKey>
+        public iscore::AbstractFactory<ProcessFactory>
 {
         ISCORE_ABSTRACT_FACTORY_DECL(
-                ProcessModel,
+                ProcessFactory,
                 "507ae654-f3b8-4aae-afc3-7ab8e1a3a86f")
     public:
         virtual ~ProcessFactory();

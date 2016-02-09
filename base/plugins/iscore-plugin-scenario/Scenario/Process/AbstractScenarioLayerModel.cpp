@@ -98,10 +98,11 @@ void createConstraintViewModels(const ConstraintViewModelIdMap& idMap,
     {
         auto lm_id = iscore::IDocument::path(*viewModel);
 
-        if(idMap.contains(lm_id))
+        auto it = idMap.constFind(lm_id);
+        if(it != idMap.constEnd())
         {
             viewModel->makeConstraintViewModel(constraintId,
-                                               idMap[lm_id]);
+                                               *it);
         }
         else
         {

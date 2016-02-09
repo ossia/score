@@ -61,7 +61,7 @@ ScenarioFactory::makeLayerPresenter(
     return nullptr;
 }
 
-const ProcessFactoryKey& ScenarioFactory::concreteFactoryKey() const
+const UuidKey<Process::ProcessFactory>& ScenarioFactory::concreteFactoryKey() const
 {
     return Metadata<ConcreteFactoryKey_k, Scenario::ProcessModel>::get();
 }

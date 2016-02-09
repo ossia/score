@@ -1,7 +1,6 @@
-
-#include <QIODevice>
-
 #include "DataStreamVisitor.hpp"
+#include <iscore/application/ApplicationContext.hpp>
+#include <QIODevice>
 
 template <typename T> class Reader;
 template <typename T> class Writer;

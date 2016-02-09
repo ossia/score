@@ -20,8 +20,9 @@ namespace State
 
         path.first().remove(":");
 
-        for(const auto& fragment : path)
+        Foreach(path, [&] (const auto& fragment) {
             valid &= validateFragment(fragment);
+        });
 
         return valid;
     }

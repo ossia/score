@@ -502,7 +502,7 @@ void Presenter::removeSelection()
                 });
 }
 
-void Presenter::updateSegmentsType(const SegmentFactoryKey& segment)
+void Presenter::updateSegmentsType(const UuidKey<Curve::SegmentFactory>& segment)
 {
     // They keep their start / end and previous / following but change type.
     auto factory = m_curveSegments.get(segment);
