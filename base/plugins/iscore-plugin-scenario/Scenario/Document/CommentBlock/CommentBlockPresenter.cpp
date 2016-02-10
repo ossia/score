@@ -48,11 +48,6 @@ const TimeValue&CommentBlockPresenter::date() const
     return model().date();
 }
 
-void CommentBlockPresenter::pressed(const QPointF& pos)
-{
-    m_clickedPoint = pos;
-}
-
 void CommentBlockPresenter::on_zoomRatioChanged(ZoomRatio newRatio)
 {
     m_view->setPos(m_model.date().toPixels(newRatio), m_view->pos().y());
