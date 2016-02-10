@@ -249,7 +249,7 @@ bool DocumentManager::saveDocument(Document& doc)
 {
     auto savename = doc.metadata.fileName();
 
-    if(savename == tr("Untitled"))
+    if(savename.indexOf(tr("Untitled")) == 0)
     {
         saveDocumentAs(doc);
     }
