@@ -1,5 +1,6 @@
 #pragma once
 #include <QObject>
+#include <iscore/command/Dispatchers/SettingsCommandDispatcher.hpp>
 #include <core/settings/SettingsPresenter.hpp>
 #include <iscore_lib_base_export.h>
 
@@ -23,8 +24,15 @@ namespace iscore
             {}
 
             virtual ~SettingsDelegatePresenterInterface();
-            virtual void on_accept() = 0;
-            virtual void on_reject() = 0;
+            void on_accept()
+            {
+                m_disp.commit();
+            }
+
+            void on_reject()
+            {
+                m_disp.rollback();
+            }
 
             virtual QString settingsName() = 0;
             virtual QIcon settingsIcon() = 0;
@@ -44,5 +52,7 @@ namespace iscore
         protected:
             SettingsDelegateModelInterface& m_model;
             SettingsDelegateViewInterface& m_view;
+
+            iscore::SettingsCommandDispatcher m_disp;
     };
 }

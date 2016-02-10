@@ -22,12 +22,18 @@ namespace iscore
 
         public:
             virtual ~SettingsDelegateFactory();
+            SettingsDelegatePresenterInterface* makePresenter(
+                    iscore::SettingsDelegateModelInterface& m,
+                    iscore::SettingsDelegateViewInterface& v,
+                    QObject* parent);
             virtual SettingsDelegateViewInterface* makeView() = 0;
-            virtual SettingsDelegatePresenterInterface* makePresenter(
+            virtual SettingsDelegateModelInterface* makeModel() = 0;
+
+        protected:
+            virtual SettingsDelegatePresenterInterface* makePresenter_impl(
                     iscore::SettingsDelegateModelInterface& m,
                     iscore::SettingsDelegateViewInterface& v,
                     QObject* parent) = 0;
-            virtual SettingsDelegateModelInterface* makeModel() = 0;
     };
 
     class ISCORE_LIB_BASE_EXPORT SettingsDelegateFactoryList final :

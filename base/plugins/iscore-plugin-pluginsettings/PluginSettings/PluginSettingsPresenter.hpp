@@ -25,9 +25,7 @@ class PluginSettingsPresenter : public iscore::SettingsDelegatePresenterInterfac
                 iscore::SettingsDelegateViewInterface& view,
                 QObject* parent);
 
-        void on_accept() override;
-        void on_reject() override;
-
+    private:
         QString settingsName() override
         {
             return tr("Plugin");
@@ -35,16 +33,6 @@ class PluginSettingsPresenter : public iscore::SettingsDelegatePresenterInterfac
 
         QIcon settingsIcon() override;
 
-        void load();
-        PluginSettingsModel& model();
-        PluginSettingsView& view();
 
-    public slots:
-        void setBlacklistCommand(BlacklistCommand* cmd);
-
-    private:
-
-        // S'il y avait plusieurs contrôles chaque contrôle devrait avoir sa "commande".
-        iscore::Command* m_blacklistCommand {nullptr};
 };
 }

@@ -21,19 +21,4 @@ QWidget* PluginSettingsView::getWidget()
 {
     return m_widget;
 }
-
-void PluginSettingsView::load()
-{
-
-}
-
-void PluginSettingsView::doConnections()
-{
-
-}
-
-PluginSettingsPresenter* PluginSettingsView::presenter()
-{
-    return static_cast<PluginSettingsPresenter*>(m_presenter);
-}
 }
