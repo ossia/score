@@ -1,9 +1,13 @@
 #pragma once
 
-#include <QGraphicsTextItem>
+#include <QGraphicsObject>
+
+#include <QPointF>
 
 namespace Scenario
 {
+class TextItem;
+
 class CommentBlockPresenter;
 class CommentBlockView final : public QGraphicsObject
 {
@@ -38,11 +42,14 @@ class CommentBlockView final : public QGraphicsObject
         void mouseDoubleClickEvent(QGraphicsSceneMouseEvent *evt) override;
 
     private:
-        void SetTextInteraction(bool on, bool selectAll = false);
+        void focusOnText();
+        void focusOut();
 
         CommentBlockPresenter& m_presenter;
 
-        QGraphicsTextItem* m_textItem{};
+        TextItem* m_textItem{};
         bool m_selected{false};
+
+        QPointF m_clickedPoint{};
 };
 }

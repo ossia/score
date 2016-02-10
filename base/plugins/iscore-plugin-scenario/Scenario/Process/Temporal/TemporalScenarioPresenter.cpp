@@ -417,7 +417,7 @@ void TemporalScenarioPresenter::on_commentBlockCreated(const CommentBlockModel& 
 
 
     // Selection
-    connect(cmt_pres, &CommentBlockPresenter::doubleClicked,
+    connect(cmt_pres, &CommentBlockPresenter::selected,
             this, [&] ()
     {
         m_selectionDispatcher.setAndCommit({&comment_block_model});
