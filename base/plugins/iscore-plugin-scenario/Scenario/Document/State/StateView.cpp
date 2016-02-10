@@ -26,7 +26,6 @@ StateView::StateView(StatePresenter& pres, QGraphicsItem* parent) :
 
 void StateView::paint(QPainter *painter, const QStyleOptionGraphicsItem *option, QWidget *widget)
 {
-
     QBrush temporalPointBrush = m_selected ? ScenarioStyle::instance().StateSelected : ScenarioStyle::instance().StateDot;
     QBrush stateBrush = m_baseColor;
     QPen statePen;
@@ -45,7 +44,6 @@ void StateView::paint(QPainter *painter, const QStyleOptionGraphicsItem *option,
         break;
     }
 
-
     if(m_containMessage)
     {
         painter->setBrush(stateBrush);
@@ -56,8 +54,6 @@ void StateView::paint(QPainter *painter, const QStyleOptionGraphicsItem *option,
     qreal r = m_radiusPoint;
     painter->drawEllipse({0., 0.}, r, r);
 
-
-    this->setScale(m_dilatationFactor);
 
 
 
@@ -77,8 +73,7 @@ void StateView::setContainMessage(bool arg)
 void StateView::setSelected(bool arg)
 {
     m_selected = arg;
-    m_dilatationFactor = m_selected ? 1.5 : 1;
-    update();
+    setDilatation(m_selected ? 1.5 : 1);
 }
 
 void StateView::changeColor(const QColor & c)
@@ -122,21 +117,26 @@ void StateView::hoverLeaveEvent(QGraphicsSceneHoverEvent* event)
 //    m_dilatationFactor = m_selected ? 1.5 : 1;
     update();
 }
-
 void StateView::dragEnterEvent(QGraphicsSceneDragDropEvent* event)
 {
-    m_dilatationFactor = 1.5;
-    update();
+    setDilatation(1.5);
 }
 
 void StateView::dragLeaveEvent(QGraphicsSceneDragDropEvent* event)
 {
-    m_dilatationFactor = m_selected ? 1.5 : 1;
-    update();
+    setDilatation(m_selected ? 1.5 : 1);
 }
+
 
 void StateView::dropEvent(QGraphicsSceneDragDropEvent *event)
 {
     emit dropReceived(event->mimeData());
+}
+
+void StateView::setDilatation(double val)
+{
+    m_dilatationFactor = val;
+    this->setScale(m_dilatationFactor);
+    update();
 }
 }
