@@ -21,7 +21,7 @@ Model::Model()
     m_rate = s.value(Keys::rate).toInt();
 }
 
-int Model::rate() const
+int Model::getRate() const
 {
     return m_rate;
 }
@@ -42,6 +42,7 @@ void Model::setFirstTimeSettings()
 {
     QSettings s;
     s.setValue(Keys::rate, 50);
+    m_rate = 50;
 }
 
 }

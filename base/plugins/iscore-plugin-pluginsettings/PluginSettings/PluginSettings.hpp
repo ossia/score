@@ -27,7 +27,7 @@ class PluginSettingsFactory : public iscore::SettingsDelegateFactory
         // SettingsGroup interface
     public:
         iscore::SettingsDelegateViewInterface* makeView() override;
-        iscore::SettingsDelegatePresenterInterface* makePresenter(
+        iscore::SettingsDelegatePresenterInterface* makePresenter_impl(
                 iscore::SettingsDelegateModelInterface& m,
                 iscore::SettingsDelegateViewInterface& v,
                 QObject* parent) override;
