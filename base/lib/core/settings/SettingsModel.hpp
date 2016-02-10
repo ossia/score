@@ -20,8 +20,11 @@ namespace iscore
             void addSettingsModel(SettingsDelegateModelInterface* model)
             {
                 model->setParent(this);
-                m_pluginModels.insert(model);
+                m_settings.push_back(model);
             }
+
+            auto& settings() const
+            { return m_settings; }
 
         protected:
             void childEvent(QChildEvent* ev) override
@@ -30,6 +33,6 @@ namespace iscore
             }
 
         private:
-            std::set<SettingsDelegateModelInterface*> m_pluginModels;
+            std::vector<SettingsDelegateModelInterface*> m_settings;
     };
 }

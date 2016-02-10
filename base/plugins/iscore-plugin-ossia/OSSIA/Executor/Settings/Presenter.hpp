@@ -16,10 +16,6 @@ class Presenter :
         Presenter(Model&, View&, QObject* parent);
 
     private:
-        void on_rateChanged(int);
-
-        void on_accept() override;
-        void on_reject() override;
         QString settingsName() override;
         QIcon settingsIcon() override;
 };

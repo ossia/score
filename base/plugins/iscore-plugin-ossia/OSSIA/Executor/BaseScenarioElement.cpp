@@ -21,6 +21,7 @@
 #include <Scenario/Document/Constraint/ConstraintModel.hpp>
 
 #include <OSSIA/Executor/ExecutorContext.hpp>
+#include <OSSIA/Executor/Settings/Model.hpp>
 
 
 namespace RecreateOnPlay
@@ -70,6 +71,7 @@ BaseScenarioElement::BaseScenarioElement(
 
     // TODO put graphical settings somewhere.
     main_constraint->setSpeed(1.);
+    main_constraint->setGranularity(ctx.doc.app.settings<Settings::Model>().getRate());
 
     m_ossia_startTimeNode = new TimeNodeElement{main_start_node, element.startTimeNode(),  m_ctx.devices.list(), this};
     m_ossia_endTimeNode = new TimeNodeElement{main_end_node, element.endTimeNode(), m_ctx.devices.list(), this};
