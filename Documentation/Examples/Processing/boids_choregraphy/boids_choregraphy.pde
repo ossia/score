@@ -188,6 +188,7 @@ void oscEvent(OscMessage osc_msg)
     {
       float cohesion = osc_msg.get(0).floatValue();
       flock.setCohesion(cohesion);
+      println("### " + osc_msg.addrPattern());
     }
   } else if (osc_msg.checkAddrPattern("/flock/distance/min"))
   {
