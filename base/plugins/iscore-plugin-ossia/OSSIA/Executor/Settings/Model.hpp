@@ -1,6 +1,7 @@
 #pragma once
 #include <iscore/plugins/settingsdelegate/SettingsDelegateModelInterface.hpp>
 
+
 namespace RecreateOnPlay
 {
 namespace Settings
@@ -9,28 +10,29 @@ namespace Settings
 struct Keys
 {
         static const QString rate;
-        static constexpr const char * rate_property = "rate";
 };
 
 class Model :
         public iscore::SettingsDelegateModelInterface
 {
         Q_OBJECT
-        Q_PROPERTY(int rate READ rate WRITE setRate NOTIFY rateChanged)
+        Q_PROPERTY(int rate READ getRate WRITE setRate NOTIFY rateChanged)
 
     public:
         Model();
 
-        int rate() const;
-        void setRate(int rate);
+        int getRate() const;
+        void setRate(int getRate);
 
     signals:
-        void rateChanged(int rate);
+        void rateChanged(int getRate);
 
     private:
         void setFirstTimeSettings() override;
         int m_rate = 50;
 };
+
+ISCORE_SETTINGS_PARAMETER(Model, Rate)
 
 }
 }

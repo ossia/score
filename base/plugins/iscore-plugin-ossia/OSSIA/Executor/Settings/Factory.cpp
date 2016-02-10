@@ -12,7 +12,7 @@ iscore::SettingsDelegateViewInterface* Factory::makeView()
     return new View;
 }
 
-iscore::SettingsDelegatePresenterInterface* Factory::makePresenter(
+iscore::SettingsDelegatePresenterInterface* Factory::makePresenter_impl(
         iscore::SettingsDelegateModelInterface& m,
         iscore::SettingsDelegateViewInterface& v,
         QObject* parent)

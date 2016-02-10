@@ -3,15 +3,15 @@
 
 iscore::ApplicationContext::ApplicationContext(
         const iscore::ApplicationSettings& app,
-        const iscore::Settings& set,
         const iscore::ApplicationComponents& c,
         iscore::DocumentManager& d,
-        iscore::MenubarManager& m):
+        iscore::MenubarManager& m,
+        const std::vector<iscore::SettingsDelegateModelInterface*>& set):
     applicationSettings{app},
-    settings{set},
     components{c},
     documents{d},
-    menuBar{m}
+    menuBar{m},
+    m_settings{set}
 {
 
 }

@@ -26,9 +26,7 @@ namespace iscore
             virtual void undo() const = 0;
             virtual void redo() const = 0;
 
-            virtual const CommandParentFactoryKey& parentKey() const = 0;
             virtual const CommandFactoryKey& key() const = 0;
-            virtual QString description() const = 0;
 
         protected:
             quint32 timestamp() const;

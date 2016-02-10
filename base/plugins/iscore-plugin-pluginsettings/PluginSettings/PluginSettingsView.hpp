@@ -20,12 +20,8 @@ class PluginSettingsView : public iscore::SettingsDelegateViewInterface
         }
 
         QWidget* getWidget() override;
-        void load();
-        void doConnections();
 
     private:
-        PluginSettingsPresenter* presenter();
-
         QWidget* m_widget {new QWidget};
         QListView* m_listView {new QListView{m_widget}};
 };

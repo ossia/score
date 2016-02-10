@@ -24,6 +24,9 @@ class ISCORE_LIB_BASE_EXPORT SerializableCommand : public Command
         QByteArray serialize() const;
         void deserialize(const QByteArray&);
 
+        virtual const CommandParentFactoryKey& parentKey() const = 0;
+        virtual QString description() const = 0;
+
     protected:
         virtual void serializeImpl(DataStreamInput&) const = 0;
         virtual void deserializeImpl(DataStreamOutput&) = 0;
