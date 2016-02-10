@@ -23,7 +23,7 @@ TestApplication::TestApplication(int &argc, char **argv):
 
     // MVP
     m_view = new iscore::View{nullptr};
-    m_presenter = new iscore::Presenter{m_applicationSettings, m_view, this};
+    m_presenter = new iscore::Presenter{m_applicationSettings, *m_settings, m_view, this};
     auto& ctx = m_presenter->applicationContext();
 
     // Plugins
@@ -31,7 +31,6 @@ TestApplication::TestApplication(int &argc, char **argv):
         m_presenter->components(),
                 ctx,
                 *m_view,
-                *m_settings,
                 m_presenter->menuBar(),
                 m_presenter->toolbars(),
                 m_presenter};
