@@ -59,6 +59,7 @@ class ISCORE_PLUGIN_SCENARIO_EXPORT  StateView final : public QGraphicsObject
 
         void dropEvent(QGraphicsSceneDragDropEvent *event) override;
     private:
+        void setDilatation(double);
         StatePresenter& m_presenter;
 
         bool m_containMessage{false};
