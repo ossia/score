@@ -112,8 +112,9 @@ void ProcessTabWidget::displaySharedProcess(const Process::ProcessModel& process
     }
 
     // delete process
-    newProc->enableDelete();
-    connect(newProc, &Inspector::InspectorSectionWidget::deletePressed,
+
+    auto delAct = newProc->menu()->addAction(tr("Remove Process"));
+    connect(delAct, &QAction::triggered,
             this, [=,id=process.id()] ()
         {
             auto cmd = new Command::RemoveProcessFromConstraint{iscore::IDocument::path(m_constraintWidget.model()), id};

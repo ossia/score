@@ -26,11 +26,13 @@ class StateInspectorWidget final : public Inspector::InspectorWidgetBase
         Inspector::InspectorSectionWidget& stateSection()
         { return *m_stateSection; }
 
+    public slots:
+        void splitEvent();
+
     private:
         QString tabName() override;
 
         void updateDisplayedValues();
-        void splitEvent();
 
         std::list<QWidget*> m_properties;
 

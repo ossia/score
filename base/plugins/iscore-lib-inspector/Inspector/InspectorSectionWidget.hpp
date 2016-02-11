@@ -45,14 +45,12 @@ class ISCORE_LIB_INSPECTOR_EXPORT InspectorSectionWidget : public QWidget
 
         void removeAll();
 
-        void enableDelete();
         void showMenu(bool b);
 
         QVBoxLayout* containerLayout() { return m_containerLayout;}
 
     signals:
         void nameChanged(QString newName);
-        void deletePressed();
 
     protected:
         virtual QWidget* titleWidget();

@@ -170,7 +170,9 @@ void EventInspectorWidget::addState(const StateModel& state)
     sw->hide(); // TODO UGLY : we create a state (inspectorbase) just to extract the section ...
     auto& section = sw->stateSection();
     section.showMenu(true);
-    section.enableDelete();
+    auto split = section.menu()->addAction(tr("Put in new Event"));
+    connect(split, &QAction::triggered,
+            sw, &StateInspectorWidget::splitEvent, Qt::QueuedConnection);
 
     m_states.push_back(sw);
     m_statesWidget->layout()->addWidget(&section);
