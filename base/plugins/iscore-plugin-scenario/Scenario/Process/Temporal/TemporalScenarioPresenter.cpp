@@ -332,8 +332,8 @@ void TemporalScenarioPresenter::on_eventCreated(const EventModel& event_model)
             this, [=] () { m_viewInterface.on_hoverOnEvent(ev_pres->id(), false); });
 
     // For the state machine
-    connect(ev_pres, &EventPresenter::pressed, m_view, &TemporalScenarioView::pressed);
-    connect(ev_pres, &EventPresenter::moved, m_view, &TemporalScenarioView::moved);
+    connect(ev_pres, &EventPresenter::pressed, m_view, &TemporalScenarioView::pressedAsked);
+    connect(ev_pres, &EventPresenter::moved, m_view, &TemporalScenarioView::movedAsked);
     connect(ev_pres, &EventPresenter::released, m_view, &TemporalScenarioView::released);
 }
 
@@ -350,8 +350,8 @@ void TemporalScenarioPresenter::on_timeNodeCreated(const TimeNodeModel& timeNode
             this, [=] (const TimeValue&) { m_viewInterface.on_timeNodeMoved(*tn_pres); });
 
     // For the state machine
-    connect(tn_pres, &TimeNodePresenter::pressed, m_view, &TemporalScenarioView::pressed);
-    connect(tn_pres, &TimeNodePresenter::moved, m_view, &TemporalScenarioView::moved);
+    connect(tn_pres, &TimeNodePresenter::pressed, m_view, &TemporalScenarioView::pressedAsked);
+    connect(tn_pres, &TimeNodePresenter::moved, m_view, &TemporalScenarioView::movedAsked);
     connect(tn_pres, &TimeNodePresenter::released, m_view, &TemporalScenarioView::released);
 }
 
@@ -366,8 +366,8 @@ void TemporalScenarioPresenter::on_stateCreated(const StateModel &state)
             this, [=] () { m_viewInterface.on_stateMoved(*st_pres); });
 
     // For the state machine
-    connect(st_pres, &StatePresenter::pressed, m_view, &TemporalScenarioView::pressed);
-    connect(st_pres, &StatePresenter::moved, m_view, &TemporalScenarioView::moved);
+    connect(st_pres, &StatePresenter::pressed, m_view, &TemporalScenarioView::pressedAsked);
+    connect(st_pres, &StatePresenter::moved, m_view, &TemporalScenarioView::movedAsked);
     connect(st_pres, &StatePresenter::released, m_view, &TemporalScenarioView::released);
 }
 
@@ -395,8 +395,8 @@ void TemporalScenarioPresenter::on_constraintViewModelCreated(const TemporalCons
             [=] () { m_viewInterface.on_hoverOnConstraint(cst_pres->model().id(), false); });
 
     // For the state machine
-    connect(cst_pres, &TemporalConstraintPresenter::pressed, m_view, &TemporalScenarioView::pressed);
-    connect(cst_pres, &TemporalConstraintPresenter::moved, m_view, &TemporalScenarioView::moved);
+    connect(cst_pres, &TemporalConstraintPresenter::pressed, m_view, &TemporalScenarioView::pressedAsked);
+    connect(cst_pres, &TemporalConstraintPresenter::moved, m_view, &TemporalScenarioView::movedAsked);
     connect(cst_pres, &TemporalConstraintPresenter::released, m_view, &TemporalScenarioView::released);
 }
 
