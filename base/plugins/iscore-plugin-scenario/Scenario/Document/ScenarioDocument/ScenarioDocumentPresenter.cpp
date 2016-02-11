@@ -288,7 +288,7 @@ void ScenarioDocumentPresenter::updateZoom(ZoomRatio newZoom, QPointF focus)
     qreal center = focus.x();
     if (focus.isNull())
     {
-        //   center = visible_scene_rect.center().x();
+           center = visible_scene_rect.center().x();
     }
     else if (focus.x() - visible_scene_rect.left() < 40)
     {
