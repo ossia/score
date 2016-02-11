@@ -70,7 +70,7 @@ class ComponentFactory final :
         ISCORE_COMPONENT_FACTORY(RecreateOnPlay::ProcessComponentFactory, RecreateOnPlay::Loop::ComponentFactory)
     public:
         virtual ~ComponentFactory();
-        virtual ProcessComponent* make(
+        ProcessComponent* make(
                 ConstraintElement& cst,
                 Process::ProcessModel& proc,
                 const Context& ctx,
