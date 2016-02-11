@@ -22,6 +22,7 @@ public:
             const Path<Scenario::ScenarioModel>& scenarioPath,
             const Id<EventModel>& eventId,
             const TimeValue& newDate,
+            double y,
             ExpandMode mode) = 0;
 
     virtual

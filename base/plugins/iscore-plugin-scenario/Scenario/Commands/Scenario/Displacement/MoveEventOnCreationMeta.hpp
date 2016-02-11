@@ -44,7 +44,7 @@ private:
 
     // SerializableMoveEvent interface
 public:
-    void update(const Path<Scenario::ScenarioModel>& scenarioPath, const Id<EventModel>& eventId, const TimeValue& newDate, ExpandMode mode) override;
+    void update(const Path<Scenario::ScenarioModel>& scenarioPath, const Id<EventModel>& eventId, const TimeValue& newDate, double, ExpandMode mode) override;
 };
 }
 }

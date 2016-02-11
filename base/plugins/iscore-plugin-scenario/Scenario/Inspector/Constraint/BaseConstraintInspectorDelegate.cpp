@@ -78,6 +78,7 @@ void BaseConstraintInspectorDelegate::on_defaultDurationChanged(
                 scenario,
                 scenario.endEvent().id(),
                 val,
+                0.,
                 expandmode);
 }
 }
