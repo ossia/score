@@ -115,18 +115,6 @@ void StateInspectorWidget::updateDisplayedValues()
 
     m_stateSection->addContent(linkWidget);
 
-    auto scenarModel = dynamic_cast<const Scenario::ScenarioModel*>(m_model.parent());
-    if(scenarModel)
-    {
-        auto& parentEvent = scenarModel->events.at(m_model.eventId());
-
-        if(parentEvent.states().size() > 1)
-        {
-            connect(m_stateSection, &Inspector::InspectorSectionWidget::deletePressed,
-                    this,   &StateInspectorWidget::splitEvent);
-        }
-    }
-
     m_properties.push_back(widget);
 
     updateAreaLayout(m_properties);
