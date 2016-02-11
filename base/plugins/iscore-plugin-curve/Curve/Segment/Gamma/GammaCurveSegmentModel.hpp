@@ -59,7 +59,7 @@ class GammaSegment final :
 CURVE_SEGMENT_METADATA(
         ISCORE_PLUGIN_CURVE_EXPORT,
         Curve::GammaSegment,
-        "a8bd14e2-d7e4-47cd-b76a-6a88fa11f0d2",
+        "ece054f5-508e-48ca-a1d2-c581aa922e23",
         "Gamma",
         "Gamma")
 
