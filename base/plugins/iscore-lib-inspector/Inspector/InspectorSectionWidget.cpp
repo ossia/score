@@ -136,13 +136,6 @@ void InspectorSectionWidget::removeAll()
     }
 }
 
-void InspectorSectionWidget::enableDelete()
-{
-    QAction* act = m_menu->addAction(tr("Delete"));
-    connect(act, &QAction::triggered,
-            this, &InspectorSectionWidget::deletePressed, Qt::QueuedConnection);
-}
-
 void InspectorSectionWidget::showMenu(bool b)
 {
     m_menuBtn->setHidden(!b);
