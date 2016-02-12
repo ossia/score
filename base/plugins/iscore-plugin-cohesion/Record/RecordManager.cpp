@@ -91,6 +91,12 @@ void RecordManager::stopRecording()
             double newval = State::convert::value<double>(node.get<Device::AddressSettings>().value);
 
             const auto& proc_data = records.at(addr);
+
+            // Maybe add first point
+            auto begin_pt = *segt.points().begin();
+            if(begin_pt.first != 0.)
+                segt.addPoint(0., begin_pt.second);
+            // Add last point
             segt.addPoint(msecs, newval);
 
             static_cast<Automation::ProcessModel*>(proc_data.curveModel.parent())->setDuration(TimeValue::fromMsecs(msecs));
@@ -247,13 +253,10 @@ void RecordManager::recordInNewBox(Scenario::ScenarioModel& scenar, Scenario::Po
                     Id<Curve::SegmentModel>{0},
                     &autom.curve()};
 
-            float initial_val = State::convert::value<float>(addr.value);
             segt->setStart({0, State::convert::value<float>(addr.value)});
             segt->setEnd({1, -1});
 
             autom.curve().addSegment(segt);
-
-            segt->addPoint(0, initial_val);
 
             // TODO fetch initial min / max from AddressSettings ?
             records.insert(
@@ -289,20 +292,32 @@ void RecordManager::recordInNewBox(Scenario::ScenarioModel& scenar, Scenario::Po
                 m_firstValueReceived = true;
                 start_time_pt = std::chrono::steady_clock::now();
                 m_recordTimer.start();
+
+                auto newval = State::convert::value<float>(val.val);
+
+                auto it = find_if(records, [&] (const auto& elt) { return elt.first.address == addr; });
+                ISCORE_ASSERT(it != records.end());
+
+                const auto& proc_data = it->second;
+                proc_data.segment.addPoint(0, newval);
             }
+            else
+            {
+                auto current_time_pt = std::chrono::steady_clock::now();
 
-            auto current_time_pt = std::chrono::steady_clock::now();
+                // Move end event by the current duration.
+                int msecs = std::chrono::duration_cast<std::chrono::milliseconds>(current_time_pt - start_time_pt).count();
 
-            // Move end event by the current duration.
-            int msecs = std::chrono::duration_cast<std::chrono::milliseconds>(current_time_pt - start_time_pt).count();
+                auto newval = State::convert::value<float>(val.val);
 
-            auto newval = State::convert::value<float>(val.val);
+                auto it = find_if(records, [&] (const auto& elt) { return elt.first.address == addr; });
+                ISCORE_ASSERT(it != records.end());
 
-            Device::FullAddressSettings tmp; tmp.address = addr;
-            const auto& proc_data = records.at(tmp);
-            proc_data.segment.addPoint(msecs, newval);
+                const auto& proc_data = it->second;
+                proc_data.segment.addPoint(msecs, newval);
 
-            static_cast<Automation::ProcessModel*>(proc_data.curveModel.parent())->setDuration(TimeValue::fromMsecs(msecs));
+                static_cast<Automation::ProcessModel*>(proc_data.curveModel.parent())->setDuration(TimeValue::fromMsecs(msecs));
+            }
         }));
     }
 
