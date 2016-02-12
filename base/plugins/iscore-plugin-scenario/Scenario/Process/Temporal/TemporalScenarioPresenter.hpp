@@ -180,5 +180,7 @@ class ISCORE_PLUGIN_SCENARIO_EXPORT TemporalScenarioPresenter final :
         iscore::SelectionDispatcher m_selectionDispatcher;
         LayerContext m_context;
         Scenario::ToolPalette m_sm;
+
+        Scenario::Tool m_lastTool{Scenario::Tool::Select};
 };
 }
