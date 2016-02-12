@@ -46,5 +46,6 @@ class ToolMenuActions final : public ScenarioActions
 
         QAction* m_selecttool{};
         QAction* m_createtool{};
+        QAction* m_playtool{};
 };
 }
