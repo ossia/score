@@ -73,6 +73,7 @@ void CommentBlockView::mousePressEvent(QGraphicsSceneMouseEvent* event)
     if(event->button() == Qt::MouseButton::LeftButton)
     {
         m_clickedPoint = event->scenePos() - this->pos();
+        m_clickedScenePoint = event->scenePos();
     }
 }
 
@@ -83,6 +84,11 @@ void CommentBlockView::mouseMoveEvent(QGraphicsSceneMouseEvent* event)
 
 void CommentBlockView::mouseReleaseEvent(QGraphicsSceneMouseEvent* event)
 {
+    auto p = event->scenePos();
+    auto d = (m_clickedScenePoint - p).manhattanLength();
+    if(std::abs(d) < 5)
+        emit m_presenter.selected();
+
     emit m_presenter.released(event->scenePos());
 }
 

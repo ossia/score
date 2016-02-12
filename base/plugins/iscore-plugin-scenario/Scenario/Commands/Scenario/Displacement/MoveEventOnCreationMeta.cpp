@@ -67,10 +67,10 @@ void MoveEventOnCreationMeta::deserializeImpl(DataStreamOutput& qDataStream)
 
 void MoveEventOnCreationMeta::update(const Path<Scenario::ScenarioModel>& scenarioPath,
                            const Id<EventModel>& eventId,
-                           const TimeValue& newDate,
+                           const TimeValue& newDate, double y,
                            ExpandMode mode)
 {
-    m_moveEventImplementation->update(scenarioPath, eventId, newDate, mode);
+    m_moveEventImplementation->update(scenarioPath, eventId, newDate, y, mode);
 }
 }
 }

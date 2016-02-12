@@ -62,6 +62,7 @@ class MoveBaseEvent final : public iscore::SerializableCommand
                 Path<SimpleScenario_T>&& path,
                 const Id<EventModel>& event,
                 const TimeValue& date,
+                double y,
                 ExpandMode mode) :
             m_path {std::move(path)},
             m_newDate {date},
@@ -175,6 +176,7 @@ class MoveBaseEvent final : public iscore::SerializableCommand
                 const Path<SimpleScenario_T>&,
                 const Id<EventModel>&,
                 const TimeValue& date,
+                double,
                 ExpandMode)
         {
             m_newDate = date;

@@ -33,6 +33,7 @@ ToolPalette::ToolPalette(
     m_context{lay},
     m_createTool{*this},
     m_selectTool{*this},
+    m_playTool{*this},
     m_moveSlotTool{*this},
     m_inputDisp{presenter.view(), *this, lay}
 {
@@ -54,6 +55,9 @@ void ToolPalette::on_pressed(QPointF point)
             break;
         case Scenario::Tool::Select:
             m_selectTool.on_pressed(point, scenarioPoint);
+            break;
+        case Scenario::Tool::Play:
+            m_playTool.on_pressed(point, scenarioPoint);
             break;
         case Scenario::Tool::MoveSlot:
             m_moveSlotTool.on_pressed(point);

@@ -6,13 +6,13 @@
                 "EndState": 1,
                 "FullView": {
                     "CenterOn": [
-                        231.5,
-                        209.5
+                        271.5,
+                        292
                     ],
                     "ConstraintId": 0,
                     "ObjectName": "FullViewConstraintViewModel",
                     "ShownRack": 1,
-                    "Zoom": 197.91642399234911,
+                    "Zoom": 226.19139567730102,
                     "id": 0
                 },
                 "HeightPercentage": 0,
@@ -2797,7 +2797,7 @@
         "id": 1
     },
     "Plugins": {
-        "DeviceExplorer::DeviceDocumentPlugin": {
+        "Explorer::DeviceDocumentPlugin": {
             "Children": [
                 {
                     "Children": [

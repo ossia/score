@@ -58,7 +58,7 @@ class ISCORE_PLUGIN_SCENARIO_EXPORT MoveNewEvent final : public iscore::Serializ
                 const double y,
                 bool yLocked)
         {
-            m_cmd.update(path, id, date, ExpandMode::Scale);
+            m_cmd.update(path, id, date, y, ExpandMode::Scale);
             m_y = y;
             m_yLocked = yLocked;
         }
