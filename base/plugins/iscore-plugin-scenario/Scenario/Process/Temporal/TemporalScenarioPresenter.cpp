@@ -147,17 +147,14 @@ TemporalScenarioPresenter::TemporalScenarioPresenter(
     connect(&layerModel().processModel(), &Process::ProcessModel::execution,
             this, [&] (bool b) {
                 if(b) {
-                    editionSettings().setTool(
-                                b ? Scenario::Tool::Playing
-                                  : Scenario::Tool::Select); // TODO see curvepresenter
+                    m_lastTool = editionSettings().tool();
+                    editionSettings().setTool( Scenario::Tool::Playing);
                     editionSettings().setExecution(true); // tool locked
                 }
                 else // TODO restore last tool ?
                 {
                     editionSettings().setExecution(false); // tool unlock
-                    editionSettings().setTool(
-                                b ? Scenario::Tool::Playing
-                                  : Scenario::Tool::Select); // TODO see curvepresenter
+                    editionSettings().setTool(m_lastTool); // TODO see curvepresenter
                 }
 
     });

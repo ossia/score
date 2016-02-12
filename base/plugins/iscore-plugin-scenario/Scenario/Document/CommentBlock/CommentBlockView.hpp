@@ -51,5 +51,6 @@ class CommentBlockView final : public QGraphicsObject
         bool m_selected{false};
 
         QPointF m_clickedPoint{};
+        QPointF m_clickedScenePoint{};
 };
 }
