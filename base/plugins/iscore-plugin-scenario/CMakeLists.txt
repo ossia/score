@@ -247,6 +247,7 @@ set(SRCS ${SRCS}
 "${CMAKE_CURRENT_SOURCE_DIR}/Scenario/Process/ScenarioFactory.cpp"
 
 "${CMAKE_CURRENT_SOURCE_DIR}/Scenario/Palette/Tools/MoveSlotToolState.cpp"
+"${CMAKE_CURRENT_SOURCE_DIR}/Scenario/Palette/Tools/PlayToolState.cpp"
 "${CMAKE_CURRENT_SOURCE_DIR}/Scenario/Palette/Transitions/SlotTransitions.cpp"
 "${CMAKE_CURRENT_SOURCE_DIR}/Scenario/Palette/ScenarioPalette.cpp"
 "${CMAKE_CURRENT_SOURCE_DIR}/Scenario/Process/Temporal/TemporalScenarioView.cpp"

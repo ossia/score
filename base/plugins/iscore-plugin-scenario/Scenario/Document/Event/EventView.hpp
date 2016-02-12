@@ -79,7 +79,6 @@ class ISCORE_PLUGIN_SCENARIO_EXPORT EventView final : public QGraphicsObject
         EventPresenter& m_presenter;
         QString m_condition;
         QString m_trigger;
-        QPointF m_clickedPoint;
         QColor m_color;
 
         ExecutionStatusProperty m_status{};

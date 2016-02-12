@@ -7,12 +7,12 @@
 # also defined, but not for general use are
 #  SNDFILE_LIBRARY, where to find the SNDFILE library.
 
-if(APPLE OR WIN32)
+if(WIN32)
   FIND_PATH(SNDFILE_INCLUDE_DIR sndfile.h
-        PATHS ${CMAKE_CURRENT_LIST_DIR}/../../../DSP/extensions/SoundfileLib/libsndfile)
+		PATHS ${CMAKE_CURRENT_LIST_DIR}/../../../DSP/extensions/SoundfileLib/libsndfile)
 
   FIND_LIBRARY(SNDFILE_LIBRARY NAMES sndfile-jamoma sndfile-1 libsndfile-1
-         PATHS ${CMAKE_CURRENT_LIST_DIR}/../../../DSP/extensions/SoundfileLib/libsndfile)
+		 PATHS ${CMAKE_CURRENT_LIST_DIR}/../../../DSP/extensions/SoundfileLib/libsndfile)
 
 else()
   FIND_PATH(SNDFILE_INCLUDE_DIR sndfile.h)
@@ -26,15 +26,7 @@ FIND_PACKAGE_HANDLE_STANDARD_ARGS(SNDFILE DEFAULT_MSG SNDFILE_LIBRARY SNDFILE_IN
 
 IF(SNDFILE_FOUND)
   SET(SNDFILE_LIBRARIES ${SNDFILE_LIBRARY})
-if(APPLE) # TODO windows?
-  set(SNDFILE_LIBRARIES
-    ${SNDFILE_LIBRARY}
-                ${CMAKE_CURRENT_LIST_DIR}/../../../DSP/extensions/SoundfileLib/libsndfile/lib/libFLAC-jamoma.a
-                ${CMAKE_CURRENT_LIST_DIR}/../../../DSP/extensions/SoundfileLib/libsndfile/lib/libogg-jamoma.a
-                ${CMAKE_CURRENT_LIST_DIR}/../../../DSP/extensions/SoundfileLib/libsndfile/lib/libvorbis-jamoma.a
-                ${CMAKE_CURRENT_LIST_DIR}/../../../DSP/extensions/SoundfileLib/libsndfile/lib/libvorbisenc-jamoma.a
-                ${CMAKE_CURRENT_LIST_DIR}/../../../DSP/extensions/SoundfileLib/libsndfile/lib/libvorbisfile-jamoma.a)
-endif()
+
   GET_FILENAME_COMPONENT(SNDFILE_LINK_DIRECTORIES ${SNDFILE_LIBRARY} PATH)
 ELSE()
   FIND_PATH(SNDFILE_INCLUDE_DIR sndfile.h

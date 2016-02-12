@@ -268,6 +268,7 @@ class MoveTimeNodeState final : public StateBase<Scenario_T>
                                 Path<Scenario_T>{this->m_scenarioPath},
                                 ev_id,
                                 date,
+                                this->currentPoint.y,
                                 stateMachine.editionSettings().expandMode());
                 });
 

@@ -65,6 +65,21 @@ PlayContextMenu::PlayContextMenu(Scenario::ScenarioApplicationPlugin *parent):
         }
     });
 
+    connect(parent, &Scenario::ScenarioApplicationPlugin::playState,
+            this, [=] (const Id<StateModel>& stateId)
+    {
+        if (auto sm = parent->focusedScenarioModel())
+        {
+            const auto& ctx = iscore::IDocument::documentContext(*sm);
+            auto& state = sm->states.at(stateId);
+
+            auto ossia_state = iscore::convert::state(
+                        state,
+                        ctx.plugin<Explorer::DeviceDocumentPlugin>().list());
+            ossia_state->launch();
+        }
+    });
+
     m_playConstraints = new QAction{tr("Play (Constraints)"), this};
     connect(m_playConstraints, &QAction::triggered,
             [=]()

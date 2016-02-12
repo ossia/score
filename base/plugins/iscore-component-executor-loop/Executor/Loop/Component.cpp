@@ -86,7 +86,7 @@ RecreateOnPlay::Loop::Component::~Component()
 void RecreateOnPlay::Loop::Component::stop()
 {
     ProcessComponent::stop();
-    static_cast<::Loop::ProcessModel&>(m_iscore_process).constraint().duration.setPlayPercentage(0);
+    static_cast< ::Loop::ProcessModel&>(m_iscore_process).constraint().duration.setPlayPercentage(0);
 }
 
 void RecreateOnPlay::Loop::Component::startConstraintExecution(const Id<ConstraintModel>&)
@@ -125,7 +125,7 @@ ProcessComponent* ComponentFactory::make(
 
     return new Component{
                 cst,
-                static_cast<::Loop::ProcessModel&>(proc),
+                static_cast< ::Loop::ProcessModel&>(proc),
                 ctx, id, parent};
 
 }
@@ -142,7 +142,7 @@ bool ComponentFactory::matches(
         const DocumentPlugin&,
         const iscore::DocumentContext&) const
 {
-    return dynamic_cast<::Loop::ProcessModel*>(&proc);
+    return dynamic_cast< ::Loop::ProcessModel*>(&proc);
 }
 }
 }

@@ -212,6 +212,7 @@ class Creation_FromTimeNode final : public CreationState<Scenario_T, ToolPalette
                                 Path<Scenario_T>{this->m_scenarioPath},
                                 this->createdEvents.last(),
                                 TimeValue::zero(),
+                                0.,
                                 stateMachine.editionSettings().expandMode());
                 });
 

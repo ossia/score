@@ -1,5 +1,7 @@
 #pragma once
 #include <iscore/tools/Metadata.hpp>
+#include <QObject>
+
 namespace Process
 {
 class ProcessFactory;

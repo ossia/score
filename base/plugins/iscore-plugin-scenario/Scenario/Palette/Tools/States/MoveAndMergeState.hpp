@@ -172,6 +172,7 @@ class MoveEventState final : public StateBase<Scenario_T>
                     Path<Scenario_T>{this->m_scenarioPath},
                     evId,
                     date,
+                    this->currentPoint.y,
                     stateMachine.editionSettings().expandMode() );
             });
 
