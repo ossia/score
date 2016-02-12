@@ -87,7 +87,7 @@ void RecordManager::stopRecording()
             // Move end event by the current duration.
             int msecs = std::chrono::duration_cast<std::chrono::milliseconds>(current_time_pt - start_time_pt).count();
 
-            const auto& node = getNodeFromAddress(m_explorer->rootNode(), addr);
+            const auto& node = getNodeFromAddress(m_explorer->rootNode(), addr.address);
             double newval = State::convert::value<double>(node.get<Device::AddressSettings>().value);
 
             const auto& proc_data = records.at(addr);
@@ -104,7 +104,7 @@ void RecordManager::stopRecording()
         // Add a point with the last state.
         auto initCurveCmd = new Automation::InitAutomation{
                 *safe_cast<Automation::ProcessModel*>(recorded.second.curveModel.parent()),
-                recorded.first,
+                recorded.first.address,
                 recorded.second.segment.min(),
                 recorded.second.segment.max(),
                 recorded.second.segment.toLinearSegments()};
@@ -134,11 +134,14 @@ void RecordManager::recordInNewBox(Scenario::ScenarioModel& scenar, Scenario::Po
     m_savedListening = m_explorer->deviceModel().pauseListening();
 
     // First get the addresses to listen.
-    std::vector<std::vector<State::Address>> recordListening;
+    std::vector<std::vector<Device::FullAddressSettings>> recordListening;
     for(auto& index : indices)
     {
         // TODO use address settings instead.
         auto& node = m_explorer->nodeFromModelIndex(index);
+        if(!node.is<Device::AddressSettings>())
+            continue;
+
         auto addr = Device::address(node);
         // TODO shall we check if the address is in, out, recordable ?
         // Recording an automation of strings would actually have a meaning
@@ -148,19 +151,19 @@ void RecordManager::recordInNewBox(Scenario::ScenarioModel& scenar, Scenario::Po
         auto dev_it = std::find_if(recordListening.begin(),
                                    recordListening.end(),
                                    [&] (const auto& vec)
-        { return vec.front().device == addr.device; });
+        { return vec.front().address.device == addr.device; });
 
+        auto& as = node.get<Device::AddressSettings>();
 
-        if(node.get<Device::AddressSettings>().value.val.isNumeric()
-        && hasInput(node.get<Device::AddressSettings>().ioType))
+        if(as.value.val.isNumeric())
         {
             if(dev_it != recordListening.end())
             {
-                dev_it->push_back(addr);
+                dev_it->push_back(Device::FullAddressSettings::make<Device::FullAddressSettings::as_child>(as, addr));
             }
             else
             {
-                recordListening.push_back({addr});
+                recordListening.push_back({Device::FullAddressSettings::make<Device::FullAddressSettings::as_child>(as, addr)});
             }
         }
     }
@@ -244,12 +247,13 @@ void RecordManager::recordInNewBox(Scenario::ScenarioModel& scenar, Scenario::Po
                     Id<Curve::SegmentModel>{0},
                     &autom.curve()};
 
-            segt->setStart({0, -1});
+            float initial_val = State::convert::value<float>(addr.value);
+            segt->setStart({0, State::convert::value<float>(addr.value)});
             segt->setEnd({1, -1});
 
             autom.curve().addSegment(segt);
 
-            segt->addPoint(0, State::convert::value<float>(getNodeFromAddress(m_explorer->rootNode(), addr).get<Device::AddressSettings>().value));
+            segt->addPoint(0, initial_val);
 
             // TODO fetch initial min / max from AddressSettings ?
             records.insert(
@@ -267,15 +271,26 @@ void RecordManager::recordInNewBox(Scenario::ScenarioModel& scenar, Scenario::Po
     //// Setup listening on the curves ////
     for(const auto& vec : recordListening)
     {
-        auto& dev = devicelist.device(vec.front().device);
+        auto& dev = devicelist.device(vec.front().address.device);
         if(!dev.connected())
             continue;
 
-        dev.replaceListening(vec);
+        std::vector<State::Address> addr_vec;
+        addr_vec.reserve(vec.size());
+        std::transform(vec.begin(), vec.end(), std::back_inserter(addr_vec), [] (const auto& e ) { return e.address; });
+        dev.replaceListening(addr_vec);
         // Add a custom callback.
         m_recordCallbackConnections.push_back(
                     connect(&dev, &Device::DeviceInterface::valueUpdated,
                 this, [=] (const State::Address& addr, const State::Value& val) {
+
+            if(!m_firstValueReceived)
+            {
+                m_firstValueReceived = true;
+                start_time_pt = std::chrono::steady_clock::now();
+                m_recordTimer.start();
+            }
+
             auto current_time_pt = std::chrono::steady_clock::now();
 
             // Move end event by the current duration.
@@ -283,7 +298,8 @@ void RecordManager::recordInNewBox(Scenario::ScenarioModel& scenar, Scenario::Po
 
             auto newval = State::convert::value<float>(val.val);
 
-            const auto& proc_data = records.at(addr);
+            Device::FullAddressSettings tmp; tmp.address = addr;
+            const auto& proc_data = records.at(tmp);
             proc_data.segment.addPoint(msecs, newval);
 
             static_cast<Automation::ProcessModel*>(proc_data.curveModel.parent())->setDuration(TimeValue::fromMsecs(msecs));
@@ -308,6 +324,10 @@ void RecordManager::recordInNewBox(Scenario::ScenarioModel& scenar, Scenario::Po
         cmd_move->redo();
     });
 
-    start_time_pt = std::chrono::steady_clock::now();
-    m_recordTimer.start();
+    // In case where the software is exited
+    // during recording.
+    connect(&scenar, &IdentifiedObjectAbstract::identified_object_destroyed,
+            this, [&] () {
+        m_recordTimer.stop();
+    });
 }
