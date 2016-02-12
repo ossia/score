@@ -54,8 +54,8 @@ struct FullAddressSettings : public Device::AddressSettingsCommon
 };
 
 inline bool operator==(
-        const Device::AddressSettings& lhs,
-        const Device::AddressSettings& rhs)
+        const Device::AddressSettingsCommon& lhs,
+        const Device::AddressSettingsCommon& rhs)
 {
     return
             lhs.value == rhs.value
@@ -70,8 +70,36 @@ inline bool operator==(
 }
 
 inline bool operator!=(
+        const Device::AddressSettingsCommon& lhs,
+        const Device::AddressSettingsCommon& rhs)
+{
+    return !(lhs == rhs);
+}
+inline bool operator==(
         const Device::AddressSettings& lhs,
         const Device::AddressSettings& rhs)
+{
+    return static_cast<const Device::AddressSettingsCommon&>(lhs) == static_cast<const Device::AddressSettingsCommon&>(rhs)
+            && lhs.name == rhs.name;
+}
+
+inline bool operator!=(
+        const Device::AddressSettings& lhs,
+        const Device::AddressSettings& rhs)
+{
+    return !(lhs == rhs);
+}
+inline bool operator==(
+        const Device::FullAddressSettings& lhs,
+        const Device::FullAddressSettings& rhs)
+{
+    return static_cast<const Device::AddressSettingsCommon&>(lhs) == static_cast<const Device::AddressSettingsCommon&>(rhs)
+            && lhs.address == rhs.address;
+}
+
+inline bool operator!=(
+        const Device::FullAddressSettings& lhs,
+        const Device::FullAddressSettings& rhs)
 {
     return !(lhs == rhs);
 }
