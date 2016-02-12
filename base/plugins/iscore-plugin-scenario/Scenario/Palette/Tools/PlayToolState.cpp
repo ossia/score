@@ -20,26 +20,26 @@ void PlayToolState::on_pressed(QPointF scenePoint, Scenario::Point scenarioPoint
 {
     auto item = m_sm.scene().itemAt(scenePoint, QTransform());
     if(!item)
-	return;
+    return;
 
     auto& app =  m_sm.context().app.components.applicationPlugin<ScenarioApplicationPlugin>();
 
     switch(item->type())
     {
-	case StateView::static_type():
-	    {
-		const auto& state = static_cast<const StateView*>(item)->presenter().model();
+    case StateView::static_type():
+        {
+        const auto& state = static_cast<const StateView*>(item)->presenter().model();
 
-		auto id = state.parent() == &this->m_sm.model()
-			? state.id()
-			: Id<StateModel>{};
-		if(id)
-		    emit app.playState(id);
-		break;
-	    }
-	default:
-	    emit app.playAtDate(scenarioPoint.date);
-	    break;
+        auto id = state.parent() == &this->m_sm.model()
+            ? state.id()
+            : Id<StateModel>{};
+        if(id)
+            emit app.playState(id);
+        break;
+        }
+    default:
+        emit app.playAtDate(scenarioPoint.date);
+        break;
     }
 }
 
