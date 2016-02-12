@@ -160,7 +160,6 @@ void RecordManager::recordInNewBox(Scenario::ScenarioModel& scenar, Scenario::Po
         { return vec.front().address.device == addr.device; });
 
         auto& as = node.get<Device::AddressSettings>();
-
         if(as.value.val.isNumeric())
         {
             if(dev_it != recordListening.end())
