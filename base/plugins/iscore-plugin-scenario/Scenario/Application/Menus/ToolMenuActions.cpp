@@ -31,7 +31,7 @@ QAction* makeToolbarAction(const QString& name,
     act->setCheckable(true);
     act->setData(QVariant::fromValue((int) data));
     act->setShortcut(shortcut);
-    act->setShortcutContext(Qt::WidgetWithChildrenShortcut);
+    act->setShortcutContext(Qt::WindowShortcut);
     act->setToolTip(name+ " (" + shortcut + ")");
 
     return act;
@@ -53,7 +53,9 @@ ToolMenuActions::ToolMenuActions(
                      tr("Select and Move"),
                      m_scenarioToolActionGroup,
                      Scenario::Tool::Select,
-                     tr("Alt+x"));
+                     tr("S"));
+    m_selecttool->setShortcuts({Qt::Key_S, Qt::Key_M});
+    m_selecttool->setToolTip({"Select and Move (S, M)"});
     m_selecttool->setObjectName("Select");
     m_selecttool->setChecked(true);
 
@@ -67,13 +69,24 @@ ToolMenuActions::ToolMenuActions(
                           tr("Create"),
                           m_scenarioToolActionGroup,
                           Scenario::Tool::Create,
-                          tr("Ctrl"));
-    connect(m_createtool, &QAction::toggled, this, [=](bool b) {
+                          tr("C"));
+    connect(m_createtool, &QAction::triggered, this, [=](bool b) {
         if(b)
             m_parent->editionSettings().setTool(Scenario::Tool::Create);
     });
 
-    // MOVEDECK
+    // PLAY
+    m_playtool = makeToolbarAction(
+                     tr("Play"),
+                     m_scenarioToolActionGroup,
+                     Scenario::Tool::Play,
+                     tr("P"));
+    connect(m_playtool, &QAction::triggered, this, [=] (bool b) {
+        if(b)
+            m_parent->editionSettings().setTool(Scenario::Tool::Play);
+    });
+
+    // MOVESLOT
     auto slotmovetool = makeToolbarAction(
                             tr("Move Slot"),
                             m_scenarioToolActionGroup,
@@ -141,6 +154,10 @@ ToolMenuActions::ToolMenuActions(
             case Scenario::Tool::Create:
                 if(!m_createtool->isChecked())
                     m_createtool->setChecked(true);
+                break;
+            case Scenario::Tool::Play:
+                if(!m_playtool->isChecked())
+                    m_playtool->setChecked(true);
                 break;
             case Scenario::Tool::MoveSlot:
                 if(!slotmovetool->isChecked())
@@ -249,10 +266,6 @@ void ToolMenuActions::setEnabled(bool arg)
 
 void ToolMenuActions::keyPressed(int key)
 {
-    if (key == Qt::Key_Control)
-    {
-        m_createtool->setChecked(true);
-    }
     if(key == Qt::Key_Shift)
     {
         m_shiftAction->setChecked(true);
@@ -261,10 +274,6 @@ void ToolMenuActions::keyPressed(int key)
 
 void ToolMenuActions::keyReleased(int key)
 {
-    if (key == Qt::Key_Control)
-    {
-        m_selecttool->setChecked(true);
-    }
     if(key == Qt::Key_Shift)
     {
         m_shiftAction->setChecked(false);

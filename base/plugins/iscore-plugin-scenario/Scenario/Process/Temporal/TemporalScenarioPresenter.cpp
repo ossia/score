@@ -152,7 +152,7 @@ TemporalScenarioPresenter::TemporalScenarioPresenter(
                                   : Scenario::Tool::Select); // TODO see curvepresenter
                     editionSettings().setExecution(true); // tool locked
                 }
-                else
+                else // TODO restore last tool ?
                 {
                     editionSettings().setExecution(false); // tool unlock
                     editionSettings().setTool(

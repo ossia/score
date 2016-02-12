@@ -3,6 +3,7 @@
 #include <Scenario/Palette/Tool.hpp>
 #include <Scenario/Palette/Tools/CreationToolState.hpp>
 #include <Scenario/Palette/Tools/MoveSlotToolState.hpp>
+#include <Scenario/Palette/Tools/PlayToolState.hpp>
 #include <Scenario/Palette/Tools/SmartTool.hpp>
 #include <iscore/statemachine/GraphicsSceneToolPalette.hpp>
 #include <QPoint>
@@ -68,6 +69,9 @@ class ToolPalette final : public GraphicsSceneToolPalette
             Scenario::MoveRightBraceInScenario_StateWrapper,
             Scenario::MoveEventInScenario_StateWrapper,
             Scenario::MoveTimeNodeInScenario_StateWrapper> m_selectTool;
+
+        PlayToolState m_playTool;
+
         MoveSlotTool m_moveSlotTool;
 
         ToolPaletteInputDispatcher<

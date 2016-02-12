@@ -25,6 +25,7 @@ class TemporalScenarioPresenter;
 class ToolMenuActions;
 class ScenarioModel;
 class ScenarioInterface;
+class StateModel;
 
 class ISCORE_PLUGIN_SCENARIO_EXPORT ScenarioApplicationPlugin final :
         public QObject,
@@ -59,6 +60,9 @@ class ISCORE_PLUGIN_SCENARIO_EXPORT ScenarioApplicationPlugin final :
 
         void startRecording(Scenario::ScenarioModel&, Scenario::Point);
         void stopRecording();
+
+        void playState(Id<StateModel>);
+        void playAtDate(const TimeValue&);
 
     protected:
         void prepareNewDocument() override;

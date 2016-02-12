@@ -90,6 +90,12 @@ OSSIAApplicationPlugin::OSSIAApplicationPlugin(const iscore::ApplicationContext&
         auto t = playCM->playFromHereAction().data().value<::TimeValue>();
         on_play(true, t);
     });
+
+    con(ctrl, &Scenario::ScenarioApplicationPlugin::playAtDate,
+        this, [=] (const TimeValue& t)
+    {
+        on_play(true, t);
+    });
 }
 
 OSSIAApplicationPlugin::~OSSIAApplicationPlugin()
