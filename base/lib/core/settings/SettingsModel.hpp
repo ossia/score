@@ -12,7 +12,11 @@ namespace iscore
     class SettingsModel final : public QObject
     {
         public:
-            using QObject::QObject;
+            explicit SettingsModel(QObject* parent):
+			    QObject(parent)
+			{
+				
+			}
             virtual ~SettingsModel()
             {
             }
