@@ -93,9 +93,17 @@ void RecordManager::stopRecording()
             const auto& proc_data = records.at(addr);
 
             // Maybe add first point
-            auto begin_pt = *segt.points().begin();
-            if(begin_pt.first != 0.)
-                segt.addPoint(0., begin_pt.second);
+
+            if(!segt.points().empty())
+            {
+                auto begin_pt = *segt.points().begin();
+                if(begin_pt.first != 0.)
+                    segt.addPoint(0., begin_pt.second);
+            }
+            else
+            {
+                segt.addPoint(0, newval);
+            }
             // Add last point
             segt.addPoint(msecs, newval);
 
@@ -113,7 +121,7 @@ void RecordManager::stopRecording()
                 recorded.first.address,
                 recorded.second.segment.min(),
                 recorded.second.segment.max(),
-                recorded.second.segment.toLinearSegments()};
+                recorded.second.segment.toPowerSegments()};
 
         // This one shall not be redone
         m_dispatcher->submitCommand(recorded.second.addProcCmd);
