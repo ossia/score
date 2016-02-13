@@ -210,7 +210,7 @@ void DeviceDocumentPlugin::setConnection(bool b)
         if(b)
         {
             dev->reconnect();
-            auto it = std::find_if(m_rootNode.cbegin(), m_rootNode.cend(), [&] (const auto& dev_node) {
+            auto it = std::find_if(m_rootNode.cbegin(), m_rootNode.cend(), [&,dev] (const auto& dev_node) {
                 return dev_node.template get<Device::DeviceSettings>().name == dev->settings().name;
             });
 
