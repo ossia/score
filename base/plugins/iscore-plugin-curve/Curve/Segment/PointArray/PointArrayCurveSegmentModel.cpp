@@ -133,9 +133,9 @@ void PointArraySegment::addPoint(double x, double y)
     emit dataChanged();
 }
 
-void PointArraySegment::simplify()
+void PointArraySegment::simplify(double ratio)
 {
-    double tolerance = (max_y - min_y) / 10.;
+    double tolerance = (max_y - min_y) / ratio;
 
     std::vector <double> orig;
     orig.reserve(m_points.size() * 2);

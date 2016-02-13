@@ -49,6 +49,12 @@ set(SRCS
 "${CMAKE_CURRENT_SOURCE_DIR}/Curve/Palette/Tools/SmartTool.cpp"
 "${CMAKE_CURRENT_SOURCE_DIR}/Curve/Palette/CurvePalette.cpp"
 "${CMAKE_CURRENT_SOURCE_DIR}/Curve/Palette/CurveEditionSettings.cpp"
+
+"${CMAKE_CURRENT_SOURCE_DIR}/Curve/Settings/Factory.cpp"
+"${CMAKE_CURRENT_SOURCE_DIR}/Curve/Settings/Model.cpp"
+"${CMAKE_CURRENT_SOURCE_DIR}/Curve/Settings/Presenter.cpp"
+"${CMAKE_CURRENT_SOURCE_DIR}/Curve/Settings/View.cpp"
+
 "${CMAKE_CURRENT_SOURCE_DIR}/Curve/CurveModel.cpp"
 "${CMAKE_CURRENT_SOURCE_DIR}/Curve/CurvePresenter.cpp"
 "${CMAKE_CURRENT_SOURCE_DIR}/Curve/CurveView.cpp"
@@ -60,10 +66,10 @@ add_library(${PROJECT_NAME} ${SRCS} ${HDRS})
 iscore_generate_command_list_file(${PROJECT_NAME} "${HDRS}")
 target_link_libraries(${PROJECT_NAME} PUBLIC
                      Qt5::Core Qt5::Widgets
-					 iscore_lib_base iscore_lib_process iscore_lib_state)
+                                         iscore_lib_base iscore_lib_process iscore_lib_state)
 
 if(TARGET iscore_lib_inspector)
-	target_link_libraries(${PROJECT_NAME} PUBLIC iscore_lib_inspector)
+        target_link_libraries(${PROJECT_NAME} PUBLIC iscore_lib_inspector)
 endif()
 
 setup_iscore_plugin(${PROJECT_NAME})
