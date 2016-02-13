@@ -48,11 +48,13 @@
 #include <iscore/tools/NotifyingMap.hpp>
 #include <iscore/tools/SettableIdentifier.hpp>
 #include <iscore/tools/TreeNode.hpp>
+#include <Curve/Settings/Model.hpp>
 namespace Curve
 {
 class SegmentModel;
 }
-RecordManager::RecordManager()
+RecordManager::RecordManager(const iscore::DocumentContext& ctx):
+    m_ctx{ctx}
 {
     m_recordTimer.setInterval(8);
     m_recordTimer.setTimerType(Qt::PreciseTimer);
@@ -69,6 +71,7 @@ void RecordManager::stopRecording()
 
     qApp->processEvents();
 
+    auto simplifyRatio = m_ctx.app.settings<Curve::Settings::Model>().getSimplificationRatio();
     // Add a last point corresponding to the current state
 
     // Create commands for the state of each automation to send on
@@ -112,7 +115,7 @@ void RecordManager::stopRecording()
 
         // Conversion of the piecewise to segments, and
         // serialization.
-        recorded.second.segment.simplify();
+        recorded.second.segment.simplify(simplifyRatio);
         // TODO if there is no remaining segment or an invalid segment, don't add it.
 
         // Add a point with the last state.
