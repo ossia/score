@@ -11,7 +11,7 @@
 #include <QFrame>
 #include <QGridLayout>
 #include <QLabel>
-
+#include <QMenu>
 #include <QPushButton>
 #include <algorithm>
 

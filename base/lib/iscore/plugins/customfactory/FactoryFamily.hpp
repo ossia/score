@@ -116,7 +116,8 @@ class ConcreteFactoryList :
 
         void insert(std::unique_ptr<iscore::FactoryInterfaceBase> e) final override
         {
-            if(auto pf = dynamic_unique_ptr_cast<FactoryType>(std::move(e)))
+			auto pf = dynamic_unique_ptr_cast<factory_type>(std::move(e));
+            if(pf)
             {
                 auto it = this->map.find(pf->template key<key_type>());
                 if(it == this->map.end())

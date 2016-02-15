@@ -44,7 +44,7 @@ static const std::array<const QString, 8> ValuePrettyTypesArray{{
 template<>
 QVariant value(const State::Value& val)
 {
-    static const constexpr struct {
+	struct vis {
         public:
             using return_type = QVariant;
             return_type operator()(const no_value_t&) const { return QVariant::fromValue(State::no_value_t{}); }
@@ -67,15 +67,15 @@ QVariant value(const State::Value& val)
 
                 return arr;
             }
-    } visitor{};
-
-    return eggs::variants::apply(visitor, val.val.impl());
+    };
+	
+    return eggs::variants::apply(vis{}, val.val.impl());
 }
 
 template<>
 QJsonValue value(const State::Value& val)
 {
-    static const constexpr struct {
+	struct vis {
         public:
             using return_type = QJsonValue;
             return_type operator()(const no_value_t&) const { return {}; }
@@ -106,9 +106,9 @@ QJsonValue value(const State::Value& val)
 
                 return arr;
             }
-    } visitor{};
+    };
 
-    return eggs::variants::apply(visitor, val.val.impl());
+    return eggs::variants::apply(vis{}, val.val.impl());
 }
 
 
@@ -314,7 +314,7 @@ QString value(const State::Value& val)
 template<>
 tuple_t value(const State::Value& val)
 {
-    static const constexpr struct {
+    struct vis {
             using return_type = tuple_t;
             return_type operator()(const State::no_value_t&) const { return {impulse_t{}}; }
             return_type operator()(const State::impulse_t&) const { return {impulse_t{}}; }
@@ -333,15 +333,15 @@ tuple_t value(const State::Value& val)
             }
             return_type operator()(const QChar& c) const { return {c}; }
             return_type operator()(const State::tuple_t& t) const { return t; }
-    } visitor{};
+    };
 
-    return eggs::variants::apply(visitor, val.val.impl());
+    return eggs::variants::apply(vis{}, val.val.impl());
 }
 
 
 QString toPrettyString(const State::Value& val)
 {
-    static const constexpr struct {
+    struct vis {
             QString operator()(const State::no_value_t&) const { return {}; }
             QString operator()(const State::impulse_t&) const { return {}; }
             QString operator()(int i) const {
@@ -391,9 +391,9 @@ QString toPrettyString(const State::Value& val)
                 s+= "]";
                 return s;
             }
-    } visitor{};
+    };
 
-    return eggs::variants::apply(visitor, val.val.impl());
+    return eggs::variants::apply(vis{}, val.val.impl());
 }
 
 
