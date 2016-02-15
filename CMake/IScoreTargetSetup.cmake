@@ -49,10 +49,14 @@ endfunction()
 
 function(iscore_set_msvc_compile_options theTarget)
     target_compile_options(${theTarget} PUBLIC
-    "/Za"
+#    "/Za"
     "/wd4180"
     "/wd4224"
     )
+	
+    target_compile_definitions(${theTarget} PUBLIC
+	"NOMINMAX"
+	)
 endfunction()
 
 function(iscore_set_apple_compile_options theTarget)

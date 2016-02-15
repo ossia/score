@@ -133,13 +133,13 @@ struct ptr
 template<typename T, typename... Args>
 auto con(const T& t, Args&&... args)
 {
-    return QObject::connect(&t, std::forward<Args&&>(args)...);
+    return QObject::connect(&t, std::forward<Args>(args)...);
 }
 
 template<typename T, typename... Args>
 auto con(ptr<T> t, Args&&... args)
 {
-    return QObject::connect(&*t, std::forward<Args&&>(args)...);
+    return QObject::connect(&*t, std::forward<Args>(args)...);
 }
 
 

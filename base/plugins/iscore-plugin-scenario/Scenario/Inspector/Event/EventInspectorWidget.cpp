@@ -18,7 +18,7 @@
 #include <QFormLayout>
 #include <QLabel>
 #include <QLayout>
-
+#include <QMenu>
 #include <QString>
 #include <QWidget>
 #include <algorithm>

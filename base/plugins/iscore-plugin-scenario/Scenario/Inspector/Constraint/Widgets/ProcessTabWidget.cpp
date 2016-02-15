@@ -10,6 +10,8 @@
 #include <QAction>
 #include <QBoxLayout>
 #include <QFormLayout>
+#include <QLabel>
+#include <QMenu>
 #include <QToolButton>
 
 #include <Scenario/DialogWidget/AddProcessDialog.hpp>

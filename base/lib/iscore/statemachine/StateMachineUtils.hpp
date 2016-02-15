@@ -26,14 +26,14 @@ template<typename Element, int N>
 struct NumberedWithPath_Event final : public NumberedEvent<N>
 {
         explicit NumberedWithPath_Event(const Path<Element>& p):
-            NumberedEvent<N>{},
-            path{p}
+            NumberedEvent<N>(),
+            path(p)
         {
         }
 
         explicit NumberedWithPath_Event(Path<Element>&& p):
-            NumberedEvent<N>{},
-            path{std::move(p)}
+            NumberedEvent<N>(),
+            path(std::move(p))
         {
         }
 
