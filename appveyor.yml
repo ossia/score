@@ -7,6 +7,7 @@ environment:
   CHOCO_PATH: c:\ProgramData\chocolatey\bin
   CMAKE_PATH: c:\projects\i-score\cmake-3.4.1-win32-x86
 
+
 configuration: Release
 
 install:
@@ -18,7 +19,12 @@ install:
   - 7z x cmake-3.4.1-win32-x86.zip -y > nul
 
 build_script:
-  - git submodule update --init
+  - git submodule update --init --recursive
+  - cd base/addons
+  - git clone https://github.com/OSSIA/iscore-addon-csp
+  - cd iscore-addon-csp
+  - git submodule update --init --recursive
+  - cd ../../../
   - mkdir build
   - cd build
   - set PATH=%CMAKE_PATH%\bin;%QTDIR%\bin;%MINGW%\bin;C:\Qt\Tools\QtCreator\bin
