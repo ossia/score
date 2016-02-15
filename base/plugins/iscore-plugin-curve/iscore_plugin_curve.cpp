@@ -7,6 +7,7 @@
 #include <Curve/Segment/Power/PowerCurveSegmentModel.hpp>
 #include <Curve/Segment/Sin/SinCurveSegmentModel.hpp>
 #include <Curve/Segment/Gamma/GammaCurveSegmentModel.hpp>
+#include <Curve/Settings/Factory.hpp>
 #include <iscore/plugins/customfactory/StringFactoryKey.hpp>
 #include "iscore_plugin_curve.hpp"
 #include <iscore_plugin_curve_commands_files.hpp>
@@ -37,7 +38,9 @@ std::vector<std::unique_ptr<iscore::FactoryInterfaceBase>> iscore_plugin_curve::
        TL<
          FW<Curve::SegmentFactory,
              Curve::LinearCurveSegmentFactory,
-             Curve::PowerCurveSegmentFactory>>>(ctx, factoryName);
+             Curve::PowerCurveSegmentFactory>,
+        FW<iscore::SettingsDelegateFactory,
+             Curve::Settings::Factory>>>(ctx, factoryName);
 }
 
 
