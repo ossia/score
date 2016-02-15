@@ -2,6 +2,21 @@
 
 git submodule update --init --recursive
 
+# Set-up the plug-ins
+(
+cd base/addons
+for plugin in "${ISCORE_PLUGINS_TO_BUILD[@]}"
+do
+  (
+    git clone $plugin
+
+    cd $plugin
+    git submodule update --init --recursive
+  )
+done
+)
+
+# Install the deps
 case "$TRAVIS_OS_NAME" in
   linux)
     sudo add-apt-repository --yes ppa:ubuntu-toolchain-r/test
