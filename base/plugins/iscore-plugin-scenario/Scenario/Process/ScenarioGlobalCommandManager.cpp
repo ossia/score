@@ -48,6 +48,7 @@ void Scenario::clearContentFromSelection(
     cleaner.commit();
 }
 
+
 void Scenario::removeSelection(
         const Scenario::ScenarioModel& scenario,
         iscore::CommandStackFacade& stack)
@@ -56,10 +57,7 @@ void Scenario::removeSelection(
 
     // We have to remove the first / last timenodes / events from the selection.
     erase_if(sel, [&] (auto&& elt) {
-        return elt == &scenario.startEvent()
-            || elt == &scenario.endEvent()
-            || elt == &scenario.startTimeNode()
-            || elt == &scenario.endTimeNode();
+        return elt->id_val() == startId_val();
     });
 
     if(!sel.empty())
