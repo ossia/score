@@ -19,7 +19,8 @@ class ConstraintModel;
 class EventModel;
 class StateModel;
 class TimeNodeModel;
-class ISCORE_PLUGIN_SCENARIO_EXPORT BaseScenarioContainer : public ScenarioInterface
+class ISCORE_PLUGIN_SCENARIO_EXPORT BaseScenarioContainer :
+        public ScenarioInterface
 {
         ISCORE_SERIALIZE_FRIENDS(BaseScenarioContainer, DataStream)
         ISCORE_SERIALIZE_FRIENDS(BaseScenarioContainer, JSONObject)
@@ -63,7 +64,7 @@ class ISCORE_PLUGIN_SCENARIO_EXPORT BaseScenarioContainer : public ScenarioInter
         ConstraintModel& constraint() const;
 
         TimeNodeModel& startTimeNode() const final override;
-        TimeNodeModel& endTimeNode() const final override;
+        TimeNodeModel& endTimeNode() const;
 
         EventModel& startEvent() const;
         EventModel& endEvent() const;

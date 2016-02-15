@@ -116,10 +116,7 @@ class ISCORE_PLUGIN_SCENARIO_EXPORT ScenarioModel final :
         {
             return timeNodes.at(m_startTimeNodeId);
         }
-        TimeNodeModel& endTimeNode() const override
-        {
-            return timeNodes.at(m_endTimeNodeId);
-        }
+
         EventModel& startEvent() const
         {
             return event(m_startEventId);

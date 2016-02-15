@@ -22,17 +22,25 @@ class ISCORE_PLUGIN_SCENARIO_EXPORT ScenarioInterface
         virtual StateModel& state(const Id<StateModel>& stId) const = 0;
 
         virtual TimeNodeModel& startTimeNode() const = 0;
-        virtual TimeNodeModel& endTimeNode() const = 0;
 };
 
+static inline auto startId_val()
+{
+    return 0;
+}
+
+static inline auto endId_val()
+{
+    return 1;
+}
 template<typename T>
 static auto startId()
 {
-    return Id<T>{0};
+    return Id<T>{startId_val()};
 }
 template<typename T>
 static auto endId()
 {
-    return Id<T>{1};
+    return Id<T>{endId_val()};
 }
 }

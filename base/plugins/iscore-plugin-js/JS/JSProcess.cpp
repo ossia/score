@@ -20,9 +20,7 @@ namespace Executor
 {
 ProcessExecutor::ProcessExecutor(
         const Explorer::DeviceDocumentPlugin& devices):
-    m_devices{devices.list()},
-    m_start{OSSIA::State::create()},
-    m_end{OSSIA::State::create()}
+    m_devices{devices.list()}
 {
     m_engine.globalObject().setProperty("iscore", m_engine.newQObject(new JS::APIWrapper{m_engine, devices}));
 }
