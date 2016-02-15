@@ -78,9 +78,9 @@ class MoveEventState final : public StateBase<Scenario_T>
                     onlyMoving, mergingOnEvent, *this);
 
             // rollback merging
-            iscore::make_transition<MoveOnAnythingButTimeNode_Transition<Scenario_T>>(
+            iscore::make_transition<MoveOnAnything_Transition<Scenario_T>>(
                     mergingOnTimeNode, rollbackTnMerging, *this);
-            iscore::make_transition<MoveOnAnythingButEvent_Transition<Scenario_T>>(
+            iscore::make_transition<MoveOnAnything_Transition<Scenario_T>>(
                     mergingOnEvent, rollbackEventMerging, *this);
 
             // commit merging
@@ -109,6 +109,7 @@ class MoveEventState final : public StateBase<Scenario_T>
                 if(tnId != this->hoveredTimeNode)
                 {
                     this->m_movingDispatcher.rollback();
+                    this->m_mergingEventDispatcher.rollback();
 
                     this->m_mergingTnDispatcher.submitCommand(
                             Path<Scenario_T>{this->m_scenarioPath},
@@ -141,6 +142,7 @@ class MoveEventState final : public StateBase<Scenario_T>
                 if(clickedEvId != destinationEvId)
                 {
                     m_movingDispatcher.rollback();
+                    m_mergingTnDispatcher.rollback();
 
                     m_mergingEventDispatcher.submitCommand(
                             Path<Scenario_T>{this->m_scenarioPath},
