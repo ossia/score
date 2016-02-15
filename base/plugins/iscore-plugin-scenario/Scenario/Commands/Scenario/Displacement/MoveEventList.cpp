@@ -8,11 +8,12 @@ namespace Scenario
 {
 namespace Command
 {
-MoveEventFactoryInterface& MoveEventList::get(MoveEventFactoryInterface::Strategy strategy) const
+MoveEventFactoryInterface& MoveEventList::get(const iscore::ApplicationContext& ctx,
+                                              MoveEventFactoryInterface::Strategy s) const
 {
     auto it = std::max_element(begin(), end(), [&] (const auto& e1, const auto& e2)
     {
-        return e1.priority(strategy) < e2.priority(strategy);
+        return e1.priority(ctx, s) < e2.priority(ctx, s);
     });
     if(it != end())
         return *it;

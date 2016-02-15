@@ -21,6 +21,8 @@ class TimeNodeModel;
 struct TimenodeProperties {
     TimeValue oldDate;
     TimeValue newDate;
+    double dateMin;
+    double dateMax;
 };
 
 struct ConstraintProperties {
