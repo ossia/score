@@ -162,10 +162,6 @@ void ScenarioElement::on_timeNodeCreated(const Scenario::TimeNodeModel& tn)
     {
         ossia_tn = ossia_scenario.getStartTimeNode();
     }
-    else if(&tn == &iscore_scenario.endTimeNode())
-    {
-        ossia_tn = ossia_scenario.getEndTimeNode();
-    }
     else
     {
         ossia_tn = OSSIA::TimeNode::create();
