@@ -9,7 +9,7 @@ cd base/addons
 for plugin in "${ISCORE_PLUGINS_TO_BUILD[@]}"
 do
   (
-    git clone $plugin
+    git clone "https://github.com/$plugin"
 
     cd $plugin
     git submodule update --init --recursive
