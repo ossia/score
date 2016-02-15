@@ -29,9 +29,9 @@ class ISCORE_PLUGIN_OSSIA_EXPORT TimeNodeElement final : public QObject
                 QObject* parent);
 
         std::shared_ptr<OSSIA::TimeNode> OSSIATimeNode() const;
+        const Scenario::TimeNodeModel& iscoreTimeNode() const;
 
     private:
-        void timeNodeCallBack(const OSSIA::TimeValue& date);
         std::shared_ptr<OSSIA::TimeNode> m_ossia_node;
         const Scenario::TimeNodeModel& m_iscore_node;
 

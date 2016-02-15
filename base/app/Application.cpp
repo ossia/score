@@ -49,7 +49,6 @@ static void setQApplicationSettings(QApplication &m_app)
 {
     QFontDatabase::addApplicationFont(":/APCCourierBold.otf"); // APCCourier-Bold
     QFontDatabase::addApplicationFont(":/Ubuntu-R.ttf"); // Ubuntu
-    m_app.setFont(QFont{"Ubuntu", 8, QFont::Normal});
 
     QCoreApplication::setOrganizationName("OSSIA");
     QCoreApplication::setOrganizationDomain("i-score.org");

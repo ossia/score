@@ -22,7 +22,7 @@
  * THE SOFTWARE.
  */
 QWidget {
-font-size: 9px;
+font: 9pt "Ubuntu";
 }
 QProgressBar:horizontal {
     border: 1px solid #3A3939;

@@ -8,6 +8,7 @@
 
 #include "ProcessElement.hpp"
 #include <Scenario/Document/Constraint/ConstraintModel.hpp>
+#include <Scenario/Tools/dataStructures.hpp>
 
 namespace Device
 {
@@ -17,6 +18,7 @@ namespace Process { class ProcessModel; }
 class QObject;
 namespace OSSIA {
 class TimeProcess;
+class TimeValue;
 }  // namespace OSSIA
 namespace RecreateOnPlay {
 class EventElement;
@@ -28,6 +30,7 @@ class ScenarioModel;
 class EventModel;
 class StateModel;
 class TimeNodeModel;
+class CSPCoherencyCheckerInterface;
 }  // namespace Scenario
 
 namespace OSSIA
@@ -74,6 +77,8 @@ class ScenarioElement final : public ProcessComponent
                 EventElement& ev,
                 OSSIA::TimeEvent::Status newStatus);
 
+         void timeNodeCallback(RecreateOnPlay::TimeNodeElement* tn, const OSSIA::TimeValue& date);
+
     private:
         const Key &key() const override;
         // TODO use IdContainer
@@ -85,6 +90,10 @@ class ScenarioElement final : public ProcessComponent
         IdContainer<Scenario::ConstraintModel> m_executingConstraints;
 
         const Context& m_ctx;
+
+        Scenario::CSPCoherencyCheckerInterface* m_checker;
+        QVector<Id<Scenario::TimeNodeModel>> m_pastTn{};
+        Scenario::ElementsProperties m_properties{};
 };
 
 
