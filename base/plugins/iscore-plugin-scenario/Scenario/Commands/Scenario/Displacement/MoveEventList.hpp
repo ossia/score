@@ -1,6 +1,5 @@
 #pragma once
 #include <Scenario/Commands/Scenario/Displacement/MoveEventFactoryInterface.hpp>
-#include <iscore/plugins/customfactory/FactoryFamily.hpp>
 #include <QVector>
 
 #include <iscore/plugins/customfactory/FactoryFamily.hpp>
