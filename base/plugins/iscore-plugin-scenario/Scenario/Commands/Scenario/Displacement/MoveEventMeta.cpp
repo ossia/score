@@ -14,24 +14,26 @@
 #include <Scenario/Document/Event/EventModel.hpp>
 #include <Scenario/Document/State/StateModel.hpp>
 #include <Scenario/Process/Algorithms/VerticalMovePolicy.hpp>
+#include <iscore/tools/ModelPathSerialization.hpp>
 
 namespace Scenario
 {
 class EventModel;
 namespace Command
 {
-MoveEventMeta::MoveEventMeta(Path<Scenario::ScenarioModel>&& scenarioPath,
+MoveEventMeta::MoveEventMeta(
+        Path<Scenario::ScenarioModel>&& scenarioPath,
         const Id<EventModel>& eventId,
         const TimeValue& newDate, double y,
-        ExpandMode mode)
-    :SerializableMoveEvent{},
-     m_scenario{scenarioPath},
-     m_eventId{eventId},
-     m_oldY{y},
-     m_moveEventImplementation(
-         context.components.factory<MoveEventList>()
-         .get(context, MoveEventFactoryInterface::Strategy::MOVE)
-         .make(std::move(scenarioPath), eventId, newDate, mode))
+        ExpandMode mode):
+    SerializableMoveEvent{},
+    m_scenario{scenarioPath},
+    m_eventId{eventId},
+    m_oldY{y},
+    m_moveEventImplementation(
+        context.components.factory<MoveEventList>()
+        .get(context, MoveEventFactoryInterface::Strategy::MOVE)
+        .make(std::move(scenarioPath), eventId, newDate, mode))
 {
     auto& scenar = m_scenario.find();
     auto& ev = scenar.event(m_eventId);
@@ -86,16 +88,23 @@ const Path<Scenario::ScenarioModel>&MoveEventMeta::path() const
     return m_moveEventImplementation->path();
 }
 
-void MoveEventMeta::serializeImpl(DataStreamInput& qDataStream) const
+void MoveEventMeta::serializeImpl(DataStreamInput& s) const
 {
-    qDataStream << m_moveEventImplementation->serialize();
+    s << m_scenario
+      << m_eventId
+      << m_oldY
+      << m_newY
+      << m_moveEventImplementation->serialize();
 }
 
-void MoveEventMeta::deserializeImpl(DataStreamOutput& qDataStream)
+void MoveEventMeta::deserializeImpl(DataStreamOutput& s)
 {
     QByteArray cmdData;
-
-    qDataStream >> cmdData;
+    s >> m_scenario
+      >> m_eventId
+      >> m_oldY
+      >> m_newY
+      >> cmdData;
 
     m_moveEventImplementation =
             context.components.factory<MoveEventList>()

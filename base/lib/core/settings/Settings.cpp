@@ -20,7 +20,7 @@ Settings::Settings(QObject* parent) :
 
 Settings::~Settings()
 {
-    delete m_settingsView;
+    m_settingsView->deleteLater();
 }
 
 void Settings::setupSettingsPlugin(SettingsDelegateFactory& plugin)

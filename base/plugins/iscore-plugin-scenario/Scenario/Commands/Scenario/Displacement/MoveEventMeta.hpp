@@ -46,10 +46,10 @@ private:
     // TODO : make a UI to change that
     Path<Scenario::ScenarioModel> m_scenario;
     Id<EventModel> m_eventId;
-    double m_oldY;
-    double m_newY;
+    double m_oldY{};
+    double m_newY{};
 
-    SerializableMoveEvent* m_moveEventImplementation;
+    SerializableMoveEvent* m_moveEventImplementation{};
 
     // SerializableMoveEvent interface
 public:
