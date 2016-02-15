@@ -22,6 +22,7 @@ env:
    - COVERITY_SCAN_BRANCH_PATTERN="master"
    - COVERITY_SCAN_BUILD_URL="https://scan.coverity.com/scripts/travisci_build_coverity_scan.sh"
    - COVERITY_SCAN_BUILD="curl -s $COVERITY_SCAN_BUILD_URL | bash"
+   - ISCORE_PLUGINS_TO_BUILD=("OSSIA/iscore-addon-csp")
 
 # TODO : DEPLOYMENT=False & Release ?
 matrix:
