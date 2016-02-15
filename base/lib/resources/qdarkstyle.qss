@@ -677,7 +677,7 @@ QComboBox
     border: 1px solid #3A3939;
     border-radius: 2px;
     padding: 0px;
-    min-width: 75px;
+    min-width: 10px;
 }
 
 QPushButton:checked{
