@@ -3,8 +3,20 @@
 #include <iscore/plugins/customfactory/FactoryMap.hpp>
 #include <iscore/tools/ForEachType.hpp>
 #include <iscore/tools/std/Pointer.hpp>
+#include <iscore/tools/std/Algorithms.hpp>
+#include <iscore/tools/Todo.hpp>
+
+#include <boost/multi_index_container.hpp>
+#include <boost/multi_index/hashed_index.hpp>
+#include <boost/multi_index/identity.hpp>
+#include <boost/multi_index/member.hpp>
+#include <boost/multi_index/mem_fun.hpp>
+#include <boost/iterator/indirect_iterator.hpp>
+
 #include <iscore_lib_base_export.h>
 #include <QMetaType>
+
+namespace bmi = boost::multi_index;
 
 namespace iscore
 {
@@ -30,7 +42,121 @@ class ISCORE_LIB_BASE_EXPORT FactoryListInterface
         // is added to this family.
         virtual void insert(std::unique_ptr<iscore::FactoryInterfaceBase>) = 0;
 };
+
+
+template<typename Map_T>
+class IndirectMap
+{
+    public:
+        auto begin()        { return boost::make_indirect_iterator(map.begin()); }
+        auto begin() const  { return boost::make_indirect_iterator(map.begin()); }
+
+        auto cbegin()       { return boost::make_indirect_iterator(map.cbegin()); }
+        auto cbegin() const { return boost::make_indirect_iterator(map.cbegin()); }
+
+        auto end()          { return boost::make_indirect_iterator(map.end()); }
+        auto end() const    { return boost::make_indirect_iterator(map.end()); }
+
+        auto cend()         { return boost::make_indirect_iterator(map.cend()); }
+        auto cend() const   { return boost::make_indirect_iterator(map.cend()); }
+
+        auto empty() const { return map.empty(); }
+
+        template<typename K>
+        auto find(K&& key)
+        {
+            return map.find(std::forward<K>(key));
+        }
+
+        template<typename E>
+        auto insert(E&& elt)
+        {
+            return map.insert(std::forward<E>(elt));
+        }
+
+    protected:
+        Map_T map;
+};
+
+// FIXME They should take an export macro also ?
+template<typename FactoryType>
+class ConcreteFactoryList :
+        public iscore::FactoryListInterface,
+        public IndirectMap<
+                bmi::multi_index_container<
+                    std::unique_ptr<FactoryType>,
+                    bmi::indexed_by<
+                        bmi::hashed_unique<
+                            bmi::const_mem_fun<
+                                iscore::GenericFactoryInterface<typename FactoryType::ConcreteFactoryKey>,
+                                add_cref_t<typename FactoryType::ConcreteFactoryKey>,
+                                &FactoryType::template key<typename FactoryType::ConcreteFactoryKey>
+                            >
+                        >
+                    >
+                >
+        >
+{
+    public:
+        using factory_type = FactoryType;
+        using key_type = typename FactoryType::ConcreteFactoryKey;
+
+        virtual ~ConcreteFactoryList() noexcept
+        {
+
+        }
+
+        static const iscore::AbstractFactoryKey& static_abstractFactoryKey() {
+            return FactoryType::static_abstractFactoryKey();
+        }
+
+        iscore::AbstractFactoryKey abstractFactoryKey() const final override {
+            return FactoryType::static_abstractFactoryKey();
+        }
+
+        void insert(std::unique_ptr<iscore::FactoryInterfaceBase> e) final override
+        {
+			auto pf = dynamic_unique_ptr_cast<factory_type>(std::move(e));
+            if(pf)
+            {
+                auto it = this->map.find(pf->template key<key_type>());
+                if(it == this->map.end())
+                {
+                    this->map.insert(std::move(pf));
+                }
+            }
+        }
+
+        const auto& list() const
+        { return this->map; }
+
+        auto get(const key_type& k) const
+        {
+            auto it = this->map.find(k);
+            return (it != this->map.end()) ? it->get() : nullptr;
+        }
+};
+
+template<typename T>
+class MatchingFactory : public iscore::ConcreteFactoryList<T>
+{
+    public:
+        template<typename Fun, typename... Args>
+        auto make(Fun f, Args&&... args) const
+        {
+            auto it = find_if(
+                          *this,
+                          [&] (const auto& elt)
+            { return elt.matches(std::forward<Args>(args)...); });
+
+            return (it != this->end())
+                    ? ((*it).*f)(std::forward<Args>(args)...)
+                    : decltype(((*it).*f)(std::forward<Args>(args)...)){};
+        }
+};
+
 }
+
 
 template<typename Base_T,
          typename... Args>
@@ -93,36 +219,6 @@ auto make_ptr_vector(const Context_T& context)
 {
     return ContextualGenericFactoryInserter<Context_T, Base_T, Args...>{context}.vec;
 }
-
-
-
-// FIXME They should take an export macro also ?
-
-#define ISCORE_FACTORY_LIST_DECL(FactoryType) \
-  private: \
-     GenericFactoryMap_T<FactoryType, FactoryType::ConcreteFactoryKey> m_list;\
-  public: \
-    static const iscore::AbstractFactoryKey& static_abstractFactoryKey() { \
-        return FactoryType::static_abstractFactoryKey(); \
-    } \
-    \
-    iscore::AbstractFactoryKey abstractFactoryKey() const final override { \
-        return FactoryType::static_abstractFactoryKey(); \
-    } \
-    void insert(std::unique_ptr<iscore::FactoryInterfaceBase> e) final override \
-    { \
-        if(auto pf = dynamic_unique_ptr_cast<FactoryType>(std::move(e))) \
-            m_list.inscribe(std::move(pf)); \
-    } \
-    const auto& list() const \
-    { return m_list; }\
-    auto get(const FactoryType::ConcreteFactoryKey& k) const \
-    { return m_list.get(k); }\
-    \
-    using factory_type = FactoryType; \
-    using object_type = typename FactoryType::object_type; \
-  private:
-
 
 #define ISCORE_STANDARD_FACTORY(FactorizedElementName) \
 class FactorizedElementName ## FactoryTag {}; \

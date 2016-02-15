@@ -22,11 +22,6 @@ ApplicationComponentsData::~ApplicationComponentsData()
         delete elt.second;
     }
 
-    for(auto& elt : availableDocuments)
-    {
-        delete elt;
-    }
-
     for(auto& elt : appPlugins)
     {
         delete elt;

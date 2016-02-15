@@ -20,7 +20,7 @@
 #include <QString>
 #include <QVector>
 
-#include <Process/ProcessFactoryKey.hpp>
+
 #include <Scenario/Process/AbstractScenarioLayerModel.hpp>
 #include <iscore/selection/Selection.hpp>
 #include <iscore/serialization/VisitorInterface.hpp>
@@ -189,7 +189,7 @@ class ISCORE_PLUGIN_SCENARIO_EXPORT ScenarioModel final :
                 const Process::LayerModel& source,
                 QObject* parent) override;
 
-        ProcessFactoryKey concreteFactoryKey() const override;
+        UuidKey<Process::ProcessFactory>concreteFactoryKey() const override;
 
         void setDurationAndScale(const TimeValue& newDuration) override;
         void setDurationAndGrow(const TimeValue& newDuration) override;

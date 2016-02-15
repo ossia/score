@@ -27,10 +27,61 @@
 #include <core/command/CommandStackSerialization.hpp>
 #include <core/document/Document.hpp>
 #include <core/application/ApplicationSettings.hpp>
+#include <iscore/plugins/documentdelegate/DocumentDelegateFactoryInterface.hpp>
 #include <iscore/tools/SettableIdentifier.hpp>
 #include <iscore/tools/std/StdlibWrapper.hpp>
 #include <iscore/tools/std/Algorithms.hpp>
 #include <iscore/plugins/qt_interfaces/PluginRequirements_QtInterface.hpp>
+
+#include <boost/multi_index_container.hpp>
+#include <boost/multi_index/hashed_index.hpp>
+#include <boost/multi_index/identity.hpp>
+#include <boost/multi_index/member.hpp>
+#include <boost/multi_index/mem_fun.hpp>
+namespace iscore
+{
+struct LoadedPluginVersions
+{
+        UuidKey<iscore::Plugin> plugin;
+        iscore::Version version;
+};
+}
+
+namespace bmi = boost::multi_index;
+using LocalPluginVersionsMap = bmi::multi_index_container<
+    iscore::Plugin_QtInterface*,
+    bmi::indexed_by<
+        bmi::hashed_unique<
+            bmi::const_mem_fun<
+                iscore::Plugin_QtInterface,
+                UuidKey<iscore::Plugin>,
+                &iscore::Plugin_QtInterface::key
+            >
+        >
+    >
+>;
+using LoadedPluginVersionsMap = bmi::multi_index_container<
+    iscore::Plugin_QtInterface*,
+    bmi::indexed_by<
+        bmi::hashed_unique<
+            bmi::member<
+                iscore::LoadedPluginVersions,
+                UuidKey<iscore::Plugin>,
+                &iscore::LoadedPluginVersions::plugin
+            >
+        >
+    >
+>;
+
+namespace std
+{
+template<>
+struct hash<iscore::LoadedPluginVersions>
+{
+        std::size_t operator()(const iscore::LoadedPluginVersions& kagi) const noexcept
+        { return std::hash<UuidKey<iscore::Plugin>>{}(kagi.plugin); }
+};
+}
 
 namespace iscore
 {
@@ -198,7 +249,7 @@ bool DocumentManager::saveDocument(Document& doc)
 {
     auto savename = doc.metadata.fileName();
 
-    if(savename == tr("Untitled"))
+    if(savename.indexOf(tr("Untitled")) == 0)
     {
         saveDocumentAs(doc);
     }
@@ -237,7 +288,8 @@ bool DocumentManager::saveDocumentAs(Document& doc)
 
     if(d.exec())
     {
-        QString savename = d.selectedFiles().first();
+        auto files = d.selectedFiles();
+        QString savename = files.first();
         auto suf = d.selectedNameFilter();
 
         if(!savename.isEmpty())
@@ -282,7 +334,8 @@ bool DocumentManager::saveStack()
 
     if(d.exec())
     {
-        QString savename = d.selectedFiles().first();
+        auto files = d.selectedFiles();
+        QString savename = files.first();
         if(!savename.isEmpty())
         {
             if(!savename.contains(".stack"))
@@ -334,7 +387,7 @@ Document* DocumentManager::loadStack(
         prepareNewDocument(ctx);
         auto doc = m_builder.newDocument(ctx,
                                          id,
-                                         ctx.components.availableDocuments().front());
+                                         *ctx.components.factory<DocumentDelegateList>().begin());
         setupDocument(ctx, doc);
 
         loadCommandStack(
@@ -371,12 +424,12 @@ Document* DocumentManager::loadFile(
         {
             if (fileName.indexOf(".scorebin") != -1)
             {
-                doc = loadDocument(ctx, f.readAll(), ctx.components.availableDocuments().front());
+                doc = loadDocument(ctx, f.readAll(), *ctx.components.factory<DocumentDelegateList>().begin());
             }
             else if (fileName.indexOf(".scorejson") != -1)
             {
                 auto json = QJsonDocument::fromJson(f.readAll());
-                doc = loadDocument(ctx, json.object(), ctx.components.availableDocuments().front());
+                doc = loadDocument(ctx, json.object(), *ctx.components.factory<DocumentDelegateList>().begin());
             }
 
             m_currentDocument->metadata.setFileName(fileName);
@@ -417,12 +470,6 @@ bool DocumentManager::preparingNewDocument() const
     return m_preparingNewDocument;
 }
 
-struct PluginVersions
-{
-        UuidKey<iscore::Plugin> plugin;
-        int32_t version{};
-};
-
 bool DocumentManager::checkAndUpdateJson(
         QJsonDocument& json,
         const iscore::ApplicationContext& ctx)
@@ -432,18 +479,18 @@ bool DocumentManager::checkAndUpdateJson(
 
     // Check the version
     auto obj = json.object();
-    int32_t version = 0;
+    Version loaded_version{0};
     auto it = obj.find("Version");
     if(it != obj.end())
-        version = it->toInt();
+        loaded_version = Version{it->toInt()};
 
-    std::vector<PluginVersions> local_plugins;
+    LocalPluginVersionsMap local_plugins;
     for(auto plug : ctx.components.plugins())
     {
-        local_plugins.push_back(PluginVersions{plug->key(), plug->version()});
+        local_plugins.insert(plug);
     }
 
-    std::vector<PluginVersions> loading_plugins;
+    std::vector<LoadedPluginVersions> loading_plugins;
     auto plugin_it = obj.find("Plugins");
     if(plugin_it != obj.end())
     {
@@ -456,24 +503,59 @@ bool DocumentManager::checkAndUpdateJson(
                 continue;
             UuidKey<iscore::Plugin> plugin_key = plugin_key_it->toString().toUtf8().constData();
 
-            int32_t plugin_version = 0;
+            Version plugin_version{0};
             auto plugin_ver_it = plugin_obj.find("Version");
             if(plugin_ver_it != plugin_obj.end())
-                plugin_version = plugin_ver_it->toInt();
+                plugin_version = Version{plugin_ver_it->toInt()};
 
             loading_plugins.push_back({plugin_key, plugin_version});
-
         }
     }
+
     // A file is loadable, if the main version
     // and all the plugin versions are <= to the current version,
     // and all the plug-ins are available.
-    bool mainLoadable = version <= ctx.settings.saveFormatVersion;
+
+    // Check the main document
+    bool mainLoadable = true;
+    if(loaded_version > ctx.applicationSettings.saveFormatVersion)
+    {
+        mainLoadable = false;
+    }
+    else if(loaded_version < ctx.applicationSettings.saveFormatVersion)
+    {
+        // TODO update main
+    }
 
 
+    // Check the plug-ins
+    bool pluginsAvailable = true;
+    bool pluginsLoadable = true;
 
-    // Check the presence of all the plug-ins
-    return false;
+    auto& local_map = local_plugins.get<0>();
+    for(const auto& plug : loading_plugins)
+    {
+        auto it = local_map.find(plug.plugin);
+        if(it == local_map.end())
+        {
+            pluginsAvailable = false;
+        }
+        else
+        {
+            auto& current_local_plugin = *it;
+            if(plug.version > current_local_plugin->version())
+            {
+                pluginsLoadable = false;
+            }
+            else if(plug.version < current_local_plugin->version())
+            {
+                current_local_plugin->updateSaveFile(obj, plug.version, current_local_plugin->version());
+            }
+        }
+    }
+
+    json.setObject(obj);
+    return mainLoadable && pluginsAvailable && pluginsLoadable;
 }
 
 
@@ -483,7 +565,7 @@ void DocumentManager::restoreDocuments(
 {
     for(const auto& backup : DocumentBackups::restorableDocuments())
     {
-        restoreDocument(ctx, backup.first, backup.second, ctx.components.availableDocuments().front());
+        restoreDocument(ctx, backup.first, backup.second, *ctx.components.factory<DocumentDelegateList>().begin());
     }
 }
 

@@ -16,7 +16,7 @@ namespace Curve
 GammaSegment::GammaSegment(
         const SegmentData& dat,
         QObject* parent):
-    SegmentModel{dat, parent},
+    Segment<GammaSegment>{dat, parent},
     gamma{dat.specificSegmentData.value<GammaSegmentData>().gamma}
 {
 
@@ -33,11 +33,6 @@ SegmentModel*GammaSegment::clone(
     cs->gamma = gamma;
     // Previous and following shall be set afterwards by the cloner.
     return cs;
-}
-
-SegmentFactoryKey GammaSegment::concreteFactoryKey() const
-{
-    return data_type::static_concreteFactoryKey();
 }
 
 void GammaSegment::serialize_impl(const VisitorVariant& vis) const
@@ -91,12 +86,6 @@ void GammaSegment::setVerticalParameter(double p)
 boost::optional<double> GammaSegment::verticalParameter() const
 {
     return gamma;
-}
-
-const SegmentFactoryKey &GammaSegmentData::static_concreteFactoryKey()
-{
-    static const SegmentFactoryKey name{"a8bd14e2-d7e4-47cd-b76a-6a88fa11f0d2"};
-    return name;
 }
 
 }

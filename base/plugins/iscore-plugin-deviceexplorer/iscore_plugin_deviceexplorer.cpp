@@ -24,7 +24,7 @@ iscore_plugin_deviceexplorer::iscore_plugin_deviceexplorer() :
     QObject {},
 iscore::PanelFactory_QtInterface {}
 {
-    QMetaType::registerComparators<Device::ProtocolFactoryKey>();
+    QMetaType::registerComparators<UuidKey<Device::ProtocolFactory>>();
 }
 
 iscore_plugin_deviceexplorer::~iscore_plugin_deviceexplorer()
@@ -81,9 +81,9 @@ std::pair<const CommandParentFactoryKey, CommandGeneratorMap> iscore_plugin_devi
     return cmds;
 }
 
-int32_t iscore_plugin_deviceexplorer::version() const
+iscore::Version iscore_plugin_deviceexplorer::version() const
 {
-    return 1;
+    return iscore::Version{1};
 }
 
 UuidKey<iscore::Plugin> iscore_plugin_deviceexplorer::key() const

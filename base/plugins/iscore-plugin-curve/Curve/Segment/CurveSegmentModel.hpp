@@ -9,7 +9,7 @@
 #include <QVariant>
 #include <vector>
 
-#include <Curve/Segment/CurveSegmentFactoryKey.hpp>
+
 #include <iscore/serialization/VisitorInterface.hpp>
 #include <iscore/tools/SettableIdentifier.hpp>
 
@@ -26,7 +26,7 @@ class PowerSegment;
 // Gives the data.
 class ISCORE_PLUGIN_CURVE_EXPORT SegmentModel :
         public IdentifiedObject<SegmentModel>,
-        public iscore::SerializableInterface<SegmentModel>
+        public iscore::SerializableInterface<SegmentFactory>
 {
         Q_OBJECT
 
@@ -115,6 +115,16 @@ class ISCORE_PLUGIN_CURVE_EXPORT SegmentModel :
         Id<SegmentModel> m_previous, m_following;
 };
 
+template<typename T>
+class Segment : public SegmentModel
+{
+    public:
+        UuidKey<SegmentFactory> concreteFactoryKey() const final override {
+            return Metadata<ConcreteFactoryKey_k, T>::get();
+        }
+
+        using SegmentModel::SegmentModel;
+};
 
 using DefaultCurveSegmentModel = PowerSegment;
 }

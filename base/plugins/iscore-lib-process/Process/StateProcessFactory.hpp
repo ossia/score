@@ -1,5 +1,5 @@
 #pragma once
-#include <Process/StateProcessFactoryKey.hpp>
+
 #include <iscore/plugins/customfactory/FactoryInterface.hpp>
 #include <iscore/tools/SettableIdentifier.hpp>
 #include <iscore/serialization/VisitorCommon.hpp>
@@ -12,10 +12,10 @@ namespace Process
 class StateProcess;
 
 class ISCORE_LIB_PROCESS_EXPORT StateProcessFactory :
-        public iscore::GenericFactoryInterface<StateProcessFactoryKey>
+        public iscore::AbstractFactory<StateProcessFactory>
 {
         ISCORE_ABSTRACT_FACTORY_DECL(
-                StateProcess,
+                StateProcessFactory,
                 "262852da-8662-482e-a7be-ee7896d13866")
 
     public:

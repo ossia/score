@@ -28,9 +28,9 @@ std::vector<std::unique_ptr<iscore::FactoryListInterface>> iscore_plugin_inspect
             Inspector::InspectorWidgetList>();
 }
 
-int32_t iscore_plugin_inspector::version() const
+iscore::Version iscore_plugin_inspector::version() const
 {
-    return 1;
+    return iscore::Version{1};
 }
 
 UuidKey<iscore::Plugin> iscore_plugin_inspector::key() const

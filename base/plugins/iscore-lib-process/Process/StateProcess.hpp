@@ -3,16 +3,17 @@
 #include <iscore/serialization/DataStreamVisitor.hpp>
 #include <iscore/serialization/JSONVisitor.hpp>
 
-#include <Process/StateProcessFactoryKey.hpp>
+
 #include <iscore_lib_process_export.h>
 #include <iscore/tools/Metadata.hpp>
 #include <iscore/plugins/customfactory/SerializableInterface.hpp>
 
 namespace Process
 {
+class StateProcessFactory;
 class ISCORE_LIB_PROCESS_EXPORT StateProcess:
         public IdentifiedObject<StateProcess>,
-        public iscore::SerializableInterface<StateProcess>
+        public iscore::SerializableInterface<StateProcessFactory>
 {
         Q_OBJECT
 

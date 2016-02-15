@@ -81,6 +81,8 @@ void StandardRemovalPolicy::removeState(
     ev.removeState(state.id());
 
     scenario.states.remove(&state);
+
+    qDebug() << "todo : update event extent";
 }
 
 void StandardRemovalPolicy::removeEventStatesAndConstraints(

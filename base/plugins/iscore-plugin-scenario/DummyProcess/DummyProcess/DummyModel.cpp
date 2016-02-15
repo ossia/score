@@ -39,9 +39,9 @@ DummyModel* DummyModel::clone(
     return new DummyModel{*this, newId, newParent};
 }
 
-ProcessFactoryKey DummyModel::concreteFactoryKey() const
+UuidKey<Process::ProcessFactory>DummyModel::concreteFactoryKey() const
 {
-    static const ProcessFactoryKey key{"7db45400-6033-425e-9ded-d60a35d4c4b2"};
+    static const UuidKey<Process::ProcessFactory>key{"7db45400-6033-425e-9ded-d60a35d4c4b2"};
     return key;
 }
 

@@ -3,7 +3,9 @@
 #include <Scenario/Document/State/StateModel.hpp>
 #include <Scenario/Document/TimeNode/TimeNodeModel.hpp>
 #include <Scenario/Process/Algorithms/ProcessPolicy.hpp>
+#include <Scenario/Process/Algorithms/VerticalMovePolicy.hpp>
 #include <Scenario/Process/ScenarioInterface.hpp>
+
 #include <boost/optional/optional.hpp>
 
 #include "BaseScenarioContainer.hpp"
@@ -25,7 +27,7 @@ void BaseScenarioContainer::init()
     m_startNode = new TimeNodeModel{Scenario::startId<TimeNodeModel>(), {0.2, 0.8}, TimeValue::zero(),  m_parent};
     m_endNode = new TimeNodeModel{Scenario::endId<TimeNodeModel>(), {0.2, 0.8}, TimeValue::zero(), m_parent};
 
-    m_startEvent = new EventModel{Scenario::startId<EventModel>(), m_startNode->id(), {0.4, 0.6}, TimeValue::zero(), m_parent};
+    m_startEvent = new EventModel{Scenario::startId<EventModel>(), m_startNode->id(), {0.1, 0.15}, TimeValue::zero(), m_parent};
     m_endEvent = new EventModel{Scenario::endId<EventModel>(), m_endNode->id(),   {0.4, 0.6}, TimeValue::zero(), m_parent};
 
     m_startState = new StateModel{Scenario::startId<StateModel>(), m_startEvent->id(), 0, stack, m_parent};

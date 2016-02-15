@@ -5,6 +5,7 @@
 #include <QBoxLayout>
 #include <QFrame>
 #include <QPushButton>
+#include <QMenu>
 
 #include "AddSlotWidget.hpp"
 #include <Inspector/InspectorSectionWidget.hpp>
@@ -44,8 +45,8 @@ RackInspectorSection::RackInspectorSection(
     addContent(framewidg);
 
     this->showMenu(true);
-    this->enableDelete();
-    connect(this, &RackInspectorSection::deletePressed, this, [=] ()
+    auto del = this->menu()->addAction(tr("Remove Rack"));
+    connect(del, &QAction::triggered, this, [=] ()
     {
         auto cmd = new Command::RemoveRackFromConstraint{
                    m_parent.model(),

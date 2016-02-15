@@ -18,7 +18,7 @@ namespace PluginSettings
  * Format : save on the config the name of each blacklisted plugin.
  * If a name is not there the plug-in is not blacklisted. Takes effect on next restart ?
  */
-class PluginSettingsFactory : public iscore::SettingsDelegateFactoryInterface
+class PluginSettingsFactory : public iscore::SettingsDelegateFactory
 {
     public:
         PluginSettingsFactory();
@@ -27,9 +27,10 @@ class PluginSettingsFactory : public iscore::SettingsDelegateFactoryInterface
         // SettingsGroup interface
     public:
         iscore::SettingsDelegateViewInterface* makeView() override;
-        iscore::SettingsDelegatePresenterInterface* makePresenter(iscore::SettingsPresenter*,
-                iscore::SettingsDelegateModelInterface* m,
-                iscore::SettingsDelegateViewInterface* v) override;
+        iscore::SettingsDelegatePresenterInterface* makePresenter_impl(
+                iscore::SettingsDelegateModelInterface& m,
+                iscore::SettingsDelegateViewInterface& v,
+                QObject* parent) override;
         iscore::SettingsDelegateModelInterface* makeModel() override;
 };
 

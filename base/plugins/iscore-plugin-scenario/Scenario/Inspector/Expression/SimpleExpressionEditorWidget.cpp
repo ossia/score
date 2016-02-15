@@ -26,13 +26,7 @@ SimpleExpressionEditorWidget::SimpleExpressionEditorWidget(
 {
     auto mainLay = new iscore::MarginLess<QHBoxLayout>{this};
 
-    // TODO : this f*ck'n Widget is here because QCombobox doesnt let itself resize correctly
-    auto binWidg = new QWidget{this};
-    auto binLay = new iscore::MarginLess<QHBoxLayout>{binWidg};
-    m_binOperator = new QComboBox{binWidg};
-    binWidg->setMaximumWidth(30);
-
-    binLay->addWidget(m_binOperator);
+    m_binOperator = new QComboBox{this};
 
     auto plug = doc.findPlugin<Explorer::DeviceDocumentPlugin>();
     Explorer::DeviceExplorerModel* explorer{};
@@ -42,14 +36,8 @@ SimpleExpressionEditorWidget::SimpleExpressionEditorWidget(
     m_address = new Explorer::AddressEditWidget{explorer, this};
     m_ok = new QLabel{"/!\\ ", this};
 
+    m_comparator = new QComboBox{this};
 
-    // Again ugly thing
-    auto opWidg = new QWidget{this};
-    auto opLay = new iscore::MarginLess<QHBoxLayout>{opWidg};
-    m_comparator = new QComboBox{opWidg};
-    opWidg->setMaximumWidth(25);
-
-    opLay->addWidget(m_comparator);
 
     m_value = new QLineEdit{this};
 
@@ -69,9 +57,9 @@ SimpleExpressionEditorWidget::SimpleExpressionEditorWidget(
     // Main Layout
 
     mainLay->addWidget(m_ok);
-    mainLay->addWidget(binWidg, 1, Qt::AlignHCenter);
+    mainLay->addWidget(m_binOperator, 1, Qt::AlignHCenter);
     mainLay->addWidget(m_address, 10);
-    mainLay->addWidget(opWidg, 1, Qt::AlignHCenter);
+    mainLay->addWidget(m_comparator, 1, Qt::AlignHCenter);
     mainLay->addWidget(m_value, 2);
 
     mainLay->addWidget(btnWidg);

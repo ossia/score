@@ -86,13 +86,13 @@ class ISCORE_LIB_BASE_EXPORT Document final : public NamedObject
         Document(
                 const QString& name,
                 const Id<DocumentModel>& id,
-                DocumentDelegateFactory* type,
+                DocumentDelegateFactory& type,
                 QWidget* parentview,
                 QObject* parent);
 
         Document(
                 const QVariant& data,
-                DocumentDelegateFactory* type,
+                DocumentDelegateFactory& type,
                 QWidget* parentview,
                 QObject* parent);
 

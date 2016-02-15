@@ -9,6 +9,7 @@
 #include "InspectorPanel.hpp"
 #include <iscore/selection/SelectionDispatcher.hpp>
 #include <iscore/tools/IdentifiedObjectAbstract.hpp>
+#include <iscore/document/DocumentInterface.hpp>
 
 namespace iscore {
 class SelectionStack;
@@ -70,15 +71,20 @@ void InspectorPanelWidget::newItemsInspected(const Selection& objects)
         }
     }
 
-    for(const auto& object : toCreate)
+    // All the objects selected ought to be in the same document.
+    if(!toCreate.empty())
     {
-        auto widget = m_list.makeInspectorWidget(
-                    *object,
-                    m_tabWidget);
-        m_tabWidget->addTab(widget, widget->tabName());
-        m_map.insert(widget);
+        auto& doc = iscore::IDocument::documentContext(*toCreate.first());
+        for(const auto& object : toCreate)
+        {
+            auto widget = m_list.make(
+                              doc,
+                              *object,
+                              m_tabWidget);
+            m_tabWidget->addTab(widget, widget->tabName());
+            m_map.insert(widget);
+        }
     }
-
     m_currentSel = objects.toList();
 }
 

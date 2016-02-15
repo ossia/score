@@ -8,14 +8,15 @@ namespace Scenario
 {
 namespace Command
 {
-MoveEventFactoryInterface* MoveEventList::get(MoveEventFactoryInterface::Strategy strategy) const
+MoveEventFactoryInterface& MoveEventList::get(const iscore::ApplicationContext& ctx,
+                                              MoveEventFactoryInterface::Strategy s) const
 {
-    auto it = std::max_element(m_list.begin(), m_list.end(), [&] (const auto& e1, const auto& e2)
+    auto it = std::max_element(begin(), end(), [&] (const auto& e1, const auto& e2)
     {
-        return e1->priority(strategy) < e2->priority(strategy);
+        return e1.priority(ctx, s) < e2.priority(ctx, s);
     });
-    if(it != m_list.end())
-        return it->get();
+    if(it != end())
+        return *it;
 
     throw std::runtime_error("No moveEvent factories loaded");
 }

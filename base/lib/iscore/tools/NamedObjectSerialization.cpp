@@ -27,12 +27,12 @@ void Visitor<Writer<DataStream>>::writeTo(NamedObject& namedObject)
 template<>
 void Visitor<Reader<JSONObject>>::readFrom(const NamedObject& namedObject)
 {
-    m_obj["ObjectName"] = namedObject.objectName();
+    m_obj[iscore::StringConstant().ObjectName] = namedObject.objectName();
 }
 
 template<>
 void Visitor<Writer<JSONObject>>::writeTo(NamedObject& namedObject)
 {
-    namedObject.setObjectName(m_obj["ObjectName"].toString());
+    namedObject.setObjectName(m_obj[iscore::StringConstant().ObjectName].toString());
 
 }

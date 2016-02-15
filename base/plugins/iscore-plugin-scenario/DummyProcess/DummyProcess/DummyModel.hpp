@@ -4,7 +4,7 @@
 #include <QByteArray>
 #include <QString>
 
-#include <Process/ProcessFactoryKey.hpp>
+
 #include <Process/TimeValue.hpp>
 #include <iscore/selection/Selection.hpp>
 #include <iscore/serialization/VisitorInterface.hpp>
@@ -51,7 +51,7 @@ class ISCORE_LIB_DUMMYPROCESS_EXPORT DummyModel final :
                 const Id<ProcessModel>& newId,
                 QObject* newParent) const override;
 
-        ProcessFactoryKey concreteFactoryKey() const override;
+        UuidKey<Process::ProcessFactory>concreteFactoryKey() const override;
         QString prettyName() const override;
         QByteArray makeLayerConstructionData() const override;
 

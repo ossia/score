@@ -145,6 +145,37 @@ ScenarioDocumentView::ScenarioDocumentView(
     transportLayout->addWidget(new QLabel{tr("Zoom") }, 0, 1);
     transportLayout->addWidget(m_zoomSlider, 0, 2);
 
+    QAction* zoomIn = new QAction("Zoom in", m_widget);
+    m_widget->addAction(zoomIn);
+    zoomIn->setShortcutContext(Qt::WidgetWithChildrenShortcut);
+    zoomIn->setShortcuts({QKeySequence::ZoomIn, tr("Ctrl+=")});
+    connect(zoomIn, &QAction::triggered,
+            this, [&] ()
+    {
+        m_zoomSlider->setValue(m_zoomSlider->value() + 0.05);
+        emit horizontalZoomChanged(m_zoomSlider->value());
+    });
+    QAction* zoomOut = new QAction("Zoom out", m_widget);
+    m_widget->addAction(zoomOut);
+    zoomOut->setShortcutContext(Qt::WidgetWithChildrenShortcut);
+    zoomOut->setShortcut(QKeySequence::ZoomOut);
+    connect(zoomOut, &QAction::triggered,
+            this, [&] ()
+    {
+        m_zoomSlider->setValue(m_zoomSlider->value() - 0.05);
+        emit horizontalZoomChanged(m_zoomSlider->value());
+    });
+    QAction* largeView = new QAction{"Large view", m_widget};
+    m_widget->addAction(largeView);
+    largeView->setShortcutContext(Qt::WidgetWithChildrenShortcut);
+    largeView->setShortcut(tr("Ctrl+0"));
+    connect(largeView, &QAction::triggered,
+            this, [&] ()
+    {
+        m_zoomSlider->setValue(0.05);
+        emit horizontalZoomChanged(m_zoomSlider->value());
+    });
+
     // view layout
     m_scene->addItem(m_timeRuler);
     m_scene->addItem(m_baseObject);

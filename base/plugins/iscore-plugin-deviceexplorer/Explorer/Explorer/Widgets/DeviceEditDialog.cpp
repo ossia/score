@@ -11,7 +11,6 @@
 #include <QWidget>
 #include <utility>
 
-#include <Device/Protocol/ProtocolFactoryKey.hpp>
 #include <Device/Protocol/ProtocolList.hpp>
 #include <Device/Protocol/ProtocolSettingsWidget.hpp>
 #include "DeviceEditDialog.hpp"
@@ -84,13 +83,13 @@ DeviceEditDialog::initAvailableProtocols()
     //initialize previous settings
     m_previousSettings.clear();
 
-    for(const auto& prot : m_protocolList.list().get())
+    for(const auto& prot : m_protocolList.list())
     {
         m_protocolCBox->addItem(
-                    prot.second->prettyName(),
-                    QVariant::fromValue(prot.second->key<Device::ProtocolFactoryKey>()));
+                    prot->prettyName(),
+                    QVariant::fromValue(prot->key<UuidKey<Device::ProtocolFactory>>()));
 
-        m_previousSettings.append(prot.second->defaultSettings());
+        m_previousSettings.append(prot->defaultSettings());
     }
 
     m_index = m_protocolCBox->currentIndex();
@@ -114,8 +113,8 @@ DeviceEditDialog::updateProtocolWidget()
 
     m_index = m_protocolCBox->currentIndex();
 
-    auto protocol = m_protocolCBox->currentData().value<Device::ProtocolFactoryKey>();
-    m_protocolWidget = m_protocolList.list().get(protocol)->makeSettingsWidget();
+    auto protocol = m_protocolCBox->currentData().value<UuidKey<Device::ProtocolFactory>>();
+    m_protocolWidget = m_protocolList.get(protocol)->makeSettingsWidget();
 
     if(m_protocolWidget)
     {
@@ -135,7 +134,7 @@ Device::DeviceSettings DeviceEditDialog::getSettings() const
     }
 
     // TODO after set the protocol in getSettings instead.
-    settings.protocol = m_protocolCBox->currentData().value<Device::ProtocolFactoryKey>();
+    settings.protocol = m_protocolCBox->currentData().value<UuidKey<Device::ProtocolFactory>>();
 
     return settings;
 }

@@ -2,6 +2,7 @@
 #include <QPen>
 #include <QPainter>
 #include <QGraphicsSceneEvent>
+#include <QCursor>
 
 #include <Process/Style/ScenarioStyle.hpp>
 #include <Scenario/Document/Constraint/ViewModels/ConstraintPresenter.hpp>

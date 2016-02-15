@@ -8,11 +8,6 @@
 #include "Relation.hpp"
 #include <iscore/serialization/JSONValueVisitor.hpp>
 
-template <typename T> class Reader;
-template <typename T> class TypeToName;
-template <typename T> class Writer;
-
-
 template<>
 void Visitor<Reader<DataStream>>::readFrom(const State::AddressAccessor& rel)
 {
@@ -24,7 +19,7 @@ void Visitor<Reader<DataStream>>::readFrom(const State::AddressAccessor& rel)
 template<>
 void Visitor<Reader<JSONObject>>::readFrom(const State::AddressAccessor& rel)
 {
-    m_obj["Address"] = toJsonObject(rel.address);
+    m_obj[iscore::StringConstant().address] = toJsonObject(rel.address);
     m_obj["Accessors"] = toJsonValueArray(rel.accessors);
 }
 
@@ -39,7 +34,7 @@ void Visitor<Writer<DataStream>>::writeTo(State::AddressAccessor& rel)
 template<>
 void Visitor<Writer<JSONObject>>::writeTo(State::AddressAccessor& rel)
 {
-    fromJsonObject(m_obj["Address"].toObject(), rel.address);
+    fromJsonObject(m_obj[iscore::StringConstant().address].toObject(), rel.address);
     fromJsonArray(m_obj["Accessors"].toArray(), rel.accessors);
 }
 
@@ -55,7 +50,7 @@ void Visitor<Reader<DataStream>>::readFrom(const State::Pulse& rel)
 template<>
 void Visitor<Reader<JSONObject>>::readFrom(const State::Pulse& rel)
 {
-    m_obj["Address"] = toJsonObject(rel.address);
+    m_obj[iscore::StringConstant().address] = toJsonObject(rel.address);
 }
 
 template<>
@@ -69,7 +64,7 @@ void Visitor<Writer<DataStream>>::writeTo(State::Pulse& rel)
 template<>
 void Visitor<Writer<JSONObject>>::writeTo(State::Pulse& rel)
 {
-    fromJsonObject(m_obj["Address"].toObject(), rel.address);
+    fromJsonObject(m_obj[iscore::StringConstant().address].toObject(), rel.address);
 }
 
 template<>
@@ -86,9 +81,9 @@ template<>
 void Visitor<Reader<JSONObject>>::readFrom(const State::Relation& rel)
 {
     // TODO harmonize from... with marshall(..) in VisitorCommon.hpp
-    m_obj["LHS"] = toJsonObject(rel.lhs);
-    m_obj["Op"] = toJsonValue(rel.op);
-    m_obj["RHS"] = toJsonObject(rel.rhs);
+    m_obj[iscore::StringConstant().LHS] = toJsonObject(rel.lhs);
+    m_obj[iscore::StringConstant().Op] = toJsonValue(rel.op);
+    m_obj[iscore::StringConstant().RHS] = toJsonObject(rel.rhs);
 }
 
 template<>
@@ -104,32 +99,10 @@ void Visitor<Writer<DataStream>>::writeTo(State::Relation& rel)
 template<>
 void Visitor<Writer<JSONObject>>::writeTo(State::Relation& rel)
 {
-    fromJsonObject(m_obj["LHS"].toObject(), rel.lhs);
-    fromJsonObject(m_obj["RHS"].toObject(), rel.rhs);
-    fromJsonValue(m_obj["Op"], rel.op);
+    fromJsonObject(m_obj[iscore::StringConstant().LHS].toObject(), rel.lhs);
+    fromJsonValue(m_obj[iscore::StringConstant().Op], rel.op);
+    fromJsonObject(m_obj[iscore::StringConstant().RHS].toObject(), rel.rhs);
 }
-
-// TODO URGENT Replace this by Metadata<> instances.
-template<> class TypeToName<State::Address>
-{ public: static constexpr const char * name() { return "Address"; } };
-
-template<> class TypeToName<State::AddressAccessor>
-{ public: static constexpr const char * name() { return "AddressAccessor"; } };
-
-template<> class TypeToName<State::Value>
-{ public: static constexpr const char * name() { return "Value"; } };
-
-template<> class TypeToName<State::Relation>
-{ public: static constexpr const char * name() { return "Relation"; } };
-
-template<> class TypeToName<State::Pulse>
-{ public: static constexpr const char * name() { return "Pulse"; } };
-
-template<> class TypeToName<State::BinaryOperator>
-{ public: static constexpr const char * name() { return "BinOp"; } };
-
-template<> class TypeToName<State::UnaryOperator>
-{ public: static constexpr const char * name() { return "UnOp"; } };
 
 
 template<>

@@ -61,7 +61,6 @@ InspectorSectionWidget::InspectorSectionWidget(
     m_container->setObjectName("InspectorContainer");
     m_container->setContentsMargins(0,0,0,0);
     m_containerLayout = new iscore::MarginLess<QVBoxLayout>{m_container};
-    m_containerLayout->addStretch();
 
     // GENERAL
     auto globalLayout = new iscore::MarginLess<QVBoxLayout>{this};
@@ -135,13 +134,6 @@ void InspectorSectionWidget::removeAll()
 
         delete item;
     }
-}
-
-void InspectorSectionWidget::enableDelete()
-{
-    QAction* act = m_menu->addAction(tr("Delete"));
-    connect(act, &QAction::triggered,
-            this, &InspectorSectionWidget::deletePressed, Qt::QueuedConnection);
 }
 
 void InspectorSectionWidget::showMenu(bool b)

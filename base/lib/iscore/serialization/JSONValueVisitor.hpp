@@ -1,5 +1,6 @@
 #pragma once
 #include <iscore/serialization/VisitorInterface.hpp>
+#include <iscore/serialization/StringConstants.hpp>
 #include <iscore/tools/SettableIdentifier.hpp>
 #include <QJsonValue>
 #include <QJsonArray>
@@ -118,7 +119,7 @@ struct TSerializer<JSONValue, boost::optional<int32_t>>
             JSONValue::Deserializer& s,
             boost::optional<int32_t>& obj)
     {
-        if(s.val.toString() == "none")
+        if(s.val.toString() == iscore::StringConstant().none)
         {
             obj.reset();
         }

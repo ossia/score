@@ -2,6 +2,6 @@
 #include <QMetaType>
 
 namespace Scenario{
-enum class Tool { Disabled, Create, Select, MoveSlot, Playing };
+enum class Tool { Disabled, Create, Select, Play, MoveSlot, Playing };
 }
 Q_DECLARE_METATYPE(Scenario::Tool)

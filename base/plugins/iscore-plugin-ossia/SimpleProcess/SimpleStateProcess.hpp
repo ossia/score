@@ -8,6 +8,10 @@
 #include "Editor/TimeValue.h"
 #include <QDebug>
 #include <QTime>
+namespace Process
+{
+class StateProcessFactory;
+}
 
 class SimpleStateProcess : public OSSIA::StateElement
 {
@@ -62,9 +66,9 @@ class SimpleStateProcessModel : public Process::StateProcess
         {
         }
 
-        StateProcessFactoryKey concreteFactoryKey() const override
+        UuidKey<Process::StateProcessFactory> concreteFactoryKey() const override
         {
-            static const StateProcessFactoryKey name{"40517cca-3cbe-42bf-9bd4-982bc4696516"};
+            static const UuidKey<Process::StateProcessFactory> name{"40517cca-3cbe-42bf-9bd4-982bc4696516"};
             return name;
         }
 

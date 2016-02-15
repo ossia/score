@@ -110,7 +110,7 @@ Device::Node DeviceDocumentPlugin::createDeviceFromNode(const Device::Node & nod
         auto& fact = m_context.app.components.factory<Device::DynamicProtocolList>();
 
         // Instantiate a real device.
-        auto proto = fact.list().get(node.get<Device::DeviceSettings>().protocol);
+        auto proto = fact.get(node.get<Device::DeviceSettings>().protocol);
         auto newdev = proto->makeDevice(node.get<Device::DeviceSettings>(), context());
 
         initDevice(*newdev);
@@ -143,7 +143,7 @@ Device::Node DeviceDocumentPlugin::loadDeviceFromNode(const Device::Node & node)
     try {
         // Instantiate a real device.
         auto& fact = m_context.app.components.factory<Device::DynamicProtocolList>();
-        auto proto = fact.list().get(node.get<Device::DeviceSettings>().protocol);
+        auto proto = fact.get(node.get<Device::DeviceSettings>().protocol);
         auto newdev = proto->makeDevice(node.get<Device::DeviceSettings>(), context());
 
         initDevice(*newdev);
@@ -210,7 +210,7 @@ void DeviceDocumentPlugin::setConnection(bool b)
         if(b)
         {
             dev->reconnect();
-            auto it = std::find_if(m_rootNode.cbegin(), m_rootNode.cend(), [&] (const auto& dev_node) {
+            auto it = std::find_if(m_rootNode.cbegin(), m_rootNode.cend(), [&,dev] (const auto& dev_node) {
                 return dev_node.template get<Device::DeviceSettings>().name == dev->settings().name;
             });
 

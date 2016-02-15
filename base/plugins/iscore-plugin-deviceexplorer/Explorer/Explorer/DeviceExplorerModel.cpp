@@ -31,7 +31,6 @@
 #include <Device/ItemModels/NodeBasedItemModel.hpp>
 #include <Device/Protocol/DeviceList.hpp>
 #include <Device/Protocol/DeviceSettings.hpp>
-#include <Device/Protocol/ProtocolFactoryKey.hpp>
 #include "DeviceExplorerMimeTypes.hpp"
 #include "DeviceExplorerModel.hpp"
 #include "DeviceExplorerView.hpp"
@@ -242,7 +241,7 @@ bool DeviceExplorerModel::checkDeviceInstantiatable(
     // Request from the protocol factory the protocol to see
     // if it is compatible.
     auto& context = m_devicePlugin.context().app.components;
-    auto prot = context.factory<Device::DynamicProtocolList>().list().get(n.protocol);
+    auto prot = context.factory<Device::DynamicProtocolList>().get(n.protocol);
     if(!prot)
         return false;
 

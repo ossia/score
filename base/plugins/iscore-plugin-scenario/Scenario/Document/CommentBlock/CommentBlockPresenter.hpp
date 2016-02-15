@@ -36,25 +36,17 @@ class CommentBlockPresenter final :  public NamedObject
 
         const TimeValue& date() const;
 
-        bool isPressed() {return m_pressed;}
-        const QPointF& pressedPoint() {return isPressed() ? m_clickedPoint : m_origin;}
-        void setPressed(bool b) {m_pressed = b;}
-
-        void pressed(const QPointF&);
         void on_zoomRatioChanged(ZoomRatio newRatio);
     signals:
         void moved(const QPointF&);
         void released(const QPointF&);
-        void doubleClicked();
+        void selected();
         void editFinished(QString);
 
     private:
         const CommentBlockModel& m_model;
         CommentBlockView* m_view{};
 
-        bool m_pressed{false};
-        QPointF m_origin{0,0};
-        QPointF m_clickedPoint{m_origin};
 };
 
 }

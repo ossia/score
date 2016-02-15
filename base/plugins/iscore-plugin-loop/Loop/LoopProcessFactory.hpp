@@ -20,7 +20,7 @@ class ProcessFactory final : public Process::ProcessFactory
             return Metadata<PrettyName_k, ProcessModel>::get();
         }
 
-        const ProcessFactoryKey& concreteFactoryKey() const override
+        const UuidKey<Process::ProcessFactory>& concreteFactoryKey() const override
         {
             return Metadata<ConcreteFactoryKey_k, ProcessModel>::get();
         }

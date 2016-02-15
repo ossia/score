@@ -5,7 +5,7 @@
 #include <Editor/CurveSegment/CurveSegmentPower.h>
 #include <Curve/Segment/Linear/LinearCurveSegmentModel.hpp>
 #include <Curve/Segment/Power/PowerCurveSegmentModel.hpp>
-#include <Curve/Segment/CurveSegmentFactoryKey.hpp>
+
 
 namespace iscore
 {
@@ -21,19 +21,20 @@ std::shared_ptr<OSSIA::CurveAbstract> curve(
     auto curve = OSSIA::Curve<X_T, Y_T>::create();
     if(segments[0].start.x() == 0.)
     {
-        curve->setInitialValue(scale_y(segments[0].start.y()));
+        curve->setInitialPointAbscissa(scale_x(segments[0].start.x()));
+        curve->setInitialPointOrdinate(scale_y(segments[0].start.y()));
     }
 
     for(const auto& iscore_segment : segments)
     {
-        if(iscore_segment.type == Curve::LinearSegmentData::static_concreteFactoryKey())
+        if(iscore_segment.type == Metadata<ConcreteFactoryKey_k, Curve::LinearSegment>::get())
         {
             curve->addPoint(
                         OSSIA::CurveSegmentLinear<Y_T>::create(curve),
                         scale_x(iscore_segment.end.x()),
                         scale_y(iscore_segment.end.y()));
         }
-        else if(iscore_segment.type == Curve::PowerSegmentData::static_concreteFactoryKey())
+        else if(iscore_segment.type == Metadata<ConcreteFactoryKey_k, Curve::PowerSegment>::get())
         {
             auto val = iscore_segment.specificSegmentData.template value<Curve::PowerSegmentData>();
 

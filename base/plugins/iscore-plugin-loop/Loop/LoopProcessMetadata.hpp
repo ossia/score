@@ -1,6 +1,7 @@
 #pragma once
 #include <Process/ProcessMetadata.hpp>
 #include <QString>
+#include <iscore/plugins/customfactory/UuidKey.hpp>
 #include <iscore_plugin_loop_export.h>
 
 namespace Loop

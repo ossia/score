@@ -26,6 +26,8 @@ namespace iscore
             virtual void undo() const = 0;
             virtual void redo() const = 0;
 
+            virtual const CommandFactoryKey& key() const = 0;
+
         protected:
             quint32 timestamp() const;
             void setTimestamp(quint32 stmp);
@@ -38,3 +40,25 @@ namespace iscore
             {  std::chrono::duration_cast<std::chrono::milliseconds>( std::chrono::high_resolution_clock::now().time_since_epoch()) };
     };
 }
+
+/**
+ * This macro is used to specify the common metadata of commands :
+ *  - factory name (e.g. "ScenarioApplicationPlugin")
+ *  - command name
+ *  - command description
+ */
+#define ISCORE_COMMAND_DECL(parentNameFun, name, desc) \
+    public: \
+        name() = default; \
+        virtual const CommandParentFactoryKey& parentKey() const override { return parentNameFun; } \
+        virtual const CommandFactoryKey& key() const override { return static_key(); } \
+        virtual QString description() const override { return QObject::tr(desc); }  \
+    static const CommandFactoryKey& static_key() \
+    { \
+        static const CommandFactoryKey var{#name}; \
+        return var; \
+    } \
+    private:
+
+// A helper to allow cmake to parse commands.
+#define ISCORE_COMMAND_DECL_T(name)

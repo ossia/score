@@ -10,6 +10,8 @@
 #include <QAction>
 #include <QBoxLayout>
 #include <QFormLayout>
+#include <QLabel>
+#include <QMenu>
 #include <QToolButton>
 
 #include <Scenario/DialogWidget/AddProcessDialog.hpp>
@@ -72,7 +74,7 @@ ProcessTabWidget::ProcessTabWidget(const ConstraintInspectorWidget& parentCstr, 
     processesLay->addStretch(1);
 }
 
-void ProcessTabWidget::createProcess(const ProcessFactoryKey& processName)
+void ProcessTabWidget::createProcess(const UuidKey<Process::ProcessFactory>& processName)
 {
     auto cmd = Command::make_AddProcessToConstraint(m_constraintWidget.model(), processName);
     m_constraintWidget.commandDispatcher()->submitCommand(cmd);
@@ -100,7 +102,8 @@ void ProcessTabWidget::displaySharedProcess(const Process::ProcessModel& process
     newProc->showMenu(true);
 
     const auto& fact = m_constraintWidget.context().app.components.factory<ProcessInspectorWidgetDelegateFactoryList>();
-    if(auto widg = fact.make(process, m_constraintWidget.context(), newProc))
+    if(auto widg = fact.make(&ProcessInspectorWidgetDelegateFactory::make,
+                             process, m_constraintWidget.context(), newProc))
     {
         newProc->addContent(widg);
 
@@ -111,8 +114,9 @@ void ProcessTabWidget::displaySharedProcess(const Process::ProcessModel& process
     }
 
     // delete process
-    newProc->enableDelete();
-    connect(newProc, &Inspector::InspectorSectionWidget::deletePressed,
+
+    auto delAct = newProc->menu()->addAction(tr("Remove Process"));
+    connect(delAct, &QAction::triggered,
             this, [=,id=process.id()] ()
         {
             auto cmd = new Command::RemoveProcessFromConstraint{iscore::IDocument::path(m_constraintWidget.model()), id};
@@ -126,13 +130,15 @@ void ProcessTabWidget::displaySharedProcess(const Process::ProcessModel& process
 
     if(auto start = process.startStateData())
     {
-        auto startWidg = m_constraintWidget.widgetList().makeInspectorWidget(*start, newProc);
+        auto startWidg = m_constraintWidget.widgetList().make(
+                             m_constraintWidget.context(), *start, newProc);
         stateLayout->addRow(tr("Start "), startWidg);
     }
 
     if(auto end = process.endStateData())
     {
-        auto endWidg = m_constraintWidget.widgetList().makeInspectorWidget(*end, newProc);
+        auto endWidg = m_constraintWidget.widgetList().make(
+                           m_constraintWidget.context(), *end, newProc);
         stateLayout->addRow(tr("End   "), endWidg);
     }
 

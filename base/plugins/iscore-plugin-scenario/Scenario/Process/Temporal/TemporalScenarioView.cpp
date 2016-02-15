@@ -44,6 +44,14 @@ void TemporalScenarioView::paint_impl(QPainter* painter) const
     }
 }
 
+void TemporalScenarioView::movedAsked(const QPointF& p)
+{
+    QRectF r = QRectF{m_previousPoint.x(), m_previousPoint.y() , 1, 1};
+    ensureVisible(mapRectFromScene(r), 30, 30);
+    emit moved(p);
+    m_previousPoint = p; // we use the last pos, because if not there's a larsen and crash
+}
+
 
 void TemporalScenarioView::mousePressEvent(QGraphicsSceneMouseEvent* event)
 {

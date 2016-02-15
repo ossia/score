@@ -107,8 +107,8 @@ void NodeUpdateProxy::addAddress(
     // Add in the device impl
     // Get the device node :
     // TODO row isn't managed here.
-    const auto& dev_node = devModel.rootNode().childAt(parentPath.at(0));
-    ISCORE_ASSERT(dev_node.is<Device::DeviceSettings>());
+    const Device::Node& dev_node = devModel.rootNode().childAt(parentPath.at(0));
+    ISCORE_ASSERT(dev_node.template is<Device::DeviceSettings>());
 
     // Make a full path
     Device::FullAddressSettings full = Device::FullAddressSettings::make<Device::FullAddressSettings::as_parent>(
@@ -118,7 +118,7 @@ void NodeUpdateProxy::addAddress(
     // Add in the device implementation
     devModel
             .list()
-            .device(dev_node.get<Device::DeviceSettings>().name)
+            .device(dev_node.template get<Device::DeviceSettings>().name)
             .addAddress(full);
 
     // Add in the device explorer
@@ -130,7 +130,7 @@ void NodeUpdateProxy::rec_addNode(
         const Device::Node& n,
         int row)
 {
-    addAddress(parentPath, n.get<Device::AddressSettings>(), row);
+    addAddress(parentPath, n.template get<Device::AddressSettings>(), row);
 
     parentPath.append(row);
 
@@ -146,7 +146,7 @@ void NodeUpdateProxy::addNode(
         const Device::Node& node,
         int row)
 {
-    ISCORE_ASSERT(node.is<Device::AddressSettings>());
+    ISCORE_ASSERT(node.template is<Device::AddressSettings>());
 
     rec_addNode(parentPath, node, row);
 }
@@ -199,7 +199,7 @@ void NodeUpdateProxy::removeNode(
     // Remove from the device implementation
     const auto& dev_node = devModel.rootNode().childAt(parentPath.at(0));
     devModel.list().device(
-                dev_node.get<Device::DeviceSettings>().name)
+                dev_node.template get<Device::DeviceSettings>().name)
             .removeNode(addr);
 
     // Remove from the device explorer
@@ -245,7 +245,7 @@ void NodeUpdateProxy::updateLocalValue(
     if(!n)
         return;
 
-    if(!n->is<Device::AddressSettings>())
+    if(!n->template is<Device::AddressSettings>())
     {
         qDebug() << "Updating invalid node";
         return;
@@ -257,7 +257,7 @@ void NodeUpdateProxy::updateLocalValue(
     }
     else
     {
-        n->get<Device::AddressSettings>().value = v;
+        n->template get<Device::AddressSettings>().value = v;
     }
 }
 
@@ -269,7 +269,7 @@ void NodeUpdateProxy::updateLocalSettings(
     if(!n)
         return;
 
-    if(!n->is<Device::AddressSettings>())
+    if(!n->template is<Device::AddressSettings>())
     {
         qDebug() << "Updating invalid node";
         return;
@@ -308,7 +308,7 @@ State::Value NodeUpdateProxy::refreshRemoteValue(const State::Address& addr) con
 
     auto& dev = **dev_it;
 
-    auto& n = Device::getNodeFromAddress(devModel.rootNode(), addr).get<Device::AddressSettings>();
+    auto& n = Device::getNodeFromAddress(devModel.rootNode(), addr).template get<Device::AddressSettings>();
     if(dev.capabilities().canRefresh)
     {
         if(auto val = dev.refresh(addr))
@@ -325,7 +325,7 @@ void rec_refreshRemoteValues(Device::Node& n, Device::DeviceInterface& dev)
     // OPTIMIZEME
     auto val = dev.refresh(Device::address(n));
     if(val)
-        n.get<Device::AddressSettings>().value = *val;
+        n.template get<Device::AddressSettings>().value = *val;
 
     for(auto& child : n)
     {
@@ -338,9 +338,9 @@ void NodeUpdateProxy::refreshRemoteValues(const Device::NodeList& nodes)
     // For each node, get its device.
     for(auto n : nodes)
     {
-        if(n->is<Device::DeviceSettings>())
+        if(n->template is<Device::DeviceSettings>())
         {
-            auto dev_name = n->get<Device::DeviceSettings>().name;
+            auto dev_name = n->template get<Device::DeviceSettings>().name;
             auto& dev = devModel.list().device(dev_name);
             if(!dev.capabilities().canRefresh)
                 continue;
@@ -366,7 +366,7 @@ void NodeUpdateProxy::addLocalNode(
         Device::Node& parent,
         Device::Node&& node)
 {
-    ISCORE_ASSERT(node.is<Device::AddressSettings>());
+    ISCORE_ASSERT(node.template is<Device::AddressSettings>());
 
     int row = parent.childCount();
     if(deviceExplorer)

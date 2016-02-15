@@ -20,6 +20,6 @@ class iscore_plugin_library :
     private:
         std::vector<iscore::PanelFactory*> panels() override;
 
-        int32_t version() const override;
+        iscore::Version version() const override;
         UuidKey<iscore::Plugin> key() const override;
 };

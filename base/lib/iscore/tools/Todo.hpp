@@ -44,6 +44,10 @@
 
 template<typename T>
 using remove_qualifs_t = std::decay_t<std::remove_pointer_t<std::decay_t<T>>>;
+
+template<typename T>
+using add_cref_t = std::add_lvalue_reference_t<std::add_const_t<T>>;
+
 template<int N, typename... Ts> using NthTypeOf =
 typename std::tuple_element<N, std::tuple<Ts...>>::type;
 
@@ -129,11 +133,30 @@ struct ptr
 template<typename T, typename... Args>
 auto con(const T& t, Args&&... args)
 {
-    return QObject::connect(&t, std::forward<Args&&>(args)...);
+    return QObject::connect(&t, std::forward<Args>(args)...);
 }
 
 template<typename T, typename... Args>
 auto con(ptr<T> t, Args&&... args)
 {
-    return QObject::connect(&*t, std::forward<Args&&>(args)...);
+    return QObject::connect(&*t, std::forward<Args>(args)...);
+}
+
+
+/**
+ * Used since it seems that
+ * this is the fastest way to iterate over
+ * a Qt container :
+ * http://blog.qt.io/blog/2009/01/23/iterating-efficiently/
+ */
+template<typename Array, typename F>
+void Foreach(
+        const Array& arr,
+        F fun)
+{
+    int n = arr.size();
+    for(int i = 0; i < n; i++)
+    {
+        fun(arr.at(i));
+    }
 }

@@ -1,5 +1,6 @@
 #pragma once
 #include <Process/ProcessMetadata.hpp>
+#include <iscore/plugins/customfactory/UuidKey.hpp>
 #include <QString>
 #include <iscore_plugin_automation_export.h>
 

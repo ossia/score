@@ -11,6 +11,7 @@
 #include <Scenario/Document/State/StateModel.hpp>
 #include <Scenario/Document/TimeNode/TimeNodeModel.hpp>
 #include <Scenario/Process/ScenarioModel.hpp>
+#include <Scenario/Process/Algorithms/Accessors.hpp>
 #include <Scenario/Tools/dataStructures.hpp>
 #include <iscore/serialization/DataStreamVisitor.hpp>
 #include <iscore/tools/ModelPath.hpp>
@@ -48,14 +49,16 @@ GoodOldDisplacementPolicy::computeDisplacement(
             auto& curTimeNode = scenario.timeNodes.at(curTimeNodeId);
 
             // if timenode NOT already in element properties, create new element properties and set the old date
-            if(! elementsProperties.timenodes.contains(curTimeNodeId))
+            auto tn_it = elementsProperties.timenodes.find(curTimeNodeId);
+            if(tn_it == elementsProperties.timenodes.end())
             {
-                elementsProperties.timenodes[curTimeNodeId] = TimenodeProperties{};
-                elementsProperties.timenodes[curTimeNodeId].oldDate = curTimeNode.date();
+                TimenodeProperties t;
+                t.oldDate = curTimeNode.date();
+                tn_it = elementsProperties.timenodes.insert(curTimeNodeId, t);
             }
 
             // put the new date
-            elementsProperties.timenodes[curTimeNodeId].newDate = elementsProperties.timenodes[curTimeNodeId].oldDate + deltaTime;
+            tn_it->newDate = tn_it->oldDate + deltaTime;
         }
 
         // Make a list of the constraints that need to be resized
@@ -75,11 +78,13 @@ GoodOldDisplacementPolicy::computeDisplacement(
                         auto& curConstraint = scenario.constraints.at(curConstraintId);
 
                         // if timenode NOT already in element properties, create new element properties and set old values
-                        if(! elementsProperties.constraints.contains(curConstraintId))
+                        auto cur_constraint_it = elementsProperties.constraints.find(curConstraintId);
+                        if(cur_constraint_it == elementsProperties.constraints.end())
                         {
-                            elementsProperties.constraints[curConstraintId] = ConstraintProperties{};
-                            elementsProperties.constraints[curConstraintId].oldMin = curConstraint.duration.minDuration();
-                            elementsProperties.constraints[curConstraintId].oldMax = curConstraint.duration.maxDuration();
+                            ConstraintProperties c;
+                            c.oldMin = curConstraint.duration.minDuration();
+                            c.oldMax = curConstraint.duration.maxDuration();
+                            cur_constraint_it = elementsProperties.constraints.insert(curConstraintId, c);
 
                             // Save the constraint display data START ----------------
                             QByteArray arr;
@@ -94,23 +99,25 @@ GoodOldDisplacementPolicy::computeDisplacement(
                                 map[vm->id()] = vm->shownRack();
                             }
 
-                            elementsProperties.constraints[curConstraintId].savedDisplay = {{curConstraint, arr}, map};
+                            cur_constraint_it->savedDisplay = {{curConstraint, arr}, map};
                             // Save the constraint display data END ----------------
 
                         }
 
-                        auto& startTnodeId = scenario.event(scenario.state(curConstraint.startState()).eventId()).timeNode();
+                        auto& curConstraintStartEvent = Scenario::startEvent(curConstraint, scenario);
+                        auto& startTnodeId = curConstraintStartEvent.timeNode();
 
                         // compute default duration
                         TimeValue startDate;
 
                         // if prev tnode has moved take updated value else take existing
-                        if( elementsProperties.timenodes.contains(startTnodeId) )
+                        auto it = elementsProperties.timenodes.constFind(startTnodeId);
+                        if( it != elementsProperties.timenodes.constEnd() )
                         {
-                            startDate = elementsProperties.timenodes[startTnodeId].newDate;
+                            startDate = it->newDate;
                         }else
                         {
-                            startDate = scenario.event(scenario.state(curConstraint.startState()).eventId()).date();
+                            startDate = curConstraintStartEvent.date();
                         }
 
                         const auto& endDate = elementsProperties.timenodes[curTimeNodeId].newDate;
@@ -118,8 +125,8 @@ GoodOldDisplacementPolicy::computeDisplacement(
                         TimeValue newDefaultDuration = endDate - startDate;
                         TimeValue deltaBounds = newDefaultDuration - curConstraint.duration.defaultDuration();
 
-                        elementsProperties.constraints[curConstraintId].newMin = curConstraint.duration.minDuration() + deltaBounds;
-                        elementsProperties.constraints[curConstraintId].newMax = curConstraint.duration.maxDuration() + deltaBounds;
+                        cur_constraint_it->newMin = curConstraint.duration.minDuration() + deltaBounds;
+                        cur_constraint_it->newMax = curConstraint.duration.maxDuration() + deltaBounds;
 
                         // nothing to do for now
                     }

@@ -6,6 +6,9 @@
 namespace Inspector{
     class InspectorSectionWidget;
 }
+namespace Process {
+class ProcessFactory;
+}
 namespace Scenario {
 class ProcessTabWidget : public QWidget
 {
@@ -16,7 +19,7 @@ class ProcessTabWidget : public QWidget
     signals:
 
     public slots:
-        void createProcess(const ProcessFactoryKey& processName);
+        void createProcess(const UuidKey<Process::ProcessFactory>& processName);
         void displaySharedProcess(const Process::ProcessModel&);
 
         void updateDisplayedValues();

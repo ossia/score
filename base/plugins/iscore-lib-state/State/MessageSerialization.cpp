@@ -25,9 +25,9 @@ ISCORE_LIB_STATE_EXPORT void Visitor<Reader<DataStream>>::readFrom(const State::
 template<>
 ISCORE_LIB_STATE_EXPORT void Visitor<Reader<JSONObject>>::readFrom(const State::Message& mess)
 {
-    m_obj["Address"] = toJsonObject(mess.address);
-    m_obj["Type"] = State::convert::textualType(mess.value);
-    m_obj["Value"] = ValueToJson(mess.value);
+    m_obj[iscore::StringConstant().Address] = toJsonObject(mess.address);
+    m_obj[iscore::StringConstant().Type] = State::convert::textualType(mess.value);
+    m_obj[iscore::StringConstant().Value] = ValueToJson(mess.value);
 }
 
 template<>
@@ -42,6 +42,8 @@ ISCORE_LIB_STATE_EXPORT void Visitor<Writer<DataStream>>::writeTo(State::Message
 template<>
 ISCORE_LIB_STATE_EXPORT void Visitor<Writer<JSONObject>>::writeTo(State::Message& mess)
 {
-    mess.address = fromJsonObject<State::Address>(m_obj["Address"].toObject());
-    mess.value = State::convert::toValue(m_obj["Value"], m_obj["Type"].toString());
+    mess.address = fromJsonObject<State::Address>(m_obj[iscore::StringConstant().Address].toObject());
+    mess.value = State::convert::toValue(
+                m_obj[iscore::StringConstant().Value],
+                m_obj[iscore::StringConstant().Type].toString());
 }
