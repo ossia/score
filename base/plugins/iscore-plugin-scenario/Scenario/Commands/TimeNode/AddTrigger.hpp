@@ -41,7 +41,12 @@ class AddTrigger final : public iscore::SerializableCommand
         AddTrigger(Path<TimeNodeModel>&& timeNodePath):
             m_path{std::move(timeNodePath)}
         {
-
+            auto& tn = m_path.find();
+            Scenario_T* scenar = safe_cast<Scenario_T*>(tn.parent());
+            for (const auto& cstrId : constraintsBeforeTimeNode(*scenar, tn.id()))
+            {
+                m_cmds.emplace_back(scenar->constraint(cstrId), false);
+            }
         }
 
         void undo() const override
@@ -53,8 +58,6 @@ class AddTrigger final : public iscore::SerializableCommand
             {
                 cmd.undo();
             }
-
-            m_cmds.clear();
         }
 
         void redo() const override
@@ -62,12 +65,9 @@ class AddTrigger final : public iscore::SerializableCommand
             auto& tn = m_path.find();
             tn.trigger()->setActive(true);
 
-            Scenario_T* scenar = safe_cast<Scenario_T*>(tn.parent());
-
-            for (const auto& cstrId : constraintsBeforeTimeNode(*scenar, tn.id()))
+            for (const auto& cmd : m_cmds)
             {
-                m_cmds.emplace_back(scenar->constraint(cstrId), false);
-                m_cmds.back().redo();
+                cmd.redo();
             }
         }
 
@@ -99,7 +99,7 @@ class AddTrigger final : public iscore::SerializableCommand
 
     private:
         Path<TimeNodeModel> m_path;
-        mutable std::vector<SetRigidity> m_cmds; // TODO investigate mutable
+        std::vector<SetRigidity> m_cmds; // TODO investigate mutable
 
 };
 

@@ -18,6 +18,11 @@ add_executable(iscore_testapp ${SRCS})
 target_link_libraries(iscore_testapp PRIVATE iscore_lib_base   ${ISCORE_PLUGINS_LIST}
     Qt5::Core Qt5::Widgets Qt5::Gui Qt5::Network Qt5::Xml Qt5::Svg Qt5::Test)
 
+if(ISCORE_STATIC_PLUGINS)
+  iscore_write_static_plugins_header()
+  target_link_libraries(iscore_testapp PUBLIC ${ISCORE_PLUGINS_LIST})
+endif()
+
 setup_iscore_common_exe_features(iscore_testapp)
 
 setup_target_for_coverage(
