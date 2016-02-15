@@ -14,6 +14,7 @@ class QObject;
 namespace iscore
 {
     class View;
+    class Settings;
 
     /**
      * @brief The Presenter class
@@ -30,6 +31,7 @@ namespace iscore
         public:
             Presenter(
                     const iscore::ApplicationSettings& app,
+                    const iscore::Settings& set,
                     iscore::View* view,
                     QObject* parent);
 
@@ -58,6 +60,7 @@ namespace iscore
         private:
             void setupMenus();
             View* m_view {};
+            const Settings& m_settings;
 
             DocumentManager m_docManager;
             ApplicationComponentsData m_components;

@@ -40,7 +40,7 @@ const std::vector<DocumentPlugin*>&DocumentContext::pluginModels() const
 Document::Document(
         const QString& name,
         const Id<DocumentModel>& id,
-        DocumentDelegateFactory* factory,
+        DocumentDelegateFactory& factory,
         QWidget* parentview,
         QObject* parent) :
     NamedObject {"Document", parent},

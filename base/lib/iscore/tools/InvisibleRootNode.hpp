@@ -1,4 +1,5 @@
 #pragma once
+#include <iscore/tools/Metadata.hpp>
 #include <iscore_lib_base_export.h>
 /**
  * @brief The InvisibleRootNodeTag struct
@@ -10,8 +11,4 @@ struct ISCORE_LIB_BASE_EXPORT InvisibleRootNodeTag{
         { return true; }
 };
 
-template<typename T>
-class TypeToName;
-
-template<> class TypeToName<InvisibleRootNodeTag>
-{ public: static constexpr const char * name() { return "RootNode"; } };
+JSON_METADATA(InvisibleRootNodeTag, "RootNode")

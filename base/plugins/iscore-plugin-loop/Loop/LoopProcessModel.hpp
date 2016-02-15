@@ -6,7 +6,7 @@
 #include <QString>
 #include <QVector>
 
-#include <Process/ProcessFactoryKey.hpp>
+
 #include <Process/TimeValue.hpp>
 #include <iscore/selection/Selection.hpp>
 #include <iscore/serialization/VisitorInterface.hpp>
@@ -62,7 +62,7 @@ class ISCORE_PLUGIN_LOOP_EXPORT ProcessModel final :
                 const Id<Process::ProcessModel>& newId,
                 QObject* newParent) const override;
 
-        ProcessFactoryKey concreteFactoryKey() const override
+        UuidKey<Process::ProcessFactory>concreteFactoryKey() const override
         {
             return Metadata<ConcreteFactoryKey_k, ProcessModel>::get();
         }

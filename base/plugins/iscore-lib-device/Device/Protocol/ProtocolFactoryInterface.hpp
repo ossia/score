@@ -4,7 +4,6 @@
 #include <QString>
 #include <QVariant>
 
-#include <Device/Protocol/ProtocolFactoryKey.hpp>
 #include <iscore_lib_device_export.h>
 
 struct VisitorVariant;
@@ -15,10 +14,11 @@ namespace Device
 struct DeviceSettings;
 class DeviceInterface;
 class ProtocolSettingsWidget;
-class ISCORE_LIB_DEVICE_EXPORT ProtocolFactory : public iscore::GenericFactoryInterface<ProtocolFactoryKey>
+class ISCORE_LIB_DEVICE_EXPORT ProtocolFactory :
+        public iscore::AbstractFactory<ProtocolFactory>
 {
         ISCORE_ABSTRACT_FACTORY_DECL(
-                DeviceInterface,
+                ProtocolFactory,
                 "3f69d72e-318d-42dc-b48c-a806036592f1")
 
     public:
@@ -60,3 +60,5 @@ class ISCORE_LIB_DEVICE_EXPORT ProtocolFactory : public iscore::GenericFactoryIn
                 const Device::DeviceSettings& b) const = 0;
 };
 }
+
+Q_DECLARE_METATYPE(UuidKey<Device::ProtocolFactory>)

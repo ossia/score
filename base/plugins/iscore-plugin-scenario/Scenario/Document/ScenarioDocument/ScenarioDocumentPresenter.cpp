@@ -137,7 +137,7 @@ void ScenarioDocumentPresenter::on_displayedConstraintChanged()
     // Setup of the state machine.
     auto& ctx = iscore::IDocument::documentContext(model());
     const auto& fact = ctx.app.components.factory<DisplayedElementsToolPaletteFactoryList>();
-    m_stateMachine = fact.make(*this, cst);
+    m_stateMachine = fact.make(&DisplayedElementsToolPaletteFactory::make, *this, cst);
     m_scenarioPresenter->on_displayedConstraintChanged(cst);
     connect(m_scenarioPresenter->constraintPresenter(), &FullViewConstraintPresenter::constraintSelected,
             this, &ScenarioDocumentPresenter::requestDisplayedConstraintChange);
@@ -288,7 +288,7 @@ void ScenarioDocumentPresenter::updateZoom(ZoomRatio newZoom, QPointF focus)
     qreal center = focus.x();
     if (focus.isNull())
     {
-        //   center = visible_scene_rect.center().x();
+           center = visible_scene_rect.center().x();
     }
     else if (focus.x() - visible_scene_rect.left() < 40)
     {

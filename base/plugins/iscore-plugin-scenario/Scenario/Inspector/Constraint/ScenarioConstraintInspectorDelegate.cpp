@@ -44,6 +44,7 @@ void ScenarioConstraintInspectorDelegate::on_defaultDurationChanged(
             scenario,
             scenario.state(m_model.endState()).eventId(),
             m_model.startDate() + val,
+            0.,
             expandmode);
 }
 }

@@ -7,10 +7,11 @@ namespace Scenario
 {
 class ConstraintModel;
 
-class DisplayedElementsProvider : public iscore::FactoryInterfaceBase
+class DisplayedElementsProvider :
+        public iscore::AbstractFactory<DisplayedElementsProvider>
 {
         ISCORE_ABSTRACT_FACTORY_DECL(
-                DisplayedElementsContainer,
+                DisplayedElementsProvider,
                 "4bfcf0ee-6c47-405a-a15d-9da73436e273")
     public:
         virtual ~DisplayedElementsProvider();

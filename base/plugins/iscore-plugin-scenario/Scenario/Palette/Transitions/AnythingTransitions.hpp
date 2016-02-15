@@ -32,6 +32,90 @@ class MoveOnAnything_Transition final : public GenericTransition<Scenario_T, QAb
         }
 };
 
+template<typename Scenario_T>
+class MoveOnAnythingButTimeNode_Transition final : public GenericTransition<Scenario_T, QAbstractTransition>
+{
+    public:
+        using GenericTransition<Scenario_T, QAbstractTransition>::GenericTransition;
+
+    protected:
+        bool eventTest(QEvent *e) override
+        {
+            using namespace std;
+            static const constexpr QEvent::Type types[] = {
+                QEvent::Type(QEvent::User + MoveOnNothing_Event::user_type),
+                QEvent::Type(QEvent::User + MoveOnState_Event::user_type),
+                QEvent::Type(QEvent::User + MoveOnEvent_Event::user_type),
+                QEvent::Type(QEvent::User + MoveOnConstraint_Event::user_type),
+                QEvent::Type(QEvent::User + MoveOnLeftBrace_Event::user_type),
+                QEvent::Type(QEvent::User + MoveOnRightBrace_Event::user_type)};
+
+            return find(begin(types), end(types), e->type()) != end(types);
+        }
+
+        void onTransition(QEvent *event) override
+        {
+            auto qev = static_cast<iscore::PositionedEvent<Scenario::Point>*>(event);
+
+            this->state().currentPoint = qev->point;
+        }
+};
+
+template<typename Scenario_T>
+class MoveOnAnythingButEvent_Transition final : public GenericTransition<Scenario_T, QAbstractTransition>
+{
+    public:
+        using GenericTransition<Scenario_T, QAbstractTransition>::GenericTransition;
+
+    protected:
+        bool eventTest(QEvent *e) override
+        {
+            using namespace std;
+            static const constexpr QEvent::Type types[] = {
+                QEvent::Type(QEvent::User + MoveOnNothing_Event::user_type),
+                QEvent::Type(QEvent::User + MoveOnTimeNode_Event::user_type),
+                QEvent::Type(QEvent::User + MoveOnConstraint_Event::user_type),
+                QEvent::Type(QEvent::User + MoveOnLeftBrace_Event::user_type),
+                QEvent::Type(QEvent::User + MoveOnRightBrace_Event::user_type)};
+
+            return find(begin(types), end(types), e->type()) != end(types);
+        }
+
+        void onTransition(QEvent *event) override
+        {
+            auto qev = static_cast<iscore::PositionedEvent<Scenario::Point>*>(event);
+
+            this->state().currentPoint = qev->point;
+        }
+};
+
+template<typename Scenario_T>
+class MoveOnAnythingButPonctual_Transition final : public GenericTransition<Scenario_T, QAbstractTransition>
+{
+    public:
+        using GenericTransition<Scenario_T, QAbstractTransition>::GenericTransition;
+
+    protected:
+        bool eventTest(QEvent *e) override
+        {
+            using namespace std;
+            static const constexpr QEvent::Type types[] = {
+                QEvent::Type(QEvent::User + MoveOnNothing_Event::user_type),
+                QEvent::Type(QEvent::User + MoveOnConstraint_Event::user_type),
+                QEvent::Type(QEvent::User + MoveOnLeftBrace_Event::user_type),
+                QEvent::Type(QEvent::User + MoveOnRightBrace_Event::user_type)};
+
+            return find(begin(types), end(types), e->type()) != end(types);
+        }
+
+        void onTransition(QEvent *event) override
+        {
+            auto qev = static_cast<iscore::PositionedEvent<Scenario::Point>*>(event);
+
+            this->state().currentPoint = qev->point;
+        }
+};
+
 class ReleaseOnAnything_Transition final : public QAbstractTransition
 {
     protected:

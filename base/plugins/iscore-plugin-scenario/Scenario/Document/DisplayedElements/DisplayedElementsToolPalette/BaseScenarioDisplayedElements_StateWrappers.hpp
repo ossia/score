@@ -2,6 +2,7 @@
 #include <Scenario/Commands/MoveBaseEvent.hpp>
 #include <Scenario/Document/BaseScenario/BaseScenario.hpp>
 #include <Scenario/Palette/Tools/States/MoveStates.hpp>
+#include <Scenario/Palette/Tools/States/MoveAndMergeState.hpp>
 #include <Scenario/Palette/Tools/SmartTool.hpp>
 #include <Scenario/Palette/Transitions/ConstraintTransitions.hpp>
 #include <Scenario/Palette/Transitions/EventTransitions.hpp>

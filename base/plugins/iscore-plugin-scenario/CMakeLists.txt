@@ -126,7 +126,6 @@ set(SRCS ${SRCS}
 "${CMAKE_CURRENT_SOURCE_DIR}/Scenario/Commands/TimeNode/TriggerCommandFactory/TriggerCommandFactory.cpp"
 "${CMAKE_CURRENT_SOURCE_DIR}/Scenario/Commands/TimeNode/TriggerCommandFactory/ScenarioTriggerCommandFactory.cpp"
 "${CMAKE_CURRENT_SOURCE_DIR}/Scenario/Commands/TimeNode/TriggerCommandFactory/BaseScenarioTriggerCommandFactory.cpp"
-"${CMAKE_CURRENT_SOURCE_DIR}/Scenario/Commands/TimeNode/MergeTimeNodes.cpp"
 "${CMAKE_CURRENT_SOURCE_DIR}/Scenario/Commands/TimeNode/SplitTimeNode.cpp"
 "${CMAKE_CURRENT_SOURCE_DIR}/Scenario/Commands/TimeNode/SetTrigger.cpp"
 "${CMAKE_CURRENT_SOURCE_DIR}/Scenario/Commands/CommandNames.cpp"
@@ -232,6 +231,7 @@ set(SRCS ${SRCS}
 "${CMAKE_CURRENT_SOURCE_DIR}/Scenario/Document/CommentBlock/CommentBlockModel.cpp"
 "${CMAKE_CURRENT_SOURCE_DIR}/Scenario/Document/CommentBlock/CommentBlockPresenter.cpp"
 "${CMAKE_CURRENT_SOURCE_DIR}/Scenario/Document/CommentBlock/CommentBlockView.cpp"
+"${CMAKE_CURRENT_SOURCE_DIR}/Scenario/Document/CommentBlock/TextItem.cpp"
 
 
 "${CMAKE_CURRENT_SOURCE_DIR}/Scenario/Panel/ProcessPanelFactory.cpp"
@@ -247,6 +247,7 @@ set(SRCS ${SRCS}
 "${CMAKE_CURRENT_SOURCE_DIR}/Scenario/Process/ScenarioFactory.cpp"
 
 "${CMAKE_CURRENT_SOURCE_DIR}/Scenario/Palette/Tools/MoveSlotToolState.cpp"
+"${CMAKE_CURRENT_SOURCE_DIR}/Scenario/Palette/Tools/PlayToolState.cpp"
 "${CMAKE_CURRENT_SOURCE_DIR}/Scenario/Palette/Transitions/SlotTransitions.cpp"
 "${CMAKE_CURRENT_SOURCE_DIR}/Scenario/Palette/ScenarioPalette.cpp"
 "${CMAKE_CURRENT_SOURCE_DIR}/Scenario/Process/Temporal/TemporalScenarioView.cpp"

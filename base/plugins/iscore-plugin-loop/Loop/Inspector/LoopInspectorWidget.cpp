@@ -28,7 +28,7 @@ LoopInspectorWidget::LoopInspectorWidget(
 
     auto& constraint = object.constraint();
 
-    auto delegate = constraintWidgetFactory.make(constraint);
+    auto delegate = constraintWidgetFactory.make(&Scenario::ConstraintInspectorDelegateFactory::make, constraint);
     if(!delegate)
         return;
 

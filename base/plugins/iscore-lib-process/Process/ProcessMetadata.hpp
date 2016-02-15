@@ -1,6 +1,11 @@
 #pragma once
 #include <iscore/tools/Metadata.hpp>
-#include <Process/ProcessFactoryKey.hpp>
+#include <QObject>
+
+namespace Process
+{
+class ProcessFactory;
+}
 #define PROCESS_FACTORY_METADATA(Export, Model, Uuid) \
 template<> \
 struct Export Metadata< \
@@ -9,7 +14,7 @@ struct Export Metadata< \
 { \
         static const auto& get() \
         { \
-            static const ProcessFactoryKey k{Uuid}; \
+            static const UuidKey<Process::ProcessFactory> k{Uuid}; \
             return k; \
         } \
 };

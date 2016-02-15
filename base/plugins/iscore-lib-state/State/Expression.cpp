@@ -14,7 +14,7 @@ QString ExprData::toString() const
         { State::UnaryOperator::Not, "not" },
     };
 
-    static const constexpr struct {
+    struct vis {
         public:
             using return_type = QString;
             return_type operator()(const State::Relation& rel) const {
@@ -34,9 +34,9 @@ QString ExprData::toString() const
                 return "";
             }
 
-    } visitor{};
+    };
 
-    return eggs::variants::apply(visitor, m_data);
+    return eggs::variants::apply(vis{}, m_data);
 }
 
 QString TreeNode<ExprData>::toString() const

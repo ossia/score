@@ -187,12 +187,6 @@ void PluginLoader::loadPlugins(
     // Load what the plug-ins have to offer.
     for(auto plugin : availablePlugins)
     {
-        auto settings_plugin = dynamic_cast<SettingsDelegateFactoryInterface_QtInterface*> (plugin);
-        if(settings_plugin)
-        {// TODO change the name in the correct order.
-            registrar.registerSettings(settings_plugin->settings_make());
-        }
-
         auto panel_plugin = dynamic_cast<PanelFactory_QtInterface*> (plugin);
         if(panel_plugin)
         {
@@ -200,16 +194,6 @@ void PluginLoader::loadPlugins(
             for(auto panel : panels)
             {
                 registrar.registerPanel(panel);
-            }
-        }
-
-        auto docpanel_plugin = dynamic_cast<DocumentDelegateFactoryInterface_QtInterface*> (plugin);
-        if(docpanel_plugin)
-        {
-            auto docs = docpanel_plugin->documents();
-            for(auto doc_del : docs)
-            {
-                registrar.registerDocumentDelegate(doc_del);
             }
         }
 

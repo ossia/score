@@ -8,36 +8,31 @@
 
 #include "RandomNameProvider.hpp"
 
-// Do something better... one day
-static bool vec_init = false;
-
-static QStringList words = QStringList();
-static void initWordList()
+struct WordList :
+        public QStringList
 {
-    words.clear();
-    QFile f(":/dict.txt");
-    if(f.open(QFile::Text | QFile::ReadOnly))
-    {
-        QString list = f.readAll();
-        words = list.split("\n");
-    }
-    else
-    {
-        words.append("some");
-        words.append("basic");
-        words.append("words");
-        words.append("lambda");
-        words.append("default");
-    }
-
-    vec_init = true;
-    ;
-}
+        WordList()
+        {
+            QFile f(":/dict.txt");
+            if(f.open(QFile::Text | QFile::ReadOnly))
+            {
+                QString list = f.readAll();
+                static_cast<QStringList&>(*this) = list.split("\n");
+            }
+            else
+            {
+                append("some");
+                append("basic");
+                append("words");
+                append("lambda");
+                append("default");
+            }
+        }
+};
 
 QString RandomNameProvider::generateRandomName()
 {
-    if(!vec_init)
-        initWordList();
+    static WordList words;
 
     return
             words.at(std::abs(iscore::random_id_generator::getRandomId() % (words.size() - 1))) +

@@ -7,7 +7,7 @@
 #include <utility>
 #include <vector>
 
-#include <Curve/Segment/CurveSegmentFactoryKey.hpp>
+
 #include <Curve/Segment/CurveSegmentModel.hpp>
 #include <iscore/serialization/VisitorInterface.hpp>
 
@@ -45,7 +45,7 @@ class ISCORE_PLUGIN_CURVE_EXPORT PointArraySegment final : public SegmentModel
                 const Id<SegmentModel>& id,
                 QObject* parent) const override;
 
-        SegmentFactoryKey concreteFactoryKey() const override;
+        UuidKey<Curve::SegmentFactory> concreteFactoryKey() const override;
         void serialize_impl(const VisitorVariant& vis) const override;
         void on_startChanged() override;
         void on_endChanged() override;
@@ -54,12 +54,16 @@ class ISCORE_PLUGIN_CURVE_EXPORT PointArraySegment final : public SegmentModel
         double valueAt(double x) const override;
 
         void addPoint(double, double);
-        void simplify();
+        void simplify(double ratio); // 10 is a good ratio
         [[ deprecated ]] std::vector<std::unique_ptr<LinearSegment>> piecewise() const;
         std::vector<SegmentData> toLinearSegments() const;
+        std::vector<SegmentData> toPowerSegments() const;
 
         double min() { return min_y; }
         double max() { return max_y; }
+
+        const auto& points() const
+        { return m_points; }
 
         QVariant toSegmentSpecificData() const override
         {

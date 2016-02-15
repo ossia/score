@@ -176,9 +176,9 @@ void DisplayedElementsPresenter::on_displayedConstraintHeightChanged(double size
         size
     });
 
-    m_startEventPresenter->view()->setExtent({0, size * .2});
+    m_startEventPresenter->view()->setExtent({0, 1});
     m_startNodePresenter->view()->setExtent({0, size* .4});
-    m_endEventPresenter->view()->setExtent({0, size * .2});
+    m_endEventPresenter->view()->setExtent({0, 1});
     m_endNodePresenter->view()->setExtent({0, size* .4});
 }
 

@@ -7,6 +7,7 @@
 #include <iscore/command/Dispatchers/CommandDispatcher.hpp>
 #include <iscore/selection/SelectionDispatcher.hpp>
 #include <iscore/tools/IdentifiedObjectAbstract.hpp>
+#include <iscore/widgets/MarginLess.hpp>
 
 namespace Inspector
 {
@@ -27,14 +28,12 @@ InspectorWidgetBase::InspectorWidgetBase(
     m_layout->setSpacing(0);
 
     // scroll Area
-    m_scrollAreaLayout = new QVBoxLayout;
-    m_scrollAreaLayout->setContentsMargins(0, 0, 0, 0);
-    m_scrollAreaLayout->setSpacing(0);
     QScrollArea* scrollArea = new QScrollArea;
-    QWidget* scrollAreaContentWidget = new QWidget;
     scrollArea->setWidgetResizable(true);
-
-    scrollAreaContentWidget->setLayout(m_scrollAreaLayout);
+    scrollArea->setSizeAdjustPolicy(QScrollArea::AdjustToContents);
+    QWidget* scrollAreaContentWidget = new QWidget;
+    m_scrollAreaLayout = new iscore::MarginLess<QVBoxLayout>{scrollAreaContentWidget};
+    m_scrollAreaLayout->setSizeConstraint(QLayout::SetMinimumSize);
     scrollArea->setWidget(scrollAreaContentWidget);
 
     m_sections.push_back(scrollArea);

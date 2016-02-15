@@ -1,5 +1,5 @@
 #pragma once
-#include <Curve/Segment/CurveSegmentFactoryKey.hpp>
+
 #include <iscore/plugins/customfactory/FactoryInterface.hpp>
 #include <iscore/serialization/VisitorCommon.hpp>
 #include <QString>
@@ -14,10 +14,11 @@ namespace Curve
 {
 class SegmentModel;
 struct SegmentData;
-class SegmentFactory : public iscore::GenericFactoryInterface<SegmentFactoryKey>
+class SegmentFactory :
+        public iscore::AbstractFactory<SegmentFactory>
 {
         ISCORE_ABSTRACT_FACTORY_DECL(
-                Curve::SegmentModel,
+                SegmentFactory,
                 "608ecec9-d8bc-4b6b-8e9e-31867a310f1e")
     public:
         virtual ~SegmentFactory();
@@ -90,11 +91,11 @@ class SegmentFactory_T : public SegmentFactory
     virtual ~Name() = default; \
     \
     private: \
-    const Curve::SegmentFactoryKey& concreteFactoryKey() const override { \
-        return Model::data_type::static_concreteFactoryKey();\
+    const UuidKey<Curve::SegmentFactory>& concreteFactoryKey() const override { \
+        return Metadata<ConcreteFactoryKey_k, Model>::get(); \
     } \
     \
     QString prettyName() const override { \
-        return Model::data_type::prettyName(); \
+        return Metadata<PrettyName_k, Model>::get(); \
     } \
 };

@@ -23,6 +23,5 @@ bool BaseConstraintInspectorDelegateFactory::matches(
         const ConstraintModel& constraint) const
 {
     return dynamic_cast<BaseScenario*>(constraint.parent());
-
 }
 }

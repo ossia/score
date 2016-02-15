@@ -20,14 +20,14 @@ namespace convert
 {
 
 static const std::array<const QString, 8> ValueTypesArray{{
-    QString{"Impulse"},
-    QString{"Int"},
-    QString{"Float"},
-    QString{"Bool"},
-    QString{"String"},
-    QString{"Char"},
-    QString{"Tuple"},
-    QString{"None"}
+    QStringLiteral("Impulse"),
+    QStringLiteral("Int"),
+    QStringLiteral("Float"),
+    QStringLiteral("Bool"),
+    QStringLiteral("String"),
+    QStringLiteral("Char"),
+    QStringLiteral("Tuple"),
+    QStringLiteral("None")
 }};
 
 static const std::array<const QString, 8> ValuePrettyTypesArray{{
@@ -44,7 +44,7 @@ static const std::array<const QString, 8> ValuePrettyTypesArray{{
 template<>
 QVariant value(const State::Value& val)
 {
-    static const constexpr struct {
+	struct vis {
         public:
             using return_type = QVariant;
             return_type operator()(const no_value_t&) const { return QVariant::fromValue(State::no_value_t{}); }
@@ -67,15 +67,15 @@ QVariant value(const State::Value& val)
 
                 return arr;
             }
-    } visitor{};
-
-    return eggs::variants::apply(visitor, val.val.impl());
+    };
+	
+    return eggs::variants::apply(vis{}, val.val.impl());
 }
 
 template<>
 QJsonValue value(const State::Value& val)
 {
-    static const constexpr struct {
+	struct vis {
         public:
             using return_type = QJsonValue;
             return_type operator()(const no_value_t&) const { return {}; }
@@ -99,16 +99,16 @@ QJsonValue value(const State::Value& val)
                 for(const auto& elt : t)
                 {
                     QJsonObject obj;
-                    obj["Type"] = textualType(elt);
-                    obj["Value"] = eggs::variants::apply(*this, elt.impl());
+                    obj[iscore::StringConstant().Type] = textualType(elt);
+                    obj[iscore::StringConstant().Value] = eggs::variants::apply(*this, elt.impl());
                     arr.append(obj);
                 }
 
                 return arr;
             }
-    } visitor{};
+    };
 
-    return eggs::variants::apply(visitor, val.val.impl());
+    return eggs::variants::apply(vis{}, val.val.impl());
 }
 
 
@@ -147,7 +147,7 @@ static State::ValueImpl toValueImpl(const QJsonValue& val, State::ValueType type
         {
             auto str = val.toString();
             if(str.size() > 0)
-                return State::ValueImpl{val.toString()[0]};
+                return State::ValueImpl{str[0]};
             return State::ValueImpl{QChar{}};
         }
         case ValueType::Tuple:
@@ -156,16 +156,16 @@ static State::ValueImpl toValueImpl(const QJsonValue& val, State::ValueType type
             State::tuple_t tuple;
             tuple.reserve(arr.size());
 
-            for(const auto& elt : arr)
+            Foreach(arr, [&] (const auto& elt)
             {
                 auto obj = elt.toObject();
-                auto val_it = obj.find("Value");
-                auto type_it = obj.find("Type");
+                auto type_it = obj.find(iscore::StringConstant().Type);
+                auto val_it = obj.find(iscore::StringConstant().Value);
                 if(val_it != obj.end() && type_it != obj.end())
                 {
                     tuple.push_back(toValueImpl(*val_it, which((*type_it).toString())));
                 }
-            }
+            });
 
             return State::ValueImpl{tuple};
         }
@@ -262,7 +262,7 @@ bool value(const State::Value& val)
             return_type operator()(int v) const { return v; }
             return_type operator()(float v) const { return v; }
             return_type operator()(bool v) const { return v; }
-            return_type operator()(const QString& v) const { return v == "true" || v == "True"; } // TODO boueeeff
+            return_type operator()(const QString& v) const { return v == iscore::StringConstant().lowercase_true || v == iscore::StringConstant().True; } // TODO boueeeff
             return_type operator()(const QChar& v) const { return v.toLatin1(); }
             return_type operator()(const tuple_t& v) const { return false; }
     } visitor{};
@@ -299,9 +299,9 @@ QString value(const State::Value& val)
             return_type operator()(int i) const { return QLocale::c().toString(i); }
             return_type operator()(float f) const { return QLocale::c().toString(f); }
             return_type operator()(bool b) const {
-                static const QString tr = "true";
-                static const QString f = "false";
-                return b ? tr : f;
+                return b
+                        ? iscore::StringConstant().lowercase_true
+                        : iscore::StringConstant().lowercase_false;
             }
             return_type operator()(const QString& s) const { return s; }
             return_type operator()(const QChar& c) const { return c; }
@@ -314,7 +314,7 @@ QString value(const State::Value& val)
 template<>
 tuple_t value(const State::Value& val)
 {
-    static const constexpr struct {
+    struct vis {
             using return_type = tuple_t;
             return_type operator()(const State::no_value_t&) const { return {impulse_t{}}; }
             return_type operator()(const State::impulse_t&) const { return {impulse_t{}}; }
@@ -333,15 +333,15 @@ tuple_t value(const State::Value& val)
             }
             return_type operator()(const QChar& c) const { return {c}; }
             return_type operator()(const State::tuple_t& t) const { return t; }
-    } visitor{};
+    };
 
-    return eggs::variants::apply(visitor, val.val.impl());
+    return eggs::variants::apply(vis{}, val.val.impl());
 }
 
 
 QString toPrettyString(const State::Value& val)
 {
-    static const constexpr struct {
+    struct vis {
             QString operator()(const State::no_value_t&) const { return {}; }
             QString operator()(const State::impulse_t&) const { return {}; }
             QString operator()(int i) const {
@@ -357,9 +357,9 @@ QString toPrettyString(const State::Value& val)
                 return str;
             }
             QString operator()(bool b) const {
-                static const QString tr = "true";
-                static const QString f = "false";
-                return b ? tr : f;
+                return b
+                        ? iscore::StringConstant().lowercase_true
+                        : iscore::StringConstant().lowercase_false;
             }
             QString operator()(const QString& s) const
             {
@@ -391,9 +391,9 @@ QString toPrettyString(const State::Value& val)
                 s+= "]";
                 return s;
             }
-    } visitor{};
+    };
 
-    return eggs::variants::apply(visitor, val.val.impl());
+    return eggs::variants::apply(vis{}, val.val.impl());
 }
 
 
@@ -460,9 +460,9 @@ State::ValueImpl toValueImpl(const QVariant& val)
         case QMetaType::Double:
             return State::ValueImpl{(float)val.value<double>()};
         case QMetaType::Bool:
-            return State::ValueImpl{val.value<bool>()};
+            return State::ValueImpl{val.toBool()};
         case QMetaType::QString:
-            return State::ValueImpl{val.value<QString>()};
+            return State::ValueImpl{val.toString()};
         case QMetaType::Char:
             return State::ValueImpl{(QChar)val.value<char>()};
         case QMetaType::QChar:
@@ -472,10 +472,11 @@ State::ValueImpl toValueImpl(const QVariant& val)
             auto list = val.value<QVariantList>();
             tuple_t tuple_val;
             tuple_val.reserve(list.size());
-            for(const auto& elt : list)
+
+            Foreach(list, [&] (const auto& elt)
             {
                 tuple_val.push_back(toValueImpl(elt));
-            }
+            });
             return tuple_val;
         }
         default:

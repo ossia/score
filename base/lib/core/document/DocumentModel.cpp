@@ -14,15 +14,16 @@ namespace iscore
 {
 DocumentModel::DocumentModel(
         const Id<DocumentModel>& id,
-        DocumentDelegateFactory* fact,
+        DocumentDelegateFactory& fact,
         QObject* parent) :
     IdentifiedObject {id, "DocumentModel", parent},
-    m_model{fact->makeModel(this)}
+    m_model{fact.makeModel(this)}
 {
 }
 
 DocumentModel::~DocumentModel()
 {
+    delete m_model;
     // We remove the plug-ins first.
     for(auto plug : m_pluginModels)
     {

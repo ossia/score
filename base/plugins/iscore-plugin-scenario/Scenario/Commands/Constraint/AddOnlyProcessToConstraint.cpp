@@ -32,7 +32,7 @@ namespace Command
 {
 AddOnlyProcessToConstraint::AddOnlyProcessToConstraint(
         Path<ConstraintModel>&& constraintPath,
-        const ProcessFactoryKey& process) :
+        const UuidKey<Process::ProcessFactory>& process) :
     AddOnlyProcessToConstraint{
         std::move(constraintPath),
         getStrongId(constraintPath.find().processes),
@@ -44,7 +44,7 @@ AddOnlyProcessToConstraint::AddOnlyProcessToConstraint(
 AddOnlyProcessToConstraint::AddOnlyProcessToConstraint(
         Path<ConstraintModel>&& constraintPath,
         const Id<Process::ProcessModel>& processId,
-        const ProcessFactoryKey& process):
+        const UuidKey<Process::ProcessFactory>& process):
     m_path{std::move(constraintPath)},
     m_processName{process},
     m_createdProcessId{processId}
@@ -69,7 +69,7 @@ void AddOnlyProcessToConstraint::undo(ConstraintModel& constraint) const
 Process::ProcessModel& AddOnlyProcessToConstraint::redo(ConstraintModel& constraint) const
 {
     // Create process model
-    auto proc = context.components.factory<Process::ProcessList>().list().get(m_processName)
+    auto proc = context.components.factory<Process::ProcessList>().get(m_processName)
             ->makeModel(
                 constraint.duration.defaultDuration(), // TODO should maybe be max ?
                 m_createdProcessId,

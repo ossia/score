@@ -260,12 +260,6 @@ ProcessComponent *ScenarioComponentFactory::make(
     return new ScenarioElement{cst, static_cast<Scenario::ScenarioModel&>(proc), ctx, id, parent};
 }
 
-const ScenarioComponentFactory::ConcreteFactoryKey& ScenarioComponentFactory::concreteFactoryKey() const
-{
-    static ScenarioComponentFactory::ConcreteFactoryKey k("b2b19e28-cd49-470f-ba70-b1703689218f");
-    return k;
-}
-
 bool ScenarioComponentFactory::matches(
         Process::ProcessModel& proc,
         const DocumentPlugin &,

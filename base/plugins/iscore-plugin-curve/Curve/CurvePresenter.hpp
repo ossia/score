@@ -11,7 +11,7 @@
 #include <QPoint>
 #include <QRect>
 
-#include <Curve/Segment/CurveSegmentFactoryKey.hpp>
+
 #include <iscore/document/DocumentContext.hpp>
 #include <iscore_plugin_curve_export.h>
 
@@ -71,7 +71,7 @@ class ISCORE_PLUGIN_CURVE_EXPORT Presenter : public QObject
 
     private:
         // Context menu actions
-        void updateSegmentsType(const SegmentFactoryKey& segment);
+        void updateSegmentsType(const UuidKey<Curve::SegmentFactory>& segment);
 
         // Setup utilities
         void setPos(PointView&);

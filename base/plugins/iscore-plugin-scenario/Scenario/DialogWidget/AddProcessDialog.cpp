@@ -27,13 +27,13 @@ void AddProcessDialog::launchWindow()
 {
     bool ok = false;
 
-    std::vector<std::pair<QString, ProcessFactoryKey>> sortedFactoryList;
-    for(const auto& factory : m_factoryList.list().get())
+    std::vector<std::pair<QString, UuidKey<Process::ProcessFactory>>> sortedFactoryList;
+    for(const auto& factory : m_factoryList)
     {
         sortedFactoryList.push_back(
                     std::make_pair(
-                        factory.second->prettyName(),
-                        factory.first));
+                        factory.prettyName(),
+                        factory.concreteFactoryKey()));
     }
 
     std::sort(sortedFactoryList.begin(),

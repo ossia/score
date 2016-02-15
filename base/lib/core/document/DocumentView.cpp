@@ -10,12 +10,12 @@
 
 namespace iscore
 {
-DocumentView::DocumentView(DocumentDelegateFactory* fact,
+DocumentView::DocumentView(DocumentDelegateFactory& fact,
                            const Document& doc,
                            QWidget* parent) :
     QWidget {parent},
     m_document{doc},
-    m_view{fact->makeView(m_document.context().app, this)}
+    m_view{fact.makeView(m_document.context().app, this)}
 {
     m_view->setParent(this);
     setObjectName("DocumentView");

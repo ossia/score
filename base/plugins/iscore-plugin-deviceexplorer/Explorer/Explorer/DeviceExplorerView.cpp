@@ -115,6 +115,7 @@ DeviceExplorerView::restoreSettings()
     QSettings settings;
     restoreGeometry(settings.value(GeometrySetting).toByteArray());
     header()->restoreState(settings.value(HeaderViewSetting).toByteArray());
+    this->updateGeometry();
 }
 
 void
@@ -127,10 +128,11 @@ DeviceExplorerView::setModel(QAbstractItemModel* model)
     (void) new ModelTest(model, this);
     #endif
 
+    // TODO review the save/restore system
     if(model)
     {
         setInitialColumnsSizes();
-        restoreSettings();
+//        restoreSettings();
         initActions(); //after restoreSettings() to have actions correctly initialized
     }
 }
@@ -148,7 +150,7 @@ DeviceExplorerView::setModel(DeviceExplorerFilterProxyModel* model)
     if(model)
     {
         setInitialColumnsSizes();
-        restoreSettings();
+//        restoreSettings();
         initActions(); //after restoreSettings() to have actions correctly initialized
     }
 }

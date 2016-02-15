@@ -5,10 +5,9 @@
 
 #include <Process/ModelMetadata.hpp>
 #include <Process/ProcessFactory.hpp>
-#include <Process/ProcessFactoryKey.hpp>
+
 #include <Process/ProcessList.hpp>
 #include <Process/TimeValue.hpp>
-#include "ProcessModelSerialization.hpp"
 #include <iscore/plugins/customfactory/FactoryFamily.hpp>
 #include <iscore/plugins/customfactory/FactoryMap.hpp>
 #include <iscore/plugins/customfactory/StringFactoryKey.hpp>
@@ -53,18 +52,18 @@ void Visitor<Reader<JSONObject>>::readFrom_impl(const Process::ProcessModel& pro
 {
     readFrom(static_cast<const IdentifiedObject<Process::ProcessModel>&>(process));
 
-    m_obj["Duration"] = toJsonValue(process.duration());
+    m_obj[iscore::StringConstant().Duration] = toJsonValue(process.duration());
     m_obj["UseParentDuration"] = process.useParentDuration();
-    m_obj["Metadata"] = toJsonObject(process.metadata);
+    m_obj[iscore::StringConstant().Metadata] = toJsonObject(process.metadata);
 }
 
 
 template<>
 void Visitor<Writer<JSONObject>>::writeTo(Process::ProcessModel& process)
 {
-    process.m_duration = fromJsonValue<TimeValue>(m_obj["Duration"]);
+    process.m_duration = fromJsonValue<TimeValue>(m_obj[iscore::StringConstant().Duration]);
     process.m_useParentDuration = m_obj["UseParentDuration"].toBool();
-    process.metadata = fromJsonObject<ModelMetadata>(m_obj["Metadata"].toObject());
+    process.metadata = fromJsonObject<ModelMetadata>(m_obj[iscore::StringConstant().Metadata].toObject());
 }
 
 

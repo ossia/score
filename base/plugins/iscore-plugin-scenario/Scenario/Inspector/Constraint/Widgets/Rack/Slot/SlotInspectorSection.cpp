@@ -11,7 +11,7 @@
 #include <QFrame>
 #include <QGridLayout>
 #include <QLabel>
-
+#include <QMenu>
 #include <QPushButton>
 #include <algorithm>
 
@@ -49,8 +49,8 @@ SlotInspectorSection::SlotInspectorSection(
     addContent(framewidg);
 
     this->showMenu(true);
-    this->enableDelete();
-    connect(this, &SlotInspectorSection::deletePressed, this, [&] ()
+    auto del = this->menu()->addAction(tr("Remove Slot"));
+    connect(del, &QAction::triggered, this, [=] ()
     {
         auto cmd = new Command::RemoveSlotFromRack{m_model};
         emit m_parent.commandDispatcher()->submitCommand(cmd);

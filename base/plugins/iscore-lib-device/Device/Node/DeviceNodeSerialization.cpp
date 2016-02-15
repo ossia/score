@@ -7,10 +7,6 @@ namespace Device {
 struct AddressSettings;
 struct DeviceSettings;
 }  // namespace iscore
-template <typename T> class Reader;
-template <typename T> class TypeToName;
-template <typename T> class Writer;
-
 
 template<>
 void Visitor<Reader<DataStream>>::readFrom(const Device::DeviceExplorerNode& n)
@@ -25,14 +21,6 @@ void Visitor<Writer<DataStream>>::writeTo(Device::DeviceExplorerNode& n)
     writeTo(n.m_data);
     checkDelimiter();
 }
-
-
-template<> class TypeToName<Device::DeviceSettings>
-{ public: static constexpr const char * name() { return "DeviceSettings"; } };
-
-template<> class TypeToName<Device::AddressSettings>
-{ public: static constexpr const char * name() { return "AddressSettings"; } };
-
 
 template<>
 void Visitor<Reader<JSONObject>>::readFrom(const Device::DeviceExplorerNode& n)

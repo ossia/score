@@ -158,7 +158,7 @@ QList<QAction*> ConstraintActions::actions() const
     return lst;
 }
 
-void ConstraintActions::addProcessInConstraint(const ProcessFactoryKey& processName)
+void ConstraintActions::addProcessInConstraint(const UuidKey<Process::ProcessFactory>& processName)
 {
     auto selectedConstraints = selectedElements(m_parent->focusedScenarioModel()->constraints);
     if(selectedConstraints.isEmpty())

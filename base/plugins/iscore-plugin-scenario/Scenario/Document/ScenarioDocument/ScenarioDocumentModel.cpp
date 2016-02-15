@@ -250,7 +250,10 @@ void ScenarioDocumentModel::setDisplayedConstraint(const ConstraintModel& constr
     }
 
     auto& provider = iscore::IDocument::documentContext(*this).app.components.factory<DisplayedElementsProviderList>();
-    displayedElements.setDisplayedElements(provider.make(constraint));
+    displayedElements.setDisplayedElements(
+                provider.make(
+                    &DisplayedElementsProvider::make,
+                    constraint));
 
     m_focusManager.focusNothing();
 

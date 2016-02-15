@@ -23,10 +23,7 @@ SegmentModel* LinearSegment::clone(
     return cs;
 }
 
-SegmentFactoryKey LinearSegment::concreteFactoryKey() const
-{
-    return LinearSegmentData::static_concreteFactoryKey();
-}
+
 
 void LinearSegment::serialize_impl(const VisitorVariant& vis) const
 {
@@ -62,11 +59,5 @@ double LinearSegment::valueAt(double x) const
 QVariant LinearSegment::toSegmentSpecificData() const
 {
     return QVariant::fromValue(data_type{});
-}
-
-const SegmentFactoryKey& LinearSegmentData::static_concreteFactoryKey()
-{
-    static const SegmentFactoryKey name{"a8bd14e2-d7e4-47cd-b76a-6a88fa11f0d2"};
-    return name;
 }
 }

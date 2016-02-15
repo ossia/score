@@ -11,6 +11,7 @@ class Document;
 
 class ScenarioInspectorFactory final : public ProcessInspectorWidgetDelegateFactory
 {
+        ISCORE_CONCRETE_FACTORY_DECL("2d6e103e-6136-43cc-9948-57de2cdf8f31")
     public:
         ScenarioInspectorFactory() = default;
 

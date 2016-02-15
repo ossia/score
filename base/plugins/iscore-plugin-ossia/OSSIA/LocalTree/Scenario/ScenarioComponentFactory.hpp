@@ -9,9 +9,7 @@ namespace LocalTree
 class ScenarioComponentFactory final :
         public ProcessComponentFactory
 {
-    public:
-        const ConcreteFactoryKey& concreteFactoryKey() const override;
-
+        ISCORE_CONCRETE_FACTORY_DECL("ffc0aaed-9197-4956-a966-3f54afdfb762")
         bool matches(
                 Process::ProcessModel& p,
                 const Ossia::LocalTree::DocumentPlugin&,

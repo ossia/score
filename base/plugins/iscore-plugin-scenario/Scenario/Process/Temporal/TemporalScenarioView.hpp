@@ -65,6 +65,14 @@ class TemporalScenarioView final :
             update();
         }
 
+        void pressedAsked(const QPointF& p)
+        {
+            m_previousPoint = p;
+            emit pressed(p);
+        }
+        void movedAsked(const QPointF& p);
+
+
     protected:
         void mousePressEvent(QGraphicsSceneMouseEvent* event) override;
         void mouseMoveEvent(QGraphicsSceneMouseEvent* event) override;
@@ -80,5 +88,7 @@ class TemporalScenarioView final :
 
         bool m_lock {};
         TemporalScenarioPresenter* m_pres{};
+
+        QPointF m_previousPoint{};
 };
 }

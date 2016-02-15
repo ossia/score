@@ -53,7 +53,8 @@ const Id<PointModel>& PointView::id() const
 
 QRectF PointView::boundingRect() const
 {
-    return {-radius, -radius, 2 * radius, 2 * radius};
+    qreal gripSize = radius * 2;
+    return {-gripSize, -gripSize, 2 * gripSize, 2 * gripSize};
 }
 
 void PointView::paint(
@@ -78,7 +79,7 @@ void PointView::paint(
     pen.setWidth(1);
 
     painter->setPen(pen);
-    painter->drawEllipse(boundingRect());
+    painter->drawEllipse(QRectF{-radius, -radius, 2*radius, 2*radius});
 }
 
 void PointView::setSelected(bool selected)

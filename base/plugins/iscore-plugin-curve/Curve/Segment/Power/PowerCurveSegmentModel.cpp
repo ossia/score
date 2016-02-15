@@ -17,7 +17,7 @@ namespace Curve
 PowerSegment::PowerSegment(
         const SegmentData& dat,
         QObject* parent):
-    SegmentModel{dat, parent},
+    Segment<PowerSegment>{dat, parent},
     gamma{dat.specificSegmentData.value<PowerSegmentData>().gamma}
 {
 
@@ -34,11 +34,6 @@ SegmentModel*PowerSegment::clone(
     cs->gamma = gamma;
     // Previous and following shall be set afterwards by the cloner.
     return cs;
-}
-
-SegmentFactoryKey PowerSegment::concreteFactoryKey() const
-{
-    return PowerSegmentData::static_concreteFactoryKey();
 }
 
 void PowerSegment::serialize_impl(const VisitorVariant& vis) const
@@ -90,6 +85,7 @@ void PowerSegment::updateData(int numInterp) const
 
 double PowerSegment::valueAt(double x) const
 {
+    // TODO nope nope, that's linear ... but ok for 0 and 1
     return start().y() + (end().y() - start().y()) * (x - start().x()) / (end().x() - start().x());
 
     return -1;
@@ -108,11 +104,5 @@ void PowerSegment::setVerticalParameter(double p)
 boost::optional<double> PowerSegment::verticalParameter() const
 {
     return gamma / 6. - 1;
-}
-
-const SegmentFactoryKey&PowerSegmentData::static_concreteFactoryKey()
-{
-    static const SegmentFactoryKey name{"1e7cb83f-4e47-4b14-814d-2242a9c75991"};
-    return name;
 }
 }

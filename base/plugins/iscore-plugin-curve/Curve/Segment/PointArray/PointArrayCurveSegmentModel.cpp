@@ -1,4 +1,5 @@
 #include <Curve/Segment/Linear/LinearCurveSegmentModel.hpp>
+#include <Curve/Segment/Power/PowerCurveSegmentModel.hpp>
 #include <boost/optional/optional.hpp>
 
 #include <iscore/serialization/VisitorCommon.hpp>
@@ -46,9 +47,9 @@ SegmentModel*PointArraySegment::clone(
     return cs;
 }
 
-SegmentFactoryKey PointArraySegment::concreteFactoryKey() const
+UuidKey<Curve::SegmentFactory> PointArraySegment::concreteFactoryKey() const
 {
-    static const SegmentFactoryKey name{"c598b840-db67-4c8f-937a-46cfac87cb59"};
+    static const UuidKey<Curve::SegmentFactory> name{"c598b840-db67-4c8f-937a-46cfac87cb59"};
     return name;
 }
 
@@ -132,9 +133,9 @@ void PointArraySegment::addPoint(double x, double y)
     emit dataChanged();
 }
 
-void PointArraySegment::simplify()
+void PointArraySegment::simplify(double ratio)
 {
-    double tolerance = (max_y - min_y) / 10.;
+    double tolerance = (max_y - min_y) / ratio;
 
     std::vector <double> orig;
     orig.reserve(m_points.size() * 2);
@@ -198,7 +199,8 @@ std::vector<SegmentData> PointArraySegment::toLinearSegments() const
     vec.emplace_back(Id<SegmentModel>{0},
                      pts[0], pts[1],
                      Id<SegmentModel>{}, Id<SegmentModel>{},
-                     LinearSegmentData::static_concreteFactoryKey(), QVariant::fromValue(LinearSegmentData{}));
+                     Metadata<ConcreteFactoryKey_k, LinearSegment>::get(),
+                     QVariant::fromValue(LinearSegmentData{}));
 
     int size = pts.size();
     for(int i = 1; i < size - 1; i++)
@@ -208,7 +210,38 @@ std::vector<SegmentData> PointArraySegment::toLinearSegments() const
         vec.emplace_back(Id<SegmentModel>{i},
                          pts[i], pts[i+1],
                          Id<SegmentModel>{i-1}, Id<SegmentModel>{},
-                         LinearSegmentData::static_concreteFactoryKey(), QVariant::fromValue(LinearSegmentData()));
+                         Metadata<ConcreteFactoryKey_k, LinearSegment>::get(),
+                         QVariant::fromValue(LinearSegmentData()));
+    }
+
+    return vec;
+}
+
+
+std::vector<SegmentData> PointArraySegment::toPowerSegments() const
+{
+    m_valid = false;
+    updateData(0);
+    const auto& pts = data();
+    std::vector<SegmentData> vec;
+    vec.reserve(pts.size() - 1);
+
+    vec.emplace_back(Id<SegmentModel>{0},
+                     pts[0], pts[1],
+                     Id<SegmentModel>{}, Id<SegmentModel>{},
+                     Metadata<ConcreteFactoryKey_k, PowerSegment>::get(),
+                     QVariant::fromValue(PowerSegmentData{}));
+
+    int size = pts.size();
+    for(int i = 1; i < size - 1; i++)
+    {
+        vec.back().following = Id<SegmentModel>{i};
+
+        vec.emplace_back(Id<SegmentModel>{i},
+                         pts[i], pts[i+1],
+                         Id<SegmentModel>{i-1}, Id<SegmentModel>{},
+                         Metadata<ConcreteFactoryKey_k, PowerSegment>::get(),
+                         QVariant::fromValue(PowerSegmentData()));
     }
 
     return vec;

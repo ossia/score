@@ -3,14 +3,17 @@
 #include <boost/optional/optional.hpp>
 #include <iscore/command/SerializableCommand.hpp>
 
-#include <Process/ProcessFactoryKey.hpp>
+
 #include <iscore/tools/ModelPath.hpp>
 #include <iscore/tools/SettableIdentifier.hpp>
 
 #include <iscore_plugin_scenario_export.h>
 class DataStreamInput;
 class DataStreamOutput;
-namespace Process { class ProcessModel; }
+namespace Process {
+class ProcessFactory;
+class ProcessModel;
+}
 
 namespace Scenario
 {
@@ -23,11 +26,11 @@ class ISCORE_PLUGIN_SCENARIO_EXPORT AddOnlyProcessToConstraint final : public is
     public:
         AddOnlyProcessToConstraint(
             Path<ConstraintModel>&& constraint,
-            const ProcessFactoryKey& process);
+            const UuidKey<Process::ProcessFactory>& process);
         AddOnlyProcessToConstraint(
             Path<ConstraintModel>&& constraint,
             const Id<Process::ProcessModel>& idToUse,
-            const ProcessFactoryKey& process);
+            const UuidKey<Process::ProcessFactory>& process);
 
         void undo() const override;
         void redo() const override;
@@ -41,7 +44,7 @@ class ISCORE_PLUGIN_SCENARIO_EXPORT AddOnlyProcessToConstraint final : public is
         const Id<Process::ProcessModel>& processId() const
         { return m_createdProcessId; }
 
-        const ProcessFactoryKey& processKey() const
+        const UuidKey<Process::ProcessFactory>& processKey() const
         { return m_processName; }
 
     protected:
@@ -50,7 +53,7 @@ class ISCORE_PLUGIN_SCENARIO_EXPORT AddOnlyProcessToConstraint final : public is
 
     private:
         Path<ConstraintModel> m_path;
-        ProcessFactoryKey m_processName;
+        UuidKey<Process::ProcessFactory>m_processName;
 
         Id<Process::ProcessModel> m_createdProcessId {};
 };

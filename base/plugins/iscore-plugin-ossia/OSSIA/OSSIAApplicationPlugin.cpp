@@ -90,6 +90,12 @@ OSSIAApplicationPlugin::OSSIAApplicationPlugin(const iscore::ApplicationContext&
         auto t = playCM->playFromHereAction().data().value<::TimeValue>();
         on_play(true, t);
     });
+
+    con(ctrl, &Scenario::ScenarioApplicationPlugin::playAtDate,
+        this, [=] (const TimeValue& t)
+    {
+        on_play(true, t);
+    });
 }
 
 OSSIAApplicationPlugin::~OSSIAApplicationPlugin()
@@ -129,7 +135,7 @@ bool OSSIAApplicationPlugin::handleStartup()
 {
     if(!context.documents.documents().empty())
     {
-        if(context.settings.autoplay)
+        if(context.applicationSettings.autoplay)
         {
             // TODO what happens if we load multiple documents ?
             on_play(true);

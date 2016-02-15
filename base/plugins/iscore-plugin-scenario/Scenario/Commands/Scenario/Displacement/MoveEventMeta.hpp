@@ -29,6 +29,7 @@ public:
             Path<Scenario::ScenarioModel>&& scenarioPath,
             const Id<EventModel>& eventId,
             const TimeValue& newDate,
+            double y,
             ExpandMode mode);
 
     void undo() const override;
@@ -43,13 +44,16 @@ protected:
 
 private:
     // TODO : make a UI to change that
-    MoveEventFactoryInterface::Strategy m_strategy{};
+    Path<Scenario::ScenarioModel> m_scenario;
+    Id<EventModel> m_eventId;
+    double m_oldY;
+    double m_newY;
 
     SerializableMoveEvent* m_moveEventImplementation;
 
     // SerializableMoveEvent interface
 public:
-    void update(const Path<Scenario::ScenarioModel>& scenarioPath, const Id<EventModel>& eventId, const TimeValue& newDate, ExpandMode mode) override;
+    void update(const Path<Scenario::ScenarioModel>& scenarioPath, const Id<EventModel>& eventId, const TimeValue& newDate, double y, ExpandMode mode) override;
 };
 }
 }

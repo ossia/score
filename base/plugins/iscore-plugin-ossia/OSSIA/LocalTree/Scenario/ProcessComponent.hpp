@@ -33,10 +33,10 @@ class ISCORE_PLUGIN_OSSIA_EXPORT ProcessComponentFactory :
         public iscore::GenericComponentFactory<
             Process::ProcessModel,
             LocalTree::DocumentPlugin,
-            LocalTree::ProcessComponent>
+            LocalTree::ProcessComponentFactory>
 {
         ISCORE_ABSTRACT_FACTORY_DECL(
-                LocalTree::ProcessComponent,
+                LocalTree::ProcessComponentFactory,
                 "0732ab51-a052-4e2e-a1f7-9bf2926c199c")
     public:
         virtual ~ProcessComponentFactory();
@@ -53,7 +53,6 @@ using ProcessComponentFactoryList =
     iscore::GenericComponentFactoryList<
             Process::ProcessModel,
             LocalTree::DocumentPlugin,
-            LocalTree::ProcessComponent,
             LocalTree::ProcessComponentFactory>;
 }
 }
