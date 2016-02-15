@@ -52,8 +52,9 @@ AddLayerModelToSlot::AddLayerModelToSlot(
 
 void AddLayerModelToSlot::undo() const
 {
-    auto& slot = m_slotPath.find();
-    slot.layers.remove(m_createdLayerId);
+    auto slot = m_slotPath.try_find();
+    if(slot)
+        slot->layers.remove(m_createdLayerId);
 }
 
 void AddLayerModelToSlot::redo() const

@@ -22,12 +22,12 @@ MoveEventOnCreationMeta::MoveEventOnCreationMeta(
         Path<Scenario::ScenarioModel>&& scenarioPath,
         const Id<EventModel>& eventId,
         const TimeValue& newDate,
-        ExpandMode mode)
-    :SerializableMoveEvent{},
-     m_moveEventImplementation(
-         context.components.factory<MoveEventList>()
-         .get(context, MoveEventFactoryInterface::Strategy::CREATION)
-         .make(std::move(scenarioPath), eventId, newDate, mode))
+        ExpandMode mode):
+    SerializableMoveEvent{},
+    m_moveEventImplementation(
+        context.components.factory<MoveEventList>()
+        .get(context, MoveEventFactoryInterface::Strategy::CREATION)
+        .make(std::move(scenarioPath), eventId, newDate, mode))
 {
 }
 
@@ -66,9 +66,9 @@ void MoveEventOnCreationMeta::deserializeImpl(DataStreamOutput& qDataStream)
 }
 
 void MoveEventOnCreationMeta::update(const Path<Scenario::ScenarioModel>& scenarioPath,
-                           const Id<EventModel>& eventId,
-                           const TimeValue& newDate, double y,
-                           ExpandMode mode)
+                                     const Id<EventModel>& eventId,
+                                     const TimeValue& newDate, double y,
+                                     ExpandMode mode)
 {
     m_moveEventImplementation->update(scenarioPath, eventId, newDate, y, mode);
 }

@@ -71,14 +71,15 @@ class MoveEvent final : public SerializableMoveEvent
             :
               SerializableMoveEvent{},
               m_path {std::move(scenarioPath)},
-              m_mode{mode},
-              m_displacementPolicy{m_path.find(), QVector<Id<TimeNodeModel>>({m_path.find().event(eventId).timeNode()})}
+              m_mode{mode}
         {
+            auto& scenar = m_path.find();
+            DisplacementPolicy::init(scenar, {scenar.event(eventId).timeNode()});
             // we need to compute the new time delta and store this initial event id for recalculate the delta on updates
             // NOTE: in the future in would be better to give directly the delta value to this method ?,
             // in that way we wouldn't need to keep the initial event and recalculate the delta
             m_eventId = eventId;
-            m_initialDate =  getDate(m_path.find(), eventId);
+            m_initialDate =  getDate(scenar, eventId);
 
             update(m_path,
                    eventId,
@@ -151,7 +152,6 @@ class MoveEvent final : public SerializableMoveEvent
 
         void deserializeImpl(DataStreamOutput& s) override
         {
-            // TODO how is saved DisplacementPolicy ?
             int mode;
             s >> m_savedElementsProperties
                     >> m_path
@@ -167,7 +167,6 @@ class MoveEvent final : public SerializableMoveEvent
         Path<Scenario::ScenarioModel> m_path;
 
         ExpandMode m_mode{ExpandMode::Scale};
-        DisplacementPolicy m_displacementPolicy;
 
         Id<EventModel> m_eventId;
         /**
