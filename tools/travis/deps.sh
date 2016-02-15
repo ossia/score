@@ -1,6 +1,7 @@
 #!/bin/bash -eux
 
 git submodule update --init --recursive
+export ISCORE_PLUGINS_TO_BUILD=("OSSIA/iscore-addon-csp")
 
 # Set-up the plug-ins
 (
