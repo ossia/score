@@ -150,6 +150,11 @@ set(SRCS ${SRCS}
 "${CMAKE_CURRENT_SOURCE_DIR}/Scenario/Application/ScenarioApplicationPlugin.cpp"
 "${CMAKE_CURRENT_SOURCE_DIR}/Scenario/Application/ScenarioEditionSettings.cpp"
 
+"${CMAKE_CURRENT_SOURCE_DIR}/Scenario/ExecutionChecker/CoherencyCheckerFactoryInterface.cpp"
+"${CMAKE_CURRENT_SOURCE_DIR}/Scenario/ExecutionChecker/CSPCoherencyCheckerList.cpp"
+"${CMAKE_CURRENT_SOURCE_DIR}/Scenario/ExecutionChecker/CSPCoherencyCheckerInterface.cpp"
+
+
 "${CMAKE_CURRENT_SOURCE_DIR}/Scenario/DialogWidget/AddProcessDialog.cpp"
 "${CMAKE_CURRENT_SOURCE_DIR}/Scenario/DialogWidget/MessageTreeView.cpp"
 
