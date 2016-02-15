@@ -1,6 +1,7 @@
 #include "ProcessViewTabWidget.hpp"
 #include "RackWidget.hpp"
 
+#include <QVBoxLayout>
 #include <Inspector/InspectorSectionWidget.hpp>
 
 #include <Scenario/Inspector/Constraint/Widgets/Rack/RackInspectorSection.hpp>
