@@ -42,11 +42,6 @@ TimeNodeElement::TimeNodeElement(
 
         }
     });
-
-    m_ossia_node->setCallback([&] ()
-    {
-        timeNodeCallBack(m_ossia_node->getDate());
-    });
 }
 
 std::shared_ptr<OSSIA::TimeNode> TimeNodeElement::OSSIATimeNode() const
@@ -54,8 +49,9 @@ std::shared_ptr<OSSIA::TimeNode> TimeNodeElement::OSSIATimeNode() const
     return m_ossia_node;
 }
 
-void TimeNodeElement::timeNodeCallBack(const OSSIA::TimeValue& date)
+const Scenario::TimeNodeModel&TimeNodeElement::iscoreTimeNode() const
 {
-//    qDebug() << date;
+    return m_iscore_node;
 }
+
 }

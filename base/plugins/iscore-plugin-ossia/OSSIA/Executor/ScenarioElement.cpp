@@ -26,6 +26,11 @@
 #include <Scenario/Document/TimeNode/TimeNodeModel.hpp>
 #include <Scenario/Process/ScenarioModel.hpp>
 #include "ScenarioElement.hpp"
+
+#include <Scenario/ExecutionChecker/CSPCoherencyCheckerInterface.hpp>
+#include <Scenario/ExecutionChecker/CSPCoherencyCheckerList.hpp>
+#include <Scenario/ExecutionChecker/CoherencyCheckerFactoryInterface.hpp>
+
 #include <iscore/tools/IdentifiedObjectMap.hpp>
 #include <iscore/tools/NotifyingMap.hpp>
 #include <iscore/tools/SettableIdentifier.hpp>
@@ -72,6 +77,8 @@ ScenarioElement::ScenarioElement(
     {
         on_constraintCreated(constraint);
     }
+
+    m_checker = ctx.doc.app.components.factory<Scenario::CSPCoherencyCheckerList>().get()->make(element, m_pastTn);
 }
 
 void ScenarioElement::stop()
@@ -162,10 +169,6 @@ void ScenarioElement::on_timeNodeCreated(const Scenario::TimeNodeModel& tn)
     {
         ossia_tn = ossia_scenario.getStartTimeNode();
     }
-    else if(&tn == &iscore_scenario.endTimeNode())
-    {
-        ossia_tn = ossia_scenario.getEndTimeNode();
-    }
     else
     {
         ossia_tn = OSSIA::TimeNode::create();
@@ -175,6 +178,10 @@ void ScenarioElement::on_timeNodeCreated(const Scenario::TimeNodeModel& tn)
     // Create the mapping object
     auto elt = new TimeNodeElement{ossia_tn, tn, m_ctx.devices.list(), this};
     m_ossia_timenodes.insert({tn.id(), elt});
+
+    elt->OSSIATimeNode()->setCallback([=] () {
+        return timeNodeCallback(elt, elt->OSSIATimeNode()->getDate());
+    });
 }
 
 void ScenarioElement::startConstraintExecution(const Id<Scenario::ConstraintModel>& id)
@@ -237,6 +244,13 @@ void ScenarioElement::eventCallback(
                 break;
         }
     }
+}
+
+void ScenarioElement::timeNodeCallback(TimeNodeElement* tn, const OSSIA::TimeValue& date)
+{
+    tn->iscoreTimeNode().id();
+
+    m_checker->computeDisplacement(m_pastTn, m_properties);
 }
 
 const iscore::Component::Key &ScenarioElement::key() const

@@ -11,6 +11,7 @@
 #include <Scenario/Document/DisplayedElements/ScenarioDisplayedElementsProvider.hpp>
 #include <Scenario/Document/Event/ExecutionStatus.hpp>
 #include <Scenario/Document/ScenarioDocument/ScenarioDocumentFactory.hpp>
+#include <Scenario/ExecutionChecker/CSPCoherencyCheckerList.hpp>
 #include <Scenario/Panel/ProcessPanelFactory.hpp>
 #include <Scenario/Process/ScenarioFactory.hpp>
 #include <Scenario/iscore_plugin_scenario.hpp>
@@ -106,6 +107,7 @@ std::vector<std::unique_ptr<iscore::FactoryListInterface>> iscore_plugin_scenari
             Process::ProcessList,
             Process::StateProcessList,
             MoveEventList,
+            CSPCoherencyCheckerList,
             ScenarioContextMenuPluginList,
             ConstraintInspectorDelegateFactoryList,
             DisplayedElementsToolPaletteFactoryList,

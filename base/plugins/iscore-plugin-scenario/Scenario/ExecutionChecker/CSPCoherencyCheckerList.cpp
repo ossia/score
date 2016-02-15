@@ -2,7 +2,7 @@
 
 namespace Scenario
 {
-CoherencyCheckerFactoryInterface* CSPCoherencyCheckerList::get()
+CoherencyCheckerFactoryInterface* CSPCoherencyCheckerList::get() const
 {
     if(begin() != end())
         return map.begin()->get();
