@@ -5,6 +5,7 @@
 #include <QBoxLayout>
 #include <QFrame>
 #include <QPushButton>
+#include <QMenu>
 
 #include "AddSlotWidget.hpp"
 #include <Inspector/InspectorSectionWidget.hpp>
