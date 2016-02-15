@@ -46,7 +46,9 @@ class ProcessViewTabWidget;
  *
  * Inherits from InspectorWidgetInterface. Manages an inteface for an Constraint (Timerack) element.
  */
-class ISCORE_PLUGIN_SCENARIO_EXPORT ConstraintInspectorWidget final : public Inspector::InspectorWidgetBase, public Nano::Observer
+class ISCORE_PLUGIN_SCENARIO_EXPORT ConstraintInspectorWidget final :
+        public Inspector::InspectorWidgetBase,
+        public Nano::Observer
 {
     public:
         explicit ConstraintInspectorWidget(

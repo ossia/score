@@ -79,6 +79,7 @@ void ProcessTabWidget::createProcess(const UuidKey<Process::ProcessFactory>& pro
     auto cmd = Command::make_AddProcessToConstraint(m_constraintWidget.model(), processName);
     m_constraintWidget.commandDispatcher()->submitCommand(cmd);
 }
+
 void ProcessTabWidget::displaySharedProcess(const Process::ProcessModel& process)
 {
     using namespace iscore;
@@ -121,7 +122,7 @@ void ProcessTabWidget::displaySharedProcess(const Process::ProcessModel& process
         {
             auto cmd = new Command::RemoveProcessFromConstraint{iscore::IDocument::path(m_constraintWidget.model()), id};
             emit m_constraintWidget.commandDispatcher()->submitCommand(cmd);
-        });
+        }, Qt::QueuedConnection);
 
 
     // Start & end state
