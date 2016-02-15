@@ -10,7 +10,9 @@ namespace Process {
 class ProcessFactory;
 }
 namespace Scenario {
-class ProcessTabWidget : public QWidget
+class ProcessTabWidget :
+        public QWidget,
+        public Nano::Observer
 {
         Q_OBJECT
     public:
@@ -29,7 +31,7 @@ class ProcessTabWidget : public QWidget
         void createLayerInNewSlot(const Id<Process::ProcessModel>& processId);
 
         const ConstraintInspectorWidget& m_constraintWidget;
-        Inspector::InspectorSectionWidget* m_processSection;
+        Inspector::InspectorSectionWidget* m_processSection{};
 
         std::vector<Inspector::InspectorSectionWidget*> m_processesSectionWidgets;
 
