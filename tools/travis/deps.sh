@@ -8,7 +8,7 @@ export ISCORE_PLUGINS_TO_BUILD=("iscore-addon-csp")
 cd base/addons
 for plugin in "${ISCORE_PLUGINS_TO_BUILD[@]}"
 do
-    git clone "https://github.com/$plugin"
+    git clone "https://github.com/OSSIA/$plugin"
 done
 
 for plugin in */
