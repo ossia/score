@@ -20,7 +20,8 @@ class MoveEventList final :
      * @return
      * the factory with the highest priority for the specified strategy
      */
-        MoveEventFactoryInterface& get(MoveEventFactoryInterface::Strategy strategy) const;
+        MoveEventFactoryInterface& get(const iscore::ApplicationContext& ctx,
+                                       MoveEventFactoryInterface::Strategy s) const;
 };
 
 }

@@ -23,8 +23,7 @@ class ISCORE_PLUGIN_SCENARIO_EXPORT MoveEventFactoryInterface :
                 MoveEventFactoryInterface,
                 "69dc1f79-5cb9-4a36-b382-8c099f7abf57")
 public:
-            enum Strategy{ CREATION, MOVING_CLASSIC, MOVING_BOUNDED, MOVING_LESS };
-
+        enum Strategy{CREATION, MOVE};
     virtual SerializableMoveEvent* make(
             Path<Scenario::ScenarioModel>&& scenarioPath,
             const Id<EventModel>& eventId,
@@ -43,7 +42,7 @@ public:
      * the strategy for which we need a displacement policy;
      * @return
      */
-    virtual int priority(Strategy strategy) const = 0;
+    virtual int priority(const iscore::ApplicationContext& ctx, Strategy strategy) const = 0;
 
 };
 }

@@ -28,20 +28,12 @@ class MoveEventClassicFactory final : public MoveEventFactoryInterface
 
         SerializableMoveEvent* make() override;
 
-        int priority(MoveEventFactoryInterface::Strategy strategy) const override
+        int priority(const iscore::ApplicationContext& ctx,  MoveEventFactoryInterface::Strategy s) const override
         {
-            switch(strategy)
-            {
-                case MoveEventFactoryInterface::Strategy::CREATION:
-                    return 0;
-                    break;
-                case MoveEventFactoryInterface::Strategy::MOVING_CLASSIC:
-                    return 0;
-                    break;
-                default:
-                    return 0;// not suited for other strategies
-                    break;
-            }
+            if(s == MoveEventFactoryInterface::CREATION)
+                return 1;
+
+            return 0; // default choice
         }
 };
 }

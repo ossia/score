@@ -44,7 +44,6 @@ protected:
 
 private:
     // TODO : make a UI to change that
-    MoveEventFactoryInterface::Strategy m_strategy{};
     Path<Scenario::ScenarioModel> m_scenario;
     Id<EventModel> m_eventId;
     double m_oldY;

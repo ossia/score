@@ -25,13 +25,12 @@ MoveEventMeta::MoveEventMeta(Path<Scenario::ScenarioModel>&& scenarioPath,
         const TimeValue& newDate, double y,
         ExpandMode mode)
     :SerializableMoveEvent{},
-     m_strategy{MoveEventFactoryInterface::Strategy::MOVING_CLASSIC},
      m_scenario{scenarioPath},
      m_eventId{eventId},
      m_oldY{y},
      m_moveEventImplementation(
          context.components.factory<MoveEventList>()
-         .get(m_strategy)
+         .get(context, MoveEventFactoryInterface::Strategy::MOVE)
          .make(std::move(scenarioPath), eventId, newDate, mode))
 {
     auto& scenar = m_scenario.find();
@@ -100,7 +99,7 @@ void MoveEventMeta::deserializeImpl(DataStreamOutput& qDataStream)
 
     m_moveEventImplementation =
             context.components.factory<MoveEventList>()
-            .get(m_strategy).make();
+            .get(context,MoveEventFactoryInterface::Strategy::MOVE ).make();
 
     m_moveEventImplementation->deserialize(cmdData);
 }
