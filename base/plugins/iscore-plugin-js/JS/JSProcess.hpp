@@ -45,24 +45,10 @@ class ProcessExecutor final :
                 const OSSIA::TimeValue&,
                 const OSSIA::TimeValue&) override;
 
-        const std::shared_ptr<OSSIA::State>& getStartState() const override
-        {
-            return m_start;
-        }
-
-        const std::shared_ptr<OSSIA::State>& getEndState() const override
-        {
-            return m_end;
-        }
-
-
     private:
         const Device::DeviceList& m_devices;
         QJSEngine m_engine;
         QJSValue m_tickFun;
-
-        std::shared_ptr<OSSIA::State> m_start;
-        std::shared_ptr<OSSIA::State> m_end;
 };
 
 
