@@ -53,6 +53,7 @@ class OSSIAApplicationPlugin final :
     private:
         void on_play(bool, ::TimeValue t = ::TimeValue::zero() );
         void on_stop();
+        void on_init();
 
         void setupOSSIACallbacks();
         std::shared_ptr<OSSIA::Device> m_localDevice;

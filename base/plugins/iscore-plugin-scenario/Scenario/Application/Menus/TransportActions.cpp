@@ -34,6 +34,10 @@ TransportActions::TransportActions(
     m_goToStart->setObjectName("Start");
     m_goToEnd = new QAction{tr("⏭ End"), nullptr};
     m_goToEnd->setObjectName("End");
+    m_stopAndInit = new QAction{tr("ReInitilize"), nullptr};
+    m_stopAndInit->setObjectName("StopAndInit");
+    m_stopAndInit->setShortcut(Qt::CTRL + Qt::Key_Return);
+    m_stopAndInit->setShortcutContext(Qt::WidgetWithChildrenShortcut);
     m_record = new QAction{tr("⚫ Record"), nullptr};
     m_record->setObjectName("Record");
 
@@ -74,6 +78,8 @@ TransportActions::TransportActions(
         m_play->blockSignals(false);
         m_record->blockSignals(false);
     });
+    connect(m_stopAndInit, &QAction::triggered,
+            m_stop, &QAction::trigger);
     connect(m_record, &QAction::toggled, this, [&] (bool b) {
     });
 }
@@ -109,7 +115,8 @@ QList<QAction*> TransportActions::actions() const
         m_stop,
         //m_goToStart,
         //m_goToEnd,
-        m_record
+        m_stopAndInit
+        //m_record
     };
 }
 
