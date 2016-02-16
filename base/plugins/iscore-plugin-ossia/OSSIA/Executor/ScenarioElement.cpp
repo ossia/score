@@ -134,7 +134,7 @@ void ScenarioElement::on_stateCreated(const Scenario::StateModel &iscore_state)
     auto state_elt = new StateElement{
             iscore_state,
             root_state,
-            m_ctx.devices.list(),
+            m_ctx,
             this};
 
     m_ossia_states.insert({iscore_state.id(), state_elt});

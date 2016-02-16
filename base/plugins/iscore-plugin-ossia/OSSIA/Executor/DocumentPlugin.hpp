@@ -35,6 +35,9 @@ class ISCORE_PLUGIN_OSSIA_EXPORT DocumentPlugin final : public iscore::DocumentP
 
         bool isPlaying() const;
 
+        auto& context() const
+        { return m_ctx; }
+
     private:
         Context m_ctx;
         std::unique_ptr<BaseScenarioElement> m_base;

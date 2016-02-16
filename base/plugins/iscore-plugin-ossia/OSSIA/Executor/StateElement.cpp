@@ -9,17 +9,17 @@ namespace RecreateOnPlay
 StateElement::StateElement(
         const Scenario::StateModel &element,
         std::shared_ptr<OSSIA::State> root,
-        const Device::DeviceList& deviceList,
+        const RecreateOnPlay::Context& ctx,
         QObject *parent):
     QObject{parent},
     m_iscore_state{element},
     m_ossia_state{root},
-    m_deviceList{deviceList}
+    m_context{ctx}
 {
     iscore::convert::state(
                 m_ossia_state,
                 m_iscore_state,
-                m_deviceList);
+                m_context);
 }
 
 const Scenario::StateModel& StateElement::iscoreState() const

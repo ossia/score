@@ -43,7 +43,9 @@
 #include <Scenario/Document/State/StateModel.hpp>
 #include <Scenario/Document/State/ItemModel/MessageItemModel.hpp>
 #include <iscore/tools/std/Algorithms.hpp>
-
+#include <OSSIA/Executor/ExecutorContext.hpp>
+#include <Explorer/DocumentPlugin/DeviceDocumentPlugin.hpp>
+#include <OSSIA/Executor/ProcessElement.hpp>
 
 class NodeNotFoundException : public std::exception
 {
@@ -380,13 +382,15 @@ static void visit_node(
 std::shared_ptr<OSSIA::State> state(
         std::shared_ptr<OSSIA::State> ossia_state,
         const Scenario::StateModel& iscore_state,
-        const Device::DeviceList& deviceList)
+        const RecreateOnPlay::Context& ctx
+        )
 {
     auto& elts = ossia_state->stateElements();
 
     // For all elements where IOType != Invalid,
     // we add the elements to the state.
 
+    auto& dl = ctx.devices.list();
     visit_node(iscore_state.messages().rootNode(), [&] (const auto& n) {
             const auto& val = n.value();
             if(val)
@@ -396,21 +400,24 @@ std::shared_ptr<OSSIA::State> state(
                                 State::Message{
                                     address(n),
                                     *val},
-                                deviceList
+                                    dl
                                 )
                             );
             }
     });
 
-    for(const auto& proc : iscore_state.stateProcesses)
+
+    for(auto& proc : iscore_state.stateProcesses)
     {
-        // TODO Provide factoriesfor OSSIA State processes
-        /*
-        if(auto state_proc = dynamic_cast<const RecreateOnPlay::OSSIAStateProcessModel*>(&proc))
+        auto fac = ctx.stateProcesses.factory(proc, ctx.sys, ctx.doc);
+        if(fac)
         {
-            elts.push_back(state_proc->state());
+            auto state = fac->make(proc, ctx);
+            if(state)
+            {
+                elts.push_back(state);
+            }
         }
-        */
     }
 
     return ossia_state;
@@ -419,9 +426,9 @@ std::shared_ptr<OSSIA::State> state(
 
 std::shared_ptr<OSSIA::State> state(
         const Scenario::StateModel& iscore_state,
-        const Device::DeviceList& deviceList)
+        const RecreateOnPlay::Context& ctx)
 {
-    return state(OSSIA::State::create(), iscore_state, deviceList);
+    return state(OSSIA::State::create(), iscore_state, ctx);
 }
 
 
