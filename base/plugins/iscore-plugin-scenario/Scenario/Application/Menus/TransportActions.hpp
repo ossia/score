@@ -47,6 +47,7 @@ class TransportActions final : public ScenarioActions
         QAction* m_stop{};
         QAction* m_goToStart{};
         QAction* m_goToEnd{};
+        QAction* m_stopAndInit{};
         QAction* m_record{};
 };
 }
