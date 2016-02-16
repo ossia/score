@@ -170,6 +170,8 @@ class MoveEventState final : public StateBase<Scenario_T>
                     ? max(this->currentPoint.date, *this->m_pressedPrevious)
                     : this->currentPoint.date;
 
+                qDebug() << this->currentPoint.y;
+
                 this->m_movingDispatcher.submitCommand(
                     Path<Scenario_T>{this->m_scenarioPath},
                     evId,
