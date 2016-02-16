@@ -18,13 +18,14 @@ class StateModel;
 }
 namespace RecreateOnPlay
 {
+struct Context;
 class ISCORE_PLUGIN_OSSIA_EXPORT StateElement final : public QObject
 {
     public:
         StateElement(
                 const Scenario::StateModel& element,
                 std::shared_ptr<OSSIA::State> root,
-                const Device::DeviceList& deviceList,
+                const RecreateOnPlay::Context& deviceList,
                 QObject* parent);
 
         const Scenario::StateModel& iscoreState() const;
@@ -37,6 +38,6 @@ class ISCORE_PLUGIN_OSSIA_EXPORT StateElement final : public QObject
         const Scenario::StateModel& m_iscore_state;
         std::shared_ptr<OSSIA::State> m_ossia_state;
 
-        const Device::DeviceList& m_deviceList;
+        const RecreateOnPlay::Context& m_context;
 };
 }

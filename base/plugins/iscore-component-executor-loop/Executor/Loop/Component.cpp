@@ -65,13 +65,13 @@ RecreateOnPlay::Loop::Component::Component(
 
     m_ossia_startState = new StateElement{
             element.startState(),
-            iscore::convert::state(element.startState(), m_ctx.devices.list()),
-            m_ctx.devices.list(),
+            iscore::convert::state(element.startState(), m_ctx),
+            m_ctx,
             this};
     m_ossia_endState = new StateElement{
             element.endState(),
-            iscore::convert::state(element.endState(), m_ctx.devices.list()),
-            m_ctx.devices.list(),
+            iscore::convert::state(element.endState(), m_ctx),
+            m_ctx,
             this};
 
     startEV->getState()->stateElements().push_back(m_ossia_startState->OSSIAState());

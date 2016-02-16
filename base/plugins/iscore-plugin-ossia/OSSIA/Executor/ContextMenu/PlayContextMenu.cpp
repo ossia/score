@@ -54,12 +54,11 @@ PlayContextMenu::PlayContextMenu(Scenario::ScenarioApplicationPlugin *parent):
         if (auto sm = parent->focusedScenarioModel())
         {
             const auto& ctx = iscore::IDocument::documentContext(*sm);
+            auto& r_ctx = ctx.plugin<RecreateOnPlay::DocumentPlugin>().context();
 
             for(const StateModel* state : selectedElements(sm->states))
             {
-                auto ossia_state = iscore::convert::state(
-                            *state,
-                            ctx.plugin<Explorer::DeviceDocumentPlugin>().list());
+                auto ossia_state = iscore::convert::state(*state, r_ctx);
                 ossia_state->launch();
             }
         }
@@ -71,11 +70,12 @@ PlayContextMenu::PlayContextMenu(Scenario::ScenarioApplicationPlugin *parent):
         if (auto sm = parent->focusedScenarioModel())
         {
             const auto& ctx = iscore::IDocument::documentContext(*sm);
-            auto& state = sm->states.at(stateId);
+
+            auto& r_ctx = ctx.plugin<RecreateOnPlay::DocumentPlugin>().context();
 
             auto ossia_state = iscore::convert::state(
-                        state,
-                        ctx.plugin<Explorer::DeviceDocumentPlugin>().list());
+                                   sm->states.at(stateId),
+                                   r_ctx);
             ossia_state->launch();
         }
     });
