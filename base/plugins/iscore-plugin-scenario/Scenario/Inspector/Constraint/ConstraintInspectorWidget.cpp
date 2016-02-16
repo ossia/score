@@ -17,6 +17,7 @@
 #include <QColor>
 #include <QFormLayout>
 #include <QtGlobal>
+#include <QSlider>
 #include <QLabel>
 #include <QObject>
 #include <QPointer>
@@ -82,6 +83,17 @@ ConstraintInspectorWidget::ConstraintInspectorWidget(
     m_metadata->setupConnections(m_model);
 
     addHeader(m_metadata);
+    QSlider* speedSlider = new QSlider{Qt::Horizontal};
+    speedSlider->setTickInterval(100);
+    speedSlider->setMinimum(-100);
+    speedSlider->setMaximum(500);
+    connect(speedSlider, &QSlider::valueChanged,
+            this, [=] (int val) {
+        // TODO command
+        ((ConstraintModel&)(m_model)).duration.setExecutionSpeed(double(val) / 100.0);
+    });
+
+    m_properties.push_back(speedSlider);
 
     m_delegate->addWidgets_pre(m_properties, this);
 

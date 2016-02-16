@@ -13,6 +13,7 @@ ConstraintDurations &ConstraintDurations::operator=(const ConstraintDurations &o
     m_maxDuration = other.m_maxDuration;
 
     m_playPercentage = other.m_playPercentage;
+    m_executionSpeed = other.m_executionSpeed;
     m_rigidity = other.m_rigidity;
 
     m_isMinNull = other.m_isMinNull;

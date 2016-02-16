@@ -15,7 +15,8 @@ namespace Scenario
 class ConstraintModel;
 
 // A container class to separate management of the duration of a constraint.
-class ISCORE_PLUGIN_SCENARIO_EXPORT ConstraintDurations final : public QObject
+class ISCORE_PLUGIN_SCENARIO_EXPORT ConstraintDurations final :
+        public QObject
 {
         // These dates are relative to the beginning of the constraint.
         Q_PROPERTY(TimeValue minDuration
@@ -44,6 +45,11 @@ class ISCORE_PLUGIN_SCENARIO_EXPORT ConstraintDurations final : public QObject
                    WRITE setMaxInfinite
                    NOTIFY maxInfiniteChanged)
 
+        Q_PROPERTY(double executionSpeed
+                   READ executionSpeed
+                   WRITE setExecutionSpeed
+                   NOTIFY executionSpeedChanged)
+
         ISCORE_SERIALIZE_FRIENDS(ConstraintDurations, DataStream)
         ISCORE_SERIALIZE_FRIENDS(ConstraintDurations, JSONObject)
 
@@ -59,20 +65,26 @@ class ISCORE_PLUGIN_SCENARIO_EXPORT ConstraintDurations final : public QObject
 
         const TimeValue& defaultDuration() const
         { return m_defaultDuration; }
+
         TimeValue minDuration() const
         {
             if(m_isMinNull)
                 return TimeValue::zero();
             return m_minDuration;
         }
+
         TimeValue maxDuration() const
         {
             if(m_isMaxInfinite)
                 return PositiveInfinity{};
             return m_maxDuration;
         }
+
         double playPercentage() const
         { return m_playPercentage; }
+
+        double executionSpeed() const
+        {  return m_executionSpeed; }
 
         bool isRigid() const
         { return m_rigidity; }
@@ -83,8 +95,8 @@ class ISCORE_PLUGIN_SCENARIO_EXPORT ConstraintDurations final : public QObject
         class Algorithms
         {
             public:
-            static void setDurationInBounds(ConstraintModel& cstr, const TimeValue& time);
-            static void changeAllDurations(ConstraintModel& cstr, const TimeValue& time);
+                static void setDurationInBounds(ConstraintModel& cstr, const TimeValue& time);
+                static void changeAllDurations(ConstraintModel& cstr, const TimeValue& time);
         };
 
         bool isMinNul() const
@@ -105,6 +117,15 @@ class ISCORE_PLUGIN_SCENARIO_EXPORT ConstraintDurations final : public QObject
 
         void setMaxInfinite(bool isMaxInfinite);
 
+        void setExecutionSpeed(double executionSpeed)
+        {
+            if (m_executionSpeed == executionSpeed)
+                return;
+
+            m_executionSpeed = executionSpeed;
+            emit executionSpeedChanged(executionSpeed);
+        }
+
     signals:
         void defaultDurationChanged(const TimeValue& arg);
         void minDurationChanged(const TimeValue& arg);
@@ -117,6 +138,8 @@ class ISCORE_PLUGIN_SCENARIO_EXPORT ConstraintDurations final : public QObject
 
         void maxInfiniteChanged(bool isMaxInfinite);
 
+        void executionSpeedChanged(double executionSpeed);
+
     private:
         ConstraintModel& m_model;
 
@@ -125,6 +148,7 @@ class ISCORE_PLUGIN_SCENARIO_EXPORT ConstraintDurations final : public QObject
         TimeValue m_maxDuration{m_defaultDuration};
 
         double m_playPercentage{}; // Between 0 and 1.
+        double m_executionSpeed{1};
         bool m_rigidity{true};
         bool m_isMinNull{false};
         bool m_isMaxInfinite{false};

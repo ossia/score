@@ -28,7 +28,9 @@ class StateModel;
 class ConstraintViewModel;
 class FullViewConstraintViewModel;
 
-class ISCORE_PLUGIN_SCENARIO_EXPORT ConstraintModel final : public IdentifiedObject<ConstraintModel>, public Nano::Observer
+class ISCORE_PLUGIN_SCENARIO_EXPORT ConstraintModel final :
+        public IdentifiedObject<ConstraintModel>,
+        public Nano::Observer
 {
         Q_OBJECT
 
