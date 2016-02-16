@@ -29,7 +29,7 @@ MoveEventMeta::MoveEventMeta(
     SerializableMoveEvent{},
     m_scenario{scenarioPath},
     m_eventId{eventId},
-    m_oldY{y},
+    m_newY{y},
     m_moveEventImplementation(
         context.components.factory<MoveEventList>()
         .get(context, MoveEventFactoryInterface::Strategy::MOVE)
@@ -74,12 +74,12 @@ void MoveEventMeta::redo() const
     if(states.size() == 1)
     {
         auto& st = scenar.states.at(states.front());
+        if(!st.previousConstraint() && !st.nextConstraint())
+            st.setHeightPercentage(m_newY);
         if(st.previousConstraint())
             updateConstraintVerticalPos(m_newY, st.previousConstraint(), scenar);
         if(st.nextConstraint())
             updateConstraintVerticalPos(m_newY, st.nextConstraint(), scenar);
-        if(!st.previousConstraint() && !st.nextConstraint())
-            st.setHeightPercentage(m_newY);
     }
 }
 
