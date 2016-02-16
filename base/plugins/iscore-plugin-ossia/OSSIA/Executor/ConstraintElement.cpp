@@ -39,6 +39,12 @@ ConstraintElement::ConstraintElement(
     m_ossia_constraint->setDurationMin(min_duration);
     m_ossia_constraint->setDurationMax(max_duration);
 
+    m_ossia_constraint->setSpeed(iscore_cst.duration.executionSpeed());
+    con(iscore_cst.duration, &Scenario::ConstraintDurations::executionSpeedChanged,
+            this, [&] (double sp) {
+        m_ossia_constraint->setSpeed(sp);
+    });
+
     // BaseScenario needs a special callback.
     if(dynamic_cast<Scenario::ScenarioModel*>(iscore_cst.parent())
     || dynamic_cast<Loop::ProcessModel*>(iscore_cst.parent()))
