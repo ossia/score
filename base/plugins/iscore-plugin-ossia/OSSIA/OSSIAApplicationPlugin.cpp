@@ -1,4 +1,5 @@
 #include <Editor/TimeConstraint.h>
+#include <Editor/StateElement.h>
 #include <Network/Device.h>
 #include <Network/Protocol/Local.h>
 #include <Explorer/Explorer/DeviceExplorerModel.hpp>
@@ -17,6 +18,7 @@
 #include "OSSIAApplicationPlugin.hpp"
 #include <Process/TimeValue.hpp>
 #include <OSSIA/Executor/ConstraintElement.hpp>
+#include <OSSIA/Executor/StateElement.hpp>
 
 #include <iscore/application/ApplicationContext.hpp>
 #include <iscore/plugins/application/GUIApplicationContextPlugin.hpp>
@@ -79,6 +81,11 @@ OSSIAApplicationPlugin::OSSIAApplicationPlugin(const iscore::ApplicationContext&
         {
             connect(act, &QAction::triggered,
                     this, &OSSIAApplicationPlugin::on_stop);
+        }
+        else if(act->objectName() == "StopAndInit")
+        {
+            connect(act, &QAction::triggered,
+                    this, &OSSIAApplicationPlugin::on_init);
         }
     }
     auto playCM = new RecreateOnPlay::PlayContextMenu{&ctrl};
@@ -249,6 +256,44 @@ void OSSIAApplicationPlugin::on_stop()
 
             plugmodel->clear();
         }
+
+        // If we can we resume listening
+        if(context.documents.preparingNewDocument())
+        {
+            m_savedListening.listened.clear();
+        }
+        else
+        {
+            auto explorer = Explorer::try_deviceExplorerFromObject(*doc);
+            if(explorer)
+                explorer->deviceModel().listening().restore();
+        }
+    }
+}
+
+void OSSIAApplicationPlugin::on_init()
+{
+    if(auto doc = currentDocument())
+    {
+        auto plugmodel = doc->context().findPlugin<RecreateOnPlay::DocumentPlugin>();
+        if(!plugmodel)
+            return;
+
+        auto scenar = dynamic_cast<Scenario::ScenarioDocumentModel*>(&doc->model().modelDelegate());
+        if(!scenar)
+            return;
+
+        auto explorer = Explorer::try_deviceExplorerFromObject(*doc);
+        // Disable listening for everything
+        if(explorer)
+            explorer->deviceModel().pauseListening();
+
+        plugmodel->reload(scenar->baseScenario());
+
+        auto& st = *plugmodel->baseScenario()->startState();
+        st.OSSIAState()->launch();
+
+        plugmodel->clear();
 
         // If we can we resume listening
         if(context.documents.preparingNewDocument())

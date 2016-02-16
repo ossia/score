@@ -29,10 +29,14 @@ class ISCORE_PLUGIN_SCENARIO_EXPORT EditionSettings : public QObject
         void setExecution(bool ex);
 
         void setDefault();
+        void restoreTool();
 
     signals:
         void expandModeChanged(ExpandMode expandMode);
         void toolChanged(Scenario::Tool tool);
         void sequenceChanged(bool sequence);
+
+    private:
+        Scenario::Tool m_previousTool{Scenario::Tool::Select};
 };
 }
