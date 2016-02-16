@@ -154,7 +154,7 @@ TemporalScenarioPresenter::TemporalScenarioPresenter(
                 else // TODO restore last tool ?
                 {
                     editionSettings().setExecution(false); // tool unlock
-                    editionSettings().setTool(m_lastTool); // TODO see curvepresenter
+                    editionSettings().restoreTool(); // TODO see curvepresenter
                 }
 
     });
