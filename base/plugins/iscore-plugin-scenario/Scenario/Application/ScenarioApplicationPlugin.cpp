@@ -171,7 +171,7 @@ void ScenarioApplicationPlugin::on_presenterDefocused(Process::LayerPresenter* p
 {
     // We set the currently focused view model to a "select" state
     // to prevent problems.
-    editionSettings().setDefault();
+    editionSettings().setDefault(); // NOTE maybe useless now ?
 
     for(ScenarioActions*& elt : m_pluginActions)
     {
@@ -315,7 +315,7 @@ void ScenarioApplicationPlugin::on_documentChanged(
 
 void ScenarioApplicationPlugin::on_activeWindowChanged()
 {
-    editionSettings().setDefault();
+    editionSettings().setDefault(); // NOTE maybe useless now ?
 }
 
 void ScenarioApplicationPlugin::initColors()

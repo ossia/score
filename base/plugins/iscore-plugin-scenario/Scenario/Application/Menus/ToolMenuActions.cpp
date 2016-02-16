@@ -166,6 +166,10 @@ ToolMenuActions::ToolMenuActions(
             case Scenario::Tool::Disabled:
                 break;
             case Scenario::Tool::Playing:
+                m_createtool->setChecked(false);
+                m_playtool->setChecked(false);
+                slotmovetool->setChecked(false);
+                m_selecttool->setChecked(false);
                 break;
             case Scenario::Tool::Select:
                 if(!m_selecttool->isChecked())
