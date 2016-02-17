@@ -1,5 +1,6 @@
 #include <RecordedMessages/Inspector/RecordedMessagesInspectorFactory.hpp>
 #include <RecordedMessages/RecordedMessagesProcessFactory.hpp>
+#include <RecordedMessages/RecordedMessagesProcess.hpp>
 #include <unordered_map>
 
 #include <Inspector/InspectorWidgetFactoryInterface.hpp>

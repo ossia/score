@@ -151,7 +151,7 @@ auto con(ptr<T> t, Args&&... args)
  */
 template<typename Array, typename F>
 void Foreach(
-        const Array& arr,
+        Array&& arr,
         F fun)
 {
     int n = arr.size();

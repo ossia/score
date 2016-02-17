@@ -78,7 +78,7 @@ void ConstraintElement::play(TimeValue t)
 {
     m_offset = iscore::convert::time(t);
     m_iscore_constraint.duration.setPlayPercentage(0);
-    m_ossia_constraint->setOffset(m_offset);
+    m_ossia_constraint->offset(m_offset)->launch();
     m_ossia_constraint->start();
     executionStarted();
 }

@@ -1,5 +1,4 @@
 #pragma once
-#include <RecordedMessages/RecordedMessagesProcess.hpp>
 #include <RecordedMessages/RecordedMessagesProcessMetadata.hpp>
 #include <Process/Process.hpp>
 #include <QByteArray>
@@ -17,7 +16,6 @@ class JSONObject;
 namespace Process { class LayerModel; }
 class ProcessStateDataInterface;
 class QObject;
-class TimeProcessWithConstraint;
 #include <iscore/tools/SettableIdentifier.hpp>
 
 namespace RecordedMessages
