@@ -10,7 +10,7 @@ class StateElement;
 
 std::shared_ptr<OSSIA::StateElement> SimpleProcess::state()
 {
-    qDebug() << Ossia::convert::time(parentConstraint()->getPosition());
+    qDebug() << Ossia::convert::time(getParentTimeConstraint()->getPosition());
     auto state = OSSIA::State::create();
     return state;
 }

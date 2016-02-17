@@ -37,7 +37,7 @@ std::shared_ptr<OSSIA::StateElement> ProcessExecutor::state()
         return {};
 
     // 1. Convert the time in value.
-    auto js_time = iscore::convert::JS::time(Ossia::convert::time(parentConstraint()->getPosition()));
+    auto js_time = iscore::convert::JS::time(Ossia::convert::time(getParentTimeConstraint()->getPosition()));
 
     // 2. Get the value of the js fun
     auto messages = JS::convert::messages(m_tickFun.call({js_time}));
