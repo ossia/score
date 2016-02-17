@@ -8,8 +8,52 @@
 #include <Scenario/Commands/Constraint/Rack/AddSlotToRack.hpp>
 #include <Scenario/Process/ScenarioModel.hpp>
 #include <Scenario/Palette/ScenarioPoint.hpp>
+
+#include <Explorer/DocumentPlugin/DeviceDocumentPlugin.hpp>
+#include <Explorer/Explorer/DeviceExplorerModel.hpp>
 namespace Recording
 {
+
+std::vector<std::vector<Device::FullAddressSettings> >
+    SetupListening(Explorer::DeviceExplorerModel& explorer)
+{
+    std::vector<std::vector<Device::FullAddressSettings>> recordListening;
+
+    auto indices = explorer.selectedIndexes(); // TODO maybe filterUniqueParents and then recurse on the listening ??
+
+    // First get the addresses to listen.
+    for(auto& index : indices)
+    {
+        // TODO use address settings instead.
+        auto& node = explorer.nodeFromModelIndex(index);
+        if(!node.is<Device::AddressSettings>())
+            continue;
+
+        auto addr = Device::address(node);
+        // TODO shall we check if the address is in, out, recordable ?
+        // Recording an automation of strings would actually have a meaning
+        // here (for instance recording someone typing).
+
+        // We sort the addresses by device to optimize.
+        auto dev_it = std::find_if(recordListening.begin(),
+                                   recordListening.end(),
+                                   [&] (const auto& vec)
+        { return vec.front().address.device == addr.device; });
+
+        auto& as = node.get<Device::AddressSettings>();
+        if(dev_it != recordListening.end())
+        {
+            dev_it->push_back(Device::FullAddressSettings::make<Device::FullAddressSettings::as_child>(as, addr));
+        }
+        else
+        {
+            recordListening.push_back({Device::FullAddressSettings::make<Device::FullAddressSettings::as_child>(as, addr)});
+        }
+    }
+
+    return recordListening;
+}
+
 Box CreateBox(
         Scenario::ScenarioModel &scenar,
         Scenario::Point pt,
@@ -65,5 +109,6 @@ Box CreateBox(
 
     return {cstr, rack, slot, *cmd_move, cmd_end->createdEvent()};
 }
+
 
 }

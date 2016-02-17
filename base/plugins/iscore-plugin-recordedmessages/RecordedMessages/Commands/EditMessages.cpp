@@ -8,19 +8,21 @@ namespace RecordedMessages
 {
 EditMessages::EditMessages(
     Path<ProcessModel>&& model,
-    const QString& text):
+    const RecordedMessagesList& lst):
   m_model{std::move(model)},
-  m_new{text}
+  m_new{lst}
 {
+    m_old = m_model.find().messages();
 }
 
 void EditMessages::undo() const
 {
+    m_model.find().setMessages(m_old);
 }
 
 void EditMessages::redo() const
 {
-
+    m_model.find().setMessages(m_new);
 }
 
 void EditMessages::serializeImpl(DataStreamInput& s) const

@@ -1,3 +1,4 @@
+
 #include <Explorer/DocumentPlugin/DeviceDocumentPlugin.hpp>
 #include <Explorer/Explorer/DeviceExplorerModel.hpp>
 #include <Explorer/DocumentPlugin/ListeningState.hpp>
@@ -29,7 +30,7 @@
 
 #include "Commands/Record.hpp"
 #include "RecordMessagesManager.hpp"
-
+#include <RecordedMessages/Commands/EditMessages.hpp>
 #include <iscore/command/Dispatchers/MacroCommandDispatcher.hpp>
 #include <iscore/document/DocumentInterface.hpp>
 #include <iscore/tools/ModelPath.hpp>
@@ -49,7 +50,8 @@
 
 namespace Recording
 {
-RecordMessagesManager::RecordMessagesManager(const iscore::DocumentContext& ctx):
+RecordMessagesManager::RecordMessagesManager(
+        const iscore::DocumentContext& ctx):
     m_ctx{ctx}
 {
     m_recordTimer.setInterval(8);
@@ -60,6 +62,7 @@ void RecordMessagesManager::stopRecording()
 {
     // Stop all the recording machinery
     m_recordTimer.stop();
+    auto msecs = GetTimeDifferenceInDouble(start_time_pt);
     for(const auto& con : m_recordCallbackConnections)
     {
         QObject::disconnect(con);
@@ -67,7 +70,18 @@ void RecordMessagesManager::stopRecording()
 
     qApp->processEvents();
 
+    for(auto& val : m_records)
+    {
+        val.percentage = val.percentage / msecs;
+    }
+
+    auto cmd = new RecordedMessages::EditMessages{
+            *m_createdProcess,
+            m_records};
+
     // Commit
+    cmd->redo();
+    m_dispatcher->submitCommand(cmd);
     m_dispatcher->commit();
 
     m_explorer->deviceModel().resumeListening(m_savedListening);
@@ -77,47 +91,18 @@ void RecordMessagesManager::recordInNewBox(
         Scenario::ScenarioModel& scenar,
         Scenario::Point pt)
 {
+    using namespace std::chrono;
     auto& doc = iscore::IDocument::documentContext(scenar);
     //// Device tree management ////
 
     // Get all the selected nodes
     m_explorer = &Explorer::deviceExplorerFromContext(doc);
-    auto indices = m_explorer->selectedIndexes(); // TODO maybe filterUniqueParents and then recurse on the listening ??
 
     // Disable listening for everything
     m_savedListening = m_explorer->deviceModel().pauseListening();
 
-    // First get the addresses to listen.
-    std::vector<std::vector<Device::FullAddressSettings>> recordListening;
-    for(auto& index : indices)
-    {
-        // TODO use address settings instead.
-        auto& node = m_explorer->nodeFromModelIndex(index);
-        if(!node.is<Device::AddressSettings>())
-            continue;
-
-        auto addr = Device::address(node);
-        // TODO shall we check if the address is in, out, recordable ?
-        // Recording an automation of strings would actually have a meaning
-        // here (for instance recording someone typing).
-
-        // We sort the addresses by device to optimize.
-        auto dev_it = std::find_if(recordListening.begin(),
-                                   recordListening.end(),
-                                   [&] (const auto& vec)
-        { return vec.front().address.device == addr.device; });
-
-        auto& as = node.get<Device::AddressSettings>();
-        if(dev_it != recordListening.end())
-        {
-            dev_it->push_back(Device::FullAddressSettings::make<Device::FullAddressSettings::as_child>(as, addr));
-        }
-        else
-        {
-            recordListening.push_back({Device::FullAddressSettings::make<Device::FullAddressSettings::as_child>(as, addr)});
-        }
-    }
-
+    // Get the listening of the selected addresses
+    auto recordListening = SetupListening(*m_explorer);
     if(recordListening.empty())
         return;
 
@@ -166,30 +151,26 @@ void RecordMessagesManager::recordInNewBox(
         m_recordCallbackConnections.push_back(
                     connect(&dev, &Device::DeviceInterface::valueUpdated,
                 this, [=] (const State::Address& addr, const State::Value& val) {
-
             if(!m_firstValueReceived)
             {
                 m_firstValueReceived = true;
-                start_time_pt = std::chrono::steady_clock::now();
+                start_time_pt = steady_clock::now();
                 m_recordTimer.start();
 
                 m_records.append(RecordedMessages::RecordedMessage{
-                                     TimeValue::fromMsecs(0),
+                                     0.,
                                      State::Message{addr, val}});
-
             }
             else
             {
-                auto current_time_pt = std::chrono::steady_clock::now();
-
                 // Move end event by the current duration.
-                double msecs = std::chrono::duration_cast<std::chrono::nanoseconds>(current_time_pt - start_time_pt).count() / 1000.;
+                auto msecs = GetTimeDifferenceInDouble(start_time_pt);
 
                 m_records.append(RecordedMessages::RecordedMessage{
-                                     TimeValue::fromMsecs(msecs),
+                                     msecs,
                                      State::Message{addr, val}});
 
-                static_cast<RecordedMessages::ProcessModel*>(m_createdProcess)->setDuration(TimeValue::fromMsecs(msecs));
+                m_createdProcess->setDuration(TimeValue::fromMsecs(msecs));
             }
         }));
     }
@@ -197,15 +178,12 @@ void RecordMessagesManager::recordInNewBox(
     //// Start the record timer ////
     connect(&m_recordTimer, &QTimer::timeout,
             this, [=] () {
-        auto current_time_pt = std::chrono::steady_clock::now();
-
         // Move end event by the current duration.
-        int msecs = std::chrono::duration_cast<std::chrono::milliseconds>(current_time_pt - start_time_pt).count();
         box.moveCommand.update(
                     Path<Scenario::ScenarioModel>{},
                     Id<Scenario::ConstraintModel>{},
                     box.endEvent,
-                    pt.date + TimeValue::fromMsecs(msecs),
+                    pt.date + GetTimeDifference(start_time_pt),
                     0,
                     true);
 

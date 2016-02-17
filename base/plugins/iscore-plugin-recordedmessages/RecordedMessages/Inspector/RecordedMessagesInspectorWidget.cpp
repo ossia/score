@@ -34,6 +34,7 @@ InspectorWidget::InspectorWidget(
 
     con(process(), &RecordedMessages::ProcessModel::messagesChanged,
         this, &InspectorWidget::on_modelChanged);
+    on_modelChanged();
 
     this->setLayout(lay);
 }
@@ -44,15 +45,20 @@ void InspectorWidget::on_modelChanged()
     int n = messages.size();
     m_list->clear();
     m_list->setRowCount(n);
+    auto dur = process().duration();
+
     for(int i = 0; i < n; i++)
     {
         auto& rm = messages[i];
-        m_list->item(i, 0)->setText(QString::number(rm.time.msec()));
-        m_list->item(i, 1)->setText(rm.message.address.toString());
-        m_list->item(i, 2)->setText(State::convert::toPrettyString(rm.message.value));
+
+        auto time = new QTableWidgetItem((dur * rm.percentage).toQTime().toString("hh:mm:ss.zzz"));
+        auto addr = new QTableWidgetItem(rm.message.address.toString());
+        auto val = new QTableWidgetItem(State::convert::toPrettyString(rm.message.value));
+
+        m_list->setItem(i, 0, time);
+        m_list->setItem(i, 1, addr);
+        m_list->setItem(i, 2, val);
     }
-
-
 }
 
 }
