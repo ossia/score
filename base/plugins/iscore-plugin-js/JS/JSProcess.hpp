@@ -41,9 +41,7 @@ class ProcessExecutor final :
 
         void setTickFun(const QString& val);
 
-        std::shared_ptr<OSSIA::StateElement> state(
-                const OSSIA::TimeValue&,
-                const OSSIA::TimeValue&) override;
+        std::shared_ptr<OSSIA::StateElement> state() override;
 
     private:
         const Device::DeviceList& m_devices;
