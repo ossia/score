@@ -53,6 +53,9 @@ namespace Curve
 {
 class SegmentModel;
 }
+
+namespace Recording
+{
 RecordManager::RecordManager(const iscore::DocumentContext& ctx):
     m_ctx{ctx}
 {
@@ -187,7 +190,7 @@ void RecordManager::recordInNewBox(Scenario::ScenarioModel& scenar, Scenario::Po
     if(recordListening.empty())
         return;
 
-    m_dispatcher = std::make_unique<RecordCommandDispatcher>(new Record, doc.commandStack);
+    m_dispatcher = std::make_unique<RecordCommandDispatcher>(new Recording::Record, doc.commandStack);
 
     //// Initial commands ////
 
@@ -355,4 +358,5 @@ void RecordManager::recordInNewBox(Scenario::ScenarioModel& scenar, Scenario::Po
             this, [&] () {
         m_recordTimer.stop();
     });
+}
 }

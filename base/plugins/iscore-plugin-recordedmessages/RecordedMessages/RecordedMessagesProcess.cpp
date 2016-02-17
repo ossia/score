@@ -6,16 +6,16 @@
 
 #include "Editor/Message.h"
 #include "Editor/State.h"
-#include "JSAPIWrapper.hpp"
-#include "JSProcess.hpp"
+
+#include "RecordedMessagesProcess.hpp"
 #include <Editor/TimeConstraint.h>
-#include <JS/JSProcessModel.hpp>
+#include <RecordedMessages/RecordedMessagesProcessModel.hpp>
 namespace OSSIA {
 class StateElement;
 }  // namespace OSSIA
 
 
-namespace JS
+namespace RecordedMessages
 {
 namespace Executor
 {
@@ -23,56 +23,29 @@ ProcessExecutor::ProcessExecutor(
         const Explorer::DeviceDocumentPlugin& devices):
     m_devices{devices.list()}
 {
-    m_engine.globalObject().setProperty("iscore", m_engine.newQObject(new JS::APIWrapper{m_engine, devices}));
-}
-
-void ProcessExecutor::setTickFun(const QString& val)
-{
-    m_tickFun = m_engine.evaluate(val);
 }
 
 std::shared_ptr<OSSIA::StateElement> ProcessExecutor::state()
 {
     auto st = OSSIA::State::create();
-    if(!m_tickFun.isCallable())
-        return st;
-
-    // 1. Convert the time in value.
-    auto js_time = iscore::convert::JS::time(Ossia::convert::time(getParentTimeConstraint()->getPosition()));
-
-    // 2. Get the value of the js fun
-    auto messages = JS::convert::messages(m_tickFun.call({js_time}));
-
-    m_engine.collectGarbage();
-
-    for(const auto& mess : messages)
-    {
-        //qDebug() << mess.toString();
-        auto ossia_mess = iscore::convert::message(mess, m_devices);
-        if(ossia_mess)
-            st->stateElements().push_back(ossia_mess);
-    }
-
-    // 3. Convert our value back
     return st;
 }
 
 ProcessComponent::ProcessComponent(
         RecreateOnPlay::ConstraintElement& parentConstraint,
-        JS::ProcessModel& element,
+        RecordedMessages::ProcessModel& element,
         const RecreateOnPlay::Context& ctx,
         const Id<iscore::Component>& id,
         QObject* parent):
-    RecreateOnPlay::ProcessComponent{parentConstraint, element, id, "JSComponent", parent}
+    RecreateOnPlay::ProcessComponent{parentConstraint, element, id, "RecordedMessagesComponent", parent}
 {
     auto proc = std::make_shared<ProcessExecutor>(ctx.devices);
-    proc->setTickFun(element.script());
     m_ossia_process = proc;
 }
 
 const iscore::Component::Key& ProcessComponent::key() const
 {
-    static iscore::Component::Key k("JSComponent");
+    static iscore::Component::Key k("RecordedMessagesComponent");
     return k;
 }
 
@@ -88,13 +61,13 @@ RecreateOnPlay::ProcessComponent* ProcessComponentFactory::make(
         const Id<iscore::Component>& id,
         QObject* parent) const
 {
-    return new ProcessComponent{cst, static_cast<JS::ProcessModel&>(proc), ctx, id, parent};
+    return new ProcessComponent{cst, static_cast<RecordedMessages::ProcessModel&>(proc), ctx, id, parent};
 }
 
 const ProcessComponentFactory::ConcreteFactoryKey&
 ProcessComponentFactory::concreteFactoryKey() const
 {
-    static ConcreteFactoryKey k("058245dd-9e56-4ca9-820c-ce0983c0bc44");
+    static ConcreteFactoryKey k("e3b381f8-1cd3-4a85-bef7-27283447db50");
     return k;
 }
 
@@ -103,7 +76,7 @@ bool ProcessComponentFactory::matches(
         const RecreateOnPlay::DocumentPlugin&,
         const iscore::DocumentContext&) const
 {
-    return dynamic_cast<JS::ProcessModel*>(&proc);
+    return dynamic_cast<RecordedMessages::ProcessModel*>(&proc);
 }
 
 }

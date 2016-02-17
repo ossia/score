@@ -1,15 +1,15 @@
 #pragma once
 #include <Record/RecordTools.hpp>
-#include <Record/RecordData.hpp>
-
+#include <RecordedMessages/RecordedMessagesProcessModel.hpp>
 namespace Recording
 {
-// TODO for some reason we have to undo redo
-// to be able to send the curve at execution. Investigate why.
-class RecordManager final : public QObject
+struct RecordMessagesData
+{
+};
+class RecordMessagesManager final : public QObject
 {
     public:
-        RecordManager(const iscore::DocumentContext& ctx);
+        RecordMessagesManager(const iscore::DocumentContext& ctx);
 
         void recordInNewBox(Scenario::ScenarioModel& scenar, Scenario::Point pt);
         // TODO : recordInExstingBox; recordFromState.
@@ -29,8 +29,7 @@ class RecordManager final : public QObject
         bool m_firstValueReceived{};
         std::chrono::steady_clock::time_point start_time_pt;
 
-        std::unordered_map<
-            Device::FullAddressSettings,
-            RecordData> records;
+        RecordedMessages::ProcessModel* m_createdProcess{};
+        QList<RecordedMessages::RecordedMessage> m_records;
 };
 }
