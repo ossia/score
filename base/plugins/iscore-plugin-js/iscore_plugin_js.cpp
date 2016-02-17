@@ -1,4 +1,5 @@
 #include <JS/Inspector/JSInspectorFactory.hpp>
+#include <JS/JSProcess.hpp>
 #include <JS/JSProcessFactory.hpp>
 #include <unordered_map>
 

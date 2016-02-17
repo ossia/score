@@ -1,11 +1,12 @@
 #pragma once
-#include <OSSIA/ProcessModel/TimeProcessWithConstraint.hpp>
+#include <Editor/TimeProcess.h>
 #include <QString>
 #include <memory>
 #include <OSSIA/Executor/ProcessElement.hpp>
 #include <OSSIA/Executor/ExecutorContext.hpp>
 #include <iscore/document/DocumentContext.hpp>
 #include <iscore/document/DocumentInterface.hpp>
+#include <RecordedMessages/RecordedMessagesProcessModel.hpp>
 #include "Editor/TimeValue.h"
 
 namespace Explorer
@@ -31,16 +32,20 @@ class ProcessModel;
 namespace Executor
 {
 class ProcessExecutor final :
-        public TimeProcessWithConstraint
+        public OSSIA::TimeProcess
 {
     public:
         ProcessExecutor(
-                const Explorer::DeviceDocumentPlugin& devices);
+                const Explorer::DeviceDocumentPlugin& devices,
+                const RecordedMessagesList& lst);
 
+        std::shared_ptr<OSSIA::StateElement> state(double);
         std::shared_ptr<OSSIA::StateElement> state() override;
+        std::shared_ptr<OSSIA::StateElement> offset(const OSSIA::TimeValue &) override;
 
     private:
         const Device::DeviceList& m_devices;
+        RecordedMessagesList m_list;
 };
 
 

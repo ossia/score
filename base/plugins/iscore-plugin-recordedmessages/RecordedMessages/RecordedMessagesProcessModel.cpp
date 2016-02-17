@@ -71,16 +71,36 @@ QByteArray ProcessModel::makeLayerConstructionData() const
 void ProcessModel::setDurationAndScale(const TimeValue& newDuration)
 {
     setDuration(newDuration);
+    emit messagesChanged();
 }
 
 void ProcessModel::setDurationAndGrow(const TimeValue& newDuration)
 {
+    int n = m_messages.size();
+    auto ratio = duration() / newDuration;
+    for(int i = 0; i < n; i++)
+    {
+        m_messages[i].percentage *= ratio;
+    }
     setDuration(newDuration);
+    emit messagesChanged();
 }
 
 void ProcessModel::setDurationAndShrink(const TimeValue& newDuration)
 {
+    auto ratio = duration() / newDuration;
+    auto inv_ratio = newDuration / duration();
+
+    QMutableListIterator<RecordedMessage> i(m_messages);
+    while (i.hasNext()) {
+        auto& rm = i.next();
+        if (rm.percentage >= inv_ratio)
+            i.remove();
+        else
+            rm.percentage *= ratio;
+    }
     setDuration(newDuration);
+    emit messagesChanged();
 }
 
 void ProcessModel::startExecution()

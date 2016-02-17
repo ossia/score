@@ -16,7 +16,6 @@ namespace Process { class LayerModel; }
 namespace Process { class ProcessModel; }
 class ProcessStateDataInterface;
 class QObject;
-class TimeProcessWithConstraint;
 #include <iscore/tools/SettableIdentifier.hpp>
 
 
@@ -91,5 +90,5 @@ class SimpleProcessModel final : public Process::ProcessModel
                 QObject* parent) override;
 
     private:
-        std::shared_ptr<TimeProcessWithConstraint> m_ossia_process;
+        std::shared_ptr<OSSIA::TimeProcess> m_ossia_process;
 };

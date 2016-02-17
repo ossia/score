@@ -33,15 +33,17 @@ void ProcessExecutor::setTickFun(const QString& val)
 
 std::shared_ptr<OSSIA::StateElement> ProcessExecutor::state()
 {
+    return state(parent->getPosition());
+}
+
+std::shared_ptr<OSSIA::StateElement> ProcessExecutor::state(double t)
+{
     auto st = OSSIA::State::create();
     if(!m_tickFun.isCallable())
         return st;
 
-    // 1. Convert the time in value.
-    auto js_time = iscore::convert::JS::time(Ossia::convert::time(getParentTimeConstraint()->getPosition()));
-
     // 2. Get the value of the js fun
-    auto messages = JS::convert::messages(m_tickFun.call({js_time}));
+    auto messages = JS::convert::messages(m_tickFun.call({QJSValue{t}}));
 
     m_engine.collectGarbage();
 
@@ -55,6 +57,11 @@ std::shared_ptr<OSSIA::StateElement> ProcessExecutor::state()
 
     // 3. Convert our value back
     return st;
+}
+
+std::shared_ptr<OSSIA::StateElement> ProcessExecutor::offset(const OSSIA::TimeValue & off)
+{
+    return state(off / parent->getDurationNominal());
 }
 
 ProcessComponent::ProcessComponent(

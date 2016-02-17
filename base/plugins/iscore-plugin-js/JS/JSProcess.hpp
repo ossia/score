@@ -1,5 +1,5 @@
 #pragma once
-#include <OSSIA/ProcessModel/TimeProcessWithConstraint.hpp>
+#include <Editor/TimeProcess.h>
 #include <QJSEngine>
 #include <QJSValue>
 #include <QString>
@@ -33,7 +33,7 @@ class ProcessModel;
 namespace Executor
 {
 class ProcessExecutor final :
-        public TimeProcessWithConstraint
+        public OSSIA::TimeProcess
 {
     public:
         ProcessExecutor(
@@ -41,7 +41,9 @@ class ProcessExecutor final :
 
         void setTickFun(const QString& val);
 
+        std::shared_ptr<OSSIA::StateElement> state(double);
         std::shared_ptr<OSSIA::StateElement> state() override;
+        std::shared_ptr<OSSIA::StateElement> offset(const OSSIA::TimeValue &) override;
 
     private:
         const Device::DeviceList& m_devices;
