@@ -7,6 +7,7 @@ namespace Settings
 {
 
 const QString Keys::simplificationRatio = QStringLiteral("iscore_plugin_curve/SimplificationRatio");
+const QString Keys::simplify = QStringLiteral("iscore_plugin_curve/Simplify");
 
 
 Model::Model()
@@ -19,6 +20,7 @@ Model::Model()
     }
 
     m_simplificationRatio = s.value(Keys::simplificationRatio).toInt();
+    m_simplify = s.value(Keys::simplify).toBool();
 }
 
 int Model::getSimplificationRatio() const
@@ -38,10 +40,26 @@ void Model::setSimplificationRatio(int simplificationRatio)
     emit simplificationRatioChanged(simplificationRatio);
 }
 
+bool Model::getSimplify() const
+{
+    return m_simplify;
+}
+
+void Model::setSimplify(bool simplify)
+{
+    if (m_simplify == simplify)
+        return;
+
+    m_simplify = simplify;
+    emit simplifyChanged(simplify);
+}
+
 void Model::setFirstTimeSettings()
 {
     QSettings s;
     s.setValue(Keys::simplificationRatio, 10);
+    s.setValue(Keys::simplify, true);
+    m_simplify = true;
     m_simplificationRatio = 10;
 }
 

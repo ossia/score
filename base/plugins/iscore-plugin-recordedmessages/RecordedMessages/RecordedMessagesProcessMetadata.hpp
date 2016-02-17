@@ -12,6 +12,6 @@ PROCESS_METADATA(
         ISCORE_PLUGIN_RECORDEDMESSAGES_EXPORT,
         RecordedMessages::ProcessModel,
         "54212596-ea17-4d7c-888e-2bc480ae598f",
-        "Javascript",
-        "Javascript"
+        "RecordedMessages",
+        "RecordedMessages"
         )
