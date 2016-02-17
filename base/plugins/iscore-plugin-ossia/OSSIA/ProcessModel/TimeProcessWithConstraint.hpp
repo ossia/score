@@ -11,7 +11,7 @@ class TimeProcessWithConstraint : public OSSIA::TimeProcess
             m_constraint = c;
         }
 
-        const std::shared_ptr<OSSIA::TimeConstraint>& getParentTimeConstraint() const override
+        const std::shared_ptr<OSSIA::TimeConstraint>& parentConstraint() const override
         {
             return m_constraint;
         }

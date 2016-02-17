@@ -8,6 +8,7 @@
 #include "Editor/State.h"
 #include "JSAPIWrapper.hpp"
 #include "JSProcess.hpp"
+#include <Editor/TimeConstraint.h>
 #include <JS/JSProcessModel.hpp>
 namespace OSSIA {
 class StateElement;
@@ -30,15 +31,13 @@ void ProcessExecutor::setTickFun(const QString& val)
     m_tickFun = m_engine.evaluate(val);
 }
 
-std::shared_ptr<OSSIA::StateElement> ProcessExecutor::state(
-        const OSSIA::TimeValue& t,
-        const OSSIA::TimeValue&)
+std::shared_ptr<OSSIA::StateElement> ProcessExecutor::state()
 {
     if(!m_tickFun.isCallable())
         return {};
 
     // 1. Convert the time in value.
-    auto js_time = iscore::convert::JS::time(Ossia::convert::time(t));
+    auto js_time = iscore::convert::JS::time(Ossia::convert::time(parentConstraint()->getPosition()));
 
     // 2. Get the value of the js fun
     auto messages = JS::convert::messages(m_tickFun.call({js_time}));

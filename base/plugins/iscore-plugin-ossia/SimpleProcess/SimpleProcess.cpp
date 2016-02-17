@@ -3,16 +3,14 @@
 
 #include <Process/TimeValue.hpp>
 #include "SimpleProcess.hpp"
-
+#include <Editor/TimeConstraint.h>
 namespace OSSIA {
 class StateElement;
 }  // namespace OSSIA
 
-std::shared_ptr<OSSIA::StateElement> SimpleProcess::state(
-        const OSSIA::TimeValue& t,
-        const OSSIA::TimeValue&)
+std::shared_ptr<OSSIA::StateElement> SimpleProcess::state()
 {
-    qDebug() << Ossia::convert::time(t);
+    qDebug() << Ossia::convert::time(parentConstraint()->getPosition());
     auto state = OSSIA::State::create();
     return state;
 }
