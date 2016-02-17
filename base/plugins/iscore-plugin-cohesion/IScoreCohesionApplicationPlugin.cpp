@@ -32,6 +32,8 @@ IScoreCohesionApplicationPlugin::IScoreCohesionApplicationPlugin(const iscore::A
     auto& appPlugin = ctx.components.applicationPlugin<ScenarioApplicationPlugin>();
     connect(&appPlugin, &ScenarioApplicationPlugin::startRecording,
             this, &IScoreCohesionApplicationPlugin::record);
+    connect(&appPlugin, &ScenarioApplicationPlugin::startRecordingMessages,
+            this, &IScoreCohesionApplicationPlugin::recordMessages);
     connect(&appPlugin, &ScenarioApplicationPlugin::stopRecording, // TODO this seems useless
             this, &IScoreCohesionApplicationPlugin::stopRecord);
 
@@ -100,8 +102,18 @@ void IScoreCohesionApplicationPlugin::record(
         Scenario::ScenarioModel& scenar,
         Scenario::Point pt)
 {
-    m_recManager = std::make_unique<RecordManager>(iscore::IDocument::documentContext(scenar));
+    m_recManager = std::make_unique<Recording::RecordManager>(
+                iscore::IDocument::documentContext(scenar));
     m_recManager->recordInNewBox(scenar, pt);
+}
+
+void IScoreCohesionApplicationPlugin::recordMessages(
+        Scenario::ScenarioModel& scenar,
+        Scenario::Point pt)
+{
+    m_recMessagesManager = std::make_unique<Recording::RecordMessagesManager>(
+                iscore::IDocument::documentContext(scenar));
+    m_recMessagesManager->recordInNewBox(scenar, pt);
 }
 
 void IScoreCohesionApplicationPlugin::stopRecord()
@@ -110,5 +122,11 @@ void IScoreCohesionApplicationPlugin::stopRecord()
     {
         m_recManager->stopRecording();
         m_recManager.release();
+    }
+
+    if(m_recMessagesManager)
+    {
+        m_recMessagesManager->stopRecording();
+        m_recMessagesManager.release();
     }
 }

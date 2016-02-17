@@ -13,7 +13,9 @@ set(SRCS
 "${CMAKE_CURRENT_SOURCE_DIR}/Actions/CreateCurves.cpp"
 "${CMAKE_CURRENT_SOURCE_DIR}/Actions/SnapshotParameters.cpp"
 
+"${CMAKE_CURRENT_SOURCE_DIR}/Record/RecordTools.cpp"
 "${CMAKE_CURRENT_SOURCE_DIR}/Record/RecordManager.cpp"
+"${CMAKE_CURRENT_SOURCE_DIR}/Record/RecordMessagesManager.cpp"
 
 "${CMAKE_CURRENT_SOURCE_DIR}/iscore_plugin_cohesion.cpp"
 "${CMAKE_CURRENT_SOURCE_DIR}/IScoreCohesionApplicationPlugin.cpp"
@@ -22,6 +24,9 @@ add_library(${PROJECT_NAME} ${SRCS} ${HDRS})
 iscore_generate_command_list_file(${PROJECT_NAME} "${HDRS}")
 target_link_libraries(${PROJECT_NAME} PUBLIC
                         Qt5::Core Qt5::Widgets
-                        iscore_lib_base iscore_lib_process iscore_plugin_scenario iscore_plugin_curve iscore_plugin_automation iscore_lib_device iscore_plugin_deviceexplorer)
+                        iscore_lib_base iscore_lib_process iscore_plugin_scenario iscore_plugin_curve
+                        iscore_plugin_automation iscore_lib_device iscore_plugin_deviceexplorer
+                        iscore_plugin_recordedmessages
+                        )
 
 setup_iscore_plugin(${PROJECT_NAME})

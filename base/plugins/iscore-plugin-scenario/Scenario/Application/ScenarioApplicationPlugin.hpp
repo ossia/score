@@ -59,6 +59,7 @@ class ISCORE_PLUGIN_SCENARIO_EXPORT ScenarioApplicationPlugin final :
         void keyReleased(int);
 
         void startRecording(Scenario::ScenarioModel&, Scenario::Point);
+        void startRecordingMessages(Scenario::ScenarioModel&, Scenario::Point);
         void stopRecording();
 
         void playState(Id<StateModel>);

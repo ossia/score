@@ -30,7 +30,8 @@ class PlayContextMenu final : public Scenario::ScenarioActions
         const QAction& playFromHereAction() { return *m_playFromHere;}
 
     private:
-        QAction* m_recordAction{};
+        QAction* m_recordAutomations{};
+        QAction* m_recordMessages{};
 
         QAction *m_playStates{};
         QAction *m_playEvents{};

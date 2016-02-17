@@ -14,6 +14,7 @@ iscore-plugin-loop
 
 iscore-plugin-ossia
 iscore-plugin-js
+iscore-plugin-recordedmessages
 iscore-plugin-cohesion
 
 iscore-component-executor-automation
