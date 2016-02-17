@@ -177,7 +177,11 @@ void PlayContextMenu::fillContextMenu(
     if(s.empty())
     {
         menu->addAction(m_recordAutomations);
-        m_recordAutomations->setData(QVariant::fromValue(ScenarioRecordInitData{&pres, scenept}));
+        menu->addAction(m_recordMessages);
+
+        auto data = QVariant::fromValue(ScenarioRecordInitData{&pres, scenept});
+        m_recordAutomations->setData(data);
+        m_recordMessages->setData(data);
     }
     else
     {

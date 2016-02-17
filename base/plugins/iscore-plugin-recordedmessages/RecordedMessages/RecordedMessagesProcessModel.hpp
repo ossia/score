@@ -24,9 +24,10 @@ namespace RecordedMessages
 {
 struct RecordedMessage
 {
-    TimeValue time;
+    double percentage;
     State::Message message;
 };
+using RecordedMessagesList = QList<RecordedMessage>;
 
 class ProcessModel final : public Process::ProcessModel
 {
@@ -104,7 +105,7 @@ class ProcessModel final : public Process::ProcessModel
                 QObject* parent) override;
 
     private:
-        QList<RecordedMessage> m_messages;
+        RecordedMessagesList m_messages;
 };
 
 

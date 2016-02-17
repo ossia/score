@@ -15,21 +15,21 @@ template<>
 void Visitor<Reader<DataStream>>::readFrom(
         const RecordedMessages::RecordedMessage& rm)
 {
-    m_stream << rm.time << rm.message;
+    m_stream << rm.percentage << rm.message;
 }
 
 template<>
 void Visitor<Writer<DataStream>>::writeTo(
         RecordedMessages::RecordedMessage& rm)
 {
-    m_stream >> rm.time >> rm.message;
+    m_stream >> rm.percentage >> rm.message;
 }
 
 template<>
 void Visitor<Reader<JSONObject>>::readFrom(
         const RecordedMessages::RecordedMessage& rm)
 {
-    m_obj["Time"] = toJsonValue(rm.time);
+    m_obj["Percentage"] = rm.percentage;
     m_obj["Message"] = toJsonObject(rm.message);
 }
 
@@ -37,7 +37,7 @@ template<>
 void Visitor<Writer<JSONObject>>::writeTo(
         RecordedMessages::RecordedMessage& rm)
 {
-    rm.time = fromJsonValue<TimeValue>(m_obj["Time"]);
+    rm.percentage = m_obj["Percentage"].toDouble();
     rm.message = fromJsonObject<State::Message>(m_obj["Message"].toObject());
 }
 

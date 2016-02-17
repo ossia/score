@@ -1,23 +1,25 @@
 #pragma once
 #include <RecordedMessages/Commands/RecordedMessagesCommandFactory.hpp>
 #include <iscore/command/SerializableCommand.hpp>
+#include <RecordedMessages/RecordedMessagesProcessModel.hpp>
 #include <QString>
 
 #include <iscore/tools/ModelPath.hpp>
-
+#include <iscore_plugin_recordedmessages_export.h>
 class DataStreamInput;
 class DataStreamOutput;
 namespace RecordedMessages
 {
 class ProcessModel;
 
-class EditMessages final : public iscore::SerializableCommand
+class ISCORE_PLUGIN_RECORDEDMESSAGES_EXPORT EditMessages final :
+        public iscore::SerializableCommand
 {
-        ISCORE_COMMAND_DECL(RecordedMessages::CommandFactoryName(), EditMessages, "Edit a RecordedMessages script")
+        ISCORE_COMMAND_DECL(RecordedMessages::CommandFactoryName(), EditMessages, "Change messages")
     public:
         EditMessages(
-                Path<ProcessModel>&& model,
-                const QString& text);
+                Path<ProcessModel>&&,
+                const RecordedMessagesList&);
 
         void undo() const override;
         void redo() const override;
@@ -28,6 +30,6 @@ class EditMessages final : public iscore::SerializableCommand
 
     private:
         Path<ProcessModel> m_model;
-        QString m_old, m_new;
+        RecordedMessagesList m_old, m_new;
 };
 }
