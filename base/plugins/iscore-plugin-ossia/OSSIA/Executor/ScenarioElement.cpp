@@ -79,7 +79,10 @@ ScenarioElement::ScenarioElement(
     }
 
     if(auto fact = ctx.doc.app.components.factory<Scenario::CSPCoherencyCheckerList>().get())
+    {
         m_checker = fact->make(element, m_pastTn);
+        m_checker->computeDisplacement(m_pastTn, m_properties);
+    }
 }
 
 void ScenarioElement::stop()
@@ -249,10 +252,22 @@ void ScenarioElement::eventCallback(
 
 void ScenarioElement::timeNodeCallback(TimeNodeElement* tn, const OSSIA::TimeValue& date)
 {
-    tn->iscoreTimeNode().id();
-
     if(m_checker)
+    {
+        m_pastTn.push_back(tn->iscoreTimeNode().id());
+        m_properties.timenodes[tn->iscoreTimeNode().id()].dateMin = double(date);
+        m_properties.timenodes[tn->iscoreTimeNode().id()].dateMax = double(date);
         m_checker->computeDisplacement(m_pastTn, m_properties);
+
+        for(auto& cstr : m_ossia_constraints)
+        {
+            auto tmin = m_properties.constraints[cstr.first].newMin;
+            cstr.second->OSSIAConstraint()->setDurationMin(iscore::convert::time(tmin));
+            auto tmax = m_properties.constraints[cstr.first].newMax;
+            cstr.second->OSSIAConstraint()->setDurationMax(iscore::convert::time(tmax));
+        }
+        m_properties.constraints.clear();
+    }
 }
 
 const iscore::Component::Key &ScenarioElement::key() const
