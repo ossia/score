@@ -27,6 +27,17 @@ Presenter::Presenter(
 
     con(m, &Model::simplificationRatioChanged, &v, &View::setSimplificationRatio);
     v.setSimplificationRatio(m.getSimplificationRatio());
+
+    con(v, &View::simplifyChanged,
+        this, [&] (auto simplify) {
+        if(simplify != m.getSimplify())
+        {
+            m_disp.submitCommand<SetSimplify>(this->model(this), simplify);
+        }
+    });
+
+    con(m, &Model::simplifyChanged, &v, &View::setSimplify);
+    v.setSimplify(m.getSimplify());
 }
 
 QString Presenter::settingsName()

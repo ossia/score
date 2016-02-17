@@ -76,6 +76,7 @@ void RecordManager::stopRecording()
 
     qApp->processEvents();
 
+    auto simplify = m_ctx.app.settings<Curve::Settings::Model>().getSimplify();
     auto simplifyRatio = m_ctx.app.settings<Curve::Settings::Model>().getSimplificationRatio();
     // Add a last point corresponding to the current state
 
@@ -116,7 +117,8 @@ void RecordManager::stopRecording()
 
         // Conversion of the piecewise to segments, and
         // serialization.
-        recorded.second.segment.simplify(simplifyRatio);
+        if(simplify)
+            recorded.second.segment.simplify(simplifyRatio);
         // TODO if there is no remaining segment or an invalid segment, don't add it.
 
         // Add a point with the last state.
