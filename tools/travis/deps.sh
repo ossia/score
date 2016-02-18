@@ -1,25 +1,24 @@
 #!/bin/bash -eux
 
 git submodule update --init --recursive
-export ISCORE_PLUGINS_TO_BUILD=()
-# ("iscore-addon-csp")
+export ISCORE_PLUGINS_TO_BUILD=("iscore-addon-csp")
 
 # Set-up the plug-ins
-(
-cd base/addons
-for plugin in "${ISCORE_PLUGINS_TO_BUILD[@]}"
-do
-    git clone "https://github.com/OSSIA/$plugin"
-done
+#(
+#cd base/addons
+#for plugin in "${ISCORE_PLUGINS_TO_BUILD[@]}"
+#do
+#    git clone "https://github.com/OSSIA/$plugin"
+#done
 
-for plugin in */
-do
-  (
-    cd $plugin
-    git submodule update --init --recursive
-  )
-done
-)
+#for plugin in */
+#do
+#  (
+#    cd $plugin
+#    git submodule update --init --recursive
+#  )
+#done
+#)
 # Install the deps
 case "$TRAVIS_OS_NAME" in
   linux)
