@@ -35,7 +35,7 @@ namespace iscore
                     QObject* parent) = 0;
     };
 
-    class ISCORE_LIB_BASE_EXPORT SettingsDelegateFactoryList final :
+    class ISCORE_LIB_BASE_EXPORT ProjectSettingsFactoryList final :
             public ConcreteFactoryList<iscore::ProjectSettingsFactory>
     {
         public:

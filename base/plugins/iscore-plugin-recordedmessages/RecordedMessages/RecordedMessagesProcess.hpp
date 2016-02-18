@@ -1,13 +1,12 @@
 #pragma once
 #include <Editor/TimeProcess.h>
-#include <QJSEngine>
-#include <QJSValue>
 #include <QString>
 #include <memory>
 #include <OSSIA/Executor/ProcessElement.hpp>
 #include <OSSIA/Executor/ExecutorContext.hpp>
 #include <iscore/document/DocumentContext.hpp>
 #include <iscore/document/DocumentInterface.hpp>
+#include <RecordedMessages/RecordedMessagesProcessModel.hpp>
 #include "Editor/TimeValue.h"
 
 namespace Explorer
@@ -27,7 +26,7 @@ class State;
 class StateElement;
 }  // namespace OSSIA
 
-namespace JS
+namespace RecordedMessages
 {
 class ProcessModel;
 namespace Executor
@@ -37,9 +36,8 @@ class ProcessExecutor final :
 {
     public:
         ProcessExecutor(
-                const Explorer::DeviceDocumentPlugin& devices);
-
-        void setTickFun(const QString& val);
+                const Explorer::DeviceDocumentPlugin& devices,
+                const RecordedMessagesList& lst);
 
         std::shared_ptr<OSSIA::StateElement> state(double);
         std::shared_ptr<OSSIA::StateElement> state() override;
@@ -47,8 +45,7 @@ class ProcessExecutor final :
 
     private:
         const Device::DeviceList& m_devices;
-        QJSEngine m_engine;
-        QJSValue m_tickFun;
+        RecordedMessagesList m_list;
 };
 
 
@@ -57,7 +54,7 @@ class ProcessComponent final : public RecreateOnPlay::ProcessComponent
     public:
         ProcessComponent(
                 RecreateOnPlay::ConstraintElement& parentConstraint,
-                JS::ProcessModel& element,
+                RecordedMessages::ProcessModel& element,
                 const RecreateOnPlay::Context& ctx,
                 const Id<iscore::Component>& id,
                 QObject* parent);

@@ -18,6 +18,9 @@ namespace Explorer
 {
 class DeviceExplorerModel;
 }
+
+namespace Recording
+{
 struct RecordData
 {
         RecordData(
@@ -37,3 +40,4 @@ struct RecordData
         Curve::Model& curveModel;
         Curve::PointArraySegment& segment;
 };
+}

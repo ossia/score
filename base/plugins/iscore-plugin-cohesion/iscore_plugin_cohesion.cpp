@@ -34,6 +34,7 @@ QStringList iscore_plugin_cohesion::required() const
 
 std::pair<const CommandParentFactoryKey, CommandGeneratorMap> iscore_plugin_cohesion::make_commands()
 {
+    using namespace Recording;
     std::pair<const CommandParentFactoryKey, CommandGeneratorMap> cmds{IScoreCohesionCommandFactoryName(), CommandGeneratorMap{}};
 
     using Types = TypeList<

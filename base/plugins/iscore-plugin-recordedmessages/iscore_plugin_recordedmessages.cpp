@@ -1,14 +1,14 @@
-#include <JS/Inspector/JSInspectorFactory.hpp>
-#include <JS/JSProcess.hpp>
-#include <JS/JSProcessFactory.hpp>
+#include <RecordedMessages/Inspector/RecordedMessagesInspectorFactory.hpp>
+#include <RecordedMessages/RecordedMessagesProcessFactory.hpp>
+#include <RecordedMessages/RecordedMessagesProcess.hpp>
 #include <unordered_map>
 
 #include <Inspector/InspectorWidgetFactoryInterface.hpp>
-#include "JS/Commands/JSCommandFactory.hpp"
+#include "RecordedMessages/Commands/RecordedMessagesCommandFactory.hpp"
 #include <Process/ProcessFactory.hpp>
 #include <iscore/plugins/customfactory/StringFactoryKey.hpp>
-#include "iscore_plugin_js.hpp"
-#include <iscore_plugin_js_commands_files.hpp>
+#include "iscore_plugin_recordedmessages.hpp"
+#include <iscore_plugin_recordedmessages_commands_files.hpp>
 #include <iscore/plugins/customfactory/FactoryFamily.hpp>
 #include <iscore/plugins/customfactory/FactorySetup.hpp>
 #include <OSSIA/Executor/DocumentPlugin.hpp>
@@ -31,23 +31,23 @@ std::vector<std::unique_ptr<iscore::FactoryInterfaceBase>> iscore_plugin_js::fac
             iscore::ApplicationContext,
     TL<
         FW<Process::ProcessFactory,
-             JS::ProcessFactory>,
+             RecordedMessages::ProcessFactory>,
         FW<ProcessInspectorWidgetDelegateFactory,
-             JS::InspectorFactory>,
+             RecordedMessages::InspectorFactory>,
         FW<RecreateOnPlay::ProcessComponentFactory,
-             JS::Executor::ProcessComponentFactory>
+             RecordedMessages::Executor::ProcessComponentFactory>
     >>(ctx, key);
 }
 
 std::pair<const CommandParentFactoryKey, CommandGeneratorMap> iscore_plugin_js::make_commands()
 {
-    using namespace JS;
+    using namespace RecordedMessages;
     std::pair<const CommandParentFactoryKey, CommandGeneratorMap> cmds{
-        JS::CommandFactoryName(),
+        RecordedMessages::CommandFactoryName(),
                 CommandGeneratorMap{}};
 
     using Types = TypeList<
-#include <iscore_plugin_js_commands.hpp>
+#include <iscore_plugin_recordedmessages_commands.hpp>
       >;
     for_each_type<Types>(iscore::commands::FactoryInserter{cmds.second});
 
@@ -62,5 +62,5 @@ iscore::Version iscore_plugin_js::version() const
 
 UuidKey<iscore::Plugin> iscore_plugin_js::key() const
 {
-    return "0eb1db4b-a532-4961-ba1c-d9edbf08ef07";
+    return "82124ca8-d4ca-4891-b77e-8f450b0377a4";
 }

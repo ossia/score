@@ -40,9 +40,10 @@ void Model::setRate(int rate)
 
 void Model::setFirstTimeSettings()
 {
-    QSettings s;
-    s.setValue(Keys::rate, 50);
     m_rate = 50;
+
+    QSettings s;
+    s.setValue(Keys::rate, m_rate);
 }
 
 }
