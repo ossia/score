@@ -2,6 +2,8 @@
 #include <iscore/command/AggregateCommand.hpp>
 #include <Commands/IScoreCohesionCommandFactory.hpp>
 
+namespace Recording
+{
 class Record final : public iscore::AggregateCommand
 {
         ISCORE_COMMAND_DECL(IScoreCohesionCommandFactoryName(), Record, "Record")
@@ -18,3 +20,4 @@ class Record final : public iscore::AggregateCommand
         }
 
 };
+}

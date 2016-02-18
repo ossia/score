@@ -1,4 +1,5 @@
 #pragma once
+#include <RecordedMessages/RecordedMessagesProcessMetadata.hpp>
 #include <Process/Process.hpp>
 #include <QByteArray>
 #include <QString>
@@ -6,58 +7,67 @@
 
 
 #include <Process/TimeValue.hpp>
-#include "SimpleProcess/SimpleProcess.hpp"
+#include <State/Message.hpp>
 #include <iscore/selection/Selection.hpp>
 #include <iscore/serialization/VisitorInterface.hpp>
 
 class DataStream;
 class JSONObject;
 namespace Process { class LayerModel; }
-namespace Process { class ProcessModel; }
 class ProcessStateDataInterface;
 class QObject;
 #include <iscore/tools/SettableIdentifier.hpp>
 
-
-class SimpleProcessModel final : public Process::ProcessModel
+namespace RecordedMessages
 {
-        ISCORE_SERIALIZE_FRIENDS(SimpleProcessModel, DataStream)
-        ISCORE_SERIALIZE_FRIENDS(SimpleProcessModel, JSONObject)
+struct RecordedMessage
+{
+    double percentage;
+    State::Message message;
+};
+using RecordedMessagesList = QList<RecordedMessage>;
 
+class ProcessModel final : public Process::ProcessModel
+{
+        ISCORE_SERIALIZE_FRIENDS(ProcessModel, DataStream)
+        ISCORE_SERIALIZE_FRIENDS(ProcessModel, JSONObject)
+    Q_OBJECT
     public:
-        explicit SimpleProcessModel(
+        explicit ProcessModel(
                 const TimeValue& duration,
-                const Id<ProcessModel>& id,
+                const Id<Process::ProcessModel>& id,
                 QObject* parent);
 
-        explicit SimpleProcessModel(
-                const SimpleProcessModel& source,
-                const Id<ProcessModel>& id,
+        explicit ProcessModel(
+                const ProcessModel& source,
+                const Id<Process::ProcessModel>& id,
                 QObject* parent);
 
         template<typename Impl>
-        explicit SimpleProcessModel(
+        explicit ProcessModel(
                 Deserializer<Impl>& vis,
                 QObject* parent) :
-            Process::ProcessModel{vis, parent},
-            m_ossia_process{std::make_shared<SimpleProcess>()}
+            Process::ProcessModel{vis, parent}
         {
             vis.writeTo(*this);
         }
 
-        // Process interface
-        SimpleProcessModel* clone(
-                const Id<ProcessModel>& newId,
-                QObject* newParent) const override;
+        void setMessages(const QList<RecordedMessage>& script);
+        const auto& messages() const
+        { return m_messages; }
 
-        QString prettyName() const override;
-        QByteArray makeLayerConstructionData() const override;
+        // Process interface
+        Process::ProcessModel* clone(
+                const Id<Process::ProcessModel>& newId,
+                QObject* newParent) const override;
 
         UuidKey<Process::ProcessFactory>concreteFactoryKey() const override
         {
-            static const UuidKey<Process::ProcessFactory>name{"0107dfb7-dcab-45c3-b7b8-e824c0fe49a1"};
-            return name;
+            return Metadata<ConcreteFactoryKey_k, ProcessModel>::get();
         }
+
+        QString prettyName() const override;
+        QByteArray makeLayerConstructionData() const override;
 
         void setDurationAndScale(const TimeValue& newDuration) override;
         void setDurationAndGrow(const TimeValue& newDuration) override;
@@ -76,6 +86,9 @@ class SimpleProcessModel final : public Process::ProcessModel
 
         void serialize_impl(const VisitorVariant& vis) const override;
 
+    signals:
+        void messagesChanged();
+
     protected:
         Process::LayerModel* makeLayer_impl(
                 const Id<Process::LayerModel>& viewModelId,
@@ -90,5 +103,8 @@ class SimpleProcessModel final : public Process::ProcessModel
                 QObject* parent) override;
 
     private:
-        std::shared_ptr<OSSIA::TimeProcess> m_ossia_process;
+        RecordedMessagesList m_messages;
 };
+
+
+}

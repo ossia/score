@@ -1,5 +1,4 @@
 #pragma once
-#include <JS/JSProcess.hpp>
 #include <JS/JSProcessMetadata.hpp>
 #include <Process/Process.hpp>
 #include <QByteArray>
@@ -16,7 +15,6 @@ class JSONObject;
 namespace Process { class LayerModel; }
 class ProcessStateDataInterface;
 class QObject;
-class TimeProcessWithConstraint;
 #include <iscore/tools/SettableIdentifier.hpp>
 
 namespace JS

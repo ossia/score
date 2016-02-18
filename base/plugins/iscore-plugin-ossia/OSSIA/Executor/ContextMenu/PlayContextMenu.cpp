@@ -113,11 +113,11 @@ PlayContextMenu::PlayContextMenu(Scenario::ScenarioApplicationPlugin *parent):
         */
     });
 
-    m_recordAction = new QAction{tr("Record from here"), this};
-    connect(m_recordAction, &QAction::triggered,
+    m_recordAutomations = new QAction{tr("Record automations from here"), this};
+    connect(m_recordAutomations, &QAction::triggered,
             [=] ()
     {
-        const auto& recdata = m_recordAction->data().value<ScenarioRecordInitData>();
+        const auto& recdata = m_recordAutomations->data().value<ScenarioRecordInitData>();
         if(!recdata.presenter)
             return;
 
@@ -131,9 +131,29 @@ PlayContextMenu::PlayContextMenu(Scenario::ScenarioApplicationPlugin *parent):
                         pres.zoomRatio(),
                         pres.view().boundingRect().height()));
 
-        m_recordAction->setData({});
+        m_recordAutomations->setData({});
     });
 
+    m_recordMessages = new QAction{tr("Record messages from here"), this};
+    connect(m_recordMessages, &QAction::triggered,
+            [=] ()
+    {
+        const auto& recdata = m_recordMessages->data().value<ScenarioRecordInitData>();
+        if(!recdata.presenter)
+            return;
+
+        auto& pres = *safe_cast<const TemporalScenarioPresenter*>(recdata.presenter);
+        auto proc = safe_cast<Scenario::ScenarioModel*>(&pres.layerModel().processModel());
+
+        parent->startRecordingMessages(
+                    *proc,
+                    Scenario::ConvertToScenarioPoint(
+                        pres.view().mapFromScene(recdata.point),
+                        pres.zoomRatio(),
+                        pres.view().boundingRect().height()));
+
+        m_recordAutomations->setData({});
+    });
     m_playFromHere = new QAction{tr("Play from here"), this};
 }
 
@@ -156,8 +176,12 @@ void PlayContextMenu::fillContextMenu(
 
     if(s.empty())
     {
-        menu->addAction(m_recordAction);
-        m_recordAction->setData(QVariant::fromValue(ScenarioRecordInitData{&pres, scenept}));
+        menu->addAction(m_recordAutomations);
+        menu->addAction(m_recordMessages);
+
+        auto data = QVariant::fromValue(ScenarioRecordInitData{&pres, scenept});
+        m_recordAutomations->setData(data);
+        m_recordMessages->setData(data);
     }
     else
     {

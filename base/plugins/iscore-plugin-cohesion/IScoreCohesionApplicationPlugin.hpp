@@ -4,6 +4,7 @@
 #include <vector>
 
 #include "Record/RecordManager.hpp"
+#include "Record/RecordMessagesManager.hpp"
 
 class QAction;
 namespace Scenario {
@@ -26,6 +27,7 @@ class IScoreCohesionApplicationPlugin final :
         std::vector<iscore::OrderedToolbar> makeToolbars() override;
 
         void record(Scenario::ScenarioModel&, Scenario::Point pt);
+        void recordMessages(Scenario::ScenarioModel&, Scenario::Point pt);
         void stopRecord();
 
     private:
@@ -34,5 +36,6 @@ class IScoreCohesionApplicationPlugin final :
 
         QAction* m_stopAction{};
 
-        std::unique_ptr<RecordManager> m_recManager;
+        std::unique_ptr<Recording::RecordManager> m_recManager;
+        std::unique_ptr<Recording::RecordMessagesManager> m_recMessagesManager;
 };
