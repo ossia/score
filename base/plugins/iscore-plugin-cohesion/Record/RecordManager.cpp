@@ -259,8 +259,10 @@ void RecordManager::recordInNewBox(
                     Id<Curve::SegmentModel>{0},
                     &autom.curve()};
 
-            segt->setStart({0, State::convert::value<float>(addr.value)});
+            auto val = State::convert::value<float>(addr.value);
+            segt->setStart({0, val});
             segt->setEnd({1, -1});
+            segt->addPoint(0, val);
 
             autom.curve().addSegment(segt);
 
