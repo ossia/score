@@ -40,6 +40,5 @@ install(
   BUNDLE DESTINATION .
   RUNTIME DESTINATION bin)
 
-include(TestSetup.cmake)
 include(UnityApp.cmake)
 include(IScoreDeployment)

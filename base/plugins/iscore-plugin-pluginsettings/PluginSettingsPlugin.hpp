@@ -1,6 +1,5 @@
 #pragma once
 #include <iscore/plugins/qt_interfaces/PluginRequirements_QtInterface.hpp>
-#include <iscore/plugins/qt_interfaces/SettingsDelegateFactoryInterface_QtInterface.hpp>
 #include <QObject>
 
 #include <iscore/plugins/settingsdelegate/SettingsDelegateFactoryInterface.hpp>

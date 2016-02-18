@@ -1,8 +1,6 @@
 #include <PluginSettingsPlugin.hpp>
 #include <PluginSettings/PluginSettings.hpp>
 
-#include <iscore/plugins/qt_interfaces/SettingsDelegateFactoryInterface_QtInterface.hpp>
-
 iscore_plugin_pluginsettings::iscore_plugin_pluginsettings()
 {
 }
