@@ -17,7 +17,6 @@ set(SRCS
 "${CMAKE_CURRENT_SOURCE_DIR}/iscore/menu/MenuInterface.cpp"
 "${CMAKE_CURRENT_SOURCE_DIR}/iscore/tools/InvisibleRootNodeSerialization.cpp"
 "${CMAKE_CURRENT_SOURCE_DIR}/iscore/tools/ObjectPathSerialization.cpp"
-"${CMAKE_CURRENT_SOURCE_DIR}/iscore/tools/SettableIdentifierSerialization.cpp"
 "${CMAKE_CURRENT_SOURCE_DIR}/iscore/tools/SettableIdentifierGeneration.cpp"
 "${CMAKE_CURRENT_SOURCE_DIR}/iscore/command/CommandDataSerialization.cpp"
 
@@ -66,13 +65,11 @@ set(SRCS
 "${CMAKE_CURRENT_SOURCE_DIR}/iscore/plugins/ProjectSettings/ProjectSettingsPresenter.cpp"
 "${CMAKE_CURRENT_SOURCE_DIR}/iscore/plugins/ProjectSettings/ProjectSettingsView.cpp"
 
-"${CMAKE_CURRENT_SOURCE_DIR}/iscore/plugins/qt_interfaces/DocumentDelegateFactoryInterface_QtInterface.cpp"
 "${CMAKE_CURRENT_SOURCE_DIR}/iscore/plugins/qt_interfaces/FactoryFamily_QtInterface.cpp"
 "${CMAKE_CURRENT_SOURCE_DIR}/iscore/plugins/qt_interfaces/FactoryInterface_QtInterface.cpp"
 "${CMAKE_CURRENT_SOURCE_DIR}/iscore/plugins/qt_interfaces/PanelFactoryInterface_QtInterface.cpp"
 "${CMAKE_CURRENT_SOURCE_DIR}/iscore/plugins/qt_interfaces/GUIApplicationContextPlugin_QtInterface.cpp"
 "${CMAKE_CURRENT_SOURCE_DIR}/iscore/plugins/qt_interfaces/PluginRequirements_QtInterface.cpp"
-"${CMAKE_CURRENT_SOURCE_DIR}/iscore/plugins/qt_interfaces/SettingsDelegateFactoryInterface_QtInterface.cpp"
 
 "${CMAKE_CURRENT_SOURCE_DIR}/iscore/selection/SelectionDispatcher.cpp"
 "${CMAKE_CURRENT_SOURCE_DIR}/iscore/selection/SelectionStack.cpp"
