@@ -2,7 +2,6 @@
 #include <Curve/Settings/Model.hpp>
 #include <iscore/plugins/settingsdelegate/SettingsDelegateViewInterface.hpp>
 class QCheckBox;
-class QComboBox;
 class QDoubleSpinBox;
 namespace Curve
 {
@@ -31,7 +30,7 @@ class View :
 
         QDoubleSpinBox* m_sb{};
         QCheckBox* m_simpl{};
-        QComboBox* m_cb{};
+        QCheckBox* m_mode{};
 
 };
 

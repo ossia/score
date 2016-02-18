@@ -1,7 +1,6 @@
 #include "View.hpp"
 #include <QSpinBox>
 #include <QCheckBox>
-#include <QComboBox>
 #include <QFormLayout>
 
 Q_DECLARE_METATYPE(Curve::Settings::Mode)
@@ -14,10 +13,10 @@ View::View():
     m_widg{new QWidget}
 {
     auto lay = new QFormLayout;
-    m_widg->setLayout(lay);
 
     {
         m_sb = new QDoubleSpinBox;
+
         m_sb->setMinimum(1);
         m_sb->setMaximum(100);
         connect(m_sb, static_cast<void (QDoubleSpinBox::*)(double)>(&QDoubleSpinBox::valueChanged),
@@ -28,6 +27,7 @@ View::View():
 
     {
         m_simpl = new QCheckBox;
+
         connect(m_simpl, &QCheckBox::stateChanged,
                 this, [&] (int t) {
             switch(t)
@@ -48,18 +48,27 @@ View::View():
     }
 
     {
-        m_cb = new QComboBox;
-        m_cb->addItem(tr("Parameter"), QVariant::fromValue(Mode::Parameter));
-        m_cb->addItem(tr("Message"), QVariant::fromValue(Mode::Message));
+        m_mode = new QCheckBox;
 
-        connect(m_cb, static_cast<void (QComboBox::*)(int)>(&QComboBox::currentIndexChanged),
-                this, [&] (int idx) {
-            emit modeChanged(m_cb->itemData(idx).value<Mode>());
+        connect(m_mode, &QCheckBox::stateChanged,
+                this, [&] (int t) {
+            switch(t)
+            {
+                case Qt::Unchecked:
+                    modeChanged(Mode::Parameter);
+                    break;
+                case Qt::Checked:
+                    modeChanged(Mode::Message);
+                    break;
+                default:
+                    break;
+            }
         });
 
-        lay->addRow(tr("Mode"), m_cb);
+        lay->addRow(tr("Ramp to new value"), m_mode);
     }
 
+    m_widg->setLayout(lay);
 }
 
 void View::setSimplificationRatio(double val)
@@ -87,16 +96,18 @@ void View::setSimplify(bool val)
 
 void View::setMode(Mode val)
 {
-    switch(val)
+    switch(m_mode->checkState())
     {
-        case Mode::Parameter:
-            m_cb->setCurrentIndex(0);
+        case Qt::Unchecked:
+            if(val == Mode::Message)
+                m_mode->setChecked(true);
             break;
-        case Mode::Message:
-            m_cb->setCurrentIndex(1);
+        case Qt::Checked:
+            if(val == Mode::Parameter)
+                m_mode->setChecked(false);
             break;
         default:
-            return;
+            break;
     }
 }
 
