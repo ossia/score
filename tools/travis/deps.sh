@@ -1,7 +1,8 @@
 #!/bin/bash -eux
 
 git submodule update --init --recursive
-export ISCORE_PLUGINS_TO_BUILD=("iscore-addon-csp")
+export ISCORE_PLUGINS_TO_BUILD=()
+# ("iscore-addon-csp")
 
 # Set-up the plug-ins
 (
