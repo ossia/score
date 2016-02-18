@@ -17,27 +17,56 @@ Presenter::Presenter(
         QObject *parent):
     iscore::SettingsDelegatePresenterInterface{m, v, parent}
 {
-    con(v, &View::simplificationRatioChanged,
-        this, [&] (auto simplificationRatio) {
-        if(simplificationRatio != m.getSimplificationRatio())
-        {
-            m_disp.submitCommand<SetSimplificationRatio>(this->model(this), simplificationRatio);
-        }
-    });
+    {
+        // view -> model
+        con(v, &View::simplificationRatioChanged,
+            this, [&] (auto simplificationRatio) {
+            if(simplificationRatio != m.getSimplificationRatio())
+            {
+                m_disp.submitCommand<SetSimplificationRatio>(this->model(this), simplificationRatio);
+            }
+        });
 
-    con(m, &Model::simplificationRatioChanged, &v, &View::setSimplificationRatio);
-    v.setSimplificationRatio(m.getSimplificationRatio());
+        // model -> view
+        con(m, &Model::simplificationRatioChanged, &v, &View::setSimplificationRatio);
 
-    con(v, &View::simplifyChanged,
-        this, [&] (auto simplify) {
-        if(simplify != m.getSimplify())
-        {
-            m_disp.submitCommand<SetSimplify>(this->model(this), simplify);
-        }
-    });
+        // initial value
+        v.setSimplificationRatio(m.getSimplificationRatio());
+    }
 
-    con(m, &Model::simplifyChanged, &v, &View::setSimplify);
-    v.setSimplify(m.getSimplify());
+    {
+        // view -> model
+        con(v, &View::simplifyChanged,
+            this, [&] (auto simplify) {
+            if(simplify != m.getSimplify())
+            {
+                m_disp.submitCommand<SetSimplify>(this->model(this), simplify);
+            }
+        });
+
+        // model -> view
+        con(m, &Model::simplifyChanged, &v, &View::setSimplify);
+
+        // initial value
+        v.setSimplify(m.getSimplify());
+    }
+
+    {
+        // view -> model
+        con(v, &View::modeChanged,
+            this, [&] (auto val) {
+            if(val != m.getMode())
+            {
+                m_disp.submitCommand<SetMode>(this->model(this), val);
+            }
+        });
+
+        // model -> view
+        con(m, &Model::modeChanged, &v, &View::setMode);
+
+        // initial value
+        v.setMode(m.getMode());
+    }
 }
 
 QString Presenter::settingsName()

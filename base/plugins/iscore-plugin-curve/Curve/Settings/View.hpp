@@ -1,6 +1,8 @@
 #pragma once
+#include <Curve/Settings/Model.hpp>
 #include <iscore/plugins/settingsdelegate/SettingsDelegateViewInterface.hpp>
-#include <QCheckBox>
+class QCheckBox;
+class QComboBox;
 class QDoubleSpinBox;
 namespace Curve
 {
@@ -16,10 +18,12 @@ class View :
 
         void setSimplificationRatio(double);
         void setSimplify(bool);
+        void setMode(Mode);
 
     signals:
         void simplificationRatioChanged(double);
         void simplifyChanged(bool);
+        void modeChanged(Mode);
 
     private:
         QWidget* getWidget() override;
@@ -27,6 +31,7 @@ class View :
 
         QDoubleSpinBox* m_sb{};
         QCheckBox* m_simpl{};
+        QComboBox* m_cb{};
 
 };
 

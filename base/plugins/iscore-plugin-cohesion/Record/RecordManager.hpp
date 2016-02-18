@@ -2,6 +2,13 @@
 #include <Record/RecordTools.hpp>
 #include <Record/RecordData.hpp>
 
+namespace Curve
+{
+namespace Settings
+{
+class Model;
+}
+}
 namespace Recording
 {
 // TODO for some reason we have to undo redo
@@ -18,7 +25,11 @@ class RecordManager final : public QObject
         void commit();
 
     private:
+        void messageCallback(const State::Address& addr, const State::Value& val);
+        void parameterCallback(const State::Address& addr, const State::Value& val);
+
         const iscore::DocumentContext& m_ctx;
+        const Curve::Settings::Model& m_settings;
         std::unique_ptr<RecordCommandDispatcher> m_dispatcher;
         Explorer::ListeningState m_savedListening;
         std::vector<QMetaObject::Connection> m_recordCallbackConnections;
