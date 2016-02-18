@@ -8,6 +8,7 @@ namespace Settings
 
 const QString Keys::simplificationRatio = QStringLiteral("iscore_plugin_curve/SimplificationRatio");
 const QString Keys::simplify = QStringLiteral("iscore_plugin_curve/Simplify");
+const QString Keys::mode = QStringLiteral("iscore_plugin_curve/Mode");
 
 
 Model::Model()
@@ -51,16 +52,40 @@ void Model::setSimplify(bool simplify)
         return;
 
     m_simplify = simplify;
+
+    QSettings s;
+    s.setValue(Keys::simplify, m_simplify);
     emit simplifyChanged(simplify);
 }
 
+Mode Model::getMode() const
+{
+    return m_mode;
+}
+
+void Model::setMode(Mode mode)
+{
+    if (m_mode == mode)
+        return;
+
+    m_mode = mode;
+
+    QSettings s;
+    s.setValue(Keys::mode, static_cast<int>(m_mode));
+    emit modeChanged(mode);
+}
+
+
 void Model::setFirstTimeSettings()
 {
-    QSettings s;
-    s.setValue(Keys::simplificationRatio, 10);
-    s.setValue(Keys::simplify, true);
-    m_simplify = true;
     m_simplificationRatio = 10;
+    m_simplify = true;
+    m_mode = Mode::Parameter;
+
+    QSettings s;
+    s.setValue(Keys::simplificationRatio, m_simplificationRatio);
+    s.setValue(Keys::simplify, m_simplify);
+    s.setValue(Keys::mode, static_cast<int>(m_mode));
 }
 
 }

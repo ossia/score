@@ -58,7 +58,8 @@ namespace Recording
 {
 RecordManager::RecordManager(
         const iscore::DocumentContext& ctx):
-    m_ctx{ctx}
+    m_ctx{ctx},
+    m_settings{m_ctx.app.settings<Curve::Settings::Model>()}
 {
     m_recordTimer.setInterval(8);
     m_recordTimer.setTimerType(Qt::PreciseTimer);
@@ -76,8 +77,8 @@ void RecordManager::stopRecording()
 
     qApp->processEvents();
 
-    auto simplify = m_ctx.app.settings<Curve::Settings::Model>().getSimplify();
-    auto simplifyRatio = m_ctx.app.settings<Curve::Settings::Model>().getSimplificationRatio();
+    auto simplify = m_settings.getSimplify();
+    auto simplifyRatio = m_settings.getSimplificationRatio();
     // Add a last point corresponding to the current state
 
     // Create commands for the state of each automation to send on
@@ -141,7 +142,79 @@ void RecordManager::stopRecording()
     m_explorer->deviceModel().resumeListening(m_savedListening);
 }
 
-void RecordManager::recordInNewBox(Scenario::ScenarioModel& scenar, Scenario::Point pt)
+void RecordManager::messageCallback(const State::Address &addr, const State::Value &val)
+{
+    using namespace std::chrono;
+    if(m_firstValueReceived)
+    {
+        auto msecs = GetTimeDifference(start_time_pt);
+
+        auto newval = State::convert::value<float>(val.val);
+
+        auto it = find_if(records, [&] (const auto& elt) { return elt.first.address == addr; });
+        ISCORE_ASSERT(it != records.end());
+
+        const auto& proc_data = it->second;
+
+        proc_data.segment.addPoint(msecs.msec(), newval);
+
+        static_cast<Automation::ProcessModel*>(proc_data.curveModel.parent())->setDuration(msecs);
+    }
+    else
+    {
+        m_firstValueReceived = true;
+        start_time_pt = steady_clock::now();
+        m_recordTimer.start();
+
+        auto newval = State::convert::value<float>(val.val);
+
+        auto it = find_if(records, [&] (const auto& elt) { return elt.first.address == addr; });
+        ISCORE_ASSERT(it != records.end());
+
+        const auto& proc_data = it->second;
+        proc_data.segment.addPoint(0, newval);
+    }
+}
+
+void RecordManager::parameterCallback(const State::Address &addr, const State::Value &val)
+{
+    using namespace std::chrono;
+    if(m_firstValueReceived)
+    {
+        auto msecs = GetTimeDifference(start_time_pt);
+
+        auto newval = State::convert::value<float>(val.val);
+
+        auto it = find_if(records, [&] (const auto& elt) { return elt.first.address == addr; });
+        ISCORE_ASSERT(it != records.end());
+
+        const auto& proc_data = it->second;
+
+        auto last = proc_data.segment.points().rbegin();
+        proc_data.segment.addPoint(msecs.msec() - 1, last->second);
+        proc_data.segment.addPoint(msecs.msec(), newval);
+
+        static_cast<Automation::ProcessModel*>(proc_data.curveModel.parent())->setDuration(msecs);
+    }
+    else
+    {
+        m_firstValueReceived = true;
+        start_time_pt = steady_clock::now();
+        m_recordTimer.start();
+
+        auto newval = State::convert::value<float>(val.val);
+
+        auto it = find_if(records, [&] (const auto& elt) { return elt.first.address == addr; });
+        ISCORE_ASSERT(it != records.end());
+
+        const auto& proc_data = it->second;
+        proc_data.segment.addPoint(0, newval);
+    }
+}
+
+void RecordManager::recordInNewBox(
+        Scenario::ScenarioModel& scenar,
+        Scenario::Point pt)
 {
     using namespace std::chrono;
     auto& doc = iscore::IDocument::documentContext(scenar);
@@ -205,6 +278,11 @@ void RecordManager::recordInNewBox(Scenario::ScenarioModel& scenar, Scenario::Po
 
     const auto& devicelist = m_explorer->deviceModel().list();
     //// Setup listening on the curves ////
+    auto callback_to_use =
+            m_settings.getMode() == Curve::Settings::Mode::Parameter
+            ? &RecordManager::parameterCallback
+            : &RecordManager::messageCallback;
+
     for(const auto& vec : recordListening)
     {
         auto& dev = devicelist.device(vec.front().address.device);
@@ -220,36 +298,7 @@ void RecordManager::recordInNewBox(Scenario::ScenarioModel& scenar, Scenario::Po
         // Add a custom callback.
         m_recordCallbackConnections.push_back(
                     connect(&dev, &Device::DeviceInterface::valueUpdated,
-                this, [=] (const State::Address& addr, const State::Value& val) {
-            if(!m_firstValueReceived)
-            {
-                m_firstValueReceived = true;
-                start_time_pt = steady_clock::now();
-                m_recordTimer.start();
-
-                auto newval = State::convert::value<float>(val.val);
-
-                auto it = find_if(records, [&] (const auto& elt) { return elt.first.address == addr; });
-                ISCORE_ASSERT(it != records.end());
-
-                const auto& proc_data = it->second;
-                proc_data.segment.addPoint(0, newval);
-            }
-            else
-            {
-                auto msecs = GetTimeDifference(start_time_pt);
-
-                auto newval = State::convert::value<float>(val.val);
-
-                auto it = find_if(records, [&] (const auto& elt) { return elt.first.address == addr; });
-                ISCORE_ASSERT(it != records.end());
-
-                const auto& proc_data = it->second;
-                proc_data.segment.addPoint(msecs.msec(), newval);
-
-                static_cast<Automation::ProcessModel*>(proc_data.curveModel.parent())->setDuration(msecs);
-            }
-        }));
+                this, callback_to_use));
     }
 
     //// Start the record timer ////
