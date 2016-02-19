@@ -11,6 +11,8 @@ AbstractTimeRuler::AbstractTimeRuler(AbstractTimeRulerView* view, QObject* paren
     m_view{view}
 {
     m_view->setPresenter(this);
+
+    m_graduationsSpacing.push_back( {0.1, TimeValue{std::chrono::seconds (120)} });
     m_graduationsSpacing.push_back( {0.2, TimeValue{std::chrono::seconds (60)} });
     m_graduationsSpacing.push_back( {0.5, TimeValue{std::chrono::seconds (30)} });
 
@@ -26,6 +28,11 @@ AbstractTimeRuler::AbstractTimeRuler(AbstractTimeRulerView* view, QObject* paren
     m_graduationsSpacing.push_back( {100, TimeValue{std::chrono::milliseconds (100)} });
     m_graduationsSpacing.push_back( {200, TimeValue{std::chrono::milliseconds (50)} });
     m_graduationsSpacing.push_back( {500, TimeValue{std::chrono::milliseconds (20)} });
+
+    m_graduationsSpacing.push_back( {1000, TimeValue{std::chrono::milliseconds (10)} });
+    m_graduationsSpacing.push_back( {2000, TimeValue{std::chrono::milliseconds (5)} });
+    m_graduationsSpacing.push_back( {5000, TimeValue{std::chrono::milliseconds (2)} });
+    m_graduationsSpacing.push_back( {10000, TimeValue{std::chrono::milliseconds (1)} });
 }
 
 AbstractTimeRuler::~AbstractTimeRuler()
