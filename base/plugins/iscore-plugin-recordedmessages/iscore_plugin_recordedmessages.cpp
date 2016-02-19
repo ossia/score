@@ -13,17 +13,17 @@
 #include <iscore/plugins/customfactory/FactorySetup.hpp>
 #include <OSSIA/Executor/DocumentPlugin.hpp>
 
-iscore_plugin_js::iscore_plugin_js() :
+iscore_plugin_recordedmessages::iscore_plugin_recordedmessages() :
     QObject {}
 {
 }
 
-iscore_plugin_js::~iscore_plugin_js()
+iscore_plugin_recordedmessages::~iscore_plugin_recordedmessages()
 {
 
 }
 
-std::vector<std::unique_ptr<iscore::FactoryInterfaceBase>> iscore_plugin_js::factories(
+std::vector<std::unique_ptr<iscore::FactoryInterfaceBase>> iscore_plugin_recordedmessages::factories(
         const iscore::ApplicationContext& ctx,
         const iscore::AbstractFactoryKey& key) const
 {
@@ -39,7 +39,7 @@ std::vector<std::unique_ptr<iscore::FactoryInterfaceBase>> iscore_plugin_js::fac
     >>(ctx, key);
 }
 
-std::pair<const CommandParentFactoryKey, CommandGeneratorMap> iscore_plugin_js::make_commands()
+std::pair<const CommandParentFactoryKey, CommandGeneratorMap> iscore_plugin_recordedmessages::make_commands()
 {
     using namespace RecordedMessages;
     std::pair<const CommandParentFactoryKey, CommandGeneratorMap> cmds{
@@ -55,12 +55,12 @@ std::pair<const CommandParentFactoryKey, CommandGeneratorMap> iscore_plugin_js::
     return cmds;
 }
 
-iscore::Version iscore_plugin_js::version() const
+iscore::Version iscore_plugin_recordedmessages::version() const
 {
     return iscore::Version{1};
 }
 
-UuidKey<iscore::Plugin> iscore_plugin_js::key() const
+UuidKey<iscore::Plugin> iscore_plugin_recordedmessages::key() const
 {
     return "82124ca8-d4ca-4891-b77e-8f450b0377a4";
 }
