@@ -129,7 +129,9 @@ DurationSectionWidget::DurationSectionWidget(
     m_minLab = new QLabel{m_model.duration.minDuration().toString(), this};
     m_maxLab = new QLabel{m_model.duration.maxDuration().toString(), this};
     m_defaultLab = new QLabel{m_model.duration.defaultDuration().toString(), this};
-    m_currentPosLab = new QLabel{QString::number(m_model.duration.playPercentage()) + QString(" %"), this};
+    m_currentPosLab = new QLabel{this};
+
+    on_progress(m_model.duration.playPercentage());
 
     playingGrid->addWidget(valLab, 0, 0, 1, 1);
     playingGrid->addWidget(m_defaultLab, 0, 1, 1, 1);
