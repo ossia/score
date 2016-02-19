@@ -19,6 +19,7 @@
 #include <Process/TimeValue.hpp>
 #include <OSSIA/Executor/ConstraintElement.hpp>
 #include <OSSIA/Executor/StateElement.hpp>
+#include <Network/Protocol/Minuit.h>
 
 #include <iscore/application/ApplicationContext.hpp>
 #include <iscore/plugins/application/GUIApplicationContextPlugin.hpp>
@@ -155,7 +156,7 @@ bool OSSIAApplicationPlugin::handleStartup()
 
 void OSSIAApplicationPlugin::on_newDocument(iscore::Document* doc)
 {
-    //doc->model().addPluginModel(new Ossia::LocalTree::DocumentPlugin{m_localDevice,*doc, &doc->model()});
+    doc->model().addPluginModel(new Ossia::LocalTree::DocumentPlugin{m_localDevice,*doc, &doc->model()});
     doc->model().addPluginModel(new RecreateOnPlay::DocumentPlugin{*doc, &doc->model()});
 }
 
@@ -319,6 +320,7 @@ void OSSIAApplicationPlugin::setupOSSIACallbacks()
     local_stop_address->setValue(new OSSIA::Impulse{});
 
     local_play_address->addCallback([&] (const OSSIA::Value* v) {
+        qDebug("play");
         if (v->getType() == OSSIA::Value::Type::BOOL)
         {
             on_play(static_cast<const OSSIA::Bool*>(v)->value);
@@ -326,11 +328,12 @@ void OSSIAApplicationPlugin::setupOSSIACallbacks()
     });
 
     local_stop_address->addCallback([&] (const OSSIA::Value*) {
+        qDebug("stop");
         on_stop();
     });
 
 
-    auto remote_protocol = OSSIA::OSC::create("127.0.0.1", 9999, 6666);
+    auto remote_protocol = OSSIA::Minuit::create("127.0.0.1", 9999, 6666);
     m_remoteDevice = OSSIA::Device::create(remote_protocol, "i-score-remote");
 }
 

@@ -13,6 +13,7 @@
 #include <QIODevice>
 #include <QJsonDocument>
 #include <QMessageBox>
+#include <QApplication>
 
 #include <QSaveFile>
 #include <QSettings>
@@ -236,6 +237,9 @@ void DocumentManager::forceCloseDocument(
         const ApplicationContext& ctx,
         Document& doc)
 {
+    emit doc.aboutToClose();
+    qApp->processEvents();
+
     m_view.closeDocument(&doc.view());
     remove_one(m_documents, &doc);
     setCurrentDocument(

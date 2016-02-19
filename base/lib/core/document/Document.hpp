@@ -81,6 +81,9 @@ class ISCORE_LIB_BASE_EXPORT Document final : public NamedObject
 
         void setBackupMgr(DocumentBackupManager* backupMgr);
 
+    signals:
+        void aboutToClose();
+
     private:
         // These are to be constructed by DocumentBuilder.
         Document(
