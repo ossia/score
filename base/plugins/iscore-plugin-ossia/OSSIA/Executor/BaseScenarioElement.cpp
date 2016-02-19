@@ -6,7 +6,6 @@
 #include <iscore/document/DocumentInterface.hpp>
 #include <OSSIA/iscore2OSSIA.hpp>
 #include <algorithm>
-#include <memory>
 #include <vector>
 
 #include "BaseScenarioElement.hpp"
@@ -23,6 +22,8 @@
 #include <OSSIA/Executor/ExecutorContext.hpp>
 #include <OSSIA/Executor/Settings/Model.hpp>
 
+#include <OSSIA/OSSIA2iscore.hpp>
+
 
 namespace RecreateOnPlay
 {
@@ -31,13 +32,6 @@ static void statusCallback(
         OSSIA::TimeEvent::Status newStatus)
 {
 
-}
-
-static void baseScenarioConstraintCallback(const OSSIA::TimeValue&,
-                               const OSSIA::TimeValue&,
-                               std::shared_ptr<OSSIA::StateElement> element)
-{
-    element->launch();
 }
 
 BaseScenarioElement::BaseScenarioElement(
@@ -62,7 +56,12 @@ BaseScenarioElement::BaseScenarioElement(
     // TODO PlayDuration of base constraint.
     // TODO PlayDuration of FullView
     auto main_constraint = OSSIA::TimeConstraint::create(
-                               &baseScenarioConstraintCallback,
+                                [&] (const OSSIA::TimeValue& position,
+                               const OSSIA::TimeValue& date,
+                               std::shared_ptr<OSSIA::StateElement> state)
+    {
+        baseScenarioConstraintCallback(position, date, state);
+    },
                                *main_start_event_it,
                                *main_end_event_it,
                                main_duration,
@@ -119,4 +118,23 @@ StateElement *BaseScenarioElement::endState() const
 {
     return m_ossia_endState;
 }
+
+void BaseScenarioElement::baseScenarioConstraintCallback(const OSSIA::TimeValue& position,
+                               const OSSIA::TimeValue& date,
+                               std::shared_ptr<OSSIA::StateElement> state)
+{
+    state->launch();
+
+    auto currentTime = Ossia::convert::time(date);
+
+    auto& cstdur = m_ossia_constraint->iscoreConstraint().duration;
+    const auto& maxdur = cstdur.maxDuration();
+
+    if(!maxdur.isInfinite())
+        cstdur.setPlayPercentage(currentTime / cstdur.maxDuration());
+    else
+        cstdur.setPlayPercentage(currentTime / cstdur.defaultDuration());
+}
+
+
 }
