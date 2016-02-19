@@ -84,6 +84,8 @@ DurationSectionWidget::DurationSectionWidget(
             this, &DurationSectionWidget::on_modelMinNullChanged);
     con(m_model.duration, &ConstraintDurations::maxInfiniteChanged,
             this, &DurationSectionWidget::on_modelMaxInfiniteChanged);
+    con(m_model.duration, &ConstraintDurations::playPercentageChanged,
+        this, &DurationSectionWidget::on_progress);
 
     con(m_editionSettings, &EditionSettings::toolChanged,
         this, &DurationSectionWidget::on_execution);
@@ -127,13 +129,16 @@ DurationSectionWidget::DurationSectionWidget(
     m_minLab = new QLabel{m_model.duration.minDuration().toString(), this};
     m_maxLab = new QLabel{m_model.duration.maxDuration().toString(), this};
     m_defaultLab = new QLabel{m_model.duration.defaultDuration().toString(), this};
+    m_currentPosLab = new QLabel{QString::number(m_model.duration.playPercentage()) + QString(" %"), this};
 
     playingGrid->addWidget(valLab, 0, 0, 1, 1);
     playingGrid->addWidget(m_defaultLab, 0, 1, 1, 1);
     playingGrid->addWidget(m_minTitle, 1, 0, 1, 1);
     playingGrid->addWidget(m_minLab, 1, 1, 1, 1);
     playingGrid->addWidget(m_maxTitle, 2, 0, 1, 1);
-    playingGrid->addWidget(m_maxLab, 1, 1, 1, 1);
+    playingGrid->addWidget(m_maxLab, 2, 1, 1, 1);
+    playingGrid->addWidget(new QLabel{tr("progress")}, 3, 0, 1, 1);
+    playingGrid->addWidget(m_currentPosLab, 3, 1, 1, 1);
 
     mainLay->addWidget(m_playingWidget);
     mainLay->addWidget(m_editingWidget);
@@ -193,6 +198,9 @@ void DurationSectionWidget::on_modelRigidityChanged(bool b)
     m_maxSpin->setHidden(b);
     m_maxFiniteBox->setHidden(b);
     m_maxTitle->setHidden(b);
+
+    m_minLab->setHidden(b);
+    m_maxLab->setHidden(b);
 }
 
 void DurationSectionWidget::on_modelMinNullChanged(bool b)
@@ -294,6 +302,14 @@ void DurationSectionWidget::on_execution(Scenario::Tool t)
 {
     m_playingWidget->setVisible(t == Tool::Playing);
     m_editingWidget->setVisible(t != Tool::Playing);
+}
+
+void DurationSectionWidget::on_progress(double p)
+{
+    auto coeff = m_model.duration.isMaxInfinite() ?
+                     m_model.duration.defaultDuration().msec() :
+                     m_model.duration.maxDuration().msec();
+    m_currentPosLab->setText(QString::number((p * coeff / 1000)) + QString(" s"));
 }
 
 DurationSectionWidget::~DurationSectionWidget()
