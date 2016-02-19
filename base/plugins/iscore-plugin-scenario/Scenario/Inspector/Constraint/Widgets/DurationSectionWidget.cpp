@@ -42,8 +42,11 @@ DurationSectionWidget::DurationSectionWidget(
     m_delegate{delegate}
 {
     using namespace iscore;
-    auto widg = new QWidget{this};
-    m_grid = new iscore::MarginLess<QGridLayout>{widg};
+    auto mainWidg = new QWidget{this};
+    auto mainLay = new iscore::MarginLess<QVBoxLayout>{mainWidg};
+    m_editingWidget = new QWidget{mainWidg};
+
+    auto editableGrid = new iscore::MarginLess<QGridLayout>{m_editingWidget};
 
     // SPINBOXES
     m_minSpin = new TimeSpinBox{this};
@@ -82,30 +85,33 @@ DurationSectionWidget::DurationSectionWidget(
     con(m_model.duration, &ConstraintDurations::maxInfiniteChanged,
             this, &DurationSectionWidget::on_modelMaxInfiniteChanged);
 
+    con(m_editionSettings, &EditionSettings::toolChanged,
+        this, &DurationSectionWidget::on_execution);
+
     // DISPLAY
     m_minNull = new QLabel{tr("Null")};
     m_minNull->hide();
     m_maxInfinity = new QLabel{tr("Infinity")};
     m_maxInfinity->hide();
     auto valLab = new QLabel("Default Duration");
-    m_grid->addWidget(valLab, 0,1,1,1);
-    m_grid->addWidget(m_valueSpin, 0, 2, 1, 1);
+    editableGrid->addWidget(valLab, 0,1,1,1);
+    editableGrid->addWidget(m_valueSpin, 0, 2, 1, 1);
 
-    m_minLab = new QLabel("Min Duration");
-    m_grid->addWidget(m_minNonNullBox, 1, 0, 1, 1);
-    m_grid->addWidget(m_minLab, 1, 1, 1, 1);
-    m_grid->addWidget(m_minSpin, 1, 2, 1, 1);
-    m_grid->addWidget(m_minNull, 1, 2, 1, 1);
+    m_minTitle = new QLabel("Min Duration");
+    editableGrid->addWidget(m_minNonNullBox, 1, 0, 1, 1);
+    editableGrid->addWidget(m_minTitle, 1, 1, 1, 1);
+    editableGrid->addWidget(m_minSpin, 1, 2, 1, 1);
+    editableGrid->addWidget(m_minNull, 1, 2, 1, 1);
 
-    m_maxLab = new QLabel("Max Duration");
-    m_grid->addWidget(m_maxFiniteBox, 2, 0, 1, 1);
-    m_grid->addWidget(m_maxLab, 2, 1, 1,1);
-    m_grid->addWidget(m_maxSpin, 2, 2, 1, 1);
-    m_grid->addWidget(m_maxInfinity, 2, 2, 1, 1);
+    m_maxTitle = new QLabel("Max Duration");
+    editableGrid->addWidget(m_maxFiniteBox, 2, 0, 1, 1);
+    editableGrid->addWidget(m_maxTitle, 2, 1, 1,1);
+    editableGrid->addWidget(m_maxSpin, 2, 2, 1, 1);
+    editableGrid->addWidget(m_maxInfinity, 2, 2, 1, 1);
 
-    m_grid->setColumnStretch(0,0);
-    m_grid->setColumnStretch(1,1);
-    m_grid->setColumnStretch(2,2);
+    editableGrid->setColumnStretch(0,0);
+    editableGrid->setColumnStretch(1,1);
+    editableGrid->setColumnStretch(2,2);
 
     connect(m_valueSpin,    &TimeSpinBox::editingFinished,
             this,   &DurationSectionWidget::on_durationsChanged);
@@ -114,7 +120,25 @@ DurationSectionWidget::DurationSectionWidget(
     connect(m_maxSpin,  &TimeSpinBox::editingFinished,
             this,   &DurationSectionWidget::on_durationsChanged);
 
-    addContent(widg);
+
+    m_playingWidget = new QWidget{mainWidg};
+    auto playingGrid = new iscore::MarginLess<QGridLayout>(m_playingWidget);
+
+    m_minLab = new QLabel{m_model.duration.minDuration().toString(), this};
+    m_maxLab = new QLabel{m_model.duration.maxDuration().toString(), this};
+    m_defaultLab = new QLabel{m_model.duration.defaultDuration().toString(), this};
+
+    playingGrid->addWidget(valLab, 0, 0, 1, 1);
+    playingGrid->addWidget(m_defaultLab, 0, 1, 1, 1);
+    playingGrid->addWidget(m_minTitle, 1, 0, 1, 1);
+    playingGrid->addWidget(m_minLab, 1, 1, 1, 1);
+    playingGrid->addWidget(m_maxTitle, 2, 0, 1, 1);
+    playingGrid->addWidget(m_maxLab, 1, 1, 1, 1);
+
+    mainLay->addWidget(m_playingWidget);
+    mainLay->addWidget(m_editingWidget);
+
+    addContent(mainWidg);
 
     if(m_model.fullView()->isActive() && m_model.id().val() != 0)
     {
@@ -131,6 +155,7 @@ DurationSectionWidget::DurationSectionWidget(
     m_maxSpin->setVisible(!m_model.duration.isMaxInfinite());
 
     on_modelRigidityChanged(m_model.duration.isRigid());
+    on_execution(m_editionSettings.tool());
 }
 
 using namespace Scenario::Command;
@@ -163,11 +188,11 @@ void DurationSectionWidget::on_modelRigidityChanged(bool b)
 {
     m_minNonNullBox->setHidden(b);
     m_minSpin->setHidden(b);
-    m_minLab->setHidden(b);
+    m_minTitle->setHidden(b);
 
     m_maxSpin->setHidden(b);
     m_maxFiniteBox->setHidden(b);
-    m_maxLab->setHidden(b);
+    m_maxTitle->setHidden(b);
 }
 
 void DurationSectionWidget::on_modelMinNullChanged(bool b)
@@ -186,6 +211,7 @@ void DurationSectionWidget::on_modelMaxInfiniteChanged(bool b)
 
 void DurationSectionWidget::on_modelDefaultDurationChanged(const TimeValue& dur)
 {
+    m_defaultLab->setText(dur.toString());
     if (dur.toQTime() == m_valueSpin->time())
         return;
 
@@ -194,6 +220,7 @@ void DurationSectionWidget::on_modelDefaultDurationChanged(const TimeValue& dur)
 
 void DurationSectionWidget::on_modelMinDurationChanged(const TimeValue& dur)
 {
+    m_minLab->setText(dur.toString());
     if (dur.toQTime() == m_minSpin->time())
         return;
 
@@ -202,6 +229,7 @@ void DurationSectionWidget::on_modelMinDurationChanged(const TimeValue& dur)
 
 void DurationSectionWidget::on_modelMaxDurationChanged(const TimeValue& dur)
 {
+    m_maxLab->setText(dur.toString());
     if (dur.toQTime() == m_maxSpin->time())
         return;
 
@@ -260,6 +288,12 @@ void DurationSectionWidget::on_maxFiniteToggled(bool val)
 
 
     m_parent->commandDispatcher()->submitCommand(cmd);
+}
+
+void DurationSectionWidget::on_execution(Scenario::Tool t)
+{
+    m_playingWidget->setVisible(t == Tool::Playing);
+    m_editingWidget->setVisible(t != Tool::Playing);
 }
 
 DurationSectionWidget::~DurationSectionWidget()
