@@ -2,6 +2,7 @@
 #include <Inspector/InspectorSectionWidget.hpp>
 #include <Process/TimeValue.hpp>
 #include <iscore/command/Dispatchers/OngoingCommandDispatcher.hpp>
+#include <Scenario/Palette/Tool.hpp>
 
 class QCheckBox;
 class QGridLayout;
@@ -43,16 +44,22 @@ class DurationSectionWidget final : public Inspector::InspectorSectionWidget
         void on_minNonNullToggled(bool val);
         void on_maxFiniteToggled(bool val);
 
+        void on_execution(Scenario::Tool t);
+
         const ConstraintModel& m_model;
         ConstraintInspectorWidget* m_parent {};
 
-        QGridLayout* m_grid{};
+        QWidget* m_editingWidget{};
+        QWidget* m_playingWidget{};
 
-        QLabel* m_maxLab{};
-        QLabel* m_minLab{};
+        QLabel* m_maxTitle{};
+        QLabel* m_minTitle{};
         QLabel* m_maxInfinity{};
         QLabel* m_minNull{};
 
+        QLabel* m_maxLab{};
+        QLabel* m_minLab{};
+        QLabel* m_defaultLab{};
         iscore::TimeSpinBox* m_minSpin{};
         iscore::TimeSpinBox* m_valueSpin{};
         iscore::TimeSpinBox* m_maxSpin{};
