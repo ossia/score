@@ -11,7 +11,7 @@
 #include <iscore/command/SerializableCommand.hpp>
 #include <iscore/plugins/customfactory/FactoryInterface.hpp>
 
-class iscore_plugin_js final:
+class iscore_plugin_recordedmessages final:
         public QObject,
         public iscore::Plugin_QtInterface,
         public iscore::FactoryInterface_QtInterface,
@@ -26,8 +26,8 @@ class iscore_plugin_js final:
                 )
 
     public:
-        iscore_plugin_js();
-        virtual ~iscore_plugin_js();
+        iscore_plugin_recordedmessages();
+        virtual ~iscore_plugin_recordedmessages();
 
     private:
         // Process & inspector
