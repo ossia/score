@@ -1,7 +1,13 @@
 #pragma once
+#include <memory>
 
 #include <QObject>
 
+namespace OSSIA
+{
+    class TimeValue;
+    class StateElement;
+}
 
 namespace Scenario
 {
@@ -39,6 +45,10 @@ class BaseScenarioElement final : public QObject
         StateElement* endState() const;
 
     private:
+        void baseScenarioConstraintCallback(const OSSIA::TimeValue&position,
+                                            const OSSIA::TimeValue&date,
+                                            std::shared_ptr<OSSIA::StateElement> state);
+
         const Context& m_ctx;
         ConstraintElement* m_ossia_constraint{};
 
