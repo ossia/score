@@ -56,6 +56,7 @@ StateModel::StateModel(
         iscore::CommandStackFacade& stack,
         QObject *parent):
     IdentifiedObject<StateModel> {id, Metadata<ObjectKey_k, StateModel>::get(), parent},
+    metadata{source.metadata},
     m_stack{stack},
     m_eventId{source.eventId()},
     m_previousConstraint{source.previousConstraint()},
