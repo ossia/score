@@ -1,5 +1,6 @@
 #pragma once
 #include <iscore/tools/Metadata.hpp>
+#include <iscore/plugins/customfactory/UuidKey.hpp>
 #include <QObject>
 
 namespace Process
