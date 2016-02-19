@@ -91,7 +91,7 @@ class ScenarioElement final : public ProcessComponent
 
         const Context& m_ctx;
 
-        Scenario::CSPCoherencyCheckerInterface* m_checker;
+        Scenario::CSPCoherencyCheckerInterface* m_checker{};
         QVector<Id<Scenario::TimeNodeModel>> m_pastTn{};
         Scenario::ElementsProperties m_properties{};
 };
