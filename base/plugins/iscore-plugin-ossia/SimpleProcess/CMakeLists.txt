@@ -1,3 +1,4 @@
+return()
 cmake_minimum_required(VERSION 3.0)
 project(iscore_plugin_ossia_simpleprocess LANGUAGES CXX)
 
