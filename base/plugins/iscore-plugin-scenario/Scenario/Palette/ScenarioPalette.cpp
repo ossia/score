@@ -53,6 +53,7 @@ void ToolPalette::on_pressed(QPointF point)
         case Scenario::Tool::Create:
             m_createTool.on_pressed(point, scenarioPoint);
             break;
+        case Scenario::Tool::Playing:
         case Scenario::Tool::Select:
             m_selectTool.on_pressed(point, scenarioPoint);
             break;
@@ -98,6 +99,7 @@ void ToolPalette::on_released(QPointF point)
         case Scenario::Tool::Create:
             m_createTool.on_released(point, scenarioPoint);
             break;
+        case Scenario::Tool::Playing:
         case Scenario::Tool::Select:
             m_selectTool.on_released(point, scenarioPoint);
             break;
