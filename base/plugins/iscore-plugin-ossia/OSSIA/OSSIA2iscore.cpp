@@ -157,13 +157,21 @@ Device::AddressSettings ToAddressSettings(const OSSIA::Node &node)
     if(addr)
     {
         addr->pullValue();
-        if(auto val = addr->getValue())
-        {
-            s.value = ToValue(val);
+        try {
+            if(auto val = addr->cloneValue())
+            {
+                s.value = ToValue(val);
+                delete val;
+            }
+            else
+            {
+                s.value = ToValue(addr->getValueType());
+            }
         }
-        else
+        catch(...)
         {
             s.value = ToValue(addr->getValueType());
+
         }
 
         /* Debug code

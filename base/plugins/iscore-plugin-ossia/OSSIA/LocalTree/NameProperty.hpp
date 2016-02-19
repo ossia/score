@@ -21,6 +21,7 @@ class MetadataNamePropertyWrapper
                        parent.children().end(),
                        arg_metadata.name().toStdString());
 
+            /*
             m_callbackIt =
                     node->addCallback(
                         [=] (const OSSIA::Node& node, const std::string& name, OSSIA::NodeChange t) {
@@ -31,6 +32,7 @@ class MetadataNamePropertyWrapper
                         metadata.setName(str);
                 }
             });
+            */
 
             auto setNameFun = [=] (const QString& newName_qstring) {
                 auto newName = newName_qstring.toStdString();
@@ -58,6 +60,6 @@ class MetadataNamePropertyWrapper
 
         ~MetadataNamePropertyWrapper()
         {
-            node->removeCallback(m_callbackIt);
+            //node->removeCallback(m_callbackIt);
         }
 };

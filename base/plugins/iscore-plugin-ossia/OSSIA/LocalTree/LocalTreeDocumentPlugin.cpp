@@ -44,15 +44,25 @@ Ossia::LocalTree::DocumentPlugin::DocumentPlugin(
                       &m_context.document.model().modelDelegate());
     ISCORE_ASSERT(scenar);
     auto& cstr = scenar->baseScenario().constraint();
-    cstr.components.add(new ConstraintComponent(
-                            *m_localDevice,
-                            Id<iscore::Component>{0},
-                            cstr,
-                            *this,
-                            doc.context(),
-                            this));
+    auto comp = new ConstraintComponent(
+                *m_localDevice,
+                Id<iscore::Component>{0},
+                cstr,
+                *this,
+                doc.context(),
+                this);
+    cstr.components.add(comp);
 
-    //Ossia::LocalTree::ScenarioVisitor v;
-    //v.visit(cstr, m_dev);
+    con(doc, &iscore::Document::aboutToClose,
+            this, [=,&cstr] () {
+        // Remove the node from local device
+        auto it = find_if(m_localDevice->children(), [&] (const auto& node)
+        { return node == comp->node(); });
+        ISCORE_ASSERT(it != m_localDevice->children().end());
 
+        m_localDevice->erase(it);
+
+        // Delete
+        cstr.components.remove(comp);
+    });
 }

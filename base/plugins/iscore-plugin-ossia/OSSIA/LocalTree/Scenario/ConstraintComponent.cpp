@@ -61,6 +61,13 @@ ConstraintComponent::ConstraintComponent(
                            &ConstraintDurations::playPercentage,
                            &ConstraintDurations::playPercentageChanged,
                            this));
+
+    m_properties.push_back(
+      add_property<double>(thisNode(), "speed", &constraint.duration,
+                           &ConstraintDurations::executionSpeed,
+                           &ConstraintDurations::setExecutionSpeed,
+                           &ConstraintDurations::executionSpeedChanged,
+                           this));
 }
 
 ConstraintComponent::~ConstraintComponent()
