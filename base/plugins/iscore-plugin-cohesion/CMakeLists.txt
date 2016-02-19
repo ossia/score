@@ -1,6 +1,10 @@
 cmake_minimum_required(VERSION 3.1)
 project(iscore_plugin_cohesion LANGUAGES CXX)
 
+if(NOT TARGET iscore_plugin_ossia)
+    return()
+endif()
+
 iscore_common_setup()
 # Packages
 find_package(Qt5 5.3 REQUIRED COMPONENTS Core Widgets)

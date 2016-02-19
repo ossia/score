@@ -14,6 +14,13 @@ namespace Curve
 struct SegmentData;
 struct ISCORE_PLUGIN_CURVE_EXPORT PowerSegmentData
 {
+        PowerSegmentData() = default;
+        PowerSegmentData(double d):
+            gamma{d}
+        {
+
+        }
+
         double gamma = 12.05;
 };
 
@@ -52,7 +59,7 @@ class ISCORE_PLUGIN_CURVE_EXPORT PowerSegment final :
 
         QVariant toSegmentSpecificData() const override
         {
-            return QVariant::fromValue(PowerSegmentData{gamma});
+            return QVariant::fromValue(PowerSegmentData(gamma));
         }
 
 };
