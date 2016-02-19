@@ -121,7 +121,7 @@ void ExpressionEditorWidget::setExpression(State::Expression e)
 void ExpressionEditorWidget::on_editFinished()
 {
     auto ex = currentExpr();
-    auto e = State::parseExpression(m_expression);
+    auto e = State::parseExpression(ex);
     if (m_expression == ex || (!e && !ex.isEmpty()))
         return;
 
