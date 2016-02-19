@@ -62,9 +62,21 @@ struct GetPropertyWrapper : public BaseProperty
         {
             QObject::connect(&property.object(), property.changed_property(),
                              context, [=] {
+
                 auto newVal = converter_t::convert(property.get());
-                if(newVal != Ossia::convert::ToValue(addr->getValue()))
-                    addr->pushValue(iscore::convert::toOSSIAValue(newVal));
+                try
+                {
+                    auto cl = addr->cloneValue();
+                    auto res = Ossia::convert::ToValue(cl);
+
+                    if(newVal != res)
+                        addr->pushValue(iscore::convert::toOSSIAValue(newVal));
+                    delete cl;
+                }
+                catch(...)
+                {
+
+                }
             },
             Qt::QueuedConnection);
 
