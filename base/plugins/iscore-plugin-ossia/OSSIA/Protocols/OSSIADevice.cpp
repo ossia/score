@@ -251,7 +251,10 @@ void OSSIADevice::setListening(
     std::shared_ptr<OSSIA::Address> ossia_addr;
     if(cb_it == m_callbacks.end())
     {
-        auto n = getNodeFromPath(addr.path, m_dev.get());
+        auto n = findNodeFromPath(addr.path, m_dev.get());
+        if(!n)
+            return;
+
         ossia_addr = n->getAddress();
         if(!ossia_addr)
             return;
