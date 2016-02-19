@@ -114,13 +114,15 @@ void ExpressionEditorWidget::setExpression(State::Expression e)
     exploreExpression(e);
     if(!e.hasChildren())
         addNewRelation();
+
+    m_expression = currentExpr();
 }
 
 void ExpressionEditorWidget::on_editFinished()
 {
     auto ex = currentExpr();
     auto e = State::parseExpression(m_expression);
-    if (m_expression == ex && !e)
+    if (m_expression == ex || (!e && !ex.isEmpty()))
         return;
 
     m_expression = ex;
