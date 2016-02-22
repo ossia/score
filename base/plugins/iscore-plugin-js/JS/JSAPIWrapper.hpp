@@ -32,7 +32,7 @@ inline QJSValue value(
         QJSEngine& engine,
         const State::Value& val)
 {
-    static const struct {
+    const struct {
             QJSEngine& engine;
 
         public:
