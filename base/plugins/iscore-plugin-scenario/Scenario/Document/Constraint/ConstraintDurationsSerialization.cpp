@@ -52,10 +52,17 @@ template<> void Visitor<Writer<JSONObject>>::writeTo(
         Scenario::ConstraintDurations& durs)
 {
     durs.m_defaultDuration = fromJsonValue<TimeValue> (m_obj["DefaultDuration"]);
-    durs.m_executionSpeed = m_obj["ExecutionSpeed"].toDouble();
+
+    auto it = m_obj.find("ExecutionSpeed");
+    if(it != m_obj.end())
+        durs.m_executionSpeed = it->toDouble();
+    else
+        durs.m_executionSpeed = 1.;
+
     durs.m_minDuration = fromJsonValue<TimeValue> (m_obj["MinDuration"]);
     durs.m_maxDuration = fromJsonValue<TimeValue> (m_obj["MaxDuration"]);
     durs.m_rigidity = m_obj["Rigidity"].toBool();
     durs.m_isMinNull = m_obj["MinNull"].toBool();
     durs.m_isMaxInfinite = m_obj["MaxInf"].toBool();
+
 }
