@@ -45,6 +45,7 @@ class DurationSectionWidget final : public Inspector::InspectorSectionWidget
         void on_maxFiniteToggled(bool val);
 
         void on_execution(Scenario::Tool t);
+        void on_progress(double p);
 
         const ConstraintModel& m_model;
         ConstraintInspectorWidget* m_parent {};
@@ -60,6 +61,8 @@ class DurationSectionWidget final : public Inspector::InspectorSectionWidget
         QLabel* m_maxLab{};
         QLabel* m_minLab{};
         QLabel* m_defaultLab{};
+        QLabel* m_currentPosLab{};
+
         iscore::TimeSpinBox* m_minSpin{};
         iscore::TimeSpinBox* m_valueSpin{};
         iscore::TimeSpinBox* m_maxSpin{};
