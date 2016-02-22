@@ -217,6 +217,7 @@ void ScenarioModel::setDurationAndGrow(const TimeValue& newDuration)
 
 void ScenarioModel::setDurationAndShrink(const TimeValue& newDuration)
 {
+    this->setDuration(newDuration);
     return; // Disabled by Asana
 }
 
