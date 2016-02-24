@@ -57,8 +57,6 @@ EventInspectorWidget::EventInspectorWidget(
 
     con(m_model, &EventModel::statesChanged,
             this,    &EventInspectorWidget::updateDisplayedValues);
-    con(m_model, &EventModel::dateChanged,
-            this,   &EventInspectorWidget::modelDateChanged);
 
     ////// HEADER
     // metadata
@@ -84,30 +82,6 @@ EventInspectorWidget::EventInspectorWidget(
 
         infoLay->addWidget(tnBtn);
     }
-
-    // date
-    auto datewidg = new QWidget;
-    auto dateLay = new iscore::MarginLess<QHBoxLayout>{datewidg};
-    m_date = new QLabel{(m_model.date().toString())};
-
-    dateLay->addWidget(new QLabel(tr("Default date")));
-    dateLay->addWidget(m_date);
-
-    infoLay->addWidget(datewidg);
-    m_properties.push_back(infoWidg);
-
-    // Trigger
-    auto& tn = scenar->timeNode(m_model.timeNode());
-    m_triggerWidg = new TriggerInspectorWidget{
-                    doc,
-                    doc.app.components.factory<Command::TriggerCommandFactoryList>(),
-                    tn,
-                    this};
-
-    auto trigSection = new Inspector::InspectorSectionWidget{"Trigger", false, this};
-    trigSection->expand();
-    trigSection->addContent(m_triggerWidg);
-    m_properties.push_back(trigSection);
 
     // Separator
     m_properties.push_back(new Inspector::HSeparator {this});
@@ -199,9 +173,6 @@ void EventInspectorWidget::updateDisplayedValues()
     }
 
     m_states.clear();
-    m_date->clear();
-
-    m_date->setText(m_model.date().toString());
 
     auto scenar = dynamic_cast<ScenarioInterface*>(m_model.parent());
     ISCORE_ASSERT(scenar);
@@ -211,8 +182,6 @@ void EventInspectorWidget::updateDisplayedValues()
     }
 
     m_exprEditor->setExpression(m_model.condition());
-    auto& tn = scenar->timeNode(m_model.timeNode());
-    m_triggerWidg->updateExpression(tn.trigger()->expression());
 }
 
 
@@ -230,8 +199,4 @@ void EventInspectorWidget::on_conditionChanged()
     }
 }
 
-void EventInspectorWidget::modelDateChanged()
-{
-    m_date->setText(m_model.date().toString());
-}
 }

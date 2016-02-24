@@ -22,10 +22,10 @@ class ConstraintInspectorFactory final : public Inspector::InspectorWidgetFactor
         }
 
         Inspector::InspectorWidgetBase* makeWidget(
-                const QObject& sourceElement,
+                QList<const QObject*> sourceElements,
                 const iscore::DocumentContext& doc,
                 QWidget* parent) const override;
 
-        bool matches(const QObject& object) const override;
+        bool matches(QList<const QObject*> objects) const override;
 };
 }
