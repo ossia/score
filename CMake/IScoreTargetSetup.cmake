@@ -53,10 +53,10 @@ function(iscore_set_msvc_compile_options theTarget)
     "/wd4180"
     "/wd4224"
     )
-	
+
     target_compile_definitions(${theTarget} PUBLIC
-	"NOMINMAX"
-	)
+        "NOMINMAX"
+        )
 endfunction()
 
 function(iscore_set_apple_compile_options theTarget)
@@ -80,6 +80,25 @@ function(iscore_set_gcc_compile_options theTarget)
           -Wpedantic
           )
 
+      target_compile_options(${theTarget} PUBLIC
+          -ffunction-sections
+          -fdata-sections
+          -Wl,--gc-sections
+          "$<$<BOOL:${ISCORE_ENABLE_LTO}>:-s>"
+          "$<$<BOOL:${ISCORE_ENABLE_LTO}>:-flto>"
+          "$<$<BOOL:${ISCORE_ENABLE_LTO}>:-fuse-linker-plugin>"
+          "$<$<BOOL:${ISCORE_ENABLE_LTO}>:-fno-fat-lto-objects>"
+          )
+      target_link_libraries(${theTarget} PUBLIC
+          -ffunction-sections
+          -fdata-sections
+          -Wl,--gc-sections
+
+          "$<$<BOOL:${ISCORE_ENABLE_LTO}>:-s>"
+          "$<$<BOOL:${ISCORE_ENABLE_LTO}>:-flto>"
+          "$<$<BOOL:${ISCORE_ENABLE_LTO}>:-fuse-linker-plugin>"
+          "$<$<BOOL:${ISCORE_ENABLE_LTO}>:-fno-fat-lto-objects>"
+          )
       # -Wcast-qual is nice but requires more work...
       # -Wzero-as-null-pointer-constant  is garbage
       # Too much clutter :set(CMAKE_CXX_FLAGS "${CMAKE_CXX_FLAGS} -Wswitch-enum -Wshadow  -Wsuggest-attribute=const  -Wsuggest-attribute=pure ")
@@ -124,6 +143,10 @@ function(iscore_set_unix_compile_options theTarget)
     "$<$<CONFIG:Release>:-Ofast>"
     "$<$<AND:$<CONFIG:Release>,$<BOOL:${ISCORE_ENABLE_OPTIMIZE_CUSTOM}>>:-march=native>"
     )
+
+    target_link_libraries(${theTarget} PUBLIC
+        "$<$<CONFIG:Release>:-Ofast>"
+        "$<$<AND:$<CONFIG:Release>,$<BOOL:${ISCORE_ENABLE_OPTIMIZE_CUSTOM}>>:-march=native>")
 
 endfunction()
 
