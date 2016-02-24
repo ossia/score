@@ -55,10 +55,8 @@ struct Address;
 #include <Scenario/Inspector/Constraint/ConstraintInspectorDelegateFactory.hpp>
 #include <Scenario/Inspector/Constraint/ConstraintInspectorFactory.hpp>
 #include <Scenario/Inspector/Constraint/ScenarioConstraintInspectorDelegateFactory.hpp>
-#include <Scenario/Inspector/Event/EventInspectorFactory.hpp>
 #include <Scenario/Inspector/Scenario/ScenarioInspectorFactory.hpp>
-#include <Scenario/Inspector/State/StateInspectorFactory.hpp>
-#include <Scenario/Inspector/TimeNode/TimeNodeInspectorFactory.hpp>
+#include <Scenario/Inspector/ScenarioInspectorWidgetFactoryWrapper.hpp>
 #endif
 
 iscore_plugin_scenario::iscore_plugin_scenario()
@@ -165,10 +163,7 @@ std::vector<std::unique_ptr<iscore::FactoryInterfaceBase>> iscore_plugin_scenari
 #if defined(ISCORE_LIB_INSPECTOR)
     ,
     FW<Inspector::InspectorWidgetFactory,
-        ConstraintInspectorFactory,
-        StateInspectorFactory,
-        EventInspectorFactory,
-        TimeNodeInspectorFactory>,
+        ScenarioInspectorWidgetFactoryWrapper>,
     FW<ConstraintInspectorDelegateFactory,
         ScenarioConstraintInspectorDelegateFactory,
         BaseConstraintInspectorDelegateFactory>
