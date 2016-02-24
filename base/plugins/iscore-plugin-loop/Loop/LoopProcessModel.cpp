@@ -35,6 +35,7 @@ ProcessModel::ProcessModel(
     Process::ProcessModel{duration, id, Metadata<ObjectKey_k, ProcessModel>::get(), parent},
     Scenario::BaseScenarioContainer{this}
 {
+    this->setUseParentDuration(true);
     pluginModelList = new iscore::ElementPluginModelList{
                       iscore::IDocument::documentContext(*parent),
                       this};
@@ -69,8 +70,7 @@ ProcessModel::ProcessModel(
                       this};
 
     BaseScenarioContainer::init(source);
-
-
+    this->setUseParentDuration(true);
 }
 
 ProcessModel* ProcessModel::clone(

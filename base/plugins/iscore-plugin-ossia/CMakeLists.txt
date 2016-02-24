@@ -106,6 +106,7 @@ set(SRCS
 
 "${CMAKE_CURRENT_SOURCE_DIR}/OSSIA/Executor/BasicProcessWrapper.cpp"
 "${CMAKE_CURRENT_SOURCE_DIR}/OSSIA/Executor/LoopingProcessWrapper.cpp"
+"${CMAKE_CURRENT_SOURCE_DIR}/OSSIA/Executor/ProcessWrapper.cpp"
 "${CMAKE_CURRENT_SOURCE_DIR}/OSSIA/Executor/ProcessComponent.cpp"
 "${CMAKE_CURRENT_SOURCE_DIR}/OSSIA/Executor/BaseScenarioElement.cpp"
 "${CMAKE_CURRENT_SOURCE_DIR}/OSSIA/Executor/EventElement.cpp"

@@ -1,13 +1,14 @@
 #pragma once
-#include "BasicProcessWrapper.hpp"
-#include "LoopingProcessWrapper.hpp"
+#include <memory>
 namespace Process { class ProcessModel; }
-
-
 namespace RecreateOnPlay
 {
 class ProcessComponent;
-using ProcessWrapper = LoopingProcessWrapper;
+
+struct ProcessWrapper
+{
+        virtual ~ProcessWrapper();
+};
 
 struct OSSIAProcess
 {
