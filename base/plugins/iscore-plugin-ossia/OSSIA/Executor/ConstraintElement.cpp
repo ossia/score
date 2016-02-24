@@ -13,6 +13,8 @@
 #include <Process/TimeValue.hpp>
 #include <OSSIA/Executor/ProcessElement.hpp>
 #include <OSSIA/Executor/ProcessWrapper.hpp>
+#include <OSSIA/Executor/BasicProcessWrapper.hpp>
+#include <OSSIA/Executor/LoopingProcessWrapper.hpp>
 #include <Scenario/Document/Constraint/ConstraintDurations.hpp>
 #include "ScenarioElement.hpp"
 #include <iscore/tools/SettableIdentifier.hpp>
@@ -126,16 +128,27 @@ void ConstraintElement::on_processAdded(
         if(plug)
         {
             auto id = iscore_proc.id();
-            m_processes.insert(std::make_pair(id,
-                                OSSIAProcess(plug,
-                                 std::make_unique<ProcessWrapper>(
-                                     m_ossia_constraint,
-                                     plug->OSSIAProcess(),
-                                     iscore::convert::time(plug->iscoreProcess().duration()),
-                                     m_iscore_constraint.looping()
-                                 )
-                                )
-                               ));
+            std::unique_ptr<ProcessWrapper> wp;
+            if(proc->useParentDuration())
+            {
+                wp = std::make_unique<BasicProcessWrapper>(
+                            m_ossia_constraint,
+                            plug->OSSIAProcess(),
+                            iscore::convert::time(plug->iscoreProcess().duration()),
+                            m_iscore_constraint.looping() );
+            }
+            else
+            {
+                wp = std::make_unique<LoopingProcessWrapper>(
+                            m_ossia_constraint,
+                            plug->OSSIAProcess(),
+                            iscore::convert::time(plug->iscoreProcess().duration()),
+                            m_iscore_constraint.looping()) ;
+            }
+            m_processes.insert(
+                        std::make_pair(
+                            id,
+                            OSSIAProcess(plug, std::move(wp))));
         }
     }
 }
