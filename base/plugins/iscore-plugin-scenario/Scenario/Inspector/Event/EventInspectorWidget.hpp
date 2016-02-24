@@ -40,21 +40,17 @@ class EventInspectorWidget final : public Inspector::InspectorWidgetBase
 
         void updateDisplayedValues();
         void on_conditionChanged();
-        void modelDateChanged();
 
 
         std::list<QWidget*> m_properties;
 
         std::vector<QWidget*> m_states;
 
-        QLabel* m_date {};
         //QLineEdit* m_stateLineEdit{};
         QWidget* m_statesWidget{};
         const EventModel& m_model;
 
         MetadataWidget* m_metadata {};
-
-        TriggerInspectorWidget* m_triggerWidg{};
 
         ExpressionEditorWidget* m_exprEditor{};
 };
