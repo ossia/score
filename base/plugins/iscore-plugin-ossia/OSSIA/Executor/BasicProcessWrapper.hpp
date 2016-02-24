@@ -1,5 +1,6 @@
 #pragma once
 #include <memory>
+#include <OSSIA/Executor/ProcessWrapper.hpp>
 
 namespace OSSIA
 {
@@ -10,7 +11,7 @@ class TimeProcess;
 
 namespace RecreateOnPlay
 {
-class BasicProcessWrapper
+class BasicProcessWrapper : public ProcessWrapper
 {
     public:
         BasicProcessWrapper(const std::shared_ptr<OSSIA::TimeConstraint>& cst,

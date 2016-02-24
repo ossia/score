@@ -73,6 +73,8 @@ class InspectorPanelWidget : public QWidget
         QTabWidget* m_tabWidget{};
         InspectorWidgetMap m_map;
 
+        Inspector::InspectorWidgetBase* m_currentInspector{};
+
         const Inspector::InspectorWidgetList& m_list;
         iscore::SelectionDispatcher m_selectionDispatcher;
         QList<const IdentifiedObjectAbstract*> m_currentSel;

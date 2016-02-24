@@ -49,10 +49,10 @@
 
 class NodeNotFoundException : public std::exception
 {
-        const State::Address& m_addr;
+        State::Address m_addr;
     public:
         NodeNotFoundException(const State::Address& n):
-            m_addr{n}
+            m_addr(n)
         {
 
         }

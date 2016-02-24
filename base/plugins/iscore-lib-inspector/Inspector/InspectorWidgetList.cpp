@@ -10,23 +10,29 @@ class QWidget;
 
 namespace Inspector
 {
-InspectorWidgetBase* InspectorWidgetList::make(
-        const iscore::DocumentContext& doc,
-        const IdentifiedObjectAbstract& model,
+QList<InspectorWidgetBase*> InspectorWidgetList::make(const iscore::DocumentContext& doc,
+        QList<const IdentifiedObjectAbstract*> models,
         QWidget* parent) const
 {
+    QList<InspectorWidgetBase*> widgs;
     for(const InspectorWidgetFactory& factory : *this)
     {
-        if(factory.matches(model))
+        QList<const QObject*> objects;
+        for (auto elt : models)
         {
-            auto widg = factory.makeWidget(model, doc, parent);
+            objects.push_back(elt);
+        }
+        if(factory.matches(objects))
+        {
+            auto widg = factory.makeWidget(objects, doc, parent);
             if(widg)
-                return widg;
-            break;
+                widgs.push_back(widg);
         }
     }
 
     // When no factory is found.
-    return new InspectorWidgetBase{model, doc, nullptr};
+    if(widgs.empty())
+        widgs.push_back(new InspectorWidgetBase{*models.first(), doc, nullptr});
+    return widgs;
 }
 }
