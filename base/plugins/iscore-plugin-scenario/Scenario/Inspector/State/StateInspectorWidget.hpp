@@ -15,7 +15,7 @@ struct DocumentContext;
 namespace Scenario
 {
 class StateModel;
-class StateInspectorWidget final : public Inspector::InspectorWidgetBase
+class StateInspectorWidget final : public QWidget
 {
     public:
         explicit StateInspectorWidget(
@@ -26,17 +26,20 @@ class StateInspectorWidget final : public Inspector::InspectorWidgetBase
         Inspector::InspectorSectionWidget& stateSection()
         { return *m_stateSection; }
 
+        iscore::SelectionDispatcher& selectionDispatcher() const
+        { return *m_selectionDispatcher.get(); }
+
     public slots:
         void splitEvent();
 
     private:
-        QString tabName() override;
-
         void updateDisplayedValues();
 
-        std::list<QWidget*> m_properties;
-
         const StateModel& m_model;
+        CommandDispatcher<>* m_commandDispatcher{};
+        std::unique_ptr<iscore::SelectionDispatcher> m_selectionDispatcher;
+
+        std::list<QWidget*> m_properties;
 
         Inspector::InspectorSectionWidget* m_stateSection{};
 };

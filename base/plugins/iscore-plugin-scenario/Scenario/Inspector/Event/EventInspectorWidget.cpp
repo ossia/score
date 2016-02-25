@@ -47,8 +47,11 @@ EventInspectorWidget::EventInspectorWidget(
         const EventModel& object,
         const iscore::DocumentContext& doc,
         QWidget* parent) :
-    InspectorWidgetBase {object, doc, parent},
-    m_model {object}
+    QWidget{parent},
+    m_model {object},
+    m_context{doc},
+    m_commandDispatcher{new CommandDispatcher<>{doc.commandStack}},
+    m_selectionDispatcher{new iscore::SelectionDispatcher{doc.selectionStack}}
 {
     setObjectName("EventInspectorWidget");
     setParent(parent);
@@ -64,7 +67,7 @@ EventInspectorWidget::EventInspectorWidget(
     m_metadata = new MetadataWidget{&m_model.metadata, commandDispatcher(), &m_model, this};
     m_metadata->setupConnections(m_model);
 
-    addHeader(m_metadata);
+    m_properties.push_back(m_metadata);
 
     ////// BODY
     /// Information
@@ -88,7 +91,7 @@ EventInspectorWidget::EventInspectorWidget(
     m_properties.push_back(new Inspector::HSeparator {this});
 
     // Condition
-    m_exprEditor = new ExpressionEditorWidget{this->context(), this};
+    m_exprEditor = new ExpressionEditorWidget{m_context, this};
     connect(m_exprEditor, &ExpressionEditorWidget::editingFinished,
             this, &EventInspectorWidget::on_conditionChanged);
     con(m_model, &EventModel::conditionChanged,
@@ -132,17 +135,16 @@ EventInspectorWidget::EventInspectorWidget(
     updateDisplayedValues();
 
     // Display data
-    updateAreaLayout(m_properties);
-}
+//    updateAreaLayout(m_properties);
 
-QString EventInspectorWidget::tabName()
-{
-    return tr("Event");
+    auto lay = new iscore::MarginLess<QVBoxLayout>{this};
+    for(auto w : m_properties)
+        lay->addWidget(w);
 }
 
 void EventInspectorWidget::addState(const StateModel& state)
 {
-    auto sw = new StateInspectorWidget{state, context(), this};
+    auto sw = new StateInspectorWidget{state, m_context, this};
     sw->hide(); // TODO UGLY : we create a state (inspectorbase) just to extract the section ...
     auto& section = sw->stateSection();
     section.showMenu(true);

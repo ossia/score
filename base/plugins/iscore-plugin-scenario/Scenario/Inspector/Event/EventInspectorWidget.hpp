@@ -23,7 +23,7 @@ class TriggerInspectorWidget;
  * \brief The EventInspectorWidget class
  *      Inherits from InspectorWidgetInterface. Manages an inteface for an Event (Timebox) element.
  */
-class EventInspectorWidget final : public Inspector::InspectorWidgetBase
+class EventInspectorWidget final : public QWidget
 {
     public:
         explicit EventInspectorWidget(
@@ -35,9 +35,13 @@ class EventInspectorWidget final : public Inspector::InspectorWidgetBase
         void removeState(const StateModel& state);
         void focusState(const StateModel* state);
 
-    private:
-        QString tabName() override;
+        CommandDispatcher<>* commandDispatcher() const
+        { return m_commandDispatcher; }
 
+        iscore::SelectionDispatcher& selectionDispatcher() const
+        { return *m_selectionDispatcher.get(); }
+
+    private:
         void updateDisplayedValues();
         void on_conditionChanged();
 
@@ -49,6 +53,9 @@ class EventInspectorWidget final : public Inspector::InspectorWidgetBase
         //QLineEdit* m_stateLineEdit{};
         QWidget* m_statesWidget{};
         const EventModel& m_model;
+        const iscore::DocumentContext& m_context;
+        CommandDispatcher<>* m_commandDispatcher{};
+        std::unique_ptr<iscore::SelectionDispatcher> m_selectionDispatcher;
 
         MetadataWidget* m_metadata {};
 
