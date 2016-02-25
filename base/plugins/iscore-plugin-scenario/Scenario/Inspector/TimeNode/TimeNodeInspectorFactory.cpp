@@ -13,7 +13,7 @@ class Document;
 namespace Scenario
 {
 Inspector::InspectorWidgetBase* TimeNodeInspectorFactory::makeWidget(
-        QList<const QObject*> sourceElements,
+        const QList<const QObject*>& sourceElements,
         const iscore::DocumentContext& doc,
         QWidget* parent) const
 {
@@ -21,7 +21,8 @@ Inspector::InspectorWidgetBase* TimeNodeInspectorFactory::makeWidget(
     return new TimeNodeInspectorWidget{timeNode, doc, parent};
 }
 
-bool TimeNodeInspectorFactory::matches(QList<const QObject*> objects) const
+bool TimeNodeInspectorFactory::matches(
+        const QList<const QObject*>& objects) const
 {
     return dynamic_cast<const TimeNodeModel*>(objects.first());
 }

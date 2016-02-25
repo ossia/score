@@ -13,7 +13,7 @@ class Document;
 namespace Automation
 {
 Inspector::InspectorWidgetBase* PointInspectorFactory::makeWidget(
-        QList<const QObject*> sourceElements,
+        const QList<const QObject*>&  sourceElements,
         const iscore::DocumentContext& doc,
         QWidget* parent) const
 {
@@ -23,7 +23,8 @@ Inspector::InspectorWidgetBase* PointInspectorFactory::makeWidget(
                 parent};
 }
 
-bool PointInspectorFactory::matches(QList<const QObject*> objects) const
+bool PointInspectorFactory::matches(
+        const QList<const QObject*>& objects) const
 {
     return dynamic_cast<const Curve::PointModel*>(objects.first());
 }

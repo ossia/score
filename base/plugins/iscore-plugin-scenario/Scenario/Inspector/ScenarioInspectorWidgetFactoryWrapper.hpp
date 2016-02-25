@@ -14,11 +14,12 @@ class ScenarioInspectorWidgetFactoryWrapper final : public Inspector::InspectorW
 
         }
 
-        Inspector::InspectorWidgetBase*makeWidget(QList<const QObject*> sourceElements,
+        Inspector::InspectorWidgetBase*makeWidget(
+        const QList<const QObject*>& sourceElements,
             const iscore::DocumentContext& doc,
-            QWidget* parent) const;
+            QWidget* parent) const override;
 
-        bool matches(QList<const QObject*> objects) const;
+        bool matches(const QList<const QObject*>& objects) const override;
 };
 
 }

@@ -18,7 +18,7 @@ class QWidget;
 namespace Scenario
 {
 Inspector::InspectorWidgetBase* ConstraintInspectorFactory::makeWidget(
-        QList<const QObject*> sourceElements,
+        const QList<const QObject*>& sourceElements,
         const iscore::DocumentContext& doc,
         QWidget* parent) const
 {
@@ -37,7 +37,8 @@ Inspector::InspectorWidgetBase* ConstraintInspectorFactory::makeWidget(
                 doc, parent};
 }
 
-bool ConstraintInspectorFactory::matches(QList<const QObject*> objects) const
+bool ConstraintInspectorFactory::matches(
+        const QList<const QObject*>& objects) const
 {
     return dynamic_cast<const ConstraintModel*>(objects.first());
 }

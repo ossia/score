@@ -44,10 +44,10 @@ class ISCORE_LIB_INSPECTOR_EXPORT InspectorWidgetFactory :
         * @return An inspector widget corresponding to the object.
         */
         virtual InspectorWidgetBase* makeWidget(
-                QList<const QObject*> sourceElement,
+                const QList<const QObject*>& sourceElement,
                 const iscore::DocumentContext& doc,
                 QWidget* parent) const = 0;
 
-        virtual bool matches(QList<const QObject*> objects) const = 0;
+        virtual bool matches(const QList<const QObject*>& objects) const = 0;
 };
 }

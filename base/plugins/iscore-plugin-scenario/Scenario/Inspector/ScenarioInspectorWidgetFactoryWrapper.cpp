@@ -13,7 +13,7 @@
 namespace Scenario
 {
 Inspector::InspectorWidgetBase* ScenarioInspectorWidgetFactoryWrapper::makeWidget(
-        QList<const QObject*> sourceElements,
+        const QList<const QObject*>& sourceElements,
         const iscore::DocumentContext& doc,
         QWidget* parent) const
 {
@@ -79,7 +79,7 @@ Inspector::InspectorWidgetBase* ScenarioInspectorWidgetFactoryWrapper::makeWidge
 }
 
 bool ScenarioInspectorWidgetFactoryWrapper::matches(
-        QList<const QObject*> objects) const
+       const QList<const QObject*>& objects) const
 {
     if(std::any_of(objects.begin(), objects.end(),
                    [] (const QObject* obj) {
