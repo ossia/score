@@ -17,10 +17,17 @@ Inspector::InspectorWidgetBase* StateInspectorFactory::makeWidget(
         const iscore::DocumentContext& doc,
         QWidget* parentWidget) const
 {
-    return new StateInspectorWidget{
-        static_cast<const StateModel&>(*sourceElements.first()),
-                doc,
-                parentWidget};
+    auto baseW = new Inspector::InspectorWidgetBase{
+                 static_cast<const StateModel&>(*sourceElements.first()),
+                 doc,
+                 parentWidget};
+    auto contentW = new StateInspectorWidget{
+                    static_cast<const StateModel&>(*sourceElements.first()),
+                            doc,
+                            parentWidget};
+
+//    baseW->updateAreaLayout({contentW});
+    return baseW;
 }
 
 bool StateInspectorFactory::matches(QList<const QObject*> objects) const
