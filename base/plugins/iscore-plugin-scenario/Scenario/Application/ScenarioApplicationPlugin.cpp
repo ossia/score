@@ -373,6 +373,7 @@ void ScenarioApplicationPlugin::initColors()
         instance.EventDisposed = fromColor("EventDisposed");
         instance.EventSelected = fromColor("EventSelected");
 
+        instance.ConditionDefault = fromColor("ConditionDefault");
         instance.ConditionWaiting = fromColor("ConditionWaiting");
         instance.ConditionDisabled = fromColor("ConditionDisabled");
         instance.ConditionFalse = fromColor("ConditionFalse");

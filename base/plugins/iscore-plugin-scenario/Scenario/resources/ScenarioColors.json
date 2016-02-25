@@ -25,6 +25,7 @@
 "EventHappened" : [ 34, 224, 0 ],
 "EventDisposed" : [ 255, 0, 0 ],
 "EventSelected" : [ 3, 150, 250  ],
+"ConditionDefault" : [240, 220, 0],
 "ConditionWaiting" : [ 179, 179, 179 ],
 "ConditionDisabled" : [ 3, 195, 221 ],
 "ConditionFalse" : [ 222, 0, 0 ],
