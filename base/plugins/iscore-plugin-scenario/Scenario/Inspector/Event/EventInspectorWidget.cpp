@@ -2,6 +2,7 @@
 #include <Scenario/Commands/Event/SetCondition.hpp>
 #include <Scenario/Commands/TimeNode/TriggerCommandFactory/TriggerCommandFactoryList.hpp>
 #include <Scenario/Document/Event/EventModel.hpp>
+#include <Scenario/Document/State/StateModel.hpp>
 #include <Scenario/Document/TimeNode/TimeNodeModel.hpp>
 #include <Scenario/Document/TimeNode/Trigger/TriggerModel.hpp>
 #include <Scenario/Inspector/Expression/ExpressionEditorWidget.hpp>
@@ -87,9 +88,6 @@ EventInspectorWidget::EventInspectorWidget(
         infoLay->addWidget(tnBtn);
     }
 
-    // Separator
-    m_properties.push_back(new Inspector::HSeparator {this});
-
     // Condition
     m_exprEditor = new ExpressionEditorWidget{m_context, this};
     connect(m_exprEditor, &ExpressionEditorWidget::editingFinished,
@@ -104,8 +102,6 @@ EventInspectorWidget::EventInspectorWidget(
     condSection->expand(!m_model.condition().toString().isEmpty());
 
     // State
-    m_properties.push_back(new Inspector::HSeparator {this});
-    m_properties.push_back(new QLabel{"States"});
 
     m_statesWidget = new QWidget{this};
     auto dispLayout = new QVBoxLayout{m_statesWidget};
@@ -114,9 +110,6 @@ EventInspectorWidget::EventInspectorWidget(
 
 
     m_properties.push_back(m_statesWidget);
-
-    // Separator
-    m_properties.push_back(new Inspector::HSeparator {this});
 
     // Plugins (TODO factorize with ConstraintInspectorWidget)
     for(auto& plugdata : m_model.pluginModelList.list())
@@ -155,8 +148,20 @@ void EventInspectorWidget::addState(const StateModel& state)
     m_states.push_back(sw);
     m_statesWidget->layout()->addWidget(&section);
     m_states.push_back(&section);
+    m_statesSections[state.id()] = &section;
+
     section.expand(false);
 
+    con(state.selection, &Selectable::changed,
+        this, [&] (bool b) {
+        if(b)
+            for(auto sec : m_statesSections)
+            {
+                if(state.id() == sec.first)
+                    sec.second->expand(b);
+                emit expandEventSection(b);
+            }
+    });
 }
 
 void EventInspectorWidget::removeState(const StateModel& state)

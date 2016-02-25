@@ -1,4 +1,5 @@
 #include <Inspector/InspectorSectionWidget.hpp>
+#include <Inspector/Separator.hpp>
 #include <Scenario/Commands/TimeNode/SplitTimeNode.hpp>
 #include <Scenario/Commands/TimeNode/TriggerCommandFactory/TriggerCommandFactoryList.hpp>
 #include <Scenario/Document/Event/EventModel.hpp>
@@ -20,6 +21,7 @@
 #include <QVector>
 #include <QWidget>
 #include <algorithm>
+#include <QMenu>
 
 #include <Inspector/InspectorWidgetBase.hpp>
 #include <Process/TimeValue.hpp>
@@ -59,11 +61,13 @@ TimeNodeInspectorWidget::TimeNodeInspectorWidget(
     dateLay->addWidget(m_date);
 
     // Trigger
+    auto trigSec = new Inspector::InspectorSectionWidget{tr("Trigger"), false, this};
     m_trigwidg = new TriggerInspectorWidget{
                  ctx,
                  ctx.app.components.factory<Command::TriggerCommandFactoryList>(),
                  m_model, this};
-
+    trigSec->addContent(m_trigwidg);
+    trigSec->expand(!m_model.trigger()->expression().toString().isEmpty());
 
     // Events
     m_events = new QWidget{this};
@@ -71,9 +75,7 @@ TimeNodeInspectorWidget::TimeNodeInspectorWidget(
     evLay->setSizeConstraint(QLayout::SetMinimumSize);
 
     m_properties.push_back(dateWid);
-    m_properties.push_back(new QLabel{tr("Trigger")});
-
-    m_properties.push_back(m_trigwidg);
+    m_properties.push_back(trigSec);
     m_properties.push_back(new QLabel{tr("Events")});
     m_properties.push_back(m_events);
 
@@ -92,14 +94,6 @@ TimeNodeInspectorWidget::TimeNodeInspectorWidget(
     con(m_model, &TimeNodeModel::dateChanged,
         this,   &TimeNodeInspectorWidget::updateDisplayedValues);
 
-/*    auto splitBtn = new QPushButton{this};
-    splitBtn->setText("split timeNode");
-
-    m_eventList->addContent(splitBtn);
-
-    connect(splitBtn,   &QPushButton::clicked,
-            this,       &TimeNodeInspectorWidget::on_splitTimeNodeClicked);
-            */
 }
 
 void TimeNodeInspectorWidget::addEvent(const EventModel& event)
@@ -107,11 +101,45 @@ void TimeNodeInspectorWidget::addEvent(const EventModel& event)
     auto evSection = new Inspector::InspectorSectionWidget{event.metadata.name(), false, this};
     auto ew = new EventInspectorWidget{event, context(), evSection};
     evSection->addContent(ew);
+    evSection->expand(false);
+    evSection->showMenu(true);
+    auto splitAct = evSection->menu()->addAction("Put in new Timenode");
+    connect(splitAct, &QAction::triggered,
+            this, [&] () {
+        auto cmd = new Command::SplitTimeNode{m_model,
+                                                {event.id()}};
+
+        commandDispatcher()->submitCommand(cmd);
+    } );
+
     m_eventList.push_back(evSection);
 
     m_properties.push_back(evSection);
     m_events->layout()->addWidget(evSection);
-    evSection->expand(false);
+    m_properties.push_back(new Inspector::HSeparator {this});
+
+    con(event.selection, &Selectable::changed,
+        this, [&] (bool b)
+    {
+        if(!b)
+            return;
+        for(auto sec : m_eventList)
+        {
+            if(event.metadata.name() == sec->name())
+                sec->expand(b);
+        }
+    });
+    connect(ew, &EventInspectorWidget::expandEventSection,
+            this, [&] (bool b)
+    {
+        if(!b)
+            return;
+        for(auto sec : m_eventList)
+        {
+            if(event.metadata.name() == sec->name())
+                sec->expand(b);
+        }
+    });
 }
 
 void TimeNodeInspectorWidget::removeEvent(const EventModel& event)
