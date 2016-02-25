@@ -38,53 +38,32 @@ InspectorPanelWidget::InspectorPanelWidget(
 
 void InspectorPanelWidget::newItemsInspected(const Selection& objects)
 {
-    // Ignore items in both
-    // Create items in objects and not in current
-    // Delete items in current and not in objects
-    QList<const IdentifiedObjectAbstract*> toCreate, toDelete; // TODO not selection else with dead QPointers it will not work.
-
-    // OPTIMIZEME (set_difference won't work due to unordered_set)
-    for(auto& elt : objects)
+    QList<const IdentifiedObjectAbstract*> selectedObj;
+    for(auto elt : objects)
     {
-        auto it = std::find(m_currentSel.begin(), m_currentSel.end(), elt);
-        if(it == m_currentSel.end())
-            toCreate.append(elt);
+        selectedObj.append(elt);
     }
 
-    for(auto& elt : m_currentSel)
+    if(m_currentInspector)
     {
-        auto it = std::find(objects.begin(), objects.end(), elt);
-        if(it == objects.end())
-            toDelete.append(elt);
-    }
-
-    for(const auto& object : toDelete)
-    {
-        auto& map =  m_map.get<0>();
-
-        auto widget_it = map.find(object);
-        if(widget_it != map.end())
-        {
-            auto ptr = *widget_it;
-            map.erase(widget_it);
-            ptr->deleteLater();
-        }
+            m_currentInspector->deleteLater();
+            m_currentInspector = nullptr;
     }
 
     // All the objects selected ought to be in the same document.
-    if(!toCreate.empty())
+    if(!objects.empty())
     {
-        auto& doc = iscore::IDocument::documentContext(*toCreate.first());
-        for(const auto& object : toCreate)
-        {
-            auto widget = m_list.make(
-                              doc,
-                              *object,
-                              m_tabWidget);
-            m_tabWidget->addTab(widget, widget->tabName());
-            m_map.insert(widget);
-        }
+        auto& doc = iscore::IDocument::documentContext(*selectedObj.first());
+
+        auto widgets = m_list.make(
+                          doc,
+                          selectedObj,
+                          m_tabWidget);
+
+        m_tabWidget->addTab(widgets.first(), widgets.first()->tabName());
+        m_currentInspector = widgets.first();
     }
+
     m_currentSel = objects.toList();
 }
 

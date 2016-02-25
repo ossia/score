@@ -4,7 +4,7 @@
 #include <Scenario/Document/Event/EventModel.hpp>
 #include <Scenario/Document/TimeNode/TimeNodeModel.hpp>
 #include <Scenario/Document/TimeNode/Trigger/TriggerModel.hpp>
-#include <Scenario/Inspector/Event/EventWidgets/EventShortcut.hpp>
+#include <Scenario/Inspector/Event/EventInspectorWidget.hpp>
 #include <Scenario/Inspector/MetadataWidget.hpp>
 #include <Scenario/Inspector/TimeNode/TriggerInspectorWidget.hpp>
 #include <boost/optional/optional.hpp>
@@ -34,6 +34,7 @@
 #include <iscore/tools/ModelPathSerialization.hpp>
 #include <iscore/tools/SettableIdentifier.hpp>
 #include <iscore/tools/Todo.hpp>
+#include <iscore/widgets/MarginLess.hpp>
 
 namespace Scenario
 {
@@ -64,14 +65,17 @@ TimeNodeInspectorWidget::TimeNodeInspectorWidget(
                  m_model, this};
 
 
-    // Events ids list
-    m_eventList = new Inspector::InspectorSectionWidget{"Events", false, this};
+    // Events
+    m_events = new QWidget{this};
+    auto evLay = new iscore::MarginLess<QVBoxLayout>{m_events};
+    evLay->setSizeConstraint(QLayout::SetMinimumSize);
 
     m_properties.push_back(dateWid);
     m_properties.push_back(new QLabel{tr("Trigger")});
 
     m_properties.push_back(m_trigwidg);
-    m_properties.push_back(m_eventList);
+    m_properties.push_back(new QLabel{tr("Events")});
+    m_properties.push_back(m_events);
 
     updateAreaLayout(m_properties);
 
@@ -88,13 +92,31 @@ TimeNodeInspectorWidget::TimeNodeInspectorWidget(
     con(m_model, &TimeNodeModel::dateChanged,
         this,   &TimeNodeInspectorWidget::updateDisplayedValues);
 
-    auto splitBtn = new QPushButton{this};
+/*    auto splitBtn = new QPushButton{this};
     splitBtn->setText("split timeNode");
 
     m_eventList->addContent(splitBtn);
 
     connect(splitBtn,   &QPushButton::clicked,
             this,       &TimeNodeInspectorWidget::on_splitTimeNodeClicked);
+            */
+}
+
+void TimeNodeInspectorWidget::addEvent(const EventModel& event)
+{
+    auto evSection = new Inspector::InspectorSectionWidget{event.metadata.name(), false, this};
+    auto ew = new EventInspectorWidget{event, context(), evSection};
+    evSection->addContent(ew);
+    m_eventList.push_back(evSection);
+
+    m_properties.push_back(evSection);
+    m_events->layout()->addWidget(evSection);
+    evSection->expand(false);
+}
+
+void TimeNodeInspectorWidget::removeEvent(const EventModel& event)
+{
+    ISCORE_TODO;
 }
 
 QString TimeNodeInspectorWidget::tabName()
@@ -107,12 +129,12 @@ void TimeNodeInspectorWidget::updateDisplayedValues()
 {
     // Cleanup
     // OPTIMIZEME
-    for(auto& elt : m_events)
+    for(auto& elt : m_eventList)
     {
+        m_properties.remove(elt);
         delete elt;
     }
-
-    m_events.clear();
+    m_eventList.clear();
 
     m_date->setText(m_model.date().toString());
 
@@ -120,18 +142,8 @@ void TimeNodeInspectorWidget::updateDisplayedValues()
     {
         auto scenar = dynamic_cast<ScenarioInterface*>(m_model.parent());
         ISCORE_ASSERT(scenar);
-        EventModel* evModel = &scenar->event(event);
-
-        auto eventWid = new EventShortCut(QString::number((*event.val())));
-
-        m_events.push_back(eventWid);
-        m_eventList->addContent(eventWid);
-
-        connect(eventWid, &EventShortCut::eventSelected,
-                [=]()
-        {
-            selectionDispatcher().setAndCommit(Selection{evModel});
-        });
+        auto& evModel = scenar->event(event);
+        addEvent(evModel);
     }
 
     m_trigwidg->updateExpression(m_model.trigger()->expression());
@@ -139,6 +151,7 @@ void TimeNodeInspectorWidget::updateDisplayedValues()
 
 void TimeNodeInspectorWidget::on_splitTimeNodeClicked()
 {
+    /*
     QVector<Id<EventModel> > eventGroup;
 
     for(const auto& ev : m_events)
@@ -158,6 +171,7 @@ void TimeNodeInspectorWidget::on_splitTimeNodeClicked()
     }
 
     updateDisplayedValues();
+    */
 }
 }
 
