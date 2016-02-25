@@ -13,7 +13,7 @@ namespace Ossia
 MinuitDevice::MinuitDevice(const Device::DeviceSettings &settings):
     OSSIADevice{settings}
 {
-    m_capas.canRefresh = true;
+    m_capas.canRefreshTree = true;
 
     reconnect();
 }

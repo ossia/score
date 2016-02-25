@@ -1,6 +1,8 @@
 #include <JS/Inspector/JSInspectorFactory.hpp>
 #include <JS/Executor/Component.hpp>
+#include <JS/Executor/StateComponent.hpp>
 #include <JS/JSProcessFactory.hpp>
+#include <JS/StateProcess.hpp>
 #include <unordered_map>
 
 #include <Inspector/InspectorWidgetFactoryInterface.hpp>
@@ -32,10 +34,16 @@ std::vector<std::unique_ptr<iscore::FactoryInterfaceBase>> iscore_plugin_js::fac
     TL<
         FW<Process::ProcessFactory,
              JS::ProcessFactory>,
+        FW<Process::StateProcessFactory,
+             JS::StateProcessFactory>,
         FW<Process::InspectorWidgetDelegateFactory,
              JS::InspectorFactory>,
+        FW<Process::StateProcessInspectorWidgetDelegateFactory,
+             JS::StateInspectorFactory>,
         FW<RecreateOnPlay::ProcessComponentFactory,
-             JS::Executor::ProcessComponentFactory>
+             JS::Executor::ProcessComponentFactory>,
+        FW<RecreateOnPlay::StateProcessComponentFactory,
+             JS::Executor::StateProcessComponentFactory>
     >>(ctx, key);
 }
 

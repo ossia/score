@@ -57,7 +57,6 @@ class ISCORE_PLUGIN_SCENARIO_EXPORT AddOnlyProcessToConstraint final : public is
 
         Id<Process::ProcessModel> m_createdProcessId {};
 };
-
 }
 }
 

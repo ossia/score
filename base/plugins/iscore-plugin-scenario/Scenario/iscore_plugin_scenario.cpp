@@ -110,7 +110,9 @@ std::vector<std::unique_ptr<iscore::FactoryListInterface>> iscore_plugin_scenari
             DisplayedElementsToolPaletteFactoryList,
             TriggerCommandFactoryList,
             DisplayedElementsProviderList,
-            ProcessInspectorWidgetDelegateFactoryList>();
+            Process::InspectorWidgetDelegateFactoryList,
+            Process::StateProcessInspectorWidgetDelegateFactoryList
+            >();
 }
 
 template<>

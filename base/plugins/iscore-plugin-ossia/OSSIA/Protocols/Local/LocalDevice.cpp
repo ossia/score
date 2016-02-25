@@ -19,7 +19,7 @@ LocalDevice::LocalDevice(
     OSSIADevice{settings}
 {
     m_dev = dev;
-    m_capas.canRefresh = true;
+    m_capas.canRefreshTree = true;
     m_capas.canAddNode = false;
     m_capas.canRemoveNode = false;
 
