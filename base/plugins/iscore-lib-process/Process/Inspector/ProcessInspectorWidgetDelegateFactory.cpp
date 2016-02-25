@@ -1,6 +1,14 @@
 #include "ProcessInspectorWidgetDelegateFactory.hpp"
 
-ProcessInspectorWidgetDelegateFactory::~ProcessInspectorWidgetDelegateFactory()
+namespace Process
+{
+InspectorWidgetDelegateFactory::~InspectorWidgetDelegateFactory()
 {
     
+}
+
+StateProcessInspectorWidgetDelegateFactory::~StateProcessInspectorWidgetDelegateFactory()
+{
+
+}
 }

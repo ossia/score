@@ -10,6 +10,7 @@ class DataStreamOutput;
 namespace JS
 {
 class ProcessModel;
+class StateProcess;
 
 class EditScript final : public iscore::SerializableCommand
 {
@@ -28,6 +29,27 @@ class EditScript final : public iscore::SerializableCommand
 
     private:
         Path<ProcessModel> m_model;
+        QString m_old, m_new;
+};
+
+
+class EditStateScript final : public iscore::SerializableCommand
+{
+        ISCORE_COMMAND_DECL(JS::CommandFactoryName(), EditStateScript, "Edit a JS state script")
+    public:
+        EditStateScript(
+                Path<StateProcess>&& model,
+                const QString& text);
+
+        void undo() const override;
+        void redo() const override;
+
+    protected:
+        void serializeImpl(DataStreamInput & s) const override;
+        void deserializeImpl(DataStreamOutput & s) override;
+
+    private:
+        Path<StateProcess> m_model;
         QString m_old, m_new;
 };
 }

@@ -14,7 +14,7 @@ class ProcessModel;
 }
 
 class LoopInspectorWidget final :
-        public ProcessInspectorWidgetDelegate_T<Loop::ProcessModel>
+        public Process::InspectorWidgetDelegate_T<Loop::ProcessModel>
 {
     public:
         explicit LoopInspectorWidget(

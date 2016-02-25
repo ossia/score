@@ -4,7 +4,6 @@
 #include <algorithm>
 #include <vector>
 
-#include "JS/JSProcess.hpp"
 #include "JS/JSProcessMetadata.hpp"
 #include "JSProcessModel.hpp"
 #include <iscore/document/DocumentInterface.hpp>

@@ -39,7 +39,7 @@ std::vector<std::unique_ptr<iscore::FactoryInterfaceBase>> iscore_plugin_loop::f
             TL<
             FW<Process::ProcessFactory,
                 Loop::ProcessFactory>,
-            FW<ProcessInspectorWidgetDelegateFactory,
+            FW<Process::InspectorWidgetDelegateFactory,
                 Loop::InspectorFactory>,
             FW<ConstraintInspectorDelegateFactory,
                 Loop::ConstraintInspectorDelegateFactory>,

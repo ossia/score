@@ -7,6 +7,7 @@ namespace JS
 {
 QJSValue APIWrapper::value(QJSValue address)
 {
+    // OPTIMIZEME : have State::Address::fromString return a optional<Address> to have a single check.
     auto addr_str = address.toString();
     if(State::Address::validateString(addr_str))
     {

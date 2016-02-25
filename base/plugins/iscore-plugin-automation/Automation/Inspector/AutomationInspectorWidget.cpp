@@ -31,7 +31,7 @@ InspectorWidget::InspectorWidget(
         const ProcessModel& automationModel,
         const iscore::DocumentContext& doc,
         QWidget* parent) :
-    ProcessInspectorWidgetDelegate_T {automationModel, parent},
+    InspectorWidgetDelegate_T {automationModel, parent},
     m_dispatcher{doc.commandStack}
 {
     using namespace Explorer;

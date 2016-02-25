@@ -23,7 +23,7 @@ namespace Mapping
 {
 class ProcessModel;
 class MappingInspectorWidget :
-        public ProcessInspectorWidgetDelegate_T<ProcessModel>
+        public Process::InspectorWidgetDelegate_T<ProcessModel>
 {
     public:
         explicit MappingInspectorWidget(
