@@ -61,11 +61,13 @@ TimeNodeInspectorWidget::TimeNodeInspectorWidget(
     dateLay->addWidget(m_date);
 
     // Trigger
+    auto trigSec = new Inspector::InspectorSectionWidget{tr("Trigger"), false, this};
     m_trigwidg = new TriggerInspectorWidget{
                  ctx,
                  ctx.app.components.factory<Command::TriggerCommandFactoryList>(),
                  m_model, this};
-
+    trigSec->addContent(m_trigwidg);
+    trigSec->expand(!m_model.trigger()->expression().toString().isEmpty());
 
     // Events
     m_events = new QWidget{this};
@@ -73,9 +75,7 @@ TimeNodeInspectorWidget::TimeNodeInspectorWidget(
     evLay->setSizeConstraint(QLayout::SetMinimumSize);
 
     m_properties.push_back(dateWid);
-    m_properties.push_back(new QLabel{tr("Trigger")});
-
-    m_properties.push_back(m_trigwidg);
+    m_properties.push_back(trigSec);
     m_properties.push_back(new QLabel{tr("Events")});
     m_properties.push_back(m_events);
 
@@ -94,14 +94,6 @@ TimeNodeInspectorWidget::TimeNodeInspectorWidget(
     con(m_model, &TimeNodeModel::dateChanged,
         this,   &TimeNodeInspectorWidget::updateDisplayedValues);
 
-/*    auto splitBtn = new QPushButton{this};
-    splitBtn->setText("split timeNode");
-
-    m_eventList->addContent(splitBtn);
-
-    connect(splitBtn,   &QPushButton::clicked,
-            this,       &TimeNodeInspectorWidget::on_splitTimeNodeClicked);
-            */
 }
 
 void TimeNodeInspectorWidget::addEvent(const EventModel& event)
