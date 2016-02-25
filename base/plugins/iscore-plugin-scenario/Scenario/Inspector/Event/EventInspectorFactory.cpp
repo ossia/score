@@ -17,7 +17,8 @@ Inspector::InspectorWidgetBase* EventInspectorFactory::makeWidget(
         const iscore::DocumentContext& doc,
         QWidget* parentWidget) const
 {
-    return new EventInspectorWidget{
+ //TODO !!
+    return new Inspector::InspectorWidgetBase{
         static_cast<const EventModel&>(*sourceElements.first()),
                 doc,
                 parentWidget};
