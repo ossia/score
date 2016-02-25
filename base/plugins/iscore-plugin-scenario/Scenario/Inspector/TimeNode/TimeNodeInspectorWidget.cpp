@@ -111,6 +111,7 @@ void TimeNodeInspectorWidget::addEvent(const EventModel& event)
 
     m_properties.push_back(evSection);
     m_events->layout()->addWidget(evSection);
+    evSection->expand(false);
 }
 
 void TimeNodeInspectorWidget::removeEvent(const EventModel& event)

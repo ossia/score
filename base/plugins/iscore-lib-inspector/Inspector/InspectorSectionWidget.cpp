@@ -69,9 +69,9 @@ InspectorSectionWidget::InspectorSectionWidget(
     this->setContentsMargins(0,0,0,0);
 
     connect(m_unfoldBtn, &QAbstractButton::released,
-            this, &InspectorSectionWidget::expand);
+            this, [&] { this->expand(!m_isUnfolded); } );
     connect(m_buttonTitle, &QAbstractButton::clicked,
-            this, &InspectorSectionWidget::expand);
+            this, [&] { this->expand(!m_isUnfolded); } );
 
     // INIT
     m_isUnfolded = true;
@@ -91,9 +91,12 @@ InspectorSectionWidget::~InspectorSectionWidget()
 
 }
 
-void InspectorSectionWidget::expand()
+void InspectorSectionWidget::expand(bool b)
 {
-    m_isUnfolded = !m_isUnfolded;
+    if(m_isUnfolded == b)
+        return;
+    else
+    m_isUnfolded = b;
     m_container->setVisible(m_isUnfolded);
 
     if(m_isUnfolded)
