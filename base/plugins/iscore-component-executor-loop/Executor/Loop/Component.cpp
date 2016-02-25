@@ -62,6 +62,12 @@ RecreateOnPlay::Loop::Component::Component(
     auto endTN = loop->getPatternEndTimeNode();
     auto startEV = *startTN->timeEvents().begin();
     auto endEV = *endTN->timeEvents().begin();
+    auto startST = OSSIA::State::create();
+    auto endST = OSSIA::State::create();
+
+    startEV->addState(startST);
+    endEV->addState(endST);
+
 
     m_ossia_startTimeNode = new TimeNodeElement{startTN, element.startTimeNode(),  m_ctx.devices.list(), this};
     m_ossia_endTimeNode = new TimeNodeElement{endTN, element.endTimeNode(), m_ctx.devices.list(), this};
@@ -69,19 +75,18 @@ RecreateOnPlay::Loop::Component::Component(
     m_ossia_startEvent = new EventElement{startEV, element.startEvent(), m_ctx.devices.list(), this};
     m_ossia_endEvent = new EventElement{endEV, element.endEvent(), m_ctx.devices.list(), this};
 
+
     m_ossia_startState = new StateElement{
             element.startState(),
-            iscore::convert::state(element.startState(), m_ctx),
+            startST,
             m_ctx,
             this};
     m_ossia_endState = new StateElement{
             element.endState(),
-            iscore::convert::state(element.endState(), m_ctx),
+            endST,
             m_ctx,
             this};
 
-    startEV->getState()->stateElements().push_back(m_ossia_startState->OSSIAState());
-    endEV->getState()->stateElements().push_back(m_ossia_endState->OSSIAState());
     m_ossia_constraint = new ConstraintElement{loop->getPatternTimeConstraint(), element.constraint(), m_ctx, this};
 }
 

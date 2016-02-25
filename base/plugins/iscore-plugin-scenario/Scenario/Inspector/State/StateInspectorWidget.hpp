@@ -1,5 +1,5 @@
 #pragma once
-
+#include <iscore/plugins/customfactory/UuidKey.hpp>
 #include <Inspector/InspectorWidgetBase.hpp>
 #include <list>
 
@@ -11,11 +11,17 @@ class QWidget;
 namespace iscore {
 struct DocumentContext;
 }  // namespace iscore
-
+namespace Process
+{
+class StateProcessFactory;
+class StateProcess;
+}
 namespace Scenario
 {
 class StateModel;
-class StateInspectorWidget final : public QWidget
+class StateInspectorWidget final :
+        public QWidget,
+        public Nano::Observer
 {
     public:
         explicit StateInspectorWidget(
@@ -33,9 +39,15 @@ class StateInspectorWidget final : public QWidget
         void splitEvent();
 
     private:
+        void on_stateProcessCreated(const Process::StateProcess&);
+        void on_stateProcessRemoved(const Process::StateProcess&);
+        void createStateProcess(const UuidKey<Process::StateProcessFactory>&);
+        Inspector::InspectorSectionWidget* displayStateProcess(
+                const Process::StateProcess &process);
         void updateDisplayedValues();
 
         const StateModel& m_model;
+        const iscore::DocumentContext& m_context;
         CommandDispatcher<>* m_commandDispatcher{};
         std::unique_ptr<iscore::SelectionDispatcher> m_selectionDispatcher;
 

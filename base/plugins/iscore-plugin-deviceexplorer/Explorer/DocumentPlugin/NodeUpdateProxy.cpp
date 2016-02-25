@@ -309,7 +309,7 @@ State::Value NodeUpdateProxy::refreshRemoteValue(const State::Address& addr) con
     auto& dev = **dev_it;
 
     auto& n = Device::getNodeFromAddress(devModel.rootNode(), addr).template get<Device::AddressSettings>();
-    if(dev.capabilities().canRefresh)
+    if(dev.capabilities().canRefreshValue)
     {
         if(auto val = dev.refresh(addr))
         {
@@ -342,7 +342,7 @@ void NodeUpdateProxy::refreshRemoteValues(const Device::NodeList& nodes)
         {
             auto dev_name = n->template get<Device::DeviceSettings>().name;
             auto& dev = devModel.list().device(dev_name);
-            if(!dev.capabilities().canRefresh)
+            if(!dev.capabilities().canRefreshValue)
                 continue;
 
             for(auto& child : *n)
@@ -354,7 +354,7 @@ void NodeUpdateProxy::refreshRemoteValues(const Device::NodeList& nodes)
         {
             auto addr = Device::address(*n);
             auto& dev = devModel.list().device(addr.device);
-            if(!dev.capabilities().canRefresh)
+            if(!dev.capabilities().canRefreshValue)
                 continue;
 
             rec_refreshRemoteValues(*n, dev);

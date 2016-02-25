@@ -466,7 +466,7 @@ void DeviceExplorerWidget::refresh()
     {
         // Create a thread, ask the device, when it is done put a command on the chain.
         auto& dev = m->deviceModel().list().device(select.get<Device::DeviceSettings>().name);
-        if(!dev.capabilities().canRefresh)
+        if(!dev.capabilities().canRefreshTree)
             return;
 
         auto wrkr = make_worker(
@@ -501,7 +501,7 @@ void DeviceExplorerWidget::refreshValue()
         // Device checks
         auto addr = Device::address(*node);
         auto& dev = model()->deviceModel().list().device(addr.device);
-        if(!dev.capabilities().canRefresh)
+        if(!dev.capabilities().canRefreshValue)
             return;
 
         // Getting the new values

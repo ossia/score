@@ -38,7 +38,7 @@ void State::launch() const
 
     for(const auto& mess : messages)
     {
-        //qDebug() << mess.toString();
+        qDebug() << mess.toString();
         auto ossia_mess = iscore::convert::message(mess, m_devices);
         if(ossia_mess)
             ossia_mess->launch();

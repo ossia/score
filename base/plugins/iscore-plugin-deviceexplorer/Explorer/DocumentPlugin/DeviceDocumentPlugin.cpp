@@ -115,7 +115,7 @@ Device::Node DeviceDocumentPlugin::createDeviceFromNode(const Device::Node & nod
 
         initDevice(*newdev);
 
-        if(newdev->capabilities().canRefresh)
+        if(newdev->capabilities().canRefreshTree)
         {
             return newdev->refresh();
         }

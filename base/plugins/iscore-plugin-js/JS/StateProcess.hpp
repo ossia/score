@@ -7,6 +7,8 @@ class StateProcess :
         public Process::StateProcess
 {
         Q_OBJECT
+        ISCORE_SERIALIZE_FRIENDS(JS::StateProcess, DataStream)
+        ISCORE_SERIALIZE_FRIENDS(JS::StateProcess, JSONObject)
     public:
         explicit StateProcess(
                 const Id<Process::StateProcess>& id,
@@ -36,6 +38,12 @@ class StateProcess :
         const QString& script() const
         { return m_script; }
 
+        UuidKey<Process::StateProcessFactory> concreteFactoryKey() const override
+        {
+            return Metadata<ConcreteFactoryKey_k, StateProcess>::get();
+        }
+        void serialize_impl(const VisitorVariant& vis) const override;
+
     signals:
         void scriptChanged(QString);
 
@@ -44,17 +52,10 @@ class StateProcess :
                 const Id<Process::StateProcess>& newId,
                 QObject* newParent) const override
         {
-            return nullptr;
+            return new StateProcess {*this, newId, newParent};
         }
 
-        void serialize_impl(const VisitorVariant& vis) const override
-        {
-        }
 
-        UuidKey<Process::StateProcessFactory> concreteFactoryKey() const override
-        {
-            return Metadata<ConcreteFactoryKey_k, StateProcess>::get();
-        }
 
         QString prettyName() const override
         {

@@ -37,6 +37,7 @@ InspectorWidget::InspectorWidget(
     con(process(), &JS::ProcessModel::scriptChanged,
             this, &InspectorWidget::on_modelChanged);
 
+    on_modelChanged(JSModel.script());
     m_script = m_edit->toPlainText();
 
     lay->addWidget(m_edit);
