@@ -25,7 +25,7 @@ namespace Automation
 {
 class ProcessModel;
 class InspectorWidget final :
-        public ProcessInspectorWidgetDelegate_T<Automation::ProcessModel>
+        public Process::InspectorWidgetDelegate_T<Automation::ProcessModel>
 {
     public:
         explicit InspectorWidget(

@@ -7,7 +7,7 @@
 #include "Editor/Message.h"
 #include "Editor/State.h"
 #include "JSAPIWrapper.hpp"
-#include "JSProcess.hpp"
+#include "Component.hpp"
 #include <Editor/TimeConstraint.h>
 #include <JS/JSProcessModel.hpp>
 namespace OSSIA {

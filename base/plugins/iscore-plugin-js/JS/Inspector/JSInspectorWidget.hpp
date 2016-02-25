@@ -5,6 +5,7 @@
 
 namespace JS
 {
+class StateProcess;
 class ProcessModel;
 }
 class NotifyingPlainTextEdit;
@@ -17,7 +18,7 @@ struct DocumentContext;
 namespace JS
 {
 class InspectorWidget final :
-        public ProcessInspectorWidgetDelegate_T<JS::ProcessModel>
+        public Process::InspectorWidgetDelegate_T<JS::ProcessModel>
 {
     public:
         explicit InspectorWidget(
@@ -34,4 +35,24 @@ class InspectorWidget final :
 
         CommandDispatcher<> m_dispatcher;
 };
+
+class StateInspectorWidget final :
+        public Process::StateProcessInspectorWidgetDelegate_T<JS::StateProcess>
+{
+    public:
+        explicit StateInspectorWidget(
+                const JS::StateProcess& object,
+                const iscore::DocumentContext& context,
+                QWidget* parent);
+
+    private:
+        void on_textChange(const QString& newText);
+        void on_modelChanged(const QString& script);
+
+        NotifyingPlainTextEdit* m_edit{};
+        QString m_script;
+
+        CommandDispatcher<> m_dispatcher;
+};
+
 }

@@ -36,7 +36,7 @@ class ConstraintInspectorDelegateFactory :
                 const Scenario::ConstraintModel& constraint) const override;
 };
 
-class InspectorFactory final : public ProcessInspectorWidgetDelegateFactory
+class InspectorFactory final : public Process::InspectorWidgetDelegateFactory
 {
         ISCORE_CONCRETE_FACTORY_DECL("f45f98f2-f721-4ffa-9219-114832fe06bd")
     public:
@@ -44,7 +44,7 @@ class InspectorFactory final : public ProcessInspectorWidgetDelegateFactory
         virtual ~InspectorFactory();
 
     private:
-        ProcessInspectorWidgetDelegate* make(
+        Process::InspectorWidgetDelegate* make(
                 const Process::ProcessModel&,
                 const iscore::DocumentContext&,
                 QWidget* parent) const override;

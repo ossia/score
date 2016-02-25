@@ -1,4 +1,5 @@
 #include <JS/JSProcessModel.hpp>
+#include <JS/StateProcess.hpp>
 #include <algorithm>
 
 #include "EditScript.hpp"
@@ -35,4 +36,38 @@ void EditScript::deserializeImpl(DataStreamOutput& s)
 {
     s >> m_model >> m_old >> m_new;
 }
+
+
+EditStateScript::EditStateScript(
+    Path<StateProcess>&& model,
+    const QString& text):
+  m_model{std::move(model)},
+  m_new{text}
+{
+    m_old = m_model.find().script();
+}
+
+void EditStateScript::undo() const
+{
+    m_model.find().setScript(m_old);
+}
+
+void EditStateScript::redo() const
+{
+    m_model.find().setScript(m_new);
+
+}
+
+void EditStateScript::serializeImpl(DataStreamInput& s) const
+{
+    s << m_model << m_old << m_new;
+}
+
+void EditStateScript::deserializeImpl(DataStreamOutput& s)
+{
+    s >> m_model >> m_old >> m_new;
+}
+
+
+
 }
