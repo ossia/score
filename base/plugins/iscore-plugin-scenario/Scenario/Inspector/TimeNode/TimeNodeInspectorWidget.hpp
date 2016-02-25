@@ -19,7 +19,7 @@ namespace Scenario
 {
 class MetadataWidget;
 class TriggerInspectorWidget;
-class EventShortCut;
+class EventModel;
 class TimeNodeModel;
 /*!
  * \brief The TimeNodeInspectorWidget class
@@ -33,6 +33,9 @@ class TimeNodeInspectorWidget final : public Inspector::InspectorWidgetBase
                 const iscore::DocumentContext& context,
                 QWidget* parent);
 
+        void addEvent(const EventModel& event);
+        void removeEvent(const EventModel& event);
+
     private:
         QString tabName() override;
 
@@ -40,11 +43,11 @@ class TimeNodeInspectorWidget final : public Inspector::InspectorWidgetBase
         void on_splitTimeNodeClicked();
 
         std::list<QWidget*> m_properties;
-        std::vector<EventShortCut*> m_events;
+        QWidget* m_events;
 
         const TimeNodeModel& m_model;
 
-        Inspector::InspectorSectionWidget* m_eventList {};
+        QList<Inspector::InspectorSectionWidget*> m_eventList {};
         QLabel* m_date {};
 
         MetadataWidget* m_metadata {};

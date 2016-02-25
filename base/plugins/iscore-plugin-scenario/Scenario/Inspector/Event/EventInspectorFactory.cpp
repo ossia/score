@@ -13,18 +13,18 @@ class Document;
 namespace Scenario
 {
 Inspector::InspectorWidgetBase* EventInspectorFactory::makeWidget(
-        const QObject& sourceElement,
+        QList<const QObject*> sourceElements,
         const iscore::DocumentContext& doc,
         QWidget* parentWidget) const
 {
     return new EventInspectorWidget{
-        static_cast<const EventModel&>(sourceElement),
+        static_cast<const EventModel&>(*sourceElements.first()),
                 doc,
                 parentWidget};
 }
 
-bool EventInspectorFactory::matches(const QObject& object) const
+bool EventInspectorFactory::matches(QList<const QObject*> objects) const
 {
-    return dynamic_cast<const EventModel*>(&object);
+    return dynamic_cast<const EventModel*>(objects.first());
 }
 }

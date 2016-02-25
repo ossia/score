@@ -295,6 +295,7 @@ if(TARGET iscore_lib_inspector)
 "${CMAKE_CURRENT_SOURCE_DIR}/Scenario/Inspector/Event/EventInspectorFactory.cpp"
 "${CMAKE_CURRENT_SOURCE_DIR}/Scenario/Inspector/Event/EventWidgets/EventShortcut.cpp"
 "${CMAKE_CURRENT_SOURCE_DIR}/Scenario/Inspector/Event/EventInspectorWidget.cpp"
+"${CMAKE_CURRENT_SOURCE_DIR}/Scenario/Inspector/Event/EventSummaryWidget.cpp"
 "${CMAKE_CURRENT_SOURCE_DIR}/Scenario/Inspector/MetadataWidget.cpp"
 "${CMAKE_CURRENT_SOURCE_DIR}/Scenario/Inspector/Scenario/ScenarioInspectorFactory.cpp"
 "${CMAKE_CURRENT_SOURCE_DIR}/Scenario/Inspector/Scenario/ScenarioInspectorWidget.cpp"
@@ -303,6 +304,8 @@ if(TARGET iscore_lib_inspector)
 "${CMAKE_CURRENT_SOURCE_DIR}/Scenario/Inspector/TimeNode/TriggerInspectorWidget.cpp"
 "${CMAKE_CURRENT_SOURCE_DIR}/Scenario/Inspector/Expression/ExpressionEditorWidget.cpp"
 "${CMAKE_CURRENT_SOURCE_DIR}/Scenario/Inspector/Expression/SimpleExpressionEditorWidget.cpp"
+"${CMAKE_CURRENT_SOURCE_DIR}/Scenario/Inspector/ScenarioInspectorWidgetFactoryWrapper.cpp"
+"${CMAKE_CURRENT_SOURCE_DIR}/Scenario/Inspector/Summary/SummaryInspectorWidget.cpp"
     )
 
     set(SRCS ${SRCS} ${INSPECTOR_SRCS})

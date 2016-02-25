@@ -30,7 +30,7 @@ class ISCORE_LIB_INSPECTOR_EXPORT InspectorSectionWidget : public QWidget
     public slots:
 
         // Display tool
-        void expand();
+        void expand(bool b);
 
         // Manage section
 

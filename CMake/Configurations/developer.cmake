@@ -1,7 +1,8 @@
-set(CMAKE_C_COMPILER /usr/bin/clang)
-set(CMAKE_CXX_COMPILER /usr/bin/clang++)
+set(CMAKE_C_COMPILER /usr/bin/gcc)
+set(CMAKE_CXX_COMPILER /usr/bin/g++)
 set(CMAKE_PREFIX_PATH "${CMAKE_PREFIX_PATH};/usr/jamoma/share/cmake/Jamoma")
-set(ISCORE_COTIRE_DISABLE_UNITY True)
-
-include(travis/debug)
+set(ISCORE_COTIRE_DISABLE_UNITY False)
+set(ISCORE_ENABLE_LTO True)
+set(ISCORE_ENABLE_OPTIMIZE_CUSTOM True)
+include(travis/static-release)
 include(all-plugins)

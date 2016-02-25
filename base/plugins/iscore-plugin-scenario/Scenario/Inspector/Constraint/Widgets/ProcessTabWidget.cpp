@@ -132,14 +132,14 @@ void ProcessTabWidget::displaySharedProcess(const Process::ProcessModel& process
     if(auto start = process.startStateData())
     {
         auto startWidg = m_constraintWidget.widgetList().make(
-                             m_constraintWidget.context(), *start, newProc);
+                             m_constraintWidget.context(), {start}, newProc).first();
         stateLayout->addRow(tr("Start "), startWidg);
     }
 
     if(auto end = process.endStateData())
     {
         auto endWidg = m_constraintWidget.widgetList().make(
-                           m_constraintWidget.context(), *end, newProc);
+                           m_constraintWidget.context(), {end}, newProc).first();
         stateLayout->addRow(tr("End   "), endWidg);
     }
 
