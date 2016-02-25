@@ -26,6 +26,7 @@ class ISCORE_LIB_INSPECTOR_EXPORT InspectorSectionWidget : public QWidget
         virtual ~InspectorSectionWidget();
 
         auto menu() const { return m_menu; }
+        QString name() const;
 
     public slots:
 

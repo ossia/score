@@ -1,6 +1,7 @@
 #pragma once
 
 #include <Inspector/InspectorWidgetBase.hpp>
+#include <Inspector/InspectorSectionWidget.hpp>
 #include <list>
 #include <vector>
 
@@ -25,6 +26,7 @@ class TriggerInspectorWidget;
  */
 class EventInspectorWidget final : public QWidget
 {
+        Q_OBJECT
     public:
         explicit EventInspectorWidget(
                 const EventModel& object,
@@ -41,13 +43,16 @@ class EventInspectorWidget final : public QWidget
         iscore::SelectionDispatcher& selectionDispatcher() const
         { return *m_selectionDispatcher.get(); }
 
+    signals:
+        void expandEventSection(bool b);
+
     private:
         void updateDisplayedValues();
         void on_conditionChanged();
 
-
         std::list<QWidget*> m_properties;
 
+        std::map<Id<StateModel>, Inspector::InspectorSectionWidget*> m_statesSections;
         std::vector<QWidget*> m_states;
 
         //QLineEdit* m_stateLineEdit{};
