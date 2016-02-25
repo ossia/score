@@ -24,6 +24,7 @@
 #include <iscore/tools/NotifyingMap.hpp>
 #include <iscore/tools/SettableIdentifier.hpp>
 #include <Scenario/Inspector/SelectionButton.hpp>
+#include <iscore/document/DocumentContext.hpp>
 
 #include <QSizePolicy>
 
@@ -37,18 +38,17 @@ StateInspectorWidget::StateInspectorWidget(
         const StateModel& object,
         const iscore::DocumentContext& doc,
         QWidget *parent):
-    InspectorWidgetBase {object, doc, parent},
-    m_model {object}
+    QWidget {parent},
+    m_model {object},
+    m_commandDispatcher(new CommandDispatcher<>{doc.commandStack}),
+    m_selectionDispatcher(new iscore::SelectionDispatcher{doc.selectionStack})
 {
     setObjectName("StateInspectorWidget");
     setParent(parent);
 
-    updateDisplayedValues();
-}
+    auto lay = new iscore::MarginLess<QVBoxLayout>{this};
 
-QString StateInspectorWidget::tabName()
-{
-    return tr("State");
+    updateDisplayedValues();
 }
 
 void StateInspectorWidget::updateDisplayedValues()
@@ -114,10 +114,12 @@ void StateInspectorWidget::updateDisplayedValues()
     linkLay->addStretch(1);
 
     m_stateSection->addContent(linkWidget);
-
     m_properties.push_back(widget);
 
-    updateAreaLayout(m_properties);
+    for(auto w : m_properties)
+        this->layout()->addWidget(w);
+
+//    updateAreaLayout(m_properties);
 //    m_stateSection->expand();
 }
 
@@ -134,7 +136,7 @@ void StateInspectorWidget::splitEvent()
                         m_model.eventId(),
                         {m_model.id()}};
 
-            commandDispatcher()->submitCommand(cmd);
+            m_commandDispatcher->submitCommand(cmd);
         }
     }
 }
