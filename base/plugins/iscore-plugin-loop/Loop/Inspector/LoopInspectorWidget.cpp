@@ -20,7 +20,7 @@ LoopInspectorWidget::LoopInspectorWidget(
         const Loop::ProcessModel& object,
         const iscore::DocumentContext& doc,
         QWidget* parent) :
-    ProcessInspectorWidgetDelegate_T {object, parent}
+    InspectorWidgetDelegate_T {object, parent}
 {
     // FIXME URGENT add implemented virtual destructors to every class that inherits from a virtual.
     auto& appContext = doc.app.components;

@@ -15,6 +15,6 @@ class Document;
 ScenarioInspectorWidget::ScenarioInspectorWidget(
         const Scenario::ScenarioModel& object,
         QWidget* parent) :
-    ProcessInspectorWidgetDelegate_T {object, parent}
+    InspectorWidgetDelegate_T {object, parent}
 {
 }

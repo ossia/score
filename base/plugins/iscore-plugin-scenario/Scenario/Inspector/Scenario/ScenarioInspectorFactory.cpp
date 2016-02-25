@@ -12,7 +12,7 @@ namespace iscore {
 class Document;
 }  // namespace iscore
 
-ProcessInspectorWidgetDelegate* ScenarioInspectorFactory::make(
+Process::InspectorWidgetDelegate* ScenarioInspectorFactory::make(
         const Process::ProcessModel& process,
         const iscore::DocumentContext&,
         QWidget* parent) const

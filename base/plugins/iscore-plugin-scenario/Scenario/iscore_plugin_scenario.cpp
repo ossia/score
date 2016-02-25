@@ -149,7 +149,7 @@ std::vector<std::unique_ptr<iscore::FactoryInterfaceBase>> iscore_plugin_scenari
         ScenarioFactory>,
     FW<MoveEventFactoryInterface,
         MoveEventClassicFactory>,
-    FW<ProcessInspectorWidgetDelegateFactory,
+    FW<Process::InspectorWidgetDelegateFactory,
         ScenarioInspectorFactory>,
     FW<DisplayedElementsToolPaletteFactory,
         BaseScenarioDisplayedElementsToolPaletteFactory,

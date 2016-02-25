@@ -17,7 +17,7 @@ struct DocumentContext;
 namespace RecordedMessages
 {
 class InspectorWidget final :
-        public ProcessInspectorWidgetDelegate_T<RecordedMessages::ProcessModel>
+        public Process::InspectorWidgetDelegate_T<RecordedMessages::ProcessModel>
 {
     public:
         explicit InspectorWidget(

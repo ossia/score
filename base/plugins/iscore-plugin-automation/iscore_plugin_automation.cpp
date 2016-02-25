@@ -57,7 +57,7 @@ std::vector<std::unique_ptr<iscore::FactoryInterfaceBase>> iscore_plugin_automat
              Automation::StateInspectorFactory,
              Automation::PointInspectorFactory>,
 #endif
-        FW<ProcessInspectorWidgetDelegateFactory,
+        FW<Process::InspectorWidgetDelegateFactory,
              Automation::InspectorFactory>
     >>(ctx, key);
 }

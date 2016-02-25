@@ -1,5 +1,10 @@
 #include "ProcessInspectorWidgetDelegate.hpp"
-ProcessInspectorWidgetDelegate::~ProcessInspectorWidgetDelegate()
+Process::InspectorWidgetDelegate::~InspectorWidgetDelegate()
 {
     
+}
+
+Process::StateProcessInspectorWidgetDelegate::~StateProcessInspectorWidgetDelegate()
+{
+
 }
