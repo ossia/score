@@ -154,12 +154,13 @@ void EventInspectorWidget::addState(const StateModel& state)
 
     con(state.selection, &Selectable::changed,
         this, [&] (bool b) {
-        for(auto sec : m_statesSections)
-        {
-            if(state.id() == sec.first)
-                sec.second->expand(b);
-            emit expandEventSection(b);
-        }
+        if(b)
+            for(auto sec : m_statesSections)
+            {
+                if(state.id() == sec.first)
+                    sec.second->expand(b);
+                emit expandEventSection(b);
+            }
     });
 }
 

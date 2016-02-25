@@ -121,6 +121,8 @@ void TimeNodeInspectorWidget::addEvent(const EventModel& event)
     con(event.selection, &Selectable::changed,
         this, [&] (bool b)
     {
+        if(!b)
+            return;
         for(auto sec : m_eventList)
         {
             if(event.metadata.name() == sec->name())
@@ -130,6 +132,8 @@ void TimeNodeInspectorWidget::addEvent(const EventModel& event)
     connect(ew, &EventInspectorWidget::expandEventSection,
             this, [&] (bool b)
     {
+        if(!b)
+            return;
         for(auto sec : m_eventList)
         {
             if(event.metadata.name() == sec->name())

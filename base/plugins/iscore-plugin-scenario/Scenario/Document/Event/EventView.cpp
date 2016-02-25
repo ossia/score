@@ -30,7 +30,7 @@ EventView::EventView(EventPresenter& presenter,
 
     m_color = presenter.model().metadata.color();
 
-    m_conditionItem = new ConditionView(m_color, this);
+    m_conditionItem = new ConditionView(ScenarioStyle::instance().ConditionDefault, this);
     m_conditionItem->setVisible(false);
     m_conditionItem->setPos(-13.5, -13.5);
 
@@ -123,7 +123,7 @@ void EventView::setStatus(ExecutionStatus s)
     if(s != ExecutionStatus::Editing)
         m_conditionItem->setColor(m_status.eventStatusColor());
     else
-        m_conditionItem->setColor(m_color);
+        m_conditionItem->setColor(ScenarioStyle::instance().ConditionDefault);
 
     update();
 }
@@ -143,8 +143,6 @@ bool EventView::isSelected() const
 void EventView::changeColor(QColor newColor)
 {
     m_color = newColor;
-    if(m_status.get() == ExecutionStatus::Editing)
-        m_conditionItem->setColor(m_color);
     this->update();
 }
 

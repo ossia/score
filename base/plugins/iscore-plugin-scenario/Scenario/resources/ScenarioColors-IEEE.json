@@ -25,6 +25,7 @@
 "EventHappened" : [ 90, 90, 90 ],
 "EventDisposed" : [ 90, 90, 90 ],
 "EventSelected" : [ 100, 100, 100 ],
+"ConditionDefault" : [90, 90, 90],
 "ConditionWaiting" : [  90, 90, 90 ],
 "ConditionDisabled" : [  90, 90, 90 ],
 "ConditionFalse" : [  90, 90, 90 ],

@@ -28,21 +28,10 @@ void StateView::paint(QPainter *painter, const QStyleOptionGraphicsItem *option,
 {
     QBrush temporalPointBrush = m_selected ? ScenarioStyle::instance().StateSelected : ScenarioStyle::instance().StateDot;
     QBrush stateBrush = m_baseColor;
-    QPen statePen;
 
     auto status = m_status.get();
-    switch (status)
-    {
-        case ExecutionStatus::Editing :
-            painter->setPen(Qt::NoPen);
-        break;
-
-        default :
-            statePen = m_status.stateStatusColor();
-            statePen.setWidth(2.);
-            painter->setPen(statePen);
-        break;
-    }
+    if(status != ExecutionStatus::Editing)
+        temporalPointBrush = m_status.stateStatusColor();
 
     if(m_containMessage)
     {
@@ -50,6 +39,7 @@ void StateView::paint(QPainter *painter, const QStyleOptionGraphicsItem *option,
         painter->drawEllipse({0., 0.}, m_radiusFull, m_radiusFull);
     }
 
+    painter->setPen(Qt::NoPen);
     painter->setBrush(temporalPointBrush);
     qreal r = m_radiusPoint;
     painter->drawEllipse({0., 0.}, r, r);
