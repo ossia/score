@@ -10,6 +10,7 @@
 #include <Scenario/Inspector/State/StateInspectorWidget.hpp>
 #include <Scenario/Inspector/TimeNode/TriggerInspectorWidget.hpp>
 #include <Inspector/InspectorSectionWidget.hpp>
+#include <State/Expression.hpp>
 
 #include <iscore/widgets/MarginLess.hpp>
 #include <QBoxLayout>
@@ -94,9 +95,12 @@ EventInspectorWidget::EventInspectorWidget(
         m_exprEditor, &ExpressionEditorWidget::setExpression);
 
     auto condSection = new Inspector::InspectorSectionWidget{"Condition", false, this};
-    condSection->expand();
     condSection->addContent(m_exprEditor);
     m_properties.push_back(condSection);
+
+    if(m_model.condition().toString().isEmpty())
+        condSection->expand();
+
 
     // State
     m_properties.push_back(new Inspector::HSeparator {this});

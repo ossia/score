@@ -108,10 +108,7 @@ void TimeNodeInspectorWidget::addEvent(const EventModel& event)
     auto ew = new EventInspectorWidget{event, context(), evSection};
     evSection->addContent(ew);
     m_eventList.push_back(evSection);
-    if(!event.selection.get())
-    {
-        evSection->expand();
-    }
+
     m_properties.push_back(evSection);
     m_events->layout()->addWidget(evSection);
 }
