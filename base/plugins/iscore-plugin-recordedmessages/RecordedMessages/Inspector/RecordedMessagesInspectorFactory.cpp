@@ -24,7 +24,7 @@ InspectorFactory::~InspectorFactory()
 
 }
 
-ProcessInspectorWidgetDelegate* InspectorFactory::make(
+Process::InspectorWidgetDelegate* InspectorFactory::make(
         const Process::ProcessModel& process,
         const iscore::DocumentContext& doc,
         QWidget* parent) const

@@ -18,10 +18,13 @@ file(GLOB_RECURSE HDRS
     "${CMAKE_CURRENT_SOURCE_DIR}/*.hpp"
 )
 set(SRCS
-"${CMAKE_CURRENT_SOURCE_DIR}/JS/JSAPIWrapper.cpp"
-"${CMAKE_CURRENT_SOURCE_DIR}/JS/JSProcess.cpp"
+"${CMAKE_CURRENT_SOURCE_DIR}/JS/StateProcess.cpp"
 "${CMAKE_CURRENT_SOURCE_DIR}/JS/JSProcessModel.cpp"
 "${CMAKE_CURRENT_SOURCE_DIR}/JS/JSProcessModelSerialization.cpp"
+
+"${CMAKE_CURRENT_SOURCE_DIR}/JS/Executor/StateComponent.cpp"
+"${CMAKE_CURRENT_SOURCE_DIR}/JS/Executor/Component.cpp"
+"${CMAKE_CURRENT_SOURCE_DIR}/JS/Executor/JSAPIWrapper.cpp"
 
 "${CMAKE_CURRENT_SOURCE_DIR}/JS/Commands/EditScript.cpp"
 "${CMAKE_CURRENT_SOURCE_DIR}/JS/Commands/JSCommandFactory.cpp"

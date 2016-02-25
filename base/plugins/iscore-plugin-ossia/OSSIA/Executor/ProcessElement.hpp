@@ -115,7 +115,7 @@ class ISCORE_PLUGIN_OSSIA_EXPORT StateProcessComponent :
     protected:
         StateElement& m_parent_state;
         Process::StateProcess& m_iscore_process;
-        std::shared_ptr<OSSIA::State> m_ossia_process;
+        std::shared_ptr<OSSIA::StateElement> m_ossia_process;
 };
 
 class ISCORE_PLUGIN_OSSIA_EXPORT StateProcessComponentFactory :
@@ -130,14 +130,14 @@ class ISCORE_PLUGIN_OSSIA_EXPORT StateProcessComponentFactory :
     public:
         virtual ~StateProcessComponentFactory();
 
-        virtual ProcessComponent* make(
+        virtual StateProcessComponent* make(
                   StateElement& cst,
                   Process::StateProcess& proc,
                   const Context& ctx,
                   const Id<iscore::Component>& id,
                   QObject* parent) const = 0;
 
-        virtual std::shared_ptr<OSSIA::State> make(
+        virtual std::shared_ptr<OSSIA::StateElement> make(
                   Process::StateProcess& proc,
                   const Context& ctxt) const = 0;
 };

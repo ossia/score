@@ -20,7 +20,7 @@ InspectorWidget::InspectorWidget(
         const RecordedMessages::ProcessModel& RecordedMessagesModel,
         const iscore::DocumentContext& doc,
         QWidget* parent) :
-    ProcessInspectorWidgetDelegate_T {RecordedMessagesModel, parent},
+    InspectorWidgetDelegate_T {RecordedMessagesModel, parent},
     m_dispatcher{doc.commandStack},
     m_list{new QTableWidget}
 {

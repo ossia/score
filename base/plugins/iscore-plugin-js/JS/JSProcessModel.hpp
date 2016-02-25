@@ -5,8 +5,8 @@
 #include <QString>
 #include <memory>
 
-
 #include <Process/TimeValue.hpp>
+#include <iscore/tools/SettableIdentifier.hpp>
 #include <iscore/selection/Selection.hpp>
 #include <iscore/serialization/VisitorInterface.hpp>
 
@@ -15,7 +15,6 @@ class JSONObject;
 namespace Process { class LayerModel; }
 class ProcessStateDataInterface;
 class QObject;
-#include <iscore/tools/SettableIdentifier.hpp>
 
 namespace JS
 {
@@ -48,6 +47,10 @@ class ProcessModel final : public Process::ProcessModel
         const QString& script() const
         { return m_script; }
 
+    signals:
+        void scriptChanged(QString);
+
+    private:
         // Process interface
         Process::ProcessModel* clone(
                 const Id<Process::ProcessModel>& newId,
@@ -78,10 +81,6 @@ class ProcessModel final : public Process::ProcessModel
 
         void serialize_impl(const VisitorVariant& vis) const override;
 
-    signals:
-        void scriptChanged(QString);
-
-    protected:
         Process::LayerModel* makeLayer_impl(
                 const Id<Process::LayerModel>& viewModelId,
                 const QByteArray& constructionData,
@@ -94,10 +93,6 @@ class ProcessModel final : public Process::ProcessModel
                 const Process::LayerModel& source,
                 QObject* parent) override;
 
-    private:
-
         QString m_script;
 };
-
-
 }

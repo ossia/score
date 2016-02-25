@@ -14,7 +14,7 @@ class Document;
 
 
 class ScenarioInspectorWidget final :
-        public ProcessInspectorWidgetDelegate_T<Scenario::ScenarioModel>
+        public Process::InspectorWidgetDelegate_T<Scenario::ScenarioModel>
 {
     public:
         explicit ScenarioInspectorWidget(

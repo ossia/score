@@ -32,7 +32,7 @@ MappingInspectorWidget::MappingInspectorWidget(
         const ProcessModel& mappingModel,
         const iscore::DocumentContext& doc,
         QWidget* parent) :
-    ProcessInspectorWidgetDelegate_T {mappingModel, parent},
+    InspectorWidgetDelegate_T {mappingModel, parent},
     m_dispatcher{doc.commandStack}
 {
     using namespace Explorer;

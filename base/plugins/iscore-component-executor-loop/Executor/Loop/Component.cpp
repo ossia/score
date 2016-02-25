@@ -43,9 +43,15 @@ RecreateOnPlay::Loop::Component::Component(
     OSSIA::TimeValue main_duration(iscore::convert::time(element.constraint().duration.defaultDuration()));
 
     auto loop = OSSIA::Loop::create(main_duration,
-                                       [] (const OSSIA::TimeValue&, const OSSIA::TimeValue&, std::shared_ptr<OSSIA::StateElement>) {},
-    [] (OSSIA::TimeEvent::Status) {},
-    [] (OSSIA::TimeEvent::Status) {}
+          [] (const OSSIA::TimeValue& t0,
+              const OSSIA::TimeValue&,
+              std::shared_ptr<OSSIA::StateElement>) {
+    },
+          [] (OSSIA::TimeEvent::Status) {
+    },
+          [] (OSSIA::TimeEvent::Status) {
+
+    }
     );
 
     m_ossia_process = loop;

@@ -1,5 +1,5 @@
 #include <JS/Inspector/JSInspectorFactory.hpp>
-#include <JS/JSProcess.hpp>
+#include <JS/Executor/Component.hpp>
 #include <JS/JSProcessFactory.hpp>
 #include <unordered_map>
 
@@ -32,7 +32,7 @@ std::vector<std::unique_ptr<iscore::FactoryInterfaceBase>> iscore_plugin_js::fac
     TL<
         FW<Process::ProcessFactory,
              JS::ProcessFactory>,
-        FW<ProcessInspectorWidgetDelegateFactory,
+        FW<Process::InspectorWidgetDelegateFactory,
              JS::InspectorFactory>,
         FW<RecreateOnPlay::ProcessComponentFactory,
              JS::Executor::ProcessComponentFactory>

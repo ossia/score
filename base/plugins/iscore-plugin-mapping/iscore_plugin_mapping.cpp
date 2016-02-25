@@ -54,7 +54,7 @@ std::vector<std::unique_ptr<iscore::FactoryInterfaceBase>> iscore_plugin_mapping
             TL<
             FW<Process::ProcessFactory,
                 Mapping::MappingFactory>,
-            FW<ProcessInspectorWidgetDelegateFactory,
+            FW<Process::InspectorWidgetDelegateFactory,
                 MappingInspectorFactory>
             >>(ctx, key);
 }
