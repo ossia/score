@@ -69,7 +69,7 @@ class ISCORE_PLUGIN_SCENARIO_EXPORT  StateView final : public QGraphicsObject
 
         ExecutionStatusProperty m_status{};
 
-        static const constexpr qreal m_radiusFull = 7.;
+        static const constexpr qreal m_radiusFull = 6.;
         static const constexpr qreal m_radiusPoint = 3.5;
         qreal m_dilatationFactor = 1;
 };
