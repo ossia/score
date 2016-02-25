@@ -91,6 +91,11 @@ InspectorSectionWidget::~InspectorSectionWidget()
 
 }
 
+QString InspectorSectionWidget::name() const
+{
+    return m_sectionTitle->text();
+}
+
 void InspectorSectionWidget::expand(bool b)
 {
     if(m_isUnfolded == b)
