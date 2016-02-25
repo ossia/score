@@ -19,7 +19,7 @@ StateInspectorFactory::StateInspectorFactory() :
 }
 
 Inspector::InspectorWidgetBase* StateInspectorFactory::makeWidget(
-        QList<const QObject*> sourceElements,
+        const QList<const QObject*>& sourceElements,
         const iscore::DocumentContext& doc,
         QWidget* parent) const
 {
@@ -29,7 +29,7 @@ Inspector::InspectorWidgetBase* StateInspectorFactory::makeWidget(
                 parent};
 }
 
-bool StateInspectorFactory::matches(QList<const QObject*> objects) const
+bool StateInspectorFactory::matches(const QList<const QObject*>& objects) const
 {
     return dynamic_cast<const ProcessState*>(objects.first());
 }

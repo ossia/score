@@ -13,7 +13,7 @@ class Document;
 namespace Scenario
 {
 Inspector::InspectorWidgetBase* StateInspectorFactory::makeWidget(
-        QList<const QObject*> sourceElements,
+        const QList<const QObject*>& sourceElements,
         const iscore::DocumentContext& doc,
         QWidget* parentWidget) const
 {
@@ -30,7 +30,8 @@ Inspector::InspectorWidgetBase* StateInspectorFactory::makeWidget(
     return baseW;
 }
 
-bool StateInspectorFactory::matches(QList<const QObject*> objects) const
+bool StateInspectorFactory::matches(
+        const QList<const QObject*>& objects) const
 {
     return dynamic_cast<const StateModel*>(objects.first());
 }

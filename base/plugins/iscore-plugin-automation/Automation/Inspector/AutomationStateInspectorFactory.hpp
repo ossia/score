@@ -20,11 +20,11 @@ class StateInspectorFactory final :
         StateInspectorFactory();
 
         Inspector::InspectorWidgetBase* makeWidget(
-                QList<const QObject*> sourceElements,
+                const QList<const QObject*>&  sourceElements,
                 const iscore::DocumentContext& doc,
                 QWidget* parent) const override;
 
-        bool matches(QList<const QObject*> objects) const override;
+        bool matches(const QList<const QObject*>&  objects) const override;
 };
 
 }
