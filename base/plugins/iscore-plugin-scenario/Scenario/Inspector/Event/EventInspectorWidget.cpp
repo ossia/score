@@ -98,9 +98,7 @@ EventInspectorWidget::EventInspectorWidget(
     condSection->addContent(m_exprEditor);
     m_properties.push_back(condSection);
 
-    if(m_model.condition().toString().isEmpty())
-        condSection->expand();
-
+    condSection->expand(!m_model.condition().toString().isEmpty());
 
     // State
     m_properties.push_back(new Inspector::HSeparator {this});
@@ -155,6 +153,8 @@ void EventInspectorWidget::addState(const StateModel& state)
     m_states.push_back(sw);
     m_statesWidget->layout()->addWidget(&section);
     m_states.push_back(&section);
+    section.expand(false);
+
 }
 
 void EventInspectorWidget::removeState(const StateModel& state)
