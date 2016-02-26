@@ -68,7 +68,9 @@ class MoveEventState final : public StateBase<Scenario_T>
                     pressed, finalState);
 
             // update commands
-            iscore::make_transition<MoveOnAnythingButPonctual_Transition<Scenario_T>>(
+            iscore::make_transition<MoveOnAnything_Transition<Scenario_T>>(
+                    onlyMoving, onlyMoving, *this);
+/*            iscore::make_transition<MoveOnAnythingButPonctual_Transition<Scenario_T>>(
                     onlyMoving, onlyMoving, *this);
 
             iscore::make_transition<MoveOnTimeNode_Transition<Scenario_T>>(
@@ -76,7 +78,7 @@ class MoveEventState final : public StateBase<Scenario_T>
 
             iscore::make_transition<MoveOnEvent_Transition<Scenario_T>>(
                     onlyMoving, mergingOnEvent, *this);
-
+*/
             // rollback merging
             iscore::make_transition<MoveOnAnything_Transition<Scenario_T>>(
                     mergingOnTimeNode, rollbackTnMerging, *this);

@@ -42,15 +42,21 @@ Inspector::InspectorWidgetBase* ScenarioInspectorWidgetFactoryWrapper::makeWidge
     {
         if(auto st = dynamic_cast<const StateModel*>(elt))
         {
-            auto ev = &scenar->event(st->eventId());
-            auto tn = &scenar->timeNode(ev->timeNode());
-            states.insert(st);
-            events.insert(ev);
-            timenodes.insert(tn);
+            if(auto ev = scenar->findEvent(st->eventId()))
+            {
+                auto tn = scenar->findTimeNode(ev->timeNode());
+                if(!tn)
+                    continue;
+                states.insert(st);
+                events.insert(ev);
+                timenodes.insert(tn);
+            }
         }
         else if (auto ev = dynamic_cast<const EventModel*>(elt))
         {
-            auto tn = &scenar->timeNode(ev->timeNode());
+            auto tn = scenar->findTimeNode(ev->timeNode());
+            if(!tn)
+                continue;
             events.insert(ev);
             timenodes.insert(tn);
         }

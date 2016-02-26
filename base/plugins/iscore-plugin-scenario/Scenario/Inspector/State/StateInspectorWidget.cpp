@@ -166,8 +166,6 @@ void StateInspectorWidget::updateDisplayedValues()
     for(auto w : m_properties)
         this->layout()->addWidget(w);
 
-//    updateAreaLayout(m_properties);
-//    m_stateSection->expand();
 }
 
 void StateInspectorWidget::splitEvent()

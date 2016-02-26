@@ -1,5 +1,6 @@
 #include <Inspector/Separator.hpp>
 #include <Scenario/Commands/Event/SetCondition.hpp>
+#include <Scenario/Commands/Event/SplitEvent.hpp>
 #include <Scenario/Commands/TimeNode/TriggerCommandFactory/TriggerCommandFactoryList.hpp>
 #include <Scenario/Document/Event/EventModel.hpp>
 #include <Scenario/Document/State/StateModel.hpp>
@@ -29,6 +30,7 @@
 #include <Inspector/InspectorWidgetBase.hpp>
 #include <Process/TimeValue.hpp>
 #include <Scenario/Process/ScenarioInterface.hpp>
+#include <Scenario/Process/ScenarioModel.hpp>
 #include <State/Expression.hpp>
 #include <iscore/application/ApplicationContext.hpp>
 #include <iscore/document/DocumentContext.hpp>
@@ -144,7 +146,17 @@ void EventInspectorWidget::addState(const StateModel& state)
     auto split = section.menu()->addAction(tr("Put in new Event"));
     connect(split, &QAction::triggered,
             sw, &StateInspectorWidget::splitEvent, Qt::QueuedConnection);
+/*            this, [&] () {
 
+        auto scenar = dynamic_cast<const Scenario::ScenarioModel*>(m_model.parent());
+        auto cmd = new Scenario::Command::SplitEvent{
+                    *scenar,
+                    m_model.id(),
+                    {state.id()}};
+
+        m_commandDispatcher->submitCommand(cmd);
+    }, Qt::QueuedConnection);
+*/
     m_states.push_back(sw);
     m_statesWidget->layout()->addWidget(&section);
     m_states.push_back(&section);
