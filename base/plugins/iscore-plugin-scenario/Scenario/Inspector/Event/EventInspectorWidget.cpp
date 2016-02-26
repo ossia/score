@@ -146,17 +146,7 @@ void EventInspectorWidget::addState(const StateModel& state)
     auto split = section.menu()->addAction(tr("Put in new Event"));
     connect(split, &QAction::triggered,
             sw, &StateInspectorWidget::splitEvent, Qt::QueuedConnection);
-/*            this, [&] () {
 
-        auto scenar = dynamic_cast<const Scenario::ScenarioModel*>(m_model.parent());
-        auto cmd = new Scenario::Command::SplitEvent{
-                    *scenar,
-                    m_model.id(),
-                    {state.id()}};
-
-        m_commandDispatcher->submitCommand(cmd);
-    }, Qt::QueuedConnection);
-*/
     m_states.push_back(sw);
     m_statesWidget->layout()->addWidget(&section);
     m_states.push_back(&section);
