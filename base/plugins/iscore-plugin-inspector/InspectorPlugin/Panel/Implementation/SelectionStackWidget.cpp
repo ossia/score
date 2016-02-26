@@ -6,6 +6,7 @@
 
 #include "SelectionStackWidget.hpp"
 #include <iscore/selection/Selection.hpp>
+#include <iscore/widgets/MarginLess.hpp>
 
 
 namespace InspectorPanel
@@ -24,7 +25,8 @@ SelectionStackWidget::SelectionStackWidget(
     m_next->setArrowType(Qt::RightArrow);
     m_next->setEnabled(m_stack.canReselect());
 
-    auto lay = new QHBoxLayout{this};
+    auto lay = new iscore::MarginLess<QHBoxLayout>{this};
+    lay->setSizeConstraint(QLayout::SetMinimumSize);
     lay->addWidget(m_prev);
     lay->addWidget(m_next);
     setLayout(lay);

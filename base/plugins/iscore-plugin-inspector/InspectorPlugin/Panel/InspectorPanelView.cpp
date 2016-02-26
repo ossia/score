@@ -17,6 +17,7 @@
 #include <iscore/plugins/panel/PanelView.hpp>
 #include <iscore/selection/Selection.hpp>
 #include <iscore/selection/SelectionStack.hpp>
+#include <iscore/widgets/MarginLess.hpp>
 
 
 namespace InspectorPanel
@@ -30,8 +31,7 @@ InspectorPanelView::InspectorPanelView(QObject* parent) :
     iscore::PanelView {parent},
     m_widget{new QWidget}
 {
-    auto lay = new QVBoxLayout{m_widget};
-    m_widget->setLayout(lay);
+    new iscore::MarginLess<QVBoxLayout>{m_widget};
 }
 
 QWidget* InspectorPanelView::getWidget()
