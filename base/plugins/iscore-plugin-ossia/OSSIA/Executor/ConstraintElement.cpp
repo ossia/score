@@ -80,20 +80,29 @@ void ConstraintElement::play(TimeValue t)
 {
     m_offset = iscore::convert::time(t);
     m_iscore_constraint.duration.setPlayPercentage(0);
-    m_ossia_constraint->offset(m_offset)->launch();
+    
+    auto start_state = m_ossia_constraint->getStartEvent()->getState();
+    auto offset_state = m_ossia_constraint->offset(m_offset);
+        
+    start_state->stateElements().push_back(offset_state);
+    start_state->launch();
+        
     m_ossia_constraint->start();
+    
     executionStarted();
 }
 
 void ConstraintElement::stop()
 {
     m_ossia_constraint->stop();
+    
     for(auto& process : m_processes)
     {
         process.second.element->stop();
     }
 
     m_iscore_constraint.reset();
+    
     executionStopped();
 }
 
