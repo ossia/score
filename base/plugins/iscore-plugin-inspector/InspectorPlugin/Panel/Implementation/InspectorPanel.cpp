@@ -27,8 +27,8 @@ InspectorPanelWidget::InspectorPanelWidget(
     m_list{list},
     m_selectionDispatcher{s}
 {
-    m_tabWidget->setTabsClosable(true);
     m_layout->setContentsMargins(0, 0, 0, 0);
+    m_layout->setSpacing(0);
     setMinimumWidth(350);
     m_layout->addWidget(m_tabWidget);
 
