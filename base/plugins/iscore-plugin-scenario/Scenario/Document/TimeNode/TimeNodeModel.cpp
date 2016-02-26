@@ -98,6 +98,11 @@ TriggerModel* TimeNodeModel::trigger() const
     return m_trigger;
 }
 
+QString TimeNodeModel::expression() const
+{
+    return m_trigger->expression().toString();
+}
+
 const VerticalExtent& TimeNodeModel::extent() const
 {
     return m_extent;
