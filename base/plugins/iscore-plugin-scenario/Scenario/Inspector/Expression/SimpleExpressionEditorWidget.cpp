@@ -57,9 +57,9 @@ SimpleExpressionEditorWidget::SimpleExpressionEditorWidget(
     // Main Layout
 
     mainLay->addWidget(m_ok);
-    mainLay->addWidget(m_binOperator, 1, Qt::AlignHCenter);
+    mainLay->addWidget(m_binOperator, 0, Qt::AlignHCenter);
     mainLay->addWidget(m_address, 10);
-    mainLay->addWidget(m_comparator, 1, Qt::AlignHCenter);
+    mainLay->addWidget(m_comparator, 0, Qt::AlignHCenter);
     mainLay->addWidget(m_value, 2);
 
     mainLay->addWidget(btnWidg);
