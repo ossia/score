@@ -23,6 +23,8 @@ TriggerPresenter::TriggerPresenter(
         m_view->setVisible(m_model.active());
         m_view->setToolTip(m_model.expression().toString());
     });
+
+    m_view->setToolTip(m_model.expression().toString());
     con(m_model, &TriggerModel::triggerChanged,
         this, [&] (const State::Trigger& t)
     {

@@ -175,12 +175,16 @@ void ConstraintPresenter::updateHeight()
 {
     if(rack() && m_viewModel.isRackShown())
     {
-        m_view->setHeight(rack()->height() + 50);
+        m_view->setHeight(rack()->height() + 40);
     }
     // TODO else if(rack but not shown)
-    else
+    else if(rack() && !m_viewModel.isRackShown())
     {
         m_view->setHeight(ConstraintHeader::headerHeight());
+    }
+    else
+    {
+        m_view->setHeight(8);
     }
 
     updateChildren();
