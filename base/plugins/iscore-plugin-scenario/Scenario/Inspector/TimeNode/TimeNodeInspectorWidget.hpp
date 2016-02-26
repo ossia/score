@@ -3,6 +3,7 @@
 #include <Inspector/InspectorWidgetBase.hpp>
 #include <list>
 #include <vector>
+#include <Process/TimeValue.hpp>
 
 namespace Inspector
 {
@@ -13,7 +14,6 @@ class QWidget;
 namespace iscore {
 class Document;
 }  // namespace iscore
-
 
 namespace Scenario
 {
@@ -41,13 +41,14 @@ class TimeNodeInspectorWidget final : public Inspector::InspectorWidgetBase
 
         void updateDisplayedValues();
         void on_splitTimeNodeClicked();
+        void on_dateChanged(const TimeValue&);
 
         std::list<QWidget*> m_properties;
         QWidget* m_events;
 
         const TimeNodeModel& m_model;
 
-        QList<Inspector::InspectorSectionWidget*> m_eventList {};
+        std::map<const Id<EventModel>, Inspector::InspectorSectionWidget*> m_eventList {};
         QLabel* m_date {};
 
         MetadataWidget* m_metadata {};

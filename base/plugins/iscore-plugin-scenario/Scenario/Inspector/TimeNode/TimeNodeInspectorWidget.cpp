@@ -1,3 +1,5 @@
+#include "TimeNodeInspectorWidget.hpp"
+
 #include <Inspector/InspectorSectionWidget.hpp>
 #include <Inspector/Separator.hpp>
 #include <Scenario/Commands/TimeNode/SplitTimeNode.hpp>
@@ -24,9 +26,7 @@
 #include <QMenu>
 
 #include <Inspector/InspectorWidgetBase.hpp>
-#include <Process/TimeValue.hpp>
 #include <Scenario/Process/ScenarioInterface.hpp>
-#include "TimeNodeInspectorWidget.hpp"
 #include <iscore/command/Dispatchers/CommandDispatcher.hpp>
 #include <iscore/plugins/customfactory/StringFactoryKey.hpp>
 #include <iscore/selection/Selection.hpp>
@@ -92,7 +92,10 @@ TimeNodeInspectorWidget::TimeNodeInspectorWidget(
     addHeader(m_metadata);
 
     con(m_model, &TimeNodeModel::dateChanged,
-        this,   &TimeNodeInspectorWidget::updateDisplayedValues);
+        this,   &TimeNodeInspectorWidget::on_dateChanged);
+
+    con(m_model, &TimeNodeModel::newEvent,
+        this, [&] (const Id<EventModel>&) {this->updateDisplayedValues();});
 
 }
 
@@ -112,7 +115,7 @@ void TimeNodeInspectorWidget::addEvent(const EventModel& event)
         commandDispatcher()->submitCommand(cmd);
     } );
 
-    m_eventList.push_back(evSection);
+    m_eventList[event.id()] = evSection;
 
     m_properties.push_back(evSection);
     m_events->layout()->addWidget(evSection);
@@ -125,8 +128,8 @@ void TimeNodeInspectorWidget::addEvent(const EventModel& event)
             return;
         for(auto sec : m_eventList)
         {
-            if(event.metadata.name() == sec->name())
-                sec->expand(b);
+            if(event.id() == sec.first)
+                sec.second->expand(b);
         }
     });
     connect(ew, &EventInspectorWidget::expandEventSection,
@@ -136,8 +139,17 @@ void TimeNodeInspectorWidget::addEvent(const EventModel& event)
             return;
         for(auto sec : m_eventList)
         {
-            if(event.metadata.name() == sec->name())
-                sec->expand(b);
+            if(event.id() == sec.first)
+                sec.second->expand(b);
+        }
+    });
+
+    con(event.metadata, &ModelMetadata::nameChanged,
+        this, [&] (const QString s) {
+        for(auto sec : m_eventList)
+        {
+            if(event.id() == sec.first)
+                sec.second->renameSection(s);
         }
     });
 }
@@ -159,8 +171,8 @@ void TimeNodeInspectorWidget::updateDisplayedValues()
     // OPTIMIZEME
     for(auto& elt : m_eventList)
     {
-        m_properties.remove(elt);
-        delete elt;
+        m_properties.remove(elt.second);
+        delete elt.second;
     }
     m_eventList.clear();
 
@@ -200,6 +212,11 @@ void TimeNodeInspectorWidget::on_splitTimeNodeClicked()
 
     updateDisplayedValues();
     */
+}
+
+void TimeNodeInspectorWidget::on_dateChanged(const TimeValue& t)
+{
+    m_date->setText(t.toString());
 }
 }
 
