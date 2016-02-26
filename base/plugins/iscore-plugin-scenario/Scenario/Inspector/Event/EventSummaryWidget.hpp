@@ -1,15 +1,24 @@
 #pragma once
 
 #include <QWidget>
+#include <memory>
 
-class QPushButton;
+namespace iscore
+{
+class SelectionDispatcher;
+struct DocumentContext;
+}
+
 namespace Scenario
 {
 class EventModel;
 class EventSummaryWidget final : public QWidget
 {
     public:
-	EventSummaryWidget( const EventModel& object, QWidget* parent = 0);
+    EventSummaryWidget( const EventModel& object, const iscore::DocumentContext& doc, QWidget* parent = 0);
+
+    private:
+        std::unique_ptr<iscore::SelectionDispatcher> m_selectionDispatcher;
 
 };
 }
