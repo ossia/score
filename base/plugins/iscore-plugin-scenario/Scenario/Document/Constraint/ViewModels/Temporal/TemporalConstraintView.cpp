@@ -59,7 +59,7 @@ void TemporalConstraintView::paint(
     {
         // Background
         auto rect = boundingRect();
-        rect.adjust(0,15,0,-10);
+        rect.adjust(0,4,0,-10);
         rect.setWidth(this->defaultWidth());
         painter->fillRect(rect, m_bgColor);
 

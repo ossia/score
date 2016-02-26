@@ -33,7 +33,7 @@ class ISCORE_PLUGIN_SCENARIO_EXPORT TemporalConstraintView final : public Constr
             qreal x = std::min(0., minWidth());
             qreal rectW = infinite() ? defaultWidth() : maxWidth();
             rectW -= x;
-            return {x, -15, rectW, qreal(constraintHeight()) };
+            return {x, -4, rectW, qreal(constraintHeight()) };
         }
 
         void paint(QPainter* painter,

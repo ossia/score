@@ -38,7 +38,7 @@ class ISCORE_PLUGIN_SCENARIO_EXPORT EventView final : public QGraphicsObject
         { return m_presenter; }
 
         QRectF boundingRect() const override
-        { return {-5, -10., 10, qreal(m_extent.bottom() - m_extent.top() + 20)};  }
+        { return {-3, -10., 6, qreal(m_extent.bottom() - m_extent.top() + 20)};  }
 
         void paint(QPainter* painter,
                    const QStyleOptionGraphicsItem* option,
