@@ -32,8 +32,24 @@ ConstraintSummaryWidget::ConstraintSummaryWidget(const ConstraintModel& object,
     mainLay->addWidget(eventBtn,
                        0, 6, 1, 1);
 
-    mainLay->addWidget(new QLabel{tr("Default : ") + object.duration.defaultDuration().toString()},
-                       1, 1, 1, 6);
+
+    if(object.duration.isRigid())
+    {
+        mainLay->addWidget(new QLabel{object.duration.defaultDuration().toString()},
+                           1, 1, 1, 4);
+    }
+    else
+    {
+        QString max = object.duration.maxDuration().isInfinite() ? "inf" : object.duration.maxDuration().toString();
+        QString min = object.duration.minDuration().isZero() ? "0" : object.duration.minDuration().toString();
+        mainLay->addWidget(new QLabel{tr("Flexible : ")
+                                      + min
+                                      + " to "
+                                      + max},
+                           1, 1, 1, 4);
+
+    }
+
 
     if(!object.processes.empty())
     {

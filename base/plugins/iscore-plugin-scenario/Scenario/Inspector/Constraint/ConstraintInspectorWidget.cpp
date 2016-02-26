@@ -83,17 +83,28 @@ ConstraintInspectorWidget::ConstraintInspectorWidget(
     m_metadata->setupConnections(m_model);
 
     addHeader(m_metadata);
+
+    auto speedWidg = new QWidget{this};
+    auto speedLay = new iscore::MarginLess<QVBoxLayout>{speedWidg};
+
     QSlider* speedSlider = new QSlider{Qt::Horizontal};
     speedSlider->setTickInterval(100);
     speedSlider->setMinimum(-100);
     speedSlider->setMaximum(500);
+    speedSlider->setValue(m_model.duration.executionSpeed() * 100);
+    auto speedLab = new QLabel{"Speed x" + QString::number(double(speedSlider->value())/100.0)};
+
+    speedLay->addWidget(speedLab);
+    speedLay->addWidget(speedSlider);
+
     connect(speedSlider, &QSlider::valueChanged,
             this, [=] (int val) {
         // TODO command
         ((ConstraintModel&)(m_model)).duration.setExecutionSpeed(double(val) / 100.0);
+        speedLab->setText("Speed x" + QString::number(double(val)/100.0));
     });
 
-    m_properties.push_back(speedSlider);
+    m_properties.push_back(speedWidg);
 
     m_delegate->addWidgets_pre(m_properties, this);
 

@@ -71,7 +71,6 @@ void StateInspectorWidget::updateDisplayedValues()
 
     auto widget = new QWidget;
     auto lay = new iscore::MarginLess<QFormLayout>{widget};
-    widget->setLayout(lay);
     // State id
     //lay->addRow("Id", new QLabel{QString::number(m_model.id().val().get())});
 
@@ -81,7 +80,7 @@ void StateInspectorWidget::updateDisplayedValues()
     auto event = m_model.eventId();
 
     // State setup
-    m_stateSection = new Inspector::InspectorSectionWidget{"States", false, this};
+    m_stateSection = new Inspector::InspectorSectionWidget{"State", false, this};
     auto tv = new MessageTreeView{m_model,
                                 m_stateSection};
 
