@@ -17,6 +17,7 @@
 #include <Scenario/DialogWidget/AddProcessDialog.hpp>
 
 #include <Scenario/Commands/Constraint/AddProcessToConstraint.hpp>
+#include <Scenario/Commands/Constraint/SetProcessUseParentDuration.hpp>
 #include <Scenario/Commands/Constraint/AddLayerInNewSlot.hpp>
 #include <Scenario/Commands/Constraint/RemoveProcessFromConstraint.hpp>
 #include <Scenario/Commands/SetProcessDuration.hpp>
@@ -120,10 +121,29 @@ void ProcessTabWidget::displaySharedProcess(const Process::ProcessModel& process
     connect(delAct, &QAction::triggered,
             this, [=,id=process.id()] ()
         {
-            auto cmd = new Command::RemoveProcessFromConstraint{iscore::IDocument::path(m_constraintWidget.model()), id};
+            auto cmd = new Command::RemoveProcessFromConstraint{m_constraintWidget.model(), id};
             emit m_constraintWidget.commandDispatcher()->submitCommand(cmd);
         }, Qt::QueuedConnection);
 
+    auto setParentDurAct = newProc->menu()->addAction(tr("Use parent duration"));
+    setParentDurAct->setCheckable(true);
+    setParentDurAct->setChecked(process.useParentDuration());
+    con(process, &Process::ProcessModel::useParentDurationChanged,
+            this, [=] (bool b) {
+        if(setParentDurAct->isChecked() != b)
+        {
+            setParentDurAct->setChecked(b);
+        }
+    });
+
+   connect(setParentDurAct, &QAction::toggled,
+           this, [&] (bool b) {
+       if(b != process.useParentDuration())
+       {
+           auto cmd = new Command::SetProcessUseParentDuration{process, b};
+           m_constraintWidget.commandDispatcher()->submitCommand(cmd);
+       }
+   });
 
     // Start & end state
     QWidget* stateWidget = new QWidget;

@@ -52,7 +52,6 @@ class ISCORE_PLUGIN_LOOP_EXPORT ProcessModel final :
             BaseScenarioContainer{this}
         {
             vis.writeTo(*this);
-            this->setUseParentDuration(true);
         }
 
         using BaseScenarioContainer::event;

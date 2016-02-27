@@ -70,7 +70,6 @@ ProcessModel::ProcessModel(
                       this};
 
     BaseScenarioContainer::init(source);
-    this->setUseParentDuration(true);
 }
 
 ProcessModel* ProcessModel::clone(
