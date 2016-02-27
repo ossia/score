@@ -281,7 +281,7 @@ bool MessageItemModel::setData(
     {
         if(col == Column::Value)
         {
-            auto value = State::convert::toValue(value_received);
+            auto value = State::convert::fromQVariant(value_received);
             auto current_val = n.value();
             if(current_val)
             {

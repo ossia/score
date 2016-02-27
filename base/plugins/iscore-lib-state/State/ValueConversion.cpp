@@ -20,31 +20,31 @@ namespace convert
 {
 
 static const std::array<const QString, 8> ValueTypesArray{{
-    QStringLiteral("Impulse"),
-    QStringLiteral("Int"),
-    QStringLiteral("Float"),
-    QStringLiteral("Bool"),
-    QStringLiteral("String"),
-    QStringLiteral("Char"),
-    QStringLiteral("Tuple"),
-    QStringLiteral("None")
-}};
+        QStringLiteral("Impulse"),
+                QStringLiteral("Int"),
+                QStringLiteral("Float"),
+                QStringLiteral("Bool"),
+                QStringLiteral("String"),
+                QStringLiteral("Char"),
+                QStringLiteral("Tuple"),
+                QStringLiteral("None")
+                                                          }};
 
 static const std::array<const QString, 8> ValuePrettyTypesArray{{
-    QObject::tr("Impulse"),
-    QObject::tr("Int"),
-    QObject::tr("Float"),
-    QObject::tr("Bool"),
-    QObject::tr("String"),
-    QObject::tr("Char"),
-    QObject::tr("Tuple"),
-    QObject::tr("None")
-}};
+        QObject::tr("Impulse"),
+                QObject::tr("Int"),
+                QObject::tr("Float"),
+                QObject::tr("Bool"),
+                QObject::tr("String"),
+                QObject::tr("Char"),
+                QObject::tr("Tuple"),
+                QObject::tr("None")
+                                                                }};
 
 template<>
 QVariant value(const State::Value& val)
 {
-	struct vis {
+    struct vis {
         public:
             using return_type = QVariant;
             return_type operator()(const no_value_t&) const { return QVariant::fromValue(State::no_value_t{}); }
@@ -68,14 +68,14 @@ QVariant value(const State::Value& val)
                 return arr;
             }
     };
-	
+
     return eggs::variants::apply(vis{}, val.val.impl());
 }
 
 template<>
 QJsonValue value(const State::Value& val)
 {
-	struct vis {
+    struct vis {
         public:
             using return_type = QJsonValue;
             return_type operator()(const no_value_t&) const { return {}; }
@@ -126,8 +126,48 @@ static ValueType which(const QString& val)
     return static_cast<State::ValueType>(std::distance(ValueTypesArray.begin(), it));
 }
 
+static State::ValueImpl fromQJsonValueImpl(
+        const QJsonValue& val)
+{
+    switch(val.type())
+    {
+        case QJsonValue::Type::Null:
+            return no_value_t{};
+        case QJsonValue::Type::Bool:
+            return val.toBool();
+        case QJsonValue::Type::Double:
+            return val.toDouble();
+        case QJsonValue::Type::String:
+            return val.toString();
+        case QJsonValue::Type::Array:
+        {
+            const auto& arr = val.toArray();
+            State::tuple_t tuple;
+            tuple.reserve(arr.size());
 
-static State::ValueImpl toValueImpl(const QJsonValue& val, State::ValueType type)
+            for(const auto& v : arr)
+            {
+                tuple.push_back(fromQJsonValueImpl(v));
+            }
+
+            return tuple;
+        }
+        case QJsonValue::Type::Object:
+            return no_value_t{};
+        case QJsonValue::Type::Undefined:
+            return no_value_t{};
+        default:
+            return no_value_t{};
+    }
+}
+
+State::Value fromQJsonValue(const QJsonValue& val)
+{
+    return State::Value::fromValue(fromQJsonValueImpl(val));
+}
+
+
+static State::ValueImpl fromQJsonValueImpl(const QJsonValue& val, State::ValueType type)
 {
     switch(type)
     {
@@ -163,7 +203,7 @@ static State::ValueImpl toValueImpl(const QJsonValue& val, State::ValueType type
                 auto val_it = obj.find(iscore::StringConstant().Value);
                 if(val_it != obj.end() && type_it != obj.end())
                 {
-                    tuple.push_back(toValueImpl(*val_it, which((*type_it).toString())));
+                    tuple.push_back(fromQJsonValueImpl(*val_it, which((*type_it).toString())));
                 }
             });
 
@@ -175,14 +215,14 @@ static State::ValueImpl toValueImpl(const QJsonValue& val, State::ValueType type
     }
 }
 
-static State::Value toValue(const QJsonValue& val, ValueType which)
+static State::Value fromQJsonValue(const QJsonValue& val, ValueType which)
 {
-    return State::Value{toValueImpl(val, which)};
+    return State::Value{fromQJsonValueImpl(val, which)};
 }
 
-State::Value toValue(const QJsonValue& val, const QString& type)
+State::Value fromQJsonValue(const QJsonValue& val, const QString& type)
 {
-    return toValue(val, which(type));
+    return fromQJsonValue(val, which(type));
 }
 
 
@@ -282,7 +322,7 @@ QChar value(const State::Value& val)
             return_type operator()(float) const { return '-'; }
             return_type operator()(bool v) const { return v ? 'T' : 'F'; }
             return_type operator()(const QString& s) const { return s.size() > 0 ? s[0] : '-'; } // TODO boueeeff
-            return_type operator()(const QChar& v) const { return  v; }
+                return_type operator()(const QChar& v) const { return  v; }
             return_type operator()(const tuple_t&) const { return '-'; }
     } visitor{};
 
@@ -433,7 +473,7 @@ bool convert(const State::Value& orig, State::Value& toConvert)
 }
 
 
-State::ValueImpl toValueImpl(const QVariant& val)
+static State::ValueImpl fromQVariantImpl(const QVariant& val)
 {
 #pragma GCC diagnostic ignored "-Wswitch"
 #pragma GCC diagnostic ignored "-Wswitch-enum"
@@ -475,7 +515,7 @@ State::ValueImpl toValueImpl(const QVariant& val)
 
             Foreach(list, [&] (const auto& elt)
             {
-                tuple_val.push_back(toValueImpl(elt));
+                tuple_val.push_back(fromQVariantImpl(elt));
             });
             return tuple_val;
         }
@@ -497,9 +537,9 @@ State::ValueImpl toValueImpl(const QVariant& val)
 }
 
 
-State::Value toValue(const QVariant& val)
+State::Value fromQVariant(const QVariant& val)
 {
-    return State::Value{toValueImpl(val)};
+    return State::Value{fromQVariantImpl(val)};
 }
 
 }
