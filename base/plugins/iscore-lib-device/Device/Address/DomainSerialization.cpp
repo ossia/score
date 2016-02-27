@@ -48,17 +48,17 @@ Device::Domain JsonToDomain(const QJsonObject& obj, const QString& t)
     auto min_it = obj.constFind(iscore::StringConstant().Min);
     if(min_it != obj.constEnd())
     {
-        d.min = State::convert::toValue(*min_it, t);
+        d.min = State::convert::fromQJsonValue(*min_it, t);
     }
 
     auto max_it = obj.constFind(iscore::StringConstant().Max);
     if(max_it != obj.constEnd())
     {
-        d.max = State::convert::toValue(*max_it, t);
+        d.max = State::convert::fromQJsonValue(*max_it, t);
     }
 
     for(const QJsonValue& val : obj[iscore::StringConstant().Values].toArray())
-        d.values.append(State::convert::toValue(val, t));
+        d.values.append(State::convert::fromQJsonValue(val, t));
 
     return d;
 }

@@ -42,8 +42,9 @@ ISCORE_LIB_STATE_EXPORT QString toPrettyString(const State::Value& val);
 // and as an optimization, since we may need it multiple times,
 // we chose to leave the caller save it however he wants. Hence the specific API.
 ISCORE_LIB_STATE_EXPORT QString textualType(const State::Value& val); // For JSONValue serialization
-ISCORE_LIB_STATE_EXPORT State::Value toValue(const QVariant& val);
-ISCORE_LIB_STATE_EXPORT State::Value toValue(const QJsonValue& val, const QString& type);
+ISCORE_LIB_STATE_EXPORT State::Value fromQVariant(const QVariant& val);
+ISCORE_LIB_STATE_EXPORT State::Value fromQJsonValue(const QJsonValue& val); // Best effort
+ISCORE_LIB_STATE_EXPORT State::Value fromQJsonValue(const QJsonValue& val, const QString& type);
 
 ISCORE_LIB_STATE_EXPORT QString prettyType(const State::Value& val); // For display to the user, translated
 ISCORE_LIB_STATE_EXPORT const QStringList& ValuePrettyTypesList(); // For display to the user, translated

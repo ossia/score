@@ -485,7 +485,7 @@ bool DeviceExplorerModel::setData(
         {
             // In this case we don't make a command, but we directly push the
             // new value.
-            auto copy = State::convert::toValue(value);
+            auto copy = State::convert::fromQVariant(value);
 
             // We may have to convert types.
             const auto& orig = n.get<Device::AddressSettings>().value;
