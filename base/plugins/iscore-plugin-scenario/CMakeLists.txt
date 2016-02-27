@@ -67,6 +67,7 @@ set(SRCS ${SRCS}
 
 "${CMAKE_CURRENT_SOURCE_DIR}/Scenario/Palette/Tools/ScenarioRollbackStrategy.cpp"
 "${CMAKE_CURRENT_SOURCE_DIR}/Scenario/Commands/Constraint/SetLooping.cpp"
+"${CMAKE_CURRENT_SOURCE_DIR}/Scenario/Commands/Constraint/SetProcessUseParentDuration.cpp"
 "${CMAKE_CURRENT_SOURCE_DIR}/Scenario/Commands/Constraint/Rack/Slot/AddLayerModelToSlot.cpp"
 "${CMAKE_CURRENT_SOURCE_DIR}/Scenario/Commands/Constraint/Rack/Slot/RemoveLayerModelFromSlot.cpp"
 "${CMAKE_CURRENT_SOURCE_DIR}/Scenario/Commands/Constraint/Rack/Slot/ResizeSlotVertically.cpp"
@@ -323,10 +324,10 @@ add_library(iscore_plugin_scenario ${SRCS} ${HDRS} ${QRCS})
 iscore_generate_command_list_file(iscore_plugin_scenario "${HDRS}")
 
 target_link_libraries(iscore_plugin_scenario
-	PUBLIC
-		Qt5::Core Qt5::Widgets Qt5::Svg
-		iscore_lib_base
-		iscore_lib_process iscore_lib_device iscore_plugin_deviceexplorer iscore_lib_state iscore_plugin_curve iscore_plugin_automation pthread)
+  PUBLIC
+    Qt5::Core Qt5::Widgets Qt5::Svg
+    iscore_lib_base
+    iscore_lib_process iscore_lib_device iscore_plugin_deviceexplorer iscore_lib_state iscore_plugin_curve iscore_plugin_automation pthread)
 
 if(ISCORE_OPENGL)
 target_link_libraries(iscore_plugin_scenario PRIVATE Qt5::OpenGL)
@@ -337,7 +338,7 @@ target_link_libraries(iscore_plugin_scenario PRIVATE Qt5::WebSockets)
 endif()
 
 if(TARGET iscore_lib_inspector)
-	target_link_libraries(iscore_plugin_scenario PUBLIC iscore_lib_inspector)
+  target_link_libraries(iscore_plugin_scenario PUBLIC iscore_lib_inspector)
 endif()
 
 setup_iscore_plugin(iscore_plugin_scenario)

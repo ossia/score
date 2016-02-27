@@ -28,7 +28,7 @@ void Visitor<Reader<DataStream>>::readFrom_impl(const Process::ProcessModel& pro
     readFrom(static_cast<const IdentifiedObject<Process::ProcessModel>&>(process));
 
     readFrom(process.duration());
-    m_stream << process.useParentDuration();
+    //m_stream << process.useParentDuration();
 
     readFrom(process.metadata);
 }
@@ -39,7 +39,7 @@ template<>
 void Visitor<Writer<DataStream>>::writeTo(Process::ProcessModel& process)
 {
     writeTo(process.m_duration);
-    m_stream >> process.m_useParentDuration;
+    //m_stream >> process.m_useParentDuration;
     writeTo(process.metadata);
 
     // Delimiter checked on createProcess
@@ -53,7 +53,7 @@ void Visitor<Reader<JSONObject>>::readFrom_impl(const Process::ProcessModel& pro
     readFrom(static_cast<const IdentifiedObject<Process::ProcessModel>&>(process));
 
     m_obj[iscore::StringConstant().Duration] = toJsonValue(process.duration());
-    m_obj["UseParentDuration"] = process.useParentDuration();
+    //m_obj["UseParentDuration"] = process.useParentDuration();
     m_obj[iscore::StringConstant().Metadata] = toJsonObject(process.metadata);
 }
 
@@ -62,7 +62,7 @@ template<>
 void Visitor<Writer<JSONObject>>::writeTo(Process::ProcessModel& process)
 {
     process.m_duration = fromJsonValue<TimeValue>(m_obj[iscore::StringConstant().Duration]);
-    process.m_useParentDuration = m_obj["UseParentDuration"].toBool();
+    //process.m_useParentDuration = m_obj["UseParentDuration"].toBool();
     process.metadata = fromJsonObject<ModelMetadata>(m_obj[iscore::StringConstant().Metadata].toObject());
 }
 

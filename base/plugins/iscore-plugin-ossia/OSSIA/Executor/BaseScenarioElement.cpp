@@ -51,8 +51,6 @@ BaseScenarioElement::BaseScenarioElement(
     (*main_start_event_it)->addState(main_start_state);
     (*main_end_event_it)->addState(main_end_state);
 
-    OSSIA::TimeValue main_duration(iscore::convert::time(element.constraint().duration.defaultDuration()));
-
     // TODO PlayDuration of base constraint.
     // TODO PlayDuration of FullView
     auto main_constraint = OSSIA::TimeConstraint::create(
@@ -64,12 +62,10 @@ BaseScenarioElement::BaseScenarioElement(
     },
                                *main_start_event_it,
                                *main_end_event_it,
-                               main_duration,
-                               main_duration,
-                               main_duration);
+                               iscore::convert::time(element.constraint().duration.defaultDuration()),
+                               iscore::convert::time(element.constraint().duration.minDuration()),
+                               iscore::convert::time(element.constraint().duration.maxDuration()));
 
-    // TODO put graphical settings somewhere.
-    main_constraint->setSpeed(1.);
     main_constraint->setGranularity(ctx.doc.app.settings<Settings::Model>().getRate());
 
     m_ossia_startTimeNode = new TimeNodeElement{main_start_node, element.startTimeNode(),  m_ctx.devices.list(), this};

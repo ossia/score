@@ -26,7 +26,7 @@ ProcessModel::ProcessModel(
     Curve::CurveProcessModel {duration, id, Metadata<ObjectKey_k, ProcessModel>::get(), parent}
 {
     pluginModelList = new iscore::ElementPluginModelList{iscore::IDocument::documentContext(*parent), this};
-
+    setUseParentDuration(true);
     // Named shall be enough ?
     setCurve(new Curve::Model{Id<Curve::Model>(45345), this});
 

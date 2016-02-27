@@ -188,7 +188,7 @@ class ISCORE_LIB_PROCESS_EXPORT ProcessModel:
         // A process view is never displayed alone, it is always in a view, which is in a rack.
         std::vector<LayerModel*> m_layers;
         TimeValue m_duration;
-        bool m_useParentDuration{};
+        bool m_useParentDuration{true};
 };
 
 ISCORE_LIB_PROCESS_EXPORT ProcessModel* parentProcess(QObject* obj);
