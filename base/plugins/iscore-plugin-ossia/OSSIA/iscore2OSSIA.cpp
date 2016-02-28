@@ -185,6 +185,24 @@ OSSIA::Node* getNodeFromPath(
     return node;
 }
 
+OSSIA::BoundingMode toBoundingMode(Device::ClipMode c)
+{
+    switch(c)
+    {
+        case Device::ClipMode::Free:
+            return OSSIA::BoundingMode::FREE;
+        case Device::ClipMode::Clip:
+            return OSSIA::BoundingMode::CLIP;
+        case Device::ClipMode::Wrap:
+            return OSSIA::BoundingMode::WRAP;
+        case Device::ClipMode::Fold:
+            return OSSIA::BoundingMode::FOLD;
+        default:
+            ISCORE_ABORT;
+            return static_cast<OSSIA::BoundingMode>(-1);
+    }
+}
+
 void updateOSSIAAddress(
         const Device::FullAddressSettings &settings,
         const std::shared_ptr<OSSIA::Address> &addr)
@@ -204,6 +222,9 @@ void updateOSSIAAddress(
             ISCORE_ABORT;
             break;
     }
+
+    addr->setRepetitionFilter(settings.repetitionFilter);
+    addr->setBoundingMode(toBoundingMode(settings.clipMode));
 
     addr->setValue(iscore::convert::toOSSIAValue(settings.value));
 }

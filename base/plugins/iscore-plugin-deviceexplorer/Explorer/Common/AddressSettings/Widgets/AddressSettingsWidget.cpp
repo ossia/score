@@ -4,7 +4,7 @@
 #include <QInputDialog>
 #include <QLineEdit>
 #include <QMap>
-
+#include <QCheckBox>
 #include <QPushButton>
 #include <QString>
 #include <QStringList>
@@ -24,6 +24,7 @@ AddressSettingsWidget::AddressSettingsWidget(QWidget *parent) :
 {
     m_ioTypeCBox = new QComboBox{this};
     m_clipModeCBox = new QComboBox{this};
+    m_repetition = new QCheckBox;
     m_tagsEdit = new QComboBox{this};
     m_tagsEdit->setEditable(true);
     m_tagsEdit->setInsertPolicy(QComboBox::InsertAtCurrent);
@@ -45,6 +46,7 @@ AddressSettingsWidget::AddressSettingsWidget(QWidget *parent) :
 
     m_layout->addRow(tr("I/O type"), m_ioTypeCBox);
     m_layout->addRow(tr("Clip mode"), m_clipModeCBox);
+    m_layout->addRow(tr("Repetition filter"), m_repetition);
     m_layout->addRow(tr("Tags"), tagLayout);
 
     // Populate the combo boxes
@@ -99,6 +101,7 @@ Device::AddressSettings AddressSettingsWidget::getCommonSettings() const
     {
         settings.ioType = static_cast<Device::IOType>(m_ioTypeCBox->currentData().value<int>());
         settings.clipMode = static_cast<Device::ClipMode>(m_clipModeCBox->currentData().value<int>());
+        settings.repetitionFilter = m_repetition->isChecked();
     }
 
     for(int i = 0; i < m_tagsEdit->count(); i++)
@@ -118,6 +121,8 @@ void AddressSettingsWidget::setCommonSettings(const Device::AddressSettings & se
         const int clipModeIndex = m_clipModeCBox->findData((int)settings.clipMode);
         ISCORE_ASSERT(clipModeIndex != -1);
         m_clipModeCBox->setCurrentIndex(clipModeIndex);
+
+        m_repetition->setChecked(settings.repetitionFilter);
     }
     m_tagsEdit->addItems(settings.tags);
 }
