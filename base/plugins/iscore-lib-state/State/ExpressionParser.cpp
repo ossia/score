@@ -1,5 +1,6 @@
 #include "Expression.hpp"
 #ifndef Q_MOC_RUN
+#define BOOST_SPIRIT_DEBUG
 #include <boost/spirit/include/qi.hpp>
 #include <boost/spirit/include/qi_real.hpp>
 #include <boost/spirit/include/qi_lit.hpp>
@@ -232,9 +233,9 @@ struct Relation_parser : qi::grammar<Iterator, State::Relation()>
     Relation_parser() : Relation_parser::base_type(start)
     {
         using boost::spirit::qi::skip;
-        start %= skip(boost::spirit::ascii::space) [ rm_parser
-                >> op_map
-                >> rm_parser ];
+        start %= skip(boost::spirit::ascii::space) [
+                 (rm_parser >> op_map >> rm_parser)
+        ];
 
     }
 
@@ -251,7 +252,9 @@ struct Pulse_parser : qi::grammar<Iterator, State::Pulse()>
         using boost::spirit::qi::skip;
         using boost::spirit::qi::lit;
         using boost::spirit::ascii::string;
-        start %= ("impulse(" >> addr >> ')');
+        start %= skip(boost::spirit::ascii::space) [
+                addr >> "impulse"
+        ];
     }
 
     Address_parser<Iterator> addr;
@@ -311,7 +314,7 @@ template <typename It, typename Skipper = qi::space_type>
         and_ = (not_ >> "and" >> and_) [ _val = phx::construct<binop<op_and>>(_1, _2) ] | not_   [ _val = _1 ];
         not_ = ("not" > simple       ) [ _val = phx::construct<unop <op_not>>(_1)     ] | simple [ _val = _1 ];
 
-        simple = (('(' > expr_ > ')') | relation_ | pulse_);
+        simple = (('(' > (expr_) > ')') | relation_ | pulse_);
     }
 
   private:

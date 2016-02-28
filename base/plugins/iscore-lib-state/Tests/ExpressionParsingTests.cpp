@@ -174,6 +174,53 @@ class ExpressionParsingTests: public QObject
 
     private slots:
 
+        void test_parse_impulse()
+        {
+
+            {
+                std::string str("minuit:/device/lol impulse");
+
+
+                typedef std::string::const_iterator iterator_type;
+                Pulse_parser<iterator_type> parser;
+                auto first = str.cbegin(), last = str.cend();
+                State::Pulse p;
+                bool r = parse(first, last, parser, p);
+
+                QVERIFY(r);
+            }
+
+            {
+                std::string str("(minuit:/device/lol impulse)");
+
+
+                typedef std::string::const_iterator iterator_type;
+                Pulse_parser<iterator_type> parser;
+                auto first = str.cbegin(), last = str.cend();
+                State::Pulse p;
+                bool r = parse(first, last, parser, p);
+
+                QVERIFY(r);
+            }
+
+            {
+                QString str("minuit:/device/lol impulse");
+
+                auto expr = State::parseExpression(str);
+
+                QVERIFY(bool(expr) == true);
+            }
+
+            {
+                QString str("(minuit:/device/lol impulse)");
+
+                auto expr = State::parseExpression(str);
+
+                QVERIFY(bool(expr) == true);
+            }
+
+        }
+
         void test_parse_addr()
         {
             using namespace qi;

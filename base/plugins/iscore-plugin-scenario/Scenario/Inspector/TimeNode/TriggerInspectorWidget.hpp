@@ -9,6 +9,7 @@ namespace Inspector
 class InspectorWidgetBase;
 }
 class QPushButton;
+class QMenu;
 
 namespace Scenario
 {
@@ -44,7 +45,8 @@ class TriggerInspectorWidget final : public QWidget
         Inspector::InspectorWidgetBase* m_parent;
 
         QPushButton* m_addTrigBtn{};
-        QPushButton* m_rmTrigBtn{};
+        QPushButton* m_menuButton{};
+        QMenu* m_menu{};
 
         ExpressionEditorWidget* m_exprEditor{};
 };
