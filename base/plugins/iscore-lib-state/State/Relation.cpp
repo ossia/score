@@ -9,7 +9,7 @@ struct Value;
 
 QString toString(const Pulse& pulse)
 {
-    return "impulse(" + pulse.address.toString() + ")";
+    return pulse.address.toString() + " impulse";
 }
 
 }  // namespace iscore
