@@ -5,6 +5,7 @@
 #include <QWidget>
 
 class QComboBox;
+class QCheckBox;
 class QFormLayout;
 
 
@@ -27,9 +28,10 @@ class ISCORE_LIB_DEVICE_EXPORT AddressSettingsWidget : public QWidget
 
     private:
         bool m_none_type{false};
-        QComboBox* m_ioTypeCBox;
-        QComboBox* m_clipModeCBox;
-        QComboBox* m_tagsEdit;
+        QComboBox* m_ioTypeCBox{};
+        QComboBox* m_clipModeCBox{};
+        QCheckBox* m_repetition{};
+        QComboBox* m_tagsEdit{};
 };
 }
 
