@@ -104,6 +104,12 @@ BOOST_FUSION_ADAPT_STRUCT(
         )
 
 BOOST_FUSION_ADAPT_STRUCT(
+        State::AddressAccessor,
+        (State::Address, address)
+        (std::vector<int32_t>, accessors)
+        )
+
+BOOST_FUSION_ADAPT_STRUCT(
         State::Value,
         (State::Value::value_type, val)
         )
@@ -149,6 +155,43 @@ struct Address_parser : qi::grammar<Iterator, State::Address()>
     qi::rule<Iterator, QString()> member_elt;
     qi::rule<Iterator, QStringList()> path;
     qi::rule<Iterator, State::Address()> start;
+};
+
+template <typename Iterator>
+struct AccessorList_parser : qi::grammar<Iterator, std::vector<int32_t>()>
+{
+    AccessorList_parser() : AccessorList_parser::base_type(start)
+    {
+        using qi::alnum;
+        using boost::spirit::qi::skip;
+        using boost::spirit::ascii::space;
+        using boost::spirit::int_;
+
+        index %= skip(space) [ "[" >> int_ >> "]" ];
+        start %= skip(space) [ +(index) ];
+    }
+
+    qi::rule<Iterator, std::vector<int32_t>()> start;
+    qi::rule<Iterator, int32_t()> index;
+};
+
+
+template <typename Iterator>
+struct AddressAccessor_parser : qi::grammar<Iterator, State::AddressAccessor()>
+{
+    AddressAccessor_parser() : AddressAccessor_parser::base_type(start)
+    {
+        using qi::alnum;
+        using boost::spirit::qi::skip;
+        using boost::spirit::ascii::space;
+        using boost::spirit::int_;
+
+        start %= skip(space) [ address >> accessors ];
+    }
+
+    qi::rule<Iterator, State::AddressAccessor()> start;
+    Address_parser<Iterator> address;
+    AccessorList_parser<Iterator> accessors;
 };
 
 
@@ -203,10 +246,11 @@ struct RelationMember_parser : qi::grammar<Iterator, State::RelationMember()>
 {
     RelationMember_parser() : RelationMember_parser::base_type(start)
     {
-        start %= addr | val;
+        start %= addracc | addr | val;
     }
 
     Address_parser<Iterator> addr;
+    AddressAccessor_parser<Iterator> addracc;
     Value_parser<Iterator> val;
     qi::rule<Iterator, State::RelationMember()> start;
 };

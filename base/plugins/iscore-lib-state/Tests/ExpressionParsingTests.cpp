@@ -221,31 +221,89 @@ class ExpressionParsingTests: public QObject
 
         }
 
+
+        void test_parse_array()
+        {
+
+            {
+                std::string str("minuit:/device/lol[7]");
+
+                typedef std::string::const_iterator iterator_type;
+                AddressAccessor_parser<iterator_type> parser;
+                auto first = str.cbegin(), last = str.cend();
+                State::AddressAccessor p;
+                bool r = parse(first, last, parser, p);
+
+                QVERIFY(r);
+                QVERIFY(p.address.toString() == "minuit:/device/lol");
+                QVERIFY(p.accessors.size() == 1);
+                QVERIFY(p.accessors[0] == 7);
+            }
+
+            {
+                std::string str("minuit:/device/lol[7]");
+
+                typedef std::string::const_iterator iterator_type;
+                RelationMember_parser<iterator_type> parser;
+                auto first = str.cbegin(), last = str.cend();
+                State::RelationMember rm;
+                bool r = parse(first, last, parser, rm);
+
+                QVERIFY(r);
+                QVERIFY(rm.which() == 1);
+                auto& p = eggs::variants::get<State::AddressAccessor>(rm);
+                QVERIFY(p.address.toString() == "minuit:/device/lol");
+                QVERIFY(p.accessors.size() == 1);
+                QVERIFY(p.accessors[0] == 7);
+            }
+
+            {
+                QString str("(minuit:/device/lol[1][2] < 3.14)");
+
+                auto expr = State::parseExpression(str);
+
+                QVERIFY(bool(expr) == true);
+            }
+
+        }
+
         void test_parse_addr()
         {
             using namespace qi;
 
+            {
+                std::string str("minuit:/device/lol");
 
-            const QStringList rels{"==", "!=", ">", "<", ">=", "<="};
+                typedef std::string::const_iterator iterator_type;
+                using qi::parse;
+                using ascii::space;
 
+                Address_parser<iterator_type> parser;
+                auto first = str.cbegin(), last = str.cend();
+                State::Address addr;
+                bool r = parse(first, last, parser, addr);
 
+                qDebug() << "parsed?" << r;
+                qDebug() << addr.device;
+                for(auto& elt : addr.path)
+                    qDebug() << elt;
+            }
 
-            std::string str("minuit:/device/lol");
+            {
+                std::string str("minuit:/device/lol");
 
-            typedef std::string::const_iterator iterator_type;
-            using qi::parse;
-            using ascii::space;
+                typedef std::string::const_iterator iterator_type;
+                RelationMember_parser<iterator_type> parser;
+                auto first = str.cbegin(), last = str.cend();
+                State::RelationMember rm;
+                bool r = parse(first, last, parser, rm);
 
-            Address_parser<iterator_type> parser;
-            auto first = str.cbegin(), last = str.cend();
-            State::Address addr;
-            bool r = parse(first, last, parser, addr);
+                QVERIFY(r);
+                QVERIFY(rm.which() == 0);
+                auto& p = eggs::variants::get<State::Address>(rm);
+                QVERIFY(p.toString() == "minuit:/device/lol");
+            }
 
-            qDebug() << "parsed?" << r;
-            qDebug() << addr.device;
-            for(auto& elt : addr.path)
-                qDebug() << elt;
-            //if (first!=last) std::cerr << "unparsed: '" << std::string(first, last) << "'\n";
         }
 
         void test_parse_value()

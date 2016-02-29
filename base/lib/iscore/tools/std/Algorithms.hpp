@@ -49,6 +49,12 @@ auto remove_if(Vector&& v, Fun fun)
     return std::remove_if(std::begin(v), std::end(v), fun);
 }
 
+template<typename Vector, typename OutputIterator, typename Fun>
+auto transform(Vector&& v, OutputIterator it, Fun f)
+{
+    return std::transform(v.begin(), v.end(), it, f);
+}
+
 template<typename Vector1, typename Vector2>
 void copy(const Vector1& source, Vector2& destination)
 {

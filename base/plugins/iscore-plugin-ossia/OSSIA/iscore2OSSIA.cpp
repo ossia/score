@@ -504,8 +504,12 @@ OSSIA::Value* expressionOperand(
             }
 
             return_type operator()(const State::AddressAccessor& acc) const {
-                ISCORE_TODO;
-                return expressionAddress(acc.address, devlist);
+                auto dest = expressionAddress(acc.address, devlist);
+                if(dest)
+                {
+                    transform(acc.accessors, std::back_inserter(dest->index), [] (auto i) { return i;});
+                }
+                return dest;
             }
     } visitor{list};
 
