@@ -131,6 +131,7 @@ ToolMenuActions::ToolMenuActions(
         m_parent->editionSettings().setExpandMode(ExpandMode::GrowShrink);
     });
 
+    /*
     auto fixed = makeToolbarAction(
                     tr("Keep Duration"),
                     m_scenarioScaleModeActionGroup,
@@ -140,6 +141,7 @@ ToolMenuActions::ToolMenuActions(
     {
         m_parent->editionSettings().setExpandMode(ExpandMode::Fixed);
     });
+    */
 
     connect(parent, &ScenarioApplicationPlugin::keyPressed,
             this,   &ToolMenuActions::keyPressed);
@@ -208,10 +210,12 @@ ToolMenuActions::ToolMenuActions(
                 if(!grow->isChecked())
                     grow->setChecked(true);
                 break;
+                /*
             case ExpandMode::Fixed:
                 if(!fixed->isChecked())
                     fixed->setChecked(true);
                 break;
+                */
 
         }
     });
