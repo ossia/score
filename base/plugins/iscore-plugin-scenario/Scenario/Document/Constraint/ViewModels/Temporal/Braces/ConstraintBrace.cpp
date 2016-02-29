@@ -14,7 +14,7 @@ ConstraintBrace::ConstraintBrace(const TemporalConstraintView& parentCstr, QGrap
     m_parent{parentCstr}
 {
     this->setCursor(Qt::SizeHorCursor);
-    this->setZValue(10);
+    this->setZValue(ZPos::Brace);
 
     m_path.moveTo(10, -10);
     m_path.arcTo(0, -10, 20, 20, 90, 180);
@@ -46,12 +46,8 @@ void ConstraintBrace::paint(QPainter* painter,
     if(! m_parent.isValid())
     {
         constraintColor = ScenarioStyle::instance().ConstraintInvalid;
-        this->setZValue(this->zValue()+ 1);
     }
-    else
-    {
-        this->setZValue(parentObject()->zValue() + 3);
-    }
+
 
     QPen pen{constraintColor, 2, Qt::SolidLine, Qt::RoundCap, Qt::RoundJoin};
     painter->setPen(pen);

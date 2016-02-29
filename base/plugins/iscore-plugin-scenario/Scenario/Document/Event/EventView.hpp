@@ -8,6 +8,7 @@
 #include <QString>
 
 #include "ExecutionStatus.hpp"
+#include <Scenario/Document/ScenarioDocument/ScenarioDocumentViewConstants.hpp>
 #include <iscore_plugin_scenario_export.h>
 class QGraphicsSceneDragDropEvent;
 class QGraphicsSceneHoverEvent;
@@ -30,7 +31,7 @@ class ISCORE_PLUGIN_SCENARIO_EXPORT EventView final : public QGraphicsObject
         virtual ~EventView() = default;
 
         static constexpr int static_type()
-        { return QGraphicsItem::UserType + 1; }
+        { return QGraphicsItem::UserType + ItemType::Event; }
         int type() const override
         { return static_type(); }
 
