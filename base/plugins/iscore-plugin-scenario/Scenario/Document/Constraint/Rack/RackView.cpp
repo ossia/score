@@ -1,7 +1,7 @@
 #include <QtGlobal>
 
 #include "RackView.hpp"
-
+#include <Scenario/Document/ScenarioDocument/ScenarioDocumentViewConstants.hpp>
 class QPainter;
 class QStyleOptionGraphicsItem;
 class QWidget;
@@ -12,7 +12,7 @@ namespace Scenario
 RackView::RackView(QGraphicsObject* parent) :
     QGraphicsObject {parent}
 {
-    this->setZValue(1);
+    this->setZValue(ZPos::Rack);
 }
 
 QRectF RackView::boundingRect() const

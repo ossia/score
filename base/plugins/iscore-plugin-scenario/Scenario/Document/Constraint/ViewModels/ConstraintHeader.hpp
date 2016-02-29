@@ -1,6 +1,7 @@
 #pragma once
 #include <QGraphicsItem>
 #include <QString>
+#include <Scenario/Document/ScenarioDocument/ScenarioDocumentViewConstants.hpp>
 
 class QGraphicsSceneMouseEvent;
 
@@ -19,7 +20,7 @@ class ConstraintHeader : public QGraphicsObject
         using QGraphicsObject::QGraphicsObject;
 
         static constexpr int static_type()
-        { return QGraphicsItem::UserType + 6; }
+        { return QGraphicsItem::UserType + ItemType::ConstraintHeader; }
         int type() const override
         { return static_type(); }
 
@@ -28,7 +29,7 @@ class ConstraintHeader : public QGraphicsObject
             m_view = view;
         }
 
-        static constexpr int headerHeight() { return 30; }
+        static constexpr int headerHeight() { return ConstraintHeaderHeight; }
 
         void setWidth(double width);
         void setText(const QString &text);
