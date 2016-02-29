@@ -2,6 +2,7 @@
 #include <QtGlobal>
 #include <QGraphicsItem>
 #include <QRect>
+#include <Scenario/Document/ScenarioDocument/ScenarioDocumentViewConstants.hpp>
 
 class QGraphicsSceneMouseEvent;
 class QPainter;
@@ -17,7 +18,7 @@ class SlotOverlay final : public QGraphicsItem
         SlotOverlay(SlotView* parent);
 
         static constexpr int static_type()
-        { return QGraphicsItem::UserType + 8; }
+        { return QGraphicsItem::UserType + ItemType::SlotOverlay ; }
         int type() const override
         { return static_type(); }
 

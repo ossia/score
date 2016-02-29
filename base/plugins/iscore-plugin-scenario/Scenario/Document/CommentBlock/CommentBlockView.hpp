@@ -3,7 +3,7 @@
 #include <QGraphicsObject>
 
 #include <QPointF>
-
+#include <Scenario/Document/ScenarioDocument/ScenarioDocumentViewConstants.hpp>
 namespace Scenario
 {
 class TextItem;
@@ -19,7 +19,7 @@ class CommentBlockView final : public QGraphicsObject
         //~TimeNodeView() = default;
 
         static constexpr int static_type()
-        { return QGraphicsItem::UserType + 42; } // TODO : change 42 by the appropriate number
+        { return QGraphicsItem::UserType + ItemType::Comment; }
         int type() const override
         { return static_type(); }
 

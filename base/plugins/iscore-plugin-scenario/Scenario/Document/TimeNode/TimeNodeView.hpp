@@ -5,6 +5,7 @@
 #include <QPoint>
 #include <QRect>
 #include <iscore_plugin_scenario_export.h>
+#include <Scenario/Document/ScenarioDocument/ScenarioDocumentViewConstants.hpp>
 class QGraphicsSceneMouseEvent;
 class QPainter;
 class QStyleOptionGraphicsItem;
@@ -24,7 +25,7 @@ class ISCORE_PLUGIN_SCENARIO_EXPORT TimeNodeView final : public QGraphicsObject
         ~TimeNodeView() = default;
 
         static constexpr int static_type()
-        { return QGraphicsItem::UserType + 3; }
+        { return QGraphicsItem::UserType + ItemType::TimeNode; }
         int type() const override
         { return static_type(); }
 

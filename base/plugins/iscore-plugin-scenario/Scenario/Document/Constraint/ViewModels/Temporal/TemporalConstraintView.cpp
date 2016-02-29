@@ -30,7 +30,7 @@ TemporalConstraintView::TemporalConstraintView(
 {
     this->setParentItem(parent);
 
-    this->setZValue(3);
+    this->setZValue(ZPos::Constraint);
     m_leftBrace = new LeftBraceView{*this, this};
     m_leftBrace->setX(minWidth());
 
@@ -132,12 +132,8 @@ void TemporalConstraintView::paint(
     if(! isValid())
     {
         constraintColor = ScenarioStyle::instance().ConstraintInvalid;
-        this->setZValue(this->zValue()+ 1);
     }
-    else
-    {
-        this->setZValue(parentObject()->zValue() + 3);
-    }
+
 
     m_solidPen.setColor(constraintColor);
     m_dashPen.setColor(constraintColor);

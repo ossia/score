@@ -18,7 +18,7 @@ StateView::StateView(StatePresenter& pres, QGraphicsItem* parent) :
 {
     this->setParentItem(parent);
 
-    this->setZValue(5);
+    this->setZValue(ZPos::State);
     this->setAcceptDrops(true);
     this->setAcceptHoverEvents(true);
     m_baseColor = ScenarioStyle::instance().StateOutline;

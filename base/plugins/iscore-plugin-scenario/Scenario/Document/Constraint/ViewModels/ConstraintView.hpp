@@ -4,6 +4,7 @@
 #include <qnamespace.h>
 #include <QPen>
 #include <iscore_plugin_scenario_export.h>
+#include <Scenario/Document/ScenarioDocument/ScenarioDocumentViewConstants.hpp>
 class QGraphicsSceneMouseEvent;
 
 namespace Scenario
@@ -19,7 +20,7 @@ class ISCORE_PLUGIN_SCENARIO_EXPORT ConstraintView : public QGraphicsObject
         virtual ~ConstraintView();
 
         static constexpr int static_type()
-        { return QGraphicsItem::UserType + 2; }
+        { return QGraphicsItem::UserType + ItemType::Constraint; }
         int type() const final override
         { return static_type(); }
 

@@ -1,6 +1,7 @@
 #pragma once
 #include <QGraphicsItem>
 #include <QRect>
+#include <Scenario/Document/ScenarioDocument/ScenarioDocumentViewConstants.hpp>
 
 class QGraphicsSceneMouseEvent;
 class QGraphicsSvgItem;
@@ -21,7 +22,7 @@ class TriggerView final : public QGraphicsObject
                    QWidget *widget) override;
 
         static constexpr int static_type()
-        { return QGraphicsItem::UserType + 7; }
+        { return QGraphicsItem::UserType + ItemType::Trigger; }
         int type() const override
         { return static_type(); }
 
