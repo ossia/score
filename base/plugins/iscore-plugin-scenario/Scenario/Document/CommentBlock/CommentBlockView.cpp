@@ -19,7 +19,7 @@ CommentBlockView::CommentBlockView(
     m_presenter{presenter}
 {
     this->setParentItem(parent);
-    this->setZValue(1);
+    this->setZValue(ZPos::Comment);
     this->setAcceptHoverEvents(true);
 
     m_textItem = new TextItem{"", this};

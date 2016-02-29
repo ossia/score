@@ -37,7 +37,7 @@ EventView::EventView(EventPresenter& presenter,
     this->setParentItem(parent);
     this->setCursor(Qt::SizeHorCursor);
 
-    this->setZValue(2);
+    this->setZValue(ZPos::Event);
     this->setAcceptHoverEvents(true);
 
 }

@@ -6,6 +6,8 @@
 
 #include <Scenario/Document/Event/ExecutionStatus.hpp>
 #include <iscore_plugin_scenario_export.h>
+#include <Scenario/Document/ScenarioDocument/ScenarioDocumentViewConstants.hpp>
+
 class QGraphicsSceneDragDropEvent;
 class QGraphicsSceneMouseEvent;
 class QMimeData;
@@ -25,7 +27,7 @@ class ISCORE_PLUGIN_SCENARIO_EXPORT  StateView final : public QGraphicsObject
         virtual ~StateView() = default;
 
         static constexpr int static_type()
-        { return QGraphicsItem::UserType + 4; }
+        { return QGraphicsItem::UserType + ItemType::State; }
         int type() const override
         { return static_type(); }
 

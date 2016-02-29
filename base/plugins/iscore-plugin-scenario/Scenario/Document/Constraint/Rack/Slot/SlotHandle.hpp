@@ -4,6 +4,7 @@
 #include <QPen>
 #include <QRect>
 #include <iscore_plugin_scenario_export.h>
+#include <Scenario/Document/ScenarioDocument/ScenarioDocumentViewConstants.hpp>
 class QPainter;
 class QStyleOptionGraphicsItem;
 class QWidget;
@@ -19,7 +20,7 @@ class ISCORE_PLUGIN_SCENARIO_EXPORT SlotHandle final : public QGraphicsItem
                    QGraphicsItem* parent);
 
         static constexpr int static_type()
-        { return QGraphicsItem::UserType + 5; }
+        { return QGraphicsItem::UserType + ItemType::SlotHandle; }
         int type() const override
         { return static_type(); }
 
