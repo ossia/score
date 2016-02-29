@@ -97,7 +97,7 @@ std::vector<LayerModel*> ProcessModel::layers() const
 
 void ProcessModel::setParentDuration(ExpandMode mode, const TimeValue& t)
 {
-    if(m_useParentDuration)
+    if(m_useParentDuration && mode == ExpandMode::Fixed)
         mode = ExpandMode::Scale;
 
     switch(mode)
