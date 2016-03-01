@@ -8,6 +8,7 @@
 
 #include "MappingView.hpp"
 #include <Process/LayerView.hpp>
+#include <Process/Style/Skin.hpp>
 
 namespace Mapping
 {
@@ -25,7 +26,7 @@ void MappingView::paint_impl(QPainter* painter) const
 
     if(m_showName)
     {
-        auto f = Process::Fonts::Sans();
+        auto f = Skin::instance().SansFont;
         f.setPointSize(fontSize);
         painter->setFont(f);
         painter->setPen(Qt::lightGray);

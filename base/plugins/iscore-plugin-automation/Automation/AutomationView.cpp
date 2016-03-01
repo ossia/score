@@ -1,4 +1,5 @@
 #include <Process/Style/ProcessFonts.hpp>
+#include <Process/Style/Skin.hpp>
 #include <QFlags>
 #include <QFont>
 #include <QGraphicsItem>
@@ -26,7 +27,7 @@ void LayerView::paint_impl(QPainter* painter) const
 #if !defined(ISCORE_IEEE_SKIN)
     if(m_showName)
     {
-        auto f = Process::Fonts::Sans();
+        auto f = Skin::instance().SansFont;
         f.setPointSize(fontSize);
         painter->setFont(f);
         painter->setPen(Qt::lightGray);
