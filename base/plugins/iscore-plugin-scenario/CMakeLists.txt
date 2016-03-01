@@ -1,7 +1,7 @@
 cmake_minimum_required(VERSION 3.0)
 project(iscore_plugin_scenario LANGUAGES CXX)
 iscore_common_setup()
-
+set(ISCORE_OPENGL True)
 # Packages
 # TODO make a check to see what libs aren't necessary
 find_package(Qt5 5.3 REQUIRED COMPONENTS Core Widgets Xml Svg Test)

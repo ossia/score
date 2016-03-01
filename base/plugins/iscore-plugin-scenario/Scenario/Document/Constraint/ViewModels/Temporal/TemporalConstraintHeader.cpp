@@ -12,6 +12,7 @@
 #include <algorithm>
 #include <cmath>
 
+#include <Process/Style/Skin.hpp>
 #include <Scenario/Document/Constraint/ViewModels/ConstraintHeader.hpp>
 #include "TemporalConstraintHeader.hpp"
 
@@ -46,7 +47,7 @@ void TemporalConstraintHeader::paint(
     }
 
     // Header
-    auto font = Process::Fonts::Sans();
+    auto font = Skin::instance().SansFont;
     font.setPointSize(10);
     font.setBold(true);
 

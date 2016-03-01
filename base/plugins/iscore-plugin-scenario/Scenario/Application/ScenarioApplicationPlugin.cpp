@@ -320,6 +320,7 @@ void ScenarioApplicationPlugin::on_activeWindowChanged()
 
 void ScenarioApplicationPlugin::initColors()
 {
+    /*
     ScenarioStyle& instance = ScenarioStyle::instance();
 #ifdef ISCORE_IEEE_SKIN
     QFile cols(":/ScenarioColors-IEEE.json");
@@ -390,6 +391,7 @@ void ScenarioApplicationPlugin::initColors()
         instance.TimeRuler = fromColor("TimeRuler");
         instance.LocalTimeRuler = fromColor("LocalTimeRuler");
     }
+    */
 }
 
 const Scenario::ScenarioModel* ScenarioApplicationPlugin::focusedScenarioModel() const

@@ -5,6 +5,8 @@
 
 struct ISCORE_LIB_PROCESS_EXPORT Skin
 {
+        static Skin& instance();
+
         QFont SansFont;
         QFont MonoFont;
 
@@ -40,46 +42,8 @@ struct ISCORE_LIB_PROCESS_EXPORT Skin
         QColor Tender1{199, 31, 44};
         QColor Tender2{216, 178, 24};
         QColor Tender3{128, 215, 62};
-        // RackSideBorder -> Base1
 
-        // ConstraintDefaultLabel -> gray
-        // Emphasis1 QColor ConstraintFullViewParentSelected{Qt::cyan};
-
-        // Light QColor ConstraintHeaderText{Qt::white}; // Light
-        // Background1 QColor ConstraintHeaderBottomLine{0, 127, 229, 76};
-        // Background1 QColor ConstraintHeaderRackHidden{0, 127, 229, 76};
-        // Base1 QColor ConstraintHeaderSideBorder{3, 195, 221};
-
-        // Text1 QColor ProcessViewBorder{Qt::gray};
-
-        // Base2 QColor SlotFocus{QColor::fromRgbF(0.188235, 0.54902, 0.776471)};
-        // Dark QColor SlotOverlayBorder{Qt::black};
-
-        // HalfDark QColor TimenodeDefault{Qt::darkGray};
-        // Base2 QColor TimenodeSelected{QColor::fromRgbF(0.188235, 0.54902, 0.776471)};
-
-        // Light QColor EventDefault{Qt::white};
-        // HalfLight QColor EventWaiting{Qt::lightGray};
-        // Error1 QColor EventPending{Qt::yellow};
-        // Base3 QColor EventHappened{34, 224, 0};
-        // Warn3 QColor EventDisposed{Qt::red};
-        // Base2 QColor EventSelected{QColor::fromRgbF(0.188235, 0.54902, 0.776471)};
-
-        // Smooth3 QColor ConditionDefault{200, 250, 0};
-        // Base4 QColor ConditionWaiting{179, 179, 179}; // AlternateBase
-        // Base QColor ConditionDisabled{3, 195, 221}; // Base
-        // Smooth1 QColor ConditionFalse{222, 0, 0}; // WindowText
-        // Smooth2 QColor ConditionTrue{109,222,0}; // Button
-
-        // Light QColor StateOutline{Qt::white};
-        // Base2 QColor StateSelected{QColor::fromRgbF(0.188235, 0.54902, 0.776471)};
-        // Base1 QColor StateDot{3, 195, 221};
-
-        // Background1 QColor Background{37, 41, 48};
-        // Transparent1 QColor ProcessPanelBackground{0, 127, 229, 76};
-
-        // Background1 QColor TimeRulerBackground{37, 41, 48}; // Background
-        // Base1 QColor TimeRuler{3, 195, 221};
-        // Base4 QColor LocalTimeRuler{179, 179, 179};
+    private:
+        Skin();
 
 };

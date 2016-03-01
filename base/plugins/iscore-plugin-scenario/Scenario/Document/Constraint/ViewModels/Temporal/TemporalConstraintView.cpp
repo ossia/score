@@ -8,6 +8,7 @@
 #include <QPainterPath>
 #include <QPen>
 
+#include <Process/Style/Skin.hpp>
 #include <Scenario/Document/Constraint/ViewModels/ConstraintPresenter.hpp>
 #include <Scenario/Document/Constraint/ViewModels/ConstraintView.hpp>
 #include "TemporalConstraintPresenter.hpp"
@@ -172,7 +173,7 @@ void TemporalConstraintView::paint(
 
     static const int fontSize = 12;
     QRectF labelRect{0,0, defaultWidth(), (-fontSize - 2.)};
-    auto f = Process::Fonts::Sans();
+    auto f = Skin::instance().SansFont;
     f.setPointSize(fontSize);
 
     painter->setFont(f);
