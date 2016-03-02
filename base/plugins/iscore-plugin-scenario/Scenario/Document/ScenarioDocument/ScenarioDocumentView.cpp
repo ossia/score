@@ -24,7 +24,7 @@
 #include <QToolBar>
 #include <QWidget>
 #include <QFile>
-
+#include <Process/Style/Skin.hpp>
 #include <Scenario/Application/Menus/ScenarioActions.hpp>
 #include <Process/Tools/ProcessGraphicsView.hpp>
 #include "ScenarioDocumentView.hpp"
@@ -35,7 +35,7 @@
 #include <iscore/application/ApplicationContext.hpp>
 #include <iscore/plugins/documentdelegate/DocumentDelegateViewInterface.hpp>
 #include <Scenario/Document/ScenarioDocument/ScenarioDocumentViewConstants.hpp>
-
+#include <Scenario/Settings/Model.hpp>
 class QObject;
 #if defined(ISCORE_OPENGL)
 #include <QGLWidget>
@@ -191,6 +191,14 @@ ScenarioDocumentView::ScenarioDocumentView(
 
     connect(m_view, &ProcessGraphicsView::scrolled,
             this,   &ScenarioDocumentView::horizontalPositionChanged);
+
+    auto& skin = Skin::instance();
+    con(skin, &Skin::changed,
+        this, [&] () {
+        auto& skin = ScenarioStyle::instance();
+        m_timeRulersView->setBackgroundBrush(QBrush(skin.TimeRulerBackground));
+        m_view->setBackgroundBrush(skin.Background);
+    });
 }
 
 QWidget* ScenarioDocumentView::getWidget()
