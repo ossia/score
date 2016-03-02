@@ -1,5 +1,6 @@
 #pragma once
 #include <QColor>
+#include <QBrush>
 #include <utility>
 #include <Process/Style/Skin.hpp>
 #include <eggs/variant.hpp>
@@ -33,13 +34,7 @@ struct ISCORE_LIB_PROCESS_EXPORT ColorRef
         {
 
         }
-/*
-        ColorRef(const QColor& col):
-            ref{&col}
-        {
 
-        }
-*/
         void setColor(QColor Skin::*s)
         {
             // Set color by reference
@@ -66,7 +61,6 @@ struct ISCORE_LIB_PROCESS_EXPORT ColorRef
         static boost::optional<ColorRef> SimilarColor(QColor other);
 
     private:
-
         const QColor* ref{};
 };
 
