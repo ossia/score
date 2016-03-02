@@ -9,6 +9,7 @@
 
 #include "Loop/LoopProcessMetadata.hpp"
 #include "LoopProcessModel.hpp"
+#include <Process/Style/Skin.hpp>
 #include <Process/ModelMetadata.hpp>
 #include <Process/Process.hpp>
 #include <Scenario/Document/BaseScenario/BaseScenarioContainer.hpp>
@@ -20,6 +21,7 @@
 #include <iscore/tools/SettableIdentifier.hpp>
 #include <iscore/tools/std/StdlibWrapper.hpp>
 #include <iscore/tools/std/Algorithms.hpp>
+#include <Process/Style/ScenarioStyle.hpp>
 
 namespace Process { class LayerModel; }
 class ProcessStateDataInterface;
@@ -49,7 +51,7 @@ ProcessModel::ProcessModel(
     const double height = 0.15;
     constraint().setHeightPercentage(height);
     constraint().metadata.setName("Loop pattern");
-    constraint().metadata.setColor(Qt::yellow);
+    constraint().metadata.setColor(ScenarioStyle::instance().ConstraintInvalid);
     BaseScenarioContainer::startState().setHeightPercentage(height);
     BaseScenarioContainer::endState().setHeightPercentage(height);
     BaseScenarioContainer::startEvent().setExtent({height, 0.2});

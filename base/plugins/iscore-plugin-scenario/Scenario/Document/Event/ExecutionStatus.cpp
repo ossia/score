@@ -6,9 +6,8 @@
 
 namespace Scenario
 {
-const QColor& ExecutionStatusProperty::eventStatusColor()
+ColorRef ExecutionStatusProperty::eventStatusColor()
 {
-    static const QColor error = Qt::magenta;
     const auto& col = ScenarioStyle::instance();
     switch(m_status)
     {
@@ -17,13 +16,12 @@ const QColor& ExecutionStatusProperty::eventStatusColor()
         case ExecutionStatus::Pending:  return col.EventPending;
         case ExecutionStatus::Happened: return col.EventHappened;
         case ExecutionStatus::Disposed: return col.EventDisposed;
-        default: return error;
+        default: return ColorRef(&Skin::instance().Warn3);
     }
 }
 
-const QColor& ExecutionStatusProperty::stateStatusColor()
+ColorRef ExecutionStatusProperty::stateStatusColor()
 {
-    static const QColor error = Qt::magenta;
     const auto& col = ScenarioStyle::instance();
     switch(m_status)
     {
@@ -32,7 +30,7 @@ const QColor& ExecutionStatusProperty::stateStatusColor()
         case ExecutionStatus::Pending:  return col.EventPending;
         case ExecutionStatus::Happened: return col.EventHappened;
         case ExecutionStatus::Disposed: return col.EventDisposed;
-        default: return error;
+        default: return ColorRef(&Skin::instance().Warn3);
     }
 }
 }

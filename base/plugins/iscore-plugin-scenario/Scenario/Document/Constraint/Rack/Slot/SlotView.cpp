@@ -30,10 +30,6 @@ QRectF SlotView::boundingRect() const
 
 void SlotView::paint(QPainter* painter, const QStyleOptionGraphicsItem* option, QWidget* widget)
 {
-    const auto& rect = boundingRect();
-
-    painter->setPen(QPen{m_focus? ScenarioStyle::instance().SlotFocus : Qt::transparent});
-    painter->drawRect(rect);
 }
 
 void SlotView::setHeight(qreal height)

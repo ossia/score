@@ -33,19 +33,19 @@ void ConstraintBrace::paint(QPainter* painter,
     // TODO make a switch instead
     if(m_parent.isSelected())
     {
-        constraintColor = ScenarioStyle::instance().ConstraintSelected;
+        constraintColor = ScenarioStyle::instance().ConstraintSelected.getColor();
     }
     else if(m_parent.warning())
     {
-        constraintColor = ScenarioStyle::instance().ConstraintWarning;
+        constraintColor = ScenarioStyle::instance().ConstraintWarning.getColor();
     }
     else
     {
-        constraintColor = ScenarioStyle::instance().ConstraintBase;
+        constraintColor = ScenarioStyle::instance().ConstraintBase.getColor();
     }
     if(! m_parent.isValid())
     {
-        constraintColor = ScenarioStyle::instance().ConstraintInvalid;
+        constraintColor = ScenarioStyle::instance().ConstraintInvalid.getColor();
     }
 
 

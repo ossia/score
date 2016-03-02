@@ -23,7 +23,7 @@ ProcessGraphicsView::ProcessGraphicsView(QGraphicsScene* parent):
 
     this->setAttribute(Qt::WA_OpaquePaintEvent);
     //m_graduations->setColor(m_bg.color().lighter());
-    this->setBackgroundBrush(ScenarioStyle::instance().Background);
+    this->setBackgroundBrush(ScenarioStyle::instance().Background.getBrush());
 }
 
 void ProcessGraphicsView::setGrid(QPainterPath&& newGrid)

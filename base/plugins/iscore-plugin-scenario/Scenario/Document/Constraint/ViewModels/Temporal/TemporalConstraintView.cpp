@@ -47,6 +47,7 @@ void TemporalConstraintView::paint(
         const QStyleOptionGraphicsItem*,
         QWidget*)
 {
+
     qreal min_w = minWidth();
     qreal max_w = maxWidth();
     qreal def_w = defaultWidth();
@@ -62,10 +63,13 @@ void TemporalConstraintView::paint(
         auto rect = boundingRect();
         rect.adjust(0,4,0,-10);
         rect.setWidth(this->defaultWidth());
-        painter->fillRect(rect, m_bgColor);
+
+        QColor bgColor = m_bgColor.getColor();
+        bgColor.setAlpha(m_hasFocus ? 84 : 76);
+        painter->fillRect(rect, bgColor);
 
         // Fake timenode continuation
-        auto color = ScenarioStyle::instance().RackSideBorder;
+        auto color = ScenarioStyle::instance().RackSideBorder.getColor();
         QPen pen{color, 2, Qt::SolidLine, Qt::RoundCap, Qt::RoundJoin};
         painter->setPen(pen);
         painter->drawLine(rect.topLeft(), rect.bottomLeft());
@@ -120,19 +124,19 @@ void TemporalConstraintView::paint(
     // TODO make a switch instead
     if(isSelected())
     {
-        constraintColor = ScenarioStyle::instance().ConstraintSelected;
+        constraintColor = ScenarioStyle::instance().ConstraintSelected.getColor();
     }
     else if(warning())
     {
-        constraintColor = ScenarioStyle::instance().ConstraintWarning;
+        constraintColor = ScenarioStyle::instance().ConstraintWarning.getColor();
     }
     else
     {
-        constraintColor = ScenarioStyle::instance().ConstraintBase;
+        constraintColor = ScenarioStyle::instance().ConstraintBase.getColor();
     }
     if(! isValid())
     {
-        constraintColor = ScenarioStyle::instance().ConstraintInvalid;
+        constraintColor = ScenarioStyle::instance().ConstraintInvalid.getColor();
     }
 
 
@@ -159,7 +163,7 @@ void TemporalConstraintView::paint(
 
 
     static const QPen playedPen{
-        QBrush{ScenarioStyle::instance().ConstraintPlayFill},
+        ScenarioStyle::instance().ConstraintPlayFill.getColor(),
         4,
         Qt::SolidLine,
                 Qt::RoundCap,
@@ -177,7 +181,7 @@ void TemporalConstraintView::paint(
     f.setPointSize(fontSize);
 
     painter->setFont(f);
-    painter->setPen(m_labelColor);
+    painter->setPen(m_labelColor.getColor());
     painter->drawText(labelRect, Qt::AlignCenter, m_label);
 
 #if defined(ISCORE_SCENARIO_DEBUG_RECTS)
@@ -204,7 +208,7 @@ void TemporalConstraintView::setLabel(const QString &label)
     update();
 }
 
-void TemporalConstraintView::setLabelColor(const QColor &labelColor)
+void TemporalConstraintView::setLabelColor(ColorRef labelColor)
 {
     m_labelColor = labelColor;
     update();

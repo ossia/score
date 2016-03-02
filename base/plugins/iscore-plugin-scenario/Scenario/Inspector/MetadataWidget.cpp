@@ -1,6 +1,8 @@
 #include <QBoxLayout>
 #include <QColorDialog>
 #include <QFormLayout>
+#include <QMenu>
+#include <QWidgetAction>
 #include <QIcon>
 #include <QLabel>
 #include <QLineEdit>
@@ -15,6 +17,7 @@
 #include <iscore/command/Dispatchers/CommandDispatcher.hpp>
 #include <iscore/widgets/MarginLess.hpp>
 
+#include <QtColorWidgets/color_palette_widget.hpp>
 class QObject;
 
 namespace Scenario
@@ -54,7 +57,7 @@ MetadataWidget::MetadataWidget(
     m_colorButton = new QPushButton{};
     m_colorButton->setMaximumSize(QSize(1.5 * m_colorIconSize, 1.5 * m_colorIconSize));
     m_colorButton->setIconSize(QSize(m_colorIconSize, m_colorIconSize));
-    m_colorButtonPixmap.fill(metadata->color());
+    m_colorButtonPixmap.fill(metadata->color().getColor());
     m_colorButton->setIcon(QIcon(m_colorButtonPixmap));
 
 
@@ -103,8 +106,37 @@ MetadataWidget::MetadataWidget(
         emit commentsChanged(m_comments->toPlainText());
     });
 
-    connect(m_colorButton,  &QPushButton::clicked,
-            this,           &MetadataWidget::changeColor);
+    {
+        using namespace color_widgets;
+
+        auto palette_widget = new ColorPaletteWidget;
+        delete m_palette;
+        m_palette = new ColorPaletteModel;
+        ColorPalette palette1;
+        palette1.setColors(Skin::instance().getColors());
+        palette1.setName("Choose a color");
+        m_palette->addPalette(palette1, false);
+
+        palette_widget->setModel(m_palette);
+        palette_widget->setReadOnly(true);
+
+        connect(palette_widget, static_cast<void (ColorPaletteWidget::*)(int)>(&ColorPaletteWidget::currentColorChanged),
+                this, [=] (int idx) {
+            auto colors = m_palette->palette(0).colors();
+            if(colors.size() <= idx)
+                return;
+
+            auto col = ColorRef::ColorFromString(colors.at(idx).second);
+            if(col)
+                emit colorChanged(*col);
+        } );
+
+        auto colorMenu = new QMenu;
+        auto act = new QWidgetAction(colorMenu);
+        act->setDefaultWidget(palette_widget);
+        colorMenu->insertAction(nullptr, act);
+        m_colorButton->setMenu(colorMenu);
+    }
 
     connect(metadata,   &ModelMetadata::metadataChanged,
             this,       &MetadataWidget::updateAsked);
@@ -126,23 +158,13 @@ void MetadataWidget::setScriptingName(QString arg)
     emit scriptingNameChanged(arg);
 }
 
-void MetadataWidget::changeColor()
-{
-    QColor color = QColorDialog::getColor(m_metadata->color(), this, "Select Color");
-
-    if(color.isValid())
-    {
-        emit colorChanged(color);
-    }
-}
-
 void MetadataWidget::updateAsked()
 {
     m_scriptingNameLine->setText(m_metadata->name());
     m_labelLine->setText(m_metadata->label());
     m_comments->setText(m_metadata->comment());
 
-    m_colorButtonPixmap.fill(m_metadata->color());
+    m_colorButtonPixmap.fill(m_metadata->color().getColor());
     m_colorButton->setIcon(QIcon(m_colorButtonPixmap));
     // m_currentColor = newColor;
 }

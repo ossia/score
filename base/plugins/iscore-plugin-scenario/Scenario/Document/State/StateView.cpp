@@ -21,17 +21,19 @@ StateView::StateView(StatePresenter& pres, QGraphicsItem* parent) :
     this->setZValue(ZPos::State);
     this->setAcceptDrops(true);
     this->setAcceptHoverEvents(true);
-    m_baseColor = ScenarioStyle::instance().StateOutline;
+    m_color = ScenarioStyle::instance().StateOutline;
 }
 
 void StateView::paint(QPainter *painter, const QStyleOptionGraphicsItem *option, QWidget *widget)
 {
-    QBrush temporalPointBrush = m_selected ? ScenarioStyle::instance().StateSelected : ScenarioStyle::instance().StateDot;
-    QBrush stateBrush = m_baseColor;
+    QBrush temporalPointBrush = m_selected
+            ? ScenarioStyle::instance().StateSelected.getColor()
+            : ScenarioStyle::instance().StateDot.getColor();
+    QBrush stateBrush = m_color.getColor();
 
     auto status = m_status.get();
     if(status != ExecutionStatus::Editing)
-        temporalPointBrush = m_status.stateStatusColor();
+        temporalPointBrush = m_status.stateStatusColor().getColor();
 
     if(m_containMessage)
     {
@@ -66,9 +68,9 @@ void StateView::setSelected(bool arg)
     setDilatation(m_selected ? 1.5 : 1);
 }
 
-void StateView::changeColor(const QColor & c)
+void StateView::changeColor(ColorRef c)
 {
-    m_baseColor = c;
+    m_color = c;
     update();
 }
 

@@ -1,4 +1,5 @@
 #pragma once
+#include <Process/Style/ColorReference.hpp>
 #include <QObject>
 
 class QColor;
@@ -22,8 +23,8 @@ class ExecutionStatusProperty final : public QObject
                 emit changed(m_status);
             }
         }
-        const QColor& eventStatusColor();
-        const QColor& stateStatusColor();
+        ColorRef eventStatusColor();
+        ColorRef stateStatusColor();
 
     signals:
         void changed(ExecutionStatus);

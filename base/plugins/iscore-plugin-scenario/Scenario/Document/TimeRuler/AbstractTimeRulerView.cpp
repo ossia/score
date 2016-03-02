@@ -28,7 +28,7 @@ AbstractTimeRulerView::AbstractTimeRulerView() :
 
 void AbstractTimeRulerView::paint(QPainter *painter, const QStyleOptionGraphicsItem *option, QWidget *widget)
 {
-    const auto brush = QBrush(m_color);
+    const auto brush = m_color.getBrush();
     painter->setPen(QPen(brush, 2, Qt::SolidLine));
     painter->drawLine(0, 0, m_width, 0);
 

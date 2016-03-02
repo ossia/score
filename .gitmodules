@@ -16,3 +16,6 @@
 [submodule "CMake/modules/cmake-modules"]
 	path = CMake/modules/cmake-modules
 	url = https://github.com/OSSIA/cmake-modules
+[submodule "3rdparty/Qt-Color-Widgets"]
+	path = 3rdparty/Qt-Color-Widgets
+	url = https://github.com/jcelerier/Qt-Color-Widgets.git

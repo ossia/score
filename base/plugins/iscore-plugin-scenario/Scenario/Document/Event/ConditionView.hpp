@@ -3,6 +3,7 @@
 #include <QGraphicsItem>
 #include <QPainterPath>
 #include <QRect>
+#include <Process/Style/ColorReference.hpp>
 
 class QPainter;
 class QStyleOptionGraphicsItem;
@@ -15,7 +16,7 @@ class ConditionView final : public QGraphicsItem
 {
     public:
 
-        ConditionView(const QColor& color, QGraphicsItem* parent);
+        ConditionView(ColorRef color, QGraphicsItem* parent);
 
         using QGraphicsItem::QGraphicsItem;
         QRectF boundingRect() const override;
@@ -24,12 +25,12 @@ class ConditionView final : public QGraphicsItem
                    QWidget *widget) override;
         void changeHeight(qreal newH);
 
-        void setColor(const QColor& c)
+        void setColor(ColorRef c)
         { m_color = c;  update();}
 
     private:
 
-        QColor m_color{Qt::magenta};
+        ColorRef m_color;
         QPainterPath m_trianglePath;
         QPainterPath m_Cpath;
         qreal m_height{0};

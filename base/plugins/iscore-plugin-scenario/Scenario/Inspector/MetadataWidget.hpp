@@ -19,6 +19,11 @@ class QObject;
 class QPushButton;
 class QToolButton;
 
+namespace color_widgets
+{
+class ColorPaletteModel;
+}
+
 namespace Scenario
 {
 
@@ -65,7 +70,7 @@ class MetadataWidget final : public QWidget
             });
 
             connect(this, &MetadataWidget::colorChanged,
-                    [&](const QColor& newColor)
+                    [&](ColorRef newColor)
             {
                 if(newColor != model.metadata.color())
                     m_commandDispatcher->submitCommand(new ChangeElementColor<T>{path(model), newColor});
@@ -73,14 +78,13 @@ class MetadataWidget final : public QWidget
         }
 
         void setScriptingName(QString arg);
-        void changeColor();
         void updateAsked();
 
     signals:
         void scriptingNameChanged(QString arg);
         void labelChanged(QString arg);
         void commentsChanged(QString arg);
-        void colorChanged(QColor arg);
+        void colorChanged(ColorRef arg);
 
     private:
         const ModelMetadata* m_metadata;
@@ -97,6 +101,8 @@ class MetadataWidget final : public QWidget
         };
         bool m_cmtExpanded{false};
         QToolButton* m_cmtBtn{};
+
+        color_widgets::ColorPaletteModel* m_palette{};
 
 //        QString m_scriptingName;
 };

@@ -8,29 +8,28 @@
 
 #include <Process/Style/Skin.hpp>
 
-#include <QQuickView>
+#include <QQuickWindow>
 #include <QGraphicsProxyWidget>
 #include <QVBoxLayout>
 #include <QGraphicsLayout>
 #include <QWidget>
 #include <QGraphicsView>
 #include <QGraphicsScene>
+#include <QOpenGLPaintDevice>
+#include <QQuickRenderControl>
 
 namespace Dummy
 {
 DummyLayerView::DummyLayerView(QGraphicsItem* parent):
     LayerView{parent}
 {
-    QQuickView *view = new QQuickView();
+    /*
+    QQuickRenderControl* rc = new QQuickRenderControl;
+    QQuickWindow *view = new QQuickWindow(rc);
     view->setSource(QUrl("qrc:/DummyProcess.qml"));
-    QWidget *container = QWidget::createWindowContainer(view, this->scene()->views().front());
-    container->setMinimumSize(QSize{100, 100});
-    container->setMaximumSize(QSize{500, 500});
-    container->setFocusPolicy(Qt::TabFocus);
-    QGraphicsProxyWidget * item = new QGraphicsProxyWidget(this);
-    item->setWidget(container);
-    view->show();
 
+    rc.set
+    view->show();*/
     /*
     auto obj = new QGraphicsProxyWidget(this);
 
@@ -48,7 +47,12 @@ DummyLayerView::DummyLayerView(QGraphicsItem* parent):
 }
 
 void DummyLayerView::paint_impl(QPainter* painter) const
-{
+{/*
+    auto dev = dynamic_cast<QOpenGLPaintDevice*>(painter->device());
+    if(dev)
+    {
+        auto ctx = dev->context();
+    }*/
     auto f = Skin::instance().SansFont;
     f.setPointSize(30);
     painter->setFont(f);

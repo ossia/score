@@ -43,7 +43,7 @@ TemporalConstraintPresenter::TemporalConstraintPresenter(
         &v, &TemporalConstraintView::setLabel);
 
     con(metadata,   &ModelMetadata::colorChanged,
-        &v, [&] (const QColor& c) {
+        &v, [&] (ColorRef c) {
         v.setLabelColor(c);
         v.setColor(c);
     });

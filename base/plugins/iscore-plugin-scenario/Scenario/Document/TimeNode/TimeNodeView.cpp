@@ -38,11 +38,11 @@ void TimeNodeView::paint(QPainter* painter,
     QColor pen_color;
     if(isSelected())
     {
-        pen_color = ScenarioStyle::instance().TimenodeSelected;
+        pen_color = ScenarioStyle::instance().TimenodeSelected.getColor();
     }
     else
     {
-        pen_color = m_color;
+        pen_color = m_color.getColor();
     }
 
     QPen pen{QBrush(pen_color), 0, Qt::SolidLine, Qt::RoundCap, Qt::RoundJoin};
@@ -81,7 +81,7 @@ void TimeNodeView::setSelected(bool selected)
     update();
 }
 
-void TimeNodeView::changeColor(QColor newColor)
+void TimeNodeView::changeColor(ColorRef newColor)
 {
     m_color = newColor;
     this->update();

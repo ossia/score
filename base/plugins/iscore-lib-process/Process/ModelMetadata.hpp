@@ -27,7 +27,7 @@ class ISCORE_LIB_PROCESS_EXPORT ModelMetadata : public QObject
                    WRITE setComment
                    NOTIFY commentChanged)
 
-        Q_PROPERTY(QColor color
+        Q_PROPERTY(ColorRef color
                    READ color
                    WRITE setColor
                    NOTIFY colorChanged)
@@ -60,26 +60,26 @@ class ISCORE_LIB_PROCESS_EXPORT ModelMetadata : public QObject
 
         const QString& name() const;
         const QString& comment() const;
-        const QColor& color() const;
+        ColorRef color() const;
         const QString& label() const;
 
         void setName(const QString& arg);
         void setComment(const QString& arg);
-        void setColor(const QColor& arg);
+        void setColor(ColorRef arg);
         void setLabel(const QString& arg);
 
 
     signals:
         void nameChanged(const QString& arg);
         void commentChanged(const QString& arg);
-        void colorChanged(const QColor& arg);
+        void colorChanged(ColorRef arg);
         void labelChanged(const QString& arg);
         void metadataChanged();
 
     private:
         QString m_scriptingName;
         QString m_comment;
-        QColor m_color {Qt::gray};
+        ColorRef m_color;
         QString m_label;
 };
 
