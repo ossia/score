@@ -33,6 +33,7 @@ void Skin::load(const QJsonObject& obj)
     ISCORE_CONVERT_COLOR(Emphasis1);
     ISCORE_CONVERT_COLOR(Emphasis2);
     ISCORE_CONVERT_COLOR(Emphasis3);
+    ISCORE_CONVERT_COLOR(Emphasis4);
 
     ISCORE_CONVERT_COLOR(Base1);
     ISCORE_CONVERT_COLOR(Base2);
@@ -56,4 +57,6 @@ void Skin::load(const QJsonObject& obj)
     ISCORE_CONVERT_COLOR(Tender1);
     ISCORE_CONVERT_COLOR(Tender2);
     ISCORE_CONVERT_COLOR(Tender3);
+
+    emit changed();
 }

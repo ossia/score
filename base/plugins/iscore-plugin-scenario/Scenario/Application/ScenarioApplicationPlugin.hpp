@@ -75,8 +75,6 @@ class ISCORE_PLUGIN_SCENARIO_EXPORT ScenarioApplicationPlugin final :
         void on_activeWindowChanged() override;
 
     private:
-        void initColors();
-
         QMetaObject::Connection m_focusConnection, m_defocusConnection, m_contextMenuConnection;
         Scenario::EditionSettings m_editionSettings;
 

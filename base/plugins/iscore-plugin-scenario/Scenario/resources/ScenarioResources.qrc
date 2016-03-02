@@ -4,7 +4,7 @@
         <file>images/trigger.svg</file>
         <file>images/loop.svg</file>
         <file>images/forward.svg</file>
-        <file>ScenarioColors.json</file>
-        <file>ScenarioColors-IEEE.json</file>
+        <file>DefaultSkin.json</file>
+        <file>IEEESkin.json</file>
     </qresource>
 </RCC>

@@ -26,6 +26,7 @@ file(GLOB_RECURSE HDRS
     "${CMAKE_CURRENT_SOURCE_DIR}/Scenario/Panel/*.hpp"
     "${CMAKE_CURRENT_SOURCE_DIR}/Scenario/Process/*.hpp"
     "${CMAKE_CURRENT_SOURCE_DIR}/Scenario/ViewCommands/*.hpp"
+    "${CMAKE_CURRENT_SOURCE_DIR}/Scenario/Settings/*.hpp"
     "${CMAKE_CURRENT_SOURCE_DIR}/Scenario/iscore_plugin_scenario.hpp"
     "${CMAKE_CURRENT_SOURCE_DIR}/Scenario/Tools/*.hpp"
 )
@@ -266,6 +267,11 @@ set(SRCS ${SRCS}
 "${CMAKE_CURRENT_SOURCE_DIR}/Scenario/Process/ScenarioGlobalCommandManager.cpp"
 "${CMAKE_CURRENT_SOURCE_DIR}/Scenario/Process/ScenarioModel.cpp"
 "${CMAKE_CURRENT_SOURCE_DIR}/Scenario/Process/ScenarioInterface.cpp"
+
+"${CMAKE_CURRENT_SOURCE_DIR}/Scenario/Settings/Model.cpp"
+"${CMAKE_CURRENT_SOURCE_DIR}/Scenario/Settings/View.cpp"
+"${CMAKE_CURRENT_SOURCE_DIR}/Scenario/Settings/Presenter.cpp"
+"${CMAKE_CURRENT_SOURCE_DIR}/Scenario/Settings/Factory.cpp"
 
 "${CMAKE_CURRENT_SOURCE_DIR}/Scenario/Tools/dataStructures.cpp"
 

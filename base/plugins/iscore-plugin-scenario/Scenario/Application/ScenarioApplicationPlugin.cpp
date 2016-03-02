@@ -85,8 +85,6 @@ ScenarioApplicationPlugin::ScenarioApplicationPlugin(const iscore::ApplicationCo
         m_pluginActions.push_back(act);
     }
     delete fact;
-
-    initColors();
 }
 
 void ScenarioApplicationPlugin::populateMenus(iscore::MenubarManager *menu)
@@ -316,82 +314,6 @@ void ScenarioApplicationPlugin::on_documentChanged(
 void ScenarioApplicationPlugin::on_activeWindowChanged()
 {
     editionSettings().setDefault(); // NOTE maybe useless now ?
-}
-
-void ScenarioApplicationPlugin::initColors()
-{
-    /*
-    ScenarioStyle& instance = ScenarioStyle::instance();
-#ifdef ISCORE_IEEE_SKIN
-    QFile cols(":/ScenarioColors-IEEE.json");
-#else
-    QFile cols(":/ScenarioColors.json");
-#endif
-    if(cols.open(QFile::ReadOnly))
-    {
-        auto obj = QJsonDocument::fromJson(cols.readAll()).object();
-        auto fromColor = [&] (const QString& key) {
-            auto arr = obj[key].toArray();
-            if(arr.size() == 3)
-                return QColor(arr[0].toInt(), arr[1].toInt(), arr[2].toInt());
-            else if(arr.size() == 4)
-                return QColor(arr[0].toInt(), arr[1].toInt(), arr[2].toInt(), arr[3].toInt());
-            ISCORE_ABORT;
-            return QColor{};
-        };
-
-        instance.ConstraintBase = fromColor("ConstraintBase");
-        instance.ConstraintSelected = fromColor("ConstraintSelected");
-        instance.ConstraintPlayFill = fromColor("ConstraintPlayFill");
-        instance.ConstraintWarning = fromColor("ConstraintWarning");
-        instance.ConstraintInvalid = fromColor("ConstraintInvalid");
-        instance.ConstraintDefaultLabel = fromColor("ConstraintDefaultLabel");
-        instance.ConstraintDefaultBackground = fromColor("ConstraintDefaultBackground");
-
-        instance.RackSideBorder = fromColor("RackSideBorder");
-
-        instance.ConstraintFullViewParentSelected = fromColor("ConstraintFullViewParentSelected");
-
-        instance.ConstraintHeaderText = fromColor("ConstraintHeaderText");
-        instance.ConstraintHeaderBottomLine = fromColor("ConstraintHeaderBottomLine");
-        instance.ConstraintHeaderRackHidden = fromColor("ConstraintHeaderRackHidden");
-        instance.ConstraintHeaderSideBorder = fromColor("ConstraintHeaderSideBorder");
-
-        instance.ProcessViewBorder = fromColor("ProcessViewBorder");
-
-        instance.SlotFocus = fromColor("SlotFocus");
-        instance.SlotOverlayBorder = fromColor("SlotOverlayBorder");
-        instance.SlotOverlay = fromColor("SlotOverlay");
-        instance.SlotHandle = fromColor("SlotHandle");
-
-        instance.TimenodeDefault = fromColor("TimenodeDefault");
-        instance.TimenodeSelected = fromColor("TimenodeSelected");
-
-        instance.EventDefault = fromColor("EventDefault");
-        instance.EventWaiting = fromColor("EventWaiting");
-        instance.EventPending = fromColor("EventPending");
-        instance.EventHappened = fromColor("EventHappened");
-        instance.EventDisposed = fromColor("EventDisposed");
-        instance.EventSelected = fromColor("EventSelected");
-
-        instance.ConditionDefault = fromColor("ConditionDefault");
-        instance.ConditionWaiting = fromColor("ConditionWaiting");
-        instance.ConditionDisabled = fromColor("ConditionDisabled");
-        instance.ConditionFalse = fromColor("ConditionFalse");
-        instance.ConditionTrue = fromColor("ConditionTrue");
-
-        instance.StateOutline = fromColor("StateOutline");
-        instance.StateSelected = fromColor("StateSelected");
-        instance.StateDot = fromColor("StateDot");
-
-        instance.Background = fromColor("Background");
-        instance.ProcessPanelBackground = fromColor("ProcessPanelBackground");
-
-        instance.TimeRulerBackground = fromColor("TimeRulerBackground");
-        instance.TimeRuler = fromColor("TimeRuler");
-        instance.LocalTimeRuler = fromColor("LocalTimeRuler");
-    }
-    */
 }
 
 const Scenario::ScenarioModel* ScenarioApplicationPlugin::focusedScenarioModel() const

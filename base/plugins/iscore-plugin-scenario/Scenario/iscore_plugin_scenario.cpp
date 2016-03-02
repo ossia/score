@@ -14,6 +14,7 @@
 #include <Scenario/ExecutionChecker/CSPCoherencyCheckerList.hpp>
 #include <Scenario/Panel/ProcessPanelFactory.hpp>
 #include <Scenario/Process/ScenarioFactory.hpp>
+#include <Scenario/Settings/Factory.hpp>
 #include <Scenario/iscore_plugin_scenario.hpp>
 #include <State/Message.hpp>
 #include <QMetaType>
@@ -161,7 +162,9 @@ std::vector<std::unique_ptr<iscore::FactoryInterfaceBase>> iscore_plugin_scenari
         ScenarioDisplayedElementsProvider,
         BaseScenarioDisplayedElementsProvider>,
     FW<iscore::DocumentDelegateFactory,
-        Scenario::ScenarioDocumentFactory>
+        Scenario::ScenarioDocumentFactory>,
+    FW<iscore::SettingsDelegateFactory,
+        Scenario::Settings::Factory>
 #if defined(ISCORE_LIB_INSPECTOR)
     ,
     FW<Inspector::InspectorWidgetFactory,

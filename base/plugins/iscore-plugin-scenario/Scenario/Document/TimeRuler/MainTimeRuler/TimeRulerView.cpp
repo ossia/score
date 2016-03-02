@@ -1,4 +1,5 @@
 #include <Process/Style/ScenarioStyle.hpp>
+#include <Process/Style/Skin.hpp>
 #include <QColor>
 
 #include <Scenario/Document/TimeRuler/AbstractTimeRulerView.hpp>
@@ -12,6 +13,14 @@ TimeRulerView::TimeRulerView() :
     m_height = -3 * m_graduationHeight;
     m_textPosition = 1.15 * m_graduationHeight;
     m_color = ScenarioStyle::instance().TimeRuler;
+
+
+    auto& skin = Skin::instance();
+    con(skin, &Skin::changed,
+        this, [&] () {
+        auto& skin = ScenarioStyle::instance();
+        m_color = skin.TimeRuler;
+    });
 }
 
 QRectF TimeRulerView::boundingRect() const

@@ -4,6 +4,7 @@
 
 #include "LocalTimeRulerView.hpp"
 #include <Scenario/Document/TimeRuler/AbstractTimeRulerView.hpp>
+#include <iscore/document/DocumentContext.hpp>
 
 namespace Scenario
 {

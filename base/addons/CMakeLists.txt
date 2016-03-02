@@ -1,7 +1,7 @@
 cmake_minimum_required(VERSION 3.0)
 
 project(iscore_addons LANGUAGES CXX)
-
+return()
 macro(SUBDIRLIST result curdir)
   file(GLOB children RELATIVE ${curdir} ${curdir}/*)
   set(dirlist "")

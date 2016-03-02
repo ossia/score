@@ -1,4 +1,5 @@
 #pragma once
+#include <Process/Style/ColorReference.hpp>
 #include <QColor>
 #include <qnamespace.h>
 #include <QObject>
