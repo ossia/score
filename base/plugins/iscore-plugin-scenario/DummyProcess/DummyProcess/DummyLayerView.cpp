@@ -7,7 +7,7 @@
 #include <Process/LayerView.hpp>
 
 #include <Process/Style/Skin.hpp>
-
+/*
 #include <QQuickWindow>
 #include <QGraphicsProxyWidget>
 #include <QVBoxLayout>
@@ -15,44 +15,47 @@
 #include <QWidget>
 #include <QGraphicsView>
 #include <QGraphicsScene>
+#include <QQuickView>
 #include <QOpenGLPaintDevice>
+#include <QQuickItem>
 #include <QQuickRenderControl>
 
+#include <QGraphicsSceneMouseEvent>
+#include <QMouseEvent>
+*/
 namespace Dummy
 {
 DummyLayerView::DummyLayerView(QGraphicsItem* parent):
     LayerView{parent}
 {
     /*
-    QQuickRenderControl* rc = new QQuickRenderControl;
-    QQuickWindow *view = new QQuickWindow(rc);
-    view->setSource(QUrl("qrc:/DummyProcess.qml"));
+    m_view = new QQuickView();
+    m_view->setSource(QUrl("qrc:/DummyProcess.qml"));
 
-    rc.set
-    view->show();*/
-    /*
-    auto obj = new QGraphicsProxyWidget(this);
+    m_view->create();
 
-    m_widg = new QQuickWidget;
-    m_widg->setSource(QUrl("qrc:/DummyProcess.qml"));
-    m_widg->setFormat(QSurfaceFormat::defaultFormat());
+    m_item = m_view->rootObject()->findChild<QQuickItem*>("input");
+    connect(m_view, &QQuickView::sceneGraphInvalidated,
+            this, [=] { update(); });
 
-    obj->setWidget(m_widg);
-    m_widg->show();
-    connect(this, &QGraphicsObject::widthChanged,
-            this, [=] () { m_widg->rootObject()->setWidth(this->width());});
-    connect(this, &QGraphicsObject::heightChanged,
-            this, [=] () { m_widg->rootObject()->setHeight(this->height() - 5);});
-            */
+    connect(this, &DummyLayerView::heightChanged,
+            this, [=] {
+        m_view->setHeight(height() - 5);
+    });
+
+    connect(this, &DummyLayerView::widthChanged,
+            this, [=] {
+        m_view->setWidth(width());
+    });
+    */
 }
 
 void DummyLayerView::paint_impl(QPainter* painter) const
-{/*
-    auto dev = dynamic_cast<QOpenGLPaintDevice*>(painter->device());
-    if(dev)
-    {
-        auto ctx = dev->context();
-    }*/
+{
+    /*
+    painter->drawImage(0, 0, m_view->grabWindow());
+    */
+
     auto f = Skin::instance().SansFont;
     f.setPointSize(30);
     painter->setFont(f);
@@ -61,8 +64,29 @@ void DummyLayerView::paint_impl(QPainter* painter) const
     painter->drawText(boundingRect(), Qt::AlignCenter, m_text);
 }
 
-void DummyLayerView::mousePressEvent(QGraphicsSceneMouseEvent*)
+void DummyLayerView::mousePressEvent(QGraphicsSceneMouseEvent* ev)
 {
+    /*
+    auto nev = new QMouseEvent(QEvent::Type::MouseButtonPress, ev->pos(), ev->button(), ev->buttons(), ev->modifiers());
+    m_view->sendEvent(m_item, nev);
+    m_view->requestUpdate();
+    */
     emit pressed();
+}
+void DummyLayerView::mouseMoveEvent(QGraphicsSceneMouseEvent* ev)
+{
+    /*
+    auto nev = new QMouseEvent(QEvent::Type::MouseMove, ev->pos(), ev->button(), ev->buttons(), ev->modifiers());
+    m_view->sendEvent(m_item, nev);
+    m_view->requestUpdate();
+    */
+}
+void DummyLayerView::mouseReleaseEvent(QGraphicsSceneMouseEvent* ev)
+{
+    /*
+    auto nev = new QMouseEvent(QEvent::Type::MouseButtonRelease, ev->pos(), ev->button(), ev->buttons(), ev->modifiers());
+    m_view->sendEvent(m_item, nev);
+    m_view->requestUpdate();
+    */
 }
 }

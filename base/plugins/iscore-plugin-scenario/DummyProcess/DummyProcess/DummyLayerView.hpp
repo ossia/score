@@ -6,7 +6,8 @@
 
 class QGraphicsItem;
 class QPainter;
-//class QQuickWidget;
+class QQuickView;
+class QQuickItem;
 
 namespace Dummy
 {
@@ -29,7 +30,10 @@ class ISCORE_LIB_DUMMYPROCESS_EXPORT DummyLayerView final : public Process::Laye
     private:
         void paint_impl(QPainter*) const override;
         void mousePressEvent(QGraphicsSceneMouseEvent*) override;
+        void mouseMoveEvent(QGraphicsSceneMouseEvent*) override;
+        void mouseReleaseEvent(QGraphicsSceneMouseEvent*) override;
         QString m_text;
-        //QQuickWidget* m_widg{};
+        QQuickView* m_view{};
+        QQuickItem* m_item{};
 };
 }
