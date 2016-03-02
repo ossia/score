@@ -35,10 +35,10 @@ void TemporalConstraintHeader::paint(
     if(m_state == State::RackHidden)
     {
         auto rect = boundingRect();
-        painter->fillRect(rect, ScenarioStyle::instance().ConstraintHeaderRackHidden);
+        painter->fillRect(rect, ScenarioStyle::instance().ConstraintHeaderRackHidden.getBrush());
 
         // Fake timenode continuation
-        auto color = ScenarioStyle::instance().ConstraintHeaderSideBorder;
+        auto color = ScenarioStyle::instance().ConstraintHeaderSideBorder.getColor();
         QPen pen{color, 2, Qt::SolidLine, Qt::RoundCap, Qt::RoundJoin};
         painter->setPen(pen);
         painter->drawLine(rect.topLeft(), rect.bottomLeft());
@@ -52,7 +52,7 @@ void TemporalConstraintHeader::paint(
     font.setBold(true);
 
     painter->setFont(font);
-    painter->setPen(ScenarioStyle::instance().ConstraintHeaderText);
+    painter->setPen(ScenarioStyle::instance().ConstraintHeaderText.getColor());
 
     QFontMetrics fm(font);
     int textWidth = fm.width(m_text);
@@ -91,7 +91,7 @@ void TemporalConstraintHeader::paint(
 
     if(m_width > 20)
     {
-        painter->setPen(ScenarioStyle::instance().ConstraintHeaderBottomLine);
+        painter->setPen(ScenarioStyle::instance().ConstraintHeaderBottomLine.getColor());
         painter->drawLine(
                     boundingRect().bottomLeft(),
                     boundingRect().bottomRight());

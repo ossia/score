@@ -1,9 +1,10 @@
 #pragma once
-
 #include <QColor>
 #include <qnamespace.h>
 #include <iscore_lib_process_export.h>
-struct Skin;
+
+#include <Process/Style/ColorReference.hpp>
+class Skin;
 struct ISCORE_LIB_PROCESS_EXPORT ScenarioStyle
 {
         ScenarioStyle(const Skin&);
@@ -15,56 +16,56 @@ struct ISCORE_LIB_PROCESS_EXPORT ScenarioStyle
 
         static ScenarioStyle& instance();
 
-        const QColor& ConstraintBase;
-        const QColor& ConstraintSelected;
-        const QColor& ConstraintPlayFill;
-        const QColor& ConstraintWarning;
-        const QColor& ConstraintInvalid;
-        const QColor& ConstraintDefaultLabel;
-        const QColor& ConstraintDefaultBackground;
+        ColorRef ConstraintBase;
+        ColorRef ConstraintSelected;
+        ColorRef ConstraintPlayFill;
+        ColorRef ConstraintWarning;
+        ColorRef ConstraintInvalid;
+        ColorRef ConstraintDefaultLabel;
+        ColorRef ConstraintDefaultBackground;
 
-        const QColor& RackSideBorder;
+        ColorRef RackSideBorder;
 
-        const QColor& ConstraintFullViewParentSelected;
+        ColorRef ConstraintFullViewParentSelected;
 
-        const QColor& ConstraintHeaderText;
-        const QColor& ConstraintHeaderBottomLine;
-        const QColor& ConstraintHeaderRackHidden;
-        const QColor& ConstraintHeaderSideBorder;
+        ColorRef ConstraintHeaderText;
+        ColorRef ConstraintHeaderBottomLine;
+        ColorRef ConstraintHeaderRackHidden;
+        ColorRef ConstraintHeaderSideBorder;
 
-        const QColor& ProcessViewBorder;
+        ColorRef ProcessViewBorder;
 
-        const QColor& SlotFocus;
-        const QColor& SlotOverlayBorder;
-        const QColor& SlotOverlay;
-        const QColor& SlotHandle;
+        ColorRef SlotFocus;
+        ColorRef SlotOverlayBorder;
+        ColorRef SlotOverlay;
+        ColorRef SlotHandle;
 
-        const QColor& TimenodeDefault;
-        const QColor& TimenodeSelected;
+        ColorRef TimenodeDefault;
+        ColorRef TimenodeSelected;
 
-        const QColor& EventDefault;
-        const QColor& EventWaiting;
-        const QColor& EventPending;
-        const QColor& EventHappened;
-        const QColor& EventDisposed;
-        const QColor& EventSelected;
+        ColorRef EventDefault;
+        ColorRef EventWaiting;
+        ColorRef EventPending;
+        ColorRef EventHappened;
+        ColorRef EventDisposed;
+        ColorRef EventSelected;
 
-        const QColor& ConditionDefault;
-        const QColor& ConditionWaiting;
-        const QColor& ConditionDisabled;
-        const QColor& ConditionFalse;
-        const QColor& ConditionTrue;
+        ColorRef ConditionDefault;
+        ColorRef ConditionWaiting;
+        ColorRef ConditionDisabled;
+        ColorRef ConditionFalse;
+        ColorRef ConditionTrue;
 
-        const QColor& StateOutline;
-        const QColor& StateSelected;
-        const QColor& StateDot;
+        ColorRef StateOutline;
+        ColorRef StateSelected;
+        ColorRef StateDot;
 
-        const QColor& Background;
-        const QColor& ProcessPanelBackground;
+        ColorRef Background;
+        ColorRef ProcessPanelBackground;
 
-        const QColor& TimeRulerBackground;
-        const QColor& TimeRuler;
-        const QColor& LocalTimeRuler;
+        ColorRef TimeRulerBackground;
+        ColorRef TimeRuler;
+        ColorRef LocalTimeRuler;
 
     private:
         ScenarioStyle() = default;

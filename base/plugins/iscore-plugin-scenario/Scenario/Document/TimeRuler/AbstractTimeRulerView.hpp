@@ -1,4 +1,5 @@
 #pragma once
+#include <Process/Style/ColorReference.hpp>
 #include <QColor>
 #include <QDateTime>
 #include <QtGlobal>
@@ -60,7 +61,7 @@ class AbstractTimeRulerView : public QGraphicsObject
         qreal m_textPosition{};
         int m_graduationHeight {};
 
-        QColor m_color;
+        ColorRef m_color;
         QPainterPath m_path;
 
         QMap<double, QTime> m_marks;

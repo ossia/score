@@ -1,4 +1,5 @@
 #pragma once
+#include <Process/Style/ColorReference.hpp>
 #include <QColor>
 #include <QtGlobal>
 #include <QGraphicsItem>
@@ -44,7 +45,7 @@ class ISCORE_PLUGIN_SCENARIO_EXPORT  StateView final : public QGraphicsObject
         void setContainMessage(bool);
         void setSelected(bool arg);
 
-        void changeColor(const QColor&);
+        void changeColor(ColorRef);
         void setStatus(ExecutionStatus);
 
     signals:
@@ -67,7 +68,7 @@ class ISCORE_PLUGIN_SCENARIO_EXPORT  StateView final : public QGraphicsObject
         bool m_containMessage{false};
         bool m_selected{false};
 
-        QColor m_baseColor;
+        ColorRef m_color;
 
         ExecutionStatusProperty m_status{};
 

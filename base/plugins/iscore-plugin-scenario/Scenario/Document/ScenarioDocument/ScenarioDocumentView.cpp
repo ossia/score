@@ -38,7 +38,7 @@
 #include <Scenario/Settings/Model.hpp>
 class QObject;
 #if defined(ISCORE_OPENGL)
-#include <QGLWidget>
+#include <QOpenGLWidget>
 #endif
 #if defined(ISCORE_WEBSOCKETS)
 #include "WebSocketView.hpp"
@@ -62,11 +62,13 @@ ScenarioDocumentView::ScenarioDocumentView(
 #endif
     m_timeRulersView = new QGraphicsView{m_scene};
 #if defined(ISCORE_OPENGL)
-    auto vp1 = new QGLWidget;
-    vp1->setFormat(QGLFormat(QGL::SampleBuffers));
+    QSurfaceFormat f;
+    f.setSamples(8);
+    auto vp1 = new QOpenGLWidget;
+    vp1->setFormat(f);
     m_view->setViewport(vp1);
-    auto vp2 = new QGLWidget;
-    vp2->setFormat(QGLFormat(QGL::SampleBuffers));
+    auto vp2 = new QOpenGLWidget;
+    vp2->setFormat(f);
     m_timeRulersView->setViewport(vp2);
 #endif
 
@@ -109,7 +111,7 @@ ScenarioDocumentView::ScenarioDocumentView(
     m_timeRulersView->setViewportUpdateMode(QGraphicsView::NoViewportUpdate);
     m_timeRulersView->setAlignment(Qt::AlignTop | Qt::AlignLeft);
 
-    m_timeRulersView->setBackgroundBrush(QBrush(ScenarioStyle::instance().TimeRulerBackground));
+    m_timeRulersView->setBackgroundBrush(ScenarioStyle::instance().TimeRulerBackground.getBrush());
     //*/
 
     // Transport
@@ -196,8 +198,8 @@ ScenarioDocumentView::ScenarioDocumentView(
     con(skin, &Skin::changed,
         this, [&] () {
         auto& skin = ScenarioStyle::instance();
-        m_timeRulersView->setBackgroundBrush(QBrush(skin.TimeRulerBackground));
-        m_view->setBackgroundBrush(skin.Background);
+        m_timeRulersView->setBackgroundBrush(skin.TimeRulerBackground.getBrush());
+        m_view->setBackgroundBrush(skin.Background.getBrush());
     });
 }
 

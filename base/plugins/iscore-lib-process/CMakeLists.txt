@@ -58,6 +58,7 @@ set(PROCESS_SRCS
 "${CMAKE_CURRENT_SOURCE_DIR}/Process/Style/ScenarioStyle.cpp"
 "${CMAKE_CURRENT_SOURCE_DIR}/Process/Style/ProcessFonts.cpp"
 "${CMAKE_CURRENT_SOURCE_DIR}/Process/Style/Skin.cpp"
+"${CMAKE_CURRENT_SOURCE_DIR}/Process/Style/ColorReference.cpp"
 
 "${CMAKE_CURRENT_SOURCE_DIR}/Process/State/MessageNode.cpp"
 "${CMAKE_CURRENT_SOURCE_DIR}/Process/State/ProcessStateDataInterface.cpp"

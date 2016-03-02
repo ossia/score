@@ -1,7 +1,7 @@
 cmake_minimum_required(VERSION 3.0)
 project(iscore_plugin_scenario LANGUAGES CXX)
 iscore_common_setup()
-set(ISCORE_OPENGL True)
+#set(ISCORE_OPENGL True)
 # Packages
 # TODO make a check to see what libs aren't necessary
 find_package(Qt5 5.3 REQUIRED COMPONENTS Core Widgets Xml Svg Test)
@@ -333,7 +333,8 @@ target_link_libraries(iscore_plugin_scenario
   PUBLIC
     Qt5::Core Qt5::Widgets Qt5::Svg
     iscore_lib_base
-    iscore_lib_process iscore_lib_device iscore_plugin_deviceexplorer iscore_lib_state iscore_plugin_curve iscore_plugin_automation pthread)
+    iscore_lib_process iscore_lib_device iscore_plugin_deviceexplorer iscore_lib_state iscore_plugin_curve iscore_plugin_automation pthread
+    ColorWidgets-qt5)
 
 if(ISCORE_OPENGL)
 target_link_libraries(iscore_plugin_scenario PRIVATE Qt5::OpenGL)

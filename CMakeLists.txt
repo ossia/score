@@ -42,6 +42,7 @@ set(ISCORE_ROOT_BINARY_DIR "${CMAKE_CURRENT_BINARY_DIR}")
 include_directories("${ISCORE_ROOT_BINARY_DIR}")
 include_directories(SYSTEM "${3RDPARTY_FOLDER}/variant/include")
 include_directories(SYSTEM "${3RDPARTY_FOLDER}/nano-signal-slot")
+add_subdirectory("${3RDPARTY_FOLDER}/Qt-Color-Widgets")
 add_subdirectory("${3RDPARTY_FOLDER}/QProgressIndicator")
 add_subdirectory("${3RDPARTY_FOLDER}/QRecentFilesMenu")
 

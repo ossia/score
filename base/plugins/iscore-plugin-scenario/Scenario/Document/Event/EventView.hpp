@@ -1,6 +1,6 @@
 #pragma once
 #include <Scenario/Document/VerticalExtent.hpp>
-#include <QColor>
+#include <Process/Style/ColorReference.hpp>
 #include <QtGlobal>
 #include <QGraphicsItem>
 #include <QPoint>
@@ -59,7 +59,7 @@ class ISCORE_PLUGIN_SCENARIO_EXPORT EventView final : public QGraphicsObject
 
         void setStatus(ExecutionStatus s);
 
-        void changeColor(QColor);
+        void changeColor(ColorRef);
     signals:
         void eventHoverEnter();
         void eventHoverLeave();
@@ -80,7 +80,7 @@ class ISCORE_PLUGIN_SCENARIO_EXPORT EventView final : public QGraphicsObject
         EventPresenter& m_presenter;
         QString m_condition;
         QString m_trigger;
-        QColor m_color;
+        ColorRef m_color;
 
         ExecutionStatusProperty m_status{};
         bool m_selected{};

@@ -21,7 +21,7 @@ void ProcessPanelGraphicsProxy::paint(
         const QStyleOptionGraphicsItem* option,
         QWidget* widget)
 {
-    painter->setBrush(ScenarioStyle::instance().ProcessPanelBackground);
+    painter->setBrush(ScenarioStyle::instance().ProcessPanelBackground.getBrush());
     painter->drawRect(boundingRect());
 }
 

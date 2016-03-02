@@ -3,36 +3,72 @@
 #include <utility>
 #include <Process/Style/Skin.hpp>
 #include <eggs/variant.hpp>
-struct ColorRef
-{
-        using Color = eggs::variant<QColor, const QColor*>;
-        Color color;
+#include <boost/optional.hpp>
 
-        template<typename Fun>
-        void setColor(Fun f)
+struct ISCORE_LIB_PROCESS_EXPORT ColorRef
+{
+        friend bool operator==(ColorRef lhs, ColorRef rhs)
         {
-            // Set color by reference
-            color = &(Skin::instance().*fun);
+            return lhs.ref == rhs.ref;
         }
 
-        void setColor(const QColor& col)
+        friend bool operator!=(ColorRef lhs, ColorRef rhs)
         {
-            // Set color by value
-            color = col;
+            return lhs.ref != rhs.ref;
+        }
+
+    public:
+        ColorRef() = default;
+        ColorRef(const ColorRef& other) = default;
+        ColorRef& operator=(const ColorRef& other) = default;
+
+        ColorRef(QColor Skin::*s):
+            ref{&(Skin::instance().*s)}
+        {
+
+        }
+
+        ColorRef(const QColor* col):
+            ref{col}
+        {
+
+        }
+/*
+        ColorRef(const QColor& col):
+            ref{&col}
+        {
+
+        }
+*/
+        void setColor(QColor Skin::*s)
+        {
+            // Set color by reference
+            ref = &(Skin::instance().*s);
         }
 
         QColor getColor() const
         {
-            switch(color.which())
-            {
-                case 0:
-                    return eggs::variants::get<0>(color);
-                    break;
-                case 1:
-                    return eggs::variants::get<1>(color);
-                    break;
-                default:
-                    return Qt::black;
-            }
+            return ref ? *ref : Qt::black;
         }
+
+        QBrush getBrush() const
+        {
+            return getColor();
+        }
+
+
+        QString name() const
+        {
+            return Skin::instance().toString(ref);
+        }
+
+        static boost::optional<ColorRef> ColorFromString(const QString&);
+        static boost::optional<ColorRef> SimilarColor(QColor other);
+
+    private:
+
+        const QColor* ref{};
 };
+
+
+Q_DECLARE_METATYPE(ColorRef)

@@ -4,6 +4,7 @@
 
 #include <iscore/tools/ModelPath.hpp>
 #include <iscore/tools/ModelPathSerialization.hpp>
+#include <Process/Style/ColorReference.hpp>
 
 namespace Scenario
 {
@@ -34,7 +35,7 @@ class ChangeElementColor final : public iscore::SerializableCommand
         }
 
         ChangeElementColor() = default;
-        ChangeElementColor(Path<T>&& path, QColor newLabel) :
+        ChangeElementColor(Path<T>&& path, ColorRef newLabel) :
             m_path {std::move(path) },
             m_newColor {newLabel}
         {
@@ -67,8 +68,8 @@ class ChangeElementColor final : public iscore::SerializableCommand
 
     private:
         Path<T> m_path;
-        QColor m_newColor;
-        QColor m_oldColor;
+        ColorRef m_newColor;
+        ColorRef m_oldColor;
 };
 }
 }

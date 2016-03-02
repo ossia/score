@@ -14,7 +14,6 @@
 // with moc_.. stuff generation.
 #include <QAction>
 #include <QByteArray>
-#include <QColor>
 #include <QFile>
 #include <QIODevice>
 #include <QJsonArray>

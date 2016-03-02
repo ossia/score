@@ -79,13 +79,13 @@ void EventView::paint(QPainter* painter,
 {
     QPen eventPen;
     if(m_status.get() == ExecutionStatus::Editing)
-        eventPen = QPen(m_color);
+        eventPen = QPen(m_color.getColor());
     else
-        eventPen = QPen(m_status.eventStatusColor());
+        eventPen = QPen(m_status.eventStatusColor().getColor());
 
     if(isSelected())
     {
-        eventPen = QPen(ScenarioStyle::instance().EventSelected);
+        eventPen = QPen(ScenarioStyle::instance().EventSelected.getColor());
     }
 
     QPen pen{QBrush(eventPen.color()), 0, Qt::SolidLine, Qt::RoundCap, Qt::RoundJoin};
@@ -140,7 +140,7 @@ bool EventView::isSelected() const
     return m_selected;
 }
 
-void EventView::changeColor(QColor newColor)
+void EventView::changeColor(ColorRef newColor)
 {
     m_color = newColor;
     this->update();

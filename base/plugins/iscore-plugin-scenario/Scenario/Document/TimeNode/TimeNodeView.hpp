@@ -1,5 +1,6 @@
 #pragma once
 #include <Scenario/Document/VerticalExtent.hpp>
+#include <Process/Style/ColorReference.hpp>
 #include <QColor>
 #include <QGraphicsItem>
 #include <QPoint>
@@ -52,7 +53,7 @@ class ISCORE_PLUGIN_SCENARIO_EXPORT TimeNodeView final : public QGraphicsObject
             return m_selected;
         }
 
-        void changeColor(QColor);
+        void changeColor(ColorRef);
 
     protected:
         void mousePressEvent(QGraphicsSceneMouseEvent *event) override;
@@ -64,7 +65,7 @@ class ISCORE_PLUGIN_SCENARIO_EXPORT TimeNodeView final : public QGraphicsObject
         VerticalExtent m_extent;
 
         QPointF m_clickedPoint {};
-        QColor m_color;
+        ColorRef m_color;
         bool m_selected{};
 };
 }

@@ -1,10 +1,11 @@
 #pragma once
 #include <QObject>
+#include <boost/bimap.hpp>
 #include <iscore_lib_process_export.h>
 #include <QFont>
 #include <QColor>
 
-struct ISCORE_LIB_PROCESS_EXPORT Skin :
+class ISCORE_LIB_PROCESS_EXPORT Skin :
         public QObject
 {
         Q_OBJECT
@@ -50,10 +51,17 @@ struct ISCORE_LIB_PROCESS_EXPORT Skin :
         QColor Tender2;
         QColor Tender3;
 
+        const QColor* fromString(const QString& s) const;
+        QString toString(const QColor*) const;
+
+        QVector<QPair<QColor,QString>> getColors() const;
+
     signals:
         void changed();
 
     private:
         Skin();
+
+        boost::bimap<QString, const QColor*> m_colorMap;
 
 };

@@ -1,4 +1,5 @@
 #pragma once
+#include <Process/Style/ColorReference.hpp>
 #include <Scenario/Document/Constraint/ViewModels/ConstraintView.hpp>
 #include <QColor>
 #include <QtGlobal>
@@ -43,20 +44,18 @@ class ISCORE_PLUGIN_SCENARIO_EXPORT TemporalConstraintView final : public Constr
         bool shadow() const;
         void setShadow(bool shadow);
 
-        void setLabelColor(const QColor &labelColor);
+        void setLabelColor(ColorRef labelColor);
         void setLabel(const QString &label);
 
         void setFocused(bool b)
         {
             m_hasFocus = b;
-            m_bgColor.setAlpha(m_hasFocus ? 84 : 76);
             update();
         }
 
-        void setColor(QColor c)
+        void setColor(ColorRef c)
         {
             m_bgColor = c;
-            m_bgColor.setAlpha(m_hasFocus ? 84 : 76);
             update();
         }
 
@@ -74,8 +73,8 @@ class ISCORE_PLUGIN_SCENARIO_EXPORT TemporalConstraintView final : public Constr
         bool m_shadow {false};
         bool m_hasFocus{};
         QString m_label{};
-        QColor m_labelColor;
-        QColor m_bgColor;
+        ColorRef m_labelColor;
+        ColorRef m_bgColor;
 
         LeftBraceView* m_leftBrace{};
         RightBraceView* m_rightBrace{};

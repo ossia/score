@@ -15,7 +15,9 @@ class QWidget;
 
 namespace Scenario
 {
-ConditionView::ConditionView(const QColor& color, QGraphicsItem *parent):
+ConditionView::ConditionView(
+        ColorRef color,
+        QGraphicsItem *parent):
     QGraphicsItem{parent},
     m_color{color}
 {
@@ -40,7 +42,7 @@ void ConditionView::paint(
         const QStyleOptionGraphicsItem *option,
         QWidget *widget)
 {
-    QPen pen{m_color};
+    QPen pen{m_color.getColor()};
 
     pen.setWidth(2);
     painter->setPen(pen);

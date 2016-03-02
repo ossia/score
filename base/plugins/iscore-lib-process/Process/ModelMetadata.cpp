@@ -12,7 +12,7 @@ const QString& ModelMetadata::comment() const
     return m_comment;
 }
 
-const QColor& ModelMetadata::color() const
+ColorRef ModelMetadata::color() const
 {
     return m_color;
 }
@@ -49,7 +49,7 @@ void ModelMetadata::setComment(const QString& arg)
     emit metadataChanged();
 }
 
-void ModelMetadata::setColor(const QColor& arg)
+void ModelMetadata::setColor(ColorRef arg)
 {
     if(m_color == arg)
     {
