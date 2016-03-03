@@ -143,7 +143,7 @@ set(SRCS
 
 add_library(${PROJECT_NAME} ${SRCS} ${HDRS})
 target_link_libraries(${PROJECT_NAME}
-        PUBLIC  APIJamoma Jamoma::Foundation Jamoma::Modular
+        PUBLIC  APIJamoma_Editor APICoppa
 				Qt5::Core Qt5::Widgets
                 iscore_lib_base iscore_lib_device iscore_lib_process iscore_plugin_scenario iscore_plugin_curve iscore_plugin_automation iscore_plugin_deviceexplorer
 )
