@@ -10,6 +10,7 @@ This file is used to define simple data structure to simplify the code when need
 #include <QByteArray>
 #include <QMap>
 #include <QPair>
+#include <limits>
 
 namespace Scenario
 {
@@ -18,11 +19,40 @@ class ConstraintViewModel;
 class RackModel;
 class TimeNodeModel;
 
+enum class TokenState{Disabled, Forward, Backward};
+
+struct Token {
+        // deltas are "new - old"
+        // so deltaMin used to be positive
+        // and deltaMax negative
+
+        Token() {}
+
+        void disable() {
+            state = TokenState::Disabled;
+            deltaMin = 0;
+            deltaMax = 0;
+        }
+
+        double deltaMin{0};
+        double deltaMax{0};
+        TokenState state{TokenState::Disabled};
+};
+
 struct TimenodeProperties {
+
     TimeValue oldDate;
     TimeValue newDate;
     double dateMin;
     double dateMax;
+
+    // CSP on execution purpose :
+    double newAbsoluteMin{0};
+    double newAbsoluteMax{std::numeric_limits<double>::infinity()};
+
+    Token token;
+
+    bool hasToken() {return token.state!= TokenState::Disabled;}
 };
 
 struct ConstraintProperties {
@@ -40,6 +70,14 @@ struct ConstraintProperties {
             Id<RackModel>
         >
      > savedDisplay;
+
+    // CSP on execution purpose
+    Token token;
+    double min;
+    double max;
+    bool maxInfinite;
+
+    bool hasToken() {return token.state!= TokenState::Disabled;}
 };
 
 struct ElementsProperties {

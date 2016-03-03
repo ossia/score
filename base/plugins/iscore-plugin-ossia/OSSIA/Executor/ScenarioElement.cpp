@@ -2,6 +2,7 @@
 #include <Editor/TimeConstraint.h>
 #include <Editor/TimeEvent.h>
 #include <Editor/TimeNode.h>
+#include <Editor/TimeProcess.h>
 #include <Explorer/DocumentPlugin/DeviceDocumentPlugin.hpp>
 
 #include <core/document/Document.hpp>
@@ -80,8 +81,21 @@ ScenarioElement::ScenarioElement(
 
     if(auto fact = ctx.doc.app.components.factory<Scenario::CSPCoherencyCheckerList>().get())
     {
-        m_checker = fact->make(element, m_pastTn);
-        m_checker->computeDisplacement(m_pastTn, m_properties);
+        m_checker = fact->make(element, m_properties);
+        for(auto& cstr : m_ossia_constraints)
+        {
+            auto tmin = m_properties.constraints[cstr.first].min;
+            cstr.second->OSSIAConstraint()->setDurationMin(tmin);
+
+            auto inf = m_properties.constraints[cstr.first].maxInfinite;
+            if(inf)
+                cstr.second->OSSIAConstraint()->setDurationMax(OSSIA::Infinite);
+            else
+            {
+                auto tmax = m_properties.constraints[cstr.first].max;
+                cstr.second->OSSIAConstraint()->setDurationMax(tmax);
+            }
+        }
     }
 }
 
@@ -184,7 +198,7 @@ void ScenarioElement::on_timeNodeCreated(const Scenario::TimeNodeModel& tn)
     m_ossia_timenodes.insert({tn.id(), elt});
 
     elt->OSSIATimeNode()->setCallback([=] () {
-        return timeNodeCallback(elt, elt->OSSIATimeNode()->getDate());
+        return timeNodeCallback(elt, this->m_parent_constraint.OSSIAConstraint()->getDate() ); //elt->OSSIATimeNode()->getDate()
     });
 }
 
@@ -257,16 +271,27 @@ void ScenarioElement::timeNodeCallback(TimeNodeElement* tn, const OSSIA::TimeVal
         m_pastTn.push_back(tn->iscoreTimeNode().id());
         m_properties.timenodes[tn->iscoreTimeNode().id()].dateMin = double(date);
         m_properties.timenodes[tn->iscoreTimeNode().id()].dateMax = double(date);
-        m_checker->computeDisplacement(m_pastTn, m_properties);
+        m_checker->computeDisplacement(tn->iscoreTimeNode().id(), m_properties);
 
-        for(auto& cstr : m_ossia_constraints)
+        for(auto& cstr : m_ossia_constraints) // OPTIMIZEME
         {
-            auto tmin = m_properties.constraints[cstr.first].newMin;
-            cstr.second->OSSIAConstraint()->setDurationMin(iscore::convert::time(tmin));
-            auto tmax = m_properties.constraints[cstr.first].newMax;
-            cstr.second->OSSIAConstraint()->setDurationMax(iscore::convert::time(tmax));
+            auto tmin = m_properties.constraints[cstr.first].min;
+            cstr.second->OSSIAConstraint()->setDurationMin(tmin);
+
+            auto inf = m_properties.constraints[cstr.first].maxInfinite;
+            if(inf)
+                cstr.second->OSSIAConstraint()->setDurationMax(OSSIA::Infinite);
+            else
+            {
+                auto tmax = m_properties.constraints[cstr.first].max;
+                cstr.second->OSSIAConstraint()->setDurationMax(tmax);
+            }
+            m_properties.constraints[cstr.first].token.disable();
         }
-        m_properties.constraints.clear();
+        for(auto& tn : m_ossia_timenodes)
+        {
+            m_properties.timenodes[tn.first].token.disable();
+        }
     }
 }
 

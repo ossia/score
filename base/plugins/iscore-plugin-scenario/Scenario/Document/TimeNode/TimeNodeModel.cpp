@@ -103,6 +103,8 @@ QString TimeNodeModel::expression() const
     return m_trigger->expression().toString();
 }
 
+bool TimeNodeModel::hasTrigger() const {return m_trigger->active();}
+
 const VerticalExtent& TimeNodeModel::extent() const
 {
     return m_extent;

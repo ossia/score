@@ -17,7 +17,6 @@
 
 namespace Scenario
 {
-class TimeNodeModel;
 namespace Command
 {
 template<typename Scenario_T>
