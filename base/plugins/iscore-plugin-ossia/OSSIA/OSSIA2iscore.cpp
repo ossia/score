@@ -150,10 +150,7 @@ Device::AddressSettings ToAddressSettings(const OSSIA::Node &node)
     s.name = QString::fromStdString(node.getName());
 
     const auto& addr = node.getAddress();
-    if(s.name == "yPos" && !addr)
-    {
-        ISCORE_BREAKPOINT;
-    }
+
     if(addr)
     {
         addr->pullValue();
