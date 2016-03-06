@@ -16,7 +16,7 @@ QString toString(const Pulse& pulse)
 
 QString State::toString(const State::RelationMember& m)
 {
-    static const constexpr struct {
+    struct {
         public:
             using return_type = QString;
             return_type operator()(const State::Address& addr) const {

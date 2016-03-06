@@ -16,7 +16,7 @@ namespace Device
 {
 QString DeviceExplorerNode::displayName() const
 {
-    static const constexpr struct {
+    struct {
         public:
             using return_type = QString;
             return_type operator()(const Device::DeviceSettings& dev) const

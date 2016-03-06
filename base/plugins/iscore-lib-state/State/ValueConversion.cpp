@@ -251,7 +251,7 @@ const QStringList& ValuePrettyTypesList()
 template<>
 int value(const State::Value& val)
 {
-    static const constexpr struct {
+    struct {
         public:
             using return_type = int;
             return_type operator()(const no_value_t&) const { return 0; }
@@ -270,7 +270,7 @@ int value(const State::Value& val)
 template<>
 float value(const State::Value& val)
 {
-    static const constexpr struct {
+    struct {
         public:
             using return_type = float;
             return_type operator()(const no_value_t&) const { return {}; }
@@ -294,7 +294,7 @@ double value(const State::Value& val)
 template<>
 bool value(const State::Value& val)
 {
-    static const constexpr struct {
+    struct {
         public:
             using return_type = bool;
             return_type operator()(const no_value_t&) const { return {}; }
@@ -313,7 +313,7 @@ bool value(const State::Value& val)
 template<>
 QChar value(const State::Value& val)
 {
-    static const constexpr struct {
+    struct {
         public:
             using return_type = QChar;
             return_type operator()(const no_value_t&) const { return '-'; }
@@ -332,7 +332,7 @@ QChar value(const State::Value& val)
 template<>
 QString value(const State::Value& val)
 {
-    static const constexpr struct {
+    struct {
             using return_type = QString;
             return_type operator()(const State::no_value_t&) const { return {}; }
             return_type operator()(const State::impulse_t&) const { return {}; }

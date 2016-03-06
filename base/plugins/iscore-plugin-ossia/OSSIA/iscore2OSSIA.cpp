@@ -236,7 +236,7 @@ void createOSSIAAddress(
     if(settings.value.val.is<State::no_value_t>())
         return;
 
-    static const constexpr struct {
+    struct {
         public:
             using return_type = OSSIA::Value::Type;
             return_type operator()(const State::no_value_t&) const { ISCORE_ABORT; return OSSIA::Value::Type::IMPULSE; }
@@ -326,7 +326,7 @@ OSSIA::Value* createOSSIAValue(const T& val)
 
 static OSSIA::Value* toOSSIAValue(const State::ValueImpl& val)
 {
-    static const constexpr struct {
+    struct {
         public:
             using return_type = OSSIA::Value*;
             return_type operator()(const State::no_value_t&) const { ISCORE_ABORT; return nullptr; }
