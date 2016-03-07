@@ -70,7 +70,7 @@ int MessageItemModel::columnCount(const QModelIndex &parent) const
     return (int)Column::Count;
 }
 
-QVariant nameColumnData(const MessageItemModel::node_type& node, int role)
+static QVariant nameColumnData(const MessageItemModel::node_type& node, int role)
 {
     if(role == Qt::DisplayRole || role == Qt::EditRole)
     {
@@ -80,7 +80,7 @@ QVariant nameColumnData(const MessageItemModel::node_type& node, int role)
     return {};
 }
 
-QVariant valueColumnData(const MessageItemModel::node_type& node, int role)
+static QVariant valueColumnData(const MessageItemModel::node_type& node, int role)
 {
     if(role == Qt::DisplayRole || role == Qt::EditRole)
     {

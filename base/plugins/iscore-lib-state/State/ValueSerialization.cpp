@@ -1,4 +1,5 @@
 #include <State/ValueConversion.hpp>
+#include <State/ValueSerialization.hpp>
 
 #include <boost/none_t.hpp>
 #include <iscore/serialization/DataStreamVisitor.hpp>

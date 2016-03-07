@@ -20,10 +20,10 @@
 #include <iscore/tools/TreeNode.hpp>
 #include <iscore/tools/std/Algorithms.hpp>
 
-bool removable(const Process::MessageNode& node)
+static bool removable(const Process::MessageNode& node)
 { return node.values.empty() && !node.hasChildren(); }
 
-void cleanupNode(Process::MessageNode& rootNode)
+static void cleanupNode(Process::MessageNode& rootNode)
 {
     for(auto it = rootNode.begin(); it != rootNode.end(); )
     {
@@ -39,7 +39,7 @@ void cleanupNode(Process::MessageNode& rootNode)
     }
 }
 
-bool match(Process::MessageNode& node, const State::Message& mess)
+static bool match(Process::MessageNode& node, const State::Message& mess)
 {
     Process::MessageNode* n = &node;
 
@@ -65,7 +65,7 @@ bool match(Process::MessageNode& node, const State::Message& mess)
     return false;
 }
 
-void updateNode(
+static void updateNode(
         QVector<Process::ProcessStateData>& vec,
         const State::Value& val,
         const Id<Process::ProcessModel>& proc)
@@ -81,7 +81,7 @@ void updateNode(
     }
 }
 
-void rec_delete(Process::MessageNode& node)
+static void rec_delete(Process::MessageNode& node)
 {
     if(node.childCount() == 0)
     {
@@ -101,7 +101,7 @@ void rec_delete(Process::MessageNode& node)
 
 
 // Returns true if this node is to be deleted.
-bool nodePruneAction_impl(
+static bool nodePruneAction_impl(
         Process::MessageNode& node,
         const Id<Process::ProcessModel>& proc,
         QVector<Process::ProcessStateData>& vec,
@@ -144,7 +144,7 @@ bool nodePruneAction_impl(
     return false;
 }
 
-void nodePruneAction(
+static void nodePruneAction(
         Process::MessageNode& node,
         const Id<Process::ProcessModel>& proc,
         ProcessPosition pos
@@ -183,7 +183,7 @@ void nodePruneAction(
     }
 }
 
-void nodeInsertAction(
+static void nodeInsertAction(
         Process::MessageNode& node,
         State::MessageList& msg,
         const Id<Process::ProcessModel>& proc,
@@ -223,7 +223,7 @@ void nodeInsertAction(
     }
 }
 
-void rec_updateTree(
+static void rec_updateTree(
         Process::MessageNode& node,
         State::MessageList& lst,
         const Id<Process::ProcessModel>& proc,
@@ -248,7 +248,7 @@ void rec_updateTree(
 // TODO another one to refactor with merges
 // MergeFun takes a state node value and modifies it.
 template<typename MergeFun>
-void merge_impl(
+static void merge_impl(
         Process::MessageNode& base,
         const State::Address& addr,
         MergeFun merge)
@@ -370,7 +370,7 @@ void updateTreeWithMessageList(
 
 
 
-void rec_pruneTree(
+static void rec_pruneTree(
         Process::MessageNode& node,
         const Id<Process::ProcessModel>& proc,
         ProcessPosition pos)
@@ -405,7 +405,7 @@ void updateTreeWithRemovedProcess(
 
 
 
-void nodePruneAction(
+static void nodePruneAction(
         Process::MessageNode& node,
         ProcessPosition pos)
 {
@@ -440,7 +440,7 @@ void nodePruneAction(
 
 
 
-void rec_pruneTree(
+static void rec_pruneTree(
         Process::MessageNode& node,
         ProcessPosition pos)
 {
@@ -487,7 +487,7 @@ void updateTreeWithRemovedUserMessage(
 
 
 
-void rec_removeUserValue(
+static void rec_removeUserValue(
         Process::MessageNode& node)
 {
     // Recursively set the user value to nil.
@@ -499,7 +499,7 @@ void rec_removeUserValue(
     }
 }
 
-bool rec_cleanup(
+static bool rec_cleanup(
         Process::MessageNode& node)
 {
     std::set<const Process::MessageNode*> toRemove;
@@ -556,13 +556,13 @@ void updateTreeWithRemovedNode(
 
 
 /// Functions related to removal of user messages ///
-void nodePruneAction(
+static void nodePruneAction(
         Process::MessageNode& node)
 {
     node.values.userValue = State::OptionalValue{};
 }
 
-void rec_pruneTree(
+static void rec_pruneTree(
         Process::MessageNode& node)
 {
     // First set all the user messages to "empty"
