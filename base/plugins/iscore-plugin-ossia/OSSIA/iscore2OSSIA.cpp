@@ -185,7 +185,7 @@ OSSIA::Node* getNodeFromPath(
     return node;
 }
 
-OSSIA::BoundingMode toBoundingMode(Device::ClipMode c)
+static OSSIA::BoundingMode toBoundingMode(Device::ClipMode c)
 {
     switch(c)
     {
@@ -453,7 +453,7 @@ std::shared_ptr<OSSIA::State> state(
 }
 
 
-OSSIA::Destination* expressionAddress(
+static OSSIA::Destination* expressionAddress(
         const State::Address& addr,
         const Device::DeviceList& devlist)
 {
@@ -485,7 +485,7 @@ OSSIA::Destination* expressionAddress(
     }
 }
 
-OSSIA::Value* expressionOperand(
+static OSSIA::Value* expressionOperand(
         const State::RelationMember& relm,
         const Device::DeviceList& list)
 {
@@ -516,7 +516,7 @@ OSSIA::Value* expressionOperand(
     return eggs::variants::apply(visitor, relm);
 }
 
-OSSIA::ExpressionAtom::Operator expressionOperator(State::Relation::Operator op)
+static OSSIA::ExpressionAtom::Operator expressionOperator(State::Relation::Operator op)
 {
     switch(op)
     {
@@ -538,7 +538,7 @@ OSSIA::ExpressionAtom::Operator expressionOperator(State::Relation::Operator op)
 }
 
 // State::Relation -> OSSIA::ExpressionAtom
-std::shared_ptr<OSSIA::ExpressionAtom> expressionAtom(
+static std::shared_ptr<OSSIA::ExpressionAtom> expressionAtom(
         const State::Relation& rel,
         const Device::DeviceList& dev)
 {
@@ -550,7 +550,7 @@ std::shared_ptr<OSSIA::ExpressionAtom> expressionAtom(
                 expressionOperand(rel.rhs, dev));
 }
 
-std::shared_ptr<OSSIA::ExpressionPulse> expressionPulse(
+static std::shared_ptr<OSSIA::ExpressionPulse> expressionPulse(
         const State::Pulse& rel,
         const Device::DeviceList& dev)
 {
