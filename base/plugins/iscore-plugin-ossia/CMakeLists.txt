@@ -142,14 +142,26 @@ set(SRCS
 )
 
 add_library(${PROJECT_NAME} ${SRCS} ${HDRS})
+
 target_link_libraries(${PROJECT_NAME}
-        PUBLIC  APIJamoma_Editor APICoppa
-				Qt5::Core Qt5::Widgets
-                iscore_lib_base iscore_lib_device iscore_lib_process iscore_plugin_scenario iscore_plugin_curve iscore_plugin_automation iscore_plugin_deviceexplorer
+        PUBLIC
+          Qt5::Core Qt5::Widgets
+          iscore_lib_base iscore_lib_device iscore_lib_process iscore_plugin_scenario iscore_plugin_curve iscore_plugin_automation iscore_plugin_deviceexplorer
 )
+if(TARGET APICoppa)
+  target_link_libraries(${PROJECT_NAME}
+            PUBLIC
+              APIJamoma_Editor APICoppa
+              )
+else()
+  target_link_libraries(${PROJECT_NAME}
+            PUBLIC
+              APIJamoma
+              )
+endif()
 
 if(TARGET iscore_plugin_loop)
-	target_link_libraries(${PROJECT_NAME} PUBLIC iscore_plugin_loop)
+        target_link_libraries(${PROJECT_NAME} PUBLIC iscore_plugin_loop)
 endif()
 
 setup_iscore_plugin(${PROJECT_NAME})
