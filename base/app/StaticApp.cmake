@@ -9,6 +9,7 @@ if(ISCORE_STATIC_QT)
     find_library(qtpcre_LIBRARY NAMES qtpcre libqtpcre HINTS ${QT_LIB_FOLDER})
 
     find_library(qsvg_LIBRARY NAMES qsvg libqsvg HINTS ${QT_LIB_FOLDER}/../plugins/imageformats)
+    find_library(xcbxkb_LIBRARY NAMES xcb-xkb libxcb-xkb)
 
     target_link_libraries(
         ${APPNAME} PRIVATE
@@ -26,21 +27,24 @@ if(ISCORE_STATIC_QT)
         ${Qt5PlatformSupport_LIBRARY}
       )
 
-      if(${qtharfbuzzng_LIBRARY})
+      if(qtharfbuzzng_LIBRARY)
         target_link_libraries(${APPNAME} PRIVATE ${qtharfbuzzng_LIBRARY})
       endif()
-      if(${qtpcre_LIBRARY})
+      if(qtpcre_LIBRARY)
         target_link_libraries(${APPNAME} PRIVATE ${qtpcre_LIBRARY})
       endif()
-      if(${qtfreetype_LIBRARY})
+      if(qtfreetype_LIBRARY)
         target_link_libraries(${APPNAME} PRIVATE ${qtfreetype_LIBRARY})
+      endif()
+      if(xcbxkb_LIBRARY)
+        target_link_libraries(${APPNAME} PRIVATE ${xcbxkb_LIBRARY})
       endif()
 
       target_link_libraries(${APPNAME} PRIVATE
         ${qsvg_LIBRARY}
         GL
         Xi
-        xcb-render xcb-image xcb-icccm xcb-sync xcb-xfixes xcb-shm xcb-randr xcb-shape xcb-keysyms xcb-xkb xcb-render-util  xcb
+        xcb-render xcb-image xcb-icccm xcb-sync xcb-xfixes xcb-shm xcb-randr xcb-shape xcb-keysyms xcb-render-util xcb
         X11-xcb Xrender Xext X11
         z dl rt
       )
