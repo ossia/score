@@ -1,4 +1,3 @@
-
 if(ISCORE_STATIC_QT)
     get_target_property(QtCore_LIB Qt5::Core LOCATION)
     get_filename_component(QT_LIB_FOLDER ${QtCore_LIB} DIRECTORY)
@@ -25,9 +24,19 @@ if(ISCORE_STATIC_QT)
         Qt5::QXcbIntegrationPlugin
         ${Qt5XcbQpa_LIBRARY}
         ${Qt5PlatformSupport_LIBRARY}
-        ${qtharfbuzzng_LIBRARY}
-        ${qtpcre_LIBRARY}
-        ${qtfreetype_LIBRARY}
+      )
+
+      if(${qtharfbuzzng_LIBRARY})
+        target_link_libraries(${APPNAME} PRIVATE ${qtharfbuzzng_LIBRARY})
+      endif()
+      if(${qtpcre_LIBRARY})
+        target_link_libraries(${APPNAME} PRIVATE ${qtpcre_LIBRARY})
+      endif()
+      if(${qtfreetype_LIBRARY})
+        target_link_libraries(${APPNAME} PRIVATE ${qtfreetype_LIBRARY})
+      endif()
+
+      target_link_libraries(${APPNAME} PRIVATE
         ${qsvg_LIBRARY}
         GL
         Xi
