@@ -7,6 +7,7 @@
 #include <QPainter>
 #include <QPainterPath>
 #include <QPen>
+#include <Scenario/Document/Constraint/ConstraintModel.hpp>
 
 #include <Process/Style/Skin.hpp>
 #include <Scenario/Document/Constraint/ViewModels/ConstraintPresenter.hpp>
@@ -116,7 +117,7 @@ void TemporalConstraintView::paint(
     QPainterPath playedPath;
     if(play_w != 0.)
     {
-        playedPath.lineTo(play_w, 0);
+        playedPath.lineTo(std::min(play_w, std::max(def_w, max_w)), 0);
     }
 
     // Colors
@@ -162,7 +163,7 @@ void TemporalConstraintView::paint(
     painter->setBrush(blueish);
 
 
-    static const QPen playedPen{
+    const QPen playedPen{
         ScenarioStyle::instance().ConstraintPlayFill.getColor(),
         4,
         Qt::SolidLine,
@@ -175,7 +176,7 @@ void TemporalConstraintView::paint(
         painter->drawPath(playedPath);
 
 
-    static const int fontSize = 12;
+    const int fontSize = 12;
     QRectF labelRect{0,0, defaultWidth(), (-fontSize - 2.)};
     auto f = Skin::instance().SansFont;
     f.setPointSize(fontSize);
@@ -183,6 +184,15 @@ void TemporalConstraintView::paint(
     painter->setFont(f);
     painter->setPen(m_labelColor.getColor());
     painter->drawText(labelRect, Qt::AlignCenter, m_label);
+
+
+    f.setPointSize(7);
+    painter->setFont(f);
+    painter->setPen(Qt::white);
+    auto& dur = presenter().model().duration;
+    QString percent = (dur.defaultDuration() * dur.playPercentage()).toString();
+    painter->drawText(def_w - 80, 5, 100, 30, {}, percent);
+
 
 #if defined(ISCORE_SCENARIO_DEBUG_RECTS)
     painter->setPen(Qt::darkRed);
