@@ -5,7 +5,9 @@ class Flock
   private ArrayList<Boid> new_boids; // An ArrayList for all boids to add the next time
   private boolean new_boids_locked;
   private boolean clear_request;
-  
+
+  private PVector position;
+  private PVector direction;
   private PVector deviation;
 
   Flock() 
@@ -22,15 +24,17 @@ class Flock
     clear_request = true;
   }
 
-  void run() 
+  int run() 
   { 
+    int size_before = getSize();
+    
     // handle clear request before new boids
     if (clear_request)
     {
-       boids.clear();
-       clear_request = false; 
+      boids.clear();
+      clear_request = false;
     }
-    
+
     // add all new boids
     new_boids_locked = true;
     for (Boid b : new_boids) 
@@ -39,14 +43,16 @@ class Flock
     }
     new_boids.clear();
     new_boids_locked = false;
-    
+
     // update all existing boids
     for (Boid b : boids) 
     {
       b.run(boids);
     }
+
+    processPositionDirectionDeviation();
     
-    processDeviation();
+    return getSize() - size_before;
   }
 
   void draw_info()
@@ -80,14 +86,17 @@ class Flock
 
     text("dist max :", 10, 75);
     text(getDistanceMax(), 85, 75);
-    
+
     // display flock statistics
-    text("size :", 10, 315);
-    text(boids.size(), 50, 315);
-    
-    text("deviation :", 10, 330);
-    text(deviation.x, 85, 330);
-    text(deviation.y, 85, 345);
+    text("size :", 160, 15);
+    text(getSize(), 200, 15);
+
+    stroke(200, 100, 100);
+    line(position.x, position.y, position.x + direction.x*10., position.y + direction.y*10.);
+
+    text("deviation :", 160, 30);
+    text(deviation.x, 235, 30);
+    text(deviation.y, 235, 45);
   }
 
   void addBoid(Boid b) 
@@ -96,6 +105,14 @@ class Flock
       new_boids.add(b);
     else
       println("new_boids_locked");
+  }
+
+  void setKill(boolean kill) 
+  {
+    for (Boid b : boids) 
+    {
+      b.kill_out = kill;
+    }
   }
 
   void setAvoidance(float avoidance) 
@@ -230,42 +247,79 @@ class Flock
       return 0.0;
     }
   }
-  
+
   int getSize()
   {
-    return boids.size();
+    int count = 0;
+    for (Boid b : boids) 
+    {
+      if (!b.alive)
+        continue;
+      count++;
+    }
+
+    return count;
   }
   
+  boolean getCollision()
+  {
+    for (Boid b : boids) 
+    {
+      if (b.collision)
+        return true;
+    }
+
+    return false;
+  }
+
+  PVector getPosition()
+  {
+    return position;
+  }
+
+  PVector getDirection()
+  {
+    return direction;
+  }
+
   // note : deviation is meaningless as boids are mirrored when crossing a border
   // but we can know when all boids are together if deviation is small
   PVector getDeviation()
   {
     return deviation;
   }
- 
-  private void processDeviation()
+
+  private void processPositionDirectionDeviation()
   {
+    position = new PVector(0, 0);
+    direction = new PVector(0., 0.);
     deviation = new PVector(0, 0);
-    
+
     if (boids.size() > 0)
     {
-      // process mean
-      PVector mean = new PVector(0, 0);
+      // process means
+      int count = 0;
       for (Boid b : boids) 
       {
-        mean.add(b.location);
+        if (!b.alive)
+          continue;
+
+        count++;
+        position.add(b.location);
+        direction.add(b.velocity);
       }
-      mean.div(boids.size());
+      position.div(count);
+      direction.div(count);
 
       // process deviation
       for (Boid b : boids) 
       {
-        float x_xm2 = pow(b.location.x - mean.x, 2);
-        float y_ym2 = pow(b.location.y - mean.y, 2);
+        float x_xm2 = pow(b.location.x - position.x, 2);
+        float y_ym2 = pow(b.location.y - position.y, 2);
 
         deviation.add(new PVector(x_xm2, y_ym2));
       }
-      deviation.div(boids.size());
+      deviation.div(count);
       deviation = new PVector(sqrt(deviation.x), sqrt(deviation.y));
     }
   }

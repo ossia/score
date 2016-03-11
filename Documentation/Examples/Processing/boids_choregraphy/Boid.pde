@@ -1,6 +1,11 @@
 // The Boid class
 class Boid 
 {
+  boolean alive = true;
+  boolean out = false;
+  boolean kill_out = false;
+  boolean collision = false;
+  
   PVector location;
   PVector velocity;
   PVector acceleration;
@@ -38,15 +43,30 @@ class Boid
 
   void run(ArrayList<Boid> boids) 
   {
+    if (!alive)
+      return;
+      
     flock(boids);
     update();
     borders();
+    
+    if (out && kill_out)
+    {
+        alive = false;
+        return;
+    }
+        
     render();
   }
   
   // We accumulate a new acceleration each time based on three rules
   void flock(ArrayList<Boid> boids) 
   {
+    // reset acceleration, out and collision
+    acceleration.mult(0);
+    out = false;
+    collision = false;
+    
     PVector avo = avoid(boids);       // Avoidance
     PVector ali = align(boids);       // Alignment
     PVector coh = cohesion(boids);    // Cohesion
@@ -74,9 +94,6 @@ class Boid
     // Limit speed
     velocity.limit(maxspeed);
     location.add(velocity);
-    
-    // Reset acceleration and follow to 0 each cycle
-    acceleration.mult(0);
   }
 
   // A method that calculates and applies a steering force towards a target
@@ -103,8 +120,17 @@ class Boid
     float theta = velocity.heading2D() + radians(90);
     // heading2D() above is now heading() but leaving old syntax until Processing.js catches up
 
-    fill(100, 200, 100);
-    stroke(100, 200, 100);
+    if (collision)
+    {
+      fill(200, 100, 100);
+      stroke(200, 100, 100);
+    }
+    else
+    {
+      fill(100, 200, 100);
+      stroke(100, 200, 100);
+    }
+      
     pushMatrix();
     translate(location.x, location.y);
     rotate(theta);
@@ -119,10 +145,29 @@ class Boid
   // Wraparound
   void borders() 
   {
-    if (location.x < -size) location.x = width+size;
-    if (location.y < -size) location.y = height+size;
-    if (location.x > width+size) location.x = -size;
-    if (location.y > height+size) location.y = -size;
+    if (location.x < -10.*size) 
+    {
+      velocity.x = -1.*velocity.x;
+      out = true;
+    }
+    
+    if (location.y < -10.*size) 
+    {
+      velocity.y = -1.*velocity.y;
+      out = true;
+    }
+    
+    if (location.x > width + 10.*size)
+    {
+      velocity.x = -1.*velocity.x;
+      out = true;
+    }
+    
+    if (location.y > height + 10.*size)
+    {
+      velocity.y = -1.*velocity.y;
+      out = true;
+    }
   }
 
   // Avoidance
@@ -135,6 +180,9 @@ class Boid
     // For every boid in the system, check if it's too close
     for (Boid other : boids) 
     {
+      if (!other.alive)
+        continue;
+        
       float d = PVector.dist(location, other.location);
       
       // If the distance is greater than 0 and less than a minimal distance (0 when you are yourself)
@@ -142,6 +190,10 @@ class Boid
       {
         // Calculate vector pointing away from neighbor
         PVector diff = PVector.sub(location, other.location);
+        
+        if (diff.mag() < size/2. && !out && !other.out)
+          collision = true;
+        
         diff.normalize();
         diff.div(d);        // Weight by distance
         steer.add(diff);
@@ -181,6 +233,9 @@ class Boid
     
     for (Boid other : boids) 
     {
+      if (!other.alive)
+        continue;
+        
       float d = PVector.dist(location, other.location);
       if ((d > 0) && (d < neighbor_distance_max)) 
       {
@@ -218,6 +273,9 @@ class Boid
     
     for (Boid other : boids) 
     {
+      if (!other.alive)
+        continue;
+        
       float d = PVector.dist(location, other.location);
       if ((d > 0) && (d < neighbor_distance_max)) 
       {

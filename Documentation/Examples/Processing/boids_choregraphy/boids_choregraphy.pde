@@ -19,8 +19,14 @@
  * (f) /flock/follow/destination i i : parameter to make boids to follow a destination (default 0. 0.)
  * (-) /flock/follow/rate f : parameter to control how much boids follow the destination (default 0.)
  * (-) /flock/size : returns the number of boids
+ * (-) /flock/position/x : returns horizontal mean position of the flock
+ * (-) /flock/position/y : returns vertical mean position of the flock
+ * (-) /flock/direction/x : returns horizontal mean direction of the flock
+ * (-) /flock/direction/y : returns vertical mean direction of the flock
  * (-) /flock/deviation/x : returns horizontal deviation of the flock
  * (-) /flock/deviation/y : returns vertical deviation of the flock
+ * (-) /flock/killed : returned each time a boid is killed
+ * (-) /flock/collision : returned each time at least one boid collide another one
  * (-) /mouse/x i : returns mouse x position on screen
  * (-) /mouse/y i : returns mouse y position on screen
  * (-) /mouse/click : returns 1 when mouse is pressed and 0 when released
@@ -44,7 +50,7 @@ boolean follow_mouse = false; // while mappings are not possible in i-score
 
 void setup() 
 {
-  size(640, 360);
+  size(1280, 720);
 
   // listen osc message from i-score
   osc_in = new OscP5(this, 12001);
@@ -61,8 +67,25 @@ void draw()
   
   background(50);
 
-  // update flock
-  flock.run();
+  // update flock (and get change of flock size)
+  int size_change = flock.run();
+  
+  if (size_change < 0)
+  {
+    // a quick red flash each time a boid is killed 
+    background(100, 0, 0);
+    
+    // send OSC
+    osc_msg = new OscMessage("/flock/killed");
+    osc_in.send(osc_msg, osc_out);
+  }
+  
+  if (flock.getCollision())
+  {    
+    // send OSC message
+    osc_msg = new OscMessage("/flock/collision");
+    osc_in.send(osc_msg, osc_out);
+  }
 
   // draw flock informations
   if (info)
@@ -71,6 +94,26 @@ void draw()
   // send OSC message for flock size
   osc_msg = new OscMessage("/flock/size");
   osc_msg.add(flock.getSize());
+  osc_in.send(osc_msg, osc_out);
+  
+  // send OSC message for flock mean position x
+  osc_msg = new OscMessage("/flock/position/x");
+  osc_msg.add(flock.getPosition().x);
+  osc_in.send(osc_msg, osc_out);
+
+  // send OSC message for flock mean position y
+  osc_msg = new OscMessage("/flock/position/y");
+  osc_msg.add(flock.getPosition().y);
+  osc_in.send(osc_msg, osc_out);
+  
+  // send OSC message for flock mean direction x
+  osc_msg = new OscMessage("/flock/direction/x");
+  osc_msg.add(flock.getDirection().x);
+  osc_in.send(osc_msg, osc_out);
+
+  // send OSC message for flock mean direction y
+  osc_msg = new OscMessage("/flock/direction/y");
+  osc_msg.add(flock.getDirection().y);
   osc_in.send(osc_msg, osc_out);
 
   // send OSC message for flock deviation x
@@ -251,6 +294,11 @@ void keyPressed()
       flock.setFollowRate(1.0);
       break;
     }
+  case 'k':
+    {
+      flock.setKill(true);
+      break;
+    }
   };
 }
 
@@ -262,6 +310,12 @@ void keyReleased()
     {
       cursor();
       flock.setFollowRate(0.0);
+      break;
+    }
+    
+  case 'k':
+    {
+      flock.setKill(false);
       break;
     }
   };
