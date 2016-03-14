@@ -21,7 +21,6 @@ ProcessGraphicsView::ProcessGraphicsView(QGraphicsScene* parent):
     //m_graduations = new SceneGraduations{this};
     //scene()->addItem(m_graduations);
 
-    this->setAttribute(Qt::WA_OpaquePaintEvent);
     //m_graduations->setColor(m_bg.color().lighter());
     this->setBackgroundBrush(ScenarioStyle::instance().Background.getBrush());
 }
