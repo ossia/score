@@ -9,7 +9,7 @@ namespace Scenario
 namespace Settings
 {
 
-const QString Keys::skin = QStringLiteral("Skin/ExecutionRate");
+const QString Keys::skin = QStringLiteral("Skin/Skin");
 
 
 Model::Model()
@@ -71,10 +71,7 @@ void Model::setSkin(const QString& skin)
 
 void Model::setFirstTimeSettings()
 {
-    m_skin = "Default";
-
-    QSettings s;
-    s.setValue(Keys::skin, m_skin);
+    setSkin("Default");
 }
 
 }
