@@ -19,6 +19,11 @@ class ConstraintViewModel;
 class RackModel;
 class TimeNodeModel;
 
+struct Branch {
+        QVector<Id<TimeNodeModel>> timenodes;
+        QVector<Id<ConstraintModel>> constraints;
+};
+
 enum class TokenState{Disabled, Forward, Backward};
 
 struct Token {
@@ -49,9 +54,9 @@ struct TimenodeProperties {
     // CSP on execution purpose :
     double newAbsoluteMin{0};
     double newAbsoluteMax{std::numeric_limits<double>::infinity()};
+    QVector<Branch> previousBranches{};
 
     Token token;
-
     bool hasToken() {return token.state!= TokenState::Disabled;}
 };
 
@@ -75,7 +80,9 @@ struct ConstraintProperties {
     Token token;
     double min;
     double max;
-    bool maxInfinite;
+    double cspMin;
+    double cspMax;
+    QVector<Branch> previousBranches{};
 
     bool hasToken() {return token.state!= TokenState::Disabled;}
 };

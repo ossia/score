@@ -87,8 +87,8 @@ ScenarioElement::ScenarioElement(
             auto tmin = m_properties.constraints[cstr.first].min;
             cstr.second->OSSIAConstraint()->setDurationMin(tmin);
 
-            auto inf = m_properties.constraints[cstr.first].maxInfinite;
-            if(inf)
+            auto CstrMax = m_properties.constraints[cstr.first].max;
+            if(CstrMax = std::numeric_limits<double>::infinity())
                 cstr.second->OSSIAConstraint()->setDurationMax(OSSIA::Infinite);
             else
             {
@@ -198,7 +198,7 @@ void ScenarioElement::on_timeNodeCreated(const Scenario::TimeNodeModel& tn)
     m_ossia_timenodes.insert({tn.id(), elt});
 
     elt->OSSIATimeNode()->setCallback([=] () {
-        return timeNodeCallback(elt, this->m_parent_constraint.OSSIAConstraint()->getDate() ); //elt->OSSIATimeNode()->getDate()
+        return timeNodeCallback(elt, this->m_parent_constraint.OSSIAConstraint()->getDate()); //elt->OSSIATimeNode()->getDate()
     });
 }
 
@@ -264,22 +264,23 @@ void ScenarioElement::eventCallback(
     }
 }
 
-void ScenarioElement::timeNodeCallback(TimeNodeElement* tn, const OSSIA::TimeValue& date)
+void ScenarioElement::timeNodeCallback(TimeNodeElement* tn, const OSSIA::TimeValue& Clockdate)
 {
+    auto date = Clockdate > 0 ? Clockdate - OSSIA::TimeValue{60} : Clockdate;
     if(m_checker)
     {
         m_pastTn.push_back(tn->iscoreTimeNode().id());
         m_properties.timenodes[tn->iscoreTimeNode().id()].dateMin = double(date);
         m_properties.timenodes[tn->iscoreTimeNode().id()].dateMax = double(date);
-        m_checker->computeDisplacement(tn->iscoreTimeNode().id(), m_properties);
+        m_checker->computeDisplacement(tn->iscoreTimeNode().id());
 
         for(auto& cstr : m_ossia_constraints) // OPTIMIZEME
         {
             auto tmin = m_properties.constraints[cstr.first].min;
             cstr.second->OSSIAConstraint()->setDurationMin(tmin);
 
-            auto inf = m_properties.constraints[cstr.first].maxInfinite;
-            if(inf)
+            auto CstrMax = m_properties.constraints[cstr.first].max;
+            if(CstrMax = std::numeric_limits<double>::infinity())
                 cstr.second->OSSIAConstraint()->setDurationMax(OSSIA::Infinite);
             else
             {
