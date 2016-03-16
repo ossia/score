@@ -72,6 +72,8 @@ class ISCORE_PLUGIN_SCENARIO_EXPORT TimeNodeModel final : public IdentifiedObjec
         TriggerModel* trigger() const;
         QString expression() const;
 
+        bool hasTrigger() const;
+
     signals:
         void extentChanged(const VerticalExtent&);
         void dateChanged(const TimeValue&);
