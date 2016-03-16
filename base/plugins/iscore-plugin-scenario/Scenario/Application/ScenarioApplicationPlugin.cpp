@@ -148,7 +148,6 @@ std::vector<iscore::OrderedToolbar> ScenarioApplicationPlugin::makeToolbars()
         i++;
     }
 
-
     return std::vector<iscore::OrderedToolbar>{iscore::OrderedToolbar(1, bar)};
 }
 
