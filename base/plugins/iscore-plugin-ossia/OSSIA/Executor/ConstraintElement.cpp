@@ -64,6 +64,8 @@ ConstraintElement::ConstraintElement(
     {
         on_processAdded(process);
     }
+    
+    m_state_on_play = OSSIA::State::create();
 }
 
 std::shared_ptr<OSSIA::TimeConstraint> ConstraintElement::OSSIAConstraint() const
@@ -84,12 +86,66 @@ void ConstraintElement::play(TimeValue t)
     auto start_state = m_ossia_constraint->getStartEvent()->getState();
     auto offset_state = m_ossia_constraint->offset(m_offset);
 
-    start_state->stateElements().push_back(offset_state);
-    start_state->launch();
+    flattenAndFilter(start_state);
+    flattenAndFilter(offset_state);
+    m_state_on_play->launch();
 
     m_ossia_constraint->start();
 
     executionStarted();
+}
+    
+void ConstraintElement::flattenAndFilter(const std::shared_ptr<OSSIA::StateElement>& element)
+{
+    if (!element)
+        return;
+    
+    switch (element->getType())
+    {
+        case OSSIA::StateElement::Type::MESSAGE :
+        {
+            std::shared_ptr<OSSIA::Message> messageToAppend = std::dynamic_pointer_cast<OSSIA::Message>(element);
+            
+            // find message with the same address to replace it
+            bool found = false;
+            for (auto it = m_state_on_play->stateElements().begin();
+                 it != m_state_on_play->stateElements().end();
+                 it++)
+            {
+                std::shared_ptr<OSSIA::Message> messageToCheck = std::dynamic_pointer_cast<OSSIA::Message>(*it);
+                
+                // replace if addresses are the same
+                if (messageToCheck->getAddress() == messageToAppend->getAddress())
+                {
+                    *it = element;
+                    found = true;
+                    break;
+                }
+            }
+            
+            // if not found append it
+            if (!found)
+                m_state_on_play->stateElements().push_back(element);
+            
+            break;
+        }
+        case OSSIA::StateElement::Type::STATE :
+        {
+            std::shared_ptr<OSSIA::State> stateToFlatAndFilter = std::dynamic_pointer_cast<OSSIA::State>(element);
+            
+            for (const auto& e : stateToFlatAndFilter->stateElements())
+            {
+                flattenAndFilter(e);
+            }
+            break;
+        }
+            
+        default:
+        {
+            m_state_on_play->stateElements().push_back(element);
+            break;
+        }
+    }
 }
 
 void ConstraintElement::stop()

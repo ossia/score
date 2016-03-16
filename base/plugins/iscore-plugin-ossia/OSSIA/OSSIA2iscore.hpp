@@ -1,4 +1,6 @@
 #pragma once
+#include <Editor/Message.h>
+#include <Editor/State.h>
 #include <Editor/TimeValue.h>
 #include <Network/Address.h>
 #include <Process/TimeValue.hpp>
