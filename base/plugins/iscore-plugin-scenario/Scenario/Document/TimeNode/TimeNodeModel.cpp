@@ -114,4 +114,10 @@ void TimeNodeModel::setExtent(const VerticalExtent &extent)
     m_extent = extent;
     emit extentChanged(m_extent);
 }
+
+bool TimeNodeModel::hasTrigger() const
+{
+    return m_trigger->active();
+}
+
 }

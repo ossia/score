@@ -18,8 +18,8 @@ ISCORE_PLUGIN_SCENARIO_EXPORT const CommandParentFactoryKey& ScenarioCommandFact
 }  // namespace Scenario
 
 template<>
-const CommandParentFactoryKey& CommandFactoryName<Scenario::ScenarioModel>();
+ISCORE_PLUGIN_SCENARIO_EXPORT const CommandParentFactoryKey& CommandFactoryName<Scenario::ScenarioModel>();
 
 
 template<>
-const CommandParentFactoryKey& CommandFactoryName<Scenario::BaseScenario>();
+ISCORE_PLUGIN_SCENARIO_EXPORT const CommandParentFactoryKey& CommandFactoryName<Scenario::BaseScenario>();
