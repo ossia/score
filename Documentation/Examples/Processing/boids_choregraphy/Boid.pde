@@ -130,7 +130,7 @@ class Boid
       fill(100, 200, 100);
       stroke(100, 200, 100);
     }
-      
+    
     pushMatrix();
     translate(location.x, location.y);
     rotate(theta);

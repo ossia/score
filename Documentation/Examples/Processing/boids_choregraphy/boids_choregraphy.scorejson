@@ -4,15 +4,16 @@
             "Constraint": {
                 "DefaultDuration": 300605.52354332077,
                 "EndState": 1,
+                "ExecutionSpeed": 0,
                 "FullView": {
                     "CenterOn": [
-                        271.5,
-                        292
+                        5956,
+                        344.5
                     ],
                     "ConstraintId": 0,
                     "ObjectName": "FullViewConstraintViewModel",
                     "ShownRack": 1,
-                    "Zoom": 226.19139567730102,
+                    "Zoom": 0.59153144167737548,
                     "id": 0
                 },
                 "HeightPercentage": 0,
@@ -84,6 +85,7 @@
                             {
                                 "DefaultDuration": 3411.5061637707468,
                                 "EndState": 2,
+                                "ExecutionSpeed": 0,
                                 "FullView": {
                                     "CenterOn": [
                                         0,
@@ -126,6 +128,7 @@
                             {
                                 "DefaultDuration": 21139.650190533812,
                                 "EndState": 4,
+                                "ExecutionSpeed": 0,
                                 "FullView": {
                                     "CenterOn": [
                                         0,
@@ -159,8 +162,9 @@
                                 "Processes": [
                                     {
                                         "Constraint": {
-                                            "DefaultDuration": 50.095840811363686,
+                                            "DefaultDuration": 79.712405009123259,
                                             "EndState": 1,
+                                            "ExecutionSpeed": 0,
                                             "FullView": {
                                                 "CenterOn": [
                                                     0,
@@ -174,7 +178,7 @@
                                             },
                                             "HeightPercentage": 0.14999999999999999,
                                             "Looping": false,
-                                            "MaxDuration": 50.095840811363686,
+                                            "MaxDuration": 79.712405009123259,
                                             "MaxInf": false,
                                             "Metadata": {
                                                 "Color": [
@@ -186,7 +190,7 @@
                                                 "Label": "",
                                                 "ScriptingName": "Loop pattern"
                                             },
-                                            "MinDuration": 50.095840811363686,
+                                            "MinDuration": 79.712405009123259,
                                             "MinNull": false,
                                             "ObjectName": "Scenario::ConstraintModel",
                                             "PluginsMetadata": [
@@ -208,7 +212,7 @@
                                                 "RootNode": {
                                                 }
                                             },
-                                            "Date": 50.095840811363686,
+                                            "Date": 79.712405009123259,
                                             "Extent": [
                                                 0.14999999999999999,
                                                 0.20000000000000001
@@ -267,7 +271,7 @@
                                             "id": 1
                                         },
                                         "EndTimeNode": {
-                                            "Date": 50.095840811363686,
+                                            "Date": 79.712405009123259,
                                             "Events": [
                                                 1
                                             ],
@@ -508,6 +512,7 @@
                             {
                                 "DefaultDuration": 4409.8603286241996,
                                 "EndState": 11,
+                                "ExecutionSpeed": 0,
                                 "FullView": {
                                     "CenterOn": [
                                         0,
@@ -550,6 +555,7 @@
                             {
                                 "DefaultDuration": 21139.650190533812,
                                 "EndState": 13,
+                                "ExecutionSpeed": 0,
                                 "FullView": {
                                     "CenterOn": [
                                         0,
@@ -661,6 +667,7 @@
                             {
                                 "DefaultDuration": 25008.532952390535,
                                 "EndState": 15,
+                                "ExecutionSpeed": 0,
                                 "FullView": {
                                     "CenterOn": [
                                         0,
@@ -703,6 +710,7 @@
                             {
                                 "DefaultDuration": 27158.128941816125,
                                 "EndState": 16,
+                                "ExecutionSpeed": 0,
                                 "FullView": {
                                     "CenterOn": [
                                         0,
@@ -745,6 +753,7 @@
                             {
                                 "DefaultDuration": 26290.332556985479,
                                 "EndState": 17,
+                                "ExecutionSpeed": 0,
                                 "FullView": {
                                     "CenterOn": [
                                         0,

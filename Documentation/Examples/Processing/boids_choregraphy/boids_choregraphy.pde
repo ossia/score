@@ -10,6 +10,7 @@
  *
  * (i) /flock/info i : display flock parameters (default true)
  * (c) /flock/clear : delete all existing boids
+ * (k) /flock/kill i : delete each boids which are going out (default false)
  * (a) /flock/add f f : message to add a new boid at a position
  * (-) /flock/avoidance f : parameter to control avoidance weight (default 1.)
  * (-) /flock/alignment f : parameter to control alignment weight (default 1.)
@@ -98,12 +99,12 @@ void draw()
   
   // send OSC message for flock mean position x
   osc_msg = new OscMessage("/flock/position/x");
-  osc_msg.add(flock.getPosition().x);
+  osc_msg.add((int)flock.getPosition().x);
   osc_in.send(osc_msg, osc_out);
 
   // send OSC message for flock mean position y
   osc_msg = new OscMessage("/flock/position/y");
-  osc_msg.add(flock.getPosition().y);
+  osc_msg.add((int)flock.getPosition().y);
   osc_in.send(osc_msg, osc_out);
   
   // send OSC message for flock mean direction x
@@ -198,7 +199,15 @@ void oscEvent(OscMessage osc_msg)
   {
     flock.clear();
     println("### " + osc_msg.addrPattern());
-  } else if (osc_msg.checkAddrPattern("/flock/add")) 
+  } else if (osc_msg.checkAddrPattern("/flock/kill")) 
+  {
+    if (osc_msg.checkTypetag("i")) 
+    {
+      flock.setKill(osc_msg.get(0).intValue() == 1);
+      println("### " + osc_msg.addrPattern());
+    }
+  } 
+  else if (osc_msg.checkAddrPattern("/flock/add")) 
   {
     if (osc_msg.checkTypetag("ff")) 
     {

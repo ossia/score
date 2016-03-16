@@ -16,6 +16,8 @@ class Flock
     new_boids = new ArrayList<Boid>();
     new_boids_locked = false;
     clear_request = false;
+    position = new PVector(0, 0);
+    direction = new PVector(0., 0.);
     deviation = new PVector(0, 0);
   }
 
