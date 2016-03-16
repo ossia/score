@@ -283,7 +283,7 @@ QList<const T*> filterSelectionByType(const Selection& sel)
 
 namespace Scenario
 {
-const QVector<Id<ConstraintModel>> constraintsBeforeTimeNode(
+ISCORE_PLUGIN_SCENARIO_EXPORT const QVector<Id<ConstraintModel>> constraintsBeforeTimeNode(
         const Scenario::ScenarioModel&,
         const Id<TimeNodeModel>& timeNodeId);
 
