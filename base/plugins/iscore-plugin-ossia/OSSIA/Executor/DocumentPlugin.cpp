@@ -25,6 +25,15 @@ DocumentPlugin::DocumentPlugin(
           doc.context().app.components.factory<StateProcessComponentFactoryList>(),
           }
 {
+    con(doc, &iscore::Document::aboutToClose,
+        this, [&]
+    {
+        if(m_base)
+        {
+            m_base->baseConstraint()->stop();
+        }
+        m_base.reset();
+    });
 }
 
 DocumentPlugin::~DocumentPlugin()

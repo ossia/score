@@ -185,13 +185,19 @@ void TemporalConstraintView::paint(
     painter->setPen(m_labelColor.getColor());
     painter->drawText(labelRect, Qt::AlignCenter, m_label);
 
+    {
+        auto& dur = presenter().model().duration;
+        auto progress = dur.defaultDuration() * dur.playPercentage();
+        if(!progress.isZero())
+        {
+            QString percent = progress.toString();
 
-    f.setPointSize(7);
-    painter->setFont(f);
-    painter->setPen(Qt::white);
-    auto& dur = presenter().model().duration;
-    QString percent = (dur.defaultDuration() * dur.playPercentage()).toString();
-    painter->drawText(def_w - 80, 5, 100, 30, {}, percent);
+            f.setPointSize(7);
+            painter->setFont(f);
+            painter->setPen(Qt::white);
+            painter->drawText(def_w - 80, 5, 100, 30, {}, percent);
+        }
+    }
 
 
 #if defined(ISCORE_SCENARIO_DEBUG_RECTS)
