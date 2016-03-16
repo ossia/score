@@ -162,17 +162,25 @@ void Presenter::setupMenus()
     ////// About /////
     m_menubar.addActionIntoToplevelMenu(ToplevelMenuElement::AboutMenu,
                                         AboutMenuElement::About, [] () {
+        auto version_text =
+                QString("%1.%2.%3-%4 '%5'\n\n")
+                .arg(ISCORE_VERSION_MAJOR)
+                .arg(ISCORE_VERSION_MINOR)
+                .arg(ISCORE_VERSION_PATCH)
+                .arg(ISCORE_VERSION_EXTRA)
+                .arg(ISCORE_CODENAME);
+
+        QString commit{GIT_COMMIT};
+        if(!commit.isEmpty())
+        {
+            version_text += tr("Commit: \n%1\n").arg(commit);
+        }
+
         QMessageBox::about(nullptr,
                            tr("About i-score"),
                            tr("With love and sweat from the i-score team. \nVersion:\n")
-                           + QString("%1.%2.%3-%4 '%5'")
-                           .arg(ISCORE_VERSION_MAJOR)
-                           .arg(ISCORE_VERSION_MINOR)
-                           .arg(ISCORE_VERSION_PATCH)
-                           .arg(ISCORE_VERSION_EXTRA)
-                           .arg(ISCORE_CODENAME)
-                           + tr("\n\nCommit: \n")
-                           + QString(ISCORE_XSTR(GIT_COMMIT))); });
+                           + version_text);
+    });
 }
 
 bool Presenter::exit()

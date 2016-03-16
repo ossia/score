@@ -190,7 +190,7 @@ void ScenarioApplicationPlugin::on_presenterFocused(Process::LayerPresenter* pre
     {
         m_contextMenuConnection = connect(pres, &Process::LayerPresenter::contextMenuRequested,
                 this, [=] (const QPoint& pos, const QPointF& pt2) {
-            QMenu menu;
+            QMenu menu(qApp->activeWindow());
             ScenarioContextMenuManager::createLayerContextMenu(menu, pos, pt2, *pres);
             menu.exec(pos);
             menu.close();

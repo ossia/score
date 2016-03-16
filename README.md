@@ -11,8 +11,7 @@ Easiest way is to grab a release in Github releases.
 In order to build i-score, follow the instructions in INSTALL.md.
 Current builds tested on Mac OS X, Ubuntu 14.04, Debian GNU/Linux (Jessie, Sid), and ArchLinux.
 
-An installer for the previous version is available on http://i-score.org/
-The previous version source is located at : http://github.com/i-score/i-score
+(the previous version source is located at : http://github.com/i-score/i-score)
 
 ## Status
 

@@ -140,12 +140,16 @@ write_compiler_detection_header(
   VERSION 3.1
 )
 
-include(GetGitRevisionDescription)
-get_git_head_revision(GIT_COMMIT_REFSPEC GIT_COMMIT_HASH)
-
+# Commit and version information
+if(EXISTS "${CMAKE_SOURCE_DIR}/.git")
+  include(GetGitRevisionDescription)
+  get_git_head_revision(GIT_COMMIT_REFSPEC GIT_COMMIT_HASH)
+else()
+  set(GIT_COMMIT_HASH "")
+endif()
 iscore_write_file("${CMAKE_CURRENT_BINARY_DIR}/iscore_git_info.hpp"
 "#pragma once
-#define GIT_COMMIT ${GIT_COMMIT_HASH}
+#define GIT_COMMIT \"${GIT_COMMIT_HASH}\"
 #define ISCORE_VERSION_MAJOR ${ISCORE_VERSION_MAJOR}
 #define ISCORE_VERSION_MINOR ${ISCORE_VERSION_MINOR}
 #define ISCORE_VERSION_PATCH ${ISCORE_VERSION_PATCH}

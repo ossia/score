@@ -34,7 +34,7 @@ TransportActions::TransportActions(
     m_goToStart->setObjectName("Start");
     m_goToEnd = new QAction{tr("⏭ End"), nullptr};
     m_goToEnd->setObjectName("End");
-    m_stopAndInit = new QAction{tr("ReInitilize"), nullptr};
+    m_stopAndInit = new QAction{tr("Reinitialize"), nullptr};
     m_stopAndInit->setObjectName("StopAndInit");
     m_stopAndInit->setShortcut(Qt::CTRL + Qt::Key_Return);
     m_stopAndInit->setShortcutContext(Qt::WidgetWithChildrenShortcut);
