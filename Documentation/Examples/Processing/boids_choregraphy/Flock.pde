@@ -268,7 +268,7 @@ class Flock
   {
     for (Boid b : boids) 
     {
-      if (b.collision)
+      if (b.new_collision)
         return true;
     }
 

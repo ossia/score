@@ -4,7 +4,8 @@ class Boid
   boolean alive = true;
   boolean out = false;
   boolean kill_out = false;
-  boolean collision = false;
+  boolean new_collision = false;
+  boolean last_collision = false;
   
   PVector location;
   PVector velocity;
@@ -65,7 +66,7 @@ class Boid
     // reset acceleration, out and collision
     acceleration.mult(0);
     out = false;
-    collision = false;
+    new_collision = false;
     
     PVector avo = avoid(boids);       // Avoidance
     PVector ali = align(boids);       // Alignment
@@ -120,7 +121,7 @@ class Boid
     float theta = velocity.heading2D() + radians(90);
     // heading2D() above is now heading() but leaving old syntax until Processing.js catches up
 
-    if (collision)
+    if (new_collision)
     {
       fill(200, 100, 100);
       stroke(200, 100, 100);
@@ -192,7 +193,16 @@ class Boid
         PVector diff = PVector.sub(location, other.location);
         
         if (diff.mag() < size/2. && !out && !other.out)
-          collision = true;
+        {
+          if (!last_collision)
+          {
+            new_collision = true;
+            last_collision = true;
+          }
+        }
+        else
+          last_collision = false;
+        
         
         diff.normalize();
         diff.div(d);        // Weight by distance
