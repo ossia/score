@@ -11,14 +11,13 @@
  * (i) /flock/info i : display flock parameters (default true)
  * (c) /flock/clear : delete all existing boids
  * (k) /flock/kill i : delete each boids which are going out (default false)
- * (a) /flock/add f f : message to add a new boid at a position
+ * (a) /flock/add : message to add a new boid at mouse position
  * (-) /flock/avoidance f : parameter to control avoidance weight (default 1.)
  * (-) /flock/alignment f : parameter to control alignment weight (default 1.)
  * (-) /flock/cohesion f : parameter to control cohesion weight (default 1.)
  * (-) /flock/distance/min f : parameter to control minimal distance between boids (default 50.)
  * (-) /flock/distance/max f : parameter to control maximal distance between boids (default 75.)
- * (f) /flock/follow/destination i i : parameter to make boids to follow a destination (default 0. 0.)
- * (-) /flock/follow/rate f : parameter to control how much boids follow the destination (default 0.)
+ * (f) /flock/follow/rate f : parameter to control how much boids follow the mouse (default 0.)
  * (-) /flock/size : returns the number of boids
  * (-) /flock/position/x : returns horizontal mean position of the flock
  * (-) /flock/position/y : returns vertical mean position of the flock
@@ -28,10 +27,9 @@
  * (-) /flock/deviation/y : returns vertical deviation of the flock
  * (-) /flock/killed : returned each time a boid is killed
  * (-) /flock/collision : returned each time at least one boid collide another one
- * (-) /mouse/x i : returns mouse x position on screen
- * (-) /mouse/y i : returns mouse y position on screen
  * (-) /mouse/click : returns 1 when mouse is pressed and 0 when released
- * (-) /text s : a textual content to display 
+ * (-) /text s : a textual content to display
+ * (-) /sky/color i i i : setup sky color 
  */
 
 import oscP5.*;
@@ -42,15 +40,16 @@ NetAddress osc_out;
 
 Flock flock;
 
-int last_mouse_x;    // to filter repetitions
-int last_mouse_y;    // to filter repetitions
 int last_flock_size; // to filter repetitions
  
 boolean info = true;
 
 boolean follow_mouse = false; // while mappings are not possible in i-score
 
+PFont font;
 String text = "";
+
+int sky_color[] = {50, 50, 50};
 
 void setup() 
 {
@@ -61,6 +60,10 @@ void setup()
 
   // output osc messages to i-score
   osc_out = new NetAddress("127.0.0.1", 13002);
+  
+  // load font
+  font = loadFont("ComicSansMS-48.vlw");
+  textFont(font);
 
   flock = new Flock();
 }
@@ -69,7 +72,7 @@ void draw()
 {
   OscMessage osc_msg;
   
-  background(50);
+  background(sky_color[0], sky_color[1], sky_color[2]);
 
   // update flock (and get change of flock size)
   int size_change = flock.run();
@@ -93,6 +96,7 @@ void draw()
   
   // display text
   textSize(48);
+  fill(200);
   text(text, width/10, height/2);
 
   // draw flock informations
@@ -134,26 +138,6 @@ void draw()
   osc_msg.add(flock.getDeviation().y);
   osc_in.send(osc_msg, osc_out);
 
-  // send OSC message for mouseX
-  if (mouseX != last_mouse_x)
-  {
-    last_mouse_x = mouseX;
-
-    osc_msg = new OscMessage("/mouse/x");
-    osc_msg.add(mouseX);
-    osc_in.send(osc_msg, osc_out);
-  }
-
-  // send OSC message for mouseY
-  if (mouseY != last_mouse_y)
-  {
-    last_mouse_y = mouseY;
-
-    osc_msg = new OscMessage("/mouse/y");
-    osc_msg.add(mouseY);
-    osc_in.send(osc_msg, osc_out);
-  }
-  
   // use keyboard to control flock parameters
   if (keyPressed)
   {
@@ -216,13 +200,8 @@ void oscEvent(OscMessage osc_msg)
   } 
   else if (osc_msg.checkAddrPattern("/flock/add")) 
   {
-    if (osc_msg.checkTypetag("ff")) 
-    {
-      float x = osc_msg.get(0).floatValue();
-      float y = osc_msg.get(1).floatValue();
-      flock.addBoid(new Boid(x, y));
-      println("### " + osc_msg.addrPattern());
-    }
+    flock.addBoid(new Boid(mouseX, mouseY));
+    println("### " + osc_msg.addrPattern());
   }
   
   if (osc_msg.checkAddrPattern("/flock/avoidance"))
@@ -265,15 +244,6 @@ void oscEvent(OscMessage osc_msg)
       flock.setDistanceMax(distance_max);
       println("### " + osc_msg.addrPattern());
     }
-  } else  if (osc_msg.checkAddrPattern("/flock/follow/destination")) 
-  {
-    if (osc_msg.checkTypetag("ii")) 
-    {
-      int x = osc_msg.get(0).intValue();
-      int y = osc_msg.get(1).intValue();
-      flock.setFollowDestination(x, y);
-      println("### " + osc_msg.addrPattern());
-    }
   } else  if (osc_msg.checkAddrPattern("/flock/follow/rate")) 
   {
     if (osc_msg.checkTypetag("f")) 
@@ -287,6 +257,15 @@ void oscEvent(OscMessage osc_msg)
     if (osc_msg.checkTypetag("s")) 
     {
       text = osc_msg.get(0).stringValue();
+      println("### " + osc_msg.addrPattern());
+    }
+  } else  if (osc_msg.checkAddrPattern("/sky/color")) 
+  {
+    if (osc_msg.checkTypetag("fff")) 
+    {
+      sky_color[0] = (int)osc_msg.get(0).floatValue();
+      sky_color[1] = (int)osc_msg.get(1).floatValue();
+      sky_color[2] = (int)osc_msg.get(2).floatValue();
       println("### " + osc_msg.addrPattern());
     }
   }
