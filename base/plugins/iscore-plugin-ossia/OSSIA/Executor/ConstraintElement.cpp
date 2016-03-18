@@ -151,12 +151,12 @@ void ConstraintElement::flattenAndFilter(const std::shared_ptr<OSSIA::StateEleme
 void ConstraintElement::stop()
 {
     m_ossia_constraint->stop();
+    m_ossia_constraint->getEndEvent()->getState()->launch();
 
     for(auto& process : m_processes)
     {
         process.second.element->stop();
     }
-
     m_iscore_constraint.reset();
 
     executionStopped();
