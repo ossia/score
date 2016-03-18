@@ -95,7 +95,7 @@ class Flock
     text(getSize(), 200, 15);
 
     stroke(200, 100, 100);
-    line(position.x, position.y, position.x + direction.x*10., position.y + direction.y*10.);
+    line(position.x * width, position.y * height, position.x * width + direction.x*10., position.y * height + direction.y*10.);
 
     text("deviation :", 160, 30);
     text(deviation.x, 235, 30);
@@ -312,6 +312,8 @@ class Flock
         direction.add(b.velocity);
       }
       position.div(count);
+      position = new PVector(position.x / width, position.y / height);
+      
       direction.div(count);
 
       // process deviation
@@ -323,7 +325,7 @@ class Flock
         deviation.add(new PVector(x_xm2, y_ym2));
       }
       deviation.div(count);
-      deviation = new PVector(sqrt(deviation.x), sqrt(deviation.y));
+      deviation = new PVector(sqrt(deviation.x) / width, sqrt(deviation.y) / height);
     }
   }
 }

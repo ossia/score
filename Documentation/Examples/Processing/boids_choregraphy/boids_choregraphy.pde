@@ -106,12 +106,12 @@ void draw()
   
   // send OSC message for flock mean position x
   osc_msg = new OscMessage("/flock/position/x");
-  osc_msg.add((int)flock.getPosition().x);
+  osc_msg.add(flock.getPosition().x);
   osc_in.send(osc_msg, osc_out);
 
   // send OSC message for flock mean position y
   osc_msg = new OscMessage("/flock/position/y");
-  osc_msg.add((int)flock.getPosition().y);
+  osc_msg.add(flock.getPosition().y);
   osc_in.send(osc_msg, osc_out);
   
   // send OSC message for flock mean direction x
