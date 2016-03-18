@@ -74,6 +74,7 @@ class Flock
 
     // display flock parameters as text
     fill(200);
+    textSize(10);
     text("avoidance :", 10, 15);
     text(getAvoidance(), 85, 15);
 

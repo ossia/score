@@ -31,6 +31,7 @@
  * (-) /mouse/x i : returns mouse x position on screen
  * (-) /mouse/y i : returns mouse y position on screen
  * (-) /mouse/click : returns 1 when mouse is pressed and 0 when released
+ * (-) /text s : a textual content to display 
  */
 
 import oscP5.*;
@@ -49,15 +50,17 @@ boolean info = true;
 
 boolean follow_mouse = false; // while mappings are not possible in i-score
 
+String text = "";
+
 void setup() 
 {
-  size(1280, 720);
+  size(1920, 1080);
 
   // listen osc message from i-score
-  osc_in = new OscP5(this, 12001);
+  osc_in = new OscP5(this, 13001);
 
   // output osc messages to i-score
-  osc_out = new NetAddress("127.0.0.1", 12002);
+  osc_out = new NetAddress("127.0.0.1", 13002);
 
   flock = new Flock();
 }
@@ -87,6 +90,10 @@ void draw()
     osc_msg = new OscMessage("/flock/collision");
     osc_in.send(osc_msg, osc_out);
   }
+  
+  // display text
+  textSize(48);
+  text(text, width/10, height/2);
 
   // draw flock informations
   if (info)
@@ -273,6 +280,13 @@ void oscEvent(OscMessage osc_msg)
     {
       float follow_rate = osc_msg.get(0).floatValue();
       flock.setFollowRate(follow_rate);
+      println("### " + osc_msg.addrPattern());
+    }
+  } else  if (osc_msg.checkAddrPattern("/text")) 
+  {
+    if (osc_msg.checkTypetag("s")) 
+    {
+      text = osc_msg.get(0).stringValue();
       println("### " + osc_msg.addrPattern());
     }
   }
