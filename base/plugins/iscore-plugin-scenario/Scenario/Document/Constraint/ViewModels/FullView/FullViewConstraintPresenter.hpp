@@ -20,7 +20,7 @@ namespace Scenario
  * Présenteur : reçoit signaux depuis modèle et vue et présenteurs enfants.
  * Exemple : cas d'un process ajouté : le modèle reçoit la commande addprocess, émet un signal, qui est capturé par le présenteur qui va instancier le présenteur nécessaire en appelant la factory.
  */
-class FullViewConstraintPresenter final : public ConstraintPresenter
+class ISCORE_PLUGIN_SCENARIO_EXPORT FullViewConstraintPresenter final : public ConstraintPresenter
 {
         Q_OBJECT
 

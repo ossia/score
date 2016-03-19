@@ -15,6 +15,7 @@
 #include <iscore/plugins/customfactory/StringFactoryKey.hpp>
 #include <iscore/tools/SettableIdentifier.hpp>
 #include "iscore_plugin_loop.hpp"
+#include <Loop/LoopDisplayedElements.hpp>
 #include <iscore_plugin_loop_commands_files.hpp>
 
 #include <iscore/plugins/customfactory/FactorySetup.hpp>
@@ -44,9 +45,10 @@ std::vector<std::unique_ptr<iscore::FactoryInterfaceBase>> iscore_plugin_loop::f
             FW<ConstraintInspectorDelegateFactory,
                 Loop::ConstraintInspectorDelegateFactory>,
             FW<TriggerCommandFactory,
-                LoopTriggerCommandFactory>
-            >
-            >(ctx, key);
+                LoopTriggerCommandFactory>,
+            FW<Scenario::DisplayedElementsProvider,
+                Loop::DisplayedElementsProvider>
+            >>(ctx, key);
 }
 
 std::pair<const CommandParentFactoryKey, CommandGeneratorMap> iscore_plugin_loop::make_commands()

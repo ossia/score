@@ -1,8 +1,12 @@
 #include <Scenario/Document/BaseScenario/BaseScenario.hpp>
 #include <Scenario/Document/Constraint/ConstraintModel.hpp>
 #include <QObject>
+#include <Scenario/Document/Event/EventPresenter.hpp>
+#include <Scenario/Document/TimeNode/TimeNodePresenter.hpp>
+#include <Scenario/Document/State/StatePresenter.hpp>
 
 #include "BaseScenarioDisplayedElementsProvider.hpp"
+#include <Scenario/Document/Constraint/ViewModels/FullView/FullViewConstraintPresenter.hpp>
 
 namespace Scenario
 {
@@ -30,6 +34,29 @@ DisplayedElementsContainer BaseScenarioDisplayedElementsProvider::make(
         };
     }
 
+    return {};
+}
+
+DisplayedElementsPresenterContainer BaseScenarioDisplayedElementsProvider::make_presenters(
+        const ConstraintModel& m,
+        QGraphicsObject* view_parent,
+        QObject* parent) const
+{
+    if(auto bs = dynamic_cast<BaseScenario*>(m.parent()))
+    {
+        return DisplayedElementsPresenterContainer{
+            new FullViewConstraintPresenter {
+                *m.fullView(),
+                view_parent,
+                parent},
+            new StatePresenter{bs->startState(), view_parent, parent},
+            new StatePresenter{bs->endState(), view_parent, parent},
+            new EventPresenter{bs->startEvent(), view_parent, parent},
+            new EventPresenter{bs->endEvent(), view_parent, parent},
+            new TimeNodePresenter{bs->startTimeNode(), view_parent, parent},
+            new TimeNodePresenter{bs->endTimeNode(), view_parent, parent}
+        };
+    }
     return {};
 }
 }
