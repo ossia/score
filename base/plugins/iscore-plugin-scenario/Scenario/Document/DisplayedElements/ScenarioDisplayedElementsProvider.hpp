@@ -15,7 +15,12 @@ class ScenarioDisplayedElementsProvider final :
     public:
         bool matches(
                 const ConstraintModel& cst) const override;
-        virtual DisplayedElementsContainer make(
+        DisplayedElementsContainer make(
                 const ConstraintModel& cst) const override;
+
+        DisplayedElementsPresenterContainer make_presenters(
+                const ConstraintModel& m,
+                QGraphicsObject* view_parent,
+                QObject* parent) const override;
 };
 }

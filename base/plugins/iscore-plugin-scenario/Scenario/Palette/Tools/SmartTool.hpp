@@ -37,7 +37,7 @@ class SmartTool final : public ToolBase<ToolPalette_T>
                       this->m_parentSM.presenter().view(),
                       &this->localSM()};
 
-            this->localSM().setInitialState(m_state);
+            //this->localSM().setInitialState(m_state);
 
             // Other actions; they are in //.
             QState* actionsState = new QState(&this->localSM());
@@ -150,7 +150,7 @@ class SmartTool final : public ToolBase<ToolPalette_T>
         }
 
         void on_released(QPointF scene, Scenario::Point sp)
-        {                
+        {
             if(m_nothingPressed)
             {
                 this->localSM().postEvent(new iscore::Release_Event); // select

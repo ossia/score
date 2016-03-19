@@ -9,7 +9,7 @@
 
 #include <tuple>
 #include <type_traits>
-
+#include <Scenario/Document/DisplayedElements/DisplayedElementsProviderList.hpp>
 #include "DisplayedElementsPresenter.hpp"
 #include <Process/TimeValue.hpp>
 #include <Process/ZoomHelper.hpp>
@@ -62,6 +62,7 @@ void DisplayedElementsPresenter::on_displayedConstraintChanged(const ConstraintM
         QObject::disconnect(con);
 
     m_connections.clear();
+    // TODO use directly displayedelementspresentercontainer
     delete m_constraintPresenter;
     delete m_startStatePresenter;
     delete m_endStatePresenter;
@@ -70,42 +71,22 @@ void DisplayedElementsPresenter::on_displayedConstraintChanged(const ConstraintM
     delete m_startNodePresenter;
     delete m_endNodePresenter;
 
-    m_constraintPresenter = new FullViewConstraintPresenter {
-            *m.fullView(),
-            m_model->view().baseItem(),
-            m_model};
 
     // Create states / events
-    // TODO this needs to be virtual instead and call ScenarioInterface...
-    if(auto bs = dynamic_cast<BaseScenario*>(m.parent()))
-    {
-        m_startStatePresenter = new StatePresenter{bs->startState(), m_model->view().baseItem(), this};
-        m_endStatePresenter = new StatePresenter{bs->endState(), m_model->view().baseItem(), this};
+    auto& ctx = iscore::IDocument::documentContext(m_model->model());
 
-        m_startEventPresenter = new EventPresenter{bs->startEvent(), m_model->view().baseItem(), this};
-        m_endEventPresenter = new EventPresenter{bs->endEvent(), m_model->view().baseItem(), this};
+    auto& provider = ctx.app.components.factory<DisplayedElementsProviderList>();
+    DisplayedElementsPresenterContainer elts = provider.make(
+                    &DisplayedElementsProvider::make_presenters,
+                    m, m_model->view().baseItem(), this);
+    m_constraintPresenter = elts.constraint;
+    m_startStatePresenter = elts.startState;
+    m_endStatePresenter = elts.endState;
+    m_startEventPresenter = elts.startEvent;
+    m_endEventPresenter = elts.endEvent;
+    m_startNodePresenter = elts.startNode;
+    m_endNodePresenter = elts.endNode;
 
-        m_startNodePresenter = new TimeNodePresenter{bs->startTimeNode(), m_model->view().baseItem(), this};
-        m_endNodePresenter = new TimeNodePresenter{bs->endTimeNode(), m_model->view().baseItem(), this};
-
-    }
-    else if(auto sm = dynamic_cast<Scenario::ScenarioModel*>(m.parent()))
-    {
-        const auto& startState = sm->states.at(m.startState());
-        const auto& endState = sm->states.at(m.endState());
-        const auto& startEvent = sm->events.at(startState.eventId());
-        const auto& endEvent = sm->events.at(endState.eventId());
-        const auto& startNode = sm->timeNodes.at(startEvent.timeNode());
-        const auto& endNode = sm->timeNodes.at(endEvent.timeNode());
-        m_startStatePresenter = new StatePresenter{startState, m_model->view().baseItem(), this};
-        m_endStatePresenter = new StatePresenter{endState, m_model->view().baseItem(), this};
-
-        m_startEventPresenter = new EventPresenter{startEvent, m_model->view().baseItem(), this};
-        m_endEventPresenter = new EventPresenter{endEvent, m_model->view().baseItem(), this};
-
-        m_startNodePresenter = new TimeNodePresenter{startNode, m_model->view().baseItem(), this};
-        m_endNodePresenter = new TimeNodePresenter{endNode, m_model->view().baseItem(), this};
-    }
 
     m_connections.push_back(con(m_constraintPresenter->model().duration, &ConstraintDurations::defaultDurationChanged,
         this, &DisplayedElementsPresenter::on_displayedConstraintDurationChanged));

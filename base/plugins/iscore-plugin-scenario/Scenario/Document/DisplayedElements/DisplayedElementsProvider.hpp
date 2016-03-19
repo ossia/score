@@ -2,12 +2,12 @@
 #include <Scenario/Document/DisplayedElements/DisplayedElementsContainer.hpp>
 #include <iscore/plugins/customfactory/FactoryInterface.hpp>
 
-
+class QGraphicsObject;
 namespace Scenario
 {
 class ConstraintModel;
 
-class DisplayedElementsProvider :
+class ISCORE_PLUGIN_SCENARIO_EXPORT DisplayedElementsProvider :
         public iscore::AbstractFactory<DisplayedElementsProvider>
 {
         ISCORE_ABSTRACT_FACTORY_DECL(
@@ -16,6 +16,15 @@ class DisplayedElementsProvider :
     public:
         virtual ~DisplayedElementsProvider();
         virtual bool matches(const ConstraintModel& cst) const = 0;
+        bool matches(const ConstraintModel& cst,
+                             QGraphicsObject* view_parent,
+                             QObject* parent) const
+        { return matches(cst); }
+
         virtual DisplayedElementsContainer make(const ConstraintModel& cst) const = 0;
+        virtual DisplayedElementsPresenterContainer make_presenters(
+                const ConstraintModel& m, // e.g. scenario::processmodel, loop::processmodel
+                QGraphicsObject* view_parent,
+                QObject* parent) const = 0;
 };
 }
