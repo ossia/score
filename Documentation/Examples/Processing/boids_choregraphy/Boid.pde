@@ -6,6 +6,7 @@ class Boid
   boolean kill_out = false;
   boolean new_collision = false;
   boolean last_collision = false;
+  boolean render_collision = false;
   
   PVector location;
   PVector velocity;
@@ -121,7 +122,7 @@ class Boid
     float theta = velocity.heading2D() + radians(90);
     // heading2D() above is now heading() but leaving old syntax until Processing.js catches up
 
-    if (new_collision)
+    if (render_collision && new_collision)
     {
       fill(200, 100, 100);
       stroke(200, 100, 100);

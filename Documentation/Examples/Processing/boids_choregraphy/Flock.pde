@@ -296,7 +296,7 @@ class Flock
   {
     position = new PVector(0, 0);
     direction = new PVector(0., 0.);
-    deviation = new PVector(0, 0);
+    deviation = new PVector(0., 0.);
 
     if (boids.size() > 0)
     {
