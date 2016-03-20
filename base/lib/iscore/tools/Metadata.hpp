@@ -1,4 +1,5 @@
 #pragma once
+#include <iscore/plugins/customfactory/UuidKey.hpp>
 #define EMPTY_MACRO
 
 template<typename Metadata_T, typename Object>
@@ -11,7 +12,7 @@ class Description_k;
 class ConcreteFactoryKey_k;
 class Json_k;
 
-#define TEXT_METADATA(Export, Model, Key, Text) \
+#define AUTO_METADATA(Export, Model, Key, Text) \
     template<> \
     struct Export Metadata< \
             Key, \
@@ -23,10 +24,24 @@ class Json_k;
             } \
     };
 
+
+#define TYPED_METADATA(Export, Model, Key, Type, Value) \
+    template<> \
+    struct Export Metadata< \
+            Key, \
+            Model> \
+    { \
+            static Type get() \
+            { \
+                return Text; \
+            } \
+    };
+
+
 #define TR_TEXT_METADATA(Export, Model, Key, Text) \
-    TEXT_METADATA(Export, Model, Key, QObject::tr(Text))
+    AUTO_METADATA(Export, Model, Key, QObject::tr(Text))
 #define LIT_TEXT_METADATA(Export, Model, Key, Text) \
-    TEXT_METADATA(Export, Model, Key, QStringLiteral(Text))
+    AUTO_METADATA(Export, Model, Key, QStringLiteral(Text))
 
 
 #define OBJECTKEY_METADATA(Export, Model, ObjectKey) \
@@ -45,3 +60,20 @@ class Json_k;
 
 #define JSON_METADATA(Type, Text) \
     LIT_TEXT_METADATA(, Type, Json_k, Text)
+
+// TODO use thread_local ??
+#define STATIC_METADATA(Export, Model, Key, Type, Value) \
+    template<> \
+    struct Export Metadata< \
+            Key, \
+            Model> \
+    { \
+            static const auto& get() \
+            { \
+                static const Type k{Value}; \
+                return k; \
+            } \
+    };
+
+#define UUID_METADATA(Export, Factory, Model, Uuid) \
+    STATIC_METADATA(Export, Model, ConcreteFactoryKey_k, UuidKey<Factory>, Uuid)
