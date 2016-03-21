@@ -73,6 +73,14 @@ class NotifyingMap
             delete &elt;
         }
 
+        void clear()
+        {
+            while(!m_map.empty())
+            {
+                remove(*m_map.begin());
+            }
+        }
+
     private:
         IdContainer<T> m_map;
 };
