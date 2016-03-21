@@ -28,9 +28,11 @@ struct AddressSettings;
 
 namespace Explorer
 {
+class ListeningManager;
 class DeviceDocumentPlugin;
 class DeviceEditDialog;
 class DeviceExplorerView;
+class DeviceExplorerWidget;
 
 /**
  * @brief The SelectedNodes struct

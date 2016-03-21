@@ -315,17 +315,10 @@ std::vector<State::Address> OSSIADevice::listening() const
     return addrs;
 }
 
-void OSSIADevice::replaceListening(const std::vector<State::Address>& addresses)
+void OSSIADevice::addToListening(const std::vector<State::Address>& addresses)
 {
     if(!connected())
         return;
-
-    for(const auto& elt : m_callbacks)
-    {
-        // addr -> removeCallback( callback );
-        elt.second.first->removeCallback(elt.second.second);
-    }
-    m_callbacks.clear();
 
     for(const auto& addr : addresses)
     {

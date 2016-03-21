@@ -514,11 +514,11 @@ void DeviceExplorerWidget::refreshValue()
         return;
 
     // Send the command
-    auto cmd = new Explorer::Command::UpdateAddressesValues{
+    Explorer::Command::UpdateAddressesValues cmd{
             *model(),
             lst};
 
-    m_cmdDispatcher->submitCommand(cmd);
+    cmd.redo();
 }
 
 void DeviceExplorerWidget::disconnect()

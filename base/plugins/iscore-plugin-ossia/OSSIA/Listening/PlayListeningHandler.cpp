@@ -24,13 +24,13 @@ void PlayListeningHandler::setListening(
     }
 }
 
-void PlayListeningHandler::replaceListening(
+void PlayListeningHandler::addToListening(
         Device::DeviceInterface& dev,
         const std::vector<State::Address>& v)
 {
     if(!m_executor.isPlaying())
     {
-        dev.replaceListening(v);
+        dev.addToListening(v);
     }
 }
 }

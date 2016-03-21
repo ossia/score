@@ -23,11 +23,15 @@ class ISCORE_PLUGIN_DEVICEEXPLORER_EXPORT ListeningHandler :
                 const State::Address& addr,
                 bool b) = 0;
 
-        virtual void replaceListening(
+        virtual void addToListening(
                 Device::DeviceInterface& dev,
                 const std::vector<State::Address>& v) = 0;
 
     signals:
+        // Will stop everything from listening
+        void stop();
+
+        // Will restore with the current state of the tree
         void restore();
 };
 

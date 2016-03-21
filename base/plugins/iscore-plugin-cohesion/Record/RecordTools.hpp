@@ -61,7 +61,7 @@ struct Box
         Id<Scenario::EventModel> endEvent;
 };
 
-std::vector<std::vector<Device::FullAddressSettings>> SetupListening(
+std::vector<std::vector<Device::FullAddressSettings>> GetAddressesToRecord(
         Explorer::DeviceExplorerModel& m_explorer);
 
 Box CreateBox(

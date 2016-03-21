@@ -48,6 +48,7 @@
 #include <iscore/tools/TreeNode.hpp>
 #include <State/MessageListSerialization.hpp>
 #include <Device/Node/NodeListMimeSerialization.hpp>
+#include <Explorer/Explorer/DeviceExplorerWidget.hpp>
 
 #include <Explorer/PanelBase/DeviceExplorerPanelModel.hpp>
 
