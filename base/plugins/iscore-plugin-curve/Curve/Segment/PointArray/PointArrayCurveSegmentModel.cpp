@@ -162,32 +162,6 @@ void PointArraySegment::simplify(double ratio)
     }
 }
 
-std::vector<std::unique_ptr<LinearSegment> > PointArraySegment::piecewise() const
-{
-    m_valid = false;
-    updateData(0);
-    const auto& pts = data();
-    std::vector<std::unique_ptr<LinearSegment> > vec;
-    vec.reserve(pts.size() - 1);
-
-
-    for(std::size_t i = 0; i < pts.size() - 1; i++)
-    {
-        auto cmd = std::make_unique<LinearSegment>(Id<SegmentModel>(i), nullptr);
-        cmd->setStart(pts[i]);
-        cmd->setEnd(pts[i+1]);
-        if(i > 0)
-        {
-            cmd->setPrevious(Id<SegmentModel>(i-1));
-            vec.back()->setFollowing(Id<SegmentModel>(i));
-        }
-        vec.push_back(std::move(cmd));
-
-    }
-
-    return vec;
-}
-
 std::vector<SegmentData> PointArraySegment::toLinearSegments() const
 {
     m_valid = false;

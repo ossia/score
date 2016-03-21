@@ -55,7 +55,6 @@ class ISCORE_PLUGIN_CURVE_EXPORT PointArraySegment final : public SegmentModel
 
         void addPoint(double, double);
         void simplify(double ratio); // 10 is a good ratio
-        [[ deprecated ]] std::vector<std::unique_ptr<LinearSegment>> piecewise() const;
         std::vector<SegmentData> toLinearSegments() const;
         std::vector<SegmentData> toPowerSegments() const;
 
