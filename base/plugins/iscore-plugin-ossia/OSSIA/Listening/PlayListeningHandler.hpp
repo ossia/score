@@ -27,7 +27,7 @@ class PlayListeningHandler final : public Explorer::ListeningHandler
                 const State::Address& addr,
                 bool b) override;
 
-        void replaceListening(
+        void addToListening(
                 Device::DeviceInterface& dev,
                 const std::vector<State::Address>& v) override;
 };

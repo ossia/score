@@ -47,6 +47,9 @@ class DeviceExplorerWidget final : public QWidget
 
         QModelIndex sourceIndex(QModelIndex) const;
         QModelIndex proxyIndex(QModelIndex) const;
+
+        ListeningManager& listeningManager() const
+        { return *m_listeningManager; }
     private:
         // User commands
         void edit();

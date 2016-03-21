@@ -15,7 +15,7 @@ namespace Recording
 {
 
 std::vector<std::vector<Device::FullAddressSettings> >
-    SetupListening(Explorer::DeviceExplorerModel& explorer)
+    GetAddressesToRecord(Explorer::DeviceExplorerModel& explorer)
 {
     std::vector<std::vector<Device::FullAddressSettings>> recordListening;
 
