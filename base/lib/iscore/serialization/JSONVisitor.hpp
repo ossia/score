@@ -478,6 +478,16 @@ void fromJsonArray(QJsonArray&& json_arr, Container<T1, T2>& arr)
     }
 }
 
+inline void fromJsonArray(QJsonArray&& json_arr, QStringList& list)
+{
+    int n = json_arr.size();
+    list.reserve(n);
+    for(int i = 0; i < n; i++)
+    {
+        list.push_back(json_arr.at(i).toString());
+    }
+}
+
 Q_DECLARE_METATYPE(Visitor<Reader<JSONObject>>*)
 Q_DECLARE_METATYPE(Visitor<Writer<JSONObject>>*)
 
