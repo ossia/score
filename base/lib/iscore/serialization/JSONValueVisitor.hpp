@@ -111,7 +111,7 @@ struct TSerializer<JSONValue, boost::optional<int32_t>>
         }
         else
         {
-            s.val = "none";
+            s.val = iscore::StringConstant().none;
         }
     }
 
@@ -126,6 +126,38 @@ struct TSerializer<JSONValue, boost::optional<int32_t>>
         else
         {
             obj = s.val.toInt();
+        }
+    }
+};
+
+template<>
+struct TSerializer<JSONValue, boost::optional<double>>
+{
+    static void readFrom(
+            JSONValue::Serializer& s,
+            const boost::optional<double>& obj)
+    {
+        if(obj)
+        {
+            s.val = get(obj);
+        }
+        else
+        {
+            s.val = iscore::StringConstant().none;
+        }
+    }
+
+    static void writeTo(
+            JSONValue::Deserializer& s,
+            boost::optional<double>& obj)
+    {
+        if(s.val.toString() == iscore::StringConstant().none)
+        {
+            obj.reset();
+        }
+        else
+        {
+            obj = s.val.toDouble();
         }
     }
 };
