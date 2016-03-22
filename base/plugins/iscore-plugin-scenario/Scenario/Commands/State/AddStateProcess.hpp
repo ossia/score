@@ -23,10 +23,10 @@ class ISCORE_PLUGIN_SCENARIO_EXPORT AddStateProcessToState final :
         ISCORE_COMMAND_DECL(ScenarioCommandFactoryName(), AddStateProcessToState, "Add a state process")
     public:
         AddStateProcessToState(
-            Path<StateModel>&& constraint,
+            Path<StateModel>&& state,
             const UuidKey<Process::StateProcessFactory>& process);
         AddStateProcessToState(
-            Path<StateModel>&& constraint,
+            Path<StateModel>&& state,
             const Id<Process::StateProcess>& idToUse,
             const UuidKey<Process::StateProcessFactory>& process);
 
