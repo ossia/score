@@ -41,7 +41,12 @@ ProcessModel::ProcessModel(
 {
     pluginModelList = new iscore::ElementPluginModelList{
                       *source.pluginModelList,
-                      this};
+            this};
+}
+
+ProcessModel::~ProcessModel()
+{
+
 }
 
 void ProcessModel::setMessages(const QList<RecordedMessage>& script)
