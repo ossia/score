@@ -125,6 +125,7 @@ set(SRCS ${SRCS}
 "${CMAKE_CURRENT_SOURCE_DIR}/Scenario/Commands/State/AddMessagesToState.cpp"
 "${CMAKE_CURRENT_SOURCE_DIR}/Scenario/Commands/State/InsertContentInState.cpp"
 "${CMAKE_CURRENT_SOURCE_DIR}/Scenario/Commands/State/AddStateProcess.cpp"
+"${CMAKE_CURRENT_SOURCE_DIR}/Scenario/Commands/State/RemoveStateProcess.cpp"
 
 "${CMAKE_CURRENT_SOURCE_DIR}/Scenario/Commands/TimeNode/TriggerCommandFactory/TriggerCommandFactory.cpp"
 "${CMAKE_CURRENT_SOURCE_DIR}/Scenario/Commands/TimeNode/TriggerCommandFactory/ScenarioTriggerCommandFactory.cpp"

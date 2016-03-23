@@ -77,12 +77,13 @@ ScenarioElement::ScenarioElement(
     {
         on_constraintCreated(constraint);
     }
-
+/*
     if(auto fact = ctx.doc.app.components.factory<Scenario::CSPCoherencyCheckerList>().get())
     {
         m_checker = fact->make(element, m_pastTn);
         m_checker->computeDisplacement(m_pastTn, m_properties);
     }
+    */
 }
 
 void ScenarioElement::stop()
@@ -184,7 +185,7 @@ void ScenarioElement::on_timeNodeCreated(const Scenario::TimeNodeModel& tn)
     m_ossia_timenodes.insert({tn.id(), elt});
 
     elt->OSSIATimeNode()->setCallback([=] () {
-        return timeNodeCallback(elt, elt->OSSIATimeNode()->getDate());
+        return timeNodeCallback(elt, this->m_parent_constraint.OSSIAConstraint()->getDate());
     });
 }
 
@@ -268,6 +269,7 @@ void ScenarioElement::timeNodeCallback(TimeNodeElement* tn, const OSSIA::TimeVal
         }
         m_properties.constraints.clear();
     }
+
 }
 
 const iscore::Component::Key &ScenarioElement::key() const

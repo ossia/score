@@ -5,6 +5,7 @@
 #include <Scenario/Document/State/StateModel.hpp>
 #include <Scenario/Process/ScenarioModel.hpp>
 #include <Scenario/Commands/State/AddStateProcess.hpp>
+#include <Scenario/Commands/State/RemoveStateProcess.hpp>
 #include <Process/ProcessList.hpp>
 #include <Process/StateProcess.hpp>
 #include <boost/optional/optional.hpp>
@@ -222,15 +223,15 @@ Inspector::InspectorSectionWidget*
 
     // delete process
     ISCORE_TODO_("Delete state process");
-    /*
+
+
     auto delAct = sectionWidg->menu()->addAction(tr("Remove State Process"));
     connect(delAct, &QAction::triggered,
             this, [=,id=process.id()] ()
         {
-            auto cmd = new Command::RemoveStateProcessFromConstraint{iscore::IDocument::path(m_constraintWidget.model()), id};
-            emit m_constraintWidget.commandDispatcher()->submitCommand(cmd);
+            auto cmd = new Command::RemoveStateProcess{iscore::IDocument::path(m_model), id};
+            emit m_commandDispatcher->submitCommand(cmd);
         }, Qt::QueuedConnection);
-    */
 
     return sectionWidg;
 

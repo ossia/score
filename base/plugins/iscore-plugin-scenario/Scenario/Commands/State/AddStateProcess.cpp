@@ -10,22 +10,20 @@ namespace Scenario
 namespace Command
 {
 
-AddStateProcessToState::AddStateProcessToState(
-        Path<StateModel>&& statePath,
+AddStateProcessToState::AddStateProcessToState(Path<StateModel>&& state,
         const UuidKey<Process::StateProcessFactory>& process) :
     AddStateProcessToState{
-        std::move(statePath),
-        getStrongId(statePath.find().stateProcesses),
+        std::move(state),
+        getStrongId(state.find().stateProcesses),
         process}
 {
 
 }
 
-AddStateProcessToState::AddStateProcessToState(
-        Path<StateModel>&& statePath,
+AddStateProcessToState::AddStateProcessToState(Path<StateModel>&& state,
         const Id<Process::StateProcess>& processId,
         const UuidKey<Process::StateProcessFactory>& process):
-    m_path{std::move(statePath)},
+    m_path{std::move(state)},
     m_processName{process},
     m_createdProcessId{processId}
 {
