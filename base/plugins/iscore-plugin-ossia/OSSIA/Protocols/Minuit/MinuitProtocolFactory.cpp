@@ -63,6 +63,6 @@ bool MinuitProtocolFactory::checkCompatibility(const Device::DeviceSettings& a, 
     // returns the ports they use.
     auto a_p = a.deviceSpecificSettings.value<MinuitSpecificSettings>();
     auto b_p = b.deviceSpecificSettings.value<MinuitSpecificSettings>();
-    return a.name != b.name && a_p.inputPort != b_p.inputPort && a_p.outputPort != b_p.outputPort;
+    return a.name != b.name && a_p.inputPort != b_p.inputPort;
 }
 }
