@@ -163,4 +163,21 @@ auto previousConstraints(
 
     return constraints;
 }
+
+template<typename Scenario_T>
+auto states(
+        const TimeNodeModel& tn,
+        const Scenario_T& scenario)
+{
+    std::list<Id<StateModel>> stateList;
+    for(const Id<EventModel>& event_id : tn.events())
+    {
+        const EventModel& event = scenario.event(event_id);
+        auto st = event.states().toList().toStdList();
+        stateList.splice(stateList.end(), st);
+    }
+
+    return stateList;
+}
+
 }
