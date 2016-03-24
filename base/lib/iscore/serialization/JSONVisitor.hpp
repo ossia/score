@@ -14,6 +14,10 @@
 
 template<typename T>
 T fromJsonObject(QJsonObject&& json);
+template<typename T>
+T fromJsonObject(QJsonValue&& json);
+template<typename T>
+T fromJsonObject(QJsonValueRef json);
 
 class JSONObject;
 template<> class Visitor<Reader<JSONObject>>;
@@ -224,6 +228,20 @@ void fromJsonObject(QJsonObject&& json, T& obj)
 }
 
 template<typename T>
+void fromJsonObject(QJsonValue&& json, T& obj)
+{
+    Visitor<Writer<JSONObject>> writer {json.toObject()};
+    writer.writeTo(obj);
+}
+
+template<typename T>
+void fromJsonObject(QJsonValueRef json, T& obj)
+{
+    Visitor<Writer<JSONObject>> writer {json.toObject()};
+    writer.writeTo(obj);
+}
+
+template<typename T>
 T fromJsonObject(QJsonObject&& json)
 {
     T obj;
@@ -232,6 +250,17 @@ T fromJsonObject(QJsonObject&& json)
 
     return obj;
 }
+
+template<typename T>
+T fromJsonObject(QJsonValue&& json) {
+    return fromJsonObject<T>(json.toObject());
+}
+
+template<typename T>
+T fromJsonObject(QJsonValueRef json) {
+    return fromJsonObject<T>(json.toObject());
+}
+
 
 template<template<typename U> class Container>
 QJsonArray toJsonArray(const Container<int>& array)

@@ -72,6 +72,7 @@ void StateInspectorWidget::updateDisplayedValues()
 
     auto widget = new QWidget;
     auto lay = new iscore::MarginLess<QFormLayout>{widget};
+    widget->setLayout(lay);
     // State id
     //lay->addRow("Id", new QLabel{QString::number(m_model.id().val().get())});
 

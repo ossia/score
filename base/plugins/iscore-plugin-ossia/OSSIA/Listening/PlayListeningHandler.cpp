@@ -5,9 +5,7 @@
 namespace Ossia
 {
 PlayListeningHandler::PlayListeningHandler(
-        const Device::DeviceList &dl,
         const RecreateOnPlay::DocumentPlugin &docpl):
-    m_devices{dl},
     m_executor{docpl}
 {
 

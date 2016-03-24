@@ -41,7 +41,7 @@ void Visitor<Writer<JSONObject>>::writeTo(ObjectIdentifier& obj)
     auto name = m_obj[iscore::StringConstant().ObjectName].toString();
 
     boost::optional<int32_t> id;
-    fromJsonObject(m_obj[iscore::StringConstant().ObjectId].toObject(), id);
+    fromJsonObject(m_obj[iscore::StringConstant().ObjectId], id);
 
     obj = ObjectIdentifier{name, id};
 }

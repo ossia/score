@@ -3,14 +3,12 @@
 #include <iscore/serialization/StringConstants.hpp>
 #include <iscore/tools/SettableIdentifier.hpp>
 #include <QJsonValue>
+#include <QJsonObject>
 #include <QJsonArray>
 #include <QMap>
 
 template<class>
 class StringKey;
-
-template<typename T>
-T fromJsonObject(QJsonValue&& json);
 
 class JSONValue;
 template<> class Visitor<Reader<JSONValue>>;

@@ -9,11 +9,8 @@ namespace Explorer
 class DefaultListeningHandler final :
         public ListeningHandler
 {
-        const Device::DeviceList& m_devices;
-
     public:
-        DefaultListeningHandler(
-                const Device::DeviceList& dl);
+        DefaultListeningHandler();
 
     private:
         void setListening(
