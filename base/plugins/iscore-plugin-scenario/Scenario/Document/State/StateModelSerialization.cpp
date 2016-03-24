@@ -104,7 +104,7 @@ template<> void Visitor<Reader<JSONObject>>::readFrom(const Scenario::StateModel
 template<> void Visitor<Writer<JSONObject>>::writeTo(Scenario::StateModel& s)
 {
     // Common metadata
-    s.metadata = fromJsonObject<ModelMetadata>(m_obj["Metadata"].toObject());
+    s.metadata = fromJsonObject<ModelMetadata>(m_obj["Metadata"]);
 
     s.m_eventId = fromJsonValue<Id<Scenario::EventModel>>(m_obj["Event"]);
     s.m_previousConstraint = fromJsonValue<Id<Scenario::ConstraintModel>>(m_obj["PreviousConstraint"]);
@@ -113,7 +113,7 @@ template<> void Visitor<Writer<JSONObject>>::writeTo(Scenario::StateModel& s)
 
     // Message tree
     s.m_messageItemModel = new Scenario::MessageItemModel{s.m_stack, s, &s};
-    s.messages() = fromJsonObject<Process::MessageNode>(m_obj["Messages"].toObject());
+    s.messages() = fromJsonObject<Process::MessageNode>(m_obj["Messages"]);
 
     // Processes plugins
     auto& pl = context.components.factory<Process::StateProcessList>();

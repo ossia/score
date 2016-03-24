@@ -78,7 +78,7 @@ void Visitor<Writer<JSONObject>>::writeTo(
     Deserializer<JSONObject> curve_deser{m_obj["Curve"].toObject()};
     autom.setCurve(new Curve::Model{curve_deser, &autom});
 
-    autom.setAddress(fromJsonObject<State::Address>(m_obj["Address"].toObject()));
+    autom.setAddress(fromJsonObject<State::Address>(m_obj["Address"]));
     autom.setMin(m_obj["Min"].toDouble());
     autom.setMax(m_obj["Max"].toDouble());
 }

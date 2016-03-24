@@ -190,7 +190,7 @@ void Visitor<Writer<JSONObject>>::writeTo(
 {
     Deserializer<JSONValue> elementPluginDeserializer(m_obj["PluginsMetadata"]);
     scenario.pluginModelList = new iscore::ElementPluginModelList{elementPluginDeserializer, &scenario};
-    scenario.metadata = fromJsonObject<ModelMetadata>(m_obj["Metadata"].toObject());
+    scenario.metadata = fromJsonObject<ModelMetadata>(m_obj["Metadata"]);
 
     scenario.m_startTimeNodeId = fromJsonValue<Id<Scenario::TimeNodeModel>> (m_obj["StartTimeNodeId"]);
     scenario.m_endTimeNodeId = fromJsonValue<Id<Scenario::TimeNodeModel>> (m_obj["EndTimeNodeId"]);

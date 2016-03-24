@@ -38,7 +38,7 @@ void Visitor<Writer<JSONObject>>::writeTo(
         RecordedMessages::RecordedMessage& rm)
 {
     rm.percentage = m_obj["Percentage"].toDouble();
-    rm.message = fromJsonObject<State::Message>(m_obj["Message"].toObject());
+    rm.message = fromJsonObject<State::Message>(m_obj["Message"]);
 }
 
 

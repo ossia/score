@@ -42,7 +42,7 @@ ISCORE_LIB_STATE_EXPORT void Visitor<Writer<DataStream>>::writeTo(State::Message
 template<>
 ISCORE_LIB_STATE_EXPORT void Visitor<Writer<JSONObject>>::writeTo(State::Message& mess)
 {
-    mess.address = fromJsonObject<State::Address>(m_obj[iscore::StringConstant().Address].toObject());
+    mess.address = fromJsonObject<State::Address>(m_obj[iscore::StringConstant().Address]);
     mess.value = State::convert::fromQJsonValue(
                 m_obj[iscore::StringConstant().Value],
                 m_obj[iscore::StringConstant().Type].toString());

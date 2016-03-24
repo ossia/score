@@ -157,5 +157,5 @@ template<>
 ISCORE_LIB_DEVICE_EXPORT void Visitor<Writer<JSONObject>>::writeTo(Device::FullAddressSettings& n)
 {
     writeTo(static_cast<Device::AddressSettingsCommon&>(n));
-    n.address = fromJsonObject<State::Address>(m_obj[iscore::StringConstant().Address].toObject());
+    n.address = fromJsonObject<State::Address>(m_obj[iscore::StringConstant().Address]);
 }

@@ -3,9 +3,7 @@
 
 namespace Explorer
 {
-DefaultListeningHandler::DefaultListeningHandler(
-        const Device::DeviceList &dl):
-    m_devices{dl}
+DefaultListeningHandler::DefaultListeningHandler()
 {
 
 }
