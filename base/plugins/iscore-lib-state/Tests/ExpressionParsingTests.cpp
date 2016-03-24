@@ -79,6 +79,15 @@ void test_parse_expr()
 }*/
 
 
+QDebug operator<<(QDebug dbg, const State::Address& a);
+QDebug operator<<(QDebug dbg, const State::RelationMember& v);
+QDebug operator<<(QDebug dbg, const State::Relation::Operator& v);
+QDebug operator<<(QDebug dbg, const State::Relation& v);
+QDebug operator<<(QDebug dbg, const State::BinaryOperator& v);
+QDebug operator<<(QDebug dbg, const State::UnaryOperator& v);
+QDebug operator<<(QDebug dbg, const State::ExprData& v);
+QDebug operator<<(QDebug dbg, const State::Expression& v);
+
 QDebug operator<<(QDebug dbg, const State::Address& a)
 {
     dbg << a.toString();
