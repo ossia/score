@@ -10,6 +10,7 @@ This file is used to define simple data structure to simplify the code when need
 #include <QByteArray>
 #include <QMap>
 #include <QPair>
+#include <Scenario/Document/Event/ExecutionStatus.hpp>
 
 namespace Scenario
 {
@@ -21,8 +22,9 @@ class TimeNodeModel;
 struct TimenodeProperties {
     TimeValue oldDate;
     TimeValue newDate;
-    double dateMin;
-    double dateMax;
+    double date;
+
+    ExecutionStatus status;
 };
 
 struct ConstraintProperties {
@@ -40,6 +42,8 @@ struct ConstraintProperties {
             Id<RackModel>
         >
      > savedDisplay;
+
+    ExecutionStatus status;
 };
 
 struct ElementsProperties {
