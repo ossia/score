@@ -97,7 +97,8 @@ void ProcessPanelPresenter::on_focusedViewModelChanged(const Process::LayerModel
             return;
 
         m_proxy = m_layerModel->make_panelProxy(this);
-        v->setInnerWidget(m_proxy->widget());
+        if(m_proxy)
+            v->setInnerWidget(m_proxy->widget());
     }
 }
 
