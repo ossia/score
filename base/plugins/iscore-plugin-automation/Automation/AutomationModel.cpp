@@ -205,13 +205,6 @@ ProcessState* ProcessModel::endStateData() const
     return m_address;
 }
 
-double ProcessModel::value(const TimeValue& time)
-{
-    ISCORE_TODO;
-    // TODO instead get a State or at least a MessageList.
-    return -1;
-}
-
 double ProcessModel::min() const
 {
     return m_min;

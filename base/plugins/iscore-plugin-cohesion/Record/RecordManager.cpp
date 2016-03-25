@@ -29,6 +29,7 @@
 #include <Device/Protocol/DeviceInterface.hpp>
 #include <Device/Protocol/DeviceList.hpp>
 #include <Explorer/DocumentPlugin/ListeningState.hpp>
+#include <Explorer/Explorer/ListeningManager.hpp>
 #include <Process/ExpandMode.hpp>
 #include <Process/Process.hpp>
 #include <Process/TimeValue.hpp>
@@ -139,7 +140,7 @@ void RecordManager::stopRecording()
     // Commit
     m_dispatcher->commit();
 
-    m_explorer->deviceModel().resumeListening(m_savedListening);
+    m_explorer->deviceModel().listening().restore();
 }
 
 void RecordManager::messageCallback(const State::Address &addr, const State::Value &val)
@@ -223,13 +224,13 @@ void RecordManager::recordInNewBox(
     // Get all the selected nodes
     m_explorer = &Explorer::deviceExplorerFromContext(doc);
 
-    // Disable listening for everything
-    m_savedListening = m_explorer->deviceModel().pauseListening();
-
     // Get the listening of the selected addresses
-    auto recordListening = SetupListening(*m_explorer);
+    auto recordListening = GetAddressesToRecord(*m_explorer);
     if(recordListening.empty())
         return;
+
+    // Disable listening for everything
+    m_explorer->deviceModel().listening().stop();
 
     m_dispatcher = std::make_unique<RecordCommandDispatcher>(new Recording::Record, doc.commandStack);
 
@@ -296,7 +297,7 @@ void RecordManager::recordInNewBox(
         std::transform(vec.begin(), vec.end(),
                        std::back_inserter(addr_vec),
                        [] (const auto& e) { return e.address; });
-        dev.replaceListening(addr_vec);
+        dev.addToListening(addr_vec);
         // Add a custom callback.
         m_recordCallbackConnections.push_back(
                     connect(&dev, &Device::DeviceInterface::valueUpdated,

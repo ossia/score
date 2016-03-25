@@ -84,7 +84,7 @@ void Visitor<Reader<JSONObject>>::readFrom(const Scenario::TimeNodeModel& timeno
 template<>
 void Visitor<Writer<JSONObject>>::writeTo(Scenario::TimeNodeModel& timenode)
 {
-    timenode.metadata = fromJsonObject<ModelMetadata>(m_obj["Metadata"].toObject());
+    timenode.metadata = fromJsonObject<ModelMetadata>(m_obj["Metadata"]);
 
     timenode.m_date = fromJsonValue<TimeValue> (m_obj["Date"]);
     timenode.m_extent = fromJsonValue<Scenario::VerticalExtent>(m_obj["Extent"]);
@@ -94,7 +94,7 @@ void Visitor<Writer<JSONObject>>::writeTo(Scenario::TimeNodeModel& timenode)
     timenode.m_trigger =  new Scenario::TriggerModel{Id<Scenario::TriggerModel>(0), &timenode};
 
     State::Trigger t;
-    fromJsonObject(m_obj["Trigger"].toObject()["Expression"].toObject(),t);
+    fromJsonObject(m_obj["Trigger"].toObject()["Expression"], t);
     timenode.m_trigger->setExpression(t);
     timenode.m_trigger->setActive(m_obj["Trigger"].toObject()["Active"].toBool());
 

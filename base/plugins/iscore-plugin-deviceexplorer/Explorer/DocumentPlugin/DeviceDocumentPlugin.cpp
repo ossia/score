@@ -165,44 +165,6 @@ Device::Node DeviceDocumentPlugin::loadDeviceFromNode(const Device::Node & node)
     return node;
 }
 
-
-
-
-
-
-ListeningState DeviceDocumentPlugin::pauseListening()
-{
-    ListeningState l;
-    for(auto device : m_list.devices())
-    {
-        auto vec = device->listening();
-        for(const auto& elt : vec)
-            device->setListening(elt, false);
-
-        l.listened.push_back(std::move(vec));
-    }
-
-    // Note : here we do not prevent new listening connections
-    // to be created. Else for instance recording would not work.
-
-    // The clients have to take care to not open new listening connections.
-    // Maybe find something better for this ?
-
-    return l;
-}
-
-void DeviceDocumentPlugin::resumeListening(const ListeningState& st)
-{
-    for(const auto& vec : st.listened)
-    {
-        if(vec.empty())
-            continue;
-
-        auto& dev = m_list.device(vec.front().device);
-        dev.replaceListening(vec);
-    }
-}
-
 void DeviceDocumentPlugin::setConnection(bool b)
 {
     for(auto& dev : m_list.devices())

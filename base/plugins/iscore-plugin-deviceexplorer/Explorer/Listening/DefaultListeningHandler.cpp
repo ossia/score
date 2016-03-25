@@ -3,9 +3,7 @@
 
 namespace Explorer
 {
-DefaultListeningHandler::DefaultListeningHandler(
-        const Device::DeviceList &dl):
-    m_devices{dl}
+DefaultListeningHandler::DefaultListeningHandler()
 {
 
 }
@@ -18,10 +16,10 @@ void DefaultListeningHandler::setListening(
     dev.setListening(addr, b);
 }
 
-void DefaultListeningHandler::replaceListening(
+void DefaultListeningHandler::addToListening(
         Device::DeviceInterface& dev,
         const std::vector<State::Address> &v)
 {
-    dev.replaceListening(v);
+    dev.addToListening(v);
 }
 }

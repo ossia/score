@@ -51,8 +51,6 @@ class ISCORE_PLUGIN_AUTOMATION_EXPORT ProcessModel final : public Curve::CurvePr
 
         ::State::Address address() const;
 
-        double value(const TimeValue& time);
-
         double min() const;
         double max() const;
 

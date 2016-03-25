@@ -219,7 +219,7 @@ void OSSIAApplicationPlugin::on_play(bool b, ::TimeValue t)
                 auto explorer = Explorer::try_deviceExplorerFromObject(*doc);
                 // Disable listening for everything
                 if(explorer)
-                    explorer->deviceModel().pauseListening();
+                    explorer->deviceModel().listening().stop();
 
                 plugmodel->reload(scenar->baseScenario());
                 auto& cstr = *plugmodel->baseScenario()->baseConstraint();
@@ -259,11 +259,7 @@ void OSSIAApplicationPlugin::on_stop()
         }
 
         // If we can we resume listening
-        if(context.documents.preparingNewDocument())
-        {
-            m_savedListening.listened.clear();
-        }
-        else
+        if(!context.documents.preparingNewDocument())
         {
             auto explorer = Explorer::try_deviceExplorerFromObject(*doc);
             if(explorer)
@@ -287,7 +283,7 @@ void OSSIAApplicationPlugin::on_init()
         auto explorer = Explorer::try_deviceExplorerFromObject(*doc);
         // Disable listening for everything
         if(explorer)
-            explorer->deviceModel().pauseListening();
+            explorer->deviceModel().listening().stop();
 
         plugmodel->reload(scenar->baseScenario());
 
@@ -297,11 +293,7 @@ void OSSIAApplicationPlugin::on_init()
         plugmodel->clear();
 
         // If we can we resume listening
-        if(context.documents.preparingNewDocument())
-        {
-            m_savedListening.listened.clear();
-        }
-        else
+        if(!context.documents.preparingNewDocument())
         {
             auto explorer = Explorer::try_deviceExplorerFromObject(*doc);
             if(explorer)

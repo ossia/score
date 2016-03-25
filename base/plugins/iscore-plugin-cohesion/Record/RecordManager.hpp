@@ -31,7 +31,6 @@ class RecordManager final : public QObject
         const iscore::DocumentContext& m_ctx;
         const Curve::Settings::Model& m_settings;
         std::unique_ptr<RecordCommandDispatcher> m_dispatcher;
-        Explorer::ListeningState m_savedListening;
         std::vector<QMetaObject::Connection> m_recordCallbackConnections;
 
         Explorer::DeviceExplorerModel* m_explorer{};

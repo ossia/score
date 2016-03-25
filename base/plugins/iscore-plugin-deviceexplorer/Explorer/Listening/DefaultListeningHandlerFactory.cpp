@@ -8,7 +8,7 @@ std::unique_ptr<Explorer::ListeningHandler> DefaultListeningHandlerFactory::make
         const DeviceDocumentPlugin& plug,
         const iscore::DocumentContext &ctx)
 {
-    return std::make_unique<Explorer::DefaultListeningHandler>(plug.list());
+    return std::make_unique<Explorer::DefaultListeningHandler>();
 }
 
 }

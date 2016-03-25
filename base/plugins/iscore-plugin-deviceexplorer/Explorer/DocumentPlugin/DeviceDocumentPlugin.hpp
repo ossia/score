@@ -49,10 +49,6 @@ class ISCORE_PLUGIN_DEVICEEXPLORER_EXPORT DeviceDocumentPlugin final :
 
         NodeUpdateProxy updateProxy{*this};
 
-        ListeningState pauseListening();
-        // Note : if the tree has changed in between, we should make a new ListeningState
-        void resumeListening(const ListeningState&);
-
         void setConnection(bool);
 
         Explorer::ListeningHandler& listening() const;

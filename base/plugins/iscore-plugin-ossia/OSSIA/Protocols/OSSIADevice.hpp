@@ -56,7 +56,7 @@ class ISCORE_PLUGIN_OSSIA_EXPORT OSSIADevice :
         void setListening(const State::Address&, bool) final override;
 
         std::vector<State::Address> listening() const final override;
-        void replaceListening(const std::vector<State::Address>&) final override;
+        void addToListening(const std::vector<State::Address>&) final override;
 
         void sendMessage(const State::Message& mess) final override;
         bool check(const QString& str) final override;

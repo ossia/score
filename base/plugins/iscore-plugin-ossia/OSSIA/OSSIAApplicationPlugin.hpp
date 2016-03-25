@@ -60,6 +60,4 @@ class OSSIAApplicationPlugin final :
         std::shared_ptr<OSSIA::Device> m_remoteDevice;
 
         bool m_playing{false};
-
-        Explorer::ListeningState m_savedListening;
 };

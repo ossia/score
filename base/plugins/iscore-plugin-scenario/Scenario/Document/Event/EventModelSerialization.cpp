@@ -78,12 +78,12 @@ template<> void Visitor<Reader<JSONObject>>::readFrom(const Scenario::EventModel
 
 template<> void Visitor<Writer<JSONObject>>::writeTo(Scenario::EventModel& ev)
 {
-    ev.metadata = fromJsonObject<ModelMetadata>(m_obj["Metadata"].toObject());
+    ev.metadata = fromJsonObject<ModelMetadata>(m_obj["Metadata"]);
 
     ev.m_timeNode = fromJsonValue<Id<Scenario::TimeNodeModel>> (m_obj["TimeNode"]);
     fromJsonValueArray(m_obj["States"].toArray(), ev.m_states);
 
-    fromJsonObject(m_obj["Condition"].toObject(), ev.m_condition);
+    fromJsonObject(m_obj["Condition"], ev.m_condition);
 
     ev.m_extent = fromJsonValue<Scenario::VerticalExtent>(m_obj["Extent"]);
     ev.m_date = fromJsonValue<TimeValue>(m_obj["Date"]);

@@ -24,7 +24,9 @@ class ISCORE_LIB_BASE_EXPORT UuidKey : iscore::uuid_t
         friend bool operator==(const this_type& lhs, const this_type& rhs) {
             return static_cast<const iscore::uuid_t&>(lhs) == static_cast<const iscore::uuid_t&>(rhs);
         }
-
+        friend bool operator!=(const this_type& lhs, const this_type& rhs) {
+            return static_cast<const iscore::uuid_t&>(lhs) != static_cast<const iscore::uuid_t&>(rhs);
+        }
         friend bool operator<(const this_type& lhs, const this_type& rhs) {
             return static_cast<const iscore::uuid_t&>(lhs) < static_cast<const iscore::uuid_t&>(rhs);
         }

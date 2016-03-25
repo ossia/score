@@ -125,6 +125,7 @@ set(SRCS ${SRCS}
 "${CMAKE_CURRENT_SOURCE_DIR}/Scenario/Commands/State/AddMessagesToState.cpp"
 "${CMAKE_CURRENT_SOURCE_DIR}/Scenario/Commands/State/InsertContentInState.cpp"
 "${CMAKE_CURRENT_SOURCE_DIR}/Scenario/Commands/State/AddStateProcess.cpp"
+"${CMAKE_CURRENT_SOURCE_DIR}/Scenario/Commands/State/RemoveStateProcess.cpp"
 
 "${CMAKE_CURRENT_SOURCE_DIR}/Scenario/Commands/TimeNode/TriggerCommandFactory/TriggerCommandFactory.cpp"
 "${CMAKE_CURRENT_SOURCE_DIR}/Scenario/Commands/TimeNode/TriggerCommandFactory/ScenarioTriggerCommandFactory.cpp"
@@ -332,9 +333,8 @@ iscore_generate_command_list_file(iscore_plugin_scenario "${HDRS}")
 target_link_libraries(iscore_plugin_scenario
   PUBLIC
     Qt5::Core Qt5::Widgets Qt5::Svg
-    iscore_lib_base
-    iscore_lib_process iscore_lib_device iscore_plugin_deviceexplorer iscore_lib_state iscore_plugin_curve iscore_plugin_automation pthread
-    ColorWidgets-qt5)
+	iscore_lib_base ColorWidgets-qt5
+    iscore_lib_process iscore_lib_device iscore_plugin_deviceexplorer iscore_lib_state iscore_plugin_curve iscore_plugin_automation pthread)
 
 if(ISCORE_OPENGL)
 target_link_libraries(iscore_plugin_scenario PRIVATE Qt5::OpenGL)

@@ -20,7 +20,6 @@ class RecordMessagesManager final : public QObject
     private:
         const iscore::DocumentContext& m_ctx;
         std::unique_ptr<RecordCommandDispatcher> m_dispatcher;
-        Explorer::ListeningState m_savedListening;
         std::vector<QMetaObject::Connection> m_recordCallbackConnections;
 
         Explorer::DeviceExplorerModel* m_explorer{};
