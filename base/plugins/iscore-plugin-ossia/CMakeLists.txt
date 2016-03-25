@@ -162,7 +162,7 @@ else()
   if (APPLE AND DEPLOYMENT_BUILD AND NOT ISCORE_STATIC_PLUGINS)
       # TODO investigate why this is necessary
     find_package(Jamoma 0.6)
-    target_link_libraries(${PROJECT_NAME} PRIVATE Jamoma::Core Jamoma::Modular)
+    target_link_libraries(${PROJECT_NAME} PRIVATE Jamoma::Foundation Jamoma::Modular)
   endif()
 endif()
 
