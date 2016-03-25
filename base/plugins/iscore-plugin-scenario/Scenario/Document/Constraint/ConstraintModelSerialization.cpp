@@ -151,7 +151,7 @@ template<> void Visitor<Reader<JSONObject>>::readFrom(const Scenario::Constraint
 
 template<> void Visitor<Writer<JSONObject>>::writeTo(Scenario::ConstraintModel& constraint)
 {
-    constraint.metadata = fromJsonObject<ModelMetadata>(m_obj["Metadata"].toObject());
+    constraint.metadata = fromJsonObject<ModelMetadata>(m_obj["Metadata"]);
 
     auto& pl = context.components.factory<Process::ProcessList>();
 

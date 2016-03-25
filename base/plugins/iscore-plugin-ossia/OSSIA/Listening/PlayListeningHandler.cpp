@@ -5,9 +5,7 @@
 namespace Ossia
 {
 PlayListeningHandler::PlayListeningHandler(
-        const Device::DeviceList &dl,
         const RecreateOnPlay::DocumentPlugin &docpl):
-    m_devices{dl},
     m_executor{docpl}
 {
 
@@ -24,13 +22,13 @@ void PlayListeningHandler::setListening(
     }
 }
 
-void PlayListeningHandler::replaceListening(
+void PlayListeningHandler::addToListening(
         Device::DeviceInterface& dev,
         const std::vector<State::Address>& v)
 {
     if(!m_executor.isPlaying())
     {
-        dev.replaceListening(v);
+        dev.addToListening(v);
     }
 }
 }

@@ -262,7 +262,7 @@ void SlotPresenter::on_layerModelCreated_impl(
 
     m_processes.push_back(SlotProcessData(&proc_vm, std::move(vec)));
 
-    con(proc_vm.processModel(), &Process::ProcessModel::durationChanged,
+    auto con_id = con(proc_vm.processModel(), &Process::ProcessModel::durationChanged,
         this, [&] (const TimeValue&) {
         // TODO index instead
         auto it = std::find_if(m_processes.begin(), m_processes.end(), [&] (const auto& elt) {
@@ -272,6 +272,10 @@ void SlotPresenter::on_layerModelCreated_impl(
         // TODO this should be an assert but it sometimes causes crashes.
         if(it != m_processes.end())
             updateProcessShape(*it);
+    });
+    con(proc_vm, &IdentifiedObjectAbstract::identified_object_destroyed,
+        this, [=] {
+        QObject::disconnect(con_id);
     });
 
     if(m_enabled)

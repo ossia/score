@@ -19,7 +19,8 @@ RackModel::RackModel(const RackModel& source,
                    const Id<RackModel>& id,
                    std::function<void(const SlotModel&, SlotModel&)> lmCopyMethod,
                    QObject *parent) :
-    IdentifiedObject<RackModel> {id, Metadata<ObjectKey_k, RackModel>::get(), parent}
+    IdentifiedObject<RackModel> {id, Metadata<ObjectKey_k, RackModel>::get(), parent},
+    metadata{source.metadata}
 {
     initConnections();
     for(const auto& slot : source.slotmodels)

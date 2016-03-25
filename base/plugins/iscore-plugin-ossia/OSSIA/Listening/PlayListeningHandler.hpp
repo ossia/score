@@ -13,12 +13,10 @@ namespace Ossia
 {
 class PlayListeningHandler final : public Explorer::ListeningHandler
 {
-        const Device::DeviceList& m_devices;
         const RecreateOnPlay::DocumentPlugin& m_executor;
 
     public:
         PlayListeningHandler(
-                const Device::DeviceList& dl,
                 const RecreateOnPlay::DocumentPlugin& docpl);
 
     private:
@@ -27,7 +25,7 @@ class PlayListeningHandler final : public Explorer::ListeningHandler
                 const State::Address& addr,
                 bool b) override;
 
-        void replaceListening(
+        void addToListening(
                 Device::DeviceInterface& dev,
                 const std::vector<State::Address>& v) override;
 };

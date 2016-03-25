@@ -17,7 +17,7 @@ namespace Process { class LayerModel; }
 class ProcessStateDataInterface;
 class QObject;
 #include <iscore/tools/SettableIdentifier.hpp>
-
+#include <iscore_plugin_recordedmessages_export.h>
 namespace RecordedMessages
 {
 struct RecordedMessage
@@ -27,7 +27,7 @@ struct RecordedMessage
 };
 using RecordedMessagesList = QList<RecordedMessage>;
 
-class ProcessModel final : public Process::ProcessModel
+class ISCORE_PLUGIN_RECORDEDMESSAGES_EXPORT ProcessModel final : public Process::ProcessModel
 {
         ISCORE_SERIALIZE_FRIENDS(ProcessModel, DataStream)
         ISCORE_SERIALIZE_FRIENDS(ProcessModel, JSONObject)
@@ -52,6 +52,7 @@ class ProcessModel final : public Process::ProcessModel
             vis.writeTo(*this);
         }
 
+        virtual ~ProcessModel();
         void setMessages(const QList<RecordedMessage>& script);
         const auto& messages() const
         { return m_messages; }

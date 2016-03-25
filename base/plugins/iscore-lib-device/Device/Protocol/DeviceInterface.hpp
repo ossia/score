@@ -55,7 +55,7 @@ class ISCORE_LIB_DEVICE_EXPORT DeviceInterface : public QObject
         virtual Device::Node refresh() { return {}; }
         virtual boost::optional<State::Value> refresh(const State::Address&) { return {}; }
         virtual void setListening(const State::Address&, bool) { }
-        virtual void replaceListening(const std::vector<State::Address>&) { }
+        virtual void addToListening(const std::vector<State::Address>&) { }
         virtual std::vector<State::Address> listening() const { return {}; }
 
         virtual void addAddress(const Device::FullAddressSettings&) = 0;

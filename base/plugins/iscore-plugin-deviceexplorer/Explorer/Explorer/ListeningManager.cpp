@@ -3,7 +3,7 @@
 #include <Explorer/Explorer/DeviceExplorerModel.hpp>
 #include <Explorer/Explorer/DeviceExplorerView.hpp>
 #include <Explorer/DocumentPlugin/DeviceDocumentPlugin.hpp>
-
+#include <Device/Protocol/DeviceInterface.hpp>
 
 namespace Explorer
 {
@@ -39,13 +39,10 @@ ListeningManager::ListeningManager(
     m_widget{widg},
     m_handler{m_model.deviceModel().listening()}
 {
+    connect(&m_handler, &ListeningHandler::stop,
+            this, &ListeningManager::stopListening);
     connect(&m_handler, &ListeningHandler::restore,
-            this, [&] {
-        for(auto& device_node : model.rootNode())
-        {
-            resetListening(device_node);
-        }
-    });
+            this, &ListeningManager::setDeviceWidgetListening);
 }
 
 void ListeningManager::enableListening(
@@ -151,6 +148,24 @@ void ListeningManager::resetListening(
     if(m_widget.view()->isExpanded(view_idx))
     {
         enableListening_rec(view_idx, dev, m_handler);
+    }
+}
+
+void ListeningManager::stopListening()
+{
+    for(auto device : m_model.deviceModel().list().devices())
+    {
+        auto vec = device->listening();
+        for(const auto& elt : vec)
+            device->setListening(elt, false);
+    }
+}
+
+void ListeningManager::setDeviceWidgetListening()
+{
+    for(auto& device : m_model.rootNode())
+    {
+        resetListening(device);
     }
 }
 }

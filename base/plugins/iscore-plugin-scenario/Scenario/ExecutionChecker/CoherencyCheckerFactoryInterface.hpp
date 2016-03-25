@@ -18,7 +18,8 @@ class ISCORE_PLUGIN_SCENARIO_EXPORT CoherencyCheckerFactoryInterface :
     public:
         virtual CSPCoherencyCheckerInterface* make(
                     Scenario::ScenarioModel& scenario,
-                    const QVector<Id<Scenario::TimeNodeModel>>& positionnedElements) = 0;
+                    const iscore::ApplicationContext& ctx,
+                    Scenario::ElementsProperties& elementsProperties) = 0;
         virtual ~CoherencyCheckerFactoryInterface();
 };
 

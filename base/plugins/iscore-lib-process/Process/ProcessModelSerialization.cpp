@@ -63,7 +63,7 @@ void Visitor<Writer<JSONObject>>::writeTo(Process::ProcessModel& process)
 {
     process.m_duration = fromJsonValue<TimeValue>(m_obj[iscore::StringConstant().Duration]);
     //process.m_useParentDuration = m_obj["UseParentDuration"].toBool();
-    process.metadata = fromJsonObject<ModelMetadata>(m_obj[iscore::StringConstant().Metadata].toObject());
+    process.metadata = fromJsonObject<ModelMetadata>(m_obj[iscore::StringConstant().Metadata]);
 }
 
 

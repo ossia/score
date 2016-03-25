@@ -42,6 +42,7 @@ SlotModel::SlotModel(
     // one we have cloned, hence instead of just copying the id, we ask the corresponding
     // layer model to give us its id.
     // TODO this is fucking ugly - mostly because two objects exist with the same id...
+    metadata = source.metadata;
     metadata.setName(QString{"Slot.%1"} .arg(*id.val()));
 }
 

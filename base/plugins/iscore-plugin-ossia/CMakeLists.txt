@@ -157,7 +157,13 @@ else()
   target_link_libraries(${PROJECT_NAME}
             PUBLIC
               APIJamoma
-              )
+  )
+
+  if (APPLE AND DEPLOYMENT_BUILD AND NOT ISCORE_STATIC_PLUGINS)
+      # TODO investigate why this is necessary
+    find_package(Jamoma 0.6)
+    target_link_libraries(${PROJECT_NAME} PRIVATE Jamoma::Core Jamoma::Modular)
+  endif()
 endif()
 
 if(TARGET iscore_plugin_loop)

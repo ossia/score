@@ -96,11 +96,11 @@ void Visitor<Writer<JSONObject>>::writeTo(Mapping::ProcessModel& autom)
     Deserializer<JSONObject> curve_deser{m_obj["Curve"].toObject()};
     autom.setCurve(new Curve::Model{curve_deser, &autom});
 
-    autom.setSourceAddress(fromJsonObject<State::Address>(m_obj["SourceAddress"].toObject()));
+    autom.setSourceAddress(fromJsonObject<State::Address>(m_obj["SourceAddress"]));
     autom.setSourceMin(m_obj["SourceMin"].toDouble());
     autom.setSourceMax(m_obj["SourceMax"].toDouble());
 
-    autom.setTargetAddress(fromJsonObject<State::Address>(m_obj["TargetAddress"].toObject()));
+    autom.setTargetAddress(fromJsonObject<State::Address>(m_obj["TargetAddress"]));
     autom.setTargetMin(m_obj["TargetMin"].toDouble());
     autom.setTargetMax(m_obj["TargetMax"].toDouble());
 }

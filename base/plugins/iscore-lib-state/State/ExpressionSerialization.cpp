@@ -34,7 +34,7 @@ void Visitor<Writer<DataStream>>::writeTo(State::AddressAccessor& rel)
 template<>
 void Visitor<Writer<JSONObject>>::writeTo(State::AddressAccessor& rel)
 {
-    fromJsonObject(m_obj[iscore::StringConstant().address].toObject(), rel.address);
+    fromJsonObject(m_obj[iscore::StringConstant().address], rel.address);
     fromJsonArray(m_obj["Accessors"].toArray(), rel.accessors);
 }
 
@@ -64,7 +64,7 @@ void Visitor<Writer<DataStream>>::writeTo(State::Pulse& rel)
 template<>
 void Visitor<Writer<JSONObject>>::writeTo(State::Pulse& rel)
 {
-    fromJsonObject(m_obj[iscore::StringConstant().address].toObject(), rel.address);
+    fromJsonObject(m_obj[iscore::StringConstant().address], rel.address);
 }
 
 template<>
@@ -99,9 +99,9 @@ void Visitor<Writer<DataStream>>::writeTo(State::Relation& rel)
 template<>
 void Visitor<Writer<JSONObject>>::writeTo(State::Relation& rel)
 {
-    fromJsonObject(m_obj[iscore::StringConstant().LHS].toObject(), rel.lhs);
+    fromJsonObject(m_obj[iscore::StringConstant().LHS], rel.lhs);
     fromJsonValue(m_obj[iscore::StringConstant().Op], rel.op);
-    fromJsonObject(m_obj[iscore::StringConstant().RHS].toObject(), rel.rhs);
+    fromJsonObject(m_obj[iscore::StringConstant().RHS], rel.rhs);
 }
 
 

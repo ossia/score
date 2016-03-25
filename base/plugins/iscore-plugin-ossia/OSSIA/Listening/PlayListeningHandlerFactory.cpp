@@ -12,6 +12,6 @@ std::unique_ptr<Explorer::ListeningHandler> PlayListeningHandlerFactory::make(
         const iscore::DocumentContext &ctx)
 {
     auto& exe = ctx.plugin<RecreateOnPlay::DocumentPlugin>();
-    return std::make_unique<PlayListeningHandler>(plug.list(), exe);
+    return std::make_unique<PlayListeningHandler>(exe);
 }
 }

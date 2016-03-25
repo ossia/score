@@ -83,29 +83,3 @@ ISCORE_PLUGIN_SCENARIO_EXPORT void Visitor<Writer<DataStream>>::writeTo(
 
     checkDelimiter();
 }
-/*
-template<>
-void Visitor<Reader<JSONObject>>::readFrom(const TimeNodeModel& timenode)
-{
-    readFrom(static_cast<const IdentifiedObject<TimeNodeModel>&>(timenode));
-    m_obj["Metadata"] = toJsonObject(timenode.metadata);
-
-    m_obj["Date"] = toJsonValue(timenode.date());
-    m_obj["Events"] = toJsonArray(timenode.m_events);
-
-    m_obj["PluginsMetadata"] = toJsonValue(timenode.pluginModelList);
-}
-
-template<>
-void Visitor<Writer<JSONObject>>::writeTo(TimeNodeModel& timenode)
-{
-    timenode.metadata = fromJsonObject<ModelMetadata>(m_obj["Metadata"].toObject());
-
-    timenode.m_date = fromJsonValue<TimeValue> (m_obj["Date"]);
-
-    fromJsonValueArray(m_obj["Events"].toArray(), timenode.m_events);
-
-    Deserializer<JSONValue> elementPluginDeserializer(m_obj["PluginsMetadata"]);
-    timenode.pluginModelList = iscore::ElementPluginModelList{elementPluginDeserializer, &timenode};
-}
-*/

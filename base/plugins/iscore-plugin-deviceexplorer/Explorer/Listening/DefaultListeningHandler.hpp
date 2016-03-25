@@ -9,11 +9,8 @@ namespace Explorer
 class DefaultListeningHandler final :
         public ListeningHandler
 {
-        const Device::DeviceList& m_devices;
-
     public:
-        DefaultListeningHandler(
-                const Device::DeviceList& dl);
+        DefaultListeningHandler();
 
     private:
         void setListening(
@@ -21,7 +18,7 @@ class DefaultListeningHandler final :
                 const State::Address& addr,
                 bool b) override;
 
-        void replaceListening(
+        void addToListening(
                 Device::DeviceInterface& dev,
                 const std::vector<State::Address>& v) override;
 };
