@@ -1,7 +1,7 @@
 #pragma once
 #include <QWidget>
 
-class LambdaFriendlyQComboBox;
+class QComboBox;
 class QString;
 
 namespace Scenario
@@ -17,7 +17,7 @@ class RackWidget final : public QWidget
         ~RackWidget();
 
         void viewModelsChanged();
-        void updateComboBox(LambdaFriendlyQComboBox*, ConstraintViewModel* vm);
+        void updateComboBox(QComboBox*, ConstraintViewModel* vm);
 
         static const QString hiddenText;
 
