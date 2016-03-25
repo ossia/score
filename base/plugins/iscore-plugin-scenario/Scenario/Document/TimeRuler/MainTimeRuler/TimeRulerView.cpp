@@ -4,7 +4,7 @@
 
 #include <Scenario/Document/TimeRuler/AbstractTimeRulerView.hpp>
 #include "TimeRulerView.hpp"
-
+#include <iscore/tools/Todo.hpp>
 namespace Scenario
 {
 TimeRulerView::TimeRulerView() :

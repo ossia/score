@@ -10,6 +10,7 @@
 #include <QLayout>
 #include <QList>
 #include <QObject>
+#include <QComboBox>
 
 #include <QString>
 #include <QStringList>
