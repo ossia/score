@@ -52,31 +52,24 @@ void ProcessViewTabWidget::updateDisplayedValues()
     }
 }
 
-void ProcessViewTabWidget::activeRackChanged(QString rack, ConstraintViewModel* vm)
+void ProcessViewTabWidget::activeRackChanged(Id<RackModel> rack, ConstraintViewModel* vm)
 {
     // TODO mettre à jour l'inspecteur si la rack affichée change (i.e. via une commande réseau).
     if (m_rackWidget == nullptr)
         return;
 
-    if(rack == m_rackWidget->hiddenText)
+    if(!rack)
     {
         if(vm->isRackShown())
         {
-            auto cmd = new Command::HideRackInViewModel(*vm);
+            auto cmd = new Command::HideRackInViewModel{*vm};
             emit m_commandDispatcher->submitCommand(cmd);
         }
     }
     else
     {
-        for (auto& r : m_constraintWidget.model().racks)
-        {
-            if(r.metadata.name() == rack)
-            {
-                auto id = r.id();
-                auto cmd = new Command::ShowRackInViewModel(*vm, id);
-                emit m_commandDispatcher->submitCommand(cmd);
-            }
-        }
+        auto cmd = new Command::ShowRackInViewModel{*vm, rack};
+        emit m_commandDispatcher->submitCommand(cmd);
     }
 }
 

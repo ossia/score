@@ -23,12 +23,19 @@ ProcessExecutor::ProcessExecutor(
         const Explorer::DeviceDocumentPlugin& devices):
     m_devices{devices.list()}
 {
-    m_engine.globalObject().setProperty("iscore", m_engine.newQObject(new JS::APIWrapper{m_engine, devices}));
+    auto obj = m_engine.newQObject(new JS::APIWrapper{m_engine, devices});
+    m_engine.globalObject().setProperty("iscore", obj);
 }
 
 void ProcessExecutor::setTickFun(const QString& val)
 {
     m_tickFun = m_engine.evaluate(val);
+    if(m_tickFun.isError())
+        qDebug()
+                << "Uncaught exception at line"
+                << m_tickFun.property("lineNumber").toInt()
+                << ":" << m_tickFun.toString();
+
 }
 
 std::shared_ptr<OSSIA::StateElement> ProcessExecutor::state()

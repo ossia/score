@@ -22,7 +22,7 @@ class ProcessViewTabWidget :
 
         void updateDisplayedValues();
 
-        void activeRackChanged(QString rack, ConstraintViewModel* vm);
+        void activeRackChanged(Id<RackModel> rack, ConstraintViewModel* vm);
         void createRack();
 
 
