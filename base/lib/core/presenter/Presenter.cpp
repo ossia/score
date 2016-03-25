@@ -59,7 +59,7 @@ Presenter::Presenter(
   #else
     m_menubar {view->menuBar(), this},
   #endif
-    m_context{app, m_components_readonly, m_docManager, m_menubar, m_settings.model().settings()}
+    m_context(app, m_components_readonly, m_docManager, m_menubar, m_settings.model().settings())
 {
     m_docManager.init(m_context); // It is necessary to break
     // this dependency cycle.

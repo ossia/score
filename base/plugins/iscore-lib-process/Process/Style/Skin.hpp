@@ -4,7 +4,8 @@
 #include <iscore_lib_process_export.h>
 #include <QFont>
 #include <QColor>
-
+#include <QVector>
+#include <QPair>
 class ISCORE_LIB_PROCESS_EXPORT Skin :
         public QObject
 {
