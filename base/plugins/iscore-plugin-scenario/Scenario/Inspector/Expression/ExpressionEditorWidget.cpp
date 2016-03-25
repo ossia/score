@@ -140,6 +140,7 @@ void ExpressionEditorWidget::exploreExpression(State::Expression expr)
             return_type operator()(const State::Relation& rel) const
             {
                 widg.addNewRelation();
+                if(widg.m_relations.size() > 0)
                 widg.m_relations.back()->setRelation(rel);
             }
 
@@ -162,7 +163,8 @@ void ExpressionEditorWidget::exploreExpression(State::Expression expr)
                         widg.m_relations.at(i)->setOperator( op );
                 }
 
-                widg.m_relations.back()->setOperator( op );
+                if(widg.m_relations.size() > 0)
+                    widg.m_relations.back()->setOperator( op );
             }
 
             return_type operator()(const State::UnaryOperator) const
