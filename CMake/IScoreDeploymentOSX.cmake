@@ -1,7 +1,7 @@
 if(APPLE)
 
 find_package(Jamoma)
-if(NOT JAMOMA_FOUND)
+if(NOT ${Jamoma_FOUND})
   return()
 endif()
 
