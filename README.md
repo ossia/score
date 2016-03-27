@@ -44,3 +44,5 @@ Installation of some dependencies is required :
 Then [fetch the release here](https://github.com/OSSIA/i-score/releases/latest).
 
 * Windows, OS X : [Latest release](https://github.com/OSSIA/i-score/releases/latest)
+
+* For more see [here](https://github.com/OSSIA/i-score/wiki/Build-and-install).
