@@ -66,7 +66,7 @@ namespace State
 
     Address Address::rootAddress()
     {
-        return {};
+        return Address();
     }
 
     QString Address::toString() const

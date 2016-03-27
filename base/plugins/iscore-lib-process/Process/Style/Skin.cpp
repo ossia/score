@@ -1,5 +1,6 @@
 #include "Skin.hpp"
 #include <QJsonObject>
+#include <QJsonArray>
 #include <boost/assign/list_of.hpp>
 
 // Taken from http://stackoverflow.com/a/31841462

@@ -35,7 +35,7 @@
 #include <iscore/document/DocumentContext.hpp>
 #include <Scenario/DialogWidget/AddProcessDialog.hpp>
 #include <QSizePolicy>
-
+#include <iscore/selection/SelectionDispatcher.hpp>
 namespace iscore {
 class Document;
 }  // namespace iscore

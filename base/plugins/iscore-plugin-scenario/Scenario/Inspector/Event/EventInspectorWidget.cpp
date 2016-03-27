@@ -43,6 +43,7 @@
 #include <iscore/tools/ModelPathSerialization.hpp>
 #include <iscore/tools/SettableIdentifier.hpp>
 #include <iscore/tools/Todo.hpp>
+#include <iscore/selection/SelectionDispatcher.hpp>
 
 namespace Scenario
 {
