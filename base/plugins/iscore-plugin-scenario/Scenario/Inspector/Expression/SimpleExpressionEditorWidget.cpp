@@ -310,7 +310,7 @@ QString SimpleExpressionEditorWidget::currentOperator()
 
 const std::map<ExpressionEditorComparator, QString>&ExpressionEditorComparators()
 {
-    thread_local const std::map<ExpressionEditorComparator, QString> map{
+    static const std::map<ExpressionEditorComparator, QString> map{
         { ExpressionEditorComparator::Equal, "==" },
         { ExpressionEditorComparator::Different, "!=" },
         { ExpressionEditorComparator::Greater, ">" },
