@@ -38,7 +38,7 @@ ExpressionEditorWidget::ExpressionEditorWidget(const iscore::DocumentContext& do
                 delete elt;
             }
             m_relations.clear();
-            addNewRelation();
+            addNewTerm();
         }
         else
             setExpression(*State::parseExpression(m_expression));
@@ -113,7 +113,7 @@ void ExpressionEditorWidget::setExpression(State::Expression e)
 
     exploreExpression(e);
     if(!e.hasChildren())
-        addNewRelation();
+        addNewTerm();
 
     m_expression = currentExpr();
 }
@@ -139,14 +139,16 @@ void ExpressionEditorWidget::exploreExpression(State::Expression expr)
 
             return_type operator()(const State::Relation& rel) const
             {
-                widg.addNewRelation();
+                widg.addNewTerm();
                 if(widg.m_relations.size() > 0)
-                widg.m_relations.back()->setRelation(rel);
+                    widg.m_relations.back()->setRelation(rel);
             }
 
-            return_type operator()(const State::Pulse&) const
+            return_type operator()(const State::Pulse& p) const
             {
-                ISCORE_TODO;
+                widg.addNewTerm();
+                if(widg.m_relations.size() > 0)
+                    widg.m_relations.back()->setPulse(p);
             }
 
             return_type operator()(const State::BinaryOperator op) const
@@ -190,7 +192,7 @@ QString ExpressionEditorWidget::currentExpr()
     return exp.toString();
 }
 
-void ExpressionEditorWidget::addNewRelation()
+void ExpressionEditorWidget::addNewTerm()
 {
     auto relationEditor = new SimpleExpressionEditorWidget{m_context, m_relations.size(), this};
     m_relations.push_back(relationEditor);
@@ -201,13 +203,13 @@ void ExpressionEditorWidget::addNewRelation()
     connect(relationEditor, &SimpleExpressionEditorWidget::editingFinished,
         this, &ExpressionEditorWidget::on_editFinished);
 */
-    connect(relationEditor, &SimpleExpressionEditorWidget::addRelation,
-            this, &ExpressionEditorWidget::addNewRelation);
-    connect(relationEditor, &SimpleExpressionEditorWidget::removeRelation,
-            this, &ExpressionEditorWidget::removeRelation);
+    connect(relationEditor, &SimpleExpressionEditorWidget::addTerm,
+            this, &ExpressionEditorWidget::addNewTerm);
+    connect(relationEditor, &SimpleExpressionEditorWidget::removeTerm,
+            this, &ExpressionEditorWidget::removeTerm);
 }
 
-void ExpressionEditorWidget::removeRelation(int index)
+void ExpressionEditorWidget::removeTerm(int index)
 {
     for (int i = index; i < m_relations.size(); i++)
     {

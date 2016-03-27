@@ -43,8 +43,8 @@ class ExpressionEditorWidget : public QWidget
         void exploreExpression(State::Expression e);
 
         QString currentExpr();
-        void addNewRelation();
-        void removeRelation(int index);
+        void addNewTerm();
+        void removeTerm(int index);
 
         const iscore::DocumentContext& m_context;
         QVector<SimpleExpressionEditorWidget*> m_relations;

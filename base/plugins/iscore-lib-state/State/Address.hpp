@@ -56,6 +56,24 @@ inline QStringList stringList(const State::Address& addr)
 {
     return QStringList{} << addr.device << addr.path;
 }
+
+struct ISCORE_LIB_STATE_EXPORT AddressAccessor
+{
+        State::Address address;
+        std::vector<int32_t> accessors;
+
+        // Utility
+        QString toString() const;
+
+        bool operator==(const AddressAccessor& other) const
+        {
+            return address == other.address && accessors == other.accessors;
+        }
+        bool operator!=(const AddressAccessor& a) const
+        {
+            return !(*this == a);
+        }
+};
 }
 
 namespace std {

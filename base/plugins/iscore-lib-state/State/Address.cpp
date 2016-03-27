@@ -1,8 +1,7 @@
 #include <algorithm>
 
-#include "Address.hpp"
+#include <State/Address.hpp>
 #include <iscore/tools/Todo.hpp>
-
 namespace State
 {
     bool Address::validateString(const QString &str)
@@ -77,4 +76,15 @@ namespace State
 
         return ad;
     }
+
+    QString AddressAccessor::toString() const
+    {
+        auto str = address.toString();
+        for(auto acc : accessors)
+        {
+            str += "[" + QString::number(acc) + "]";
+        }
+        return str;
+    }
+
 }

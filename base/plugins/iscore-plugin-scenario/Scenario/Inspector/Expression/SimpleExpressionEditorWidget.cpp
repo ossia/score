@@ -33,7 +33,7 @@ SimpleExpressionEditorWidget::SimpleExpressionEditorWidget(
     if(plug)
         explorer = plug->updateProxy.deviceExplorer;
 
-    m_address = new Explorer::AddressEditWidget{explorer, this};
+    m_address = new Explorer::AddressAccessorEditWidget{explorer, this};
     m_ok = new QLabel{"/!\\ ", this};
 
     m_comparator = new QComboBox{this};
@@ -67,15 +67,15 @@ SimpleExpressionEditorWidget::SimpleExpressionEditorWidget(
     // Connections
 
     connect(addBtn, &QPushButton::clicked,
-            this, &SimpleExpressionEditorWidget::addRelation);
+            this, &SimpleExpressionEditorWidget::addTerm);
     connect(rmBtn, &QPushButton::clicked,
             this, [=] ()
     {
-        emit removeRelation(id);
+        emit removeTerm(id);
     });
 
     /// EDIT FINSHED
-    connect(m_address, &Explorer::AddressEditWidget::addressChanged,
+    connect(m_address, &Explorer::AddressAccessorEditWidget::addressChanged,
             this, [&] ()
     {
         on_editFinished();
@@ -100,14 +100,14 @@ SimpleExpressionEditorWidget::SimpleExpressionEditorWidget(
     m_binOperator->addItem("and");
     m_binOperator->addItem("or");
 
-    m_comparatorList = State::opToString();
+    auto& lst = ExpressionEditorComparators();
 
-    for(auto c : m_comparatorList)
+    for(auto& c : lst)
     {
-        m_comparator->addItem(c);
+        m_comparator->addItem(c.second, QVariant::fromValue(c.first));
     }
 
-    m_comparator->setCurrentText(m_comparatorList[Comparator::None]);
+    m_comparator->setCurrentText(lst.at(ExpressionEditorComparator::None));
 
 }
 
@@ -137,25 +137,58 @@ State::BinaryOperator SimpleExpressionEditorWidget::binOperator()
 
 void SimpleExpressionEditorWidget::setRelation(State::Relation r)
 {
-    m_address->setAddressString(State::toString(r.lhs));
-
-    auto s = State::toString(r.rhs);
-    /*
-    bool isDouble;
-    s.toDouble(&isDouble);
-    if(!isDouble)
+    auto lptr = r.lhs.target<State::Value>();
+    auto rptr = r.rhs.target<State::Value>();
+    if(lptr && rptr)
     {
-        s.remove(0,1);
-        s.remove(s.lastIndexOf("\""),1);
-    }*/
-    m_value->setText(s);
+        auto lv = *lptr;
+        auto rv = *rptr;
 
-    m_comparator->setCurrentText(m_comparatorList[r.op]);
+        if(r.op == State::Relation::Operator::Equal && lv == rv)
+        {
+            m_comparator->setCurrentIndex(ExpressionEditorComparator::AlwaysTrue);
+        }
+        else
+        {
+            m_comparator->setCurrentIndex(ExpressionEditorComparator::AlwaysFalse);
+        }
+        m_address->setAddress(State::AddressAccessor{});
+        m_value->setText("");
+    }
+    else
+    {
+        if(auto addr_ptr = r.lhs.target<State::Address>())
+        {
+            m_address->setAddress(*addr_ptr);
+        }
+        else if(auto acc_ptr = r.lhs.target<State::AddressAccessor>())
+        {
+            m_address->setAddress(*acc_ptr);
+        }
 
-    m_relation = State::toString(r);
+        auto s = State::toString(r.rhs);
+        m_value->setText(s);
+
+        m_comparator->setCurrentIndex(static_cast<int>(r.op));
+
+        m_relation = State::toString(r);
+
+        int i;
+        m_ok->setVisible(m_validator.validate(m_relation, i) != QValidator::State::Acceptable);
+    }
+}
+
+void SimpleExpressionEditorWidget::setPulse(State::Pulse p)
+{
+    m_address->setAddress(p.address);
+    m_value->setText("");
+
+    m_comparator->setCurrentIndex(ExpressionEditorComparator::Pulse);
+    m_relation = State::toString(p);
 
     int i;
     m_ok->setVisible(m_validator.validate(m_relation, i) != QValidator::State::Acceptable);
+
 }
 
 void SimpleExpressionEditorWidget::setOperator(State::BinaryOperator o)
@@ -203,39 +236,94 @@ void SimpleExpressionEditorWidget::on_editFinished()
 
 void SimpleExpressionEditorWidget::on_comparatorChanged(int i)
 {
-    m_value->setEnabled(m_comparator->currentText() != m_comparatorList[Comparator::None]);
+    switch(i)
+    {
+        case ExpressionEditorComparator::Equal:
+        case ExpressionEditorComparator::Different:
+        case ExpressionEditorComparator::Greater:
+        case ExpressionEditorComparator::Lower:
+        case ExpressionEditorComparator::GreaterEqual:
+        case ExpressionEditorComparator::LowerEqual:
+            m_address->setEnabled(true);
+            m_value->setEnabled(true);
+            break;
+
+        case ExpressionEditorComparator::None:
+        case ExpressionEditorComparator::Pulse:
+            m_address->setEnabled(true);
+            m_value->setEnabled(false);
+            break;
+
+        case ExpressionEditorComparator::AlwaysTrue:
+        case ExpressionEditorComparator::AlwaysFalse:
+            m_address->setEnabled(false);
+            m_value->setEnabled(false);
+            break;
+    }
 }
 
 
 QString SimpleExpressionEditorWidget::currentRelation()
 {
-    QString expr =  m_address->addressString();
-    if(m_comparator->currentText() != m_comparatorList[Comparator::None])
+    switch(m_comparator->currentIndex())
     {
-        expr += " ";
-        expr += m_comparator->currentText();
-        expr += " ";
-        expr += m_value->text();
-
-        /*
-        bool ok;
-        auto val = m_value->text();
-        val.toDouble(&ok);
-        if(!ok)
+        case ExpressionEditorComparator::Equal:
+        case ExpressionEditorComparator::Different:
+        case ExpressionEditorComparator::Greater:
+        case ExpressionEditorComparator::Lower:
+        case ExpressionEditorComparator::GreaterEqual:
+        case ExpressionEditorComparator::LowerEqual:
         {
-            val.prepend("\"");
-            val += "\"";
+            QString expr = m_address->addressString();
+            expr += " ";
+            expr += m_comparator->currentText();
+            expr += " ";
+            expr += m_value->text();
+            return expr;
         }
-        expr += " ";
-        expr += m_comparator->currentText();
-        expr += " ";
-        expr += val;*/
+
+        case ExpressionEditorComparator::None:
+            return "";
+
+        case ExpressionEditorComparator::Pulse:
+        {
+            QString expr = m_address->addressString() + " impulse";
+            return expr;
+        }
+        case ExpressionEditorComparator::AlwaysTrue:
+        {
+            return "true == true"; // TODO berk
+        }
+        case ExpressionEditorComparator::AlwaysFalse:
+        {
+            return "true == false"; // TODO berk
+        }
     }
-    return expr;
+
+    return "";
 }
 
 QString SimpleExpressionEditorWidget::currentOperator()
 {
     return m_binOperator->currentText();
 }
+
+const std::map<ExpressionEditorComparator, QString>&ExpressionEditorComparators()
+{
+    thread_local const std::map<ExpressionEditorComparator, QString> map{
+        { ExpressionEditorComparator::Equal, "==" },
+        { ExpressionEditorComparator::Different, "!=" },
+        { ExpressionEditorComparator::Greater, ">" },
+        { ExpressionEditorComparator::Lower, "<" },
+        { ExpressionEditorComparator::GreaterEqual, ">=" },
+        { ExpressionEditorComparator::LowerEqual, "<=" },
+        { ExpressionEditorComparator::None, "" },
+        { ExpressionEditorComparator::Pulse, "Pulse" },
+        { ExpressionEditorComparator::AlwaysTrue, "True" },
+        { ExpressionEditorComparator::AlwaysFalse, "False" }
+    };
+
+    return map;
+}
+
 }

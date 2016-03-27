@@ -11,10 +11,32 @@ class QComboBox;
 class QLabel;
 class QLineEdit;
 namespace Explorer {
-class AddressEditWidget; }
+class AddressAccessorEditWidget;
+}
+
 
 namespace Scenario
 {
+
+enum ExpressionEditorComparator
+{
+    // Same as in Relation
+    Equal,
+    Different,
+    Greater,
+    Lower,
+    GreaterEqual,
+    LowerEqual,
+    None,
+
+    // Additional ones
+    Pulse,
+    AlwaysTrue,
+    AlwaysFalse
+};
+
+inline const std::map<ExpressionEditorComparator, QString>& ExpressionEditorComparators();
+
 // TODO move in plugin state
 class SimpleExpressionEditorWidget final : public QWidget
 {
@@ -28,6 +50,7 @@ class SimpleExpressionEditorWidget final : public QWidget
         int id;
 
         void setRelation(State::Relation r);
+        void setPulse(State::Pulse r);
         void setOperator(State::BinaryOperator o);
         void setOperator(State::UnaryOperator u);
 
@@ -36,8 +59,8 @@ class SimpleExpressionEditorWidget final : public QWidget
 
     signals:
         void editingFinished();
-        void addRelation();
-        void removeRelation(int index);
+        void addTerm();
+        void removeTerm(int index);
 
     private:
         void on_editFinished();
@@ -46,7 +69,7 @@ class SimpleExpressionEditorWidget final : public QWidget
 
         QLabel* m_ok{};
 
-        Explorer::AddressEditWidget* m_address{};
+        Explorer::AddressAccessorEditWidget* m_address{};
         QComboBox* m_comparator{};
         QLineEdit * m_value{};
         QComboBox* m_binOperator{};
@@ -54,7 +77,7 @@ class SimpleExpressionEditorWidget final : public QWidget
         ExpressionValidator<State::Expression> m_validator;
         QString m_relation{};
         QString m_op{};
-
-        QMap<State::Relation::Operator, QString> m_comparatorList;
 };
 }
+
+Q_DECLARE_METATYPE(Scenario::ExpressionEditorComparator)
