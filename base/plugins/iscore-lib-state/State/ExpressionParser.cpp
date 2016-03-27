@@ -492,3 +492,37 @@ struct Expression_builder : boost::static_visitor<void>
 
         return {};
     }
+
+
+
+    boost::optional<State::AddressAccessor> State::parseAddressAccessor(const QString& str)
+    {
+        auto input = str.toStdString();
+        auto f(std::begin(input)), l(std::end(input));
+        AddressAccessor_parser<decltype(f)> p;
+        try
+        {
+            State::AddressAccessor result;
+            bool ok = qi::phrase_parse(f, l , p, qi::space, result);
+
+            if (!ok)
+            {
+                return {};
+            }
+
+            return result;
+
+        }
+        catch (const qi::expectation_failure<decltype(f)>& e)
+        {
+            //ISCORE_BREAKPOINT;
+            return {};
+        }
+        catch(...)
+        {
+            //ISCORE_BREAKPOINT;
+            return {};
+        }
+
+        return {};
+    }

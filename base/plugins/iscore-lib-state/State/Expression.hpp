@@ -275,6 +275,7 @@ using Trigger = Expression;
 
 ISCORE_LIB_STATE_EXPORT boost::optional<State::Expression> parseExpression(const QString& str);
 ISCORE_LIB_STATE_EXPORT boost::optional<State::Value> parseValue(const QString& str);
+ISCORE_LIB_STATE_EXPORT boost::optional<State::AddressAccessor> parseAddressAccessor(const QString& str);
 }
 
 JSON_METADATA(State::Address, "Address")
