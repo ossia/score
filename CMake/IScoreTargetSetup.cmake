@@ -136,6 +136,7 @@ function(iscore_set_unix_compile_options theTarget)
     -Werror=missing-declarations
     -Werror=redundant-decls
     -Werror=return-type
+    -Werror=trigraphs
 
     # Debug options
     "$<$<CONFIG:Debug>:-gsplit-dwarf>"
