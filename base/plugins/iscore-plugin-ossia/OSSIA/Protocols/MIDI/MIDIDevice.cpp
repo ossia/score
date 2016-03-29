@@ -18,7 +18,7 @@ MIDIDevice::MIDIDevice(const Device::DeviceSettings &settings):
 
 bool MIDIDevice::reconnect()
 {
-    OSSIADevice::reconnect();
+    OSSIADevice::disconnect();
     m_dev.reset();
 
     try {
