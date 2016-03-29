@@ -21,7 +21,7 @@ OSCDevice::OSCDevice(const Device::DeviceSettings &settings):
 
 bool OSCDevice::reconnect()
 {
-    m_dev.reset();
+    OSSIADevice::disconnect();
 
     try {
         auto stgs = settings().deviceSpecificSettings.value<OSCSpecificSettings>();

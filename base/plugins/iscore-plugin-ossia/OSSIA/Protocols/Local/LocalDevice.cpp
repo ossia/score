@@ -71,6 +71,7 @@ void LocalDevice::disconnect()
 
 bool LocalDevice::reconnect()
 {
+    m_callbacks.clear();
     return connected();
 }
 

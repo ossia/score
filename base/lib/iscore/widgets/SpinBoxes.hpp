@@ -35,6 +35,7 @@ class MaxRangeSpinBox : public SpinBox::spinbox_type
             this->setMinimum(std::numeric_limits<typename SpinBox::value_type>::lowest());
             this->setMaximum(std::numeric_limits<typename SpinBox::value_type>::max());
         }
+
         void wheelEvent(QWheelEvent* event) override
         {
             event->ignore();
@@ -51,6 +52,29 @@ class SpinBox final : public MaxRangeSpinBox<TemplatedSpinBox<T>>
 {
     public:
         using MaxRangeSpinBox<TemplatedSpinBox<T>>::MaxRangeSpinBox;
+};
+
+template<>
+class SpinBox<double> final : public MaxRangeSpinBox<TemplatedSpinBox<double>>
+{
+    public:
+        template<typename... Args>
+        SpinBox(Args&&... args):
+            MaxRangeSpinBox{std::forward<Args>(args)...}
+        {
+            setDecimals(5);
+        }
+};
+template<>
+class SpinBox<float> final : public MaxRangeSpinBox<TemplatedSpinBox<float>>
+{
+    public:
+        template<typename... Args>
+        SpinBox(Args&&... args):
+            MaxRangeSpinBox{std::forward<Args>(args)...}
+        {
+            setDecimals(5);
+        }
 };
 
 /**

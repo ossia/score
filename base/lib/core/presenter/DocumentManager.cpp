@@ -152,7 +152,10 @@ Document* DocumentManager::setupDocument(
             doc->setupNewPanel(panel.second);
         }
 
-        m_documents.push_back(doc);
+        auto it = find(m_documents, doc);
+        if(it == m_documents.end())
+            m_documents.push_back(doc);
+
         m_view.addDocumentView(&doc->view());
         setCurrentDocument(ctx, doc);
         connect(&doc->metadata, &DocumentMetadata::fileNameChanged,

@@ -79,14 +79,13 @@ void OSSIADevice::disconnect()
     if(connected())
     {
         removeListening_impl(*m_dev.get(), State::Address{m_settings.name, {}});
+
+        auto& children = m_dev->children();
+        while(!children.empty())
+            m_dev->erase(children.end() - 1);
     }
 
     m_callbacks.clear();
-
-
-    auto& children = m_dev->children();
-    while(!children.empty())
-        m_dev->erase(children.end() - 1);
     m_dev.reset();
 }
 
@@ -223,7 +222,13 @@ boost::optional<State::Value> OSSIADevice::refresh(const State::Address& address
     if(node)
     {
         if(auto addr = node->getAddress())
-            return Ossia::convert::ToValue(addr->pullValue());
+        {
+            addr->pullValue();
+            auto cp = addr->cloneValue();
+            auto res = Ossia::convert::ToValue(cp);
+            delete cp;
+            return res;
+        }
     }
 
     return {};

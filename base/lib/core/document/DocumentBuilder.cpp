@@ -68,6 +68,7 @@ Document* DocumentBuilder::loadDocument_impl(
     try
     {
         doc = new Document{docData, doctype, m_parentView, m_parentPresenter};
+        ctx.documents.documents().push_back(doc);
         initfun(doc);
         m_backupManager =  new DocumentBackupManager{*doc};
 
@@ -84,6 +85,10 @@ Document* DocumentBuilder::loadDocument_impl(
     catch(std::runtime_error& e)
     {
         QMessageBox::warning(m_parentView, QObject::tr("Error"), e.what());
+
+        if(ctx.documents.documents().size() > 0 && ctx.documents.documents().back() == doc)
+            ctx.documents.documents().pop_back();
+
         delete doc;
         return nullptr;
     }
