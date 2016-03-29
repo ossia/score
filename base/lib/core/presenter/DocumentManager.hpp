@@ -2,6 +2,7 @@
 #include <core/document/DocumentBuilder.hpp>
 #include <QObject>
 #include <QString>
+#include <set>
 #include <algorithm>
 #include <vector>
 #include <iscore_lib_base_export.h>
@@ -68,6 +69,8 @@ class ISCORE_LIB_BASE_EXPORT DocumentManager : public QObject
         void restoreDocuments(const iscore::ApplicationContext& ctx);
 
         const std::vector<Document*>& documents() const
+        { return m_documents; }
+        std::vector<Document*>& documents()
         { return m_documents; }
 
         Document* currentDocument() const;

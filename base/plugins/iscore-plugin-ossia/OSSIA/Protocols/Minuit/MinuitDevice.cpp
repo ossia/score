@@ -20,7 +20,7 @@ MinuitDevice::MinuitDevice(const Device::DeviceSettings &settings):
 
 bool MinuitDevice::reconnect()
 {
-    m_dev.reset();
+    OSSIADevice::disconnect();
 
     try {
         auto stgs = settings().deviceSpecificSettings.value<MinuitSpecificSettings>();
@@ -30,6 +30,10 @@ bool MinuitDevice::reconnect()
                                stgs.outputPort);
 
         m_dev = OSSIA::Device::create(ossia_settings, settings().name.toStdString());
+    }
+    catch(std::exception& e)
+    {
+        qDebug() << "Could not connect: " << e.what();
     }
     catch(...)
     {

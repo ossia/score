@@ -495,6 +495,38 @@ struct Expression_builder : boost::static_visitor<void>
 
 
 
+    boost::optional<State::Address> State::parseAddress(const QString& str)
+    {
+        auto input = str.toStdString();
+        auto f(std::begin(input)), l(std::end(input));
+        Address_parser<decltype(f)> p;
+        try
+        {
+            State::Address result;
+            bool ok = qi::phrase_parse(f, l , p, qi::space, result);
+
+            if (!ok)
+            {
+                return {};
+            }
+
+            return result;
+
+        }
+        catch (const qi::expectation_failure<decltype(f)>& e)
+        {
+            //ISCORE_BREAKPOINT;
+            return {};
+        }
+        catch(...)
+        {
+            //ISCORE_BREAKPOINT;
+            return {};
+        }
+
+        return {};
+    }
+
     boost::optional<State::AddressAccessor> State::parseAddressAccessor(const QString& str)
     {
         auto input = str.toStdString();
@@ -505,12 +537,27 @@ struct Expression_builder : boost::static_visitor<void>
             State::AddressAccessor result;
             bool ok = qi::phrase_parse(f, l , p, qi::space, result);
 
-            if (!ok)
+            if (ok)
             {
-                return {};
+                return result;
+            }
+            else
+            {
+                // We try to get an address instead.
+                boost::optional<State::Address> res = State::parseAddress(str);
+                if(res)
+                {
+                    result.address = (*res);
+                    result.accessors.clear();
+
+                    return result;
+                }
+                else
+                {
+                    return {};
+                }
             }
 
-            return result;
 
         }
         catch (const qi::expectation_failure<decltype(f)>& e)
