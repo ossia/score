@@ -39,7 +39,6 @@ EventView::EventView(EventPresenter& presenter,
 
     this->setZValue(ZPos::Event);
     this->setAcceptHoverEvents(true);
-
 }
 
 
@@ -144,6 +143,12 @@ void EventView::changeColor(ColorRef newColor)
 {
     m_color = newColor;
     this->update();
+}
+
+void EventView::setWidthScale(double d)
+{
+    QTransform t;
+    this->setTransform(t.scale(d, 1.));
 }
 
 void EventView::mousePressEvent(QGraphicsSceneMouseEvent* event)

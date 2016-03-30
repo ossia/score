@@ -142,6 +142,11 @@ void DisplayedElementsPresenter::on_zoomRatioChanged(ZoomRatio r)
     m_constraintPresenter->on_zoomRatioChanged(r);
 }
 
+void DisplayedElementsPresenter::on_elementsScaleChanged(double s)
+{
+
+}
+
 void DisplayedElementsPresenter::on_displayedConstraintDurationChanged(TimeValue t)
 {
     updateLength(t.toPixels(m_model->zoomRatio()));

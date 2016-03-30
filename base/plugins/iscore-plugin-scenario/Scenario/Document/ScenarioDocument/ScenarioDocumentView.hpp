@@ -54,6 +54,7 @@ class ScenarioDocumentView final : public iscore::DocumentDelegateViewInterface
     signals:
         void horizontalZoomChanged(double newZoom);
         void horizontalPositionChanged(int);
+        void elementsScaleChanged(double);
 
     private:
         QWidget* m_widget {};

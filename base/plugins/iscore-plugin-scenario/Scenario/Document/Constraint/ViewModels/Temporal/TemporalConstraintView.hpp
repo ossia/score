@@ -34,7 +34,7 @@ class ISCORE_PLUGIN_SCENARIO_EXPORT TemporalConstraintView final : public Constr
             qreal x = std::min(0., minWidth());
             qreal rectW = infinite() ? defaultWidth() : maxWidth();
             rectW -= x;
-            return {x, -4, rectW, qreal(constraintHeight()) };
+            return {x, -4, rectW, qreal(constraintAndRackHeight()) };
         }
 
         void paint(QPainter* painter,
@@ -58,6 +58,8 @@ class ISCORE_PLUGIN_SCENARIO_EXPORT TemporalConstraintView final : public Constr
             m_bgColor = c;
             update();
         }
+
+        void setHeightScale(double);
 
     signals:
         void constraintHoverEnter();

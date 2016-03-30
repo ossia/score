@@ -27,6 +27,7 @@
 #include <Process/TimeValue.hpp>
 #include <Scenario/Application/Menus/ScenarioContextMenuManager.hpp>
 #include <Scenario/Application/ScenarioEditionSettings.hpp>
+#include <Scenario/Settings/Model.hpp>
 #include <Scenario/Commands/Scenario/Creations/CreateState.hpp>
 #include <Scenario/Commands/State/AddMessagesToState.hpp>
 #include <Scenario/Document/Constraint/ViewModels/ConstraintPresenter.hpp>
@@ -158,7 +159,15 @@ TemporalScenarioPresenter::TemporalScenarioPresenter(
                 }
 
     });
-}
+
+    m_graphicalScale = context.app.settings<Settings::Model>().getGraphicZoom();
+
+    con(context.app.settings<Settings::Model>(), &Settings::Model::graphicZoomChanged,
+            this, [&] (double d) {
+        m_graphicalScale = d;
+        m_viewInterface.on_graphicalScaleChanged(m_graphicalScale);
+    });
+    m_viewInterface.on_graphicalScaleChanged(m_graphicalScale);}
 
 TemporalScenarioPresenter::~TemporalScenarioPresenter()
 {
@@ -479,7 +488,6 @@ void TemporalScenarioPresenter::updateAllElements()
     }
 */
 }
-
 
 void TemporalScenarioPresenter::handleDrop(const QPointF &pos, const QMimeData *mime)
 {
