@@ -272,6 +272,11 @@ void ScenarioDocumentPresenter::on_horizontalPositionChanged(int dx)
     displayedConstraint().fullView()->setCenter(visible_scene_rect.center());
 }
 
+void ScenarioDocumentPresenter::on_elementsScaleChanged(double s)
+{
+    ;
+}
+
 void ScenarioDocumentPresenter::updateRect(const QRectF& rect)
 {
     view().view().setSceneRect(rect);

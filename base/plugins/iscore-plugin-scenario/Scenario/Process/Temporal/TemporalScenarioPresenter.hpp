@@ -166,6 +166,7 @@ class ISCORE_PLUGIN_SCENARIO_EXPORT TemporalScenarioPresenter final :
         IdContainer<CommentBlockPresenter, CommentBlockModel> m_comments;
 
         ZoomRatio m_zoomRatio {1};
+        double m_graphicalScale{1.};
 
         const TemporalScenarioLayerModel& m_layer;
         TemporalScenarioView* m_view;
@@ -182,5 +183,6 @@ class ISCORE_PLUGIN_SCENARIO_EXPORT TemporalScenarioPresenter final :
         Scenario::ToolPalette m_sm;
 
         Scenario::Tool m_lastTool{Scenario::Tool::Select};
+
 };
 }

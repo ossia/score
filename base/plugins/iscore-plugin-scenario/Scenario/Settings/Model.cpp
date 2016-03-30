@@ -10,6 +10,7 @@ namespace Settings
 {
 
 const QString Keys::skin = QStringLiteral("Skin/Skin");
+const QString Keys::graphicZoom = QStringLiteral("Skin/Zoom");
 
 
 Model::Model()
@@ -24,6 +25,11 @@ Model::Model()
     {
         setSkin(s.value(Keys::skin).toString());
     }
+
+    if(!s.contains(Keys::graphicZoom))
+        setFirstTimeSettings();
+    else
+        setGraphicZoom(s.value(Keys::graphicZoom).toDouble());
 }
 
 QString Model::getSkin() const
@@ -69,9 +75,24 @@ void Model::setSkin(const QString& skin)
     emit skinChanged(skin);
 }
 
+double Model::getGraphicZoom() const
+{
+    return m_graphicZoom;
+}
+
+void Model::setGraphicZoom(double graphicZoom)
+{
+    if (graphicZoom == m_graphicZoom)
+        return;
+
+    m_graphicZoom = graphicZoom;
+    emit graphicZoomChanged(m_graphicZoom);
+}
+
 void Model::setFirstTimeSettings()
 {
     setSkin("Default");
+    m_graphicZoom = 1.;
 }
 
 }

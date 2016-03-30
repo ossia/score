@@ -24,7 +24,7 @@ struct TimenodeProperties {
     TimeValue newDate;
     double date;
 
-    ExecutionStatus status;
+    ExecutionStatus status{ExecutionStatus::Editing};
 };
 
 struct ConstraintProperties {
@@ -43,7 +43,7 @@ struct ConstraintProperties {
         >
      > savedDisplay;
 
-    ExecutionStatus status;
+    ExecutionStatus status{ExecutionStatus::Editing};
 };
 
 struct ElementsProperties {
