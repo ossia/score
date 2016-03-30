@@ -92,22 +92,11 @@ void StateInspectorWidget::updateDisplayedValues()
     auto linkWidget = new QWidget;
     auto linkLay = new iscore::MarginLess<QHBoxLayout>{linkWidget};
 
-    if(event)
-    {
-        auto btn = SelectionButton::make(
-                    tr("Event"),
-                &scenar->event(event),
-                selectionDispatcher(),
-                this);
-        linkLay->addStretch(1);
-        linkLay->addWidget(btn);
-    }
-
     // Constraints setup
     if(m_model.previousConstraint())
     {
         auto btn = SelectionButton::make(
-                    tr("Prev. Cstr"),
+                    tr("Prev. Constraint"),
                 &scenar->constraint(m_model.previousConstraint()),
                 selectionDispatcher(),
                 this);
@@ -117,7 +106,7 @@ void StateInspectorWidget::updateDisplayedValues()
     if(m_model.nextConstraint())
     {
         auto btn = SelectionButton::make(
-                    tr("Next Cstr"),
+                    tr("Next Constraint"),
                 &scenar->constraint(m_model.nextConstraint()),
                 selectionDispatcher(),
                 this);
@@ -137,7 +126,7 @@ void StateInspectorWidget::updateDisplayedValues()
         addProcButton->setObjectName("addAProcess");
         procLay->addWidget(addProcButton);
 
-        auto addProcText = new QLabel("Add Process");
+        auto addProcText = new QLabel(tr("Add Process"));
         addProcText->setStyleSheet(QString("text-align : left;"));
         procLay->addWidget(addProcText);
 
