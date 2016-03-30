@@ -1,4 +1,2 @@
-set(CMAKE_BUILD_TYPE Release)
-set(ISCORE_COTIRE True)
-set(ISCORE_ENABLE_LTO True)
+include(static-release)
 set(ISCORE_ENABLE_OPTIMIZE_CUSTOM True)
