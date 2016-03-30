@@ -152,4 +152,23 @@ void ScenarioViewInterface::on_hoverOnEvent(const Id<EventModel>& eventId, bool 
     }
     */
 }
+
+void ScenarioViewInterface::on_graphicalScaleChanged(double scale)
+{
+    for(auto& e : m_presenter.events())
+    {
+        e.view()->setWidthScale(scale);
+    }
+    for(auto& s : m_presenter.states())
+    {
+        s.view()->setScale(scale);
+    }
+    for(auto& c : m_presenter.constraints())
+    {
+        auto& cstr_view = view(c);
+        cstr_view.setHeightScale(scale);
+    }
+
+    m_presenter.m_view->update();
+}
 }

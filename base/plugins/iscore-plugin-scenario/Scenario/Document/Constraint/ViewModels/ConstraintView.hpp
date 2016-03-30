@@ -69,7 +69,7 @@ class ISCORE_PLUGIN_SCENARIO_EXPORT ConstraintView : public QGraphicsObject
             return m_maxWidth;
         }
 
-        double constraintHeight() const
+        double constraintAndRackHeight() const
         {
             return m_height;
         }
@@ -91,11 +91,12 @@ class ISCORE_PLUGIN_SCENARIO_EXPORT ConstraintView : public QGraphicsObject
         void mouseMoveEvent(QGraphicsSceneMouseEvent *event) final override;
         void mouseReleaseEvent(QGraphicsSceneMouseEvent *event) final override;
     protected:
+        qreal m_constraintLineWidth{3};
 
         QPen m_solidPen
         {
             QBrush{Qt::black},
-            3,
+            m_constraintLineWidth,
             Qt::SolidLine,
             Qt::SquareCap,
             Qt::RoundJoin
@@ -103,7 +104,7 @@ class ISCORE_PLUGIN_SCENARIO_EXPORT ConstraintView : public QGraphicsObject
         QPen m_dashPen
         {
             QBrush{Qt::black},
-            3,
+            m_constraintLineWidth,
             Qt::CustomDashLine,
             Qt::SquareCap,
             Qt::RoundJoin

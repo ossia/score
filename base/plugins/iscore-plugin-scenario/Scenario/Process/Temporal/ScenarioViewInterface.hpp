@@ -25,6 +25,8 @@ class ScenarioViewInterface
         void on_hoverOnConstraint(const Id<ConstraintModel>& constraintId, bool enter);
         void on_hoverOnEvent(const Id<EventModel>& eventId, bool enter);
 
+        void on_graphicalScaleChanged(double scale);
+
     private:
         const TemporalScenarioPresenter& m_presenter;
 };

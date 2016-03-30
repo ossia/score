@@ -38,12 +38,12 @@ void StateView::paint(QPainter *painter, const QStyleOptionGraphicsItem *option,
     if(m_containMessage)
     {
         painter->setBrush(stateBrush);
-        painter->drawEllipse({0., 0.}, m_radiusFull, m_radiusFull);
+        painter->drawEllipse({0., 0.}, m_radiusFull * m_dilatationFactor, m_radiusFull * m_dilatationFactor);
     }
 
     painter->setPen(Qt::NoPen);
     painter->setBrush(temporalPointBrush);
-    qreal r = m_radiusPoint;
+    qreal r = m_radiusPoint * m_dilatationFactor;
     painter->drawEllipse({0., 0.}, r, r);
 
 
@@ -128,7 +128,7 @@ void StateView::dropEvent(QGraphicsSceneDragDropEvent *event)
 void StateView::setDilatation(double val)
 {
     m_dilatationFactor = val;
-    this->setScale(m_dilatationFactor);
+//    this->setScale(m_dilatationFactor);
     update();
 }
 }

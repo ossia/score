@@ -25,12 +25,12 @@ FullViewConstraintView::FullViewConstraintView(FullViewConstraintPresenter& pres
     this->setCursor(Qt::CrossCursor);
 
     this->setZValue(1);
-    this->setY(2*constraintHeight());
+    this->setY(2*constraintAndRackHeight());
 }
 
 QRectF FullViewConstraintView::boundingRect() const
 {
-    return {0, -18, qreal(maxWidth()) + 3, qreal(constraintHeight()) + 3};
+    return {0, -18, qreal(maxWidth()) + 3, qreal(constraintAndRackHeight()) + 3};
 }
 
 void FullViewConstraintView::paint(QPainter* painter,
