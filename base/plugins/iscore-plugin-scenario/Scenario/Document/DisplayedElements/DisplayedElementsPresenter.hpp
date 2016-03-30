@@ -33,6 +33,7 @@ class DisplayedElementsPresenter final :
         void showConstraint();
 
         void on_zoomRatioChanged(ZoomRatio r);
+        void on_elementsScaleChanged(double s);
 
         void on_displayedConstraintDurationChanged(TimeValue);
         void on_displayedConstraintHeightChanged(double);

@@ -36,7 +36,10 @@ class ISCORE_PLUGIN_SCENARIO_EXPORT  StateView final : public QGraphicsObject
         { return m_presenter; }
 
         QRectF boundingRect() const override
-        { return {-m_radiusFull, -m_radiusFull, 2*m_radiusFull, 2*m_radiusFull }; }
+        {
+            auto radius = m_radiusFull * m_dilatationFactor;
+            return {-radius, -radius, 2*radius, 2*radius };
+        }
 
         void paint(QPainter* painter,
                const QStyleOptionGraphicsItem* option,

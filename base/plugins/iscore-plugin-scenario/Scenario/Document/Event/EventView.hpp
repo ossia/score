@@ -60,6 +60,9 @@ class ISCORE_PLUGIN_SCENARIO_EXPORT EventView final : public QGraphicsObject
         void setStatus(ExecutionStatus s);
 
         void changeColor(ColorRef);
+
+        void setWidthScale(double);
+
     signals:
         void eventHoverEnter();
         void eventHoverLeave();

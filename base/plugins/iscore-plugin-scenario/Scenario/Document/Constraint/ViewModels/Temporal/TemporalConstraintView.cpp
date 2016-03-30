@@ -224,6 +224,12 @@ void TemporalConstraintView::setLabel(const QString &label)
     update();
 }
 
+void TemporalConstraintView::setHeightScale(double d)
+{
+    this->m_solidPen.setWidth(m_constraintLineWidth * d);
+    this->m_dashPen.setWidth(m_constraintLineWidth * d);
+}
+
 void TemporalConstraintView::setLabelColor(ColorRef labelColor)
 {
     m_labelColor = labelColor;
