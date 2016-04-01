@@ -11,6 +11,7 @@
 #include <iscore/selection/Selectable.hpp>
 #include <QObject>
 #include <nano_signal_slot.hpp>
+#include <Scenario/Document/Constraint/ExecutionState.hpp>
 
 #include <QString>
 #include <QVector>
@@ -128,6 +129,9 @@ class ISCORE_PLUGIN_SCENARIO_EXPORT ConstraintModel final :
         void setLooping(bool looping);
 
         void setHeightPercentage(double arg);
+        void setExecutionState(ConstraintExecutionState);
+        ConstraintExecutionState executionState() const
+        { return m_executionState; }
     signals:
         void viewModelCreated(const ConstraintViewModel&);
         void viewModelRemoved(const QObject*);
@@ -138,6 +142,7 @@ class ISCORE_PLUGIN_SCENARIO_EXPORT ConstraintModel final :
 
         void focusChanged(bool);
         void loopingChanged(bool);
+        void executionStateChanged(Scenario::ConstraintExecutionState);
 
     private:
         void on_destroyedViewModel(ConstraintViewModel* obj);
@@ -161,6 +166,7 @@ class ISCORE_PLUGIN_SCENARIO_EXPORT ConstraintModel final :
         double m_heightPercentage {0.5};
 
         bool m_looping{false};
+        ConstraintExecutionState m_executionState{};
 };
 }
 

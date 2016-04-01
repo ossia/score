@@ -135,7 +135,7 @@ void TemporalConstraintView::paint(
     {
         constraintColor = ScenarioStyle::instance().ConstraintBase.getColor();
     }
-    if(! isValid())
+    if(! isValid() || m_state == ConstraintExecutionState::Disabled)
     {
         constraintColor = ScenarioStyle::instance().ConstraintInvalid.getColor();
     }
@@ -221,6 +221,12 @@ void TemporalConstraintView::hoverLeaveEvent(QGraphicsSceneHoverEvent *h)
 void TemporalConstraintView::setLabel(const QString &label)
 {
     m_label = label;
+    update();
+}
+
+void TemporalConstraintView::setExecutionState(ConstraintExecutionState s)
+{
+    m_state = s;
     update();
 }
 

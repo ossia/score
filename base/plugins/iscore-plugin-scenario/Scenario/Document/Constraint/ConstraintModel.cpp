@@ -227,6 +227,8 @@ void ConstraintModel::reset()
         proc.reset();
         proc.stopExecution();
     }
+
+    setExecutionState(ConstraintExecutionState::Enabled);
 }
 
 void ConstraintModel::setHeightPercentage(double arg)
@@ -235,6 +237,15 @@ void ConstraintModel::setHeightPercentage(double arg)
     {
         m_heightPercentage = arg;
         emit heightPercentageChanged(arg);
+    }
+}
+
+void ConstraintModel::setExecutionState(ConstraintExecutionState s)
+{
+    if(s != m_executionState)
+    {
+        m_executionState = s;
+        emit executionStateChanged(s);
     }
 }
 
