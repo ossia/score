@@ -4,6 +4,7 @@
 #include <Scenario/Commands/Scenario/Displacement/MoveEvent.hpp>
 
 #include <Scenario/Document/TimeNode/TimeNodeModel.hpp>
+#include <Scenario/Document/TimeNode/Trigger/TriggerModel.hpp>
 #include <Scenario/Process/ScenarioModel.hpp>
 #include <Scenario/Process/Algorithms/StandardDisplacementPolicy.hpp>
 #include <Scenario/Process/Algorithms/VerticalMovePolicy.hpp>
@@ -116,6 +117,9 @@ class ISCORE_PLUGIN_SCENARIO_EXPORT MergeTimeNodes<ScenarioModel> : public iscor
                             tn.events().front(),
                             destinantionTn.date(),
                             ExpandMode::Scale};
+
+            m_targetTrigger = destinantionTn.trigger()->expression();
+            m_targetTriggerActive = destinantionTn.trigger()->active();
         }
 
         void undo() const override
@@ -141,6 +145,9 @@ class ISCORE_PLUGIN_SCENARIO_EXPORT MergeTimeNodes<ScenarioModel> : public iscor
 
             scenar.timeNodes.add(recreatedTn);
 
+            globalTn.trigger()->setExpression(m_targetTrigger);
+            globalTn.trigger()->setActive(m_targetTriggerActive);
+
             m_moveCommand->undo();
             updateTimeNodeExtent(m_destinationTnId, scenar);
 
@@ -159,8 +166,12 @@ class ISCORE_PLUGIN_SCENARIO_EXPORT MergeTimeNodes<ScenarioModel> : public iscor
                 movingTn.removeEvent(evId);
                 destinationTn.addEvent(evId);
             }
+
+            destinationTn.trigger()->setActive(destinationTn.trigger()->active() || movingTn.trigger()->active());
+            destinationTn.trigger()->setExpression(movingTn.trigger()->expression());
+
             scenar.timeNodes.remove(m_movingTnId);
-            updateTimeNodeExtent(m_destinationTnId, scenar);
+            updateTimeNodeExtent(m_destinationTnId, scenar);            
         }
 
         void update(Path<ScenarioModel> scenar,
@@ -192,6 +203,8 @@ class ISCORE_PLUGIN_SCENARIO_EXPORT MergeTimeNodes<ScenarioModel> : public iscor
 
         QByteArray m_serializedTimeNode;
         MoveEvent<GoodOldDisplacementPolicy>* m_moveCommand;
+        State::Trigger m_targetTrigger;
+        bool m_targetTriggerActive;
 };
 
 }
