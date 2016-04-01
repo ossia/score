@@ -202,6 +202,13 @@ void ScenarioElement::startConstraintExecution(const Id<Scenario::ConstraintMode
     m_ossia_constraints.at(id)->executionStarted();
 }
 
+void ScenarioElement::disableConstraintExecution(const Id<Scenario::ConstraintModel>& id)
+{
+    auto& iscore_scenario = static_cast<Scenario::ScenarioModel&>(m_iscore_process);
+    auto& cst = iscore_scenario.constraints.at(id);
+    cst.setExecutionState(Scenario::ConstraintExecutionState::Disabled);
+}
+
 void ScenarioElement::stopConstraintExecution(const Id<Scenario::ConstraintModel>& id)
 {
     m_executingConstraints.remove(id);
@@ -250,6 +257,10 @@ void ScenarioElement::eventCallback(
             case OSSIA::TimeEvent::Status::DISPOSED:
             {
                 // TODO disable the constraints graphically
+                if(iscore_state.nextConstraint())
+                {
+                    disableConstraintExecution(iscore_state.nextConstraint());
+                }
                 break;
             }
             default:
