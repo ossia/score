@@ -166,7 +166,6 @@ class ISCORE_PLUGIN_SCENARIO_EXPORT MergeTimeNodes<ScenarioModel> : public iscor
                 movingTn.removeEvent(evId);
                 destinationTn.addEvent(evId);
             }
-
             destinationTn.trigger()->setActive(destinationTn.trigger()->active() || movingTn.trigger()->active());
             destinationTn.trigger()->setExpression(movingTn.trigger()->expression());
 
