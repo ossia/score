@@ -1,6 +1,7 @@
 cmake_minimum_required(VERSION 3.0)
 project(iscore_app LANGUAGES CXX)
 
+iscore_common_setup()
 enable_testing()
 set(APPNAME "i-score")
 # TODO strip symbols after deployment build

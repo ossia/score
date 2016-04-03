@@ -50,8 +50,9 @@ set(ISCORE_PLUGINS_LIST CACHE INTERNAL "List of plugins") # todo libraries, comp
 set(ISCORE_GLOBAL_COMPONENTS_LIST CACHE INTERNAL "List of components") # todo libraries, components ?
 
 add_subdirectory(base)
-
-
+if(ISCORE_TESTBED)
+add_subdirectory(Tests/testbed)
+endif()
 #if(INTEGRATION_TESTING)
 
  #       include_directories("${CMAKE_CURRENT_SOURCE_DIR}/Tests")
