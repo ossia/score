@@ -1,0 +1,6 @@
+Note : this file can be safely used to test some code during the development process.
+Feel free to use it; in order to have it run, add : 
+
+-DISCORE_TESTBED=1
+
+to the cmake options list 

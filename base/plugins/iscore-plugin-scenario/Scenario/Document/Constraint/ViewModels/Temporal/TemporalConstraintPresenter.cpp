@@ -38,6 +38,8 @@ TemporalConstraintPresenter::TemporalConstraintPresenter(
     con(v, &TemporalConstraintView::constraintHoverLeave,
         this,       &TemporalConstraintPresenter::constraintHoverLeave);
 
+    con(cstr_model.model(), &ConstraintModel::executionStateChanged,
+        &v, &TemporalConstraintView::setExecutionState);
     const auto& metadata = m_viewModel.model().metadata;
     con(metadata, &ModelMetadata::labelChanged,
         &v, &TemporalConstraintView::setLabel);
@@ -56,6 +58,7 @@ TemporalConstraintPresenter::TemporalConstraintPresenter(
     v.setLabelColor(metadata.color());
     v.setColor(metadata.color());
     m_header->setText(metadata.name());
+    v.setExecutionState(m_viewModel.model().executionState());
 
     con(m_viewModel.model().selection, &Selectable::changed,
         &v, &TemporalConstraintView::setFocused);

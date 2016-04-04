@@ -1,6 +1,7 @@
 #pragma once
 #include <Process/Style/ColorReference.hpp>
 #include <Scenario/Document/Constraint/ViewModels/ConstraintView.hpp>
+#include <Scenario/Document/Constraint/ExecutionState.hpp>
 #include <QColor>
 #include <QtGlobal>
 #include <QPoint>
@@ -60,6 +61,7 @@ class ISCORE_PLUGIN_SCENARIO_EXPORT TemporalConstraintView final : public Constr
         }
 
         void setHeightScale(double);
+        void setExecutionState(ConstraintExecutionState);
 
     signals:
         void constraintHoverEnter();
@@ -80,5 +82,7 @@ class ISCORE_PLUGIN_SCENARIO_EXPORT TemporalConstraintView final : public Constr
 
         LeftBraceView* m_leftBrace{};
         RightBraceView* m_rightBrace{};
+
+        ConstraintExecutionState m_state{};
 };
 }

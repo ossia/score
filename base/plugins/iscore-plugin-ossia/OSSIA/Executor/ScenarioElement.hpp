@@ -72,6 +72,7 @@ class ScenarioElement final : public ProcessComponent
 
         void startConstraintExecution(const Id<Scenario::ConstraintModel>&);
         void stopConstraintExecution(const Id<Scenario::ConstraintModel>&);
+        void disableConstraintExecution(const Id<Scenario::ConstraintModel>& id);
 
         void eventCallback(
                 EventElement& ev,
