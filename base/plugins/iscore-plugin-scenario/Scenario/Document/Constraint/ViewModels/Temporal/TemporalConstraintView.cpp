@@ -135,7 +135,7 @@ void TemporalConstraintView::paint(
     {
         constraintColor = ScenarioStyle::instance().ConstraintBase.getColor();
     }
-    if(! isValid())
+    if(! isValid() || m_state == ConstraintExecutionState::Disabled)
     {
         constraintColor = ScenarioStyle::instance().ConstraintInvalid.getColor();
     }
@@ -228,6 +228,11 @@ void TemporalConstraintView::setHeightScale(double d)
 {
     this->m_solidPen.setWidth(m_constraintLineWidth * d);
     this->m_dashPen.setWidth(m_constraintLineWidth * d);
+}
+void TemporalConstraintView::setExecutionState(ConstraintExecutionState s)
+{
+    m_state = s;
+    update();
 }
 
 void TemporalConstraintView::setLabelColor(ColorRef labelColor)
