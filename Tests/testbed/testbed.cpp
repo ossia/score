@@ -2,6 +2,6 @@
 
 int main()
 {
-    Serializer<DataStream>::marshall(RealNode{});
+    //Serializer<DataStream>::marshall(RealNode{});
     return 0;
 }

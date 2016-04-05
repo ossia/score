@@ -63,8 +63,8 @@ EventInspectorWidget::EventInspectorWidget(
     auto scenar = dynamic_cast<ScenarioInterface*>(m_model.parent());
     ISCORE_ASSERT(scenar);
 
-    con(m_model, &EventModel::statesChanged,
-            this,    &EventInspectorWidget::updateDisplayedValues);
+    con(m_model,  &EventModel::statesChanged,
+            this, &EventInspectorWidget::updateDisplayedValues);
 
     ////// HEADER
     // metadata
@@ -186,6 +186,7 @@ void EventInspectorWidget::updateDisplayedValues()
         delete elt;
     }
 
+    m_statesSections.clear();
     m_states.clear();
 
     auto scenar = dynamic_cast<ScenarioInterface*>(m_model.parent());
