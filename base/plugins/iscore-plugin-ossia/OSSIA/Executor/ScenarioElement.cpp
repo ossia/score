@@ -278,19 +278,22 @@ void ScenarioElement::timeNodeCallback(TimeNodeElement* tn, const OSSIA::TimeVal
         m_pastTn.push_back(tn->iscoreTimeNode().id());
 
         // Fix Timenode
-        m_properties.timenodes[tn->iscoreTimeNode().id()].date = double(date);
-        m_properties.timenodes[tn->iscoreTimeNode().id()].status = Scenario::ExecutionStatus::Happened;
+        auto& curTnProp = m_properties.timenodes[tn->iscoreTimeNode().id()];
+        curTnProp.date = double(date);
+        curTnProp.date_max = curTnProp.date;
+        curTnProp.date_min = curTnProp.date;
+        curTnProp.status = Scenario::ExecutionStatus::Happened;
 
         // Fix previous constraints
         auto& iscore_scenario = static_cast<Scenario::ScenarioModel&>(m_iscore_process);
-        auto cstrs = Scenario::previousConstraints(tn->iscoreTimeNode(), iscore_scenario);
+        auto previousCstrs = Scenario::previousConstraints(tn->iscoreTimeNode(), iscore_scenario);
 
-        for(auto cstrId : cstrs)
+        for(auto& cstrId : previousCstrs)
         {
             auto& startTn = Scenario::startTimeNode(iscore_scenario.constraint(cstrId), iscore_scenario);
             auto& cstrProp = m_properties.constraints[cstrId];
 
-            cstrProp.newMin.setMSecs(m_properties.timenodes[startTn.id()].date);
+            cstrProp.newMin.setMSecs(curTnProp.date - m_properties.timenodes[startTn.id()].date);
             cstrProp.newMax = cstrProp.newMin;
 
             cstrProp.status = Scenario::ExecutionStatus::Happened;
@@ -305,14 +308,11 @@ void ScenarioElement::timeNodeCallback(TimeNodeElement* tn, const OSSIA::TimeVal
             auto ossiaCstr = cstr.second->OSSIAConstraint();
 
             auto tmin = m_properties.constraints[cstr.first].newMin.msec();
-//                tmin = std::max(tmin, double(ossiaCstr->getDurationMin()));
             ossiaCstr->setDurationMin(OSSIA::TimeValue{tmin});
 
             auto tmax = m_properties.constraints[cstr.first].newMax.msec();
-//                tmax = std::min(tmax, double(ossiaCstr->getDurationMax()));
             ossiaCstr->setDurationMax(OSSIA::TimeValue{tmax});
         }
-//        m_properties.constraints.clear();
     }
 
 }

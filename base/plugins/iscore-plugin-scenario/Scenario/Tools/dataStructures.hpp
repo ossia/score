@@ -24,6 +24,9 @@ struct TimenodeProperties {
     TimeValue newDate;
     double date;
 
+    double date_min;
+    double date_max;
+
     ExecutionStatus status{ExecutionStatus::Editing};
 };
 
