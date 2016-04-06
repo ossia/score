@@ -2,7 +2,7 @@
 #include <core/settings/SettingsModel.hpp>
 #include <core/settings/SettingsPresenter.hpp>
 #include <core/settings/SettingsView.hpp>
-
+#include <iscore/plugins/settingsdelegate/SettingsDelegateViewInterface.hpp>
 #include <iscore/plugins/settingsdelegate/SettingsDelegateFactoryInterface.hpp>
 
 namespace iscore
