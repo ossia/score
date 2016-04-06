@@ -1,0 +1,77 @@
+{
+    "version": 1,
+    "kind": "file",
+    "id": "A.ScenarioComponentSet",
+    "category": "O.i-score",
+    "trDescription": "Creates a set of components for an i-score Scenario",
+    "trDisplayName": "Scenario Components",
+    "trDisplayCategory": "i-score",
+    "icon": "../../global/genericfilewizard.png",
+    "enabled": "%{JS: [ %{Plugins} ].indexOf('CppEditor') >= 0}",
+
+    "options":
+    [
+        { "key": "TargetPath", "value": "%{Path}" }
+    ],
+
+    "pages":
+    [
+        {
+            "trDisplayName": "Define Class",
+            "trShortTitle": "Details",
+            "typeId": "Fields",
+            "data" :
+            [
+                {
+                    "name": "Namespace1",
+                    "trDisplayName": "Namespace 1:",
+                    "mandatory": true,
+                    "type": "LineEdit",
+                    "data": { "validator": "(?:(?:[a-zA-Z_][a-zA-Z_0-9]*::)+[a-zA-Z_][a-zA-Z_0-9]*|)" }
+                },
+                {
+                    "name": "Namespace2",
+                    "trDisplayName": "Namespace 2:",
+                    "mandatory": true,
+                    "type": "LineEdit",
+                    "data": { "validator": "(?:(?:[a-zA-Z_][a-zA-Z_0-9]*::)+[a-zA-Z_][a-zA-Z_0-9]*|)" }
+                },
+                {
+                    "name": "Path",
+                    "type": "PathChooser",
+                    "trDisplayName": "Path:",
+                    "mandatory": true,
+                    "data":
+                    {
+                        "kind": "existingDirectory",
+                        "basePath": "%{InitialPath}",
+                        "path": "%{InitialPath}"
+                    }
+                }
+            ]
+        },
+        {
+            "trDisplayName": "Project Management",
+            "trShortTitle": "Summary",
+            "typeId": "Summary"
+        }
+    ],
+
+    "generators":
+    [
+        {
+            "typeId": "File",
+            "data":
+            [
+                {
+                    "source": "Scenario/ScenarioComponentFactory.hpp",
+                    "target": "%{TargetPath}/Scenario/ScenarioComponentFactory.hpp",
+                    "openInEditor": true,
+                    "options": [
+                        { "key": "UUID", "value": "%{JS: 'xxxxxxxx-xxxx-4xxx-yxxx-xxxxxxxxxxxx'.replace(/[xy]/g, function(c) { var r = Math.random()*16|0, v = c == 'x' ? r : (r&0x3|0x8); return v.toString(16); });}" }
+                    ]
+                }
+            ]
+        }
+    ]
+}
