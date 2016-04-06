@@ -17,19 +17,16 @@ Model::Model()
 {
     QSettings s;
 
-    if(!s.contains(Keys::skin))
+    if(!s.contains(Keys::skin) ||
+       !s.contains(Keys::graphicZoom))
     {
         setFirstTimeSettings();
     }
     else
     {
         setSkin(s.value(Keys::skin).toString());
-    }
-
-    if(!s.contains(Keys::graphicZoom))
-        setFirstTimeSettings();
-    else
         setGraphicZoom(s.value(Keys::graphicZoom).toDouble());
+    }
 }
 
 QString Model::getSkin() const
