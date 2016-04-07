@@ -24,38 +24,6 @@ template<
 class ScenarioComponentHierarchyManager : public Nano::Observer
 {
     public:
-        ScenarioComponentHierarchyManager(
-                Component_T& component,
-                Scenario::ScenarioModel& scenar,
-                const System_T& doc,
-                const iscore::DocumentContext& ctx,
-                QObject* parentcomp
-                ):
-            m_scenario{scenar},
-            m_component{component},
-            m_system{doc},
-            m_context{ctx},
-            m_parentObject{parentcomp}
-        {
-            setup<Scenario::ConstraintModel>();
-            setup<Scenario::EventModel>();
-            setup<Scenario::TimeNodeModel>();
-            setup<Scenario::StateModel>();
-        }
-
-        ~ScenarioComponentHierarchyManager()
-        {
-            for(auto element : m_constraints)
-                cleanup(element);
-            for(auto element : m_events)
-                cleanup(element);
-            for(auto element : m_states)
-                cleanup(element);
-            for(auto element : m_timeNodes)
-                cleanup(element);
-        }
-
-    private:
         struct ConstraintPair {
                 using element_t = Scenario::ConstraintModel;
                 Scenario::ConstraintModel& element;
@@ -77,6 +45,50 @@ class ScenarioComponentHierarchyManager : public Nano::Observer
                 StateComponent_T& component;
         };
 
+        Scenario::ScenarioModel& scenario;
+
+        ScenarioComponentHierarchyManager(
+                Component_T& component,
+                Scenario::ScenarioModel& scenar,
+                const System_T& doc,
+                const iscore::DocumentContext& ctx,
+                QObject* parentcomp
+                ):
+            scenario{scenar},
+            m_component{component},
+            m_system{doc},
+            m_context{ctx},
+            m_parentObject{parentcomp}
+        {
+            setup<Scenario::ConstraintModel>();
+            setup<Scenario::EventModel>();
+            setup<Scenario::TimeNodeModel>();
+            setup<Scenario::StateModel>();
+        }
+
+        const std::list<ConstraintPair>& constraints() const
+        { return m_constraints; }
+        const std::list<EventPair>& events() const
+        { return m_events; }
+        const std::list<StatePair>& states() const
+        { return m_states; }
+        const std::list<TimeNodePair>& timeNodes() const
+        { return m_timeNodes; }
+
+        ~ScenarioComponentHierarchyManager()
+        {
+            for(auto element : m_constraints)
+                cleanup(element);
+            for(auto element : m_events)
+                cleanup(element);
+            for(auto element : m_states)
+                cleanup(element);
+            for(auto element : m_timeNodes)
+                cleanup(element);
+        }
+
+    private:
+
         template<typename T, bool dummy = true>
         struct MatchingComponent;
 
@@ -91,7 +103,7 @@ class ScenarioComponentHierarchyManager : public Nano::Observer
         void setup()
         {
             using map_t = MatchingComponent<elt_t, true>;
-            auto& member = m_scenario.*map_t::scenario_container;
+            auto& member = scenario.*map_t::scenario_container;
 
             for(auto& elt : member)
             {
@@ -142,7 +154,6 @@ class ScenarioComponentHierarchyManager : public Nano::Observer
         }
 
 
-        Scenario::ScenarioModel& m_scenario;
         Component_T& m_component;
 
         const System_T& m_system;
