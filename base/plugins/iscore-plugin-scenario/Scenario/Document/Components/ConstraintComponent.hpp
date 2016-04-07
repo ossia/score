@@ -17,29 +17,31 @@ class ConstraintComponentHierarchyManager : public Nano::Observer
         };
 
     public:
+        Scenario::ConstraintModel& constraint;
+
         ConstraintComponentHierarchyManager(
                 Component_T& component,
                 Scenario::ConstraintModel& cst,
                 const System_T& doc,
                 const iscore::DocumentContext& ctx,
                 QObject* component_as_parent):
-            m_constraint{cst},
+            constraint{cst},
             m_component{component},
             m_componentFactory{ctx.app.components.factory<ProcessComponentFactoryList_T>()},
             m_system{doc},
             m_context{ctx},
             m_parentObject{component_as_parent}
         {
-            for(auto& process : m_constraint.processes)
+            for(auto& process : constraint.processes)
             {
                 add(process);
             }
 
-            m_constraint.processes.mutable_added.connect<
+            constraint.processes.mutable_added.connect<
                     ConstraintComponentHierarchyManager,
                     &ConstraintComponentHierarchyManager::add>(this);
 
-            m_constraint.processes.removing.connect<
+            constraint.processes.removing.connect<
                     ConstraintComponentHierarchyManager,
                     &ConstraintComponentHierarchyManager::remove>(this);
         }
@@ -90,7 +92,6 @@ class ConstraintComponentHierarchyManager : public Nano::Observer
         }
 
     private:
-        Scenario::ConstraintModel& m_constraint;
         Component_T& m_component;
         const ProcessComponentFactoryList_T& m_componentFactory;
         const System_T& m_system;
