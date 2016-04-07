@@ -26,7 +26,7 @@ case "$TRAVIS_OS_NAME" in
 
     if [[ "$CONF" != "linux-package" ]];
     then
-      sudo add-apt-repository --yes ppa:beineri/opt-qt551-trusty
+      sudo add-apt-repository --yes ppa:beineri/opt-qt56-trusty
     fi
 
     sudo apt-get update -qq
@@ -36,11 +36,11 @@ case "$TRAVIS_OS_NAME" in
     then
       sudo wget https://www.dropbox.com/s/xpj072x4tcf32gf/boost_1_60_0.tar.bz2?dl=1 -O /opt/boost_1_60_0.tar.bz2
       (cd /opt; sudo tar xaf boost_1_60_0.tar.bz2; sudo chmod -R a+rwx boost_1_60_0)
-      sudo wget https://www.dropbox.com/s/vjh9lm1n3sody2c/qt5-static-linux-release.tar.xz?dl=1 -O /opt/qt5-static-linux-release.tar.xz
-      (cd /opt; sudo tar xaf qt5-static-linux-release.tar.xz)
+      sudo wget https://www.dropbox.com/s/a8w8o3mu0jfr3t8/qt5.6-static-release.tar.xz?dl=1 -O /opt/qt5.6-static-release.tgz
+      (cd /opt; sudo tar xaf qt5.6-static-release.tgz)
       sudo apt-get install -qq libxcb-icccm4-dev libxi-dev libxcb-image0-dev libxcb-keysyms1-dev libxcb-xkb-dev libxcb-render-util0-dev
     else
-      sudo apt-get install -qq qt55-meta-full libboost1.55-dev
+      sudo apt-get install -qq qt56-meta-full libboost1.55-dev
     fi
 
 #   wget https://www.dropbox.com/s/fiujf6l95g9nrjl/gcc5.3.deb?dl=1 -O gcc.deb
