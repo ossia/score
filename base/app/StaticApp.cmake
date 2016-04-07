@@ -1,4 +1,6 @@
 if(ISCORE_STATIC_QT)
+    find_package(Qt5 5.3 REQUIRED COMPONENTS DBus)
+
     get_target_property(QtCore_LIB Qt5::Core LOCATION)
     get_filename_component(QT_LIB_FOLDER ${QtCore_LIB} DIRECTORY)
 
