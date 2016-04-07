@@ -35,7 +35,7 @@ case "$TRAVIS_OS_NAME" in
     if [[ "$CONF" == "linux-package" ]];
     then
       sudo wget https://www.dropbox.com/s/xpj072x4tcf32gf/boost_1_60_0.tar.bz2?dl=1 -O /opt/boost_1_60_0.tar.bz2
-      (cd /opt; sudo tar xaf boost_1_60_0.tar.bz2)
+      (cd /opt; sudo tar xaf boost_1_60_0.tar.bz2; sudo chmod -R a+rwx boost_1_60_0)
       sudo wget https://www.dropbox.com/s/vjh9lm1n3sody2c/qt5-static-linux-release.tar.xz?dl=1 -O /opt/qt5-static-linux-release.tar.xz
       (cd /opt; sudo tar xaf qt5-static-linux-release.tar.xz)
       sudo apt-get install -qq libxcb-icccm4-dev libxi-dev libxcb-image0-dev libxcb-keysyms1-dev libxcb-xkb-dev libxcb-render-util0-dev
