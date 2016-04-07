@@ -13,7 +13,7 @@ if(ISCORE_STATIC_QT)
 
     target_link_libraries(
         ${APPNAME} PRIVATE
-        Qt5::Core Qt5::Gui Qt5::Widgets Qt5::Network Qt5::Svg Qt5::Xml Qt5::Dbus
+        Qt5::Core Qt5::Gui Qt5::Widgets Qt5::Network Qt5::Svg Qt5::Xml Qt5::DBus
     )
 
     if(TARGET Qt5::WebSockets)
