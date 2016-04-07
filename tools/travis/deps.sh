@@ -34,7 +34,7 @@ case "$TRAVIS_OS_NAME" in
 
     if [[ "$CONF" == "linux-package" ]];
     then
-      sudo wget "http://downloads.sourceforge.net/project/boost/boost/1.60.0/boost_1_60_0.tar.bz2?r=https%3A%2F%2Fsourceforge.net%2Fprojects%2Fboost%2Ffiles%2Fboost%2F1.60.0%2F&ts=1459951994&use_mirror=pilotfiber" -O /opt/boost_1_60_0.tar.bz2
+      sudo wget https://www.dropbox.com/s/xpj072x4tcf32gf/boost_1_60_0.tar.bz2?dl=1 -O /opt/boost_1_60_0.tar.bz2
       (cd /opt; sudo tar xaf boost_1_60_0.tar.bz2)
       sudo wget https://www.dropbox.com/s/vjh9lm1n3sody2c/qt5-static-linux-release.tar.xz?dl=1 -O /opt/qt5-static-linux-release.tar.xz
       (cd /opt; sudo tar xaf qt5-static-linux-release.tar.xz)
