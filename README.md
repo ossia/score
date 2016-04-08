@@ -36,7 +36,7 @@ Installation of some dependencies is required :
 
     sudo apt-get update -qq
     sudo apt-get dist-upgrade
-    sudo apt-get install -qq g++-5 libxml2 libportmidi0 libportaudio2 libsndfile1 
+    sudo apt-get install -qq g++-5 libxml2 libportmidi0 libportaudio2 libsndfile1 libxcb-xinerama0
 
     wget https://www.dropbox.com/s/0pmy14zlpqpyaq6/JamomaCore-0.6-dev-Linux.deb?dl=1 -O jamoma.deb
     sudo dpkg -i jamoma.deb
