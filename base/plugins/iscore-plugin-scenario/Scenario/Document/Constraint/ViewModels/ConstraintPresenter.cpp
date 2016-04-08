@@ -231,11 +231,17 @@ void ConstraintPresenter::on_rackShown(const Id<RackModel>& rackId)
 
 void ConstraintPresenter::on_rackHidden()
 {
-    ISCORE_ASSERT(model().racks.size() > 0);
-    clearRackPresenter();
+    if(model().racks.size() > 0)
+    {
+        clearRackPresenter();
 
-    m_header->setState(ConstraintHeader::State::RackHidden);
-    updateHeight();
+        m_header->setState(ConstraintHeader::State::RackHidden);
+        updateHeight();
+    }
+    else
+    {
+        on_noRacks();
+    }
 }
 
 void ConstraintPresenter::on_noRacks()
