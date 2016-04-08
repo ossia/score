@@ -10,13 +10,12 @@ template<
         typename ProcessComponentFactoryList_T>
 class ConstraintComponentHierarchyManager : public Nano::Observer
 {
-    private:
+    public:
         struct ProcessPair {
                 Process::ProcessModel& process;
                 ProcessComponent_T& component;
         };
 
-    public:
         Scenario::ConstraintModel& constraint;
 
         ConstraintComponentHierarchyManager(
@@ -45,6 +44,9 @@ class ConstraintComponentHierarchyManager : public Nano::Observer
                     ConstraintComponentHierarchyManager,
                     &ConstraintComponentHierarchyManager::remove>(this);
         }
+
+        const std::list<ProcessPair>& processes() const
+        { return m_children; }
 
         void add(Process::ProcessModel& process)
         {
@@ -90,6 +92,7 @@ class ConstraintComponentHierarchyManager : public Nano::Observer
                 remove(element);
             }
         }
+
 
     private:
         Component_T& m_component;
