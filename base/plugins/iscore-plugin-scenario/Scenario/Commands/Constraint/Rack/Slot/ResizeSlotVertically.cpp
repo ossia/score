@@ -4,6 +4,7 @@
 #include <iscore/serialization/DataStreamVisitor.hpp>
 #include <iscore/tools/ModelPath.hpp>
 #include <iscore/tools/ModelPathSerialization.hpp>
+#include <Scenario/Document/Constraint/Rack/RackModel.hpp>
 
 namespace Scenario
 {
@@ -19,7 +20,6 @@ ResizeSlotVertically::ResizeSlotVertically(
     auto& slot = m_path.find();
     m_originalSize = slot.height();
 }
-
 void ResizeSlotVertically::undo() const
 {
     auto& slot = m_path.find();

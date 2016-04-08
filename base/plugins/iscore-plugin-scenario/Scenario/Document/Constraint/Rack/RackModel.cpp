@@ -25,8 +25,9 @@ RackModel::RackModel(const RackModel& source,
     initConnections();
     for(const auto& slot : source.slotmodels)
     {
-        addSlot(new SlotModel{lmCopyMethod, slot, slot.id(), this},
-                source.slotPosition(slot.id()));
+        auto new_slot = new SlotModel{lmCopyMethod, slot, Id<SlotModel>{slot.id_val()}, this};
+        addSlot(new_slot,
+                source.slotPosition(new_slot->id()));
     }
 }
 

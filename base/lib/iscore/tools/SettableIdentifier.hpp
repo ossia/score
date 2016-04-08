@@ -27,10 +27,31 @@ class id_base_t
     public:
         using value_type = impl;
         explicit id_base_t() = default;
-        id_base_t(const id_base_t & other) = default;
-        id_base_t(id_base_t && other) = default;
-        id_base_t& operator=(const id_base_t & other) = default;
-        id_base_t& operator=(id_base_t && other) = default;
+        id_base_t(const id_base_t & other):
+            m_id{other.m_id}
+        {
+
+        }
+
+        id_base_t(id_base_t && other):
+            m_id{other.m_id}
+        {
+
+        }
+
+        id_base_t& operator=(const id_base_t & other)
+        {
+            m_id = other.m_id;
+            m_ptr.clear();
+            return *this;
+        }
+
+        id_base_t& operator=(id_base_t && other)
+        {
+            m_id = other.m_id;
+            m_ptr.clear();
+            return *this;
+        }
 
         // TODO check if when an id is returned by value,
         // the pointer gets copied correctly

@@ -156,7 +156,11 @@ void ScenarioDocumentModel::on_viewModelDefocused(const Process::LayerModel* vm)
     updateSlotFocus(vm, false);
 
     // Deselect
-    vm->processModel().setSelection({});
+    // Note : why these two lines ?
+    // selectionStack.clear() should clear the selection everywhere anyway.
+    if(vm)
+        vm->processModel().setSelection({});
+
     iscore::IDocument::documentContext(*this).selectionStack.clear();
 }
 
