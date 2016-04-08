@@ -14,6 +14,7 @@ if(ISCORE_STATIC_QT)
     find_library(xcbxkb_LIBRARY NAMES xcb-xkb libxcb-xkb)
 
     find_library(qmldbg_local_LIBRARY NAMES qmldbg_local HINTS ${QT_LIB_FOLDER}/../plugins/qmltooling)
+    find_library(qmldbg_tcp_LIBRARY NAMES qmldbg_tcp HINTS ${QT_LIB_FOLDER}/../plugins/qmltooling)
 
     add_library(Qt5PlatformSupport STATIC IMPORTED)    
     set_target_properties(Qt5PlatformSupport PROPERTIES IMPORTED_LOCATION ${Qt5PlatformSupport_LIBRARY})
@@ -66,5 +67,5 @@ if(ISCORE_STATIC_QT)
          m pthread
       )
 
-    target_link_libraries(${APPNAME} PUBLIC ${qmldbg_local_LIBRARY})
+    target_link_libraries(${APPNAME} PUBLIC ${qmldbg_local_LIBRARY} ${qmldbg_tcp_LIBRARY})
 endif()
