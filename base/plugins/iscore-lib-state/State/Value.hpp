@@ -126,4 +126,5 @@ Q_DECLARE_METATYPE(State::no_value_t)
 Q_DECLARE_METATYPE(State::impulse_t)
 Q_DECLARE_METATYPE(State::Value)
 Q_DECLARE_METATYPE(State::ValueList)
+Q_DECLARE_METATYPE(State::ValueType)
 

@@ -67,6 +67,11 @@ ConstraintActions::ConstraintActions(
 
 }
 
+ConstraintActions::~ConstraintActions()
+{
+    delete m_addProcessDialog;
+}
+
 void ConstraintActions::fillMenuBar(iscore::MenubarManager* menu)
 {
     menu->insertActionIntoToplevelMenu(m_menuElt, m_addProcess);

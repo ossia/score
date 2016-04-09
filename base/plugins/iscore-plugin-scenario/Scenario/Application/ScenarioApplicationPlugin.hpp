@@ -35,6 +35,7 @@ class ISCORE_PLUGIN_SCENARIO_EXPORT ScenarioApplicationPlugin final :
         friend class ScenarioContextMenuManager;
     public:
         ScenarioApplicationPlugin(const iscore::ApplicationContext& app);
+        ~ScenarioApplicationPlugin();
 
         void populateMenus(iscore::MenubarManager*) override;
         std::vector<iscore::OrderedToolbar> makeToolbars() override;

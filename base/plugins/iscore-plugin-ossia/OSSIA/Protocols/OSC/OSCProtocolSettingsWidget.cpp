@@ -27,7 +27,7 @@ void
 OSCProtocolSettingsWidget::buildGUI()
 {
     QLabel* deviceNameLabel = new QLabel(tr("Device name"), this);
-    m_deviceNameEdit = new AddressFragmentLineEdit;
+    m_deviceNameEdit = new AddressFragmentLineEdit{this};
 
     QLabel* portOutputLabel = new QLabel(tr("i-score listening port"), this);
     m_portOutputSBox = new QSpinBox(this);

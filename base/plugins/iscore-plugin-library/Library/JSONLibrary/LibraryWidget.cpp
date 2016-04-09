@@ -19,4 +19,9 @@ LibraryWidget::LibraryWidget(QWidget* parent):
     m_tbl.setAcceptDrops(true);
     m_tbl.setDropIndicatorShown(true);
 }
+
+LibraryWidget::~LibraryWidget()
+{
+    delete m_tbl.model();
+}
 }
