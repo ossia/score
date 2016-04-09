@@ -7,6 +7,7 @@
 #include <QPoint>
 #include <QRect>
 #include <QString>
+#include <QPainter>
 
 class QGraphicsObject;
 class QGraphicsSceneHoverEvent;
@@ -21,6 +22,31 @@ class TemporalConstraintPresenter;
 class LeftBraceView;
 class RightBraceView;
 
+// MOVEME
+class SimpleTextItem final : public QGraphicsSimpleTextItem
+{
+    public:
+        using QGraphicsSimpleTextItem::QGraphicsSimpleTextItem;
+
+        void paint(
+                QPainter *painter,
+                const QStyleOptionGraphicsItem *option,
+                QWidget *widget) override
+        {
+            setPen(m_color.getColor());
+            setBrush(m_color.getBrush());
+            QGraphicsSimpleTextItem::paint(painter, option, widget);
+        }
+
+        void setColor(ColorRef c)
+        {
+            m_color = c;
+            update();
+        }
+
+    private:
+        ColorRef m_color;
+};
 class ISCORE_PLUGIN_SCENARIO_EXPORT TemporalConstraintView final : public ConstraintView
 {
         Q_OBJECT
@@ -77,12 +103,13 @@ class ISCORE_PLUGIN_SCENARIO_EXPORT TemporalConstraintView final : public Constr
         bool m_shadow {false};
         bool m_hasFocus{};
         QString m_label{};
-        ColorRef m_labelColor;
         ColorRef m_bgColor;
 
         LeftBraceView* m_leftBrace{};
         RightBraceView* m_rightBrace{};
 
         ConstraintExecutionState m_state{};
+        SimpleTextItem* m_labelItem{};
+        SimpleTextItem* m_counterItem{};
 };
 }
