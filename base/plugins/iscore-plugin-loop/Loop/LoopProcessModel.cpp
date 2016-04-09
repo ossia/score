@@ -74,6 +74,11 @@ ProcessModel::ProcessModel(
     BaseScenarioContainer::init(source);
 }
 
+ProcessModel::~ProcessModel()
+{
+    delete pluginModelList;
+}
+
 ProcessModel* ProcessModel::clone(
         const Id<Process::ProcessModel>& newId,
         QObject* newParent) const

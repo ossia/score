@@ -47,6 +47,7 @@ class ProcessModel final : public Process::ProcessModel
         const QString& script() const
         { return m_script; }
 
+        ~ProcessModel();
     signals:
         void scriptChanged(QString);
 

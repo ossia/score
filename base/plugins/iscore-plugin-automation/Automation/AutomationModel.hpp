@@ -36,6 +36,7 @@ class ISCORE_PLUGIN_AUTOMATION_EXPORT ProcessModel final : public Curve::CurvePr
         ProcessModel(const TimeValue& duration,
                      const Id<Process::ProcessModel>& id,
                      QObject* parent);
+        ~ProcessModel();
         Process::ProcessModel* clone(const Id<Process::ProcessModel>& newId,
                             QObject* newParent) const override;
 
