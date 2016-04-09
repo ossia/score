@@ -1,6 +1,10 @@
 #include "Expression.hpp"
 #ifndef Q_MOC_RUN
 #define BOOST_SPIRIT_DEBUG
+// see https://svn.boost.org/trac/boost/ticket/11875
+#if defined(_GLIBCXX_DEBUG)
+#define BOOST_PHOENIX_USING_LIBCPP
+#endif
 #include <boost/spirit/include/qi.hpp>
 #include <boost/spirit/include/qi_real.hpp>
 #include <boost/spirit/include/qi_lit.hpp>

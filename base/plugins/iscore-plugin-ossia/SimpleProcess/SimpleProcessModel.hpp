@@ -76,6 +76,7 @@ class SimpleProcessModel final : public Process::ProcessModel
 
         void serialize_impl(const VisitorVariant& vis) const override;
 
+        ~SimpleProcessModel();
     protected:
         Process::LayerModel* makeLayer_impl(
                 const Id<Process::LayerModel>& viewModelId,

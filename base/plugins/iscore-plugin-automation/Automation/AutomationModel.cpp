@@ -47,6 +47,11 @@ ProcessModel::ProcessModel(
     metadata.setName(QString("Automation.%1").arg(*this->id().val()));
 }
 
+ProcessModel::~ProcessModel()
+{
+    delete pluginModelList;
+}
+
 ProcessModel::ProcessModel(
         const ProcessModel& source,
         const Id<Process::ProcessModel>& id,

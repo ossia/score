@@ -27,6 +27,8 @@
 #include <iscore/tools/NotifyingMap.hpp>
 #include <iscore/tools/Todo.hpp>
 #include <iscore/document/DocumentContext.hpp>
+#include <Scenario/Process/Algorithms/ProcessPolicy.hpp>
+
 namespace Process { class LayerModel; }
 class ProcessStateDataInterface;
 
@@ -86,6 +88,14 @@ ScenarioModel::ScenarioModel(
         auto st = new StateModel{elt, elt.id(), stack, this};
         states.add(st);
     }
+
+    // We re-set the constraints before and after the states
+    for(const Scenario::ConstraintModel& constraint : constraints)
+    {
+        Scenario::SetPreviousConstraint(states.at(constraint.endState()), constraint);
+        Scenario::SetNextConstraint(states.at(constraint.startState()), constraint);
+    }
+
     metadata.setName(QString("Scenario.%1").arg(*this->id().val()));
 }
 
@@ -102,6 +112,7 @@ ScenarioModel::~ScenarioModel()
         for(auto elt : (this->*m).map().get())
             delete elt;
     });
+    delete pluginModelList;
 }
 
 QByteArray ScenarioModel::makeLayerConstructionData() const
