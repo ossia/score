@@ -21,14 +21,16 @@ class QGraphicsSceneHoverEvent;
 class QStyleOptionGraphicsItem;
 class QWidget;
 
+
 namespace Scenario
 {
 TemporalConstraintView::TemporalConstraintView(
         TemporalConstraintPresenter &presenter,
         QGraphicsObject* parent) :
     ConstraintView {presenter, parent},
-    m_labelColor{ScenarioStyle::instance().ConstraintDefaultLabel},
-    m_bgColor{ScenarioStyle::instance().ConstraintDefaultBackground}
+    m_bgColor{ScenarioStyle::instance().ConstraintDefaultBackground},
+    m_labelItem{new SimpleTextItem{this}},
+    m_counterItem{new SimpleTextItem{this}}
 {
     this->setParentItem(parent);
 
@@ -38,6 +40,22 @@ TemporalConstraintView::TemporalConstraintView(
 
     m_rightBrace = new RightBraceView{*this, this};
     m_rightBrace->setX(maxWidth());
+
+    const int fontSize = 12;
+    auto f = Skin::instance().SansFont;
+    f.setBold(false);
+    f.setPointSize(fontSize);
+    f.setStyleStrategy(QFont::NoAntialias);
+    m_labelItem->setFont(f);
+    m_labelItem->setPos(0, -16);
+    m_labelItem->setAcceptedMouseButtons(Qt::MouseButton::NoButton);
+    m_labelItem->setAcceptHoverEvents(false);
+    f.setPointSize(7);
+    f.setStyleStrategy(QFont::NoAntialias);
+    m_counterItem->setFont(f);
+    m_counterItem->setColor(ColorRef(&Skin::Light));
+    m_counterItem->setAcceptedMouseButtons(Qt::MouseButton::NoButton);
+    m_counterItem->setAcceptHoverEvents(false);
 }
 
 
@@ -48,12 +66,15 @@ void TemporalConstraintView::paint(
         const QStyleOptionGraphicsItem*,
         QWidget*)
 {
+    auto& skin = ScenarioStyle::instance();
 
     qreal min_w = minWidth();
     qreal max_w = maxWidth();
     qreal def_w = defaultWidth();
     qreal play_w = playWidth();
 
+    m_labelItem->setPos(def_w / 2. - m_labelItem->boundingRect().width() / 2., -17);
+    m_counterItem->setPos(def_w - m_counterItem->boundingRect().width() - 5, 5);
     m_leftBrace->setX(min_w);
     m_rightBrace->setX(max_w);
 
@@ -70,7 +91,7 @@ void TemporalConstraintView::paint(
         painter->fillRect(rect, bgColor);
 
         // Fake timenode continuation
-        auto color = ScenarioStyle::instance().RackSideBorder.getColor();
+        auto color = skin.RackSideBorder.getColor();
         QPen pen{color, 2, Qt::SolidLine, Qt::RoundCap, Qt::RoundJoin};
         painter->setPen(pen);
         painter->drawLine(rect.topLeft(), rect.bottomLeft());
@@ -125,19 +146,19 @@ void TemporalConstraintView::paint(
     // TODO make a switch instead
     if(isSelected())
     {
-        constraintColor = ScenarioStyle::instance().ConstraintSelected.getColor();
+        constraintColor = skin.ConstraintSelected.getColor();
     }
     else if(warning())
     {
-        constraintColor = ScenarioStyle::instance().ConstraintWarning.getColor();
+        constraintColor = skin.ConstraintWarning.getColor();
     }
     else
     {
-        constraintColor = ScenarioStyle::instance().ConstraintBase.getColor();
+        constraintColor = skin.ConstraintBase.getColor();
     }
     if(! isValid() || m_state == ConstraintExecutionState::Disabled)
     {
-        constraintColor = ScenarioStyle::instance().ConstraintInvalid.getColor();
+        constraintColor = skin.ConstraintInvalid.getColor();
     }
 
 
@@ -164,7 +185,7 @@ void TemporalConstraintView::paint(
 
 
     const QPen playedPen{
-        ScenarioStyle::instance().ConstraintPlayFill.getColor(),
+        skin.ConstraintPlayFill.getColor(),
         4,
         Qt::SolidLine,
                 Qt::RoundCap,
@@ -175,27 +196,13 @@ void TemporalConstraintView::paint(
     if(!playedPath.isEmpty())
         painter->drawPath(playedPath);
 
-
-    const int fontSize = 12;
-    QRectF labelRect{0,0, defaultWidth(), (-fontSize - 2.)};
-    auto f = Skin::instance().SansFont;
-    f.setPointSize(fontSize);
-
-    painter->setFont(f);
-    painter->setPen(m_labelColor.getColor());
-    painter->drawText(labelRect, Qt::AlignCenter, m_label);
-
     {
         auto& dur = presenter().model().duration;
         auto progress = dur.defaultDuration() * dur.playPercentage();
         if(!progress.isZero())
         {
             QString percent = progress.toString();
-
-            f.setPointSize(7);
-            painter->setFont(f);
-            painter->setPen(Qt::white);
-            painter->drawText(def_w - 80, 5, 100, 30, {}, percent);
+            m_counterItem->setText(percent);
         }
     }
 
@@ -220,7 +227,7 @@ void TemporalConstraintView::hoverLeaveEvent(QGraphicsSceneHoverEvent *h)
 }
 void TemporalConstraintView::setLabel(const QString &label)
 {
-    m_label = label;
+    m_labelItem->setText(label);
     update();
 }
 
@@ -237,7 +244,7 @@ void TemporalConstraintView::setExecutionState(ConstraintExecutionState s)
 
 void TemporalConstraintView::setLabelColor(ColorRef labelColor)
 {
-    m_labelColor = labelColor;
+    m_labelItem->setColor(labelColor);
     update();
 }
 
