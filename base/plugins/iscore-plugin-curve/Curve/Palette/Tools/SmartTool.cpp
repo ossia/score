@@ -1,6 +1,5 @@
 #include <Curve/CurveModel.hpp>
 #include <Curve/CurvePresenter.hpp>
-#include <Curve/Palette/CommandObjects/MovePointCommandObject.hpp>
 #include <Curve/Palette/CurvePalette.hpp>
 #include <Curve/Palette/OngoingState.hpp>
 #include <Curve/Palette/States/SelectionState.hpp>
@@ -23,7 +22,8 @@
 namespace Curve
 {
 SmartTool::SmartTool(Curve::ToolPalette& sm):
-    CurveTool{sm}
+    CurveTool{sm},
+    m_co{&sm.presenter(), sm.context().commandStack}
 {
     m_state = new Curve::SelectionState{
             sm.context().selectionStack,
@@ -34,8 +34,7 @@ SmartTool::SmartTool(Curve::ToolPalette& sm):
     localSM().setInitialState(m_state);
 
     {
-        auto co = new MovePointCommandObject(&sm.presenter(), sm.context().commandStack);
-        m_moveState = new Curve::OngoingState{*co, nullptr};
+        m_moveState = new Curve::OngoingState{m_co, nullptr};
 
         m_moveState->setObjectName("MovePointState");
 

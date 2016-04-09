@@ -86,6 +86,10 @@ ScenarioApplicationPlugin::ScenarioApplicationPlugin(const iscore::ApplicationCo
     delete fact;
 }
 
+ScenarioApplicationPlugin::~ScenarioApplicationPlugin()
+{
+}
+
 void ScenarioApplicationPlugin::populateMenus(iscore::MenubarManager *menu)
 {
     using namespace iscore;

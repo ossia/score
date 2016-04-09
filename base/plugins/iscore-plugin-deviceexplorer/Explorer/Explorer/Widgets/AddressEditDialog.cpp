@@ -18,6 +18,7 @@
 #include <Device/Address/IOType.hpp>
 #include <Explorer/Widgets/ValueWrapper.hpp>
 #include <State/Value.hpp>
+#include <State/ValueConversion.hpp>
 
 class QWidget;
 
@@ -27,6 +28,15 @@ AddressEditDialog::AddressEditDialog(
         QWidget* parent):
     AddressEditDialog{makeDefaultSettings(), parent}
 {
+}
+
+static void populateTypeCb(QComboBox& cb)
+{
+    for(int i = 0; i < 8; i++)
+    {
+        auto t = static_cast<State::ValueType>(i);
+        cb.addItem(State::convert::prettyType(t), QVariant::fromValue(t));
+    }
 }
 
 AddressEditDialog::AddressEditDialog(
@@ -39,14 +49,14 @@ AddressEditDialog::AddressEditDialog(
     setLayout(m_layout);
 
     // Name
-    m_nameEdit = new AddressFragmentLineEdit;
+    m_nameEdit = new AddressFragmentLineEdit{this};
     m_layout->addRow(tr("Name"), m_nameEdit);
 
     setNodeSettings();
 
     // Value type
     m_valueTypeCBox = new QComboBox(this);
-    m_valueTypeCBox->addItems(AddressSettingsFactory::instance().getAvailableValueTypes());
+    populateTypeCb(*m_valueTypeCBox);
 
     connect(m_valueTypeCBox, static_cast<void (QComboBox::*)(int)>(&QComboBox::currentIndexChanged),
             this, &AddressEditDialog::updateType);
@@ -77,7 +87,7 @@ AddressEditDialog::~AddressEditDialog()
 
 void AddressEditDialog::updateType()
 {
-    const QString valueType = m_valueTypeCBox->currentText();
+    const auto valueType = m_valueTypeCBox->currentData().value<State::ValueType>();
     m_addressWidget->setWidget(AddressSettingsFactory::instance().getValueTypeWidget(valueType));
     if(m_originalSettings.ioType == Device::IOType::Invalid)
         m_originalSettings.ioType = Device::IOType::InOut;

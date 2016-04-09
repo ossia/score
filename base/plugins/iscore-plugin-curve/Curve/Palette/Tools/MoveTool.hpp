@@ -1,5 +1,7 @@
 #pragma once
 #include <Curve/Palette/Tools/CurveTool.hpp>
+#include <Curve/Palette/CommandObjects/CreatePointCommandObject.hpp>
+#include <Curve/Palette/CommandObjects/SetSegmentParametersCommandObject.hpp>
 #include <QPoint>
 
 #include <Curve/Palette/CurvePoint.hpp>
@@ -22,12 +24,18 @@ class CreateTool final : public Curve::EditionToolForCreate
 {
     public:
         explicit CreateTool(Curve::ToolPalette& sm);
+
+    private:
+        CreatePointCommandObject m_co;
 };
 
 class SetSegmentTool final : public Curve::EditionToolForCreate
 {
     public:
         explicit SetSegmentTool(Curve::ToolPalette& sm);
+
+    private:
+        SetSegmentParametersCommandObject m_co;
 };
 
 }

@@ -1,5 +1,6 @@
 #pragma once
 #include <QPoint>
+#include <Curve/Palette/CommandObjects/MovePointCommandObject.hpp>
 
 #include <Curve/Palette/CurvePoint.hpp>
 #include "CurveTool.hpp"
@@ -24,5 +25,6 @@ class SmartTool final : public Curve::CurveTool
         Curve::OngoingState* m_moveState{};
 
         bool m_nothingPressed = false;
+        MovePointCommandObject m_co;
 };
 }

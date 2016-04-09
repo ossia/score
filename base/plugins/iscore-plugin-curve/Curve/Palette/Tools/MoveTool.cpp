@@ -4,8 +4,6 @@
 #include <QState>
 #include <QStateMachine>
 
-#include <Curve/Palette/CommandObjects/CreatePointCommandObject.hpp>
-#include <Curve/Palette/CommandObjects/SetSegmentParametersCommandObject.hpp>
 #include <Curve/Palette/CurvePaletteBaseEvents.hpp>
 #include <Curve/Palette/CurvePaletteBaseTransitions.hpp>
 #include <Curve/Palette/OngoingState.hpp>
@@ -74,12 +72,12 @@ void EditionToolForCreate::on_released(QPointF scenePoint, Curve::Point curvePoi
 
 
 SetSegmentTool::SetSegmentTool(Curve::ToolPalette &sm):
-    EditionToolForCreate{sm}
+    EditionToolForCreate{sm},
+    m_co{&sm.presenter(), sm.context().commandStack}
 {
     QState* waitState = new QState{&localSM()};
 
-    auto co = new SetSegmentParametersCommandObject(&sm.presenter(), sm.context().commandStack);
-    auto state = new OngoingState(*co, &localSM());
+    auto state = new OngoingState(m_co, &localSM());
     state->setObjectName("SetSegmentParametersState");
     iscore::make_transition<ClickOnSegment_Transition>(waitState, state, *state);
     state->addTransition(state, finishedState(), waitState);
@@ -91,14 +89,14 @@ SetSegmentTool::SetSegmentTool(Curve::ToolPalette &sm):
 
 
 CreateTool::CreateTool(Curve::ToolPalette &sm):
-    EditionToolForCreate{sm}
+    EditionToolForCreate{sm},
+    m_co{&sm.presenter(), sm.context().commandStack}
 {
     localSM().setObjectName("CreateToolLocalSM");
     QState* waitState = new QState{&localSM()};
     waitState->setObjectName("WaitState");
 
-    auto co = new CreatePointCommandObject(&sm.presenter(), sm.context().commandStack);
-    auto state = new OngoingState(*co, &localSM());
+    auto state = new OngoingState(m_co, &localSM());
     state->setObjectName("CreatePointFromNothingState");
     iscore::make_transition<ClickOnSegment_Transition>(waitState, state, *state);
     iscore::make_transition<ClickOnNothing_Transition>(waitState, state, *state);

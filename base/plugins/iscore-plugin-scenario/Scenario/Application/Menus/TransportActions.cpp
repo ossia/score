@@ -21,24 +21,24 @@ TransportActions::TransportActions(
         ScenarioApplicationPlugin* parent) :
     ScenarioActions{menuElt, parent}
 {
-    m_play = new QAction{tr("▶ Play"), nullptr};
+    m_play = new QAction{tr("▶ Play"), this};
     m_play->setObjectName("Play");
     m_play->setShortcut(Qt::Key_Space);
     m_play->setShortcutContext(Qt::WidgetWithChildrenShortcut);
 
-    m_stop = new QAction{tr("⬛ Stop"), nullptr};
+    m_stop = new QAction{tr("⬛ Stop"), this};
     m_stop->setObjectName("Stop");
     m_stop->setShortcut(Qt::Key_Return);
     m_stop->setShortcutContext(Qt::WidgetWithChildrenShortcut);
-    m_goToStart = new QAction{tr("⏮ Start"), nullptr};
+    m_goToStart = new QAction{tr("⏮ Start"), this};
     m_goToStart->setObjectName("Start");
-    m_goToEnd = new QAction{tr("⏭ End"), nullptr};
+    m_goToEnd = new QAction{tr("⏭ End"), this};
     m_goToEnd->setObjectName("End");
-    m_stopAndInit = new QAction{tr("Reinitialize"), nullptr};
+    m_stopAndInit = new QAction{tr("Reinitialize"), this};
     m_stopAndInit->setObjectName("StopAndInit");
     m_stopAndInit->setShortcut(Qt::CTRL + Qt::Key_Return);
     m_stopAndInit->setShortcutContext(Qt::WidgetWithChildrenShortcut);
-    m_record = new QAction{tr("⚫ Record"), nullptr};
+    m_record = new QAction{tr("⚫ Record"), this};
     m_record->setObjectName("Record");
 
     m_play->setCheckable(true);

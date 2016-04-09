@@ -542,5 +542,10 @@ State::Value fromQVariant(const QVariant& val)
     return State::Value{fromQVariantImpl(val)};
 }
 
+QString prettyType(ValueType t)
+{
+    return ValuePrettyTypesArray[static_cast<int>(t)];
+}
+
 }
 }

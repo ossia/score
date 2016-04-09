@@ -12,6 +12,7 @@ class LibraryWidget : public QWidget
 
     public:
         LibraryWidget(QWidget* parent);
+        ~LibraryWidget();
 
 };
 }
