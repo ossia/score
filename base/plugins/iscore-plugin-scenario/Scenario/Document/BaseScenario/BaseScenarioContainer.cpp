@@ -65,6 +65,9 @@ void BaseScenarioContainer::init(const BaseScenarioContainer& source)
 
     m_startState = new StateModel{*source.m_startState, source.m_startState->id(), stack, m_parent};
     m_endState = new StateModel{*source.m_endState, source.m_endState->id(),  stack, m_parent};
+
+    SetPreviousConstraint(*m_endState, *m_constraint);
+    SetNextConstraint(*m_startState, *m_constraint);
 }
 
 ConstraintModel* BaseScenarioContainer::findConstraint(
