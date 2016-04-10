@@ -28,6 +28,11 @@ CreatePointCommandObject::CreatePointCommandObject(
 {
 }
 
+CreatePointCommandObject::~CreatePointCommandObject()
+{
+
+}
+
 void CreatePointCommandObject::on_press()
 {
     // Save the start data.
