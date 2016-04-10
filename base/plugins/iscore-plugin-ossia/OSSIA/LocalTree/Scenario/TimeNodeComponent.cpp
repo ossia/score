@@ -22,7 +22,7 @@ TimeNodeComponent::TimeNodeComponent(
     m_properties.push_back(
     add_setProperty<State::impulse_t>(thisNode(), "trigger",
                                        [&] (auto) {
-        timeNode.trigger()->triggered();
+        timeNode.trigger()->triggeredByGui();
     }));
 }
 
