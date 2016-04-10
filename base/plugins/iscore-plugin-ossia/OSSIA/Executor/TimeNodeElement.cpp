@@ -32,7 +32,7 @@ TimeNodeElement::TimeNodeElement(
         m_ossia_node->setExpression(OSSIA::Expression::create(true));
     }
 
-    connect(m_iscore_node.trigger(), &Scenario::TriggerModel::triggered,
+    connect(m_iscore_node.trigger(), &Scenario::TriggerModel::triggeredByGui,
             this, [&] () {
         try {
         m_ossia_node->trigger();

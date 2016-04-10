@@ -81,6 +81,8 @@ class ISCORE_PLUGIN_SCENARIO_EXPORT TimeNodeModel final : public IdentifiedObjec
         void newEvent(const Id<EventModel>& eventId);
         // TODO no eventRemoved ? eventsChanged ?
 
+        void triggeredByEngine() const;
+
     private:
         VerticalExtent m_extent;
         TimeValue m_date{std::chrono::seconds{0}};
