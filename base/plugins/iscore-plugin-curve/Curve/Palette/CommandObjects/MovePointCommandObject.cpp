@@ -35,6 +35,11 @@ MovePointCommandObject::MovePointCommandObject(
 
 }
 
+MovePointCommandObject::~MovePointCommandObject()
+{
+
+}
+
 void MovePointCommandObject::on_press()
 {
     // Save the start data.

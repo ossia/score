@@ -11,6 +11,7 @@
 #include <Curve/Segment/CurveSegmentData.hpp>
 #include <iscore/tools/ModelPath.hpp>
 #include <iscore/tools/SettableIdentifier.hpp>
+#include <iscore_plugin_curve_export.h>
 
 namespace iscore {
 class CommandStackFacade;

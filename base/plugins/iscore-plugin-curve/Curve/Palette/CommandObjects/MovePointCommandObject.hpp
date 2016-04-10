@@ -9,10 +9,11 @@ class CommandStackFacade;
 namespace Curve
 {
 class Presenter;
-class MovePointCommandObject final : public CommandObjectBase
+class ISCORE_PLUGIN_CURVE_EXPORT MovePointCommandObject final : public CommandObjectBase
 {
     public:
         MovePointCommandObject(Presenter* presenter, iscore::CommandStackFacade& stack);
+        ~MovePointCommandObject();
 
         void on_press() override;
 
