@@ -296,6 +296,9 @@ void NodeUpdateProxy::updateRemoteValue(
         // Update in the device implementation
         (*it)->sendMessage({addr, val});
     }
+
+    // Update in the tree
+    updateLocalValue(addr, val);
 }
 
 State::Value NodeUpdateProxy::refreshRemoteValue(const State::Address& addr) const
