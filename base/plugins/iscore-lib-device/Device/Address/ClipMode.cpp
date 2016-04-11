@@ -9,9 +9,9 @@ namespace Device
 {
 
 static const QMap<ClipMode, QString> clipmodemap{
-    {{ClipMode::Clip, QObject::tr("Clip")},
-     {ClipMode::Fold, QObject::tr("Fold")},
-     {ClipMode::Free, QObject::tr("Free")},
+    {{ClipMode::Free, QObject::tr("Free")},
+     {ClipMode::Clip, QObject::tr("Clip")},
+     {ClipMode::Fold, QObject::tr("Fold")},     
      {ClipMode::Wrap, QObject::tr("Wrap")},
     }
 };

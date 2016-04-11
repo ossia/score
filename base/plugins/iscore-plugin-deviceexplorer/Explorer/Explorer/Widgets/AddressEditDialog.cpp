@@ -123,6 +123,7 @@ Device::AddressSettings AddressEditDialog::makeDefaultSettings()
         s.domain.min = State::Value::fromValue(0);
         s.domain.max = State::Value::fromValue(100);
         s.ioType = Device::IOType::InOut;
+        s.clipMode = Device::ClipMode::Free;
         return s;
     }();
 
