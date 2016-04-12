@@ -209,6 +209,7 @@ void OSSIAApplicationPlugin::on_play(bool b, ::TimeValue t)
                 if(auto bs = plugmodel->baseScenario())
                 {
                     auto& cstr = *bs->baseConstraint();
+                    emit requestResume();
                     cstr.OSSIAConstraint()->resume();
                 }
             }
@@ -224,6 +225,7 @@ void OSSIAApplicationPlugin::on_play(bool b, ::TimeValue t)
                 plugmodel->reload(scenar->baseScenario());
                 auto& cstr = *plugmodel->baseScenario()->baseConstraint();
 
+                emit requestPlay();
                 cstr.play(t);
             }
 
@@ -234,6 +236,7 @@ void OSSIAApplicationPlugin::on_play(bool b, ::TimeValue t)
             if(auto bs = plugmodel->baseScenario())
             {
                 auto& cstr = *bs->baseConstraint();
+                emit requestPause();
                 cstr.OSSIAConstraint()->pause();
             }
         }
@@ -253,6 +256,7 @@ void OSSIAApplicationPlugin::on_stop()
             m_playing = false;
             auto& cstr = *plugmodel->baseScenario()->baseConstraint();
 
+            emit requestStop();
             cstr.stop();
 
             plugmodel->clear();

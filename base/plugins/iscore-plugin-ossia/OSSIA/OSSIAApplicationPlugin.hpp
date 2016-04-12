@@ -6,7 +6,7 @@
 #include <memory>
 
 #include <iscore/plugins/documentdelegate/plugin/DocumentDelegatePluginModel.hpp>
-
+#include <iscore_plugin_ossia_export.h>
 namespace iscore {
 
 class Document;
@@ -27,10 +27,12 @@ class ConstraintElement;
 // One would be the "distributed" policy which provides the
 // same functionalities but for scenario executing on different computers.
 
-class OSSIAApplicationPlugin final :
+class ISCORE_PLUGIN_OSSIA_EXPORT OSSIAApplicationPlugin final :
         public QObject,
         public iscore::GUIApplicationContextPlugin
 {
+        Q_OBJECT
+
     public:
         OSSIAApplicationPlugin(const iscore::ApplicationContext& app);
         ~OSSIAApplicationPlugin();
@@ -49,6 +51,12 @@ class OSSIAApplicationPlugin final :
         RecreateOnPlay::ConstraintElement& baseConstraint() const;
         const std::shared_ptr<OSSIA::Device>& localDevice() const
         { return m_localDevice; }
+
+    signals:
+        void requestPlay();
+        void requestPause();
+        void requestResume();
+        void requestStop();
 
     private:
         void on_play(bool, ::TimeValue t = ::TimeValue::zero() );
