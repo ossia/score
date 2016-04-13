@@ -37,8 +37,11 @@ AddLayerInNewSlot::AddLayerInNewSlot(
     }
     else
     {
-        auto& rack = (*constraint.racks.begin());
-        m_createdRackId = rack.id();
+        for(auto vm : constraint.viewModels())
+        {
+            m_createdRackId = vm->shownRack();
+        }
+        auto& rack = constraint.racks.at(m_createdRackId);
         m_existingRack = true;
         m_createdSlotId = getStrongId(rack.slotmodels);
     }
