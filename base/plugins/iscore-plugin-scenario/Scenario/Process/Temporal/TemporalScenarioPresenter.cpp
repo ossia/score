@@ -377,6 +377,8 @@ void TemporalScenarioPresenter::on_stateCreated(const StateModel &state)
     connect(st_pres, &StatePresenter::pressed, m_view, &TemporalScenarioView::pressedAsked);
     connect(st_pres, &StatePresenter::moved, m_view, &TemporalScenarioView::movedAsked);
     connect(st_pres, &StatePresenter::released, m_view, &TemporalScenarioView::released);
+
+    connect(st_pres, &StatePresenter::askUpdate, this, &TemporalScenarioPresenter::on_askUpdate);
 }
 
 void TemporalScenarioPresenter::on_constraintViewModelCreated(const TemporalConstraintViewModel& constraint_view_model)
