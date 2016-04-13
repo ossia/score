@@ -45,6 +45,9 @@ EventPresenter::EventPresenter(
     con(m_model.metadata, &ModelMetadata::colorChanged,
         m_view, &EventView::changeColor);
 
+    con(m_model.metadata, &ModelMetadata::commentChanged,
+        m_view, &EventView::changeToolTip);
+
     con(m_model, &EventModel::statusChanged,
         m_view, &EventView::setStatus);
 
@@ -58,6 +61,7 @@ EventPresenter::EventPresenter(
             this, &EventPresenter::handleDrop);
 
     m_view->setCondition(m_model.condition().toString());
+    m_view->setToolTip(m_model.metadata.comment());
 
     con(m_model, &EventModel::conditionChanged,
         this, [&] (const State::Condition& c) { m_view->setCondition(c.toString()); });
