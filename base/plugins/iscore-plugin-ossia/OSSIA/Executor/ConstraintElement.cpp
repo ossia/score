@@ -90,9 +90,14 @@ void ConstraintElement::play(TimeValue t)
     flattenAndFilter(offset_state);
     m_state_on_play->launch();
 
-    m_ossia_constraint->start();
+    try {
+        m_ossia_constraint->start();
+        executionStarted();
+    }
+    catch(const std::exception& e) {
+        qDebug() << e.what();
+    }
 
-    executionStarted();
 }
     
 void ConstraintElement::flattenAndFilter(const std::shared_ptr<OSSIA::StateElement>& element)
