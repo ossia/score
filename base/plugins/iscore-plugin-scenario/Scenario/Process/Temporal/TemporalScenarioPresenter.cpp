@@ -325,6 +325,7 @@ void TemporalScenarioPresenter::on_eventCreated(const EventModel& event_model)
                            this};
     m_events.insert(ev_pres);
 
+    ev_pres->view()->setWidthScale(m_graphicalScale);
     m_viewInterface.on_eventMoved(*ev_pres);
 
     con(event_model, &EventModel::extentChanged,
@@ -366,6 +367,7 @@ void TemporalScenarioPresenter::on_stateCreated(const StateModel &state)
     auto st_pres = new StatePresenter{state, m_view, this};
     m_states.insert(st_pres);
 
+    st_pres->view()->setScale(m_graphicalScale);
     m_viewInterface.on_stateMoved(*st_pres);
 
     con(state, &StateModel::heightPercentageChanged,
@@ -386,6 +388,8 @@ void TemporalScenarioPresenter::on_constraintViewModelCreated(const TemporalCons
     m_constraints.insert(cst_pres);
     cst_pres->on_zoomRatioChanged(m_zoomRatio);
 
+    auto& cst_view = ::Scenario::view(*cst_pres);
+    cst_view.setHeightScale(m_graphicalScale);
     m_viewInterface.on_constraintMoved(*cst_pres);
 
     connect(cst_pres, &TemporalConstraintPresenter::heightPercentageChanged,
