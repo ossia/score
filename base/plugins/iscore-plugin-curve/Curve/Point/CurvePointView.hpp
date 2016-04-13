@@ -26,7 +26,7 @@ class PointView final : public QGraphicsObject
         const Id<PointModel>& id() const;
 
         static constexpr int static_type()
-        { return QGraphicsItem::UserType + 10; }
+        { return QGraphicsItem::UserType + 100; }
         int type() const override
         { return static_type(); }
 

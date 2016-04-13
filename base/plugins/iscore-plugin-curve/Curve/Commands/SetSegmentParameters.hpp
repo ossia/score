@@ -7,6 +7,7 @@
 #include <QPair>
 
 #include <iscore/tools/SettableIdentifier.hpp>
+#include <iscore_plugin_curve_export.h>
 
 class DataStreamInput;
 class DataStreamOutput;
@@ -16,7 +17,7 @@ namespace Curve
 class Model;
 class SegmentModel;
 using SegmentParameterMap = QMap<Id<SegmentModel>, QPair<double, double>>;
-class SetSegmentParameters final : public iscore::SerializableCommand
+class ISCORE_PLUGIN_CURVE_EXPORT SetSegmentParameters final : public iscore::SerializableCommand
 {
         ISCORE_COMMAND_DECL(CommandFactoryName(), SetSegmentParameters, "Set segment parameters")
     public:

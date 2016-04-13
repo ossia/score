@@ -41,6 +41,11 @@ SimpleProcessModel::SimpleProcessModel(
                       this};
 }
 
+SimpleProcessModel::~SimpleProcessModel()
+{
+    delete pluginModelList;
+}
+
 SimpleProcessModel* SimpleProcessModel::clone(
         const Id<ProcessModel>& newId,
         QObject* newParent) const

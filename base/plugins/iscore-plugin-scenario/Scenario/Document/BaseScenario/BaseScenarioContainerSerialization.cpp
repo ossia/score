@@ -1,6 +1,7 @@
 #include <Scenario/Document/Constraint/ConstraintModel.hpp>
 #include <Scenario/Document/Event/EventModel.hpp>
 #include <Scenario/Document/TimeNode/TimeNodeModel.hpp>
+#include <Scenario/Process/Algorithms/ProcessPolicy.hpp>
 #include <QJsonObject>
 #include <QJsonValue>
 #include <algorithm>
@@ -43,6 +44,9 @@ template<> void Visitor<Writer<DataStream>>::writeTo(Scenario::BaseScenarioConta
     auto& stack = iscore::IDocument::documentContext(base_scenario.parentObject()).commandStack;
     base_scenario.m_startState = new StateModel{*this, stack, base_scenario.m_parent};
     base_scenario.m_endState = new StateModel{*this, stack, base_scenario.m_parent};
+
+    Scenario::SetPreviousConstraint(*base_scenario.m_endState, *base_scenario.m_constraint);
+    Scenario::SetNextConstraint(*base_scenario.m_startState, *base_scenario.m_constraint);
 }
 
 
@@ -91,4 +95,7 @@ template<> void Visitor<Writer<JSONObject>>::writeTo(Scenario::BaseScenarioConta
                             Deserializer<JSONObject>{m_obj["EndState"].toObject() },
                             stack,
                             base_scenario.m_parent};
+
+    Scenario::SetPreviousConstraint(*base_scenario.m_endState, *base_scenario.m_constraint);
+    Scenario::SetNextConstraint(*base_scenario.m_startState, *base_scenario.m_constraint);
 }

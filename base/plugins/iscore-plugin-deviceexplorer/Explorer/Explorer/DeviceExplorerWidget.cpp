@@ -324,9 +324,10 @@ DeviceExplorerWidget::populateColumnCBox()
 void
 DeviceExplorerWidget::updateActions()
 {
-    ISCORE_ASSERT(model());
-
-    if(! model()->isEmpty())
+    auto m = model();
+    if(!m)
+        return;
+    if(! m->isEmpty())
     {
 
         //TODO: choice for multi selection

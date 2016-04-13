@@ -66,6 +66,7 @@ class ISCORE_PLUGIN_MAPPING_EXPORT ProcessModel : public Curve::CurveProcessMode
 
         QString prettyName() const override;
 
+        ~ProcessModel();
     signals:
         void sourceAddressChanged(const State::Address& arg);
         void sourceMinChanged(double arg);

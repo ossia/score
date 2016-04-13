@@ -25,7 +25,7 @@ void
 MinuitProtocolSettingsWidget::buildGUI()
 {
     QLabel* deviceNameLabel = new QLabel(tr("Device name"), this);
-    m_deviceNameEdit = new AddressFragmentLineEdit;
+    m_deviceNameEdit = new AddressFragmentLineEdit{this};
 
     QLabel* portInputLabel = new QLabel(tr("Device listening port"), this);
     m_portInputSBox = new QSpinBox(this);

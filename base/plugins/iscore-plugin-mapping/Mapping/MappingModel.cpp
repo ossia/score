@@ -60,6 +60,10 @@ ProcessModel::ProcessModel(
     metadata.setName(QString("Mapping.%1").arg(*this->id().val()));
 }
 
+ProcessModel::~ProcessModel()
+{
+    delete pluginModelList;
+}
 Process::ProcessModel* ProcessModel::clone(
         const Id<Process::ProcessModel>& newId,
         QObject* newParent) const

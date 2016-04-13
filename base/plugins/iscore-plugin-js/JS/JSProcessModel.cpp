@@ -50,6 +50,11 @@ ProcessModel::ProcessModel(
                       this};
 }
 
+ProcessModel::~ProcessModel()
+{
+    delete pluginModelList;
+}
+
 void ProcessModel::setScript(const QString& script)
 {
     m_script = script;

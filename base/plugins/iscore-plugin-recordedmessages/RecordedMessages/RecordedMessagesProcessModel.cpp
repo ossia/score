@@ -46,7 +46,7 @@ ProcessModel::ProcessModel(
 
 ProcessModel::~ProcessModel()
 {
-
+    delete pluginModelList;
 }
 
 void ProcessModel::setMessages(const QList<RecordedMessage>& script)

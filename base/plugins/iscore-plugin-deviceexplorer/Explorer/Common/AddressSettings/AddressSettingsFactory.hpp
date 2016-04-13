@@ -2,7 +2,8 @@
 #include <QList>
 #include <QMap>
 #include <QString>
-
+#include <memory>
+#include <State/Value.hpp>
 namespace Explorer
 {
 class AddressSettingsWidget;
@@ -20,20 +21,16 @@ class AddressSettingsWidgetFactoryMethod
 class AddressSettingsFactory
 {
     public:
-        static AddressSettingsFactory& instance()
-        {
-            return m_instance; // FIXME Blergh
-        }
+        static AddressSettingsFactory& instance();
 
-        QList<QString> getAvailableValueTypes() const;
-        AddressSettingsWidget* getValueTypeWidget(const QString& valueType) const;
+        AddressSettingsWidget* getValueTypeWidget(State::ValueType valueType) const;
 
     private:
-        static AddressSettingsFactory m_instance;
-
         AddressSettingsFactory();
-        typedef AddressSettingsWidget* (AddressSettingsWidgetFactoryM)();
-        typedef QMap<QString, AddressSettingsWidgetFactoryMethod*> AddressSettingsWidgetFactory;
-        AddressSettingsWidgetFactory m_addressSettingsWidgetFactory;
+
+        std::map<
+            State::ValueType,
+            std::unique_ptr<AddressSettingsWidgetFactoryMethod>
+        > m_addressSettingsWidgetFactory;
 };
 }
