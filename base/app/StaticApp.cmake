@@ -1,5 +1,5 @@
 if(ISCORE_STATIC_QT)
-    find_package(Qt5 5.3 REQUIRED COMPONENTS DBus)
+    find_package(Qt5 5.3 REQUIRED COMPONENTS DBus Qml Quick)
 
     get_target_property(QtCore_LIB Qt5::Core LOCATION)
     get_filename_component(QT_LIB_FOLDER ${QtCore_LIB} DIRECTORY)
@@ -13,9 +13,21 @@ if(ISCORE_STATIC_QT)
     find_library(qsvg_LIBRARY NAMES qsvg libqsvg HINTS ${QT_LIB_FOLDER}/../plugins/imageformats)
     find_library(xcbxkb_LIBRARY NAMES xcb-xkb libxcb-xkb)
 
+    find_library(qmldbg_local_LIBRARY NAMES qmldbg_local HINTS ${QT_LIB_FOLDER}/../plugins/qmltooling)
+    find_library(qmldbg_tcp_LIBRARY NAMES qmldbg_tcp HINTS ${QT_LIB_FOLDER}/../plugins/qmltooling)
+
+    add_library(Qt5PlatformSupport STATIC IMPORTED)    
+    set_target_properties(Qt5PlatformSupport PROPERTIES IMPORTED_LOCATION ${Qt5PlatformSupport_LIBRARY})
+    set_property(TARGET Qt5PlatformSupport PROPERTY INTERFACE_LINK_LIBRARIES Qt5::Gui Qt5::DBus dbus-1 icudata m dl gthread-2.0 Xrender Xext X11 udev GL)
+
+    add_library(Qt5XcbQpa STATIC IMPORTED)
+    set_target_properties(Qt5XcbQpa PROPERTIES IMPORTED_LOCATION ${Qt5XcbQpa_LIBRARY})
+    set_property(TARGET Qt5XcbQpa PROPERTY INTERFACE_LINK_LIBRARIES Qt5PlatformSupport)
+
+    message("${Qt5Qml_PLUGINS}")
     target_link_libraries(
         ${APPNAME} PRIVATE
-        Qt5::Core Qt5::Gui Qt5::Widgets Qt5::Network Qt5::Svg Qt5::Xml Qt5::DBus
+        Qt5::Core Qt5::Gui Qt5::Widgets Qt5::DBus Qt5::Network Qt5::Svg Qt5::Xml Qt5::Qml ${Qt5Qml_PLUGINS} ${Qt5Qml_PLUGINS} Qt5::Quick Qt5PlatformSupport
     )
 
     if(TARGET Qt5::WebSockets)
@@ -25,8 +37,7 @@ if(ISCORE_STATIC_QT)
     if(TARGET Qt5::QXcbIntegrationPlugin)
       target_link_libraries(${APPNAME} PRIVATE
         Qt5::QXcbIntegrationPlugin
-        ${Qt5XcbQpa_LIBRARY}
-        ${Qt5PlatformSupport_LIBRARY}
+        Qt5XcbQpa
       )
 
       if(qtharfbuzzng_LIBRARY)
@@ -44,9 +55,10 @@ if(ISCORE_STATIC_QT)
 
       target_link_libraries(${APPNAME} PRIVATE
         ${qsvg_LIBRARY}
+        glib-2.0 icuuc icui18n png fontconfig freetype
         GL
         Xi
-        xcb-render xcb-image xcb-icccm xcb-sync xcb-xfixes xcb-shm xcb-randr xcb-shape xcb-keysyms xcb-render-util xcb
+        xcb-render xcb-image xcb-icccm xcb-sync xcb-xfixes xcb-shm xcb-randr xcb-shape xcb-keysyms xcb-render-util xcb-xinerama xcb
         X11-xcb Xrender Xext X11
         z dl rt
       )
@@ -54,4 +66,6 @@ if(ISCORE_STATIC_QT)
       target_link_libraries(${APPNAME} PRIVATE
          m pthread
       )
+
+    target_link_libraries(${APPNAME} PUBLIC ${qmldbg_local_LIBRARY} ${qmldbg_tcp_LIBRARY})
 endif()

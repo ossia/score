@@ -304,26 +304,34 @@ void OSSIAApplicationPlugin::on_init()
 
 void OSSIAApplicationPlugin::setupOSSIACallbacks()
 {
-    auto local_play_node = *(m_localDevice->emplace(m_localDevice->children().cend(), "play"));
-    auto local_play_address = local_play_node->createAddress(OSSIA::Value::Type::BOOL);
-    local_play_address->setValue(new OSSIA::Bool{false});
-    auto local_stop_node = *(m_localDevice->emplace(m_localDevice->children().cend(), "stop"));
-    auto local_stop_address = local_stop_node->createAddress(OSSIA::Value::Type::IMPULSE);
-    local_stop_address->setValue(new OSSIA::Impulse{});
+    if(!m_localDevice)
+        return;
+    auto& dev = *m_localDevice;
+    auto& children = dev.children();
+    {
+        auto end = children.cend();
+        auto local_play_node = *(m_localDevice->emplace(end, "play"));
+        auto local_play_address = local_play_node->createAddress(OSSIA::Value::Type::BOOL);
+        local_play_address->setValue(new OSSIA::Bool{false});
+        local_play_address->addCallback([&] (const OSSIA::Value* v) {
+            qDebug("play");
+            if (v->getType() == OSSIA::Value::Type::BOOL)
+            {
+                on_play(static_cast<const OSSIA::Bool*>(v)->value);
+            }
+        });
+    }
+    {
+        auto end = children.cend();
+        auto local_stop_node = *(m_localDevice->emplace(end, "stop"));
+        auto local_stop_address = local_stop_node->createAddress(OSSIA::Value::Type::IMPULSE);
+        local_stop_address->setValue(new OSSIA::Impulse{});
+        local_stop_address->addCallback([&] (const OSSIA::Value*) {
+            qDebug("stop");
+            on_stop();
+        });
 
-    local_play_address->addCallback([&] (const OSSIA::Value* v) {
-        qDebug("play");
-        if (v->getType() == OSSIA::Value::Type::BOOL)
-        {
-            on_play(static_cast<const OSSIA::Bool*>(v)->value);
-        }
-    });
-
-    local_stop_address->addCallback([&] (const OSSIA::Value*) {
-        qDebug("stop");
-        on_stop();
-    });
-
+    }
 
     auto remote_protocol = OSSIA::Minuit::create("127.0.0.1", 9999, 6666);
     m_remoteDevice = OSSIA::Device::create(remote_protocol, "i-score-remote");

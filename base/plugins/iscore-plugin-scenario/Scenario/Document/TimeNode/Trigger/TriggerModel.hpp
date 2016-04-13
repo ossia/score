@@ -32,7 +32,7 @@ class ISCORE_PLUGIN_SCENARIO_EXPORT TriggerModel final : public IdentifiedObject
         void triggerChanged(const State::Trigger&);
         void activeChanged();
 
-        void triggered() const;
+        void triggeredByGui() const;
 
     private:
         State::Trigger m_expression;

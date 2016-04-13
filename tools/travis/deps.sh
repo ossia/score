@@ -38,7 +38,7 @@ case "$TRAVIS_OS_NAME" in
       (cd /opt; sudo tar xaf boost_1_60_0.tar.bz2; sudo chmod -R a+rwx boost_1_60_0)
       sudo wget https://www.dropbox.com/s/a8w8o3mu0jfr3t8/qt5.6-static-release.tar.xz?dl=1 -O /opt/qt5.6-static-release.tgz
       (cd /opt; sudo tar xaf qt5.6-static-release.tgz)
-      sudo apt-get install -qq libxcb-icccm4-dev libxi-dev libxcb-image0-dev libxcb-keysyms1-dev libxcb-xkb-dev libxcb-render-util0-dev
+      sudo apt-get install -qq libxcb-icccm4-dev libxi-dev libxcb-image0-dev libxcb-keysyms1-dev libxcb-xkb-dev libxcb-render-util0-dev libxinerama-dev libxcb-xinerama0-dev libudev-dev
     else
       sudo apt-get install -qq qt56-meta-full libboost1.55-dev
     fi

@@ -86,15 +86,6 @@ void StateModel::init()
         this, &StateModel::statesUpdated_slt);
     con(m_messageItemModel, &QAbstractItemModel::rowsRemoved,
         this, &StateModel::statesUpdated_slt);
-
-    if(m_previousConstraint)
-    {
-        setPreviousConstraint(m_previousConstraint);
-    }
-    if(m_nextConstraint)
-    {
-        setNextConstraint(m_nextConstraint);
-    }
 }
 
 double StateModel::heightPercentage() const

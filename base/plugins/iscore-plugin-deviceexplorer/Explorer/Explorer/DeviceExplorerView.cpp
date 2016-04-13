@@ -121,8 +121,8 @@ DeviceExplorerView::restoreSettings()
 void
 DeviceExplorerView::setModel(QAbstractItemModel* model)
 {
-    QTreeView::setModel(model);
     m_hasProxy = false;
+    QTreeView::setModel(model);
     #ifdef MODEL_TEST
     qDebug() << "*** ADD MODEL_TEST\n";
     (void) new ModelTest(model, this);
@@ -171,13 +171,18 @@ DeviceExplorerView::model()
 const DeviceExplorerModel*
 DeviceExplorerView::model() const
 {
+    auto m = QTreeView::model();
+    if(!m)
+        return nullptr;
+
     if(! m_hasProxy)
     {
-        return static_cast<const DeviceExplorerModel*>(QTreeView::model());
+        return static_cast<const DeviceExplorerModel*>(m);
     }
     else
     {
-        return static_cast<const DeviceExplorerModel*>(static_cast<const QAbstractProxyModel*>(QTreeView::model())->sourceModel());
+        auto model = static_cast<const QAbstractProxyModel*>(m);
+        return safe_cast<const DeviceExplorerModel*>(model->sourceModel());
     }
 }
 

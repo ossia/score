@@ -48,11 +48,11 @@ void Model::setSkin(const QString& skin)
     if(f.open(QFile::ReadOnly))
     {
         auto arr = f.readAll();
-        auto err = new QJsonParseError;
-        auto doc = QJsonDocument::fromJson(arr, err);
-        if(err->error)
+        QJsonParseError err;
+        auto doc = QJsonDocument::fromJson(arr, &err);
+        if(err.error)
         {
-            qDebug() << "could not load skin : "<< err->errorString() << err->offset;
+            qDebug() << "could not load skin : "<< err.errorString() << err.offset;
         }
         else
         {

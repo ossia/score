@@ -11,6 +11,7 @@
 #include <sys/types.h>
 #include <algorithm>
 
+#include <Scenario/Process/Algorithms/ProcessPolicy.hpp>
 #include <Process/ModelMetadata.hpp>
 #include <Scenario/Document/State/StateModel.hpp>
 #include <Scenario/Document/TimeNode/TimeNodeModel.hpp>
@@ -158,6 +159,13 @@ void Visitor<Writer<DataStream>>::writeTo(
         scenario.comments.add(cmtModel);
     }
 
+    // Finally, we re-set the constraints before and after the states
+    for(const Scenario::ConstraintModel& constraint : scenario.constraints)
+    {
+        Scenario::SetPreviousConstraint(scenario.states.at(constraint.endState()), constraint);
+        Scenario::SetNextConstraint(scenario.states.at(constraint.startState()), constraint);
+    }
+
     checkDelimiter();
 }
 
@@ -242,6 +250,13 @@ void Visitor<Writer<JSONObject>>::writeTo(
                        &scenario};
 
         scenario.states.add(stmodel);
+    }
+
+    // Finally, we re-set the constraints before and after the states
+    for(const Scenario::ConstraintModel& constraint : scenario.constraints)
+    {
+        Scenario::SetPreviousConstraint(scenario.states.at(constraint.endState()), constraint);
+        Scenario::SetNextConstraint(scenario.states.at(constraint.startState()), constraint);
     }
 
 }

@@ -12,12 +12,13 @@ namespace Curve
 struct SegmentData;
 class Presenter;
 
-class CreatePointCommandObject final : public CommandObjectBase
+class ISCORE_PLUGIN_CURVE_EXPORT CreatePointCommandObject final : public CommandObjectBase
 {
     public:
         CreatePointCommandObject(
                 Presenter* presenter,
                 iscore::CommandStackFacade& stack);
+        virtual ~CreatePointCommandObject();
 
         void on_press() override;
 

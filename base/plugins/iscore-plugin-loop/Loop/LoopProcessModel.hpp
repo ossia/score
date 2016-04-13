@@ -87,6 +87,7 @@ class ISCORE_PLUGIN_LOOP_EXPORT ProcessModel final :
 
         void serialize_impl(const VisitorVariant& vis) const override;
 
+        ~ProcessModel();
     protected:
         Process::LayerModel* makeLayer_impl(
                 const Id<Process::LayerModel>& viewModelId,

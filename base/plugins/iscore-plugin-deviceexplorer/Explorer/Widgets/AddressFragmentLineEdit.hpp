@@ -7,6 +7,7 @@
 class AddressFragmentValidator : public QValidator
 {
     public:
+        using QValidator::QValidator;
         QValidator::State validate(QString& s, int& pos) const override
         {
             return ::State::Address::validateFragment(s)
@@ -18,8 +19,9 @@ class AddressFragmentValidator : public QValidator
 class AddressFragmentLineEdit : public QLineEdit
 {
     public:
-        AddressFragmentLineEdit()
+        AddressFragmentLineEdit(QWidget* parent):
+            QLineEdit{parent}
         {
-            setValidator(new AddressFragmentValidator);
+            setValidator(new AddressFragmentValidator{this});
         }
 };

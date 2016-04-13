@@ -30,7 +30,7 @@ SlotModel::SlotModel(
         const SlotModel& source,
         const Id<SlotModel>& id,
         RackModel *parent):
-    IdentifiedObject<SlotModel> {id, Metadata<ObjectKey_k, RackModel>::get(), parent},
+    IdentifiedObject<SlotModel> {id, Metadata<ObjectKey_k, SlotModel>::get(), parent},
     m_frontLayerModelId{Id<Process::LayerModel>{source.m_frontLayerModelId.val()}},
     m_height {source.height() }
 {

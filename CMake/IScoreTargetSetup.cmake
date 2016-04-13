@@ -174,7 +174,7 @@ function(iscore_set_compile_options theTarget)
 
   if(ISCORE_SANITIZE)
       sanitize_build(${theTarget})
-      debugmode_build(${theTarget})
+      # debugmode_build(${theTarget})
   endif()
 
   if (CXX_IS_CLANG)

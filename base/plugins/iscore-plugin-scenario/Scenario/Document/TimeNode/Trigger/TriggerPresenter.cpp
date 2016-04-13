@@ -32,7 +32,7 @@ TriggerPresenter::TriggerPresenter(
     });
 
     connect(m_view, &TriggerView::pressed,
-            &m_model, &TriggerModel::triggered);
+            &m_model, &TriggerModel::triggeredByGui);
 }
 
 }

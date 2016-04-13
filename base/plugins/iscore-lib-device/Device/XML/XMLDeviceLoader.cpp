@@ -116,7 +116,7 @@ static auto read_rangeClipmode(const QDomElement& dom_element)
             return Device::ClipMode::Clip;
         }
     }
-    return Device::ClipMode{};
+    return Device::ClipMode::Free;
 }
 
 static void convertFromDomElement(const QDomElement& dom_element, Device::Node &parentNode)
