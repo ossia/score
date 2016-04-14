@@ -129,7 +129,7 @@ void StateView::setDilatation(double val)
 {
     m_dilatationFactor = val;
 //    this->setScale(m_dilatationFactor);
-    emit m_presenter.askUpdate();
-
+//    emit m_presenter.askUpdate();
+    this->update();
 }
 }
