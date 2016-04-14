@@ -27,11 +27,11 @@ class Model :
         void setSkin(const QString&);
 
         double getGraphicZoom() const;
-        void setGraphicZoom(double m_graphicZoom);
+        void setGraphicZoom(double);
 
     signals:
         void skinChanged(const QString&);
-        void graphicZoomChanged(double m_graphicZoom);
+        void graphicZoomChanged(double);
 
     private:
         void setFirstTimeSettings() override;
