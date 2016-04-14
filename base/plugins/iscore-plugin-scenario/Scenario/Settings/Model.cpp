@@ -83,6 +83,9 @@ void Model::setGraphicZoom(double graphicZoom)
         return;
 
     m_graphicZoom = graphicZoom;
+
+    QSettings s;
+    s.setValue(Keys::graphicZoom, m_graphicZoom);
     emit graphicZoomChanged(m_graphicZoom);
 }
 
@@ -90,6 +93,9 @@ void Model::setFirstTimeSettings()
 {
     setSkin("Default");
     m_graphicZoom = 1.;
+    QSettings s;
+    s.setValue(Keys::graphicZoom, m_graphicZoom);
+    s.setValue(Keys::skin, m_skin);
 }
 
 }
