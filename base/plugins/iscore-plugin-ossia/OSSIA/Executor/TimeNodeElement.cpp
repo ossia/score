@@ -22,9 +22,11 @@ TimeNodeElement::TimeNodeElement(
 {
     try
     {
-        auto expr = iscore::convert::expression(element.trigger()->expression(), m_deviceList);
+        if(element.trigger()->active()) {
+            auto expr = iscore::convert::expression(element.trigger()->expression(), m_deviceList);
 
-        m_ossia_node->setExpression(expr);
+            m_ossia_node->setExpression(expr);
+        }
     }
     catch(std::exception& e)
     {

@@ -11,11 +11,12 @@
 
 #include "AddLayerInNewSlot.hpp"
 #include <Scenario/Document/Constraint/ViewModels/ConstraintViewModel.hpp>
+#include <Scenario/Settings/Model.hpp>
 #include <iscore/serialization/DataStreamVisitor.hpp>
 #include <iscore/tools/ModelPath.hpp>
 #include <iscore/tools/ModelPathSerialization.hpp>
 #include <iscore/tools/NotifyingMap.hpp>
-
+#include <iscore/application/ApplicationContext.hpp>
 
 namespace Scenario
 {
@@ -87,9 +88,11 @@ void AddLayerInNewSlot::redo() const
         }
     }
 
+    auto h = iscore::AppContext().settings<Scenario::Settings::Model>().getSlotHeight();
     // Slot
     auto& rack = constraint.racks.at(m_createdRackId);
     rack.addSlot(new SlotModel {m_createdSlotId,
+                                h,
                                 &rack});
 
     // Process View
