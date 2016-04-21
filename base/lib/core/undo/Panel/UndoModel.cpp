@@ -12,5 +12,6 @@ UndoModel::UndoModel(QObject* parent) :
 
 int UndoModel::panelId() const
 {
+    // TODO use uuid
     return UNDO_PANEL_ID;
 }
