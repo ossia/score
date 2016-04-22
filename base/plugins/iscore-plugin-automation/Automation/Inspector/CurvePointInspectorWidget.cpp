@@ -50,10 +50,18 @@ PointInspectorWidget::PointInspectorWidget(
     auto hlayX = new QHBoxLayout{widgX};
     m_XBox = new QDoubleSpinBox{};
     m_XBox->setRange(0., m_xFactor);
+    m_XBox->setDecimals(0);
 
     m_XBox->setValue(m_model.pos().x() * m_xFactor);
 
+    connect(m_XBox, static_cast<void (QDoubleSpinBox::*)(double)>(&QDoubleSpinBox::valueChanged),
+            this, &PointInspectorWidget::on_pointChanged);
+
+    connect(m_XBox, static_cast<void (QDoubleSpinBox::*)(double)>(&QDoubleSpinBox::valueChanged),
+            this, &PointInspectorWidget::on_editFinished);
+
     vec.push_back(widgX);
+    m_XBox->setSingleStep(m_xFactor/100);
     m_XBox->setEnabled(false);
 
     hlayX->addWidget(new QLabel{"t (ms)"});
@@ -66,6 +74,7 @@ PointInspectorWidget::PointInspectorWidget(
     m_YBox->setRange(automModel.min(), automModel.max());
     m_YBox->setSingleStep(m_yFactor/100);
     m_YBox->setValue(m_model.pos().y() * m_yFactor  + m_Ymin);
+    m_YBox->setDecimals(4); // NOTE : settings ?
 
     connect(m_YBox, static_cast<void (QDoubleSpinBox::*)(double)>(&QDoubleSpinBox::valueChanged),
             this, &PointInspectorWidget::on_pointChanged);
