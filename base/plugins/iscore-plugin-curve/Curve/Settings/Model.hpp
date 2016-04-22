@@ -48,7 +48,7 @@ class ISCORE_PLUGIN_CURVE_EXPORT Model :
         void setFirstTimeSettings() override;
         int m_simplificationRatio = 50;
         bool m_simplify = true;
-        Mode m_mode;
+        Mode m_mode = Mode::Parameter;
 };
 
 ISCORE_SETTINGS_PARAMETER(Model, SimplificationRatio)
