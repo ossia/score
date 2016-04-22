@@ -62,6 +62,7 @@ class ISCORE_PLUGIN_SCENARIO_EXPORT EventView final : public QGraphicsObject
         void changeColor(ColorRef);
 
         void setWidthScale(double);
+        void changeToolTip(const QString&);
 
     signals:
         void eventHoverEnter();

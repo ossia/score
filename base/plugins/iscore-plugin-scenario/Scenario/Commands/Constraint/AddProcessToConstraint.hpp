@@ -12,6 +12,7 @@
 #include <Scenario/Document/State/ItemModel/MessageItemModel.hpp>
 #include <Scenario/Process/Algorithms/Accessors.hpp>
 #include <Scenario/Process/ScenarioInterface.hpp>
+#include <Scenario/Settings/Model.hpp>
 #include <boost/iterator/iterator_facade.hpp>
 #include <boost/multi_index/detail/hash_index_iterator.hpp>
 #include <boost/optional/optional.hpp>
@@ -191,7 +192,9 @@ class AddProcessDelegate<HasNoRacks>
             }
 
             // Slot
+            auto h = iscore::AppContext().settings<Scenario::Settings::Model>().getSlotHeight();
             auto slot = new SlotModel {m_createdSlotId,
+                    h,
                     rack};
             rack->addSlot(slot);
 
@@ -266,8 +269,10 @@ class AddProcessDelegate<HasNoSlots, HasRacks, NotBaseConstraint>
             auto& firstRack = *constraint.racks.begin();
 
             // Slot
+            auto h = iscore::AppContext().settings<Scenario::Settings::Model>().getSlotHeight();
             auto slot = new SlotModel {
                     m_createdSlotId,
+                    h,
                     &firstRack};
             firstRack.addSlot(slot);
 

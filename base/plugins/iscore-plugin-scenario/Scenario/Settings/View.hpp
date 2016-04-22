@@ -17,10 +17,12 @@ class View :
 
         void setSkin(const QString&);
         void setZoom(const int); // zoom percentage
+        void setSlotHeight(const qreal);
 
     signals:
         void skinChanged(const QString&);
         void zoomChanged(int);
+        void slotHeightChanged(qreal);
 
     private:
         QWidget* getWidget() override;
@@ -28,6 +30,7 @@ class View :
 
         QComboBox* m_skin{};
         QSpinBox* m_zoomSpinBox{};
+        QSpinBox* m_slotHeightBox{};
 };
 
 }
