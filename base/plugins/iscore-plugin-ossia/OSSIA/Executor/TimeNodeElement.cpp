@@ -20,18 +20,24 @@ TimeNodeElement::TimeNodeElement(
     m_iscore_node{element},
     m_deviceList{devlist}
 {
-    try
-    {
-        auto expr = iscore::convert::expression(element.trigger()->expression(), m_deviceList);
 
-        m_ossia_node->setExpression(expr);
-    }
-    catch(std::exception& e)
+    if(element.trigger() && element.trigger()->active())
     {
-        qDebug() << e.what();
-        m_ossia_node->setExpression(OSSIA::Expression::create(true));
-    }
+        try
+        {
+            auto expr = iscore::convert::expression(
+                            element.trigger()->expression(),
+                            m_deviceList);
 
+            m_ossia_node->setExpression(expr);
+        }
+        catch(std::exception& e)
+        {
+            qDebug() << e.what();
+            m_ossia_node->setExpression(OSSIA::Expression::create(true));
+        }
+
+    }
     connect(m_iscore_node.trigger(), &Scenario::TriggerModel::triggeredByGui,
             this, [&] () {
         try {
