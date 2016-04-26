@@ -43,6 +43,12 @@ class ISCORE_LIB_BASE_EXPORT ObjectPath
             return lhs.m_objectIdentifiers == rhs.m_objectIdentifiers;
         }
 
+        friend bool operator!= (const ObjectPath& lhs, const ObjectPath& rhs)
+        {
+            return lhs.m_objectIdentifiers != rhs.m_objectIdentifiers;
+        }
+
+
     public:
         ObjectPath() = default;
         QString toString() const;

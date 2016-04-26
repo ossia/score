@@ -60,6 +60,11 @@ class Path
             return lhs.m_impl == rhs.m_impl;
         }
 
+        friend bool operator!=(const Path& lhs, const Path& rhs)
+        {
+            return lhs.m_impl != rhs.m_impl;
+        }
+
         friend uint qHash(const Path& obj, uint seed)
         {
           return qHash(obj.m_impl, seed);
