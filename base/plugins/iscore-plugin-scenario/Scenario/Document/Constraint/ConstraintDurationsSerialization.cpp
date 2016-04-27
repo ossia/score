@@ -55,7 +55,7 @@ template<> void Visitor<Writer<JSONObject>>::writeTo(
 
     auto it = m_obj.find("ExecutionSpeed");
     if(it != m_obj.end())
-        durs.m_executionSpeed = it->toDouble();
+        durs.m_executionSpeed = (*it).toDouble();
     else
         durs.m_executionSpeed = 1.;
 
