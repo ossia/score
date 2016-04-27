@@ -76,6 +76,7 @@ ScenarioDocumentView::ScenarioDocumentView(
     m_widget->addAction(snapshot);
     snapshot->setShortcutContext(Qt::WidgetWithChildrenShortcut);
     snapshot->setShortcut(QKeySequence(Qt::Key_F10));
+
     connect(snapshot, &QAction::triggered,
             this, [&] () {
         QBuffer b;
@@ -91,8 +92,13 @@ ScenarioDocumentView::ScenarioDocumentView(
         QMimeData * d = new QMimeData;
         d->setData("image/svg+xml",b.buffer());
         QApplication::clipboard()->setMimeData(d,QClipboard::Clipboard);
-
-        QFile screenshot("screenshot.svg");
+        QApplication::clipboard()->setMimeData(d,QClipboard::Selection);
+#if defined(__APPLE__) || defined(__linux__)
+        auto path = "/tmp/screenshot.svg";
+#else
+        auto path = "screenshot.svg";
+#endif
+        QFile screenshot(path);
         screenshot.open(QFile::WriteOnly);
         screenshot.write(b.buffer());
         screenshot.close();
