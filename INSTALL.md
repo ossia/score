@@ -10,7 +10,7 @@ Your compiler need to be C++11 compliant (gcc5.x should work).
 
 ## Debian-like systems
 
-    $ sudo apt-get install cmake qtbase5-dev qtdeclarative5-dev qttools5-dev libqt5svg5-dev libboost-dev build-essentials g++
+    $ sudo apt-get install cmake qtbase5-dev qtdeclarative5-dev qttools5-dev libqt5svg5-dev libboost-dev build-essential g++
     $ mkdir -p build_folder
     $ cd build_folder
     $ cmake path/to/i-score/repo
