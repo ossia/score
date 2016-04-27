@@ -75,7 +75,7 @@ ScenarioDocumentView::ScenarioDocumentView(
     QAction* snapshot = new QAction("Scenario Screenshot", m_widget);
     m_widget->addAction(snapshot);
     snapshot->setShortcutContext(Qt::WidgetWithChildrenShortcut);
-    snapshot->setShortcut(Qt::Key_F10);
+    snapshot->setShortcut(QKeySequence(Qt::Key_F10));
     connect(snapshot, &QAction::triggered,
             this, [&] () {
         QBuffer b;
