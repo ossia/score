@@ -12,11 +12,26 @@
 template <typename T> class Reader;
 template <typename T> class Writer;
 
+auto makeJsonArray(std::initializer_list<QJsonValue> lst);
+auto makeJsonArray(std::initializer_list<QJsonValue> lst)
+{
+#if (QT_VERSION < QT_VERSION_CHECK(5, 6, 0))
+    QJsonArray arr;
+    for(auto val : lst)
+    {
+        arr.append(val);
+    }
+    return arr;
+#else
+    return QJsonArray(lst);
+#endif
+}
+
 // TODO RENAME FILE
 template<>
 void Visitor<Reader<JSONValue>>::readFrom(const QPointF& pt)
 {
-    val = QJsonArray{pt.x(), pt.y()};
+    val = makeJsonArray({pt.x(), pt.y()});
 }
 
 template<>
@@ -31,10 +46,10 @@ void Visitor<Writer<JSONValue>>::writeTo(QPointF& pt)
 template<>
 void Visitor<Reader<JSONValue>>::readFrom(const QTransform& pt)
 {
-    val = QJsonArray{
+    val = makeJsonArray({
         pt.m11(), pt.m12(), pt.m13(),
         pt.m21(), pt.m22(), pt.m23(),
-        pt.m31(), pt.m32(), pt.m33()};
+        pt.m31(), pt.m32(), pt.m33()});
 }
 
 template<>
