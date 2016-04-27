@@ -489,7 +489,7 @@ bool DocumentManager::checkAndUpdateJson(
     Version loaded_version{0};
     auto it = obj.find("Version");
     if(it != obj.end())
-        loaded_version = Version{it->toInt()};
+        loaded_version = Version{(*it).toInt()};
 
     LocalPluginVersionsMap local_plugins;
     for(auto plug : ctx.components.plugins())
@@ -501,8 +501,7 @@ bool DocumentManager::checkAndUpdateJson(
     auto plugin_it = obj.find("Plugins");
     if(plugin_it != obj.end())
     {
-        const auto& plugins_obj = plugin_it->toObject();
-        for(const auto& plugin_val : plugins_obj)
+        for(const auto& plugin_val : (*plugin_it).toObject())
         {
             const auto& plugin_obj = plugin_val.toObject();
             auto plugin_key_it = plugin_obj.find("Key");
@@ -513,7 +512,7 @@ bool DocumentManager::checkAndUpdateJson(
             Version plugin_version{0};
             auto plugin_ver_it = plugin_obj.find("Version");
             if(plugin_ver_it != plugin_obj.end())
-                plugin_version = Version{plugin_ver_it->toInt()};
+                plugin_version = Version{(*plugin_ver_it).toInt()};
 
             loading_plugins.push_back({plugin_key, plugin_version});
         }
