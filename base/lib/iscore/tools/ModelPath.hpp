@@ -179,7 +179,8 @@ class Path
         }
         Object* try_find() const
         {
-            ISCORE_ASSERT(valid());
+            if(!valid())
+                return nullptr;
             return m_impl.try_find<Object>();
         }
 
