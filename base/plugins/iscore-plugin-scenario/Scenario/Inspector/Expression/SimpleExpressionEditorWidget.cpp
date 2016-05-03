@@ -16,6 +16,7 @@
 #include <Explorer/DocumentPlugin/DeviceDocumentPlugin.hpp>
 
 #include <iscore/widgets/MarginLess.hpp>
+#include <iscore/widgets/SignalUtils.hpp>
 
 namespace Scenario
 {
@@ -88,7 +89,7 @@ SimpleExpressionEditorWidget::SimpleExpressionEditorWidget(
             this, [&] (QString) {on_editFinished(); });
 
     // enable value field
-    connect(m_comparator,  static_cast<void (QComboBox::*)(int)>(&QComboBox::currentIndexChanged),
+    connect(m_comparator,  SignalUtils::QComboBox_currentIndexChanged_int,
             this, &SimpleExpressionEditorWidget::on_comparatorChanged);
 
     m_ok->setVisible(false);

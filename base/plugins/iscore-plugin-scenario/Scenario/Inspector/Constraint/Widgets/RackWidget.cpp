@@ -20,6 +20,7 @@
 #include "RackWidget.hpp"
 #include <iscore/tools/SettableIdentifier.hpp>
 #include <iscore/widgets/MarginLess.hpp>
+#include <iscore/widgets/SignalUtils.hpp>
 
 namespace Scenario
 {
@@ -117,7 +118,7 @@ void RackWidget::updateComboBox(QComboBox* combobox, ConstraintViewModel* vm)
         }
     }
 
-    connect(combobox, static_cast<void (QComboBox::*)(int)>(&QComboBox::activated),
+    connect(combobox, SignalUtils::QComboBox_activated_int,
             combobox, [=] (int i) {
         m_parent->activeRackChanged(combobox->itemData(i).value<Id<RackModel>>(), vm);
     });
