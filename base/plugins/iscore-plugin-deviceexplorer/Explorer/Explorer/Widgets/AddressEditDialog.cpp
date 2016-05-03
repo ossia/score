@@ -19,6 +19,7 @@
 #include <Explorer/Widgets/ValueWrapper.hpp>
 #include <State/Value.hpp>
 #include <State/ValueConversion.hpp>
+#include <iscore/widgets/SignalUtils.hpp>
 
 class QWidget;
 
@@ -58,7 +59,7 @@ AddressEditDialog::AddressEditDialog(
     m_valueTypeCBox = new QComboBox(this);
     populateTypeCb(*m_valueTypeCBox);
 
-    connect(m_valueTypeCBox, static_cast<void (QComboBox::*)(int)>(&QComboBox::currentIndexChanged),
+    connect(m_valueTypeCBox, SignalUtils::QComboBox_currentIndexChanged_int,
             this, &AddressEditDialog::updateType);
 
     m_layout->addRow(tr("Value type"), m_valueTypeCBox);

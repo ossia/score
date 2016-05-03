@@ -2,6 +2,7 @@
 #include <QSpinBox>
 #include <QCheckBox>
 #include <QFormLayout>
+#include <iscore/widgets/SignalUtils.hpp>
 
 Q_DECLARE_METATYPE(Curve::Settings::Mode)
 namespace Curve
@@ -19,7 +20,7 @@ View::View():
 
         m_sb->setMinimum(1);
         m_sb->setMaximum(100);
-        connect(m_sb, static_cast<void (QDoubleSpinBox::*)(double)>(&QDoubleSpinBox::valueChanged),
+        connect(m_sb, SignalUtils::QDoubleSpinBox_valueChanged_double,
                 this, &View::simplificationRatioChanged);
 
         lay->addRow(tr("Simplification Ratio"), m_sb);

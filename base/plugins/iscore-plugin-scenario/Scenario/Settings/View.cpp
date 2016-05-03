@@ -4,6 +4,7 @@
 #include <QSlider>
 #include <QSpinBox>
 #include <QLabel>
+#include <iscore/widgets/SignalUtils.hpp>
 
 namespace Scenario
 {
@@ -27,7 +28,7 @@ View::View():
     m_zoomSpinBox->setMinimum(50);
     m_zoomSpinBox->setMaximum(300);
 
-    connect(m_zoomSpinBox, static_cast<void (QSpinBox::*)(int)>(&QSpinBox::valueChanged),
+    connect(m_zoomSpinBox, SignalUtils::QSpinBox_valueChanged_int,
             this, &View::zoomChanged);
 
     m_zoomSpinBox->setSuffix(tr("%"));

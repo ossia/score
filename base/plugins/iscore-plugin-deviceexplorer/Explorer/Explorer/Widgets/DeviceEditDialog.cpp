@@ -17,6 +17,7 @@
 #include <iscore/plugins/customfactory/FactoryFamily.hpp>
 #include <iscore/plugins/customfactory/FactoryMap.hpp>
 #include <iscore/plugins/customfactory/StringFactoryKey.hpp>
+#include <iscore/widgets/SignalUtils.hpp>
 
 namespace Explorer
 {
@@ -65,7 +66,7 @@ DeviceEditDialog::buildGUI()
 
     initAvailableProtocols(); //populate m_protocolCBox
 
-    connect(m_protocolCBox,  static_cast<void (QComboBox::*)(int)>(&QComboBox::currentIndexChanged),
+    connect(m_protocolCBox,  SignalUtils::QComboBox_currentIndexChanged_int,
             this, &DeviceEditDialog::updateProtocolWidget);
 
     if(m_protocolCBox->count() > 0)
