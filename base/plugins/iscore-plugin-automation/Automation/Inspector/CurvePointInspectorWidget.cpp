@@ -15,6 +15,7 @@
 #include <Process/TimeValue.hpp>
 #include <iscore/command/Dispatchers/CommandDispatcher.hpp>
 #include <iscore/command/Dispatchers/OngoingCommandDispatcher.hpp>
+#include <iscore/widgets/SignalUtils.hpp>
 
 namespace iscore {
 class Document;
@@ -67,10 +68,10 @@ PointInspectorWidget::PointInspectorWidget(
     m_YBox->setSingleStep(m_yFactor/100);
     m_YBox->setValue(m_model.pos().y() * m_yFactor  + m_Ymin);
 
-    connect(m_YBox, static_cast<void (QDoubleSpinBox::*)(double)>(&QDoubleSpinBox::valueChanged),
+    connect(m_YBox, SignalUtils::QDoubleSpinBox_valueChanged_double,
             this, &PointInspectorWidget::on_pointChanged);
 
-    connect(m_YBox, static_cast<void (QDoubleSpinBox::*)(double)>(&QDoubleSpinBox::valueChanged),
+    connect(m_YBox, SignalUtils::QDoubleSpinBox_valueChanged_double,
             this, &PointInspectorWidget::on_editFinished);
     vec.push_back(widgY);
 

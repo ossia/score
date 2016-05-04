@@ -59,6 +59,7 @@
 #include <iscore/tools/ModelPath.hpp>
 #include <iscore/tools/TreeNode.hpp>
 #include <iscore/tools/std/Algorithms.hpp>
+#include <iscore/widgets/SignalUtils.hpp>
 
 
 namespace Explorer
@@ -186,7 +187,7 @@ DeviceExplorerWidget::buildGUI()
     m_columnCBox = new QComboBox(this);
     m_nameLEdit = new QLineEdit(this);
 
-    connect(m_columnCBox, static_cast<void (QComboBox::*)(int)>(&QComboBox::currentIndexChanged),
+    connect(m_columnCBox, SignalUtils::QComboBox_currentIndexChanged_int,
             this, &DeviceExplorerWidget::filterChanged);
     connect(m_nameLEdit, &QLineEdit::textEdited,
             this, &DeviceExplorerWidget::filterChanged);
