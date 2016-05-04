@@ -187,7 +187,7 @@ DeviceExplorerWidget::buildGUI()
     m_columnCBox = new QComboBox(this);
     m_nameLEdit = new QLineEdit(this);
 
-    connect(m_columnCBox, SignalUtils::QComboBox_currentIndexChanged_int,
+    connect(m_columnCBox, SignalUtils::QComboBox_currentIndexChanged_int(),
             this, &DeviceExplorerWidget::filterChanged);
     connect(m_nameLEdit, &QLineEdit::textEdited,
             this, &DeviceExplorerWidget::filterChanged);

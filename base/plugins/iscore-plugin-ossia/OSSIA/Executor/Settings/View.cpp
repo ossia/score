@@ -18,7 +18,7 @@ View::View():
     m_sb->setMaximum(1000);
     lay->addRow(tr("Granularity"), m_sb);
 
-    connect(m_sb, SignalUtils::QSpinBox_valueChanged_int,
+    connect(m_sb, SignalUtils::QSpinBox_valueChanged_int(),
             this, &View::rateChanged);
 }
 

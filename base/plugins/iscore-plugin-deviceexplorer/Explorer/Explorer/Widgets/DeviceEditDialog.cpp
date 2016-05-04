@@ -66,7 +66,7 @@ DeviceEditDialog::buildGUI()
 
     initAvailableProtocols(); //populate m_protocolCBox
 
-    connect(m_protocolCBox,  SignalUtils::QComboBox_currentIndexChanged_int,
+    connect(m_protocolCBox,  SignalUtils::QComboBox_currentIndexChanged_int(),
             this, &DeviceEditDialog::updateProtocolWidget);
 
     if(m_protocolCBox->count() > 0)

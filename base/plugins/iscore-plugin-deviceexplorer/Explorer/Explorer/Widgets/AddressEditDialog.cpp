@@ -59,7 +59,7 @@ AddressEditDialog::AddressEditDialog(
     m_valueTypeCBox = new QComboBox(this);
     populateTypeCb(*m_valueTypeCBox);
 
-    connect(m_valueTypeCBox, SignalUtils::QComboBox_currentIndexChanged_int,
+    connect(m_valueTypeCBox, SignalUtils::QComboBox_currentIndexChanged_int(),
             this, &AddressEditDialog::updateType);
 
     m_layout->addRow(tr("Value type"), m_valueTypeCBox);
