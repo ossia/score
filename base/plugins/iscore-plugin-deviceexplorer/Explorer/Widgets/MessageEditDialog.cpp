@@ -37,7 +37,7 @@ MessageEditDialog::MessageEditDialog(const State::Message &mess, DeviceExplorerM
     m_lay->addWidget(m_addr);
 
     m_typeCombo = new QComboBox;
-    connect(m_typeCombo, SignalUtils::QComboBox_currentIndexChanged_int,
+    connect(m_typeCombo, SignalUtils::QComboBox_currentIndexChanged_int(),
             this, &MessageEditDialog::on_typeChanged);
 
     m_val = new WidgetWrapper<ValueWidget>{this};
