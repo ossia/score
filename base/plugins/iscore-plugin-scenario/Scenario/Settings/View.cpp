@@ -28,7 +28,7 @@ View::View():
     m_zoomSpinBox->setMinimum(50);
     m_zoomSpinBox->setMaximum(300);
 
-    connect(m_zoomSpinBox, SignalUtils::QSpinBox_valueChanged_int,
+    connect(m_zoomSpinBox, SignalUtils::QSpinBox_valueChanged_int(),
             this, &View::zoomChanged);
 
     m_zoomSpinBox->setSuffix(tr("%"));
