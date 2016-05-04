@@ -89,7 +89,7 @@ SimpleExpressionEditorWidget::SimpleExpressionEditorWidget(
             this, [&] (QString) {on_editFinished(); });
 
     // enable value field
-    connect(m_comparator,  SignalUtils::QComboBox_currentIndexChanged_int,
+    connect(m_comparator,  SignalUtils::QComboBox_currentIndexChanged_int(),
             this, &SimpleExpressionEditorWidget::on_comparatorChanged);
 
     m_ok->setVisible(false);
