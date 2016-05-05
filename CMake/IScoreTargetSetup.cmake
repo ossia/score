@@ -115,7 +115,9 @@ function(iscore_set_clang_compile_options theTarget)
 endfunction()
 
 function(iscore_set_linux_compile_options theTarget)
-  use_gold(${theTarget})
+  if(NOT ISCORE_SANITIZE)
+    use_gold(${theTarget})
+  endif()
 endfunction()
 
 function(iscore_set_unix_compile_options theTarget)
@@ -202,8 +204,6 @@ function(iscore_set_compile_options theTarget)
   if(NOT APPLE AND NOT WIN32)
       iscore_set_linux_compile_options(${theTarget})
   endif()
-
-  use_gold(${theTarget})
 
   # currently breaks build : add_linker_warnings(${theTarget})
 endfunction()
