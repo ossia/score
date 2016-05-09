@@ -3,7 +3,6 @@
 #include <memory>
 #include <iscore/tools/SettableIdentifier.hpp>
 
-class ConstraintModel;
 class DeviceList;
 namespace Process { class ProcessModel; }
 class QObject;
@@ -19,7 +18,10 @@ class EventElement;
 class StateElement;
 class TimeNodeElement;
 }  // namespace RecreateOnPlay
-
+namespace Scenario
+{
+class ConstraintModel;
+}
 
 namespace RecreateOnPlay
 {
@@ -43,8 +45,8 @@ class Component final : public ProcessComponent
         void stop() override;
 
     private:
-        void startConstraintExecution(const Id<ConstraintModel>&);
-        void stopConstraintExecution(const Id<ConstraintModel>&);
+        void startConstraintExecution(const Id<Scenario::ConstraintModel>&);
+        void stopConstraintExecution(const Id<Scenario::ConstraintModel>&);
 
 
     private:
