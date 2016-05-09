@@ -47,9 +47,40 @@ RecreateOnPlay::Loop::Component::Component(
               const OSSIA::TimeValue&,
               std::shared_ptr<OSSIA::StateElement>) {
     },
-          [] (OSSIA::TimeEvent::Status) {
+          [this] (OSSIA::TimeEvent::Status newStatus) {
+
+            switch(newStatus)
+            {
+                case OSSIA::TimeEvent::Status::NONE:
+                    break;
+                case OSSIA::TimeEvent::Status::PENDING:
+                    break;
+                case OSSIA::TimeEvent::Status::HAPPENED:
+                    startConstraintExecution(m_ossia_constraint->iscoreConstraint().id());
+                    break;
+                case OSSIA::TimeEvent::Status::DISPOSED:
+                    break;
+                default:
+                    ISCORE_TODO;
+                    break;
+            }
     },
-          [] (OSSIA::TimeEvent::Status) {
+          [this] (OSSIA::TimeEvent::Status newStatus) {
+        switch(newStatus)
+        {
+            case OSSIA::TimeEvent::Status::NONE:
+                break;
+            case OSSIA::TimeEvent::Status::PENDING:
+                break;
+            case OSSIA::TimeEvent::Status::HAPPENED:
+                stopConstraintExecution(m_ossia_constraint->iscoreConstraint().id());
+                break;
+            case OSSIA::TimeEvent::Status::DISPOSED:
+                break;
+            default:
+                ISCORE_TODO;
+                break;
+        }
 
     }
     );
@@ -100,12 +131,12 @@ void RecreateOnPlay::Loop::Component::stop()
     static_cast< ::Loop::ProcessModel&>(m_iscore_process).constraint().duration.setPlayPercentage(0);
 }
 
-void RecreateOnPlay::Loop::Component::startConstraintExecution(const Id<ConstraintModel>&)
+void RecreateOnPlay::Loop::Component::startConstraintExecution(const Id<Scenario::ConstraintModel>&)
 {
     m_ossia_constraint->executionStarted();
 }
 
-void RecreateOnPlay::Loop::Component::stopConstraintExecution(const Id<ConstraintModel>&)
+void RecreateOnPlay::Loop::Component::stopConstraintExecution(const Id<Scenario::ConstraintModel>&)
 {
     m_ossia_constraint->executionStopped();
 }
