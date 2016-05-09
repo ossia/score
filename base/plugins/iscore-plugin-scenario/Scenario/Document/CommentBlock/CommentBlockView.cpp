@@ -9,7 +9,7 @@
 #include <QTextDocument>
 
 #include <Scenario/Document/CommentBlock/CommentBlockPresenter.hpp>
-
+#include <cmath>
 namespace Scenario
 {
 CommentBlockView::CommentBlockView(
