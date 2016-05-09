@@ -143,6 +143,8 @@ class ISCORE_PLUGIN_SCENARIO_EXPORT ConstraintModel final :
         void focusChanged(bool);
         void loopingChanged(bool);
         void executionStateChanged(Scenario::ConstraintExecutionState);
+        void executionStarted();
+        void executionStopped();
 
     private:
         void on_destroyedViewModel(ConstraintViewModel* obj);

@@ -64,7 +64,7 @@ ConstraintElement::ConstraintElement(
     {
         on_processAdded(process);
     }
-    
+
     m_state_on_play = OSSIA::State::create();
 }
 
@@ -99,18 +99,18 @@ void ConstraintElement::play(TimeValue t)
     }
 
 }
-    
+
 void ConstraintElement::flattenAndFilter(const std::shared_ptr<OSSIA::StateElement>& element)
 {
     if (!element)
         return;
-    
+
     switch (element->getType())
     {
         case OSSIA::StateElement::Type::MESSAGE :
         {
             std::shared_ptr<OSSIA::Message> messageToAppend = std::dynamic_pointer_cast<OSSIA::Message>(element);
-            
+
             // find message with the same address to replace it
             bool found = false;
             for (auto it = m_state_on_play->stateElements().begin();
@@ -118,7 +118,7 @@ void ConstraintElement::flattenAndFilter(const std::shared_ptr<OSSIA::StateEleme
                  it++)
             {
                 std::shared_ptr<OSSIA::Message> messageToCheck = std::dynamic_pointer_cast<OSSIA::Message>(*it);
-                
+
                 // replace if addresses are the same
                 if (messageToCheck->getAddress() == messageToAppend->getAddress())
                 {
@@ -127,24 +127,24 @@ void ConstraintElement::flattenAndFilter(const std::shared_ptr<OSSIA::StateEleme
                     break;
                 }
             }
-            
+
             // if not found append it
             if (!found)
                 m_state_on_play->stateElements().push_back(element);
-            
+
             break;
         }
         case OSSIA::StateElement::Type::STATE :
         {
             std::shared_ptr<OSSIA::State> stateToFlatAndFilter = std::dynamic_pointer_cast<OSSIA::State>(element);
-            
+
             for (const auto& e : stateToFlatAndFilter->stateElements())
             {
                 flattenAndFilter(e);
             }
             break;
         }
-            
+
         default:
         {
             m_state_on_play->stateElements().push_back(element);
@@ -170,6 +170,7 @@ void ConstraintElement::stop()
 void ConstraintElement::executionStarted()
 {
     m_iscore_constraint.duration.setPlayPercentage(0);
+    m_iscore_constraint.executionStarted();
     for(Process::ProcessModel& proc : m_iscore_constraint.processes)
     {
         proc.startExecution();
@@ -178,6 +179,7 @@ void ConstraintElement::executionStarted()
 
 void ConstraintElement::executionStopped()
 {
+    m_iscore_constraint.executionStopped();
     for(Process::ProcessModel& proc : m_iscore_constraint.processes)
     {
         proc.stopExecution();

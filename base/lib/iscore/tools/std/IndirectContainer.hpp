@@ -52,4 +52,9 @@ class IndirectArray
         { return boost::make_indirect_iterator(array.cbegin()); }
         auto cend() const
         { return boost::make_indirect_iterator(array.cend()); }
+
+        auto& operator[](int pos)
+        { return *array[pos]; }
+        auto& operator[](int pos) const
+        { return *array[pos]; }
 };

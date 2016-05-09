@@ -107,4 +107,26 @@ class ISCORE_PLUGIN_LOOP_EXPORT ProcessModel final :
 const QVector<Id<Scenario::ConstraintModel> > constraintsBeforeTimeNode(
         const Loop::ProcessModel& scen,
         const Id<Scenario::TimeNodeModel>& timeNodeId);
+
 }
+
+template<>
+struct Scenario::ScenarioElementTraits<Loop::ProcessModel, Scenario::ConstraintModel>
+{
+        static const constexpr auto accessor = static_cast<IndirectArray<Scenario::ConstraintModel, 1> (*) (const Scenario::BaseScenarioContainer&)>(&Scenario::constraints);
+};
+template<>
+struct Scenario::ScenarioElementTraits<Loop::ProcessModel, Scenario::EventModel>
+{
+        static const constexpr auto accessor = static_cast<IndirectArray<Scenario::EventModel, 2> (*) (const Scenario::BaseScenarioContainer&)>(&Scenario::events);
+};
+template<>
+struct Scenario::ScenarioElementTraits<Loop::ProcessModel, Scenario::TimeNodeModel>
+{
+        static const constexpr auto accessor = static_cast<IndirectArray<Scenario::TimeNodeModel, 2> (*) (const Scenario::BaseScenarioContainer&)>(&Scenario::timeNodes);
+};
+template<>
+struct Scenario::ScenarioElementTraits<Loop::ProcessModel, Scenario::StateModel>
+{
+        static const constexpr auto accessor = static_cast<IndirectArray<Scenario::StateModel, 2> (*) (const Scenario::BaseScenarioContainer&)>(&Scenario::states);
+};

@@ -20,6 +20,7 @@ namespace RecreateOnPlay
 {
 class ISCORE_PLUGIN_OSSIA_EXPORT EventElement final : public QObject
 {
+        Q_OBJECT
     public:
         EventElement(
                 std::shared_ptr<OSSIA::TimeEvent> event,
@@ -30,6 +31,9 @@ class ISCORE_PLUGIN_OSSIA_EXPORT EventElement final : public QObject
         std::shared_ptr<OSSIA::TimeEvent> OSSIAEvent() const;
         const Scenario::EventModel& iscoreEvent() const
         { return m_iscore_event; }
+
+    signals:
+        void happened();
 
     private:
         const Scenario::EventModel& m_iscore_event;
