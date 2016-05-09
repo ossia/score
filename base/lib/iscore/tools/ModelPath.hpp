@@ -77,7 +77,7 @@ class Path
     public:
         // Use this if it is not possible to get a path
         // (for instance because the object does not exist yet)
-        struct UnsafeDynamicCreation{ explicit UnsafeDynamicCreation() = default; };
+        struct UnsafeDynamicCreation{ UnsafeDynamicCreation() = default; };
         Path(const ObjectPath& obj, UnsafeDynamicCreation): m_impl{obj.vec()} { }
         Path(ObjectPath&& obj, UnsafeDynamicCreation): m_impl{std::move(obj.vec())} { }
 
