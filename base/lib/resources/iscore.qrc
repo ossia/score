@@ -4,6 +4,10 @@
         <file>APCCourierBold.otf</file>
         <file>i-score.png</file>
         <file>dict.txt</file>
+        <file>icones/next_off.png</file>
+        <file>icones/next_on.png</file>
+        <file>icones/prev_off.png</file>
+        <file>icones/prev_on.png</file>
     </qresource>
     <qresource prefix="/qss_icons">
         <file>rc/up_arrow_disabled.png</file>
