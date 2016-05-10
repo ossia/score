@@ -19,12 +19,13 @@ SelectionButton::SelectionButton(
     auto lay = new iscore::MarginLess<QHBoxLayout>{this};
 
     m_button = new QPushButton{tr("None")};
+    m_button->setObjectName(QString("SelectionButton"));
     m_button->setIcon(QIcon(":/images/forward.svg"));
     m_button->setStyleSheet (
                 "margin: 5px;"
                 "margin-left: 10px;"
                 "text-align: left;"
-                "text-decoration: underline"
+                "text-decoration: underline;"
     );
     m_button->setFlat(true);
 
