@@ -16,6 +16,8 @@
 #include "ToolMenuActions.hpp"
 #include <core/presenter/MenubarManager.hpp>
 
+#include "seticons.hpp"
+
 class QObject;
 namespace Scenario
 {
@@ -28,6 +30,7 @@ QAction* makeToolbarAction(const QString& name,
                            const QString& shortcut)
 {
     auto act = new QAction{name, parent};
+
     act->setCheckable(true);
     act->setData(QVariant::fromValue((int) data));
     act->setShortcut(shortcut);
@@ -36,7 +39,6 @@ QAction* makeToolbarAction(const QString& name,
 
     return act;
 }
-
 
 ToolMenuActions::ToolMenuActions(
         iscore::ToplevelMenuElement menuElt,
@@ -59,6 +61,8 @@ ToolMenuActions::ToolMenuActions(
     m_selecttool->setObjectName("Select");
     m_selecttool->setChecked(true);
 
+    setIcons(m_selecttool, QString(":/icones/select_and_move_on.png"), QString(":/icones/select_and_move_off.png"));
+
     connect(m_selecttool, &QAction::toggled, this, [=](bool b) {
         if (b)
             m_parent->editionSettings().setTool(Scenario::Tool::Select);
@@ -70,6 +74,9 @@ ToolMenuActions::ToolMenuActions(
                           m_scenarioToolActionGroup,
                           Scenario::Tool::Create,
                           tr("C"));
+
+    setIcons(m_createtool, QString(":/icones/create_on.png"), QString(":/icones/create_off.png"));
+
     connect(m_createtool, &QAction::triggered, this, [=](bool b) {
         if(b)
             m_parent->editionSettings().setTool(Scenario::Tool::Create);
@@ -81,6 +88,8 @@ ToolMenuActions::ToolMenuActions(
                      m_scenarioToolActionGroup,
                      Scenario::Tool::Play,
                      tr("P"));
+    setIcons(m_playtool, QString(":/icones/play_on.png"), QString(":/icones/play_off.png"));
+
     connect(m_playtool, &QAction::triggered, this, [=] (bool b) {
         if(b)
             m_parent->editionSettings().setTool(Scenario::Tool::Play);
@@ -92,6 +101,7 @@ ToolMenuActions::ToolMenuActions(
                             m_scenarioToolActionGroup,
                             Scenario::Tool::MoveSlot,
                             tr("Alt+b"));
+    setIcons(slotmovetool, QString(":/icones/move_on.png"), QString(":/icones/move_off.png"));
     connect(slotmovetool, &QAction::triggered, this, [=]() {
         m_parent->editionSettings().setTool(Scenario::Tool::MoveSlot);
     });
@@ -116,6 +126,9 @@ ToolMenuActions::ToolMenuActions(
                      ExpandMode::Scale,
                      tr("Alt+S"));
     scale->setChecked(true);
+
+    setIcons(scale, QString(":/icones/scale_on.png"), QString(":/icones/scale_off.png"));
+
     connect(scale, &QAction::triggered, this, [=]()
     {
         m_parent->editionSettings().setExpandMode(ExpandMode::Scale);
@@ -126,6 +139,8 @@ ToolMenuActions::ToolMenuActions(
                     m_scenarioScaleModeActionGroup,
                     ExpandMode::GrowShrink,
                     tr("Alt+D"));
+    setIcons(grow, QString(":/icones/grow_shrink_on.png"), QString(":/icones/grow_shrink_off.png"));
+
     connect(grow, &QAction::triggered, this, [=]()
     {
         m_parent->editionSettings().setExpandMode(ExpandMode::GrowShrink);
