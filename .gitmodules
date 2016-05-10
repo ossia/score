@@ -19,3 +19,6 @@
 [submodule "3rdparty/Qt-Color-Widgets"]
 	path = 3rdparty/Qt-Color-Widgets
 	url = https://github.com/jcelerier/Qt-Color-Widgets.git
+[submodule "3rdparty/nodeeditor"]
+	path = 3rdparty/nodeeditor
+	url = https://github.com/jcelerier/nodeeditor
