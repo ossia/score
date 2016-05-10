@@ -109,5 +109,43 @@ class ISCORE_PLUGIN_SCENARIO_EXPORT BaseScenarioContainer :
         QObject* m_parent{}; // Parent for the constraints, timenodes, etc.
         // If inheriting, m_parent should be this.
 };
+
+inline auto constraints(const BaseScenarioContainer& scenar)
+{
+    return scenar.constraints();
+}
+inline auto events(const BaseScenarioContainer& scenar)
+{
+    return scenar.events();
+}
+inline auto timeNodes(const BaseScenarioContainer& scenar)
+{
+    return scenar.timeNodes();
+}
+inline auto states(const BaseScenarioContainer& scenar)
+{
+    return scenar.states();
+}
+
+template<>
+struct ScenarioElementTraits<BaseScenarioContainer, ConstraintModel>
+{
+        static const constexpr auto accessor = static_cast<IndirectArray<ConstraintModel, 1> (*) (const BaseScenarioContainer&)>(&constraints);
+};
+template<>
+struct ScenarioElementTraits<BaseScenarioContainer, EventModel>
+{
+        static const constexpr auto accessor = static_cast<IndirectArray<EventModel, 2> (*) (const BaseScenarioContainer&)>(&events);
+};
+template<>
+struct ScenarioElementTraits<BaseScenarioContainer, TimeNodeModel>
+{
+        static const constexpr auto accessor = static_cast<IndirectArray<TimeNodeModel, 2> (*) (const BaseScenarioContainer&)>(&timeNodes);
+};
+template<>
+struct ScenarioElementTraits<BaseScenarioContainer, StateModel>
+{
+        static const constexpr auto accessor = static_cast<IndirectArray<StateModel, 2> (*) (const BaseScenarioContainer&)>(&states);
+};
 }
 

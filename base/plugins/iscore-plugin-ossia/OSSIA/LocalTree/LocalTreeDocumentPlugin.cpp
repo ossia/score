@@ -58,11 +58,14 @@ Ossia::LocalTree::DocumentPlugin::DocumentPlugin(
         // Remove the node from local device
         auto it = find_if(m_localDevice->children(), [&] (const auto& node)
         { return node == comp->node(); });
-        ISCORE_ASSERT(it != m_localDevice->children().end());
 
-        m_localDevice->erase(it);
+        if(it != m_localDevice->children().end())
+        {
+            m_localDevice->erase(it);
+        }
 
         // Delete
         cstr.components.remove(comp);
+
     });
 }

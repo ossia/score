@@ -132,27 +132,6 @@ class ISCORE_PLUGIN_SCENARIO_EXPORT ScenarioModel final :
         NotifyingMap<StateModel> states;
         NotifyingMap<CommentBlockModel> comments;
 
-        IdContainer<ConstraintModel> getConstraints() const
-        {
-            return constraints;
-        }
-        IdContainer<EventModel> getEvents() const
-        {
-            return events;
-        }
-        IdContainer<TimeNodeModel>getTimeNodes() const
-        {
-            return timeNodes;
-        }
-        IdContainer<StateModel> getStates() const
-        {
-            return states;
-        }
-        IdContainer<CommentBlockModel> getComments() const
-        {
-            return comments;
-        }
-
     signals:
         void stateMoved(const StateModel&);
         void eventMoved(const EventModel&);
@@ -289,6 +268,45 @@ ISCORE_PLUGIN_SCENARIO_EXPORT const QVector<Id<ConstraintModel>> constraintsBefo
 
 const StateModel* furthestSelectedState(const Scenario::ScenarioModel& scenario);
 const StateModel* furthestSelectedStateWithoutFollowingConstraint(const Scenario::ScenarioModel& scenario);
+
+inline auto& constraints(const Scenario::ScenarioModel& scenar)
+{
+    return scenar.constraints;
+}
+inline auto& events(const Scenario::ScenarioModel& scenar)
+{
+    return scenar.events;
+}
+inline auto& timeNodes(const Scenario::ScenarioModel& scenar)
+{
+    return scenar.timeNodes;
+}
+inline auto& states(const Scenario::ScenarioModel& scenar)
+{
+    return scenar.states;
+}
+
+template<>
+struct ScenarioElementTraits<Scenario::ScenarioModel, ConstraintModel>
+{
+        static const constexpr auto accessor = static_cast<const NotifyingMap<ConstraintModel>& (*) (const Scenario::ScenarioModel&)>(&constraints);
+};
+template<>
+struct ScenarioElementTraits<Scenario::ScenarioModel, EventModel>
+{
+        static const constexpr auto accessor = static_cast<const NotifyingMap<EventModel>& (*) (const Scenario::ScenarioModel&)>(&events);
+};
+template<>
+struct ScenarioElementTraits<Scenario::ScenarioModel, TimeNodeModel>
+{
+        static const constexpr auto accessor = static_cast<const NotifyingMap<TimeNodeModel>& (*) (const Scenario::ScenarioModel&)>(&timeNodes);
+};
+template<>
+struct ScenarioElementTraits<Scenario::ScenarioModel, StateModel>
+{
+        static const constexpr auto accessor = static_cast<const NotifyingMap<StateModel>& (*) (const Scenario::ScenarioModel&)>(&states);
+};
+
 }
 
 DEFAULT_MODEL_METADATA(Scenario::ScenarioModel, "Scenario")

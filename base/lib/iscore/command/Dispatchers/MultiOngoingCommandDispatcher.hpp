@@ -40,11 +40,8 @@ class MultiOngoingCommandDispatcher final : public ICommandDispatcher
 
         ~MultiOngoingCommandDispatcher()
         {
-            for(int i = m_cmds.size() - 1; i >= 0; --i)
-            {
-                delete m_cmds[i];
-            }
-         }
+            cleanup();
+        }
 
         void submitCommand(iscore::SerializableCommand* cmd)
         {
@@ -104,12 +101,22 @@ class MultiOngoingCommandDispatcher final : public ICommandDispatcher
         {
             RollbackStrategy::rollback(m_cmds);
 
-            qDeleteAll(m_cmds);
+            cleanup();
             m_cmds.clear();
 
             stack().enableActions();
         }
 
     private:
+        void cleanup()
+        {
+            std::for_each(
+                        m_cmds.rbegin(),
+                        m_cmds.rend(),
+                        [] (auto cmd) {
+               delete cmd;
+            });
+        }
+
         std::vector<iscore::SerializableCommand*> m_cmds;
 };

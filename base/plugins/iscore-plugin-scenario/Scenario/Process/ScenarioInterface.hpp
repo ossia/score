@@ -43,4 +43,10 @@ static auto endId()
 {
     return Id<T>{endId_val()};
 }
+
+template<typename Scenario_T, typename Element_T>
+struct ScenarioElementTraits;
+// { auto container_accessor = &constraints; etc... }
+
+
 }
