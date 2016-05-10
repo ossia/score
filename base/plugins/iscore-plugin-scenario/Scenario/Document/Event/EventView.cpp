@@ -151,6 +151,11 @@ void EventView::setWidthScale(double d)
     this->setTransform(t.scale(d, 1.));
 }
 
+void EventView::changeToolTip(const QString& c)
+{
+    this->setToolTip(c);
+}
+
 void EventView::mousePressEvent(QGraphicsSceneMouseEvent* event)
 {
     if(event->button() == Qt::MouseButton::LeftButton)

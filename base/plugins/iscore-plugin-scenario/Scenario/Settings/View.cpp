@@ -17,6 +17,7 @@ View::View():
     auto lay = new QFormLayout;
     m_widg->setLayout(lay);
 
+    // SKIN
     m_skin = new QComboBox;
     m_skin->addItems({"Default", "IEEE"});
     lay->addRow(tr("Skin"), m_skin);
@@ -24,6 +25,7 @@ View::View():
     connect(m_skin, &QComboBox::currentTextChanged,
             this, &View::skinChanged);
 
+    // ZOOM
     m_zoomSpinBox = new QSpinBox;
     m_zoomSpinBox->setMinimum(50);
     m_zoomSpinBox->setMaximum(300);
@@ -34,6 +36,16 @@ View::View():
     m_zoomSpinBox->setSuffix(tr("%"));
 
     lay->addRow(tr("Graphical Zoom \n (50% -- 300%)"), m_zoomSpinBox);
+
+    //SLOT HEIGHT
+    m_slotHeightBox = new QSpinBox;
+    m_slotHeightBox->setMinimum(0);
+    m_slotHeightBox->setMaximum(10000);
+
+    connect(m_slotHeightBox, static_cast<void (QSpinBox::*)(int)>(&QSpinBox::valueChanged),
+            this, &View::slotHeightChanged);
+
+    lay->addRow(tr("Default Slot Height"), m_slotHeightBox);
 }
 
 void View::setSkin(const QString& val)
@@ -52,6 +64,12 @@ void View::setZoom(const int val)
 {
     if(val != m_zoomSpinBox->value())
         m_zoomSpinBox->setValue(val);
+}
+
+void View::setSlotHeight(const double val)
+{
+    if(val != m_slotHeightBox->value())
+        m_slotHeightBox->setValue(val);
 }
 
 QWidget *View::getWidget()

@@ -101,13 +101,13 @@ void StateView::mouseReleaseEvent(QGraphicsSceneMouseEvent *event)
 void StateView::hoverEnterEvent(QGraphicsSceneHoverEvent* event)
 {
 //   m_dilatationFactor = 1.5;
-   update();
+//   update();
 }
 
 void StateView::hoverLeaveEvent(QGraphicsSceneHoverEvent* event)
 {
 //    m_dilatationFactor = m_selected ? 1.5 : 1;
-    update();
+//    update();
 }
 void StateView::dragEnterEvent(QGraphicsSceneDragDropEvent* event)
 {
@@ -129,6 +129,7 @@ void StateView::setDilatation(double val)
 {
     m_dilatationFactor = val;
 //    this->setScale(m_dilatationFactor);
-    update();
+//    emit m_presenter.askUpdate();
+    this->update();
 }
 }
