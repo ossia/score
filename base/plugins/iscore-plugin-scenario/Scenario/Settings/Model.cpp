@@ -11,6 +11,7 @@ namespace Settings
 
 const QString Keys::skin = QStringLiteral("Skin/Skin");
 const QString Keys::graphicZoom = QStringLiteral("Skin/Zoom");
+const QString Keys::slotHeight = QStringLiteral("Skin/slotHeight");
 
 
 Model::Model()
@@ -26,6 +27,7 @@ Model::Model()
     {
         setSkin(s.value(Keys::skin).toString());
         setGraphicZoom(s.value(Keys::graphicZoom).toDouble());
+        setSlotHeight(s.value(Keys::slotHeight).toReal());
     }
 }
 
@@ -83,6 +85,9 @@ void Model::setGraphicZoom(double graphicZoom)
         return;
 
     m_graphicZoom = graphicZoom;
+
+    QSettings s;
+    s.setValue(Keys::graphicZoom, m_graphicZoom);
     emit graphicZoomChanged(m_graphicZoom);
 }
 
@@ -90,6 +95,28 @@ void Model::setFirstTimeSettings()
 {
     setSkin("Default");
     m_graphicZoom = 1.;
+    m_slotHeight = 400;
+    QSettings s;
+    s.setValue(Keys::graphicZoom, m_graphicZoom);
+    s.setValue(Keys::skin, m_skin);
+    s.setValue(Keys::slotHeight, m_slotHeight);
+}
+
+qreal Model::getSlotHeight() const
+{
+    return m_slotHeight;
+}
+
+void Model::setSlotHeight(const qreal& slotHeight)
+{
+    if(slotHeight == m_slotHeight)
+        return;
+
+    m_slotHeight = slotHeight;
+
+    QSettings s;
+    s.setValue(Keys::slotHeight, m_slotHeight);
+    emit slotHeightChanged(m_slotHeight);
 }
 
 }

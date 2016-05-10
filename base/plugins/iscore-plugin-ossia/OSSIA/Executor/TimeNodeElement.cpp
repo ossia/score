@@ -35,7 +35,6 @@ TimeNodeElement::TimeNodeElement(
             qDebug() << e.what();
             m_ossia_node->setExpression(OSSIA::Expression::create(true));
         }
-
     }
     connect(m_iscore_node.trigger(), &Scenario::TriggerModel::triggeredByGui,
             this, [&] () {
