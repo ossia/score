@@ -18,6 +18,7 @@ class ScenarioComponent final : public ProcessComponent
            ScenarioComponentHierarchyManager<
                ScenarioComponent,
                system_t,
+               Scenario::ScenarioModel,
                ConstraintComponent,
                EventComponent,
                TimeNodeComponent,

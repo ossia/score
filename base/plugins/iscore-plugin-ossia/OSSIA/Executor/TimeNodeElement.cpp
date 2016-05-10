@@ -20,7 +20,6 @@ TimeNodeElement::TimeNodeElement(
     m_iscore_node{element},
     m_deviceList{devlist}
 {
-
     if(element.trigger() && element.trigger()->active())
     {
         try
@@ -41,7 +40,7 @@ TimeNodeElement::TimeNodeElement(
     connect(m_iscore_node.trigger(), &Scenario::TriggerModel::triggeredByGui,
             this, [&] () {
         try {
-        m_ossia_node->trigger();
+            m_ossia_node->trigger();
         }
         catch(...)
         {
