@@ -77,12 +77,17 @@ QCheckBox:disabled
 {
     color: #777777;
 }
-QCheckBox::indicator,
-QGroupBox::indicator
-{
+
+QCheckBox::indicator {
     width: 18px;
     height: 18px;
 }
+
+QGroupBox::indicator {
+    width: 18px;
+    height: 18px;
+}
+
 QGroupBox::indicator
 {
     margin-left: 2px;
@@ -703,6 +708,11 @@ QPushButton:checked{
     border-color: #6A6969;
 }
 
+QToolButton:disabled {
+    background-color: #1A2024;
+    color: #454545;
+}
+
 QComboBox:hover,QPushButton:hover,QToolButton:hover,QAbstractSpinBox:hover,QLineEdit:hover,QTextEdit:hover,QPlainTextEdit:hover,QAbstractView:hover,QTreeView:hover
 {
     /*border: 1px solid #78879b;*/
@@ -996,7 +1006,16 @@ QDockWidget::float-button:hover {
     image: url(:/qss_icons/icones/undock_on.png);
 }
 
-QTreeView, QListView
+QTreeView {
+    border: 1px solid #444;
+    background-color: #12171A;
+}
+
+QTreeView::item {
+    border-right: 1px solid #666666
+}
+
+QListView
 {
     border: 1px solid #444;
     background-color: #12171A;
@@ -1166,8 +1185,7 @@ QTableView
 }
 
 
-QTableView, QHeaderView
-{
+QTableView {
     border-radius: 0px;
 }
 
@@ -1193,10 +1211,12 @@ QHeaderView
 }
 
 QHeaderView::section  {
-    background-color: #666666;
+    background-color: #1A2024;
     color: silver;
     padding: 4px;
-    border: 1px solid #6c6c6c;
+    border-width: 1px 1px 3px 1px;
+    border-style: solid;
+    border-color: #666666;
     border-radius: 0px;
     text-align: center;
 }

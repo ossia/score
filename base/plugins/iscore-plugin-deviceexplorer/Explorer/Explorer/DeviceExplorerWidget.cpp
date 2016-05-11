@@ -60,6 +60,7 @@
 #include <iscore/tools/TreeNode.hpp>
 #include <iscore/tools/std/Algorithms.hpp>
 #include <iscore/widgets/SignalUtils.hpp>
+#include <iscore/widgets/SetIcons.hpp>
 
 
 namespace Explorer
@@ -136,9 +137,16 @@ DeviceExplorerWidget::buildGUI()
 
 
     QPushButton* addButton = new QPushButton(this);
-    addButton->setIcon(QIcon(":/resources/images/add.png"));
+
+    QIcon addButtonIcon;
+    addButtonIcon.addPixmap(QString(":/resources/images/add_off.png"));
+    addButtonIcon.addPixmap(QString(":/resources/images/add_on.png"), QIcon::Mode::Selected);
+    addButtonIcon.addPixmap(QString(":/resources/images/add_on.png"), QIcon::Mode::Active);
+    addButtonIcon.addPixmap(QString(":/resources/images/add_off.png"), QIcon::Mode::Normal, QIcon::State::On);
+
     addButton->setMaximumSize(QSize(32, 32));
-    addButton->setStyleSheet("QPushButton::menu-indicator{ image: url(none.jpg); }");  //to hide the small triangle added to indicate a menu.
+    addButton->setIcon(addButtonIcon);
+    addButton->setStyleSheet("QPushButton::menu-indicator{ image: url(none.jpg); }"  /*to hide the small triangle added to indicate a menu.*/);
 
     m_addDeviceAction = new QAction(QIcon(":/resources/images/addDevice.png"), tr("Add device"), this);
     m_addDeviceAction->setShortcut(tr("Ctrl+B"));
