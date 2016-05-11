@@ -55,7 +55,7 @@ IScoreCohesionApplicationPlugin::IScoreCohesionApplicationPlugin(const iscore::A
     m_snapshot = new QAction {tr("Snapshot in Event"), this};
     m_snapshot->setShortcutContext(Qt::ApplicationShortcut);
     m_snapshot->setShortcut(tr("Ctrl+J"));
-    m_snapshot->setToolTip(tr("Ctrl+J"));
+    m_snapshot->setToolTip(tr("Snapshot in Event (Ctrl+J)"));
     m_snapshot->setWhatsThis(iscore::MenuInterface::name(iscore::ContextMenu::State));
 
     setIcons(m_snapshot, QString(":/icones/snapshot_on.png"), QString(":/icones/snapshot_off.png"));
@@ -70,7 +70,7 @@ IScoreCohesionApplicationPlugin::IScoreCohesionApplicationPlugin(const iscore::A
     m_curves = new QAction {tr("Create Curves"), this};
     m_curves->setShortcutContext(Qt::ApplicationShortcut);
     m_curves->setShortcut(tr("Ctrl+L"));
-    m_curves->setToolTip(tr("Ctrl+L"));
+    m_curves->setToolTip(tr("Create Curves (Ctrl+L)"));
     m_curves->setWhatsThis(iscore::MenuInterface::name(iscore::ContextMenu::Constraint));
 
     setIcons(m_curves, QString(":/icones/create_curve_on.png"), QString(":/icones/create_curve_off.png"));
