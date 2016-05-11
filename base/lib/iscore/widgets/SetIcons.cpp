@@ -1,4 +1,4 @@
-#include "seticons.hpp"
+#include "SetIcons.hpp"
 
 void setIcons(QAction *action, const QString &iconOn, const QString &iconOff) {
     QIcon icon;

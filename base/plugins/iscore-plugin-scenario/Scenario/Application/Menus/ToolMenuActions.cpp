@@ -16,7 +16,7 @@
 #include "ToolMenuActions.hpp"
 #include <core/presenter/MenubarManager.hpp>
 
-#include "seticons.hpp"
+#include <iscore/widgets/SetIcons.hpp>
 
 class QObject;
 namespace Scenario

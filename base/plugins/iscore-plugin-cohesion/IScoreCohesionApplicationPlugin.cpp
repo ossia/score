@@ -17,6 +17,7 @@
 #include <core/document/Document.hpp>
 #include <iscore/plugins/application/GUIApplicationContextPlugin.hpp>
 #include <iscore/widgets/OrderedToolbar.hpp>
+#include <iscore/widgets/SetIcons.hpp>
 #include <Scenario/Commands/Cohesion/DoForSelectedConstraints.hpp>
 
 namespace iscore {
@@ -56,6 +57,9 @@ IScoreCohesionApplicationPlugin::IScoreCohesionApplicationPlugin(const iscore::A
     m_snapshot->setShortcut(tr("Ctrl+J"));
     m_snapshot->setToolTip(tr("Ctrl+J"));
     m_snapshot->setWhatsThis(iscore::MenuInterface::name(iscore::ContextMenu::State));
+
+    setIcons(m_snapshot, QString(":/icones/snapshot_on.png"), QString(":/icones/snapshot_off.png"));
+
     connect(m_snapshot, &QAction::triggered,
             this, [&] () {
         if(auto doc = currentDocument())
@@ -68,6 +72,9 @@ IScoreCohesionApplicationPlugin::IScoreCohesionApplicationPlugin(const iscore::A
     m_curves->setShortcut(tr("Ctrl+L"));
     m_curves->setToolTip(tr("Ctrl+L"));
     m_curves->setWhatsThis(iscore::MenuInterface::name(iscore::ContextMenu::Constraint));
+
+    setIcons(m_curves, QString(":/icones/create_curve_on.png"), QString(":/icones/create_curve_off.png"));
+
     connect(m_curves, &QAction::triggered,
             this, [&] () {
         if(auto doc = currentDocument())
