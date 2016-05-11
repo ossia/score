@@ -45,6 +45,7 @@ class ISCORE_PLUGIN_SCENARIO_EXPORT SlotModel final :
     public:
         ModelMetadata metadata;
         SlotModel(const Id<SlotModel>& id,
+                  const qreal slotHeight,
                   RackModel* parent);
 
         // Copy

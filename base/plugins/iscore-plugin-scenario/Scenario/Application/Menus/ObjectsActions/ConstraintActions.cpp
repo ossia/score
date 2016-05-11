@@ -103,7 +103,7 @@ void ConstraintActions::fillContextMenu(
 
                 for(const RackModel& rack : cst.racks)
                 {
-                    auto act = new QAction{rack.objectName(), rackMenu};
+                    auto act = new QAction{rack.metadata.name(), rackMenu};
                     connect(act, &QAction::triggered,
                             this, [&] () {
                         auto cmd = new Scenario::Command::ShowRackInViewModel{vm, rack.id()};

@@ -1,5 +1,6 @@
 #include <Scenario/Document/Constraint/Rack/RackModel.hpp>
 #include <Scenario/Document/Constraint/Rack/Slot/SlotModel.hpp>
+#include <Scenario/Settings/Model.hpp>
 
 #include <boost/iterator/iterator_facade.hpp>
 #include <boost/multi_index/detail/hash_index_iterator.hpp>
@@ -37,7 +38,10 @@ void AddSlotToRack::undo() const
 void AddSlotToRack::redo() const
 {
     auto& rack = m_path.find();
+    auto h = iscore::AppContext().settings<Scenario::Settings::Model>().getSlotHeight();
+
     rack.addSlot(new SlotModel {m_createdSlotId,
+                                h,
                                &rack});
 }
 

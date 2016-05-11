@@ -19,6 +19,7 @@
 #include <QLabel>
 #include <QVector>
 #include <QWidget>
+#include <QLineEdit>
 
 #include <QMenu>
 #include <algorithm>
@@ -70,12 +71,6 @@ void StateInspectorWidget::updateDisplayedValues()
     qDeleteAll(m_properties);
     m_properties.clear();
 
-    auto widget = new QWidget;
-    auto lay = new iscore::MarginLess<QFormLayout>{widget};
-    widget->setLayout(lay);
-    // State id
-    //lay->addRow("Id", new QLabel{QString::number(m_model.id().val().get())});
-
     auto scenar = dynamic_cast<ScenarioInterface*>(m_model.parent());
     ISCORE_ASSERT(scenar);
 
@@ -87,7 +82,6 @@ void StateInspectorWidget::updateDisplayedValues()
                                 m_stateSection};
 
     m_stateSection->addContent(tv);
-    m_properties.push_back(m_stateSection);
 
     auto linkWidget = new QWidget;
     auto linkLay = new iscore::MarginLess<QHBoxLayout>{linkWidget};
@@ -151,7 +145,7 @@ void StateInspectorWidget::updateDisplayedValues()
     }
 
     m_stateSection->addContent(procWidg);
-    m_properties.push_back(widget);
+    m_properties.push_back(m_stateSection);
 
     for(auto w : m_properties)
         this->layout()->addWidget(w);
