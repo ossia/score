@@ -14,13 +14,16 @@
 #include <iscore/tools/NotifyingMap.hpp>
 #include <iscore/tools/Todo.hpp>
 
+#include <Scenario/Settings/Model.hpp>
+
 namespace Scenario
 {
-SlotModel::SlotModel(
-        const Id<SlotModel>& id,
+SlotModel::SlotModel(const Id<SlotModel>& id,
+        const qreal slotHeight,
         RackModel* parent) :
     IdentifiedObject<SlotModel> {id, Metadata<ObjectKey_k, SlotModel>::get(), parent}
 {
+    m_height = slotHeight;
     initConnections();
     metadata.setName(QString{"Slot.%1"}.arg(*id.val()));
 }

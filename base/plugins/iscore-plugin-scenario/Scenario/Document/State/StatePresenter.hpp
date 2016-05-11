@@ -42,6 +42,8 @@ class ISCORE_PLUGIN_SCENARIO_EXPORT StatePresenter final : public NamedObject
         void hoverEnter();
         void hoverLeave();
 
+        void askUpdate();
+
     private:
         void updateStateView();
 

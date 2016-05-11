@@ -45,6 +45,7 @@ include_directories(SYSTEM "${3RDPARTY_FOLDER}/nano-signal-slot")
 add_subdirectory("${3RDPARTY_FOLDER}/Qt-Color-Widgets" EXCLUDE_FROM_ALL)
 add_subdirectory("${3RDPARTY_FOLDER}/QProgressIndicator" EXCLUDE_FROM_ALL)
 add_subdirectory("${3RDPARTY_FOLDER}/QRecentFilesMenu" EXCLUDE_FROM_ALL)
+add_subdirectory("${3RDPARTY_FOLDER}/nodeeditor" EXCLUDE_FROM_ALL)
 
 set(ISCORE_PLUGINS_LIST CACHE INTERNAL "List of plugins") # todo libraries, components ?
 set(ISCORE_GLOBAL_COMPONENTS_LIST CACHE INTERNAL "List of components") # todo libraries, components ?

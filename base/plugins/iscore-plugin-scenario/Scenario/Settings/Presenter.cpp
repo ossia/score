@@ -40,6 +40,20 @@ Presenter::Presenter(
         v.setZoom((100 * z));
     });
     v.setZoom(m.getGraphicZoom() * 100);
+
+
+    con(v, &View::slotHeightChanged,
+        this, [&] (const int& h) {
+        if(h != m.getSlotHeight())
+        {
+            m_disp.submitCommand<SetSlotHeight>(this->model(this), qreal(h));
+        }
+    });
+    con(m, &Model::slotHeightChanged,
+        this, [&] (const qreal h) {
+        v.setSlotHeight(h);
+    });
+    v.setSlotHeight(qreal(m.getSlotHeight()));
 }
 
 QString Presenter::settingsName()
