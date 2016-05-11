@@ -42,5 +42,9 @@
         <file>icones/condition_on.png</file>
         <file>icones/trigger_off.png</file>
         <file>icones/trigger_on.png</file>
+        <file>icones/create_curve_off.png</file>
+        <file>icones/create_curve_on.png</file>
+        <file>icones/interpolate_off.png</file>
+        <file>icones/interpolate_on.png</file>
     </qresource>
 </RCC>

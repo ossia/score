@@ -17,6 +17,7 @@
 #include <iscore/tools/ModelPathSerialization.hpp>
 #include <iscore/plugins/customfactory/StringFactoryKeySerialization.hpp>
 #include <iscore/application/ApplicationContext.hpp>
+#include <iscore/widgets/SetIcons.hpp>
 
 #include <Scenario/Commands/Scenario/HideRackInViewModel.hpp>
 #include <Scenario/Commands/Scenario/ShowRackInViewModel.hpp>
@@ -60,6 +61,7 @@ ConstraintActions::ConstraintActions(
     m_interp->setShortcut(tr("Ctrl+K"));
     m_interp->setToolTip(tr("Ctrl+K"));
     m_interp->setWhatsThis(iscore::MenuInterface::name(iscore::ContextMenu::Constraint));
+    setIcons(m_interp, QString(":/icones/interpolate_on.png"), QString(":/icones/interpolate_off.png"));
     connect(m_interp, &QAction::triggered,
         this, [&] () {
     DoForSelectedConstraints(m_parent->currentDocument()->context(), InterpolateStates);

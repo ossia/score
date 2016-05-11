@@ -8,6 +8,8 @@
         <file>icones/next_on.png</file>
         <file>icones/prev_off.png</file>
         <file>icones/prev_on.png</file>
+        <file>icones/create_curve_off.png</file>
+        <file>icones/create_curve_on.png</file>
     </qresource>
     <qresource prefix="/qss_icons">
         <file>rc/up_arrow_disabled.png</file>
@@ -49,6 +51,11 @@
         <file>rc/radio_unchecked_disabled.png</file>
         <file>rc/radio_unchecked_focus.png</file>
         <file>rc/radio_unchecked.png</file>
+        <file>icones/close_off.png</file>
+        <file>icones/close_on.png</file>
+        <file>icones/undock_off.png</file>
+        <file>icones/undock_on.png</file>
+        <file>icones/blank.png</file>
     </qresource>
     <qresource prefix="/qdarkstyle">
         <file>qdarkstyle.qss</file>

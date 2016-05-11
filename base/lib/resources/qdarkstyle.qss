@@ -658,7 +658,7 @@ QPushButton::menu-indicator#SettingsMenu {
     image: url(none.jpg);
 }
 
-QPushButton:disabled,QToolButton:disabled
+QPushButton:disabled
 {
     background-color: #1A2024;
     /*border-width: 1px;
@@ -827,20 +827,20 @@ QTabBar:focus
 }
 
 QTabBar::close-button  {
-    image: url(:/qss_icons/rc/close.png);
+    image: url(:/qss_icons/icones/close_off.png);
     background: transparent;
 }
 
 QTabBar::close-button:hover
 {
-    image: url(:/qss_icons/rc/close-hover.png);
+    image: url(:/qss_icons/icones/close_on.png);
     background: transparent;
 }
 
-QTabBar::close-button:pressed {
+/*QTabBar::close-button:pressed {
     image: url(:/qss_icons/rc/close-pressed.png);
     background: transparent;
-}
+}*/
 
 /* TOP TABS */
 QTabBar::tab:top {
@@ -969,23 +969,31 @@ QTabBar QToolButton::right-arrow:disabled {
 
 QDockWidget {
     border: 1px solid #403F3F;
-    titlebar-close-icon: url(:/qss_icons/rc/close.png);
-    titlebar-normal-icon: url(:/qss_icons/rc/undock.png);
+    titlebar-close-icon: url(:/qss_icons/icones/blank.png);
+    titlebar-normal-icon: url(:/qss_icons/icones/blank.png);
 }
 
 QDockWidget::close-button, QDockWidget::float-button {
-    border: 1px solid transparent;
-    border-radius: 2px;
+    border: none;
     background: transparent;
+    icon-size: 14px;
+    padding: 1px;
 }
 
-QDockWidget::close-button:hover, QDockWidget::float-button:hover {
-    background: rgba(255, 255, 255, 10);
+QDockWidget::close-button {
+    image: url(:/qss_icons/icones/close_off.png);
 }
 
-QDockWidget::close-button:pressed, QDockWidget::float-button:pressed {
-    padding: 1px -1px -1px 1px;
-    background: rgba(255, 255, 255, 10);
+QDockWidget::float-button {
+    image: url(:/qss_icons/icones/undock_off.png);
+}
+
+QDockWidget::close-button:hover {
+    image: url(:/qss_icons/icones/close_on.png);
+}
+
+QDockWidget::float-button:hover {
+    image: url(:/qss_icons/icones/undock_on.png);
 }
 
 QTreeView, QListView

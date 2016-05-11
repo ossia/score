@@ -9,7 +9,8 @@
 #include "TransportActions.hpp"
 #include <core/presenter/MenubarManager.hpp>
 #include <iscore/menu/MenuInterface.hpp>
-#include "seticons.hpp"
+
+#include <iscore/widgets/SetIcons.hpp>
 
 class QMenu;
 

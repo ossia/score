@@ -9,6 +9,7 @@
 #include <iscore/menu/MenuInterface.hpp>
 #include <iscore/plugins/application/GUIApplicationContextPlugin.hpp>
 #include <iscore/widgets/OrderedToolbar.hpp>
+#include <iscore/widgets/SetIcons.hpp>
 #include <QIcon>
 
 class QObject;
@@ -25,11 +26,7 @@ iscore::UndoApplicationPlugin::UndoApplicationPlugin(
     m_undoAction.setText(QObject::tr("Nothing to undo"));
     m_undoAction.setToolTip(QObject::tr("Ctrl+Z"));
 
-    QIcon undoIcon;
-    undoIcon.addPixmap(QString(":/icones/prev_off.png"), QIcon::Mode::Normal);
-    undoIcon.addPixmap(QString(":/icones/prev_on.png"), QIcon::Mode::Active);
-    undoIcon.addPixmap(QString(":/icones/prev_on.png"), QIcon::Mode::Selected);
-    m_undoAction.setIcon(undoIcon);
+    setIcons(&m_undoAction, QString(":/icones/prev_on.png"), QString(":/icones/prev_off.png"));
 
     con(m_undoAction, &QAction::triggered,
             [&] ()
@@ -42,11 +39,7 @@ iscore::UndoApplicationPlugin::UndoApplicationPlugin(
     m_redoAction.setText(QObject::tr("Nothing to redo"));
     m_redoAction.setToolTip(QObject::tr("Ctrl+Shift+Z"));
 
-    QIcon redoIcon;
-    redoIcon.addPixmap(QString(":/icones/next_off.png"), QIcon::Mode::Normal);
-    redoIcon.addPixmap(QString(":/icones/next_on.png"), QIcon::Mode::Active);
-    redoIcon.addPixmap(QString(":/icones/next_on.png"), QIcon::Mode::Selected);
-    m_redoAction.setIcon(redoIcon);
+    setIcons(&m_redoAction, QString(":/icones/next_on.png"), QString(":/icones/next_off.png"));
 
     con(m_redoAction, &QAction::triggered,
             [&] ()
