@@ -64,6 +64,7 @@ struct PluginDependencyNode
 };
 
 // TESTME
+// TODO boost.graph instead...
 struct PluginDependencyGraph
 {
     private:

@@ -258,4 +258,9 @@ void Application::loadPluginData()
     {
         m_view->addToolBar(toolbar.bar);
     }
+
+    for(iscore::GUIApplicationContextPlugin* app_plug : ctx.components.applicationPlugins())
+    {
+        app_plug->initialize();
+    }
 }

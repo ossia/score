@@ -41,6 +41,14 @@ namespace iscore
                                    const QString& name,
                                    QObject* parent);
 
+            /**
+             * @brief initialize
+             *
+             * This method will be called once every class has been loaded
+             * from every plug-in.
+             */
+            virtual void initialize();
+
             virtual ~GUIApplicationContextPlugin();
 
             virtual void populateMenus(iscore::MenubarManager*);

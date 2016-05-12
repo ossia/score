@@ -29,6 +29,11 @@ GUIApplicationContextPlugin::GUIApplicationContextPlugin(
 
 }
 
+void GUIApplicationContextPlugin::initialize()
+{
+
+}
+
 GUIApplicationContextPlugin::~GUIApplicationContextPlugin()
 {
 
