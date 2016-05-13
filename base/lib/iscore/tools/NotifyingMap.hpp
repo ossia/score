@@ -35,6 +35,7 @@ class NotifyingMap
         T& at(const Id<T>& id) { return m_map.at(id); }
         T& at(const Id<T>& id) const { return m_map.at(id); }
         auto find(const Id<T>& id) const { return m_map.find(id); }
+        void swap(const Id<T>& id1, const Id<T>& id2) { m_map.swap(id1, id2); }
 
         // signals:
         mutable Nano::Signal<void(T&)> mutable_added;
