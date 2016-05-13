@@ -18,6 +18,7 @@ UndoView::UndoView(QObject* v) :
     m_widget{new QWidget}
 {
     m_widget->setLayout(new QVBoxLayout);
+    m_widget->setObjectName("HistoryExplorer");
 }
 
 

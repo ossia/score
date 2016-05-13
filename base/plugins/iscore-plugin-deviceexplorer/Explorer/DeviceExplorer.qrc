@@ -7,5 +7,7 @@
         <file>resources/DeviceExplorer.qss</file>
         <file>resources/images/add_off.png</file>
         <file>resources/images/add_on.png</file>
+        <file>resources/images/edit_off.png</file>
+        <file>resources/images/edit_on.png</file>
     </qresource>
 </RCC>

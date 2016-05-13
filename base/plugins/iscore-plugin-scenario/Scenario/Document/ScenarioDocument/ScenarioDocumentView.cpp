@@ -122,11 +122,13 @@ ScenarioDocumentView::ScenarioDocumentView(
 
     // Transport
     auto transportWidget = new QWidget{m_widget};
+    transportWidget->setObjectName("ScenarioTransportWidget");
     auto transportLayout = new iscore::MarginLess<QGridLayout>{transportWidget};
 
     QToolBar* transportButtons = new QToolBar;
     // See : http://stackoverflow.com/questions/21363350/remove-gradient-from-qtoolbar-in-os-x
     transportButtons->setStyle(QStyleFactory::create("windows"));
+    transportButtons->setObjectName("ScenarioTransportToolbar");
 
     auto& appPlug = ctx.components.applicationPlugin<ScenarioApplicationPlugin>();
     for(const auto& action : appPlug.pluginActions())
@@ -146,11 +148,14 @@ ScenarioDocumentView::ScenarioDocumentView(
 
     /// Zoom
     m_zoomSlider = new DoubleSlider{transportWidget};
+    m_zoomSlider->setObjectName("ZoomSliderWidget");
 
     connect(m_zoomSlider, &DoubleSlider::valueChanged,
             this,         &ScenarioDocumentView::horizontalZoomChanged);
 
-    transportLayout->addWidget(new QLabel{tr("Zoom") }, 0, 1);
+    QLabel* zoomLabel = new QLabel{tr("Zoom") };
+    zoomLabel->setObjectName("ScenarioZoomLabel");
+    transportLayout->addWidget(zoomLabel, 0, 1);
     transportLayout->addWidget(m_zoomSlider, 0, 2);
 
     QAction* zoomIn = new QAction("Zoom in", m_widget);
@@ -207,6 +212,8 @@ ScenarioDocumentView::ScenarioDocumentView(
         m_timeRulersView->setBackgroundBrush(skin.TimeRulerBackground.getBrush());
         m_view->setBackgroundBrush(skin.Background.getBrush());
     });
+
+    m_widget->setObjectName("ScenarioViewer");
 }
 
 QWidget* ScenarioDocumentView::getWidget()

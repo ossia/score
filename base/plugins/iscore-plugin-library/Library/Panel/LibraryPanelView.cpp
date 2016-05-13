@@ -21,6 +21,8 @@ LibraryPanelView::LibraryPanelView(QObject* parent):
 
     auto systemLib = new LibraryWidget{m_widget};
     m_widget->addTab(systemLib, tr("System"));
+
+    m_widget->setObjectName("LibraryExplorer");
 }
 
 QWidget* LibraryPanelView::getWidget()
