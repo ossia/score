@@ -18,7 +18,7 @@ static const iscore::DefaultPanelStatus status{
     true,
     Qt::LeftDockWidgetArea,
             10,
-            QObject::tr("Devices")};
+            QObject::tr("Device Explorer")};
 
 const iscore::DefaultPanelStatus &DeviceExplorerPanelView::defaultPanelStatus() const
 { return status; }
