@@ -4,6 +4,7 @@
 #include <boost/multi_index/mem_fun.hpp>
 #include <boost/multi_index_container.hpp>
 #include <boost/multi_index/hashed_index.hpp>
+#include <boost/multi_index/sequenced_index.hpp>
 
 #include <boost/iterator/indirect_iterator.hpp>
 // This file contains a fast map for items based on their identifier,
@@ -28,10 +29,10 @@ class MapBase
     public:
         using value_type = Element;
         using model_type = Model;
-        auto begin() const { return boost::make_indirect_iterator(map.begin()); }
-        auto cbegin() const { return boost::make_indirect_iterator(map.cbegin()); }
-        auto end() const { return boost::make_indirect_iterator(map.end()); }
-        auto cend() const { return boost::make_indirect_iterator(map.cend()); }
+        auto begin() const { return boost::make_indirect_iterator(m_map.begin()); }
+        auto cbegin() const { return boost::make_indirect_iterator(m_map.cbegin()); }
+        auto end() const { return boost::make_indirect_iterator(m_map.end()); }
+        auto cend() const { return boost::make_indirect_iterator(m_map.cend()); }
 
         MapBase() = default;
 
@@ -46,32 +47,31 @@ class MapBase
 
         void insert(value_type* t)
         {
-            ISCORE_ASSERT(map.find(t->id()) == map.end());
-            map.insert(t);
+            ISCORE_ASSERT(m_map.find(t->id()) == m_map.end());
+            m_map.insert(t);
         }
 
         std::size_t size() const
-        { return map.size(); }
+        { return m_map.size(); }
 
         bool empty() const
-        { return map.empty(); }
+        { return m_map.empty(); }
 
         template<typename T>
         void remove(const T& t)
-        { map.erase(t); }
+        { m_map.erase(t); }
 
         void clear()
-        { map.clear(); }
+        { m_map.clear(); }
 
         auto find(const Id<model_type>& id) const
-        { return boost::make_indirect_iterator(map.find(id)); }
+        { return boost::make_indirect_iterator(m_map.find(id)); }
 
-        auto& get() { return map.template get<0>(); }
-        const auto& get() const { return map.template get<0>(); }
-
+        auto& get() { return m_map.template get<0>(); }
+        const auto& get() const { return m_map.template get<0>(); }
 
     protected:
-        Map map;
+        Map m_map;
 };
 
 // We have to write two implementations since const_mem_fun does not handle inheritance.
@@ -97,7 +97,8 @@ class IdContainer<Element, Model,
                             const Id<Model>&,
                             &IdentifiedObject<Model>::id
                         >
-                    >
+                    >,
+                    bmi::sequenced<>
                 >
             >
         >
@@ -115,7 +116,8 @@ class IdContainer<Element, Model,
                     const Id<Model>&,
                     &IdentifiedObject<Model>::id
                 >
-            >
+            >,
+            bmi::sequenced<>
         >
     >
 >::MapBase;
@@ -124,15 +126,31 @@ class IdContainer<Element, Model,
         {
             if(id.m_ptr)
             {
-                ISCORE_ASSERT(id.m_ptr->parent() == (*this->map.find(id))->parent());
+                ISCORE_ASSERT(id.m_ptr->parent() == (*this->m_map.find(id))->parent());
                 return safe_cast<Element&>(*id.m_ptr);
             }
-            auto item = this->map.find(id);
-            ISCORE_ASSERT(item != this->map.end());
+            auto item = this->m_map.find(id);
+            ISCORE_ASSERT(item != this->m_map.end());
 
             id.m_ptr = *item;
             return safe_cast<Element&>(**item);
         }
+
+        void swap(const Id<Model>& t1, const Id<Model>& t2)
+        {
+            /*
+            auto first = this->m_map.find(t1);
+            auto first_pos_idx = this->m_map.template project<1>(first);
+
+            auto second = this->m_map.find(t2);
+            auto second_pos_idx = this->m_map.template project<1>(second);
+
+            auto t = *first_pos_idx;
+            *first_pos_idx = *second_pos_idx;
+            *second_pos_idx = t;
+            */
+        }
+
 
 };
 
@@ -183,8 +201,8 @@ class IdContainer<Element, Model,
 
         auto& at(const Id<Model>& id) const
         {
-            auto item = this->map.find(id);
-            ISCORE_ASSERT(item != this->map.end());
+            auto item = this->m_map.find(id);
+            ISCORE_ASSERT(item != this->m_map.end());
             return **item;
         }
 };
