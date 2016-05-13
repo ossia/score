@@ -1,0 +1,55 @@
+#N canvas 683 23 607 485 10;
+#X declare -lib mrpeach;
+#X obj 103 331 tgl 15 0 empty empty empty 17 7 0 10 -262144 -1 -1 1
+1;
+#X msg 159 273 disconnect;
+#X msg 156 247 connect 127.0.0.1 9997;
+#X obj 163 225 loadbang;
+#X obj 42 56 bng 15 250 50 0 empty empty empty 17 7 0 10 -262144 -1
+-1;
+#X obj 81 57 bng 15 250 50 0 empty empty empty 17 7 0 10 -262144 -1
+-1;
+#X text 40 40 In;
+#X text 77 40 Out;
+#X obj 207 63 bng 15 250 50 0 empty empty empty 17 7 0 10 -262144 -1
+-1;
+#X text 203 42 Exit;
+#X msg 206 110 send /stop 1;
+#X obj 23 10 import mrpeach;
+#X obj 104 261 packOSC;
+#X obj 103 298 udpsend;
+#X obj 418 97 udpreceive 9996;
+#X obj 419 129 unpackOSC;
+#X obj 420 167 routeOSC /color;
+#X msg 42 108 send /sensor/value \$1;
+#X msg 86 184 send /sensor/event 1;
+#X msg 88 133 bang;
+#X msg 81 76 2;
+#X msg 42 76 1;
+#X obj 420 237 print green;
+#X obj 443 264 print red;
+#X obj 466 296 print yellow;
+#X obj 420 206 select 1 2 3;
+#X obj 87 160 delay 10;
+#X connect 1 0 13 0;
+#X connect 2 0 13 0;
+#X connect 3 0 2 0;
+#X connect 4 0 21 0;
+#X connect 5 0 20 0;
+#X connect 8 0 10 0;
+#X connect 10 0 12 0;
+#X connect 12 0 13 0;
+#X connect 13 0 0 0;
+#X connect 14 0 15 0;
+#X connect 15 0 16 0;
+#X connect 16 0 25 0;
+#X connect 17 0 12 0;
+#X connect 17 0 19 0;
+#X connect 18 0 12 0;
+#X connect 19 0 26 0;
+#X connect 20 0 17 0;
+#X connect 21 0 17 0;
+#X connect 25 0 22 0;
+#X connect 25 1 23 0;
+#X connect 25 2 24 0;
+#X connect 26 0 18 0;
