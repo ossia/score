@@ -1,6 +1,6 @@
 #pragma once
 #include <iscore/plugins/settingsdelegate/SettingsDelegateModelInterface.hpp>
-
+#include <iscore_plugin_scenario_export.h>
 
 namespace Scenario
 {
@@ -14,7 +14,7 @@ struct Keys
         static const QString slotHeight;
 };
 
-class Model :
+class ISCORE_PLUGIN_SCENARIO_EXPORT Model :
         public iscore::SettingsDelegateModelInterface
 {
         Q_OBJECT
