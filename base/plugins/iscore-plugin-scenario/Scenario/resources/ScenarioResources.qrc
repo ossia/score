@@ -54,5 +54,7 @@
         <file>icones/sequence_on.png</file>
         <file>icones/snapshot_off.png</file>
         <file>icones/snapshot_on.png</file>
+        <file>icones/stop_off.png</file>
+        <file>icones/stop_on.png</file>
     </qresource>
 </RCC>
