@@ -6,7 +6,7 @@ namespace Scenario
 {
 namespace Command
 {
-SetProcessPosition::SetProcessPosition(
+PutProcessBefore::PutProcessBefore(
         Path<Scenario::ConstraintModel>&& cst,
         const Id<Process::ProcessModel>& proc,
         const Id<Process::ProcessModel>& proc2) :
@@ -17,26 +17,61 @@ SetProcessPosition::SetProcessPosition(
 
 }
 
-
-void SetProcessPosition::undo() const
+void PutProcessBefore::undo() const
 {
     redo();
 }
 
-void SetProcessPosition::redo() const
+void PutProcessBefore::redo() const
 {
     auto& cst = m_path.find();
     cst.processes.relocate(m_proc, m_proc2);
 }
 
-void SetProcessPosition::serializeImpl(DataStreamInput& s) const
+void PutProcessBefore::serializeImpl(DataStreamInput& s) const
 {
     s << m_path << m_proc << m_proc2;
 }
 
-void SetProcessPosition::deserializeImpl(DataStreamOutput& s)
+void PutProcessBefore::deserializeImpl(DataStreamOutput& s)
 {
     s >> m_path >> m_proc >> m_proc2;
+}
+
+PutProcessToEnd::PutProcessToEnd(
+        Path<Scenario::ConstraintModel>&& cst,
+        const Id<Process::ProcessModel>& proc) :
+    m_path{std::move(cst)},
+    m_proc{proc}
+{
+    auto& c = cst.find();
+    auto it = c.processes.find(proc);
+    ISCORE_ASSERT(it != c.processes.end());
+    std::advance(it, 1);
+    ISCORE_ASSERT(it != c.processes.end());
+    m_proc_after = it->id();
+}
+
+void PutProcessToEnd::undo() const
+{
+    auto& cst = m_path.find();
+    cst.processes.relocate(m_proc, m_proc_after);
+}
+
+void PutProcessToEnd::redo() const
+{
+    auto& cst = m_path.find();
+    cst.processes.putToEnd(m_proc);
+}
+
+void PutProcessToEnd::serializeImpl(DataStreamInput& s) const
+{
+    s << m_path << m_proc << m_proc_after;
+}
+
+void PutProcessToEnd::deserializeImpl(DataStreamOutput& s)
+{
+    s >> m_path >> m_proc >> m_proc_after;
 }
 
 

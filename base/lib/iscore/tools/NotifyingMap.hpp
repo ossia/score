@@ -91,7 +91,7 @@ class NotifyingMap
             }
         }
 
-        // Will put id2 before id2
+        // Will put id2 before id1
         void relocate(const Id<T>& id1, const Id<T>& id2)
         {
             if(id1 != id2)
@@ -101,6 +101,11 @@ class NotifyingMap
             }
         }
 
+        void putToEnd(const Id<T>& id1)
+        {
+            m_map.putToEnd(id1);
+            orderChanged();
+        }
     private:
         IdContainer<T> m_map;
 };
