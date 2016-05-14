@@ -177,6 +177,28 @@ class IdContainer<Element, Model,
 
             seq.relocate(beg, first);
         }
+
+
+        void relocate(const Id<Model>& t1, const Id<Model>& t2)
+        {
+            if(t1 == t2)
+                return;
+
+            auto& map = this->m_map;
+            auto& hash = map.template get<0>();
+            auto& seq = map.template get<1>();
+
+            // 1. Find elements
+            auto pos1 = hash.find(t1);
+            ISCORE_ASSERT(pos1 != hash.end());
+            auto pos2 = hash.find(t2);
+            ISCORE_ASSERT(pos2 != hash.end());
+
+            auto p1 = map.template project<1>(pos1);
+            auto p2 = map.template project<1>(pos2);
+
+            seq.relocate(p1, p2);
+        }
 };
 
 
