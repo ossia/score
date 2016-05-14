@@ -41,7 +41,7 @@ class NotifyingMap
         mutable Nano::Signal<void(const T&)> added;
         mutable Nano::Signal<void(const T&)> removing;
         mutable Nano::Signal<void(const T&)> removed;
-        mutable Nano::Signal<void(const Id<T>&, const Id<T>&)> swapped;
+        mutable Nano::Signal<void()> orderChanged;
 
         void add(T* t)
         {
@@ -87,7 +87,17 @@ class NotifyingMap
             if(id1 != id2)
             {
                 m_map.swap(id1, id2);
-                swapped(id1, id2);
+                orderChanged();
+            }
+        }
+
+        // Will put id2 before id2
+        void relocate(const Id<T>& id1, const Id<T>& id2)
+        {
+            if(id1 != id2)
+            {
+                m_map.relocate(id1, id2);
+                orderChanged();
             }
         }
 
