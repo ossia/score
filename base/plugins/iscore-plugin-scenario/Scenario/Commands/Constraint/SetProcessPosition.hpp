@@ -22,7 +22,7 @@ class SetProcessPosition final : public iscore::SerializableCommand
 
     public:
         SetProcessPosition(
-                Scenario::ConstraintModel& cst,
+                Path<Scenario::ConstraintModel>&& cst,
                 const Id<Process::ProcessModel>& proc,
                 const Id<Process::ProcessModel>& proc2);
 
@@ -37,13 +37,14 @@ class SetProcessPosition final : public iscore::SerializableCommand
         Path<Scenario::ConstraintModel> m_path;
         Id<Process::ProcessModel> m_proc, m_proc2;
 };
+
 class SwapProcessPosition final : public iscore::SerializableCommand
 {
         ISCORE_COMMAND_DECL(ScenarioCommandFactoryName(), SwapProcessPosition, "Set process position")
 
     public:
         SwapProcessPosition(
-                Scenario::ConstraintModel& cst,
+                Path<Scenario::ConstraintModel>&& cst,
                 const Id<Process::ProcessModel>& proc,
                 const Id<Process::ProcessModel>& proc2);
 

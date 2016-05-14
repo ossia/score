@@ -18,3 +18,21 @@ QDataStream& operator>> (QDataStream& stream, Path<Object>& obj)
 
     return stream;
 }
+
+template<typename T>
+struct TSerializer<DataStream, void, Path<T>>
+{
+        static void readFrom(
+                DataStream::Serializer& s,
+                const Path<T>& path)
+        {
+            s.readFrom(path.unsafePath());
+        }
+
+        static void writeTo(
+                DataStream::Deserializer& s,
+                Path<T>& path)
+        {
+            s.writeTo(path.unsafePath_ref());
+        }
+};

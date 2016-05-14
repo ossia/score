@@ -77,6 +77,9 @@ iscore_plugin_scenario::iscore_plugin_scenario()
     qRegisterMetaType<ExecutionStatus>();
     qRegisterMetaType<Scenario::ConstraintExecutionState>();
     qRegisterMetaType<QPointer<Process::LayerPresenter>>();
+
+    qRegisterMetaType<Path<Scenario::ConstraintModel>>();
+    qRegisterMetaType<Id<Process::ProcessModel>>();
 }
 
 iscore_plugin_scenario::~iscore_plugin_scenario()

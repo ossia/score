@@ -7,10 +7,10 @@ namespace Scenario
 namespace Command
 {
 SetProcessPosition::SetProcessPosition(
-        Scenario::ConstraintModel& cst,
+        Path<Scenario::ConstraintModel>&& cst,
         const Id<Process::ProcessModel>& proc,
         const Id<Process::ProcessModel>& proc2) :
-    m_path{cst},
+    m_path{std::move(cst)},
     m_proc{proc},
     m_proc2{proc2}
 {
@@ -41,10 +41,10 @@ void SetProcessPosition::deserializeImpl(DataStreamOutput& s)
 
 
 SwapProcessPosition::SwapProcessPosition(
-        Scenario::ConstraintModel& cst,
+        Path<Scenario::ConstraintModel>&& cst,
         const Id<Process::ProcessModel>& proc,
         const Id<Process::ProcessModel>& proc2) :
-    m_path{cst},
+    m_path{std::move(cst)},
     m_proc{proc},
     m_proc2{proc2}
 {
