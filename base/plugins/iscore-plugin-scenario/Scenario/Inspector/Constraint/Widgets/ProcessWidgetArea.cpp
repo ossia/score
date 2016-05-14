@@ -43,7 +43,6 @@ void ProcessWidgetArea::mousePressEvent(QMouseEvent* event)
 
 void ProcessWidgetArea::dragEnterEvent(QDragEnterEvent* event)
 {
-    qDebug("a");
     if(!event->mimeData()->hasFormat("application/x-iscore-processdrag"))
         return;
 
@@ -63,29 +62,41 @@ void ProcessWidgetArea::dragEnterEvent(QDragEnterEvent* event)
 
 void ProcessWidgetArea::dragMoveEvent(QDragMoveEvent* event)
 {
-
+    // TODO : show a bar to indicate
+    // graphically where the drop will occur.
 }
 
 void ProcessWidgetArea::dropEvent(QDropEvent* event)
 {
-    auto center = rect().center().y();
-    auto y = event->pos().y();
-    if(y < center)
-    {
-        // Drop before
-    }
-    else
-    {
-        // Drop after
-    }
     // Get the process
     auto path = unmarshall<Path<Process::ProcessModel>>(
                     event->mimeData()->data("application/x-iscore-processdrag"));
 
-    emit sig_performSwap(
-                *safe_cast<Scenario::ConstraintModel*>(m_proc.parent()),
-                m_proc.id(),
-                id(path));
+    auto& cst = *safe_cast<Scenario::ConstraintModel*>(m_proc.parent());
+    // Position
+    auto center = rect().center().y();
+    auto y = event->pos().y();
+    if(y < center)
+    {
+        // Drop before this
+        emit sig_performSwap(cst, m_proc.id(), id(path));
+    }
+    else
+    {
+        // Drop after this
+        auto next_proc_it = cst.processes.find(m_proc.id());
+        std::advance(next_proc_it, 1);
+        if(next_proc_it != cst.processes.end())
+        {
+            // Drop before next process
+            emit sig_performSwap(cst, next_proc_it->id(), id(path));
+        }
+        else
+        {
+            // Drop at end
+            emit sig_putAtEnd(cst, id(path));
+        }
+    }
     // Accept
     event->acceptProposedAction();
 }
@@ -101,6 +112,16 @@ void ProcessWidgetArea::performSwap(
                     std::move(cst), id1, id2
                 });
 
+}
+
+void ProcessWidgetArea::putAtEnd(
+        Path<ConstraintModel> cst,
+        const Id<Process::ProcessModel>& id1)
+{
+    m_disp.submitCommand(
+                new Command::PutProcessToEnd{
+                    std::move(cst), id1
+                });
 }
 
 

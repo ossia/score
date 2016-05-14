@@ -25,6 +25,10 @@ class ProcessWidgetArea final : public Inspector::InspectorSectionWidget
             connect(this, &ProcessWidgetArea::sig_performSwap,
                     this, &ProcessWidgetArea::performSwap,
                     Qt::QueuedConnection);
+
+            connect(this, &ProcessWidgetArea::sig_putAtEnd,
+                    this, &ProcessWidgetArea::putAtEnd,
+                    Qt::QueuedConnection);
         }
 
     private:
@@ -37,11 +41,15 @@ class ProcessWidgetArea final : public Inspector::InspectorSectionWidget
         void sig_performSwap(Path<Scenario::ConstraintModel> cst,
                              const Id<Process::ProcessModel>& id1,
                              const Id<Process::ProcessModel>& id2);
+        void sig_putAtEnd(Path<Scenario::ConstraintModel> cst,
+                             const Id<Process::ProcessModel>& id1);
 
     private slots:
         void performSwap(Path<Scenario::ConstraintModel> cst,
                          const Id<Process::ProcessModel>& id1,
                          const Id<Process::ProcessModel>& id2);
+        void putAtEnd(Path<Scenario::ConstraintModel> cst,
+                         const Id<Process::ProcessModel>& id1);
 
     private:
         const Process::ProcessModel& m_proc;
