@@ -171,6 +171,7 @@ ConstraintInspectorWidget::ConstraintInspectorWidget(
     // Constraint interface
     model().processes.added.connect<ConstraintInspectorWidget, &ConstraintInspectorWidget::on_processCreated>(this);
     model().processes.removed.connect<ConstraintInspectorWidget, &ConstraintInspectorWidget::on_processRemoved>(this);
+    model().processes.orderChanged.connect<ConstraintInspectorWidget, &ConstraintInspectorWidget::on_orderChanged>(this);
     model().racks.added.connect<ProcessViewTabWidget, &ProcessViewTabWidget::on_rackCreated>(m_viewTabPage); // todo maybe not working ...
     model().racks.removed.connect<ProcessViewTabWidget, &ProcessViewTabWidget::on_rackRemoved>(m_viewTabPage);
 
@@ -251,6 +252,12 @@ void ConstraintInspectorWidget::on_processCreated(
 
 void ConstraintInspectorWidget::on_processRemoved(
         const Process::ProcessModel&)
+{
+    // OPTIMIZEME
+    m_processesTabPage->updateDisplayedValues();
+}
+
+void ConstraintInspectorWidget::on_orderChanged()
 {
     // OPTIMIZEME
     m_processesTabPage->updateDisplayedValues();

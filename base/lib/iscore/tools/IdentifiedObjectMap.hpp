@@ -29,10 +29,6 @@ class MapBase
     public:
         using value_type = Element;
         using model_type = Model;
-        auto begin() const { return boost::make_indirect_iterator(m_map.begin()); }
-        auto cbegin() const { return boost::make_indirect_iterator(m_map.cbegin()); }
-        auto end() const { return boost::make_indirect_iterator(m_map.end()); }
-        auto cend() const { return boost::make_indirect_iterator(m_map.cend()); }
 
         MapBase() = default;
 
@@ -63,9 +59,6 @@ class MapBase
 
         void clear()
         { m_map.clear(); }
-
-        auto find(const Id<model_type>& id) const
-        { return boost::make_indirect_iterator(m_map.find(id)); }
 
         auto& get() { return m_map.template get<0>(); }
         const auto& get() const { return m_map.template get<0>(); }
@@ -121,6 +114,19 @@ class IdContainer<Element, Model,
         >
     >
 >::MapBase;
+
+        auto begin() const { return boost::make_indirect_iterator(this->m_map.template get<1>().begin()); }
+        auto cbegin() const { return boost::make_indirect_iterator(this->m_map.template get<1>().cbegin()); }
+        auto end() const { return boost::make_indirect_iterator(this->m_map.template get<1>().end()); }
+        auto cend() const { return boost::make_indirect_iterator(this->m_map.template get<1>().cend()); }
+
+        auto find(const Id<Model>& id) const
+        {
+            auto it = this->m_map.find(id);
+
+            auto p_it = this->m_map.template project<1>(it);
+            return boost::make_indirect_iterator(p_it);
+        }
 
         Element& at(const Id<Model>& id) const
         {
@@ -245,6 +251,14 @@ class IdContainer<Element, Model,
         >
     >
 >::MapBase;
+
+        auto begin() const { return boost::make_indirect_iterator(this->m_map.begin()); }
+        auto cbegin() const { return boost::make_indirect_iterator(this->m_map.cbegin()); }
+        auto end() const { return boost::make_indirect_iterator(this->m_map.end()); }
+        auto cend() const { return boost::make_indirect_iterator(this->m_map.cend()); }
+
+        auto find(const Id<Model>& id) const
+        { return boost::make_indirect_iterator(this->m_map.find(id)); }
 
         auto& at(const Id<Model>& id) const
         {
