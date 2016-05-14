@@ -44,7 +44,7 @@ PutProcessToEnd::PutProcessToEnd(
     m_path{std::move(cst)},
     m_proc{proc}
 {
-    auto& c = cst.find();
+    auto& c = m_path.find();
     auto it = c.processes.find(proc);
     ISCORE_ASSERT(it != c.processes.end());
     std::advance(it, 1);
