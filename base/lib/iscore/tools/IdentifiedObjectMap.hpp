@@ -138,20 +138,45 @@ class IdContainer<Element, Model,
 
         void swap(const Id<Model>& t1, const Id<Model>& t2)
         {
-            /*
-            auto first = this->m_map.find(t1);
-            auto first_pos_idx = this->m_map.template project<1>(first);
+            if(t1 == t2)
+                return;
 
-            auto second = this->m_map.find(t2);
-            auto second_pos_idx = this->m_map.template project<1>(second);
+            auto& map = this->m_map;
+            auto& hash = map.template get<0>();
+            auto& seq = map.template get<1>();
 
-            auto t = *first_pos_idx;
-            *first_pos_idx = *second_pos_idx;
-            *second_pos_idx = t;
-            */
+            // 1. Find elements
+            auto pos1 = hash.find(t1);
+            ISCORE_ASSERT(pos1 != hash.end());
+            auto pos2 = hash.find(t2);
+            ISCORE_ASSERT(pos2 != hash.end());
+
+            auto p1 = map.template project<1>(pos1);
+            auto p2 = map.template project<1>(pos2);
+
+            // 2. Find the furthest element
+            auto beg = seq.begin();
+            const auto dist_p1 = std::distance(beg, p1);
+            const auto dist_p2 = std::distance(beg, p2);
+
+            auto dist_last = std::max(dist_p1, dist_p2);
+
+            auto first = dist_p1 < dist_p2 ? p1 : p2;
+            auto last = dist_p1 < dist_p2 ? p2 : p1;
+
+            // 3. Perform swapping
+            seq.relocate(first, last);
+            if(dist_last + 1 < hash.size())
+            {
+                std::advance(beg, dist_last + 1);
+            }
+            else
+            {
+                beg = seq.end();
+            }
+
+            seq.relocate(beg, first);
         }
-
-
 };
 
 
