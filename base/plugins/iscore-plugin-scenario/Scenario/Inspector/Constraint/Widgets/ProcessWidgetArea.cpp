@@ -13,7 +13,6 @@
 
 namespace Scenario
 {
-
 // MOVEME
 template<typename T>
 auto id(const Path<T>& path)
@@ -38,15 +37,13 @@ void ProcessWidgetArea::mousePressEvent(QMouseEvent* event)
         drag->setPixmap(label.grab());
         drag->setHotSpot(label.rect().center());
 
-        Qt::DropAction dropAction = drag->exec();
-        // TODO drop must only work in same application !!!
-        // TODO drop must only work in same time constraint !!!
-        // or else drop it in another process but what to do with the rack / slots ?
+        drag->exec();
     }
 }
 
 void ProcessWidgetArea::dragEnterEvent(QDragEnterEvent* event)
 {
+    qDebug("a");
     if(!event->mimeData()->hasFormat("application/x-iscore-processdrag"))
         return;
 
@@ -55,16 +52,35 @@ void ProcessWidgetArea::dragEnterEvent(QDragEnterEvent* event)
     if(!res)
         return;
 
+    if(res == &m_proc)
+        return;
+
     if(res->parent() != m_proc.parent())
         return;
 
     event->acceptProposedAction();
 }
 
+void ProcessWidgetArea::dragMoveEvent(QDragMoveEvent* event)
+{
+
+}
+
 void ProcessWidgetArea::dropEvent(QDropEvent* event)
 {
+    auto center = rect().center().y();
+    auto y = event->pos().y();
+    if(y < center)
+    {
+        // Drop before
+    }
+    else
+    {
+        // Drop after
+    }
     // Get the process
-    auto path = unmarshall<Path<Process::ProcessModel>>(event->mimeData()->data("application/x-iscore-processdrag"));
+    auto path = unmarshall<Path<Process::ProcessModel>>(
+                    event->mimeData()->data("application/x-iscore-processdrag"));
 
     emit sig_performSwap(
                 *safe_cast<Scenario::ConstraintModel*>(m_proc.parent()),
@@ -74,11 +90,14 @@ void ProcessWidgetArea::dropEvent(QDropEvent* event)
     event->acceptProposedAction();
 }
 
-void ProcessWidgetArea::performSwap(Path<Scenario::ConstraintModel> cst, const Id<Process::ProcessModel>& id1, const Id<Process::ProcessModel>& id2)
+void ProcessWidgetArea::performSwap(
+        Path<Scenario::ConstraintModel> cst,
+        const Id<Process::ProcessModel>& id1,
+        const Id<Process::ProcessModel>& id2)
 {
     // Create a command to swap both processes
     m_disp.submitCommand(
-                new Command::SetProcessPosition{
+                new Command::PutProcessBefore{
                     std::move(cst), id1, id2
                 });
 
