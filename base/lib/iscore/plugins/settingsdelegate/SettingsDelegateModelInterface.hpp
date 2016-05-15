@@ -29,9 +29,22 @@ struct Name ## Parameter \
 #define ISCORE_SETTINGS_COMMAND(Name) \
     struct Set ## Name : public iscore::SettingsCommand<Name ## Parameter> \
 { \
+ static constexpr const bool is_deferred = false; \
  ISCORE_SETTINGS_COMMAND_DECL(Set ## Name) \
 };
 
 #define ISCORE_SETTINGS_PARAMETER(ModelType, Name) \
     ISCORE_SETTINGS_PARAMETER_TYPE(ModelType, Name) \
     ISCORE_SETTINGS_COMMAND(Name)
+
+
+#define ISCORE_SETTINGS_DEFERRED_COMMAND(Name) \
+    struct Set ## Name : public iscore::SettingsCommand<Name ## Parameter> \
+{ \
+ static constexpr const bool is_deferred = true; \
+ ISCORE_SETTINGS_COMMAND_DECL(Set ## Name) \
+};
+
+#define ISCORE_SETTINGS_DEFERRED_PARAMETER(ModelType, Name) \
+    ISCORE_SETTINGS_PARAMETER_TYPE(ModelType, Name) \
+    ISCORE_SETTINGS_DEFERRED_COMMAND(Name)

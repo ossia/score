@@ -11,7 +11,7 @@ SettingsPresenter::SettingsPresenter(
         QObject* parent) :
     QObject {parent},
         m_model {model},
-m_view {view}
+        m_view {view}
 {
     connect(m_view, &SettingsView::accepted,
     this,   &SettingsPresenter::on_accept);

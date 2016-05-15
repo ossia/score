@@ -23,7 +23,7 @@ Presenter::Presenter(
         this, [&] (auto val) {
         if(val != m.getLocalTree())
         {
-            m_disp.submitCommand<SetLocalTree>(this->model(this), val);
+            m_disp.submitDeferredCommand<SetLocalTree>(this->model(this), val);
         }
     });
 

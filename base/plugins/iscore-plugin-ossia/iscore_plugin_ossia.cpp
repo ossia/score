@@ -73,7 +73,9 @@ std::vector<std::unique_ptr<iscore::FactoryInterfaceBase>> iscore_plugin_ossia::
             FW<Explorer::ListeningHandlerFactory,
                 Ossia::PlayListeningHandlerFactory>,
             FW<iscore::SettingsDelegateFactory,
-                RecreateOnPlay::Settings::Factory>,
+                RecreateOnPlay::Settings::Factory,
+                LocalTree::Settings::Factory
+            >,
             FW<Ossia::LocalTree::ProcessComponentFactory,
                  Ossia::LocalTree::ScenarioComponentFactory>
             >

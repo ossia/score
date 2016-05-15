@@ -11,7 +11,7 @@ namespace Settings
 class Factory :
         public iscore::SettingsDelegateFactory
 {
-        ISCORE_CONCRETE_FACTORY_DECL("f418e1a0-fdff-45ec-99b2-b208706badc8")
+        ISCORE_CONCRETE_FACTORY_DECL("3cf335f6-8f5d-401b-98a3-eedfd5e7d292")
 
         iscore::SettingsDelegateViewInterface *makeView() override;
         iscore::SettingsDelegatePresenterInterface* makePresenter_impl(
