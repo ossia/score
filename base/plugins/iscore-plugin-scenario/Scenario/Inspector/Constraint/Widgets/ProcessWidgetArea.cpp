@@ -10,7 +10,7 @@
 #include <QMimeData>
 #include <QDragEnterEvent>
 #include <QDropEvent>
-
+#include <QLabel>
 namespace Scenario
 {
 // MOVEME

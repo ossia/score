@@ -1,22 +1,19 @@
 environment:
-  QTDIR: C:\Qt\5.5\mingw492_32
-  MINGW: C:\Qt\Tools\mingw492_32
+  QTDIR: c:\projects\i-score\iscore-windows-sdk\qt-5.6
+  MINGW: c:\projects\i-score\iscore-windows-sdk\mingw32
   BOOST_ROOT: c:\Libraries\boost_1_59_0
   BOOST_LIBRARYDIR: c:\Libraries\boost_1_59_0\stage\lib
-  JAMOMA_ROOT: c:\Jamoma
+  JAMOMA_ROOT: c:\projects\i-score\iscore-windows-sdk\jamoma
   CHOCO_PATH: c:\ProgramData\chocolatey\bin
-  CMAKE_PATH: c:\projects\i-score\cmake-3.4.1-win32-x86
+  CMAKE_PATH: c:\projects\i-score\iscore-windows-sdk\cmake
 
 
 configuration: Release
 
 install:
-  - appveyor DownloadFile "https://www.dropbox.com/s/wfzjuyt6nu73e7p/JamomaCore-0.6-dev-win32.exe?dl=1" -FileName Jamoma.exe
-  - Jamoma.exe /S /D=%JAMOMA_ROOT%
-  - appveyor DownloadFile "https://unsis.googlecode.com/files/nsis-2.46.5-Unicode-setup.exe" -FileName nsis.exe
-  - nsis.exe /S
-  - appveyor DownloadFile "https://cmake.org/files/v3.4/cmake-3.4.1-win32-x86.zip"
-  - 7z x cmake-3.4.1-win32-x86.zip -y > nul
+  - appveyor DownloadFile "https://www.dropbox.com/s/4hc09x926sa6w2k/iscore-windows-sdk.7z?dl=1" -FileName iscore-windows-sdk.7z
+  - 7z x iscore-windows-sdk.7z -y > nul
+  - iscore-windows-sdk/nsis.exe /S
 
 build_script:
   - git submodule update --init --recursive
@@ -27,8 +24,8 @@ build_script:
 #  - cd ../../../
   - mkdir build
   - cd build
-  - set PATH=%CMAKE_PATH%\bin;%QTDIR%\bin;%MINGW%\bin;C:\Qt\Tools\QtCreator\bin
-  - cmake -G"MinGW Makefiles" -DCMAKE_TOOLCHAIN_FILE=CMake/Configurations/travis/appveyor-mingw-static-release.toolchain -DISCORE_CONFIGURATION=appveyor-mingw-static-release  ..
+  - set PATH=%CMAKE_PATH%\bin;%QTDIR%\bin;%MINGW%\bin;
+  - cmake -G"MinGW Makefiles" -DCMAKE_TOOLCHAIN_FILE=CMake/Configurations/travis/appveyor-mingw-static-release.toolchain -DISCORE_CONFIGURATION=appveyor-mingw-static-release -DISCORE_SDK_PATH=c:/projects/i-score/iscore-windows-sdk ..
   - cmake --build . --target all_unity -- -j2
   - cpack
 
