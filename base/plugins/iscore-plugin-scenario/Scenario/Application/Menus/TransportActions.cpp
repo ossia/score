@@ -27,31 +27,31 @@ TransportActions::TransportActions(
     m_play->setObjectName("Play");
     m_play->setShortcut(Qt::Key_Space);
     m_play->setShortcutContext(Qt::WidgetWithChildrenShortcut);
-    setIcons(m_play, QString(":/icones/play_on.png"), QString(":/icones/play_off.png"));
+    setIcons(m_play, QString(":/icons/play_on.png"), QString(":/icons/play_off.png"));
 
     m_stop = new QAction{tr("Stop"), this};
     m_stop->setObjectName("Stop");
     m_stop->setShortcut(Qt::Key_Return);
     m_stop->setShortcutContext(Qt::WidgetWithChildrenShortcut);
-    setIcons(m_stop, QString(":/icones/stop_on.png"), QString(":/icones/stop_off.png"));
+    setIcons(m_stop, QString(":/icons/stop_on.png"), QString(":/icons/stop_off.png"));
 
     m_goToStart = new QAction{tr("⏮ Start"), this};
     m_goToStart->setObjectName("Start");
-    setIcons(m_goToStart, QString(":/icones/start_on.png"), QString(":/icones/start_off.png"));
+    setIcons(m_goToStart, QString(":/icons/start_on.png"), QString(":/icons/start_off.png"));
 
     m_goToEnd = new QAction{tr("⏭ End"), this};
     m_goToEnd->setObjectName("End");
-    setIcons(m_goToEnd, QString(":/icones/end_on.png"), QString(":/icones/end_off.png"));
+    setIcons(m_goToEnd, QString(":/icons/end_on.png"), QString(":/icons/end_off.png"));
 
     m_stopAndInit = new QAction{tr("Reinitialize"), this};
     m_stopAndInit->setObjectName("StopAndInit");
     m_stopAndInit->setShortcut(Qt::CTRL + Qt::Key_Return);
     m_stopAndInit->setShortcutContext(Qt::WidgetWithChildrenShortcut);
-    setIcons(m_stopAndInit, QString(":/icones/stop_and_init_on.png"), QString(":/icones/stop_and_init_off.png"));
+    setIcons(m_stopAndInit, QString(":/icons/stop_and_init_on.png"), QString(":/icons/stop_and_init_off.png"));
 
     m_record = new QAction{tr("Record"), this};
     m_record->setObjectName("Record");
-    setIcons(m_record, QString(":/icones/record_on.png"), QString(":/icones/record_off.png"));
+    setIcons(m_record, QString(":/icons/record_on.png"), QString(":/icons/record_off.png"));
 
     m_play->setCheckable(true);
     m_record->setCheckable(true);
@@ -59,8 +59,8 @@ TransportActions::TransportActions(
     connect(m_play, &QAction::toggled, this, [&] (bool b) {
         m_play->setText(b? QString("Pause") : QString("Play"));
         setIcons(m_play,
-                 b ? QString(":/icones/pause_on.png") : QString(":/icones/play_on.png"),
-                 b ? QString(":/icones/pause_off.png") : QString(":/icones/play_off.png"));
+                 b ? QString(":/icons/pause_on.png") : QString(":/icons/play_on.png"),
+                 b ? QString(":/icons/pause_off.png") : QString(":/icons/play_off.png"));
     });
     connect(m_stop, &QAction::triggered, this, [&] {
         m_play->blockSignals(true);

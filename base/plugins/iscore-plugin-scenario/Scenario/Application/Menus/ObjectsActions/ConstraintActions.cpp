@@ -61,7 +61,7 @@ ConstraintActions::ConstraintActions(
     m_interp->setShortcut(tr("Ctrl+K"));
     m_interp->setToolTip(tr("Interpolate states (Ctrl+K)"));
     m_interp->setWhatsThis(iscore::MenuInterface::name(iscore::ContextMenu::Constraint));
-    setIcons(m_interp, QString(":/icones/interpolate_on.png"), QString(":/icones/interpolate_off.png"));
+    setIcons(m_interp, QString(":/icons/interpolate_on.png"), QString(":/icons/interpolate_off.png"));
     connect(m_interp, &QAction::triggered,
         this, [&] () {
     DoForSelectedConstraints(m_parent->currentDocument()->context(), InterpolateStates);

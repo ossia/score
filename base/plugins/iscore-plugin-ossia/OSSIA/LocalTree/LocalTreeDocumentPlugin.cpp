@@ -40,32 +40,57 @@ Ossia::LocalTree::DocumentPlugin::DocumentPlugin(
     iscore::DocumentPlugin{doc, "LocalTree::DocumentPlugin", parent},
     m_localDevice{localDev}
 {
+    con(doc, &iscore::Document::aboutToClose,
+        this, &DocumentPlugin::cleanup);
+}
+
+Ossia::LocalTree::DocumentPlugin::~DocumentPlugin()
+{
+    cleanup();
+
+}
+
+void Ossia::LocalTree::DocumentPlugin::create()
+{
+    if(m_root)
+        cleanup();
+
     auto scenar = dynamic_cast<Scenario::ScenarioDocumentModel*>(
                       &m_context.document.model().modelDelegate());
     ISCORE_ASSERT(scenar);
     auto& cstr = scenar->baseScenario().constraint();
-    auto comp = new ConstraintComponent(
+    m_root = new ConstraintComponent(
                 *m_localDevice,
-                Id<iscore::Component>{0},
+                getStrongId(cstr.components),
                 cstr,
                 *this,
-                doc.context(),
+                m_context,
                 this);
-    cstr.components.add(comp);
+    cstr.components.add(m_root);
 
-    con(doc, &iscore::Document::aboutToClose,
-            this, [=,&cstr] () {
-        // Remove the node from local device
-        auto it = find_if(m_localDevice->children(), [&] (const auto& node)
-        { return node == comp->node(); });
+}
 
-        if(it != m_localDevice->children().end())
-        {
-            m_localDevice->erase(it);
-        }
+void Ossia::LocalTree::DocumentPlugin::cleanup()
+{
+    if(!m_root)
+        return;
+    // Remove the node from local device
+    auto it = find_if(
+                m_localDevice->children(),
+                [&] (const auto& node)
+    { return node == m_root->node(); });
 
-        // Delete
-        cstr.components.remove(comp);
+    if(it != m_localDevice->children().end())
+    {
+        m_localDevice->erase(it);
+    }
 
-    });
+    // Delete
+    auto scenar = dynamic_cast<Scenario::ScenarioDocumentModel*>(
+                      &m_context.document.model().modelDelegate());
+    ISCORE_ASSERT(scenar);
+    auto& cstr = scenar->baseScenario().constraint();
+
+    cstr.components.remove(m_root);
+    m_root = nullptr;
 }

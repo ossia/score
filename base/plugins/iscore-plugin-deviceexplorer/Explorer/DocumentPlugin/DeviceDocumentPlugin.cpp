@@ -144,13 +144,17 @@ Device::Node DeviceDocumentPlugin::loadDeviceFromNode(const Device::Node & node)
         // Instantiate a real device.
         auto& fact = m_context.app.components.factory<Device::DynamicProtocolList>();
         auto proto = fact.get(node.get<Device::DeviceSettings>().protocol);
-        auto newdev = proto->makeDevice(node.get<Device::DeviceSettings>(), context());
+        Device::DeviceInterface* newdev = proto->makeDevice(node.get<Device::DeviceSettings>(), context());
 
         initDevice(*newdev);
 
-        for(auto& child : node)
+        // We do not reload for devices such as LocalDevice.
+        if(newdev->capabilities().canSerialize)
         {
-            newdev->addNode(child);
+            for(auto& child : node)
+            {
+                newdev->addNode(child);
+            }
         }
 
         return node;

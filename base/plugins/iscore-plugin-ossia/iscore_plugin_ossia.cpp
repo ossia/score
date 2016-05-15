@@ -16,7 +16,8 @@
 #include <iscore/plugins/customfactory/FactoryFamily.hpp>
 
 #include <OSSIA/Executor/DocumentPlugin.hpp>
-#include <OSSIA/Executor/Settings/Factory.hpp>
+#include <OSSIA/Executor/Settings/ExecutorFactory.hpp>
+#include <OSSIA/LocalTree/Settings/LocalTreeFactory.hpp>
 #include <OSSIA/Listening/PlayListeningHandlerFactory.hpp>
 #include <iscore/plugins/customfactory/FactorySetup.hpp>
 namespace iscore {

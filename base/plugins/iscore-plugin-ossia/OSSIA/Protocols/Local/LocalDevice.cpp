@@ -22,6 +22,7 @@ LocalDevice::LocalDevice(
     m_capas.canRefreshTree = true;
     m_capas.canAddNode = false;
     m_capas.canRemoveNode = false;
+    m_capas.canSerialize = false;
 
     m_addedNodeCb = m_dev->addCallback(
                         [this] (const OSSIA::Node& n, const std::string& name, OSSIA::NodeChange chg)
