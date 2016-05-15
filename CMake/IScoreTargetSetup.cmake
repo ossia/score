@@ -141,7 +141,7 @@ function(iscore_set_unix_compile_options theTarget)
     -Werror=trigraphs
 
     # Debug options
-    "$<$<CONFIG:Debug>:-gsplit-dwarf>"
+    "$<$<AND:$<CONFIG:Debug>,$<NOT:${MINGW}>>:-gsplit-dwarf>"
     "$<$<CONFIG:Debug>:-O0>"
     "$<$<CONFIG:Debug>:-g>"
 
@@ -153,7 +153,6 @@ function(iscore_set_unix_compile_options theTarget)
     target_link_libraries(${theTarget} PUBLIC
         "$<$<CONFIG:Release>:-Ofast>"
         "$<$<AND:$<CONFIG:Release>,$<BOOL:${ISCORE_ENABLE_OPTIMIZE_CUSTOM}>>:-march=native>")
-
 endfunction()
 
 function(iscore_set_compile_options theTarget)

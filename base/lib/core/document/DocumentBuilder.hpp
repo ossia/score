@@ -23,19 +23,19 @@ struct ApplicationContext;
 class ISCORE_LIB_BASE_EXPORT DocumentBuilder
 {
     public:
-        explicit DocumentBuilder(
+        ISCORE_LIB_BASE_EXPORT explicit DocumentBuilder(
             QObject* parentPresenter,
             QWidget* parentView);
 
-        Document* newDocument(
+        ISCORE_LIB_BASE_EXPORT Document* newDocument(
                 const iscore::ApplicationContext& ctx,
                 const Id<DocumentModel>& id,
                 iscore::DocumentDelegateFactory& doctype);
-        Document* loadDocument(
+        ISCORE_LIB_BASE_EXPORT Document* loadDocument(
                 const iscore::ApplicationContext& ctx,
                 const QVariant &data,
                 iscore::DocumentDelegateFactory& doctype);
-        Document* restoreDocument(
+        ISCORE_LIB_BASE_EXPORT Document* restoreDocument(
                 const iscore::ApplicationContext& ctx,
                 const QByteArray &docData,
                 const QByteArray &cmdData,
