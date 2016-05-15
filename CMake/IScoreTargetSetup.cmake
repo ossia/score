@@ -141,7 +141,7 @@ function(iscore_set_unix_compile_options theTarget)
     -Werror=trigraphs
 
     # Debug options
-    "$<$<AND:$<CONFIG:Debug>,$<NOT:${MINGW}>>:-gsplit-dwarf>"
+    "$<$<AND:$<CONFIG:Debug>,$<NOT:$<PLATFORM_ID:Windows>>>:-gsplit-dwarf>"
     "$<$<CONFIG:Debug>:-O0>"
     "$<$<CONFIG:Debug>:-g>"
 
