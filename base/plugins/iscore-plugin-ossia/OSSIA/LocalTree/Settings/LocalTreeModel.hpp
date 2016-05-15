@@ -34,7 +34,7 @@ class Model :
         bool m_tree = false;
 };
 
-ISCORE_SETTINGS_PARAMETER(Model, LocalTree)
+ISCORE_SETTINGS_DEFERRED_PARAMETER(Model, LocalTree)
 
 }
 }

@@ -20,7 +20,7 @@ Model::Model()
         setFirstTimeSettings();
     }
 
-    m_tree = s.value(Keys::localTree).toInt();
+    m_tree = s.value(Keys::localTree).toBool();
 }
 
 bool Model::getLocalTree() const
@@ -42,7 +42,7 @@ void Model::setLocalTree(bool val)
 
 void Model::setFirstTimeSettings()
 {
-    m_tree = 50;
+    m_tree = false;
 
     QSettings s;
     s.setValue(Keys::localTree, m_tree);

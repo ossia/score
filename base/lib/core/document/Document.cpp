@@ -22,6 +22,11 @@ class Selection;
 
 namespace iscore
 {
+DocumentContext DocumentContext::fromDocument(Document &d)
+{
+    return iscore::DocumentContext{d};
+}
+
 DocumentContext::DocumentContext(Document& d):
     app{iscore::AppContext()},
     document{d},
@@ -46,7 +51,7 @@ Document::Document(
     NamedObject {"Document", parent},
     m_objectLocker{this},
     m_backupMgr{new DocumentBackupManager{*this}},
-    m_context{*this}
+    m_context{DocumentContext::fromDocument(*this)}
 {
     metadata.setFileName(name);
     /// Construction of the document model

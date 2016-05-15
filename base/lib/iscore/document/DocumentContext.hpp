@@ -11,11 +11,8 @@ class DocumentPlugin;
 
 struct ISCORE_LIB_BASE_EXPORT DocumentContext
 {
-        DocumentContext(iscore::Document& d);
-        DocumentContext(const DocumentContext&) = delete;
-        DocumentContext(DocumentContext&&) = delete;
-        DocumentContext& operator=(const DocumentContext&) = delete;
-        DocumentContext& operator=(DocumentContext&&) = delete;
+        friend class iscore::Document;
+        static DocumentContext fromDocument(iscore::Document& d);
 
         const iscore::ApplicationContext& app;
         iscore::Document& document;
@@ -53,6 +50,13 @@ struct ISCORE_LIB_BASE_EXPORT DocumentContext
                 return safe_cast<T*>(*it);
             return nullptr;
         }
+
+    protected:
+        DocumentContext(iscore::Document& d);
+        DocumentContext(const DocumentContext&) = default;
+        DocumentContext(DocumentContext&&) = default;
+        DocumentContext& operator=(const DocumentContext&) = default;
+        DocumentContext& operator=(DocumentContext&&) = default;
 
 };
 // TODO DocumentComponents : model, pluginmodels...
