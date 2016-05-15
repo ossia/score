@@ -53,10 +53,10 @@ set(HDRS
     "${CMAKE_CURRENT_SOURCE_DIR}/OSSIA/Executor/TimeNodeElement.hpp"
     "${CMAKE_CURRENT_SOURCE_DIR}/OSSIA/Executor/ConstraintElement.hpp"
 
-    "${CMAKE_CURRENT_SOURCE_DIR}/OSSIA/Executor/Settings/Model.hpp"
-    "${CMAKE_CURRENT_SOURCE_DIR}/OSSIA/Executor/Settings/Presenter.hpp"
-    "${CMAKE_CURRENT_SOURCE_DIR}/OSSIA/Executor/Settings/View.hpp"
-    "${CMAKE_CURRENT_SOURCE_DIR}/OSSIA/Executor/Settings/Factory.hpp"
+    "${CMAKE_CURRENT_SOURCE_DIR}/OSSIA/Executor/Settings/ExecutorModel.hpp"
+    "${CMAKE_CURRENT_SOURCE_DIR}/OSSIA/Executor/Settings/ExecutorPresenter.hpp"
+    "${CMAKE_CURRENT_SOURCE_DIR}/OSSIA/Executor/Settings/ExecutorView.hpp"
+    "${CMAKE_CURRENT_SOURCE_DIR}/OSSIA/Executor/Settings/ExecutorFactory.hpp"
 
     "${CMAKE_CURRENT_SOURCE_DIR}/OSSIA/Listening/PlayListeningHandler.hpp"
     "${CMAKE_CURRENT_SOURCE_DIR}/OSSIA/Listening/PlayListeningHandlerFactory.hpp"
@@ -77,6 +77,11 @@ set(HDRS
     "${CMAKE_CURRENT_SOURCE_DIR}/OSSIA/LocalTree/Scenario/TimeNodeComponent.hpp"
     "${CMAKE_CURRENT_SOURCE_DIR}/OSSIA/LocalTree/Scenario/StateComponent.hpp"
     "${CMAKE_CURRENT_SOURCE_DIR}/OSSIA/LocalTree/Scenario/MetadataParameters.hpp"
+
+    "${CMAKE_CURRENT_SOURCE_DIR}/OSSIA/LocalTree/Settings/LocalTreeModel.hpp"
+    "${CMAKE_CURRENT_SOURCE_DIR}/OSSIA/LocalTree/Settings/LocalTreePresenter.hpp"
+    "${CMAKE_CURRENT_SOURCE_DIR}/OSSIA/LocalTree/Settings/LocalTreeView.hpp"
+    "${CMAKE_CURRENT_SOURCE_DIR}/OSSIA/LocalTree/Settings/LocalTreeFactory.hpp"
 
     "${CMAKE_CURRENT_SOURCE_DIR}/iscore_plugin_ossia.hpp"
     )
@@ -116,10 +121,10 @@ set(SRCS
 "${CMAKE_CURRENT_SOURCE_DIR}/OSSIA/Executor/TimeNodeElement.cpp"
 "${CMAKE_CURRENT_SOURCE_DIR}/OSSIA/Executor/ConstraintElement.cpp"
 
-"${CMAKE_CURRENT_SOURCE_DIR}/OSSIA/Executor/Settings/Model.cpp"
-"${CMAKE_CURRENT_SOURCE_DIR}/OSSIA/Executor/Settings/Presenter.cpp"
-"${CMAKE_CURRENT_SOURCE_DIR}/OSSIA/Executor/Settings/View.cpp"
-"${CMAKE_CURRENT_SOURCE_DIR}/OSSIA/Executor/Settings/Factory.cpp"
+"${CMAKE_CURRENT_SOURCE_DIR}/OSSIA/Executor/Settings/ExecutorModel.cpp"
+"${CMAKE_CURRENT_SOURCE_DIR}/OSSIA/Executor/Settings/ExecutorPresenter.cpp"
+"${CMAKE_CURRENT_SOURCE_DIR}/OSSIA/Executor/Settings/ExecutorView.cpp"
+"${CMAKE_CURRENT_SOURCE_DIR}/OSSIA/Executor/Settings/ExecutorFactory.cpp"
 
 "${CMAKE_CURRENT_SOURCE_DIR}/OSSIA/Listening/PlayListeningHandler.cpp"
 "${CMAKE_CURRENT_SOURCE_DIR}/OSSIA/Listening/PlayListeningHandlerFactory.cpp"
@@ -135,6 +140,11 @@ set(SRCS
 "${CMAKE_CURRENT_SOURCE_DIR}/OSSIA/LocalTree/Scenario/TimeNodeComponent.cpp"
 "${CMAKE_CURRENT_SOURCE_DIR}/OSSIA/LocalTree/Scenario/StateComponent.cpp"
 "${CMAKE_CURRENT_SOURCE_DIR}/OSSIA/LocalTree/Scenario/MetadataParameters.cpp"
+
+"${CMAKE_CURRENT_SOURCE_DIR}/OSSIA/LocalTree/Settings/LocalTreeModel.cpp"
+"${CMAKE_CURRENT_SOURCE_DIR}/OSSIA/LocalTree/Settings/LocalTreePresenter.cpp"
+"${CMAKE_CURRENT_SOURCE_DIR}/OSSIA/LocalTree/Settings/LocalTreeView.cpp"
+"${CMAKE_CURRENT_SOURCE_DIR}/OSSIA/LocalTree/Settings/LocalTreeFactory.cpp"
 
 "${CMAKE_CURRENT_SOURCE_DIR}/OSSIA/iscore2OSSIA.cpp"
 

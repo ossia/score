@@ -1,13 +1,15 @@
-#include "Presenter.hpp"
-#include "Model.hpp"
-#include "View.hpp"
+#include "LocalTreePresenter.hpp"
+#include "LocalTreeModel.hpp"
+#include "LocalTreeView.hpp"
 #include <iscore/command/SerializableCommand.hpp>
 #include <iscore/command/Dispatchers/ICommandDispatcher.hpp>
 #include <QApplication>
 #include <QStyle>
 #include <iscore/command/SettingsCommand.hpp>
 
-namespace RecreateOnPlay
+namespace Ossia
+{
+namespace LocalTree
 {
 namespace Settings
 {
@@ -17,21 +19,21 @@ Presenter::Presenter(
         QObject *parent):
     iscore::SettingsDelegatePresenterInterface{m, v, parent}
 {
-    con(v, &View::rateChanged,
-        this, [&] (auto rate) {
-        if(rate != m.getRate())
+    con(v, &View::localTreeChanged,
+        this, [&] (auto val) {
+        if(val != m.getLocalTree())
         {
-            m_disp.submitCommand<SetRate>(this->model(this), rate);
+            m_disp.submitCommand<SetLocalTree>(this->model(this), val);
         }
     });
 
-    con(m, &Model::rateChanged, &v, &View::setRate);
-    v.setRate(m.getRate());
+    con(m, &Model::localTreeChanged, &v, &View::setLocalTree);
+    v.setLocalTree(m.getLocalTree());
 }
 
 QString Presenter::settingsName()
 {
-    return tr("Execution");
+    return tr("Local tree");
 }
 
 QIcon Presenter::settingsIcon()
@@ -40,5 +42,6 @@ QIcon Presenter::settingsIcon()
 }
 
 
+}
 }
 }

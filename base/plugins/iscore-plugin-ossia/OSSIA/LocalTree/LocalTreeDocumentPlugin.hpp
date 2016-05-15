@@ -28,16 +28,23 @@ namespace Ossia
 {
 namespace LocalTree
 {
-
+class ConstraintComponent;
 class ISCORE_PLUGIN_OSSIA_EXPORT DocumentPlugin : public iscore::DocumentPlugin
 {
-        std::shared_ptr<OSSIA::Device> m_localDevice;
-
     public:
         DocumentPlugin(
                 std::shared_ptr<OSSIA::Device> localDev,
                 iscore::Document& doc,
                 QObject* parent);
+
+        ~DocumentPlugin();
+
+    private:
+        void create();
+        void cleanup();
+
+        ConstraintComponent* m_root{};
+        std::shared_ptr<OSSIA::Device> m_localDevice;
 };
 }
 }
