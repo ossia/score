@@ -18,7 +18,7 @@ template<typename T>
 auto id(const Path<T>& path)
 {
     ISCORE_ASSERT(path.valid());
-    ISCORE_ASSERT(path.unsafePath().vec().back().id());
+    ISCORE_ASSERT(bool(path.unsafePath().vec().back().id()));
 
     return Id<T>(*path.unsafePath().vec().back().id());
 }
