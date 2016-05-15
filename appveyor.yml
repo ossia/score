@@ -13,8 +13,10 @@ configuration: Release
 install:
   - appveyor DownloadFile "https://www.dropbox.com/s/4hc09x926sa6w2k/iscore-windows-sdk.7z?dl=1" -FileName iscore-windows-sdk.7z
   - 7z x iscore-windows-sdk.7z -y > nul
-  - iscore-windows-sdk/nsis.exe /S
-
+  - cd iscore-windows-sdk
+  - nsis.exe /S
+  - cd ..
+  
 build_script:
   - git submodule update --init --recursive
 #  - cd base/addons
