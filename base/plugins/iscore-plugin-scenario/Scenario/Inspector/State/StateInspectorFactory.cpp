@@ -21,11 +21,12 @@ Inspector::InspectorWidgetBase* StateInspectorFactory::makeWidget(
                  static_cast<const StateModel&>(*sourceElements.first()),
                  doc,
                  parentWidget};
+    /*
     auto contentW = new StateInspectorWidget{
                     static_cast<const StateModel&>(*sourceElements.first()),
                             doc,
                             parentWidget};
-
+*/
 //    baseW->updateAreaLayout({contentW});
     return baseW;
 }
