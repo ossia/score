@@ -71,6 +71,7 @@ ScenarioDocumentPresenter::ScenarioDocumentPresenter(
                                         delegate_view},
     m_scenarioPresenter{new DisplayedElementsPresenter{this}},
     m_selectionDispatcher{iscore::IDocument::documentContext(model()).selectionStack},
+    m_context{iscore::IDocument::documentContext(model()), m_focusDispatcher},
     m_mainTimeRuler{new TimeRulerPresenter{view().timeRuler(), this}}
 {
     using namespace iscore;
@@ -100,13 +101,10 @@ ScenarioDocumentPresenter::ScenarioDocumentPresenter(
         on_zoomOnWheelEvent((current - click).toPoint(), current);
     });
 
-    // Event handling
-    con(view().scene(), &ScenarioScene::pressed,
-            this, &ScenarioDocumentPresenter::pressed);
-    con(view().scene(), &ScenarioScene::moved,
-            this, &ScenarioDocumentPresenter::moved);
-    con(view().scene(), &ScenarioScene::released,
-            this, &ScenarioDocumentPresenter::released);
+    // Focus
+    connect(&m_focusDispatcher, SIGNAL(focus(QPointer<Process::LayerPresenter>)),
+            &model(), SIGNAL(setFocusedPresenter(QPointer<Process::LayerPresenter>)),
+            Qt::QueuedConnection);
 
     // Show our constraint
     con(model(), &ScenarioDocumentModel::displayedConstraintChanged,

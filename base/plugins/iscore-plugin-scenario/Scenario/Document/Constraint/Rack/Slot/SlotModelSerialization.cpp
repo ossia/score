@@ -35,7 +35,7 @@ template<> void Visitor<Reader<DataStream>>::readFrom(const Scenario::SlotModel&
         readFrom(lm);
     }
 
-    m_stream << slot.height();
+    m_stream << slot.getHeight();
 
     insertDelimiter();
 }
@@ -77,7 +77,7 @@ template<> void Visitor<Reader<JSONObject>>::readFrom(const Scenario::SlotModel&
     m_obj["Metadata"] = toJsonObject(slot.metadata);
 
     m_obj["EditedProcess"] = toJsonValue(slot.m_frontLayerModelId);
-    m_obj["Height"] = slot.height();
+    m_obj["Height"] = slot.getHeight();
 
     QJsonArray arr;
 

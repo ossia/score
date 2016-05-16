@@ -18,19 +18,19 @@ class ISCORE_LIB_BASE_EXPORT SettingsCommand :
             m_model{obj},
             m_new{newval}
         {
-            m_old = (m_model.*T::getter)();
+            m_old = (m_model.*T::get())();
         }
 
         virtual ~SettingsCommand() = default;
 
         void undo() const final override
         {
-            (m_model.*T::setter)(m_old);
+            (m_model.*T::set())(m_old);
         }
 
         void redo() const final override
         {
-            (m_model.*T::setter)(m_new);
+            (m_model.*T::set())(m_new);
         }
 
         void update(

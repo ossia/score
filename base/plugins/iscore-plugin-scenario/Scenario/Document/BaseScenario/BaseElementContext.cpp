@@ -10,25 +10,16 @@ class Document;
 
 namespace Scenario
 {
+/*
 BaseElementContext::BaseElementContext(
         iscore::Document& doc,
         ScenarioDocumentPresenter& pres,
         Process::ProcessFocusManager& d):
     iscore::DocumentContext{doc},
     layerPresenter{pres},
-    focusDispatcher{d}
+    context{d}
 {
 
 }
-
-BaseElementContext::BaseElementContext(
-        const iscore::DocumentContext& doc,
-        ScenarioDocumentPresenter& pres):
-    BaseElementContext{
-        doc.document,
-        pres,
-        const_cast<ScenarioDocumentModel&>(pres.model()).focusManager()}
-{
-
-}
+*/
 }

@@ -23,10 +23,10 @@ namespace Curve
 {
 SmartTool::SmartTool(Curve::ToolPalette& sm):
     CurveTool{sm},
-    m_co{&sm.presenter(), sm.context().commandStack}
+    m_co{&sm.presenter(), sm.context().context.commandStack}
 {
     m_state = new Curve::SelectionState{
-            sm.context().selectionStack,
+            sm.context().context.selectionStack,
             m_parentSM,
             m_parentSM.presenter().view(),
             &localSM()};

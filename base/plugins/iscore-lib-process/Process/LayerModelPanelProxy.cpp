@@ -8,18 +8,21 @@
 #include <Process/Process.hpp>
 #include <Process/ProcessList.hpp>
 #include <iscore/widgets/GraphicsItem.hpp>
+
+#include <QScrollBar>
+#include <QLayout>
+
 Process::LayerModelPanelProxy::~LayerModelPanelProxy()
 {
 
 }
 
-#include <QLayout>
-
 Process::GraphicsViewLayerModelPanelProxy::GraphicsViewLayerModelPanelProxy(
         const Process::LayerModel& model,
         QObject* parent):
     LayerModelPanelProxy{parent},
-    m_layer{model}
+    m_layer{model},
+    m_context{iscore::IDocument::documentContext(model), m_dispatcher}
 {
     // Setup the view
     m_widget = new QWidget;
@@ -31,7 +34,7 @@ Process::GraphicsViewLayerModelPanelProxy::GraphicsViewLayerModelPanelProxy(
 
     m_widget->layout()->addWidget(m_view);
 
-    //m_view->setHorizontalScrollBarPolicy(Qt::ScrollBarAlwaysOff);
+    m_view->setHorizontalScrollBarPolicy(Qt::ScrollBarAlwaysOn);
     m_view->setVerticalScrollBarPolicy(Qt::ScrollBarAlwaysOff);
     connect(m_view, &ProcessGraphicsView::sizeChanged,
             this,   &GraphicsViewLayerModelPanelProxy::on_sizeChanged);
@@ -60,6 +63,7 @@ Process::GraphicsViewLayerModelPanelProxy::GraphicsViewLayerModelPanelProxy(
 
     m_processPresenter = fact->makeLayerPresenter(m_layer,
                                                   m_layerView,
+                                                  m_context,
                                              this);
 
 
@@ -97,12 +101,10 @@ QWidget*Process::GraphicsViewLayerModelPanelProxy::widget() const
 
 void Process::GraphicsViewLayerModelPanelProxy::on_sizeChanged(const QSize& size)
 {
-    m_processPresenter->setHeight(size.height());
-    m_processPresenter->parentGeometryChanged();
+    m_height = size.height() - m_view->horizontalScrollBar()->height() - 2;
+    m_width = size.width();
 
-    double fullWidth = m_processPresenter->layerModel().processModel().duration().toPixels(m_zoomRatio);
-
-    m_obj->setSize(QSizeF{(double)fullWidth, (double)size.height()});
+    recompute();
 }
 
 void Process::GraphicsViewLayerModelPanelProxy::on_zoomChanged(ZoomRatio newzoom)
@@ -112,25 +114,31 @@ void Process::GraphicsViewLayerModelPanelProxy::on_zoomChanged(ZoomRatio newzoom
     auto mapZoom = [] (double val, double min, double max)
     { return (max - min) * val + min; };
 
+    const auto& duration = m_layer.processModel().duration();
+
+    m_zoomRatio = mapZoom(1.0 - newzoom,
+                          2.,
+                          std::max(4., 2 * duration.msec() / m_width));
+
+    recompute();
+}
+
+void Process::GraphicsViewLayerModelPanelProxy::recompute()
+{
     // computedMax : the number of pixels in a millisecond when the whole constraint
     // is displayed on screen;
 
     // We want the value to be at least twice the duration of the constraint
-    const auto& viewsize = m_view->size();
-    const auto& duration =  m_layer.processModel().duration();
-
-    m_zoomRatio = mapZoom(1.0 - newzoom,
-                          2.,
-                          std::max(4., 2 * duration.msec() / viewsize.width()));
+    const auto& duration = m_layer.processModel().duration();
+    auto fullWidth = duration.toPixels(m_zoomRatio);
 
     m_view->setSceneRect(
-                0, 0, duration.toPixels(m_zoomRatio) * 1.2,  viewsize.height());
+                0, 0, fullWidth * 1.2,  m_height);
 
     m_processPresenter->on_zoomRatioChanged(m_zoomRatio);
 
-    auto fullWidth = duration.toPixels(m_zoomRatio);
+    m_obj->setSize(QSizeF{(double)fullWidth, m_height});
     m_processPresenter->setWidth(fullWidth);
-
+    m_processPresenter->setHeight(m_height);
     m_processPresenter->parentGeometryChanged();
-    m_obj->setSize(QSizeF{(double)fullWidth, (double)viewsize.height()});
 }

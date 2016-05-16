@@ -36,7 +36,7 @@ BaseScenarioDisplayedElementsToolPalette::BaseScenarioDisplayedElementsToolPalet
         ScenarioDocumentPresenter& pres):
     GraphicsSceneToolPalette{pres.view().scene()},
     m_presenter{pres},
-    m_context{iscore::IDocument::documentContext(m_presenter.model()), m_presenter},
+    m_context{pres.context(), m_presenter},
     m_state{*this},
     m_inputDisp{m_presenter, *this, m_context}
 {
@@ -64,7 +64,7 @@ const BaseElementContext& BaseScenarioDisplayedElementsToolPalette::context() co
 
 const Scenario::EditionSettings& BaseScenarioDisplayedElementsToolPalette::editionSettings() const
 {
-    return m_context.app.components.applicationPlugin<ScenarioApplicationPlugin>().editionSettings(); // OPTIMIZEME
+    return m_context.context.app.components.applicationPlugin<ScenarioApplicationPlugin>().editionSettings(); // OPTIMIZEME
 }
 
 void BaseScenarioDisplayedElementsToolPalette::activate(Scenario::Tool)

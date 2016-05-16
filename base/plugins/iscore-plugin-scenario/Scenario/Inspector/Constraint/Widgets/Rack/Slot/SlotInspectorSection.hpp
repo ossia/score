@@ -2,21 +2,25 @@
 #include <Inspector/InspectorSectionWidget.hpp>
 #include <QString>
 #include <iscore/tools/SettableIdentifier.hpp>
-#include <nano_signal_slot.hpp>
-#include <Scenario/Inspector/Constraint/ConstraintInspectorWidget.hpp>
+#include <iscore/widgets/CommandSpinBox.hpp>
+#include <Scenario/Document/Constraint/Rack/Slot/SlotModel.hpp>
+#include <Scenario/Commands/Constraint/Rack/Slot/ResizeSlotVertically.hpp>
 
+#include <nano_signal_slot.hpp>
 namespace Process { class LayerModel; }
 namespace Process { class ProcessModel; }
 
 class QGridLayout;
-
+class QSpinBox;
 namespace Scenario
 {
 class AddLayerModelWidget;
 class RackInspectorSection;
-class SlotModel;
+class ConstraintInspectorWidget;
 // Contains a single rack which can contain multiple slots and a Add Slot button.
-class SlotInspectorSection final : public Inspector::InspectorSectionWidget, public Nano::Observer
+class SlotInspectorSection final :
+        public Inspector::InspectorSectionWidget,
+        public Nano::Observer
 {
     public:
         SlotInspectorSection(
@@ -42,6 +46,7 @@ class SlotInspectorSection final : public Inspector::InspectorSectionWidget, pub
         InspectorSectionWidget* m_lmSection {};
         AddLayerModelWidget* m_addLmWidget {};
         QGridLayout* m_lmGridLayout{};
-        //std::vector<InspectorSectionWidget*> m_lmsSectionWidgets;
+
+        iscore::CommandSpinbox<SlotModelHeightParameter, Command::ResizeSlotVertically, QSpinBox> m_sb;
 };
 }

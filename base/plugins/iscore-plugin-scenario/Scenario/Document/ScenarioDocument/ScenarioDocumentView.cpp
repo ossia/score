@@ -1,29 +1,24 @@
 #include <Scenario/Application/Menus/TransportActions.hpp>
 #include <Scenario/Application/ScenarioApplicationPlugin.hpp>
 #include <Scenario/Document/TimeRuler/MainTimeRuler/TimeRulerView.hpp>
+
 #include <QAction>
 #include <QApplication>
 #include <QBoxLayout>
 #include <QBrush>
-#include <QBuffer>
-#include <QClipboard>
 #include <QFlags>
 #include <QGraphicsScene>
 #include <QGraphicsView>
 #include <QGridLayout>
 #include <QLabel>
-#include <QMimeData>
-#include <qnamespace.h>
-
 #include <QPainter>
 #include <QRect>
 #include <QSize>
 #include <QString>
-#include <QStyleFactory>
-#include <QSvgGenerator>
 #include <QToolBar>
 #include <QWidget>
 #include <QFile>
+#include <QStyleFactory>
 #include <Process/Style/Skin.hpp>
 #include <Scenario/Application/Menus/ScenarioActions.hpp>
 #include <Process/Tools/ProcessGraphicsView.hpp>

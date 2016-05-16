@@ -60,10 +60,10 @@ class ISCORE_PLUGIN_SCENARIO_EXPORT TemporalScenarioPresenter final :
 
     public:
         TemporalScenarioPresenter(
-                const iscore::DocumentContext&,
                 Scenario::EditionSettings&,
                 const TemporalScenarioLayerModel& model,
                 Process::LayerView* view,
+                const Process::ProcessPresenterContext& context,
                 QObject* parent);
         ~TemporalScenarioPresenter();
 
@@ -177,9 +177,7 @@ class ISCORE_PLUGIN_SCENARIO_EXPORT TemporalScenarioPresenter final :
 
         OngoingCommandDispatcher m_ongoingDispatcher;
 
-        FocusDispatcher m_focusDispatcher;
         iscore::SelectionDispatcher m_selectionDispatcher;
-        LayerContext m_context;
         Scenario::ToolPalette m_sm;
 
         Scenario::Tool m_lastTool{Scenario::Tool::Select};

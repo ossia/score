@@ -29,18 +29,16 @@ class ISCORE_PLUGIN_CURVE_EXPORT CurveProcessPresenter :
 {
     public:
         CurveProcessPresenter(
-                const iscore::DocumentContext& context,
                 const Curve::Style& style,
                 const LayerModel_T& lm,
                 LayerView_T* view,
+                const Process::ProcessPresenterContext& ctx,
                 QObject* parent) :
-            LayerPresenter {"CurveProcessPresenter", parent},
+            LayerPresenter {ctx, parent},
             m_layer{lm},
             m_view{static_cast<LayerView_T*>(view)},
-            m_curvepresenter{new Presenter{context, style, m_layer.model().curve(), new View{m_view}, this}},
-            m_commandDispatcher{context.commandStack},
-            m_focusDispatcher{context.document},
-            m_context{context, *this, m_focusDispatcher},
+            m_curvepresenter{new Presenter{ctx, style, m_layer.model().curve(), new View{m_view}, this}},
+            m_commandDispatcher{ctx.commandStack},
             m_sm{m_context, *m_curvepresenter}
         {
             con(m_layer.model(), &CurveProcessModel::curveChanged,
@@ -140,11 +138,9 @@ class ISCORE_PLUGIN_CURVE_EXPORT CurveProcessPresenter :
         Presenter* m_curvepresenter{};
 
         CommandDispatcher<> m_commandDispatcher;
-        FocusDispatcher m_focusDispatcher;
 
         ZoomRatio m_zoomRatio {};
 
-        LayerContext m_context;
         Curve::ToolPalette m_sm;
 };
 }

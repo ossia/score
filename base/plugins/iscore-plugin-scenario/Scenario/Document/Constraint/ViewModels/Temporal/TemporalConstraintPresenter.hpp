@@ -20,6 +20,7 @@ class ISCORE_PLUGIN_SCENARIO_EXPORT TemporalConstraintPresenter final : public C
         const auto& id() const { return ConstraintPresenter::id(); } // To please boost::const_mem_fun
 
         TemporalConstraintPresenter(const TemporalConstraintViewModel& viewModel,
+                                    const Process::ProcessPresenterContext& ctx,
                                     QGraphicsObject* parentobject,
                                     QObject* parent);
         virtual ~TemporalConstraintPresenter();

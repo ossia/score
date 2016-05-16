@@ -18,7 +18,7 @@ class Model :
         public iscore::SettingsDelegateModelInterface
 {
         Q_OBJECT
-        Q_PROPERTY(bool localTree READ getLocalTree WRITE setLocalTree NOTIFY localTreeChanged)
+        Q_PROPERTY(bool localTree READ getLocalTree WRITE setLocalTree NOTIFY LocalTreeChanged)
 
     public:
         Model();
@@ -27,7 +27,7 @@ class Model :
         void setLocalTree(bool);
 
     signals:
-        void localTreeChanged(bool);
+        void LocalTreeChanged(bool);
 
     private:
         void setFirstTimeSettings() override;

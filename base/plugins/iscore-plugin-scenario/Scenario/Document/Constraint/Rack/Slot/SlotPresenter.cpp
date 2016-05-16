@@ -19,7 +19,7 @@
 #include <Scenario/Application/Menus/ScenarioContextMenuManager.hpp>
 #include "SlotHandle.hpp"
 #include "SlotPresenter.hpp"
-
+#include <Process/ProcessContext.hpp>
 #include <iscore/application/ApplicationContext.hpp>
 #include <iscore/plugins/customfactory/FactoryFamily.hpp>
 #include <iscore/plugins/customfactory/FactoryMap.hpp>
@@ -35,14 +35,15 @@ class QObject;
 namespace Scenario
 {
 SlotPresenter::SlotPresenter(
-        const iscore::DocumentContext& doc,
         const SlotModel& model,
         RackView *view,
+        const Process::ProcessPresenterContext& ctx,
         QObject* par) :
     NamedObject {"SlotPresenter", par},
-    m_processList{doc.app.components.factory<Process::ProcessList>()},
+    m_processList{ctx.app.components.factory<Process::ProcessList>()},
     m_model {model},
-    m_view {new SlotView{*this, view}}
+    m_view {new SlotView{*this, view}},
+    m_context{ctx}
 {
     m_view->setPos(0, 0);
 
@@ -57,12 +58,12 @@ SlotPresenter::SlotPresenter(
     con(m_model, &SlotModel::layerModelPutToFront,
         this, &SlotPresenter::on_layerModelPutToFront);
 
-    con(m_model, &SlotModel::heightChanged,
+    con(m_model, &SlotModel::HeightChanged,
         this, &SlotPresenter::on_heightChanged);
 
     con(m_model, &SlotModel::focusChanged,
             m_view,  &SlotView::setFocus);
-    m_view->setHeight(m_model.height());
+    m_view->setHeight(m_model.getHeight());
 
     m_looping = m_model.parentConstraint().looping();
     con(m_model.parentConstraint(), &ConstraintModel::loopingChanged,
@@ -71,7 +72,7 @@ SlotPresenter::SlotPresenter(
     connect(m_view, &SlotView::askContextMenu,
             this, [&] (const QPoint& pos, const QPointF& scenept) {
         QMenu menu;
-        ScenarioContextMenuManager::createSlotContextMenu(doc, menu, *this);
+        ScenarioContextMenuManager::createSlotContextMenu(ctx, menu, *this);
         menu.exec(pos);
         menu.close();
     });
@@ -255,7 +256,7 @@ void SlotPresenter::on_layerModelCreated_impl(
     for(int i = 0; i < numproc; i++)
     {
         auto proc_view = factory->makeLayerView(proc_vm, m_view);
-        auto proc_pres = factory->makeLayerPresenter(proc_vm, proc_view, this);
+        auto proc_pres = factory->makeLayerPresenter(proc_vm, proc_view, m_context, this);
 
         vec.push_back({proc_pres, proc_view});
     }
@@ -318,7 +319,7 @@ void SlotPresenter::updateProcesses()
                 for(int i = proc_size; i < numproc; i++)
                 {
                     auto proc_view = factory->makeLayerView(*proc.model, m_view);
-                    auto proc_pres = factory->makeLayerPresenter(*proc.model, proc_view, this);
+                    auto proc_pres = factory->makeLayerPresenter(*proc.model, proc_view, m_context, this);
 
                     proc.processes.push_back(std::make_pair(proc_pres, proc_view));
                 }

@@ -23,11 +23,11 @@ Presenter::Presenter(
         this, [&] (auto val) {
         if(val != m.getLocalTree())
         {
-            m_disp.submitDeferredCommand<SetLocalTree>(this->model(this), val);
+            m_disp.submitDeferredCommand<SetModelLocalTree>(this->model(this), val);
         }
     });
 
-    con(m, &Model::localTreeChanged, &v, &View::setLocalTree);
+    con(m, &Model::LocalTreeChanged, &v, &View::setLocalTree);
     v.setLocalTree(m.getLocalTree());
 }
 

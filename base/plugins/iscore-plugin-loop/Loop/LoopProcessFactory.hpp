@@ -48,12 +48,13 @@ class ProcessFactory final : public Process::ProcessFactory
         Process::LayerPresenter* makeLayerPresenter(
                 const Process::LayerModel& model,
                 Process::LayerView* v,
+                const Process::ProcessPresenterContext& ctx,
                 QObject* parent) override
         {
             return new LayerPresenter{
-                iscore::IDocument::documentContext(model),
-                        dynamic_cast<const Layer&>(model),
-                        dynamic_cast<LayerView*>(v),
+                        safe_cast<const Layer&>(model),
+                        safe_cast<LayerView*>(v),
+                        ctx,
                         parent};
         }
 

@@ -5,6 +5,8 @@
 #include <QGraphicsScene>
 #include <QGraphicsView>
 #include <Process/ZoomHelper.hpp>
+#include <Process/ProcessContext.hpp>
+#include <Process/Focus/FocusDispatcher.hpp>
 class ProcessGraphicsView;
 class DoubleSlider;
 class ProcessPanelGraphicsProxy;
@@ -40,6 +42,10 @@ class ISCORE_LIB_PROCESS_EXPORT GraphicsViewLayerModelPanelProxy : public LayerM
         void on_zoomChanged(ZoomRatio newzoom);
 
     private:
+        void recompute();
+
+        double m_height{}, m_width{};
+
         const LayerModel& m_layer;
         QWidget* m_widget{};
 
@@ -51,6 +57,8 @@ class ISCORE_LIB_PROCESS_EXPORT GraphicsViewLayerModelPanelProxy : public LayerM
         Process::LayerPresenter* m_processPresenter{};
         Process::LayerView* m_layerView{};
 
+        FocusDispatcher m_dispatcher;
+        ProcessPresenterContext m_context;
         ZoomRatio m_zoomRatio{};
 };
 

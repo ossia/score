@@ -3,6 +3,10 @@
 #include <iscore/plugins/customfactory/FactoryInterface.hpp>
 
 class QGraphicsObject;
+namespace Process
+{
+struct ProcessPresenterContext;
+}
 namespace Scenario
 {
 class ConstraintModel;
@@ -17,13 +21,15 @@ class ISCORE_PLUGIN_SCENARIO_EXPORT DisplayedElementsProvider :
         virtual ~DisplayedElementsProvider();
         virtual bool matches(const ConstraintModel& cst) const = 0;
         bool matches(const ConstraintModel& cst,
-                             QGraphicsObject* view_parent,
-                             QObject* parent) const
+                     const Process::ProcessPresenterContext& ctx,
+                     QGraphicsObject* view_parent,
+                     QObject* parent) const
         { return matches(cst); }
 
         virtual DisplayedElementsContainer make(const ConstraintModel& cst) const = 0;
         virtual DisplayedElementsPresenterContainer make_presenters(
-                const ConstraintModel& m, // e.g. scenario::processmodel, loop::processmodel
+                const ConstraintModel& m,
+                const Process::ProcessPresenterContext& ctx,
                 QGraphicsObject* view_parent,
                 QObject* parent) const = 0;
 };

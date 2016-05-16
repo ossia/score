@@ -10,7 +10,10 @@
 namespace Scenario {
 class EditionSettings;
 }  // namespace Scenario
+namespace Process
+{
 struct LayerContext;
+}
 
 namespace Scenario
 {
@@ -32,14 +35,14 @@ class ToolPalette final : public GraphicsSceneToolPalette
         ToolPalette(
                 const Loop::ProcessModel& model,
                 LayerPresenter& presenter,
-                LayerContext& ctx,
+                Process::LayerContext& ctx,
                 LayerView& view);
 
         LayerView& view() const;
 
         const LayerPresenter& presenter() const;
         const Loop::ProcessModel& model() const;
-        const LayerContext& context() const;
+        const Process::LayerContext& context() const;
         const Scenario::EditionSettings& editionSettings() const;
 
         void activate(Scenario::Tool);
@@ -54,7 +57,7 @@ class ToolPalette final : public GraphicsSceneToolPalette
 
         const Loop::ProcessModel& m_model;
         LayerPresenter& m_presenter;
-        LayerContext& m_context;
+        Process::LayerContext& m_context;
         LayerView& m_view;
         const Scenario::EditionSettings& m_editionSettings;
 
@@ -72,7 +75,7 @@ class ToolPalette final : public GraphicsSceneToolPalette
         ToolPaletteInputDispatcher<
                Scenario::Tool,
                ToolPalette,
-               LayerContext,
+               Process::LayerContext,
                LayerPresenter
             > m_inputDisp;
 };

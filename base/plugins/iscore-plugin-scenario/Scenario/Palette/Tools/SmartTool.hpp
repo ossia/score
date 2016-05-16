@@ -32,7 +32,7 @@ class SmartTool final : public ToolBase<ToolPalette_T>
         {
             // Selection
             m_state = new SelectionState<ToolPalette_T, View_T>{
-                      this->m_parentSM.context().selectionStack,
+                      this->m_parentSM.context().context.selectionStack,
                       this->m_parentSM,
                       this->m_parentSM.presenter().view(),
                       &this->localSM()};
@@ -53,7 +53,7 @@ class SmartTool final : public ToolBase<ToolPalette_T>
 
                 /// Slot resize
                 auto resizeSlot = new ResizeSlotState<ToolPalette_T>{
-                        this->m_parentSM.context().commandStack,
+                        this->m_parentSM.context().context.commandStack,
                         this->m_parentSM,
                         actionsState};
 

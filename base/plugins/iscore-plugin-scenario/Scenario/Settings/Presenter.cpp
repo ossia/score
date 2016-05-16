@@ -21,21 +21,21 @@ Presenter::Presenter(
         this, [&] (const auto& val) {
         if(val != m.getSkin())
         {
-            m_disp.submitCommand<SetSkin>(this->model(this), val);
+            m_disp.submitCommand<SetModelSkin>(this->model(this), val);
         }
     });
 
-    con(m, &Model::skinChanged, &v, &View::setSkin);
+    con(m, &Model::SkinChanged, &v, &View::setSkin);
     v.setSkin(m.getSkin());
 
     con(v, &View::zoomChanged,
         this, [&] (const auto val) {
         if(val != m.getGraphicZoom())
         {
-            m_disp.submitCommand<SetGraphicZoom>(this->model(this), 0.01*double(val));
+            m_disp.submitCommand<SetModelGraphicZoom>(this->model(this), 0.01*double(val));
         }
     });
-    con(m, &Model::graphicZoomChanged,
+    con(m, &Model::GraphicZoomChanged,
         this, [&] (const double z) {
         v.setZoom((100 * z));
     });
@@ -46,10 +46,10 @@ Presenter::Presenter(
         this, [&] (const int& h) {
         if(h != m.getSlotHeight())
         {
-            m_disp.submitCommand<SetSlotHeight>(this->model(this), qreal(h));
+            m_disp.submitCommand<SetModelSlotHeight>(this->model(this), qreal(h));
         }
     });
-    con(m, &Model::slotHeightChanged,
+    con(m, &Model::SlotHeightChanged,
         this, [&] (const qreal h) {
         v.setSlotHeight(h);
     });

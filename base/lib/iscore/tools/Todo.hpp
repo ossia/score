@@ -160,3 +160,18 @@ void Foreach(
         fun(arr.at(i));
     }
 }
+
+/**
+ * Macros to define a property type, e.g. an
+ * abstraction over foo.getBar(); foo.setBar();
+ * etc..
+ */
+#define ISCORE_PARAMETER_TYPE(ModelType, Name) \
+struct ModelType ## Name ## Parameter \
+{ \
+        using model_type = ModelType; \
+        using param_type = decltype(std::declval<ModelType>().get ## Name()); \
+        static constexpr auto get() { return &model_type::get ## Name; } \
+        static constexpr auto set() { return &model_type::set ## Name; }\
+        static constexpr auto notify() { return &model_type::Name ## Changed; } \
+};

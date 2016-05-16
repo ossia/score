@@ -35,7 +35,7 @@ SlotModel::SlotModel(
         RackModel *parent):
     IdentifiedObject<SlotModel> {id, Metadata<ObjectKey_k, SlotModel>::get(), parent},
     m_frontLayerModelId{Id<Process::LayerModel>{source.m_frontLayerModelId.val()}},
-    m_height {source.height() }
+    m_height {source.getHeight() }
 {
     initConnections();
     lmCopyMethod(source, *this);
@@ -127,7 +127,7 @@ void SlotModel::setHeight(qreal arg)
     if(m_height != arg)
     {
         m_height = arg;
-        emit heightChanged(arg);
+        emit HeightChanged(arg);
     }
 }
 
@@ -151,7 +151,7 @@ ConstraintModel& SlotModel::parentConstraint() const
     return static_cast<ConstraintModel&>(*parent()->parent());
 }
 
-qreal SlotModel::height() const
+qreal SlotModel::getHeight() const
 {
     return m_height;
 }

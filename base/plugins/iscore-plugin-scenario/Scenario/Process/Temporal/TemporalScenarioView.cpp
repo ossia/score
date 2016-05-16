@@ -57,16 +57,22 @@ void TemporalScenarioView::mousePressEvent(QGraphicsSceneMouseEvent* event)
 {
     if(event->button() == Qt::LeftButton)
         emit pressed(event->scenePos());
+
+    event->accept();
 }
 
 void TemporalScenarioView::mouseMoveEvent(QGraphicsSceneMouseEvent* event)
 {
     emit moved(event->scenePos());
+
+    event->accept();
 }
 
 void TemporalScenarioView::mouseReleaseEvent(QGraphicsSceneMouseEvent* event)
 {
     emit released(event->scenePos());
+
+    event->accept();
 }
 
 void TemporalScenarioView::contextMenuEvent(QGraphicsSceneContextMenuEvent* event)
@@ -74,6 +80,8 @@ void TemporalScenarioView::contextMenuEvent(QGraphicsSceneContextMenuEvent* even
     emit pressed(event->scenePos());
     emit released(event->scenePos());
     emit askContextMenu(event->screenPos(), event->scenePos());
+
+    event->accept();
 }
 
 void TemporalScenarioView::keyPressEvent(QKeyEvent* event)
@@ -87,6 +95,8 @@ void TemporalScenarioView::keyPressEvent(QKeyEvent* event)
     {
         emit keyPressed(event->key());
     }
+
+    event->accept();
 }
 
 void TemporalScenarioView::keyReleaseEvent(QKeyEvent *event)
@@ -96,10 +106,14 @@ void TemporalScenarioView::keyReleaseEvent(QKeyEvent *event)
     {
         emit keyReleased(event->key());
     }
+
+    event->accept();
 }
 
 void TemporalScenarioView::dropEvent(QGraphicsSceneDragDropEvent *event)
 {
     emit dropReceived(event->scenePos(), event->mimeData());
+
+    event->accept();
 }
 }

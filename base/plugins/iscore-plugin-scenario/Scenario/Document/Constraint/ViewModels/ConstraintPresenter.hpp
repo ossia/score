@@ -8,6 +8,11 @@
 #include <iscore/tools/SettableIdentifier.hpp>
 #include <iscore_plugin_scenario_export.h>
 
+namespace Process
+{
+struct ProcessPresenterContext;
+}
+
 namespace Scenario
 {
 class ConstraintHeader;
@@ -27,6 +32,7 @@ class ISCORE_PLUGIN_SCENARIO_EXPORT ConstraintPresenter : public NamedObject, pu
                 const ConstraintViewModel& model,
                 ConstraintView* view,
                 ConstraintHeader* header,
+                const Process::ProcessPresenterContext& ctx,
                 QObject* parent);
         virtual ~ConstraintPresenter();
         virtual void updateScaling();
@@ -73,6 +79,8 @@ class ISCORE_PLUGIN_SCENARIO_EXPORT ConstraintPresenter : public NamedObject, pu
         const ConstraintViewModel& m_viewModel;
         ConstraintView* m_view {};
         ConstraintHeader* m_header{};
+
+        const Process::ProcessPresenterContext& m_context;
 
     private:
         void updateChildren();

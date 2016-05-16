@@ -86,7 +86,13 @@ void ProcessPanelPresenter::on_modelChanged(
 
 void ProcessPanelPresenter::on_focusedViewModelChanged(const Process::LayerModel* theLM)
 {
-    if(theLM != m_layerModel)
+    if(theLM &&
+       m_layerModel &&
+       &theLM->processModel() == &m_layerModel->processModel())
+    {
+        return;
+    }
+    else if(theLM != m_layerModel)
     {
         m_layerModel = theLM;
         delete m_proxy;

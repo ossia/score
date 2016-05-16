@@ -48,7 +48,7 @@ class ResizeSlotState final : public SlotState
             connect(press, &QAbstractState::entered, [=] ()
             {
                 m_originalPoint = m_sm.scenePoint;
-                m_originalHeight = this->currentSlot.find().height();
+                m_originalHeight = this->currentSlot.find().getHeight();
             });
 
             connect(move, &QAbstractState::entered, [=] ( )

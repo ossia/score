@@ -43,6 +43,7 @@ class ScenarioFactory final :
         Process::LayerPresenter* makeLayerPresenter(
                 const Process::LayerModel&,
                 Process::LayerView*,
+                const Process::ProcessPresenterContext& context,
                 QObject* parent) override;
 
         Process::LayerView* makeLayerView(
