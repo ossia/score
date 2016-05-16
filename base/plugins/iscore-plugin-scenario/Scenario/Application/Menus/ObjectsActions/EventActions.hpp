@@ -5,7 +5,7 @@
 #include <iscore/command/Dispatchers/CommandDispatcher.hpp>
 namespace Scenario
 {
-class EventActions final : public ScenarioActions
+class ISCORE_PLUGIN_SCENARIO_EXPORT EventActions final : public ScenarioActions
 {
     public:
         EventActions(iscore::ToplevelMenuElement, ScenarioApplicationPlugin* parent);

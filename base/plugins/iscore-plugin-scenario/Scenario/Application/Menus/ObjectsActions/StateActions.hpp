@@ -6,7 +6,7 @@
 
 namespace Scenario
 {
-class StateActions final : public ScenarioActions
+class ISCORE_PLUGIN_SCENARIO_EXPORT StateActions final : public ScenarioActions
 {
     public:
     StateActions(iscore::ToplevelMenuElement, ScenarioApplicationPlugin* parent);

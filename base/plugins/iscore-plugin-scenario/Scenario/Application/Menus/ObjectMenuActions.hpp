@@ -25,7 +25,7 @@ class TemporalScenarioPresenter;
 class EventActions;
 class ConstraintActions;
 class StateActions;
-class ObjectMenuActions final : public ScenarioActions
+class ISCORE_PLUGIN_SCENARIO_EXPORT ObjectMenuActions final : public ScenarioActions
 {
     public:
         ObjectMenuActions(iscore::ToplevelMenuElement, ScenarioApplicationPlugin* parent);

@@ -12,7 +12,7 @@ namespace Scenario
 {
 class ConstraintViewModel;
 class AddProcessDialog;
-class ConstraintActions final : public ScenarioActions
+class ISCORE_PLUGIN_SCENARIO_EXPORT ConstraintActions final : public ScenarioActions
 {
     public:
     ConstraintActions(iscore::ToplevelMenuElement, ScenarioApplicationPlugin* parent);
