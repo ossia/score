@@ -21,18 +21,7 @@ struct ProcessPresenterContext : public iscore::DocumentContext
 };
 
 struct LayerContext
-{/*
-        LayerContext(
-                iscore::Document& doc,
-                Process::LayerPresenter& pres,
-                ProcessPresenterContext& d):
-            iscore::DocumentContext{doc},
-            layerPresenter{pres},
-            focusDispatcher{d}
-        {
-
-        }
-*/
+{
         const ProcessPresenterContext& context;
         Process::LayerPresenter& layerPresenter;
 };

@@ -14,13 +14,6 @@ class ScenarioDocumentPresenter;
 class BaseElementContext
 {
     public:
-        /*
-        BaseElementContext(
-                iscore::Document& doc,
-                ScenarioDocumentPresenter& pres,
-                Process::ProcessFocusManager& d);
-        */
-
         const Process::ProcessPresenterContext& context;
         ScenarioDocumentPresenter& layerPresenter;
 };

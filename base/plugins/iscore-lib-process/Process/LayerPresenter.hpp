@@ -28,6 +28,9 @@ class ISCORE_LIB_PROCESS_EXPORT LayerPresenter : public QObject
 
         virtual ~LayerPresenter();
 
+        auto& context() const
+        { return m_context; }
+
         bool focused() const;
         void setFocus(bool focus);
         virtual void on_focusChanged();

@@ -16,6 +16,8 @@ class StateActions final : public ScenarioActions
 
     QList<QAction*> actions() const override;
 
+    QAction* updateStates() const
+    { return m_updateStates; }
     private:
     CommandDispatcher<> dispatcher();
 
