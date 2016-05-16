@@ -37,10 +37,10 @@ void ViewUpdater::updateEvent(
 {
     auto h = m_presenter.m_view->boundingRect().height();
 
-    event.view()->setExtent(event.model().extent() * h);
+    event.view()->setExtent(extent());
 
     event.view()->setPos({event.model().date().toPixels(m_presenter.m_zoomRatio),
-                          event.model().extent().top() * h});
+                          extent().top()});
 
     // We also have to move all the relevant states
     if(&event == m_presenter.m_startEventPresenter)
@@ -59,7 +59,6 @@ void ViewUpdater::updateEvent(
 void ViewUpdater::updateConstraint(
         const Scenario::TemporalConstraintPresenter& pres)
 {
-    auto rect = m_presenter.m_view->boundingRect();
     auto msPerPixel = m_presenter.m_zoomRatio;
 
     const auto& cstr_model = pres.model();
@@ -71,12 +70,11 @@ void ViewUpdater::updateConstraint(
 
     if(dateChanged)
     {
-        cstr_view.setPos({startPos,
-                          rect.height() * cstr_model.heightPercentage()});
+        cstr_view.setPos({startPos, extent().top()});
     }
     else
     {
-        cstr_view.setY(qreal(rect.height() * cstr_model.heightPercentage()));
+        cstr_view.setY(extent().top());
     }
 
     cstr_view.setDefaultWidth(cstr_model.duration.defaultDuration().toPixels(msPerPixel));
@@ -92,10 +90,10 @@ void ViewUpdater::updateTimeNode(
         const Scenario::TimeNodePresenter& timenode)
 {
     auto h = m_presenter.m_view->boundingRect().height();
-    timenode.view()->setExtent(timenode.model().extent() * h);
+    timenode.view()->setExtent(2. * extent());
 
     timenode.view()->setPos({timenode.model().date().toPixels(m_presenter.m_zoomRatio),
-                             timenode.model().extent().top() * h});
+                             extent().top()});
 
     m_presenter.m_view->update();
 }
@@ -108,14 +106,12 @@ void ViewUpdater::updateState(
     if(&state == m_presenter.m_startStatePresenter)
     {
         const auto& ev = m_presenter.m_layer.model().startEvent();
-        state.view()->setPos({ev.date().toPixels(m_presenter.m_zoomRatio),
-                              rect.height() * state.model().heightPercentage()});
+        state.view()->setPos({ev.date().toPixels(m_presenter.m_zoomRatio), extent().top()});
     }
     else if(&state == m_presenter.m_endStatePresenter)
     {
         const auto& ev = m_presenter.m_layer.model().endEvent();
-        state.view()->setPos({ev.date().toPixels(m_presenter.m_zoomRatio),
-                              rect.height() * state.model().heightPercentage()});
+        state.view()->setPos({ev.date().toPixels(m_presenter.m_zoomRatio), extent().top()});
     }
 
     m_presenter.m_view->update();
