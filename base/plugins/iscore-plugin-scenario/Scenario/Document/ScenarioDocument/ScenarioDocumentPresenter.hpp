@@ -66,9 +66,9 @@ class ScenarioDocumentPresenter final : public iscore::DocumentDelegatePresenter
 
 
     signals:
-        void pressed(const QPointF&);
-        void moved(const QPointF&);
-        void released(const QPointF&);
+        void pressed(QPointF);
+        void moved(QPointF);
+        void released(QPointF);
         void escPressed();
 
         void requestDisplayedConstraintChange(const ConstraintModel&);
