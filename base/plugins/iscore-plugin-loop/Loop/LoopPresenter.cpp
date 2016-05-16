@@ -83,7 +83,7 @@ LayerPresenter::LayerPresenter(
     con(m_endEventPresenter->model(), &EventModel::extentChanged,
         this, [=] (const VerticalExtent&) { m_viewUpdater.updateEvent(*m_endEventPresenter); });
     con(m_endEventPresenter->model(), &EventModel::dateChanged,
-            this, [=] (const TimeValue&) { m_viewUpdater.updateEvent(*m_endEventPresenter); });
+        this, [=] (const TimeValue&) { m_viewUpdater.updateEvent(*m_endEventPresenter); });
     con(m_endNodePresenter->model(), &TimeNodeModel::extentChanged,
         this, [=] (const VerticalExtent&) { m_viewUpdater.updateTimeNode(*m_endNodePresenter); });
     con(m_endNodePresenter->model(), &TimeNodeModel::dateChanged,
