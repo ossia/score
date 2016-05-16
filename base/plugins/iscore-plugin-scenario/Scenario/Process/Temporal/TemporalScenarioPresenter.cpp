@@ -229,9 +229,7 @@ void TemporalScenarioPresenter::fillContextMenu(
         const QPoint& pos,
         const QPointF& scenepos) const
 {
-    auto& context = iscore::IDocument::documentContext(m_layer.processModel());
-
-    ScenarioContextMenuManager::createScenarioContextMenu(context, *menu, pos, scenepos, *this);
+    ScenarioContextMenuManager::createScenarioContextMenu(m_context.context, *menu, pos, scenepos, *this);
 }
 
 template<typename Map, typename Id>

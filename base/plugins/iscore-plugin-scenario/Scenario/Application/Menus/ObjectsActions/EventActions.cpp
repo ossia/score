@@ -46,15 +46,24 @@ void EventActions::fillContextMenu(
     QMenu* menu,
     const Selection& sel,
     const TemporalScenarioPresenter& pres,
-    const QPoint&,
-    const QPointF&)
+    const QPoint& p1,
+    const QPointF& p2)
+{
+    fillContextMenu(menu, sel, p1, p2);
+}
+
+void EventActions::fillContextMenu(
+        QMenu* menu,
+        const Selection& sel,
+        const QPoint&,
+        const QPointF&)
 {
     using namespace iscore;
     if(!sel.empty())
     {
         if(std::any_of(sel.cbegin(),
-               sel.cend(),
-               [] (const QObject* obj) { return dynamic_cast<const EventModel*>(obj); })) // TODO : event or timenode ?
+                       sel.cend(),
+                       [] (const QObject* obj) { return dynamic_cast<const EventModel*>(obj); })) // TODO : event or timenode ?
         {
             auto tnSubmenu = menu->findChild<QMenu*>(MenuInterface::name(iscore::ContextMenu::Event));
             if(!tnSubmenu)

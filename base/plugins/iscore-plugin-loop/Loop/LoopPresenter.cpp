@@ -24,6 +24,13 @@
 #include <iscore/tools/std/Algorithms.hpp>
 
 #include <Scenario/Application/ScenarioApplicationPlugin.hpp>
+#include <Scenario/Application/Menus/ObjectMenuActions.hpp>
+#include <Scenario/Application/Menus/ObjectsActions/ConstraintActions.hpp>
+#include <Scenario/Application/Menus/ObjectsActions/EventActions.hpp>
+#include <Scenario/Application/Menus/ObjectsActions/StateActions.hpp>
+#include <iscore/application/ApplicationContext.hpp>
+#include <QMenu>
+#include <Scenario/Application/ScenarioApplicationPlugin.hpp>
 #include <Scenario/Application/Menus/ScenarioActions.hpp>
 namespace Process { class LayerModel; }
 namespace Process { class ProcessModel; }
@@ -91,6 +98,10 @@ LayerPresenter::LayerPresenter(
 
     connect(m_view, &LayerView::askContextMenu,
             this,   &LayerPresenter::contextMenuRequested);
+    connect(m_view, &LayerView::pressed,
+            this, [&] () {
+        m_context.context.focusDispatcher.focus(this);
+    });
 }
 
 LayerPresenter::~LayerPresenter()
@@ -151,20 +162,21 @@ void LayerPresenter::updateAllElements()
     m_viewUpdater.updateTimeNode(*m_endNodePresenter);
 }
 
-
 void LayerPresenter::fillContextMenu(QMenu* menu, const QPoint& pos, const QPointF& scenepos) const
 {
-    /*
     auto selected = layerModel().processModel().selectedChildren();
 
-    auto& appPlug = m_context.app.components.applicationPlugin<ScenarioApplicationPlugin>();
+    auto& appPlug = m_context.context.app.components.applicationPlugin<Scenario::ScenarioApplicationPlugin>();
     for(auto elt : appPlug.pluginActions())
     {
-        // TODO make a class to encapsulate all the data
-        // required to set-up a context menu in a scenario.
-        elt->fillContextMenu(menu, selected, *this, pos, scenepos);
-        menu->addSeparator();
-    }*/
+        if(auto oma = dynamic_cast<Scenario::ObjectMenuActions*>(elt))
+        {
+            oma->eventActions()->fillContextMenu(menu, selected, pos, scenepos);
+            if(m_model.constraint().selection.get())
+                oma->constraintActions()->fillContextMenu(menu, selected, m_layer.constraint(), pos, scenepos);
+            menu->addSeparator();
+        }
+    }
 }
 
 }
