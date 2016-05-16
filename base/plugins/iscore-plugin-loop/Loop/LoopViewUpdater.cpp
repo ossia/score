@@ -35,8 +35,6 @@ ViewUpdater::ViewUpdater(LayerPresenter& presenter):
 void ViewUpdater::updateEvent(
         const Scenario::EventPresenter& event)
 {
-    auto h = m_presenter.m_view->boundingRect().height();
-
     event.view()->setExtent(extent());
 
     event.view()->setPos({event.model().date().toPixels(m_presenter.m_zoomRatio),
@@ -89,7 +87,6 @@ void ViewUpdater::updateConstraint(
 void ViewUpdater::updateTimeNode(
         const Scenario::TimeNodePresenter& timenode)
 {
-    auto h = m_presenter.m_view->boundingRect().height();
     timenode.view()->setExtent(2. * extent());
 
     timenode.view()->setPos({timenode.model().date().toPixels(m_presenter.m_zoomRatio),
@@ -101,8 +98,6 @@ void ViewUpdater::updateTimeNode(
 void ViewUpdater::updateState(
         const Scenario::StatePresenter& state)
 {
-    auto rect = m_presenter.m_view->boundingRect();
-
     if(&state == m_presenter.m_startStatePresenter)
     {
         const auto& ev = m_presenter.m_layer.model().startEvent();
