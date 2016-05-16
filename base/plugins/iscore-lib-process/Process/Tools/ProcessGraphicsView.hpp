@@ -24,7 +24,7 @@ class ISCORE_LIB_PROCESS_EXPORT ProcessGraphicsView final : public QGraphicsView
         void scrolled(int);
         void zoom(QPoint pixDelta, QPointF pos);
 
-    protected:
+    private:
         void resizeEvent(QResizeEvent* ev) override;
         void scrollContentsBy(int dx, int dy) override;
         void wheelEvent(QWheelEvent* event) override;
@@ -32,7 +32,6 @@ class ISCORE_LIB_PROCESS_EXPORT ProcessGraphicsView final : public QGraphicsView
         void keyReleaseEvent(QKeyEvent* event) override;
         void focusOutEvent(QFocusEvent* event) override;
 
-    private:
         bool m_zoomModifier{false};
         SceneGraduations* m_graduations{};
 };

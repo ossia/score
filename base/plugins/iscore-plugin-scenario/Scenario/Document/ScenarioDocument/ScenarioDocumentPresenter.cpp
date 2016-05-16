@@ -23,6 +23,7 @@
 #include <Scenario/Document/DisplayedElements/DisplayedElementsModel.hpp>
 #include <Scenario/Document/DisplayedElements/DisplayedElementsPresenter.hpp>
 #include <Scenario/Document/ScenarioDocument/ProcessFocusManager.hpp>
+#include <Scenario/Document/ScenarioDocument/ScenarioScene.hpp>
 #include <Process/Tools/ProcessGraphicsView.hpp>
 #include "ScenarioDocumentPresenter.hpp"
 #include "ZoomPolicy.hpp"
@@ -35,7 +36,6 @@
 #include <iscore/tools/ObjectIdentifier.hpp>
 #include <iscore/tools/ObjectPath.hpp>
 #include <iscore/tools/Todo.hpp>
-
 #include <core/presenter/MenubarManager.hpp>
 
 namespace iscore {
@@ -99,6 +99,14 @@ ScenarioDocumentPresenter::ScenarioDocumentPresenter(
             this, [&] (QPointF click, QPointF current) {
         on_zoomOnWheelEvent((current - click).toPoint(), current);
     });
+
+    // Event handling
+    con(view().scene(), &ScenarioScene::pressed,
+            this, &ScenarioDocumentPresenter::pressed);
+    con(view().scene(), &ScenarioScene::moved,
+            this, &ScenarioDocumentPresenter::moved);
+    con(view().scene(), &ScenarioScene::released,
+            this, &ScenarioDocumentPresenter::released);
 
     // Show our constraint
     con(model(), &ScenarioDocumentModel::displayedConstraintChanged,

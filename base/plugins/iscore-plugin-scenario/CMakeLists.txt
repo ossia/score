@@ -174,6 +174,8 @@ set(SRCS ${SRCS}
 "${CMAKE_CURRENT_SOURCE_DIR}/Scenario/Document/ScenarioDocument/ScenarioDocumentModel.cpp"
 "${CMAKE_CURRENT_SOURCE_DIR}/Scenario/Document/ScenarioDocument/ScenarioDocumentPresenter.cpp"
 "${CMAKE_CURRENT_SOURCE_DIR}/Scenario/Document/ScenarioDocument/ScenarioDocumentView.cpp"
+"${CMAKE_CURRENT_SOURCE_DIR}/Scenario/Document/ScenarioDocument/ScenarioScene.cpp"
+"${CMAKE_CURRENT_SOURCE_DIR}/Scenario/Document/ScenarioDocument/SnapshotAction.cpp"
 
 "${CMAKE_CURRENT_SOURCE_DIR}/Scenario/Document/DisplayedElements/DisplayedElementsModel.cpp"
 "${CMAKE_CURRENT_SOURCE_DIR}/Scenario/Document/DisplayedElements/DisplayedElementsPresenter.cpp"
@@ -227,6 +229,7 @@ set(SRCS ${SRCS}
 "${CMAKE_CURRENT_SOURCE_DIR}/Scenario/Document/TimeNode/Trigger/TriggerModel.cpp"
 "${CMAKE_CURRENT_SOURCE_DIR}/Scenario/Document/TimeNode/Trigger/TriggerPresenter.cpp"
 "${CMAKE_CURRENT_SOURCE_DIR}/Scenario/Document/TimeNode/Trigger/TriggerView.cpp"
+"${CMAKE_CURRENT_SOURCE_DIR}/Scenario/Document/TimeRuler/TimeRulerGraphicsView.cpp"
 "${CMAKE_CURRENT_SOURCE_DIR}/Scenario/Document/TimeRuler/AbstractTimeRuler.cpp"
 "${CMAKE_CURRENT_SOURCE_DIR}/Scenario/Document/TimeRuler/AbstractTimeRulerView.cpp"
 "${CMAKE_CURRENT_SOURCE_DIR}/Scenario/Document/TimeRuler/LocalTimeRuler/LocalTimeRulerPresenter.cpp"
