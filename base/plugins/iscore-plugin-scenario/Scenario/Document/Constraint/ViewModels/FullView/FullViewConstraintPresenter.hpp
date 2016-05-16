@@ -29,6 +29,7 @@ class ISCORE_PLUGIN_SCENARIO_EXPORT FullViewConstraintPresenter final : public C
         using view_type = FullViewConstraintView;
 
         FullViewConstraintPresenter(const FullViewConstraintViewModel& viewModel,
+                                    const Process::ProcessPresenterContext& ctx,
                                     QGraphicsItem* parentobject,
                                     QObject* parent);
 

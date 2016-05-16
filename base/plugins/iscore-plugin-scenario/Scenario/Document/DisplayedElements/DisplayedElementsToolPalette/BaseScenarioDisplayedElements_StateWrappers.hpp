@@ -59,8 +59,8 @@ class MoveEventInBaseScenario_StateWrapper
                     new Scenario::MoveEventState<Command::MoveBaseEvent<Scenario_T>, Scenario_T, ToolPalette_T>{
                         palette,
                         palette.model(),
-                        palette.context().commandStack,
-                        palette.context().objectLocker,
+                        palette.context().context.commandStack,
+                        palette.context().context.objectLocker,
                         &sm};
 
             iscore::make_transition<Scenario::ClickOnEndState_Transition<Scenario_T>>(waitState,
@@ -89,8 +89,8 @@ class MoveTimeNodeInBaseScenario_StateWrapper
                     new Scenario::MoveTimeNodeState<Command::MoveBaseEvent<Scenario_T>, Scenario_T, ToolPalette_T>{
                 palette,
                         palette.model(),
-                        palette.context().commandStack,
-                        palette.context().objectLocker,
+                        palette.context().context.commandStack,
+                        palette.context().context.objectLocker,
                         &sm};
 
             iscore::make_transition<Scenario::ClickOnEndTimeNode_Transition<Scenario_T>>(waitState,

@@ -25,7 +25,7 @@
 namespace Scenario
 {
 ToolPalette::ToolPalette(
-        LayerContext& lay,
+        Process::LayerContext& lay,
         TemporalScenarioPresenter& presenter):
     GraphicsSceneToolPalette{*presenter.view().scene()},
     m_presenter{presenter},

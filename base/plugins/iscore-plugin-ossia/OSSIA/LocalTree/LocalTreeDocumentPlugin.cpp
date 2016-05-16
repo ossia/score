@@ -50,7 +50,7 @@ Ossia::LocalTree::DocumentPlugin::DocumentPlugin(
         create();
     }
 
-    con(set, &Settings::Model::localTreeChanged,
+    con(set, &Settings::Model::LocalTreeChanged,
         this, [=] (bool b) {
         if(b)
             create();

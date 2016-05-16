@@ -30,7 +30,7 @@ FullViewConstraintView::FullViewConstraintView(FullViewConstraintPresenter& pres
 
 QRectF FullViewConstraintView::boundingRect() const
 {
-    return {0, -18, qreal(maxWidth()) + 3, qreal(constraintAndRackHeight()) + 3};
+    return {0, 0, qreal(maxWidth()) + 3, qreal(constraintAndRackHeight()) + 3};
 }
 
 void FullViewConstraintView::paint(QPainter* painter,
@@ -78,16 +78,9 @@ void FullViewConstraintView::paint(QPainter* painter,
         painter->setPen(m_dashPen);
         painter->drawLine(min_w, 0, max_w, 0);
     }
-/*
-    QLinearGradient gradient {qreal(max_w), 0, qreal(max_w + 200), 0};
-    gradient.setColorAt(0, Qt::black);
-    gradient.setColorAt(1, Qt::transparent);
-
-    QBrush brush {gradient};
-    painter->setBrush(brush);
-    painter->setPen(QPen(brush, 4));
-
-    painter->drawLine(max_w, 0, max_w + 200, 0);
-    */
+#if defined(ISCORE_SCENARIO_DEBUG_RECTS)
+    painter->setPen(Qt::red);
+    painter->drawRect(boundingRect());
+#endif
 }
 }

@@ -36,22 +36,20 @@ struct VerticalExtent;
 namespace Loop
 {
 LayerPresenter::LayerPresenter(
-        const iscore::DocumentContext& context,
         const Layer& layer,
         LayerView* view,
+        const Process::ProcessPresenterContext& ctx,
         QObject* parent):
-    Process::LayerPresenter{"LayerPresenter", parent},
+    Process::LayerPresenter{ctx, parent},
     BaseScenarioPresenter<Loop::ProcessModel, Scenario::TemporalConstraintPresenter>{layer.model()},
     m_layer{layer},
     m_view{view},
     m_viewUpdater{*this},
-    m_focusDispatcher{context.document},
-    m_context{context, *this, m_focusDispatcher},
     m_palette{m_layer.model(), *this, m_context, *m_view}
 {
     using namespace Scenario;
     m_constraintPresenter = new TemporalConstraintPresenter{
-            layer.constraint(), view, this};
+            layer.constraint(), ctx, view, this};
     m_startStatePresenter = new StatePresenter{
             layer.model().BaseScenarioContainer::startState(), m_view, this};
     m_endStatePresenter = new StatePresenter{

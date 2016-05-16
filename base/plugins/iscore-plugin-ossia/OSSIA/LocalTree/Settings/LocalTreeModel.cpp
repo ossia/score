@@ -37,7 +37,7 @@ void Model::setLocalTree(bool val)
 
     QSettings s;
     s.setValue(Keys::localTree, m_tree);
-    emit localTreeChanged(val);
+    emit LocalTreeChanged(val);
 }
 
 void Model::setFirstTimeSettings()

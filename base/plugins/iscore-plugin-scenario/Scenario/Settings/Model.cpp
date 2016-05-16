@@ -71,7 +71,7 @@ void Model::setSkin(const QString& skin)
 
     QSettings s;
     s.setValue(Keys::skin, m_skin);
-    emit skinChanged(skin);
+    emit SkinChanged(skin);
 }
 
 double Model::getGraphicZoom() const
@@ -88,7 +88,7 @@ void Model::setGraphicZoom(double graphicZoom)
 
     QSettings s;
     s.setValue(Keys::graphicZoom, m_graphicZoom);
-    emit graphicZoomChanged(m_graphicZoom);
+    emit GraphicZoomChanged(m_graphicZoom);
 }
 
 void Model::setFirstTimeSettings()
@@ -116,7 +116,7 @@ void Model::setSlotHeight(const qreal& slotHeight)
 
     QSettings s;
     s.setValue(Keys::slotHeight, m_slotHeight);
-    emit slotHeightChanged(m_slotHeight);
+    emit SlotHeightChanged(m_slotHeight);
 }
 
 }

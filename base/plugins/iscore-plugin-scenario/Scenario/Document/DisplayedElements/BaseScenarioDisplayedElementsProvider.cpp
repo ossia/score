@@ -39,6 +39,7 @@ DisplayedElementsContainer BaseScenarioDisplayedElementsProvider::make(
 
 DisplayedElementsPresenterContainer BaseScenarioDisplayedElementsProvider::make_presenters(
         const ConstraintModel& m,
+        const Process::ProcessPresenterContext& ctx,
         QGraphicsObject* view_parent,
         QObject* parent) const
 {
@@ -47,8 +48,9 @@ DisplayedElementsPresenterContainer BaseScenarioDisplayedElementsProvider::make_
         return DisplayedElementsPresenterContainer{
             new FullViewConstraintPresenter {
                 *m.fullView(),
-                view_parent,
-                parent},
+                        ctx,
+                        view_parent,
+                        parent},
             new StatePresenter{bs->startState(), view_parent, parent},
             new StatePresenter{bs->endState(), view_parent, parent},
             new EventPresenter{bs->startEvent(), view_parent, parent},

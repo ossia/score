@@ -1,33 +1,39 @@
 #pragma once
 #include <iscore/document/DocumentContext.hpp>
-#include <Process/Focus/FocusDispatcher.hpp>
 
-namespace Process { class LayerPresenter; }
-
-struct LayerContext : public iscore::DocumentContext
+class FocusDispatcher;
+namespace Process
 {
+class LayerPresenter;
+
+struct ProcessPresenterContext : public iscore::DocumentContext
+{
+        ProcessPresenterContext(
+                const iscore::DocumentContext& doc,
+                FocusDispatcher& d):
+            iscore::DocumentContext{doc},
+            focusDispatcher{d}
+        {
+
+        }
+
+        FocusDispatcher& focusDispatcher;
+};
+
+struct LayerContext
+{/*
         LayerContext(
                 iscore::Document& doc,
                 Process::LayerPresenter& pres,
-                FocusDispatcher& d):
+                ProcessPresenterContext& d):
             iscore::DocumentContext{doc},
             layerPresenter{pres},
             focusDispatcher{d}
         {
 
         }
-
-        LayerContext(
-                const iscore::DocumentContext& doc,
-                Process::LayerPresenter& pres,
-                FocusDispatcher& d):
-            LayerContext{doc.document, pres, d}
-        {
-
-        }
-
-
-
+*/
+        const ProcessPresenterContext& context;
         Process::LayerPresenter& layerPresenter;
-        FocusDispatcher& focusDispatcher;
 };
+}

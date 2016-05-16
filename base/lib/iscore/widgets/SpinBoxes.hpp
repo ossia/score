@@ -96,5 +96,4 @@ class TimeSpinBox final : public QTimeEdit
             event->ignore();
         }
 };
-
 }

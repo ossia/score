@@ -28,7 +28,9 @@ class ConstraintModel;
  * A Rack is a slot container.
  * A Rack is always found in a Constraint.
  */
-class ISCORE_PLUGIN_SCENARIO_EXPORT RackModel final : public IdentifiedObject<RackModel>, public Nano::Observer
+class ISCORE_PLUGIN_SCENARIO_EXPORT RackModel final :
+        public IdentifiedObject<RackModel>,
+        public Nano::Observer
 {
         Q_OBJECT
 

@@ -16,12 +16,12 @@ class LayerPresenter final :
 {
     public:
         LayerPresenter(
-                const iscore::DocumentContext& context,
                 const Curve::Style& style,
                 const LayerModel& layer,
                 LayerView* view,
+                const Process::ProcessPresenterContext& context,
                 QObject* parent):
-            CurveProcessPresenter{context, style, layer, view, parent}
+            CurveProcessPresenter{style, layer, view, context, parent}
         {
             // TODO instead have a prettyNameChanged signal.
             con(m_layer.model(), &ProcessModel::addressChanged,

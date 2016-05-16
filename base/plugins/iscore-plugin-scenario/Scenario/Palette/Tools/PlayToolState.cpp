@@ -22,7 +22,7 @@ void PlayToolState::on_pressed(QPointF scenePoint, Scenario::Point scenarioPoint
     if(!item)
     return;
 
-    auto& app =  m_sm.context().app.components.applicationPlugin<ScenarioApplicationPlugin>();
+    auto& app = m_sm.context().context.app.components.applicationPlugin<ScenarioApplicationPlugin>();
 
     switch(item->type())
     {

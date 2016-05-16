@@ -45,15 +45,16 @@ Process::LayerPresenter*
 ScenarioFactory::makeLayerPresenter(
         const Process::LayerModel& lm,
         Process::LayerView* view,
+        const Process::ProcessPresenterContext& context,
         QObject* parent)
 {
     if(auto vm = dynamic_cast<const TemporalScenarioLayerModel*>(&lm))
     {
         auto pres = new TemporalScenarioPresenter {
-                iscore::IDocument::documentContext(lm.processModel()),
                 m_editionSettings,
                 *vm,
                 view,
+                context,
                 parent};
         static_cast<TemporalScenarioView*>(view)->setPresenter(pres);
         return pres;
