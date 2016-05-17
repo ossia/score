@@ -1,7 +1,7 @@
 #include "iscore_plugin_inspector.hpp"
 #include "Panel/InspectorPanelFactory.hpp"
-#include <iscore/plugins/qt_interfaces/PanelFactoryInterface_QtInterface.hpp>
 #include <iscore/tools/ForEachType.hpp>
+#include <iscore/plugins/customfactory/FactorySetup.hpp>
 
 namespace iscore {
 class FactoryListInterface;
@@ -10,16 +10,27 @@ class PanelFactory;
 
 #include <Inspector/InspectorWidgetList.hpp>
 
-iscore_plugin_inspector::iscore_plugin_inspector() :
-    QObject {},
-        iscore::PanelFactory_QtInterface {}
+iscore_plugin_inspector::iscore_plugin_inspector()
 {
 }
 
-
-std::vector<iscore::PanelFactory*> iscore_plugin_inspector::panels()
+iscore_plugin_inspector::~iscore_plugin_inspector()
 {
-    return {new InspectorPanel::InspectorPanelFactory};
+
+}
+
+
+std::vector<std::unique_ptr<iscore::FactoryInterfaceBase>> iscore_plugin_inspector::factories(
+        const iscore::ApplicationContext& ctx,
+        const iscore::AbstractFactoryKey& key) const
+{
+    return instantiate_factories<
+            iscore::ApplicationContext,
+            TL<
+              FW<iscore::PanelDelegateFactory,
+                InspectorPanel::PanelDelegateFactory>
+            >
+    >(ctx, key);
 }
 
 std::vector<std::unique_ptr<iscore::FactoryListInterface>> iscore_plugin_inspector::factoryFamilies()

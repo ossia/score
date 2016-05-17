@@ -1,34 +1,42 @@
 #pragma once
-#include <iscore/plugins/panel/PanelFactory.hpp>
-#include <QString>
-
-#include <iscore/application/ApplicationContext.hpp>
-#include <iscore/plugins/panel/PanelModel.hpp>
-#include <iscore/plugins/panel/PanelPresenter.hpp>
-#include <iscore/plugins/panel/PanelView.hpp>
-
-namespace iscore {
-class DocumentModel;
-
-
-}  // namespace iscore
+#include <iscore/plugins/panel/PanelDelegate.hpp>
 
 namespace InspectorPanel
 {
-class InspectorPanelFactory : public iscore::PanelFactory
+class SelectionStackWidget;
+class InspectorPanelWidget;
+
+class PanelDelegate final :
+        public iscore::PanelDelegate
 {
     public:
-        int panelId() const override;
-        QString panelName() const override;
-        iscore::PanelView* makeView(
-                const iscore::ApplicationContext& ctx,
-                QObject*) override;
-        iscore::PanelPresenter* makePresenter(
-                const iscore::ApplicationContext& ctx,
-                iscore::PanelView* view,
-                QObject* parent) override;
-        iscore::PanelModel* makeModel(
-                const iscore::DocumentContext& ctx,
-                QObject* parent) override;
+        PanelDelegate(
+                const iscore::ApplicationContext& ctx);
+
+    private:
+        QWidget *widget() override;
+
+        const iscore::PanelStatus& defaultPanelStatus() const override;
+
+        void on_modelChanged(
+                maybe_document_t oldm,
+                maybe_document_t newm) override;
+        void setNewSelection(const Selection& s) override;
+
+        QWidget* m_widget{};
+        SelectionStackWidget* m_stack{};
+        InspectorPanelWidget* m_inspectorPanel {};
 };
+
+// MOVEME
+class PanelDelegateFactory final :
+        public iscore::PanelDelegateFactory
+{
+        ISCORE_CONCRETE_FACTORY_DECL("3c489368-c946-4f9f-8d6c-d051b724726c")
+
+        std::unique_ptr<iscore::PanelDelegate> make(
+                const iscore::ApplicationContext& ctx) override;
+};
+
 }
+

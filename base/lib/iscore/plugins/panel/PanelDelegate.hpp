@@ -5,6 +5,7 @@
 #include <boost/optional.hpp>
 #include <iscore_lib_base_export.h>
 
+class Selection;
 namespace iscore
 {
 struct ApplicationContext;
@@ -45,11 +46,6 @@ class ISCORE_LIB_BASE_EXPORT PanelDelegate
 
         }
 
-        virtual ~PanelDelegate();
-
-        virtual QWidget* widget() = 0;
-        virtual const PanelStatus& defaultPanelStatus() const = 0;
-
         void setModel(maybe_document_t model)
         {
             auto old = m_model;
@@ -60,10 +56,24 @@ class ISCORE_LIB_BASE_EXPORT PanelDelegate
         auto document() const
         { return m_model; }
 
+
+        virtual ~PanelDelegate();
+        virtual QWidget* widget() = 0;
+        virtual const PanelStatus& defaultPanelStatus() const = 0;
+
+        virtual void setNewSelection(
+                const Selection& s)
+        {
+
+        }
+
     protected:
         virtual void on_modelChanged(
                 maybe_document_t oldm,
-                maybe_document_t newm) = 0;
+                maybe_document_t newm)
+        {
+
+        }
 
     private:
         const iscore::ApplicationContext& m_context;

@@ -20,9 +20,7 @@ class FactoryListInterface;
 class PanelFactory;
 }  // namespace iscore
 
-iscore_plugin_deviceexplorer::iscore_plugin_deviceexplorer() :
-    QObject {},
-iscore::PanelFactory_QtInterface {}
+iscore_plugin_deviceexplorer::iscore_plugin_deviceexplorer()
 {
     QMetaType::registerComparators<UuidKey<Device::ProtocolFactory>>();
 }
@@ -32,19 +30,11 @@ iscore_plugin_deviceexplorer::~iscore_plugin_deviceexplorer()
 
 }
 
-std::vector<iscore::PanelFactory*> iscore_plugin_deviceexplorer::panels()
-{
-    return {new Explorer::DeviceExplorerPanelFactory};
-}
-
-
-
 std::vector<std::unique_ptr<iscore::FactoryListInterface>> iscore_plugin_deviceexplorer::factoryFamilies()
 {
     return make_ptr_vector<iscore::FactoryListInterface,
             Device::DynamicProtocolList,
             Explorer::ListeningHandlerFactoryList>();
-
 }
 
 
@@ -57,7 +47,9 @@ iscore_plugin_deviceexplorer::factories(
             iscore::ApplicationContext,
     TL<
         FW<iscore::DocumentPluginFactory,
-             Explorer::DocumentPluginFactory>
+             Explorer::DocumentPluginFactory>,
+        FW<iscore::PanelDelegateFactory,
+             Explorer::PanelDelegateFactory>
     >>(ctx, key);
 }
 

@@ -5,6 +5,8 @@
 template<typename Factory_T, typename... Types_T>
 struct FW_T
 {
+        static constexpr const auto size = sizeof...(Types_T);
+
         template<typename Base>
         static constexpr bool assert_baseof()
         {
@@ -34,10 +36,31 @@ struct FW_T
         }
 
 };
+
+template<typename... Args>
+struct counter {
+        static const constexpr auto size = 0;
+};
+template<typename Arg, typename... Args>
+struct counter<Arg, Args...>
+{
+        static const constexpr auto size = Arg::size + counter<Args...>::size;
+};
+
+
 template<typename Factory_T, typename ... Args>
 using FW = FW_T<Factory_T, Args...>;
+
 template<typename ... Args>
-using TL = TypeList<Args...>;
+struct TL : public TypeList<Args...>
+{
+    public:
+        // Returns number total number of concrete factories.
+        static constexpr auto count()
+        {
+            return counter<Args...>::size;
+        }
+};
 
 namespace iscore
 {
@@ -62,6 +85,7 @@ auto instantiate_factories(
         const iscore::AbstractFactoryKey& key)
 {
     std::vector<std::unique_ptr<iscore::FactoryInterfaceBase>> vec;
+    vec.reserve(Factories_T::count());
 
     for_each_type_if<Factories_T>(FactoryMatcher{ctx, key, vec});
 

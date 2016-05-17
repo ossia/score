@@ -5,6 +5,7 @@
 #include "ApplicationComponents.hpp"
 #include <iscore/command/CommandGeneratorMap.hpp>
 #include <iscore/plugins/application/GUIApplicationContextPlugin.hpp>
+#include <iscore/plugins/panel/PanelDelegate.hpp>
 #include <iscore/plugins/qt_interfaces/PluginRequirements_QtInterface.hpp>
 
 namespace iscore

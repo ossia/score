@@ -46,7 +46,7 @@ MappingInspectorWidget::MappingInspectorWidget(
     auto plug = doc.findPlugin<DeviceDocumentPlugin>();
     DeviceExplorerModel* explorer{};
     if(plug)
-        explorer = plug->updateProxy.deviceExplorer;
+        explorer = &plug->explorer;
     {
         // Source
         auto widg = new QWidget;

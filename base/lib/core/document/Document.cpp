@@ -2,6 +2,7 @@
 #include <core/document/DocumentModel.hpp>
 #include <core/document/DocumentPresenter.hpp>
 #include <core/document/DocumentView.hpp>
+#include <iscore/plugins/panel/PanelDelegate.hpp>
 #include <iscore/plugins/panel/PanelModel.hpp>
 #include <iscore/plugins/panel/PanelPresenter.hpp>
 #include <QObject>
@@ -79,7 +80,11 @@ void Document::init()
     con(m_selectionStack, &SelectionStack::currentSelectionChanged,
             this, [&] (const Selection& s)
             {
-                for(auto& panel : m_model->panels())
+                for(auto& panel : m_context.app.components.panels())
+                {
+                    panel.setNewSelection(s);
+                }
+                for(iscore::PanelModel* panel : m_model->panels())
                 {
                     panel->setNewSelection(s);
                 }
