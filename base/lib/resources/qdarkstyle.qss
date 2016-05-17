@@ -1351,3 +1351,7 @@ QWidget#ScenarioZoomLabel {
     color: white;
 }
 
+QFrame#SeparatorFrame {
+    border: none;
+    border-top: 1px dotted silver;
+}

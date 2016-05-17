@@ -56,5 +56,7 @@
         <file>icones/snapshot_on.png</file>
         <file>icones/stop_off.png</file>
         <file>icones/stop_on.png</file>
+        <file>icones/reinitialize_off.png</file>
+        <file>icones/reinitialize_on.png</file>
     </qresource>
 </RCC>
