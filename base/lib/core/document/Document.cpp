@@ -84,10 +84,6 @@ void Document::init()
                 {
                     panel.setNewSelection(s);
                 }
-                for(iscore::PanelModel* panel : m_model->panels())
-                {
-                    panel->setNewSelection(s);
-                }
                 m_model->setNewSelection(s);
             });
 
@@ -114,22 +110,4 @@ const Id<DocumentModel>&Document::id() const
     return m_model->id();
 }
 
-void Document::setupNewPanel(PanelFactory* factory)
-{
-    m_model->addPanel(factory->makeModel(m_context, m_model));
-}
-
-void Document::bindPanelPresenter(PanelPresenter* pres)
-{
-    using namespace std;
-    auto localmodel = std::find_if(begin(model().panels()),
-                                   end(model().panels()),
-                                   [&] (PanelModel* model)
-    {
-        return model->panelId() == pres->panelId();
-    });
-    ISCORE_ASSERT(localmodel != end(model().panels()));
-
-    pres->setModel(*localmodel);
-}
 }

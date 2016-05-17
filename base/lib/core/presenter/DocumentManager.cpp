@@ -148,11 +148,6 @@ Document* DocumentManager::setupDocument(
 {
     if(doc)
     {
-        for(auto& panel : ctx.components.panelPresenters())
-        {
-            doc->setupNewPanel(panel.second);
-        }
-
         auto it = find(m_documents, doc);
         if(it == m_documents.end())
             m_documents.push_back(doc);
@@ -187,25 +182,19 @@ void DocumentManager::setCurrentDocument(
     auto old = m_currentDocument;
     m_currentDocument = doc;
 
-    for(auto& panel : ctx.components.panels())
+    if(doc)
     {
-        if(doc)
+        for(auto& panel : ctx.components.panels())
         {
             panel.setModel(doc->context());
         }
-        else
+    }
+    else
+    {
+        for(auto& panel : ctx.components.panels())
         {
             panel.setModel(boost::none);
         }
-
-    }
-
-    for(auto& pair : ctx.components.panelPresenters())
-    {
-        if(doc)
-            m_currentDocument->bindPanelPresenter(pair.first);
-        else
-            pair.first->setModel(nullptr);
     }
 
     for(auto& ctrl : ctx.components.applicationPlugins())

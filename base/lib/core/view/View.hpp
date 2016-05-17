@@ -37,7 +37,6 @@ namespace iscore
             void setPresenter(Presenter*);
 
             void addDocumentView(iscore::DocumentView*);
-            void setupPanelView(PanelView* v);
             void setupPanel(PanelDelegate* v);
 
             void closeDocument(iscore::DocumentView* doc);
@@ -63,9 +62,6 @@ namespace iscore
 
         private:
             void changeEvent(QEvent *) override;
-
-            std::vector<QPair<PanelView*, QDockWidget*>> m_leftWidgets;
-            std::vector<QPair<PanelView*, QDockWidget*>> m_rightWidgets;
 
             std::vector<QPair<PanelDelegate*, QDockWidget*>> m_leftPanels;
             std::vector<QPair<PanelDelegate*, QDockWidget*>> m_rightPanels;

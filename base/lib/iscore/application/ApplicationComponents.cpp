@@ -18,11 +18,6 @@ ApplicationComponentsData::~ApplicationComponentsData()
         delete elt;
     }*/
 
-    for(auto& elt : panelPresenters)
-    {
-        delete elt.second;
-    }
-
     for(auto& elt : appPlugins)
     {
         delete elt;
