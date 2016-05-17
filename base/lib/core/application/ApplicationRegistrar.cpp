@@ -23,14 +23,12 @@ ApplicationRegistrar::ApplicationRegistrar(
         const iscore::ApplicationContext& ctx,
         iscore::View& view,
         MenubarManager& menubar,
-        std::vector<OrderedToolbar>& toolbars,
-        QObject* panelPresenterParent):
+        std::vector<OrderedToolbar>& toolbars):
     m_components{comp},
     m_context{ctx},
     m_view{view},
     m_menubar{menubar},
-    m_toolbars{toolbars},
-    m_panelPresenterParent{panelPresenterParent}
+    m_toolbars{toolbars}
 {
 
 }
@@ -67,9 +65,9 @@ void ApplicationRegistrar::registerApplicationContextPlugin(
 
 ISCORE_LIB_BASE_EXPORT
 void ApplicationRegistrar::registerPanel(
-        PanelDelegateFactory* factory)
+        PanelDelegateFactory& factory)
 {
-    auto panel = factory->make(m_context);
+    auto panel = factory.make(m_context);
     m_view.setupPanel(panel.get());
 
     m_components.panels.push_back(std::move(panel));

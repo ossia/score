@@ -237,8 +237,7 @@ void Application::loadPluginData()
                 ctx,
                 *m_view,
                 m_presenter->menuBar(),
-                m_presenter->toolbars(),
-                m_presenter};
+                m_presenter->toolbars()};
 
     registrar.registerFactory(std::make_unique<iscore::DocumentDelegateList>());
     auto panels = std::make_unique<iscore::PanelDelegateFactoryList>();
@@ -270,9 +269,6 @@ void Application::loadPluginData()
 
     for(auto& panel_fac : context().components.factory<iscore::PanelDelegateFactoryList>())
     {
-        auto panel = panel_fac.make(context());
-        m_view->setupPanel(panel.get());
-
-        registrar.components().panels.push_back(std::move(panel));
+        registrar.registerPanel(panel_fac);
     }
 }
