@@ -15,7 +15,7 @@ iscore_plugin_library::~iscore_plugin_library()
 
 std::vector<iscore::PanelFactory*> iscore_plugin_library::panels()
 {
-    return {new Library::LibraryPanelFactory};
+    return {}; //new Library::LibraryPanelFactory};
 }
 
 iscore::Version iscore_plugin_library::version() const
