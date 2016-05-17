@@ -16,12 +16,14 @@ namespace Scenario
 {
 FullViewConstraintPresenter::FullViewConstraintPresenter(
         const FullViewConstraintViewModel& cstr_model,
-        QGraphicsItem*parentobject,
+        const Process::ProcessPresenterContext& ctx,
+        QGraphicsItem* parentobject,
         QObject* parent) :
     ConstraintPresenter {"FullViewConstraintPresenter",
                          cstr_model,
                          new FullViewConstraintView{*this, parentobject},
                          new FullViewConstraintHeader{parentobject},
+                         ctx,
                          parent}
 {
     // Update the address bar

@@ -22,6 +22,7 @@ class ISCORE_LIB_DUMMYPROCESS_EXPORT DummyLayerPresenter final :
         explicit DummyLayerPresenter(
                 const Process::LayerModel& model,
                 DummyLayerView* view,
+                const Process::ProcessPresenterContext& ctx,
                 QObject* parent);
 
         void setWidth(qreal width) override;
@@ -45,6 +46,5 @@ class ISCORE_LIB_DUMMYPROCESS_EXPORT DummyLayerPresenter final :
     private:
         const Process::LayerModel& m_layer;
         DummyLayerView* m_view{};
-        FocusDispatcher m_focusDispatcher;
 };
 }

@@ -73,12 +73,11 @@ void DisplayedElementsPresenter::on_displayedConstraintChanged(const ConstraintM
 
 
     // Create states / events
-    auto& ctx = iscore::IDocument::documentContext(m_model->model());
-
+    auto& ctx = m_model->context();
     auto& provider = ctx.app.components.factory<DisplayedElementsProviderList>();
     DisplayedElementsPresenterContainer elts = provider.make(
                     &DisplayedElementsProvider::make_presenters,
-                    m, m_model->view().baseItem(), this);
+                    m, ctx, m_model->view().baseItem(), this);
     m_constraintPresenter = elts.constraint;
     m_startStatePresenter = elts.startState;
     m_endStatePresenter = elts.endState;
@@ -131,6 +130,8 @@ void DisplayedElementsPresenter::showConstraint()
                 emit requestFocusedPresenterChange(slot_process.front().first);
         }
     }
+
+    m_constraintPresenter->updateHeight();
 }
 
 void DisplayedElementsPresenter::on_zoomRatioChanged(ZoomRatio r)

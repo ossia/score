@@ -1,6 +1,6 @@
 #pragma once
 #include <iscore/plugins/settingsdelegate/SettingsDelegateModelInterface.hpp>
-
+#include <iscore_plugin_scenario_export.h>
 
 namespace Scenario
 {
@@ -14,13 +14,13 @@ struct Keys
         static const QString slotHeight;
 };
 
-class Model :
+class ISCORE_PLUGIN_SCENARIO_EXPORT Model :
         public iscore::SettingsDelegateModelInterface
 {
         Q_OBJECT
-        Q_PROPERTY(QString m_skin READ getSkin WRITE setSkin NOTIFY skinChanged)
-        Q_PROPERTY(double m_graphicZoom READ getGraphicZoom WRITE setGraphicZoom NOTIFY graphicZoomChanged)
-        Q_PROPERTY(qreal m_slotHeight READ getSlotHeight WRITE setSlotHeight NOTIFY slotHeightChanged)
+        Q_PROPERTY(QString m_skin READ getSkin WRITE setSkin NOTIFY SkinChanged)
+        Q_PROPERTY(double m_graphicZoom READ getGraphicZoom WRITE setGraphicZoom NOTIFY GraphicZoomChanged)
+        Q_PROPERTY(qreal m_slotHeight READ getSlotHeight WRITE setSlotHeight NOTIFY SlotHeightChanged)
 
     public:
         Model();
@@ -35,11 +35,11 @@ class Model :
         void setSlotHeight(const qreal& slotHeight);
 
     signals:
-        void skinChanged(const QString&);
-        void graphicZoomChanged(double);
-        void slotHeightChanged(qreal);
+        void SkinChanged(const QString&);
+        void GraphicZoomChanged(double);
+        void SlotHeightChanged(qreal);
 
-private:
+    private:
         void setFirstTimeSettings() override;
         QString m_skin;
         double m_graphicZoom;

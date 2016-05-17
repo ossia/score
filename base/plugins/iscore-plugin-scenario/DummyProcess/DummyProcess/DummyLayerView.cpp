@@ -25,9 +25,52 @@
 */
 namespace Dummy
 {
-DummyLayerView::DummyLayerView(QGraphicsItem* parent):
-    LayerView{parent}
+class TextItem : public QGraphicsItem
 {
+    public:
+        TextItem(QGraphicsItem* parent):
+            QGraphicsItem{parent}
+        {
+
+        }
+
+        QRectF boundingRect() const override
+        {
+            QRect rect;
+            return QFontMetrics(m_font).boundingRect(rect, Qt::AlignCenter, m_text);
+        }
+
+        void setFont(const QFont& font)
+        {
+            prepareGeometryChange();
+            m_font = font;
+            m_font.setPointSizeF(30);
+            update();
+        }
+
+        void setText(const QString& text)
+        {
+            m_text = text;
+            update();
+        }
+
+        void paint(QPainter *painter, const QStyleOptionGraphicsItem *option, QWidget *widget) override
+        {
+            painter->setFont(m_font);
+            painter->setPen(Qt::lightGray);
+            painter->drawText(boundingRect(), Qt::AlignCenter, m_text);
+        }
+
+    private:
+        QString m_text;
+        QFont m_font;
+};
+
+DummyLayerView::DummyLayerView(QGraphicsItem* parent):
+    LayerView{parent},
+    m_text{new TextItem{this}}
+{
+    m_text->setFont(Skin::instance().SansFont);
     /*
     m_view = new QQuickView();
     m_view->setSource(QUrl("qrc:/DummyProcess.qml"));
@@ -50,18 +93,38 @@ DummyLayerView::DummyLayerView(QGraphicsItem* parent):
     */
 }
 
+void DummyLayerView::setText(const QString& text)
+{
+    m_text->setText(text);
+    update();
+}
+
 void DummyLayerView::paint_impl(QPainter* painter) const
 {
+    auto w = width();
+    auto h = height();
+
+    auto trect = m_text->boundingRect();
+    auto tw = trect.width();
+    auto th = trect.height();
+
+    auto fw = w / tw;
+    auto fh = h / th;
+    if(fw >= 1. && fh >= 1.)
+    {
+        m_text->setScale(1.);
+    }
+    else
+    {
+        auto min = std::min(fw, fh);
+        m_text->setScale(min);
+    }
+
+    m_text->setPos(w / 2., h / 2.);
+
     /*
     painter->drawImage(0, 0, m_view->grabWindow());
     */
-
-    auto f = Skin::instance().SansFont;
-    f.setPointSize(30);
-    painter->setFont(f);
-    painter->setPen(Qt::lightGray);
-
-    painter->drawText(boundingRect(), Qt::AlignCenter, m_text);
 }
 
 void DummyLayerView::mousePressEvent(QGraphicsSceneMouseEvent* ev)

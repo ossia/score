@@ -12,7 +12,7 @@ namespace Scenario
 class TimeNodeModel;
 namespace Command
 {
-class SetTrigger final : public iscore::SerializableCommand
+class ISCORE_PLUGIN_SCENARIO_EXPORT SetTrigger final : public iscore::SerializableCommand
 {
         ISCORE_COMMAND_DECL(ScenarioCommandFactoryName(), SetTrigger, "Change a trigger")
         public:

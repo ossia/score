@@ -17,6 +17,7 @@ class LayerModel;
 class LayerPresenter;
 class LayerView;
 class ProcessModel;
+struct ProcessPresenterContext;
 
 /**
      * @brief The ProcessFactory class
@@ -53,6 +54,7 @@ class ISCORE_LIB_PROCESS_EXPORT ProcessFactory :
         virtual LayerPresenter* makeLayerPresenter(
                 const LayerModel&,
                 LayerView*,
+                const Process::ProcessPresenterContext& context,
                 QObject* parent) = 0;
 
         virtual LayerView* makeLayerView(

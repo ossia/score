@@ -28,6 +28,7 @@ struct ISCORE_LIB_DEVICE_EXPORT DeviceCapas
         bool canRefreshValue{true};
         bool canRefreshTree{false};
         bool canListen{true};
+        bool canSerialize{true};
 };
 
 class ISCORE_LIB_DEVICE_EXPORT DeviceInterface : public QObject

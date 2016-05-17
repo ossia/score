@@ -23,9 +23,9 @@ class ISCORE_PLUGIN_CURVE_EXPORT Model :
         public iscore::SettingsDelegateModelInterface
 {
         Q_OBJECT
-        Q_PROPERTY(int simplificationRatio READ getSimplificationRatio WRITE setSimplificationRatio NOTIFY simplificationRatioChanged)
-        Q_PROPERTY(bool simplify READ getSimplify WRITE setSimplify NOTIFY simplifyChanged)
-        Q_PROPERTY(Mode mode READ getMode WRITE setMode NOTIFY modeChanged)
+        Q_PROPERTY(int simplificationRatio READ getSimplificationRatio WRITE setSimplificationRatio NOTIFY SimplificationRatioChanged)
+        Q_PROPERTY(bool simplify READ getSimplify WRITE setSimplify NOTIFY SimplifyChanged)
+        Q_PROPERTY(Mode mode READ getMode WRITE setMode NOTIFY ModeChanged)
 
     public:
         Model();
@@ -40,9 +40,9 @@ class ISCORE_PLUGIN_CURVE_EXPORT Model :
         void setMode(Mode getMode);
 
     signals:
-        void simplificationRatioChanged(int getSimplificationRatio);
-        void simplifyChanged(bool simplify);
-        void modeChanged(Mode getMode);
+        void SimplificationRatioChanged(int getSimplificationRatio);
+        void SimplifyChanged(bool simplify);
+        void ModeChanged(Mode getMode);
 
     private:
         void setFirstTimeSettings() override;

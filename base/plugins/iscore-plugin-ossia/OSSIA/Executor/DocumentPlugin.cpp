@@ -17,7 +17,7 @@ namespace RecreateOnPlay
 DocumentPlugin::DocumentPlugin(
             iscore::Document& doc,
             QObject* parent):
-    iscore::DocumentPlugin{doc, "OSSIADocumentPlugin", parent},
+    iscore::DocumentPlugin{doc.context(), "OSSIADocumentPlugin", parent},
     m_ctx{doc.context(),
           *this,
           doc.context().plugin<Explorer::DeviceDocumentPlugin>(),

@@ -26,7 +26,7 @@ iscore::UndoApplicationPlugin::UndoApplicationPlugin(
     m_undoAction.setText(QObject::tr("Nothing to undo"));
     m_undoAction.setToolTip(QObject::tr("Undo (Ctrl+Z)"));
 
-    setIcons(&m_undoAction, QString(":/icones/prev_on.png"), QString(":/icones/prev_off.png"));
+    setIcons(&m_undoAction, QString(":/icons/prev_on.png"), QString(":/icons/prev_off.png"));
 
     con(m_undoAction, &QAction::triggered,
             [&] ()
@@ -39,7 +39,7 @@ iscore::UndoApplicationPlugin::UndoApplicationPlugin(
     m_redoAction.setText(QObject::tr("Nothing to redo"));
     m_redoAction.setToolTip(QObject::tr("Redo (Ctrl+Shift+Z)"));
 
-    setIcons(&m_redoAction, QString(":/icones/next_on.png"), QString(":/icones/next_off.png"));
+    setIcons(&m_redoAction, QString(":/icons/next_on.png"), QString(":/icons/next_off.png"));
 
     con(m_redoAction, &QAction::triggered,
             [&] ()

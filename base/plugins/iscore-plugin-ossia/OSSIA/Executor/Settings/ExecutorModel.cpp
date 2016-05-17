@@ -1,4 +1,4 @@
-#include "Model.hpp"
+#include "ExecutorModel.hpp"
 #include <QSettings>
 
 namespace RecreateOnPlay
@@ -35,7 +35,7 @@ void Model::setRate(int rate)
 
     QSettings s;
     s.setValue(Keys::rate, m_rate);
-    emit rateChanged(rate);
+    emit RateChanged(rate);
 }
 
 void Model::setFirstTimeSettings()

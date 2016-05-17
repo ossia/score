@@ -9,18 +9,18 @@ namespace iscore
     class Document;
     class DocumentDelegateModelInterface;
 }
+namespace Scenario
+{
+class ScenarioDocumentPresenter;
+}
 // Sets the focus on a scenario document.
 class ISCORE_LIB_PROCESS_EXPORT FocusDispatcher : public QObject
 {
         Q_OBJECT
-    public:
-        explicit FocusDispatcher(iscore::Document& doc);
 
     signals:
+        void focus(Scenario::ScenarioDocumentPresenter*);
         void focus(QPointer<Process::LayerPresenter>);
-
-    private:
-        iscore::DocumentDelegateModelInterface& m_baseElementModel;
 };
 
 Q_DECLARE_METATYPE(QPointer<Process::LayerPresenter>)

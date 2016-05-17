@@ -68,6 +68,7 @@ set(SRCS ${SRCS}
 
 "${CMAKE_CURRENT_SOURCE_DIR}/Scenario/Palette/Tools/ScenarioRollbackStrategy.cpp"
 "${CMAKE_CURRENT_SOURCE_DIR}/Scenario/Commands/Constraint/SetLooping.cpp"
+"${CMAKE_CURRENT_SOURCE_DIR}/Scenario/Commands/Constraint/SetProcessPosition.cpp"
 "${CMAKE_CURRENT_SOURCE_DIR}/Scenario/Commands/Constraint/SetProcessUseParentDuration.cpp"
 "${CMAKE_CURRENT_SOURCE_DIR}/Scenario/Commands/Constraint/Rack/Slot/AddLayerModelToSlot.cpp"
 "${CMAKE_CURRENT_SOURCE_DIR}/Scenario/Commands/Constraint/Rack/Slot/RemoveLayerModelFromSlot.cpp"
@@ -173,6 +174,8 @@ set(SRCS ${SRCS}
 "${CMAKE_CURRENT_SOURCE_DIR}/Scenario/Document/ScenarioDocument/ScenarioDocumentModel.cpp"
 "${CMAKE_CURRENT_SOURCE_DIR}/Scenario/Document/ScenarioDocument/ScenarioDocumentPresenter.cpp"
 "${CMAKE_CURRENT_SOURCE_DIR}/Scenario/Document/ScenarioDocument/ScenarioDocumentView.cpp"
+"${CMAKE_CURRENT_SOURCE_DIR}/Scenario/Document/ScenarioDocument/ScenarioScene.cpp"
+"${CMAKE_CURRENT_SOURCE_DIR}/Scenario/Document/ScenarioDocument/SnapshotAction.cpp"
 
 "${CMAKE_CURRENT_SOURCE_DIR}/Scenario/Document/DisplayedElements/DisplayedElementsModel.cpp"
 "${CMAKE_CURRENT_SOURCE_DIR}/Scenario/Document/DisplayedElements/DisplayedElementsPresenter.cpp"
@@ -226,6 +229,7 @@ set(SRCS ${SRCS}
 "${CMAKE_CURRENT_SOURCE_DIR}/Scenario/Document/TimeNode/Trigger/TriggerModel.cpp"
 "${CMAKE_CURRENT_SOURCE_DIR}/Scenario/Document/TimeNode/Trigger/TriggerPresenter.cpp"
 "${CMAKE_CURRENT_SOURCE_DIR}/Scenario/Document/TimeNode/Trigger/TriggerView.cpp"
+"${CMAKE_CURRENT_SOURCE_DIR}/Scenario/Document/TimeRuler/TimeRulerGraphicsView.cpp"
 "${CMAKE_CURRENT_SOURCE_DIR}/Scenario/Document/TimeRuler/AbstractTimeRuler.cpp"
 "${CMAKE_CURRENT_SOURCE_DIR}/Scenario/Document/TimeRuler/AbstractTimeRulerView.cpp"
 "${CMAKE_CURRENT_SOURCE_DIR}/Scenario/Document/TimeRuler/LocalTimeRuler/LocalTimeRulerPresenter.cpp"
@@ -294,6 +298,7 @@ if(TARGET iscore_lib_inspector)
 "${CMAKE_CURRENT_SOURCE_DIR}/Scenario/Inspector/Constraint/Widgets/RackWidget.cpp"
 "${CMAKE_CURRENT_SOURCE_DIR}/Scenario/Inspector/Constraint/Widgets/DurationSectionWidget.cpp"
 "${CMAKE_CURRENT_SOURCE_DIR}/Scenario/Inspector/Constraint/Widgets/ProcessTabWidget.cpp"
+"${CMAKE_CURRENT_SOURCE_DIR}/Scenario/Inspector/Constraint/Widgets/ProcessWidgetArea.cpp"
 "${CMAKE_CURRENT_SOURCE_DIR}/Scenario/Inspector/Constraint/Widgets/ProcessViewTabWidget.cpp"
 "${CMAKE_CURRENT_SOURCE_DIR}/Scenario/Inspector/Constraint/ConstraintInspectorWidget.cpp"
 "${CMAKE_CURRENT_SOURCE_DIR}/Scenario/Inspector/Constraint/ConstraintInspectorDelegate.cpp"
@@ -333,7 +338,7 @@ iscore_generate_command_list_file(iscore_plugin_scenario "${HDRS}")
 target_link_libraries(iscore_plugin_scenario
   PUBLIC
     Qt5::Core Qt5::Widgets Qt5::Svg
-	iscore_lib_base ColorWidgets-qt5
+        iscore_lib_base ColorWidgets-qt5
     iscore_lib_process iscore_lib_device iscore_plugin_deviceexplorer iscore_lib_state iscore_plugin_curve iscore_plugin_automation pthread)
 
 if(ISCORE_OPENGL)

@@ -1,7 +1,7 @@
-#include "Factory.hpp"
-#include "Model.hpp"
-#include "View.hpp"
-#include "Presenter.hpp"
+#include "ExecutorFactory.hpp"
+#include "ExecutorModel.hpp"
+#include "ExecutorView.hpp"
+#include "ExecutorPresenter.hpp"
 namespace RecreateOnPlay
 {
 namespace Settings

@@ -10,13 +10,13 @@ template <typename T> class Reader;
 template <typename T> class Writer;
 
 template<>
-void Visitor<Reader<DataStream>>::readFrom(const NamedObject& namedObject)
+ISCORE_LIB_BASE_EXPORT void Visitor<Reader<DataStream>>::readFrom(const NamedObject& namedObject)
 {
     m_stream << namedObject.objectName();
 }
 
 template<>
-void Visitor<Writer<DataStream>>::writeTo(NamedObject& namedObject)
+ISCORE_LIB_BASE_EXPORT void Visitor<Writer<DataStream>>::writeTo(NamedObject& namedObject)
 {
     QString objectName;
     m_stream >> objectName;
@@ -25,13 +25,13 @@ void Visitor<Writer<DataStream>>::writeTo(NamedObject& namedObject)
 
 
 template<>
-void Visitor<Reader<JSONObject>>::readFrom(const NamedObject& namedObject)
+ISCORE_LIB_BASE_EXPORT void Visitor<Reader<JSONObject>>::readFrom(const NamedObject& namedObject)
 {
     m_obj[iscore::StringConstant().ObjectName] = namedObject.objectName();
 }
 
 template<>
-void Visitor<Writer<JSONObject>>::writeTo(NamedObject& namedObject)
+ISCORE_LIB_BASE_EXPORT void Visitor<Writer<JSONObject>>::writeTo(NamedObject& namedObject)
 {
     namedObject.setObjectName(m_obj[iscore::StringConstant().ObjectName].toString());
 

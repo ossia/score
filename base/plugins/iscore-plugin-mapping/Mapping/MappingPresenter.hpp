@@ -17,12 +17,12 @@ class MappingPresenter :
 {
     public:
         MappingPresenter(
-                const iscore::DocumentContext& context,
                 const Curve::Style& style,
                 const LayerModel& layer,
                 MappingView* view,
+                const Process::ProcessPresenterContext& context,
                 QObject* parent):
-            CurveProcessPresenter{context, style, layer, view, parent}
+            CurveProcessPresenter{style, layer, view, context, parent}
         {
             con(m_layer.model(), &ProcessModel::sourceAddressChanged,
                 this, &MappingPresenter::on_nameChanges);

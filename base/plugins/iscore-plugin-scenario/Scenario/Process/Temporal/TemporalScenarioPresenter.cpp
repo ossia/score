@@ -59,20 +59,18 @@ namespace Scenario
 struct VerticalExtent;
 
 TemporalScenarioPresenter::TemporalScenarioPresenter(
-        const iscore::DocumentContext& context,
         Scenario::EditionSettings& e,
         const TemporalScenarioLayerModel& process_view_model,
         Process::LayerView* view,
+        const Process::ProcessPresenterContext& context,
         QObject* parent) :
-    LayerPresenter {"TemporalScenarioPresenter", parent},
+    LayerPresenter {context, parent},
     m_layer {process_view_model},
     m_view {static_cast<TemporalScenarioView*>(view)},
     m_viewInterface{*this},
     m_editionSettings{e},
     m_ongoingDispatcher{context.commandStack},
-    m_focusDispatcher{context.document},
     m_selectionDispatcher{context.selectionStack},
-    m_context{context, *this, m_focusDispatcher},
     m_sm{m_context, *this}
 {
     const Scenario::ScenarioModel& scenario = model(m_layer);
@@ -162,7 +160,7 @@ TemporalScenarioPresenter::TemporalScenarioPresenter(
 
     m_graphicalScale = context.app.settings<Settings::Model>().getGraphicZoom();
 
-    con(context.app.settings<Settings::Model>(), &Settings::Model::graphicZoomChanged,
+    con(context.app.settings<Settings::Model>(), &Settings::Model::GraphicZoomChanged,
             this, [&] (double d) {
         m_graphicalScale = d;
         m_viewInterface.on_graphicalScaleChanged(m_graphicalScale);
@@ -231,9 +229,7 @@ void TemporalScenarioPresenter::fillContextMenu(
         const QPoint& pos,
         const QPointF& scenepos) const
 {
-    auto& context = iscore::IDocument::documentContext(m_layer.processModel());
-
-    ScenarioContextMenuManager::createScenarioContextMenu(context, *menu, pos, scenepos, *this);
+    ScenarioContextMenuManager::createScenarioContextMenu(m_context.context, *menu, pos, scenepos, *this);
 }
 
 template<typename Map, typename Id>
@@ -385,6 +381,7 @@ void TemporalScenarioPresenter::on_constraintViewModelCreated(const TemporalCons
 {
     auto cst_pres = new TemporalConstraintPresenter{
                                 constraint_view_model,
+                                m_context.context,
                                 m_view,
                                 this};
     m_constraints.insert(cst_pres);
@@ -459,7 +456,7 @@ void TemporalScenarioPresenter::on_commentBlockCreated(const CommentBlockModel& 
     {
         if(focused() && doc != comment_block_model.content())
         {
-            CommandDispatcher<> c {m_context.commandStack};
+            CommandDispatcher<> c {m_context.context.commandStack};
             c.submitCommand(new SetCommentText{{comment_block_model}, doc}) ;
         }
     });
@@ -505,7 +502,7 @@ void TemporalScenarioPresenter::handleDrop(const QPointF &pos, const QMimeData *
 
         MacroCommandDispatcher m(
                     new  Scenario::Command::CreateStateMacro,
-                    m_context.commandStack);
+                    m_context.context.commandStack);
 
         const Scenario::ScenarioModel& scenar = ::model(m_layer);
         Id<StateModel> createdState;

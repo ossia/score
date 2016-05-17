@@ -201,6 +201,9 @@ class MoveEventState final : public StateBase<Scenario_T>
                         if(other_date > t)
                         t = other_date;
                     }
+
+                    // These 10 milliseconds are here to prevent "squashing"
+                    // processes to zero, which leads to problem (they can't scale back!)
                     this->m_pressedPrevious = t + TimeValue::fromMsecs(10);
                 }
                 else

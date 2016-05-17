@@ -1,4 +1,5 @@
 #pragma once
+#include <Scenario/Document/VerticalExtent.hpp>
 
 namespace Scenario
 {
@@ -24,6 +25,10 @@ class ViewUpdater
         void updateState(const Scenario::StatePresenter &state);
 
         LayerPresenter& m_presenter;
+
+        static const constexpr Scenario::VerticalExtent extent() {
+            return {20., 50. };
+        }
 };
 
 }

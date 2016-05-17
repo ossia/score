@@ -32,10 +32,10 @@ class ISCORE_PLUGIN_SCENARIO_EXPORT SlotModel final :
         ISCORE_SERIALIZE_FRIENDS(SlotModel, DataStream)
         ISCORE_SERIALIZE_FRIENDS(SlotModel, JSONObject)
 
-        Q_PROPERTY(qreal height
-                   READ height
+        Q_PROPERTY(qreal getHeight
+                   READ getHeight
                    WRITE setHeight
-                   NOTIFY heightChanged)
+                   NOTIFY HeightChanged)
 
         Q_PROPERTY(bool focus
                    READ focus
@@ -77,7 +77,7 @@ class ISCORE_PLUGIN_SCENARIO_EXPORT SlotModel final :
         // A slot is always in a constraint
         ConstraintModel& parentConstraint() const;
 
-        qreal height() const;
+        qreal getHeight() const;
         bool focus() const;
 
         NotifyingMap<Process::LayerModel> layers;
@@ -89,7 +89,7 @@ class ISCORE_PLUGIN_SCENARIO_EXPORT SlotModel final :
     signals:
         void layerModelPutToFront(const Process::LayerModel& layerModelId);
 
-        void heightChanged(qreal arg);
+        void HeightChanged(qreal arg);
         void focusChanged(bool arg);
 
     private:
@@ -103,6 +103,7 @@ class ISCORE_PLUGIN_SCENARIO_EXPORT SlotModel final :
         qreal m_height {200};
         bool m_focus{false};
 };
+ISCORE_PARAMETER_TYPE(SlotModel, Height)
 
 /**
  * @brief parentConstraint Utility function to get the parent constraint of a process view model
@@ -114,3 +115,4 @@ ConstraintModel* parentConstraint(Process::LayerModel* lm);
 }
 
 DEFAULT_MODEL_METADATA(Scenario::SlotModel, "Slot")
+

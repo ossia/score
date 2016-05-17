@@ -17,13 +17,16 @@ namespace Scenario
 {
 class RackModel;
 class RackView;
-class RackPresenter final : public NamedObject, public Nano::Observer
+class RackPresenter final :
+        public NamedObject,
+        public Nano::Observer
 {
         Q_OBJECT
 
     public:
         RackPresenter(const RackModel& model,
                      RackView* view,
+                     const Process::ProcessPresenterContext&,
                      QObject* parent);
         virtual ~RackPresenter();
 
@@ -66,7 +69,9 @@ class RackPresenter final : public NamedObject, public Nano::Observer
         void updateShape();
 
         const RackModel& m_model;
-        RackView* m_view;
+        RackView* m_view{};
+        const Process::ProcessPresenterContext& m_context;
+
         IdContainer<SlotPresenter,SlotModel> m_slots;
 
         ZoomRatio m_zoomRatio{};

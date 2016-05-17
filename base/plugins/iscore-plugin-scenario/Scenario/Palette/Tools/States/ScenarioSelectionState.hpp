@@ -64,12 +64,12 @@ class SelectionState final : public CommonSelectionState
 
         void on_delete() override
         {
-            removeSelection(m_parentSM.model(), m_parentSM.context().commandStack);
+            removeSelection(m_parentSM.model(), m_parentSM.context().context.commandStack);
         }
 
         void on_deleteContent() override
         {
-            clearContentFromSelection(m_parentSM.model(), m_parentSM.context().commandStack);
+            clearContentFromSelection(m_parentSM.model(), m_parentSM.context().context.commandStack);
         }
 
         void setSelectionArea(const QRectF& area)

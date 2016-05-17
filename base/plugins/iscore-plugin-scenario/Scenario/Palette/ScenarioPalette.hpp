@@ -32,13 +32,13 @@ class ScenarioModel;
 class ToolPalette final : public GraphicsSceneToolPalette
 {
     public:
-        ToolPalette(LayerContext&, TemporalScenarioPresenter& presenter);
+        ToolPalette(Process::LayerContext&, TemporalScenarioPresenter& presenter);
 
         const TemporalScenarioPresenter& presenter() const
         { return m_presenter; }
         const Scenario::EditionSettings& editionSettings() const;
 
-        const LayerContext& context() const
+        const Process::LayerContext& context() const
         { return m_context; }
 
         const Scenario::ScenarioModel& model() const
@@ -57,7 +57,7 @@ class ToolPalette final : public GraphicsSceneToolPalette
 
         TemporalScenarioPresenter& m_presenter;
         const Scenario::ScenarioModel& m_model;
-        LayerContext& m_context;
+        Process::LayerContext& m_context;
 
         CreationTool<ScenarioModel, Scenario::ToolPalette> m_createTool;
         SmartTool<
@@ -77,7 +77,7 @@ class ToolPalette final : public GraphicsSceneToolPalette
         ToolPaletteInputDispatcher<
             Scenario::Tool,
             ToolPalette,
-            LayerContext,
+            Process::LayerContext,
             TemporalScenarioView> m_inputDisp;
 };
 

@@ -32,7 +32,6 @@ Scenario::Point ScenarioDisplayedElementsToolPalette::ScenePointToScenarioPoint(
 }
 
 ScenarioDisplayedElementsToolPalette::ScenarioDisplayedElementsToolPalette(
-        const iscore::DocumentContext& ctx,
         const DisplayedElementsModel& model,
         ScenarioDocumentPresenter& pres,
         BaseGraphicsObject& view):
@@ -40,9 +39,9 @@ ScenarioDisplayedElementsToolPalette::ScenarioDisplayedElementsToolPalette(
     m_model{model},
     m_scenarioModel{*safe_cast<Scenario::ScenarioModel*>(m_model.constraint().parent())},
     m_presenter{pres},
-    m_context{ctx, m_presenter},
+    m_context{pres.context(), m_presenter},
     m_view{view},
-    m_editionSettings{m_context.app.components.applicationPlugin<ScenarioApplicationPlugin>().editionSettings()},
+    m_editionSettings{m_context.context.app.components.applicationPlugin<ScenarioApplicationPlugin>().editionSettings()},
     m_state{*this},
     m_inputDisp{m_presenter, *this, m_context}
 {

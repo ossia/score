@@ -209,3 +209,5 @@ std::vector<typename T::layer_type*> layers(const T& processModel)
 }
 
 DEFAULT_MODEL_METADATA(Process::ProcessModel, "Process")
+
+Q_DECLARE_METATYPE(Id<Process::ProcessModel>)
