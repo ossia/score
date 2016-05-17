@@ -26,20 +26,6 @@ class SelectionStack;
 
 namespace InspectorPanel
 {
-namespace bmi = boost::multi_index;
-using InspectorWidgetMap = bmi::multi_index_container<
-    Inspector::InspectorWidgetBase*,
-    bmi::indexed_by<
-        bmi::hashed_unique<
-            bmi::const_mem_fun<
-                Inspector::InspectorWidgetBase,
-                const IdentifiedObjectAbstract*,
-                &Inspector::InspectorWidgetBase::inspectedObject_addr
-            >
-        >
-    >
->;
-
 /*!
  * \brief The InspectorPanel class manages the main panel.
  *
@@ -71,7 +57,6 @@ class InspectorPanelWidget : public QWidget
     private:
         QVBoxLayout* m_layout{};
         QTabWidget* m_tabWidget{};
-        InspectorWidgetMap m_map;
 
         Inspector::InspectorWidgetBase* m_currentInspector{};
 

@@ -2,7 +2,6 @@
 #include <iscore/command/CommandData.hpp>
 #include <iscore/command/CommandGeneratorMap.hpp>
 #include <iscore/tools/Todo.hpp>
-#include <iscore/plugins/panel/PanelDelegate.hpp>
 #include <iscore/plugins/customfactory/FactoryFamily.hpp>
 #include <iscore/plugins/customfactory/FactoryInterface.hpp>
 #include <iscore/plugins/customfactory/StringFactoryKey.hpp>

@@ -89,7 +89,6 @@ class ISCORE_PLUGIN_DEVICEEXPLORER_EXPORT DeviceExplorerModel final :
         DeviceDocumentPlugin& deviceModel() const;
         QModelIndexList selectedIndexes() const;
 
-        void setCommandQueue(iscore::CommandStackFacade* q);
         iscore::CommandStackFacade& commandStack() const
         { return *m_cmdQ; }
 

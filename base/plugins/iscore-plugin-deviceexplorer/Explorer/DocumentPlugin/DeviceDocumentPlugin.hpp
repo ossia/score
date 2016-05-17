@@ -4,6 +4,7 @@
 #include <Explorer/DocumentPlugin/ListeningState.hpp>
 #include <Explorer/DocumentPlugin/NodeUpdateProxy.hpp>
 #include <Explorer/Listening/ListeningHandler.hpp>
+#include <Explorer/Explorer/DeviceExplorerModel.hpp>
 #include <iscore/plugins/documentdelegate/plugin/DocumentDelegatePluginModel.hpp>
 #include <iscore_plugin_deviceexplorer_export.h>
 #include <core/document/Document.hpp>
@@ -47,7 +48,6 @@ class ISCORE_PLUGIN_DEVICEEXPLORER_EXPORT DeviceDocumentPlugin final :
         Device::Node createDeviceFromNode(const Device::Node&);
         Device::Node loadDeviceFromNode(const Device::Node&);
 
-        NodeUpdateProxy updateProxy{*this};
 
         void setConnection(bool);
 
@@ -62,6 +62,10 @@ class ISCORE_PLUGIN_DEVICEEXPLORER_EXPORT DeviceDocumentPlugin final :
         Device::DeviceList m_list;
 
         mutable std::unique_ptr<Explorer::ListeningHandler> m_listening;
+
+    public:
+        DeviceExplorerModel explorer{*this};
+        NodeUpdateProxy updateProxy{*this};
 };
 
 }

@@ -1,45 +1,63 @@
 #include "DeviceExplorerPanelFactory.hpp"
-#include "PanelBase/DeviceExplorerPanelModel.hpp"
-#include "PanelBase/DeviceExplorerPanelPresenter.hpp"
-#include "PanelBase/DeviceExplorerPanelView.hpp"
-#include "PanelBase/DeviceExplorerPanelId.hpp"
-
-namespace iscore {
-class DocumentModel;
-}  // namespace iscore
-
+#include <Device/Protocol/ProtocolList.hpp>
+#include <Explorer/Explorer/DeviceExplorerWidget.hpp>
+#include <Explorer/DocumentPlugin/DeviceDocumentPlugin.hpp>
 
 namespace Explorer
 {
-QString DeviceExplorerPanelFactory::panelName() const
+PanelDelegate::PanelDelegate(const iscore::ApplicationContext& ctx):
+    iscore::PanelDelegate{ctx},
+    m_widget{new DeviceExplorerWidget{
+             ctx.components.factory<Device::DynamicProtocolList>(),
+             nullptr}}
 {
-    return "DeviceExplorer";
 }
 
-int DeviceExplorerPanelFactory::panelId() const
+QWidget* PanelDelegate::widget()
 {
-    return DEVICEEXPLORER_PANEL_ID;
+    return m_widget;
 }
 
-iscore::PanelView* DeviceExplorerPanelFactory::makeView(
-        const iscore::ApplicationContext& ctx,
-        QObject* parent)
+const iscore::PanelStatus&PanelDelegate::defaultPanelStatus() const
 {
-    return new DeviceExplorerPanelView {ctx, parent};
+    static const iscore::PanelStatus status{
+        true,
+        Qt::LeftDockWidgetArea,
+                10,
+                QObject::tr("Device Explorer"),
+                QObject::tr("Ctrl+E")};
+
+    return status;
 }
 
-iscore::PanelPresenter* DeviceExplorerPanelFactory::makePresenter(
-        const iscore::ApplicationContext& ctx,
-        iscore::PanelView* view,
-        QObject* parent)
+std::unique_ptr<iscore::PanelDelegate> PanelDelegateFactory::make(
+        const iscore::ApplicationContext& ctx)
 {
-    return new DeviceExplorerPanelPresenter {view, parent};
+    return std::make_unique<PanelDelegate>(ctx);
 }
 
-iscore::PanelModel* DeviceExplorerPanelFactory::makeModel(
-        const iscore::DocumentContext& ctx,
-        QObject* parent)
+
+void PanelDelegate::on_modelChanged(
+        iscore::PanelDelegate::maybe_document_t oldm,
+        iscore::PanelDelegate::maybe_document_t newm)
 {
-    return new DeviceExplorerPanelModel{ctx, parent};
+    // DeviceExplorerModel ownership goes to document plugin
+    if(oldm)
+    {
+        auto& plug = oldm->plugin<DeviceDocumentPlugin>();
+        plug.explorer.setView(nullptr);
+    }
+
+    if(newm)
+    {
+        auto& plug = newm->plugin<DeviceDocumentPlugin>();
+        plug.explorer.setView(m_widget->view());
+        m_widget->setModel(&plug.explorer);
+    }
+    else
+    {
+        m_widget->setModel(nullptr);
+    }
 }
+
 }

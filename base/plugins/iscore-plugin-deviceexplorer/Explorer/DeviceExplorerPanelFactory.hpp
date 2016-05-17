@@ -1,37 +1,36 @@
 #pragma once
-#include <iscore/plugins/panel/PanelFactory.hpp>
-#include <QString>
-
-#include <iscore/application/ApplicationContext.hpp>
-#include <iscore/plugins/panel/PanelModel.hpp>
-#include <iscore/plugins/panel/PanelPresenter.hpp>
-#include <iscore/plugins/panel/PanelView.hpp>
-
-namespace iscore {
-class DocumentModel;
-
-
-}  // namespace iscore
-
+#include <iscore/plugins/panel/PanelDelegate.hpp>
 namespace Explorer
 {
-class DeviceExplorerPanelFactory final : public iscore::PanelFactory
+class DeviceExplorerWidget;
+class PanelDelegate final :
+        public iscore::PanelDelegate
 {
     public:
-        int panelId() const override;
-        QString panelName() const override;
+        PanelDelegate(
+                const iscore::ApplicationContext& ctx);
 
-        iscore::PanelView* makeView(
-                const iscore::ApplicationContext& ctx,
-                QObject*) override;
+    private:
+        QWidget *widget() override;
 
-        iscore::PanelPresenter* makePresenter(
-                const iscore::ApplicationContext& ctx,
-                iscore::PanelView* view,
-                QObject* parent) override;
+        const iscore::PanelStatus& defaultPanelStatus() const override;
 
-        iscore::PanelModel* makeModel(
-                const iscore::DocumentContext& ctx,
-                QObject* parent) override;
+        void on_modelChanged(
+                maybe_document_t oldm,
+                maybe_document_t newm) override;
+
+        DeviceExplorerWidget* m_widget{};
 };
+
+// MOVEME
+class PanelDelegateFactory final :
+        public iscore::PanelDelegateFactory
+{
+        ISCORE_CONCRETE_FACTORY_DECL("de755995-398d-4b16-9030-574533b17a9f")
+
+        std::unique_ptr<iscore::PanelDelegate> make(
+                const iscore::ApplicationContext& ctx) override;
+};
+
 }
+

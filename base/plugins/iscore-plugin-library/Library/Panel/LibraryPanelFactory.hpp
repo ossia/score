@@ -1,18 +1,32 @@
-/*
-static const iscore::DefaultPanelStatus status{false, Qt::RightDockWidgetArea, 0, QObject::tr("Library")};
-
-const QString shortcut() const override
-{ return tr("Ctrl+L"); }
-LibraryPanelView::LibraryPanelView(QObject* parent):
-    iscore::PanelView {parent},
-    m_widget{new QTabWidget}
+#pragma once
+#include <iscore/plugins/panel/PanelDelegate.hpp>
+class QTabWidget;
+namespace Library
 {
-    auto projectLib = new LibraryWidget{m_widget};
-    m_widget->addTab(projectLib, tr("Project"));
+class PanelDelegate final :
+        public iscore::PanelDelegate
+{
+    public:
+        PanelDelegate(
+                const iscore::ApplicationContext& ctx);
 
-    auto systemLib = new LibraryWidget{m_widget};
-    m_widget->addTab(systemLib, tr("System"));
+    private:
+        QWidget *widget() override;
 
-    m_widget->setObjectName("LibraryExplorer");
+        const iscore::PanelStatus& defaultPanelStatus() const override;
+
+        QTabWidget *m_widget{};
+};
+
+// MOVEME
+class PanelDelegateFactory final :
+        public iscore::PanelDelegateFactory
+{
+        ISCORE_CONCRETE_FACTORY_DECL("ddbc5169-1ca3-4a64-a805-40b8fc0e1e02")
+
+        std::unique_ptr<iscore::PanelDelegate> make(
+                const iscore::ApplicationContext& ctx) override;
+};
+
 }
-*/
+

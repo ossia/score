@@ -185,16 +185,6 @@ void PluginLoader::loadPlugins(
     // Load what the plug-ins have to offer.
     for(auto plugin : availablePlugins)
     {
-        auto panel_plugin = dynamic_cast<PanelFactory_QtInterface*> (plugin);
-        if(panel_plugin)
-        {
-            auto panels = panel_plugin->panels();
-            for(auto panel : panels)
-            {
-                registrar.registerPanel(panel);
-            }
-        }
-
         auto commands_plugin = dynamic_cast<CommandFactory_QtInterface*> (plugin);
         if(commands_plugin)
         {

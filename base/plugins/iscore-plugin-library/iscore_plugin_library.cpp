@@ -1,10 +1,9 @@
 #include "iscore_plugin_library.hpp"
 
 #include <Library/Panel/LibraryPanelFactory.hpp>
+#include <iscore/plugins/customfactory/FactorySetup.hpp>
 
-iscore_plugin_library::iscore_plugin_library() :
-    QObject {},
-    iscore::PanelFactory_QtInterface {}
+iscore_plugin_library::iscore_plugin_library()
 {
 }
 
@@ -13,10 +12,19 @@ iscore_plugin_library::~iscore_plugin_library()
 
 }
 
-std::vector<iscore::PanelFactory*> iscore_plugin_library::panels()
+std::vector<std::unique_ptr<iscore::FactoryInterfaceBase>> iscore_plugin_library::factories(
+        const iscore::ApplicationContext& ctx,
+        const iscore::AbstractFactoryKey& key) const
 {
-    return {}; //new Library::LibraryPanelFactory};
+    return instantiate_factories<
+            iscore::ApplicationContext,
+            TL<
+              FW<iscore::PanelDelegateFactory,
+                  Library::PanelDelegateFactory>
+            >
+    >(ctx, key);
 }
+
 
 iscore::Version iscore_plugin_library::version() const
 {
