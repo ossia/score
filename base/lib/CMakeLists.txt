@@ -51,10 +51,6 @@ set(SRCS
 "${CMAKE_CURRENT_SOURCE_DIR}/iscore/plugins/documentdelegate/plugin/ElementPluginModelList.cpp"
 "${CMAKE_CURRENT_SOURCE_DIR}/iscore/plugins/application/GUIApplicationContextPlugin.cpp"
 "${CMAKE_CURRENT_SOURCE_DIR}/iscore/plugins/panel/PanelDelegate.cpp"
-"${CMAKE_CURRENT_SOURCE_DIR}/iscore/plugins/panel/PanelFactory.cpp"
-"${CMAKE_CURRENT_SOURCE_DIR}/iscore/plugins/panel/PanelModel.cpp"
-"${CMAKE_CURRENT_SOURCE_DIR}/iscore/plugins/panel/PanelPresenter.cpp"
-"${CMAKE_CURRENT_SOURCE_DIR}/iscore/plugins/panel/PanelView.cpp"
 
 "${CMAKE_CURRENT_SOURCE_DIR}/iscore/plugins/settingsdelegate/SettingsDelegateFactory.cpp"
 "${CMAKE_CURRENT_SOURCE_DIR}/iscore/plugins/settingsdelegate/SettingsDelegateModel.cpp"
@@ -68,7 +64,6 @@ set(SRCS
 
 "${CMAKE_CURRENT_SOURCE_DIR}/iscore/plugins/qt_interfaces/FactoryFamily_QtInterface.cpp"
 "${CMAKE_CURRENT_SOURCE_DIR}/iscore/plugins/qt_interfaces/FactoryInterface_QtInterface.cpp"
-"${CMAKE_CURRENT_SOURCE_DIR}/iscore/plugins/qt_interfaces/PanelFactoryInterface_QtInterface.cpp"
 "${CMAKE_CURRENT_SOURCE_DIR}/iscore/plugins/qt_interfaces/GUIApplicationContextPlugin_QtInterface.cpp"
 "${CMAKE_CURRENT_SOURCE_DIR}/iscore/plugins/qt_interfaces/PluginRequirements_QtInterface.cpp"
 
@@ -115,10 +110,7 @@ set(SRCS
 "${CMAKE_CURRENT_SOURCE_DIR}/core/settings/SettingsPresenter.cpp"
 "${CMAKE_CURRENT_SOURCE_DIR}/core/settings/SettingsView.cpp"
 "${CMAKE_CURRENT_SOURCE_DIR}/core/undo/Panel/Widgets/UndoListWidget.cpp"
-"${CMAKE_CURRENT_SOURCE_DIR}/core/undo/Panel/UndoModel.cpp"
 "${CMAKE_CURRENT_SOURCE_DIR}/core/undo/Panel/UndoPanelFactory.cpp"
-"${CMAKE_CURRENT_SOURCE_DIR}/core/undo/Panel/UndoPresenter.cpp"
-"${CMAKE_CURRENT_SOURCE_DIR}/core/undo/Panel/UndoView.cpp"
 "${CMAKE_CURRENT_SOURCE_DIR}/core/undo/UndoApplicationPlugin.cpp"
 "${CMAKE_CURRENT_SOURCE_DIR}/core/view/View.cpp"
 
@@ -127,7 +119,7 @@ set(SRCS
 add_library(iscore_lib_base ${SRCS} ${HEADERS} ${QRCS})
 
 target_link_libraries(iscore_lib_base
-	PUBLIC Qt5::Core Qt5::Widgets
+        PUBLIC Qt5::Core Qt5::Widgets
     PRIVATE Qt5::Svg QRecentFilesMenu)
 
 set_property(TARGET iscore_lib_base PROPERTY COTIRE_CXX_PREFIX_HEADER_INIT "${CMAKE_CURRENT_SOURCE_DIR}/iscore/prefix.hpp")

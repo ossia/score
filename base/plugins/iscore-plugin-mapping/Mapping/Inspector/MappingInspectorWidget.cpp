@@ -1,4 +1,4 @@
-#include <Explorer/PanelBase/DeviceExplorerPanelModel.hpp>
+
 #include <Explorer/Widgets/AddressEditWidget.hpp>
 #include <Mapping/Commands/ChangeAddresses.hpp>
 #include <Mapping/Commands/MinMaxCommands.hpp>

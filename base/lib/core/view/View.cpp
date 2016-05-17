@@ -4,7 +4,6 @@
 #include <core/presenter/Presenter.hpp>
 #include <core/view/View.hpp>
 #include <iscore/menu/MenuInterface.hpp>
-#include <iscore/plugins/panel/PanelView.hpp>
 #include <iscore/plugins/panel/PanelDelegate.hpp>
 #include <QAction>
 #include <qcoreevent.h>

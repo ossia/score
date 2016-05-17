@@ -20,7 +20,6 @@
 #include <Process/Process.hpp>
 #include <Process/State/ProcessStateDataInterface.hpp>
 #include <Process/Inspector/ProcessInspectorWidgetDelegateFactoryList.hpp>
-#include <Process/Inspector/ProcessInspectorWidget.hpp>
 
 #include <Scenario/Inspector/Constraint/Widgets/ProcessWidgetArea.hpp>
 

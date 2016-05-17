@@ -1,5 +1,4 @@
 #include <iscore/plugins/documentdelegate/DocumentDelegateFactoryInterface.hpp>
-#include <iscore/plugins/panel/PanelFactory.hpp>
 #include <iscore/tools/exceptions/MissingCommand.hpp>
 
 #include "ApplicationComponents.hpp"
