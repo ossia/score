@@ -20,8 +20,6 @@ class DeviceExplorerPanelModel final : public iscore::PanelModel
 
         int panelId() const override;
 
-        DeviceExplorerModel* deviceExplorer();
-
     private:
         DeviceExplorerModel* m_model {};
 
