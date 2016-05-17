@@ -1,33 +1,29 @@
 #include <Scenario/Application/Menus/TransportActions.hpp>
 #include <Scenario/Application/ScenarioApplicationPlugin.hpp>
 #include <Scenario/Document/TimeRuler/MainTimeRuler/TimeRulerView.hpp>
+
 #include <QAction>
 #include <QApplication>
 #include <QBoxLayout>
 #include <QBrush>
-#include <QBuffer>
-#include <QClipboard>
 #include <QFlags>
 #include <QGraphicsScene>
 #include <QGraphicsView>
 #include <QGridLayout>
 #include <QLabel>
-#include <QMimeData>
-#include <qnamespace.h>
-
 #include <QPainter>
 #include <QRect>
 #include <QSize>
 #include <QString>
-#include <QStyleFactory>
-#include <QSvgGenerator>
 #include <QToolBar>
 #include <QWidget>
 #include <QFile>
+#include <QStyleFactory>
 #include <Process/Style/Skin.hpp>
 #include <Scenario/Application/Menus/ScenarioActions.hpp>
 #include <Process/Tools/ProcessGraphicsView.hpp>
 #include "ScenarioDocumentView.hpp"
+#include <Scenario/Document/ScenarioDocument/ScenarioScene.hpp>
 #include <iscore/widgets/DoubleSlider.hpp>
 #include <iscore/widgets/GraphicsProxyObject.hpp>
 #include <iscore/widgets/MarginLess.hpp>
@@ -35,6 +31,8 @@
 #include <iscore/application/ApplicationContext.hpp>
 #include <iscore/plugins/documentdelegate/DocumentDelegateViewInterface.hpp>
 #include <Scenario/Document/ScenarioDocument/ScenarioDocumentViewConstants.hpp>
+#include <Scenario/Document/ScenarioDocument/SnapshotAction.hpp>
+#include <Scenario/Document/TimeRuler/TimeRulerGraphicsView.hpp>
 #include <Scenario/Settings/Model.hpp>
 class QObject;
 #if defined(ISCORE_OPENGL)
@@ -52,15 +50,15 @@ ScenarioDocumentView::ScenarioDocumentView(
         QObject* parent) :
     iscore::DocumentDelegateViewInterface {parent},
     m_widget {new QWidget},
-    m_scene {new QGraphicsScene{m_widget}},
+    m_scene {new ScenarioScene{m_widget}},
     m_view {new ProcessGraphicsView{m_scene}},
     m_baseObject {new BaseGraphicsObject},
+    m_timeRulersView {new TimeRulerGraphicsView{m_scene}},
     m_timeRuler {new TimeRulerView}
 {
 #if defined(ISCORE_WEBSOCKETS)
     auto wsview = new WebSocketView(m_scene, 9998, this);
 #endif
-    m_timeRulersView = new QGraphicsView{m_scene};
 #if defined(ISCORE_OPENGL)
     QSurfaceFormat f;
     f.setSamples(8);
@@ -72,53 +70,7 @@ ScenarioDocumentView::ScenarioDocumentView(
     m_timeRulersView->setViewport(vp2);
 #endif
 
-    QAction* snapshot = new QAction("Scenario Screenshot", m_widget);
-    m_widget->addAction(snapshot);
-    snapshot->setShortcutContext(Qt::WidgetWithChildrenShortcut);
-    snapshot->setShortcut(QKeySequence(Qt::Key_F10));
-
-    connect(snapshot, &QAction::triggered,
-            this, [&] () {
-        QBuffer b;
-        QSvgGenerator p;
-        p.setOutputDevice(&b);
-        QPainter painter;
-        painter.begin(&p);
-        painter.setRenderHints(QPainter::Antialiasing | QPainter::SmoothPixmapTransform);
-
-        m_scene->render(&painter, QRectF(0, 0, 1920, 1080),  QRectF(0, 0, 1920, 1080));
-        painter.end();
-
-        QMimeData * d = new QMimeData;
-        d->setData("image/svg+xml",b.buffer());
-        QApplication::clipboard()->setMimeData(d,QClipboard::Clipboard);
-        QApplication::clipboard()->setMimeData(d,QClipboard::Selection);
-#if defined(__APPLE__) || defined(__linux__)
-        auto path = "/tmp/screenshot.svg";
-#else
-        auto path = "screenshot.svg";
-#endif
-        QFile screenshot(path);
-        screenshot.open(QFile::WriteOnly);
-        screenshot.write(b.buffer());
-        screenshot.close();
-
-    });
-    m_scene->setItemIndexMethod(QGraphicsScene::NoIndex);
-    // Configuration
-
-    m_timeRulersView->setRenderHints(QPainter::Antialiasing | QPainter::SmoothPixmapTransform);
-    m_timeRulersView->setAttribute(Qt::WA_OpaquePaintEvent);
-    m_timeRulersView->setHorizontalScrollBarPolicy(Qt::ScrollBarAlwaysOff);
-    m_timeRulersView->setVerticalScrollBarPolicy(Qt::ScrollBarAlwaysOff);
-    m_timeRulersView->setFocusPolicy(Qt::NoFocus);
-    m_timeRulersView->setSceneRect(ScenarioLeftSpace, -70, 800, 35);
-    m_timeRulersView->setFixedHeight(40);
-    m_timeRulersView->setViewportUpdateMode(QGraphicsView::NoViewportUpdate);
-    m_timeRulersView->setAlignment(Qt::AlignTop | Qt::AlignLeft);
-
-    m_timeRulersView->setBackgroundBrush(ScenarioStyle::instance().TimeRulerBackground.getBrush());
-    //*/
+    m_widget->addAction(new SnapshotAction{*m_scene, m_widget});
 
     // Transport
     auto transportWidget = new QWidget{m_widget};
@@ -158,7 +110,7 @@ ScenarioDocumentView::ScenarioDocumentView(
     transportLayout->addWidget(zoomLabel, 0, 1);
     transportLayout->addWidget(m_zoomSlider, 0, 2);
 
-    QAction* zoomIn = new QAction("Zoom in", m_widget);
+    QAction* zoomIn = new QAction(tr("Zoom in"), m_widget);
     m_widget->addAction(zoomIn);
     zoomIn->setShortcutContext(Qt::WidgetWithChildrenShortcut);
     zoomIn->setShortcuts({QKeySequence::ZoomIn, tr("Ctrl+=")});
@@ -168,7 +120,7 @@ ScenarioDocumentView::ScenarioDocumentView(
         m_zoomSlider->setValue(m_zoomSlider->value() + 0.05);
         emit horizontalZoomChanged(m_zoomSlider->value());
     });
-    QAction* zoomOut = new QAction("Zoom out", m_widget);
+    QAction* zoomOut = new QAction(tr("Zoom out"), m_widget);
     m_widget->addAction(zoomOut);
     zoomOut->setShortcutContext(Qt::WidgetWithChildrenShortcut);
     zoomOut->setShortcut(QKeySequence::ZoomOut);
@@ -178,7 +130,7 @@ ScenarioDocumentView::ScenarioDocumentView(
         m_zoomSlider->setValue(m_zoomSlider->value() - 0.05);
         emit horizontalZoomChanged(m_zoomSlider->value());
     });
-    QAction* largeView = new QAction{"Large view", m_widget};
+    QAction* largeView = new QAction{tr("Large view"), m_widget};
     m_widget->addAction(largeView);
     largeView->setShortcutContext(Qt::WidgetWithChildrenShortcut);
     largeView->setShortcut(tr("Ctrl+0"));

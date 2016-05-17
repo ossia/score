@@ -4,7 +4,7 @@
 #include <iscore_lib_process_export.h>
 
 #include <iscore/tools/SettableIdentifier.hpp>
-
+#include <Process/ProcessContext.hpp>
 class QMenu;
 class QPoint;
 class QPointF;
@@ -12,15 +12,24 @@ namespace Process
 {
 class ProcessModel;
 class LayerModel;
-class ISCORE_LIB_PROCESS_EXPORT LayerPresenter : public NamedObject
+class ISCORE_LIB_PROCESS_EXPORT LayerPresenter : public QObject
 {
         Q_OBJECT
-        bool m_focus{false};
 
     public:
-        using NamedObject::NamedObject;
+        LayerPresenter(
+                const ProcessPresenterContext& ctx,
+                QObject* parent):
+            QObject{parent},
+            m_context{ctx, *this}
+        {
+
+        }
 
         virtual ~LayerPresenter();
+
+        auto& context() const
+        { return m_context; }
 
         bool focused() const;
         void setFocus(bool focus);
@@ -44,6 +53,12 @@ class ISCORE_LIB_PROCESS_EXPORT LayerPresenter : public NamedObject
                                      const QPointF& scenepos) const = 0;
     signals:
         void contextMenuRequested(const QPoint&, const QPointF&);
+
+    protected:
+        Process::LayerContext m_context;
+
+    private:
+        bool m_focus{false};
 
 };
 

@@ -25,7 +25,7 @@ class TemporalScenarioPresenter;
 class EventActions;
 class ConstraintActions;
 class StateActions;
-class ObjectMenuActions final : public ScenarioActions
+class ISCORE_PLUGIN_SCENARIO_EXPORT ObjectMenuActions final : public ScenarioActions
 {
     public:
         ObjectMenuActions(iscore::ToplevelMenuElement, ScenarioApplicationPlugin* parent);
@@ -37,6 +37,23 @@ class ObjectMenuActions final : public ScenarioActions
 
         QList<QAction*> actions() const override;
         CommandDispatcher<> dispatcher() const;
+
+        EventActions* eventActions() const
+        { return m_eventActions; }
+        ConstraintActions* constraintActions() const
+        { return m_cstrActions; }
+        StateActions* stateActions() const
+        { return m_stateActions; }
+
+        QAction* clearContent()
+        { return m_clearElements; }
+        QAction* copyContent()
+        { return m_copyContent; }
+        QAction* pasteContent()
+        { return m_pasteContent; }
+        QAction* elementsToJson()
+        { return m_elementsToJson; }
+
     private:
         QJsonObject copySelectedElementsToJson();
         QJsonObject cutSelectedElementsToJson();

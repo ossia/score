@@ -79,6 +79,7 @@ class ISCORE_PLUGIN_SCENARIO_EXPORT ConstraintInspectorWidget final :
 
         void on_processCreated(const Process::ProcessModel&);
         void on_processRemoved(const Process::ProcessModel&);
+        void on_orderChanged();
 
         void on_constraintViewModelCreated(const ConstraintViewModel&);
         void on_constraintViewModelRemoved(const QObject*);

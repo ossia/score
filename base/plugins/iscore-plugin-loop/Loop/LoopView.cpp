@@ -1,5 +1,6 @@
 #include "LoopView.hpp"
 #include <QGraphicsSceneContextMenuEvent>
+#include <QGraphicsSceneMouseEvent>
 class QPainter;
 
 namespace Loop
@@ -28,5 +29,12 @@ void LayerView::contextMenuEvent(
         QGraphicsSceneContextMenuEvent* event)
 {
     emit askContextMenu(event->screenPos(), event->scenePos());
+    event->accept();
+}
+
+void LayerView::mousePressEvent(QGraphicsSceneMouseEvent* ev)
+{
+    emit pressed();
+    ev->accept();
 }
 }

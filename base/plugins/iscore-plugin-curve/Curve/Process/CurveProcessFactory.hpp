@@ -14,7 +14,8 @@ template<
         typename LayerPresenter_T,
         typename LayerView_T,
         typename CurveColors_T>
-class ISCORE_PLUGIN_CURVE_EXPORT CurveProcessFactory_T : public Process::ProcessFactory
+class ISCORE_PLUGIN_CURVE_EXPORT CurveProcessFactory_T :
+        public Process::ProcessFactory
 {
     public:
         virtual ~CurveProcessFactory_T() = default;
@@ -50,13 +51,14 @@ class ISCORE_PLUGIN_CURVE_EXPORT CurveProcessFactory_T : public Process::Process
         LayerPresenter_T* makeLayerPresenter(
                 const Process::LayerModel& lm,
                 Process::LayerView* v,
+                const Process::ProcessPresenterContext& context,
                 QObject* parent) override
         {
             return new LayerPresenter_T {
-                iscore::IDocument::documentContext(lm.processModel()),
                 m_colors.style(),
                 safe_cast<const LayerModel_T&>(lm),
                 safe_cast<LayerView_T*>(v),
+                context,
                 parent};
         }
 

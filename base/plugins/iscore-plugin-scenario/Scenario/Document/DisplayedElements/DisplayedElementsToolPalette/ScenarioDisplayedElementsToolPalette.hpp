@@ -28,7 +28,6 @@ class ScenarioDisplayedElementsToolPalette final : public GraphicsSceneToolPalet
 {
     public:
         ScenarioDisplayedElementsToolPalette(
-                const iscore::DocumentContext& ctx,
                 const DisplayedElementsModel&,
                 ScenarioDocumentPresenter&,
                 BaseGraphicsObject&);

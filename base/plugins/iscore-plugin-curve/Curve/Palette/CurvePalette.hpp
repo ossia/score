@@ -11,8 +11,10 @@ namespace iscore {
 class CommandStackFacade;
 class ObjectLocker;
 }  // namespace iscore
+namespace Process
+{
 struct LayerContext;
-
+}
 
 namespace Curve
 {
@@ -23,14 +25,14 @@ class ISCORE_PLUGIN_CURVE_EXPORT ToolPalette final : public GraphicsSceneToolPal
 {
         Q_OBJECT
     public:
-        ToolPalette(LayerContext& f, Presenter& pres);
+        ToolPalette(Process::LayerContext& f, Presenter& pres);
 
         Presenter& presenter() const;
         Curve::EditionSettings& editionSettings() const;
 
         const Model& model() const;
 
-        const LayerContext& context() const
+        const Process::LayerContext& context() const
         { return m_context; }
 
         void on_pressed(QPointF);
@@ -46,7 +48,7 @@ class ISCORE_PLUGIN_CURVE_EXPORT ToolPalette final : public GraphicsSceneToolPal
 
         Presenter& m_presenter;
 
-        const LayerContext& m_context;
+        const Process::LayerContext& m_context;
 
         SmartTool m_selectTool;
         CreateTool m_createTool;
@@ -55,7 +57,7 @@ class ISCORE_PLUGIN_CURVE_EXPORT ToolPalette final : public GraphicsSceneToolPal
         ToolPaletteInputDispatcher<
             Curve::Tool,
             ToolPalette,
-            LayerContext,
+            Process::LayerContext,
             View> m_inputDisp;
 };
 }

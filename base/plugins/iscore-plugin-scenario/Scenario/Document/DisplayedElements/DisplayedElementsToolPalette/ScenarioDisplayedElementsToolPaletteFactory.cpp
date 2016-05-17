@@ -18,7 +18,6 @@ std::unique_ptr<GraphicsSceneToolPalette> ScenarioDisplayedElementsToolPaletteFa
         const ConstraintModel& constraint)
 {
     return std::make_unique<ScenarioDisplayedElementsToolPalette>(
-                iscore::IDocument::documentContext(pres.model()),
                 pres.model().displayedElements,
                 pres,
                 *pres.view().baseItem());

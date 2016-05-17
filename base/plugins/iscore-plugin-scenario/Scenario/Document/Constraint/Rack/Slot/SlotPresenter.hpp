@@ -6,7 +6,6 @@
 #include <vector>
 
 #include <nano_signal_slot.hpp>
-#include <iscore/document/DocumentContext.hpp>
 
 class QObject;
 #include <iscore/tools/SettableIdentifier.hpp>
@@ -14,6 +13,7 @@ class QObject;
 
 namespace Process
 {
+struct ProcessPresenterContext;
 class ProcessList;
 class LayerView;
 class LayerModel;
@@ -51,9 +51,9 @@ class ISCORE_PLUGIN_SCENARIO_EXPORT SlotPresenter final : public NamedObject, pu
 
     public:
         SlotPresenter(
-                const iscore::DocumentContext& pl,
                 const SlotModel& model,
                 RackView* view,
+                const Process::ProcessPresenterContext& pl,
                 QObject* parent);
         virtual ~SlotPresenter();
 
@@ -101,6 +101,8 @@ class ISCORE_PLUGIN_SCENARIO_EXPORT SlotPresenter final : public NamedObject, pu
         SlotView* m_view{};
         std::vector<SlotProcessData> m_processes;
 
+        const Process::ProcessPresenterContext& m_context;
+
         // Maybe move this out of the state of the presenter ?
         int m_currentResizingValue {}; // Used when the m_slotView is being resized.
 
@@ -108,5 +110,6 @@ class ISCORE_PLUGIN_SCENARIO_EXPORT SlotPresenter final : public NamedObject, pu
 
         bool m_enabled{true};
         bool m_looping{false};
+
 };
 }

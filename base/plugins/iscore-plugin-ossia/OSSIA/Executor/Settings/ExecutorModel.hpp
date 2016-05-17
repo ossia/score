@@ -16,7 +16,7 @@ class Model :
         public iscore::SettingsDelegateModelInterface
 {
         Q_OBJECT
-        Q_PROPERTY(int rate READ getRate WRITE setRate NOTIFY rateChanged)
+        Q_PROPERTY(int rate READ getRate WRITE setRate NOTIFY RateChanged)
 
     public:
         Model();
@@ -25,7 +25,7 @@ class Model :
         void setRate(int getRate);
 
     signals:
-        void rateChanged(int getRate);
+        void RateChanged(int getRate);
 
     private:
         void setFirstTimeSettings() override;

@@ -4,12 +4,17 @@
         <file>APCCourierBold.otf</file>
         <file>i-score.png</file>
         <file>dict.txt</file>
-        <file>icones/next_off.png</file>
-        <file>icones/next_on.png</file>
-        <file>icones/prev_off.png</file>
-        <file>icones/prev_on.png</file>
-        <file>icones/create_curve_off.png</file>
-        <file>icones/create_curve_on.png</file>
+        <file>icons/next_off.png</file>
+        <file>icons/next_on.png</file>
+        <file>icons/prev_off.png</file>
+        <file>icons/prev_on.png</file>
+        <file>icons/create_curve_off.png</file>
+        <file>icons/create_curve_on.png</file>
+        <file>icons/ic_extension_black_48dp.png</file>
+        <file>icons/ic_fiber_manual_record_black_48dp.png</file>
+        <file>icons/ic_library_music_black_48dp.png</file>
+        <file>icons/ic_play_circle_filled_black_48dp.png</file>
+        <file>icons/ic_share_black_48dp.png</file>
     </qresource>
     <qresource prefix="/qss_icons">
         <file>rc/up_arrow_disabled.png</file>
@@ -51,11 +56,11 @@
         <file>rc/radio_unchecked_disabled.png</file>
         <file>rc/radio_unchecked_focus.png</file>
         <file>rc/radio_unchecked.png</file>
-        <file>icones/close_off.png</file>
-        <file>icones/close_on.png</file>
-        <file>icones/undock_off.png</file>
-        <file>icones/undock_on.png</file>
-        <file>icones/blank.png</file>
+        <file>icons/close_off.png</file>
+        <file>icons/close_on.png</file>
+        <file>icons/undock_off.png</file>
+        <file>icons/undock_on.png</file>
+        <file>icons/blank.png</file>
     </qresource>
     <qresource prefix="/qdarkstyle">
         <file>qdarkstyle.qss</file>

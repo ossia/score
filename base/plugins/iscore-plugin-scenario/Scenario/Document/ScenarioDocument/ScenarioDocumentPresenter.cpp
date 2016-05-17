@@ -23,6 +23,7 @@
 #include <Scenario/Document/DisplayedElements/DisplayedElementsModel.hpp>
 #include <Scenario/Document/DisplayedElements/DisplayedElementsPresenter.hpp>
 #include <Scenario/Document/ScenarioDocument/ProcessFocusManager.hpp>
+#include <Scenario/Document/ScenarioDocument/ScenarioScene.hpp>
 #include <Process/Tools/ProcessGraphicsView.hpp>
 #include "ScenarioDocumentPresenter.hpp"
 #include "ZoomPolicy.hpp"
@@ -35,7 +36,6 @@
 #include <iscore/tools/ObjectIdentifier.hpp>
 #include <iscore/tools/ObjectPath.hpp>
 #include <iscore/tools/Todo.hpp>
-
 #include <core/presenter/MenubarManager.hpp>
 
 namespace iscore {
@@ -71,6 +71,7 @@ ScenarioDocumentPresenter::ScenarioDocumentPresenter(
                                         delegate_view},
     m_scenarioPresenter{new DisplayedElementsPresenter{this}},
     m_selectionDispatcher{iscore::IDocument::documentContext(model()).selectionStack},
+    m_context{iscore::IDocument::documentContext(model()), m_focusDispatcher},
     m_mainTimeRuler{new TimeRulerPresenter{view().timeRuler(), this}}
 {
     using namespace iscore;
@@ -99,6 +100,11 @@ ScenarioDocumentPresenter::ScenarioDocumentPresenter(
             this, [&] (QPointF click, QPointF current) {
         on_zoomOnWheelEvent((current - click).toPoint(), current);
     });
+
+    // Focus
+    connect(&m_focusDispatcher, SIGNAL(focus(QPointer<Process::LayerPresenter>)),
+            &model(), SIGNAL(setFocusedPresenter(QPointer<Process::LayerPresenter>)),
+            Qt::QueuedConnection);
 
     // Show our constraint
     con(model(), &ScenarioDocumentModel::displayedConstraintChanged,

@@ -20,6 +20,7 @@ class ScenarioDisplayedElementsProvider final :
 
         DisplayedElementsPresenterContainer make_presenters(
                 const ConstraintModel& m,
+                const Process::ProcessPresenterContext& ctx,
                 QGraphicsObject* view_parent,
                 QObject* parent) const override;
 };

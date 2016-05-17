@@ -61,7 +61,7 @@ ToolMenuActions::ToolMenuActions(
     m_selecttool->setObjectName("Select");
     m_selecttool->setChecked(true);
 
-    setIcons(m_selecttool, QString(":/icones/select_and_move_on.png"), QString(":/icones/select_and_move_off.png"));
+    setIcons(m_selecttool, QString(":/icons/select_and_move_on.png"), QString(":/icons/select_and_move_off.png"));
 
     connect(m_selecttool, &QAction::toggled, this, [=](bool b) {
         if (b)
@@ -75,7 +75,7 @@ ToolMenuActions::ToolMenuActions(
                           Scenario::Tool::Create,
                           tr("C"));
 
-    setIcons(m_createtool, QString(":/icones/create_on.png"), QString(":/icones/create_off.png"));
+    setIcons(m_createtool, QString(":/icons/create_on.png"), QString(":/icons/create_off.png"));
 
     connect(m_createtool, &QAction::triggered, this, [=](bool b) {
         if(b)
@@ -88,7 +88,7 @@ ToolMenuActions::ToolMenuActions(
                      m_scenarioToolActionGroup,
                      Scenario::Tool::Play,
                      tr("P"));
-    setIcons(m_playtool, QString(":/icones/play_on.png"), QString(":/icones/play_off.png"));
+    setIcons(m_playtool, QString(":/icons/play_on.png"), QString(":/icons/play_off.png"));
 
     connect(m_playtool, &QAction::triggered, this, [=] (bool b) {
         if(b)
@@ -101,7 +101,7 @@ ToolMenuActions::ToolMenuActions(
                             m_scenarioToolActionGroup,
                             Scenario::Tool::MoveSlot,
                             tr("Alt+b"));
-    setIcons(slotmovetool, QString(":/icones/move_on.png"), QString(":/icones/move_off.png"));
+    setIcons(slotmovetool, QString(":/icons/move_on.png"), QString(":/icons/move_off.png"));
     connect(slotmovetool, &QAction::triggered, this, [=]() {
         m_parent->editionSettings().setTool(Scenario::Tool::MoveSlot);
     });
@@ -129,7 +129,7 @@ ToolMenuActions::ToolMenuActions(
                      tr("Alt+S"));
     scale->setChecked(true);
 
-    setIcons(scale, QString(":/icones/scale_on.png"), QString(":/icones/scale_off.png"));
+    setIcons(scale, QString(":/icons/scale_on.png"), QString(":/icons/scale_off.png"));
 
     connect(scale, &QAction::triggered, this, [=]()
     {
@@ -141,7 +141,7 @@ ToolMenuActions::ToolMenuActions(
                     m_scenarioScaleModeActionGroup,
                     ExpandMode::GrowShrink,
                     tr("Alt+D"));
-    setIcons(grow, QString(":/icones/grow_shrink_on.png"), QString(":/icones/grow_shrink_off.png"));
+    setIcons(grow, QString(":/icons/grow_shrink_on.png"), QString(":/icons/grow_shrink_off.png"));
 
     connect(grow, &QAction::triggered, this, [=]()
     {

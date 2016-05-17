@@ -194,8 +194,7 @@ void ScenarioContextMenuManager::createLayerContextMenu(
     // Fill with slot actions
     if(auto slotp = dynamic_cast<SlotPresenter*>(pres.parent()))
     {
-        auto& context = iscore::IDocument::documentContext(slotp->model());
-
+        auto& context = pres.context().context;
         if (context.selectionStack.currentSelection().toList().isEmpty())
         {
             // submenu Slot created if needed

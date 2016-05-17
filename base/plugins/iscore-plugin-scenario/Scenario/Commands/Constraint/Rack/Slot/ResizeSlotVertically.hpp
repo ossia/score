@@ -27,7 +27,8 @@ class ISCORE_PLUGIN_SCENARIO_EXPORT ResizeSlotVertically final : public iscore::
         void undo() const override;
         void redo() const override;
 
-        void update(const Path<SlotModel>&, double size)
+        template<typename T>
+        void update(const T&, double size)
         {
             m_newSize = size;
         }

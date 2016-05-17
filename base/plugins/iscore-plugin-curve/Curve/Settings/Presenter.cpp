@@ -23,12 +23,12 @@ Presenter::Presenter(
             this, [&] (auto simplificationRatio) {
             if(simplificationRatio != m.getSimplificationRatio())
             {
-                m_disp.submitCommand<SetSimplificationRatio>(this->model(this), simplificationRatio);
+                m_disp.submitCommand<SetModelSimplificationRatio>(this->model(this), simplificationRatio);
             }
         });
 
         // model -> view
-        con(m, &Model::simplificationRatioChanged, &v, &View::setSimplificationRatio);
+        con(m, &Model::SimplificationRatioChanged, &v, &View::setSimplificationRatio);
 
         // initial value
         v.setSimplificationRatio(m.getSimplificationRatio());
@@ -40,12 +40,12 @@ Presenter::Presenter(
             this, [&] (auto simplify) {
             if(simplify != m.getSimplify())
             {
-                m_disp.submitCommand<SetSimplify>(this->model(this), simplify);
+                m_disp.submitCommand<SetModelSimplify>(this->model(this), simplify);
             }
         });
 
         // model -> view
-        con(m, &Model::simplifyChanged, &v, &View::setSimplify);
+        con(m, &Model::SimplifyChanged, &v, &View::setSimplify);
 
         // initial value
         v.setSimplify(m.getSimplify());
@@ -57,12 +57,12 @@ Presenter::Presenter(
             this, [&] (auto val) {
             if(val != m.getMode())
             {
-                m_disp.submitCommand<SetMode>(this->model(this), val);
+                m_disp.submitCommand<SetModelMode>(this->model(this), val);
             }
         });
 
         // model -> view
-        con(m, &Model::modeChanged, &v, &View::setMode);
+        con(m, &Model::ModeChanged, &v, &View::setMode);
 
         // initial value
         v.setMode(m.getMode());

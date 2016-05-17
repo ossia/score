@@ -1,5 +1,6 @@
 #pragma once
 #include <Process/ProcessContext.hpp>
+#include <Process/Focus/FocusDispatcher.hpp>
 #include <chrono>
 #include <QTimer>
 #include <QPointF>
@@ -53,7 +54,7 @@ class ToolPaletteInputDispatcher : public QObject
 
         void on_pressed(QPointF p)
         {
-            m_context.focusDispatcher.focus(&m_context.layerPresenter);
+            m_context.context.focusDispatcher.focus(&m_context.layerPresenter);
             m_currentPoint = p;
             m_prev = std::chrono::steady_clock::now();
             m_palette.on_pressed(p);

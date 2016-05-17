@@ -7,13 +7,6 @@
 #include <iscore/widgets/MarginLess.hpp>
 #include <iscore/document/DocumentContext.hpp>
 
-#include <QAction>
-#include <QBoxLayout>
-#include <QFormLayout>
-#include <QLabel>
-#include <QMenu>
-#include <QToolButton>
-
 #include <Scenario/DialogWidget/AddProcessDialog.hpp>
 
 #include <Scenario/Commands/Constraint/AddProcessToConstraint.hpp>
@@ -29,7 +22,17 @@
 #include <Process/Inspector/ProcessInspectorWidgetDelegateFactoryList.hpp>
 #include <Process/Inspector/ProcessInspectorWidget.hpp>
 
+#include <Scenario/Inspector/Constraint/Widgets/ProcessWidgetArea.hpp>
+
+#include <QAction>
+#include <QBoxLayout>
+#include <QFormLayout>
+#include <QLabel>
+#include <QMenu>
+#include <QToolButton>
+
 namespace Scenario {
+
 
 ProcessTabWidget::ProcessTabWidget(const ConstraintInspectorWidget& parentCstr, QWidget *parent) :
     QWidget(parent),
@@ -86,16 +89,16 @@ void ProcessTabWidget::displaySharedProcess(const Process::ProcessModel& process
     using namespace iscore;
 
     // New Section
-    auto newProc = new Inspector::InspectorSectionWidget(process.metadata.name(), true);
+    auto newProc = new ProcessWidgetArea(process, *m_constraintWidget.commandDispatcher(), process.metadata.name(), true);
 
     // name changing connections
-    connect(newProc, &Inspector::InspectorSectionWidget::nameChanged,
+    connect(newProc, &ProcessWidgetArea::nameChanged,
             this, [&] (QString s)
         {
             ask_processNameChanged(process, s);
         });
     con(process.metadata, &ModelMetadata::nameChanged,
-        newProc, &Inspector::InspectorSectionWidget::renameSection);
+        newProc, &ProcessWidgetArea::renameSection);
 
     // ***********************
     // PROCESS

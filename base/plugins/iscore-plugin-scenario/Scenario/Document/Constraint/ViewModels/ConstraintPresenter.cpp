@@ -33,11 +33,13 @@ ConstraintPresenter::ConstraintPresenter(
         const ConstraintViewModel& model,
         ConstraintView* view,
         ConstraintHeader* header,
+        const Process::ProcessPresenterContext& ctx,
         QObject* parent) :
     NamedObject {name, parent},
     m_viewModel {model},
     m_view {view},
-    m_header{header}
+    m_header{header},
+    m_context{ctx}
 {
     m_header->setParentItem(m_view);
     m_header->setConstraintView(m_view);
@@ -175,9 +177,8 @@ void ConstraintPresenter::updateHeight()
 {
     if(rack() && m_viewModel.isRackShown())
     {
-        m_view->setHeight(rack()->height() + 40);
+        m_view->setHeight(rack()->height() + ConstraintHeader::headerHeight());
     }
-    // TODO else if(rack but not shown)
     else if(rack() && !m_viewModel.isRackShown())
     {
         m_view->setHeight(ConstraintHeader::headerHeight());
@@ -270,6 +271,7 @@ void ConstraintPresenter::createRackPresenter(const RackModel& rackModel)
     // Cas par défaut
     m_rack = new RackPresenter {rackModel,
             rackView,
+            m_context,
             this};
 
     m_rack->on_zoomRatioChanged(m_zoomRatio);

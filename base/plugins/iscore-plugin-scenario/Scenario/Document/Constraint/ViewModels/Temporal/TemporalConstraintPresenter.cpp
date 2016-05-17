@@ -23,12 +23,14 @@ namespace Scenario
 {
 TemporalConstraintPresenter::TemporalConstraintPresenter(
         const TemporalConstraintViewModel& cstr_model,
+        const Process::ProcessPresenterContext& ctx,
         QGraphicsObject *parentobject,
         QObject* parent) :
     ConstraintPresenter {"TemporalConstraintPresenter",
                          cstr_model,
                          new TemporalConstraintView{*this, parentobject},
                          new TemporalConstraintHeader,
+                         ctx,
                          parent}
 {
     auto& v = *Scenario::view(this);

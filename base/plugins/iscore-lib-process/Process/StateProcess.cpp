@@ -10,7 +10,7 @@ StateProcess::StateProcess(
 
 }
 
-StateProcess::~StateProcess()
+ISCORE_LIB_PROCESS_EXPORT StateProcess::~StateProcess()
 {
 
 }

@@ -94,7 +94,7 @@ Document* DocumentBuilder::loadDocument_impl(
     }
 }
 
-
+ISCORE_LIB_BASE_EXPORT
 Document* DocumentBuilder::loadDocument(
         const iscore::ApplicationContext& ctx,
         const QVariant& docData,
@@ -108,7 +108,7 @@ Document* DocumentBuilder::loadDocument(
                 [] (iscore::Document* doc) { return doc->saveAsByteArray(); }
     );
 }
-
+ISCORE_LIB_BASE_EXPORT
 Document* DocumentBuilder::restoreDocument(
         const iscore::ApplicationContext& ctx,
         const QByteArray& docData,

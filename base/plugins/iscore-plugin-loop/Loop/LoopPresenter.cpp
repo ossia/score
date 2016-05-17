@@ -24,6 +24,13 @@
 #include <iscore/tools/std/Algorithms.hpp>
 
 #include <Scenario/Application/ScenarioApplicationPlugin.hpp>
+#include <Scenario/Application/Menus/ObjectMenuActions.hpp>
+#include <Scenario/Application/Menus/ObjectsActions/ConstraintActions.hpp>
+#include <Scenario/Application/Menus/ObjectsActions/EventActions.hpp>
+#include <Scenario/Application/Menus/ObjectsActions/StateActions.hpp>
+#include <iscore/application/ApplicationContext.hpp>
+#include <QMenu>
+#include <Scenario/Application/ScenarioApplicationPlugin.hpp>
 #include <Scenario/Application/Menus/ScenarioActions.hpp>
 namespace Process { class LayerModel; }
 namespace Process { class ProcessModel; }
@@ -36,22 +43,20 @@ struct VerticalExtent;
 namespace Loop
 {
 LayerPresenter::LayerPresenter(
-        const iscore::DocumentContext& context,
         const Layer& layer,
         LayerView* view,
+        const Process::ProcessPresenterContext& ctx,
         QObject* parent):
-    Process::LayerPresenter{"LayerPresenter", parent},
+    Process::LayerPresenter{ctx, parent},
     BaseScenarioPresenter<Loop::ProcessModel, Scenario::TemporalConstraintPresenter>{layer.model()},
     m_layer{layer},
     m_view{view},
     m_viewUpdater{*this},
-    m_focusDispatcher{context.document},
-    m_context{context, *this, m_focusDispatcher},
     m_palette{m_layer.model(), *this, m_context, *m_view}
 {
     using namespace Scenario;
     m_constraintPresenter = new TemporalConstraintPresenter{
-            layer.constraint(), view, this};
+            layer.constraint(), ctx, view, this};
     m_startStatePresenter = new StatePresenter{
             layer.model().BaseScenarioContainer::startState(), m_view, this};
     m_endStatePresenter = new StatePresenter{
@@ -85,7 +90,7 @@ LayerPresenter::LayerPresenter(
     con(m_endEventPresenter->model(), &EventModel::extentChanged,
         this, [=] (const VerticalExtent&) { m_viewUpdater.updateEvent(*m_endEventPresenter); });
     con(m_endEventPresenter->model(), &EventModel::dateChanged,
-            this, [=] (const TimeValue&) { m_viewUpdater.updateEvent(*m_endEventPresenter); });
+        this, [=] (const TimeValue&) { m_viewUpdater.updateEvent(*m_endEventPresenter); });
     con(m_endNodePresenter->model(), &TimeNodeModel::extentChanged,
         this, [=] (const VerticalExtent&) { m_viewUpdater.updateTimeNode(*m_endNodePresenter); });
     con(m_endNodePresenter->model(), &TimeNodeModel::dateChanged,
@@ -93,6 +98,10 @@ LayerPresenter::LayerPresenter(
 
     connect(m_view, &LayerView::askContextMenu,
             this,   &LayerPresenter::contextMenuRequested);
+    connect(m_view, &LayerView::pressed,
+            this, [&] () {
+        m_context.context.focusDispatcher.focus(this);
+    });
 }
 
 LayerPresenter::~LayerPresenter()
@@ -153,20 +162,21 @@ void LayerPresenter::updateAllElements()
     m_viewUpdater.updateTimeNode(*m_endNodePresenter);
 }
 
-
 void LayerPresenter::fillContextMenu(QMenu* menu, const QPoint& pos, const QPointF& scenepos) const
 {
-    /*
     auto selected = layerModel().processModel().selectedChildren();
 
-    auto& appPlug = m_context.app.components.applicationPlugin<ScenarioApplicationPlugin>();
+    auto& appPlug = m_context.context.app.components.applicationPlugin<Scenario::ScenarioApplicationPlugin>();
     for(auto elt : appPlug.pluginActions())
     {
-        // TODO make a class to encapsulate all the data
-        // required to set-up a context menu in a scenario.
-        elt->fillContextMenu(menu, selected, *this, pos, scenepos);
-        menu->addSeparator();
-    }*/
+        if(auto oma = dynamic_cast<Scenario::ObjectMenuActions*>(elt))
+        {
+            oma->eventActions()->fillContextMenu(menu, selected, pos, scenepos);
+            if(m_model.constraint().selection.get())
+                oma->constraintActions()->fillContextMenu(menu, selected, m_layer.constraint(), pos, scenepos);
+            menu->addSeparator();
+        }
+    }
 }
 
 }

@@ -1,4 +1,4 @@
-#include "View.hpp"
+#include "ExecutorView.hpp"
 #include <QSpinBox>
 #include <QFormLayout>
 #include <iscore/widgets/SignalUtils.hpp>

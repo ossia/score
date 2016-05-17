@@ -355,10 +355,11 @@ template <typename It, typename Skipper = qi::space_type>
 
         expr_  = or_.alias();
 
-        or_  = (xor_ >> "or"  >> or_ ) [ _val = phx::construct<binop<op_or >>(_1, _2) ] | xor_   [ _val = _1 ];
-        xor_ = (and_ >> "xor" >> xor_) [ _val = phx::construct<binop<op_xor>>(_1, _2) ] | and_   [ _val = _1 ];
-        and_ = (not_ >> "and" >> and_) [ _val = phx::construct<binop<op_and>>(_1, _2) ] | not_   [ _val = _1 ];
-        not_ = ("not" > simple       ) [ _val = phx::construct<unop <op_not>>(_1)     ] | simple [ _val = _1 ];
+        namespace bsi = boost::spirit;
+        or_  = (xor_ >> "or"  >> or_ ) [ _val = phx::construct<binop<op_or >>(bsi::_1, bsi::_2) ] | xor_   [ _val = bsi::_1 ];
+        xor_ = (and_ >> "xor" >> xor_) [ _val = phx::construct<binop<op_xor>>(bsi::_1, bsi::_2) ] | and_   [ _val = bsi::_1 ];
+        and_ = (not_ >> "and" >> and_) [ _val = phx::construct<binop<op_and>>(bsi::_1, bsi::_2) ] | not_   [ _val = bsi::_1 ];
+        not_ = ("not" > simple       ) [ _val = phx::construct<unop <op_not>>(bsi::_1)     ] | simple [ _val = bsi::_1 ];
 
         simple = (('(' > (expr_) > ')') | relation_ | pulse_);
     }

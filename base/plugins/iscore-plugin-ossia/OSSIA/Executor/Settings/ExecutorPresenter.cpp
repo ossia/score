@@ -1,6 +1,6 @@
-#include "Presenter.hpp"
-#include "Model.hpp"
-#include "View.hpp"
+#include "ExecutorPresenter.hpp"
+#include "ExecutorModel.hpp"
+#include "ExecutorView.hpp"
 #include <iscore/command/SerializableCommand.hpp>
 #include <iscore/command/Dispatchers/ICommandDispatcher.hpp>
 #include <QApplication>
@@ -21,11 +21,11 @@ Presenter::Presenter(
         this, [&] (auto rate) {
         if(rate != m.getRate())
         {
-            m_disp.submitCommand<SetRate>(this->model(this), rate);
+            m_disp.submitCommand<SetModelRate>(this->model(this), rate);
         }
     });
 
-    con(m, &Model::rateChanged, &v, &View::setRate);
+    con(m, &Model::RateChanged, &v, &View::setRate);
     v.setRate(m.getRate());
 }
 

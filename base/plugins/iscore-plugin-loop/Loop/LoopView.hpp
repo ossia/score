@@ -19,9 +19,11 @@ class LayerView final : public Process::LayerView
 
     signals:
         void askContextMenu(const QPoint&, const QPointF&);
+        void pressed();
 
     protected:
         void paint_impl(QPainter*) const override;
         void contextMenuEvent(QGraphicsSceneContextMenuEvent* event) override;
+        void mousePressEvent(QGraphicsSceneMouseEvent*) override;
 };
 }

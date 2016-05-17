@@ -3,7 +3,6 @@
 
 class BaseGraphicsObject;
 class DoubleSlider;
-class QGraphicsScene;
 class QGraphicsView;
 class QObject;
 class QWidget;
@@ -16,6 +15,7 @@ struct ApplicationContext;
 
 namespace Scenario
 {
+class ScenarioScene;
 class TimeRulerView;
 class ScenarioDocumentView final : public iscore::DocumentDelegateViewInterface
 {
@@ -34,7 +34,7 @@ class ScenarioDocumentView final : public iscore::DocumentDelegateViewInterface
 
         void update();
 
-        QGraphicsScene& scene() const
+        ScenarioScene& scene() const
         { return *m_scene;}
 
         ProcessGraphicsView& view() const
@@ -58,7 +58,7 @@ class ScenarioDocumentView final : public iscore::DocumentDelegateViewInterface
 
     private:
         QWidget* m_widget {};
-        QGraphicsScene* m_scene {};
+        ScenarioScene* m_scene {};
         ProcessGraphicsView* m_view {};
         BaseGraphicsObject* m_baseObject {};
 

@@ -20,7 +20,7 @@
 #include <Scenario/Document/Constraint/ConstraintModel.hpp>
 
 #include <OSSIA/Executor/ExecutorContext.hpp>
-#include <OSSIA/Executor/Settings/Model.hpp>
+#include <OSSIA/Executor/Settings/ExecutorModel.hpp>
 
 #include <OSSIA/OSSIA2iscore.hpp>
 

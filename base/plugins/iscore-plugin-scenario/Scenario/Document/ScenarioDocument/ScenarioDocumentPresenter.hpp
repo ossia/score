@@ -7,6 +7,8 @@
 
 #include <Process/ZoomHelper.hpp>
 #include <iscore/selection/Selection.hpp>
+#include <Process/Focus/FocusDispatcher.hpp>
+#include <Process/ProcessContext.hpp>
 
 class GraphicsSceneToolPalette;
 class ObjectPath;
@@ -64,11 +66,13 @@ class ScenarioDocumentPresenter final : public iscore::DocumentDelegatePresenter
 
         void updateRect(const QRectF& rect);
 
+        const Process::ProcessPresenterContext& context() const
+        { return m_context; }
 
     signals:
-        void pressed(const QPointF&);
-        void moved(const QPointF&);
-        void released(const QPointF&);
+        void pressed(QPointF);
+        void moved(QPointF);
+        void released(QPointF);
         void escPressed();
 
         void requestDisplayedConstraintChange(const ConstraintModel&);
@@ -87,6 +91,8 @@ class ScenarioDocumentPresenter final : public iscore::DocumentDelegatePresenter
         DisplayedElementsPresenter* m_scenarioPresenter{};
 
         iscore::SelectionDispatcher m_selectionDispatcher;
+        FocusDispatcher m_focusDispatcher;
+        Process::ProcessPresenterContext m_context;
 
         // State machine
         std::unique_ptr<GraphicsSceneToolPalette> m_stateMachine;

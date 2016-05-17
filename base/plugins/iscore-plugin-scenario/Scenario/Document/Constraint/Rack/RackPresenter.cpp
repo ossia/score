@@ -23,16 +23,18 @@
 
 #include <iscore/tools/SettableIdentifier.hpp>
 
-static const constexpr int slotSpacing = 0;
+static const constexpr int slotSpacing = 10;
 
 namespace Scenario
 {
 RackPresenter::RackPresenter(const RackModel& model,
                            RackView* view,
+                           const Process::ProcessPresenterContext& ctx,
                            QObject* parent):
     NamedObject {"RackPresenter", parent},
     m_model {model},
-    m_view {view}
+    m_view {view},
+    m_context{ctx}
 {
     for(const auto& slotModel : m_model.slotmodels)
     {
@@ -125,8 +127,7 @@ void RackPresenter::on_slotCreated(const SlotModel& slot)
 
 void RackPresenter::on_slotCreated_impl(const SlotModel& slotModel)
 {
-    auto& context = iscore::IDocument::documentContext(slotModel);
-    auto slotPres = new SlotPresenter {context, slotModel, m_view, this};
+    auto slotPres = new SlotPresenter {slotModel, m_view, m_context, this};
 
     m_slots.insert(slotPres);
     slotPres->on_zoomRatioChanged(m_zoomRatio);

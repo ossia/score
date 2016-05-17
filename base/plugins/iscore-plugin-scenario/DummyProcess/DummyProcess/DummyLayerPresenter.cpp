@@ -15,16 +15,16 @@ namespace Dummy
 DummyLayerPresenter::DummyLayerPresenter(
         const Process::LayerModel& model,
         DummyLayerView* view,
+        const Process::ProcessPresenterContext& ctx,
         QObject* parent):
-    LayerPresenter{"DummyLayerPresenter", parent},
+    LayerPresenter{ctx, parent},
     m_layer{model},
-    m_view{view},
-    m_focusDispatcher{iscore::IDocument::documentContext(model).document}
+    m_view{view}
 {
     putToFront();
     connect(view, &DummyLayerView::pressed,
             this, [&] () {
-        m_focusDispatcher.focus(this);
+        m_context.context.focusDispatcher.focus(this);
     });
     con(model.processModel().metadata, &ModelMetadata::nameChanged,
             this, [&] (QString s)

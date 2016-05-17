@@ -1,6 +1,7 @@
 #pragma once
 #include <Process/LayerView.hpp>
 #include <QString>
+#include <QGraphicsSimpleTextItem>
 #include <iscore_lib_dummyprocess_export.h>
 
 
@@ -11,17 +12,14 @@ class QQuickItem;
 
 namespace Dummy
 {
+class TextItem;
 class ISCORE_LIB_DUMMYPROCESS_EXPORT DummyLayerView final : public Process::LayerView
 {
         Q_OBJECT
     public:
         explicit DummyLayerView(QGraphicsItem* parent);
 
-        void setText(const QString& text)
-        {
-            m_text = text;
-            update();
-        }
+        void setText(const QString& text);
 
     signals:
         void pressed();
@@ -32,8 +30,10 @@ class ISCORE_LIB_DUMMYPROCESS_EXPORT DummyLayerView final : public Process::Laye
         void mousePressEvent(QGraphicsSceneMouseEvent*) override;
         void mouseMoveEvent(QGraphicsSceneMouseEvent*) override;
         void mouseReleaseEvent(QGraphicsSceneMouseEvent*) override;
-        QString m_text;
+        TextItem* m_text{};
+        /*
         QQuickView* m_view{};
         QQuickItem* m_item{};
+        */
 };
 }

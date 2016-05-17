@@ -47,7 +47,6 @@ class ISCORE_LIB_INSPECTOR_EXPORT InspectorSectionWidget : public QWidget
         void removeAll();
 
         void showMenu(bool b);
-
         QVBoxLayout* containerLayout() { return m_containerLayout;}
 
     signals:

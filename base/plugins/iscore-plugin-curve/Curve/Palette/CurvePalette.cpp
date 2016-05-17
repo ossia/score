@@ -20,7 +20,7 @@ namespace Curve
 {
 
 ToolPalette::ToolPalette(
-        LayerContext& f,
+        Process::LayerContext& f,
         Presenter& pres):
     GraphicsSceneToolPalette{*pres.view().scene()},
     m_presenter{pres},

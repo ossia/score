@@ -45,7 +45,7 @@ inline void clearContentFromSelection(const Loop::ProcessModel& model, iscore::C
 
 namespace Loop
 {
-class LayerPresenter :
+class LayerPresenter final :
         public Process::LayerPresenter,
         public BaseScenarioPresenter<Loop::ProcessModel, Scenario::TemporalConstraintPresenter>
 {
@@ -53,9 +53,9 @@ class LayerPresenter :
         friend class ViewUpdater;
     public:
         LayerPresenter(
-                const iscore::DocumentContext& context,
                 const Loop::Layer&,
                 LayerView* view,
+                const Process::ProcessPresenterContext& ctx,
                 QObject* parent);
 
         ~LayerPresenter();
@@ -96,8 +96,6 @@ class LayerPresenter :
 
         ViewUpdater m_viewUpdater;
 
-        FocusDispatcher m_focusDispatcher;
-        LayerContext m_context;
         ToolPalette m_palette;
         void updateAllElements();
 };

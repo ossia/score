@@ -6,7 +6,7 @@
 
 namespace Scenario
 {
-class StateActions final : public ScenarioActions
+class ISCORE_PLUGIN_SCENARIO_EXPORT StateActions final : public ScenarioActions
 {
     public:
     StateActions(iscore::ToplevelMenuElement, ScenarioApplicationPlugin* parent);
@@ -16,6 +16,8 @@ class StateActions final : public ScenarioActions
 
     QList<QAction*> actions() const override;
 
+    QAction* updateStates() const
+    { return m_updateStates; }
     private:
     CommandDispatcher<> dispatcher();
 

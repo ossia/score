@@ -12,6 +12,7 @@
 #include <QGridLayout>
 #include <QLabel>
 #include <QMenu>
+#include <QSpinBox>
 #include <QPushButton>
 #include <algorithm>
 
@@ -28,8 +29,9 @@
 #include <iscore/tools/NotifyingMap.hpp>
 #include <iscore/tools/SettableIdentifier.hpp>
 #include <iscore/tools/Todo.hpp>
-
+#include <iscore/widgets/SignalUtils.hpp>
 #include <iscore/widgets/MarginLess.hpp>
+#include <iscore/widgets/SpinBoxes.hpp>
 
 #include <Inspector/Separator.hpp>
 
@@ -41,7 +43,8 @@ SlotInspectorSection::SlotInspectorSection(
         RackInspectorSection* parentRack) :
     InspectorSectionWidget {name, false, parentRack},
     m_model {slot},
-    m_parent{parentRack->constraintInspector()}
+    m_parent{parentRack->constraintInspector()},
+    m_sb{slot, parentRack->constraintInspector().commandDispatcher()->stack(), nullptr}
 {
     auto framewidg = new QFrame;
     auto lay = new iscore::MarginLess<QVBoxLayout>(framewidg);
@@ -55,6 +58,10 @@ SlotInspectorSection::SlotInspectorSection(
         auto cmd = new Command::RemoveSlotFromRack{m_model};
         emit m_parent.commandDispatcher()->submitCommand(cmd);
     });
+
+    // Change height
+    lay->addWidget(new QLabel{tr("Slot height: ")});
+    lay->addWidget(m_sb.widget());
 
     // View model list
     m_lmSection = new InspectorSectionWidget{"Process View Models", false, this};

@@ -38,7 +38,7 @@ void Model::setSimplificationRatio(int simplificationRatio)
 
     QSettings s;
     s.setValue(Keys::simplificationRatio, m_simplificationRatio);
-    emit simplificationRatioChanged(simplificationRatio);
+    emit SimplificationRatioChanged(simplificationRatio);
 }
 
 bool Model::getSimplify() const
@@ -55,7 +55,7 @@ void Model::setSimplify(bool simplify)
 
     QSettings s;
     s.setValue(Keys::simplify, m_simplify);
-    emit simplifyChanged(simplify);
+    emit SimplifyChanged(simplify);
 }
 
 Mode Model::getMode() const
@@ -72,7 +72,7 @@ void Model::setMode(Mode mode)
 
     QSettings s;
     s.setValue(Keys::mode, static_cast<int>(m_mode));
-    emit modeChanged(mode);
+    emit ModeChanged(mode);
 }
 
 
