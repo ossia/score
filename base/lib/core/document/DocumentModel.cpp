@@ -8,7 +8,6 @@
 
 class QObject;
 #include <iscore/tools/SettableIdentifier.hpp>
-#include <iscore/plugins/panel/PanelModel.hpp>
 
 namespace iscore
 {

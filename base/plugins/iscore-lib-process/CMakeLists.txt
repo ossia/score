@@ -37,7 +37,6 @@ set(PROCESS_HDRS
 "${CMAKE_CURRENT_SOURCE_DIR}/Process/Inspector/ProcessInspectorWidgetDelegateFactory.hpp"
 "${CMAKE_CURRENT_SOURCE_DIR}/Process/Inspector/ProcessInspectorWidgetDelegateFactoryList.hpp"
 "${CMAKE_CURRENT_SOURCE_DIR}/Process/Inspector/ProcessInspectorWidgetDelegate.hpp"
-"${CMAKE_CURRENT_SOURCE_DIR}/Process/Inspector/ProcessInspectorWidget.hpp"
 )
 set(PROCESS_SRCS
 "${CMAKE_CURRENT_SOURCE_DIR}/Process/ModelMetadataSerialization.cpp"
@@ -45,7 +44,6 @@ set(PROCESS_SRCS
 "${CMAKE_CURRENT_SOURCE_DIR}/Process/LayerModelSerialization.cpp"
 "${CMAKE_CURRENT_SOURCE_DIR}/Process/State/MessageNodeSerialization.cpp"
 
-"${CMAKE_CURRENT_SOURCE_DIR}/Process/Focus/FocusDispatcher.cpp"
 "${CMAKE_CURRENT_SOURCE_DIR}/Process/ProcessFactory.cpp"
 "${CMAKE_CURRENT_SOURCE_DIR}/Process/Process.cpp"
 "${CMAKE_CURRENT_SOURCE_DIR}/Process/StateProcess.cpp"
@@ -68,7 +66,6 @@ set(PROCESS_SRCS
 
 "${CMAKE_CURRENT_SOURCE_DIR}/Process/Inspector/ProcessInspectorWidgetDelegateFactory.cpp"
 "${CMAKE_CURRENT_SOURCE_DIR}/Process/Inspector/ProcessInspectorWidgetDelegate.cpp"
-"${CMAKE_CURRENT_SOURCE_DIR}/Process/Inspector/ProcessInspectorWidget.cpp"
 )
 
 add_library(iscore_lib_process ${PROCESS_HDRS} ${PROCESS_SRCS} )

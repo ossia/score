@@ -3,7 +3,7 @@
 #include <iscore/plugins/qt_interfaces/FactoryFamily_QtInterface.hpp>
 #include <iscore/plugins/qt_interfaces/FactoryInterface_QtInterface.hpp>
 #include <iscore/plugins/qt_interfaces/GUIApplicationContextPlugin_QtInterface.hpp>
-#include <iscore/plugins/qt_interfaces/PanelFactoryInterface_QtInterface.hpp>
+
 #include <QObject>
 #include <utility>
 #include <vector>

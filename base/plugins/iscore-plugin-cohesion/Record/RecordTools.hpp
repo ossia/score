@@ -1,5 +1,5 @@
 #pragma once
-#include <Explorer/DocumentPlugin/ListeningState.hpp>
+
 #include <State/Address.hpp>
 #include <Process/TimeValue.hpp>
 #include <Device/Address/AddressSettings.hpp>

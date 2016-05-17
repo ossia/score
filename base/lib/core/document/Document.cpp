@@ -3,8 +3,6 @@
 #include <core/document/DocumentPresenter.hpp>
 #include <core/document/DocumentView.hpp>
 #include <iscore/plugins/panel/PanelDelegate.hpp>
-#include <iscore/plugins/panel/PanelModel.hpp>
-#include <iscore/plugins/panel/PanelPresenter.hpp>
 #include <QObject>
 #include <algorithm>
 #include <iterator>
@@ -12,7 +10,6 @@
 
 #include <core/document/DocumentBackupManager.hpp>
 #include <iscore/document/DocumentContext.hpp>
-#include <iscore/plugins/panel/PanelFactory.hpp>
 #include <iscore/selection/SelectionStack.hpp>
 #include <iscore/tools/NamedObject.hpp>
 #include <iscore/tools/Todo.hpp>

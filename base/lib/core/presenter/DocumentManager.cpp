@@ -4,7 +4,6 @@
 #include <core/presenter/Presenter.hpp>
 #include <core/view/View.hpp>
 #include <iscore/plugins/application/GUIApplicationContextPlugin.hpp>
-#include <iscore/plugins/panel/PanelPresenter.hpp>
 #include <iscore/plugins/panel/PanelDelegate.hpp>
 #include <iscore/tools/SettableIdentifierGeneration.hpp>
 #include <QByteArray>

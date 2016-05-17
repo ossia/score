@@ -1,7 +1,7 @@
 #pragma once
 #include <Device/Node/DeviceNode.hpp>
 #include <Device/Protocol/DeviceList.hpp>
-#include <Explorer/DocumentPlugin/ListeningState.hpp>
+
 #include <Explorer/DocumentPlugin/NodeUpdateProxy.hpp>
 #include <Explorer/Listening/ListeningHandler.hpp>
 #include <Explorer/Explorer/DeviceExplorerModel.hpp>

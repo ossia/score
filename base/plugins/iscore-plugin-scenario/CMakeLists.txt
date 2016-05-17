@@ -164,7 +164,6 @@ set(SRCS ${SRCS}
 "${CMAKE_CURRENT_SOURCE_DIR}/Scenario/DialogWidget/MessageTreeView.cpp"
 
 "${CMAKE_CURRENT_SOURCE_DIR}/Scenario/Document/BaseScenario/BaseScenario.cpp"
-"${CMAKE_CURRENT_SOURCE_DIR}/Scenario/Document/BaseScenario/BaseElementContext.cpp"
 
 "${CMAKE_CURRENT_SOURCE_DIR}/Scenario/Document/ScenarioDocument/ProcessFocusManager.cpp"
 "${CMAKE_CURRENT_SOURCE_DIR}/Scenario/Document/ScenarioDocument/ZoomPolicy.cpp"
@@ -246,11 +245,7 @@ set(SRCS ${SRCS}
 "${CMAKE_CURRENT_SOURCE_DIR}/Scenario/Document/CommentBlock/CommentBlockView.cpp"
 "${CMAKE_CURRENT_SOURCE_DIR}/Scenario/Document/CommentBlock/TextItem.cpp"
 
-
 "${CMAKE_CURRENT_SOURCE_DIR}/Scenario/Panel/ProcessPanelFactory.cpp"
-"${CMAKE_CURRENT_SOURCE_DIR}/Scenario/Panel/ProcessPanelModel.cpp"
-"${CMAKE_CURRENT_SOURCE_DIR}/Scenario/Panel/ProcessPanelPresenter.cpp"
-"${CMAKE_CURRENT_SOURCE_DIR}/Scenario/Panel/ProcessPanelView.cpp"
 
 "${CMAKE_CURRENT_SOURCE_DIR}/Scenario/Process/Algorithms/StandardCreationPolicy.cpp"
 "${CMAKE_CURRENT_SOURCE_DIR}/Scenario/Process/Algorithms/GoodOldDisplacementPolicy.cpp"
@@ -294,7 +289,6 @@ if(TARGET iscore_lib_inspector)
 "${CMAKE_CURRENT_SOURCE_DIR}/Scenario/Inspector/Constraint/Widgets/Rack/Slot/AddLayerModelWidget.cpp"
 "${CMAKE_CURRENT_SOURCE_DIR}/Scenario/Inspector/Constraint/Widgets/Rack/Slot/SlotInspectorSection.cpp"
 "${CMAKE_CURRENT_SOURCE_DIR}/Scenario/Inspector/Constraint/Widgets/Rack/RackInspectorSection.cpp"
-"${CMAKE_CURRENT_SOURCE_DIR}/Scenario/Inspector/Constraint/Widgets/LambdaFriendlyQComboBox.cpp"
 "${CMAKE_CURRENT_SOURCE_DIR}/Scenario/Inspector/Constraint/Widgets/RackWidget.cpp"
 "${CMAKE_CURRENT_SOURCE_DIR}/Scenario/Inspector/Constraint/Widgets/DurationSectionWidget.cpp"
 "${CMAKE_CURRENT_SOURCE_DIR}/Scenario/Inspector/Constraint/Widgets/ProcessTabWidget.cpp"
