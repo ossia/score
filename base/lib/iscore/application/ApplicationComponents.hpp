@@ -2,6 +2,7 @@
 #include <iscore/command/CommandData.hpp>
 #include <iscore/command/CommandGeneratorMap.hpp>
 #include <iscore/tools/Todo.hpp>
+#include <iscore/plugins/panel/PanelDelegate.hpp>
 #include <iscore/plugins/customfactory/FactoryFamily.hpp>
 #include <iscore/plugins/customfactory/FactoryInterface.hpp>
 #include <iscore/plugins/customfactory/StringFactoryKey.hpp>
@@ -45,7 +46,7 @@ struct ISCORE_LIB_BASE_EXPORT ApplicationComponentsData
 
         // TODO instead put the factory as a member function?
         std::vector<std::pair<PanelPresenter*, PanelFactory*>> panelPresenters;
-        std::vector<PanelDelegate*> panels;
+        std::vector<std::unique_ptr<PanelDelegate>> panels;
 };
 
 class ISCORE_LIB_BASE_EXPORT ApplicationComponents

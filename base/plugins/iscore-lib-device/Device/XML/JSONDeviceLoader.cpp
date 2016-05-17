@@ -89,7 +89,6 @@ void loadDeviceFromJSON(
         convertFromDomElement(dom_node, node);
         dom_node = dom_node.nextSiblingElement("");
     }
-     /*
 }
 }
 */

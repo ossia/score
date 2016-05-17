@@ -270,8 +270,9 @@ void Application::loadPluginData()
 
     for(auto& panel_fac : context().components.factory<iscore::PanelDelegateFactoryList>())
     {
-        auto panel = panel_fac.make(context(), this);
-        registrar.components().panels.push_back(panel);
-        m_view->setupPanel(panel);
+        auto panel = panel_fac.make(context());
+        m_view->setupPanel(panel.get());
+
+        registrar.components().panels.push_back(std::move(panel));
     }
 }

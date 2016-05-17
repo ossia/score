@@ -8,9 +8,8 @@ namespace iscore
 {
 
 UndoPanelDelegate::UndoPanelDelegate(
-        const ApplicationContext &ctx,
-        QObject *parent):
-    PanelDelegate{ctx, parent},
+        const ApplicationContext &ctx):
+    PanelDelegate{ctx},
     m_widget{new QWidget}
 {
     m_widget->setLayout(new QVBoxLayout);
@@ -34,7 +33,9 @@ const PanelStatus &UndoPanelDelegate::defaultPanelStatus() const
     return status;
 }
 
-void UndoPanelDelegate::on_modelChanged(PanelDelegate::maybe_document_t oldm, PanelDelegate::maybe_document_t newm)
+void UndoPanelDelegate::on_modelChanged(
+        PanelDelegate::maybe_document_t oldm,
+        PanelDelegate::maybe_document_t newm)
 {
     delete m_list;
     m_list = nullptr;
@@ -47,9 +48,11 @@ void UndoPanelDelegate::on_modelChanged(PanelDelegate::maybe_document_t oldm, Pa
     }
 }
 
-PanelDelegate *UndoPanelDelegateFactory::make(const ApplicationContext &ctx, QObject *parent)
+// MOVEME
+std::unique_ptr<PanelDelegate> UndoPanelDelegateFactory::make(
+        const ApplicationContext &ctx)
 {
-    return new UndoPanelDelegate{ctx, parent};
+    return std::make_unique<UndoPanelDelegate>(ctx);
 }
 
 }

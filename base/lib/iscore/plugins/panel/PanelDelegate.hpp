@@ -34,16 +34,12 @@ struct PanelStatus
         const QKeySequence shortcut; // Keyboard shortcut to show or hide the panel.
 };
 
-class ISCORE_LIB_BASE_EXPORT PanelDelegate :
-        public QObject
+class ISCORE_LIB_BASE_EXPORT PanelDelegate
 {
-        Q_OBJECT
     public:
         using maybe_document_t = boost::optional<const iscore::DocumentContext&>;
         PanelDelegate(
-                const iscore::ApplicationContext& ctx,
-                QObject* parent):
-            QObject{parent},
+                const iscore::ApplicationContext& ctx):
             m_context{ctx}
         {
 
@@ -75,13 +71,12 @@ class ISCORE_LIB_BASE_EXPORT PanelDelegate :
 };
 }
 
+// MOVEME
 #include <iscore/plugins/customfactory/FactoryInterface.hpp>
 #include <iscore/plugins/customfactory/FactoryFamily.hpp>
-// MOVEME
 
 namespace iscore
 {
-// MOVEME
 class ISCORE_LIB_BASE_EXPORT PanelDelegateFactory :
         public iscore::AbstractFactory<PanelDelegateFactory>
 {
@@ -91,9 +86,8 @@ class ISCORE_LIB_BASE_EXPORT PanelDelegateFactory :
         public:
             virtual ~PanelDelegateFactory();
 
-        virtual PanelDelegate* make(
-                const iscore::ApplicationContext& ctx,
-                QObject* parent) = 0;
+        virtual std::unique_ptr<PanelDelegate> make(
+                const iscore::ApplicationContext& ctx) = 0;
 };
 
 class ISCORE_LIB_BASE_EXPORT PanelDelegateFactoryList final :
