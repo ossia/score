@@ -14,7 +14,10 @@ HSeparator::HSeparator(QWidget *parent) :
     this->layout()->addWidget(f);
 
     f->setFrameShape(QFrame::HLine);
-    f->setLineWidth(2);
+    f->setLineWidth(0);
+    f->setMidLineWidth(0);
+
+    f->setObjectName("SeparatorFrame");
 }
 
 HSeparator::~HSeparator()
@@ -31,6 +34,8 @@ VSeparator::VSeparator(QWidget *parent) :
 
     f->setFrameShape(QFrame::VLine);
     f->setLineWidth(1);
+
+    f->setObjectName("SeparatorFrame");
 }
 
 VSeparator::~VSeparator()

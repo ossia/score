@@ -112,6 +112,8 @@ ToolMenuActions::ToolMenuActions(
                             this,
                             ExpandMode::Fixed,
                             tr("Shift"));
+    setIcons(m_shiftAction, QString(":/icones/sequence_on.png"), QString(":/icones/sequence_off.png"));
+
     connect(m_shiftAction, &QAction::toggled, this, [=] (bool val)
     {
         m_parent->editionSettings().setSequence(val);

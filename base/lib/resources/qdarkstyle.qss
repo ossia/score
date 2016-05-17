@@ -37,7 +37,7 @@ QProgressBar::chunk:horizontal {
 QToolTip
 {
     /*border: 1px solid #3A3939;*/
-    background-color: rgb(90, 102, 117);;
+    background-color: rgb(90, 102, 117);
     color: white;
     padding: 1px;
     opacity: 200;
@@ -51,6 +51,7 @@ QWidget
     selection-color: black;
     background-clip: border;
     border-image: none;
+    border: none;
     outline: 0;
 }
 
@@ -343,8 +344,8 @@ QAbstractItemView
 
 QWidget:focus, QMenuBar:focus
 {
-    /*border: 1px solid #78879b;*/
-    border: 1px solid #999999;
+    /*border: 1px solid #999999;*/
+    border: none;
 }
 
 
@@ -377,6 +378,12 @@ QPushButton#ButtonTitle:hover {
     color: white;
 }
 
+QPushButton {
+    border: 1px solid #666666;
+    border-radius: 2px;
+    padding: 2px;
+}
+
 QLineEdit#SectionTitle
 {
     font: bold;
@@ -388,10 +395,8 @@ QLineEdit#SectionTitle
 }
 
 QGroupBox {
-    /*border:1px solid #3A3939;*/
-    border: 5px solid red;
-    border-radius: 2px;
-    margin-top: 20px;
+    border: none;
+    background-color: #666666;
 }
 
 QGroupBox::title {
@@ -551,7 +556,7 @@ QTextEdit
 
 QPlainTextEdit
 {
-    background-color: #12171A;;
+    background-color: #12171A;
     color: silver;
     border-radius: 2px;
     /*border: 1px solid #3A3939;*/
@@ -622,7 +627,7 @@ QStackedWidget
 
 QToolBar {
     border: 1px transparent #393838;
-    background: 1px solid #1A2024;
+    background-color: #1A2024;
     font-weight: bold;
 }
 
@@ -713,9 +718,19 @@ QToolButton:disabled {
     color: #454545;
 }
 
-QComboBox:hover,QPushButton:hover,QToolButton:hover,QAbstractSpinBox:hover,QLineEdit:hover,QTextEdit:hover,QPlainTextEdit:hover,QAbstractView:hover,QTreeView:hover
+QComboBox:hover,QPushButton:hover,QAbstractSpinBox:hover,QLineEdit:hover,QTextEdit:hover,QPlainTextEdit:hover
 {
-    /*border: 1px solid #78879b;*/
+    border: 1px solid silver;
+    color: white;
+}
+
+QComboBox:focus,QPushButton:focus,QAbstractSpinBox:focus,QLineEdit:focus,QTextEdit:focus,QPlainTextEdit:focus
+{
+    border: 1px solid silver;
+    color: white;
+}
+
+QAbstractView:hover,QTreeView:hover {
     color: white;
 }
 
@@ -837,13 +852,13 @@ QTabBar:focus
 }
 
 QTabBar::close-button  {
-    image: url(:/qss_icons/icones/close_off.png);
+    image: url(:/qss_icons/icons/close_off.png);
     background: transparent;
 }
 
 QTabBar::close-button:hover
 {
-    image: url(:/qss_icons/icones/close_on.png);
+    image: url(:/qss_icons/icons/close_on.png);
     background: transparent;
 }
 
@@ -893,7 +908,7 @@ QTabBar::tab:bottom {
 QTabBar::tab:bottom:!selected
 {
     color: #b1b1b1;
-    background-color: #12171A;
+    background-color: #3D3D3D;
 /*    border: 1px transparent #4A4949;
     border-top: 1px transparent #4A4949;
     border-bottom-left-radius: 0px;
@@ -978,9 +993,25 @@ QTabBar QToolButton::right-arrow:disabled {
 
 
 QDockWidget {
-    border: 1px solid #403F3F;
-    titlebar-close-icon: url(:/qss_icons/icones/blank.png);
-    titlebar-normal-icon: url(:/qss_icons/icones/blank.png);
+    titlebar-close-icon: url(:/qss_icons/icons/blank.png);
+    titlebar-normal-icon: url(:/qss_icons/icons/blank.png);
+    background-color: #666666;
+    color: white;
+    margin: 10px;
+}
+
+QDockWidget::title {
+    text-align: center;
+    background-color: #666666;
+    color: white;
+    /*background-image: url(:/qss_icons/icons/close_on.png);
+    background-repeat: repeat-x;
+    background-position: center;*/
+}
+
+QDockWidget > QWidget {
+    border: none;
+    /*background-color: #666666;*/
 }
 
 QDockWidget::close-button, QDockWidget::float-button {
@@ -991,19 +1022,19 @@ QDockWidget::close-button, QDockWidget::float-button {
 }
 
 QDockWidget::close-button {
-    image: url(:/qss_icons/icones/close_off.png);
+    image: url(:/qss_icons/icons/close_off.png);
 }
 
 QDockWidget::float-button {
-    image: url(:/qss_icons/icones/undock_off.png);
+    image: url(:/qss_icons/icons/undock_off.png);
 }
 
 QDockWidget::close-button:hover {
-    image: url(:/qss_icons/icones/close_on.png);
+    image: url(:/qss_icons/icons/close_on.png);
 }
 
 QDockWidget::float-button:hover {
-    image: url(:/qss_icons/icones/undock_on.png);
+    image: url(:/qss_icons/icons/undock_on.png);
 }
 
 QTreeView {
@@ -1145,7 +1176,7 @@ QToolButton::menu-indicator {
 
 /* the subcontrols below are used only in the MenuButtonPopup mode */
 QToolButton::menu-button {
-    image: url(:/icones/select_and_move_off.png);
+    image: url(:/icons/select_and_move_off.png);
     border: 1px transparent #4A4949;
     border-top-right-radius: 6px;
     border-bottom-right-radius: 6px;
@@ -1310,4 +1341,17 @@ QSplitter::handle:horizontal {
 
 QSplitter::handle:vertical {
     height: 1px;
+}
+
+QWidget#DeviceExplorer, QWidget#HistoryExplorer, QWidget#LibraryExplorer, QWidget#ProcessExplorer,
+QWidget#ScenarioViewer, QWidget#ScenarioTransportToolbar, QWidget#ScenarioTransportWidget,
+QWidget#ScenarioZoomLabel {
+    background-color: #666666;
+    border: none;
+    color: white;
+}
+
+QFrame#SeparatorFrame {
+    border: none;
+    border-top: 1px dotted silver;
 }

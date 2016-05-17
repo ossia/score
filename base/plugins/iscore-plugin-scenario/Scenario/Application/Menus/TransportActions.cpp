@@ -47,7 +47,8 @@ TransportActions::TransportActions(
     m_stopAndInit->setObjectName("StopAndInit");
     m_stopAndInit->setShortcut(Qt::CTRL + Qt::Key_Return);
     m_stopAndInit->setShortcutContext(Qt::WidgetWithChildrenShortcut);
-    setIcons(m_stopAndInit, QString(":/icons/stop_and_init_on.png"), QString(":/icons/stop_and_init_off.png"));
+
+    setIcons(m_stopAndInit, QString(":/icons/reinitialize_on.png"), QString(":/icons/reinitialize_off.png"));
 
     m_record = new QAction{tr("Record"), this};
     m_record->setObjectName("Record");

@@ -46,5 +46,19 @@
         <file>icons/create_curve_on.png</file>
         <file>icons/interpolate_off.png</file>
         <file>icons/interpolate_on.png</file>
+        <file>icons/interpolate_off.png</file>
+        <file>icons/interpolate_on.png</file>
+        <file>icons/clip_duration_off.png</file>
+        <file>icons/clip_duration_on.png</file>
+        <file>icons/pause_off.png</file>
+        <file>icons/pause_on.png</file>
+        <file>icons/sequence_off.png</file>
+        <file>icons/sequence_on.png</file>
+        <file>icons/snapshot_off.png</file>
+        <file>icons/snapshot_on.png</file>
+        <file>icons/stop_off.png</file>
+        <file>icons/stop_on.png</file>
+        <file>icons/reinitialize_off.png</file>
+        <file>icons/reinitialize_on.png</file>
     </qresource>
 </RCC>
