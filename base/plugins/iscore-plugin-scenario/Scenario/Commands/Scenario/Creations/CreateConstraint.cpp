@@ -41,6 +41,8 @@ CreateConstraint::CreateConstraint(
     m_endStateId{endState}
 {
     auto& scenar = m_path.find();
+    //ISCORE_ASSERT(!scenar.state(startState).nextConstraint());
+    //ISCORE_ASSERT(!scenar.state(endState).previousConstraint());
     m_createdConstraintId = getStrongId(scenar.constraints);
 
     // For each ScenarioViewModel of the scenario we are applying this command in,

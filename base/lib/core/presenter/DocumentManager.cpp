@@ -5,6 +5,7 @@
 #include <core/view/View.hpp>
 #include <iscore/plugins/application/GUIApplicationContextPlugin.hpp>
 #include <iscore/plugins/panel/PanelPresenter.hpp>
+#include <iscore/plugins/panel/PanelDelegate.hpp>
 #include <iscore/tools/SettableIdentifierGeneration.hpp>
 #include <QByteArray>
 #include <QFile>
@@ -185,6 +186,19 @@ void DocumentManager::setCurrentDocument(
 {
     auto old = m_currentDocument;
     m_currentDocument = doc;
+
+    for(auto& panel : ctx.components.panels())
+    {
+        if(doc)
+        {
+            panel.setModel(doc->context());
+        }
+        else
+        {
+            panel.setModel(boost::none);
+        }
+
+    }
 
     for(auto& pair : ctx.components.panelPresenters())
     {

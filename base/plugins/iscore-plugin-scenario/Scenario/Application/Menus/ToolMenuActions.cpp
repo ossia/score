@@ -227,6 +227,8 @@ ToolMenuActions::ToolMenuActions(
                 if(!grow->isChecked())
                     grow->setChecked(true);
                 break;
+            case ExpandMode::Fixed:
+                break;
                 /*
             case ExpandMode::Fixed:
                 if(!fixed->isChecked())

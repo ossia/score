@@ -50,6 +50,7 @@ set(SRCS
 "${CMAKE_CURRENT_SOURCE_DIR}/iscore/plugins/documentdelegate/plugin/ElementPluginModel.cpp"
 "${CMAKE_CURRENT_SOURCE_DIR}/iscore/plugins/documentdelegate/plugin/ElementPluginModelList.cpp"
 "${CMAKE_CURRENT_SOURCE_DIR}/iscore/plugins/application/GUIApplicationContextPlugin.cpp"
+"${CMAKE_CURRENT_SOURCE_DIR}/iscore/plugins/panel/PanelDelegate.cpp"
 "${CMAKE_CURRENT_SOURCE_DIR}/iscore/plugins/panel/PanelFactory.cpp"
 "${CMAKE_CURRENT_SOURCE_DIR}/iscore/plugins/panel/PanelModel.cpp"
 "${CMAKE_CURRENT_SOURCE_DIR}/iscore/plugins/panel/PanelPresenter.cpp"

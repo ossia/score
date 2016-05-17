@@ -20,6 +20,7 @@ namespace iscore
     class DocumentModel;
     class DocumentView;
     class PanelView;
+    class PanelDelegate;
     class Presenter;
 
     /**
@@ -37,6 +38,7 @@ namespace iscore
 
             void addDocumentView(iscore::DocumentView*);
             void setupPanelView(PanelView* v);
+            void setupPanel(PanelDelegate* v);
 
             void closeDocument(iscore::DocumentView* doc);
 
@@ -64,6 +66,9 @@ namespace iscore
 
             std::vector<QPair<PanelView*, QDockWidget*>> m_leftWidgets;
             std::vector<QPair<PanelView*, QDockWidget*>> m_rightWidgets;
+
+            std::vector<QPair<PanelDelegate*, QDockWidget*>> m_leftPanels;
+            std::vector<QPair<PanelDelegate*, QDockWidget*>> m_rightPanels;
 
             Presenter* m_presenter{};
             QTabWidget* m_tabWidget{};

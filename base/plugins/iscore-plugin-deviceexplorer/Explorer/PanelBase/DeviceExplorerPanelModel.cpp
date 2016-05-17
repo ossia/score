@@ -17,12 +17,6 @@ DeviceExplorerPanelModel::DeviceExplorerPanelModel(
 {
 }
 
-DeviceExplorerModel* DeviceExplorerPanelModel::deviceExplorer()
-{
-    return m_model;
-}
-
-
 int DeviceExplorerPanelModel::panelId() const
 {
     return DEVICEEXPLORER_PANEL_ID;

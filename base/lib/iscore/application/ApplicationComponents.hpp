@@ -5,6 +5,7 @@
 #include <iscore/plugins/customfactory/FactoryFamily.hpp>
 #include <iscore/plugins/customfactory/FactoryInterface.hpp>
 #include <iscore/plugins/customfactory/StringFactoryKey.hpp>
+#include <iscore/tools/std/IndirectContainer.hpp>
 #include <iscore_lib_base_export.h>
 
 #include <QByteArray>
@@ -24,6 +25,7 @@ class Plugin_QtInterface;
 class GUIApplicationContextPlugin;
 class PanelFactory;
 class PanelPresenter;
+class PanelDelegate;
 
 struct ISCORE_LIB_BASE_EXPORT ApplicationComponentsData
 {
@@ -43,6 +45,7 @@ struct ISCORE_LIB_BASE_EXPORT ApplicationComponentsData
 
         // TODO instead put the factory as a member function?
         std::vector<std::pair<PanelPresenter*, PanelFactory*>> panelPresenters;
+        std::vector<PanelDelegate*> panels;
 };
 
 class ISCORE_LIB_BASE_EXPORT ApplicationComponents
@@ -75,6 +78,9 @@ class ISCORE_LIB_BASE_EXPORT ApplicationComponents
             ISCORE_ABORT;
             throw;
         }
+
+        auto panels() const
+        { return wrap_indirect(m_data.panels); }
 
         const auto& panelPresenters() const
         { return m_data.panelPresenters; }
