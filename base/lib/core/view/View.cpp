@@ -72,63 +72,6 @@ void View::addDocumentView(DocumentView* doc)
     m_tabWidget->setTabsClosable(true);
 }
 
-
-void View::setupPanelView(PanelView* v)
-{
-    using namespace std;
-    QDockWidget* dial = new QDockWidget {v->defaultPanelStatus().prettyName, this};
-    dial->setWidget(v->getWidget());
-    dial->toggleViewAction()->setShortcut(v->shortcut());
-    emit insertActionIntoMenubar({MenuInterface::name(ToplevelMenuElement::ViewMenu) + "/" +
-                                  MenuInterface::name(ViewMenuElement::Windows),
-                                  dial->toggleViewAction()});
-
-    // Note : this only has meaning at initialisation time.
-    auto dock = v->defaultPanelStatus().dock;
-
-    this->addDockWidget(dock, dial);
-    if(dock == Qt::LeftDockWidgetArea)
-    {
-        m_leftWidgets.push_back({v, dial});
-        if(m_leftWidgets.size() > 1)
-        {
-            // Find the one with the biggest priority
-            auto it = max_element(begin(m_leftWidgets),
-                                  end(m_leftWidgets),
-                                  [] (const auto& lhs, const auto& rhs)
-            { return lhs.first->defaultPanelStatus().priority < rhs.first->defaultPanelStatus().priority; });
-
-            it->second->raise();
-            if(dial != it->second)
-            {
-                tabifyDockWidget(dial, it->second);
-            }
-        }
-    }
-    else if(dock == Qt::RightDockWidgetArea)
-    {
-        m_rightWidgets.push_back({v, dial});
-
-        if(m_rightWidgets.size() > 1)
-        {
-            // Find the one with the biggest priority
-            auto it = max_element(begin(m_rightWidgets),
-                                  end(m_rightWidgets),
-                                  [] (const auto& lhs, const auto& rhs)
-            { return lhs.first->defaultPanelStatus().priority < rhs.first->defaultPanelStatus().priority; });
-
-            it->second->raise();
-            if(dial != it->second)
-            {
-                tabifyDockWidget(dial, it->second);
-            }
-        }
-    }
-
-    if(!v->defaultPanelStatus().shown)
-        dial->hide();
-}
-
 void View::setupPanel(PanelDelegate* v)
 {
     using namespace std;
@@ -157,7 +100,17 @@ void View::setupPanel(PanelDelegate* v)
             it->second->raise();
             if(dial != it->second)
             {
+                // dial is not on top
                 tabifyDockWidget(dial, it->second);
+            }
+            else
+            {
+                // dial is on top
+                auto it = find_if(m_leftPanels, [=] (auto elt) {
+                    return elt.second != dial;
+                });
+                ISCORE_ASSERT(it != m_leftPanels.end());
+                tabifyDockWidget(it->second, dial);
             }
         }
     }
@@ -177,6 +130,14 @@ void View::setupPanel(PanelDelegate* v)
             if(dial != it->second)
             {
                 tabifyDockWidget(dial, it->second);
+            }
+            else
+            {
+                auto it = find_if(m_rightPanels, [=] (auto elt) {
+                    return elt.second != dial;
+                });
+                ISCORE_ASSERT(it != m_rightPanels.end());
+                tabifyDockWidget(it->second, dial);
             }
         }
     }

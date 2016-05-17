@@ -18,7 +18,6 @@ namespace iscore
 class DocumentDelegateFactory;
 class DocumentDelegateModelInterface;
 class DocumentPlugin;
-class PanelModel;
 struct ApplicationContext;
 
 /**
@@ -47,23 +46,6 @@ class ISCORE_LIB_BASE_EXPORT DocumentModel final : public IdentifiedObject<Docum
             return *m_model;
         }
 
-
-        // Panel models
-        void addPanel(PanelModel* m);
-        const auto& panels() const { return m_panelModels; }
-
-        template<typename T>
-        T* panel() const
-        {
-            using namespace std;
-            auto it = find_if(begin(m_panelModels),
-                              end(m_panelModels),
-                              [&](PanelModel * pm)
-            { return dynamic_cast<T*>(pm); });
-
-            return it != end(m_panelModels) ? safe_cast<T*>(*it) : nullptr;
-        }
-
         // Plugin models
         void addPluginModel(DocumentPlugin* m);
         const std::vector<DocumentPlugin*>& pluginModels() { return m_pluginModels; }
@@ -84,7 +66,6 @@ class ISCORE_LIB_BASE_EXPORT DocumentModel final : public IdentifiedObject<Docum
                 const QByteArray&,
                 DocumentDelegateFactory& fact);
 
-        std::vector<PanelModel*> m_panelModels;
         std::vector<DocumentPlugin*> m_pluginModels;
         DocumentDelegateModelInterface* m_model{}; // note : this *has* to be last due to init order
 };

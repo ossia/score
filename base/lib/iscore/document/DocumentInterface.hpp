@@ -12,7 +12,6 @@ class CommandStack;
 class Document;
 class DocumentDelegateModelInterface;
 class DocumentDelegatePresenterInterface;
-class PanelModel;
 struct DocumentContext;
 
 namespace IDocument
@@ -40,8 +39,6 @@ ISCORE_LIB_BASE_EXPORT ObjectPath unsafe_path(QObject const * const& obj);
 ISCORE_LIB_BASE_EXPORT ObjectPath unsafe_path(const QObject& obj);
 
 //// Various getters ////
-// Panel models
-ISCORE_LIB_BASE_EXPORT const std::vector<PanelModel*>& panels(const Document* d);
 
 // Presenter of a document plugin.
 ISCORE_LIB_BASE_EXPORT DocumentDelegatePresenterInterface& presenterDelegate_generic(const Document& d);

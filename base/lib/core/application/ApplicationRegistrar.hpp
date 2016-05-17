@@ -13,7 +13,7 @@ namespace iscore
 class DocumentDelegateFactory;
 class FactoryListInterface;
 class GUIApplicationContextPlugin;
-class PanelFactory;
+class PanelDelegateFactory;
 class SettingsDelegateFactory;
 struct ApplicationComponentsData;
 class View;
@@ -36,7 +36,7 @@ class ISCORE_LIB_BASE_EXPORT ApplicationRegistrar : public QObject
         // Register data from plugins
         void registerPlugins(const QStringList&, const std::vector<iscore::Plugin_QtInterface*>& vec);
         void registerApplicationContextPlugin(GUIApplicationContextPlugin*);
-        void registerPanel(PanelFactory*);
+        void registerPanel(PanelDelegateFactory*);
         void registerCommands(std::unordered_map<CommandParentFactoryKey, CommandGeneratorMap>&& cmds);
         void registerCommands(std::pair<CommandParentFactoryKey, CommandGeneratorMap>&& cmds);
         void registerFactories(std::unordered_map<iscore::AbstractFactoryKey, std::unique_ptr<FactoryListInterface>>&& cmds);

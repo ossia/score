@@ -24,8 +24,6 @@ class DocumentDelegateFactory;
 class DocumentModel;
 class DocumentPresenter;
 class DocumentView;
-class PanelFactory;
-class PanelPresenter;
 
 /**
      * @brief The Document class is the central part of the software.
@@ -65,10 +63,6 @@ class ISCORE_LIB_BASE_EXPORT Document final : public NamedObject
 
         DocumentView& view() const
         { return *m_view; }
-
-        void setupNewPanel(PanelFactory* factory);
-        void bindPanelPresenter(PanelPresenter*);
-
 
         QJsonObject saveDocumentModelAsJson();
         QByteArray saveDocumentModelAsByteArray();
