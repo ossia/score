@@ -3,6 +3,7 @@
 #include <iscore/command/Dispatchers/CommandDispatcher.hpp>
 #include <QAbstractItemModel>
 #include <QWidget>
+#include <QGroupBox>
 #include <memory>
 
 #include <Device/Node/DeviceNode.hpp>

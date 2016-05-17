@@ -12,6 +12,7 @@ ProcessPanelView::ProcessPanelView(QObject* parent):
     m_widget = new QWidget;
     m_lay = new QVBoxLayout;
     m_widget->setLayout(m_lay);
+    m_widget->setObjectName("ProcessExplorer");
 }
 
 void ProcessPanelView::setInnerWidget(QWidget* widg)

@@ -173,7 +173,14 @@ DeviceExplorerWidget::buildGUI()
 
     QMenu* editMenu = new QMenu(this);
     QPushButton* editButton = new QPushButton(this);
-    editButton->setIcon(QIcon(":/resources/images/edit.png"));
+
+    QIcon editButtonIcon;
+    editButtonIcon.addPixmap(QString(":/resources/images/edit_off.png"));
+    editButtonIcon.addPixmap(QString(":/resources/images/edit_off.png"), QIcon::Mode::Normal, QIcon::State::On);
+    editButtonIcon.addPixmap(QString(":/resources/images/edit_on.png"), QIcon::Mode::Selected);
+    editButtonIcon.addPixmap(QString(":/resources/images/edit_on.png"), QIcon::Mode::Active);
+
+    editButton->setIcon(editButtonIcon);
     editButton->setMaximumSize(QSize(32, 32));
     editButton->setStyleSheet("QPushButton::menu-indicator{ image: url(none.jpg); }");  //to hide the small triangle added to indicate a menu.
 
@@ -211,7 +218,7 @@ DeviceExplorerWidget::buildGUI()
     QHBoxLayout* hLayout = new QHBoxLayout;
     hLayout->addWidget(addButton);
     hLayout->addWidget(editButton);
-    //hLayout->addStretch(0);
+    hLayout->addStretch(0);
     hLayout->addLayout(filterHLayout);
     hLayout->setContentsMargins(0, 0, 0, 0);
 
@@ -221,6 +228,7 @@ DeviceExplorerWidget::buildGUI()
     vLayout->addWidget(m_ntView);
     vLayout->addLayout(hLayout);
     mainWidg->setLayout(vLayout);
+    mainWidg->setObjectName("DeviceExplorer");
 
     m_lay = new QStackedLayout;
     m_lay->addWidget(mainWidg);
