@@ -36,7 +36,7 @@ class ISCORE_PLUGIN_DEVICEEXPLORER_EXPORT NodeUpdateProxy
 {
     public:
         DeviceDocumentPlugin& devModel;
-        DeviceExplorerModel* deviceExplorer{};
+        DeviceExplorerModel* deviceExplorer;
 
         explicit NodeUpdateProxy(DeviceDocumentPlugin& root);
         NodeUpdateProxy(const NodeUpdateProxy&) = delete;

@@ -12,7 +12,7 @@
 #include <QVector>
 
 #include "Editor/Value.h"
-#include <Explorer/DocumentPlugin/ListeningState.hpp>
+
 #include "Network/Address.h"
 #include "Network/Node.h"
 #include "OSSIAApplicationPlugin.hpp"

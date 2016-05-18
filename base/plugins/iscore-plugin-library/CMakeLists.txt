@@ -12,10 +12,6 @@ set(HDRS
     "${CMAKE_CURRENT_SOURCE_DIR}/Library/JSONLibrary/LibraryElement.hpp"
     "${CMAKE_CURRENT_SOURCE_DIR}/Library/JSONLibrary/LibraryWidget.hpp"
     "${CMAKE_CURRENT_SOURCE_DIR}/Library/Panel/LibraryPanelFactory.hpp"
-    "${CMAKE_CURRENT_SOURCE_DIR}/Library/Panel/LibraryPanelId.hpp"
-    "${CMAKE_CURRENT_SOURCE_DIR}/Library/Panel/LibraryPanelModel.hpp"
-    "${CMAKE_CURRENT_SOURCE_DIR}/Library/Panel/LibraryPanelPresenter.hpp"
-    "${CMAKE_CURRENT_SOURCE_DIR}/Library/Panel/LibraryPanelView.hpp"
 )
 set(SRCS
     "${CMAKE_CURRENT_SOURCE_DIR}/iscore_plugin_library.cpp"
@@ -23,9 +19,6 @@ set(SRCS
     "${CMAKE_CURRENT_SOURCE_DIR}/Library/JSONLibrary/LibraryElement.cpp"
     "${CMAKE_CURRENT_SOURCE_DIR}/Library/JSONLibrary/LibraryWidget.cpp"
     "${CMAKE_CURRENT_SOURCE_DIR}/Library/Panel/LibraryPanelFactory.cpp"
-    "${CMAKE_CURRENT_SOURCE_DIR}/Library/Panel/LibraryPanelModel.cpp"
-    "${CMAKE_CURRENT_SOURCE_DIR}/Library/Panel/LibraryPanelPresenter.cpp"
-    "${CMAKE_CURRENT_SOURCE_DIR}/Library/Panel/LibraryPanelView.cpp"
 )
 
 add_library(iscore_plugin_library ${SRCS} ${HDRS})

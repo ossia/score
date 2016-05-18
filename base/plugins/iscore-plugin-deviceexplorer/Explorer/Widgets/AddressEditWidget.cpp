@@ -15,7 +15,9 @@
 
 namespace Explorer
 {
-AddressEditWidget::AddressEditWidget(DeviceExplorerModel* model, QWidget* parent):
+AddressEditWidget::AddressEditWidget(
+        DeviceExplorerModel* model,
+        QWidget* parent):
     QWidget{parent},
     m_model{model}
 {

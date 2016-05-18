@@ -1,42 +1,43 @@
 #include "LibraryPanelFactory.hpp"
-#include "LibraryPanelView.hpp"
-#include "LibraryPanelModel.hpp"
-#include "LibraryPanelPresenter.hpp"
-#include "LibraryPanelId.hpp"
+#include <Library/JSONLibrary/LibraryWidget.hpp>
+#include <QTabWidget>
 
 namespace Library
 {
-int LibraryPanelFactory::panelId() const
+PanelDelegate::PanelDelegate(const iscore::ApplicationContext& ctx):
+    iscore::PanelDelegate{ctx},
+    m_widget{new QTabWidget}
 {
-    return LIBRARY_PANEL_ID;
+    auto projectLib = new LibraryWidget{m_widget};
+    m_widget->addTab(projectLib, QObject::tr("Project"));
+
+    auto systemLib = new LibraryWidget{m_widget};
+    m_widget->addTab(systemLib, QObject::tr("System"));
+
+    m_widget->setObjectName("LibraryExplorer");
 }
 
-QString LibraryPanelFactory::panelName() const
+QWidget*PanelDelegate::widget()
 {
-    return "Library";
+    return m_widget;
 }
 
-
-iscore::PanelView* LibraryPanelFactory::makeView(
-        const iscore::ApplicationContext& ctx,
-        QObject* parent)
+const iscore::PanelStatus& PanelDelegate::defaultPanelStatus() const
 {
-    return new LibraryPanelView {parent};
+    static const iscore::PanelStatus status{
+        false,
+        Qt::RightDockWidgetArea,
+                0,
+                QObject::tr("Library"),
+                QObject::tr("Ctrl+L")};
+
+    return status;
 }
 
-iscore::PanelPresenter* LibraryPanelFactory::makePresenter(
-        const iscore::ApplicationContext& ctx,
-        iscore::PanelView* view,
-        QObject* parent)
+std::unique_ptr<iscore::PanelDelegate> PanelDelegateFactory::make(
+        const iscore::ApplicationContext& ctx)
 {
-    return new LibraryPanelPresenter {view, parent};
+    return std::make_unique<PanelDelegate>(ctx);
 }
 
-iscore::PanelModel* LibraryPanelFactory::makeModel(
-        const iscore::DocumentContext& ctx,
-        QObject* parent)
-{
-    return new LibraryPanelModel {parent};
 }
-}
-

@@ -18,7 +18,7 @@
 #include <Device/Protocol/DeviceList.hpp>
 #include <Device/Protocol/DeviceSettings.hpp>
 #include "DeviceDocumentPlugin.hpp"
-#include <Explorer/DocumentPlugin/ListeningState.hpp>
+
 #include <Explorer/DocumentPlugin/NodeUpdateProxy.hpp>
 #include <Explorer/DocumentPlugin/DeviceDocumentPluginFactory.hpp>
 #include <Explorer/Listening/ListeningHandlerFactoryList.hpp>

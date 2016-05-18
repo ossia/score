@@ -2,7 +2,9 @@
 
 // Courtesy of Daniel J-H
 // https://gist.github.com/daniel-j-h
-template <typename... Args> struct TypeList { };
+template <typename... Args> struct TypeList {
+        static const constexpr auto size = sizeof...(Args);
+};
 
 namespace detail {
 

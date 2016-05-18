@@ -50,7 +50,7 @@
 #include <Device/Node/NodeListMimeSerialization.hpp>
 #include <Explorer/Explorer/DeviceExplorerWidget.hpp>
 
-#include <Explorer/PanelBase/DeviceExplorerPanelModel.hpp>
+
 
 namespace Explorer
 {
@@ -70,10 +70,9 @@ DeviceExplorerModel::DeviceExplorerModel(
       m_lastCutNodeIsCopied{false},
       m_devicePlugin{plug},
       m_rootNode{plug.rootNode()},
-      m_cmdQ{nullptr}
+      m_cmdQ{&plug.context().commandStack}
 {
     this->setObjectName("DeviceExplorerModel");
-    m_devicePlugin.updateProxy.deviceExplorer = this;
 
     beginResetModel();
     endResetModel();
@@ -115,12 +114,6 @@ QModelIndexList DeviceExplorerModel::selectedIndexes() const
         }
 
     }
-}
-
-void
-DeviceExplorerModel::setCommandQueue(iscore::CommandStackFacade* q)
-{
-    m_cmdQ = q;
 }
 
 QStringList
@@ -1021,7 +1014,7 @@ DeviceExplorerModel* try_deviceExplorerFromObject(const QObject& obj)
 {
     auto plug = iscore::IDocument::documentContext(obj).findPlugin<DeviceDocumentPlugin>();
     if(plug)
-        return plug->updateProxy.deviceExplorer;
+        return &plug->explorer;
     return nullptr;
 }
 
@@ -1036,7 +1029,7 @@ DeviceExplorerModel* try_deviceExplorerFromContext(const iscore::DocumentContext
 {
     auto plug = ctx.findPlugin<DeviceDocumentPlugin>();
     if(plug)
-        return plug->updateProxy.deviceExplorer;
+        return &plug->explorer;
     return nullptr;
 }
 

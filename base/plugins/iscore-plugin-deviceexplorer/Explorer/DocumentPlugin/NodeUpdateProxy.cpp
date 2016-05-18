@@ -21,7 +21,8 @@
 namespace Explorer
 {
 NodeUpdateProxy::NodeUpdateProxy(DeviceDocumentPlugin& root):
-    devModel{root}
+    devModel{root},
+    deviceExplorer{&root.explorer}
 {
 
 }

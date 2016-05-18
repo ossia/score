@@ -8,7 +8,6 @@
 
 class QObject;
 #include <iscore/tools/SettableIdentifier.hpp>
-#include <iscore/plugins/panel/PanelModel.hpp>
 
 namespace iscore
 {
@@ -29,19 +28,7 @@ DocumentModel::~DocumentModel()
     {
         delete plug;
     }
-    for(auto panel : m_panelModels)
-    {
-        delete panel;
-    }
 }
-
-void DocumentModel::addPanel(PanelModel *m)
-{
-    m_panelModels.push_back(m);
-}
-
-
-
 
 void DocumentModel::addPluginModel(DocumentPlugin *m)
 {
@@ -49,8 +36,6 @@ void DocumentModel::addPluginModel(DocumentPlugin *m)
     m_pluginModels.push_back(m);
     emit pluginModelsChanged();
 }
-
-
 
 void DocumentModel::setNewSelection(const Selection& s)
 {

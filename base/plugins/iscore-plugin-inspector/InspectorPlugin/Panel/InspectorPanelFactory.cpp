@@ -1,46 +1,73 @@
 #include "InspectorPanelFactory.hpp"
-#include "InspectorPanelModel.hpp"
-#include "InspectorPanelPresenter.hpp"
-#include "InspectorPanelView.hpp"
-#include "InspectorPanelId.hpp"
+#include "Implementation/InspectorPanel.hpp"
+#include "Implementation/SelectionStackWidget.hpp"
 
-namespace iscore {
-class DocumentModel;
+#include <Inspector/InspectorWidgetList.hpp>
 
-
-}  // namespace iscore
+#include <iscore/selection/SelectionStack.hpp>
+#include <iscore/widgets/MarginLess.hpp>
+#include <QVBoxLayout>
 
 namespace InspectorPanel
 {
-int InspectorPanelFactory::panelId() const
+PanelDelegate::PanelDelegate(const iscore::ApplicationContext& ctx):
+    iscore::PanelDelegate{ctx},
+    m_widget{new QWidget}
 {
-    return INSPECTOR_PANEL_ID;
+    new iscore::MarginLess<QVBoxLayout>{m_widget};
 }
 
-QString InspectorPanelFactory::panelName() const
+QWidget* PanelDelegate::widget()
 {
-    return "Inspector";
+    return m_widget;
 }
 
-iscore::PanelView* InspectorPanelFactory::makeView(
-        const iscore::ApplicationContext& ctx,
-        QObject* parent)
+const iscore::PanelStatus&PanelDelegate::defaultPanelStatus() const
 {
-    return new InspectorPanelView {parent};
+    static const iscore::PanelStatus status{
+        true,
+        Qt::RightDockWidgetArea,
+                10,
+                QObject::tr("Inspector"),
+                QObject::tr("Ctrl+I")};
+
+    return status;
 }
 
-iscore::PanelPresenter* InspectorPanelFactory::makePresenter(
-        const iscore::ApplicationContext& ctx,
-        iscore::PanelView* view,
-        QObject* parent)
+std::unique_ptr<iscore::PanelDelegate> PanelDelegateFactory::make(
+        const iscore::ApplicationContext& ctx)
 {
-    return new InspectorPanelPresenter {view, parent};
+    return std::make_unique<PanelDelegate>(ctx);
 }
 
-iscore::PanelModel* InspectorPanelFactory::makeModel(
-        const iscore::DocumentContext& ctx,
-        QObject* parent)
+
+void PanelDelegate::on_modelChanged(
+        iscore::PanelDelegate::maybe_document_t oldm,
+        iscore::PanelDelegate::maybe_document_t newm)
 {
-    return new InspectorPanelModel {parent};
+    using namespace iscore;
+    delete m_stack;
+    m_stack = nullptr;
+    delete m_inspectorPanel;
+    m_inspectorPanel = nullptr;
+
+    if(newm)
+    {
+        auto& fact = newm->app.components.factory<Inspector::InspectorWidgetList>();
+        SelectionStack& stack = newm->selectionStack;
+        m_stack = new SelectionStackWidget{stack, m_widget};
+        m_inspectorPanel = new InspectorPanelWidget{fact, stack, m_widget};
+
+        m_widget->layout()->addWidget(m_stack);
+        m_widget->layout()->addWidget(m_inspectorPanel);
+
+        setNewSelection(stack.currentSelection());
+    }
 }
+
+void PanelDelegate::setNewSelection(const Selection& s)
+{
+    m_inspectorPanel->newItemsInspected(s);
+}
+
 }

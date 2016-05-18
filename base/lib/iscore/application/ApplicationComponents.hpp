@@ -5,6 +5,7 @@
 #include <iscore/plugins/customfactory/FactoryFamily.hpp>
 #include <iscore/plugins/customfactory/FactoryInterface.hpp>
 #include <iscore/plugins/customfactory/StringFactoryKey.hpp>
+#include <iscore/tools/std/IndirectContainer.hpp>
 #include <iscore_lib_base_export.h>
 
 #include <QByteArray>
@@ -22,8 +23,7 @@ class DocumentPluginFactory;
 class FactoryListInterface;
 class Plugin_QtInterface;
 class GUIApplicationContextPlugin;
-class PanelFactory;
-class PanelPresenter;
+class PanelDelegate;
 
 struct ISCORE_LIB_BASE_EXPORT ApplicationComponentsData
 {
@@ -40,9 +40,7 @@ struct ISCORE_LIB_BASE_EXPORT ApplicationComponentsData
 
         std::unordered_map<iscore::AbstractFactoryKey, std::unique_ptr<FactoryListInterface>> factories;
         std::unordered_map<CommandParentFactoryKey, CommandGeneratorMap> commands;
-
-        // TODO instead put the factory as a member function?
-        std::vector<std::pair<PanelPresenter*, PanelFactory*>> panelPresenters;
+        std::vector<std::unique_ptr<PanelDelegate>> panels;
 };
 
 class ISCORE_LIB_BASE_EXPORT ApplicationComponents
@@ -76,21 +74,8 @@ class ISCORE_LIB_BASE_EXPORT ApplicationComponents
             throw;
         }
 
-        const auto& panelPresenters() const
-        { return m_data.panelPresenters; }
-        auto panelFactories() const
-        {
-            std::vector<PanelFactory*> lst;
-            std::transform(
-                        std::begin(m_data.panelPresenters),
-                        std::end(m_data.panelPresenters),
-                        std::back_inserter(lst),
-                [] (const std::pair<PanelPresenter*, PanelFactory*>& elt) {
-                    return elt.second;
-                }
-            );
-            return lst;
-        }
+        auto panels() const
+        { return wrap_indirect(m_data.panels); }
 
         template<typename T>
         const T& factory() const

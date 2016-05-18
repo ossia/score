@@ -24,6 +24,31 @@ class IndirectContainer : Container<T*, U>
         { return boost::make_indirect_iterator(ctnr_t::cend()); }
 };
 
+template<class Container>
+class IndirectContainerWrapper
+{
+    public:
+        Container& container;
+
+        auto begin()
+        { return boost::make_indirect_iterator(container.begin()); }
+        auto end()
+        { return boost::make_indirect_iterator(container.end()); }
+        auto begin() const
+        { return boost::make_indirect_iterator(container.begin()); }
+        auto end() const
+        { return boost::make_indirect_iterator(container.end()); }
+        auto cbegin() const
+        { return boost::make_indirect_iterator(container.cbegin()); }
+        auto cend() const
+        { return boost::make_indirect_iterator(container.cend()); }
+};
+
+template<typename T>
+auto wrap_indirect(T& container)
+{
+    return IndirectContainerWrapper<T>{container};
+}
 
 #include <array>
 template<typename T,

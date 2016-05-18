@@ -7,6 +7,7 @@
 #include <core/plugin/PluginManager.hpp>
 #include <core/undo/UndoApplicationPlugin.hpp>
 #include <core/undo/Panel/UndoPanelFactory.hpp>
+#include <iscore/plugins/panel/PanelDelegate.hpp>
 
 #include <iscore/plugins/settingsdelegate/SettingsDelegateFactoryInterface.hpp>
 #include <iscore/plugins/documentdelegate/DocumentDelegateFactoryInterface.hpp>
@@ -33,17 +34,18 @@ TestApplication::TestApplication(int &argc, char **argv):
                 ctx,
                 *m_view,
                 m_presenter->menuBar(),
-                m_presenter->toolbars(),
-                m_presenter};
+                m_presenter->toolbars()};
 
     registrar.registerFactory(std::make_unique<iscore::DocumentDelegateList>());
+    auto panels = std::make_unique<iscore::PanelDelegateFactoryList>();
+    panels->insert(std::make_unique<iscore::UndoPanelDelegateFactory>());
+    registrar.registerFactory(std::move(panels));
     registrar.registerFactory(std::make_unique<iscore::DocumentPluginFactoryList>());
     registrar.registerFactory(std::make_unique<iscore::SettingsDelegateFactoryList>());
 
     iscore::PluginLoader::loadPlugins(registrar, ctx);
 
     registrar.registerApplicationContextPlugin(new iscore::UndoApplicationPlugin{ctx, m_presenter});
-    registrar.registerPanel(new UndoPanelFactory);
 
     // Load the settings
     for(auto& elt : ctx.components.factory<iscore::SettingsDelegateFactoryList>())
@@ -55,6 +57,11 @@ TestApplication::TestApplication(int &argc, char **argv):
     for(auto& toolbar : m_presenter->toolbars())
     {
         m_view->addToolBar(toolbar.bar);
+    }
+
+    for(auto& panel_fac : context().components.factory<iscore::PanelDelegateFactoryList>())
+    {
+        registrar.registerPanel(panel_fac);
     }
 
     m_view->show();

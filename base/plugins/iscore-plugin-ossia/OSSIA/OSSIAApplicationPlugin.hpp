@@ -1,5 +1,5 @@
 #pragma once
-#include <Explorer/DocumentPlugin/ListeningState.hpp>
+
 #include <Process/TimeValue.hpp>
 #include <iscore/plugins/application/GUIApplicationContextPlugin.hpp>
 #include <QString>

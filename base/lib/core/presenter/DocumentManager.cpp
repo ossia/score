@@ -4,7 +4,7 @@
 #include <core/presenter/Presenter.hpp>
 #include <core/view/View.hpp>
 #include <iscore/plugins/application/GUIApplicationContextPlugin.hpp>
-#include <iscore/plugins/panel/PanelPresenter.hpp>
+#include <iscore/plugins/panel/PanelDelegate.hpp>
 #include <iscore/tools/SettableIdentifierGeneration.hpp>
 #include <QByteArray>
 #include <QFile>
@@ -147,11 +147,6 @@ Document* DocumentManager::setupDocument(
 {
     if(doc)
     {
-        for(auto& panel : ctx.components.panelPresenters())
-        {
-            doc->setupNewPanel(panel.second);
-        }
-
         auto it = find(m_documents, doc);
         if(it == m_documents.end())
             m_documents.push_back(doc);
@@ -186,12 +181,19 @@ void DocumentManager::setCurrentDocument(
     auto old = m_currentDocument;
     m_currentDocument = doc;
 
-    for(auto& pair : ctx.components.panelPresenters())
+    if(doc)
     {
-        if(doc)
-            m_currentDocument->bindPanelPresenter(pair.first);
-        else
-            pair.first->setModel(nullptr);
+        for(auto& panel : ctx.components.panels())
+        {
+            panel.setModel(doc->context());
+        }
+    }
+    else
+    {
+        for(auto& panel : ctx.components.panels())
+        {
+            panel.setModel(boost::none);
+        }
     }
 
     for(auto& ctrl : ctx.components.applicationPlugins())

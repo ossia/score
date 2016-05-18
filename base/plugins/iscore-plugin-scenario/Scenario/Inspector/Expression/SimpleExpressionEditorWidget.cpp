@@ -33,7 +33,7 @@ SimpleExpressionEditorWidget::SimpleExpressionEditorWidget(
     auto plug = doc.findPlugin<Explorer::DeviceDocumentPlugin>();
     Explorer::DeviceExplorerModel* explorer{};
     if(plug)
-        explorer = plug->updateProxy.deviceExplorer;
+        explorer = &plug->explorer;
 
     m_address = new Explorer::AddressAccessorEditWidget{explorer, this};
     m_ok = new QLabel{"/!\\ ", this};

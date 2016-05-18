@@ -28,7 +28,7 @@
 #include <Device/Node/DeviceNode.hpp>
 #include <Device/Protocol/DeviceInterface.hpp>
 #include <Device/Protocol/DeviceList.hpp>
-#include <Explorer/DocumentPlugin/ListeningState.hpp>
+
 #include <Explorer/Explorer/ListeningManager.hpp>
 #include <Process/ExpandMode.hpp>
 #include <Process/Process.hpp>
