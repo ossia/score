@@ -245,7 +245,8 @@ set(SRCS ${SRCS}
 "${CMAKE_CURRENT_SOURCE_DIR}/Scenario/Document/CommentBlock/CommentBlockView.cpp"
 "${CMAKE_CURRENT_SOURCE_DIR}/Scenario/Document/CommentBlock/TextItem.cpp"
 
-"${CMAKE_CURRENT_SOURCE_DIR}/Scenario/Panel/ProcessPanelFactory.cpp"
+"${CMAKE_CURRENT_SOURCE_DIR}/Scenario/Panel/PanelDelegate.cpp"
+"${CMAKE_CURRENT_SOURCE_DIR}/Scenario/Panel/PanelDelegateFactory.cpp"
 
 "${CMAKE_CURRENT_SOURCE_DIR}/Scenario/Process/Algorithms/StandardCreationPolicy.cpp"
 "${CMAKE_CURRENT_SOURCE_DIR}/Scenario/Process/Algorithms/GoodOldDisplacementPolicy.cpp"

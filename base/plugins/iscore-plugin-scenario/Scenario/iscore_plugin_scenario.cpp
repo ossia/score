@@ -12,7 +12,7 @@
 #include <Scenario/Document/Event/ExecutionStatus.hpp>
 #include <Scenario/Document/ScenarioDocument/ScenarioDocumentFactory.hpp>
 #include <Scenario/ExecutionChecker/CSPCoherencyCheckerList.hpp>
-#include <Scenario/Panel/ProcessPanelFactory.hpp>
+#include <Scenario/Panel/PanelDelegateFactory.hpp>
 #include <Scenario/Process/ScenarioFactory.hpp>
 #include <Scenario/Settings/Factory.hpp>
 #include <Scenario/iscore_plugin_scenario.hpp>

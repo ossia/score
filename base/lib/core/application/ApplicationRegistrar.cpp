@@ -4,7 +4,7 @@
 #include <core/settings/Settings.hpp>
 #include <core/view/View.hpp>
 #include <iscore/plugins/application/GUIApplicationContextPlugin.hpp>
-#include <iscore/plugins/panel/PanelDelegate.hpp>
+#include <iscore/plugins/panel/PanelDelegateFactory.hpp>
 #include <type_traits>
 #include <vector>
 
@@ -56,8 +56,6 @@ void ApplicationRegistrar::registerApplicationContextPlugin(
     con(m_view, &iscore::View::activeWindowChanged,
            [=] () {
         ctrl->on_activeWindowChanged();
-        // TODO give a context if it is deleted
-
     });
 
     m_components.appPlugins.push_back(ctrl);

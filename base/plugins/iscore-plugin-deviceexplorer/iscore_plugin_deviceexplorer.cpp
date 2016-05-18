@@ -1,4 +1,4 @@
-#include <Explorer/DeviceExplorerPanelFactory.hpp>
+#include <Explorer/Panel/DeviceExplorerPanelFactory.hpp>
 
 #include <Explorer/Commands/DeviceExplorerCommandFactory.hpp>
 

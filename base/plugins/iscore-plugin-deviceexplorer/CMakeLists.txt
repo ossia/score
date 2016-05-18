@@ -32,7 +32,8 @@ set(SRCS
 "${CMAKE_CURRENT_SOURCE_DIR}/Explorer/Common/AddressSettings/Widgets/AddressCharSettingsWidget.cpp"
 "${CMAKE_CURRENT_SOURCE_DIR}/Explorer/Common/AddressSettings/Widgets/AddressStringSettingsWidget.cpp"
 
-"${CMAKE_CURRENT_SOURCE_DIR}/Explorer/DeviceExplorerPanelFactory.cpp"
+"${CMAKE_CURRENT_SOURCE_DIR}/Explorer/Panel/DeviceExplorerPanelDelegate.cpp"
+"${CMAKE_CURRENT_SOURCE_DIR}/Explorer/Panel/DeviceExplorerPanelFactory.cpp"
 "${CMAKE_CURRENT_SOURCE_DIR}/Explorer/DocumentPlugin/DeviceDocumentPlugin.cpp"
 "${CMAKE_CURRENT_SOURCE_DIR}/Explorer/DocumentPlugin/DeviceDocumentPluginFactory.cpp"
 "${CMAKE_CURRENT_SOURCE_DIR}/Explorer/DocumentPlugin/NodeUpdateProxy.cpp"

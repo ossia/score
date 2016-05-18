@@ -1,4 +1,4 @@
-#include "DeviceExplorerPanelFactory.hpp"
+#include "DeviceExplorerPanelDelegate.hpp"
 #include <Device/Protocol/ProtocolList.hpp>
 #include <Explorer/Explorer/DeviceExplorerWidget.hpp>
 #include <Explorer/DocumentPlugin/DeviceDocumentPlugin.hpp>
@@ -29,13 +29,6 @@ const iscore::PanelStatus&PanelDelegate::defaultPanelStatus() const
 
     return status;
 }
-
-std::unique_ptr<iscore::PanelDelegate> PanelDelegateFactory::make(
-        const iscore::ApplicationContext& ctx)
-{
-    return std::make_unique<PanelDelegate>(ctx);
-}
-
 
 void PanelDelegate::on_modelChanged(
         iscore::PanelDelegate::maybe_document_t oldm,

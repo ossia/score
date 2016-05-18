@@ -11,6 +11,7 @@ set(HDRS
     "${CMAKE_CURRENT_SOURCE_DIR}/Library/JSONLibrary/JSONLibrary.hpp"
     "${CMAKE_CURRENT_SOURCE_DIR}/Library/JSONLibrary/LibraryElement.hpp"
     "${CMAKE_CURRENT_SOURCE_DIR}/Library/JSONLibrary/LibraryWidget.hpp"
+    "${CMAKE_CURRENT_SOURCE_DIR}/Library/Panel/LibraryPanelDelegate.hpp"
     "${CMAKE_CURRENT_SOURCE_DIR}/Library/Panel/LibraryPanelFactory.hpp"
 )
 set(SRCS
@@ -18,6 +19,7 @@ set(SRCS
     "${CMAKE_CURRENT_SOURCE_DIR}/Library/JSONLibrary/JSONLibrary.cpp"
     "${CMAKE_CURRENT_SOURCE_DIR}/Library/JSONLibrary/LibraryElement.cpp"
     "${CMAKE_CURRENT_SOURCE_DIR}/Library/JSONLibrary/LibraryWidget.cpp"
+    "${CMAKE_CURRENT_SOURCE_DIR}/Library/Panel/LibraryPanelDelegate.cpp"
     "${CMAKE_CURRENT_SOURCE_DIR}/Library/Panel/LibraryPanelFactory.cpp"
 )
 
