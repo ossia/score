@@ -2,8 +2,7 @@
 #include <core/document/DocumentModel.hpp>
 #include <core/document/DocumentPresenter.hpp>
 #include <core/document/DocumentView.hpp>
-#include <iscore/plugins/panel/PanelModel.hpp>
-#include <iscore/plugins/panel/PanelPresenter.hpp>
+#include <iscore/plugins/panel/PanelDelegate.hpp>
 #include <QObject>
 #include <algorithm>
 #include <iterator>
@@ -11,7 +10,6 @@
 
 #include <core/document/DocumentBackupManager.hpp>
 #include <iscore/document/DocumentContext.hpp>
-#include <iscore/plugins/panel/PanelFactory.hpp>
 #include <iscore/selection/SelectionStack.hpp>
 #include <iscore/tools/NamedObject.hpp>
 #include <iscore/tools/Todo.hpp>
@@ -79,9 +77,9 @@ void Document::init()
     con(m_selectionStack, &SelectionStack::currentSelectionChanged,
             this, [&] (const Selection& s)
             {
-                for(auto& panel : m_model->panels())
+                for(auto& panel : m_context.app.components.panels())
                 {
-                    panel->setNewSelection(s);
+                    panel.setNewSelection(s);
                 }
                 m_model->setNewSelection(s);
             });
@@ -109,22 +107,4 @@ const Id<DocumentModel>&Document::id() const
     return m_model->id();
 }
 
-void Document::setupNewPanel(PanelFactory* factory)
-{
-    m_model->addPanel(factory->makeModel(m_context, m_model));
-}
-
-void Document::bindPanelPresenter(PanelPresenter* pres)
-{
-    using namespace std;
-    auto localmodel = std::find_if(begin(model().panels()),
-                                   end(model().panels()),
-                                   [&] (PanelModel* model)
-    {
-        return model->panelId() == pres->panelId();
-    });
-    ISCORE_ASSERT(localmodel != end(model().panels()));
-
-    pres->setModel(*localmodel);
-}
 }

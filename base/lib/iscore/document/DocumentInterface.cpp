@@ -55,12 +55,6 @@ iscore::DocumentDelegateModelInterface& iscore::IDocument::modelDelegate_generic
     return d.model().modelDelegate();
 }
 
-
-const std::vector<iscore::PanelModel*>& iscore::IDocument::panels(const iscore::Document* d)
-{
-    return d->model().panels();
-}
-
 ISCORE_LIB_BASE_EXPORT const iscore::DocumentContext&iscore::IDocument::documentContext(const QObject& obj)
 {
     auto doc = documentFromObject(obj);

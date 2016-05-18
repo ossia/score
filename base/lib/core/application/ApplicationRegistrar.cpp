@@ -4,7 +4,7 @@
 #include <core/settings/Settings.hpp>
 #include <core/view/View.hpp>
 #include <iscore/plugins/application/GUIApplicationContextPlugin.hpp>
-#include <iscore/plugins/panel/PanelFactory.hpp>
+#include <iscore/plugins/panel/PanelDelegate.hpp>
 #include <type_traits>
 #include <vector>
 
@@ -23,14 +23,12 @@ ApplicationRegistrar::ApplicationRegistrar(
         const iscore::ApplicationContext& ctx,
         iscore::View& view,
         MenubarManager& menubar,
-        std::vector<OrderedToolbar>& toolbars,
-        QObject* panelPresenterParent):
+        std::vector<OrderedToolbar>& toolbars):
     m_components{comp},
     m_context{ctx},
     m_view{view},
     m_menubar{menubar},
-    m_toolbars{toolbars},
-    m_panelPresenterParent{panelPresenterParent}
+    m_toolbars{toolbars}
 {
 
 }
@@ -67,17 +65,12 @@ void ApplicationRegistrar::registerApplicationContextPlugin(
 
 ISCORE_LIB_BASE_EXPORT
 void ApplicationRegistrar::registerPanel(
-        PanelFactory* factory)
+        PanelDelegateFactory& factory)
 {
-    auto view = factory->makeView(m_context, &m_view);
-    auto pres = factory->makePresenter(m_context, view, m_panelPresenterParent);
+    auto panel = factory.make(m_context);
+    m_view.setupPanel(panel.get());
 
-    m_components.panelPresenters.push_back({pres, factory});
-
-    m_view.setupPanelView(view);
-
-    for(auto doc : m_context.documents.documents())
-        doc->setupNewPanel(factory);
+    m_components.panels.push_back(std::move(panel));
 }
 
 ISCORE_LIB_BASE_EXPORT

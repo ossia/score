@@ -1,4 +1,4 @@
-#include <Explorer/PanelBase/DeviceExplorerPanelModel.hpp>
+
 #include <Explorer/Widgets/AddressEditWidget.hpp>
 #include <Mapping/Commands/ChangeAddresses.hpp>
 #include <Mapping/Commands/MinMaxCommands.hpp>
@@ -46,7 +46,7 @@ MappingInspectorWidget::MappingInspectorWidget(
     auto plug = doc.findPlugin<DeviceDocumentPlugin>();
     DeviceExplorerModel* explorer{};
     if(plug)
-        explorer = plug->updateProxy.deviceExplorer;
+        explorer = &plug->explorer;
     {
         // Source
         auto widg = new QWidget;

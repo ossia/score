@@ -16,7 +16,6 @@
 #include <QStringList>
 #include <QToolButton>
 
-#include "LambdaFriendlyQComboBox.hpp"
 #include "RackWidget.hpp"
 #include <iscore/tools/SettableIdentifier.hpp>
 #include <iscore/widgets/MarginLess.hpp>

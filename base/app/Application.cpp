@@ -39,7 +39,9 @@
 #include <iscore/plugins/settingsdelegate/SettingsDelegateFactoryInterface.hpp>
 #include <iscore/plugins/documentdelegate/DocumentDelegateFactoryInterface.hpp>
 #include <iscore/plugins/documentdelegate/plugin/DocumentDelegatePluginModel.hpp>
+#include <iscore/plugins/panel/PanelDelegate.hpp>
 #include <iscore/widgets/OrderedToolbar.hpp>
+#include <core/undo/Panel/UndoPanelFactory.hpp>
 #include "iscore_git_info.hpp"
 
 namespace iscore {
@@ -235,17 +237,18 @@ void Application::loadPluginData()
                 ctx,
                 *m_view,
                 m_presenter->menuBar(),
-                m_presenter->toolbars(),
-                m_presenter};
+                m_presenter->toolbars()};
 
     registrar.registerFactory(std::make_unique<iscore::DocumentDelegateList>());
+    auto panels = std::make_unique<iscore::PanelDelegateFactoryList>();
+    panels->insert(std::make_unique<iscore::UndoPanelDelegateFactory>());
+    registrar.registerFactory(std::move(panels));
     registrar.registerFactory(std::make_unique<iscore::DocumentPluginFactoryList>());
     registrar.registerFactory(std::make_unique<iscore::SettingsDelegateFactoryList>());
 
     iscore::PluginLoader::loadPlugins(registrar, ctx);
 
     registrar.registerApplicationContextPlugin(new iscore::UndoApplicationPlugin{ctx, m_presenter});
-    registrar.registerPanel(new UndoPanelFactory);
 
     // Load the settings
     for(auto& elt : ctx.components.factory<iscore::SettingsDelegateFactoryList>())
@@ -262,5 +265,10 @@ void Application::loadPluginData()
     for(iscore::GUIApplicationContextPlugin* app_plug : ctx.components.applicationPlugins())
     {
         app_plug->initialize();
+    }
+
+    for(auto& panel_fac : context().components.factory<iscore::PanelDelegateFactoryList>())
+    {
+        registrar.registerPanel(panel_fac);
     }
 }

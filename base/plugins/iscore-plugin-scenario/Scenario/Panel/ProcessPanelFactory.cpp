@@ -1,47 +1,117 @@
-#include <core/view/View.hpp>
-
-#include <Process/ProcessList.hpp>
 #include "ProcessPanelFactory.hpp"
-#include "ProcessPanelModel.hpp"
-#include "ProcessPanelPresenter.hpp"
-#include "ProcessPanelView.hpp"
 
-#include <core/presenter/Presenter.hpp>
-#include <iscore/plugins/customfactory/StringFactoryKey.hpp>
-#include "ProcessPanelId.hpp"
+#include <Process/LayerModel.hpp>
+#include <Process/LayerModelPanelProxy.hpp>
+#include <Process/Tools/ProcessPanelGraphicsProxy.hpp>
+#include <Scenario/Document/ScenarioDocument/ScenarioDocumentModel.hpp>
+
+#include <iscore/widgets/ClearLayout.hpp>
+#include <QVBoxLayout>
 
 namespace Scenario
 {
-int ProcessPanelFactory::panelId() const
+PanelDelegate::PanelDelegate(const iscore::ApplicationContext& ctx):
+    iscore::PanelDelegate{ctx},
+    m_widget{new QWidget}
 {
-    return PROCESS_PANEL_ID;
+    m_widget->setLayout(new QVBoxLayout);
 }
 
-QString ProcessPanelFactory::panelName() const
+QWidget* PanelDelegate::widget()
 {
-    return "ProcessPanelModel";
+    return m_widget;
 }
 
-iscore::PanelView*ProcessPanelFactory::makeView(
-        const iscore::ApplicationContext& ctx,
-        QObject* parent)
+const iscore::PanelStatus&PanelDelegate::defaultPanelStatus() const
 {
-    return new ProcessPanelView{parent};
+    static const iscore::PanelStatus status{
+        false,
+        Qt::BottomDockWidgetArea,
+                10,
+                QObject::tr("Process"),
+                QObject::tr("Ctrl+P")};
+
+    return status;
 }
 
-iscore::PanelPresenter*ProcessPanelFactory::makePresenter(
-        const iscore::ApplicationContext& ctx,
-        iscore::PanelView* view,
-        QObject* parent)
+std::unique_ptr<iscore::PanelDelegate> PanelDelegateFactory::make(
+        const iscore::ApplicationContext& ctx)
 {
-    auto& fact = ctx.components.factory<Process::ProcessList>();
-    return new ProcessPanelPresenter{fact, view, parent};
+    return std::make_unique<PanelDelegate>(ctx);
 }
 
-iscore::PanelModel*ProcessPanelFactory::makeModel(
-        const iscore::DocumentContext&,
-        QObject* parent)
+
+void PanelDelegate::on_modelChanged(
+        iscore::PanelDelegate::maybe_document_t oldm,
+        iscore::PanelDelegate::maybe_document_t newm)
 {
-    return new ProcessPanelModel{parent};
+    if(oldm)
+    {
+        auto old_bem = iscore::IDocument::try_get<Scenario::ScenarioDocumentModel>(oldm->document);
+        if(old_bem)
+        {
+            for(auto con : m_connections)
+            {
+                QObject::disconnect(con);
+            }
+
+            m_connections.clear();
+        }
+    }
+
+    if(!newm)
+    {
+        cleanup();
+        return;
+    }
+
+    auto bem = iscore::IDocument::try_get<Scenario::ScenarioDocumentModel>(newm->document);
+
+    if(!bem)
+        return;
+
+    m_connections.push_back(
+                con(bem->focusManager(), &Process::ProcessFocusManager::sig_focusedViewModel,
+                                 this, &PanelDelegate::on_focusedViewModelChanged));
+
+    m_connections.push_back(
+                con(bem->focusManager(), &Process::ProcessFocusManager::sig_defocusedViewModel,
+                    this, [&] {
+                        on_focusedViewModelChanged(nullptr);
+                    } ));
+
+    on_focusedViewModelChanged(bem->focusManager().focusedViewModel());
 }
+
+void PanelDelegate::cleanup()
+{
+    m_layerModel = nullptr;
+    delete m_proxy;
+    m_proxy = nullptr;
+}
+
+void PanelDelegate::on_focusedViewModelChanged(const Process::LayerModel* theLM)
+{
+    if(theLM &&
+       m_layerModel &&
+       &theLM->processModel() == &m_layerModel->processModel())
+    {
+        return;
+    }
+    else if(theLM != m_layerModel)
+    {
+        m_layerModel = theLM;
+        delete m_proxy;
+        m_proxy = nullptr;
+
+        iscore::clearLayout(m_widget->layout());
+        if(!m_layerModel)
+            return;
+
+        m_proxy = m_layerModel->make_panelProxy(this);
+        if(m_proxy)
+            m_widget->layout()->addWidget(m_proxy->widget());
+    }
+}
+
 }

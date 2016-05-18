@@ -1,10 +1,10 @@
 #include <iscore/plugins/documentdelegate/DocumentDelegateFactoryInterface.hpp>
-#include <iscore/plugins/panel/PanelFactory.hpp>
 #include <iscore/tools/exceptions/MissingCommand.hpp>
 
 #include "ApplicationComponents.hpp"
 #include <iscore/command/CommandGeneratorMap.hpp>
 #include <iscore/plugins/application/GUIApplicationContextPlugin.hpp>
+#include <iscore/plugins/panel/PanelDelegate.hpp>
 #include <iscore/plugins/qt_interfaces/PluginRequirements_QtInterface.hpp>
 
 namespace iscore
@@ -16,11 +16,6 @@ ApplicationComponentsData::~ApplicationComponentsData()
     {
         delete elt;
     }*/
-
-    for(auto& elt : panelPresenters)
-    {
-        delete elt.second;
-    }
 
     for(auto& elt : appPlugins)
     {

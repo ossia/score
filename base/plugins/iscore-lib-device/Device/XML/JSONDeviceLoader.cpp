@@ -75,7 +75,7 @@ void loadDeviceFromJSON(
     {
         read_node(value, node);
     }
-    /*
+
 
 
     // extraction des données
@@ -89,7 +89,6 @@ void loadDeviceFromJSON(
         convertFromDomElement(dom_node, node);
         dom_node = dom_node.nextSiblingElement("");
     }
-    */ /*
 }
 }
 */

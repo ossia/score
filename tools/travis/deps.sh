@@ -22,6 +22,7 @@ export ISCORE_PLUGINS_TO_BUILD=("iscore-addon-csp")
 # Install the deps
 case "$TRAVIS_OS_NAME" in
   linux)
+    sudo apt-key adv --recv-keys --keyserver keyserver.ubuntu.com 1397BC53640DB551
     sudo add-apt-repository --yes ppa:ubuntu-toolchain-r/test
 
     if [[ "$CONF" != "linux-package" ]];

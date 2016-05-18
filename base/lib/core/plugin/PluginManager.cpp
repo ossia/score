@@ -6,7 +6,7 @@
 #include <iscore/plugins/qt_interfaces/FactoryFamily_QtInterface.hpp>
 #include <iscore/plugins/qt_interfaces/FactoryInterface_QtInterface.hpp>
 #include <iscore/plugins/qt_interfaces/GUIApplicationContextPlugin_QtInterface.hpp>
-#include <iscore/plugins/qt_interfaces/PanelFactoryInterface_QtInterface.hpp>
+
 #include <iscore/plugins/qt_interfaces/PluginRequirements_QtInterface.hpp>
 #include <QCoreApplication>
 #include <QDebug>
@@ -185,16 +185,6 @@ void PluginLoader::loadPlugins(
     // Load what the plug-ins have to offer.
     for(auto plugin : availablePlugins)
     {
-        auto panel_plugin = dynamic_cast<PanelFactory_QtInterface*> (plugin);
-        if(panel_plugin)
-        {
-            auto panels = panel_plugin->panels();
-            for(auto panel : panels)
-            {
-                registrar.registerPanel(panel);
-            }
-        }
-
         auto commands_plugin = dynamic_cast<CommandFactory_QtInterface*> (plugin);
         if(commands_plugin)
         {

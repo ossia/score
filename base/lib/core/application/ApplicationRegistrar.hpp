@@ -13,7 +13,7 @@ namespace iscore
 class DocumentDelegateFactory;
 class FactoryListInterface;
 class GUIApplicationContextPlugin;
-class PanelFactory;
+class PanelDelegateFactory;
 class SettingsDelegateFactory;
 struct ApplicationComponentsData;
 class View;
@@ -30,13 +30,12 @@ class ISCORE_LIB_BASE_EXPORT ApplicationRegistrar : public QObject
                 const iscore::ApplicationContext&,
                 iscore::View&,
                 MenubarManager&,
-                std::vector<OrderedToolbar>&,
-                QObject* panelPresenterParent);
+                std::vector<OrderedToolbar>&);
 
         // Register data from plugins
         void registerPlugins(const QStringList&, const std::vector<iscore::Plugin_QtInterface*>& vec);
         void registerApplicationContextPlugin(GUIApplicationContextPlugin*);
-        void registerPanel(PanelFactory*);
+        void registerPanel(PanelDelegateFactory&);
         void registerCommands(std::unordered_map<CommandParentFactoryKey, CommandGeneratorMap>&& cmds);
         void registerCommands(std::pair<CommandParentFactoryKey, CommandGeneratorMap>&& cmds);
         void registerFactories(std::unordered_map<iscore::AbstractFactoryKey, std::unique_ptr<FactoryListInterface>>&& cmds);
@@ -51,6 +50,5 @@ class ISCORE_LIB_BASE_EXPORT ApplicationRegistrar : public QObject
         iscore::View& m_view;
         MenubarManager& m_menubar;
         std::vector<OrderedToolbar>& m_toolbars;
-        QObject* m_panelPresenterParent{};
 };
 }

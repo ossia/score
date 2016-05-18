@@ -35,6 +35,7 @@
 namespace Scenario
 {
 // TODO you're better than this
+auto selectedConstraintsInCurrentDocument(const iscore::ApplicationContext& appContext);
 auto selectedConstraintsInCurrentDocument(const iscore::ApplicationContext& appContext)
 {
     auto sel = appContext.documents.currentDocument()->selectionStack().currentSelection();

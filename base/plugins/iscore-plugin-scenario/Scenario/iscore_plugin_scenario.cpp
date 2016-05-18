@@ -94,13 +94,6 @@ iscore::GUIApplicationContextPlugin* iscore_plugin_scenario::make_applicationPlu
     return new ScenarioApplicationPlugin{app};
 }
 
-std::vector<iscore::PanelFactory*> iscore_plugin_scenario::panels()
-{
-    return {
-        new Scenario::ProcessPanelFactory
-    };
-}
-
 std::vector<std::unique_ptr<iscore::FactoryListInterface>> iscore_plugin_scenario::factoryFamilies()
 {
     using namespace Scenario;
@@ -168,7 +161,9 @@ std::vector<std::unique_ptr<iscore::FactoryInterfaceBase>> iscore_plugin_scenari
     FW<iscore::DocumentDelegateFactory,
         Scenario::ScenarioDocumentFactory>,
     FW<iscore::SettingsDelegateFactory,
-        Scenario::Settings::Factory>
+        Scenario::Settings::Factory>,
+    FW<iscore::PanelDelegateFactory,
+        Scenario::PanelDelegateFactory>
 #if defined(ISCORE_LIB_INSPECTOR)
     ,
     FW<Inspector::InspectorWidgetFactory,

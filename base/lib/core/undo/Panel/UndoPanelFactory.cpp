@@ -1,43 +1,58 @@
-#include <core/view/View.hpp>
-#include "UndoPanelId.hpp"
-#include "UndoModel.hpp"
 #include "UndoPanelFactory.hpp"
-#include "UndoPresenter.hpp"
-#include "UndoView.hpp"
 
-namespace iscore {
-class DocumentModel;
+#include <core/undo/Panel/Widgets/UndoListWidget.hpp>
+#include <core/document/Document.hpp>
+#include <QVBoxLayout>
 
-}  // namespace iscore
-
-int UndoPanelFactory::panelId() const
+namespace iscore
 {
-    return UNDO_PANEL_ID;
+
+UndoPanelDelegate::UndoPanelDelegate(
+        const ApplicationContext &ctx):
+    PanelDelegate{ctx},
+    m_widget{new QWidget}
+{
+    m_widget->setLayout(new QVBoxLayout);
+    m_widget->setObjectName("HistoryExplorer");
 }
 
-QString UndoPanelFactory::panelName() const
+QWidget *UndoPanelDelegate::widget()
 {
-    return "Undo";
+    return m_widget;
 }
 
-iscore::PanelView *UndoPanelFactory::makeView(
-        const iscore::ApplicationContext& ctx,
-        QObject *v)
+const PanelStatus &UndoPanelDelegate::defaultPanelStatus() const
 {
-    return new UndoView{v};
+    static const iscore::PanelStatus status{
+        true,
+        Qt::LeftDockWidgetArea,
+                1,
+                QObject::tr("History"),
+                QKeySequence::fromString("Ctrl+H")};
+
+    return status;
 }
 
-iscore::PanelPresenter *UndoPanelFactory::makePresenter(
-        const iscore::ApplicationContext& ctx,
-        iscore::PanelView *view,
-        QObject* parent)
+void UndoPanelDelegate::on_modelChanged(
+        PanelDelegate::maybe_document_t oldm,
+        PanelDelegate::maybe_document_t newm)
 {
-    return new UndoPresenter{view, parent};
+    delete m_list;
+    m_list = nullptr;
+
+    if (newm)
+    {
+        m_list = new iscore::UndoListWidget{
+                (*newm).document.commandStack()};
+        m_widget->layout()->addWidget(m_list);
+    }
 }
 
-iscore::PanelModel *UndoPanelFactory::makeModel(
-        const iscore::DocumentContext& ctx,
-        QObject* parent)
+// MOVEME
+std::unique_ptr<PanelDelegate> UndoPanelDelegateFactory::make(
+        const ApplicationContext &ctx)
 {
-    return new UndoModel{parent};
+    return std::make_unique<UndoPanelDelegate>(ctx);
+}
+
 }

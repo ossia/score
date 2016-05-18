@@ -46,8 +46,8 @@ void InspectorPanelWidget::newItemsInspected(const Selection& objects)
 
     if(m_currentInspector)
     {
-            m_currentInspector->deleteLater();
-            m_currentInspector = nullptr;
+        m_currentInspector->deleteLater();
+        m_currentInspector = nullptr;
     }
 
     // All the objects selected ought to be in the same document.
@@ -56,9 +56,9 @@ void InspectorPanelWidget::newItemsInspected(const Selection& objects)
         auto& doc = iscore::IDocument::documentContext(*selectedObj.first());
 
         auto widgets = m_list.make(
-                          doc,
-                          selectedObj,
-                          m_tabWidget);
+                    doc,
+                    selectedObj,
+                    m_tabWidget);
 
         m_tabWidget->addTab(widgets.first(), widgets.first()->tabName());
         m_currentInspector = widgets.first();

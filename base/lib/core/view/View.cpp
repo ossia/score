@@ -4,7 +4,7 @@
 #include <core/presenter/Presenter.hpp>
 #include <core/view/View.hpp>
 #include <iscore/menu/MenuInterface.hpp>
-#include <iscore/plugins/panel/PanelView.hpp>
+#include <iscore/plugins/panel/PanelDelegate.hpp>
 #include <QAction>
 #include <qcoreevent.h>
 #include <QDesktopWidget>
@@ -71,13 +71,12 @@ void View::addDocumentView(DocumentView* doc)
     m_tabWidget->setTabsClosable(true);
 }
 
-
-void View::setupPanelView(PanelView* v)
+void View::setupPanel(PanelDelegate* v)
 {
     using namespace std;
     QDockWidget* dial = new QDockWidget {v->defaultPanelStatus().prettyName, this};
-    dial->setWidget(v->getWidget());
-    dial->toggleViewAction()->setShortcut(v->shortcut());
+    dial->setWidget(v->widget());
+    dial->toggleViewAction()->setShortcut(v->defaultPanelStatus().shortcut);
     emit insertActionIntoMenubar({MenuInterface::name(ToplevelMenuElement::ViewMenu) + "/" +
                                   MenuInterface::name(ViewMenuElement::Windows),
                                   dial->toggleViewAction()});
@@ -88,12 +87,41 @@ void View::setupPanelView(PanelView* v)
     this->addDockWidget(dock, dial);
     if(dock == Qt::LeftDockWidgetArea)
     {
-        m_leftWidgets.push_back({v, dial});
-        if(m_leftWidgets.size() > 1)
+        m_leftPanels.push_back({v, dial});
+        if(m_leftPanels.size() > 1)
         {
             // Find the one with the biggest priority
-            auto it = max_element(begin(m_leftWidgets),
-                                  end(m_leftWidgets),
+            auto it = max_element(begin(m_leftPanels),
+                                  end(m_leftPanels),
+                                  [] (const auto& lhs, const auto& rhs)
+            { return lhs.first->defaultPanelStatus().priority < rhs.first->defaultPanelStatus().priority; });
+
+            it->second->raise();
+            if(dial != it->second)
+            {
+                // dial is not on top
+                tabifyDockWidget(dial, it->second);
+            }
+            else
+            {
+                // dial is on top
+                auto it = find_if(m_leftPanels, [=] (auto elt) {
+                    return elt.second != dial;
+                });
+                ISCORE_ASSERT(it != m_leftPanels.end());
+                tabifyDockWidget(it->second, dial);
+            }
+        }
+    }
+    else if(dock == Qt::RightDockWidgetArea)
+    {
+        m_rightPanels.push_back({v, dial});
+
+        if(m_rightPanels.size() > 1)
+        {
+            // Find the one with the biggest priority
+            auto it = max_element(begin(m_rightPanels),
+                                  end(m_rightPanels),
                                   [] (const auto& lhs, const auto& rhs)
             { return lhs.first->defaultPanelStatus().priority < rhs.first->defaultPanelStatus().priority; });
 
@@ -102,24 +130,13 @@ void View::setupPanelView(PanelView* v)
             {
                 tabifyDockWidget(dial, it->second);
             }
-        }
-    }
-    else if(dock == Qt::RightDockWidgetArea)
-    {
-        m_rightWidgets.push_back({v, dial});
-
-        if(m_rightWidgets.size() > 1)
-        {
-            // Find the one with the biggest priority
-            auto it = max_element(begin(m_rightWidgets),
-                                  end(m_rightWidgets),
-                                  [] (const auto& lhs, const auto& rhs)
-            { return lhs.first->defaultPanelStatus().priority < rhs.first->defaultPanelStatus().priority; });
-
-            it->second->raise();
-            if(dial != it->second)
+            else
             {
-                tabifyDockWidget(dial, it->second);
+                auto it = find_if(m_rightPanels, [=] (auto elt) {
+                    return elt.second != dial;
+                });
+                ISCORE_ASSERT(it != m_rightPanels.end());
+                tabifyDockWidget(it->second, dial);
             }
         }
     }
