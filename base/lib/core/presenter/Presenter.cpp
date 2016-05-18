@@ -33,6 +33,7 @@
 #include <iscore/tools/NamedObject.hpp>
 #include <iscore/tools/SettableIdentifier.hpp>
 #include <iscore/widgets/OrderedToolbar.hpp>
+#include <iscore/plugins/panel/PanelDelegate.hpp>
 #include "iscore_git_info.hpp"
 
 namespace iscore {
