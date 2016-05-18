@@ -104,7 +104,7 @@ class ISCORE_PLUGIN_LOOP_EXPORT ProcessModel final :
 };
 
 
-const QVector<Id<Scenario::ConstraintModel> > constraintsBeforeTimeNode(
+ISCORE_PLUGIN_LOOP_EXPORT const QVector<Id<Scenario::ConstraintModel> > constraintsBeforeTimeNode(
         const Loop::ProcessModel& scen,
         const Id<Scenario::TimeNodeModel>& timeNodeId);
 
