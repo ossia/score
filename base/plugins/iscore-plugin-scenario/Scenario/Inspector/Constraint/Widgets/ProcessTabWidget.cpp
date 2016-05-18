@@ -31,6 +31,8 @@
 #include <QMenu>
 #include <QToolButton>
 
+#include <iscore/widgets/SetIcons.hpp>
+
 namespace Scenario {
 
 
@@ -53,6 +55,9 @@ ProcessTabWidget::ProcessTabWidget(const ConstraintInspectorWidget& parentCstr, 
 
     QToolButton* addProcButton = new QToolButton;
     addProcButton->setText("+");
+    QIcon addIcon;
+    makeIcons(&addIcon, QString(":/icons/condition_add_on.png"), QString(":/icons/condition_add_off.png"));
+    addProcButton->setIcon(addIcon);
     addProcButton->setObjectName("addAProcess");
     addProcButton->setAutoRaise(true);
 

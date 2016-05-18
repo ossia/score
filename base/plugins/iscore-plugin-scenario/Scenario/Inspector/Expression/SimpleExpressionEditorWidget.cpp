@@ -17,6 +17,7 @@
 
 #include <iscore/widgets/MarginLess.hpp>
 #include <iscore/widgets/SignalUtils.hpp>
+#include <iscore/widgets/SetIcons.hpp>
 
 namespace Scenario
 {
@@ -44,16 +45,18 @@ SimpleExpressionEditorWidget::SimpleExpressionEditorWidget(
 
     auto btnWidg = new QWidget{this};
     auto btnLay = new iscore::MarginLess<QVBoxLayout>{btnWidg};
-    auto addBtn = new QToolButton{btnWidg};
-    addBtn->setText("+");
     auto rmBtn = new QToolButton{btnWidg};
     rmBtn->setText("-");
+    rmBtn->setMaximumSize(30, 30);
 
-    addBtn->setMaximumSize(20, 20);
-    rmBtn->setMaximumSize(20, 20);
+    QIcon remIcon;
+    makeIcons(&remIcon,
+              QString(":/icons/condition_remove_on.png"),
+              QString(":/icons/condition_remove_off.png"));
+
+    rmBtn->setIcon(remIcon);
 
     btnLay->addWidget(rmBtn);
-    btnLay->addWidget(addBtn);
 
     // Main Layout
 
@@ -67,8 +70,6 @@ SimpleExpressionEditorWidget::SimpleExpressionEditorWidget(
 
     // Connections
 
-    connect(addBtn, &QPushButton::clicked,
-            this, &SimpleExpressionEditorWidget::addTerm);
     connect(rmBtn, &QPushButton::clicked,
             this, [=] ()
     {
@@ -97,9 +98,12 @@ SimpleExpressionEditorWidget::SimpleExpressionEditorWidget(
 
     // Fill ComboBox
 
+    m_binOperator->setObjectName("BinOpComboBox");
+    m_comparator->setObjectName("BinOpComboBox");
+
     m_binOperator->addItem(" ");
-    m_binOperator->addItem("and");
-    m_binOperator->addItem("or");
+    m_binOperator->addItem("&");
+    m_binOperator->addItem("|");
 
     auto& lst = ExpressionEditorComparators();
 
@@ -109,7 +113,6 @@ SimpleExpressionEditorWidget::SimpleExpressionEditorWidget(
     }
 
     m_comparator->setCurrentText(lst.at(ExpressionEditorComparator::None));
-
 }
 
 State::Expression SimpleExpressionEditorWidget::relation()
@@ -266,39 +269,45 @@ void SimpleExpressionEditorWidget::on_comparatorChanged(int i)
 
 QString SimpleExpressionEditorWidget::currentRelation()
 {
+    QString addr = m_address->addressString();
+
     switch(m_comparator->currentIndex())
     {
-        case ExpressionEditorComparator::Equal:
-        case ExpressionEditorComparator::Different:
-        case ExpressionEditorComparator::Greater:
-        case ExpressionEditorComparator::Lower:
-        case ExpressionEditorComparator::GreaterEqual:
-        case ExpressionEditorComparator::LowerEqual:
-        {
-            QString expr = m_address->addressString();
-            expr += " ";
-            expr += m_comparator->currentText();
-            expr += " ";
-            expr += m_value->text();
-            return expr;
-        }
+    case ExpressionEditorComparator::Greater:
+    case ExpressionEditorComparator::Lower:
+    {
+        QString expr = m_address->addressString();
+        expr += " ";
+        expr += m_comparator->currentText();
+        expr += " ";
+        expr += m_value->text();
+        return expr;
+    }
+    case ExpressionEditorComparator::Equal:
+        return addr + " == " + m_value->text();
+    case ExpressionEditorComparator::GreaterEqual:
+        return addr + " >= " + m_value->text();
+    case ExpressionEditorComparator::LowerEqual:
+        return addr + " <= " + m_value->text();
+    case ExpressionEditorComparator::Different:
+        return addr + " != " + m_value->text();
 
-        case ExpressionEditorComparator::None:
-            return "";
+    case ExpressionEditorComparator::None:
+        return "";
 
-        case ExpressionEditorComparator::Pulse:
-        {
-            QString expr = m_address->addressString() + " impulse";
-            return expr;
-        }
-        case ExpressionEditorComparator::AlwaysTrue:
-        {
-            return "true == true"; // TODO berk
-        }
-        case ExpressionEditorComparator::AlwaysFalse:
-        {
-            return "true == false"; // TODO berk
-        }
+    case ExpressionEditorComparator::Pulse:
+    {
+        QString expr = m_address->addressString() + " impulse";
+        return expr;
+    }
+    case ExpressionEditorComparator::AlwaysTrue:
+    {
+        return "true == true"; // TODO berk
+    }
+    case ExpressionEditorComparator::AlwaysFalse:
+    {
+        return "true == false"; // TODO berk
+    }
     }
 
     return "";
@@ -312,12 +321,12 @@ QString SimpleExpressionEditorWidget::currentOperator()
 const std::map<ExpressionEditorComparator, QString>&ExpressionEditorComparators()
 {
     static const std::map<ExpressionEditorComparator, QString> map{
-        { ExpressionEditorComparator::Equal, "==" },
-        { ExpressionEditorComparator::Different, "!=" },
+        { ExpressionEditorComparator::Equal, "=" },
+        { ExpressionEditorComparator::Different, QString::fromUtf8("\u2260") },
         { ExpressionEditorComparator::Greater, ">" },
         { ExpressionEditorComparator::Lower, "<" },
-        { ExpressionEditorComparator::GreaterEqual, ">=" },
-        { ExpressionEditorComparator::LowerEqual, "<=" },
+        { ExpressionEditorComparator::GreaterEqual, QString::fromUtf8("\u2265") },
+        { ExpressionEditorComparator::LowerEqual, QString::fromUtf8("\u2264") },
         { ExpressionEditorComparator::None, "" },
         { ExpressionEditorComparator::Pulse, "Pulse" },
         { ExpressionEditorComparator::AlwaysTrue, "True" },
