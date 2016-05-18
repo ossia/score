@@ -11,7 +11,7 @@
 
 #include <Scenario/Inspector/ExpressionValidator.hpp>
 #include "SimpleExpressionEditorWidget.hpp"
-#include <Explorer/Widgets/AddressEditWidget.hpp>
+#include <Explorer/Widgets/AddressAccessorEditWidget.hpp>
 #include <Explorer/Explorer/DeviceExplorerModel.hpp>
 #include <Explorer/DocumentPlugin/DeviceDocumentPlugin.hpp>
 

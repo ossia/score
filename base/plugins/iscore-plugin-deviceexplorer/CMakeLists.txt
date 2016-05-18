@@ -12,6 +12,8 @@ file(GLOB_RECURSE HDRS
     "${CMAKE_CURRENT_SOURCE_DIR}/Explorer/*.hpp")
 
 set(SRCS
+"${CMAKE_CURRENT_SOURCE_DIR}/Explorer/DocumentPlugin/DeviceDocumentPluginSerialization.cpp"
+
 "${CMAKE_CURRENT_SOURCE_DIR}/Explorer/Commands/Add/AddAddress.cpp"
 "${CMAKE_CURRENT_SOURCE_DIR}/Explorer/Commands/Add/AddDevice.cpp"
 "${CMAKE_CURRENT_SOURCE_DIR}/Explorer/Commands/Add/LoadDevice.cpp"
@@ -28,6 +30,7 @@ set(SRCS
 "${CMAKE_CURRENT_SOURCE_DIR}/Explorer/Common/AddressSettings/Widgets/AddressTupleSettingsWidget.cpp"
 "${CMAKE_CURRENT_SOURCE_DIR}/Explorer/Common/AddressSettings/Widgets/AddressBoolSettingsWidget.cpp"
 "${CMAKE_CURRENT_SOURCE_DIR}/Explorer/Common/AddressSettings/Widgets/AddressNoneSettingsWidget.cpp"
+"${CMAKE_CURRENT_SOURCE_DIR}/Explorer/Common/AddressSettings/Widgets/AddressImpulseSettingsWidget.cpp"
 "${CMAKE_CURRENT_SOURCE_DIR}/Explorer/Common/AddressSettings/Widgets/AddressSettingsWidget.cpp"
 "${CMAKE_CURRENT_SOURCE_DIR}/Explorer/Common/AddressSettings/Widgets/AddressCharSettingsWidget.cpp"
 "${CMAKE_CURRENT_SOURCE_DIR}/Explorer/Common/AddressSettings/Widgets/AddressStringSettingsWidget.cpp"
@@ -50,6 +53,7 @@ set(SRCS
 "${CMAKE_CURRENT_SOURCE_DIR}/Explorer/Widgets/MessageListEditor.cpp"
 "${CMAKE_CURRENT_SOURCE_DIR}/Explorer/Widgets/MessageEditDialog.cpp"
 "${CMAKE_CURRENT_SOURCE_DIR}/Explorer/Widgets/AddressEditWidget.cpp"
+"${CMAKE_CURRENT_SOURCE_DIR}/Explorer/Widgets/AddressAccessorEditWidget.cpp"
 
 "${CMAKE_CURRENT_SOURCE_DIR}/Explorer/Listening/ListeningHandler.cpp"
 "${CMAKE_CURRENT_SOURCE_DIR}/Explorer/Listening/ListeningHandlerFactory.cpp"

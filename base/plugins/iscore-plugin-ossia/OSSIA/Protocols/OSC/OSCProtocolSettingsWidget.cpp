@@ -1,4 +1,4 @@
-#include <Explorer/Widgets/AddressFragmentLineEdit.hpp>
+#include <State/Widgets/AddressLineEdit.hpp>
 #include <QFileDialog>
 #include <QGridLayout>
 #include <QLabel>
@@ -27,7 +27,7 @@ void
 OSCProtocolSettingsWidget::buildGUI()
 {
     QLabel* deviceNameLabel = new QLabel(tr("Device name"), this);
-    m_deviceNameEdit = new AddressFragmentLineEdit{this};
+    m_deviceNameEdit = new State::AddressFragmentLineEdit{this};
 
     QLabel* portOutputLabel = new QLabel(tr("i-score listening port"), this);
     m_portOutputSBox = new QSpinBox(this);

@@ -1,6 +1,7 @@
 #include <Explorer/Common/AddressSettings/AddressSettingsFactory.hpp>
 #include <Explorer/Common/AddressSettings/Widgets/AddressSettingsWidget.hpp>
-#include <Explorer/Widgets/AddressFragmentLineEdit.hpp>
+#include <State/Widgets/AddressValidator.hpp>
+#include <State/Widgets/AddressLineEdit.hpp>
 #include <State/ValueConversion.hpp>
 #include <QComboBox>
 #include <QDebug>
@@ -50,7 +51,7 @@ AddressEditDialog::AddressEditDialog(
     setLayout(m_layout);
 
     // Name
-    m_nameEdit = new AddressFragmentLineEdit{this};
+    m_nameEdit = new State::AddressFragmentLineEdit{this};
     m_layout->addRow(tr("Name"), m_nameEdit);
 
     setNodeSettings();

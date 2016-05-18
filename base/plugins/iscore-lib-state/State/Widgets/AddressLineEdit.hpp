@@ -7,15 +7,16 @@
 
 #include "AddressValidator.hpp"
 
-class QWidget;
-
+namespace State
+{
 /**
  * @brief The AddressLineEdit class
  *
  * Used to input an address. Changes colors to red-ish if it is invalid.
  */
 template<class Validator_T>
-class AddressLineEditBase : public QLineEdit
+class ISCORE_LIB_STATE_EXPORT AddressLineEditBase :
+        public QLineEdit
 {
     public:
         explicit AddressLineEditBase(QWidget* parent):
@@ -63,12 +64,25 @@ class AddressLineEditBase : public QLineEdit
         Validator_T m_validator;
 };
 
-class AddressLineEdit : public AddressLineEditBase<AddressValidator>
+class ISCORE_LIB_STATE_EXPORT AddressLineEdit :
+        public AddressLineEditBase<AddressValidator>
 {
         using AddressLineEditBase<AddressValidator>::AddressLineEditBase;
 };
-class AddressAccessorLineEdit : public AddressLineEditBase<AddressAccessorValidator>
+class ISCORE_LIB_STATE_EXPORT AddressAccessorLineEdit :
+        public AddressLineEditBase<AddressAccessorValidator>
 {
         using AddressLineEditBase<AddressAccessorValidator>::AddressLineEditBase;
 };
 
+class ISCORE_LIB_STATE_EXPORT AddressFragmentLineEdit :
+        public QLineEdit
+{
+    public:
+        AddressFragmentLineEdit(QWidget* parent):
+            QLineEdit{parent}
+        {
+            setValidator(new AddressFragmentValidator{this});
+        }
+};
+}

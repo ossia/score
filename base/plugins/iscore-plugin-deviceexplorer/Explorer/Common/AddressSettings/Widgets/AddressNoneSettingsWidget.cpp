@@ -1,10 +1,6 @@
 #include "AddressNoneSettingsWidget.hpp"
 #include <Explorer/Common/AddressSettings/Widgets/AddressSettingsWidget.hpp>
 
-class QWidget;
-
-
-
 namespace Explorer
 {
 AddressNoneSettingsWidget::AddressNoneSettingsWidget(QWidget* parent)
@@ -20,25 +16,6 @@ Device::AddressSettings AddressNoneSettingsWidget::getSettings() const
 }
 
 void AddressNoneSettingsWidget::setSettings(const Device::AddressSettings& settings)
-{
-    setCommonSettings(settings);
-}
-
-
-
-AddressImpulseSettingsWidget::AddressImpulseSettingsWidget(QWidget* parent)
-    : AddressSettingsWidget(parent)
-{
-}
-
-Device::AddressSettings AddressImpulseSettingsWidget::getSettings() const
-{
-    auto set = getCommonSettings();
-    set.value = State::ValueImpl{State::impulse_t{}};
-    return set;
-}
-
-void AddressImpulseSettingsWidget::setSettings(const Device::AddressSettings& settings)
 {
     setCommonSettings(settings);
 }

@@ -6,7 +6,7 @@
 #include "Widgets/AddressBoolSettingsWidget.hpp"
 #include "Widgets/AddressCharSettingsWidget.hpp"
 #include "Widgets/AddressNoneSettingsWidget.hpp"
-//value types
+#include "Widgets/AddressImpulseSettingsWidget.hpp"
 #include "Widgets/AddressNumericSettingsWidget.hpp"
 #include "Widgets/AddressStringSettingsWidget.hpp"
 #include "Widgets/AddressTupleSettingsWidget.hpp"
