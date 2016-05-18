@@ -5,9 +5,11 @@
 #include <QStringList>
 #include <QPushButton>
 #include <iscore/widgets/MarginLess.hpp>
+#include <QToolButton>
 
 #include "ExpressionEditorWidget.hpp"
 #include <Scenario/Inspector/Expression/SimpleExpressionEditorWidget.hpp>
+#include <iscore/widgets/SetIcons.hpp>
 
 namespace Scenario
 {
@@ -27,6 +29,13 @@ ExpressionEditorWidget::ExpressionEditorWidget(const iscore::DocumentContext& do
 
     m_mainLayout->addWidget(btnWidg);
 
+    auto addButton = new QToolButton{this};
+    QIcon ic;
+    makeIcons(&ic, QString(":/icons/condition_add_on.png"), QString(":/icons/condition_add_off.png"));
+    addButton->setIcon(ic);
+
+    m_mainLayout->addWidget(addButton);
+
     connect(validBtn, &QPushButton::clicked,
             this, &ExpressionEditorWidget::on_editFinished);
     connect(cancelBtn, &QPushButton::clicked,
@@ -43,6 +52,8 @@ ExpressionEditorWidget::ExpressionEditorWidget(const iscore::DocumentContext& do
         else
             setExpression(*State::parseExpression(m_expression));
     });
+    connect(addButton, &QPushButton::clicked,
+            this, &ExpressionEditorWidget::addNewTerm);
 }
 
 State::Expression ExpressionEditorWidget::expression()
