@@ -36,6 +36,7 @@ Document* DocumentBuilder::newDocument(
         const Id<DocumentModel>& id,
         DocumentDelegateFactory& doctype)
 {
+    qDebug() << "Document ID" << id;
     QString docName = "Untitled." + RandomNameProvider::generateRandomName();
     auto doc = new Document{docName, id, doctype, m_parentView, m_parentPresenter};
 
@@ -63,14 +64,13 @@ Document* DocumentBuilder::loadDocument_impl(
         InitFun&& initfun,
         BackupFun&& backupfun)
 {
-
     Document* doc = nullptr;
     try
     {
         doc = new Document{docData, doctype, m_parentView, m_parentPresenter};
         ctx.documents.documents().push_back(doc);
         initfun(doc);
-        m_backupManager =  new DocumentBackupManager{*doc};
+        m_backupManager = new DocumentBackupManager{*doc};
 
         for(auto& appPlug: ctx.components.applicationPlugins())
         {
