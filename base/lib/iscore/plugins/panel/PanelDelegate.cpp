@@ -2,15 +2,8 @@
 
 namespace iscore
 {
-
-PanelDelegateFactory::~PanelDelegateFactory()
-{
-
-}
-
 PanelDelegate::~PanelDelegate()
 {
 
 }
-
 }

@@ -11,6 +11,7 @@ set(PLUGIN_SRCS
 "${CMAKE_CURRENT_SOURCE_DIR}/InspectorPlugin/Panel/Implementation/SelectionStackWidget.cpp"
 "${CMAKE_CURRENT_SOURCE_DIR}/InspectorPlugin/Panel/Implementation/InspectorPanel.cpp"
 "${CMAKE_CURRENT_SOURCE_DIR}/InspectorPlugin/Panel/InspectorPanelFactory.cpp"
+"${CMAKE_CURRENT_SOURCE_DIR}/InspectorPlugin/Panel/InspectorPanelDelegate.cpp"
 )
 
 add_library(${PROJECT_NAME} ${PLUGIN_HDRS} ${PLUGIN_SRCS})

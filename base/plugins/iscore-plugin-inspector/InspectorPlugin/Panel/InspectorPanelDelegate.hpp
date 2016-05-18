@@ -1,8 +1,11 @@
 #pragma once
 #include <iscore/plugins/panel/PanelDelegate.hpp>
-namespace Explorer
+
+namespace InspectorPanel
 {
-class DeviceExplorerWidget;
+class SelectionStackWidget;
+class InspectorPanelWidget;
+
 class PanelDelegate final :
         public iscore::PanelDelegate
 {
@@ -18,19 +21,10 @@ class PanelDelegate final :
         void on_modelChanged(
                 maybe_document_t oldm,
                 maybe_document_t newm) override;
+        void setNewSelection(const Selection& s) override;
 
-        DeviceExplorerWidget* m_widget{};
+        QWidget* m_widget{};
+        SelectionStackWidget* m_stack{};
+        InspectorPanelWidget* m_inspectorPanel {};
 };
-
-// MOVEME
-class PanelDelegateFactory final :
-        public iscore::PanelDelegateFactory
-{
-        ISCORE_CONCRETE_FACTORY_DECL("de755995-398d-4b16-9030-574533b17a9f")
-
-        std::unique_ptr<iscore::PanelDelegate> make(
-                const iscore::ApplicationContext& ctx) override;
-};
-
 }
-

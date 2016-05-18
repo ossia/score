@@ -1,7 +1,7 @@
-#include "LibraryPanelFactory.hpp"
-#include "LibraryPanelDelegate.hpp"
+#include "PanelDelegateFactory.hpp"
+#include "PanelDelegate.hpp"
 
-namespace Library
+namespace Scenario
 {
 
 std::unique_ptr<iscore::PanelDelegate> PanelDelegateFactory::make(

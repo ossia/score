@@ -51,6 +51,7 @@ set(SRCS
 "${CMAKE_CURRENT_SOURCE_DIR}/iscore/plugins/documentdelegate/plugin/ElementPluginModelList.cpp"
 "${CMAKE_CURRENT_SOURCE_DIR}/iscore/plugins/application/GUIApplicationContextPlugin.cpp"
 "${CMAKE_CURRENT_SOURCE_DIR}/iscore/plugins/panel/PanelDelegate.cpp"
+"${CMAKE_CURRENT_SOURCE_DIR}/iscore/plugins/panel/PanelDelegateFactory.cpp"
 
 "${CMAKE_CURRENT_SOURCE_DIR}/iscore/plugins/settingsdelegate/SettingsDelegateFactory.cpp"
 "${CMAKE_CURRENT_SOURCE_DIR}/iscore/plugins/settingsdelegate/SettingsDelegateModel.cpp"
@@ -110,6 +111,7 @@ set(SRCS
 "${CMAKE_CURRENT_SOURCE_DIR}/core/settings/SettingsPresenter.cpp"
 "${CMAKE_CURRENT_SOURCE_DIR}/core/settings/SettingsView.cpp"
 "${CMAKE_CURRENT_SOURCE_DIR}/core/undo/Panel/Widgets/UndoListWidget.cpp"
+"${CMAKE_CURRENT_SOURCE_DIR}/core/undo/Panel/UndoPanelDelegate.cpp"
 "${CMAKE_CURRENT_SOURCE_DIR}/core/undo/Panel/UndoPanelFactory.cpp"
 "${CMAKE_CURRENT_SOURCE_DIR}/core/undo/UndoApplicationPlugin.cpp"
 "${CMAKE_CURRENT_SOURCE_DIR}/core/view/View.cpp"

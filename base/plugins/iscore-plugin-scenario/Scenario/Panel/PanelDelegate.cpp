@@ -1,4 +1,4 @@
-#include "ProcessPanelFactory.hpp"
+#include "PanelDelegate.hpp"
 
 #include <Process/LayerModel.hpp>
 #include <Process/LayerModelPanelProxy.hpp>
@@ -32,12 +32,6 @@ const iscore::PanelStatus&PanelDelegate::defaultPanelStatus() const
                 QObject::tr("Ctrl+P")};
 
     return status;
-}
-
-std::unique_ptr<iscore::PanelDelegate> PanelDelegateFactory::make(
-        const iscore::ApplicationContext& ctx)
-{
-    return std::make_unique<PanelDelegate>(ctx);
 }
 
 

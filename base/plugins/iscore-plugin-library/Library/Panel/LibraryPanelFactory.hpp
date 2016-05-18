@@ -1,24 +1,8 @@
 #pragma once
-#include <iscore/plugins/panel/PanelDelegate.hpp>
-class QTabWidget;
+#include <iscore/plugins/panel/PanelDelegateFactory.hpp>
+
 namespace Library
 {
-class PanelDelegate final :
-        public iscore::PanelDelegate
-{
-    public:
-        PanelDelegate(
-                const iscore::ApplicationContext& ctx);
-
-    private:
-        QWidget *widget() override;
-
-        const iscore::PanelStatus& defaultPanelStatus() const override;
-
-        QTabWidget *m_widget{};
-};
-
-// MOVEME
 class PanelDelegateFactory final :
         public iscore::PanelDelegateFactory
 {
@@ -27,6 +11,5 @@ class PanelDelegateFactory final :
         std::unique_ptr<iscore::PanelDelegate> make(
                 const iscore::ApplicationContext& ctx) override;
 };
-
 }
 

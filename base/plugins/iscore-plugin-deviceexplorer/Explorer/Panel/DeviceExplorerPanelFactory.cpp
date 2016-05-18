@@ -1,7 +1,7 @@
-#include "LibraryPanelFactory.hpp"
-#include "LibraryPanelDelegate.hpp"
+#include "DeviceExplorerPanelFactory.hpp"
+#include "DeviceExplorerPanelDelegate.hpp"
 
-namespace Library
+namespace Explorer
 {
 
 std::unique_ptr<iscore::PanelDelegate> PanelDelegateFactory::make(
