@@ -60,5 +60,9 @@
         <file>icons/stop_on.png</file>
         <file>icons/reinitialize_off.png</file>
         <file>icons/reinitialize_on.png</file>
+        <file>icons/condition_add_off.png</file>
+        <file>icons/condition_add_on.png</file>
+        <file>icons/condition_remove_off.png</file>
+        <file>icons/condition_remove_on.png</file>
     </qresource>
 </RCC>

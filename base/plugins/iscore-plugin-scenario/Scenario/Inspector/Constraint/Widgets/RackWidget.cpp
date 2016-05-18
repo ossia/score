@@ -20,6 +20,7 @@
 #include <iscore/tools/SettableIdentifier.hpp>
 #include <iscore/widgets/MarginLess.hpp>
 #include <iscore/widgets/SignalUtils.hpp>
+#include <iscore/widgets/SetIcons.hpp>
 
 namespace Scenario
 {
@@ -40,6 +41,9 @@ RackWidget::RackWidget(ProcessViewTabWidget* parentTabWidget, QWidget* parent) :
     // Button
     QToolButton* addButton = new QToolButton{this};
     addButton->setText("+");
+    QIcon addIcon;
+    makeIcons(&addIcon, QString(":/icons/condition_add_on.png"), QString(":/icons/condition_add_off.png"));
+    addButton->setIcon(addIcon);
 
     connect(addButton, &QToolButton::pressed,
             [ = ]() { parentTabWidget->createRack(); });
