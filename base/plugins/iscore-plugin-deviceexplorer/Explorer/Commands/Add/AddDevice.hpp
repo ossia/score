@@ -4,6 +4,8 @@
 #include <iscore/command/SerializableCommand.hpp>
 #include <iscore/tools/ModelPath.hpp>
 
+#include <iscore_plugin_deviceexplorer_export.h>
+
 class DataStreamInput;
 class DataStreamOutput;
 
@@ -12,7 +14,7 @@ namespace Explorer
 class DeviceDocumentPlugin;
 namespace Command
 {
-class AddDevice final : public iscore::SerializableCommand
+class ISCORE_PLUGIN_DEVICEEXPLORER_EXPORT AddDevice final : public iscore::SerializableCommand
 {
         ISCORE_COMMAND_DECL(DeviceExplorerCommandFactoryName(), AddDevice, "Add a device")
         public:
