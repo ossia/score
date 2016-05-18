@@ -3,8 +3,3 @@ iscore::GUIApplicationContextPlugin_QtInterface::~GUIApplicationContextPlugin_Qt
 {
 
 }
-
-iscore::CommandFactory_QtInterface::~CommandFactory_QtInterface()
-{
-
-}

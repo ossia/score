@@ -2,6 +2,8 @@
 #include <State/Expression.hpp>
 #include <QValidator>
 
+namespace State
+{
 /**
  * @brief The AddressValidator class
  *
@@ -22,7 +24,6 @@ class ISCORE_LIB_STATE_EXPORT AddressValidator final : public QValidator
         }
 };
 
-
 class ISCORE_LIB_STATE_EXPORT AddressAccessorValidator final : public QValidator
 {
     public:
@@ -34,3 +35,17 @@ class ISCORE_LIB_STATE_EXPORT AddressAccessorValidator final : public QValidator
                     : State::Intermediate;
         }
 };
+
+class ISCORE_LIB_STATE_EXPORT AddressFragmentValidator : public QValidator
+{
+    public:
+        using QValidator::QValidator;
+        QValidator::State validate(QString& s, int& pos) const override
+        {
+            return ::State::Address::validateFragment(s)
+                    ? QValidator::State::Acceptable
+                    : QValidator::State::Invalid;
+        }
+};
+
+}

@@ -40,6 +40,7 @@ set(PROCESS_HDRS
 )
 set(PROCESS_SRCS
 "${CMAKE_CURRENT_SOURCE_DIR}/Process/ModelMetadataSerialization.cpp"
+"${CMAKE_CURRENT_SOURCE_DIR}/Process/StateProcessSerialization.cpp"
 "${CMAKE_CURRENT_SOURCE_DIR}/Process/ProcessModelSerialization.cpp"
 "${CMAKE_CURRENT_SOURCE_DIR}/Process/LayerModelSerialization.cpp"
 "${CMAKE_CURRENT_SOURCE_DIR}/Process/State/MessageNodeSerialization.cpp"

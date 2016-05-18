@@ -32,43 +32,6 @@
 #include <iscore/serialization/VisitorCommon.hpp>
 #include <iscore/tools/TreeNode.hpp>
 
-namespace iscore {
-class Document;
-struct Value;
-}  // namespace iscore
-struct VisitorVariant;
-
-// MOVEME
-template<>
-void Visitor<Reader<DataStream>>::readFrom_impl(
-        const Explorer::DeviceDocumentPlugin& dev)
-{
-    readFrom(dev.rootNode());
-}
-
-
-template<>
-void Visitor<Reader<JSONObject>>::readFrom_impl(
-        const Explorer::DeviceDocumentPlugin& dev)
-{
-    readFrom(dev.rootNode());
-}
-
-template<>
-void Visitor<Writer<DataStream>>::writeTo(
-        Explorer::DeviceDocumentPlugin& dev)
-{
-    writeTo(dev.rootNode());
-}
-
-
-template<>
-void Visitor<Writer<JSONObject>>::writeTo(
-        Explorer::DeviceDocumentPlugin& dev)
-{
-    writeTo(dev.rootNode());
-}
-
 namespace Explorer
 {
 DeviceDocumentPlugin::DeviceDocumentPlugin(

@@ -67,6 +67,7 @@ set(SRCS
 "${CMAKE_CURRENT_SOURCE_DIR}/iscore/plugins/qt_interfaces/FactoryInterface_QtInterface.cpp"
 "${CMAKE_CURRENT_SOURCE_DIR}/iscore/plugins/qt_interfaces/GUIApplicationContextPlugin_QtInterface.cpp"
 "${CMAKE_CURRENT_SOURCE_DIR}/iscore/plugins/qt_interfaces/PluginRequirements_QtInterface.cpp"
+"${CMAKE_CURRENT_SOURCE_DIR}/iscore/plugins/qt_interfaces/CommandFactory_QtInterface.cpp"
 
 "${CMAKE_CURRENT_SOURCE_DIR}/iscore/selection/SelectionDispatcher.cpp"
 "${CMAKE_CURRENT_SOURCE_DIR}/iscore/selection/SelectionStack.cpp"

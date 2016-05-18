@@ -4,10 +4,10 @@
 
 namespace Explorer
 {
-class AddressNoneSettingsWidget final : public AddressSettingsWidget
+class AddressImpulseSettingsWidget final : public AddressSettingsWidget
 {
     public:
-        explicit AddressNoneSettingsWidget(QWidget* parent = nullptr);
+        explicit AddressImpulseSettingsWidget(QWidget* parent = nullptr);
 
         Device::AddressSettings getSettings() const override;
 
