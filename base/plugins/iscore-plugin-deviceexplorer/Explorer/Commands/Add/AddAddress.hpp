@@ -7,6 +7,8 @@
 #include <Device/Address/AddressSettings.hpp>
 #include <iscore/tools/TreePath.hpp>
 
+#include <iscore_plugin_deviceexplorer_export.h>
+
 class DataStreamInput;
 class DataStreamOutput;
 
@@ -16,7 +18,7 @@ namespace Explorer
 class DeviceDocumentPlugin;
 namespace Command
 {
-class AddAddress final : public iscore::SerializableCommand
+class ISCORE_PLUGIN_DEVICEEXPLORER_EXPORT AddAddress final : public iscore::SerializableCommand
 {
         ISCORE_COMMAND_DECL(DeviceExplorerCommandFactoryName(), AddAddress, "Add an address")
         public:
