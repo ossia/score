@@ -99,8 +99,7 @@ class AddTrigger final : public iscore::SerializableCommand
 
     private:
         Path<TimeNodeModel> m_path;
-        std::vector<SetRigidity> m_cmds; // TODO investigate mutable
-
+        std::vector<SetRigidity> m_cmds;
 };
 
 }
