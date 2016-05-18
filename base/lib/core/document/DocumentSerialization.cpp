@@ -195,6 +195,7 @@ void DocumentModel::loadDocumentAsByteArray(
     DataStream::Deserializer doc_writer{doc};
     doc_writer.writeTo(docid);
     this->setId(std::move(docid));
+
     m_model = fact.loadModel(doc_writer.toVariant(), this);
 }
 
@@ -203,7 +204,8 @@ void DocumentModel::loadDocumentAsJson(
         const QJsonObject& json,
         DocumentDelegateFactory& fact)
 {
-    this->setId(fromJsonValue<Id<DocumentModel>>(json["DocumentId"]));
+    const auto& doc = json["Document"].toObject();
+    this->setId(fromJsonValue<Id<DocumentModel>>(doc["DocumentId"]));
 
     // Load the plug-in models
     auto json_plugins = json["Plugins"].toObject();
@@ -224,7 +226,7 @@ void DocumentModel::loadDocumentAsJson(
     });
 
     // Load the model
-    JSONObject::Deserializer doc_writer{json["Document"].toObject()};
+    JSONObject::Deserializer doc_writer{doc};
     m_model = fact.loadModel(doc_writer.toVariant(), this);
 }
 

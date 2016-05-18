@@ -390,7 +390,7 @@ Document* DocumentManager::loadStack(
 
         Deserializer<DataStream> writer(cmdArr);
 
-        Id<DocumentModel> id; //getStrongId(documents())
+        Id<DocumentModel> id;
         writer.writeTo(id);
 
         prepareNewDocument(ctx);
@@ -592,5 +592,5 @@ Id<iscore::DocumentModel> getStrongId(const std::vector<iscore::Document*>& v)
         return * (elt->id().val());
     });
 
-    return Id<iscore::DocumentModel>{iscore::id_generator::getNextId(ids)};
+    return Id<iscore::DocumentModel>{iscore::random_id_generator::getNextId(ids)};
 }
