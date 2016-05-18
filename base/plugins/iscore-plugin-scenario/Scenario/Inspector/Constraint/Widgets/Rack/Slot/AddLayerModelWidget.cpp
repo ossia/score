@@ -22,6 +22,7 @@
 #include <iscore/tools/NotifyingMap.hpp>
 #include <iscore/tools/SettableIdentifier.hpp>
 #include <iscore/widgets/MarginLess.hpp>
+#include <iscore/widgets/SetIcons.hpp>
 
 namespace Scenario
 {
@@ -33,6 +34,9 @@ AddLayerModelWidget::AddLayerModelWidget(SlotInspectorSection* parentSlot) :
     // Button
     QToolButton* addButton = new QToolButton;
     addButton->setText("+");
+    QIcon addIcon;
+    makeIcons(&addIcon, QString(":/icons/condition_add_on.png"), QString(":/icons/condition_add_off.png"));
+    addButton->setIcon(addIcon);
 
     // Text
     auto addText = new QLabel("Add Process View");

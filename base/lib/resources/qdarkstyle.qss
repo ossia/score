@@ -372,6 +372,7 @@ QPushButton#ButtonTitle
     padding: 2px;
     margin-left: 2px;
     color: silver;
+    border: none;
 }
 
 QPushButton#ButtonTitle:hover {
@@ -382,16 +383,21 @@ QPushButton {
     border: 1px solid #666666;
     border-radius: 2px;
     padding: 2px;
+    margin: 10px;
 }
 
 QLineEdit#SectionTitle
 {
     font: bold;
     background-color: #12171A;
-    border: 1px solid #1A2024;
+    border: none;
     padding: 0px;
     margin-left: 2px;
     color: silver;
+}
+
+QLineEdit#SectionTitle:hover {
+    color: white;
 }
 
 QGroupBox {
@@ -611,7 +617,7 @@ QMenu::separator
 QFrame
 {
     border-radius: 2px;
-    border: 1px solid #444;
+    border: none;
 }
 
 QFrame[frameShape="0"]
@@ -738,7 +744,7 @@ QComboBox:on
 {
     background-color: #626873;
     padding-top: 3px;
-    padding-left: 4px;
+    padding-left: 1px;
     selection-background-color: #4a4a4a;
 }
 
@@ -754,7 +760,7 @@ QComboBox::drop-down
 {
     subcontrol-origin: padding;
     subcontrol-position: top right;
-    width: 15px;
+    width: 30px;
 
     border-left-width: 0px;
     border-left-color: darkgray;
@@ -1157,9 +1163,7 @@ QToolButton[popupMode="2"] { /* only for InstantPopup */
 
 
 QToolButton:hover, QToolButton::menu-button:hover {
-    background-color: #3D3D3D/*transparent*/;
     color: #FFFFFF
-/*border: 1px solid #78879b;*/
 }
 
 QToolButton:checked, QToolButton:pressed,
@@ -1345,7 +1349,7 @@ QSplitter::handle:vertical {
 
 QWidget#DeviceExplorer, QWidget#HistoryExplorer, QWidget#LibraryExplorer, QWidget#ProcessExplorer,
 QWidget#ScenarioViewer, QWidget#ScenarioTransportToolbar, QWidget#ScenarioTransportWidget,
-QWidget#ScenarioZoomLabel {
+QWidget#ScenarioZoomLabel, QWidget#ExpressionEditorWrapper {
     background-color: #666666;
     border: none;
     color: white;
@@ -1354,4 +1358,13 @@ QWidget#ScenarioZoomLabel {
 QFrame#SeparatorFrame {
     border: none;
     border-top: 1px dotted silver;
+}
+
+QComboBox#BinOpComboBox {
+    font-weight: bold;
+    color: #FFE100;
+}
+
+QWidget#ExpressionEditorWidget {
+    background-color: #666666;
 }
