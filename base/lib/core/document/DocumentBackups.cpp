@@ -67,8 +67,9 @@ iscore::DocumentBackups::restorableDocuments()
 
     auto existing_files = s.value("iscore/docs").toMap();
 
-    for(const auto& element : existing_files.keys())
+    for(auto it = existing_files.keyBegin(); it != existing_files.keyEnd(); ++it)
     {
+        auto& element = *it;
         loadRestorableDocumentData(element, existing_files[element].toString(), arr);
     }
 
@@ -85,12 +86,12 @@ ISCORE_LIB_BASE_EXPORT void iscore::DocumentBackups::clear()
         // Remove all the tmp files
         QSettings s{iscore::OpenDocumentsFile::path(), QSettings::IniFormat};
 
-        auto existing_files = s.value("iscore/docs").toMap();
+        const auto existing_files = s.value("iscore/docs").toMap();
 
-        for(const auto& element : existing_files.keys())
+        for(auto it = existing_files.cbegin(); it != existing_files.cend(); ++it)
         {
-            QFile{element}.remove();
-            QFile{existing_files[element].toString()}.remove();
+            QFile{it.key()}.remove();
+            QFile{it.value().toString()}.remove();
         }
 
         // Remove the file containing the map

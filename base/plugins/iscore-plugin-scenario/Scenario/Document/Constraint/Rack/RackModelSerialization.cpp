@@ -84,17 +84,19 @@ template<> void Visitor<Writer<JSONObject>>::writeTo(Scenario::RackModel& rack)
     rack.metadata = fromJsonObject<ModelMetadata>(m_obj["Metadata"]);
     QJsonArray theSlots = m_obj["Slots"].toArray();
     QJsonArray slotsPositions = m_obj["SlotsPositions"].toArray();
-    QList<Id<Scenario::SlotModel>> list;
+    QMap<Id<Scenario::SlotModel>, int> list;
 
+    int i = 0;
     for(auto elt : slotsPositions)
     {
-        list.push_back(Id<Scenario::SlotModel> {elt.toInt() });
+        list.insert(Id<Scenario::SlotModel> {elt.toInt()}, i);
+        i++;
     }
 
     for(const auto& json_slot : theSlots)
     {
         Deserializer<JSONObject> deserializer {json_slot.toObject()};
         auto slot = new Scenario::SlotModel {deserializer, &rack};
-        rack.addSlot(slot, list.indexOf(slot->id()));
+        rack.addSlot(slot, list[slot->id()]);
     }
 }

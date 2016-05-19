@@ -33,7 +33,12 @@ AddressSettingsWidget::AddressSettingsWidget(QWidget *parent) :
     connect(addTagButton, &QPushButton::clicked,
             this, [&] () {
         bool ok = false;
-        auto res = QInputDialog::getText(this, tr("Add tag"), tr("Add a tag"), QLineEdit::Normal, QString{}, &ok);
+        auto res = QInputDialog::getText(
+                    this,
+                    tr("Add tag"),
+                    tr("Add a tag"),
+                    QLineEdit::Normal,
+                    QString{}, &ok);
         if(ok)
         {
             m_tagsEdit->addItem(res);
@@ -50,14 +55,17 @@ AddressSettingsWidget::AddressSettingsWidget(QWidget *parent) :
     m_layout->addRow(tr("Tags"), tagLayout);
 
     // Populate the combo boxes
-    for(const auto& key : Device::IOTypeStringMap().keys())
+
+    const auto& io_map = Device::IOTypeStringMap();
+    for(auto it = io_map.cbegin(); it != io_map.cend(); ++it)
     {
-        m_ioTypeCBox->addItem(Device::IOTypeStringMap()[key], (int)key);
+        m_ioTypeCBox->addItem(it.value(), (int)it.key());
     }
 
-    for(const auto& key : Device::ClipModeStringMap().keys())
+    const auto& clip_map = Device::ClipModeStringMap();
+    for(auto it = clip_map.cbegin(); it != clip_map.cend(); ++it)
     {
-        m_clipModeCBox->addItem(Device::ClipModeStringMap()[key], (int)key);
+        m_clipModeCBox->addItem(it.value(), (int)it.key());
     }
 
     setLayout(m_layout);

@@ -4,18 +4,20 @@
 
 #include "OpenDocumentsFile.hpp"
 
-static const QString filePath = QStandardPaths::standardLocations(QStandardPaths::TempLocation).first() + "/iscore_open_docs";
-
-
 namespace iscore
 {
-bool OpenDocumentsFile::exists()
-{
-    return QFile::exists(filePath);
-}
-
 QString OpenDocumentsFile::path()
 {
-    return filePath;
+    static QString path = [] {
+        auto paths = QStandardPaths::standardLocations(QStandardPaths::TempLocation);
+        return paths.first() + "/iscore_open_docs";
+    }();
+
+    return path;
+}
+
+bool OpenDocumentsFile::exists()
+{
+    return QFile::exists(OpenDocumentsFile::path());
 }
 }
