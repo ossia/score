@@ -2,7 +2,7 @@
 #include <Scenario/Document/State/StateModel.hpp>
 #include <Process/StateProcess.hpp>
 #include <Process/StateProcessFactory.hpp>
-#include <Process/ProcessList.hpp>
+#include <Process/StateProcessFactoryList.hpp>
 #include <iscore/tools/SettableIdentifierGeneration.hpp>
 #include <iscore/tools/ModelPathSerialization.hpp>
 namespace Scenario

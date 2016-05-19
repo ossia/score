@@ -19,6 +19,7 @@ set(PROCESS_HDRS
 "${CMAKE_CURRENT_SOURCE_DIR}/Process/Process.hpp"
 "${CMAKE_CURRENT_SOURCE_DIR}/Process/ProcessMetadata.hpp"
 "${CMAKE_CURRENT_SOURCE_DIR}/Process/ProcessList.hpp"
+"${CMAKE_CURRENT_SOURCE_DIR}/Process/StateProcessFactoryList.hpp"
 "${CMAKE_CURRENT_SOURCE_DIR}/Process/State/MessageNode.hpp"
 "${CMAKE_CURRENT_SOURCE_DIR}/Process/StateProcessFactory.hpp"
 "${CMAKE_CURRENT_SOURCE_DIR}/Process/StateProcess.hpp"

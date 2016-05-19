@@ -6,7 +6,7 @@
 #include <Scenario/Process/ScenarioModel.hpp>
 #include <Scenario/Commands/State/AddStateProcess.hpp>
 #include <Scenario/Commands/State/RemoveStateProcess.hpp>
-#include <Process/ProcessList.hpp>
+#include <Process/StateProcessFactoryList.hpp>
 #include <Process/StateProcess.hpp>
 #include <boost/optional/optional.hpp>
 #include <iscore/widgets/MarginLess.hpp>
