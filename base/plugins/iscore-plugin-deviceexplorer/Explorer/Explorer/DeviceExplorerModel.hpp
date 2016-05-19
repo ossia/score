@@ -68,7 +68,7 @@ class ISCORE_PLUGIN_DEVICEEXPLORER_EXPORT DeviceExplorerModel final :
 
         explicit DeviceExplorerModel(
                 DeviceDocumentPlugin&,
-                QObject* parent = 0);
+                QObject* parent);
 
         ~DeviceExplorerModel();
 

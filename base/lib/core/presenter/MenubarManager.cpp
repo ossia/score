@@ -34,7 +34,7 @@ void MenubarManager::insertActionIntoMenubar(PositionedMenuAction actionToInsert
     {
         if(path_lst.empty())   // End recursion
         {
-            menu->insertAction(0, actionToInsert.action);
+            menu->insertAction(nullptr, actionToInsert.action);
         }
         else
         {

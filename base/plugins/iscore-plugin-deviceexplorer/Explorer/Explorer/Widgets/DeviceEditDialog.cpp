@@ -84,13 +84,13 @@ DeviceEditDialog::initAvailableProtocols()
     //initialize previous settings
     m_previousSettings.clear();
 
-    for(const auto& prot : m_protocolList.list())
+    for(const auto& prot : m_protocolList)
     {
         m_protocolCBox->addItem(
-                    prot->prettyName(),
-                    QVariant::fromValue(prot->key<UuidKey<Device::ProtocolFactory>>()));
+                    prot.prettyName(),
+                    QVariant::fromValue(prot.key<UuidKey<Device::ProtocolFactory>>()));
 
-        m_previousSettings.append(prot->defaultSettings());
+        m_previousSettings.append(prot.defaultSettings());
     }
 
     m_index = m_protocolCBox->currentIndex();

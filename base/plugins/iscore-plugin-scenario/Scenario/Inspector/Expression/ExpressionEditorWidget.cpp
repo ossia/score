@@ -74,6 +74,13 @@ State::Expression ExpressionEditorWidget::expression()
         }
         else
         {
+            if(!lastRel)
+            {
+                // TODO investigate with scan-build.
+                qDebug() << "We shouldn't be in this case";
+                continue;
+            }
+
             auto op = r->binOperator();
             if(op == State::BinaryOperator::Or)
             {

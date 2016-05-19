@@ -64,7 +64,7 @@ class ISCORE_PLUGIN_DEVICEEXPLORER_EXPORT DeviceDocumentPlugin final :
         mutable std::unique_ptr<Explorer::ListeningHandler> m_listening;
 
     public:
-        DeviceExplorerModel explorer{*this};
+        DeviceExplorerModel explorer{*this, this};
         NodeUpdateProxy updateProxy{*this};
 };
 

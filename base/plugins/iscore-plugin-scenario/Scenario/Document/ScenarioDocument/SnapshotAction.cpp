@@ -1,5 +1,6 @@
 #include "SnapshotAction.hpp"
 #include <QGraphicsScene>
+#include <QApplication>
 #include <QMimeData>
 #include <QSvgGenerator>
 #include <QBuffer>

@@ -124,8 +124,7 @@ void DocumentManager::init(const ApplicationContext& ctx)
 
 DocumentManager::~DocumentManager()
 {
-    QSettings settings("OSSIA", "i-score");
-    settings.setValue("RecentFiles", m_recentFiles->saveState());
+    saveRecentFilesState();
 
     // The documents have to be deleted before the application context plug-ins.
     // This is because the Local device has to be deleted last in OSSIAApplicationPlugin.
@@ -249,7 +248,7 @@ void DocumentManager::forceCloseDocument(
     remove_one(m_documents, &doc);
     setCurrentDocument(
                 ctx,
-                m_documents.size() > 0 ? m_documents.back() : nullptr);
+                !m_documents.empty() ? m_documents.back() : nullptr);
 
     delete &doc;
 }
@@ -443,6 +442,7 @@ Document* DocumentManager::loadFile(
 
             m_currentDocument->metadata.setFileName(fileName);
             m_recentFiles->addRecentFile(fileName);
+            saveRecentFilesState();
         }
     }
 
@@ -566,6 +566,13 @@ bool DocumentManager::checkAndUpdateJson(
     return mainLoadable && pluginsAvailable && pluginsLoadable;
 }
 
+void DocumentManager::saveRecentFilesState()
+{
+    QSettings settings("OSSIA", "i-score");
+    settings.setValue("RecentFiles", m_recentFiles->saveState());
+    m_recentFiles->saveState();
+}
+
 
 ISCORE_LIB_BASE_EXPORT
 void DocumentManager::restoreDocuments(
@@ -579,6 +586,7 @@ void DocumentManager::restoreDocuments(
 
 }
 
+// MOVEME
 Id<iscore::DocumentModel> getStrongId(const std::vector<iscore::Document*>& v)
 {
     using namespace std;
