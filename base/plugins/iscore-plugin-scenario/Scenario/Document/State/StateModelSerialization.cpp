@@ -9,7 +9,7 @@
 #include <QJsonValue>
 #include <algorithm>
 
-#include <Process/ProcessList.hpp>
+#include <Process/StateProcessFactoryList.hpp>
 
 #include <Process/ModelMetadata.hpp>
 #include <Process/State/MessageNode.hpp>

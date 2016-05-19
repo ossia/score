@@ -2,6 +2,7 @@
 #include <Process/Style/ColorReference.hpp>
 #include <Scenario/Document/Constraint/ViewModels/ConstraintView.hpp>
 #include <Scenario/Document/Constraint/ExecutionState.hpp>
+#include <Scenario/Document/CommentBlock/TextItem.hpp>
 #include <QColor>
 #include <QtGlobal>
 #include <QPoint>
@@ -22,32 +23,8 @@ class TemporalConstraintPresenter;
 class LeftBraceView;
 class RightBraceView;
 
-// MOVEME
-class SimpleTextItem final : public QGraphicsSimpleTextItem
-{
-    public:
-        using QGraphicsSimpleTextItem::QGraphicsSimpleTextItem;
-
-        void paint(
-                QPainter *painter,
-                const QStyleOptionGraphicsItem *option,
-                QWidget *widget) override
-        {
-            setPen(m_color.getColor());
-            setBrush(m_color.getBrush());
-            QGraphicsSimpleTextItem::paint(painter, option, widget);
-        }
-
-        void setColor(ColorRef c)
-        {
-            m_color = c;
-            update();
-        }
-
-    private:
-        ColorRef m_color;
-};
-class ISCORE_PLUGIN_SCENARIO_EXPORT TemporalConstraintView final : public ConstraintView
+class ISCORE_PLUGIN_SCENARIO_EXPORT TemporalConstraintView final :
+        public ConstraintView
 {
         Q_OBJECT
 

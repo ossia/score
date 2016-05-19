@@ -25,6 +25,7 @@
 #include <Process/ProcessList.hpp>
 #include <Process/TimeValue.hpp>
 #include <Process/LayerPresenter.hpp>
+#include <Process/StateProcessFactoryList.hpp>
 #include <Process/Inspector/ProcessInspectorWidgetDelegateFactoryList.hpp>
 #include <Scenario/Application/Menus/Plugin/ScenarioActionsFactory.hpp>
 #include <Scenario/Application/Menus/Plugin/ScenarioContextMenuPluginList.hpp>
