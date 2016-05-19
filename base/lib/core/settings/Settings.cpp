@@ -26,25 +26,28 @@ Settings::~Settings()
 void Settings::setupSettingsPlugin(SettingsDelegateFactory& plugin)
 {
     auto model = plugin.makeModel();
-    if(model)
-        m_settingsModel->addSettingsModel(model);
+    if(!model)
+        return;
+
+    m_settingsModel->addSettingsModel(model);
 
     auto view = plugin.makeView();
     if(!view)
         return;
 
     auto pres = plugin.makePresenter(
-                    *model,
-                    *view,
-                    m_settingsPresenter);
-    if(!pres)
-        delete view;
-
-    else
+                *model,
+                *view,
+                m_settingsPresenter);
+    if(pres)
     {
         // Ownership transfer
         m_settingsPresenter->addSettingsPresenter(pres);
         m_settingsView->addSettingsView(view);
+    }
+    else
+    {
+        delete view;
     }
 
 }

@@ -36,17 +36,15 @@ class CommonDisplacementPolicy
         updatePositions(
                 Scenario::ScenarioModel& scenario,
                 ProcessScaleMethod&& scaleMethod,
-                const ElementsProperties& elementsPropertiesToUpdate)
+                const ElementsProperties& propsToUpdate)
         {
             // update each affected timenodes
-            for(auto& curTimenodePropertiesToUpdate_id : elementsPropertiesToUpdate.timenodes.keys())
+            for(auto it = propsToUpdate.timenodes.cbegin(); it != propsToUpdate.timenodes.cend(); ++it)
             {
-                auto& curTimenodeToUpdate = scenario.timeNode(curTimenodePropertiesToUpdate_id);
-                auto& curTimenodePropertiesToUpdate = elementsPropertiesToUpdate.timenodes[curTimenodePropertiesToUpdate_id];
-
+                auto& curTimenodeToUpdate = scenario.timeNode(it.key());
+                auto& curTimenodePropertiesToUpdate = it.value();
 
                 curTimenodeToUpdate.setDate(curTimenodePropertiesToUpdate.newDate);
-
 
                 // update related events
                 for (const auto& event : curTimenodeToUpdate.events())
@@ -56,7 +54,7 @@ class CommonDisplacementPolicy
             }
 
             // update affected constraints
-            QMapIterator<Id<ConstraintModel>, ConstraintProperties> constraintPropertiesIterator(elementsPropertiesToUpdate.constraints);
+            QMapIterator<Id<ConstraintModel>, ConstraintProperties> constraintPropertiesIterator(propsToUpdate.constraints);
             while (constraintPropertiesIterator.hasNext())
             {
                 constraintPropertiesIterator.next();
@@ -100,14 +98,13 @@ class CommonDisplacementPolicy
         revertPositions(
                 Scenario::ScenarioModel& scenario,
                 ProcessScaleMethod&& scaleMethod,
-                const ElementsProperties& elementsPropertiesToUpdate)
+                const ElementsProperties& propsToUpdate)
         {
             // update each affected timenodes with old values
-            for(auto& curTimenodePropertiesToUpdate_id : elementsPropertiesToUpdate.timenodes.keys())
+            for(auto it = propsToUpdate.timenodes.cbegin(); it != propsToUpdate.timenodes.cend(); ++it)
             {
-                auto& curTimenodeToUpdate = scenario.timeNode(curTimenodePropertiesToUpdate_id);
-                auto& curTimenodePropertiesToUpdate = elementsPropertiesToUpdate.timenodes[curTimenodePropertiesToUpdate_id];
-
+                auto& curTimenodeToUpdate = scenario.timeNode(it.key());
+                auto& curTimenodePropertiesToUpdate = it.value();
 
                 curTimenodeToUpdate.setDate(curTimenodePropertiesToUpdate.oldDate);
 
@@ -119,7 +116,7 @@ class CommonDisplacementPolicy
             }
 
             // update affected constraints with old values and restor processes
-            QMapIterator<Id<ConstraintModel>, ConstraintProperties> constraintPropertiesIterator(elementsPropertiesToUpdate.constraints);
+            QMapIterator<Id<ConstraintModel>, ConstraintProperties> constraintPropertiesIterator(propsToUpdate.constraints);
             while (constraintPropertiesIterator.hasNext())
             {
                 constraintPropertiesIterator.next();
@@ -148,7 +145,7 @@ class CommonDisplacementPolicy
 
                 // Now we have to restore the state of each constraint that might have been modified
                 // during this command.
-                auto& savedConstraintData = elementsPropertiesToUpdate.constraints[curConstraintPropertiesToUpdate_id].savedDisplay;
+                auto& savedConstraintData = propsToUpdate.constraints[curConstraintPropertiesToUpdate_id].savedDisplay;
 
                 // 1. Clear the constraint
                 // TODO Don't use a command since it serializes a ton of unused stuff.

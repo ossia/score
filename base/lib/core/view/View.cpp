@@ -74,7 +74,7 @@ void View::addDocumentView(DocumentView* doc)
 void View::setupPanel(PanelDelegate* v)
 {
     using namespace std;
-    QDockWidget* dial = new QDockWidget {v->defaultPanelStatus().prettyName, this};
+    auto dial = new QDockWidget {v->defaultPanelStatus().prettyName, this};
     dial->setWidget(v->widget());
     dial->toggleViewAction()->setShortcut(v->defaultPanelStatus().shortcut);
     emit insertActionIntoMenubar({MenuInterface::name(ToplevelMenuElement::ViewMenu) + "/" +

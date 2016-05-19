@@ -52,7 +52,7 @@ static void loadRestorableDocumentData(
         arr.push_back({data_file.readAll(), command_file.readAll()});
 
         data_file.close();
-        data_file.remove(); // TODO maybe we don't want to remove them that early?
+        data_file.remove(); // Note: maybe we don't want to remove them that early?
 
         command_file.close();
         command_file.remove();

@@ -1,5 +1,5 @@
 #include "ScenarioScene.hpp"
-
+#include <QWidget>
 namespace Scenario
 {
 

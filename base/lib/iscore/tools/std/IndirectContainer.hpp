@@ -1,6 +1,8 @@
 #pragma once
 #include <boost/iterator/indirect_iterator.hpp>
 #include <memory>
+#include <array>
+
 template<template<class, class> class Container,
          typename T,
          typename U = std::allocator<T*>>
@@ -50,7 +52,6 @@ auto wrap_indirect(T& container)
     return IndirectContainerWrapper<T>{container};
 }
 
-#include <array>
 template<typename T,
          int N>
 class IndirectArray
@@ -83,3 +84,38 @@ class IndirectArray
         auto& operator[](int pos) const
         { return *array[pos]; }
 };
+
+template<typename Map_T>
+class IndirectMap
+{
+    public:
+        auto begin()        { return boost::make_indirect_iterator(map.begin()); }
+        auto begin() const  { return boost::make_indirect_iterator(map.begin()); }
+
+        auto cbegin()       { return boost::make_indirect_iterator(map.cbegin()); }
+        auto cbegin() const { return boost::make_indirect_iterator(map.cbegin()); }
+
+        auto end()          { return boost::make_indirect_iterator(map.end()); }
+        auto end() const    { return boost::make_indirect_iterator(map.end()); }
+
+        auto cend()         { return boost::make_indirect_iterator(map.cend()); }
+        auto cend() const   { return boost::make_indirect_iterator(map.cend()); }
+
+        auto empty() const { return map.empty(); }
+
+        template<typename K>
+        auto find(K&& key)
+        {
+            return map.find(std::forward<K>(key));
+        }
+
+        template<typename E>
+        auto insert(E&& elt)
+        {
+            return map.insert(std::forward<E>(elt));
+        }
+
+    protected:
+        Map_T map;
+};
+
