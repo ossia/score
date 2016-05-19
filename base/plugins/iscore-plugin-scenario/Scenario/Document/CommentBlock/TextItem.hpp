@@ -1,7 +1,9 @@
 #pragma once
-
 #include <Process/Style/ColorReference.hpp>
+#include <QColor>
+#include <QPen>
 #include <QGraphicsTextItem>
+#include <QGraphicsSimpleTextItem>
 
 namespace Scenario
 {

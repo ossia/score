@@ -7,6 +7,8 @@
 #include <Device/QMenuView/qmenuview.h>
 #include <Explorer/Explorer/DeviceExplorerModel.hpp>
 
+#include <QHBoxLayout>
+
 namespace Explorer
 {
 AddressAccessorEditWidget::AddressAccessorEditWidget(

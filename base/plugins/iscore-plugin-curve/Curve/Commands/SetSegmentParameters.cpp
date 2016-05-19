@@ -20,24 +20,24 @@ SetSegmentParameters::SetSegmentParameters(
     m_new{std::move(parameters)}
 {
     const auto& curve = m_model.find();
-    for(const auto& elt : m_new.keys())
+    for(auto it = m_new.cbegin(); it != m_new.cend(); ++it)
     {
-        const auto& seg = curve.segments().at(elt);
-        m_old.insert(elt, {seg.verticalParameter(), seg.horizontalParameter()});
+        const auto& seg = curve.segments().at(it.key());
+        m_old.insert(it.key(), {seg.verticalParameter(), seg.horizontalParameter()});
     }
 }
 
 void SetSegmentParameters::undo() const
 {
     auto& curve = m_model.find();
-    for(const auto& elt : m_old.keys())
+    for(auto it = m_old.cbegin(); it != m_old.cend(); ++it)
     {
-        auto& seg = curve.segments().at(elt);
+        auto& seg = curve.segments().at(it.key());
 
-        if(m_old.value(elt).first)
-            seg.setVerticalParameter(*m_old.value(elt).first);
-        if(m_old.value(elt).second)
-            seg.setHorizontalParameter(*m_old.value(elt).second);
+        if(it.value().first)
+            seg.setVerticalParameter(*it.value().first);
+        if(it.value().second)
+            seg.setHorizontalParameter(*it.value().second);
     }
 
     curve.changed();
@@ -46,12 +46,12 @@ void SetSegmentParameters::undo() const
 void SetSegmentParameters::redo() const
 {
     auto& curve = m_model.find();
-    for(const auto& elt : m_new.keys())
+    for(auto it = m_new.cbegin(); it != m_new.cend(); ++it)
     {
-        auto& seg = curve.segments().at(elt);
+        auto& seg = curve.segments().at(it.key());
 
-        seg.setVerticalParameter(m_new.value(elt).first);
-        seg.setHorizontalParameter(m_new.value(elt).second);
+        seg.setVerticalParameter(it.value().first);
+        seg.setHorizontalParameter(it.value().second);
     }
 
     curve.changed();
