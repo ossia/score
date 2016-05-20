@@ -16,9 +16,6 @@ namespace iscore
 			    QObject(parent)
 			{
 				
-			}
-            virtual ~SettingsModel()
-            {
             }
 
             void addSettingsModel(SettingsDelegateModelInterface* model)

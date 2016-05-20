@@ -2,13 +2,6 @@
 
 namespace Process
 {
-InspectorWidgetDelegateFactory::~InspectorWidgetDelegateFactory()
-{
-    
-}
-
-StateProcessInspectorWidgetDelegateFactory::~StateProcessInspectorWidgetDelegateFactory()
-{
-
-}
+InspectorWidgetDelegateFactory::~InspectorWidgetDelegateFactory() = default;
+StateProcessInspectorWidgetDelegateFactory::~StateProcessInspectorWidgetDelegateFactory() = default;
 }

@@ -17,9 +17,9 @@ namespace State
 struct Message
 {
     Message() = default;
-    Message(const State::Address& addr, const State::Value& val):
-        address(addr),
-        value(val)
+    Message(State::Address addr, State::Value val):
+        address(std::move(addr)),
+        value(std::move(val))
     { }
 
     Message(const Message&) = default;

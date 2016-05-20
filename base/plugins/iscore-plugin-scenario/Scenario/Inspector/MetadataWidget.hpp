@@ -39,7 +39,7 @@ class MetadataWidget final : public QWidget
                 const ModelMetadata* metadata,
                 CommandDispatcher<>* m,
                 const QObject* docObject,
-                QWidget* parent = 0);
+                QWidget* parent = nullptr);
 
         QString scriptingName() const;
 

@@ -7,8 +7,8 @@
 
 #include <iscore/tools/SettableIdentifier.hpp>
 #include <iscore_plugin_scenario_export.h>
-class DataStreamInput;
-class DataStreamOutput;
+struct DataStreamInput;
+struct DataStreamOutput;
 namespace Process { class LayerModel; }
 namespace Process { class ProcessModel; }
 
@@ -35,13 +35,13 @@ class ISCORE_PLUGIN_SCENARIO_EXPORT AddLayerModelToSlot final : public iscore::S
         AddLayerModelToSlot(
                 Path<SlotModel>&& slot,
                 Path<Process::ProcessModel>&& process,
-                const QByteArray& processConstructionData);
+                QByteArray processConstructionData);
 
         AddLayerModelToSlot(
                 Path<SlotModel>&& slot,
-                const Id<Process::LayerModel>& layerid,
+                Id<Process::LayerModel> layerid,
                 Path<Process::ProcessModel>&& process,
-                const QByteArray& processConstructionData);
+                QByteArray processConstructionData);
 
         void undo() const override;
         void redo() const override;

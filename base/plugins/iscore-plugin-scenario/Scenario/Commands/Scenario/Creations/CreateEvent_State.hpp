@@ -8,8 +8,8 @@
 #include <iscore/tools/ModelPath.hpp>
 #include <iscore/tools/SettableIdentifier.hpp>
 
-class DataStreamInput;
-class DataStreamOutput;
+struct DataStreamInput;
+struct DataStreamOutput;
 
 namespace Scenario
 {
@@ -26,11 +26,11 @@ class ISCORE_PLUGIN_SCENARIO_EXPORT CreateEvent_State final : public iscore::Ser
 
           CreateEvent_State(
             const Scenario::ScenarioModel& scenario,
-            const Id<TimeNodeModel>& timeNode,
+            Id<TimeNodeModel> timeNode,
             double stateY);
         CreateEvent_State(
           const Path<Scenario::ScenarioModel>& scenario,
-          const Id<TimeNodeModel>& timeNode,
+          Id<TimeNodeModel> timeNode,
           double stateY);
 
         const Path<Scenario::ScenarioModel>& scenarioPath() const

@@ -32,8 +32,8 @@ struct ISCORE_LIB_STATE_EXPORT ExprData :
 
         ExprData() = default;
         template<typename T>
-        ExprData(const T& data):
-            VariantBasedNode{data}
+        ExprData(T data):
+            VariantBasedNode{std::move(data)}
         {
 
         }
@@ -47,11 +47,9 @@ struct ISCORE_LIB_STATE_EXPORT ExprData :
 };
 
 }
-// TODO bouefff
-using State::ExprData;
 
 /**
- * @brief The TreeNode<ExprData> class
+ * @brief The TreeNode<State::ExprData> class
  *
  * This class is specialized from TreeNode<T>
  * because we want to have an additional check :
@@ -60,20 +58,20 @@ using State::ExprData;
  * TODO enforce the invariant of children.size <= 2 (since it's a binary tree)
  */
 template<>
-class ISCORE_LIB_STATE_EXPORT TreeNode<ExprData> final : public ExprData
+class ISCORE_LIB_STATE_EXPORT TreeNode<State::ExprData> final : public State::ExprData
 {
-        friend struct TSerializer<DataStream, void, TreeNode<ExprData>>;
-        friend struct TSerializer<JSONObject, void, TreeNode<ExprData>>;
+        friend struct TSerializer<DataStream, void, TreeNode<State::ExprData>>;
+        friend struct TSerializer<JSONObject, void, TreeNode<State::ExprData>>;
 
-        friend bool operator!=(const TreeNode<ExprData>& lhs, const TreeNode<ExprData>& rhs)
+        friend bool operator!=(const TreeNode<State::ExprData>& lhs, const TreeNode<State::ExprData>& rhs)
         {
             return !(lhs == rhs);
         }
 
-        friend bool operator==(const TreeNode<ExprData>& lhs, const TreeNode<ExprData>& rhs)
+        friend bool operator==(const TreeNode<State::ExprData>& lhs, const TreeNode<State::ExprData>& rhs)
         {
-            const auto& ltd = static_cast<const ExprData&>(lhs);
-            const auto& rtd = static_cast<const ExprData&>(rhs);
+            const auto& ltd = static_cast<const State::ExprData&>(lhs);
+            const auto& rtd = static_cast<const State::ExprData&>(rhs);
 
             bool b = (ltd == rtd) && (lhs.m_children.size() == rhs.m_children.size());
             if(!b)
@@ -108,7 +106,7 @@ class ISCORE_LIB_STATE_EXPORT TreeNode<ExprData> final : public ExprData
 
         // The parent has to be set afterwards.
         TreeNode(const TreeNode& other):
-            ExprData{static_cast<const ExprData&>(other)},
+            State::ExprData{static_cast<const State::ExprData&>(other)},
             m_children(other.m_children)
         {
             setParent(other.m_parent);
@@ -117,7 +115,7 @@ class ISCORE_LIB_STATE_EXPORT TreeNode<ExprData> final : public ExprData
         }
 
         TreeNode(TreeNode&& other):
-            ExprData{static_cast<ExprData&&>(other)},
+            State::ExprData{std::move(static_cast<State::ExprData&&>(std::move(other)))},
             m_children(std::move(other.m_children))
         {
             setParent(other.m_parent);
@@ -127,7 +125,7 @@ class ISCORE_LIB_STATE_EXPORT TreeNode<ExprData> final : public ExprData
 
         TreeNode& operator=(const TreeNode& source)
         {
-            static_cast<ExprData&>(*this) = static_cast<const ExprData&>(source);
+            static_cast<State::ExprData&>(*this) = static_cast<const State::ExprData&>(source);
             setParent(source.m_parent);
 
             m_children = source.m_children;
@@ -141,7 +139,7 @@ class ISCORE_LIB_STATE_EXPORT TreeNode<ExprData> final : public ExprData
 
         TreeNode& operator=(TreeNode&& source)
         {
-            static_cast<ExprData&>(*this) = static_cast<ExprData&&>(source);
+            static_cast<State::ExprData&>(*this) = static_cast<State::ExprData&&>(source);
             setParent(source.m_parent);
 
             m_children = std::move(source.m_children);
@@ -153,17 +151,17 @@ class ISCORE_LIB_STATE_EXPORT TreeNode<ExprData> final : public ExprData
             return *this;
         }
 
-        TreeNode(const ExprData& data, TreeNode* parent):
-            ExprData(data)
+        TreeNode(State::ExprData data, TreeNode* parent):
+            State::ExprData(std::move(data))
         {
             setParent(parent);
         }
 
         // Clone
         explicit TreeNode(
-                const TreeNode& source,
+                TreeNode source,
                 TreeNode* parent):
-            TreeNode{source}
+            TreeNode{std::move(source)}
         {
             setParent(parent);
         }
@@ -263,7 +261,7 @@ class ISCORE_LIB_STATE_EXPORT TreeNode<ExprData> final : public ExprData
         }
 
     protected:
-        TreeNode<ExprData>* m_parent {};
+        TreeNode<State::ExprData>* m_parent {};
         std::vector<TreeNode> m_children;
 };
 

@@ -11,16 +11,16 @@ namespace Scenario
 {
 namespace Command
 {
-MoveCommentBlock::MoveCommentBlock(const Path<Scenario::ScenarioModel>& scenarPath,
-        const Id<CommentBlockModel>& id,
-        const TimeValue& newDate,
+MoveCommentBlock::MoveCommentBlock(
+        const ScenarioModel& scenar,
+        Id<CommentBlockModel> id,
+        TimeValue newDate,
         double newY):
-    m_path{std::move(scenarPath)},
-    m_id{id},
-    m_newDate{newDate},
+    m_path{scenar},
+    m_id{std::move(id)},
+    m_newDate{std::move(newDate)},
     m_newY{newY}
 {
-    auto& scenar = m_path.find();
     auto& cmt = scenar.comment(m_id);
     m_oldDate = cmt.date();
     m_oldY = cmt.heightPercentage();

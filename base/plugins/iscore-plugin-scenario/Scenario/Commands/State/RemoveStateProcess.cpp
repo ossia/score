@@ -14,7 +14,7 @@ namespace Command
 RemoveStateProcess::RemoveStateProcess(Path<StateModel>&& statePath,
     Id<Process::StateProcess> processId):
     m_path{std::move(statePath)},
-    m_processId{processId}
+    m_processId{std::move(processId)}
 {
     auto& state = m_path.find();
     auto& p = state.stateProcesses.at(m_processId);

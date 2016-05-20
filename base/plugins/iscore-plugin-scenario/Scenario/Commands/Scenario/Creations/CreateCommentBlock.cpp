@@ -12,11 +12,12 @@ namespace Scenario
 {
 namespace Command
 {
-CreateCommentBlock::CreateCommentBlock(const Path<ScenarioModel>& scenarioPath,
-                                       const TimeValue& date,
-                                       double yPosition):
+CreateCommentBlock::CreateCommentBlock(
+        const Path<ScenarioModel>& scenarioPath,
+        TimeValue date,
+        double yPosition):
     m_path{std::move(scenarioPath)},
-    m_date{date},
+    m_date{std::move(date)},
     m_y{yPosition}
 {
     auto& scenar = m_path.find();

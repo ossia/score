@@ -24,19 +24,19 @@ class SetMinDuration final : public iscore::SerializableCommand
     public:
             static const constexpr auto corresponding_member = &ConstraintDurations::minDuration;
 
-        SetMinDuration(Path<ConstraintModel>&& path, const TimeValue& newval, bool isMinNull):
-        m_path{std::move(path)},
-        m_oldVal{m_path.find().duration.minDuration()},
+        SetMinDuration(const ConstraintModel& cst, TimeValue newval, bool isMinNull):
+        m_path{cst},
+        m_oldVal{cst.duration.minDuration()},
         m_newVal{newval},
-        m_oldMinNull{m_path.find().duration.isMinNul()},
+        m_oldMinNull{cst.duration.isMinNul()},
         m_newMinNull{isMinNull}
         {
         }
 
-        void update(const Path<ConstraintModel>&, const TimeValue &newval, bool isMinNull)
+        void update(const ConstraintModel& cst, TimeValue newval, bool isMinNull)
         {
             m_newVal = newval;
-            auto& cstrDuration = m_path.find().duration;
+            auto& cstrDuration = cst.duration;
             if(m_newVal < TimeValue::zero())
                 m_newVal = TimeValue::zero();
             if(m_newVal > cstrDuration.defaultDuration())

@@ -35,7 +35,7 @@ void ApplicationSettings::parse()
     gui = !parser.isSet(noGUI);
     autoplay = parser.isSet(autoplayOpt) && args.size() == 1;
 
-    if(args.size() > 0 && QFile::exists(args[0]))
+    if(!args.empty() && QFile::exists(args[0]))
     {
         loadList.push_back(args[0]);
     }

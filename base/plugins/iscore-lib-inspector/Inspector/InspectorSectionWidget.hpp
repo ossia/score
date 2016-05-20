@@ -21,8 +21,8 @@ class ISCORE_LIB_INSPECTOR_EXPORT InspectorSectionWidget : public QWidget
 {
         Q_OBJECT
     public:
-        explicit InspectorSectionWidget(bool editable = false, QWidget* parent = 0);
-        InspectorSectionWidget(QString name, bool nameEditable = false, QWidget* parent = 0);
+        explicit InspectorSectionWidget(bool editable = false, QWidget* parent = nullptr);
+        InspectorSectionWidget(QString name, bool nameEditable = false, QWidget* parent = nullptr);
         virtual ~InspectorSectionWidget();
 
         QMenu* menu() const { return m_menu; }

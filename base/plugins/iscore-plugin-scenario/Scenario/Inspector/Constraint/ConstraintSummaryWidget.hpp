@@ -15,7 +15,7 @@ class ConstraintModel;
 class ConstraintSummaryWidget : public QWidget
 {
     public:
-    explicit ConstraintSummaryWidget(const ConstraintModel& object, const iscore::DocumentContext& doc, QWidget *parent = 0);
+    explicit ConstraintSummaryWidget(const ConstraintModel& object, const iscore::DocumentContext& doc, QWidget *parent = nullptr);
 
     private:
     std::unique_ptr<iscore::SelectionDispatcher> m_selectionDispatcher;

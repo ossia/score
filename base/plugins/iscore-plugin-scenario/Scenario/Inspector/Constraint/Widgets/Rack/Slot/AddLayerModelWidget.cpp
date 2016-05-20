@@ -76,7 +76,7 @@ AddLayerModelWidget::AddLayerModelWidget(SlotInspectorSection* parentSlot) :
         }
 
         // 4. Present a dialog with the availble id's
-        if(available_models.size() > 0)
+        if(!available_models.empty())
         {
             bool ok = false;
             auto process_name =

@@ -33,13 +33,13 @@ RemoveSlotFromRack::RemoveSlotFromRack(
         Path<RackModel>&& rackPath,
         Id<SlotModel> slotId) :
     m_path {rackPath},
-    m_slotId {slotId}
+    m_slotId {std::move(slotId)}
 {
     auto& rack = m_path.find();
     Serializer<DataStream> s{&m_serializedSlotData};
 
-    s.readFrom(rack.slotmodels.at(slotId));
-    m_position = rack.slotPosition(slotId);
+    s.readFrom(rack.slotmodels.at(m_slotId));
+    m_position = rack.slotPosition(m_slotId);
 }
 
 void RemoveSlotFromRack::undo() const

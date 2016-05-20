@@ -106,8 +106,7 @@ struct ISCORE_LIB_STATE_EXPORT Value
         }
 
         Value() = default;
-        Value(const value_type& v): val(v) {}
-        Value(value_type&& v): val(std::move(v)) {}
+        Value(value_type v): val(std::move(v)) {}
         Value(const Value&) = default;
         Value(Value&&) = default;
         Value& operator=(const Value&) = default;

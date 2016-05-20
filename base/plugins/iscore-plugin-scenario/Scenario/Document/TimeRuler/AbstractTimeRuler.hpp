@@ -14,7 +14,7 @@ class AbstractTimeRuler : public QObject
 {
         Q_OBJECT
     public:
-        explicit AbstractTimeRuler(AbstractTimeRulerView* view, QObject *parent = 0);
+        explicit AbstractTimeRuler(AbstractTimeRulerView* view, QObject *parent = nullptr);
         virtual ~AbstractTimeRuler();
 
         AbstractTimeRulerView* view() { return m_view; }

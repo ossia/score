@@ -28,10 +28,10 @@ InspectorWidgetBase::InspectorWidgetBase(
     m_layout->setSpacing(0);
 
     // scroll Area
-    QScrollArea* scrollArea = new QScrollArea;
+    auto scrollArea = new QScrollArea;
     scrollArea->setWidgetResizable(true);
     scrollArea->setSizeAdjustPolicy(QScrollArea::AdjustToContents);
-    QWidget* scrollAreaContentWidget = new QWidget;
+    auto scrollAreaContentWidget = new QWidget;
     m_scrollAreaLayout = new iscore::MarginLess<QVBoxLayout>{scrollAreaContentWidget};
     m_scrollAreaLayout->setSizeConstraint(QLayout::SetMinimumSize);
     scrollArea->setWidget(scrollAreaContentWidget);

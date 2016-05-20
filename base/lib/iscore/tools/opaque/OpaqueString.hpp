@@ -3,8 +3,6 @@
 #include <string>
 #include <functional>
 
-#include <iscore/tools/std/ConstexprString.hpp>
-
 class OpaqueString
 {
         friend struct std::hash<OpaqueString>;
@@ -23,16 +21,15 @@ class OpaqueString
         template <typename charT, charT... Chars>
         explicit OpaqueString(const std::basic_string_literal<charT, Chars...>& str): impl{str.c_str()} {}
 #endif
-        explicit OpaqueString(const char* str): impl{str} {}
-        explicit OpaqueString(const std::string& str): impl{str} {}
-        explicit OpaqueString(const QString& str): impl{str.toStdString()} {}
-        explicit OpaqueString(std::string&& str): impl{std::move(str)} {}
+        explicit OpaqueString(const char* str) noexcept : impl{str} {}
+        explicit OpaqueString(std::string str) noexcept : impl{std::move(str)} {}
+        explicit OpaqueString(const QString& str) noexcept : impl{str.toStdString()} {}
 
-        explicit OpaqueString(const OpaqueString& str): impl{str.impl} {}
-        explicit OpaqueString(OpaqueString&& str): impl{std::move(str.impl)} {}
+        explicit OpaqueString(const OpaqueString& str) = default;
+        explicit OpaqueString(OpaqueString&& str) noexcept = default;
 
-        OpaqueString& operator=(const OpaqueString& str) { impl = str.impl; return *this; }
-        OpaqueString& operator=(OpaqueString&& str) { impl = std::move(str.impl); return *this; }
+        OpaqueString& operator=(const OpaqueString& str) = default;
+        OpaqueString& operator=(OpaqueString&& str) noexcept = default;
 
     protected:
         std::string impl;

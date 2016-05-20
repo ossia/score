@@ -1,5 +1,3 @@
 #include "FactoryFamily.hpp"
-iscore::FactoryListInterface::~FactoryListInterface()
-{
+iscore::FactoryListInterface::~FactoryListInterface() = default;
 
-}

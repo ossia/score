@@ -1,7 +1,7 @@
 #include "ScenarioStyle.hpp"
 #include "Skin.hpp"
 
-ScenarioStyle::ScenarioStyle(const Skin& s):
+ScenarioStyle::ScenarioStyle(const Skin& s) noexcept:
 
     ConstraintBase{&s.Base1},
     ConstraintSelected{&s.Base2},

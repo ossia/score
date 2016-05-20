@@ -22,11 +22,15 @@ class SerializableMoveEvent;
 
 SerializableMoveEvent* MoveEventClassicFactory::make(
         Path<Scenario::ScenarioModel>&& scenarioPath,
-        const Id<EventModel>& eventId,
-        const TimeValue& newDate,
+        Id<EventModel> eventId,
+        TimeValue newDate,
         ExpandMode mode)
 {
-    return new MoveEvent<GoodOldDisplacementPolicy>(std::move(scenarioPath), eventId, newDate, mode);
+    return new MoveEvent<GoodOldDisplacementPolicy>(
+                std::move(scenarioPath),
+                std::move(eventId),
+                std::move(newDate),
+                mode);
 }
 
 SerializableMoveEvent* MoveEventClassicFactory::make()

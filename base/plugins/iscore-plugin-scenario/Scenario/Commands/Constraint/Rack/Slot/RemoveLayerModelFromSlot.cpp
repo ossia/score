@@ -16,9 +16,9 @@ namespace Command
 
 RemoveLayerModelFromSlot::RemoveLayerModelFromSlot(
         Path<SlotModel>&& rackPath,
-        const Id<Process::LayerModel>& layerId) :
+        Id<Process::LayerModel> layerId) :
     m_path {rackPath},
-    m_layerId {layerId}
+    m_layerId {std::move(layerId)}
 {
     auto& slot = m_path.find();
 

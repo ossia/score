@@ -29,15 +29,13 @@ GUIApplicationContextPlugin::GUIApplicationContextPlugin(
 
 }
 
+GUIApplicationContextPlugin::~GUIApplicationContextPlugin() = default;
+
 void GUIApplicationContextPlugin::initialize()
 {
 
 }
 
-GUIApplicationContextPlugin::~GUIApplicationContextPlugin()
-{
-
-}
 
 void GUIApplicationContextPlugin::populateMenus(MenubarManager*)
 {

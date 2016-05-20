@@ -116,7 +116,7 @@ class AddMultipleProcessesToConstraintMacro final : public iscore::AggregateComm
                     if(auto rackId = vm->shownRack())
                     {
                         auto& rack = constraint.racks.at(rackId);
-                        if(rack.slotmodels.size() > 0)
+                        if(!rack.slotmodels.empty())
                         {
                             const auto& firstSlot = rack.slotmodels.at(rack.slotsPositions()[0]);
 

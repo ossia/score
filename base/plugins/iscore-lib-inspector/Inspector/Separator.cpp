@@ -10,7 +10,7 @@ HSeparator::HSeparator(QWidget *parent) :
     QWidget {parent}
 {
     this->setLayout(new QVBoxLayout);
-    QFrame* f = new QFrame;
+    auto f = new QFrame;
     this->layout()->addWidget(f);
 
     f->setFrameShape(QFrame::HLine);
@@ -20,16 +20,13 @@ HSeparator::HSeparator(QWidget *parent) :
     f->setObjectName("SeparatorFrame");
 }
 
-HSeparator::~HSeparator()
-{
-
-}
+HSeparator::~HSeparator() = default;
 
 VSeparator::VSeparator(QWidget *parent) :
     QWidget {parent}
 {
     this->setLayout(new QHBoxLayout);
-    QFrame* f = new QFrame;
+    auto f = new QFrame;
     this->layout()->addWidget(f);
 
     f->setFrameShape(QFrame::VLine);
@@ -38,8 +35,5 @@ VSeparator::VSeparator(QWidget *parent) :
     f->setObjectName("SeparatorFrame");
 }
 
-VSeparator::~VSeparator()
-{
-
-}
+VSeparator::~VSeparator() = default;
 }

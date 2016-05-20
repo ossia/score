@@ -5,8 +5,8 @@
 
 #include <iscore/tools/ModelPath.hpp>
 
-class DataStreamInput;
-class DataStreamOutput;
+struct DataStreamInput;
+struct DataStreamOutput;
 namespace JS
 {
 class ProcessModel;

@@ -12,10 +12,7 @@
 #include <QScrollBar>
 #include <QLayout>
 
-Process::LayerModelPanelProxy::~LayerModelPanelProxy()
-{
-
-}
+Process::LayerModelPanelProxy::~LayerModelPanelProxy() = default;
 
 Process::GraphicsViewLayerModelPanelProxy::GraphicsViewLayerModelPanelProxy(
         const Process::LayerModel& model,

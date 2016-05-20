@@ -1,5 +1,3 @@
 #include "StateProcessFactory.hpp"
-Process::StateProcessFactory::~StateProcessFactory()
-{
+Process::StateProcessFactory::~StateProcessFactory() = default;
 
-}

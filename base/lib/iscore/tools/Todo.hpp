@@ -175,3 +175,12 @@ struct ModelType ## Name ## Parameter \
         static constexpr auto set() { return &model_type::set ## Name; }\
         static constexpr auto notify() { return &model_type::Name ## Changed; } \
 };
+
+struct unused_t
+{
+        template<typename... Args>
+        unused_t(Args&&...)
+        {
+
+        }
+};

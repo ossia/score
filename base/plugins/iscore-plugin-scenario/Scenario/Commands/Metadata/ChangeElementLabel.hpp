@@ -37,7 +37,7 @@ class ChangeElementLabel final : public iscore::SerializableCommand
 
         ChangeElementLabel(Path<T>&& path, QString newLabel) :
             m_path {std::move(path) },
-            m_newLabel {newLabel}
+            m_newLabel {std::move(newLabel)}
         {
             auto& obj = m_path.find();
             m_oldLabel = obj.metadata.label();

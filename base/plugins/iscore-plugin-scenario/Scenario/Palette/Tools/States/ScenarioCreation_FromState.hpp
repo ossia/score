@@ -40,7 +40,7 @@ class Creation_FromState final : public CreationState<Scenario_T, ToolPalette_T>
                 this->clearCreatedIds();
             });
 
-            QState* mainState = new QState{this};
+            auto mainState = new QState{this};
             {
                 auto pressed = new QState{mainState};
                 auto released = new QState{mainState};
@@ -201,7 +201,7 @@ class Creation_FromState final : public CreationState<Scenario_T, ToolPalette_T>
                 });
             }
 
-            QState* rollbackState = new QState{this};
+            auto rollbackState = new QState{this};
             iscore::make_transition<iscore::Cancel_Transition>(mainState, rollbackState);
             rollbackState->addTransition(finalState);
             QObject::connect(rollbackState, &QState::entered, [&] ()

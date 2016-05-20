@@ -3,11 +3,11 @@
 #include <boost/optional/optional.hpp>
 #include <iscore/command/SerializableCommand.hpp>
 
-#include <iscore/tools/ObjectPath.hpp>
+#include <iscore/tools/ModelPath.hpp>
 #include <iscore/tools/SettableIdentifier.hpp>
 
-class DataStreamInput;
-class DataStreamOutput;
+struct DataStreamInput;
+struct DataStreamOutput;
 
 namespace Scenario
 {
@@ -18,7 +18,7 @@ class DuplicateRack final : public iscore::SerializableCommand
 {
         ISCORE_COMMAND_DECL(ScenarioCommandFactoryName(), DuplicateRack, "Duplicate a rack")
         public:
-            DuplicateRack(ObjectPath&& rackToCopy);
+            DuplicateRack(const RackModel&);
 
         void undo() const override;
         void redo() const override;
@@ -28,7 +28,7 @@ class DuplicateRack final : public iscore::SerializableCommand
         void deserializeImpl(DataStreamOutput&) override;
 
     private:
-        ObjectPath m_rackPath;
+        Path<RackModel> m_rackPath;
 
         Id<RackModel> m_newRackId;
 };

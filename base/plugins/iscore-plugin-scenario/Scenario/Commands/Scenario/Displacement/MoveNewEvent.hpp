@@ -12,8 +12,8 @@
 
 #include <iscore_plugin_scenario_export.h>
 
-class DataStreamInput;
-class DataStreamOutput;
+struct DataStreamInput;
+struct DataStreamOutput;
 
 /*
  * Used on creation mode, when mouse is pressed and is moving.
@@ -33,16 +33,16 @@ class ISCORE_PLUGIN_SCENARIO_EXPORT MoveNewEvent final : public iscore::Serializ
         public:
             MoveNewEvent(
                 Path<Scenario::ScenarioModel>&& scenarioPath,
-                const Id<ConstraintModel>& constraintId,
-                const Id<EventModel>& eventId,
-                const TimeValue& date,
+                Id<ConstraintModel> constraintId,
+                Id<EventModel> eventId,
+                TimeValue date,
                 const double y,
                 bool yLocked);
         MoveNewEvent(
                 Path<Scenario::ScenarioModel>&& scenarioPath,
-                const Id<ConstraintModel>& constraintId,
-                const Id<EventModel>& eventId,
-                const TimeValue& date,
+                Id<ConstraintModel> constraintId,
+                Id<EventModel> eventId,
+                TimeValue date,
                 const double y,
                 bool yLocked,
                 ExpandMode);
@@ -51,14 +51,14 @@ class ISCORE_PLUGIN_SCENARIO_EXPORT MoveNewEvent final : public iscore::Serializ
         void redo() const override;
 
         void update(
-                const Path<Scenario::ScenarioModel>& path,
+                unused_t path,
                 const Id<ConstraintModel>&,
                 const Id<EventModel>& id,
                 const TimeValue& date,
                 const double y,
                 bool yLocked)
         {
-            m_cmd.update(path, id, date, y, ExpandMode::Scale);
+            m_cmd.update(id, date, y, ExpandMode::Scale);
             m_y = y;
             m_yLocked = yLocked;
         }

@@ -81,8 +81,7 @@ class MoveEvent final : public SerializableMoveEvent
             m_eventId = eventId;
             m_initialDate =  getDate(scenar, eventId);
 
-            update(m_path,
-                   eventId,
+            update(eventId,
                    newDate,
                    0,
                    m_mode);
@@ -90,11 +89,10 @@ class MoveEvent final : public SerializableMoveEvent
         }
 
         void update(
-                const Path<Scenario::ScenarioModel>& scenarioPath,
                 const Id<EventModel>& eventId,
                 const TimeValue& newDate,
                 double,
-                ExpandMode mode) override
+                ExpandMode) override
         {
             // we need to compute the new time delta
             // NOTE: in the future in would be better to give directly the delta value to this method

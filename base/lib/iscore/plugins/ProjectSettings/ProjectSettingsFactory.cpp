@@ -5,10 +5,7 @@
 
 namespace iscore
 {
-ProjectSettingsFactory::~ProjectSettingsFactory()
-{
-
-}
+ProjectSettingsFactory::~ProjectSettingsFactory() = default;
 
 ProjectSettingsPresenter* ProjectSettingsFactory::makePresenter(
         ProjectSettingsModel& m,

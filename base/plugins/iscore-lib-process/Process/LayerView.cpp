@@ -7,10 +7,7 @@ class QStyleOptionGraphicsItem;
 class QWidget;
 namespace Process
 {
-LayerView::~LayerView()
-{
-
-}
+LayerView::~LayerView() = default;
 
 QRectF LayerView::boundingRect() const
 {

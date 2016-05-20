@@ -24,7 +24,7 @@ class ISCORE_PLUGIN_SCENARIO_EXPORT  StateView final : public QGraphicsObject
 {
         Q_OBJECT
     public:
-        StateView(StatePresenter &presenter, QGraphicsItem *parent = 0);
+        StateView(StatePresenter &presenter, QGraphicsItem *parent = nullptr);
         virtual ~StateView() = default;
 
         static constexpr int static_type()

@@ -30,23 +30,23 @@ AddLayerModelToSlot::AddLayerModelToSlot(
 AddLayerModelToSlot::AddLayerModelToSlot(
         Path<SlotModel>&& slotPath,
         Path<Process::ProcessModel>&& processPath,
-        const QByteArray& processData) :
+        QByteArray processData) :
     m_slotPath {std::move(slotPath)},
     m_processPath {std::move(processPath)},
-    m_processData{processData},
+    m_processData{std::move(processData)},
     m_createdLayerId{getStrongId(m_slotPath.find().layers)}
 {
 }
 
 AddLayerModelToSlot::AddLayerModelToSlot(
         Path<SlotModel>&& slot,
-        const Id<Process::LayerModel>& layerid,
+        Id<Process::LayerModel> layerid,
         Path<Process::ProcessModel>&& process,
-        const QByteArray& processData):
+        QByteArray processData):
     m_slotPath{std::move(slot)},
     m_processPath{std::move(process)},
-    m_processData{processData},
-    m_createdLayerId{layerid}
+    m_processData{std::move(processData)},
+    m_createdLayerId{std::move(layerid)}
 {
 }
 

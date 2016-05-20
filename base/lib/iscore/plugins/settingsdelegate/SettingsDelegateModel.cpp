@@ -2,8 +2,5 @@
 
 namespace iscore
 {
-SettingsDelegateModelInterface::~SettingsDelegateModelInterface()
-{
-
-}
+SettingsDelegateModelInterface::~SettingsDelegateModelInterface() = default;
 }

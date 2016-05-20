@@ -13,7 +13,7 @@ class EventShortCut final : public QWidget
         Q_OBJECT
     public:
 
-        EventShortCut(QString eventId, QWidget* parent = 0);
+        EventShortCut(QString eventId, QWidget* parent = nullptr);
 
         bool isChecked();
         QString eventName();

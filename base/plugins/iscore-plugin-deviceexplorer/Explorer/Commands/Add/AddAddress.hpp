@@ -9,8 +9,8 @@
 
 #include <iscore_plugin_deviceexplorer_export.h>
 
-class DataStreamInput;
-class DataStreamOutput;
+struct DataStreamInput;
+struct DataStreamOutput;
 
 
 namespace Explorer

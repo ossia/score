@@ -116,12 +116,12 @@ QString textualType(const State::Value& val)
 {
     const auto& impl = val.val.impl();
     ISCORE_ASSERT(impl.which() < ValueTypesArray.size());
-    return ValueTypesArray[impl.which()];
+    return ValueTypesArray.at(impl.which());
 }
 
 static ValueType which(const QString& val)
 {
-    auto it = std::find(ValueTypesArray.begin(), ValueTypesArray.end(), val);
+    auto it = find(ValueTypesArray, val);
     ISCORE_ASSERT(it != ValueTypesArray.end()); // What happens if there is a corrupt save file ?
     return static_cast<State::ValueType>(std::distance(ValueTypesArray.begin(), it));
 }
@@ -186,7 +186,7 @@ static State::ValueImpl fromQJsonValueImpl(const QJsonValue& val, State::ValueTy
         case ValueType::Char:
         {
             auto str = val.toString();
-            if(str.size() > 0)
+            if(!str.isEmpty())
                 return State::ValueImpl{str[0]};
             return State::ValueImpl{QChar{}};
         }
@@ -231,7 +231,7 @@ QString prettyType(const State::Value& val)
 {
     const auto& impl = val.val.impl();
     ISCORE_ASSERT(impl.which() < ValuePrettyTypesArray.size());
-    return ValuePrettyTypesArray[impl.which()];
+    return ValuePrettyTypesArray.at(impl.which());
 }
 
 
@@ -321,7 +321,7 @@ QChar value(const State::Value& val)
             return_type operator()(int) const { return '-'; }
             return_type operator()(float) const { return '-'; }
             return_type operator()(bool v) const { return v ? 'T' : 'F'; }
-            return_type operator()(const QString& s) const { return s.size() > 0 ? s[0] : '-'; } // TODO boueeeff
+            return_type operator()(const QString& s) const { return !s.isEmpty() ? s[0] : '-'; } // TODO boueeeff
                 return_type operator()(const QChar& v) const { return  v; }
             return_type operator()(const tuple_t&) const { return '-'; }
     } visitor{};
@@ -480,25 +480,25 @@ static State::ValueImpl fromQVariantImpl(const QVariant& val)
     switch(auto t = QMetaType::Type(val.type()))
     {
         case QMetaType::Int:
-            return State::ValueImpl{val.value<int>()};
+            return State::ValueImpl{val.toInt()};
         case QMetaType::UInt:
-            return State::ValueImpl{(int)val.value<unsigned int>()};
+            return State::ValueImpl{(int)val.toUInt()};
         case QMetaType::Long:
-            return State::ValueImpl{(int)val.value<long>()};
+            return State::ValueImpl{(int)val.value<int64_t>()};
         case QMetaType::LongLong:
-            return State::ValueImpl{(int)val.value<long long>()};
+            return State::ValueImpl{(int)val.toLongLong()};
         case QMetaType::ULong:
-            return State::ValueImpl{(int)val.value<unsigned long>()};
+            return State::ValueImpl{(int)val.value<uint64_t>()};
         case QMetaType::ULongLong:
-            return State::ValueImpl{(int)val.value<unsigned long long>()};
+            return State::ValueImpl{(int)val.toULongLong()};
         case QMetaType::Short:
-            return State::ValueImpl{(int)val.value<short>()};
+            return State::ValueImpl{(int)val.value<int16_t>()};
         case QMetaType::UShort:
-            return State::ValueImpl{(int)val.value<unsigned short>()};
+            return State::ValueImpl{(int)val.value<uint16_t>()};
         case QMetaType::Float:
-            return State::ValueImpl{val.value<float>()};
+            return State::ValueImpl{val.toFloat()};
         case QMetaType::Double:
-            return State::ValueImpl{(float)val.value<double>()};
+            return State::ValueImpl{(float)val.toDouble()};
         case QMetaType::Bool:
             return State::ValueImpl{val.toBool()};
         case QMetaType::QString:
@@ -506,7 +506,7 @@ static State::ValueImpl fromQVariantImpl(const QVariant& val)
         case QMetaType::Char:
             return State::ValueImpl{(QChar)val.value<char>()};
         case QMetaType::QChar:
-            return State::ValueImpl{val.value<char>()};
+            return State::ValueImpl{val.toChar()};
         case QMetaType::QVariantList:
         {
             auto list = val.value<QVariantList>();

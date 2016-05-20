@@ -25,51 +25,7 @@ namespace Scenario
 namespace Command
 {
 template < typename Scenario_T>
-class ISCORE_PLUGIN_SCENARIO_EXPORT MergeTimeNodes : public iscore::SerializableCommand
-{
-        // No ISCORE_COMMAND here since it's a template.
-    public:
-        const CommandParentFactoryKey& parentKey() const override
-        {
-            return ScenarioCommandFactoryName();
-        }
-        static const CommandFactoryKey& static_key()
-        {
-            auto name = QString("MergeTimeNodes");
-            static const CommandFactoryKey kagi{std::move(name)};
-            return kagi;
-        }
-        const CommandFactoryKey& key() const override
-        {
-            return static_key();
-        }
-        QString description() const override
-        {
-            return QObject::tr("Merging TimeNodes");
-        }
-
-        MergeTimeNodes() = default;
-
-        MergeTimeNodes(Path<Scenario_T>&& scenar,
-                       const Id<TimeNodeModel>& clickedTn,
-                       const Id<TimeNodeModel>& hoveredTn)
-        {}
-
-        void undo() const override {}
-        void redo() const override {}
-
-        void update(Path<Scenario_T> scenar,
-                    const Id<TimeNodeModel>& clickedTn,
-                    const Id<TimeNodeModel>& hoveredTn) {}
-
-    protected:
-        void serializeImpl(DataStreamInput& s) const override
-        {}
-
-        void deserializeImpl(DataStreamOutput& s) override
-        {}
-};
-
+class ISCORE_PLUGIN_SCENARIO_EXPORT MergeTimeNodes : std::false_type { };
 template<>
 class ISCORE_PLUGIN_SCENARIO_EXPORT MergeTimeNodes<ScenarioModel> : public iscore::SerializableCommand
 {
@@ -97,11 +53,11 @@ class ISCORE_PLUGIN_SCENARIO_EXPORT MergeTimeNodes<ScenarioModel> : public iscor
         MergeTimeNodes() = default;
 
         MergeTimeNodes(Path<ScenarioModel>&& scenar,
-                       const Id<TimeNodeModel>& clickedTn,
-                       const Id<TimeNodeModel>& hoveredTn):
+                       Id<TimeNodeModel> clickedTn,
+                       Id<TimeNodeModel> hoveredTn):
             m_scenarioPath{scenar},
-            m_movingTnId{clickedTn},
-            m_destinationTnId{hoveredTn}
+            m_movingTnId{std::move(clickedTn)},
+            m_destinationTnId{std::move(hoveredTn)}
         {
             auto& scenario = m_scenarioPath.find();
             auto& tn = scenario.timeNode(m_movingTnId);
