@@ -39,7 +39,7 @@ class Creation_FromNothing final : public CreationState<Scenario_T, ToolPalette_
                 this->clearCreatedIds();
             });
 
-            QState* mainState = new QState{this};
+            auto mainState = new QState{this};
             mainState->setObjectName("Main state");
             {
                 auto pressed = new QState{mainState};
@@ -194,7 +194,7 @@ class Creation_FromNothing final : public CreationState<Scenario_T, ToolPalette_
                 });
             }
 
-            QState* rollbackState = new QState{this};
+            auto rollbackState = new QState{this};
             rollbackState->setObjectName("Rollback");
             iscore::make_transition<iscore::Cancel_Transition>(mainState, rollbackState);
             rollbackState->addTransition(finalState);

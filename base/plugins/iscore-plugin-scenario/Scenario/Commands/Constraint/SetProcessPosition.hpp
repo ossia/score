@@ -4,8 +4,8 @@
 
 #include <iscore/tools/ModelPath.hpp>
 
-class DataStreamInput;
-class DataStreamOutput;
+struct DataStreamInput;
+struct DataStreamOutput;
 
 namespace Process
 {
@@ -24,8 +24,8 @@ class PutProcessBefore final : public iscore::SerializableCommand
         // Put proc2 before proc
         PutProcessBefore(
                 Path<Scenario::ConstraintModel>&& cst,
-                const Id<Process::ProcessModel>& proc,
-                const Id<Process::ProcessModel>& proc2);
+                Id<Process::ProcessModel> proc,
+                Id<Process::ProcessModel> proc2);
 
         void undo() const override;
         void redo() const override;
@@ -48,7 +48,7 @@ class PutProcessToEnd final : public iscore::SerializableCommand
         // Put proc2 before proc
         PutProcessToEnd(
                 Path<Scenario::ConstraintModel>&& cst,
-                const Id<Process::ProcessModel>& proc);
+                Id<Process::ProcessModel> proc);
 
         void undo() const override;
         void redo() const override;
@@ -69,8 +69,8 @@ class SwapProcessPosition final : public iscore::SerializableCommand
     public:
         SwapProcessPosition(
                 Path<Scenario::ConstraintModel>&& cst,
-                const Id<Process::ProcessModel>& proc,
-                const Id<Process::ProcessModel>& proc2);
+                Id<Process::ProcessModel> proc,
+                Id<Process::ProcessModel> proc2);
 
         void undo() const override;
         void redo() const override;

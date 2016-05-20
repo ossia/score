@@ -21,7 +21,9 @@ struct ISCORE_LIB_PROCESS_EXPORT ColorRef
     public:
         ColorRef() = default;
         ColorRef(const ColorRef& other) = default;
+        ColorRef(ColorRef&& other) = default;
         ColorRef& operator=(const ColorRef& other) = default;
+        ColorRef& operator=(ColorRef&& other) = default;
 
         ColorRef(QColor Skin::*s):
             ref{&(Skin::instance().*s)}

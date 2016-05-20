@@ -20,10 +20,10 @@ class ISCORE_LIB_BASE_EXPORT IdentifiedObject : public IdentifiedObjectAbstract
     public:
         using model_type = model;
         template<typename... Args>
-        IdentifiedObject(const Id<model>& id,
+        IdentifiedObject(Id<model> id,
                          Args&& ... args) :
             IdentifiedObjectAbstract {std::forward<Args> (args)...},
-            m_id {id}
+            m_id {std::move(id)}
         {
             m_id.m_ptr = this;
         }

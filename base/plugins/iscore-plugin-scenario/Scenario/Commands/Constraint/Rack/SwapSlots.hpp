@@ -6,8 +6,8 @@
 
 #include <iscore/tools/SettableIdentifier.hpp>
 
-class DataStreamInput;
-class DataStreamOutput;
+struct DataStreamInput;
+struct DataStreamOutput;
 
 namespace Scenario
 {
@@ -21,8 +21,8 @@ class SwapSlots final : public iscore::SerializableCommand
         public:
             SwapSlots(
                 Path<RackModel>&& rack,
-                const Id<SlotModel>& first,
-                const Id<SlotModel>& second);
+                Id<SlotModel> first,
+                Id<SlotModel> second);
 
         void undo() const override;
         void redo() const override;

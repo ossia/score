@@ -7,9 +7,7 @@
 
 namespace iscore
 {
-SerializableCommand::~SerializableCommand()
-{
-}
+SerializableCommand::~SerializableCommand() = default;
 
 QByteArray SerializableCommand::serialize() const
 {

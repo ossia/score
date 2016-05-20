@@ -5,10 +5,7 @@
 
 namespace iscore
 {
-SettingsDelegateFactory::~SettingsDelegateFactory()
-{
-
-}
+SettingsDelegateFactory::~SettingsDelegateFactory() = default;
 
 SettingsDelegatePresenterInterface*SettingsDelegateFactory::makePresenter(
         SettingsDelegateModelInterface& m,

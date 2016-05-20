@@ -6,8 +6,8 @@
 #include <iscore/tools/ModelPath.hpp>
 #include <vector>
 #include <iscore_plugin_automation_export.h>
-class DataStreamInput;
-class DataStreamOutput;
+struct DataStreamInput;
+struct DataStreamOutput;
 /** Note : this command is for internal use only, in recording **/
 
 namespace Automation

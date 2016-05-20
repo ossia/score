@@ -66,10 +66,7 @@ class ConcreteFactoryList :
         using factory_type = FactoryType;
         using key_type = typename FactoryType::ConcreteFactoryKey;
 
-        virtual ~ConcreteFactoryList() noexcept
-        {
-
-        }
+        ~ConcreteFactoryList() noexcept override = default;
 
         static const iscore::AbstractFactoryKey& static_abstractFactoryKey() {
             return FactoryType::static_abstractFactoryKey();

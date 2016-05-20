@@ -42,7 +42,7 @@ namespace iscore
                                                Functor f,
                                                std::enable_if_t<std::is_enum<MenuElement>::value>* = nullptr)
             {
-                QAction* act = new QAction {MenuInterface::name(elt), this};
+                auto act = new QAction {MenuInterface::name(elt), this};
                 connect(act, &QAction::triggered, f);
                 insertActionIntoToplevelMenu(tl, act);
                 return act;
@@ -77,7 +77,7 @@ namespace iscore
             void addSeparatorIntoToplevelMenu(ToplevelMenuElement tl,
                                               MenuElement sep_type)
             {
-                QAction* sep_act = new QAction {this};
+                auto sep_act = new QAction {this};
                 sep_act->setObjectName(MenuInterface::name(sep_type));
                 sep_act->setSeparator(true);
                 insertActionIntoToplevelMenu(tl,
@@ -96,8 +96,6 @@ namespace iscore
             {
                 return m_menusMap.at(i);
             }
-
-        signals:
 
         public slots:
             void insertActionIntoMenubar(PositionedMenuAction);

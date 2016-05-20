@@ -36,7 +36,7 @@ class ISCORE_LIB_DEVICE_EXPORT DeviceInterface : public QObject
         Q_OBJECT
 
     public:
-        explicit DeviceInterface(const Device::DeviceSettings& s);
+        explicit DeviceInterface(Device::DeviceSettings s);
         virtual ~DeviceInterface();
 
         const Device::DeviceSettings& settings() const;

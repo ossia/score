@@ -102,7 +102,5 @@ CommonSelectionState::CommonSelectionState(
     }
 }
 
-CommonSelectionState::~CommonSelectionState()
-{
+CommonSelectionState::~CommonSelectionState() = default;
 
-}

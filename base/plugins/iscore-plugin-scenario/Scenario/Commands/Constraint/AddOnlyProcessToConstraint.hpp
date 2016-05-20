@@ -8,8 +8,8 @@
 #include <iscore/tools/SettableIdentifier.hpp>
 
 #include <iscore_plugin_scenario_export.h>
-class DataStreamInput;
-class DataStreamOutput;
+struct DataStreamInput;
+struct DataStreamOutput;
 namespace Process {
 class ProcessFactory;
 class ProcessModel;
@@ -26,11 +26,11 @@ class ISCORE_PLUGIN_SCENARIO_EXPORT AddOnlyProcessToConstraint final : public is
     public:
         AddOnlyProcessToConstraint(
             Path<ConstraintModel>&& constraint,
-            const UuidKey<Process::ProcessFactory>& process);
+            UuidKey<Process::ProcessFactory> process);
         AddOnlyProcessToConstraint(
             Path<ConstraintModel>&& constraint,
-            const Id<Process::ProcessModel>& idToUse,
-            const UuidKey<Process::ProcessFactory>& process);
+            Id<Process::ProcessModel> idToUse,
+            UuidKey<Process::ProcessFactory> process);
 
         void undo() const override;
         void redo() const override;

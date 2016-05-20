@@ -37,7 +37,7 @@ class ChangeElementComments final : public iscore::SerializableCommand
 
         ChangeElementComments(Path<T>&& path, QString newComments) :
             m_path{std::move(path)},
-            m_newComments {newComments}
+            m_newComments {std::move(newComments)}
         {
             auto& obj = m_path.find();
             m_oldComments = obj.metadata.comment();

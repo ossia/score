@@ -22,24 +22,24 @@ namespace Command
 {
 CreateEvent_State::CreateEvent_State(
         const Scenario::ScenarioModel& scenario,
-        const Id<TimeNodeModel>& timeNode,
+        Id<TimeNodeModel> timeNode,
         double stateY):
     m_newEvent{getStrongId(scenario.events)},
     m_createdName{RandomNameProvider::generateRandomName()},
     m_command{scenario,
               m_newEvent,
               stateY},
-    m_timeNode{timeNode}
+    m_timeNode{std::move(timeNode)}
 {
 
 }
 
 CreateEvent_State::CreateEvent_State(
         const Path<Scenario::ScenarioModel>& scenario,
-        const Id<TimeNodeModel> &timeNode,
+        Id<TimeNodeModel> timeNode,
         double stateY):
     CreateEvent_State{scenario.find(),
-                      timeNode,
+                      std::move(timeNode),
                       stateY}
 {
 

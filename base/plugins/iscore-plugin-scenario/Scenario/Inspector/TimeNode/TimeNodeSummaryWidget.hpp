@@ -16,7 +16,7 @@ class TimeNodeModel;
 class TimeNodeSummaryWidget : public QWidget
 {
     public:
-	explicit TimeNodeSummaryWidget(const TimeNodeModel&, const iscore::DocumentContext& doc, QWidget *parent = 0);
+	explicit TimeNodeSummaryWidget(const TimeNodeModel&, const iscore::DocumentContext& doc, QWidget *parent = nullptr);
 
     private:
 	std::unique_ptr<iscore::SelectionDispatcher> m_selectionDispatcher;

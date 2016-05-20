@@ -7,8 +7,8 @@
 
 #include <iscore/tools/SettableIdentifier.hpp>
 
-class DataStreamInput;
-class DataStreamOutput;
+struct DataStreamInput;
+struct DataStreamOutput;
 namespace Process { class LayerModel; }
 
 namespace Scenario
@@ -28,7 +28,7 @@ class RemoveLayerModelFromSlot final : public iscore::SerializableCommand
 
             RemoveLayerModelFromSlot(
                 Path<SlotModel>&& slotPath,
-                const Id<Process::LayerModel>& layerId);
+                Id<Process::LayerModel> layerId);
 
         void undo() const override;
         void redo() const override;

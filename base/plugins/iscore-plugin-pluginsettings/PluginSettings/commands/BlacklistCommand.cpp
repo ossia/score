@@ -3,8 +3,8 @@
 #include "BlacklistCommand.hpp"
 #include <iscore/command/SerializableCommand.hpp>
 
-class DataStreamInput;
-class DataStreamOutput;
+struct DataStreamInput;
+struct DataStreamOutput;
 
 namespace PluginSettings
 {

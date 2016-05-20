@@ -6,10 +6,7 @@ iscore::Command::Command():
 
 }
 
-iscore::Command::~Command()
-{
-
-}
+iscore::Command::~Command() = default;
 
 quint32 iscore::Command::timestamp() const
 {

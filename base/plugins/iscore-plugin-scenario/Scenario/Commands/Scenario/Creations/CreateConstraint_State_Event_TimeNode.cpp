@@ -24,27 +24,29 @@ namespace Command
 {
 CreateConstraint_State_Event_TimeNode::CreateConstraint_State_Event_TimeNode(
         const Scenario::ScenarioModel& scenario,
-        const Id<StateModel>& startState,
-        const TimeValue& date,
+        Id<StateModel> startState,
+        TimeValue date,
         double endStateY):
     m_newTimeNode{getStrongId(scenario.timeNodes)},
     m_createdName{RandomNameProvider::generateRandomName()},
     m_command{scenario,
-              startState,
+              std::move(startState),
               m_newTimeNode,
               endStateY},
-    m_date{date}
+    m_date{std::move(date)}
 {
 
 }
 
 CreateConstraint_State_Event_TimeNode::CreateConstraint_State_Event_TimeNode(
         const Path<Scenario::ScenarioModel>& scenarioPath,
-        const Id<StateModel> &startState,
-        const TimeValue &date,
+        Id<StateModel> startState,
+        TimeValue date,
         double endStateY):
     CreateConstraint_State_Event_TimeNode{scenarioPath.find(),
-                                          startState, date, endStateY}
+                                          std::move(startState),
+                                          std::move(date),
+                                          endStateY}
 {
 
 }

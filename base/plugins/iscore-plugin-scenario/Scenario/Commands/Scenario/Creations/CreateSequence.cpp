@@ -48,19 +48,19 @@ namespace Command
 {
 CreateSequence::CreateSequence(
         const Scenario::ScenarioModel& scenario,
-        const Id<StateModel>& startState,
-        const TimeValue& date,
+        Id<StateModel> start,
+        TimeValue date,
         double endStateY):
     m_command{scenario,
-              startState,
-              date,
+              std::move(start),
+              std::move(date),
               endStateY}
 {
     // TESTME
 
     // We get the device explorer, and we fetch the new states.
     auto& scenar = m_command.scenarioPath().find();
-    const auto& startMessages = flatten(scenar.state(startState).messages().rootNode());
+    const auto& startMessages = flatten(scenar.state(startState()).messages().rootNode());
 
     std::vector<Device::FullAddressSettings> endAddresses;
     endAddresses.reserve(startMessages.size());
@@ -171,11 +171,13 @@ CreateSequence::CreateSequence(
 
 CreateSequence::CreateSequence(
         const Path<Scenario::ScenarioModel>& scenarioPath,
-        const Id<StateModel>& startState,
-        const TimeValue& date,
+        Id<StateModel> startState,
+        TimeValue date,
         double endStateY):
     CreateSequence{scenarioPath.find(),
-                   startState, date, endStateY}
+                   std::move(startState),
+                   std::move(date),
+                   endStateY}
 {
 
 }

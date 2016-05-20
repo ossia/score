@@ -20,14 +20,10 @@ struct VerticalExtent final : public QPointF
         Q_DECL_CONSTEXPR VerticalExtent() = default;
         Q_DECL_CONSTEXPR VerticalExtent(qreal x, qreal y): QPointF{x, y} {}
         Q_DECL_CONSTEXPR VerticalExtent(const VerticalExtent&) = default;
-        Q_DECL_CONSTEXPR VerticalExtent(VerticalExtent&&) = default;
-        Q_DECL_CONSTEXPR VerticalExtent(const QPointF& other): QPointF{other} {}
-        Q_DECL_CONSTEXPR VerticalExtent(QPointF&& other): QPointF{std::move(other)} {}
-        VerticalExtent& operator =(const VerticalExtent& other) { static_cast<QPointF&>(*this) = other; return *this; }
-        VerticalExtent& operator =(VerticalExtent&& other) { static_cast<QPointF&>(*this) = std::move(other); return *this; }
-        VerticalExtent& operator =(const QPointF& other) {  static_cast<QPointF&>(*this) = other; return *this;  }
-        VerticalExtent& operator =(QPointF&& other) {  static_cast<QPointF&>(*this) = std::move(other); return *this; }
-
+        Q_DECL_CONSTEXPR VerticalExtent(VerticalExtent&&) noexcept = default;
+        Q_DECL_CONSTEXPR VerticalExtent(QPointF other): QPointF{other} {}
+        VerticalExtent& operator =(VerticalExtent other) { static_cast<QPointF&>(*this) = other; return *this; }
+        VerticalExtent& operator =(QPointF other) {  static_cast<QPointF&>(*this) = other; return *this;  }
 
         Q_DECL_CONSTEXPR VerticalExtent operator*(qreal other)
         {

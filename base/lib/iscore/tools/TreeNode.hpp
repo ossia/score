@@ -35,7 +35,7 @@ class TreeNode : public DataType
         }
 
         TreeNode(TreeNode&& other):
-            DataType(static_cast<DataType&&>(other)),
+            DataType(std::move(static_cast<DataType&&>(other))),
             m_parent{other.m_parent},
             m_children(std::move(other.m_children))
         {
@@ -71,17 +71,17 @@ class TreeNode : public DataType
             return *this;
         }
 
-        TreeNode(const DataType& data, TreeNode* parent):
-            DataType(data),
+        TreeNode(DataType data, TreeNode* parent):
+            DataType(std::move(data)),
             m_parent{parent}
         {
         }
 
         // Clone
         explicit TreeNode(
-                 const TreeNode& source,
+                 TreeNode source,
                  TreeNode* parent):
-            TreeNode{source}
+            TreeNode{std::move(source)}
         {
             m_parent = parent;
         }

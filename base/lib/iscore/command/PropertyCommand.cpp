@@ -3,10 +3,7 @@
 #include "PropertyCommand.hpp"
 #include <iscore/tools/ObjectPath.hpp>
 
-iscore::PropertyCommand::~PropertyCommand()
-{
-
-}
+iscore::PropertyCommand::~PropertyCommand() = default;
 
 void iscore::PropertyCommand::undo() const
 {

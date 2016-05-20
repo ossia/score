@@ -263,10 +263,10 @@ ScenarioPasteElements::ScenarioPasteElements(
 
     // Set the correct positions / dates.
     // Take the earliest constraint or timenode and compute the delta; apply the delta everywhere.
-    if(constraints.size() > 0 || timenodes.size() > 0) // Should always be the case.
+    if(!constraints.empty() || !timenodes.empty()) // Should always be the case.
     {
         auto earliestTime =
-                constraints.size() > 0
+                !constraints.empty()
                 ? constraints.front()->startDate()
                 : timenodes.front()->date();
         for(const ConstraintModel* constraint : constraints)
@@ -428,7 +428,7 @@ void ScenarioPasteElements::redo() const
                                    cst->id(),
                                    scenario);
 
-        if(cst->racks.size() > 0)
+        if(!cst->racks.empty())
         {
             const auto& rackId = cst->racks.begin()->id();
             const auto& vms = cst->viewModels();

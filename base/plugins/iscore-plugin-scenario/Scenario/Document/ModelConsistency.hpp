@@ -15,7 +15,7 @@ class ISCORE_PLUGIN_SCENARIO_EXPORT ModelConsistency final : public QObject
         bool m_warning{false};
 
     public:
-        explicit ModelConsistency(QObject *parent = 0);
+        explicit ModelConsistency(QObject *parent);
         ModelConsistency(const ModelConsistency& other);
         ModelConsistency& operator=(const ModelConsistency& other);
 

@@ -22,7 +22,7 @@ class CreateCommentBlock final : public iscore::SerializableCommand
         public:
             CreateCommentBlock(
                 const Path<ScenarioModel>& scenarioPath,
-                const TimeValue& date,
+                TimeValue date,
                 double yPosition);
 
         void undo() const override;

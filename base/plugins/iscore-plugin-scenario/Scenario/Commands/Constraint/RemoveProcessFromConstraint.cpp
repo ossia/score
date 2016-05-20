@@ -30,9 +30,9 @@ namespace Command
 
 RemoveProcessFromConstraint::RemoveProcessFromConstraint(
         Path<ConstraintModel>&& constraintPath,
-        const Id<Process::ProcessModel>& processId) :
+        Id<Process::ProcessModel> processId) :
     m_path {std::move(constraintPath) },
-    m_processId {processId}
+    m_processId {std::move(processId)}
 {
     auto& constraint = m_path.find();
 

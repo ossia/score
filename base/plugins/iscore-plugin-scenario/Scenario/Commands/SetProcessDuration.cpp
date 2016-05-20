@@ -13,9 +13,9 @@ namespace Command
 
 SetProcessDuration::SetProcessDuration(
         Path<Process::ProcessModel>&& path,
-        const TimeValue& newVal) :
+        TimeValue newVal) :
     m_path {std::move(path)},
-    m_new {newVal}
+    m_new {std::move(newVal)}
 {
     m_old = m_path.find().duration();
 }

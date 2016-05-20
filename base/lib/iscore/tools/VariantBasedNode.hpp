@@ -25,7 +25,7 @@ class VariantBasedNode
 {
     public:
         VariantBasedNode(const VariantBasedNode& t) = default;
-        VariantBasedNode(VariantBasedNode&& t) = default;
+        VariantBasedNode(VariantBasedNode&& t) noexcept = default;
         VariantBasedNode& operator=(const VariantBasedNode& t) = default;
 
         VariantBasedNode():

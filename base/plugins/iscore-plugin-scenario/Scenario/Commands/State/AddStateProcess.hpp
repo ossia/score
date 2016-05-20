@@ -24,11 +24,11 @@ class ISCORE_PLUGIN_SCENARIO_EXPORT AddStateProcessToState final :
     public:
         AddStateProcessToState(
             Path<StateModel>&& state,
-            const UuidKey<Process::StateProcessFactory>& process);
+            UuidKey<Process::StateProcessFactory> process);
         AddStateProcessToState(
             Path<StateModel>&& state,
-            const Id<Process::StateProcess>& idToUse,
-            const UuidKey<Process::StateProcessFactory>& process);
+            Id<Process::StateProcess> idToUse,
+            UuidKey<Process::StateProcessFactory> process);
 
         void undo() const override;
         void redo() const override;

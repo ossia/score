@@ -78,7 +78,7 @@ struct is_value_tag {
         static const constexpr bool value = false;
 };
 #define ISCORE_DECL_VALUE_TYPE(Type) \
-    template<> struct is_value_tag<Type> { static const constexpr bool value = true; };
+    template<> struct is_value_tag< Type > { static const constexpr bool value = true; };
 
 template<typename T>
 struct is_value_t

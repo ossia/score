@@ -1,6 +1,7 @@
 #pragma once
 #include <iscore/tools/ObjectIdentifier.hpp>
 #include <QHash>
+#include <QObject>
 #include <QPointer>
 #include <QString>
 #include <algorithm>
@@ -53,12 +54,7 @@ class ISCORE_LIB_BASE_EXPORT ObjectPath
         ObjectPath() = default;
         QString toString() const;
 
-        explicit ObjectPath(const std::vector<ObjectIdentifier>& vec) :
-            m_objectIdentifiers {vec}
-        {
-        }
-
-        explicit ObjectPath(std::vector<ObjectIdentifier>&& vec) :
+        explicit ObjectPath(std::vector<ObjectIdentifier> vec) :
             m_objectIdentifiers {std::move(vec)}
         {
         }

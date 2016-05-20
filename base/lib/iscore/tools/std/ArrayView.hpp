@@ -1,8 +1,14 @@
 #pragma once
-#include <alloca.h>
+
 #include <cstddef>
 #include <cassert>
 #include <stdexcept>
+
+#if defined(_WIN32)
+  #include <malloc.h>
+#else
+  #include <alloca.h>
+#endif
 
 
 namespace iscore

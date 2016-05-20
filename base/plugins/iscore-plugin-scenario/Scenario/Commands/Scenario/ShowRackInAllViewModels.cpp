@@ -16,9 +16,9 @@ namespace Command
 
 ShowRackInAllViewModels::ShowRackInAllViewModels(
         Path<ConstraintModel>&& constraint_path,
-        const Id<RackModel>& rackId) :
+        Id<RackModel> rackId) :
     m_constraintPath {std::move(constraint_path)},
-    m_rackId{rackId}
+    m_rackId{std::move(rackId)}
 {
     auto cst = m_constraintPath.try_find();
     if(cst)

@@ -17,11 +17,11 @@ class AddStateWithData final : public iscore::AggregateCommand
         public:
             AddStateWithData(
                 const Scenario::ScenarioModel& scenario,
-                const Id<EventModel>& ev,
+                Id<EventModel> ev,
                 double ypos,
                 State::MessageList&& stateData)
         {
-            auto createStateCmd =  new CreateState{scenario, ev, ypos};
+            auto createStateCmd =  new CreateState{scenario, std::move(ev), ypos};
 
             // We create the path of the to-be state
             auto path = createStateCmd->scenarioPath()

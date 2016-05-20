@@ -5,8 +5,8 @@
 
 #include <iscore/tools/ModelPath.hpp>
 
-class DataStreamInput;
-class DataStreamOutput;
+struct DataStreamInput;
+struct DataStreamOutput;
 namespace Process { class ProcessModel; }
 
 namespace Scenario
@@ -21,7 +21,7 @@ class SetProcessDuration final : public iscore::SerializableCommand
 
         SetProcessDuration(
                 Path<Process::ProcessModel>&& path,
-                const TimeValue& newVal);
+                TimeValue newVal);
 
         void undo() const override;
         void redo() const override;

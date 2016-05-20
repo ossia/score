@@ -3,8 +3,8 @@
 #include <iscore/command/SerializableCommand.hpp>
 #include <iscore/tools/ModelPath.hpp>
 #include <iscore_plugin_scenario_export.h>
-class DataStreamInput;
-class DataStreamOutput;
+struct DataStreamInput;
+struct DataStreamOutput;
 
 namespace Scenario
 {
@@ -27,8 +27,7 @@ class ISCORE_PLUGIN_SCENARIO_EXPORT ResizeSlotVertically final : public iscore::
         void undo() const override;
         void redo() const override;
 
-        template<typename T>
-        void update(const T&, double size)
+        void update(unused_t, double size)
         {
             m_newSize = size;
         }

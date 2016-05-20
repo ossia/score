@@ -15,7 +15,7 @@ namespace State
                       && !str.contains("//"));
 
         QStringList path = str.split("/");
-        valid &= path.size() > 0;
+        valid &= !path.empty();
 
         path.first().remove(":");
 

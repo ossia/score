@@ -2,8 +2,6 @@
 
 namespace iscore
 {
-PanelDelegateFactory::~PanelDelegateFactory()
-{
+PanelDelegateFactory::~PanelDelegateFactory() = default;
 
-}
 }

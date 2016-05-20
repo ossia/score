@@ -45,7 +45,7 @@ RemoveRackFromConstraint::RemoveRackFromConstraint(
         Path<ConstraintModel>&& constraintPath,
         Id<RackModel> rackId) :
     m_path {constraintPath},
-    m_rackId {rackId}
+    m_rackId {std::move(rackId)}
 {
     auto& constraint = m_path.find();
 

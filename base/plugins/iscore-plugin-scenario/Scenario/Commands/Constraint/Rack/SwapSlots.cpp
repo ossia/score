@@ -14,11 +14,11 @@ namespace Command
 {
 SwapSlots::SwapSlots(
         Path<RackModel>&& rack,
-        const Id<SlotModel>& first,
-        const Id<SlotModel>& second):
+        Id<SlotModel> first,
+        Id<SlotModel> second):
     m_rackPath{std::move(rack)},
-    m_first{first},
-    m_second{second}
+    m_first{std::move(first)},
+    m_second{std::move(second)}
 {
 
 }

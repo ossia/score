@@ -24,9 +24,9 @@ namespace Command
 {
 AddLayerInNewSlot::AddLayerInNewSlot(
         Path<ConstraintModel>&& constraintPath,
-        const Id<Process::ProcessModel>& process) :
+        Id<Process::ProcessModel> process) :
     m_path {std::move(constraintPath) },
-    m_sharedProcessModelId{process}
+    m_sharedProcessModelId{std::move(process)}
 {
     auto& constraint = m_path.find();
 

@@ -1,10 +1,7 @@
 #include "LayerPresenter.hpp"
 namespace Process
 {
-LayerPresenter::~LayerPresenter()
-{
-
-}
+LayerPresenter::~LayerPresenter() = default;
 
 bool LayerPresenter::focused() const
 {

@@ -7,8 +7,8 @@
 #include <Curve/Palette/CurvePoint.hpp>
 #include <iscore/tools/SettableIdentifier.hpp>
 #include <iscore_plugin_curve_export.h>
-class DataStreamInput;
-class DataStreamOutput;
+struct DataStreamInput;
+struct DataStreamOutput;
 
 namespace Curve
 {

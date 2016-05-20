@@ -204,7 +204,7 @@ class Path
 
         bool valid() const
         {
-            return m_impl.vec().size() > 0;
+            return !m_impl.vec().empty();
         }
 
     private:

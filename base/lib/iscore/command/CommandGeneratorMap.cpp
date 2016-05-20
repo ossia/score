@@ -1,5 +1,2 @@
 #include "CommandGeneratorMap.hpp"
-CommandFactory::~CommandFactory()
-{
-
-}
+CommandFactory::~CommandFactory() = default;

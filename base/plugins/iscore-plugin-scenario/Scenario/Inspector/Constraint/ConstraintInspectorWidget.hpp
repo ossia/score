@@ -57,7 +57,7 @@ class ISCORE_PLUGIN_SCENARIO_EXPORT ConstraintInspectorWidget final :
                 const ConstraintModel& object,
                 std::unique_ptr<ConstraintInspectorDelegate> del,
                 const iscore::DocumentContext& context,
-                QWidget* parent = 0);
+                QWidget* parent = nullptr);
 
         ~ConstraintInspectorWidget();
 

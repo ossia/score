@@ -12,7 +12,4 @@ ProcessStateDataInterface::ProcessStateDataInterface(
     });
 }
 
-ProcessStateDataInterface::~ProcessStateDataInterface()
-{
-
-}
+ProcessStateDataInterface::~ProcessStateDataInterface() = default;

@@ -40,9 +40,9 @@ class SmartTool final : public ToolBase<ToolPalette_T>
             //this->localSM().setInitialState(m_state);
 
             // Other actions; they are in //.
-            QState* actionsState = new QState(&this->localSM());
+            auto actionsState = new QState(&this->localSM());
             {
-                QState* waitState = new QState(actionsState);
+                auto waitState = new QState(actionsState);
                 actionsState->setInitialState(waitState);
 
                 MoveConstraintWrapper_T::template make<Scenario_T, ToolPalette_T>(this->m_parentSM, waitState, *actionsState);
