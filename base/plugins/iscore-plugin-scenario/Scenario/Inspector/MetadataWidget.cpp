@@ -42,8 +42,8 @@ MetadataWidget::MetadataWidget(
     auto headerLay = new iscore::MarginLess<QHBoxLayout>;
 
     // Name(s)
-    QWidget* descriptionWidget = new QWidget {this};
-    QFormLayout* descriptionLay = new iscore::MarginLess<QFormLayout>{descriptionWidget};
+    auto descriptionWidget = new QWidget {this};
+    auto descriptionLay = new iscore::MarginLess<QFormLayout>{descriptionWidget};
 
     m_scriptingNameLine = new QLineEdit{metadata->name(), this};
     m_labelLine = new QLineEdit{metadata->label(), this};

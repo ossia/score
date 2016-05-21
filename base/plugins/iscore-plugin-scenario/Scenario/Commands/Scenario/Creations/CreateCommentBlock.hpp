@@ -21,7 +21,7 @@ class CreateCommentBlock final : public iscore::SerializableCommand
         ISCORE_COMMAND_DECL(ScenarioCommandFactoryName(), CreateCommentBlock, "Create a comment block")
         public:
             CreateCommentBlock(
-                const Path<ScenarioModel>& scenarioPath,
+                Path<ScenarioModel>&& scenarioPath,
                 TimeValue date,
                 double yPosition);
 

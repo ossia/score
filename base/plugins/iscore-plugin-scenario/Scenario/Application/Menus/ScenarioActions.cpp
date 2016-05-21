@@ -15,10 +15,7 @@ ScenarioActions::ScenarioActions(
 
 }
 
-ScenarioActions::~ScenarioActions()
-{
-
-}
+ScenarioActions::~ScenarioActions() = default;
 
 QList<QAction*> ScenarioActions::actions() const
 {

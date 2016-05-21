@@ -87,7 +87,7 @@ ConstraintInspectorWidget::ConstraintInspectorWidget(
     auto speedWidg = new QWidget{this};
     auto speedLay = new iscore::MarginLess<QVBoxLayout>{speedWidg};
 
-    QSlider* speedSlider = new QSlider{Qt::Horizontal};
+    auto speedSlider = new QSlider{Qt::Horizontal};
     speedSlider->setTickInterval(100);
     speedSlider->setMinimum(-100);
     speedSlider->setMaximum(500);
@@ -109,7 +109,7 @@ ConstraintInspectorWidget::ConstraintInspectorWidget(
     m_delegate->addWidgets_pre(m_properties, this);
 
     ////// BODY
-    QPushButton* setAsDisplayedConstraint = new QPushButton {tr("Full view"), this};
+    auto setAsDisplayedConstraint = new QPushButton {tr("Full view"), this};
     connect(setAsDisplayedConstraint, &QPushButton::clicked,
             this, [this] {
         auto& base = get<ScenarioDocumentModel> (*documentFromObject(m_model));
@@ -189,10 +189,7 @@ ConstraintInspectorWidget::ConstraintInspectorWidget(
     updateAreaLayout(m_properties);
 }
 
-ConstraintInspectorWidget::~ConstraintInspectorWidget()
-{
-
-}
+ConstraintInspectorWidget::~ConstraintInspectorWidget() = default;
 
 const ConstraintModel& ConstraintInspectorWidget::model() const
 {
@@ -215,7 +212,7 @@ void ConstraintInspectorWidget::updateDisplayedValues()
 
 QWidget* ConstraintInspectorWidget::makeStatesWidget(Scenario::ScenarioModel* scenar)
 {
-    QWidget* eventWid = new QWidget{this};
+    auto eventWid = new QWidget{this};
     auto eventLay = new iscore::MarginLess<QHBoxLayout>{eventWid};
 
     eventLay->addStretch(1);

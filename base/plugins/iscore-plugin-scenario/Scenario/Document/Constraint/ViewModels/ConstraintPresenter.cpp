@@ -107,10 +107,7 @@ ConstraintPresenter::ConstraintPresenter(
     }
 }
 
-ConstraintPresenter::~ConstraintPresenter()
-{
-
-}
+ConstraintPresenter::~ConstraintPresenter() = default;
 
 void ConstraintPresenter::updateScaling()
 {

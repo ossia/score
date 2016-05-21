@@ -49,10 +49,10 @@ ProcessTabWidget::ProcessTabWidget(const ConstraintInspectorWidget& parentCstr, 
     m_processSection->setObjectName("Processes");
 
     // add new process widget
-    QWidget* addProc = new QWidget(this);
-    QHBoxLayout* addProcLayout = new iscore::MarginLess<QHBoxLayout>{addProc};
+    auto addProc = new QWidget(this);
+    auto addProcLayout = new iscore::MarginLess<QHBoxLayout>{addProc};
 
-    QToolButton* addProcButton = new QToolButton;
+    auto addProcButton = new QToolButton;
     addProcButton->setText("+");
     QIcon addIcon;
     makeIcons(&addIcon, QString(":/icons/condition_add_on.png"), QString(":/icons/condition_add_off.png"));
@@ -153,8 +153,8 @@ void ProcessTabWidget::displaySharedProcess(const Process::ProcessModel& process
    });
 
     // Start & end state
-    QWidget* stateWidget = new QWidget;
-    QFormLayout* stateLayout = new iscore::MarginLess<QFormLayout>{stateWidget};
+    auto stateWidget = new QWidget;
+    auto stateLayout = new iscore::MarginLess<QFormLayout>{stateWidget};
 
     if(auto start = process.startStateData())
     {
@@ -173,7 +173,7 @@ void ProcessTabWidget::displaySharedProcess(const Process::ProcessModel& process
     newProc->addContent(stateWidget);
 
     // Durations
-    QPointer<TimeSpinBox> durWidg = new TimeSpinBox;
+    auto durWidg = new TimeSpinBox;
     durWidg->setTime(process.duration().toQTime());
     con(process, &Process::ProcessModel::durationChanged,
         this, [=] (const TimeValue& tv)

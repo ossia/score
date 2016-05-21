@@ -54,6 +54,7 @@ void ScenarioContextMenuManager::createSlotContextMenu(
         QMenu& menu,
         const SlotPresenter& slotp)
 {
+    using namespace Scenario::Command;
     // TODO see http://stackoverflow.com/questions/21443023/capturing-a-reference-by-reference-in-a-c11-lambda
     auto& slotm = slotp.model();
 

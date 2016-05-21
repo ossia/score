@@ -55,7 +55,7 @@ class AddMultipleProcessesToConstraintMacro final : public iscore::AggregateComm
         {
             Path<ConstraintModel> cstpath{constraint};
 
-            if(constraint.racks.size() == 0)
+            if(constraint.racks.empty())
             {
                 auto cmd_rack = new Scenario::Command::AddRackToConstraint{constraint};
                 addCommand(cmd_rack);

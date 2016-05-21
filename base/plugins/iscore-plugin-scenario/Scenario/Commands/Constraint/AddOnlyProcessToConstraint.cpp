@@ -36,7 +36,7 @@ AddOnlyProcessToConstraint::AddOnlyProcessToConstraint(
     AddOnlyProcessToConstraint{
         std::move(constraintPath),
         getStrongId(constraintPath.find().processes),
-        std::move(process)}
+        process}
 {
 
 }
@@ -46,7 +46,7 @@ AddOnlyProcessToConstraint::AddOnlyProcessToConstraint(
         Id<Process::ProcessModel> processId,
         UuidKey<Process::ProcessFactory> process):
     m_path{std::move(constraintPath)},
-    m_processName{std::move(process)},
+    m_processName{process},
     m_createdProcessId{std::move(processId)}
 {
 }

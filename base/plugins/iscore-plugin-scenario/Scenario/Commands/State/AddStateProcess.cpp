@@ -15,7 +15,7 @@ AddStateProcessToState::AddStateProcessToState(Path<StateModel>&& state,
     AddStateProcessToState{
         std::move(state),
         getStrongId(state.find().stateProcesses),
-        std::move(process)}
+        process}
 {
 
 }
@@ -24,7 +24,7 @@ AddStateProcessToState::AddStateProcessToState(Path<StateModel>&& state,
         Id<Process::StateProcess> processId,
         UuidKey<Process::StateProcessFactory> process):
     m_path{std::move(state)},
-    m_processName{std::move(process)},
+    m_processName{process},
     m_createdProcessId{std::move(processId)}
 {
 }

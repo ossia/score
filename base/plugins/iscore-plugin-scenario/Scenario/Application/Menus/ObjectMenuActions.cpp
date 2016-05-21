@@ -273,7 +273,7 @@ void ObjectMenuActions::pasteElements(
 
     auto& sm = static_cast<const TemporalScenarioLayerModel&>(pres->layerModel());
     // TODO check json validity
-    auto cmd = new ScenarioPasteElements(sm, obj, origin);
+    auto cmd = new Command::ScenarioPasteElements(sm, obj, origin);
 
     dispatcher().submitCommand(cmd);
 }
@@ -284,7 +284,7 @@ static void writeJsonToScenario(
         const ObjectMenuActions& self,
         const QJsonObject& obj)
 {
-    MacroCommandDispatcher dispatcher{new ScenarioPasteContent, self.dispatcher().stack()};
+    MacroCommandDispatcher dispatcher{new Command::ScenarioPasteContent, self.dispatcher().stack()};
     auto selectedConstraints = selectedElements(getConstraints(scen));
     auto expandMode = self.appPlugin()->editionSettings().expandMode();
     for(const auto& json_vref : obj["Constraints"].toArray())
@@ -305,7 +305,7 @@ static void writeJsonToScenario(
     {
         for(const auto& state : selectedStates)
         {
-            auto cmd = new InsertContentInState{
+            auto cmd = new Command::InsertContentInState{
                        json_vref.toObject(),
                        *state};
 

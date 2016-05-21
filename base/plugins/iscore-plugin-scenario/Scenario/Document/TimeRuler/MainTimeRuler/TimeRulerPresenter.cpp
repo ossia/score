@@ -12,10 +12,7 @@ TimeRulerPresenter::TimeRulerPresenter(TimeRulerView* view, QObject *parent) :
     m_startPoint.addMSecs(0);
 }
 
-TimeRulerPresenter::~TimeRulerPresenter()
-{
-
-}
+TimeRulerPresenter::~TimeRulerPresenter() = default;
 
 TimeRulerView* TimeRulerPresenter::view()
 {

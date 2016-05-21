@@ -19,8 +19,6 @@
 #include <Scenario/Palette/Tools/ScenarioRollbackStrategy.hpp>
 #include <QFinalState>
 
-using namespace Scenario::Command;
-
 namespace Scenario
 {
 template<typename Scenario_T, typename ToolPalette_T>
@@ -237,7 +235,7 @@ class Creation_FromTimeNode final : public CreationState<Scenario_T, ToolPalette
     private:
         void createInitialEventAndState()
         {
-            auto cmd = new CreateEvent_State{
+            auto cmd = new Command::CreateEvent_State{
                     this->m_scenarioPath,
                     this->clickedTimeNode,
                     this->currentPoint.y};

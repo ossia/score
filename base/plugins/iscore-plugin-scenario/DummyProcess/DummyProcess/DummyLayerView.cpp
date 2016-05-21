@@ -25,10 +25,11 @@
 */
 namespace Dummy
 {
-class TextItem : public QGraphicsItem
+// TODO MOVEME in iscore/widgets
+class DummyTextItem final : public QGraphicsItem
 {
     public:
-        TextItem(QGraphicsItem* parent):
+        DummyTextItem(QGraphicsItem* parent):
             QGraphicsItem{parent}
         {
 
@@ -65,10 +66,9 @@ class TextItem : public QGraphicsItem
         QString m_text;
         QFont m_font;
 };
-
 DummyLayerView::DummyLayerView(QGraphicsItem* parent):
     LayerView{parent},
-    m_text{new TextItem{this}}
+    m_text{new DummyTextItem{this}}
 {
     m_text->setFont(Skin::instance().SansFont);
     /*

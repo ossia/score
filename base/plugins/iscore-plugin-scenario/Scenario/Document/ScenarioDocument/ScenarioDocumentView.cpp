@@ -77,7 +77,7 @@ ScenarioDocumentView::ScenarioDocumentView(
     transportWidget->setObjectName("ScenarioTransportWidget");
     auto transportLayout = new iscore::MarginLess<QGridLayout>{transportWidget};
 
-    QToolBar* transportButtons = new QToolBar;
+    auto transportButtons = new QToolBar;
     // See : http://stackoverflow.com/questions/21363350/remove-gradient-from-qtoolbar-in-os-x
     transportButtons->setStyle(QStyleFactory::create("windows"));
     transportButtons->setObjectName("ScenarioTransportToolbar");

@@ -86,9 +86,7 @@ ScenarioApplicationPlugin::ScenarioApplicationPlugin(const iscore::ApplicationCo
     delete fact;
 }
 
-ScenarioApplicationPlugin::~ScenarioApplicationPlugin()
-{
-}
+ScenarioApplicationPlugin::~ScenarioApplicationPlugin() = default;
 
 void ScenarioApplicationPlugin::populateMenus(iscore::MenubarManager *menu)
 {
@@ -135,7 +133,7 @@ void ScenarioApplicationPlugin::populateMenus(iscore::MenubarManager *menu)
 
 std::vector<iscore::OrderedToolbar> ScenarioApplicationPlugin::makeToolbars()
 {
-    QToolBar *bar = new QToolBar;
+    auto bar = new QToolBar;
 
     int i = 0;
     for(const auto& act : m_pluginActions)

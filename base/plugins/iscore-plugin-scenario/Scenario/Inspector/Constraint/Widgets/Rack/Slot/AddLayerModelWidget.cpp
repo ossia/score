@@ -29,10 +29,10 @@ namespace Scenario
 AddLayerModelWidget::AddLayerModelWidget(SlotInspectorSection* parentSlot) :
     QWidget {parentSlot}
 {
-    QHBoxLayout* layout = new iscore::MarginLess<QHBoxLayout>(this);
+    auto layout = new iscore::MarginLess<QHBoxLayout>(this);
 
     // Button
-    QToolButton* addButton = new QToolButton;
+    auto addButton = new QToolButton;
     addButton->setText("+");
     QIcon addIcon;
     makeIcons(&addIcon, QString(":/icons/condition_add_on.png"), QString(":/icons/condition_add_off.png"));
