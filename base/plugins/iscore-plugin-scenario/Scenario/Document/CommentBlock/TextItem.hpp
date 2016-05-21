@@ -47,4 +47,5 @@ class SimpleTextItem final : public QGraphicsSimpleTextItem
         ColorRef m_color;
 };
 
+
 }

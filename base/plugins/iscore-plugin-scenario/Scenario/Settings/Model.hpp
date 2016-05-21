@@ -14,7 +14,7 @@ struct Keys
         static const QString slotHeight;
 };
 
-class ISCORE_PLUGIN_SCENARIO_EXPORT Model :
+class ISCORE_PLUGIN_SCENARIO_EXPORT Model final :
         public iscore::SettingsDelegateModelInterface
 {
         Q_OBJECT

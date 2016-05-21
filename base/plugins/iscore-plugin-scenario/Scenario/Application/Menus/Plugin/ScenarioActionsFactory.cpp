@@ -2,8 +2,5 @@
 
 namespace Scenario
 {
-ScenarioActionsFactory::~ScenarioActionsFactory()
-{
-
-}
+ScenarioActionsFactory::~ScenarioActionsFactory() = default;
 }

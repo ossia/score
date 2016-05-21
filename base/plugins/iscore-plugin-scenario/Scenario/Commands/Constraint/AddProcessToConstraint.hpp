@@ -52,7 +52,7 @@ class AddProcessToConstraintBase : public iscore::SerializableCommand
             m_addProcessCommand{
                 constraint,
                 getStrongId(constraint.processes),
-                std::move(process)}
+                process}
         {
         }
 

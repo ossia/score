@@ -23,9 +23,7 @@ TemporalScenarioView::TemporalScenarioView(QGraphicsItem* parent) :
     this->setZValue(1);
 }
 
-TemporalScenarioView::~TemporalScenarioView()
-{
-}
+TemporalScenarioView::~TemporalScenarioView() = default;
 
 void TemporalScenarioView::paint_impl(QPainter* painter) const
 {

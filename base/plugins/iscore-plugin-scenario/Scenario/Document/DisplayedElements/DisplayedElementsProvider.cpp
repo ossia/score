@@ -3,8 +3,5 @@
 
 namespace Scenario
 {
-DisplayedElementsProvider::~DisplayedElementsProvider()
-{
-
-}
+DisplayedElementsProvider::~DisplayedElementsProvider() = default;
 }

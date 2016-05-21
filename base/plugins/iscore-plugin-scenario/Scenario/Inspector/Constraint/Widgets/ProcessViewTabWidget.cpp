@@ -82,11 +82,11 @@ void ProcessViewTabWidget::createRack()
 void ProcessViewTabWidget::setupRack(const RackModel& rack)
 {
     // Display the widget
-    RackInspectorSection* newRack = new RackInspectorSection {
-                                    rack.metadata.name(),
-                                    rack,
-                                    m_constraintWidget,
-                                    this};
+    auto newRack = new RackInspectorSection {
+            rack.metadata.name(),
+            rack,
+            m_constraintWidget,
+            this};
 
     m_rackesSectionWidgets[rack.id()] = newRack;
     m_rackSection->addContent(newRack);

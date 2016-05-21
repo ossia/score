@@ -5,7 +5,7 @@
 #include <iscore_plugin_scenario_export.h>
 namespace Scenario
 {
-class ISCORE_PLUGIN_SCENARIO_EXPORT EditionSettings : public QObject
+class ISCORE_PLUGIN_SCENARIO_EXPORT EditionSettings final : public QObject
 {
         Q_OBJECT
         Q_PROPERTY(ExpandMode expandMode READ expandMode WRITE setExpandMode NOTIFY expandModeChanged)

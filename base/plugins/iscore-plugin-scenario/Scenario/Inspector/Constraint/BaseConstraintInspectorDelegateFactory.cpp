@@ -8,10 +8,7 @@
 
 namespace Scenario
 {
-BaseConstraintInspectorDelegateFactory::~BaseConstraintInspectorDelegateFactory()
-{
-
-}
+BaseConstraintInspectorDelegateFactory::~BaseConstraintInspectorDelegateFactory() = default;
 
 std::unique_ptr<ConstraintInspectorDelegate> BaseConstraintInspectorDelegateFactory::make(
         const ConstraintModel& constraint)

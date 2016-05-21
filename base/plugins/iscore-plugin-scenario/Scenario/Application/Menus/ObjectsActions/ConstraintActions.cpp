@@ -81,7 +81,7 @@ ConstraintActions::ConstraintActions(
     setIcons(m_interp, QString(":/icons/interpolate_on.png"), QString(":/icons/interpolate_off.png"));
     connect(m_interp, &QAction::triggered,
         this, [&] () {
-    DoForSelectedConstraints(m_parent->currentDocument()->context(), InterpolateStates);
+    DoForSelectedConstraints(m_parent->currentDocument()->context(), Command::InterpolateStates);
     });
 
 }

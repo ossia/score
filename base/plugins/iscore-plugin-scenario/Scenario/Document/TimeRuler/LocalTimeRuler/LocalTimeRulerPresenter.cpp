@@ -27,10 +27,7 @@ LocalTimeRulerPresenter::LocalTimeRulerPresenter(
     m_pixelPerMillis = pixPerMillis;
 }
 
-LocalTimeRulerPresenter::~LocalTimeRulerPresenter()
-{
-
-}
+LocalTimeRulerPresenter::~LocalTimeRulerPresenter() = default;
 
 void LocalTimeRulerPresenter::setStartPoint(TimeValue dur)
 {

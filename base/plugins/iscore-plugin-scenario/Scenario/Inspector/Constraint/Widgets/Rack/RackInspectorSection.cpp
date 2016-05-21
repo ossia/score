@@ -100,7 +100,7 @@ void RackInspectorSection::ask_changeName(QString newName)
 
 void RackInspectorSection::addSlotInspectorSection(const SlotModel& slot)
 {
-    SlotInspectorSection* newSlot = new SlotInspectorSection {
+    auto newSlot = new SlotInspectorSection {
                                     slot.metadata.name(),
                                     slot,
                                     this};

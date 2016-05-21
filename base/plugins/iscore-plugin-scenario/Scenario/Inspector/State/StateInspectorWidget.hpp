@@ -33,7 +33,7 @@ class StateInspectorWidget final :
         { return *m_stateSection; }
 
         iscore::SelectionDispatcher& selectionDispatcher() const
-        { return *m_selectionDispatcher.get(); }
+        { return *m_selectionDispatcher; }
 
     public slots:
         void splitEvent();

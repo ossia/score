@@ -411,6 +411,7 @@ void TemporalScenarioPresenter::on_constraintViewModelCreated(const TemporalCons
 
 void TemporalScenarioPresenter::on_commentBlockCreated(const CommentBlockModel& comment_block_model)
 {
+    using namespace Scenario::Command;
     auto cmt_pres = new CommentBlockPresenter{
                     comment_block_model,
                     m_view,
@@ -494,6 +495,7 @@ void TemporalScenarioPresenter::updateAllElements()
 
 void TemporalScenarioPresenter::handleDrop(const QPointF &pos, const QMimeData *mime)
 {
+    using namespace Scenario::Command;
     // If the mime data has states in it we can handle it.
     if(mime->formats().contains(iscore::mime::messagelist()))
     {

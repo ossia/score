@@ -2,8 +2,5 @@
 
 namespace Scenario
 {
-DisplayedElementsToolPaletteFactory::~DisplayedElementsToolPaletteFactory()
-{
-
-}
+DisplayedElementsToolPaletteFactory::~DisplayedElementsToolPaletteFactory() = default;
 }
