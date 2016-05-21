@@ -23,48 +23,16 @@ class ISCORE_LIB_BASE_EXPORT FactoryInterfaceBase
 
 // Keys for the sub-classes to identify themselves.
 template<typename Key>
-class ISCORE_LIB_BASE_EXPORT FactoryKeyInterface
+class ISCORE_LIB_BASE_EXPORT FactoryInterface_T : public FactoryInterfaceBase
 {
     public:
-        virtual ~FactoryKeyInterface() = default;
+        virtual ~FactoryInterface_T() = default;
 
-        // TODO protected:
         virtual const Key& concreteFactoryKey() const = 0;
 };
 
-template <typename... Keys>
-class GenericFactoryInterface_Base;
-
-template<typename Key, typename... Keys>
-class ISCORE_LIB_BASE_EXPORT GenericFactoryInterface_Base<Key, Keys...> :
-        public FactoryKeyInterface<Key>,
-        public GenericFactoryInterface_Base<Keys...>
-{
-    public:
-        virtual ~GenericFactoryInterface_Base() = default;
-};
-
-template<>
-class ISCORE_LIB_BASE_EXPORT GenericFactoryInterface_Base<> :
-        public iscore::FactoryInterfaceBase
-{
-    public:
-        virtual ~GenericFactoryInterface_Base() = default;
-};
-
-template<typename... Keys>
-class ISCORE_LIB_BASE_EXPORT GenericFactoryInterface : public GenericFactoryInterface_Base<Keys...>
-{
-    public:
-        template<typename Key_T>
-        const Key_T& key() const
-        {
-            return static_cast<const FactoryKeyInterface<Key_T>*>(this)->concreteFactoryKey();
-        }
-};
-
 template<typename T>
-using AbstractFactory = GenericFactoryInterface<UuidKey<T>>;
+using AbstractFactory = FactoryInterface_T<UuidKey<T>>;
 }
 
 #define ISCORE_ABSTRACT_FACTORY_DECL(Type, Uuid) \

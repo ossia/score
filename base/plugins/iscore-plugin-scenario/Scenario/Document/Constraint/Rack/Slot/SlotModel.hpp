@@ -2,7 +2,7 @@
 #include <iscore/tools/Metadata.hpp>
 #include <Process/LayerModel.hpp>
 #include <Process/ModelMetadata.hpp>
-#include <boost/optional/optional.hpp>
+#include <iscore/tools/std/Optional.hpp>
 #include <iscore/tools/NotifyingMap.hpp>
 #include <QtGlobal>
 #include <QObject>

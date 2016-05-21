@@ -1,23 +1,15 @@
 #pragma once
 #include <iscore/plugins/customfactory/FactoryInterface.hpp>
-#include <iscore/plugins/customfactory/FactoryMap.hpp>
 #include <iscore/tools/ForEachType.hpp>
 #include <iscore/tools/std/Pointer.hpp>
 #include <iscore/tools/std/Algorithms.hpp>
 #include <iscore/tools/std/IndirectContainer.hpp>
 #include <iscore/tools/Todo.hpp>
 
-#include <boost/multi_index_container.hpp>
-#include <boost/multi_index/hashed_index.hpp>
-#include <boost/multi_index/identity.hpp>
-#include <boost/multi_index/member.hpp>
-#include <boost/multi_index/mem_fun.hpp>
-#include <boost/iterator/indirect_iterator.hpp>
+#include <unordered_map>
 
 #include <iscore_lib_base_export.h>
 #include <QMetaType>
-
-namespace bmi = boost::multi_index;
 
 namespace iscore
 {
@@ -43,24 +35,56 @@ class ISCORE_LIB_BASE_EXPORT FactoryListInterface
         virtual void insert(std::unique_ptr<iscore::FactoryInterfaceBase>) = 0;
 };
 
+template<typename FactoryType>
+struct FactoryWrapper
+{
+        using key_type = typename FactoryType::ConcreteFactoryKey;
+        using element_type = FactoryType;
+        std::unique_ptr<FactoryType> factory;
+
+        FactoryType& operator*() const
+        {
+            return *factory;
+        }
+
+        auto& operator<(const FactoryWrapper& other)
+        {
+            return factory->concreteFactoryKey() < other.factory->concreteFactoryKey();
+        }
+};
+}
+
+
+namespace std
+{
+template<typename T>
+struct hash<iscore::FactoryWrapper<T>>
+{
+        std::size_t operator()(const iscore::FactoryWrapper<T>& kagi) const noexcept
+        {
+            using key_t = decltype(kagi.factory->concreteFactoryKey());
+            return std::hash<key_t>()(kagi.factory->concreteFactoryKey());
+        }
+
+        std::size_t operator()(const typename iscore::FactoryWrapper<T>::element_type::ConcreteFactoryKey& kagi) const noexcept
+        {
+            using key_t = std::remove_reference_t<std::remove_const_t<decltype(kagi)>>;
+            return std::hash<key_t>()(kagi);
+        }
+};
+}
+
+namespace iscore
+{
 // FIXME They should take an export macro also ?
 template<typename FactoryType>
 class ConcreteFactoryList :
         public iscore::FactoryListInterface,
-        public IndirectMap<
-                bmi::multi_index_container<
-                    std::unique_ptr<FactoryType>,
-                    bmi::indexed_by<
-                        bmi::hashed_unique<
-                            bmi::const_mem_fun<
-                                iscore::GenericFactoryInterface<typename FactoryType::ConcreteFactoryKey>,
-                                add_cref_t<typename FactoryType::ConcreteFactoryKey>,
-                                &FactoryType::template key<typename FactoryType::ConcreteFactoryKey>
-                            >
-                        >
-                    >
-                >
-        >
+        public IndirectUnorderedMap<
+            std::unordered_map<
+                typename FactoryType::ConcreteFactoryKey,
+                std::unique_ptr<FactoryType>
+        >>
 {
     public:
         using factory_type = FactoryType;
@@ -78,13 +102,14 @@ class ConcreteFactoryList :
 
         void insert(std::unique_ptr<iscore::FactoryInterfaceBase> e) final override
         {
-			auto pf = dynamic_unique_ptr_cast<factory_type>(std::move(e));
+            auto pf = dynamic_unique_ptr_cast<factory_type>(std::move(e));
             if(pf)
             {
-                auto it = this->map.find(pf->template key<key_type>());
+                auto k = pf->concreteFactoryKey();
+                auto it = this->map.find(k);
                 if(it == this->map.end())
                 {
-                    this->map.insert(std::move(pf));
+                    this->map.emplace(std::make_pair(k, std::move(pf)));
                 }
                 else
                 {
@@ -96,7 +121,7 @@ class ConcreteFactoryList :
         auto get(const key_type& k) const
         {
             auto it = this->map.find(k);
-            return (it != this->map.end()) ? it->get() : nullptr;
+            return (it != this->map.end()) ? it->second.get() : nullptr;
         }
 
     protected:

@@ -6,7 +6,7 @@
 #include <Scenario/Process/ScenarioModel.hpp>
 #include <Scenario/Process/Algorithms/ProcessPolicy.hpp>
 #include <Scenario/Process/Algorithms/ContainersAccessors.hpp>
-#include <boost/optional/optional.hpp>
+#include <iscore/tools/std/Optional.hpp>
 #include <QJsonArray>
 #include <QJsonObject>
 #include <QJsonValue>

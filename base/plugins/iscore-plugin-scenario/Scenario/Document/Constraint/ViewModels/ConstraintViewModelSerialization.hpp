@@ -1,6 +1,6 @@
 #pragma once
 #include <Scenario/Document/Constraint/ViewModels/ConstraintViewModelIdMap.hpp>
-#include <boost/optional/optional.hpp>
+#include <iscore/tools/std/Optional.hpp>
 #include <iscore/serialization/DataStreamVisitor.hpp>
 #include <iscore/serialization/JSONValueVisitor.hpp>
 #include <iscore/serialization/JSONVisitor.hpp>

@@ -1,7 +1,7 @@
 #pragma once
 #include <Process/State/MessageNode.hpp>
 #include <State/Message.hpp>
-#include <boost/optional/optional.hpp>
+#include <iscore/tools/std/Optional.hpp>
 #include <QString>
 #include <vector>
 

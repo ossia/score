@@ -1,7 +1,7 @@
 #include <Scenario/Commands/Constraint/Rack/AddSlotToRack.hpp>
 #include <Scenario/Commands/Metadata/ChangeElementName.hpp>
 #include <Scenario/Document/Constraint/ConstraintModel.hpp>
-#include <boost/optional/optional.hpp>
+#include <iscore/tools/std/Optional.hpp>
 #include <QBoxLayout>
 #include <QFrame>
 #include <QPushButton>

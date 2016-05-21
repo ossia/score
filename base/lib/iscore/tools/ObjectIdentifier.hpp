@@ -26,7 +26,7 @@ class ObjectIdentifier
             m_objectName {name}
         { }
 
-        ObjectIdentifier(QString name, boost::optional<int32_t> id) :
+        ObjectIdentifier(QString name, optional<int32_t> id) :
             m_objectName {std::move(name) },
                      m_id {std::move(id) }
         { }
@@ -37,7 +37,7 @@ class ObjectIdentifier
         {
             if(id.val())
             {
-                m_id = id.val().get();
+                m_id = *id.val();
             }
         }
 
@@ -46,14 +46,14 @@ class ObjectIdentifier
             return m_objectName;
         }
 
-        const boost::optional<int32_t>& id() const
+        const optional<int32_t>& id() const
         {
             return m_id;
         }
 
     private:
         QString m_objectName;
-        boost::optional<int32_t> m_id;
+        optional<int32_t> m_id;
 };
 
 Q_DECLARE_METATYPE(ObjectIdentifier)

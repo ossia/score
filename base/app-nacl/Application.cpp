@@ -1,6 +1,6 @@
 #include "Application.hpp"
 
-#include <boost/optional/optional.hpp>
+#include <iscore/tools/std/Optional.hpp>
 #include <core/application/ApplicationRegistrar.hpp>
 #include <core/document/DocumentBackups.hpp>
 #include <core/presenter/Presenter.hpp>

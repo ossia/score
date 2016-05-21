@@ -6,7 +6,7 @@
 #include <Scenario/Inspector/Constraint/Widgets/Rack/RackInspectorSection.hpp>
 #include <Scenario/Inspector/Constraint/Widgets/Rack/Slot/AddLayerModelWidget.hpp>
 #include <Scenario/ViewCommands/PutLayerModelToFront.hpp>
-#include <boost/optional/optional.hpp>
+#include <iscore/tools/std/Optional.hpp>
 #include <QBoxLayout>
 #include <QFrame>
 #include <QGridLayout>

@@ -1,4 +1,4 @@
-#include <boost/optional/optional.hpp>
+#include <iscore/tools/std/Optional.hpp>
 #include <QJsonObject>
 #include <QJsonValue>
 #include <QString>
@@ -22,7 +22,7 @@ template<>
 void Visitor<Writer<DataStream>>::writeTo(ObjectIdentifier& obj)
 {
     QString name;
-    boost::optional<int32_t> id;
+    optional<int32_t> id;
     m_stream >> name;
     writeTo(id);
     obj = ObjectIdentifier{name, id};
@@ -40,7 +40,7 @@ void Visitor<Writer<JSONObject>>::writeTo(ObjectIdentifier& obj)
 {
     auto name = m_obj[iscore::StringConstant().ObjectName].toString();
 
-    boost::optional<int32_t> id;
+    optional<int32_t> id;
     fromJsonObject(m_obj[iscore::StringConstant().ObjectId], id);
 
     obj = ObjectIdentifier{name, id};

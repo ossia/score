@@ -2,9 +2,10 @@
 #include <QObject>
 #include <QShortcut>
 #include <iscore/document/DocumentContext.hpp>
-#include <boost/optional.hpp>
+#include <iscore/tools/std/Optional.hpp>
 #include <iscore_lib_base_export.h>
 
+#include <boost/optional.hpp>
 class Selection;
 namespace iscore
 {
@@ -46,11 +47,18 @@ class ISCORE_LIB_BASE_EXPORT PanelDelegate
 
         }
 
-        void setModel(maybe_document_t model)
+        void setModel(const iscore::DocumentContext& model)
         {
             auto old = m_model;
             m_model = model;
-            on_modelChanged(old, model);
+            on_modelChanged(old, m_model);
+        }
+
+        void setModel(decltype(iscore::none) n)
+        {
+            auto old = m_model;
+            m_model = boost::none;
+            on_modelChanged(old, m_model);
         }
 
         auto document() const

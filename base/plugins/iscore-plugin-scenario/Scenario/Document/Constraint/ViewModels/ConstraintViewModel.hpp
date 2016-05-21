@@ -1,5 +1,5 @@
 #pragma once
-#include <boost/optional/optional.hpp>
+#include <iscore/tools/std/Optional.hpp>
 #include <iscore/tools/IdentifiedObject.hpp>
 #include <QString>
 #include <nano_signal_slot.hpp>

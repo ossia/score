@@ -1,6 +1,6 @@
 #include <Device/Node/DeviceNode.hpp>
 #include <Process/State/MessageNode.hpp>
-#include <boost/optional/optional.hpp>
+#include <iscore/tools/std/Optional.hpp>
 #include <QtGlobal>
 #include <QList>
 #include <QString>

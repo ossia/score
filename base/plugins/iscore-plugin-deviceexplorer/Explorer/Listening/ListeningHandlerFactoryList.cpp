@@ -19,9 +19,9 @@ ListeningHandlerFactoryList::make(
     }
     else
     {
-        for(auto& fact : list())
+        for(auto& fact : *this)
         {
-            if(auto res = fact->make(plug, ctx))
+            if(auto res = fact.make(plug, ctx))
                 return res;
         }
         return nullptr;

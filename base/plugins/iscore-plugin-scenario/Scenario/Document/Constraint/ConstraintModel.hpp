@@ -6,7 +6,7 @@
 #include <Scenario/Document/Constraint/ConstraintDurations.hpp>
 #include <Scenario/Document/Constraint/Rack/RackModel.hpp>
 #include <Scenario/Document/ModelConsistency.hpp>
-#include <boost/optional/optional.hpp>
+#include <iscore/tools/std/Optional.hpp>
 #include <iscore/plugins/documentdelegate/plugin/ElementPluginModelList.hpp>
 #include <iscore/selection/Selectable.hpp>
 #include <QObject>

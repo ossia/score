@@ -29,7 +29,7 @@ template<typename T>
 void toJsonValue(
         QJsonObject& object,
         const QString& name,
-        const boost::optional<T>& value)
+        const optional<T>& value)
 {
     if(value)
     {
@@ -63,7 +63,7 @@ template<typename T>
 void fromJsonValue(
         const QJsonObject& object,
         const QString& name,
-        boost::optional<T>& value)
+        optional<T>& value)
 {
     auto it = object.find(name);
     if(it != object.end())
@@ -72,7 +72,7 @@ void fromJsonValue(
     }
     else
     {
-        value.reset();
+        value = iscore::none;
     }
 }
 

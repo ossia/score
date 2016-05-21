@@ -38,7 +38,7 @@
 #include <iscore/tools/SettableIdentifier.hpp>
 #include <iscore/tools/TreeNode.hpp>
 #include <Explorer/Explorer/ListeningManager.hpp>
-#include <boost/optional/optional.hpp>
+#include <iscore/tools/std/Optional.hpp>
 #include <core/document/Document.hpp>
 
 #include <QApplication>

@@ -172,8 +172,8 @@ class MoveConstraintBraceState final : public StateBase<Scenario_T>
         SingleOngoingCommandDispatcher<MoveBraceCommand_T> m_dispatcher;
 
     private:
-        boost::optional<TimeValue> m_initialDate;
-        boost::optional<TimeValue> m_initialDuration;
+        optional<TimeValue> m_initialDate;
+        optional<TimeValue> m_initialDuration;
 
 };
 
@@ -238,7 +238,7 @@ class MoveTimeNodeState final : public StateBase<Scenario_T>
                     }
                     else
                     {
-                        this->m_pressedPrevious.reset();
+                        this->m_pressedPrevious = iscore::none;
                     }
 
                 });
@@ -289,7 +289,7 @@ class MoveTimeNodeState final : public StateBase<Scenario_T>
         }
 
         SingleOngoingCommandDispatcher<MoveTimeNodeCommand_T> m_dispatcher;
-        boost::optional<TimeValue> m_pressedPrevious;
+        optional<TimeValue> m_pressedPrevious;
 };
 
 }

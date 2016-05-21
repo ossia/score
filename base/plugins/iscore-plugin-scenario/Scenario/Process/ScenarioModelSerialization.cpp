@@ -3,7 +3,7 @@
 #include <Scenario/Process/ScenarioModel.hpp>
 #include <Scenario/Process/Temporal/TemporalScenarioLayerModel.hpp>
 
-#include <boost/optional/optional.hpp>
+#include <iscore/tools/std/Optional.hpp>
 #include <QJsonArray>
 #include <QJsonObject>
 #include <QJsonValue>

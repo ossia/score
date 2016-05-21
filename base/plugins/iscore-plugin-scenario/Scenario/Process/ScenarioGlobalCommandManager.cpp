@@ -2,7 +2,7 @@
 #include <Scenario/Commands/Scenario/Deletions/ClearConstraint.hpp>
 #include <Scenario/Commands/Scenario/Deletions/ClearState.hpp>
 #include <Scenario/Commands/Scenario/Deletions/RemoveSelection.hpp>
-#include <boost/optional/optional.hpp>
+#include <iscore/tools/std/Optional.hpp>
 #include <iscore/command/Dispatchers/CommandDispatcher.hpp>
 #include <iscore/command/Dispatchers/MacroCommandDispatcher.hpp>
 #include <QDebug>

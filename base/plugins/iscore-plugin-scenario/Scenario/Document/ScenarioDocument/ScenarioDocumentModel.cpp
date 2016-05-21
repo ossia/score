@@ -11,7 +11,7 @@
 #include <Scenario/Document/Constraint/Rack/Slot/SlotModel.hpp>
 #include <Scenario/Process/ScenarioProcessMetadata.hpp>
 #include <boost/iterator/iterator_facade.hpp>
-#include <boost/optional/optional.hpp>
+#include <iscore/tools/std/Optional.hpp>
 #include <iscore/document/DocumentInterface.hpp>
 #include <QList>
 #include <QObject>

@@ -1,6 +1,6 @@
 #include <Loop/LoopPresenter.hpp>
 
-#include <boost/optional/optional.hpp>
+#include <iscore/tools/std/Optional.hpp>
 #include <algorithm>
 
 #include "Loop/LoopProcessModel.hpp"

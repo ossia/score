@@ -88,7 +88,7 @@ DeviceEditDialog::initAvailableProtocols()
     {
         m_protocolCBox->addItem(
                     prot.prettyName(),
-                    QVariant::fromValue(prot.key<UuidKey<Device::ProtocolFactory>>()));
+                    QVariant::fromValue(prot.concreteFactoryKey()));
 
         m_previousSettings.append(prot.defaultSettings());
     }

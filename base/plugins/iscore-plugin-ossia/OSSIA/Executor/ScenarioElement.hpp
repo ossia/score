@@ -1,6 +1,6 @@
 #pragma once
 #include <Editor/TimeEvent.h>
-#include <boost/optional/optional.hpp>
+#include <iscore/tools/std/Optional.hpp>
 #include <iscore/tools/IdentifiedObjectMap.hpp>
 #include <iscore/tools/SettableIdentifier.hpp>
 #include <map>

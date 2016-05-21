@@ -3,7 +3,7 @@
 #include <Scenario/Document/ScenarioDocument/ScenarioDocumentPresenter.hpp>
 #include <Scenario/Document/ScenarioDocument/ScenarioDocumentView.hpp>
 
-#include <boost/optional/optional.hpp>
+#include <iscore/tools/std/Optional.hpp>
 #include <iscore/application/ApplicationContext.hpp>
 #include <iscore/document/DocumentInterface.hpp>
 #include <algorithm>

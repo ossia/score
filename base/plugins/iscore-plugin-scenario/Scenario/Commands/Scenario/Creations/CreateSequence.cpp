@@ -3,7 +3,7 @@
 #include <Scenario/Document/State/ItemModel/MessageItemModelAlgorithms.hpp>
 #include  <Scenario/Process/ScenarioModel.hpp>
 
-#include <boost/optional/optional.hpp>
+#include <iscore/tools/std/Optional.hpp>
 #include <iscore/tools/SettableIdentifierGeneration.hpp>
 #include <QByteArray>
 #include <QtGlobal>

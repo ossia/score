@@ -5,7 +5,7 @@
 #include <Scenario/Document/Event/ExecutionStatus.hpp>
 #include <Scenario/Document/VerticalExtent.hpp>
 #include <State/Expression.hpp>
-#include <boost/optional/optional.hpp>
+#include <iscore/tools/std/Optional.hpp>
 #include <iscore/plugins/documentdelegate/plugin/ElementPluginModelList.hpp>
 #include <iscore/selection/Selectable.hpp>
 #include <iscore/tools/IdentifiedObject.hpp>

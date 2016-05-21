@@ -72,20 +72,19 @@ class ISCORE_PLUGIN_SCENARIO_EXPORT BaseScenarioContainer :
         StateModel& startState() const;
         StateModel& endState() const;
 
-        IndirectArray<ConstraintModel, 1> constraints() const
+        iscore::IndirectArray<ConstraintModel, 1> constraints() const
         {
             return m_constraint;
         }
-
-        IndirectArray<EventModel, 2> events() const
+        iscore::IndirectArray<EventModel, 2> events() const
         {
             return {m_startEvent, m_endEvent};
         }
-        IndirectArray<StateModel, 2>  states() const
+        iscore::IndirectArray<StateModel, 2>  states() const
         {
             return {m_startState, m_endState};
         }
-        IndirectArray<TimeNodeModel, 2>  timeNodes() const
+        iscore::IndirectArray<TimeNodeModel, 2>  timeNodes() const
         {
             return {m_startNode, m_endNode};
         }
@@ -130,22 +129,22 @@ inline auto states(const BaseScenarioContainer& scenar)
 template<>
 struct ScenarioElementTraits<BaseScenarioContainer, ConstraintModel>
 {
-        static const constexpr auto accessor = static_cast<IndirectArray<ConstraintModel, 1> (*) (const BaseScenarioContainer&)>(&constraints);
+        static const constexpr auto accessor = static_cast<iscore::IndirectArray<ConstraintModel, 1> (*) (const BaseScenarioContainer&)>(&constraints);
 };
 template<>
 struct ScenarioElementTraits<BaseScenarioContainer, EventModel>
 {
-        static const constexpr auto accessor = static_cast<IndirectArray<EventModel, 2> (*) (const BaseScenarioContainer&)>(&events);
+        static const constexpr auto accessor = static_cast<iscore::IndirectArray<EventModel, 2> (*) (const BaseScenarioContainer&)>(&events);
 };
 template<>
 struct ScenarioElementTraits<BaseScenarioContainer, TimeNodeModel>
 {
-        static const constexpr auto accessor = static_cast<IndirectArray<TimeNodeModel, 2> (*) (const BaseScenarioContainer&)>(&timeNodes);
+        static const constexpr auto accessor = static_cast<iscore::IndirectArray<TimeNodeModel, 2> (*) (const BaseScenarioContainer&)>(&timeNodes);
 };
 template<>
 struct ScenarioElementTraits<BaseScenarioContainer, StateModel>
 {
-        static const constexpr auto accessor = static_cast<IndirectArray<StateModel, 2> (*) (const BaseScenarioContainer&)>(&states);
+        static const constexpr auto accessor = static_cast<iscore::IndirectArray<StateModel, 2> (*) (const BaseScenarioContainer&)>(&states);
 };
 }
 

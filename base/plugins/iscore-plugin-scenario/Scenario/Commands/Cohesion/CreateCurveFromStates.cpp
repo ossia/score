@@ -3,7 +3,7 @@
 #include <Curve/Segment/Power/PowerCurveSegmentModel.hpp>
 #include <Scenario/Document/Constraint/ConstraintModel.hpp>
 
-#include <boost/optional/optional.hpp>
+#include <iscore/tools/std/Optional.hpp>
 
 
 #include <iscore/tools/SettableIdentifierGeneration.hpp>

@@ -2,7 +2,7 @@
 #include <Scenario/Commands/Scenario/Displacement/MoveEventClassicFactory.hpp>
 #include <Scenario/Process/Algorithms/GoodOldDisplacementPolicy.hpp>
 
-#include <boost/optional/optional.hpp>
+#include <iscore/tools/std/Optional.hpp>
 #include <QString>
 #include <algorithm>
 

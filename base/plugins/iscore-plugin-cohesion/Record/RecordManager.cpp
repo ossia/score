@@ -10,7 +10,7 @@
 #include <Scenario/Commands/Scenario/Creations/CreateTimeNode_Event_State.hpp>
 #include <Scenario/Commands/Scenario/Displacement/MoveNewEvent.hpp>
 #include <Scenario/Commands/Scenario/ShowRackInViewModel.hpp>
-#include <boost/optional/optional.hpp>
+#include <iscore/tools/std/Optional.hpp>
 #include <core/document/Document.hpp>
 
 #include <QApplication>

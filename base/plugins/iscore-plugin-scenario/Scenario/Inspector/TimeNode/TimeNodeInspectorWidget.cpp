@@ -10,7 +10,7 @@
 #include <Scenario/Inspector/Event/EventInspectorWidget.hpp>
 #include <Scenario/Inspector/MetadataWidget.hpp>
 #include <Scenario/Inspector/TimeNode/TriggerInspectorWidget.hpp>
-#include <boost/optional/optional.hpp>
+#include <iscore/tools/std/Optional.hpp>
 
 #include <iscore/application/ApplicationContext.hpp>
 #include <iscore/document/DocumentContext.hpp>

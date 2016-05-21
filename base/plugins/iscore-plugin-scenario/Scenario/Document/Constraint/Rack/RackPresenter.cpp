@@ -1,7 +1,7 @@
 #include <Scenario/Document/Constraint/ConstraintModel.hpp>
 #include <Scenario/Document/Constraint/Rack/RackView.hpp>
 #include <Scenario/Process/Temporal/TemporalScenarioPresenter.hpp>
-#include <boost/optional/optional.hpp>
+#include <iscore/tools/std/Optional.hpp>
 #include <iscore/widgets/GraphicsItem.hpp>
 #include <QObject>
 #include <QRect>

@@ -1,7 +1,7 @@
 #include <Scenario/Document/Constraint/ConstraintModel.hpp>
 #include <Scenario/Document/Constraint/Rack/RackPresenter.hpp>
 #include <Scenario/Document/Constraint/Rack/RackView.hpp>
-#include <boost/optional/optional.hpp>
+#include <iscore/tools/std/Optional.hpp>
 #include <qnamespace.h>
 
 #include "ConstraintHeader.hpp"

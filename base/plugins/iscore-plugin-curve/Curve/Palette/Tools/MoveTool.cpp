@@ -1,5 +1,5 @@
 #include <Curve/Palette/CurvePalette.hpp>
-#include <boost/optional/optional.hpp>
+#include <iscore/tools/std/Optional.hpp>
 #include <iscore/statemachine/StateMachineUtils.hpp>
 #include <QState>
 #include <QStateMachine>

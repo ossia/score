@@ -1,7 +1,7 @@
 #pragma once
 #include <State/Message.hpp>
 
-#include <boost/optional/optional.hpp>
+#include <iscore/tools/std/Optional.hpp>
 #include <iscore/tools/TreeNode.hpp>
 #include <QString>
 #include <QStringList>

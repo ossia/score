@@ -1,5 +1,5 @@
 #pragma once
-#include <boost/optional/optional.hpp>
+#include <iscore/tools/std/Optional.hpp>
 #include <iscore/selection/Selection.hpp>
 #include <iscore/tools/IdentifiedObject.hpp>
 #include <iscore/tools/IdentifiedObjectMap.hpp>

@@ -4,8 +4,8 @@ namespace Scenario
 {
 CoherencyCheckerFactoryInterface* CSPCoherencyCheckerList::get() const
 {
-    if(begin() != end())
-        return map.begin()->get();
+    if(map.begin() != map.end())
+        return map.begin()->second.get();
     else
         return nullptr;
 }

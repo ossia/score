@@ -5,7 +5,7 @@
 #include <Scenario/Document/Constraint/ViewModels/Temporal/TemporalConstraintPresenter.hpp>
 #include <Scenario/Palette/ScenarioPalette.hpp>
 #include <Scenario/Process/Temporal/ScenarioViewInterface.hpp>
-#include <boost/optional/optional.hpp>
+#include <iscore/tools/std/Optional.hpp>
 #include <iscore/tools/IdentifiedObjectMap.hpp>
 #include <QObject>
 #include <QPoint>

@@ -7,7 +7,7 @@
 #include <Scenario/Document/ScenarioDocument/ScenarioDocumentView.hpp>
 #include <Scenario/Process/ScenarioModel.hpp>
 #include <Scenario/Process/Temporal/TemporalScenarioPresenter.hpp>
-#include <boost/optional/optional.hpp>
+#include <iscore/tools/std/Optional.hpp>
 
 #include <iscore/plugins/documentdelegate/DocumentDelegateViewInterface.hpp>
 // This part is somewhat similar to what moc does

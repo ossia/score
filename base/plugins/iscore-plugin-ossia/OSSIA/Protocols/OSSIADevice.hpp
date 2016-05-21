@@ -1,7 +1,7 @@
 #pragma once
 #include <Device/Protocol/DeviceInterface.hpp>
 #include <Network/Address.h>
-#include <boost/optional/optional.hpp>
+#include <iscore/tools/std/Optional.hpp>
 #include <QString>
 #include <memory>
 #include <unordered_map>
@@ -49,7 +49,7 @@ class ISCORE_PLUGIN_OSSIA_EXPORT OSSIADevice :
         Device::Node refresh() override;
 
         // throws std::runtime_error
-        boost::optional<State::Value> refresh(const State::Address&) final override;
+        optional<State::Value> refresh(const State::Address&) final override;
 
         Device::Node getNode(const State::Address&) final override;
 

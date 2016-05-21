@@ -1,5 +1,5 @@
 #pragma once
-#include <boost/optional/optional.hpp>
+#include <iscore/tools/std/Optional.hpp>
 #include <iscore/command/SerializableCommand.hpp>
 #include <QString>
 

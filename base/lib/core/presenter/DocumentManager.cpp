@@ -1,4 +1,4 @@
-#include <boost/optional/optional.hpp>
+#include <iscore/tools/std/Optional.hpp>
 #include <core/document/DocumentBackups.hpp>
 #include <core/document/DocumentModel.hpp>
 #include <core/presenter/Presenter.hpp>
@@ -191,7 +191,7 @@ void DocumentManager::setCurrentDocument(
     {
         for(auto& panel : ctx.components.panels())
         {
-            panel.setModel(boost::none);
+            panel.setModel(iscore::none);
         }
     }
 

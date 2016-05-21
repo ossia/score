@@ -25,11 +25,11 @@ class ExpressionValidator final : public QValidator
         }
     }
 
-    boost::optional< ::State::Expression> get() const
+    optional< ::State::Expression> get() const
     {
         return m_currentExp;
     }
 
     private:
-    mutable boost::optional< ::State::Expression> m_currentExp;
+    mutable optional< ::State::Expression> m_currentExp;
 };

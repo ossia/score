@@ -1,6 +1,6 @@
 #include <Process/Process.hpp>
 #include <Scenario/Document/Constraint/ConstraintModel.hpp>
-#include <boost/optional/optional.hpp>
+#include <iscore/tools/std/Optional.hpp>
 #include <QJsonObject>
 #include <algorithm>
 

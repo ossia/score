@@ -4,7 +4,7 @@
 #include <boost/multi_index/detail/hash_index_iterator.hpp>
 #include <boost/multi_index/hashed_index.hpp>
 #include <boost/operators.hpp>
-#include <boost/optional/optional.hpp>
+#include <iscore/tools/std/Optional.hpp>
 
 #include <iscore/widgets/GraphicsItem.hpp>
 #include <QAction>

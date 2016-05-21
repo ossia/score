@@ -1,5 +1,5 @@
 #pragma once
-#include <boost/optional/optional.hpp>
+#include <iscore/tools/std/Optional.hpp>
 #include <QVariant>
 
 
@@ -46,8 +46,8 @@ class ISCORE_PLUGIN_CURVE_EXPORT SinSegment final :
         void updateData(int numInterp) const override;
         double valueAt(double x) const override;
 
-        boost::optional<double> verticalParameter() const override;
-        boost::optional<double> horizontalParameter() const override;
+        optional<double> verticalParameter() const override;
+        optional<double> horizontalParameter() const override;
         void setVerticalParameter(double p) override;
         void setHorizontalParameter(double p) override;
 

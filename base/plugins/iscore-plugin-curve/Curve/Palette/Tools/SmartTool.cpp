@@ -3,7 +3,7 @@
 #include <Curve/Palette/CurvePalette.hpp>
 #include <Curve/Palette/OngoingState.hpp>
 #include <Curve/Palette/States/SelectionState.hpp>
-#include <boost/optional/optional.hpp>
+#include <iscore/tools/std/Optional.hpp>
 #include <QStateMachine>
 
 #include <Curve/Palette/CurvePaletteBaseEvents.hpp>

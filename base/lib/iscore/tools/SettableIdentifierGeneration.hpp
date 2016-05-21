@@ -1,6 +1,6 @@
 #pragma once
-#include <boost/optional/optional.hpp>
-#include <boost/range/algorithm/find.hpp>
+#include <iscore/tools/std/Optional.hpp>
+#include <iscore/tools/std/Algorithms.hpp>
 #include <iscore/tools/SettableIdentifier.hpp>
 #include <iscore/tools/std/ArrayView.hpp>
 #include <sys/types.h>
@@ -30,7 +30,6 @@ static int32_t getFirstId() { return getRandomId(); }
 template<typename Vector>
 static auto getNextId(const Vector& ids)
 {
-    using namespace boost::range;
     typename Vector::value_type id {};
 
     do
@@ -50,8 +49,6 @@ struct ISCORE_LIB_BASE_EXPORT linear_id_generator
         template<typename Vector>
         static auto getNextId(const Vector& ids)
         {
-            using namespace boost::range;
-
             auto it = std::max_element(ids.begin(), ids.end());
             if(it != ids.end())
                 return typename Vector::value_type{getId(*it) + 1};
@@ -62,7 +59,7 @@ struct ISCORE_LIB_BASE_EXPORT linear_id_generator
     private:
         template<typename T>
         static int32_t getId(const Id<T>& other) { return *other.val(); }
-        static int32_t getId(const boost::optional<int32_t>& i) { return *i; }
+        static int32_t getId(const optional<int32_t>& i) { return *i; }
         static int32_t getId(int32_t i) { return i; }
 };
 

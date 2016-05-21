@@ -1,4 +1,4 @@
-#include <boost/optional/optional.hpp>
+#include <iscore/tools/std/Optional.hpp>
 #include <QByteArray>
 #include <QMap>
 #include <QPair>
