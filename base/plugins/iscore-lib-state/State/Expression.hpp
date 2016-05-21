@@ -1,6 +1,6 @@
 #pragma once
 #include <State/Relation.hpp>
-#include <boost/optional/optional.hpp>
+#include <iscore/tools/std/Optional.hpp>
 #include <eggs/variant/variant.hpp>
 
 #include <iscore/tools/VariantBasedNode.hpp>
@@ -271,10 +271,10 @@ using Expression = TreeNode<ExprData>;
 using Condition = Expression;
 using Trigger = Expression;
 
-ISCORE_LIB_STATE_EXPORT boost::optional<State::Expression> parseExpression(const QString& str);
-ISCORE_LIB_STATE_EXPORT boost::optional<State::Value> parseValue(const QString& str);
-ISCORE_LIB_STATE_EXPORT boost::optional<State::Address> parseAddress(const QString& str);
-ISCORE_LIB_STATE_EXPORT boost::optional<State::AddressAccessor> parseAddressAccessor(const QString& str);
+ISCORE_LIB_STATE_EXPORT optional<State::Expression> parseExpression(const QString& str);
+ISCORE_LIB_STATE_EXPORT optional<State::Value> parseValue(const QString& str);
+ISCORE_LIB_STATE_EXPORT optional<State::Address> parseAddress(const QString& str);
+ISCORE_LIB_STATE_EXPORT optional<State::AddressAccessor> parseAddressAccessor(const QString& str);
 }
 
 JSON_METADATA(State::Address, "Address")

@@ -8,7 +8,7 @@
 #include <Scenario/Document/Constraint/Rack/RackView.hpp>
 #include <Scenario/Document/Constraint/Rack/Slot/SlotModel.hpp>
 #include <Scenario/Document/Constraint/Rack/Slot/SlotView.hpp>
-#include <boost/optional/optional.hpp>
+#include <iscore/tools/std/Optional.hpp>
 
 #include <iscore/widgets/GraphicsItem.hpp>
 #include <QMenu>

@@ -95,12 +95,12 @@ void SinSegment::setHorizontalParameter(double p)
     emit dataChanged();
 }
 
-boost::optional<double> SinSegment::verticalParameter() const
+optional<double> SinSegment::verticalParameter() const
 {
     return 2. * ampl - 1.;
 }
 
-boost::optional<double> SinSegment::horizontalParameter() const
+optional<double> SinSegment::horizontalParameter() const
 {
     return (freq - 1.) / 7. - 1.;
 }

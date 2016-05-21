@@ -1,5 +1,5 @@
 #pragma once
-#include <boost/optional/optional.hpp>
+#include <iscore/tools/std/Optional.hpp>
 #include <iscore/command/Dispatchers/SingleOngoingCommandDispatcher.hpp>
 #include <QPoint>
 
@@ -34,6 +34,6 @@ class SetSegmentParametersCommandObject
 
         Curve::StateBase* m_state{};
         QPointF m_originalPress;
-        boost::optional<double> m_verticalOrig, m_horizontalOrig;
+        optional<double> m_verticalOrig, m_horizontalOrig;
 };
 }

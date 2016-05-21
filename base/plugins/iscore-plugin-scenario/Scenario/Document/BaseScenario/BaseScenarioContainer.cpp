@@ -6,7 +6,7 @@
 #include <Scenario/Process/Algorithms/VerticalMovePolicy.hpp>
 #include <Scenario/Process/ScenarioInterface.hpp>
 
-#include <boost/optional/optional.hpp>
+#include <iscore/tools/std/Optional.hpp>
 
 #include "BaseScenarioContainer.hpp"
 #include <Process/TimeValue.hpp>

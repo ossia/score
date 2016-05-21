@@ -1,6 +1,6 @@
 #pragma once
 #include <QTime>
-#include <boost/optional.hpp>
+#include <iscore/tools/std/Optional.hpp>
 #include <chrono>
 #include "ZoomHelper.hpp"
 
@@ -37,10 +37,10 @@ class TimeValue_T
 
         // These two overloads are here to please coverity...
         constexpr TimeValue_T(std::chrono::seconds&& dur) :
-            m_impl {std::chrono::duration_cast<std::chrono::milliseconds> (dur).count() }
+            m_impl {T(std::chrono::duration_cast<std::chrono::milliseconds> (dur).count())}
         { }
         constexpr TimeValue_T(std::chrono::milliseconds&& dur) :
-            m_impl {dur.count() }
+            m_impl {T(dur.count())}
         { }
 
         template<typename Duration,
@@ -195,7 +195,7 @@ class TimeValue_T
                 return res;
             }
 
-            res.m_impl = m_impl.get() + other.m_impl.get();
+            res.m_impl = *m_impl + *other.m_impl;
             return res;
         }
 
@@ -208,13 +208,13 @@ class TimeValue_T
                 return res;
             }
 
-            res.m_impl = m_impl.get() * other;
+            res.m_impl = *m_impl * other;
             return res;
         }
 
         double operator/ (const TimeValue_T& other) const
         {
-            return double(m_impl.get()) / double(other.m_impl.get());
+            return double(*m_impl) / double(*other.m_impl);
         }
 
         TimeValue_T operator- (const TimeValue_T& other) const
@@ -226,7 +226,7 @@ class TimeValue_T
                 return res;
             }
 
-            res.m_impl = m_impl.get() - other.m_impl.get();
+            res.m_impl = *m_impl - *other.m_impl;
             return res;
         }
 
@@ -235,7 +235,7 @@ class TimeValue_T
             TimeValue_T res{ZeroTime{}};
             TimeValue_T zero{ZeroTime{}};
 
-            res.m_impl = zero.m_impl.get() - m_impl.get();
+            res.m_impl = *zero.m_impl - *m_impl;
 
             return res;
         }
@@ -247,7 +247,7 @@ class TimeValue_T
         }
 
     private:
-        boost::optional<T> m_impl {0}; // TODO std::isinf instead.
+        optional<T> m_impl {0}; // TODO std::isinf instead.
 };
 
 /*

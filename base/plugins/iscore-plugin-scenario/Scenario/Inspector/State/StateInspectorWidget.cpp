@@ -8,7 +8,7 @@
 #include <Scenario/Commands/State/RemoveStateProcess.hpp>
 #include <Process/StateProcessFactoryList.hpp>
 #include <Process/StateProcess.hpp>
-#include <boost/optional/optional.hpp>
+#include <iscore/tools/std/Optional.hpp>
 #include <iscore/widgets/MarginLess.hpp>
 #include <QtAlgorithms>
 #include <QFormLayout>

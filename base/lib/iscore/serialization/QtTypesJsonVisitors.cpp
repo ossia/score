@@ -1,5 +1,5 @@
 #include <boost/none_t.hpp>
-#include <boost/optional/optional.hpp>
+#include <iscore/tools/std/Optional.hpp>
 #include <QJsonArray>
 #include <QJsonValue>
 #include <QPoint>

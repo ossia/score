@@ -431,7 +431,7 @@ struct Expression_builder : boost::static_visitor<void>
 }
 
 
-    boost::optional<State::Expression> State::parseExpression(const QString& str)
+    iscore::optional<State::Expression> State::parseExpression(const QString& str)
     {
         auto input = str.toStdString();
         auto f(std::begin(input)), l(std::end(input));
@@ -469,7 +469,7 @@ struct Expression_builder : boost::static_visitor<void>
     }
 
 
-    boost::optional<State::Value> State::parseValue(const QString& str)
+    iscore::optional<State::Value> State::parseValue(const QString& str)
     {
         auto input = str.toStdString();
         auto f(std::begin(input)), l(std::end(input));
@@ -503,7 +503,7 @@ struct Expression_builder : boost::static_visitor<void>
 
 
 
-    boost::optional<State::Address> State::parseAddress(const QString& str)
+    iscore::optional<State::Address> State::parseAddress(const QString& str)
     {
         auto input = str.toStdString();
         auto f(std::begin(input)), l(std::end(input));
@@ -535,7 +535,7 @@ struct Expression_builder : boost::static_visitor<void>
         return {};
     }
 
-    boost::optional<State::AddressAccessor> State::parseAddressAccessor(const QString& str)
+    iscore::optional<State::AddressAccessor> State::parseAddressAccessor(const QString& str)
     {
         auto input = str.toStdString();
         auto f(std::begin(input)), l(std::end(input));
@@ -552,7 +552,7 @@ struct Expression_builder : boost::static_visitor<void>
             else
             {
                 // We try to get an address instead.
-                boost::optional<State::Address> res = State::parseAddress(str);
+                iscore::optional<State::Address> res = State::parseAddress(str);
                 if(res)
                 {
                     result.address = (*res);

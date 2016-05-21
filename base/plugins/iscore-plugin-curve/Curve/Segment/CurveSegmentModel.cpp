@@ -62,12 +62,12 @@ void SegmentModel::setHorizontalParameter(double p)
 
 }
 
-boost::optional<double> SegmentModel::verticalParameter() const
+optional<double> SegmentModel::verticalParameter() const
 {
     return {};
 }
 
-boost::optional<double> SegmentModel::horizontalParameter() const
+optional<double> SegmentModel::horizontalParameter() const
 {
     return {};
 }

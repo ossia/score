@@ -1,6 +1,6 @@
 #include <State/Expression.hpp>
 #include <State/Relation.hpp>
-#include <boost/optional/optional.hpp>
+#include <iscore/tools/std/Optional.hpp>
 #include <QBoxLayout>
 #include <QComboBox>
 #include <QLabel>

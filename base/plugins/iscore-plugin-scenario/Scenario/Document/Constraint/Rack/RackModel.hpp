@@ -2,7 +2,7 @@
 #include <iscore/tools/Metadata.hpp>
 #include <Process/ModelMetadata.hpp>
 #include <Process/TimeValue.hpp>
-#include <boost/optional/optional.hpp>
+#include <iscore/tools/std/Optional.hpp>
 #include <iscore/serialization/VisitorInterface.hpp>
 #include <iscore/tools/NotifyingMap.hpp>
 #include <iscore/tools/SettableIdentifier.hpp>

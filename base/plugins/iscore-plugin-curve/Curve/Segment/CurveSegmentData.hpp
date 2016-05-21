@@ -19,7 +19,7 @@ struct SegmentData;
 class SegmentId
 {
     public:
-        using value_type = boost::optional<int32_t>;
+        using value_type = optional<int32_t>;
         explicit SegmentId() = default;
         explicit SegmentId(value_type val) : m_id {val} { }
         SegmentId(const SegmentId&) = delete;

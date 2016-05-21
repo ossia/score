@@ -83,7 +83,7 @@ void GammaSegment::setVerticalParameter(double p)
 }
 
 
-boost::optional<double> GammaSegment::verticalParameter() const
+optional<double> GammaSegment::verticalParameter() const
 {
     return gamma;
 }

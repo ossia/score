@@ -2,7 +2,7 @@
 #include <iscore/serialization/DataStreamVisitor.hpp>
 #include <iscore/serialization/JSONVisitor.hpp>
 #include <iscore_lib_state_export.h>
-#include <boost/optional/optional.hpp>
+#include <iscore/tools/std/Optional.hpp>
 #include <eggs/variant.hpp>
 #include <QChar>
 #include <QList>
@@ -118,7 +118,7 @@ struct ISCORE_LIB_STATE_EXPORT Value
 };
 
 using ValueList = QList<Value>;
-using OptionalValue = boost::optional<State::Value>;
+using OptionalValue = optional<State::Value>;
 }
 
 Q_DECLARE_METATYPE(State::no_value_t)

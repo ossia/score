@@ -8,7 +8,7 @@
 #include <boost/mpl/at.hpp>
 #include <boost/mpl/map.hpp>
 #include <boost/mpl/pair.hpp>
-#include <boost/optional/optional.hpp>
+#include <iscore/tools/std/Optional.hpp>
 #include <boost/range/algorithm/find_if.hpp>
 #include <eggs/variant/variant.hpp>
 #include <QByteArray>
@@ -170,8 +170,7 @@ OSSIA::Node* getNodeFromPath(
     {
         const auto& children = node->children();
 
-        auto it = boost::range::find_if(children,
-                                        [&] (const auto& ossia_node)
+        auto it = find_if(children, [&] (const auto& ossia_node)
         {
             return ossia_node->getName() == path[i].toStdString();
         });
@@ -297,7 +296,7 @@ void updateOSSIAValue(const State::ValueImpl& data, OSSIA::Value& val)
             delete generic.start;
             generic.start = new char[generic.size];
 
-            boost::range::copy(array, generic.start);
+            copy(array, generic.start);
             break;
             */
         }

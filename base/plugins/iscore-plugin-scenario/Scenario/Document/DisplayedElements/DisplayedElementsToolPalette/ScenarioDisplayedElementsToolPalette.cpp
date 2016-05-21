@@ -4,7 +4,7 @@
 #include <Scenario/Document/ScenarioDocument/ScenarioDocumentPresenter.hpp>
 #include <Scenario/Palette/ScenarioPoint.hpp>
 
-#include <boost/optional/optional.hpp>
+#include <iscore/tools/std/Optional.hpp>
 #include <iscore/application/ApplicationContext.hpp>
 #include <algorithm>
 

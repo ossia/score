@@ -101,7 +101,7 @@ void PowerSegment::setVerticalParameter(double p)
 }
 
 
-boost::optional<double> PowerSegment::verticalParameter() const
+optional<double> PowerSegment::verticalParameter() const
 {
     return gamma / 6. - 1;
 }

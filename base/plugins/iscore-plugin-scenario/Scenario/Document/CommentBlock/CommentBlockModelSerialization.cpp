@@ -1,4 +1,4 @@
-#include <boost/optional/optional.hpp>
+#include <iscore/tools/std/Optional.hpp>
 #include <QDataStream>
 #include <QtGlobal>
 #include <QJsonArray>

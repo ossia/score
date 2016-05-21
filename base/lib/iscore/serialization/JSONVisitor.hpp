@@ -178,17 +178,17 @@ struct TSerializer<JSONObject, IdentifiedObject<T>>
 
 
 template<>
-struct TSerializer<JSONObject, boost::optional<int32_t>>
+struct TSerializer<JSONObject, optional<int32_t>>
 {
         // TODO should not be used. Save as optional json value instead.
 
         static void readFrom(
                 JSONObject::Serializer& s,
-                const boost::optional<int32_t>& obj)
+                const optional<int32_t>& obj)
         {
             if(obj)
             {
-                s.m_obj[iscore::StringConstant().id] = get(obj);
+                s.m_obj[iscore::StringConstant().id] = *obj;
             }
             else
             {
@@ -198,11 +198,11 @@ struct TSerializer<JSONObject, boost::optional<int32_t>>
 
         static void writeTo(
                 JSONObject::Deserializer& s,
-                boost::optional<int32_t>& obj)
+                optional<int32_t>& obj)
         {
             if(s.m_obj[iscore::StringConstant().id].toString() == iscore::StringConstant().none)
             {
-                obj.reset();
+                obj = iscore::none;
             }
             else
             {

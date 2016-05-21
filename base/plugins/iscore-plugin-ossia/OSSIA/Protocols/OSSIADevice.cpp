@@ -213,7 +213,7 @@ Device::Node OSSIADevice::refresh()
     return device_node;
 }
 
-boost::optional<State::Value> OSSIADevice::refresh(const State::Address& address)
+optional<State::Value> OSSIADevice::refresh(const State::Address& address)
 {
     if(!connected())
         return {};

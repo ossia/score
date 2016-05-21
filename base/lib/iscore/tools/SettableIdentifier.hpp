@@ -1,5 +1,5 @@
 #pragma once
-#include <boost/optional.hpp>
+#include <iscore/tools/std/Optional.hpp>
 #include <QDebug>
 #include <QPointer>
 #include <iscore/tools/Todo.hpp>
@@ -118,7 +118,7 @@ class id_base_t
 };
 
 template<typename tag, typename impl>
-using optional_tagged_id = id_base_t<tag, boost::optional<impl>>;
+using optional_tagged_id = id_base_t<tag, optional<impl>>;
 
 template<typename tag>
 using optional_tagged_int32_id = optional_tagged_id<tag, int32_t>;
@@ -138,7 +138,7 @@ struct id_hash
 template<typename T>
 uint qHash(const Id<T>& id, uint seed)
 {
-    return qHash(id.val().get(), seed);
+    return qHash(*id.val(), seed);
 }
 
 template<typename tag>

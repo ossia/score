@@ -7,7 +7,7 @@
 #include <Scenario/Inspector/TimeNode/TriggerInspectorWidget.hpp>
 #include <Scenario/Process/Algorithms/Accessors.hpp>
 
-#include <boost/optional/optional.hpp>
+#include <iscore/tools/std/Optional.hpp>
 
 #include <iscore/application/ApplicationContext.hpp>
 #include <QByteArray>

@@ -1,6 +1,6 @@
 #pragma once
 #include <Curve/Commands/CurveCommandFactory.hpp>
-#include <boost/optional/optional.hpp>
+#include <iscore/tools/std/Optional.hpp>
 #include <iscore/command/SerializableCommand.hpp>
 #include <iscore/tools/ModelPath.hpp>
 #include <QMap>
@@ -38,8 +38,8 @@ class ISCORE_PLUGIN_CURVE_EXPORT SetSegmentParameters final : public iscore::Ser
         QMap<
             Id<SegmentModel>,
             QPair<
-                boost::optional<double>,
-                boost::optional<double>
+                optional<double>,
+                optional<double>
             >
         > m_old;
 };

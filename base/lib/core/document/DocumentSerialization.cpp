@@ -1,5 +1,5 @@
 
-#include <boost/optional/optional.hpp>
+#include <iscore/tools/std/Optional.hpp>
 #include <core/document/DocumentPresenter.hpp>
 #include <core/document/DocumentView.hpp>
 #include <iscore/plugins/application/GUIApplicationContextPlugin.hpp>

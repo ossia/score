@@ -1,6 +1,6 @@
 #include <Scenario/Document/Constraint/LayerModelLoader.hpp>
 
-#include <boost/optional/optional.hpp>
+#include <iscore/tools/std/Optional.hpp>
 #include <QtGlobal>
 #include <QJsonArray>
 #include <QJsonObject>

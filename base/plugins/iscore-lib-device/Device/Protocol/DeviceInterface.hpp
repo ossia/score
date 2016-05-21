@@ -2,7 +2,7 @@
 #include <Device/Node/DeviceNode.hpp>
 #include <Device/Protocol/DeviceSettings.hpp>
 #include <State/Address.hpp>
-#include <boost/optional/optional.hpp>
+#include <iscore/tools/std/Optional.hpp>
 #include <QObject>
 #include <QString>
 #include <vector>
@@ -54,7 +54,7 @@ class ISCORE_LIB_DEVICE_EXPORT DeviceInterface : public QObject
         // Asks, and returns all the new addresses if the device can refresh itself Minuit-like.
         // The addresses are not applied to the device, they have to be via a command!
         virtual Device::Node refresh() { return {}; }
-        virtual boost::optional<State::Value> refresh(const State::Address&) { return {}; }
+        virtual optional<State::Value> refresh(const State::Address&) { return {}; }
         virtual void setListening(const State::Address&, bool) { }
         virtual void addToListening(const std::vector<State::Address>&) { }
         virtual std::vector<State::Address> listening() const { return {}; }

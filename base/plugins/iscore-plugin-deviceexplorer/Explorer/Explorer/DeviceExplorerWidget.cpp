@@ -9,7 +9,7 @@
 #include <Explorer/Commands/Update/UpdateDeviceSettings.hpp>
 #include <Explorer/Commands/UpdateAddresses.hpp>
 
-#include <boost/optional/optional.hpp>
+#include <iscore/tools/std/Optional.hpp>
 #include <QAbstractProxyModel>
 #include <QAction>
 #include <QBoxLayout>

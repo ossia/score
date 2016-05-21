@@ -1,7 +1,7 @@
 #include <Device/Address/AddressSettings.hpp>
 #include <Explorer/Explorer/DeviceExplorerModel.hpp>
 
-#include <boost/optional/optional.hpp>
+#include <iscore/tools/std/Optional.hpp>
 #include <QDebug>
 #include <QStringList>
 #include <algorithm>

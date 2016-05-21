@@ -119,7 +119,7 @@ class MoveEventState final : public StateBase<Scenario_T>
                 }
                 else
                 {
-                    this->m_pressedPrevious.reset();
+                    this->m_pressedPrevious = iscore::none;
                 }
 
             });
@@ -143,7 +143,7 @@ class MoveEventState final : public StateBase<Scenario_T>
     }
 
     SingleOngoingCommandDispatcher<MoveEventCommand_T> m_movingDispatcher;
-    boost::optional<TimeValue> m_pressedPrevious;
+    optional<TimeValue> m_pressedPrevious;
 };
 
 
@@ -340,7 +340,7 @@ class MoveEventState<MoveEventCommand_T, Scenario::ScenarioModel, ToolPalette_T>
                 }
                 else
                 {
-                    this->m_pressedPrevious.reset();
+                    this->m_pressedPrevious = iscore::none;
                 }
 
             });
@@ -371,7 +371,7 @@ class MoveEventState<MoveEventCommand_T, Scenario::ScenarioModel, ToolPalette_T>
     SingleOngoingCommandDispatcher<Command::MergeTimeNodes<Scenario::ScenarioModel>> m_mergingTnDispatcher;
     SingleOngoingCommandDispatcher<Command::MergeEvents<Scenario::ScenarioModel>> m_mergingEventDispatcher;
 
-    boost::optional<TimeValue> m_pressedPrevious;
+    optional<TimeValue> m_pressedPrevious;
 };
 
 }

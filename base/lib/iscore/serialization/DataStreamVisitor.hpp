@@ -9,7 +9,7 @@
 
 #include <iscore/tools/NamedObject.hpp>
 #include <iscore/tools/SettableIdentifier.hpp>
-#include <boost/optional.hpp>
+#include <iscore/tools/std/Optional.hpp>
 namespace iscore
 {
 struct ApplicationContext;
@@ -323,23 +323,23 @@ struct TSerializer<DataStream, void, IdentifiedObject<T>>
 };
 
 template<typename T>
-struct TSerializer<DataStream, void, boost::optional<T>>
+struct TSerializer<DataStream, void, optional<T>>
 {
         static void readFrom(
                 DataStream::Serializer& s,
-                const boost::optional<T>& obj)
+                const optional<T>& obj)
         {
             s.stream() << static_cast<bool>(obj);
 
             if(obj)
             {
-                s.stream() << get(obj);
+                s.stream() << *obj;
             }
         }
 
         static void writeTo(
                 DataStream::Deserializer& s,
-                boost::optional<T>& obj)
+                optional<T>& obj)
         {
             bool b {};
             s.stream() >> b;
@@ -352,7 +352,7 @@ struct TSerializer<DataStream, void, boost::optional<T>>
             }
             else
             {
-                obj.reset();
+                obj = iscore::none;
             }
         }
 };

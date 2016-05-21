@@ -1,7 +1,7 @@
 #pragma once
 #include <Curve/Palette/CurvePoint.hpp>
 #include <Curve/Segment/CurveSegmentData.hpp>
-#include <boost/optional/optional.hpp>
+#include <iscore/tools/std/Optional.hpp>
 #include <iscore/selection/Selectable.hpp>
 #include <iscore/tools/IdentifiedObject.hpp>
 #include <iscore/plugins/customfactory/SerializableInterface.hpp>
@@ -80,8 +80,8 @@ class ISCORE_PLUGIN_CURVE_EXPORT SegmentModel :
         // Between -1 and 1, to map to the real parameter.
         virtual void setVerticalParameter(double p);
         virtual void setHorizontalParameter(double p);
-        virtual boost::optional<double> verticalParameter() const;
-        virtual boost::optional<double> horizontalParameter() const;
+        virtual optional<double> verticalParameter() const;
+        virtual optional<double> horizontalParameter() const;
 
         SegmentData toSegmentData() const
         {

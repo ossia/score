@@ -9,7 +9,6 @@
 #include <QAbstractItemModel>
 #include <QMenu>
 #include <QFormLayout>
-#include <QGraphicsScene>
 #include <QLayout>
 #include <QPen>
 #include <QPointer>
@@ -225,10 +224,8 @@
 // Messes with boost.spirit #include <boost/multi_index/ordered_index.hpp>
 
 #include <boost/multi_index/member.hpp>
-#include <boost/iterator/indirect_iterator.hpp>
-#include <boost/container/flat_map.hpp>
-#include <boost/optional.hpp>
-#include <boost/range/algorithm.hpp>
+
+#include <iscore/tools/std/Optional.hpp>
 
 #include <iscore/serialization/DataStreamVisitor.hpp>
 #include <iscore/serialization/JSONValueVisitor.hpp>

@@ -2,7 +2,7 @@
 #include <Scenario/Palette/Tools/States/DragSlotState.hpp>
 #include <Scenario/Palette/Tools/States/ResizeSlotState.hpp>
 #include <Scenario/Process/Temporal/TemporalScenarioPresenter.hpp>
-#include <boost/optional/optional.hpp>
+#include <iscore/tools/std/Optional.hpp>
 #include <QGraphicsItem>
 #include <QGraphicsScene>
 #include <QState>

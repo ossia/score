@@ -1,7 +1,7 @@
 #include <Scenario/Commands/State/AddMessagesToState.hpp>
 #include <State/MessageListSerialization.hpp>
 
-#include <boost/optional/optional.hpp>
+#include <iscore/tools/std/Optional.hpp>
 #include <QFlags>
 #include <QJsonDocument>
 #include <QMap>

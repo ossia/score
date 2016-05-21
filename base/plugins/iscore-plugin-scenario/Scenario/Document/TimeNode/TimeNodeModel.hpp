@@ -3,7 +3,7 @@
 #include <Process/ModelMetadata.hpp>
 #include <Process/TimeValue.hpp>
 #include <Scenario/Document/VerticalExtent.hpp>
-#include <boost/optional/optional.hpp>
+#include <iscore/tools/std/Optional.hpp>
 #include <iscore/plugins/documentdelegate/plugin/ElementPluginModelList.hpp>
 #include <iscore/selection/Selectable.hpp>
 #include <iscore/tools/IdentifiedObject.hpp>

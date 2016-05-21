@@ -1,6 +1,6 @@
 #pragma once
 #include <Process/TimeValue.hpp>
-#include <boost/optional/optional.hpp>
+#include <iscore/tools/std/Optional.hpp>
 #include <iscore/command/SerializableCommand.hpp>
 
 #include "CreateEvent_State.hpp"

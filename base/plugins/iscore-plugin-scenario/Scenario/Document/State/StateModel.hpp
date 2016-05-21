@@ -3,7 +3,7 @@
 #include <Process/ModelMetadata.hpp>
 #include <Process/StateProcess.hpp>
 #include <Scenario/Document/Event/ExecutionStatus.hpp>
-#include <boost/optional/optional.hpp>
+#include <iscore/tools/std/Optional.hpp>
 #include <iscore/selection/Selectable.hpp>
 #include <iscore/tools/IdentifiedObject.hpp>
 #include <iscore/tools/SettableIdentifier.hpp>

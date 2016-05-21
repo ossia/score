@@ -29,7 +29,7 @@ void ConstraintViewModel::hideRack()
 
 void ConstraintViewModel::showRack(const Id<RackModel>& rackId)
 {
-    if(rackId.val().is_initialized())
+    if(rackId.val())
     {
         m_shownRack = rackId;
 
