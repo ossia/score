@@ -7,6 +7,7 @@
 #include <iscore/command/SerializableCommand.hpp>
 #include <iscore/plugins/customfactory/FactoryInterface.hpp>
 
+#include <iscore/actions/Action.hpp>
 #include <iscore_lib_base_export.h>
 namespace iscore
 {
@@ -30,7 +31,10 @@ class ISCORE_LIB_BASE_EXPORT ApplicationRegistrar : public QObject
                 const iscore::ApplicationContext&,
                 iscore::View&,
                 MenubarManager&,
-                std::vector<OrderedToolbar>&);
+                std::vector<OrderedToolbar>&,
+                MenuManager&,
+                ToolbarManager&,
+                ActionManager&);
 
         // Register data from plugins
         void registerPlugins(const QStringList&, const std::vector<iscore::Plugin_QtInterface*>& vec);
@@ -50,5 +54,9 @@ class ISCORE_LIB_BASE_EXPORT ApplicationRegistrar : public QObject
         iscore::View& m_view;
         MenubarManager& m_menubar;
         std::vector<OrderedToolbar>& m_toolbars;
+
+        MenuManager& m_menuManager;
+        ToolbarManager& m_toolbarManager;
+        ActionManager& m_actionManager;
 };
 }

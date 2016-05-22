@@ -22,10 +22,11 @@ namespace iscore
  * Base class for the "fake" undo plugin,
  * which provides a undo panel.
  */
-class ISCORE_LIB_BASE_EXPORT UndoApplicationPlugin final : public iscore::GUIApplicationContextPlugin
+class ISCORE_LIB_BASE_EXPORT UndoApplicationPlugin final :
+        public iscore::GUIApplicationContextPlugin
 {
     public:
-        UndoApplicationPlugin(const iscore::ApplicationContext& app, QObject* parent);
+        UndoApplicationPlugin(const iscore::ApplicationContext& app);
         ~UndoApplicationPlugin();
 
         void populateMenus(MenubarManager*) override;

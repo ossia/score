@@ -19,6 +19,8 @@ ApplicationComponentsData::~ApplicationComponentsData()
 
     for(auto& elt : appPlugins)
     {
+        // TODO some have the presenter in parent,
+        // check that it won't cause crashes.
         delete elt;
     }
 

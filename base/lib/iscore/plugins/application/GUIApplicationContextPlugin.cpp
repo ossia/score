@@ -21,9 +21,7 @@ namespace iscore
 {
 
 GUIApplicationContextPlugin::GUIApplicationContextPlugin(
-        const iscore::ApplicationContext& app,
-        const QString& name,
-        QObject* parent):
+        const iscore::ApplicationContext& app):
     context{app}
 {
 
@@ -36,6 +34,10 @@ void GUIApplicationContextPlugin::initialize()
 
 }
 
+auto GUIApplicationContextPlugin::makeGUIElements() -> GUIElements
+{
+    return {};
+}
 
 void GUIApplicationContextPlugin::populateMenus(MenubarManager*)
 {
