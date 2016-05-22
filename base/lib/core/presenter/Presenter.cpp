@@ -99,7 +99,7 @@ void Presenter::setupGUI()
         menus.reserve(m_menus.get().size());
         for(auto& elt : m_menus.get())
         {
-            if(!elt.second.menu()->parent())
+            if(elt.second.toplevel())
                 menus.push_back(elt.second);
         }
         std::sort(menus.begin(), menus.end(),  [] (auto& lhs, auto& rhs) {

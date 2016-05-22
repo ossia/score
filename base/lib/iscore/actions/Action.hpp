@@ -45,18 +45,37 @@ class Action
         };
 
         Action(
-            QAction* act,
-            StringKey<Action> key,
-            StringKey<ActionGroup> k,
-            EnablementContext ctx,
-            const QKeySequence& defaultShortcut);
+                QAction* act,
+                StringKey<Action> key,
+                StringKey<ActionGroup> k,
+                EnablementContext ctx,
+                const QKeySequence& defaultShortcut):
+            m_impl{act},
+            m_key{std::move(key)},
+            m_groupKey{std::move(k)},
+            m_ctx{ctx},
+            m_default{defaultShortcut},
+            m_current{defaultShortcut}
+        {
+            m_impl->setShortcut(m_current);
+        }
 
         Action(
-            QAction* act,
-            const char* key,
-            const char* group_key,
-            EnablementContext ctx,
-            const QKeySequence& defaultShortcut);
+                QAction* act,
+                const char* key,
+                const char* group_key,
+                EnablementContext ctx,
+                const QKeySequence& defaultShortcut):
+            m_impl{act},
+            m_key{key},
+            m_groupKey{group_key},
+            m_ctx{ctx},
+            m_default{defaultShortcut},
+            m_current{defaultShortcut}
+        {
+            m_impl->setShortcut(m_current);
+        }
+
         StringKey<Action> key() const
         { return m_key; }
 
@@ -82,6 +101,7 @@ class Action
         QAction* m_impl{};
         StringKey<Action> m_key;
         StringKey<ActionGroup> m_groupKey;
+        EnablementContext m_ctx;
         QKeySequence m_default;
         QKeySequence m_current;
 };
@@ -116,13 +136,23 @@ struct ActionManager
 class Menu
 {
     public:
-        Menu(
-           QMenu* menu,
-           StringKey<Menu> m,
-           int column = std::numeric_limits<int>::max() - 1):
+        struct is_toplevel{};
+        Menu(QMenu* menu,
+             StringKey<Menu> m):
+            m_impl{menu},
+            m_key{std::move(m)}
+        {
+
+        }
+
+        Menu(QMenu* menu,
+             StringKey<Menu> m,
+             is_toplevel,
+             int column = std::numeric_limits<int>::max() - 1):
             m_impl{menu},
             m_key{std::move(m)},
-            m_col{column}
+            m_col{column},
+            m_toplevel{true}
         {
 
         }
@@ -136,10 +166,13 @@ class Menu
         int column() const
         { return m_col; }
 
+        bool toplevel() const
+        { return m_toplevel; }
     private:
         QMenu* m_impl{};
         StringKey<Menu> m_key;
         int m_col = std::numeric_limits<int>::max() - 1;
+        bool m_toplevel{};
 };
 
 

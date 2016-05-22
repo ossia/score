@@ -5,6 +5,7 @@
 #include <core/document/DocumentBackups.hpp>
 #include <core/presenter/Presenter.hpp>
 #include <core/undo/Panel/UndoPanelFactory.hpp>
+#include <core/presenter/CoreApplicationPlugin.hpp>
 #include <core/undo/UndoApplicationPlugin.hpp>
 #include <core/view/View.hpp>
 #include <QByteArray>
@@ -252,6 +253,7 @@ void Application::loadPluginData()
     iscore::PluginLoader::loadPlugins(registrar, ctx);
 
     registrar.registerApplicationContextPlugin(new iscore::UndoApplicationPlugin{ctx});
+    registrar.registerApplicationContextPlugin(new iscore::CoreApplicationPlugin{ctx, *m_presenter});
 
     // Load the settings
     for(auto& elt : ctx.components.factory<iscore::SettingsDelegateFactoryList>())
