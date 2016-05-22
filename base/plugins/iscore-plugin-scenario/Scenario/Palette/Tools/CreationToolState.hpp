@@ -190,21 +190,21 @@ class CreationTool final : public ToolBase<ToolPalette_T>
         QList<Id<StateModel>> getCollidingStates(QPointF point, const QVector<Id<StateModel>>& createdStates)
         {
             return getCollidingModels(
-                        this->m_parentSM.presenter().states(),
+                        this->m_parentSM.presenter().getStates(),
                         createdStates,
                         point);
         }
         QList<Id<EventModel>> getCollidingEvents(QPointF point, const QVector<Id<EventModel>>& createdEvents)
         {
             return getCollidingModels(
-                        this->m_parentSM.presenter().events(),
+                        this->m_parentSM.presenter().getEvents(),
                         createdEvents,
                         point);
         }
         QList<Id<TimeNodeModel>> getCollidingTimeNodes(QPointF point, const QVector<Id<TimeNodeModel>>& createdTimeNodes)
         {
             return getCollidingModels(
-                        this->m_parentSM.presenter().timeNodes(),
+                        this->m_parentSM.presenter().getTimeNodes(),
                         createdTimeNodes,
                         point);
         }

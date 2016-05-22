@@ -155,15 +155,15 @@ void ScenarioViewInterface::on_hoverOnEvent(const Id<EventModel>& eventId, bool 
 
 void ScenarioViewInterface::on_graphicalScaleChanged(double scale)
 {
-    for(auto& e : m_presenter.events())
+    for(auto& e : m_presenter.getEvents())
     {
         e.view()->setWidthScale(scale);
     }
-    for(auto& s : m_presenter.states())
+    for(auto& s : m_presenter.getStates())
     {
         s.view()->setScale(scale);
     }
-    for(auto& c : m_presenter.constraints())
+    for(auto& c : m_presenter.getConstraints())
     {
         auto& cstr_view = view(c);
         cstr_view.setHeightScale(scale);

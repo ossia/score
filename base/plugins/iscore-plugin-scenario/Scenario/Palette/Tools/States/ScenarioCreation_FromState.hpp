@@ -29,7 +29,7 @@ class Creation_FromState final : public CreationState<Scenario_T, ToolPalette_T>
         Creation_FromState(
                 const ToolPalette_T& stateMachine,
                 const Path<Scenario_T>& scenarioPath,
-                iscore::CommandStackFacade& stack,
+                const iscore::CommandStackFacade& stack,
                 QState* parent):
             CreationState<Scenario_T, ToolPalette_T>{stateMachine, stack, std::move(scenarioPath), parent}
         {

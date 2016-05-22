@@ -23,7 +23,7 @@
 #include <Automation/AutomationModel.hpp>
 void CreateCurves(
         const QList<const Scenario::ConstraintModel*>& selected_constraints,
-        iscore::CommandStackFacade& stack)
+        const iscore::CommandStackFacade& stack)
 {
     if(selected_constraints.empty())
         return;

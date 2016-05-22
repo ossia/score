@@ -34,6 +34,7 @@
 #include <Scenario/Document/State/ItemModel/MessageItemModel.hpp>
 
 #include <iscore/menu/MenuInterface.hpp>
+#include <core/presenter/DocumentManager.hpp>
 #include <iscore/tools/NotifyingMap.hpp>
 #include <OSSIA/iscore2OSSIA.hpp>
 
@@ -51,12 +52,12 @@ PlayContextMenu::PlayContextMenu(Scenario::ScenarioApplicationPlugin *parent):
     connect(m_playStates, &QAction::triggered,
             [=]()
     {
-        if (auto sm = parent->focusedScenarioModel())
+        if (auto sm = parent->focusedScenarioInterface())
         {
-            const auto& ctx = iscore::IDocument::documentContext(*sm);
+            const auto& ctx = m_parent->context.documents.currentDocument()->context();
             auto& r_ctx = ctx.plugin<RecreateOnPlay::DocumentPlugin>().context();
 
-            for(const StateModel* state : selectedElements(sm->states))
+            for(const StateModel* state : selectedElements(sm->getStates()))
             {
                 auto ossia_state = iscore::convert::state(*state, r_ctx);
                 ossia_state->launch();
@@ -67,14 +68,13 @@ PlayContextMenu::PlayContextMenu(Scenario::ScenarioApplicationPlugin *parent):
     connect(parent, &Scenario::ScenarioApplicationPlugin::playState,
             this, [=] (const Id<StateModel>& stateId)
     {
-        if (auto sm = parent->focusedScenarioModel())
+        if (auto sm = parent->focusedScenarioInterface())
         {
-            const auto& ctx = iscore::IDocument::documentContext(*sm);
-
+            const auto& ctx = m_parent->context.documents.currentDocument()->context();
             auto& r_ctx = ctx.plugin<RecreateOnPlay::DocumentPlugin>().context();
 
             auto ossia_state = iscore::convert::state(
-                                   sm->states.at(stateId),
+                                   sm->state(stateId),
                                    r_ctx);
             ossia_state->launch();
         }

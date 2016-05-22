@@ -13,7 +13,7 @@
 class OngoingCommandDispatcher final : public ICommandDispatcher
 {
     public:
-        OngoingCommandDispatcher(iscore::CommandStackFacade& stack):
+        OngoingCommandDispatcher(const iscore::CommandStackFacade& stack):
             ICommandDispatcher{stack}
         {
 

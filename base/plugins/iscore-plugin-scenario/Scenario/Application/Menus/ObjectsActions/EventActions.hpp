@@ -5,6 +5,10 @@
 #include <iscore/command/Dispatchers/CommandDispatcher.hpp>
 namespace Scenario
 {
+namespace Command
+{
+class TriggerCommandFactoryList;
+}
 class ISCORE_PLUGIN_SCENARIO_EXPORT EventActions final : public ScenarioActions
 {
     public:
@@ -30,5 +34,6 @@ class ISCORE_PLUGIN_SCENARIO_EXPORT EventActions final : public ScenarioActions
         QAction *m_addTrigger{};
         QAction *m_removeTrigger{};
 
+        const Command::TriggerCommandFactoryList& m_triggerCommandFactory;
 };
 }

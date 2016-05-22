@@ -94,7 +94,7 @@ void MoveSlotTool::on_cancel()
 
 void MoveSlotTool::activate()
 {
-    for(const auto& constraint : m_sm.presenter().constraints())
+    for(const auto& constraint : m_sm.presenter().getConstraints())
     {
         if(!constraint.rack()) continue;
         constraint.rack()->setDisabledSlotState();
@@ -103,7 +103,7 @@ void MoveSlotTool::activate()
 
 void MoveSlotTool::desactivate()
 {
-    for(const auto& constraint : m_sm.presenter().constraints())
+    for(const auto& constraint : m_sm.presenter().getConstraints())
     {
         if(!constraint.rack()) continue;
         constraint.rack()->setEnabledSlotState();

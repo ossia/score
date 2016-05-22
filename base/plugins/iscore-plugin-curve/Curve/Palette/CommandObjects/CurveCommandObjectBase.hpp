@@ -45,7 +45,7 @@ class SegmentModel;
 class CommandObjectBase
 {
     public:
-        CommandObjectBase(Presenter* pres, iscore::CommandStackFacade&);
+        CommandObjectBase(Presenter* pres, const iscore::CommandStackFacade&);
         virtual ~CommandObjectBase();
 
         void setCurveState(Curve::StateBase* stateBase) { m_state = stateBase; }

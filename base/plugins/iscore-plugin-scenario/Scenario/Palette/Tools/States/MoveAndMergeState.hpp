@@ -27,7 +27,7 @@ class MoveEventState final : public StateBase<Scenario_T>
     public:
     MoveEventState(const ToolPalette_T& stateMachine,
                const Path<Scenario_T>& scenarioPath,
-               iscore::CommandStackFacade& stack,
+               const iscore::CommandStackFacade& stack,
                iscore::ObjectLocker& locker,
                QState* parent):
         StateBase<Scenario_T>{scenarioPath, parent},
@@ -159,7 +159,7 @@ class MoveEventState<MoveEventCommand_T, Scenario::ScenarioModel, ToolPalette_T>
     public:
     MoveEventState(const ToolPalette_T& stateMachine,
                const Path<Scenario::ScenarioModel>& scenarioPath,
-               iscore::CommandStackFacade& stack,
+               const iscore::CommandStackFacade& stack,
                iscore::ObjectLocker& locker,
                QState* parent):
         StateBase<Scenario::ScenarioModel>{scenarioPath, parent},

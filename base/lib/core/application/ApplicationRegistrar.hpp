@@ -41,7 +41,7 @@ class ISCORE_LIB_BASE_EXPORT ApplicationRegistrar : public QObject
         void registerFactories(std::unordered_map<iscore::AbstractFactoryKey, std::unique_ptr<FactoryListInterface>>&& cmds);
         void registerFactory(std::unique_ptr<FactoryListInterface> cmds);
 
-        auto& components() const
+        ApplicationComponentsData& components() const
         { return m_components; }
 
     private:

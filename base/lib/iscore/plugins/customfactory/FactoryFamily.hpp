@@ -35,47 +35,6 @@ class ISCORE_LIB_BASE_EXPORT FactoryListInterface
         virtual void insert(std::unique_ptr<iscore::FactoryInterfaceBase>) = 0;
 };
 
-template<typename FactoryType>
-struct FactoryWrapper
-{
-        using key_type = typename FactoryType::ConcreteFactoryKey;
-        using element_type = FactoryType;
-        std::unique_ptr<FactoryType> factory;
-
-        FactoryType& operator*() const
-        {
-            return *factory;
-        }
-
-        auto& operator<(const FactoryWrapper& other)
-        {
-            return factory->concreteFactoryKey() < other.factory->concreteFactoryKey();
-        }
-};
-}
-
-
-namespace std
-{
-template<typename T>
-struct hash<iscore::FactoryWrapper<T>>
-{
-        std::size_t operator()(const iscore::FactoryWrapper<T>& kagi) const noexcept
-        {
-            using key_t = decltype(kagi.factory->concreteFactoryKey());
-            return std::hash<key_t>()(kagi.factory->concreteFactoryKey());
-        }
-
-        std::size_t operator()(const typename iscore::FactoryWrapper<T>::element_type::ConcreteFactoryKey& kagi) const noexcept
-        {
-            using key_t = std::remove_reference_t<std::remove_const_t<decltype(kagi)>>;
-            return std::hash<key_t>()(kagi);
-        }
-};
-}
-
-namespace iscore
-{
 // FIXME They should take an export macro also ?
 template<typename FactoryType>
 class ConcreteFactoryList :
@@ -107,14 +66,9 @@ class ConcreteFactoryList :
             {
                 auto k = pf->concreteFactoryKey();
                 auto it = this->map.find(k);
-                if(it == this->map.end())
-                {
-                    this->map.emplace(std::make_pair(k, std::move(pf)));
-                }
-                else
-                {
-                    ISCORE_ABORT;
-                }
+                ISCORE_ASSERT(it == this->map.end());
+
+                this->map.emplace(std::make_pair(k, std::move(pf)));
             }
         }
 
@@ -218,22 +172,3 @@ auto make_ptr_vector(const Context_T& context)
 {
     return ContextualGenericFactoryInserter<Context_T, Base_T, Args...>{context}.vec;
 }
-
-#define ISCORE_STANDARD_FACTORY(FactorizedElementName) \
-class FactorizedElementName ## FactoryTag {}; \
-using FactorizedElementName ## FactoryKey = StringKey<FactorizedElementName ## FactoryTag>; \
-Q_DECLARE_METATYPE(FactorizedElementName ## FactoryKey) \
-\
-class FactorizedElementName ## Factory : \
-        public iscore::GenericFactoryInterface<FactorizedElementName ## FactoryKey> \
-{ \
-        ISCORE_ABSTRACT_FACTORY_DECL(#FactorizedElementName) \
-    public: \
-            using ConcreteFactoryKey = FactorizedElementName ## FactoryKey; \
-        virtual std::unique_ptr<FactorizedElementName> make() = 0; \
-}; \
-class FactorizedElementName ## FactoryList final : public iscore::FactoryListInterface \
-{ \
-       ISCORE_FACTORY_LIST_DECL(FactorizedElementName ## Factory) \
-};
-

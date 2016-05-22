@@ -196,7 +196,7 @@ void DocumentModel::loadDocumentAsByteArray(
     doc_writer.writeTo(docid);
     this->setId(std::move(docid));
 
-    m_model = fact.loadModel(doc_writer.toVariant(), this);
+    m_model = fact.loadModel(doc_writer.toVariant(), ctx, this);
 }
 
 void DocumentModel::loadDocumentAsJson(
@@ -227,7 +227,7 @@ void DocumentModel::loadDocumentAsJson(
 
     // Load the model
     JSONObject::Deserializer doc_writer{doc};
-    m_model = fact.loadModel(doc_writer.toVariant(), this);
+    m_model = fact.loadModel(doc_writer.toVariant(), ctx, this);
 }
 
 // Load document model

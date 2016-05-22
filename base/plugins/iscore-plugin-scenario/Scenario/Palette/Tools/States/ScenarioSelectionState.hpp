@@ -77,28 +77,28 @@ class SelectionState final : public CommonSelectionState
             using namespace std;
             Selection sel;
 
-            for(const auto& elt : m_parentSM.presenter().constraints())
+            for(const auto& elt : m_parentSM.presenter().getConstraints())
             {
                 if(area.intersects(elt.view()->boundingRect().translated(elt.view()->pos())))
                 {
                     sel.append(&elt.model());
                 }
             }
-            for(const auto& elt : m_parentSM.presenter().timeNodes())
+            for(const auto& elt : m_parentSM.presenter().getTimeNodes())
             {
                 if(area.intersects(elt.view()->boundingRect().translated(elt.view()->pos())))
                 {
                     sel.append(&elt.model());
                 }
             }
-            for(const auto& elt : m_parentSM.presenter().events())
+            for(const auto& elt : m_parentSM.presenter().getEvents())
             {
                 if(area.intersects(elt.view()->boundingRect().translated(elt.view()->pos())))
                 {
                     sel.append(&elt.model());
                 }
             }
-            for(const auto& elt : m_parentSM.presenter().states())
+            for(const auto& elt : m_parentSM.presenter().getStates())
             {
                 if(area.intersects(elt.view()->boundingRect().translated(elt.view()->pos())))
                 {

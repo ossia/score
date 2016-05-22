@@ -29,7 +29,7 @@ namespace Curve
 class SegmentModel;
 MovePointCommandObject::MovePointCommandObject(
         Presenter* presenter,
-        iscore::CommandStackFacade& stack):
+        const iscore::CommandStackFacade& stack):
     CommandObjectBase{presenter, stack}
 {
 

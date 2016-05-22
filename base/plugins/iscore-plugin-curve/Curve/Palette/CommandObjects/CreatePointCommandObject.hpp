@@ -17,7 +17,7 @@ class ISCORE_PLUGIN_CURVE_EXPORT CreatePointCommandObject final : public Command
     public:
         CreatePointCommandObject(
                 Presenter* presenter,
-                iscore::CommandStackFacade& stack);
+                const iscore::CommandStackFacade& stack);
         virtual ~CreatePointCommandObject();
 
         void on_press() override;

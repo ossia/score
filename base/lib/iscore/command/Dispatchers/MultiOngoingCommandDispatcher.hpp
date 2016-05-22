@@ -32,7 +32,7 @@ namespace RollbackStrategy
 class MultiOngoingCommandDispatcher final : public ICommandDispatcher
 {
     public:
-        MultiOngoingCommandDispatcher(iscore::CommandStackFacade& stack):
+        MultiOngoingCommandDispatcher(const iscore::CommandStackFacade& stack):
             ICommandDispatcher{stack}
         {
 

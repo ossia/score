@@ -27,11 +27,11 @@ class TimeValue_T
         { }
 
         constexpr TimeValue_T(ZeroTime) :
-            m_impl {0}
+            m_impl {T(0)}
         { }
 
         TimeValue_T(QTime t):
-            m_impl{t.msec() + 1000 * t.second() + 60000 * t.minute() + 3600000 * t.hour()}
+            m_impl{T(t.msec() + 1000 * t.second() + 60000 * t.minute() + 3600000 * t.hour())}
         { }
 
 
@@ -46,7 +46,7 @@ class TimeValue_T
         template<typename Duration,
                  std::enable_if_t<std::is_class<Duration>::value>* = nullptr>
         constexpr TimeValue_T(Duration && dur) :
-            m_impl {std::chrono::duration_cast<std::chrono::milliseconds> (dur).count() }
+            m_impl {T(std::chrono::duration_cast<std::chrono::milliseconds> (dur).count()) }
         { }
 
 
@@ -247,7 +247,7 @@ class TimeValue_T
         }
 
     private:
-        optional<T> m_impl {0}; // TODO std::isinf instead.
+        optional<T> m_impl {T(0)}; // TODO std::isinf instead.
 };
 
 /*

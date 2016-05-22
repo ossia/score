@@ -90,15 +90,15 @@ class ISCORE_PLUGIN_SCENARIO_EXPORT TemporalScenarioPresenter final :
         { return m_states.at(id); }
         const auto& comment(const Id<CommentBlockModel>& id) const
         { return m_comments.at(id); }
-        const auto& events() const
+        const auto& getEvents() const
         { return m_events; }
-        const auto& timeNodes() const
+        const auto& getTimeNodes() const
         { return m_timeNodes; }
-        const auto& constraints() const
+        const auto& getConstraints() const
         { return m_constraints; }
-        const auto& states() const
+        const auto& getStates() const
         { return m_states; }
-        const auto& comments() const
+        const auto& getComments() const
         { return m_comments; }
 
         TemporalScenarioView& view() const

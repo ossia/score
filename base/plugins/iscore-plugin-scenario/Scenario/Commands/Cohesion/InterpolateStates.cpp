@@ -42,7 +42,7 @@ namespace Scenario
 namespace Command
 {
 void InterpolateStates(const QList<const ConstraintModel*>& selected_constraints,
-                       iscore::CommandStackFacade& stack)
+                       const iscore::CommandStackFacade& stack)
 {
     // For each constraint, interpolate between the states in its start event and end event.
 

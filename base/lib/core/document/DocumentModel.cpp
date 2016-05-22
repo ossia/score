@@ -13,10 +13,11 @@ namespace iscore
 {
 DocumentModel::DocumentModel(
         const Id<DocumentModel>& id,
+        const iscore::DocumentContext& ctx,
         DocumentDelegateFactory& fact,
         QObject* parent) :
     IdentifiedObject {id, "DocumentModel", parent},
-    m_model{fact.makeModel(this)}
+    m_model{fact.makeModel(ctx, this)}
 {
 }
 

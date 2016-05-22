@@ -16,6 +16,20 @@ auto find_if(Vector&& v, Fun fun)
 }
 
 template<typename Vector, typename Value>
+auto* ptr_find(Vector&& v, const Value& val)
+{
+    auto it = std::find(std::begin(v), std::end(v), val);
+    return it != std::end(v) ? &*it : nullptr;
+}
+
+template<typename Vector, typename Fun>
+auto* ptr_find_if(Vector&& v, Fun fun)
+{
+    auto it = std::find_if(std::begin(v), std::end(v), fun);
+    return it != std::end(v) ? &*it : nullptr;
+}
+
+template<typename Vector, typename Value>
 bool contains(Vector&& v, const Value& val)
 {
     return find(v, val) != v.end();

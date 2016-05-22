@@ -19,7 +19,7 @@ namespace Curve
 {
 SetSegmentParametersCommandObject::SetSegmentParametersCommandObject(
         Presenter *pres,
-        iscore::CommandStackFacade & stack):
+        const iscore::CommandStackFacade& stack):
     m_presenter{pres},
     m_dispatcher{stack}
 {

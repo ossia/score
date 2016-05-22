@@ -89,8 +89,8 @@ class ISCORE_PLUGIN_DEVICEEXPLORER_EXPORT DeviceExplorerModel final :
         DeviceDocumentPlugin& deviceModel() const;
         QModelIndexList selectedIndexes() const;
 
-        iscore::CommandStackFacade& commandStack() const
-        { return *m_cmdQ; }
+        const iscore::CommandStackFacade& commandStack() const
+        { return m_cmdQ; }
 
         // Returns the row (useful for undo)
         int addDevice(Device::Node&& deviceNode);
@@ -180,7 +180,7 @@ class ISCORE_PLUGIN_DEVICEEXPLORER_EXPORT DeviceExplorerModel final :
 
         Device::Node& m_rootNode;
 
-        iscore::CommandStackFacade* m_cmdQ{};
+        const iscore::CommandStackFacade& m_cmdQ;
 
         DeviceExplorerView* m_view {};
 };

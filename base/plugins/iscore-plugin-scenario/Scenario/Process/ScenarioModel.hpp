@@ -32,10 +32,6 @@ namespace Process { class LayerModel; }
 class ProcessStateDataInterface;
 class QEvent;
 
-namespace OSSIA
-{
-}
-
 /**
  * @brief The ScenarioModel class
  *
@@ -70,25 +66,45 @@ class ISCORE_PLUGIN_SCENARIO_EXPORT ScenarioModel final :
         //// ScenarioModel specifics ////
 
         // Accessors
+        ElementContainer<ConstraintModel> getConstraints() const override
+        {
+            auto& map = constraints.map().get();
+            return {map.begin(), map.end()};
+        }
+
+        ElementContainer<StateModel> getStates() const override
+        {
+            auto& map = states.map().get();
+            return {map.begin(), map.end()};
+        }
+
+        ElementContainer<EventModel> getEvents() const override
+        {
+            auto& map = events.map().get();
+            return {map.begin(), map.end()};
+        }
+
+        ElementContainer<TimeNodeModel> getTimeNodes() const override
+        {
+            auto& map = timeNodes.map().get();
+            return {map.begin(), map.end()};
+        }
+
         ConstraintModel* findConstraint(const Id<ConstraintModel>& id) const override
         {
-            auto it = constraints.find(id);
-            return it != constraints.end() ? &*it : nullptr;
+            return ptr_find(constraints, id);
         }
         EventModel* findEvent(const Id<EventModel>& id) const override
         {
-            auto it = events.find(id);
-            return it != events.end() ? &*it : nullptr;
+            return ptr_find(events, id);
         }
         TimeNodeModel* findTimeNode(const Id<TimeNodeModel>& id) const override
         {
-            auto it = timeNodes.find(id);
-            return it != timeNodes.end() ? &*it : nullptr;
+            return ptr_find(timeNodes, id);
         }
         StateModel* findState(const Id<StateModel>& id) const override
         {
-            auto it = states.find(id);
-            return it != states.end() ? &*it : nullptr;
+            return ptr_find(states, id);
         }
 
         ConstraintModel& constraint(const Id<ConstraintModel>& constraintId) const override
@@ -119,12 +135,13 @@ class ISCORE_PLUGIN_SCENARIO_EXPORT ScenarioModel final :
 
         EventModel& startEvent() const
         {
-            return event(m_startEventId);
+            return events.at(m_startEventId);
         }
         EventModel& endEvent() const
         {
-            return event(m_endEventId);
+            return events.at(m_endEventId);
         }
+
 
         NotifyingMap<ConstraintModel> constraints;
         NotifyingMap<EventModel> events;

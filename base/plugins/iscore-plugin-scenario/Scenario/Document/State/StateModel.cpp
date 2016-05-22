@@ -29,7 +29,7 @@ StateModel::StateModel(
         const Id<StateModel>& id,
         const Id<EventModel>& eventId,
         double yPos,
-        iscore::CommandStackFacade& stack,
+        const iscore::CommandStackFacade& stack,
         QObject *parent):
     IdentifiedObject<StateModel> {id, Metadata<ObjectKey_k, StateModel>::get(), parent},
     m_stack{stack},
@@ -53,7 +53,7 @@ StateModel::StateModel(
 StateModel::StateModel(
         const StateModel &source,
         const Id<StateModel> &id,
-        iscore::CommandStackFacade& stack,
+        const iscore::CommandStackFacade& stack,
         QObject *parent):
     IdentifiedObject<StateModel> {id, Metadata<ObjectKey_k, StateModel>::get(), parent},
     metadata{source.metadata},

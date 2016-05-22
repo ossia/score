@@ -3,6 +3,7 @@
 #include <QPointer>
 #include <Process/Focus/FocusDispatcher.hpp>
 
+namespace iscore { class FocusManager; }
 namespace Process { class LayerModel; }
 namespace Process { class LayerPresenter; }
 namespace Process { class ProcessModel; }
@@ -20,6 +21,12 @@ class ProcessFocusManager final : public QObject
         Q_OBJECT
 
     public:
+        ProcessFocusManager(iscore::FocusManager& fmgr):
+            m_mgr{fmgr}
+        {
+
+        }
+
         const ProcessModel* focusedModel() const;
         const LayerModel* focusedViewModel() const;
         LayerPresenter* focusedPresenter() const;
@@ -39,6 +46,9 @@ class ProcessFocusManager final : public QObject
     private:
         void focusPresenter(LayerPresenter*);
         void defocusPresenter(LayerPresenter*);
+
+        iscore::FocusManager& m_mgr;
+
         QPointer<const ProcessModel> m_currentModel{};
         QPointer<const LayerModel> m_currentViewModel{};
         QPointer<LayerPresenter> m_currentPresenter{};

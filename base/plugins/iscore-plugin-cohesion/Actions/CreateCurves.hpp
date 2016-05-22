@@ -12,4 +12,4 @@ class ConstraintModel;
 
 void CreateCurves(
         const QList<const Scenario::ConstraintModel*>& selected_constraints,
-        iscore::CommandStackFacade& stack);
+        const iscore::CommandStackFacade& stack);

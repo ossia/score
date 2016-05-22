@@ -63,20 +63,20 @@ class ISCORE_PLUGIN_SCENARIO_EXPORT StateModel final : public IdentifiedObject<S
         StateModel(const Id<StateModel>& id,
                    const Id<EventModel>& eventId,
                    double yPos,
-                   iscore::CommandStackFacade& stack,
+                   const iscore::CommandStackFacade& stack,
                    QObject* parent);
 
         // Copy
         StateModel(const StateModel& source,
                    const Id<StateModel>&,
-                   iscore::CommandStackFacade& stack,
+                   const iscore::CommandStackFacade& stack,
                    QObject* parent);
 
         // Load
         template<typename DeserializerVisitor,
                  enable_if_deserializer<DeserializerVisitor>* = nullptr>
         StateModel(DeserializerVisitor&& vis,
-                   iscore::CommandStackFacade& stack,
+                   const iscore::CommandStackFacade& stack,
                    QObject* parent) :
             IdentifiedObject{vis, parent},
             m_stack{stack}
@@ -125,7 +125,7 @@ class ISCORE_PLUGIN_SCENARIO_EXPORT StateModel final : public IdentifiedObject<S
     private:
         void statesUpdated_slt();
         void init(); // TODO check if other model elements need an init method too.
-        iscore::CommandStackFacade& m_stack;
+        const iscore::CommandStackFacade& m_stack;
 
         ProcessVector m_previousProcesses;
         ProcessVector m_nextProcesses;

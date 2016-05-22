@@ -126,15 +126,17 @@ using optional_tagged_int32_id = optional_tagged_id<tag, int32_t>;
 template<typename tag>
 using Id = optional_tagged_int32_id<tag>;
 
+namespace std
+{
 template<typename tag>
-struct id_hash
+struct hash<Id<tag>>
 {
     std::size_t operator()(const Id<tag>& id) const
     {
-        return std::hash<int32_t>()(*id.val());
+        return std::hash<int32_t>{}(*id.val());
     }
 };
-
+}
 template<typename T>
 uint qHash(const Id<T>& id, uint seed)
 {

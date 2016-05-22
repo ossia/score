@@ -12,7 +12,7 @@ class Presenter;
 class ISCORE_PLUGIN_CURVE_EXPORT MovePointCommandObject final : public CommandObjectBase
 {
     public:
-        MovePointCommandObject(Presenter* presenter, iscore::CommandStackFacade& stack);
+        MovePointCommandObject(Presenter* presenter, const iscore::CommandStackFacade& stack);
         ~MovePointCommandObject();
 
         void on_press() override;

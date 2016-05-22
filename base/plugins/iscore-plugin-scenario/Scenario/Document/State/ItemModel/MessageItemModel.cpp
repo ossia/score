@@ -30,7 +30,7 @@ namespace Scenario
 {
 class StateModel;
 MessageItemModel::MessageItemModel(
-        iscore::CommandStackFacade& stack,
+        const iscore::CommandStackFacade& stack,
         const StateModel& sm,
         QObject* parent):
     TreeNodeBasedItemModel<Process::MessageNode>{parent},

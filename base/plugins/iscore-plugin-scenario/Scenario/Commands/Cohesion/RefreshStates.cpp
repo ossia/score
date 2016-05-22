@@ -34,7 +34,7 @@ void RefreshStates(const iscore::DocumentContext& doc)
 
 void RefreshStates(
         const QList<const StateModel*>& states,
-        iscore::CommandStackFacade& stack)
+        const iscore::CommandStackFacade& stack)
 {
     if(states.empty())
         return;

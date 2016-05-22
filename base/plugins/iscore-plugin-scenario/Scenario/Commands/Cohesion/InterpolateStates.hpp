@@ -13,6 +13,6 @@ class ConstraintModel;
 namespace Command
 {
 void InterpolateStates(const QList<const ConstraintModel*>&,
-                       iscore::CommandStackFacade&);
+                       const iscore::CommandStackFacade&);
 }
 }

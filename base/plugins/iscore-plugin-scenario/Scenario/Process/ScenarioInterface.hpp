@@ -1,5 +1,6 @@
 #pragma once
 #include <iscore/tools/SettableIdentifier.hpp>
+#include <iscore/tools/std/IndirectContainer.hpp>
 #include <iscore_plugin_scenario_export.h>
 namespace Scenario
 {
@@ -7,6 +8,9 @@ class ConstraintModel;
 class EventModel;
 class StateModel;
 class TimeNodeModel;
+template<typename T>
+using ElementContainer = iscore::IndirectContainer<std::vector, T>;
+
 class ISCORE_PLUGIN_SCENARIO_EXPORT ScenarioInterface
 {
     public:
@@ -20,6 +24,11 @@ class ISCORE_PLUGIN_SCENARIO_EXPORT ScenarioInterface
         virtual EventModel& event(const Id<EventModel>& eventId) const = 0;
         virtual TimeNodeModel& timeNode(const Id<TimeNodeModel>& timeNodeId) const = 0;
         virtual StateModel& state(const Id<StateModel>& stId) const = 0;
+
+        virtual ElementContainer<ConstraintModel> getConstraints() const = 0;
+        virtual ElementContainer<StateModel> getStates() const = 0;
+        virtual ElementContainer<EventModel> getEvents() const = 0;
+        virtual ElementContainer<TimeNodeModel> getTimeNodes() const = 0;
 
         virtual TimeNodeModel& startTimeNode() const = 0;
 };
