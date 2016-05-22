@@ -37,8 +37,26 @@ struct ActionGroup
 class Action
 {
     public:
-        Action(QAction* act, StringKey<Action> key, StringKey<ActionGroup> k);
+        enum class EnablementContext {
+            Application, // always enabled
+            Document, // checked for enablement when document changes
+            Selection, // checked for enablement when selection changes
+            Focus // checked for enablement when focus changes
+        };
 
+        Action(
+            QAction* act,
+            StringKey<Action> key,
+            StringKey<ActionGroup> k,
+            EnablementContext ctx,
+            const QKeySequence& defaultShortcut);
+
+        Action(
+            QAction* act,
+            const char* key,
+            const char* group_key,
+            EnablementContext ctx,
+            const QKeySequence& defaultShortcut);
         StringKey<Action> key() const
         { return m_key; }
 
@@ -71,26 +89,57 @@ class Action
 
 struct ActionManager
 {
-        void registerAction(Action action)
+        void insert(Action val)
         {
-            m_actions.insert(action);
+            m_container.insert(
+                        std::make_pair(
+                            val.key(),
+                            std::move(val)));
         }
 
-        auto& actions() const
-        { return m_actions; }
+        void insert(std::vector<Action> vals)
+        {
+            for(auto& val : vals)
+            {
+                insert(std::move(val));
+            }
+        }
+
+        auto& get() const
+        { return m_container; }
 
     private:
-        std::unordered_map<StringKey<Action>, Action> m_actions;
+        std::unordered_map<StringKey<Action>, Action> m_container;
 
 };
 
 class Menu
 {
+    public:
+        Menu(
+           QMenu* menu,
+           StringKey<Menu> m,
+           int column = std::numeric_limits<int>::max() - 1):
+            m_impl{menu},
+            m_key{std::move(m)},
+            m_col{column}
+        {
+
+        }
+
         StringKey<Menu> key() const
         { return m_key; }
 
+        QMenu* menu() const
+        { return m_impl; }
+
+        int column() const
+        { return m_col; }
+
+    private:
         QMenu* m_impl{};
         StringKey<Menu> m_key;
+        int m_col = std::numeric_limits<int>::max() - 1;
 };
 
 
@@ -109,9 +158,14 @@ class Toolbar
 
         }
 
+        QToolBar* toolbar() const
+        { return m_impl; }
+
         StringKey<Toolbar> key() const
         { return m_key; }
 
+        int row() const { return m_row; }
+        int column() const { return m_col; }
     private:
         QToolBar* m_impl{};
         StringKey<Toolbar> m_key;
@@ -127,18 +181,55 @@ class Toolbar
 
 struct MenuManager
 {
-        // Registers menus
-        auto& actions() const
-        { return m_actions; }
+    public:
+        void insert(Menu val)
+        {
+            m_container.insert(
+                        std::make_pair(
+                            val.key(),
+                            std::move(val)));
+        }
+
+        void insert(std::vector<Menu> vals)
+        {
+            for(auto& val : vals)
+            {
+                insert(std::move(val));
+            }
+        }
+
+        auto& get() const
+        { return m_container; }
 
     private:
-        std::unordered_map<StringKey<Action>, Action> m_actions;
+        std::unordered_map<StringKey<Menu>, Menu> m_container;
 
 };
 
 struct ToolbarManager
 {
-        // Registers toolbars
+    public:
+        void insert(Toolbar val)
+        {
+            m_container.insert(
+                        std::make_pair(
+                            val.key(),
+                            std::move(val)));
+        }
+
+        void insert(std::vector<Toolbar> vals)
+        {
+            for(auto& val : vals)
+            {
+                insert(std::move(val));
+            }
+        }
+
+        auto& get() const
+        { return m_container; }
+
+    private:
+        std::unordered_map<StringKey<Toolbar>, Toolbar> m_container;
 };
 /**
   * Setup goes this way :

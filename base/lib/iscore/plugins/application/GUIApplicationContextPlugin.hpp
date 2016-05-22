@@ -5,7 +5,7 @@
 #include <vector>
 
 #include <iscore/application/ApplicationContext.hpp>
-
+#include <iscore/actions/Action.hpp>
 class QAction;
 class QObject;
 namespace iscore {
@@ -37,9 +37,9 @@ namespace iscore
             // Fournir menus de base : Fichier Edition Affichage Objet Arrangement Devices Fenêtre Paramètres Aide
 
         public:
-            GUIApplicationContextPlugin(const iscore::ApplicationContext& presenter,
-                                   const QString& name,
-                                   QObject* parent);
+            using GUIElements = std::tuple<std::vector<Menu>, std::vector<Toolbar>, std::vector<Action>>;
+
+            GUIApplicationContextPlugin(const iscore::ApplicationContext& presenter);
 
             /**
              * @brief initialize
@@ -51,9 +51,11 @@ namespace iscore
 
             virtual ~GUIApplicationContextPlugin();
 
-            virtual void populateMenus(iscore::MenubarManager*);
-            virtual std::vector<iscore::OrderedToolbar> makeToolbars();
-            virtual std::vector<QAction*> actions();
+            virtual GUIElements makeGUIElements();
+
+            [[deprecated]] virtual void populateMenus(iscore::MenubarManager*);
+            [[deprecated]] virtual std::vector<iscore::OrderedToolbar> makeToolbars();
+            [[deprecated]] virtual std::vector<QAction*> actions();
 
             const ApplicationContext& context;
             Document* currentDocument() const;

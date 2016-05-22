@@ -47,7 +47,7 @@ struct VisitorVariant;
 #include <vector>
 
 OSSIAApplicationPlugin::OSSIAApplicationPlugin(const iscore::ApplicationContext& ctx):
-    iscore::GUIApplicationContextPlugin {ctx, "OSSIAApplicationPlugin", nullptr}
+    iscore::GUIApplicationContextPlugin {ctx}
 {
 // Here we try to load the extensions first because of buggy behaviour in TTExtensionLoader and API.
 #if defined(__APPLE__) && defined(ISCORE_DEPLOYMENT_BUILD)

@@ -15,9 +15,8 @@
 class QObject;
 
 iscore::UndoApplicationPlugin::UndoApplicationPlugin(
-        const iscore::ApplicationContext& app,
-        QObject* parent):
-    iscore::GUIApplicationContextPlugin{app, "UndoApplicationPlugin", parent},
+        const iscore::ApplicationContext& app):
+    iscore::GUIApplicationContextPlugin{app},
     m_undoAction{"Undo", nullptr},
     m_redoAction{"Redo", nullptr}
 {

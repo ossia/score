@@ -14,7 +14,7 @@ namespace Explorer
 {
 DeviceExplorerApplicationPlugin::DeviceExplorerApplicationPlugin(
         const iscore::ApplicationContext& app) :
-    GUIApplicationContextPlugin {app, "DeviceExplorerApplicationPlugin", nullptr}
+    GUIApplicationContextPlugin {app}
 {
 
 }

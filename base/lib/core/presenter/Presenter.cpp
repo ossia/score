@@ -65,123 +65,11 @@ Presenter::Presenter(
     m_docManager.init(m_context); // It is necessary to break
     // this dependency cycle.
 
-    setupMenus();
-    connect(m_view,		&View::insertActionIntoMenubar,
+
+    connect(m_view,     &View::insertActionIntoMenubar,
             &m_menubar, &MenubarManager::insertActionIntoMenubar);
 
     m_view->setPresenter(this);
-}
-
-void Presenter::setupMenus()
-{
-    ////// File //////
-    //// New
-    auto newAct = m_menubar.addActionIntoToplevelMenu(
-                ToplevelMenuElement::FileMenu,
-                FileMenuElement::New,
-                [&] () {
-        m_docManager.newDocument(
-                    m_context,
-                    getStrongId(m_docManager.documents()),
-                    *applicationComponents().factory<iscore::DocumentDelegateList>().begin());
-    });
-
-    newAct->setShortcut(QKeySequence::New);
-
-    // ----------
-    m_menubar.addSeparatorIntoToplevelMenu(
-                ToplevelMenuElement::FileMenu,
-                FileMenuElement::Separator_Load);
-
-    //// Save and load
-    auto openAct = m_menubar.addActionIntoToplevelMenu(
-                ToplevelMenuElement::FileMenu,
-                FileMenuElement::Load,
-                [this]() { m_docManager.loadFile(m_context); });
-    openAct->setShortcut(QKeySequence::Open);
-
-    auto saveAct = m_menubar.addActionIntoToplevelMenu(
-                ToplevelMenuElement::FileMenu,
-                FileMenuElement::Save,
-                [this]() { m_docManager.saveDocument(*m_docManager.currentDocument()); });
-    saveAct->setShortcut(QKeySequence::Save);
-
-    auto saveAsAct = m_menubar.addActionIntoToplevelMenu(
-                ToplevelMenuElement::FileMenu,
-                FileMenuElement::SaveAs,
-                [this]() { m_docManager.saveDocumentAs(*m_docManager.currentDocument()); });
-    saveAsAct->setShortcut(QKeySequence::SaveAs);
-
-    QMenu* fileMenu = m_menubar.menuAt(ToplevelMenuElement::FileMenu);
-
-    fileMenu->addMenu(m_docManager.recentFiles());
-
-    // ----------
-    m_menubar.addSeparatorIntoToplevelMenu(ToplevelMenuElement::FileMenu,
-                                           FileMenuElement::Separator_Export);
-
-    // ----------
-    m_menubar.addSeparatorIntoToplevelMenu(ToplevelMenuElement::FileMenu,
-                                           FileMenuElement::Separator_Quit);
-
-
-    auto closeAct = m_menubar.addActionIntoToplevelMenu(
-                ToplevelMenuElement::FileMenu,
-                FileMenuElement::Close,
-                [this]() {
-        if(auto doc = m_docManager.currentDocument())
-            m_docManager.closeDocument(m_context, *doc);
-    });
-    closeAct->setShortcut(QKeySequence::Close);
-
-    m_menubar.addActionIntoToplevelMenu(ToplevelMenuElement::FileMenu,
-                                        FileMenuElement::Quit,
-                                        [&] () {
-        m_view->close();
-    });
-
-#ifdef ISCORE_DEBUG
-    m_menubar.addActionIntoToplevelMenu(
-                          ToplevelMenuElement::FileMenu,
-                          FileMenuElement::SaveCommands,
-                          [this] () {m_docManager.saveStack(); });
-    m_menubar.addActionIntoToplevelMenu(
-                        ToplevelMenuElement::FileMenu,
-                        FileMenuElement::LoadCommands,
-                [this] () { m_docManager.loadStack(m_context); });
-
-#endif
-
-    ////// View //////
-    m_menubar.addMenuIntoToplevelMenu(ToplevelMenuElement::ViewMenu,
-                                      ViewMenuElement::Windows);
-
-    ////// Settings //////
-    m_menubar.addActionIntoToplevelMenu(ToplevelMenuElement::SettingsMenu,
-                                        SettingsMenuElement::Settings,
-                                        [this] () { m_settings.view().exec(); });
-    ////// About /////
-    m_menubar.addActionIntoToplevelMenu(ToplevelMenuElement::AboutMenu,
-                                        AboutMenuElement::About, [] () {
-        auto version_text =
-                QString("%1.%2.%3-%4 '%5'\n\n")
-                .arg(ISCORE_VERSION_MAJOR)
-                .arg(ISCORE_VERSION_MINOR)
-                .arg(ISCORE_VERSION_PATCH)
-                .arg(ISCORE_VERSION_EXTRA)
-                .arg(ISCORE_CODENAME);
-
-        QString commit{GIT_COMMIT};
-        if(!commit.isEmpty())
-        {
-            version_text += tr("Commit: \n%1\n").arg(commit);
-        }
-
-        QMessageBox::about(nullptr,
-                           tr("About i-score"),
-                           tr("With love and sweat from the i-score team. \nVersion:\n")
-                           + version_text);
-    });
 }
 
 bool Presenter::exit()
@@ -192,6 +80,72 @@ bool Presenter::exit()
 View* Presenter::view() const
 {
     return m_view;
+}
+
+void Presenter::setupGUI()
+{
+    // OLD WAY
+    std::sort(toolbars().begin(), toolbars().end());
+    for(auto& toolbar : toolbars())
+    {
+        m_view->addToolBar(toolbar.bar);
+    }
+
+
+    // 1. Show the menus
+    // If the menu has no parent menu, we add it to the main menu bar.
+    {
+        std::vector<Menu> menus;
+        menus.reserve(m_menus.get().size());
+        for(auto& elt : m_menus.get())
+        {
+            if(!elt.second.menu()->parent())
+                menus.push_back(elt.second);
+        }
+        std::sort(menus.begin(), menus.end(),  [] (auto& lhs, auto& rhs) {
+            return lhs.column() < rhs.column();
+        });
+
+        for(Menu& menu : menus)
+        {
+            view()->menuBar()->addMenu(menu.menu());
+        }
+    }
+
+    // 2. Show the toolbars
+    // Put them in a matrix corresponding to their organization
+    {
+        std::vector<std::vector<Toolbar>> toolbars;
+        auto it = std::max_element(
+                    m_toolbars.get().begin(),
+                    m_toolbars.get().end(), [] (auto& lhs, auto& rhs) {
+            return lhs.second.row() < rhs.second.row();
+        });
+        if(it != m_toolbars.get().end())
+        {
+            toolbars.resize(it->second.row());
+
+            for(auto& tb : m_toolbars.get())
+            {
+                toolbars.at(tb.second.row()).push_back(tb.second);
+            }
+
+            int i = 0;
+            int n = toolbars.size();
+            for(auto& tb_row : toolbars)
+            {
+                std::sort(tb_row.begin(), tb_row.end(), [] (auto& lhs, auto& rhs) {
+                    return lhs.row() < rhs.row();
+                });
+                for(Toolbar& tb : tb_row)
+                    view()->addToolBar(Qt::TopToolBarArea, tb.toolbar());
+
+                i++;
+                if(i < n - 1)
+                    view()->addToolBarBreak(Qt::TopToolBarArea);
+            }
+        }
+    }
 }
 
 }
