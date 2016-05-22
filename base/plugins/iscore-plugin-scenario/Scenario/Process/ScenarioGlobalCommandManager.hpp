@@ -9,8 +9,8 @@ class CommandStackFacade;
 
 namespace Scenario
 {
-void removeSelection(const Scenario::ScenarioModel&, iscore::CommandStackFacade&);
-void clearContentFromSelection(const Scenario::ScenarioModel&, iscore::CommandStackFacade&);
-void removeSelection(const BaseScenario&, iscore::CommandStackFacade&);
-void clearContentFromSelection(const BaseScenario&, iscore::CommandStackFacade&);
+void removeSelection(const Scenario::ScenarioModel&, const iscore::CommandStackFacade&);
+void clearContentFromSelection(const Scenario::ScenarioModel&, const iscore::CommandStackFacade&);
+void removeSelection(const BaseScenario&, const iscore::CommandStackFacade&);
+void clearContentFromSelection(const BaseScenario&, const iscore::CommandStackFacade&);
 }

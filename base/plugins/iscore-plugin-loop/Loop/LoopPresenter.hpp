@@ -32,12 +32,12 @@ struct DocumentContext;
 
 namespace Loop
 {
-inline void removeSelection(const Loop::ProcessModel& model, iscore::CommandStackFacade& )
+inline void removeSelection(const Loop::ProcessModel& model, const iscore::CommandStackFacade& )
 {
 
 }
 
-inline void clearContentFromSelection(const Loop::ProcessModel& model, iscore::CommandStackFacade& )
+inline void clearContentFromSelection(const Loop::ProcessModel& model, const iscore::CommandStackFacade& )
 {
     ISCORE_TODO;
 }

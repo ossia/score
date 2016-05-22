@@ -46,7 +46,7 @@ class ProcessViewTabWidget :
 
         Inspector::InspectorSectionWidget* m_rackSection {};
         RackWidget* m_rackWidget {};
-        std::unordered_map<Id<RackModel>, RackInspectorSection*, id_hash<RackModel>> m_rackesSectionWidgets;
+        std::unordered_map<Id<RackModel>, RackInspectorSection*> m_rackesSectionWidgets;
 
 };
 

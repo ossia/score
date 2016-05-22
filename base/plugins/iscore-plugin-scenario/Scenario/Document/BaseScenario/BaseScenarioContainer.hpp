@@ -37,6 +37,15 @@ class ISCORE_PLUGIN_SCENARIO_EXPORT BaseScenarioContainer :
         void init();
         void init(const BaseScenarioContainer&); // clone
 
+        ElementContainer<ConstraintModel> getConstraints() const override
+        { return {m_constraint}; }
+        ElementContainer<StateModel> getStates() const override
+        { return {m_startState, m_endState}; }
+        ElementContainer<EventModel> getEvents() const override
+        { return {m_startEvent, m_endEvent}; }
+        ElementContainer<TimeNodeModel> getTimeNodes() const override
+        { return {m_startNode, m_endNode}; }
+
         ConstraintModel* findConstraint(
                 const Id<ConstraintModel>& id) const final override;
 

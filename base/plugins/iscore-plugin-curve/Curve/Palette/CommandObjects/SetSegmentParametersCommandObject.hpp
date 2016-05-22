@@ -16,7 +16,7 @@ class StateBase;
 class SetSegmentParametersCommandObject
 {
     public:
-        SetSegmentParametersCommandObject(Presenter* pres, iscore::CommandStackFacade&);
+        SetSegmentParametersCommandObject(Presenter* pres, const iscore::CommandStackFacade&);
 
         void setCurveState(Curve::StateBase* stateBase) { m_state = stateBase; }
 

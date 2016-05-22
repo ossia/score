@@ -13,6 +13,7 @@ class DocumentModel;
 class DocumentPresenter;
 class DocumentView;
 struct ApplicationContext;
+struct DocumentContext;
 
 /**
      * @brief The DocumentDelegateFactoryInterface class
@@ -38,14 +39,14 @@ class ISCORE_LIB_BASE_EXPORT DocumentDelegateFactory :
                 DocumentDelegateViewInterface& view) = 0;
 
         virtual DocumentDelegateModelInterface* makeModel(
+                const iscore::DocumentContext& ctx,
                 DocumentModel* parent) = 0;
         virtual DocumentDelegateModelInterface* loadModel(
                 const VisitorVariant&,
+                const iscore::DocumentContext& ctx,
                 DocumentModel* parent) = 0;
 };
 
-
-// TODO use me
 class ISCORE_LIB_BASE_EXPORT DocumentDelegateList final :
         public ConcreteFactoryList<iscore::DocumentDelegateFactory>
 {

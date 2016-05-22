@@ -15,7 +15,7 @@ namespace Curve
 {
 CommandObjectBase::CommandObjectBase(
         Presenter* pres,
-        iscore::CommandStackFacade& stack):
+        const iscore::CommandStackFacade& stack):
     m_presenter{pres},
     m_dispatcher{stack},
     m_modelPath{m_presenter->model()}

@@ -23,7 +23,7 @@ namespace Curve
 {
 CreatePointCommandObject::CreatePointCommandObject(
         Presenter *presenter,
-        iscore::CommandStackFacade& stack):
+        const iscore::CommandStackFacade& stack):
     CommandObjectBase{presenter, stack}
 {
 }

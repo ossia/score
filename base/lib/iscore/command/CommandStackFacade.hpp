@@ -14,22 +14,22 @@ class CommandStackFacade
 
         }
 
-        void push(iscore::SerializableCommand* cmd)
+        void push(iscore::SerializableCommand* cmd) const
         {
             m_stack.push(cmd);
         }
 
-        void redoAndPush(iscore::SerializableCommand* cmd)
+        void redoAndPush(iscore::SerializableCommand* cmd) const
         {
             m_stack.redoAndPush(cmd);
         }
 
-        void disableActions()
+        void disableActions() const
         {
             m_stack.disableActions();
         }
 
-        void enableActions()
+        void enableActions() const
         {
             m_stack.enableActions();
         }

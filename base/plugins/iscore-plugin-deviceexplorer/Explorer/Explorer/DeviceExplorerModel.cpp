@@ -70,7 +70,7 @@ DeviceExplorerModel::DeviceExplorerModel(
       m_lastCutNodeIsCopied{false},
       m_devicePlugin{plug},
       m_rootNode{plug.rootNode()},
-      m_cmdQ{&plug.context().commandStack}
+      m_cmdQ{plug.context().commandStack}
 {
     this->setObjectName("DeviceExplorerModel");
 
@@ -588,7 +588,7 @@ bool DeviceExplorerModel::setData(
             if(settings != n.get<Device::AddressSettings>())
             {
                 // We changed
-                m_cmdQ->redoAndPush(new Explorer::Command::UpdateAddressSettings{
+                m_cmdQ.redoAndPush(new Explorer::Command::UpdateAddressSettings{
                                         this->deviceModel(),
                                         Device::NodePath{n},
                                         settings});
@@ -918,7 +918,7 @@ DeviceExplorerModel::dropMimeData(const QMimeData* mimeData,
                        deviceModel(),
                        std::move(n)};
 
-            m_cmdQ->redoAndPush(cmd);
+            m_cmdQ.redoAndPush(cmd);
         }
 
         return true;

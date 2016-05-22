@@ -43,7 +43,7 @@ class ISCORE_PLUGIN_SCENARIO_EXPORT MessageItemModel final :
         };
 
         MessageItemModel(
-                iscore::CommandStackFacade& stack,
+                const iscore::CommandStackFacade& stack,
                 const StateModel&,
                 QObject* parent);
         MessageItemModel& operator=(const MessageItemModel&);
@@ -83,7 +83,7 @@ class ISCORE_PLUGIN_SCENARIO_EXPORT MessageItemModel final :
     private:
         node_type m_rootNode;
 
-        iscore::CommandStackFacade& m_stack;
+        const iscore::CommandStackFacade& m_stack;
 };
 }
 

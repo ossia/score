@@ -18,7 +18,7 @@ namespace Curve
 class MoveSegmentCommandObject
 {
     public:
-        explicit MoveSegmentCommandObject(iscore::CommandStackFacade& stack);
+        explicit MoveSegmentCommandObject(const iscore::CommandStackFacade& stack);
 
         void press();
 

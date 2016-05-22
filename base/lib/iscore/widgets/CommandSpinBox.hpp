@@ -13,7 +13,7 @@ struct CommandSpinbox : public QObject
         using model_type = typename Property::model_type;
         CommandSpinbox(
                 const model_type& model,
-                iscore::CommandStackFacade& stck,
+                const iscore::CommandStackFacade& stck,
                 QWidget* parent):
             m_sb{new SpinBox{parent}},
             m_slotDisp{stck}

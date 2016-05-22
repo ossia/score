@@ -25,7 +25,7 @@ class MoveConstraintState final : public StateBase<Scenario_T>
     public:
         MoveConstraintState(const ToolPalette_T& stateMachine,
                             const Path<Scenario_T>& scenarioPath,
-                            iscore::CommandStackFacade& stack,
+                            const iscore::CommandStackFacade& stack,
                             iscore::ObjectLocker& locker,
                             QState* parent):
             StateBase<Scenario_T>{scenarioPath, parent},
@@ -103,7 +103,7 @@ class MoveConstraintBraceState final : public StateBase<Scenario_T>
     public:
         MoveConstraintBraceState(const ToolPalette_T& stateMachine,
                                 const Path<Scenario_T>& scenarioPath,
-                                iscore::CommandStackFacade& stack,
+                                const iscore::CommandStackFacade& stack,
                                 iscore::ObjectLocker& locker,
                                 QState* parent):
             StateBase<Scenario_T>{scenarioPath, parent},
@@ -187,7 +187,7 @@ class MoveTimeNodeState final : public StateBase<Scenario_T>
     public:
         MoveTimeNodeState(const ToolPalette_T& stateMachine,
                           const Path<Scenario_T>& scenarioPath,
-                          iscore::CommandStackFacade& stack,
+                          const iscore::CommandStackFacade& stack,
                           iscore::ObjectLocker& locker,
                           QState* parent):
             StateBase<Scenario_T>{scenarioPath, parent},

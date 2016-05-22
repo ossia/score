@@ -49,11 +49,14 @@
 namespace Process { class LayerPresenter; }
 namespace Scenario
 {
-ScenarioDocumentModel::ScenarioDocumentModel(QObject* parent) :
+ScenarioDocumentModel::ScenarioDocumentModel(
+        const iscore::DocumentContext& ctx,
+        QObject* parent) :
     iscore::DocumentDelegateModelInterface {
         Id<iscore::DocumentDelegateModelInterface>(iscore::id_generator::getFirstId()),
         "Scenario::ScenarioDocumentModel",
         parent},
+    m_focusManager{ctx.document.focusManager()},
     m_baseScenario{new BaseScenario{Id<BaseScenario>{0}, this}}
 {
     TimeValue dur{std::chrono::minutes{3}};

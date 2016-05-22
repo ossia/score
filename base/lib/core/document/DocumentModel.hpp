@@ -32,6 +32,7 @@ class ISCORE_LIB_BASE_EXPORT DocumentModel final : public IdentifiedObject<Docum
     public:
         DocumentModel(
                 const Id<DocumentModel>& id,
+                const iscore::DocumentContext& ctx,
                 DocumentDelegateFactory& fact,
                 QObject* parent);
         DocumentModel(

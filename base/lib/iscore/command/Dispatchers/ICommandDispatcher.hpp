@@ -18,17 +18,17 @@ namespace iscore
 class ICommandDispatcher
 {
     public:
-        ICommandDispatcher(iscore::CommandStackFacade& stack):
+        ICommandDispatcher(const iscore::CommandStackFacade& stack):
             m_stack{stack}
         {
 
         }
 
-        iscore::CommandStackFacade& stack() const
+        const iscore::CommandStackFacade& stack() const
         {
             return m_stack;
         }
 
     private:
-        iscore::CommandStackFacade& m_stack;
+        const iscore::CommandStackFacade& m_stack;
 };

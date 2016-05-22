@@ -62,7 +62,7 @@ class CreationState : public CreationStateBase<Scenario_T>
     public:
         CreationState(
                 const ToolPalette_T& sm,
-                iscore::CommandStackFacade& stack,
+                const iscore::CommandStackFacade& stack,
                 const Path<Scenario_T>& scenarioPath,
                 QState* parent):
             CreationStateBase<Scenario_T>{scenarioPath, parent},

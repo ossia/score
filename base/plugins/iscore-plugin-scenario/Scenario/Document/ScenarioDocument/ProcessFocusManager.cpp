@@ -59,6 +59,8 @@ void ProcessFocusManager::focus(QPointer<Process::LayerPresenter> p)
         m_currentViewModel = nullptr;
         m_currentModel = nullptr;
     }
+
+    m_mgr.set(m_currentViewModel);
 }
 
 void ProcessFocusManager::focus(Scenario::ScenarioDocumentPresenter*)
@@ -77,6 +79,8 @@ void ProcessFocusManager::focusNothing()
     m_currentModel = nullptr;
     m_currentViewModel = nullptr;
     m_currentPresenter = nullptr;
+
+    m_mgr.set(nullptr);
 }
 
 void ProcessFocusManager::focusPresenter(LayerPresenter* p)

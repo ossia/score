@@ -5,7 +5,7 @@ namespace SendStrategy
 {
     struct Simple
     {
-        static void send(iscore::CommandStackFacade& stack,
+        static void send(const iscore::CommandStackFacade& stack,
                          iscore::SerializableCommand* other)
         {
             stack.redoAndPush(other);
@@ -14,7 +14,7 @@ namespace SendStrategy
 
     struct Quiet
     {
-        static void send(iscore::CommandStackFacade& stack,
+        static void send(const iscore::CommandStackFacade& stack,
                          iscore::SerializableCommand* other)
         {
             stack.push(other);
@@ -23,7 +23,7 @@ namespace SendStrategy
 
     struct UndoRedo
     {
-        static void send(iscore::CommandStackFacade& stack,
+        static void send(const iscore::CommandStackFacade& stack,
                          iscore::SerializableCommand* other)
         {
             other->undo();

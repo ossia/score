@@ -102,6 +102,7 @@ class IndirectContainer : Container<T*, U>
     public:
         using ctnr_t = Container<T*, U>;
         using ctnr_t::ctnr_t;
+        using value_type = T;
 
         auto begin()
         { return make_indirect_ptr_iterator(ctnr_t::begin()); }

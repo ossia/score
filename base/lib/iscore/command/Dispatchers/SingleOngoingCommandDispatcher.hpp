@@ -16,7 +16,7 @@ template<typename TheCommand>
 class SingleOngoingCommandDispatcher final : public ICommandDispatcher
 {
     public:
-        SingleOngoingCommandDispatcher(iscore::CommandStackFacade& stack):
+        SingleOngoingCommandDispatcher(const iscore::CommandStackFacade& stack):
             ICommandDispatcher{stack}
         {
 

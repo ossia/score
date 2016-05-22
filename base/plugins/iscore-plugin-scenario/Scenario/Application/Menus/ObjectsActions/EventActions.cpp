@@ -8,6 +8,7 @@
 #include <Scenario/Document/Event/EventModel.hpp>
 #include <Scenario/Document/TimeNode/TimeNodeModel.hpp>
 #include <Scenario/Document/ScenarioDocument/ScenarioDocumentModel.hpp>
+#include <Scenario/Commands/TimeNode/TriggerCommandFactory/TriggerCommandFactoryList.hpp>
 
 #include <core/presenter/MenubarManager.hpp>
 #include <core/document/Document.hpp>
@@ -19,9 +20,11 @@
 
 namespace Scenario
 {
-EventActions::EventActions(iscore::ToplevelMenuElement menuElt,
-               ScenarioApplicationPlugin* parent):
-     ScenarioActions(menuElt, parent)
+EventActions::EventActions(
+        iscore::ToplevelMenuElement menuElt,
+        ScenarioApplicationPlugin* parent):
+     ScenarioActions(menuElt, parent),
+     m_triggerCommandFactory{parent->context.components.factory<Command::TriggerCommandFactoryList>()}
 {
     using namespace iscore;
     m_addTrigger = new QAction{tr("Add Trigger"), this};
@@ -96,36 +99,51 @@ QList<QAction*> EventActions::actions() const
 
 void EventActions::addTriggerToTimeNode()
 {
-    auto selectedTimeNodes = selectedElements(m_parent->focusedScenarioModel()->timeNodes);
+    auto si = m_parent->focusedScenarioInterface();
+    ISCORE_ASSERT(si);
+    auto selectedTimeNodes = selectedElements(si->getTimeNodes());
 
     if(selectedTimeNodes.isEmpty())
     {
         // take tn from a selected event
-        auto selectedEvents = selectedElements(m_parent->focusedScenarioModel()->events);
+        auto selectedEvents = selectedElements(si->getEvents());
+        ISCORE_ASSERT(!selectedEvents.empty());
+        // TODO maybe states, etc... ?
+
         auto ev = selectedEvents.first();
-        auto scenar = static_cast<Scenario::ScenarioModel*>(ev->parent());
-        auto& tn = Scenario::parentTimeNode(*ev, *scenar);
+        auto& tn = Scenario::parentTimeNode(*ev, *si);
         selectedTimeNodes.append(&tn);
     }
 
-    auto cmd = new Scenario::Command::AddTrigger<Scenario::ScenarioModel>{**selectedTimeNodes.begin()};
-    emit dispatcher().submitCommand(cmd);
+    auto cmd = m_triggerCommandFactory.make(
+                   &Scenario::Command::TriggerCommandFactory::make_addTriggerCommand,
+                   **selectedTimeNodes.begin());
+
+    if(cmd)
+        emit dispatcher().submitCommand(cmd);
 }
 
 void EventActions::removeTriggerFromTimeNode()
 {
-    auto selectedTimeNodes = selectedElements(m_parent->focusedScenarioModel()->timeNodes);
+    auto si = m_parent->focusedScenarioInterface();
+    auto selectedTimeNodes = selectedElements(si->getTimeNodes());
     if(selectedTimeNodes.isEmpty())
     {
-        auto selectedEvents = selectedElements(m_parent->focusedScenarioModel()->events);
+        auto selectedEvents = selectedElements(si->getEvents());
+        ISCORE_ASSERT(!selectedEvents.empty());
+        // TODO maybe states, etc... ?
+
         auto ev = selectedEvents.first();
-        auto scenar = static_cast<Scenario::ScenarioModel*>(ev->parent());
-        auto& tn = Scenario::parentTimeNode(*ev, *scenar);
+        auto& tn = Scenario::parentTimeNode(*ev, *si);
         selectedTimeNodes.append(&tn);
     }
 
-    auto cmd = new Scenario::Command::RemoveTrigger<Scenario::ScenarioModel>{**selectedTimeNodes.begin()};
-    emit dispatcher().submitCommand(cmd);
+    auto cmd = m_triggerCommandFactory.make(
+                   &Scenario::Command::TriggerCommandFactory::make_removeTriggerCommand,
+                   **selectedTimeNodes.begin());
+
+    if(cmd)
+        emit dispatcher().submitCommand(cmd);
 }
 
 CommandDispatcher<> EventActions::dispatcher()

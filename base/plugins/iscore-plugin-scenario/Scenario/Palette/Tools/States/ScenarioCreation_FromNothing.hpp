@@ -27,7 +27,7 @@ class Creation_FromNothing final : public CreationState<Scenario_T, ToolPalette_
         Creation_FromNothing(
                 const ToolPalette_T& stateMachine,
                 const Path<Scenario_T>& scenarioPath,
-                iscore::CommandStackFacade& stack,
+                const iscore::CommandStackFacade& stack,
                 QState* parent):
             CreationState<Scenario_T, ToolPalette_T>{stateMachine, stack, scenarioPath, parent}
         {

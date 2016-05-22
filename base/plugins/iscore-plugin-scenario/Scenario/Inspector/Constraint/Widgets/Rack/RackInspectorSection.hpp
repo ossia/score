@@ -44,6 +44,6 @@ class RackInspectorSection final :
         InspectorSectionWidget* m_slotSection {};
         AddSlotWidget* m_slotWidget {};
 
-        std::unordered_map<Id<SlotModel>, SlotInspectorSection*, id_hash<SlotModel>> slotmodelsSectionWidgets;
+        std::unordered_map<Id<SlotModel>, SlotInspectorSection*> slotmodelsSectionWidgets;
 };
 }

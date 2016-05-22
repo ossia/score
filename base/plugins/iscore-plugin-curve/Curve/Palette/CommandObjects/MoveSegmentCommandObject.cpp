@@ -6,7 +6,7 @@ class CommandStackFacade;
 
 namespace Curve
 {
-MoveSegmentCommandObject::MoveSegmentCommandObject(iscore::CommandStackFacade& stack)
+MoveSegmentCommandObject::MoveSegmentCommandObject(const iscore::CommandStackFacade& stack)
     //:
     //m_dispatcher{stack}
 {

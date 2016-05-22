@@ -26,16 +26,16 @@ class BaseScenarioPresenter
 
         virtual ~BaseScenarioPresenter() = default;
 
-        iscore::IndirectContainer<std::vector, ConstraintPresenter_T> constraints() const
+        iscore::IndirectContainer<std::vector, ConstraintPresenter_T> getConstraints() const
         { return {m_constraintPresenter}; }
 
-        iscore::IndirectContainer<std::vector, Scenario::StatePresenter> states() const
+        iscore::IndirectContainer<std::vector, Scenario::StatePresenter> getStates() const
         { return {m_startStatePresenter, m_endStatePresenter}; }
 
-        iscore::IndirectContainer<std::vector, Scenario::EventPresenter> events() const
+        iscore::IndirectContainer<std::vector, Scenario::EventPresenter> getEvents() const
         { return {m_startEventPresenter, m_endEventPresenter}; }
 
-        iscore::IndirectContainer<std::vector, Scenario::TimeNodePresenter> timeNodes() const
+        iscore::IndirectContainer<std::vector, Scenario::TimeNodePresenter> getTimeNodes() const
         { return {m_startNodePresenter, m_endNodePresenter}; }
 
         const Scenario::EventPresenter& event(const Id<Scenario::EventModel>& id) const

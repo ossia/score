@@ -32,18 +32,21 @@ ScenarioDocumentFactory::makePresenter(
 }
 
 iscore::DocumentDelegateModelInterface*
-ScenarioDocumentFactory::makeModel(iscore::DocumentModel* parent)
+ScenarioDocumentFactory::makeModel(
+        const iscore::DocumentContext& ctx,
+        iscore::DocumentModel* parent)
 {
-    return new ScenarioDocumentModel {parent};
+    return new ScenarioDocumentModel {ctx, parent};
 }
 
 iscore::DocumentDelegateModelInterface* ScenarioDocumentFactory::loadModel(
         const VisitorVariant& vis,
+        const iscore::DocumentContext& ctx,
         iscore::DocumentModel* parent)
 {
 
     return deserialize_dyn(vis, [&] (auto&& deserializer)
-    { return new ScenarioDocumentModel{deserializer, parent};});
+    { return new ScenarioDocumentModel{deserializer, ctx, parent};});
 }
 
 }
