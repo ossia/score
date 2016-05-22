@@ -4,7 +4,7 @@
 namespace iscore
 {
 class Presenter;
-class CoreApplicationPlugin final :
+class ISCORE_LIB_BASE_EXPORT CoreApplicationPlugin final :
         public QObject,
         public iscore::GUIApplicationContextPlugin
 {
@@ -21,10 +21,15 @@ class CoreApplicationPlugin final :
         void save();
         void saveAs();
 
+        void close();
         void quit();
 
         void openSettings();
         void about();
+
+        void loadStack();
+        void saveStack();
+
         GUIElements makeGUIElements() override;
 };
 }
