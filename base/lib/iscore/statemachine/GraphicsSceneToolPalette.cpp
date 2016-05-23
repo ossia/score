@@ -1,3 +1,4 @@
 #include "GraphicsSceneToolPalette.hpp"
 
-GraphicsSceneToolPalette::~GraphicsSceneToolPalette(){}
+GraphicsSceneToolPalette::~GraphicsSceneToolPalette() = default;
+

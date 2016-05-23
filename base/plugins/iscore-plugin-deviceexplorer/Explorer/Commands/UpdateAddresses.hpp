@@ -8,8 +8,8 @@
 
 #include <State/Value.hpp>
 
-class DataStreamInput;
-class DataStreamOutput;
+struct DataStreamInput;
+struct DataStreamOutput;
 
 
 namespace Explorer

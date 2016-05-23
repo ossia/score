@@ -31,7 +31,7 @@ class EventInspectorWidget final : public QWidget
         explicit EventInspectorWidget(
                 const EventModel& object,
                 const iscore::DocumentContext& context,
-                QWidget* parent = 0);
+                QWidget* parent = nullptr);
 
         void addState(const StateModel& state);
         void removeState(const StateModel& state);
@@ -41,7 +41,7 @@ class EventInspectorWidget final : public QWidget
         { return m_commandDispatcher; }
 
         iscore::SelectionDispatcher& selectionDispatcher() const
-        { return *m_selectionDispatcher.get(); }
+        { return *m_selectionDispatcher; }
 
     signals:
         void expandEventSection(bool b);

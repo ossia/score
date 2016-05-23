@@ -19,8 +19,6 @@
 #include <Scenario/Palette/Tools/ScenarioRollbackStrategy.hpp>
 #include <QFinalState>
 
-using namespace Scenario::Command;
-
 namespace Scenario
 {
 template<typename Scenario_T, typename ToolPalette_T>
@@ -41,7 +39,7 @@ class Creation_FromTimeNode final : public CreationState<Scenario_T, ToolPalette
                 this->clearCreatedIds();
             });
 
-            QState* mainState = new QState{this};
+            auto mainState = new QState{this};
             {
                 auto pressed = new QState{mainState};
                 auto released = new QState{mainState};
@@ -223,7 +221,7 @@ class Creation_FromTimeNode final : public CreationState<Scenario_T, ToolPalette
                 });
             }
 
-            QState* rollbackState = new QState{this};
+            auto rollbackState = new QState{this};
             iscore::make_transition<iscore::Cancel_Transition>(mainState, rollbackState);
             rollbackState->addTransition(finalState);
             QObject::connect(rollbackState, &QState::entered, [&] ()
@@ -237,7 +235,7 @@ class Creation_FromTimeNode final : public CreationState<Scenario_T, ToolPalette
     private:
         void createInitialEventAndState()
         {
-            auto cmd = new CreateEvent_State{
+            auto cmd = new Command::CreateEvent_State{
                     this->m_scenarioPath,
                     this->clickedTimeNode,
                     this->currentPoint.y};

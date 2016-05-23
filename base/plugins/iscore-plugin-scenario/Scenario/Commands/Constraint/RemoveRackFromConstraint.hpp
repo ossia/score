@@ -8,8 +8,8 @@
 
 #include <iscore/tools/SettableIdentifier.hpp>
 
-class DataStreamInput;
-class DataStreamOutput;
+struct DataStreamInput;
+struct DataStreamOutput;
 
 namespace Scenario
 {

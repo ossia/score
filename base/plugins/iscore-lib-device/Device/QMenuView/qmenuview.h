@@ -64,7 +64,7 @@ class ISCORE_LIB_DEVICE_EXPORT QMenuView final : public ClickableMenu
 {
         Q_OBJECT
     public:
-        QMenuView(QWidget * parent = 0);
+        QMenuView(QWidget * parent = nullptr);
         virtual ~QMenuView();
 
         virtual void setModel(QAbstractItemModel * model);
@@ -76,7 +76,7 @@ class ISCORE_LIB_DEVICE_EXPORT QMenuView final : public ClickableMenu
     protected:
         virtual bool prePopulated();
         virtual void postPopulated();
-        void createMenu(const QModelIndex &parent, QMenu& parentMenu, QMenu *menu = 0);
+        void createMenu(const QModelIndex &parent, QMenu& parentMenu, QMenu *menu = nullptr);
 
     signals:
         void hovered(const QString &text) const;

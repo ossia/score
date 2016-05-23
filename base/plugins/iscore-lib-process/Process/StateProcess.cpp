@@ -10,8 +10,6 @@ StateProcess::StateProcess(
 
 }
 
-ISCORE_LIB_PROCESS_EXPORT StateProcess::~StateProcess()
-{
+ISCORE_LIB_PROCESS_EXPORT StateProcess::~StateProcess() = default;
 
-}
 }

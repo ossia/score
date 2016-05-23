@@ -19,7 +19,7 @@ EventSummaryWidget::EventSummaryWidget(const EventModel& object, const iscore::D
 {
     auto mainLay = new iscore::MarginLess<QGridLayout>{this};
 
-    auto eventBtn = SelectionButton::make("", &object, *m_selectionDispatcher.get() , this);
+    auto eventBtn = SelectionButton::make("", &object, *m_selectionDispatcher , this);
 
     mainLay->addWidget(new QLabel{object.metadata.name()},0, 0, 1, 3);
     mainLay->addWidget( new QLabel{object.date().toString()}, 0, 3, 1, 3);

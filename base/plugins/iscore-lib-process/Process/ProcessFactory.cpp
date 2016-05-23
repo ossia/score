@@ -1,8 +1,6 @@
 #include "ProcessFactory.hpp"
 namespace Process
 {
-ProcessFactory::~ProcessFactory()
-{
+ProcessFactory::~ProcessFactory() = default;
 
-}
 }

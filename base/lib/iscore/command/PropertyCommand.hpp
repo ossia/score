@@ -6,9 +6,6 @@
 #include <QString>
 #include <QVariant>
 
-class DataStreamInput;
-class DataStreamOutput;
-
 namespace iscore
 {
 /**
@@ -28,11 +25,11 @@ class ISCORE_LIB_BASE_EXPORT PropertyCommand : public SerializableCommand
 
         template<typename Path_T, typename... Args>
         PropertyCommand(Path_T&& path,
-                        const QString& property,
-                        const QVariant& newval):
+                        QString property,
+                        QVariant newval):
             m_path{std::move(path).unsafePath()},
-            m_property{property},
-            m_new{newval}
+            m_property{std::move(property)},
+            m_new{std::move(newval)}
         {
             m_old = m_path.find<QObject>().property(m_property.toUtf8().constData());
         }
@@ -43,9 +40,9 @@ class ISCORE_LIB_BASE_EXPORT PropertyCommand : public SerializableCommand
         void redo() const final override;
 
         template<typename Path_T>
-        void update(const Path_T&, const QVariant& newval)
+        void update(const Path_T&, QVariant newval)
         {
-            m_new = newval;
+            m_new = std::move(newval);
         }
 
     protected:

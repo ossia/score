@@ -86,10 +86,11 @@ EventInspectorWidget::EventInspectorWidget(
                     tr("Parent TimeNode"),
                     &scenar->timeNode(timeNode),
                     selectionDispatcher(),
-                    this);
+                    infoWidg);
 
         infoLay->addWidget(tnBtn);
     }
+    m_properties.push_back(infoWidg);
 
     // Condition
 

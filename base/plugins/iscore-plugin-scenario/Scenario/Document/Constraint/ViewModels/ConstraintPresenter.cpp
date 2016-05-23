@@ -86,7 +86,7 @@ ConstraintPresenter::ConstraintPresenter(
     con(m_viewModel.model().consistency,   &ModelConsistency::warningChanged,
             m_view, &ConstraintView::setWarning);
 
-    if(m_viewModel.model().racks.size() > 0)
+    if(!m_viewModel.model().racks.empty())
     {
         if(m_viewModel.isRackShown())
         {
@@ -107,10 +107,7 @@ ConstraintPresenter::ConstraintPresenter(
     }
 }
 
-ConstraintPresenter::~ConstraintPresenter()
-{
-
-}
+ConstraintPresenter::~ConstraintPresenter() = default;
 
 void ConstraintPresenter::updateScaling()
 {
@@ -232,7 +229,7 @@ void ConstraintPresenter::on_rackShown(const Id<RackModel>& rackId)
 
 void ConstraintPresenter::on_rackHidden()
 {
-    if(model().racks.size() > 0)
+    if(!model().racks.empty())
     {
         clearRackPresenter();
 

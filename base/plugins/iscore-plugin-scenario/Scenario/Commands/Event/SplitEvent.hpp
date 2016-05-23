@@ -9,8 +9,8 @@
 
 #include <iscore/tools/SettableIdentifier.hpp>
 
-class DataStreamInput;
-class DataStreamOutput;
+struct DataStreamInput;
+struct DataStreamOutput;
 
 namespace Scenario
 {
@@ -23,12 +23,12 @@ namespace Command
 class SplitEvent final : public iscore::SerializableCommand
 {
         ISCORE_COMMAND_DECL(ScenarioCommandFactoryName(), SplitEvent, "Split an event")
-        public:
 
+    public:
             SplitEvent(
                 const Path<Scenario::ScenarioModel>& scenario,
-                const Id<EventModel>& event,
-                const QVector<Id<StateModel>>& movingstates);
+                Id<EventModel> event,
+                QVector<Id<StateModel>> movingstates);
 
         void undo() const override;
         void redo() const override;

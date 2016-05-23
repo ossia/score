@@ -82,7 +82,7 @@ void AddressEditWidget::dropEvent(QDropEvent* ev)
     {
         Mime<State::MessageList>::Deserializer des{*mime};
         State::MessageList ml = des.deserialize();
-        if(ml.size() > 0)
+        if(!ml.empty())
         {
             setAddress(ml[0].address);
         }

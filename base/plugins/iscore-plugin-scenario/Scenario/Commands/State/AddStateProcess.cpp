@@ -11,7 +11,7 @@ namespace Command
 {
 
 AddStateProcessToState::AddStateProcessToState(Path<StateModel>&& state,
-        const UuidKey<Process::StateProcessFactory>& process) :
+        UuidKey<Process::StateProcessFactory> process) :
     AddStateProcessToState{
         std::move(state),
         getStrongId(state.find().stateProcesses),
@@ -21,11 +21,11 @@ AddStateProcessToState::AddStateProcessToState(Path<StateModel>&& state,
 }
 
 AddStateProcessToState::AddStateProcessToState(Path<StateModel>&& state,
-        const Id<Process::StateProcess>& processId,
-        const UuidKey<Process::StateProcessFactory>& process):
+        Id<Process::StateProcess> processId,
+        UuidKey<Process::StateProcessFactory> process):
     m_path{std::move(state)},
     m_processName{process},
-    m_createdProcessId{processId}
+    m_createdProcessId{std::move(processId)}
 {
 }
 

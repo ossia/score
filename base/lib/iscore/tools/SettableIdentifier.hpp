@@ -34,7 +34,7 @@ class id_base_t
         }
 
         id_base_t(id_base_t && other):
-            m_id{other.m_id}
+            m_id{std::move(other.m_id)}
         {
 
         }
@@ -55,7 +55,7 @@ class id_base_t
 
         // TODO check if when an id is returned by value,
         // the pointer gets copied correctly
-        explicit id_base_t(value_type val) : m_id {val} { }
+        explicit id_base_t(value_type val) : m_id {std::move(val)} { }
 
         explicit id_base_t(tag& element):
             m_ptr{&element},

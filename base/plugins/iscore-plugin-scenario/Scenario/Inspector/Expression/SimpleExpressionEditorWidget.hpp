@@ -42,7 +42,7 @@ class SimpleExpressionEditorWidget final : public QWidget
 {
     Q_OBJECT
     public:
-        SimpleExpressionEditorWidget(const iscore::DocumentContext&, int index, QWidget* parent = 0);
+        SimpleExpressionEditorWidget(const iscore::DocumentContext&, int index, QWidget* parent = nullptr);
 
         State::Expression relation();
         State::BinaryOperator binOperator();

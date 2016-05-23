@@ -1,5 +1,6 @@
 #include "SnapshotAction.hpp"
 #include <QGraphicsScene>
+#include <QApplication>
 #include <QMimeData>
 #include <QSvgGenerator>
 #include <QBuffer>
@@ -33,8 +34,9 @@ void SnapshotAction::takeScreenshot(QGraphicsScene& scene)
     painter.end();
 
     // Set the clipboard
-    QMimeData * d = new QMimeData;
+    auto d = new QMimeData;
     d->setData("image/svg+xml",b.buffer());
+    // TODO investigate : the doc says that setMimeData takes ownership.
     QApplication::clipboard()->setMimeData(d,QClipboard::Clipboard);
     QApplication::clipboard()->setMimeData(d,QClipboard::Selection);
 

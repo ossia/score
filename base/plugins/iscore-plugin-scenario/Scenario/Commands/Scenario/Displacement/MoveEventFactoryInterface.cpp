@@ -3,10 +3,7 @@ namespace Scenario
 {
 namespace Command
 {
-MoveEventFactoryInterface::~MoveEventFactoryInterface()
-{
-
-}
+MoveEventFactoryInterface::~MoveEventFactoryInterface() = default;
 
 }
 }

@@ -20,7 +20,7 @@ class SummaryInspectorWidget final : public Inspector::InspectorWidgetBase
                 std::set<const EventModel*> events,
                 std::set<const StateModel*> states,
                 const iscore::DocumentContext& context,
-                QWidget* parent = 0);
+                QWidget* parent = nullptr);
 
         QString tabName() override;
 

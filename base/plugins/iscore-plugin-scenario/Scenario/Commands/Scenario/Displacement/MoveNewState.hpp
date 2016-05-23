@@ -6,8 +6,8 @@
 #include <iscore/tools/ModelPath.hpp>
 #include <iscore/tools/SettableIdentifier.hpp>
 
-class DataStreamInput;
-class DataStreamOutput;
+struct DataStreamInput;
+struct DataStreamOutput;
 
 /*
  * Used on creation mode, when mouse is pressed and is moving.
@@ -27,8 +27,8 @@ class MoveNewState final : public iscore::SerializableCommand
         public:
             MoveNewState(
                 Path<Scenario::ScenarioModel>&& scenarioPath,
-                const Id<StateModel>& stateId,
-                const double y);
+                Id<StateModel> stateId,
+                double y);
 
         void undo() const override;
         void redo() const override;
@@ -36,7 +36,7 @@ class MoveNewState final : public iscore::SerializableCommand
         void update(
                 const Path<Scenario::ScenarioModel>&,
                 const Id<StateModel>&,
-                const double y)
+                double y)
         {
             m_y = y;
         }

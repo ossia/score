@@ -132,7 +132,7 @@ class Path
         {
             // Note : we *must not* move directly m_impl
             // because it carries a cache that becomes wrong.
-            ISCORE_ASSERT(m_impl.vec().size() > 0);
+            ISCORE_ASSERT(!m_impl.vec().empty());
             auto last = m_impl.vec().back();
             m_impl.vec().pop_back();
             return std::make_pair(Path<U>{std::move(m_impl.vec())}, std::move(last));
@@ -204,7 +204,7 @@ class Path
 
         bool valid() const
         {
-            return m_impl.vec().size() > 0;
+            return !m_impl.vec().empty();
         }
 
     private:

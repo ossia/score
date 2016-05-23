@@ -106,27 +106,27 @@ void Visitor<Writer<JSONObject>>::writeTo(State::Relation& rel)
 
 
 template<>
-ISCORE_LIB_STATE_EXPORT void Visitor<Reader<DataStream>>::readFrom(const ExprData& expr)
+ISCORE_LIB_STATE_EXPORT void Visitor<Reader<DataStream>>::readFrom(const State::ExprData& expr)
 {
     readFrom(expr.m_data);
     insertDelimiter();
 }
 
 template<>
-ISCORE_LIB_STATE_EXPORT void Visitor<Reader<JSONObject>>::readFrom(const ExprData& expr)
+ISCORE_LIB_STATE_EXPORT void Visitor<Reader<JSONObject>>::readFrom(const State::ExprData& expr)
 {
     readFrom(expr.m_data);
 }
 
 template<>
-ISCORE_LIB_STATE_EXPORT void Visitor<Writer<DataStream>>::writeTo(ExprData& expr)
+ISCORE_LIB_STATE_EXPORT void Visitor<Writer<DataStream>>::writeTo(State::ExprData& expr)
 {
     writeTo(expr.m_data);
     checkDelimiter();
 }
 
 template<>
-ISCORE_LIB_STATE_EXPORT void Visitor<Writer<JSONObject>>::writeTo(ExprData& expr)
+ISCORE_LIB_STATE_EXPORT void Visitor<Writer<JSONObject>>::writeTo(State::ExprData& expr)
 {
     writeTo(expr.m_data);
 }

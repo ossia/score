@@ -17,10 +17,10 @@ namespace Command
 {
 Scenario::Command::MoveNewState::MoveNewState(
         Path<Scenario::ScenarioModel>&& scenarioPath,
-        const Id<StateModel>& stateId,
-        const double y):
+        Id<StateModel> stateId,
+        double y):
     m_path(std::move(scenarioPath)),
-    m_stateId{stateId},
+    m_stateId{std::move(stateId)},
     m_y{y}
 {
     auto& scenar = m_path.find();

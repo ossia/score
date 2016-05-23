@@ -7,8 +7,8 @@
 #include <iscore/tools/ModelPath.hpp>
 #include <iscore/tools/SettableIdentifier.hpp>
 
-class DataStreamInput;
-class DataStreamOutput;
+struct DataStreamInput;
+struct DataStreamOutput;
 
 namespace Scenario
 {
@@ -25,7 +25,7 @@ class ShowRackInAllViewModels final : public iscore::SerializableCommand
     public:
         ShowRackInAllViewModels(
                 Path<ConstraintModel>&& constraint_path,
-                const Id<RackModel>& rackId);
+                Id<RackModel> rackId);
 
         void undo() const override;
         void redo() const override;

@@ -5,10 +5,7 @@ class QObject;
 #include <iscore/tools/SettableIdentifier.hpp>
 namespace Process
 {
-LayerModel::~LayerModel()
-{
-
-}
+LayerModel::~LayerModel() = default;
 
 ProcessModel& LayerModel::processModel() const
 { return m_sharedProcessModel; }

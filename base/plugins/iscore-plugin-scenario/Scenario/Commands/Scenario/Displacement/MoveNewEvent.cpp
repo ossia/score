@@ -15,14 +15,14 @@ namespace Command
 {
 MoveNewEvent::MoveNewEvent(
         Path<Scenario::ScenarioModel>&& scenarioPath,
-        const Id<ConstraintModel>& constraintId,
-        const Id<EventModel>& eventId,
-        const TimeValue& date,
-        const double y,
+        Id<ConstraintModel> constraintId,
+        Id<EventModel> eventId,
+        TimeValue date,
+        double y,
         bool yLocked) :
     m_path {std::move(scenarioPath)},
-    m_constraintId {constraintId},
-    m_cmd{Path<Scenario::ScenarioModel>{m_path}, eventId, date, ExpandMode::Scale},
+    m_constraintId {std::move(constraintId)},
+    m_cmd{Path<Scenario::ScenarioModel>{m_path}, std::move(eventId), std::move(date), ExpandMode::Scale},
     m_y{y},
     m_yLocked{yLocked}
 {
@@ -31,15 +31,15 @@ MoveNewEvent::MoveNewEvent(
 
 MoveNewEvent::MoveNewEvent(
         Path<Scenario::ScenarioModel>&& scenarioPath,
-        const Id<ConstraintModel>& constraintId,
-        const Id<EventModel>& eventId,
-        const TimeValue& date,
+        Id<ConstraintModel> constraintId,
+        Id<EventModel> eventId,
+        TimeValue date,
         const double y,
         bool yLocked,
         ExpandMode mode) :
     m_path {scenarioPath},
-    m_constraintId {constraintId},
-    m_cmd{std::move(scenarioPath), eventId, date, mode},
+    m_constraintId {std::move(constraintId)},
+    m_cmd{std::move(scenarioPath), std::move(eventId), std::move(date), mode},
     m_y{y},
     m_yLocked{yLocked}
 {

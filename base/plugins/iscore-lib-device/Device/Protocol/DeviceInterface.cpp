@@ -7,16 +7,13 @@ namespace Device
 struct DeviceSettings;
 
 
-DeviceInterface::DeviceInterface(const Device::DeviceSettings &s):
-    m_settings(s)
+DeviceInterface::DeviceInterface(Device::DeviceSettings s):
+    m_settings(std::move(s))
 {
 
 }
 
-DeviceInterface::~DeviceInterface()
-{
-
-}
+DeviceInterface::~DeviceInterface() = default;
 
 const Device::DeviceSettings &DeviceInterface::settings() const
 {

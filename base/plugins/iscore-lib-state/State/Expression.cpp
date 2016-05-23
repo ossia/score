@@ -3,7 +3,7 @@
 #include "Expression.hpp"
 #include <State/Relation.hpp>
 
-QString ExprData::toString() const
+QString State::ExprData::toString() const
 {
     static const QMap<State::BinaryOperator, QString> binopMap{
       { State::BinaryOperator::And, "and" },
@@ -39,12 +39,12 @@ QString ExprData::toString() const
     return eggs::variants::apply(vis{}, m_data);
 }
 
-QString TreeNode<ExprData>::toString() const
+QString TreeNode<State::ExprData>::toString() const
 {
     QString s;
 
     auto exprstr = static_cast<const State::ExprData&>(*this).toString();
-    if(m_children.size() == 0) // Relation
+    if(m_children.empty()) // Relation
     {
         if(is<InvisibleRootNodeTag>())
         {

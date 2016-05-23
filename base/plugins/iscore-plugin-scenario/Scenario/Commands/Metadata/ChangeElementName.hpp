@@ -37,7 +37,7 @@ class ChangeElementName final : public iscore::SerializableCommand
 
         ChangeElementName(Path<T>&& path, QString newName) :
             m_path {std::move(path) },
-            m_newName {newName}
+            m_newName {std::move(newName)}
         {
             auto& obj = m_path.find();
             m_oldName = obj.metadata.name();

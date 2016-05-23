@@ -55,7 +55,7 @@ class ISCORE_LIB_STATE_EXPORT AddressLineEditBase :
             {
                 Mime<State::MessageList>::Deserializer des{*mime};
                 State::MessageList ml = des.deserialize();
-                if(ml.size() > 0)
+                if(!ml.empty())
                 {
                     this->setText(ml[0].address.toString());
                 }

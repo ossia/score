@@ -2,8 +2,6 @@
 
 namespace iscore
 {
-ProjectSettingsModel::~ProjectSettingsModel()
-{
+ProjectSettingsModel::~ProjectSettingsModel() = default;
 
-}
 }

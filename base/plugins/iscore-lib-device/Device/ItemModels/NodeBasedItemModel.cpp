@@ -2,8 +2,5 @@
 
 namespace Device
 {
-NodeBasedItemModel::~NodeBasedItemModel()
-{
-
-}
+NodeBasedItemModel::~NodeBasedItemModel() = default;
 }

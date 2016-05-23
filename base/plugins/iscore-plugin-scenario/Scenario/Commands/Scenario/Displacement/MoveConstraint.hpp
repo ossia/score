@@ -7,8 +7,8 @@
 
 #include <iscore/tools/SettableIdentifier.hpp>
 
-class DataStreamInput;
-class DataStreamOutput;
+struct DataStreamInput;
+struct DataStreamOutput;
 
 /*
  * Command for vertical move so it does'nt have to resize anything on time axis
@@ -25,14 +25,15 @@ class MoveConstraint final : public iscore::SerializableCommand
         public:
             MoveConstraint(
                 Path<Scenario::ScenarioModel>&& scenarioPath,
-                const Id<ConstraintModel>& id,
-                const TimeValue& date,
+                Id<ConstraintModel> id,
                 double y);
 
-        void update(const Path<Scenario::ScenarioModel>&,
-                    const Id<ConstraintModel>& ,
-                    const TimeValue& date,
-                    double height);
+        void update(unused_t,
+                    unused_t,
+                    double height)
+        {
+            m_newHeight = height;
+        }
 
         void undo() const override;
         void redo() const override;
@@ -44,8 +45,8 @@ class MoveConstraint final : public iscore::SerializableCommand
     private:
         Path<Scenario::ScenarioModel> m_path;
         Id<ConstraintModel> m_constraint;
-        double m_oldHeight{},
-        m_newHeight{};
+        double m_oldHeight{};
+        double m_newHeight{};
 
         QList<QPair<Id<ConstraintModel>, double>> m_selectedConstraints;
 };

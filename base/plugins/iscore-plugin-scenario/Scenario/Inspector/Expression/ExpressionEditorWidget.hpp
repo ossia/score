@@ -26,7 +26,7 @@ class ExpressionEditorWidget : public QWidget
 {
         Q_OBJECT
     public:
-        explicit ExpressionEditorWidget(const iscore::DocumentContext&doc, QWidget *parent = 0);
+        explicit ExpressionEditorWidget(const iscore::DocumentContext&doc, QWidget *parent = nullptr);
 
         State::Expression expression();
         void setExpression(State::Expression e);

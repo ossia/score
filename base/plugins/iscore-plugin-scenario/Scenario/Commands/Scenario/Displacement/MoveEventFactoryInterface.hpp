@@ -26,8 +26,8 @@ public:
         enum Strategy{CREATION, MOVE};
     virtual SerializableMoveEvent* make(
             Path<Scenario::ScenarioModel>&& scenarioPath,
-            const Id<EventModel>& eventId,
-            const TimeValue& newDate,
+            Id<EventModel> eventId,
+            TimeValue newDate,
             ExpandMode mode) = 0;
 
     virtual SerializableMoveEvent* make() = 0;

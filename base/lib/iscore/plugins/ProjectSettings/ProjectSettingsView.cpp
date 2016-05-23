@@ -2,8 +2,6 @@
 
 namespace iscore
 {
-ProjectSettingsView::~ProjectSettingsView()
-{
+ProjectSettingsView::~ProjectSettingsView() = default;
 
-}
 }

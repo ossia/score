@@ -336,13 +336,18 @@ using expr_raw = boost::variant<
 
 template <typename tag> struct binop
 {
-    explicit binop(const expr_raw& l, const expr_raw& r) : oper1(l), oper2(r) { }
+    explicit binop(expr_raw l, expr_raw r) :
+            oper1(std::move(l)),
+            oper2(std::move(r))
+        { }
     expr_raw oper1, oper2;
 };
 
 template <typename tag> struct unop
 {
-    explicit unop(const expr_raw& o) : oper1(o) { }
+    explicit unop(expr_raw o) :
+            oper1(std::move(o))
+        { }
     expr_raw oper1;
 };
 

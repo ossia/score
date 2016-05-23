@@ -3,9 +3,6 @@
 #include <algorithm>
 #include <list>
 
-class DataStreamInput;
-class DataStreamOutput;
-
 namespace iscore
 {
     /**

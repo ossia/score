@@ -27,8 +27,8 @@ void ProcessWidgetArea::mousePressEvent(QMouseEvent* event)
 {
     if (event->button() == Qt::LeftButton) {
 
-        QDrag *drag = new QDrag(this);
-        QMimeData *mimeData = new QMimeData;
+        auto drag = new QDrag(this);
+        auto mimeData = new QMimeData;
 
         mimeData->setData("application/x-iscore-processdrag",
                           marshall<DataStream>(make_path(m_proc)));

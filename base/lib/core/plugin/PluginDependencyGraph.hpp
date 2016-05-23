@@ -65,6 +65,7 @@ struct PluginDependencyNode
 
 // TESTME
 // TODO boost.graph instead...
+// TODO use the link order and some cmake-fu to generate the dependencies automatically.
 struct PluginDependencyGraph
 {
     private:

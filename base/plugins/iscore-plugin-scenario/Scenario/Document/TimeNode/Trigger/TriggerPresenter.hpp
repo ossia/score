@@ -12,7 +12,7 @@ class TriggerPresenter final : public QObject
 {
         Q_OBJECT
     public:
-        TriggerPresenter(const TriggerModel&, QGraphicsObject*, QObject* parent = 0);
+        TriggerPresenter(const TriggerModel&, QGraphicsObject*, QObject* parent = nullptr);
 
         const TriggerModel& model() const { return m_model;}
 

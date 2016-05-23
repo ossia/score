@@ -57,7 +57,5 @@ struct ISCORE_LIB_BASE_EXPORT DocumentContext
         DocumentContext(DocumentContext&&) = default;
         DocumentContext& operator=(const DocumentContext&) = default;
         DocumentContext& operator=(DocumentContext&&) = default;
-
 };
-// TODO DocumentComponents : model, pluginmodels...
 }

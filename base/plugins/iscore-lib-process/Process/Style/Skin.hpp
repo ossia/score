@@ -61,7 +61,7 @@ class ISCORE_LIB_PROCESS_EXPORT Skin :
         void changed();
 
     private:
-        Skin();
+        Skin() noexcept;
 
         boost::bimap<QString, const QColor*> m_colorMap;
 

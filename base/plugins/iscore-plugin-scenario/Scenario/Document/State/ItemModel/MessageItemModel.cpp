@@ -118,12 +118,10 @@ QVariant MessageItemModel::data(const QModelIndex &index, int role) const
         case Column::Name:
         {
             return nameColumnData(node, role);
-            break;
         }
         case Column::Value:
         {
             return valueColumnData(node, role);
-            break;
         }
         default:
             break;

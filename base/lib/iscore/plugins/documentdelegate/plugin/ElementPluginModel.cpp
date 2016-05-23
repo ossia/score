@@ -1,5 +1,2 @@
 #include "ElementPluginModel.hpp"
-iscore::ElementPluginModel::~ElementPluginModel()
-{
-
-}
+iscore::ElementPluginModel::~ElementPluginModel() = default;

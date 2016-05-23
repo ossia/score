@@ -1,10 +1,3 @@
 #include "ProcessInspectorWidgetDelegate.hpp"
-Process::InspectorWidgetDelegate::~InspectorWidgetDelegate()
-{
-    
-}
-
-Process::StateProcessInspectorWidgetDelegate::~StateProcessInspectorWidgetDelegate()
-{
-
-}
+Process::InspectorWidgetDelegate::~InspectorWidgetDelegate() = default;
+Process::StateProcessInspectorWidgetDelegate::~StateProcessInspectorWidgetDelegate() = default;

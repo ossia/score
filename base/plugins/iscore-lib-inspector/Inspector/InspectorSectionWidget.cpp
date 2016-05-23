@@ -86,10 +86,7 @@ InspectorSectionWidget::InspectorSectionWidget(QString name, bool editable, QWid
     setObjectName(name);
 }
 
-InspectorSectionWidget::~InspectorSectionWidget()
-{
-
-}
+InspectorSectionWidget::~InspectorSectionWidget() = default;
 
 QString InspectorSectionWidget::name() const
 {

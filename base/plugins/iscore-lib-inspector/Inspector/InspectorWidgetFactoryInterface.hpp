@@ -4,15 +4,10 @@
 #include <QString>
 #include <iscore_lib_inspector_export.h>
 
-class QObject;
-class QWidget;
-template <typename T> class QList;
-
 namespace iscore
 {
 struct DocumentContext;
 }
-
 
 namespace Inspector
 {

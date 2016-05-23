@@ -32,27 +32,27 @@ class ISCORE_LIB_BASE_EXPORT UuidKey : iscore::uuid_t
         }
 
     public:
-        UuidKey() = default;
-        UuidKey(const UuidKey& other) = default;
-        UuidKey(UuidKey&& other) = default;
-        UuidKey& operator=(const UuidKey& other) = default;
-        UuidKey& operator=(UuidKey&& other) = default;
+        UuidKey() noexcept = default;
+        UuidKey(const UuidKey& other) noexcept = default;
+        UuidKey(UuidKey&& other) noexcept = default;
+        UuidKey& operator=(const UuidKey& other) noexcept = default;
+        UuidKey& operator=(UuidKey&& other) noexcept = default;
 
-        UuidKey(iscore::uuid_t other):
+        UuidKey(iscore::uuid_t other) noexcept :
             iscore::uuid_t(other)
         {
 
         }
 
-        UuidKey(const char* txt):
+        UuidKey(const char* txt) noexcept :
             iscore::uuid_t(boost::uuids::string_generator{}(txt))
         {
 
         }
 
         template<int N>
-        UuidKey(const char txt[N]):
-            iscore::uuid_t(boost::uuids::string_generator{}(txt))
+        UuidKey(const char txt[N]) noexcept :
+            iscore::uuid_t(boost::uuids::string_generator{}(txt, txt + N))
         {
 
         }

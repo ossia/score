@@ -19,10 +19,7 @@ LocalTimeRulerView::LocalTimeRulerView():
     setZValue(1);
 }
 
-LocalTimeRulerView::~LocalTimeRulerView()
-{
-
-}
+LocalTimeRulerView::~LocalTimeRulerView() = default;
 
 QRectF LocalTimeRulerView::boundingRect() const
 {

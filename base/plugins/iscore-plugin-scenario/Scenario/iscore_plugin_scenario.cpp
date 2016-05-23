@@ -83,10 +83,7 @@ iscore_plugin_scenario::iscore_plugin_scenario()
     qRegisterMetaType<Id<Process::ProcessModel>>();
 }
 
-iscore_plugin_scenario::~iscore_plugin_scenario()
-{
-
-}
+iscore_plugin_scenario::~iscore_plugin_scenario() = default;
 
 iscore::GUIApplicationContextPlugin* iscore_plugin_scenario::make_applicationPlugin(
         const iscore::ApplicationContext& app)

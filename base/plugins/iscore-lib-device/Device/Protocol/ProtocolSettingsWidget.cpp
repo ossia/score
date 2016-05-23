@@ -2,8 +2,5 @@
 
 namespace Device
 {
-ProtocolSettingsWidget::~ProtocolSettingsWidget()
-{
-
-}
+ProtocolSettingsWidget::~ProtocolSettingsWidget() = default;
 }

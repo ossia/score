@@ -1,5 +1,2 @@
 #include "ValueWidget.hpp"
-ValueWidget::~ValueWidget()
-{
-
-}
+ValueWidget::~ValueWidget() = default;

@@ -162,8 +162,8 @@ class IdContainer<Element, Model,
 
             // 2. Find the furthest element
             auto beg = seq.begin();
-            const auto dist_p1 = std::distance(beg, p1);
-            const auto dist_p2 = std::distance(beg, p2);
+            const std::size_t dist_p1 = std::distance(beg, p1);
+            const std::size_t dist_p2 = std::distance(beg, p2);
 
             auto dist_last = std::max(dist_p1, dist_p2);
 

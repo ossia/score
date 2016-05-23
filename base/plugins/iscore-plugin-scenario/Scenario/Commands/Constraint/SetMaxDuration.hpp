@@ -24,20 +24,20 @@ class SetMaxDuration final : public iscore::SerializableCommand
     public:
             static const constexpr auto corresponding_member = &ConstraintDurations::maxDuration; // used by state machine (MoveState.hpp)
 
-        SetMaxDuration(Path<ConstraintModel>&& path, const TimeValue& newval, bool isInfinite):
-        m_path{std::move(path)},
-        m_oldVal{m_path.find().duration.maxDuration()},
-        m_newVal{newval},
+        SetMaxDuration(const ConstraintModel& cst, TimeValue newval, bool isInfinite):
+        m_path{cst},
+        m_oldVal{cst.duration.maxDuration()},
+        m_newVal{std::move(newval)},
         m_newInfinite{isInfinite},
-        m_oldInfinite{m_path.find().duration.isMaxInfinite()}
+        m_oldInfinite{cst.duration.isMaxInfinite()}
         {
 
         }
 
-        void update(const Path<ConstraintModel>&, const TimeValue &newval, bool isInfinite)
+        void update(const ConstraintModel& cst, const TimeValue &newval, bool isInfinite)
         {
             m_newVal = newval;
-            auto& cstrDuration = m_path.find().duration;
+            auto& cstrDuration = cst.duration;
             if(m_newVal < cstrDuration.defaultDuration())
                 m_newVal = cstrDuration.defaultDuration();
         }

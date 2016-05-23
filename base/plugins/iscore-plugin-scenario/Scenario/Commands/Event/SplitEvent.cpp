@@ -25,13 +25,13 @@ namespace Scenario
 namespace Command
 {
 SplitEvent::SplitEvent(const Path<Scenario::ScenarioModel> &scenario,
-                       const Id<EventModel> &event,
-                       const QVector<Id<StateModel>> &movingstates):
+                       Id<EventModel> event,
+                       QVector<Id<StateModel>> movingstates):
     m_scenarioPath{scenario},
-    m_originalEvent{event},
+    m_originalEvent{std::move(event)},
     m_newEvent{getStrongId(m_scenarioPath.find().events)},
     m_createdName{RandomNameProvider::generateRandomName()},
-    m_movingStates{movingstates}
+    m_movingStates{std::move(movingstates)}
 {
 
 }

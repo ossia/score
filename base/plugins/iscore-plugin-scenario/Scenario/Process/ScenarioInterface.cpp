@@ -1,8 +1,5 @@
 #include "ScenarioInterface.hpp"
 namespace Scenario
 {
-ScenarioInterface::~ScenarioInterface()
-{
-
-}
+ScenarioInterface::~ScenarioInterface() = default;
 }

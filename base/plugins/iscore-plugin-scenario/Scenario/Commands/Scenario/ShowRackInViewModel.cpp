@@ -13,9 +13,9 @@ namespace Command
 {
 ShowRackInViewModel::ShowRackInViewModel(
         Path<ConstraintViewModel>&& constraint_path,
-        const Id<RackModel>& rackId) :
+        Id<RackModel> rackId) :
     m_constraintViewPath {std::move(constraint_path) },
-    m_rackId {rackId}
+    m_rackId {std::move(rackId)}
 {
     auto& vm = m_constraintViewPath.find();
     m_previousRackId = vm.shownRack();
@@ -23,9 +23,9 @@ ShowRackInViewModel::ShowRackInViewModel(
 
 ShowRackInViewModel::ShowRackInViewModel(
         const ConstraintViewModel& vm,
-        const Id<RackModel>& rackId) :
+        Id<RackModel> rackId) :
     m_constraintViewPath {vm},
-    m_rackId {rackId}
+    m_rackId {std::move(rackId)}
 {
     m_previousRackId = vm.shownRack();
 }

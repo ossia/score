@@ -75,6 +75,13 @@ State::Expression ExpressionEditorWidget::expression()
         }
         else
         {
+            if(!lastRel)
+            {
+                // TODO investigate with scan-build.
+                qDebug() << "We shouldn't be in this case";
+                continue;
+            }
+
             auto op = r->binOperator();
             if(op == State::BinaryOperator::Or)
             {
@@ -152,14 +159,14 @@ void ExpressionEditorWidget::exploreExpression(State::Expression expr)
             return_type operator()(const State::Relation& rel) const
             {
                 widg.addNewTerm();
-                if(widg.m_relations.size() > 0)
+                if(!widg.m_relations.empty())
                     widg.m_relations.back()->setRelation(rel);
             }
 
             return_type operator()(const State::Pulse& p) const
             {
                 widg.addNewTerm();
-                if(widg.m_relations.size() > 0)
+                if(!widg.m_relations.empty())
                     widg.m_relations.back()->setPulse(p);
             }
 
@@ -177,7 +184,7 @@ void ExpressionEditorWidget::exploreExpression(State::Expression expr)
                         widg.m_relations.at(i)->setOperator( op );
                 }
 
-                if(widg.m_relations.size() > 0)
+                if(!widg.m_relations.empty())
                     widg.m_relations.back()->setOperator( op );
             }
 

@@ -9,10 +9,10 @@ namespace Scenario
 {
 namespace Command
 {
-SetCommentText::SetCommentText(Path<CommentBlockModel> path,
+SetCommentText::SetCommentText(Path<CommentBlockModel>&& path,
                                QString newComment):
-    m_path{path},
-    m_newComment{newComment}
+    m_path{std::move(path)},
+    m_newComment{std::move(newComment)}
 {
     auto& cmt = m_path.find();
     m_oldComment = cmt.content();

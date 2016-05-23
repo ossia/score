@@ -8,11 +8,11 @@ namespace Command
 {
 PutProcessBefore::PutProcessBefore(
         Path<Scenario::ConstraintModel>&& cst,
-        const Id<Process::ProcessModel>& proc,
-        const Id<Process::ProcessModel>& proc2) :
+        Id<Process::ProcessModel> proc,
+        Id<Process::ProcessModel> proc2) :
     m_path{std::move(cst)},
-    m_proc{proc},
-    m_proc2{proc2}
+    m_proc{std::move(proc)},
+    m_proc2{std::move(proc2)}
 {
 
 }
@@ -40,12 +40,12 @@ void PutProcessBefore::deserializeImpl(DataStreamOutput& s)
 
 PutProcessToEnd::PutProcessToEnd(
         Path<Scenario::ConstraintModel>&& cst,
-        const Id<Process::ProcessModel>& proc) :
+        Id<Process::ProcessModel> proc) :
     m_path{std::move(cst)},
-    m_proc{proc}
+    m_proc{std::move(proc)}
 {
     auto& c = m_path.find();
-    auto it = c.processes.find(proc);
+    auto it = c.processes.find(m_proc);
     ISCORE_ASSERT(it != c.processes.end());
     std::advance(it, 1);
     ISCORE_ASSERT(it != c.processes.end());
@@ -77,11 +77,11 @@ void PutProcessToEnd::deserializeImpl(DataStreamOutput& s)
 
 SwapProcessPosition::SwapProcessPosition(
         Path<Scenario::ConstraintModel>&& cst,
-        const Id<Process::ProcessModel>& proc,
-        const Id<Process::ProcessModel>& proc2) :
+        Id<Process::ProcessModel> proc,
+        Id<Process::ProcessModel> proc2) :
     m_path{std::move(cst)},
-    m_proc{proc},
-    m_proc2{proc2}
+    m_proc{std::move(proc)},
+    m_proc2{std::move(proc2)}
 {
 
 }

@@ -2,8 +2,6 @@
 
 namespace iscore
 {
-PanelDelegate::~PanelDelegate()
-{
+PanelDelegate::~PanelDelegate() = default;
 
-}
 }

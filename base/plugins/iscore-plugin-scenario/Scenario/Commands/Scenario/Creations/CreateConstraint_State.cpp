@@ -23,26 +23,26 @@ namespace Command
 {
 CreateConstraint_State::CreateConstraint_State(
         const Scenario::ScenarioModel& scenario,
-        const Id<StateModel>& startState,
-        const Id<EventModel>& endEvent,
+        Id<StateModel> startState,
+        Id<EventModel> endEvent,
         double endStateY):
     m_newState{getStrongId(scenario.states)},
     m_command{scenario,
-              startState,
+              std::move(startState),
               m_newState},
-    m_endEvent{endEvent},
+    m_endEvent{std::move(endEvent)},
     m_stateY{endStateY}
 {
 }
 
 CreateConstraint_State::CreateConstraint_State(
         const Path<Scenario::ScenarioModel>& scenario,
-        const Id<StateModel> &startState,
-        const Id<EventModel> &endEvent,
+        Id<StateModel> startState,
+        Id<EventModel> endEvent,
         double endStateY):
     CreateConstraint_State{scenario.find(),
-                           startState,
-                           endEvent,
+                           std::move(startState),
+                           std::move(endEvent),
                            endStateY}
 {
 

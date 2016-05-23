@@ -44,6 +44,7 @@
 // Needed for copy since we want to generate IDs that are neither
 // in the scenario in which we are copying into, nor in the elements
 // that we copied because it may cause conflicts.
+// MOVEME
 template<typename T, typename Vector1, typename Vector2>
 static auto getStrongIdRange2(std::size_t s, const Vector1& existing1, const Vector2& existing2)
 {
@@ -262,10 +263,10 @@ ScenarioPasteElements::ScenarioPasteElements(
 
     // Set the correct positions / dates.
     // Take the earliest constraint or timenode and compute the delta; apply the delta everywhere.
-    if(constraints.size() > 0 || timenodes.size() > 0) // Should always be the case.
+    if(!constraints.empty() || !timenodes.empty()) // Should always be the case.
     {
         auto earliestTime =
-                constraints.size() > 0
+                !constraints.empty()
                 ? constraints.front()->startDate()
                 : timenodes.front()->date();
         for(const ConstraintModel* constraint : constraints)
@@ -427,7 +428,7 @@ void ScenarioPasteElements::redo() const
                                    cst->id(),
                                    scenario);
 
-        if(cst->racks.size() > 0)
+        if(!cst->racks.empty())
         {
             const auto& rackId = cst->racks.begin()->id();
             const auto& vms = cst->viewModels();

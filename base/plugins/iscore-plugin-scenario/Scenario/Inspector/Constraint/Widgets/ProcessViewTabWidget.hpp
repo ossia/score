@@ -18,7 +18,7 @@ class ProcessViewTabWidget :
 {
         Q_OBJECT
     public:
-        explicit ProcessViewTabWidget(const ConstraintInspectorWidget& parentCstr, QWidget *parent = 0);
+        explicit ProcessViewTabWidget(const ConstraintInspectorWidget& parentCstr, QWidget *parent = nullptr);
 
         void updateDisplayedValues();
 

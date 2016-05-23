@@ -18,9 +18,7 @@ class SerializableMoveEvent : public iscore::SerializableCommand
 public:
     virtual
     void
-    update(
-            const Path<Scenario::ScenarioModel>& scenarioPath,
-            const Id<EventModel>& eventId,
+    update( const Id<EventModel>& eventId,
             const TimeValue& newDate,
             double y,
             ExpandMode mode) = 0;

@@ -48,7 +48,7 @@ class AddProcessToConstraintBase : public iscore::SerializableCommand
         AddProcessToConstraintBase() = default;
         AddProcessToConstraintBase(
                 const ConstraintModel& constraint,
-                const UuidKey<Process::ProcessFactory>& process):
+                UuidKey<Process::ProcessFactory> process):
             m_addProcessCommand{
                 constraint,
                 getStrongId(constraint.processes),
