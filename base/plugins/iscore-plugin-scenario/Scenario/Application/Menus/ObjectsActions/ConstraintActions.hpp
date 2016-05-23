@@ -12,28 +12,28 @@ namespace Scenario
 {
 class ConstraintViewModel;
 class AddProcessDialog;
-class ISCORE_PLUGIN_SCENARIO_EXPORT ConstraintActions final : public ScenarioActions
+class ISCORE_PLUGIN_SCENARIO_EXPORT ConstraintActions : public QObject
 {
     public:
     ConstraintActions(iscore::ToplevelMenuElement, ScenarioApplicationPlugin* parent);
     ~ConstraintActions();
-    void fillMenuBar(iscore::MenubarManager *menu) override;
+    void fillMenuBar(iscore::MenubarManager *menu) ;
     void fillContextMenu(
             QMenu* menu,
             const Selection&,
             const TemporalScenarioPresenter& pres,
             const QPoint&,
-            const QPointF&) override;
+            const QPointF&) ;
     void fillContextMenu(
             QMenu* menu,
             const Selection&,
             const ConstraintViewModel& vm,
             const QPoint&,
             const QPointF&);
-    void setEnabled(bool) override;
-    bool populateToolBar(QToolBar*) override;
+    void setEnabled(bool) ;
+    bool populateToolBar(QToolBar*) ;
 
-    QList<QAction*> actions() const override;
+    QList<QAction*> actions() const ;
 
     QAction* addProcess() const
     { return m_addProcess; }
@@ -44,6 +44,8 @@ class ISCORE_PLUGIN_SCENARIO_EXPORT ConstraintActions final : public ScenarioAct
 
     CommandDispatcher<> dispatcher();
 
+    iscore::ToplevelMenuElement m_menuElt;
+    ScenarioApplicationPlugin* m_parent{};
     QAction *m_addProcess{};
     QAction *m_interp{};
 

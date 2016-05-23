@@ -18,19 +18,19 @@ namespace Scenario
 {
 class ScenarioApplicationPlugin;
 class TemporalScenarioPresenter;
-class ToolMenuActions final : public ScenarioActions
+class ToolMenuActions : public QObject
 {
     public:
         ToolMenuActions(iscore::ToplevelMenuElement menuElt, ScenarioApplicationPlugin* parent);
-        void fillMenuBar(iscore::MenubarManager *menu) override;
+        void fillMenuBar(iscore::MenubarManager *menu);
         void fillContextMenu(
                 QMenu* menu,
                 const Selection&sel,
                 const TemporalScenarioPresenter& pres,
                 const QPoint&,
-                const QPointF&) override;
-        bool populateToolBar(QToolBar* bar) override;
-        void setEnabled(bool) override;
+                const QPointF&);
+        bool populateToolBar(QToolBar* bar);
+        void setEnabled(bool);
 
         QList<QAction*> modeActions();
         QList<QAction*> toolActions();
@@ -39,6 +39,9 @@ class ToolMenuActions final : public ScenarioActions
     private:
         void keyPressed(int key);
         void keyReleased(int key);
+
+        ScenarioApplicationPlugin* m_parent{};
+        iscore::ToplevelMenuElement m_menuElt;
 
         QActionGroup* m_scenarioScaleModeActionGroup{};
         QActionGroup* m_scenarioToolActionGroup{};

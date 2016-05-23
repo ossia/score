@@ -68,6 +68,8 @@ OSSIAApplicationPlugin::OSSIAApplicationPlugin(const iscore::ApplicationContext&
     // Another part that, at execution time, creates structures corresponding
     // to the Scenario plug-in with the OSSIA API.
 
+    // TODO ACTIONS
+    /*
     auto& ctrl = ctx.components.applicationPlugin<Scenario::ScenarioApplicationPlugin>();
     auto acts = ctrl.actions();
     for(const auto& act : acts)
@@ -89,6 +91,7 @@ OSSIAApplicationPlugin::OSSIAApplicationPlugin(const iscore::ApplicationContext&
                     this, &OSSIAApplicationPlugin::on_init);
         }
     }
+
     auto playCM = new RecreateOnPlay::PlayContextMenu{&ctrl};
     ctrl.pluginActions().push_back(playCM);
 
@@ -104,6 +107,7 @@ OSSIAApplicationPlugin::OSSIAApplicationPlugin(const iscore::ApplicationContext&
     {
         on_play(true, t);
     });
+    */
 }
 
 OSSIAApplicationPlugin::~OSSIAApplicationPlugin()

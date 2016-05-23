@@ -26,9 +26,6 @@
 #include <QToolBar>
 #include <algorithm>
 
-#include <Scenario/Application/Menus/ObjectsActions/EventActions.hpp>
-#include <Scenario/Application/Menus/ObjectsActions/ConstraintActions.hpp>
-#include <Scenario/Application/Menus/ObjectsActions/StateActions.hpp>
 #include <Scenario/Document/BaseScenario/BaseScenario.hpp>
 #include "ObjectMenuActions.hpp"
 #include <Process/LayerModel.hpp>
@@ -58,12 +55,13 @@ namespace Scenario
 ObjectMenuActions::ObjectMenuActions(
         iscore::ToplevelMenuElement menuElt,
         ScenarioApplicationPlugin* parent) :
-    ScenarioActions(menuElt, parent)
+    m_menuElt{menuElt},
+    m_parent{parent},
+    m_eventActions{menuElt, parent},
+    m_cstrActions{menuElt, parent},
+    m_stateActions{menuElt, parent}
 {
     using namespace iscore;
-    m_eventActions = new EventActions{menuElt, parent};
-    m_cstrActions = new ConstraintActions{menuElt, parent};
-    m_stateActions = new StateActions{menuElt, parent};
 
     // REMOVE
     m_removeElements = new QAction{tr("Remove selected elements"), this};
@@ -158,9 +156,9 @@ void ObjectMenuActions::fillMenuBar(iscore::MenubarManager* menu)
     menu->insertActionIntoToplevelMenu(m_menuElt, m_cutContent);
     menu->insertActionIntoToplevelMenu(m_menuElt, m_pasteContent);
 
-    m_eventActions->fillMenuBar(menu);
-    m_cstrActions->fillMenuBar(menu);
-    m_stateActions->fillMenuBar(menu);
+    m_eventActions.fillMenuBar(menu);
+    m_cstrActions.fillMenuBar(menu);
+    m_stateActions.fillMenuBar(menu);
 }
 
 void ObjectMenuActions::fillContextMenu(
@@ -172,9 +170,9 @@ void ObjectMenuActions::fillContextMenu(
 {
     using namespace iscore;
 
-    m_eventActions->fillContextMenu(menu, sel, pres, p, scenePoint );
-    m_cstrActions->fillContextMenu(menu, sel, pres, p, scenePoint );
-    m_stateActions->fillContextMenu(menu, sel, pres, p ,scenePoint);
+    m_eventActions.fillContextMenu(menu, sel, pres, p, scenePoint );
+    m_cstrActions.fillContextMenu(menu, sel, pres, p, scenePoint );
+    m_stateActions.fillContextMenu(menu, sel, pres, p ,scenePoint);
 
     if(!sel.empty())
     {
@@ -213,14 +211,14 @@ void ObjectMenuActions::setEnabled(bool b)
     {
         act->setEnabled(b);
     }
-    m_eventActions->setEnabled(b);
-    m_cstrActions->setEnabled(b);
-    m_stateActions->setEnabled(b);
+    m_eventActions.setEnabled(b);
+    m_cstrActions.setEnabled(b);
+    m_stateActions.setEnabled(b);
 }
 
 bool ObjectMenuActions::populateToolBar(QToolBar* tb)
 {
-    return m_cstrActions->populateToolBar(tb);
+    return m_cstrActions.populateToolBar(tb);
 }
 
 QJsonObject ObjectMenuActions::copySelectedElementsToJson()
@@ -358,9 +356,9 @@ QList<QAction*> ObjectMenuActions::actions() const
             m_pasteContent,
             m_elementsToJson,
         };
-    lst.append(m_eventActions->actions());
-    lst.append(m_cstrActions->actions());
-    lst.append(m_stateActions->actions());
+    lst.append(m_eventActions.actions());
+    lst.append(m_cstrActions.actions());
+    lst.append(m_stateActions.actions());
     return lst;
 }
 }

@@ -53,8 +53,9 @@ auto selectedConstraintsInCurrentDocument(const iscore::ApplicationContext& appC
 
 ConstraintActions::ConstraintActions(
         iscore::ToplevelMenuElement menuElt,
-        ScenarioApplicationPlugin* parent):
-    ScenarioActions(menuElt, parent)
+        ScenarioApplicationPlugin* parent) :
+    m_menuElt{menuElt},
+    m_parent{parent}
 {
     const auto& appContext = parent->context;
     auto& fact = appContext.components.factory<Process::ProcessList>();

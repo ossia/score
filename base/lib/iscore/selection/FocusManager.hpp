@@ -4,7 +4,7 @@
 
 namespace iscore
 {
-struct FocusManager : public QObject
+struct ISCORE_LIB_BASE_EXPORT FocusManager : public QObject
 {
         Q_OBJECT
     public:
@@ -31,7 +31,7 @@ struct FocusManager : public QObject
         QPointer<const IdentifiedObjectAbstract> m_obj{};
 };
 
-struct FocusFacade
+struct ISCORE_LIB_BASE_EXPORT FocusFacade
 {
     private:
         FocusManager& m_mgr;

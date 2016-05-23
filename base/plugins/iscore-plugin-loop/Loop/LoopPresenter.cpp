@@ -164,6 +164,8 @@ void LayerPresenter::updateAllElements()
 
 void LayerPresenter::fillContextMenu(QMenu* menu, const QPoint& pos, const QPointF& scenepos) const
 {
+    // TODO ACTIONS
+    /*
     auto selected = layerModel().processModel().selectedChildren();
 
     auto& appPlug = m_context.context.app.components.applicationPlugin<Scenario::ScenarioApplicationPlugin>();
@@ -177,6 +179,7 @@ void LayerPresenter::fillContextMenu(QMenu* menu, const QPoint& pos, const QPoin
             menu->addSeparator();
         }
     }
+    */
 }
 
 }

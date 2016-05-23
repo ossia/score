@@ -250,10 +250,10 @@ void Application::loadPluginData()
     registrar.registerFactory(std::make_unique<iscore::DocumentPluginFactoryList>());
     registrar.registerFactory(std::make_unique<iscore::SettingsDelegateFactoryList>());
 
-    iscore::PluginLoader::loadPlugins(registrar, ctx);
-
     registrar.registerApplicationContextPlugin(new iscore::CoreApplicationPlugin{ctx, *m_presenter});
     registrar.registerApplicationContextPlugin(new iscore::UndoApplicationPlugin{ctx});
+
+    iscore::PluginLoader::loadPlugins(registrar, ctx);
     // Load the settings
     for(auto& elt : ctx.components.factory<iscore::SettingsDelegateFactoryList>())
     {

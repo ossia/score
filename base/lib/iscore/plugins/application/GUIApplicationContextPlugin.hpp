@@ -37,8 +37,7 @@ namespace iscore
             // Fournir menus de base : Fichier Edition Affichage Objet Arrangement Devices Fenêtre Paramètres Aide
 
         public:
-            using GUIElements = std::tuple<std::vector<Menu>, std::vector<Toolbar>, std::vector<Action>>;
-
+            using GUIElements = iscore::GUIElements;
             GUIApplicationContextPlugin(const iscore::ApplicationContext& presenter);
 
             /**

@@ -9,16 +9,16 @@ namespace Command
 {
 class TriggerCommandFactoryList;
 }
-class ISCORE_PLUGIN_SCENARIO_EXPORT EventActions final : public ScenarioActions
+class ISCORE_PLUGIN_SCENARIO_EXPORT EventActions : public QObject
 {
     public:
         EventActions(iscore::ToplevelMenuElement, ScenarioApplicationPlugin* parent);
-        void fillMenuBar(iscore::MenubarManager *menu) override;
-        void fillContextMenu(QMenu* menu, const Selection&, const TemporalScenarioPresenter& pres, const QPoint&, const QPointF&) override;
+        void fillMenuBar(iscore::MenubarManager *menu) ;
+        void fillContextMenu(QMenu* menu, const Selection&, const TemporalScenarioPresenter& pres, const QPoint&, const QPointF&) ;
         void fillContextMenu(QMenu* menu, const Selection&, const QPoint&, const QPointF&);
-        void setEnabled(bool) override;
+        void setEnabled(bool) ;
 
-        QList<QAction*> actions() const override;
+        QList<QAction*> actions() const ;
 
         QAction* addTrigger() const
         { return m_addTrigger; }
@@ -31,6 +31,8 @@ class ISCORE_PLUGIN_SCENARIO_EXPORT EventActions final : public ScenarioActions
 
         CommandDispatcher<> dispatcher();
 
+        iscore::ToplevelMenuElement m_menuElt;
+        ScenarioApplicationPlugin* m_parent{};
         QAction *m_addTrigger{};
         QAction *m_removeTrigger{};
 

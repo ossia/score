@@ -4,6 +4,7 @@
 #include <QList>
 #include <QObject>
 #include <QPoint>
+#include <iscore/plugins/application/GUIApplicationContextPlugin.hpp>
 #include <iscore_plugin_scenario_export.h>
 class QAction;
 class QMenu;
@@ -23,6 +24,8 @@ class ISCORE_PLUGIN_SCENARIO_EXPORT ScenarioActions : public QObject
     public:
         explicit ScenarioActions(iscore::ToplevelMenuElement, ScenarioApplicationPlugin *);
         virtual ~ScenarioActions();
+
+        virtual iscore::GUIElements makeGUIElements() = 0;
 
         virtual void fillMenuBar(iscore::MenubarManager*) = 0;
         virtual void fillContextMenu(
