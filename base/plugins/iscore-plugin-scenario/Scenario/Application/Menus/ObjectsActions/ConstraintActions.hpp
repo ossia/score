@@ -24,7 +24,7 @@ class ISCORE_PLUGIN_SCENARIO_EXPORT ConstraintActions : public QObject
     ConstraintActions(iscore::ToplevelMenuElement, ScenarioApplicationPlugin* parent);
     ~ConstraintActions();
 
-    void makeGUIElements(iscore::GUIElementsRef ref);
+    void makeGUIElements(iscore::GUIElements& ref);
     void fillMenuBar(iscore::MenubarManager *menu) ;
     void fillContextMenu(
             QMenu* menu,

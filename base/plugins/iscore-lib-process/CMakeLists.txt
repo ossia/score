@@ -34,6 +34,8 @@ set(PROCESS_HDRS
 "${CMAKE_CURRENT_SOURCE_DIR}/Process/Tools/ProcessPanelGraphicsProxy.hpp"
 "${CMAKE_CURRENT_SOURCE_DIR}/Process/ZoomHelper.hpp"
 
+"${CMAKE_CURRENT_SOURCE_DIR}/Process/Actions/ProcessActions.hpp"
+
 
 "${CMAKE_CURRENT_SOURCE_DIR}/Process/Inspector/ProcessInspectorWidgetDelegateFactory.hpp"
 "${CMAKE_CURRENT_SOURCE_DIR}/Process/Inspector/ProcessInspectorWidgetDelegateFactoryList.hpp"

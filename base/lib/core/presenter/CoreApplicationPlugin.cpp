@@ -3,6 +3,7 @@
 
 #include <core/settings/Settings.hpp>
 #include <core/settings/SettingsView.hpp>
+#include <core/presenter/CoreActions.hpp>
 #include <core/view/View.hpp>
 #include <iscore/plugins/documentdelegate/DocumentDelegateFactoryInterface.hpp>
 #include <iscore/menu/MenuInterface.hpp>
@@ -93,7 +94,10 @@ void CoreApplicationPlugin::saveStack()
 
 GUIElements CoreApplicationPlugin::makeGUIElements()
 {
-    std::vector<Menu> menus;
+    GUIElements e;
+    auto& menus = e.menus;
+    auto& actions = e.actions.container;
+
     menus.reserve(10);
     auto file = new QMenu{tr("&File")};
     auto edit = new QMenu{tr("&Edit")};
@@ -120,7 +124,6 @@ GUIElements CoreApplicationPlugin::makeGUIElements()
     auto windows_menu = new QMenu{tr("&Windows")};
     menus.emplace_back(windows_menu, Menus::Windows());
 
-    std::vector<Action> actions;
     ////// File //////
     // New
     // ---
@@ -138,7 +141,7 @@ GUIElements CoreApplicationPlugin::makeGUIElements()
         auto new_doc = new QAction(tr("&New"), m_presenter.view());
         connect(new_doc, &QAction::triggered, this, &CoreApplicationPlugin::newDocument);
         file->addAction(new_doc);
-        actions.emplace_back(new_doc, "New", "Common", QKeySequence::New);
+        e.actions.add<Actions::New>(new_doc);
     }
 
     file->addSeparator();
@@ -147,23 +150,26 @@ GUIElements CoreApplicationPlugin::makeGUIElements()
     {
         auto load_doc = new QAction(tr("&Load"), m_presenter.view());
         connect(load_doc, &QAction::triggered, this, &CoreApplicationPlugin::load);
-        actions.emplace_back(load_doc, "Load", "Common", QKeySequence::Open);
+        e.actions.add<Actions::Load>(load_doc);
         file->addAction(load_doc);
     }
 
     file->addMenu(m_presenter.m_docManager.recentFiles());
 
+    auto& cond = context.actions.condition<EnableActionIfDocument>();
     {
         auto save_doc = new QAction(tr("&Save"), m_presenter.view());
         connect(save_doc, &QAction::triggered, this, &CoreApplicationPlugin::save);
-        actions.emplace_back(save_doc, "Save", "Common", QKeySequence::Save);
+        e.actions.add<Actions::Save>(save_doc);
+        cond.add<Actions::Save>();
         file->addAction(save_doc);
     }
 
     {
         auto saveas_doc = new QAction(tr("Save &As..."), m_presenter.view());
         connect(saveas_doc, &QAction::triggered, this, &CoreApplicationPlugin::saveAs);
-        actions.emplace_back(saveas_doc, "SaveAs", "Common", QKeySequence::SaveAs);
+        e.actions.add<Actions::SaveAs>(saveas_doc);
+        cond.add<Actions::SaveAs>();
         file->addAction(saveas_doc);
     }
 
@@ -192,14 +198,14 @@ GUIElements CoreApplicationPlugin::makeGUIElements()
     {
         auto close_act = new QAction(tr("&Close"), m_presenter.view());
         connect(close_act, &QAction::triggered, this, &CoreApplicationPlugin::close);
-        actions.emplace_back(close_act, "Close", "Common", QKeySequence::Close);
+        e.actions.add<Actions::Close>(close_act);
         file->addAction(close_act);
     }
 
     {
         auto quit_act = new QAction(tr("&Quit"), m_presenter.view());
         connect(quit_act, &QAction::triggered, this, &CoreApplicationPlugin::quit);
-        actions.emplace_back(quit_act, "Quit", "Common", QKeySequence::Quit);
+        e.actions.add<Actions::Quit>(quit_act);
         file->addAction(quit_act);
     }
 
@@ -211,7 +217,7 @@ GUIElements CoreApplicationPlugin::makeGUIElements()
     {
         auto settings_act = new QAction(tr("&Settings"), m_presenter.view());
         connect(settings_act, &QAction::triggered, this, &CoreApplicationPlugin::openSettings);
-        actions.emplace_back(settings_act, "OpenSettings", "Common", QKeySequence::Preferences);
+        e.actions.add<Actions::OpenSettings>(settings_act);
         settings->addAction(settings_act);
     }
 
@@ -219,12 +225,12 @@ GUIElements CoreApplicationPlugin::makeGUIElements()
     {
         auto about_act = new QAction(tr("&About"), m_presenter.view());
         connect(about_act, &QAction::triggered, this, &CoreApplicationPlugin::about);
-        actions.emplace_back(about_act, "About", "Common", QKeySequence::UnknownKey);
+        e.actions.add<Actions::About>(about_act);
         about->addAction(about_act);
     }
 
 
-    return std::make_tuple(menus, std::vector<Toolbar>{}, actions);
+    return e;
 }
 
 }

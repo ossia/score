@@ -78,10 +78,9 @@ class ISCORE_PLUGIN_SCENARIO_EXPORT ScenarioApplicationPlugin final :
         QMetaObject::Connection m_focusConnection, m_defocusConnection, m_contextMenuConnection;
         Scenario::EditionSettings m_editionSettings;
 
-        ObjectMenuActions m_objectAction{iscore::ToplevelMenuElement::ObjectMenu, this};
+        ObjectMenuActions m_objectActions{iscore::ToplevelMenuElement::ObjectMenu, this};
         ToolMenuActions m_toolActions{iscore::ToplevelMenuElement::ToolMenu, this};
         TransportActions m_transportActions{iscore::ToplevelMenuElement::PlayMenu, this};
-        QVector<ScenarioActions*> m_pluginActions;
 
         QAction *m_selectAll{};
         QAction *m_deselectAll{};

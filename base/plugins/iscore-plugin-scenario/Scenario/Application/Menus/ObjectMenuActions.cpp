@@ -146,36 +146,36 @@ ObjectMenuActions::ObjectMenuActions(
 
 }
 
-void ObjectMenuActions::makeGUIElements(iscore::GUIElementsRef ref)
+void ObjectMenuActions::makeGUIElements(iscore::GUIElements& ref)
 {
     using namespace iscore;
-    auto& actions = std::get<std::vector<Action>&>(ref);
-    auto& menus = std::get<std::vector<Menu>&>(ref);
-    auto& toolbars = std::get<std::vector<Toolbar>&>(ref);
+    auto& actions = ref.actions.container;
+    auto& menus = ref.menus;
+    auto& toolbars = ref.toolbars;
 
     actions.emplace_back(m_removeElements,
-                         StringKey<Action>{"Remove"},
-                         StringKey<ActionGroup>{"Scenario"},
+                         ActionKey{"Remove"},
+                         ActionGroupKey{"Scenario"},
                          QKeySequence(Qt::Key_Backspace));
     actions.emplace_back(m_clearElements,
-                         StringKey<Action>{"Clear"},
-                         StringKey<ActionGroup>{"Scenario"},
+                         ActionKey{"Clear"},
+                         ActionGroupKey{"Scenario"},
                          QKeySequence(Qt::Key_Delete));
     actions.emplace_back(m_copyContent,
-                         StringKey<Action>{"Copy"},
-                         StringKey<ActionGroup>{"Scenario"},
+                         ActionKey{"Copy"},
+                         ActionGroupKey{"Scenario"},
                          QKeySequence::Copy);
     actions.emplace_back(m_cutContent,
-                         StringKey<Action>{"Cut"},
-                         StringKey<ActionGroup>{"Scenario"},
+                         ActionKey{"Cut"},
+                         ActionGroupKey{"Scenario"},
                          QKeySequence::Cut);
     actions.emplace_back(m_pasteContent,
-                         StringKey<Action>{"Paste"},
-                         StringKey<ActionGroup>{"Scenario"},
+                         ActionKey{"Paste"},
+                         ActionGroupKey{"Scenario"},
                          QKeySequence::Paste);
     actions.emplace_back(m_elementsToJson,
-                         StringKey<Action>{"ToJson"},
-                         StringKey<ActionGroup>{"Scenario"},
+                         ActionKey{"ToJson"},
+                         ActionGroupKey{"Scenario"},
                          QKeySequence::UnknownKey);
 
 

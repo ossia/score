@@ -11,28 +11,32 @@ class IdentifiedObjectAbstract;
 namespace iscore
 {
 struct DocumentContext;
-struct ISCORE_LIB_BASE_EXPORT ActionGroup
+class ActionGroup;
+using ActionGroupKey = StringKey<ActionGroup>;
+class ISCORE_LIB_BASE_EXPORT ActionGroup
 {
     public:
         ActionGroup(
                 QString prettyName,
-                StringKey<ActionGroup> key);
+                ActionGroupKey key);
 
         QString prettyName() const;
 
-        StringKey<ActionGroup> key() const;
+        ActionGroupKey key() const;
 
     private:
         QString m_name;
-        StringKey<ActionGroup> m_key;
+        ActionGroupKey m_key;
 };
+class Action;
+using ActionKey = StringKey<Action>;
 
 class ISCORE_LIB_BASE_EXPORT Action
 {
     public:
         Action(QAction* act,
-               StringKey<Action> key,
-               StringKey<ActionGroup> k,
+               ActionKey key,
+               ActionGroupKey k,
                const QKeySequence& defaultShortcut);
 
         Action(QAction* act,
@@ -40,7 +44,7 @@ class ISCORE_LIB_BASE_EXPORT Action
                const char* group_key,
                const QKeySequence& defaultShortcut);
 
-        StringKey<Action> key() const;
+        ActionKey key() const;
 
         QAction* action() const;
 
@@ -51,13 +55,65 @@ class ISCORE_LIB_BASE_EXPORT Action
 
     private:
         QAction* m_impl{};
-        StringKey<Action> m_key;
-        StringKey<ActionGroup> m_groupKey;
+        ActionKey m_key;
+        ActionGroupKey m_groupKey;
         QKeySequence m_default;
         QKeySequence m_current;
 };
 
-struct ISCORE_LIB_BASE_EXPORT ActionCondition
+
+template<typename Action_T>
+struct MetaAction
+{
+        static iscore::Action make(QAction* ptr) = 0;
+        static ActionKey key() = 0;
+};
+
+#define ISCORE_DECLARE_ACTION(ActionName, Group, Shortcut) \
+namespace Actions { struct ActionName; }\
+template<> \
+struct iscore::MetaAction<Actions::ActionName> \
+{ \
+  static iscore::Action make(QAction* ptr)  \
+  { \
+    return iscore::Action{ptr, key(), iscore::ActionGroupKey{#Group}, Shortcut}; \
+  } \
+\
+  static iscore::ActionKey key() \
+  { \
+    return iscore::ActionKey{#ActionName} ; \
+  } \
+};
+
+struct ActionContainer
+{
+    public:
+        std::vector<Action> container;
+
+        template<typename Action_T>
+        void add(QAction* ptr)
+        {
+            ISCORE_ASSERT(find_if(container, [] (auto ac) { return ac.key() == MetaAction<Action_T>::key(); }) == container.end());
+            container.emplace_back(MetaAction<Action_T>::make(ptr));
+        }
+};
+
+struct ActionKeyContainer
+{
+    public:
+        std::vector<ActionKey> actions;
+
+        template<typename Action_T>
+        void add()
+        {
+            ISCORE_ASSERT(find_if(actions, [] (auto ac) { return ac == MetaAction<Action_T>::key(); }) == actions.end());
+            actions.emplace_back(MetaAction<Action_T>::key());
+        }
+};
+
+
+struct ISCORE_LIB_BASE_EXPORT ActionCondition :
+        public ActionKeyContainer
 {
         ActionCondition(StringKey<ActionCondition> k);
 
@@ -67,11 +123,7 @@ struct ISCORE_LIB_BASE_EXPORT ActionCondition
 
         StringKey<ActionCondition> key() const;
 
-
         void setEnabled(iscore::ActionManager& mgr, bool b);
-
-        // The actions that are impacted by this condition.
-        std::vector<StringKey<Action>> actions;
 
     private:
         StringKey<ActionCondition> m_key;
@@ -140,9 +192,78 @@ struct ISCORE_LIB_BASE_EXPORT CustomActionCondition :
         void changed(bool);
 };
 
-struct ISCORE_LIB_BASE_EXPORT ActionManager :
+
+using ActionConditionKey = StringKey<iscore::ActionCondition>;
+
+template<typename T>
+class EnableWhenFocusedObjectIs;
+template<typename T>
+class EnableWhenDocumentIs;
+#define ISCORE_DECLARE_FOCUSED_OBJECT_CONDITION(Type) \
+template<> \
+class iscore::EnableWhenFocusedObjectIs<Type> final : public iscore::FocusActionCondition   \
+{                                                                                   \
+    public:                                                                         \
+        static iscore::ActionConditionKey static_key() { return iscore::ActionConditionKey{"FocusedObjectIs" #Type }; }  \
+                                                                                    \
+        EnableWhenFocusedObjectIs():                                                \
+            iscore::FocusActionCondition{static_key()}                              \
+        {                                                                           \
+                                                                                    \
+        }                                                                           \
+                                                                                    \
+    private:                                                                        \
+        void action(iscore::ActionManager& mgr, iscore::MaybeDocument doc) override \
+        {                                                                           \
+            if(!doc)                                                                \
+            {                                                                       \
+                setEnabled(mgr, false);                                             \
+                return;                                                             \
+            }                                                                       \
+                                                                                    \
+            auto obj = doc->focus.get();                                            \
+            if(!obj)                                                                \
+            {                                                                       \
+                setEnabled(mgr, false);                                             \
+                return;                                                             \
+            }                                                                       \
+                                                                                 \
+            if(dynamic_cast<const Type*>(obj))                                         \
+            {                                                                       \
+                setEnabled(mgr, true);                                              \
+            }                                                                       \
+        }                                                                           \
+};
+
+#define ISCORE_DECLARE_DOCUMENT_CONDITION(Type) \
+template<> \
+class iscore::EnableWhenDocumentIs<Type> final : public iscore::DocumentActionCondition            \
+{                                                                                    \
+    public:                                                                          \
+        static iscore::ActionConditionKey static_key() { return iscore::ActionConditionKey{"DocumentIs" #Type }; }        \
+        EnableWhenDocumentIs():                  \
+            iscore::DocumentActionCondition{static_key()}                            \
+        {                                                                            \
+                                                                                     \
+        }                                                                            \
+                                                                                     \
+    private:                                                                         \
+        void action(iscore::ActionManager& mgr, iscore::MaybeDocument doc) override  \
+        {                                                                            \
+            if(!doc)                                                                 \
+            {                                                                        \
+                setEnabled(mgr, false);                                              \
+                return;                                                              \
+            }                                                                        \
+            auto model = iscore::IDocument::try_get<Type>(doc->document);            \
+            setEnabled(mgr, bool(model));                                            \
+        }                                                                            \
+};
+
+class ISCORE_LIB_BASE_EXPORT ActionManager :
         public QObject
 {
+    public:
         ActionManager();
 
         void insert(Action val);
@@ -163,12 +284,33 @@ struct ISCORE_LIB_BASE_EXPORT ActionManager :
         const auto& selectionConditions() const { return m_selectionConditions; }
         const auto& customConditions() const { return m_customConditions; }
 
+        template<typename Condition_T, typename std::enable_if_t<std::is_base_of<DocumentActionCondition, Condition_T>::value, void*> = nullptr>
+        auto& condition() const
+        {
+            return *m_docConditions.at(Condition_T::static_key());
+        }
+        template<typename Condition_T, typename std::enable_if_t<std::is_base_of<FocusActionCondition, Condition_T>::value, void*> = nullptr>
+        auto& condition() const
+        {
+            return *m_focusConditions.at(Condition_T::static_key());
+        }
+        template<typename Condition_T, typename std::enable_if_t<std::is_base_of<SelectionActionCondition, Condition_T>::value, void*> = nullptr>
+        auto& condition() const
+        {
+            return *m_selectionConditions.at(Condition_T::static_key());
+        }
+        template<typename Condition_T, typename std::enable_if_t<std::is_base_of<CustomActionCondition, Condition_T>::value, void*> = nullptr>
+        auto& condition() const
+        {
+            return *m_customConditions.at(Condition_T::static_key());
+        }
+
     private:
         void documentChanged(MaybeDocument doc);
         void focusChanged(MaybeDocument doc);
         void selectionChanged(MaybeDocument doc);
         void resetCustomActions(MaybeDocument doc);
-        std::unordered_map<StringKey<Action>, Action> m_container;
+        std::unordered_map<ActionKey, Action> m_container;
 
         // Conditions for the enablement of the actions
         std::unordered_map<StringKey<ActionCondition>, std::unique_ptr<DocumentActionCondition>> m_docConditions;
@@ -240,9 +382,8 @@ struct ContextPoint
         QPoint view;
 };
 
-struct ISCORE_LIB_BASE_EXPORT ContextMenuBuilder
+class ISCORE_LIB_BASE_EXPORT ContextMenuBuilder
 {
-
     public:
         ContextMenuBuilder(StringKey<ContextMenuBuilder> k);
 
@@ -262,7 +403,7 @@ struct ISCORE_LIB_BASE_EXPORT ContextMenuBuilder
     private:
         StringKey<ContextMenuBuilder> m_key;
 };
-struct ISCORE_LIB_BASE_EXPORT MenuManager
+class ISCORE_LIB_BASE_EXPORT MenuManager
 {
     public:
         void insert(Menu val);
@@ -281,7 +422,7 @@ struct ISCORE_LIB_BASE_EXPORT MenuManager
         std::unordered_map<StringKey<ContextMenuBuilder>, std::unique_ptr<ContextMenuBuilder>> m_builders;
 };
 
-struct ISCORE_LIB_BASE_EXPORT ToolbarManager
+class ISCORE_LIB_BASE_EXPORT ToolbarManager
 {
     public:
         void insert(Toolbar val);
@@ -296,7 +437,11 @@ struct ISCORE_LIB_BASE_EXPORT ToolbarManager
 };
 
 
-using GUIElements = std::tuple<std::vector<Menu>, std::vector<Toolbar>, std::vector<Action>>;
-using GUIElementsRef = std::tuple<std::vector<Menu>&, std::vector<Toolbar>&, std::vector<Action>&>;
+struct GUIElements
+{
+        ActionContainer actions;
+        std::vector<Menu> menus;
+        std::vector<Toolbar> toolbars;
+};
 
 }

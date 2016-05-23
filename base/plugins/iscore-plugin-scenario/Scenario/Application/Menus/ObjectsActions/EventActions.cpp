@@ -39,12 +39,9 @@ EventActions::EventActions(
             this, &EventActions::removeTriggerFromTimeNode);
 }
 
-void EventActions::makeGUIElements(iscore::GUIElementsRef ref)
+void EventActions::makeGUIElements(iscore::GUIElements& ref)
 {
     using namespace iscore;
-    auto& actions = std::get<std::vector<Action>&>(ref);
-    auto& menus = std::get<std::vector<Menu>&>(ref);
-    auto& toolbars = std::get<std::vector<Toolbar>&>(ref);
 }
 
 
