@@ -252,9 +252,8 @@ void Application::loadPluginData()
 
     iscore::PluginLoader::loadPlugins(registrar, ctx);
 
-    registrar.registerApplicationContextPlugin(new iscore::UndoApplicationPlugin{ctx});
     registrar.registerApplicationContextPlugin(new iscore::CoreApplicationPlugin{ctx, *m_presenter});
-
+    registrar.registerApplicationContextPlugin(new iscore::UndoApplicationPlugin{ctx});
     // Load the settings
     for(auto& elt : ctx.components.factory<iscore::SettingsDelegateFactoryList>())
     {

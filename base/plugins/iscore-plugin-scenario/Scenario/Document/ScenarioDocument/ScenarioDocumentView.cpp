@@ -77,27 +77,6 @@ ScenarioDocumentView::ScenarioDocumentView(
     transportWidget->setObjectName("ScenarioTransportWidget");
     auto transportLayout = new iscore::MarginLess<QGridLayout>{transportWidget};
 
-    auto transportButtons = new QToolBar;
-    // See : http://stackoverflow.com/questions/21363350/remove-gradient-from-qtoolbar-in-os-x
-    transportButtons->setStyle(QStyleFactory::create("windows"));
-    transportButtons->setObjectName("ScenarioTransportToolbar");
-
-    auto& appPlug = ctx.components.applicationPlugin<ScenarioApplicationPlugin>();
-    for(const auto& action : appPlug.pluginActions())
-    {
-        if(auto trsprt = dynamic_cast<TransportActions*>(action))
-        {
-            trsprt->populateToolBar(transportButtons);
-            for(auto act : trsprt->actions())
-            {
-                m_view->addAction(act);
-            }
-            break;
-        }
-    }
-
-    transportLayout->addWidget(transportButtons, 0, 0);
-
     /// Zoom
     m_zoomSlider = new DoubleSlider{transportWidget};
     m_zoomSlider->setObjectName("ZoomSliderWidget");

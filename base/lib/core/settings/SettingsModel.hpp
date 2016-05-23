@@ -13,9 +13,9 @@ namespace iscore
     {
         public:
             explicit SettingsModel(QObject* parent):
-			    QObject(parent)
-			{
-				
+                QObject(parent)
+            {
+
             }
 
             void addSettingsModel(SettingsDelegateModelInterface* model)

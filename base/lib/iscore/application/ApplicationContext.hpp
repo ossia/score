@@ -7,6 +7,9 @@ class ApplicationComponents;
 struct ApplicationSettings;
 class SettingsDelegateModelInterface;
 class DocumentManager;
+class MenuManager;
+class ToolbarManager;
+class ActionManager;
 class MenubarManager;
 
 struct ApplicationContext
@@ -16,6 +19,9 @@ struct ApplicationContext
                 const ApplicationComponents&,
                 DocumentManager&,
                 iscore::MenubarManager&,
+                iscore::MenuManager&,
+                iscore::ToolbarManager&,
+                iscore::ActionManager&,
                 const std::vector<iscore::SettingsDelegateModelInterface*>&);
         ApplicationContext(const ApplicationContext&) = delete;
         ApplicationContext(ApplicationContext&&) = delete;
@@ -40,6 +46,10 @@ struct ApplicationContext
         const iscore::ApplicationComponents& components;
         DocumentManager& documents;
         iscore::MenubarManager& menuBar;
+
+        MenuManager& menus;
+        ToolbarManager& toolbars;
+        ActionManager& actions;
 
     private:
         const std::vector<iscore::SettingsDelegateModelInterface*>& m_settings;

@@ -17,10 +17,6 @@ class OpaqueString
     public:
         OpaqueString() = default;
 
-#if defined(USE_CONSTEXPR_STRING)
-        template <typename charT, charT... Chars>
-        explicit OpaqueString(const std::basic_string_literal<charT, Chars...>& str): impl{str.c_str()} {}
-#endif
         explicit OpaqueString(const char* str) noexcept : impl{str} {}
         explicit OpaqueString(std::string str) noexcept : impl{std::move(str)} {}
         explicit OpaqueString(const QString& str) noexcept : impl{str.toStdString()} {}
