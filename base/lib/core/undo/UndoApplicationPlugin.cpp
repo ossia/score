@@ -9,6 +9,7 @@
 #include <iscore/menu/MenuInterface.hpp>
 #include <iscore/plugins/application/GUIApplicationContextPlugin.hpp>
 #include <iscore/widgets/OrderedToolbar.hpp>
+#include <core/presenter/CoreApplicationPlugin.hpp>
 #include <iscore/widgets/SetIcons.hpp>
 #include <QIcon>
 
@@ -55,28 +56,6 @@ iscore::UndoApplicationPlugin::~UndoApplicationPlugin()
     });
 }
 
-void iscore::UndoApplicationPlugin::populateMenus(iscore::MenubarManager* menu)
-{
-    ////// Edit //////
-    menu->addSeparatorIntoToplevelMenu(ToplevelMenuElement::EditMenu,
-                                       EditMenuElement::Separator_Undo);
-    menu->insertActionIntoToplevelMenu(ToplevelMenuElement::EditMenu,
-                                       EditMenuElement::Undo,
-                                       &m_undoAction);
-    menu->insertActionIntoToplevelMenu(ToplevelMenuElement::EditMenu,
-                                       EditMenuElement::Redo,
-                                       &m_redoAction);
-}
-
-std::vector<iscore::OrderedToolbar> iscore::UndoApplicationPlugin::makeToolbars()
-{
-    auto bar = new QToolBar;
-    bar->addAction(&m_undoAction);
-    bar->addAction(&m_redoAction);
-
-    return std::vector<OrderedToolbar>{OrderedToolbar(3, bar)};
-}
-
 void iscore::UndoApplicationPlugin::on_documentChanged(
         iscore::Document* olddoc,
         iscore::Document* newDoc)
@@ -120,4 +99,23 @@ void iscore::UndoApplicationPlugin::on_documentChanged(
 
     m_undoAction.setText(stack->undoText());
     m_redoAction.setText(stack->redoText());
+}
+
+auto iscore::UndoApplicationPlugin::makeGUIElements() -> GUIElements
+{
+    std::vector<Toolbar> toolbars;
+    toolbars.reserve(1);
+
+    {
+        auto bar = new QToolBar;
+        bar->addAction(&m_undoAction);
+        bar->addAction(&m_redoAction);
+        toolbars.emplace_back(bar, StringKey<Toolbar>("Undo"), 0, 3);
+    }
+
+    Menu& edit = context.menus.get().at(Menus::Edit());
+    edit.menu()->addAction(m_undoAction);
+    edit.menu()->addAction(m_redoAction);
+
+    return std::make_tuple({}, toolbars, std::vector<Action>{m_undoAction, m_redoAction});
 }

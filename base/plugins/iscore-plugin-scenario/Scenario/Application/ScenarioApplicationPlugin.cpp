@@ -86,72 +86,110 @@ ScenarioApplicationPlugin::ScenarioApplicationPlugin(const iscore::ApplicationCo
     delete fact;
 }
 
-ScenarioApplicationPlugin::~ScenarioApplicationPlugin() = default;
-
-void ScenarioApplicationPlugin::populateMenus(iscore::MenubarManager *menu)
+auto ScenarioApplicationPlugin::makeGUIElements() -> GUIElements
 {
     using namespace iscore;
-    ///// Edit /////
+    std::vector<Action> actions;
 
-    ///// View /////
-    // TODO create ViewMenuActions
-    m_selectAll = new QAction{tr("Select all"), this};
-    m_selectAll->setShortcut(QKeySequence::SelectAll);
-    m_selectAll->setToolTip("Ctrl+a");
-    connect(m_selectAll, &QAction::triggered,
-            [this]()
+
+    std::vector<Menu> menus;
     {
-        auto &pres = IDocument::presenterDelegate<ScenarioDocumentPresenter>(*currentDocument());
-        pres.selectAll();
-    });
-
-    menu->insertActionIntoToplevelMenu(ToplevelMenuElement::ViewMenu,
-                                       ViewMenuElement::Windows,
-                                       m_selectAll);
-
-
-    m_deselectAll = new QAction{tr("Deselect all"), this};
-    m_deselectAll->setShortcut(QKeySequence::Deselect);
-    m_deselectAll->setToolTip("Ctrl+Shift+a");
-    connect(m_deselectAll, &QAction::triggered,
-            [this]()
-    {
-        auto &pres = IDocument::presenterDelegate<ScenarioDocumentPresenter>(*currentDocument());
-        pres.deselectAll();
-    });
-
-    menu->insertActionIntoToplevelMenu(ToplevelMenuElement::ViewMenu,
-                                       ViewMenuElement::Windows,
-                                       m_deselectAll);
-
-
-    for(ScenarioActions*& elt : m_pluginActions)
-    {
-        elt->fillMenuBar(menu);
-    }
-}
-
-std::vector<iscore::OrderedToolbar> ScenarioApplicationPlugin::makeToolbars()
-{
-    auto bar = new QToolBar;
-
-    int i = 0;
-    for(const auto& act : m_pluginActions)
-    {
-        if(dynamic_cast<TransportActions*>(act))
-            continue;
-
-        if(act->populateToolBar(bar))
+        m_selectAll = new QAction{tr("Select all"), this};
+        m_selectAll->setToolTip("Ctrl+a");
+        connect(m_selectAll, &QAction::triggered,
+                [this]()
         {
-            if(i < m_pluginActions.size() - 1)
-                bar->addSeparator();
-        }
+            auto doc = currentDocument();
+            if(!doc)
+                return;
 
-        i++;
+            auto pres = IDocument::try_get<ScenarioDocumentPresenter>(*doc);
+            if(pres)
+                pres->selectAll();
+        });
+
+        m_deselectAll = new QAction{tr("Deselect all"), this};
+        m_deselectAll->setToolTip("Ctrl+Shift+a");
+        connect(m_deselectAll, &QAction::triggered,
+                [this]()
+        {
+            auto doc = currentDocument();
+            if(!doc)
+                return;
+
+            auto pres = IDocument::try_get<ScenarioDocumentPresenter>(*doc);
+            if(pres)
+                pres->deselectAll();
+        });
+
+
+        Menu& menu = context.menus.get().at(Menus::View());
+        menu.menu()->addAction(m_selectAll);
+        menu.menu()->addAction(m_deselectAll);
+
+        actions.emplace_back(
+                    m_selectAll,
+                    StringKey<Action>{"SelectAll"},
+                    StringKey<ActionGroup>{"Scenario"},
+                    Action::EnablementContext::Document,
+                    QKeySequence::SelectAll);
+
+        actions.emplace_back(
+                    m_deselectAll,
+                    StringKey<Action>{"DeselectAll"},
+                    StringKey<ActionGroup>{"Scenario"},
+                    Action::EnablementContext::Document,
+                    QKeySequence::Deselect);
+
+        for(ScenarioActions*& elt : m_pluginActions)
+        {
+            elt->fillMenuBar(&context.menuBar);
+        }
     }
 
-    return std::vector<iscore::OrderedToolbar>{iscore::OrderedToolbar(1, bar)};
+    std::vector<Toolbar> toolbars;
+    {
+        auto bar = new QToolBar;
+
+        int i = 0;
+        for(const auto& act : m_pluginActions)
+        {
+            if(dynamic_cast<TransportActions*>(act))
+                continue;
+
+            if(act->populateToolBar(bar))
+            {
+                if(i < m_pluginActions.size() - 1)
+                    bar->addSeparator();
+            }
+
+            i++;
+        }
+        auto transportButtons = new QToolBar;
+        // See : http://stackoverflow.com/questions/21363350/remove-gradient-from-qtoolbar-in-os-x
+        transportButtons->setStyle(QStyleFactory::create("windows"));
+        transportButtons->setObjectName("ScenarioTransportToolbar");
+
+        auto& appPlug = ctx.components.applicationPlugin<ScenarioApplicationPlugin>();
+        for(const auto& action : appPlug.pluginActions())
+        {
+            if(auto trsprt = dynamic_cast<TransportActions*>(action))
+            {
+                trsprt->populateToolBar(transportButtons);
+                for(auto act : trsprt->actions())
+                {
+                    m_view->addAction(act);
+                }
+                break;
+            }
+        }
+        return std::vector<iscore::OrderedToolbar>{iscore::OrderedToolbar(1, bar)};
+    }
+
+    return std::make_tuple(menus, toolbars, actions);
 }
+
+ScenarioApplicationPlugin::~ScenarioApplicationPlugin() = default;
 
 std::vector<QAction*> ScenarioApplicationPlugin::actions()
 {

@@ -55,6 +55,17 @@ T& get(const Document& d)
     return presenterDelegate<T> (d);
 }
 
+template<typename T> T* try_presenterDelegate(const Document& d)
+{
+    return dynamic_cast<T*>(&presenterDelegate_generic(d));
+}
+
+template<typename T,
+         std::enable_if_t<std::is_base_of<DocumentDelegatePresenterInterface, T>::value>* = nullptr>
+T* try_get(const Document& d)
+{
+    return try_presenterDelegate<T> (d);
+}
 
 // Model of a document plugin
 // First if we are sure

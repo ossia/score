@@ -37,10 +37,7 @@ class ISCORE_PLUGIN_SCENARIO_EXPORT ScenarioApplicationPlugin final :
         ScenarioApplicationPlugin(const iscore::ApplicationContext& app);
         ~ScenarioApplicationPlugin();
 
-        [[deprecated]] void populateMenus(iscore::MenubarManager*) override;
-        [[deprecated]] std::vector<iscore::OrderedToolbar> makeToolbars() override;
-        [[deprecated]] std::vector<QAction*> actions() override;
-
+        GUIElements makeGUIElements() override;
         [[deprecated]] QVector<ScenarioActions*>& pluginActions()
         { return m_pluginActions; }
 

@@ -5,6 +5,7 @@
 #include <core/settings/SettingsView.hpp>
 #include <core/view/View.hpp>
 #include <iscore/plugins/documentdelegate/DocumentDelegateFactoryInterface.hpp>
+#include <iscore/menu/MenuInterface.hpp>
 #include <QMessageBox>
 #include <QRecentFilesMenu.h>
 #include <QMessageAuthenticationCode>
@@ -93,7 +94,7 @@ void CoreApplicationPlugin::saveStack()
 GUIApplicationContextPlugin::GUIElements CoreApplicationPlugin::makeGUIElements()
 {
     std::vector<Menu> menus;
-    menus.reserve(8);
+    menus.reserve(10);
     auto file = new QMenu{tr("&File")};
     auto edit = new QMenu{tr("&Edit")};
     auto object = new QMenu{tr("&Object")};
@@ -102,22 +103,22 @@ GUIApplicationContextPlugin::GUIElements CoreApplicationPlugin::makeGUIElements(
     auto view = new QMenu{tr("&View")};
     auto settings = new QMenu{tr("&Settings")};
     auto about = new QMenu{tr("&About")};
-    menus.emplace_back(file, StringKey<Menu>{"File"}, Menu::is_toplevel{}, 0);
-    menus.emplace_back(edit, StringKey<Menu>{"Edit"}, Menu::is_toplevel{}, 1);
-    menus.emplace_back(object, StringKey<Menu>{"Object"}, Menu::is_toplevel{}, 2);
-    menus.emplace_back(play, StringKey<Menu>{"Play"}, Menu::is_toplevel{}, 3);
-    menus.emplace_back(tool, StringKey<Menu>{"Tool"}, Menu::is_toplevel{}, 4);
-    menus.emplace_back(view, StringKey<Menu>{"View"}, Menu::is_toplevel{}, 5);
-    menus.emplace_back(settings, StringKey<Menu>{"Settings"}, Menu::is_toplevel{}, 6);
+    menus.emplace_back(file, Menus::File(), Menu::is_toplevel{}, 0);
+    menus.emplace_back(edit, Menus::Edit(), Menu::is_toplevel{}, 1);
+    menus.emplace_back(object, Menus::Object(), Menu::is_toplevel{}, 2);
+    menus.emplace_back(play, Menus::Play(), Menu::is_toplevel{}, 3);
+    menus.emplace_back(tool, Menus::Tool(), Menu::is_toplevel{}, 4);
+    menus.emplace_back(view, Menus::View(), Menu::is_toplevel{}, 5);
+    menus.emplace_back(settings, Menus::Settings(), Menu::is_toplevel{}, 6);
 
     // Menus are by default at int_max - 1 so that they will be sorted before
-    menus.emplace_back(about, StringKey<Menu>{"About"}, Menu::is_toplevel{}, std::numeric_limits<int>::max());
+    menus.emplace_back(about, Menus::About(), Menu::is_toplevel{}, std::numeric_limits<int>::max());
 
     auto export_menu = new QMenu{tr("&Export")};
-    menus.emplace_back(export_menu, StringKey<Menu>{"Export"});
+    menus.emplace_back(export_menu, Menus::Export());
 
     auto windows_menu = new QMenu{tr("&Windows")};
-    menus.emplace_back(windows_menu, StringKey<Menu>{"Windows"});
+    menus.emplace_back(windows_menu, Menus::Windows());
 
     std::vector<Action> actions;
     ////// File //////
