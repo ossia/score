@@ -3,12 +3,14 @@
 #include <QAction>
 #include <QMenu>
 #include <QToolBar>
+#include <memory>
 #include <unordered_map>
-
+#include <iscore/document/DocumentContext.hpp>
 #include <iscore/plugins/customfactory/StringFactoryKey.hpp>
 class IdentifiedObjectAbstract;
 namespace iscore
 {
+struct DocumentContext;
 struct ActionGroup
 {
     public:
@@ -106,8 +108,73 @@ class Action
         QKeySequence m_current;
 };
 
+struct ActionCondition
+{
+        ActionCondition(StringKey<ActionCondition> k):
+            m_key{k}
+        {
 
-struct ActionManager
+        }
+
+        virtual ~ActionCondition();
+
+        virtual bool operator()(MaybeDocument) = 0;
+        virtual void action(MaybeDocument) { }
+
+        StringKey<ActionCondition> key() const
+        { return m_key; }
+
+        // The actions that are impacted by this condition.
+        std::vector<StringKey<Action>> actions;
+
+    private:
+        StringKey<ActionCondition> m_key;
+};
+
+/**
+ * @brief The DocumentActionCondition struct
+ *
+ * Will be checked when the document changes
+ */
+struct DocumentActionCondition : public ActionCondition
+{
+};
+
+/**
+ * @brief The FocusActionCondition struct
+ *
+ * Will be checked when the focus changes
+ */
+struct FocusActionCondition : public ActionCondition
+{
+};
+
+/**
+ * @brief The SelectionActionCondition struct
+ *
+ * Will be checked when the selection changes
+ */
+struct SelectionActionCondition : public ActionCondition
+{
+};
+
+/**
+ * @brief The CustomActionCondition struct
+ *
+ * Will be checked when the changed signal is emitted
+ */
+struct CustomActionCondition :
+        public QObject,
+        public ActionCondition
+{
+        Q_OBJECT
+
+    signals:
+        void changed(bool);
+};
+
+struct ActionManager :
+        public QObject
 {
         void insert(Action val)
         {
@@ -128,9 +195,52 @@ struct ActionManager
         auto& get() const
         { return m_container; }
 
+        void reset(Document* doc);
+
+        void insert(std::unique_ptr<DocumentActionCondition> cond)
+        {
+            ISCORE_ASSERT(bool(cond));
+            ISCORE_ASSERT(m_docConditions.find(cond->key()) == m_docConditions.end());
+
+            m_docConditions.insert(std::make_pair(cond->key(), std::move(cond)));
+        }
+        void insert(std::unique_ptr<FocusActionCondition> cond)
+        {
+            ISCORE_ASSERT(bool(cond));
+            ISCORE_ASSERT(m_focusConditions.find(cond->key()) == m_focusConditions.end());
+
+            m_focusConditions.insert(std::make_pair(cond->key(), std::move(cond)));
+        }
+        void insert(std::unique_ptr<SelectionActionCondition> cond)
+        {
+            ISCORE_ASSERT(bool(cond));
+            ISCORE_ASSERT(m_selectionConditions.find(cond->key()) == m_selectionConditions.end());
+
+            m_selectionConditions.insert(std::make_pair(cond->key(), std::move(cond)));
+        }
+        void insert(std::unique_ptr<CustomActionCondition> cond)
+        {
+            ISCORE_ASSERT(bool(cond));
+            ISCORE_ASSERT(m_customConditions.find(cond->key()) == m_customConditions.end());
+
+            m_customConditions.insert(std::make_pair(cond->key(), std::move(cond)));
+        }
+
     private:
+        void documentChanged(MaybeDocument doc);
+        void focusChanged(MaybeDocument doc);
+        void selectionChanged(MaybeDocument doc);
+        void resetCustomActions(MaybeDocument doc);
         std::unordered_map<StringKey<Action>, Action> m_container;
 
+        // Conditions for the enablement of the actions
+        std::unordered_map<StringKey<ActionCondition>, std::unique_ptr<DocumentActionCondition>> m_docConditions;
+        std::unordered_map<StringKey<ActionCondition>, std::unique_ptr<FocusActionCondition>> m_focusConditions;
+        std::unordered_map<StringKey<ActionCondition>, std::unique_ptr<SelectionActionCondition>> m_selectionConditions;
+        std::unordered_map<StringKey<ActionCondition>, std::unique_ptr<CustomActionCondition>> m_customConditions;
+
+        QMetaObject::Connection focusConnection;
+        QMetaObject::Connection selectionConnection;
 };
 
 class Menu
@@ -231,8 +341,8 @@ struct MenuManager
             }
         }
 
-        auto& get() const
-        { return m_container; }
+        auto& get() { return m_container; }
+        auto& get() const { return m_container; }
 
     private:
         std::unordered_map<StringKey<Menu>, Menu> m_container;

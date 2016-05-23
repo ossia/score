@@ -114,8 +114,21 @@ auto iscore::UndoApplicationPlugin::makeGUIElements() -> GUIElements
     }
 
     Menu& edit = context.menus.get().at(Menus::Edit());
-    edit.menu()->addAction(m_undoAction);
-    edit.menu()->addAction(m_redoAction);
+    edit.menu()->addAction(&m_undoAction);
+    edit.menu()->addAction(&m_redoAction);
 
-    return std::make_tuple({}, toolbars, std::vector<Action>{m_undoAction, m_redoAction});
+    std::vector<Action> actions;
+    actions.reserve(2);
+    actions.emplace_back(&m_undoAction,
+                         StringKey<Action>{"Undo"},
+                         StringKey<ActionGroup>{"Common"},
+                         Action::EnablementContext::Document,
+                         QKeySequence::Undo);
+    actions.emplace_back(&m_redoAction,
+                         StringKey<Action>{"Redo"},
+                         StringKey<ActionGroup>{"Common"},
+                         Action::EnablementContext::Document,
+                         QKeySequence::Redo);
+
+    return std::make_tuple(std::vector<Menu>{}, toolbars, actions);
 }

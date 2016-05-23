@@ -17,8 +17,8 @@ class UndoPanelDelegate final :
         const PanelStatus& defaultPanelStatus() const override;
 
         void on_modelChanged(
-                maybe_document_t oldm,
-                maybe_document_t newm) override;
+                MaybeDocument oldm,
+                MaybeDocument newm) override;
 
         iscore::UndoListWidget *m_list{};
         QWidget *m_widget{};

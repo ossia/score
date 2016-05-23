@@ -165,6 +165,7 @@ auto ScenarioApplicationPlugin::makeGUIElements() -> GUIElements
 
             i++;
         }
+        /*
         auto transportButtons = new QToolBar;
         // See : http://stackoverflow.com/questions/21363350/remove-gradient-from-qtoolbar-in-os-x
         transportButtons->setStyle(QStyleFactory::create("windows"));
@@ -184,13 +185,14 @@ auto ScenarioApplicationPlugin::makeGUIElements() -> GUIElements
             }
         }
         return std::vector<iscore::OrderedToolbar>{iscore::OrderedToolbar(1, bar)};
+        */
     }
 
     return std::make_tuple(menus, toolbars, actions);
 }
 
 ScenarioApplicationPlugin::~ScenarioApplicationPlugin() = default;
-
+/*
 std::vector<QAction*> ScenarioApplicationPlugin::actions()
 {
     // TODO add the others
@@ -202,7 +204,7 @@ std::vector<QAction*> ScenarioApplicationPlugin::actions()
     }
     return act;
 }
-
+*/
 void ScenarioApplicationPlugin::on_presenterDefocused(Process::LayerPresenter* pres)
 {
     // We set the currently focused view model to a "select" state

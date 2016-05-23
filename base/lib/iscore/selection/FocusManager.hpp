@@ -4,8 +4,9 @@
 
 namespace iscore
 {
-struct FocusManager
+struct FocusManager : public QObject
 {
+        Q_OBJECT
     public:
         const IdentifiedObjectAbstract* get()
         { return m_obj; }
@@ -14,12 +15,17 @@ struct FocusManager
         void set(QPointer<const T> obj)
         {
             m_obj = obj.data();
+            emit changed();
         }
 
         void set(nullptr_t)
         {
             m_obj.clear();
+            emit changed();
         }
+
+    signals:
+        void changed();
 
     private:
         QPointer<const IdentifiedObjectAbstract> m_obj{};
