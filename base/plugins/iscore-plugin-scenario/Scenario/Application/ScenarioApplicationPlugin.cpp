@@ -58,15 +58,113 @@
 #include <iscore/plugins/documentdelegate/DocumentDelegateModelInterface.hpp>
 #include <iscore/tools/IdentifiedObjectMap.hpp>
 #include <iscore/tools/NotifyingMap.hpp>
+#include <Scenario/Process/Temporal/TemporalScenarioLayerModel.hpp>
 #include <iscore/tools/SettableIdentifier.hpp>
 #include <iscore/widgets/OrderedToolbar.hpp>
 #include <Scenario/Application/Menus/ScenarioCommonContextMenuFactory.hpp>
 #include <algorithm>
 #include <core/presenter/Presenter.hpp>
+#include <iscore/document/DocumentInterface.hpp>
 #include <core/view/View.hpp>
 namespace Scenario
 {
 void test_parse_expr_full();
+template<typename T>
+class EnableWhenFocusedObjectIs final : public iscore::FocusActionCondition
+{
+    public:
+        EnableWhenFocusedObjectIs(StringKey<iscore::ActionCondition> k):
+            iscore::FocusActionCondition{std::move(k)}
+        {
+
+        }
+
+    private:
+        void action(iscore::ActionManager& mgr, iscore::MaybeDocument doc) override
+        {
+            if(!doc)
+            {
+                setEnabled(mgr, false);
+                return;
+            }
+
+            auto obj = doc->focus.get();
+            if(!obj)
+            {
+                setEnabled(mgr, false);
+                return;
+            }
+
+            if(dynamic_cast<const T*>(obj))
+            {
+                setEnabled(mgr, true);
+            }
+        }
+};
+
+template<typename T>
+class EnableWhenDocumentIs final : public iscore::DocumentActionCondition
+{
+    public:
+        EnableWhenDocumentIs(StringKey<iscore::ActionCondition> k):
+            iscore::DocumentActionCondition{std::move(k)}
+        {
+
+        }
+
+    private:
+        void action(iscore::ActionManager& mgr, iscore::MaybeDocument doc) override
+        {
+            if(!doc)
+            {
+                setEnabled(mgr, false);
+                return;
+            }
+            auto model = iscore::IDocument::try_get<T>(doc->document);
+            setEnabled(mgr, bool(model));
+        }
+};
+
+template<typename T>
+struct EnableWhenFocusedProcessIs final : public iscore::FocusActionCondition
+{
+    public:
+        EnableWhenFocusedProcessIs(StringKey<iscore::ActionCondition> k):
+            iscore::FocusActionCondition{std::move(k)}
+        {
+
+        }
+
+    private:
+        void action(iscore::ActionManager& mgr, iscore::MaybeDocument doc) override
+        {
+            if(!doc)
+            {
+                setEnabled(mgr, false);
+                return;
+            }
+
+            auto obj = doc->focus.get();
+            if(!obj)
+            {
+                setEnabled(mgr, false);
+                return;
+            }
+
+            auto layer = dynamic_cast<const Process::LayerModel*>(obj);
+            if(!layer)
+            {
+                setEnabled(mgr, false);
+                return;
+            }
+
+            if(dynamic_cast<T*>(&layer->processModel()))
+            {
+                setEnabled(mgr, true);
+            }
+        }
+};
+
 ScenarioApplicationPlugin::ScenarioApplicationPlugin(const iscore::ApplicationContext& ctx) :
     GUIApplicationContextPlugin{ctx}
 {
@@ -74,6 +172,19 @@ ScenarioApplicationPlugin::ScenarioApplicationPlugin(const iscore::ApplicationCo
             this, [&] (Qt::ApplicationState st) {
         editionSettings().setDefault();
     });
+
+    ctx.actions.insert(
+                std::make_unique<EnableWhenFocusedObjectIs<Scenario::TemporalScenarioLayerModel>>(
+                    StringKey<iscore::ActionCondition>{"FocusOnTemporalScenarioLayer"}));
+    ctx.actions.insert(
+                std::make_unique<EnableWhenFocusedProcessIs<Scenario::ScenarioModel>>(
+                    StringKey<iscore::ActionCondition>{"FocusOnScenarioModel"}));
+    ctx.actions.insert(
+                std::make_unique<EnableWhenFocusedProcessIs<Scenario::ScenarioInterface>>(
+                    StringKey<iscore::ActionCondition>{"FocusOnScenarioInterface"}));
+    ctx.actions.insert(
+                std::make_unique<EnableWhenDocumentIs<Scenario::ScenarioDocumentModel>>(
+                    StringKey<iscore::ActionCondition>{"DocumentIsScenario"}));
 }
 
 auto ScenarioApplicationPlugin::makeGUIElements() -> GUIElements
@@ -121,15 +232,17 @@ auto ScenarioApplicationPlugin::makeGUIElements() -> GUIElements
                     m_selectAll,
                     StringKey<Action>{"SelectAll"},
                     StringKey<ActionGroup>{"Scenario"},
-                    Action::EnablementContext::Document,
                     QKeySequence::SelectAll);
 
         actions.emplace_back(
                     m_deselectAll,
                     StringKey<Action>{"DeselectAll"},
                     StringKey<ActionGroup>{"Scenario"},
-                    Action::EnablementContext::Document,
                     QKeySequence::Deselect);
+
+        auto& cond = *context.actions.documentConditions().at(StringKey<iscore::ActionCondition>{"DocumentIsScenario"});
+        cond.actions.push_back(StringKey<Action>{"SelectAll"});
+        cond.actions.push_back(StringKey<Action>{"DeselectAll"});
 
 
         // TODO ACTIONS

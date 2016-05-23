@@ -92,6 +92,14 @@ ConstraintActions::~ConstraintActions()
     delete m_addProcessDialog;
 }
 
+void ConstraintActions::makeGUIElements(iscore::GUIElementsRef ref)
+{
+    using namespace iscore;
+    auto& actions = std::get<std::vector<Action>&>(ref);
+    auto& menus = std::get<std::vector<Menu>&>(ref);
+    auto& toolbars = std::get<std::vector<Toolbar>&>(ref);
+}
+
 void ConstraintActions::fillMenuBar(iscore::MenubarManager* menu)
 {
     menu->insertActionIntoToplevelMenu(m_menuElt, m_addProcess);

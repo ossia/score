@@ -36,7 +36,15 @@ EventActions::EventActions(
     m_removeTrigger = new QAction{tr("Remove Trigger"), this};
     m_removeTrigger->setWhatsThis(MenuInterface::name(ContextMenu::Event));
     connect(m_removeTrigger, &QAction::triggered,
-        this, &EventActions::removeTriggerFromTimeNode);
+            this, &EventActions::removeTriggerFromTimeNode);
+}
+
+void EventActions::makeGUIElements(iscore::GUIElementsRef ref)
+{
+    using namespace iscore;
+    auto& actions = std::get<std::vector<Action>&>(ref);
+    auto& menus = std::get<std::vector<Menu>&>(ref);
+    auto& toolbars = std::get<std::vector<Toolbar>&>(ref);
 }
 
 

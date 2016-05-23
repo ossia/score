@@ -5,6 +5,7 @@
 
 #include <iscore/menu/MenuInterface.hpp>
 #include <iscore/selection/Selection.hpp>
+#include <iscore/actions/Action.hpp>
 
 class QAction;
 class QMenu;
@@ -23,6 +24,8 @@ class TransportActions : public QObject
         TransportActions(
                 iscore::ToplevelMenuElement menuElt,
                 ScenarioApplicationPlugin* parent);
+
+        void makeGUIElements(iscore::GUIElementsRef ref);
 
         void fillMenuBar(
                 iscore::MenubarManager *menu);

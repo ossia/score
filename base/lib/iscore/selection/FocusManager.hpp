@@ -43,7 +43,7 @@ struct ISCORE_LIB_BASE_EXPORT FocusFacade
 
         }
 
-        const IdentifiedObjectAbstract* get()
+        const IdentifiedObjectAbstract* get() const
         { return m_mgr.get(); }
 };
 }

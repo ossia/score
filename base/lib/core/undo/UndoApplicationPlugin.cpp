@@ -122,13 +122,14 @@ auto iscore::UndoApplicationPlugin::makeGUIElements() -> GUIElements
     actions.emplace_back(&m_undoAction,
                          StringKey<Action>{"Undo"},
                          StringKey<ActionGroup>{"Common"},
-                         Action::EnablementContext::Document,
                          QKeySequence::Undo);
     actions.emplace_back(&m_redoAction,
                          StringKey<Action>{"Redo"},
                          StringKey<ActionGroup>{"Common"},
-                         Action::EnablementContext::Document,
                          QKeySequence::Redo);
+    auto& cond = *context.actions.documentConditions().at(EnableActionIfDocument::static_key());
+    cond.actions.push_back(StringKey<Action>{"Undo"});
+    cond.actions.push_back(StringKey<Action>{"Redo"});
 
     return std::make_tuple(std::vector<Menu>{}, toolbars, actions);
 }

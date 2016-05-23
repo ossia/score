@@ -25,7 +25,7 @@ class ToolMenuActions : public QObject
         ToolMenuActions(iscore::ToplevelMenuElement menuElt, ScenarioApplicationPlugin* parent);
 
 
-        iscore::GUIElements makeGUIElements();
+        void makeGUIElements(iscore::GUIElementsRef ref);
 
         void fillMenuBar(iscore::MenubarManager *menu);
         void fillContextMenu(
