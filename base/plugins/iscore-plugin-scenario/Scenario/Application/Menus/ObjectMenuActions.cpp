@@ -189,12 +189,8 @@ void ObjectMenuActions::makeGUIElements(iscore::GUIElements& ref)
     object.menu()->addAction(m_pasteContent);
 
     m_eventActions.makeGUIElements(ref);
-    m_cstrActions.makeGUIElements(ref);
+    m_cstrActions.makeGUIElements(ref); // Only constraint in toolbar
     m_stateActions.makeGUIElements(ref);
-}
-
-void ObjectMenuActions::fillMenuBar(iscore::MenubarManager* menu)
-{
 }
 
 void ObjectMenuActions::fillContextMenu(
@@ -239,22 +235,6 @@ void ObjectMenuActions::fillContextMenu(
                       Scenario::ConvertToScenarioPoint(scenePoint, pres.zoomRatio(), pres.view().boundingRect().height()));
     });
     menu->addAction(pasteElements);
-}
-
-void ObjectMenuActions::setEnabled(bool b)
-{
-    for (auto& act : actions())
-    {
-        act->setEnabled(b);
-    }
-    m_eventActions.setEnabled(b);
-    m_cstrActions.setEnabled(b);
-    m_stateActions.setEnabled(b);
-}
-
-bool ObjectMenuActions::populateToolBar(QToolBar* tb)
-{
-    return m_cstrActions.populateToolBar(tb);
 }
 
 QJsonObject ObjectMenuActions::copySelectedElementsToJson()

@@ -66,17 +66,7 @@
 #include <core/presenter/Presenter.hpp>
 #include <iscore/document/DocumentInterface.hpp>
 #include <core/view/View.hpp>
-#include <Process/Actions/ProcessActions.hpp>
-
-ISCORE_DECLARE_ACTION(SelectAll, Scenario, QKeySequence::SelectAll)
-ISCORE_DECLARE_ACTION(DeselectAll, Scenario, QKeySequence::Deselect)
-
-ISCORE_DECLARE_FOCUSED_OBJECT_CONDITION(Scenario::TemporalScenarioLayerModel)
-ISCORE_DECLARE_DOCUMENT_CONDITION(Scenario::ScenarioDocumentModel)
-
-ISCORE_DECLARE_FOCUSED_PROCESS_CONDITION(Scenario::ScenarioModel)
-ISCORE_DECLARE_FOCUSED_PROCESS_CONDITION(Scenario::ScenarioInterface)
-
+#include <Scenario/Application/ScenarioActions.hpp>
 namespace Scenario
 {
 void test_parse_expr_full();
@@ -149,14 +139,6 @@ auto ScenarioApplicationPlugin::makeGUIElements() -> GUIElements
         auto& cond = context.actions.condition<iscore::EnableWhenDocumentIs<Scenario::ScenarioDocumentModel>>();
         cond.add<Actions::SelectAll>();
         cond.add<Actions::DeselectAll>();
-
-        // TODO ACTIONS
-        /*
-        for(ScenarioActions*& elt : m_pluginActions)
-        {
-            elt->fillMenuBar(&context.menuBar);
-        }
-        */
     }
 
     {

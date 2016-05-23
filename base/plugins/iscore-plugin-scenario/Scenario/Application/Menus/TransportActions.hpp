@@ -16,6 +16,7 @@ class MenubarManager;
 
 namespace Scenario
 {
+
 class ScenarioApplicationPlugin;
 class TemporalScenarioPresenter;
 class TransportActions : public QObject
@@ -26,24 +27,6 @@ class TransportActions : public QObject
                 ScenarioApplicationPlugin* parent);
 
         void makeGUIElements(iscore::GUIElements& ref);
-
-        void fillMenuBar(
-                iscore::MenubarManager *menu);
-
-        void fillContextMenu(
-                QMenu* menu,
-                const Selection&sel,
-                const TemporalScenarioPresenter& pres,
-                const QPoint&, const QPointF&);
-
-        bool populateToolBar(
-                QToolBar* bar);
-
-        void setEnabled(bool);
-
-        QList<QAction*> actions() const;
-
-        void stop();
 
     private:
         iscore::ToplevelMenuElement m_menuElt;
@@ -57,4 +40,5 @@ class TransportActions : public QObject
         QAction* m_stopAndInit{};
         QAction* m_record{};
 };
+
 }

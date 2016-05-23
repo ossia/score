@@ -10,6 +10,8 @@
 #include <core/presenter/MenubarManager.hpp>
 #include <iscore/menu/MenuInterface.hpp>
 
+#include <Scenario/Document/ScenarioDocument/ScenarioDocumentModel.hpp>
+#include <Scenario/Application/ScenarioActions.hpp>
 #include <iscore/widgets/SetIcons.hpp>
 
 class QMenu;
@@ -103,47 +105,39 @@ TransportActions::TransportActions(
 
 void TransportActions::makeGUIElements(iscore::GUIElements& ref)
 {
-
-}
-
-void TransportActions::fillMenuBar(iscore::MenubarManager *menu)
-{
-    for(auto act : actions())
+    auto& cond = m_parent->context.actions.condition<iscore::EnableWhenDocumentIs<Scenario::ScenarioDocumentModel>>();
+    // Put m_play m_stop and m_stopAndInit only for now in their own toolbar,
+    // plus everything in the play menu
     {
-        menu->insertActionIntoToplevelMenu(iscore::ToplevelMenuElement::PlayMenu, act);
+        auto bar = new QToolBar{tr("Transport")};
+        bar->setFloatable(true);
+        bar->addAction(m_play);
+        bar->addAction(m_stop);
+        bar->addAction(m_stopAndInit);
+
+        ref.toolbars.emplace_back(bar, StringKey<iscore::Toolbar>("Transport"), 1, 0);
     }
+
+    {
+        auto& play = m_parent->context.menus.get().at(iscore::Menus::Play());
+        play.menu()->addAction(m_play);
+        play.menu()->addAction(m_stop);
+        play.menu()->addAction(m_stopAndInit);
+    }
+
+    ref.actions.add<Actions::Play>(m_play);
+    ref.actions.add<Actions::Stop>(m_stop);
+    ref.actions.add<Actions::GoToStart>(m_goToStart);
+    ref.actions.add<Actions::GoToEnd>(m_goToEnd);
+    ref.actions.add<Actions::Reinitialize>(m_stopAndInit);
+    ref.actions.add<Actions::Record>(m_record);
+
+    cond.add<Actions::Play>();
+    cond.add<Actions::Stop>();
+    cond.add<Actions::GoToStart>();
+    cond.add<Actions::GoToEnd>();
+    cond.add<Actions::Reinitialize>();
+    cond.add<Actions::Record>();
 }
 
-void TransportActions::fillContextMenu(QMenu *menu, const Selection& sel, const TemporalScenarioPresenter& pres, const QPoint&, const QPointF&)
-{
-
-}
-
-bool TransportActions::populateToolBar(QToolBar *bar)
-{
-    bar->addActions(actions());
-    return true;
-}
-
-void TransportActions::setEnabled(bool)
-{
-
-}
-
-QList<QAction*> TransportActions::actions() const
-{
-    return {
-        m_play,
-        m_stop,
-        //m_goToStart,
-        //m_goToEnd,
-        m_stopAndInit
-        //m_record
-    };
-}
-
-void TransportActions::stop()
-{
-    m_stop->trigger();
-}
 }
