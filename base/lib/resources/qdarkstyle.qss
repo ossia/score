@@ -1349,7 +1349,7 @@ QSplitter::handle:vertical {
 
 QWidget#DeviceExplorer, QWidget#HistoryExplorer, QWidget#LibraryExplorer, QWidget#ProcessExplorer,
 QWidget#ScenarioViewer, QWidget#ScenarioTransportToolbar, QWidget#ScenarioTransportWidget,
-QWidget#ScenarioZoomLabel, QWidget#ExpressionEditorWrapper {
+QWidget#ScenarioZoomLabel {
     background-color: #666666;
     border: none;
     color: white;
@@ -1363,8 +1363,10 @@ QFrame#SeparatorFrame {
 QComboBox#BinOpComboBox {
     font-weight: bold;
     color: #FFE100;
+    border-radius: 0px;
 }
 
-QWidget#ExpressionEditorWidget {
+QWidget#ConditionSectionWidget {
+    border: 1px solid red;
     background-color: #666666;
 }

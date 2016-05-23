@@ -11,11 +11,17 @@ void setIcons(QAction *action, const QString &iconOn, const QString &iconOff) {
 }
 
 void makeIcons(QIcon* icon, const QString &iconOn, const QString &iconOff) {
-    icon->addPixmap(iconOn, QIcon::Mode::Selected);
-    icon->addPixmap(iconOn, QIcon::Mode::Active);
-    icon->addPixmap(iconOn, QIcon::Mode::Normal, QIcon::State::On);
-    icon->addPixmap(iconOn, QIcon::Mode::Selected, QIcon::State::On);
-    icon->addPixmap(iconOn, QIcon::Mode::Active, QIcon::State::On);
+    *icon = genIconFromPixmaps(iconOn, iconOff);
+}
 
-    icon->addPixmap(iconOff, QIcon::Mode::Normal);
+QIcon genIconFromPixmaps(const QString &iconOn, const QString &iconOff) {
+    QIcon icon;
+    icon.addPixmap(iconOn, QIcon::Mode::Selected);
+    icon.addPixmap(iconOn, QIcon::Mode::Active);
+    icon.addPixmap(iconOn, QIcon::Mode::Normal, QIcon::State::On);
+    icon.addPixmap(iconOn, QIcon::Mode::Selected, QIcon::State::On);
+    icon.addPixmap(iconOn, QIcon::Mode::Active, QIcon::State::On);
+
+    icon.addPixmap(iconOff, QIcon::Mode::Normal);
+    return icon;
 }
