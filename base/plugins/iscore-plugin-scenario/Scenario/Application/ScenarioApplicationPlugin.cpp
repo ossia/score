@@ -74,16 +74,6 @@ ScenarioApplicationPlugin::ScenarioApplicationPlugin(const iscore::ApplicationCo
             this, [&] (Qt::ApplicationState st) {
         editionSettings().setDefault();
     });
-
-    // Note : they are constructed here, because
-    // they need to be available quickly for other plug-ins,
-    // not after factory loading.
-    auto fact  = new ScenarioCommonActionsFactory;
-    for(const auto& act : fact->make(this))
-    {
-        m_pluginActions.push_back(act);
-    }
-    delete fact;
 }
 
 auto ScenarioApplicationPlugin::makeGUIElements() -> GUIElements
@@ -141,6 +131,8 @@ auto ScenarioApplicationPlugin::makeGUIElements() -> GUIElements
                     Action::EnablementContext::Document,
                     QKeySequence::Deselect);
 
+
+        // REMOVEME
         for(ScenarioActions*& elt : m_pluginActions)
         {
             elt->fillMenuBar(&context.menuBar);
@@ -385,6 +377,8 @@ TemporalScenarioPresenter* ScenarioApplicationPlugin::focusedPresenter() const
 
 void ScenarioApplicationPlugin::prepareNewDocument()
 {
+    // TODO ACTIONS
+    /*
     for(const auto& action : pluginActions())
     {
         if(auto trsprt = dynamic_cast<TransportActions*>(action))
@@ -393,6 +387,7 @@ void ScenarioApplicationPlugin::prepareNewDocument()
             return;
         }
     }
+    */
 }
 
 Process::ProcessFocusManager* ScenarioApplicationPlugin::processFocusManager() const

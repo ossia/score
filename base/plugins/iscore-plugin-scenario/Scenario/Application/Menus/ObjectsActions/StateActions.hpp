@@ -6,21 +6,23 @@
 
 namespace Scenario
 {
-class ISCORE_PLUGIN_SCENARIO_EXPORT StateActions final : public ScenarioActions
+class ISCORE_PLUGIN_SCENARIO_EXPORT StateActions : public QObject
 {
     public:
     StateActions(iscore::ToplevelMenuElement, ScenarioApplicationPlugin* parent);
-    void fillMenuBar(iscore::MenubarManager *menu) override;
-    void fillContextMenu(QMenu* menu, const Selection&, const TemporalScenarioPresenter& pres, const QPoint&, const QPointF&) override;
-    void setEnabled(bool) override;
+    void fillMenuBar(iscore::MenubarManager *menu) ;
+    void fillContextMenu(QMenu* menu, const Selection&, const TemporalScenarioPresenter& pres, const QPoint&, const QPointF&) ;
+    void setEnabled(bool) ;
 
-    QList<QAction*> actions() const override;
+    QList<QAction*> actions() const ;
 
     QAction* updateStates() const
     { return m_updateStates; }
     private:
     CommandDispatcher<> dispatcher();
 
+    iscore::ToplevelMenuElement m_menuElt;
+    ScenarioApplicationPlugin* m_parent{};
     QAction* m_updateStates{};
 };
 }

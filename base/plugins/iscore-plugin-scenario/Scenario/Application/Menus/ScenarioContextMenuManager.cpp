@@ -222,6 +222,8 @@ void ScenarioContextMenuManager::createScenarioContextMenu(
         const QPointF& scenepos,
         const TemporalScenarioPresenter& pres)
 {
+    // TODO ACTIONS
+    /*
     auto selected = pres.layerModel().processModel().selectedChildren();
 
     auto& appPlug = ctx.app.components.applicationPlugin<ScenarioApplicationPlugin>();
@@ -252,5 +254,6 @@ void ScenarioContextMenuManager::createScenarioContextMenu(
     });
 
     menu.addAction(createCommentAct);
+*/
 }
 }

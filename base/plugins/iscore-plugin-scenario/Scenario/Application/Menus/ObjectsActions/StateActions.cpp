@@ -13,8 +13,9 @@
 namespace Scenario
 {
 StateActions::StateActions(iscore::ToplevelMenuElement menuElt,
-               ScenarioApplicationPlugin* parent):
-    ScenarioActions(menuElt, parent)
+               ScenarioApplicationPlugin* parent) :
+    m_menuElt{menuElt},
+    m_parent{parent}
 {
 
     m_updateStates = new QAction {tr("Refresh states"), this};

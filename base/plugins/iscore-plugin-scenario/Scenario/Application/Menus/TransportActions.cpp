@@ -21,7 +21,8 @@ class TemporalScenarioPresenter;
 TransportActions::TransportActions(
         iscore::ToplevelMenuElement menuElt,
         ScenarioApplicationPlugin* parent) :
-    ScenarioActions{menuElt, parent}
+    m_menuElt{menuElt},
+    m_parent{parent}
 {
     m_play = new QAction{tr("Play"), this};
     m_play->setObjectName("Play");

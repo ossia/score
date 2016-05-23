@@ -91,7 +91,7 @@ void CoreApplicationPlugin::saveStack()
     m_presenter.m_docManager.saveStack();
 }
 
-GUIApplicationContextPlugin::GUIElements CoreApplicationPlugin::makeGUIElements()
+GUIElements CoreApplicationPlugin::makeGUIElements()
 {
     std::vector<Menu> menus;
     menus.reserve(10);
@@ -220,7 +220,7 @@ GUIApplicationContextPlugin::GUIElements CoreApplicationPlugin::makeGUIElements(
         auto about_act = new QAction(tr("&About"), m_presenter.view());
         connect(about_act, &QAction::triggered, this, &CoreApplicationPlugin::about);
         actions.emplace_back(about_act, "About", "Common", Action::EnablementContext::Application, QKeySequence::UnknownKey);
-        settings->addAction(about_act);
+        about->addAction(about_act);
     }
 
 

@@ -2,6 +2,10 @@
 #include <Scenario/Application/ScenarioEditionSettings.hpp>
 #include <iscore/plugins/application/GUIApplicationContextPlugin.hpp>
 
+#include <Scenario/Application/Menus/ObjectMenuActions.hpp>
+#include <Scenario/Application/Menus/ToolMenuActions.hpp>
+#include <Scenario/Application/Menus/TransportActions.hpp>
+
 #include <QVector>
 #include <vector>
 #include <Scenario/Palette/ScenarioPoint.hpp>
@@ -38,8 +42,6 @@ class ISCORE_PLUGIN_SCENARIO_EXPORT ScenarioApplicationPlugin final :
         ~ScenarioApplicationPlugin();
 
         GUIElements makeGUIElements() override;
-        [[deprecated]] QVector<ScenarioActions*>& pluginActions()
-        { return m_pluginActions; }
 
         const Scenario::ScenarioModel* focusedScenarioModel() const;
         const Scenario::ScenarioInterface* focusedScenarioInterface() const;
@@ -76,8 +78,9 @@ class ISCORE_PLUGIN_SCENARIO_EXPORT ScenarioApplicationPlugin final :
         QMetaObject::Connection m_focusConnection, m_defocusConnection, m_contextMenuConnection;
         Scenario::EditionSettings m_editionSettings;
 
-        ObjectMenuActions* m_objectAction{};
-        ToolMenuActions* m_toolActions{};
+        ObjectMenuActions m_objectAction{iscore::ToplevelMenuElement::ObjectMenu, this};
+        ToolMenuActions m_toolActions{iscore::ToplevelMenuElement::ToolMenu, this};
+        TransportActions m_transportActions{iscore::ToplevelMenuElement::PlayMenu, this};
         QVector<ScenarioActions*> m_pluginActions;
 
         QAction *m_selectAll{};

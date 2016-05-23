@@ -125,7 +125,7 @@ void Presenter::setupGUI()
         });
         if(it != m_toolbars.get().end())
         {
-            toolbars.resize(it->second.row());
+            toolbars.resize(it->second.row() + 1);
 
             for(auto& tb : m_toolbars.get())
             {

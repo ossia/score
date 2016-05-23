@@ -1,4 +1,5 @@
 .idea
+base/disabled_addons
 build-*
 sonar-project.properties
 nohup.out

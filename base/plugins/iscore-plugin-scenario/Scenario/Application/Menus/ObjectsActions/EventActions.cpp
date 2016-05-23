@@ -23,7 +23,8 @@ namespace Scenario
 EventActions::EventActions(
         iscore::ToplevelMenuElement menuElt,
         ScenarioApplicationPlugin* parent):
-     ScenarioActions(menuElt, parent),
+    m_menuElt{menuElt},
+    m_parent{parent},
      m_triggerCommandFactory{parent->context.components.factory<Command::TriggerCommandFactoryList>()}
 {
     using namespace iscore;

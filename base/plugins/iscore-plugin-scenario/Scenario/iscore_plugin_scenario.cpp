@@ -101,7 +101,6 @@ std::vector<std::unique_ptr<iscore::FactoryListInterface>> iscore_plugin_scenari
             Process::StateProcessList,
             MoveEventList,
             CSPCoherencyCheckerList,
-            ScenarioContextMenuPluginList,
             ConstraintInspectorDelegateFactoryList,
             DisplayedElementsToolPaletteFactoryList,
             TriggerCommandFactoryList,
@@ -128,16 +127,6 @@ std::vector<std::unique_ptr<iscore::FactoryInterfaceBase>> iscore_plugin_scenari
 {
     using namespace Scenario;
     using namespace Scenario::Command;
-    /*
-        if(key == ScenarioActionsFactory::static_abstractFactoryKey())
-        {
-            // new ScenarioCommonActionsFactory is instantiated in ScenarioApplicationPlugin
-            // because other plug ins need it.
-            return {};
-        }
-    */
-
-    // TODO use me everywhere.
     return instantiate_factories<
             iscore::ApplicationContext,
     TL<

@@ -17,7 +17,7 @@ namespace Scenario
 {
 class ScenarioApplicationPlugin;
 class TemporalScenarioPresenter;
-class TransportActions final : public ScenarioActions
+class TransportActions : public QObject
 {
     public:
         TransportActions(
@@ -25,24 +25,27 @@ class TransportActions final : public ScenarioActions
                 ScenarioApplicationPlugin* parent);
 
         void fillMenuBar(
-                iscore::MenubarManager *menu) override;
+                iscore::MenubarManager *menu);
 
         void fillContextMenu(
                 QMenu* menu,
                 const Selection&sel,
                 const TemporalScenarioPresenter& pres,
-                const QPoint&, const QPointF&) override;
+                const QPoint&, const QPointF&);
 
         bool populateToolBar(
-                QToolBar* bar) override;
+                QToolBar* bar);
 
-        void setEnabled(bool) override;
+        void setEnabled(bool);
 
-        QList<QAction*> actions() const override;
+        QList<QAction*> actions() const;
 
         void stop();
 
     private:
+        iscore::ToplevelMenuElement m_menuElt;
+        ScenarioApplicationPlugin* m_parent{};
+
         QAction* m_play{};
         QAction* m_pause{};
         QAction* m_stop{};

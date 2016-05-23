@@ -66,16 +66,13 @@ std::vector<std::unique_ptr<iscore::FactoryInterfaceBase>> iscore_plugin_ossia::
                  LocalProtocolFactory,
                  OSCProtocolFactory,
                  MinuitProtocolFactory>,
-            FW<ScenarioActionsFactory,
-                 PlayContextMenuFactory>,
             FW<RecreateOnPlay::ProcessComponentFactory,
                  RecreateOnPlay::ScenarioComponentFactory>,
             FW<Explorer::ListeningHandlerFactory,
                 Ossia::PlayListeningHandlerFactory>,
             FW<iscore::SettingsDelegateFactory,
                 RecreateOnPlay::Settings::Factory,
-                LocalTree::Settings::Factory
-            >,
+                LocalTree::Settings::Factory>,
             FW<Ossia::LocalTree::ProcessComponentFactory,
                  Ossia::LocalTree::ScenarioComponentFactory>
             >

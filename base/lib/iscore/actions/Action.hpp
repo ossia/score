@@ -11,32 +11,23 @@ class IdentifiedObjectAbstract;
 namespace iscore
 {
 struct DocumentContext;
-struct ActionGroup
+struct ISCORE_LIB_BASE_EXPORT ActionGroup
 {
     public:
         ActionGroup(
                 QString prettyName,
-                StringKey<ActionGroup> key):
-            m_name{std::move(prettyName)},
-            m_key{std::move(key)}
-        {
+                StringKey<ActionGroup> key);
 
-        }
+        QString prettyName() const;
 
-        QString prettyName() const
-        {
-            return m_name;
-        }
-
-        StringKey<ActionGroup> key() const
-        { return m_key; }
+        StringKey<ActionGroup> key() const;
 
     private:
         QString m_name;
         StringKey<ActionGroup> m_key;
 };
 
-class Action
+class ISCORE_LIB_BASE_EXPORT Action
 {
     public:
         enum class EnablementContext {
@@ -46,58 +37,26 @@ class Action
             Focus // checked for enablement when focus changes
         };
 
-        Action(
-                QAction* act,
-                StringKey<Action> key,
-                StringKey<ActionGroup> k,
-                EnablementContext ctx,
-                const QKeySequence& defaultShortcut):
-            m_impl{act},
-            m_key{std::move(key)},
-            m_groupKey{std::move(k)},
-            m_ctx{ctx},
-            m_default{defaultShortcut},
-            m_current{defaultShortcut}
-        {
-            m_impl->setShortcut(m_current);
-        }
+        Action(QAction* act,
+               StringKey<Action> key,
+               StringKey<ActionGroup> k,
+               EnablementContext ctx,
+               const QKeySequence& defaultShortcut);
 
-        Action(
-                QAction* act,
-                const char* key,
-                const char* group_key,
-                EnablementContext ctx,
-                const QKeySequence& defaultShortcut):
-            m_impl{act},
-            m_key{key},
-            m_groupKey{group_key},
-            m_ctx{ctx},
-            m_default{defaultShortcut},
-            m_current{defaultShortcut}
-        {
-            m_impl->setShortcut(m_current);
-        }
+        Action(QAction* act,
+               const char* key,
+               const char* group_key,
+               EnablementContext ctx,
+               const QKeySequence& defaultShortcut);
 
-        StringKey<Action> key() const
-        { return m_key; }
+        StringKey<Action> key() const;
 
-        QAction* action() const
-        { return m_impl; }
+        QAction* action() const;
 
-        QKeySequence shortcut()
-        {
-            return m_current;
-        }
-        void setShortcut(const QKeySequence& shortcut)
-        {
-            m_current = shortcut;
-            m_impl->setShortcut(shortcut);
-        }
+        QKeySequence shortcut();
+        void setShortcut(const QKeySequence& shortcut);
 
-        QKeySequence defaultShortcut()
-        {
-            return m_default;
-        }
+        QKeySequence defaultShortcut();
 
     private:
         QAction* m_impl{};
@@ -108,21 +67,15 @@ class Action
         QKeySequence m_current;
 };
 
-struct ActionCondition
+struct ISCORE_LIB_BASE_EXPORT ActionCondition
 {
-        ActionCondition(StringKey<ActionCondition> k):
-            m_key{k}
-        {
-
-        }
+        ActionCondition(StringKey<ActionCondition> k);
 
         virtual ~ActionCondition();
 
-        virtual bool operator()(MaybeDocument) = 0;
-        virtual void action(MaybeDocument) { }
+        virtual void action(ActionManager& mgr, MaybeDocument);
 
-        StringKey<ActionCondition> key() const
-        { return m_key; }
+        StringKey<ActionCondition> key() const;
 
         // The actions that are impacted by this condition.
         std::vector<StringKey<Action>> actions;
@@ -136,8 +89,16 @@ struct ActionCondition
  *
  * Will be checked when the document changes
  */
-struct DocumentActionCondition : public ActionCondition
+struct ISCORE_LIB_BASE_EXPORT DocumentActionCondition : public ActionCondition
 {
+        using ActionCondition::ActionCondition;
+};
+
+struct ISCORE_LIB_BASE_EXPORT EnableActionIfDocument final :
+        public DocumentActionCondition
+{
+        using DocumentActionCondition::DocumentActionCondition;
+        void action(ActionManager& mgr, MaybeDocument doc) override;
 };
 
 /**
@@ -145,8 +106,9 @@ struct DocumentActionCondition : public ActionCondition
  *
  * Will be checked when the focus changes
  */
-struct FocusActionCondition : public ActionCondition
+struct ISCORE_LIB_BASE_EXPORT FocusActionCondition : public ActionCondition
 {
+        using ActionCondition::ActionCondition;
 };
 
 /**
@@ -154,8 +116,9 @@ struct FocusActionCondition : public ActionCondition
  *
  * Will be checked when the selection changes
  */
-struct SelectionActionCondition : public ActionCondition
+struct ISCORE_LIB_BASE_EXPORT SelectionActionCondition : public ActionCondition
 {
+        using ActionCondition::ActionCondition;
 };
 
 /**
@@ -163,68 +126,41 @@ struct SelectionActionCondition : public ActionCondition
  *
  * Will be checked when the changed signal is emitted
  */
-struct CustomActionCondition :
+struct ISCORE_LIB_BASE_EXPORT CustomActionCondition :
         public QObject,
         public ActionCondition
 {
         Q_OBJECT
 
+    public:
+        using ActionCondition::ActionCondition;
+
     signals:
         void changed(bool);
 };
 
-struct ActionManager :
+struct ISCORE_LIB_BASE_EXPORT ActionManager :
         public QObject
 {
-        void insert(Action val)
-        {
-            m_container.insert(
-                        std::make_pair(
-                            val.key(),
-                            std::move(val)));
-        }
+        ActionManager();
 
-        void insert(std::vector<Action> vals)
-        {
-            for(auto& val : vals)
-            {
-                insert(std::move(val));
-            }
-        }
+        void insert(Action val);
 
-        auto& get() const
-        { return m_container; }
+        void insert(std::vector<Action> vals);
+
+        auto& get() const { return m_container; }
 
         void reset(Document* doc);
 
-        void insert(std::unique_ptr<DocumentActionCondition> cond)
-        {
-            ISCORE_ASSERT(bool(cond));
-            ISCORE_ASSERT(m_docConditions.find(cond->key()) == m_docConditions.end());
+        void insert(std::unique_ptr<DocumentActionCondition> cond);
+        void insert(std::unique_ptr<FocusActionCondition> cond);
+        void insert(std::unique_ptr<SelectionActionCondition> cond);
+        void insert(std::unique_ptr<CustomActionCondition> cond);
 
-            m_docConditions.insert(std::make_pair(cond->key(), std::move(cond)));
-        }
-        void insert(std::unique_ptr<FocusActionCondition> cond)
-        {
-            ISCORE_ASSERT(bool(cond));
-            ISCORE_ASSERT(m_focusConditions.find(cond->key()) == m_focusConditions.end());
-
-            m_focusConditions.insert(std::make_pair(cond->key(), std::move(cond)));
-        }
-        void insert(std::unique_ptr<SelectionActionCondition> cond)
-        {
-            ISCORE_ASSERT(bool(cond));
-            ISCORE_ASSERT(m_selectionConditions.find(cond->key()) == m_selectionConditions.end());
-
-            m_selectionConditions.insert(std::make_pair(cond->key(), std::move(cond)));
-        }
-        void insert(std::unique_ptr<CustomActionCondition> cond)
-        {
-            ISCORE_ASSERT(bool(cond));
-            ISCORE_ASSERT(m_customConditions.find(cond->key()) == m_customConditions.end());
-
-            m_customConditions.insert(std::make_pair(cond->key(), std::move(cond)));
-        }
+        const auto& documentConditions() const { return m_docConditions; }
+        const auto& focusConditions() const { return m_focusConditions; }
+        const auto& selectionConditions() const { return m_selectionConditions; }
+        const auto& customConditions() const { return m_customConditions; }
 
     private:
         void documentChanged(MaybeDocument doc);
@@ -243,41 +179,25 @@ struct ActionManager :
         QMetaObject::Connection selectionConnection;
 };
 
-class Menu
+class ISCORE_LIB_BASE_EXPORT Menu
 {
     public:
         struct is_toplevel{};
         Menu(QMenu* menu,
-             StringKey<Menu> m):
-            m_impl{menu},
-            m_key{std::move(m)}
-        {
-
-        }
+             StringKey<Menu> m);
 
         Menu(QMenu* menu,
              StringKey<Menu> m,
              is_toplevel,
-             int column = std::numeric_limits<int>::max() - 1):
-            m_impl{menu},
-            m_key{std::move(m)},
-            m_col{column},
-            m_toplevel{true}
-        {
+             int column = std::numeric_limits<int>::max() - 1);
 
-        }
+        StringKey<Menu> key() const;
 
-        StringKey<Menu> key() const
-        { return m_key; }
+        QMenu* menu() const;
 
-        QMenu* menu() const
-        { return m_impl; }
+        int column() const;
 
-        int column() const
-        { return m_col; }
-
-        bool toplevel() const
-        { return m_toplevel; }
+        bool toplevel() const;
     private:
         QMenu* m_impl{};
         StringKey<Menu> m_key;
@@ -286,29 +206,20 @@ class Menu
 };
 
 
-class Toolbar
+class ISCORE_LIB_BASE_EXPORT Toolbar
 {
     public:
         Toolbar(QToolBar* tb,
                 StringKey<Toolbar> key,
                 int defaultRow,
-                int defaultCol):
-            m_impl{tb},
-            m_key{std::move(key)},
-            m_defaultRow{defaultRow},
-            m_defaultCol{defaultCol}
-        {
+                int defaultCol);
 
-        }
+        QToolBar* toolbar() const;
 
-        QToolBar* toolbar() const
-        { return m_impl; }
+        StringKey<Toolbar> key() const;
 
-        StringKey<Toolbar> key() const
-        { return m_key; }
-
-        int row() const { return m_row; }
-        int column() const { return m_col; }
+        int row() const;
+        int column() const;
     private:
         QToolBar* m_impl{};
         StringKey<Toolbar> m_key;
@@ -322,51 +233,59 @@ class Toolbar
         int m_defaultCol = 0;
 };
 
-struct MenuManager
+struct ContextPoint
+{
+        QPointF scene;
+        QPoint view;
+};
+
+struct ISCORE_LIB_BASE_EXPORT ContextMenuBuilder
+{
+
+    public:
+        ContextMenuBuilder(StringKey<ContextMenuBuilder> k);
+
+        virtual ~ContextMenuBuilder();
+
+        // A condition may be : "selection.size() == 1 && selection.object() == statemodel"
+        virtual bool check(const iscore::DocumentContext&, ContextPoint pts, QMenu*) const = 0;
+
+        // In this case, we can add "play (states)" action.
+        virtual void action(const iscore::DocumentContext&, ContextPoint pts, QMenu*) const = 0;
+
+        StringKey<ContextMenuBuilder> key() const;
+
+        // The actions that are impacted by this condition.
+        std::vector<std::function<void(const iscore::DocumentContext&, ContextPoint, QMenu*)>> actions;
+
+    private:
+        StringKey<ContextMenuBuilder> m_key;
+};
+struct ISCORE_LIB_BASE_EXPORT MenuManager
 {
     public:
-        void insert(Menu val)
-        {
-            m_container.insert(
-                        std::make_pair(
-                            val.key(),
-                            std::move(val)));
-        }
+        void insert(Menu val);
 
-        void insert(std::vector<Menu> vals)
-        {
-            for(auto& val : vals)
-            {
-                insert(std::move(val));
-            }
-        }
+        void insert(std::vector<Menu> vals);
 
-        auto& get() { return m_container; }
-        auto& get() const { return m_container; }
+        void buildContextMenu(const iscore::DocumentContext& ctx, ContextPoint pts, QMenu* menu);
+
+        auto& get()
+        { return m_container; }
+        auto& get() const
+        { return m_container; }
 
     private:
         std::unordered_map<StringKey<Menu>, Menu> m_container;
-
+        std::unordered_map<StringKey<ContextMenuBuilder>, std::unique_ptr<ContextMenuBuilder>> m_builders;
 };
 
-struct ToolbarManager
+struct ISCORE_LIB_BASE_EXPORT ToolbarManager
 {
     public:
-        void insert(Toolbar val)
-        {
-            m_container.insert(
-                        std::make_pair(
-                            val.key(),
-                            std::move(val)));
-        }
+        void insert(Toolbar val);
 
-        void insert(std::vector<Toolbar> vals)
-        {
-            for(auto& val : vals)
-            {
-                insert(std::move(val));
-            }
-        }
+        void insert(std::vector<Toolbar> vals);
 
         auto& get() const
         { return m_container; }
@@ -374,11 +293,8 @@ struct ToolbarManager
     private:
         std::unordered_map<StringKey<Toolbar>, Toolbar> m_container;
 };
-/**
-  * Setup goes this way :
-  * First, plug-in's Toolbars and Menus are registered, empty but with a key
-  * Then, plug-in's actions are registered and added into the menus & toolbars
-  *
-  *
-  */
+
+
+using GUIElements = std::tuple<std::vector<Menu>, std::vector<Toolbar>, std::vector<Action>>;
+
 }

@@ -166,7 +166,7 @@ void PlayContextMenu::fillContextMenu(
         QMenu *menu,
         const Selection & s,
         const Scenario::TemporalScenarioPresenter& pres,
-        const QPoint& pt,
+        const QPoint&,
         const QPointF& scenept)
 {
     using namespace Scenario;
