@@ -45,7 +45,8 @@ class MenubarManager;
 namespace RecreateOnPlay
 {
 PlayContextMenu::PlayContextMenu(Scenario::ScenarioApplicationPlugin *parent):
-    Scenario::ScenarioActions(iscore::ToplevelMenuElement::AboutMenu, parent)
+  m_menuElt{iscore::ToplevelMenuElement::AboutMenu},
+  m_parent{parent}
 {
     using namespace Scenario;
     m_playStates = new QAction{tr("Play (States)"), this};

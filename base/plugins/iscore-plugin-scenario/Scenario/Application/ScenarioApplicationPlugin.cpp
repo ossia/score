@@ -132,15 +132,20 @@ auto ScenarioApplicationPlugin::makeGUIElements() -> GUIElements
                     QKeySequence::Deselect);
 
 
-        // REMOVEME
+        // TODO ACTIONS
+        /*
         for(ScenarioActions*& elt : m_pluginActions)
         {
             elt->fillMenuBar(&context.menuBar);
         }
+        */
     }
 
     std::vector<Toolbar> toolbars;
     {
+
+        // TODO ACTIONS
+        /*
         auto bar = new QToolBar;
 
         int i = 0;
@@ -157,6 +162,7 @@ auto ScenarioApplicationPlugin::makeGUIElements() -> GUIElements
 
             i++;
         }
+        */
         /*
         auto transportButtons = new QToolBar;
         // See : http://stackoverflow.com/questions/21363350/remove-gradient-from-qtoolbar-in-os-x
@@ -184,21 +190,10 @@ auto ScenarioApplicationPlugin::makeGUIElements() -> GUIElements
 }
 
 ScenarioApplicationPlugin::~ScenarioApplicationPlugin() = default;
-/*
-std::vector<QAction*> ScenarioApplicationPlugin::actions()
-{
-    // TODO add the others
-    std::vector<QAction*> act;
-    for(const auto& elt : m_pluginActions)
-    {
-        auto actions = elt->actions();
-        act.insert(act.end(), actions.begin(), actions.end());
-    }
-    return act;
-}
-*/
+
 void ScenarioApplicationPlugin::on_presenterDefocused(Process::LayerPresenter* pres)
 {
+    /*
     // We set the currently focused view model to a "select" state
     // to prevent problems.
     editionSettings().setDefault(); // NOTE maybe useless now ?
@@ -209,11 +204,13 @@ void ScenarioApplicationPlugin::on_presenterDefocused(Process::LayerPresenter* p
     }
 
     disconnect(m_contextMenuConnection);
+    */
 }
 
 
 void ScenarioApplicationPlugin::on_presenterFocused(Process::LayerPresenter* pres)
 {
+    /*
     // Generic stuff
     if(focusedPresenter())
     {
@@ -263,12 +260,14 @@ void ScenarioApplicationPlugin::on_presenterFocused(Process::LayerPresenter* pre
             }
         }
     }
+    */
 }
 
 void ScenarioApplicationPlugin::on_documentChanged(
         iscore::Document* olddoc,
         iscore::Document* newdoc)
 {
+    /*
     using namespace iscore;
     // TODO the context menu connection should be reviewed, too.
     this->disconnect(m_focusConnection);
@@ -341,6 +340,7 @@ void ScenarioApplicationPlugin::on_documentChanged(
         if(bev)
             bev->view().setFocus();
     }
+    */
 }
 
 void ScenarioApplicationPlugin::on_activeWindowChanged()
