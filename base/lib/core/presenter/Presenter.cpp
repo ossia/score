@@ -68,6 +68,8 @@ Presenter::Presenter(
 
     connect(m_view,     &View::insertActionIntoMenubar,
             &m_menubar, &MenubarManager::insertActionIntoMenubar);
+    connect(&m_context.documents, &DocumentManager::documentChanged,
+            &m_actions, &ActionManager::reset);
 
     m_view->setPresenter(this);
 }

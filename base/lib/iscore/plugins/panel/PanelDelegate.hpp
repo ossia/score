@@ -39,7 +39,6 @@ struct PanelStatus
 class ISCORE_LIB_BASE_EXPORT PanelDelegate
 {
     public:
-        using maybe_document_t = boost::optional<const iscore::DocumentContext&>;
         PanelDelegate(
                 const iscore::ApplicationContext& ctx):
             m_context{ctx}
@@ -77,14 +76,14 @@ class ISCORE_LIB_BASE_EXPORT PanelDelegate
 
     protected:
         virtual void on_modelChanged(
-                maybe_document_t oldm,
-                maybe_document_t newm)
+                MaybeDocument oldm,
+                MaybeDocument newm)
         {
 
         }
 
     private:
         const iscore::ApplicationContext& m_context;
-        maybe_document_t m_model;
+        MaybeDocument m_model;
 };
 }

@@ -111,6 +111,10 @@ class ISCORE_LIB_BASE_EXPORT DocumentManager : public QObject
                 const iscore::ApplicationContext& ctx);
 
         bool preparingNewDocument() const;
+
+    signals:
+        void documentChanged(iscore::Document*);
+
     private:
         /**
          * @brief checkAndUpdateJson

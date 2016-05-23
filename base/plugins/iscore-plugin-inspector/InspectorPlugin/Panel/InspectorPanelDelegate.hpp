@@ -19,8 +19,8 @@ class PanelDelegate final :
         const iscore::PanelStatus& defaultPanelStatus() const override;
 
         void on_modelChanged(
-                maybe_document_t oldm,
-                maybe_document_t newm) override;
+                iscore::MaybeDocument oldm,
+                iscore::MaybeDocument newm) override;
         void setNewSelection(const Selection& s) override;
 
         QWidget* m_widget{};

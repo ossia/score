@@ -2,6 +2,7 @@
 #include <iscore/application/ApplicationContext.hpp>
 #include <iscore/command/CommandStackFacade.hpp>
 #include <iscore/selection/FocusManager.hpp>
+#include <boost/optional.hpp>
 class IdentifiedObjectAbstract;
 namespace iscore
 {
@@ -60,4 +61,6 @@ struct ISCORE_LIB_BASE_EXPORT DocumentContext
         DocumentContext& operator=(const DocumentContext&) = default;
         DocumentContext& operator=(DocumentContext&&) = default;
 };
+
+using MaybeDocument = boost::optional<const iscore::DocumentContext&>;
 }
