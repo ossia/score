@@ -45,8 +45,8 @@ class ToolMenuActions : public QObject
         void keyPressed(int key);
         void keyReleased(int key);
 
-        ScenarioApplicationPlugin* m_parent{};
         iscore::ToplevelMenuElement m_menuElt;
+        ScenarioApplicationPlugin* m_parent{};
 
         QActionGroup* m_scenarioScaleModeActionGroup{};
         QActionGroup* m_scenarioToolActionGroup{};
@@ -57,3 +57,4 @@ class ToolMenuActions : public QObject
         QAction* m_playtool{};
 };
 }
+

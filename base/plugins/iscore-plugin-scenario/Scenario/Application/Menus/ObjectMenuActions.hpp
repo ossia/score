@@ -32,30 +32,12 @@ class ISCORE_PLUGIN_SCENARIO_EXPORT ObjectMenuActions : public QObject
 
         void makeGUIElements(iscore::GUIElements& ref);
 
-        void fillMenuBar(iscore::MenubarManager *menu);
         void fillContextMenu(QMenu* menu, const Selection&, const TemporalScenarioPresenter& pres, const QPoint&, const QPointF&);
-        void setEnabled(bool);
-        bool populateToolBar(QToolBar*);
 
 
         QList<QAction*> actions() const;
         CommandDispatcher<> dispatcher() const;
 
-        const EventActions* eventActions() const
-        { return &m_eventActions; }
-        const ConstraintActions* constraintActions() const
-        { return &m_cstrActions; }
-        const StateActions* stateActions() const
-        { return &m_stateActions; }
-
-        QAction* clearContent()
-        { return m_clearElements; }
-        QAction* copyContent()
-        { return m_copyContent; }
-        QAction* pasteContent()
-        { return m_pasteContent; }
-        QAction* elementsToJson()
-        { return m_elementsToJson; }
 
         auto appPlugin() const
         { return m_parent; }
