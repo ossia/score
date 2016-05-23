@@ -4,6 +4,7 @@
 #include <iscore/menu/MenuInterface.hpp>
 #include <iscore/command/Dispatchers/CommandDispatcher.hpp>
 #include <iscore_plugin_scenario_export.h>
+#include <iscore/actions/Action.hpp>
 namespace Scenario
 {
 class ScenarioApplicationPlugin;
@@ -17,6 +18,9 @@ class ISCORE_PLUGIN_SCENARIO_EXPORT EventActions : public QObject
 {
     public:
         EventActions(iscore::ToplevelMenuElement, ScenarioApplicationPlugin* parent);
+
+        void makeGUIElements(iscore::GUIElementsRef ref);
+
         void fillMenuBar(iscore::MenubarManager *menu) ;
         void fillContextMenu(QMenu* menu, const Selection&, const TemporalScenarioPresenter& pres, const QPoint&, const QPointF&) ;
         void fillContextMenu(QMenu* menu, const Selection&, const QPoint&, const QPointF&);

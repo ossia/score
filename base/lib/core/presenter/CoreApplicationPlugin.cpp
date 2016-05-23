@@ -138,7 +138,7 @@ GUIElements CoreApplicationPlugin::makeGUIElements()
         auto new_doc = new QAction(tr("&New"), m_presenter.view());
         connect(new_doc, &QAction::triggered, this, &CoreApplicationPlugin::newDocument);
         file->addAction(new_doc);
-        actions.emplace_back(new_doc, "New", "Common", Action::EnablementContext::Application, QKeySequence::New);
+        actions.emplace_back(new_doc, "New", "Common", QKeySequence::New);
     }
 
     file->addSeparator();
@@ -147,7 +147,7 @@ GUIElements CoreApplicationPlugin::makeGUIElements()
     {
         auto load_doc = new QAction(tr("&Load"), m_presenter.view());
         connect(load_doc, &QAction::triggered, this, &CoreApplicationPlugin::load);
-        actions.emplace_back(load_doc, "Load", "Common", Action::EnablementContext::Application, QKeySequence::Open);
+        actions.emplace_back(load_doc, "Load", "Common", QKeySequence::Open);
         file->addAction(load_doc);
     }
 
@@ -156,14 +156,14 @@ GUIElements CoreApplicationPlugin::makeGUIElements()
     {
         auto save_doc = new QAction(tr("&Save"), m_presenter.view());
         connect(save_doc, &QAction::triggered, this, &CoreApplicationPlugin::save);
-        actions.emplace_back(save_doc, "Save", "Common", Action::EnablementContext::Document, QKeySequence::Save);
+        actions.emplace_back(save_doc, "Save", "Common", QKeySequence::Save);
         file->addAction(save_doc);
     }
 
     {
         auto saveas_doc = new QAction(tr("Save &As..."), m_presenter.view());
         connect(saveas_doc, &QAction::triggered, this, &CoreApplicationPlugin::saveAs);
-        actions.emplace_back(saveas_doc, "SaveAs", "Common", Action::EnablementContext::Document, QKeySequence::SaveAs);
+        actions.emplace_back(saveas_doc, "SaveAs", "Common", QKeySequence::SaveAs);
         file->addAction(saveas_doc);
     }
 
@@ -175,14 +175,14 @@ GUIElements CoreApplicationPlugin::makeGUIElements()
     {
         auto loadStack_act = new QAction(tr("&Load a stack"), m_presenter.view());
         connect(loadStack_act, &QAction::triggered, this, &CoreApplicationPlugin::loadStack);
-        actions.emplace_back(loadStack_act, "LoadStack", "Common", Action::EnablementContext::Document, QKeySequence::UnknownKey);
+        actions.emplace_back(loadStack_act, "LoadStack", "Common", QKeySequence::UnknownKey);
         export_menu->addAction(loadStack_act);
     }
 
     {
         auto saveStack_act = new QAction(tr("&Save a stack"), m_presenter.view());
         connect(saveStack_act, &QAction::triggered, this, &CoreApplicationPlugin::saveStack);
-        actions.emplace_back(saveStack_act, "SaveStack", "Common", Action::EnablementContext::Document, QKeySequence::UnknownKey);
+        actions.emplace_back(saveStack_act, "SaveStack", "Common", QKeySequence::UnknownKey);
         export_menu->addAction(saveStack_act);
     }
 #endif
@@ -192,14 +192,14 @@ GUIElements CoreApplicationPlugin::makeGUIElements()
     {
         auto close_act = new QAction(tr("&Close"), m_presenter.view());
         connect(close_act, &QAction::triggered, this, &CoreApplicationPlugin::close);
-        actions.emplace_back(close_act, "Close", "Common", Action::EnablementContext::Document, QKeySequence::Close);
+        actions.emplace_back(close_act, "Close", "Common", QKeySequence::Close);
         file->addAction(close_act);
     }
 
     {
         auto quit_act = new QAction(tr("&Quit"), m_presenter.view());
         connect(quit_act, &QAction::triggered, this, &CoreApplicationPlugin::quit);
-        actions.emplace_back(quit_act, "Quit", "Common", Action::EnablementContext::Application, QKeySequence::Quit);
+        actions.emplace_back(quit_act, "Quit", "Common", QKeySequence::Quit);
         file->addAction(quit_act);
     }
 
@@ -211,7 +211,7 @@ GUIElements CoreApplicationPlugin::makeGUIElements()
     {
         auto settings_act = new QAction(tr("&Settings"), m_presenter.view());
         connect(settings_act, &QAction::triggered, this, &CoreApplicationPlugin::openSettings);
-        actions.emplace_back(settings_act, "OpenSettings", "Common", Action::EnablementContext::Application, QKeySequence::Preferences);
+        actions.emplace_back(settings_act, "OpenSettings", "Common", QKeySequence::Preferences);
         settings->addAction(settings_act);
     }
 
@@ -219,7 +219,7 @@ GUIElements CoreApplicationPlugin::makeGUIElements()
     {
         auto about_act = new QAction(tr("&About"), m_presenter.view());
         connect(about_act, &QAction::triggered, this, &CoreApplicationPlugin::about);
-        actions.emplace_back(about_act, "About", "Common", Action::EnablementContext::Application, QKeySequence::UnknownKey);
+        actions.emplace_back(about_act, "About", "Common", QKeySequence::UnknownKey);
         about->addAction(about_act);
     }
 

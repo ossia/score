@@ -146,19 +146,55 @@ ObjectMenuActions::ObjectMenuActions(
 
 }
 
+void ObjectMenuActions::makeGUIElements(iscore::GUIElementsRef ref)
+{
+    using namespace iscore;
+    auto& actions = std::get<std::vector<Action>&>(ref);
+    auto& menus = std::get<std::vector<Menu>&>(ref);
+    auto& toolbars = std::get<std::vector<Toolbar>&>(ref);
+
+    actions.emplace_back(m_removeElements,
+                         StringKey<Action>{"Remove"},
+                         StringKey<ActionGroup>{"Scenario"},
+                         QKeySequence(Qt::Key_Backspace));
+    actions.emplace_back(m_clearElements,
+                         StringKey<Action>{"Clear"},
+                         StringKey<ActionGroup>{"Scenario"},
+                         QKeySequence(Qt::Key_Delete));
+    actions.emplace_back(m_copyContent,
+                         StringKey<Action>{"Copy"},
+                         StringKey<ActionGroup>{"Scenario"},
+                         QKeySequence::Copy);
+    actions.emplace_back(m_cutContent,
+                         StringKey<Action>{"Cut"},
+                         StringKey<ActionGroup>{"Scenario"},
+                         QKeySequence::Cut);
+    actions.emplace_back(m_pasteContent,
+                         StringKey<Action>{"Paste"},
+                         StringKey<ActionGroup>{"Scenario"},
+                         QKeySequence::Paste);
+    actions.emplace_back(m_elementsToJson,
+                         StringKey<Action>{"ToJson"},
+                         StringKey<ActionGroup>{"Scenario"},
+                         QKeySequence::UnknownKey);
+
+
+    Menu& object = m_parent->context.menus.get().at(Menus::Object());
+    object.menu()->addAction(m_elementsToJson);
+    object.menu()->addAction(m_removeElements);
+    object.menu()->addAction(m_clearElements);
+    object.menu()->addSeparator();
+    object.menu()->addAction(m_copyContent);
+    object.menu()->addAction(m_cutContent);
+    object.menu()->addAction(m_pasteContent);
+
+    m_eventActions.makeGUIElements(ref);
+    m_cstrActions.makeGUIElements(ref);
+    m_stateActions.makeGUIElements(ref);
+}
+
 void ObjectMenuActions::fillMenuBar(iscore::MenubarManager* menu)
 {
-    menu->insertActionIntoToplevelMenu(m_menuElt, m_elementsToJson);
-    menu->insertActionIntoToplevelMenu(m_menuElt, m_removeElements);
-    menu->insertActionIntoToplevelMenu(m_menuElt, m_clearElements);
-    menu->addSeparatorIntoToplevelMenu(m_menuElt, iscore::EditMenuElement::Separator_Copy);
-    menu->insertActionIntoToplevelMenu(m_menuElt, m_copyContent);
-    menu->insertActionIntoToplevelMenu(m_menuElt, m_cutContent);
-    menu->insertActionIntoToplevelMenu(m_menuElt, m_pasteContent);
-
-    m_eventActions.fillMenuBar(menu);
-    m_cstrActions.fillMenuBar(menu);
-    m_stateActions.fillMenuBar(menu);
 }
 
 void ObjectMenuActions::fillContextMenu(

@@ -6,6 +6,7 @@
 
 #include <QAction>
 #include <QToolBar>
+#include <iscore/actions/Action.hpp>
 #include <iscore_plugin_scenario_export.h>
 namespace Process
 {
@@ -22,6 +23,8 @@ class ISCORE_PLUGIN_SCENARIO_EXPORT ConstraintActions : public QObject
     public:
     ConstraintActions(iscore::ToplevelMenuElement, ScenarioApplicationPlugin* parent);
     ~ConstraintActions();
+
+    void makeGUIElements(iscore::GUIElementsRef ref);
     void fillMenuBar(iscore::MenubarManager *menu) ;
     void fillContextMenu(
             QMenu* menu,

@@ -7,9 +7,7 @@ namespace iscore
 
 ActionManager::ActionManager()
 {
-    insert(
-                std::make_unique<EnableActionIfDocument>(
-                    StringKey<ActionCondition>{"EnableActionIfDocument"}));
+    insert(std::make_unique<EnableActionIfDocument>());
 
 }
 
@@ -131,12 +129,7 @@ void ActionManager::resetCustomActions(MaybeDocument doc)
 
 void EnableActionIfDocument::action(ActionManager& mgr, MaybeDocument doc)
 {
-    bool has_doc{doc};
-    for(auto& action : actions)
-    {
-        auto& act = mgr.get().at(action);
-        act.action()->setEnabled(has_doc);
-    }
+    setEnabled(mgr, bool(doc));
 }
 
 ActionCondition::ActionCondition(StringKey<ActionCondition> k):
@@ -155,6 +148,15 @@ void ActionCondition::action(ActionManager &mgr, MaybeDocument) { }
 StringKey<ActionCondition> ActionCondition::key() const
 { return m_key; }
 
+void ActionCondition::setEnabled(ActionManager &mgr, bool b)
+{
+    for(auto& action : actions)
+    {
+        auto& act = mgr.get().at(action);
+        act.action()->setEnabled(b);
+    }
+}
+
 ActionGroup::ActionGroup(QString prettyName, StringKey<ActionGroup> key):
     m_name{std::move(prettyName)},
     m_key{std::move(key)}
@@ -170,22 +172,20 @@ QString ActionGroup::prettyName() const
 StringKey<ActionGroup> ActionGroup::key() const
 { return m_key; }
 
-Action::Action(QAction *act, StringKey<Action> key, StringKey<ActionGroup> k, Action::EnablementContext ctx, const QKeySequence &defaultShortcut):
+Action::Action(QAction *act, StringKey<Action> key, StringKey<ActionGroup> k, const QKeySequence &defaultShortcut):
     m_impl{act},
     m_key{std::move(key)},
     m_groupKey{std::move(k)},
-    m_ctx{ctx},
     m_default{defaultShortcut},
     m_current{defaultShortcut}
 {
     m_impl->setShortcut(m_current);
 }
 
-Action::Action(QAction *act, const char *key, const char *group_key, Action::EnablementContext ctx, const QKeySequence &defaultShortcut):
+Action::Action(QAction *act, const char *key, const char *group_key, const QKeySequence &defaultShortcut):
     m_impl{act},
     m_key{key},
     m_groupKey{group_key},
-    m_ctx{ctx},
     m_default{defaultShortcut},
     m_current{defaultShortcut}
 {

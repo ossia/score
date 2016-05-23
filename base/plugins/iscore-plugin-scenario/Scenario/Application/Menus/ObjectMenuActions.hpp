@@ -11,6 +11,7 @@
 #include <Scenario/Application/Menus/ObjectsActions/EventActions.hpp>
 #include <Scenario/Application/Menus/ObjectsActions/ConstraintActions.hpp>
 #include <Scenario/Application/Menus/ObjectsActions/StateActions.hpp>
+#include <iscore/actions/Action.hpp>
 class QAction;
 class QMenu;
 class QToolBar;
@@ -28,6 +29,9 @@ class ISCORE_PLUGIN_SCENARIO_EXPORT ObjectMenuActions : public QObject
 {
     public:
         ObjectMenuActions(iscore::ToplevelMenuElement, ScenarioApplicationPlugin* parent);
+
+        void makeGUIElements(iscore::GUIElementsRef ref);
+
         void fillMenuBar(iscore::MenubarManager *menu);
         void fillContextMenu(QMenu* menu, const Selection&, const TemporalScenarioPresenter& pres, const QPoint&, const QPointF&);
         void setEnabled(bool);

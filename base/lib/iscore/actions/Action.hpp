@@ -30,23 +30,14 @@ struct ISCORE_LIB_BASE_EXPORT ActionGroup
 class ISCORE_LIB_BASE_EXPORT Action
 {
     public:
-        enum class EnablementContext {
-            Application, // always enabled
-            Document, // checked for enablement when document changes
-            Selection, // checked for enablement when selection changes
-            Focus // checked for enablement when focus changes
-        };
-
         Action(QAction* act,
                StringKey<Action> key,
                StringKey<ActionGroup> k,
-               EnablementContext ctx,
                const QKeySequence& defaultShortcut);
 
         Action(QAction* act,
                const char* key,
                const char* group_key,
-               EnablementContext ctx,
                const QKeySequence& defaultShortcut);
 
         StringKey<Action> key() const;
@@ -62,7 +53,6 @@ class ISCORE_LIB_BASE_EXPORT Action
         QAction* m_impl{};
         StringKey<Action> m_key;
         StringKey<ActionGroup> m_groupKey;
-        EnablementContext m_ctx;
         QKeySequence m_default;
         QKeySequence m_current;
 };
@@ -76,6 +66,9 @@ struct ISCORE_LIB_BASE_EXPORT ActionCondition
         virtual void action(ActionManager& mgr, MaybeDocument);
 
         StringKey<ActionCondition> key() const;
+
+
+        void setEnabled(iscore::ActionManager& mgr, bool b);
 
         // The actions that are impacted by this condition.
         std::vector<StringKey<Action>> actions;
@@ -97,7 +90,15 @@ struct ISCORE_LIB_BASE_EXPORT DocumentActionCondition : public ActionCondition
 struct ISCORE_LIB_BASE_EXPORT EnableActionIfDocument final :
         public DocumentActionCondition
 {
-        using DocumentActionCondition::DocumentActionCondition;
+        EnableActionIfDocument():
+            DocumentActionCondition{static_key()}
+        {
+
+        }
+
+        static StringKey<ActionCondition> static_key()
+        { return StringKey<ActionCondition>{"EnableActionIfDocument"}; }
+
         void action(ActionManager& mgr, MaybeDocument doc) override;
 };
 
@@ -296,5 +297,6 @@ struct ISCORE_LIB_BASE_EXPORT ToolbarManager
 
 
 using GUIElements = std::tuple<std::vector<Menu>, std::vector<Toolbar>, std::vector<Action>>;
+using GUIElementsRef = std::tuple<std::vector<Menu>&, std::vector<Toolbar>&, std::vector<Action>&>;
 
 }
