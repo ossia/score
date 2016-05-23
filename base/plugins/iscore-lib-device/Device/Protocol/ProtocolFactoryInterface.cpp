@@ -2,8 +2,5 @@
 
 namespace Device
 {
-ProtocolFactory::~ProtocolFactory()
-{
-
-}
+ProtocolFactory::~ProtocolFactory() = default;
 }

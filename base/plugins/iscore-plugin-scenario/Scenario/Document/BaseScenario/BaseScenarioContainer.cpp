@@ -16,10 +16,7 @@ namespace Scenario
 {
 class ConstraintViewModel;
 
-BaseScenarioContainer::~BaseScenarioContainer()
-{
-
-}
+BaseScenarioContainer::~BaseScenarioContainer() = default;
 
 void BaseScenarioContainer::init()
 {

@@ -16,11 +16,7 @@
 
 namespace iscore
 {
-AggregateCommand::~AggregateCommand()
-{
-
-}
-
+AggregateCommand::~AggregateCommand() = default;
 void AggregateCommand::undo() const
 {
     for (auto cmd : boost::adaptors::reverse(m_cmds))
@@ -47,14 +43,14 @@ void AggregateCommand::serializeImpl(DataStreamInput& s) const
         serializedCommands.emplace_back(*cmd);
     }
 
-    Visitor<Reader<DataStream>> reader{s.stream().device()};
+    Visitor<Reader<DataStream>> reader{s.stream.device()};
     reader.readFrom(serializedCommands);
 }
 
 void AggregateCommand::deserializeImpl(DataStreamOutput& s)
 {
     std::vector<CommandData> serializedCommands;
-    Visitor<Writer<DataStream>> writer{s.stream().device()};
+    Visitor<Writer<DataStream>> writer{s.stream.device()};
     writer.writeTo(serializedCommands);
 
     for(const auto& cmd_pack : serializedCommands)

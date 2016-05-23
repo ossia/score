@@ -35,11 +35,11 @@ class MoveConstraintState final : public StateBase<Scenario_T>
             using namespace Scenario::Command ;
             auto finalState = new QFinalState{this};
 
-            QState* mainState = new QState{this};
+            auto mainState = new QState{this};
             {
-                QState* pressed = new QState{mainState};
-                QState* released = new QState{mainState};
-                QState* moving = new QState{mainState};
+                auto pressed = new QState{mainState};
+                auto released = new QState{mainState};
+                auto moving = new QState{mainState};
 
                 // General setup
                 mainState->setInitialState(pressed);
@@ -67,7 +67,6 @@ class MoveConstraintState final : public StateBase<Scenario_T>
                     this->m_dispatcher.submitCommand(
                                 Path<Scenario_T>{this->m_scenarioPath},
                                 this->clickedConstraint,
-                                m_constraintInitialPoint.date + (this->currentPoint.date - m_initialClick.date),
                                 m_constraintInitialPoint.y + (this->currentPoint.y - m_initialClick.y));
                 });
 
@@ -77,7 +76,7 @@ class MoveConstraintState final : public StateBase<Scenario_T>
                 });
             }
 
-            QState* rollbackState = new QState{this};
+            auto rollbackState = new QState{this};
             iscore::make_transition<iscore::Cancel_Transition>(mainState, rollbackState);
             rollbackState->addTransition(finalState);
             QObject::connect(rollbackState, &QState::entered, [&] ()
@@ -114,11 +113,11 @@ class MoveConstraintBraceState final : public StateBase<Scenario_T>
             using namespace Scenario::Command ;
             auto finalState = new QFinalState{this};
 
-            QState* mainState = new QState{this};
+            auto mainState = new QState{this};
             {
-                QState* pressed = new QState{mainState};
-                QState* released = new QState{mainState};
-                QState* moving = new QState{mainState};
+                auto pressed = new QState{mainState};
+                auto released = new QState{mainState};
+                auto moving = new QState{mainState};
 
                 mainState->setInitialState(pressed);
                 released->addTransition(finalState);
@@ -148,7 +147,7 @@ class MoveConstraintBraceState final : public StateBase<Scenario_T>
                     auto& cstr = scenar.constraint(this->clickedConstraint);
                     auto date = this->currentPoint.date - *m_initialDate + *m_initialDuration;
                     this->m_dispatcher.submitCommand(
-                                Path<ConstraintModel>{cstr},
+                                cstr,
                                 date,
                                 false);
                 });
@@ -159,7 +158,7 @@ class MoveConstraintBraceState final : public StateBase<Scenario_T>
                 });
             }
 
-            QState* rollbackState = new QState{this};
+            auto rollbackState = new QState{this};
             iscore::make_transition<iscore::Cancel_Transition>(mainState, rollbackState);
             rollbackState->addTransition(finalState);
             QObject::connect(rollbackState, &QState::entered, [&] ()
@@ -198,11 +197,11 @@ class MoveTimeNodeState final : public StateBase<Scenario_T>
             using namespace Scenario::Command ;
             auto finalState = new QFinalState{this};
 
-            QState* mainState = new QState{this};
+            auto mainState = new QState{this};
             {
-                QState* pressed = new QState{mainState};
-                QState* released = new QState{mainState};
-                QState* moving = new QState{mainState};
+                auto pressed = new QState{mainState};
+                auto released = new QState{mainState};
+                auto moving = new QState{mainState};
                 mainState->setInitialState(pressed);
 
                 // General setup
@@ -278,7 +277,7 @@ class MoveTimeNodeState final : public StateBase<Scenario_T>
                 });
             }
 
-            QState* rollbackState = new QState{this};
+            auto rollbackState = new QState{this};
             iscore::make_transition<iscore::Cancel_Transition>(mainState, rollbackState);
             rollbackState->addTransition(finalState);
             QObject::connect(rollbackState, &QState::entered, [&] ()

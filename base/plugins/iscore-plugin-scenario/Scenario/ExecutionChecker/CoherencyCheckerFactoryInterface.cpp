@@ -2,9 +2,5 @@
 
 namespace Scenario
 {
-CoherencyCheckerFactoryInterface::~CoherencyCheckerFactoryInterface()
-{
-
-}
-
+CoherencyCheckerFactoryInterface::~CoherencyCheckerFactoryInterface() = default;
 }

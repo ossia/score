@@ -43,7 +43,7 @@ QJsonArray toJsonArray(const std::array<T, N>& array)
     QJsonArray arr;
     for(std::size_t i = 0; i < N; i++)
     {
-        arr.append(toJsonValue(array[i]));
+        arr.append(toJsonValue(array.at(i)));
     }
 
     return arr;
@@ -54,7 +54,7 @@ void fromJsonArray(const QJsonArray& array, std::array<T, N>& res)
 {
     for(std::size_t i = 0; i < N; i++)
     {
-        res[i] = fromJsonValue<T>(array[i]);
+        res.at(i) = fromJsonValue<T>(array.at(i));
     }
 }
 
@@ -84,7 +84,7 @@ void Visitor<Reader<DataStream>>::readFrom(
         const std::array<Process::PriorityPolicy, 3>& val)
 {
     for(int i = 0; i < 3; i++)
-        m_stream << val[i];
+        m_stream << val.at(i);
 }
 
 template<>
@@ -92,7 +92,7 @@ void Visitor<Writer<DataStream>>::writeTo(
         std::array<Process::PriorityPolicy, 3>& val)
 {
     for(int i = 0; i < 3; i++)
-        m_stream >> val[i];
+        m_stream >> val.at(i);
 }
 
 template<>

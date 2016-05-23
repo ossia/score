@@ -4,8 +4,8 @@
 #include <QByteArray>
 #include <QString>
 
-class DataStreamInput;
-class DataStreamOutput;
+struct DataStreamInput;
+struct DataStreamOutput;
 
 namespace iscore
 {

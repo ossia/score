@@ -11,8 +11,8 @@
 #include <Process/ProcessList.hpp>
 #include <Automation/AutomationProcessMetadata.hpp>
 
-class DataStreamInput;
-class DataStreamOutput;
+struct DataStreamInput;
+struct DataStreamOutput;
 namespace Process { class LayerModel; }
 namespace Process { class ProcessModel; }
 template <typename Object> class Path;
@@ -31,10 +31,10 @@ class ISCORE_PLUGIN_SCENARIO_EXPORT CreateProcessAndLayers : public iscore::Seri
         CreateProcessAndLayers(
                 Path<ConstraintModel>&& constraint,
                 const std::vector<std::pair<Path<SlotModel>, Id<Process::LayerModel>>>& slotList,
-                const Id<Process::ProcessModel>& procId):
+                Id<Process::ProcessModel> procId):
             m_addProcessCmd{
                 std::move(constraint),
-                procId,
+                std::move(procId),
                 Metadata<ConcreteFactoryKey_k, ProcessModel_T>::get()}
         {
             auto proc = m_addProcessCmd.constraintPath().extend(
@@ -106,8 +106,8 @@ class ISCORE_PLUGIN_SCENARIO_EXPORT CreateCurveFromStates final :
         CreateCurveFromStates(
                 Path<ConstraintModel>&& constraint,
                 const std::vector<std::pair<Path<SlotModel>, Id<Process::LayerModel>>>& slotList,
-                const Id<Process::ProcessModel>& curveId,
-                const State::Address &address,
+                Id<Process::ProcessModel> curveId,
+                State::Address address,
                 double start,
                 double end,
                 double min, double max);

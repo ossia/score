@@ -3,10 +3,6 @@ namespace Scenario
 {
 namespace Command
 {
-
-TriggerCommandFactory::~TriggerCommandFactory()
-{
-
-}
+TriggerCommandFactory::~TriggerCommandFactory() = default;
 }
 }

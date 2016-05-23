@@ -18,6 +18,7 @@ QList<InspectorWidgetBase*> InspectorWidgetList::make(
     QList<InspectorWidgetBase*> widgs;
     for(const InspectorWidgetFactory& factory : *this)
     {
+        // TODO QVector or better, array_view
         QList<const QObject*> objects;
         objects.reserve(models.size());
         for (auto elt : models)

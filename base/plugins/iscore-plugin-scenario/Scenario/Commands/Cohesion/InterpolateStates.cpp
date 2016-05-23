@@ -85,9 +85,7 @@ void InterpolateStates(const QList<const ConstraintModel*>& selected_constraints
                             constraint->processes.end(),
                             [&] (const Process::ProcessModel& proc) {
                     auto ptr = dynamic_cast<const Automation::ProcessModel*>(&proc);
-                    if(ptr && ptr->address() == message.address)
-                        return true;
-                    return false;
+                    return ptr && ptr->address() == message.address;
                 });
 
                 if(has_existing_curve != constraint->processes.end())

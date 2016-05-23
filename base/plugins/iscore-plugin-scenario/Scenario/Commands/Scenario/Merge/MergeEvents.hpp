@@ -25,50 +25,7 @@ namespace Scenario
 namespace Command
 {
 template < typename Scenario_T>
-class ISCORE_PLUGIN_SCENARIO_EXPORT MergeEvents : public iscore::SerializableCommand
-{
-    // No ISCORE_COMMAND here since it's a template.
-    public:
-    const CommandParentFactoryKey& parentKey() const override
-    {
-        return ScenarioCommandFactoryName();
-    }
-    static const CommandFactoryKey& static_key()
-    {
-        auto name = QString("MergeEvents");
-        static const CommandFactoryKey kagi{std::move(name)};
-        return kagi;
-    }
-    const CommandFactoryKey& key() const override
-    {
-        return static_key();
-    }
-    QString description() const override
-    {
-        return QObject::tr("Merging Events");
-    }
-
-    MergeEvents() = default;
-
-    MergeEvents(Path<Scenario_T>&&,
-               const Id<EventModel>& ,
-               const Id<EventModel>& )
-    {}
-
-    void undo() const override {}
-    void redo() const override {}
-
-    void update(Path<Scenario_T> ,
-            const Id<EventModel>& ,
-            const Id<EventModel>& ) {}
-
-    protected:
-    void serializeImpl(DataStreamInput& s) const override
-    {}
-
-    void deserializeImpl(DataStreamOutput& s) override
-    {}
-};
+class ISCORE_PLUGIN_SCENARIO_EXPORT MergeEvents : std::false_type { };
 
 template<>
 class ISCORE_PLUGIN_SCENARIO_EXPORT MergeEvents<ScenarioModel> : public iscore::SerializableCommand
@@ -97,11 +54,11 @@ class ISCORE_PLUGIN_SCENARIO_EXPORT MergeEvents<ScenarioModel> : public iscore::
     MergeEvents() = default;
 
     MergeEvents(Path<ScenarioModel>&& scenar,
-               const Id<EventModel>& clickedEv,
-               const Id<EventModel>& hoveredEv):
+               Id<EventModel> clickedEv,
+               Id<EventModel> hoveredEv):
         m_scenarioPath{scenar},
-        m_movingEventId{clickedEv},
-        m_destinationEventId{hoveredEv}
+        m_movingEventId{std::move(clickedEv)},
+        m_destinationEventId{std::move(hoveredEv)}
     {
         auto& scenario = m_scenarioPath.find();
         auto& event = scenario.event(m_movingEventId);

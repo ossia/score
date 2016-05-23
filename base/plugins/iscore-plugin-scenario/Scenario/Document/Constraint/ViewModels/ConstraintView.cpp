@@ -16,10 +16,7 @@ ConstraintView::ConstraintView(
     m_dashPen.setDashPattern({2., 4.});
 }
 
-ConstraintView::~ConstraintView()
-{
-
-}
+ConstraintView::~ConstraintView() = default;
 
 void ConstraintView::setInfinite(bool infinite)
 {

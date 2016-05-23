@@ -2,6 +2,7 @@
 #include <boost/optional/optional.hpp>
 #include <boost/range/algorithm/find.hpp>
 #include <iscore/tools/SettableIdentifier.hpp>
+#include <iscore/tools/std/ArrayView.hpp>
 #include <sys/types.h>
 #include <algorithm>
 #include <cstddef>
@@ -74,6 +75,12 @@ auto getStrongId(const std::vector<Id<T>>& v)
     return Id<T>{iscore::id_generator::getNextId(v)};
 }
 
+template<typename T>
+auto getStrongId(const iscore::dynvector_impl<Id<T>>& v)
+{
+    return Id<T>{iscore::id_generator::getNextId(v)};
+}
+
 template<typename Container,
          std::enable_if_t<
                     std::is_pointer<
@@ -108,12 +115,12 @@ auto getStrongId(const Container& v) ->
     Id<typename Container::value_type>
 {
     using namespace std;
-    vector<int32_t> ids(v.size());   // Map reduce
+    auto ids = make_dynarray(int32_t, v.size());
 
     transform(v.begin(),
               v.end(),
               ids.begin(),
-              [](const typename Container::value_type& elt)
+              [](const auto& elt)
     {
         return * (elt.id().val());
     });
@@ -139,13 +146,18 @@ auto getStrongIdRange(std::size_t s)
 template<typename T, typename Vector>
 auto getStrongIdRange(std::size_t s, const Vector& existing)
 {
-    std::vector<Id<T>> vec;
-    vec.reserve(s + existing.size());
+    auto existing_size = existing.size();
+    auto total_size = existing_size + s;
+    auto vec = make_dynvector(Id<T>, total_size);
+
+    // Copy the existing ids
     std::transform(existing.begin(), existing.end(), std::back_inserter(vec),
                    [] (const auto& elt) { return elt.id(); });
 
+    // Then generate the new ones
     for(; s --> 0 ;)
     {
+        Id<T> res = getStrongId(vec);
         vec.push_back(getStrongId(vec));
     }
 

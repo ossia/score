@@ -32,14 +32,14 @@ RackWidget::RackWidget(ProcessViewTabWidget* parentTabWidget, QWidget* parent) :
         m_model {parentTabWidget->parentConstraint().model() },
         m_parent {parentTabWidget}
 {
-    QVBoxLayout* mainLay = new QVBoxLayout{this};
-    QWidget* mainWidg = new QWidget;
+    auto mainLay = new QVBoxLayout{this};
+    auto mainWidg = new QWidget;
     mainLay->addWidget(mainWidg);
 
     auto lay = new iscore::MarginLess<QHBoxLayout>{mainWidg};
 
     // Button
-    QToolButton* addButton = new QToolButton{this};
+    auto addButton = new QToolButton{this};
     addButton->setText("+");
     QIcon addIcon;
     makeIcons(&addIcon, QString(":/icons/condition_add_on.png"), QString(":/icons/condition_add_off.png"));
@@ -61,9 +61,7 @@ RackWidget::RackWidget(ProcessViewTabWidget* parentTabWidget, QWidget* parent) :
     mainLay->addStretch(1);
 }
 
-RackWidget::~RackWidget()
-{
-}
+RackWidget::~RackWidget() = default;
 
 void RackWidget::viewModelsChanged()
 {

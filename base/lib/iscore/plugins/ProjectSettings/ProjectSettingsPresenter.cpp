@@ -2,8 +2,6 @@
 
 namespace iscore
 {
-ProjectSettingsPresenter::~ProjectSettingsPresenter()
-{
+ProjectSettingsPresenter::~ProjectSettingsPresenter() = default;
 
-}
 }

@@ -33,12 +33,12 @@ namespace Command
 {
 CreateConstraint::CreateConstraint(
         Path<Scenario::ScenarioModel>&& scenarioPath,
-        const Id<StateModel>& startState,
-        const Id<StateModel>& endState) :
+        Id<StateModel> startState,
+        Id<StateModel> endState) :
     m_path {std::move(scenarioPath) },
     m_createdName{RandomNameProvider::generateRandomName()},
-    m_startStateId{startState},
-    m_endStateId{endState}
+    m_startStateId{std::move(startState)},
+    m_endStateId{std::move(endState)}
 {
     auto& scenar = m_path.find();
     //ISCORE_ASSERT(!scenar.state(startState).nextConstraint());

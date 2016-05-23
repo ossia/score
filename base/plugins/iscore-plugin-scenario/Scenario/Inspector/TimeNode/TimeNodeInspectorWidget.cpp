@@ -51,8 +51,8 @@ TimeNodeInspectorWidget::TimeNodeInspectorWidget(
     setParent(parent);
 
     // default date
-    QWidget* dateWid = new QWidget{this};
-    QHBoxLayout* dateLay = new QHBoxLayout{dateWid};
+    auto dateWid = new QWidget{this};
+    auto dateLay = new QHBoxLayout{dateWid};
 
     auto dateTitle = new QLabel{"Default date"};
     m_date = new QLabel{m_model.date().toString() };

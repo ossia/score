@@ -1,5 +1,2 @@
 #include "DocumentDelegateFactoryInterface.hpp"
-iscore::DocumentDelegateFactory::~DocumentDelegateFactory()
-{
-
-}
+iscore::DocumentDelegateFactory::~DocumentDelegateFactory() = default;

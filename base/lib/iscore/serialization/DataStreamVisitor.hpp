@@ -37,44 +37,26 @@ class QIODevice;
 class QStringList;
 template <typename model> class IdentifiedObject;
 
-class DataStreamInput
+struct DataStreamInput
 {
-        QDataStream& m_stream;
-    public:
-        auto& stream() const
-        { return m_stream; }
-
-        DataStreamInput(QDataStream& s):
-            m_stream{s}
-        {
-
-        }
+        QDataStream& stream;
 
         template<typename T>
         friend DataStreamInput& operator<<(DataStreamInput& s, T&& obj)
         {
-            s.m_stream << obj;
+            s.stream << obj;
             return s;
         }
 };
 
-class DataStreamOutput
+struct DataStreamOutput
 {
-        QDataStream& m_stream;
-    public:
-        auto& stream() const
-        { return m_stream; }
-
-        DataStreamOutput(QDataStream& s):
-            m_stream{s}
-        {
-
-        }
+        QDataStream& stream;
 
         template<typename T>
         friend DataStreamOutput& operator>>(DataStreamOutput& s, T&& obj)
         {
-            s.m_stream >> obj;
+            s.stream >> obj;
             return s;
         }
 };
@@ -129,7 +111,7 @@ class ISCORE_LIB_BASE_EXPORT Visitor<Reader<DataStream>> : public AbstractVisito
                 const T<Args...>& obj,
                 typename std::enable_if_t<
                     is_template<T<Args...>>::value &&
-                    !is_abstract_base<T<Args...>>::value> * = 0)
+                    !is_abstract_base<T<Args...>>::value> * = nullptr)
         {
             TSerializer<DataStream, void, T<Args...>>::readFrom(*this, obj);
         }
@@ -212,7 +194,7 @@ class ISCORE_LIB_BASE_EXPORT Visitor<Writer<DataStream>> : public AbstractVisito
                 typename... Args>
         void writeTo(
                 T<Args...>& obj,
-                typename std::enable_if<is_template<T<Args...>>::value, void>::type * = 0)
+                typename std::enable_if<is_template<T<Args...>>::value, void>::type * = nullptr)
         {
             TSerializer<DataStream, void, T<Args...>>::writeTo(*this, obj);
         }

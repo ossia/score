@@ -18,8 +18,6 @@ DocumentDelegatePresenterInterface::DocumentDelegatePresenterInterface(
 
 }
 
-iscore::DocumentDelegatePresenterInterface::~DocumentDelegatePresenterInterface()
-{
+iscore::DocumentDelegatePresenterInterface::~DocumentDelegatePresenterInterface() = default;
 
-}
 }

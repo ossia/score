@@ -6,8 +6,8 @@
 
 #include <iscore/tools/SettableIdentifier.hpp>
 #include <iscore_plugin_scenario_export.h>
-class DataStreamInput;
-class DataStreamOutput;
+struct DataStreamInput;
+struct DataStreamOutput;
 
 namespace Scenario
 {
@@ -27,10 +27,10 @@ class ISCORE_PLUGIN_SCENARIO_EXPORT ShowRackInViewModel final : public iscore::S
         public:
             ShowRackInViewModel(
                 Path<ConstraintViewModel>&& constraint_path,
-                const Id<RackModel>& rackId);
+                Id<RackModel> rackId);
         ShowRackInViewModel(
                 const ConstraintViewModel& vm,
-                const Id<RackModel>& rackId);
+                Id<RackModel> rackId);
 
         void undo() const override;
         void redo() const override;

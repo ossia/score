@@ -71,7 +71,7 @@ class ISCORE_LIB_BASE_EXPORT Visitor<Reader<JSONObject>> : public AbstractVisito
                 const T<Args...>& obj,
                 typename std::enable_if_t<
                     is_template<T<Args...>>::value &&
-                   !is_abstract_base<T<Args...>>::value> * = 0)
+                   !is_abstract_base<T<Args...>>::value> * = nullptr)
         {
             TSerializer<JSONObject, T<Args...>>::readFrom(*this, obj);
         }
@@ -133,7 +133,7 @@ class ISCORE_LIB_BASE_EXPORT Visitor<Writer<JSONObject>> : public AbstractVisito
         template<
                 template<class...> class T,
                 typename... Args>
-        void writeTo(T<Args...>& obj, typename std::enable_if<is_template<T<Args...>>::value, void>::type * = 0)
+        void writeTo(T<Args...>& obj, typename std::enable_if<is_template<T<Args...>>::value, void>::type * = nullptr)
         {
             TSerializer<JSONObject, T<Args...>>::writeTo(*this, obj);
         }

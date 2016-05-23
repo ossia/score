@@ -4,6 +4,7 @@
 #include <iscore/tools/ForEachType.hpp>
 #include <iscore/tools/std/Pointer.hpp>
 #include <iscore/tools/std/Algorithms.hpp>
+#include <iscore/tools/std/IndirectContainer.hpp>
 #include <iscore/tools/Todo.hpp>
 
 #include <boost/multi_index_container.hpp>
@@ -20,12 +21,11 @@ namespace bmi = boost::multi_index;
 
 namespace iscore
 {
-
 /**
-     * @brief The FactoryFamily class
-     *
-     * Keeps the factories, so that they can be found easily.
-     */
+ * @brief The FactoryFamily class
+ *
+ * Keeps the factories, so that they can be found easily.
+ */
 class ISCORE_LIB_BASE_EXPORT FactoryListInterface
 {
     public:
@@ -41,41 +41,6 @@ class ISCORE_LIB_BASE_EXPORT FactoryListInterface
         // This function is called whenever a new factory interface
         // is added to this family.
         virtual void insert(std::unique_ptr<iscore::FactoryInterfaceBase>) = 0;
-};
-
-
-template<typename Map_T>
-class IndirectMap
-{
-    public:
-        auto begin()        { return boost::make_indirect_iterator(map.begin()); }
-        auto begin() const  { return boost::make_indirect_iterator(map.begin()); }
-
-        auto cbegin()       { return boost::make_indirect_iterator(map.cbegin()); }
-        auto cbegin() const { return boost::make_indirect_iterator(map.cbegin()); }
-
-        auto end()          { return boost::make_indirect_iterator(map.end()); }
-        auto end() const    { return boost::make_indirect_iterator(map.end()); }
-
-        auto cend()         { return boost::make_indirect_iterator(map.cend()); }
-        auto cend() const   { return boost::make_indirect_iterator(map.cend()); }
-
-        auto empty() const { return map.empty(); }
-
-        template<typename K>
-        auto find(K&& key)
-        {
-            return map.find(std::forward<K>(key));
-        }
-
-        template<typename E>
-        auto insert(E&& elt)
-        {
-            return map.insert(std::forward<E>(elt));
-        }
-
-    protected:
-        Map_T map;
 };
 
 // FIXME They should take an export macro also ?
@@ -101,10 +66,7 @@ class ConcreteFactoryList :
         using factory_type = FactoryType;
         using key_type = typename FactoryType::ConcreteFactoryKey;
 
-        virtual ~ConcreteFactoryList() noexcept
-        {
-
-        }
+        ~ConcreteFactoryList() noexcept override = default;
 
         static const iscore::AbstractFactoryKey& static_abstractFactoryKey() {
             return FactoryType::static_abstractFactoryKey();
@@ -124,17 +86,22 @@ class ConcreteFactoryList :
                 {
                     this->map.insert(std::move(pf));
                 }
+                else
+                {
+                    ISCORE_ABORT;
+                }
             }
         }
-
-        const auto& list() const
-        { return this->map; }
 
         auto get(const key_type& k) const
         {
             auto it = this->map.find(k);
             return (it != this->map.end()) ? it->get() : nullptr;
         }
+
+    protected:
+        const auto& list() const
+        { return this->map; }
 };
 
 template<typename T>
@@ -170,7 +137,7 @@ struct GenericFactoryInserter
         }
 
         template<typename TheClass>
-        void visit()
+        void operator()()
         {
             vec.push_back(std::make_unique<TheClass>());
         }
@@ -182,6 +149,13 @@ auto make_ptr_vector()
     return GenericFactoryInserter<Args...>{}.vec;
 }
 
+/**
+ * @brief FactoryBuilder
+ *
+ * This class allows the user to customize the
+ * creation of the factory by specializing it with the actual
+ * factory type. An example is in iscore_plugin_scenario.cpp.
+ */
 template<typename Context_T,
          typename Factory_T>
 struct FactoryBuilder // sorry padre for I have sinned
@@ -207,7 +181,7 @@ struct ContextualGenericFactoryInserter
         }
 
         template<typename TheClass>
-        void visit()
+        void operator()()
         {
             vec.push_back(FactoryBuilder<Context_T, TheClass>::make(context));
         }

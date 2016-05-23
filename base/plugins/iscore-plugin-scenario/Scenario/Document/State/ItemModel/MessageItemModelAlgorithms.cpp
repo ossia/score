@@ -128,17 +128,10 @@ static bool nodePruneAction_impl(
         if(vec.front().process == proc)
             vec.clear();
 
-        if(vec.isEmpty()
-        && other_vec.isEmpty()
-        && !node.values.userValue)
-        {
-            return true;
-        }
-        else
-        {
-            // We must not remove anything
-            return false;
-        }
+        // If false, nothing is removed.
+        return vec.isEmpty()
+            && other_vec.isEmpty()
+            && !node.values.userValue;
     }
 
     return false;
@@ -518,14 +511,9 @@ static bool rec_cleanup(
     });
     node.erase(remove_it, node.end());
 
-    if(node.values.previousProcessValues.isEmpty()
-    && node.values.followingProcessValues.isEmpty()
-    && node.childCount() == 0)
-    {
-        return true;
-    }
-
-    return false;
+    return node.values.previousProcessValues.isEmpty()
+        && node.values.followingProcessValues.isEmpty()
+        && node.childCount() == 0;
 }
 
 void updateTreeWithRemovedNode(

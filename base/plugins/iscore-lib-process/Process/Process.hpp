@@ -49,7 +49,7 @@ class ISCORE_LIB_PROCESS_EXPORT ProcessModel:
 
         using IdentifiedObject<ProcessModel>::IdentifiedObject;
         ProcessModel(
-                const TimeValue& duration,
+                TimeValue duration,
                 const Id<ProcessModel>& id,
                 const QString& name,
                 QObject* parent);

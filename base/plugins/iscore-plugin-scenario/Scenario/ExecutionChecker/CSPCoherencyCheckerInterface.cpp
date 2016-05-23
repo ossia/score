@@ -2,8 +2,5 @@
 
 namespace Scenario
 {
-CSPCoherencyCheckerInterface::~CSPCoherencyCheckerInterface()
-{
-
-}
+CSPCoherencyCheckerInterface::~CSPCoherencyCheckerInterface() = default;
 }

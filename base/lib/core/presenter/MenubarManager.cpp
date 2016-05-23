@@ -34,7 +34,7 @@ void MenubarManager::insertActionIntoMenubar(PositionedMenuAction actionToInsert
     {
         if(path_lst.empty())   // End recursion
         {
-            menu->insertAction(0, actionToInsert.action);
+            menu->insertAction(nullptr, actionToInsert.action);
         }
         else
         {
@@ -66,7 +66,7 @@ void MenubarManager::insertActionIntoMenubar(PositionedMenuAction actionToInsert
     // Damned duplication because QMenuBar is not a QMenu...
     QStringList base_path_lst = actionToInsert.path.split('/');
 
-    if(base_path_lst.size() > 0)
+    if(!base_path_lst.empty())
     {
         // We have to find the first submenu...
 

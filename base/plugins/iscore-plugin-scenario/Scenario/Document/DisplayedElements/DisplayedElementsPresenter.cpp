@@ -123,10 +123,10 @@ void DisplayedElementsPresenter::showConstraint()
     if(m_constraintPresenter->rack() && !m_constraintPresenter->rack()->getSlots().empty())
     {
         const auto& slot = *m_constraintPresenter->rack()->getSlots().begin();
-        if(slot.processes().size() > 0)
+        if(!slot.processes().empty())
         {
             const auto& slot_process = slot.processes().front().processes;
-            if(slot_process.size() > 0)
+            if(!slot_process.empty())
                 emit requestFocusedPresenterChange(slot_process.front().first);
         }
     }

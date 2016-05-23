@@ -2,8 +2,6 @@
 
 namespace iscore
 {
-SettingsDelegatePresenterInterface::~SettingsDelegatePresenterInterface()
-{
+SettingsDelegatePresenterInterface::~SettingsDelegatePresenterInterface() = default;
 
-}
 }

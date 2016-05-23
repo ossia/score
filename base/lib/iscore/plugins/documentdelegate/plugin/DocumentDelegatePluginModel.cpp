@@ -15,20 +15,9 @@ DocumentPlugin::DocumentPlugin(
 
 }
 
-DocumentPlugin::~DocumentPlugin()
-{
-
-}
-
-SerializableDocumentPlugin::~SerializableDocumentPlugin()
-{
-
-}
-
-DocumentPluginFactory::~DocumentPluginFactory()
-{
-
-}
+DocumentPlugin::~DocumentPlugin() = default;
+SerializableDocumentPlugin::~SerializableDocumentPlugin() = default;
+DocumentPluginFactory::~DocumentPluginFactory() = default;
 
 }
 

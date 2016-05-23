@@ -17,10 +17,7 @@ UndoListWidget::UndoListWidget(iscore::CommandStack& s):
             &m_stack, &CommandStack::setIndex);
 }
 
-UndoListWidget::~UndoListWidget()
-{
-}
-
+UndoListWidget::~UndoListWidget() = default;
 
 void UndoListWidget::on_stackChanged()
 {

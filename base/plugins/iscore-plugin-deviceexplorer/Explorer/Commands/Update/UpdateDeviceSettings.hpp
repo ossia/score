@@ -5,8 +5,8 @@
 #include <iscore/tools/ModelPath.hpp>
 #include <QString>
 
-class DataStreamInput;
-class DataStreamOutput;
+struct DataStreamInput;
+struct DataStreamOutput;
 
 namespace Explorer
 {

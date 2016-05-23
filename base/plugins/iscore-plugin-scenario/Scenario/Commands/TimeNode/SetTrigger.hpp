@@ -4,8 +4,8 @@
 #include <iscore/command/SerializableCommand.hpp>
 #include <iscore/tools/ModelPath.hpp>
 
-class DataStreamInput;
-class DataStreamOutput;
+struct DataStreamInput;
+struct DataStreamOutput;
 
 namespace Scenario
 {
@@ -17,7 +17,6 @@ class ISCORE_PLUGIN_SCENARIO_EXPORT SetTrigger final : public iscore::Serializab
         ISCORE_COMMAND_DECL(ScenarioCommandFactoryName(), SetTrigger, "Change a trigger")
         public:
             SetTrigger(Path<TimeNodeModel>&& timeNodePath, State::Trigger trigger);
-        ~SetTrigger();
 
         void undo() const override;
         void redo() const override;

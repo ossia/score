@@ -9,8 +9,8 @@
 #include <iscore/tools/SettableIdentifier.hpp>
 
 #include <iscore_plugin_scenario_export.h>
-class DataStreamInput;
-class DataStreamOutput;
+struct DataStreamInput;
+struct DataStreamOutput;
 namespace Process { class ProcessModel; }
 
 namespace Scenario

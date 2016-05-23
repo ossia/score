@@ -1,6 +1,3 @@
 #include "ConstraintInspectorDelegate.hpp"
 
-Scenario::ConstraintInspectorDelegate::~ConstraintInspectorDelegate()
-{
-
-}
+Scenario::ConstraintInspectorDelegate::~ConstraintInspectorDelegate() = default;

@@ -4,8 +4,8 @@
 #include <iscore/tools/ModelPath.hpp>
 #include <State/Message.hpp>
 
-class DataStreamInput;
-class DataStreamOutput;
+struct DataStreamInput;
+struct DataStreamOutput;
 namespace Scenario
 {
 class StateModel;

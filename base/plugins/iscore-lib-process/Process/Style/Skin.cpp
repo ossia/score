@@ -12,7 +12,7 @@ make_bimap(std::initializer_list<typename boost::bimap<L, R>::value_type> list)
 }
 
 #define ISCORE_INSERT_COLOR(Col) {#Col, &Col}
-Skin::Skin():
+Skin::Skin() noexcept:
     SansFont{"Ubuntu"},
     MonoFont{"APCCourier-Bold", 8},
     m_colorMap(make_bimap<QString, const QColor*>({

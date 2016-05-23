@@ -9,8 +9,8 @@
 #include "MoveEventFactoryInterface.hpp"
 
 #include <iscore/tools/SettableIdentifier.hpp>
-class DataStreamInput;
-class DataStreamOutput;
+struct DataStreamInput;
+struct DataStreamOutput;
 
 namespace Scenario
 {
@@ -23,37 +23,42 @@ class MoveEventMeta final : public SerializableMoveEvent
 {
         ISCORE_COMMAND_DECL(ScenarioCommandFactoryName(), MoveEventMeta, "Move an event")
 
-public:
+        public:
 
-    MoveEventMeta(
-            Path<Scenario::ScenarioModel>&& scenarioPath,
-            const Id<EventModel>& eventId,
-            const TimeValue& newDate,
-            double y,
-            ExpandMode mode);
+            MoveEventMeta(
+                Path<Scenario::ScenarioModel>&& scenarioPath,
+                Id<EventModel> eventId,
+                TimeValue newDate,
+                double y,
+                ExpandMode mode);
 
-    void undo() const override;
-    void redo() const override;
+        void undo() const override;
+        void redo() const override;
 
-    const Path<Scenario::ScenarioModel>& path() const override;
+        const Path<Scenario::ScenarioModel>& path() const override;
 
-    // SerializableCommand interface
-protected:
-    void serializeImpl(DataStreamInput&) const override;
-    void deserializeImpl(DataStreamOutput&) override;
+        void update( const Id<EventModel>& eventId, const TimeValue& newDate, double y, ExpandMode mode) override;
+        void update(unused_t, const Id<EventModel>& eventId,
+                    const TimeValue& newDate, double y,
+                    ExpandMode mode)
+        {
+            m_moveEventImplementation->update(eventId, newDate, y, mode);
+            m_newY = y;
+        }
 
-private:
-    // TODO : make a UI to change that
-    Path<Scenario::ScenarioModel> m_scenario;
-    Id<EventModel> m_eventId;
-    double m_oldY{};
-    double m_newY{};
+    protected:
+        void serializeImpl(DataStreamInput&) const override;
+        void deserializeImpl(DataStreamOutput&) override;
 
-    SerializableMoveEvent* m_moveEventImplementation{};
+    private:
+        // TODO : make a UI to change that
+        Path<Scenario::ScenarioModel> m_scenario;
+        Id<EventModel> m_eventId;
+        double m_oldY{};
+        double m_newY{};
 
-    // SerializableMoveEvent interface
-public:
-    void update(const Path<Scenario::ScenarioModel>& scenarioPath, const Id<EventModel>& eventId, const TimeValue& newDate, double y, ExpandMode mode) override;
+        SerializableMoveEvent* m_moveEventImplementation{};
+
 };
 }
 }

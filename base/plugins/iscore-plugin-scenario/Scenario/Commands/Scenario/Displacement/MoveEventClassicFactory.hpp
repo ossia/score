@@ -22,8 +22,8 @@ class MoveEventClassicFactory final : public MoveEventFactoryInterface
 
         SerializableMoveEvent* make(
                 Path<Scenario::ScenarioModel>&& scenarioPath,
-                const Id<EventModel>& eventId,
-                const TimeValue& newDate,
+                Id<EventModel> eventId,
+                TimeValue newDate,
                 ExpandMode mode) override;
 
         SerializableMoveEvent* make() override;

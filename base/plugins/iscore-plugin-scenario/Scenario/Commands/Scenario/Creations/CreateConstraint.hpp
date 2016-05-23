@@ -8,8 +8,8 @@
 #include <QString>
 
 #include <iscore_plugin_scenario_export.h>
-class DataStreamInput;
-class DataStreamOutput;
+struct DataStreamInput;
+struct DataStreamOutput;
 
 namespace Scenario
 {
@@ -32,8 +32,8 @@ class ISCORE_PLUGIN_SCENARIO_EXPORT CreateConstraint final : public iscore::Seri
         public:
             CreateConstraint(
                 Path<Scenario::ScenarioModel>&& scenarioPath,
-                const Id<StateModel>& startState,
-                const Id<StateModel>& endState);
+                Id<StateModel> startState,
+                Id<StateModel> endState);
         CreateConstraint& operator= (CreateConstraint &&) = default;
 
         const Path<Scenario::ScenarioModel>& scenarioPath() const
@@ -44,6 +44,9 @@ class ISCORE_PLUGIN_SCENARIO_EXPORT CreateConstraint final : public iscore::Seri
 
         const Id<ConstraintModel>& createdConstraint() const
         { return m_createdConstraintId; }
+
+        const Id<StateModel>& startState() const
+        { return m_startStateId; }
 
     protected:
         void serializeImpl(DataStreamInput&) const override;

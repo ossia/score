@@ -71,7 +71,7 @@ void iscore::UndoApplicationPlugin::populateMenus(iscore::MenubarManager* menu)
 
 std::vector<iscore::OrderedToolbar> iscore::UndoApplicationPlugin::makeToolbars()
 {
-    QToolBar* bar = new QToolBar;
+    auto bar = new QToolBar;
     bar->addAction(&m_undoAction);
     bar->addAction(&m_redoAction);
 

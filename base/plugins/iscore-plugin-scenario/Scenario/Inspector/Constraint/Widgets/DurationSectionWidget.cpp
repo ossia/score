@@ -165,10 +165,9 @@ DurationSectionWidget::DurationSectionWidget(
     on_execution(m_editionSettings.tool());
 }
 
-using namespace Scenario::Command;
-
 void DurationSectionWidget::minDurationSpinboxChanged(int val)
 {
+    using namespace Scenario::Command;
     m_dispatcher.submitCommand<SetMinDuration>(
                 m_model,
                 TimeValue{std::chrono::milliseconds{val}},
@@ -177,6 +176,7 @@ void DurationSectionWidget::minDurationSpinboxChanged(int val)
 
 void DurationSectionWidget::maxDurationSpinboxChanged(int val)
 {
+    using namespace Scenario::Command;
     m_dispatcher.submitCommand<SetMaxDuration>(
                 m_model,
                 TimeValue{std::chrono::milliseconds {val}},
@@ -314,8 +314,5 @@ void DurationSectionWidget::on_progress(double p)
     m_currentPosLab->setText(QString::number((p * coeff / 1000)) + QString(" s"));
 }
 
-DurationSectionWidget::~DurationSectionWidget()
-{
-}
-
+DurationSectionWidget::~DurationSectionWidget() = default;
 }

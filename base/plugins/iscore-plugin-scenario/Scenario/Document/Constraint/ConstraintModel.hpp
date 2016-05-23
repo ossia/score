@@ -49,7 +49,7 @@ class ISCORE_PLUGIN_SCENARIO_EXPORT ConstraintModel final :
         iscore::Components components;
         Selectable selection;
         ModelMetadata metadata;
-        ModelConsistency consistency;
+        ModelConsistency consistency{nullptr};
         ConstraintDurations duration{*this};
 
         iscore::ElementPluginModelList pluginModelList;

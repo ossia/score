@@ -23,11 +23,6 @@ m_trigger(std::move(trigger))
     m_previousTrigger = tn.trigger()->expression();
 }
 
-SetTrigger::~SetTrigger()
-{
-
-}
-
 void SetTrigger::undo() const
 {
     auto& tn = m_path.find();

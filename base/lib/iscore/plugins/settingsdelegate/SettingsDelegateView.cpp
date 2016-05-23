@@ -2,8 +2,6 @@
 
 namespace iscore
 {
-SettingsDelegateViewInterface::~SettingsDelegateViewInterface()
-{
+SettingsDelegateViewInterface::~SettingsDelegateViewInterface() = default;
 
-}
 }

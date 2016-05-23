@@ -17,7 +17,7 @@ class StateInspectorWidget final : public Inspector::InspectorWidgetBase
         explicit StateInspectorWidget(
                 const ProcessState& object,
                 const iscore::DocumentContext& context,
-                QWidget* parent = 0);
+                QWidget* parent = nullptr);
 
     private:
         void on_stateChanged();

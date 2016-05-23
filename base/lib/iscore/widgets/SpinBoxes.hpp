@@ -85,7 +85,7 @@ class SpinBox<float> final : public MaxRangeSpinBox<TemplatedSpinBox<float>>
 class TimeSpinBox final : public QTimeEdit
 {
     public:
-        TimeSpinBox(QWidget* parent = 0):
+        TimeSpinBox(QWidget* parent = nullptr):
             QTimeEdit(parent)
         {
             setDisplayFormat(QString("h.mm.ss.zzz"));

@@ -1,5 +1,2 @@
 #include "DocumentDelegateModelInterface.hpp"
-iscore::DocumentDelegateModelInterface::~DocumentDelegateModelInterface()
-{
-
-}
+iscore::DocumentDelegateModelInterface::~DocumentDelegateModelInterface() = default;

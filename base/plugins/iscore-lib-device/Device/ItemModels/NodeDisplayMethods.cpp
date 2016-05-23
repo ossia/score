@@ -96,10 +96,8 @@ QVariant valueColumnData(const Device::Node& node, int role)
         {
             case IOType::In:
                 return QBrush(Qt::darkGray);
-                break;
             case IOType::Out:
                 return QBrush(Qt::lightGray);
-                break;
             default:
                 return {};
         }

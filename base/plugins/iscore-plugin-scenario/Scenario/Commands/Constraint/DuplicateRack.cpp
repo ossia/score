@@ -10,15 +10,14 @@
 #include "DuplicateRack.hpp"
 #include <iscore/serialization/DataStreamVisitor.hpp>
 #include <iscore/tools/NotifyingMap.hpp>
-
+#include <iscore/tools/ModelPathSerialization.hpp>
 namespace Scenario
 {
 namespace Command
 {
-DuplicateRack::DuplicateRack(ObjectPath&& rackToCopy) :
-    m_rackPath {rackToCopy}
+DuplicateRack::DuplicateRack(const RackModel& rack) :
+    m_rackPath {rack}
 {
-    auto& rack = m_rackPath.find<RackModel>();
     const auto& constraint = rack.constraint();
 
     m_newRackId = getStrongId(constraint.racks);
@@ -26,7 +25,7 @@ DuplicateRack::DuplicateRack(ObjectPath&& rackToCopy) :
 
 void DuplicateRack::undo() const
 {
-    auto& rack = m_rackPath.find<RackModel>();
+    auto& rack = m_rackPath.find();
     auto& constraint = rack.constraint();
 
     constraint.racks.remove(m_newRackId);
@@ -34,7 +33,7 @@ void DuplicateRack::undo() const
 
 void DuplicateRack::redo() const
 {
-    auto& rack = m_rackPath.find<RackModel>();
+    auto& rack = m_rackPath.find();
     auto& constraint = rack.constraint();
     constraint.racks.add(new RackModel {rack,
                                     m_newRackId,

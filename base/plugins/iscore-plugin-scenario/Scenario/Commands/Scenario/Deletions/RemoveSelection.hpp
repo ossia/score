@@ -11,8 +11,8 @@
 #include <Scenario/Document/Constraint/ViewModels/ConstraintViewModelIdMap.hpp>
 #include <iscore/selection/Selection.hpp>
 
-class DataStreamInput;
-class DataStreamOutput;
+struct DataStreamInput;
+struct DataStreamOutput;
 
 namespace Scenario
 {

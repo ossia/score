@@ -14,14 +14,14 @@
 namespace Scenario
 {
 TimeNodeSummaryWidget::TimeNodeSummaryWidget(const TimeNodeModel& object,
-					     const iscore::DocumentContext& doc,
-					     QWidget *parent) :
+                         const iscore::DocumentContext& doc,
+                         QWidget *parent) :
     QWidget(parent),
     m_selectionDispatcher{new iscore::SelectionDispatcher{doc.selectionStack}}
 {
     auto mainLay = new iscore::MarginLess<QGridLayout>{this};
 
-    auto eventBtn = SelectionButton::make("", &object, *m_selectionDispatcher.get() , this);
+    auto eventBtn = SelectionButton::make("", &object, *m_selectionDispatcher , this);
 
     mainLay->addWidget(new QLabel{object.metadata.name()},0, 0, 1, 3);
     mainLay->addWidget( new QLabel{object.date().toString()}, 0, 3, 1, 3);
@@ -29,9 +29,9 @@ TimeNodeSummaryWidget::TimeNodeSummaryWidget(const TimeNodeModel& object,
 
     if(!object.expression().isEmpty())
     {
-	auto cond = new QLabel{object.expression()};
-	cond->setWordWrap(true);
-	mainLay->addWidget(cond, 1, 1, 1, 6);
+    auto cond = new QLabel{object.expression()};
+    cond->setWordWrap(true);
+    mainLay->addWidget(cond, 1, 1, 1, 6);
     }
 
 }

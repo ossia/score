@@ -6,8 +6,8 @@
 
 #include <iscore/tools/ModelPath.hpp>
 #include <iscore_plugin_recordedmessages_export.h>
-class DataStreamInput;
-class DataStreamOutput;
+struct DataStreamInput;
+struct DataStreamOutput;
 namespace RecordedMessages
 {
 class ProcessModel;

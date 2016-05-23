@@ -19,12 +19,12 @@ struct PanelStatus
                 bool isShown,
                 Qt::DockWidgetArea d,
                 int prio,
-                const QString& name,
+                QString name,
                 const QKeySequence& sc):
             shown{isShown},
             dock{d},
             priority{prio},
-            prettyName{name},
+            prettyName{std::move(name)},
             shortcut(sc)
         {}
 

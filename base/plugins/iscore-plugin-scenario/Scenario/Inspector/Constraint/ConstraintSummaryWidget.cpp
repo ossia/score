@@ -23,7 +23,7 @@ ConstraintSummaryWidget::ConstraintSummaryWidget(const ConstraintModel& object,
 {
     auto mainLay = new iscore::MarginLess<QGridLayout>{this};
 
-    auto eventBtn = SelectionButton::make("", &object, *m_selectionDispatcher.get() , this);
+    auto eventBtn = SelectionButton::make("", &object, *m_selectionDispatcher , this);
 
     mainLay->addWidget(new QLabel{object.metadata.name()},
                        0, 0, 1, 3);

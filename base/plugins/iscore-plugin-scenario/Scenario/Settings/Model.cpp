@@ -21,7 +21,7 @@ Model::Model()
     if(!s.contains(Keys::skin) ||
        !s.contains(Keys::graphicZoom))
     {
-        setFirstTimeSettings();
+        Model::setFirstTimeSettings();
     }
     else
     {

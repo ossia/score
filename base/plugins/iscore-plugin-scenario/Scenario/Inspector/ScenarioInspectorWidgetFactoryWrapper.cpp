@@ -70,10 +70,10 @@ Inspector::InspectorWidgetBase* ScenarioInspectorWidgetFactoryWrapper::makeWidge
         }
     }
 
-    if(timenodes.size() == 1 && constraints.size() == 0)
+    if(timenodes.size() == 1 && constraints.empty())
         return new TimeNodeInspectorWidget{**timenodes.begin(), doc, parent};
 
-    if(constraints.size() == 1 && timenodes.size() == 0)
+    if(constraints.size() == 1 && timenodes.empty())
     {
         auto f = new ConstraintInspectorFactory{};
         return f->makeWidget({*constraints.begin()}, doc, parent);
@@ -87,17 +87,12 @@ Inspector::InspectorWidgetBase* ScenarioInspectorWidgetFactoryWrapper::makeWidge
 bool ScenarioInspectorWidgetFactoryWrapper::matches(
        const QList<const QObject*>& objects) const
 {
-    if(std::any_of(objects.begin(), objects.end(),
+    return std::any_of(objects.begin(), objects.end(),
                    [] (const QObject* obj) {
                    return dynamic_cast<const StateModel*>(obj) ||
                             dynamic_cast<const EventModel*>(obj) ||
                             dynamic_cast<const TimeNodeModel*>(obj) ||
                             dynamic_cast<const ConstraintModel*>(obj);
-                    }))
-    {
-        return true;
-    }
-
-    return false;
+                    });
 }
 }

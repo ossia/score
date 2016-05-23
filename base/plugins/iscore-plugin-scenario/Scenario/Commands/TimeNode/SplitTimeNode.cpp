@@ -27,7 +27,7 @@ SplitTimeNode::SplitTimeNode(
         Path<TimeNodeModel>&& path,
         QVector<Id<EventModel> > eventsInNewTimeNode):
     m_path {std::move(path) },
-    m_eventsInNewTimeNode {(eventsInNewTimeNode) }
+    m_eventsInNewTimeNode (std::move(eventsInNewTimeNode) )
 {
     auto& originalTN = m_path.find();
     m_originalTimeNodeId = originalTN.id();

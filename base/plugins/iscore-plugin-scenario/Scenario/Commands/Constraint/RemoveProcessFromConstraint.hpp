@@ -9,8 +9,8 @@
 
 #include <iscore/tools/SettableIdentifier.hpp>
 
-class DataStreamInput;
-class DataStreamOutput;
+struct DataStreamInput;
+struct DataStreamOutput;
 namespace Process { class LayerModel; }
 namespace Process { class ProcessModel; }
 
@@ -25,7 +25,7 @@ class RemoveProcessFromConstraint final : public iscore::SerializableCommand
         public:
             RemoveProcessFromConstraint(
                 Path<ConstraintModel>&& constraintPath,
-                const Id<Process::ProcessModel>& processId);
+                Id<Process::ProcessModel> processId);
         void undo() const override;
         void redo() const override;
 

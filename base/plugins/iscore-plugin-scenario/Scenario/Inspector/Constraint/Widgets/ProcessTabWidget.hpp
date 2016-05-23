@@ -16,7 +16,7 @@ class ProcessTabWidget :
 {
         Q_OBJECT
     public:
-        explicit ProcessTabWidget(const ConstraintInspectorWidget& parentCstr, QWidget *parent = 0);
+        explicit ProcessTabWidget(const ConstraintInspectorWidget& parentCstr, QWidget *parent = nullptr);
 
     signals:
 

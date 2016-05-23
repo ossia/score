@@ -18,7 +18,7 @@ class SetCommentText final : public iscore::SerializableCommand
 {
         ISCORE_COMMAND_DECL(ScenarioCommandFactoryName(), SetCommentText, "Set Text in comment block")
         public:
-            SetCommentText(Path<CommentBlockModel> path, QString newComment);
+            SetCommentText(Path<CommentBlockModel>&& path, QString newComment);
 
         void undo() const override;
         void redo() const override;

@@ -7,7 +7,7 @@
 class Skin;
 struct ISCORE_LIB_PROCESS_EXPORT ScenarioStyle
 {
-        ScenarioStyle(const Skin&);
+        ScenarioStyle(const Skin&) noexcept;
 
         ScenarioStyle(const ScenarioStyle&) = delete;
         ScenarioStyle(ScenarioStyle&&) = delete;
@@ -68,5 +68,5 @@ struct ISCORE_LIB_PROCESS_EXPORT ScenarioStyle
         ColorRef LocalTimeRuler;
 
     private:
-        ScenarioStyle() = default;
+        ScenarioStyle() noexcept = default;
 };

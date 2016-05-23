@@ -9,8 +9,8 @@
 
 #include <iscore/tools/SettableIdentifier.hpp>
 #include <iscore_plugin_scenario_export.h>
-class DataStreamInput;
-class DataStreamOutput;
+struct DataStreamInput;
+struct DataStreamOutput;
 
 namespace Scenario
 {
@@ -25,8 +25,8 @@ class ISCORE_PLUGIN_SCENARIO_EXPORT MoveEventOnCreationMeta final : public Seria
 public:
     MoveEventOnCreationMeta(
             Path<Scenario::ScenarioModel>&& scenarioPath,
-            const Id<EventModel>& eventId,
-            const TimeValue& newDate,
+            Id<EventModel> eventId,
+            TimeValue newDate,
             ExpandMode mode);
 
     void undo() const override;
@@ -44,7 +44,7 @@ private:
 
     // SerializableMoveEvent interface
 public:
-    void update(const Path<Scenario::ScenarioModel>& scenarioPath, const Id<EventModel>& eventId, const TimeValue& newDate, double, ExpandMode mode) override;
+    void update(const Id<EventModel>& eventId, const TimeValue& newDate, double, ExpandMode mode) override;
 };
 }
 }

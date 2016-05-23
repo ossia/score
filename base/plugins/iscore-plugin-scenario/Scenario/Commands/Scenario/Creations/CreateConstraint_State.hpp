@@ -7,8 +7,8 @@
 #include <iscore/tools/ModelPath.hpp>
 #include <iscore/tools/SettableIdentifier.hpp>
 
-class DataStreamInput;
-class DataStreamOutput;
+struct DataStreamInput;
+struct DataStreamOutput;
 
 namespace Scenario
 {
@@ -26,14 +26,14 @@ class ISCORE_PLUGIN_SCENARIO_EXPORT CreateConstraint_State final : public iscore
 
           CreateConstraint_State(
             const Scenario::ScenarioModel& scenario,
-            const Id<StateModel>& startState,
-            const Id<EventModel>& endEvent,
+            Id<StateModel> startState,
+            Id<EventModel> endEvent,
             double endStateY);
 
         CreateConstraint_State(
           const Path<Scenario::ScenarioModel>& scenario,
-          const Id<StateModel>& startState,
-          const Id<EventModel>& endEvent,
+          Id<StateModel> startState,
+          Id<EventModel> endEvent,
           double endStateY);
 
         const Path<Scenario::ScenarioModel>& scenarioPath() const
@@ -41,6 +41,9 @@ class ISCORE_PLUGIN_SCENARIO_EXPORT CreateConstraint_State final : public iscore
 
         const double& endStateY() const
         { return m_stateY; }
+
+        const Id<StateModel>& startState() const
+        { return m_command.startState(); }
 
         const Id<ConstraintModel>& createdConstraint() const
         { return m_command.createdConstraint(); }

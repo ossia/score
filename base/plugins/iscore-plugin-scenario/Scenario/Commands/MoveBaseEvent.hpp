@@ -173,8 +173,8 @@ class MoveBaseEvent final : public iscore::SerializableCommand
         }
 
         void update(
-                const Path<SimpleScenario_T>&,
-                const Id<EventModel>&,
+                unused_t,
+                unused_t,
                 const TimeValue& date,
                 double,
                 ExpandMode)

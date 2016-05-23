@@ -254,11 +254,11 @@ void Presenter::fillContextMenu(
     });
 
     auto typeMenu = menu->addMenu(tr("Type"));
-    for(const auto& seg : m_curveSegments.list())
+    for(const auto& seg : m_curveSegments)
     {
-        auto act = typeMenu->addAction(seg->prettyName());
+        auto act = typeMenu->addAction(seg.prettyName());
         connect(act, &QAction::triggered,
-                this, [this,key=seg->concreteFactoryKey()] () {
+                this, [this,key=seg.concreteFactoryKey()] () {
             updateSegmentsType(key);
         });
     }

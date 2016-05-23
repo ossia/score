@@ -18,18 +18,17 @@ class MoveCommentBlock final : public iscore::SerializableCommand
 {
         ISCORE_COMMAND_DECL(ScenarioCommandFactoryName(), MoveCommentBlock, "Move a comment block")
         public:
-            MoveCommentBlock(const Path<ScenarioModel>& scenarPath,
-                             const Id<CommentBlockModel>& id,
-                             const TimeValue& newDate,
-                             double newY);
+            MoveCommentBlock(
+                const ScenarioModel& scenarPath,
+                Id<CommentBlockModel> id,
+                TimeValue newDate,
+                double newY);
 
-        void update(
-                const Path<ScenarioModel>& scenar,
-                const Id<CommentBlockModel>& id,
-                const TimeValue& newDate,
+        void update(unused_t, unused_t,
+                TimeValue newDate,
                 double newYPos)
         {
-            m_newDate = newDate;
+            m_newDate = std::move(newDate);
             m_newY = newYPos;
         }
         // Command interface

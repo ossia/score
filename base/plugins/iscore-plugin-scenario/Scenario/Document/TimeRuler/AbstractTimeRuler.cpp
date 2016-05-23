@@ -35,10 +35,7 @@ AbstractTimeRuler::AbstractTimeRuler(AbstractTimeRulerView* view, QObject* paren
     m_graduationsSpacing.push_back( {10000, TimeValue{std::chrono::milliseconds (1)} });
 }
 
-AbstractTimeRuler::~AbstractTimeRuler()
-{
-
-}
+AbstractTimeRuler::~AbstractTimeRuler() = default;
 
 void AbstractTimeRuler::setStartPoint(TimeValue dur)
 {

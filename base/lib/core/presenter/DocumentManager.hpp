@@ -120,6 +120,8 @@ class ISCORE_LIB_BASE_EXPORT DocumentManager : public QObject
                 QJsonDocument&,
                 const iscore::ApplicationContext& ctx);
 
+        void saveRecentFilesState();
+
         iscore::View& m_view;
 
         DocumentBuilder m_builder;

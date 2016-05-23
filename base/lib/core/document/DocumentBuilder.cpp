@@ -85,7 +85,7 @@ Document* DocumentBuilder::loadDocument_impl(
     {
         QMessageBox::warning(m_parentView, QObject::tr("Error"), e.what());
 
-        if(ctx.documents.documents().size() > 0 && ctx.documents.documents().back() == doc)
+        if(!ctx.documents.documents().empty() && ctx.documents.documents().back() == doc)
             ctx.documents.documents().pop_back();
 
         delete doc;

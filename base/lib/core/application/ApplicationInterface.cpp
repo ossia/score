@@ -3,10 +3,7 @@
 namespace iscore
 {
 ApplicationInterface* ApplicationInterface::m_instance;
-ApplicationInterface::~ApplicationInterface()
-{
-
-}
+ApplicationInterface::~ApplicationInterface() = default;
 
 ApplicationInterface& ApplicationInterface::instance()
 {

@@ -16,8 +16,7 @@ namespace Command
 {
 MoveConstraint::MoveConstraint(
         Path<Scenario::ScenarioModel>&& scenarioPath,
-        const Id<ConstraintModel>& id,
-        const TimeValue& date,
+        Id<ConstraintModel> id,
         double height) :
     m_path{std::move(scenarioPath)},
     m_constraint{id},
@@ -37,14 +36,6 @@ MoveConstraint::MoveConstraint(
     if(m_selectedConstraints.empty())
         m_selectedConstraints.append({m_constraint, m_oldHeight});
 
-}
-
-void MoveConstraint::update(const Path<Scenario::ScenarioModel>& path,
-                            const Id<ConstraintModel>&,
-                            const TimeValue& date,
-                            double height)
-{
-    m_newHeight = height;
 }
 
 void MoveConstraint::undo() const
