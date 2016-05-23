@@ -4,8 +4,12 @@
 #include <iscore/menu/MenuInterface.hpp>
 #include <iscore/command/Dispatchers/CommandDispatcher.hpp>
 
+#include <QAction>
+#include <iscore_plugin_scenario_export.h>
 namespace Scenario
 {
+class ScenarioApplicationPlugin;
+class TemporalScenarioPresenter;
 class ISCORE_PLUGIN_SCENARIO_EXPORT StateActions : public QObject
 {
     public:
