@@ -9,6 +9,7 @@
 #include <iscore/menu/MenuInterface.hpp>
 #include <iscore/plugins/application/GUIApplicationContextPlugin.hpp>
 #include <iscore/widgets/OrderedToolbar.hpp>
+#include <core/presenter/CoreActions.hpp>
 #include <core/presenter/CoreApplicationPlugin.hpp>
 #include <iscore/widgets/SetIcons.hpp>
 #include <QIcon>
@@ -78,6 +79,7 @@ void iscore::UndoApplicationPlugin::on_documentChanged(
     }
 
     // Redo the connections
+    // TODO maybe use conditions for this ?
     auto stack = &newDoc->commandStack();
     m_connections.push_back(
                 QObject::connect(stack, &CommandStack::canUndoChanged,
@@ -103,7 +105,9 @@ void iscore::UndoApplicationPlugin::on_documentChanged(
 
 auto iscore::UndoApplicationPlugin::makeGUIElements() -> GUIElements
 {
-    std::vector<Toolbar> toolbars;
+    GUIElements e;
+    auto& toolbars = e.toolbars;
+
     toolbars.reserve(1);
 
     {
@@ -117,19 +121,9 @@ auto iscore::UndoApplicationPlugin::makeGUIElements() -> GUIElements
     edit.menu()->addAction(&m_undoAction);
     edit.menu()->addAction(&m_redoAction);
 
-    std::vector<Action> actions;
-    actions.reserve(2);
-    actions.emplace_back(&m_undoAction,
-                         StringKey<Action>{"Undo"},
-                         StringKey<ActionGroup>{"Common"},
-                         QKeySequence::Undo);
-    actions.emplace_back(&m_redoAction,
-                         StringKey<Action>{"Redo"},
-                         StringKey<ActionGroup>{"Common"},
-                         QKeySequence::Redo);
-    auto& cond = *context.actions.documentConditions().at(EnableActionIfDocument::static_key());
-    cond.actions.push_back(StringKey<Action>{"Undo"});
-    cond.actions.push_back(StringKey<Action>{"Redo"});
+    e.actions.container.reserve(2);
+    e.actions.add<Actions::Undo>(&m_undoAction);
+    e.actions.add<Actions::Redo>(&m_redoAction);
 
-    return std::make_tuple(std::vector<Menu>{}, toolbars, actions);
+    return e;
 }

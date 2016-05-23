@@ -56,9 +56,9 @@ void ApplicationRegistrar::registerApplicationContextPlugin(
 {
     // GUI Presenter stuff...
     auto ui = ctrl->makeGUIElements();
-    m_menuManager.insert(std::move(std::get<std::vector<Menu>>(ui)));
-    m_toolbarManager.insert(std::move(std::get<std::vector<Toolbar>>(ui)));
-    m_actionManager.insert(std::move(std::get<std::vector<Action>>(ui)));
+    m_menuManager.insert(std::move(ui.menus));
+    m_toolbarManager.insert(std::move(ui.toolbars));
+    m_actionManager.insert(std::move(ui.actions.container));
 
     ctrl->populateMenus(&m_menubar);
     auto toolbars = ctrl->makeToolbars();

@@ -241,6 +241,11 @@ ToolMenuActions::ToolMenuActions(
     });
 }
 
+void ToolMenuActions::makeGUIElements(iscore::GUIElements& ref)
+{
+
+}
+
 void ToolMenuActions::fillMenuBar(iscore::MenubarManager *menu)
 {
     for(auto act : toolActions())

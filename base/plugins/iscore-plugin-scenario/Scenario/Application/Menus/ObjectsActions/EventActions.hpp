@@ -19,7 +19,7 @@ class ISCORE_PLUGIN_SCENARIO_EXPORT EventActions : public QObject
     public:
         EventActions(iscore::ToplevelMenuElement, ScenarioApplicationPlugin* parent);
 
-        void makeGUIElements(iscore::GUIElementsRef ref);
+        void makeGUIElements(iscore::GUIElements& ref);
 
         void fillMenuBar(iscore::MenubarManager *menu) ;
         void fillContextMenu(QMenu* menu, const Selection&, const TemporalScenarioPresenter& pres, const QPoint&, const QPointF&) ;

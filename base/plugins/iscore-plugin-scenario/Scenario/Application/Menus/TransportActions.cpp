@@ -101,6 +101,11 @@ TransportActions::TransportActions(
     });
 }
 
+void TransportActions::makeGUIElements(iscore::GUIElements& ref)
+{
+
+}
+
 void TransportActions::fillMenuBar(iscore::MenubarManager *menu)
 {
     for(auto act : actions())

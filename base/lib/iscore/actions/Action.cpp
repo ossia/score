@@ -157,7 +157,7 @@ void ActionCondition::setEnabled(ActionManager &mgr, bool b)
     }
 }
 
-ActionGroup::ActionGroup(QString prettyName, StringKey<ActionGroup> key):
+ActionGroup::ActionGroup(QString prettyName, ActionGroupKey key):
     m_name{std::move(prettyName)},
     m_key{std::move(key)}
 {
@@ -169,10 +169,10 @@ QString ActionGroup::prettyName() const
     return m_name;
 }
 
-StringKey<ActionGroup> ActionGroup::key() const
+ActionGroupKey ActionGroup::key() const
 { return m_key; }
 
-Action::Action(QAction *act, StringKey<Action> key, StringKey<ActionGroup> k, const QKeySequence &defaultShortcut):
+Action::Action(QAction *act, ActionKey key, ActionGroupKey k, const QKeySequence &defaultShortcut):
     m_impl{act},
     m_key{std::move(key)},
     m_groupKey{std::move(k)},
@@ -192,7 +192,7 @@ Action::Action(QAction *act, const char *key, const char *group_key, const QKeyS
     m_impl->setShortcut(m_current);
 }
 
-StringKey<Action> Action::key() const
+ActionKey Action::key() const
 { return m_key; }
 
 QAction *Action::action() const

@@ -16,7 +16,7 @@ class ISCORE_PLUGIN_SCENARIO_EXPORT StateActions : public QObject
     public:
     StateActions(iscore::ToplevelMenuElement, ScenarioApplicationPlugin* parent);
 
-    void makeGUIElements(iscore::GUIElementsRef ref);
+    void makeGUIElements(iscore::GUIElements& ref);
 
 
     void fillMenuBar(iscore::MenubarManager *menu) ;

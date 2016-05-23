@@ -66,104 +66,20 @@
 #include <core/presenter/Presenter.hpp>
 #include <iscore/document/DocumentInterface.hpp>
 #include <core/view/View.hpp>
+#include <Process/Actions/ProcessActions.hpp>
+
+ISCORE_DECLARE_ACTION(SelectAll, Scenario, QKeySequence::SelectAll)
+ISCORE_DECLARE_ACTION(DeselectAll, Scenario, QKeySequence::Deselect)
+
+ISCORE_DECLARE_FOCUSED_OBJECT_CONDITION(Scenario::TemporalScenarioLayerModel)
+ISCORE_DECLARE_DOCUMENT_CONDITION(Scenario::ScenarioDocumentModel)
+
+ISCORE_DECLARE_FOCUSED_PROCESS_CONDITION(Scenario::ScenarioModel)
+ISCORE_DECLARE_FOCUSED_PROCESS_CONDITION(Scenario::ScenarioInterface)
+
 namespace Scenario
 {
 void test_parse_expr_full();
-template<typename T>
-class EnableWhenFocusedObjectIs final : public iscore::FocusActionCondition
-{
-    public:
-        EnableWhenFocusedObjectIs(StringKey<iscore::ActionCondition> k):
-            iscore::FocusActionCondition{std::move(k)}
-        {
-
-        }
-
-    private:
-        void action(iscore::ActionManager& mgr, iscore::MaybeDocument doc) override
-        {
-            if(!doc)
-            {
-                setEnabled(mgr, false);
-                return;
-            }
-
-            auto obj = doc->focus.get();
-            if(!obj)
-            {
-                setEnabled(mgr, false);
-                return;
-            }
-
-            if(dynamic_cast<const T*>(obj))
-            {
-                setEnabled(mgr, true);
-            }
-        }
-};
-
-template<typename T>
-class EnableWhenDocumentIs final : public iscore::DocumentActionCondition
-{
-    public:
-        EnableWhenDocumentIs(StringKey<iscore::ActionCondition> k):
-            iscore::DocumentActionCondition{std::move(k)}
-        {
-
-        }
-
-    private:
-        void action(iscore::ActionManager& mgr, iscore::MaybeDocument doc) override
-        {
-            if(!doc)
-            {
-                setEnabled(mgr, false);
-                return;
-            }
-            auto model = iscore::IDocument::try_get<T>(doc->document);
-            setEnabled(mgr, bool(model));
-        }
-};
-
-template<typename T>
-struct EnableWhenFocusedProcessIs final : public iscore::FocusActionCondition
-{
-    public:
-        EnableWhenFocusedProcessIs(StringKey<iscore::ActionCondition> k):
-            iscore::FocusActionCondition{std::move(k)}
-        {
-
-        }
-
-    private:
-        void action(iscore::ActionManager& mgr, iscore::MaybeDocument doc) override
-        {
-            if(!doc)
-            {
-                setEnabled(mgr, false);
-                return;
-            }
-
-            auto obj = doc->focus.get();
-            if(!obj)
-            {
-                setEnabled(mgr, false);
-                return;
-            }
-
-            auto layer = dynamic_cast<const Process::LayerModel*>(obj);
-            if(!layer)
-            {
-                setEnabled(mgr, false);
-                return;
-            }
-
-            if(dynamic_cast<T*>(&layer->processModel()))
-            {
-                setEnabled(mgr, true);
-            }
-        }
-};
 
 ScenarioApplicationPlugin::ScenarioApplicationPlugin(const iscore::ApplicationContext& ctx) :
     GUIApplicationContextPlugin{ctx}
@@ -173,27 +89,26 @@ ScenarioApplicationPlugin::ScenarioApplicationPlugin(const iscore::ApplicationCo
         editionSettings().setDefault();
     });
 
+    using namespace iscore;
+    using namespace Scenario;
+    using namespace Process;
     ctx.actions.insert(
-                std::make_unique<EnableWhenFocusedObjectIs<Scenario::TemporalScenarioLayerModel>>(
-                    StringKey<iscore::ActionCondition>{"FocusOnTemporalScenarioLayer"}));
+                std::make_unique<EnableWhenFocusedObjectIs<TemporalScenarioLayerModel>>());
     ctx.actions.insert(
-                std::make_unique<EnableWhenFocusedProcessIs<Scenario::ScenarioModel>>(
-                    StringKey<iscore::ActionCondition>{"FocusOnScenarioModel"}));
+                std::make_unique<EnableWhenFocusedProcessIs<ScenarioModel>>());
     ctx.actions.insert(
-                std::make_unique<EnableWhenFocusedProcessIs<Scenario::ScenarioInterface>>(
-                    StringKey<iscore::ActionCondition>{"FocusOnScenarioInterface"}));
+                std::make_unique<EnableWhenFocusedProcessIs<ScenarioInterface>>());
     ctx.actions.insert(
-                std::make_unique<EnableWhenDocumentIs<Scenario::ScenarioDocumentModel>>(
-                    StringKey<iscore::ActionCondition>{"DocumentIsScenario"}));
+                std::make_unique<EnableWhenDocumentIs<ScenarioDocumentModel>>());
 }
 
 auto ScenarioApplicationPlugin::makeGUIElements() -> GUIElements
 {
     using namespace iscore;
-    std::vector<Action> actions;
+    GUIElements e;
+    auto& toolbars = e.toolbars;
+    auto& actions = e.actions.container;
 
-
-    std::vector<Menu> menus;
     {
         m_selectAll = new QAction{tr("Select all"), this};
         m_selectAll->setToolTip("Ctrl+a");
@@ -228,22 +143,12 @@ auto ScenarioApplicationPlugin::makeGUIElements() -> GUIElements
         menu.menu()->addAction(m_selectAll);
         menu.menu()->addAction(m_deselectAll);
 
-        actions.emplace_back(
-                    m_selectAll,
-                    StringKey<Action>{"SelectAll"},
-                    StringKey<ActionGroup>{"Scenario"},
-                    QKeySequence::SelectAll);
+        e.actions.add<Actions::SelectAll>(m_selectAll);
+        e.actions.add<Actions::DeselectAll>(m_deselectAll);
 
-        actions.emplace_back(
-                    m_deselectAll,
-                    StringKey<Action>{"DeselectAll"},
-                    StringKey<ActionGroup>{"Scenario"},
-                    QKeySequence::Deselect);
-
-        auto& cond = *context.actions.documentConditions().at(StringKey<iscore::ActionCondition>{"DocumentIsScenario"});
-        cond.actions.push_back(StringKey<Action>{"SelectAll"});
-        cond.actions.push_back(StringKey<Action>{"DeselectAll"});
-
+        auto& cond = context.actions.condition<iscore::EnableWhenDocumentIs<Scenario::ScenarioDocumentModel>>();
+        cond.add<Actions::SelectAll>();
+        cond.add<Actions::DeselectAll>();
 
         // TODO ACTIONS
         /*
@@ -254,7 +159,6 @@ auto ScenarioApplicationPlugin::makeGUIElements() -> GUIElements
         */
     }
 
-    std::vector<Toolbar> toolbars;
     {
 
         // TODO ACTIONS
@@ -299,7 +203,11 @@ auto ScenarioApplicationPlugin::makeGUIElements() -> GUIElements
         */
     }
 
-    return std::make_tuple(menus, toolbars, actions);
+    m_objectActions.makeGUIElements(e);
+    m_toolActions.makeGUIElements(e);
+    m_transportActions.makeGUIElements(e);
+
+    return e;
 }
 
 ScenarioApplicationPlugin::~ScenarioApplicationPlugin() = default;

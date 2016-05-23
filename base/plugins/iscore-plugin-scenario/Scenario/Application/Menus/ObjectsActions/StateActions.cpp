@@ -31,12 +31,9 @@ StateActions::StateActions(iscore::ToplevelMenuElement menuElt,
 }
 
 
-void StateActions::makeGUIElements(iscore::GUIElementsRef ref)
+void StateActions::makeGUIElements(iscore::GUIElements& ref)
 {
     using namespace iscore;
-    auto& actions = std::get<std::vector<Action>&>(ref);
-    auto& menus = std::get<std::vector<Menu>&>(ref);
-    auto& toolbars = std::get<std::vector<Toolbar>&>(ref);
 }
 
 void StateActions::fillMenuBar(iscore::MenubarManager* menu)

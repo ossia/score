@@ -3,7 +3,7 @@
 #include <QPointer>
 #include <Process/Focus/FocusDispatcher.hpp>
 
-namespace iscore { class FocusManager; }
+namespace iscore { struct FocusManager; }
 namespace Process { class LayerModel; }
 namespace Process { class LayerPresenter; }
 namespace Process { class ProcessModel; }

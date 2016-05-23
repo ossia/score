@@ -18,7 +18,7 @@ struct ISCORE_LIB_BASE_EXPORT FocusManager : public QObject
             emit changed();
         }
 
-        void set(nullptr_t)
+        void set(std::nullptr_t)
         {
             m_obj.clear();
             emit changed();

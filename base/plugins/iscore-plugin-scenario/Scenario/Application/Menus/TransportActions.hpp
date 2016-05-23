@@ -25,7 +25,7 @@ class TransportActions : public QObject
                 iscore::ToplevelMenuElement menuElt,
                 ScenarioApplicationPlugin* parent);
 
-        void makeGUIElements(iscore::GUIElementsRef ref);
+        void makeGUIElements(iscore::GUIElements& ref);
 
         void fillMenuBar(
                 iscore::MenubarManager *menu);
