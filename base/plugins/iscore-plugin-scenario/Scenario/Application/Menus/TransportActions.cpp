@@ -110,7 +110,6 @@ void TransportActions::makeGUIElements(iscore::GUIElements& ref)
     // plus everything in the play menu
     {
         auto bar = new QToolBar{tr("Transport")};
-        bar->setFloatable(true);
         bar->addAction(m_play);
         bar->addAction(m_stop);
         bar->addAction(m_stopAndInit);

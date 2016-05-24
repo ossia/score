@@ -29,6 +29,9 @@ ISCORE_DECLARE_ACTION(CreateTool, Scenario, Qt::Key_C)
 ISCORE_DECLARE_ACTION(PlayTool, Scenario, Qt::Key_P)
 ISCORE_DECLARE_ACTION(SequenceMode, Scenario, Qt::Key_Shift)
 
+ISCORE_DECLARE_ACTION(Scale, Scenario, QKeySequence::UnknownKey)
+ISCORE_DECLARE_ACTION(Grow, Scenario, QKeySequence::UnknownKey)
+
 // Object
 ISCORE_DECLARE_ACTION(RemoveElements, Scenario, QKeySequence::UnknownKey)
 ISCORE_DECLARE_ACTION(ClearElements, Scenario, QKeySequence::UnknownKey)
