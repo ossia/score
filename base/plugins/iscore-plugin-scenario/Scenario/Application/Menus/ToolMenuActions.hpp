@@ -37,9 +37,6 @@ class ToolMenuActions : public QObject
         bool populateToolBar(QToolBar* bar);
         void setEnabled(bool);
 
-        QList<QAction*> modeActions();
-        QList<QAction*> toolActions();
-        QAction* shiftAction();
 
     private:
         void keyPressed(int key);

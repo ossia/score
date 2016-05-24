@@ -33,11 +33,11 @@ ISCORE_DECLARE_ACTION(Scale, Scenario, QKeySequence::UnknownKey)
 ISCORE_DECLARE_ACTION(Grow, Scenario, QKeySequence::UnknownKey)
 
 // Object
-ISCORE_DECLARE_ACTION(RemoveElements, Scenario, QKeySequence::UnknownKey)
-ISCORE_DECLARE_ACTION(ClearElements, Scenario, QKeySequence::UnknownKey)
-ISCORE_DECLARE_ACTION(CopyContent, Scenario, QKeySequence::UnknownKey)
-ISCORE_DECLARE_ACTION(CutContent, Scenario, QKeySequence::UnknownKey)
-ISCORE_DECLARE_ACTION(PasteContent, Scenario, QKeySequence::UnknownKey)
+ISCORE_DECLARE_ACTION(RemoveElements, Scenario, Qt::Key_Backspace)
+ISCORE_DECLARE_ACTION(ClearElements, Scenario, Qt::Key_Delete)
+ISCORE_DECLARE_ACTION(CopyContent, Scenario, QKeySequence::Copy)
+ISCORE_DECLARE_ACTION(CutContent, Scenario, QKeySequence::Cut)
+ISCORE_DECLARE_ACTION(PasteContent, Scenario, QKeySequence::Paste)
 ISCORE_DECLARE_ACTION(ElementsToJson, Scenario, QKeySequence::UnknownKey)
 
 // Event
