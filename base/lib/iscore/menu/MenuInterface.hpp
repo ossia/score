@@ -21,37 +21,4 @@ struct Menus
         static StringKey<Menu> Settings() { return StringKey<Menu>{"Settings"}; }
         static StringKey<Menu> About() { return StringKey<Menu>{"About"}; }
 };
-
-enum class ToplevelMenuElement : int // ISCORE_LIB_BASE_EXPORT
-{
-    FileMenu,
-    EditMenu,
-    ObjectMenu,
-    PlayMenu,
-    ToolMenu,
-    ViewMenu,
-    SettingsMenu,
-    AboutMenu
-};
-
-/**
-     * @brief The MenuInterface class
-     *
-     * It is a way to allow plug-ins to put their options in a sensible place.
-     * For instance, add an "Export" option after the standard "Save as...".
-     *
-     * The strings are not directly available to the plug-ins because they have to be translated.
-     */
-class ISCORE_LIB_BASE_EXPORT MenuInterface
-{
-    public:
-        template<typename MenuType>
-        static std::map<MenuType, QString> map();
-
-        template<typename MenuType>
-        static QString name(MenuType elt);
-
-    private:
-        static const std::map<ToplevelMenuElement, QString> m_map;
-};
 }
