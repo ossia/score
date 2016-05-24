@@ -50,6 +50,11 @@ class ToolMenuActions : public QObject
 
         QActionGroup* m_scenarioScaleModeActionGroup{};
         QActionGroup* m_scenarioToolActionGroup{};
+
+        QAction* m_scale{};
+        QAction* m_grow{};
+
+
         QAction* m_shiftAction{};
 
         QAction* m_selecttool{};
