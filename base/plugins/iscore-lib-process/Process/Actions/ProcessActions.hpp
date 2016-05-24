@@ -7,8 +7,8 @@ struct EnableWhenFocusedProcessIs;
 }
 
 #define ISCORE_DECLARE_FOCUSED_PROCESS_CONDITION(Type)                              \
-template<>                                                                \
-struct Process::EnableWhenFocusedProcessIs<Type> final : public iscore::FocusActionCondition       \
+namespace Process { template<>                                                                \
+struct EnableWhenFocusedProcessIs<Type> final : public iscore::FocusActionCondition       \
 {                                                                                   \
     public:                                                                         \
     static iscore::ActionConditionKey static_key() { return iscore::ActionConditionKey{"FocusedProcessIs" #Type }; }     \
@@ -45,4 +45,4 @@ struct Process::EnableWhenFocusedProcessIs<Type> final : public iscore::FocusAct
                                                                                     \
             setEnabled(mgr, bool(dynamic_cast<Type*>(&layer->processModel())));     \
         }                                                                           \
-};
+}; }

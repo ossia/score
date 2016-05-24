@@ -65,8 +65,8 @@ class ISCORE_LIB_BASE_EXPORT Action
 template<typename Action_T>
 struct MetaAction
 {
-        static iscore::Action make(QAction* ptr) = 0;
-        static ActionKey key() = 0;
+        // static iscore::Action make(QAction* ptr);
+        // static ActionKey key();
 };
 
 struct ActionContainer
@@ -183,8 +183,8 @@ template<typename T>
 class EnableWhenSelectionContains;
 
 #define ISCORE_DECLARE_SELECTED_OBJECT_CONDITION(Type) \
-template<> \
-class iscore::EnableWhenSelectionContains<Type> final : \
+namespace iscore { template<> \
+class EnableWhenSelectionContains<Type> final : \
         public iscore::SelectionActionCondition \
 { \
     public: \
@@ -208,15 +208,15 @@ class iscore::EnableWhenSelectionContains<Type> final : \
  \
             setEnabled(mgr, res); \
         } \
-};
+}; }
 
 template<typename T>
 class EnableWhenFocusedObjectIs;
 template<typename T>
 class EnableWhenDocumentIs;
 #define ISCORE_DECLARE_FOCUSED_OBJECT_CONDITION(Type) \
-template<> \
-class iscore::EnableWhenFocusedObjectIs<Type> final : public iscore::FocusActionCondition   \
+namespace iscore { template<> \
+class EnableWhenFocusedObjectIs<Type> final : public iscore::FocusActionCondition   \
 {                                                                                   \
     public:                                                                         \
         static iscore::ActionConditionKey static_key() { return iscore::ActionConditionKey{"FocusedObjectIs" #Type }; }  \
@@ -248,11 +248,11 @@ class iscore::EnableWhenFocusedObjectIs<Type> final : public iscore::FocusAction
                 setEnabled(mgr, true);                                              \
             }                                                                       \
         }                                                                           \
-};
+}; }
 
 #define ISCORE_DECLARE_DOCUMENT_CONDITION(Type) \
-template<> \
-class iscore::EnableWhenDocumentIs<Type> final : public iscore::DocumentActionCondition            \
+namespace iscore { template<> \
+class EnableWhenDocumentIs<Type> final : public iscore::DocumentActionCondition            \
 {                                                                                    \
     public:                                                                          \
         static iscore::ActionConditionKey static_key() { return iscore::ActionConditionKey{"DocumentIs" #Type }; }        \
@@ -273,7 +273,7 @@ class iscore::EnableWhenDocumentIs<Type> final : public iscore::DocumentActionCo
             auto model = iscore::IDocument::try_get<Type>(doc->document);            \
             setEnabled(mgr, bool(model));                                            \
         }                                                                            \
-};
+}; }
 
 class ISCORE_LIB_BASE_EXPORT ActionManager :
         public QObject
@@ -480,8 +480,9 @@ struct GUIElements
 
 #define ISCORE_DECLARE_ACTION(ActionName, Group, Shortcut) \
 namespace Actions { struct ActionName; }\
+namespace iscore { \
 template<> \
-struct iscore::MetaAction<Actions::ActionName> \
+struct MetaAction<Actions::ActionName> \
 { \
   static iscore::Action make(QAction* ptr)  \
   { \
@@ -492,4 +493,4 @@ struct iscore::MetaAction<Actions::ActionName> \
   { \
     return iscore::ActionKey{#ActionName} ; \
   } \
-};
+}; }
