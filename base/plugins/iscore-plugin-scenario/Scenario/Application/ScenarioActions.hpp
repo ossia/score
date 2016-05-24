@@ -6,6 +6,114 @@
 #include <Scenario/Process/Temporal/TemporalScenarioLayerModel.hpp>
 #include <Scenario/Document/ScenarioDocument/ScenarioDocumentModel.hpp>
 
+namespace Scenario
+{
+
+class EnableWhenScenarioModelObject final :
+        public iscore::ActionCondition
+{
+    public:
+        EnableWhenScenarioModelObject():
+            iscore::ActionCondition{static_key()} { }
+
+        static iscore::ActionConditionKey static_key()
+        { return iscore::ActionConditionKey{ "ScenarioModelObject" }; }
+
+    private:
+        void action(iscore::ActionManager& mgr, iscore::MaybeDocument doc) override
+        {
+            if(!doc)
+            {
+                setEnabled(mgr, false);
+                return;
+            }
+
+            auto focus = doc->focus.get();
+            if(!focus)
+            {
+                setEnabled(mgr, false);
+                return;
+            }
+
+            auto lm = dynamic_cast<const Process::LayerModel*>(focus);
+            if(!lm)
+            {
+                setEnabled(mgr, false);
+                return;
+            }
+
+            auto proc = dynamic_cast<const Scenario::ScenarioModel*>(&lm->processModel());
+            if(!proc)
+            {
+                setEnabled(mgr, false);
+                return;
+            }
+
+            const auto& sel = doc->selectionStack.currentSelection();
+            auto res = any_of(sel, [] (auto obj) {
+                auto ptr = obj.data();
+                return bool(dynamic_cast<const Scenario::ConstraintModel*>(ptr))
+                    || bool(dynamic_cast<const Scenario::EventModel*>(ptr))
+                    || bool(dynamic_cast<const Scenario::StateModel*>(ptr));
+            });
+
+            setEnabled(mgr, res);
+        }
+};
+
+
+class EnableWhenScenarioInterfaceObject final :
+        public iscore::ActionCondition
+{
+    public:
+        EnableWhenScenarioInterfaceObject():
+            iscore::ActionCondition{static_key()} { }
+
+        static iscore::ActionConditionKey static_key()
+        { return iscore::ActionConditionKey{ "ScenarioInterfaceObject" }; }
+
+    private:
+        void action(iscore::ActionManager& mgr, iscore::MaybeDocument doc) override
+        {
+            if(!doc)
+            {
+                setEnabled(mgr, false);
+                return;
+            }
+
+            auto focus = doc->focus.get();
+            if(!focus)
+            {
+                setEnabled(mgr, false);
+                return;
+            }
+
+            auto lm = dynamic_cast<const Process::LayerModel*>(focus);
+            if(!lm)
+            {
+                setEnabled(mgr, false);
+                return;
+            }
+
+            auto proc = dynamic_cast<const Scenario::ScenarioInterface*>(&lm->processModel());
+            if(!proc)
+            {
+                setEnabled(mgr, false);
+                return;
+            }
+
+            const auto& sel = doc->selectionStack.currentSelection();
+            auto res = any_of(sel, [] (auto obj) {
+                auto ptr = obj.data();
+                return bool(dynamic_cast<const Scenario::ConstraintModel*>(ptr))
+                    || bool(dynamic_cast<const Scenario::EventModel*>(ptr))
+                    || bool(dynamic_cast<const Scenario::StateModel*>(ptr));
+            });
+
+            setEnabled(mgr, res);
+        }
+};
+}
 ISCORE_DECLARE_ACTION(SelectAll, Scenario, QKeySequence::SelectAll)
 ISCORE_DECLARE_ACTION(DeselectAll, Scenario, QKeySequence::Deselect)
 

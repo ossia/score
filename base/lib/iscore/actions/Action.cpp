@@ -7,7 +7,7 @@ namespace iscore
 
 ActionManager::ActionManager()
 {
-    insert(std::make_unique<EnableActionIfDocument>());
+    onDocumentChange(std::make_unique<EnableActionIfDocument>());
 
 }
 
@@ -59,43 +59,51 @@ void ActionManager::reset(iscore::Document* doc)
     selectionChanged(mdoc);
 }
 
-void ActionManager::insert(std::unique_ptr<DocumentActionCondition> cond)
+void ActionManager::onDocumentChange(std::shared_ptr<ActionCondition> cond)
 {
     ISCORE_ASSERT(bool(cond));
     ISCORE_ASSERT(m_docConditions.find(cond->key()) == m_docConditions.end());
 
-    m_docConditions.insert(std::make_pair(cond->key(), std::move(cond)));
+    auto p = std::make_pair(cond->key(), std::move(cond));
+    m_conditions.insert(p);
+    m_docConditions.insert(std::move(p));
 }
 
-void ActionManager::insert(std::unique_ptr<FocusActionCondition> cond)
+void ActionManager::onFocusChange(std::shared_ptr<ActionCondition> cond)
 {
     ISCORE_ASSERT(bool(cond));
     ISCORE_ASSERT(m_focusConditions.find(cond->key()) == m_focusConditions.end());
 
-    m_focusConditions.insert(std::make_pair(cond->key(), std::move(cond)));
+    auto p = std::make_pair(cond->key(), std::move(cond));
+    m_conditions.insert(p);
+    m_focusConditions.insert(std::move(p));
 }
 
-void ActionManager::insert(std::unique_ptr<SelectionActionCondition> cond)
+void ActionManager::onSelectionChange(std::shared_ptr<ActionCondition> cond)
 {
     ISCORE_ASSERT(bool(cond));
     ISCORE_ASSERT(m_selectionConditions.find(cond->key()) == m_selectionConditions.end());
 
-    m_selectionConditions.insert(std::make_pair(cond->key(), std::move(cond)));
+    auto p = std::make_pair(cond->key(), std::move(cond));
+    m_conditions.insert(p);
+    m_selectionConditions.insert(std::move(p));
 }
 
-void ActionManager::insert(std::unique_ptr<CustomActionCondition> cond)
+void ActionManager::onCustomChange(std::shared_ptr<ActionCondition> cond)
 {
     ISCORE_ASSERT(bool(cond));
     ISCORE_ASSERT(m_customConditions.find(cond->key()) == m_customConditions.end());
 
-    m_customConditions.insert(std::make_pair(cond->key(), std::move(cond)));
+    auto p = std::make_pair(cond->key(), std::move(cond));
+    m_conditions.insert(p);
+    m_customConditions.insert(std::move(p));
 }
 
 void ActionManager::documentChanged(MaybeDocument doc)
 {
     for(auto& c_pair : m_docConditions)
     {
-        DocumentActionCondition& cond = *c_pair.second;
+        ActionCondition& cond = *c_pair.second;
         cond.action(*this, doc);
     }
 }
@@ -104,7 +112,7 @@ void ActionManager::focusChanged(MaybeDocument doc)
 {
     for(auto& c_pair : m_focusConditions)
     {
-        FocusActionCondition& cond = *c_pair.second;
+        ActionCondition& cond = *c_pair.second;
         cond.action(*this, doc);
     }
 }
@@ -113,7 +121,7 @@ void ActionManager::selectionChanged(MaybeDocument doc)
 {
     for(auto& c_pair : m_selectionConditions)
     {
-        SelectionActionCondition& cond = *c_pair.second;
+        ActionCondition& cond = *c_pair.second;
         cond.action(*this, doc);
     }
 }
@@ -122,7 +130,7 @@ void ActionManager::resetCustomActions(MaybeDocument doc)
 {
     for(auto& c_pair : m_customConditions)
     {
-        CustomActionCondition& cond = *c_pair.second;
+        ActionCondition& cond = *c_pair.second;
         cond.action(*this, doc);
     }
 }
@@ -153,7 +161,6 @@ void ActionCondition::setEnabled(ActionManager &mgr, bool b)
     for(auto& action : actions)
     {
         auto& act = mgr.get().at(action);
-        qDebug() << act.action()->text() << b;
         act.action()->setEnabled(b);
     }
 }

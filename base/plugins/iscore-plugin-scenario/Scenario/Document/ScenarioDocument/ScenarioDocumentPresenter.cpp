@@ -189,6 +189,8 @@ void ScenarioDocumentPresenter::setMillisPerPixel(ZoomRatio newRatio)
 void ScenarioDocumentPresenter::on_newSelection(const Selection& sel)
 {
     // TODO ACTIONS
+    // If nothing is selected, "object" actions are disabled.
+    // Else if there is a constraint / state / event / objet action, enable it
     /*
     using namespace iscore;
     auto editMenu = iscore::AppContext().menuBar.menuAt(ToplevelMenuElement::ObjectMenu);
