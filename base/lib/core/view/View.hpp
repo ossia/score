@@ -44,14 +44,6 @@ namespace iscore
             void closeEvent(QCloseEvent*) override;
 
         signals:
-            /**
-             * @brief insertActionIntoMenubar
-             *
-             * A quick signal to add an action.
-             * Especially considering that we already know the presenter.
-             */
-            void insertActionIntoMenubar(PositionedMenuAction);
-
             void activeDocumentChanged(const Id<DocumentModel>&);
             void closeRequested(const Id<DocumentModel>&);
 
@@ -62,7 +54,6 @@ namespace iscore
 
         private:
             void changeEvent(QEvent *) override;
-
 
             std::vector<QPair<PanelDelegate*, QDockWidget*>> m_leftPanels;
             std::vector<QPair<PanelDelegate*, QDockWidget*>> m_rightPanels;

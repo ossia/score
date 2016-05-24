@@ -69,22 +69,6 @@ struct MetaAction
         static ActionKey key() = 0;
 };
 
-#define ISCORE_DECLARE_ACTION(ActionName, Group, Shortcut) \
-namespace Actions { struct ActionName; }\
-template<> \
-struct iscore::MetaAction<Actions::ActionName> \
-{ \
-  static iscore::Action make(QAction* ptr)  \
-  { \
-    return iscore::Action{ptr, key(), iscore::ActionGroupKey{#Group}, Shortcut}; \
-  } \
-\
-  static iscore::ActionKey key() \
-  { \
-    return iscore::ActionKey{#ActionName} ; \
-  } \
-};
-
 struct ActionContainer
 {
     public:
@@ -196,6 +180,37 @@ struct ISCORE_LIB_BASE_EXPORT CustomActionCondition :
 using ActionConditionKey = StringKey<iscore::ActionCondition>;
 
 template<typename T>
+class EnableWhenSelectionContains;
+
+#define ISCORE_DECLARE_SELECTED_OBJECT_CONDITION(Type) \
+template<> \
+class iscore::EnableWhenSelectionContains<Type> final : \
+        public iscore::SelectionActionCondition \
+{ \
+    public: \
+        EnableWhenSelectionContains(): \
+            iscore::SelectionActionCondition{static_key()} { } \
+ \
+        static iscore::ActionConditionKey static_key() \
+        { return iscore::ActionConditionKey{ "SelectedObjectIs" #Type }; } \
+ \
+    private: \
+        void action(iscore::ActionManager& mgr, iscore::MaybeDocument doc) override \
+        { \
+            if(!doc) \
+            { \
+                setEnabled(mgr, false); \
+                return; \
+            } \
+ \
+            const auto& sel = doc->selectionStack.currentSelection(); \
+            auto res = any_of(sel, [] (auto obj) { return bool(dynamic_cast<const Type*>(obj.data())); }); \
+ \
+            setEnabled(mgr, res); \
+        } \
+};
+
+template<typename T>
 class EnableWhenFocusedObjectIs;
 template<typename T>
 class EnableWhenDocumentIs;
@@ -280,10 +295,10 @@ class ISCORE_LIB_BASE_EXPORT ActionManager :
 
         void reset(Document* doc);
 
-        void insert(std::unique_ptr<DocumentActionCondition> cond);
-        void insert(std::unique_ptr<FocusActionCondition> cond);
-        void insert(std::unique_ptr<SelectionActionCondition> cond);
-        void insert(std::unique_ptr<CustomActionCondition> cond);
+        void onDocumentChange(std::shared_ptr<ActionCondition> cond);
+        void onFocusChange(std::shared_ptr<ActionCondition> cond);
+        void onSelectionChange(std::shared_ptr<ActionCondition> cond);
+        void onCustomChange(std::shared_ptr<ActionCondition> cond);
 
         const auto& documentConditions() const { return m_docConditions; }
         const auto& focusConditions() const { return m_focusConditions; }
@@ -311,6 +326,16 @@ class ISCORE_LIB_BASE_EXPORT ActionManager :
             return *m_customConditions.at(Condition_T::static_key());
         }
 
+        template<typename Condition_T, typename std::enable_if_t<
+                     !std::is_base_of<DocumentActionCondition, Condition_T>::value &&
+                     !std::is_base_of<FocusActionCondition, Condition_T>::value &&
+                     !std::is_base_of<SelectionActionCondition, Condition_T>::value &&
+                     !std::is_base_of<CustomActionCondition, Condition_T>::value &&
+                     std::is_base_of<ActionCondition, Condition_T>::value, void*> = nullptr>
+        auto& condition() const
+        {
+            return *m_conditions.at(Condition_T::static_key());
+        }
     private:
         void documentChanged(MaybeDocument doc);
         void focusChanged(MaybeDocument doc);
@@ -319,10 +344,11 @@ class ISCORE_LIB_BASE_EXPORT ActionManager :
         std::unordered_map<ActionKey, Action> m_container;
 
         // Conditions for the enablement of the actions
-        std::unordered_map<StringKey<ActionCondition>, std::unique_ptr<DocumentActionCondition>> m_docConditions;
-        std::unordered_map<StringKey<ActionCondition>, std::unique_ptr<FocusActionCondition>> m_focusConditions;
-        std::unordered_map<StringKey<ActionCondition>, std::unique_ptr<SelectionActionCondition>> m_selectionConditions;
-        std::unordered_map<StringKey<ActionCondition>, std::unique_ptr<CustomActionCondition>> m_customConditions;
+        std::unordered_map<StringKey<ActionCondition>, std::shared_ptr<ActionCondition>> m_docConditions;
+        std::unordered_map<StringKey<ActionCondition>, std::shared_ptr<ActionCondition>> m_focusConditions;
+        std::unordered_map<StringKey<ActionCondition>, std::shared_ptr<ActionCondition>> m_selectionConditions;
+        std::unordered_map<StringKey<ActionCondition>, std::shared_ptr<ActionCondition>> m_customConditions;
+        std::unordered_map<StringKey<ActionCondition>, std::shared_ptr<ActionCondition>> m_conditions;
 
         QMetaObject::Connection focusConnection;
         QMetaObject::Connection selectionConnection;
@@ -451,3 +477,19 @@ struct GUIElements
 };
 
 }
+
+#define ISCORE_DECLARE_ACTION(ActionName, Group, Shortcut) \
+namespace Actions { struct ActionName; }\
+template<> \
+struct iscore::MetaAction<Actions::ActionName> \
+{ \
+  static iscore::Action make(QAction* ptr)  \
+  { \
+    return iscore::Action{ptr, key(), iscore::ActionGroupKey{#Group}, Shortcut}; \
+  } \
+\
+  static iscore::ActionKey key() \
+  { \
+    return iscore::ActionKey{#ActionName} ; \
+  } \
+};

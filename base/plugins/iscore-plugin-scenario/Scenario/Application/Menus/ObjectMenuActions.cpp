@@ -150,12 +150,21 @@ void ObjectMenuActions::makeGUIElements(iscore::GUIElements& ref)
     using namespace iscore;
     auto& actions = ref.actions;
 
+    auto& scenariomodel_cond = m_parent->context.actions.condition<EnableWhenScenarioModelObject>();
+    auto& scenarioiface_cond = m_parent->context.actions.condition<EnableWhenScenarioInterfaceObject>();
     actions.add<Actions::RemoveElements>(m_removeElements);
     actions.add<Actions::ClearElements>(m_clearElements);
     actions.add<Actions::CopyContent>(m_copyContent);
     actions.add<Actions::CutContent>(m_cutContent);
     actions.add<Actions::PasteContent>(m_pasteContent);
     actions.add<Actions::ElementsToJson>(m_elementsToJson);
+
+    scenariomodel_cond.add<Actions::RemoveElements>();
+    scenarioiface_cond.add<Actions::ClearElements>();
+    scenarioiface_cond.add<Actions::CopyContent>();
+    scenarioiface_cond.add<Actions::CutContent>();
+    scenarioiface_cond.add<Actions::PasteContent>();
+    scenarioiface_cond.add<Actions::ElementsToJson>();
 
     Menu& object = m_parent->context.menus.get().at(Menus::Object());
     object.menu()->addAction(m_elementsToJson);
@@ -180,8 +189,8 @@ void ObjectMenuActions::fillContextMenu(
 {
     using namespace iscore;
 
-    m_eventActions.fillContextMenu(menu, sel, pres, p, scenePoint );
-    m_cstrActions.fillContextMenu(menu, sel, pres, p, scenePoint );
+    m_eventActions.fillContextMenu(menu, sel, pres, p, scenePoint);
+    m_cstrActions.fillContextMenu(menu, sel, pres, p, scenePoint);
     m_stateActions.fillContextMenu(menu, sel, pres, p ,scenePoint);
 
     if(!sel.empty())

@@ -67,6 +67,10 @@
 #include <iscore/document/DocumentInterface.hpp>
 #include <core/view/View.hpp>
 #include <Scenario/Application/ScenarioActions.hpp>
+
+ISCORE_DECLARE_SELECTED_OBJECT_CONDITION(Scenario::ConstraintModel)
+ISCORE_DECLARE_SELECTED_OBJECT_CONDITION(Scenario::EventModel)
+ISCORE_DECLARE_SELECTED_OBJECT_CONDITION(Scenario::StateModel)
 namespace Scenario
 {
 void test_parse_expr_full();
@@ -82,14 +86,22 @@ ScenarioApplicationPlugin::ScenarioApplicationPlugin(const iscore::ApplicationCo
     using namespace iscore;
     using namespace Scenario;
     using namespace Process;
-    ctx.actions.insert(
-                std::make_unique<EnableWhenFocusedObjectIs<TemporalScenarioLayerModel>>());
-    ctx.actions.insert(
-                std::make_unique<EnableWhenFocusedProcessIs<ScenarioModel>>());
-    ctx.actions.insert(
-                std::make_unique<EnableWhenFocusedProcessIs<ScenarioInterface>>());
-    ctx.actions.insert(
-                std::make_unique<EnableWhenDocumentIs<ScenarioDocumentModel>>());
+    ctx.actions.onFocusChange(std::make_shared<EnableWhenFocusedObjectIs<TemporalScenarioLayerModel>>());
+    ctx.actions.onFocusChange(std::make_shared<EnableWhenFocusedProcessIs<ScenarioModel>>());
+    ctx.actions.onFocusChange(std::make_shared<EnableWhenFocusedProcessIs<ScenarioInterface>>());
+    ctx.actions.onDocumentChange(std::make_shared<EnableWhenDocumentIs<ScenarioDocumentModel>>());
+
+    ctx.actions.onSelectionChange(std::make_shared<EnableWhenSelectionContains<ConstraintModel>>());
+    ctx.actions.onSelectionChange(std::make_shared<EnableWhenSelectionContains<EventModel>>());
+    ctx.actions.onSelectionChange(std::make_shared<EnableWhenSelectionContains<StateModel>>());
+
+    // TODO : enable when focus on scenario && not empty
+    auto on_sm = std::make_shared<EnableWhenScenarioModelObject>();
+    ctx.actions.onSelectionChange(on_sm);
+    ctx.actions.onFocusChange(on_sm);
+    auto on_si = std::make_shared<EnableWhenScenarioInterfaceObject>();
+    ctx.actions.onSelectionChange(on_si);
+    ctx.actions.onFocusChange(on_si);
 }
 
 auto ScenarioApplicationPlugin::makeGUIElements() -> GUIElements

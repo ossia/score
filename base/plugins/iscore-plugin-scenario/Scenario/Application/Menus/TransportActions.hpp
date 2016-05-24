@@ -28,7 +28,6 @@ class TransportActions : public QObject
         ScenarioApplicationPlugin* m_parent{};
 
         QAction* m_play{};
-        QAction* m_pause{};
         QAction* m_stop{};
         QAction* m_goToStart{};
         QAction* m_goToEnd{};
