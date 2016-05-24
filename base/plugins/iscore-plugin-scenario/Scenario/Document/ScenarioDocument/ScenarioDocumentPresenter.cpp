@@ -188,6 +188,8 @@ void ScenarioDocumentPresenter::setMillisPerPixel(ZoomRatio newRatio)
 
 void ScenarioDocumentPresenter::on_newSelection(const Selection& sel)
 {
+    // TODO ACTIONS
+    /*
     using namespace iscore;
     auto editMenu = iscore::AppContext().menuBar.menuAt(ToplevelMenuElement::ObjectMenu);
 
@@ -217,6 +219,7 @@ void ScenarioDocumentPresenter::on_newSelection(const Selection& sel)
         else if (a->whatsThis() == MenuInterface::name(ContextMenu::Object))
             a->setEnabled(true);
     }
+    */
 }
 
 void ScenarioDocumentPresenter::on_zoomSliderChanged(double sliderPos)

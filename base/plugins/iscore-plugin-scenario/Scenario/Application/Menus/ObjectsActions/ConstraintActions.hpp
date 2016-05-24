@@ -21,43 +21,33 @@ class AddProcessDialog;
 class ISCORE_PLUGIN_SCENARIO_EXPORT ConstraintActions : public QObject
 {
     public:
-    ConstraintActions(iscore::ToplevelMenuElement, ScenarioApplicationPlugin* parent);
-    ~ConstraintActions();
+        ConstraintActions(ScenarioApplicationPlugin* parent);
+        ~ConstraintActions();
 
-    void makeGUIElements(iscore::GUIElements& ref);
-    void fillMenuBar(iscore::MenubarManager *menu) ;
-    void fillContextMenu(
-            QMenu* menu,
-            const Selection&,
-            const TemporalScenarioPresenter& pres,
-            const QPoint&,
-            const QPointF&) ;
-    void fillContextMenu(
-            QMenu* menu,
-            const Selection&,
-            const ConstraintViewModel& vm,
-            const QPoint&,
-            const QPointF&);
-    void setEnabled(bool) ;
-    bool populateToolBar(QToolBar*) ;
+        void makeGUIElements(iscore::GUIElements& ref);
+        void fillContextMenu(
+                QMenu* menu,
+                const Selection&,
+                const TemporalScenarioPresenter& pres,
+                const QPoint&,
+                const QPointF&) ;
+        void fillContextMenu(
+                QMenu* menu,
+                const Selection&,
+                const ConstraintViewModel& vm,
+                const QPoint&,
+                const QPointF&);
 
-    QList<QAction*> actions() const ;
-
-    QAction* addProcess() const
-    { return m_addProcess; }
-    QAction* interpolateStates() const
-    { return m_interp; }
     private:
-    void addProcessInConstraint(const UuidKey<Process::ProcessFactory>&);
+        void addProcessInConstraint(const UuidKey<Process::ProcessFactory>&);
 
-    CommandDispatcher<> dispatcher();
+        CommandDispatcher<> dispatcher();
 
-    iscore::ToplevelMenuElement m_menuElt;
-    ScenarioApplicationPlugin* m_parent{};
-    QAction *m_addProcess{};
-    QAction *m_interp{};
+        ScenarioApplicationPlugin* m_parent{};
+        QAction *m_addProcess{};
+        QAction *m_interp{};
 
-    AddProcessDialog* m_addProcessDialog{};
+        AddProcessDialog* m_addProcessDialog{};
 
 };
 }

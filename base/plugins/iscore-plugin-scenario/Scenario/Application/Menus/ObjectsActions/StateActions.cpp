@@ -7,14 +7,13 @@
 #include <core/presenter/MenubarManager.hpp>
 #include <core/document/Document.hpp>
 
+#include <Scenario/Application/ScenarioActions.hpp>
 #include <QAction>
 #include <QMenu>
 
 namespace Scenario
 {
-StateActions::StateActions(iscore::ToplevelMenuElement menuElt,
-               ScenarioApplicationPlugin* parent) :
-    m_menuElt{menuElt},
+StateActions::StateActions(ScenarioApplicationPlugin* parent) :
     m_parent{parent}
 {
 
@@ -24,8 +23,8 @@ StateActions::StateActions(iscore::ToplevelMenuElement menuElt,
     m_updateStates->setToolTip(tr("Ctrl+U"));
     m_updateStates->setWhatsThis(iscore::MenuInterface::name(iscore::ContextMenu::State));
     connect(m_updateStates, &QAction::triggered,
-        this, [&] () {
-    Command::RefreshStates(m_parent->currentDocument()->context());
+            this, [&] () {
+        Command::RefreshStates(m_parent->currentDocument()->context());
     });
 
 }
@@ -34,51 +33,39 @@ StateActions::StateActions(iscore::ToplevelMenuElement menuElt,
 void StateActions::makeGUIElements(iscore::GUIElements& ref)
 {
     using namespace iscore;
-}
+    auto& scenario_iface_cond = m_parent->context.actions.condition<Process::EnableWhenFocusedProcessIs<Scenario::ScenarioInterface>>();
 
-void StateActions::fillMenuBar(iscore::MenubarManager* menu)
-{
-    menu->insertActionIntoToplevelMenu(m_menuElt,
-                       m_updateStates);
+    Menu& object = m_parent->context.menus.get().at(Menus::Object());
+    object.menu()->addAction(m_updateStates);
+
+    ref.actions.add<Actions::RefreshStates>(m_updateStates);
+    scenario_iface_cond.add<Actions::RefreshStates>();
 }
 
 void StateActions::fillContextMenu(
-    QMenu* menu,
-    const Selection& sel,
-    const TemporalScenarioPresenter& pres,
-    const QPoint&,
-    const QPointF&)
+        QMenu* menu,
+        const Selection& sel,
+        const TemporalScenarioPresenter& pres,
+        const QPoint&,
+        const QPointF&)
 {
     using namespace iscore;
     if(!sel.empty())
     {
-    if(std::any_of(sel.cbegin(),
-               sel.cend(),
-               [] (const QObject* obj) { return dynamic_cast<const StateModel*>(obj); })) // TODO : event or timenode ?
-    {
-        auto stateSubmenu = menu->findChild<QMenu*>(MenuInterface::name(iscore::ContextMenu::State));
-        if(!stateSubmenu)
+        if(std::any_of(sel.cbegin(),
+                       sel.cend(),
+                       [] (const QObject* obj) { return dynamic_cast<const StateModel*>(obj); })) // TODO : event or timenode ?
         {
-        stateSubmenu = menu->addMenu(MenuInterface::name(iscore::ContextMenu::State));
-        stateSubmenu->setTitle(MenuInterface::name(iscore::ContextMenu::State));
+            auto stateSubmenu = menu->findChild<QMenu*>(MenuInterface::name(iscore::ContextMenu::State));
+            if(!stateSubmenu)
+            {
+                stateSubmenu = menu->addMenu(MenuInterface::name(iscore::ContextMenu::State));
+                stateSubmenu->setTitle(MenuInterface::name(iscore::ContextMenu::State));
+            }
+
+            stateSubmenu->addAction(m_updateStates);
         }
-
-        stateSubmenu->addAction(m_updateStates);
     }
-    }
-}
-
-void StateActions::setEnabled(bool b)
-{
-    for (auto& act : actions())
-    {
-    act->setEnabled(b);
-    }
-}
-
-QList<QAction*> StateActions::actions() const
-{
-    return {m_updateStates};
 }
 
 CommandDispatcher<> StateActions::dispatcher()

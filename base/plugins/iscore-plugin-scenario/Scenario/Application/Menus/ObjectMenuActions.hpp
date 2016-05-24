@@ -28,7 +28,7 @@ class TemporalScenarioPresenter;
 class ISCORE_PLUGIN_SCENARIO_EXPORT ObjectMenuActions : public QObject
 {
     public:
-        ObjectMenuActions(iscore::ToplevelMenuElement, ScenarioApplicationPlugin* parent);
+        ObjectMenuActions(ScenarioApplicationPlugin* parent);
 
         void makeGUIElements(iscore::GUIElements& ref);
 

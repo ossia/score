@@ -54,13 +54,11 @@
 namespace Scenario
 {
 ObjectMenuActions::ObjectMenuActions(
-        iscore::ToplevelMenuElement menuElt,
         ScenarioApplicationPlugin* parent) :
-    m_menuElt{menuElt},
     m_parent{parent},
-    m_eventActions{menuElt, parent},
-    m_cstrActions{menuElt, parent},
-    m_stateActions{menuElt, parent}
+    m_eventActions{parent},
+    m_cstrActions{parent},
+    m_stateActions{parent}
 {
     using namespace iscore;
 
@@ -344,19 +342,4 @@ CommandDispatcher<> ObjectMenuActions::dispatcher() const
 }
 
 
-QList<QAction*> ObjectMenuActions::actions() const
-{
-    QList<QAction*> lst{
-            m_removeElements,
-            m_clearElements,
-            m_copyContent,
-            m_cutContent,
-            m_pasteContent,
-            m_elementsToJson,
-        };
-    lst.append(m_eventActions.actions());
-    lst.append(m_cstrActions.actions());
-    lst.append(m_stateActions.actions());
-    return lst;
-}
 }

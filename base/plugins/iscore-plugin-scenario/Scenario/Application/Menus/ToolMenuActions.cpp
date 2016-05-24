@@ -43,9 +43,7 @@ QAction* makeToolbarAction(const QString& name,
 }
 
 ToolMenuActions::ToolMenuActions(
-        iscore::ToplevelMenuElement menuElt,
         ScenarioApplicationPlugin* parent) :
-    m_menuElt{menuElt},
     m_parent{parent}
 {
     m_scenarioToolActionGroup = new QActionGroup{this};
