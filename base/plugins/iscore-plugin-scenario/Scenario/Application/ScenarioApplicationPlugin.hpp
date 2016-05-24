@@ -17,7 +17,6 @@ class ProcessFocusManager;
 }
 namespace iscore {
 class Document;
-class MenubarManager;
 struct OrderedToolbar;
 }  // namespace iscore
 

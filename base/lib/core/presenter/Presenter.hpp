@@ -43,15 +43,7 @@ class ISCORE_LIB_BASE_EXPORT Presenter final : public NamedObject
         // Exit i-score
         bool exit();
 
-        // Toolbars
-        [[deprecated]] std::vector<OrderedToolbar>& toolbars()
-        { return m_old_toolbars; }
-
-
         View* view() const;
-
-        [[deprecated]] auto& menuBar()
-        { return m_menubar; }
 
         auto& menuManager() { return m_menus; }
         auto& toolbarManager() { return m_toolbars; }
@@ -80,14 +72,12 @@ class ISCORE_LIB_BASE_EXPORT Presenter final : public NamedObject
         ApplicationComponentsData m_components;
         ApplicationComponents m_components_readonly;
 
-        MenubarManager m_menubar;
+        QMenuBar* m_menubar{};
         ApplicationContext m_context;
 
         MenuManager m_menus;
         ToolbarManager m_toolbars;
         ActionManager m_actions;
-
-        std::vector<OrderedToolbar> m_old_toolbars;
 
 };
 }

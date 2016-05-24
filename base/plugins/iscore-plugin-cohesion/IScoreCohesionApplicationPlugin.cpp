@@ -20,9 +20,9 @@
 #include <iscore/widgets/SetIcons.hpp>
 #include <Scenario/Commands/Cohesion/DoForSelectedConstraints.hpp>
 
-namespace iscore {
-
-}  // namespace iscore
+#include <Scenario/Application/ScenarioActions.hpp>
+ISCORE_DECLARE_ACTION(Snapshot, Scenario, QKeySequence(QObject::tr("Ctrl+L")))
+ISCORE_DECLARE_ACTION(CreateCurves, Scenario, QKeySequence(QObject::tr("Ctrl+J")))
 
 IScoreCohesionApplicationPlugin::IScoreCohesionApplicationPlugin(const iscore::ApplicationContext& ctx) :
     iscore::GUIApplicationContextPlugin {ctx}
@@ -39,18 +39,9 @@ IScoreCohesionApplicationPlugin::IScoreCohesionApplicationPlugin(const iscore::A
             this, &IScoreCohesionApplicationPlugin::stopRecord);
 
 
-    auto acts = appPlugin.actions();
-    for(const auto& act : acts)
-    {
-        if(act->objectName() == "Stop")
-        {
-            m_stopAction = act;
-            connect(m_stopAction, &QAction::triggered,
-                    this, [&] {
-                stopRecord();
-            });
-        }
-    }
+    auto& stop_action = ctx.actions.action<Actions::Stop>();
+    m_stopAction = stop_action.action();
+    connect(m_stopAction, &QAction::triggered, this, [&] { stopRecord(); });
 
     m_snapshot = new QAction {tr("Snapshot in Event"), this};
     m_snapshot->setShortcutContext(Qt::ApplicationShortcut);
@@ -84,25 +75,30 @@ IScoreCohesionApplicationPlugin::IScoreCohesionApplicationPlugin(const iscore::A
 
 }
 
-void IScoreCohesionApplicationPlugin::populateMenus(iscore::MenubarManager* menu)
+iscore::GUIElements IScoreCohesionApplicationPlugin::makeGUIElements()
 {
-    // If there is the Curve plug-in, the Device Explorer, and the Scenario plug-in,
-    // We can add an option in the menu to generate curves from the selected addresses
-    // in the current constraint.
+    using namespace iscore;
 
-    menu->insertActionIntoToplevelMenu(iscore::ToplevelMenuElement::ObjectMenu,
-                                       m_curves);
+    GUIElements e;
 
-    menu->insertActionIntoToplevelMenu(iscore::ToplevelMenuElement::ObjectMenu,
-                                       m_snapshot);
+    auto& scenario_iface_cond = context.actions.condition<Process::EnableWhenFocusedProcessIs<Scenario::ScenarioInterface>>();
 
-}
+    Menu& object = context.menus.get().at(Menus::Object());
+    object.menu()->addAction(m_snapshot);
+    object.menu()->addAction(m_curves);
+    {
+        iscore::Toolbar& bar = context.toolbars.get().at(StringKey<iscore::Toolbar>("Constraint"));
+        bar.toolbar()->addAction(m_snapshot);
+        bar.toolbar()->addAction(m_curves);
+    }
 
-std::vector<iscore::OrderedToolbar> IScoreCohesionApplicationPlugin::makeToolbars()
-{
-    QToolBar* bar = new QToolBar;
-    bar->addActions({m_curves, m_snapshot});
-    return std::vector<iscore::OrderedToolbar>{iscore::OrderedToolbar(2, bar)};
+    e.actions.add<Actions::Snapshot>(m_snapshot);
+    e.actions.add<Actions::CreateCurves>(m_curves);
+
+    scenario_iface_cond.add<Actions::Snapshot>();
+    scenario_iface_cond.add<Actions::CreateCurves>();
+
+    return e;
 }
 
 void IScoreCohesionApplicationPlugin::record(

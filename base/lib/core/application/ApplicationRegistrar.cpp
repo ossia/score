@@ -22,16 +22,12 @@ ApplicationRegistrar::ApplicationRegistrar(
         ApplicationComponentsData& comp,
         const iscore::ApplicationContext& ctx,
         iscore::View& view,
-        MenubarManager& menubar,
-        std::vector<OrderedToolbar>& toolbars,
         MenuManager& m,
         ToolbarManager& t,
         ActionManager& a):
     m_components{comp},
     m_context{ctx},
     m_view{view},
-    m_menubar{menubar},
-    m_toolbars{toolbars},
     m_menuManager{m},
     m_toolbarManager{t},
     m_actionManager{a}
@@ -59,10 +55,6 @@ void ApplicationRegistrar::registerApplicationContextPlugin(
     m_menuManager.insert(std::move(ui.menus));
     m_toolbarManager.insert(std::move(ui.toolbars));
     m_actionManager.insert(std::move(ui.actions.container));
-
-    ctrl->populateMenus(&m_menubar);
-    auto toolbars = ctrl->makeToolbars();
-    m_toolbars.insert(m_toolbars.end(), toolbars.begin(), toolbars.end());
 
     // TODO do a for-loop instead in Presenter or something
     con(m_view, &iscore::View::activeWindowChanged,

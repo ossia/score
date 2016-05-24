@@ -10,7 +10,6 @@
 namespace iscore {
 
 class Document;
-class MenubarManager;
 }  // namespace iscore
 struct VisitorVariant;
 
@@ -36,8 +35,6 @@ class ISCORE_PLUGIN_OSSIA_EXPORT OSSIAApplicationPlugin final :
     public:
         OSSIAApplicationPlugin(const iscore::ApplicationContext& app);
         ~OSSIAApplicationPlugin();
-
-        void populateMenus(iscore::MenubarManager*) override;
 
         bool handleStartup() override;
 

@@ -34,56 +34,6 @@ enum class ToplevelMenuElement : int // ISCORE_LIB_BASE_EXPORT
     AboutMenu
 };
 
-enum class FileMenuElement : int // ISCORE_LIB_BASE_EXPORT
-{
-    New,
-    Separator_Load,
-    Load,
-    Recent,
-    Save,
-    SaveAs,
-    Separator_Export,
-    Export,
-    Separator_Quit,
-    Close,
-    Quit,
-    SaveCommands,
-    LoadCommands
-};
-
-enum class EditMenuElement : int // ISCORE_LIB_BASE_EXPORT
-{
-    Separator_Copy,
-    Copy,
-    Cut,
-    Paste,
-    Separator_Undo,
-    Undo,
-    Redo
-};
-
-enum class ToolMenuElement : int // ISCORE_LIB_BASE_EXPORT
-{
-    Separator_Tool
-};
-
-enum class ViewMenuElement : int // ISCORE_LIB_BASE_EXPORT
-{
-    Windows
-};
-
-enum class SettingsMenuElement : int // ISCORE_LIB_BASE_EXPORT
-{
-    Settings
-};
-
-
-enum class AboutMenuElement : int // ISCORE_LIB_BASE_EXPORT
-{
-    Help,
-    About
-};
-
 // this is used to create sub context menu
 // and to enable actions in ObjectMenu
 enum class ContextMenu : int
@@ -115,12 +65,6 @@ class ISCORE_LIB_BASE_EXPORT MenuInterface
 
     private:
         static const std::map<ToplevelMenuElement, QString> m_map;
-        static const std::map<FileMenuElement, QString> m_fileMap;
-        static const std::map<EditMenuElement, QString> m_editMap;
-        static const std::map<ToolMenuElement, QString> m_toolMap;
-        static const std::map<ViewMenuElement, QString> m_viewMap;
-        static const std::map<SettingsMenuElement, QString> m_settingsMap;
-        static const std::map<AboutMenuElement, QString> m_aboutMap;
         static const std::map<ContextMenu, QString> m_contextMap;
 };
 }

@@ -16,7 +16,6 @@ namespace Scenario
 StateActions::StateActions(ScenarioApplicationPlugin* parent) :
     m_parent{parent}
 {
-
     m_updateStates = new QAction {tr("Refresh states"), this};
     m_updateStates->setShortcutContext(Qt::ApplicationShortcut);
     m_updateStates->setShortcut(tr("Ctrl+U"));

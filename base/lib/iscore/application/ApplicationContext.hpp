@@ -18,7 +18,6 @@ struct ApplicationContext
                 const iscore::ApplicationSettings&,
                 const ApplicationComponents&,
                 DocumentManager&,
-                iscore::MenubarManager&,
                 iscore::MenuManager&,
                 iscore::ToolbarManager&,
                 iscore::ActionManager&,
@@ -45,7 +44,6 @@ struct ApplicationContext
         const iscore::ApplicationSettings& applicationSettings;
         const iscore::ApplicationComponents& components;
         DocumentManager& documents;
-        iscore::MenubarManager& menuBar;
 
         MenuManager& menus;
         ToolbarManager& toolbars;

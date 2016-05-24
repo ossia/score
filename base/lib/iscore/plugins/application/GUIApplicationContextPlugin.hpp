@@ -52,10 +52,6 @@ namespace iscore
 
             virtual GUIElements makeGUIElements();
 
-            [[deprecated]] virtual void populateMenus(iscore::MenubarManager*);
-            [[deprecated]] virtual std::vector<iscore::OrderedToolbar> makeToolbars();
-            [[deprecated]] virtual std::vector<QAction*> actions();
-
             const ApplicationContext& context;
             Document* currentDocument() const;
 

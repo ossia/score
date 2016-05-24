@@ -271,6 +271,12 @@ class ISCORE_LIB_BASE_EXPORT ActionManager :
         void insert(std::vector<Action> vals);
 
         auto& get() const { return m_container; }
+        template<typename T>
+        auto& action()
+        { return m_container.at(MetaAction<T>::key()); }
+        template<typename T>
+        auto& action() const
+        { return m_container.at(MetaAction<T>::key()); }
 
         void reset(Document* doc);
 
@@ -429,8 +435,8 @@ class ISCORE_LIB_BASE_EXPORT ToolbarManager
 
         void insert(std::vector<Toolbar> vals);
 
-        auto& get() const
-        { return m_container; }
+        auto& get() { return m_container; }
+        auto& get() const { return m_container; }
 
     private:
         std::unordered_map<StringKey<Toolbar>, Toolbar> m_container;

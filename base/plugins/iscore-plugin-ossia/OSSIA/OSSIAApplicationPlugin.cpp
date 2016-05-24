@@ -25,9 +25,6 @@
 #include <iscore/plugins/application/GUIApplicationContextPlugin.hpp>
 #include <iscore/tools/Todo.hpp>
 
-namespace iscore {
-class MenubarManager;
-}  // namespace iscore
 struct VisitorVariant;
 #if defined(__APPLE__) && defined(ISCORE_DEPLOYMENT_BUILD)
 #include <TTFoundationAPI.h>
@@ -137,10 +134,6 @@ OSSIAApplicationPlugin::~OSSIAApplicationPlugin()
 RecreateOnPlay::ConstraintElement &OSSIAApplicationPlugin::baseConstraint() const
 {
     return *currentDocument()->context().plugin<RecreateOnPlay::DocumentPlugin>().baseScenario()->baseConstraint();
-}
-
-void OSSIAApplicationPlugin::populateMenus(iscore::MenubarManager* menu)
-{
 }
 
 bool OSSIAApplicationPlugin::handleStartup()

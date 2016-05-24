@@ -55,19 +55,20 @@ Presenter::Presenter(
     m_docManager{*view, this},
     m_components{},
     m_components_readonly{m_components},
-    #ifdef __APPLE__
-    m_menubar {new QMenuBar, this},
+  #ifdef __APPLE__
+    m_menubar {new QMenuBar},
   #else
-    m_menubar {view->menuBar(), this},
+    m_menubar {view->menuBar()},
   #endif
-    m_context(app, m_components_readonly, m_docManager, m_menubar, m_menus, m_toolbars, m_actions, m_settings.model().settings())
+    m_context(app, m_components_readonly, m_docManager, m_menus, m_toolbars, m_actions, m_settings.model().settings())
 {
     m_docManager.init(m_context); // It is necessary to break
     // this dependency cycle.
 
 
-    connect(m_view,     &View::insertActionIntoMenubar,
-            &m_menubar, &MenubarManager::insertActionIntoMenubar);
+    // TODO ACTIONS
+    // connect(m_view,     &View::insertActionIntoMenubar,
+    //        &m_menubar, &MenubarManager::insertActionIntoMenubar);
     connect(&m_context.documents, &DocumentManager::documentChanged,
             &m_actions, &ActionManager::reset);
 
@@ -86,14 +87,6 @@ View* Presenter::view() const
 
 void Presenter::setupGUI()
 {
-    // OLD WAY
-    std::sort(toolbars().begin(), toolbars().end());
-    for(auto& toolbar : toolbars())
-    {
-        m_view->addToolBar(toolbar.bar);
-    }
-
-
     // 1. Show the menus
     // If the menu has no parent menu, we add it to the main menu bar.
     {

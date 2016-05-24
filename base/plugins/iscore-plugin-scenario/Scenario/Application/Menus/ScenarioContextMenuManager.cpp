@@ -192,6 +192,8 @@ void ScenarioContextMenuManager::createLayerContextMenu(
         const QPointF& scenepos,
         const Process::LayerPresenter& pres)
 {
+    // TODO ACTIONS
+    /*
     using namespace iscore;
     // Fill with slot actions
     if(auto slotp = dynamic_cast<SlotPresenter*>(pres.parent()))
@@ -213,6 +215,7 @@ void ScenarioContextMenuManager::createLayerContextMenu(
     // Then the process-specific part
     auto processMenu = menu.addMenu(iscore::MenuInterface::name(iscore::ContextMenu::Process));
     pres.fillContextMenu(processMenu, pos, scenepos);
+    */
 }
 
 void ScenarioContextMenuManager::createScenarioContextMenu(

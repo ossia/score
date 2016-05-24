@@ -311,6 +311,7 @@ void ToolMenuActions::fillContextMenu(
     */
 }
 
+/*
 void ToolMenuActions::setEnabled(bool arg)
 {
     m_scenarioToolActionGroup->setEnabled(arg);
@@ -320,7 +321,7 @@ void ToolMenuActions::setEnabled(bool arg)
         m_selecttool->setChecked(true);
     }
 }
-
+*/
 void ToolMenuActions::keyPressed(int key)
 {
     if(key == Qt::Key_Shift)

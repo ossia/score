@@ -30,8 +30,6 @@ class ISCORE_LIB_BASE_EXPORT ApplicationRegistrar : public QObject
                 ApplicationComponentsData&,
                 const iscore::ApplicationContext&,
                 iscore::View&,
-                MenubarManager&,
-                std::vector<OrderedToolbar>&,
                 MenuManager&,
                 ToolbarManager&,
                 ActionManager&);
@@ -52,8 +50,6 @@ class ISCORE_LIB_BASE_EXPORT ApplicationRegistrar : public QObject
         ApplicationComponentsData& m_components;
         const iscore::ApplicationContext& m_context;
         iscore::View& m_view;
-        MenubarManager& m_menubar;
-        std::vector<OrderedToolbar>& m_toolbars;
 
         MenuManager& m_menuManager;
         ToolbarManager& m_toolbarManager;

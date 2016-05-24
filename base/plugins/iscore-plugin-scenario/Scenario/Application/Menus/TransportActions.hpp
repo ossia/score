@@ -10,9 +10,6 @@
 class QAction;
 class QMenu;
 class QToolBar;
-namespace iscore {
-class MenubarManager;
-}  // namespace iscore
 
 namespace Scenario
 {

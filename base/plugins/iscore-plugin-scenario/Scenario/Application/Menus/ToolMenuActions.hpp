@@ -11,10 +11,6 @@ class QAction;
 class QActionGroup;
 class QMenu;
 class QToolBar;
-namespace iscore {
-class MenubarManager;
-}  // namespace iscore
-
 namespace Scenario
 {
 class ScenarioApplicationPlugin;
@@ -24,19 +20,14 @@ class ToolMenuActions : public QObject
     public:
         ToolMenuActions(ScenarioApplicationPlugin* parent);
 
-
         void makeGUIElements(iscore::GUIElements& ref);
 
-        void fillMenuBar(iscore::MenubarManager *menu);
         void fillContextMenu(
                 QMenu* menu,
                 const Selection&sel,
                 const TemporalScenarioPresenter& pres,
                 const QPoint&,
                 const QPointF&);
-        bool populateToolBar(QToolBar* bar);
-        void setEnabled(bool);
-
 
     private:
         void keyPressed(int key);
