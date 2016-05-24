@@ -96,8 +96,6 @@ auto ScenarioApplicationPlugin::makeGUIElements() -> GUIElements
 {
     using namespace iscore;
     GUIElements e;
-    auto& toolbars = e.toolbars;
-    auto& actions = e.actions.container;
 
     {
         m_selectAll = new QAction{tr("Select all"), this};
@@ -141,50 +139,6 @@ auto ScenarioApplicationPlugin::makeGUIElements() -> GUIElements
         cond.add<Actions::DeselectAll>();
     }
 
-    {
-
-        // TODO ACTIONS
-        /*
-        auto bar = new QToolBar;
-
-        int i = 0;
-        for(const auto& act : m_pluginActions)
-        {
-            if(dynamic_cast<TransportActions*>(act))
-                continue;
-
-            if(act->populateToolBar(bar))
-            {
-                if(i < m_pluginActions.size() - 1)
-                    bar->addSeparator();
-            }
-
-            i++;
-        }
-        */
-        /*
-        auto transportButtons = new QToolBar;
-        // See : http://stackoverflow.com/questions/21363350/remove-gradient-from-qtoolbar-in-os-x
-        transportButtons->setStyle(QStyleFactory::create("windows"));
-        transportButtons->setObjectName("ScenarioTransportToolbar");
-
-        auto& appPlug = ctx.components.applicationPlugin<ScenarioApplicationPlugin>();
-        for(const auto& action : appPlug.pluginActions())
-        {
-            if(auto trsprt = dynamic_cast<TransportActions*>(action))
-            {
-                trsprt->populateToolBar(transportButtons);
-                for(auto act : trsprt->actions())
-                {
-                    m_view->addAction(act);
-                }
-                break;
-            }
-        }
-        return std::vector<iscore::OrderedToolbar>{iscore::OrderedToolbar(1, bar)};
-        */
-    }
-
     m_objectActions.makeGUIElements(e);
     m_toolActions.makeGUIElements(e);
     m_transportActions.makeGUIElements(e);
@@ -196,24 +150,24 @@ ScenarioApplicationPlugin::~ScenarioApplicationPlugin() = default;
 
 void ScenarioApplicationPlugin::on_presenterDefocused(Process::LayerPresenter* pres)
 {
-    /*
     // We set the currently focused view model to a "select" state
     // to prevent problems.
-    editionSettings().setDefault(); // NOTE maybe useless now ?
+    editionSettings().setDefault();
 
+    // TODO Actions
+    /*
     for(ScenarioActions*& elt : m_pluginActions)
     {
         elt->setEnabled(false);
     }
+    */
 
     disconnect(m_contextMenuConnection);
-    */
 }
 
 
 void ScenarioApplicationPlugin::on_presenterFocused(Process::LayerPresenter* pres)
 {
-    /*
     // Generic stuff
     if(focusedPresenter())
     {
@@ -229,8 +183,21 @@ void ScenarioApplicationPlugin::on_presenterFocused(Process::LayerPresenter* pre
             menu.close();
         } );
     }
+    else
+    {
+        return;
+    }
 
+    auto s_pres = dynamic_cast<TemporalScenarioPresenter*>(pres);
 
+    if(s_pres)
+    {
+        context.actions.action<Actions::SelectTool>().action()->setEnabled(true);
+        context.actions.action<Actions::CreateTool>().action()->setEnabled(true);
+        context.actions.action<Actions::PlayTool>().action()->setEnabled(true);
+    }
+    // TODO Actions
+    /*
     // Case specific to the scenario process.
     // First get the scenario presenter
     auto s_pres = dynamic_cast<TemporalScenarioPresenter*>(pres);
@@ -242,6 +209,7 @@ void ScenarioApplicationPlugin::on_presenterFocused(Process::LayerPresenter* pre
         else
             elt->setEnabled(bool(s_pres));
     }
+    */
 
     if (s_pres)
     {
@@ -251,26 +219,16 @@ void ScenarioApplicationPlugin::on_presenterFocused(Process::LayerPresenter* pre
         connect(s_pres, &TemporalScenarioPresenter::keyReleased,
                 this,  &ScenarioApplicationPlugin::keyReleased);
 
-
-        for(ScenarioActions* elt : m_pluginActions)
-        {
-            const auto& acts = elt->actions();
-            auto it = std::find_if(acts.begin(), acts.end(), [] (const auto& act) { return act->objectName() == "Select"; });
-            if(it != acts.end())
-            {
-                (*it)->trigger();
-                break;
-            }
-        }
+        auto& select_act = context.actions.action<Actions::SelectTool>();
+        select_act.action()->trigger();
     }
-    */
 }
 
 void ScenarioApplicationPlugin::on_documentChanged(
         iscore::Document* olddoc,
         iscore::Document* newdoc)
 {
-    /*
+    // TODO Actions
     using namespace iscore;
     // TODO the context menu connection should be reviewed, too.
     this->disconnect(m_focusConnection);
@@ -343,7 +301,6 @@ void ScenarioApplicationPlugin::on_documentChanged(
         if(bev)
             bev->view().setFocus();
     }
-    */
 }
 
 void ScenarioApplicationPlugin::on_activeWindowChanged()
@@ -380,17 +337,8 @@ TemporalScenarioPresenter* ScenarioApplicationPlugin::focusedPresenter() const
 
 void ScenarioApplicationPlugin::prepareNewDocument()
 {
-    // TODO ACTIONS
-    /*
-    for(const auto& action : pluginActions())
-    {
-        if(auto trsprt = dynamic_cast<TransportActions*>(action))
-        {
-            trsprt->stop();
-            return;
-        }
-    }
-    */
+    auto& stop_action = context.actions.action<Actions::Stop>();
+    stop_action.action()->trigger();
 }
 
 Process::ProcessFocusManager* ScenarioApplicationPlugin::processFocusManager() const

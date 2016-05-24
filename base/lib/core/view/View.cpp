@@ -77,12 +77,9 @@ void View::setupPanel(PanelDelegate* v)
     auto dial = new QDockWidget {v->defaultPanelStatus().prettyName, this};
     dial->setWidget(v->widget());
     dial->toggleViewAction()->setShortcut(v->defaultPanelStatus().shortcut);
-    // TODO ACTIONS
-    /*
-    emit insertActionIntoMenubar({MenuInterface::name(ToplevelMenuElement::ViewMenu) + "/" +
-                                  MenuInterface::name(ViewMenuElement::Windows),
-                                  dial->toggleViewAction()});
-                                  */
+
+    auto& mw = v->context().menus.get().at(iscore::Menus::Windows());
+    mw.menu()->addAction(dial->toggleViewAction());
 
     // Note : this only has meaning at initialisation time.
     auto dock = v->defaultPanelStatus().dock;

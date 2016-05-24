@@ -24,6 +24,7 @@
 #include <iscore/application/ApplicationContext.hpp>
 #include <iscore/plugins/application/GUIApplicationContextPlugin.hpp>
 #include <iscore/tools/Todo.hpp>
+#include <Scenario/Application/ScenarioActions.hpp>
 
 struct VisitorVariant;
 #if defined(__APPLE__) && defined(ISCORE_DEPLOYMENT_BUILD)
@@ -65,46 +66,28 @@ OSSIAApplicationPlugin::OSSIAApplicationPlugin(const iscore::ApplicationContext&
     // Another part that, at execution time, creates structures corresponding
     // to the Scenario plug-in with the OSSIA API.
 
-    // TODO ACTIONS
-    /*
+
+    auto& play_action = ctx.actions.action<Actions::Play>();
+    connect(play_action.action(), &QAction::triggered,
+            this, [&] (bool b) { on_play(b); });
+
+    auto& stop_action = ctx.actions.action<Actions::Stop>();
+    connect(stop_action.action(), &QAction::triggered,
+            this, &OSSIAApplicationPlugin::on_stop);
+
+    auto& init_action = ctx.actions.action<Actions::Reinitialize>();
+    connect(init_action.action(), &QAction::triggered,
+            this, &OSSIAApplicationPlugin::on_init);
+
     auto& ctrl = ctx.components.applicationPlugin<Scenario::ScenarioApplicationPlugin>();
-    auto acts = ctrl.actions();
-    for(const auto& act : acts)
-    {
-        if(act->objectName() == "Play")
-        {
-            connect(act, &QAction::toggled,
-                    this, [&] (bool b)
-            { on_play(b); });
-        }
-        else if(act->objectName() == "Stop")
-        {
-            connect(act, &QAction::triggered,
-                    this, &OSSIAApplicationPlugin::on_stop);
-        }
-        else if(act->objectName() == "StopAndInit")
-        {
-            connect(act, &QAction::triggered,
-                    this, &OSSIAApplicationPlugin::on_init);
-        }
-    }
-
-    auto playCM = new RecreateOnPlay::PlayContextMenu{&ctrl};
-    ctrl.pluginActions().push_back(playCM);
-
-    con(playCM->playFromHereAction(), &QAction::triggered,
-            this, [=] ()
-    {
-        auto t = playCM->playFromHereAction().data().value<::TimeValue>();
-        on_play(true, t);
-    });
-
+    // TODO put it as a value
+    auto playCM = new RecreateOnPlay::PlayContextMenu{*this, &ctrl};
     con(ctrl, &Scenario::ScenarioApplicationPlugin::playAtDate,
         this, [=] (const TimeValue& t)
     {
         on_play(true, t);
     });
-    */
+
 }
 
 OSSIAApplicationPlugin::~OSSIAApplicationPlugin()

@@ -37,10 +37,12 @@
 #include <core/presenter/DocumentManager.hpp>
 #include <iscore/tools/NotifyingMap.hpp>
 #include <OSSIA/iscore2OSSIA.hpp>
-
+#include <OSSIA/OSSIAApplicationPlugin.hpp>
 namespace RecreateOnPlay
 {
-PlayContextMenu::PlayContextMenu(Scenario::ScenarioApplicationPlugin *parent):
+PlayContextMenu::PlayContextMenu(
+        OSSIAApplicationPlugin& plug,
+        Scenario::ScenarioApplicationPlugin *parent):
   m_parent{parent}
 {
     using namespace Scenario;
@@ -150,7 +152,14 @@ PlayContextMenu::PlayContextMenu(Scenario::ScenarioApplicationPlugin *parent):
 
         m_recordAutomations->setData({});
     });
+
     m_playFromHere = new QAction{tr("Play from here"), this};
+    connect(m_playFromHere, &QAction::triggered,
+        this, [&] ()
+    {
+        auto t = m_playFromHere->data().value<::TimeValue>();
+        plug.on_play(true, t);
+    });
 }
 
 void PlayContextMenu::fillContextMenu(

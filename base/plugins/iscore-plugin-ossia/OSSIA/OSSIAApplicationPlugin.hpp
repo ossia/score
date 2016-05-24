@@ -49,6 +49,8 @@ class ISCORE_PLUGIN_OSSIA_EXPORT OSSIAApplicationPlugin final :
         const std::shared_ptr<OSSIA::Device>& localDevice() const
         { return m_localDevice; }
 
+        void on_play(bool, ::TimeValue t = ::TimeValue::zero() );
+
     signals:
         void requestPlay();
         void requestPause();
@@ -56,7 +58,6 @@ class ISCORE_PLUGIN_OSSIA_EXPORT OSSIAApplicationPlugin final :
         void requestStop();
 
     private:
-        void on_play(bool, ::TimeValue t = ::TimeValue::zero() );
         void on_stop();
         void on_init();
 

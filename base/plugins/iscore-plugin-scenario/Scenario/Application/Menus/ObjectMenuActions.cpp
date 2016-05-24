@@ -149,8 +149,6 @@ void ObjectMenuActions::makeGUIElements(iscore::GUIElements& ref)
 {
     using namespace iscore;
     auto& actions = ref.actions;
-    auto& menus = ref.menus;
-    auto& toolbars = ref.toolbars;
 
     actions.add<Actions::RemoveElements>(m_removeElements);
     actions.add<Actions::ClearElements>(m_clearElements);
@@ -167,7 +165,7 @@ void ObjectMenuActions::makeGUIElements(iscore::GUIElements& ref)
     object.menu()->addAction(m_copyContent);
     object.menu()->addAction(m_cutContent);
     object.menu()->addAction(m_pasteContent);
-
+    object.menu()->addSeparator();
     m_eventActions.makeGUIElements(ref);
     m_cstrActions.makeGUIElements(ref); // Only constraint in toolbar
     m_stateActions.makeGUIElements(ref);

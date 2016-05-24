@@ -12,12 +12,13 @@ namespace Scenario
 class ScenarioApplicationPlugin;
 class TemporalScenarioPresenter;
 }
+class OSSIAApplicationPlugin;
 namespace RecreateOnPlay
 {
 class PlayContextMenu final : public QObject
 {
     public:
-        PlayContextMenu(Scenario::ScenarioApplicationPlugin* parent);
+        PlayContextMenu(OSSIAApplicationPlugin& plug, Scenario::ScenarioApplicationPlugin* parent);
 
 
         void fillContextMenu(QMenu* menu, const Selection&, const Scenario::TemporalScenarioPresenter& pres, const QPoint&, const QPointF&) ;
