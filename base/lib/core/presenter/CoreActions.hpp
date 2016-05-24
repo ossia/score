@@ -1,9 +1,6 @@
 #pragma once
 #include <iscore/actions/Action.hpp>
 
-namespace iscore
-{
-
 ISCORE_DECLARE_ACTION(Undo, Common, QKeySequence::Undo)
 ISCORE_DECLARE_ACTION(Redo, Common, QKeySequence::Redo)
 
@@ -18,6 +15,3 @@ ISCORE_DECLARE_ACTION(Quit, Common, QKeySequence::Quit)
 
 ISCORE_DECLARE_ACTION(OpenSettings, Common, QKeySequence::Preferences)
 ISCORE_DECLARE_ACTION(About, Common, QKeySequence::UnknownKey)
-
-
-}
