@@ -47,7 +47,6 @@ ToolMenuActions::ToolMenuActions(
     m_parent{parent}
 {
     m_scenarioToolActionGroup = new QActionGroup{this};
-    m_scenarioToolActionGroup->setDisabled(true);
 
     // NOTE : if a scenario isn't focused, they shouldn't event be clickable.
 

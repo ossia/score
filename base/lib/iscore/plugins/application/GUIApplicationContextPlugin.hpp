@@ -17,7 +17,6 @@ struct VisitorVariant;
 namespace iscore
 {
     class DocumentPlugin;
-    class MenubarManager;
 
     /**
      * @brief The GUIApplicationContextPlugin class

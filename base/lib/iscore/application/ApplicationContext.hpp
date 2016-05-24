@@ -10,7 +10,6 @@ class DocumentManager;
 class MenuManager;
 class ToolbarManager;
 class ActionManager;
-class MenubarManager;
 
 struct ApplicationContext
 {

@@ -153,6 +153,7 @@ void ActionCondition::setEnabled(ActionManager &mgr, bool b)
     for(auto& action : actions)
     {
         auto& act = mgr.get().at(action);
+        qDebug() << act.action()->text() << b;
         act.action()->setEnabled(b);
     }
 }

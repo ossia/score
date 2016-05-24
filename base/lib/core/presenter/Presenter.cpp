@@ -65,10 +65,6 @@ Presenter::Presenter(
     m_docManager.init(m_context); // It is necessary to break
     // this dependency cycle.
 
-
-    // TODO ACTIONS
-    // connect(m_view,     &View::insertActionIntoMenubar,
-    //        &m_menubar, &MenubarManager::insertActionIntoMenubar);
     connect(&m_context.documents, &DocumentManager::documentChanged,
             &m_actions, &ActionManager::reset);
 

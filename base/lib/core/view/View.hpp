@@ -22,7 +22,7 @@ namespace iscore
     class PanelView;
     class PanelDelegate;
     class Presenter;
-
+    struct ApplicationContext;
     /**
      * @brief The View class
      *
@@ -62,6 +62,7 @@ namespace iscore
 
         private:
             void changeEvent(QEvent *) override;
+
 
             std::vector<QPair<PanelDelegate*, QDockWidget*>> m_leftPanels;
             std::vector<QPair<PanelDelegate*, QDockWidget*>> m_rightPanels;

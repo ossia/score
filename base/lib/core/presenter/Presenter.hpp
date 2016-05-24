@@ -8,7 +8,7 @@
 #include <iscore/tools/NamedObject.hpp>
 #include <iscore/widgets/OrderedToolbar.hpp>
 #include <vector>
-
+#include <QMenuBar>
 #include <iscore_lib_base_export.h>
 class QObject;
 

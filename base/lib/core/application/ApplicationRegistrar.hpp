@@ -18,7 +18,6 @@ class PanelDelegateFactory;
 class SettingsDelegateFactory;
 struct ApplicationComponentsData;
 class View;
-class MenubarManager;
 struct OrderedToolbar;
 class Settings;
 class Plugin_QtInterface;
