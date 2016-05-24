@@ -25,7 +25,7 @@
 #include <Scenario/Commands/Constraint/AddProcessToConstraint.hpp>
 #include <Scenario/Commands/Cohesion/InterpolateStates.hpp>
 #include <Scenario/Commands/Cohesion/DoForSelectedConstraints.hpp>
-
+#include <Scenario/Application/ScenarioActions.hpp>
 #include <QAction>
 #include <QMenu>
 #include <QToolBar>
@@ -52,9 +52,7 @@ auto selectedConstraintsInCurrentDocument(const iscore::ApplicationContext& appC
 }
 
 ConstraintActions::ConstraintActions(
-        iscore::ToplevelMenuElement menuElt,
         ScenarioApplicationPlugin* parent) :
-    m_menuElt{menuElt},
     m_parent{parent}
 {
     const auto& appContext = parent->context;
@@ -95,12 +93,22 @@ ConstraintActions::~ConstraintActions()
 void ConstraintActions::makeGUIElements(iscore::GUIElements& ref)
 {
     using namespace iscore;
-}
+    auto& scenario_iface_cond = m_parent->context.actions.condition<Process::EnableWhenFocusedProcessIs<Scenario::ScenarioInterface>>();
 
-void ConstraintActions::fillMenuBar(iscore::MenubarManager* menu)
-{
-    menu->insertActionIntoToplevelMenu(m_menuElt, m_addProcess);
-    menu->insertActionIntoToplevelMenu(m_menuElt, m_interp);
+    Menu& object = m_parent->context.menus.get().at(Menus::Object());
+    object.menu()->addAction(m_addProcess);
+    object.menu()->addAction(m_interp);
+    {
+        auto bar = new QToolBar{tr("Constraint")};
+        bar->addAction(m_interp);
+        ref.toolbars.emplace_back(bar, StringKey<iscore::Toolbar>("Constraint"), 0, 0);
+    }
+
+    ref.actions.add<Actions::AddProcess>(m_addProcess);
+    ref.actions.add<Actions::InterpolateStates>(m_interp);
+
+    scenario_iface_cond.add<Actions::AddProcess>();
+    scenario_iface_cond.add<Actions::InterpolateStates>();
 }
 
 void ConstraintActions::fillContextMenu(
@@ -215,30 +223,6 @@ void ConstraintActions::fillContextMenu(
         cstrSubmenu->addAction(m_addProcess);
     }
     cstrSubmenu->addAction(m_interp);
-
-}
-
-void ConstraintActions::setEnabled(bool b)
-{
-    for (auto& act : actions())
-    {
-    act->setEnabled(b);
-    }
-}
-
-bool ConstraintActions::populateToolBar(QToolBar* b)
-{
-    b->addAction(m_interp);
-    return true;
-}
-
-QList<QAction*> ConstraintActions::actions() const
-{
-    QList<QAction*> lst{
-    m_interp,
-    m_addProcess
-    };
-    return lst;
 }
 
 void ConstraintActions::addProcessInConstraint(const UuidKey<Process::ProcessFactory>& processName)

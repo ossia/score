@@ -17,21 +17,12 @@ class TriggerCommandFactoryList;
 class ISCORE_PLUGIN_SCENARIO_EXPORT EventActions : public QObject
 {
     public:
-        EventActions(iscore::ToplevelMenuElement, ScenarioApplicationPlugin* parent);
+        EventActions(ScenarioApplicationPlugin* parent);
 
         void makeGUIElements(iscore::GUIElements& ref);
 
-        void fillMenuBar(iscore::MenubarManager *menu) ;
         void fillContextMenu(QMenu* menu, const Selection&, const TemporalScenarioPresenter& pres, const QPoint&, const QPointF&) ;
         void fillContextMenu(QMenu* menu, const Selection&, const QPoint&, const QPointF&);
-        void setEnabled(bool) ;
-
-        QList<QAction*> actions() const ;
-
-        QAction* addTrigger() const
-        { return m_addTrigger; }
-        QAction* removeTrigger() const
-        { return m_removeTrigger; }
 
     private:
         void addTriggerToTimeNode();
@@ -39,7 +30,6 @@ class ISCORE_PLUGIN_SCENARIO_EXPORT EventActions : public QObject
 
         CommandDispatcher<> dispatcher();
 
-        iscore::ToplevelMenuElement m_menuElt;
         ScenarioApplicationPlugin* m_parent{};
         QAction *m_addTrigger{};
         QAction *m_removeTrigger{};

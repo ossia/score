@@ -15,23 +15,22 @@
 #include <iscore/serialization/DataStreamVisitor.hpp>
 #include <iscore/tools/ModelPathSerialization.hpp>
 
+#include <Scenario/Application/ScenarioActions.hpp>
 #include <QAction>
 #include <QMenu>
 
 namespace Scenario
 {
 EventActions::EventActions(
-        iscore::ToplevelMenuElement menuElt,
         ScenarioApplicationPlugin* parent):
-    m_menuElt{menuElt},
     m_parent{parent},
-     m_triggerCommandFactory{parent->context.components.factory<Command::TriggerCommandFactoryList>()}
+    m_triggerCommandFactory{parent->context.components.factory<Command::TriggerCommandFactoryList>()}
 {
     using namespace iscore;
     m_addTrigger = new QAction{tr("Add Trigger"), this};
     m_addTrigger->setWhatsThis(MenuInterface::name(ContextMenu::Event));
     connect(m_addTrigger, &QAction::triggered,
-        this, &EventActions::addTriggerToTimeNode);
+            this, &EventActions::addTriggerToTimeNode);
 
     m_removeTrigger = new QAction{tr("Remove Trigger"), this};
     m_removeTrigger->setWhatsThis(MenuInterface::name(ContextMenu::Event));
@@ -42,21 +41,26 @@ EventActions::EventActions(
 void EventActions::makeGUIElements(iscore::GUIElements& ref)
 {
     using namespace iscore;
+    auto& scenario_iface_cond = m_parent->context.actions.condition<Process::EnableWhenFocusedProcessIs<Scenario::ScenarioInterface>>();
+
+    Menu& object = m_parent->context.menus.get().at(Menus::Object());
+    object.menu()->addAction(m_addTrigger);
+    object.menu()->addAction(m_removeTrigger);
+
+    ref.actions.add<Actions::AddTrigger>(m_addTrigger);
+    ref.actions.add<Actions::RemoveTrigger>(m_removeTrigger);
+
+    scenario_iface_cond.add<Actions::AddTrigger>();
+    scenario_iface_cond.add<Actions::RemoveTrigger>();
 }
 
-
-void EventActions::fillMenuBar(iscore::MenubarManager* menu)
-{
-    menu->insertActionIntoToplevelMenu(m_menuElt, m_addTrigger);
-    menu->insertActionIntoToplevelMenu(m_menuElt, m_removeTrigger);
-}
 
 void EventActions::fillContextMenu(
-    QMenu* menu,
-    const Selection& sel,
-    const TemporalScenarioPresenter& pres,
-    const QPoint& p1,
-    const QPointF& p2)
+        QMenu* menu,
+        const Selection& sel,
+        const TemporalScenarioPresenter& pres,
+        const QPoint& p1,
+        const QPointF& p2)
 {
     fillContextMenu(menu, sel, p1, p2);
 }
@@ -86,22 +90,6 @@ void EventActions::fillContextMenu(
     }
 }
 
-void EventActions::setEnabled(bool b)
-{
-    for (auto& act : actions())
-    {
-    act->setEnabled(b);
-    }
-}
-
-QList<QAction*> EventActions::actions() const
-{
-    QList<QAction*> lst{
-    m_addTrigger,
-    m_removeTrigger
-    };
-    return lst;
-}
 
 void EventActions::addTriggerToTimeNode()
 {

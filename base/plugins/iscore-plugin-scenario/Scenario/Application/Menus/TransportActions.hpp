@@ -23,13 +23,11 @@ class TransportActions : public QObject
 {
     public:
         TransportActions(
-                iscore::ToplevelMenuElement menuElt,
                 ScenarioApplicationPlugin* parent);
 
         void makeGUIElements(iscore::GUIElements& ref);
 
     private:
-        iscore::ToplevelMenuElement m_menuElt;
         ScenarioApplicationPlugin* m_parent{};
 
         QAction* m_play{};

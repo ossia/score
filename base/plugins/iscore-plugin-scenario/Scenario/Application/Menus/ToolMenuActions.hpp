@@ -22,7 +22,7 @@ class TemporalScenarioPresenter;
 class ToolMenuActions : public QObject
 {
     public:
-        ToolMenuActions(iscore::ToplevelMenuElement menuElt, ScenarioApplicationPlugin* parent);
+        ToolMenuActions(ScenarioApplicationPlugin* parent);
 
 
         void makeGUIElements(iscore::GUIElements& ref);
@@ -42,7 +42,6 @@ class ToolMenuActions : public QObject
         void keyPressed(int key);
         void keyReleased(int key);
 
-        iscore::ToplevelMenuElement m_menuElt;
         ScenarioApplicationPlugin* m_parent{};
 
         QActionGroup* m_scenarioScaleModeActionGroup{};

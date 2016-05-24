@@ -22,9 +22,7 @@ namespace Scenario
 class TemporalScenarioPresenter;
 
 TransportActions::TransportActions(
-        iscore::ToplevelMenuElement menuElt,
         ScenarioApplicationPlugin* parent) :
-    m_menuElt{menuElt},
     m_parent{parent}
 {
     m_play = new QAction{tr("Play"), this};

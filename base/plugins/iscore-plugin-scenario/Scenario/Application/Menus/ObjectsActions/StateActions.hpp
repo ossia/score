@@ -14,24 +14,15 @@ class TemporalScenarioPresenter;
 class ISCORE_PLUGIN_SCENARIO_EXPORT StateActions : public QObject
 {
     public:
-    StateActions(iscore::ToplevelMenuElement, ScenarioApplicationPlugin* parent);
+        StateActions(ScenarioApplicationPlugin* parent);
 
-    void makeGUIElements(iscore::GUIElements& ref);
+        void makeGUIElements(iscore::GUIElements& ref);
 
-
-    void fillMenuBar(iscore::MenubarManager *menu) ;
-    void fillContextMenu(QMenu* menu, const Selection&, const TemporalScenarioPresenter& pres, const QPoint&, const QPointF&) ;
-    void setEnabled(bool) ;
-
-    QList<QAction*> actions() const ;
-
-    QAction* updateStates() const
-    { return m_updateStates; }
+        void fillContextMenu(QMenu* menu, const Selection&, const TemporalScenarioPresenter& pres, const QPoint&, const QPointF&) ;
     private:
-    CommandDispatcher<> dispatcher();
+        CommandDispatcher<> dispatcher();
 
-    iscore::ToplevelMenuElement m_menuElt;
-    ScenarioApplicationPlugin* m_parent{};
-    QAction* m_updateStates{};
+        ScenarioApplicationPlugin* m_parent{};
+        QAction* m_updateStates{};
 };
 }
