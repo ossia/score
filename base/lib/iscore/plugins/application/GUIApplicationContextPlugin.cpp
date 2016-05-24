@@ -39,22 +39,6 @@ auto GUIApplicationContextPlugin::makeGUIElements() -> GUIElements
     return {};
 }
 
-void GUIApplicationContextPlugin::populateMenus(MenubarManager*)
-{
-
-}
-
-
-std::vector<OrderedToolbar> GUIApplicationContextPlugin::makeToolbars()
-{
-    return {};
-}
-
-std::vector<QAction*> GUIApplicationContextPlugin::actions()
-{
-    return {};
-}
-
 Document*GUIApplicationContextPlugin::currentDocument() const
 {
     return context.documents.currentDocument();

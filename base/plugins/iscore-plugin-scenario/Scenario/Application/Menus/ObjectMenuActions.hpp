@@ -16,10 +16,6 @@ class QAction;
 class QMenu;
 class QToolBar;
 
-namespace iscore {
-class MenubarManager;
-}  // namespace iscore
-
 namespace Scenario
 {
 struct Point;
@@ -47,7 +43,6 @@ class ISCORE_PLUGIN_SCENARIO_EXPORT ObjectMenuActions : public QObject
         void pasteElements(const QJsonObject& obj, const Scenario::Point& origin);
         void writeJsonToSelectedElements(const QJsonObject &obj);
 
-        iscore::ToplevelMenuElement m_menuElt;
         ScenarioApplicationPlugin* m_parent{};
 
         EventActions m_eventActions;

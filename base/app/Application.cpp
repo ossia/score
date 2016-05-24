@@ -237,8 +237,6 @@ void Application::loadPluginData()
         m_presenter->components(),
                 ctx,
                 *m_view,
-                m_presenter->menuBar(),
-                m_presenter->toolbars(),
                 m_presenter->menuManager(),
                 m_presenter->toolbarManager(),
                 m_presenter->actionManager()};

@@ -38,14 +38,9 @@
 #include <iscore/tools/NotifyingMap.hpp>
 #include <OSSIA/iscore2OSSIA.hpp>
 
-namespace iscore {
-class MenubarManager;
-}  // namespace iscore
-
 namespace RecreateOnPlay
 {
 PlayContextMenu::PlayContextMenu(Scenario::ScenarioApplicationPlugin *parent):
-  m_menuElt{iscore::ToplevelMenuElement::AboutMenu},
   m_parent{parent}
 {
     using namespace Scenario;
@@ -158,11 +153,6 @@ PlayContextMenu::PlayContextMenu(Scenario::ScenarioApplicationPlugin *parent):
     m_playFromHere = new QAction{tr("Play from here"), this};
 }
 
-void PlayContextMenu::fillMenuBar(iscore::MenubarManager *menu)
-{
-
-}
-
 void PlayContextMenu::fillContextMenu(
         QMenu *menu,
         const Selection & s,
@@ -203,9 +193,4 @@ void PlayContextMenu::fillContextMenu(
     }
 }
 
-
-void PlayContextMenu::setEnabled(bool b)
-{
-    m_playStates->setEnabled(b);
-}
 }

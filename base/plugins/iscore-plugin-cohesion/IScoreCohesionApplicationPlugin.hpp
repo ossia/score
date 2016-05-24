@@ -11,20 +11,14 @@ namespace Scenario {
 class ScenarioModel;
 struct Point;
 }  // namespace Scenario
-namespace iscore {
-
-class MenubarManager;
-struct OrderedToolbar;
-}  // namespace iscore
-
 class IScoreCohesionApplicationPlugin final :
         public QObject,
         public iscore::GUIApplicationContextPlugin
 {
     public:
         IScoreCohesionApplicationPlugin(const iscore::ApplicationContext& app);
-        void populateMenus(iscore::MenubarManager*) override;
-        std::vector<iscore::OrderedToolbar> makeToolbars() override;
+
+        GUIElements makeGUIElements() override;
 
         void record(Scenario::ScenarioModel&, Scenario::Point pt);
         void recordMessages(Scenario::ScenarioModel&, Scenario::Point pt);
