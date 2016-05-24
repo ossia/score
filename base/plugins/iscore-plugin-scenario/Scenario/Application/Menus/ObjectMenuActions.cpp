@@ -66,7 +66,6 @@ ObjectMenuActions::ObjectMenuActions(
     m_removeElements = new QAction{tr("Remove selected elements"), this};
     m_removeElements->setShortcut(Qt::Key_Backspace); //NOTE : the effective shortcut is in CommonSelectionState.cpp
     m_removeElements->setShortcutContext(Qt::WidgetWithChildrenShortcut);
-    m_removeElements->setWhatsThis(MenuInterface::name(iscore::ContextMenu::Object));
     connect(m_removeElements, &QAction::triggered,
             [this]()
     {
@@ -79,7 +78,6 @@ ObjectMenuActions::ObjectMenuActions(
     m_clearElements = new QAction{tr("Clear selected elements"), this};
     m_clearElements->setShortcut(QKeySequence::Delete); //NOTE : the effective shortcut is in CommonSelectionState.cpp
     m_clearElements->setShortcutContext(Qt::WidgetWithChildrenShortcut);
-    m_clearElements->setWhatsThis(MenuInterface::name(iscore::ContextMenu::Object));
     connect(m_clearElements, &QAction::triggered,
             [this]()
     {
@@ -93,7 +91,6 @@ ObjectMenuActions::ObjectMenuActions(
     m_copyContent = new QAction{tr("Copy"), this};
     m_copyContent->setShortcut(QKeySequence::Copy);
     m_copyContent->setShortcutContext(Qt::ApplicationShortcut);
-    m_copyContent->setWhatsThis(MenuInterface::name(iscore::ContextMenu::Object));
     connect(m_copyContent, &QAction::triggered,
             [this]()
     {
@@ -108,7 +105,6 @@ ObjectMenuActions::ObjectMenuActions(
     m_cutContent = new QAction{tr("Cut"), this};
     m_cutContent->setShortcut(QKeySequence::Cut);
     m_cutContent->setShortcutContext(Qt::ApplicationShortcut);
-    m_cutContent->setWhatsThis(MenuInterface::name(iscore::ContextMenu::Object));
     connect(m_cutContent, &QAction::triggered,
             [this]()
     {
@@ -122,7 +118,6 @@ ObjectMenuActions::ObjectMenuActions(
 
     m_pasteContent = new QAction{tr("Paste content"), this};
     m_pasteContent->setShortcutContext(Qt::WidgetWithChildrenShortcut);
-    m_pasteContent->setWhatsThis(MenuInterface::name(iscore::ContextMenu::Object));
     connect(m_pasteContent, &QAction::triggered,
             [this]()
     {
@@ -133,7 +128,6 @@ ObjectMenuActions::ObjectMenuActions(
 
     // DISPLAY JSON
     m_elementsToJson = new QAction{tr("Convert selection to JSON"), this};
-    m_elementsToJson->setWhatsThis(MenuInterface::name(iscore::ContextMenu::Object));
     connect(m_elementsToJson, &QAction::triggered,
             [this]()
     {
@@ -187,6 +181,8 @@ void ObjectMenuActions::fillContextMenu(
         const QPoint& p,
         const QPointF& scenePoint)
 {
+    // TODO ACTIONS
+    /*
     using namespace iscore;
 
     m_eventActions.fillContextMenu(menu, sel, pres, p, scenePoint);
@@ -222,6 +218,7 @@ void ObjectMenuActions::fillContextMenu(
                       Scenario::ConvertToScenarioPoint(scenePoint, pres.zoomRatio(), pres.view().boundingRect().height()));
     });
     menu->addAction(pasteElements);
+    */
 }
 
 QJsonObject ObjectMenuActions::copySelectedElementsToJson()

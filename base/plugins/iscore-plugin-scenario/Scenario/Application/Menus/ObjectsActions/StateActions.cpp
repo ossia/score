@@ -20,7 +20,7 @@ StateActions::StateActions(ScenarioApplicationPlugin* parent) :
     m_updateStates->setShortcutContext(Qt::ApplicationShortcut);
     m_updateStates->setShortcut(tr("Ctrl+U"));
     m_updateStates->setToolTip(tr("Ctrl+U"));
-    m_updateStates->setWhatsThis(iscore::MenuInterface::name(iscore::ContextMenu::State));
+
     connect(m_updateStates, &QAction::triggered,
             this, [&] () {
         Command::RefreshStates(m_parent->currentDocument()->context());
@@ -32,13 +32,13 @@ StateActions::StateActions(ScenarioApplicationPlugin* parent) :
 void StateActions::makeGUIElements(iscore::GUIElements& ref)
 {
     using namespace iscore;
-    auto& scenario_iface_cond = m_parent->context.actions.condition<Process::EnableWhenFocusedProcessIs<Scenario::ScenarioInterface>>();
 
     Menu& object = m_parent->context.menus.get().at(Menus::Object());
     object.menu()->addAction(m_updateStates);
 
     ref.actions.add<Actions::RefreshStates>(m_updateStates);
-    scenario_iface_cond.add<Actions::RefreshStates>();
+    auto& cond = m_parent->context.actions.condition<iscore::EnableWhenSelectionContains<Scenario::StateModel>>();
+    cond.add<Actions::RefreshStates>();
 }
 
 void StateActions::fillContextMenu(
@@ -48,6 +48,7 @@ void StateActions::fillContextMenu(
         const QPoint&,
         const QPointF&)
 {
+    /*
     using namespace iscore;
     if(!sel.empty())
     {
@@ -65,6 +66,7 @@ void StateActions::fillContextMenu(
             stateSubmenu->addAction(m_updateStates);
         }
     }
+    */
 }
 
 CommandDispatcher<> StateActions::dispatcher()

@@ -28,12 +28,10 @@ EventActions::EventActions(
 {
     using namespace iscore;
     m_addTrigger = new QAction{tr("Add Trigger"), this};
-    m_addTrigger->setWhatsThis(MenuInterface::name(ContextMenu::Event));
     connect(m_addTrigger, &QAction::triggered,
             this, &EventActions::addTriggerToTimeNode);
 
     m_removeTrigger = new QAction{tr("Remove Trigger"), this};
-    m_removeTrigger->setWhatsThis(MenuInterface::name(ContextMenu::Event));
     connect(m_removeTrigger, &QAction::triggered,
             this, &EventActions::removeTriggerFromTimeNode);
 }
@@ -41,7 +39,6 @@ EventActions::EventActions(
 void EventActions::makeGUIElements(iscore::GUIElements& ref)
 {
     using namespace iscore;
-    auto& scenario_iface_cond = m_parent->context.actions.condition<Process::EnableWhenFocusedProcessIs<Scenario::ScenarioInterface>>();
 
     Menu& object = m_parent->context.menus.get().at(Menus::Object());
     object.menu()->addAction(m_addTrigger);
@@ -50,8 +47,9 @@ void EventActions::makeGUIElements(iscore::GUIElements& ref)
     ref.actions.add<Actions::AddTrigger>(m_addTrigger);
     ref.actions.add<Actions::RemoveTrigger>(m_removeTrigger);
 
-    scenario_iface_cond.add<Actions::AddTrigger>();
-    scenario_iface_cond.add<Actions::RemoveTrigger>();
+    auto& cond = m_parent->context.actions.condition<iscore::EnableWhenSelectionContains<Scenario::EventModel>>();
+    cond.add<Actions::AddTrigger>();
+    cond.add<Actions::RemoveTrigger>();
 }
 
 
@@ -71,6 +69,7 @@ void EventActions::fillContextMenu(
         const QPoint&,
         const QPointF&)
 {
+    /*
     using namespace iscore;
     if(!sel.empty())
     {
@@ -88,6 +87,7 @@ void EventActions::fillContextMenu(
             tnSubmenu->addAction(m_removeTrigger);
         }
     }
+    */
 }
 
 
