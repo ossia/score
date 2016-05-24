@@ -68,9 +68,6 @@
 #include <core/view/View.hpp>
 #include <Scenario/Application/ScenarioActions.hpp>
 
-ISCORE_DECLARE_SELECTED_OBJECT_CONDITION(Scenario::ConstraintModel)
-ISCORE_DECLARE_SELECTED_OBJECT_CONDITION(Scenario::EventModel)
-ISCORE_DECLARE_SELECTED_OBJECT_CONDITION(Scenario::StateModel)
 namespace Scenario
 {
 void test_parse_expr_full();

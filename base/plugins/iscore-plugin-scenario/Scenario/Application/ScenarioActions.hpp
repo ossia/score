@@ -114,14 +114,22 @@ class EnableWhenScenarioInterfaceObject final :
         }
 };
 }
-ISCORE_DECLARE_ACTION(SelectAll, Scenario, QKeySequence::SelectAll)
-ISCORE_DECLARE_ACTION(DeselectAll, Scenario, QKeySequence::Deselect)
 
+// Conditions relative to Scenario elements
 ISCORE_DECLARE_FOCUSED_OBJECT_CONDITION(Scenario::TemporalScenarioLayerModel)
 ISCORE_DECLARE_DOCUMENT_CONDITION(Scenario::ScenarioDocumentModel)
 
 ISCORE_DECLARE_FOCUSED_PROCESS_CONDITION(Scenario::ScenarioModel)
 ISCORE_DECLARE_FOCUSED_PROCESS_CONDITION(Scenario::ScenarioInterface)
+
+ISCORE_DECLARE_SELECTED_OBJECT_CONDITION(Scenario::ConstraintModel)
+ISCORE_DECLARE_SELECTED_OBJECT_CONDITION(Scenario::EventModel)
+ISCORE_DECLARE_SELECTED_OBJECT_CONDITION(Scenario::StateModel)
+
+
+// View
+ISCORE_DECLARE_ACTION(SelectAll, Scenario, QKeySequence::SelectAll)
+ISCORE_DECLARE_ACTION(DeselectAll, Scenario, QKeySequence::Deselect)
 
 // Transport
 ISCORE_DECLARE_ACTION(Play, Scenario, Qt::Key_Space)
@@ -137,8 +145,8 @@ ISCORE_DECLARE_ACTION(CreateTool, Scenario, Qt::Key_C)
 ISCORE_DECLARE_ACTION(PlayTool, Scenario, Qt::Key_P)
 ISCORE_DECLARE_ACTION(SequenceMode, Scenario, Qt::Key_Shift)
 
-ISCORE_DECLARE_ACTION(Scale, Scenario, QKeySequence::UnknownKey)
-ISCORE_DECLARE_ACTION(Grow, Scenario, QKeySequence::UnknownKey)
+ISCORE_DECLARE_ACTION(Scale, Scenario, Qt::ALT + Qt::Key_S)
+ISCORE_DECLARE_ACTION(Grow, Scenario, Qt::ALT + Qt::Key_D)
 
 // Object
 ISCORE_DECLARE_ACTION(RemoveElements, Scenario, Qt::Key_Backspace)
@@ -153,8 +161,8 @@ ISCORE_DECLARE_ACTION(AddTrigger, Scenario, QKeySequence::UnknownKey)
 ISCORE_DECLARE_ACTION(RemoveTrigger, Scenario, QKeySequence::UnknownKey)
 
 // State
-ISCORE_DECLARE_ACTION(RefreshStates, Scenario, QKeySequence::UnknownKey)
+ISCORE_DECLARE_ACTION(RefreshStates, Scenario, Qt::CTRL + Qt::Key_U)
 
 // Constraint
 ISCORE_DECLARE_ACTION(AddProcess, Scenario, QKeySequence::UnknownKey)
-ISCORE_DECLARE_ACTION(InterpolateStates, Scenario, QKeySequence::UnknownKey)
+ISCORE_DECLARE_ACTION(InterpolateStates, Scenario, Qt::CTRL + Qt::Key_K)

@@ -63,7 +63,6 @@ ConstraintActions::ConstraintActions(
         this, &ConstraintActions::addProcessInConstraint);
 
     m_addProcess = new QAction{tr("Add Process in constraint"), this};
-    m_addProcess->setWhatsThis(iscore::MenuInterface::name(iscore::ContextMenu::Constraint));
     connect(m_addProcess, &QAction::triggered,
             [&]()
     {
@@ -74,9 +73,7 @@ ConstraintActions::ConstraintActions(
 
     m_interp = new QAction {tr("Interpolate states"), this};
     m_interp->setShortcutContext(Qt::ApplicationShortcut);
-    m_interp->setShortcut(tr("Ctrl+K"));
     m_interp->setToolTip(tr("Interpolate states (Ctrl+K)"));
-    m_interp->setWhatsThis(iscore::MenuInterface::name(iscore::ContextMenu::Constraint));
     setIcons(m_interp, QString(":/icons/interpolate_on.png"), QString(":/icons/interpolate_off.png"));
     connect(m_interp, &QAction::triggered,
         this, [&] () {
@@ -93,7 +90,7 @@ ConstraintActions::~ConstraintActions()
 void ConstraintActions::makeGUIElements(iscore::GUIElements& ref)
 {
     using namespace iscore;
-    auto& scenario_iface_cond = m_parent->context.actions.condition<Process::EnableWhenFocusedProcessIs<Scenario::ScenarioInterface>>();
+
 
     Menu& object = m_parent->context.menus.get().at(Menus::Object());
     object.menu()->addAction(m_addProcess);
@@ -107,8 +104,9 @@ void ConstraintActions::makeGUIElements(iscore::GUIElements& ref)
     ref.actions.add<Actions::AddProcess>(m_addProcess);
     ref.actions.add<Actions::InterpolateStates>(m_interp);
 
-    scenario_iface_cond.add<Actions::AddProcess>();
-    scenario_iface_cond.add<Actions::InterpolateStates>();
+    auto& cond = m_parent->context.actions.condition<iscore::EnableWhenSelectionContains<Scenario::ConstraintModel>>();
+    cond.add<Actions::AddProcess>();
+    cond.add<Actions::InterpolateStates>();
 }
 
 void ConstraintActions::fillContextMenu(
@@ -118,6 +116,7 @@ void ConstraintActions::fillContextMenu(
     const QPoint&,
     const QPointF&)
 {
+    /*
     using namespace iscore;
     if(!sel.empty())
     {
@@ -173,6 +172,7 @@ void ConstraintActions::fillContextMenu(
         }
 
     }
+    */
 }
 
 void ConstraintActions::fillContextMenu(
@@ -182,6 +182,7 @@ void ConstraintActions::fillContextMenu(
         const QPoint&,
         const QPointF&)
 {
+    /*
     using namespace iscore;
     auto& cst = vm.model();
     if(!cst.racks.empty())
@@ -223,6 +224,7 @@ void ConstraintActions::fillContextMenu(
         cstrSubmenu->addAction(m_addProcess);
     }
     cstrSubmenu->addAction(m_interp);
+    */
 }
 
 void ConstraintActions::addProcessInConstraint(const UuidKey<Process::ProcessFactory>& processName)

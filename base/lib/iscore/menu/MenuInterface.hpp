@@ -34,18 +34,6 @@ enum class ToplevelMenuElement : int // ISCORE_LIB_BASE_EXPORT
     AboutMenu
 };
 
-// this is used to create sub context menu
-// and to enable actions in ObjectMenu
-enum class ContextMenu : int
-{
-    Object,
-    Constraint,
-    Process,
-    Slot,
-    Rack,
-    Event,
-    State
-};
 /**
      * @brief The MenuInterface class
      *
@@ -65,6 +53,5 @@ class ISCORE_LIB_BASE_EXPORT MenuInterface
 
     private:
         static const std::map<ToplevelMenuElement, QString> m_map;
-        static const std::map<ContextMenu, QString> m_contextMap;
 };
 }

@@ -47,7 +47,6 @@ IScoreCohesionApplicationPlugin::IScoreCohesionApplicationPlugin(const iscore::A
     m_snapshot->setShortcutContext(Qt::ApplicationShortcut);
     m_snapshot->setShortcut(tr("Ctrl+J"));
     m_snapshot->setToolTip(tr("Snapshot in Event (Ctrl+J)"));
-    m_snapshot->setWhatsThis(iscore::MenuInterface::name(iscore::ContextMenu::State));
 
     setIcons(m_snapshot, QString(":/icons/snapshot_on.png"), QString(":/icons/snapshot_off.png"));
 
@@ -62,7 +61,6 @@ IScoreCohesionApplicationPlugin::IScoreCohesionApplicationPlugin(const iscore::A
     m_curves->setShortcutContext(Qt::ApplicationShortcut);
     m_curves->setShortcut(tr("Ctrl+L"));
     m_curves->setToolTip(tr("Create Curves (Ctrl+L)"));
-    m_curves->setWhatsThis(iscore::MenuInterface::name(iscore::ContextMenu::Constraint));
 
     setIcons(m_curves, QString(":/icons/create_curve_on.png"), QString(":/icons/create_curve_off.png"));
 
@@ -81,8 +79,6 @@ iscore::GUIElements IScoreCohesionApplicationPlugin::makeGUIElements()
 
     GUIElements e;
 
-    auto& scenario_iface_cond = context.actions.condition<Process::EnableWhenFocusedProcessIs<Scenario::ScenarioInterface>>();
-
     Menu& object = context.menus.get().at(Menus::Object());
     object.menu()->addAction(m_snapshot);
     object.menu()->addAction(m_curves);
@@ -95,8 +91,11 @@ iscore::GUIElements IScoreCohesionApplicationPlugin::makeGUIElements()
     e.actions.add<Actions::Snapshot>(m_snapshot);
     e.actions.add<Actions::CreateCurves>(m_curves);
 
-    scenario_iface_cond.add<Actions::Snapshot>();
-    scenario_iface_cond.add<Actions::CreateCurves>();
+    auto& cstr_cond = context.actions.condition<iscore::EnableWhenSelectionContains<Scenario::ConstraintModel>>();
+    auto& state_cond = context.actions.condition<iscore::EnableWhenSelectionContains<Scenario::StateModel>>();
+
+    state_cond.add<Actions::Snapshot>();
+    cstr_cond.add<Actions::CreateCurves>();
 
     return e;
 }
