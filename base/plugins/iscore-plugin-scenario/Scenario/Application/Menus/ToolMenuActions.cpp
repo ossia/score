@@ -248,8 +248,8 @@ void ToolMenuActions::makeGUIElements(iscore::GUIElements& ref)
     auto& scenario_proc_cond = m_parent->context.actions.condition<Process::EnableWhenFocusedProcessIs<Scenario::ScenarioModel>>();
     auto& scenario_iface_cond = m_parent->context.actions.condition<Process::EnableWhenFocusedProcessIs<Scenario::ScenarioInterface>>();
 
-
     iscore::Menu& menu = m_parent->context.menus.get().at(iscore::Menus::Edit());
+
     // Tools
     {
         auto bar = new QToolBar{tr("Tools")};
@@ -296,22 +296,6 @@ void ToolMenuActions::makeGUIElements(iscore::GUIElements& ref)
     }
 }
 
-void ToolMenuActions::fillMenuBar(iscore::MenubarManager *menu)
-{
-    for(auto act : toolActions())
-    {
-        menu->insertActionIntoToplevelMenu(m_menuElt, act);
-    }
-
-    menu->addSeparatorIntoToplevelMenu(m_menuElt, iscore::ToolMenuElement::Separator_Tool);
-    menu->insertActionIntoToplevelMenu(m_menuElt, m_shiftAction);
-    menu->addSeparatorIntoToplevelMenu(m_menuElt, iscore::ToolMenuElement::Separator_Tool);
-    for(auto act : modeActions())
-    {
-        menu->insertActionIntoToplevelMenu(m_menuElt, act);
-    }
-}
-
 void ToolMenuActions::fillContextMenu(
         QMenu *menu,
         const Selection& sel,
@@ -319,22 +303,14 @@ void ToolMenuActions::fillContextMenu(
         const QPoint&,
         const QPointF&)
 {
+    /*
     auto tool = menu->addMenu("Tool");
     tool->addActions(toolActions());
     tool->addAction(m_shiftAction);
     auto resize_mode = menu->addMenu("Resize mode");
     resize_mode->addActions(modeActions());
     m_scenarioToolActionGroup->setDisabled(false);
-}
-
-bool ToolMenuActions::populateToolBar(QToolBar *bar)
-{
-    bar->addActions(toolActions());
-    bar->addAction(m_shiftAction);
-    bar->addSeparator();
-    bar->addActions(modeActions());
-
-    return true;
+    */
 }
 
 void ToolMenuActions::setEnabled(bool arg)
@@ -363,18 +339,4 @@ void ToolMenuActions::keyReleased(int key)
     }
 }
 
-QList<QAction *> ToolMenuActions::modeActions()
-{
-    return m_scenarioScaleModeActionGroup->actions();
-}
-
-QList<QAction *> ToolMenuActions::toolActions()
-{
-    return m_scenarioToolActionGroup->actions();
-}
-
-QAction *ToolMenuActions::shiftAction()
-{
-    return m_shiftAction;
-}
 }

@@ -49,6 +49,7 @@
 #include <Scenario/Commands/Cohesion/DoForSelectedConstraints.hpp>
 #include <iscore/menu/MenuInterface.hpp>
 #include <Scenario/Process/Algorithms/ContainersAccessors.hpp>
+#include <Scenario/Application/ScenarioActions.hpp>
 
 namespace Scenario
 {
@@ -149,35 +150,16 @@ ObjectMenuActions::ObjectMenuActions(
 void ObjectMenuActions::makeGUIElements(iscore::GUIElements& ref)
 {
     using namespace iscore;
-    auto& actions = ref.actions.container;
+    auto& actions = ref.actions;
     auto& menus = ref.menus;
     auto& toolbars = ref.toolbars;
 
-    actions.emplace_back(m_removeElements,
-                         ActionKey{"Remove"},
-                         ActionGroupKey{"Scenario"},
-                         QKeySequence(Qt::Key_Backspace));
-    actions.emplace_back(m_clearElements,
-                         ActionKey{"Clear"},
-                         ActionGroupKey{"Scenario"},
-                         QKeySequence(Qt::Key_Delete));
-    actions.emplace_back(m_copyContent,
-                         ActionKey{"Copy"},
-                         ActionGroupKey{"Scenario"},
-                         QKeySequence::Copy);
-    actions.emplace_back(m_cutContent,
-                         ActionKey{"Cut"},
-                         ActionGroupKey{"Scenario"},
-                         QKeySequence::Cut);
-    actions.emplace_back(m_pasteContent,
-                         ActionKey{"Paste"},
-                         ActionGroupKey{"Scenario"},
-                         QKeySequence::Paste);
-    actions.emplace_back(m_elementsToJson,
-                         ActionKey{"ToJson"},
-                         ActionGroupKey{"Scenario"},
-                         QKeySequence::UnknownKey);
-
+    actions.add<Actions::RemoveElements>(m_removeElements);
+    actions.add<Actions::ClearElements>(m_clearElements);
+    actions.add<Actions::CopyContent>(m_copyContent);
+    actions.add<Actions::CutContent>(m_cutContent);
+    actions.add<Actions::PasteContent>(m_pasteContent);
+    actions.add<Actions::ElementsToJson>(m_elementsToJson);
 
     Menu& object = m_parent->context.menus.get().at(Menus::Object());
     object.menu()->addAction(m_elementsToJson);

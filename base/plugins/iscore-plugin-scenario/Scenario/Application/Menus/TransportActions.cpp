@@ -13,6 +13,7 @@
 #include <Scenario/Document/ScenarioDocument/ScenarioDocumentModel.hpp>
 #include <Scenario/Application/ScenarioActions.hpp>
 #include <iscore/widgets/SetIcons.hpp>
+#include <iscore/menu/MenuInterface.hpp>
 
 class QMenu;
 
@@ -106,6 +107,7 @@ TransportActions::TransportActions(
 void TransportActions::makeGUIElements(iscore::GUIElements& ref)
 {
     auto& cond = m_parent->context.actions.condition<iscore::EnableWhenDocumentIs<Scenario::ScenarioDocumentModel>>();
+
     // Put m_play m_stop and m_stopAndInit only for now in their own toolbar,
     // plus everything in the play menu
     {
