@@ -17,9 +17,9 @@ public:
     virtual void setSource(const QString&);
     QString source() const;
     virtual bool isCollapsed() const;
-    const QSize internalSize() const;
-    void setInternalSize(const QSize& s);
-    void setInternalSize(const int& w, const int& h);
+    const QSize containerSize() const;
+    void setContainerSize(const QSize& s);
+    void setContainerSize(const int& w, const int& h);
 
     ~QMLContainerPanel();
 

@@ -30,7 +30,6 @@ QMLContainerPanel::QMLContainerPanel(QWidget *parent) :
     m_qcontainer->setMinimumWidth(60);
 
     auto button = new QToolButton(this);
-    button->setText(tr("Collapse Tracks"));
     button->setDefaultAction(m_collapse);
     m_layout->addWidget(button);
     m_layout->addWidget(m_qcontainer);
@@ -67,7 +66,7 @@ void QMLContainerPanel::collapse() {
     if(checked)
         m_widget->resize(50, 50);
     else
-        m_widget->resize(m_qcontainer->size());
+        m_widget->resize(containerSize() + QSize(0, 100));
 
     qDebug() << "collapsing:" << checked << "is visible" << m_qcontainer->isVisible();
 }
@@ -80,16 +79,18 @@ QQuickWidget* QMLContainerPanel::container() {
     return m_qcontainer;
 }
 
-const QSize QMLContainerPanel::internalSize() const {
+const QSize QMLContainerPanel::containerSize() const {
     return m_qcontainer->size();
 }
 
-void QMLContainerPanel::setInternalSize(const QSize &s) {
+void QMLContainerPanel::setContainerSize(const QSize &s) {
     m_qcontainer->setMinimumSize(s);
+    if (!isCollapsed())
+        m_widget->resize(s + QSize(0, 100));
 }
 
-void QMLContainerPanel::setInternalSize(const int &w, const int &h) {
-    setInternalSize(QSize(w, h));
+void QMLContainerPanel::setContainerSize(const int &w, const int &h) {
+    setContainerSize(QSize(w, h));
 }
 
 QMLContainerPanel::~QMLContainerPanel() {
