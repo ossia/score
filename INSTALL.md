@@ -22,7 +22,7 @@ _see below for CMake options_
 
 ## OSX :
 
-    brew install qt5 boost
+    brew install qt5 boost cmake
     mkdir build
     cd build
 
