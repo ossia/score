@@ -408,33 +408,6 @@ class ISCORE_LIB_BASE_EXPORT Toolbar
         int m_defaultCol = 0;
 };
 
-struct ContextPoint
-{
-        QPointF scene;
-        QPoint view;
-};
-
-class ISCORE_LIB_BASE_EXPORT ContextMenuBuilder
-{
-    public:
-        ContextMenuBuilder(StringKey<ContextMenuBuilder> k);
-
-        virtual ~ContextMenuBuilder();
-
-        // A condition may be : "selection.size() == 1 && selection.object() == statemodel"
-        virtual bool check(const iscore::DocumentContext&, ContextPoint pts, QMenu*) const = 0;
-
-        // In this case, we can add "play (states)" action.
-        virtual void action(const iscore::DocumentContext&, ContextPoint pts, QMenu*) const = 0;
-
-        StringKey<ContextMenuBuilder> key() const;
-
-        // The actions that are impacted by this condition.
-        std::vector<std::function<void(const iscore::DocumentContext&, ContextPoint, QMenu*)>> actions;
-
-    private:
-        StringKey<ContextMenuBuilder> m_key;
-};
 class ISCORE_LIB_BASE_EXPORT MenuManager
 {
     public:
@@ -442,7 +415,6 @@ class ISCORE_LIB_BASE_EXPORT MenuManager
 
         void insert(std::vector<Menu> vals);
 
-        void buildContextMenu(const iscore::DocumentContext& ctx, ContextPoint pts, QMenu* menu);
 
         auto& get()
         { return m_container; }
@@ -451,7 +423,6 @@ class ISCORE_LIB_BASE_EXPORT MenuManager
 
     private:
         std::unordered_map<StringKey<Menu>, Menu> m_container;
-        std::unordered_map<StringKey<ContextMenuBuilder>, std::unique_ptr<ContextMenuBuilder>> m_builders;
 };
 
 class ISCORE_LIB_BASE_EXPORT ToolbarManager

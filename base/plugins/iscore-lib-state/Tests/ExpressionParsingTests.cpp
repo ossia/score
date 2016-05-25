@@ -96,7 +96,7 @@ QDebug operator<<(QDebug dbg, const State::Address& a)
 
 QDebug operator<<(QDebug dbg, const State::RelationMember& v)
 {
-    return dbg << State::toString(v);
+    dbg << State::toString(v);
     return dbg;
 }
 

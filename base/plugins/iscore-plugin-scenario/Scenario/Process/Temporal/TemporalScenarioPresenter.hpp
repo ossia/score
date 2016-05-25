@@ -113,9 +113,10 @@ class ISCORE_PLUGIN_SCENARIO_EXPORT TemporalScenarioPresenter final :
 
 
         void fillContextMenu(
-                QMenu *,
-                const QPoint &pos,
-                const QPointF &scenepos) const override;
+                QMenu&,
+                QPoint pos,
+                QPointF scenepos,
+                const Process::LayerContextMenuManager&) const override;
 
         void handleDrop(
                 const QPointF& pos,

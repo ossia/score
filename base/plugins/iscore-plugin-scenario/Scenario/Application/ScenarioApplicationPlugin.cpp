@@ -80,6 +80,7 @@ ScenarioApplicationPlugin::ScenarioApplicationPlugin(const iscore::ApplicationCo
         editionSettings().setDefault();
     });
 
+    // Register conditions for the actions enablement
     using namespace iscore;
     using namespace Scenario;
     using namespace Process;
@@ -92,13 +93,23 @@ ScenarioApplicationPlugin::ScenarioApplicationPlugin(const iscore::ApplicationCo
     ctx.actions.onSelectionChange(std::make_shared<EnableWhenSelectionContains<EventModel>>());
     ctx.actions.onSelectionChange(std::make_shared<EnableWhenSelectionContains<StateModel>>());
 
-    // TODO : enable when focus on scenario && not empty
     auto on_sm = std::make_shared<EnableWhenScenarioModelObject>();
     ctx.actions.onSelectionChange(on_sm);
     ctx.actions.onFocusChange(on_sm);
     auto on_si = std::make_shared<EnableWhenScenarioInterfaceObject>();
     ctx.actions.onSelectionChange(on_si);
     ctx.actions.onFocusChange(on_si);
+
+    // Register context menu factories
+    // ScenarioInterface
+    // TODO the little shits have to be pointers
+    //LayerContextMenu scenario_interface_cm{StringKey;
+    //m_layerCtxMenuManager.insert();
+    // ScenarioModel specifics
+    // Constraint specifics
+    // Event specifics
+    // State specifics
+    // TN specifics ?
 }
 
 auto ScenarioApplicationPlugin::makeGUIElements() -> GUIElements
@@ -163,17 +174,8 @@ void ScenarioApplicationPlugin::on_presenterDefocused(Process::LayerPresenter* p
     // to prevent problems.
     editionSettings().setDefault();
 
-    // TODO Actions
-    /*
-    for(ScenarioActions*& elt : m_pluginActions)
-    {
-        elt->setEnabled(false);
-    }
-    */
-
     disconnect(m_contextMenuConnection);
 }
-
 
 void ScenarioApplicationPlugin::on_presenterFocused(Process::LayerPresenter* pres)
 {
@@ -184,10 +186,12 @@ void ScenarioApplicationPlugin::on_presenterFocused(Process::LayerPresenter* pre
     }
     if(pres)
     {
-        m_contextMenuConnection = connect(pres, &Process::LayerPresenter::contextMenuRequested,
-                this, [=] (const QPoint& pos, const QPointF& pt2) {
+        // If a layer is right-clicked,
+        // this is called and will create a context menu with slot & process information.
+        m_contextMenuConnection = QObject::connect(pres, &Process::LayerPresenter::contextMenuRequested,
+                                                   this, [=] (const QPoint& pos, const QPointF& pt2) {
             QMenu menu(qApp->activeWindow());
-            ScenarioContextMenuManager::createLayerContextMenu(menu, pos, pt2, *pres);
+            ScenarioContextMenuManager::createLayerContextMenu(menu, pos, pt2, m_layerCtxMenuManager, *pres);
             menu.exec(pos);
             menu.close();
         } );
@@ -198,28 +202,6 @@ void ScenarioApplicationPlugin::on_presenterFocused(Process::LayerPresenter* pre
     }
 
     auto s_pres = dynamic_cast<TemporalScenarioPresenter*>(pres);
-
-    if(s_pres)
-    {
-        context.actions.action<Actions::SelectTool>().action()->setEnabled(true);
-        context.actions.action<Actions::CreateTool>().action()->setEnabled(true);
-        context.actions.action<Actions::PlayTool>().action()->setEnabled(true);
-    }
-    // TODO Actions
-    /*
-    // Case specific to the scenario process.
-    // First get the scenario presenter
-    auto s_pres = dynamic_cast<TemporalScenarioPresenter*>(pres);
-
-    for(ScenarioActions* elt : m_pluginActions)
-    {
-        if(dynamic_cast<ObjectMenuActions*>(elt))
-            elt->setEnabled(false);
-        else
-            elt->setEnabled(bool(s_pres));
-    }
-    */
-
     if (s_pres)
     {
         connect(s_pres, &TemporalScenarioPresenter::keyPressed,
@@ -237,7 +219,6 @@ void ScenarioApplicationPlugin::on_documentChanged(
         iscore::Document* olddoc,
         iscore::Document* newdoc)
 {
-    // TODO Actions
     using namespace iscore;
     // TODO the context menu connection should be reviewed, too.
     this->disconnect(m_focusConnection);

@@ -188,40 +188,6 @@ void ScenarioDocumentPresenter::setMillisPerPixel(ZoomRatio newRatio)
 
 void ScenarioDocumentPresenter::on_newSelection(const Selection& sel)
 {
-    // TODO ACTIONS
-    // If nothing is selected, "object" actions are disabled.
-    // Else if there is a constraint / state / event / objet action, enable it
-    /*
-    using namespace iscore;
-    auto editMenu = iscore::AppContext().menuBar.menuAt(ToplevelMenuElement::ObjectMenu);
-
-    bool ev = std::any_of(sel.cbegin(),
-                   sel.cend(),
-                   [] (const QObject* obj) { return dynamic_cast<const EventModel*>(obj); });
-
-    bool st = std::any_of(sel.cbegin(),
-                   sel.cend(),
-                   [] (const QObject* obj) { return dynamic_cast<const StateModel*>(obj); });
-
-    bool cstr = std::any_of(sel.cbegin(),
-                    sel.cend(),
-                    [] (const QObject* obj) { return dynamic_cast<const ConstraintModel*>(obj); });
-
-
-    for(auto a : editMenu->actions())
-    {
-        if(sel.empty())
-            a->setEnabled(false);
-        else if (a->whatsThis() == MenuInterface::name(ContextMenu::Constraint))
-            a->setEnabled(cstr);
-        else if (a->whatsThis() == MenuInterface::name(ContextMenu::Event))
-            a->setEnabled(ev);
-        else if (a->whatsThis() == MenuInterface::name(ContextMenu::State))
-            a->setEnabled(st);
-        else if (a->whatsThis() == MenuInterface::name(ContextMenu::Object))
-            a->setEnabled(true);
-    }
-    */
 }
 
 void ScenarioDocumentPresenter::on_zoomSliderChanged(double sliderPos)

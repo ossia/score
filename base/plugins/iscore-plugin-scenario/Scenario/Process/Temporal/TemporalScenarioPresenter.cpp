@@ -225,11 +225,12 @@ void TemporalScenarioPresenter::on_zoomRatioChanged(ZoomRatio val)
 }
 
 void TemporalScenarioPresenter::fillContextMenu(
-        QMenu* menu,
-        const QPoint& pos,
-        const QPointF& scenepos) const
+        QMenu& menu,
+        QPoint pos,
+        QPointF scenepos,
+        const Process::LayerContextMenuManager&) const
 {
-    ScenarioContextMenuManager::createScenarioContextMenu(m_context.context, *menu, pos, scenepos, *this);
+    ScenarioContextMenuManager::createScenarioContextMenu(m_context.context, menu, pos, scenepos, *this);
 }
 
 template<typename Map, typename Id>

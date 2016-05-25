@@ -188,34 +188,36 @@ void ScenarioContextMenuManager::createSlotContextMenu(
 
 void ScenarioContextMenuManager::createLayerContextMenu(
         QMenu& menu,
-        const QPoint& pos,
-        const QPointF& scenepos,
+        QPoint pos,
+        QPointF scenepos,
+        const Process::LayerContextMenuManager& lcmmgr,
         const Process::LayerPresenter& pres)
 {
-    // TODO ACTIONS
-    /*
     using namespace iscore;
+
+    bool has_slot_menu = false;
     // Fill with slot actions
     if(auto slotp = dynamic_cast<SlotPresenter*>(pres.parent()))
     {
         auto& context = pres.context().context;
         if (context.selectionStack.currentSelection().toList().isEmpty())
         {
-            // submenu Slot created if needed
-            auto slotSubmenu = menu.findChild<QMenu*>(MenuInterface::name(iscore::ContextMenu::Slot));
-            if(!slotSubmenu)
-            {
-                slotSubmenu = menu.addMenu(MenuInterface::name(iscore::ContextMenu::Slot));
-                slotSubmenu->setTitle(MenuInterface::name(iscore::ContextMenu::Slot));
-            }
+            auto slotSubmenu = menu.addMenu(tr("Slot"));
             ScenarioContextMenuManager::createSlotContextMenu(context, *slotSubmenu, *slotp);
+            has_slot_menu = true;
         }
     }
 
     // Then the process-specific part
-    auto processMenu = menu.addMenu(iscore::MenuInterface::name(iscore::ContextMenu::Process));
-    pres.fillContextMenu(processMenu, pos, scenepos);
-    */
+    if(has_slot_menu)
+    {
+        auto processMenu = menu.addMenu(tr("Process"));
+        pres.fillContextMenu(*processMenu, pos, scenepos, lcmmgr);
+    }
+    else
+    {
+        pres.fillContextMenu(menu, pos, scenepos, lcmmgr);
+    }
 }
 
 void ScenarioContextMenuManager::createScenarioContextMenu(
@@ -225,11 +227,11 @@ void ScenarioContextMenuManager::createScenarioContextMenu(
         const QPointF& scenepos,
         const TemporalScenarioPresenter& pres)
 {
-    // TODO ACTIONS
-    /*
     auto selected = pres.layerModel().processModel().selectedChildren();
 
     auto& appPlug = ctx.app.components.applicationPlugin<ScenarioApplicationPlugin>();
+
+    /*
     for(auto elt : appPlug.pluginActions())
     {
         // TODO make a class to encapsulate all the data
@@ -239,6 +241,7 @@ void ScenarioContextMenuManager::createScenarioContextMenu(
     }
 
     menu.addSeparator();
+    */
     menu.addAction(appPlug.m_selectAll);
     menu.addAction(appPlug.m_deselectAll);
 
@@ -257,6 +260,5 @@ void ScenarioContextMenuManager::createScenarioContextMenu(
     });
 
     menu.addAction(createCommentAct);
-*/
 }
 }
