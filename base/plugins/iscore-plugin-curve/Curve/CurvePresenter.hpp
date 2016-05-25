@@ -60,7 +60,7 @@ class ISCORE_PLUGIN_CURVE_EXPORT Presenter : public QObject
         { return m_editionSettings; }
 
         void fillContextMenu(
-                QMenu*,
+                QMenu&,
                 const QPoint&,
                 const QPointF&);
 

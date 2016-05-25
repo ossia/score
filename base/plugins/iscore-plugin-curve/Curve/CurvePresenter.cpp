@@ -241,11 +241,11 @@ void Presenter::setupView()
 }
 
 void Presenter::fillContextMenu(
-        QMenu* menu,
+        QMenu& menu,
         const QPoint& pos,
         const QPointF& scenepos)
 {
-    menu->addSeparator();
+    menu.addSeparator();
 
     auto removeAct = new QAction{tr("Remove"), this};
     connect(removeAct, &QAction::triggered,
@@ -253,7 +253,7 @@ void Presenter::fillContextMenu(
         removeSelection();
     });
 
-    auto typeMenu = menu->addMenu(tr("Type"));
+    auto typeMenu = menu.addMenu(tr("Type"));
     for(const auto& seg : m_curveSegments)
     {
         auto act = typeMenu->addAction(seg.prettyName());
@@ -276,9 +276,9 @@ void Presenter::fillContextMenu(
     suppressAction->setCheckable(true);
     suppressAction->setChecked(m_editionSettings.suppressOnOverlap());
 
-    menu->addAction(removeAct);
-    menu->addAction(lockAction);
-    menu->addAction(suppressAction);
+    menu.addAction(removeAct);
+    menu.addAction(lockAction);
+    menu.addAction(suppressAction);
 }
 
 void Presenter::addPoint(PointView * pt_view)

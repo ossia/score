@@ -271,19 +271,6 @@ int Toolbar::row() const { return m_row; }
 
 int Toolbar::column() const { return m_col; }
 
-ContextMenuBuilder::ContextMenuBuilder(StringKey<ContextMenuBuilder> k):
-    m_key{std::move(k)}
-{
-
-}
-
-ContextMenuBuilder::~ContextMenuBuilder()
-{
-
-}
-
-StringKey<ContextMenuBuilder> ContextMenuBuilder::key() const
-{ return m_key; }
 
 void MenuManager::insert(Menu val)
 {
@@ -298,18 +285,6 @@ void MenuManager::insert(std::vector<Menu> vals)
     for(auto& val : vals)
     {
         insert(std::move(val));
-    }
-}
-
-void MenuManager::buildContextMenu(const DocumentContext &ctx, ContextPoint pts, QMenu *menu)
-{
-    for(auto& act : m_builders)
-    {
-        const ContextMenuBuilder& cmb = *act.second;
-        if(cmb.check(ctx, pts, menu))
-        {
-            cmb.action(ctx, pts, menu);
-        }
     }
 }
 

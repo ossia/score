@@ -33,6 +33,7 @@ set(PROCESS_HDRS
 "${CMAKE_CURRENT_SOURCE_DIR}/Process/Tools/ProcessGraphicsView.hpp"
 "${CMAKE_CURRENT_SOURCE_DIR}/Process/Tools/ProcessPanelGraphicsProxy.hpp"
 "${CMAKE_CURRENT_SOURCE_DIR}/Process/ZoomHelper.hpp"
+"${CMAKE_CURRENT_SOURCE_DIR}/Process/Layer/LayerContextMenu.hpp"
 
 "${CMAKE_CURRENT_SOURCE_DIR}/Process/Actions/ProcessActions.hpp"
 
@@ -61,6 +62,7 @@ set(PROCESS_SRCS
 "${CMAKE_CURRENT_SOURCE_DIR}/Process/Style/ProcessFonts.cpp"
 "${CMAKE_CURRENT_SOURCE_DIR}/Process/Style/Skin.cpp"
 "${CMAKE_CURRENT_SOURCE_DIR}/Process/Style/ColorReference.cpp"
+"${CMAKE_CURRENT_SOURCE_DIR}/Process/Layer/LayerContextMenu.cpp"
 
 "${CMAKE_CURRENT_SOURCE_DIR}/Process/State/MessageNode.cpp"
 "${CMAKE_CURRENT_SOURCE_DIR}/Process/State/ProcessStateDataInterface.cpp"

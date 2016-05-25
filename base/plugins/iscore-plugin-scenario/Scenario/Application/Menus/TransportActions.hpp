@@ -13,19 +13,16 @@ class QToolBar;
 
 namespace Scenario
 {
-
-class ScenarioApplicationPlugin;
-class TemporalScenarioPresenter;
 class TransportActions : public QObject
 {
     public:
         TransportActions(
-                ScenarioApplicationPlugin* parent);
+                const iscore::ApplicationContext&);
 
         void makeGUIElements(iscore::GUIElements& ref);
 
     private:
-        ScenarioApplicationPlugin* m_parent{};
+        const iscore::ApplicationContext& m_context;
 
         QAction* m_play{};
         QAction* m_stop{};

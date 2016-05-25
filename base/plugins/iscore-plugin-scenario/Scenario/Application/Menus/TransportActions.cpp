@@ -22,8 +22,8 @@ namespace Scenario
 class TemporalScenarioPresenter;
 
 TransportActions::TransportActions(
-        ScenarioApplicationPlugin* parent) :
-    m_parent{parent}
+        const iscore::ApplicationContext& context) :
+    m_context{context}
 {
     m_play = new QAction{tr("Play"), this};
     m_play->setObjectName("Play");
@@ -104,7 +104,7 @@ TransportActions::TransportActions(
 
 void TransportActions::makeGUIElements(iscore::GUIElements& ref)
 {
-    auto& cond = m_parent->context.actions.condition<iscore::EnableWhenDocumentIs<Scenario::ScenarioDocumentModel>>();
+    auto& cond = m_context.actions.condition<iscore::EnableWhenDocumentIs<Scenario::ScenarioDocumentModel>>();
 
     // Put m_play m_stop and m_stopAndInit only for now in their own toolbar,
     // plus everything in the play menu
@@ -118,7 +118,7 @@ void TransportActions::makeGUIElements(iscore::GUIElements& ref)
     }
 
     {
-        auto& play = m_parent->context.menus.get().at(iscore::Menus::Play());
+        auto& play = m_context.menus.get().at(iscore::Menus::Play());
         play.menu()->addAction(m_play);
         play.menu()->addAction(m_stop);
         play.menu()->addAction(m_stopAndInit);

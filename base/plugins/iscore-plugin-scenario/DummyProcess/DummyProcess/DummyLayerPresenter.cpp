@@ -72,9 +72,10 @@ const Id<Process::ProcessModel>& DummyLayerPresenter::modelId() const
 }
 
 void DummyLayerPresenter::fillContextMenu(
-        QMenu*,
-        const QPoint&,
-        const QPointF&) const
+        QMenu&,
+        QPoint pos,
+        QPointF scenepos,
+        const Process::LayerContextMenuManager&) const
 {
 }
 }

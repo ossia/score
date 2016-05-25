@@ -12,6 +12,7 @@ namespace Process
 {
 class ProcessModel;
 class LayerModel;
+class LayerContextMenuManager;
 class ISCORE_LIB_PROCESS_EXPORT LayerPresenter : public QObject
 {
         Q_OBJECT
@@ -48,9 +49,10 @@ class ISCORE_LIB_PROCESS_EXPORT LayerPresenter : public QObject
         virtual const LayerModel& layerModel() const = 0;
         virtual const Id<ProcessModel>& modelId() const = 0;
 
-        virtual void fillContextMenu(QMenu*,
-                                     const QPoint& pos,
-                                     const QPointF& scenepos) const = 0;
+        virtual void fillContextMenu(QMenu&,
+                                     QPoint pos,
+                                     QPointF scenepos,
+                                     const LayerContextMenuManager&) const = 0;
     signals:
         void contextMenuRequested(const QPoint&, const QPointF&);
 

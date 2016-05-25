@@ -80,7 +80,10 @@ class LayerPresenter final :
         ZoomRatio zoomRatio() const
         { return m_zoomRatio; }
 
-        void fillContextMenu(QMenu*, const QPoint& pos, const QPointF& scenepos) const override;
+        void fillContextMenu(QMenu&,
+                             QPoint pos,
+                             QPointF scenepos,
+                             const Process::LayerContextMenuManager&) const override;
 
     signals:
         void pressed(QPointF);

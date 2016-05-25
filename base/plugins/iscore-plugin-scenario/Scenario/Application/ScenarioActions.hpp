@@ -6,6 +6,8 @@
 #include <Scenario/Process/Temporal/TemporalScenarioLayerModel.hpp>
 #include <Scenario/Document/ScenarioDocument/ScenarioDocumentModel.hpp>
 
+#include <Process/Layer/LayerContextMenu.hpp>
+
 namespace Scenario
 {
 
@@ -115,7 +117,7 @@ class EnableWhenScenarioInterfaceObject final :
 };
 }
 
-// Conditions relative to Scenario elements
+/// Conditions relative to Scenario elements
 ISCORE_DECLARE_FOCUSED_OBJECT_CONDITION(Scenario::TemporalScenarioLayerModel)
 ISCORE_DECLARE_DOCUMENT_CONDITION(Scenario::ScenarioDocumentModel)
 
@@ -127,6 +129,7 @@ ISCORE_DECLARE_SELECTED_OBJECT_CONDITION(Scenario::EventModel)
 ISCORE_DECLARE_SELECTED_OBJECT_CONDITION(Scenario::StateModel)
 
 
+/// Actions
 // View
 ISCORE_DECLARE_ACTION(SelectAll, Scenario, QKeySequence::SelectAll)
 ISCORE_DECLARE_ACTION(DeselectAll, Scenario, QKeySequence::Deselect)
@@ -166,3 +169,10 @@ ISCORE_DECLARE_ACTION(RefreshStates, Scenario, Qt::CTRL + Qt::Key_U)
 // Constraint
 ISCORE_DECLARE_ACTION(AddProcess, Scenario, QKeySequence::UnknownKey)
 ISCORE_DECLARE_ACTION(InterpolateStates, Scenario, Qt::CTRL + Qt::Key_K)
+
+/// Context menus
+ISCORE_PROCESS_DECLARE_CONTEXT_MENU(ScenarioInterfaceContextMenu)
+ISCORE_PROCESS_DECLARE_CONTEXT_MENU(ScenarioModelContextMenu)
+ISCORE_PROCESS_DECLARE_CONTEXT_MENU(ConstraintContextMenu)
+ISCORE_PROCESS_DECLARE_CONTEXT_MENU(EventContextMenu)
+ISCORE_PROCESS_DECLARE_CONTEXT_MENU(StateContextMenu)

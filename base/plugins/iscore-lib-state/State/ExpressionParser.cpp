@@ -464,8 +464,6 @@ struct Expression_builder : boost::static_visitor<void>
             //ISCORE_BREAKPOINT;
             return {};
         }
-
-        return {};
     }
 
 
@@ -497,8 +495,6 @@ struct Expression_builder : boost::static_visitor<void>
             //ISCORE_BREAKPOINT;
             return {};
         }
-
-        return {};
     }
 
 
@@ -531,8 +527,6 @@ struct Expression_builder : boost::static_visitor<void>
             //ISCORE_BREAKPOINT;
             return {};
         }
-
-        return {};
     }
 
     iscore::optional<State::AddressAccessor> State::parseAddressAccessor(const QString& str)
@@ -578,6 +572,4 @@ struct Expression_builder : boost::static_visitor<void>
             //ISCORE_BREAKPOINT;
             return {};
         }
-
-        return {};
     }

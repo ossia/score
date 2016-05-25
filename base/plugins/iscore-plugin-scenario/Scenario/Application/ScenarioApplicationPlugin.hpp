@@ -8,6 +8,7 @@
 
 #include <QVector>
 #include <vector>
+#include <Process/Layer/LayerContextMenu.hpp>
 #include <Scenario/Palette/ScenarioPoint.hpp>
 #include <iscore_plugin_scenario_export.h>
 
@@ -76,10 +77,11 @@ class ISCORE_PLUGIN_SCENARIO_EXPORT ScenarioApplicationPlugin final :
     private:
         QMetaObject::Connection m_focusConnection, m_defocusConnection, m_contextMenuConnection;
         Scenario::EditionSettings m_editionSettings;
+        Process::LayerContextMenuManager m_layerCtxMenuManager;
 
         ObjectMenuActions m_objectActions{this};
         ToolMenuActions m_toolActions{this};
-        TransportActions m_transportActions{this};
+        TransportActions m_transportActions{context};
 
         QAction *m_selectAll{};
         QAction *m_deselectAll{};

@@ -162,7 +162,11 @@ void LayerPresenter::updateAllElements()
     m_viewUpdater.updateTimeNode(*m_endNodePresenter);
 }
 
-void LayerPresenter::fillContextMenu(QMenu* menu, const QPoint& pos, const QPointF& scenepos) const
+void LayerPresenter::fillContextMenu(
+        QMenu& menu,
+        QPoint pos,
+        QPointF scenepos,
+        const Process::LayerContextMenuManager&) const
 {
     // TODO ACTIONS
     /*

@@ -124,9 +124,10 @@ class ISCORE_PLUGIN_CURVE_EXPORT CurveProcessPresenter :
         }
 
         void fillContextMenu(
-                QMenu* menu,
-                const QPoint& pos,
-                const QPointF& scenepos) const override
+                QMenu& menu,
+                QPoint pos,
+                QPointF scenepos,
+                const Process::LayerContextMenuManager&) const override
         {
             m_curvepresenter->fillContextMenu(menu, pos, scenepos);
         }
