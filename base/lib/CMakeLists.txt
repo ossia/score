@@ -3,7 +3,7 @@ project(iscore_lib_base LANGUAGES CXX)
 iscore_common_setup()
 
 # Packages
-find_package(Qt5 5.3 REQUIRED COMPONENTS Core Widgets Svg)
+find_package(Qt5 5.3 REQUIRED COMPONENTS Core Widgets Svg QuickWidgets)
 
 # Files & main target
 file(GLOB_RECURSE HEADERS
@@ -87,6 +87,7 @@ set(SRCS
 "${CMAKE_CURRENT_SOURCE_DIR}/iscore/widgets/ClearLayout.cpp"
 "${CMAKE_CURRENT_SOURCE_DIR}/iscore/widgets/DoubleSlider.cpp"
 "${CMAKE_CURRENT_SOURCE_DIR}/iscore/widgets/SetIcons.cpp"
+"${CMAKE_CURRENT_SOURCE_DIR}/iscore/widgets/QmlContainerPanel.cpp"
 
 "${CMAKE_CURRENT_SOURCE_DIR}/core/application/ApplicationInterface.cpp"
 "${CMAKE_CURRENT_SOURCE_DIR}/core/application/ApplicationRegistrar.cpp"
@@ -122,7 +123,7 @@ set(SRCS
 add_library(iscore_lib_base ${SRCS} ${HEADERS} ${QRCS})
 
 target_link_libraries(iscore_lib_base
-        PUBLIC Qt5::Core Qt5::Widgets
+        PUBLIC Qt5::Core Qt5::Widgets Qt5::QuickWidgets
     PRIVATE Qt5::Svg QRecentFilesMenu)
 
 set_property(TARGET iscore_lib_base PROPERTY COTIRE_CXX_PREFIX_HEADER_INIT "${CMAKE_CURRENT_SOURCE_DIR}/iscore/prefix.hpp")

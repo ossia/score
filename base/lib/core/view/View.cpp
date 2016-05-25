@@ -21,6 +21,8 @@
 #include <iterator>
 #include <set>
 
+#include <iscore/widgets/QmlContainerPanel.hpp>
+
 class QObject;
 
 namespace iscore

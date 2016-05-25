@@ -125,6 +125,7 @@ void ProcessTabWidget::displaySharedProcess(const Process::ProcessModel& process
     // delete process
 
     auto delAct = newProc->menu()->addAction(tr("Remove Process"));
+    delAct->setIcon(genIconFromPixmaps(QString(":/icons/delete_on.png"), QString(":/icons/delete_off.png")));
     connect(delAct, &QAction::triggered,
             this, [=,id=process.id()] ()
         {
