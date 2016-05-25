@@ -17,6 +17,7 @@ ExpressionEditorWidget::ExpressionEditorWidget(const iscore::DocumentContext& do
     QWidget(parent),
     m_context{doc}
 {
+    this->setObjectName("ExpressionEditorWidget");
     m_mainLayout = new iscore::MarginLess<QVBoxLayout>{this};
 
     auto btnWidg = new QWidget{this};
