@@ -22,6 +22,7 @@
 #include <iscore/tools/SettableIdentifier.hpp>
 #include <iscore/tools/Todo.hpp>
 #include <iscore/widgets/MarginLess.hpp>
+#include <iscore/widgets/SetIcons.hpp>
 
 #include <Inspector/Separator.hpp>
 
@@ -46,6 +47,7 @@ RackInspectorSection::RackInspectorSection(
 
     this->showMenu(true);
     auto del = this->menu()->addAction(tr("Remove Rack"));
+    del->setIcon(genIconFromPixmaps(QString(":/icons/delete_on.png"), QString(":/icons/delete_off.png")));
     connect(del, &QAction::triggered, this, [=] ()
     {
         auto cmd = new Command::RemoveRackFromConstraint{

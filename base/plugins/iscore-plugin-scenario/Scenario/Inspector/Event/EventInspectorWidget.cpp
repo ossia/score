@@ -93,6 +93,7 @@ EventInspectorWidget::EventInspectorWidget(
     m_properties.push_back(infoWidg);
 
     // Condition
+
     m_exprEditor = new ExpressionEditorWidget{m_context, this};
     connect(m_exprEditor, &ExpressionEditorWidget::editingFinished,
             this, &EventInspectorWidget::on_conditionChanged);
