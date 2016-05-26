@@ -11,6 +11,7 @@
 #include <QVBoxLayout>
 #include <QQmlEngine>
 #include <QQmlContext>
+#include <QDebug>
 
 #include <iscore/widgets/SetIcons.hpp>
 
@@ -93,6 +94,11 @@ void QMLContainerPanel::setContainerSize(const int &w, const int &h) {
     setContainerSize(QSize(w, h));
 }
 
-QMLContainerPanel::~QMLContainerPanel() {
+void QMLContainerPanel::show()
+{
+    m_qcontainer->show();
+}
 
+QMLContainerPanel::~QMLContainerPanel() {
+    m_qcontainer->deleteLater();
 }

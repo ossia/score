@@ -21,6 +21,7 @@ public:
     void setContainerSize(const QSize& s);
     void setContainerSize(const int& w, const int& h);
 
+    void show();
     ~QMLContainerPanel();
 
 public slots:
@@ -30,8 +31,8 @@ public slots:
 
 private:
     QString m_source;
-    QWidget* m_widget;
-    QQuickWidget* m_qcontainer;
-    QAction* m_collapse;
-    QVBoxLayout* m_layout;
+    QWidget* m_widget{};
+    QQuickWidget* m_qcontainer{};
+    QAction* m_collapse{};
+    QVBoxLayout* m_layout{};
 };
