@@ -29,7 +29,7 @@ class ISCORE_LIB_PROCESS_EXPORT LayerPresenter : public QObject
 
         virtual ~LayerPresenter();
 
-        auto& context() const
+        const Process::LayerContext& context() const
         { return m_context; }
 
         bool focused() const;

@@ -5,11 +5,16 @@
 #include <iscore/command/Dispatchers/CommandDispatcher.hpp>
 #include <iscore_plugin_scenario_export.h>
 #include <iscore/actions/Action.hpp>
+
+namespace Process
+{
+class LayerContextMenuManager;
+}
+
 namespace Scenario
 {
 class ScenarioApplicationPlugin;
 class TemporalScenarioPresenter;
-
 namespace Command
 {
 class TriggerCommandFactoryList;
@@ -20,9 +25,7 @@ class ISCORE_PLUGIN_SCENARIO_EXPORT EventActions : public QObject
         EventActions(ScenarioApplicationPlugin* parent);
 
         void makeGUIElements(iscore::GUIElements& ref);
-
-        void fillContextMenu(QMenu* menu, const Selection&, const TemporalScenarioPresenter& pres, const QPoint&, const QPointF&) ;
-        void fillContextMenu(QMenu* menu, const Selection&, const QPoint&, const QPointF&);
+        void setupContextMenu(Process::LayerContextMenuManager& ctxm);
 
     private:
         void addTriggerToTimeNode();

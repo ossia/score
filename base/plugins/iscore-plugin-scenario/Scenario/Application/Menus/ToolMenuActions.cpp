@@ -293,34 +293,6 @@ void ToolMenuActions::makeGUIElements(iscore::GUIElements& ref)
     }
 }
 
-void ToolMenuActions::fillContextMenu(
-        QMenu *menu,
-        const Selection& sel,
-        const TemporalScenarioPresenter& pres,
-        const QPoint&,
-        const QPointF&)
-{
-    /*
-    auto tool = menu->addMenu("Tool");
-    tool->addActions(toolActions());
-    tool->addAction(m_shiftAction);
-    auto resize_mode = menu->addMenu("Resize mode");
-    resize_mode->addActions(modeActions());
-    m_scenarioToolActionGroup->setDisabled(false);
-    */
-}
-
-/*
-void ToolMenuActions::setEnabled(bool arg)
-{
-    m_scenarioToolActionGroup->setEnabled(arg);
-    m_shiftAction->setEnabled(arg);
-    if(arg)
-    {
-        m_selecttool->setChecked(true);
-    }
-}
-*/
 void ToolMenuActions::keyPressed(int key)
 {
     if(key == Qt::Key_Shift)

@@ -109,27 +109,29 @@ void ConstraintActions::makeGUIElements(iscore::GUIElements& ref)
     cond.add<Actions::InterpolateStates>();
 }
 
-void ConstraintActions::fillContextMenu(
-    QMenu* menu,
-    const Selection& sel,
-    const TemporalScenarioPresenter& pres,
-    const QPoint&,
-    const QPointF&)
+void ConstraintActions::setupContextMenu(Process::LayerContextMenuManager &ctxm)
 {
-    /*
-    using namespace iscore;
-    if(!sel.empty())
+    using namespace Process;
+    Process::LayerContextMenu cm = MetaContextMenu<ContextMenus::ConstraintContextMenu>::make();
+
+    cm.functions.push_back(
+    [this] (QMenu& menu, QPoint, QPointF, const Process::LayerContext& ctx)
     {
+        using namespace iscore;
+        auto sel = ctx.context.selectionStack.currentSelection();
+        if(sel.empty())
+            return;
+
         QList<const ConstraintModel*> selectedConstraints = filterSelectionByType<ConstraintModel>(sel);
         if(selectedConstraints.size() == 1)
         {
             auto& cst = *selectedConstraints.front();
             if(!cst.racks.empty())
             {
-                auto rackMenu = menu->addMenu(iscore::MenuInterface::name(iscore::ContextMenu::Rack));
+                auto rackMenu = menu.addMenu(tr("Racks"));
 
                 // We have to find the constraint view model of this layer.
-                auto& vm = dynamic_cast<const TemporalScenarioLayerModel*>(&pres.layerModel())->constraint(cst.id());
+                auto& vm = dynamic_cast<const TemporalScenarioLayerModel*>(&ctx.layerPresenter.layerModel())->constraint(cst.id());
 
                 for(const RackModel& rack : cst.racks)
                 {
@@ -157,74 +159,16 @@ void ConstraintActions::fillContextMenu(
 
         if(selectedConstraints.size() >= 1)
         {
-            auto cstrSubmenu = menu->findChild<QMenu*>(MenuInterface::name(iscore::ContextMenu::Constraint));
-            if(!cstrSubmenu)
-            {
-                cstrSubmenu = menu->addMenu(MenuInterface::name(iscore::ContextMenu::Constraint));
-                cstrSubmenu->setTitle(MenuInterface::name(iscore::ContextMenu::Constraint));
-            }
-
+            auto cstrSubmenu = menu.addMenu(tr("Constraint"));
             if(m_addProcess)
             {
                 cstrSubmenu->addAction(m_addProcess);
             }
             cstrSubmenu->addAction(m_interp);
         }
+    });
 
-    }
-    */
-}
-
-void ConstraintActions::fillContextMenu(
-        QMenu* menu,
-        const Selection&,
-        const ConstraintViewModel& vm,
-        const QPoint&,
-        const QPointF&)
-{
-    /*
-    using namespace iscore;
-    auto& cst = vm.model();
-    if(!cst.racks.empty())
-    {
-        auto rackMenu = menu->addMenu(iscore::MenuInterface::name(iscore::ContextMenu::Rack));
-
-        for(const RackModel& rack : cst.racks)
-        {
-            auto act = new QAction{rack.metadata.name(), rackMenu};
-            connect(act, &QAction::triggered,
-                    this, [&] () {
-                auto cmd = new Scenario::Command::ShowRackInViewModel{vm, rack.id()};
-                CommandDispatcher<> dispatcher{m_parent->currentDocument()->context().commandStack};
-                dispatcher.submitCommand(cmd);
-            });
-
-            rackMenu->addAction(act);
-        }
-
-        auto hideAct = new QAction{tr("Hide"), rackMenu};
-        connect(hideAct, &QAction::triggered,
-                this, [&] () {
-            auto cmd = new Scenario::Command::HideRackInViewModel{vm};
-            CommandDispatcher<> dispatcher{m_parent->currentDocument()->context().commandStack};
-            dispatcher.submitCommand(cmd);
-        });
-        rackMenu->addAction(hideAct);
-    }
-
-    auto cstrSubmenu = menu->findChild<QMenu*>(MenuInterface::name(iscore::ContextMenu::Constraint));
-    if(!cstrSubmenu)
-    {
-        cstrSubmenu = menu->addMenu(MenuInterface::name(iscore::ContextMenu::Constraint));
-        cstrSubmenu->setTitle(MenuInterface::name(iscore::ContextMenu::Constraint));
-    }
-
-    if(m_addProcess)
-    {
-        cstrSubmenu->addAction(m_addProcess);
-    }
-    cstrSubmenu->addAction(m_interp);
-    */
+    ctxm.insert(std::move(cm));
 }
 
 void ConstraintActions::addProcessInConstraint(const UuidKey<Process::ProcessFactory>& processName)

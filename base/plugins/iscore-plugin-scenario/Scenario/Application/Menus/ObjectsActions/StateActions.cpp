@@ -8,6 +8,8 @@
 #include <core/document/Document.hpp>
 
 #include <Scenario/Application/ScenarioActions.hpp>
+
+#include <Process/Layer/LayerContextMenu.hpp>
 #include <QAction>
 #include <QMenu>
 
@@ -41,32 +43,28 @@ void StateActions::makeGUIElements(iscore::GUIElements& ref)
     cond.add<Actions::RefreshStates>();
 }
 
-void StateActions::fillContextMenu(
-        QMenu* menu,
-        const Selection& sel,
-        const TemporalScenarioPresenter& pres,
-        const QPoint&,
-        const QPointF&)
+void StateActions::setupContextMenu(Process::LayerContextMenuManager& ctxm)
 {
-    /*
-    using namespace iscore;
-    if(!sel.empty())
-    {
-        if(std::any_of(sel.cbegin(),
-                       sel.cend(),
-                       [] (const QObject* obj) { return dynamic_cast<const StateModel*>(obj); })) // TODO : event or timenode ?
-        {
-            auto stateSubmenu = menu->findChild<QMenu*>(MenuInterface::name(iscore::ContextMenu::State));
-            if(!stateSubmenu)
-            {
-                stateSubmenu = menu->addMenu(MenuInterface::name(iscore::ContextMenu::State));
-                stateSubmenu->setTitle(MenuInterface::name(iscore::ContextMenu::State));
-            }
+    using namespace Process;
+    Process::LayerContextMenu cm = MetaContextMenu<ContextMenus::StateContextMenu>::make();
 
+    cm.functions.push_back(
+    [this] (QMenu& menu, QPoint, QPointF, const Process::LayerContext& ctx)
+    {
+        using namespace iscore;
+        auto sel = ctx.context.selectionStack.currentSelection();
+        if(sel.empty())
+            return;
+
+        if(any_of(sel, [] (const QObject* obj) {
+                  return dynamic_cast<const StateModel*>(obj); })) // TODO : event or timenode ?
+        {
+            auto stateSubmenu = menu.addMenu(tr("State"));
             stateSubmenu->addAction(m_updateStates);
         }
-    }
-    */
+    });
+
+    ctxm.insert(std::move(cm));
 }
 
 CommandDispatcher<> StateActions::dispatcher()

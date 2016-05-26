@@ -171,7 +171,7 @@ ISCORE_DECLARE_ACTION(AddProcess, Scenario, QKeySequence::UnknownKey)
 ISCORE_DECLARE_ACTION(InterpolateStates, Scenario, Qt::CTRL + Qt::Key_K)
 
 /// Context menus
-ISCORE_PROCESS_DECLARE_CONTEXT_MENU(ScenarioInterfaceContextMenu)
+ISCORE_PROCESS_DECLARE_CONTEXT_MENU(ScenarioObjectContextMenu)
 ISCORE_PROCESS_DECLARE_CONTEXT_MENU(ScenarioModelContextMenu)
 ISCORE_PROCESS_DECLARE_CONTEXT_MENU(ConstraintContextMenu)
 ISCORE_PROCESS_DECLARE_CONTEXT_MENU(EventContextMenu)

@@ -82,7 +82,6 @@ ScenarioApplicationPlugin::ScenarioApplicationPlugin(const iscore::ApplicationCo
 
     // Register conditions for the actions enablement
     using namespace iscore;
-    using namespace Scenario;
     using namespace Process;
     ctx.actions.onFocusChange(std::make_shared<EnableWhenFocusedObjectIs<TemporalScenarioLayerModel>>());
     ctx.actions.onFocusChange(std::make_shared<EnableWhenFocusedProcessIs<ScenarioModel>>());
@@ -100,16 +99,7 @@ ScenarioApplicationPlugin::ScenarioApplicationPlugin(const iscore::ApplicationCo
     ctx.actions.onSelectionChange(on_si);
     ctx.actions.onFocusChange(on_si);
 
-    // Register context menu factories
-    // ScenarioInterface
-    // TODO the little shits have to be pointers
-    //LayerContextMenu scenario_interface_cm{StringKey;
-    //m_layerCtxMenuManager.insert();
-    // ScenarioModel specifics
-    // Constraint specifics
-    // Event specifics
-    // State specifics
-    // TN specifics ?
+    m_objectActions.setupContextMenu(m_layerCtxMenuManager);
 }
 
 auto ScenarioApplicationPlugin::makeGUIElements() -> GUIElements
