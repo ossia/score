@@ -32,6 +32,7 @@
 #include <iscore/widgets/SignalUtils.hpp>
 #include <iscore/widgets/MarginLess.hpp>
 #include <iscore/widgets/SpinBoxes.hpp>
+#include <iscore/widgets/SetIcons.hpp>
 
 #include <Inspector/Separator.hpp>
 
@@ -53,6 +54,7 @@ SlotInspectorSection::SlotInspectorSection(
 
     this->showMenu(true);
     auto del = this->menu()->addAction(tr("Remove Slot"));
+    del->setIcon(genIconFromPixmaps(QString(":/icons/delete_on.png"), QString(":/icons/delete_off.png")));
     connect(del, &QAction::triggered, this, [=] ()
     {
         auto cmd = new Command::RemoveSlotFromRack{m_model};

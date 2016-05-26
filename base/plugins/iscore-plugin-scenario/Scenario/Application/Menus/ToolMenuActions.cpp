@@ -112,7 +112,7 @@ ToolMenuActions::ToolMenuActions(
                             this,
                             ExpandMode::Fixed,
                             tr("Shift"));
-    setIcons(m_shiftAction, QString(":/icones/sequence_on.png"), QString(":/icones/sequence_off.png"));
+    setIcons(m_shiftAction, QString(":/icons/sequence_on.png"), QString(":/icons/sequence_off.png"));
 
     connect(m_shiftAction, &QAction::toggled, this, [=] (bool val)
     {
