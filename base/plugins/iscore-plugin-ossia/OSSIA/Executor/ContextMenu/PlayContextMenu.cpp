@@ -35,6 +35,7 @@
 
 #include <iscore/menu/MenuInterface.hpp>
 #include <core/presenter/DocumentManager.hpp>
+#include <Scenario/Application/ScenarioActions.hpp>
 #include <iscore/tools/NotifyingMap.hpp>
 #include <OSSIA/iscore2OSSIA.hpp>
 #include <OSSIA/OSSIAApplicationPlugin.hpp>
@@ -185,7 +186,7 @@ void PlayContextMenu::fillContextMenu(
     }
     else
     {
-        if(std::any_of(s.cbegin(), s.cend(), [] (auto obj) { return dynamic_cast<const Scenario::StateModel*>(obj.data());}))
+        if(any_of(s, [] (auto obj) { return dynamic_cast<const Scenario::StateModel*>(obj.data()); }))
         {
             menu->addAction(m_playStates);
         }
@@ -200,6 +201,39 @@ void PlayContextMenu::fillContextMenu(
     }
     */
     }
+}
+
+// TODO use me
+template<typename T>
+struct is
+{
+        bool operator()(const QObject* obj)
+        { return dynamic_cast<const T*>(obj); }
+};
+
+void PlayContextMenu::setupContextMenu(Process::LayerContextMenuManager &ctxm)
+{
+    using namespace Process;
+    Process::LayerContextMenu& scenario_cm = ctxm.menu<ContextMenus::ScenarioModelContextMenu>();
+    Process::LayerContextMenu& state_cm = ctxm.menu<ContextMenus::StateContextMenu>();
+/*
+    state_cm.functions.push_back(
+    [this] (QMenu& menu, QPoint, QPointF, const Process::LayerContext& ctx)
+    {
+        using namespace iscore;
+        auto sel = ctx.context.selectionStack.currentSelection();
+        if(sel.empty())
+            return;
+
+
+        if(any_of(sel, is<Scenario::StateModel>{}))
+        {
+            auto stateSubmenu = menu.addMenu(tr("State"));
+            stateSubmenu->addAction(m_updateStates);
+        }
+    });
+*/
+
 }
 
 }

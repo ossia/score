@@ -6,6 +6,7 @@
 
 #include <QAction>
 #include <iscore/actions/Action.hpp>
+#include <Process/Layer/LayerContextMenu.hpp>
 #include <iscore_plugin_scenario_export.h>
 namespace Scenario
 {
@@ -17,8 +18,8 @@ class ISCORE_PLUGIN_SCENARIO_EXPORT StateActions : public QObject
         StateActions(ScenarioApplicationPlugin* parent);
 
         void makeGUIElements(iscore::GUIElements& ref);
+        void setupContextMenu(Process::LayerContextMenuManager& ctxm);
 
-        void fillContextMenu(QMenu* menu, const Selection&, const TemporalScenarioPresenter& pres, const QPoint&, const QPointF&) ;
     private:
         CommandDispatcher<> dispatcher();
 

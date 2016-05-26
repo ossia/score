@@ -219,46 +219,4 @@ void ScenarioContextMenuManager::createLayerContextMenu(
         pres.fillContextMenu(menu, pos, scenepos, lcmmgr);
     }
 }
-
-void ScenarioContextMenuManager::createScenarioContextMenu(
-        const iscore::DocumentContext& ctx,
-        QMenu& menu,
-        const QPoint& pos,
-        const QPointF& scenepos,
-        const TemporalScenarioPresenter& pres)
-{
-    auto selected = pres.layerModel().processModel().selectedChildren();
-
-    auto& appPlug = ctx.app.components.applicationPlugin<ScenarioApplicationPlugin>();
-
-    /*
-    for(auto elt : appPlug.pluginActions())
-    {
-        // TODO make a class to encapsulate all the data
-        // required to set-up a context menu in a scenario.
-        elt->fillContextMenu(&menu, selected, pres, pos, scenepos);
-        menu.addSeparator();
-    }
-
-    menu.addSeparator();
-    */
-    menu.addAction(appPlug.m_selectAll);
-    menu.addAction(appPlug.m_deselectAll);
-
-    auto createCommentAct = new QAction{"Add a Comment Block", &menu};
-
-    connect(createCommentAct, &QAction::triggered,
-            [&] ()
-    {
-        auto scenPoint = Scenario::ConvertToScenarioPoint(scenepos, pres.zoomRatio(), pres.view().height());
-
-        auto cmd = new Scenario::Command::CreateCommentBlock{
-                   static_cast<Scenario::ScenarioModel&>(pres.layerModel().processModel()),
-                   scenPoint.date,
-                   scenPoint.y};
-        CommandDispatcher<>{ctx.commandStack}.submitCommand(cmd);
-    });
-
-    menu.addAction(createCommentAct);
-}
 }

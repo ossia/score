@@ -7,6 +7,11 @@
 #include <iscore/actions/Action.hpp>
 class QAction;
 class QMenu;
+namespace Process
+{
+class LayerContextMenuManager;
+}
+
 namespace Scenario
 {
 class ScenarioApplicationPlugin;
@@ -19,9 +24,8 @@ class PlayContextMenu final : public QObject
 {
     public:
         PlayContextMenu(OSSIAApplicationPlugin& plug, Scenario::ScenarioApplicationPlugin* parent);
-
-
         void fillContextMenu(QMenu* menu, const Selection&, const Scenario::TemporalScenarioPresenter& pres, const QPoint&, const QPointF&) ;
+        void setupContextMenu(Process::LayerContextMenuManager& ctxm);
 
         void setEnabled(bool);
 

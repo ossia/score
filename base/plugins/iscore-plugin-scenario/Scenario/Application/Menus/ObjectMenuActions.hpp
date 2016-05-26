@@ -27,13 +27,9 @@ class ISCORE_PLUGIN_SCENARIO_EXPORT ObjectMenuActions : public QObject
         ObjectMenuActions(ScenarioApplicationPlugin* parent);
 
         void makeGUIElements(iscore::GUIElements& ref);
+        void setupContextMenu(Process::LayerContextMenuManager& ctxm);
 
-        void fillContextMenu(QMenu* menu, const Selection&, const TemporalScenarioPresenter& pres, const QPoint&, const QPointF&);
-
-
-        QList<QAction*> actions() const;
         CommandDispatcher<> dispatcher() const;
-
 
         auto appPlugin() const
         { return m_parent; }
@@ -49,7 +45,7 @@ class ISCORE_PLUGIN_SCENARIO_EXPORT ObjectMenuActions : public QObject
         ConstraintActions m_cstrActions;
         StateActions m_stateActions;
 
-        QAction* m_removeElements{};
+        QAction *m_removeElements{};
         QAction *m_clearElements{};
         QAction *m_copyContent{};
         QAction *m_cutContent{};

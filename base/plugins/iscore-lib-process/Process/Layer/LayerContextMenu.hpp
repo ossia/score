@@ -10,11 +10,14 @@ class QMenu;
 
 namespace Process
 {
-class LayerPresenter;
+template<typename T>
+class MetaContextMenu;
+class LayerContext;
+
+using ContextMenuFun = std::function<void(QMenu&, QPoint, QPointF, const Process::LayerContext&)>;
 class ISCORE_LIB_PROCESS_EXPORT LayerContextMenu
 {
     public:
-        using ContextMenuFun = std::function<void(QMenu&, QPoint, QPointF, const Process::LayerPresenter&)>;
         LayerContextMenu(StringKey<LayerContextMenu> k):
             m_key{std::move(k)}
         {
@@ -25,7 +28,7 @@ class ISCORE_LIB_PROCESS_EXPORT LayerContextMenu
 
         std::vector<ContextMenuFun> functions;
 
-        void build(QMenu& m, QPoint pt, QPointF ptf, const Process::LayerPresenter& proc) const
+        void build(QMenu& m, QPoint pt, QPointF ptf, const Process::LayerContext& proc) const
         {
             for(auto& fun : functions)
                 fun(m, pt, ptf, proc);
@@ -44,6 +47,22 @@ class ISCORE_LIB_PROCESS_EXPORT LayerContextMenuManager
             m_container.insert(std::make_pair(val.key(), std::move(val)));
         }
 
+        template<typename T>
+        auto& menu()
+        {
+            using meta_t = MetaContextMenu<T>;
+            ISCORE_ASSERT(m_container.find(meta_t::static_key()) != m_container.end());
+            return m_container.find(meta_t::static_key())->second;
+        }
+
+        template<typename T>
+        auto& menu() const
+        {
+            using meta_t = MetaContextMenu<T>;
+            ISCORE_ASSERT(m_container.find(meta_t::static_key()) != m_container.end());
+            return m_container.find(meta_t::static_key())->second;
+        }
+
         auto& get()
         { return m_container; }
         auto& get() const
@@ -53,19 +72,15 @@ class ISCORE_LIB_PROCESS_EXPORT LayerContextMenuManager
         std::unordered_map<StringKey<LayerContextMenu>, LayerContextMenu> m_container;
 };
 
-template<typename T>
-class MetaContextMenu;
-
 }
 
 #define ISCORE_PROCESS_DECLARE_CONTEXT_MENU(Type) \
 namespace ContextMenus { class Type; } \
 namespace Process { template<> \
-class MetaContextMenu<ContextMenus::Type> final : public LayerContextMenu \
+class MetaContextMenu<ContextMenus::Type> \
 { \
     public: \
-        MetaContextMenu(): \
-            Process::LayerContextMenu{static_key()} { } \
+        static LayerContextMenu make() { return LayerContextMenu{ static_key() }; } \
  \
         static StringKey<Process::LayerContextMenu> static_key() \
         { return StringKey<Process::LayerContextMenu>{ #Type }; } \

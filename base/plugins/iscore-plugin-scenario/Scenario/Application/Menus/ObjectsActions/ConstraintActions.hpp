@@ -10,6 +10,7 @@
 #include <iscore_plugin_scenario_export.h>
 namespace Process
 {
+class LayerContextMenuManager;
 class ProcessFactory;
 }
 namespace Scenario
@@ -25,18 +26,7 @@ class ISCORE_PLUGIN_SCENARIO_EXPORT ConstraintActions : public QObject
         ~ConstraintActions();
 
         void makeGUIElements(iscore::GUIElements& ref);
-        void fillContextMenu(
-                QMenu* menu,
-                const Selection&,
-                const TemporalScenarioPresenter& pres,
-                const QPoint&,
-                const QPointF&) ;
-        void fillContextMenu(
-                QMenu* menu,
-                const Selection&,
-                const ConstraintViewModel& vm,
-                const QPoint&,
-                const QPointF&);
+        void setupContextMenu(Process::LayerContextMenuManager& ctxm);
 
     private:
         void addProcessInConstraint(const UuidKey<Process::ProcessFactory>&);

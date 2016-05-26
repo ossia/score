@@ -29,13 +29,6 @@ class ScenarioContextMenuManager final : public QObject
                 QMenu& menu,
                 const SlotPresenter& slotp);
 
-        static void createScenarioContextMenu(
-                const iscore::DocumentContext& ctx,
-                QMenu& menu,
-                const QPoint& pos,
-                const QPointF& scenepos,
-                const TemporalScenarioPresenter& pres);
-
         static void createLayerContextMenu(
                 QMenu& menu,
                 QPoint pos,

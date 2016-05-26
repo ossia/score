@@ -22,13 +22,6 @@ class ToolMenuActions : public QObject
 
         void makeGUIElements(iscore::GUIElements& ref);
 
-        void fillContextMenu(
-                QMenu* menu,
-                const Selection&sel,
-                const TemporalScenarioPresenter& pres,
-                const QPoint&,
-                const QPointF&);
-
     private:
         void keyPressed(int key);
         void keyReleased(int key);

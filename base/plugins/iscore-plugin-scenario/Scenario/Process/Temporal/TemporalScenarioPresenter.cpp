@@ -6,6 +6,7 @@
 #include <Scenario/Process/Temporal/TemporalScenarioLayerModel.hpp>
 #include <Scenario/Process/Temporal/TemporalScenarioView.hpp>
 #include <State/MessageListSerialization.hpp>
+#include <Scenario/Commands/Scenario/Creations/CreateCommentBlock.hpp>
 
 #include <boost/iterator/indirect_iterator.hpp>
 #include <boost/iterator/iterator_facade.hpp>
@@ -38,6 +39,7 @@
 #include <Scenario/Process/AbstractScenarioLayerModel.hpp>
 #include <Scenario/Process/ScenarioModel.hpp>
 #include <Scenario/Process/Temporal/ScenarioViewInterface.hpp>
+#include <Scenario/Application/ScenarioActions.hpp>
 #include <State/Message.hpp>
 #include "TemporalScenarioPresenter.hpp"
 #include <iscore/document/DocumentContext.hpp>
@@ -228,9 +230,46 @@ void TemporalScenarioPresenter::fillContextMenu(
         QMenu& menu,
         QPoint pos,
         QPointF scenepos,
-        const Process::LayerContextMenuManager&) const
+        const Process::LayerContextMenuManager& cm) const
 {
-    ScenarioContextMenuManager::createScenarioContextMenu(m_context.context, menu, pos, scenepos, *this);
+    auto& ctx = m_context.context;
+    auto& actions = ctx.app.actions;
+    // Get ScenarioModel actions
+    auto& sm_cm = cm.menu<ContextMenus::ScenarioObjectContextMenu>();
+    sm_cm.build(menu, pos, scenepos, this->context());
+
+    cm.menu<ContextMenus::ScenarioObjectContextMenu>()
+            .build(menu, pos, scenepos, this->context());
+    cm.menu<ContextMenus::ScenarioModelContextMenu>()
+            .build(menu, pos, scenepos, this->context());
+    menu.addSeparator();
+    cm.menu<ContextMenus::ConstraintContextMenu>()
+            .build(menu, pos, scenepos, this->context());
+    cm.menu<ContextMenus::EventContextMenu>()
+            .build(menu, pos, scenepos, this->context());
+    cm.menu<ContextMenus::StateContextMenu>()
+            .build(menu, pos, scenepos, this->context());
+
+    menu.addSeparator();
+
+    menu.addAction(actions.action<Actions::SelectAll>().action());
+    menu.addAction(actions.action<Actions::DeselectAll>().action());
+
+    auto createCommentAct = new QAction{"Add a Comment Block", &menu};
+    connect(createCommentAct, &QAction::triggered,
+            [&] ()
+    {
+        auto scenPoint = Scenario::ConvertToScenarioPoint(scenepos, zoomRatio(), view().height());
+
+        auto cmd = new Scenario::Command::CreateCommentBlock{
+                   static_cast<Scenario::ScenarioModel&>(layerModel().processModel()),
+                   scenPoint.date,
+                   scenPoint.y};
+        CommandDispatcher<>{ctx.commandStack}.submitCommand(cmd);
+    });
+
+    menu.addAction(createCommentAct);
+
 }
 
 template<typename Map, typename Id>

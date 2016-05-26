@@ -170,55 +170,74 @@ void ObjectMenuActions::makeGUIElements(iscore::GUIElements& ref)
     object.menu()->addAction(m_pasteContent);
     object.menu()->addSeparator();
     m_eventActions.makeGUIElements(ref);
-    m_cstrActions.makeGUIElements(ref); // Only constraint in toolbar
+    m_cstrActions.makeGUIElements(ref);
     m_stateActions.makeGUIElements(ref);
 }
 
-void ObjectMenuActions::fillContextMenu(
-        QMenu *menu,
-        const Selection& sel,
-        const TemporalScenarioPresenter& pres,
-        const QPoint& p,
-        const QPointF& scenePoint)
+void ObjectMenuActions::setupContextMenu(Process::LayerContextMenuManager &ctxm)
 {
-    // TODO ACTIONS
-    /*
-    using namespace iscore;
+    using namespace Process;
+    LayerContextMenu scenario_model = MetaContextMenu<ContextMenus::ScenarioModelContextMenu>::make();
+    LayerContextMenu scenario_object = MetaContextMenu<ContextMenus::ScenarioObjectContextMenu>::make();
 
-    m_eventActions.fillContextMenu(menu, sel, pres, p, scenePoint);
-    m_cstrActions.fillContextMenu(menu, sel, pres, p, scenePoint);
-    m_stateActions.fillContextMenu(menu, sel, pres, p ,scenePoint);
-
-    if(!sel.empty())
+    // Used for scenario model
+    scenario_model.functions.push_back(
+                [this] (QMenu& menu, QPoint, QPointF scenePoint, const LayerContext& ctx)
     {
-        auto objectMenu = menu->findChild<QMenu*>(MenuInterface::name(iscore::ContextMenu::Object));
-        if(!objectMenu)
+        auto& scenario = *safe_cast<const TemporalScenarioPresenter*>(&ctx.layerPresenter);
+        auto sel = ctx.context.selectionStack.currentSelection();
+        if(!sel.empty())
         {
-            objectMenu = menu->addMenu(MenuInterface::name(iscore::ContextMenu::Object));
-            objectMenu->setTitle(MenuInterface::name(iscore::ContextMenu::Object));
+            auto objectMenu = menu.addMenu(tr("Object"));
+
+            objectMenu->addAction(m_elementsToJson);
+            objectMenu->addAction(m_removeElements);
+            objectMenu->addAction(m_clearElements);
+            objectMenu->addSeparator();
+
+            objectMenu->addAction(m_copyContent);
+            objectMenu->addAction(m_cutContent);
+            objectMenu->addAction(m_pasteContent);
         }
 
-        objectMenu->addAction(m_elementsToJson);
-        objectMenu->addAction(m_removeElements);
-        objectMenu->addAction(m_clearElements);
-        objectMenu->addSeparator();
-
-        objectMenu->addAction(m_copyContent);
-        objectMenu->addAction(m_cutContent);
-        objectMenu->addAction(m_pasteContent);
-    }
-
-    auto pasteElements = new QAction{tr("Paste element(s)"), this};
-    pasteElements->setShortcut(QKeySequence::Paste);
-    pasteElements->setShortcutContext(Qt::WidgetWithChildrenShortcut);
-    connect(pasteElements, &QAction::triggered,
-            [&,scenePoint]()
-    {
-        this->pasteElements(QJsonDocument::fromJson(QApplication::clipboard()->text().toUtf8()).object(),
-                      Scenario::ConvertToScenarioPoint(scenePoint, pres.zoomRatio(), pres.view().boundingRect().height()));
+        auto pasteElements = new QAction{tr("Paste element(s)"), this};
+        pasteElements->setShortcut(QKeySequence::Paste);
+        pasteElements->setShortcutContext(Qt::WidgetWithChildrenShortcut);
+        connect(pasteElements, &QAction::triggered,
+                [&,scenePoint]()
+        {
+            this->pasteElements(QJsonDocument::fromJson(QApplication::clipboard()->text().toUtf8()).object(),
+                          Scenario::ConvertToScenarioPoint(
+                                    scenePoint,
+                                    scenario.zoomRatio(),
+                                    scenario.view().boundingRect().height()));
+        });
+        menu.addAction(pasteElements);
     });
-    menu->addAction(pasteElements);
-    */
+
+    // Used for base scenario, loops, etc.
+    scenario_object.functions.push_back(
+                [this] (QMenu& menu, QPoint, QPointF, const LayerContext& ctx)
+    {
+        auto sel = ctx.context.selectionStack.currentSelection();
+        if(!sel.empty())
+        {
+            auto objectMenu = menu.addMenu(tr("Object"));
+
+            objectMenu->addAction(m_elementsToJson);
+            objectMenu->addAction(m_clearElements);
+            objectMenu->addSeparator();
+
+            objectMenu->addAction(m_copyContent);
+            objectMenu->addAction(m_pasteContent);
+        }
+    });
+    m_eventActions.setupContextMenu(ctxm);
+    m_cstrActions.setupContextMenu(ctxm);
+    m_stateActions.setupContextMenu(ctxm);
+
+    ctxm.insert(std::move(scenario_model));
+    ctxm.insert(std::move(scenario_object));
 }
 
 QJsonObject ObjectMenuActions::copySelectedElementsToJson()

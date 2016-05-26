@@ -52,44 +52,32 @@ void EventActions::makeGUIElements(iscore::GUIElements& ref)
     cond.add<Actions::RemoveTrigger>();
 }
 
-
-void EventActions::fillContextMenu(
-        QMenu* menu,
-        const Selection& sel,
-        const TemporalScenarioPresenter& pres,
-        const QPoint& p1,
-        const QPointF& p2)
+void EventActions::setupContextMenu(Process::LayerContextMenuManager &ctxm)
 {
-    fillContextMenu(menu, sel, p1, p2);
-}
+    using namespace Process;
+    Process::LayerContextMenu cm = MetaContextMenu<ContextMenus::EventContextMenu>::make();
 
-void EventActions::fillContextMenu(
-        QMenu* menu,
-        const Selection& sel,
-        const QPoint&,
-        const QPointF&)
-{
-    /*
-    using namespace iscore;
-    if(!sel.empty())
+    cm.functions.push_back(
+                [this] (QMenu& menu, QPoint, QPointF, const Process::LayerContext& ctx)
     {
+        using namespace iscore;
+        auto sel = ctx.context.selectionStack.currentSelection();
+        if(sel.empty())
+            return;
+
         if(std::any_of(sel.cbegin(),
                        sel.cend(),
                        [] (const QObject* obj) { return dynamic_cast<const EventModel*>(obj); })) // TODO : event or timenode ?
         {
-            auto tnSubmenu = menu->findChild<QMenu*>(MenuInterface::name(iscore::ContextMenu::Event));
-            if(!tnSubmenu)
-            {
-                tnSubmenu = menu->addMenu(MenuInterface::name(iscore::ContextMenu::Event));
-                tnSubmenu->setTitle(MenuInterface::name(iscore::ContextMenu::Event));
-            }
-            tnSubmenu->addAction(m_addTrigger);
-            tnSubmenu->addAction(m_removeTrigger);
-        }
-    }
-    */
-}
+            auto m = menu.addMenu(tr("Event"));
 
+            m->addAction(m_addTrigger);
+            m->addAction(m_removeTrigger);
+        }
+    });
+
+    ctxm.insert(std::move(cm));
+}
 
 void EventActions::addTriggerToTimeNode()
 {

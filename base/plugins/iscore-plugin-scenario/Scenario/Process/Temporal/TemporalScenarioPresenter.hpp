@@ -111,7 +111,6 @@ class ISCORE_PLUGIN_SCENARIO_EXPORT TemporalScenarioPresenter final :
         auto& editionSettings() const
         { return m_editionSettings; }
 
-
         void fillContextMenu(
                 QMenu&,
                 QPoint pos,
