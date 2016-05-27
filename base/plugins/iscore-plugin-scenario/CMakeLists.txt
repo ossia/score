@@ -141,16 +141,11 @@ set(SRCS ${SRCS}
 
 "${CMAKE_CURRENT_SOURCE_DIR}/Scenario/ViewCommands/PutLayerModelToFront.cpp"
 
-"${CMAKE_CURRENT_SOURCE_DIR}/Scenario/Execution/ScenarioExecution.cpp"
-
-"${CMAKE_CURRENT_SOURCE_DIR}/Scenario/Application/Menus/Plugin/ScenarioActionsFactory.cpp"
-"${CMAKE_CURRENT_SOURCE_DIR}/Scenario/Application/Menus/ScenarioActions.cpp"
 "${CMAKE_CURRENT_SOURCE_DIR}/Scenario/Application/Menus/ToolMenuActions.cpp"
 "${CMAKE_CURRENT_SOURCE_DIR}/Scenario/Application/Menus/ScenarioCopy.cpp"
 "${CMAKE_CURRENT_SOURCE_DIR}/Scenario/Application/Menus/ObjectMenuActions.cpp"
 "${CMAKE_CURRENT_SOURCE_DIR}/Scenario/Application/Menus/TransportActions.cpp"
 "${CMAKE_CURRENT_SOURCE_DIR}/Scenario/Application/Menus/TextDialog.cpp"
-"${CMAKE_CURRENT_SOURCE_DIR}/Scenario/Application/Menus/ScenarioCommonContextMenuFactory.cpp"
 "${CMAKE_CURRENT_SOURCE_DIR}/Scenario/Application/Menus/ScenarioContextMenuManager.cpp"
 "${CMAKE_CURRENT_SOURCE_DIR}/Scenario/Application/Menus/ObjectsActions/EventActions.cpp"
 "${CMAKE_CURRENT_SOURCE_DIR}/Scenario/Application/Menus/ObjectsActions/ConstraintActions.cpp"

@@ -1,6 +1,6 @@
 #pragma once
 
-#include <Scenario/Application/Menus/ScenarioActions.hpp>
+
 #include <iscore/menu/MenuInterface.hpp>
 #include <iscore/command/Dispatchers/CommandDispatcher.hpp>
 #include <iscore_plugin_scenario_export.h>

@@ -4,7 +4,7 @@
 #include <iscore/actions/Action.hpp>
 
 #include <core/presenter/DocumentManager.hpp>
-#include <core/presenter/MenubarManager.hpp>
+
 #include <iscore/tools/NamedObject.hpp>
 #include <iscore/widgets/OrderedToolbar.hpp>
 #include <vector>

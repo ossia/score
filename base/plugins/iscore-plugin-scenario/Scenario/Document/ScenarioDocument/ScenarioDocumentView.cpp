@@ -20,7 +20,7 @@
 #include <QFile>
 #include <QStyleFactory>
 #include <Process/Style/Skin.hpp>
-#include <Scenario/Application/Menus/ScenarioActions.hpp>
+
 #include <Process/Tools/ProcessGraphicsView.hpp>
 #include "ScenarioDocumentView.hpp"
 #include <Scenario/Document/ScenarioDocument/ScenarioScene.hpp>

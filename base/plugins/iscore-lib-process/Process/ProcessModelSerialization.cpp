@@ -9,7 +9,7 @@
 #include <Process/ProcessList.hpp>
 #include <Process/TimeValue.hpp>
 #include <iscore/plugins/customfactory/FactoryFamily.hpp>
-#include <iscore/plugins/customfactory/FactoryMap.hpp>
+
 #include <iscore/plugins/customfactory/StringFactoryKey.hpp>
 #include <iscore/serialization/DataStreamVisitor.hpp>
 #include <iscore/serialization/JSONValueVisitor.hpp>

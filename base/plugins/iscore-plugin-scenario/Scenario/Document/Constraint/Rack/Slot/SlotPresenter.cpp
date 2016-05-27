@@ -22,7 +22,7 @@
 #include <Process/ProcessContext.hpp>
 #include <iscore/application/ApplicationContext.hpp>
 #include <iscore/plugins/customfactory/FactoryFamily.hpp>
-#include <iscore/plugins/customfactory/FactoryMap.hpp>
+
 #include <iscore/plugins/customfactory/StringFactoryKey.hpp>
 #include <iscore/tools/NamedObject.hpp>
 #include <iscore/tools/NotifyingMap.hpp>

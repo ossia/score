@@ -4,7 +4,7 @@
 
 #include <iscore/tools/ModelPath.hpp>
 #include <iscore/tools/ModelPathSerialization.hpp>
-#include <iscore/tools/std/ConstexprString.hpp>
+
 namespace Scenario
 {
 namespace Command

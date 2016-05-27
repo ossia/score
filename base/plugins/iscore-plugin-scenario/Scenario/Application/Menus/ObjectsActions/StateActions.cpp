@@ -4,7 +4,7 @@
 #include <Scenario/Application/ScenarioApplicationPlugin.hpp>
 #include <Scenario/Commands/Cohesion/RefreshStates.hpp>
 
-#include <core/presenter/MenubarManager.hpp>
+
 #include <core/document/Document.hpp>
 
 #include <Scenario/Application/ScenarioActions.hpp>

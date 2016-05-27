@@ -15,7 +15,7 @@
 #include <Device/Protocol/ProtocolSettingsWidget.hpp>
 #include "DeviceEditDialog.hpp"
 #include <iscore/plugins/customfactory/FactoryFamily.hpp>
-#include <iscore/plugins/customfactory/FactoryMap.hpp>
+
 #include <iscore/plugins/customfactory/StringFactoryKey.hpp>
 #include <iscore/widgets/SignalUtils.hpp>
 

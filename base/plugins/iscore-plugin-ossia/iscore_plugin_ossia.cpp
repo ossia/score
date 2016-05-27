@@ -4,13 +4,11 @@
 #include <QString>
 
 #include <Device/Protocol/ProtocolFactoryInterface.hpp>
-#include <OSSIA/Executor/ContextMenu/PlayContextMenuFactory.hpp>
 #include <OSSIA/OSSIAApplicationPlugin.hpp>
 
 #include <OSSIA/LocalTree/Scenario/ScenarioComponentFactory.hpp>
 #include <OSSIA/Executor/ProcessElement.hpp>
 #include <OSSIA/Executor/ScenarioElement.hpp>
-#include <Scenario/Application/Menus/Plugin/ScenarioActionsFactory.hpp>
 #include <iscore/plugins/customfactory/StringFactoryKey.hpp>
 #include "iscore_plugin_ossia.hpp"
 #include <iscore/plugins/customfactory/FactoryFamily.hpp>

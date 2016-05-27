@@ -36,7 +36,7 @@
 #include <iscore/application/ApplicationContext.hpp>
 #include <iscore/command/Dispatchers/CommandDispatcher.hpp>
 #include <iscore/plugins/customfactory/FactoryFamily.hpp>
-#include <iscore/plugins/customfactory/FactoryMap.hpp>
+
 #include <iscore/plugins/customfactory/StringFactoryKey.hpp>
 #include <iscore/selection/Selectable.hpp>
 #include <iscore/tools/IdentifiedObject.hpp>

@@ -1,6 +1,6 @@
 #pragma once
 #include <Explorer/Listening/ListeningHandlerFactory.hpp>
-#include <iscore/plugins/customfactory/FactoryMap.hpp>
+
 #include <iscore/plugins/customfactory/FactoryFamily.hpp>
 #include <iscore_plugin_deviceexplorer_export.h>
 namespace Explorer

@@ -14,7 +14,6 @@ qt5_add_resources(QRCS "${CMAKE_CURRENT_SOURCE_DIR}/resources/iscore.qrc")
 set(SRCS
 
 "${CMAKE_CURRENT_SOURCE_DIR}/iscore/serialization/StringConstants.cpp"
-"${CMAKE_CURRENT_SOURCE_DIR}/iscore/menu/MenuInterface.cpp"
 "${CMAKE_CURRENT_SOURCE_DIR}/iscore/tools/InvisibleRootNodeSerialization.cpp"
 "${CMAKE_CURRENT_SOURCE_DIR}/iscore/tools/ObjectPathSerialization.cpp"
 "${CMAKE_CURRENT_SOURCE_DIR}/iscore/tools/SettableIdentifierGeneration.cpp"
@@ -38,7 +37,6 @@ set(SRCS
 "${CMAKE_CURRENT_SOURCE_DIR}/iscore/application/ApplicationContext.cpp"
 "${CMAKE_CURRENT_SOURCE_DIR}/iscore/application/ApplicationComponents.cpp"
 
-"${CMAKE_CURRENT_SOURCE_DIR}/iscore/actions/ActionManager.cpp"
 "${CMAKE_CURRENT_SOURCE_DIR}/iscore/actions/Action.cpp"
 
 "${CMAKE_CURRENT_SOURCE_DIR}/iscore/document/DocumentInterface.cpp"
@@ -111,7 +109,6 @@ set(SRCS
 "${CMAKE_CURRENT_SOURCE_DIR}/core/plugin/PluginManager.cpp"
 "${CMAKE_CURRENT_SOURCE_DIR}/core/presenter/CoreApplicationPlugin.cpp"
 "${CMAKE_CURRENT_SOURCE_DIR}/core/presenter/DocumentManager.cpp"
-"${CMAKE_CURRENT_SOURCE_DIR}/core/presenter/MenubarManager.cpp"
 "${CMAKE_CURRENT_SOURCE_DIR}/core/presenter/Presenter.cpp"
 "${CMAKE_CURRENT_SOURCE_DIR}/core/settings/Settings.cpp"
 "${CMAKE_CURRENT_SOURCE_DIR}/core/settings/SettingsPresenter.cpp"

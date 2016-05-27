@@ -1,7 +1,7 @@
 #pragma once
 #include <QPoint>
 
-#include <Scenario/Application/Menus/ScenarioActions.hpp>
+
 #include <iscore/selection/Selection.hpp>
 #include <iscore/menu/MenuInterface.hpp>
 #include <iscore/actions/Action.hpp>
