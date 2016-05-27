@@ -24,6 +24,7 @@ file(GLOB_RECURSE HDRS
     "${CMAKE_CURRENT_SOURCE_DIR}/Scenario/Document/*.hpp"
     "${CMAKE_CURRENT_SOURCE_DIR}/Scenario/Palette/*.hpp"
     "${CMAKE_CURRENT_SOURCE_DIR}/Scenario/Panel/*.hpp"
+    "${CMAKE_CURRENT_SOURCE_DIR}/Scenario/Execution/*.hpp"
     "${CMAKE_CURRENT_SOURCE_DIR}/Scenario/Process/*.hpp"
     "${CMAKE_CURRENT_SOURCE_DIR}/Scenario/ViewCommands/*.hpp"
     "${CMAKE_CURRENT_SOURCE_DIR}/Scenario/Settings/*.hpp"
@@ -139,6 +140,8 @@ set(SRCS ${SRCS}
 "${CMAKE_CURRENT_SOURCE_DIR}/Scenario/Commands/ScenarioCommandFactory.cpp"
 
 "${CMAKE_CURRENT_SOURCE_DIR}/Scenario/ViewCommands/PutLayerModelToFront.cpp"
+
+"${CMAKE_CURRENT_SOURCE_DIR}/Scenario/Execution/ScenarioExecution.cpp"
 
 "${CMAKE_CURRENT_SOURCE_DIR}/Scenario/Application/Menus/Plugin/ScenarioActionsFactory.cpp"
 "${CMAKE_CURRENT_SOURCE_DIR}/Scenario/Application/Menus/ScenarioActions.cpp"

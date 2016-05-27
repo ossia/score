@@ -69,7 +69,8 @@ ObjectMenuActions::ObjectMenuActions(
     connect(m_removeElements, &QAction::triggered,
             [this]()
     {
-        if (auto sm = m_parent->focusedScenarioModel())
+        auto sm = focusedScenarioModel(m_parent->currentDocument()->context());
+        if (sm)
         {
             Scenario::removeSelection(*sm, m_parent->currentDocument()->context().commandStack);
         }
@@ -81,7 +82,8 @@ ObjectMenuActions::ObjectMenuActions(
     connect(m_clearElements, &QAction::triggered,
             [this]()
     {
-        if (auto sm = m_parent->focusedScenarioModel())
+        auto sm = focusedScenarioModel(m_parent->currentDocument()->context());
+        if (sm)
         {
             Scenario::clearContentFromSelection(*sm, m_parent->currentDocument()->context().commandStack);
         }
@@ -242,7 +244,7 @@ void ObjectMenuActions::setupContextMenu(Process::LayerContextMenuManager &ctxm)
 
 QJsonObject ObjectMenuActions::copySelectedElementsToJson()
 {
-    auto si = m_parent->focusedScenarioInterface();
+    auto si = focusedScenarioInterface(m_parent->currentDocument()->context());
     auto si_obj = dynamic_cast<QObject*>(const_cast<ScenarioInterface*>(si));
     if(auto sm = dynamic_cast<const Scenario::ScenarioModel*>(si))
     {
@@ -271,7 +273,8 @@ QJsonObject ObjectMenuActions::cutSelectedElementsToJson()
     if(obj.empty())
         return {};
 
-    if (auto sm = m_parent->focusedScenarioModel())
+    auto sm = focusedScenarioModel(m_parent->currentDocument()->context());
+    if (sm)
     {
         Scenario::clearContentFromSelection(*sm, m_parent->currentDocument()->context().commandStack);
     }
@@ -335,7 +338,7 @@ static void writeJsonToScenario(
 
 void ObjectMenuActions::writeJsonToSelectedElements(const QJsonObject &obj)
 {
-    auto si = m_parent->focusedScenarioInterface();
+    auto si = focusedScenarioInterface(m_parent->currentDocument()->context());
     if(auto sm = dynamic_cast<const Scenario::ScenarioModel*>(si))
     {
         writeJsonToScenario(*sm, *this, obj);

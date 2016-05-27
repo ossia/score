@@ -23,14 +23,16 @@ namespace RecreateOnPlay
 class PlayContextMenu final : public QObject
 {
     public:
-        PlayContextMenu(OSSIAApplicationPlugin& plug, Scenario::ScenarioApplicationPlugin* parent);
+        PlayContextMenu(
+                OSSIAApplicationPlugin& plug,
+                const iscore::ApplicationContext& ctx);
         void fillContextMenu(QMenu* menu, const Selection&, const Scenario::TemporalScenarioPresenter& pres, const QPoint&, const QPointF&) ;
         void setupContextMenu(Process::LayerContextMenuManager& ctxm);
 
         void setEnabled(bool);
 
     private:
-        Scenario::ScenarioApplicationPlugin* m_parent{};
+        const iscore::ApplicationContext& m_ctx;
 
         QAction* m_recordAutomations{};
         QAction* m_recordMessages{};

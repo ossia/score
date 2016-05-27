@@ -31,11 +31,11 @@ IScoreCohesionApplicationPlugin::IScoreCohesionApplicationPlugin(const iscore::A
     // Since we have declared the dependency, we can assume
     // that ScenarioApplicationPlugin is instantiated already.
     auto& appPlugin = ctx.components.applicationPlugin<ScenarioApplicationPlugin>();
-    connect(&appPlugin, &ScenarioApplicationPlugin::startRecording,
+    connect(&appPlugin.execution(), &ScenarioExecution::startRecording,
             this, &IScoreCohesionApplicationPlugin::record);
-    connect(&appPlugin, &ScenarioApplicationPlugin::startRecordingMessages,
+    connect(&appPlugin.execution(), &ScenarioExecution::startRecordingMessages,
             this, &IScoreCohesionApplicationPlugin::recordMessages);
-    connect(&appPlugin, &ScenarioApplicationPlugin::stopRecording, // TODO this seems useless
+    connect(&appPlugin.execution(), &ScenarioExecution::stopRecording, // TODO this seems useless
             this, &IScoreCohesionApplicationPlugin::stopRecord);
 
 
@@ -101,7 +101,7 @@ iscore::GUIElements IScoreCohesionApplicationPlugin::makeGUIElements()
 }
 
 void IScoreCohesionApplicationPlugin::record(
-        Scenario::ScenarioModel& scenar,
+        const Scenario::ScenarioModel& scenar,
         Scenario::Point pt)
 {
     m_recManager = std::make_unique<Recording::RecordManager>(
@@ -110,7 +110,7 @@ void IScoreCohesionApplicationPlugin::record(
 }
 
 void IScoreCohesionApplicationPlugin::recordMessages(
-        Scenario::ScenarioModel& scenar,
+        const Scenario::ScenarioModel& scenar,
         Scenario::Point pt)
 {
     m_recMessagesManager = std::make_unique<Recording::RecordMessagesManager>(

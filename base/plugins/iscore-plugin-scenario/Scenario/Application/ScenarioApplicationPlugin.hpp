@@ -10,6 +10,7 @@
 #include <vector>
 #include <Process/Layer/LayerContextMenu.hpp>
 #include <Scenario/Palette/ScenarioPoint.hpp>
+#include <Scenario/Execution/ScenarioExecution.hpp>
 #include <iscore_plugin_scenario_export.h>
 
 namespace Process {
@@ -43,8 +44,6 @@ class ISCORE_PLUGIN_SCENARIO_EXPORT ScenarioApplicationPlugin final :
 
         GUIElements makeGUIElements() override;
 
-        const Scenario::ScenarioModel* focusedScenarioModel() const;
-        const Scenario::ScenarioInterface* focusedScenarioInterface() const;
         TemporalScenarioPresenter* focusedPresenter() const;
 
         void reinit_tools();
@@ -53,17 +52,17 @@ class ISCORE_PLUGIN_SCENARIO_EXPORT ScenarioApplicationPlugin final :
         { return m_editionSettings; }
 
         Process::ProcessFocusManager* processFocusManager() const;
+        Process::LayerContextMenuManager& layerContextMenuRegistrar()
+        { return m_layerCtxMenuManager; }
+        const Process::LayerContextMenuManager& layerContextMenuRegistrar() const
+        { return m_layerCtxMenuManager; }
+
+        Scenario::ScenarioExecution& execution()
+        { return m_execution; }
 
     signals:
         void keyPressed(int);
         void keyReleased(int);
-
-        void startRecording(Scenario::ScenarioModel&, Scenario::Point);
-        void startRecordingMessages(Scenario::ScenarioModel&, Scenario::Point);
-        void stopRecording();
-
-        void playState(Id<StateModel>);
-        void playAtDate(const TimeValue&);
 
     protected:
         void prepareNewDocument() override;
@@ -78,6 +77,7 @@ class ISCORE_PLUGIN_SCENARIO_EXPORT ScenarioApplicationPlugin final :
         QMetaObject::Connection m_focusConnection, m_defocusConnection, m_contextMenuConnection;
         Scenario::EditionSettings m_editionSettings;
         Process::LayerContextMenuManager m_layerCtxMenuManager;
+        ScenarioExecution m_execution;
 
         ObjectMenuActions m_objectActions{this};
         ToolMenuActions m_toolActions{this};

@@ -45,7 +45,8 @@ struct VisitorVariant;
 #include <vector>
 
 OSSIAApplicationPlugin::OSSIAApplicationPlugin(const iscore::ApplicationContext& ctx):
-    iscore::GUIApplicationContextPlugin {ctx}
+    iscore::GUIApplicationContextPlugin {ctx},
+    m_playActions{*this, ctx}
 {
 // Here we try to load the extensions first because of buggy behaviour in TTExtensionLoader and API.
 #if defined(__APPLE__) && defined(ISCORE_DEPLOYMENT_BUILD)
@@ -81,13 +82,14 @@ OSSIAApplicationPlugin::OSSIAApplicationPlugin(const iscore::ApplicationContext&
 
     auto& ctrl = ctx.components.applicationPlugin<Scenario::ScenarioApplicationPlugin>();
     // TODO put it as a value
-    auto playCM = new RecreateOnPlay::PlayContextMenu{*this, &ctrl};
-    con(ctrl, &Scenario::ScenarioApplicationPlugin::playAtDate,
+
+    con(ctrl.execution(), &Scenario::ScenarioExecution::playAtDate,
         this, [=] (const TimeValue& t)
     {
         on_play(true, t);
     });
 
+    m_playActions.setupContextMenu(ctrl.layerContextMenuRegistrar());
 }
 
 OSSIAApplicationPlugin::~OSSIAApplicationPlugin()

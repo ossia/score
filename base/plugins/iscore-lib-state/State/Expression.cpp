@@ -46,7 +46,7 @@ QString TreeNode<State::ExprData>::toString() const
     auto exprstr = static_cast<const State::ExprData&>(*this).toString();
     if(m_children.empty()) // Relation
     {
-        if(is<InvisibleRootNodeTag>())
+        if(this->is<InvisibleRootNodeTag>())
         {
             ;
         }
@@ -57,7 +57,7 @@ QString TreeNode<State::ExprData>::toString() const
     }
     else if(m_children.size() == 1) // unop
     {
-        if(is<InvisibleRootNodeTag>())
+        if(this->is<InvisibleRootNodeTag>())
         {
             s = m_children.at(0).toString();
         }

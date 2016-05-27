@@ -39,21 +39,25 @@
 #include <iscore/tools/NotifyingMap.hpp>
 #include <OSSIA/iscore2OSSIA.hpp>
 #include <OSSIA/OSSIAApplicationPlugin.hpp>
+
 namespace RecreateOnPlay
 {
 PlayContextMenu::PlayContextMenu(
         OSSIAApplicationPlugin& plug,
-        Scenario::ScenarioApplicationPlugin *parent):
-  m_parent{parent}
+        const iscore::ApplicationContext& ctx):
+  m_ctx{ctx}
 {
+    auto& exec_signals = m_ctx.components.applicationPlugin<Scenario::ScenarioApplicationPlugin>().execution();
+
     using namespace Scenario;
     m_playStates = new QAction{tr("Play (States)"), this};
     connect(m_playStates, &QAction::triggered,
             [=]()
     {
-        if (auto sm = parent->focusedScenarioInterface())
+        const auto& ctx = m_ctx.documents.currentDocument()->context();
+        auto sm = focusedScenarioInterface(ctx);
+        if (sm)
         {
-            const auto& ctx = m_parent->context.documents.currentDocument()->context();
             auto& r_ctx = ctx.plugin<RecreateOnPlay::DocumentPlugin>().context();
 
             for(const StateModel* state : selectedElements(sm->getStates()))
@@ -64,19 +68,16 @@ PlayContextMenu::PlayContextMenu(
         }
     });
 
-    connect(parent, &Scenario::ScenarioApplicationPlugin::playState,
-            this, [=] (const Id<StateModel>& stateId)
+    con(exec_signals, &Scenario::ScenarioExecution::playState,
+        this, [=] (const Scenario::ScenarioInterface& scenar, const Id<StateModel>& stateId)
     {
-        if (auto sm = parent->focusedScenarioInterface())
-        {
-            const auto& ctx = m_parent->context.documents.currentDocument()->context();
-            auto& r_ctx = ctx.plugin<RecreateOnPlay::DocumentPlugin>().context();
+        const auto& ctx = m_ctx.documents.currentDocument()->context();
+        auto& r_ctx = ctx.plugin<RecreateOnPlay::DocumentPlugin>().context();
 
-            auto ossia_state = iscore::convert::state(
-                                   sm->state(stateId),
-                                   r_ctx);
-            ossia_state->launch();
-        }
+        auto ossia_state = iscore::convert::state(
+                    scenar.state(stateId),
+                    r_ctx);
+        ossia_state->launch();
     });
 
     m_playConstraints = new QAction{tr("Play (Constraints)"), this};
@@ -114,7 +115,7 @@ PlayContextMenu::PlayContextMenu(
 
     m_recordAutomations = new QAction{tr("Record automations from here"), this};
     connect(m_recordAutomations, &QAction::triggered,
-            [=] ()
+            [=,&exec_signals] ()
     {
         const auto& recdata = m_recordAutomations->data().value<ScenarioRecordInitData>();
         if(!recdata.presenter)
@@ -123,7 +124,7 @@ PlayContextMenu::PlayContextMenu(
         auto& pres = *safe_cast<const TemporalScenarioPresenter*>(recdata.presenter);
         auto proc = safe_cast<Scenario::ScenarioModel*>(&pres.layerModel().processModel());
 
-        parent->startRecording(
+        exec_signals.startRecording(
                     *proc,
                     Scenario::ConvertToScenarioPoint(
                         pres.view().mapFromScene(recdata.point),
@@ -135,7 +136,7 @@ PlayContextMenu::PlayContextMenu(
 
     m_recordMessages = new QAction{tr("Record messages from here"), this};
     connect(m_recordMessages, &QAction::triggered,
-            [=] ()
+            [=,&exec_signals] ()
     {
         const auto& recdata = m_recordMessages->data().value<ScenarioRecordInitData>();
         if(!recdata.presenter)
@@ -144,7 +145,7 @@ PlayContextMenu::PlayContextMenu(
         auto& pres = *safe_cast<const TemporalScenarioPresenter*>(recdata.presenter);
         auto proc = safe_cast<Scenario::ScenarioModel*>(&pres.layerModel().processModel());
 
-        parent->startRecordingMessages(
+        exec_signals.startRecordingMessages(
                     *proc,
                     Scenario::ConvertToScenarioPoint(
                         pres.view().mapFromScene(recdata.point),
@@ -186,7 +187,7 @@ void PlayContextMenu::fillContextMenu(
     }
     else
     {
-        if(any_of(s, [] (auto obj) { return dynamic_cast<const Scenario::StateModel*>(obj.data()); }))
+        if(any_of(s, matches<Scenario::StateModel>{}))
         {
             menu->addAction(m_playStates);
         }
@@ -204,19 +205,13 @@ void PlayContextMenu::fillContextMenu(
 }
 
 // TODO use me
-template<typename T>
-struct is
-{
-        bool operator()(const QObject* obj)
-        { return dynamic_cast<const T*>(obj); }
-};
 
 void PlayContextMenu::setupContextMenu(Process::LayerContextMenuManager &ctxm)
 {
     using namespace Process;
     Process::LayerContextMenu& scenario_cm = ctxm.menu<ContextMenus::ScenarioModelContextMenu>();
     Process::LayerContextMenu& state_cm = ctxm.menu<ContextMenus::StateContextMenu>();
-/*
+
     state_cm.functions.push_back(
     [this] (QMenu& menu, QPoint, QPointF, const Process::LayerContext& ctx)
     {
@@ -225,14 +220,15 @@ void PlayContextMenu::setupContextMenu(Process::LayerContextMenuManager &ctxm)
         if(sel.empty())
             return;
 
-
-        if(any_of(sel, is<Scenario::StateModel>{}))
+        if(any_of(sel, matches<Scenario::StateModel>{}))
         {
-            auto stateSubmenu = menu.addMenu(tr("State"));
-            stateSubmenu->addAction(m_updateStates);
+            auto stateSubmenu = menu.findChild<QMenu*>("State");
+            ISCORE_ASSERT(stateSubmenu);
+
+            stateSubmenu->addAction(m_playStates);
         }
     });
-*/
+
 
 }
 

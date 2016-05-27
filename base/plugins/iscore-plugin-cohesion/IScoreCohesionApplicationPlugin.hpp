@@ -20,8 +20,8 @@ class IScoreCohesionApplicationPlugin final :
 
         GUIElements makeGUIElements() override;
 
-        void record(Scenario::ScenarioModel&, Scenario::Point pt);
-        void recordMessages(Scenario::ScenarioModel&, Scenario::Point pt);
+        void record(const Scenario::ScenarioModel&, Scenario::Point pt);
+        void recordMessages(const Scenario::ScenarioModel&, Scenario::Point pt);
         void stopRecord();
 
     private:

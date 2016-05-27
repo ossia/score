@@ -65,7 +65,7 @@ std::vector<std::vector<Device::FullAddressSettings>> GetAddressesToRecord(
         Explorer::DeviceExplorerModel& m_explorer);
 
 Box CreateBox(
-        Scenario::ScenarioModel& scenar,
+        const Scenario::ScenarioModel& scenar,
         Scenario::Point pt,
         RecordCommandDispatcher& dispatcher);
 

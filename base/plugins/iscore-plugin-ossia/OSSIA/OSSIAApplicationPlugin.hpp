@@ -5,6 +5,7 @@
 #include <QString>
 #include <memory>
 
+#include <OSSIA/Executor/ContextMenu/PlayContextMenu.hpp>
 #include <iscore/plugins/documentdelegate/plugin/DocumentDelegatePluginModel.hpp>
 #include <iscore_plugin_ossia_export.h>
 namespace iscore {
@@ -65,5 +66,6 @@ class ISCORE_PLUGIN_OSSIA_EXPORT OSSIAApplicationPlugin final :
         std::shared_ptr<OSSIA::Device> m_localDevice;
         std::shared_ptr<OSSIA::Device> m_remoteDevice;
 
+        RecreateOnPlay::PlayContextMenu m_playActions;
         bool m_playing{false};
 };
