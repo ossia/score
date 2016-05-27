@@ -30,7 +30,7 @@
 #include "ObjectMenuActions.hpp"
 #include <Process/LayerModel.hpp>
 #include <Process/ProcessList.hpp>
-#include <Scenario/Application/Menus/ScenarioActions.hpp>
+
 #include <Scenario/Application/ScenarioEditionSettings.hpp>
 #include <Scenario/Palette/ScenarioPoint.hpp>
 #include <Scenario/Process/ScenarioModel.hpp>
@@ -39,7 +39,7 @@
 
 #include <iscore/application/ApplicationContext.hpp>
 #include <core/document/Document.hpp>
-#include <core/presenter/MenubarManager.hpp>
+
 #include <iscore/document/DocumentInterface.hpp>
 #include <iscore/selection/Selectable.hpp>
 #include <iscore/serialization/DataStreamVisitor.hpp>

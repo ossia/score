@@ -32,7 +32,7 @@
 #include <Process/LayerModel.hpp>
 #include <Process/LayerPresenter.hpp>
 #include <Process/Process.hpp>
-#include <Scenario/Application/Menus/ScenarioActions.hpp>
+
 #include <Scenario/Application/Menus/ScenarioContextMenuManager.hpp>
 #include <Scenario/Application/ScenarioEditionSettings.hpp>
 #include <Scenario/Application/Menus/ObjectMenuActions.hpp>
@@ -49,7 +49,7 @@
 #include <Scenario/Palette/Tool.hpp>
 #include "ScenarioApplicationPlugin.hpp"
 #include <core/document/Document.hpp>
-#include <core/presenter/MenubarManager.hpp>
+
 #include <core/document/DocumentModel.hpp>
 #include <core/document/DocumentView.hpp>
 #include <iscore/document/DocumentInterface.hpp>
@@ -61,7 +61,6 @@
 #include <Scenario/Process/Temporal/TemporalScenarioLayerModel.hpp>
 #include <iscore/tools/SettableIdentifier.hpp>
 #include <iscore/widgets/OrderedToolbar.hpp>
-#include <Scenario/Application/Menus/ScenarioCommonContextMenuFactory.hpp>
 #include <algorithm>
 #include <core/presenter/Presenter.hpp>
 #include <iscore/document/DocumentInterface.hpp>

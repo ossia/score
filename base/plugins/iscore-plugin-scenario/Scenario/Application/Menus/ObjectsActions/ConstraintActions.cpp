@@ -9,7 +9,7 @@
 #include <Scenario/Document/Constraint/Rack/RackModel.hpp>
 #include <Scenario/DialogWidget/AddProcessDialog.hpp>
 
-#include <core/presenter/MenubarManager.hpp>
+
 #include <core/document/Document.hpp>
 #include <iscore/document/DocumentInterface.hpp>
 #include <iscore/selection/Selectable.hpp>

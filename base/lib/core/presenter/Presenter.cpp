@@ -22,7 +22,7 @@
 #include "QRecentFilesMenu.h"
 #include <iscore/application/ApplicationComponents.hpp>
 #include <core/presenter/DocumentManager.hpp>
-#include <core/presenter/MenubarManager.hpp>
+
 #include <core/presenter/Presenter.hpp>
 #include <core/settings/Settings.hpp>
 #include <core/settings/SettingsModel.hpp>

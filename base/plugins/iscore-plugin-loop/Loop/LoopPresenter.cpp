@@ -31,7 +31,7 @@
 #include <iscore/application/ApplicationContext.hpp>
 #include <QMenu>
 #include <Scenario/Application/ScenarioApplicationPlugin.hpp>
-#include <Scenario/Application/Menus/ScenarioActions.hpp>
+
 namespace Process { class LayerModel; }
 namespace Process { class ProcessModel; }
 class QMenu;

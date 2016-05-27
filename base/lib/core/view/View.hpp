@@ -4,7 +4,7 @@
 #include <QPair>
 #include <QString>
 #include <vector>
-#include <core/presenter/Action.hpp>
+
 
 class QCloseEvent;
 class QDockWidget;

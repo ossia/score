@@ -12,7 +12,7 @@
 #include "ProtocolFactoryInterface.hpp"
 #include <iscore/application/ApplicationContext.hpp>
 #include <iscore/plugins/customfactory/FactoryFamily.hpp>
-#include <iscore/plugins/customfactory/FactoryMap.hpp>
+
 #include <iscore/plugins/customfactory/StringFactoryKey.hpp>
 #include <iscore/serialization/JSONValueVisitor.hpp>
 #include <iscore/plugins/customfactory/StringFactoryKeySerialization.hpp>

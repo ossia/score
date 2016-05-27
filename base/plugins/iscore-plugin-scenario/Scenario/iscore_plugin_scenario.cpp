@@ -27,8 +27,6 @@
 #include <Process/LayerPresenter.hpp>
 #include <Process/StateProcessFactoryList.hpp>
 #include <Process/Inspector/ProcessInspectorWidgetDelegateFactoryList.hpp>
-#include <Scenario/Application/Menus/Plugin/ScenarioActionsFactory.hpp>
-#include <Scenario/Application/Menus/Plugin/ScenarioContextMenuPluginList.hpp>
 #include <Scenario/Commands/Scenario/Displacement/MoveEventList.hpp>
 #include <Scenario/Commands/TimeNode/TriggerCommandFactory/TriggerCommandFactory.hpp>
 #include <Scenario/Document/DisplayedElements/DisplayedElementsProvider.hpp>

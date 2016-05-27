@@ -1,7 +1,7 @@
 #include <Process/LayerModel.hpp>
 #include <Process/LayerPresenter.hpp>
 #include <Process/Process.hpp>
-#include <Scenario/Application/Menus/ScenarioActions.hpp>
+
 #include <Scenario/Application/ScenarioApplicationPlugin.hpp>
 #include <Scenario/Commands/Constraint/AddLayerInNewSlot.hpp>
 #include <Scenario/Commands/Constraint/AddOnlyProcessToConstraint.hpp>

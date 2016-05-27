@@ -13,7 +13,7 @@
 #include <Scenario/Palette/ScenarioPoint.hpp>
 
 #include <iscore/application/ApplicationContext.hpp>
-#include <core/presenter/MenubarManager.hpp>
+
 #include <core/document/Document.hpp>
 #include <iscore/plugins/application/GUIApplicationContextPlugin.hpp>
 #include <iscore/widgets/OrderedToolbar.hpp>

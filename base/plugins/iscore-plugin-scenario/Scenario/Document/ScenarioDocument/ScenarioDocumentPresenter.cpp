@@ -36,7 +36,7 @@
 #include <iscore/tools/ObjectIdentifier.hpp>
 #include <iscore/tools/ObjectPath.hpp>
 #include <iscore/tools/Todo.hpp>
-#include <core/presenter/MenubarManager.hpp>
+
 
 namespace iscore {
 class DocumentDelegateModelInterface;

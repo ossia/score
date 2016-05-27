@@ -3,8 +3,6 @@
 #include <QList>
 #include <QPoint>
 
-
-#include "ScenarioActions.hpp"
 #include <iscore/command/Dispatchers/CommandDispatcher.hpp>
 #include <iscore/menu/MenuInterface.hpp>
 #include <iscore/selection/Selection.hpp>

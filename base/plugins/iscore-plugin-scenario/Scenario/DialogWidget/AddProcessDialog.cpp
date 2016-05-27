@@ -12,7 +12,7 @@
 #include <Process/ProcessFactory.hpp>
 #include <Process/StateProcessFactoryList.hpp>
 #include <iscore/plugins/customfactory/FactoryFamily.hpp>
-#include <iscore/plugins/customfactory/FactoryMap.hpp>
+
 namespace Scenario
 {
 AddProcessDialog::AddProcessDialog(
