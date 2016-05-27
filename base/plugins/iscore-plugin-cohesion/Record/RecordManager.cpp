@@ -68,6 +68,9 @@ RecordManager::RecordManager(
 
 void RecordManager::stopRecording()
 {
+    if(!m_dispatcher)
+        return;
+
     // Stop all the recording machinery
     m_recordTimer.stop();
     auto msecs = GetTimeDifference(start_time_pt);
@@ -309,8 +312,8 @@ void RecordManager::recordInNewBox(
             this, [=] () {
         // Move end event by the current duration.
         box.moveCommand.update(
-                    Path<Scenario::ScenarioModel>{},
-                    Id<Scenario::ConstraintModel>{},
+                    {},
+                    {},
                     box.endEvent,
                     pt.date + GetTimeDifference(start_time_pt),
                     0,

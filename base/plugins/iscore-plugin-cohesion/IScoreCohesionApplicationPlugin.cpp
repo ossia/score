@@ -123,12 +123,12 @@ void IScoreCohesionApplicationPlugin::stopRecord()
     if(m_recManager)
     {
         m_recManager->stopRecording();
-        m_recManager.release();
+        m_recManager.reset();
     }
 
     if(m_recMessagesManager)
     {
         m_recMessagesManager->stopRecording();
-        m_recMessagesManager.release();
+        m_recMessagesManager.reset();
     }
 }

@@ -60,6 +60,9 @@ RecordMessagesManager::RecordMessagesManager(
 
 void RecordMessagesManager::stopRecording()
 {
+    if(!m_dispatcher)
+        return;
+
     // Stop all the recording machinery
     m_recordTimer.stop();
     auto msecs = GetTimeDifferenceInDouble(start_time_pt);

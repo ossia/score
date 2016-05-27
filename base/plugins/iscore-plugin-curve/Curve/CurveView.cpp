@@ -15,9 +15,7 @@ namespace Curve
 View::View(QGraphicsItem *parent):
     QGraphicsObject{parent}
 {
-    //this->setCursor(Qt::ArrowCursor);
     this->setFlags(ItemClipsChildrenToShape | ItemIsFocusable);
-
     this->setZValue(1);
 }
 
@@ -27,15 +25,9 @@ View::~View()
 
 void View::paint(QPainter *painter, const QStyleOptionGraphicsItem *option, QWidget *widget)
 {
-    painter->setPen(Qt::transparent);
-    painter->setBrush(Qt::transparent);
-    painter->drawRect(boundingRect());
     if(m_selectArea != QRectF{})
     {
         painter->setPen(Qt::white);
-        //painter->setCompositionMode(QPainter::CompositionMode_Xor);
-        //painter->setPen(QPen{QColor{0, 0, 0, 127}, 2, Qt::DashLine, Qt::SquareCap, Qt::BevelJoin});
-
         painter->drawRect(m_selectArea);
     }
 }

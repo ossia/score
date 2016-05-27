@@ -36,6 +36,7 @@
 #include <iscore/menu/MenuInterface.hpp>
 #include <core/presenter/DocumentManager.hpp>
 #include <Scenario/Application/ScenarioActions.hpp>
+#include <Scenario/Application/ScenarioRecordInitData.hpp>
 #include <iscore/tools/NotifyingMap.hpp>
 #include <OSSIA/iscore2OSSIA.hpp>
 #include <OSSIA/OSSIAApplicationPlugin.hpp>
@@ -185,23 +186,6 @@ void PlayContextMenu::fillContextMenu(
         m_recordAutomations->setData(data);
         m_recordMessages->setData(data);
     }
-    else
-    {
-        if(any_of(s, matches<Scenario::StateModel>{}))
-        {
-            menu->addAction(m_playStates);
-        }
-        /*
-    if(std::any_of(s.cbegin(), s.cend(), [] (auto obj) { return dynamic_cast<const ConstraintModel*>(obj);}))
-    {
-        menu->addAction(m_playConstraints);
-    }
-    if(std::any_of(s.cbegin(), s.cend(), [] (auto obj) { return dynamic_cast<const EventModel*>(obj);}))
-    {
-        menu->addAction(m_playEvents);
-    }
-    */
-    }
 }
 
 // TODO use me
@@ -227,6 +211,27 @@ void PlayContextMenu::setupContextMenu(Process::LayerContextMenuManager &ctxm)
 
             stateSubmenu->addAction(m_playStates);
         }
+    });
+
+    scenario_cm.functions.push_back(
+    [this] (QMenu& menu, QPoint, QPointF scenept, const Process::LayerContext& ctx)
+    {
+        auto& pres = safe_cast<Scenario::TemporalScenarioPresenter&>(ctx.layerPresenter);
+        auto scenPoint = Scenario::ConvertToScenarioPoint(scenept, pres.zoomRatio(), pres.view().height());
+        m_playFromHere->setData(QVariant::fromValue(scenPoint.date));
+        menu.addAction(m_playFromHere);
+
+        auto sel = ctx.context.selectionStack.currentSelection();
+        if(!sel.empty())
+            return;
+
+        menu.addAction(m_recordAutomations);
+        menu.addAction(m_recordMessages);
+
+        auto data = QVariant::fromValue(Scenario::ScenarioRecordInitData{&pres, scenept});
+        m_recordAutomations->setData(data);
+        m_recordMessages->setData(data);
+
     });
 
 
