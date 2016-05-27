@@ -38,7 +38,6 @@ void MoveEventOnCreationMeta::undo() const
 
 void MoveEventOnCreationMeta::redo() const
 {
-
     m_moveEventImplementation->redo();
 }
 

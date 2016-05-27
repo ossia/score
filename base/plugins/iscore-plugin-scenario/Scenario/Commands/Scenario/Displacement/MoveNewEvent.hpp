@@ -51,8 +51,8 @@ class ISCORE_PLUGIN_SCENARIO_EXPORT MoveNewEvent final : public iscore::Serializ
         void redo() const override;
 
         void update(
-                unused_t path,
-                const Id<ConstraintModel>&,
+                unused_t,
+                unused_t,
                 const Id<EventModel>& id,
                 const TimeValue& date,
                 const double y,
