@@ -166,6 +166,7 @@ void RecordMessagesManager::recordInNewBox(
                 this, [=] (const State::Address& addr, const State::Value& val) {
             if(!m_firstValueReceived)
             {
+                emit requestPlay();
                 m_firstValueReceived = true;
                 start_time_pt = steady_clock::now();
                 m_recordTimer.start();

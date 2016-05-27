@@ -80,7 +80,12 @@ std::vector<std::unique_ptr<iscore::FactoryInterfaceBase>> iscore_plugin_ossia::
 
 QStringList iscore_plugin_ossia::required() const
 {
-    return {"Scenario"};
+    return {"Scenario", "DeviceExplorer"};
+}
+
+QStringList iscore_plugin_ossia::offered() const
+{
+    return {"OSSIA"};
 }
 
 iscore::Version iscore_plugin_ossia::version() const

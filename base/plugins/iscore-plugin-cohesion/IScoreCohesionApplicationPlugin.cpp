@@ -19,8 +19,10 @@
 #include <iscore/widgets/OrderedToolbar.hpp>
 #include <iscore/widgets/SetIcons.hpp>
 #include <Scenario/Commands/Cohesion/DoForSelectedConstraints.hpp>
-
+#include <OSSIA/OSSIAApplicationPlugin.hpp>
+#include <Curve/Settings/Model.hpp>
 #include <Scenario/Application/ScenarioActions.hpp>
+#include <QApplication>
 ISCORE_DECLARE_ACTION(Snapshot, Scenario, QKeySequence(QObject::tr("Ctrl+L")))
 ISCORE_DECLARE_ACTION(CreateCurves, Scenario, QKeySequence(QObject::tr("Ctrl+J")))
 
@@ -30,18 +32,21 @@ IScoreCohesionApplicationPlugin::IScoreCohesionApplicationPlugin(const iscore::A
     using namespace Scenario;
     // Since we have declared the dependency, we can assume
     // that ScenarioApplicationPlugin is instantiated already.
-    auto& appPlugin = ctx.components.applicationPlugin<ScenarioApplicationPlugin>();
-    connect(&appPlugin.execution(), &ScenarioExecution::startRecording,
+    auto& scenario_plugin = ctx.components.applicationPlugin<ScenarioApplicationPlugin>();
+    connect(&scenario_plugin.execution(), &ScenarioExecution::startRecording,
             this, &IScoreCohesionApplicationPlugin::record);
-    connect(&appPlugin.execution(), &ScenarioExecution::startRecordingMessages,
+    connect(&scenario_plugin.execution(), &ScenarioExecution::startRecordingMessages,
             this, &IScoreCohesionApplicationPlugin::recordMessages);
-    connect(&appPlugin.execution(), &ScenarioExecution::stopRecording, // TODO this seems useless
+    connect(&scenario_plugin.execution(), &ScenarioExecution::stopRecording, // TODO this seems useless
             this, &IScoreCohesionApplicationPlugin::stopRecord);
 
 
+    m_ossiaplug = &ctx.components.applicationPlugin<OSSIAApplicationPlugin>();
+
     auto& stop_action = ctx.actions.action<Actions::Stop>();
     m_stopAction = stop_action.action();
-    connect(m_stopAction, &QAction::triggered, this, [&] { stopRecord(); });
+    connect(m_stopAction, &QAction::triggered,
+            this, [&] { stopRecord(); });
 
     m_snapshot = new QAction {tr("Snapshot in Event"), this};
     m_snapshot->setShortcutContext(Qt::ApplicationShortcut);
@@ -104,17 +109,44 @@ void IScoreCohesionApplicationPlugin::record(
         const Scenario::ScenarioModel& scenar,
         Scenario::Point pt)
 {
+    m_stopAction->trigger();
+    QApplication::processEvents();
+
     m_recManager = std::make_unique<Recording::RecordManager>(
                 iscore::IDocument::documentContext(scenar));
+
+    if(context.settings<Curve::Settings::Model>().getPlayWhileRecording())
+    {
+        connect(m_recManager.get(), &Recording::RecordManager::requestPlay,
+                this, [=] ()
+        {
+            m_ossiaplug->on_record(pt.date);
+        }, Qt::QueuedConnection);
+    }
+
     m_recManager->recordInNewBox(scenar, pt);
+
 }
 
 void IScoreCohesionApplicationPlugin::recordMessages(
         const Scenario::ScenarioModel& scenar,
         Scenario::Point pt)
 {
+    m_stopAction->trigger();
+    QApplication::processEvents();
+
     m_recMessagesManager = std::make_unique<Recording::RecordMessagesManager>(
                 iscore::IDocument::documentContext(scenar));
+
+    if(context.settings<Curve::Settings::Model>().getPlayWhileRecording())
+    {
+        connect(m_recMessagesManager.get(), &Recording::RecordMessagesManager::requestPlay,
+                this, [=] ()
+        {
+            m_ossiaplug->on_record(pt.date);
+        }, Qt::QueuedConnection);
+    }
+
     m_recMessagesManager->recordInNewBox(scenar, pt);
 }
 

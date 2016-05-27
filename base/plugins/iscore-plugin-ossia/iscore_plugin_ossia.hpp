@@ -47,6 +47,7 @@ class iscore_plugin_ossia final :
                 const iscore::AbstractFactoryKey& factoryName) const override;
 
         QStringList required() const override;
+        QStringList offered() const override;
         iscore::Version version() const override;
         UuidKey<iscore::Plugin> key() const override;
 };

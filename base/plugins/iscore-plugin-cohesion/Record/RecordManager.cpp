@@ -211,6 +211,7 @@ void RecordManager::parameterCallback(const State::Address &addr, const State::V
     }
     else
     {
+        emit requestPlay();
         m_firstValueReceived = true;
         start_time_pt = steady_clock::now();
         m_recordTimer.start();

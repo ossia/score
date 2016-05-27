@@ -53,6 +53,7 @@ class iscore_plugin_deviceexplorer final :
 
         std::pair<const CommandParentFactoryKey, CommandGeneratorMap> make_commands() override;
 
+        QStringList offered() const override;
         iscore::Version version() const override;
         UuidKey<iscore::Plugin> key() const override;
 };

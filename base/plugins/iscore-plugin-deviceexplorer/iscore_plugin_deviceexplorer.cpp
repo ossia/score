@@ -73,6 +73,11 @@ std::pair<const CommandParentFactoryKey, CommandGeneratorMap> iscore_plugin_devi
     return cmds;
 }
 
+QStringList iscore_plugin_deviceexplorer::offered() const
+{
+    return {"DeviceExplorer"};
+}
+
 iscore::Version iscore_plugin_deviceexplorer::version() const
 {
     return iscore::Version{1};

@@ -15,6 +15,7 @@ namespace Recording
 // to be able to send the curve at execution. Investigate why.
 class RecordManager final : public QObject
 {
+        Q_OBJECT
     public:
         RecordManager(const iscore::DocumentContext& ctx);
 
@@ -23,6 +24,9 @@ class RecordManager final : public QObject
         void stopRecording();
 
         void commit();
+
+    signals:
+        void requestPlay();
 
     private:
         void messageCallback(const State::Address& addr, const State::Value& val);

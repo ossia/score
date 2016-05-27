@@ -8,6 +8,7 @@ struct RecordMessagesData
 };
 class RecordMessagesManager final : public QObject
 {
+        Q_OBJECT
     public:
         RecordMessagesManager(const iscore::DocumentContext& ctx);
 
@@ -16,6 +17,9 @@ class RecordMessagesManager final : public QObject
         void stopRecording();
 
         void commit();
+
+    signals:
+        void requestPlay();
 
     private:
         const iscore::DocumentContext& m_ctx;
