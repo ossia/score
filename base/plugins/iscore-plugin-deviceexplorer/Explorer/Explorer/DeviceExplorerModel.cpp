@@ -727,9 +727,8 @@ SelectedNodes DeviceExplorerModel::uniqueSelectedNodes(
         const QModelIndexList& indexes) const
 {
     SelectedNodes nodes;
-    std::transform(indexes.begin(), indexes.end(),
-                   std::back_inserter(nodes.parents),
-                   [&] (const QModelIndex& idx) {
+    transform(indexes, std::back_inserter(nodes.parents),
+              [&] (const QModelIndex& idx) {
         return &nodeFromModelIndex(idx);
     });
 

@@ -112,7 +112,7 @@ void RecordMessagesManager::recordInNewBox(
     m_explorer = &Explorer::deviceExplorerFromContext(doc);
 
     // Get the listening of the selected addresses
-    auto recordListening = GetAddressesToRecord(*m_explorer);
+    auto recordListening = GetAddressesToRecordRecursive(*m_explorer);
     if(recordListening.empty())
         return;
 
