@@ -14,6 +14,93 @@
 namespace Recording
 {
 
+static QList<Device::Node*> GetParametersRecursive(Device::Node* parent)
+{
+    QList<Device::Node*> res;
+    res.reserve(parent->childCount());
+    for(auto& node : *parent)
+    {
+        res.push_back(&node);
+        res.append(GetParametersRecursive(&node));
+    }
+    return res;
+}
+
+static QList<Device::Node*> GetParametersRecursive(QList<Device::Node*> parents)
+{
+    QList<Device::Node*> res;
+    for(auto node : parents)
+    {
+        res += node;
+        res += GetParametersRecursive(node);
+    }
+
+    auto end = res.end();
+    for(auto it = res.begin(); it != end; )
+    {
+        bool ok = true;
+        Device::Node* n = *it;
+        ok &= n->is<Device::AddressSettings>();
+        if(ok)
+        {
+            auto& as = n->get<Device::AddressSettings>();
+            ok &= as.value.val.isValid()
+               && (int)as.value.val.which() < (int)State::ValueType::NoValue;
+        }
+
+        if(ok)
+        {
+            ++it;
+        }
+        else
+        {
+            it = res.erase(it);
+        }
+    }
+
+    return res;
+}
+
+std::vector<std::vector<Device::FullAddressSettings> >
+    GetAddressesToRecordRecursive(Explorer::DeviceExplorerModel& explorer)
+{
+    std::vector<std::vector<Device::FullAddressSettings>> recordListening;
+
+    auto parameters = GetParametersRecursive(
+                  explorer.uniqueSelectedNodes(explorer.selectedIndexes()).parents);
+
+    // First get the addresses to listen.
+    for(auto node_ptr : parameters)
+    {
+        // TODO use address settings instead.
+        auto& node = *node_ptr;
+        if(!node.is<Device::AddressSettings>())
+            continue;
+
+        auto addr = Device::address(node);
+        // TODO shall we check if the address is in, out, recordable ?
+        // Recording an automation of strings would actually have a meaning
+        // here (for instance recording someone typing).
+
+        // We sort the addresses by device to optimize.
+        auto dev_it = find_if(recordListening,
+                              [&] (const auto& vec)
+        { return vec.front().address.device == addr.device; });
+
+        auto& as = node.get<Device::AddressSettings>();
+        if(dev_it != recordListening.end())
+        {
+            dev_it->push_back(Device::FullAddressSettings::make<Device::FullAddressSettings::as_child>(as, addr));
+        }
+        else
+        {
+            recordListening.push_back({Device::FullAddressSettings::make<Device::FullAddressSettings::as_child>(as, addr)});
+        }
+    }
+
+    return recordListening;
+}
+
 std::vector<std::vector<Device::FullAddressSettings> >
     GetAddressesToRecord(Explorer::DeviceExplorerModel& explorer)
 {
@@ -35,9 +122,8 @@ std::vector<std::vector<Device::FullAddressSettings> >
         // here (for instance recording someone typing).
 
         // We sort the addresses by device to optimize.
-        auto dev_it = std::find_if(recordListening.begin(),
-                                   recordListening.end(),
-                                   [&] (const auto& vec)
+        auto dev_it = find_if(recordListening,
+                              [&] (const auto& vec)
         { return vec.front().address.device == addr.device; });
 
         auto& as = node.get<Device::AddressSettings>();
