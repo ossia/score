@@ -253,7 +253,7 @@ void TemporalScenarioPresenter::fillContextMenu(
 
     auto createCommentAct = new QAction{"Add a Comment Block", &menu};
     connect(createCommentAct, &QAction::triggered,
-            [&] ()
+            [&,scenepos,pos] ()
     {
         auto scenPoint = Scenario::ConvertToScenarioPoint(scenepos, zoomRatio(), view().height());
 
