@@ -81,7 +81,7 @@ void EventActions::setupContextMenu(Process::LayerContextMenuManager &ctxm)
 
 void EventActions::addTriggerToTimeNode()
 {
-    auto si = m_parent->focusedScenarioInterface();
+    auto si = focusedScenarioInterface(m_parent->currentDocument()->context());
     ISCORE_ASSERT(si);
     auto selectedTimeNodes = selectedElements(si->getTimeNodes());
 
@@ -107,7 +107,7 @@ void EventActions::addTriggerToTimeNode()
 
 void EventActions::removeTriggerFromTimeNode()
 {
-    auto si = m_parent->focusedScenarioInterface();
+    auto si = focusedScenarioInterface(m_parent->currentDocument()->context());
     auto selectedTimeNodes = selectedElements(si->getTimeNodes());
     if(selectedTimeNodes.isEmpty())
     {

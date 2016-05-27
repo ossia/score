@@ -184,3 +184,10 @@ struct unused_t
 
         }
 };
+
+template<typename T>
+struct matches
+{
+        bool operator()(const QObject* obj)
+        { return dynamic_cast<const T*>(obj); }
+};

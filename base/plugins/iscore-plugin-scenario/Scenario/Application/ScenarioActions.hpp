@@ -11,6 +11,23 @@
 namespace Scenario
 {
 
+inline const Scenario::ScenarioInterface* focusedScenarioInterface(const iscore::DocumentContext& ctx)
+{
+    if(auto layer = dynamic_cast<const Process::LayerModel*>(ctx.document.focusManager().get()))
+    {
+        return dynamic_cast<Scenario::ScenarioInterface*>(&layer->processModel());
+    }
+    return nullptr;
+}
+inline const Scenario::ScenarioModel* focusedScenarioModel(const iscore::DocumentContext& ctx)
+{
+    if(auto layer = dynamic_cast<const Process::LayerModel*>(ctx.document.focusManager().get()))
+    {
+        return dynamic_cast<Scenario::ScenarioModel*>(&layer->processModel());
+    }
+    return nullptr;
+}
+
 class EnableWhenScenarioModelObject final :
         public iscore::ActionCondition
 {
@@ -116,6 +133,7 @@ class EnableWhenScenarioInterfaceObject final :
         }
 };
 }
+
 
 /// Conditions relative to Scenario elements
 ISCORE_DECLARE_FOCUSED_OBJECT_CONDITION(Scenario::TemporalScenarioLayerModel)

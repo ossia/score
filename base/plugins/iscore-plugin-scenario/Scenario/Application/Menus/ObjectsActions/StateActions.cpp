@@ -56,10 +56,10 @@ void StateActions::setupContextMenu(Process::LayerContextMenuManager& ctxm)
         if(sel.empty())
             return;
 
-        if(any_of(sel, [] (const QObject* obj) {
-                  return dynamic_cast<const StateModel*>(obj); })) // TODO : event or timenode ?
+        if(any_of(sel, matches<Scenario::StateModel>{})) // TODO : event or timenode ?
         {
             auto stateSubmenu = menu.addMenu(tr("State"));
+            stateSubmenu->setObjectName("State");
             stateSubmenu->addAction(m_updateStates);
         }
     });

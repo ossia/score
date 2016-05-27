@@ -88,7 +88,7 @@ void RecordMessagesManager::stopRecording()
 }
 
 void RecordMessagesManager::recordInNewBox(
-        Scenario::ScenarioModel& scenar,
+        const Scenario::ScenarioModel& scenar,
         Scenario::Point pt)
 {
     using namespace std::chrono;

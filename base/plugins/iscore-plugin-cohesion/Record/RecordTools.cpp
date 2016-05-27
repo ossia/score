@@ -55,7 +55,7 @@ std::vector<std::vector<Device::FullAddressSettings> >
 }
 
 Box CreateBox(
-        Scenario::ScenarioModel &scenar,
+        const Scenario::ScenarioModel &scenar,
         Scenario::Point pt,
         RecordCommandDispatcher &dispatcher)
 {

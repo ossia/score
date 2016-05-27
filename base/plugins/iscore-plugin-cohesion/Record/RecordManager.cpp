@@ -214,7 +214,7 @@ void RecordManager::parameterCallback(const State::Address &addr, const State::V
 }
 
 void RecordManager::recordInNewBox(
-        Scenario::ScenarioModel& scenar,
+        const Scenario::ScenarioModel& scenar,
         Scenario::Point pt)
 {
     using namespace std::chrono;
