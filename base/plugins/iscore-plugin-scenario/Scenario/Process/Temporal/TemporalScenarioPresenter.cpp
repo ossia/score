@@ -234,12 +234,8 @@ void TemporalScenarioPresenter::fillContextMenu(
 {
     auto& ctx = m_context.context;
     auto& actions = ctx.app.actions;
-    // Get ScenarioModel actions
-    auto& sm_cm = cm.menu<ContextMenus::ScenarioObjectContextMenu>();
-    sm_cm.build(menu, pos, scenepos, this->context());
 
-    cm.menu<ContextMenus::ScenarioObjectContextMenu>()
-            .build(menu, pos, scenepos, this->context());
+    // Get ScenarioModel actions
     cm.menu<ContextMenus::ScenarioModelContextMenu>()
             .build(menu, pos, scenepos, this->context());
     menu.addSeparator();
@@ -520,17 +516,11 @@ void TemporalScenarioPresenter::updateAllElements()
     {
         m_viewInterface.on_timeNodeMoved(timenode);
     }
+
     for(auto& comment : m_comments)
     {
         m_viewInterface.on_commentMoved(comment);
     }
-/*
-    // They are updated by the event.
-    for(auto& state : m_states)
-    {
-        m_viewInterface.on_stateMoved(state);
-    }
-*/
 }
 
 void TemporalScenarioPresenter::handleDrop(const QPointF &pos, const QMimeData *mime)

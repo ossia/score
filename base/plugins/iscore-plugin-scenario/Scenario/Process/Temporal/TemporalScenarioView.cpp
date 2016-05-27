@@ -75,8 +75,6 @@ void TemporalScenarioView::mouseReleaseEvent(QGraphicsSceneMouseEvent* event)
 
 void TemporalScenarioView::contextMenuEvent(QGraphicsSceneContextMenuEvent* event)
 {
-    emit pressed(event->scenePos());
-    emit released(event->scenePos());
     emit askContextMenu(event->screenPos(), event->scenePos());
 
     event->accept();
