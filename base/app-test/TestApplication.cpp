@@ -33,8 +33,9 @@ TestApplication::TestApplication(int &argc, char **argv):
         m_presenter->components(),
                 ctx,
                 *m_view,
-                m_presenter->menuBar(),
-                m_presenter->toolbars()};
+                m_presenter->menuManager(),
+                m_presenter->toolbarManager(),
+                m_presenter->actionManager()};
 
     registrar.registerFactory(std::make_unique<iscore::DocumentDelegateList>());
     auto panels = std::make_unique<iscore::PanelDelegateFactoryList>();
@@ -43,20 +44,21 @@ TestApplication::TestApplication(int &argc, char **argv):
     registrar.registerFactory(std::make_unique<iscore::DocumentPluginFactoryList>());
     registrar.registerFactory(std::make_unique<iscore::SettingsDelegateFactoryList>());
 
+    registrar.registerApplicationContextPlugin(new iscore::CoreApplicationPlugin{ctx, *m_presenter});
+    registrar.registerApplicationContextPlugin(new iscore::UndoApplicationPlugin{ctx});
+
     iscore::PluginLoader::loadPlugins(registrar, ctx);
-
-    registrar.registerApplicationContextPlugin(new iscore::UndoApplicationPlugin{ctx, m_presenter});
-
     // Load the settings
     for(auto& elt : ctx.components.factory<iscore::SettingsDelegateFactoryList>())
     {
         m_settings->setupSettingsPlugin(elt);
     }
 
-    std::sort(m_presenter->toolbars().begin(), m_presenter->toolbars().end());
-    for(auto& toolbar : m_presenter->toolbars())
+    m_presenter->setupGUI();
+
+    for(iscore::GUIApplicationContextPlugin* app_plug : ctx.components.applicationPlugins())
     {
-        m_view->addToolBar(toolbar.bar);
+        app_plug->initialize();
     }
 
     for(auto& panel_fac : context().components.factory<iscore::PanelDelegateFactoryList>())
