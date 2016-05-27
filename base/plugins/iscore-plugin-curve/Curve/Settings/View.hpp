@@ -18,11 +18,13 @@ class View :
         void setSimplificationRatio(double);
         void setSimplify(bool);
         void setMode(Mode);
+        void setPlayWhileRecording(bool);
 
     signals:
         void simplificationRatioChanged(double);
         void simplifyChanged(bool);
         void modeChanged(Mode);
+        void playWhileRecordingChanged(bool);
 
     private:
         QWidget* getWidget() override;
@@ -31,6 +33,7 @@ class View :
         QDoubleSpinBox* m_sb{};
         QCheckBox* m_simpl{};
         QCheckBox* m_mode{};
+        QCheckBox* m_playWhileRecording{};
 
 };
 

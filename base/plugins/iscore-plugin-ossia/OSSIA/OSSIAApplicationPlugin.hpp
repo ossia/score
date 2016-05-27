@@ -51,6 +51,7 @@ class ISCORE_PLUGIN_OSSIA_EXPORT OSSIAApplicationPlugin final :
         { return m_localDevice; }
 
         void on_play(bool, ::TimeValue t = ::TimeValue::zero() );
+        void on_record(::TimeValue t);
 
     signals:
         void requestPlay();

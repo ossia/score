@@ -6,6 +6,7 @@
 #include "Record/RecordManager.hpp"
 #include "Record/RecordMessagesManager.hpp"
 
+class OSSIAApplicationPlugin;
 class QAction;
 namespace Scenario {
 class ScenarioModel;
@@ -28,6 +29,7 @@ class IScoreCohesionApplicationPlugin final :
         QAction* m_snapshot{};
         QAction* m_curves{};
 
+        OSSIAApplicationPlugin* m_ossiaplug{};
         QAction* m_stopAction{};
 
         std::unique_ptr<Recording::RecordManager> m_recManager;

@@ -9,6 +9,7 @@ namespace Settings
 const QString Keys::simplificationRatio = QStringLiteral("iscore_plugin_curve/SimplificationRatio");
 const QString Keys::simplify = QStringLiteral("iscore_plugin_curve/Simplify");
 const QString Keys::mode = QStringLiteral("iscore_plugin_curve/Mode");
+const QString Keys::playWhileRecording = QStringLiteral("iscore_plugin_curve/PlayWhileRecording");
 
 
 Model::Model()
@@ -22,6 +23,8 @@ Model::Model()
 
     m_simplificationRatio = s.value(Keys::simplificationRatio).toInt();
     m_simplify = s.value(Keys::simplify).toBool();
+    m_mode = (Mode)s.value(Keys::mode).toInt();
+    m_playWhileRecording = s.value(Keys::playWhileRecording).toBool();
 }
 
 int Model::getSimplificationRatio() const
@@ -75,17 +78,36 @@ void Model::setMode(Mode mode)
     emit ModeChanged(mode);
 }
 
+bool Model::getPlayWhileRecording() const
+{
+    return m_playWhileRecording;
+}
+
+void Model::setPlayWhileRecording(bool playWhileRecording)
+{
+    if (m_playWhileRecording == playWhileRecording)
+        return;
+
+    m_playWhileRecording = playWhileRecording;
+
+    QSettings s;
+    s.setValue(Keys::playWhileRecording, m_playWhileRecording);
+    emit PlayWhileRecordingChanged(playWhileRecording);
+}
+
 
 void Model::setFirstTimeSettings()
 {
     m_simplificationRatio = 10;
     m_simplify = true;
     m_mode = Mode::Parameter;
+    m_playWhileRecording = true;
 
     QSettings s;
     s.setValue(Keys::simplificationRatio, m_simplificationRatio);
     s.setValue(Keys::simplify, m_simplify);
     s.setValue(Keys::mode, static_cast<int>(m_mode));
+    s.setValue(Keys::playWhileRecording, m_playWhileRecording);
 }
 
 }

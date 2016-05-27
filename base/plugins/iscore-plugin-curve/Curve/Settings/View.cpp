@@ -69,6 +69,27 @@ View::View():
         lay->addRow(tr("Ramp to new value"), m_mode);
     }
 
+    {
+        m_playWhileRecording = new QCheckBox;
+
+        connect(m_playWhileRecording, &QCheckBox::stateChanged,
+                this, [&] (int t) {
+            switch(t)
+            {
+                case Qt::Unchecked:
+                    playWhileRecordingChanged(false);
+                    break;
+                case Qt::Checked:
+                    playWhileRecordingChanged(true);
+                    break;
+                default:
+                    break;
+            }
+        });
+
+        lay->addRow(tr("Play while recording"), m_playWhileRecording);
+    }
+
     m_widg->setLayout(lay);
 }
 
@@ -110,6 +131,24 @@ void View::setMode(Mode val)
         default:
             break;
     }
+}
+
+void View::setPlayWhileRecording(bool b)
+{
+    switch(m_playWhileRecording->checkState())
+    {
+        case Qt::Unchecked:
+            if(b)
+                m_playWhileRecording->setChecked(true);
+            break;
+        case Qt::Checked:
+            if(!b)
+                m_playWhileRecording->setChecked(false);
+            break;
+        default:
+            break;
+    }
+
 }
 
 QWidget *View::getWidget()

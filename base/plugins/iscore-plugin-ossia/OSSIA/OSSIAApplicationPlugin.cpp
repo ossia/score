@@ -225,6 +225,30 @@ void OSSIAApplicationPlugin::on_play(bool b, ::TimeValue t)
     }
 }
 
+void OSSIAApplicationPlugin::on_record(::TimeValue t)
+{
+    ISCORE_ASSERT(!m_playing);
+
+    // TODO have a on_exit handler to properly stop the scenario.
+    if(auto doc = currentDocument())
+    {
+        auto plugmodel = doc->context().findPlugin<RecreateOnPlay::DocumentPlugin>();
+        if(!plugmodel)
+            return;
+        auto scenar = dynamic_cast<Scenario::ScenarioDocumentModel*>(&doc->model().modelDelegate());
+        if(!scenar)
+            return;
+
+        // Listening isn't stopped here.
+        plugmodel->reload(scenar->baseScenario());
+        auto& cstr = *plugmodel->baseScenario()->baseConstraint();
+
+        emit requestPlay();
+        cstr.play(t);
+        m_playing = true;
+    }
+}
+
 void OSSIAApplicationPlugin::on_stop()
 {
     if(auto doc = currentDocument())

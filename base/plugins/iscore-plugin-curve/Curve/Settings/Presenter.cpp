@@ -67,6 +67,23 @@ Presenter::Presenter(
         // initial value
         v.setMode(m.getMode());
     }
+
+    {
+        // view -> model
+        con(v, &View::playWhileRecordingChanged,
+            this, [&] (auto val) {
+            if(val != m.getPlayWhileRecording())
+            {
+                m_disp.submitCommand<SetModelPlayWhileRecording>(this->model(this), val);
+            }
+        });
+
+        // model -> view
+        con(m, &Model::PlayWhileRecordingChanged, &v, &View::setPlayWhileRecording);
+
+        // initial value
+        v.setMode(m.getMode());
+    }
 }
 
 QString Presenter::settingsName()

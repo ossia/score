@@ -29,7 +29,7 @@ iscore::GUIApplicationContextPlugin* iscore_plugin_cohesion::make_applicationPlu
 
 QStringList iscore_plugin_cohesion::required() const
 {
-    return {"Scenario"};
+    return {"Scenario", "OSSIA"};
 }
 
 std::pair<const CommandParentFactoryKey, CommandGeneratorMap> iscore_plugin_cohesion::make_commands()
