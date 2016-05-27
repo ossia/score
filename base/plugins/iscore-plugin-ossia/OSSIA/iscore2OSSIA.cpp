@@ -226,6 +226,11 @@ void updateOSSIAAddress(
     addr->setBoundingMode(toBoundingMode(settings.clipMode));
 
     addr->setValue(iscore::convert::toOSSIAValue(settings.value));
+
+    addr->setDomain(
+                OSSIA::Domain::create(
+                    toOSSIAValue(settings.domain.min),
+                    toOSSIAValue(settings.domain.max)));
 }
 
 void createOSSIAAddress(

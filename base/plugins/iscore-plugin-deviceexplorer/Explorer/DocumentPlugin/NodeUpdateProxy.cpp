@@ -48,11 +48,11 @@ void NodeUpdateProxy::loadDevice(const Device::Node& node)
 
     if(deviceExplorer)
     {
-        deviceExplorer->addDevice(std::move(node));
+        deviceExplorer->addDevice(std::move(n));
     }
     else
     {
-        devModel.rootNode().push_back(std::move(node));
+        devModel.rootNode().push_back(std::move(n));
     }
 }
 

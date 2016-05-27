@@ -274,6 +274,9 @@ void OSSIADevice::setListening(
         }
     }
 
+    ISCORE_ASSERT(bool(ossia_addr));
+    ISCORE_ASSERT(bool(ossia_addr->getDomain()));
+
     // If we want to enable listening
     // and the address wasn't already listening
     if(b)
