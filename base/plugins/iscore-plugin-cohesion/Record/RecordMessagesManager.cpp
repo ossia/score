@@ -60,9 +60,6 @@ RecordMessagesManager::RecordMessagesManager(
 
 void RecordMessagesManager::stopRecording()
 {
-    if(!m_dispatcher)
-        return;
-
     // Stop all the recording machinery
     m_recordTimer.stop();
     auto msecs = GetTimeDifferenceInDouble(start_time_pt);
@@ -70,8 +67,21 @@ void RecordMessagesManager::stopRecording()
     {
         QObject::disconnect(con);
     }
+    m_recordCallbackConnections.clear();
 
     qApp->processEvents();
+
+    // Nothing was being recorded
+    if(!m_dispatcher)
+        return;
+
+    // Record and then stop
+    if(!m_firstValueReceived)
+    {
+        m_dispatcher->rollback();
+        return;
+    }
+
 
     for(auto& val : m_records)
     {

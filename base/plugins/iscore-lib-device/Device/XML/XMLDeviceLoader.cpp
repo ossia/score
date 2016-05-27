@@ -146,6 +146,13 @@ static void convertFromDomElement(const QDomElement& dom_element, Device::Node &
         addr.repetitionFilter = dom_element.attribute("repetitionsFilter").toInt();
 
         addr.domain = read_rangeBounds(dom_element, type);
+        if(addr.value.val.which() != State::ValueType::NoValue)
+        {
+            if(addr.domain.min.val.which() == State::ValueType::NoValue)
+                addr.domain.min = addr.value;
+            if(addr.domain.max.val.which() == State::ValueType::NoValue)
+                addr.domain.max = addr.value;
+        }
         addr.clipMode = read_rangeClipmode(dom_element);
     }
 

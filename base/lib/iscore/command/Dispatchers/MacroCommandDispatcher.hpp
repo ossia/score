@@ -37,10 +37,17 @@ class GenericMacroCommandDispatcher final : public ICommandDispatcher
                 {
                     SendStrategy_T::send(stack(), m_aggregateCommand.release());
                 }
-                else
-                {
-                    m_aggregateCommand.reset();
-                }
+
+                m_aggregateCommand.reset();
+            }
+        }
+
+        void rollback()
+        {
+            if(m_aggregateCommand)
+            {
+                m_aggregateCommand->undo();
+                m_aggregateCommand.reset();
             }
         }
 

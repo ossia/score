@@ -69,8 +69,10 @@ iscore::DocumentBackups::restorableDocuments()
 
     for(auto it = existing_files.keyBegin(); it != existing_files.keyEnd(); ++it)
     {
-        auto& element = *it;
-        loadRestorableDocumentData(element, existing_files[element].toString(), arr);
+        auto& file1 = *it;
+        if(file1.isNull() || file1.isEmpty())
+            continue;
+        loadRestorableDocumentData(file1, existing_files[file1].toString(), arr);
     }
 
     s.setValue("iscore/docs", QMap<QString, QVariant>{});

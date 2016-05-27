@@ -63,40 +63,38 @@ State::Value ToValue(const OSSIA::Value *val)
     if(!val)
         return {};
 
-    // TODO this should be a dynamic_cast every time
-    // for safety ?
     switch(val->getType())
     {
         case OSSIA::Value::Type::IMPULSE:
             return State::Value::fromValue(State::impulse_t{});
         case OSSIA::Value::Type::BOOL:
         {
-            auto val_sub = dynamic_cast<const OSSIA::Bool*>(val);
+            auto val_sub = static_cast<const OSSIA::Bool*>(val);
             return val_sub ? State::Value::fromValue(val_sub->value) : State::Value::fromValue(bool{});
         }
         case OSSIA::Value::Type::INT:
         {
-            auto val_sub = dynamic_cast<const OSSIA::Int*>(val);
+            auto val_sub = static_cast<const OSSIA::Int*>(val);
             return val_sub ? State::Value::fromValue(val_sub->value) : State::Value::fromValue(int{});
         }
         case OSSIA::Value::Type::FLOAT:
         {
-            auto val_sub = dynamic_cast<const OSSIA::Float*>(val);
+            auto val_sub = static_cast<const OSSIA::Float*>(val);
             return val_sub ? State::Value::fromValue(val_sub->value) : State::Value::fromValue(float{});
         }
         case OSSIA::Value::Type::CHAR:
         {
-            auto val_sub = dynamic_cast<const OSSIA::Char*>(val);
+            auto val_sub = static_cast<const OSSIA::Char*>(val);
             return val_sub ? State::Value::fromValue(val_sub->value) : State::Value::fromValue(char{});
         }
         case OSSIA::Value::Type::STRING:
         {
-            auto val_sub = dynamic_cast<const OSSIA::String*>(val);
+            auto val_sub = static_cast<const OSSIA::String*>(val);
             return val_sub ? State::Value::fromValue(QString::fromStdString(val_sub->value)) : State::Value::fromValue(QString{});
         }
         case OSSIA::Value::Type::TUPLE:
         {
-            auto ossia_tuple = dynamic_cast<const OSSIA::Tuple*>(val);
+            auto ossia_tuple = static_cast<const OSSIA::Tuple*>(val);
 
             State::tuple_t tuple;
             if(!ossia_tuple)
