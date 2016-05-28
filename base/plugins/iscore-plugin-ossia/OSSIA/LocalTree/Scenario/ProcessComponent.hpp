@@ -44,7 +44,7 @@ class ISCORE_PLUGIN_OSSIA_EXPORT ProcessComponentFactory :
                 const Id<iscore::Component>&,
                 OSSIA::Node& parent,
                 Process::ProcessModel& proc,
-                const LocalTree::DocumentPlugin& doc,
+                LocalTree::DocumentPlugin& doc,
                 const iscore::DocumentContext& ctx,
                 QObject* paren_objt) const = 0;
 };

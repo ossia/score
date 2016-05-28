@@ -18,7 +18,7 @@ ScenarioComponentFactory::make(
         const Id<iscore::Component>& id,
         OSSIA::Node& parent,
         Process::ProcessModel& proc,
-        const DocumentPlugin& doc,
+        DocumentPlugin& doc,
         const iscore::DocumentContext& ctx,
         QObject* paren_objt) const
 {
