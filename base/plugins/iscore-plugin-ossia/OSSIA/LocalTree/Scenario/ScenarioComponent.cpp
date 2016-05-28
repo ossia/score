@@ -10,7 +10,7 @@ ScenarioComponent::ScenarioComponent(
         const Id<iscore::Component>& id,
         OSSIA::Node& parent,
         Scenario::ScenarioModel& scenario,
-        const ScenarioComponent::system_t& doc,
+        system_t& doc,
         const iscore::DocumentContext& ctx,
         QObject* parent_obj):
     ProcessComponent{parent, scenario, id, "ScenarioComponent", parent_obj},
@@ -27,7 +27,7 @@ template<>
 ConstraintComponent* ScenarioComponent::make<ConstraintComponent, Scenario::ConstraintModel>(
         const Id<iscore::Component>& id,
         Scenario::ConstraintModel& elt,
-        const ScenarioComponent::system_t& doc,
+        ScenarioComponent::system_t& doc,
         const iscore::DocumentContext& ctx,
         QObject* parent)
 {
@@ -38,7 +38,7 @@ template<>
 EventComponent* ScenarioComponent::make<EventComponent, Scenario::EventModel>(
         const Id<iscore::Component>& id,
         Scenario::EventModel& elt,
-        const ScenarioComponent::system_t& doc,
+        ScenarioComponent::system_t& doc,
         const iscore::DocumentContext& ctx,
         QObject* parent)
 {
@@ -49,7 +49,7 @@ template<>
 TimeNodeComponent* ScenarioComponent::make<TimeNodeComponent, Scenario::TimeNodeModel>(
         const Id<iscore::Component>& id,
         Scenario::TimeNodeModel& elt,
-        const ScenarioComponent::system_t& doc,
+        ScenarioComponent::system_t& doc,
         const iscore::DocumentContext& ctx,
         QObject* parent)
 {
@@ -60,7 +60,7 @@ template<>
 StateComponent* ScenarioComponent::make<StateComponent, Scenario::StateModel>(
         const Id<iscore::Component>& id,
         Scenario::StateModel& elt,
-        const ScenarioComponent::system_t& doc,
+        ScenarioComponent::system_t& doc,
         const iscore::DocumentContext& ctx,
         QObject* parent)
 {

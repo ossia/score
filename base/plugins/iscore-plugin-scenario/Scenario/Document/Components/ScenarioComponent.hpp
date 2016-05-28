@@ -51,7 +51,7 @@ class ScenarioComponentHierarchyManager : public Nano::Observer
         ScenarioComponentHierarchyManager(
                 Component_T& component,
                 Scenario_T& scenar,
-                const System_T& doc,
+                System_T& doc,
                 const iscore::DocumentContext& ctx,
                 QObject* parentcomp
                 ):
@@ -157,7 +157,7 @@ class ScenarioComponentHierarchyManager : public Nano::Observer
 
         Component_T& m_component;
 
-        const System_T& m_system;
+        System_T& m_system;
         const iscore::DocumentContext& m_context;
         QObject* m_parentObject{};
 
@@ -236,7 +236,7 @@ class BaseScenarioComponentHierarchyManager : public Nano::Observer
         BaseScenarioComponentHierarchyManager(
                 Component_T& component,
                 BaseScenario_T& scenar,
-                const System_T& doc,
+                System_T& doc,
                 const iscore::DocumentContext& ctx,
                 QObject* parentcomp
                 ):
@@ -331,7 +331,7 @@ class BaseScenarioComponentHierarchyManager : public Nano::Observer
 
         Component_T& m_component;
 
-        const System_T& m_system;
+        System_T& m_system;
         const iscore::DocumentContext& m_context;
         QObject* m_parentObject{};
 

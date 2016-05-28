@@ -1,6 +1,7 @@
 #pragma once
 #include <iscore/tools/ModelPath.hpp>
 #include <iscore/serialization/DataStreamVisitor.hpp>
+#include <iscore/serialization/JSONVisitor.hpp>
 
 template<typename Object>
 QDataStream& operator<< (QDataStream& stream, const Path<Object>& obj)
@@ -31,6 +32,25 @@ struct TSerializer<DataStream, void, Path<T>>
 
         static void writeTo(
                 DataStream::Deserializer& s,
+                Path<T>& path)
+        {
+            s.writeTo(path.unsafePath_ref());
+        }
+};
+
+
+template<typename T>
+struct TSerializer<JSONObject, Path<T>>
+{
+        static void readFrom(
+                JSONObject::Serializer& s,
+                const Path<T>& path)
+        {
+            s.readFrom(path.unsafePath());
+        }
+
+        static void writeTo(
+                JSONObject::Deserializer& s,
                 Path<T>& path)
         {
             s.writeTo(path.unsafePath_ref());

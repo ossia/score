@@ -19,7 +19,7 @@ ConstraintComponent::ConstraintComponent(
         OSSIA::Node& parent,
         const Id<iscore::Component>& id,
         Scenario::ConstraintModel& constraint,
-        const ConstraintComponent::system_t& doc,
+        ConstraintComponent::system_t& doc,
         const iscore::DocumentContext& ctx,
         QObject* parent_comp):
     Component{id, "ConstraintComponent", parent_comp},
@@ -79,7 +79,7 @@ ProcessComponent*ConstraintComponent::make_processComponent(
         const Id<iscore::Component>& id,
         ProcessComponentFactory& factory,
         Process::ProcessModel& process,
-        const DocumentPlugin& system,
+        DocumentPlugin& system,
         const iscore::DocumentContext& ctx,
         QObject* parent_component)
 {

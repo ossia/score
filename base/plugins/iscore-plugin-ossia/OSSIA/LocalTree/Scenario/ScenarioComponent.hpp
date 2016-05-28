@@ -30,7 +30,7 @@ class ScenarioComponent final : public ProcessComponent
                const Id<Component>& id,
                OSSIA::Node& parent,
                Scenario::ScenarioModel& scenario,
-               const system_t& doc,
+               system_t& doc,
                const iscore::DocumentContext& ctx,
                QObject* parent_obj);
 
@@ -38,7 +38,7 @@ class ScenarioComponent final : public ProcessComponent
        Component_T* make(
                const Id<Component>& id,
                Element& elt,
-               const system_t& doc,
+               system_t& doc,
                const iscore::DocumentContext& ctx,
                QObject* parent);
 
