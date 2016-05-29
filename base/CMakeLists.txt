@@ -19,8 +19,10 @@ if(ANDROID)
 elseif(NACL)
     add_subdirectory(app-nacl)
 else()
-    add_subdirectory(app)
+  add_subdirectory(app)
 endif()
+
+add_subdirectory(app-remote)
 
 if(ISCORE_COVERAGE)
     add_subdirectory(app-test)

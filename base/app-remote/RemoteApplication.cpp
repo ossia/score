@@ -1,5 +1,6 @@
-#include "TestApplication.hpp"
+#include "RemoteApplication.hpp"
 #include <core/application/SafeQApplication.hpp>
+
 #include <core/application/ApplicationRegistrar.hpp>
 #include <core/settings/Settings.hpp>
 #include <core/presenter/Presenter.hpp>
@@ -13,10 +14,12 @@
 #include <iscore/plugins/documentdelegate/DocumentDelegateFactoryInterface.hpp>
 #include <iscore/plugins/documentdelegate/plugin/DocumentDelegatePluginModel.hpp>
 #include <core/presenter/CoreApplicationPlugin.hpp>
-TestApplication::TestApplication(int &argc, char **argv):
-    NamedObject{"toto", nullptr}
+
+RemoteApplication::RemoteApplication(int &argc, char **argv):
+    NamedObject{"remote", nullptr},
+    m_app{new SafeQApplication{argc, argv}}
 {
-    m_app = new SafeQApplication{argc, argv};
+
     m_instance = this;
     this->setParent(m_app);
 
@@ -54,6 +57,8 @@ TestApplication::TestApplication(int &argc, char **argv):
         m_settings->setupSettingsPlugin(elt);
     }
 
+    m_presenter->setupGUI();
+
     for(iscore::GUIApplicationContextPlugin* app_plug : ctx.components.applicationPlugins())
     {
         app_plug->initialize();
@@ -64,18 +69,25 @@ TestApplication::TestApplication(int &argc, char **argv):
         registrar.registerPanel(panel_fac);
     }
 
-    m_view->show();
+
+    engine.load(QUrl(QStringLiteral("qrc:/resources/main.qml")));
+
+    for(auto obj : engine.rootObjects())
+    {
+        connect(obj, SIGNAL(itemClicked(int)), &m_triggers, SLOT(rowPressed(int)));
+        obj->setProperty("model", QVariant::fromValue(&m_triggers.m_activeTimeNodes));
+    }
+
 }
 
-TestApplication::~TestApplication()
+RemoteApplication::~RemoteApplication()
 {
 
 }
-
-const iscore::ApplicationContext &TestApplication::context() const
+const iscore::ApplicationContext &RemoteApplication::context() const
 {
     return m_presenter->applicationContext();
 }
 
-int TestApplication::exec()
+int RemoteApplication::exec()
 { return m_app->exec(); }
