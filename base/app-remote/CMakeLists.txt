@@ -15,7 +15,7 @@ target_link_libraries(iscore_remote PRIVATE iscore_lib_base iscore_plugin_scenar
 
 if(ISCORE_STATIC_PLUGINS)
   iscore_write_static_plugins_header()
-  target_link_libraries(iscore_testapp PUBLIC ${ISCORE_PLUGINS_LIST})
+  target_link_libraries(iscore_remote PUBLIC ${ISCORE_PLUGINS_LIST})
 endif()
 
 setup_iscore_common_exe_features(iscore_remote)

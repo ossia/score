@@ -13,15 +13,18 @@ Item {
     signal pause
     signal stop
 
-    ColumnLayout {
-
+    RowLayout
+    {
+        x: 5
+        y: 8
+        width: 627
+        height: 464
 
         ListView {
             id: listView1
-            x: 0
             y: 0
             width: 200
-            height: 200
+            height: 350
 
             model: ListModel{
                 ListElement { name: "boo"; colorCode: "red"; }
@@ -42,7 +45,7 @@ Item {
                         MouseArea
                         {
                             anchors.fill: parent
-                            onClicked: itemClicked(index)
+                            //onClicked: theroot.itemClicked(index)
                         }
 
                     }
@@ -56,30 +59,45 @@ Item {
             }
         }
 
-
-        RowLayout
+        Item
         {
-
-            Button {
-                id: playButton
-                text: qsTr("Play")
-                onClicked: theroot.play();
+            Item
+            {
+                Layout.fillWidth: true
+                Layout.fillHeight: true
             }
 
-            Button {
-                id: pauseButton
-                text: qsTr("Pause")
-                onClicked: theroot.pause();
-            }
+            RowLayout {
+                id: rowLayout1
+                width: 100
+                height: 100
 
-            Button {
-                id: stopButton
-                text: qsTr("Stop")
-                onClicked: theroot.stop();
+                Button {
+                    id: stopButton
+                    text: qsTr("Stop")
+                    //onClicked: theroot.stop();
+                }
+
+                Button {
+                    id: pauseButton
+                    text: qsTr("Pause")
+                    //onClicked: theroot.pause();
+                }
+
+                Button {
+                    id: playButton
+                    text: qsTr("Play")
+                    //onClicked: theroot.play();
+                }
             }
         }
 
+
+
+
+
     }
+
 
 
 }
