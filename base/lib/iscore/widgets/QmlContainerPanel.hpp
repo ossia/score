@@ -32,7 +32,7 @@ public slots:
 private:
     QString m_source;
     QWidget* m_widget{};
+    QVBoxLayout* m_layout{};
     QQuickWidget* m_qcontainer{};
     QAction* m_collapse{};
-    QVBoxLayout* m_layout{};
 };
