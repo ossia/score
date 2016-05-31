@@ -4,7 +4,7 @@
 #include <QString>
 #include <vector>
 
-#include <iscore/application/ApplicationContext.hpp>
+#include <iscore/application/GUIApplicationContext.hpp>
 #include <iscore/actions/Action.hpp>
 class QAction;
 class QObject;
@@ -37,7 +37,7 @@ namespace iscore
 
         public:
             using GUIElements = iscore::GUIElements;
-            GUIApplicationContextPlugin(const iscore::ApplicationContext& presenter);
+            GUIApplicationContextPlugin(const iscore::GUIApplicationContext& presenter);
 
             /**
              * @brief initialize
@@ -51,7 +51,7 @@ namespace iscore
 
             virtual GUIElements makeGUIElements();
 
-            const ApplicationContext& context;
+            const GUIApplicationContext& context;
             Document* currentDocument() const;
 
             // Returns true if the start-up was handled by this plug-in.

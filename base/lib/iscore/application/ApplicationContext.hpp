@@ -11,7 +11,7 @@ class MenuManager;
 class ToolbarManager;
 class ActionManager;
 
-struct ApplicationContext
+struct ISCORE_LIB_BASE_EXPORT ApplicationContext
 {
         explicit ApplicationContext(
                 const iscore::ApplicationSettings&,
@@ -24,6 +24,8 @@ struct ApplicationContext
         ApplicationContext(const ApplicationContext&) = delete;
         ApplicationContext(ApplicationContext&&) = delete;
         ApplicationContext& operator=(const ApplicationContext&) = delete;
+
+        virtual ~ApplicationContext();
 
         template<typename T>
         T& settings() const

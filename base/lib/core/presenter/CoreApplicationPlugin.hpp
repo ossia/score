@@ -9,8 +9,9 @@ class ISCORE_LIB_BASE_EXPORT CoreApplicationPlugin final :
         public iscore::GUIApplicationContextPlugin
 {
     public:
-        CoreApplicationPlugin(const iscore::ApplicationContext& app,
-                              Presenter& pres);
+        CoreApplicationPlugin(
+                const iscore::GUIApplicationContext& app,
+                Presenter& pres);
 
     private:
         Presenter& m_presenter;

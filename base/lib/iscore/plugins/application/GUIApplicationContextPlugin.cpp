@@ -21,7 +21,7 @@ namespace iscore
 {
 
 GUIApplicationContextPlugin::GUIApplicationContextPlugin(
-        const iscore::ApplicationContext& app):
+        const iscore::GUIApplicationContext& app):
     context{app}
 {
 

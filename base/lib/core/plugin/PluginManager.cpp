@@ -1,5 +1,6 @@
 #include <boost/concept/usage.hpp>
 #include <boost/range/algorithm/find_if.hpp>
+#include <iscore/application/GUIApplicationContext.hpp>
 #include <iscore/application/ApplicationComponents.hpp>
 #include <core/application/ApplicationRegistrar.hpp>
 #include <core/plugin/PluginManager.hpp>
@@ -173,15 +174,17 @@ void PluginLoader::loadPlugins(
         graph.addNode(dynamic_cast<QObject*>(plugin));
     }
 
-    graph.visit([&] (QObject* plugin) {
-        auto ctrl_plugin = dynamic_cast<GUIApplicationContextPlugin_QtInterface*> (plugin);
-        if(ctrl_plugin)
-        {
-            auto plug = ctrl_plugin->make_applicationPlugin(context);
-            registrar.registerApplicationContextPlugin(plug);
-        }
-    });
-
+    if(auto gui_ctx = dynamic_cast<const iscore::GUIApplicationContext*>(&context))
+    {
+        graph.visit([&] (QObject* plugin) {
+            auto ctrl_plugin = dynamic_cast<GUIApplicationContextPlugin_QtInterface*> (plugin);
+            if(ctrl_plugin)
+            {
+                auto plug = ctrl_plugin->make_applicationPlugin(*gui_ctx);
+                registrar.registerApplicationContextPlugin(plug);
+            }
+        });
+    }
     // Load what the plug-ins have to offer.
     for(auto plugin : availablePlugins)
     {

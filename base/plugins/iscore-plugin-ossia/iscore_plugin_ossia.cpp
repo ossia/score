@@ -33,7 +33,7 @@ iscore_plugin_ossia::~iscore_plugin_ossia()
 }
 
 iscore::GUIApplicationContextPlugin* iscore_plugin_ossia::make_applicationPlugin(
-        const iscore::ApplicationContext& app)
+        const iscore::GUIApplicationContext& app)
 {
     return new OSSIAApplicationPlugin{app};
 }

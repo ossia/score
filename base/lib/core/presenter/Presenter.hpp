@@ -1,6 +1,6 @@
 #pragma once
 #include <iscore/application/ApplicationComponents.hpp>
-#include <iscore/application/ApplicationContext.hpp>
+#include <iscore/application/GUIApplicationContext.hpp>
 #include <iscore/actions/Action.hpp>
 
 #include <core/presenter/DocumentManager.hpp>
@@ -58,7 +58,7 @@ class ISCORE_LIB_BASE_EXPORT Presenter final : public NamedObject
         { return m_docManager; }
         const ApplicationComponents& applicationComponents()
         { return m_components_readonly; }
-        const ApplicationContext& applicationContext()
+        const GUIApplicationContext& applicationContext()
         { return m_context; }
 
         auto& components()
@@ -73,7 +73,7 @@ class ISCORE_LIB_BASE_EXPORT Presenter final : public NamedObject
         ApplicationComponents m_components_readonly;
 
         QMenuBar* m_menubar{};
-        ApplicationContext m_context;
+        GUIApplicationContext m_context;
 
         MenuManager m_menus;
         ToolbarManager m_toolbars;

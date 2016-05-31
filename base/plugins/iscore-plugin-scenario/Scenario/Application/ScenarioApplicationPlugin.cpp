@@ -71,7 +71,8 @@ namespace Scenario
 {
 void test_parse_expr_full();
 
-ScenarioApplicationPlugin::ScenarioApplicationPlugin(const iscore::ApplicationContext& ctx) :
+ScenarioApplicationPlugin::ScenarioApplicationPlugin(
+        const iscore::GUIApplicationContext& ctx) :
     GUIApplicationContextPlugin{ctx}
 {
     connect(qApp, &QApplication::applicationStateChanged,
