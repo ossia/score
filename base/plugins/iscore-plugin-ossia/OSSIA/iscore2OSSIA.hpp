@@ -73,7 +73,7 @@ ISCORE_PLUGIN_OSSIA_EXPORT void updateOSSIAValue(
         const State::ValueImpl& data,
         OSSIA::Value& val);
 
-ISCORE_PLUGIN_OSSIA_EXPORT OSSIA::Value* toOSSIAValue(
+ISCORE_PLUGIN_OSSIA_EXPORT std::unique_ptr<OSSIA::Value> toOSSIAValue(
         const State::Value&);
 
 //// Other conversions

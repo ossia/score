@@ -227,6 +227,18 @@ void RecordManager::parameterCallback(const State::Address &addr, const State::V
         proc_data.segment.addPoint(0, newval);
     }
 }
+static int getReasonableUpdateInterval(int numberOfCurves)
+{
+    if(numberOfCurves < 10)
+        return 8;
+    if(numberOfCurves < 50)
+        return 16;
+    if(numberOfCurves < 100)
+        return 100;
+    if(numberOfCurves < 1000)
+        return 1000;
+    return 5000;
+}
 
 void RecordManager::recordInNewBox(
         const Scenario::ScenarioModel& scenar,
@@ -253,10 +265,12 @@ void RecordManager::recordInNewBox(
     Box box = CreateBox(scenar, pt, *m_dispatcher);
 
     //// Creation of the curves ////
+    int curve_count = 0;
     for(const auto& vec : recordListening)
     {
         for(const Device::FullAddressSettings& addr : vec)
         {
+            curve_count++;
             // Note : since we directly create the IDs here, we don't have to worry
             // about their generation.
             auto cmd_proc = new Scenario::Command::AddOnlyProcessToConstraint{
@@ -330,6 +344,7 @@ void RecordManager::recordInNewBox(
     }
 
     //// Start the record timer ////
+    m_recordTimer.setInterval(getReasonableUpdateInterval(curve_count));
     connect(&m_recordTimer, &QTimer::timeout,
             this, [=] () {
         // Move end event by the current duration.
