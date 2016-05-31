@@ -20,10 +20,11 @@ class QApplication;
 class TriggerList : public QAbstractListModel
 {
     public:
-
-        void reset()
+        template<typename Fun>
+        void apply(Fun f)
         {
             beginResetModel();
+            f();
             endResetModel();
         }
 
@@ -40,14 +41,18 @@ class TriggerList : public QAbstractListModel
             return path.unsafePath().toString();
         }
 
+        QHash<int, QByteArray> roleNames() const override
+        {
+            QHash<int, QByteArray> hash;
+            hash.insert(Qt::DisplayRole, "name");
+            return hash;
+        }
         std::vector<Path<Scenario::TimeNodeModel>> timeNodes;
 };
 
 struct WebSocketHandler : public QObject
 {
-
         Q_OBJECT
-
 
     public:
         TriggerList m_activeTimeNodes;
@@ -72,8 +77,7 @@ struct WebSocketHandler : public QObject
                 auto it = find(m_activeTimeNodes.timeNodes, path);
                 if(it == m_activeTimeNodes.timeNodes.end())
                 {
-                    m_activeTimeNodes.timeNodes.push_back(path);
-                    m_activeTimeNodes.reset();
+                    m_activeTimeNodes.apply([=] () { m_activeTimeNodes.timeNodes.push_back(path); });
                 }
 
             }));
@@ -91,8 +95,7 @@ struct WebSocketHandler : public QObject
                 auto it = find(m_activeTimeNodes.timeNodes, path);
                 if(it != m_activeTimeNodes.timeNodes.end())
                 {
-                    m_activeTimeNodes.timeNodes.erase(it);
-                    m_activeTimeNodes.reset();
+                    m_activeTimeNodes.apply([=] () { m_activeTimeNodes.timeNodes.erase(it); });
                 }
             }));
 
@@ -107,14 +110,10 @@ struct WebSocketHandler : public QObject
             m_server.open(QUrl("ws://localhost:10212"));
         }
 
-
         ~WebSocketHandler()
         {
             m_server.close();
         }
-
-
-
 
         void processTextMessage(const QString& message)
         {
@@ -144,8 +143,7 @@ struct WebSocketHandler : public QObject
 
 
     public slots:
-
-        void rowPressed(int i)
+        void on_rowPressed(int i)
         {
             if(i >= m_activeTimeNodes.timeNodes.size())
                 return;
@@ -160,6 +158,37 @@ struct WebSocketHandler : public QObject
 
             m_server.sendTextMessage(json);
         }
+
+        void on_play()
+        {
+            QJsonObject mess;
+            mess["Message"] = "Play";
+            m_server.sendTextMessage(QJsonDocument{mess}.toJson());
+        }
+
+        void on_pause()
+        {
+            QJsonObject mess;
+            mess["Message"] = "Pause";
+            m_server.sendTextMessage(QJsonDocument{mess}.toJson());
+        }
+
+        void on_stop()
+        {
+            QJsonObject mess;
+            mess["Message"] = "Stop";
+            m_server.sendTextMessage(QJsonDocument{mess}.toJson());
+        }
+
+        void on_addressChanged(QString addr)
+        {
+            m_server.close();
+
+            m_activeTimeNodes.apply([this] () { m_activeTimeNodes.timeNodes.clear(); });
+
+            m_server.open(QUrl{addr});
+        }
+
 };
 
 

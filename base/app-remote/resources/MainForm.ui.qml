@@ -12,6 +12,7 @@ Item {
     signal play
     signal pause
     signal stop
+    signal addressChanged(string address)
 
     RowLayout
     {
@@ -38,33 +39,22 @@ Item {
                 Row {
                     id: row1
                     spacing: 10
-                    Rectangle {
-                        width: 40
+                    Button {
+
+                        width: 200
                         height: 40
-                        color: "red"
-                        MouseArea
-                        {
-                            anchors.fill: parent
-                            //onClicked: theroot.itemClicked(index)
-                        }
-
-                    }
-
-                    Text {
                         text: name
-                        anchors.verticalCenter: parent.verticalCenter
-                        font.bold: true
+
+                        onClicked: theroot.itemClicked(index)
                     }
                 }
             }
         }
 
-        Item
-        {
-            Item
-            {
-                Layout.fillWidth: true
-                Layout.fillHeight: true
+        ColumnLayout {
+            TextField {
+                placeholderText: "ws://127.0.0.1:10212"
+                onEditingFinished: theroot.addressChanged(text)
             }
 
             RowLayout {
@@ -75,25 +65,22 @@ Item {
                 Button {
                     id: stopButton
                     text: qsTr("Stop")
-                    //onClicked: theroot.stop();
+                    onClicked: theroot.stop();
                 }
 
                 Button {
                     id: pauseButton
                     text: qsTr("Pause")
-                    //onClicked: theroot.pause();
+                    onClicked: theroot.pause();
                 }
 
                 Button {
                     id: playButton
                     text: qsTr("Play")
-                    //onClicked: theroot.play();
+                    onClicked: theroot.play();
                 }
             }
         }
-
-
-
 
 
     }

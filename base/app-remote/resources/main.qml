@@ -16,14 +16,16 @@ ApplicationWindow {
     signal play
     signal pause
     signal stop
+    signal addressChanged(string address)
 
     MainForm {
         id: form
         anchors.fill: parent
-        onItemClicked: rootWindow.itemClicked(index)
+        onItemClicked:  { rootWindow.itemClicked(index); console.log(index); }
         onPlay: rootWindow.play()
         onPause: rootWindow.pause()
         onStop: rootWindow.stop()
+        onAddressChanged: addressChanged(address)
     }
 
 
