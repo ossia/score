@@ -65,12 +65,13 @@ iscore::DocumentBackups::restorableDocuments()
     std::vector<std::pair<QByteArray, QByteArray>> arr;
     QSettings s{iscore::OpenDocumentsFile::path(), QSettings::IniFormat};
 
-    auto existing_files = s.value("iscore/docs").toMap();
+    auto docs = s.value("iscore/docs");
+    const auto existing_files = docs.toMap();
 
     for(auto it = existing_files.keyBegin(); it != existing_files.keyEnd(); ++it)
     {
         auto& file1 = *it;
-        if(file1.isNull() || file1.isEmpty())
+        if(file1.isEmpty())
             continue;
         loadRestorableDocumentData(file1, existing_files[file1].toString(), arr);
     }

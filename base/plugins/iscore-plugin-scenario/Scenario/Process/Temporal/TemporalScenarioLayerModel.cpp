@@ -52,7 +52,7 @@ TemporalScenarioLayerModel::TemporalScenarioLayerModel(
         addConstraintViewModel(
                     src_constraint->clone(
                         src_constraint->id(),
-                        newScenario.constraints.at(src_constraint->model().id()),
+                        newScenario.constraints.at(Id<ConstraintModel>{src_constraint->model().id()}),
                         this));
     }
 }
