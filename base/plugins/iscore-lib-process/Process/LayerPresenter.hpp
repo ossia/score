@@ -52,7 +52,8 @@ class ISCORE_LIB_PROCESS_EXPORT LayerPresenter : public QObject
         virtual void fillContextMenu(QMenu&,
                                      QPoint pos,
                                      QPointF scenepos,
-                                     const LayerContextMenuManager&) const = 0;
+                                     const LayerContextMenuManager&) const;
+
     signals:
         void contextMenuRequested(const QPoint&, const QPointF&);
 
