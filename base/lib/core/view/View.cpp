@@ -32,6 +32,7 @@ View::View(QObject* parent) :
     m_tabWidget{new QTabWidget}
 {
     setObjectName("View");
+    m_tabWidget->setObjectName("Documents");
     //setUnifiedTitleAndToolBarOnMac(true);
 
     setDockOptions(QMainWindow::ForceTabbedDocks | QMainWindow::VerticalTabs);

@@ -31,8 +31,8 @@ static QList<Device::Node*> GetParametersRecursive(QList<Device::Node*> parents)
     QList<Device::Node*> res;
     for(auto node : parents)
     {
-        res += node;
-        res += GetParametersRecursive(node);
+        res.push_back(node);
+        res.append(GetParametersRecursive(node));
     }
 
     auto end = res.end();
