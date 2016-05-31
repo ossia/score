@@ -37,7 +37,6 @@ QMLContainerPanel::QMLContainerPanel(QWidget *parent) :
     m_widget->setLayout(m_layout);
 
     connect(m_collapse, &QAction::triggered, this, &QMLContainerPanel::collapse);
-    qDebug() << &QMLContainerPanel::collapse;
 }
 
 QMLContainerPanel::QMLContainerPanel(QMLContainerPanel *container, QWidget *parent) :
