@@ -127,7 +127,7 @@ void PointArraySegment::addPoint(double x, double y)
         max_y = y;
     }
 
-    m_points.insert(std::make_pair(x, y));
+    m_points[x] = y;
 
     m_valid = false;
     emit dataChanged();

@@ -112,6 +112,7 @@ void RecordManager::stopRecording()
             const auto& node = getNodeFromAddress(m_explorer->rootNode(), addr.address);
             double newval = State::convert::value<double>(node.get<Device::AddressSettings>().value);
 
+            /*
             // Maybe add first point
             if(!segt.points().empty())
             {
@@ -123,6 +124,7 @@ void RecordManager::stopRecording()
             {
                 segt.addPoint(0, newval);
             }
+            */
             // Add last point
             segt.addPoint(msecs.msec(), newval);
 
@@ -253,7 +255,7 @@ void RecordManager::recordInNewBox(
     //// Creation of the curves ////
     for(const auto& vec : recordListening)
     {
-        for(const auto& addr : vec)
+        for(const Device::FullAddressSettings& addr : vec)
         {
             // Note : since we directly create the IDs here, we don't have to worry
             // about their generation.
@@ -269,18 +271,28 @@ void RecordManager::recordInNewBox(
             cmd_layer->redo();
 
             autom.curve().clear();
-            auto segt = new Curve::PointArraySegment{
-                    Id<Curve::SegmentModel>{0},
-                    &autom.curve()};
 
             auto val = State::convert::value<float>(addr.value);
+            auto min = State::convert::value<float>(addr.domain.min);
+            auto max = State::convert::value<float>(addr.domain.max);
+
+            Curve::SegmentData seg;
+            seg.id = Id<Curve::SegmentModel>{0};
+            seg.start = {0, val};
+            seg.end = {1, -1};
+            seg.specificSegmentData =
+                    QVariant::fromValue(
+                        Curve::PointArraySegmentData{ 0, 1, min, max, { {0, val} } });
+            auto segt = new Curve::PointArraySegment{
+                        seg,
+                    &autom.curve()};
+
             segt->setStart({0, val});
             segt->setEnd({1, -1});
             segt->addPoint(0, val);
 
             autom.curve().addSegment(segt);
 
-            // TODO fetch initial min / max from AddressSettings ?
             records.insert(
                         std::make_pair(
                             addr,
