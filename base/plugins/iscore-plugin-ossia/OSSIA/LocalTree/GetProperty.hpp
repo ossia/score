@@ -70,7 +70,10 @@ struct GetPropertyWrapper : public BaseProperty
                     auto res = Ossia::convert::ToValue(cl);
 
                     if(newVal != res)
-                        addr->pushValue(iscore::convert::toOSSIAValue(newVal));
+                    {
+                        auto new_ossia_val = iscore::convert::toOSSIAValue(newVal);
+                        addr->pushValue(new_ossia_val.get());
+                    }
                     delete cl;
                 }
                 catch(...)
@@ -80,7 +83,10 @@ struct GetPropertyWrapper : public BaseProperty
             },
             Qt::QueuedConnection);
 
-            addr->setValue(iscore::convert::toOSSIAValue(converter_t::convert(property.get())));
+            {
+                auto new_ossia_val = iscore::convert::toOSSIAValue(converter_t::convert(property.get()));
+                addr->setValue(new_ossia_val.get());
+            }
         }
 };
 

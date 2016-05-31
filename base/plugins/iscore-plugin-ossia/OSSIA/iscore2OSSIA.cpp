@@ -225,12 +225,13 @@ void updateOSSIAAddress(
     addr->setRepetitionFilter(settings.repetitionFilter);
     addr->setBoundingMode(toBoundingMode(settings.clipMode));
 
-    addr->setValue(iscore::convert::toOSSIAValue(settings.value));
+    auto val = iscore::convert::toOSSIAValue(settings.value);
+    addr->setValue(val.get());
 
     addr->setDomain(
                 OSSIA::Domain::create(
-                    toOSSIAValue(settings.domain.min),
-                    toOSSIAValue(settings.domain.max)));
+                    toOSSIAValue(settings.domain.min).release(),
+                    toOSSIAValue(settings.domain.max).release()));
 }
 
 void createOSSIAAddress(
@@ -328,7 +329,7 @@ OSSIA::Value* createOSSIAValue(const T& val)
     return new typename boost::mpl::at<OSSIATypeMap, T>::type(val);
 }
 
-static OSSIA::Value* toOSSIAValue(const State::ValueImpl& val)
+static std::unique_ptr<OSSIA::Value> toOSSIAValue(const State::ValueImpl& val)
 {
     struct {
         public:
@@ -351,10 +352,10 @@ static OSSIA::Value* toOSSIAValue(const State::ValueImpl& val)
             }
     } visitor{};
 
-    return eggs::variants::apply(visitor, val.impl());
+    return std::unique_ptr<OSSIA::Value>{eggs::variants::apply(visitor, val.impl())};
 }
 
-OSSIA::Value* toOSSIAValue(
+std::unique_ptr<OSSIA::Value> toOSSIAValue(
         const State::Value& value)
 {
     return toOSSIAValue(value.val);
@@ -383,9 +384,10 @@ std::shared_ptr<OSSIA::Message> message(
         if(!ossia_node)
             return {};
 
+        auto val = iscore::convert::toOSSIAValue(mess.value);
         return OSSIA::Message::create(
                     ossia_node->getAddress(),
-                    iscore::convert::toOSSIAValue(mess.value));
+                    val.get());
     }
 
     return {};
@@ -504,7 +506,7 @@ static OSSIA::Value* expressionOperand(
             }
 
             return_type operator()(const State::Value& val) const {
-                return toOSSIAValue(val);
+                return toOSSIAValue(val).release();
             }
 
             return_type operator()(const State::AddressAccessor& acc) const {
