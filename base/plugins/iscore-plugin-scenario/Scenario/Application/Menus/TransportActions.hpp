@@ -7,6 +7,9 @@
 #include <iscore/selection/Selection.hpp>
 #include <iscore/actions/Action.hpp>
 
+namespace iscore {
+class GUIApplicationContext;
+}
 class QAction;
 class QMenu;
 class QToolBar;
@@ -17,7 +20,7 @@ class TransportActions : public QObject
 {
     public:
         TransportActions(
-                const iscore::ApplicationContext&);
+                const iscore::GUIApplicationContext&);
 
         void makeGUIElements(iscore::GUIElements& ref);
 

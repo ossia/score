@@ -14,7 +14,7 @@
 #include <Scenario/Application/ScenarioActions.hpp>
 #include <iscore/widgets/SetIcons.hpp>
 #include <iscore/menu/MenuInterface.hpp>
-
+#include <QMainWindow>
 #include <QApplication>
 class QMenu;
 
@@ -23,38 +23,40 @@ namespace Scenario
 class TemporalScenarioPresenter;
 
 TransportActions::TransportActions(
-        const iscore::ApplicationContext& context) :
+        const iscore::GUIApplicationContext& context) :
     m_context{context}
 {
-    qDebug() << qApp->activeWindow();
-    m_play = new QAction{tr("Play"), qApp->activeWindow()};
+    m_play = new QAction{tr("Play"), nullptr};
     m_play->setObjectName("Play");
     m_play->setShortcut(Qt::Key_Space);
     m_play->setShortcutContext(Qt::WidgetWithChildrenShortcut);
     setIcons(m_play, QString(":/icons/play_on.png"), QString(":/icons/play_off.png"));
+    context.mainWindow.addAction(m_play);
 
-    m_stop = new QAction{tr("Stop"), qApp->activeWindow()};
+    m_stop = new QAction{tr("Stop"), nullptr};
     m_stop->setObjectName("Stop");
     m_stop->setShortcut(Qt::Key_Return);
     m_stop->setShortcutContext(Qt::WidgetWithChildrenShortcut);
     setIcons(m_stop, QString(":/icons/stop_on.png"), QString(":/icons/stop_off.png"));
+    context.mainWindow.addAction(m_stop);
 
-    m_goToStart = new QAction{tr("⏮ Start"), qApp->activeWindow()};
+    m_goToStart = new QAction{tr("⏮ Start"), nullptr};
     m_goToStart->setObjectName("Start");
     setIcons(m_goToStart, QString(":/icons/start_on.png"), QString(":/icons/start_off.png"));
 
-    m_goToEnd = new QAction{tr("⏭ End"), qApp->activeWindow()};
+    m_goToEnd = new QAction{tr("⏭ End"), nullptr};
     m_goToEnd->setObjectName("End");
     setIcons(m_goToEnd, QString(":/icons/end_on.png"), QString(":/icons/end_off.png"));
 
-    m_stopAndInit = new QAction{tr("Reinitialize"), qApp->activeWindow()};
+    m_stopAndInit = new QAction{tr("Reinitialize"), nullptr};
     m_stopAndInit->setObjectName("StopAndInit");
     m_stopAndInit->setShortcut(Qt::CTRL + Qt::Key_Return);
     m_stopAndInit->setShortcutContext(Qt::WidgetWithChildrenShortcut);
+    context.mainWindow.addAction(m_stopAndInit);
 
     setIcons(m_stopAndInit, QString(":/icons/reinitialize_on.png"), QString(":/icons/reinitialize_off.png"));
 
-    m_record = new QAction{tr("Record"), qApp->activeWindow()};
+    m_record = new QAction{tr("Record"), nullptr};
     m_record->setObjectName("Record");
     setIcons(m_record, QString(":/icons/record_on.png"), QString(":/icons/record_off.png"));
 
