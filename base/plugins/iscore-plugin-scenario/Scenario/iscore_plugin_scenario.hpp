@@ -45,7 +45,8 @@ class iscore_plugin_scenario final :
 
     private:
         // Application plugin interface
-        iscore::GUIApplicationContextPlugin* make_applicationPlugin(const iscore::ApplicationContext& app) override;
+        iscore::GUIApplicationContextPlugin* make_applicationPlugin(
+                const iscore::GUIApplicationContext& app) override;
 
         // NOTE : implementation is in CommandNames.cpp
         std::pair<const CommandParentFactoryKey, CommandGeneratorMap> make_commands() override;

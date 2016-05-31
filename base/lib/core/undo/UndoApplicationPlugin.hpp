@@ -25,7 +25,7 @@ class ISCORE_LIB_BASE_EXPORT UndoApplicationPlugin final :
         public iscore::GUIApplicationContextPlugin
 {
     public:
-        UndoApplicationPlugin(const iscore::ApplicationContext& app);
+        UndoApplicationPlugin(const iscore::GUIApplicationContext& app);
         ~UndoApplicationPlugin();
 
     private:

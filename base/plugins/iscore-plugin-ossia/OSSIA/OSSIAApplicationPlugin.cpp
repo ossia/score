@@ -44,7 +44,8 @@ struct VisitorVariant;
 #include <algorithm>
 #include <vector>
 
-OSSIAApplicationPlugin::OSSIAApplicationPlugin(const iscore::ApplicationContext& ctx):
+OSSIAApplicationPlugin::OSSIAApplicationPlugin(
+        const iscore::GUIApplicationContext& ctx):
     iscore::GUIApplicationContextPlugin {ctx},
     m_playActions{*this, ctx}
 {

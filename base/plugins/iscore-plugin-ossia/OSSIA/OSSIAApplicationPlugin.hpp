@@ -34,7 +34,8 @@ class ISCORE_PLUGIN_OSSIA_EXPORT OSSIAApplicationPlugin final :
         Q_OBJECT
 
     public:
-        OSSIAApplicationPlugin(const iscore::ApplicationContext& app);
+        OSSIAApplicationPlugin(
+                const iscore::GUIApplicationContext& app);
         ~OSSIAApplicationPlugin();
 
         bool handleStartup() override;

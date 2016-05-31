@@ -15,6 +15,7 @@
 #include <iscore/widgets/SetIcons.hpp>
 #include <iscore/menu/MenuInterface.hpp>
 
+#include <QApplication>
 class QMenu;
 
 namespace Scenario
@@ -25,41 +26,43 @@ TransportActions::TransportActions(
         const iscore::ApplicationContext& context) :
     m_context{context}
 {
-    m_play = new QAction{tr("Play"), this};
+    qDebug() << qApp->activeWindow();
+    m_play = new QAction{tr("Play"), qApp->activeWindow()};
     m_play->setObjectName("Play");
     m_play->setShortcut(Qt::Key_Space);
     m_play->setShortcutContext(Qt::WidgetWithChildrenShortcut);
     setIcons(m_play, QString(":/icons/play_on.png"), QString(":/icons/play_off.png"));
 
-    m_stop = new QAction{tr("Stop"), this};
+    m_stop = new QAction{tr("Stop"), qApp->activeWindow()};
     m_stop->setObjectName("Stop");
     m_stop->setShortcut(Qt::Key_Return);
     m_stop->setShortcutContext(Qt::WidgetWithChildrenShortcut);
     setIcons(m_stop, QString(":/icons/stop_on.png"), QString(":/icons/stop_off.png"));
 
-    m_goToStart = new QAction{tr("⏮ Start"), this};
+    m_goToStart = new QAction{tr("⏮ Start"), qApp->activeWindow()};
     m_goToStart->setObjectName("Start");
     setIcons(m_goToStart, QString(":/icons/start_on.png"), QString(":/icons/start_off.png"));
 
-    m_goToEnd = new QAction{tr("⏭ End"), this};
+    m_goToEnd = new QAction{tr("⏭ End"), qApp->activeWindow()};
     m_goToEnd->setObjectName("End");
     setIcons(m_goToEnd, QString(":/icons/end_on.png"), QString(":/icons/end_off.png"));
 
-    m_stopAndInit = new QAction{tr("Reinitialize"), this};
+    m_stopAndInit = new QAction{tr("Reinitialize"), qApp->activeWindow()};
     m_stopAndInit->setObjectName("StopAndInit");
     m_stopAndInit->setShortcut(Qt::CTRL + Qt::Key_Return);
     m_stopAndInit->setShortcutContext(Qt::WidgetWithChildrenShortcut);
 
     setIcons(m_stopAndInit, QString(":/icons/reinitialize_on.png"), QString(":/icons/reinitialize_off.png"));
 
-    m_record = new QAction{tr("Record"), this};
+    m_record = new QAction{tr("Record"), qApp->activeWindow()};
     m_record->setObjectName("Record");
     setIcons(m_record, QString(":/icons/record_on.png"), QString(":/icons/record_off.png"));
 
     m_play->setCheckable(true);
     m_record->setCheckable(true);
 
-    connect(m_play, &QAction::toggled, this, [&] (bool b) {
+    connect(m_play, &QAction::toggled,
+            this, [&] (bool b) {
         m_play->setText(b? QString("Pause") : QString("Play"));
         setIcons(m_play,
                  b ? QString(":/icons/pause_on.png") : QString(":/icons/play_on.png"),

@@ -19,3 +19,5 @@ iscore::ApplicationContext::ApplicationContext(
 {
 
 }
+
+iscore::ApplicationContext::~ApplicationContext() = default;

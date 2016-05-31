@@ -4,7 +4,7 @@
 
 namespace iscore
 {
-    struct ApplicationContext;
+    struct GUIApplicationContext;
     class GUIApplicationContextPlugin;
 
     class ISCORE_LIB_BASE_EXPORT GUIApplicationContextPlugin_QtInterface
@@ -12,7 +12,7 @@ namespace iscore
         public:
             virtual ~GUIApplicationContextPlugin_QtInterface();
 
-            virtual GUIApplicationContextPlugin* make_applicationPlugin(const iscore::ApplicationContext& app) = 0;
+            virtual GUIApplicationContextPlugin* make_applicationPlugin(const iscore::GUIApplicationContext& app) = 0;
     };
 }
 

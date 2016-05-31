@@ -39,7 +39,8 @@ class ISCORE_PLUGIN_SCENARIO_EXPORT ScenarioApplicationPlugin final :
         Q_OBJECT
         friend class ScenarioContextMenuManager;
     public:
-        ScenarioApplicationPlugin(const iscore::ApplicationContext& app);
+        ScenarioApplicationPlugin(
+                const iscore::GUIApplicationContext& app);
         ~ScenarioApplicationPlugin();
 
         GUIElements makeGUIElements() override;

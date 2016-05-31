@@ -84,7 +84,7 @@ iscore_plugin_scenario::iscore_plugin_scenario()
 iscore_plugin_scenario::~iscore_plugin_scenario() = default;
 
 iscore::GUIApplicationContextPlugin* iscore_plugin_scenario::make_applicationPlugin(
-        const iscore::ApplicationContext& app)
+        const iscore::GUIApplicationContext& app)
 {
     using namespace Scenario;
     return new ScenarioApplicationPlugin{app};

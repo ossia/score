@@ -26,7 +26,8 @@
 ISCORE_DECLARE_ACTION(Snapshot, Scenario, QKeySequence(QObject::tr("Ctrl+L")))
 ISCORE_DECLARE_ACTION(CreateCurves, Scenario, QKeySequence(QObject::tr("Ctrl+J")))
 
-IScoreCohesionApplicationPlugin::IScoreCohesionApplicationPlugin(const iscore::ApplicationContext& ctx) :
+IScoreCohesionApplicationPlugin::IScoreCohesionApplicationPlugin(
+        const iscore::GUIApplicationContext& ctx) :
     iscore::GUIApplicationContextPlugin {ctx}
 {
     using namespace Scenario;

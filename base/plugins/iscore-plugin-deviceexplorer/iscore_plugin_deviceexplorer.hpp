@@ -49,7 +49,8 @@ class iscore_plugin_deviceexplorer final :
                 const iscore::AbstractFactoryKey& factoryName) const override;
 
         // application plugin
-        iscore::GUIApplicationContextPlugin* make_applicationPlugin(const iscore::ApplicationContext& app) override;
+        iscore::GUIApplicationContextPlugin* make_applicationPlugin(
+                const iscore::GUIApplicationContext& app) override;
 
         std::pair<const CommandParentFactoryKey, CommandGeneratorMap> make_commands() override;
 

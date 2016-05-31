@@ -17,7 +17,8 @@ class IScoreCohesionApplicationPlugin final :
         public iscore::GUIApplicationContextPlugin
 {
     public:
-        IScoreCohesionApplicationPlugin(const iscore::ApplicationContext& app);
+        IScoreCohesionApplicationPlugin(
+                const iscore::GUIApplicationContext& app);
 
         GUIElements makeGUIElements() override;
 

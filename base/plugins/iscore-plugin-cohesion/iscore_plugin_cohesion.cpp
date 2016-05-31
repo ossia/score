@@ -22,7 +22,7 @@ iscore_plugin_cohesion::~iscore_plugin_cohesion()
 }
 
 iscore::GUIApplicationContextPlugin* iscore_plugin_cohesion::make_applicationPlugin(
-        const iscore::ApplicationContext& app)
+        const iscore::GUIApplicationContext& app)
 {
     return new IScoreCohesionApplicationPlugin {app};
 }
