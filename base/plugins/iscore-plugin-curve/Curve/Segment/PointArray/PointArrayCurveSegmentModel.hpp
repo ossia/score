@@ -61,6 +61,7 @@ class ISCORE_PLUGIN_CURVE_EXPORT PointArraySegment final : public SegmentModel
         double min() { return min_y; }
         double max() { return max_y; }
 
+
         const auto& points() const
         { return m_points; }
 

@@ -29,6 +29,7 @@ class RecordManager final : public QObject
         void requestPlay();
 
     private:
+        void takeSnapshot();
         void messageCallback(const State::Address& addr, const State::Value& val);
         void parameterCallback(const State::Address& addr, const State::Value& val);
 
@@ -45,6 +46,6 @@ class RecordManager final : public QObject
 
         std::unordered_map<
             Device::FullAddressSettings,
-            RecordData> records;
+        RecordData> records;
 };
 }
