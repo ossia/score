@@ -1,0 +1,37 @@
+#!/bin/bash -eux
+set -o pipefail
+
+# Set-up paths
+export CMAKE_PATH=$(find $PWD/cmake-*/ -type d | head -n 1)bin
+export LD_LIBRARY_PATH=/usr/local/lib64:$LD_LIBRARY_PATH
+export PATH=/usr/local/bin:$CMAKE_PATH:$PATH
+
+
+BUILD_DIR=i-score-build
+APP=i-score
+rm -rf ./$BUILD_DIR/$APP.AppDir
+mkdir -p ./$BUILD_DIR/$APP.AppDir
+cd ./$BUILD_DIR
+
+# Get i-score from git
+(
+	if [ ! -d i-score ] ; then
+		git clone https://github.com/OSSIA/i-score
+	fi
+	
+	cd i-score/
+	git_pull_rebase_helper
+)
+
+# Build i-score in the AppDir
+mkdir -p $APP.AppDir/usr
+INSTALL_ROOT=$(cd $APP.AppDir/usr; pwd)
+mkdir -p build
+cd build
+cmake ../i-score \
+	-DISCORE_CONFIGURATION=release \ 
+	-DCMAKE_INSTALL_PREFIX=$INSTALL_ROOT \
+	-DCMAKE_PREFIX_PATH=$(dirname $(find /usr/local -name 'Qt5Config.cmake'))
+
+cmake --build . --target all_unity -- -j8
+cmake --build . --target install -- -j8
