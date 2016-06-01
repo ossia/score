@@ -1,4 +1,6 @@
 #include "RemoteApplication.hpp"
+#include <QApplication>
+#include <qnamespace.h>
 
 #if defined(ISCORE_STATIC_PLUGINS)
   #include <iscore_static_plugins.hpp>
@@ -9,7 +11,7 @@ static void init_plugins()
 {
 // TODO generate this too
 #if defined(ISCORE_STATIC_PLUGINS)
-    Q_INIT_RESOURCE(remote)
+    Q_INIT_RESOURCE(remote);
     Q_INIT_RESOURCE(iscore);
     Q_INIT_RESOURCE(ScenarioResources);
     Q_INIT_RESOURCE(AutomationResources);
