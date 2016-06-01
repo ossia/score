@@ -9,6 +9,7 @@
 
 #include <QSettings>
 #include <QString>
+#include <iscore/tools/QMapHelper.hpp>
 #include <QVariant>
 
 #include "DocumentBackups.hpp"
@@ -59,6 +60,7 @@ static void loadRestorableDocumentData(
     }
 }
 
+
 std::vector<std::pair<QByteArray, QByteArray> >
 iscore::DocumentBackups::restorableDocuments()
 {
@@ -68,9 +70,8 @@ iscore::DocumentBackups::restorableDocuments()
     auto docs = s.value("iscore/docs");
     const auto existing_files = docs.toMap();
 
-    for(auto it = existing_files.keyBegin(); it != existing_files.keyEnd(); ++it)
+    for(const auto& file1 : QMap_keys(existing_files))
     {
-        auto& file1 = *it;
         if(file1.isEmpty())
             continue;
         loadRestorableDocumentData(file1, existing_files[file1].toString(), arr);
