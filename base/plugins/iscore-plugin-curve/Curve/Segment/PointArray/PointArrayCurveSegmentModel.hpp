@@ -62,7 +62,7 @@ class ISCORE_PLUGIN_CURVE_EXPORT PointArraySegment final : public SegmentModel
         double max() { return max_y; }
 
 
-        const auto& points() const
+        const boost::container::flat_map<double, double>& points() const
         { return m_points; }
 
         QVariant toSegmentSpecificData() const override
