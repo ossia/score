@@ -4,7 +4,8 @@ set -o pipefail
 
 # Minimal stuff
 yum -y update
-yum -y install wget tar bzip2 xz git
+yum -y install epel-release wget tar bzip2 xz git libxml2
+yum -y install libmpc
 
 git_pull_rebase_helper()
 {
