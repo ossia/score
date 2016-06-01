@@ -2,36 +2,153 @@
 set -o pipefail
 
 # Set-up paths
+export BOOST_ROOT=$PWD/boost
 export CMAKE_PATH=$(find $PWD/cmake-*/ -type d | head -n 1)bin
 export LD_LIBRARY_PATH=/usr/local/lib64:$LD_LIBRARY_PATH
 export PATH=/usr/local/bin:$CMAKE_PATH:$PATH
 
 
-BUILD_DIR=i-score-build
-APP=i-score
+export BUILD_DIR=i-score-build
+export APP=i-score
 rm -rf ./$BUILD_DIR/$APP.AppDir
 mkdir -p ./$BUILD_DIR/$APP.AppDir
 cd ./$BUILD_DIR
 
 # Get i-score from git
 (
-	if [ ! -d i-score ] ; then
-		git clone https://github.com/OSSIA/i-score
-	fi
-	
-	cd i-score/
-	git_pull_rebase_helper
+    if [ ! -d i-score ] ; then
+        git clone https://github.com/OSSIA/i-score
+    fi
+    
+    cd i-score/
+    git_pull_rebase_helper
 )
 
 # Build i-score in the AppDir
 mkdir -p $APP.AppDir/usr
-INSTALL_ROOT=$(cd $APP.AppDir/usr; pwd)
-mkdir -p build
-cd build
-cmake ../i-score \
-	-DISCORE_CONFIGURATION=release \ 
-	-DCMAKE_INSTALL_PREFIX=$INSTALL_ROOT \
-	-DCMAKE_PREFIX_PATH=$(dirname $(find /usr/local -name 'Qt5Config.cmake'))
 
-cmake --build . --target all_unity -- -j8
-cmake --build . --target install -- -j8
+(
+    export INSTALL_ROOT=$(cd $APP.AppDir/usr; pwd)
+    mkdir -p build
+    
+    cd build
+    cmake ../i-score \
+        -DISCORE_CONFIGURATION=release \ 
+        -DCMAKE_INSTALL_PREFIX=$INSTALL_ROOT \
+        -DCMAKE_PREFIX_PATH=$(dirname $(find /usr/local -name 'Qt5Config.cmake')) \
+        -DBOOST_ROOT=$BOOST_ROOT
+    
+    cmake --build . --target all_unity -- -j8
+    cmake --build . --target install -- -j8
+)
+
+cp $APP.AppDir/usr/share/applications/i-score.desktop $APP.AppDir/
+cp $APP.AppDir/usr/share/pixmaps/i-score.png $APP.AppDir/
+
+(
+    cd $APP.AppDir
+    cp ../../AppImageKit/AppRun .
+    chmod a+x AppRun
+    mkdir -p ./usr/lib/qt5/
+    cp -rf /usr/local/Qt-5.6.2/plugins/  ./usr/lib/qt5/plugins
+    
+    # Dependencies of plugins and i-score
+    for lib in usr/lib/libiscore_lib_*; do ldd $lib; done | grep 'Qt5' | awk '{ print $1; }' | sort | uniq | xargs -I '{}' cp -v /usr/local/Qt-5.6.2/lib/'{}' ./usr/lib
+    for lib in usr/lib/i-score/*; do ldd $lib; done | grep 'Qt5' | awk '{ print $1; }' | sort | uniq | xargs -I '{}' cp -v /usr/local/Qt-5.6.2/lib/'{}' ./usr/lib
+    ldd usr/bin/i-score | grep "=>" | awk '{print $3}'  |  xargs -I '{}' cp -v '{}' ./usr/lib || true
+    
+    # Dependencies of qt
+    ldd usr/lib/qt5/plugins/platforms/libqxcb.so | grep "=>" | awk '{print $3}'  |  xargs -I '{}' cp -v '{}' ./usr/lib || true
+    cp -v /usr/local/Qt-5.6.2/lib/libQt5XcbQpa.so.5 ./usr/lib || true
+    
+    # Taken from Subsurface appimage
+    # The following are assumed to be part of the base system
+    rm -f usr/lib/libcom_err.so.2 || true
+    rm -f usr/lib/libcrypt.so.1 || true
+    rm -f usr/lib/libdl.so.2 || true
+    rm -f usr/lib/libexpat.so.1 || true
+    rm -f usr/lib/libfontconfig.so.1 || true
+    rm -f usr/lib/libgcc_s.so.1 || true
+    rm -f usr/lib/libglib-2.0.so.0 || true
+    rm -f usr/lib/libgpg-error.so.0 || true
+    rm -f usr/lib/libgssapi_krb5.so.2 || true
+    rm -f usr/lib/libgssapi.so.3 || true
+    rm -f usr/lib/libhcrypto.so.4 || true
+    rm -f usr/lib/libheimbase.so.1 || true
+    rm -f usr/lib/libheimntlm.so.0 || true
+    rm -f usr/lib/libhx509.so.5 || true
+    rm -f usr/lib/libICE.so.6 || true
+    rm -f usr/lib/libidn.so.11 || true
+    rm -f usr/lib/libk5crypto.so.3 || true
+    rm -f usr/lib/libkeyutils.so.1 || true
+    rm -f usr/lib/libkrb5.so.26 || true
+    rm -f usr/lib/libkrb5.so.3 || true
+    rm -f usr/lib/libkrb5support.so.0 || true
+    # rm -f usr/lib/liblber-2.4.so.2 || true # needed for debian wheezy
+    # rm -f usr/lib/libldap_r-2.4.so.2 || true # needed for debian wheezy
+    rm -f usr/lib/libm.so.6 || true
+    rm -f usr/lib/libp11-kit.so.0 || true
+    rm -f usr/lib/libpcre.so.3 || true
+    rm -f usr/lib/libpthread.so.0 || true
+    rm -f usr/lib/libresolv.so.2 || true
+    rm -f usr/lib/libroken.so.18 || true
+    rm -f usr/lib/librt.so.1 || true
+    rm -f usr/lib/libsasl2.so.2 || true
+    rm -f usr/lib/libSM.so.6 || true
+    rm -f usr/lib/libusb-1.0.so.0 || true
+    rm -f usr/lib/libuuid.so.1 || true
+    rm -f usr/lib/libwind.so.0 || true
+    rm -f usr/lib/libz.so.1 || true
+    
+    # These seem to be available on most systems but not Ubuntu 11.04
+    # rm -f usr/lib/libffi.so.6 usr/lib/libGL.so.1 usr/lib/libglapi.so.0 usr/lib/libxcb.so.1 usr/lib/libxcb-glx.so.0 || true
+    
+    
+    # Delete potentially dangerous libraries
+    rm -f usr/lib/libgobject* usr/lib/libc.so.* || true
+
+    strip usr/bin/i-score usr/lib/*.* usr/lib/qt5/plugins/*/*.* usr/lib/i-score/*.* || true
+
+        
+    cp $(ldconfig -p | grep libsasl2.so.2 | cut -d ">" -f 2 | xargs) ./usr/lib/
+    cp $(ldconfig -p | grep libpng12.so.0 | cut -d ">" -f 2 | xargs) ./usr/lib/
+    # cp $(ldconfig -p | grep libGL.so.1 | cut -d ">" -f 2 | xargs) ./usr/lib/ # otherwise segfaults!?
+    cp $(ldconfig -p | grep libGLU.so.1 | cut -d ">" -f 2 | xargs) ./usr/lib/ # otherwise segfaults!?
+    # Fedora 23 seemed to be missing SOMETHING from the Centos 6.7. The only message was:
+    # This application failed to start because it could not find or load the Qt platform plugin "xcb".
+    # Setting export QT_DEBUG_PLUGINS=1 revealed the cause.
+    # QLibraryPrivate::loadPlugin failed on "/usr/lib64/qt5/plugins/platforms/libqxcb.so" : 
+    # "Cannot load library /usr/lib64/qt5/plugins/platforms/libqxcb.so: (/lib64/libEGL.so.1: undefined symbol: drmGetNodeTypeFromFd)"
+    # Which means that we have to copy libEGL.so.1 in too
+    cp $(ldconfig -p | grep libEGL.so.1 | cut -d ">" -f 2 | xargs) ./usr/lib/ # Otherwise F23 cannot load the Qt platform plugin "xcb"
+    # cp $(ldconfig -p | grep libxcb.so.1 | cut -d ">" -f 2 | xargs) ./usr/lib/ 
+    
+    
+    # On openSUSE Qt is picking up the wrong libqxcb.so
+    # (the one from the system when in fact it should use the bundled one) - is this a Qt bug?
+    # Hence, we binary patch /usr/lib* to $CWD/lib* which works because at runtime,
+    # the current working directory is set to usr/ inside the AppImage before running the app
+    cd usr/ ; find . -type f -exec sed -i -e 's|/usr/lib|././/lib|g' {} \; ; cd ..
+    
+    cp $(ldconfig -p | grep libfreetype.so.6 | cut -d ">" -f 2 | xargs) ./usr/lib/ # For Fedora 20
+    
+)
+
+cp i-score/CMake/Deployment/Linux/AppImage/qt.conf $APP.AppDir/usr/bin/
+
+export VMAJ=$(grep 'set(ISCORE_VERSION_MAJOR' ./i-score/CMakeLists.txt | cut -f2 -d' ' | cut -f1 -d')')
+export VMIN=$(grep 'set(ISCORE_VERSION_MINOR' ./i-score/CMakeLists.txt | cut -f2 -d' ' | cut -f1 -d')')
+export VPATCH=$(grep 'set(ISCORE_VERSION_PATCH' ./i-score/CMakeLists.txt | cut -f2 -d' ' | cut -f1 -d')')
+export VEXTRA=$(grep 'set(ISCORE_VERSION_EXTRA' ./i-score/CMakeLists.txt | cut -f2 -d' ' | cut -f1 -d')')
+ 
+export VERSION=$VMAJ.$VMIN.$VPATCH-$VEXTRA
+export APPIMAGE=$APP"-"$VERSION"-x86_64.AppImage"
+
+rm -rf out || true
+mkdir -p out
+
+# Convert the AppDir into an AppImage
+../AppImageKit/AppImageAssistant.AppDir/package ./$APP.AppDir/ ./out/$APPIMAGE
+
+chmod a+rwx out/$APPIMAGE # So that we can edit the AppImage outside of the Docker container
+ls -lh out/$APPIMAGE

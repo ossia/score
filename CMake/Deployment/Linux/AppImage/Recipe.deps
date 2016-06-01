@@ -3,9 +3,9 @@ set -o pipefail
 
 
 # Minimal stuff
+yum -y install epel-release
 yum -y update
-yum -y install epel-release wget tar bzip2 xz git libxml2
-yum -y install libmpc
+yum -y install libmpc gcc  wget tar bzip2 xz git libxml2  binutils fuse mesa-libGL-devel glibc-devel glib2-devel fuse-devel zlib-devel libpng12 
 
 git_pull_rebase_helper()
 {
@@ -15,9 +15,11 @@ git_pull_rebase_helper()
 }
 
 # Install required libs
-wget https://github.com/OSSIA/iscore-sdk/releases/download/1.0/i-score-sdk.txz
+wget -nv https://github.com/OSSIA/iscore-sdk/releases/download/1.0/i-score-sdk.txz
 tar -xaf i-score-sdk.txz --directory /
-
+wget -nv http://downloads.sourceforge.net/project/boost/boost/1.61.0/boost_1_61_0.tar.bz2
+tar -xaf boost_1_61_0.tar.bz2
+mv boost_1_61_0 boost
 
 # Build AppImage
 (
@@ -31,7 +33,7 @@ tar -xaf i-score-sdk.txz --directory /
 
 # Download CMake
 (
-	wget --no-check-certificate -c https://cmake.org/files/v3.5/cmake-3.5.2-Linux-x86_64.tar.gz
+	wget -nv --no-check-certificate -c https://cmake.org/files/v3.5/cmake-3.5.2-Linux-x86_64.tar.gz
 	tar xaf cmake-*.tar.gz
 )
 
