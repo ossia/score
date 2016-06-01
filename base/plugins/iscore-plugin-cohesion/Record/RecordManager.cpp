@@ -100,33 +100,15 @@ void RecordManager::stopRecording()
     // Potentially simplify curve and transform it in segments
     for(const auto& recorded : records)
     {
-        const auto& addr = recorded.first;
-        auto& segt = recorded.second.segment;
+        Curve::PointArraySegment& segt = recorded.second.segment;
 
         auto& automation = *safe_cast<Automation::ProcessModel*>(
                     recorded.second.curveModel.parent());
 
-        // Here we add a last point with the current state of the things.
+        // Here we add a last point equal to the latest recorded point
         {
-            // Move end event by the current duration.
-            const auto& node = getNodeFromAddress(m_explorer->rootNode(), addr.address);
-            double newval = State::convert::value<double>(node.get<Device::AddressSettings>().value);
-
-            /*
-            // Maybe add first point
-            if(!segt.points().empty())
-            {
-                auto begin_pt = *segt.points().begin();
-                if(begin_pt.first != 0.)
-                    segt.addPoint(0., begin_pt.second);
-            }
-            else
-            {
-                segt.addPoint(0, newval);
-            }
-            */
             // Add last point
-            segt.addPoint(msecs.msec(), newval);
+            segt.addPoint(msecs.msec(), segt.points().rbegin()->second);
 
             automation.setDuration(msecs);
         }
