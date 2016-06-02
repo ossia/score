@@ -120,6 +120,7 @@ void ToolPalette::on_cancel()
     m_createTool.on_cancel();
     m_selectTool.on_cancel();
     m_moveSlotTool.on_cancel();
+    m_presenter.editionSettings().setTool(Scenario::Tool::Select);
 }
 
 void ToolPalette::activate(Tool t)

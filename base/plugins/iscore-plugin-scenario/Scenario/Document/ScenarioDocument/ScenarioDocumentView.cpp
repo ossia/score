@@ -145,6 +145,29 @@ ScenarioDocumentView::ScenarioDocumentView(
     });
 
     m_widget->setObjectName("ScenarioViewer");
+
+    // Cursors
+    auto& es = ctx.components.applicationPlugin<ScenarioApplicationPlugin>().editionSettings();
+    con(es, &EditionSettings::toolChanged,
+            this, [=] (Scenario::Tool t)
+    {
+       switch(t)
+       {
+           case Scenario::Tool::Select:
+               m_view->setCursor(QCursor(Qt::ArrowCursor));
+               break;
+           case Scenario::Tool::Create:
+               m_view->setCursor(QCursor(Qt::PointingHandCursor));
+               break;
+           case Scenario::Tool::Play:
+               m_view->setCursor(QCursor(Qt::CrossCursor));
+               break;
+           default:
+               m_view->setCursor(QCursor(Qt::ArrowCursor));
+               break;
+       }
+    });
+
 }
 
 QWidget* ScenarioDocumentView::getWidget()
