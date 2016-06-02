@@ -60,7 +60,7 @@ cp $APP.AppDir/usr/share/pixmaps/i-score.png $APP.AppDir/
     # Dependencies of qt
     ldd usr/lib/qt5/plugins/platforms/libqxcb.so | grep "=>" | awk '{print $3}'  |  xargs -I '{}' cp -v '{}' ./usr/lib || true
     cp -v /usr/local/Qt-5.6.2/lib/libQt5XcbQpa.so.5 ./usr/lib || true
-    cp -v /usr/local/Qt-5.6.2/lib/libQt5Dbus.so.5 ./usr/lib || true
+    cp -v /usr/local/Qt-5.6.2/lib/libQt5DBus.so.5 ./usr/lib || true
     
     # Taken from Subsurface appimage
     # The following are assumed to be part of the base system
@@ -137,6 +137,8 @@ cp $APP.AppDir/usr/share/pixmaps/i-score.png $APP.AppDir/
 )
 
 cp i-score/CMake/Deployment/Linux/AppImage/qt.conf $APP.AppDir/usr/bin/
+mkdir -p i-score.AppDir/usr/bin/lib/
+cp -rf /usr/local/Qt-5.6.2/lib/fonts i-score.AppDir/usr/bin/lib/
 
 export VMAJ=$(grep 'set(ISCORE_VERSION_MAJOR' ./i-score/CMakeLists.txt | cut -f2 -d' ' | cut -f1 -d')')
 export VMIN=$(grep 'set(ISCORE_VERSION_MINOR' ./i-score/CMakeLists.txt | cut -f2 -d' ' | cut -f1 -d')')
