@@ -39,7 +39,7 @@ ToolPalette::ToolPalette(
 {
 }
 
-const Scenario::EditionSettings&ToolPalette::editionSettings() const
+const Scenario::EditionSettings& ToolPalette::editionSettings() const
 {
     return m_presenter.editionSettings();
 }
@@ -93,11 +93,13 @@ void ToolPalette::on_moved(QPointF point)
 void ToolPalette::on_released(QPointF point)
 {
     scenePoint = point;
+    auto& es = m_presenter.editionSettings();
     auto scenarioPoint = ScenePointToScenarioPoint(m_presenter.m_view->mapFromScene(point));
-    switch(editionSettings().tool())
+    switch(es.tool())
     {
         case Scenario::Tool::Create:
             m_createTool.on_released(point, scenarioPoint);
+            es.setTool(Scenario::Tool::Select);
             break;
         case Scenario::Tool::Playing:
         case Scenario::Tool::Select:
@@ -105,6 +107,7 @@ void ToolPalette::on_released(QPointF point)
             break;
         case Scenario::Tool::MoveSlot:
             m_moveSlotTool.on_released();
+            es.setTool(Scenario::Tool::Select);
             break;
         default:
             break;
