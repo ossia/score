@@ -60,6 +60,7 @@ cp $APP.AppDir/usr/share/pixmaps/i-score.png $APP.AppDir/
     # Dependencies of qt
     ldd usr/lib/qt5/plugins/platforms/libqxcb.so | grep "=>" | awk '{print $3}'  |  xargs -I '{}' cp -v '{}' ./usr/lib || true
     cp -v /usr/local/Qt-5.6.2/lib/libQt5XcbQpa.so.5 ./usr/lib || true
+    cp -v /usr/local/Qt-5.6.2/lib/libQt5Dbus.so.5 ./usr/lib || true
     
     # Taken from Subsurface appimage
     # The following are assumed to be part of the base system
@@ -129,6 +130,7 @@ cp $APP.AppDir/usr/share/pixmaps/i-score.png $APP.AppDir/
     # Hence, we binary patch /usr/lib* to $CWD/lib* which works because at runtime,
     # the current working directory is set to usr/ inside the AppImage before running the app
     cd usr/ ; find . -type f -exec sed -i -e 's|/usr/lib|././/lib|g' {} \; ; cd ..
+    cd usr/ ; find . -type f -exec sed -i -e 's|/usr/local/Qt-5.6.2/lib|././/lib|g' {} \; ; cd ..
     
     cp $(ldconfig -p | grep libfreetype.so.6 | cut -d ">" -f 2 | xargs) ./usr/lib/ # For Fedora 20
     
