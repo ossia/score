@@ -7,6 +7,13 @@ export CMAKE_PATH=$(find $PWD/cmake-*/ -type d | head -n 1)bin
 export LD_LIBRARY_PATH=/usr/local/lib64
 export PATH=/usr/local/bin:$CMAKE_PATH:$PATH
 
+git_pull_rebase_helper()
+{
+    git reset --hard HEAD
+    git pull
+    git submodule update --init --recursive
+}
+
 
 export BUILD_DIR=i-score-build
 export APP=i-score
@@ -32,11 +39,7 @@ mkdir -p $APP.AppDir/usr
     mkdir -p build
     
     cd build
-    cmake ../i-score \
-        -DISCORE_CONFIGURATION=release \ 
-        -DCMAKE_INSTALL_PREFIX=$INSTALL_ROOT \
-        -DCMAKE_PREFIX_PATH=$(dirname $(find /usr/local -name 'Qt5Config.cmake')) \
-        -DBOOST_ROOT=$BOOST_ROOT
+    cmake ../i-score -DISCORE_CONFIGURATION=release -DCMAKE_INSTALL_PREFIX=$INSTALL_ROOT -DCMAKE_PREFIX_PATH=$(dirname $(find /usr/local -name 'Qt5Config.cmake')) -DBOOST_ROOT=$BOOST_ROOT
     
     cmake --build . --target all_unity -- -j8
     cmake --build . --target install -- -j8
@@ -156,3 +159,5 @@ mkdir -p out
 
 chmod a+rwx out/$APPIMAGE # So that we can edit the AppImage outside of the Docker container
 ls -lh out/$APPIMAGE
+curl --upload-file out/$APPIMAGE https://transfer.sh/iscore.appimage
+
