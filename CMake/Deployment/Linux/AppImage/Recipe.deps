@@ -9,33 +9,37 @@ yum -y install libmpc gcc  wget tar bzip2 xz git libxml2  binutils fuse mesa-lib
 
 git_pull_rebase_helper()
 {
-	git reset --hard HEAD
-	git pull
-	git submodule update --init --recursive
+    git reset --hard HEAD
+    git pull
+    git submodule update --init --recursive
 }
 
 # Install required libs
 wget -nv https://github.com/OSSIA/iscore-sdk/releases/download/1.0/i-score-sdk.txz
 tar -xaf i-score-sdk.txz --directory /
 cp -rf /usr/local/lib64/* /usr/lib64/
+
+wget -nv https://github.com/OSSIA/iscore-sdk/releases/download/1.0/jamoma.txz
+tar -xaf jamoma.txz --directory /usr/local/
+
 wget -nv http://downloads.sourceforge.net/project/boost/boost/1.61.0/boost_1_61_0.tar.bz2
 tar -xaf boost_1_61_0.tar.bz2
 mv boost_1_61_0 boost
 
 # Build AppImage
 (
-	if [ ! -d AppImages ] ; then
-		git clone https://github.com/probonopd/AppImages.git
-	fi
-	
-	cd AppImages/
-	git_pull_rebase_helper
+    if [ ! -d AppImages ] ; then
+        git clone https://github.com/probonopd/AppImages.git
+    fi
+    
+    cd AppImages/
+    git_pull_rebase_helper
 )
 
 # Download CMake
 (
-	wget -nv --no-check-certificate -c https://cmake.org/files/v3.5/cmake-3.5.2-Linux-x86_64.tar.gz
-	tar xaf cmake-*.tar.gz
+    wget -nv --no-check-certificate -c https://cmake.org/files/v3.5/cmake-3.5.2-Linux-x86_64.tar.gz
+    tar xaf cmake-*.tar.gz
 )
 
 # Set-up paths
@@ -45,12 +49,12 @@ export PATH=/usr/local/bin:$CMAKE_PATH:$PATH
 
 # Build AppImageKit
 (
-	if [ ! -d AppImageKit ] ; then
-		git clone https://github.com/probonopd/AppImageKit.git
-	fi
-	cd AppImageKit/
-	git_pull_rebase_helper
-	cmake .
-	make clean
-	make
+    if [ ! -d AppImageKit ] ; then
+        git clone https://github.com/probonopd/AppImageKit.git
+    fi
+    cd AppImageKit/
+    git_pull_rebase_helper
+    cmake .
+    make clean
+    make
 )

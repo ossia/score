@@ -27,7 +27,7 @@
 #include <Scenario/Application/ScenarioActions.hpp>
 
 struct VisitorVariant;
-#if defined(__APPLE__) && defined(ISCORE_DEPLOYMENT_BUILD)
+#if defined(ISCORE_DEPLOYMENT_BUILD) && (defined(__APPLE__) || defined(linux))
 #include <TTFoundationAPI.h>
 #include <TTModular.h>
 #include <QFileInfo>
@@ -49,11 +49,17 @@ OSSIAApplicationPlugin::OSSIAApplicationPlugin(
     iscore::GUIApplicationContextPlugin {ctx},
     m_playActions{*this, ctx}
 {
+#if defined(ISCORE_DEPLOYMENT_BUILD)
 // Here we try to load the extensions first because of buggy behaviour in TTExtensionLoader and API.
-#if defined(__APPLE__) && defined(ISCORE_DEPLOYMENT_BUILD)
+#if defined(__APPLE__)
     auto contents = QFileInfo(qApp->applicationDirPath()).dir().path() + "/Frameworks/jamoma/extensions";
     TTFoundationInit(contents.toUtf8().constData(), true);
     TTModularInit(contents.toUtf8().constData(), true);
+#elif defined(linux)
+    auto contents = QFileInfo(qApp->applicationDirPath()).dir().path() + "/../lib/jamoma";
+    TTFoundationInit(contents.toUtf8().constData(), true);
+    TTModularInit(contents.toUtf8().constData(), true);
+#endif
 #endif
     auto localDevice = OSSIA::Local::create();
     m_localDevice = OSSIA::Device::create(localDevice, "i-score");
